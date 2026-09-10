@@ -3,13 +3,13 @@ import { useStore } from '../../store'
 import { boardObjective, facLevel, fmtMoney, fmtWage, operatingCost, weeklyCentral } from '../../game/model'
 import {
   CHARTER_SKU, buyOwnable, hasEntitlement,
-  billingReason, rewardedAvailable, showRewarded, tillOpen,
+  billingReason, rewardedAvailable, tillOpen,
 } from '../../game/monetise'
 import { canTownCollection } from '../../game/rewarded'
 import { staffWageBill } from '../../game/staff'
 import { OBJECTIVE_DEFS } from '../../game/objectives'
 import { MARQUEE_SLOTS, capPosition, capWord, rosterGrid, rosterWarnings } from '../../game/cap'
-import { SectionTitle } from '../components'
+import { SectionTitle, RewardedButton } from '../components'
 import { t } from '../../game/i18n'
 import { CLOSE_EVENTS, bookEvent, bookedThisWeek, eventFee, eventOpen, isCloseSeason } from '../../game/closeseason'
 import {
@@ -197,14 +197,13 @@ export default function Finances() {
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
           <h3 style={{ fontSize: 14 }}>{t('till.townTitle')}</h3>
           <div className="meta">{t('till.townBody')}</div>
-          <button className="btn ghost block" style={{ marginTop: 6 }} onClick={() => {
-            void showRewarded('collection').then(out => {
+          <RewardedButton place="collection" label={t('till.watchTown')} style={{ marginTop: 6 }}
+            onDone={out => {
               if (out === 'completed') {
                 const amt = rewardTown()
                 setAskMsg(amt != null ? t('till.townDone', { amount: fmtMoney(amt) }) : t('till.favourGone'))
               } else setAskMsg(t(out === 'skipped' ? 'till.spotSkipped' : 'till.spotUnavailable'))
-            })
-          }}>{t('till.watchTown')}</button>
+            }} />
         </div>
       )}
       <button className="btn ghost block" disabled={asked} onClick={() => {

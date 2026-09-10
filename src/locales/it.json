@@ -6305,9 +6305,10 @@
   "townBody": "Per un club davvero nei guai, il trust dei tifosi fa girare il cappello: guarda uno spot e la colletta arriva in banca. Paga stipendi e bollette, mai i giocatori.",
   "watchTown": "📺 Lascia girare il cappello",
   "townDone": "La colletta ha fruttato {amount}. È in banca.",
-  "agencyDone": "Il dossier dell'agenzia su {name} è arrivato: il quadro degli osservatori è appena diventato più nitido.",
+  "agencyDone": "Il dossier dell'agenzia su {name} è arrivato: ogni attributo, e il carattere che ci sta dietro.",
   "spotSkipped": "Lo spot è stato chiuso in anticipo, quindi non è cambiato nulla: il favore vale solo se lo guardi tutto.",
   "spotUnavailable": "Nessuno spot disponibile al momento. Non hai perso nulla: riprova più tardi.",
+  "spotLoading": "Cerco uno spot…",
   "favourGone": "Il momento è passato: la disponibilità della settimana era già stata usata.",
   "watchAnalyst": {
    "one": "📺 L'analista ha un'altra lettura - la sua nottata in cambio di uno spot",

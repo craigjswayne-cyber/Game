@@ -35,6 +35,7 @@ import { DREAMS, dreamsFor, worldHasComp } from '../src/game/dream'
 import { CHALLENGES, challengesFor, LEAGUE_DEFS } from '../src/game/newgame'
 import { newGame } from '../src/game/newgame'
 import { isWomensId, type Gender } from '../src/game/gender'
+import { parseResultsParam, resultsParam } from '../src/game/schedule'
 
 let fails = 0
 const ok = (c: boolean, what: string) => {
@@ -129,6 +130,42 @@ for (const g of WORLDS) {
 }
 ok(CHALLENGES.length === challengesFor('m').length + challengesFor('w').length,
   `every challenge belongs to exactly one world (${CHALLENGES.length} = ${challengesFor('m').length} + ${challengesFor('w').length})`)
+
+// ---------------------------------------------------------------------------
+// 4. EVERY COMPETITION ID SURVIVES THE TRIP TO A SCREEN AND BACK
+//
+// The full-time round-up is reached with one string carrying a competition and
+// a week. Men's ids are bare words, so "prem:8" read back perfectly for two
+// years. Women's ids carry the world prefix - 'w:pwr', 'w:celt' - so "w:pwr:8"
+// read back as competition 'w' in week NaN, and the ENTIRE WOMEN'S GAME showed
+// "No other results this round" after every match, including the manager's own.
+//
+// Reported by the owner, not by any of the two hundred and sixteen probes here,
+// because every one of them tested game logic and this was a screen parameter.
+// It is the same shape of fault as the rest of this file: nothing threw,
+// nothing rendered wrong, and one world was quietly given a broken version of a
+// screen the other world had working.
+// ---------------------------------------------------------------------------
+say('\n--- 4. every competition id survives the round trip to a screen')
+{
+  let round = 0
+  const broken: string[] = []
+  for (const g of WORLDS) {
+    // every league, every cup, and the international competitions with them
+    const ids = new Set<string>([...compsOf[g], ...LEAGUE_DEFS(g).map(l => l.id), 'fr'])
+    for (const id of ids) {
+      for (const week of [1, 8, 47]) {
+        round++
+        const back = parseResultsParam(resultsParam(id, week))
+        if (back.compId !== id || back.week !== week) {
+          broken.push(`${worldName(g)}: "${resultsParam(id, week)}" reads back as ${back.compId} in week ${back.week}`)
+        }
+      }
+    }
+  }
+  ok(broken.length === 0, `${round} round-ups reached the right competition and week${broken.length ? ` - ${broken[0]}` : ''}`)
+  broken.slice(1, 4).forEach(b => console.log(`        ${b}`))
+}
 
 console.log(fails
   ? `\nWORLD PARITY FAILED (${fails})`

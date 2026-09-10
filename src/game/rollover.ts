@@ -8,7 +8,7 @@ import { ageManager } from './career'
 import { rivalVerdict } from './boss'
 import {absWeek, BASE_YEAR, boardObjective, boardPatience, closeNatTenure, demandCeiling, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId } from './model'
 import { assignPersonality } from './attributes'
-import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildLeague, schedulePreseason, sortTable } from './schedule'
+import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildWomensContinentalCup, buildLeague, schedulePreseason, sortTable } from './schedule'
 import { punditPredictions } from './gossip'
 import { CHALLENGES, LEAGUE_DEFS } from './newgame'
 import { genderOf, W } from './gender'
@@ -1789,6 +1789,12 @@ export function rebuildSeason(state: GameState) {
     state.comps['chc'] = buildChampionsCup(chcSlots.slice(0, 16), rng, state, { id: 'chc', name: 'Continental Shield', short: 'Continental Shield' })
     buildInternationals(rng, state, wcYear)
   } else {
+    // The women's world gets its own continental cup, drawn the same way it was
+    // drawn in August of year one. This used to be built only in newGame, so a
+    // women's career had the competition for a single season and then found it
+    // gone at the rollover - along with the two ambitions that name it, in the
+    // middle of a save that had already been offered them.
+    state.comps['cc'] = buildWomensContinentalCup(rng, state)
     buildWomensInternationals(rng, state)
   }
   schedulePreseason(state, rng)
