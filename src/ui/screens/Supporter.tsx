@@ -37,16 +37,31 @@ import { endingText } from '../purchase'
 
 
 /** One product on the shelf: icon, name, one line, one button. */
-function Row({ icon, title, line, right, msg, children }: {
+/**
+ * One product on the shelf.
+ *
+ * `hero` marks the one that is not like the others. Pro Manager was a row with
+ * a star on it, identical in weight to a £1.99 cash injection, and the owner's
+ * note was "Pro Manager needs to stand out more. Make it really stand out -
+ * gold, white, black - textured background." It is the only product that
+ * changes how the whole game looks and feels rather than one career, and it was
+ * being sold like a consumable.
+ *
+ * The treatment is .store-hero in theme.css: gold rule, gold-on-black with a
+ * fine diagonal weave, white body copy where every other row is grey. No new
+ * colour - it is the theme's own --gold over its own --canvas, which is why
+ * tokenlint still passes and why it will follow a skin rather than fight one.
+ */
+function Row({ icon, title, line, right, msg, children, hero }: {
   icon: string; title: string; line: string
-  right?: React.ReactNode; msg?: string | null; children?: React.ReactNode
+  right?: React.ReactNode; msg?: string | null; children?: React.ReactNode; hero?: boolean
 }) {
   return (
-    <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+    <div className={`card${hero ? ' store-hero' : ''}`} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <span style={{ fontSize: 20, flexShrink: 0 }}>{icon}</span>
+        <span style={{ fontSize: hero ? 24 : 20, flexShrink: 0 }}>{icon}</span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 700, fontSize: 14 }}>{title}</div>
+          <div style={{ fontWeight: 700, fontSize: hero ? 16 : 14 }}>{title}</div>
           <div className="meta" style={{ marginTop: 1 }}>{line}</div>
         </div>
         {right}
@@ -119,7 +134,7 @@ const TIER_KEY: Record<InjectTier, string> = {
  * is set up properly, so nearly all of them.
  */
 function TillHealth() {
-  const [state, setState] = useState<{ live: number; asked: number } | null>(null)
+  const [state, setState] = useState<{ live: number; asked: number; missing: string[] } | null>(null)
   useEffect(() => { void tillHealth().then(setState) }, [])
   if (!state || state.live === state.asked) return null
   const key = state.live === 0 ? 'store.tillSilent' : 'store.tillPartial'
@@ -357,7 +372,7 @@ export default function Supporter() {
 
   if (adsExist || ownsAds) {
     row('ads', ownsAds,
-      <Row icon="⭐" title={t('store.removeAds')} line={t('store.removeAdsLine')} msg={msgs[SUPPORTER_SKU]}
+      <Row hero icon="⭐" title={t('store.removeAds')} line={t('store.removeAdsLine')} msg={msgs[SUPPORTER_SKU]}
         right={ownsAds ? <OwnedChip /> : <BuyBtn sku={SUPPORTER_SKU} busy={isBusy(SUPPORTER_SKU)} onBuy={() => void buyNC(SUPPORTER_SKU)} />} />)
   }
 
