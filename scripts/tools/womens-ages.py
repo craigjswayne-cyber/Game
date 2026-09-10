@@ -41,7 +41,8 @@ import re
 import sys
 
 LINE = re.compile(
-    r"^(?P<head>\s*\{ name: '(?P<name>(?:[^']|\\')+)', pos: ')(?P<pos>\w+)(?P<mid>', age: )(?P<age>\d+)(?P<tail>, nat: .*)$")
+    r"^(?P<head>\s*\{ name: '(?P<name>(?:[^']|\\')+)', pos: ')(?P<pos>\w+)(?P<mid>', age: )(?P<age>\d+)"
+    r"(?P<mid2>, nat: ')(?P<nat>\w+)(?P<tail>'.*)$")
 
 # Real ages and positions, one player at a time, each with the source it was
 # checked against. A player in here is never dealt an age - hers is a fact.
@@ -140,13 +141,15 @@ def main() -> int:
                 fact = VERIFIED.get(name, {})
                 new = fact['age'] if 'age' in fact else deal[name]
                 pos = fact.get('pos', m.group('pos'))
-                if new != int(m.group('age')) or pos != m.group('pos'):
+                nat = fact.get('nat', m.group('nat'))
+                if new != int(m.group('age')) or pos != m.group('pos') or nat != m.group('nat'):
                     moved += 1
-                lines[i] = f"{m.group('head')}{pos}{m.group('mid')}{new}{m.group('tail')}"
+                lines[i] = (f"{m.group('head')}{pos}{m.group('mid')}{new}"
+                            f"{m.group('mid2')}{nat}{m.group('tail')}")
         if apply:
             open(path, 'w').write('\n'.join(lines))
-    print(f"{'rewrote' if apply else 'would rewrite'} {moved} ages and positions "
-          f"({len(VERIFIED)} players are pinned to a checked source and were left alone)")
+    print(f"{'rewrote' if apply else 'would rewrite'} {moved} ages, positions and unions "
+          f"({len(VERIFIED)} players are pinned to a checked source)")
     return 0
 
 
