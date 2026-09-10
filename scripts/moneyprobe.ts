@@ -939,8 +939,21 @@ console.log('\n--- 14. the StoreKit bridge and the native files behind it')
     'every consumable is typed Consumable there')
   ok(sellable.filter(s => !M.CONSUMABLE_SKUS.includes(s)).every(s => kitById.get(s) === 'NonConsumable'),
     'and the permanent ones NonConsumable')
-  ok(!kitById.has(M.SUPPORTER_SKU),
-    'Remove-all-ads is absent, exactly as it is absent from Play until a build ships ads')
+  // AND THE ELEVENTH IS THERE TOO, which it was not for a long time and for a
+  // reason that has since expired. This line used to assert the OPPOSITE:
+  //
+  //     'Remove-all-ads is absent, exactly as it is absent from Play
+  //      until a build ships ads'
+  //
+  // - written when the game carried no adverts, so a product whose whole
+  // purpose is removing them had nothing to remove and was sold nowhere.
+  // Adverts shipped in 1.3.0. The owner's Play Console shows phase.supporter
+  // live, last updated 5 Sep 2026, alongside the other ten. So the simulator's
+  // catalogue was the only place in the world it did not exist, which made the
+  // one product he most needed to watch working the one product StoreKit
+  // testing could not reach.
+  ok(kitById.get(M.SUPPORTER_SKU) === 'NonConsumable',
+    'and Pro Manager is there as a non-consumable, as Play has had it since 1.3.0 shipped adverts')
 
   // (d) ONE PRICE, ONE CURRENCY, ON BOTH SIDES OF THE FENCE.
   //
