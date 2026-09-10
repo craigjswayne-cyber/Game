@@ -40,6 +40,28 @@ export const LEAGUE_WEEKS = [
 ]
 export const CC_POOL_WEEKS = [18, 19, 22, 23, 32, 33]
 export const CC_KO_WEEKS = [34, 38, 41]
+
+/**
+ * ---- AND THE WOMEN'S CUP, WHICH CANNOT USE THOSE WEEKS ----
+ *
+ * The men's Continental Cup plays its last two pool rounds in weeks 32 and 33
+ * and its knockouts in 34, 38 and 41. Every one of those is an international
+ * week in the WOMEN'S calendar: the Northern Championship takes 32, 33, 34, 36
+ * and 38, and the Southern Four takes 40, 41 and 42. Reusing the men's weeks
+ * would have put a continental quarter-final on the same Saturday as a Test.
+ *
+ * So the women's cup has its own calendar, and these are the weeks their top
+ * four leagues are genuinely idle - checked against a built season rather than
+ * chosen by eye. Weeks 28, 31 and 37 carry Championship fixtures and nothing
+ * else, and the Championship is a second tier which this cup does not include
+ * (owner: "celtic sides in but no second tiers"), so its clubs are free.
+ *
+ * The whole competition therefore runs from week 8 to a final in week 37 -
+ * inside the domestic season, out of every international window, and finishing
+ * before the last league round rather than after it.
+ */
+export const W_CC_POOL_WEEKS = [8, 11, 18, 19, 22, 23]
+export const W_CC_KO_WEEKS = [28, 31, 37]
 export const AUTUMN_WEEKS = [13, 14, 15]
 export const SIX_NATIONS_WEEKS = [25, 26, 27, 28, 29]
 export const TRC_WEEKS = [5, 6, 7, 9, 10, 11]
@@ -205,6 +227,10 @@ export function schedulePreseason(state: GameState, rng: Rng) {
 export function buildChampionsCup(clubIds: string[], rng: Rng, state: GameState,
   // just "Continental Cup" (user: "remove the word continental")
   meta: { id: string; name: string; short: string } = { id: 'cc', name: 'Continental Cup', short: 'Continental Cup' },
+  // The weeks it plays in. Defaulted to the men's, because they were hard-coded
+  // in here and the women's calendar cannot use them - see W_CC_POOL_WEEKS.
+  poolWeeks: readonly number[] = CC_POOL_WEEKS,
+  koWeeks: readonly number[] = CC_KO_WEEKS,
 ): Competition {
   const teams = shuffled(rng, clubIds.slice(0, 16))
   const comp: Competition = {
@@ -216,8 +242,8 @@ export function buildChampionsCup(clubIds: string[], rng: Rng, state: GameState,
     table: teams.map(emptyRow),
     rounds: 6,
     playoffTeams: 8,
-    weeksByRound: CC_POOL_WEEKS,
-    koWeeks: CC_KO_WEEKS,
+    weeksByRound: [...poolWeeks],
+    koWeeks: [...koWeeks],
   }
   // seeded pools: 1 top seed per pool
   const pools: string[][] = [[], [], [], []]
@@ -231,7 +257,7 @@ export function buildChampionsCup(clubIds: string[], rng: Rng, state: GameState,
           id: state.nextId++,
           compId: meta.id,
           round: r,
-          week: CC_POOL_WEEKS[r],
+          week: poolWeeks[r],
           homeId: h, awayId: a,
           played: false, homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
         })
