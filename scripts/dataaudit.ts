@@ -306,6 +306,47 @@ for (const club of allClubs) {
   if (ages.some(a => a < 17 || a > 41)) bad(`${club.id} has an implausible age: ${ages.filter(a => a < 17 || a > 41).join(', ')}`)
 }
 
+// ---- 8b. AND THE SHAPE OF THE CURVE, NOT JUST ITS EDGES --------------------
+//
+// The women's data came from a squad sheet that carried names and clubs and no
+// ages, so ages were assigned - as a FLAT DRAW between 18 and 33. Every year in
+// that range held between 100 and 157 players, mean rating at every one of them
+// was 61, and NOBODY IN THE ENTIRE WOMEN'S GAME WAS OVER 33. The checks above
+// all passed: every club had its veterans and its kids, and no age was
+// implausible on its own. The distribution was the thing that was wrong, and
+// nothing was looking at distributions.
+//
+// The visible symptom was an eighteen-year-old lock rated 84 on £9.6k a week,
+// reported by the owner from a live save. That is what a flat draw produces
+// when age and ability are independent.
+//
+// Two properties, checked over the whole world rather than club by club:
+// squads are a bell with real tails, and ability rises to a prime and falls
+// away - the shape the men's database has because its ages are real.
+for (const gender of ['m', 'w'] as const) {
+  const rows = LEAGUE_DEFS(gender)
+    .flatMap(l => l.clubs)
+    .flatMap(c => (c.players ?? []).map(p => ({ age: p.age, q: p.q ?? 60 })))
+  const at = (lo: number, hi: number) => rows.filter(r => r.age >= lo && r.age <= hi)
+  const mean = (xs: { q: number }[]) => (xs.length ? xs.reduce((s, r) => s + r.q, 0) / xs.length : 0)
+  const world = gender === 'w' ? "the women's game" : "the men's game"
+
+  // the tails exist at all
+  const old = at(34, 42).length
+  if (old < rows.length * 0.01) bad(`${world}: only ${old} of ${rows.length} players are 34 or older`)
+
+  // and neither tail is as big as the middle - a flat draw fails this
+  const prime = at(24, 29).length
+  if (prime < at(18, 23).length) bad(`${world}: more players under 24 than in their prime years`)
+  if (prime < old * 3) bad(`${world}: the veteran tail is not a tail (${old} vs ${prime} in their prime)`)
+
+  // ability climbs to a prime and comes back down
+  const young = mean(at(18, 20)), peak = mean(at(26, 29)), late = mean(at(34, 42))
+  if (peak <= young + 4) bad(`${world}: ability does not rise with experience (${young.toFixed(1)} at 18-20, ${peak.toFixed(1)} at 26-29)`)
+  if (late > peak) bad(`${world}: the oldest players are the best in the game (${late.toFixed(1)} vs ${peak.toFixed(1)})`)
+  console.log(`  ${world}: mean rating ${young.toFixed(1)} at 18-20, ${peak.toFixed(1)} at 26-29, ${late.toFixed(1)} at 34+`)
+}
+
 // 5. internationals: a club of standing carries capped players
 for (const club of allClubs) {
   const caps = club.players.filter(p => p.intl).length
