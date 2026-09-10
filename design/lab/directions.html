@@ -1,0 +1,346 @@
+<title>Dugout, Sheet, Broadcast</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;700&family=Archivo:wght@400;500;600;700&family=Courier+Prime:wght@400;700&family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap">
+<style>
+  /* ---------- the page around the work ---------- */
+  :root {
+    --page:    #edefee;
+    --panel:   #ffffff;
+    --pen:     #161a18;
+    --quiet:   #626e68;
+    --hair:    #d5dbd7;
+    --mark:    #1d4a35;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --page: #101312; --panel: #181c1a; --pen: #e6ebe8; --quiet: #8d9a94; --hair: #272d2a; --mark: #63b189;
+    }
+  }
+  :root[data-theme="dark"] {
+    --page: #101312; --panel: #181c1a; --pen: #e6ebe8; --quiet: #8d9a94; --hair: #272d2a; --mark: #63b189;
+  }
+
+  body { background: var(--page); color: var(--pen); font-family: Archivo, system-ui, sans-serif;
+         line-height: 1.55; padding-inline: 20px; padding-block: 44px 90px; }
+  .page { max-width: 78rem; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
+
+  h1 { font-family: "Barlow Condensed", Archivo, sans-serif; font-weight: 800; font-size: clamp(2.2rem, 7vw, 3.4rem);
+       letter-spacing: -.01em; text-transform: uppercase; margin: 0; line-height: .95; text-wrap: balance; }
+  .lede { max-width: 42rem; color: var(--quiet); font-size: 1.02rem; margin: 0; }
+  .kicker { font-family: "JetBrains Mono", monospace; font-size: .7rem; letter-spacing: .16em;
+            text-transform: uppercase; color: var(--quiet); }
+
+  .faults { display: flex; flex-wrap: wrap; gap: 8px; }
+  .faults span { font-family: "JetBrains Mono", monospace; font-size: .7rem; letter-spacing: .04em;
+                 border: 1px solid var(--hair); border-radius: 100px; padding: 4px 11px; color: var(--quiet); }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 34px; align-items: start; }
+  .col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+  .col h2 { font-family: "Barlow Condensed", sans-serif; text-transform: uppercase; font-weight: 700;
+            font-size: 1.5rem; letter-spacing: .01em; margin: 0; }
+  .col .thesis { color: var(--quiet); font-size: .92rem; margin: 0; }
+  .col ul { margin: 0; padding-left: 1.05rem; color: var(--quiet); font-size: .86rem;
+            display: flex; flex-direction: column; gap: 5px; }
+  .col ul strong { color: var(--pen); font-weight: 600; }
+
+  /* the phone */
+  .phone { border: 1px solid var(--hair); border-radius: 22px; overflow: hidden; max-width: 100%;
+           box-shadow: 0 14px 34px rgba(0,0,0,.12); }
+  .screen { width: 100%; }
+
+  /* ================= A · THE DUGOUT ================= */
+  .dug { --d-ground:#0f1412; --d-surf:#161c19; --d-ink:#e9efeb; --d-mute:#7d8b84; --d-hair:#232b27;
+         --d-go:#35d17c; --d-coin:#e0b45e; --d-warn:#d0574a;
+         background: var(--d-ground); color: var(--d-ink);
+         font-family: "Space Grotesk", sans-serif; font-size: 14px; }
+  .dug .top { padding: 16px 18px 14px; border-bottom: 1px solid var(--d-hair); display: flex; flex-direction: column; gap: 3px; }
+  .dug .club { font-size: 1.22rem; font-weight: 700; letter-spacing: -.01em; }
+  .dug .when { font-family: "JetBrains Mono", monospace; font-size: .66rem; letter-spacing: .13em;
+               text-transform: uppercase; color: var(--d-mute); }
+  .dug .go { margin: 16px 18px 4px; background: var(--d-go); color: #06170e; border: 0; width: calc(100% - 36px);
+             padding: 15px; border-radius: 8px; font-family: "Space Grotesk", sans-serif; font-weight: 700;
+             font-size: 1rem; letter-spacing: .06em; text-transform: uppercase; }
+  .dug .gonote { margin: 0 18px 20px; font-size: .74rem; color: var(--d-mute); text-align: center; }
+  .dug section { padding: 18px; border-top: 1px solid var(--d-hair); display: flex; flex-direction: column; gap: 10px; }
+  .dug .lab { font-family: "JetBrains Mono", monospace; font-size: .63rem; letter-spacing: .16em;
+              text-transform: uppercase; color: var(--d-mute); display: flex; align-items: center; gap: 7px; }
+  .dug .fixture { font-size: 1.3rem; font-weight: 700; line-height: 1.2; letter-spacing: -.01em; }
+  .dug .fixture em { font-style: normal; color: var(--d-mute); font-weight: 500; }
+  .dug .venue { font-size: .82rem; color: var(--d-mute); }
+  .dug .obj { display: flex; gap: 9px; font-size: .87rem; align-items: baseline; }
+  .dug .obj i { font-style: normal; color: var(--d-warn); font-size: .7rem; }
+  .dug .figs { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 18px; }
+  .dug .fig { display: flex; justify-content: space-between; align-items: baseline;
+              border-bottom: 1px solid var(--d-hair); padding: 7px 0; font-size: .85rem; }
+  .dug .fig b { font-family: "JetBrains Mono", monospace; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .dug .fig b.coin { color: var(--d-coin); }
+  .dug .fig span { color: var(--d-mute); }
+  .dug .fx { display: flex; justify-content: space-between; font-size: .85rem; padding: 6px 0;
+             border-bottom: 1px solid var(--d-hair); }
+  .dug .fx u { text-decoration: none; font-family: "JetBrains Mono", monospace; color: var(--d-mute);
+               font-size: .74rem; letter-spacing: .06em; }
+  .dug svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 1.6; }
+
+  /* ================= B · THE TEAM SHEET ================= */
+  .sheet { --s-paper:#e9e4d6; --s-ink:#211e18; --s-faint:#7d7767; --s-rule:#c9c2ae; --s-pen:#b03a2b; --s-blue:#5b6d86;
+           background: var(--s-paper); color: var(--s-ink); font-family: Archivo, sans-serif; font-size: 14px;
+           background-image: repeating-linear-gradient(180deg, transparent 0 27px, rgba(91,109,134,.14) 27px 28px); }
+  .sheet .hdr { padding: 16px 18px 12px; border-bottom: 2px solid var(--s-ink); display: flex;
+                justify-content: space-between; align-items: flex-end; gap: 10px; }
+  .sheet .hdr h3 { margin: 0; font-family: "Courier Prime", monospace; font-weight: 700; font-size: 1.05rem;
+                   text-transform: uppercase; letter-spacing: .02em; }
+  .sheet .hdr p { margin: 0; font-family: "Courier Prime", monospace; font-size: .68rem; color: var(--s-faint); text-align: right; }
+  .sheet .go { margin: 15px 18px; width: calc(100% - 36px); background: transparent; color: var(--s-pen);
+               border: 2px solid var(--s-pen); padding: 12px; font-family: "Courier Prime", monospace;
+               font-weight: 700; font-size: .95rem; letter-spacing: .18em; text-transform: uppercase; }
+  .sheet section { padding: 6px 18px 16px; display: flex; flex-direction: column; gap: 8px; }
+  .sheet .lab { font-family: "Courier Prime", monospace; font-size: .66rem; letter-spacing: .14em;
+                text-transform: uppercase; color: var(--s-faint); border-bottom: 1px solid var(--s-rule);
+                padding-bottom: 4px; }
+  .sheet .fixture { font-family: "Courier Prime", monospace; font-size: 1.06rem; font-weight: 700; line-height: 1.35; }
+  .sheet .venue { font-size: .8rem; color: var(--s-faint); }
+  .sheet .stamp { display: inline-block; border: 1.5px solid var(--s-pen); color: var(--s-pen);
+                  font-family: "Courier Prime", monospace; font-size: .6rem; letter-spacing: .12em;
+                  text-transform: uppercase; padding: 2px 7px; transform: rotate(-1.5deg); align-self: flex-start; }
+  .sheet .obj { display: grid; grid-template-columns: 15px 1fr; gap: 8px; font-size: .86rem; align-items: baseline; }
+  .sheet .obj i { font-family: "Courier Prime", monospace; font-style: normal; color: var(--s-pen); }
+  .sheet .row { display: flex; justify-content: space-between; font-size: .85rem;
+                border-bottom: 1px dotted var(--s-rule); padding: 5px 0; }
+  .sheet .row b { font-family: "Courier Prime", monospace; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .sheet .row span { color: var(--s-faint); }
+  .sheet .fx u { text-decoration: none; font-family: "Courier Prime", monospace; color: var(--s-faint); font-size: .76rem; }
+
+  /* ================= C · THE BROADCAST ================= */
+  .cast { --c-black:#08090a; --c-panel:#101314; --c-ink:#f2f5f4; --c-mute:#8b9490; --c-kit:#0e5a37;
+          --c-hot:#e8b73c; --c-line:#1c2122;
+          background: var(--c-black); color: var(--c-ink); font-family: Barlow, sans-serif; font-size: 14px; }
+  .cast .bar { background: var(--c-kit); padding: 12px 16px; display: flex; align-items: center; gap: 10px;
+               border-bottom: 3px solid var(--c-hot); }
+  .cast .bar h3 { margin: 0; font-family: "Barlow Condensed", sans-serif; font-weight: 800; font-size: 1.35rem;
+                  text-transform: uppercase; letter-spacing: .01em; }
+  .cast .bar p { margin: 0 0 0 auto; font-family: "Barlow Condensed", sans-serif; font-weight: 600;
+                 font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.72); }
+  .cast .go { width: 100%; border: 0; background: var(--c-hot); color: #14100a; padding: 16px;
+              font-family: "Barlow Condensed", sans-serif; font-weight: 800; font-size: 1.15rem;
+              letter-spacing: .14em; text-transform: uppercase; }
+  .cast .slate { background: var(--c-panel); border-left: 5px solid var(--c-hot); padding: 14px 16px;
+                 display: flex; flex-direction: column; gap: 6px; }
+  .cast .slate .tag { font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: .72rem;
+                      letter-spacing: .16em; text-transform: uppercase; color: var(--c-hot); }
+  .cast .slate .vs { font-family: "Barlow Condensed", sans-serif; font-weight: 800; font-size: 1.5rem;
+                     text-transform: uppercase; line-height: 1.05; }
+  .cast .slate .meta { font-size: .8rem; color: var(--c-mute); }
+  .cast section { padding: 14px 16px; border-top: 1px solid var(--c-line); display: flex; flex-direction: column; gap: 9px; }
+  .cast .lab { font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: .74rem;
+               letter-spacing: .16em; text-transform: uppercase; color: var(--c-mute); }
+  .cast .obj { display: grid; grid-template-columns: 22px 1fr; gap: 8px; font-size: .87rem; align-items: baseline; }
+  .cast .obj i { font-style: normal; font-family: "Barlow Condensed", sans-serif; font-weight: 800;
+                 color: var(--c-hot); font-size: .8rem; }
+  .cast .strip { display: flex; justify-content: space-between; align-items: center; padding: 7px 0;
+                 border-bottom: 1px solid var(--c-line); font-size: .87rem; }
+  .cast .strip b { font-family: "Barlow Condensed", sans-serif; font-weight: 800; font-size: 1rem;
+                   font-variant-numeric: tabular-nums; }
+  .cast .strip b.hot { color: var(--c-hot); }
+  .cast .strip span { color: var(--c-mute); }
+  .cast .fx { display: grid; grid-template-columns: 34px 1fr auto; gap: 10px; align-items: center;
+              padding: 7px 0; border-bottom: 1px solid var(--c-line); font-size: .87rem; }
+  .cast .fx u { text-decoration: none; font-family: "Barlow Condensed", sans-serif; font-weight: 700;
+                color: var(--c-mute); font-size: .78rem; letter-spacing: .08em; }
+  .cast .fx em { font-style: normal; font-family: "Barlow Condensed", sans-serif; font-weight: 700;
+                 color: var(--c-hot); font-size: .78rem; letter-spacing: .08em; }
+
+  footer { border-top: 1px solid var(--hair); padding-top: 22px; color: var(--quiet); font-size: .9rem;
+           display: flex; flex-direction: column; gap: 8px; max-width: 46rem; }
+  footer strong { color: var(--pen); }
+</style>
+
+<div class="page">
+
+  <header style="display:flex;flex-direction:column;gap:14px">
+    <p class="kicker">Lab · not for release</p>
+    <h1>Dugout, Sheet, Broadcast</h1>
+    <p class="lede">The same Home screen, the same data, three ways. Your writing and your team sheet are already good; this is only about the chrome around them. Pick one and I'll take it through the whole app on the lab branch.</p>
+    <div class="faults">
+      <span>one green doing every job</span>
+      <span>everything is a card</span>
+      <span>emoji as icons</span>
+      <span>green button on green header</span>
+      <span>four accents, no system</span>
+    </div>
+  </header>
+
+  <div class="grid">
+
+    <!-- ============ A ============ -->
+    <div class="col">
+      <p class="kicker">Direction A</p>
+      <h2>The Dugout</h2>
+      <p class="thesis">Same room as now, with the lights arranged properly. Nothing is a card; hairlines and space do the dividing, so the next fixture is plainly the biggest thing on the screen.</p>
+      <div class="phone">
+        <div class="screen dug">
+          <div class="top">
+            <div class="club">Northampton RFC</div>
+            <div class="when">Mon 10 Aug · 2026-27 · Wk 1</div>
+          </div>
+          <button class="go">Continue</button>
+          <p class="gonote">Moves the week on and brings you the next thing.</p>
+
+          <section>
+            <div class="lab">
+              <svg viewBox="0 0 24 24"><path d="M12 3v18M3 8h18M3 16h18"/></svg>
+              Next match · club friendly
+            </div>
+            <div class="fixture">Northampton <em>v</em> Waikato</div>
+            <div class="venue">The Gardens · 15 Aug · Home</div>
+          </section>
+
+          <section>
+            <div class="lab">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5"/></svg>
+              Season objectives · 0 of 3
+            </div>
+            <div class="obj"><i>○</i><span>Blood the academy: 6+ starts to players 21 or under</span></div>
+            <div class="obj"><i>○</i><span>Play with ambition: 55 league tries</span></div>
+            <div class="obj"><i>○</i><span>Reach the Continental Cup knockouts</span></div>
+          </section>
+
+          <section>
+            <div class="lab">
+              <svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg>
+              The books
+            </div>
+            <div class="figs" style="grid-template-columns:1fr">
+              <div class="fig"><span>State</span><b>Secure</b></div>
+              <div class="fig"><span>Balance</span><b class="coin">£2.4m</b></div>
+              <div class="fig"><span>Transfer budget</span><b class="coin">£4.0m</b></div>
+              <div class="fig"><span>Wage room</span><b class="coin">£37.4k/wk</b></div>
+            </div>
+          </section>
+
+          <section>
+            <div class="lab">
+              <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+              Fixtures
+            </div>
+            <div class="fx"><span>Waikato</span><u>Wk 1 · H · FR</u></div>
+            <div class="fx"><span>La Rochelle</span><u>Wk 2 · A · FR</u></div>
+            <div class="fx" style="border:0"><span>Durban</span><u>Wk 3 · H · FR</u></div>
+          </section>
+        </div>
+      </div>
+      <ul>
+        <li><strong>Green only means "press this".</strong> Nothing else on the screen is green.</li>
+        <li><strong>Gold only means money.</strong> Red only means jeopardy.</li>
+        <li>Emoji replaced with eight drawn glyphs that render the same on every phone.</li>
+        <li>Least disruptive. Still recognisably the game you shipped.</li>
+      </ul>
+    </div>
+
+    <!-- ============ B ============ -->
+    <div class="col">
+      <p class="kicker">Direction B</p>
+      <h2>The Team Sheet</h2>
+      <p class="thesis">Not an app. The folder on the desk in your own title art — ruled paper, typewriter figures, and one red pen that only ever marks what you have to decide.</p>
+      <div class="phone">
+        <div class="screen sheet">
+          <div class="hdr">
+            <h3>Northampton RFC</h3>
+            <p>Mon 10 Aug<br>2026-27 · Wk 1</p>
+          </div>
+          <button class="go">Continue</button>
+
+          <section>
+            <div class="lab">Next match — club friendly</div>
+            <div class="fixture">NORTHAMPTON<br>v WAIKATO</div>
+            <div class="venue">The Gardens · 15 Aug 2026 · Home</div>
+            <span class="stamp">Team not named</span>
+          </section>
+
+          <section>
+            <div class="lab">Season objectives — 0 of 3</div>
+            <div class="obj"><i>1.</i><span>Blood the academy: 6+ starts to players 21 or under</span></div>
+            <div class="obj"><i>2.</i><span>Play with ambition: 55 league tries</span></div>
+            <div class="obj"><i>3.</i><span>Reach the Continental Cup knockouts</span></div>
+          </section>
+
+          <section>
+            <div class="lab">The books</div>
+            <div class="row"><span>State</span><b>Secure</b></div>
+            <div class="row"><span>Balance</span><b>£2.4m</b></div>
+            <div class="row"><span>Transfer budget</span><b>£4.0m</b></div>
+            <div class="row" style="border:0"><span>Wage room</span><b>£37.4k/wk</b></div>
+          </section>
+
+          <section>
+            <div class="lab">Fixtures</div>
+            <div class="row fx"><span>Waikato</span><u>Wk 1 · H · FR</u></div>
+            <div class="row fx"><span>La Rochelle</span><u>Wk 2 · A · FR</u></div>
+            <div class="row fx" style="border:0"><span>Durban</span><u>Wk 3 · H · FR</u></div>
+          </section>
+        </div>
+      </div>
+      <ul>
+        <li><strong>Nothing like a generic app.</strong> Nobody will mistake this for a template.</li>
+        <li>The red pen is the whole accent system: it marks what needs you, and nothing else.</li>
+        <li>Suits the squad screen beautifully. Suits match day less well.</li>
+        <li>Fights your dark title art. Biggest change, biggest risk.</li>
+      </ul>
+    </div>
+
+    <!-- ============ C ============ -->
+    <div class="col">
+      <p class="kicker">Direction C</p>
+      <h2>The Broadcast</h2>
+      <p class="thesis">Match-day television as the whole language. Kit colour in the furniture, condensed type at weight, hard edges everywhere, and the fixture presented as a slate rather than a card.</p>
+      <div class="phone">
+        <div class="screen cast">
+          <div class="bar">
+            <h3>Northampton</h3>
+            <p>Wk 1</p>
+          </div>
+          <button class="go">Continue ▸</button>
+
+          <div class="slate">
+            <div class="tag">Next · club friendly</div>
+            <div class="vs">Northampton<br>v Waikato</div>
+            <div class="meta">The Gardens · 15 Aug 2026 · Home</div>
+          </div>
+
+          <section>
+            <div class="lab">Objectives — 0 / 3</div>
+            <div class="obj"><i>01</i><span>Blood the academy: 6+ starts to players 21 or under</span></div>
+            <div class="obj"><i>02</i><span>Play with ambition: 55 league tries</span></div>
+            <div class="obj"><i>03</i><span>Reach the Continental Cup knockouts</span></div>
+          </section>
+
+          <section>
+            <div class="lab">The books</div>
+            <div class="strip"><span>State</span><b>Secure</b></div>
+            <div class="strip"><span>Balance</span><b class="hot">£2.4m</b></div>
+            <div class="strip"><span>Transfer budget</span><b class="hot">£4.0m</b></div>
+            <div class="strip" style="border:0"><span>Wage room</span><b class="hot">£37.4k/wk</b></div>
+          </section>
+
+          <section>
+            <div class="lab">Fixtures</div>
+            <div class="fx"><u>Wk 1</u><span>Waikato</span><em>H · FR</em></div>
+            <div class="fx"><u>Wk 2</u><span>La Rochelle</span><em>A · FR</em></div>
+            <div class="fx" style="border:0"><u>Wk 3</u><span>Durban</span><em>H · FR</em></div>
+          </section>
+        </div>
+      </div>
+      <ul>
+        <li><strong>The header carries the club's kit</strong>, so every club's game looks different.</li>
+        <li>Loudest and most confident. Match day would be superb.</li>
+        <li>Gold is the only accent, and it means money or emphasis, never both at once.</li>
+        <li>Risk: twenty admin screens shouted at you may get tiring.</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <footer>
+    <p><strong>What I'd pick.</strong> A for the app, C for match day. They share a palette discipline — one action colour, one money colour, one jeopardy colour — so they can live in the same game without fighting. B is the most distinctive of the three and the one I'd want to try if you're willing to redraw the title art to match it.</p>
+    <p>Nothing here is committed to the game. Say which one and I'll build it properly on the lab branch, screen by screen, with the suite green before anything moves.</p>
+  </footer>
+
+</div>
