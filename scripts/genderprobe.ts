@@ -79,7 +79,7 @@ ok(LEAGUE_DEFS('w').length > 0, `the women's game has competitions (${LEAGUE_DEF
 
 console.log('\n=== seam 1: a world built by newGame ===')
 const wClub = LEAGUE_DEFS('w')[0].clubs[0].id
-const w = newGame(wClub, 'Test', 4242, undefined, 'coach', 'normal', 'w')
+const w = newGame(wClub, 'Test', 4242, undefined, 'coach', 'w')
 ok(genderOf(w) === 'w', 'the save says which game it is in')
 ok(!!w.clubs[wClub], `the user's club is in the world (${w.clubs[wClub]?.name})`)
 report(w, 'w', 'fresh women\'s world')
@@ -124,7 +124,7 @@ console.log('\n=== the women\'s Test game ===')
 // career can play a full Test programme and never name a squad. It did exactly
 // that until this probe caught it.
 {
-  const g = newGame(wClub, 'Test', 31337, undefined, 'coach', 'normal', 'w')
+  const g = newGame(wClub, 'Test', 31337, undefined, 'coach', 'w')
   const intl = Object.values(g.comps).filter(c => c.type === 'intl')
   ok(intl.length === 2, `the women's world has its two Test competitions (${intl.map(c => c.name).join(', ')})`)
   const fx = g.fixtures.filter(f => intl.some(c => c.id === f.compId))

@@ -312,7 +312,7 @@ section('1.2d mass fatigue: a side at 0% from minute 68')
 section('2.1 v1.5.0 features under a real career: women\'s world, 2 seasons; men\'s world, 1 season')
 {
   for (const gender of ['w', 'm'] as const) {
-    const w = newGame(gender === 'w' ? 'w:bristol' : 'leicester', 'Soak', 4242, undefined, 'coach', 'normal', gender, 'w')
+    const w = newGame(gender === 'w' ? 'w:bristol' : 'leicester', 'Soak', 4242, undefined, 'coach', gender, 'w')
     const seasons = gender === 'w' ? 2 : 1
     let weeks = 0, nan = 0, orphan = 0, dup = 0, tourStories = 0, closeSeasonIncome = 0, friendlies = 0
     const start = w.season

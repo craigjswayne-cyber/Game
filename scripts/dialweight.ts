@@ -41,7 +41,7 @@
  *   pay big in the SAME direction at BOTH clubs. That is the test the kicking
  *   free lunch would have failed, and it had never been run until now.
  *
- * THE SHEET MUST BE THE MANAGER'S (learned by difficultyprobe): userPicked is
+ * THE SHEET MUST BE THE MANAGER'S (learned by autopilotprobe): userPicked is
  * set, or the auto-picker quietly retakes the lineup underneath the experiment.
  */
 import { newGame } from '../src/game/newgame'

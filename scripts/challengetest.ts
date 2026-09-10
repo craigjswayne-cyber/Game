@@ -13,7 +13,7 @@ for (const ch of CHALLENGES) {
   // the women's four are pinned to women's clubs, which only exist in the
   // women's world - newGame built with the default 'm' has no such club and
   // dies inside seedKnowledge with an undefined club rather than a message
-  const g = newGame(ch.clubId, 'Audit Gaffer', 20260804, ch.id, 'coach', 'normal', ch.gender ?? genderOfId(ch.clubId))
+  const g = newGame(ch.clubId, 'Audit Gaffer', 20260804, ch.id, 'coach', ch.gender ?? genderOfId(ch.clubId))
   if (g.challenge !== ch.id) bad(`${ch.id} not stamped at boot`)
   for (let season = 0; season < 2; season++) {
     const target = g.season + 1

@@ -4,7 +4,7 @@
  * The open question from the release audit, and the one the user asked
  * directly: is this game too easy for a manager who actually uses it?
  *
- * difficultyprobe already measures ONE lever - the team sheet - and reports the
+ * autopilotprobe already measures ONE lever - the team sheet - and reports the
  * gap between a manager who sleepwalks and one who picks his strongest side.
  * Every other lever has only ever been measured ALONE, which is the wrong
  * question. A manager does not choose between a training ground and a scout; he
@@ -70,7 +70,7 @@ function bestSheet(g: GameState): void {
   club.tactic.lineup = autoSelect(g, pool, club.tactic?.split)
   // userPicked is what the Selection screen sets the moment a human touches it.
   // Without it lineupFor judges the sheet stale and the auto-picker silently
-  // replaces it - the harness bug difficultyprobe documents, and the reason all
+  // replaces it - the harness bug autopilotprobe documents, and the reason all
   // three arms here would otherwise be the same manager in different hats.
   club.tactic.userPicked = true
 }

@@ -227,7 +227,7 @@ export function terraceWeek(state: GameState) {
   //
   // A campaign costs confidence every week it runs, and more the louder it is.
   // But the first draft of this took it away without a floor, and
-  // scripts/difficultyprobe.ts said what that meant within one run: a
+  // scripts/autopilotprobe.ts said what that meant within one run: a
   // sleepwalking minnow's board bottomed at 34 where it used to bottom at 50,
   // because forty weeks of a stage-one grumble is sixteen points of confidence
   // whatever happens on the pitch. That is not pressure, it is a second

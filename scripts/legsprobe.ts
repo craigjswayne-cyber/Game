@@ -11,7 +11,7 @@
 // banks rhythm and burns legs, but no coach lets it empty the tank, so a
 // friendly's condition bottoms out at 48% - one ordinary recovery week puts
 // that XV at 70, clear of the 62% rotation flag. (64 was tried first and
-// difficultyprobe showed it had quietly bought the sleepwalking manager out
+// autopilotprobe showed it had quietly bought the sleepwalking manager out
 // of his early-season debt; 48 fixes the wall without paying his bills.)
 // League rugby is untouched: an unrotated XV still pays for all eighty
 // minutes, because the bench mattering is load-bearing design.

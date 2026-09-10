@@ -287,7 +287,7 @@ function audit(g: GameState, tag: string) {
 import { CHALLENGES } from '../src/game/newgame'
 import { genderOfId } from '../src/game/gender'
 for (const ch of CHALLENGES) {
-  const cg = newGame(ch.clubId, 'Boot Check', 4242, ch.id, 'coach', 'normal', ch.gender ?? genderOfId(ch.clubId))
+  const cg = newGame(ch.clubId, 'Boot Check', 4242, ch.id, 'coach', ch.gender ?? genderOfId(ch.clubId))
   if (cg.userClubId !== ch.clubId) bad(`challenge ${ch.id} booted at ${cg.userClubId}`)
   if (cg.challenge !== ch.id) bad(`challenge ${ch.id} not stamped on the save (got ${cg.challenge})`)
   if (!cg.news.some(n => n.subject.includes('THE CHALLENGE'))) bad(`challenge ${ch.id} missing intro`)

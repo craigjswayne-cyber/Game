@@ -13,7 +13,7 @@
  *   OPTIMISER   - picks the strongest legal XV every week.
  *   SABOTEUR    - picks the weakest legal XV every week.
  *
- * The gap between them IS the difficulty of the game, and all three failure
+ * The gap between them IS how hard the game is, and all three failure
  * modes are release blockers that no unit test would ever show you:
  *
  *   optimiser == sleepwalker -> every screen in the game is decoration.
@@ -29,6 +29,13 @@
  * `userPicked` - which is what the Selection screen does the moment a human
  * touches it - is what makes the sheet real. Measure the thing you think you
  * are measuring.
+ *
+ * CALLED autopilotprobe UNTIL THE SETTING WAS REMOVED, and it never tested
+ * that setting on a single line. What it measures is AUTOPILOT: whether
+ * picking your own side is worth points, whether Continue can take a title on
+ * its own, and whether sleepwalking gets a manager sacked at a big club while
+ * patience protects him at a small one. That is the core loop, and it outlived
+ * the three levers its name was mistaken for.
  */
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
@@ -292,5 +299,5 @@ ok(minnowSleep.filter(r => r.sacked).length === 0,
 ok(worstMin(minnowSleep) >= 35,
   `and its board never gets anywhere near crisis range (worst seed bottomed at ${worstMin(minnowSleep)})`)
 
-console.log(fails ? `\n${fails} FAILURES` : '\nDIFFICULTY PROBE PASSED: the team sheet is wired to the pitch, and Continue does not win titles')
+console.log(fails ? `\n${fails} FAILURES` : '\nAUTOPILOT PROBE PASSED: the team sheet is wired to the pitch, and Continue does not win titles')
 process.exit(fails ? 1 : 0)

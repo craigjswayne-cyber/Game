@@ -91,7 +91,7 @@ ok(wYears.every(y => isLionsSeason(y - BASE_YEAR - 2) || y - 2 < BASE_YEAR),
 ok(!wYears.some(y => tourYears.includes(y)), 'and the two games never tour in the same summer')
 
 const wClub = LEAGUE_DEFS('w')[0].clubs[0].id
-const wg = newGame(wClub, 'Test', 31, undefined, 'coach', 'normal', 'w')
+const wg = newGame(wClub, 'Test', 31, undefined, 'coach', 'w')
 wg.season = [...Array(20).keys()].find(s2 => isWomensTourSeason(s2))!
 buildWomensInternationals(mulberry32(wg.seed), wg)
 const wtour = wg.fixtures.filter(f => f.compId === W + 'lions')

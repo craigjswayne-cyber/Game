@@ -157,10 +157,7 @@
   "mainMenu": "Menu principale",
   "back": "Indietro",
   "confirm": "Conferma",
-  "startCareer": "▸ Inizia la carriera",
-  "difficulty": "Difficoltà",
-  "difficultyBlurb": "Cambiano tre cose e nient'altro: con quanti soldi cominci, quanto in fretta il consiglio perde la pazienza e quanto spesso si infortunano I TUOI giocatori. Tutti gli altri club giocano la stessa partita qualunque cosa tu scelga.",
-  "difficultyBlurb_f": "Cambiano tre cose e nient'altro: con quanti soldi cominci, quanto in fretta il consiglio perde la pazienza e quanto spesso si infortunano Le TUOI giocatrici. Tutti gli altri club giocano la stessa partita qualunque cosa tu scelga."
+  "startCareer": "▸ Inizia la carriera"
  },
  "common": {
   "a": "T",
@@ -6409,14 +6406,6 @@
   "unfairReply": "Metà sala scrive «dignitoso», l’altra metà scrive «scuse». Escono entrambi i pezzi. È la stampa: da qui non saresti mai uscito con un titolo solo.",
   "ownedLine_f": "Me lo sono meritato. Non si perdono tante partite e poi si dà la colpa al calendario. Le giocatrici mi hanno dato tutto, i risultati sono miei, e il club fa bene a volere di più.",
   "ownedReply_f": "Apre tutti i telegiornali entro le sei. Nessuno fa una domanda di rimbalzo, che è già un verdetto - e un'ex giocatrice in studio dice che ti prenderebbe domani mattina."
- },
- "difficulty": {
-  "normal": "Normale",
-  "normalDesc": "Budget pieno. Il consiglio ti dà tempo. Infortuni normali.",
-  "hard": "Difficile",
-  "hardDesc": "Un terzo di soldi in meno. Il consiglio vuole risultati prima. Qualche infortunio in più.",
-  "legend": "Leggenda",
-  "legendDesc": "Metà dei soldi. Il consiglio perde la pazienza subito. Infortuni tutta la stagione."
  },
  "isles": {
   "title": "Il XV delle Isole",
