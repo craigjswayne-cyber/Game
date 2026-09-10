@@ -147,6 +147,29 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.5.7, Play version code 28
+
+The women's game gets a cup, real ages and its own grounds - and the full-time
+round-up that showed nothing at all now shows the results.
+
+```
+<en-GB>
+The women's game gets its own continental cup: sixteen clubs from England, France, the Pacific and the Celtic provinces. Its full-time round-up shows the other results again instead of nothing at all. Squads carry real ages, with ninety-three internationals checked one by one. Loughborough, Bristol and Gloucester play at the grounds they really play at. A transfer request can be accepted or refused. Friendlies are booked on a date. And every figure the game quotes is scaled to your club.
+</en-GB>
+<fr-FR>
+Le jeu féminin a sa coupe continentale : seize clubs d'Angleterre, de France, du Pacifique et des provinces celtes. Son résumé de fin de match réaffiche les autres résultats au lieu de rien du tout. Les effectifs portent de vrais âges, dont quatre-vingt-treize internationales vérifiées une par une. Loughborough, Bristol et Gloucester jouent sur leurs vrais terrains. Une demande de transfert s'accepte ou se refuse. Les amicaux se fixent à une date. Et chaque somme est à l'échelle de votre club.
+</fr-FR>
+<es-ES>
+El juego femenino ya tiene su copa continental: dieciséis clubes de Inglaterra, Francia, el Pacífico y las provincias celtas. Su resumen final vuelve a mostrar los demás resultados en lugar de nada. Las plantillas llevan edades reales, con noventa y tres internacionales comprobadas una a una. Loughborough, Bristol y Gloucester juegan donde juegan de verdad. Una petición de traspaso se puede aceptar o rechazar. Los amistosos se fijan por fecha. Y cada cifra va a la escala de tu club.
+</es-ES>
+<it-IT>
+Il gioco femminile ha la sua coppa continentale: sedici club da Inghilterra, Francia, Pacifico e province celtiche. Il riepilogo di fine giornata mostra di nuovo gli altri risultati invece del nulla. Le rose hanno età reali, con novantatré internazionali verificate una per una. Loughborough, Bristol e Gloucester giocano dove giocano davvero. Una richiesta di trasferimento si può accettare o rifiutare. Le amichevoli si fissano per data. E ogni cifra è in scala con il tuo club.
+</it-IT>
+<ja-JP>
+女子ラグビーに独自の大陸カップが加わった。イングランド、フランス、太平洋、ケルト各州から16クラブ。試合後の総括は「他に結果なし」ではなく、他会場の結果をきちんと表示する。選手の年齢は実在のものに整え、93人の代表選手は一人ずつ出典で確認した。ラフバラ、ブリストル、グロスターは実際のスタジアムで戦う。移籍志願は受理も却下もできる。親善試合は日付で組む。そして提示される金額は、クラブの身の丈に合ったものになった。
+</ja-JP>
+```
+
 ### What's new (500 max) - v1.5.6, Play version code 27
 
 The women's game catches up: its own challenges, and a division that stops
