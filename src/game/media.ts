@@ -518,8 +518,15 @@ export function generatePress(state: GameState, rng: Rng) {
     const p = squad.find(q => q.ca >= median && !xvIds.includes(q.id) && !q.onLoan && !q.acad &&
       (q.lastWk == null || q.lastWk <= state.week - 6) && state.week > 8 && !askedThisSeason('press.benchQ', q.id))
     if (p) {
+      // SIX IS A FLOOR, NOT THE NUMBER. The condition above is
+      // `lastWk <= week - 6`, and both wordings of this question said "six
+      // weeks" flat - so a man who had not started since the opening day was
+      // told he had been out for six. Found while building varietyprobe, which
+      // noticed the same sentence recurring and made it worth reading closely.
+      // A player who has never started at all counts from the first week.
+      const out = state.week - (p.lastWk ?? 0)
       candidates.push(mk(state,
-        { k: voice(39 + p.id, ['press.benchQ1', 'press.benchQ2']), v: { player: p.name } },
+        { k: voice(39 + p.id, ['press.benchQ1', 'press.benchQ2']), v: { player: p.name, n: out } },
         p.id, [
           opt({ morale: -0.6, board: 0.2, unsettle: true, lk: 'press.benchDoor', rk: 'press.benchDoorR' }),
           opt({ morale: 0.1, board: 0, lk: 'press.benchBuilding', rk: 'press.benchBuildingR' }),

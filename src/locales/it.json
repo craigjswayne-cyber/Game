@@ -3442,9 +3442,9 @@
   "bridgeAds": "Pubblicità",
   "bridgeOn": "collegato",
   "bridgeOff": "non collegato",
-  "unofficialBody_f": "PHASE: Rugby Manager non è affiliato, approvato o autorizzato da alcuna giocatrice, club, lega o federazione. I nomi dei club sono reali; competizioni, stadi e sponsor sono rinominati o inventati. I nomi delle giocatrici sono reali, usati per identificare persone in un database sportivo e per nulla altro, e non è incluso alcuno stemma, maglia o logo ufficiale.",
   "bridgeAdsWhy": "La pubblicità dice",
-  "bridgeProducts": "Prodotti con prezzo dal negozio: {live} su {asked}"
+  "bridgeProducts": "Prodotti con prezzo dal negozio: {live} su {asked}",
+  "unofficialBody_f": "PHASE: Rugby Manager non è affiliato, approvato o autorizzato da alcuna giocatrice, club, lega o federazione. I nomi dei club sono reali; competizioni, stadi e sponsor sono rinominati o inventati. I nomi delle giocatrici sono reali, usati per identificare persone in un database sportivo e per nulla altro, e non è incluso alcuno stemma, maglia o logo ufficiale."
  },
  "news": {
   "maternitySubj": "{player} è in attesa",
@@ -6176,8 +6176,8 @@
   "centuryConversationR": "Diplomatico. Ha notato le parole «tra quelli» e le tirerà fuori a Natale.",
   "centuryTwoHundred": "«Chiedetemelo quando arriva a duecento.»",
   "centuryTwoHundredR": "Una risata, e un obiettivo. Gliene mancano cento e ha già cominciato a contare.",
-  "benchQ1": "{player} non parte titolare da sei settimane. Il suo agente dice che sta «valutando le opzioni». E lei?",
-  "benchQ2": "Sei settimane in panchina per {player}, e vale più di così. Cos'ha fatto?",
+  "benchQ1": "{player} non parte titolare da {n} settimane. Il suo agente dice che sta «valutando opzioni». E lei?",
+  "benchQ2": "{n} settimane in panchina per {player}, e vale più di così. Che cosa ha combinato?",
   "benchDoor": "«Valuti pure. La mia porta è aperta.»",
   "benchDoorR": "Lo è. Lunedì la attraversa con una richiesta di cessione e una stampata.",
   "benchBuilding": "«È una parte importante di quello che stiamo costruendo.»",
