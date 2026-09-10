@@ -2,13 +2,20 @@
   "_comment": [
     "versionCode is the number Play counts uploads by. It must be higher than",
     "the highest Play has ever accepted for com.phaserugbymanager.app, which",
-    "was 27 (1.5.6). Before that: 19 was 1.3.0, the first build with adverts,",
-    "5 Sep 2026; 17 was 1.2.9 and 15 the last TWA. Go up by one for every",
-    "upload, record what Play accepted here, and never reuse a number.",
+    "was 28 (1.5.7, internal testing, 10 Sep 2026). Before that: 27 was 1.5.6,",
+    "19 was 1.3.0, the first build with adverts, 5 Sep 2026; 17 was 1.2.9 and",
+    "15 the last TWA. Go up by one for every upload, record what Play accepted",
+    "here, and never reuse a number.",
+    "A VERSION CODE IS SPENT BY THE FIRST TRACK THAT TAKES IT, not by the",
+    "release reaching anybody. 28 went to Internal testing and Closed testing",
+    "then refused the same bundle - 'Version code 28 has already been used' -",
+    "because Play counts codes per app, across every track at once. Promoting",
+    "the existing release between tracks reuses the code; a second upload",
+    "cannot. 29 is the same 1.5.7 build, for the closed track.",
     "versionName comes from the root package.json.",
     "billingLibrary is the Play Billing Library version PhaseBilling.java is",
     "written against. Play refuses anything below 8.0.0 (learned 4 Sep 2026)."
   ],
-  "versionCode": 28,
+  "versionCode": 29,
   "billingLibrary": "8.0.0"
 }
