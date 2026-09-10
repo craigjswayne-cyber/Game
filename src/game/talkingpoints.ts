@@ -101,7 +101,7 @@ export function talkingPoints(state: GameState): void {
     if (played >= 4 && fill < 0.62) {
       // HOW MUCH IT COSTS DEPENDS ON WHOSE BOARD IT IS.
       //
-      // A flat six points was wrong in a way difficultyprobe caught within an
+      // A flat six points was wrong in a way autopilotprobe caught within an
       // hour: the game deliberately keeps a giant's board brutal and a minnow's
       // patient, and a fixed penalty punished them identically - the minnow's
       // mean board confidence over a sleepwalked season fell from 48 to 39 and

@@ -74,7 +74,7 @@ function mk(state: GameState, q: Q, playerId: number | undefined, options: Press
   // only to be discarded by the one-question-per-week draw. So every room
   // added to this file shifted the random stream of every seeded simulation
   // in the game, and the night ten rooms arrived two marginal balance
-  // assertions in difficultyprobe moved with it. voice() already picks a
+  // assertions in autopilotprobe moved with it. voice() already picks a
   // question's wording with zero stream footprint for exactly this reason;
   // the outlet follows the same rule. Deterministic on the week and the
   // question, so the same story still wears different mastheads.
@@ -99,6 +99,37 @@ function mk(state: GameState, q: Q, playerId: number | undefined, options: Press
 const opt = (o: Omit<PressOption, 'label' | 'reaction'> & { lk: string; lv?: Vars; rk: string; rv?: Vars }): PressOption =>
   ({ ...o, label: tIn('en', o.lk, o.lv), reaction: tIn('en', o.rk, o.rv) })
 
+/**
+ * ---- WHAT A PRE-SEASON WEEK COSTS THIS CLUB ----
+ *
+ * The warm-weather camp cost a flat £400,000 and the sponsor's tour paid a flat
+ * £600,000, at every club in the game. Bath's women in the Championship carry a
+ * season budget of sixty-two thousand pounds, so the game was offering them a
+ * training camp at six and a half times their entire budget and a sponsor deal
+ * worth ten times it. Owner: "the initial money question feels way too much
+ * money for a lower team."
+ *
+ * A share of the budget, floored so the smallest club is still offered a real
+ * decision and capped so the richest is offered what it was offered before -
+ * the top of the game was never the part that read wrong. Rounded to something
+ * a person would say out loud.
+ *
+ * Both numbers are computed ONCE, put on the option, and read back when the
+ * answer resolves. Recomputing at resolution would let a mid-week transfer
+ * change the price of a camp already agreed.
+ */
+export function campCost(budget: number): number {
+  return roundMoney(Math.min(400_000, Math.max(5_000, budget * 0.10)))
+}
+export function tourFee(budget: number): number {
+  return roundMoney(Math.min(600_000, Math.max(8_000, budget * 0.15)))
+}
+/** To the nearest thousand under a hundred grand, the nearest twenty-five
+ *  thousand over it: nobody quotes a sponsor's tour at £417,300. */
+function roundMoney(v: number): number {
+  return v < 100_000 ? Math.round(v / 1_000) * 1_000 : Math.round(v / 25_000) * 25_000
+}
+
 /** Weekly press generation for the user's club. */
 export function generatePress(state: GameState, rng: Rng) {
   const club = state.clubs[state.userClubId]
@@ -113,12 +144,17 @@ export function generatePress(state: GameState, rng: Rng) {
   // an internal staff call, and week 1 must never lose it to a leftover
   // question from the final round of last season
   if (state.week === 1 && !state.press.some(p => p.season === state.season && p.options.some(o => o.camp))) {
+    const heatCost = campCost(club.budget)
+    const tourMoney = tourFee(club.budget)
     const item = mk(state,
       { k: voice(20, ['press.campQ1', 'press.campQ2']) },
       undefined, [
-        opt({ morale: 0, board: 0, camp: 'heat', lk: 'press.campHeat', rk: 'press.campHeatR' }),
-        opt({ morale: 0, board: 0, camp: 'home', lk: 'press.campHome', rk: 'press.campHomeR' }),
-        opt({ morale: 0, board: 0, camp: 'tour', lk: 'press.campTour', rk: 'press.campTourR' }),
+        opt({ morale: 0, board: 0, camp: 'heat', campMoney: heatCost,
+          lk: 'press.campHeat', lv: { cost: fmtMoney(heatCost) }, rk: 'press.campHeatR' }),
+        opt({ morale: 0, board: 0, camp: 'home',
+          lk: 'press.campHome', rk: 'press.campHomeR' }),
+        opt({ morale: 0, board: 0, camp: 'tour', campMoney: tourMoney,
+          lk: 'press.campTour', lv: { fee: fmtMoney(tourMoney) }, rk: 'press.campTourR' }),
       ], rng)
     item.outlet = OFFICE_OUTLET
     state.press.push(item)
@@ -443,7 +479,7 @@ export function generatePress(state: GameState, rng: Rng) {
     // NO DRAW ON THE SHARED RNG for the gate (same rule as voice(): a press
     // room that consumes a random number shifts every seeded simulation that
     // follows it, which is how two marginal balance assertions in
-    // difficultyprobe flipped the night this room was added). Odd weeks only.
+    // autopilotprobe flipped the night this room was added). Odd weeks only.
     if (avg < 5 && benched && (state.season * 7 + state.week) % 2 === 1) {
       candidates.push(mk(state,
         { k: voice(37 + benched.id, ['press.leakQ1', 'press.leakQ2']), v: { player: benched.name } },
@@ -482,8 +518,15 @@ export function generatePress(state: GameState, rng: Rng) {
     const p = squad.find(q => q.ca >= median && !xvIds.includes(q.id) && !q.onLoan && !q.acad &&
       (q.lastWk == null || q.lastWk <= state.week - 6) && state.week > 8 && !askedThisSeason('press.benchQ', q.id))
     if (p) {
+      // SIX IS A FLOOR, NOT THE NUMBER. The condition above is
+      // `lastWk <= week - 6`, and both wordings of this question said "six
+      // weeks" flat - so a man who had not started since the opening day was
+      // told he had been out for six. Found while building varietyprobe, which
+      // noticed the same sentence recurring and made it worth reading closely.
+      // A player who has never started at all counts from the first week.
+      const out = state.week - (p.lastWk ?? 0)
       candidates.push(mk(state,
-        { k: voice(39 + p.id, ['press.benchQ1', 'press.benchQ2']), v: { player: p.name } },
+        { k: voice(39 + p.id, ['press.benchQ1', 'press.benchQ2']), v: { player: p.name, n: out } },
         p.id, [
           opt({ morale: -0.6, board: 0.2, unsettle: true, lk: 'press.benchDoor', rk: 'press.benchDoorR' }),
           opt({ morale: 0.1, board: 0, lk: 'press.benchBuilding', rk: 'press.benchBuildingR' }),
@@ -1048,14 +1091,25 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
     const c = state.clubs[state.userClubId]
     const squad = c.players.map(id => state.players[id]).filter((p): p is Player => !!p)
     if (opt.camp === 'heat') {
-      c.balance -= 400_000
+      // what the option said, not what a flat number says now
+      const spent = opt.campMoney ?? campCost(c.budget)
+      c.balance -= spent
       for (const p of squad) { p.sharp = clamp(p.sharp + 12, 0, 100); p.morale = clamp(p.morale + 0.3, 1, 10) }
-      logDecision(state, 'dec.campHeat', undefined, true)
+      // AND THE STORY QUOTES THE SAME FIGURE THE BUTTON DID.
+      //
+      // The cost was scaled to the club's budget, and these three sentences
+      // were not: they carried a hard-coded £400k in all six languages. A
+      // Championship club paid thirty-eight thousand for the camp and was then
+      // told, by its own inbox and its own decision log, that £400k had been
+      // well spent. Found by scripts/proportionprobe.ts, which reads the money
+      // back out of the prose and compares it with the money that moved.
+      const v = { cost: fmtMoney(spent) }
+      logDecision(state, 'dec.campHeat', v, true)
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: tIn('en', 'news.campHeatSubj'),
-        body: tIn('en', 'news.campHeat'),
-        k: 'news.campHeat',
+        body: tIn('en', 'news.campHeat', v),
+        k: 'news.campHeat', v,
       })
     } else if (opt.camp === 'home') {
       state.fanMood = clamp((state.fanMood ?? 60) + 6, 10, 95)
@@ -1068,15 +1122,17 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
         k: 'news.campHome',
       })
     } else {
-      c.balance += 600_000
+      const banked = opt.campMoney ?? tourFee(c.budget)
+      c.balance += banked
       state.fanMood = clamp((state.fanMood ?? 60) - 3, 10, 95)
       for (const p of squad) p.cond = clamp(p.cond - 8, 20, 100)
-      logDecision(state, 'dec.campTour', undefined, false)
+      const v = { fee: fmtMoney(banked) }
+      logDecision(state, 'dec.campTour', v, false)
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: tIn('en', 'news.campTourSubj'),
-        body: tIn('en', 'news.campTour'),
-        k: 'news.campTour',
+        body: tIn('en', 'news.campTour', v),
+        k: 'news.campTour', v,
       })
     }
   }

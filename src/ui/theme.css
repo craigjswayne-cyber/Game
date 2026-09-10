@@ -346,16 +346,79 @@ option { font: inherit; color: var(--text-primary); background-color: var(--surf
    :not() leaves the cascade to say what it was always going to say. */
 .dtable:not(.codefirst) th:first-child,
 .dtable:not(.codefirst) td:first-child { padding-left: 16px; }
+.ltable th:first-child, .ltable td:first-child { padding-right: 9px; }
+
+/* ---- YOUR ROW, FOUND AT A GLANCE ----
+   The tint was var(--club1) at 9% over the surface, which for a club whose
+   first colour is a dark navy is a few percent of nothing: on a real table
+   screenshot the manager's own side, seventeenth of twenty, was very nearly
+   indistinguishable from the rows around it. Owner: "the persons team should be
+   highlighted a little bit more."
+
+   Three changes, and the third is the one that does the work. The tint goes up,
+   the hairlines above and below go up, and the row gains a solid bar down its
+   left edge - drawn as an INSET BOX SHADOW on the first cell rather than a
+   border or a background, because LeagueTable.tsx writes playoff gold and
+   relegation red as INLINE backgrounds, and an inline style beats a stylesheet.
+   A shadow is a different property, so a side that is both yours and in the
+   playoffs keeps the gold and still gets the bar. */
 .dtable .me td {
-  background: color-mix(in srgb, var(--club1) 9%, var(--surface-1));
+  background: color-mix(in srgb, var(--club1) 16%, var(--surface-1));
   color: var(--text-primary);
   font-weight: 700;
-  border-top: 1px solid color-mix(in srgb, var(--club1) 30%, transparent);
-  border-bottom: 1px solid color-mix(in srgb, var(--club1) 30%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--club1) 45%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--club1) 45%, transparent);
 }
+.dtable tr.me td:first-child { box-shadow: inset 3px 0 0 var(--primary); }
 
 .th-sort { cursor: pointer; user-select: none; }
 .th-sort.active { color: var(--primary); }
+
+/* ---- THE ONE PRODUCT THAT IS NOT LIKE THE OTHERS ----
+   Pro Manager sat on the shelf as a row with a star on it, the same weight as a
+   £1.99 cash injection, and it is the only thing in the shop that changes how
+   the whole game looks rather than what one career owns. Owner: "Pro Manager
+   needs to stand out more. Make it really stand out - gold, white, black -
+   textured background."
+
+   Gold, white and black, and the texture is a fine diagonal weave laid over a
+   gold-into-black wash - two gradients, no image, so it costs nothing to load
+   and scales to any width. Every value is a mix of the theme's OWN --gold and
+   --canvas rather than a new hex, which is what keeps tokenlint green and what
+   makes the card follow a skin instead of fighting it: under Midnight the gold
+   stays gold and the ground goes with the skin.
+
+   The body copy goes white here. On every other row it is --text-secondary,
+   and that difference is most of why this one reads as the premium thing. */
+.store-hero {
+  position: relative;
+  border: 1.5px solid color-mix(in srgb, var(--gold) 72%, transparent);
+  background:
+    repeating-linear-gradient(135deg,
+      color-mix(in srgb, var(--gold) 11%, transparent) 0 2px,
+      transparent 2px 6px),
+    linear-gradient(158deg,
+      color-mix(in srgb, var(--gold) 26%, var(--canvas)) 0%,
+      color-mix(in srgb, var(--gold) 8%, var(--canvas)) 46%,
+      var(--canvas) 88%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--gold) 55%, transparent),
+    0 3px 20px color-mix(in srgb, var(--gold) 16%, transparent);
+}
+/* a solid gold edge down the left, the way a premium tile is banded */
+.store-hero::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  border-radius: 10px 0 0 10px;
+  background: linear-gradient(to bottom, var(--gold-fill), color-mix(in srgb, var(--gold) 35%, transparent));
+}
+.store-hero > div > div > div:first-child {
+  color: var(--gold);
+  text-shadow: 0 1px 6px color-mix(in srgb, var(--gold) 30%, transparent);
+}
+.store-hero .meta { color: var(--text-primary); }
 
 /* ================= Cards ================= */
 .card {
@@ -2369,6 +2432,13 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   .ltable td.name { max-width: 120px; }
   .ltable th:first-child, .ltable td:first-child { padding-left: 8px; }
   .ltable th:last-child, .ltable td:last-child { padding-right: 9px; }
+  /* THE RANK AND THE BADGE WERE TOUCHING. The rank is right-aligned and the
+     badge is the first thing in the very next cell, so at the tightened phone
+     padding above they met in the middle: "9(badge)Kenilworth" with no gap to
+     tell a position from a crest. Reported off a real table screenshot. The
+     rank column keeps its own right padding rather than taking the shared 4px,
+     which is the one place on this row where the space is not spare. */
+  .ltable th:first-child, .ltable td:first-child { padding-right: 9px; }
 }
 .tblwrap.fitwrap { overflow: visible; }
 .dtable.fit { table-layout: fixed; }

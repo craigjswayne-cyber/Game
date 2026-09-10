@@ -1,6 +1,5 @@
 import type { RawClub, RawPlayer } from '../data/types'
 import { refreshCaps } from './cap'
-import { difficultyOf, type Difficulty } from './difficulty'
 import { GONE, verifiedClub } from '../data/verified'
 import { extraPlayers } from '../data/additions'
 import { prospectsFor } from '../data/prospects'
@@ -31,7 +30,7 @@ import { seedPhilosophies } from './philosophy'
 import { seedDeals } from './commercial'
 import { clamp } from './rng'
 import { assistantJudgement, autoSelect } from './matchEngine'
-import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildLeague, schedulePreseason } from './schedule'
+import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildLeague, schedulePreseason, buildWomensContinentalCup } from './schedule'
 import { punditPredictions } from './gossip'
 import { WEEK_BASIS, CHEM_SLOTS, RELEGATES, boardObjective, chemKey, fmtMoney, initFacilities, isWorldCupSeason } from './model'
 import { seedKnowledge } from './scout'
@@ -79,7 +78,10 @@ export const CHALLENGES: Challenge[] = [
   // The research and what could and could not be verified is in
   // docs/womens-challenges.md.
   {
-    id: 'threepeat', clubId: W + 'bristol', gender: 'w',
+    // Saracens rather than Bristol (owner, this release): the three-peat is a
+    // Gloucester story, and the club with the history of stopping people is the
+    // one worth handing it to.
+    id: 'threepeat', clubId: W + 'saracens', gender: 'w',
     title: 'challenges.threepeat', desc: 'challenges.threepeatDesc',
   },
   {
@@ -196,7 +198,7 @@ const M_LEAGUE_DEFS: () => LeagueDef[] = () => [
   { id: 'natl1', name: 'English National One', short: 'National 1', double: true, playoffTeams: 0, clubs: NATL1 },
 ]
 
-export function newGame(userClubId: string, managerName: string, seed: number, challengeId?: string, origin: MgrOrigin = 'coach', difficulty: Difficulty = 'normal', gender: Gender = 'm', mgrGender: Gender = 'm'): GameState {
+export function newGame(userClubId: string, managerName: string, seed: number, challengeId?: string, origin: MgrOrigin = 'coach', gender: Gender = 'm', mgrGender: Gender = 'm'): GameState {
   const rng = mulberry32(seed)
   resetIds(1)
 
@@ -206,7 +208,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     mgrGender,
     // drawn off a seed of its own, not the world's stream: a coin taken from
     // `rng` here would move every draw after it and hand a seed a different
-    // world than it had in 1.5.0 (difficultyprobe caught exactly that)
+    // world than it had in 1.5.0 (autopilotprobe caught exactly that)
     analystGender: staffGender(mulberry32((seed ^ hashString('the analyst')) >>> 0), gender),
     saveName: '',
     season: 0,
@@ -245,7 +247,6 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     // Monday of week 1. Continue walks the week a day at a time (game/days.ts).
     day: 0,
     challenge: challengeId,
-    difficulty,
     vacancies: [],
     devFocus: [],
   }
@@ -569,8 +570,32 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
 
     buildInternationals(rng, state, isWorldCupSeason(0))
   } else {
-    // The women's game has its own two, in their own windows. See
-    // buildWomensInternationals for why this is not the men's builder with
+    // ---- THE WOMEN'S CONTINENTAL CUP ----
+    //
+    // The women's game had no continental competition at all, which is why
+    // three of the seven career dreams were unwinnable in it: "Win the
+    // Continental Cup" and "Win the league and Europe" both count trophies in
+    // comp 'cc', and this world never built one. The wizard offered them
+    // anyway, beside dreams that were real.
+    //
+    // Sixteen clubs by reputation from the FOUR TOP TIERS - England, France,
+    // the Pacific and the Celtic provinces. No second tiers, and so no Shield
+    // beneath it either (owner: "celtic sides in but no second tiers"): the
+    // men's game has a Continental Shield because it has thirty-odd top-flight
+    // clubs and a Championship to feed it, and inventing one here would be
+    // filling a competition rather than answering a demand for it.
+    //
+    // It takes the id 'cc' deliberately, not a namespaced one. A save is one
+    // world or the other and never both, so within any career 'cc' means "the
+    // continental cup of this game" - which is exactly what every dream, award
+    // and trophy-counting path already assumes. A separate id would have meant
+    // touching all of them to teach each one a second name for the same thing.
+    // The draw, the calendar and the reasoning all live in schedule.ts, because
+    // the August rollover has to build the same competition the same way.
+    state.comps['cc'] = buildWomensContinentalCup(rng, state)
+
+    // The women's game has its own two internationals, in their own windows.
+    // See buildWomensInternationals for why this is not the men's builder with
     // different arguments.
     buildWomensInternationals(rng, state)
   }
@@ -695,17 +720,6 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   // the salary cap for every division, measured from the division itself (F6)
   refreshCaps(state, true)
 
-  // THE DIFFICULTY'S CASH LEVER, on the manager's club alone (v1.2.7). Applied
-  // last, after every other pass has set the balance it would have set, so
-  // 'normal' (factor 1) leaves the career byte-for-byte as it was.
-  {
-    const uc = state.clubs[userClubId]
-    const d = difficultyOf(state)
-    if (uc && d.cash !== 1) {
-      uc.balance = Math.round(uc.balance * d.cash)
-      uc.wageBudget = Math.round(uc.wageBudget * (0.5 + d.cash * 0.5))
-    }
-  }
   return state
 }
 
@@ -764,11 +778,27 @@ function fanReaction(state: GameState, managerName: string, rng: () => number): 
   const hopefuls = ['news.fanHopeful1', 'news.fanHopeful2', 'news.fanHopeful3']
   const patient = ['news.fanPatient1', 'news.fanPatient2', 'news.fanPatient3']
   const pick = (xs: string[]) => xs[Math.floor(rng() * xs.length)]
+  // TWICE FROM THE SAME HAT PRINTS THE SAME QUOTE.
+  //
+  // The low-reputation branch below draws two hopefuls, and those two are the
+  // only voices printed. Two independent draws from a three-item array collide
+  // one time in three, so one career in three opened with a terrace saying
+  // "Fresh ideas, finally" twice in a row - reported from a real save at
+  // Loughborough Town, which is exactly this branch.
+  //
+  // pickBut still spends EXACTLY ONE rng() call, so the stream length is
+  // untouched and every fixture id in the world stays where it was. That
+  // constraint is why this is a second helper rather than a loop.
+  const pickBut = (xs: string[], not: string) => {
+    const pool = xs.filter(x => x !== not)
+    return pool[Math.floor(rng() * pool.length)]
+  }
+  const firstHopeful = big || mood >= 62 ? '' : pick(hopefuls)
   const voiceKeys = big
     ? [pick(sceptics), pick(patient), pick(hopefuls)]
     : mood >= 62
       ? [pick(hopefuls), pick(patient), pick(sceptics)]
-      : [pick(hopefuls), pick(hopefuls), pick(patient)]
+      : [firstHopeful, pickBut(hopefuls, firstHopeful), pick(patient)]
   const voices = voiceKeys.map(k => tIn('en', k))
   const headKey = big ? 'news.fanHeadBig' : mid ? 'news.fanHeadMid' : 'news.fanHeadSmall'
   const openKey = big ? 'news.fanOpenBig' : mid ? 'news.fanOpenMid' : 'news.fanOpenSmall'

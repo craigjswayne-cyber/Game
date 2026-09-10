@@ -1,5 +1,4 @@
 import { create } from 'zustand'
-import type { Difficulty } from './game/difficulty'
 import { noteScreen } from './game/bugreport'
 
 /** THE SKINS, and the one that means "leave it alone".
@@ -74,6 +73,7 @@ import { closeNatTenure, logDecision } from './game/model'
 import { newGame } from './game/newgame'
 import { genderOf, type Gender } from './game/gender'
 import { processWeekAndAdvance, resolveKnockoutDraw, userFixtureThisWeek, userMatchThisWeek, weekRng } from './game/season'
+import { resultsParam } from './game/schedule'
 import {
   applyPreTalk, applyTacticsChange, applyTeamTalk, beginMatch, makeSubstitution, swapInjuryCover, swapShirts, undoSubstitution,
   playHalf, resolveDecision, stepTick, teamShort, type LiveCtx,
@@ -221,7 +221,7 @@ interface Store {
    *  continueWeek and TAP_GUARD_MS. */
   lastAdvanceAt: number
 
-  start: (clubId: string, managerName: string, challengeId?: string, origin?: MgrOrigin, difficulty?: Difficulty, gender?: Gender, mgrGender?: Gender) => void
+  start: (clubId: string, managerName: string, challengeId?: string, origin?: MgrOrigin, gender?: Gender, mgrGender?: Gender) => void
   /** Which game the NEXT new career is in, chosen on the menu before the wizard
    *  opens. Not part of a save - the save carries its own gender - just the
    *  answer to "which game" travelling from the menu to the first screen of the
@@ -599,9 +599,9 @@ export const useStore = create<Store>((set, get) => ({
   newGender: 'm',
   setNewGender: (g) => set({ newGender: g }),
 
-  start: (clubId, managerName, challengeId, origin, difficulty, gender, mgrGender) => {
+  start: (clubId, managerName, challengeId, origin, gender, mgrGender) => {
     const seed = (Math.random() * 2 ** 31) | 0
-    const g = newGame(clubId, managerName, seed, challengeId, origin, difficulty, gender ?? get().newGender, mgrGender ?? readMgrGender())
+    const g = newGame(clubId, managerName, seed, challengeId, origin, gender ?? get().newGender, mgrGender ?? readMgrGender())
     // the Manager's License, chosen at creation and never after: the wizard
     // only offers the toggle to an owner, and this re-checks the receipt so
     // nothing else can set the flag (grantprobe holds that it never sets
@@ -972,7 +972,7 @@ export const useStore = create<Store>((set, get) => ({
     if (preTalk) applyPreTalk(g, ctx, preTalk)
     playHalf(g, ctx)
     playHalf(g, ctx)
-    const resultsKey = `${fx.compId}:${g.week}`
+    const resultsKey = resultsParam(fx.compId, g.week)
     // Exactly what finishMatch does, and for the same reason. This used to set
     // its own watermark aside and then push every new story of the week into the
     // Wire in one go, which meant a week played through the assistant was
@@ -1279,7 +1279,7 @@ export const useStore = create<Store>((set, get) => ({
     const g = get().game
     const live = get().liveMatch
     if (!g) return
-    const resultsKey = live ? `${live.fixture.compId}:${g.week}` : null
+    const resultsKey = live ? resultsParam(live.fixture.compId, g.week) : null
     g.newsFrom = g.nextId
     processWeekAndAdvance(g)
     get().dropResume()

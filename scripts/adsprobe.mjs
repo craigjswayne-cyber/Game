@@ -135,6 +135,25 @@ const startCareer = async (page) => {
 }
 
 const log = (page) => page.evaluate(() => [...globalThis.__adlog])
+
+/**
+ * THE LAST THING THAT HAPPENED TO THE BANNER.
+ *
+ * The four assertions below are about the strip at the foot of the page: it
+ * steps aside for a sheet, and it comes back afterwards without asking Google
+ * for a second advert. They used to read the last entry in the whole call log,
+ * which was the same thing right up until the bridge started fetching a
+ * rewarded spot in the background at launch. That fetch is not a banner event,
+ * and a probe about the banner should not fail because something else in the
+ * bridge did its job while the menu was open.
+ *
+ * Filtering rather than loosening: "the last banner call was resumeBanner"
+ * still proves no showBanner came after it, which is the half of the assertion
+ * that matters.
+ */
+const BANNER_CALLS = ['showBanner', 'hideBanner', 'resumeBanner', 'removeBanner']
+const lastBanner = async (page) =>
+  (await log(page)).filter(x => BANNER_CALLS.some(c => x === c || x.startsWith(`${c}:`))).at(-1)
 const inset = (page) => page.evaluate(() => document.documentElement.style.getPropertyValue('--ad-inset'))
 const navPad = (page) => page.evaluate(() => parseFloat(getComputedStyle(document.querySelector('.bottom-nav')).paddingBottom))
 const settle = (page, ms = 250) => page.waitForTimeout(ms)
@@ -163,21 +182,21 @@ try {
     // a sheet over the page: the banner steps aside
     await page.evaluate(() => { const v = document.createElement('div'); v.className = 'modal-veil'; v.id = 'probe-veil'; document.body.appendChild(v) })
     await settle(page, 400)
-    ok((await log(page)).at(-1) === 'hideBanner' && (await inset(page)) === '0px', 'a sheet over the page hides the banner and the room is given back')
+    ok((await lastBanner(page)) === 'hideBanner' && (await inset(page)) === '0px', 'a sheet over the page hides the banner and the room is given back')
     await page.evaluate(() => document.getElementById('probe-veil').remove())
     await settle(page, 400)
-    ok((await log(page)).at(-1) === 'resumeBanner' && (await inset(page)) === '50px', 'closing the sheet brings it back without a new request')
+    ok((await lastBanner(page)) === 'resumeBanner' && (await inset(page)) === '50px', 'closing the sheet brings it back without a new request')
 
     // the real slide-out club menu, opened the way a player opens it. On
     // 5 Sep this one was missed and the advert sat over its bottom rows.
     await page.locator('.bottom-nav button').nth(2).click()
     await page.waitForSelector('.submenu-veil')
     await settle(page, 400)
-    ok((await log(page)).at(-1) === 'hideBanner' && (await inset(page)) === '0px', 'the slide-out club menu is not sat on by the advert')
+    ok((await lastBanner(page)) === 'hideBanner' && (await inset(page)) === '0px', 'the slide-out club menu is not sat on by the advert')
     await page.locator('.submenu-veil').click({ position: { x: 400, y: 60 } })  // the panel is on the left; tap the bare strip beside it
     await page.waitForSelector('.submenu-veil', { state: 'detached' })
     await settle(page, 400)
-    ok((await log(page)).at(-1) === 'resumeBanner' && (await inset(page)) === '50px', 'and it comes back when the menu closes')
+    ok((await lastBanner(page)) === 'resumeBanner' && (await inset(page)) === '50px', 'and it comes back when the menu closes')
 
     // leave the screen: hidden; come back: resumed, not re-requested
     const before = (await log(page)).length

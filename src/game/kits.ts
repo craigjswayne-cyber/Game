@@ -2,6 +2,7 @@
 // Colours come from the club data; the pattern says how they're worn.
 
 import { KIT_CYCLE, KIT_HOOPS, KIT_QUARTERS, KIT_SLEEVES, KIT_TRIM } from '../data/kittrim'
+import { W } from './gender'
 
 /** 'yoke' is a contrasting shoulder-and-chest panel over a plain body with
  *  side panels in the trim colour (Exeter, 2026-27). 'flank' is a plain body
@@ -80,8 +81,39 @@ const KIT_PATTERNS: Record<string, KitPattern> = {
   caldy: 'hoops',         // navy & sky
 }
 
+/**
+ * ---- A CLUB WEARS THE SAME SHIRT IN BOTH GAMES ----
+ *
+ * Every table in kittrim.ts is keyed by the MEN'S club id, and the women's
+ * world ids all carry the "w:" prefix - so women's Bristol had no sky
+ * pinstripe, women's Quins had no quarters and women's Bath had no hoops. Same
+ * clubs, same colours after this release, and until now three different shirts.
+ * Owner: "quins, sarries, Bristol, Exeter, sale jerseys and badges should be
+ * the same in the womens game as they are in the mens games."
+ *
+ * Stripping the prefix covers most of them. Three do not line up by name and
+ * are listed: the women's side of Harlequins is `quins` where the men's is
+ * `harlequins`, Gloucester-Hartpury is `glosharty`, and the Championship Bath
+ * is `bathw` because plain `bath` was taken.
+ *
+ * A women's club with no men's twin - Ealing, Loughborough, every Championship
+ * side - resolves to an id the tables do not hold, and gets exactly what it got
+ * before: the default. That is the safe direction and needs no list.
+ */
+const WOMENS_TWIN: Record<string, string> = {
+  quins: 'harlequins',
+  glosharty: 'gloucester',
+  bathw: 'bath',
+}
+
+function kitKey(clubId: string): string {
+  if (!clubId.startsWith(W)) return clubId
+  const bare = clubId.slice(W.length)
+  return WOMENS_TWIN[bare] ?? bare
+}
+
 export function kitPattern(clubId: string): KitPattern {
-  return KIT_PATTERNS[clubId] ?? 'solid'
+  return KIT_PATTERNS[kitKey(clubId)] ?? 'solid'
 }
 
 /** The third colour, where a club's identity needs one - the gold line at
@@ -89,28 +121,35 @@ export function kitPattern(clubId: string): KitPattern {
  *  src/data/kittrim.ts with the rest of the club colour data, because that is
  *  what it is; tokenlint holds every OTHER hex in src/ to the theme tokens. */
 export function kitTrim(clubId: string): string | undefined {
-  return KIT_TRIM[clubId]
+  return KIT_TRIM[kitKey(clubId)]
 }
 
 /** The four colours a quartered club wears, where two were never enough to
  *  describe it. Undefined for everyone else, who quarter their own two. */
 export function kitQuarters(clubId: string): [string, string, string, string] | undefined {
-  return KIT_QUARTERS[clubId]
+  return KIT_QUARTERS[kitKey(clubId)]
 }
 
 /** How a club wears its hoops: how many, and how thick. Three broad bands
  *  unless the club says otherwise - see KIT_HOOPS. */
 export function kitHoops(clubId: string): { n: number; h: number } {
-  return KIT_HOOPS[clubId] ?? { n: 3, h: 4 }
+  return KIT_HOOPS[kitKey(clubId)] ?? { n: 3, h: 4 }
+}
+
+/** Whether this club states its own hoop geometry, rather than taking the
+ *  default three. The crest drawing needs the question separately from the
+ *  answer, and it must go through kitKey like everything else. */
+export function hasHoopRow(clubId: string): boolean {
+  return KIT_HOOPS[kitKey(clubId)] !== undefined
 }
 
 /** The bands of an all-hoop shirt, top to bottom, in rotation - Bath's white,
  *  blue and black. Undefined for a club whose shirt has a ground colour. */
 export function kitCycle(clubId: string): string[] | undefined {
-  return KIT_CYCLE[clubId]
+  return KIT_CYCLE[kitKey(clubId)]
 }
 
 /** Left and right sleeve, where a club's two do not match (Quins). */
 export function kitSleeves(clubId: string): [string, string] | undefined {
-  return KIT_SLEEVES[clubId]
+  return KIT_SLEEVES[kitKey(clubId)]
 }

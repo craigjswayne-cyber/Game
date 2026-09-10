@@ -1,7 +1,6 @@
 import type { Club, Fixture, GameState, MatchEvent, Player, Pos, Weather } from './model'
 import { genderOf, type Gender, subjectVar } from './gender'
 import { prepLeaked } from './talkingpoints'
-import { difficultyOf } from './difficulty'
 import { ROLE_FX, rolesForSlot } from './roles'
 import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, addGrudge, chemKey, demandCeiling, facLevel, fmtMoney, formGuide, grudgeBetween, inRedZone, oldBoyApps, trustFactor, unbeatenRun } from './model'
 import { standing } from './authority'
@@ -422,7 +421,7 @@ export function lineupFor(state: GameState, teamId: string): (number | null)[] {
       // which means the ASSISTANT is the one naming the replacement side, and
       // his eye (assistantJudgement) comes with him. The first cut of this
       // wave re-picked an unclaimed sheet fresh every week instead, and the
-      // difficultyprobe caught it making autopilot BETTER: a weekly form-and-
+      // autopilotprobe caught it making autopilot BETTER: a weekly form-and-
       // condition refresh is worth far more than a 12% misread costs. The
       // absent manager's real bill is the sheet nobody updates; the misread
       // is the surcharge on the rare day somebody does.
@@ -1908,7 +1907,7 @@ const RATING_MARGIN_CAP = 0.9
 // to its own hard ceiling: the full extra +0.35 arrives by a 53-point margin.
 // Exactly symmetric, so the two sides of any fixture still cancel and the
 // world's mean mark holds by construction; and the team term still never
-// reaches form, so the difficultyprobe lesson stands untouched.
+// reaches form, so the autopilotprobe lesson stands untouched.
 const RATING_TAIL_DIV = 80
 const RATING_TAIL_CAP = 0.35
 
@@ -2702,11 +2701,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     // true home surface keeps a few of them on their feet
     const surface = side.teamId === state.userClubId && ctx.fx.homeId === state.userClubId
       ? facLevel(state, 'pitch') : 0
-    // the difficulty's injury lever is the manager's own side's to carry; on
-    // 'normal' (and every save from before it existed) the factor is exactly 1
-    // and the stream is untouched
-    const diffInj = side.teamId === state.userClubId ? difficultyOf(state).injury : 1
-    if (rng() < 0.019 * (1 - surface * 0.035) * diffInj) {
+    if (rng() < 0.019 * (1 - surface * 0.035)) {
       const ids = [...side.onPitch]
       const ps = ids.map(id => state.players[id]).filter(p => p && !p.injury)
       if (ps.length) {
@@ -2759,6 +2754,21 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
             }
             // and if the bench had nobody who plays there, the side pays (F4)
             forcedSwitchCost(state, ctx, side, p.id, sub, min)
+          } else {
+            // NOBODY LEFT TO SEND ON. The bench is spent, so the side finishes
+            // the match a man down - and until this line existed, that cost it
+            // nothing at all. The commentary said fourteen; numF, which is the
+            // only place the missing man is charged for, counted yellows, red
+            // cards and Law 3.20 and knew nothing about an uncovered injury.
+            // So a side could play twenty minutes with fourteen men and be
+            // exactly as strong as one with fifteen.
+            //
+            // Found by scripts/journeyprobe.ts reconciling the men on the pitch
+            // against the men the card accounted for, in a Bristol side that
+            // lost a man at 72 minutes with an empty bench. Charged as `short`
+            // because that is what short means: a player the side had to do
+            // without, and not a card in anybody's record.
+            side.short += 1
           }
           checkFrontRow(state, ctx, side, min, p, 'injury')
         }
@@ -3110,6 +3120,19 @@ export function makeSubstitution(state: GameState, ctx: LiveCtx, outId: number, 
   if (slotOut < 0 || slotOut > 14 || !pout) return t('touch.notInStartingXV')
   // Law 3: a side may not replace a sin-binned player during his ten minutes
   if (mine.binned.has(outId)) return t('touch.inTheBin')
+  // AND A MAN WHO IS NOT OUT THERE CANNOT BE REPLACED AT ALL.
+  //
+  // A sending-off and a Law 3.20 removal both leave a shirt in the starting XV
+  // with nobody wearing it, and every check above passed for that shirt: the
+  // number is in the lineup, the man exists, the bench is fit. So taking it off
+  // deleted a player who was not on the pitch (a no-op) and added one who now
+  // was, and a side that should have finished with fourteen men finished with
+  // fifteen - carrying its full strength through the twenty minutes the red
+  // card was supposed to cost it.
+  //
+  // Found by scripts/journeyprobe.ts counting the men on the pitch at full time
+  // against the men the card accounted for.
+  if (!mine.onPitch.has(outId)) return t('touch.notOnPitch')
   if (!pin || pin.injury || (mine.ratings.has(inId) && mine.onPitch.has(inId))) return t('touch.notAvailable')
   mine.lineup[slotOut] = inId
   if (slotIn >= 0) mine.lineup[slotIn] = outId
@@ -3420,7 +3443,7 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
         subject: `Old boy ${haunter.name} crosses against his former club`,
         body: weWon
           ? `${haunter.name}, once of this parish, went over for ${oppClub.short} - no celebration, just a nod to the away end. Your side had the last word on the scoreboard, which is all that matters.`
-          : `Of course it was him. ${haunter.name} - ${oldBoyApps(haunter, state.userClubId)} appearances in your colours before he left - crossed against his old club and the ground knew it was coming. The oldest story in sport, and it found you today.`,
+          : `Of course it was him. ${haunter.name} - ${oldBoyApps(haunter, state.userClubId)} appearances in your colours before he left - crossed against his old club and the ground knew it was coming.`,
         k: weWon ? 'news.oldBoyWeWon' : 'news.oldBoyWeLost',
         v: { player: haunter.name, opp: oppClub.short, apps: oldBoyApps(haunter, state.userClubId) },
         playerId: haunter.id,
@@ -3467,7 +3490,7 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
       // hammering does not make a prop individually sharper.
       //
       // This split was not a design instinct, it was a measurement.
-      // scripts/difficultyprobe.ts went red the moment the team term reached
+      // scripts/autopilotprobe.ts went red the moment the team term reached
       // form: picking your best side was worth 21.0 league points a season
       // before, and 10.3 after. Form drives the auto-picked XV, so pouring a
       // team-wide number into it made every man in a winning side look sharp
@@ -3523,7 +3546,7 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
         // puts the same XV at 70, clear of the 62% rotation flag, so the wall
         // cannot recur - while a manager who never rests anybody still rolls
         // into the league opener a long way short of the rotated sides. (A
-        // first cut floored at 64 and difficultyprobe caught what that really
+        // first cut floored at 64 and autopilotprobe caught what that really
         // was: most of the sleepwalk penalty gone - board-misery gaps
         // collapsed, a sacking-parity flip, and a title stolen on autopilot.
         // 48 keeps the owner's fix and the game's teeth.) The rng draw on the

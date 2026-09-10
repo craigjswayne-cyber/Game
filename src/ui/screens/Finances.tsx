@@ -3,13 +3,13 @@ import { useStore } from '../../store'
 import { boardObjective, facLevel, fmtMoney, fmtWage, operatingCost, weeklyCentral } from '../../game/model'
 import {
   CHARTER_SKU, buyOwnable, hasEntitlement,
-  billingReason, rewardedAvailable, showRewarded, tillOpen,
+  billingReason, rewardedAvailable, tillOpen,
 } from '../../game/monetise'
 import { canTownCollection } from '../../game/rewarded'
 import { staffWageBill } from '../../game/staff'
-import { OBJECTIVE_DEFS } from '../../game/objectives'
+import { OBJECTIVE_DEFS, objectiveBonus } from '../../game/objectives'
 import { MARQUEE_SLOTS, capPosition, capWord, rosterGrid, rosterWarnings } from '../../game/cap'
-import { SectionTitle } from '../components'
+import { SectionTitle, RewardedButton } from '../components'
 import { t } from '../../game/i18n'
 import { CLOSE_EVENTS, bookEvent, bookedThisWeek, eventFee, eventOpen, isCloseSeason } from '../../game/closeseason'
 import {
@@ -197,14 +197,13 @@ export default function Finances() {
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
           <h3 style={{ fontSize: 14 }}>{t('till.townTitle')}</h3>
           <div className="meta">{t('till.townBody')}</div>
-          <button className="btn ghost block" style={{ marginTop: 6 }} onClick={() => {
-            void showRewarded('collection').then(out => {
+          <RewardedButton place="collection" label={t('till.watchTown')} style={{ marginTop: 6 }}
+            onDone={out => {
               if (out === 'completed') {
                 const amt = rewardTown()
                 setAskMsg(amt != null ? t('till.townDone', { amount: fmtMoney(amt) }) : t('till.favourGone'))
               } else setAskMsg(t(out === 'skipped' ? 'till.spotSkipped' : 'till.spotUnavailable'))
-            })
-          }}>{t('till.watchTown')}</button>
+            }} />
         </div>
       )}
       <button className="btn ghost block" disabled={asked} onClick={() => {
@@ -449,7 +448,10 @@ export default function Finances() {
               <span>{done ? '✅' : ok ? '🕗' : '⬜'}</span>
               <span style={{ color: done ? 'var(--text-positive)' : 'var(--text-secondary)' }}>
                 {t(def.textKey(game))}{ok && !def.banked ? t('finances.onCourseSettled') : ''}
-                {' '}<b style={{ color: 'var(--text-muted)' }}>{t('finances.objReward')}</b>
+                {/* what it is worth TO THIS CLUB. It read a flat "+£250k" for
+                    everybody, which is four per cent of one budget and six
+                    times another - see objectives.objectiveBonus. */}
+                {' '}<b style={{ color: 'var(--text-muted)' }}>{t('finances.objReward', { amount: fmtMoney(objectiveBonus(club.budget)) })}</b>
               </span>
             </div>
           )

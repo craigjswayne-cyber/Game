@@ -42,6 +42,28 @@ const ok = (c: boolean, what: string) => {
   if (!c) fails++
 }
 
+/**
+ * IDS THAT BELONG TO WHICHEVER WORLD IS RUNNING.
+ *
+ * The rule this file enforces is that a women's save contains women's ids and
+ * nothing else, and the rule is right: a men's club id inside a women's world
+ * is the failure the whole gender split exists to make impossible.
+ *
+ * Two ids are deliberately world-neutral, and both mean "this save's own".
+ *
+ *   'fr' is a friendly, which both worlds arrange.
+ *   'cc' is the continental cup. Each world builds its own - sixteen men's
+ *     clubs or sixteen women's clubs, on its own calendar - and a save is one
+ *     world or the other and never both, so within any career 'cc' means "the
+ *     continental cup of this game". Namespacing it would have meant teaching
+ *     every dream, award and trophy-counting path a second name for one thing.
+ *
+ * Anything else is a stray, and the contents are checked below regardless: a
+ * neutral id containing a men's club would still be caught by the club and
+ * league checks it takes part in.
+ */
+const WORLD_NEUTRAL = new Set(['fr', 'cc'])
+
 /** Every id a world exposes, with where it came from, so a failure names the
  *  offender rather than just the count. */
 function strayIds(s: GameState, g: Gender): string[] {
@@ -51,13 +73,21 @@ function strayIds(s: GameState, g: Gender): string[] {
     if (isWomensId(id) !== want) bad.push(`club ${id}`)
   }
   for (const id of Object.keys(s.comps)) {
-    if (isWomensId(id) !== want) bad.push(`comp ${id}`)
+    if (!WORLD_NEUTRAL.has(id) && isWomensId(id) !== want) bad.push(`comp ${id}`)
   }
   for (const c of Object.values(s.clubs)) {
     if (c.leagueId && isWomensId(c.leagueId) !== want) bad.push(`${c.id} plays in ${c.leagueId}`)
   }
   for (const f of s.fixtures) {
-    if (f.compId && f.compId !== 'fr' && isWomensId(f.compId) !== want) bad.push(`fixture in ${f.compId}`)
+    if (f.compId && !WORLD_NEUTRAL.has(f.compId) && isWomensId(f.compId) !== want) bad.push(`fixture in ${f.compId}`)
+  }
+  // and the neutral ids have to be filled with THIS world's clubs, which is
+  // the thing the prefix was standing in for
+  for (const [id, comp] of Object.entries(s.comps)) {
+    if (!WORLD_NEUTRAL.has(id)) continue
+    for (const row of comp.table ?? []) {
+      if (isWomensId(row.teamId) !== want) bad.push(`${id} contains ${row.teamId}`)
+    }
   }
   return bad
 }
@@ -79,7 +109,7 @@ ok(LEAGUE_DEFS('w').length > 0, `the women's game has competitions (${LEAGUE_DEF
 
 console.log('\n=== seam 1: a world built by newGame ===')
 const wClub = LEAGUE_DEFS('w')[0].clubs[0].id
-const w = newGame(wClub, 'Test', 4242, undefined, 'coach', 'normal', 'w')
+const w = newGame(wClub, 'Test', 4242, undefined, 'coach', 'w')
 ok(genderOf(w) === 'w', 'the save says which game it is in')
 ok(!!w.clubs[wClub], `the user's club is in the world (${w.clubs[wClub]?.name})`)
 report(w, 'w', 'fresh women\'s world')
@@ -124,7 +154,7 @@ console.log('\n=== the women\'s Test game ===')
 // career can play a full Test programme and never name a squad. It did exactly
 // that until this probe caught it.
 {
-  const g = newGame(wClub, 'Test', 31337, undefined, 'coach', 'normal', 'w')
+  const g = newGame(wClub, 'Test', 31337, undefined, 'coach', 'w')
   const intl = Object.values(g.comps).filter(c => c.type === 'intl')
   ok(intl.length === 2, `the women's world has its two Test competitions (${intl.map(c => c.name).join(', ')})`)
   const fx = g.fixtures.filter(f => intl.some(c => c.id === f.compId))

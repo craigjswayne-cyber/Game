@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { useStore } from '../../store'
 import { analystArmed } from '../../game/rewarded'
-import { rewardedAvailable, showRewarded } from '../../game/monetise'
+import { rewardedAvailable } from '../../game/monetise'
 import { AdSlot } from '../AdSlot'
 import {
   matchStats, teamShort, teamUnits, rosterOf, assistantJudgement, autoSelect, availablePlayers,
@@ -15,7 +15,7 @@ import { PRESETS, SLIDER_INFO, sliderReadout, type SliderKey } from '../../game/
 import { ord, posName, t } from '../../game/i18n'
 import { subjectVar } from '../../game/gender'
 import { coachFixes, gradeFixes, gradeLine, unitBattles, type FixTag } from '../../game/coachfix'
-import { CrestT, Jersey, PosBadge, SectionTitle, Stars } from '../components'
+import { CrestT, Jersey, PosBadge, SectionTitle, Stars, RewardedButton } from '../components'
 import { stageName } from './Home'
 import { matchSfx, soundOn, toggleSound } from '../audio'
 import { derbyName } from '../../game/rivalries'
@@ -991,12 +991,12 @@ function Preview({ fxId }: { fxId: number }) {
               {t(planApplied ? 'matchday.planApplied' : 'matchday.planApply')}
             </button>
             {rewardedAvailable('matchday') && !fullRead && allPlans.length > gamePlan.length && (
-              <button className="btn ghost block" style={{ marginTop: 6, fontSize: 12.5 }} onClick={() => {
-                void showRewarded('matchday').then(out => {
+              <RewardedButton place="matchday" style={{ marginTop: 6, fontSize: 12.5 }}
+                label={t('till.watchAnalyst', { n: allPlans.length - gamePlan.length, ...subjectVar(game.analystGender) })}
+                onDone={out => {
                   if (out === 'completed') rewardAnalyst()
                   else setSpotMsg(t(out === 'skipped' ? 'till.spotSkipped' : 'till.spotUnavailable'))
-                })
-              }}>{t('till.watchAnalyst', { n: allPlans.length - gamePlan.length, ...subjectVar(game.analystGender) })}</button>
+                }} />
             )}
             {fullRead && <div className="meta" style={{ marginTop: 6, color: 'var(--gold)' }}>{t('till.analystDone')}</div>}
             {spotMsg && <div className="meta sheet-log" style={{ marginTop: 6, borderLeft: '3px solid var(--gold)', paddingLeft: 8 }}>{spotMsg}</div>}
@@ -1395,10 +1395,49 @@ function NationPreview({ fxId }: { fxId: number }) {
 // 900ms (owner: "commentary text needs to be slower if you select slower.
 // Normal is as it is. Fast is as is"). 1600 is a line and a breath, and the
 // tension multiplier below still stretches it at the sharp end of a match.
+/**
+ * ---- HOW LONG A LINE OF COMMENTARY GETS ON THE SCREEN ----
+ *
+ * These were 1600 / 350 / 90, and the owner's verdict was "slow is good, normal
+ * is too fast and fast is ridiculous". He was right, and the arithmetic says so.
+ *
+ * THE MEASUREMENT. The 245 lines in comm.* average 12.2 words, median 12.
+ * Brysbaert's 2019 meta-analysis - 190 studies, 18,573 participants - puts
+ * adult silent reading at 238 words a minute, so a median line takes about
+ * 3,025ms to read start to finish. Against that:
+ *
+ *     Slow    1600ms   53% of the time the line needs
+ *     Normal   350ms   12%          <- "too fast"
+ *     Fast      90ms    3%          <- "ridiculous"
+ *
+ * So SLOW AT ~50% IS THE TARGET, defined by the one setting that was called
+ * good. That is not a contradiction: a ticker is skimmed rather than read, the
+ * line stays on screen after the next arrives, and half the reading time is
+ * enough to take a line in without stopping on it.
+ *
+ * THE LADDER. Each step is exactly twice the speed of the one above, which
+ * makes the difference between two settings something a player can feel rather
+ * than guess at - the old 4.6x cliff from Slow to Normal left no usable middle
+ * at all, which is why one setting was unusable and the other was glacial.
+ *
+ *     Slow    1600ms   53%   unchanged, and the anchor for the other two
+ *     Normal   800ms   26%   followable without stopping
+ *     Fast     400ms   13%   a skim: you catch the incidents, not the phases
+ *
+ * AND THE GENRE AGREES. Championship Manager 01/02, the closest ancestor this
+ * game has and text commentary in the same way, ran its delay across 800-2700ms
+ * with 300ms as the community's deliberate fast-play setting. Every number
+ * above sits inside that band: 800 is exactly its floor, 400 is slower than its
+ * speed-run figure, and the tension stretch below takes Slow to 2,560ms at its
+ * most dramatic, just under the 2,700 ceiling.
+ *
+ * If these are ever changed again, change them against the measurement rather
+ * than against a feeling - scripts/tempoprobe.ts holds them to it.
+ */
 const SPEEDS = [
   { label: 'matchday.spdSlow', ms: 1600, name: 'matchday.spdSlowName' },
-  { label: 'matchday.spdNormal', ms: 350, name: 'matchday.spdNormalName' },
-  { label: 'matchday.spdFast', ms: 90, name: 'matchday.spdFastName' },
+  { label: 'matchday.spdNormal', ms: 800, name: 'matchday.spdNormalName' },
+  { label: 'matchday.spdFast', ms: 400, name: 'matchday.spdFastName' },
 ]
 
 /** XV formation spots: [x across own half 0-100, y down the pitch 0-100] */
@@ -2323,8 +2362,10 @@ function MatchVerdict() {
   // always next week, hence four rather than one.
   const hw = game.fixHw
   const fresh = !!hw && hw.fxId !== live.fixture.id && hw.season === game.season && game.week - hw.week <= 4
+  // "using the bench" is a job you DO, so it is graded on evidence rather than
+  // on the complaint staying quiet - ctx.subsUsed is the only honest witness.
   const grade = fresh && hw
-    ? gradeFixes(hw.tags as FixTag[], fixes.map(f => f.tag))
+    ? gradeFixes(hw.tags as FixTag[], fixes.map(f => f.tag), { fitness: live.ctx.subsUsed > 0 })
     : { fixed: [], missed: [] }
   const verdictOnLast = gradeLine(grade.fixed, grade.missed)
 
