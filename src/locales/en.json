@@ -2193,7 +2193,12 @@
   "signAsMarquee_f": "Sign her as a marquee player ({n} slots free): her wage sits outside the salary cap",
   "signAsMarqueeOne_f": "Sign her as a marquee player (last slot): her wage sits outside the salary cap",
   "loanBuy_f": "Buy her for {fee}",
-  "loanBuyConfirm_f": "Pay it - she is ours"
+  "loanBuyConfirm_f": "Pay it - she is ours",
+  "requestAnswerTitle": "A transfer request is on your desk",
+  "requestAnswerSub": "Answer it either way, or leave it and let the team sheet do the talking.",
+  "requestGrant": "Let him go",
+  "requestRefuse": "Turn it down",
+  "requestGrant_f": "Let her go"
  },
  "challenges": {
   "sapiac": "Sauvez Sapiac",
@@ -5237,7 +5242,11 @@
   "aWonLine5_w": "She signed off with one line: \"That is the standard now.\"",
   "aLostLine2_w": "She wants you to know which three kept going at 20 down, because those are the three who will make it.",
   "aLostLine4_w": "Nobody hid. That was her whole report, and it is the one thing she cares about.",
-  "staffSacked_w": "{club} have parted company with {role_k} {name}. The club paid {cost} to end her contract; the role is vacant."
+  "staffSacked_w": "{club} have parted company with {role_k} {name}. The club paid {cost} to end her contract; the role is vacant.",
+  "requestGrantedSubj": "🚪 {player} is free to find a club",
+  "requestGranted": "The request is granted and the name goes on the list. {club} will listen to offers, and every agent in the league already knows it.",
+  "requestRefusedSubj": "🔒 {player} is going nowhere",
+  "requestRefused": "The request is refused. There is a contract, {club} intend to hold it, and the only way out of this now is through the team sheet."
  },
  "comm": {
   "oppCoachNamed": "{coach} has done his homework: {team} are set up specifically for {pattern_k}. Change the picture, or play through the plan.",
@@ -5592,7 +5601,9 @@
   "analystWrong_w": "Backed the analyst's strongest read at {opp} ({unit_k}): she was wrong, and the week was wasted.",
   "badgePassed_w": "{name} passed her {badge_k} badge: a better {role_k}, and {wage} a week now.",
   "badgeFailedFee_w": "{name} failed her {badge_k} badge. The {fee} is gone and she cannot resit for a month.",
-  "badgeFailedCourse_w": "{name} failed her {badge_k} badge. The course fee is gone and she resits in four weeks."
+  "badgeFailedCourse_w": "{name} failed her {badge_k} badge. The course fee is gone and she resits in four weeks.",
+  "requestGranted": "Granted {player} his transfer request.",
+  "requestRefused": "Refused {player} his transfer request."
  },
  "persLower": {
   "Professional": "professional",
@@ -5819,7 +5830,13 @@
    "other": "{scout} is already out on a brief. She reports back in about {n} weeks."
   },
   "badgePassed_w": "{name} passed. She is {badge_k}-badged from today, and on {wage} a week.",
-  "badgeFailed_w": "{name} fell short. The {fee} is gone and she cannot sit it again for a month."
+  "badgeFailed_w": "{name} fell short. The {fee} is gone and she cannot sit it again for a month.",
+  "requestAlreadyAnswered": "That letter has already been answered.",
+  "requestGranted": "Granted. {player} goes on the list, and the squad will know before lunch.",
+  "requestGrantedSenior": "Granted, and the room went quiet when it heard. {player} was one of theirs.",
+  "requestRefused": "Refused. {player} stays, and stays unhappy about it.",
+  "requestRefusedBadly": "Refused, and taken badly. {player} left the office without shaking hands.",
+  "requestRefusedBadly_f": "Refused, and taken badly. {player} left the office without shaking hands."
  },
  "verdict": {
   "titleFavourites": "Title favourites",

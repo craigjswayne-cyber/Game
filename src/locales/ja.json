@@ -2081,7 +2081,12 @@
   "attrsSubCompare_f": "各項目の横に彼女の数値",
   "loanHisLevel_f": "毎週出場して仕事はこなしている。向こうのコーチ陣の評判は上々――ただし内心では、ここが彼女の限界だとも思っている。",
   "promotedMsg_f": "{name}がトップチームの練習に合流。今日という日を彼女は一生忘れない。",
-  "loanBuyConfirm_f": "支払う。彼女はこちらの選手だ"
+  "loanBuyConfirm_f": "支払う。彼女はこちらの選手だ",
+  "requestAnswerTitle": "机の上に移籍願がある",
+  "requestAnswerSub": "どちらかの返答をするか、放っておいてメンバー表に語らせるか。",
+  "requestGrant": "行かせる",
+  "requestRefuse": "却下する",
+  "requestGrant_f": "行かせる"
  },
  "challenges": {
   "sapiac": "Sauvez Sapiac",
@@ -4953,7 +4958,11 @@
   "rivalAboveYou_w": "{his}対{mine}。{boss}が正しかった。少なくとも順位表はそう言っており、この仕事では来年の5月までそれが真実ということになる。彼女は自分の言葉を一語も忘れていないはずだ。あなたも忘れてはいけない。",
   "staffHired_w": "{club}が望みの人材を手に入れた。{name}、{age}歳、{badge_k}バッジ持ちの{role_k}で、{trait_k}として知られる。補償金{fee}、週給{wage}。{out_k}{chem_k}",
   "staffClick_w": "スタッフルームは歓迎ムードだ。彼女と{other}は馬が合う - {note_k}。",
-  "staffClash_w": "ひとつだけ気がかりが。彼女と{other}はラグビー観がまるで違う - {note_k}。"
+  "staffClash_w": "ひとつだけ気がかりが。彼女と{other}はラグビー観がまるで違う - {note_k}。",
+  "requestGrantedSubj": "🚪 {player}、移籍先探しを容認",
+  "requestGranted": "移籍願は受理され、名前はリストに載った。{club}はオファーに耳を貸す。リーグ中の代理人はもう知っている。",
+  "requestRefusedSubj": "🔒 {player}の移籍願、却下",
+  "requestRefused": "移籍願は却下された。契約がある。{club}はそれを盾に取る構えで、この先の出口はメンバー表の中にしかない。"
  },
  "comm": {
   "oppCoachNamed": "{coach}は宿題を済ませてきた。{team}は{pattern_k}をピンポイントで封じる布陣だ。絵を変えるか、それとも計画ごと押し通すか。",
@@ -5255,7 +5264,9 @@
   "fundsApproved": "理事会に追加の移籍資金を要請:{amount}が承認された。",
   "fundsDeclined": "理事会に追加の移籍資金を要請:却下された。",
   "dreamRefocus": "夢をひとつ叶え、新たな夢を掲げた:{dream_k}。",
-  "endedSponsor": "{sponsor}との{slot_k}契約を早期に打ち切った。"
+  "endedSponsor": "{sponsor}との{slot_k}契約を早期に打ち切った。",
+  "requestGranted": "{player}の移籍願を受理した。",
+  "requestRefused": "{player}の移籍願を却下した。"
  },
  "persLower": {
   "Professional": "プロフェッショナル",
@@ -5465,7 +5476,13 @@
   "onLoanParent_f": "彼女はローン中で、契約は保有元クラブのものです。",
   "termsBreakBudget_f": "彼女の条件（週{wage}）では給与予算を超えてしまいます。",
   "biggerStage_f": "{name}は関心に感謝しつつも、彼女はもっと大きな舞台を待っている。",
-  "retiringMindMadeUp_f": "{name}はその気持ちをありがたく思っているが、彼女の決意は固い。夏に引退する。"
+  "retiringMindMadeUp_f": "{name}はその気持ちをありがたく思っているが、彼女の決意は固い。夏に引退する。",
+  "requestAlreadyAnswered": "その願いには、すでに返答してある。",
+  "requestGranted": "受理した。{player}をリストに載せる。昼までにはロッカールーム中が知るだろう。",
+  "requestGrantedSenior": "受理した。報せが伝わると、ロッカールームは静まり返った。{player}は彼らの一員だった。",
+  "requestRefused": "却下した。{player}は残る。不満を抱えたまま残る。",
+  "requestRefusedBadly": "却下した。受け取り方は最悪だった。{player}は握手もせずに部屋を出ていった。",
+  "requestRefusedBadly_f": "却下した。受け取り方は最悪だった。{player}は握手もせずに部屋を出ていった。"
  },
  "verdict": {
   "titleFavourites": "優勝候補筆頭",

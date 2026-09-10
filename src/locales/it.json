@@ -2120,7 +2120,12 @@
   "releaseFloor_f": "La rosa non può scendere sotto {n} giocatrici senior.",
   "signAsMarquee_f": "Firmarla come giocatrice di punta ({n} posti liberi): il suo stipendio esce dal tetto",
   "signAsMarqueeOne_f": "Firmarla come giocatrice di punta (ultimo posto): il suo stipendio esce dal tetto",
-  "releasedMsg_f": "{name} è stata svincolata. {cost} di buonuscita; è libera."
+  "releasedMsg_f": "{name} è stata svincolata. {cost} di buonuscita; è libera.",
+  "requestAnswerTitle": "Sulla tua scrivania c'è una richiesta di trasferimento",
+  "requestAnswerSub": "Rispondi in un senso o nell'altro, oppure lasciala e lascia parlare la distinta.",
+  "requestGrant": "Lasciarlo andare",
+  "requestRefuse": "Rifiutare",
+  "requestGrant_f": "Lasciarla andare"
  },
  "challenges": {
   "sapiac": "Sauvez Sapiac",
@@ -5084,7 +5089,11 @@
   "rivalAboveYou_w": "{his} contro {mine}. {boss} aveva ragione, o almeno così dice la classifica, che in questo mestiere è la stessa cosa fino al prossimo maggio. Lei non avrà dimenticato una parola, e nemmeno tu dovresti.",
   "staffHired_w": "{club} ha la sua donna: {name}, {age} anni, {role_k} con patentino {badge_k}, noto come {trait_k}. {fee} di indennizzo, {wage} a settimana.{out_k}{chem_k}",
   "staffClick_w": "La sala staff approva: lei e {other} si intendono al volo - {note_k}.",
-  "staffClash_w": "Una nuvola all'orizzonte: lei e {other} vedono il rugby in modo molto diverso - {note_k}."
+  "staffClash_w": "Una nuvola all'orizzonte: lei e {other} vedono il rugby in modo molto diverso - {note_k}.",
+  "requestGrantedSubj": "🚪 {player} è libero di cercarsi un club",
+  "requestGranted": "La richiesta è accolta e il nome finisce sulla lista. {club} ascolterà le offerte, e ogni agente del campionato lo sa già.",
+  "requestRefusedSubj": "🔒 {player} non va da nessuna parte",
+  "requestRefused": "La richiesta è respinta. C'è un contratto, {club} intende farlo valere, e l'unica via d'uscita ora passa dalla distinta."
  },
  "comm": {
   "oppCoachNamed": "{coach} ha fatto i compiti a casa: {team} si è schierata apposta contro {pattern_k}. Cambia il copione, o gioca dentro il loro piano.",
@@ -5400,7 +5409,9 @@
   "heal_f": {
    "one": "Prenotato il ritiro dallo specialista: una donna tornata al pieno della salute",
    "other": "Prenotato il ritiro dallo specialista: {n} donne tornate al pieno della salute"
-  }
+  },
+  "requestGranted": "Ha accolto la richiesta di trasferimento di {player}.",
+  "requestRefused": "Ha respinto la richiesta di trasferimento di {player}."
  },
  "persLower": {
   "Professional": "professionale",
@@ -5596,7 +5607,13 @@
   "alreadyYours_f": "È già un tuo giocatrice.",
   "tooSoonToSell_f": "{club} chiudono la telefonata con garbo: {name} è arrivata {ago_k} fa e il club ha investito su di lei. Finché non avrà fatto mezza stagione con loro, solo un'offerta irrifiutabile - {door} - riapre il discorso.",
   "biggerStage_f": "{name} ringrazia per l'interesse, ma lei aspetta un palcoscenico più grande.",
-  "notYourPlayer_f": "Non è un tuo giocatrice."
+  "notYourPlayer_f": "Non è un tuo giocatrice.",
+  "requestAlreadyAnswered": "A quella lettera è già stata data una risposta.",
+  "requestGranted": "Concessa. {player} finisce sulla lista, e lo spogliatoio lo saprà prima di pranzo.",
+  "requestGrantedSenior": "Concessa, e lo spogliatoio è ammutolito quando l'ha saputo. {player} era uno di loro.",
+  "requestRefused": "Respinta. {player} resta, e resta scontento di restare.",
+  "requestRefusedBadly": "Respinta, e presa malissimo. {player} è uscito dall'ufficio senza stringere la mano.",
+  "requestRefusedBadly_f": "Respinta, e presa malissimo. {player} è uscita dall'ufficio senza stringere la mano."
  },
  "verdict": {
   "titleFavourites": "Favorita per il titolo",
