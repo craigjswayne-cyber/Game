@@ -6289,8 +6289,14 @@
     "centuryConversationR": "Diplomate. Il a relevé le mot « discussion » et le ressortira à Noël.",
     "centuryTwoHundred": "Redemandez-moi quand il en sera à deux cents.",
     "centuryTwoHundredR": "Un rire, et un objectif. Il lui en reste cent et il a déjà commencé à compter.",
-    "benchQ1": "{player} n'a plus été titulaire depuis {n} semaines. Son agent parle d'« étudier des options ». Et vous ?",
-    "benchQ2": "{n} semaines sur le banc pour {player}, et il vaut mieux que ça. Qu'a-t-il fait ?",
+    "benchQ1": {
+      "one": "{player} n'a plus été titulaire depuis une semaine. Son agent parle d'« étudier des options ». Et vous ?",
+      "other": "{player} n'a plus été titulaire depuis {n} semaines. Son agent parle d'« étudier des options ». Et vous ?"
+    },
+    "benchQ2": {
+      "one": "Une semaine sur le banc pour {player}, et il vaut mieux que ça. Qu'a-t-il fait ?",
+      "other": "{n} semaines sur le banc pour {player}, et il vaut mieux que ça. Qu'a-t-il fait ?"
+    },
     "benchDoor": "Qu'il étudie. Ma porte est ouverte.",
     "benchDoorR": "Elle l'est. Il la franchit lundi avec une demande de transfert et une impression papier.",
     "benchBuilding": "Il est au cœur de ce qu'on construit.",
@@ -6370,7 +6376,6 @@
     "weightQ1_f": "{player} a {age} ans et elle a joué presque tous les week-ends. Elle manquait de confiance samedi. Le poids commence-t-il à peser ?",
     "weightMineR_f": "Vous la lui retirez en public, le seul endroit où elle peut se retirer. {player} joue le match suivant comme une femme qui n'a rien à perdre.",
     "loanQ1_f": "{player}, {age} ans, attend devant votre bureau après l'entraînement. « Je n'apprends rien à porter des boucliers, coach. Prêtez-moi - il me faut du vrai temps de jeu. »",
-    "benchQ2_f": "{n} semaines sur le banc pour {player}, et elle vaut mieux que ça. Qu'est-ce qu'elle a fait ?",
     "ownerRugbyR_w": "Sûr d'elle, direct - les propriétaires aiment une femme qui se met elle-même face au tableau d'affichage."
   },
   "posNoun": {

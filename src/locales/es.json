@@ -6146,8 +6146,14 @@
   "centuryConversationR": "Diplomático. Él se ha fijado en la palabra «conversación» y la sacará en Navidad.",
   "centuryTwoHundred": "«Pregúntame cuando llegue a doscientos.»",
   "centuryTwoHundredR": "Una risa, y un objetivo. Le quedan cien y ya ha empezado a contar.",
-  "benchQ1": "{player} no es titular desde hace {n} semanas. Su agente dice que está «valorando opciones». ¿Y tú?",
-  "benchQ2": "{n} semanas en el banquillo para {player}, y vale más que eso. ¿Qué ha hecho?",
+  "benchQ1": {
+   "one": "{player} no es titular desde hace una semana. Su agente dice que está «valorando opciones». ¿Y tú?",
+   "other": "{player} no es titular desde hace {n} semanas. Su agente dice que está «valorando opciones». ¿Y tú?"
+  },
+  "benchQ2": {
+   "one": "Una semana en el banquillo para {player}, y vale más que eso. ¿Qué ha hecho?",
+   "other": "{n} semanas en el banquillo para {player}, y vale más que eso. ¿Qué ha hecho?"
+  },
   "benchDoor": "«Que explore. Mi puerta está abierta.»",
   "benchDoorR": "Lo está. La cruza el lunes con una petición de traspaso y un folio impreso.",
   "benchBuilding": "«Es una pieza clave de lo que estamos construyendo.»",
