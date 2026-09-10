@@ -30,7 +30,7 @@ import { seedPhilosophies } from './philosophy'
 import { seedDeals } from './commercial'
 import { clamp } from './rng'
 import { assistantJudgement, autoSelect } from './matchEngine'
-import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildLeague, schedulePreseason } from './schedule'
+import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildLeague, schedulePreseason, W_CC_POOL_WEEKS, W_CC_KO_WEEKS } from './schedule'
 import { punditPredictions } from './gossip'
 import { WEEK_BASIS, CHEM_SLOTS, RELEGATES, boardObjective, chemKey, fmtMoney, initFacilities, isWorldCupSeason } from './model'
 import { seedKnowledge } from './scout'
@@ -570,8 +570,52 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
 
     buildInternationals(rng, state, isWorldCupSeason(0))
   } else {
-    // The women's game has its own two, in their own windows. See
-    // buildWomensInternationals for why this is not the men's builder with
+    // ---- THE WOMEN'S CONTINENTAL CUP ----
+    //
+    // The women's game had no continental competition at all, which is why
+    // three of the seven career dreams were unwinnable in it: "Win the
+    // Continental Cup" and "Win the league and Europe" both count trophies in
+    // comp 'cc', and this world never built one. The wizard offered them
+    // anyway, beside dreams that were real.
+    //
+    // Sixteen clubs by reputation from the FOUR TOP TIERS - England, France,
+    // the Pacific and the Celtic provinces. No second tiers, and so no Shield
+    // beneath it either (owner: "celtic sides in but no second tiers"): the
+    // men's game has a Continental Shield because it has thirty-odd top-flight
+    // clubs and a Championship to feed it, and inventing one here would be
+    // filling a competition rather than answering a demand for it.
+    //
+    // It takes the id 'cc' deliberately, not a namespaced one. A save is one
+    // world or the other and never both, so within any career 'cc' means "the
+    // continental cup of this game" - which is exactly what every dream, award
+    // and trophy-counting path already assumes. A separate id would have meant
+    // touching all of them to teach each one a second name for the same thing.
+    // PLACES ARE ALLOCATED PER LEAGUE, NOT BY REPUTATION ALONE. Taking the best
+    // sixteen reputations gave England six, France five, the Pacific five and
+    // THE CELTIC PROVINCES NONE - they are a six-club league of provincial
+    // sides and every one of them sits below the cut. A continental cup with no
+    // Celtic entrants is not the competition the owner asked for, and it is not
+    // how any real cross-border cup has ever worked: places go to leagues, and
+    // leagues send their best.
+    //
+    // 5-5-4-2 against league sizes of 9, 10, 9 and 6. England and France get
+    // the most because they are the deepest; the Celtic provinces get two,
+    // which is a third of their league and the most generous share of the four.
+    const WOMENS_CC_PLACES: [string, number][] = [
+      [W + 'pwr', 5], [W + 'e1', 5], [W + 'pac', 4], [W + 'celt', 2],
+    ]
+    const wEuro = WOMENS_CC_PLACES.flatMap(([leagueId, places]) =>
+      Object.values(state.clubs)
+        .filter(c => c.leagueId === leagueId)
+        .sort((a, b) => b.rep - a.rep)
+        .slice(0, places)
+        .map(c => c.id))
+    state.comps['cc'] = buildChampionsCup(wEuro, rng, state,
+      { id: 'cc', name: 'Continental Cup', short: 'Continental Cup' },
+      W_CC_POOL_WEEKS, W_CC_KO_WEEKS)
+
+    // The women's game has its own two internationals, in their own windows.
+    // See buildWomensInternationals for why this is not the men's builder with
     // different arguments.
     buildWomensInternationals(rng, state)
   }
