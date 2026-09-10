@@ -6393,8 +6393,14 @@
   "centuryConversationR": "Diplomatic. He noticed the word 'conversation' and will mention it at Christmas.",
   "centuryTwoHundred": "Ask me after he's got to two hundred.",
   "centuryTwoHundredR": "A laugh, and a target. He has a hundred to go and has already started counting.",
-  "benchQ1": "{player} hasn't started in {n} weeks. His agent says he's 'exploring options'. Are you?",
-  "benchQ2": "{n} weeks on the bench for {player}, and he is better than that. What has he done?",
+  "benchQ1": {
+   "one": "{player} hasn't started in a week. His agent says he's 'exploring options'. Are you?",
+   "other": "{player} hasn't started in {n} weeks. His agent says he's 'exploring options'. Are you?"
+  },
+  "benchQ2": {
+   "one": "A week on the bench for {player}, and he is better than that. What has he done?",
+   "other": "{n} weeks on the bench for {player}, and he is better than that. What has he done?"
+  },
   "benchDoor": "He can explore. My door's open.",
   "benchDoorR": "It is. He walks through it on Monday with a transfer request and a printout.",
   "benchBuilding": "He's a big part of what we're building.",
@@ -6508,8 +6514,14 @@
   "centuryConversationR_f": "Diplomatic. She noticed the word 'conversation' and will mention it at Christmas.",
   "centuryTwoHundred_f": "Ask me after she's got to two hundred.",
   "centuryTwoHundredR_f": "A laugh, and a target. She has a hundred to go and has already started counting.",
-  "benchQ1_f": "{player} hasn't started in {n} weeks. Her agent says she's 'exploring options'. Are you?",
-  "benchQ2_f": "{n} weeks on the bench for {player}, and she is better than that. What has she done?",
+  "benchQ1_f": {
+   "one": "{player} hasn't started in a week. Her agent says she's 'exploring options'. Are you?",
+   "other": "{player} hasn't started in {n} weeks. Her agent says she's 'exploring options'. Are you?"
+  },
+  "benchQ2_f": {
+   "one": "A week on the bench for {player}, and she is better than that. What has she done?",
+   "other": "{n} weeks on the bench for {player}, and she is better than that. What has she done?"
+  },
   "benchDoor_f": "She can explore. My door's open.",
   "benchDoorR_f": "It is. She walks through it on Monday with a transfer request and a printout.",
   "benchBuilding_f": "She's a big part of what we're building.",

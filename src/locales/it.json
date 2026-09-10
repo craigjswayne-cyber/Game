@@ -6176,8 +6176,14 @@
   "centuryConversationR": "Diplomatico. Ha notato le parole «tra quelli» e le tirerà fuori a Natale.",
   "centuryTwoHundred": "«Chiedetemelo quando arriva a duecento.»",
   "centuryTwoHundredR": "Una risata, e un obiettivo. Gliene mancano cento e ha già cominciato a contare.",
-  "benchQ1": "{player} non parte titolare da {n} settimane. Il suo agente dice che sta «valutando opzioni». E lei?",
-  "benchQ2": "{n} settimane in panchina per {player}, e vale più di così. Che cosa ha combinato?",
+  "benchQ1": {
+   "one": "{player} non parte titolare da una settimana. Il suo agente dice che sta «valutando opzioni». E lei?",
+   "other": "{player} non parte titolare da {n} settimane. Il suo agente dice che sta «valutando opzioni». E lei?"
+  },
+  "benchQ2": {
+   "one": "Una settimana in panchina per {player}, e vale più di così. Che cosa ha combinato?",
+   "other": "{n} settimane in panchina per {player}, e vale più di così. Che cosa ha combinato?"
+  },
   "benchDoor": "«Valuti pure. La mia porta è aperta.»",
   "benchDoorR": "Lo è. Lunedì la attraversa con una richiesta di cessione e una stampata.",
   "benchBuilding": "«È una parte importante di quello che stiamo costruendo.»",

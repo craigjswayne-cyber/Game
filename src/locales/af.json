@@ -6438,8 +6438,14 @@
   "centuryConversationR": "Diplomaties. Hy het die woord 'gesprek' opgemerk en gaan dit met Kersfees noem.",
   "centuryTwoHundred": "Vra my weer as hy by tweehonderd kom.",
   "centuryTwoHundredR": "'n Lag, en 'n teiken. Hy het nog honderd oor en het reeds begin tel.",
-  "benchQ1": "{player} het in {n} weke nie begin nie. Sy agent sê hy 'kyk na opsies'. Doen jy?",
-  "benchQ2": "{n} weke op die bank vir {player}, en hy is beter as dit. Wat het hy gedoen?",
+  "benchQ1": {
+   "one": "{player} het in 'n week nie begin nie. Sy agent sê hy 'kyk na opsies'. Doen jy?",
+   "other": "{player} het in {n} weke nie begin nie. Sy agent sê hy 'kyk na opsies'. Doen jy?"
+  },
+  "benchQ2": {
+   "one": "'n Week op die bank vir {player}, en hy is beter as dit. Wat het hy gedoen?",
+   "other": "{n} weke op die bank vir {player}, en hy is beter as dit. Wat het hy gedoen?"
+  },
   "benchDoor": "Hy kan ondersoek. My deur is oop.",
   "benchDoorR": "Dit is. Hy stap Maandag daardeur met 'n oordragversoek en 'n drukstuk.",
   "benchBuilding": "Hy is 'n groot deel van wat ons bou.",
@@ -6557,8 +6563,14 @@
   "centuryConversationR_f": "Diplomaties. Sy het die woord 'gesprek' opgemerk en gaan dit met Kersfees noem.",
   "centuryTwoHundred_f": "Vra my weer as sy by tweehonderd kom.",
   "centuryTwoHundredR_f": "'n Lag, en 'n teiken. Sy het nog honderd oor en het reeds begin tel.",
-  "benchQ1_f": "{player} het in {n} weke nie begin nie. Haar agent sê sy 'kyk na opsies'. Doen jy?",
-  "benchQ2_f": "{n} weke op die bank vir {player}, en sy is beter as dit. Wat het sy gedoen?",
+  "benchQ1_f": {
+   "one": "{player} het in 'n week nie begin nie. Haar agent sê sy 'kyk na opsies'. Doen jy?",
+   "other": "{player} het in {n} weke nie begin nie. Haar agent sê sy 'kyk na opsies'. Doen jy?"
+  },
+  "benchQ2_f": {
+   "one": "'n Week op die bank vir {player}, en sy is beter as dit. Wat het sy gedoen?",
+   "other": "{n} weke op die bank vir {player}, en sy is beter as dit. Wat het sy gedoen?"
+  },
   "benchDoor_f": "Sy kan ondersoek. My deur is oop.",
   "benchDoorR_f": "Dit is. Sy stap Maandag daardeur met 'n oordragversoek en 'n drukstuk.",
   "benchBuilding_f": "Sy is 'n groot deel van wat ons bou.",
