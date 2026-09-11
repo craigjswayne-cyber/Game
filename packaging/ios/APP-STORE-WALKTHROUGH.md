@@ -296,15 +296,15 @@ App Store Connect, <https://appstoreconnect.apple.com>. Needs the account.
   Identifiers*.
 * SKU: anything private, e.g. `phase-rugby-manager`. Customers never see it.
 
-### 15. Create the ten products — read the Type column twice
+### 15. Create the eleven products — read the Type column twice
 
 Your app → *Monetization* → *In-App Purchases* → **+**.
 
 | Product ID | Type | Name | Price |
 |---|---|---|---|
-| `phase.uncapped` | Non-consumable | Remove the Wage Cap | £9.99 |
-| `phase.estate` | Non-consumable | Max your team facilities | £9.99 |
-| `phase.pinnacle` | Non-consumable | Become an International Coach | £4.99 |
+| `phase.uncapped` | Non-consumable | Remove the Wage Cap | £4.99 |
+| `phase.estate` | Non-consumable | Max your team facilities | £4.99 |
+| `phase.pinnacle` | Non-consumable | Become an International Coach | £3.99 |
 | `phase.license` | **Consumable** | Support the game | £0.99 |
 | `phase.inject.s` | Consumable | Small Cash Injection | £0.99 |
 | `phase.inject.m` | Consumable | Medium Cash Injection | £1.99 |
@@ -312,6 +312,7 @@ Your app → *Monetization* → *In-App Purchases* → **+**.
 | `phase.inject.xl` | Consumable | The Sugar Daddy | £7.99 |
 | `phase.heal` | Consumable | Full Squad Recovery | £0.99 |
 | `phase.ground` | Consumable | The Estate, at the next ground | £9.99 |
+| `phase.supporter` | Non-consumable | Pro Manager | £4.99 |
 
 > **Where this bites.** A product's type can never be changed after it is
 > created. Get one wrong and the only remedy is a second product id and a
@@ -319,8 +320,9 @@ Your app → *Monetization* → *In-App Purchases* → **+**.
 > that `phase.license` is a **consumable**: it is a tip jar, and a tip jar that
 > takes one coin and greys out is not a tip jar.
 
-Do **not** create `phase.supporter` (Remove all ads) until a build actually ships
-ads. Never create `phase.editor` — removed before any store sold one.
+`phase.supporter` is Pro Manager, and it belongs in the list now: adverts
+shipped in 1.3.0 on 5 September 2026, so the product it removes is real. Never
+create `phase.editor` — removed before any store sold one.
 
 > **Why Xcode said 99 cents and Play says £1.19.** Two different things, and
 > neither of them is a bug in the game.
