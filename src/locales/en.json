@@ -456,8 +456,7 @@
   "nothingOnHimSub": "No player matching that search is injured, suspended, rusty or short of a gallop.",
   "quietRoomSub": "Nobody injured, suspended, rusty or running on empty. Enjoy it - it never lasts.",
   "treatmentRoom": "Treatment Room",
-  "treatmentSub": "ruled out - a specialist consult ({fee}) can shorten a long lay-off",
-  "specialist": "🩺 Specialist",
+  "treatmentSub": "ruled out - the sponsor's favour takes up to two weeks off for nothing, and the {fee} consult goes further on a long lay-off",
   "redZone": "Red Zone - season load",
   "redZoneSub": "1,300+ minutes: they break easier and tire faster. Rest them.",
   "minsThisSeason": "🔋 {mins}′ this season",
@@ -479,7 +478,8 @@
   "intlDuty": "INTL DUTY",
   "nothingOnHim_f": "Nothing on her",
   "returningSub_f": "playable, but a rushed return risks a breakdown · one woman a week can be wrapped in cotton wool",
-  "onFumesSub_f": "condition under 62% - it costs a starter; off the bench she still comes on at 60%"
+  "onFumesSub_f": "condition under 62% - it costs a starter; off the bench she still comes on at 60%",
+  "specialistCut": "🩺 Specialist -{n}w"
  },
  "inbox": {
   "freeAgent": " · free agent",
@@ -6604,7 +6604,6 @@
   "fineprint": "Prices are the store's own. A purchase is only spent once it has landed in your career; if anything is interrupted, this page offers it back.",
   "stampLicensed": "Licensed start",
   "stampCharter": "Owner's Charter",
-  "watchPhysio": "📺 Sponsor's favour",
   "watchAgency": "📺 Ask the agency for their file (watch a spot)",
   "analystDone": "The analyst's full read is on the card - the briefing above is the whole of it.",
   "townTitle": "The town's collection",
@@ -6625,7 +6624,8 @@
   "watchAnalyst_w": {
    "one": "📺 The analyst has one more read - her all-nighter for a spot",
    "other": "📺 The analyst has {n} more reads - her all-nighter for a spot"
-  }
+  },
+  "physioCut": "📺 Favour -{n}w"
  },
  "store": {
   "title": "Store",
@@ -6759,7 +6759,18 @@
   "cannotHost": "Your ground cannot hold that one yet.",
   "booked": "{event} booked. {fee} to the club.",
   "newsSubj": "{event} at the ground",
-  "news": "{club} hosted a {event} this week. {fee} in, and not a rugby ball in sight."
+  "news": "{club} hosted a {event} this week. {fee} in, and not a rugby ball in sight.",
+  "mishapWedding": "a fight in the car park and a window through",
+  "mishapComedy": "the hired sound rig went back damaged",
+  "mishapTownshow": "a marquee peg straight through an irrigation line",
+  "mishapGolf": "two buggies in the pond and a green to re-seed",
+  "mishapShooting": "an insurance excess after a very near miss",
+  "mishapSponsor": "the caterer's invoice came in well over the quote",
+  "mishapConcert": "the stage rig took out a section of terrace",
+  "newsBad": "{club} hosted a {event} this week. {fee} in, after {what} cost {bill}.",
+  "bookedBad": "{event} booked. {fee} to the club - {what}, {bill} off the fee.",
+  "slateSub": "Three in the diary this week. One ground, one booking.",
+  "risk": "can go wrong"
  },
  "point": {
   "ticketsSubj": "The board has seen the gate figures",

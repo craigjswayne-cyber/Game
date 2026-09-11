@@ -456,8 +456,7 @@
   "nothingOnHimSub": "Geen speler wat by daardie soektog pas, is beseer, geskors, roesterig of kort aan speeltyd nie.",
   "quietRoomSub": "Niemand beseer, geskors, roesterig of leeg getap nie. Geniet dit - dit hou nooit.",
   "treatmentRoom": "Behandelingskamer",
-  "treatmentSub": "buite aksie - 'n spesialiskonsultasie ({fee}) kan 'n lang afwesigheid verkort",
-  "specialist": "🩺 Spesialis",
+  "treatmentSub": "buite aksie - die borg se guns knip tot twee weke gratis af, en die {fee}-konsultasie gaan verder met 'n lang besering",
   "redZone": "Rooi Sone - seisoenlading",
   "redZoneSub": "1 300+ minute: hulle breek makliker en raak vinniger moeg. Laat hulle rus.",
   "minsThisSeason": "🔋 {mins}′ hierdie seisoen",
@@ -478,7 +477,8 @@
   "onLoan": "OP LEEN",
   "intlDuty": "INTL DIENS",
   "nothingOnHim_f": "Niks oor haar nie",
-  "returningSub_f": "speelbaar, maar 'n oorhaastige terugkeer waag 'n terugslag · een vrou per week kan in watte toegedraai word"
+  "returningSub_f": "speelbaar, maar 'n oorhaastige terugkeer waag 'n terugslag · een vrou per week kan in watte toegedraai word",
+  "specialistCut": "🩺 Spesialis -{n}w"
  },
  "inbox": {
   "freeAgent": " · vrye agent",
@@ -6652,7 +6652,6 @@
   "fineprint": "Pryse is die winkel s'n. 'n Aankoop word eers bestee wanneer dit in jou loopbaan geland het; as iets onderbreek word, bied hierdie bladsy dit weer aan.",
   "stampLicensed": "Gelisensieerde begin",
   "stampCharter": "Eienaarshandves",
-  "watchPhysio": "📺 Borg se guns",
   "watchAgency": "📺 Vra die agentskap vir hulle lêer (kyk 'n advertensie)",
   "analystDone": "Die ontleder se volle lesing is op die kaart - die inligtingstuk hierbo is die geheel daarvan.",
   "townTitle": "Die dorp se kollekte",
@@ -6673,7 +6672,8 @@
   "watchAnalyst_w": {
    "one": "📺 Die ontleder het nog een lesing - haar deurnagsessie vir 'n advertensie",
    "other": "📺 Die ontleder het nog {n} lesings - haar deurnagsessie vir 'n advertensie"
-  }
+  },
+  "physioCut": "📺 Guns -{n}w"
  },
  "store": {
   "title": "Winkel",
@@ -6807,7 +6807,18 @@
   "cannotHost": "Jou veld kan daardie een nog nie hou nie.",
   "booked": "{event} bespreek. {fee} aan die klub.",
   "newsSubj": "{event} by die veld",
-  "news": "{club} het hierdie week 'n {event} aangebied. {fee} in, en nie 'n rugbybal in sig nie."
+  "news": "{club} het hierdie week 'n {event} aangebied. {fee} in, en nie 'n rugbybal in sig nie.",
+  "mishapWedding": "'n bakleiery op die parkeerterrein en 'n venster uit",
+  "mishapComedy": "die gehuurde klankstelsel is beskadig teruggestuur",
+  "mishapTownshow": "'n tentpen dwarsdeur 'n besproeiingspyp",
+  "mishapGolf": "twee karretjies in die dam en 'n setperk om oor te saai",
+  "mishapShooting": "'n versekeringsoorskot ná 'n baie rakelinge skoot",
+  "mishapSponsor": "die spyseniers se rekening was ver bo die kwotasie",
+  "mishapConcert": "die verhoogstruktuur het 'n deel van die pawiljoen uitgehaal",
+  "newsBad": "{club} het hierdie week {event} aangebied. {fee} in, nadat {what} {bill} gekos het.",
+  "bookedBad": "{event} bespreek. {fee} vir die klub - {what}, {bill} van die fooi af.",
+  "slateSub": "Drie in die dagboek hierdie week. Een veld, een bespreking.",
+  "risk": "kan verkeerd loop"
  },
  "point": {
   "ticketsSubj": "Die direksie het die hekgetalle gesien",

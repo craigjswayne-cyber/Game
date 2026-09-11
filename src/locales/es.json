@@ -454,8 +454,7 @@
   "nothingOnHimSub": "Ningún jugador de esa búsqueda está lesionado, sancionado, oxidado ni falto de rodaje.",
   "quietRoomSub": "Nadie lesionado, sancionado, oxidado ni con el depósito vacío. Disfrútalo: nunca dura.",
   "treatmentRoom": "Sala de tratamiento",
-  "treatmentSub": "descartados: una consulta al especialista ({fee}) puede acortar una baja larga",
-  "specialist": "🩺 Especialista",
+  "treatmentSub": "de baja - el favor del patrocinador quita hasta dos semanas gratis, y la consulta de {fee} llega más lejos en una lesión larga",
   "redZone": "Zona roja - carga de la temporada",
   "redZoneSub": "Más de 1300 minutos: se rompen antes y se cansan más rápido. Dales descanso.",
   "minsThisSeason": "🔋 {mins}′ esta temporada",
@@ -478,7 +477,8 @@
   "findPlayer_f": "Buscar jugadora…",
   "nothingOnHimSub_f": "Ninguna jugadora de esa búsqueda está lesionada, sancionada, oxidada ni falta de rodaje.",
   "quietRoomSub_f": "Ninguna lesionada, sancionada, oxidada ni con el depósito vacío. Disfrútalo: nunca dura.",
-  "returningSub_f": "puede jugar, pero forzar la vuelta arriesga una recaída · a una mujer por semana se le puede envolver en algodones"
+  "returningSub_f": "puede jugar, pero forzar la vuelta arriesga una recaída · a una mujer por semana se le puede envolver en algodones",
+  "specialistCut": "🩺 Especialista -{n}sem"
  },
  "inbox": {
   "freeAgent": " · agente libre",
@@ -6286,7 +6286,6 @@
   "fineprint": "Los precios son los de la tienda. Una compra solo se gasta cuando ha llegado a tu carrera; si algo se interrumpe, esta página vuelve a ofrecerla.",
   "stampLicensed": "Inicio con licencia",
   "stampCharter": "Carta del Propietario",
-  "watchPhysio": "📺 Favor del patrocinador",
   "watchAgency": "📺 Pedir su informe a la agencia (ver un anuncio)",
   "analystDone": "La lectura completa del analista está en la ficha: el informe de arriba es todo lo que hay.",
   "townTitle": "La colecta del pueblo",
@@ -6304,7 +6303,8 @@
   },
   "owedHeld": "Ya está pagado. Aún no se ha entregado, así que no se te ha vuelto a cobrar: el juego sigue intentándolo en segundo plano. Vuelve en un minuto.",
   "asking": "Consultando la tienda…",
-  "townBody_f": "La peña de socios pasará la gorra por un club en apuros de verdad: ve un anuncio y la colecta entra en el banco. Paga sueldos y luz, nunca jugadoras."
+  "townBody_f": "La peña de socios pasará la gorra por un club en apuros de verdad: ve un anuncio y la colecta entra en el banco. Paga sueldos y luz, nunca jugadoras.",
+  "physioCut": "📺 Favor -{n}sem"
  },
  "store": {
   "title": "Tienda",
@@ -6439,7 +6439,18 @@
   "cannotHost": "Tu campo todavía no puede acoger eso.",
   "booked": "{event} reservado. {fee} para el club.",
   "newsSubj": "{event} en el campo",
-  "news": "{club} acogió un {event} esta semana. {fee} de ingreso, y ni un balón a la vista."
+  "news": "{club} acogió un {event} esta semana. {fee} de ingreso, y ni un balón a la vista.",
+  "mishapWedding": "una pelea en el aparcamiento y una ventana rota",
+  "mishapComedy": "el equipo de sonido alquilado volvió dañado",
+  "mishapTownshow": "una estaca de carpa atravesando una tubería de riego",
+  "mishapGolf": "dos carritos en el estanque y un green que resembrar",
+  "mishapShooting": "una franquicia del seguro tras un disparo demasiado cerca",
+  "mishapSponsor": "la factura del catering llegó muy por encima del presupuesto",
+  "mishapConcert": "la estructura del escenario se llevó parte de la grada",
+  "newsBad": "{club} acogió un {event} esta semana. {fee} de ingreso, tras {what} que costó {bill}.",
+  "bookedBad": "{event} reservado. {fee} para el club - {what}, {bill} menos de la recaudación.",
+  "slateSub": "Tres en la agenda esta semana. Un campo, una reserva.",
+  "risk": "puede salir mal"
  },
  "point": {
   "ticketsSubj": "La junta ha visto las cifras de taquilla",

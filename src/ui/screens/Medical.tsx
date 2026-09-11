@@ -112,28 +112,49 @@ export default function Medical() {
         </div>
       )}
 
-      {section(t('medical.treatmentRoom'), t('medical.treatmentSub', { fee: fmtMoney(SPECIALIST_FEE) }), injured, p => (
+      {section(t('medical.treatmentRoom'), t('medical.treatmentSub', { fee: fmtMoney(SPECIALIST_FEE) }), injured, p => {
+        /* ---- TWO DOORS, AND ONLY EVER ONE OF THEM IS A DECISION ----
+           Owner, 1.5.8: the paid consult sat next to the free watch-an-ad
+           button doing the same job. It nearly did. specialistConsult takes a
+           fifth off the remaining lay-off with no ceiling; physioFavour takes
+           the same fifth capped at two weeks - so below thirteen weeks out
+           they are IDENTICAL, and the game was charging fifty thousand pounds
+           for the version with an emoji on it.
+           The arithmetic is now on the buttons, and the fee only appears where
+           it actually buys something the favour cannot. Where no provider
+           exists - the web build, an offline phone - the fee is the only door
+           and shows at every length, which is why the gate reads the favour's
+           availability rather than the weeks alone. */
+        const left = Math.max(1, p.injury!.until - game.week)
+        const feeCut = Math.max(1, Math.round(left * 0.2))
+        const favourCut = Math.min(2, feeCut)
+        const favourOn = rewardedAvailable('medical') && canPhysioFavour(game, p.id)
+        const feeOn = !p.specialist && p.injury!.until - game.week >= 3 && (!favourOn || feeCut > favourCut)
+        return (
         <span style={{ color: 'var(--text-negative)', fontWeight: 700, fontSize: 12 }}>
-          {p.injury!.desc} · {t('common.weeksOut', { n: Math.max(1, p.injury!.until - game.week) })}
-          {!p.specialist && p.injury!.until - game.week >= 3 && (
-            <button className="btn ghost" style={{ marginLeft: 8, padding: '2px 8px', fontSize: 11 }}
-              onClick={e => { e.stopPropagation(); setMsg({ id: p.id, text: specialistConsult(game, p.id) }); touch() }}>
-              {t('medical.specialist')}
-            </button>
-          )}
+          {p.injury!.desc} · {t('common.weeksOut', { n: left })}
           {/* the sponsor's consultant (v1.1.0): the same door with the fee
               replaced by a watched spot - only where a provider exists, and
-              only while the week's ledger allows it (rewarded.ts) */}
-          {rewardedAvailable('medical') && canPhysioFavour(game, p.id) && (
-            <RewardedButton place="medical" label={t('till.watchPhysio')}
+              only while the week's ledger allows it (rewarded.ts). It is
+              listed FIRST now: free before paid is the honest order, and the
+              owner's note was that the two read as interchangeable. */}
+          {favourOn && (
+            <RewardedButton place="medical" label={t('till.physioCut', { n: favourCut })}
               className="btn ghost" style={{ marginLeft: 8, padding: '2px 8px', fontSize: 11 }}
               onDone={out => {
                 if (out === 'completed') setMsg({ id: p.id, text: rewardPhysio(p.id) ?? t('till.favourGone') })
                 else setMsg({ id: p.id, text: t(out === 'skipped' ? 'till.spotSkipped' : 'till.spotUnavailable') })
               }} />
           )}
+          {feeOn && (
+            <button className="btn gold" style={{ marginLeft: 8, padding: '2px 8px', fontSize: 11 }}
+              onClick={e => { e.stopPropagation(); setMsg({ id: p.id, text: specialistConsult(game, p.id) }); touch() }}>
+              {t('medical.specialistCut', { n: feeCut })}
+            </button>
+          )}
         </span>
-      ))}
+        )
+      })}
 
       {section(t('medical.redZone'), t('medical.redZoneSub'), loaded, p => (
         <span style={{ color: 'var(--text-negative)', fontWeight: 700, fontSize: 12 }}>{t('medical.minsThisSeason', { mins: p.stats.mins })}</span>
