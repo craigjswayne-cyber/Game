@@ -2129,14 +2129,14 @@
   "dynastyDesc": "Leinster arrasa con todos los trofeos de Irlanda. Desde Thormond Park, acaba con su reinado: gana la UPC y la Continental Cup.",
   "pirates": "El sueño de Cornualles",
   "piratesDesc": "De Penzance a la Premier Division: saca a Cornwall RFC del Championship con cuatro perras y pon por fin al condado en la élite.",
-  "threepeat": "Rompe el triplete",
-  "threepeatDesc": "Gloucester se ha llevado los tres últimos títulos. Sarries tiene plantilla e historia para pararlos. Gana la Premier Division y acaba con la racha.",
   "ealing": "El proyecto Ealing",
   "ealingDesc": "A Ealing le dieron una plaza en la Premier Division, un presupuesto y una plantilla comprada a toda prisa. Todavía no ha ganado nada. Gana la liga dos veces.",
   "licence": "Conserva la licencia",
   "licenceDesc": "Sale terminó último de la Premier Division. Aquí nadie desciende: la licencia se juzga por los resultados. Termina entre los cuatro primeros y la plaza está a salvo.",
   "grudge": "La espina de Lichfield",
-  "grudgeDesc": "A Lichfield lo dejaron fuera cuando se eligió la élite y no hay ascenso desde la segunda categoría. Gana el Championship y hazlos imposibles de ignorar."
+  "grudgeDesc": "A Lichfield lo dejaron fuera cuando se eligió la élite y no hay ascenso desde la segunda categoría. Gana el Championship y hazlos imposibles de ignorar.",
+  "circus": "Para el circo",
+  "circusDesc": "Gloucester se ha llevado los tres últimos títulos y todo el rugby viaja ya con ellos: las cámaras, los llenos, el desfile. Sarries tiene plantilla e historia para acabar con eso. Gana la Premier Division y márchate con un balance favorable ante ellos."
  },
  "profile": {
   "badgePlatinum": "Insignia de platino",
@@ -5075,7 +5075,11 @@
   "requestGrantedSubj": "🚪 {player} queda libre para buscar club",
   "requestGranted": "La solicitud se concede y el nombre pasa a la lista. {club} escuchará ofertas, y todos los agentes de la liga ya lo saben.",
   "requestRefusedSubj": "🔒 {player} no se mueve de aquí",
-  "requestRefused": "La solicitud se rechaza. Hay un contrato, {club} piensa hacerlo valer, y la única salida ahora pasa por la alineación."
+  "requestRefused": "La solicitud se rechaza. Hay un contrato, {club} piensa hacerlo valer, y la única salida ahora pasa por la alineación.",
+  "chalCircus": "La racha del Gloucester ha terminado y el circo se ha ido de la ciudad. Sarries es campeón de Inglaterra, y tu balance ante ellos dice que no fue casualidad.",
+  "chalEaling": "Dos títulos en Trailfinders. Un club del que se decía que compró su sitio lo ha ganado sobre el césped, dos veces, y ya no queda nada que decir.",
+  "chalLicence": "Sale acaba en puestos de play-off. La licencia ya no es una pregunta: el club pertenece ahí, y la tabla lo dice.",
+  "chalGrudge": "Lichfield es campeón de la Championship. Ignorado cuando la élite eligió a sus miembros, e imposible de ignorar ahora."
  },
  "comm": {
   "oppCoachNamed": "{coach} ha hecho los deberes: {team} salen preparados específicamente para {pattern_k}. Cambia el dibujo, o juega a través del plan.",

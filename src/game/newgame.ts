@@ -78,11 +78,19 @@ export const CHALLENGES: Challenge[] = [
   // The research and what could and could not be verified is in
   // docs/womens-challenges.md.
   {
-    // Saracens rather than Bristol (owner, this release): the three-peat is a
-    // Gloucester story, and the club with the history of stopping people is the
-    // one worth handing it to.
+    // Saracens rather than Bristol (v1.5.6): the run is a Gloucester story, and
+    // the club with the history of stopping people is the one worth handing it
+    // to. Renamed to Stop the Circus in 1.5.8 (owner) - what a side on a run of
+    // three actually becomes is a travelling show, and beating them once is not
+    // the same as ending it, which is why the win condition grew a second half.
+    //
+    // THE ID STAYS 'threepeat' ON PURPOSE. It is written into every save that
+    // has ever started this challenge and into challengesDone on every save
+    // that has finished it, and renaming it would mean a migration that buys
+    // nothing: no player ever sees the string. Same reasoning as Player.tours
+    // keeping its old name in model.ts.
     id: 'threepeat', clubId: W + 'saracens', gender: 'w',
-    title: 'challenges.threepeat', desc: 'challenges.threepeatDesc',
+    title: 'challenges.circus', desc: 'challenges.circusDesc',
   },
   {
     id: 'ealing', clubId: W + 'trailfinders', gender: 'w',
