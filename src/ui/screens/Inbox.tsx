@@ -1,9 +1,10 @@
-import { paragraphs } from '../components'
-import { useEffect, useRef } from 'react'
+import { TwoStep, paragraphs } from '../components'
+import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../../store'
 import { newsBody, newsSubject, weekDate, type NewsItem } from '../../game/model'
 import { RECALL_DAYS, daysLeft, inInbox, markRead } from '../../game/days'
 import { t } from '../../game/i18n'
+import { answerRequest, canAnswerRequest } from '../../game/chats'
 
 /** The inbox: one message at a time, with a recall window.
  *
@@ -37,6 +38,47 @@ const TYPE_ICON: Record<string, string> = {
  *  about - playerId for one man, playerIds for a list - it just never offered
  *  them. Coaches are named in the prose rather than linked, so the chip row
  *  covers the players and the coach's own club screen carries him. */
+/**
+ * ANSWER THE LETTER WHERE THE LETTER IS.
+ *
+ * A transfer request arrives as a story - "Maud Muir hands in a transfer
+ * request" - and the only way to answer it was to leave the reader, find her in
+ * the squad and scroll her profile. The owner read one and reasonably expected
+ * to be able to say yes or no to the thing in his hand.
+ *
+ * It calls chats.answerRequest, the same door the player screen uses, so the
+ * morale fallout on both sides and the twelve-week lockout are not a second
+ * implementation that can drift from the first. Rendered by both readers - the
+ * inbox and the wire - because the same story appears in both.
+ *
+ * Silent on every other story, and silent once the request has been answered
+ * anywhere, which is what canAnswerRequest already decides.
+ */
+export function RequestAnswer({ n }: { n: NewsItem }) {
+  const game = useStore(s => s.game)
+  const touch = useStore.getState().touch
+  const [msg, setMsg] = useState<string | null>(null)
+  if (!game || n.k !== 'news.transferRequest' || n.playerId == null) return null
+  const p = game.players[n.playerId]
+  if (!p) return null
+  // the reply stays on screen after the buttons have gone, so the answer is
+  // visibly the answer to THIS letter rather than a toast somewhere else
+  if (msg) return <div className="meta sheet-log" style={{ marginTop: 8, borderLeft: '3px solid var(--gold)', paddingLeft: 8 }}>{msg}</div>
+  if (!canAnswerRequest(game, p)) return null
+  return (
+    <div className="card" style={{ borderLeft: '4px solid var(--text-negative)', marginTop: 8 }}>
+      <div className="fact-label">{t('player.requestAnswerTitle')}</div>
+      <div className="meta">{t('player.requestAnswerSub')}</div>
+      <div className="btn-row" style={{ margin: '10px 0 0' }}>
+        <TwoStep className="btn ghost" label={t('player.requestGrant')} confirm={t('player.requestGrant')}
+          onConfirm={() => { setMsg(answerRequest(game, p, true)); touch() }} />
+        <TwoStep className="btn" label={t('player.requestRefuse')} confirm={t('player.requestRefuse')}
+          onConfirm={() => { setMsg(answerRequest(game, p, false)); touch() }} />
+      </div>
+    </div>
+  )
+}
+
 export function PeopleChips({ n }: { n: NewsItem }) {
   const game = useStore(s => s.game)!
   const go = useStore(s => s.go)
@@ -166,6 +208,7 @@ export default function Inbox() {
         {paragraphs(newsBody(n)).map((para, k) => (
           <p key={k}>{para.split(/\*\*(.+?)\*\*/g).map((seg, j) => j % 2 === 1 ? <b key={j}>{seg}</b> : seg)}</p>
         ))}
+        <RequestAnswer n={n} />
         <PeopleChips n={n} />
       </article>
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../../store'
-import { PeopleChips } from './Inbox'
+import { PeopleChips, RequestAnswer } from './Inbox'
 import { paragraphs } from '../components'
 import { newsBody, newsSubject, weekDate } from '../../game/model'
 import { markRead } from '../../game/days'
@@ -63,6 +63,7 @@ export default function Wire() {
         </div>
         {/* the same chip row the inbox reader uses, so a name looks tappable in
             the same way wherever the story is being read (10F) */}
+        <RequestAnswer n={n} />
         <PeopleChips n={n} />
       </div>
       <div className="btn-row" style={{ marginTop: 10 }}>
