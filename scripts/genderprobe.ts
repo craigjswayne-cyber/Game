@@ -156,7 +156,12 @@ console.log('\n=== the women\'s Test game ===')
 {
   const g = newGame(wClub, 'Test', 31337, undefined, 'coach', 'w')
   const intl = Object.values(g.comps).filter(c => c.type === 'intl')
-  ok(intl.length === 2, `the women's world has its two Test competitions (${intl.map(c => c.name).join(', ')})`)
+  // FOUR SINCE 1.5.8, and it was two because the women's year had only the
+  // Northern Championship and the Southern Four - both after the turn of the
+  // year, so an international job taken in September had no fixture until
+  // week 32. The autumn and summer Tests give it the men's three-window
+  // shape on its own dates.
+  ok(intl.length === 4, `the women's world has its four Test competitions (${intl.map(c => c.name).join(', ')})`)
   const fx = g.fixtures.filter(f => intl.some(c => c.id === f.compId))
   ok(fx.length > 0, `and a Test calendar to play (${fx.length} fixtures)`)
   // the men's windows must NOT be the women's: a Test in week 25 would mean the

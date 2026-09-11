@@ -18,7 +18,7 @@ import { terraceWeek } from './terraces'
 import { upkeepWeek } from './upkeep'
 import {absWeek, addGrudge, boardObjective, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, finalVenue, fixtureDayOff, fmtMoney, leagueTier, LEDGER_WEEKS, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, SEASON_WEEKS, seasonLabel, squadTrust, unbeatenRun, weeklyCentral, mgrWinWeight } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
-import { emptyRow, leaguePos, sortTable, snIdFor, snWeeksFor, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS, W_SIX_NATIONS_WEEKS, W_PAC4_WEEKS } from './schedule'
+import { emptyRow, leaguePos, sortTable, snIdFor, snWeeksFor, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS, W_AUTUMN_WEEKS, W_SIX_NATIONS_WEEKS, W_PAC4_WEEKS, W_SUMMER_TEST_WEEKS } from './schedule'
 import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice } from './ai'
 import { OFFICE_OUTLET, PRESS_KEEP_WEEKS, generatePress } from './media'
 import { debtWeek } from './treasury'
@@ -620,6 +620,21 @@ export function activeWindows(state: GameState): Window[] {
     out.push({
       start: W_PAC4_WEEKS[0] - 1, end: W_PAC4_WEEKS[W_PAC4_WEEKS.length - 1],
       nations: state.comps[W + 'p4'].teamIds, size: NAT_SQUAD_SIZE,
+    })
+  }
+  // The other two windows of the women's year. Without these the Tests are
+  // played and no club ever loses a player to one, which is the same fault the
+  // two above were added to fix.
+  if (state.comps[W + 'aut']) {
+    out.push({
+      start: W_AUTUMN_WEEKS[0] - 1, end: W_AUTUMN_WEEKS[W_AUTUMN_WEEKS.length - 1],
+      nations: state.comps[W + 'aut'].teamIds, size: NAT_SQUAD_SIZE,
+    })
+  }
+  if (state.comps[W + 'sum']) {
+    out.push({
+      start: W_SUMMER_TEST_WEEKS[0] - 1, end: W_SUMMER_TEST_WEEKS[W_SUMMER_TEST_WEEKS.length - 1],
+      nations: state.comps[W + 'sum'].teamIds, size: NAT_SQUAD_SIZE,
     })
   }
   if (state.comps['tour']) {
