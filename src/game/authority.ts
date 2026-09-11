@@ -166,7 +166,14 @@ export function disciplineWeek(state: GameState) {
         : (names.length >= 2 ? 'news.deputation' : 'news.deputationOne')
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
-        subject: tIn('en', senior ? 'news.deputationNamedSubj' : 'news.deputationSubj', v),
+        // THE SUBJECT KEY IS THE BODY KEY PLUS Subj, ALWAYS. This named the
+        // subject independently of `key`, so the one-incident variants filed a
+        // body of news.deputationNamedOne under a headline of
+        // news.deputationNamedSubj - and newsSubject(), which derives the
+        // headline from the body key, went looking for a
+        // news.deputationNamedOneSubj that did not exist and printed the key
+        // itself into the inbox. Derive it, and the two cannot drift again.
+        subject: tIn('en', key + 'Subj', v),
         body: tIn('en', key, v),
         k: key, v,
         playerId: senior?.id,
