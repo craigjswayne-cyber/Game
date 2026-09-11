@@ -3005,9 +3005,6 @@
   "bgIdeaEmpty": "Prima scrivi l'idea, poi inviala.",
   "bgIdeaGoesTo": "Le idee vanno a ",
   "bgIdeaRest": ", lo stesso indirizzo delle segnalazioni bug. Non viene allegato nient'altro: un'idea non ha bisogno del tuo salvataggio.",
-  "lgFirsts": "Il libro mastro del Mister",
-  "lgFirstsSub": "Le prime volte. Nessuna medaglia.",
-  "lgFirstsNone": "Non c'è ancora scritto niente. La prima vittoria in trasferta è la riga d'apertura più comune.",
   "coSquadSub_f": "da {floor} a {max} donne · il tuo club in grassetto",
   "srPotY_f": "Giocatrice della stagione",
   "srRollSub_f": "Giocatrice dell'Anno, stagione per stagione",
@@ -6347,7 +6344,6 @@
  },
  "store": {
   "title": "Negozio",
-  "sub": "niente di tutto questo gioca le partite",
   "owned": "Tuo",
   "bought": "Tuo. Segue il tuo account dello store: Ripristina lo riporta su un telefono nuovo.",
   "needCareer": "Apri prima una carriera: il ritiro ha bisogno di una squadra da visitare.",
@@ -6489,8 +6485,9 @@
   "mishapConcert": "la struttura del palco ha portato via un settore di gradinata",
   "newsBad": "{club} ha ospitato un {event} questa settimana. {fee} incassati, dopo che {what} è costato {bill}.",
   "bookedBad": "{event} prenotato. {fee} al club - {what}, {bill} tolti dall’incasso.",
-  "slateSub": "Tre in agenda questa settimana. Un campo, una prenotazione.",
-  "risk": "può andare storto"
+  "slateSub": "Tre questa settimana. Una sola.",
+  "risk": "può andare storto",
+  "newsBadSubj": "{event} all'impianto, e con esso un conto"
  },
  "point": {
   "ticketsSubj": "Il consiglio ha visto i dati del botteghino",

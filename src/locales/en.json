@@ -3065,9 +3065,6 @@
   "bgIdeaEmpty": "Write the idea first, then send it.",
   "bgIdeaGoesTo": "Ideas go to ",
   "bgIdeaRest": ", the same address as a bug report. Nothing else is attached - an idea does not need your save.",
-  "lgFirsts": "The Gaffer's Ledger",
-  "lgFirstsSub": "The firsts. No medals for these.",
-  "lgFirstsNone": "Nothing written in it yet. A first win away from home is the usual opening line.",
   "lgOwnTerms_f": "on her own terms",
   "coSquadSub_f": "{floor} to {max} women · your club's in bold",
   "coWindowOpen_f": "Window open: drop a name, call the next woman up. The Test XV is picked from this room on match day.",
@@ -6635,7 +6632,6 @@
  },
  "store": {
   "title": "Store",
-  "sub": "nothing here plays the matches",
   "owned": "Yours",
   "bought": "Yours. It follows your store account - Restore brings it back on a new phone.",
   "needCareer": "Open a career first - the retreat needs a squad to visit.",
@@ -6775,8 +6771,9 @@
   "mishapConcert": "the stage rig took out a section of terrace",
   "newsBad": "{club} hosted a {event} this week. {fee} in, after {what} cost {bill}.",
   "bookedBad": "{event} booked. {fee} to the club - {what}, {bill} off the fee.",
-  "slateSub": "Three in the diary this week. One ground, one booking.",
-  "risk": "can go wrong"
+  "slateSub": "Three this week. One booking.",
+  "risk": "can go wrong",
+  "newsBadSubj": "{event} at the ground, and a bill with it"
  },
  "point": {
   "ticketsSubj": "The board has seen the gate figures",

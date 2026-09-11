@@ -188,7 +188,10 @@ export function bookEvent(state: GameState, id: string): string {
   const v = { event_k: `close.${ev.id}`, fee: fmtMoney(net), club: club.name }
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
-    subject: tIn('en', 'close.newsSubj', { event: tIn('en', `close.${ev.id}`) }),
+    // the subject key is the body key with Subj on the end (newsSubject in
+    // news.ts), so a bad-night body needs its own headline or the inbox renders
+    // the raw key - newsprobe caught exactly that here
+    subject: tIn('en', bill > 0 ? 'close.newsBadSubj' : 'close.newsSubj', { event: tIn('en', `close.${ev.id}`) }),
     body: bill > 0
       ? tIn('en', 'close.newsBad', { event: tIn('en', `close.${ev.id}`), fee: fmtMoney(net), club: club.name, what: tIn('en', MISHAPS[ev.id]), bill: fmtMoney(bill) })
       : tIn('en', 'close.news', { event: tIn('en', `close.${ev.id}`), fee: fmtMoney(net), club: club.name }),
