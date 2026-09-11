@@ -151,10 +151,13 @@ says('partnerships', [CHEM_SLOTS.length === 5 ? 'Five pairings' : `${CHEM_SLOTS.
 
 says('finisher briefs', ['first three'], 'the three-brief cap is stated')
 
-// Appeals: two in three, and the cost of the third. media.ts adds a match and
-// docks two points of board confidence on a dismissal.
-says('appeal a red card', ['two in three', 'add a match'],
-  'the appeal entry states both the odds and the penalty for losing')
+// Appeals. This asked for a flat "two in three" until 1.5.8, when the hearing
+// stopped being a flat anything: hearingSucceeds reads the player's own record,
+// so the handbook has to say WHAT MOVES THE ODDS rather than quote one number
+// that is now true of exactly one kind of player. The penalty for losing is
+// unchanged - media.ts adds a match and docks two points of board confidence.
+says('appeal a red card', ['record', 'two hearings in three', 'repeat offender', 'a match goes on'],
+  'the appeal entry says what moves the odds and what losing costs')
 
 // Hospitality: 4% a level, and a break-even measured rather than guessed.
 says('hospitality boxes', ['four per cent', 'nine thousand'],
