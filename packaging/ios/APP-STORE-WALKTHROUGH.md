@@ -311,7 +311,7 @@ Your app → *Monetization* → *In-App Purchases* → **+**.
 | `phase.inject.l` | Consumable | Large Cash Injection | £3.99 |
 | `phase.inject.xl` | Consumable | The Sugar Daddy | £7.99 |
 | `phase.heal` | Consumable | Full Squad Recovery | £0.99 |
-| `phase.ground` | Consumable | The Estate, at the next ground | £9.99 |
+| `phase.ground` | Consumable | The Estate, at the next ground | £2.99 |
 | `phase.supporter` | Non-consumable | Pro Manager | £4.99 |
 
 > **Where this bites.** A product's type can never be changed after it is
