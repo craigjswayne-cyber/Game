@@ -72,7 +72,7 @@ import type { GameState, MatchEvent, Fixture, MgrOrigin } from './game/model'
 import { closeNatTenure, logDecision } from './game/model'
 import { newGame } from './game/newgame'
 import { genderOf, type Gender } from './game/gender'
-import { processWeekAndAdvance, resolveKnockoutDraw, userFixtureThisWeek, userMatchThisWeek, weekRng } from './game/season'
+import { isKnockoutTie, processWeekAndAdvance, resolveKnockoutDraw, userFixtureThisWeek, userMatchThisWeek, weekRng } from './game/season'
 import { resultsParam } from './game/schedule'
 import {
   applyPreTalk, applyTacticsChange, applyTeamTalk, beginMatch, makeSubstitution, swapInjuryCover, swapShirts, undoSubstitution,
@@ -328,7 +328,7 @@ function nextHighlight(events: MatchEvent[], cursor: number): number {
 /** After a tick hits FT: knockout ties are settled in sudden-death extra time. */
 function settleKnockout(g: GameState, ctx: LiveCtx) {
   const fx = ctx.fx
-  if (fx.stage && fx.homeScore === fx.awayScore) {
+  if (isKnockoutTie(fx) && fx.homeScore === fx.awayScore) {
     resolveKnockoutDraw(g, fx, weekRng(g))
     ctx.events.push({
       min: 90, type: 'FT', teamId: '',
