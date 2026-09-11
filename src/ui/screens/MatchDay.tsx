@@ -1754,7 +1754,12 @@ function Live() {
   const live = useStore(s => s.liveMatch)!
   useStore(s => s.tick)
   const { advanceLive, matchCursor, finishMatch, skipToBreak, matchMode } = useStore.getState()
-  const [speedIdx, setSpeedIdx] = useState(0)
+  // NORMAL OUT OF THE BOX (owner, 1.5.8: "default game speed to normal with
+  // fast and slow optional"). It opened on Slow, the anchor the ladder above
+  // was measured from, which meant every first match of every career ran at
+  // 1,600ms a line before anybody found the ⚙. Normal is the 800ms middle
+  // rung - followable without stopping - and both neighbours are one tap away.
+  const [speedIdx, setSpeedIdx] = useState(1)
   const [sound, setSound] = useState(soundOn())
   const [drawer, setDrawer] = useState(false)
   const [settings, setSettings] = useState(false)
