@@ -5254,7 +5254,9 @@
   "chalLicence": "Sale finish in the play-off places. The licence is not a question any more - the club belongs there, and the table says so.",
   "chalGrudge": "Lichfield are champions of the Championship. Passed over when the top flight chose its members, and impossible to ignore now.",
   "deputationOne": "A delegation of senior players comes to the office and closes the door. Polite and blunt: the room has watched the {a} situation drift, and it wants to know who is in charge. Answer it in the {room_k}, win on Saturday, and the door stops opening.",
-  "deputationNamedOne": "{player} comes to the office and closes the door. Polite and blunt: the room has watched the {a} situation drift, and it wants to know who is in charge. Answer it in the {room_k}, win on Saturday, and the door stops opening."
+  "deputationNamedOne": "{player} comes to the office and closes the door. Polite and blunt: the room has watched the {a} situation drift, and it wants to know who is in charge. Answer it in the {room_k}, win on Saturday, and the door stops opening.",
+  "deputationOneSubj": "🚪 The senior players ask for a meeting",
+  "deputationNamedOneSubj": "🚪 {player} asks for a meeting"
  },
  "comm": {
   "oppCoachNamed": "{coach} has done his homework: {team} are set up specifically for {pattern_k}. Change the picture, or play through the plan.",

@@ -5287,7 +5287,9 @@
   "chalLicence": "Sale eindig in die uitspeelplekke. Die lisensie is nie meer 'n vraag nie - die klub hoort daar, en die punteleer sê so.",
   "chalGrudge": "Lichfield is kampioene van die Championship. Oorgeslaan toe die topvlak sy lede gekies het, en nou onmoontlik om te ignoreer.",
   "deputationOne": "'n Afvaardiging senior spelers kom kantoor toe en maak die deur toe. Beleefd en reguit: die kleedkamer het gesien hoe die {a}-saak bly dryf, en wil weet wie hier besluit. Antwoord dit in die {room_k}, wen Saterdag, en die deur hou op oopgaan.",
-  "deputationNamedOne": "{player} kom kantoor toe en maak die deur toe. Beleefd en reguit: die kleedkamer het gesien hoe die {a}-saak bly dryf, en wil weet wie hier besluit. Antwoord dit in die {room_k}, wen Saterdag, en die deur hou op oopgaan."
+  "deputationNamedOne": "{player} kom kantoor toe en maak die deur toe. Beleefd en reguit: die kleedkamer het gesien hoe die {a}-saak bly dryf, en wil weet wie hier besluit. Antwoord dit in die {room_k}, wen Saterdag, en die deur hou op oopgaan.",
+  "deputationOneSubj": "🚪 Die senior spelers vra vir 'n vergadering",
+  "deputationNamedOneSubj": "🚪 {player} vra vir 'n vergadering"
  },
  "comm": {
   "oppCoachNamed": "{coach} het sy huiswerk gedoen: {team} is spesifiek opgestel vir {pattern_k}. Verander die prentjie, of speel deur die plan.",

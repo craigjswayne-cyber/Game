@@ -5101,7 +5101,9 @@
   "chalLicence": "Il Sale chiude nelle posizioni da play-off. La licenza non è più una domanda: il club è al suo posto, e lo dice la classifica.",
   "chalGrudge": "Il Lichfield è campione della Championship. Ignorato quando la massima serie ha scelto i suoi membri, e ora impossibile da ignorare.",
   "deputationOne": "Una delegazione di senatori entra in ufficio e chiude la porta. Cortesi e diretti: lo spogliatoio ha visto trascinarsi il caso di {a} e vuole sapere chi comanda. Chiudilo nella {room_k}, vinci sabato, e la porta smetterà di aprirsi.",
-  "deputationNamedOne": "{player} entra in ufficio e chiude la porta. Cortese e diretto: lo spogliatoio ha visto trascinarsi il caso di {a} e vuole sapere chi comanda. Chiudilo nella {room_k}, vinci sabato, e la porta smetterà di aprirsi."
+  "deputationNamedOne": "{player} entra in ufficio e chiude la porta. Cortese e diretto: lo spogliatoio ha visto trascinarsi il caso di {a} e vuole sapere chi comanda. Chiudilo nella {room_k}, vinci sabato, e la porta smetterà di aprirsi.",
+  "deputationOneSubj": "🚪 I senatori chiedono un incontro",
+  "deputationNamedOneSubj": "🚪 {player} chiede un incontro"
  },
  "comm": {
   "oppCoachNamed": "{coach} ha fatto i compiti a casa: {team} si è schierata apposta contro {pattern_k}. Cambia il copione, o gioca dentro il loro piano.",
