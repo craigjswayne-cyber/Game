@@ -4560,9 +4560,9 @@
   "capFineSubj": "⚖ Salary cap: the club is fined",
   "capFine": "{club} finished the season {over}/wk over the {cap}/wk salary cap. The league fine the club {fine} and put it on notice: breach it again next season and the punishment is a transfer embargo. Two men can be named marquee and taken out of the calculation, and academy players never counted.",
   "deputationSubj": "🚪 The senior players ask for a meeting",
-  "deputation": "A delegation of senior players comes to the office and closes the door. Polite and blunt: the room has watched two situations drift and wants to know who is in charge. Settle the open incidents and win on Saturday, and the door stops opening.",
+  "deputation": "A delegation of senior players comes to the office and closes the door. Polite and blunt: the room has watched {a} and {b} drift, and it wants to know who is in charge. Answer both in the {room_k}, win on Saturday, and the door stops opening.",
   "deputationNamedSubj": "🚪 {player} asks for a meeting",
-  "deputationNamed": "{player} comes to the office and closes the door. Polite and blunt: the room has watched two situations drift and wants to know who is in charge. Settle the open incidents and win on Saturday, and the door stops opening.",
+  "deputationNamed": "{player} comes to the office and closes the door. Polite and blunt: the room has watched {a} and {b} drift, and it wants to know who is in charge. Answer both in the {room_k}, win on Saturday, and the door stops opening.",
   "incidentDriftsSubj": "The {player} situation drifts",
   "incidentDrifts": "Two weeks on, nothing said. The squad has noticed that {player} got away with it, and the standard you walk past is the standard you accept.",
   "adminMineSubj": "🚨 {short} go into administration",
@@ -5255,7 +5255,9 @@
   "chalCircus": "Gloucester's run is over and the roadshow has left town. Sarries are champions of England, and your record against them says it was no accident.",
   "chalEaling": "Two titles at Trailfinders. A club that was said to have bought its way in has won it on the grass, twice, and there is nothing left to say.",
   "chalLicence": "Sale finish in the play-off places. The licence is not a question any more - the club belongs there, and the table says so.",
-  "chalGrudge": "Lichfield are champions of the Championship. Passed over when the top flight chose its members, and impossible to ignore now."
+  "chalGrudge": "Lichfield are champions of the Championship. Passed over when the top flight chose its members, and impossible to ignore now.",
+  "deputationOne": "A delegation of senior players comes to the office and closes the door. Polite and blunt: the room has watched the {a} situation drift, and it wants to know who is in charge. Answer it in the {room_k}, win on Saturday, and the door stops opening.",
+  "deputationNamedOne": "{player} comes to the office and closes the door. Polite and blunt: the room has watched the {a} situation drift, and it wants to know who is in charge. Answer it in the {room_k}, win on Saturday, and the door stops opening."
  },
  "comm": {
   "oppCoachNamed": "{coach} has done his homework: {team} are set up specifically for {pattern_k}. Change the picture, or play through the plan.",

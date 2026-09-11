@@ -4502,9 +4502,9 @@
   "capFineSubj": "⚖ Tope salarial: multa al club",
   "capFine": "{club} terminó la temporada {over}/sem por encima del tope salarial de {cap}/sem. La liga multa al club con {fine} y lo deja avisado: otra infracción la próxima temporada y el castigo será un embargo de fichajes. Dos hombres pueden nombrarse jugadores franquicia y quedar fuera del cálculo, y los canteranos nunca han contado.",
   "deputationSubj": "🚪 Los veteranos piden una reunión",
-  "deputation": "Una delegación de veteranos entra en el despacho y cierra la puerta. Educados y directos: el vestuario ha visto cómo dos asuntos se dejaban pasar y quiere saber quién manda aquí. Cierra los incidentes abiertos y gana el sábado, y la puerta dejará de abrirse.",
+  "deputation": "Una delegación de veteranos entra en el despacho y cierra la puerta. Educados y directos: el vestuario ha visto encallar los casos de {a} y {b} y quiere saber quién manda. Resuelve los dos en la {room_k}, gana el sábado, y la puerta dejará de abrirse.",
   "deputationNamedSubj": "🚪 {player} pide una reunión",
-  "deputationNamed": "{player} entra en el despacho y cierra la puerta. Educado y directo: el vestuario ha visto cómo dos asuntos se dejaban pasar y quiere saber quién manda aquí. Cierra los incidentes abiertos y gana el sábado, y la puerta dejará de abrirse.",
+  "deputationNamed": "{player} entra en el despacho y cierra la puerta. Educado y directo: el vestuario ha visto encallar los casos de {a} y {b} y quiere saber quién manda. Resuelve los dos en la {room_k}, gana el sábado, y la puerta dejará de abrirse.",
   "incidentDriftsSubj": "El caso {player} se enquista",
   "incidentDrifts": "Dos semanas después, ni una palabra. La plantilla se ha dado cuenta de que {player} se ha ido de rositas, y el nivel que dejas pasar es el nivel que aceptas.",
   "adminMineSubj": "🚨 {short} entra en concurso de acreedores",
@@ -5079,7 +5079,9 @@
   "chalCircus": "La racha del Gloucester ha terminado y el circo se ha ido de la ciudad. Sarries es campeón de Inglaterra, y tu balance ante ellos dice que no fue casualidad.",
   "chalEaling": "Dos títulos en Trailfinders. Un club del que se decía que compró su sitio lo ha ganado sobre el césped, dos veces, y ya no queda nada que decir.",
   "chalLicence": "Sale acaba en puestos de play-off. La licencia ya no es una pregunta: el club pertenece ahí, y la tabla lo dice.",
-  "chalGrudge": "Lichfield es campeón de la Championship. Ignorado cuando la élite eligió a sus miembros, e imposible de ignorar ahora."
+  "chalGrudge": "Lichfield es campeón de la Championship. Ignorado cuando la élite eligió a sus miembros, e imposible de ignorar ahora.",
+  "deputationOne": "Una delegación de veteranos entra en el despacho y cierra la puerta. Educados y directos: el vestuario ha visto encallar el caso de {a} y quiere saber quién manda. Resuélvelo en la {room_k}, gana el sábado, y la puerta dejará de abrirse.",
+  "deputationNamedOne": "{player} entra en el despacho y cierra la puerta. Educado y directo: el vestuario ha visto encallar el caso de {a} y quiere saber quién manda. Resuélvelo en la {room_k}, gana el sábado, y la puerta dejará de abrirse."
  },
  "comm": {
   "oppCoachNamed": "{coach} ha hecho los deberes: {team} salen preparados específicamente para {pattern_k}. Cambia el dibujo, o juega a través del plan.",

@@ -4538,10 +4538,10 @@
     "capEmbargo": "Deuxième infraction en deux saisons. La ligue inflige à {club} une amende de {fine} et impose une interdiction de recrutement la saison prochaine : aucune signature, entrante ou sortante, tant que la masse salariale n'est pas revenue sous {cap}/semaine. Le conseil est furieux, et il a raison de l'être. Faites baisser la masse ou la sanction se répétera.",
     "capFineSubj": "⚖ Plafond salarial : le club est sanctionné",
     "capFine": "{club} a terminé la saison à {over}/semaine au-dessus du plafond de {cap}/semaine. La ligue inflige au club une amende de {fine} et le met en garde : une nouvelle infraction la saison prochaine et la sanction sera une interdiction de recrutement. Deux joueurs peuvent être désignés joueurs d'exception et sortis du calcul, et les joueurs du centre de formation n'ont jamais compté.",
-    "deputationSubj": "🚪 Les cadres demandent une réunion",
-    "deputation": "Une délégation de cadres vient au bureau et ferme la porte. Poli et direct : le vestiaire a vu deux situations s'enliser et veut savoir qui commande. Réglez les incidents ouverts et gagnez samedi, et la porte cessera de s'ouvrir.",
-    "deputationNamedSubj": "🚪 {player} demande une réunion",
-    "deputationNamed": "{player} vient au bureau et ferme la porte. Poli et direct : le vestiaire a vu deux situations s'enliser et veut savoir qui commande. Réglez les incidents ouverts et gagnez samedi, et la porte cessera de s'ouvrir.",
+    "deputationSubj": "🚪 Les cadres demandent un entretien",
+    "deputation": "Une délégation de cadres entre dans le bureau et ferme la porte. Polis et directs : le vestiaire a vu les cas {a} et {b} s'enliser et veut savoir qui commande. Répondez aux deux dans la {room_k}, gagnez samedi, et la porte cessera de s'ouvrir.",
+    "deputationNamedSubj": "🚪 {player} demande un entretien",
+    "deputationNamed": "{player} entre dans le bureau et ferme la porte. Poli et direct : le vestiaire a vu les cas {a} et {b} s'enliser et veut savoir qui commande. Répondez aux deux dans la {room_k}, gagnez samedi, et la porte cessera de s'ouvrir.",
     "incidentDriftsSubj": "La situation {player} s'enlise",
     "incidentDrifts": "Deux semaines plus tard, rien n'a été dit. Le groupe a remarqué que {player} s'en est tiré, et le standard devant lequel on passe est le standard que l'on accepte.",
     "adminMineSubj": "🚨 {short} est placé en redressement judiciaire",
@@ -5188,7 +5188,9 @@
     "chalCircus": "La série de Gloucester est terminée et le cirque a quitté la ville. Sarries est champion d'Angleterre, et votre bilan face à eux dit que ce n'était pas un hasard.",
     "chalEaling": "Deux titres à Trailfinders. Un club dont on disait qu'il avait acheté sa place l'a gagné sur le terrain, deux fois, et il n'y a plus rien à ajouter.",
     "chalLicence": "Sale termine dans les places de barrage. La licence n'est plus une question : le club est à sa place, et le classement le dit.",
-    "chalGrudge": "Lichfield est champion de Championship. Ignoré quand l'élite a choisi ses membres, et impossible à ignorer désormais."
+    "chalGrudge": "Lichfield est champion de Championship. Ignoré quand l'élite a choisi ses membres, et impossible à ignorer désormais.",
+    "deputationOne": "Une délégation de cadres entre dans le bureau et ferme la porte. Polis et directs : le vestiaire a vu le cas {a} s'enliser et veut savoir qui commande. Répondez-y dans la {room_k}, gagnez samedi, et la porte cessera de s'ouvrir.",
+    "deputationNamedOne": "{player} entre dans le bureau et ferme la porte. Poli et direct : le vestiaire a vu le cas {a} s'enliser et veut savoir qui commande. Répondez-y dans la {room_k}, gagnez samedi, et la porte cessera de s'ouvrir."
   },
   "comm": {
     "oppCoachNamed": "{coach} a fait ses devoirs : {team} s'est réglé spécifiquement sur {pattern_k}. Changez le visage du match, ou jouez à travers leur plan.",
