@@ -2213,14 +2213,14 @@
   "dynastyDesc": "Leinster hoover up every trophy in Ireland. From Thormond Park, end their reign - win the UPC and the Continental Cup.",
   "pirates": "The Cornwall Dream",
   "piratesDesc": "Penzance to the Premier Division: take Cornwall RFC out of the Championship on a shoestring and put the county in the top flight at last.",
-  "threepeat": "Stop the Three-Peat",
-  "threepeatDesc": "Gloucester have taken the last three titles. Saracens have the squad and the history to stop them. Win the Premier Division and end the run.",
   "ealing": "The Ealing Project",
   "ealingDesc": "Ealing were given a place in the Premier Division, a budget and a squad bought in a hurry. They have won nothing yet. Win the league twice.",
   "licence": "Keep the Licence",
   "licenceDesc": "Sale finished bottom of the Premier Division. Nobody is relegated here, so the licence is judged on results alone. Finish in the top four and the place is safe.",
   "grudge": "The Lichfield Grudge",
-  "grudgeDesc": "Lichfield were passed over when the top flight was picked, and there is no promotion out of the second tier. Win the Championship and make them impossible to ignore."
+  "grudgeDesc": "Lichfield were passed over when the top flight was picked, and there is no promotion out of the second tier. Win the Championship and make them impossible to ignore.",
+  "circus": "Stop the Circus",
+  "circusDesc": "Gloucester have won the last three, and the whole game travels with them now - the cameras, the sell-outs, the parade. Sarries have the squad and the history to end it. Win the Premier Division, and leave with a winning record over them."
  },
  "profile": {
   "badgePlatinum": "Platinum Badge",
@@ -5251,7 +5251,11 @@
   "requestGrantedSubj": "🚪 {player} is free to find a club",
   "requestGranted": "The request is granted and the name goes on the list. {club} will listen to offers, and every agent in the league already knows it.",
   "requestRefusedSubj": "🔒 {player} is going nowhere",
-  "requestRefused": "The request is refused. There is a contract, {club} intend to hold it, and the only way out of this now is through the team sheet."
+  "requestRefused": "The request is refused. There is a contract, {club} intend to hold it, and the only way out of this now is through the team sheet.",
+  "chalCircus": "Gloucester's run is over and the roadshow has left town. Sarries are champions of England, and your record against them says it was no accident.",
+  "chalEaling": "Two titles at Trailfinders. A club that was said to have bought its way in has won it on the grass, twice, and there is nothing left to say.",
+  "chalLicence": "Sale finish in the play-off places. The licence is not a question any more - the club belongs there, and the table says so.",
+  "chalGrudge": "Lichfield are champions of the Championship. Passed over when the top flight chose its members, and impossible to ignore now."
  },
  "comm": {
   "oppCoachNamed": "{coach} has done his homework: {team} are set up specifically for {pattern_k}. Change the picture, or play through the plan.",
