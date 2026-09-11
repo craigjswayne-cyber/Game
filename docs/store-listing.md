@@ -147,6 +147,30 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.5.8, Play version code 30
+
+Discipline stops going the manager's way, the women's transfer market opens
+for business, and the Celtic Provinces Cup crowns its first champion after
+twenty seasons of crowning nobody.
+
+```
+<en-GB>
+Red card hearings now read the player's record: a clean first offender wins about two appeals in three, a repeat offender on a long ban almost never does. The women's transfer market works - internationals are priced for their standing, clubs open with the budgets to bid, and offers arrive all season. A women's Autumn series and Summer tour. The summer diary offers three events a week, each with its own way of going wrong. Matches start at Normal speed. And the Celtic Cup crowns a champion.
+</en-GB>
+<fr-FR>
+La commission de discipline lit enfin le casier du joueur : un homme irréprochable gagne deux appels sur trois, un récidiviste lourdement suspendu presque jamais. Le marché féminin fonctionne : les internationales sont cotées à leur valeur, les clubs ont de quoi enchérir, et les offres arrivent toute la saison. Une tournée d'automne et une d'été chez les féminines. Le calendrier d'été propose trois événements par semaine, chacun avec son risque. Les matchs démarrent en vitesse normale.
+</fr-FR>
+<es-ES>
+El comité de disciplina ya lee el historial del jugador: uno limpio gana unas dos apelaciones de cada tres, un reincidente con sanción larga casi nunca. El mercado femenino funciona: las internacionales se valoran por su categoría, los clubes tienen presupuesto para pujar y las ofertas llegan toda la temporada. Una gira de otoño y otra de verano femeninas. La agenda estival ofrece tres eventos por semana, cada uno con su riesgo. Los partidos empiezan a velocidad normal.
+</es-ES>
+<it-IT>
+La commissione disciplinare legge finalmente la fedina del giocatore: uno pulito vince circa due ricorsi su tre, un recidivo con squalifica lunga quasi mai. Il mercato femminile funziona: le internazionali sono valutate per quello che valgono, i club hanno budget per fare offerte, e le proposte arrivano tutta la stagione. Un tour d'autunno e uno d'estate femminili. L'agenda estiva propone tre eventi a settimana, ognuno col suo rischio. Le partite partono a velocità normale.
+</it-IT>
+<ja-JP>
+レッドカードの聴聞会が選手の前歴を読むようになった。前歴のない選手なら3回に2回ほど認められ、常習者の長期処分はほぼ通らない。女子の移籍市場が機能する。代表選手はその格に見合う評価額がつき、クラブは入札できる予算を持ち、あなたの選手への打診が一年を通して届く。女子の秋シリーズと夏の遠征も追加。夏の予定表は週に3件の催しを提示し、それぞれに固有の失敗の仕方がある。試合は標準速度で始まる。そしてケルト・カップがようやく王者を戴冠する。
+</ja-JP>
+```
+
 ### What's new (500 max) - v1.5.7, Play version code 28
 
 The women's game gets a cup, real ages and its own grounds - and the full-time
