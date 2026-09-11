@@ -1353,12 +1353,16 @@ function matchReport(state: GameState, fx: Fixture) {
   const lines = rows.map(r => tIn('en', r.k, r))
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'result', read: false,
-    subject: `${verdict}: ${us}-${them} ${us >= them ? 'over' : 'to'} ${teamShort(state, isHome ? fx.awayId : fx.homeId)} (${comp?.short})`,
+    // THREE OUTCOMES, THREE PREPOSITIONS. This read `us >= them ? 'over' : 'to'`,
+    // so a draw took the winner's word and the headline said "DRAW: 16-16 over
+    // Sale" - the verdict correct and the line beside it claiming the win. The
+    // owner read one of these and believed he had won a match he had drawn.
+    subject: `${verdict}: ${us}-${them} ${us > them ? 'over' : us < them ? 'to' : 'with'} ${teamShort(state, isHome ? fx.awayId : fx.homeId)} (${comp?.short})`,
     body: lines.join('\n'),
     k: 'news.result',
     v: {
       verdict_k: us > them ? 'news.resWin' : us < them ? 'news.resLoss' : 'news.resDraw',
-      us, them, over_k: us >= them ? 'news.resOver' : 'news.resTo',
+      us, them, over_k: us > them ? 'news.resOver' : us < them ? 'news.resTo' : 'news.resWith',
       opp: teamShort(state, isHome ? fx.awayId : fx.homeId), comp: comp?.short ?? '',
       rows_ll: JSON.stringify(rows),
     },
