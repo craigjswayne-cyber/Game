@@ -2,7 +2,6 @@ import type { Pos, RawPlayer } from '../data/types'
 import type { Attrs, Personality, Player } from './model'
 import { emptyStats } from './model'
 import { clamp, gauss, hashString, mulberry32, wpick, type Rng } from './rng'
-import { genderOfId } from './gender'
 
 /** Assign a character type, nudged by leadership and aggression. */
 export function assignPersonality(rng: Rng, a: Attrs): Personality {
@@ -158,29 +157,9 @@ function positionAgeF(pos: string | undefined, age: number, pa: number, ca: numb
 /** Player transfer value in £. pos/form/yearsLeft are optional so the eight
  *  call sites could adopt them one meaning at a time; omitted, each factor is
  *  exactly neutral and the price is the old talent-times-age figure. */
-/**
- * THE WOMEN'S MARKET, PRICED IN WOMEN'S MONEY.
- *
- * playerValue was gender-blind, so both worlds were priced off the same
- * nine-million base while their money supplies are nothing like each other.
- * Measured at a fresh start: the men's median club budget is £1.30m against a
- * £2.43m median player, and 38 of 101 clubs can afford the 80% of value that
- * ai.ts requires before a club will bid. The women's median budget is £140k
- * against a £1.81m median player - ZERO of 64 clubs clear that bar, which is
- * why a whole season passed without one offer arriving, and why nobody in the
- * women's game could be bought either.
- *
- * A seventh puts the women's median value at about £260k against that £140k
- * budget: 1.85x, which is the men's 1.87x to two decimal places. The market
- * then behaves the same way in both worlds without either one being realistic,
- * which is the brief - it does not need to be real, it needs to work.
- */
-export const W_MARKET_SCALE = 1 / 7
-export const marketScale = (gender?: string): number => (gender === 'w' ? W_MARKET_SCALE : 1)
-
 export function playerValue(
   ca: number, age: number, pa: number,
-  pos?: string, form?: number, yearsLeft?: number, scale = 1,
+  pos?: string, form?: number, yearsLeft?: number,
 ): number {
   /**
    * A PRICE IS NOT A PLACE TO PUT A NaN (Round 26, found by scripts/fuzz25d.ts).
@@ -209,10 +188,7 @@ export function playerValue(
   const yrs = yearsLeft == null ? null : num(yearsLeft, 2)
   const contractF = yrs == null ? 1
     : yrs <= 0 ? 0.7 : yrs === 1 ? 0.88 : yrs === 2 ? 1 : 1.08
-  const s = typeof scale === 'number' && Number.isFinite(scale) && scale > 0 ? scale : 1
-  // the floor scales too: a £10,000 floor in a market a seventh the size is
-  // not a floor, it is a shelf every fringe player sits on
-  return Math.max(Math.round(10_000 * s), Math.round((base * ageF * formF * contractF * s) / 10_000) * 10_000)
+  return Math.max(10_000, Math.round((base * ageF * formF * contractF) / 10_000) * 10_000)
 }
 
 /** Weekly wage expectation in £. */
@@ -323,7 +299,7 @@ export function deriveTrait(p: { id: number; pos: Player['pos']; a: Player['a'] 
 }
 // i18n-exempt-end
 
-export function buildPlayer(raw: RawPlayer, clubId: string | null, seed: number, seasonNow: number, world?: 'm' | 'w'): Player {
+export function buildPlayer(raw: RawPlayer, clubId: string | null, seed: number, seasonNow: number): Player {
   const a = deriveAttrs(raw, seed)
   const rng = mulberry32(seed ^ (hashString(raw.name) + 7))
   const ca = raw.q
@@ -355,10 +331,7 @@ export function buildPlayer(raw: RawPlayer, clubId: string | null, seed: number,
     natSquad: false,
     wage: playerWage(ca, raw.age),
     contractEnds: seasonNow + 1 + Math.floor(rng() * 3), // 1-3 seasons left
-    // priced in the world's own money: women's club ids carry the w: prefix,
-    // and a free agent with no club takes the world passed by the caller
-    value: playerValue(ca, raw.age, pa, raw.pos, undefined, undefined,
-      marketScale(world ?? (clubId ? genderOfId(clubId) : 'm'))),
+    value: playerValue(ca, raw.age, pa, raw.pos),
     stats: emptyStats(),
     career: [],
     transferListed: false,
