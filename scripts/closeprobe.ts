@@ -20,7 +20,7 @@
  */
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
-import { CLOSE_EVENTS, aiCloseSeason, bookEvent, bookedThisWeek, eventFee, eventOpen, isCloseSeason } from '../src/game/closeseason'
+import { CLOSE_EVENTS, MISHAPS, SLATE_SIZE, aiCloseSeason, bookEvent, bookedThisWeek, eventFee, eventMishap, eventOpen, eventSlate, isCloseSeason } from '../src/game/closeseason'
 import { LEDGER_WEEKS, SEASON_WEEKS, fmtMoney } from '../src/game/model'
 
 let fails = 0
@@ -81,6 +81,55 @@ console.log(`     three weeks of events: ${fmtMoney(earned)} booked, balance ${f
 ok(earned > 150_000, `"some money" means something (${fmtMoney(earned)})`)
 ok(earned < 1_500_000, `and not league money - the books stay paused for a reason (${fmtMoney(earned)})`)
 ok(after > before, 'the club is better off for a busy summer')
+
+// ---- 4b. three in the diary, and some of them bite ----------------------
+//
+// Owner, 1.5.8: "three options, an explainer each, and an occasional money
+// cost matched to the correct event." All seven used to be listed every week
+// with the unhostable ones greyed out, and the only cost in the feature was
+// the concert's re-turfing, netted off before the manager saw it - so a summer
+// had no downside in it and booking the biggest number was the whole game.
+console.log('\n--- 4b. the slate and what goes wrong')
+{
+  const d = newGame('leicester', 'Test', 31)
+  while (d.week <= LEDGER_WEEKS) processWeekAndAdvance(d)
+
+  // a slate is three, and the same three every time it is asked
+  const slate = eventSlate(d)
+  ok(slate.length <= SLATE_SIZE, `at most ${SLATE_SIZE} in the diary (${slate.length})`)
+  ok(slate.every(e => eventOpen(d, e)), 'and never one the ground cannot hold')
+  ok(eventSlate(d).map(e => e.id).join() === slate.map(e => e.id).join(),
+     'the slate does not reshuffle when the screen redraws')
+
+  // over a run of weeks the diary varies rather than offering one fixed three
+  const seen = new Set<string>()
+  for (let season = 0; season < 12; season++) {
+    d.season = season
+    for (let wk = LEDGER_WEEKS + 1; wk <= SEASON_WEEKS; wk++) { d.week = wk; for (const e of eventSlate(d)) seen.add(e.id) }
+  }
+  ok(seen.size >= 5, `a career sees most of the diary, not the same three for ever (${seen.size} of ${CLOSE_EVENTS.length})`)
+
+  // the mishap: occasional, event-shaped, and never larger than the fee
+  let hits = 0, offers = 0, billed = 0, gross = 0, overFee = 0
+  for (let season = 0; season < 30; season++) {
+    d.season = season
+    for (let wk = LEDGER_WEEKS + 1; wk <= SEASON_WEEKS; wk++) {
+      d.week = wk
+      for (const ev of eventSlate(d)) {
+        offers++
+        const fee = eventFee(d, ev), m = eventMishap(d, ev)
+        gross += fee
+        if (m > 0) { hits++; billed += m; if (m > fee) overFee++ }
+      }
+    }
+  }
+  const pct = 100 * hits / offers
+  console.log(`     ${hits} of ${offers} bookings went wrong (${pct.toFixed(0)}%), ${fmtMoney(billed)} against ${fmtMoney(gross)} of fees`)
+  ok(pct > 8 && pct < 35, `"occasional" is occasional (${pct.toFixed(0)}%)`)
+  ok(billed < gross * 0.2, 'and the summer is still worth having')
+  ok(overFee === 0, 'no booking ever costs the club more than it paid')
+  ok(CLOSE_EVENTS.every(e => !!MISHAPS[e.id]), 'every event has its own way of going wrong, matched to the event')
+}
 
 // ---- 5. and everyone else has a summer too ------------------------------
 console.log('\n--- 5. the rest of the world is not idle')

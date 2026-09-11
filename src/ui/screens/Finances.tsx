@@ -11,7 +11,7 @@ import { OBJECTIVE_DEFS, objectiveBonus } from '../../game/objectives'
 import { MARQUEE_SLOTS, capPosition, capWord, rosterGrid, rosterWarnings } from '../../game/cap'
 import { SectionTitle, RewardedButton } from '../components'
 import { t } from '../../game/i18n'
-import { CLOSE_EVENTS, bookEvent, bookedThisWeek, eventFee, eventOpen, isCloseSeason } from '../../game/closeseason'
+import { bookEvent, bookedThisWeek, eventFee, eventSlate, isCloseSeason } from '../../game/closeseason'
 import {
   CLAUSES, SLOTS, clauseActive, commercialWeekly, dealWeekly, endDealEarly, marketRate,
   offersFor, signOffer,
@@ -63,34 +63,40 @@ export default function Finances() {
         const booked = bookedThisWeek(game)
         return (
           <>
-            <SectionTitle sub={t('close.sub')}>{t('close.title')}</SectionTitle>
+            <SectionTitle sub={t('close.slateSub')}>{t('close.title')}</SectionTitle>
             {booked ? (
               <div className="card"><div className="meta" style={{ padding: 10 }}>
                 {t('close.alreadyBooked')} ({t(`close.${booked}`)})
               </div></div>
             ) : (
+              /* THREE, DRAWN FROM WHAT THE GROUND CAN HOLD (owner, 1.5.8:
+                 "three options, an explainer each"). All seven were listed
+                 every week with the unavailable ones greyed out, which is a
+                 price list rather than a decision - and the greyed rows were
+                 an advert for an upgrade the Infrastructure page already
+                 sells properly. eventSlate picks the week's three and holds
+                 them steady, so the diary does not reshuffle under a thumb. */
               <div className="tblwrap"><table className="dtable"><tbody>
-                {CLOSE_EVENTS.map(ev => {
-                  const open = eventOpen(game, ev)
-                  return (
-                    <tr key={ev.id}>
-                      <td className="name">
-                        {t(`close.${ev.id}`)}
-                        <div className="muted" style={{ fontSize: 11 }}>{t(`close.${ev.id}D`)}</div>
-                      </td>
-                      <td style={{ whiteSpace: 'nowrap' }}>
-                        {open ? (
-                          <button className="btn ghost" style={{ fontSize: 12, padding: '12px 14px', minHeight: 44 }}
-                            onClick={() => { setDiaryMsg(bookEvent(game, ev.id)); touch() }}>
-                            {t('close.fee', { fee: fmtMoney(eventFee(game, ev)) })}
-                          </button>
-                        ) : (
-                          <span className="muted" style={{ fontSize: 11 }}>{t('close.locked')}</span>
-                        )}
-                      </td>
-                    </tr>
-                  )
-                })}
+                {eventSlate(game).map(ev => (
+                  <tr key={ev.id}>
+                    <td className="name">
+                      {t(`close.${ev.id}`)}
+                      <div className="muted" style={{ fontSize: 11 }}>{t(`close.${ev.id}D`)}</div>
+                      {/* the risk is named but never priced: which events can
+                          bite is knowledge worth having, and whether THIS one
+                          will is the part you are being asked to gamble on */}
+                      {ev.mishap > 0 && (
+                        <div className="muted" style={{ fontSize: 11, color: 'var(--text-negative)' }}>{t('close.risk')}</div>
+                      )}
+                    </td>
+                    <td style={{ whiteSpace: 'nowrap' }}>
+                      <button className="btn ghost" style={{ fontSize: 12, padding: '12px 14px', minHeight: 44 }}
+                        onClick={() => { setDiaryMsg(bookEvent(game, ev.id)); touch() }}>
+                        {t('close.fee', { fee: fmtMoney(eventFee(game, ev)) })}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
               </tbody></table></div>
             )}
             {diaryMsg && <div className="card"><div className="meta" style={{ padding: 10 }}>{diaryMsg}</div></div>}

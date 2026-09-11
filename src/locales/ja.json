@@ -445,8 +445,7 @@
   "nothingOnHimSub": "その検索に該当する選手で、負傷・出停・試合勘不足・ガス欠の者はいない。",
   "quietRoomSub": "負傷も出停もなし、試合勘不足もガス欠もなし。今のうちに味わっておこう――長くは続かないものだ。",
   "treatmentRoom": "治療室",
-  "treatmentSub": "出場不可――専門医の診察（{fee}）で長期離脱を短縮できる",
-  "specialist": "🩺 専門医",
+  "treatmentSub": "離脱中。スポンサー枠なら無料で最大2週間短縮でき、{fee}の専門医は長期離脱でそれ以上に短縮する。",
   "redZone": "レッドゾーン――シーズン負荷",
   "redZoneSub": "1,300分超：壊れやすく、バテやすい。休ませよう。",
   "minsThisSeason": "🔋 今季{mins}分",
@@ -465,7 +464,8 @@
   "awayFromClub": "クラブ不在",
   "awayFromClubSub": "代表活動とレンタル",
   "onLoan": "レンタル中",
-  "intlDuty": "代表活動"
+  "intlDuty": "代表活動",
+  "specialistCut": "🩺 専門医 -{n}週"
  },
  "inbox": {
   "freeAgent": "・フリーエージェント",
@@ -6191,7 +6191,6 @@
   "fineprint": "価格はストアが定めるもの。購入はキャリアへの反映が確認できて初めて消費される。途中で中断があれば、このページが改めて提示する。",
   "stampLicensed": "ライセンススタート",
   "stampCharter": "オーナーズ・チャーター",
-  "watchPhysio": "📺 スポンサーの厚意",
   "watchAgency": "📺 エージェンシーに資料を頼む(CMを1本視聴)",
   "analystDone": "アナリストの読みはすべてカードに出ている——上のブリーフィングがその全文だ。",
   "townTitle": "町の募金",
@@ -6208,7 +6207,8 @@
    "other": "📺 アナリストにはあと{n}本の読みがある——徹夜の成果をCM1本と交換"
   },
   "owedHeld": "お支払いは完了しています。まだ受け渡しが済んでいないため、二重に請求されることはありません。バックグラウンドで処理を続けています。少し経ってからもう一度ご確認ください。",
-  "asking": "ストアに確認中…"
+  "asking": "ストアに確認中…",
+  "physioCut": "📺 スポンサー枠 -{n}週"
  },
  "store": {
   "title": "ストア",
@@ -6342,7 +6342,18 @@
   "cannotHost": "このスタジアムではまだ開催できない。",
   "booked": "{event}を予約した。クラブに{fee}。",
   "newsSubj": "スタジアムで{event}",
-  "news": "{club}は今週{event}を開催した。{fee}の収入、そしてボールは一つも見当たらない。"
+  "news": "{club}は今週{event}を開催した。{fee}の収入、そしてボールは一つも見当たらない。",
+  "mishapWedding": "駐車場での乱闘と割れた窓",
+  "mishapComedy": "レンタルした音響機材が破損して返却",
+  "mishapTownshow": "テントの杭が灌漑パイプを直撃",
+  "mishapGolf": "カート2台が池に、グリーンは播き直し",
+  "mishapShooting": "きわどい一発のあとの保険免責金",
+  "mishapSponsor": "ケータリングの請求が見積もりを大幅超過",
+  "mishapConcert": "ステージ装置がスタンドの一区画を壊した",
+  "newsBad": "{club}は今週{event}を開催。{what}で{bill}かかり、手取りは{fee}。",
+  "bookedBad": "{event}を予約。クラブに{fee}。{what}で{bill}が差し引かれた。",
+  "slateSub": "今週の予定は3件。グラウンドは1つ、予約も1件だけ。",
+  "risk": "当たり外れあり"
  },
  "point": {
   "ticketsSubj": "理事会が入場者数の数字を見た",
