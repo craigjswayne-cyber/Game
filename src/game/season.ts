@@ -2048,6 +2048,28 @@ export function processWeekAndAdvance(state: GameState) {
   // the side plays, and a stale one must never sit over a new week
   const rng = weekRng(state)
 
+  // ---- A DRAW IS NEWS, AND NEWS GOES OFF ----
+  //
+  // state.draw holds the ceremony the bulletin offers. closeDraw() clears it,
+  // and its own comment says clearing it is what stops the same draw being
+  // offered every week for the rest of the season - but closeDraw is reachable
+  // from nothing except the two buttons INSIDE the draw screen. Back out with
+  // the arrow, or press Continue without opening it at all, and the card sat
+  // on the home page for good: the owner reported it twice over, once as a
+  // draw that would not go away after Continue and once as a semi-final draw
+  // still showing after he had won the title.
+  //
+  // So the card no longer depends on anybody pressing the right button. A draw
+  // belongs to this season and to a round that has not been played; either of
+  // those failing makes it history, and the ties themselves live in the fixture
+  // list, so dropping the ceremony loses nothing at all.
+  if (state.draw) {
+    const d = state.draw
+    const stale = d.season !== state.season || state.fixtures.some(f =>
+      f.compId === d.compId && f.stage === d.stage && f.played)
+    if (stale) state.draw = null
+  }
+
   // The week's set-piece coaching (F2). What you call gets sharper, what you
   // shelved rusts - which is what stops a club from owning ten world-class moves.
   for (const club of Object.values(state.clubs)) {
