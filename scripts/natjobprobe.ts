@@ -44,7 +44,21 @@ const wOffered = pickableNations(worlds[1][1]).map(([n]) => n)
 const dropped = NAT_TIERS.map(([n]) => n).filter(n => !wOffered.includes(n))
 console.log(`\nnot offered in a women's career: ${dropped.join(', ') || 'none'}`)
 ok(dropped.length > 0, 'the women\'s list really is shorter than the men\'s')
-ok(!wOffered.includes('RSA'), 'South Africa is not sold as a women\'s job it cannot honour')
+// SOUTH AFRICA USED TO BE THE EXAMPLE HERE, and the assertion was that it must
+// NOT be offered, because a women's world with only the Northern Championship
+// and the Southern Four had no fixture for it - the job would have been a desk
+// and no matches. 1.5.8 gave the women's year an autumn and a summer window, so
+// the Springboks and Japan play five Tests apiece and the job is real.
+//
+// The specific name was always standing in for the rule, so the rule is what is
+// checked now: nobody is offered a country whose calendar is empty. That cannot
+// go stale the way a hard-coded 'RSA' just did.
+const thinnest = wOffered
+  .map(n => ({ n, tests: worlds[1][1].fixtures.filter(f =>
+    worlds[1][1].comps[f.compId]?.isNational && (f.homeId === n || f.awayId === n)).length }))
+  .sort((a, b) => a.tests - b.tests)[0]
+ok(thinnest.tests >= 3,
+  `every women's job offered has a real programme behind it - the thinnest is ${thinnest.n} with ${thinnest.tests} Tests`)
 
 // ---- and the job you DO buy comes with matches ----
 for (const [label, g] of worlds) {
