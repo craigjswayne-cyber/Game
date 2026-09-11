@@ -61,7 +61,22 @@ export const CC_KO_WEEKS = [34, 38, 41]
  * before the last league round rather than after it.
  */
 export const W_CC_POOL_WEEKS = [8, 11, 18, 19, 22, 23]
-export const W_CC_KO_WEEKS = [28, 31, 37]
+/**
+ * CLEAR OF THE TEST WINDOW, WHICH THE FIRST CUT WAS NOT.
+ *
+ * activeWindows (season.ts) opens the women's Six Nations window at
+ * W_SIX_NATIONS_WEEKS[0] - 1 and closes it on the last round, so internationals
+ * are away from week 31 to week 38 inclusive. The knockouts were 28, 31 and 37:
+ * the semi-final landed on the day the window opened and the FINAL sat dead
+ * centre of it, between rounds four and five. A manager who had earned a final
+ * played it without the players who earned it.
+ *
+ * Weeks 24 to 30 are empty in the women's calendar - the pool ends at 23 and
+ * nothing else is scheduled before the Six Nations - so the three rounds fit
+ * whole, three weeks apart, with the trophy lifted the week before the Test
+ * squads are named.
+ */
+export const W_CC_KO_WEEKS = [24, 27, 30]
 export const AUTUMN_WEEKS = [13, 14, 15]
 export const SIX_NATIONS_WEEKS = [25, 26, 27, 28, 29]
 export const TRC_WEEKS = [5, 6, 7, 9, 10, 11]
