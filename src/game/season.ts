@@ -393,6 +393,13 @@ function maybeCreateKnockouts(state: GameState, comp: Competition, rng: Rng) {
   const cupLike = comp.type === 'cup' || !!comp.pools
   const koFx = (stage: string) => state.fixtures.filter(f => f.compId === comp.id && f.stage === stage)
   const mkFx = (stage: string, week: number, home: string, away: string) => {
+    // A TIE NEEDS TWO TEAMS. A league whose playoffTeams does not match the
+    // branch that seeds it hands this `undefined`, and the fixture that
+    // results is unplayable, unremovable and visible - see the n === 2 note
+    // below for the twenty seasons that cost. Refusing it here means the next
+    // mis-specified competition loses its play-off rather than its fixture
+    // list, and the soak sees a missing champion instead of a ghost.
+    if (!home || !away) return
     const fx: Fixture = {
       id: state.nextId++, compId: comp.id, round: 99, week, homeId: home, awayId: away,
       played: false, homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0, stage,
@@ -531,7 +538,24 @@ function maybeCreateKnockouts(state: GameState, comp: Competition, rng: Rng) {
     // league playoffs
     const order = sortTable(comp.table).map(r => r.teamId)
     const n = comp.playoffTeams
-    if (n === 4) {
+    if (n === 2) {
+      /**
+       * A TWO-TEAM PLAY-OFF IS A FINAL, AND NOTHING ELSE.
+       *
+       * Found by the women's 20-season soak: the Celtic Provinces Cup - six
+       * clubs, playoffTeams 2 - fell past every branch here into the eight-team
+       * one, which reads order[6] and order[7] off a table six long. So the
+       * season ended by manufacturing four quarter-finals, two of them against
+       * `undefined`, which no engine can play. They sat unplayed for ever, the
+       * semi-final gate never opened, and the competition ran twenty seasons
+       * without crowning anybody - while a manager in that league watched his
+       * fixture list say "undefined" in April.
+       *
+       * The last knockout week, not ko[0]: koWeeks is [42, 43] at this size
+       * (schedule.ts), and a final belongs on finals weekend with the others.
+       */
+      if (koFx('F').length === 0 && order.length >= 2) mkFx('F', ko[ko.length - 1], order[0], order[1])
+    } else if (n === 4) {
       const [sfW, fW] = ko
       if (koFx('SF').length === 0) {
         mkFx('SF', sfW, order[0], order[3])
