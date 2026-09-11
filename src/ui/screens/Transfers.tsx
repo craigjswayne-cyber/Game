@@ -144,19 +144,22 @@ export default function Transfers() {
                 <div key={p.id} className="row-item" onClick={() => go('player', p.id)}
                   style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}>
                   <PosBadge pos={p.pos} />
+                  {/* THE NAME GIVES WAY, NOT THE VERDICT. "signed elsewhere"
+                      is the whole point of the row and it was free to wrap to
+                      two lines behind a long name on a narrow phone. */}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 700 }}>{p.name}</div>
+                    <div style={{ fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
                     <div className="muted" style={{ fontSize: 12 }}>
                       {t('transfers.dealLine', { age: p.age, wage: fmtWage(p.wage), demand: fmtWage(demand), morale: p.morale.toFixed(0) })}
                     </div>
                   </div>
                   {p.retiring
-                    ? <span className="chip" style={{ borderColor: 'var(--danger)', color: 'var(--danger)', fontWeight: 700 }}>{t('transfers.retiring')}</span>
+                    ? <span className="chip" style={{ borderColor: 'var(--danger)', color: 'var(--danger)', fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0 }}>{t('transfers.retiring')}</span>
                     : gazumped
-                    ? <span className="chip" style={{ borderColor: 'var(--danger)', color: 'var(--danger)', fontWeight: 700 }}>{t('transfers.signedElsewhere')}</span>
+                    ? <span className="chip" style={{ borderColor: 'var(--danger)', color: 'var(--danger)', fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0 }}>{t('transfers.signedElsewhere')}</span>
                     : (p.wantsDeal ?? 0) > 0
-                      ? <span className="chip" style={{ borderColor: 'var(--gold)', fontWeight: 700 }}>{t('transfers.wantsADeal')}</span>
-                      : <span className="chip" style={{ fontWeight: 700 }}>{t('transfers.expiring')}</span>}
+                      ? <span className="chip" style={{ borderColor: 'var(--gold)', fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0 }}>{t('transfers.wantsADeal')}</span>
+                      : <span className="chip" style={{ fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0 }}>{t('transfers.expiring')}</span>}
                 </div>
               )
             })}
@@ -174,11 +177,11 @@ export default function Transfers() {
                     <PosBadge pos={p.pos} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontWeight: 700 }}>{p.name}</div>
-                      <div className="muted" style={{ fontSize: 12 }}>
+                      <div className="muted" style={{ fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {t('transfers.incomingLine', { age: p.age, from_k: p.clubId ? 'transfers.fromClub' : 'transfers.fromFree', club: p.clubId ? game.clubs[p.clubId]?.short ?? '?' : '' })}
                       </div>
                     </div>
-                    <span className="chip" style={{ borderColor: 'var(--gold)', fontWeight: 700 }}>{t('transfers.agreed')}</span>
+                    <span className="chip" style={{ borderColor: 'var(--gold)', fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0 }}>{t('transfers.agreed')}</span>
                   </div>
                 ))}
               </>
