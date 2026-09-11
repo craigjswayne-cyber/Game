@@ -299,20 +299,41 @@
       var shouldShow = !!wantedEl && !veiled()
       var ad = plugin()
       if (!ad) return
-      if (shouldShow) {
-        if (!(await ready())) return
-        if (created && created !== wantedPlace) { await ad.removeBanner(); created = null; visible = false }
-        if (!created) {
-          log('asking for banner', wantedPlace, ids.banner[wantedPlace] || ids.banner['home-foot'])
-          await ad.showBanner({
-            adId: ids.banner[wantedPlace] || ids.banner['home-foot'],
-            adSize: 'ADAPTIVE_BANNER', position: 'BOTTOM_CENTER', margin: 0,
-            isTesting: !!cfg.testing
-          })
-          created = wantedPlace; visible = true
-        } else if (!visible) { await ad.resumeBanner(); visible = true }
-      } else if (visible) {
-        await ad.hideBanner(); visible = false; setInset(0)
+      // ROOM IS ONLY EVER HELD FOR A BANNER THAT IS THERE.
+      //
+      // --ad-inset told the nav how much room to leave at the bottom, and it
+      // was cleared on exactly one path: the hideBanner branch below. Two
+      // others left it standing. Switching placement calls removeBanner and
+      // takes the strip down without a word to the inset, and ANY throw inside
+      // this queued call - a plugin that rejects, a ready() that gives up -
+      // walked out with the old height still set. Either way the nav went on
+      // reserving fifty-odd pixels for an advert that was not on screen, which
+      // is the black band under the menu the owner reported as the bar sitting
+      // too high.
+      //
+      // So the inset is no longer something each branch has to remember. It is
+      // a fact about `visible`, settled in one place, on every exit including
+      // the ones that throw.
+      try {
+        if (shouldShow) {
+          if (!(await ready())) return
+          if (created && created !== wantedPlace) { await ad.removeBanner(); created = null; visible = false }
+          if (!created) {
+            log('asking for banner', wantedPlace, ids.banner[wantedPlace] || ids.banner['home-foot'])
+            await ad.showBanner({
+              adId: ids.banner[wantedPlace] || ids.banner['home-foot'],
+              adSize: 'ADAPTIVE_BANNER', position: 'BOTTOM_CENTER', margin: 0,
+              isTesting: !!cfg.testing
+            })
+            created = wantedPlace; visible = true
+          } else if (!visible) { await ad.resumeBanner(); visible = true }
+        } else if (visible) {
+          await ad.hideBanner(); visible = false
+        }
+      } finally {
+        // bannerAdSizeChanged sets the real height while one is up; this only
+        // ever takes room back, and never fights it
+        if (!visible) setInset(0)
       }
     })
   }
