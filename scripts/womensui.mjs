@@ -86,7 +86,9 @@ try {
   // the women's four, and not one of the men's
   const wCards = await page.locator('.challenge-card').count()
   ok(wCards === 4, `the women's wizard offers its own four challenges (${wCards})`)
-  for (const n of ['Stop the Three-Peat', 'The Ealing Project', 'Keep the Licence', 'The Lichfield Grudge']) {
+  // 'Stop the Circus' since 1.5.8 - the id behind it is still 'threepeat',
+  // because every save that has started or finished it carries that string
+  for (const n of ['Stop the Circus', 'The Ealing Project', 'Keep the Licence', 'The Lichfield Grudge']) {
     ok(await page.locator(`text=${n}`).count() >= 1, `${n} is one of them`)
   }
   for (const n of ['Sauvez Sapiac', 'The Energy Project', 'Break the Dynasty', 'The Cornwall Dream']) {

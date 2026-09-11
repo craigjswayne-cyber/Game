@@ -2986,9 +2986,6 @@
   "bgIdeaEmpty": "Escribe la idea primero y luego envíala.",
   "bgIdeaGoesTo": "Las ideas van a ",
   "bgIdeaRest": ", la misma dirección que un informe de error. No se adjunta nada más: una idea no necesita tu partida guardada.",
-  "lgFirsts": "El cuaderno del míster",
-  "lgFirstsSub": "Las primeras veces. Sin medallas.",
-  "lgFirstsNone": "Todavía no hay nada escrito. La primera victoria a domicilio suele ser la frase de apertura.",
   "coSquadSub_f": "de {floor} a {max} mujeres · las de tu club, en negrita",
   "srPotY_f": "Jugadora de la temporada",
   "srRollSub_f": "Jugadora del Año, temporada a temporada",
@@ -6314,7 +6311,6 @@
  },
  "store": {
   "title": "Tienda",
-  "sub": "nada de aquí juega los partidos",
   "owned": "Tuyo",
   "bought": "Tuyo. Va ligado a tu cuenta de la tienda: Restaurar lo recupera en un móvil nuevo.",
   "needCareer": "Abre primero una carrera: el retiro necesita una plantilla a la que visitar.",
@@ -6455,8 +6451,9 @@
   "mishapConcert": "la estructura del escenario se llevó parte de la grada",
   "newsBad": "{club} acogió un {event} esta semana. {fee} de ingreso, tras {what} que costó {bill}.",
   "bookedBad": "{event} reservado. {fee} para el club - {what}, {bill} menos de la recaudación.",
-  "slateSub": "Tres en la agenda esta semana. Un campo, una reserva.",
-  "risk": "puede salir mal"
+  "slateSub": "Tres esta semana. Una reserva.",
+  "risk": "puede salir mal",
+  "newsBadSubj": "{event} en el campo, y una factura con ello"
  },
  "point": {
   "ticketsSubj": "La junta ha visto las cifras de taquilla",

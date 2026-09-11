@@ -3066,9 +3066,6 @@
   "bgIdeaEmpty": "Skryf eers die idee, stuur dit dan.",
   "bgIdeaGoesTo": "Idees gaan na ",
   "bgIdeaRest": ", dieselfde adres as 'n foutverslag. Niks anders word aangeheg nie - 'n idee het nie jou stoorlêer nodig nie.",
-  "lgFirsts": "Die Bestuurder se Grootboek",
-  "lgFirstsSub": "Die eerstes. Geen medaljes hiervoor nie.",
-  "lgFirstsNone": "Nog niks daarin geskryf nie. 'n Eerste oorwinning weg van die huis is gewoonlik die openingsreël.",
   "lgOwnTerms_f": "op haar eie voorwaardes",
   "coSquadSub_f": "{floor} tot {max} vroue · jou klub s'n in vetdruk",
   "coWindowOpen_f": "Venster oop: laat val 'n naam, roep die volgende vrou op. Die toets-XV word op wedstryddag uit hierdie kamer gekies.",
@@ -4563,9 +4560,9 @@
   "capEmbargo": "'n Tweede oortreding in twee seisoene. Die liga beboet {club} {fine} en lê 'n oordragverbod vir volgende seisoen op: geen aanwinste, in of uit die venster, totdat die salarisrekening weer binne {cap}/wk is nie. Die direksie is woedend, en tereg so. Bring die rekening af of die sanksie herhaal.",
   "capFineSubj": "⚖ Salarisperk: die klub word beboet",
   "capFine": "{club} het die seisoen {over}/wk oor die {cap}/wk-salarisperk geëindig. Die liga beboet die klub {fine} en gee kennis: oortree dit weer volgende seisoen en die straf is 'n oordragverbod. Twee mans kan as hoofspelers aangewys word en uit die berekening gehou word, en akademiespelers het nooit getel nie.",
-  "deputationSubj": "🚪 Die senior spelers vra vir ’n vergadering",
+  "deputationSubj": "🚪 Die senior spelers vra vir 'n vergadering",
   "deputation": "'n Afvaardiging senior spelers kom kantoor toe en maak die deur toe. Beleefd en reguit: die kleedkamer het gesien hoe die {a}- en {b}-sake bly dryf, en wil weet wie hier besluit. Antwoord albei in die {room_k}, wen Saterdag, en die deur hou op oopgaan.",
-  "deputationNamedSubj": "🚪 {player} vra vir ’n vergadering",
+  "deputationNamedSubj": "🚪 {player} vra vir 'n vergadering",
   "deputationNamed": "{player} kom kantoor toe en maak die deur toe. Beleefd en reguit: die kleedkamer het gesien hoe die {a}- en {b}-sake bly dryf, en wil weet wie hier besluit. Antwoord albei in die {room_k}, wen Saterdag, en die deur hou op oopgaan.",
   "incidentDriftsSubj": "Die {player}-situasie dryf weg",
   "incidentDrifts": "Twee weke later, niks gesê nie. Die spangroep het opgemerk dat {player} daarmee weggekom het, en die standaard waar jy verby loop, is die standaard wat jy aanvaar.",
@@ -5287,7 +5284,7 @@
   "requestRefused": "Die versoek word geweier. Daar is 'n kontrak, {club} is van plan om dit af te dwing, en die enigste pad hieruit loop nou deur die spanlys.",
   "chalCircus": "Gloucester se reeks is verby en die sirkus het die dorp verlaat. Sarries is kampioene van Engeland, en jou rekord teen hulle sê dit was nie toeval nie.",
   "chalEaling": "Twee titels by Trailfinders. 'n Klub waarvan gesê is dat dit sy plek gekoop het, het dit op die gras gewen, twee keer, en daar is niks meer te sê nie.",
-  "chalLicence": "Sale eindig in die uitspeelplekke. Die lisensie is nie meer ’n vraag nie - die klub hoort daar, en die punteleer sê so.",
+  "chalLicence": "Sale eindig in die uitspeelplekke. Die lisensie is nie meer 'n vraag nie - die klub hoort daar, en die punteleer sê so.",
   "chalGrudge": "Lichfield is kampioene van die Championship. Oorgeslaan toe die topvlak sy lede gekies het, en nou onmoontlik om te ignoreer.",
   "deputationOne": "'n Afvaardiging senior spelers kom kantoor toe en maak die deur toe. Beleefd en reguit: die kleedkamer het gesien hoe die {a}-saak bly dryf, en wil weet wie hier besluit. Antwoord dit in die {room_k}, wen Saterdag, en die deur hou op oopgaan.",
   "deputationNamedOne": "{player} kom kantoor toe en maak die deur toe. Beleefd en reguit: die kleedkamer het gesien hoe die {a}-saak bly dryf, en wil weet wie hier besluit. Antwoord dit in die {room_k}, wen Saterdag, en die deur hou op oopgaan."
@@ -6683,7 +6680,6 @@
  },
  "store": {
   "title": "Winkel",
-  "sub": "niks hier speel die wedstryde nie",
   "owned": "Joune",
   "bought": "Joune. Dit volg jou winkelrekening - Herstel bring dit op 'n nuwe foon terug.",
   "needCareer": "Maak eers 'n loopbaan oop - die toevlugsoord het 'n spangroep nodig om te besoek.",
@@ -6823,8 +6819,9 @@
   "mishapConcert": "die verhoogstruktuur het 'n deel van die pawiljoen uitgehaal",
   "newsBad": "{club} het hierdie week {event} aangebied. {fee} in, nadat {what} {bill} gekos het.",
   "bookedBad": "{event} bespreek. {fee} vir die klub - {what}, {bill} van die fooi af.",
-  "slateSub": "Drie in die dagboek hierdie week. Een veld, een bespreking.",
-  "risk": "kan verkeerd loop"
+  "slateSub": "Drie die week. Een bespreking.",
+  "risk": "kan verkeerd loop",
+  "newsBadSubj": "{event} by die veld, en 'n rekening daarmee saam"
  },
  "point": {
   "ticketsSubj": "Die direksie het die hekgetalle gesien",

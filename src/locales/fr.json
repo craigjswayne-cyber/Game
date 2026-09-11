@@ -2162,7 +2162,7 @@
     "grudge": "La rancune de Lichfield",
     "grudgeDesc": "Lichfield a été écarté au moment de choisir l'élite, et il n'y a pas de montée depuis la deuxième division. Gagnez le Championship et rendez le club impossible à ignorer.",
     "circus": "Arrêter le cirque",
-    "circusDesc": "Gloucester a gagné les trois derniers titres, et tout le rugby voyage désormais avec eux : les caméras, les guichets fermés, le défilé. Sarries a l'effectif et le passé qu'il faut pour y mettre fin. Gagnez la Premier Division, et repartez avec un bilan positif face à eux."
+    "circusDesc": "Gloucester a gagné les trois derniers titres, et tout le rugby voyage désormais avec eux : les caméras, les guichets fermés, le défilé. Sarries a l'effectif et le passé qu'il faut pour y mettre fin. Gagnez la Premier Division, et repartez avec un bilan positif face à eux."
   },
   "profile": {
     "badgePlatinum": "Diplôme platine",
@@ -3021,9 +3021,6 @@
     "bgIdeaEmpty": "Écrivez d'abord l'idée, puis envoyez-la.",
     "bgIdeaGoesTo": "Les idées vont à ",
     "bgIdeaRest": ", la même adresse qu'un rapport de bug. Rien d'autre n'est joint - une idée n'a pas besoin de votre sauvegarde.",
-    "lgFirsts": "Le Carnet du Patron",
-    "lgFirstsSub": "Les premières fois. Sans médaille.",
-    "lgFirstsNone": "Rien d'écrit pour l'instant. Une première victoire à l'extérieur, c'est l'entrée en matière habituelle.",
     "coSquadSub_f": "{floor} à {max} joueuses · les vôtres en gras",
     "srPotY_f": "Joueuse de la saison",
     "srRollSub_f": "Joueuse mondiale de l'année, saison par saison",
@@ -3036,7 +3033,7 @@
     "a10": "Une note d'avant-match qui lit l'adversaire et propose un réglage tactique complet, appliqué d'une seule touche. Un meilleur adjoint donne de meilleurs conseils. C'est un point de départ, pas une consigne.",
     "a11": "La chose vraie la plus forte à dire sur le match à venir - gagnez et vous prenez la tête, le conseil se réunit lundi de toute façon, un joueur est à un essai de cinquante, un vieux rival vous a battu trois fois de suite. Elle lit le classement, le conseil, le carnet de rancunes et les jalons comme vous pourriez le faire, et dit tout haut celui qui compte le plus cette semaine. Elle ne dit rien quand il n'y a honnêtement rien à dire - un mardi d'octobre en milieu de tableau a droit au silence, pas à un titre fabriqué.",
     "a12": "Énormément. Chaque arbitre a sa tolérance, et certains sortent un carton là où d'autres parlent. Un jaune vous met à quatorze pendant dix minutes et le tableau d'affichage s'en ressent généralement. Un rouge est pire : le joueur quitte le terrain, et il écope ensuite d'une suspension d'un match ou plus. Les joueurs agressifs et le trait Tête brûlée prennent plus de cartons.",
-    "a13": "Oui, et c'est un pari plutôt qu'un coup gratuit. La commission lit le casier du joueur : un homme irréprochable suspendu un match l'emporte environ deux fois sur trois, un récidiviste lourdement suspendu presque jamais, et la plupart des appels tiennent du pile ou face. Gagné, un match est retiré. Perdu, un match est ajouté, et le conseil note que vous avez fait perdre son après-midi à tout le monde.",
+    "a13": "Oui, et c'est un pari plutôt qu'un coup gratuit. La commission lit le casier du joueur : un homme irréprochable suspendu un match l'emporte environ deux fois sur trois, un récidiviste lourdement suspendu presque jamais, et la plupart des appels tiennent du pile ou face. Gagné, un match est retiré. Perdu, un match est ajouté, et le conseil note que vous avez fait perdre son après-midi à tout le monde.",
     "a14": "La pluie et le vent rendent tous deux le maniement et le jeu au pied plus difficiles et poussent les matchs vers les avants. La neige encore plus. Un après-midi humide est une bonne semaine pour avoir choisi un gros paquet et un bon pied.",
     "a15": "Il joue le match sur-le-champ et vous montre le score final et le rapport, sans le déroulé minute par minute. Utile pour un amical ou une semaine que vous n'avez pas envie de vivre. Vous en gardez toutes les conséquences : blessures, cartons, notes, tout.",
     "a16": "Le vestiaire vous le demande avant le coup d'envoi. « Chaque minute », c'est le commentaire complet. « Temps forts » fait défiler le fil jusqu'à la prochaine chose qui compte : vous vous arrêtez pour les scores, les cartons et les blessures, mais pas pour chaque ruck, et la mi-temps et l'heure de jeu restent à vous. « Adjoint » lui laisse la touche et vous emmène au rapport. Votre réponse est retenue pour cette compétition : vous pouvez suivre le championnat et passer les amicaux, et l'engrenage en cours de match bascule entre les deux premiers à tout moment.",
@@ -4539,9 +4536,9 @@
     "capFineSubj": "⚖ Plafond salarial : le club est sanctionné",
     "capFine": "{club} a terminé la saison à {over}/semaine au-dessus du plafond de {cap}/semaine. La ligue inflige au club une amende de {fine} et le met en garde : une nouvelle infraction la saison prochaine et la sanction sera une interdiction de recrutement. Deux joueurs peuvent être désignés joueurs d'exception et sortis du calcul, et les joueurs du centre de formation n'ont jamais compté.",
     "deputationSubj": "🚪 Les cadres demandent un entretien",
-    "deputation": "Une délégation de cadres entre dans le bureau et ferme la porte. Polis et directs : le vestiaire a vu les cas {a} et {b} s'enliser et veut savoir qui commande. Répondez aux deux dans la {room_k}, gagnez samedi, et la porte cessera de s'ouvrir.",
+    "deputation": "Une délégation de cadres entre dans le bureau et ferme la porte. Polis et directs : le vestiaire a vu les cas {a} et {b} s'enliser et veut savoir qui commande. Répondez aux deux dans la {room_k}, gagnez samedi, et la porte cessera de s'ouvrir.",
     "deputationNamedSubj": "🚪 {player} demande un entretien",
-    "deputationNamed": "{player} entre dans le bureau et ferme la porte. Poli et direct : le vestiaire a vu les cas {a} et {b} s'enliser et veut savoir qui commande. Répondez aux deux dans la {room_k}, gagnez samedi, et la porte cessera de s'ouvrir.",
+    "deputationNamed": "{player} entre dans le bureau et ferme la porte. Poli et direct : le vestiaire a vu les cas {a} et {b} s'enliser et veut savoir qui commande. Répondez aux deux dans la {room_k}, gagnez samedi, et la porte cessera de s'ouvrir.",
     "incidentDriftsSubj": "La situation {player} s'enlise",
     "incidentDrifts": "Deux semaines plus tard, rien n'a été dit. Le groupe a remarqué que {player} s'en est tiré, et le standard devant lequel on passe est le standard que l'on accepte.",
     "adminMineSubj": "🚨 {short} est placé en redressement judiciaire",
@@ -5187,10 +5184,10 @@
     "requestRefused": "La demande est refusée. Il y a un contrat, {club} entend le faire respecter, et la seule sortie passe désormais par la feuille de match.",
     "chalCircus": "La série de Gloucester est terminée et le cirque a quitté la ville. Sarries est champion d'Angleterre, et votre bilan face à eux dit que ce n'était pas un hasard.",
     "chalEaling": "Deux titres à Trailfinders. Un club dont on disait qu'il avait acheté sa place l'a gagné sur le terrain, deux fois, et il n'y a plus rien à ajouter.",
-    "chalLicence": "Sale termine dans les places de barrage. La licence n'est plus une question : le club est à sa place, et le classement le dit.",
+    "chalLicence": "Sale termine dans les places de barrage. La licence n'est plus une question : le club est à sa place, et le classement le dit.",
     "chalGrudge": "Lichfield est champion de Championship. Ignoré quand l'élite a choisi ses membres, et impossible à ignorer désormais.",
-    "deputationOne": "Une délégation de cadres entre dans le bureau et ferme la porte. Polis et directs : le vestiaire a vu le cas {a} s'enliser et veut savoir qui commande. Répondez-y dans la {room_k}, gagnez samedi, et la porte cessera de s'ouvrir.",
-    "deputationNamedOne": "{player} entre dans le bureau et ferme la porte. Poli et direct : le vestiaire a vu le cas {a} s'enliser et veut savoir qui commande. Répondez-y dans la {room_k}, gagnez samedi, et la porte cessera de s'ouvrir."
+    "deputationOne": "Une délégation de cadres entre dans le bureau et ferme la porte. Polis et directs : le vestiaire a vu le cas {a} s'enliser et veut savoir qui commande. Répondez-y dans la {room_k}, gagnez samedi, et la porte cessera de s'ouvrir.",
+    "deputationNamedOne": "{player} entre dans le bureau et ferme la porte. Poli et direct : le vestiaire a vu le cas {a} s'enliser et veut savoir qui commande. Répondez-y dans la {room_k}, gagnez samedi, et la porte cessera de s'ouvrir."
   },
   "comm": {
     "oppCoachNamed": "{coach} a fait ses devoirs : {team} s'est réglé spécifiquement sur {pattern_k}. Changez le visage du match, ou jouez à travers leur plan.",
@@ -6442,9 +6439,9 @@
     "charterConfirm": "Le supprimer - aucun retour possible",
     "charterStay": "Pas aujourd'hui",
     "charterDone": "🖋 C'est fait. La loi salariale ne s'applique plus à ce club.",
-    "charterSigned": "Le plafond a disparu pour toute cette carrière : plus de plafond, plus d'amendes, plus d'embargos.",
+    "charterSigned": "Le plafond a disparu pour toute cette carrière : plus de plafond, plus d'amendes, plus d'embargos.",
     "charterOwned": "Vous le possédez déjà. Activez-le ci-dessous quand vous serez certain - c'est irréversible.",
-    "fineprint": "Les prix sont ceux de la boutique. Un achat n'est débité qu'une fois arrivé dans votre carrière ; en cas d'interruption, cette page vous le propose de nouveau.",
+    "fineprint": "Les prix sont ceux de la boutique. Un achat n'est débité qu'une fois arrivé dans votre carrière ; en cas d'interruption, cette page vous le propose de nouveau.",
     "stampLicensed": "Départ sous licence",
     "stampCharter": "Charte du propriétaire",
     "watchAgency": "📺 Demander son dossier à l'agence (regarder un spot)",
@@ -6469,7 +6466,6 @@
   },
   "store": {
     "title": "Boutique",
-    "sub": "rien ici ne joue les matchs",
     "owned": "Acquis",
     "bought": "Acquis. Lié à votre compte de boutique - Restaurer le récupère sur un nouveau téléphone.",
     "needCareer": "Ouvrez d'abord une carrière - la retraite médicale a besoin d'un effectif à soigner.",
@@ -6611,8 +6607,9 @@
     "mishapConcert": "la structure de scène a emporté une partie des gradins",
     "newsBad": "{club} a accueilli un {event} cette semaine. {fee} encaissés, après {what} qui a coûté {bill}.",
     "bookedBad": "{event} réservé. {fee} pour le club - {what}, {bill} retirés de la recette.",
-    "slateSub": "Trois au programme cette semaine. Un seul terrain, une seule réservation.",
-    "risk": "peut mal tourner"
+    "slateSub": "Trois cette semaine. Une seule.",
+    "risk": "peut mal tourner",
+    "newsBadSubj": "{event} au stade, et une facture avec"
   },
   "point": {
     "ticketsSubj": "Le conseil a vu les chiffres de billetterie",
