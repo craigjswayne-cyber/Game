@@ -341,8 +341,23 @@ export function applyAdminPenalties(comp: Competition, state?: GameState) {
   }
 }
 
+/**
+ * THE FOUR ROUNDS THAT CANNOT END LEVEL, and only those four.
+ *
+ * `stage` is not a knockout marker. It is a free-text label, and the tours and
+ * Test series use it too - '1st Test', 'Tour match Waikato', and every name in
+ * TEST_NAMES. Sudden death was gated on `fx.stage` being truthy, so a drawn
+ * Test match, which is a perfectly ordinary result and sometimes a famous one,
+ * had three points added to one side by a coin weighted on squad strength.
+ */
+export const KO_STAGES = new Set(['QF', 'SF', 'F', 'BAR'])
+export function isKnockoutTie(fx: Fixture): boolean {
+  return !!fx.stage && KO_STAGES.has(fx.stage)
+}
+
 /** In knockout rugby there are no draws - nudge a golden-point winner. */
 export function resolveKnockoutDraw(state: GameState, fx: Fixture, rng: Rng) {
+  if (!isKnockoutTie(fx)) return
   if (fx.homeScore !== fx.awayScore) return
   const hs = teamUnits(state, autoLineup(state, fx.homeId)).overall
   const as = teamUnits(state, autoLineup(state, fx.awayId)).overall
