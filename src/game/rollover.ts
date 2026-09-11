@@ -347,7 +347,7 @@ function agePlayers(state: GameState, rng: Rng) {
     if (rng() < retireChance) retirees.push(p)
     // the summer price: position curve and contract length, form left to
     // the season to write
-    p.value = playerValue(p.ca, p.age, p.pa, p.pos, undefined, p.contractEnds - state.season)
+    p.value = playerValue(p.ca, p.age, p.pa, p.pos, undefined, p.contractEnds - state.season, p.caps)
   }
   // THE DEVELOPMENT DEAL ENDS AT 21, AND IT IS THE MANAGER'S CALL (user: "we
   // also need an age where they need to either be upgraded or released... the
@@ -519,7 +519,7 @@ function agePlayers(state: GameState, rng: Rng) {
         pers: assignPersonality(rng, a),
         sc: clubId === state.userClubId ? 100 : 15,
       }
-      heir.value = playerValue(heir.ca, heir.age, heir.pa, heir.pos)
+      heir.value = playerValue(heir.ca, heir.age, heir.pa, heir.pos, undefined, undefined, heir.caps)
       state.players[heir.id] = heir
       club.players.push(heir.id)
       if (clubId === state.userClubId) {
@@ -797,7 +797,7 @@ function youthIntake(state: GameState, rng: Rng) {
         pers: assignPersonality(rng, a),
         sc: 100,
       }
-      p.value = playerValue(p.ca, p.age, p.pa, p.pos)
+      p.value = playerValue(p.ca, p.age, p.pa, p.pos, undefined, undefined, p.caps)
       state.players[p.id] = p
       userClub.players.push(p.id)
       report.push(`${'★'.repeat(paStars(s.pa))}${'☆'.repeat(5 - paStars(s.pa))} ${p.name} - ${p.pos}, ${p.age}`)
@@ -864,7 +864,7 @@ function youthIntake(state: GameState, rng: Rng) {
         pers: assignPersonality(rng, a),
         sc: 15,
       }
-      p.value = playerValue(p.ca, p.age, p.pa, p.pos)
+      p.value = playerValue(p.ca, p.age, p.pa, p.pos, undefined, undefined, p.caps)
       state.players[p.id] = p
       club.players.push(p.id)
     }
@@ -888,7 +888,7 @@ function youthIntake(state: GameState, rng: Rng) {
       stats: emptyStats(), career: [], transferListed: false, youth: true,
       pers: assignPersonality(rng, a), sc: 10,
     }
-    p.value = playerValue(p.ca, p.age, p.pa, p.pos)
+    p.value = playerValue(p.ca, p.age, p.pa, p.pos, undefined, undefined, p.caps)
     state.players[p.id] = p
   }
 }
@@ -940,7 +940,7 @@ function replenishSquads(state: GameState, rng: Rng) {
           value: 0, stats: emptyStats(), career: [], transferListed: false, youth: true,
           pers: assignPersonality(rng, a2), sc: club.id === state.userClubId ? 100 : 15,
         }
-        kid.value = playerValue(kid.ca, kid.age, kid.pa, kid.pos)
+        kid.value = playerValue(kid.ca, kid.age, kid.pa, kid.pos, undefined, undefined, kid.caps)
         state.players[kid.id] = kid
         club.players.push(kid.id)
         continue

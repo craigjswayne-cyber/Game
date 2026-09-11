@@ -1221,7 +1221,7 @@ function weeklyTraining(state: GameState, rng: Rng) {
       if (isUser && state.matchPrep === 'recovery') p.cond = clamp(p.cond + 3.5, 20, 100)
       // the live market price, refreshed weekly: position curve, form
       // momentum and how much contract the buyer would be getting
-      p.value = playerValue(p.ca, p.age, p.pa, p.pos, p.form, p.contractEnds - state.season)
+      p.value = playerValue(p.ca, p.age, p.pa, p.pos, p.form, p.contractEnds - state.season, p.caps)
     }
   }
   if (returned.length) {
