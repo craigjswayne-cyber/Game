@@ -716,7 +716,14 @@ export function buildWomensContinentalCup(rng: Rng, state: GameState): Competiti
       .slice(0, places)
       .map(c => c.id))
   return buildChampionsCup(entrants, rng, state,
-    { id: 'cc', name: 'Continental Cup', short: 'Continental Cup' },
+    // ITS OWN NAME, NOT THE MEN'S (owner, 1.5.8). Both worlds build a
+    // competition with the id 'cc' - deliberately, so every dream, award and
+    // trophy-counting path can mean "the continental cup of this game" - but
+    // they carried the same NAME too, so a women's career played something
+    // called the Continental Cup with nothing on screen saying which game it
+    // belonged to. The short name also earns its keep on the fixtures list,
+    // where "Continental Cup Quarter-Final" pushed the score off the row.
+    { id: 'cc', name: 'The Hemispheric Championship', short: 'Hemispheric' },
     W_CC_POOL_WEEKS, W_CC_KO_WEEKS)
 }
 

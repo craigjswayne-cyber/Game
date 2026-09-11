@@ -255,6 +255,12 @@ export function migrate(s: GameState): GameState {
     trc: ['The Southern Championship', 'Southern'],
     pnc: ['Pacific Islands Cup', 'Islands Cup'],
   }
+  // 'cc' IS TWO DIFFERENT COMPETITIONS, one per world, and this map is keyed on
+  // id alone. Left as it was, a women's save would be walked back to the men's
+  // "Continental Cup" on every single load - the repair undoing the rename it
+  // exists to deliver. The women's world is the only one that needs the
+  // exception, because it is the only id the two games share.
+  if (s.gender === 'w') COMP_NAMES.cc = ['The Hemispheric Championship', 'Hemispheric']
   for (const [id, [name, short]] of Object.entries(COMP_NAMES)) {
     const c = s.comps[id]
     if (c) { c.name = name; c.short = short }

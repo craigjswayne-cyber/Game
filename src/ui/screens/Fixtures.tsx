@@ -5,7 +5,7 @@ import { venueBadge, venueEffect } from '../../game/venue'
 import { MIDWEEK_OFF, fixtureDate, weekDate, type Fixture, type MatchEvent } from '../../game/model'
 import { ClubLink, CrestT, Jersey, SectionTitle } from '../components'
 import LeagueTable from '../LeagueTable'
-import { stageName } from './Home'
+import { stageShort } from './Home'
 import { t } from '../../game/i18n'
 import { arrangeMidweekFriendly, friendlyDate, friendlySuggestions, friendlyWeeks } from '../../game/season'
 
@@ -135,7 +135,7 @@ export default function Fixtures() {
                     {f.played && f.events?.length ? <span className="muted" style={{ fontSize: 10 }}>▸</span> : null}
                   </span>
                 </td>
-                <td className="muted" style={{ whiteSpace: 'nowrap' }}>{game.comps[f.compId]?.short ?? (f.compId === 'fr' ? t('common.friendly') : f.compId)}{f.stage ? ` ${stageName(f.stage)}` : ''}</td>
+                <td className="muted" style={{ whiteSpace: 'nowrap' }}>{game.comps[f.compId]?.short ?? (f.compId === 'fr' ? t('common.friendly') : f.compId)}{f.stage ? ` ${stageShort(f.stage)}` : ''}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{res(f)}</td>
               </tr>
             )
