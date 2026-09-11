@@ -992,6 +992,55 @@ function posNounKey(p: Player): string {
 }
 
 /** Apply the chosen answer. */
+/**
+ * ---- THE DISCIPLINARY HEARING ----
+ *
+ * This was `(p.id + season * 7 + week * 3) % 3 !== 0`: two clubs in three
+ * walked out with a match knocked off the ban, whoever the player was and
+ * whatever he had done. The owner's verdict after a season of it (1.5.8) was
+ * "reviewing a card seems to always go in my favour - this needs to be more
+ * balanced", and a coin that lands your way 67% of the time is not a
+ * decision, it is a free go.
+ *
+ * It now does what a judicial committee does. World Rugby's Regulation 17
+ * sets an entry-point sanction by the seriousness of the act, and the
+ * mitigation that comes off it - up to half - is earned by an early
+ * admission, a clean disciplinary record and conduct at the hearing. Those
+ * are facts about THIS player's season, so the hearing reads them:
+ *
+ *     base                     25%   a hearing you expect to lose
+ *     clean record            +28%   no yellow and no other red this season
+ *     one yellow only         +12%
+ *     one-match ban           +15%   the genuinely marginal call
+ *     four matches or more    -12%   not a marginal call
+ *     a second red            -20%   the committee has seen him before
+ *
+ * So a first offender on a one-match ban is a 68% shout and a repeat offender
+ * on a long one is close to hopeless, with everything in between reading off
+ * the record the manager's own selections built. Across a normal season of
+ * reds that lands a little under half - the gamble the FAQ now describes.
+ *
+ * STILL DETERMINISTIC, and deliberately not on the shared rng: the same save
+ * gets the same hearing, because a verdict that changes when you reload is
+ * not a verdict.
+ */
+export function hearingSucceeds(state: GameState, p: Player): boolean {
+  let chance = 25
+  const yc = p.stats.yc
+  const rc = p.stats.rc
+  if (yc === 0 && rc <= 1) chance += 28
+  else if (yc === 1 && rc <= 1) chance += 12
+  if (p.bans <= 1) chance += 15
+  else if (p.bans >= 4) chance -= 12
+  if (rc >= 2) chance -= 20
+  chance = clamp(chance, 8, 75)
+  // a spread-out hash rather than `% 3`: the old modulo walked in lockstep
+  // with the player id, so two team-mates cited a week apart got the same
+  // answer far more often than chance says they should
+  const roll = Math.abs((p.id * 2654435761 + state.season * 40503 + state.week * 21023) % 100)
+  return roll < chance
+}
+
 export function answerPress(state: GameState, pressId: number, optionIndex: number) {
   const item = state.press.find(p => p.id === pressId)
   if (!item || item.answered) return
@@ -1020,7 +1069,7 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
   if (opt.appeal && item.playerId != null) {
     const p = state.players[item.playerId]
     if (p) {
-      const upheld = (p.id + state.season * 7 + state.week * 3) % 3 !== 0 // the club wins 2 hearings in 3
+      const upheld = hearingSucceeds(state, p)
       if (upheld && p.bans > 0) {
         p.bans -= 1
         logDecision(state, 'dec.appealUpheld', { player: p.name }, true)
