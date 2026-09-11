@@ -104,3 +104,41 @@ names.
 
 **Open question for the owner before any of it is written.** Whether the game
 should model this at all is his call, not mine.
+
+---
+
+## 6. A women's World Championship
+
+**Missing today.** The men's world builds a World Championship every fourth
+season (`schedule.ts` `buildWorldCup`, gated by `isWorldCupSeason`) and crowns
+it five times in a twenty-season career. The women's world has none, and
+`dream.ts` `WORLD_COMPS` is explicit about it: `w: ['cc']`, so the dreams that
+name a World Cup are never offered in this world rather than being offered and
+left unwinnable.
+
+Found by the 20-season women's soak (`scripts/wsoak.ts`, 11 Sep 2026). It is
+handled correctly, which is exactly why it is here rather than in a bug list.
+
+**What it would take.** A pool draw and a knockout bracket - both already
+exist and are shared with the Continental Cup - plus the harder half, which is
+the calendar. The women's year already carries six Test windows after 1.5.8:
+the Hemispheric Championship pools and knockouts, the Autumn Tests, the
+Northern Championship, the Pacific Four and the Summer Tests. A quadrennial
+tournament has to take the place of some of them in its year rather than sit
+on top, the way the men's `buildInternationals(rng, state, worldCup)` drops
+the summer tours in a World Cup season. One to two weeks, most of it in
+`schedule.ts` and in re-running `wsoak` and `genderprobe` against the result.
+
+**What it would unlock.** The single biggest prize in the women's game, which
+the sport has and this one does not - England hosted and New Zealand won the
+2025 tournament. Three career dreams that the women's world currently cannot
+be offered. And a reason for the national job to be the summit of a career in
+both worlds rather than only one.
+
+**What it would disturb.** The women's Test calendar, which was only just
+untangled in 1.5.8 - the Hemispheric knockouts had been sitting inside the
+Northern Championship window. Any World Cup year has to be re-checked against
+`activeWindows` and against the club season, or the same clash comes back
+wearing a bigger hat. Existing saves would gain a competition mid-career,
+which the Continental Cup already proved is survivable but needs the same care
+at rollover.
