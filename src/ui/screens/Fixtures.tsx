@@ -159,7 +159,7 @@ export default function Fixtures() {
               <div className="card"><div className="muted" style={{ padding: 12 }}>{t('fixtures.friendlyNone')}</div></div>
             ) : (
               <>
-                <div className="filter-line">
+                <div className="filter-line friendly-dates">
                   {/* THE DATE, NOT THE WEEK NUMBER (owner: "arrange a friendly
                       is a great feature but it needs to be date based rather
                       than week based"). A week index is how the engine counts;
