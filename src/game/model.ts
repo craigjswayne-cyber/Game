@@ -1527,7 +1527,9 @@ export interface GameState {
    *  named by him. Presets are the game's; these are his. */
   gamePlans?: { name: string; values: Omit<Tactic, 'lineup'> }[]
   /** board injections taken this season, per tier: the well has a bottom
-   *  (two per tier, the Sugar Daddy once) and this is where it is measured.
+   *  (ten each on the three smaller tiers, the Sugar Daddy once - see
+   *  INJECT_TIERS, which is the only place the numbers live) and this is
+   *  where it is measured.
    *  'heal' (v1.1.4) rides in the same ledger for the same reason - the
    *  retreat can only be booked so often - and is wiped at rollover with
    *  the rest of it. */
