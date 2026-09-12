@@ -55,15 +55,24 @@ console.log('\n--- 2. an injection pays the printed figure, and the well has a b
   const letter = g.news[g.news.length - 1]
   ok(g.news.length === before.news + 1 && letter.k === 'news.boardInjection',
     'the board letter lands in the inbox, keyed for both languages')
-  ok(applyInjection(g, 's'), 'the second small injection goes through')
-  ok(!applyInjection(g, 's') && injectionsLeft(g, 's') === 0, 'the third is refused: two per tier per season')
+  // THE LIMIT IS WHATEVER INJECT_TIERS SAYS IT IS. This used to assert the
+  // literal "two per tier", which is the number that happened to be in the
+  // table when it was written - so raising the small tiers to ten in 1.5.8
+  // failed a probe that was describing the config rather than testing it.
+  // Read the ceiling, buy up to it, and check the door shuts one past.
+  const capS = INJECT_TIERS.s.perSeason
+  for (let n = 2; n <= capS; n++) {
+    if (!applyInjection(g, 's')) { ok(false, `small injection ${n} of ${capS} was refused early`); break }
+  }
+  ok(injectionsLeft(g, 's') === 0, `the small tier runs to its ceiling of ${capS} a season`)
+  ok(!applyInjection(g, 's'), `and the ${capS + 1}th is refused`)
   const held = { budget: club.budget, balance: club.balance, boost: g.wageBoost }
   ok(club.budget === held.budget && club.balance === held.balance && g.wageBoost === held.boost,
     'and a refusal moves no money at all')
   ok(applyInjection(g, 'xl'), 'the Sugar Daddy arrives once')
   ok(!applyInjection(g, 'xl'), 'and will not go to the well twice in a year')
-  ok(g.wageBoost === Math.round((INJECT_TIERS.s.wage * 2 + INJECT_TIERS.xl.wage) * 100) / 100,
-    'the wage allowance stacks across purchases, to the penny of the percent')
+  ok(g.wageBoost === Math.round((INJECT_TIERS.s.wage * capS + INJECT_TIERS.xl.wage) * 100) / 100,
+    `the wage allowance stacks across all ${capS + 1} purchases, to the penny of the percent`)
 }
 
 console.log('\n--- 3. the fixed figures hold at a small club too\n')

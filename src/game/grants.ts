@@ -74,11 +74,17 @@ export function userWageBudget(state: GameState, club: Club): number {
  *  the cap-exempt allowance as a fraction of the league cap,
  *  board-underwritten for this season only - doubled in the same brief.
  *  The XL is the Sugar Daddy, and the owners will not go to the well for
- *  him twice in a year. */
+ *  him twice in a year.
+ *
+ *  THE THREE SMALLER TIERS RUN TO TEN A SEASON (owner, 1.5.8). They were two
+ *  apiece, which capped a season's board funding at £320m; ten each takes the
+ *  ceiling to £1.08bn and the cap-exempt wage allowance to +780%. The XL is
+ *  deliberately left at one - it is the once-a-year rescue, and a shelf whose
+ *  top row is unlimited has no top row. */
 export const INJECT_TIERS: Record<InjectTier, { amount: number; wage: number; perSeason: number }> = {
-  s: { amount: 10_000_000, wage: 0.10, perSeason: 2 },
-  m: { amount: 25_000_000, wage: 0.20, perSeason: 2 },
-  l: { amount: 60_000_000, wage: 0.40, perSeason: 2 },
+  s: { amount: 10_000_000, wage: 0.10, perSeason: 10 },
+  m: { amount: 25_000_000, wage: 0.20, perSeason: 10 },
+  l: { amount: 60_000_000, wage: 0.40, perSeason: 10 },
   xl: { amount: 130_000_000, wage: 0.80, perSeason: 1 },
 }
 
