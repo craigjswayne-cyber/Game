@@ -13,8 +13,9 @@
 //
 //  THE ONE DESIGN DECISION WORTH READING: CONSUMABLES ARE LEFT UNFINISHED.
 //
-//  A consumable (the four board injections, Full Fitness and the tip jar) is bought here
-//  and its transaction is deliberately NOT finished at purchase. It is
+//  A consumable - the four board injections, Full Fitness, the tip jar and
+//  the repeat ground, seven in all - is bought here and its transaction is
+//  deliberately NOT finished at purchase. It is
 //  finished by consume(sku), which the game calls only after the career has
 //  actually kept what was bought.
 //
@@ -175,15 +176,33 @@ public class PhaseBilling: CAPPlugin {
     /// The career kept what was bought, so the receipt can be spent. Finishing
     /// is what lets the App Store sell the same consumable again - and until
     /// it happens, owned() keeps offering the purchase back.
+    /// Finish every unfinished transaction for this product, AND SAY HOW MANY.
+    ///
+    /// This used to resolve empty. An empty resolve is indistinguishable from
+    /// a resolve that found nothing to do, so the JavaScript side was left
+    /// inferring the outcome by reading owned() again afterwards - which is
+    /// wrong whenever the finish has landed but the read has not caught up,
+    /// and catastrophic when the call is merely slow: the watchdog on the
+    /// other side gives up, the finish lands a second later, and the receipt
+    /// is gone with nothing banked against it. Answering the question
+    /// directly costs one dictionary and removes the guess.
+    ///
+    /// `ok` is true when at least one transaction was actually finished.
+    /// `count` is how many, because a customer can legitimately hold two.
     @objc func consume(_ call: CAPPluginCall) {
-        guard let sku = call.getString("sku") else { call.resolve(); return }
+        guard let sku = call.getString("sku") else {
+            call.resolve(["ok": false, "count": 0])
+            return
+        }
         Task {
+            var finished = 0
             for await unfinished in Transaction.unfinished {
                 if case .verified(let t) = unfinished, t.productID == sku {
                     await t.finish()
+                    finished += 1
                 }
             }
-            call.resolve()
+            call.resolve(["ok": finished > 0, "count": finished])
         }
     }
 }

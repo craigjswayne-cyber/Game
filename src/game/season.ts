@@ -512,13 +512,31 @@ function maybeCreateKnockouts(state: GameState, comp: Competition, rng: Rng) {
       // off the Continental Cup, and covers the pair of them.
       if (comp.id === 'cc') {
         const v = finalVenue(state, 'cc')
+        // ONE FINAL OR TWO, DEPENDING ON THE WORLD. The men's game plays the
+        // Shield final on the Friday and the Cup on the Saturday, which is
+        // what this story was written for. The women's game has no Shield -
+        // there is no second tier beneath the Hemispheric Championship to
+        // feed one (dream.ts WORLD_COMPS) - so a women's career was reading
+        // about "both European finals", a Continental Shield that does not
+        // exist and a continent its competition does not sit on. The keyed
+        // copy carries the women's version in its `_f` sibling; these English
+        // literals are the snapshot an old save reads back, so they have to
+        // fork here as well.
+        const pair = !!state.comps['chc']
         if (v) state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
-          subject: `🏟️ FINALS WEEKEND: ${v.city} gets Europe's showpiece`,
-          body: [
-            `${v.name} will stage both European finals this season: the Continental Shield under Friday lights, the Continental Cup on the Saturday. ${v.capacity.toLocaleString()} seats, one city, the whole sport in town for a weekend.`,
-            `Eight quarter-finalists still stand in each competition, and every one of them circled the date this morning and priced the trip to ${v.city}.`,
-          ].join('\n'),
+          subject: pair
+            ? `🏟️ FINALS WEEKEND: ${v.city} gets Europe's showpiece`
+            : `🏟️ FINALS WEEKEND: ${v.city} gets the showpiece`,
+          body: pair
+            ? [
+              `${v.name} will stage both European finals this season: the Continental Shield under Friday lights, the Continental Cup on the Saturday. ${v.capacity.toLocaleString()} seats, one city, the whole sport in town for a weekend.`,
+              `Eight quarter-finalists still stand in each competition, and every one of them circled the date this morning and priced the trip to ${v.city}.`,
+            ].join('\n')
+            : [
+              `${v.name} will stage the ${comp.name} final this season. ${v.capacity.toLocaleString()} seats, one city, the whole sport in town for a weekend.`,
+              `Eight quarter-finalists still stand, and every one of them circled the date this morning and priced the trip to ${v.city}.`,
+            ].join('\n'),
           k: 'news.finalsWeekend',
           v: { venue: v.name, city: v.city, seats: v.capacity },
         })

@@ -66,7 +66,8 @@ These are constraints the spec builds on, not aspirations:
 > costs a second product id and a migration - the corner v1.1.14 had to build
 > out of on Play.
 
-Ten products live in the catalogue (`NC_SKUS` + `CONSUMABLE_SKUS` in
+Eleven products live in the catalogue - four permanent, seven consumable
+(`NC_SKUS` + `CONSUMABLE_SKUS` in
 `src/game/monetise.ts`); #7 (`phase.editor`) was removed in v1.1.3 and its
 number is retired. `moneyprobe` asserts the catalogue count and the
 consumable/non-consumable split, so this table and the code cannot drift
