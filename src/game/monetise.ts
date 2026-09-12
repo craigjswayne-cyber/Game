@@ -181,17 +181,6 @@ function writeCredits(c: Record<string, number>): boolean {
   } catch { return false }
 }
 
-/** CAN THIS DEVICE KEEP A CREDIT AT ALL - asked BEFORE anything destructive.
- *
- *  A round trip through the real store, reading what is there and writing it
- *  straight back, so the answer is the storage engine's rather than a guess
- *  about which browser this is. Costs one small write. Used to gate the
- *  consume loop: a device that cannot bank the proceeds must not be allowed
- *  to spend the receipt, because an unspent receipt is recoverable on the
- *  next launch and a spent one with nowhere to land is money gone. */
-function ledgerWritable(): boolean {
-  return writeCredits(readCredits())
-}
 export function creditCount(sku: string): number {
   const n = readCredits()[sku]
   return Number.isFinite(n) && n! > 0 ? Math.floor(n!) : 0
@@ -238,39 +227,102 @@ export function creditTake(sku: string): boolean {
  * receipts were on the account at the moment it was issued. The mark outlives
  * the process. The next pass reads it, compares it to what is on the account
  * NOW, and banks the difference - which is the late landing, found after the
- * fact and paid out in full. The mark is cleared the instant the outcome is
- * known either way, so nothing is ever banked twice.
+ * fact and paid out in full. The mark is cleared in the same write that banks
+ * the credit, so nothing is ever banked twice.
+ *
+ * ---- WHAT THIS DELIBERATELY DOES NOT SOLVE ----
+ *
+ * THE MARK IS A COUNT, NOT AN IDENTITY, and that has a limit worth writing
+ * down rather than discovering. Reconciliation asks "are there fewer receipts
+ * now than when I issued the call", so a receipt that is REPLACED between the
+ * two passes hides the answer: this device issues a consume against one
+ * receipt, the consume lands, and a second device on the same store account
+ * buys another before this device reconciles. The count is 1 again, the late
+ * landing is invisible, and the credit is not banked. The customer still has
+ * the second receipt, so nobody is charged for nothing - but one payment goes
+ * undelivered until they buy again.
+ *
+ * claimHeld() returning 'stuck' stops THIS device selling a second copy over
+ * an outstanding receipt. It cannot reach another phone.
+ *
+ * The clean fix is transaction identity, and the bridge does not have any:
+ * BillingBridge speaks owned(): Promise<string[]> and consume(sku), because a
+ * career knows a product and not a purchase token. Fixing it properly means
+ * changing that contract on all four implementations. Play's own guidance is
+ * to query purchases regularly for exactly this reason, which is what the
+ * boot sweep does, and it narrows the window without closing it. Accepted,
+ * on the grounds that two devices sharing one store account inside one
+ * reconciliation window is rare and the failure is a deferral rather than a
+ * loss. Raised by an external review of the purchase path, 12 Sep 2026.
  */
-const MARK_KEY = 'rm-consuming'
-function readMarks(): Record<string, number> {
-  try {
-    const raw = globalThis.localStorage?.getItem(MARK_KEY)
-    if (!raw) return {}
-    const m = JSON.parse(raw) as Record<string, number>
-    return typeof m === 'object' && m ? m : {}
-  } catch { return {} }
+/**
+ * THE MARK LIVES IN THE CREDITS OBJECT, NOT BESIDE IT.
+ *
+ * The first cut of this kept marks under their own localStorage key, and an
+ * external review took about ten minutes to find what that costs. Banking a
+ * credit and clearing its mark were then TWO independent best-effort writes,
+ * and the window between them is a double-grant:
+ *
+ *     consume lands -> creditAdd succeeds -> markClear FAILS
+ *     -> relaunch -> mark still says 1, receipt is gone
+ *     -> reconciliation banks a SECOND credit for the same payment.
+ *
+ * Storage does not offer a transaction, so the fix is to stop needing one:
+ * one key, one JSON object, one setItem. A credit and the mark that earned it
+ * now move together or not at all. The reserved prefix cannot collide with a
+ * product - every sku in this file begins "phase." - and nothing anywhere
+ * enumerates the ledger's keys, so the two live side by side without any
+ * reader having to know.
+ */
+const MARK_PREFIX = '@spending:'
+
+/** Record that a consume is about to be issued against `held` receipts - AND
+ *  PROVE IT LANDED, by reading it back.
+ *
+ *  The read-back is the point. The whole recovery story rests on this mark
+ *  outliving a call the watchdog gives up on, so a mark that was quietly
+ *  refused (a full disk, a private window, a quota) is worse than no mark at
+ *  all: it reads as protection that is not there. A false here means the
+ *  caller MUST NOT issue the destructive call. That is also why there is no
+ *  separate "is the ledger writable" test any more - this writes the real key
+ *  with the real payload, which is a stronger answer than rewriting something
+ *  else and hoping. */
+function markSet(sku: string, held: number): boolean {
+  const c = readCredits()
+  c[MARK_PREFIX + sku] = held
+  if (!writeCredits(c)) return false
+  return readCredits()[MARK_PREFIX + sku] === held
 }
-function writeMarks(m: Record<string, number>): void {
-  try { globalThis.localStorage?.setItem(MARK_KEY, JSON.stringify(m)) } catch { /* private mode */ }
-}
-/** Record that a consume is about to be issued against `held` receipts. */
-function markSet(sku: string, held: number): void {
-  const m = readMarks()
-  m[sku] = held
-  writeMarks(m)
-}
+
+/** Drop the mark. Failure is survivable HERE and only here: a mark left
+ *  standing when nothing was credited reconciles to zero on the next pass,
+ *  because that pass credits `issued - held` and the two are still equal. */
 function markClear(sku: string): void {
-  const m = readMarks()
-  if (!(sku in m)) return
-  delete m[sku]
-  writeMarks(m)
+  const c = readCredits()
+  if (!(MARK_PREFIX + sku in c)) return
+  delete c[MARK_PREFIX + sku]
+  writeCredits(c)
 }
-/** Read the mark AND clear it, so a reconciliation can only ever happen once
- *  per issued consume. */
-function markTake(sku: string): number {
-  const n = readMarks()[sku]
-  markClear(sku)
+
+/** What a consume was issued against, or 0. Read only - the clear happens as
+ *  part of the write that banks the credit, never before it. */
+function markGet(sku: string): number {
+  const n = readCredits()[MARK_PREFIX + sku]
   return Number.isFinite(n) && n! > 0 ? Math.floor(n!) : 0
+}
+
+/** BANK n CREDITS AND DROP THE MARK, IN ONE WRITE.
+ *
+ *  The whole reason the mark moved into this object. Either both land or
+ *  neither does, so there is no state where the game has been paid for a
+ *  receipt and still holds the note saying it is owed for it. A false means
+ *  nothing changed at all, and the next pass finds the mark exactly where it
+ *  was and tries again. */
+function bankAndClear(sku: string, n: number): boolean {
+  const c = readCredits()
+  c[sku] = (Number.isFinite(c[sku]) && c[sku] > 0 ? Math.floor(c[sku]) : 0) + n
+  delete c[MARK_PREFIX + sku]
+  return writeCredits(c)
 }
 
 /** What a bridge says about a consume it has just been asked to do.
@@ -415,6 +467,12 @@ export async function claimHeld(sku: string): Promise<Owed> {
  */
 const sweeping = new Map<string, Promise<number>>()
 
+/** How many receipts one sweep will spend. A THROUGHPUT LIMIT, NOT A CEILING
+ *  ON WHAT ANYBODY IS OWED: the ninth receipt is still owned at the store, so
+ *  claimHeld reports it as paid-for and the next sweep banks it. The number
+ *  exists so a bridge that keeps answering "still owned" cannot spin. */
+const MAX_SPENDS_PER_SWEEP = 8
+
 export function bankReceipts(sku: string): Promise<number> {
   const running = sweeping.get(sku)
   if (running) return running
@@ -434,28 +492,32 @@ async function bankOnce(sku: string): Promise<number> {
     // A mark means a consume was issued and its answer never arrived. If the
     // account holds fewer receipts now than it did then, the difference is a
     // spend that landed while nobody was listening, and it is owed.
-    const issued = markTake(sku)
-    if (issued > held) {
-      // the mark goes straight back if the ledger will not take the credit,
-      // so the next launch can try again rather than losing the payment
-      if (!creditAdd(sku, issued - held)) markSet(sku, issued)
-    }
+    //
+    // Read, do not take. bankAndClear is what removes the mark, in the same
+    // write that banks the credit, so there is no moment where one has
+    // happened and the other has not. A write that fails changes nothing and
+    // the next pass finds the mark still here.
+    const issued = markGet(sku)
+    if (issued > held) bankAndClear(sku, issued - held)
+    else if (issued > 0) markClear(sku) // the consume did not land: retry below
 
-    // ---- THEN, AND ONLY ON A DEVICE THAT CAN KEEP WHAT IT EARNS ----
-    if (held > 0 && !ledgerWritable()) return held
-
-    for (let guard = 0; held > 0 && guard < 8; guard++) {
-      markSet(sku, held)
+    for (let guard = 0; held > 0 && guard < MAX_SPENDS_PER_SWEEP; guard++) {
+      // NO DESTRUCTIVE CALL WITHOUT A DURABLE RECOVERY MARK. This writes the
+      // real key with the real payload and reads it back, so a device that
+      // cannot keep the note does not get to destroy the receipt the note is
+      // about. An unspent receipt is recoverable on every future launch; a
+      // spent one with no mark and nowhere to bank is money taken for nothing.
+      if (!markSet(sku, held)) return held
       const res = await quick(b.consume(sku), undefined)
       const now = (await quick(b.owned(), [] as string[])).filter(s => s === sku).length
       // proof 1, then proof 2; a bridge that answers void gives neither and
       // falls through to the mark
       const landed = now < held ? held - now : (res && res.ok === true ? 1 : 0)
       if (landed > 0) {
-        // the mark stands if the credit would not persist, for the same
-        // reason as above - break rather than spend another receipt into it
-        if (!creditAdd(sku, landed)) break
-        markClear(sku)
+        // one write: the credit is banked and the mark is gone together. A
+        // false means neither happened, so stop rather than spend a second
+        // receipt into a ledger that has just refused the first.
+        if (!bankAndClear(sku, landed)) break
         held -= landed
         continue
       }
