@@ -312,7 +312,7 @@ Your app → *Monetization* → *In-App Purchases* → **+**.
 | `phase.inject.xl` | Consumable | The Sugar Daddy | £7.99 |
 | `phase.heal` | Consumable | Full Squad Recovery | £0.99 |
 | `phase.ground` | Consumable | The Estate, at the next ground | £2.99 |
-| `phase.supporter` | Non-consumable | Pro Manager | £4.99 |
+| `phase.supporter` | Non-consumable | Pro Manager | £2.99 |
 
 > **Where this bites.** A product's type can never be changed after it is
 > created. Get one wrong and the only remedy is a second product id and a
