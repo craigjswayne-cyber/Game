@@ -159,7 +159,7 @@ function positionAgeF(pos: string | undefined, age: number, pa: number, ca: numb
  *  exactly neutral and the price is the old talent-times-age figure. */
 export function playerValue(
   ca: number, age: number, pa: number,
-  pos?: string, form?: number, yearsLeft?: number,
+  pos?: string, form?: number, yearsLeft?: number, caps?: number,
 ): number {
   /**
    * A PRICE IS NOT A PLACE TO PUT A NaN (Round 26, found by scripts/fuzz25d.ts).
@@ -181,14 +181,54 @@ export function playerValue(
   age = Math.max(15, Math.min(45, num(age, 26)))
   pa = Math.max(ca, Math.min(99, num(pa, ca)))
   const base = Math.pow(ca / 100, 3.1) * 9_000_000
-  const ageF = positionAgeF(pos, age, pa, ca)
+  /**
+   * ---- STANDING (1.5.8) ----
+   *
+   * Owner: "Ellie Kildunne is valued far too low for her standing -
+   * internationals need valuations that respect reputation while staying
+   * inside the game's financial balance."
+   *
+   * He was right and the squad list proved it. Kildunne is the best player in
+   * the women's world - ca 91, 55 caps - and she was the THIRD most valuable,
+   * behind two 27-year-olds rated below her, with an uncapped 21-year-old at
+   * 92% of her price. Ability and age were the only two things a price knew
+   * about, so a player who had proved it at Test level for six years and a
+   * player who might one day were worth the same money.
+   *
+   * Caps are the game's own reputation number and both worlds already carry
+   * them, so the price reads them. Two separate effects, because standing does
+   * two different things to what a club will pay:
+   *
+   *   1. A PREMIUM. Up to +35%, because a buying club knows exactly what it is
+   *      getting. Flat-line at 70 caps: past that you are established and more
+   *      Tests do not make you more established.
+   *   2. RESISTANCE TO THE FADE. An international holds her price into her
+   *      late twenties in a way a squad player does not - Jess Breach at 29
+   *      was £4.68m against Sarah Bern's £6.14m on the same ability, purely
+   *      because a wing reads EARLY_FADE and a tighthead reads LATE_PEAK. The
+   *      lift closes at most 40% of that gap, ONLY where the curve is already
+   *      discounting (never on a young player's premium), and it runs out with
+   *      the player: full at 28, half by 32, gone by 35. A 37-year-old with
+   *      130 caps is still a 37-year-old, and Marlie Packer should not be
+   *      priced like a signing.
+   *
+   * The median player in either world has no caps at all, so this moves the
+   * top of the market and nothing else - which is the balance the owner asked
+   * to keep. Omitted, it is exactly neutral, like every other optional factor.
+   */
+  const cp = Math.max(0, Math.min(200, num(caps, 0)))
+  const capsF = 1 + Math.min(0.35, cp / 200)
+  const standing = Math.min(1, cp / 70)
+  const window = Math.max(0, Math.min(1, (35 - age) / 7))
+  const raw = positionAgeF(pos, age, pa, ca)
+  const ageF = raw < 1 ? raw + (1 - raw) * 0.4 * standing * window : raw
   // form 6 is par; a 10 adds a quarter, a 1 shaves 15% - asymmetric because a
   // buying club pays for the story more readily than it discounts for one
   const formF = form == null ? 1 : 1 + Math.max(-0.15, Math.min(0.25, (num(form, 6) - 6) * 0.055))
   const yrs = yearsLeft == null ? null : num(yearsLeft, 2)
   const contractF = yrs == null ? 1
     : yrs <= 0 ? 0.7 : yrs === 1 ? 0.88 : yrs === 2 ? 1 : 1.08
-  return Math.max(10_000, Math.round((base * ageF * formF * contractF) / 10_000) * 10_000)
+  return Math.max(10_000, Math.round((base * ageF * formF * contractF * capsF) / 10_000) * 10_000)
 }
 
 /** Weekly wage expectation in £. */
@@ -342,6 +382,10 @@ export function buildPlayer(raw: RawPlayer, clubId: string | null, seed: number,
   player.trait = deriveTrait(player)
   player.hist = deriveHist(player)
   player.caps = deriveCaps(player)
+  // caps are derived from the finished player, so the price above was struck
+  // before his standing existed. Re-strike it rather than reorder the maker:
+  // deriveCaps reads fields the literal is still assembling.
+  player.value = playerValue(ca, raw.age, pa, raw.pos, undefined, undefined, player.caps)
   return player
 }
 

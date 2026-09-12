@@ -182,9 +182,33 @@ export function applyCharter(state: GameState): boolean {
  */
 const mgrGames = (state: GameState) => state.mgr.w + state.mgr.d + state.mgr.l
 
-/** May the retreat be booked now? A game must separate two visits. */
+/**
+ * TEST MATCHES ARE ON THE RECORD, AND THEY ARE NOT THIS CLUB'S MATCHES.
+ *
+ * season.ts counts national duty on state.mgr - deliberately, because a
+ * coach's Test results belong on his record. The retreat's cooldown read that
+ * same total, so every Test cleared it: take an international job and the
+ * Magic Sponge reopened roughly twice as often, on the strength of fixtures
+ * the club squad it heals was never anywhere near.
+ *
+ * Both halves are already stored, so no new field and no migration: the live
+ * tenure in natRecord, the finished ones in natHistory.
+ */
+const natGames = (state: GameState) => {
+  const live = state.natRecord
+  const past = (state.natHistory ?? []).reduce((n, r) => n + r.w + r.d + r.l, 0)
+  return past + (live ? live.w + live.d + live.l : 0)
+}
+const clubGames = (state: GameState) => Math.max(0, mgrGames(state) - natGames(state))
+
+/** May the retreat be booked now? A CLUB game must separate two visits. */
 export function healReady(state: GameState): boolean {
-  return state.healAtGames == null || mgrGames(state) > state.healAtGames
+  const at = state.healAtGames
+  if (at == null) return true
+  // `!==` rather than `>` for the saves already carrying a mark set from the
+  // old inflated counter: that mark can sit ABOVE the true club count, and a
+  // `>` would wedge the retreat shut for the rest of the career.
+  return clubGames(state) !== at
 }
 
 export function applyHeal(state: GameState): boolean {
@@ -205,7 +229,7 @@ export function applyHeal(state: GameState): boolean {
     p.rust = 0
   }
   if (touched === 0) return false
-  state.healAtGames = mgrGames(state)
+  state.healAtGames = clubGames(state)
   // the ledger keeps counting (the Annual and the decisions log read it);
   // it no longer gates anything
   state.injections = { ...(state.injections ?? {}), heal: (state.injections?.heal ?? 0) + 1 }

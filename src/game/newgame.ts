@@ -78,11 +78,19 @@ export const CHALLENGES: Challenge[] = [
   // The research and what could and could not be verified is in
   // docs/womens-challenges.md.
   {
-    // Saracens rather than Bristol (owner, this release): the three-peat is a
-    // Gloucester story, and the club with the history of stopping people is the
-    // one worth handing it to.
+    // Saracens rather than Bristol (v1.5.6): the run is a Gloucester story, and
+    // the club with the history of stopping people is the one worth handing it
+    // to. Renamed to Stop the Circus in 1.5.8 (owner) - what a side on a run of
+    // three actually becomes is a travelling show, and beating them once is not
+    // the same as ending it, which is why the win condition grew a second half.
+    //
+    // THE ID STAYS 'threepeat' ON PURPOSE. It is written into every save that
+    // has ever started this challenge and into challengesDone on every save
+    // that has finished it, and renaming it would mean a migration that buys
+    // nothing: no player ever sees the string. Same reasoning as Player.tours
+    // keeping its old name in model.ts.
     id: 'threepeat', clubId: W + 'saracens', gender: 'w',
-    title: 'challenges.threepeat', desc: 'challenges.threepeatDesc',
+    title: 'challenges.circus', desc: 'challenges.circusDesc',
   },
   {
     id: 'ealing', clubId: W + 'trailfinders', gender: 'w',
@@ -198,6 +206,39 @@ const M_LEAGUE_DEFS: () => LeagueDef[] = () => [
   { id: 'natl1', name: 'English National One', short: 'National 1', double: true, playoffTeams: 0, clubs: NATL1 },
 ]
 
+/**
+ * SEASON ONE IS THE ONLY SEASON THE WOMEN'S GAME IS POOR.
+ *
+ * Club budgets are hand-written in the data files for the opening season and
+ * recomputed every summer after that, in rollover.ts, from reputation:
+ *
+ *     club.budget = max(200k, rep * 45_000 + max(0, balance) * 0.15)
+ *
+ * That formula is blind to which world it is in, and the two worlds have
+ * almost the same reputations - a median of 72 against 65. So from season two
+ * a women's club is handed about £2.9m, against a men's club's £3.2m, and the
+ * money is at parity for the rest of the save.
+ *
+ * Season one was not. The hand-written women's figures run £41k to £380k, a
+ * median of £140k, so a women's career opened on FIVE PER CENT of the steady
+ * state it would jump to at the first rollover - where a men's career opens on
+ * forty. One season of a market nobody could trade in, then abruptly rich.
+ *
+ * The owner's call, and it decides this rather than realism: "the financial
+ * side should match up to the mens side even if in real life that isnt the
+ * case but it preserves the challenge of the game."
+ *
+ * Nine puts the women's opening median at £1.26m against the men's £1.30m, and
+ * keeps the shape of the data - the spread between a rich club and a poor one
+ * is preserved exactly, every figure simply carries the same multiplier. The
+ * ceiling stays a little below the men's (£3.4m against £6.5m), which is the
+ * one distinction worth keeping: no women's club is Toulouse.
+ */
+export const W_OPENING_MONEY = 9
+export function openingBudget(raw: number, leagueId: string): number {
+  return leagueId.startsWith(W) ? Math.round(raw * W_OPENING_MONEY) : raw
+}
+
 export function newGame(userClubId: string, managerName: string, seed: number, challengeId?: string, origin: MgrOrigin = 'coach', gender: Gender = 'm', mgrGender: Gender = 'm'): GameState {
   const rng = mulberry32(seed)
   resetIds(1)
@@ -295,10 +336,11 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
         id: rc.id, name: rc.name, short: rc.short, city: rc.city,
         country: rc.country, stadium: rc.stadium, capacity: rc.capacity, capacity0: rc.capacity,
         colors: rc.colors, rep: rc.rep, leagueId: def.id,
-        budget: rc.budget, budgetAtOpen: rc.budget, balance: Math.round(rc.budget * 0.6),
+        budget: openingBudget(rc.budget, def.id), budgetAtOpen: openingBudget(rc.budget, def.id),
+        balance: Math.round(openingBudget(rc.budget, def.id) * 0.6),
         players: [],
         tactic: { style: 50, tempo: 50, kicking: 50, aggression: 50, lineup: new Array(23).fill(null) },
-        wageBudget: Math.round(rc.budget * 0.9 + 2_500_000),
+        wageBudget: Math.round(openingBudget(rc.budget, def.id) * 0.9 + 2_500_000),
         boardConfidence: 70,
       }
       // bricks and mortar sized to the club's standing, before you arrive
@@ -423,7 +465,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
         // from the shared rng so the world around him is still identical.
         if (pr.pa) {
           p.pa = Math.max(p.pa, pr.pa)
-          p.value = playerValue(p.ca, p.age, p.pa, p.pos)
+          p.value = playerValue(p.ca, p.age, p.pa, p.pos, undefined, undefined, p.caps)
         }
         state.players[p.id] = p
         club.players.push(p.id)
@@ -475,7 +517,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     k.ca = clamp(k.ca + 7 + Math.floor(rng() * 6), 1, 80)
     k.pa = clamp(88 + Math.floor(rng() * 12), k.ca + 15, 99)
     k.q0 = k.ca
-    k.value = playerValue(k.ca, k.age, k.pa, k.pos)
+    k.value = playerValue(k.ca, k.age, k.pa, k.pos, undefined, undefined, k.caps)
     if (watchList.length < 5) {
       watchList.push(`${k.name} (${k.age}, ${k.pos} - ${state.clubs[k.clubId!]?.short})`)
       watchIds.push(k.id)
@@ -495,7 +537,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     p.youth = true
     p.acad = true
     p.pa = clamp(84 + Math.floor(rng() * 14), p.ca + 12, 99)
-    p.value = playerValue(p.ca, p.age, p.pa, p.pos)
+    p.value = playerValue(p.ca, p.age, p.pa, p.pos, undefined, undefined, p.caps)
     state.players[p.id] = p
   }
   // Held back rather than filed here. The inbox reads oldest unread first, so

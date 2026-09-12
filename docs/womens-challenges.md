@@ -23,16 +23,31 @@ Dream has no women's equivalent, and pretending otherwise would have been a lie 
 
 | id | Club | Title | Win condition in code |
 |---|---|---|---|
-| `threepeat` | Bristol (PWR) | Stop the Three-Peat | Win the Premier Division once |
+| `threepeat` | Saracens (PWR) | Stop the Circus | Win the Premier Division, and hold a winning record over Gloucester |
 | `ealing` | Ealing (PWR) | The Ealing Project | Win the Premier Division twice |
 | `licence` | Sale (PWR) | Keep the Licence | Finish in the top four |
 | `grudge` | Lichfield (Championship) | The Lichfield Grudge | Win the Championship |
 
-### Stop the Three-Peat — Bristol
+### Stop the Circus — Saracens
 
-Gloucester-Hartpury won PWR in 2022-23, 2023-24 and 2024-25. Bristol Bears have never won it; they
-reached the 2024 final and lost it 36-24. The challenge is to take a first title and end the run,
-which is the women's counterpart to Break the Dynasty on the men's side.
+Gloucester-Hartpury won PWR in 2022-23, 2023-24 and 2024-25. The challenge is to end that run, and
+it is the women's counterpart to Break the Dynasty on the men's side.
+
+It was written for Bristol, who reached the 2024 final and lost it 36-24. v1.5.6 moved it to
+Saracens at the owner's request: the run is a Gloucester story, and the club with the history of
+stopping people is the one worth handing it to.
+
+1.5.8 renamed it from Stop the Three-Peat and gave it the second half of its win condition. A side
+three titles deep is a travelling show rather than a team, and winning the league once in a year
+they happened to slip is not stopping anything, so the badge now also asks for a winning record
+against Gloucester across the tenure - read from `vsBook`, which season.ts keeps per opponent and
+jobs.ts wipes when the manager moves, so it cannot be carried in from somewhere else. If the two
+never meet, the title alone settles it: a challenge that can be made unwinnable by a relegation
+nobody chose is a bug wearing a badge.
+
+**The id stays `threepeat`.** It is written into every save that has started or finished the
+challenge and no player ever sees the string, so renaming it would mean a migration that buys
+nothing.
 
 ### The Ealing Project — Ealing
 
@@ -68,7 +83,7 @@ copy in `challenges.*` was written to avoid asserting them.
 
 ## Where the strings live
 
-`challenges.threepeat` / `threepeatDesc`, `challenges.ealing` / `ealingDesc`, `challenges.licence` /
+`challenges.circus` / `circusDesc`, `challenges.ealing` / `ealingDesc`, `challenges.licence` /
 `licenceDesc`, `challenges.grudge` / `grudgeDesc`, in all six locales. They carry no gendered
 siblings: the copy is about a club, not about the manager.
 

@@ -147,15 +147,35 @@ export function disciplineWeek(state: GameState) {
         const p = state.players[id]
         if (p && !p.acad) p.morale = clamp(p.morale - 0.3, 1, 10)
       }
+      // NAME THE TWO SITUATIONS, AND SAY WHERE THEY ARE SETTLED (owner, 1.5.8).
+      // It read "the room has watched two situations drift" and stopped there -
+      // a card telling the manager he has a problem, withholding which problem
+      // and where the button is. Both facts are right here: `grievances` IS the
+      // two incidents, and an incident is answered in the Press Room, where
+      // media.ts hangs the disciplinary question off `opt.disc`.
+      const names = grievances.slice(0, 2)
+        .map(i => state.players[i.pid]?.name)
+        .filter((n): n is string => !!n)
+      const v = {
+        player: senior?.name ?? '',
+        a: names[0] ?? '', b: names[1] ?? names[0] ?? '',
+        room_k: 'titles.press',
+      }
+      const key = senior
+        ? (names.length >= 2 ? 'news.deputationNamed' : 'news.deputationNamedOne')
+        : (names.length >= 2 ? 'news.deputation' : 'news.deputationOne')
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
-        subject: `🚪 ${senior?.name ?? 'The senior players'} asks for a meeting`,
-        body: [
-          `${senior?.name ?? 'A delegation of senior players'} comes to the office and closes the door. The message is polite and blunt: the room has watched two situations drift, and it wants to know who is in charge of this squad.`,
-          `A manager with silverware shrugs this off. Right now, you have to answer it with results - settle the open incidents, win on Saturday, and the door stops opening.`,
-        ].join('\n'),
-        k: senior ? 'news.deputationNamed' : 'news.deputation',
-        v: { player: senior?.name ?? '' },
+        // THE SUBJECT KEY IS THE BODY KEY PLUS Subj, ALWAYS. This named the
+        // subject independently of `key`, so the one-incident variants filed a
+        // body of news.deputationNamedOne under a headline of
+        // news.deputationNamedSubj - and newsSubject(), which derives the
+        // headline from the body key, went looking for a
+        // news.deputationNamedOneSubj that did not exist and printed the key
+        // itself into the inbox. Derive it, and the two cannot drift again.
+        subject: tIn('en', key + 'Subj', v),
+        body: tIn('en', key, v),
+        k: key, v,
         playerId: senior?.id,
       })
     }

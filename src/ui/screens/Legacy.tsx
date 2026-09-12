@@ -139,18 +139,13 @@ export default function Legacy() {
         )
       })()}
 
-      {/* THE GAFFER'S LEDGER (v1.2.2): the firsts, newest first. Written by
-          afterClubMatch in season.ts; this is only the reading of it. */}
-      <SectionTitle sub={t('legacy.lgFirstsSub')}>{t('legacy.lgFirsts')}</SectionTitle>
-      <div className="card">
-        {(game.ledger ?? []).length === 0
-          ? <div className="meta muted">{t('legacy.lgFirstsNone')}</div>
-          : [...(game.ledger ?? [])].reverse().slice(0, 12).map((e, i) => (
-            <div key={i} className="dash-line">
-              <span className="dl-t">{t(e.k, e.v)}</span>
-            </div>
-          ))}
-      </div>
+      {/* THE GAFFER'S LEDGER IS GONE (owner, 1.5.8: "gaffers ledger doesnt add
+          anything to the game so please remove"). It listed firsts - a first win
+          at a ground, a first derby - and on a phone every line was truncated
+          mid-sentence, so it read as twelve half-thoughts under a heading. The
+          ledger ITSELF stays in the engine: season.ts still writes it and each
+          first still arrives as its own piece of news when it happens, which is
+          where a first belongs. What has gone is the list of them. */}
 
       <SectionTitle>{t('legacy.lgCareerRecord')}</SectionTitle>
       <div className="chips">

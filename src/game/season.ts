@@ -18,7 +18,7 @@ import { terraceWeek } from './terraces'
 import { upkeepWeek } from './upkeep'
 import {absWeek, addGrudge, boardObjective, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, finalVenue, fixtureDayOff, fmtMoney, leagueTier, LEDGER_WEEKS, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, SEASON_WEEKS, seasonLabel, squadTrust, unbeatenRun, weeklyCentral, mgrWinWeight } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
-import { emptyRow, leaguePos, sortTable, snIdFor, snWeeksFor, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS, W_SIX_NATIONS_WEEKS, W_PAC4_WEEKS } from './schedule'
+import { emptyRow, leaguePos, sortTable, snIdFor, snWeeksFor, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS, W_AUTUMN_WEEKS, W_SIX_NATIONS_WEEKS, W_PAC4_WEEKS, W_SUMMER_TEST_WEEKS } from './schedule'
 import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice } from './ai'
 import { OFFICE_OUTLET, PRESS_KEEP_WEEKS, generatePress } from './media'
 import { debtWeek } from './treasury'
@@ -341,8 +341,23 @@ export function applyAdminPenalties(comp: Competition, state?: GameState) {
   }
 }
 
+/**
+ * THE FOUR ROUNDS THAT CANNOT END LEVEL, and only those four.
+ *
+ * `stage` is not a knockout marker. It is a free-text label, and the tours and
+ * Test series use it too - '1st Test', 'Tour match Waikato', and every name in
+ * TEST_NAMES. Sudden death was gated on `fx.stage` being truthy, so a drawn
+ * Test match, which is a perfectly ordinary result and sometimes a famous one,
+ * had three points added to one side by a coin weighted on squad strength.
+ */
+export const KO_STAGES = new Set(['QF', 'SF', 'F', 'BAR'])
+export function isKnockoutTie(fx: Fixture): boolean {
+  return !!fx.stage && KO_STAGES.has(fx.stage)
+}
+
 /** In knockout rugby there are no draws - nudge a golden-point winner. */
 export function resolveKnockoutDraw(state: GameState, fx: Fixture, rng: Rng) {
+  if (!isKnockoutTie(fx)) return
   if (fx.homeScore !== fx.awayScore) return
   const hs = teamUnits(state, autoLineup(state, fx.homeId)).overall
   const as = teamUnits(state, autoLineup(state, fx.awayId)).overall
@@ -378,6 +393,13 @@ function maybeCreateKnockouts(state: GameState, comp: Competition, rng: Rng) {
   const cupLike = comp.type === 'cup' || !!comp.pools
   const koFx = (stage: string) => state.fixtures.filter(f => f.compId === comp.id && f.stage === stage)
   const mkFx = (stage: string, week: number, home: string, away: string) => {
+    // A TIE NEEDS TWO TEAMS. A league whose playoffTeams does not match the
+    // branch that seeds it hands this `undefined`, and the fixture that
+    // results is unplayable, unremovable and visible - see the n === 2 note
+    // below for the twenty seasons that cost. Refusing it here means the next
+    // mis-specified competition loses its play-off rather than its fixture
+    // list, and the soak sees a missing champion instead of a ghost.
+    if (!home || !away) return
     const fx: Fixture = {
       id: state.nextId++, compId: comp.id, round: 99, week, homeId: home, awayId: away,
       played: false, homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0, stage,
@@ -516,7 +538,24 @@ function maybeCreateKnockouts(state: GameState, comp: Competition, rng: Rng) {
     // league playoffs
     const order = sortTable(comp.table).map(r => r.teamId)
     const n = comp.playoffTeams
-    if (n === 4) {
+    if (n === 2) {
+      /**
+       * A TWO-TEAM PLAY-OFF IS A FINAL, AND NOTHING ELSE.
+       *
+       * Found by the women's 20-season soak: the Celtic Provinces Cup - six
+       * clubs, playoffTeams 2 - fell past every branch here into the eight-team
+       * one, which reads order[6] and order[7] off a table six long. So the
+       * season ended by manufacturing four quarter-finals, two of them against
+       * `undefined`, which no engine can play. They sat unplayed for ever, the
+       * semi-final gate never opened, and the competition ran twenty seasons
+       * without crowning anybody - while a manager in that league watched his
+       * fixture list say "undefined" in April.
+       *
+       * The last knockout week, not ko[0]: koWeeks is [42, 43] at this size
+       * (schedule.ts), and a final belongs on finals weekend with the others.
+       */
+      if (koFx('F').length === 0 && order.length >= 2) mkFx('F', ko[ko.length - 1], order[0], order[1])
+    } else if (n === 4) {
       const [sfW, fW] = ko
       if (koFx('SF').length === 0) {
         mkFx('SF', sfW, order[0], order[3])
@@ -605,6 +644,21 @@ export function activeWindows(state: GameState): Window[] {
     out.push({
       start: W_PAC4_WEEKS[0] - 1, end: W_PAC4_WEEKS[W_PAC4_WEEKS.length - 1],
       nations: state.comps[W + 'p4'].teamIds, size: NAT_SQUAD_SIZE,
+    })
+  }
+  // The other two windows of the women's year. Without these the Tests are
+  // played and no club ever loses a player to one, which is the same fault the
+  // two above were added to fix.
+  if (state.comps[W + 'aut']) {
+    out.push({
+      start: W_AUTUMN_WEEKS[0] - 1, end: W_AUTUMN_WEEKS[W_AUTUMN_WEEKS.length - 1],
+      nations: state.comps[W + 'aut'].teamIds, size: NAT_SQUAD_SIZE,
+    })
+  }
+  if (state.comps[W + 'sum']) {
+    out.push({
+      start: W_SUMMER_TEST_WEEKS[0] - 1, end: W_SUMMER_TEST_WEEKS[W_SUMMER_TEST_WEEKS.length - 1],
+      nations: state.comps[W + 'sum'].teamIds, size: NAT_SQUAD_SIZE,
     })
   }
   if (state.comps['tour']) {
@@ -1191,7 +1245,7 @@ function weeklyTraining(state: GameState, rng: Rng) {
       if (isUser && state.matchPrep === 'recovery') p.cond = clamp(p.cond + 3.5, 20, 100)
       // the live market price, refreshed weekly: position curve, form
       // momentum and how much contract the buyer would be getting
-      p.value = playerValue(p.ca, p.age, p.pa, p.pos, p.form, p.contractEnds - state.season)
+      p.value = playerValue(p.ca, p.age, p.pa, p.pos, p.form, p.contractEnds - state.season, p.caps)
     }
   }
   if (returned.length) {
@@ -1353,12 +1407,16 @@ function matchReport(state: GameState, fx: Fixture) {
   const lines = rows.map(r => tIn('en', r.k, r))
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'result', read: false,
-    subject: `${verdict}: ${us}-${them} ${us >= them ? 'over' : 'to'} ${teamShort(state, isHome ? fx.awayId : fx.homeId)} (${comp?.short})`,
+    // THREE OUTCOMES, THREE PREPOSITIONS. This read `us >= them ? 'over' : 'to'`,
+    // so a draw took the winner's word and the headline said "DRAW: 16-16 over
+    // Sale" - the verdict correct and the line beside it claiming the win. The
+    // owner read one of these and believed he had won a match he had drawn.
+    subject: `${verdict}: ${us}-${them} ${us > them ? 'over' : us < them ? 'to' : 'with'} ${teamShort(state, isHome ? fx.awayId : fx.homeId)} (${comp?.short})`,
     body: lines.join('\n'),
     k: 'news.result',
     v: {
       verdict_k: us > them ? 'news.resWin' : us < them ? 'news.resLoss' : 'news.resDraw',
-      us, them, over_k: us >= them ? 'news.resOver' : 'news.resTo',
+      us, them, over_k: us > them ? 'news.resOver' : us < them ? 'news.resTo' : 'news.resWith',
       opp: teamShort(state, isHome ? fx.awayId : fx.homeId), comp: comp?.short ?? '',
       rows_ll: JSON.stringify(rows),
     },
@@ -2013,6 +2071,28 @@ export function processWeekAndAdvance(state: GameState) {
   // last week's back page is last week's: a fresh one is written below if
   // the side plays, and a stale one must never sit over a new week
   const rng = weekRng(state)
+
+  // ---- A DRAW IS NEWS, AND NEWS GOES OFF ----
+  //
+  // state.draw holds the ceremony the bulletin offers. closeDraw() clears it,
+  // and its own comment says clearing it is what stops the same draw being
+  // offered every week for the rest of the season - but closeDraw is reachable
+  // from nothing except the two buttons INSIDE the draw screen. Back out with
+  // the arrow, or press Continue without opening it at all, and the card sat
+  // on the home page for good: the owner reported it twice over, once as a
+  // draw that would not go away after Continue and once as a semi-final draw
+  // still showing after he had won the title.
+  //
+  // So the card no longer depends on anybody pressing the right button. A draw
+  // belongs to this season and to a round that has not been played; either of
+  // those failing makes it history, and the ties themselves live in the fixture
+  // list, so dropping the ceremony loses nothing at all.
+  if (state.draw) {
+    const d = state.draw
+    const stale = d.season !== state.season || state.fixtures.some(f =>
+      f.compId === d.compId && f.stage === d.stage && f.played)
+    if (stale) state.draw = null
+  }
 
   // The week's set-piece coaching (F2). What you call gets sharper, what you
   // shelved rusts - which is what stops a club from owning ten world-class moves.

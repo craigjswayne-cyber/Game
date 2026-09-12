@@ -23,6 +23,7 @@ import { afterClubMatch } from '../src/game/season'
 import { rivalsOf } from '../src/game/rivalries'
 import { mulberry32 } from '../src/game/rng'
 import type { Fixture, GameState, MatchEvent } from '../src/game/model'
+import { tIn } from '../src/game/i18n'
 
 let fails = 0
 const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : ' FAIL '} ${what}`); if (!c) fails++ }
@@ -219,6 +220,27 @@ console.log('\n--- 4. the ledger writes each first once')
   g.week = mine[9].week
   afterClubMatch(g, mine[9])
   ok((g.ledger ?? []).some(e => e.k === 'news.ledgerUnbeaten' && e.v.n === 10), 'ten unbeaten is written down on the tenth, not before')
+}
+
+// ---- the ledger line still reads, now that no screen shows it ----
+//
+// engageui used to assert this through the Gaffer's Ledger section on Legacy.
+// The owner had that section taken off the page in 1.5.8, so the assertion had
+// nowhere to stand - but season.ts still WRITES state.ledger at every first, so
+// a future screen inherits a history instead of starting from the day it ships.
+// The record is only worth keeping if the lines in it still compose, so that
+// half of the old coverage lives here, where tIn can be called directly.
+{
+  const v = { at: 'bath', ground: 'The Rec', opp: 'Bath', tries: 3, tries_k: 'news.ledgerGoes' }
+  const line = tIn('en', 'news.ledgerFirstAway', v)
+  ok(!line.startsWith('news.'), `the ledger's first-away line composes rather than printing its key (${line.slice(0, 44)})`)
+  ok(/first win at The Rec/i.test(line), 'it names the ground it happened at')
+  ok(/3 goes/.test(line), 'and the tally takes its plural from the count, not from the sentence')
+  // season.ts picks the fragment by the count (`tries === 1 ? ledgerFirstGo :
+  // ledgerGoes`), so the singular is a different key rather than a different
+  // rendering of this one - assert the pair the caller actually chooses between
+  const one = tIn('en', 'news.ledgerFirstAway', { ...v, tries: 1, tries_k: 'news.ledgerFirstGo' })
+  ok(/1 go\b/.test(one) && !/1 goes/.test(one), `and one try reads as one go (${one.slice(20, 52)})`)
 }
 
 console.log(fails === 0 ? '\nENGAGE PROBE PASSED: ten rooms that open when they should, and two things worth noticing' : `\nENGAGE PROBE FAILED: ${fails}`)

@@ -144,19 +144,22 @@ export default function Transfers() {
                 <div key={p.id} className="row-item" onClick={() => go('player', p.id)}
                   style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}>
                   <PosBadge pos={p.pos} />
+                  {/* THE NAME GIVES WAY, NOT THE VERDICT. "signed elsewhere"
+                      is the whole point of the row and it was free to wrap to
+                      two lines behind a long name on a narrow phone. */}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 700 }}>{p.name}</div>
+                    <div style={{ fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
                     <div className="muted" style={{ fontSize: 12 }}>
                       {t('transfers.dealLine', { age: p.age, wage: fmtWage(p.wage), demand: fmtWage(demand), morale: p.morale.toFixed(0) })}
                     </div>
                   </div>
                   {p.retiring
-                    ? <span className="chip" style={{ borderColor: 'var(--danger)', color: 'var(--danger)', fontWeight: 700 }}>{t('transfers.retiring')}</span>
+                    ? <span className="chip" style={{ borderColor: 'var(--danger)', color: 'var(--danger)', fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0 }}>{t('transfers.retiring')}</span>
                     : gazumped
-                    ? <span className="chip" style={{ borderColor: 'var(--danger)', color: 'var(--danger)', fontWeight: 700 }}>{t('transfers.signedElsewhere')}</span>
+                    ? <span className="chip" style={{ borderColor: 'var(--danger)', color: 'var(--danger)', fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0 }}>{t('transfers.signedElsewhere')}</span>
                     : (p.wantsDeal ?? 0) > 0
-                      ? <span className="chip" style={{ borderColor: 'var(--gold)', fontWeight: 700 }}>{t('transfers.wantsADeal')}</span>
-                      : <span className="chip" style={{ fontWeight: 700 }}>{t('transfers.expiring')}</span>}
+                      ? <span className="chip" style={{ borderColor: 'var(--gold)', fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0 }}>{t('transfers.wantsADeal')}</span>
+                      : <span className="chip" style={{ fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0 }}>{t('transfers.expiring')}</span>}
                 </div>
               )
             })}
@@ -174,11 +177,11 @@ export default function Transfers() {
                     <PosBadge pos={p.pos} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontWeight: 700 }}>{p.name}</div>
-                      <div className="muted" style={{ fontSize: 12 }}>
+                      <div className="muted" style={{ fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {t('transfers.incomingLine', { age: p.age, from_k: p.clubId ? 'transfers.fromClub' : 'transfers.fromFree', club: p.clubId ? game.clubs[p.clubId]?.short ?? '?' : '' })}
                       </div>
                     </div>
-                    <span className="chip" style={{ borderColor: 'var(--gold)', fontWeight: 700 }}>{t('transfers.agreed')}</span>
+                    <span className="chip" style={{ borderColor: 'var(--gold)', fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0 }}>{t('transfers.agreed')}</span>
                   </div>
                 ))}
               </>
@@ -518,14 +521,21 @@ function ScoutCommission() {
                   : t('transfers.watchesWorld'),
               })}
             </div>
-            <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
-              <select className="inline-input" style={{ margin: 0, flex: '0 1 140px' }} value={pos}
-                onChange={e => setPos(e.target.value as Pos | 'any')}>
-                <option value="any">{t('transfers.anyPosition')}</option>
-                {POS_ORDER.map(p => <option key={p} value={p}>{posName(p)}</option>)}
-              </select>
+            {/* THE BRIEF ON ONE ROW, THE THREE TRIPS ON THE NEXT (owner, 1.5.8:
+                "all three buttons should be below on the same line"). All four
+                controls shared a wrapping flex row, so the dropdown took its
+                140px and the nine-month trip dropped onto a line of its own -
+                three prices that should be read side by side, split two and
+                one. The lengths are now their own row and each takes a third of
+                it, so they compare at a glance and stay compared at any width. */}
+            <select className="inline-input" style={{ margin: '0 0 8px', width: '100%' }} value={pos}
+              onChange={e => setPos(e.target.value as Pos | 'any')}>
+              <option value="any">{t('transfers.anyPosition')}</option>
+              {POS_ORDER.map(p => <option key={p} value={p}>{posName(p)}</option>)}
+            </select>
+            <div style={{ display: 'flex', gap: 8 }}>
               {([3, 6, 9] as SearchMonths[]).map(m => (
-                <button key={m} className="btn gold" style={{ padding: '5px 10px', fontSize: 11.5, lineHeight: 1.25 }}
+                <button key={m} className="btn gold" style={{ flex: '1 1 0', minWidth: 0, padding: '9px 4px', fontSize: 11.5, lineHeight: 1.25 }}
                   onClick={() => { setMsg(commissionScout(game, pos, m)); touch() }}>
                   {t('transfers.months', { n: m })}<br />
                   <span style={{ fontSize: 10, fontWeight: 600 }}>{fmtMoney(searchFee(m, Math.max(1, tier)))}</span>

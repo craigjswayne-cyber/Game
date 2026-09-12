@@ -605,3 +605,20 @@ export function stageName(s: string): string {
   const key = { QF: 'common.stageQF', SF: 'common.stageSF', F: 'common.stageF', BAR: 'common.stageBAR' }[s]
   return key ? t(key) : s
 }
+
+/**
+ * THE SAME ROUND, FOR A ROW RATHER THAN A HEADLINE.
+ *
+ * A fixtures row is competition, then round, then the score, and the score is
+ * the thing being looked for. "Continental Cup Quarter-Final" spent the whole
+ * width before the score was reached, so on a phone the result was off the
+ * right-hand edge and the row had to be scrolled to be read at all - reported
+ * with a screenshot of exactly that.
+ *
+ * The long names stay where they belong, on the match card and the draw, where
+ * a semi-final should be called a semi-final. This is only for the list.
+ */
+export function stageShort(s: string): string {
+  const key = { QF: 'common.stageQFShort', SF: 'common.stageSFShort', F: 'common.stageFShort', BAR: 'common.stageBARShort' }[s]
+  return key ? t(key) : s
+}

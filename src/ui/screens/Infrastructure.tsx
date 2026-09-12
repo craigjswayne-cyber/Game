@@ -6,6 +6,8 @@ import {
 } from '../../game/model'
 import { expansionPlan, requestExpansion, requestFacility } from '../../game/season'
 import { SectionTitle } from '../components'
+import { ESTATE_SKU, hasEntitlement, tillOpen } from '../../game/monetise'
+import { estateBuiltHere } from '../../game/grants'
 import { ord as ordUI, t } from '../../game/i18n'
 
 /** What each level actually buys, in the manager's language. */
@@ -30,6 +32,7 @@ const pips = (lvl: number) => '●'.repeat(lvl) + '○'.repeat(MAX_FACILITY - lv
 export default function Infrastructure() {
   const game = useStore(s => s.game)!
   const touch = useStore(s => s.touch)
+  const go = useStore(s => s.go)
   // KEYED TO THE CARD THAT ASKED, for the reason spelled out in Training.tsx:
   // a single banner at the top of the page is where a board's answer goes to
   // die on a phone. The estate header is always the first thing on screen so
@@ -57,6 +60,29 @@ export default function Infrastructure() {
         <button className={itab === 'ours' ? 'active' : ''} onClick={() => setItab('ours')}>{t('world.infOurEstate')}</button>
         <button className={itab === 'league' ? 'active' : ''} onClick={() => setItab('league')}>{t('world.infTheLeague')}</button>
       </div>
+      {/* ---- THE WHOLE ESTATE, AT THE TOP ----
+          Owner, 1.5.8: "max upgrade facilities should be at the top of the club
+          infrastructure page. In a future update I want us to develop this part
+          of the game." It was only ever on the Store shelf, which is the last
+          place somebody standing on the facilities page would look for it.
+
+          It LEADS to the shelf rather than carrying its own Buy. The estate row
+          has three states - buy it, build it free at this club, buy the repeat
+          for a new ground - and each one moves real money; a second copy here
+          would be a second implementation of that, free to drift from the first
+          the way the two heal doors nearly did. One till, one door, and this is
+          a sign pointing at it. */}
+      {tillOpen() && !estateBuiltHere(game) && (
+        <button className="card" onClick={() => go('supporter')}
+          style={{ borderLeft: '4px solid var(--gold)', padding: '10px 12px', width: '100%', textAlign: 'left', display: 'block' }}>
+          <div className="fact-label">{t('store.estate')}</div>
+          <div className="meta" style={{ marginTop: 2 }}>{t('store.estateLine')}</div>
+          <div className="meta" style={{ marginTop: 6, color: 'var(--gold)', fontWeight: 700 }}>
+            {t(hasEntitlement(ESTATE_SKU) ? 'store.estateBuild' : 'store.title')} ▸
+          </div>
+        </button>
+      )}
+
       <div className="card" style={{ borderLeft: '4px solid var(--gold)', padding: '8px 12px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <div>

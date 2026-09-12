@@ -18,7 +18,7 @@
       "type": "Consumable"
     },
     {
-      "displayPrice": "9.99",
+      "displayPrice": "4.99",
       "familyShareable": false,
       "internalID": "1002",
       "localizations": [
@@ -33,7 +33,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "9.99",
+      "displayPrice": "4.99",
       "familyShareable": false,
       "internalID": "1003",
       "localizations": [
@@ -48,7 +48,7 @@
       "type": "NonConsumable"
     },
     {
-      "displayPrice": "4.99",
+      "displayPrice": "3.99",
       "familyShareable": false,
       "internalID": "1004",
       "localizations": [
@@ -138,7 +138,7 @@
       "type": "Consumable"
     },
     {
-      "displayPrice": "9.99",
+      "displayPrice": "2.99",
       "familyShareable": false,
       "internalID": "1010",
       "localizations": [
