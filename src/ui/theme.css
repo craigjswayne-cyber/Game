@@ -3479,6 +3479,24 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .filter-line {
   display: flex; gap: 6px; padding: 0 14px 2px; align-items: stretch;
 }
+
+/* THE FOUR WEDNESDAYS, WITH AIR AROUND THEM (owner, 1.5.8: "check the spacing
+   for arrange a friendly - the boxes feel a little to close together").
+   .filter-line is shared with the transfer filters, where a tight row of
+   dropdowns is right; here it is four dates to choose between, and portrait
+   squeezed them to a 4px gap with 2px between the row and the clubs under it,
+   so the whole block read as one grey mass. Its own class rather than loosening
+   every filter row in the game, and it wraps rather than shrinking, because a
+   date that has been squeezed narrower than its own text is not a date. */
+.filter-line.friendly-dates {
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-bottom: 14px;
+}
+.filter-line.friendly-dates > .chip { padding: 9px 12px; min-height: 40px; }
+@media (orientation: portrait) {
+  .filter-line.friendly-dates { gap: 8px; padding-bottom: 12px; }
+}
 .filter-line > .inline-input, .filter-line > .preset-chip {
   flex: 1 1 0; min-width: 0; margin: 0;
   font-size: 12px; padding-left: 7px; padding-right: 7px;

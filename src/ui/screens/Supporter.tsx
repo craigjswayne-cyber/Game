@@ -544,7 +544,12 @@ export default function Supporter() {
 
   return (
     <>
-      <SectionTitle sub={t('store.sub')}>{t('store.title')}</SectionTitle>
+      {/* the sub read "nothing here plays the matches" - true, and the fineprint
+          at the foot of the shelf still says it. At the TOP it was the first
+          thing a shopper met, which is a strange way to open a shop (owner,
+          1.5.8: "remove 'nothing here plays the matches' tag line on store at
+          the top"). */}
+      <SectionTitle>{t('store.title')}</SectionTitle>
       <TillHealth />
 
       {/* a stable sort: what is still buyable first, each group in the order it

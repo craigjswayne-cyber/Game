@@ -11,14 +11,14 @@ import { OBJECTIVE_DEFS, objectiveBonus } from '../../game/objectives'
 import { MARQUEE_SLOTS, capPosition, capWord, rosterGrid, rosterWarnings } from '../../game/cap'
 import { SectionTitle, RewardedButton } from '../components'
 import { t } from '../../game/i18n'
-import { CLOSE_EVENTS, bookEvent, bookedThisWeek, eventFee, eventOpen, isCloseSeason } from '../../game/closeseason'
+import { bookEvent, bookedThisWeek, eventFee, eventSlate, isCloseSeason } from '../../game/closeseason'
 import {
   CLAUSES, SLOTS, clauseActive, commercialWeekly, dealWeekly, endDealEarly, marketRate,
   offersFor, signOffer,
 } from '../../game/commercial'
 import { RELEASE_STEP, belowReserve, cashReserve, releasable, releaseBlock, releaseToBudget } from '../../game/treasury'
 import { requestFunds } from '../../game/season'
-import { userWageBudget } from '../../game/grants'
+import { INJECT_TIERS, injectionsLeft, userWageBudget, type InjectTier } from '../../game/grants'
 
 export default function Finances() {
   // two pages rather than one long scroll
@@ -27,6 +27,7 @@ export default function Finances() {
   const [endArm, setEndArm] = useState<string | null>(null)
   const game = useStore(s => s.game)!
   const touch = useStore(s => s.touch)
+  const go = useStore(s => s.go)
   /** the reply to the last thing booked into the summer diary */
   const [diaryMsg, setDiaryMsg] = useState<string | null>(null)
   const rewardTown = useStore(s => s.rewardTown)
@@ -62,34 +63,40 @@ export default function Finances() {
         const booked = bookedThisWeek(game)
         return (
           <>
-            <SectionTitle sub={t('close.sub')}>{t('close.title')}</SectionTitle>
+            <SectionTitle sub={t('close.slateSub')}>{t('close.title')}</SectionTitle>
             {booked ? (
               <div className="card"><div className="meta" style={{ padding: 10 }}>
                 {t('close.alreadyBooked')} ({t(`close.${booked}`)})
               </div></div>
             ) : (
+              /* THREE, DRAWN FROM WHAT THE GROUND CAN HOLD (owner, 1.5.8:
+                 "three options, an explainer each"). All seven were listed
+                 every week with the unavailable ones greyed out, which is a
+                 price list rather than a decision - and the greyed rows were
+                 an advert for an upgrade the Infrastructure page already
+                 sells properly. eventSlate picks the week's three and holds
+                 them steady, so the diary does not reshuffle under a thumb. */
               <div className="tblwrap"><table className="dtable"><tbody>
-                {CLOSE_EVENTS.map(ev => {
-                  const open = eventOpen(game, ev)
-                  return (
-                    <tr key={ev.id}>
-                      <td className="name">
-                        {t(`close.${ev.id}`)}
-                        <div className="muted" style={{ fontSize: 11 }}>{t(`close.${ev.id}D`)}</div>
-                      </td>
-                      <td style={{ whiteSpace: 'nowrap' }}>
-                        {open ? (
-                          <button className="btn ghost" style={{ fontSize: 12, padding: '12px 14px', minHeight: 44 }}
-                            onClick={() => { setDiaryMsg(bookEvent(game, ev.id)); touch() }}>
-                            {t('close.fee', { fee: fmtMoney(eventFee(game, ev)) })}
-                          </button>
-                        ) : (
-                          <span className="muted" style={{ fontSize: 11 }}>{t('close.locked')}</span>
-                        )}
-                      </td>
-                    </tr>
-                  )
-                })}
+                {eventSlate(game).map(ev => (
+                  <tr key={ev.id}>
+                    <td className="name">
+                      {t(`close.${ev.id}`)}
+                      <div className="muted" style={{ fontSize: 11 }}>{t(`close.${ev.id}D`)}</div>
+                      {/* the risk is named but never priced: which events can
+                          bite is knowledge worth having, and whether THIS one
+                          will is the part you are being asked to gamble on */}
+                      {ev.mishap > 0 && (
+                        <div className="muted" style={{ fontSize: 11, color: 'var(--text-negative)' }}>{t('close.risk')}</div>
+                      )}
+                    </td>
+                    <td style={{ whiteSpace: 'nowrap' }}>
+                      <button className="btn ghost" style={{ fontSize: 12, padding: '12px 14px', minHeight: 44 }}
+                        onClick={() => { setDiaryMsg(bookEvent(game, ev.id)); touch() }}>
+                        {t('close.fee', { fee: fmtMoney(eventFee(game, ev)) })}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
               </tbody></table></div>
             )}
             {diaryMsg && <div className="card"><div className="meta" style={{ padding: 10 }}>{diaryMsg}</div></div>}
@@ -272,6 +279,30 @@ export default function Finances() {
               </div>
             </div>
           </>
+        )
+      })()}
+      {/* ---- THE BOARD'S OWN CHEQUE, WHERE THE MONEY MOVES ----
+          Owner, 1.5.8: the injections belong on Finances, under the transfer
+          of money. A manager who has just dragged the treasury slider to its
+          stop and still cannot afford the signing has answered the question
+          this card asks, and the only place it was offered was the Store.
+
+          It is a SIGNPOST, not a second till. An injection is a consumable:
+          buy, land, consume the receipt, survive a throw in the middle (see
+          landInjection and the v1.1.17 note above it). Two copies of that
+          flow is two places for a receipt to be eaten, so this one points at
+          the door rather than cutting a new one. */}
+      {tillOpen() && !game.unemployed && (() => {
+        const tiers = Object.keys(INJECT_TIERS) as InjectTier[]
+        const left = tiers.reduce((n, tr) => n + injectionsLeft(game, tr), 0)
+        if (left <= 0) return null
+        return (
+          <button className="card" onClick={() => go('supporter')}
+            style={{ borderLeft: '4px solid var(--gold)', width: '100%', textAlign: 'left', display: 'block' }}>
+            <div className="fact-label">{t('store.funding')}</div>
+            <div className="meta" style={{ marginTop: 2 }}>{t('store.fundingLine')}</div>
+            <div className="meta" style={{ marginTop: 6, color: 'var(--gold)', fontWeight: 700 }}>{t('store.title')} ▸</div>
+          </button>
         )
       })()}
       </>}

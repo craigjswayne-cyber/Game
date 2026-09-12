@@ -9,7 +9,7 @@ import {
 } from '../../game/matchEngine'
 import { MIDWEEK_OFF, BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, chemKey, clubCode, chemTier, eventText, injuryDesc, fixtureDate, fixtureDayOff, grudgeBetween, inRedZone, oldBoyApps, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
 import { BRIEF_BY_ID, SPLIT_BY_ID, benchSeats, briefForSeat, splitFor } from '../../game/bench'
-import { assistantFixtureThisWeek, userMatchThisWeek, weekRng } from '../../game/season'
+import { assistantFixtureThisWeek, isKnockoutTie, userMatchThisWeek, weekRng } from '../../game/season'
 import { effAt } from '../../game/attributes'
 import { PRESETS, SLIDER_INFO, sliderReadout, type SliderKey } from '../../game/tactics'
 import { ord, posName, t } from '../../game/i18n'
@@ -1754,7 +1754,12 @@ function Live() {
   const live = useStore(s => s.liveMatch)!
   useStore(s => s.tick)
   const { advanceLive, matchCursor, finishMatch, skipToBreak, matchMode } = useStore.getState()
-  const [speedIdx, setSpeedIdx] = useState(0)
+  // NORMAL OUT OF THE BOX (owner, 1.5.8: "default game speed to normal with
+  // fast and slow optional"). It opened on Slow, the anchor the ladder above
+  // was measured from, which meant every first match of every career ran at
+  // 1,600ms a line before anybody found the ⚙. Normal is the 800ms middle
+  // rung - followable without stopping - and both neighbours are one tap away.
+  const [speedIdx, setSpeedIdx] = useState(1)
   const [sound, setSound] = useState(soundOn())
   const [drawer, setDrawer] = useState(false)
   const [settings, setSettings] = useState(false)
@@ -1996,7 +2001,14 @@ function Live() {
         )}
       </div>
 
-      {done && ctx.userSideId && (() => {
+      {/* NOT WHILE THE TIE IS STILL LEVEL. The stamp reads the score off the
+          event under the cursor, and in a knockout the engine's own full time
+          lands BEFORE sudden death has been played - so a tie stamped DRAWN at
+          19-19, then flipped to a 22-19 win a moment later. The owner watched
+          exactly that against Loughborough and went away believing the game had
+          changed a result behind his back. Level and still to be settled means
+          no verdict yet; the stamp waits for the extra-time event. */}
+      {done && ctx.userSideId && !(isKnockoutTie(fixture) && hs === as) && (() => {
         const isHome = ctx.userSideId === fixture.homeId
         const us = isHome ? hs : as
         const them = isHome ? as : hs

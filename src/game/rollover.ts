@@ -347,7 +347,7 @@ function agePlayers(state: GameState, rng: Rng) {
     if (rng() < retireChance) retirees.push(p)
     // the summer price: position curve and contract length, form left to
     // the season to write
-    p.value = playerValue(p.ca, p.age, p.pa, p.pos, undefined, p.contractEnds - state.season)
+    p.value = playerValue(p.ca, p.age, p.pa, p.pos, undefined, p.contractEnds - state.season, p.caps)
   }
   // THE DEVELOPMENT DEAL ENDS AT 21, AND IT IS THE MANAGER'S CALL (user: "we
   // also need an age where they need to either be upgraded or released... the
@@ -519,7 +519,7 @@ function agePlayers(state: GameState, rng: Rng) {
         pers: assignPersonality(rng, a),
         sc: clubId === state.userClubId ? 100 : 15,
       }
-      heir.value = playerValue(heir.ca, heir.age, heir.pa, heir.pos)
+      heir.value = playerValue(heir.ca, heir.age, heir.pa, heir.pos, undefined, undefined, heir.caps)
       state.players[heir.id] = heir
       club.players.push(heir.id)
       if (clubId === state.userClubId) {
@@ -797,7 +797,7 @@ function youthIntake(state: GameState, rng: Rng) {
         pers: assignPersonality(rng, a),
         sc: 100,
       }
-      p.value = playerValue(p.ca, p.age, p.pa, p.pos)
+      p.value = playerValue(p.ca, p.age, p.pa, p.pos, undefined, undefined, p.caps)
       state.players[p.id] = p
       userClub.players.push(p.id)
       report.push(`${'★'.repeat(paStars(s.pa))}${'☆'.repeat(5 - paStars(s.pa))} ${p.name} - ${p.pos}, ${p.age}`)
@@ -864,7 +864,7 @@ function youthIntake(state: GameState, rng: Rng) {
         pers: assignPersonality(rng, a),
         sc: 15,
       }
-      p.value = playerValue(p.ca, p.age, p.pa, p.pos)
+      p.value = playerValue(p.ca, p.age, p.pa, p.pos, undefined, undefined, p.caps)
       state.players[p.id] = p
       club.players.push(p.id)
     }
@@ -888,7 +888,7 @@ function youthIntake(state: GameState, rng: Rng) {
       stats: emptyStats(), career: [], transferListed: false, youth: true,
       pers: assignPersonality(rng, a), sc: 10,
     }
-    p.value = playerValue(p.ca, p.age, p.pa, p.pos)
+    p.value = playerValue(p.ca, p.age, p.pa, p.pos, undefined, undefined, p.caps)
     state.players[p.id] = p
   }
 }
@@ -940,7 +940,7 @@ function replenishSquads(state: GameState, rng: Rng) {
           value: 0, stats: emptyStats(), career: [], transferListed: false, youth: true,
           pers: assignPersonality(rng, a2), sc: club.id === state.userClubId ? 100 : 15,
         }
-        kid.value = playerValue(kid.ca, kid.age, kid.pa, kid.pos)
+        kid.value = playerValue(kid.ca, kid.age, kid.pa, kid.pos, undefined, undefined, kid.caps)
         state.players[kid.id] = kid
         club.players.push(kid.id)
         continue
@@ -2026,8 +2026,11 @@ export function rebuildSeason(state: GameState) {
   challengeCheck(state)
 }
 
-/** Scripted challenges are won at a season's end, and the game says so. */
-function challengeCheck(state: GameState) {
+/** Scripted challenges are won at a season's end, and the game says so.
+ *  Exported for scripts/challengetest, which forges the end-of-season states a
+ *  two-season audit will never reach on its own - the same reason
+ *  invinciblesCheck is exported below. */
+export function challengeCheck(state: GameState) {
   const ch = state.challenge
   if (!ch) return
   const uid = state.userClubId
@@ -2040,7 +2043,18 @@ function challengeCheck(state: GameState) {
     : ch === 'pirates' ? uid === 'pirates' && state.clubs[uid]?.leagueId === 'prem'
     // the women's four. Same four shapes: win it, win it twice, climb out of
     // the bottom, win the division below.
-    : ch === 'threepeat' ? uid === W + 'saracens' && wonEver(W + 'pwr')
+    // STOP THE CIRCUS (1.5.8). Winning the title once while Gloucester have a
+    // bad year is not stopping anything, so the badge asks for the other half
+    // of it too: a winning record against them across this tenure. vsBook is
+    // the manager's own book at this club (season.ts), wiped when he moves, so
+    // it cannot be inherited from a career somewhere else.
+    // If the two have never met - they went down, the leagues never crossed -
+    // the title alone settles it. A challenge that can become unwinnable
+    // through no act of the manager's is a bug wearing a badge.
+    : ch === 'threepeat' ? uid === W + 'saracens' && wonEver(W + 'pwr') && (() => {
+      const rec = state.vsBook?.[W + 'glosharty']
+      return rec ? rec.w > rec.l : true
+    })()
     : ch === 'ealing' ? uid === W + 'trailfinders'
       && state.history.filter(h => h.champion === uid && h.compId === W + 'pwr').length >= 2
     // no relegation to survive, so the licence is the thing at risk and a
@@ -2055,9 +2069,17 @@ function challengeCheck(state: GameState) {
   ;(state.challengesDone ??= []).push(ch)
   const title = tIn('en', CHALLENGES.find(c => c.id === ch)?.title ?? ch)
   const lineKey =
+    // EVERY CHALLENGE GETS ITS OWN LINE. This chain stopped at the men's four
+    // and fell through to Penzance, so all four women's badges announced
+    // themselves with "Cornwall has a top-flight club at last" - a sentence
+    // about a club that does not exist in that world.
     ch === 'sapiac' ? 'news.chalSapiac'
     : ch === 'redbull' ? 'news.chalRedbull'
     : ch === 'dynasty' ? 'news.chalDynasty'
+    : ch === 'threepeat' ? 'news.chalCircus'
+    : ch === 'ealing' ? 'news.chalEaling'
+    : ch === 'licence' ? 'news.chalLicence'
+    : ch === 'grudge' ? 'news.chalGrudge'
     : 'news.chalPirates'
   const line = tIn('en', lineKey)
   state.news.push({

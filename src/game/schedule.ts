@@ -61,7 +61,22 @@ export const CC_KO_WEEKS = [34, 38, 41]
  * before the last league round rather than after it.
  */
 export const W_CC_POOL_WEEKS = [8, 11, 18, 19, 22, 23]
-export const W_CC_KO_WEEKS = [28, 31, 37]
+/**
+ * CLEAR OF THE TEST WINDOW, WHICH THE FIRST CUT WAS NOT.
+ *
+ * activeWindows (season.ts) opens the women's Six Nations window at
+ * W_SIX_NATIONS_WEEKS[0] - 1 and closes it on the last round, so internationals
+ * are away from week 31 to week 38 inclusive. The knockouts were 28, 31 and 37:
+ * the semi-final landed on the day the window opened and the FINAL sat dead
+ * centre of it, between rounds four and five. A manager who had earned a final
+ * played it without the players who earned it.
+ *
+ * Weeks 24 to 30 are empty in the women's calendar - the pool ends at 23 and
+ * nothing else is scheduled before the Six Nations - so the three rounds fit
+ * whole, three weeks apart, with the trophy lifted the week before the Test
+ * squads are named.
+ */
+export const W_CC_KO_WEEKS = [24, 27, 30]
 export const AUTUMN_WEEKS = [13, 14, 15]
 export const SIX_NATIONS_WEEKS = [25, 26, 27, 28, 29]
 export const TRC_WEEKS = [5, 6, 7, 9, 10, 11]
@@ -85,6 +100,32 @@ export const PNC_WEEKS = [5, 6, 7, 9, 10]
  */
 export const W_SIX_NATIONS_WEEKS = [32, 33, 34, 36, 38]
 export const W_PAC4_WEEKS = [40, 41, 42]
+/**
+ * THREE WINDOWS, NOT ONE.
+ *
+ * The women's calendar had the Northern Championship and the Southern Four and
+ * nothing else, both of them after the turn of the year. Take a women's
+ * international job in September and there was no Test to coach until week 32:
+ * four months of a job with no fixtures in it, which is not a job.
+ *
+ * The men's year has three windows - autumn 13-15, Six Nations 25-29, summer
+ * 44-45 - and the women's now has the same shape on its own dates. The autumn
+ * sits in the same weeks as the men's, which are empty in the women's calendar
+ * (the cup pool takes 11 and then 18). The summer takes the men's weeks too,
+ * after the Southern Four has finished at 42.
+ *
+ * The opposition is the non-Six-Nations sides, as the owner asked: the four of
+ * the Southern Four plus Japan and South Africa, both of them real women's Test
+ * nations and both already in NAT_TIERS. Adding them to a fixture is what makes
+ * them exist in a women's world at all - pickableNations reads the live
+ * competitions - so the women's international game goes from ten nations to
+ * twelve, and a manager has twelve countries to be offered rather than ten.
+ */
+export const W_AUTUMN_WEEKS = [13, 14, 15]
+export const W_SUMMER_TEST_WEEKS = [44, 45]
+/** The six who play the Northern Championship, and the six who do not. */
+export const W_NORTH = ['ENG', 'FRA', 'IRE', 'ITA', 'SCO', 'WAL']
+export const W_SOUTH = ['NZL', 'AUS', 'CAN', 'USA', 'JPN', 'RSA']
 
 /** Berger-style round robin. Returns rounds of [home, away] pairs. */
 export function roundRobin(teams: string[], rng: Rng, double: boolean): [string, string][][] {
@@ -675,7 +716,14 @@ export function buildWomensContinentalCup(rng: Rng, state: GameState): Competiti
       .slice(0, places)
       .map(c => c.id))
   return buildChampionsCup(entrants, rng, state,
-    { id: 'cc', name: 'Continental Cup', short: 'Continental Cup' },
+    // ITS OWN NAME, NOT THE MEN'S (owner, 1.5.8). Both worlds build a
+    // competition with the id 'cc' - deliberately, so every dream, award and
+    // trophy-counting path can mean "the continental cup of this game" - but
+    // they carried the same NAME too, so a women's career played something
+    // called the Continental Cup with nothing on screen saying which game it
+    // belonged to. The short name also earns its keep on the fixtures list,
+    // where "Continental Cup Quarter-Final" pushed the score off the row.
+    { id: 'cc', name: 'The Hemispheric Championship', short: 'Hemispheric' },
     W_CC_POOL_WEEKS, W_CC_KO_WEEKS)
 }
 
@@ -715,6 +763,44 @@ export function buildWomensInternationals(rng: Rng, state: GameState) {
     }
   })
   state.comps[W + 'p4'] = p4Comp
+
+  // ---- the autumn: the six at home to the six who are not in it ----
+  const autComp: Competition = {
+    id: W + 'aut', name: "Women's Autumn Tests", short: 'Autumn Tests', type: 'intl',
+    teamIds: [...W_NORTH, ...W_SOUTH], table: [], rounds: W_AUTUMN_WEEKS.length, playoffTeams: 0,
+    weeksByRound: W_AUTUMN_WEEKS, koWeeks: [], isNational: true,
+  }
+  W_AUTUMN_WEEKS.forEach((week, r) => {
+    // reshuffled each weekend, so a country does not host the same visitor
+    // three times and the fixture list reads like a real November
+    const visiting = shuffled(rng, W_SOUTH)
+    W_NORTH.forEach((home, i) => {
+      state.fixtures.push({
+        id: state.nextId++, compId: W + 'aut', round: r, week,
+        homeId: home, awayId: visiting[i], played: false,
+        homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
+      })
+    })
+  })
+  state.comps[W + 'aut'] = autComp
+
+  // ---- and the summer, the same twelve with the travel reversed ----
+  const sumComp: Competition = {
+    id: W + 'sum', name: "Women's Summer Tests", short: 'Summer Tests', type: 'intl',
+    teamIds: [...W_NORTH, ...W_SOUTH], table: [], rounds: W_SUMMER_TEST_WEEKS.length, playoffTeams: 0,
+    weeksByRound: W_SUMMER_TEST_WEEKS, koWeeks: [], isNational: true,
+  }
+  W_SUMMER_TEST_WEEKS.forEach((week, r) => {
+    const touring = shuffled(rng, W_NORTH)
+    W_SOUTH.forEach((home, i) => {
+      state.fixtures.push({
+        id: state.nextId++, compId: W + 'sum', round: r, week,
+        homeId: home, awayId: touring[i], played: false,
+        homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
+      })
+    })
+  })
+  state.comps[W + 'sum'] = sumComp
 }
 
 export function sortTable(table: TableRow[]): TableRow[] {
