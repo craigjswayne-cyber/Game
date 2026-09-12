@@ -27,10 +27,15 @@ import { readFileSync } from 'node:fs'
 // about what happens when it does ----
 const store = new Map<string, string>()
 let refuseWrites = false
+/** Refuse the NEXT n writes and then behave. The two faults an external
+ *  review found on 12 Sep are both about one write failing at one moment,
+ *  which a blanket refusal cannot reproduce. */
+let refuseNext = 0
 ;(globalThis as unknown as { localStorage: Storage }).localStorage = {
   getItem: (k: string) => store.get(k) ?? null,
   setItem: (k: string, v: string) => {
     if (refuseWrites) throw new Error('QuotaExceededError')
+    if (refuseNext > 0) { refuseNext--; throw new Error('QuotaExceededError') }
     store.set(k, String(v))
   },
   removeItem: (k: string) => { store.delete(k) },
@@ -48,7 +53,7 @@ const ok = (c: boolean, what: string) => {
 }
 
 const g = globalThis as unknown as { rmBilling?: unknown }
-const reset = () => { store.clear(); refuseWrites = false; delete g.rmBilling }
+const reset = () => { store.clear(); refuseWrites = false; refuseNext = 0; delete g.rmBilling }
 
 const SKU = M.HEAL_SKU
 
@@ -64,6 +69,9 @@ const fake = (o: {
   held: number
   answer?: { ok?: boolean } | undefined
   spends?: boolean
+  /** Runs the instant the store has spent the receipt, which is the only
+   *  place a test can stand to break the write that banks the proceeds. */
+  onConsume?: () => void
 }) => {
   const state = { held: o.held, consumes: 0 }
   const b = {
@@ -72,6 +80,7 @@ const fake = (o: {
     consume: async () => {
       state.consumes++
       if (o.spends) state.held = Math.max(0, state.held - 1)
+      o.onConsume?.()
       return o.answer
     },
     state,
@@ -183,7 +192,55 @@ console.log('\n---- 8. two sweeps at once are one sweep ----')
   ok(a === c, 'both callers read the same answer out of the same sweep')
 }
 
-console.log('\n---- 9. what the source has to keep saying ----')
+console.log('\n---- 9. the ninth receipt is not lost, only deferred ----')
+{
+  reset()
+  const b = fake({ held: 9, answer: { ok: true }, spends: true })
+  const left = await M.bankReceipts(SKU)
+  ok(b.state.consumes === 8, 'one sweep spends at most eight')
+  ok(M.creditCount(SKU) === 8 && left === 1, 'eight are banked and the ninth is reported as still held')
+  ok(await M.claimHeld(SKU) === 'credit', 'the career can collect what is banked')
+  const after = await M.bankReceipts(SKU)
+  ok(M.creditCount(SKU) === 9 && after === 0, 'AND THE NINTH IS BANKED ON THE NEXT SWEEP - a throughput limit, not a ceiling')
+}
+
+console.log('\n---- 10. the two faults an external review found (12 Sep 2026) ----')
+{
+  // (a) THE MARK COULD NOT BE WRITTEN. The whole recovery story rests on the
+  // mark outliving a call the watchdog gave up on, so a mark that was
+  // silently refused is worse than no mark: it reads as protection that is
+  // not there. Nothing destructive may happen without one.
+  reset()
+  const b = fake({ held: 1, answer: { ok: true }, spends: true })
+  refuseWrites = true
+  const left = await M.bankReceipts(SKU)
+  ok(b.state.consumes === 0, 'a mark that will not persist STOPS THE CONSUME - no destructive call without a recovery note')
+  ok(left === 1, 'and the receipt is still there, recoverable on any future launch')
+  refuseWrites = false
+  await M.bankReceipts(SKU)
+  ok(M.creditCount(SKU) === 1, 'and it banks exactly one once storage works')
+}
+{
+  // (b) THE MARK COULD NOT BE CLEARED after the credit was banked. When those
+  // were two separate writes to two separate keys, this left credit 1 AND a
+  // mark saying 1 owed - and the next sweep, seeing the receipt gone, banked
+  // a second credit for the same payment. They are one write now.
+  reset()
+  // the mark is written and read back FIRST; the refusal is armed from inside
+  // the store's own consume, so it lands on exactly the write that banks
+  const b = fake({ held: 1, answer: { ok: true }, spends: true, onConsume: () => { refuseNext = 1 } })
+  await M.bankReceipts(SKU)
+  ok(b.state.consumes === 1, 'the receipt WAS spent at the store, so the money is owed')
+  ok(M.creditCount(SKU) === 0, 'a refused bank writes nothing at all - no credit, and the mark still stands')
+  const after = await M.bankReceipts(SKU)
+  ok(M.creditCount(SKU) === 1, 'THE NEXT SWEEP PAYS IT, ONCE')
+  ok(after === 0, 'and nothing is left held')
+  await M.bankReceipts(SKU)
+  await M.bankReceipts(SKU)
+  ok(M.creditCount(SKU) === 1, 'and two more sweeps do not pay it again - the mark went with the credit, in one write')
+}
+
+console.log('\n---- 11. what the source has to keep saying ----')
 {
   const swift = readFileSync('src/game/storekit.ts', 'utf8')
   ok(!/inside 90 seconds'\); return 'refused'/.test(swift),
@@ -200,6 +257,21 @@ console.log('\n---- 9. what the source has to keep saying ----')
 
   const ios = readFileSync('packaging/ios/PhaseBilling.swift', 'utf8')
   ok(/"ok": finished > 0/.test(ios), 'and so does the iOS one')
+
+  // EVERY DOOR BANKS BEFORE IT GRANTS. A closed sale leaves a RECEIPT; the
+  // credit only exists once bankReceipts has spent that receipt at the store.
+  // A door that grants straight off the sale calls creditTake on a bank that
+  // is empty, does nothing, leaves the receipt open, and the next sweep banks
+  // it - a second free grant. buyGround shipped exactly that in 1.5.8: one
+  // £9.99 product, two estates.
+  const shop = readFileSync('src/ui/screens/Supporter.tsx', 'utf8')
+  for (const [door, sku] of [['buyGround', 'GROUND_SKU'], ['buySupport', 'SUPPORT_SKU']] as const) {
+    const body = shop.slice(shop.indexOf(`const ${door} =`), shop.indexOf(`const ${door} =`) + 2200)
+    ok(new RegExp(`bankReceipts\\(${sku}\\)[\\s\\S]*creditTake\\(${sku}\\)`).test(body),
+      `${door} banks the receipt BEFORE it spends the credit`)
+  }
+  ok(/bankReceipts\(GROUND_SKU\)[\s\S]{0,300}creditCount\(GROUND_SKU\) < 1/.test(shop),
+    'and the ground refuses to build when the bank is empty, rather than building on a receipt')
 }
 
 console.log(fails ? `\nSPEND: ${fails} FAILED` : '\nSPEND: all good')
