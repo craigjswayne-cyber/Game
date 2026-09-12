@@ -1210,23 +1210,32 @@ Every decision is yours: the XV, the money, the board, the press. A deep, offlin
 
 ### Description (4000 max)
 
+*Rewritten for 1.5.8. Two claims in the previous copy had gone stale: it sold
+"three difficulty settings", which were removed in 1.5.6 and are now a
+vestigial field nothing reads, and "three colour skins" when there are four.
+It also never mentioned the women's game, which is half the app.*
+
 ```
 PICK A CLUB. PICK A SIDE. LIVE WITH IT.
 
 PHASE: Rugby Manager is a management simulation in the tradition of the great text-driven sports sims: dense squad tables, real decisions every week, and a career that remembers what you did in season one when you reach season fifteen. You take a job, you name a team, and you find out what kind of manager you are.
 
+TWO GAMES, ONE APP
+• The men's game: eight leagues and 101 clubs across England, France, the United Provinces, the Pacific and Japan, top flight down to National One.
+• The women's game, built the same way rather than bolted on: six leagues and 64 clubs across England, France, the Pacific and the Celtic provinces, with its own continental cup, Test calendar, squads and career challenges.
+• Choose at New Game. Every screen, every system and every season works in both.
+
 THE WORLD
-• Eight competitions and more than a hundred clubs: the English top flight and Championship, the French Elite 14 and Elite 2, the United Provinces Championship, the Pacific Championship, Japan's Division One and English National One.
 • Full seasons with bonus points, knockout cups drawn in front of you, continental competition, playoffs, promotion and relegation.
-• An international calendar that takes your best players away at the worst possible moment, and a national-team job to chase once your name is made.
-• Season after season, for as long as you last. Players age, decline and retire, and academy men you brought through take their shirts.
+• An international calendar that takes your best players away at the worst possible moment, and a national job to chase once your name is made.
+• Season after season, for as long as you last. Players age, decline and retire, and the academy players you brought through take their shirts.
 
 THE WEEK
-• A week that arrives at the pace a week arrives: the treatment room on Monday, the press on Tuesday, midweek business, the squad on Thursday, the opposition on Friday. Then Saturday.
-• Transfers with camps that haggle, contracts that run down, pre-contracts, free agents and a scouting network that learns a player the longer it watches him.
-• Loans you negotiate: three months, six or the season, and how much of his wage you carry. The parent club weighs the offer and says why it said no.
-• Release a player and pay off his contract. Sack a coach. Name your marquee men and work the salary cap.
-• A backroom staff who are good at some things and not others, with badges to earn and a staff room that clicks or clashes.
+• A week at the pace a week arrives: the treatment room Monday, the press Tuesday, midweek business, the squad Thursday, the opposition Friday. Then Saturday.
+• Transfers with camps that haggle, contracts that run down, pre-contracts, free agents and a scouting network that learns a player the longer it watches.
+• Loans you negotiate: three months, six or the season, and how much of the wage you carry. The parent club weighs the offer and says why it said no.
+• Release a player and pay off the contract. Sack a coach. Name your marquee players and work the salary cap.
+• A backroom staff good at some things and not others, with badges to earn and a staff room that clicks or clashes.
 • A board with an opinion about you, a press pack that quotes you back, fans with a mood, and rivals who remember a derby longer than the league table does.
 
 THE MATCH
@@ -1236,22 +1245,21 @@ THE MATCH
 • A coach's verdict afterwards that names two things to fix, and checks next week whether you did.
 
 THE RECORD
-• Every player carries his last ten ratings and every injury of his career, so you can tell a slump from a bad week and a fragile man from an unlucky one.
+• Every player carries their last ten ratings and every injury of their career, so you can tell a slump from a bad week.
 • A depth chart that shows where you are one injury from trouble.
 • A manager profile with badges, a trophy cabinet, a Hall of Fame and a Roll of Honour that outlive any one club.
 
 BUILT FOR A PHONE
-• Portrait, one-handed, designed for the screen rather than shrunk onto it. Three colour skins, day and night, and a text-size setting.
+• Portrait, one-handed, designed for the screen rather than shrunk onto it. Four colour skins and a text-size setting.
 • The game is completely offline: no account, no login, no cloud, and nothing about your career leaves your device. The adverts are the only part that uses the network, and Pro Manager removes them.
 • Four career slots, autosave after every week, and export and import so a backup is yours to keep.
-• Three difficulty settings, chosen once per career.
 • English, French, Spanish, Italian, Japanese and Afrikaans.
 
 PHASE: Rugby Manager is an unofficial, independent game. Club names are real; competitions, grounds and sponsors are renamed or invented. Player names are real, used to identify people in a sporting database and for nothing else; the game is not affiliated with, endorsed by or licensed by any player, club, league or governing body, and contains no official badges, kits or logos.
 
 Optional in-app purchases support development and add conveniences. Nothing in the game is behind a paywall.
 ```
-*(3753)*
+*(3967)*
 
 ### Keywords (100 max, comma-separated, no spaces after commas)
 
@@ -1259,6 +1267,43 @@ Optional in-app purchases support development and add conveniences. Nothing in t
 rugby,manager,management,sim,union,club,tactics,transfers,season,league,coach,sport,offline,career
 ```
 *(98)*
+
+### What's new (4000 max) - for 1.5.8
+
+```
+THE WOMEN'S GAME GROWS UP
+
+An Autumn series and a Summer tour join the calendar, and the Hemispheric Championship knockouts have moved clear of the Test window they were sitting inside — no more cup final played without your internationals.
+
+The transfer market works. Internationals are priced for their standing rather than their age alone, clubs open the season with budgets that let them bid, and offers for your players arrive all year instead of never. Ellie Kildunne is now the most valuable player in the world, which is where she belonged.
+
+And the Celtic Provinces Cup crowns a champion. It had played a full season every year and awarded nothing, ever, because a six-club league was being handed an eight-club play-off bracket.
+
+DISCIPLINE STOPS GOING YOUR WAY
+
+A red-card hearing used to be a free go: two appeals in three succeeded whoever the player was and whatever they had done. The panel now reads the record. A clean first offender on a one-match ban wins about two in three; a repeat offender on a long ban almost never does; most cases sit near a coin toss. Lose, and a match is added rather than knocked off.
+
+THE SUMMER DIARY IS A DECISION
+
+Three events a week drawn from what your ground can actually hold, instead of a price list of seven with half of them greyed out. Each one now has its own way of going wrong — a marquee peg through the irrigation at a town show, an insurance excess at the clay shoot, a caterer's bill over the quote at a sponsors' dinner.
+
+WHERE THE MONEY LIVES
+
+Board funding now sits on the Finances page directly under the treasury slider, and the max-upgrade estate at the top of Club Infrastructure. Both were only ever on the Store shelf, which is two menus from where you are standing when you want them.
+
+ALSO
+• Matches start at Normal speed rather than Slow.
+• Accept or reject a transfer request straight from the message.
+• The senior players' deputation names the two situations that caused it and points at the Press Room.
+• Contract Situations reads properly on a narrow phone.
+• The board page and the salary-cap row say what they mean in half the words.
+
+FIXED
+• A drawn match was reported as a win in the round-up.
+• Four women's challenge badges announced themselves with a line about a Cornish club that does not exist in that world.
+• The Magic Sponge cooldown counted Test matches as club matches.
+```
+*(2366)*
 
 ### What's new (4000 max) - for 1.2.8
 
