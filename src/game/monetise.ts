@@ -62,9 +62,12 @@ export function edition(): Edition {
 /**
  * ---- THE CATALOGUE ----
  *
- * Ten products (docs/monetisation-spec.md §1). Five are owned once and for
- * ever; five are consumable resolutions whose effects grants.ts applies to
- * the one career that bought them. History: the In-Game Editor (phase.editor)
+ * Eleven products (docs/monetisation-spec.md §1). Four are owned once and for
+ * ever; seven are consumable resolutions whose effects grants.ts applies to
+ * the one career that bought them. The count in this paragraph said ten, five
+ * and five for three releases after it stopped being true - the fourth
+ * injection tier, the repeatable tip jar and the repeat ground all landed
+ * without it. History: the In-Game Editor (phase.editor)
  * was removed on the owner's call (27 Aug, v1.1.3) before any store sold one;
  * the heal, the estate and the international stage joined in v1.1.4 on the
  * owner's overnight brief.
@@ -162,17 +165,32 @@ function readCredits(): Record<string, number> {
     return typeof c === 'object' && c ? c : {}
   } catch { return {} }
 }
-function writeCredits(c: Record<string, number>): void {
-  try { globalThis.localStorage?.setItem(CREDITS_KEY, JSON.stringify(c)) } catch { /* private mode */ }
+/** TRUE ONLY IF THE LEDGER ACTUALLY TOOK IT.
+ *
+ *  This used to return void and swallow the throw, which is a reasonable
+ *  shape for a preference and a dangerous one for money: a private-mode
+ *  browser, a full disk or a storage quota throws here, and the caller went
+ *  on believing a credit had been banked AFTER it had already spent the
+ *  irreversible receipt that paid for it. The customer is then charged, the
+ *  receipt is gone from the store, and the game holds nothing. Every caller
+ *  now gets the answer and has to do something with it. */
+function writeCredits(c: Record<string, number>): boolean {
+  try {
+    globalThis.localStorage?.setItem(CREDITS_KEY, JSON.stringify(c))
+    return true
+  } catch { return false }
 }
+
 export function creditCount(sku: string): number {
   const n = readCredits()[sku]
   return Number.isFinite(n) && n! > 0 ? Math.floor(n!) : 0
 }
-export function creditAdd(sku: string, n = 1): void {
+/** Bank n credits. RETURNS WHETHER THE LEDGER KEPT THEM - callers that have
+ *  just destroyed a receipt to earn them must not assume it did. */
+export function creditAdd(sku: string, n = 1): boolean {
   const c = readCredits()
   c[sku] = (Number.isFinite(c[sku]) && c[sku] > 0 ? Math.floor(c[sku]) : 0) + n
-  writeCredits(c)
+  return writeCredits(c)
 }
 export function creditTake(sku: string): boolean {
   const c = readCredits()
@@ -180,9 +198,153 @@ export function creditTake(sku: string): boolean {
   if (have < 1) return false
   if (have === 1) delete c[sku]
   else c[sku] = have - 1
-  writeCredits(c)
+  // A DRAW THAT DID NOT PERSIST IS NOT A DRAW. If the write fails the credit
+  // is still on this device, so reporting success here would let the caller
+  // grant the effect and then find the same credit waiting to be granted
+  // again on the next launch. Refusing costs a tap; agreeing costs the
+  // game a product it was paid for once and gave away twice.
+  if (!writeCredits(c)) return false
   return true
 }
+
+/**
+ * ---- THE MARK LEFT ON A CONSUME THAT WAS ISSUED AND NEVER ANSWERED ----
+ *
+ * quick() below races every bridge call against a twelve-second clock, and
+ * for a READ that is exactly right: a store that will not answer is offline
+ * as far as the game is concerned, and the fallback is the same answer being
+ * offline would give.
+ *
+ * A CONSUME IS NOT A READ. It destroys a receipt, and Promise.race does not
+ * cancel the loser - the native call is still running when the clock wins, and
+ * it lands a second later on the store's own schedule. The old loop then read
+ * owned(), saw the receipt still sitting there (it had not gone YET), decided
+ * the spend had not landed, and broke without banking anything. Moments later
+ * the receipt vanished for real. Paid for, gone from the store, never credited
+ * anywhere: the one outcome this whole file exists to prevent.
+ *
+ * So a destructive call now leaves a mark before it goes, recording how many
+ * receipts were on the account at the moment it was issued. The mark outlives
+ * the process. The next pass reads it, compares it to what is on the account
+ * NOW, and banks the difference - which is the late landing, found after the
+ * fact and paid out in full. The mark is cleared in the same write that banks
+ * the credit, so nothing is ever banked twice.
+ *
+ * ---- WHAT THIS DELIBERATELY DOES NOT SOLVE ----
+ *
+ * THE MARK IS A COUNT, NOT AN IDENTITY, and that has a limit worth writing
+ * down rather than discovering. Reconciliation asks "are there fewer receipts
+ * now than when I issued the call", so a receipt that is REPLACED between the
+ * two passes hides the answer: this device issues a consume against one
+ * receipt, the consume lands, and a second device on the same store account
+ * buys another before this device reconciles. The count is 1 again, the late
+ * landing is invisible, and the credit is not banked. The customer still has
+ * the second receipt, so nobody is charged for nothing - but one payment goes
+ * undelivered until they buy again.
+ *
+ * claimHeld() returning 'stuck' stops THIS device selling a second copy over
+ * an outstanding receipt. It cannot reach another phone.
+ *
+ * The clean fix is transaction identity, and the bridge does not have any:
+ * BillingBridge speaks owned(): Promise<string[]> and consume(sku), because a
+ * career knows a product and not a purchase token. Fixing it properly means
+ * changing that contract on all four implementations. Play's own guidance is
+ * to query purchases regularly for exactly this reason, which is what the
+ * boot sweep does, and it narrows the window without closing it. Accepted,
+ * on the grounds that two devices sharing one store account inside one
+ * reconciliation window is rare and the failure is a deferral rather than a
+ * loss. Raised by an external review of the purchase path, 12 Sep 2026.
+ */
+/**
+ * THE MARK LIVES IN THE CREDITS OBJECT, NOT BESIDE IT.
+ *
+ * The first cut of this kept marks under their own localStorage key, and an
+ * external review took about ten minutes to find what that costs. Banking a
+ * credit and clearing its mark were then TWO independent best-effort writes,
+ * and the window between them is a double-grant:
+ *
+ *     consume lands -> creditAdd succeeds -> markClear FAILS
+ *     -> relaunch -> mark still says 1, receipt is gone
+ *     -> reconciliation banks a SECOND credit for the same payment.
+ *
+ * Storage does not offer a transaction, so the fix is to stop needing one:
+ * one key, one JSON object, one setItem. A credit and the mark that earned it
+ * now move together or not at all. The reserved prefix cannot collide with a
+ * product - every sku in this file begins "phase." - and nothing anywhere
+ * enumerates the ledger's keys, so the two live side by side without any
+ * reader having to know.
+ */
+const MARK_PREFIX = '@spending:'
+
+/** Record that a consume is about to be issued against `held` receipts - AND
+ *  PROVE IT LANDED, by reading it back.
+ *
+ *  The read-back is the point. The whole recovery story rests on this mark
+ *  outliving a call the watchdog gives up on, so a mark that was quietly
+ *  refused (a full disk, a private window, a quota) is worse than no mark at
+ *  all: it reads as protection that is not there. A false here means the
+ *  caller MUST NOT issue the destructive call. That is also why there is no
+ *  separate "is the ledger writable" test any more - this writes the real key
+ *  with the real payload, which is a stronger answer than rewriting something
+ *  else and hoping. */
+function markSet(sku: string, held: number): boolean {
+  const c = readCredits()
+  c[MARK_PREFIX + sku] = held
+  if (!writeCredits(c)) return false
+  return readCredits()[MARK_PREFIX + sku] === held
+}
+
+/** Drop the mark. Failure is survivable HERE and only here: a mark left
+ *  standing when nothing was credited reconciles to zero on the next pass,
+ *  because that pass credits `issued - held` and the two are still equal. */
+function markClear(sku: string): void {
+  const c = readCredits()
+  if (!(MARK_PREFIX + sku in c)) return
+  delete c[MARK_PREFIX + sku]
+  writeCredits(c)
+}
+
+/** What a consume was issued against, or 0. Read only - the clear happens as
+ *  part of the write that banks the credit, never before it. */
+function markGet(sku: string): number {
+  const n = readCredits()[MARK_PREFIX + sku]
+  return Number.isFinite(n) && n! > 0 ? Math.floor(n!) : 0
+}
+
+/** BANK n CREDITS AND DROP THE MARK, IN ONE WRITE.
+ *
+ *  The whole reason the mark moved into this object. Either both land or
+ *  neither does, so there is no state where the game has been paid for a
+ *  receipt and still holds the note saying it is owed for it. A false means
+ *  nothing changed at all, and the next pass finds the mark exactly where it
+ *  was and tries again. */
+function bankAndClear(sku: string, n: number): boolean {
+  const c = readCredits()
+  c[sku] = (Number.isFinite(c[sku]) && c[sku] > 0 ? Math.floor(c[sku]) : 0) + n
+  delete c[MARK_PREFIX + sku]
+  return writeCredits(c)
+}
+
+/** What a bridge says about a consume it has just been asked to do.
+ *
+ *  Both bridges used to answer `void`, which left monetise.ts inferring the
+ *  outcome from a second reading of owned() - see the mark above for what
+ *  that costs when the native call is merely slow rather than finished.
+ *
+ *  `ok` HAS THREE STATES AND ALL THREE MATTER:
+ *
+ *    true      - the store finished the transaction. Bank it.
+ *    false     - the store answered, and nothing was finished. The mark is a
+ *                lie and gets dropped, so the next pass does not pay out.
+ *    undefined - NOTHING IS PROVED. A shell built before v1.5.9 resolves an
+ *                empty object and cannot say more than that. The mark stands,
+ *                and the next pass settles it by looking at the account.
+ *
+ *  Collapsing undefined into false is the mistake this comment exists to
+ *  prevent: it would clear the mark on exactly the shells that need it most.
+ *  `code` is the store's own response code, carried for the diagnostic line
+ *  and nothing else. */
+export type ConsumeResult = { ok?: boolean; code?: number }
 
 /**
  * A BRIDGE CALL THAT IS NOT ALLOWED TO HANG.
@@ -217,13 +379,28 @@ function quick<T>(job: Promise<T>, fallback: T, ms = BRIDGE_MS): Promise<T> {
 
 /** Convert any OPEN receipt for this sku into a banked credit, now.
  *
- *  Credited BY OBSERVATION, not by trust: both bridges' consume(sku) swallow
- *  their own failures (storekit.ts does so explicitly), so the only honest
- *  measure of a spend is the receipt leaving owned(). Consume, count again,
- *  bank exactly the difference - a consume that failed banks nothing and a
- *  receipt can never be banked twice, on either platform. Safe to call when
- *  nothing is open. (The Play till and boot sweep credit their own spends
- *  directly in settle(), where the token-level outcome is visible.) */
+ *  THREE WAYS A SPEND CAN BE PROVED, in descending order of confidence:
+ *
+ *    1. the receipt left owned(). Unambiguous, and the only proof the first
+ *       version of this function accepted.
+ *    2. the bridge said ok. Newer shells answer a ConsumeResult, so a spend
+ *       that landed is credited even when the follow-up read of owned() is
+ *       stale - which the Play service's own cache makes ordinary.
+ *    3. the mark, on the NEXT pass. Neither of the above is available when
+ *       quick() abandons a consume that is merely slow, so the consume leaves
+ *       a mark behind it and the following pass reconciles: mark present and
+ *       the receipt gone means it landed after all, and is banked then.
+ *
+ *  None of the three can pay twice: each clears the mark as it fires, and a
+ *  receipt that has left the account cannot leave it again.
+ *
+ *  NOTHING IS SPENT ON A DEVICE THAT CANNOT BANK THE PROCEEDS. An unspent
+ *  receipt is recoverable on every future launch; a spent one with nowhere to
+ *  put the credit is money taken for nothing. So the ledger is tested with a
+ *  real write before the first consume is issued, and a device that fails it
+ *  keeps its receipts. Safe to call when nothing is open. (The Play till and
+ *  boot sweep credit their own spends directly in settle(), where the
+ *  token-level outcome is visible.) */
 /** What is owed on a repeatable product, before anybody asks the store to
  *  sell another one.
  *
@@ -271,18 +448,85 @@ export async function claimHeld(sku: string): Promise<Owed> {
   return left > 0 ? 'stuck' : 'none'
 }
 
-export async function bankReceipts(sku: string): Promise<number> {
+/** ONE SWEEP PER SKU AT A TIME, PROCESS-WIDE.
+ *
+ *  Two of these can be in the air at once in ordinary use: main.tsx runs the
+ *  boot sweep while the customer is already on the Store, and a tap on Buy
+ *  calls claimHeld, which calls this. Interleave them and the mark - which is
+ *  the whole late-landing fix - pays twice: sweep A writes the mark and issues
+ *  its consume, tap B reads the account after that consume has landed, takes
+ *  A's mark, and banks a credit for it; then A's own call returns ok and banks
+ *  a second one for the same receipt. Nobody was charged for it twice, but the
+ *  game hands out two.
+ *
+ *  JavaScript has one thread, so a Map of the promises in flight is a complete
+ *  lock: a second caller is handed the FIRST caller's promise and reads the
+ *  same answer out of it. Joining rather than queueing is deliberate - both
+ *  callers are asking the same question, "what is owed on this sku", and the
+ *  second has nothing to add by asking the store again.
+ */
+const sweeping = new Map<string, Promise<number>>()
+
+/** How many receipts one sweep will spend. A THROUGHPUT LIMIT, NOT A CEILING
+ *  ON WHAT ANYBODY IS OWED: the ninth receipt is still owned at the store, so
+ *  claimHeld reports it as paid-for and the next sweep banks it. The number
+ *  exists so a bridge that keeps answering "still owned" cannot spin. */
+const MAX_SPENDS_PER_SWEEP = 8
+
+export function bankReceipts(sku: string): Promise<number> {
+  const running = sweeping.get(sku)
+  if (running) return running
+  const job = bankOnce(sku).finally(() => { sweeping.delete(sku) })
+  sweeping.set(sku, job)
+  return job
+}
+
+async function bankOnce(sku: string): Promise<number> {
   const b = bridge()
   if (!b?.consume) return 0
   let held = 0
   try {
     held = (await quick(b.owned(), [] as string[])).filter(s => s === sku).length
-    for (let guard = 0; held > 0 && guard < 8; guard++) {
-      await quick(b.consume(sku), undefined)
+
+    // ---- FIRST, PAY FOR ANY CONSUME THIS DEVICE ABANDONED ----
+    // A mark means a consume was issued and its answer never arrived. If the
+    // account holds fewer receipts now than it did then, the difference is a
+    // spend that landed while nobody was listening, and it is owed.
+    //
+    // Read, do not take. bankAndClear is what removes the mark, in the same
+    // write that banks the credit, so there is no moment where one has
+    // happened and the other has not. A write that fails changes nothing and
+    // the next pass finds the mark still here.
+    const issued = markGet(sku)
+    if (issued > held) bankAndClear(sku, issued - held)
+    else if (issued > 0) markClear(sku) // the consume did not land: retry below
+
+    for (let guard = 0; held > 0 && guard < MAX_SPENDS_PER_SWEEP; guard++) {
+      // NO DESTRUCTIVE CALL WITHOUT A DURABLE RECOVERY MARK. This writes the
+      // real key with the real payload and reads it back, so a device that
+      // cannot keep the note does not get to destroy the receipt the note is
+      // about. An unspent receipt is recoverable on every future launch; a
+      // spent one with no mark and nowhere to bank is money taken for nothing.
+      if (!markSet(sku, held)) return held
+      const res = await quick(b.consume(sku), undefined)
       const now = (await quick(b.owned(), [] as string[])).filter(s => s === sku).length
-      if (now < held) creditAdd(sku, held - now)
-      else break // the spend did not land; stop rather than spin
-      held = now
+      // proof 1, then proof 2; a bridge that answers void gives neither and
+      // falls through to the mark
+      const landed = now < held ? held - now : (res && res.ok === true ? 1 : 0)
+      if (landed > 0) {
+        // one write: the credit is banked and the mark is gone together. A
+        // false means neither happened, so stop rather than spend a second
+        // receipt into a ledger that has just refused the first.
+        if (!bankAndClear(sku, landed)) break
+        held -= landed
+        continue
+      }
+      // Nothing left the account on this pass. If the bridge said outright
+      // that nothing landed, that is the answer and the mark is a lie - drop
+      // it. Otherwise the call is still out there somewhere, so the mark
+      // stands and the next pass settles it.
+      if (res && res.ok === false) markClear(sku)
+      break
     }
   } catch { /* offline: the boot sweep banks it next launch */ }
   // RETURNS THE RECEIPTS STILL HELD, so a caller who needs that number does
@@ -410,8 +654,12 @@ export interface BillingBridge {
   owned(): Promise<string[]>
   /** Mark a consumable spent so the store will sell it again. A shell without
    *  this cannot honestly offer the consumable SKUs, and buyConsumable treats
-   *  its absence as 'unavailable'. */
-  consume?(sku: string): Promise<void>
+   *  its absence as 'unavailable'.
+   *
+   *  Resolves a ConsumeResult where the shell can say what happened. `void`
+   *  is still accepted - the in-app shells shipped before v1.5.9 answer that
+   *  way, and bankReceipts falls back to watching the receipt leave. */
+  consume?(sku: string): Promise<ConsumeResult | void>
 }
 
 const KEY = 'rm-ent'
@@ -575,10 +823,19 @@ export async function buyConsumable(sku: string): Promise<PurchaseOutcome> {
  *  Failure is swallowed: the store still thinks it is owned, and the recovery
  *  pass must therefore be idempotent about it (grants.ts seasonal limits make
  *  a double-apply visible, and the Boardroom asks before re-applying). */
-export async function consume(sku: string): Promise<void> {
+export async function consume(sku: string): Promise<boolean> {
   const b = bridge()
-  if (!b || typeof b.consume !== 'function') return
-  try { await quick(b.consume(sku), undefined) } catch { /* the receipt outlives the hiccup */ }
+  if (!b || typeof b.consume !== 'function') return false
+  try {
+    const res = await quick(b.consume(sku), undefined)
+    // A void-answering shell cannot prove anything here, so this says false
+    // and means "not proved", not "failed". THAT IS WHY NO CREDIT IS BANKED
+    // ON THIS PATH: it is the bare spend, kept for the probes and for a
+    // caller who has already applied the effect. Anything that needs the
+    // money accounted for goes through bankReceipts, which marks the call
+    // before it issues it and reconciles a late landing on the next pass.
+    return !!(res && res.ok === true)
+  } catch { return false /* the receipt outlives the hiccup */ }
 }
 
 /** An unconsumed consumable purchase - paid for, not yet landed in a career. */

@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { effectiveSkin, useStore, type Screen } from '../store'
 import { celebrationHeadline, celebrationSub, seasonLabel } from '../game/model'
 import { t } from '../game/i18n'
@@ -272,6 +272,85 @@ function useResume() {
   }, [])
 }
 
+/**
+ * ---- THE ANDROID BACK BUTTON ----
+ *
+ * Reported by a closed-testing tester on 13 Sep 2026: "When the user taps the
+ * Back button, the entire app closes instead of returning to the previous
+ * screen." He was right, and it had never worked. The game has carried a nav
+ * stack and a back() action since the beginning, and nothing in the app had
+ * ever listened for the hardware button - no popstate handler, no
+ * @capacitor/app listener, nothing. Capacitor's default with no listener is to
+ * exit, so one press from four screens deep closed a career.
+ *
+ * The same fault is on the website, where the browser's Back leaves the site.
+ *
+ * WHY HISTORY AND NOT THE NATIVE PLUGIN. @capacitor/app would mean a new
+ * dependency in packaging/android, a native rebuild, and a fix that does
+ * nothing for the web. A history entry costs neither and fixes both, and the
+ * Android WebView goes back through history on its own before it considers
+ * exiting.
+ *
+ * WHY ONE SPARE ENTRY AND NOT A MIRRORED STACK. The obvious implementation
+ * pushes one history entry per nav push. It cannot work here: nav is not a
+ * pure stack. landOnNextWeek REBUILDS it wholesale, openDay filters entries
+ * out of the middle of it, home() and kickOff() replace it outright. A mirror
+ * would drift the first time a week turned over, and a drifted mirror is worse
+ * than none - back would then eat the wrong number of screens.
+ *
+ * So history holds exactly one spare entry whenever there is somewhere to go
+ * back to. Back spends it, we pop the nav ourselves, and we lay another one
+ * down. The stack stays the game's business and history never has to agree
+ * with it about anything except "is there somewhere to go back to".
+ *
+ * THE MATCH IS THE EXCEPTION, and not for the reason this comment first gave.
+ * kickOff PUSHES matchday onto the stack (store.ts:901), so a match started
+ * from the day room sits three or four deep and Back pops out of it like any
+ * other screen, which is fine. The depth-1 case is resumeLive (store.ts:680):
+ * after a reload recovers a match in progress, nav is replaced by a single
+ * matchday entry. That is the worst moment to close the app - the manager has
+ * just got his match back - so matchday stays armed whatever the depth, and at
+ * depth 1 Back does nothing rather than exiting. The screen has its own ways
+ * out. Found by backprobe, which asserted the kickOff story and failed.
+ */
+function useHardwareBack(depth: number, screen: Screen) {
+  // module-scope would leak between tests; a ref keeps it to this mount
+  const armed = useRef(false)
+
+  useEffect(() => {
+    const arm = () => {
+      if (armed.current) return
+      armed.current = true
+      window.history.pushState({ phase: 'phase-back' }, '')
+    }
+
+    const onPop = () => {
+      // the spare is spent: whatever happens now, it has to be laid again
+      armed.current = false
+      const s = useStore.getState()
+      if (s.nav.length > 1) s.back()
+      // at the root, and not in a match, the entry is deliberately NOT replaced
+      // so the press that follows leaves the app, which is what Back on a title
+      // screen is for. The effect below re-arms everywhere else.
+      else if (s.nav[s.nav.length - 1]?.screen === 'matchday') arm()
+    }
+
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
+
+  // Re-armed on every change of depth or screen rather than once on mount,
+  // because nav can go from 1 to 4 and back to 1 several times in a career and
+  // the spare has to exist for all of it.
+  useEffect(() => {
+    if (armed.current) return
+    if (depth > 1 || screen === 'matchday') {
+      armed.current = true
+      window.history.pushState({ phase: 'phase-back' }, '')
+    }
+  }, [depth, screen])
+}
+
 interface MenuItem {
   ico: string
   label: string
@@ -306,6 +385,7 @@ export default function App() {
   useResume()
 
   const cur = nav[nav.length - 1]
+  useHardwareBack(nav.length, cur.screen)
   // a skin is a third class on the same root: tokens.css declares the skin
   // blocks after night and day, so the skin wins the cascade and the
   // floodlight toggle still does its job underneath

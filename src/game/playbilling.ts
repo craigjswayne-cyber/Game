@@ -27,7 +27,7 @@
  * the web build should look like.
  */
 import { CONSUMABLE_SKUS, creditAdd, setBillingReason, setLookupReason } from './monetise'
-import type { BillingBridge, Product, PurchaseOutcome } from './monetise'
+import type { BillingBridge, ConsumeResult, Product, PurchaseOutcome } from './monetise'
 
 /** Play's own identifier for its billing service. */
 const PLAY = 'https://play.google.com/billing'
@@ -457,11 +457,19 @@ export async function playBridge(): Promise<BillingBridge | null> {
    * owned() already makes. Digital Goods 2.0 exposes consume(); 1.0 spelled
    * the same thing acknowledge(token, 'repeatable'), so both are honoured.
    */
-  const consume = async (sku: string): Promise<void> => {
+  const consume = async (sku: string): Promise<ConsumeResult> => {
     const hit = (await svc.listPurchases()).find(p => p.itemId === sku)
-    if (!hit) return // already spent, or never owned: nothing to clear
-    if (typeof svc.consume === 'function') await svc.consume(hit.purchaseToken)
-    else if (typeof svc.acknowledge === 'function') await svc.acknowledge(hit.purchaseToken, 'repeatable')
+    // Nothing to clear is a definite answer, not an unknown one: no receipt
+    // was spent, so the caller must not bank a credit for it. Saying so
+    // explicitly is the difference between "we did nothing" and "we do not
+    // know what happened", and monetise treats those two very differently.
+    if (!hit) return { ok: false }
+    if (typeof svc.consume === 'function') { await svc.consume(hit.purchaseToken); return { ok: true } }
+    if (typeof svc.acknowledge === 'function') { await svc.acknowledge(hit.purchaseToken, 'repeatable'); return { ok: true } }
+    // A service with neither lever has not spent anything and cannot pretend
+    // to have done. It throws nothing, so without this it resolved void and
+    // read as an unknown outcome for ever.
+    return { ok: false }
   }
 
   void sweep()

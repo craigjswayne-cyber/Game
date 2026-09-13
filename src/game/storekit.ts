@@ -30,7 +30,7 @@
  * recovery rows work on iOS without knowing iOS exists.
  */
 import { setBillingReason } from './monetise'
-import type { BillingBridge, Product, PurchaseOutcome } from './monetise'
+import type { BillingBridge, ConsumeResult, Product, PurchaseOutcome } from './monetise'
 
 /** What the Swift plugin promises. Capacitor hands every method an object and
  *  gets one back, so each of these is that shape and nothing cleverer. */
@@ -38,7 +38,9 @@ interface PhaseBillingPlugin {
   details(o: { skus: string[] }): Promise<{ products: { sku: string; price: string; title?: string }[] }>
   buy(o: { sku: string }): Promise<{ outcome: string }>
   owned(): Promise<{ skus: string[] }>
-  consume(o: { sku: string }): Promise<Record<string, never>>
+  /** Resolves { ok, count } since v1.5.9; older shells resolve {}. Both are
+   *  handled below, because a phone runs whichever build it downloaded. */
+  consume(o: { sku: string }): Promise<{ ok?: boolean; count?: number }>
 }
 
 type WithCapacitor = {
@@ -150,7 +152,14 @@ export function storeKitBridge(): BillingBridge | null {
         p.buy({ sku }),
         new Promise<null>(r => setTimeout(() => r(null), 90_000)),
       ])
-      if (!got) { setBillingReason('the App Store did not answer inside 90 seconds'); return 'refused' }
+      // 'pending', NOT 'refused'. Ninety seconds of silence is not a refusal
+      // and saying so tells a customer whose payment is still in flight that
+      // nothing was taken - which invites them to tap Buy again and pay
+      // twice. 'pending' is the outcome for a purchase whose answer has not
+      // arrived: supporter.pending already says the true thing ("the store is
+      // still processing it... Restore will pick it up"), and the held-receipt
+      // pass hands it over the moment it does land.
+      if (!got) { setBillingReason('the App Store did not answer inside 90 seconds'); return 'pending' }
       return asOutcome(got.outcome)
     } catch (e) {
       // the same rule the Android side learned: a store that would not sell
@@ -171,9 +180,15 @@ export function storeKitBridge(): BillingBridge | null {
   /** Finish the held transaction, so StoreKit will sell it again. Without
    *  this method monetise.ts refuses to sell a consumable at all - which is
    *  exactly what shipped on Android in v1.1.6 and cost five products. */
-  const consume = async (sku: string): Promise<void> => {
-    if (typeof p.consume !== 'function') return
-    try { await p.consume({ sku }) } catch { /* the receipt outlives the hiccup */ }
+  const consume = async (sku: string): Promise<ConsumeResult> => {
+    if (typeof p.consume !== 'function') return { ok: false }
+    try {
+      const r = await p.consume({ sku })
+      // A shell built before v1.5.9 resolves {}, so `ok` is absent. That is
+      // passed on as ABSENT, not as false: monetise's mark is what covers an
+      // old shell, and answering false here would clear it.
+      return typeof r?.ok === 'boolean' ? { ok: r.ok } : {}
+    } catch { return { ok: false } /* the call failed, so nothing was finished */ }
   }
 
   return { details, detailsMany, buy, owned, consume }

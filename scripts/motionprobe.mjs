@@ -103,6 +103,43 @@ try {
   ok(banner.name === 'rm-hold', 'the event banner keeps an animation rather than jumping to its hidden last frame')
   ok(parseFloat(banner.dur) > 1, 'and keeps its full length, so the try is still announced')
 
+  // ---- the possession strip moves on the compositor -----------------------
+  //
+  // Reported by a closed-testing tester on 13 Sep 2026: "the graphs/charts that
+  // update over time do not animate smoothly ... the graph appears to lag,
+  // stutter, or update in small jumps rather than transitioning fluidly."
+  //
+  // The strip was `transition: width` on the fill and `transition: left` on the
+  // needle. Both are LAYOUT properties, computed on the main thread every
+  // frame, so they stutter exactly when the main thread is busy - which during
+  // a live match it was, because every state change also cost a structured
+  // clone of the whole career (see the save queue in store.ts).
+  //
+  // Reduced motion collapses the DURATION of these, not the property, so this
+  // reads the property and holds the strip to transform. A future edit that
+  // puts width or left back would pass every visual check and quietly move the
+  // animation back onto the thread the engine is using.
+  const strip = await page.evaluate(() => {
+    const pick = (sel) => {
+      const el = document.querySelector(sel)
+      if (!el) return null
+      const cs = getComputedStyle(el)
+      return { prop: cs.transitionProperty, transform: cs.transform !== 'none' }
+    }
+    return { home: pick('.l10-home'), track: pick('.momo-track') }
+  })
+  const layoutish = /\b(width|left|top|height|margin|padding)\b/
+  ok(!!strip.home, 'the possession fill is on the match screen')
+  ok(!!strip.home && /transform/.test(strip.home.prop),
+     `the fill transitions transform (${strip.home?.prop})`)
+  ok(!!strip.home && !layoutish.test(strip.home.prop),
+     'and transitions no layout property at all')
+  ok(!!strip.track, 'the momentum needle rides a track')
+  ok(!!strip.track && /transform/.test(strip.track.prop),
+     `the needle's track transitions transform (${strip.track?.prop})`)
+  ok(!!strip.track && !layoutish.test(strip.track.prop),
+     'and not left, which is what made it judder')
+
   // play it out
   await page.click('.speed-controls >> text=Skip')
   await page.waitForSelector('text=Start Second Half', { timeout: 25000 })

@@ -167,6 +167,50 @@ say('\n--- 4. every competition id survives the round trip to a screen')
   broken.slice(1, 4).forEach(b => console.log(`        ${b}`))
 }
 
+// ---- AND NEITHER WORLD CALLS A COMPETITION BY THE OTHER'S NAME (1.5.9) ----
+//
+// The declarations above stop a world being offered a competition it does not
+// build. They said nothing about a competition it DOES build being called the
+// wrong thing - and both worlds build a cup with the id 'cc' deliberately, so
+// that every dream, award and trophy count can mean "the continental cup of
+// this game". The men's is the Continental Cup; the women's is the Hemispheric
+// Championship, and it spans the Pacific and the Celtic provinces.
+//
+// Seven strings had the men's name, or the word Europe, written into them and
+// reached a women's save unchanged: the board objective, the sponsor clause,
+// the Profile speciality and its hint, the match-day stakes line, and the
+// finals-weekend story - which also announced a Continental Shield that the
+// women's game does not have. Each now carries an `_f` sibling, which i18n
+// picks up in a women's world without a single call site knowing.
+{
+  const { ensureLang, setLang, setWorld, t } = await import('../src/game/i18n')
+  // the men's name in each of the six, so a sibling that was never written is
+  // caught rather than passing because the fallback happens to read cleanly
+  const MENS = /continental|continentale|europe|europ[ea]|欧州|コンチネンタル/i
+  const KEYS = [
+    'objectives.europe', 'objectives.europeHead', 'finances.clauseEurope',
+    'profile.specEuro', 'profile.specEuroDesc', 'profile.specEuroHint',
+    'stakes.dreamRoad', 'news.finalsWeekend', 'news.finalsWeekendSubj',
+  ]
+  const LANGS = ['en', 'fr', 'es', 'it', 'ja', 'af'] as const
+  const leaks: string[] = []
+  for (const lang of LANGS) {
+    await ensureLang(lang)
+    setLang(lang)
+    setWorld('w')
+    for (const k of KEYS) {
+      const line = t(k, { venue: 'Ground', city: 'City', seats: '20,000' })
+      if (MENS.test(line)) leaks.push(`${lang} ${k}: ${line.slice(0, 70)}`)
+    }
+    setWorld('m')
+  }
+  await ensureLang('en')
+  setLang('en')
+  ok(leaks.length === 0,
+    `no women's-world line names the men's competition${leaks.length ? ` - ${leaks[0]}` : ''} (${KEYS.length} keys x ${LANGS.length} languages)`)
+  leaks.slice(1, 5).forEach(l => console.log(`        ${l}`))
+}
+
 console.log(fails
   ? `\nWORLD PARITY FAILED (${fails})`
   : '\nWORLD PARITY PASSED: neither world promises anything it cannot deliver')

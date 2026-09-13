@@ -232,7 +232,7 @@ What this tab is actually for:
 4. Find **StoreKit Configuration** and choose **Products.storekit**.
 5. **Close**.
 
-This is what lets you buy all ten products with imaginary money, with no Apple
+This is what lets you buy all eleven products with imaginary money, with no Apple
 account and nothing to wait for.
 
 ### 11. Run it

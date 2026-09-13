@@ -201,5 +201,50 @@ ok(Array.isArray(D.DREAMS) && D.DREAMS.length >= 5, `there are dreams to choose 
   ok(!refocus('trophy'), 'an unrealised new dream cannot itself be refocused away')
 }
 
+// ---- THE DREAM NAMES THE COMPETITION THIS WORLD ACTUALLY HOLDS (1.5.9) ----
+//
+// Both worlds build a cup with the id 'cc', and two dreams had the men's name
+// written into their English: a women's manager at Loughborough was offered
+// "Win the Continental Cup" and "Win the league and Europe", for a tournament
+// that spans the Pacific and the Celtic provinces and is called the
+// Hemispheric Championship. Reported from a wizard screenshot.
+{
+  const { setWorld } = await import('../src/game/i18n')
+  const mCtx = { clubId: 'bath', clubName: 'Bath', leagueId: 'prem', rep: 80 }
+  const wCtx = { clubId: 'w:bristol', clubName: 'Bristol', leagueId: 'w:pwr', rep: 78 }
+  const euro = D.DREAMS.find(d => d.id === 'europe')!
+  const dbl = D.DREAMS.find(d => d.id === 'double')!
+
+  for (const lang of ['en', 'fr'] as const) {
+    await ensureLang(lang)
+    setLang(lang)
+
+    setWorld('m')
+    const mEuro = D.dreamTitle(euro, mCtx)
+    const mDbl = D.dreamTitle(dbl, mCtx)
+    ok(/Continental|continentale/.test(mEuro), `[${lang}] the men's cup dream names the Continental Cup (${mEuro})`)
+    ok(!/\{cup/.test(mEuro + mDbl), `[${lang}] and no fragment is left unfilled`)
+
+    setWorld('w')
+    const wEuro = D.dreamTitle(euro, wCtx)
+    const wDbl = D.dreamTitle(dbl, wCtx)
+    const wBlurb = (await import('../src/game/i18n')).t(euro.blurbK, euro.titleVars?.(wCtx))
+    const wDblBlurb = (await import('../src/game/i18n')).t(dbl.blurbK, dbl.titleVars?.(wCtx))
+    ok(/H[eé]mi|Emisferic/i.test(wEuro), `[${lang}] the women's cup dream names the Hemispheric Championship (${wEuro})`)
+    ok(!/Continental|continentale|Europe|europ/i.test(wEuro + wDbl + wDblBlurb),
+      `[${lang}] and neither women's dream says Continental or Europe (${wDbl})`)
+    ok(!/\{cup/.test(wEuro + wDbl + wBlurb + wDblBlurb), `[${lang}] and no fragment is left unfilled`)
+    ok(!/four|quatre|quattro|cuatro|vier/i.test(wBlurb), `[${lang}] the cup blurb does not promise four knockout ties`)
+    setWorld('m')
+  }
+  await ensureLang('en')
+  setLang('en')
+
+  // and the count itself: 16 teams, 8 into the knockouts, so QF, SF and final
+  const { CC_KO_WEEKS, W_CC_KO_WEEKS } = await import('../src/game/schedule')
+  ok(CC_KO_WEEKS.length === 3 && W_CC_KO_WEEKS.length === 3,
+    'both worlds play THREE knockout ties, which is what the blurb now says')
+}
+
 console.log(fails ? `DREAM PROBE FAILED (${fails})` : 'DREAM PROBE PASSED: the save knows what it is for')
 if (fails) process.exit(1)

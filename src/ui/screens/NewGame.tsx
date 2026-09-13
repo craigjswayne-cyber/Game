@@ -352,7 +352,7 @@ export default function NewGame() {
                   <button key={d.id} className={`speech-tile${dream === d.id ? ' sel' : ''}`}
                     onClick={() => setDreamId(d.id)}>
                     <b>{dreamTitle(d, dreamCtx!)}</b>
-                    <span className="d">{t(d.blurbK)}</span>
+                    <span className="d">{t(d.blurbK, d.titleVars?.(dreamCtx!))}</span>
                   </button>
                 ))}
               </div>
