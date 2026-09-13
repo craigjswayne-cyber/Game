@@ -73,7 +73,16 @@ const ok = (cond: boolean, what: string) => {
   // next week the budget resets, but not for a man already spoken to
   g.week += 1
   ok(chatBudget(g) === 2, 'a new week brings two fresh conversations')
-  ok(!canChat(g, a) || a.lastChatWk !== g.season * 45 + g.week, 'and last week\'s chat does not block this week')
+  // WAS `a.lastChatWk !== g.season * 45 + g.week`, and wrong twice over. The
+  // season has been 48 weeks since v1.5.1, so the right-hand side named a week
+  // the game does not use; and the `!canChat(g, a) ||` in front made the whole
+  // line pass whenever canChat was false, which is the state it was written to
+  // rule out. A stale formula that can never fail is not a test.
+  //
+  // What the probe means is the behaviour, so it asserts the behaviour: the man
+  // spoken to last week can be called in again this week. Flagged by external
+  // audit, 13 Sep 2026. absWeek is the only thing entitled to know the basis.
+  ok(canChat(g, a), 'and last week\'s chat does not block this week')
   ok(canChat(g, d), 'a fresh face can be called in')
 
   // warning a professional out of form gets a response, not a sulk

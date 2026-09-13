@@ -122,23 +122,45 @@ export async function clearResume(slot: string): Promise<void> {
  * would read as season 2 week 7, a contract clock would jump, a disciplinary
  * incident would come back into range.
  *
- * WEEK_BASIS is now 100 and fixed for good, so this runs once per save and
- * never again. The conversion is exact - old / 45 is the season, old % 45 is
- * the week - because both are integers and week is always 1..45 in an old save.
+ * WEEK_BASIS is 48 and fixed for good, so this runs once per save and never
+ * again.
  *
- * THE LIST IS THE DANGEROUS PART, not the arithmetic. A field left out of it
- * keeps its old basis and drifts silently, which is the sort of bug that shows
- * up as "my loanee never came home" three seasons later. It was built by
- * grepping every write of `season * SEASON_WEEKS + week` in the engine rather
- * than from memory, and scripts/basisprobe.ts holds it: it builds a save on the
- * old basis, migrates it, and checks that every stamp still sits the same number
- * of weeks from today as it did before.
+ * THE ARITHMETIC IS 1-BASED AND THAT IS THE WHOLE TRAP. Weeks run 1..45, not
+ * 0..44, so the last week of an old season is a clean multiple of 45 and
+ * `v / 45` reads it as the FIRST week of the next one. Until 13 Sep 2026 this
+ * function was `floor(v / 45) * 48 + (v % 45)`, and the comment sitting above
+ * it called the conversion exact "because week is always 1..45 in an old save"
+ * - which is the exact reason it was not. Season 0 week 45 came back as 48,
+ * season 1 week 0. Season 1 week 45 came back as 96 instead of 93. Every stamp
+ * that happened to land on the final week of a season was pushed three weeks
+ * into the following one; every other week converted correctly, which is why
+ * it read as right for so long. Roughly one stamp in forty-five, and a save
+ * carries a joinedAt for every player alive in it.
+ *
+ * Subtract one before the division, add it back after, and the 1-based basis
+ * converts the way it reads. Zero is not a date - it is the "never" that an
+ * unset field holds - so it is returned untouched rather than run through the
+ * sum, which would send it to -48.
+ *
+ * THE LIST IS THE OTHER DANGEROUS PART. A field left out of it keeps its old
+ * basis and drifts silently, which is the sort of bug that shows up as "my
+ * loanee never came home" three seasons later. It was built by grepping every
+ * write of `season * SEASON_WEEKS + week` in the engine rather than from
+ * memory.
+ *
+ * scripts/basisprobe.ts holds both halves now. The comment claimed it did from
+ * v1.5.1 and the file did not exist: one hundred and eighty-four probes, and
+ * not one of them converted a date. A guard named in prose and absent from
+ * disk is worse than no guard, because it stops anybody looking for one.
  */
 const OLD_BASIS = 45
 
 function rebase(v: unknown): number | undefined {
   if (typeof v !== 'number' || !Number.isFinite(v) || v < 0) return undefined
-  return Math.floor(v / OLD_BASIS) * WEEK_BASIS + (v % OLD_BASIS)
+  if (v === 0) return 0
+  const oldSeason = Math.floor((v - 1) / OLD_BASIS)
+  const oldWeek = ((v - 1) % OLD_BASIS) + 1
+  return oldSeason * WEEK_BASIS + oldWeek
 }
 
 function rebaseStamps(s: GameState): void {
