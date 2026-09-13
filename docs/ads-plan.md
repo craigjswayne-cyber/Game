@@ -227,7 +227,7 @@ The shape of that table is the point, and it says three things:
    is still the right order.
 3. **The store already out-earns all of this per player.** A single Estate
    or Charter sale at £9.99 is worth roughly as much as a month of ads from
-   thirty daily players. Ads are the tail; the ten products are the
+   thirty daily players. Ads are the tail; the eleven products are the
    business. Which is the argument for getting the pay buttons right first
    and the ad SDK second.
 

@@ -282,6 +282,14 @@ export default function Supporter() {
     if (owed === 'stuck') { say(SUPPORT_SKU, t('till.owedHeld')); return }
     const out = owed === 'credit' ? 'owned' as const : await buyConsumable(SUPPORT_SKU)
     if (out === 'owned') {
+      // BANK THE RECEIPT BEFORE SPENDING THE CREDIT. A sale that has just
+      // closed leaves a RECEIPT, not a credit - the credit only exists once
+      // bankReceipts has spent that receipt at the store. This used to call
+      // creditTake straight off the sale, which silently did nothing (there
+      // was no credit to take) and left the receipt open; the next sweep then
+      // banked it, and the jar could be tipped a second time for free. Free
+      // is the harmless end of that bug. See buyGround for the other end.
+      if (owed !== 'credit') await bankReceipts(SUPPORT_SKU)
       creditTake(SUPPORT_SKU) // the thank-you is the grant; the credit is burned saying it
       say(SUPPORT_SKU, t('store.supportDone', { n: recordSupport() }))
     } else say(SUPPORT_SKU, endingText(out))
@@ -297,6 +305,20 @@ export default function Supporter() {
     if (owed === 'stuck') { say(ESTATE_SKU, t('till.owedHeld')); return }
     const out = owed === 'credit' ? 'owned' as const : await buyConsumable(GROUND_SKU)
     if (out === 'owned') {
+      // ONE PAYMENT, ONE GROUND. This built the estate straight off the sale
+      // and then called creditTake, which did nothing at all: a closed sale
+      // leaves a RECEIPT and creditTake spends a CREDIT, and the credit only
+      // comes into existence when bankReceipts spends the receipt at the
+      // store. So the estate went up, the receipt stayed open, the next boot
+      // sweep banked it, and that banked credit built a SECOND estate at the
+      // next club the manager took. One £9.99 product, two grounds. Found by
+      // an external review of the purchase path, 12 Sep 2026.
+      //
+      // The heal and the injections never had this: both go through
+      // applyHealNow/landInjection, which bank first and check the credit is
+      // really there. This row now does the same thing in the same order.
+      if (owed !== 'credit') await bankReceipts(GROUND_SKU)
+      if (creditCount(GROUND_SKU) < 1) { say(ESTATE_SKU, t('till.owedHeld')); return }
       const built = buildEstate()
       if (built) creditTake(GROUND_SKU) // unbuilt stays banked for the next club
       say(ESTATE_SKU, built ? t('store.estateDone') : t('store.estateRefused'))

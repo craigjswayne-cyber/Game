@@ -27,10 +27,15 @@
 //  to the career again. Consume at purchase and a customer interrupted between
 //  paying and receiving has simply lost the money.
 //
-//  Non-consumables are ACKNOWLEDGED immediately. Play refunds any purchase not
-//  acknowledged within three days (the 29 Aug 2026 refund email), so a
-//  permanent entitlement is acknowledged the moment it is granted and again,
-//  belt and braces, whenever owned() finds one that somehow was not.
+//  AND EVERY PURCHASE IS ACKNOWLEDGED, CONSUMABLE OR NOT. Play refunds any
+//  purchase not acknowledged within three days - the 29 Aug 2026 refund email,
+//  and again on 12 Sep - and the rule above means a consumable can sit
+//  unconsumed for a week without anybody doing anything wrong. Acknowledging
+//  is not delivering and it is not consuming: the receipt stays owned, owned()
+//  keeps offering it back, and consume() still happens on the game's terms.
+//  All it does is stop the refund clock, which is the one thing the deferred
+//  design forgot to do. This is why settle() no longer has a consumable branch
+//  and why nothing here needs to know which products are repeatable.
 //
 package com.phaserugbymanager.app;
 
@@ -61,24 +66,13 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 @CapacitorPlugin(name = "PhaseBilling")
 public class PhaseBilling extends Plugin implements PurchasesUpdatedListener {
 
     private static final String TAG = "PhaseBilling";
-
-    /** The repeatable products. Everything else is owned for ever. Must match
-     *  CONSUMABLE_SKUS in src/game/monetise.ts and the Swift twin. */
-    private static final Set<String> CONSUMABLES = new HashSet<>(Arrays.asList(
-        "phase.inject.s", "phase.inject.m", "phase.inject.l", "phase.inject.xl",
-        "phase.heal",
-        "phase.license",
-        "phase.ground"
-    ));
 
     private BillingClient client;
 
@@ -248,11 +242,24 @@ public class PhaseBilling extends Plugin implements PurchasesUpdatedListener {
         if (pendingBuy.get() != null) finishBuy(mapCode(code));
     }
 
-    /** Acknowledge a permanent purchase; leave a consumable for consume(). */
+    /**
+     * ACKNOWLEDGE EVERY PURCHASE, CONSUMABLE OR NOT.
+     *
+     * This used to return early for consumables, on the documented reasoning
+     * that consumeAsync() acknowledges implicitly - which is true, but only
+     * once consume actually runs. The game defers that until the career has
+     * kept what was bought, and a customer who buys a tip and does not come
+     * back to the Store never triggers it at all. Play refunds any purchase
+     * not acknowledged inside three days, so every deferred consumable was
+     * being quietly refunded: the 29 Aug 2026 email, and again on 12 Sep.
+     *
+     * Acknowledging first costs nothing. It does NOT deliver the purchase and
+     * it does NOT consume it - the receipt stays owned, owned() keeps offering
+     * it back, and consume() still happens later on the game's own terms. All
+     * it does is stop the refund clock, which is the one thing the deferred
+     * design forgot to do.
+     */
     private void settle(Purchase p) {
-        boolean consumable = false;
-        for (String s : p.getProducts()) if (CONSUMABLES.contains(s)) consumable = true;
-        if (consumable) return;
         if (!p.isAcknowledged()) {
             client.acknowledgePurchase(
                 AcknowledgePurchaseParams.newBuilder().setPurchaseToken(p.getPurchaseToken()).build(),
@@ -329,31 +336,58 @@ public class PhaseBilling extends Plugin implements PurchasesUpdatedListener {
 
     // ---- consume ----
 
-    /** The career kept what was bought, so the receipt can be spent.
-     *  Consuming is what lets Play sell the same consumable again - and until
-     *  it happens, owned() keeps offering the purchase back. */
+    /**
+     * The career kept what was bought, so the receipt can be spent. Consuming
+     * is what lets Play sell the same consumable again - and until it happens,
+     * owned() keeps offering the purchase back.
+     *
+     * IT NOW SAYS WHETHER IT WORKED. This used to call resolve() with nothing
+     * whatever Play answered, so the only thing the game could do was consume,
+     * re-read owned(), and infer a spend from the receipt having gone. That
+     * inference is wrong in the one case that costs money: a consume that
+     * takes longer than the JS watchdog returns "nothing happened" to a caller
+     * that then banks nothing - and the consume lands a moment later, taking
+     * the receipt with it. Paid, and nothing received.
+     *
+     * `ok` is the only field a caller needs. `code` is the Billing response
+     * for a log or a probe: ITEM_NOT_OWNED reads very differently from
+     * SERVICE_UNAVAILABLE when somebody is working out why a spend did not
+     * land, and hiding it behind a bare resolve() cost us that.
+     */
     @PluginMethod
     public void consume(final PluginCall call) {
         final String sku = call.getString("sku");
-        if (sku == null) { call.resolve(); return; }
+        if (sku == null) { done(call, false, BillingClient.BillingResponseCode.DEVELOPER_ERROR); return; }
         connect(ok -> {
-            if (!ok) { call.resolve(); return; }
+            if (!ok) { done(call, false, BillingClient.BillingResponseCode.SERVICE_DISCONNECTED); return; }
             client.queryPurchasesAsync(
                 QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.INAPP).build(),
                 (r, purchases) -> {
-                    if (r.getResponseCode() != BillingClient.BillingResponseCode.OK) { call.resolve(); return; }
+                    if (r.getResponseCode() != BillingClient.BillingResponseCode.OK) { done(call, false, r.getResponseCode()); return; }
                     Purchase found = null;
                     for (Purchase p : purchases) {
                         if (p.getPurchaseState() == Purchase.PurchaseState.PURCHASED && p.getProducts().contains(sku)) { found = p; break; }
                     }
-                    if (found == null) { call.resolve(); return; }
+                    // nothing to spend is not a failure of this call - it is the
+                    // answer. The caller must not bank a credit for it.
+                    if (found == null) { done(call, false, BillingClient.BillingResponseCode.ITEM_NOT_OWNED); return; }
                     client.consumeAsync(
                         ConsumeParams.newBuilder().setPurchaseToken(found.getPurchaseToken()).build(),
                         (res, token) -> {
-                            if (res.getResponseCode() != BillingClient.BillingResponseCode.OK) Log.w(TAG, "consume: " + res.getDebugMessage());
-                            call.resolve();
+                            int code = res.getResponseCode();
+                            if (code != BillingClient.BillingResponseCode.OK) Log.w(TAG, "consume: " + res.getDebugMessage());
+                            done(call, code == BillingClient.BillingResponseCode.OK, code);
                         });
                 });
         });
+    }
+
+    /** One shape for every exit from consume(), so a caller never has to guess
+     *  whether an empty resolve meant success. */
+    private void done(PluginCall call, boolean ok, int code) {
+        JSObject out = new JSObject();
+        out.put("ok", ok);
+        out.put("code", code);
+        call.resolve(out);
     }
 }
