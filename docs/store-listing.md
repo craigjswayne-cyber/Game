@@ -839,10 +839,13 @@ Consent is gathered through Google's UMP form before any advert is requested,
 App Tracking Transparency is requested before the advertising identifier is
 used, and Pro Manager removes every advert permanently.
 
-There are nine optional in-app purchases, none of which is required to play and
-none of which affects any other manager's game. Four are permanent unlocks
-(Support the game; The International Stage; The Estate; The Owner's Charter) and
-five are consumable club funding (Full Fitness, and four board injections). The
+There are eleven optional in-app purchases, none of which is required to play
+and none of which affects any other manager's game. Four are permanent unlocks
+(Pro Manager, which removes the adverts; Become an International Coach; Max
+Upgrade Facilities; Remove the salary cap) and seven are consumable (Full
+Fitness, four tiers of board funding, a repeat of the facilities upgrade for a
+manager who moves club, and Support the game, which is a tip to the developer
+and changes nothing in the game). The
 game is complete without every one of them: they unlock club-management
 conveniences inside a single-player save, and the simulation itself is identical
 either way. A Restore button sits on the same screen (Manager menu → About &
