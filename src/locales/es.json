@@ -3404,7 +3404,7 @@
   "alreadyYours": "Ya es tuyo: nada que restaurar.",
   "badge": "Seguidor",
   "cancelled": "No se ha cobrado nada.",
-  "refused": "La tienda no ha querido abrir la compra de este artículo. No se ha cobrado nada. Suele significar que el producto aún no está activo, o que esta cuenta no está en la lista de pruebas de licencia.",
+  "refused": "La tienda no ha querido abrir la compra de este artículo. No se ha cobrado nada. Suele significar que el producto no está a la venta en tu país, que aún no está activo, o que esta cuenta no está en la lista de pruebas con licencia.",
   "error": "No se ha podido contactar con la tienda. No se ha cobrado nada; inténtalo más tarde.",
   "nothingToRestore": "Nada que restaurar en esta cuenta.",
   "pending": "La tienda todavía lo está procesando. Aquí no hay nada más que hacer: llegará solo, y Restaurar lo recogerá si antes cierras el juego.",
