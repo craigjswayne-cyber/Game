@@ -1968,9 +1968,17 @@ function Live() {
                   hover a tooltip to find that out - so the label says it */}
               <span className="l10-label">{t(live ? 'matchday.penPossLabel' : 'matchday.penAwaiting')}</span>
               <div className="l10-bar" title={t('matchday.ballTitle')} style={live ? undefined : { opacity: .35 }}>
-                <div className="l10-home" style={{ width: `${Math.round(share * 100)}%`, background: homeC[0] }} />
-                <div className="l10-away" style={{ background: awayC[0] }} />
-                <div className="momo-needle" style={{ left: `${50 + ctx.momo * 44}%` }} />
+                {/* away is the whole bar; home is drawn over it and scaled. See
+                    .l10-fills in theme.css for why this is not a flex row any
+                    more - a scaled box does not push its sibling, and transform
+                    is the only part of this the compositor can animate alone. */}
+                <div className="l10-fills">
+                  <div className="l10-away" style={{ background: awayC[0] }} />
+                  <div className="l10-home" style={{ transform: `scaleX(${share})`, background: homeC[0] }} />
+                </div>
+                <div className="momo-track" style={{ transform: `translateX(${50 + ctx.momo * 44}%)` }}>
+                  <div className="momo-needle" />
+                </div>
               </div>
               <span className="l10-pens" title={t('matchday.pensTitle')}>
                 <b style={{ color: penC(ctx.away.consPens) }}>{ctx.away.consPens}</b> ⚠
