@@ -850,10 +850,35 @@ PHASE: Rugby Manager
 
 ### Subtitle (30 max)
 
+<!-- WHY THIS, AND WHY IT IS THE SAME IN BOTH SECTIONS.
+     Apple indexes Name + Subtitle + Keywords as ONE pool: a word repeated
+     across them buys nothing. Measured against the keywords line, the two
+     subtitles this file used to carry were close to worthless.
+
+       "Rugby union management sim"  26 chars, and every one of them already
+                                     indexed. rugby, union, management and sim
+                                     are all in the name or the keywords. It
+                                     ranked for nothing new at all.
+       "Build a rugby dynasty"       adds only "build" and "dynasty", and
+                                     wastes five characters on "rugby".
+
+     Worse, this file gave BOTH, in two different App Store sections, so the
+     answer depended on which one you scrolled to. That is a plausible reason
+     the live field ended up empty, which is what a cold ASO email claimed on
+     13 Sep 2026 - the pitch was junk, the finding was not.
+
+     The women's game is the one thing this app has that nothing else in the
+     category does - six leagues, 64 clubs, its own continental cup and Test
+     calendar, half the product - and it appeared in no indexed field anywhere.
+     This adds men's, women's and squads, spends four characters on "club", and
+     reads as a description rather than a keyword list, which is what Apple
+     review wants to see. Naming both worlds is deliberate: "women's rugby
+     manager" would narrow the listing, this widens it. -->
+
 ```
-Rugby union management sim
+Men's and women's club squads
 ```
-*(26)*
+*(29)*
 
 ### Promotional text (170 max)
 
@@ -928,9 +953,9 @@ Menez un club du bas vers le sommet. Un manager de rugby profond, hors ligne.
 ### Sous-titre App Store (30)
 
 ```
-Simulation de rugby
+Clubs masculins et féminins
 ```
-*(19)*
+*(27)*
 
 ### Texte promotionnel (170)
 
@@ -1245,10 +1270,13 @@ PHASE: Rugby Manager
 
 ### Subtitle (30 max)
 
+The same line as the App Store section above. There is deliberately only one
+answer to this question now; see the note there for why.
+
 ```
-Build a rugby dynasty
+Men's and women's club squads
 ```
-*(21)*
+*(29)*
 
 ### Promotional text (170 max) - can be changed without a new build
 
