@@ -17,10 +17,15 @@
     "testing and Play would not take the bundle a second time. Upload 30 to",
     "Closed testing and nowhere else, then PROMOTE it if another track needs",
     "it; a second upload of the same bundle cannot reuse the number.",
+    "31 IS 1.6.0, FOR THE CLOSED TRACK. 1.5.9 was finished and never uploaded:",
+    "its purchase-path fixes merged into 1.6.0 rather than spending a version",
+    "code of their own, so no code was burned on a release that did not ship.",
+    "Upload 31 to Closed testing and nowhere else, then PROMOTE it if another",
+    "track needs it.",
     "versionName comes from the root package.json.",
     "billingLibrary is the Play Billing Library version PhaseBilling.java is",
     "written against. Play refuses anything below 8.0.0 (learned 4 Sep 2026)."
   ],
-  "versionCode": 30,
+  "versionCode": 31,
   "billingLibrary": "8.0.0"
 }

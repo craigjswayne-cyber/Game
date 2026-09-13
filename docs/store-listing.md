@@ -147,6 +147,29 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.6.0, Play version code 31
+
+Purchases that cannot be lost, charged twice or quietly refunded, and old
+careers whose dates finally land on the right week.
+
+```
+<en-GB>
+Purchases are safe end to end: nothing is charged without being granted, nothing is granted twice, and a purchase that takes too long no longer reads as refused. Android consumables are acknowledged, so they are no longer refunded after three days. Careers begun before 1.5.1 had a date fault: any loan, contract or ban clock falling on a season's last week came back three weeks late. Old saves convert correctly now. The women's world also calls its competitions by their own names.
+</en-GB>
+<fr-FR>
+Les achats sont fiables de bout en bout : rien n'est débité sans être crédité, rien ne l'est deux fois, et un achat trop lent ne s'affiche plus comme refusé. Les consommables Android sont acquittés et ne sont plus remboursés au bout de trois jours. Les carrières antérieures à la 1.5.1 avaient un défaut de dates : toute échéance tombant la dernière semaine d'une saison revenait trois semaines en retard. Et le monde féminin nomme enfin ses compétitions par leur nom.
+</fr-FR>
+<es-ES>
+Las compras son seguras de principio a fin: nada se cobra sin concederse, nada se concede dos veces y una compra que tarda ya no aparece como rechazada. Los consumibles de Android se confirman, así que dejan de reembolsarse a los tres días. Las carreras anteriores a la 1.5.1 tenían un fallo de fechas: cualquier plazo que cayera en la última semana de una temporada volvía tres semanas tarde. Y el mundo femenino ya llama a sus competiciones por su nombre.
+</es-ES>
+<it-IT>
+Gli acquisti sono sicuri dall'inizio alla fine: nulla viene addebitato senza essere accreditato, nulla due volte, e un acquisto lento non risulta più rifiutato. I consumabili Android vengono confermati e non sono più rimborsati dopo tre giorni. Le carriere precedenti alla 1.5.1 avevano un difetto nelle date: ogni scadenza che cadeva nell'ultima settimana di stagione tornava con tre settimane di ritardo. E il mondo femminile chiama le sue competizioni col loro nome.
+</it-IT>
+<ja-JP>
+購入処理が最初から最後まで安全になった。付与されずに課金されることはなく、二重に付与されることもなく、時間のかかった購入が「拒否」と表示されることもなくなった。Androidの消費型アイテムは承認されるようになり、3日後に返金されることはなくなった。1.5.1より前に始めたキャリアには日付の不具合があった。シーズン最終週に当たる契約・レンタル・出場停止の期限が3週間ずれて戻ってきていた。古いセーブの日付はすべて正しく変換される。女子の世界も自分たちの大会を正しい名前で呼ぶようになった。
+</ja-JP>
+```
+
 ### What's new (500 max) - v1.5.8, Play version code 30
 
 Discipline stops going the manager's way, the women's transfer market opens
@@ -1270,6 +1293,39 @@ Optional in-app purchases support development and add conveniences. Nothing in t
 rugby,manager,management,sim,union,club,tactics,transfers,season,league,coach,sport,offline,career
 ```
 *(98)*
+
+### What's new (4000 max) - for 1.6.0
+
+```
+1.5.9 WAS NEVER RELEASED. Its work ships here, so this release carries two halves: a purchase path rebuilt after three reviews, and the answer to a full code audit.
+
+PURCHASES YOU CANNOT LOSE
+
+Nine faults were found on the money path, every one of them past the point where a payment stops being reversible.
+
+A purchase is banked before anything is granted. A closed sale leaves a receipt, not a credit, and one product could be paid for once and granted twice because the door built the reward straight off the sale. One ground, bought once, built twice.
+
+A slow store no longer looks like a refusal. A purchase that took too long to answer reported itself as refused, which invites a second payment for something already bought. It says pending now, because a timeout proves nothing either way.
+
+Consumables on Android are acknowledged. They were not, so Google refunded them automatically after three days, and two of those refunds reached real players.
+
+The bridge answers properly. Both store bridges used to return nothing at all, so a failure and a success were indistinguishable. They now report landed, definitely not landed, or nothing proved, and the game only spends a credit it can actually see. A credit write that fails says so instead of swallowing it after an irreversible spend.
+
+OLD CAREERS GET THEIR DATES BACK
+
+A season has been 48 weeks since 1.5.1, and saves written before that are converted once when they load. The conversion was wrong on one week in every forty-five. Weeks are numbered from one, so the last week of an old season read as the first week of the next, and every clock stamped on it came back three weeks late: a loan due home, a contract running down, a suspension, the date a player signed.
+
+Every date in an old save converts correctly now, and the conversion is checked against 270 dates in each of the fourteen fields it touches. If your career began before 1.5.1, this repairs it on the next load.
+
+THE WOMEN'S WORLD, IN ITS OWN WORDS
+
+Nine pieces of text in a women's save named the men's competition, including a finals-weekend report announcing a trophy that does not exist in that world. Corrected in all six languages, and the two worlds are now held apart by a check that runs on every build.
+
+UNDER THE FLOOR
+
+Six new test harnesses ship with this release, covering things the game had always got right and never proved: that a club belongs to exactly one league and every promotion is paired with a relegation, that a player sits in exactly one squad through every loan and transfer, that a transfer moves money rather than creating it, and that the academy's age gates open and close where they should.
+```
+*(2658)*
 
 ### What's new (4000 max) - for 1.5.8
 
