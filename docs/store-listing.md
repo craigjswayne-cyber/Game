@@ -147,6 +147,52 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.6.2, Play version code 31
+
+Back goes back, tapping stops waiting on a five-megabyte save, and purchases
+that cannot be lost, charged twice or quietly refunded.
+
+```
+<en-GB>
+The Back button goes back now instead of closing the app. Tapping is faster everywhere: the game no longer rewrites your whole career every time you touch something. Purchases are safe end to end, with nothing charged without being granted and nothing granted twice, and Android consumables are no longer refunded after three days. Careers begun before 1.5.1 had a date fault: any clock on a season's last week came back three weeks late. Old saves convert correctly now.
+</en-GB>
+<fr-FR>
+Le bouton Retour revient en arrière au lieu de fermer l'application. L'interface répond plus vite : le jeu ne réécrit plus toute votre carrière à chaque appui. Les achats sont fiables de bout en bout : rien n'est débité sans être crédité, rien ne l'est deux fois, et les consommables Android ne sont plus remboursés au bout de trois jours. Les carrières antérieures à la 1.5.1 avaient un défaut de dates : toute échéance tombant la dernière semaine d'une saison revenait trois semaines en retard.
+</fr-FR>
+<es-ES>
+El botón Atrás ahora retrocede en vez de cerrar la aplicación. Todo responde más rápido: el juego ya no reescribe tu carrera entera cada vez que tocas algo. Las compras son seguras de principio a fin: nada se cobra sin concederse, nada se concede dos veces y los consumibles de Android ya no se reembolsan a los tres días. Las carreras anteriores a la 1.5.1 tenían un fallo de fechas: cualquier plazo que cayera en la última semana de una temporada volvía tres semanas tarde.
+</es-ES>
+<it-IT>
+Il tasto Indietro ora torna indietro invece di chiudere l'app. Tutto risponde più in fretta: il gioco non riscrive più l'intera carriera a ogni tocco. Gli acquisti sono sicuri dall'inizio alla fine: nulla viene addebitato senza essere accreditato, nulla due volte, e i consumabili Android non vengono più rimborsati dopo tre giorni. Le carriere precedenti alla 1.5.1 avevano un difetto nelle date: ogni scadenza che cadeva nell'ultima settimana di stagione tornava con tre settimane di ritardo.
+</it-IT>
+<ja-JP>
+戻るボタンがアプリを閉じずに前の画面へ戻るようになった。操作の反応も速くなった。何かを押すたびにキャリア全体を書き直すことがなくなったためだ。購入処理は最初から最後まで安全になり、付与されずに課金されることも、二重に付与されることもなく、Androidの消費型アイテムが3日後に返金されることもなくなった。1.5.1より前に始めたキャリアには日付の不具合があり、シーズン最終週に当たる期限が3週間ずれて戻ってきていた。古いセーブは正しく変換される。
+</ja-JP>
+```
+
+### What's new (500 max) - v1.6.0 - NEVER SHIPPED, folded into 1.6.2
+
+Purchases that cannot be lost, charged twice or quietly refunded, and old
+careers whose dates finally land on the right week.
+
+```
+<en-GB>
+Purchases are safe end to end: nothing is charged without being granted, nothing is granted twice, and a purchase that takes too long no longer reads as refused. Android consumables are acknowledged, so they are no longer refunded after three days. Careers begun before 1.5.1 had a date fault: any loan, contract or ban clock falling on a season's last week came back three weeks late. Old saves convert correctly now. The women's world also calls its competitions by their own names.
+</en-GB>
+<fr-FR>
+Les achats sont fiables de bout en bout : rien n'est débité sans être crédité, rien ne l'est deux fois, et un achat trop lent ne s'affiche plus comme refusé. Les consommables Android sont acquittés et ne sont plus remboursés au bout de trois jours. Les carrières antérieures à la 1.5.1 avaient un défaut de dates : toute échéance tombant la dernière semaine d'une saison revenait trois semaines en retard. Et le monde féminin nomme enfin ses compétitions par leur nom.
+</fr-FR>
+<es-ES>
+Las compras son seguras de principio a fin: nada se cobra sin concederse, nada se concede dos veces y una compra que tarda ya no aparece como rechazada. Los consumibles de Android se confirman, así que dejan de reembolsarse a los tres días. Las carreras anteriores a la 1.5.1 tenían un fallo de fechas: cualquier plazo que cayera en la última semana de una temporada volvía tres semanas tarde. Y el mundo femenino ya llama a sus competiciones por su nombre.
+</es-ES>
+<it-IT>
+Gli acquisti sono sicuri dall'inizio alla fine: nulla viene addebitato senza essere accreditato, nulla due volte, e un acquisto lento non risulta più rifiutato. I consumabili Android vengono confermati e non sono più rimborsati dopo tre giorni. Le carriere precedenti alla 1.5.1 avevano un difetto nelle date: ogni scadenza che cadeva nell'ultima settimana di stagione tornava con tre settimane di ritardo. E il mondo femminile chiama le sue competizioni col loro nome.
+</it-IT>
+<ja-JP>
+購入処理が最初から最後まで安全になった。付与されずに課金されることはなく、二重に付与されることもなく、時間のかかった購入が「拒否」と表示されることもなくなった。Androidの消費型アイテムは承認されるようになり、3日後に返金されることはなくなった。1.5.1より前に始めたキャリアには日付の不具合があった。シーズン最終週に当たる契約・レンタル・出場停止の期限が3週間ずれて戻ってきていた。古いセーブの日付はすべて正しく変換される。女子の世界も自分たちの大会を正しい名前で呼ぶようになった。
+</ja-JP>
+```
+
 ### What's new (500 max) - v1.5.8, Play version code 30
 
 Discipline stops going the manager's way, the women's transfer market opens
@@ -804,10 +850,35 @@ PHASE: Rugby Manager
 
 ### Subtitle (30 max)
 
+<!-- WHY THIS, AND WHY IT IS THE SAME IN BOTH SECTIONS.
+     Apple indexes Name + Subtitle + Keywords as ONE pool: a word repeated
+     across them buys nothing. Measured against the keywords line, the two
+     subtitles this file used to carry were close to worthless.
+
+       "Rugby union management sim"  26 chars, and every one of them already
+                                     indexed. rugby, union, management and sim
+                                     are all in the name or the keywords. It
+                                     ranked for nothing new at all.
+       "Build a rugby dynasty"       adds only "build" and "dynasty", and
+                                     wastes five characters on "rugby".
+
+     Worse, this file gave BOTH, in two different App Store sections, so the
+     answer depended on which one you scrolled to. That is a plausible reason
+     the live field ended up empty, which is what a cold ASO email claimed on
+     13 Sep 2026 - the pitch was junk, the finding was not.
+
+     The women's game is the one thing this app has that nothing else in the
+     category does - six leagues, 64 clubs, its own continental cup and Test
+     calendar, half the product - and it appeared in no indexed field anywhere.
+     This adds men's, women's and squads, spends four characters on "club", and
+     reads as a description rather than a keyword list, which is what Apple
+     review wants to see. Naming both worlds is deliberate: "women's rugby
+     manager" would narrow the listing, this widens it. -->
+
 ```
-Rugby union management sim
+Men's and women's club squads
 ```
-*(26)*
+*(29)*
 
 ### Promotional text (170 max)
 
@@ -839,10 +910,13 @@ Consent is gathered through Google's UMP form before any advert is requested,
 App Tracking Transparency is requested before the advertising identifier is
 used, and Pro Manager removes every advert permanently.
 
-There are nine optional in-app purchases, none of which is required to play and
-none of which affects any other manager's game. Four are permanent unlocks
-(Support the game; The International Stage; The Estate; The Owner's Charter) and
-five are consumable club funding (Full Fitness, and four board injections). The
+There are eleven optional in-app purchases, none of which is required to play
+and none of which affects any other manager's game. Four are permanent unlocks
+(Pro Manager, which removes the adverts; Become an International Coach; Max
+Upgrade Facilities; Remove the salary cap) and seven are consumable (Full
+Fitness, four tiers of board funding, a repeat of the facilities upgrade for a
+manager who moves club, and Support the game, which is a tip to the developer
+and changes nothing in the game). The
 game is complete without every one of them: they unlock club-management
 conveniences inside a single-player save, and the simulation itself is identical
 either way. A Restore button sits on the same screen (Manager menu → About &
@@ -879,9 +953,9 @@ Menez un club du bas vers le sommet. Un manager de rugby profond, hors ligne.
 ### Sous-titre App Store (30)
 
 ```
-Simulation de rugby
+Clubs masculins et féminins
 ```
-*(19)*
+*(27)*
 
 ### Texte promotionnel (170)
 
@@ -1196,10 +1270,13 @@ PHASE: Rugby Manager
 
 ### Subtitle (30 max)
 
+The same line as the App Store section above. There is deliberately only one
+answer to this question now; see the note there for why.
+
 ```
-Build a rugby dynasty
+Men's and women's club squads
 ```
-*(21)*
+*(29)*
 
 ### Promotional text (170 max) - can be changed without a new build
 
@@ -1267,6 +1344,86 @@ Optional in-app purchases support development and add conveniences. Nothing in t
 rugby,manager,management,sim,union,club,tactics,transfers,season,league,coach,sport,offline,career
 ```
 *(98)*
+
+### What's new (4000 max) - for 1.6.2
+
+```
+1.5.9, 1.6.0 AND 1.6.1 WERE NEVER RELEASED. All three ship here, so this release carries a purchase path rebuilt after three reviews, the answer to a full code audit, and two faults a tester found in the app itself.
+
+THE BACK BUTTON GOES BACK
+
+It had never worked. Pressing Back closed the whole app, from any depth, in every packaged build the game has ever had. It returns you to the previous screen now, and at the title screen it still leaves, which is what Back on a title screen is for. A match recovered after a reload will not close on a stray thumb.
+
+TAPPING STOPS WAITING FOR THE DISK
+
+A career save is five megabytes on the first Monday and seven after five seasons, and the game was writing the whole thing every time you touched anything: twenty-six different actions, each rewriting an entire career to move a bookmark. On a phone that is most of a second, every tap, which is why the game felt slow from the first screen rather than only in a long save.
+
+It writes once when you pause now instead of once per tap, and again on the way out when you leave. Nothing is saved less. It is saved less often.
+
+Three things that were never saved at all now are: your answer to a press question, which could be lost and asked again; your shortlist; and whether you watch a competition in full or in highlights.
+
+The possession bar and the momentum needle also move smoothly rather than juddering, for the same underlying reason and one of their own.
+
+PURCHASES YOU CANNOT LOSE
+
+Nine faults on the money path, every one past the point where a payment stops being reversible.
+
+A purchase is banked before anything is granted. One product could be paid for once and granted twice, because the door built the reward straight off the sale: one ground, bought once, built twice.
+
+A slow store no longer looks like a refusal. A purchase that took too long to answer reported itself as refused, which invites a second payment for something already bought. It says pending now, because a timeout proves nothing either way.
+
+Consumables on Android are acknowledged. They were not, so Google refunded them automatically after three days, and two of those refunds reached real players.
+
+And when a store will not sell you something, the game says why properly. It used to blame the product not being active or your account not being a tester, and never mentioned the most common reason of all, which is that the item is not on sale in your country.
+
+OLD CAREERS GET THEIR DATES BACK
+
+A season has been 48 weeks since 1.5.1, and older saves are converted once when they load. The conversion was wrong on one week in every forty-five: weeks are numbered from one, so the last week of an old season read as the first week of the next, and every clock stamped on it came back three weeks late. A loan due home, a contract running down, a suspension, the date a player signed.
+
+Every date converts correctly now, checked against 270 dates in each of the fourteen fields it touches. If your career began before 1.5.1, this repairs it on the next load.
+
+THE WOMEN'S WORLD, IN ITS OWN WORDS
+
+Nine pieces of text in a women's save named the men's competition, including a finals-weekend report announcing a trophy that does not exist in that world. Corrected in all six languages.
+
+UNDER THE FLOOR
+
+Eight new test harnesses ship with this release, covering things the game had always got right and never proved: that a club belongs to exactly one league and every promotion is paired with a relegation, that a player sits in exactly one squad through every loan and transfer, that a transfer moves money rather than creating it, that the academy's age gates open and close where they should, and that a career never loses the last thing you did.
+```
+*(3730)*
+
+### What's new (4000 max) - for 1.6.0 - NEVER SHIPPED, folded into 1.6.2
+
+```
+1.5.9 WAS NEVER RELEASED. Its work ships here, so this release carries two halves: a purchase path rebuilt after three reviews, and the answer to a full code audit.
+
+PURCHASES YOU CANNOT LOSE
+
+Nine faults were found on the money path, every one of them past the point where a payment stops being reversible.
+
+A purchase is banked before anything is granted. A closed sale leaves a receipt, not a credit, and one product could be paid for once and granted twice because the door built the reward straight off the sale. One ground, bought once, built twice.
+
+A slow store no longer looks like a refusal. A purchase that took too long to answer reported itself as refused, which invites a second payment for something already bought. It says pending now, because a timeout proves nothing either way.
+
+Consumables on Android are acknowledged. They were not, so Google refunded them automatically after three days, and two of those refunds reached real players.
+
+The bridge answers properly. Both store bridges used to return nothing at all, so a failure and a success were indistinguishable. They now report landed, definitely not landed, or nothing proved, and the game only spends a credit it can actually see. A credit write that fails says so instead of swallowing it after an irreversible spend.
+
+OLD CAREERS GET THEIR DATES BACK
+
+A season has been 48 weeks since 1.5.1, and saves written before that are converted once when they load. The conversion was wrong on one week in every forty-five. Weeks are numbered from one, so the last week of an old season read as the first week of the next, and every clock stamped on it came back three weeks late: a loan due home, a contract running down, a suspension, the date a player signed.
+
+Every date in an old save converts correctly now, and the conversion is checked against 270 dates in each of the fourteen fields it touches. If your career began before 1.5.1, this repairs it on the next load.
+
+THE WOMEN'S WORLD, IN ITS OWN WORDS
+
+Nine pieces of text in a women's save named the men's competition, including a finals-weekend report announcing a trophy that does not exist in that world. Corrected in all six languages, and the two worlds are now held apart by a check that runs on every build.
+
+UNDER THE FLOOR
+
+Six new test harnesses ship with this release, covering things the game had always got right and never proved: that a club belongs to exactly one league and every promotion is paired with a relegation, that a player sits in exactly one squad through every loan and transfer, that a transfer moves money rather than creating it, and that the academy's age gates open and close where they should.
+```
+*(2658)*
 
 ### What's new (4000 max) - for 1.5.8
 

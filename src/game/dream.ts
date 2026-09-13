@@ -30,7 +30,28 @@
 import { LEAGUE_TIER } from './model'
 import type { GameState } from './model'
 import { t, tIn, type Vars } from './i18n'
-import { isWomensId, type Gender } from './gender'
+import { genderOf, genderOfId, isWomensId, type Gender } from './gender'
+
+/**
+ * THE CONTINENTAL COMPETITION HAS A DIFFERENT NAME IN EACH WORLD, AND THE
+ * DREAMS THAT NAME IT HAVE TO SAY THE RIGHT ONE.
+ *
+ * Both worlds build a competition with the id 'cc' - deliberately, so every
+ * dream, award and trophy count can mean "the continental cup of this game" -
+ * but the men's is the Continental Cup and the women's is the Hemispheric
+ * Championship, and two dreams had the men's name written into their English.
+ * A women's manager was offered "Win the Continental Cup" for a competition
+ * her world does not call that, and "Win the league and Europe" for a
+ * tournament that spans the Pacific and the Celtic provinces and has nothing
+ * to do with Europe at all. Reported from a wizard screenshot at Loughborough.
+ *
+ * Returned as a KEY rather than a name, so the fragment is translated like
+ * everything else: `{cup_k}` in a dream string is looked up in the reader's
+ * language (i18n.ts fill()). Handing over the English name would put English
+ * back inside a French sentence, which is the one thing this whole mechanism
+ * exists to stop.
+ */
+const cupKey = (gender: Gender): string => (gender === 'w' ? 'dream.cupWomen' : 'dream.cupMen')
 
 /** What the wizard knows when it offers the choice: no GameState exists yet. */
 export interface DreamContext {
@@ -133,6 +154,7 @@ export const DREAMS: DreamDef[] = [
   {
     id: 'europe',
     titleK: 'dream.europe', titleLowerK: 'dream.europeLower',
+    titleVars: ctx => ({ cup_k: cupKey(genderOfId(ctx.clubId)) }),
     blurbK: 'dream.europeBlurb',
     needs: ['cc'],
     applies: () => true,
@@ -153,7 +175,7 @@ export const DREAMS: DreamDef[] = [
   {
     id: 'double',
     titleK: 'dream.double', titleLowerK: 'dream.doubleLower',
-    titleVars: ctx => ({ club: ctx.clubName }),
+    titleVars: ctx => ({ club: ctx.clubName, cup_k: cupKey(genderOfId(ctx.clubId)) }),
     blurbK: 'dream.doubleBlurb',
     needs: ['cc'],
     applies: ctx => (LEAGUE_TIER[ctx.leagueId] ?? 1) === 1,
@@ -168,6 +190,10 @@ export const DREAMS: DreamDef[] = [
         noteK: have === 2 ? 'dream.doubleBoth'
           : have === 1 ? (league ? 'dream.doubleLeagueDone' : 'dream.doubleEuropeDone')
           : 'dream.doubleNeither',
+        // the note names the cup too, and a note travels on its own into the
+        // Home card - so it carries the fragment rather than relying on the
+        // title's copy of it
+        noteV: { cup_k: cupKey(genderOf(state)) },
         done: have === 2,
       }
     },

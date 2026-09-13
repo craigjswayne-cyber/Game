@@ -1782,22 +1782,56 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .last10 .l10-bar {
   position: relative; flex: 1; height: 8px; border-radius: 4px;
-  overflow: visible; display: flex;
+  overflow: visible;
   background: rgba(255, 255, 255, .1);
   border: 1px solid rgba(0, 0, 0, .25);
 }
-.last10 .l10-home { border-radius: 4px 0 0 4px; transition: width 1s cubic-bezier(.45, .05, .35, 1); opacity: .85; }
-.last10 .l10-away { flex: 1; border-radius: 0 4px 4px 0; opacity: .85; }
+/* THE BAR AND THE NEEDLE MOVE ON THE COMPOSITOR, NOT THE MAIN THREAD.
+   Reported by a closed-testing tester on 13 Sep 2026: "the graphs/charts that
+   update over time do not animate smoothly ... the graph appears to lag,
+   stutter, or update in small jumps rather than transitioning fluidly."
+
+   These were `transition: width` on the fill and `transition: left` on the
+   needle. Both are LAYOUT properties: every frame of them is computed on the
+   main thread, so they stutter whenever the main thread is busy - and during a
+   live match it was very busy indeed, because until the save queue landed every
+   state change also cost a 74-126 ms structured clone of the whole career. A
+   one-second transition sharing a thread with that does not have many frames
+   left to play with.
+
+   transform is the one thing the compositor can animate on its own. scaleX on
+   the fill and translateX on the needle's track are the same movement with no
+   layout in them, so they keep running smoothly even while the engine ticks.
+
+   The fills are absolutely positioned rather than flexed because a scaled box
+   does not push its sibling: away is the whole bar and home is drawn over it.
+   The rounding lives on .l10-fills so scaleX cannot stretch a corner, and the
+   needle stays outside that clip because it rides above the bar. */
+.last10 .l10-fills {
+  position: absolute; inset: 0; overflow: hidden; border-radius: 4px;
+}
+.last10 .l10-home {
+  position: absolute; inset: 0; opacity: .85;
+  transform-origin: left center;
+  transition: transform 1s cubic-bezier(.45, .05, .35, 1);
+}
+.last10 .l10-away { position: absolute; inset: 0; opacity: .85; }
+/* a full-bar-width track, so a percentage translate is a percentage OF THE BAR
+   rather than of the four-pixel needle */
+.last10 .momo-track {
+  position: absolute; inset: 0; pointer-events: none;
+  transition: transform .9s cubic-bezier(.45, .05, .35, 1);
+}
 .last10 .l10-pens { color: rgba(255, 255, 255, .7); font-weight: 600; white-space: nowrap; }
 .last10 .l10-pens b { font-family: var(--cond); font-size: 12px; }
 .momo-needle {
-  position: absolute; top: -2.5px;
+  position: absolute; top: -2.5px; left: 0;
   width: 4px; height: 12px;
   margin-left: -2px;
   background: var(--gold-fill);
   border: 1px solid rgba(0, 0, 0, .35);
   border-radius: 2px;
-  transition: left .9s cubic-bezier(.45, .05, .35, 1);
+  /* the movement is on .momo-track above; this only draws the needle */
   box-shadow: 0 1px 4px rgba(0, 0, 0, .4);
 }
 .pitch .pdot.cap { outline: 1.5px solid var(--gold-fill); outline-offset: 1px; }
