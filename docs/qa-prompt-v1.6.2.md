@@ -7,6 +7,10 @@ breaks, and leave the repository greener than it found it.
 Everything above "The prompt" is context for whoever is running it. Paste
 everything below the rule into a fresh session.
 
+Its sibling, `docs/audit-prompt-v1.6.2.md`, is the variant that audits and then
+hands the fixes to a second session rather than fixing in place. Use that one
+when the reading and the fixing are meant to be separate jobs.
+
 ## When to run this
 
 Before a store upload, after a merge that touches the engine or the shell, or
