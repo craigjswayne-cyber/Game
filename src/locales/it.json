@@ -3424,7 +3424,7 @@
   "alreadyYours": "È già vostro - niente da ripristinare.",
   "badge": "Sostenitore",
   "cancelled": "Non è stato addebitato nulla.",
-  "refused": "Lo store non ha voluto aprire un acquisto per questo articolo. Non è stato addebitato nulla. Di solito significa che il prodotto non è ancora attivo, o che questo account non è nella lista dei tester della licenza.",
+  "refused": "Lo store non ha voluto aprire un acquisto per questo articolo. Non è stato addebitato nulla. Di solito significa che il prodotto non è in vendita nel tuo paese, che non è ancora attivo, o che questo account non è nell'elenco dei tester con licenza.",
   "error": "Impossibile raggiungere lo store. Non è stato addebitato nulla - riprovate più tardi.",
   "nothingToRestore": "Niente da ripristinare su questo account.",
   "pending": "Lo store lo sta ancora elaborando. Non c'è altro da fare qui - arriva da solo, e Ripristina lo recupererà se prima chiudete il gioco.",
