@@ -36,6 +36,24 @@ export interface RawPlayer {
   gk?: boolean
   /** Current or recent test international */
   intl?: boolean
+  /**
+   * TRUE IF THIS NAME IS INVENTED, absent if the name is a real player's.
+   *
+   * The real/generated split used to exist only as a sentence at the top of
+   * each data file plus a convention that a club's real players come first.
+   * Prose cannot be checked, so it drifted: w_champ.ts was born claiming ALL
+   * 600 PLAYERS ARE GENERATED in its header while its own per-club comments
+   * claimed 98 of them were real, and docs/womens-game.md carried a third set
+   * of numbers again. Nothing could tell which was true because nothing in the
+   * data said anything at all.
+   *
+   * So the claim now lives on the row it is about, and scripts/genprobe.ts
+   * holds every league's counts against it. Absent means real, because a real
+   * name is the normal case and the 1,255 of them stay untouched; the 841
+   * invented ones carry the flag. A row that gains or loses one without the
+   * probe's table being updated in the same commit fails the suite.
+   */
+  gen?: true
 }
 
 export interface RawClub {
