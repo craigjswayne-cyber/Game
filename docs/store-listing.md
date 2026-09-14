@@ -1181,6 +1181,11 @@ of this stops being true.
 | Third-party SDKs | none |
 | Ads | **No ads** |
 
+> **SUPERSEDED - DO NOT ANSWER FROM THIS TABLE.** It describes the build before
+> adverts, and adverts shipped in 1.3.0 on 5 Sep 2026. The live answers are the
+> replacement table immediately below. Kept for the record of what was true
+> when, not as an instruction.
+
 ### v1.1.0 replacement (owner's decision, 25 Aug 2026 - monetisation-spec.md §7)
 
 These answers replace the table above IN THE SAME COMMIT that puts the
@@ -1232,8 +1237,44 @@ Answer **No** to "Does your app use encryption?", or set in Info.plist:
 
 ## Apple age rating
 
-All categories "None". Result: **4+**. If shipping the Supporter purchase, tick
-"In-App Purchases" in the listing metadata.
+**ADVERTISING: YES.** Under *Capabilities*. Everything else "None".
+
+WHY THIS LINE IS IN CAPITALS. It used to read "All categories None. Result: 4+"
+and nothing else, and that was true when it was written and false from 1.3.0 on
+5 Sep 2026, the first build with adverts. Nobody came back to it. On 13 Sep 2026
+Apple's automated analysis rejected the 1.6.2 submission before a human looked
+at it:
+
+> An automated analysis of the submission indicates the app may include
+> advertising but you did not select "Yes" for the "Advertising" content
+> descriptor on the Age Rating selection in App Store Connect.
+
+They were right. `packaging/ios/package.json` depends on
+`@capacitor-community/admob`, and `packaging/ios/scaffold.sh` installs the
+advert bridge and the App ID into the iOS project. The iOS build ships adverts,
+the same as the Android one.
+
+The Play side of this file WAS updated when adverts landed - see the "v1.1.0
+replacement" table under Play Data safety, which declares "Contains ads". The
+Apple side was not, and a declaration that is right on one store and stale on
+the other is worse than one that is wrong on both, because the wrong one looks
+maintained.
+
+Apple's own definition of the descriptor, which is why it applies here: "Paid
+promotion of products or services within the app. May include: banner ads,
+video and playable ads, rich media ads, or native ad formats." The game shows a
+banner at the foot of Home and Results and offers optional watch-an-advert
+buttons. Pro Manager removes the banners permanently, which does not change the
+answer - the app still contains advertising for everyone who has not bought it.
+
+WHERE IT LIVES, because it is not on the version page: App Store Connect →
+Apps → the app → sidebar *General* → **App Information** → **Edit** at the top
+→ the descriptors → Save. It is METADATA, not part of the binary, so changing
+it needs no rebuild, no new build number and no re-upload. Fix it and reply to
+the review message.
+
+If shipping the Supporter purchase, tick "In-App Purchases" in the listing
+metadata.
 
 ---
 
