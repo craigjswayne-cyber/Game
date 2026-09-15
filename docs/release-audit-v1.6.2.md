@@ -28,7 +28,11 @@ Every register item and every data row below was addressed in 1.6.3, in the same
 | Data | `RELEGATES` drops `prem`: the English top flight is ringfenced, no relegation playoff is scheduled and the pyramid swap skips it | rollover.ts, season.ts |
 | Not changed | QA-10 (module-level id counter; no reuse was ever observed), QA-20 (a forfeit rule; unreachable above the 18-senior veto), the format simplifications (URC, Super Rugby Pacific, Champions Cup), the four suspected club placements, the women's World Cup cycle | recorded as post-launch |
 
-Version 1.6.3, Play version code 32. Engine suite and browser suite results for the fixed build are recorded at the foot of this document.
+Version 1.6.3, Play version code 32.
+
+Results on the fixed build (commit after 12a0374): engine suite `suite.sh fast` 176 of 176 PASS (`wclashprobe` added; `barrageprobe`, `pyramidprobe`, `basisprobe`, `econprobe`, `chaosprobe`, `upkeepprobe`, `invariants`, `pressroom`, `round25b`, `varietyprobe` and `challengetest` updated for the new money model, the ringfenced Premiership, the real-week arithmetic, or an inbox-cap fragility in the probe itself); `fingerprint` rebaselined once after `bandcheck` held all five bands; `releasesim` 12 seasons PASS including the three new inflation bands (90+ 27 to 71, 85+ 147 to 233, tier gap 32.5 to 18.5); browser suite 57 of 57 PASS against the production build.
+
+**Verdict for 1.6.3: 🟡 RELEASE WITH CONDITIONS.** The four P1s and every P2 are fixed and re-proved. What remains is P3 and below: the documented format simplifications, four suspected club placements not web-verified, the women's World Cup cycle, the module-level id counter, and a forfeit rule for squads below fifteen.
 
 ---
 
