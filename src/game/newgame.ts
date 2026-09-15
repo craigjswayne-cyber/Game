@@ -388,7 +388,16 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
         // reads, so no invented player can be handed either namesake's name
         seenNames.add(key)
         const p = buildPlayer(rp, club.id, seed + club.players.length, 0)
-        p.real = true // written by hand in the data, not by the name generator
+        // Written by hand in the data, not by the name generator - EXCEPT where
+        // the row says otherwise. The women's second tiers are 841 invented
+        // players sitting in the same arrays as the real ones (see RawPlayer.gen),
+        // and this line used to stamp every one of them real. The maternity gate
+        // is `!p.real`, so leave could only ever fall on the generated academy and
+        // squad fill: not one of the 841 was reachable by it, though every one of
+        // them was exactly who it was written for. Ten women's seasons ran 126
+        // leaves before this line changed and 187 after. No men's file carries
+        // `gen`, so nothing in the men's world moves.
+        p.real = !rp.gen
         state.players[p.id] = p
         club.players.push(p.id)
       }

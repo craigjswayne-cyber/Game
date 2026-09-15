@@ -464,16 +464,27 @@ export interface Player {
    * maternity this isnt something for everyone - make sure this is only on
    * fictional players."
    *
-   * That fence is the important half. Every NAMED player in this game is a real,
-   * living person - 1,339 of them in the women's leagues, off the owner's own
-   * squad sheets. Giving one of them a pregnancy the game invented would be
-   * inventing a private life event about a real individual and putting her name
-   * on it. That is not the game's to invent, whatever the simulation gains.
+   * That fence is the important half. 1,255 of the women in this game are real,
+   * living people, off the owner's own squad sheets and the competition team
+   * pages. Giving one of them a pregnancy the game invented would be inventing a
+   * private life event about a real individual and putting her name on it. That
+   * is not the game's to invent, whatever the simulation gains.
    *
    * So the gate is `!p.real`, and it is checked at the one place leave is
    * granted rather than trusted to whoever edits this next. Generated players
    * are nobody, which is exactly what makes them the right ones to model a real
    * career interruption on.
+   *
+   * THIS NOTE USED TO SAY "every NAMED player in this game is a real, living
+   * person - 1,339 of them", and that sentence was the bug. 841 of the women are
+   * invented, the French second tier and the whole English Championship, because
+   * no reachable source carries those squads. newgame.ts stamped `p.real = true`
+   * on everyone who came out of a data file, so the gate saw 2,096 real women and
+   * could choose none of them: leave fell only on the generated academy and squad
+   * fill, never on a league squad player. Ten women's seasons ran 126 leaves
+   * before and 187 after. The data says which is which now (RawPlayer.gen), the
+   * engine reads it, and scripts/genprobe.ts holds the counts so the claim cannot
+   * drift back.
    *
    * `until` is an absolute game-week like Injury.until. `from` is kept so the
    * rollover knows a season was missed and can push the contract out rather

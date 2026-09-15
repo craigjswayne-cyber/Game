@@ -149,21 +149,41 @@ incomplete old one, and the two worlds never meet, so nothing compares them.
 
 ## 7. What is built, and what is not
 
-**Where the players come from.** Six leagues, 64 clubs, 4,208 players at kick-off.
+**Where the players come from.** Six leagues, 64 clubs, 2,096 players in the
+squads, and 4,211 in the built world once the academy and the squad fill are in.
 
-| League | Players | Real | Source |
-|---|---|---|---|
-| PWR | 375 | 375 | owner's spreadsheet |
-| Pacific (Aupiki + Super W) | 279 | 279 | owner's screenshots |
-| Celtic Challenge | 185 | 185 | competition team pages |
-| Élite 1 | 342 | 261 | FFR workbook + three club pages |
-| Élite 2 | 300 | 19 | FFR workbook (one club of ten) |
-| English Championship | 600 | 0 | no list exists that is reachable |
+| League | Players | Real | Generated | Source |
+|---|---|---|---|---|
+| PWR | 375 | 375 | 0 | owner's spreadsheet |
+| Pacific (Aupiki + Super W) | 279 | 279 | 0 | owner's screenshots |
+| Celtic Challenge | 185 | 185 | 0 | competition team pages |
+| Élite 1 | 357 | 300 | 57 | FFR workbook + three club pages |
+| Élite 2 | 300 | 116 | 184 | FFR workbook (one club of ten) |
+| English Championship | 600 | 0 | 600 | no reachable source carries this division |
+| **total** | **2,096** | **1,255** | **841** | |
 
-The two second tiers are where the invented players now live: 881 of the 979.
-That is the honest state of the sources rather than a shortcut, and both files
-say so at the top. They are built the way `champ.ts` and `natl1.ts` build the
-men's lower tiers - real clubs, real towns, squads of nobody in particular.
+The two second tiers are where the invented players live: 784 of the 841. That
+is the honest state of the sources rather than a shortcut. They are built the way
+`champ.ts` and `natl1.ts` build the men's lower tiers - real clubs, real towns,
+squads of nobody in particular.
+
+**This table used to be wrong, and could not be caught being wrong.** It gave
+Élite 1 as 342 players and 261 real when the file held 357 and 300, and Élite 2
+as 19 real when it held 116, because it was written by hand from headers that
+were themselves written by hand. The split now lives on the row as
+`RawPlayer.gen`, `scripts/genprobe.ts` holds every one of these numbers against
+the data, and the suite fails if a squad changes without this table and the
+probe's own changing with it.
+
+**What that flag is for, beyond bookkeeping.** `newgame.ts` used to stamp
+`p.real = true` on every player who came out of a data file, invented or not. The
+maternity gate is `!p.real`, and it is written that way deliberately: giving a
+real, living person a pregnancy the game made up is not the game's to invent. With
+all 2,096 women flagged real, leave could only ever fall on the generated academy
+and squad fill - never on a player in a league squad, however invented she was,
+and the 841 who were the feature's whole point were the 841 it could not reach.
+Measured over ten women's seasons: 126 leaves before, 187 after. It reads
+`RawPlayer.gen` now.
 
 **Measured with both tiers in:** a fresh women's save is 3.34MB and a ten-season
 one 5.37MB, against perfprobe's 12MB ceiling, and a week costs 24ms against the
