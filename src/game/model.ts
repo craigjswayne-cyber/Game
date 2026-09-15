@@ -1407,6 +1407,10 @@ export interface GameState {
   /** absolute week (season*100+week) before which the board will not hear
    *  another facility request - denials cost you the room for a while */
   facilityAskCooldown?: number
+  /** cash released into the transfer allowance this season (treasury.ts,
+   *  1.6.3): a club may release what it holds, once, so the allowance can
+   *  never be pumped past the money behind it. Reset at the rollover. */
+  releasedThisSeason?: number
   /** The board's patience with being asked twice (v1.1.4). One entry per
    *  request door - 'capital' (facilities and the ground, which share their
    *  cooldown) and 'funds' - stamped at each denial. Coming back through a

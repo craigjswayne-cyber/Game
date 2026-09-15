@@ -60,21 +60,21 @@ export function cashReserve(state: GameState): number {
  * injections the store sells landed in the same trap.
  *
  * So releasing money raises the allowance and leaves the balance alone. What
- * can be released is the cash the allowance does not already cover, and the
- * reserve is measured against that same uncommitted cash: the manager can still
- * take the club below its reserve, and still pays for it in confidence.
+ * can be released over a season is the cash in the account, once: the running
+ * total lives in state.releasedThisSeason, and a club cannot release more than
+ * it holds, so the allowance can never be pumped past the money behind it. The
+ * reserve is measured against the balance as it always was: the manager can
+ * still take the club below its reserve, and still pays for it in confidence.
  */
-export function uncommittedCash(state: GameState): number {
-  const club = state.clubs[state.userClubId]
-  if (!club) return 0
-  return club.balance - Math.max(0, club.budget)
+export function releasedSoFar(state: GameState): number {
+  return state.releasedThisSeason ?? 0
 }
 
 export function releasable(state: GameState): number {
   if (state.unemployed) return 0
   const club = state.clubs[state.userClubId]
   if (!club) return 0
-  const free = uncommittedCash(state)
+  const free = club.balance - releasedSoFar(state)
   if (free < RELEASE_STEP) return 0
   // to the step, so the slider lands on round numbers a manager can read
   return Math.floor(free / RELEASE_STEP) * RELEASE_STEP
@@ -86,7 +86,7 @@ export function releasable(state: GameState): number {
 export function belowReserve(state: GameState, amount: number): number {
   const club = state.clubs[state.userClubId]
   if (!club) return 0
-  const after = uncommittedCash(state) - amount
+  const after = club.balance - releasedSoFar(state) - amount
   return Math.max(0, Math.min(amount, cashReserve(state) - after))
 }
 
@@ -121,8 +121,9 @@ export function releaseToBudget(state: GameState, amount?: number): { ok: boolea
   const want = amount == null ? RELEASE_STEP : Math.round(amount)
   const move = Math.max(RELEASE_STEP, Math.min(most, want))
   const under = belowReserve(state, move)
-  // the allowance rises; the cash leaves when a fee is paid (see uncommittedCash)
+  // the allowance rises; the cash leaves when a fee is paid (see releasedSoFar)
   club.budget += move
+  state.releasedThisSeason = releasedSoFar(state) + move
   // THE BOARD MIND, IN PROPORTION. Emptying the wage float to buy players is a
   // real decision with a real cost, charged once here rather than as a rule
   // that refuses. Capped, because this is disquiet rather than a sacking: the

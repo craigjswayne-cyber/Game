@@ -165,7 +165,9 @@ function run(world: 'm' | 'w', club: string, seasons: number) {
     if (bar) { barrages++; checkBarrage(g, bar, label) }
   }
   if (world === 'm') {
-    ok(barrages > 0, `the English trapdoor was played at least once in ${seasons} seasons (${barrages})`)
+    // 1.6.3: the English top flight is ringfenced (RELEGATES, model.ts), so
+    // the trapdoor is never played and nobody moves between prem and champ
+    ok(barrages === 0, `the English trapdoor is ringfenced: no relegation playoff in ${seasons} seasons (${barrages})`)
   }
 }
 

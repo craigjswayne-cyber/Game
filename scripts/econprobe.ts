@@ -112,7 +112,10 @@ if (median > 0 && bal / median > 6) fails.push(`runaway wealth: ${(bal / median)
   const bal0 = club.balance, bud0 = club.budget
   const first = releaseToBudget(t)
   if (!first.ok) fails.push(`a club with surplus cash was refused: ${first.msg}`)
-  if (club.balance !== bal0 - 500_000 || club.budget !== bud0 + 500_000) {
+  // 1.6.3: the budget is an allowance inside the cash, so releasing raises the
+  // allowance and leaves the balance where it is - the cash goes once, when a
+  // fee is paid (treasury.ts, scripts/qa/p1_treasury.ts)
+  if (club.balance !== bal0 || club.budget !== bud0 + 500_000) {
     fails.push(`the slice moved wrong: balance ${bal0} -> ${club.balance}, budget ${bud0} -> ${club.budget}`)
   }
   const second = releaseToBudget(t)
@@ -126,8 +129,8 @@ if (median > 0 && bal / median > 6) fails.push(`runaway wealth: ${(bal / median)
     fails.push(`dipping under the reserve cost the board nothing (${boardBefore} -> ${club.boardConfidence})`)
   }
   // and the pounds add up whichever side of the line they came from
-  if (club.balance + club.budget !== bal0 + bud0) {
-    fails.push(`the ledger does not balance: ${bal0 + bud0} in, ${club.balance + club.budget} out`)
+  if (club.balance !== bal0 || club.budget !== bud0 + 1_500_000) {
+    fails.push(`the ledger does not balance: balance ${bal0} -> ${club.balance}, budget ${bud0} -> ${club.budget} after three slices`)
   }
   // the one refusal left is having nothing to move
   club.balance = 100_000

@@ -80,8 +80,9 @@ export const W_CC_POOL_WEEKS = [8, 11, 18, 19, 22, 23]
 // tier: the manager's own quarter-final, semi-final and final were settled
 // by the AI path while the league game took the Saturday
 // (scripts/qa/wclash.ts: eleven ties across four clubs, one of them a final).
-// 26, 28 and 31 are free for w:pwr, w:pac, w:e1 and w:celt.
-export const W_CC_KO_WEEKS = [26, 28, 31]
+// 28, 31 and 34 are free for w:pwr, w:pac, w:e1 AND w:celt (26 was a Celtic
+// round: scripts/wclashprobe.ts caught it on the first run).
+export const W_CC_KO_WEEKS = [28, 31, 34]
 export const AUTUMN_WEEKS = [13, 14, 15]
 export const SIX_NATIONS_WEEKS = [25, 26, 27, 28, 29]
 export const TRC_WEEKS = [5, 6, 7, 9, 10, 11]
