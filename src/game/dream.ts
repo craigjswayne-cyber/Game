@@ -303,10 +303,10 @@ const WORLD_COMPS: Record<Gender, readonly string[]> = {
   // from the four top tiers - England, France, the Pacific and the Celtic
   // provinces - which restores "Win the Continental Cup" and "Win the league
   // and Europe" to a world that had been offered both and could win neither.
-  // No Shield ('chc'), because there is no second tier in it to feed one, and
-  // no World Championship ('wc'): the women's international calendar is the
-  // Northern Championship and the Southern Four, not a quadrennial tournament.
-  w: ['cc'],
+  // No Shield ('chc'), because there is no second tier in it to feed one. The
+  // World Championship ('wc') arrived in 1.6.4: sixteen nations every fourth
+  // year from 2029, so the world-title dream is winnable in both games.
+  w: ['cc', 'wc'],
 }
 
 export function worldHasComp(gender: Gender, compId: string): boolean {

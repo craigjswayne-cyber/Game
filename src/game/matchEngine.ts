@@ -3791,7 +3791,63 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
 }
 
 /** Simulate a full match in one go (AI fixtures, tests, quick sims). */
+/**
+ * ---- THE WALKOVER (1.6.4) ----
+ *
+ * A club that cannot put ten fit players on the field forfeits: the match is
+ * awarded 28-0 with four tries, the losing side gets nothing. The engine used
+ * to play on with three men and lose 0-82 (scripts/qa/edge.ts), which no
+ * competition on earth would let happen. Ten is the owner's line. Test sides
+ * never forfeit - a nation always finds fifteen - and if both clubs are short
+ * the fixture is scratched as a 0-0 draw with no bonus points.
+ */
+export const FORFEIT_MIN = 10
+export const FORFEIT_SCORE = 28
+export const FORFEIT_TRIES = 4
+
+export function forfeitSide(state: GameState, fx: Fixture): 'home' | 'away' | 'both' | null {
+  const short = (teamId: string) => {
+    const club = state.clubs[teamId]
+    if (!club) return false
+    // academy men count: a club short of seniors drafts them, as the team
+    // sheet already does
+    return availablePlayers(state, club.players).length < FORFEIT_MIN
+  }
+  const h = short(fx.homeId), a = short(fx.awayId)
+  return h && a ? 'both' : h ? 'home' : a ? 'away' : null
+}
+
+export function settleForfeit(state: GameState, fx: Fixture, side: 'home' | 'away' | 'both'): SimResult {
+  const winner = side === 'home' ? fx.awayId : side === 'away' ? fx.homeId : null
+  const loser = side === 'home' ? fx.homeId : side === 'away' ? fx.awayId : null
+  fx.played = true
+  fx.homeScore = winner === fx.homeId ? FORFEIT_SCORE : 0
+  fx.awayScore = winner === fx.awayId ? FORFEIT_SCORE : 0
+  fx.homeTries = winner === fx.homeId ? FORFEIT_TRIES : 0
+  fx.awayTries = winner === fx.awayId ? FORFEIT_TRIES : 0
+  const v = {
+    loser: loser ? teamShort(state, loser) : teamShort(state, fx.homeId),
+    winner: winner ? teamShort(state, winner) : teamShort(state, fx.awayId),
+  }
+  const events: MatchEvent[] = [{
+    min: 0, type: 'FT', teamId: winner ?? fx.homeId, text: tIn('en', 'comm.forfeit', v), k: 'comm.forfeit', v,
+    homeScore: fx.homeScore, awayScore: fx.awayScore,
+  } as unknown as MatchEvent]
+  const mine = fx.homeId === state.userClubId || fx.awayId === state.userClubId
+  if (mine) {
+    fx.events = events
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+      subject: tIn('en', 'news.forfeitSubj', v), body: tIn('en', 'news.forfeit', v),
+      k: 'news.forfeit', v,
+    })
+  }
+  return { events, motmId: null }
+}
+
 export function simMatch(state: GameState, fx: Fixture, rng: Rng, detail: boolean): SimResult {
+  const forfeit = forfeitSide(state, fx)
+  if (forfeit) return settleForfeit(state, fx, forfeit)
   const ctx = beginMatch(state, fx, rng, detail)
   playHalf(state, ctx)
   playHalf(state, ctx)

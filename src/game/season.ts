@@ -23,7 +23,7 @@ import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice } from './ai'
 import { OFFICE_OUTLET, PRESS_KEEP_WEEKS, generatePress } from './media'
 import { debtWeek } from './treasury'
 import { generateGossip } from './gossip'
-import { buildPlayer, playerValue, playerWage } from './attributes'
+import { buildPlayer, playerValue, playerWage, peekPid, resetIds } from './attributes'
 import { recruitmentMeeting, scoutOpponent, weeklyScouting } from './scout'
 import { recordTendency } from './tendency'
 import { disciplineWeek } from './authority'
@@ -633,7 +633,8 @@ export interface Window { start: number; end: number; nations: string[]; size: n
 export function activeWindows(state: GameState): Window[] {
   const out: Window[] = []
   if (state.comps['wc']) {
-    out.push({ start: 1, end: WC_KO_WEEKS[WC_KO_WEEKS.length - 1], nations: state.comps['wc'].teamIds, size: NAT_SQUAD_SIZE })
+    const ko = state.comps['wc'].koWeeks
+    out.push({ start: 1, end: ko[ko.length - 1] ?? WC_KO_WEEKS[WC_KO_WEEKS.length - 1], nations: state.comps['wc'].teamIds, size: NAT_SQUAD_SIZE })
   }
   if (state.comps['trc']) {
     out.push({ start: TRC_WEEKS[0] - 1, end: TRC_WEEKS[TRC_WEEKS.length - 1], nations: ['NZL', 'RSA', 'AUS', 'ARG'], size: NAT_SQUAD_SIZE })
@@ -2089,6 +2090,9 @@ export function processWeekAndAdvance(state: GameState) {
   // last week's back page is last week's: a fresh one is written below if
   // the side plays, and a stale one must never sit over a new week
   const rng = weekRng(state)
+  // never mint below the counter the save carries: a career opened in the
+  // same session as another must not reuse ids the other career freed (1.6.4)
+  resetIds(Math.max(peekPid(), state.pidNext ?? 0))
 
   // ---- A DRAW IS NEWS, AND NEWS GOES OFF ----
   //
@@ -4025,6 +4029,8 @@ If you go, your assistant takes your national side for the duration. Nobody prep
 
   // (derby build-up now lives in the pre-advance block above, with the
   // all-time ledger - the old duplicate beat here was removed)
+  // the counter the save carries, after every mint this week made (1.6.4)
+  state.pidNext = peekPid()
 }
 
 /**

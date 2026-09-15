@@ -6,7 +6,7 @@ import { applyAdminPenalties } from './season'
 import { settleInsolvency } from './insolvency'
 import { ageManager } from './career'
 import { rivalVerdict } from './boss'
-import {absWeek, BASE_YEAR, boardObjective, boardPatience, closeNatTenure, demandCeiling, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, RELEGATES, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId } from './model'
+import {absWeek, BASE_YEAR, boardObjective, boardPatience, closeNatTenure, demandCeiling, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, RELEGATES, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId, worldCupSeasonFor } from './model'
 import { assignPersonality } from './attributes'
 import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildWomensContinentalCup, buildLeague, schedulePreseason, sortTable } from './schedule'
 import { punditPredictions } from './gossip'
@@ -1810,7 +1810,7 @@ export function rebuildSeason(state: GameState) {
   for (const def of LEAGUE_DEFS(genderOf(state))) {
     const teamIds = Object.values(state.clubs).filter(c => c.leagueId === def.id).map(c => c.id)
     state.comps[def.id] = buildLeague(
-      { id: def.id, name: def.name, short: def.short, teams: teamIds, double: def.double, playoffTeams: def.playoffTeams },
+      { id: def.id, name: def.name, short: def.short, teams: teamIds, double: def.double, playoffTeams: def.playoffTeams, shields: def.shields },
       rng, state,
     )
   }
@@ -1825,7 +1825,9 @@ export function rebuildSeason(state: GameState) {
   // wcYear is false in the women's world rather than skipped, because it also
   // gates the "a World Championship season" story further down. A women's
   // career must not be told to plan around a men's World Cup it cannot see.
-  const wcYear = genderOf(state) !== 'w' && isWorldCupSeason(state.season)
+  // each world on its own four-year cycle (1.6.4): the men's tournament in
+  // 2027, 2031 and on, the women's in 2029, 2033 and on
+  const wcYear = worldCupSeasonFor(state)
   if (genderOf(state) !== 'w') {
     state.comps['cc'] = buildChampionsCup(euroSlots.slice(0, 16), rng, state)
     state.comps['chc'] = buildChampionsCup(chcSlots.slice(0, 16), rng, state, { id: 'chc', name: 'Continental Shield', short: 'Continental Shield' })
@@ -1837,7 +1839,7 @@ export function rebuildSeason(state: GameState) {
     // gone at the rollover - along with the two ambitions that name it, in the
     // middle of a save that had already been offered them.
     state.comps['cc'] = buildWomensContinentalCup(rng, state)
-    buildWomensInternationals(rng, state)
+    buildWomensInternationals(rng, state, wcYear)
   }
   schedulePreseason(state, rng)
   // and a fresh A League for whichever league the manager is in NOW - a summer

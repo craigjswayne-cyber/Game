@@ -695,7 +695,9 @@ export function migrate(s: GameState): GameState {
   // cold-started session that loads a save would otherwise mint new player
   // ids from 1, silently overwriting existing players at the next intake.
   const maxPid = Object.keys(s.players).reduce((m, k) => Math.max(m, Number(k)), 0)
-  resetIds(maxPid + 1)
+  // and never below the counter the save carries (1.6.4): an id freed by a
+  // retirement above the highest live one is not handed out again
+  resetIds(Math.max(maxPid + 1, s.pidNext ?? 0))
 
   // leagues added in later builds: inject their clubs & squads so existing
   // careers gain them (fixtures/tables arrive at the next season rebuild)

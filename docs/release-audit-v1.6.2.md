@@ -32,6 +32,20 @@ Version 1.6.3, Play version code 32.
 
 Results on the fixed build (commit after 12a0374): engine suite `suite.sh fast` 176 of 176 PASS (`wclashprobe` added; `barrageprobe`, `pyramidprobe`, `basisprobe`, `econprobe`, `chaosprobe`, `upkeepprobe`, `invariants`, `pressroom`, `round25b`, `varietyprobe` and `challengetest` updated for the new money model, the ringfenced Premiership, the real-week arithmetic, or an inbox-cap fragility in the probe itself); `fingerprint` rebaselined once after `bandcheck` held all five bands; `releasesim` 12 seasons PASS including the three new inflation bands (90+ 27 to 71, 85+ 147 to 233, tier gap 32.5 to 18.5); browser suite 57 of 57 PASS against the production build.
 
+## 1.6.4: the remaining items, resolved
+
+| Item | Change | Proof |
+|---|---|---|
+| URC format | `shieldRoundRobin` (schedule.ts): four regional shields home and away plus everyone else once, 18 rounds, 9 home games each, no double-booking | `scripts/qa/v164` check: rounds 18, games 18..18, home 9..9, 120 pairings of which 24 are derbies |
+| Super Rugby Pacific and Champions Cup | Unchanged, as instructed | |
+| Suspected club placements | Confirmed correct by the owner, unchanged | |
+| Women's World Championship | `isWomensWorldCupSeason` (2029, 2033, ...), `buildWorldCup(rng, state, women)` with sixteen nations in four pools over weeks 2 to 7; autumn and summer Tests skipped that year; call-up window reads the competition's own knockout weeks; the world-title dream is winnable in the women's game | Women's season 3: 16 nations, 4x4 pools, 24 fixtures, champion recorded; season 4 has no tournament |
+| Player id counter | `GameState.pidNext` stamped by newGame and by every week settle; migrate restores the higher of the counter and the highest live id | pidNext carried after a settle (6774) |
+| Forfeit rule | `forfeitSide` / `settleForfeit` (matchEngine.ts): fewer than ten available players concedes 28-0 with four tries; both short is a scratched 0-0; nations never forfeit; the manager's own walkover goes through the assistant's path and the inbox | new suite probe `scripts/forfeitprobe.ts` |
+| Women's squad reconciliation | Branch `claude/womens-squad-reconciliation-6ur7gh` (083774b) merged: `RawPlayer.gen` marks the 841 invented women, `p.real` reads it, maternity leave can now reach them; `scripts/genprobe.ts` pins 1,255 real and 841 generated | genprobe PASS after the merge |
+
+Version 1.6.4, Play version code 33.
+
 **Verdict for 1.6.3: 🟡 RELEASE WITH CONDITIONS.** The four P1s and every P2 are fixed and re-proved. What remains is P3 and below: the documented format simplifications, four suspected club placements not web-verified, the women's World Cup cycle, the module-level id counter, and a forfeit rule for squads below fifteen.
 
 ---

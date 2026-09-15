@@ -312,11 +312,18 @@ const EXPECTED: string[] = [
   // WHO IS AT HOME, not to the sim: bandcheck held every band on the pool
   // (53.4 pts, 6.24 tries, 54.5% home, 1.7% draws, 6.4% blowouts) before this
   // was rebaselined. Three of six re-deal with the venue; three hold exactly.
+  //
+  // 1.6.4: the United Provinces Championship plays eighteen rounds (the
+  // shield format, schedule.ts), so the week's AI loop sims more URC games
+  // with different pairings before it reaches the Premiership, and the one
+  // seeded match that follows them in its week re-deals. Mechanical, not a
+  // dial: bandcheck held every band on the pool (53.5 pts, 6.22 tries, 54.0%
+  // home, 2.3% draws, 6.7% blowouts) before this line moved. Five hold exactly.
   'leicester 6-35 gloucester',
   'bath 34-17 saracens',
   'newcastle 16-7 northampton',
   'harlequins 24-31 bristol',
-  'sale 36-27 exeter',
+  'sale 54-27 exeter',
   'bath 62-19 leicester',
 ]
 

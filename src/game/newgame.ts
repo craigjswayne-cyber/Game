@@ -23,7 +23,7 @@ import { W_E2 } from '../data/leagues/w_e2'
 import { W_CHAMP } from '../data/leagues/w_champ'
 import { W, type Gender, staffGender } from './gender'
 import type { Club, GameState, MgrOrigin, NewsItem, Pos } from './model'
-import { buildPlayer, playerValue, resetIds , repriceAcademies } from './attributes'
+import { buildPlayer, playerValue, resetIds , repriceAcademies, peekPid } from './attributes'
 import { regenName } from './nations'
 import { inheritStaff } from './staff'
 import { seedPhilosophies } from './philosophy'
@@ -32,7 +32,7 @@ import { clamp } from './rng'
 import { assistantJudgement, autoSelect } from './matchEngine'
 import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildLeague, schedulePreseason, buildWomensContinentalCup } from './schedule'
 import { punditPredictions } from './gossip'
-import { WEEK_BASIS, CHEM_SLOTS, RELEGATES, boardObjective, chemKey, fmtMoney, initFacilities, isWorldCupSeason } from './model'
+import { WEEK_BASIS, CHEM_SLOTS, RELEGATES, boardObjective, chemKey, fmtMoney, initFacilities, isWorldCupSeason, worldCupSeasonFor } from './model'
 import { seedKnowledge } from './scout'
 import { ensureCaptains } from './analysis'
 import { CLUB_CAPTAINS, sameName } from '../data/captains'
@@ -121,6 +121,8 @@ export interface LeagueDef {
   double: boolean
   playoffTeams: number
   clubs: RawClub[]
+  /** regional shields for the 18-round format (schedule.ts, 1.6.4) */
+  shields?: string[][]
 }
 
 /** The press verdict on a club, judged INSIDE its own league (user, scanning
@@ -198,7 +200,11 @@ const W_LEAGUE_DEFS: () => LeagueDef[] = () => [
 const M_LEAGUE_DEFS: () => LeagueDef[] = () => [
   { id: 'prem', name: 'English Premier Division', short: 'Premier', double: true, playoffTeams: 4, clubs: [...PREM_A, ...PREM_B] },
   { id: 'top14', name: 'French Elite 14', short: 'Elite 14', double: true, playoffTeams: 6, clubs: [...TOP14_A, ...TOP14_B] },
-  { id: 'urc', name: 'United Provinces Championship', short: 'UPC', double: false, playoffTeams: 8, clubs: [...URC_A, ...URC_B] },
+  // 18 rounds from 1.6.4: four regional shields play each other home and away
+  // and meet everyone else once (schedule.ts shieldRoundRobin), which is the
+  // real format rather than the single round robin it shipped with
+  { id: 'urc', name: 'United Provinces Championship', short: 'UPC', double: false, playoffTeams: 8, clubs: [...URC_A, ...URC_B],
+    shields: [['leinster', 'munster', 'ulster', 'connacht'], ['cardiff', 'ospreys', 'scarlets', 'dragons'], ['glasgow', 'edinburgh', 'benetton', 'zebre'], ['bulls', 'stormers', 'sharks', 'lions']] },
   { id: 'srp', name: 'Pacific Championship', short: 'Pacific', double: true, playoffTeams: 6, clubs: [...SRP_A, ...SRP_B] },
   { id: 'champ', name: 'English Championship', short: 'Championship', double: true, playoffTeams: 4, clubs: CHAMP },
   { id: 'prod2', name: 'French Elite 2', short: 'Elite 2', double: true, playoffTeams: 6, clubs: PROD2 },
@@ -577,7 +583,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   for (const def of defs) {
     const teamIds = def.clubs.map(c => c.id)
     state.comps[def.id] = buildLeague(
-      { id: def.id, name: def.name, short: def.short, teams: teamIds, double: def.double, playoffTeams: def.playoffTeams },
+      { id: def.id, name: def.name, short: def.short, teams: teamIds, double: def.double, playoffTeams: def.playoffTeams, shields: def.shields },
       rng, state,
     )
   }
@@ -648,7 +654,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     // The women's game has its own two internationals, in their own windows.
     // See buildWomensInternationals for why this is not the men's builder with
     // different arguments.
-    buildWomensInternationals(rng, state)
+    buildWomensInternationals(rng, state, worldCupSeasonFor(state))
   }
   schedulePreseason(state, rng)
   seedExClubs(state)
@@ -771,6 +777,8 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   // the salary cap for every division, measured from the division itself (F6)
   refreshCaps(state, true)
 
+  // the id counter travels with the save from here (GameState.pidNext, 1.6.4)
+  state.pidNext = peekPid()
   return state
 }
 
