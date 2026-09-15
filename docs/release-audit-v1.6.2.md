@@ -46,7 +46,7 @@ Results on the fixed build (commit after 12a0374): engine suite `suite.sh fast` 
 
 Version 1.6.4, Play version code 33.
 
-Results on the 1.6.4 build (commit 51c3421): full `suite.sh` run, engine 178 of 178 PASS (`forfeitprobe` and `genprobe` added; `fingerprint` rebaselined once more after `bandcheck` held every band, for the URC draw; `releaseaudit` 1.2c now tolerates a following HIA on a third player; `autopilotprobe`'s stature section counts crisis seasons instead of a mean that moved with the random stream; `newsprobe` needed `news.wcDrawWSubj`), browser 57 of 57 PASS against the production build.
+Results on the 1.6.4 build (commit 51c3421): full `suite.sh` run, engine 178 of 178 PASS (`forfeitprobe` and `genprobe` added; `fingerprint` rebaselined once more after `bandcheck` held every band, for the URC draw; `releaseaudit` 1.2c now tolerates a following HIA on a third player; `autopilotprobe`'s stature section counts crisis seasons instead of a mean that moved with the random stream; `newsprobe` needed `news.wcDrawWSubj`), browser 57 of 57 PASS against the production build; `releasesim` 15 seasons PASS on every band (90+ players 23 to 69, 85+ 139 to 291, top-to-bottom best-XV gap 32.4 to 20.7).
 
 **Verdict for 1.6.4: 🟢 RELEASE.** Every register item is now fixed or confirmed, the two format simplifications that remain (Super Rugby Pacific, Champions Cup) are the owner's call and documented, and both suites are green on the build that ships.
 
