@@ -179,6 +179,55 @@ export interface LeagueSpec {
   teams: string[]
   double: boolean
   playoffTeams: number // 4, 6, or 8
+  /** Regional shields (1.6.4): groups of four that play each other home and
+   *  away, with everyone else met once. The real United Rugby Championship
+   *  format: 18 rounds, nine at home, six of them derbies. When set, `double`
+   *  is ignored. */
+  shields?: string[][]
+}
+
+/**
+ * ---- THE SHIELD FORMAT (1.6.4) ----
+ *
+ * Four groups of four. Inside a group everyone plays home and away (six
+ * rounds, two fixtures a round per group, all four groups at once); across
+ * groups everyone meets once, three phases of four rounds pairing the groups
+ * off two at a time. Eighteen rounds, eighteen games each, nine at home.
+ *
+ * Venues are balanced by construction rather than by luck: in a cross-group
+ * round team i of one group meets team (i + r) mod 4 of the other and hosts
+ * when i + j is even, which gives every team two home and two away games per
+ * phase; the shield legs mirror each other. The derby legs open and close the
+ * season, which is roughly where the real competition puts them.
+ */
+export function shieldRoundRobin(shields: string[][], rng: Rng): [string, string][][] {
+  const groups = shields.map(s => shuffled(rng, s))
+  const shieldLegs = groups.map(g => roundRobin(g, rng, false)) // 3 rounds each
+  const legRounds = (mirror: boolean): [string, string][][] => {
+    const out: [string, string][][] = []
+    for (let r = 0; r < 3; r++) {
+      const round: [string, string][] = []
+      for (const legs of shieldLegs) for (const [h, a] of legs[r]) round.push(mirror ? [a, h] : [h, a])
+      out.push(round)
+    }
+    return out
+  }
+  const phases: [number, number][][] = [[[0, 1], [2, 3]], [[0, 2], [1, 3]], [[0, 3], [1, 2]]]
+  const cross: [string, string][][] = []
+  for (const phase of phases) {
+    for (let r = 0; r < 4; r++) {
+      const round: [string, string][] = []
+      for (const [x, y] of phase) {
+        for (let i = 0; i < 4; i++) {
+          const j = (i + r) % 4
+          const a = groups[x][i], b = groups[y][j]
+          round.push((i + j) % 2 === 0 ? [a, b] : [b, a])
+        }
+      }
+      cross.push(round)
+    }
+  }
+  return [...legRounds(false), ...cross.slice(0, 8), ...cross.slice(8), ...legRounds(true)]
 }
 
 /** Evenly spread `count` rounds across the available league weeks. */
@@ -193,7 +242,7 @@ function allocWeeks(count: number): number[] {
 }
 
 export function buildLeague(spec: LeagueSpec, rng: Rng, state: GameState): Competition {
-  const rounds = roundRobin(spec.teams, rng, spec.double)
+  const rounds = spec.shields ? shieldRoundRobin(spec.shields, rng) : roundRobin(spec.teams, rng, spec.double)
   const weeks = allocWeeks(rounds.length)
   const comp: Competition = {
     id: spec.id,
@@ -382,19 +431,32 @@ export const WC_POOL_WEEKS = [5, 6, 7, 8, 9]
 export const WC_KO_WEEKS = [10, 11, 12]
 
 /** World Championship: 20 nations, 4 pools of 5, then QF/SF/Final. */
-function buildWorldCup(rng: Rng, state: GameState) {
-  const nations = [
-    'RSA', 'NZL', 'IRE', 'FRA', 'ENG', 'ARG', 'SCO', 'AUS', 'FIJ', 'ITA',
-    'WAL', 'GEO', 'JPN', 'SAM', 'TGA', 'USA', 'URU', 'POR', 'ESP', 'CHL',
-  ]
+/** The women's tournament (1.6.4): sixteen nations, four pools of four, played
+ *  in August and September as the real one is. The 2025 field, which is the
+ *  best guess anyone has for 2029 until qualifying settles it. */
+export const W_WC_POOL_WEEKS = [2, 3, 4]
+export const W_WC_KO_WEEKS = [5, 6, 7]
+const W_WC_NATIONS = [
+  'ENG', 'NZL', 'CAN', 'FRA', 'IRE', 'AUS', 'SCO', 'ITA',
+  'USA', 'WAL', 'JPN', 'RSA', 'ESP', 'FIJ', 'SAM', 'POR',
+]
+const M_WC_NATIONS = [
+  'RSA', 'NZL', 'IRE', 'FRA', 'ENG', 'ARG', 'SCO', 'AUS', 'FIJ', 'ITA',
+  'WAL', 'GEO', 'JPN', 'SAM', 'TGA', 'USA', 'URU', 'POR', 'ESP', 'CHL',
+]
+
+function buildWorldCup(rng: Rng, state: GameState, women = false) {
+  const nations = women ? W_WC_NATIONS : M_WC_NATIONS
+  const poolWeeks = women ? W_WC_POOL_WEEKS : WC_POOL_WEEKS
+  const koWeeks = women ? W_WC_KO_WEEKS : WC_KO_WEEKS
   // the draw is seeded from the live world rankings: four years of Test
   // results decide who gets the kind pool and who gets the group of death
   seedNatRank(state)
   const seeded = [...nations].sort((a, b) => (state.natRank![b] ?? 0) - (state.natRank![a] ?? 0))
   const comp: Competition = {
     id: 'wc', name: 'World Championship', short: 'Worlds', type: 'intl',
-    teamIds: nations, table: nations.map(emptyRow), rounds: 5, playoffTeams: 8,
-    weeksByRound: WC_POOL_WEEKS, koWeeks: WC_KO_WEEKS, isNational: true,
+    teamIds: nations, table: nations.map(emptyRow), rounds: poolWeeks.length, playoffTeams: 8,
+    weeksByRound: poolWeeks, koWeeks, isNational: true,
     seeds: seeded,
   }
   // seeded pools: snake the top seeds so pools are balanced
@@ -415,9 +477,9 @@ function buildWorldCup(rng: Rng, state: GameState) {
     body: [
       `The World Championship pools are set, seeded from the world rankings. Top seeds: ${top4.join(', ')}.`,
       userSeed > 0 ? `${nationNameIn('en', state.natTeam!)} go in as the ${ordinalWord(userSeed)} seed - anything short of ${userSeed <= 4 ? 'the semi-finals will be a failure' : userSeed <= 8 ? 'the quarter-finals will raise questions' : 'the knockouts would still be par'}.`
-        : `Four pools, five nations each, and somewhere in there a group of death.`,
+        : women ? `Four pools, four nations each, and somewhere in there a group of death.` : `Four pools, five nations each, and somewhere in there a group of death.`,
     ].join('\n'),
-    k: userSeed > 0 ? 'news.wcDrawSeeded' : 'news.wcDraw',
+    k: userSeed > 0 ? 'news.wcDrawSeeded' : women ? 'news.wcDrawW' : 'news.wcDraw',
     v: {
       top_l, ...nationVars(state.natTeam ?? ''),
       seed_o: userSeed,
@@ -429,7 +491,7 @@ function buildWorldCup(rng: Rng, state: GameState) {
     rounds.forEach((pairs, r) => {
       for (const [h, a] of pairs) {
         state.fixtures.push({
-          id: state.nextId++, compId: 'wc', round: r, week: WC_POOL_WEEKS[r],
+          id: state.nextId++, compId: 'wc', round: r, week: poolWeeks[r],
           homeId: h, awayId: a, played: false,
           homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
         })
@@ -742,7 +804,11 @@ export function buildWomensContinentalCup(rng: Rng, state: GameState): Competiti
     W_CC_POOL_WEEKS, W_CC_KO_WEEKS)
 }
 
-export function buildWomensInternationals(rng: Rng, state: GameState) {
+export function buildWomensInternationals(rng: Rng, state: GameState, worldCup = false) {
+  // a World Championship year (1.6.4: 2029, 2033, ...) opens with the
+  // tournament and drops the autumn and summer Tests around it, as the men's
+  // calendar does; the Northern Championship and the Southern Four still run
+  if (worldCup) buildWorldCup(rng, state, true)
   if (isWomensTourSeason(state.season)) buildWomensTour(state)
   const sn = ['ENG', 'FRA', 'IRE', 'ITA', 'SCO', 'WAL']
   const snComp: Competition = {
@@ -778,6 +844,7 @@ export function buildWomensInternationals(rng: Rng, state: GameState) {
     }
   })
   state.comps[W + 'p4'] = p4Comp
+  if (worldCup) return
 
   // ---- the autumn: the six at home to the six who are not in it ----
   const autComp: Competition = {

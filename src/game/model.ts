@@ -1422,6 +1422,12 @@ export interface GameState {
    *  1.6.3): a club may release what it holds, once, so the allowance can
    *  never be pumped past the money behind it. Reset at the rollover. */
   releasedThisSeason?: number
+  /** The next player id to mint (1.6.4). The counter used to live in a
+   *  module variable and was rebuilt on load as the highest live id plus one,
+   *  so an id freed by a retirement or a cull could in principle be handed
+   *  to a new player after a reload while a record still pointed at the old
+   *  one. Stamped by newGame and by every week settle; migrate restores it. */
+  pidNext?: number
   /** The board's patience with being asked twice (v1.1.4). One entry per
    *  request door - 'capital' (facilities and the ground, which share their
    *  cooldown) and 'funds' - stamped at each denial. Coming back through a
@@ -1915,6 +1921,19 @@ export function trustWord(v: number): string {
 /** World Championship years: 2027, 2031, ... (in-game season index) */
 export function isWorldCupSeason(season: number): boolean {
   return (BASE_YEAR + season) % 4 === 3
+}
+
+/** The women's World Championship runs two years off the men's: 2025 was the
+ *  last one, so 2029, 2033 and 2037 are the next (1.6.4). Computed from the
+ *  real year like the men's, so a change of BASE_YEAR moves the season it
+ *  falls in and never the year. */
+export function isWomensWorldCupSeason(season: number): boolean {
+  return (BASE_YEAR + season) % 4 === 1
+}
+
+/** Whether this career's world plays its World Championship this season. */
+export function worldCupSeasonFor(state: { season: number; gender?: string }): boolean {
+  return state.gender === 'w' ? isWomensWorldCupSeason(state.season) : isWorldCupSeason(state.season)
 }
 
 /**

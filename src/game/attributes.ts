@@ -290,6 +290,8 @@ export function playerWage(ca: number, age: number, acad = false): number {
 let idCounter = 1
 export function resetIds(start: number) { idCounter = start }
 export function nextPid() { return idCounter++ }
+/** The id the next player will get, for the save to carry (GameState.pidNext). */
+export function peekPid() { return idCounter }
 
 /** Estimated pre-2025 career, deterministic per player: senior rugby from
  *  age 21, volume scaled by quality, tries by position, points by the boot. */

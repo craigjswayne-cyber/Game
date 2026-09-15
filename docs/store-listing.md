@@ -147,6 +147,31 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.6.4, Play version code 33
+
+The United Provinces Championship plays its real eighteen-round format, the
+women's game gets its World Championship, a club that cannot raise ten
+concedes a walkover, player ids travel with the save, and the women's
+second tiers say on the row which names are invented.
+
+```
+<en-GB>
+The United Provinces Championship now plays its real format: eighteen rounds, six of them regional derbies home and away, nine games at each ground. The women's game gets its World Championship: sixteen nations every fourth year from 2029, seeded from the rankings, with your players called up and a world title to win. A club that cannot put ten fit players on the field concedes the match 28-0 instead of playing on with a skeleton side. Player records are safer across reloads, and the women's second-tier squads now mark which names are invented so no real player can be given a fictional life event.
+</en-GB>
+<fr-FR>
+Le Championnat des Provinces Unies adopte son vrai format : dix-huit journées, dont six derbys régionaux aller-retour, neuf matchs à domicile. Le jeu féminin gagne son Championnat du monde : seize nations tous les quatre ans à partir de 2029, tirées selon le classement, avec vos joueuses sélectionnées et un titre mondial à conquérir. Un club incapable d'aligner dix joueuses valides déclare forfait 28-0 au lieu de jouer avec une équipe squelette. Les fiches joueurs résistent mieux aux rechargements, et les effectifs des deuxièmes divisions féminines indiquent désormais les noms inventés, pour qu'aucune joueuse réelle ne se voie attribuer un événement fictif.
+</fr-FR>
+<es-ES>
+El Campeonato de Provincias Unidas juega ya su formato real: dieciocho jornadas, seis de ellas derbis regionales de ida y vuelta, nueve partidos en cada campo. El juego femenino gana su Campeonato del Mundo: dieciséis naciones cada cuatro años desde 2029, cabezas de serie por ranking, con tus jugadoras convocadas y un título mundial en juego. Un club que no pueda alinear diez jugadoras en condiciones cede el partido 28-0 en vez de jugar con una plantilla esquelética. Las fichas resisten mejor las recargas, y las plantillas de segunda división femenina marcan qué nombres son inventados para que a ninguna jugadora real se le atribuya un hecho ficticio.
+</es-ES>
+<it-IT>
+Il Campionato delle Province Unite gioca ora il suo vero formato: diciotto giornate, sei delle quali derby regionali andata e ritorno, nove partite in casa. Il gioco femminile ottiene il suo Campionato del Mondo: sedici nazioni ogni quattro anni dal 2029, teste di serie dal ranking, con le tue giocatrici convocate e un titolo mondiale da vincere. Un club che non riesce a schierare dieci giocatrici idonee cede la partita 28-0 invece di giocare con una rosa ridotta all'osso. Le schede giocatore reggono meglio i ricaricamenti, e le rose della seconda serie femminile indicano quali nomi sono inventati perché a nessuna giocatrice reale venga attribuito un evento fittizio.
+</it-IT>
+<ja-JP>
+ユナイテッド・プロビンシズ・チャンピオンシップが実際の形式になった。全18節、うち6節は地域ダービーのホーム＆アウェー、各地で9試合。女子ゲームに世界選手権が加わった。2029年から4年ごとに16か国、ランキングでシード分けされ、あなたの選手が招集され、世界タイトルを争う。出場可能な選手を10人揃えられないクラブは、少人数で戦うのではなく28-0で不戦敗となる。選手記録は再読み込みに強くなり、女子2部の選手名簿はどの名前が架空かを明示するため、実在の選手に架空の出来事が割り当てられることはない。
+</ja-JP>
+```
+
 ### What's new (500 max) - v1.6.3, Play version code 32
 
 The release-gate fixes (docs/release-audit-v1.6.2.md): the women's cup ties
