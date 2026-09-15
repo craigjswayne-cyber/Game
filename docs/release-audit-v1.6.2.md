@@ -46,6 +46,10 @@ Results on the fixed build (commit after 12a0374): engine suite `suite.sh fast` 
 
 Version 1.6.4, Play version code 33.
 
+Results on the 1.6.4 build (commit 51c3421): full `suite.sh` run, engine 178 of 178 PASS (`forfeitprobe` and `genprobe` added; `fingerprint` rebaselined once more after `bandcheck` held every band, for the URC draw; `releaseaudit` 1.2c now tolerates a following HIA on a third player; `autopilotprobe`'s stature section counts crisis seasons instead of a mean that moved with the random stream; `newsprobe` needed `news.wcDrawWSubj`), browser 57 of 57 PASS against the production build.
+
+**Verdict for 1.6.4: 🟢 RELEASE.** Every register item is now fixed or confirmed, the two format simplifications that remain (Super Rugby Pacific, Champions Cup) are the owner's call and documented, and both suites are green on the build that ships.
+
 **Verdict for 1.6.3: 🟡 RELEASE WITH CONDITIONS.** The four P1s and every P2 are fixed and re-proved. What remains is P3 and below: the documented format simplifications, four suspected club placements not web-verified, the women's World Cup cycle, the module-level id counter, and a forfeit rule for squads below fifteen.
 
 ---
