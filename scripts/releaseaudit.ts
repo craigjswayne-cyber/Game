@@ -267,7 +267,9 @@ section('1.2c HIA: temporary replacement, the doctors\' verdict, the timer')
       // an ordinary knock, card, sending-off - or a SECOND random HIA on the same man the minute the first one cleared (seen: 29' hiaPassed | 29' hiaLedAway) - is the engine's business, not the HIA's; only the verdict lines are the thing under test
       const disturbed = ctx.events.some(e => (e.playerId === pid || e.playerId === bench) && ['INJ', 'YC', 'RC'].includes(e.type) && e.min > (ctx.tick - 4) * 4 && e.k !== 'comm.hiaPassed' && e.k !== 'comm.hiaFailed')
       if (disturbed) { tries--; continue }
-      const fine = !failed ? (side.onPitch.has(pid) && !side.onPitch.has(bench) && !side.hia) : (!side.onPitch.has(pid) && side.onPitch.has(bench) && !side.hia)
+      // the side may already be into its NEXT HIA (a third man, same tick the verdict cleared - one HIA per side at a time is the rule, not one per match); ours is over when the record no longer names our pair
+      const ours = side.hia && (side.hia.pid === pid || side.hia.subId === bench)
+      const fine = !failed ? (side.onPitch.has(pid) && !side.onPitch.has(bench) && !ours) : (!side.onPitch.has(pid) && side.onPitch.has(bench) && !ours)
       if (!failed) { if (fine) passBack++ }
       else {
         if (fine) failStays++
@@ -275,7 +277,7 @@ section('1.2c HIA: temporary replacement, the doctors\' verdict, the timer')
       }
       if (!fine && odd.length < 3) {
         const tail = ctx.events.filter(e => e.playerId === pid || e.playerId === bench).map(e => `${e.min}' ${e.type} ${e.k ?? ''}`).join(' | ')
-        odd.push(`${failed ? 'FAIL' : 'PASS'} case: pid on ${side.onPitch.has(pid)} sub on ${side.onPitch.has(bench)} hia ${!!side.hia} binned ${side.binned.has(pid) || side.binned.has(bench)} -> ${tail}`)
+        odd.push(`${failed ? 'FAIL' : 'PASS'} case: pid on ${side.onPitch.has(pid)} sub on ${side.onPitch.has(bench)} hia ${side.hia ? side.hia.pid : 'none'} binned ${side.binned.has(pid) || side.binned.has(bench)} -> ${tail}`)
       }
     }
   }

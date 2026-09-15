@@ -4616,6 +4616,7 @@
   "notePlenty": " Plenty still to come.",
   "noteSome": " A bit left in him.",
   "wcDrawSubj": "🏆 World Championship draw: the rankings pick the pools",
+  "wcDrawWSubj": "🏆 World Championship draw: the rankings pick the pools",
   "wcDraw": "The World Championship pools are set, seeded from the world rankings. Top seeds: {top_l}.\nFour pools, five nations each, and somewhere in there a group of death.",
   "wcDrawSeededSubj": "🏆 World Championship draw: the rankings pick the pools",
   "wcDrawSeeded": "The World Championship pools are set, seeded from the world rankings. Top seeds: {top_l}.\n{nationCap_k} go in as the {seed_o} seed - anything short of {bar_k}.",

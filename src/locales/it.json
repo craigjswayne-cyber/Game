@@ -4578,6 +4578,7 @@
   "notePlenty": " Ha ancora molto da dare.",
   "noteSome": " Qualcosa in canna gli resta.",
   "wcDrawSubj": "🏆 Sorteggio del World Championship: i gironi li fa il ranking",
+  "wcDrawWSubj": "🏆 Sorteggio del World Championship: i gironi li fa il ranking",
   "wcDraw": "I gironi del World Championship sono fatti, teste di serie secondo il ranking mondiale. Prime teste di serie: {top_l}.\nQuattro gironi, cinque nazioni ciascuno, e da qualche parte lì in mezzo un girone di ferro.",
   "wcDrawSeededSubj": "🏆 Sorteggio del World Championship: i gironi li fa il ranking",
   "wcDrawSeeded": "I gironi del World Championship sono fatti, teste di serie secondo il ranking mondiale. Prime teste di serie: {top_l}.\n{nationCap_k} entra come testa di serie numero {seed_o} - fermarsi prima {bar_k}.",
