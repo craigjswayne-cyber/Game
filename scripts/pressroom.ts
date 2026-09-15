@@ -71,15 +71,19 @@ ok(PRESS_KEEP_WEEKS === 2, `the room keeps two weeks (keeps ${PRESS_KEEP_WEEKS})
 {
   const g = newGame('northampton', 'Press', 402)
   g.week = 20
+  // the same week settled WITHOUT the stale question is the control: a win on
+  // the Saturday lifts the board whatever the desk did, so the price of silence
+  // is measured against that rather than against the week before (1.6.3)
+  const control = JSON.parse(JSON.stringify(g)) as typeof g
+  processWeekAndAdvance(control)
   const stale = stub(g, 5, false)   // asked five weeks ago, never answered
   g.press.push(stale)
-  const board0 = g.clubs[g.userClubId].boardConfidence
   processWeekAndAdvance(g)
   const still = g.press.find(q => q.id === stale.id)
   ok(!!still, 'an unanswered question five weeks old was NOT deleted by the sweep')
   ok(!!still?.answered, 'it was auto-answered instead - the moment passed, on the record')
-  ok(g.clubs[g.userClubId].boardConfidence <= board0,
-     `and silence still cost something (board ${board0} -> ${g.clubs[g.userClubId].boardConfidence})`)
+  ok(g.clubs[g.userClubId].boardConfidence < control.clubs[control.userClubId].boardConfidence,
+     `and silence still cost something (board ${g.clubs[g.userClubId].boardConfidence} against ${control.clubs[control.userClubId].boardConfidence} had it been answered)`)
 }
 
 // ---- a fresh answer stays put ----

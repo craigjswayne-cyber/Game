@@ -40,8 +40,11 @@ const ok = (cond: boolean, what: string) => {
 // The fields save.ts rebases, split the way rebaseStamps walks them.
 const PLAYER_FIELDS = ['joinedAt', 'loanSince', 'loanUntil', 'lastChatWk', 'retakeAt']
 const CLUB_FIELDS = ['debtSince']
+// courtedAt left the list in 1.6.3: it was always stamped season * 100 + week
+// (jobs.ts) and rebasing it as a 45-week stamp broke the one comparison that
+// read it back (media.ts). It is checked below as a stamp that must NOT move.
 const STATE_FIELDS = ['groundsAt', 'lawWatchAt', 'challengeAt', 'chatWk', 'natAskAt',
-                      'natCoachAskAt', 'courtedAt', 'natCall']
+                      'natCoachAskAt', 'natCall']
 
 const oldAbs = (season: number, week: number) => season * OLD_BASIS + week
 
@@ -97,7 +100,7 @@ function stamps(s: GameState): Array<[string, unknown]> {
   const extra = [...mine].filter(f => !listed.has(f))
   ok(missed.length === 0, `this probe checks every field save.ts rebases${missed.length ? ` (missing: ${missed.join(', ')})` : ''}`)
   ok(extra.length === 0, `and checks nothing save.ts does not rebase${extra.length ? ` (stale: ${extra.join(', ')})` : ''}`)
-  ok(mine.size === 14, `fourteen stamps in all (${mine.size})`)
+  ok(mine.size === 13, `thirteen stamps in all (${mine.size})`)
 }
 
 // ---- the whole old calendar, every field, against absWeek --------------------

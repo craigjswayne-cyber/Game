@@ -348,7 +348,9 @@ function agePlayers(state: GameState, rng: Rng) {
     // own potential. So: the late phase is a coin toss for one point, the
     // slide starts at 29, and the rebirth below is rarer and lower.
     if (p.age <= (bloom ? 25 : 23) && p.ca < p.pa) p.ca = clamp(p.ca + growth(scaled(2 + Math.floor(rng() * 3))), 1, p.pa)
-    else if (p.age <= (bloom ? 29 : 27) && p.ca < p.pa) p.ca = clamp(p.ca + growth(scaled(rng() < 0.5 ? 1 : 0)), 1, p.pa)
+    // (a late bloomer keeps his old late phase - a point or two a year to 29
+    // is the whole point of him, and scripts/round25d.ts holds it)
+    else if (p.age <= (bloom ? 29 : 27) && p.ca < p.pa) p.ca = clamp(p.ca + growth(scaled(bloom ? 1 + Math.floor(rng() * 2) : (rng() < 0.5 ? 1 : 0))), 1, p.pa)
     else if (p.age >= 35) p.ca = clamp(p.ca - (3 + Math.floor(rng() * 3)), 30, 99)
     else if (p.age >= 33) p.ca = clamp(p.ca - (2 + Math.floor(rng() * 3)), 30, 99)
     else if (p.age >= 31) p.ca = clamp(p.ca - (1 + Math.floor(rng() * 2)), 30, 99)
@@ -2032,6 +2034,7 @@ export function rebuildSeason(state: GameState) {
   state.wageBoost = undefined
   state.injections = undefined
   state.injectedThisSeason = undefined
+  state.releasedThisSeason = undefined
   state.rewarded = undefined
   // and the new opening budget is snapshotted AFTER the war-chest clawback
   // above, so a board injection is priced on what the season really opens with

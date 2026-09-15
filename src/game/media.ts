@@ -515,7 +515,11 @@ export function generatePress(state: GameState, rng: Rng) {
   {
     const abilities = squad.map(q => q.ca).sort((a, b) => a - b)
     const median = abilities[Math.floor(abilities.length / 2)] ?? 0
-    const p = squad.find(q => q.ca >= median && !xvIds.includes(q.id) && !q.onLoan && !q.acad &&
+    // one bench question a fortnight at most (1.6.3): asked once per man it
+    // still came round every week about a different man, and read as the
+    // room's only question (scripts/varietyprobe.ts)
+    const recentBench = state.press.some(q => q.season === state.season && (q.qk ?? '').startsWith('press.benchQ') && state.week - q.week < 2)
+    const p = squad.find(q => !recentBench && q.ca >= median && !xvIds.includes(q.id) && !q.onLoan && !q.acad &&
       (q.lastWk == null || q.lastWk <= state.week - 6) && state.week > 8 && !askedThisSeason('press.benchQ', q.id))
     if (p) {
       // SIX IS A FLOOR, NOT THE NUMBER. The condition above is

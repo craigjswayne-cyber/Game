@@ -405,6 +405,7 @@ console.log('\nCHAOS 11: the release-to-budget button, hammered\n')
   club.balance += 20_000_000
   const total = () => club.balance + club.budget
   const t0 = total()
+  const bal0 = club.balance
   let moved = 0
   guard('release-to-budget x1000', () => {
     for (let i = 0; i < 1000; i++) {
@@ -414,7 +415,11 @@ console.log('\nCHAOS 11: the release-to-budget button, hammered\n')
   })
   ok(moved > 0, `with money above the reserve, slices really move (${moved})`)
   ok(moved < 1000, `and the tap stops working at the floor rather than looping forever (${moved}/1000 accepted)`)
-  ok(Math.abs(total() - t0) < 1, `a thousand taps conserve money exactly (${Math.round(t0)} -> ${Math.round(total())})`)
+  // 1.6.3: a release raises the allowance and leaves the cash alone, so the
+  // sum grows by exactly what was released - and never by more than the cash
+  // the club held, which is the bound that stops the tap being a money pump
+  ok(club.balance === bal0 && total() - t0 === moved * 500_000 && moved * 500_000 <= bal0,
+    `a thousand taps release only the cash the club holds, once (${moved} slices, balance ${Math.round(bal0)} -> ${Math.round(club.balance)})`)
   ok(releaseBlock(g) !== null, 'and the board reserve is where it stopped')
   saveHolds(g, 'release spam')
 }
