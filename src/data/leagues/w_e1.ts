@@ -11,12 +11,32 @@
  * league, to match the season the rest of the game now runs.
  *
  * 300 of the 357 players here are real, with the position and nationality the
- * workbook gives them. The workbook is explicit that it is "a working database
- * and not yet a claim of every registered player in all 20 clubs", and the gaps
- * are uneven: seven clubs have squads, three - Bobigny, Montpellier and Stade
- * Rochelais - have none at all. So each club is topped up to 32 from the French
- * women's name pool, the same way champ.ts and natl1.ts fill the English lower
- * tiers. A club's real players always come first.
+ * workbook gives them, and the other 57 carry RawPlayer.gen so that the ratio is
+ * a property of the data rather than of this sentence. scripts/genprobe.ts holds
+ * it: 300 and 57, club by club, and the suite fails if either moves without
+ * somebody deciding it should.
+ *
+ * The workbook is explicit that it is "a working database and not yet a claim of
+ * every registered player in all 20 clubs", and the gaps are uneven. Bobigny,
+ * Montpellier and Stade Rochelais have no squad IN THE WORKBOOK and were filled
+ * from their club pages instead, which is why they carry 28, 27 and 24 real
+ * players rather than none; this header went on saying "none at all" after that
+ * work was done, which is the sort of drift the marker exists to stop. The 57
+ * that remain are topped up from the French women's name pool, the same way
+ * champ.ts and natl1.ts fill the English lower tiers. A club's real players
+ * always come first, and the probe checks that too.
+ *
+ * NO 26/27 SOURCE WAS REACHABLE on 14 September 2026 to close the remaining 57
+ * or to refresh the three clubs below. The FFR's own site is a React shell whose
+ * data comes from api-agregateur.ffr.fr and competitions.ffr.fr, and the egress
+ * proxy refuses both; www.ffr.fr itself answers with 1,536 bytes of nothing.
+ * itsrugby.co.uk resolves but has become a Plesk parking page, and the live site
+ * at itsrugby.fr is refused, as are allrugby.com and womensrugbydata.com, which
+ * both redirect to a www host that is not on the allowlist. French Wikipedia has
+ * articles for these clubs but they carry "Joueuses emblématiques", a list of a
+ * dozen notable players across the club's history, not a squad. One trap worth
+ * recording: fr.wikipedia's "Stade rochelais" does have an Effectif 2026-2027,
+ * and it is the MEN'S squad.
  *
  * Three clubs' rows are 25/26 rather than 26/27 - Romagnat, Grenoble and Lyon -
  * because that is the season the workbook has squads for at those clubs. A year
@@ -78,8 +98,8 @@ export const W_E1: RawClub[] = [
       { name: 'Alessia Philippe', pos: 'WG', age: 25, nat: 'FRA', q: 80 },
       { name: 'Amalia Argudo Llobregat', pos: 'FB', age: 32, nat: 'ESP', q: 75 },
       { name: 'Pauline Barrat', pos: 'FB', age: 24, nat: 'FRA', q: 78 },
-      { name: 'Amandine Bergougnan', pos: 'LK', age: 30, nat: 'FRA', q: 74 },
-      { name: 'Célestine Ferrand', pos: 'CE', age: 34, nat: 'FRA', q: 74 },
+      { name: 'Amandine Bergougnan', pos: 'LK', age: 30, nat: 'FRA', q: 74, gen: true },
+      { name: 'Célestine Ferrand', pos: 'CE', age: 34, nat: 'FRA', q: 74, gen: true },
     ],
   },
   {
@@ -128,9 +148,9 @@ export const W_E1: RawClub[] = [
       { name: 'Louise Lavabre', pos: 'WG', age: 24, nat: 'FRA', q: 80 },
       { name: 'Valentine Lothoz', pos: 'WG', age: 25, nat: 'FRA', q: 76 },
       { name: 'Tonie Fiorese', pos: 'FB', age: 20, nat: 'FRA', q: 68, gk: true },
-      { name: 'Margaux Sarrazin', pos: 'HK', age: 28, nat: 'FRA', q: 76 },
-      { name: 'Sidonie Laurent', pos: 'TP', age: 21, nat: 'FRA', q: 66 },
-      { name: 'Apolline Coulom', pos: 'N8', age: 18, nat: 'FRA', q: 62 },
+      { name: 'Margaux Sarrazin', pos: 'HK', age: 28, nat: 'FRA', q: 76, gen: true },
+      { name: 'Sidonie Laurent', pos: 'TP', age: 21, nat: 'FRA', q: 66, gen: true },
+      { name: 'Apolline Coulom', pos: 'N8', age: 18, nat: 'FRA', q: 62, gen: true },
     ],
   },
   {
@@ -165,19 +185,19 @@ export const W_E1: RawClub[] = [
       { name: 'Anaïs Dubreuil', pos: 'LK', age: 31, nat: 'FRA', q: 67 },
       { name: 'Carla Neisen', pos: 'SH', age: 27, nat: 'FRA', q: 80 },
       { name: 'Mélissande Llorens Vigneres', pos: 'WG', age: 26, nat: 'FRA', q: 80 },
-      { name: 'Gwenaëlle Cazes', pos: 'HK', age: 22, nat: 'FRA', q: 60 },
-      { name: 'Margaux Miquel', pos: 'HK', age: 24, nat: 'FRA', q: 76 },
-      { name: 'Hortense Tarbouriech', pos: 'HK', age: 20, nat: 'FRA', q: 66 },
-      { name: 'Marion Bernard', pos: 'LK', age: 25, nat: 'FRA', q: 76 },
-      { name: 'Solène Deltour', pos: 'FL', age: 19, nat: 'FRA', q: 61 },
-      { name: 'Bastienne Salvat', pos: 'FL', age: 20, nat: 'FRA', q: 67 },
-      { name: 'Capucine Moreau', pos: 'CE', age: 23, nat: 'FRA', q: 69 },
-      { name: 'Roxane Estèbe', pos: 'CE', age: 28, nat: 'FRA', q: 76 },
-      { name: 'Zélie Sourgens', pos: 'SH', age: 34, nat: 'FRA', q: 61 },
-      { name: 'Sidonie Marty', pos: 'FH', age: 29, nat: 'FRA', q: 72, gk: true },
-      { name: 'Apolline Bousquet', pos: 'FB', age: 21, nat: 'FRA', q: 60 },
-      { name: 'Blandine Lacombe', pos: 'FB', age: 18, nat: 'FRA', q: 60 },
-      { name: 'Fanny Vialaret', pos: 'N8', age: 29, nat: 'FRA', q: 76 },
+      { name: 'Gwenaëlle Cazes', pos: 'HK', age: 22, nat: 'FRA', q: 60, gen: true },
+      { name: 'Margaux Miquel', pos: 'HK', age: 24, nat: 'FRA', q: 76, gen: true },
+      { name: 'Hortense Tarbouriech', pos: 'HK', age: 20, nat: 'FRA', q: 66, gen: true },
+      { name: 'Marion Bernard', pos: 'LK', age: 25, nat: 'FRA', q: 76, gen: true },
+      { name: 'Solène Deltour', pos: 'FL', age: 19, nat: 'FRA', q: 61, gen: true },
+      { name: 'Bastienne Salvat', pos: 'FL', age: 20, nat: 'FRA', q: 67, gen: true },
+      { name: 'Capucine Moreau', pos: 'CE', age: 23, nat: 'FRA', q: 69, gen: true },
+      { name: 'Roxane Estèbe', pos: 'CE', age: 28, nat: 'FRA', q: 76, gen: true },
+      { name: 'Zélie Sourgens', pos: 'SH', age: 34, nat: 'FRA', q: 61, gen: true },
+      { name: 'Sidonie Marty', pos: 'FH', age: 29, nat: 'FRA', q: 72, gk: true, gen: true },
+      { name: 'Apolline Bousquet', pos: 'FB', age: 21, nat: 'FRA', q: 60, gen: true },
+      { name: 'Blandine Lacombe', pos: 'FB', age: 18, nat: 'FRA', q: 60, gen: true },
+      { name: 'Fanny Vialaret', pos: 'N8', age: 29, nat: 'FRA', q: 76, gen: true },
     ],
   },
   {
@@ -224,9 +244,9 @@ export const W_E1: RawClub[] = [
       { name: 'Mouna Toure', pos: 'FL', age: 25, nat: 'FRA', q: 75 },
       { name: 'Calista Gregoire', pos: 'HK', age: 20, nat: 'FRA', q: 66 },
       { name: 'Clarisse Augusto', pos: 'FB', age: 29, nat: 'FRA', q: 72 },
-      { name: 'Roxane Fabre', pos: 'LP', age: 21, nat: 'FRA', q: 64 },
-      { name: 'Zélie Bonneval', pos: 'TP', age: 21, nat: 'FRA', q: 59 },
-      { name: 'Bérénice Fontanel', pos: 'N8', age: 31, nat: 'FRA', q: 61 },
+      { name: 'Roxane Fabre', pos: 'LP', age: 21, nat: 'FRA', q: 64, gen: true },
+      { name: 'Zélie Bonneval', pos: 'TP', age: 21, nat: 'FRA', q: 59, gen: true },
+      { name: 'Bérénice Fontanel', pos: 'N8', age: 31, nat: 'FRA', q: 61, gen: true },
     ],
   },
   {
@@ -264,11 +284,11 @@ export const W_E1: RawClub[] = [
       { name: 'Chloé Jacquet', pos: 'SH', age: 25, nat: 'FRA', q: 70 },
       { name: 'Mia Moussac', pos: 'FH', age: 27, nat: 'FRA', q: 78 },
       { name: 'Lilou Bosc', pos: 'CE', age: 30, nat: 'FRA', q: 65 },
-      { name: 'Léonie Peyrouse', pos: 'LK', age: 22, nat: 'FRA', q: 65 },
-      { name: 'Océane Roux', pos: 'FL', age: 19, nat: 'FRA', q: 55 },
-      { name: 'Violette Cambon', pos: 'CE', age: 26, nat: 'FRA', q: 76 },
-      { name: 'Ariane Larrieu', pos: 'WG', age: 36, nat: 'FRA', q: 55 },
-      { name: 'Coralie Baradat', pos: 'FB', age: 30, nat: 'FRA', q: 74 },
+      { name: 'Léonie Peyrouse', pos: 'LK', age: 22, nat: 'FRA', q: 65, gen: true },
+      { name: 'Océane Roux', pos: 'FL', age: 19, nat: 'FRA', q: 55, gen: true },
+      { name: 'Violette Cambon', pos: 'CE', age: 26, nat: 'FRA', q: 76, gen: true },
+      { name: 'Ariane Larrieu', pos: 'WG', age: 36, nat: 'FRA', q: 55, gen: true },
+      { name: 'Coralie Baradat', pos: 'FB', age: 30, nat: 'FRA', q: 74, gen: true },
     ],
   },
   {
@@ -315,8 +335,8 @@ export const W_E1: RawClub[] = [
       { name: 'Angele Freydier', pos: 'LP', age: 23, nat: 'FRA', q: 64 },
       { name: 'Maeva Pi', pos: 'FL', age: 28, nat: 'FRA', q: 72 },
       { name: 'Enea Vey', pos: 'WG', age: 29, nat: 'FRA', q: 74 },
-      { name: 'Jeanne Miquel', pos: 'HK', age: 20, nat: 'FRA', q: 59 },
-      { name: 'Noémie Marty', pos: 'TP', age: 28, nat: 'FRA', q: 68 },
+      { name: 'Jeanne Miquel', pos: 'HK', age: 20, nat: 'FRA', q: 59, gen: true },
+      { name: 'Noémie Marty', pos: 'TP', age: 28, nat: 'FRA', q: 68, gen: true },
     ],
   },
   {
@@ -359,11 +379,11 @@ export const W_E1: RawClub[] = [
       { name: 'Leonna Rondeau', pos: 'CE', age: 29, nat: 'FRA', q: 72 },
       { name: 'Solene Garnier', pos: 'FL', age: 24, nat: 'FRA', q: 64 },
       { name: 'Sophie Hopkins', pos: 'WG', age: 28, nat: 'FRA', q: 65 },
-      { name: 'Hortense Larrieu', pos: 'HK', age: 32, nat: 'FRA', q: 58 },
-      { name: 'Marion Baradat', pos: 'HK', age: 23, nat: 'FRA', q: 70 },
-      { name: 'Solène Bergougnan', pos: 'TP', age: 25, nat: 'FRA', q: 64 },
-      { name: 'Bastienne Ferrand', pos: 'FB', age: 29, nat: 'FRA', q: 68 },
-      { name: 'Capucine Tarbouriech', pos: 'FB', age: 20, nat: 'FRA', q: 59 },
+      { name: 'Hortense Larrieu', pos: 'HK', age: 32, nat: 'FRA', q: 58, gen: true },
+      { name: 'Marion Baradat', pos: 'HK', age: 23, nat: 'FRA', q: 70, gen: true },
+      { name: 'Solène Bergougnan', pos: 'TP', age: 25, nat: 'FRA', q: 64, gen: true },
+      { name: 'Bastienne Ferrand', pos: 'FB', age: 29, nat: 'FRA', q: 68, gen: true },
+      { name: 'Capucine Tarbouriech', pos: 'FB', age: 20, nat: 'FRA', q: 59, gen: true },
     ],
   },
   {
@@ -397,16 +417,16 @@ export const W_E1: RawClub[] = [
       { name: 'Sara Tounesi', pos: 'HK', age: 33, nat: 'FRA', q: 51 },
       { name: 'Taylor Price', pos: 'LK', age: 34, nat: 'FRA', q: 51 },
       { name: 'Lucie Filitika', pos: 'FL', age: 31, nat: 'FRA', q: 56 },
-      { name: 'Sylvie Blanc', pos: 'LP', age: 23, nat: 'FRA', q: 55 },
-      { name: 'Amandine Cassagne', pos: 'LP', age: 26, nat: 'FRA', q: 67 },
-      { name: 'Célestine Lassalle', pos: 'TP', age: 32, nat: 'FRA', q: 57 },
-      { name: 'Hortense Fabre', pos: 'TP', age: 36, nat: 'FRA', q: 49 },
-      { name: 'Marion Bonneval', pos: 'LK', age: 21, nat: 'FRA', q: 54 },
-      { name: 'Solène Fontanel', pos: 'CE', age: 29, nat: 'FRA', q: 64 },
-      { name: 'Bastienne Vaillant', pos: 'CE', age: 26, nat: 'FRA', q: 70 },
-      { name: 'Capucine Martin', pos: 'WG', age: 18, nat: 'FRA', q: 49 },
-      { name: 'Gwenaëlle Escande', pos: 'FB', age: 22, nat: 'FRA', q: 56, gk: true },
-      { name: 'Zélie Baradat', pos: 'N8', age: 20, nat: 'FRA', q: 52 },
+      { name: 'Sylvie Blanc', pos: 'LP', age: 23, nat: 'FRA', q: 55, gen: true },
+      { name: 'Amandine Cassagne', pos: 'LP', age: 26, nat: 'FRA', q: 67, gen: true },
+      { name: 'Célestine Lassalle', pos: 'TP', age: 32, nat: 'FRA', q: 57, gen: true },
+      { name: 'Hortense Fabre', pos: 'TP', age: 36, nat: 'FRA', q: 49, gen: true },
+      { name: 'Marion Bonneval', pos: 'LK', age: 21, nat: 'FRA', q: 54, gen: true },
+      { name: 'Solène Fontanel', pos: 'CE', age: 29, nat: 'FRA', q: 64, gen: true },
+      { name: 'Bastienne Vaillant', pos: 'CE', age: 26, nat: 'FRA', q: 70, gen: true },
+      { name: 'Capucine Martin', pos: 'WG', age: 18, nat: 'FRA', q: 49, gen: true },
+      { name: 'Gwenaëlle Escande', pos: 'FB', age: 22, nat: 'FRA', q: 56, gk: true, gen: true },
+      { name: 'Zélie Baradat', pos: 'N8', age: 20, nat: 'FRA', q: 52, gen: true },
     ],
   },
   {
@@ -445,12 +465,12 @@ export const W_E1: RawClub[] = [
       { name: 'Aménis Khaldi Legriel', pos: 'WG', age: 32, nat: 'FRA', q: 54 },
       { name: 'Micol Cavina', pos: 'FB', age: 19, nat: 'FRA', q: 52 },
       { name: 'Giulia Cavina', pos: 'SH', age: 29, nat: 'FRA', q: 63 },
-      { name: 'Aurore Cambon', pos: 'LP', age: 30, nat: 'FRA', q: 68 },
-      { name: 'Delphine Larrieu', pos: 'HK', age: 32, nat: 'FRA', q: 51 },
-      { name: 'Léonie Baradat', pos: 'TP', age: 22, nat: 'FRA', q: 63 },
-      { name: 'Océane Bergougnan', pos: 'LK', age: 18, nat: 'FRA', q: 51 },
-      { name: 'Violette Ferrand', pos: 'FL', age: 28, nat: 'FRA', q: 68 },
-      { name: 'Ariane Tarbouriech', pos: 'N8', age: 21, nat: 'FRA', q: 51 },
+      { name: 'Aurore Cambon', pos: 'LP', age: 30, nat: 'FRA', q: 68, gen: true },
+      { name: 'Delphine Larrieu', pos: 'HK', age: 32, nat: 'FRA', q: 51, gen: true },
+      { name: 'Léonie Baradat', pos: 'TP', age: 22, nat: 'FRA', q: 63, gen: true },
+      { name: 'Océane Bergougnan', pos: 'LK', age: 18, nat: 'FRA', q: 51, gen: true },
+      { name: 'Violette Ferrand', pos: 'FL', age: 28, nat: 'FRA', q: 68, gen: true },
+      { name: 'Ariane Tarbouriech', pos: 'N8', age: 21, nat: 'FRA', q: 51, gen: true },
     ],
   },
   {
@@ -485,14 +505,14 @@ export const W_E1: RawClub[] = [
       { name: 'Lisa Mazo', pos: 'FH', age: 32, nat: 'FRA', q: 49 },
       { name: 'Romane Silvestre', pos: 'CE', age: 33, nat: 'FRA', q: 47 },
       { name: 'Margot Gourgues', pos: 'WG', age: 21, nat: 'FRA', q: 49 },
-      { name: 'Tiphaine Tarbouriech', pos: 'LP', age: 30, nat: 'FRA', q: 61 },
-      { name: 'Anaïs Bernard', pos: 'HK', age: 29, nat: 'FRA', q: 55 },
-      { name: 'Clarisse Deltour', pos: 'TP', age: 34, nat: 'FRA', q: 51 },
-      { name: 'Inès Salvat', pos: 'LK', age: 25, nat: 'FRA', q: 59 },
-      { name: 'Mélusine Moreau', pos: 'FL', age: 24, nat: 'FRA', q: 63 },
-      { name: 'Jeanne Bergougnan', pos: 'CE', age: 20, nat: 'FRA', q: 46 },
-      { name: 'Noémie Ferrand', pos: 'FB', age: 19, nat: 'FRA', q: 54 },
-      { name: 'Célestine Marty', pos: 'N8', age: 31, nat: 'FRA', q: 56 },
+      { name: 'Tiphaine Tarbouriech', pos: 'LP', age: 30, nat: 'FRA', q: 61, gen: true },
+      { name: 'Anaïs Bernard', pos: 'HK', age: 29, nat: 'FRA', q: 55, gen: true },
+      { name: 'Clarisse Deltour', pos: 'TP', age: 34, nat: 'FRA', q: 51, gen: true },
+      { name: 'Inès Salvat', pos: 'LK', age: 25, nat: 'FRA', q: 59, gen: true },
+      { name: 'Mélusine Moreau', pos: 'FL', age: 24, nat: 'FRA', q: 63, gen: true },
+      { name: 'Jeanne Bergougnan', pos: 'CE', age: 20, nat: 'FRA', q: 46, gen: true },
+      { name: 'Noémie Ferrand', pos: 'FB', age: 19, nat: 'FRA', q: 54, gen: true },
+      { name: 'Célestine Marty', pos: 'N8', age: 31, nat: 'FRA', q: 56, gen: true },
     ],
   },
 ]

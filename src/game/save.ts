@@ -737,7 +737,7 @@ export function migrate(s: GameState): GameState {
         // appearances for a club he never played for). The self-healing pass
         // later in this file tests the same flag, so it could not reach them
         // either.
-        p.real = true
+        p.real = !rp.gen
         // his name is spoken for now: register it before any generated filler
         // is drawn, or the top-up can hand an invented man a real one
         worldNames(s).add(p.name.toLowerCase())
