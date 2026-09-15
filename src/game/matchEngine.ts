@@ -1267,6 +1267,10 @@ const CON_LINES = [
   'comm.con7',
   'comm.con8',
 ]
+/** try lines that put the ball under the posts, and conversion lines that
+ *  put the kicker on the touchline: the two never follow each other */
+const UNDER_POSTS = new Set(['comm.try5', 'comm.try21'])
+const TOUCHLINE_CON = new Set(['comm.con3', 'comm.con8'])
 const FLAVOR_GRASSROOTS = [
   'comm.flavGrass1',
   'comm.flavGrass2',
@@ -2027,8 +2031,12 @@ function scoreTry(
   const tryPool = derbyTry ? TRY_LINES_DERBY : wetTry ? TRY_LINES_WET : TRY_LINES
   // `line` is a set-piece strike's own wording, already a key, and it wins
   // when the caller supplied one.
+  let tryKey = line ?? 'comm.tryPackDrive'
   if (line) pushLine(state, ctx, min, 'TRY', side, line, lineV, scorer?.id)
-  else if (scorer) pushLine(state, ctx, min, 'TRY', side, tryPool[Math.floor(rng() * tryPool.length)], { player: scorer.name }, scorer.id)
+  else if (scorer) {
+    tryKey = tryPool[Math.floor(rng() * tryPool.length)]
+    pushLine(state, ctx, min, 'TRY', side, tryKey, { player: scorer.name }, scorer.id)
+  }
   else pushLine(state, ctx, min, 'TRY', side, 'comm.tryPackDrive')
   const cTries = scorer ? scorer.career.reduce((s, c) => s + c.tries, 0) + scorer.stats.tries + (scorer.hist?.tries ?? 0) : 0
   if (scorer && ctx.detail && [25, 50, 75, 100].includes(cTries)) {
@@ -2055,7 +2063,14 @@ function scoreTry(
   if (rng() < pCon) {
     side.score += 2
     if (kicker) { kicker.stats.cons += 1; kicker.stats.points += 2 }
-    pushLine(state, ctx, min + 1, 'CON', side, CON_LINES[Math.floor(rng() * CON_LINES.length)],
+    // A TRY UNDER THE POSTS IS NOT CONVERTED FROM THE TOUCHLINE (1.6.3). The
+    // conversion line was drawn without looking at the try line, and thirteen
+    // times in 224 matches "dives under the posts" was followed by "converts
+    // from the touchline" (scripts/qa/whistle.ts). Same shape as PEN_WET: a
+    // swap after the draw, so the stream and the fingerprint are untouched.
+    let conKey = CON_LINES[Math.floor(rng() * CON_LINES.length)]
+    if (UNDER_POSTS.has(tryKey) && TOUCHLINE_CON.has(conKey)) conKey = 'comm.con4'
+    pushLine(state, ctx, min + 1, 'CON', side, conKey,
       { player: kicker?.name ?? tIn('en', 'comm.theKicker') }, kicker?.id)
   } else {
     pushLine(state, ctx, min + 1, 'SUB', side, 'comm.conWide')
@@ -2114,6 +2129,19 @@ export function resolveDecision(state: GameState, ctx: LiveCtx, choice: 'posts' 
     const whistleMin = ctx.events[whistleAt]?.min ?? d.min
     for (const e of moved) e.min = Math.min(e.min, whistleMin)
     ctx.events.splice(whistleAt, 0, ...moved)
+    // AND THE WHISTLE LINE SAYS THE SCORE THE KICK LEFT (1.6.3). It was stamped
+    // when the half ended, before the answer, so its snapshot - which is what
+    // the scoreboard shows while the ticker rests on it - read three or seven
+    // short in every late-penalty half (scripts/qa/whistle.ts: 26 of 26).
+    const whistle = ctx.events[whistleAt + moved.length]
+    if (whistle && (whistle.type === 'HT' || whistle.type === 'FT')) {
+      whistle.homeScore = ctx.home.score
+      whistle.awayScore = ctx.away.score
+      if (whistle.k && whistle.v) {
+        whistle.v = { ...whistle.v, hs: ctx.home.score, ascore: ctx.away.score }
+        whistle.text = tIn('en', whistle.k, whistle.v)
+      }
+    }
   }
   // A KICK ANSWERED AFTER THE FINAL WHISTLE CHANGES THE RESULT.
   //
@@ -2149,6 +2177,9 @@ function syncResult(ctx: LiveCtx) {
   if (ft?.v) {
     ft.v = { ...ft.v, hs: home.score, ascore: away.score }
     ft.text = tIn('en', 'comm.fullTime', ft.v)
+    // the snapshot the scoreboard reads at the last line, not only the words
+    ft.homeScore = home.score
+    ft.awayScore = away.score
   }
 }
 
@@ -3134,6 +3165,12 @@ export function makeSubstitution(state: GameState, ctx: LiveCtx, outId: number, 
   // against the men the card accounted for.
   if (!mine.onPitch.has(outId)) return t('touch.notOnPitch')
   if (!pin || pin.injury || (mine.ratings.has(inId) && mine.onPitch.has(inId))) return t('touch.notAvailable')
+  // only a man on the bench, and only one who is allowed to play (1.6.3: the
+  // call accepted any id, so a suspended man or a man not in the 23 could come
+  // on if a caller named him, scripts/qa/banned.ts)
+  // (a Test side's whole bench is on national duty by definition, so the
+  // call-up check only applies when the side being coached is a club)
+  if (slotIn < 15 || pin.bans > 0 || (pin.natSquad && !!state.clubs[mine.teamId])) return t('touch.notAvailable')
   mine.lineup[slotOut] = inId
   if (slotIn >= 0) mine.lineup[slotIn] = outId
   mine.onPitch.delete(outId)

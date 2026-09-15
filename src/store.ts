@@ -619,7 +619,13 @@ export const useStore = create<Store>((set, get) => ({
     let firstRun = false
     try { firstRun = localStorage.getItem('rm-tut') !== '1' } catch { /* private mode */ }
     noteWhere(get().saveSlot, [{ screen: 'home' }])
-    set({ game: g, nav: [{ screen: 'home' }], tick: get().tick + 1, tut: firstRun })
+    // A NEW CAREER OWES NOTHING TO THE LAST ONE'S MATCH (1.6.3). The live-match
+    // record of whatever career last used this slot was left in place, and
+    // resumeFits could match it against this career the week it reached the
+    // same fixture id (scripts/qa/crossrec.ts): a refresh then restored the
+    // old manager's pre-match state and the autosave wrote it over this save.
+    void clearResume(get().saveSlot).catch(() => {})
+    set({ game: g, nav: [{ screen: 'home' }], tick: get().tick + 1, tut: firstRun, matchRec: null, liveMatch: null })
     // a brand-new career goes to disk at once: there is nothing yet to lose, and
     // losing it is the one save failure a player would not understand
     void get().persistNow()
@@ -646,7 +652,10 @@ export const useStore = create<Store>((set, get) => ({
     const where = keepPlace ? readWhere() : null
     const nav = where && where.slot === slot ? where.nav : [{ screen: 'home' as const }]
     noteWhere(slot, nav)
-    set({ game: g, saveSlot: slot, nav, tick: get().tick + 1 })
+    // loading from the title never replays a match, so the record of one is
+    // stale the moment a career is opened this way (1.6.3, see start())
+    void clearResume(slot).catch(() => {})
+    set({ game: g, saveSlot: slot, nav, tick: get().tick + 1, matchRec: null, liveMatch: null })
   },
   setSlot: (slot) => set({ saveSlot: slot }),
 
@@ -1042,6 +1051,7 @@ export const useStore = create<Store>((set, get) => ({
       v: 1, pre, fxId: fx.id, userSideId: userTeamId, preTalk: preTalk ?? null,
       mode: mode ?? 'full', tick: 0, cursor: 0, cmds: [],
       season: g.season, week: g.week, savedAt: Date.now(),
+      seed: g.seed, saveName: g.saveName,
     }
     set(s => ({
       liveMatch: {
@@ -1051,7 +1061,9 @@ export const useStore = create<Store>((set, get) => ({
       matchRec: rec,
       tick: s.tick + 1,
     }))
-    void putResume(get().saveSlot, rec).catch(() => {})
+    // the one write that carries the 7MB state; every later write is the
+    // short record (save.ts putResume, 1.6.3)
+    void putResume(get().saveSlot, rec, true).catch(() => {})
   },
 
   /** Note a decision the manager made, against the tick he made it on, and put

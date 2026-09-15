@@ -5836,6 +5836,8 @@
   "biggerStage": "{name} bedank jou vir die belangstelling, maar hy wag op 'n groter verhoog.",
   "joinsFreeSummer": "{name} sluit hierdie somer op 'n vry-oordrag aan ({wage}/wk ooreengekom).",
   "notYourPlayer": "Nie jou speler nie.",
+  "renewedThisSeason": "Hy het reeds vanjaar 'n nuwe kontrak geteken; die volgende gesprek oor terme is volgende somer.",
+  "squadFull": "Die span is vol: 46 senior spelers is die registrasielimiet. Laat eers iemand gaan.",
   "retiringMindMadeUp": "{name} waardeer die gebaar, maar sy besluit staan vas - hy tree in die somer af.",
   "preContractElsewhere": "Te laat - {name} het reeds elders 'n voorkontrak geteken. Die ooreenkoms is bindend.",
   "termsExceedBudget": "Daardie voorwaardes sal die salarisbegroting oorskry.",

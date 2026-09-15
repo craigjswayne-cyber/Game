@@ -2,8 +2,7 @@ import { useState } from 'react'
 import { useStore } from '../../store'
 import {
   FACILITY_INFO, MAX_FACILITY, demandCeiling, estateGrade, facilityCost, fmtMoney,
-  type Club, type FacilityId,
-} from '../../game/model'
+  type Club, type FacilityId, weeksBetween100 } from '../../game/model'
 import { expansionPlan, requestExpansion, requestFacility } from '../../game/season'
 import { SectionTitle } from '../components'
 import { ESTATE_SKU, hasEntitlement, tillOpen } from '../../game/monetise'
@@ -129,7 +128,7 @@ export default function Infrastructure() {
           const lvl = club.facilities?.[fid] ?? 0
           const cost = facilityCost(info, lvl)
           const building = game.facilityBuild?.id === fid ? game.facilityBuild : null
-          const weeksLeft = building ? Math.max(1, building.done - abs) : 0
+          const weeksLeft = building ? Math.max(1, weeksBetween100(building.done, abs)) : 0
           return (
             <div className="card" key={fid} style={{ margin: 0, padding: '8px 10px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>

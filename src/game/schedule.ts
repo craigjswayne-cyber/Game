@@ -76,7 +76,12 @@ export const W_CC_POOL_WEEKS = [8, 11, 18, 19, 22, 23]
  * whole, three weeks apart, with the trophy lifted the week before the Test
  * squads are named.
  */
-export const W_CC_KO_WEEKS = [24, 27, 30]
+// 24, 27 and 30 until 1.6.3, which were league weekends for every women's top
+// tier: the manager's own quarter-final, semi-final and final were settled
+// by the AI path while the league game took the Saturday
+// (scripts/qa/wclash.ts: eleven ties across four clubs, one of them a final).
+// 26, 28 and 31 are free for w:pwr, w:pac, w:e1 and w:celt.
+export const W_CC_KO_WEEKS = [26, 28, 31]
 export const AUTUMN_WEEKS = [13, 14, 15]
 export const SIX_NATIONS_WEEKS = [25, 26, 27, 28, 29]
 export const TRC_WEEKS = [5, 6, 7, 9, 10, 11]
@@ -140,7 +145,16 @@ export function roundRobin(teams: string[], rng: Rng, double: boolean): [string,
     for (let i = 0; i < m / 2; i++) {
       const a = list[i]
       const b = list[m - 1 - i]
-      if (a && b) round.push(r % 2 === 0 ? [a, b] : [b, a])
+      // VENUES BALANCE (1.6.3). Flipping every pair on the round's parity
+      // left four URC clubs with six home games and nine away in a single
+      // round robin (scripts/qa/urcsplit.ts). The fixed team at index 0
+      // alternates by round; every other pair alternates by its own index,
+      // which the circle rotation turns into an even split: spread of one
+      // home game for every even field size, two for an odd one.
+      if (a && b) {
+        const flip = i === 0 ? r % 2 === 1 : i % 2 === 1
+        round.push(flip ? [b, a] : [a, b])
+      }
     }
     rounds.push(round)
     // rotate (keep first fixed)
@@ -804,8 +818,11 @@ export function buildWomensInternationals(rng: Rng, state: GameState) {
 }
 
 export function sortTable(table: TableRow[]): TableRow[] {
+  // Wins before points difference (1.6.3): the Premiership, the URC and the
+  // Pacific competitions all separate level clubs on matches won first, and
+  // the table ranked a side with a better difference above one with more wins.
   return [...table].sort((a, b) =>
-    b.pts - a.pts || (b.pf - b.pa) - (a.pf - a.pa) || b.tf - a.tf || b.pf - a.pf)
+    b.pts - a.pts || b.w - a.w || (b.pf - b.pa) - (a.pf - a.pa) || b.tf - a.tf || b.pf - a.pf)
 }
 
 /**

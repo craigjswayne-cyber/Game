@@ -305,12 +305,19 @@ const EXPECTED: string[] = [
   // Not a mechanical change: no dial, no rule, no rating touched - the same
   // shape as the namesake rebaseline above, and dataaudit PASSED on the new
   // world (30 warnings, one fewer than before the window). All six re-deal.
+  //
+  // 1.6.3: roundRobin balances venues (schedule.ts), so the Premiership's
+  // single-round pairings swap sides where the old parity flip had stacked
+  // six home games on one club and nine on another. A mechanical change to
+  // WHO IS AT HOME, not to the sim: bandcheck held every band on the pool
+  // (53.4 pts, 6.24 tries, 54.5% home, 1.7% draws, 6.4% blowouts) before this
+  // was rebaselined. Three of six re-deal with the venue; three hold exactly.
   'leicester 6-35 gloucester',
-  'saracens 34-17 bath',
+  'bath 34-17 saracens',
   'newcastle 16-7 northampton',
-  'bristol 9-14 harlequins',
+  'harlequins 24-31 bristol',
   'sale 36-27 exeter',
-  'bath 65-12 leicester',
+  'bath 62-19 leicester',
 ]
 
 if (EXPECTED[0] === '@@EXPECTED@@') {

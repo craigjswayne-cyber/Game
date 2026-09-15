@@ -55,6 +55,11 @@ export function releasePlayer(state: GameState, playerId: number): { ok: boolean
   if (club.captain === p.id) club.captain = null
   if (club.vice === p.id) club.vice = null
   if (state.devFocus) state.devFocus = state.devFocus.filter(id => id !== p.id)
+  if (club.marquee) club.marquee = club.marquee.filter(id => id !== p.id)
+  // any bid on the desk for him dies with his contract: accepting one after
+  // this handed a free agent to the bidder for a fee nobody received
+  // (1.6.3, scripts/qa/exploit.ts)
+  for (const o of state.offers) if (o.playerId === p.id && o.status === 'pending') o.status = 'rejected'
   p.clubId = null
   p.transferListed = false
   // a released man settles for less, the same 30% the AI's releases take

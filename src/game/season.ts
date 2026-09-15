@@ -16,7 +16,7 @@ import { AWARD_EVERY, managerOfMonth, runLine, runVars } from './awards'
 import { boardMemo } from './boardmemo'
 import { terraceWeek } from './terraces'
 import { upkeepWeek } from './upkeep'
-import {absWeek, addGrudge, boardObjective, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, finalVenue, fixtureDayOff, fmtMoney, leagueTier, LEDGER_WEEKS, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, SEASON_WEEKS, seasonLabel, squadTrust, unbeatenRun, weeklyCentral, mgrWinWeight } from './model'
+import {absWeek, addGrudge, boardObjective, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, finalVenue, fixtureDayOff, fmtMoney, leagueTier, LEDGER_WEEKS, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, RELEGATES, SEASON_WEEKS, seasonLabel, squadTrust, unbeatenRun, weeklyCentral, mgrWinWeight, addWeeks100 } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { emptyRow, leaguePos, sortTable, snIdFor, snWeeksFor, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS, W_AUTUMN_WEEKS, W_SIX_NATIONS_WEEKS, W_PAC4_WEEKS, W_SUMMER_TEST_WEEKS } from './schedule'
 import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice } from './ai'
@@ -122,7 +122,7 @@ export function requestFacility(state: GameState, fid: FacilityId): string {
   const clubShare = Math.round(cost * (1 - backing))
   const approve = club.boardConfidence >= 45 && club.balance >= clubShare * 1.25
   if (!approve) {
-    state.facilityAskCooldown = abs + 8
+    state.facilityAskCooldown = addWeeks100(abs, 8)
     ;(state.boardAsks ??= {}).capital = { deniedAt: abs, strikes: 0 }
     const whyKey = club.boardConfidence < 45 ? 'news.facNoResults'
       : club.balance < clubShare ? 'news.facNoShare'
@@ -139,7 +139,7 @@ export function requestFacility(state: GameState, fid: FacilityId): string {
     return t('reply.declined', { why_k: whyKey })
   }
   club.balance -= clubShare
-  state.facilityBuild = { id: fid, done: abs + 5, level: lvl + 1 }
+  state.facilityBuild = { id: fid, done: addWeeks100(abs, 5), level: lvl + 1 }
   delete state.boardAsks?.capital // a yes wipes the slate
   const boardPut = cost - clubShare
   logDecision(state, 'dec.facilityApproved', { lvl: lvl + 1, fac_k: info.name, cost: fmtMoney(cost) }, true)
@@ -204,7 +204,7 @@ export function requestExpansion(state: GameState): string {
   const enoughDemand = played >= 3 && fill >= 0.9
   const approve = enoughDemand && club.balance >= cost * 1.3 && club.boardConfidence >= 50
   if (!approve) {
-    state.facilityAskCooldown = abs + 8
+    state.facilityAskCooldown = addWeeks100(abs, 8)
     ;(state.boardAsks ??= {}).capital = { deniedAt: abs, strikes: 0 }
     const whyKey = played < 3 ? 'news.expNoEarly'
       : fill < 0.9 ? 'news.expNoEmpty'
@@ -3432,7 +3432,8 @@ export function processWeekAndAdvance(state: GameState) {
     const prem = state.comps['prem']
     const champ = state.comps['champ']
     const already = state.fixtures.some(f => f.compId === 'prem' && f.stage === 'BAR')
-    if (prem && champ && !already) {
+    // no playoff for a place in a ringfenced league (RELEGATES, 1.6.3)
+    if (prem && champ && !already && RELEGATES.includes('prem')) {
       const bottom = sortTable(prem.table).map(r => r.teamId).pop()
       const up = champ.champion ?? sortTable(champ.table)[0]?.teamId
       if (bottom && up && bottom !== up && state.clubs[bottom] && state.clubs[up]) {

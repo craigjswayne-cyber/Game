@@ -6,7 +6,7 @@ import { applyAdminPenalties } from './season'
 import { settleInsolvency } from './insolvency'
 import { ageManager } from './career'
 import { rivalVerdict } from './boss'
-import {absWeek, BASE_YEAR, boardObjective, boardPatience, closeNatTenure, demandCeiling, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId } from './model'
+import {absWeek, BASE_YEAR, boardObjective, boardPatience, closeNatTenure, demandCeiling, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, RELEGATES, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId } from './model'
 import { assignPersonality } from './attributes'
 import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildWomensContinentalCup, buildLeague, schedulePreseason, sortTable } from './schedule'
 import { punditPredictions } from './gossip'
@@ -22,7 +22,7 @@ import { deriveAttrs, isLateBloomer, nextPid, playerValue, playerWage } from './
 import { nationByCode, regenName, worldNames } from './nations'
 import { clamp, mulberry32, pick, type Rng } from './rng'
 import { resetFamiliarity } from './playbook'
-import { closeAcademySeason, ensureAcademyLeague, topUpAcademy } from './academy'
+import { closeAcademySeason, ensureAcademyLeague, topUpAcademy, acadCeiling } from './academy'
 import { mentorBoost } from './mentoring'
 import { staffChem } from './staff'
 import { tIn, type Vars } from './i18n'
@@ -51,8 +51,16 @@ function boardReinvests(state: GameState) {
   // keeps it: a first pass swept 55% above 0.6 of a season and left him poorer
   // than the AI median, which is its own kind of wrong
   const reserve = Math.round(weekly * SEASON_WEEKS + 4_000_000)
-  if (club.balance <= reserve * 1.5) return
-  const spend = Math.round((club.balance - reserve) * 0.4)
+  // A BOARD INJECTION IS NOT SURPLUS (1.6.3). The cash a manager bought from
+  // the store this season sat in the balance and was swept like any other
+  // windfall: the largest tier bought at week 40 lost £44m to "reinvestment"
+  // at the rollover (scripts/qa/p5_inject.ts). Whatever of it is still in the
+  // account stays out of the sweep, and rebuildSeason carries it into next
+  // season's transfer budget.
+  const injected = Math.min(state.injectedThisSeason ?? 0, Math.max(0, club.balance))
+  const surplus = club.balance - injected
+  if (surplus <= reserve * 1.5) return
+  const spend = Math.round((surplus - reserve) * 0.4)
   if (spend < 500_000) return
   club.balance -= spend
 
@@ -330,10 +338,21 @@ function agePlayers(state: GameState, rng: Rng) {
     // (seed, id), so it costs the save nothing and the scout finds out the
     // honest way, by watching a 27-year-old refuse to plateau
     const bloom = isLateBloomer(state.seed, p.id)
+    // ---- THE CURVE, RECALIBRATED (1.6.3) ----
+    // Ten seasons of the old curve (scripts/qa/drift.ts, three seeds, both
+    // worlds) took the world from 30 players rated 90+ to over 200, the
+    // 30-33 band from a 63 mean to 80, and National One's best XV from 48 to
+    // 78 - the pyramid flattened into one tier. Three things did it: the
+    // second growth phase ran to 27 at a point or two a year, nobody
+    // declined before 31, and every retiring 78+ man was reborn with his
+    // own potential. So: the late phase is a coin toss for one point, the
+    // slide starts at 29, and the rebirth below is rarer and lower.
     if (p.age <= (bloom ? 25 : 23) && p.ca < p.pa) p.ca = clamp(p.ca + growth(scaled(2 + Math.floor(rng() * 3))), 1, p.pa)
-    else if (p.age <= (bloom ? 29 : 27) && p.ca < p.pa) p.ca = clamp(p.ca + growth(scaled(1 + Math.floor(rng() * 2))), 1, p.pa)
+    else if (p.age <= (bloom ? 29 : 27) && p.ca < p.pa) p.ca = clamp(p.ca + growth(scaled(rng() < 0.5 ? 1 : 0)), 1, p.pa)
+    else if (p.age >= 35) p.ca = clamp(p.ca - (3 + Math.floor(rng() * 3)), 30, 99)
     else if (p.age >= 33) p.ca = clamp(p.ca - (2 + Math.floor(rng() * 3)), 30, 99)
     else if (p.age >= 31) p.ca = clamp(p.ca - (1 + Math.floor(rng() * 2)), 30, 99)
+    else if (p.age >= 29 && !bloom) p.ca = clamp(p.ca - (rng() < 0.5 ? 1 : 0), 30, 99)
     // attribute drift toward new ca
     const scale = p.ca / Math.max(30, p.q0)
     if (Math.abs(scale - 1) > 0.05) {
@@ -492,12 +511,16 @@ function agePlayers(state: GameState, rng: Rng) {
     if (clubId) {
       const c = state.clubs[clubId]
       c.players = c.players.filter(id => id !== p.id)
+      // his marquee slot retires with him (1.6.3)
+      if (c.marquee) c.marquee = c.marquee.filter(id => id !== p.id)
     }
     delete state.players[p.id]
     // FM-style rebirth: a notable retiree respawns as an academy newgen
     // of similar potential at the same club, under a new name
     const peak = Math.max(p.ca, p.q0)
-    if (clubId && peak >= 78 && state.clubs[clubId]) {
+    // rarer and lower than the man he replaces (1.6.3): forty heirs a summer
+    // born with an 80-99 ceiling was the engine of the world's inflation
+    if (clubId && peak >= 82 && state.clubs[clubId] && rng() < 0.6) {
       const club = state.clubs[clubId]
       const q = 42 + Math.floor(rng() * 14)
       const raw = {
@@ -510,7 +533,7 @@ function agePlayers(state: GameState, rng: Rng) {
         id: nextPid(),
         name: raw.name, pos: p.pos, alt: [...p.alt], age: raw.age, nat: p.nat, clubId,
         a,
-        ca: q, pa: clamp(peak + Math.floor(rng() * 9) - 4, q + 10, 99), q0: q,
+        ca: q, pa: clamp(peak - 12 + Math.floor(rng() * 12), q + 10, 94), q0: q,
         intl: false, gk: !!raw.gk,
         form: 6, morale: 7, cond: 100, sharp: 50,
         injury: null, bans: 0, natSquad: false,
@@ -761,7 +784,7 @@ export function rollIntakeClass(state: GameState, rng: Rng): NonNullable<GameSta
     out.push({
       name: regenName(rng, club.country === 'NZL' && club.id === 'moana' ? 'SAM' : club.country, worldNames(state), genderOf(state)),
       pos, age: 17 + Math.floor(rng() * 2), q,
-      pa: wonder ? clamp(87 + Math.floor(rng() * 13), q + 20, 99) : clamp(q + 12 + Math.floor(rng() * rng() * 30), q, 99),
+      pa: wonder ? clamp(87 + Math.floor(rng() * 13), q + 20, 99) : clamp(Math.min(q + 12 + Math.floor(rng() * rng() * 30), acadCeiling(club, rng)), q, 99),
       gk: (pos === 'FH' || pos === 'FB') && rng() < 0.4,
       wonder,
     })
@@ -848,13 +871,15 @@ function youthIntake(state: GameState, rng: Rng) {
         gk: (pos === 'FH' || pos === 'FB') && rng() < 0.4,
       }
       const a = deriveAttrs(raw, state.seed + state.season * 977 + i)
-      const wonder = rng() < 0.085
+      // one in fifty, capped near the club's own ceiling (1.6.3): at one in twelve with an
+      // 87-99 ceiling, a hundred AI academies minted seventy future stars a summer
+      const wonder = rng() < 0.02
       const p: Player = {
         id: nextPid(),
         name: raw.name, pos, alt: [], age: raw.age, nat: raw.nat, clubId: club.id,
         a,
         ca: wonder ? clamp(q + 8, 1, 78) : q,
-        pa: wonder ? clamp(87 + Math.floor(rng() * 13), q + 20, 99) : clamp(q + 12 + Math.floor(rng() * rng() * 30), q, 99),
+        pa: wonder ? clamp(Math.min(87 + Math.floor(rng() * 13), acadCeiling(club, rng) + 10), q + 20, 99) : clamp(Math.min(q + 12 + Math.floor(rng() * rng() * 30), acadCeiling(club, rng)), q, 99),
         q0: q,
         intl: false, gk: !!raw.gk,
         form: 6, morale: 7, cond: 100, sharp: 50,
@@ -918,7 +943,16 @@ function replenishSquads(state: GameState, rng: Rng) {
         if (p && !p.acad) byPos[p.pos] = (byPos[p.pos] ?? 0) + 1
       }
       const need = YOUTH_POS.find(pos => (byPos[pos] ?? 0) < 2) ?? pick(rng, YOUTH_POS)
-      const fa = freeAgents().find(p => p.pos === need || p.alt.includes(need)) ?? freeAgents()[0]
+      // a club short of seniors takes a free agent of ITS OWN standing (1.6.3):
+      // the pool is kept as the best 120 by rating, and the best of them went
+      // to whichever club happened to be short - which is how a National One
+      // side came to sign an 88-rated Test back for nothing every summer
+      const pool = freeAgents()
+      const fits = (p: { ca: number }) => p.ca <= club.rep + 15
+      const fa = pool.find(p => fits(p) && (p.pos === need || p.alt.includes(need)))
+        ?? pool.find(fits)
+        ?? pool.find(p => p.pos === need || p.alt.includes(need))
+        ?? pool[0]
       if (!fa) {
         // The market is bare - hand a young pro a senior contract instead. He
         // used to be registered as an academy scholar, which stopped being safe
@@ -1549,6 +1583,9 @@ export function rebuildSeason(state: GameState) {
   const swaps: string[] = []
   const swapRows: Vars[] = []
   for (const [topId, lowId, topName] of PYRAMID) {
+    // a ringfenced top flight swaps nobody (RELEGATES, model.ts: the English
+    // Premier Division from 2026-27)
+    if (!RELEGATES.includes(topId)) continue
     const topComp = state.comps[topId]
     const lowComp = state.comps[lowId]
     if (!topComp || !lowComp) continue
@@ -1896,6 +1933,13 @@ export function rebuildSeason(state: GameState) {
   // budgets: base by rep + carryover health
   for (const club of Object.values(state.clubs)) {
     club.budget = Math.max(200_000, Math.round((club.rep * 45_000 + Math.max(0, club.balance) * 0.15) / 50_000) * 50_000)
+    // the board injections bought this season stay spendable: whatever of
+    // that cash is still in the account is the floor of next season's
+    // allowance, not 15% of it (scripts/qa/p5_inject.ts, 1.6.3)
+    if (club.id === state.userClubId && !state.unemployed && (state.injectedThisSeason ?? 0) > 0) {
+      const carried = Math.min(state.injectedThisSeason ?? 0, Math.max(0, club.balance))
+      club.budget = Math.max(club.budget, Math.round(carried / 50_000) * 50_000)
+    }
     // The old reset was confidence * 0.6 + 30, whose fixed point is 75 - so
     // every board in the game drifted back to comfortable each summer no matter
     // how the season had gone, and a side that finished 8th of 10 was dragged

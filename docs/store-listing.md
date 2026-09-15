@@ -147,6 +147,30 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.6.3, Play version code 32
+
+The release-gate fixes (docs/release-audit-v1.6.2.md): the women's cup ties
+are yours to play, money is charged once, board injections carry over, the
+world stops inflating, and a leftover match can no longer replace a career.
+
+```
+<en-GB>
+Women's game: your Champions Cup quarter-final, semi-final and final no longer clash with a league weekend, so you coach every one of them. Money: moving cash into the transfer budget no longer charges you twice when you spend it, and a board injection stays in your transfer budget the following season instead of being swept by the board. Long careers: player development recalibrated so a ten-season world keeps its stars rare and its leagues apart. One renewal per player a season, a sold marquee player frees his slot, bids on released players are void, and the English top flight is ringfenced for 2026-27.
+</en-GB>
+<fr-FR>
+Jeu féminin : vos quart, demi et finale de Coupe des Champions ne tombent plus sur un week-end de championnat, vous dirigez chacun de ces matchs. Argent : transférer des fonds vers le budget de transferts ne vous fait plus payer deux fois, et une injection du conseil reste dans votre budget la saison suivante au lieu d'être reprise. Longues carrières : la progression des joueurs est recalibrée pour que, dix saisons plus tard, les stars restent rares et les divisions distinctes. Une prolongation par joueur et par saison, un joueur vedette vendu libère sa place, les offres pour un joueur libéré sont annulées, et l'élite anglaise est fermée pour 2026-27.
+</fr-FR>
+<es-ES>
+Juego femenino: tus cuartos, semifinal y final de la Copa de Campeones ya no coinciden con una jornada de liga, así que diriges todos esos partidos. Dinero: pasar efectivo al presupuesto de fichajes ya no te cobra dos veces al gastarlo, y una inyección de la directiva se mantiene en tu presupuesto la temporada siguiente en vez de ser retirada. Carreras largas: la progresión de los jugadores se ha recalibrado para que un mundo de diez temporadas conserve estrellas escasas y ligas diferenciadas. Una renovación por jugador y temporada, un jugador franquicia vendido libera su plaza, las ofertas por jugadores liberados quedan anuladas y la máxima categoría inglesa queda cerrada en 2026-27.
+</es-ES>
+<it-IT>
+Gioco femminile: quarti, semifinale e finale di Champions Cup non coincidono più con un turno di campionato, quindi alleni ogni partita. Denaro: spostare contanti nel budget trasferimenti non ti fa più pagare due volte quando lo spendi, e un'iniezione del consiglio resta nel budget della stagione successiva invece di essere ritirata. Carriere lunghe: la crescita dei giocatori è stata ricalibrata perché dopo dieci stagioni le stelle restino rare e i campionati distinti. Un rinnovo per giocatore a stagione, un giocatore di punta venduto libera il suo posto, le offerte per giocatori svincolati decadono e la massima serie inglese è chiusa per il 2026-27.
+</it-IT>
+<ja-JP>
+女子ゲーム：チャンピオンズカップの準々決勝、準決勝、決勝がリーグ戦の週末と重ならなくなり、すべての試合を自分で指揮できる。資金：移籍予算へ資金を移しても使う際に二重に引かれなくなり、ボードからの資金注入は翌シーズンも移籍予算に残る。長期キャリア：10シーズン後もスター選手が希少でリーグ間の差が保たれるよう、選手の成長を再調整した。契約延長はシーズンに選手一人につき一回、売却したマーキー選手の枠は解放され、放出した選手への入札は無効になり、イングランド最上位リーグは2026-27年は昇降格なしとなる。
+</ja-JP>
+```
+
 ### What's new (500 max) - v1.6.2, Play version code 31
 
 Back goes back, tapping stops waiting on a five-megabyte save, and purchases

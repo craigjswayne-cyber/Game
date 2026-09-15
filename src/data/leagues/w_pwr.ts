@@ -120,7 +120,7 @@ export const W_PWR: RawClub[] = [
       { name: 'Emma Hardy', pos: 'LP', age: 19, nat: 'ENG', q: 73 },
       { name: 'Erin Delea', pos: 'HK', age: 21, nat: 'ENG', q: 81 },
       { name: 'Gabrielle Senft', pos: 'TP', age: 34, nat: 'ENG', q: 73 },
-      { name: 'Georgia Evans', pos: 'N8', age: 23, nat: 'ENG', q: 76 },
+      { name: 'Georgia Evans', pos: 'N8', age: 29, nat: 'WAL', q: 76, intl: true },
       { name: 'Issy Winter', pos: 'FL', age: 21, nat: 'ENG', q: 77 },
       { name: 'Jemima Moss', pos: 'LK', age: 28, nat: 'ENG', q: 82 },
       { name: 'Jemma-Jo Linkins', pos: 'WG', age: 22, nat: 'ENG', q: 82 },

@@ -50,6 +50,23 @@ const attrMean = (g: GameState, ids: string[]): number => {
   return n ? sum / n : 0
 }
 
+/** best-XV mean of the strongest league minus the weakest: the pyramid's height */
+const tierGapOf = (g: GameState): number => {
+  const means: number[] = []
+  for (const c of Object.values(g.comps)) {
+    if (c.type !== 'league') continue
+    let sum = 0, n = 0
+    for (const cid of c.teamIds) {
+      const club = g.clubs[cid]
+      if (!club) continue
+      const top = club.players.map(id => g.players[id]).filter(p => p && !p.acad).sort((a, b) => b.ca - a.ca).slice(0, 15)
+      if (top.length) { sum += top.reduce((x, p) => x + p.ca, 0) / top.length; n++ }
+    }
+    if (n) means.push(sum / n)
+  }
+  return means.length ? Math.max(...means) - Math.min(...means) : 0
+}
+
 const g = newGame('leicester', 'Audit Gaffer', SEED)
 const startIds = new Set(Object.keys(g.players))
 const startCount = startIds.size
@@ -65,6 +82,14 @@ interface Row {
   deep: number
   /** clubs whose points deduction applies to this season */
   admin: number
+  /** RATING INFLATION (1.6.3). The u23 mean above stayed flat while the world
+   *  went from 30 players rated 90+ to over 200 in ten seasons and National
+   *  One's best XV closed a 32-point gap on the Premiership to six
+   *  (scripts/qa/worlddrift.ts). These three catch it: the stars, the near
+   *  stars, and the spread between the strongest and weakest league's best XV. */
+  ca90: number
+  ca85: number
+  tierGap: number
 }
 const rows: Row[] = []
 let prevIds = new Set(Object.keys(g.players))
@@ -115,6 +140,9 @@ for (let s = 0; s < SEASONS; s++) {
     }).length,
     admin: clubs.filter(c => c.admin && c.admin.season === g.season).length,
     news: g.news.length,
+    ca90: ids.filter(id => g.players[id].ca >= 90).length,
+    ca85: ids.filter(id => g.players[id].ca >= 85).length,
+    tierGap: tierGapOf(g),
   })
 }
 
@@ -188,6 +216,22 @@ ok(rows.slice(2).every(r => r.retiredish > 0 && r.newU23 > 0),
 ok(Number.isFinite(last.leagueBal) && Math.abs(last.leagueBal) < 30e9,
   `league-wide money stays on a human scale (£${(last.leagueBal / 1e6).toFixed(0)}m)`)
 ok(last.news < 6000, `the news feed does not grow without bound (${last.news} items)`)
+{
+  // the bands the 1.6.3 recalibration was tuned to: stars may double over a
+  // decade as the young cohort matures, not multiply sevenfold; and the
+  // pyramid keeps at least two thirds of its height
+  const first = rows[0], lastRow = rows[rows.length - 1]
+  // measured after the 1.6.3 recalibration (scripts/qa/worlddrift.ts, seed 777):
+  // 90+ went 20 -> 66 over ten seasons where it had gone 20 -> 206, 85+ went
+  // 92 -> 215 where it had gone to 515, and the Premiership-to-National One
+  // gap held 18 of its 34 points where it had kept 6
+  ok(lastRow.ca90 <= Math.max(90, first.ca90 * 3),
+    `players rated 90+ stay in band (season 1: ${first.ca90}, season ${SEASONS}: ${lastRow.ca90})`)
+  ok(lastRow.ca85 <= Math.max(260, first.ca85 * 2.5),
+    `players rated 85+ stay in band (season 1: ${first.ca85}, season ${SEASONS}: ${lastRow.ca85})`)
+  ok(lastRow.tierGap >= first.tierGap * 0.5,
+    `the pyramid keeps its height: best-XV gap top to bottom league ${first.tierGap.toFixed(1)} -> ${lastRow.tierGap.toFixed(1)}`)
+}
 
 console.log(fails
   ? `RELEASE SIM FAILED (${fails})`
