@@ -1,5 +1,9 @@
 # PHASE: Rugby Manager, Final Pre-Release QA (v1.6.2)
 
+**Current status, 1.6.4 (commit 8b688e4): 🟢 RELEASE READY.** Every finding in this document was fixed in 1.6.3 or resolved in 1.6.4 and re-proved by the probe that found it. On the shipping build: engine suite 178 of 178, browser suite 57 of 57 against the production build, release simulation 15 seasons with every band held. The 🔴 verdict further down is the audit of 1.6.2 as it was found, kept for the record.
+
+Release score for 1.6.4: gameplay stability 8, simulation integrity 8, data integrity 8, save integrity 8, long-term stability 8, UI/UX 7, performance 7, rugby authenticity 9, content and data accuracy 8, exploit resistance 8, overall release confidence 8 of 10.
+
 ## 1.6.3: what was fixed, and how it was proved
 
 Every register item and every data row below was addressed in 1.6.3, in the same branch, and re-proved with the probe that found it.
@@ -81,9 +85,9 @@ What it does not protect is the shape of the world over time and the money model
 
 Below those, a handful of P2 exploits (unlimited morale by re-signing players, a permanently lost marquee slot, selling a player you have already released) and a performance defect where every revealed commentary line rewrites the full 7 MB pre-match state to IndexedDB.
 
-## RELEASE VERDICT
+## RELEASE VERDICT (1.6.2 as audited, superseded by 1.6.4 above)
 
-🔴 **NOT RELEASE READY**
+🔴 **NOT RELEASE READY at 1.6.2**
 
 No P0 was found. Four P1 issues threaten the integrity of the game as shipped: one breaks a headline feature of the women's game (the manager's own cup final is played without them), two devalue real-money and in-game money, and one can lose a career. With QA-01, QA-03 and QA-04 fixed, the men's game would sit at 🟡 with QA-02 (inflation) as the standing condition.
 
