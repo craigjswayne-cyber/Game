@@ -4620,6 +4620,7 @@
   "notePlenty": " Nog baie op pad.",
   "noteSome": " Nog 'n bietjie oor in hom.",
   "wcDrawSubj": "🏆 Wêreldkampioenskap-loting: die ranglys kies die poele",
+  "wcDrawWSubj": "🏆 Wêreldkampioenskap-loting: die ranglys kies die poele",
   "wcDraw": "Die Wêreldkampioenskap-poele is vasgestel, geplaas volgens die wêreldranglys. Topgeplaastes: {top_l}.\nVier poele, vyf nasies elk, en iewers daarin 'n doodspoel.",
   "wcDrawSeededSubj": "🏆 Wêreldkampioenskap-loting: die ranglys kies die poele",
   "wcDrawSeeded": "Die Wêreldkampioenskap-poele is vasgestel, geplaas volgens die wêreldranglys. Topgeplaastes: {top_l}.\n{nationCap_k} gaan in as die {seed_o} geplaaste - enigiets minder as {bar_k}.",

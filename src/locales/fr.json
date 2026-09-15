@@ -4595,6 +4595,7 @@
     "notePlenty": " Il a encore beaucoup à donner.",
     "noteSome": " Il lui reste un peu de marge.",
     "wcDrawSubj": "🏆 Tirage de la Coupe du monde : le classement compose les poules",
+    "wcDrawWSubj": "🏆 Tirage de la Coupe du monde : le classement compose les poules",
     "wcDraw": "Les poules de la Coupe du monde sont faites, sur la base du classement mondial. Têtes de série : {top_l}.\nQuatre poules, cinq nations chacune, et quelque part là-dedans une poule de la mort.",
     "wcDrawSeededSubj": "🏆 Tirage de la Coupe du monde : le classement compose les poules",
     "wcDrawSeeded": "Les poules de la Coupe du monde sont faites, sur la base du classement mondial. Têtes de série : {top_l}.\n{nationCap_k} y entre en tant que {seed_o} tête de série : {bar_k}.",

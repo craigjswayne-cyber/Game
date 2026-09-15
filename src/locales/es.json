@@ -4558,6 +4558,7 @@
   "notePlenty": " Aún le queda mucho por dar.",
   "noteSome": " Todavía le queda algo dentro.",
   "wcDrawSubj": "🏆 Sorteo del Campeonato del Mundo: el ranking decide los grupos",
+  "wcDrawWSubj": "🏆 Sorteo del Campeonato del Mundo: el ranking decide los grupos",
   "wcDraw": "Ya están los grupos del Campeonato del Mundo, con cabezas de serie según el ranking mundial. Primeros de bombo: {top_l}.\nCuatro grupos, cinco naciones cada uno, y en alguna parte se esconde el grupo de la muerte.",
   "wcDrawSeededSubj": "🏆 Sorteo del Campeonato del Mundo: el ranking decide los grupos",
   "wcDrawSeeded": "Ya están los grupos del Campeonato del Mundo, con cabezas de serie según el ranking mundial. Primeros de bombo: {top_l}.\n{nationCap_k} parte como {seed_o} cabeza de serie: no llegar a {bar_k}.",
