@@ -48,13 +48,36 @@ export function cashReserve(state: GameState): number {
  * is what makes the control honest at a skint club: the bar has no travel and
  * the reason is written under it.
  */
+/**
+ * ---- THE BUDGET IS AN ALLOWANCE, NOT A SECOND ACCOUNT (1.6.3) ----
+ *
+ * executeTransfer (ai.ts) charges a fee to the balance AND takes it off the
+ * budget: the budget is how much of the club's cash the board lets the manager
+ * spend on fees, and the cash leaves once, when the fee is paid. Until 1.6.3
+ * this file treated the budget as a separate pot and moved cash INTO it, so a
+ * manager who released £1m and then spent it paid £2m of cash for a £1m
+ * signing (scripts/qa/p1_treasury.ts: "extra cash gone = £1.0m"). The board
+ * injections the store sells landed in the same trap.
+ *
+ * So releasing money raises the allowance and leaves the balance alone. What
+ * can be released is the cash the allowance does not already cover, and the
+ * reserve is measured against that same uncommitted cash: the manager can still
+ * take the club below its reserve, and still pays for it in confidence.
+ */
+export function uncommittedCash(state: GameState): number {
+  const club = state.clubs[state.userClubId]
+  if (!club) return 0
+  return club.balance - Math.max(0, club.budget)
+}
+
 export function releasable(state: GameState): number {
   if (state.unemployed) return 0
   const club = state.clubs[state.userClubId]
   if (!club) return 0
-  if (club.balance < RELEASE_STEP) return 0
+  const free = uncommittedCash(state)
+  if (free < RELEASE_STEP) return 0
   // to the step, so the slider lands on round numbers a manager can read
-  return Math.floor(club.balance / RELEASE_STEP) * RELEASE_STEP
+  return Math.floor(free / RELEASE_STEP) * RELEASE_STEP
 }
 
 /** How much of a move sits UNDER the board's reserve - nothing at all when the
@@ -63,7 +86,7 @@ export function releasable(state: GameState): number {
 export function belowReserve(state: GameState, amount: number): number {
   const club = state.clubs[state.userClubId]
   if (!club) return 0
-  const after = club.balance - amount
+  const after = uncommittedCash(state) - amount
   return Math.max(0, Math.min(amount, cashReserve(state) - after))
 }
 
@@ -98,7 +121,7 @@ export function releaseToBudget(state: GameState, amount?: number): { ok: boolea
   const want = amount == null ? RELEASE_STEP : Math.round(amount)
   const move = Math.max(RELEASE_STEP, Math.min(most, want))
   const under = belowReserve(state, move)
-  club.balance -= move
+  // the allowance rises; the cash leaves when a fee is paid (see uncommittedCash)
   club.budget += move
   // THE BOARD MIND, IN PROPORTION. Emptying the wage float to buy players is a
   // real decision with a real cost, charged once here rather than as a rule

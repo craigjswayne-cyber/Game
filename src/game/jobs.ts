@@ -3,7 +3,7 @@
 
 import type { GameState } from './model'
 import { genderOf, staffGender } from './gender'
-import { fmtMoney, mgrReputation, poss } from './model'
+import { fmtMoney, mgrReputation, poss, weeksBetween100, stamp100 } from './model'
 import { sortTable } from './schedule'
 import { autoSelect } from './matchEngine'
 import { clamp, mulberry32, type Rng } from './rng'
@@ -162,7 +162,7 @@ export function refreshVacancies(state: GameState, rng: Rng) {
   // manager who is doing well WHERE HE IS - the oldest dilemma in the game
   if (!state.unemployed && state.week >= 4 && state.week <= 42 && rng() < 0.35) {
     const abs = state.season * 100 + state.week
-    if (abs - (state.courtedAt ?? -999) >= 12) {
+    if (weeksBetween100(abs, state.courtedAt ?? -999) >= 12) {
       const mine = state.clubs[state.userClubId]
       const suitor = state.vacancies
         .map(v => state.clubs[v.clubId])
@@ -310,7 +310,7 @@ function takeJob(state: GameState, clubId: string): string {
     club.tactic.lineup = autoSelect(state, club.players.map(id => state.players[id]).filter(Boolean))
     // 'I am going nowhere', he said. The quote travels better than the van
     const brokeVow = (state.vowedAt ?? 0) > 0 &&
-      state.season * 100 + state.week - (state.vowedAt ?? 0) <= 10 && oldClubId !== clubId
+      weeksBetween100(stamp100(state), state.vowedAt ?? 0) <= 10 && oldClubId !== clubId
     if (brokeVow) {
       club.boardConfidence = clamp(club.boardConfidence - 8, 0, 100)
       state.vowedAt = 0

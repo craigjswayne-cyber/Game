@@ -67,6 +67,21 @@ export function acadQuality(club: Club, rng: Rng): number {
   return 28 + Math.floor(rng() * 16) + Math.floor(club.rep / 6)
 }
 
+/**
+ * ---- WHAT AN ACADEMY CAN PRODUCE (1.6.3) ----
+ *
+ * A National One academy minted the same ceilings as a Premiership one: the
+ * starting rating read the club's reputation, the POTENTIAL did not, and a
+ * third-tier club keeping the best fifteen of eight years of intake fielded a
+ * side rated 75 to 78 by season eight - 146 of the tier's 180 best players
+ * were its own homegrown regens (scripts/qa/worlddrift.ts). So the ceiling
+ * follows the club: rep 41 gives 53-60, rep 52 gives 62-69, rep 80 gives
+ * 84-91. The rare wonderkid is exempt, because that is what a wonderkid is.
+ */
+export function acadCeiling(club: Club, rng: Rng): number {
+  return 20 + Math.round(club.rep * 0.8) + Math.floor(rng() * 8)
+}
+
 export interface AcadFixture {
   round: number
   week: number
@@ -124,6 +139,7 @@ export function topUpAcademy(state: GameState, club: Club, rng: Rng, seedBase = 
         q: acadQuality(club, rng),
         gk: (pos === 'FH' || pos === 'FB') && rng() < 0.3,
       }, club.id, seedBase + club.players.length * 31 + made, state.season)
+      p.pa = Math.max(p.ca, Math.min(p.pa, acadCeiling(club, rng)))
       p.youth = true
       p.acad = true
       state.players[p.id] = p

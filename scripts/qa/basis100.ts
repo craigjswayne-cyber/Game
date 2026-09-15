@@ -1,3 +1,4 @@
+import { addWeeks100, weeksBetween100 } from '../../src/game/model'
 // The season*100+week stamps across a season boundary, and the courtedAt rebase.
 import { newGame } from '../../src/game/newgame'
 import { processWeekAndAdvance } from '../../src/game/season'
@@ -13,7 +14,7 @@ import type { GameState } from '../../src/game/model'
   g.staff.scout = 2; seedStaffPeople(g)
   while (g.week < 30) processWeekAndAdvance(g)
   const abs = g.season * 100 + g.week
-  g.commission = { pos: 'any', months: 9, done: abs + SEARCH_WEEKS[9], fee: 0, leagueId: null } as any
+  g.commission = { pos: 'any', months: 9, done: addWeeks100(abs, SEARCH_WEEKS[9]), fee: 0, leagueId: null } as any
   console.log(`brief: commissioned s${g.season} w${g.week}, done stamp ${g.commission!.done}, promised ${SEARCH_WEEKS[9]} weeks -> expected s1 w${30 + 39 - 48}`)
   let weeks = 0
   while (g.commission && weeks < 80) { processWeekAndAdvance(g); weeks++ }
@@ -24,8 +25,8 @@ import type { GameState } from '../../src/game/model'
   const g = newGame('leicester', 'B', 99)
   while (g.week < 44) processWeekAndAdvance(g)
   const abs = g.season * 100 + g.week
-  g.facilityBuild = { id: 'gym', level: 2, done: abs + 10 } as any
-  console.log(`build: set s${g.season} w${g.week} for 10 weeks, done stamp ${abs + 10} -> expected s1 w6`)
+  g.facilityBuild = { id: 'gym', level: 2, done: addWeeks100(abs, 10) } as any
+  console.log(`build: set s${g.season} w${g.week} for 10 weeks, done stamp ${addWeeks100(abs, 10)} -> expected s1 w6`)
   let weeks = 0
   while (g.facilityBuild && weeks < 80) { processWeekAndAdvance(g); weeks++ }
   console.log(`build: opened after ${weeks} weeks at s${g.season} w${g.week}`)
@@ -35,9 +36,9 @@ import type { GameState } from '../../src/game/model'
   const s = 0, w = 45
   const vowedAt = s * 100 + w
   const later = 1 * 100 + 3
-  console.log(`vow: vowed s0 w45, moving s1 w3 (6 real weeks later): brokeVow = ${later - vowedAt <= 10} (diff ${later - vowedAt}, rule <=10)`)
+  console.log(`vow: vowed s0 w45, moving s1 w3 (6 real weeks later): brokeVow = ${weeksBetween100(later, vowedAt) <= 10} (diff ${weeksBetween100(later, vowedAt)}, rule <=10)`)
   const c = 0 * 100 + 40
-  console.log(`courting cooldown 12: courted s0 w40, s1 w1 (9 real weeks later): abs-courtedAt = ${101 - c} >= 12 -> ${101 - c >= 12}`)
+  console.log(`courting cooldown 12: courted s0 w40, s1 w1 (9 real weeks later): weeks since courting = ${weeksBetween100(101, c)} >= 12 -> ${weeksBetween100(101, c) >= 12}`)
 }
 // 4. courtedAt rebased as basis 45 though written on basis 100
 {

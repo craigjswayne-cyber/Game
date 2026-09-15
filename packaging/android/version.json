@@ -25,10 +25,13 @@
     "was uploaded. 31 is still the next number.",
     "Upload 31 to Closed testing and nowhere else, then PROMOTE it if another",
     "track needs it.",
+    "32 IS 1.6.3, the release-gate fixes (docs/release-audit-v1.6.2.md). 31 was",
+    "uploaded to the closed track for 1.6.2 and is spent whether or not it was",
+    "promoted; never reuse it.",
     "versionName comes from the root package.json.",
     "billingLibrary is the Play Billing Library version PhaseBilling.java is",
     "written against. Play refuses anything below 8.0.0 (learned 4 Sep 2026)."
   ],
-  "versionCode": 31,
+  "versionCode": 32,
   "billingLibrary": "8.0.0"
 }

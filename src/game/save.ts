@@ -81,11 +81,31 @@ export async function saveGame(slot: string, state: GameState): Promise<void> {
 // its short command list is updated after that.
 const resumeKey = (slot: string) => `${slot}::live`
 
-export async function putResume(slot: string, rec: unknown): Promise<void> {
+/**
+ * ---- TWO KEYS, ONE RECORD (1.6.3) ----
+ *
+ * The resume record carries the whole pre-match state (7 MB on a mature save)
+ * and a short list of what the manager did since kick-off. It used to be
+ * written whole on every revealed commentary line and every simulated tick:
+ * a JSON round trip and an IndexedDB structured clone of 7 MB per line, 0.3
+ * to 0.5 s each on a desktop and several times that on a phone
+ * (scripts/qa/crossrec.ts). The store's comment promised "never the 7MB
+ * half"; the code did not keep it.
+ *
+ * So the state goes under its own key once, at kick-off (`withPre`), and every
+ * later write is the small record without it. getResume stitches the two back
+ * together; clearResume removes both.
+ */
+const preKey = (slot: string) => `${resumeKey(slot)}.pre`
+
+export async function putResume(slot: string, rec: unknown, withPre = false): Promise<void> {
   const db = await openDb()
+  const { pre, ...small } = (rec ?? {}) as { pre?: unknown } & Record<string, unknown>
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE, 'readwrite')
-    tx.objectStore(STORE).put(JSON.parse(JSON.stringify(rec)), resumeKey(slot))
+    const store = tx.objectStore(STORE)
+    store.put(JSON.parse(JSON.stringify(small)), resumeKey(slot))
+    if (withPre) store.put(JSON.parse(JSON.stringify(pre ?? null)), preKey(slot))
     tx.oncomplete = () => { db.close(); resolve() }
     tx.onerror = () => { db.close(); reject(tx.error) }
   })
@@ -95,9 +115,19 @@ export async function getResume<T>(slot: string): Promise<T | null> {
   const db = await openDb()
   return new Promise((resolve) => {
     const tx = db.transaction(STORE, 'readonly')
-    const req = tx.objectStore(STORE).get(resumeKey(slot))
-    req.onsuccess = () => { db.close(); resolve((req.result as T) ?? null) }
-    req.onerror = () => { db.close(); resolve(null) }
+    const store = tx.objectStore(STORE)
+    const req = store.get(resumeKey(slot))
+    const preReq = store.get(preKey(slot))
+    tx.oncomplete = () => {
+      db.close()
+      const small = req.result as (Record<string, unknown> & { pre?: unknown }) | undefined
+      if (!small) { resolve(null); return }
+      // a record written before 1.6.3 still carries its own state
+      const pre = small.pre ?? preReq.result
+      if (!pre) { resolve(null); return }
+      resolve({ ...small, pre } as T)
+    }
+    tx.onerror = () => { db.close(); resolve(null) }
   })
 }
 
@@ -106,6 +136,7 @@ export async function clearResume(slot: string): Promise<void> {
   return new Promise((resolve) => {
     const tx = db.transaction(STORE, 'readwrite')
     tx.objectStore(STORE).delete(resumeKey(slot))
+    tx.objectStore(STORE).delete(preKey(slot))
     tx.oncomplete = () => { db.close(); resolve() }
     tx.onerror = () => { db.close(); resolve() }
   })
@@ -187,7 +218,7 @@ function rebaseStamps(s: GameState): void {
   }
   const g = s as unknown as Record<string, unknown>
   for (const f of ['groundsAt', 'lawWatchAt', 'challengeAt', 'chatWk', 'natAskAt',
-                   'natCoachAskAt', 'courtedAt', 'natCall']) {
+                   'natCoachAskAt', 'natCall']) {
     if (num(g[f])) g[f] = rebase(g[f])
   }
   // NOT the discipline ledger: an incident stores its season and its week as two

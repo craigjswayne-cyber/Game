@@ -343,9 +343,14 @@ export function buildPlayer(raw: RawPlayer, clubId: string | null, seed: number,
   const a = deriveAttrs(raw, seed)
   const rng = mulberry32(seed ^ (hashString(raw.name) + 7))
   const ca = raw.q
-  const paBoost = raw.age <= 20 ? 12 + Math.floor(rng() * 14)
-    : raw.age <= 23 ? 6 + Math.floor(rng() * 10)
-    : raw.age <= 26 ? 1 + Math.floor(rng() * 5)
+  // Headroom trimmed in 1.6.3 (was 12-25 to twenty, 6-15 to twenty-three):
+  // every young man in the database growing into a ceiling a full band above
+  // his start, plus the academies minting the same, is what made ninety-rated
+  // players sevenfold over a decade (scripts/qa/worlddrift.ts). The draw
+  // count is unchanged, so every seeded world keeps its fingerprint.
+  const paBoost = raw.age <= 20 ? 8 + Math.floor(rng() * 12)
+    : raw.age <= 23 ? 4 + Math.floor(rng() * 8)
+    : raw.age <= 26 ? 1 + Math.floor(rng() * 4)
     : 0
   const pa = clamp(ca + paBoost, ca, 99)
   const player: Player = {

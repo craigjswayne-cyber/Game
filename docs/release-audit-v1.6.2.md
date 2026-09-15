@@ -1,5 +1,38 @@
 # PHASE: Rugby Manager, Final Pre-Release QA (v1.6.2)
 
+## 1.6.3: what was fixed, and how it was proved
+
+Every register item and every data row below was addressed in 1.6.3, in the same branch, and re-proved with the probe that found it.
+
+| ID | Fix | Proof |
+|---|---|---|
+| QA-01 | `W_CC_KO_WEEKS` moved to 26, 28, 31 (schedule.ts) | `scripts/qa/wclash.ts`: 0 double weeks, 0 stolen ties at four clubs; new suite probe `scripts/wclashprobe.ts` holds it for both worlds |
+| QA-02 | Growth phase two is a coin toss for one point; decline starts at 29; heirs of retiring stars are rarer (82+, 60%) and born 0-12 below the man they replace; academy potential is capped by club reputation (`acadCeiling`, academy.ts); AI wonderkids one in fifty and capped near that ceiling; young players' headroom trimmed (attributes.ts); a club short of seniors picks a free agent of its own standing; AI buys of unhappy or listed players gated to `ca <= rep + 12` | `scripts/qa/worlddrift.ts` seed 777, ten seasons: 90+ players 20 to 66 (was 206), 85+ 92 to 215 (was 515), Premiership-to-National One best-XV gap 34 to 18 (was 6); women's world 90+ 2 to 22 (was 150). Three new bands in `releasesim` hold it |
+| QA-03 | `releaseToBudget` raises the allowance and leaves the balance alone; what can be released is the cash the allowance does not already cover | `scripts/qa/p1_treasury.ts`: extra cash gone £0 |
+| QA-04 | Injected cash is excluded from the summer sweep and carried into next season's transfer budget | `scripts/qa/p5_inject.ts`: 100% of the injection spendable next season, no sweep |
+| QA-05 | The resume record carries `seed` and `saveName`; `resumeFits` requires both; `start()` and `setGame()` clear the record | `scripts/qa/crossrec.ts`: `resumeFits=false` for every other career |
+| QA-06 | One accepted renewal per player per season (`renewedSeason`) | `scripts/qa/exploit.ts`: 12 of 96 accepted, morale 7.0 to 8.0 |
+| QA-07 | Departed players drop out of `club.marquee` on sale, release and retirement, and the slot count reads the roster | `scripts/qa/exploit.ts`: slots left 2 after the sale |
+| QA-08 | Release voids pending bids; `respondToOffer` refuses a player who is no longer yours | `scripts/qa/exploit.ts`: "Offer no longer available", bidder pays nothing |
+| QA-09 | The pre-match state is written once under its own key at kick-off; every later write is the short record | save.ts `putResume(slot, rec, withPre)`; `resumeprobe`, `reloadprobe`, `savequeue` green |
+| QA-11 | `addWeeks100` and `weeksBetween100` (model.ts) do the arithmetic in real weeks at every duration site; `courtedAt` no longer rebased by migrate | `scripts/qa/basis100.ts`: courting match true |
+| QA-12 | Wins before points difference in `sortTable` | calendar probe |
+| QA-13 | `roundRobin` balances venues (spread of one for an even field) | `scripts/qa/urcsplit.ts`; fingerprint rebaselined after `bandcheck` held every band |
+| QA-14 | The whistle line and the full-time line take the score the pending kick left | `scripts/qa/whistle.ts`: 0 of 22 wrong, 0 of 27 wrong |
+| QA-15 | A player out on loan is recalled before he is sold | `scripts/qa/p3_loans.ts` |
+| QA-16 | 46 seniors is the registration limit for the user's signings too (`squadFull`) | `scripts/qa/p4_offers.ts` |
+| QA-17 | Bourdon Sansus 30 and 88 with the international flag, Feleu 26 and 84, Sorensen-McGee 20, Brunt 23, Holmes 27, Tukuafu 30, Georgia Evans WAL | data rows corrected |
+| QA-18 | `fmtMoney` prints a dash for a non-finite figure; `fmtWage` picks the unit after rounding | `scripts/qa/p8_fmt.ts` |
+| QA-19 | A try under the posts is never followed by a touchline conversion | `scripts/qa/whistle.ts` |
+| QA-21 | `makeSubstitution` refuses a man not on the bench, suspended, or away with his country | `scripts/qa/banned.ts`: 0 of 40 |
+| Data | `RELEGATES` drops `prem`: the English top flight is ringfenced, no relegation playoff is scheduled and the pyramid swap skips it | rollover.ts, season.ts |
+| Not changed | QA-10 (module-level id counter; no reuse was ever observed), QA-20 (a forfeit rule; unreachable above the 18-senior veto), the format simplifications (URC, Super Rugby Pacific, Champions Cup), the four suspected club placements, the women's World Cup cycle | recorded as post-launch |
+
+Version 1.6.3, Play version code 32. Engine suite and browser suite results for the fixed build are recorded at the foot of this document.
+
+---
+
+
 Audited 2026-09-15 at commit 3994832 (branch claude/rugby-manager-final-qa-8hbhrl).
 Every claim below is grounded in a probe run at this commit, a code path quoted by file and line, or a cited external source. Probes written for this audit live in `scripts/qa/` (run with `npx vite-node scripts/qa/<name>.ts`). Nothing in the game was changed.
 

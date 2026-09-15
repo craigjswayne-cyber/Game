@@ -87,6 +87,14 @@ export interface MatchResume {
   season: number
   week: number
   savedAt: number
+  /** The career the record belongs to (1.6.3). Fixture ids are minted from
+   *  the same counter in every career, so season, week and fixture id alone
+   *  matched a record from one career against a different career in the same
+   *  slot (scripts/qa/crossrec.ts), and a refresh restored the wrong manager's
+   *  pre-match state over the real save. Absent on records written before
+   *  1.6.3, which therefore never fit and are cleared. */
+  seed?: number
+  saveName?: string
 }
 
 /** The shape of a live match, rebuilt. */
@@ -168,6 +176,7 @@ export function replayMatch(state: GameState, rec: MatchResume): Resumed | null 
 /** Is this record worth offering, for the save that was just loaded? */
 export function resumeFits(rec: MatchResume | null | undefined, state: GameState): boolean {
   if (!rec || rec.v !== 1) return false
+  if (rec.seed !== state.seed || rec.saveName !== state.saveName) return false
   if (rec.season !== state.season || rec.week !== state.week) return false
   const fx = state.fixtures.find(f => f.id === rec.fxId)
   // if the fixture has since been played, the match finished without this record

@@ -369,6 +369,11 @@ export interface Player {
   talkWk?: number // retired v1.1.4 with talkToPlayer (chats.ts uses lastChatWk); kept so old saves load
   /** week his agent demanded improved terms (0/undefined = content) */
   wantsDeal?: number
+  /** the season he last signed a renewal with the user's club (1.6.3). One
+   *  new deal a season: re-signing him at his own demand was free and gave a
+   *  point of morale every time, so a whole squad could be pumped to 10 in
+   *  one week (scripts/qa/exploit.ts: 96 of 96 accepted). */
+  renewedSeason?: number
   /** week a formal transfer request landed (17A): the game-time ledger's
    *  escalation when a key or rotation man is badly short-changed. 0 or
    *  absent means no request. Cleared when the team sheets make it right,
@@ -1930,6 +1935,32 @@ export const WEEK_BASIS = 48
 export const absWeek = (season: number, week: number) => season * WEEK_BASIS + week
 
 /**
+ * ---- THE OTHER STAMP: season * 100 + week (1.6.3) ----
+ *
+ * Cooldowns, scouting briefs, building work, staff courses, vows and the
+ * courting clock all stamp `season * 100 + week`. That is fine for "is it the
+ * same week" and "is it later", and wrong for "how many weeks": a brief
+ * commissioned at week 30 for 39 weeks was stamped done at 69, which the next
+ * season reaches at week 2 (101 > 69) - so the scout came home after 20 weeks
+ * (scripts/qa/basis100.ts). A build ordered at week 44 for ten weeks opened
+ * after six for the same reason, and the "I am going nowhere" vow could never
+ * be broken across a summer because 101 - 45 is 56, not 4.
+ *
+ * Rewriting every stamp onto the 48 basis would mean migrating nine fields in
+ * every save for a cosmetic gain, so the stamps stay as they are and the
+ * ARITHMETIC is done in real weeks: add a duration with addWeeks100, measure
+ * one with weeksBetween100. Equality and ordering on raw stamps are still
+ * correct and untouched.
+ */
+export const stamp100 = (state: { season: number; week: number }) => state.season * 100 + state.week
+const real100 = (v: number) => Math.floor(v / 100) * WEEK_BASIS + (((v % 100) + 100) % 100)
+export const weeksBetween100 = (later: number, earlier: number) => real100(later) - real100(earlier)
+export const addWeeks100 = (v: number, weeks: number) => {
+  const r = real100(v) + weeks
+  return Math.floor((r - 1) / WEEK_BASIS) * 100 + (((r - 1) % WEEK_BASIS) + 1)
+}
+
+/**
  * How many weeks a season runs.
  *
  * 45 until v1.5.1, when the tour needed weeks 44 to 48. Nothing domestic moved:
@@ -1960,7 +1991,12 @@ export const LEDGER_WEEKS = 45
 /** Leagues where the bottom club goes down. ONE list: the table's shading,
  *  the new-career media verdict and the pundits' predictions all read it, so
  *  no screen can threaten relegation in a league that has none. */
-export const RELEGATES = ['prem', 'champ', 'top14']
+// 'prem' left the list in 1.6.3: from 2026-27 the English top flight is
+// ringfenced (automatic promotion and relegation replaced by a criteria-based
+// model, announced February 2026), so the bottom club stays up and the
+// Championship winner is not promoted. The Championship still relegates to
+// National One and the French Elite 14 still swaps with Elite 2.
+export const RELEGATES = ['champ', 'top14']
 
 /** The pyramid by tier: 1 the top flights, 2 the second divisions, 3 National
  *  League One. Loan gravity reads it - how far down a move is decides who
@@ -2238,7 +2274,9 @@ export function fmtWage(v: number): string {
   // up to 80% each). Hand it to fmtMoney and it reads "£5.4m" like every
   // other large sum. Below a million, thousands are still the right unit for
   // a weekly wage, which is the whole reason this function exists.
-  if (a < 1_000_000) return `${sign}£${Math.round(a / 1_000)}k`
+  // the tier is chosen after rounding, as fmtMoney does: £999,600 is "£1.0m",
+  // not "£1000k" (1.6.3)
+  if (Math.round(a / 1_000) < 1000) return `${sign}£${Math.round(a / 1_000)}k`
   return fmtMoney(v)
 }
 
@@ -2257,6 +2295,8 @@ export function clubCode(short: string): string {
 }
 
 export function fmtMoney(v: number): string {
+  // a figure that is not a figure prints as a dash, never "£NaN" (1.6.3)
+  if (!Number.isFinite(v)) return '-'
   const sign = v < 0 ? '-' : ''
   const a = Math.abs(v)
   const K = 1_000, M = 1_000_000, B = 1_000_000_000

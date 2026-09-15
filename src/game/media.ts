@@ -1,6 +1,6 @@
 import type { GameState, OfficeTopic, Player, PressItem, PressOption } from './model'
 import { subjectVar } from './gender'
-import {absWeek, SEASON_WEEKS, fmtMoney, formGuide, logDecision, poss } from './model'
+import {absWeek, SEASON_WEEKS, fmtMoney, formGuide, logDecision, poss, weeksBetween100, stamp100 } from './model'
 import { loanOut } from './loans'
 import { offersFor, signOffer, type SlotId } from './commercial'
 import { derbyName, isDerby } from './rivalries'
@@ -247,7 +247,7 @@ export function generatePress(state: GameState, rng: Rng) {
 
   // the morning after a bigger club's interest breaks, the first question
   // writes itself - and it goes straight to the top of the pile
-  if (state.courtedAt === state.season * 100 + state.week - 1 && state.courtedBy) {
+  if ((state.courtedAt ?? 0) > 0 && weeksBetween100(stamp100(state), state.courtedAt!) === 1 && state.courtedBy) {
     const suitor = state.clubs[state.courtedBy]
     if (suitor) {
       state.press.push(mk(state,

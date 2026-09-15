@@ -5603,6 +5603,8 @@
   "biggerStage": "{name} ringrazia per l'interesse, ma lui aspetta un palcoscenico più grande.",
   "joinsFreeSummer": "{name} arriva a parametro zero quest'estate ({wage}/sett. concordati).",
   "notYourPlayer": "Non è un tuo giocatore.",
+  "renewedThisSeason": "Ha già firmato un nuovo contratto in questa stagione: la prossima trattativa sarà la prossima estate.",
+  "squadFull": "La rosa è al completo: 46 giocatori senior è il limite di registrazione. Prima lascia partire qualcuno.",
   "retiringMindMadeUp": "{name} apprezza il gesto, ma ha deciso - si ritira in estate.",
   "preContractElsewhere": "Troppo tardi - {name} ha già firmato un precontratto altrove. L'accordo è vincolante.",
   "termsExceedBudget": "Quelle condizioni supererebbero il monte ingaggi.",

@@ -5458,6 +5458,8 @@
   "biggerStage": "{name}は関心に感謝しつつも、彼はもっと大きな舞台を待っている。",
   "joinsFreeSummer": "{name}がこの夏フリーで加入（週{wage}で合意）。",
   "notYourPlayer": "あなたの選手ではありません。",
+  "renewedThisSeason": "今シーズンはすでに新契約を結んでいます。次の条件交渉は来夏です。",
+  "squadFull": "スカッドは満員です。登録上限はシニア46人です。先に誰かを放出してください。",
   "retiringMindMadeUp": "{name}はその気持ちをありがたく思っているが、彼の決意は固い。夏に引退する。",
   "preContractElsewhere": "手遅れだ。{name}はすでに他クラブと事前契約を結んでいる。契約は拘束力を持つ。",
   "termsExceedBudget": "その条件では給与予算を超えてしまいます。",
