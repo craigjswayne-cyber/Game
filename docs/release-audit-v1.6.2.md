@@ -1,6 +1,8 @@
 # PHASE: Rugby Manager, Final Pre-Release QA (v1.6.2)
 
-**Current status, 1.6.4 (commit 8b688e4): 🟢 RELEASE READY.** Every finding in this document was fixed in 1.6.3 or resolved in 1.6.4 and re-proved by the probe that found it. On the shipping build: engine suite 178 of 178, browser suite 57 of 57 against the production build, release simulation 15 seasons with every band held. The 🔴 verdict further down is the audit of 1.6.2 as it was found, kept for the record.
+**Superseded by 1.6.5: see `docs/release-audit-v1.6.5.md` (the runtime brief's fixes, the calendar invariant and the post-fix matrix). One reversal since: the Premiership ringfence recorded below as a 1.6.3 data correction is undone on the owner's decision, so the English top flight relegates again.**
+
+**Status at 1.6.4 (commit 8b688e4): 🟢 RELEASE READY.** Every finding in this document was fixed in 1.6.3 or resolved in 1.6.4 and re-proved by the probe that found it. On the shipping build: engine suite 178 of 178, browser suite 57 of 57 against the production build, release simulation 15 seasons with every band held. The 🔴 verdict further down is the audit of 1.6.2 as it was found, kept for the record.
 
 Release score for 1.6.4: gameplay stability 8, simulation integrity 8, data integrity 8, save integrity 8, long-term stability 8, UI/UX 7, performance 7, rugby authenticity 9, content and data accuracy 8, exploit resistance 8, overall release confidence 8 of 10.
 

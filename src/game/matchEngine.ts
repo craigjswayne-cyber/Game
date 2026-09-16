@@ -367,13 +367,20 @@ export function lineupFor(state: GameState, teamId: string): (number | null)[] {
   // filled, each wearer fit) and onto the pitch, where frontRowCover counted
   // him twice (scripts/qa/banned.ts, 1.6.5). The second shirt is emptied here
   // and the tidy-up below fills it like any other gap.
+  // Only when there IS a duplicate: a clean manager-picked sheet comes back
+  // by reference, untouched (scripts/absentprobe.ts relies on that).
   if (club) {
     const seen = new Set<number>()
-    club.tactic.lineup = club.tactic.lineup.map(id => {
-      if (id == null || seen.has(id)) return null
-      seen.add(id)
-      return id
-    })
+    let dup = false
+    for (const id of club.tactic.lineup) { if (id != null) { if (seen.has(id)) dup = true; seen.add(id) } }
+    if (dup) {
+      seen.clear()
+      club.tactic.lineup = club.tactic.lineup.map(id => {
+        if (id == null || seen.has(id)) return null
+        seen.add(id)
+        return id
+      })
+    }
   }
   const isNation = !club
   if (isNation && state.natLineup && state.natLineup.team === teamId) {
