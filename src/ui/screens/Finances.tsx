@@ -178,11 +178,7 @@ export default function Finances() {
                 {line(t('finances.lgUpkeep'), -upkeep)}
               </>}
               <div className="ledger-row total">
-                <span className="lg-what">{t('finances.lgTotal')}{' '}
-                  <button className="btn ghost" style={{ padding: '0 8px', fontSize: 11, marginLeft: 6 }} onClick={() => setLedgerOpen(v => !v)}>
-                    {t(ledgerOpen ? 'finances.hideLedgerLines' : 'finances.showLedgerLines')}
-                  </button>
-                </span>
+                <span className="lg-what">{t('finances.lgTotal')}</span>
                 <span className="lg-amt" style={{ color: net >= 0 ? 'var(--text-positive)' : 'var(--text-negative)' }}>
                   {net >= 0 ? '+' : '−'}{fmtMoney(Math.abs(net))}
                 </span>
@@ -191,6 +187,10 @@ export default function Finances() {
                 {homeGate > 0 ? t('finances.gateNote', { amount: fmtMoney(homeGate) }) : t('finances.gateNoteNone')}
                 {' '}{t(net >= 0 ? 'finances.paysItsWay' : 'finances.losesMoney')}
               </div>
+              {/* a full-width row, not an inline chip: the tap floor is 44px (tapsize, geosweep) */}
+              <button className="btn ghost block" style={{ marginTop: 6 }} onClick={() => setLedgerOpen(v => !v)}>
+                {t(ledgerOpen ? 'finances.hideLedgerLines' : 'finances.showLedgerLines')}
+              </button>
             </>
           )
         })()}
