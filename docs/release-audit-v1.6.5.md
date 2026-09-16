@@ -119,7 +119,7 @@ Commands, on commit aceb07f, Node v22.22.2:
 | Out-of-order action fuzzer | `scripts/qa2/fuzz.ts 1500 {1..6}` | PASS on every seed after TREASURY-02; every run ends with the manager sacked inside the season, which is what releasing and signing at random does to a board | 2 to 5 s each |
 | Save composition | `scripts/qa2/savesize.ts 15` | 9.09 MB: players 84%, then the two name lists at 5% and 4% (the taken-names list is now pruned at the rollover), fixtures 2%, news 1% | 1 min |
 | Page depth after the density work | `scripts/qa2/measure.mjs`, `scripts/scrollaudit.mjs` | finances 3.30 to 2.48 screenfuls, game plan 3.04 to 2.56; the audit passes with no exemption | |
-| Closing full suite on the final tree | `./scripts/suite.sh` | {{FINAL}} | {{FINAL_T}} |
+| Closing full suite on the final tree (commit a8d7e15) | `./scripts/suite.sh` | PASS 236 of 236: 179 engine gates, the build, 56 browser harnesses; `SUITE-SUMMARY {"result":"PASS","passed":236,"failed":0}` | 67 min 3 s |
 | The affected probes and every browser harness again on the density build | `calinvariant`, `econprobe`, `i18nprobe`, `newsprobe`, `textlint`, `p1_treasury`, `determinism` both modes; then the 57 browser harnesses | Engine probes all PASS, determinism identical over 60 weeks in both modes. Browser: 54 of 57 first time; the three failures were the density change itself (the e2e walk expected the counter plan on the Game Plan tab, and the inline ledger toggle was 19px tall against the 44px tap floor in `tapsize` and `geosweep`), fixed and re-passed with `scrollaudit` and `e2edeep` | about 30 min |
 
 Not executed:
