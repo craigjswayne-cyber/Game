@@ -45,7 +45,7 @@ const ordinal = (n: number) =>
  */
 /** A player leaves the world, and his name stays taken (GameState.retiredNames). */
 function forget(state: GameState, p: Player) {
-  ;(state.retiredNames ??= []).push(p.name)
+  ;(state.retiredNames ??= []).push(p.name.toLowerCase())
   delete state.players[p.id]
 }
 
@@ -2048,6 +2048,17 @@ export function rebuildSeason(state: GameState) {
   // the two (scripts/qa/determinism.ts, migrate mode, 1.6.5). Same sweep
   // newGame runs, idempotent.
   repriceAcademies(Object.values(state.players))
+  // takenNames exists for the names handed out BEFORE their players exist
+  // (the intake class, a scout's finds); once a man is in the world or has
+  // left it his name is covered by players or retiredNames, so the list is
+  // trimmed to what only it knows. Unpruned it was 5% of a fifteen-season
+  // save (scripts/qa2/savesize.ts).
+  if (state.takenNames?.length) {
+    const held = new Set<string>()
+    for (const p of Object.values(state.players)) held.add(p.name.toLowerCase())
+    for (const n of state.retiredNames ?? []) held.add(n.toLowerCase())
+    state.takenNames = [...new Set(state.takenNames)].filter(n => !held.has(n))
+  }
   state.injectedThisSeason = undefined
   state.releasedThisSeason = undefined
   state.rewarded = undefined

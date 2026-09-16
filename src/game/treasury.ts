@@ -116,6 +116,9 @@ export function releaseBlock(state: GameState): string | null {
 export function releaseToBudget(state: GameState, amount?: number): { ok: boolean; msg: string } {
   const block = releaseBlock(state)
   if (block) return { ok: false, msg: block }
+  // only a real, positive amount moves: a NaN reached `budget +=` and poisoned
+  // the allowance, a negative one moved money the wrong way (scripts/qa2/fuzz.ts, 1.6.5)
+  if (amount != null && (!Number.isFinite(amount) || amount <= 0)) return { ok: false, msg: t('finances.treasuryBadAmount') }
   const club = state.clubs[state.userClubId]
   const most = releasable(state)
   const want = amount == null ? RELEASE_STEP : Math.round(amount)

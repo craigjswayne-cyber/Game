@@ -393,39 +393,9 @@ export default function Tactics() {
 
       {ttab === 'prep' && <>
         <AnalystCard />
-        <SectionTitle sub={t('tacticsScreen.matchPrepSub')}>{t('tacticsScreen.matchPrep')}</SectionTitle>
-        <div className="preset-row" style={{ padding: '0 14px', flexWrap: 'wrap', gap: 8 }}>
-          {([
-            ['attack', 'analyst.prepAttack', 'tacticsScreen.prepAttackShort'],
-            ['defence', 'analyst.prepDefence', 'tacticsScreen.prepDefenceShort'],
-            ['setpiece', 'analyst.prepSetpiece', 'tacticsScreen.prepSetpieceShort'],
-            ['fitness', 'analyst.prepFitness', 'tacticsScreen.prepFitnessShort'],
-            ['recovery', 'analyst.prepRecovery', 'tacticsScreen.prepRecoveryShort'],
-          ] as const).map(([k, label, desc]) => (
-            <button key={k} className="preset-chip" title={t(desc)}
-              style={game.matchPrep === k ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
-              onClick={() => { game.matchPrep = game.matchPrep === k ? undefined : k; touch() }}>
-              {t(label)}
-            </button>
-          ))}
-        </div>
-        <div className="card" style={{ marginTop: 10 }}>
-          <div className="meta">
-            {t(game.matchPrep ? {
-              attack: 'tacticsScreen.prepAttackLong',
-              defence: 'tacticsScreen.prepDefenceLong',
-              setpiece: 'tacticsScreen.prepSetpieceLong',
-              fitness: 'tacticsScreen.prepFitnessLong',
-              recovery: 'tacticsScreen.prepRecoveryLong',
-            }[game.matchPrep] : 'tacticsScreen.prepNone')}
-          </div>
-        </div>
-      </>}
-
-      {ttab === 'plan' && <>
-        <div className="card" style={{ marginTop: 4, borderLeft: '4px solid var(--gold)' }}>
-          <div className="meta">{assistantAdvice(game)}</div>
-        </div>
+        {/* the opposition's standing instruction and the assistant's counter to it
+            moved here from the game plan tab (1.6.5): reading them IS match
+            preparation, and the plan tab was three screenfuls deep with it */}
         {/* F23: the opposition dugout has a standing instruction now, so the game
             plan tab is the place to answer it. Reading how they play is free;
             what to do about it is the assistant's job, and it is advice rather
@@ -483,6 +453,39 @@ export default function Tactics() {
             </>
           )
         })()}
+        <SectionTitle sub={t('tacticsScreen.matchPrepSub')}>{t('tacticsScreen.matchPrep')}</SectionTitle>
+        <div className="preset-row" style={{ padding: '0 14px', flexWrap: 'wrap', gap: 8 }}>
+          {([
+            ['attack', 'analyst.prepAttack', 'tacticsScreen.prepAttackShort'],
+            ['defence', 'analyst.prepDefence', 'tacticsScreen.prepDefenceShort'],
+            ['setpiece', 'analyst.prepSetpiece', 'tacticsScreen.prepSetpieceShort'],
+            ['fitness', 'analyst.prepFitness', 'tacticsScreen.prepFitnessShort'],
+            ['recovery', 'analyst.prepRecovery', 'tacticsScreen.prepRecoveryShort'],
+          ] as const).map(([k, label, desc]) => (
+            <button key={k} className="preset-chip" title={t(desc)}
+              style={game.matchPrep === k ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
+              onClick={() => { game.matchPrep = game.matchPrep === k ? undefined : k; touch() }}>
+              {t(label)}
+            </button>
+          ))}
+        </div>
+        <div className="card" style={{ marginTop: 10 }}>
+          <div className="meta">
+            {t(game.matchPrep ? {
+              attack: 'tacticsScreen.prepAttackLong',
+              defence: 'tacticsScreen.prepDefenceLong',
+              setpiece: 'tacticsScreen.prepSetpieceLong',
+              fitness: 'tacticsScreen.prepFitnessLong',
+              recovery: 'tacticsScreen.prepRecoveryLong',
+            }[game.matchPrep] : 'tacticsScreen.prepNone')}
+          </div>
+        </div>
+      </>}
+
+      {ttab === 'plan' && <>
+        <div className="card" style={{ marginTop: 4, borderLeft: '4px solid var(--gold)' }}>
+          <div className="meta">{assistantAdvice(game)}</div>
+        </div>
         <SectionTitle sub={t('tacticsScreen.quickGamePlansSub')}>{t('tacticsScreen.quickGamePlans')}</SectionTitle>
         <div className="preset-row" style={{ padding: '0 14px' }}>
           {PRESETS.map(p => (
