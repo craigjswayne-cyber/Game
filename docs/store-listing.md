@@ -1271,7 +1271,7 @@ never enters the web bundle, and netprobe goes on enforcing that.
 | Is data collection optional? | Yes - rewarded ads are player-initiated; never watching one means never being collected from |
 | Is all of the user data collected by your app encrypted in transit? | Yes (ad provider transport) |
 | Do you provide a way for users to request that their data is deleted? | Per the ad provider's mechanism, linked from the privacy policy |
-| Third-party SDKs | the rewarded-ads provider, in the Android wrapper only |
+| Third-party SDKs | Google AdMob (with the User Messaging Platform for consent), in both shells, never in the web build |
 | Ads | **Contains ads** (two optional banner slots; rewarded ads at four player-initiated placements; Remove Ads disables the banners permanently) |
 
 ## Play Content rating (IARC questionnaire)
@@ -1292,13 +1292,29 @@ Expected result: **PEGI 3 / ESRB Everyone / USK 0**.
 
 ## Apple privacy nutrition labels
 
-Select **Data Not Collected**. Nothing else applies: no identifiers, no usage
-data, no diagnostics, no contact info.
+**Not** Data Not Collected: since 1.3.0 (5 September 2026) the iOS shell
+carries Google's AdMob SDK, and `packaging/ios/scaffold.sh` builds every iOS
+binary with it. The game itself still collects nothing; the labels describe the
+advert SDK, and they must match the App Tracking Transparency prompt the app
+shows, which Apple checks.
+
+| Data type | Used for | Linked to the user | Used for tracking |
+|---|---|---|---|
+| Identifiers → Device ID | Third-Party Advertising | Yes | **Yes** |
+| Usage Data → Advertising Data | Third-Party Advertising | Yes | No |
+| Everything else (contact info, location, purchases, diagnostics, ...) | not collected | | |
+
+"Used for tracking: Yes" on the Device ID is the ATT prompt. Its wording is in
+the app: "This lets the game show adverts that are more relevant to you. Say no
+and you still get every part of the game, with less relevant adverts."
+`docs/ADS-STEP-BY-STEP.md` step 7 has the same answers for both consoles.
 
 ## Apple export compliance
 
-The app uses no encryption of its own and makes no network connections at all.
-Answer **No** to "Does your app use encryption?", or set in Info.plist:
+The app has no encryption of its own; the only encryption in the binary is
+HTTPS inside Apple's frameworks and the advert SDK, which is exempt. Answer
+**No** to "Does your app use non-exempt encryption?". `scaffold.sh` already
+sets it in Info.plist, so the upload should not ask:
 
 ```xml
 <key>ITSAppUsesNonExemptEncryption</key><false/>

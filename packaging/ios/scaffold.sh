@@ -198,12 +198,75 @@ if [ -f "$PBX" ]; then
   fi
 fi
 
+# ---- THE VERSION AND THE BUILD NUMBER, FROM THE FILES THAT ALREADY HOLD THEM ----
+#
+# Capacitor's template ships MARKETING_VERSION = 1.0 and CURRENT_PROJECT_VERSION
+# = 1, and the walkthrough used to say "type the version and build number into
+# Xcode's General tab". The owner once rebuilt against a stale figure and
+# uploaded an old game with the new release notes on it, and a duplicate build
+# number is refused only by an email from Apple, an hour after the upload.
+#
+# So neither is typed any more. The version is the root package.json, the same
+# figure Play and the game itself carry. The build number is the Play version
+# code from ../android/version.json: one number, spent in one file, and a
+# build reads the same on both stores. Apple only requires the build number to
+# be unique within a version string and higher than the last upload of it,
+# which going up with the Play code guarantees. Info.plist reads both through
+# $(MARKETING_VERSION) and $(CURRENT_PROJECT_VERSION), so the pbxproj is the
+# one place to set them.
+VNAME=$(node -p "require('../../package.json').version")
+VBUILD=$(node -p "require('../android/version.json').versionCode")
+if [ -f "$PBX" ]; then
+  sed -i.bak -E "s/MARKETING_VERSION = [^;]+;/MARKETING_VERSION = ${VNAME};/g; s/CURRENT_PROJECT_VERSION = [^;]+;/CURRENT_PROJECT_VERSION = ${VBUILD};/g" "$PBX"
+  rm -f "$PBX.bak"
+  if ! grep -q "MARKETING_VERSION = ${VNAME};" "$PBX" || ! grep -q "CURRENT_PROJECT_VERSION = ${VBUILD};" "$PBX"; then
+    echo "!! could not set the version in $PBX - Xcode would archive 1.0 (1)"; exit 1
+  fi
+  echo "    version ${VNAME}, build ${VBUILD} (the Play version code)"
+fi
+
+# ---- THE ICON, OURS RATHER THAN CAPACITOR'S ----
+# `cap add ios` writes a placeholder (a blue X on a grey check) into the icon
+# set and nothing in a sync replaces it; it shipped in the first 1.2.4 upload
+# before anybody looked. The real one is committed beside this script, drawn by
+# scripts/icons.mjs: 1024x1024, no alpha, square corners, as Apple requires.
+ICONSET=ios/App/App/Assets.xcassets/AppIcon.appiconset
+if [ -d "$ICONSET" ]; then
+  ICON=$(node -p "JSON.parse(require('fs').readFileSync('$ICONSET/Contents.json','utf8')).images.find(i => i.size === '1024x1024').filename")
+  cp AppIcon-1024.png "$ICONSET/$ICON"
+  echo "    app icon: AppIcon-1024.png over $ICON"
+else
+  echo "!! $ICONSET is missing - the build would carry Capacitor's placeholder icon"; exit 1
+fi
+
+# ---- EXPORT COMPLIANCE, ANSWERED IN THE BUNDLE ----
+# The app has no encryption of its own; the only encryption in it is HTTPS
+# inside Apple's frameworks and the advert SDK, which is exempt. With this key
+# the upload does not stop to ask, and TestFlight does not hold the build for
+# a missing compliance answer.
+PLIST=ios/App/App/Info.plist
+if ! grep -q ITSAppUsesNonExemptEncryption "$PLIST"; then
+  node -e '
+    const fs = require("fs"); const f = process.argv[1]
+    let p = fs.readFileSync(f, "utf8")
+    p = p.replace(/(\n<\/dict>\s*<\/plist>\s*)$/, "\n\t<key>ITSAppUsesNonExemptEncryption</key>\n\t<false/>$1")
+    fs.writeFileSync(f, p)
+    if (!fs.readFileSync(f, "utf8").includes("ITSAppUsesNonExemptEncryption")) { console.log("!! could not write ITSAppUsesNonExemptEncryption"); process.exit(1) }
+  ' "$PLIST"
+  echo "    ITSAppUsesNonExemptEncryption = NO in Info.plist"
+else
+  echo "    ITSAppUsesNonExemptEncryption already in Info.plist"
+fi
+
 BUNDLE=$(grep -m1 'PRODUCT_BUNDLE_IDENTIFIER' ios/App/App.xcodeproj/project.pbxproj | tr -d '\t ;' | cut -d= -f2)
 echo
-echo "the shell is built. bundle identity: $BUNDLE"
+echo "the shell is built. bundle identity: $BUNDLE, version ${VNAME} build ${VBUILD}"
 echo
 echo "ON A MAC, from this folder:"
 echo "  npx cap open ios"
+echo
+echo "the version, the build number, the icon and the export-compliance answer are"
+echo "already in the project: Xcode's General tab must read ${VNAME} (${VBUILD})."
 echo
 echo "then, in Xcode, two things (README.md section 5 has the detail):"
 echo "  1. Signing & Capabilities > Team, and check the bundle id above"

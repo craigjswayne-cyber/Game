@@ -111,7 +111,7 @@ Two things are left in Xcode before the first run, and both need a Mac:
    "N Capabilities Unavailable" at the bottom: Xcode cannot tell what the team
    is entitled to until it knows who the team is.
 2. **Product → Scheme → Edit Scheme → Run → Options → StoreKit Configuration
-   → `Products.storekit`.** This is how you test all ten purchases on the
+   → `Products.storekit`.** This is how you test all eleven purchases on the
    simulator without App Store Connect, real money or a review.
 
 **THERE IS NO IN-APP PURCHASE CAPABILITY TO ADD, AND THIS FILE USED TO SAY
@@ -124,16 +124,23 @@ carries one should have it removed). Wildcard App IDs are the ones it is off
 for, and this app has never used one. If you go looking for that capability and
 cannot find it, nothing is wrong: skip it.
 
-And before the first archive:
+And before the first archive, all of it now done by `scaffold.sh` and worth a
+glance rather than a keystroke:
 
-* **Info.plist**: `ITSAppUsesNonExemptEncryption` = NO (the app uses no
-  encryption and makes no connections).
+* **Info.plist**: `ITSAppUsesNonExemptEncryption` = NO, written by the scaffold
+  (the app has no encryption of its own; the HTTPS inside Apple's frameworks
+  and the advert SDK is exempt).
+* **Version and build**: `MARKETING_VERSION` is the root `package.json` version
+  and `CURRENT_PROJECT_VERSION` is the Play version code from
+  `packaging/android/version.json`, both set by the scaffold in every build
+  configuration, so a build reads the same number on both stores.
 * **Orientation**: portrait and landscape both allowed - which is what the
   generated Info.plist already declares, and it matches the web manifest's
   `"orientation": "any"`. Portrait is the tuned one; the game works either way
   and locking it is what the release audit removed.
-* **Icon**: `storeart/ios/icon-1024.png`, produced by `scripts/storeart.mjs`,
-  opaque as Apple requires.
+* **Icon**: `packaging/ios/AppIcon-1024.png`, drawn by `scripts/icons.mjs`
+  (1024x1024, no alpha, square corners) and copied over Capacitor's placeholder
+  by the scaffold on every run.
 * **Screenshots**: `storeart/ios/en` and `storeart/ios/fr`, already at 1290x2796.
 * **Capabilities beyond IAP**: none. No push, no background modes, no iCloud,
   no sign-in.
@@ -225,7 +232,9 @@ unbuyable, so it is pinned rather than trusted.
 
 ## Products in App Store Connect
 
-The same ten product ids as Play, so one catalogue serves both stores:
+The same eleven product ids as Play, so one catalogue serves both stores.
+The prices are what to TYPE INTO THE CONSOLE; the game holds none (v1.1.17),
+and `APP-STORE-WALKTHROUGH.md` step 15 carries the same table:
 
 **A PRODUCT'S TYPE CANNOT BE CHANGED AFTER IT IS CREATED**, on either store.
 Get one wrong and the only remedy is a second product id and a migration, which
@@ -234,16 +243,17 @@ Type column before creating anything.
 
 | Product ID | Type | Name | Price |
 |---|---|---|---|
-| `phase.uncapped` | Non-consumable | Remove the Wage Cap | £9.99 |
-| `phase.estate` | Non-consumable | Max your team facilities | £9.99 |
-| `phase.pinnacle` | Non-consumable | Become an International Coach | £4.99 |
+| `phase.uncapped` | Non-consumable | Remove the Wage Cap | £4.99 |
+| `phase.estate` | Non-consumable | Max your team facilities | £4.99 |
+| `phase.pinnacle` | Non-consumable | Become an International Coach | £3.99 |
 | `phase.license` | **Consumable** | Support the game | £0.99 |
 | `phase.inject.s` | Consumable | Small Cash Injection | £0.99 |
 | `phase.inject.m` | Consumable | Medium Cash Injection | £1.99 |
 | `phase.inject.l` | Consumable | Large Cash Injection | £3.99 |
 | `phase.inject.xl` | Consumable | The Sugar Daddy | £7.99 |
 | `phase.heal` | Consumable | Full Squad Recovery | £0.99 |
-| `phase.ground` | Consumable | The Estate, at the next ground | £9.99 |
+| `phase.ground` | Consumable | The Estate, at the next ground | £2.99 |
+| `phase.supporter` | Non-consumable | Pro Manager | £2.99 |
 
 Two of those rows have moved since this table was first written, and both are
 the kind of mistake that cannot be undone:
@@ -262,10 +272,9 @@ the kind of mistake that cannot be undone:
 `Products.storekit`, so the code cannot drift from this table - but nothing can
 check what you typed into App Store Connect.
 
-Do **not** create `phase.supporter` (Remove all ads) until a build actually
-ships ads - the store row only renders where an ad provider exists, so the
-product would be sellable nowhere. `phase.editor` was removed in v1.1.3 and
-must never be created.
+`phase.supporter` is Pro Manager, the purchase that removes the adverts; it
+belongs in the catalogue since 1.3.0 shipped adverts on 5 September 2026.
+`phase.editor` was removed in v1.1.3 and must never be created.
 
 Apple also requires, before review: a **paid applications agreement** signed
 (products stay "Waiting for review"/unavailable without it), and **Restore
@@ -295,4 +304,5 @@ The advert provider, its ids and the installer that puts them into this shell
 after every `cap sync` are shared with Android and live in `packaging/shell/`
 (`README.md` there). `scaffold.sh` runs `node ../shell/install-ads.mjs ios`,
 which also writes `GADApplicationIdentifier`, the tracking-prompt wording and
-Google's SKAdNetwork id into `Info.plist`.
+the fifty SKAdNetwork identifiers from `packaging/shell/ads.json` into
+`Info.plist`.

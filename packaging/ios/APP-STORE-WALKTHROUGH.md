@@ -72,7 +72,7 @@ Node from <https://nodejs.org> (LTS) if `npm` is not found.
 ## Phase 2 — Build the app on your own machine
 
 None of this needs the Apple account, so it can all be done while enrolment is
-pending. By the end the real game runs on a simulated iPhone and sells all ten
+pending. By the end the real game runs on a simulated iPhone and sells all eleven
 products with fake money.
 
 ### 4. Build the iOS shell
@@ -380,7 +380,13 @@ Every field is written out word for word, inside Apple's limits, in
 
 The answers people get wrong:
 
-* App Privacy — **Data Not Collected**. Nothing else applies.
+* App Privacy — **not** Data Not Collected, since 1.3.0 shipped adverts: the
+  build carries Google's AdMob SDK. Declare Identifiers → Device ID (third-party
+  advertising, linked to the user, used for tracking) and Usage Data →
+  Advertising Data, exactly as the table in `docs/store-listing.md` under
+  *Apple privacy nutrition labels* has it. "Used for tracking: Yes" is what the
+  App Tracking Transparency prompt in the app corresponds to, and Apple checks
+  that the two agree.
 * Age rating — every category **None**, giving **4+**.
 * Category — **Games → Sports**, secondary **Simulation**.
 * Price — **Free**, with in-app purchases.
@@ -397,23 +403,26 @@ The answers people get wrong:
 iOS do not work the same way and it is the easiest mistake in the project to
 make:
 
-* the **Android** app is a TWA - it renders the LIVE SITE, so a Pages deploy
-  reaches every phone and no upload is needed for a content change;
+* the **website** updates itself: a Pages deploy reaches every browser;
 * the **iOS** app **BUNDLES** the site inside the binary (`webDir` is
-  `../../dist`). Nothing you deploy to the web reaches it. If you archive
-  without rebuilding, you will ship whatever `dist/` happened to hold last
-  time, and it will pass review looking like an old version of the game.
+  `../../dist`), and so does the Android shell since 1.2.9. Nothing you deploy
+  to the web reaches either. If you archive without rebuilding, you will ship
+  whatever `dist/` happened to hold last time, and it will pass review looking
+  like an old version of the game.
 
 From the repository root:
 
 ```
-git pull                      # get the release you mean to ship
-npm ci && npm run build       # rebuild dist/ at that version
-cd packaging/ios && npx cap sync ios
+git pull origin main          # get the release you mean to ship
+cd packaging/ios && ./scaffold.sh
 ```
 
-`cap sync` is what copies `dist/` into the iOS project. Run the CLI from
-`packaging/ios`, not from the repo root - `webDir` is relative to that folder.
+`scaffold.sh` rebuilds `dist/` at that version, syncs it into the iOS project,
+re-installs the purchase and advert bridges, sets the version and build number,
+copies the icon in and answers the encryption question in `Info.plist`. Run it
+from `packaging/ios`, not from the repo root - `webDir` is relative to that
+folder. Its last lines must name the release you mean to ship, for example
+`version 1.6.5 build 35`.
 
 ### 17c. Check the app icon is ours, not Capacitor's
 
@@ -421,16 +430,11 @@ cd packaging/ios && npx cap sync ios
 nothing in the sync replaces it. It shipped in the first 1.2.4 upload before
 anybody looked at it.
 
-The real one is committed at **`packaging/ios/AppIcon-1024.png`**. Copy it over
-the placeholder:
-
-```
-cp packaging/ios/AppIcon-1024.png \
-   packaging/ios/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
-```
-
-Then in Xcode click *Assets* in the sidebar and confirm the green ball is
-showing. `scripts/icons.mjs` regenerates it from `public/icon.svg` if the
+The real one is committed at **`packaging/ios/AppIcon-1024.png`**, and
+`scaffold.sh` now copies it over the placeholder on every run, so this step is
+a check: in Xcode click *Assets* in the sidebar and confirm the green ball is
+showing. If it is the blue X, the scaffold did not run; run it.
+`scripts/icons.mjs` regenerates it from `public/icon.svg` if the
 artwork ever changes; it writes the tracked copy first, because
 `packaging/ios/ios/` is gitignored and anything written only there is lost the
 next time the project is regenerated.
@@ -460,26 +464,28 @@ that was never designed.
 There is nothing to switch off for Apple Watch. A watchOS app is a separate
 target that has to be added deliberately, and this project has never had one.
 
-### 18. Set the version and build number
+### 18. Check the version and build number
 
-*App* target → *General* → **Version**, **Build**.
+*App* target → *General* → **Version**, **Build**. Both are already set: read
+them, do not type them.
 
-THE VERSION IS WHATEVER `package.json` SAYS, and nothing else. Read it there
-rather than from this page:
+`scaffold.sh` writes the version from the root `package.json` (the figure the
+game, Play and the App Store Connect listing all carry) and the build number
+from `packaging/android/version.json`, the Play version code. One number is
+spent in one file, and a build reads the same on both stores: 1.6.5 is build
+35 on Apple and version code 35 on Play. Apple only requires a build number to
+be unique within a version and higher than the last upload of that version,
+which going up with the Play code guarantees.
 
-```bash
-node -p "require('./package.json').version"     # from the repo root
-```
+This step used to say "type the version here", and the version it named went
+stale four releases ago: the owner rebuilt against it and uploaded a build of
+the old game with the new one's release notes on it. If the General tab does
+not read what the scaffold's last lines printed, the project is stale; run
+`./scaffold.sh` again and reopen Xcode.
 
-It has to match `package.json` and the figure on the App Store Connect listing
-or the upload is rejected. This step used to name a version, and the version it
-named went stale four releases ago - the owner rebuilt against it and uploaded
-a build of the old game with the new one's release notes on it. It names none
-now, on purpose.
-
-Every upload needs a build number higher than the last. The version can repeat;
-the build number can never go backwards. Xcode does not track this for you, so
-check what App Store Connect already has under *TestFlight* and go one higher.
+If Apple ever refuses an upload as a duplicate build number, bump `versionCode`
+in `packaging/android/version.json`, note why in its comment, and scaffold
+again. The Play side reads the same file, so the two stores stay level.
 
 ### 19. Archive it
 
@@ -492,8 +498,11 @@ Change the device dropdown from a simulator to **Any iOS Device (arm64)**, then
 
 ### 20. Upload it
 
-Organizer → **Distribute App** → *App Store Connect* → *Upload*. Answer the
-encryption question **No** — the app uses none and makes no network connections.
+Organizer → **Distribute App** → *App Store Connect* → *Upload*. The
+encryption question is already answered in `Info.plist`
+(`ITSAppUsesNonExemptEncryption` = NO, written by `scaffold.sh`): the app has no
+encryption of its own, and the HTTPS inside Apple's frameworks and the advert
+SDK is exempt. If the dialog asks anyway, answer **No**.
 
 Processing takes five to thirty minutes before the build appears in App Store
 Connect.

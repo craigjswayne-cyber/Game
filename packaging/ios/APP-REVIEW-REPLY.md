@@ -73,19 +73,24 @@ menu. The Store (also on the Home menu) lists the optional in-app purchases.
 Settings holds language, text size, day/night and colour skins. About & legal
 holds the privacy policy and the unofficial-status statement.
 
-**4. External services.** None, beyond Apple's own. The only external service
-the app uses is Apple In-App Purchase through StoreKit, for the optional
-purchases configured alongside this submission. There are no data providers,
-no authentication service, no third-party payment processor, no analytics SDK,
-no advertising SDK and no AI service. The app makes no network requests of its
-own; all content is bundled and all game state is stored on the device. The
-"Report a bug" and contact buttons open the device's Mail app to
-phaserugbymanager@gmail.com; nothing is sent automatically.
+**4. External services.** Two, both standard. Apple In-App Purchase through
+StoreKit, for the optional purchases configured alongside this submission; and
+Google AdMob, for a banner at the foot of the Home and Results screens and
+optional "watch an advert" buttons the player chooses to press. Consent is
+gathered through Google's UMP form before any advert is requested, App Tracking
+Transparency is requested before the advertising identifier is used, and the
+Pro Manager purchase removes every advert permanently. There are no data
+providers, no authentication service, no third-party payment processor, no
+analytics SDK and no AI service. The game itself makes no network requests: all
+content is bundled and all game state is stored on the device, and a reviewer
+can turn the network off and still play a full career. The "Report a bug" and
+contact buttons open the device's Mail app to phaserugbymanager@gmail.com;
+nothing is sent automatically.
 
 **5. Regional differences.** None. The app functions identically in every
-region. It ships in English, French, Spanish, Italian and Japanese, chosen by
-the user in Settings; the choice affects language only, not features or
-content.
+region. It ships in English, French, Spanish, Italian, Japanese and Afrikaans,
+chosen by the user in Settings; the choice affects language only, not features
+or content.
 
 **6. Regulated industry and third-party material.** The app is not in a
 regulated industry. It contains no licensed or protected third-party material:
@@ -103,9 +108,10 @@ all three places.
 
 * Once the reply and recording are in, tap **Resubmit to App Review**. Do not
   upload a new build for this; a new build restarts the queue.
-* Optional tidy: the version page still reads *1.1.17* while the build reads
-  *1.2.4 (4)*. Apple does not require them to match, but the version number can
-  be edited to 1.2.4 on the version page while the submission is in the
-  rejected state, and it saves a question later.
-* The iOS update to 1.2.5 waits until this version is approved; then it goes
-  up as an ordinary update with these notes already in place.
+* Optional tidy: if the version page reads an older number than the build,
+  Apple does not require them to match, but the version can be edited on the
+  version page while the submission is in the rejected state, and it saves a
+  question later. `scaffold.sh` now stamps the build with the `package.json`
+  version, so the two agree from the start.
+* The next iOS update waits until this version is approved; then it goes up as
+  an ordinary update with these notes already in place.

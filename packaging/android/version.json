@@ -35,6 +35,9 @@
     "upload of 34 was refused as already used). 35 IS 1.6.5: one calendar with",
     "an invariant, the relegation playoff on finals day, Premiership relegation",
     "restored, the runtime-brief fixes.",
+    "THE SAME NUMBER IS THE iOS BUILD NUMBER: packaging/ios/scaffold.sh writes",
+    "versionCode into CURRENT_PROJECT_VERSION, so one file spends the number for",
+    "both stores and a build reads the same on Apple and on Play.",
     "versionName comes from the root package.json.",
     "billingLibrary is the Play Billing Library version PhaseBilling.java is",
     "written against. Play refuses anything below 8.0.0 (learned 4 Sep 2026)."
