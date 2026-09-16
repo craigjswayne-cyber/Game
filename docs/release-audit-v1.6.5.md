@@ -2,7 +2,7 @@
 
 Target 1.6.5, Play version code 34, branch `claude/rugby-manager-final-qa-8hbhrl`.
 Brief: "PHASE Final QA Fix & Runtime Brief" (owner, 16 September 2026).
-Tested commit: {{SHA}}. Node v22.22.2. Every result below is from a run on this tree; anything not run is listed in section 9 as NOT EXECUTED.
+Tested commit: aceb07f. Node v22.22.2. Every result below is from a run on this tree; anything not run is listed in section 9 as NOT EXECUTED.
 
 ## 1. Verdict
 
@@ -84,30 +84,33 @@ The men's World Championship (brief section 4) is internally coherent and is now
 - QA-GATE-01 hid a real failure (`e2enight`) for at least two releases; every browser claim in the 1.6.3 and 1.6.4 reports rested on it. Fixing the gate exposed and fixed the locator.
 - DET-01 was masked until 1.6.4 moved the id counter into the save (QA-10): the probe's two careers then shared one process-wide counter, and the probe had to give each its own before the wage reprice was visible.
 - AWARD-01 and the earlier Player-of-the-Month fix (season.ts 2989) are the same root: A League games in the senior count. The annual awards and the world award were the two readers left.
+- ECON-01 was found by DET-01's probe once the wage reprice on load was narrowed: the reload had been hiding the rollover's senior-wage intake. FR-01 was found by AWARD-01: once A League games stopped counting as appearances, the friendly probe's proof that "the academy played" collapsed, and the fixture turned out to field the bench.
+- Three probes and one soak encoded the old behaviour and failed on the fixed tree before being brought up to date (`friendlyprobe`, `insolvprobe`, `sheetprobe`, `wsoak`): each failure was traced to a 1.6.5 change doing what it should (a full-strength final winning a title, a duplicated shirt emptied, the Southern Four standing down).
 
 ## 8. Top 10 fixes, completed and remaining
 
-Completed in 1.6.5: (1) one calendar with a hard invariant, both worlds, every season type; (2) women's leagues pause for Tests and the World Championship; (3) summer camps after the finals; (4) relegation playoff on finals day; (5) seven browser gates and simtest fail on failure, suite prints `SUITE-SUMMARY`; (6) list fields healed on load; (7) transfer destination validated first; (8) Isles ownership on `islesCoach`; (9) academy appearances kept apart; (10) cap floor on seniors, loanees excluded, reload keeps academy wages, duplicate shirts emptied.
+Completed in 1.6.5: (1) one calendar with a hard invariant, both worlds, every season type; (2) women's leagues pause for Tests and the World Championship; (3) summer camps after the finals; (4) relegation playoff on finals day; (5) seven browser gates and simtest fail on failure, suite prints `SUITE-SUMMARY`; (6) list fields healed on load; (7) transfer destination validated first; (8) Isles ownership on `islesCoach`; (9) academy appearances kept apart; (10) cap floor on seniors, loanees excluded, reload keeps academy wages and the name registry, the rollover's scholars on development deals, duplicate shirts emptied, the development friendly fields the academy.
 
 Remaining, in order: (1) owner's decision on the men's World Cup overlay; (2) owner's decision on the 20-minute red card; (3) real-device run; (4) finances and game plan density; (5) match-screen resume write as an incremental patch; (6) Super Rugby Pacific and Champions Cup real formats; (7) full-roster fact check; (8) 50-season soaks in CI on a schedule; (9) an out-of-order action fuzzer; (10) unused exports (65 exported names in `src/game` that nothing imports, listed in the run log; harmless, and each one is a maintenance question).
 
 ## 9. What was executed, and what was not
 
-Commands, on commit {{SHA}}, Node v22.22.2:
+Commands, on commit aceb07f, Node v22.22.2:
 
 | Group | Command | Result | Duration |
 |---|---|---|---|
-| Typecheck, prose, tokens and every engine probe | `./scripts/suite.sh` (engine half) | {{ENGINE}} | {{ENGINE_T}} |
-| Build and the browser harnesses | `./scripts/suite.sh` (browser half, headless Chromium, `dist/`) | {{BROWSER}} | {{BROWSER_T}} |
+| Typecheck, prose, tokens and every engine probe (179 gates: `calinvariant` new, four reporters and seven soaks skipped by name) | `./scripts/suite.sh fast` on aceb07f | PASS 179 of 179, `SUITE-SUMMARY {"result":"PASS","passed":179,"failed":0}` | 45 min 40 s |
+| The full suite, engine and browser, on the tree before the last two engine commits (f40a16b plus probes) | `./scripts/suite.sh` | 232 of 236: browser 57 of 57; four engine probes failed (`friendlyprobe`, `insolvprobe`, `sheetprobe`, `wsoak`), each a probe reading the old behaviour (FR-01, CAL-03's full-strength final, SHEET-01, the Southern Four's tour year), fixed and re-passed, then the clean 179 of 179 above | 65 min 45 s |
+| Build and every browser harness again on aceb07f | `npm run build`, then each of the 57 `scripts/*.mjs` gates | {{BROWSER}} | {{BROWSER_T}} |
 | Calendar invariant, both worlds, ordinary, World Championship and tour years, two seeds, every week | `npx vite-node scripts/calinvariant.ts` | PASS, 0 violations, complete brackets on every World Championship | 2 min |
 | Runtime matrix: 15 seasons x 3 seeds x both worlds, every invariant every season, checkpoints 1/3/5/10/15 with a JSON round trip | `npx vite-node scripts/qa2/matrix.ts` | PASS: men 49-55 s per 15 seasons, women 27-31 s; save 6.4 MB at season 1, 8.0 MB at season 10; slowest week 302 ms | 4 min |
 | 10,000 detailed matches | `npx vite-node scripts/qa2/engine10k.ts` | PASS: mean 54.1 points (sd 17), 6.22 tries, 0.673 yellow, 0.029 red, 1.09 injuries, 19.4 subs, HIA 0.277 per match (1,600 passed, 1,103 failed), 0 walkovers, whistle line equals the record in all 10,000, no unavailable player in any event | 40 s |
-| Determinism across reload, 60 weeks, plain JSON and migrate | `npx vite-node scripts/qa/determinism.ts 60 777 {json,migrate}` | {{DET}} | 6 min |
-| Release simulation, 15 seasons | `npx vite-node scripts/releasesim.ts` | {{RELEASESIM}} | |
+| Determinism across reload, 60 weeks, plain JSON and migrate | `npx vite-node scripts/qa/determinism.ts 60 777 {json,migrate}` | DETERMINISTIC over 60 weeks in both modes, through the first rollover (after DET-01 and ECON-01) | 6 min |
+| Release simulation, 15 seasons | `npx vite-node scripts/releasesim.ts` | PASS, every band held: 90+ players 23 to 85, 85+ 142 to 284, top-to-bottom best-XV gap 32.7 to 17.9, 79 administrations, league-wide money on a human scale | |
 | Economy and exploits | `scripts/qa/{exploit,p1_treasury,p2_renew,p3_loans,p4_offers,p5_inject}.ts` | As 1.6.3: one renewal a season, marquee slot freed, release-then-sell void, no double charge, injection carried when employed | 4 min |
 | Personas | `scripts/qa/persona.ts` (stranger and devotee through the store), `scripts/qa/unemployed.ts` (sacked, a full season without a club, hired by Colomiers, a season there) | PASS | 3 min |
 | Performance | `scripts/qa/timing.ts` (15 seasons) | 3.4 to 4.0 s a season at seasons 12-15, slowest week 364 ms, stringify 120 ms for 8.76 MB | 1 min |
-| UI soak, one season on one page with the JS heap read | `SOAK_SEASONS=1 node scripts/soakui.mjs` | {{SOAK}} | |
+| UI soak, one season on one page with the JS heap read | `SOAK_SEASONS=1 node scripts/soakui.mjs` | PASS: 757 interactions, 27 matches, 261 bulletins, 42 screen visits, 933 audits, one mid-season reload; JS heap 10.0 MB at start, 19.0 MB at the end of the season, 37.3 MB on the save screen after the reload | |
 | Deep walkthrough | `node scripts/e2edeep.mjs` | {{E2EDEEP}} | |
 | Static | `tsc`, `textlint`, `i18nprobe`, `newsprobe`, `keyscreen`; TODO/FIXME scan: 0; unused exports: 65 | PASS | |
 
@@ -122,7 +125,7 @@ Not executed:
 
 ## 10. Comparison with docs/release-audit-v1.6.2.md, read last
 
-Bugs this pass found that the 1.6.2 audit did not: CAL-02 (the audit's own QA-01 fix created it), CAL-03, CAL-04, CAL-05, QA-GATE-01 (the audit reported "browser 57 of 57" on a gate that could not fail), QA-GATE-02, SAVE-01, TRANSFER-01, TOUR-01, AWARD-01 (the audit saw the Player-of-the-Month half), CAP-01, CAP-LOAN-01, SHEET-01.
+Bugs this pass found that the 1.6.2 audit did not: CAL-02 (the audit's own QA-01 fix created it), CAL-03, CAL-04, CAL-05, QA-GATE-01 (the audit reported "browser 57 of 57" on a gate that could not fail), QA-GATE-02, SAVE-01, TRANSFER-01, TOUR-01, AWARD-01 (the audit saw the Player-of-the-Month half), CAP-01, CAP-LOAN-01, SHEET-01, ECON-01, FR-01, and the name-registry half of DET-01.
 
 Old findings not reproduced on 1.6.5: none of the register's fixed items regressed; the five 1.6.2 P1s all re-pass their probes. QA-10's three parts are now all closed: the id counter (1.6.4), academy wages (DET-01), and the stadium rename did not appear in a 60-week reload diff.
 
