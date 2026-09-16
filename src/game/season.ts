@@ -18,6 +18,7 @@ import { terraceWeek } from './terraces'
 import { upkeepWeek } from './upkeep'
 import {absWeek, addGrudge, boardObjective, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, finalVenue, fixtureDayOff, fmtMoney, leagueTier, LEDGER_WEEKS, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, RELEGATES, SEASON_WEEKS, seasonLabel, squadTrust, unbeatenRun, weeklyCentral, mgrWinWeight, addWeeks100 } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
+import { BARRAGE_WEEK, windowSpan } from './calendar'
 import { emptyRow, leaguePos, sortTable, snIdFor, snWeeksFor, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS, W_AUTUMN_WEEKS, W_SIX_NATIONS_WEEKS, W_PAC4_WEEKS, W_SUMMER_TEST_WEEKS } from './schedule'
 import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice } from './ai'
 import { OFFICE_OUTLET, PRESS_KEEP_WEEKS, generatePress } from './media'
@@ -631,60 +632,24 @@ export interface Window { start: number; end: number; nations: string[]; size: n
  *  Exported for the country desk: call-up and drop need the window's squad
  *  cap, and the screen needs to know whether a window is open at all. */
 export function activeWindows(state: GameState): Window[] {
+  // THE SPANS COME FROM calendar.ts (1.6.5). They used to be computed here as
+  // "first fixture week minus one", which put the summer camps in week 43 -
+  // the finals week - so every finalist's internationals left the week before
+  // the final. Each competition's span is now declared once, next to the
+  // weeks it plays, with the invariant that checks the two agree.
+  const gender = genderOf(state)
+  const nationsOf: Record<string, (c: Competition) => string[]> = {
+    trc: () => ['NZL', 'RSA', 'AUS', 'ARG'],
+    aut: () => ['ENG', 'FRA', 'IRE', 'SCO', 'WAL', 'ITA', 'NZL', 'RSA', 'AUS', 'ARG', 'FIJ', 'JPN'],
+    sn: () => ['ENG', 'FRA', 'IRE', 'SCO', 'WAL', 'ITA'],
+  }
   const out: Window[] = []
-  if (state.comps['wc']) {
-    const ko = state.comps['wc'].koWeeks
-    out.push({ start: 1, end: ko[ko.length - 1] ?? WC_KO_WEEKS[WC_KO_WEEKS.length - 1], nations: state.comps['wc'].teamIds, size: NAT_SQUAD_SIZE })
-  }
-  if (state.comps['trc']) {
-    out.push({ start: TRC_WEEKS[0] - 1, end: TRC_WEEKS[TRC_WEEKS.length - 1], nations: ['NZL', 'RSA', 'AUS', 'ARG'], size: NAT_SQUAD_SIZE })
-  }
-  if (state.comps['pnc']) {
-    out.push({ start: PNC_WEEKS[0] - 1, end: PNC_WEEKS[PNC_WEEKS.length - 1], nations: state.comps['pnc'].teamIds, size: NAT_SQUAD_SIZE })
-  }
-  if (state.comps['aut']) {
-    out.push({ start: AUTUMN_WEEKS[0] - 1, end: AUTUMN_WEEKS[AUTUMN_WEEKS.length - 1], nations: ['ENG', 'FRA', 'IRE', 'SCO', 'WAL', 'ITA', 'NZL', 'RSA', 'AUS', 'ARG', 'FIJ', 'JPN'], size: NAT_SQUAD_SIZE })
-  }
-  if (state.comps['sn']) {
-    out.push({ start: SIX_NATIONS_WEEKS[0] - 1, end: SIX_NATIONS_WEEKS[SIX_NATIONS_WEEKS.length - 1], nations: ['ENG', 'FRA', 'IRE', 'SCO', 'WAL', 'ITA'], size: NAT_SQUAD_SIZE })
-  }
-  // THE WOMEN'S TWO. activeWindows tests for competitions by id, and the
-  // women's carry the w: prefix, so without these no window ever opens in a
-  // women's career: the Test fixtures are played, but no squad is ever named
-  // and no club ever loses a player to a Test. Found by playing a full season
-  // and finding natSquads empty in every week of it.
-  if (state.comps[W + 'sn']) {
-    out.push({
-      start: W_SIX_NATIONS_WEEKS[0] - 1, end: W_SIX_NATIONS_WEEKS[W_SIX_NATIONS_WEEKS.length - 1],
-      nations: state.comps[W + 'sn'].teamIds, size: NAT_SQUAD_SIZE,
-    })
-  }
-  if (state.comps[W + 'p4']) {
-    out.push({
-      start: W_PAC4_WEEKS[0] - 1, end: W_PAC4_WEEKS[W_PAC4_WEEKS.length - 1],
-      nations: state.comps[W + 'p4'].teamIds, size: NAT_SQUAD_SIZE,
-    })
-  }
-  // The other two windows of the women's year. Without these the Tests are
-  // played and no club ever loses a player to one, which is the same fault the
-  // two above were added to fix.
-  if (state.comps[W + 'aut']) {
-    out.push({
-      start: W_AUTUMN_WEEKS[0] - 1, end: W_AUTUMN_WEEKS[W_AUTUMN_WEEKS.length - 1],
-      nations: state.comps[W + 'aut'].teamIds, size: NAT_SQUAD_SIZE,
-    })
-  }
-  if (state.comps[W + 'sum']) {
-    out.push({
-      start: W_SUMMER_TEST_WEEKS[0] - 1, end: W_SUMMER_TEST_WEEKS[W_SUMMER_TEST_WEEKS.length - 1],
-      nations: state.comps[W + 'sum'].teamIds, size: NAT_SQUAD_SIZE,
-    })
-  }
-  if (state.comps['tour']) {
-    out.push({ start: TOUR_WEEKS[0] - 1, end: TOUR_WEEKS[TOUR_WEEKS.length - 1], nations: state.comps['tour'].teamIds, size: NAT_SQUAD_SIZE })
-  }
-  if (state.comps['lions']) {
-    out.push({ start: TOUR_WEEKS[0] - 1, end: TOUR_WEEKS[TOUR_WEEKS.length - 1], nations: state.comps['lions'].teamIds, size: NAT_SQUAD_SIZE })
+  for (const id of ['wc', 'trc', 'pnc', 'aut', 'sn', W + 'sn', W + 'p4', W + 'aut', W + 'sum', 'tour', 'lions', W + 'lions']) {
+    const comp = state.comps[id]
+    if (!comp) continue
+    const span = windowSpan(id, gender)
+    if (!span) continue
+    out.push({ start: span[0], end: span[1], nations: (nationsOf[id] ?? (c => c.teamIds))(comp), size: NAT_SQUAD_SIZE })
   }
   return out
 }
@@ -2163,7 +2128,7 @@ export function processWeekAndAdvance(state: GameState) {
   for (const fx of thisWeek) {
     const mine = fx.homeId === state.userClubId || fx.awayId === state.userClubId ||
       (state.natTeam != null && (fx.homeId === state.natTeam || fx.awayId === state.natTeam ||
-        (['ENG', 'IRE', 'SCO', 'WAL'].includes(state.natTeam) && (fx.homeId === 'LIO' || fx.awayId === 'LIO'))))
+        (islesCoach(state) && (fx.homeId === 'LIO' || fx.awayId === 'LIO'))))
     // A MIDWEEK FRIENDLY IS THE ASSISTANT'S GAME, not the manager's: it never
     // becomes simmedUserFx, so a league Saturday in the same week is still the
     // match he stands on the touchline for.
@@ -3021,8 +2986,8 @@ export function processWeekAndAdvance(state: GameState) {
       // Player of the Month: hottest form among men who featured this window.
       //
       // `!p.acad` is not belt and braces, it is the fix for a measured bug. The A
-      // League bumps stats.apps and adds 0.35 of form for every win (academy.ts),
-      // and it never writes lastWk. So an academy lad who kept winning A League
+      // League bumped stats.apps (stats.acadApps since 1.6.5, AWARD-01) and adds
+      // 0.35 of form for every win (academy.ts), and it never writes lastWk. So an academy lad who kept winning A League
       // games sat on a form figure of 8.9 with thirteen "appearances", and the old
       // duplicate of this award - which filtered on apps and form alone - handed
       // him the senior league's Player of the Month at weeks 16, 20, 24, 28, 32
@@ -3152,7 +3117,7 @@ export function processWeekAndAdvance(state: GameState) {
     f.week === state.week && f.played && !f.tableApplied &&
     (f.homeId === state.userClubId || f.awayId === state.userClubId ||
      (state.natTeam != null && (f.homeId === state.natTeam || f.awayId === state.natTeam ||
-       (['ENG', 'IRE', 'SCO', 'WAL'].includes(state.natTeam) && (f.homeId === 'LIO' || f.awayId === 'LIO'))))))
+       (islesCoach(state) && (f.homeId === 'LIO' || f.awayId === 'LIO'))))))
     ?? simmedUserFx
   if (userFx) {
     const isClubMatch = userFx.homeId === state.userClubId || userFx.awayId === state.userClubId
@@ -3427,12 +3392,14 @@ export function processWeekAndAdvance(state: GameState) {
   }
 
   // THE RELEGATION PLAYOFF (21A). In England the trapdoor is no longer
-  // automatic: once week 43 has crowned both champions, the Premier Division's
-  // bottom club hosts the Championship winner in week 44 - eighty minutes
-  // for a place in the top flight, playable like any other fixture when it
-  // is yours. The rollover reads this game's result instead of swapping the
-  // two clubs blind; the other pyramids keep the automatic trapdoor.
-  if (state.week === 43) {
+  // automatic: once the Championship final has crowned its winner (week 42,
+  // calendar.ts), the Premier Division's bottom club hosts him on finals day
+  // - eighty minutes for a place in the top flight, playable like any other
+  // fixture when it is yours. The rollover reads this game's result instead
+  // of swapping the two clubs blind; the other pyramids keep the automatic
+  // trapdoor. It was week 44 until 1.6.5: the summer camp week, so both
+  // clubs played for their status without their internationals.
+  if (state.week === BARRAGE_WEEK - 1) {
     const prem = state.comps['prem']
     const champ = state.comps['champ']
     const already = state.fixtures.some(f => f.compId === 'prem' && f.stage === 'BAR')
@@ -3442,7 +3409,7 @@ export function processWeekAndAdvance(state: GameState) {
       const up = champ.champion ?? sortTable(champ.table)[0]?.teamId
       if (bottom && up && bottom !== up && state.clubs[bottom] && state.clubs[up]) {
         const fx: Fixture = {
-          id: state.nextId++, compId: 'prem', round: 99, week: 44,
+          id: state.nextId++, compId: 'prem', round: 99, week: BARRAGE_WEEK,
           homeId: bottom, awayId: up, played: false,
           homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0, stage: 'BAR',
         }

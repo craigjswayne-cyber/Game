@@ -147,6 +147,31 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.6.5, Play version code 34
+
+One calendar for both worlds with a hard invariant behind it, the
+relegation playoff on finals day, Premiership relegation restored by
+decision, and the cap, transfer, award, Isles and save repairs from the
+runtime brief.
+
+```
+<en-GB>
+The calendar is one document now: no women's cup tie or league playoff falls inside a Test window, the women's leagues pause for the Six Nations, the autumn Tests and the World Championship as the real ones do, the Southern Four follows the finals, and the relegation playoff is played on finals day with both squads at full strength. Relegation from the English top flight is back, by design. Cap trimming, transfers, awards, the Isles Test and damaged saves each fixed.
+</en-GB>
+<fr-FR>
+Un seul calendrier : aucune élimination directe de coupe féminine ni phase finale ne tombe dans une fenêtre internationale, les championnats féminins s'arrêtent pour le Tournoi, les tests d'automne et le Championnat du monde comme les vrais, le Southern Four suit les finales et le barrage de relégation se joue le jour des finales à effectifs complets. La relégation de l'élite anglaise revient, par choix. Plafond salarial, transferts, récompenses, test des Isles et sauvegardes abîmées corrigés.
+</fr-FR>
+<es-ES>
+El calendario es uno solo: ninguna eliminatoria de copa femenina ni playoff de liga cae en una ventana internacional, las ligas femeninas paran por el Seis Naciones, los tests de otoño y el Mundial como las reales, el Southern Four sigue a las finales y el playoff de descenso se juega el día de las finales con plantillas completas. Vuelve el descenso en la élite inglesa, por diseño. Recorte salarial, traspasos, premios, el test de las Isles y las partidas dañadas, corregidos.
+</es-ES>
+<it-IT>
+Il calendario è uno solo: nessuna eliminatoria di coppa femminile né playoff di campionato cade in una finestra internazionale, i campionati femminili si fermano per il Sei Nazioni, i test autunnali e il Mondiale come quelli veri, il Southern Four segue le finali e lo spareggio retrocessione si gioca il giorno delle finali a ranghi completi. Torna la retrocessione dalla massima serie inglese, per scelta. Tetto salariale, trasferimenti, premi, test delle Isles e salvataggi danneggiati corretti.
+</it-IT>
+<ja-JP>
+カレンダーを一本化。女子カップの決勝トーナメントやリーグのプレーオフが代表ウィンドウと重ならず、女子リーグは実際と同じくシックスネーションズ、秋のテスト、世界選手権の間は休止、サザンフォーは決勝後に、降格プレーオフは決勝当日にフルメンバーで行われる。イングランド最上位リーグの降格は意図的に復活。サラリーキャップ整理、移籍、表彰、アイルズのテスト、破損セーブを修正。
+</ja-JP>
+```
+
 ### What's new (500 max) - v1.6.4, Play version code 33
 
 The United Provinces Championship plays its real eighteen-round format, the

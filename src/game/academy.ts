@@ -391,7 +391,11 @@ function playAcad(state: GameState, fx: AcadFixture, rng: Rng) {
     const user = teamId === state.userClubId
     const coach = user ? (state.staff?.academyCoach ?? 0) : clamp((club.rep - 55) / 15, 0, 3)
     for (const p of academyXV(state, club, fx.round)) {
-      p.stats.apps++
+      // AWARD-01 (1.6.5): an A League game is an ACADEMY appearance. Counting it
+      // in stats.apps let an academy kid into the awards shortlists with a
+      // zero rating sum, and diluted the season average of any senior who had
+      // played a few A League games - apps went up, ratingSum did not.
+      p.stats.acadApps = (p.stats.acadApps ?? 0) + 1
       p.sharp = clamp(p.sharp + 6, 0, 100)
       p.form = clamp(p.form + (won ? 0.35 : -0.2), 1, 10)
       // minutes make players. Ceiling-aware, so a limited lad does not become a

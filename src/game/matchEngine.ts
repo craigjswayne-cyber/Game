@@ -362,6 +362,19 @@ export function lineupFor(state: GameState, teamId: string): (number | null)[] {
   if (club && !Array.isArray(club.tactic?.lineup)) {
     club.tactic.lineup = Array.from({ length: 23 }, () => null)
   }
+  // The same man in two shirts is one man. A hand-edited or damaged sheet with
+  // a player at 4 and at 21 went through every check below (each shirt was
+  // filled, each wearer fit) and onto the pitch, where frontRowCover counted
+  // him twice (scripts/qa/banned.ts, 1.6.5). The second shirt is emptied here
+  // and the tidy-up below fills it like any other gap.
+  if (club) {
+    const seen = new Set<number>()
+    club.tactic.lineup = club.tactic.lineup.map(id => {
+      if (id == null || seen.has(id)) return null
+      seen.add(id)
+      return id
+    })
+  }
   const isNation = !club
   if (isNation && state.natLineup && state.natLineup.team === teamId) {
     const lu = state.natLineup.lineup

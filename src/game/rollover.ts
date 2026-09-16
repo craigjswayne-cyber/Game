@@ -43,6 +43,12 @@ const ordinal = (n: number) =>
  * Deliberately deterministic: no draw from the shared season rng, so adding
  * this cannot shift any match or transfer that follows it.
  */
+/** A player leaves the world, and his name stays taken (GameState.retiredNames). */
+function forget(state: GameState, p: Player) {
+  ;(state.retiredNames ??= []).push(p.name)
+  delete state.players[p.id]
+}
+
 function boardReinvests(state: GameState) {
   const club = state.clubs[state.userClubId]
   if (!club || state.unemployed) return
@@ -516,7 +522,7 @@ function agePlayers(state: GameState, rng: Rng) {
       // his marquee slot retires with him (1.6.3)
       if (c.marquee) c.marquee = c.marquee.filter(id => id !== p.id)
     }
-    delete state.players[p.id]
+    forget(state, p)
     // FM-style rebirth: a notable retiree respawns as an academy newgen
     // of similar potential at the same club, under a new name
     const peak = Math.max(p.ca, p.q0)
@@ -1564,8 +1570,8 @@ export function rebuildSeason(state: GameState) {
   const fas = Object.values(state.players)
     .filter(p => !p.clubId)
     .sort((a, b) => b.ca - a.ca)
-  for (const p of fas.slice(120)) delete state.players[p.id]
-  for (const p of fas.slice(0, 120)) if (p.age >= 35) delete state.players[p.id]
+  for (const p of fas.slice(120)) forget(state, p)
+  for (const p of fas.slice(0, 120)) if (p.age >= 35) forget(state, p)
 
   // Promotion & relegation between each top flight and its second tier
   // The third entry is a KEY, not a name. It used to be the English phrase
@@ -1595,7 +1601,7 @@ export function rebuildSeason(state: GameState) {
     const down = topOrder[topOrder.length - 1]
     const up = lowComp.champion ?? sortTable(lowComp.table)[0]?.teamId
     if (!down || !up || down === up || !state.clubs[down] || !state.clubs[up]) continue
-    // THE ENGLISH TRAPDOOR IS A GAME NOW (21A). Week 44's playoff decided
+    // THE ENGLISH TRAPDOOR IS A GAME NOW (21A). Finals day's playoff decided
     // this pair on the pitch: the swap only happens if the Championship
     // winner actually won it. A save that rolled over without the fixture
     // (or a playoff that somehow never played) falls back to the automatic

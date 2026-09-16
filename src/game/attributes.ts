@@ -253,8 +253,8 @@ export function playerValue(
  * first-team money. Graduation re-prices him to the professional figure
  * (rollover.ts), which is what signing a first senior contract means.
  */
-const ACADEMY_MIN = 400
-const ACADEMY_MAX = 900
+export const ACADEMY_MIN = 400
+export const ACADEMY_MAX = 900
 
 /**
  * Put every academy man in the world on a development deal.

@@ -283,8 +283,10 @@ export function regenName(rng: () => number, nat: string, taken?: Set<string>, g
  *  module with nothing above it to import. Every generator calls this and hands
  *  the result to regenName, which is what turns the guard from a good intention
  *  into something that actually holds. */
-export function worldNames(state: { players: Record<number, { name: string }> }): Set<string> {
-  return nameRegistry(state, () => Object.values(state.players).map(p => p.name))
+export function worldNames(state: { players: Record<number, { name: string }>; retiredNames?: string[] }): Set<string> {
+  // the men who have left keep their names taken, on a reload as in a running
+  // game (retiredNames, 1.6.5)
+  return nameRegistry(state, () => [...Object.values(state.players).map(p => p.name), ...(state.retiredNames ?? [])])
 }
 
 /** THE SQUAD IS THIRTY-TWO (owner, v1.1.12: "squad should be 32").
