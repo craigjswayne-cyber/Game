@@ -198,10 +198,12 @@ try {
   await page.click('.submenu-item >> text=Tactics')
   await page.waitForSelector('.form-pitch')
   await shot('06-tactics')
-  await page.click('.tab-bar >> text=Prep')
-  await page.waitForSelector('text=Match Preparation')
   await page.click('.tab-bar >> text=Game Plan')
   await page.waitForSelector('text=Quick Game Plans')
+  // the opposition read and its counter plan live on the Prep tab since 1.6.5
+  // (the game plan tab was three screenfuls deep with them)
+  await page.click('.tab-bar >> text=Prep')
+  await page.waitForSelector('text=Match Preparation')
 
   // THE COUNTER PLAN SPENDS ITSELF (owner, v1.1.15: "again when pressing set
   // the counter plan it actions but doesnt become unclickable"). It sets four
