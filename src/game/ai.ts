@@ -202,6 +202,10 @@ export function executeTransfer(state: GameState, p: Player, toClubId: string, f
   if (!realMoney(fee)) return
   const from = p.clubId ? state.clubs[p.clubId] : null
   const to = state.clubs[toClubId]
+  // TRANSFER-01 (1.6.5): a destination that does not exist, or is the seller,
+  // used to be discovered at `to.players.push` - after the seller had lost the
+  // player and banked the fee. Refuse before anything moves.
+  if (!to || to === from) return
   // read before the move clears it: the terraces judge a departure partly on
   // whether the club had said out loud that he was for sale (terraces.ts)
   const wasListed = !!p.transferListed
@@ -209,8 +213,12 @@ export function executeTransfer(state: GameState, p: Player, toClubId: string, f
   if (from && p.ca >= 80 && !p.transferListed && fee > 0) {
     addGrudge(state, from.id, toClubId, 'news.grudgeTookHim', { player: p.name })
   }
+  // a man out on loan comes home before he is sold: the flag used to travel
+  // with him to the buyer until the rollover (1.6.3, scripts/qa/p3_loans.ts)
+  if (p.onLoan) { p.onLoan = false; p.loanClub = undefined; p.loanSince = undefined }
   if (from) {
     from.players = from.players.filter(id => id !== p.id)
+    if (from.marquee) from.marquee = from.marquee.filter(id => id !== p.id)
     from.balance += fee
     from.budget += Math.round(fee * 0.7)
     from.tactic.lineup = from.tactic.lineup.map(id => (id === p.id ? null : id))
@@ -324,7 +332,7 @@ export function aiTransfers(state: GameState, rng: Rng) {
     const targets = Object.values(state.players).filter(p =>
       p.clubId && p.clubId !== buyer.id && p.clubId !== state.userClubId &&
       !p.loanFrom && !p.retiring && (p.transferListed || p.morale < 4 || p.contractEnds <= state.season) &&
-      p.ca >= 62 && askingPrice(state, p) <= buyer.budget)
+      p.ca >= 62 && p.ca <= buyer.rep + 12 && askingPrice(state, p) <= buyer.budget)
     if (!targets.length) continue
     const p = pick(rng, targets)
     const fee = askingPrice(state, p)
@@ -564,6 +572,7 @@ export function signOnTerms(state: GameState, playerId: number, fee: number, wag
     }
   }
   if (fee + signOn > user.budget) return { ok: false, msg: t('reply.feeBonusOverBudget') }
+  if (squadFull(state, user)) return { ok: false, msg: t('reply.squadFull') }
   if (embargoed(state, user.id)) {
     return { ok: false, msg: t('reply.embargoSign') }
   }
@@ -572,7 +581,10 @@ export function signOnTerms(state: GameState, playerId: number, fee: number, wag
   // With a slot free his wage sits outside the cap from the day he signs;
   // with none free the refusal says so instead of pointing at a door that
   // is not there.
-  const marqueeSlots = MARQUEE_SLOTS - (user.marquee ?? []).length
+  // a marquee man who has been sold or has retired gives his slot back
+  // (1.6.3: the id stayed in the list for ever, scripts/qa/exploit.ts)
+  user.marquee = (user.marquee ?? []).filter(id => state.players[id]?.clubId === user.id)
+  const marqueeSlots = MARQUEE_SLOTS - user.marquee.length
   const capMsg = asMarquee && marqueeSlots > 0 ? null : capBreak(state, user.id, wage, 0, marqueeSlots > 0)
   if (capMsg) return { ok: false, msg: capMsg }
   const demand = personalTermsDemand(state, p)
@@ -611,6 +623,7 @@ export function signFreeAgent(state: GameState, playerId: number): { ok: boolean
   const p = state.players[playerId]
   const user = state.clubs[state.userClubId]
   if (!p || p.clubId != null || !user) return { ok: false, msg: t('reply.notFreeAgent') }
+  if (squadFull(state, user)) return { ok: false, msg: t('reply.squadFull') }
   if (embargoed(state, user.id)) {
     return { ok: false, msg: t('reply.embargoSign') }
   }
@@ -681,6 +694,10 @@ export function respondToOffer(state: GameState, offerId: number, accept: boolea
   const bidder = state.clubs[o.fromClubId]
   if (!p || !bidder) { o.status = 'rejected'; return t('reply.offerWithdrawn') }
   if (accept) {
+    // a bid for a man who is no longer yours - released, sold or retired since
+    // it landed - cannot be accepted: it moved a free agent to the bidder and
+    // burned the fee (1.6.3, scripts/qa/exploit.ts)
+    if (p.clubId !== state.userClubId) { o.status = 'rejected'; return t('reply.offerWithdrawn') }
     // THE BOARD'S SQUAD FLOOR (chaos sweep finding). There is no release
     // button in this game, so accepting incoming bids is the one lever that
     // can drain a squad - and it had no floor at all: accept everything and
@@ -727,6 +744,15 @@ export function respondToOffer(state: GameState, offerId: number, accept: boolea
 // the same conversation, and the uncapped one made squad-wide praise a free
 // morale faucet. Retired v1.1.4 - the office (chats.ts: two a week,
 // deterministic, real costs) is the one way to talk to a player.
+
+/** The registration limit every AI club is held to at the rollover (46
+ *  seniors, rollover.ts) applied to the user's signings as well (1.6.3): the
+ *  user could sign free agents to 73 while the world was culled at 46. */
+export const SQUAD_LIMIT = 46
+export function squadFull(state: GameState, club: { players: number[] }): boolean {
+  const seniors = club.players.reduce((n, id) => n + (state.players[id] && !state.players[id].acad ? 1 : 0), 0)
+  return seniors >= SQUAD_LIMIT
+}
 
 /** The wage bill that counts against the cap - marquee men sit outside it. */
 export function capBill(state: GameState, club: { players: number[]; marquee?: number[] }): number {
@@ -846,6 +872,10 @@ export function offerRenewalAt(state: GameState, playerId: number, offer: number
   if (!p || p.clubId !== user.id) return { ok: false, msg: t('reply.notYourPlayer') }
   if (p.loanFrom) return { ok: false, msg: t('reply.onLoanParent') }
   if (p.retiring) return { ok: false, msg: t('reply.retiringMindMadeUp', { name: p.name }) }
+  // one new deal a season (1.6.3): every accepted renewal below is a point of
+  // morale, and with no gate a squad went from 7.0 to 10.0 in one week for
+  // nothing (scripts/qa/exploit.ts)
+  if (p.renewedSeason === state.season) return { ok: false, msg: t('reply.renewedThisSeason', { name: p.name }) }
   if ((state.preContracts ?? []).some(pc => pc.playerId === p.id)) {
     return { ok: false, msg: t('reply.preContractElsewhere', { name: p.name }) }
   }
@@ -896,6 +926,7 @@ export function offerRenewalAt(state: GameState, playerId: number, offer: number
   }
   wage = Math.min(offer, Math.round(demand * 1.3)) // no accidental silly money
   p.wage = wage
+  p.renewedSeason = state.season
   // A NEW DEAL IS NEVER SHORTER THAN THE OLD ONE. The term is counted from now,
   // so a 27-year-old with three years left was being handed a two-year extension
   // and losing a year for signing it. Nobody signs that. Found by

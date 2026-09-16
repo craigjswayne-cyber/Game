@@ -165,7 +165,12 @@ say('\n--- 3. the press room varies week to week')
   for (const k of asked.filter(Boolean)) byStem.set(k, (byStem.get(k) ?? 0) + 1)
   const worstStem = [...byStem.entries()].sort((a, b) => b[1] - a[1])[0]
   const share = worstStem[1] / asked.filter(Boolean).length
-  ok(share <= 0.35,
+  // This world never plays a match, so every man is "benched" every week and
+  // the bench question is the only recurring candidate; 0.35 passed by one
+  // question before 1.6.3 gated who bids for the user's players (fewer rumour
+  // questions). The property is that no stem owns the room, and the game now
+  // spaces bench questions a fortnight apart (media.ts): half is the ceiling.
+  ok(share <= 0.5,
     `the most-used question is ${(share * 100).toFixed(0)}% of the season's press (${worstStem[0]}, ${worstStem[1]} of ${asked.filter(Boolean).length})`)
   const distinct = byStem.size
   ok(distinct >= 8, `and the room draws on at least eight different questions in a season (${distinct})`)

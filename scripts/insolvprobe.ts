@@ -71,7 +71,14 @@ const wagesOf = (g: ReturnType<typeof newGame>, id: string) =>
 {
   const g = newGame('bath', 'Docked', 77)
   const uid = g.userClubId
-  g.clubs[uid].balance = -30 * wagesOf(g, uid)
+  // FORTY-FIVE WEEKS UNDER, NOT THIRTY. This seed's Bath finishes second and,
+  // since 1.6.5 (CAL-03: the summer camp no longer opens in finals week, so
+  // its internationals play the final), wins the title: a season's takings
+  // plus the champion's prize lifted a thirty-week hole to 16.8 weeks, above
+  // the eighteen-week line, and the probe reported the manager's club exempt.
+  // The property under test is the exemption, not the depth; forty-five weeks
+  // is beyond anything one season can earn back.
+  g.clubs[uid].balance = -45 * wagesOf(g, uid)
   // run to the rollover so the penalty is stamped onto a real new-season table
   let guard = 0
   while (guard++ < SEASON_WEEKS + 6 && g.season === 0) processWeekAndAdvance(g)

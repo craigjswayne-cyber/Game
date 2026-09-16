@@ -1,7 +1,7 @@
 import type { Club, FacilityId, GameState } from './model'
 import { ATTR_KEYS, FACILITY_INFO, MAX_FACILITY, SEASON_WEEKS, WEEK_BASIS, emptyStats, finalVenue, initFacilities } from './model'
 import { ensureCaptains } from './analysis'
-import { buildPlayer, deriveCaps, deriveHist, deriveTrait, resetIds , playerWage } from './attributes'
+import { ACADEMY_MAX, ACADEMY_MIN, buildPlayer, deriveCaps, deriveHist, deriveTrait, resetIds , playerWage } from './attributes'
 import { LEAGUE_DEFS, seedExClubs } from './newgame'
 import { genderOf, staffGender, type Gender } from './gender'
 import { autoSelect } from './matchEngine'
@@ -81,11 +81,31 @@ export async function saveGame(slot: string, state: GameState): Promise<void> {
 // its short command list is updated after that.
 const resumeKey = (slot: string) => `${slot}::live`
 
-export async function putResume(slot: string, rec: unknown): Promise<void> {
+/**
+ * ---- TWO KEYS, ONE RECORD (1.6.3) ----
+ *
+ * The resume record carries the whole pre-match state (7 MB on a mature save)
+ * and a short list of what the manager did since kick-off. It used to be
+ * written whole on every revealed commentary line and every simulated tick:
+ * a JSON round trip and an IndexedDB structured clone of 7 MB per line, 0.3
+ * to 0.5 s each on a desktop and several times that on a phone
+ * (scripts/qa/crossrec.ts). The store's comment promised "never the 7MB
+ * half"; the code did not keep it.
+ *
+ * So the state goes under its own key once, at kick-off (`withPre`), and every
+ * later write is the small record without it. getResume stitches the two back
+ * together; clearResume removes both.
+ */
+const preKey = (slot: string) => `${resumeKey(slot)}.pre`
+
+export async function putResume(slot: string, rec: unknown, withPre = false): Promise<void> {
   const db = await openDb()
+  const { pre, ...small } = (rec ?? {}) as { pre?: unknown } & Record<string, unknown>
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE, 'readwrite')
-    tx.objectStore(STORE).put(JSON.parse(JSON.stringify(rec)), resumeKey(slot))
+    const store = tx.objectStore(STORE)
+    store.put(JSON.parse(JSON.stringify(small)), resumeKey(slot))
+    if (withPre) store.put(JSON.parse(JSON.stringify(pre ?? null)), preKey(slot))
     tx.oncomplete = () => { db.close(); resolve() }
     tx.onerror = () => { db.close(); reject(tx.error) }
   })
@@ -95,9 +115,19 @@ export async function getResume<T>(slot: string): Promise<T | null> {
   const db = await openDb()
   return new Promise((resolve) => {
     const tx = db.transaction(STORE, 'readonly')
-    const req = tx.objectStore(STORE).get(resumeKey(slot))
-    req.onsuccess = () => { db.close(); resolve((req.result as T) ?? null) }
-    req.onerror = () => { db.close(); resolve(null) }
+    const store = tx.objectStore(STORE)
+    const req = store.get(resumeKey(slot))
+    const preReq = store.get(preKey(slot))
+    tx.oncomplete = () => {
+      db.close()
+      const small = req.result as (Record<string, unknown> & { pre?: unknown }) | undefined
+      if (!small) { resolve(null); return }
+      // a record written before 1.6.3 still carries its own state
+      const pre = small.pre ?? preReq.result
+      if (!pre) { resolve(null); return }
+      resolve({ ...small, pre } as T)
+    }
+    tx.onerror = () => { db.close(); resolve(null) }
   })
 }
 
@@ -106,6 +136,7 @@ export async function clearResume(slot: string): Promise<void> {
   return new Promise((resolve) => {
     const tx = db.transaction(STORE, 'readwrite')
     tx.objectStore(STORE).delete(resumeKey(slot))
+    tx.objectStore(STORE).delete(preKey(slot))
     tx.oncomplete = () => { db.close(); resolve() }
     tx.onerror = () => { db.close(); resolve() }
   })
@@ -187,7 +218,7 @@ function rebaseStamps(s: GameState): void {
   }
   const g = s as unknown as Record<string, unknown>
   for (const f of ['groundsAt', 'lawWatchAt', 'challengeAt', 'chatWk', 'natAskAt',
-                   'natCoachAskAt', 'courtedAt', 'natCall']) {
+                   'natCoachAskAt', 'natCall']) {
     if (num(g[f])) g[f] = rebase(g[f])
   }
   // NOT the discipline ledger: an incident stores its season and its week as two
@@ -484,7 +515,11 @@ export function migrate(s: GameState): GameState {
     if (wrong) rebuildTable(comp, s.fixtures, s)
   }
 
-  s.shortlist ??= []
+  // SAVE-01 (1.6.5): ??= repairs null and nothing else. A save holding a string
+  // or an object in a list field passed the null check and threw on the first
+  // push. Every list the migration guarantees goes through the same gate.
+  const list = (v: unknown): unknown[] => (Array.isArray(v) ? v : [])
+  s.shortlist = list(s.shortlist) as typeof s.shortlist
   // ??= is not enough here: a save holding a STRING in this field passes the
   // null check and then throws on the first property assignment, because you
   // cannot create a property on a primitive. Replace anything that is not an
@@ -504,8 +539,8 @@ export function migrate(s: GameState): GameState {
   s.mgr.moms ??= 0
   // every career started before origins existed came up the coaching route
   s.mgrOrigin ??= 'coach'
-  s.vacancies ??= []
-  s.devFocus ??= []
+  s.vacancies = list(s.vacancies) as typeof s.vacancies
+  s.devFocus = list(s.devFocus) as typeof s.devFocus
   s.natTeam ??= null
   s.natOffer ??= null
   s.natKeepAsk ??= null
@@ -536,7 +571,7 @@ export function migrate(s: GameState): GameState {
   }
   s.natLineup ??= null
   s.objectives ??= ['youth', 'derby']
-  s.finHist ??= []
+  s.finHist = list(s.finHist) as typeof s.finHist
   s.boardOwed ??= false
   // facilities moved onto the clubs (every club in the world has an estate,
   // and taking a new job means inheriting that club's buildings). Levels the
@@ -573,7 +608,7 @@ export function migrate(s: GameState): GameState {
     }
     s.facilities = {}
   }
-  s.decisions ??= []
+  s.decisions = list(s.decisions) as typeof s.decisions
   s.analyst ??= null
   s.analystRecord ??= { right: 0, wrong: 0 }
   s.commission ??= null
@@ -584,18 +619,18 @@ export function migrate(s: GameState): GameState {
   seedStaffPeople(s)
   s.celebration ??= null
   s.records ??= {}
-  s.mentors ??= []
+  s.mentors = list(s.mentors) as typeof s.mentors
   s.chem ??= {}
-  s.grudges ??= []
+  s.grudges = list(s.grudges) as typeof s.grudges
   s.review ??= null
   s.fanMood ??= 60
   s.fanCampaign ??= 0
-  s.hof ??= []
+  s.hof = list(s.hof) as typeof s.hof
   s.scoutFocus ??= null
-  s.slAlerted ??= []
-  s.pledges ??= []
+  s.slAlerted = list(s.slAlerted) as typeof s.slAlerted
+  s.pledges = list(s.pledges) as typeof s.pledges
   s.intakeClass ??= null
-  s.preContracts ??= []
+  s.preContracts = list(s.preContracts) as typeof s.preContracts
   s.takeover ??= null
   s.newOwnerUntil ??= null
   s.derbyBook ??= {}
@@ -604,15 +639,17 @@ export function migrate(s: GameState): GameState {
   seedNatRank(s)
   s.natConfidence ??= s.natTeam ? 60 : null
   s.tenureStart ??= s.season
-  s.legendOf ??= []
+  s.legendOf = list(s.legendOf) as typeof s.legendOf
   s.vsBook ??= {}
   s.gateRecord ??= null
-  s.potyRoll ??= []
+  s.potyRoll = list(s.potyRoll) as typeof s.potyRoll
+  s.retiredNames = list(s.retiredNames) as typeof s.retiredNames
+  s.takenNames = list(s.takenNames) as typeof s.takenNames
   s.courtedAt ??= 0
   s.courtedBy ??= null
   s.vowedAt ??= 0
   s.agency ??= { seniors: [], kids: [], best: {} }
-  for (const c of Object.values(s.clubs)) { c.captain ??= null; c.vice ??= null; c.legends ??= []; c.marquee ??= []; c.tactic.roles ??= []; if (c.id !== s.userClubId) c.coach ??= 'The Head Coach' }
+  for (const c of Object.values(s.clubs)) { c.captain ??= null; c.vice ??= null; c.legends = list(c.legends) as typeof c.legends; c.marquee = list(c.marquee) as typeof c.marquee; c.tactic.roles = list(c.tactic.roles) as typeof c.tactic.roles; if (c.id !== s.userClubId) c.coach ??= 'The Head Coach' }
   /**
    * WHO THE STAFF ARE, on a save written before the game asked.
    *
@@ -655,7 +692,14 @@ export function migrate(s: GameState): GameState {
     // academy men move onto development deals. A live save was carrying a whole
     // academy on first-team money, which is what made the user's club insolvent
     // by simply playing its fixtures (see playerWage).
-    if (p.acad) p.wage = playerWage(p.ca, p.age, true)
+    //
+    // ONLY WHEN THE WAGE IS NOT AN ACADEMY WAGE. This repriced every scholar on
+    // every load from his CURRENT ability, so a lad whose ca had grown since
+    // his deal came back from a reload on £50 a week more than he left on:
+    // the one place a save/load changed the simulation (scripts/qa/
+    // determinism.ts, migrate mode, 1.6.5). A wage inside the development band
+    // is a deal the game made, and loading keeps it.
+    if (p.acad && !(p.wage >= ACADEMY_MIN && p.wage <= ACADEMY_MAX)) p.wage = playerWage(p.ca, p.age, true)
     if (p.trait === undefined) p.trait = deriveTrait(p)
     p.hist ??= deriveHist(p)
     p.caps ??= deriveCaps(p)
@@ -664,7 +708,9 @@ export function migrate(s: GameState): GameState {
   // cold-started session that loads a save would otherwise mint new player
   // ids from 1, silently overwriting existing players at the next intake.
   const maxPid = Object.keys(s.players).reduce((m, k) => Math.max(m, Number(k)), 0)
-  resetIds(maxPid + 1)
+  // and never below the counter the save carries (1.6.4): an id freed by a
+  // retirement above the highest live one is not handed out again
+  resetIds(Math.max(maxPid + 1, s.pidNext ?? 0))
 
   // leagues added in later builds: inject their clubs & squads so existing
   // careers gain them (fixtures/tables arrive at the next season rebuild)
@@ -706,7 +752,7 @@ export function migrate(s: GameState): GameState {
         // appearances for a club he never played for). The self-healing pass
         // later in this file tests the same flag, so it could not reach them
         // either.
-        p.real = true
+        p.real = !rp.gen
         // his name is spoken for now: register it before any generated filler
         // is drawn, or the top-up can hand an invented man a real one
         worldNames(s).add(p.name.toLowerCase())

@@ -11,6 +11,7 @@ import { processWeekAndAdvance, userFixtureThisWeek, weekRng } from '../src/game
 import { simMatch } from '../src/game/matchEngine'
 import { sortTable } from '../src/game/schedule'
 import type { Fixture, GameState } from '../src/game/model'
+import { BARRAGE_WEEK } from '../src/game/calendar'
 
 let fails = 0
 const ok = (cond: boolean, what: string) => {
@@ -18,7 +19,7 @@ const ok = (cond: boolean, what: string) => {
   if (!cond) fails++
 }
 
-/** Walk a season to week 44 with the bar played, hand the scoreline to the
+/** Walk a season to the playoff week (BARRAGE_WEEK, 43 since 1.6.5) with the bar played, hand the scoreline to the
  *  caller to bend, then roll into next season and report who plays where. */
 function runSeason(seed: number, bend: (bar: Fixture, g: GameState) => void) {
   const g = newGame('northampton', 'Barrage', seed)
@@ -28,7 +29,7 @@ function runSeason(seed: number, bend: (bar: Fixture, g: GameState) => void) {
   while (g.season === 0 && guard++ < 60) {
     const fx = userFixtureThisWeek(g)
     if (fx) simMatch(g, fx, weekRng(g), false)
-    if (g.week === 44) {
+    if (g.week === BARRAGE_WEEK) {
       bar = g.fixtures.find(f => f.compId === 'prem' && f.stage === 'BAR')
       if (bar) {
         bottom = bar.homeId; up = bar.awayId
@@ -38,7 +39,7 @@ function runSeason(seed: number, bend: (bar: Fixture, g: GameState) => void) {
     }
     const preSeason = g.season
     processWeekAndAdvance(g)
-    if (g.week === 45 || (g.season === preSeason && g.week > 44)) {
+    if (g.week === BARRAGE_WEEK + 1 || (g.season === preSeason && g.week > BARRAGE_WEEK)) {
       if (bar?.played) bend(bar, g)
     }
     if (g.season !== preSeason) break
@@ -49,7 +50,7 @@ function runSeason(seed: number, bend: (bar: Fixture, g: GameState) => void) {
 // ---- the playoff exists, between the right two clubs, off the table --------
 {
   const { g, bar, bottom, up } = runSeason(5, () => {})
-  ok(!!bar, 'week 44 holds the relegation playoff')
+  ok(!!bar, `week ${BARRAGE_WEEK} holds the relegation playoff`)
   if (bar) {
     ok(bar.homeId === bottom && g.clubs[bottom] != null, `the Premiership's bottom club hosts (${g.clubs[bottom]?.short})`)
     ok(g.clubs[up] != null && bar.awayId === up, `the Championship winner travels (${g.clubs[up]?.short})`)
@@ -85,7 +86,7 @@ function runSeason(seed: number, bend: (bar: Fixture, g: GameState) => void) {
   while (g.season === 0 && g.week < 45 && guard++ < 60) {
     const fx = userFixtureThisWeek(g)
     if (fx) simMatch(g, fx, weekRng(g), false)
-    if (g.week === 44) break
+    if (g.week === BARRAGE_WEEK) break
     processWeekAndAdvance(g)
   }
   const prem = g.comps['prem']

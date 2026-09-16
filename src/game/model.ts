@@ -41,6 +41,8 @@ export const ATTR_NAMES: Record<keyof Attrs, string> = {
 
 export interface SeasonStats {
   apps: number
+  /** A League (academy) appearances, kept apart from the senior count (AWARD-01). */
+  acadApps?: number
   starts: number
   tries: number
   points: number
@@ -369,6 +371,11 @@ export interface Player {
   talkWk?: number // retired v1.1.4 with talkToPlayer (chats.ts uses lastChatWk); kept so old saves load
   /** week his agent demanded improved terms (0/undefined = content) */
   wantsDeal?: number
+  /** the season he last signed a renewal with the user's club (1.6.3). One
+   *  new deal a season: re-signing him at his own demand was free and gave a
+   *  point of morale every time, so a whole squad could be pumped to 10 in
+   *  one week (scripts/qa/exploit.ts: 96 of 96 accepted). */
+  renewedSeason?: number
   /** week a formal transfer request landed (17A): the game-time ledger's
    *  escalation when a key or rotation man is badly short-changed. 0 or
    *  absent means no request. Cleared when the team sheets make it right,
@@ -459,16 +466,27 @@ export interface Player {
    * maternity this isnt something for everyone - make sure this is only on
    * fictional players."
    *
-   * That fence is the important half. Every NAMED player in this game is a real,
-   * living person - 1,339 of them in the women's leagues, off the owner's own
-   * squad sheets. Giving one of them a pregnancy the game invented would be
-   * inventing a private life event about a real individual and putting her name
-   * on it. That is not the game's to invent, whatever the simulation gains.
+   * That fence is the important half. 1,255 of the women in this game are real,
+   * living people, off the owner's own squad sheets and the competition team
+   * pages. Giving one of them a pregnancy the game invented would be inventing a
+   * private life event about a real individual and putting her name on it. That
+   * is not the game's to invent, whatever the simulation gains.
    *
    * So the gate is `!p.real`, and it is checked at the one place leave is
    * granted rather than trusted to whoever edits this next. Generated players
    * are nobody, which is exactly what makes them the right ones to model a real
    * career interruption on.
+   *
+   * THIS NOTE USED TO SAY "every NAMED player in this game is a real, living
+   * person - 1,339 of them", and that sentence was the bug. 841 of the women are
+   * invented, the French second tier and the whole English Championship, because
+   * no reachable source carries those squads. newgame.ts stamped `p.real = true`
+   * on everyone who came out of a data file, so the gate saw 2,096 real women and
+   * could choose none of them: leave fell only on the generated academy and squad
+   * fill, never on a league squad player. Ten women's seasons ran 126 leaves
+   * before and 187 after. The data says which is which now (RawPlayer.gen), the
+   * engine reads it, and scripts/genprobe.ts holds the counts so the claim cannot
+   * drift back.
    *
    * `until` is an absolute game-week like Injury.until. `from` is kept so the
    * rollover knows a season was missed and can push the contract out rather
@@ -1402,6 +1420,26 @@ export interface GameState {
   /** absolute week (season*100+week) before which the board will not hear
    *  another facility request - denials cost you the room for a while */
   facilityAskCooldown?: number
+  /** cash released into the transfer allowance this season (treasury.ts,
+   *  1.6.3): a club may release what it holds, once, so the allowance can
+   *  never be pumped past the money behind it. Reset at the rollover. */
+  releasedThisSeason?: number
+  /** The next player id to mint (1.6.4). The counter used to live in a
+   *  module variable and was rebuilt on load as the highest live id plus one,
+   *  so an id freed by a retirement or a cull could in principle be handed
+   *  to a new player after a reload while a record still pointed at the old
+   *  one. Stamped by newGame and by every week settle; migrate restores it. */
+  pidNext?: number
+  /** Names that have left the world - retirements and the free-agent cull.
+   *  A running game's name registry never gives a name back (nations.ts),
+   *  and a reloaded save must not either: without this list a reload rebuilt
+   *  the registry from the players left and a regen could take a retired
+   *  man's name, which is how a reload changed the rollover
+   *  (scripts/qa/determinism.ts, 1.6.5). */
+  retiredNames?: string[]
+  /** Every name the registry has handed to a generated player (nations.ts),
+   *  so a reload rebuilds the same registry the running game had. */
+  takenNames?: string[]
   /** The board's patience with being asked twice (v1.1.4). One entry per
    *  request door - 'capital' (facilities and the ground, which share their
    *  cooldown) and 'funds' - stamped at each denial. Coming back through a
@@ -1897,6 +1935,19 @@ export function isWorldCupSeason(season: number): boolean {
   return (BASE_YEAR + season) % 4 === 3
 }
 
+/** The women's World Championship runs two years off the men's: 2025 was the
+ *  last one, so 2029, 2033 and 2037 are the next (1.6.4). Computed from the
+ *  real year like the men's, so a change of BASE_YEAR moves the season it
+ *  falls in and never the year. */
+export function isWomensWorldCupSeason(season: number): boolean {
+  return (BASE_YEAR + season) % 4 === 1
+}
+
+/** Whether this career's world plays its World Championship this season. */
+export function worldCupSeasonFor(state: { season: number; gender?: string }): boolean {
+  return state.gender === 'w' ? isWomensWorldCupSeason(state.season) : isWorldCupSeason(state.season)
+}
+
 /**
  * ---- THE BASIS FOR AN ABSOLUTE WEEK ----
  *
@@ -1930,6 +1981,32 @@ export const WEEK_BASIS = 48
 export const absWeek = (season: number, week: number) => season * WEEK_BASIS + week
 
 /**
+ * ---- THE OTHER STAMP: season * 100 + week (1.6.3) ----
+ *
+ * Cooldowns, scouting briefs, building work, staff courses, vows and the
+ * courting clock all stamp `season * 100 + week`. That is fine for "is it the
+ * same week" and "is it later", and wrong for "how many weeks": a brief
+ * commissioned at week 30 for 39 weeks was stamped done at 69, which the next
+ * season reaches at week 2 (101 > 69) - so the scout came home after 20 weeks
+ * (scripts/qa/basis100.ts). A build ordered at week 44 for ten weeks opened
+ * after six for the same reason, and the "I am going nowhere" vow could never
+ * be broken across a summer because 101 - 45 is 56, not 4.
+ *
+ * Rewriting every stamp onto the 48 basis would mean migrating nine fields in
+ * every save for a cosmetic gain, so the stamps stay as they are and the
+ * ARITHMETIC is done in real weeks: add a duration with addWeeks100, measure
+ * one with weeksBetween100. Equality and ordering on raw stamps are still
+ * correct and untouched.
+ */
+export const stamp100 = (state: { season: number; week: number }) => state.season * 100 + state.week
+const real100 = (v: number) => Math.floor(v / 100) * WEEK_BASIS + (((v % 100) + 100) % 100)
+export const weeksBetween100 = (later: number, earlier: number) => real100(later) - real100(earlier)
+export const addWeeks100 = (v: number, weeks: number) => {
+  const r = real100(v) + weeks
+  return Math.floor((r - 1) / WEEK_BASIS) * 100 + (((r - 1) % WEEK_BASIS) + 1)
+}
+
+/**
  * How many weeks a season runs.
  *
  * 45 until v1.5.1, when the tour needed weeks 44 to 48. Nothing domestic moved:
@@ -1960,6 +2037,10 @@ export const LEDGER_WEEKS = 45
 /** Leagues where the bottom club goes down. ONE list: the table's shading,
  *  the new-career media verdict and the pundits' predictions all read it, so
  *  no screen can threaten relegation in a league that has none. */
+// 'prem' left the list in 1.6.3 on the real-world ringfence and came back in
+// 1.6.5 on the owner's decision (runtime brief, section 2): relegation from
+// the English top flight is deliberate game design. The Championship
+// relegates to National One and the French Elite 14 swaps with Elite 2.
 export const RELEGATES = ['prem', 'champ', 'top14']
 
 /** The pyramid by tier: 1 the top flights, 2 the second divisions, 3 National
@@ -2238,7 +2319,9 @@ export function fmtWage(v: number): string {
   // up to 80% each). Hand it to fmtMoney and it reads "£5.4m" like every
   // other large sum. Below a million, thousands are still the right unit for
   // a weekly wage, which is the whole reason this function exists.
-  if (a < 1_000_000) return `${sign}£${Math.round(a / 1_000)}k`
+  // the tier is chosen after rounding, as fmtMoney does: £999,600 is "£1.0m",
+  // not "£1000k" (1.6.3)
+  if (Math.round(a / 1_000) < 1000) return `${sign}£${Math.round(a / 1_000)}k`
   return fmtMoney(v)
 }
 
@@ -2257,6 +2340,8 @@ export function clubCode(short: string): string {
 }
 
 export function fmtMoney(v: number): string {
+  // a figure that is not a figure prints as a dash, never "£NaN" (1.6.3)
+  if (!Number.isFinite(v)) return '-'
   const sign = v < 0 ? '-' : ''
   const a = Math.abs(v)
   const K = 1_000, M = 1_000_000, B = 1_000_000_000

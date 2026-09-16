@@ -2,7 +2,7 @@
 // A living-world feed so there is always something happening between matches.
 
 import type { GameState, Player } from './model'
-import {absWeek, RELEGATES, SEASON_WEEKS, fmtMoney, formGuide, mgrReputation, poss } from './model'
+import {absWeek, RELEGATES, SEASON_WEEKS, fmtMoney, formGuide, mgrReputation, poss, weeksBetween100 } from './model'
 import { sortTable } from './schedule'
 import { clamp, gauss, pick, type Rng } from './rng'
 import { tIn, type Vars } from './i18n'
@@ -415,7 +415,7 @@ function streakWatch(state: GameState, rng: Rng) {
   // legitimate pulse; fresh now only picks the VOICE. The rng draw stays
   // exactly where it was, so the stream is untouched.
   const now = state.season * 100 + state.week
-  const quietFor = (subj: string) => now - (state.pulseAt?.[subj] ?? -99) >= 4
+  const quietFor = (subj: string) => weeksBetween100(now, state.pulseAt?.[subj] ?? -99) >= 4
   const stamp = (subj: string) => { (state.pulseAt ??= {})[subj] = now }
   if (results.every(r => r === 'W')) {
     const fire = rng() < 0.7

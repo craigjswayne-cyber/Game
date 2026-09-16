@@ -42,6 +42,7 @@
 import { newGame, LEAGUE_DEFS } from '../src/game/newgame'
 import { processWeekAndAdvance, userFixtureThisWeek, weekRng } from '../src/game/season'
 import { simMatch } from '../src/game/matchEngine'
+import { isWomensTourSeason } from '../src/game/schedule'
 import { answerPress } from '../src/game/media'
 import { SEASON_WEEKS } from '../src/game/model'
 
@@ -90,7 +91,10 @@ console.log('--- 1. the trophies')
   const leagues = Object.values(g.comps).filter(c => !TOURS.has(c.id))
   for (const c of leagues) {
     const n = crowned.get(c.id) ?? 0
-    ok(n >= SEASONS - 1, `${c.name}: ${n} champions in ${SEASONS} seasons`)
+    // the Southern Four steps aside in a women's tour year (calendar.ts,
+    // 1.6.5): its host is playing the Isles XV those weeks
+    const skipped = c.id === 'w:p4' ? Array.from({ length: SEASONS }, (_, i) => i).filter(i => isWomensTourSeason(i)).length : 0
+    ok(n >= SEASONS - 1 - skipped, `${c.name}: ${n} champions in ${SEASONS} seasons${skipped ? ` (${skipped} tour years stood down)` : ''}`)
   }
   for (const id of TOURS) ok(!crowned.has(id), `${g.comps[id]?.name ?? id} crowns nobody, like the men's tours`)
 }

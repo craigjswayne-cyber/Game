@@ -32,6 +32,18 @@ const server = await startPreview(process.env.SOAK_PORT ?? '4191', 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 // the phone he plays on, in the orientation he plays in
 const page = await browser.newPage({ viewport: { width: 412, height: 915 } })
+// JS heap on the one page the whole run lives on (runtime brief, performance):
+// read through CDP at the start, after every season and at the end, so a leak
+// across a season of matches shows up as a number rather than a feeling.
+const cdp = await page.context().newCDPSession(page)
+await cdp.send('Performance.enable')
+const heapMB = async () => {
+  try {
+    const { metrics } = await cdp.send('Performance.getMetrics')
+    const m = metrics.find(x => x.name === 'JSHeapUsedSize')
+    return m ? (m.value / 1048576).toFixed(1) : '?'
+  } catch { return '?' }
+}
 
 // ---- THE WATCHDOG: A FROZEN PAGE MUST NAME THE LINE IT IS SPINNING ON ----
 //
@@ -281,6 +293,7 @@ try {
 
   const start = await clock()
   console.log(`start: ${start.raw}`)
+  console.log(`  JS heap at start: ${await heapMB()} MB`)
   let seasonsDone = 0
   let pressAnswers = 0   // rotates the press tone deterministically (see below)
   let lastYear = start.seasonYear
@@ -549,7 +562,7 @@ try {
     if (c.week != null && (c.week !== lastWeek || c.seasonYear !== lastYear)) {
       if (c.seasonYear !== lastYear) {
         seasonsPlayed = ++seasonsDone
-        console.log(`  --- season ${seasonsDone} done, now ${c.raw} (${interactions} taps, ${matchesPlayed} matches)`)
+        console.log(`  --- season ${seasonsDone} done, now ${c.raw} (${interactions} taps, ${matchesPlayed} matches), JS heap ${await heapMB()} MB`)
         await shot(`season-${seasonsDone}`)
         // a full sweep of every screen at each season boundary, when the world
         // has history in it and the tables are full
@@ -590,6 +603,7 @@ try {
   }
 
   console.log(`\nplayed ${seasonsDone} season(s): ${interactions} interactions, ${matchesPlayed} matches, ${bulletins} bulletins, ${screenVisits} screen visits, ${reloads} reloads, ${checks} audits`)
+  console.log(`JS heap at the end: ${await heapMB()} MB (${reloads} reloads along the way reset it)`)
   if (seasonsDone < SEASONS) flaw('SHORT', `only reached ${seasonsDone} of ${SEASONS} seasons`, 'main loop')
 
   // ---- the week is supposed to be revealed a day at a time, and this run plays

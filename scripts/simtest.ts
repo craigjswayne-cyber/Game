@@ -23,11 +23,16 @@ import { SEASON_WEEKS } from '../src/game/model'
 const defs = LEAGUE_DEFS()
 const ids = new Set<string>()
 let dup = 0
+// QA-GATE-02 (1.6.5): this file printed BUG and warn lines and always returned 0,
+// so a stolen user fixture or a squad that shrank below a team sheet never
+// failed anything. Every invariant now counts, and the exit code is the count.
+let fails = 0
+const fail = (msg: string) => { fails++; console.error(`FAIL ${msg}`) }
 for (const d of defs) {
   for (const c of d.clubs) {
-    if (ids.has(c.id)) { console.error(`DUPLICATE CLUB ID: ${c.id}`); dup++ }
+    if (ids.has(c.id)) { fail(`DUPLICATE CLUB ID: ${c.id}`); dup++ }
     ids.add(c.id)
-    if (c.players.length < 26) console.warn(`thin squad: ${c.id} has ${c.players.length}`)
+    if (c.players.length < 23) fail(`thin squad: ${c.id} has ${c.players.length} (a club needs a 23)`)
   }
 }
 console.log(`clubs: ${ids.size}, players: ${defs.reduce((s, d) => s + d.clubs.reduce((x, c) => x + c.players.length, 0), 0)}, dup ids: ${dup}`)
@@ -77,7 +82,7 @@ for (let season = 0; season < SEASONS; season++) {
     const stolen = g.fixtures.filter(f =>
       f.week === wk && f.played && !f.events &&
       (f.homeId === g.userClubId || f.awayId === g.userClubId))
-    if (stolen.length) console.error(`BUG: ${stolen.length} user fixture(s) in week ${wk} simmed by the AI path`)
+    if (stolen.length) fail(`${stolen.length} user fixture(s) in week ${wk} simmed by the AI path`)
   }
   console.log(`season rolled to ${g.season}, week ${g.week}; champions so far: ${g.history.map(h => `${h.compId}:${h.champion}`).join(' ')}`)
 }
@@ -99,6 +104,7 @@ console.log(`save size: ${(json.length / 1024).toFixed(0)} KB`)
 // integrity: every club has enough players, every comp has a champion after season end
 for (const club of Object.values(g.clubs)) {
   const n = club.players.length
-  if (n < 22) console.warn(`squad shrank: ${club.id} = ${n}`)
+  if (n < 22) fail(`squad shrank: ${club.id} = ${n}`)
 }
-console.log('SMOKE TEST DONE')
+console.log(fails ? `SMOKE TEST FAILED (${fails})` : 'SMOKE TEST DONE')
+process.exit(fails ? 1 : 0)

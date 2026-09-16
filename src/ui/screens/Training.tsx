@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
-import { STAFF_INFO, fmtMoney, fmtWage, type TrainingFocus } from '../../game/model'
+import { STAFF_INFO, fmtMoney, fmtWage, type TrainingFocus, weeksBetween100 } from '../../game/model'
 import { BADGE_COL, EXAM_PASS_PCT, badgeLabel, traitLabel, appointBlock, appointStaff, courseBlock, courseFee, sackCost, sackStaff, sendToCourse, staffCandidates, staffChemPairs, staffInterest, type StaffRole } from '../../game/staff'
 import { MENTEE_MAX_AGE, MENTOR_MAX_KIDS, canBeMentored, canMentor, fitReason, fitWord, mentorCap, mentorFit } from '../../game/mentoring'
 import { activePlan, planCap } from '../../game/season'
@@ -221,7 +221,7 @@ function StaffPanel() {
           const info = STAFF_INFO[role]
           const p = game.staffPeople?.[role]
           const cands = open === role ? staffCandidates(game, role) : []
-          const weeksLeft = p?.course ? Math.max(1, p.course.done - abs) : 0
+          const weeksLeft = p?.course ? Math.max(1, weeksBetween100(p.course.done, abs)) : 0
           // why the two buttons on this card would refuse, and what the last
           // tap on it said - both belong to the card, not to the page
           const courseNo = p ? courseBlock(game, role) : null
@@ -245,7 +245,7 @@ function StaffPanel() {
                       </div>}
                       {!p.course && (p.retakeAt ?? 0) > abs && (
                         <div className="meta" style={{ fontSize: 11, color: 'var(--danger)' }}>
-                          {t(p.retakeAt! - abs === 1 ? 'training.failedRetakeOne' : 'training.failedRetake', { g: p.g ?? 'm', n: p.retakeAt! - abs })}
+                          {t(weeksBetween100(p.retakeAt!, abs) === 1 ? 'training.failedRetakeOne' : 'training.failedRetake', { g: p.g ?? 'm', n: weeksBetween100(p.retakeAt!, abs) })}
                         </div>
                       )}
                     </>

@@ -22,12 +22,17 @@ for (let season = 0; season < 12; season++) {
     g.clubs[g.userClubId].boardConfidence = Math.max(g.clubs[g.userClubId].boardConfidence, 55)
     // use the manager's levers so the showcase save has a real estate, a
     // badged backroom, a scout's report and an analyst record
+    // and not through a door the board has just closed: coming back after a
+    // denial is a strike, the second is the sack (boardAsks, v1.1.4), and this
+    // builder asked every seven weeks regardless, so the showcase save opened
+    // on a sacking modal and e2edeep could not get past it (1.6.5)
+    const capitalOpen = !(g.boardAsks?.capital?.strikes) && !(g.boardAsks?.capital?.warned)
     if (!g.unemployed) {
-      if (g.week % 7 === 0) {
+      if (g.week % 7 === 0 && capitalOpen) {
         const fids: FacilityId[] = ['pitch', 'gym', 'recovery', 'paddock', 'kicking', 'briefing', 'academy', 'shop']
         requestFacility(g, fids[Math.floor(g.week / 7) % fids.length])
       }
-      if (g.week % 11 === 0) requestExpansion(g)
+      if (g.week % 11 === 0 && capitalOpen) requestExpansion(g)
       const roles: StaffRole[] = ['assistant', 'physio', 'scout', 'attack', 'defence', 'scrumCoach', 'kicking', 'academyCoach']
       const role = roles[g.week % roles.length]
       if (g.week % 5 === 0) sendToCourse(g, role)
@@ -51,6 +56,7 @@ for (let season = 0; season < 12; season++) {
 }
 // land at week 2 of the new season so the Annual card is live on Home
 processWeekAndAdvance(g)
+if (g.unemployed) { console.error('FAIL the showcase manager was sacked; the save is useless for the walkthrough'); process.exit(1) }
 console.log(`deep save: season ${g.season} week ${g.week} · annals ${(g.annals ?? []).length} · potyRoll ${(g.potyRoll ?? []).length} · hof ${(g.hof ?? []).length}`)
 const uc = g.clubs[g.userClubId]
 const estate = Object.values(uc.facilities ?? {}).reduce((a, b) => a + b, 0)

@@ -1,128 +1,27 @@
 import type { Competition, Fixture, GameState, TableRow } from './model'
-import { W, type Gender } from './gender'
-import {absWeek, BASE_YEAR } from './model'
+import { W, genderOf, type Gender } from './gender'
+import {absWeek, BASE_YEAR, worldCupSeasonFor } from './model'
+import {
+  AUTUMN_WEEKS, CC_KO_WEEKS, CC_POOL_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, SUMMER_TEST_WEEKS, TOUR_WEEKS, TRC_WEEKS,
+  WC_KO_WEEKS, WC_POOL_WEEKS, W_AUTUMN_WEEKS, W_CC_KO_WEEKS, W_CC_POOL_WEEKS, W_PAC4_WEEKS, W_SIX_NATIONS_WEEKS,
+  W_SUMMER_TEST_WEEKS, W_WC_KO_WEEKS, W_WC_POOL_WEEKS, leagueWeeksFor, playoffWeeksFor, preseasonWeeksFor,
+} from './calendar'
 import { shuffled, type Rng } from './rng'
 import { seedNatRank } from './natrank'
 import { nationNameIn, nationVars } from './nations'
 
 const ordinalWord = (n: number) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' : n % 10 === 1 ? 'st' : n % 10 === 2 ? 'nd' : n % 10 === 3 ? 'rd' : 'th'}`
 
-// ---- Season calendar (week indices 1..45) ----
-// Week N's date is its Saturday, anchored to 16 August: week 34 is early
-// April, 38 early May, 41 the end of May, 43 the first Saturday of June.
-// The European rounds moved to match the real rhythm (user: "European qtr
-// finals are usually early april. Semis early may and final end of may.
-// The final of the premiership is usually in june"): the quarters land the
-// week after the pools close, the league plays on between the knockout
-// rounds the way the Premier Division does, and the showpieces stack up in
-// May and June.
-// 1-3    PRE-SEASON friendlies (cross-league, every club)
-// 4-17   league rounds (autumn tests overlay weeks 13-15)
-// 18,19  Continental Cup pool 1-2 (leagues pause)
-// 20,21  league
-// 22,23  Continental Cup pool 3-4
-// 24-31  league (Northern Championship overlay 25-29)
-// 32,33  Continental Cup pool 5-6
-// 34     CC quarter-finals (early April)
-// 35-37  league
-// 38     CC semi-finals (early May)
-// 39     league
-// 40     league playoff round 1 (QF / barrage)
-// 41     CC FINAL (end of May)
-// 42     league semi-finals
-// 43     league FINALS (June)
-// 44-45  end of season processing
-
-export const PRESEASON_WEEKS = [1, 2, 3]
-export const LEAGUE_WEEKS = [
-  4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
-  20, 21, 24, 25, 26, 27, 28, 29, 30, 31, 35, 36, 37, 39,
-]
-export const CC_POOL_WEEKS = [18, 19, 22, 23, 32, 33]
-export const CC_KO_WEEKS = [34, 38, 41]
-
-/**
- * ---- AND THE WOMEN'S CUP, WHICH CANNOT USE THOSE WEEKS ----
- *
- * The men's Continental Cup plays its last two pool rounds in weeks 32 and 33
- * and its knockouts in 34, 38 and 41. Every one of those is an international
- * week in the WOMEN'S calendar: the Northern Championship takes 32, 33, 34, 36
- * and 38, and the Southern Four takes 40, 41 and 42. Reusing the men's weeks
- * would have put a continental quarter-final on the same Saturday as a Test.
- *
- * So the women's cup has its own calendar, and these are the weeks their top
- * four leagues are genuinely idle - checked against a built season rather than
- * chosen by eye. Weeks 28, 31 and 37 carry Championship fixtures and nothing
- * else, and the Championship is a second tier which this cup does not include
- * (owner: "celtic sides in but no second tiers"), so its clubs are free.
- *
- * The whole competition therefore runs from week 8 to a final in week 37 -
- * inside the domestic season, out of every international window, and finishing
- * before the last league round rather than after it.
- */
-export const W_CC_POOL_WEEKS = [8, 11, 18, 19, 22, 23]
-/**
- * CLEAR OF THE TEST WINDOW, WHICH THE FIRST CUT WAS NOT.
- *
- * activeWindows (season.ts) opens the women's Six Nations window at
- * W_SIX_NATIONS_WEEKS[0] - 1 and closes it on the last round, so internationals
- * are away from week 31 to week 38 inclusive. The knockouts were 28, 31 and 37:
- * the semi-final landed on the day the window opened and the FINAL sat dead
- * centre of it, between rounds four and five. A manager who had earned a final
- * played it without the players who earned it.
- *
- * Weeks 24 to 30 are empty in the women's calendar - the pool ends at 23 and
- * nothing else is scheduled before the Six Nations - so the three rounds fit
- * whole, three weeks apart, with the trophy lifted the week before the Test
- * squads are named.
- */
-export const W_CC_KO_WEEKS = [24, 27, 30]
-export const AUTUMN_WEEKS = [13, 14, 15]
-export const SIX_NATIONS_WEEKS = [25, 26, 27, 28, 29]
-export const TRC_WEEKS = [5, 6, 7, 9, 10, 11]
-export const PNC_WEEKS = [5, 6, 7, 9, 10]
-
-/**
- * ---- THE WOMEN'S TEST CALENDAR ----
- *
- * Not the men's windows, because the women's game does not play in them. The
- * Women's Six Nations runs from late March into April, where the men's is
- * February and early March, and the Pacific Four Series is a May-into-June
- * competition with no men's equivalent at all - it is not the Southern
- * Championship with different names on it.
- *
- * Against a season that opens mid-August, that puts the Championship around
- * weeks 32 to 38 and the Pacific Four in the low forties, after the last league
- * round in week 39. Two consequences that are the point rather than an
- * accident: a women's manager loses players to a Test window at a different
- * time of year from a men's one, and the Pacific Four sits in a fortnight when
- * no club rugby is being played at all, which is exactly where the real one is.
- */
-export const W_SIX_NATIONS_WEEKS = [32, 33, 34, 36, 38]
-export const W_PAC4_WEEKS = [40, 41, 42]
-/**
- * THREE WINDOWS, NOT ONE.
- *
- * The women's calendar had the Northern Championship and the Southern Four and
- * nothing else, both of them after the turn of the year. Take a women's
- * international job in September and there was no Test to coach until week 32:
- * four months of a job with no fixtures in it, which is not a job.
- *
- * The men's year has three windows - autumn 13-15, Six Nations 25-29, summer
- * 44-45 - and the women's now has the same shape on its own dates. The autumn
- * sits in the same weeks as the men's, which are empty in the women's calendar
- * (the cup pool takes 11 and then 18). The summer takes the men's weeks too,
- * after the Southern Four has finished at 42.
- *
- * The opposition is the non-Six-Nations sides, as the owner asked: the four of
- * the Southern Four plus Japan and South Africa, both of them real women's Test
- * nations and both already in NAT_TIERS. Adding them to a fixture is what makes
- * them exist in a women's world at all - pickableNations reads the live
- * competitions - so the women's international game goes from ten nations to
- * twelve, and a manager has twelve countries to be offered rather than ten.
- */
-export const W_AUTUMN_WEEKS = [13, 14, 15]
-export const W_SUMMER_TEST_WEEKS = [44, 45]
+// ---- Season calendar ----
+// Every week number lives in calendar.ts (1.6.5): both worlds, every season
+// type, and the invariant a built season has to pass. The names below are
+// re-exported so nothing that imported them from here has to move.
+export {
+  PRESEASON_WEEKS, LEAGUE_WEEKS, CC_POOL_WEEKS, CC_KO_WEEKS, AUTUMN_WEEKS, SIX_NATIONS_WEEKS,
+  TRC_WEEKS, PNC_WEEKS, WC_POOL_WEEKS, WC_KO_WEEKS, SUMMER_TEST_WEEKS, TOUR_WEEKS,
+  W_PRESEASON_WEEKS, W_LEAGUE_WEEKS, W_CC_POOL_WEEKS, W_CC_KO_WEEKS, W_AUTUMN_WEEKS, W_SIX_NATIONS_WEEKS,
+  W_SUMMER_TEST_WEEKS, W_PAC4_WEEKS, W_WC_POOL_WEEKS, W_WC_KO_WEEKS,
+} from './calendar'
 /** The six who play the Northern Championship, and the six who do not. */
 export const W_NORTH = ['ENG', 'FRA', 'IRE', 'ITA', 'SCO', 'WAL']
 export const W_SOUTH = ['NZL', 'AUS', 'CAN', 'USA', 'JPN', 'RSA']
@@ -140,7 +39,16 @@ export function roundRobin(teams: string[], rng: Rng, double: boolean): [string,
     for (let i = 0; i < m / 2; i++) {
       const a = list[i]
       const b = list[m - 1 - i]
-      if (a && b) round.push(r % 2 === 0 ? [a, b] : [b, a])
+      // VENUES BALANCE (1.6.3). Flipping every pair on the round's parity
+      // left four URC clubs with six home games and nine away in a single
+      // round robin (scripts/qa/urcsplit.ts). The fixed team at index 0
+      // alternates by round; every other pair alternates by its own index,
+      // which the circle rotation turns into an even split: spread of one
+      // home game for every even field size, two for an odd one.
+      if (a && b) {
+        const flip = i === 0 ? r % 2 === 1 : i % 2 === 1
+        round.push(flip ? [b, a] : [a, b])
+      }
     }
     rounds.push(round)
     // rotate (keep first fixed)
@@ -164,12 +72,63 @@ export interface LeagueSpec {
   teams: string[]
   double: boolean
   playoffTeams: number // 4, 6, or 8
+  /** Regional shields (1.6.4): groups of four that play each other home and
+   *  away, with everyone else met once. The real United Rugby Championship
+   *  format: 18 rounds, nine at home, six of them derbies. When set, `double`
+   *  is ignored. */
+  shields?: string[][]
 }
 
-/** Evenly spread `count` rounds across the available league weeks. */
-function allocWeeks(count: number): number[] {
-  const avail = LEAGUE_WEEKS
-  if (count >= avail.length) return avail.slice(0, count)
+/**
+ * ---- THE SHIELD FORMAT (1.6.4) ----
+ *
+ * Four groups of four. Inside a group everyone plays home and away (six
+ * rounds, two fixtures a round per group, all four groups at once); across
+ * groups everyone meets once, three phases of four rounds pairing the groups
+ * off two at a time. Eighteen rounds, eighteen games each, nine at home.
+ *
+ * Venues are balanced by construction rather than by luck: in a cross-group
+ * round team i of one group meets team (i + r) mod 4 of the other and hosts
+ * when i + j is even, which gives every team two home and two away games per
+ * phase; the shield legs mirror each other. The derby legs open and close the
+ * season, which is roughly where the real competition puts them.
+ */
+export function shieldRoundRobin(shields: string[][], rng: Rng): [string, string][][] {
+  const groups = shields.map(s => shuffled(rng, s))
+  const shieldLegs = groups.map(g => roundRobin(g, rng, false)) // 3 rounds each
+  const legRounds = (mirror: boolean): [string, string][][] => {
+    const out: [string, string][][] = []
+    for (let r = 0; r < 3; r++) {
+      const round: [string, string][] = []
+      for (const legs of shieldLegs) for (const [h, a] of legs[r]) round.push(mirror ? [a, h] : [h, a])
+      out.push(round)
+    }
+    return out
+  }
+  const phases: [number, number][][] = [[[0, 1], [2, 3]], [[0, 2], [1, 3]], [[0, 3], [1, 2]]]
+  const cross: [string, string][][] = []
+  for (const phase of phases) {
+    for (let r = 0; r < 4; r++) {
+      const round: [string, string][] = []
+      for (const [x, y] of phase) {
+        for (let i = 0; i < 4; i++) {
+          const j = (i + r) % 4
+          const a = groups[x][i], b = groups[y][j]
+          round.push((i + j) % 2 === 0 ? [a, b] : [b, a])
+        }
+      }
+      cross.push(round)
+    }
+  }
+  return [...legRounds(false), ...cross.slice(0, 8), ...cross.slice(8), ...legRounds(true)]
+}
+
+/** Evenly spread `count` rounds across the league's weeks (calendar.ts). A
+ *  league with more rounds than weeks is a calendar error, not a wrap: this
+ *  used to hand out `undefined` weeks past the end of the list. */
+function allocWeeks(count: number, avail: readonly number[]): number[] {
+  if (count > avail.length) throw new Error(`calendar: ${count} rounds do not fit ${avail.length} league weeks`)
+  if (count === avail.length) return [...avail]
   const out: number[] = []
   for (let i = 0; i < count; i++) {
     out.push(avail[Math.round((i * (avail.length - 1)) / (count - 1))])
@@ -178,8 +137,8 @@ function allocWeeks(count: number): number[] {
 }
 
 export function buildLeague(spec: LeagueSpec, rng: Rng, state: GameState): Competition {
-  const rounds = roundRobin(spec.teams, rng, spec.double)
-  const weeks = allocWeeks(rounds.length)
+  const rounds = spec.shields ? shieldRoundRobin(spec.shields, rng) : roundRobin(spec.teams, rng, spec.double)
+  const weeks = allocWeeks(rounds.length, leagueWeeksFor(genderOf(state), worldCupSeasonFor(state), spec.id))
   const comp: Competition = {
     id: spec.id,
     name: spec.name,
@@ -190,7 +149,7 @@ export function buildLeague(spec: LeagueSpec, rng: Rng, state: GameState): Compe
     rounds: rounds.length,
     playoffTeams: spec.playoffTeams,
     weeksByRound: weeks,
-    koWeeks: spec.playoffTeams > 4 ? [40, 42, 43] : [42, 43],
+    koWeeks: playoffWeeksFor(spec.playoffTeams, spec.id),
   }
   rounds.forEach((pairs, r) => {
     for (const [h, a] of pairs) {
@@ -222,7 +181,8 @@ export function schedulePreseason(state: GameState, rng: Rng) {
   }
   const user = state.clubs[state.userClubId]
   const usedByUser = new Set<string>()
-  for (const week of PRESEASON_WEEKS) {
+  const preWeeks = preseasonWeeksFor(genderOf(state))
+  for (const week of preWeeks) {
     const used = new Set<string>([state.userClubId])
     // The user's opponent: another league, never his own, and DRAWN rather than
     // computed. The old pick was the single closest club by reputation, which
@@ -247,7 +207,7 @@ export function schedulePreseason(state: GameState, rng: Rng) {
       if (opp) {
         usedByUser.add(opp.id)
         used.add(opp.id)
-        if (week === PRESEASON_WEEKS[1]) mkFr(week, opp.id, user.id)
+        if (week === preWeeks[1]) mkFr(week, opp.id, user.id)
         else mkFr(week, user.id, opp.id)
       }
     }
@@ -342,7 +302,6 @@ export function buildChampionsCup(clubIds: string[], rng: Rng, state: GameState,
 // season grew from 45 weeks to 48 to hold it, and nothing domestic moved: the
 // club finals still end at week 43, so the party leaves after the season rather
 // than across it, which is where a real tour goes.
-export const TOUR_WEEKS = [44, 45, 46, 47, 48]
 /** Midweek provincial games before the Test series - seven, then three Tests. */
 /**
  * THE ORDINARY SUMMER IS STILL TWO TESTS, and it needs its own weeks.
@@ -359,27 +318,36 @@ export const TOUR_WEEKS = [44, 45, 46, 47, 48]
  * about a fixture list - because a constant two things share is a constant one
  * of them will eventually be wrong about.
  */
-export const SUMMER_TEST_WEEKS = [44, 45]
 
 export const TOUR_PROVINCIAL = 7
 export const TEST_NAMES = ['1st Test', '2nd Test', '3rd Test'] as const
-export const WC_POOL_WEEKS = [5, 6, 7, 8, 9]
-export const WC_KO_WEEKS = [10, 11, 12]
 
 /** World Championship: 20 nations, 4 pools of 5, then QF/SF/Final. */
-function buildWorldCup(rng: Rng, state: GameState) {
-  const nations = [
-    'RSA', 'NZL', 'IRE', 'FRA', 'ENG', 'ARG', 'SCO', 'AUS', 'FIJ', 'ITA',
-    'WAL', 'GEO', 'JPN', 'SAM', 'TGA', 'USA', 'URU', 'POR', 'ESP', 'CHL',
-  ]
+/** The women's tournament (1.6.4): sixteen nations, four pools of four, played
+ *  in August and September as the real one is (weeks 1 to 6, calendar.ts).
+ *  The 2025 field, which is the best guess anyone has for 2029 until
+ *  qualifying settles it. */
+const W_WC_NATIONS = [
+  'ENG', 'NZL', 'CAN', 'FRA', 'IRE', 'AUS', 'SCO', 'ITA',
+  'USA', 'WAL', 'JPN', 'RSA', 'ESP', 'FIJ', 'SAM', 'POR',
+]
+const M_WC_NATIONS = [
+  'RSA', 'NZL', 'IRE', 'FRA', 'ENG', 'ARG', 'SCO', 'AUS', 'FIJ', 'ITA',
+  'WAL', 'GEO', 'JPN', 'SAM', 'TGA', 'USA', 'URU', 'POR', 'ESP', 'CHL',
+]
+
+function buildWorldCup(rng: Rng, state: GameState, women = false) {
+  const nations = women ? W_WC_NATIONS : M_WC_NATIONS
+  const poolWeeks = women ? W_WC_POOL_WEEKS : WC_POOL_WEEKS
+  const koWeeks = women ? W_WC_KO_WEEKS : WC_KO_WEEKS
   // the draw is seeded from the live world rankings: four years of Test
   // results decide who gets the kind pool and who gets the group of death
   seedNatRank(state)
   const seeded = [...nations].sort((a, b) => (state.natRank![b] ?? 0) - (state.natRank![a] ?? 0))
   const comp: Competition = {
     id: 'wc', name: 'World Championship', short: 'Worlds', type: 'intl',
-    teamIds: nations, table: nations.map(emptyRow), rounds: 5, playoffTeams: 8,
-    weeksByRound: WC_POOL_WEEKS, koWeeks: WC_KO_WEEKS, isNational: true,
+    teamIds: nations, table: nations.map(emptyRow), rounds: poolWeeks.length, playoffTeams: 8,
+    weeksByRound: poolWeeks, koWeeks, isNational: true,
     seeds: seeded,
   }
   // seeded pools: snake the top seeds so pools are balanced
@@ -400,9 +368,9 @@ function buildWorldCup(rng: Rng, state: GameState) {
     body: [
       `The World Championship pools are set, seeded from the world rankings. Top seeds: ${top4.join(', ')}.`,
       userSeed > 0 ? `${nationNameIn('en', state.natTeam!)} go in as the ${ordinalWord(userSeed)} seed - anything short of ${userSeed <= 4 ? 'the semi-finals will be a failure' : userSeed <= 8 ? 'the quarter-finals will raise questions' : 'the knockouts would still be par'}.`
-        : `Four pools, five nations each, and somewhere in there a group of death.`,
+        : women ? `Four pools, four nations each, and somewhere in there a group of death.` : `Four pools, five nations each, and somewhere in there a group of death.`,
     ].join('\n'),
-    k: userSeed > 0 ? 'news.wcDrawSeeded' : 'news.wcDraw',
+    k: userSeed > 0 ? 'news.wcDrawSeeded' : women ? 'news.wcDrawW' : 'news.wcDraw',
     v: {
       top_l, ...nationVars(state.natTeam ?? ''),
       seed_o: userSeed,
@@ -414,7 +382,7 @@ function buildWorldCup(rng: Rng, state: GameState) {
     rounds.forEach((pairs, r) => {
       for (const [h, a] of pairs) {
         state.fixtures.push({
-          id: state.nextId++, compId: 'wc', round: r, week: WC_POOL_WEEKS[r],
+          id: state.nextId++, compId: 'wc', round: r, week: poolWeeks[r],
           homeId: h, awayId: a, played: false,
           homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
         })
@@ -727,7 +695,11 @@ export function buildWomensContinentalCup(rng: Rng, state: GameState): Competiti
     W_CC_POOL_WEEKS, W_CC_KO_WEEKS)
 }
 
-export function buildWomensInternationals(rng: Rng, state: GameState) {
+export function buildWomensInternationals(rng: Rng, state: GameState, worldCup = false) {
+  // a World Championship year (1.6.4: 2029, 2033, ...) opens with the
+  // tournament and drops the autumn and summer Tests around it, as the men's
+  // calendar does; the Northern Championship and the Southern Four still run
+  if (worldCup) buildWorldCup(rng, state, true)
   if (isWomensTourSeason(state.season)) buildWomensTour(state)
   const sn = ['ENG', 'FRA', 'IRE', 'ITA', 'SCO', 'WAL']
   const snComp: Competition = {
@@ -747,22 +719,12 @@ export function buildWomensInternationals(rng: Rng, state: GameState) {
   state.comps[W + 'sn'] = snComp
 
   // Four teams, played once each: three rounds, not the men's home-and-away six.
-  const p4 = ['NZL', 'CAN', 'USA', 'AUS']
-  const p4Comp: Competition = {
-    id: W + 'p4', name: 'Southern Four Series', short: 'Southern Four', type: 'intl',
-    teamIds: p4, table: p4.map(emptyRow), rounds: 3, playoffTeams: 0,
-    weeksByRound: W_PAC4_WEEKS, koWeeks: [], isNational: true,
-  }
-  roundRobin(p4, rng, false).forEach((pairs, r) => {
-    for (const [h, a] of pairs) {
-      state.fixtures.push({
-        id: state.nextId++, compId: W + 'p4', round: r, week: W_PAC4_WEEKS[r],
-        homeId: h, awayId: a, played: false,
-        homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
-      })
-    }
-  })
-  state.comps[W + 'p4'] = p4Comp
+  // Played after the domestic finals (calendar.ts, 1.6.5: it sat on the league
+  // playoffs, and the Pacific clubs' semi-finals lost every New Zealander and
+  // Australian to camp). Not in a tour year: the host is playing the Isles XV
+  // those same weeks, and a nation plays one Test a week.
+  if (!isWomensTourSeason(state.season)) buildPacFour(rng, state)
+  if (worldCup) return
 
   // ---- the autumn: the six at home to the six who are not in it ----
   const autComp: Competition = {
@@ -803,9 +765,31 @@ export function buildWomensInternationals(rng: Rng, state: GameState) {
   state.comps[W + 'sum'] = sumComp
 }
 
+function buildPacFour(rng: Rng, state: GameState) {
+  const p4 = ['NZL', 'CAN', 'USA', 'AUS']
+  const p4Comp: Competition = {
+    id: W + 'p4', name: 'Southern Four Series', short: 'Southern Four', type: 'intl',
+    teamIds: p4, table: p4.map(emptyRow), rounds: 3, playoffTeams: 0,
+    weeksByRound: W_PAC4_WEEKS, koWeeks: [], isNational: true,
+  }
+  roundRobin(p4, rng, false).forEach((pairs, r) => {
+    for (const [h, a] of pairs) {
+      state.fixtures.push({
+        id: state.nextId++, compId: W + 'p4', round: r, week: W_PAC4_WEEKS[r],
+        homeId: h, awayId: a, played: false,
+        homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
+      })
+    }
+  })
+  state.comps[W + 'p4'] = p4Comp
+}
+
 export function sortTable(table: TableRow[]): TableRow[] {
+  // Wins before points difference (1.6.3): the Premiership, the URC and the
+  // Pacific competitions all separate level clubs on matches won first, and
+  // the table ranked a side with a better difference above one with more wins.
   return [...table].sort((a, b) =>
-    b.pts - a.pts || (b.pf - b.pa) - (a.pf - a.pa) || b.tf - a.tf || b.pf - a.pf)
+    b.pts - a.pts || b.w - a.w || (b.pf - b.pa) - (a.pf - a.pa) || b.tf - a.tf || b.pf - a.pf)
 }
 
 /**
