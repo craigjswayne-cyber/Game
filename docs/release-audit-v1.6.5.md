@@ -2,7 +2,7 @@
 
 Target 1.6.5, Play version code 34, branch `claude/rugby-manager-final-qa-8hbhrl`.
 Brief: "PHASE Final QA Fix & Runtime Brief" (owner, 16 September 2026).
-Tested commit: aceb07f. Node v22.22.2. Every result below is from a run on this tree; anything not run is listed in section 9 as NOT EXECUTED.
+Tested commit: aceb07f for the release matrix; the owner's follow-up work (section 9, last six rows) is on the commits after it, with a closing full-suite run recorded in the last row. Node v22.22.2. Every result below is from a run on this tree; anything not run is listed in section 9 as NOT EXECUTED.
 
 ## 1. Verdict
 
@@ -17,7 +17,7 @@ Tested commit: aceb07f. Node v22.22.2. Every result below is from a run on this 
 | Data integrity | 9 | Every real player and club placement verified against a source (about 80 men and 26 women were) |
 | Save integrity | 9 | A corpus of saves from every shipped version loaded and settled through a season |
 | Long-term stability | 9 | The 50-season soaks (`soakhealth`, `stresstest`), not run in this session |
-| UI/UX | 9 | Finances is 2.3 screenfuls and the game plan 2.6 at the audit's phone viewport (were 3.3 and 3.0); a device run is what is left |
+| UI/UX | 9 | Finances is 2.5 screenfuls and the game plan 2.6 at the audit's phone viewport (were 3.3 and 3.0); a device run is what is left |
 | Performance | 9 | Measured rather than assumed: the per-line resume write is the 0.1 KB small record at 0.01 ms (the 7 MB pre-match state is written once at kick-off); a fifteen-season save is 9.1 MB, 84% of it the 7,400 players (career rows 1.4 MB, attributes 1.1 MB, stats 1.0 MB), which is the world, not waste. What is left is a save format that drops finished seasons' career rows |
 | Rugby authenticity | 9 | The owner's decision on the 20-minute red card (RED-CARD-01) and the men's World Cup overlay |
 | Content and data accuracy | 8 | Full-roster verification; ages for the women's Élite 1 and Pacific rows are inferred |
@@ -93,7 +93,7 @@ The men's World Championship (brief section 4) is internally coherent and is now
 
 Completed in 1.6.5: (1) one calendar with a hard invariant, both worlds, every season type; (2) women's leagues pause for Tests and the World Championship; (3) summer camps after the finals; (4) relegation playoff on finals day; (5) seven browser gates and simtest fail on failure, suite prints `SUITE-SUMMARY`; (6) list fields healed on load; (7) transfer destination validated first; (8) Isles ownership on `islesCoach`; (9) academy appearances kept apart; (10) cap floor on seniors, loanees excluded, reload keeps academy wages and the name registry, the rollover's scholars on development deals, duplicate shirts emptied, the development friendly fields the academy.
 
-Done since the first draft, on the owner's instructions of 16 September: (1) the men's World Cup overlay decided and its condition stated in the gate; (2) the permanent red card decided; (4) finances and the game plan brought under three screenfuls; (5) the resume write measured and found already small; (8) the soaks run once; (9) the fuzzer written and one gate fixed. Remaining: (3) the real-device run, which is the owner's after the Play upload; (6) Super Rugby Pacific and Champions Cup real formats, left as instructed; (7) the full-roster fact check; (10) the 65 unused exports, a maintenance question each.
+Done since the first draft, on the owner's instructions of 16 September: (1) the men's World Cup overlay decided and its condition stated in the gate; (2) the permanent red card decided; (4) finances and the game plan brought under three screenfuls (2.5 and 2.6); (5) the resume write measured and found already small; (8) the soaks run once; (9) the fuzzer written and one gate fixed. Remaining: (3) the real-device run, which is the owner's after the Play upload; (6) Super Rugby Pacific and Champions Cup real formats, left as instructed; (7) the full-roster fact check; (10) the 65 unused exports, a maintenance question each.
 
 ## 9. What was executed, and what was not
 
@@ -118,8 +118,9 @@ Commands, on commit aceb07f, Node v22.22.2:
 | Long soaks (the owner's follow-up) | `scripts/soakhealth.ts` (20 seasons), `scripts/stresstest.ts`, `scripts/dialweight.ts` | soakhealth: 20 seasons, 9.98 MB save, 7,428 players, natrank spread 32, prose sweep 0 violations, one WARN that its own scripted manager never finished a facility; stresstest PASS; dialweight PASS, every dial earns its place at two squad shapes | 1 min, 7 s, 10 min 28 s |
 | Out-of-order action fuzzer | `scripts/qa2/fuzz.ts 1500 {1..6}` | PASS on every seed after TREASURY-02; every run ends with the manager sacked inside the season, which is what releasing and signing at random does to a board | 2 to 5 s each |
 | Save composition | `scripts/qa2/savesize.ts 15` | 9.09 MB: players 84%, then the two name lists at 5% and 4% (the taken-names list is now pruned at the rollover), fixtures 2%, news 1% | 1 min |
-| Page depth after the density work | `scripts/qa2/measure.mjs`, `scripts/scrollaudit.mjs` | finances 3.30 to 2.29 screenfuls, game plan 3.04 to 2.56; the audit passes with no exemption | |
-| The affected probes and every browser harness again on the density build | see the run log | {{VERIFY}} | |
+| Page depth after the density work | `scripts/qa2/measure.mjs`, `scripts/scrollaudit.mjs` | finances 3.30 to 2.48 screenfuls, game plan 3.04 to 2.56; the audit passes with no exemption | |
+| Closing full suite on the final tree | `./scripts/suite.sh` | {{FINAL}} | {{FINAL_T}} |
+| The affected probes and every browser harness again on the density build | `calinvariant`, `econprobe`, `i18nprobe`, `newsprobe`, `textlint`, `p1_treasury`, `determinism` both modes; then the 57 browser harnesses | Engine probes all PASS, determinism identical over 60 weeks in both modes. Browser: 54 of 57 first time; the three failures were the density change itself (the e2e walk expected the counter plan on the Game Plan tab, and the inline ledger toggle was 19px tall against the 44px tap floor in `tapsize` and `geosweep`), fixed and re-passed with `scrollaudit` and `e2edeep` | about 30 min |
 
 Not executed:
 
