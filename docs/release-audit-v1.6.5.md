@@ -1,6 +1,6 @@
 # PHASE: Rugby Manager, Final QA Fix and Runtime Release Report (v1.6.5)
 
-Target 1.6.5, Play version code 34, branch `claude/rugby-manager-final-qa-8hbhrl`.
+Target 1.6.5, Play version code 35, branch `claude/rugby-manager-final-qa-8hbhrl`.
 Brief: "PHASE Final QA Fix & Runtime Brief" (owner, 16 September 2026).
 Tested commit: aceb07f for the release matrix; the owner's follow-up work (section 9, last six rows) is on the commits after it, with a closing full-suite run recorded in the last row. Node v22.22.2. Every result below is from a run on this tree; anything not run is listed in section 9 as NOT EXECUTED.
 
