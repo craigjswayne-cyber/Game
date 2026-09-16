@@ -1705,6 +1705,11 @@
   "treasurySlide": "移籍予算へ移す",
   "treasuryMove": "{amount}を移す ▸",
   "treasuryEmpty": "銀行に{step}未満しかない——動かせる金がない。",
+  "showLedgerLines": "内訳を表示",
+  "hideLedgerLines": "内訳を隠す",
+  "showAllEarners": "{n}人全員を表示",
+  "showFewerEarners": "上位5人を表示",
+  "treasuryBadAmount": "それは財務が動かせる金額ではありません。",
   "treasuryMovedDeep": "{step}を移した。残高{balance}、移籍予算{budget}。給与の予備費に手をつけたことは、理事会が記録している。",
   "treasurySafe": "このうち{safe}は余剰資金だ。それを超えると給与の予備費に手をつけることになり、理事会は目ざとく気づく。",
   "treasuryDeep": "⚠ このうち{under}は給与の予備費——クラブを日々回している金だ。理事会は良い顔をしない。"

@@ -29,7 +29,9 @@ for (const [club, seed, name] of [['northampton', 222, 'Bob'], ['toulouse', 333,
   }
 }
 
-// putResume cost on a realistic save: JSON round trip of the whole record per noteProgress()
+// putResume cost: since 1.6.3 the pre-match state is written once at kick-off and
+// every later write is the SMALL record (no `pre`); this measures both so the
+// report quotes the write a revealed line actually costs
 {
   const G = newGame('northampton', 'Cost', 4242)
   for (let s = 0; s < 3; s++) while (G.season === s) processWeekAndAdvance(G)
@@ -39,5 +41,10 @@ for (const [club, seed, name] of [['northampton', 222, 'Bob'], ['toulouse', 333,
   const per = (performance.now() - t0) / n
   const t1 = performance.now(); for (let i = 0; i < n; i++) structuredClone(JSON.parse(JSON.stringify(rec2)))
   const per2 = (performance.now() - t1) / n
-  console.log(`putResume cost on a 3-season save (${(JSON.stringify(rec2).length / 1048576).toFixed(2)} MB): JSON round trip ${per.toFixed(0)} ms, + structuredClone (what IDB put does) ${per2.toFixed(0)} ms per call - called once per revealed commentary line and once per tick`)
+  console.log(`putResume cost of the FULL record (${(JSON.stringify(rec2).length / 1048576).toFixed(2)} MB, written once at kick-off): JSON round trip ${per.toFixed(0)} ms, + structuredClone ${per2.toFixed(0)} ms`)
+  {
+    const { pre: _pre, ...small } = rec2 as unknown as Record<string, unknown>
+    const t2 = performance.now(); for (let i = 0; i < 200; i++) structuredClone(JSON.parse(JSON.stringify(small)))
+    console.log(`putResume cost of the SMALL record (${(JSON.stringify(small).length / 1024).toFixed(1)} KB, written per revealed line and per tick): ${((performance.now() - t2) / 200).toFixed(2)} ms per call`)
+  }
 }

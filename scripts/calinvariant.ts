@@ -8,7 +8,7 @@
  */
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
-import { validateCalendar, type CalWorld } from '../src/game/calendar'
+import { validateCalendar, windowSpan, type CalWorld } from '../src/game/calendar'
 import { nationByCode } from '../src/game/nations'
 import { genderOf } from '../src/game/gender'
 import { SEASON_WEEKS } from '../src/game/model'
@@ -51,6 +51,15 @@ function season(club: string, gender: 'm' | 'w', target: number, seed: number, l
     koPlayed = Math.max(koPlayed, g.fixtures.filter(f => f.compId === 'wc' && !!f.stage && f.played).length)
   }
   ok(bad.length === 0, `${label} seed ${seed}: the calendar holds every rule (${bad.length} violations)`)
+  // the owner's condition on the men's overlay (16 Sep 2026): the leagues may
+  // play through the World Championship, but no semi-final or final of any
+  // club competition may sit against it - stated by name, not only by rule 3
+  if (g.comps['wc']) {
+    const span = windowSpan('wc', genderOf(g))!
+    const late = g.fixtures.filter(f => f.stage && g.comps[f.compId]?.type !== 'intl' && f.week >= span[0] && f.week <= span[1])
+    const earliestKo = Math.min(...Object.values(g.comps).filter(c => c.type !== 'intl').flatMap(c => c.koWeeks ?? [99]))
+    ok(late.length === 0 && earliestKo > span[1], `${label} seed ${seed}: no club semi-final or final sits against the World Championship (weeks ${span[0]}-${span[1]}; earliest knockout week ${earliestKo})`)
+  }
   for (const b of bad.slice(0, 12)) console.log(`        ${b}`)
   // a World Championship, when there is one, is a complete tournament
   const hist = g.history.filter(h => h.season === startSeason && h.compId === 'wc')

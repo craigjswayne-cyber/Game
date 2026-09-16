@@ -2725,6 +2725,9 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       const ps = ids.map(id => state.players[id]).filter(Boolean)
       if (ps.length) {
         const p = wpick(rng, ps, ps.map(x => x.a.agg))
+        // A RED CARD IS FOR THE MATCH (owner, 16 Sep 2026): the elite game is
+        // trialling a twenty-minute replacement, and this engine keeps the
+        // permanent sending-off by decision, not by omission (RED-CARD-01).
         if (rng() < 0.06) {
           side.sent += 1
           side.onPitch.delete(p.id)

@@ -158,13 +158,13 @@ try {
   // game plan (3.04) are the two known deep pages, carried as design debt;
   // any OTHER fixed page reaching three screenfuls, or either of those
   // reaching four, fails the audit.
-  const KNOWN_DEEP = new Set(['finances', 'tactics: game plan'])
-  const deep = over.filter(r => r.screens >= 3 && !KNOWN_DEEP.has(r.name))
-  const worse = over.filter(r => KNOWN_DEEP.has(r.name) && r.screens >= 4)
+  // Finances (3.30) and the game plan (3.04) were the two known deep pages
+  // until 1.6.5 moved the board ask and the opposition reading to their own
+  // tabs and folded the ledger and the earners: 2.2 and 2.6 now. No fixed
+  // page is allowed three screenfuls.
+  const deep = over.filter(r => r.screens >= 3)
   for (const r of deep) console.log(`FAIL: ${r.name} is ${r.screens.toFixed(2)} screenfuls deep`)
-  for (const r of worse) console.log(`FAIL: ${r.name} has grown to ${r.screens.toFixed(2)} screenfuls`)
-  if (over.some(r => r.screens >= 3)) console.log('WARN: a fixed-content page is three screenfuls deep (finances and the game plan are the known two)')
   await browser.close()
   server.stop()
-  process.exit(deep.length + worse.length ? 1 : 0)
+  process.exit(deep.length ? 1 : 0)
 }
