@@ -18,7 +18,7 @@ import { autoSelect } from './matchEngine'
 import { ensureCaptains } from './analysis'
 import { dreamState } from './dream'
 import { objectiveBonus, objectiveById, pickObjectives } from './objectives'
-import { deriveAttrs, isLateBloomer, nextPid, playerValue, playerWage } from './attributes'
+import { deriveAttrs, isLateBloomer, nextPid, playerValue, playerWage, repriceAcademies } from './attributes'
 import { nationByCode, regenName, worldNames } from './nations'
 import { clamp, mulberry32, pick, type Rng } from './rng'
 import { resetFamiliarity } from './playbook'
@@ -2041,6 +2041,13 @@ export function rebuildSeason(state: GameState) {
   // belong to the campaign that paid for them (grants.ts; grantprobe)
   state.wageBoost = undefined
   state.injections = undefined
+  // THE SUMMER'S NEW SCHOLARS GO ONTO DEVELOPMENT DEALS. The intake and the
+  // regens were minted on first-team money and only a reload repriced them
+  // (migrate), so a running game paid every club's new academy a senior wage
+  // for a season and a reloaded save did not: the last divergence between
+  // the two (scripts/qa/determinism.ts, migrate mode, 1.6.5). Same sweep
+  // newGame runs, idempotent.
+  repriceAcademies(Object.values(state.players))
   state.injectedThisSeason = undefined
   state.releasedThisSeason = undefined
   state.rewarded = undefined
