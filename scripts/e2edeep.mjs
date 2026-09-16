@@ -149,9 +149,14 @@ try {
 } catch (e) {
   await shot('deep-99-failure')
   console.error('DEEP QA FAILED:', e.message)
+  // QA-GATE-01 (1.6.5): a caught failure used to be followed by exit(0) in
+  // finally, so the harness reported success. The failure sets the exit code
+  // and finally exits WITH it.
+  process.exitCode = 1
 } finally {
   console.log('console errors:', errors.length ? errors.slice(0, 10) : 'none')
+  if (errors.length) process.exitCode = 1
   await browser.close()
   server.stop()
-  process.exit(0)
+  process.exit(process.exitCode ?? 0)
 }

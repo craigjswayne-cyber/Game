@@ -153,8 +153,18 @@ try {
   }
   const over = rows.filter(r => !LISTS.has(r.name) && r.screens >= 2)
   console.log(`\n${rows.length} screens measured, ${over.length} page${over.length === 1 ? '' : 's'} over two screenfuls`)
-  if (over.some(r => r.screens >= 3)) console.log('WARN: a fixed-content page is three screenfuls deep')
+  // QA-GATE-01 (1.6.5): this was a WARN followed by exit(0), so a page could
+  // grow without limit and the suite stayed green. Finances (3.30) and the
+  // game plan (3.04) are the two known deep pages, carried as design debt;
+  // any OTHER fixed page reaching three screenfuls, or either of those
+  // reaching four, fails the audit.
+  const KNOWN_DEEP = new Set(['finances', 'tactics: game plan'])
+  const deep = over.filter(r => r.screens >= 3 && !KNOWN_DEEP.has(r.name))
+  const worse = over.filter(r => KNOWN_DEEP.has(r.name) && r.screens >= 4)
+  for (const r of deep) console.log(`FAIL: ${r.name} is ${r.screens.toFixed(2)} screenfuls deep`)
+  for (const r of worse) console.log(`FAIL: ${r.name} has grown to ${r.screens.toFixed(2)} screenfuls`)
+  if (over.some(r => r.screens >= 3)) console.log('WARN: a fixed-content page is three screenfuls deep (finances and the game plan are the known two)')
   await browser.close()
   server.stop()
-  process.exit(0)
+  process.exit(deep.length + worse.length ? 1 : 0)
 }

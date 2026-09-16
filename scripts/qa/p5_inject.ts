@@ -16,6 +16,6 @@ for (const [club, buyWeek, tier] of [['northampton', 40, 'xl'], ['northampton', 
   const bBefore = uc.balance, tBefore = uc.budget
   while (g.season === 0) processWeekAndAdvance(g)
   const sweep = g.news.find(n => n.k === 'news.reinvest' || n.k === 'news.reinvestBuild')
-  console.log(`  after rollover: balance ${fmtMoney(uc.balance)} (delta ${fmtMoney(uc.balance - bBefore)}), budget ${fmtMoney(uc.budget)} (was ${fmtMoney(tBefore)}); board sweep: ${sweep?.v?.spend ?? 'none'}; wageBoost ${g.wageBoost}`)
+  console.log(`  after rollover: balance ${fmtMoney(uc.balance)} (delta ${fmtMoney(uc.balance - bBefore)}), budget ${fmtMoney(uc.budget)} (was ${fmtMoney(tBefore)}); unemployed ${g.unemployed}; club now ${g.userClubId}; board sweep: ${sweep?.v?.spend ?? 'none'}; wageBoost ${g.wageBoost}`)
   console.log(`  spendable next season (budget) as share of the ${fmtMoney(cash)} bought: ${(uc.budget / cash * 100).toFixed(0)}%`)
 }

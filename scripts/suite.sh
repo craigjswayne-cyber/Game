@@ -19,6 +19,8 @@ set -uo pipefail
 cd "$(dirname "$0")/.."
 MODE="${1:-default}"
 FAILS=0
+PASSES=0
+FAILED_NAMES=""
 
 # no pass/fail to give: these print numbers or write screenshots
 REPORTERS="analysis gapreport icons shots qa-shots qa-shots2 newspeak boardprobe disttest loantest nattest summertest dataaudit squaddiff premmerge stancecheck womensvoice"
@@ -37,7 +39,9 @@ run() {
   last=$(printf '%s' "$out" | tail -1 | cut -c1-96)
   if [ $code -eq 0 ]; then
     printf 'PASS  %-16s %s\n' "$name" "$last"
+    PASSES=$((PASSES + 1))
   else
+    FAILED_NAMES="$FAILED_NAMES $name"
     printf 'FAIL  %-16s %s\n' "$name" "$last"
     # SAY WHAT FAILED, not just that something did. This threw the whole of $out
     # away and printed the summary line, so "FAIL subsprobe SUBS PROBE FAILED (2)"
@@ -114,4 +118,12 @@ echo "  $REPORTERS"
 [ "$MODE" != all ] && echo "SKIPPED (long): $SLOW"
 echo
 if [ $FAILS -eq 0 ]; then echo "SUITE PASSED"; else echo "SUITE FAILED: $FAILS"; fi
+# THE LAST LINE IS FOR MACHINES (QA-GATE, 1.6.5): one JSON object, parse this
+# rather than the prose. A release is green only when result is PASS, which
+# means every mandatory gate above exited 0; the reporters listed as SKIPPED
+# have no verdict and are not gates.
+names=""
+for n in $FAILED_NAMES; do names="$names${names:+,}\"$n\""; done
+printf 'SUITE-SUMMARY {"result":"%s","mode":"%s","passed":%d,"failed":%d,"failures":[%s]}\n' \
+  "$([ $FAILS -eq 0 ] && echo PASS || echo FAIL)" "$MODE" "$PASSES" "$FAILS" "$names"
 exit $FAILS

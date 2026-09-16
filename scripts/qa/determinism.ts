@@ -5,11 +5,18 @@ import { simMatch } from '../../src/game/matchEngine'
 import { answerPress } from '../../src/game/media'
 import { migrate } from '../../src/game/save'
 import type { GameState } from '../../src/game/model'
+import { resetIds } from '../../src/game/attributes'
 
 const WEEKS = Number(process.argv[2] ?? 60)
 const SEED = Number(process.argv[3] ?? 777)
 const MODE = process.argv[4] ?? 'migrate' // 'json' = plain roundtrip, 'migrate' = roundtrip + migrate
 function week(g: GameState) {
+  // Two careers in one process share the module-level id counter, and since
+  // 1.6.4 the settle takes the HIGHER of the counter and the save's pidNext -
+  // so A's minting pushed B's ids along and the two worlds drifted apart on
+  // id alone. A real app runs one career per process; this puts each career
+  // back on its own counter before its week, which is what a reload does.
+  resetIds(g.pidNext ?? 1)
   const fx = userFixtureThisWeek(g)
   if (fx) simMatch(g, fx, weekRng(g), true)
   for (const pi of g.press.filter(p => !p.answered)) answerPress(g, pi.id, 0)

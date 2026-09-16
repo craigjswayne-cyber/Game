@@ -66,8 +66,12 @@ try {
   await dump('tactics: roles')
 } catch (e) {
   console.error('BLOCK PROBE stopped early:', e.message)
+  // QA-GATE-01 (1.6.5): a caught failure used to be followed by exit(0) in
+  // finally, so the harness reported success. The failure sets the exit code
+  // and finally exits WITH it.
+  process.exitCode = 1
 } finally {
   await browser.close()
   server.stop()
-  process.exit(0)
+  process.exit(process.exitCode ?? 0)
 }

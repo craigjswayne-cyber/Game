@@ -5,7 +5,7 @@ import { answerPress } from '../../src/game/media'
 import { SEASON_WEEKS } from '../../src/game/model'
 const g = newGame('leicester', 'Timing', 2026)
 const out: string[] = []
-for (let s = 0; s < 10; s++) {
+for (let s = 0; s < 15; s++) {
   const t0 = Date.now(); const target = g.season + 1; let guard = 0; let maxWeek = 0
   while (g.season < target && guard++ < SEASON_WEEKS + 5) {
     const w0 = Date.now()
