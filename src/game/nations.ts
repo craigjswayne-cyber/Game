@@ -176,11 +176,18 @@ const N: Record<string, [string[], string[]]> = {
  *  another Freddie Barnes the following August. */
 const REGISTRY = new WeakMap<object, Set<string>>()
 
-export function nameRegistry(world: object, existing: () => Iterable<string>): Set<string> {
+export function nameRegistry(world: object, existing: () => Iterable<string>, onTake?: (name: string) => void): Set<string> {
   let set = REGISTRY.get(world)
   if (!set) {
-    set = new Set<string>()
-    for (const n of existing()) set.add(n.toLowerCase())
+    const s = new Set<string>()
+    for (const n of existing()) s.add(n.toLowerCase())
+    // every name handed out from here on is reported to the caller, so the
+    // save can carry it and a reload rebuilds exactly this set (1.6.5)
+    if (onTake) {
+      const add = s.add.bind(s)
+      s.add = (v: string) => { if (!s.has(v)) onTake(v); return add(v) }
+    }
+    set = s
     REGISTRY.set(world, set)
   }
   return set
@@ -283,10 +290,18 @@ export function regenName(rng: () => number, nat: string, taken?: Set<string>, g
  *  module with nothing above it to import. Every generator calls this and hands
  *  the result to regenName, which is what turns the guard from a good intention
  *  into something that actually holds. */
-export function worldNames(state: { players: Record<number, { name: string }>; retiredNames?: string[] }): Set<string> {
-  // the men who have left keep their names taken, on a reload as in a running
-  // game (retiredNames, 1.6.5)
-  return nameRegistry(state, () => [...Object.values(state.players).map(p => p.name), ...(state.retiredNames ?? [])])
+export function worldNames(state: { players: Record<number, { name: string }>; retiredNames?: string[]; takenNames?: string[] }): Set<string> {
+  // A reload rebuilds this set, so it has to hold what the running game's set
+  // held: the players, the men who have left (retiredNames), and every name
+  // the registry ever handed out (takenNames) - the intake class named at
+  // week 30 and a scout's finds are registered before they are players, and
+  // a reload that forgot them drew different regens from the same seed
+  // (scripts/qa/determinism.ts, 1.6.5).
+  return nameRegistry(
+    state,
+    () => [...Object.values(state.players).map(p => p.name), ...(state.retiredNames ?? []), ...(state.takenNames ?? [])],
+    name => { (state.takenNames ??= []).push(name) },
+  )
 }
 
 /** THE SQUAD IS THIRTY-TWO (owner, v1.1.12: "squad should be 32").

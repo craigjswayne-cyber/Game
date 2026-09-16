@@ -1437,6 +1437,9 @@ export interface GameState {
    *  man's name, which is how a reload changed the rollover
    *  (scripts/qa/determinism.ts, 1.6.5). */
   retiredNames?: string[]
+  /** Every name the registry has handed to a generated player (nations.ts),
+   *  so a reload rebuilds the same registry the running game had. */
+  takenNames?: string[]
   /** The board's patience with being asked twice (v1.1.4). One entry per
    *  request door - 'capital' (facilities and the ground, which share their
    *  cooldown) and 'funds' - stamped at each denial. Coming back through a

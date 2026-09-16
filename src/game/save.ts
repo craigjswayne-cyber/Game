@@ -644,6 +644,7 @@ export function migrate(s: GameState): GameState {
   s.gateRecord ??= null
   s.potyRoll = list(s.potyRoll) as typeof s.potyRoll
   s.retiredNames = list(s.retiredNames) as typeof s.retiredNames
+  s.takenNames = list(s.takenNames) as typeof s.takenNames
   s.courtedAt ??= 0
   s.courtedBy ??= null
   s.vowedAt ??= 0
