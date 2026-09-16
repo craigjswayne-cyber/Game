@@ -147,7 +147,7 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
-### What's new (500 max) - v1.6.5, Play version code 34
+### What's new (500 max) - v1.6.5, Play version code 35
 
 One calendar for both worlds with a hard invariant behind it, the
 relegation playoff on finals day, Premiership relegation restored by

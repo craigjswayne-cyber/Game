@@ -30,12 +30,15 @@
     "promoted; never reuse it.",
     "33 IS 1.6.4: the URC format, the women's World Championship, the forfeit",
     "rule, the id counter in the save and the women's squad reconciliation.",
-    "34 IS 1.6.5: one calendar with an invariant, the relegation playoff on",
-    "finals day, Premiership relegation restored, the runtime-brief fixes.",
+    "34 WAS SPENT by an upload that never became a release (16 Sep 2026: Play",
+    "took the bundle, the release page then showed no bundle, and the next",
+    "upload of 34 was refused as already used). 35 IS 1.6.5: one calendar with",
+    "an invariant, the relegation playoff on finals day, Premiership relegation",
+    "restored, the runtime-brief fixes.",
     "versionName comes from the root package.json.",
     "billingLibrary is the Play Billing Library version PhaseBilling.java is",
     "written against. Play refuses anything below 8.0.0 (learned 4 Sep 2026)."
   ],
-  "versionCode": 34,
+  "versionCode": 35,
   "billingLibrary": "8.0.0"
 }
