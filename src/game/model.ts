@@ -41,6 +41,8 @@ export const ATTR_NAMES: Record<keyof Attrs, string> = {
 
 export interface SeasonStats {
   apps: number
+  /** A League (academy) appearances, kept apart from the senior count (AWARD-01). */
+  acadApps?: number
   starts: number
   tries: number
   points: number
@@ -1428,6 +1430,13 @@ export interface GameState {
    *  to a new player after a reload while a record still pointed at the old
    *  one. Stamped by newGame and by every week settle; migrate restores it. */
   pidNext?: number
+  /** Names that have left the world - retirements and the free-agent cull.
+   *  A running game's name registry never gives a name back (nations.ts),
+   *  and a reloaded save must not either: without this list a reload rebuilt
+   *  the registry from the players left and a regen could take a retired
+   *  man's name, which is how a reload changed the rollover
+   *  (scripts/qa/determinism.ts, 1.6.5). */
+  retiredNames?: string[]
   /** The board's patience with being asked twice (v1.1.4). One entry per
    *  request door - 'capital' (facilities and the ground, which share their
    *  cooldown) and 'funds' - stamped at each denial. Coming back through a
@@ -2025,12 +2034,11 @@ export const LEDGER_WEEKS = 45
 /** Leagues where the bottom club goes down. ONE list: the table's shading,
  *  the new-career media verdict and the pundits' predictions all read it, so
  *  no screen can threaten relegation in a league that has none. */
-// 'prem' left the list in 1.6.3: from 2026-27 the English top flight is
-// ringfenced (automatic promotion and relegation replaced by a criteria-based
-// model, announced February 2026), so the bottom club stays up and the
-// Championship winner is not promoted. The Championship still relegates to
-// National One and the French Elite 14 still swaps with Elite 2.
-export const RELEGATES = ['champ', 'top14']
+// 'prem' left the list in 1.6.3 on the real-world ringfence and came back in
+// 1.6.5 on the owner's decision (runtime brief, section 2): relegation from
+// the English top flight is deliberate game design. The Championship
+// relegates to National One and the French Elite 14 swaps with Elite 2.
+export const RELEGATES = ['prem', 'champ', 'top14']
 
 /** The pyramid by tier: 1 the top flights, 2 the second divisions, 3 National
  *  League One. Loan gravity reads it - how far down a move is decides who

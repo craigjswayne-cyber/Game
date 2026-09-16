@@ -1,7 +1,7 @@
 import type { Club, FacilityId, GameState } from './model'
 import { ATTR_KEYS, FACILITY_INFO, MAX_FACILITY, SEASON_WEEKS, WEEK_BASIS, emptyStats, finalVenue, initFacilities } from './model'
 import { ensureCaptains } from './analysis'
-import { buildPlayer, deriveCaps, deriveHist, deriveTrait, resetIds , playerWage } from './attributes'
+import { ACADEMY_MAX, ACADEMY_MIN, buildPlayer, deriveCaps, deriveHist, deriveTrait, resetIds , playerWage } from './attributes'
 import { LEAGUE_DEFS, seedExClubs } from './newgame'
 import { genderOf, staffGender, type Gender } from './gender'
 import { autoSelect } from './matchEngine'
@@ -515,7 +515,11 @@ export function migrate(s: GameState): GameState {
     if (wrong) rebuildTable(comp, s.fixtures, s)
   }
 
-  s.shortlist ??= []
+  // SAVE-01 (1.6.5): ??= repairs null and nothing else. A save holding a string
+  // or an object in a list field passed the null check and threw on the first
+  // push. Every list the migration guarantees goes through the same gate.
+  const list = (v: unknown): unknown[] => (Array.isArray(v) ? v : [])
+  s.shortlist = list(s.shortlist) as typeof s.shortlist
   // ??= is not enough here: a save holding a STRING in this field passes the
   // null check and then throws on the first property assignment, because you
   // cannot create a property on a primitive. Replace anything that is not an
@@ -535,8 +539,8 @@ export function migrate(s: GameState): GameState {
   s.mgr.moms ??= 0
   // every career started before origins existed came up the coaching route
   s.mgrOrigin ??= 'coach'
-  s.vacancies ??= []
-  s.devFocus ??= []
+  s.vacancies = list(s.vacancies) as typeof s.vacancies
+  s.devFocus = list(s.devFocus) as typeof s.devFocus
   s.natTeam ??= null
   s.natOffer ??= null
   s.natKeepAsk ??= null
@@ -567,7 +571,7 @@ export function migrate(s: GameState): GameState {
   }
   s.natLineup ??= null
   s.objectives ??= ['youth', 'derby']
-  s.finHist ??= []
+  s.finHist = list(s.finHist) as typeof s.finHist
   s.boardOwed ??= false
   // facilities moved onto the clubs (every club in the world has an estate,
   // and taking a new job means inheriting that club's buildings). Levels the
@@ -604,7 +608,7 @@ export function migrate(s: GameState): GameState {
     }
     s.facilities = {}
   }
-  s.decisions ??= []
+  s.decisions = list(s.decisions) as typeof s.decisions
   s.analyst ??= null
   s.analystRecord ??= { right: 0, wrong: 0 }
   s.commission ??= null
@@ -615,18 +619,18 @@ export function migrate(s: GameState): GameState {
   seedStaffPeople(s)
   s.celebration ??= null
   s.records ??= {}
-  s.mentors ??= []
+  s.mentors = list(s.mentors) as typeof s.mentors
   s.chem ??= {}
-  s.grudges ??= []
+  s.grudges = list(s.grudges) as typeof s.grudges
   s.review ??= null
   s.fanMood ??= 60
   s.fanCampaign ??= 0
-  s.hof ??= []
+  s.hof = list(s.hof) as typeof s.hof
   s.scoutFocus ??= null
-  s.slAlerted ??= []
-  s.pledges ??= []
+  s.slAlerted = list(s.slAlerted) as typeof s.slAlerted
+  s.pledges = list(s.pledges) as typeof s.pledges
   s.intakeClass ??= null
-  s.preContracts ??= []
+  s.preContracts = list(s.preContracts) as typeof s.preContracts
   s.takeover ??= null
   s.newOwnerUntil ??= null
   s.derbyBook ??= {}
@@ -635,15 +639,16 @@ export function migrate(s: GameState): GameState {
   seedNatRank(s)
   s.natConfidence ??= s.natTeam ? 60 : null
   s.tenureStart ??= s.season
-  s.legendOf ??= []
+  s.legendOf = list(s.legendOf) as typeof s.legendOf
   s.vsBook ??= {}
   s.gateRecord ??= null
-  s.potyRoll ??= []
+  s.potyRoll = list(s.potyRoll) as typeof s.potyRoll
+  s.retiredNames = list(s.retiredNames) as typeof s.retiredNames
   s.courtedAt ??= 0
   s.courtedBy ??= null
   s.vowedAt ??= 0
   s.agency ??= { seniors: [], kids: [], best: {} }
-  for (const c of Object.values(s.clubs)) { c.captain ??= null; c.vice ??= null; c.legends ??= []; c.marquee ??= []; c.tactic.roles ??= []; if (c.id !== s.userClubId) c.coach ??= 'The Head Coach' }
+  for (const c of Object.values(s.clubs)) { c.captain ??= null; c.vice ??= null; c.legends = list(c.legends) as typeof c.legends; c.marquee = list(c.marquee) as typeof c.marquee; c.tactic.roles = list(c.tactic.roles) as typeof c.tactic.roles; if (c.id !== s.userClubId) c.coach ??= 'The Head Coach' }
   /**
    * WHO THE STAFF ARE, on a save written before the game asked.
    *
@@ -686,7 +691,14 @@ export function migrate(s: GameState): GameState {
     // academy men move onto development deals. A live save was carrying a whole
     // academy on first-team money, which is what made the user's club insolvent
     // by simply playing its fixtures (see playerWage).
-    if (p.acad) p.wage = playerWage(p.ca, p.age, true)
+    //
+    // ONLY WHEN THE WAGE IS NOT AN ACADEMY WAGE. This repriced every scholar on
+    // every load from his CURRENT ability, so a lad whose ca had grown since
+    // his deal came back from a reload on £50 a week more than he left on:
+    // the one place a save/load changed the simulation (scripts/qa/
+    // determinism.ts, migrate mode, 1.6.5). A wage inside the development band
+    // is a deal the game made, and loading keeps it.
+    if (p.acad && !(p.wage >= ACADEMY_MIN && p.wage <= ACADEMY_MAX)) p.wage = playerWage(p.ca, p.age, true)
     if (p.trait === undefined) p.trait = deriveTrait(p)
     p.hist ??= deriveHist(p)
     p.caps ??= deriveCaps(p)

@@ -209,6 +209,8 @@ export function capRefusal(state: GameState, clubId: string, wage: number, repla
  * below a fieldable size, and only three men can go in one summer - beyond that
  * the club takes the fine, which is also true to life.
  */
+/** Cap trimming never cuts a senior squad below this many. */
+const CAP_FLOOR = 23
 function trimToCap(state: GameState, club: Club) {
   const cap = club.leagueId ? state.caps?.[club.leagueId] : null
   if (typeof cap !== 'number' || cap <= 0) return
@@ -217,9 +219,17 @@ function trimToCap(state: GameState, club: Club) {
   while (released < 3 && capBill(state, club) > cap) {
     const seniors = club.players
       .map(id => state.players[id])
-      .filter(p => p && !p.acad && !marquee.has(p.id) && !p.loanFrom)
+      // the men the bill counts (capBill, ai.ts): not the academy, not the two
+      // marquees, not a borrowed man - and not a man out on loan either, who
+      // is off the bill already, so releasing him lowered nothing and spent
+      // one of the summer's three releases on it (CAP-LOAN-01, 1.6.5)
+      .filter(p => p && !(p.acad && !p.demoted) && !marquee.has(p.id) && !p.loanFrom && !p.onLoan)
       .sort((a, b) => b.wage - a.wage)
-    if (club.players.length <= 30 || !seniors.length) break
+    // the floor is a fieldable SENIOR squad. `club.players.length <= 30` counted
+    // the academy, and with twenty-seven academy men on every list it never
+    // fired: the only brake was the three-a-summer cap (CAP-01, 1.6.5)
+    const seniorCount = club.players.filter(id => { const p = state.players[id]; return p && !(p.acad && !p.demoted) }).length
+    if (seniorCount <= CAP_FLOOR || !seniors.length) break
     const going = seniors[0]
     club.players = club.players.filter(id => id !== going.id)
     club.tactic.lineup = club.tactic.lineup.map(id => (id === going.id ? null : id))

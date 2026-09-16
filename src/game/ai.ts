@@ -202,6 +202,10 @@ export function executeTransfer(state: GameState, p: Player, toClubId: string, f
   if (!realMoney(fee)) return
   const from = p.clubId ? state.clubs[p.clubId] : null
   const to = state.clubs[toClubId]
+  // TRANSFER-01 (1.6.5): a destination that does not exist, or is the seller,
+  // used to be discovered at `to.players.push` - after the seller had lost the
+  // player and banked the fee. Refuse before anything moves.
+  if (!to || to === from) return
   // read before the move clears it: the terraces judge a departure partly on
   // whether the club had said out loud that he was for sale (terraces.ts)
   const wasListed = !!p.transferListed

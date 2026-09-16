@@ -74,7 +74,7 @@ export default function Academy() {
                   <td className="name">{p.name}{p.injury ? ' 🩹' : ''}</td>
                   <td className="num muted">{p.age}</td>
                   <td><Stars ca={p.ca} /></td>
-                  <td className="num">{p.stats.apps}</td>
+                  <td className="num">{(p.stats.acadApps ?? 0) + p.stats.apps}</td>
                   <td className="num">{p.form.toFixed(1)}</td>
                   <td className="num muted">{xv.has(p.id) ? t('report.acXV') : ''}</td>
                 </tr>
