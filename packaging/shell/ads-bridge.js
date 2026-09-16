@@ -102,6 +102,37 @@
   // point the game is running, which means the bundle has loaded, which means
   // registerPlugin is there. Capacitor.Plugins.AdMob is tried too, for a
   // runtime that fills that in instead.
+  // ---- WHAT HAPPENS AFTER A REFUSAL --------------------------------------
+  //
+  // A banner that gets no fill clears `created`, and reconcile() then asks
+  // again the moment anything calls it. The MutationObserver further down
+  // calls it on every DOM change, and this game changes the DOM constantly -
+  // a match ticks its commentary several times a second - so ONE refusal
+  // became a request loop: ask, "No ad to show", remove, ask again, with
+  // nothing between. An iPhone Simulator on 16 Sep printed that cycle six
+  // times over with no user action at all, and a phone in a region with no
+  // demand would have done it all day.
+  //
+  // It costs battery and the player's data, it earns nothing, and a flood of
+  // requests that never become impressions is the shape of traffic an ad
+  // network takes a dim view of. Google's own guidance is to retry a failed
+  // request after a growing delay rather than at once. So a refusal starts a
+  // cooling-off period that doubles up to five minutes, and the first banner
+  // that loads clears it.
+  var BACKOFF_MS = [30000, 60000, 120000, 300000]
+  var refusals = 0, coolUntil = 0, coolTimer = null
+  function coolOff() {
+    var wait = BACKOFF_MS[Math.min(refusals, BACKOFF_MS.length - 1)]
+    refusals++
+    coolUntil = Date.now() + wait
+    log('not asking for another banner for', (wait / 1000) + 's')
+    // one retry when it expires: the thing that would otherwise ask again is
+    // a DOM change, and a screen the player has stopped touching may have none
+    clearTimeout(coolTimer)
+    coolTimer = setTimeout(function () { if (wantedEl) reconcile() }, wait + 250)
+  }
+  function warmUp() { refusals = 0; coolUntil = 0; clearTimeout(coolTimer); coolTimer = null }
+
   var ad = null
   function plugin() {
     if (ad) return ad
@@ -127,12 +158,13 @@
         // line above needs a Mac to read.
         why = 'the advert network refused the banner: ' + (e && (e.message || e.code || JSON.stringify(e)) || 'no reason given')
         setInset(0)
+        coolOff()
         enqueue(async function () {
           try { await ad.removeBanner() } catch (e2) {}
           created = null; visible = false
         })
       })
-      ad.addListener('bannerAdLoaded', function () { log('banner loaded'); why = 'ready' })
+      ad.addListener('bannerAdLoaded', function () { log('banner loaded'); why = 'ready'; warmUp() })
     } catch (e) { log('could not listen for banner events:', e && (e.message || e.code) || e) }
     return ad
   }
@@ -319,6 +351,9 @@
           if (!(await ready())) return
           if (created && created !== wantedPlace) { await ad.removeBanner(); created = null; visible = false }
           if (!created) {
+            // still cooling off from a refusal: no request, no strip, and the
+            // finally below gives the room back
+            if (Date.now() < coolUntil) return
             log('asking for banner', wantedPlace, ids.banner[wantedPlace] || ids.banner['home-foot'])
             await ad.showBanner({
               adId: ids.banner[wantedPlace] || ids.banner['home-foot'],
@@ -338,10 +373,27 @@
     })
   }
 
+  // ONE RECONCILE PER BURST, NOT ONE PER REPAINT. This observer exists to
+  // notice a veil arriving or leaving, and the game repaints far faster than
+  // veils appear: every repaint used to queue its own pass down the plugin
+  // queue. The first change in a burst is still acted on at once, so a sheet
+  // still hides the banner immediately; the rest of the burst is collapsed
+  // into one more pass a fifth of a second later.
+  var MUT_GAP_MS = 200
+  var mutAt = 0, mutTimer = null
+  function onMutation() {
+    if (!wantedEl) return
+    var now = Date.now()
+    if (now - mutAt >= MUT_GAP_MS) { mutAt = now; reconcile(); return }
+    if (mutTimer) return
+    mutTimer = setTimeout(function () {
+      mutTimer = null; mutAt = Date.now()
+      if (wantedEl) reconcile()
+    }, MUT_GAP_MS - (now - mutAt))
+  }
   whenDom(function () {
     try {
-      new MutationObserver(function () { if (wantedEl) reconcile() })
-        .observe(document.documentElement, { childList: true, subtree: true })
+      new MutationObserver(onMutation).observe(document.documentElement, { childList: true, subtree: true })
     } catch (e) { log('could not watch for sheets:', e && e.message || e) }
   })
 
@@ -425,7 +477,7 @@
     unmount: function (el) { if (wantedEl === el || !el) { wantedEl = null; wantedPlace = null; reconcile() } },
     showRewarded: showRewarded,
     // for the probe and for a debugging session on a device: never read by the game
-    __state: function () { return { created: created, visible: visible, wanted: wantedPlace, spotsToday: spotsToday(), why: why } }
+    __state: function () { return { created: created, visible: visible, wanted: wantedPlace, spotsToday: spotsToday(), why: why, refusals: refusals, coolingFor: Math.max(0, Math.round((coolUntil - Date.now()) / 1000)) } }
   }
   // one spot fetched at launch, so the first thing the player asks for arrives
   // when he asks for it

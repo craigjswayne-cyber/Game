@@ -380,6 +380,34 @@ try {
     ok(l.includes('removeBanner'), 'and taken down again when nothing filled it')
     ok(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--ad-inset').trim()) === '0px',
       'the page takes its space back')
+
+    // ---- AND IT DOES NOT ASK AGAIN AT ONCE -------------------------------
+    //
+    // A refusal clears the live banner, and every DOM change calls reconcile()
+    // - so one refusal used to become an unbroken request loop: ask, refuse,
+    // remove, ask. An iPhone Simulator printed that cycle six times over with
+    // the player touching nothing (16 Sep 2026). It earns nothing, it drains
+    // the phone, and a flood of requests that never become impressions is the
+    // shape of traffic an ad network takes a dim view of.
+    //
+    // So: a hundred DOM changes, well past the observer's own debounce, must
+    // not produce a second request while the bridge is cooling off.
+    const asked = (await log(page)).filter(x => x.startsWith('showBanner:')).length
+    ok(asked <= 2, `it asked ${asked} time(s) before giving up, not once per repaint`)
+    await page.evaluate(async () => {
+      for (let i = 0; i < 100; i++) {
+        const d = document.createElement('i')
+        document.body.appendChild(d)
+        d.remove()
+        if (i % 10 === 0) await new Promise(r => setTimeout(r, 12))
+      }
+    })
+    await settle(page, 900)
+    const after = (await log(page)).filter(x => x.startsWith('showBanner:')).length
+    ok(after === asked, `and not once more through a hundred DOM changes (${asked} before, ${after} after)`)
+    const st = await page.evaluate(() => globalThis.rmAds.__state())
+    ok(st.refusals > 0 && st.coolingFor > 0, `the bridge says it is cooling off (${st.refusals} refusal(s), ${st.coolingFor}s to go)`)
+
     ok(errs.length === 0, `no page errors (${errs.join(' | ') || 'none'})`)
     await page.close()
   }
