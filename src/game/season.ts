@@ -1968,7 +1968,16 @@ function withDevelopmentSide(state: GameState, clubId: string, run: () => void):
   if (!club) { run(); return }
   const first = new Set(club.tactic.lineup.slice(0, 15).filter((x): x is number => x != null))
   const squad = club.players.map(id => state.players[id]).filter(Boolean)
-  const devs = squad.filter(p => !first.has(p.id) && !p.injury && !p.natSquad && !p.maternity && p.bans === 0)
+  const fit = (p: Player) => !first.has(p.id) && !p.injury && !p.natSquad && !p.maternity && p.bans === 0
+  // THE ACADEMY FIRST. This handed autoSelect everyone outside the XV, and
+  // autoSelect picks seniors before it raids the academy, so the "development
+  // side" was the bench: the scholars the fixture exists for watched a
+  // reserve team play it (scripts/friendlyprobe.ts, 1.6.5 - the man of the
+  // match was a senior every time). Scholars fill the sheet; senior reserves
+  // only make up the numbers when the academy cannot field eighteen.
+  const scholars = squad.filter(p => p.acad && fit(p))
+  const reserves = squad.filter(p => !p.acad && fit(p))
+  const devs = scholars.length >= 18 ? scholars : [...scholars, ...reserves]
   // if standing the first team down leaves too few bodies, this is not a
   // development side, it is a forfeit - play the normal one
   if (devs.length < 18) { run(); return }
