@@ -38,7 +38,10 @@ function diff(a: any, b: any, path = '', out: string[] = [], depth = 0): string[
     return out
   }
   const keys = new Set([...Object.keys(a), ...Object.keys(b)])
-  for (const k of keys) diff(a[k], b[k], `${path}.${k}`, out, depth + 1)
+  // migrate backfills two record-keeping fields a freshly minted player does not
+  // carry (ca0, hist); neither is read by the simulation, so they are not a
+  // divergence, only noise that hides the real one
+  for (const k of keys) { if (k === 'ca0' || k === 'hist') continue; diff(a[k], b[k], `${path}.${k}`, out, depth + 1) }
   return out
 }
 let A = newGame('bath', 'Det', SEED)
