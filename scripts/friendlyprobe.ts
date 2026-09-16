@@ -158,7 +158,14 @@ ok(fr?.played === true, 'the friendly was played')
 const acadAfter = user.players.map(id => g.players[id]).filter(p => p?.acad).reduce((n, p) => n + (p.stats?.apps ?? 0), 0)
 const firstAfter = [...firstXV].reduce((n, id) => n + (g.players[id]?.stats?.apps ?? 0), 0)
 console.log(`     academy appearances ${acadBefore} -> ${acadAfter}; first-XV ${firstBefore} -> ${firstAfter}`)
-ok(acadAfter > acadBefore, 'the academy played - which is the entire point of the fixture')
+// A friendly banks rhythm, not records (matchEngine: no apps), and since 1.6.5
+// the A League's own appearances live in stats.acadApps, so the senior count
+// cannot stand in for "the academy took the field". lastWk can: the engine
+// stamps it on every man who played, friendly or not, and the A League never
+// writes it. Fifteen scholars stamped with the friendly's week is the XV.
+const acadPlayed = user.players.map(id => g.players[id]).filter(p => p?.acad && p.lastWk === wk).length
+ok(acadPlayed >= 15, `the academy played - which is the entire point of the fixture (${acadPlayed} scholars took the field in week ${wk})`)
+ok(acadAfter >= acadBefore, 'and no senior appearance was credited for it')
 ok(user.balance !== balBefore || true, 'the balance moved only by the ordinary weekly running of the club')
 
 console.log('')
