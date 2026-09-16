@@ -2,7 +2,7 @@
 // 3, 6 or 9-month brief. He comes back with a shortlist of mixed quality - the
 // longer the trip and the better his badge, the more of it is worth signing.
 import { subjectVar } from './gender'
-import { POS_NAMES, fmtMoney, logDecision, type GameState, type Player, type Pos } from './model'
+import { POS_NAMES, fmtMoney, logDecision, type GameState, type Player, type Pos, addWeeks100, weeksBetween100, stamp100 } from './model'
 import { t, tIn } from './i18n'
 import { mulberry32 } from './rng'
 import { bumpKnowledge } from './scout'
@@ -60,14 +60,14 @@ export function commissionScout(state: GameState, pos: Pos | 'any', months: Sear
   if (!club) return t('reply.noClubToScoutFor')
   if (tier <= 0 || !man) return t('reply.noChiefScout')
   if (state.commission) {
-    const left = Math.max(1, state.commission.done - (state.season * 100 + state.week))
+    const left = Math.max(1, weeksBetween100(state.commission.done, stamp100(state)))
     return t('reply.scoutAlreadyOut', { ...subjectVar(man.g), scout: man.name, n: left })
   }
   const fee = searchFee(months, tier)
   if (club.balance < fee) return t('reply.briefTooDear', { months, fee: fmtMoney(fee) })
   club.balance -= fee
   const abs = state.season * 100 + state.week
-  state.commission = { pos, months, done: abs + SEARCH_WEEKS[months], fee, leagueId: state.scoutFocus ?? null }
+  state.commission = { pos, months, done: addWeeks100(abs, SEARCH_WEEKS[months]), fee, leagueId: state.scoutFocus ?? null }
   // 'wherever the game is played' is a phrase, not a competition: it travels as
   // its own fragment key, never through {where}
   const where = state.commission.leagueId ? state.comps[state.commission.leagueId]?.short ?? '' : ''
@@ -111,7 +111,7 @@ export function scoutPostcard(state: GameState) {
   if (abs >= c.done) return
   // week 4, 8, 12 ... of the trip, and never in its last fortnight - the report
   // itself is the news by then
-  const weeksIn = SEARCH_WEEKS[c.months] - (c.done - abs)
+  const weeksIn = SEARCH_WEEKS[c.months] - weeksBetween100(c.done, abs)
   if (weeksIn <= 0 || weeksIn % 4 !== 0) return
   if (c.done - abs <= 2) return
   const man = state.staffPeople?.scout

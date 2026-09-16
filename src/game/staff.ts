@@ -1,7 +1,7 @@
 // Backroom staff as people, not sliders (8-batch feedback): every coach is a
 // named man with a badge - Bronze, Silver or Gold - and badges are earned on a
 // coaching course with a real chance of failing it.
-import { STAFF_INFO, fmtMoney, fmtWage, logDecision, type GameState, type StaffLevels, type StaffPerson } from './model'
+import { STAFF_INFO, fmtMoney, fmtWage, logDecision, type GameState, type StaffLevels, type StaffPerson, addWeeks100, weeksBetween100 } from './model'
 import { genderOf, staffGender, subjectVar, type Gender } from './gender'
 import { t, tIn, type Vars } from './i18n'
 import { mulberry32 } from './rng'
@@ -335,7 +335,7 @@ export function courseBlock(state: GameState, role: StaffRole): AppointBlock | n
   if (p.course) return say(t('staff.courseSitting'), t('staff.courseSittingLong', { name: p.name }))
   const abs = state.season * 100 + state.week
   if ((p.retakeAt ?? 0) > abs) {
-    const wks = p.retakeAt! - abs
+    const wks = weeksBetween100(p.retakeAt!, abs)
     return say(t(wks === 1 ? 'staff.courseResitsOne' : 'staff.courseResits', { n: wks }),
       t(wks === 1 ? 'staff.courseResitsLongOne' : 'staff.courseResitsLong', { ...subjectVar(p.g), name: p.name, n: wks }))
   }
@@ -375,7 +375,7 @@ export function sendToCourse(state: GameState, role: StaffRole): string {
     return t('reply.badgePassed', { ...subjectVar(p.g), name: p.name, badge_k: `staff.badge${p.tier}`, wage: fmtWage(p.wage) })
   }
   p.failed = (p.failed ?? 0) + 1
-  p.retakeAt = abs + RETAKE_WEEKS
+  p.retakeAt = addWeeks100(abs, RETAKE_WEEKS)
   logDecision(state, 'dec.badgeFailedFee', { ...subjectVar(p.g), name: p.name, badge_k: `staff.badge${toTier}`, fee: fmt(fee) }, false)
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
@@ -420,7 +420,7 @@ export function resolveCourses(state: GameState) {
       })
     } else {
       p.failed = (p.failed ?? 0) + 1
-      p.retakeAt = abs + RETAKE_WEEKS
+      p.retakeAt = addWeeks100(abs, RETAKE_WEEKS)
       logDecision(state, 'dec.badgeFailedCourse', { ...subjectVar(p.g), name: p.name, badge_k: `staff.badge${toTier}` }, false)
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,

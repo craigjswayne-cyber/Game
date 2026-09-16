@@ -147,6 +147,80 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.6.5, Play version code 34
+
+One calendar for both worlds with a hard invariant behind it, the
+relegation playoff on finals day, Premiership relegation restored by
+decision, and the cap, transfer, award, Isles and save repairs from the
+runtime brief.
+
+```
+<en-GB>
+The calendar is one document now: no women's cup tie or league playoff falls inside a Test window, the women's leagues pause for the Six Nations, the autumn Tests and the World Championship as the real ones do, the Southern Four follows the finals, and the relegation playoff is played on finals day with both squads at full strength. Relegation from the English top flight is back, by design. Cap trimming, transfers, awards, the Isles Test and damaged saves each fixed.
+</en-GB>
+<fr-FR>
+Un seul calendrier : aucune élimination directe de coupe féminine ni phase finale ne tombe dans une fenêtre internationale, les championnats féminins s'arrêtent pour le Tournoi, les tests d'automne et le Championnat du monde comme les vrais, le Southern Four suit les finales et le barrage de relégation se joue le jour des finales à effectifs complets. La relégation de l'élite anglaise revient, par choix. Plafond salarial, transferts, récompenses, test des Isles et sauvegardes abîmées corrigés.
+</fr-FR>
+<es-ES>
+El calendario es uno solo: ninguna eliminatoria de copa femenina ni playoff de liga cae en una ventana internacional, las ligas femeninas paran por el Seis Naciones, los tests de otoño y el Mundial como las reales, el Southern Four sigue a las finales y el playoff de descenso se juega el día de las finales con plantillas completas. Vuelve el descenso en la élite inglesa, por diseño. Recorte salarial, traspasos, premios, el test de las Isles y las partidas dañadas, corregidos.
+</es-ES>
+<it-IT>
+Il calendario è uno solo: nessuna eliminatoria di coppa femminile né playoff di campionato cade in una finestra internazionale, i campionati femminili si fermano per il Sei Nazioni, i test autunnali e il Mondiale come quelli veri, il Southern Four segue le finali e lo spareggio retrocessione si gioca il giorno delle finali a ranghi completi. Torna la retrocessione dalla massima serie inglese, per scelta. Tetto salariale, trasferimenti, premi, test delle Isles e salvataggi danneggiati corretti.
+</it-IT>
+<ja-JP>
+カレンダーを一本化。女子カップの決勝トーナメントやリーグのプレーオフが代表ウィンドウと重ならず、女子リーグは実際と同じくシックスネーションズ、秋のテスト、世界選手権の間は休止、サザンフォーは決勝後に、降格プレーオフは決勝当日にフルメンバーで行われる。イングランド最上位リーグの降格は意図的に復活。サラリーキャップ整理、移籍、表彰、アイルズのテスト、破損セーブを修正。
+</ja-JP>
+```
+
+### What's new (500 max) - v1.6.4, Play version code 33
+
+The United Provinces Championship plays its real eighteen-round format, the
+women's game gets its World Championship, a club that cannot raise ten
+concedes a walkover, player ids travel with the save, and the women's
+second tiers say on the row which names are invented.
+
+```
+<en-GB>
+The United Provinces Championship now plays its real format: eighteen rounds, six of them regional derbies home and away, nine games at each ground. The women's game gets its World Championship: sixteen nations every fourth year from 2029, seeded from the rankings, with your players called up and a world title to win. A club that cannot put ten fit players on the field concedes the match 28-0 instead of playing on with a skeleton side. Player records are safer across reloads, and the women's second-tier squads now mark which names are invented so no real player can be given a fictional life event.
+</en-GB>
+<fr-FR>
+Le Championnat des Provinces Unies adopte son vrai format : dix-huit journées, dont six derbys régionaux aller-retour, neuf matchs à domicile. Le jeu féminin gagne son Championnat du monde : seize nations tous les quatre ans à partir de 2029, tirées selon le classement, avec vos joueuses sélectionnées et un titre mondial à conquérir. Un club incapable d'aligner dix joueuses valides déclare forfait 28-0 au lieu de jouer avec une équipe squelette. Les fiches joueurs résistent mieux aux rechargements, et les effectifs des deuxièmes divisions féminines indiquent désormais les noms inventés, pour qu'aucune joueuse réelle ne se voie attribuer un événement fictif.
+</fr-FR>
+<es-ES>
+El Campeonato de Provincias Unidas juega ya su formato real: dieciocho jornadas, seis de ellas derbis regionales de ida y vuelta, nueve partidos en cada campo. El juego femenino gana su Campeonato del Mundo: dieciséis naciones cada cuatro años desde 2029, cabezas de serie por ranking, con tus jugadoras convocadas y un título mundial en juego. Un club que no pueda alinear diez jugadoras en condiciones cede el partido 28-0 en vez de jugar con una plantilla esquelética. Las fichas resisten mejor las recargas, y las plantillas de segunda división femenina marcan qué nombres son inventados para que a ninguna jugadora real se le atribuya un hecho ficticio.
+</es-ES>
+<it-IT>
+Il Campionato delle Province Unite gioca ora il suo vero formato: diciotto giornate, sei delle quali derby regionali andata e ritorno, nove partite in casa. Il gioco femminile ottiene il suo Campionato del Mondo: sedici nazioni ogni quattro anni dal 2029, teste di serie dal ranking, con le tue giocatrici convocate e un titolo mondiale da vincere. Un club che non riesce a schierare dieci giocatrici idonee cede la partita 28-0 invece di giocare con una rosa ridotta all'osso. Le schede giocatore reggono meglio i ricaricamenti, e le rose della seconda serie femminile indicano quali nomi sono inventati perché a nessuna giocatrice reale venga attribuito un evento fittizio.
+</it-IT>
+<ja-JP>
+ユナイテッド・プロビンシズ・チャンピオンシップが実際の形式になった。全18節、うち6節は地域ダービーのホーム＆アウェー、各地で9試合。女子ゲームに世界選手権が加わった。2029年から4年ごとに16か国、ランキングでシード分けされ、あなたの選手が招集され、世界タイトルを争う。出場可能な選手を10人揃えられないクラブは、少人数で戦うのではなく28-0で不戦敗となる。選手記録は再読み込みに強くなり、女子2部の選手名簿はどの名前が架空かを明示するため、実在の選手に架空の出来事が割り当てられることはない。
+</ja-JP>
+```
+
+### What's new (500 max) - v1.6.3, Play version code 32
+
+The release-gate fixes (docs/release-audit-v1.6.2.md): the women's cup ties
+are yours to play, money is charged once, board injections carry over, the
+world stops inflating, and a leftover match can no longer replace a career.
+
+```
+<en-GB>
+Women's game: your Champions Cup quarter-final, semi-final and final no longer clash with a league weekend, so you coach every one of them. Money: moving cash into the transfer budget no longer charges you twice when you spend it, and a board injection stays in your transfer budget the following season instead of being swept by the board. Long careers: player development recalibrated so a ten-season world keeps its stars rare and its leagues apart. One renewal per player a season, a sold marquee player frees his slot, bids on released players are void, and the English top flight is ringfenced for 2026-27.
+</en-GB>
+<fr-FR>
+Jeu féminin : vos quart, demi et finale de Coupe des Champions ne tombent plus sur un week-end de championnat, vous dirigez chacun de ces matchs. Argent : transférer des fonds vers le budget de transferts ne vous fait plus payer deux fois, et une injection du conseil reste dans votre budget la saison suivante au lieu d'être reprise. Longues carrières : la progression des joueurs est recalibrée pour que, dix saisons plus tard, les stars restent rares et les divisions distinctes. Une prolongation par joueur et par saison, un joueur vedette vendu libère sa place, les offres pour un joueur libéré sont annulées, et l'élite anglaise est fermée pour 2026-27.
+</fr-FR>
+<es-ES>
+Juego femenino: tus cuartos, semifinal y final de la Copa de Campeones ya no coinciden con una jornada de liga, así que diriges todos esos partidos. Dinero: pasar efectivo al presupuesto de fichajes ya no te cobra dos veces al gastarlo, y una inyección de la directiva se mantiene en tu presupuesto la temporada siguiente en vez de ser retirada. Carreras largas: la progresión de los jugadores se ha recalibrado para que un mundo de diez temporadas conserve estrellas escasas y ligas diferenciadas. Una renovación por jugador y temporada, un jugador franquicia vendido libera su plaza, las ofertas por jugadores liberados quedan anuladas y la máxima categoría inglesa queda cerrada en 2026-27.
+</es-ES>
+<it-IT>
+Gioco femminile: quarti, semifinale e finale di Champions Cup non coincidono più con un turno di campionato, quindi alleni ogni partita. Denaro: spostare contanti nel budget trasferimenti non ti fa più pagare due volte quando lo spendi, e un'iniezione del consiglio resta nel budget della stagione successiva invece di essere ritirata. Carriere lunghe: la crescita dei giocatori è stata ricalibrata perché dopo dieci stagioni le stelle restino rare e i campionati distinti. Un rinnovo per giocatore a stagione, un giocatore di punta venduto libera il suo posto, le offerte per giocatori svincolati decadono e la massima serie inglese è chiusa per il 2026-27.
+</it-IT>
+<ja-JP>
+女子ゲーム：チャンピオンズカップの準々決勝、準決勝、決勝がリーグ戦の週末と重ならなくなり、すべての試合を自分で指揮できる。資金：移籍予算へ資金を移しても使う際に二重に引かれなくなり、ボードからの資金注入は翌シーズンも移籍予算に残る。長期キャリア：10シーズン後もスター選手が希少でリーグ間の差が保たれるよう、選手の成長を再調整した。契約延長はシーズンに選手一人につき一回、売却したマーキー選手の枠は解放され、放出した選手への入札は無効になり、イングランド最上位リーグは2026-27年は昇降格なしとなる。
+</ja-JP>
+```
+
 ### What's new (500 max) - v1.6.2, Play version code 31
 
 Back goes back, tapping stops waiting on a five-megabyte save, and purchases

@@ -362,6 +362,26 @@ export function lineupFor(state: GameState, teamId: string): (number | null)[] {
   if (club && !Array.isArray(club.tactic?.lineup)) {
     club.tactic.lineup = Array.from({ length: 23 }, () => null)
   }
+  // The same man in two shirts is one man. A hand-edited or damaged sheet with
+  // a player at 4 and at 21 went through every check below (each shirt was
+  // filled, each wearer fit) and onto the pitch, where frontRowCover counted
+  // him twice (scripts/qa/banned.ts, 1.6.5). The second shirt is emptied here
+  // and the tidy-up below fills it like any other gap.
+  // Only when there IS a duplicate: a clean manager-picked sheet comes back
+  // by reference, untouched (scripts/absentprobe.ts relies on that).
+  if (club) {
+    const seen = new Set<number>()
+    let dup = false
+    for (const id of club.tactic.lineup) { if (id != null) { if (seen.has(id)) dup = true; seen.add(id) } }
+    if (dup) {
+      seen.clear()
+      club.tactic.lineup = club.tactic.lineup.map(id => {
+        if (id == null || seen.has(id)) return null
+        seen.add(id)
+        return id
+      })
+    }
+  }
   const isNation = !club
   if (isNation && state.natLineup && state.natLineup.team === teamId) {
     const lu = state.natLineup.lineup
@@ -1267,6 +1287,10 @@ const CON_LINES = [
   'comm.con7',
   'comm.con8',
 ]
+/** try lines that put the ball under the posts, and conversion lines that
+ *  put the kicker on the touchline: the two never follow each other */
+const UNDER_POSTS = new Set(['comm.try5', 'comm.try21'])
+const TOUCHLINE_CON = new Set(['comm.con3', 'comm.con8'])
 const FLAVOR_GRASSROOTS = [
   'comm.flavGrass1',
   'comm.flavGrass2',
@@ -2027,8 +2051,12 @@ function scoreTry(
   const tryPool = derbyTry ? TRY_LINES_DERBY : wetTry ? TRY_LINES_WET : TRY_LINES
   // `line` is a set-piece strike's own wording, already a key, and it wins
   // when the caller supplied one.
+  let tryKey = line ?? 'comm.tryPackDrive'
   if (line) pushLine(state, ctx, min, 'TRY', side, line, lineV, scorer?.id)
-  else if (scorer) pushLine(state, ctx, min, 'TRY', side, tryPool[Math.floor(rng() * tryPool.length)], { player: scorer.name }, scorer.id)
+  else if (scorer) {
+    tryKey = tryPool[Math.floor(rng() * tryPool.length)]
+    pushLine(state, ctx, min, 'TRY', side, tryKey, { player: scorer.name }, scorer.id)
+  }
   else pushLine(state, ctx, min, 'TRY', side, 'comm.tryPackDrive')
   const cTries = scorer ? scorer.career.reduce((s, c) => s + c.tries, 0) + scorer.stats.tries + (scorer.hist?.tries ?? 0) : 0
   if (scorer && ctx.detail && [25, 50, 75, 100].includes(cTries)) {
@@ -2055,7 +2083,14 @@ function scoreTry(
   if (rng() < pCon) {
     side.score += 2
     if (kicker) { kicker.stats.cons += 1; kicker.stats.points += 2 }
-    pushLine(state, ctx, min + 1, 'CON', side, CON_LINES[Math.floor(rng() * CON_LINES.length)],
+    // A TRY UNDER THE POSTS IS NOT CONVERTED FROM THE TOUCHLINE (1.6.3). The
+    // conversion line was drawn without looking at the try line, and thirteen
+    // times in 224 matches "dives under the posts" was followed by "converts
+    // from the touchline" (scripts/qa/whistle.ts). Same shape as PEN_WET: a
+    // swap after the draw, so the stream and the fingerprint are untouched.
+    let conKey = CON_LINES[Math.floor(rng() * CON_LINES.length)]
+    if (UNDER_POSTS.has(tryKey) && TOUCHLINE_CON.has(conKey)) conKey = 'comm.con4'
+    pushLine(state, ctx, min + 1, 'CON', side, conKey,
       { player: kicker?.name ?? tIn('en', 'comm.theKicker') }, kicker?.id)
   } else {
     pushLine(state, ctx, min + 1, 'SUB', side, 'comm.conWide')
@@ -2114,6 +2149,19 @@ export function resolveDecision(state: GameState, ctx: LiveCtx, choice: 'posts' 
     const whistleMin = ctx.events[whistleAt]?.min ?? d.min
     for (const e of moved) e.min = Math.min(e.min, whistleMin)
     ctx.events.splice(whistleAt, 0, ...moved)
+    // AND THE WHISTLE LINE SAYS THE SCORE THE KICK LEFT (1.6.3). It was stamped
+    // when the half ended, before the answer, so its snapshot - which is what
+    // the scoreboard shows while the ticker rests on it - read three or seven
+    // short in every late-penalty half (scripts/qa/whistle.ts: 26 of 26).
+    const whistle = ctx.events[whistleAt + moved.length]
+    if (whistle && (whistle.type === 'HT' || whistle.type === 'FT')) {
+      whistle.homeScore = ctx.home.score
+      whistle.awayScore = ctx.away.score
+      if (whistle.k && whistle.v) {
+        whistle.v = { ...whistle.v, hs: ctx.home.score, ascore: ctx.away.score }
+        whistle.text = tIn('en', whistle.k, whistle.v)
+      }
+    }
   }
   // A KICK ANSWERED AFTER THE FINAL WHISTLE CHANGES THE RESULT.
   //
@@ -2149,6 +2197,9 @@ function syncResult(ctx: LiveCtx) {
   if (ft?.v) {
     ft.v = { ...ft.v, hs: home.score, ascore: away.score }
     ft.text = tIn('en', 'comm.fullTime', ft.v)
+    // the snapshot the scoreboard reads at the last line, not only the words
+    ft.homeScore = home.score
+    ft.awayScore = away.score
   }
 }
 
@@ -2674,6 +2725,9 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       const ps = ids.map(id => state.players[id]).filter(Boolean)
       if (ps.length) {
         const p = wpick(rng, ps, ps.map(x => x.a.agg))
+        // A RED CARD IS FOR THE MATCH (owner, 16 Sep 2026): the elite game is
+        // trialling a twenty-minute replacement, and this engine keeps the
+        // permanent sending-off by decision, not by omission (RED-CARD-01).
         if (rng() < 0.06) {
           side.sent += 1
           side.onPitch.delete(p.id)
@@ -3134,6 +3188,12 @@ export function makeSubstitution(state: GameState, ctx: LiveCtx, outId: number, 
   // against the men the card accounted for.
   if (!mine.onPitch.has(outId)) return t('touch.notOnPitch')
   if (!pin || pin.injury || (mine.ratings.has(inId) && mine.onPitch.has(inId))) return t('touch.notAvailable')
+  // only a man on the bench, and only one who is allowed to play (1.6.3: the
+  // call accepted any id, so a suspended man or a man not in the 23 could come
+  // on if a caller named him, scripts/qa/banned.ts)
+  // (a Test side's whole bench is on national duty by definition, so the
+  // call-up check only applies when the side being coached is a club)
+  if (slotIn < 15 || pin.bans > 0 || (pin.natSquad && !!state.clubs[mine.teamId])) return t('touch.notAvailable')
   mine.lineup[slotOut] = inId
   if (slotIn >= 0) mine.lineup[slotIn] = outId
   mine.onPitch.delete(outId)
@@ -3754,7 +3814,63 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
 }
 
 /** Simulate a full match in one go (AI fixtures, tests, quick sims). */
+/**
+ * ---- THE WALKOVER (1.6.4) ----
+ *
+ * A club that cannot put ten fit players on the field forfeits: the match is
+ * awarded 28-0 with four tries, the losing side gets nothing. The engine used
+ * to play on with three men and lose 0-82 (scripts/qa/edge.ts), which no
+ * competition on earth would let happen. Ten is the owner's line. Test sides
+ * never forfeit - a nation always finds fifteen - and if both clubs are short
+ * the fixture is scratched as a 0-0 draw with no bonus points.
+ */
+export const FORFEIT_MIN = 10
+export const FORFEIT_SCORE = 28
+export const FORFEIT_TRIES = 4
+
+export function forfeitSide(state: GameState, fx: Fixture): 'home' | 'away' | 'both' | null {
+  const short = (teamId: string) => {
+    const club = state.clubs[teamId]
+    if (!club) return false
+    // academy men count: a club short of seniors drafts them, as the team
+    // sheet already does
+    return availablePlayers(state, club.players).length < FORFEIT_MIN
+  }
+  const h = short(fx.homeId), a = short(fx.awayId)
+  return h && a ? 'both' : h ? 'home' : a ? 'away' : null
+}
+
+export function settleForfeit(state: GameState, fx: Fixture, side: 'home' | 'away' | 'both'): SimResult {
+  const winner = side === 'home' ? fx.awayId : side === 'away' ? fx.homeId : null
+  const loser = side === 'home' ? fx.homeId : side === 'away' ? fx.awayId : null
+  fx.played = true
+  fx.homeScore = winner === fx.homeId ? FORFEIT_SCORE : 0
+  fx.awayScore = winner === fx.awayId ? FORFEIT_SCORE : 0
+  fx.homeTries = winner === fx.homeId ? FORFEIT_TRIES : 0
+  fx.awayTries = winner === fx.awayId ? FORFEIT_TRIES : 0
+  const v = {
+    loser: loser ? teamShort(state, loser) : teamShort(state, fx.homeId),
+    winner: winner ? teamShort(state, winner) : teamShort(state, fx.awayId),
+  }
+  const events: MatchEvent[] = [{
+    min: 0, type: 'FT', teamId: winner ?? fx.homeId, text: tIn('en', 'comm.forfeit', v), k: 'comm.forfeit', v,
+    homeScore: fx.homeScore, awayScore: fx.awayScore,
+  } as unknown as MatchEvent]
+  const mine = fx.homeId === state.userClubId || fx.awayId === state.userClubId
+  if (mine) {
+    fx.events = events
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+      subject: tIn('en', 'news.forfeitSubj', v), body: tIn('en', 'news.forfeit', v),
+      k: 'news.forfeit', v,
+    })
+  }
+  return { events, motmId: null }
+}
+
 export function simMatch(state: GameState, fx: Fixture, rng: Rng, detail: boolean): SimResult {
+  const forfeit = forfeitSide(state, fx)
+  if (forfeit) return settleForfeit(state, fx, forfeit)
   const ctx = beginMatch(state, fx, rng, detail)
   playHalf(state, ctx)
   playHalf(state, ctx)

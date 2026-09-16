@@ -32,6 +32,10 @@ export default function Finances() {
   const [diaryMsg, setDiaryMsg] = useState<string | null>(null)
   const rewardTown = useStore(s => s.rewardTown)
   const [askMsg, setAskMsg] = useState<string | null>(null)
+  // five earners by default: ten rows was a screenful on a phone (scrollaudit)
+  const [allEarners, setAllEarners] = useState(false)
+  // the ledger opens on its bottom line; the six lines behind it are a tap away
+  const [ledgerOpen, setLedgerOpen] = useState(false)
   const [relMsg, setRelMsg] = useState<string | null>(null)
   /** where the treasury slider is sitting; 0 means "not touched yet", which
    *  falls back to one step so the control is useful before it is dragged */
@@ -165,12 +169,14 @@ export default function Finances() {
               {/* F30 split these: the deals are yours to sell, the central money
                   arrives regardless, and showing them as one line again would
                   hide the hole an unsold slot leaves. */}
-              {line(t('finances.lgCommercialDeals'), deals, t('finances.lgSlotsSold', { n: SLOTS.filter(x => game.deals?.[x.id]).length }))}
-              {line(t('finances.lgBroadcast'), central)}
-              {shop > 0 && line(t('finances.lgShop'), shop, t('finances.lgShopLevel', { n: shopLvl }))}
-              {line(t('finances.lgWages'), -wages, t('finances.lgMen', { n: club.players.length }))}
-              {line(t('finances.lgStaff'), -staff)}
-              {line(t('finances.lgUpkeep'), -upkeep)}
+              {ledgerOpen && <>
+                {line(t('finances.lgCommercialDeals'), deals, t('finances.lgSlotsSold', { n: SLOTS.filter(x => game.deals?.[x.id]).length }))}
+                {line(t('finances.lgBroadcast'), central)}
+                {shop > 0 && line(t('finances.lgShop'), shop, t('finances.lgShopLevel', { n: shopLvl }))}
+                {line(t('finances.lgWages'), -wages, t('finances.lgMen', { n: club.players.length }))}
+                {line(t('finances.lgStaff'), -staff)}
+                {line(t('finances.lgUpkeep'), -upkeep)}
+              </>}
               <div className="ledger-row total">
                 <span className="lg-what">{t('finances.lgTotal')}</span>
                 <span className="lg-amt" style={{ color: net >= 0 ? 'var(--text-positive)' : 'var(--text-negative)' }}>
@@ -181,6 +187,10 @@ export default function Finances() {
                 {homeGate > 0 ? t('finances.gateNote', { amount: fmtMoney(homeGate) }) : t('finances.gateNoteNone')}
                 {' '}{t(net >= 0 ? 'finances.paysItsWay' : 'finances.losesMoney')}
               </div>
+              {/* a full-width row, not an inline chip: the tap floor is 44px (tapsize, geosweep) */}
+              <button className="btn ghost block" style={{ marginTop: 6 }} onClick={() => setLedgerOpen(v => !v)}>
+                {t(ledgerOpen ? 'finances.hideLedgerLines' : 'finances.showLedgerLines')}
+              </button>
             </>
           )
         })()}
@@ -189,7 +199,7 @@ export default function Finances() {
       <div className="tblwrap"><table className="dtable">
         <thead><tr><th>{t('squad.colName')}</th><th className="num">{t('finances.colWage')}</th><th className="num">{t('squad.colUntil')}</th><th className="num">{t('squad.colValue')}</th></tr></thead>
         <tbody>
-          {topEarners.map(p => (
+          {(allEarners ? topEarners : topEarners.slice(0, 5)).map(p => (
             <tr key={p.id}>
               <td className="name">{p.name}</td>
               <td className="num">{fmtWage(p.wage)}</td>
@@ -199,27 +209,11 @@ export default function Finances() {
           ))}
         </tbody>
       </table></div>
-      {askMsg && <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>{askMsg}</div>}
-      {rewardedAvailable('collection') && canTownCollection(game) && (
-        <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-          <h3 style={{ fontSize: 14 }}>{t('till.townTitle')}</h3>
-          <div className="meta">{t('till.townBody')}</div>
-          <RewardedButton place="collection" label={t('till.watchTown')} style={{ marginTop: 6 }}
-            onDone={out => {
-              if (out === 'completed') {
-                const amt = rewardTown()
-                setAskMsg(amt != null ? t('till.townDone', { amount: fmtMoney(amt) }) : t('till.favourGone'))
-              } else setAskMsg(t(out === 'skipped' ? 'till.spotSkipped' : 'till.spotUnavailable'))
-            }} />
-        </div>
+      {topEarners.length > 5 && (
+        <button className="btn ghost block" onClick={() => setAllEarners(v => !v)}>
+          {t(allEarners ? 'finances.showFewerEarners' : 'finances.showAllEarners', { n: topEarners.length })}
+        </button>
       )}
-      <button className="btn ghost block" disabled={asked} onClick={() => {
-        if (asked) return
-        setAskMsg(requestFunds(game))
-        touch()
-      }}>
-        {t(asked ? 'finances.askedThisSeason' : 'finances.askBoard')}
-      </button>
       {/* THE TREASURY (user: "should be able to transfer balance into
           transfer money"). The button and the engine read one predicate
           (releaseBlock), so when the move is off the button says why - the
@@ -462,6 +456,31 @@ export default function Finances() {
         )
       })()}
       {ftab === 'board' && <>
+      {/* asking the board for transfer funds is a boardroom matter, and it
+          lived on the money tab, which was the deepest page in the game
+          (scrollaudit, 3.3 screenfuls); the ask and the town collection sit
+          with the objectives and the confidence now (1.6.5) */}
+      {askMsg && <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>{askMsg}</div>}
+      {rewardedAvailable('collection') && canTownCollection(game) && (
+        <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+          <h3 style={{ fontSize: 14 }}>{t('till.townTitle')}</h3>
+          <div className="meta">{t('till.townBody')}</div>
+          <RewardedButton place="collection" label={t('till.watchTown')} style={{ marginTop: 6 }}
+            onDone={out => {
+              if (out === 'completed') {
+                const amt = rewardTown()
+                setAskMsg(amt != null ? t('till.townDone', { amount: fmtMoney(amt) }) : t('till.favourGone'))
+              } else setAskMsg(t(out === 'skipped' ? 'till.spotSkipped' : 'till.spotUnavailable'))
+            }} />
+        </div>
+      )}
+      <button className="btn ghost block" disabled={asked} onClick={() => {
+        if (asked) return
+        setAskMsg(requestFunds(game))
+        touch()
+      }}>
+        {t(asked ? 'finances.askedThisSeason' : 'finances.askBoard')}
+      </button>
       <SectionTitle>{t('finances.seasonObjectives')}</SectionTitle>
       <div className="card" style={{ marginTop: 6 }}>
         <h3 style={{ fontSize: 15 }}>{t('finances.boardExpects', { objective: t(boardObjective(club.rep).text) })}</h3>

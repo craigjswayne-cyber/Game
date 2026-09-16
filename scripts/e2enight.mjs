@@ -128,7 +128,7 @@ try {
   await shot('06c2-transfers-filtered')
   // commissioned scouting lives on the Shortlist tab
   await page.click('.tab-bar >> text=Shortlist')
-  await page.waitForSelector('text=Commissioned Search')
+  await page.waitForSelector('.section-title >> text=Scouting') // the heading is t('transfers.commissionedSearch'), which reads "Scouting" now
   await shot('06c3-commission')
 
   // tables
@@ -289,9 +289,14 @@ try {
 } catch (e) {
   await shot('99-failure')
   console.error('NIGHT QA FAILED:', e.message)
+  // QA-GATE-01 (1.6.5): a caught failure used to be followed by exit(0) in
+  // finally, so the harness reported success. The failure sets the exit code
+  // and finally exits WITH it.
+  process.exitCode = 1
 } finally {
   console.log('console errors:', errors.length ? errors.slice(0, 10) : 'none')
+  if (errors.length) process.exitCode = 1
   await browser.close()
   server.stop()
-  process.exit(0)
+  process.exit(process.exitCode ?? 0)
 }

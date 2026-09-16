@@ -6,7 +6,7 @@ import { simMatch } from '../src/game/matchEngine'
 import { answerPress } from '../src/game/media'
 import { cottonWool, specialistConsult } from '../src/game/medical'
 import { ROLE_BY_ID, rolesForSlot } from '../src/game/roles'
-import { FACILITY_INFO, MAX_FACILITY, SEASON_WEEKS, demandCeiling, oldBoyApps, type FacilityId, type GameState } from '../src/game/model'
+import { FACILITY_INFO, MAX_FACILITY, SEASON_WEEKS, demandCeiling, oldBoyApps, stamp100, weeksBetween100, type FacilityId, type GameState } from '../src/game/model'
 import { appointStaff, sendToCourse, type StaffRole } from '../src/game/staff'
 import { commissionScout } from '../src/game/commission'
 import { analystRead } from '../src/game/analyst'
@@ -201,7 +201,7 @@ function audit(g: GameState, tag: string) {
   if (g.commission) {
     const c = g.commission
     if (![3, 6, 9].includes(c.months)) bad(`${tag} commission of ${c.months} months`)
-    if (c.done > g.season * 100 + g.week + 40) bad(`${tag} commission finishing too far out (${c.done})`)
+    if (weeksBetween100(c.done, stamp100(g)) > 40) bad(`${tag} commission finishing too far out (${c.done})`)
     if (!(c.fee > 0)) bad(`${tag} commission with no fee`)
     if (c.leagueId && !g.comps[c.leagueId]) bad(`${tag} commission points at missing league ${c.leagueId}`)
   }

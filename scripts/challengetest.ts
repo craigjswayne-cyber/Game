@@ -44,6 +44,7 @@ const bad = (msg: string) => { fails++; console.error(`CHALLENGE FAIL: ${msg}`) 
 }
 
 for (const ch of CHALLENGES) {
+  let sawComplete = false
   // the women's four are pinned to women's clubs, which only exist in the
   // women's world - newGame built with the default 'm' has no such club and
   // dies inside seedKnowledge with an undefined club rather than a message
@@ -58,6 +59,9 @@ for (const ch of CHALLENGES) {
       // the audit measures the world, not the sack race
       g.clubs[g.userClubId].boardConfidence = Math.max(60, g.clubs[g.userClubId].boardConfidence)
       processWeekAndAdvance(g)
+      // seen as it lands: the inbox is capped at 250 stories, and a challenge
+      // completed in the first season is gone from g.news by the second summer
+      if (g.news.some(n => n.subject.includes('CHALLENGE COMPLETE'))) sawComplete = true
     }
   }
   const done = (g.challengesDone ?? []).includes(ch.id)
@@ -86,7 +90,7 @@ for (const ch of CHALLENGES) {
       : false
     if (!legit) bad(`${ch.id} completed without its condition holding`)
     if (g.challenge) bad(`${ch.id} done but still live`)
-    if (!g.news.some(n => n.subject.includes('CHALLENGE COMPLETE'))) bad(`${ch.id} completed silently`)
+    if (!sawComplete) bad(`${ch.id} completed silently`)
   } else if (g.challenge !== ch.id) {
     bad(`${ch.id} neither live nor done after two seasons`)
   }

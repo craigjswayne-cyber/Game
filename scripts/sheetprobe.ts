@@ -137,7 +137,10 @@ for (const [club, seed] of [['harlequins', 12345], ['northampton', 777], ['bath'
   const auto = autoSelect(g, pool)
   // put a flanker in the number eight shirt with a real eight left out
   const eight = pool.find((p: Player) => p.pos === 'N8' && !auto.slice(0, 15).includes(p.id))
-  const flanker = pool.find((p: Player) => p.pos === 'FL')
+  // a flanker NOT already on the sheet: the same man in two shirts is a
+  // duplicate that lineupFor now empties (1.6.5, SHEET-01), which is not the
+  // out-of-position pick this probe is about
+  const flanker = pool.find((p: Player) => p.pos === 'FL' && !auto.includes(p.id))
   if (eight && flanker) {
     const lu = [...auto]
     const n8Slot = XV_SLOTS.findIndex(s => s.pos === 'N8')

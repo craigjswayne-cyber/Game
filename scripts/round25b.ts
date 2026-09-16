@@ -146,9 +146,14 @@ console.log('\none full season, watched:\n')
   let qfChecked = false
   let qfClash: string | null = null
   const pulseWeeks: { week: number; subject: string }[] = []
+  // collected as they land: the inbox is capped at 250 stories, so a week-2
+  // meeting is gone from g.news by the summer (1.6.3 fixed the probe, not
+  // the meeting - it was always filed and always tagged)
+  const meetingsSeen = new Map<number, { tag?: string }>()
   let guard = 0
   while (g.season === start && guard++ < 60) {
     processWeekAndAdvance(g)
+    for (const n of g.news) if (n.subject.includes('Recruitment meeting')) meetingsSeen.set(n.id, { tag: n.tag })
     if (g.season !== start) break
     // the Champions Cup quarters, the moment they exist
     if (!qfChecked) {
@@ -187,7 +192,7 @@ console.log('\none full season, watched:\n')
   ok(!backToBack, `the terrace speaks once per streak${backToBack ? ` (repeated in weeks ${backToBack.week - 1} and ${backToBack.week})` : ''}`)
 
   // the scouting department's mail carries its filing tag
-  const meetings = g.news.filter(n => n.subject.includes('Recruitment meeting'))
+  const meetings = [...meetingsSeen.values()]
   ok(meetings.length > 0 && meetings.every(n => n.tag === 'scout'), `recruitment meetings carry the scout tag (${meetings.length} seen)`)
 }
 

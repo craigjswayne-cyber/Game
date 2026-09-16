@@ -73,7 +73,9 @@ const clubs = Object.values(g.clubs)
   ok(done.length === l.fixtures.length, `the whole A League card is played (${done.length}/${l.fixtures.length})`)
   ok(l.table.every(r => r.p === done.length * 2 / l.table.length), 'and every side has played the same number')
 
-  const apps = academySquad(g, g.clubs['northampton']).map(p => p.stats.apps).sort((a, b) => b - a)
+  // A League games are academy appearances (stats.acadApps, AWARD-01, 1.6.5); a
+  // scholar who has also played senior rugby counts both
+  const apps = academySquad(g, g.clubs['northampton']).map(p => (p.stats.acadApps ?? 0) + p.stats.apps).sort((a, b) => b - a)
   const idle = apps.filter(a => a === 0).length
   console.log(`user academy apps: max ${apps[0]}, median ${apps[Math.floor(apps.length / 2)]}, none ${idle}`)
   ok(idle <= 2, 'the coach rotates: at most a couple of scholars go a season without a game')

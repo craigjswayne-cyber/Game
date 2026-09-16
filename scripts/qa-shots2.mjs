@@ -54,10 +54,15 @@ try {
   await shot('t4-pnc')
 } catch (e) {
   console.log('FAILED:', String(e).slice(0, 200))
+  // QA-GATE-01 (1.6.5): a caught failure used to be followed by exit(0) in
+  // finally, so the harness reported success. The failure sets the exit code
+  // and finally exits WITH it.
+  process.exitCode = 1
   await shot('fail')
 } finally {
   console.log('errors:', errors.length ? errors : 'none')
+  if (errors.length) process.exitCode = 1
   await browser.close()
   server.stop()
-  process.exit(0)
+  process.exit(process.exitCode ?? 0)
 }

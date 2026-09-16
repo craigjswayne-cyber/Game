@@ -1,6 +1,6 @@
 import { Fragment, useMemo, useState } from 'react'
 import { useStore } from '../../store'
-import { clubCode, fmtMoney, fmtWage, newsBody, newsSubject, POS_ORDER, weekDate, type Pos } from '../../game/model'
+import { clubCode, fmtMoney, fmtWage, newsBody, newsSubject, POS_ORDER, weekDate, type Pos, weeksBetween100 } from '../../game/model'
 import { counterIncomingOffer, renewalDemand, respondToOffer } from '../../game/ai'
 import { LOAN_LENGTHS, LOAN_SHARES, loanApproachable, loanIn, loanTargets, type LoanLength } from '../../game/loans'
 import { fuzzedCa, knowledge } from '../../game/scout'
@@ -489,7 +489,7 @@ function ScoutCommission() {
   const man = game.staffPeople?.scout
   const tier = game.staff.scout ?? 0
   const out = game.commission
-  const weeksLeft = out ? Math.max(1, out.done - abs) : 0
+  const weeksLeft = out ? Math.max(1, weeksBetween100(out.done, abs)) : 0
   const finds = game.scoutFinds ?? []
   return (
     <>
