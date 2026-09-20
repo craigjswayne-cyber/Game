@@ -1,0 +1,533 @@
+/* ==================================================================
+   PHASE: the design system - scale, and the primitives built on it.
+
+   ---- WHY THIS FILE EXISTS ----
+
+   theme.css is 4,300 lines and its section headers are feedback tickets:
+   "feedback 92", "blocker A4", "the sticky column header was never sticky".
+   It is a changelog of fixes rather than a composed system, and that is the
+   structural reason the game reads as assembled rather than designed. It
+   still holds every screen up, so it is not being rewritten; it is being
+   STOPPED. Nothing new goes into it from 1.8.0 onwards. Each redesign phase
+   moves a screen off theme.css and onto this file, and theme.css shrinks.
+
+   ---- THE THREE LAYERS, IN IMPORT ORDER ----
+
+     tokens.css   colour, and only colour. Two modes, four skins, one hex
+                  file, enforced by scripts/tokenlint.ts. Untouched here.
+     theme.css    the legacy screen styles. Shrinking.
+     system.css   THIS FILE. Everything that is not colour and not legacy:
+                  the type scale, the spacing grid, radius, elevation,
+                  motion, and the primitives in src/ui/primitives.tsx.
+
+   It loads LAST so its :root block wins the cascade against theme.css's,
+   which is how --serif and --cond are re-pointed at the display face below
+   without editing sixty-three call sites.
+
+   ---- THE RULE THIS FILE ENFORCES ----
+
+   No screen invents a size, a gap, a radius, a shadow or a duration. It
+   picks one from here. scripts/tokenlint.ts ratchets this: the inline-style
+   count per file may fall and may never rise.
+   ================================================================== */
+
+/* ---- THE DISPLAY FACE ----
+ *
+ * Barlow Condensed, self-hosted, latin subset, two weights (42 KB total).
+ * Same doctrine as Space Grotesk: this is an offline-first PWA and a Google
+ * Fonts request would break the first launch on a plane.
+ *
+ * WHY A SECOND FACE AT ALL. The game shipped --serif, --sans and --cond all
+ * resolving to Space Grotesk, so display, heading, label and body were one
+ * typeface separated only by weight, uppercase and letter-spacing. That is
+ * why every label on every screen looked the same and why hierarchy had to
+ * be carried by colour and borders instead. A condensed face is the cheapest
+ * real hierarchy there is: it differs by WIDTH, which reads instantly at any
+ * size, and it buys back horizontal room on a phone where a score, a rating
+ * or a club name is fighting for it.
+ *
+ * TWO WEIGHTS, and the split is by job rather than by taste. 800 is for
+ * figures and mastheads - a scoreline, a player rating, MONDAY on the day
+ * bulletin. 700 is for the label tier: tab bars, table headers, section
+ * overlines. One weight would have made the labels shout or the numbers
+ * whisper.
+ */
+@font-face {
+  font-family: 'Barlow Condensed';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  /* relative, so Vite hashes it and rewrites the URL for the ./ base that
+     GitHub Pages needs - an absolute /fonts/ path 404s under /Game/ */
+  src: url('./fonts/barlow-condensed-latin-700.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC,
+    U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Barlow Condensed';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url('./fonts/barlow-condensed-latin-800.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC,
+    U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  /* ---- TYPE ----
+   *
+   * Two faces, three jobs. --display carries identity, --sans carries
+   * language, and numerals are --sans with tabular figures (set on body in
+   * theme.css, because every number in this game sits in a column beside
+   * another number).
+   */
+  --display: 'Barlow Condensed', 'Arial Narrow', 'Helvetica Neue Condensed', sans-serif;
+
+  /* THE OLD ALIASES, RE-POINTED RATHER THAN REMOVED.
+   *
+   * --serif (7 uses) and --cond (56 uses) both resolved to Space Grotesk, so
+   * they were decoration rather than roles. They are now the display face,
+   * which means the mastheads, section titles, tab labels, table headers and
+   * the day bulletin's weekday all pick up Barlow with no edit at the call
+   * site. They stay as aliases rather than being search-and-replaced because
+   * each of those 63 sites is getting restyled properly in its own phase, and
+   * doing it twice is how a migration stalls.
+   *
+   * --sans is untouched: body text stays Space Grotesk. */
+  --serif: var(--display);
+  --cond: var(--display);
+
+  /* ---- THE TYPE SCALE ----
+   *
+   * Eight steps. The game shipped fourteen inline sizes in half-pixel
+   * increments (10, 10.5, 11, 11.5, 12, 12.5, 13, 13.5, 14, 15, 16, 19, 20,
+   * 22) which is not a scale, it is an argument nobody settled. These are a
+   * ~1.22 ratio rounded to whole pixels, because a half pixel is a rendering
+   * accident on one device and a hinting difference on another.
+   *
+   * 12 is the floor: below that no label is legible on a phone at arm's
+   * length, and the 10.5px metadata the old screens used is the single
+   * biggest reason they read as dense rather than considered. */
+  --fs-12: 12px;   /* overline, badge, the smallest a label may be */
+  --fs-13: 13px;   /* metadata, table cells */
+  --fs-15: 15px;   /* body - the default */
+  --fs-17: 17px;   /* lead body, list titles */
+  --fs-20: 20px;   /* section title */
+  --fs-26: 26px;   /* screen title, tile value */
+  --fs-34: 34px;   /* hero figure */
+  --fs-46: 46px;   /* the scoreline, the big rating, MONDAY */
+
+  /* Line heights, by job rather than by number: tight for display, open for
+     reading. A display face set at body leading looks unfinished. */
+  --lh-tight: 1.02;
+  --lh-snug: 1.2;
+  --lh-body: 1.45;
+
+  /* ---- SPACING ----
+   * A 4pt grid. Every margin, padding and gap comes from here. */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+  --sp-8: 64px;
+  /* the gutter a screen's content sits inside, one value so every screen
+     lines up with every other screen */
+  --gutter: 14px;
+
+  /* ---- RADIUS ----
+   * Three values, by object size. The game shipped 6, 8, 10, 12 and 16 with
+   * no rule, so a chip and a modal could share a corner. */
+  --r-chip: 4px;    /* chips, badges, pills, inputs */
+  --r-panel: 10px;  /* panels, tiles, cards */
+  --r-sheet: 16px;  /* sheets, modals, the things that interrupt */
+
+  /* ---- ELEVATION ----
+   *
+   * Rule 5 of the colour system: elevation is surface lightness, never
+   * shadow. There is exactly ONE shadow in the design and it belongs to the
+   * things that float above the page rather than sit on it.
+   *
+   * ---- AND THE DAYLIGHT CAVEAT, FOUND BY scripts/systemqa.ts ----
+   *
+   * The ramp is three steps at night (#242b29 -> #2e3634 -> #384240) and TWO
+   * in daylight, because every daylight variant sets --surface-1 and
+   * --surface-3 to the same white:
+   *
+   *     day            #ffffff  #e8ede9  #ffffff
+   *     day midnight   #FFFFFF  #E1E8F2  #FFFFFF
+   *     day tour       #FFFCFC  #F2E4E6  #FFFCFC
+   *     day heritage   #FFFDF8  #EBE6DA  #FFFDF8
+   *     day stealth    #FFFFFF  #E6E6E9  #FFFFFF
+   *
+   * So anything drawn on --surface-3 inside a --surface-1 panel is INVISIBLE
+   * in daylight: the first cut of this file put secondary buttons, tiles,
+   * chips and the meter track on surface-3 and all four vanished. The QA
+   * sheet caught it side by side, which is what it is for.
+   *
+   * THE SYSTEM'S RULE, therefore: a nested object sits on --surface-2, never
+   * --surface-3. At night that is a step lighter than its ground and reads as
+   * raised; in daylight it is a step darker and reads as recessed. Both read
+   * as a distinct object, which is the only thing elevation has to do.
+   * Pressed states mix toward --text-primary rather than stepping the ramp,
+   * so they darken in daylight and lighten at night from wherever they start.
+   *
+   * Collapsing the daylight ramp back to three genuine steps is a change to
+   * tokens.css, and tokens.css has a contrast audit and a probe of its own.
+   * It belongs to the daylight pass, not to this one. */
+  --shadow-sheet: 0 12px 40px rgba(0, 0, 0, .45);
+  /* the pressed nudge: toward the ink, whichever direction that is */
+  --press: color-mix(in srgb, var(--surface-2) 88%, var(--text-primary));
+
+  /* ---- MOTION ----
+   *
+   * Three durations and one curve. The game had 37 keyframes and 13
+   * transitions with a duration typed at each site.
+   *
+   * The curve is a fast-out, slow-in with a long tail: it leaves immediately
+   * (so a tap feels answered) and settles slowly (so nothing snaps). The
+   * spring is for sheets only, where a little overshoot reads as physical.
+   *
+   * prefers-reduced-motion collapses all three to zero at the foot of this
+   * file, which is how scripts/motionprobe.mjs holds the line. */
+  --dur-fast: 120ms;  /* state change on a control: press, select, toggle */
+  --dur: 200ms;       /* the default - tabs, fades, reveals */
+  --dur-slow: 320ms;  /* something arriving or leaving: sheets, screens */
+  --ease: cubic-bezier(.2, .7, .2, 1);
+  --spring: cubic-bezier(.2, .9, .3, 1.1);
+}
+
+/* ==================================================================
+   TEXT
+   Roles, not sizes. A screen asks for `role="overline"`, never for 11px
+   uppercase with 1.5px of tracking, which is what 93 fact-labels and 358
+   metas were each doing by hand.
+   ================================================================== */
+.t {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: var(--fs-15);
+  line-height: var(--lh-body);
+  color: var(--text-primary);
+}
+/* THE DISPLAY TIER. Condensed, tight, and never used for anything a player
+   has to read a sentence of. */
+.t-hero {
+  font-family: var(--display); font-weight: 800;
+  font-size: var(--fs-46); line-height: var(--lh-tight);
+  letter-spacing: .005em;
+}
+.t-figure {
+  font-family: var(--display); font-weight: 800;
+  font-size: var(--fs-34); line-height: var(--lh-tight);
+  font-variant-numeric: tabular-nums;
+}
+.t-title {
+  font-family: var(--display); font-weight: 800;
+  font-size: var(--fs-26); line-height: var(--lh-snug);
+}
+.t-section {
+  font-family: var(--display); font-weight: 700;
+  font-size: var(--fs-20); line-height: var(--lh-snug);
+}
+/* THE LABEL TIER. Uppercase is reserved for `overline` alone - the game used
+   it for section titles, chip labels, tile heads, table headers and metadata
+   at once, which is most of why nothing looked more important than anything
+   else. */
+.t-overline {
+  font-family: var(--display); font-weight: 700;
+  font-size: var(--fs-12); line-height: var(--lh-snug);
+  letter-spacing: .09em; text-transform: uppercase;
+  color: var(--text-muted);
+}
+.t-label {
+  font-family: var(--sans); font-weight: 600;
+  font-size: var(--fs-13); line-height: var(--lh-snug);
+  color: var(--text-secondary);
+}
+/* THE READING TIER. */
+.t-lead { font-size: var(--fs-17); line-height: var(--lh-body); }
+.t-body { font-size: var(--fs-15); line-height: var(--lh-body); }
+.t-meta {
+  font-size: var(--fs-13); line-height: var(--lh-body);
+  color: var(--text-secondary);
+}
+.t-num { font-variant-numeric: tabular-nums; }
+/* Tone. Never used alone to carry meaning - rule 4 of the colour system and
+   the reason scripts/colourblind.ts exists. */
+.t-muted { color: var(--text-muted); }
+.t-pos { color: var(--primary); }
+.t-neg { color: var(--danger); }
+.t-val { color: var(--gold); }
+.t-info { color: var(--info); }
+
+/* ==================================================================
+   LAYOUT PRIMITIVES
+   A stack and a row, so a screen never writes flex by hand again.
+   ================================================================== */
+.stk { display: flex; flex-direction: column; }
+.inl { display: flex; flex-direction: row; align-items: center; }
+.inl-wrap { flex-wrap: wrap; }
+.g-1 { gap: var(--sp-1); } .g-2 { gap: var(--sp-2); } .g-3 { gap: var(--sp-3); }
+.g-4 { gap: var(--sp-4); } .g-5 { gap: var(--sp-5); } .g-6 { gap: var(--sp-6); }
+.grow { flex: 1; min-width: 0; }
+.pad { padding: 0 var(--gutter); }
+
+/* ==================================================================
+   BUTTON
+   Four intents, three sizes, five states. The legacy .btn stays in
+   theme.css for the screens that have not migrated; this is what they
+   migrate to.
+   ================================================================== */
+.b {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: var(--sp-2);
+  font-family: var(--sans); font-weight: 700;
+  border: none; border-radius: var(--r-chip);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease),
+              border-color var(--dur-fast) var(--ease),
+              transform var(--dur-fast) var(--ease),
+              opacity var(--dur-fast) var(--ease);
+  -webkit-tap-highlight-color: transparent;
+}
+/* SIZES. `md` is the default and clears 44px on its own; `sm` is for the
+   nineteen buttons that live inside live table rows, where 44 would undo the
+   density pass and shove the row about (scripts/tapsize.mjs holds those to a
+   narrower floor of their own). */
+.b-sm { min-height: 32px; padding: 0 var(--sp-3); font-size: var(--fs-13); }
+.b-md { min-height: 44px; padding: 0 var(--sp-4); font-size: var(--fs-15); }
+.b-lg { min-height: 52px; padding: 0 var(--sp-5); font-size: var(--fs-17); }
+.b-block { display: flex; width: 100%; }
+
+.b-primary { background: var(--primary); color: var(--on-primary); }
+.b-primary:active:not(:disabled) { background: var(--primary-pressed); }
+.b-secondary { background: var(--surface-2); color: var(--text-primary); }
+.b-secondary:active:not(:disabled) { background: var(--press); }
+.b-ghost {
+  background: transparent; color: var(--primary);
+  border: 1.5px solid color-mix(in srgb, var(--primary) 45%, transparent);
+}
+.b-ghost:active:not(:disabled) { background: var(--primary-tint); }
+.b-danger { background: var(--danger); color: var(--on-danger); }
+/* SELECTED IS NOT PRESSED. A segmented control's chosen option has to stay
+   visibly chosen after the finger leaves, and it may not be carried by
+   colour alone (colourblind.ts): the ring is the non-colour channel. */
+.b[aria-pressed='true'], .b-on {
+  background: var(--primary-tint); color: var(--text-primary);
+  box-shadow: inset 0 0 0 1.5px var(--primary);
+}
+.b:disabled { opacity: .38; cursor: default; }
+.b:active:not(:disabled) { transform: translateY(1px); }
+.b:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+/* LOADING keeps the button's width so the row does not jump, and hides the
+   label rather than replacing it - a spinner that resizes its own button is
+   how a layout flickers on every tap. */
+.b-loading { pointer-events: none; position: relative; }
+/* The label is hidden by VISIBILITY, not by colour. The first cut set
+   `color: transparent` on the button and the text still showed: the label is
+   a child, several intents set `color` on the button itself, and the one that
+   wins is a cascade race nobody should have to think about. visibility on a
+   wrapper is unambiguous and it hides an icon too. */
+.b-loading .b-lab { visibility: hidden; }
+.b-loading::after {
+  content: ''; position: absolute; width: 16px; height: 16px;
+  border: 2px solid currentColor; border-top-color: transparent;
+  border-radius: 50%; opacity: .9;
+  animation: b-spin 620ms linear infinite;
+  color: var(--text-primary);
+}
+.b-primary.b-loading::after { color: var(--on-primary); }
+@keyframes b-spin { to { transform: rotate(360deg); } }
+
+/* ==================================================================
+   SURFACES
+   Three of them, and the difference between them is what they are FOR.
+   The game had one (.card, 202 uses) doing all three jobs, which is why
+   a screen reads as a stack of equal-weight boxes: a grouping, a fact and
+   an interruption all arrived in the same container.
+   ================================================================== */
+/* PANEL groups related things. It is the quietest surface there is: one step
+   of lightness, no border, no shadow. */
+.panel {
+  background: var(--surface-1);
+  border-radius: var(--r-panel);
+  padding: var(--sp-4);
+}
+.panel-flush { padding: 0; overflow: hidden; }
+/* TILE is ONE FACT, and its whole job is to let a number be big. */
+.tile {
+  background: var(--surface-2);
+  border-radius: var(--r-panel);
+  padding: var(--sp-3) var(--sp-4);
+  display: flex; flex-direction: column; gap: var(--sp-1);
+  min-width: 0;
+}
+.tile-v {
+  font-family: var(--display); font-weight: 800;
+  font-size: var(--fs-26); line-height: var(--lh-tight);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+.tile-lg .tile-v { font-size: var(--fs-34); }
+/* THE DELTA IS THE ONLY GREEN THING. Rule 4: key figures render in
+   --text-primary and green appears on the change beside a number, never on
+   the number itself. The arrow is the non-colour channel. */
+.tile-d { font-size: var(--fs-13); font-weight: 700; }
+.tile-d.up { color: var(--primary); }
+.tile-d.down { color: var(--danger); }
+button.tile { text-align: left; border: none; cursor: pointer; font: inherit; }
+button.tile:active { background: var(--press); }
+
+/* ==================================================================
+   CHIP
+   A STATUS, never a fact. The game used chips to display values - "Value
+   £3.4m", "Wage £5.8k/wk", "Balance £2.1m" - which flattens every number to
+   the same weight and is why the player profile has no primary figure. Facts
+   are tiles or definition lists now; a chip says injured, listed, captain.
+   ================================================================== */
+.chip {
+  display: inline-flex; align-items: center; gap: var(--sp-1);
+  font-family: var(--sans); font-weight: 700; font-size: var(--fs-12);
+  line-height: 1;
+  padding: 5px var(--sp-2);
+  border-radius: var(--r-chip);
+  background: var(--surface-2); color: var(--text-secondary);
+  white-space: nowrap;
+}
+.chip-pos { background: var(--primary-tint); color: var(--primary); }
+.chip-val { background: var(--gold-tint); color: var(--gold); }
+.chip-neg { background: var(--danger-tint); color: var(--danger); }
+.chip-info { background: color-mix(in srgb, var(--info) 16%, transparent); color: var(--info); }
+
+/* ==================================================================
+   TABS
+   One row, an indicator that SLIDES rather than jumps, and a 44px floor.
+   ================================================================== */
+.tabs {
+  display: flex; overflow-x: auto; position: relative;
+  background: var(--surface-1);
+  border-bottom: 1px solid var(--border);
+  scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar { display: none; }
+.tabs button {
+  position: relative;
+  min-height: 44px; padding: var(--sp-3) var(--sp-4) var(--sp-2);
+  background: none; border: none; cursor: pointer;
+  font-family: var(--display); font-weight: 700; font-size: var(--fs-15);
+  letter-spacing: .06em; text-transform: uppercase;
+  color: var(--text-muted); white-space: nowrap;
+  transition: color var(--dur-fast) var(--ease);
+}
+.tabs button.on { color: var(--text-primary); }
+.tabs button::after {
+  content: ''; position: absolute; left: var(--sp-3); right: var(--sp-3); bottom: 0;
+  height: 2.5px; border-radius: 2px; background: var(--primary);
+  transform: scaleX(0); transform-origin: center;
+  transition: transform var(--dur) var(--ease);
+}
+.tabs button.on::after { transform: scaleX(1); }
+.tabs button:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
+
+/* ==================================================================
+   SHEET
+   The one thing that may cast a shadow, because it is the one thing that
+   is genuinely above the page.
+   ================================================================== */
+.sheet-veil {
+  position: fixed; inset: 0; z-index: 90;
+  background: var(--scrim);
+  display: flex; align-items: flex-end; justify-content: center;
+  animation: sheet-veil var(--dur) var(--ease);
+}
+.sheet {
+  width: 100%; max-width: 560px;
+  background: var(--surface-1);
+  border-radius: var(--r-sheet) var(--r-sheet) 0 0;
+  box-shadow: var(--shadow-sheet);
+  padding: var(--sp-3) var(--gutter) calc(var(--sp-5) + var(--safe-area-inset-bottom, 0px));
+  max-height: 86vh; max-height: 86dvh; overflow-y: auto;
+  animation: sheet-in var(--dur-slow) var(--spring);
+}
+.sheet-grab {
+  width: 38px; height: 4px; border-radius: 2px;
+  background: var(--border-strong);
+  margin: 0 auto var(--sp-3);
+}
+@keyframes sheet-veil { from { opacity: 0; } }
+@keyframes sheet-in { from { transform: translateY(14%); } }
+
+/* ==================================================================
+   RATING
+   The big number a player profile is built around. It rolls when it
+   changes, because a rating going 79 to 80 is the single most satisfying
+   event in a management game and the game currently renders it as a chip.
+   ================================================================== */
+.rating {
+  display: inline-flex; flex-direction: column; align-items: center;
+  line-height: var(--lh-tight);
+}
+.rating-v {
+  font-family: var(--display); font-weight: 800;
+  font-size: var(--fs-46); font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+.rating-sm .rating-v { font-size: var(--fs-26); }
+.rating-roll { animation: rating-roll var(--dur-slow) var(--ease); }
+@keyframes rating-roll {
+  0% { transform: translateY(.34em); opacity: 0; }
+  100% { transform: none; opacity: 1; }
+}
+
+/* ==================================================================
+   METER
+   ONE progress bar for the whole game. Board confidence, contract clock,
+   facility build, reputation, dressing room: five bars were drawn by hand.
+   ================================================================== */
+.meter {
+  height: 6px; border-radius: 3px;
+  background: var(--surface-2); overflow: hidden;
+}
+.meter > i {
+  display: block; height: 100%; border-radius: 3px;
+  background: var(--primary);
+  transition: transform var(--dur-slow) var(--ease);
+  transform-origin: left center;
+}
+.meter-val > i { background: var(--gold-fill); }
+.meter-neg > i { background: var(--danger); }
+
+.divider { height: 1px; background: var(--border); border: none; margin: 0; }
+
+/* ==================================================================
+   ICON
+   One size scale, currentColor, and no emoji. 225 emoji glyphs across the
+   UI source were the loudest "generated application" signal in the product:
+   they render differently on every OS, cannot be tinted, cannot be aligned
+   to a baseline, and cannot be sized to a grid.
+   ================================================================== */
+.ico { display: inline-block; flex: 0 0 auto; vertical-align: -.14em; }
+.ico-14 { width: 14px; height: 14px; }
+.ico-18 { width: 18px; height: 18px; }
+.ico-22 { width: 22px; height: 22px; }
+.ico-28 { width: 28px; height: 28px; }
+
+/* ==================================================================
+   REDUCED MOTION
+   Everything above collapses. motionprobe.mjs holds this line for the whole
+   codebase, and a system that opted itself out would be the first hole in it.
+   ================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .b, .tabs button, .tabs button::after, .meter > i {
+    transition-duration: 1ms !important;
+  }
+  .sheet, .sheet-veil, .rating-roll, .b-loading::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

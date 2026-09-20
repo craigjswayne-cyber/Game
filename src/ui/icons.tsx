@@ -74,3 +74,286 @@ export const IcoPress = () => (
     <path d="M8.5 9h6M8.5 12.2h6M8.5 15.4h3.6" strokeWidth="1.4" />
   </svg>
 )
+
+/* ==================================================================
+   THE FULL SET (1.8.0)
+   ==================================================================
+
+   The eight icons above were the bottom nav and nothing else. Everywhere
+   else the game used emoji - 225 glyphs across the UI source: 🏥 🏋️ 📊 🎓
+   💰 🔁 🏗️ in the hub menu, 🗣️ 🧊 📣 😄 as team-talk buttons, 🎯 🧱 ⚔️ as
+   game plans, 📅 📝 🏛 in the season card.
+
+   Emoji are the loudest "generated application" signal in the product and
+   they are not a style choice, they are the absence of one. They render as
+   a different drawing on every operating system, they cannot take
+   currentColor so they never match the text beside them, they cannot be
+   aligned to a baseline, they carry their own colour into a palette that
+   has a rule about colour, and at 11px on a menu row they are mud.
+
+   These replace them. One grid (24), one stroke (1.8 via S above, 1.4 for
+   interior detail), currentColor throughout, and drawn to read at 18px
+   because that is the size a menu row and a tab actually use.
+
+   Emoji survive in exactly one place: inside commentary and news PROSE,
+   where they are the writer's voice rather than the interface's iconography.
+*/
+
+/** Medical. A cross in a rounded square rather than the 🏥 building: at 18px
+ *  a hospital is a smudge and a cross is a cross. */
+export const IcoMedical = () => (
+  <svg viewBox="0 0 24 24" {...S}>
+    <rect x="3.5" y="3.5" width="17" height="17" rx="3.4" />
+    <path d="M12 8v8M8 12h8" />
+  </svg>
+)
+
+/** Training. A dumbbell, read end-on so it is symmetrical at small sizes. */
+export const IcoTraining = () => (
+  <svg viewBox="0 0 24 24" {...S}>
+    <path d="M4 9.5v5M7 7.5v9M17 7.5v9M20 9.5v5" />
+    <path d="M7 12h10" />
+  </svg>
+)
+
+/** Analysis. Bars, because the briefing suite is where numbers are read. */
+export const IcoChart = () => (
+  <svg viewBox="0 0 24 24" {...S}>
+    <path d="M4 20V4" />
+    <path d="M4 20h16" />
+    <path d="M8.5 20v-6M13 20v-10M17.5 20v-4" />
+  </svg>
+)
+
+/** The academy. A mortar board, flattened so it does not read as an envelope. */
+export const IcoAcademy = () => (
+  <svg viewBox="0 0 24 24" {...S}>
+    <path d="M12 4.5 21.5 9 12 13.5 2.5 9z" />
+    <path d="M6.5 11v5c0 1.4 2.5 2.5 5.5 2.5s5.5-1.1 5.5-2.5v-5" />
+  </svg>
+)
+
+/** Money. A coin with a bar through it - a bag (💰) needs three curves the
+ *  stroke weight cannot afford at this size. */
+export const IcoMoney = () => (
+  <svg viewBox="0 0 24 24" {...S}>
+    <circle cx="12" cy="12" r="8.5" />
+    <path d="M12 7v10M9.5 9.5h4a1.9 1.9 0 0 1 0 3.8h-3a1.9 1.9 0 0 0 0 3.8h4" strokeWidth="1.4" />
+  </svg>
+)
+
+/** The ground. Stands round a pitch, seen flat on. */
+export const IcoStadium = () => (
+  <svg viewBox="0 0 24 24" {...S}>
+    <ellipse cx="12" cy="12" rx="9.2" ry="5.6" />
+    <ellipse cx="12" cy="12" rx="4.4" ry="2.4" strokeWidth="1.4" />
+    <path d="M2.8 12v2.4c0 2 4.1 3.6 9.2 3.6s9.2-1.6 9.2-3.6V12" />
+  </svg>
+)
+
+/** Building work. A crane arm, which is also what the campus map draws on a
+ *  plot the builders are on. */
+export const IcoBuild = () => (
+  <svg viewBox="0 0 24 24" {...S}>
+    <path d="M5 20V4.5h11" />
+    <path d="M5 8.5h8.5" strokeWidth="1.4" />
+    <path d="M13 4.5v4" />
+    <path d="M18 20h-3.5" />
+  </svg>
+)
+
+/** The calendar, for fixtures and the season ahead. */
+export const IcoCalendar = () => (
+  <svg viewBox="0 0 24 24" {...S}>
+    <rect x="3.5" y="5.5" width="17" height="15" rx="2.6" />
+    <path d="M3.5 10.5h17" />
+    <path d="M8 3.5v4M16 3.5v4" />
+  </svg>
+)
+
+/** A person. Squad lists, the manager, anything about one human. */
+export const IcoPerson = () => (
+  <svg viewBox="0 0 24 24" {...S}>
+    <circle cx="12" cy="8.5" r="3.8" />
+    <path d="M4.8 20a7.2 7.2 0 0 1 14.4 0" />
+  </svg>
+)
+
+/** People. A squad, a crowd, the bench. */
+export const IcoPeople = () => (
+  <svg viewBox="0 0 24 24" {...S}>
+    <circle cx="9" cy="8.5" r="3.4" />
+    <path d="M2.8 19.5a6.2 6.2 0 0 1 12.4 0" />
+    <path d="M16 5.6a3.4 3.4 0 0 1 0 5.8M17.4 14.6a6.2 6.2 0 0 1 3.8 4.9" strokeWidth="1.4" />
+  </svg>
+)
+
+/** Settings. */
+export const IcoCog = () => (
+  <svg viewBox="0 0 24 24" {...S}>
+    <circle cx="12" cy="12" r="3.2" />
+    <path d="M12 2.8v2.6M12 18.6v2.6M21.2 12h-2.6M5.4 12H2.8M18.5 5.5l-1.8 1.8M7.3 16.7l-1.8 1.8M18.5 18.5l-1.8-1.8M7.3 7.3 5.5 5.5" strokeWidth="1.4" />
+  </svg>
+)
+
+/** Search. */
+export const IcoSearch = () => (
+  <svg viewBox="0 0 24 24" {...S}>
+    <circle cx="10.8" cy="10.8" r="6.5" />
+    <path d="M15.6 15.6 20.5 20.5" />
+  </svg>
+)
+
+/** A filter, for the transfer market and every sortable table. */
+export const IcoFilter = () => (
+  <svg viewBox="0 0 24 24" {...S}>
+    <path d="M3.5 6h17l-6.6 7.6V20l-3.8-2.2v-4.2z" />
+  </svg>
+)
+
+export const IcoChevronRight = () => (
+  <svg viewBox="0 0 24 24" {...S}><path d="m9.5 5.5 7 6.5-7 6.5" /></svg>
+)
+export const IcoChevronLeft = () => (
+  <svg viewBox="0 0 24 24" {...S}><path d="m14.5 5.5-7 6.5 7 6.5" /></svg>
+)
+export const IcoChevronDown = () => (
+  <svg viewBox="0 0 24 24" {...S}><path d="m5.5 9.5 6.5 7 6.5-7" /></svg>
+)
+export const IcoClose = () => (
+  <svg viewBox="0 0 24 24" {...S}><path d="M6 6l12 12M18 6 6 18" /></svg>
+)
+export const IcoCheck = () => (
+  <svg viewBox="0 0 24 24" {...S}><path d="m4.5 12.5 5 5 10-11" /></svg>
+)
+export const IcoPlus = () => (
+  <svg viewBox="0 0 24 24" {...S}><path d="M12 5v14M5 12h14" /></svg>
+)
+
+/** Play and pause, for the match ticker. The glyphs the speed row used were
+ *  the text characters ▶ and ❚❚, which are a different width in every font. */
+export const IcoPlay = () => (
+  <svg viewBox="0 0 24 24" {...S} fill="currentColor" stroke="none">
+    <path d="M7.5 5.2 19 12 7.5 18.8z" />
+  </svg>
+)
+export const IcoPause = () => (
+  <svg viewBox="0 0 24 24" {...S} fill="currentColor" stroke="none">
+    <rect x="7" y="5" width="3.6" height="14" rx="1.2" />
+    <rect x="13.4" y="5" width="3.6" height="14" rx="1.2" />
+  </svg>
+)
+export const IcoSkip = () => (
+  <svg viewBox="0 0 24 24" {...S} fill="currentColor" stroke="none">
+    <path d="M5 5.2 14 12 5 18.8z" />
+    <rect x="15.6" y="5" width="3.4" height="14" rx="1.2" />
+  </svg>
+)
+
+/** A whistle: the referee, the kick-off, the full-time stamp. */
+export const IcoWhistle = () => (
+  <svg viewBox="0 0 24 24" {...S}>
+    <path d="M13.5 8.5h6.2a1.3 1.3 0 0 1 1.3 1.3v3.6a4.6 4.6 0 1 1-4.6-4.6" />
+    <circle cx="9.4" cy="13.1" r="1.6" strokeWidth="1.4" />
+    <path d="M13.5 8.5 11 5.2" />
+  </svg>
+)
+
+/** An alert. Board warnings, sackings, the things that cost you. */
+export const IcoAlert = () => (
+  <svg viewBox="0 0 24 24" {...S}>
+    <path d="M12 4.2 21.4 19.4H2.6z" />
+    <path d="M12 10v4M12 16.6v.1" />
+  </svg>
+)
+
+/** A star, for the dream, the roll of honour, the player of the month. */
+export const IcoStar = () => (
+  <svg viewBox="0 0 24 24" {...S}>
+    <path d="m12 3.8 2.6 5.5 5.9.8-4.3 4.2 1.1 6-5.3-2.9-5.3 2.9 1.1-6L3.5 10.1l5.9-.8z" />
+  </svg>
+)
+
+/** A shirt. The squad, the kit, a player's club. */
+export const IcoShirt = () => (
+  <svg viewBox="0 0 24 24" {...S}>
+    <path d="M9 3.8 4 6.2l1.4 4L8 9.4V20h8V9.4l2.6.8 1.4-4-5-2.4a3 3 0 0 1-6 0z" />
+  </svg>
+)
+
+/** The handbook and every written thing: rules, history, the press. */
+export const IcoBook = () => (
+  <svg viewBox="0 0 24 24" {...S}>
+    <path d="M4 5.2A1.7 1.7 0 0 1 5.7 3.5H19v17H5.7A1.7 1.7 0 0 0 4 22.2z" transform="translate(0 -1)" />
+    <path d="M4 18.2A1.7 1.7 0 0 1 5.7 16.5H19" strokeWidth="1.4" />
+  </svg>
+)
+
+/** A door: the exit, the main menu, leaving a job. */
+export const IcoDoor = () => (
+  <svg viewBox="0 0 24 24" {...S}>
+    <path d="M14 3.5H6.5v17H14" />
+    <path d="M11 12h9.5M17 8.5l3.5 3.5L17 15.5" />
+  </svg>
+)
+
+/** A save: a disk, which is an anachronism everybody still reads instantly. */
+export const IcoSave = () => (
+  <svg viewBox="0 0 24 24" {...S}>
+    <path d="M4.5 4.5h12L20 8v11.5H4.5z" />
+    <path d="M8 4.5v5h7v-5M8 19.5v-5h8v5" strokeWidth="1.4" />
+  </svg>
+)
+
+/** A pitch seen from above: tactics, the game plan, set pieces. */
+export const IcoPitch = () => (
+  <svg viewBox="0 0 24 24" {...S}>
+    <rect x="2.8" y="5" width="18.4" height="14" rx="1.4" />
+    <path d="M12 5v14" />
+    <path d="M2.8 9.2h2.8v5.6H2.8M21.2 9.2h-2.8v5.6h2.8" strokeWidth="1.4" />
+  </svg>
+)
+
+/** A megaphone: the press room, the team talk, anything spoken at volume. */
+export const IcoMegaphone = () => (
+  <svg viewBox="0 0 24 24" {...S}>
+    <path d="M4 10v4a1.6 1.6 0 0 0 1.6 1.6h2.2L15 20V4l-7.2 4.4H5.6A1.6 1.6 0 0 0 4 10z" />
+    <path d="M18 9.2a4 4 0 0 1 0 5.6" strokeWidth="1.4" />
+  </svg>
+)
+
+/** A target: objectives, the board's demands, kick at goal. */
+export const IcoTarget = () => (
+  <svg viewBox="0 0 24 24" {...S}>
+    <circle cx="12" cy="12" r="8.2" />
+    <circle cx="12" cy="12" r="4.2" strokeWidth="1.4" />
+    <circle cx="12" cy="12" r=".6" strokeWidth="1.6" />
+  </svg>
+)
+
+/** A stopwatch: game time, the minute clock, sharpness. */
+export const IcoClock = () => (
+  <svg viewBox="0 0 24 24" {...S}>
+    <circle cx="12" cy="13" r="7.8" />
+    <path d="M12 9v4l2.6 1.8" />
+    <path d="M9.6 2.8h4.8" />
+  </svg>
+)
+
+/** A handshake: contracts, deals, partnerships in the dressing room. */
+export const IcoDeal = () => (
+  <svg viewBox="0 0 24 24" {...S}>
+    <path d="M2.8 10.5 6 7.8l3.4 2.9 2.6-.6 2.6.6L18 7.8l3.2 2.7" />
+    <path d="M9.4 10.7 7 13.4a1.7 1.7 0 0 0 2.4 2.4l.9-.9 1.5 1.5a1.7 1.7 0 0 0 2.4-2.4" />
+    <path d="M14.6 10.7 17 13.4" strokeWidth="1.4" />
+  </svg>
+)
+
+/** A seedling: the academy intake, a prospect, development. */
+export const IcoGrowth = () => (
+  <svg viewBox="0 0 24 24" {...S}>
+    <path d="M12 20v-7" />
+    <path d="M12 13c0-3.4-2.6-6-6-6 0 3.4 2.6 6 6 6z" />
+    <path d="M12 13c0-3.4 2.6-6 6-6 0 3.4-2.6 6-6 6z" />
+  </svg>
+)

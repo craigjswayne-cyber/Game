@@ -20,7 +20,7 @@
  *
  * Run: npx vite-node scripts/tokenlint.ts
  */
-import { readFileSync, readdirSync, statSync } from 'node:fs'
+import { readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 let fails = 0
@@ -65,6 +65,62 @@ for (const f of files) {
     }
     if (RETIRED.test(code)) bad(f, i + 1, 'retired token name - use the semantic tokens')
   })
+}
+
+/* ==================================================================
+   ---- THE INLINE-STYLE RATCHET (1.8.0) ----
+   ==================================================================
+
+   The colour rule above has held for a year because it is absolute: a hex
+   outside tokens.css fails the build. The design system needs the same
+   discipline for everything that is NOT colour - size, spacing, radius,
+   elevation - and cannot have it the same way, because the game already
+   contains 1,109 inline style objects and the rule would fail on its own
+   first run.
+
+   So it ratchets instead. Each file's count of the four properties below is
+   recorded in scripts/qa/inline-baseline.json. A file may go DOWN and may
+   never go up. New files start at zero and stay there.
+
+   WHY THESE FOUR. They are the ones that fragment a design:
+
+     fontSize      fourteen sizes in half-pixel steps is not a scale
+     padding       the difference between a considered screen and a dense one
+     borderRadius  6, 8, 10, 12 and 16 all shipped, with no rule
+     boxShadow     elevation is surface lightness here, not shadow
+
+   Deliberately NOT banned: colour properties (the hex rule above already
+   owns those), width, height, flex, grid, transform and position. Those are
+   layout decisions a screen is entitled to make, and a lint that fought them
+   would be noise nobody reads.
+
+   TO LOWER A BASELINE: migrate the screen, run with --update, commit the
+   diff. The numbers falling is the migration's progress bar. */
+const RATCHET = /\b(fontSize|padding|paddingTop|paddingBottom|paddingLeft|paddingRight|borderRadius|boxShadow)\s*:/g
+const BASELINE = 'scripts/qa/inline-baseline.json'
+const counts: Record<string, number> = {}
+for (const f of files) {
+  if (!f.endsWith('.tsx')) continue
+  const n = (readFileSync(f, 'utf8').match(RATCHET) ?? []).length
+  if (n) counts[f] = n
+}
+
+if (process.argv.includes('--update')) {
+  writeFileSync(BASELINE, JSON.stringify(counts, null, 2) + '\n')
+  const total = Object.values(counts).reduce((a, b) => a + b, 0)
+  console.log(`baseline written: ${Object.keys(counts).length} files, ${total} inline style properties`)
+} else {
+  let base: Record<string, number> = {}
+  try { base = JSON.parse(readFileSync(BASELINE, 'utf8')) } catch { /* first run */ }
+  let moved = 0
+  for (const [f, n] of Object.entries(counts)) {
+    const was = base[f] ?? 0
+    if (n > was) bad(f, 0, `${n} inline style properties, baseline is ${was} - use the tokens in src/ui/system.css (or run tokenlint --update if you have migrated this file)`)
+    else if (n < was) moved += was - n
+  }
+  const total = Object.values(counts).reduce((a, b) => a + b, 0)
+  const baseTotal = Object.values(base).reduce((a, b) => a + b, 0)
+  console.log(`  inline styles: ${total} across ${Object.keys(counts).length} files (baseline ${baseTotal}${moved ? `, ${moved} migrated since` : ''})`)
 }
 
 console.log(fails ? `TOKEN LINT FAILED (${fails})` : `TOKEN LINT PASSED (${files.length} files, colour only in tokens.css)`)

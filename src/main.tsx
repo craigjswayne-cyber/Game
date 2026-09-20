@@ -12,6 +12,9 @@ import { useStore } from './store'
 import { ensureLang, getLang, t } from './game/i18n'
 import './ui/tokens.css'
 import './ui/theme.css'
+// LAST, and that is load-bearing: system.css re-points --serif and --cond at
+// the display face, and :root vs :root is decided by order. See its header.
+import './ui/system.css'
 
 // the boundary sits outside App on purpose: a boundary can only catch what its
 // children throw, so anything inside App would go down with it.
