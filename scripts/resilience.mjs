@@ -303,7 +303,7 @@ try {
   await page.waitForSelector('.submenu')
   await page.click('.submenu-item >> text=Save / Load Game')
   await page.waitForSelector('text=Save Slots', { timeout: 8000 })
-  await page.click('button >> text=💾 Save >> nth=0')
+  await page.click('button >> text=Save >> nth=0')
   await page.waitForSelector('.save-warn', { timeout: 20000 })
   check(/Could not save/.test(await page.textContent('.card') ?? ''), 'and the Saves screen says so where you asked for the save')
   const warn = await page.textContent('.save-warn')

@@ -247,9 +247,9 @@ for (let season = 0; season < Number(process.env.SOAK_SEASONS ?? 20); season++) 
       if (n.subject.includes('Lions come home')) lionsHomecomings++
       if (n.subject.includes('World champion') && n.subject.includes('building')) wcChampBeats++
       if (n.subject.includes('are watching you')) taps++
-      if (n.subject.startsWith('🏛 Board approves')) facApproved++
-      if (n.subject.startsWith('🏛 Board says no')) facDenied++
-      if (n.subject.startsWith('🏗') && n.subject.includes('opens')) facOpened++
+      if (n.subject.startsWith('Board approves')) facApproved++
+      if (n.subject.startsWith('Board says no')) facDenied++
+      if (/^The new .+ opens$/.test(n.subject)) facOpened++
       if (n.subject.includes('grows by') && n.subject.includes('seats')) standsBuilt++
       // A course used to be announced when the coach went off to sit it, and
       // settled weeks later. It resolves in front of the examiners the same day

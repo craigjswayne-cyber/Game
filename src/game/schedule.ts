@@ -364,7 +364,7 @@ function buildWorldCup(rng: Rng, state: GameState, women = false) {
   const userSeed = state.natTeam ? seeded.indexOf(state.natTeam) + 1 : 0
   state.news.push({
     id: state.nextId++, week: 1, season: state.season, type: 'intl', read: false,
-    subject: `🏆 World Championship draw: the rankings pick the pools`,
+    subject: `World Championship draw: the rankings pick the pools`,
     body: [
       `The World Championship pools are set, seeded from the world rankings. Top seeds: ${top4.join(', ')}.`,
       userSeed > 0 ? `${nationNameIn('en', state.natTeam!)} go in as the ${ordinalWord(userSeed)} seed - anything short of ${userSeed <= 4 ? 'the semi-finals will be a failure' : userSeed <= 8 ? 'the quarter-finals will raise questions' : 'the knockouts would still be par'}.`

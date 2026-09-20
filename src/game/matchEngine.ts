@@ -3475,7 +3475,7 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
       }
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
-        subject: `🎗 ${hero.name}'s testimonial: ${fx.att.toLocaleString()} say thank you`,
+        subject: `${hero.name}'s testimonial: ${fx.att.toLocaleString()} say thank you`,
         body: `${club.stadium} was full for ${hero.name}'s testimonial${hero.name && ctx.events.some(e => e.type === 'TRY' && e.playerId === hero.id) ? ' - and he scored, because of course he did' : ''}. The gate receipts (${fmtMoney(gate)}) go to the club at his insistence. One season left in the shirt: make it a good one.`,
         k: 'news.testimonialDay',
         v: {
@@ -3582,8 +3582,8 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
         if (p.clubId === state.userClubId && (p.caps === 1 || p.caps === 50 || p.caps === 100)) {
           state.news.push({
             id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
-            subject: p.caps === 1 ? `🌍 First cap: ${p.name}`
-              : `🌍 ${p.name}: ${p.caps} Test caps`,
+            subject: p.caps === 1 ? `First cap: ${p.name}`
+              : `${p.name}: ${p.caps} Test caps`,
             body: p.caps === 1
               ? `${p.name} won his first Test cap for ${nationNameIn('en', side.teamId)} this week. The shirt gets framed; the club that made him gets the reflected glow.`
               : `${p.name} brought up his ${p.caps}th cap for ${nationNameIn('en', side.teamId)} this week - a special jersey, a guard of honour, and a proud week around the club.`,
@@ -3684,7 +3684,7 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
     const homegrown = kind === 'academy'
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
-      subject: homegrown ? `🌟 A debut to tell his grandkids about: ${p.name}` : `🌟 Dream debut for ${p.name}`,
+      subject: homegrown ? `A debut to tell his grandkids about: ${p.name}` : `Dream debut for ${p.name}`,
       body: [
         homegrown
           ? `${p.name} (${p.age}, ${p.pos}) made his first-team debut today - the academy's own, first competitive rugby of his life.`

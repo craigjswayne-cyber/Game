@@ -239,7 +239,7 @@ export function addGrudge(state: GameState, a: string, b: string, rk: string, rv
     const opp = a === state.userClubId ? b : a
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
-      subject: `🔥 Bad blood with ${state.clubs[opp].short}`,
+      subject: `Bad blood with ${state.clubs[opp].short}`,
       body: `There is genuine needle between the clubs now - ${reason}. The next meeting will be spicy: expect cards, a hostile crowd and a match where the form book means nothing.`,
       k: 'news.badBlood', v: { short: state.clubs[opp].short, reason_k: rk, ...(rv ?? {}) },
     })

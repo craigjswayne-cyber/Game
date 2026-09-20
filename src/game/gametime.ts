@@ -229,7 +229,7 @@ export function settleGameTime(state: GameState) {
       p.reqAns = 0
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'contract', read: false,
-        subject: `🚪 ${p.name} hands in a transfer request`,
+        subject: `${p.name} hands in a transfer request`,
         body: `He was told where he stood - ${STATUS_BY_ID[row.status].name.toLowerCase()} - and the team sheets say ${row.actual} appearance${row.actual === 1 ? '' : 's'} from ${played} matches. This morning a formal transfer request landed on your desk. Pick him and he may yet be talked round; leave it and every agent in the league will know he is gettable.`,
         k: 'news.transferRequest',
         v: { player: p.name, status_k: `squad.status${row.status[0].toUpperCase()}${row.status.slice(1)}`, n: row.actual, played },
@@ -242,7 +242,7 @@ export function settleGameTime(state: GameState) {
       p.reqAns = 0   // the grievance is gone, and so is the answer to it
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'contract', read: false,
-        subject: `🤝 ${p.name} withdraws his transfer request`,
+        subject: `${p.name} withdraws his transfer request`,
         body: `The team sheets did the talking: the minutes came, and the grievance went with them. The request is withdrawn - quietly, the way these things end when they end well.`,
         k: 'news.requestWithdrawn', v: { player: p.name },
         playerId: p.id,
@@ -307,7 +307,7 @@ export function gameTimeReview(state: GameState): void {
   const worst = rows[0]
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'gossip', read: false,
-    subject: `📋 Game time: ${rows.length} men are not getting what they were told`,
+    subject: `Game time: ${rows.length} men are not getting what they were told`,
     body: [
       `${asst} has been through the team sheets:`,
       '',

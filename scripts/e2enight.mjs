@@ -123,7 +123,7 @@ try {
   await page.click('.submenu-item >> text=Transfer Centre')
   await page.waitForTimeout(600)
   await shot('06c-transfers')
-  await page.locator('.preset-chip >> text=🏷️ Listed').click()
+  await page.locator('.preset-chip >> text=Listed').click()
   await page.waitForTimeout(300)
   await shot('06c2-transfers-filtered')
   // commissioned scouting lives on the Shortlist tab
@@ -243,7 +243,7 @@ try {
   await page.click('.tab-bar >> text=Our Estate')
   await page.waitForSelector('text=Facilities')
   await shot('06i2-infra-facilities')
-  await page.locator('text=🏛 Ask board').first().click()
+  await page.locator('text=Ask board').first().click()
   await page.waitForTimeout(300)
   await shot('06j-infra-ask')
 

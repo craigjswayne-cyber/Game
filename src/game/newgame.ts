@@ -572,7 +572,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   // ever goes up costs nothing.
   state.nextId++
   const scoutCircular = watchList.length ? {
-    subject: `🌟 The scouts' ones to watch`,
+    subject: `The scouts' ones to watch`,
     body: `The pre-season list of academy talents with genuinely special ceilings: ${watchList.join('; ')}.\n\nUnattached prodigies are also drifting around the free-agent market - first club to move wins. Tap a name below, or see World ▸ Team of the Season ▸ Ones to Watch.`,
     k: 'news.watchList',
     v: { list: watchList.join('; ') },
@@ -871,7 +871,7 @@ function fanReaction(state: GameState, managerName: string, rng: () => number): 
   void managerName
   return {
     id: state.nextId++, week: 1, season: 0, type: 'general', read: false,
-    subject: `🗣 ${headline}`,
+    subject: `${headline}`,
     body: `${opener}\n\n"${voices[0]}"\n\n"${voices[1]}"\n\n`
       + `Terrace mood is ${mood >= 80 ? 'bouncing' : mood >= 62 ? 'behind you' : mood >= 45 ? 'watching' : mood >= 30 ? 'restless' : 'mutinous'}. Results will move it.`,
     k: 'news.terraces',
@@ -926,7 +926,7 @@ function squadAssessment(state: GameState): NewsItem {
   const wages = squad.reduce((sum, p) => sum + p.wage, 0)
   return {
     id: state.nextId++, week: 1, season: 0, type: 'general', read: false,
-    subject: `📋 Your assistant's read on the squad`,
+    subject: `Your assistant's read on the squad`,
     // One fact per line, no throat-clearing: the user's brevity pass (19A)
     // found the original at 669 characters of paragraphs on a phone screen.
     body: `"The numbers, before anything else.\n\n`

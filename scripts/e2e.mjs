@@ -270,7 +270,7 @@ try {
   await page.click('.bottom-nav button[title="Manager"]')
   await page.click('.submenu-item >> text=Save / Load Game')
   await page.waitForSelector('text=Save Slots')
-  await page.click('.card >> text=💾 Save >> nth=0')
+  await page.click('.card >> text=Save >> nth=0')
   await page.waitForSelector('text=Career saved')
   await shot('07d-saves')
 

@@ -162,7 +162,7 @@ export function advanceHunt(state: GameState): void {
     })
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
-      subject: `🚨 ${club.short} bid ${fmtMoney(fee)} for ${p.name}`,
+      subject: `${club.short} bid ${fmtMoney(fee)} for ${p.name}`,
       body: `So it was not paper talk. ${club.name} have made ${p.name} a formal offer of ${fmtMoney(fee)}, comfortably above his valuation, and they have been building to this since the autumn.\n\nYou have known it was coming for months. Now you answer it.`,
       k: 'news.huntBid', v: { short: club.short, club: club.name, player: p.name, fee: fmtMoney(fee) },
       playerId: p.id,

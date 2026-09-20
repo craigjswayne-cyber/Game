@@ -174,7 +174,7 @@ export function refreshVacancies(state: GameState, rng: Rng) {
         state.courtedBy = suitor.id
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
-          subject: `🤝 ${suitor.short} are watching you`,
+          subject: `${suitor.short} are watching you`,
           body: `The back pages have put your name at the top of ${poss(suitor.name)} shortlist for their empty dugout, and for once the back pages are right - their people have made discreet contact. A bigger club, a bigger budget, somebody else's project. Apply from the Job Centre if your head is turned; say nothing and the story dies by Friday. Your chairman has read the papers too, and he is watching how long you take to deny it.`,
           k: 'news.courted', v: { short: suitor.short, poss: poss(suitor.name) },
         })
@@ -316,7 +316,7 @@ function takeJob(state: GameState, clubId: string): string {
       state.vowedAt = 0
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'gossip', read: false,
-        subject: `🗞 'I am going nowhere' - a quote that aged badly`,
+        subject: `'I am going nowhere' - a quote that aged badly`,
         body: `Every paper runs the same clip: ${state.managerName}, weeks ago, hand on heart, going nowhere. The move is done and nobody can undo it, but your new board noted how cheaply the last promise was sold, and the away end has a new song ready for your return.`,
         k: 'news.brokeVow', v: { manager: state.managerName },
       })

@@ -49,7 +49,7 @@ try {
   // internationals: pacific cup
   await page.click('.tab-bar >> text=Internationals')
   await page.waitForTimeout(600)
-  await page.click('.tab-bar >> text=🌺 Pacific Cup')
+  await page.click('.tab-bar >> text=Islands Cup')
   await page.waitForTimeout(500)
   await shot('t4-pnc')
 } catch (e) {

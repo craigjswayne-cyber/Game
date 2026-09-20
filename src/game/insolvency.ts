@@ -97,7 +97,7 @@ export function settleInsolvency(state: GameState): string[] {
     const mine = club.id === state.userClubId
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
-      subject: `${mine ? '🚨 ' : ''}${club.short} go into administration`,
+      subject: `${mine ? ' ' : ''}${club.short} go into administration`,
       body: mine
         ? [
           `The club could not pay what it owed, and the board has filed. ${club.short} enter administration.`,
@@ -128,7 +128,7 @@ export function insolvencyWarning(state: GameState): void {
   if (state.news.some(n => n.season === state.season && n.subject.includes('cannot go on like this'))) return
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
-    subject: '⚠ The board: we cannot go on like this',
+    subject: 'The board: we cannot go on like this',
     body: [
       `The finance director has put a number in front of the board and it is not one they can live with. ${club.short} are spending money the club does not have, and at this rate the accounts will not survive the summer.`,
       '',

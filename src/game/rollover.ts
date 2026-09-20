@@ -85,7 +85,7 @@ function boardReinvests(state: GameState) {
   state.fanMood = clamp((state.fanMood ?? 60) + 2, 0, 100)
   state.news.push({
     id: state.nextId++, week: 1, season: state.season + 1, type: 'board', read: false,
-    subject: `💼 The board reinvests ${fmtMoney(spend)}`,
+    subject: `The board reinvests ${fmtMoney(spend)}`,
     body: `The accounts closed in rude health, and the board has no intention of letting the money sit in a deposit account while the club stands still. ${fmtMoney(spend)} goes back into ${club.name} over the summer: ${built ? `${built}, ` : ''}the last of the ground debt cleared, the academy funded for another cycle, and the community programme kept in the schools that feed this place. Your reserve stands at ${fmtMoney(club.balance)}, which is a season of wages and change. Spend the transfer budget on players, not on interest.`,
     k: built ? 'news.reinvestBuild' : 'news.reinvest',
     v: {
@@ -126,7 +126,7 @@ function seasonAwards(state: GameState) {
 
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
-    subject: `📖 The ${seasonLabel(state.season)} Annual - awards & records`,
+    subject: `The ${seasonLabel(state.season)} Annual - awards & records`,
     body: [
       `Player of the Season: ${potm.name} (${state.clubs[potm.clubId!]?.short}) - avg rating ${(potm.stats.ratingSum / Math.max(1, potm.stats.apps)).toFixed(2)}`,
       `Top Points Scorer: ${topPoints.name} - ${topPoints.stats.points} points`,
@@ -188,7 +188,7 @@ function worldPlayerOfTheYear(state: GameState) {
     `${x.p.name} (${x.p.pos}, ${state.clubs[x.p.clubId!]?.short}) - avg ${x.avg.toFixed(2)}, ${x.p.stats.tries} tries`
   state.news.push({
     id: state.nextId++, week: 1, season: state.season + 1, type: 'award', read: false,
-    subject: `🏅 World Player of the Year: ${win.p.name}`,
+    subject: `World Player of the Year: ${win.p.name}`,
     body: [
       `The world game names its best. The shortlist:`,
       `1. ${line(win)}${(win.p.poty ?? 0) > 1 ? ` (award number ${win.p.poty})` : ''}`,
@@ -228,7 +228,7 @@ function settleRecords(state: GameState) {
     if (topP.stats.points > rec.pts.val && rec.pts.season !== state.season) {
       if (userLeague) state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
-        subject: `📖 RECORD BROKEN: most points in a ${comp.short} season`,
+        subject: `RECORD BROKEN: most points in a ${comp.short} season`,
         body: `${topP.name} finishes with ${topP.stats.points} points - beating ${rec.pts.name}'s record of ${rec.pts.val} (${seasonLabel(rec.pts.season)}). The record book gets a new page.`,
         k: 'news.recPoints',
         v: { comp: comp.short, name: topP.name, n: topP.stats.points, old: rec.pts.name, oldN: rec.pts.val, season: seasonLabel(rec.pts.season) },
@@ -239,7 +239,7 @@ function settleRecords(state: GameState) {
     if (topT.stats.tries > rec.tries.val && rec.tries.season !== state.season) {
       if (userLeague) state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
-        subject: `📖 RECORD BROKEN: most tries in a ${comp.short} season`,
+        subject: `RECORD BROKEN: most tries in a ${comp.short} season`,
         body: `${topT.name} crosses ${topT.stats.tries} times - past ${rec.tries.name}'s ${rec.tries.val} (${seasonLabel(rec.tries.season)}). Wingers everywhere take note.`,
         k: 'news.recTries',
         v: { comp: comp.short, name: topT.name, n: topT.stats.tries, old: rec.tries.name, oldN: rec.tries.val, season: seasonLabel(rec.tries.season) },
@@ -422,8 +422,8 @@ function agePlayers(state: GameState, rng: Rng) {
     state.news.push({
       id: state.nextId++, week: 1, season: state.season + 1, type: 'youth', read: false,
       subject: lastYear.length === 1
-        ? `⏳ ${lastYear[0].name}'s last academy year`
-        : `⏳ Last academy year for ${lastYear.length} of your prospects`,
+        ? `${lastYear[0].name}'s last academy year`
+        : `Last academy year for ${lastYear.length} of your prospects`,
       body: `Development deals run out at 21, and this season is the last one for ${lastYear.map(p => `${p.name} (${p.age}, ${p.pos})`).join(', ')}. Promote ${lastYear.length === 1 ? 'him' : 'each of them'} to a professional contract from ${lastYear.length === 1 ? 'his' : 'their'} player page before next summer, or the deal expires and ${lastYear.length === 1 ? 'he walks' : 'they walk'} for nothing.`,
       k: lastYear.length === 1 ? 'news.lastYearOne' : 'news.lastYearMany',
       v: {
@@ -438,8 +438,8 @@ function agePlayers(state: GameState, rng: Rng) {
     state.news.push({
       id: state.nextId++, week: 1, season: state.season + 1, type: 'youth', read: false,
       subject: released.length === 1
-        ? `🚪 ${released[0].name}'s development deal expires - he leaves`
-        : `🚪 ${released.length} academy deals expire - they leave`,
+        ? `${released[0].name}'s development deal expires - he leaves`
+        : `${released.length} academy deals expire - they leave`,
       body: `No professional terms were offered, so at 21 the academy road ends: ${released.map(p => `${p.name} (${p.pos})`).join(', ')} ${released.length === 1 ? 'leaves' : 'leave'} as ${released.length === 1 ? 'a free agent' : 'free agents'}. The academy coach clears ${released.length === 1 ? 'his locker' : 'their lockers'} and starts again with the next intake.`,
       k: released.length === 1 ? 'news.releasedOne' : 'news.releasedMany',
       v: {
@@ -492,8 +492,8 @@ function agePlayers(state: GameState, rng: Rng) {
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
       subject: one
-        ? `🏛 ${inductees[0].p.name} enters the Hall of Fame`
-        : `🏛 ${inductees.length} enter the Hall of Fame`,
+        ? `${inductees[0].p.name} enters the Hall of Fame`
+        : `${inductees.length} enter the Hall of Fame`,
       body: one
         ? `${line(inductees[0])} retires with numbers that close the argument. ${mine.length ? 'He finishes as one of yours - a career your club will claim for generations.' : 'The game stands to applaud one of its greats.'} His plaque goes up alongside the immortals.`
         : `The class of ${state.season + 1} is confirmed. ${inductees.map(line).join('. ')}. ${mine.length ? `${mine.length === 1 ? `${mine[0].p.name} finishes` : `${mine.length} of them finish`} as ${mine.length === 1 ? 'one of yours' : 'yours'} - careers your club will claim for generations.` : 'The game stands to applaud them all.'} The plaques go up alongside the immortals.`,
@@ -607,7 +607,7 @@ function agePlayers(state: GameState, rng: Rng) {
       if (legend.p.farewell) {
         state.news.push({
           id: state.nextId++, week: 1, season: state.season + 1, type: 'award', read: false,
-          subject: `🎗 The shirt goes up: ${legend.p.name} retires`,
+          subject: `The shirt goes up: ${legend.p.name} retires`,
           body: `The farewell tour is over. ${legend.p.name} finishes with ${legend.apps} appearances for the club, and this morning his shirt went up over the tunnel where every young player will walk under it.`,
           k: 'news.shirtUp', v: { player: legend.p.name, apps: legend.apps },
         })
@@ -616,7 +616,7 @@ function agePlayers(state: GameState, rng: Rng) {
         club.balance += gate
         state.news.push({
           id: state.nextId++, week: 1, season: state.season + 1, type: 'award', read: false,
-          subject: `🎗 Testimonial: ${legend.p.name} - ${legend.apps} games of service`,
+          subject: `Testimonial: ${legend.p.name} - ${legend.apps} games of service`,
           body: `A full ${club.stadium} rises for ${legend.p.name}. ${legend.apps} appearances, every one of them honest. He walks the pitch with his family, the gate receipts (${fmtMoney(gate)}) go to the club at his insistence, and his shirt goes up over the tunnel.`,
           k: 'news.testimonial',
           v: { player: legend.p.name, apps: legend.apps, stadium: club.stadium, gate: fmtMoney(gate) },
@@ -840,7 +840,7 @@ function youthIntake(state: GameState, rng: Rng) {
       if (s.wonder) {
         state.news.push({
           id: state.nextId++, week: 1, season: state.season + 1, type: 'youth', read: false,
-          subject: `🌟 WONDERKID: the academy has struck gold`,
+          subject: `WONDERKID: the academy has struck gold`,
           body: `The coaches are calling ${p.name} (${p.age}, ${p.pos}) the best prospect the academy has produced in a generation. Handle him right - game time, a development focus, patience - and he could be anything.`,
           k: 'news.wonderkid', v: { player: p.name, age: p.age, pos: p.pos },
           playerId: p.id,
@@ -851,7 +851,7 @@ function youthIntake(state: GameState, rng: Rng) {
     const grade = best >= 96 ? 'A' : best >= 90 ? 'B' : best >= 82 ? 'C' : best >= 74 ? 'D' : 'E'
     state.news.push({
       id: state.nextId++, week: 1, season: state.season + 1, type: 'youth', read: false,
-      subject: `🎓 Intake day: the class arrives - grade ${grade}`,
+      subject: `Intake day: the class arrives - grade ${grade}`,
       body: [
         `The academy has promoted this year's crop. The coaches' potential ratings:`,
         ...report,
@@ -1016,7 +1016,7 @@ function tryOfTheSeason(state: GameState) {
   const club = state.clubs[state.userClubId]
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
-    subject: `🏉 Try of the Season: ${t.name}`,
+    subject: `Try of the Season: ${t.name}`,
     body: [
       `The supporters' vote was not close. ${t.name}'s ${ordinal(t.min)}-minute score against ${t.opp} is the ${club.name} Try of the Season.`,
       `As it sounded at the time: "${t.text}"`,
@@ -1079,7 +1079,7 @@ export function rebuildSeason(state: GameState) {
       }
       state.news.push({
         id: state.nextId++, week: 1, season: state.season + 1, type: 'intl', read: false,
-        subject: `🔴 The tourists come home${seriesWon ? ' as series winners' : ''}`,
+        subject: `The tourists come home${seriesWon ? ' as series winners' : ''}`,
         body: [
           `Back in club colours after ${comp?.name ?? 'the Isles tour'}: ${lionsHome.map(p => p.name).join(', ')}.`,
           seriesWon
@@ -1115,7 +1115,7 @@ export function rebuildSeason(state: GameState) {
       closeNatTenure(state) // the record moves to the profile's history, not the bin
       state.news.push({
         id: state.nextId++, week: 1, season: state.season + 1, type: 'board', read: false,
-        subject: `🌍 SACKED: ${nat} relieve you of the national job`,
+        subject: `SACKED: ${nat} relieve you of the national job`,
         body: `The union's annual review was short. ${w} Test wins against ${l} defeats was not the trajectory they hired you for, and the ${nat} job is no longer yours. The club work continues - and unions have short memories when results turn.`,
         k: 'news.natSacked',
         v: {
@@ -1127,7 +1127,7 @@ export function rebuildSeason(state: GameState) {
     } else {
       state.news.push({
         id: state.nextId++, week: 1, season: state.season + 1, type: 'board', read: false,
-        subject: `🌍 Union annual review: ${conf >= 70 ? 'glowing' : conf >= 45 ? 'satisfactory' : 'concerned'}`,
+        subject: `Union annual review: ${conf >= 70 ? 'glowing' : conf >= 45 ? 'satisfactory' : 'concerned'}`,
         body: [
           `The ${nat} union has completed its annual review of the national programme: ${w} Test wins, ${l} defeats this season. Confidence in the head coach stands at ${conf}%.`,
           conf >= 70 ? `They are already talking about extending your tenure.`
@@ -1208,7 +1208,7 @@ export function rebuildSeason(state: GameState) {
       let result = 'Pool stages'
       if (last) {
         const won = last.homeId === uid ? last.homeScore > last.awayScore : last.awayScore > last.homeScore
-        result = last.stage === 'F' && won ? '🏆 CHAMPIONS' : stageWord[last.stage!] ?? `${last.stage} exit`
+        result = last.stage === 'F' && won ? 'CHAMPIONS' : stageWord[last.stage!] ?? `${last.stage} exit`
       }
       cupRuns.push({ comp: comp.short, result })
     }
@@ -1254,7 +1254,7 @@ export function rebuildSeason(state: GameState) {
       if ([5, 10, 15, 20, 25].includes(tenure)) {
         state.news.push({
           id: state.nextId++, week: 1, season: state.season + 1, type: 'award', read: false,
-          subject: `🎉 ${tenure} years at ${club0.name}`,
+          subject: `${tenure} years at ${club0.name}`,
           body: `The club marks your ${tenure}th season in charge: ${eraW} wins, ${eraL} defeats and ${eraCups} ${eraCups === 1 ? 'trophy' : 'trophies'} in the era. The programme runs a retrospective; the chairman makes a speech; the fixture list, as ever, does not care. On we go.`,
           k: 'news.tenure',
           v: { n: tenure, n_o: tenure, club: club0.name, w: eraW, l: eraL, cups: eraCups,
@@ -1267,7 +1267,7 @@ export function rebuildSeason(state: GameState) {
         state.fanMood = clamp((state.fanMood ?? 60) + 10, 5, 98)
         state.news.push({
           id: state.nextId++, week: 1, season: state.season + 1, type: 'award', read: false,
-          subject: `🗽 CLUB LEGEND: the city claims you as its own`,
+          subject: `CLUB LEGEND: the city claims you as its own`,
           body: `${tenure} seasons. ${eraCups} trophies. The supporters' trust has voted unanimously: you are a legend of ${club0.name}, whatever happens from here. There is talk of a statue outside ${club0.stadium}, and the artist has already asked how you would like to be posed. Results can dip; this cannot be taken away.`,
           k: 'news.clubLegend',
           v: { n: tenure, cups: eraCups, club: club0.name, stadium: club0.stadium },
@@ -1276,7 +1276,7 @@ export function rebuildSeason(state: GameState) {
     }
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
-      subject: `📋 Your ${seasonLabel(state.season)} season in review`,
+      subject: `Your ${seasonLabel(state.season)} season in review`,
       body: [
         `Record: ${w}W ${d}D ${l}L from ${uf.length} matches.`,
         best ? `Best win: ${best.line}` : '',
@@ -1309,7 +1309,7 @@ export function rebuildSeason(state: GameState) {
       }
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
-        subject: `🥂 Club awards night: ${poty.name} sweeps the room`,
+        subject: `Club awards night: ${poty.name} sweeps the room`,
         body: [
           `The season ends the way it should - the whole squad in one room, telling lies about each other.`,
           ``,
@@ -1419,7 +1419,7 @@ export function rebuildSeason(state: GameState) {
         // cent of one budget and six times another (objectives.objectiveBonus)
         const bonus = objectiveBonus(club.budget)
         if (ok) { objBonus += bonus; state.boardOwed = true }
-        sideLines.push(`${ok ? '✅' : '❌'} ${tIn('en', def.textKey(state))}${ok ? ` - met (+${fmtMoney(bonus)} budget)` : ' - missed'}`)
+        sideLines.push(`${ok ? '' : ''} ${tIn('en', def.textKey(state))}${ok ? ` - met (+${fmtMoney(bonus)} budget)` : ' - missed'}`)
         sideRows.push({ k: ok ? 'news.sideMet' : 'news.sideMissed', text_k: def.textKey(state), amount: fmtMoney(bonus) })
       }
       state.news.push({
@@ -1474,7 +1474,7 @@ export function rebuildSeason(state: GameState) {
     if (club.id === state.userClubId) {
       state.news.push({
         id: state.nextId++, week: 1, season: state.season + 1, type: 'board', read: false,
-        subject: `🏗 ${club.stadium} to grow - ${add.toLocaleString()} new seats`,
+        subject: `${club.stadium} to grow - ${add.toLocaleString()} new seats`,
         body: `Full houses all season have convinced the board. Diggers arrive this summer: capacity rises to ${club.capacity.toLocaleString()} at a cost of ${fmtMoney(cost)}. Keep winning and we'll fill that too.`,
         k: 'news.groundGrows',
         v: { stadium: club.stadium, add, cap: club.capacity, cost: fmtMoney(cost) },
@@ -1620,8 +1620,8 @@ export function rebuildSeason(state: GameState) {
             state.news.push({
               id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
               subject: down === state.userClubId
-                ? `😅 SURVIVED: ${state.clubs[down].short} win the playoff`
-                : `💔 SO CLOSE: ${state.clubs[up].short} lose the playoff`,
+                ? `SURVIVED: ${state.clubs[down].short} win the playoff`
+                : `SO CLOSE: ${state.clubs[up].short} lose the playoff`,
               body: `${line}.${down === state.userClubId ? ' The great escape, done on your own patch. The board exhales - now never come this close again.' : ' Champions of the second tier, beaten in one game for everything. The board keeps faith: win the league again and finish the job.'}`,
               k: down === state.userClubId ? 'news.barSurvived' : 'news.barSoClose',
               v: { ...lineV, line_k: lineV.k, short: state.clubs[down === state.userClubId ? down : up].short },
@@ -1656,8 +1656,8 @@ export function rebuildSeason(state: GameState) {
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
       subject: down === state.userClubId
-        ? `💔 RELEGATED: ${state.clubs[down].name} go down`
-        : `🎉 PROMOTED: ${state.clubs[up].name} are going up!`,
+        ? `RELEGATED: ${state.clubs[down].name} go down`
+        : `PROMOTED: ${state.clubs[up].name} are going up!`,
       // i18n-exempt-start
       // The English the story is FILED as, next to the key below it. Stored
       // English is not display text - see NewsItem.body.
@@ -1873,7 +1873,7 @@ export function rebuildSeason(state: GameState) {
         home.testimonial = cand.p.id
         state.news.push({
           id: state.nextId++, week: 1, season: state.season, type: 'award', read: false,
-          subject: `🎗 The last dance: ${cand.p.name} announces his farewell season`,
+          subject: `The last dance: ${cand.p.name} announces his farewell season`,
           body: `${cand.p.name} (${cand.p.age}, ${cand.p.pos}) has told the squad this season will be his last. ${cand.apps} appearances in the shirt, and one year left to add to them. His testimonial is set for the pre-season fixture at ${club.stadium} in week ${home.week} - pick him, and give the ground its goodbye.`,
           k: 'news.lastDance',
           v: { player: cand.p.name, age: cand.p.age, pos: cand.p.pos, apps: cand.apps, stadium: club.stadium, week: home.week },
@@ -1885,7 +1885,7 @@ export function rebuildSeason(state: GameState) {
   if (wcYear) {
     state.news.push({
       id: state.nextId++, week: 1, season: state.season, type: 'intl', read: false,
-      subject: `🏆 A WORLD CHAMPIONSHIP season`,
+      subject: `A WORLD CHAMPIONSHIP season`,
       body: `The ${BASE_YEAR + state.season} World Championship kicks off in the opening weeks of the season. Twenty nations, four pools, one trophy - and your internationals will be away with their countries until it's decided. Plan your early rounds carefully.`,
       k: 'news.wcSeason', v: { year: BASE_YEAR + state.season },
     })
@@ -1996,7 +1996,7 @@ export function rebuildSeason(state: GameState) {
       if (met) {
         state.news.push({
           id: state.nextId++, week: 1, season: state.season, type: 'board', read: false,
-          subject: `💷 The war chest is yours to keep`,
+          subject: `The war chest is yours to keep`,
           body: `You told the world to judge you in May, and May agreed. The ${fmtMoney(state.stanceFund)} the board put behind the promise stays spent with their blessing, and the chairman is already quoting you in the season-ticket letter.`,
           k: 'news.warChestKept', v: { fund: fmtMoney(state.stanceFund) },
         })
@@ -2011,7 +2011,7 @@ export function rebuildSeason(state: GameState) {
         club.budget = Math.max(200_000, club.budget - claw)
         state.news.push({
           id: state.nextId++, week: 1, season: state.season, type: 'board', read: false,
-          subject: `💷 The board recalls the war chest`,
+          subject: `The board recalls the war chest`,
           body: `Last summer you aimed high and the board paid for the privilege: a ${fmtMoney(state.stanceFund)} advance against a promise to beat the pundits. The pundits said ${ordinal(pred)}; you finished ${ordinal(userFinishPos)}. The accountants have taken ${fmtMoney(claw)} off this season's budget - the advance, plus interest for the nervousness. Your budget stands at ${fmtMoney(club.budget)}.`,
           k: 'news.warChestBack',
           v: { fund: fmtMoney(state.stanceFund), pred_o: pred, pos_o: userFinishPos, claw: fmtMoney(claw), budget: fmtMoney(club.budget) },
@@ -2086,7 +2086,7 @@ export function rebuildSeason(state: GameState) {
   // first. Once a season, in the same breath as the budget, is not nagging.
   state.news.push({
     id: state.nextId++, week: 1, season: state.season, type: 'general', read: false,
-    subject: `📦 ${seasonLabel(state.season - 1)} is in the books: back it up`,
+    subject: `${seasonLabel(state.season - 1)} is in the books: back it up`,
     body: `A whole season done, and every minute of it lives in this browser's storage and nowhere else. `
       + `Game Status has an Export Career button that writes the lot to a single file: keep it somewhere you trust `
       + `and you can put this career back on this phone, or carry it to another one, whatever the browser does in the meantime. `
@@ -2157,7 +2157,7 @@ export function challengeCheck(state: GameState) {
   const line = tIn('en', lineKey)
   state.news.push({
     id: state.nextId++, week: 1, season: state.season, type: 'award', read: false,
-    subject: `🏅 CHALLENGE COMPLETE: ${title}`,
+    subject: `CHALLENGE COMPLETE: ${title}`,
     body: `${line}\n\nThe badge goes on your profile, forever. Whatever happens next, nobody can take this one away.`,
     k: 'news.challengeDone',
     v: { title_k: CHALLENGES.find(c => c.id === ch)?.title ?? ch, line_k: lineKey },
@@ -2188,7 +2188,7 @@ export function invinciblesCheck(state: GameState) {
   if (losses > 0) return
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
-    subject: `🛡️ THE INVINCIBLES: ${club.name} finish the season unbeaten`,
+    subject: `THE INVINCIBLES: ${club.name} finish the season unbeaten`,
     body: `${mine.length} competitive matches. Zero defeats. Whatever else this club ever does, this season now lives outside the record books, in the place where the game keeps its legends. They will name teams after this side. ${state.managerName} built the team nobody could beat.`,
     k: 'news.invincibles', v: { club: club.name, n: mine.length, manager: state.managerName },
   })

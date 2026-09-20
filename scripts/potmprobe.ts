@@ -51,7 +51,7 @@ function potmWinners(news: NewsItem[]): { id: number; name: string }[] {
     // the measured block writes it into the body of a combined awards bulletin
     const inBody = /^Player of the Month: (.+?) \(/m.exec(n.body ?? '')
     // the unscoped block writes it as its own subject line
-    const inSubj = /^Player of the Month: (.+?)(?: 🏅)?$/.exec(n.subject ?? '')
+    const inSubj = /^Player of the Month: (.+?)$/.exec(n.subject ?? '')
     const m = inBody ?? inSubj
     if (m) out.push({ id: n.playerId, name: m[1] })
   }

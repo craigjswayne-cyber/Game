@@ -115,7 +115,7 @@ export function mentorGraduations(state: GameState) {
     const why = tIn('en', whyKey, { senior: s.name, age: k.age })
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: false,
-      subject: `🎓 ${k.name.split(' ').slice(-1)[0]} graduates from ${s.name.split(' ').slice(-1)[0]}'s wing`,
+      subject: `${k.name.split(' ').slice(-1)[0]} graduates from ${s.name.split(' ').slice(-1)[0]}'s wing`,
       body: `The pairing has run its course. ${why} ${s.name} shook his hand after training and the mentoring slot is free for the next one.`,
       k: 'news.mentGraduates',
       v: {
@@ -269,7 +269,7 @@ export function mentorReports(state: GameState) {
     if (fit >= 66) {
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: false,
-        subject: `🎓 ${last} is thriving under ${s.name.split(' ').slice(-1)[0]}`,
+        subject: `${last} is thriving under ${s.name.split(' ').slice(-1)[0]}`,
         body: `${tIn('en', fitKey(fit))}. ${fitReasonEn(s, k)} The academy coach says ${k.name} has started doing the unglamorous parts without being asked, `
           + `which is the bit you cannot coach. He is developing faster for it.`,
         k: 'news.mentThriving',

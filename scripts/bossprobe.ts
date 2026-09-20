@@ -52,10 +52,13 @@ for (let w = 0; w < SEASON_WEEKS * 3 + 4; w++) {
   for (const n of g.news) {
     if (seen.has(n.id)) continue
     seen.add(n.id)
-    // NOT just the microphone: the pundits' pre-season predictions carry the same
-    // glyph and are nobody's quote, and the first version of this probe swept one
-    // up and then failed its own "every one of them names a person" check on it.
-    if (/🎙/.test(n.subject) && !/Pundits/.test(n.subject)) beats.push(n)
+    // THE KEY, NOT THE GLYPH. This used to find a rival's quote by the studio
+    // microphone in its subject, with an exclusion for the pundits' pre-season
+    // predictions because they carried the same one. The emoji are out of the
+    // copy now, and the key was always the better handle: it says what the
+    // story IS rather than what it happened to be decorated with, and the
+    // pundits do not have one in this family so the exclusion goes with it.
+    if (n.k?.startsWith('news.boss')) beats.push(n)
     if (/finished above|did not last the season/.test(n.subject)) verdicts.push(n)
   }
 }

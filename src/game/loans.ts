@@ -327,7 +327,7 @@ export function loanRecall(state: GameState, playerId: number): { ok: boolean; m
   if (halfServed && p.ca < p.pa) p.ca += 1
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: true,
-    subject: `🧳 ${p.name} recalled from loan`,
+    subject: `${p.name} recalled from loan`,
     body: halfServed
       ? `${p.name} (${p.pos}, ${p.age}) is back in the building, match-fit from weekly rugby and visibly improved by the months away. The feeder club are sorry to lose him, which is the best reference there is.`
       : `${p.name} (${p.pos}, ${p.age}) is back in the building, match-fit from weekly rugby. The move home this early cuts the education short - the development the loan promised needed the season to pay in full.`,

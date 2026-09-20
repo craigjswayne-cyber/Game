@@ -367,7 +367,7 @@ export function sendToCourse(state: GameState, role: StaffRole): string {
     logDecision(state, 'dec.badgePassed', { ...subjectVar(p.g), name: p.name, badge_k: `staff.badge${p.tier}`, role_k: info.name, wage: fmtWage(p.wage) }, true)
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
-      subject: `🎓 ${p.name} passes his ${badge} badge`,
+      subject: `${p.name} passes his ${badge} badge`,
       body: `A day of written work and an assessed session in front of examiners who have seen it all, and ${p.name} came through it. Framed certificate, handshake at the training ground, and a better ${tIn('en', info.name).toLowerCase()} than the club had this morning. His pay rises to ${fmtWage(p.wage)} a week.`,
       k: 'news.badgePass',
       v: { ...subjectVar(p.g), name: p.name, badge_k: `staff.badge${p.tier}`, role_k: info.name, wage: fmtWage(p.wage) },
@@ -413,7 +413,7 @@ export function resolveCourses(state: GameState) {
       logDecision(state, 'dec.badgePassed', { ...subjectVar(p.g), name: p.name, badge_k: `staff.badge${p.tier}`, role_k: info.name, wage: fmtWage(p.wage) }, true)
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
-        subject: `🎓 ${p.name} passes his ${BADGE[p.tier].toLowerCase()} badge`,
+        subject: `${p.name} passes his ${BADGE[p.tier].toLowerCase()} badge`,
         body: `Framed certificate, handshake at the training ground, and a better ${tIn('en', info.name).toLowerCase()} than the club had last month. ${p.name} is now ${BADGE[p.tier].toLowerCase()}-badged, and his pay rises to ${fmtWage(p.wage)} a week.`,
         k: 'news.badgePassAuto',
         v: { ...subjectVar(p.g), name: p.name, badge_k: `staff.badge${p.tier}`, role_k: info.name, wage: fmtWage(p.wage) },
