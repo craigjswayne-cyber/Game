@@ -691,3 +691,18 @@ button.tile:active { background: var(--press); }
   flex: 0 0 auto;
 }
 .nico svg { width: 100%; height: 100%; display: block; }
+
+/* ---- the campus, now that it is art rather than drawing ----
+ * The plots used to be SVG paths, and a path only takes a tap where it has
+ * ink. An <image> is a rectangle and takes one anywhere inside it, including
+ * the transparent corners, so nine overlapping tiles would steal each other's
+ * taps along every shared edge - reliably the wrong facility near the corners,
+ * which is where a thumb lands on a small map. The picture is inert and the
+ * diamond under it is the button.
+ */
+.grounds .gplot image { pointer-events: none; }
+.grounds .ghit { fill: transparent; cursor: pointer; }
+.grounds .gcrane { pointer-events: none; }
+/* Selection was a drop-shadow on a drawing of flat faces. On a photograph it
+   reads as a blur, so the picked plot brightens and lifts instead. */
+.grounds .gplot.on { filter: brightness(1.12) drop-shadow(0 2px 6px rgba(0, 0, 0, .55)); }

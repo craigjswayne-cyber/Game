@@ -40,10 +40,23 @@ const CASES: { title: string; club: Partial<Club>; building: FacilityId | null }
     club: { short: 'STM', colors: ['#12325e', '#d8dee8'], capacity: 82_000, facilities: facs(() => 5) } },
 ]
 
+/**
+ * THE SPRITES HAVE TO BE INLINED. ClubGrounds resolves them through
+ * import.meta.glob, which under vite-node hands back a dev-server path like
+ * /src/ui/sprites/gym-3.webp. This page is set with setContent and served from
+ * nowhere, so every one of those 404s and the sheet renders an empty estate -
+ * which is exactly what it did on the first run after the art landed, and the
+ * failure looked like a bug in the map rather than a bug in the harness.
+ * scripts/systemqa.ts inlines the woff2 faces for the same reason.
+ */
+const inlineSprites = (html: string) => html.replace(
+  /href="[^"]*\/sprites\/([^"/]+\.webp)"/g,
+  (_, f: string) => `href="data:image/webp;base64,${readFileSync(`src/ui/sprites/${f}`).toString('base64')}"`)
+
 const draw = (club: Partial<Club>, building: FacilityId | null) =>
-  renderToStaticMarkup(createElement(ClubGrounds, {
+  inlineSprites(renderToStaticMarkup(createElement(ClubGrounds, {
     club: club as Club, buildingId: building, selected: null, onPick: () => {},
-  }))
+  })))
 
 const body = CASES.map(c =>
   `<figure><figcaption>${c.title}</figcaption>${draw(c.club, c.building)}</figure>`).join('')
@@ -63,7 +76,13 @@ const LADDER = [0, 1, 2, 3, 4, 5].map(l =>
     short: 'LAD', colors: ['#1f5e3a', '#e9be68'], capacity: 24_000, facilities: facs(() => l),
   }, null)}</figure>`).join('')
 
-const css = ['src/ui/tokens.css', 'src/ui/theme.css'].map(f => readFileSync(f, 'utf8')).join('\n')
+/* system.css TOO, and it is not optional. It carries the rules that make the
+   campus's tap targets invisible, and without it .ghit falls back to the SVG
+   default fill - black - so this sheet drew nine solid diamonds over the art
+   and reported a campus that does not exist. */
+const css = ['src/ui/tokens.css', 'src/ui/theme.css', 'src/ui/system.css']
+  .map(f => readFileSync(f, 'utf8')).join('\n')
+
 const shell = (cls: string) => `<!doctype html><meta charset="utf-8"><style>${css}
   body { margin: 0; background: var(--canvas); font-family: system-ui; }
   /* .app is the GAME's shell - a 560px-wide flex column the height of a phone -

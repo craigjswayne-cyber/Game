@@ -9,6 +9,7 @@ import { SectionTitle } from '../components'
 import { ESTATE_SKU, hasEntitlement, tillOpen } from '../../game/monetise'
 import { estateBuiltHere } from '../../game/grants'
 import { ord as ordUI, t } from '../../game/i18n'
+import { IcoStadium } from '../icons'
 
 /** What each level actually buys, in the manager's language. */
 const EFFECT: Record<FacilityId, (lvl: number) => string> = {
@@ -120,7 +121,7 @@ export default function Infrastructure() {
       <div className="card" style={{ borderLeft: '4px solid var(--gold)', padding: '8px 12px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <div>
-            <h3 style={{ fontSize: 15, margin: 0 }}>🏟️ {club.stadium}</h3>
+            <h3 style={{ fontSize: 15, margin: 0 }} className="inl g-2"><span className="nico"><IcoStadium /></span>{club.stadium}</h3>
             <div className="meta">
               {t('world.infSeats', { n: club.capacity.toLocaleString() })}
               {plan.played >= 1 && t('world.infAvgGate', { avg: plan.avg.toLocaleString(), pct: Math.round(plan.fill * 100) })}

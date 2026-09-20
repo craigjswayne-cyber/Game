@@ -2,119 +2,130 @@ import { FACILITY_INFO, MAX_FACILITY, type Club, type FacilityId } from '../game
 import { t } from '../game/i18n'
 
 /**
- * ---- THE CLUB, SEEN FROM THE AIR (v1.7.0) ----
+ * ---- THE CLUB, SEEN FROM THE AIR ----
  *
  * Owner: "the club infrastructure could be visually much stronger", with a
- * city-builder's campus map as the reference - plots, roads, buildings that
- * visibly grow.
+ * city-builder's campus map as the reference.
  *
- * WHAT THIS IS NOT. It is not a painting of a club and it is not a set of
- * sprites. Every mark below is drawn from `club.facilities`, so the estate on
- * screen IS the estate in the save: a gym at level 1 is a shed, a gym at level
- * 5 is three storeys with glass on the front, and the thing that changed
- * between them is a number the board signed off. A picture that did not move
- * when the number moved would be wallpaper, and the whole point of the
- * reference is that you can see what your money bought.
+ * WHAT THIS WAS, AND WHY IT CHANGED. Until now every mark on this map was
+ * drawn in code: isometric boxes built out of three shaded faces, a kit of
+ * roof furniture, and an emoji laid on top of each roof to say what the
+ * building was. The file carried a long argument for that approach - nine
+ * facilities at six levels is 54 states before the ground and the builders,
+ * and no sane amount of art covers it - and the argument was wrong, because
+ * the owner had already drawn all 54. Ten ladders, nine facilities and the
+ * ground, six stages each, painted. They sat in the conversation while the
+ * game drew coloured boxes, and the owner's verdict on the result was the
+ * correct one: "the visual is crap".
  *
- * WHY SVG AND NOT ART. Eight skins, six languages, nine facilities and six
- * levels each is 54 states per club before the ground and the builders, and no
- * sane amount of art covers that. Drawn, it covers all of it for 8 KB, it is
- * sharp on every phone, it costs no download, and it inherits the theme's own
- * colours - so the club's campus is dark under the night themes and pale under
- * daylight without a second version of anything.
+ * So the drawing code is gone, about 880 lines of it, and this file now places
+ * the owner's art. scripts/sprites.mjs is the pipeline that cuts the ladders
+ * into the 60 sprites in ./sprites, and it carries the detail of how.
+ *
+ * WHAT IS UNCHANGED, and matters more than the art: the estate on screen is
+ * still the estate in the save. Every plot reads its own level out of
+ * club.facilities and the ground reads its capacity, so a gym at level 1 is
+ * the shed the board paid for and a gym at level 5 is the building they paid
+ * for later. A picture that did not move when the number moved would be
+ * wallpaper.
  *
  * ---- THE PROJECTION ----
  *
- * A 2:1 isometric grid, which is the one every game of this kind uses: a tile
- * twice as wide as it is tall, so a square plot lands as a diamond and the
- * maths stays integer-friendly.
+ * A 2:1 isometric grid, the one every game of this kind uses: a tile twice as
+ * wide as it is tall, so a square plot lands as a diamond.
  *
  *     screen x = OX + (gx - gy) * TW/2
  *     screen y = OY + (gx + gy) * TH/2
  *
  * Read (gx + gy) as DEPTH: it rises towards the viewer, which makes the
- * painter's sort at the bottom of this file one line rather than a z-buffer.
- * The grid is 4x4. The ground takes the middle four plots and the estate takes
- * the twelve around it - nine facilities and three pieces of scenery, because
- * a campus with no car park and no trees on it reads as a circuit board.
+ * painter's sort one line rather than a z-buffer. That sort matters more now
+ * than it did with boxes - these tiles carry their own landscaping and overlap
+ * their neighbours, so drawing them out of order puts a hedge in front of a
+ * building that stands behind it.
  */
+
+/**
+ * THE SPRITES, ALL SIXTY, BY NAME. Eager because the map needs whichever nine
+ * levels the save happens to hold and there is no telling which until it is
+ * read; what is eager here is the URL, not the image, so the bundle gains 60
+ * short strings and the browser still fetches only the nine on screen.
+ */
+const SPRITES = import.meta.glob('./sprites/*.webp', {
+  eager: true, query: '?url', import: 'default',
+}) as Record<string, string>
+const sprite = (id: string, lvl: number): string | undefined =>
+  SPRITES[`./sprites/${id}-${Math.max(0, Math.min(5, lvl))}.webp`]
 
 /** Tile width and height in screen units. 2:1, and the whole layout is in
  *  these - change them and everything below still lands. */
 const TW = 92
 const TH = 46
-/** Where grid (0,0) sits. The horizontal margin is not slack: a level-5
- *  building is 34 units wide either side of its plot centre, so the far
- *  corners of the grid have to sit that far inside the viewBox or a
- *  world-class estate gets its gym clipped off at the edge. */
 const OX = 180
-const OY = 58
+const OY = 64
 
 const iso = (gx: number, gy: number): [number, number] =>
   [OX + (gx - gy) * TW / 2, OY + (gx + gy) * TH / 2]
 
-/** A diamond on the ground plane, centred on a plot and inset by `pad` so the
- *  gaps between plots read as the roads between them. */
-const plotPath = (gx: number, gy: number, pad = 5): string => {
-  const [x, y] = iso(gx, gy)
-  const w = TW / 2 - pad * 2, h = TH / 2 - pad
-  return `M ${x},${y - h} L ${x + w},${y} L ${x},${y + h} L ${x - w},${y} Z`
-}
-
-/** A box standing on the ground plane: top face, then the two faces that catch
- *  the light differently. Everything built on this campus is one of these. */
-function IsoBox({ x, y, w, d, h, top, left, right }: {
-  x: number; y: number; w: number; d: number; h: number
-  top: string; left: string; right: string
-}) {
-  return (
-    <>
-      <path d={`M ${x - w},${y - h} L ${x},${y + d - h} L ${x},${y + d} L ${x - w},${y} Z`} fill={left} />
-      <path d={`M ${x},${y + d - h} L ${x + w},${y - h} L ${x + w},${y} L ${x},${y + d} Z`} fill={right} />
-      <path d={`M ${x},${y - d - h} L ${x + w},${y - h} L ${x},${y + d - h} L ${x - w},${y - h} Z`} fill={top} />
-    </>
-  )
-}
-
 /**
- * WHERE EVERYTHING STANDS.
+ * WHERE EVERYTHING STANDS. The grass is kept together down the left and front
+ * - the playing surface, the paddock and the kicking enclosure are fields
+ * rather than buildings, and a club whose pitches are scattered between its
+ * offices does not look like a club. The buildings run round the top and the
+ * right, and the ground takes the middle four plots.
  *
- * The grass is kept together down the left and front - the playing surface,
- * the paddock and the kicking enclosure are the three that are fields rather
- * than buildings, and a club whose pitches are scattered between its offices
- * does not look like a club. The buildings run round the top and the right.
- * The gates and the forecourt take the nearest plot, because that is the one
- * the eye lands on and an entrance is what a ground has at the front.
+ * The three scenery plots are gone with the drawing code. They existed because
+ * a campus of nine bare boxes read as a circuit board and it needed trees; the
+ * owner's tiles arrive with their own hedges, trees and parked cars, so the
+ * scenery would now be a second, worse set of trees beside the real ones.
  */
-type Scenery = 'gates' | 'trees' | 'park'
-const PLOTS: { id: FacilityId | Scenery; gx: number; gy: number }[] = [
-  { id: 'trees', gx: 0, gy: 0 },
+const PLOTS: { id: FacilityId; gx: number; gy: number }[] = [
   { id: 'academy', gx: 1, gy: 0 },
   { id: 'briefing', gx: 2, gy: 0 },
   { id: 'gym', gx: 3, gy: 0 },
-  { id: 'park', gx: 0, gy: 1 },
   { id: 'recovery', gx: 3, gy: 1 },
   { id: 'kicking', gx: 0, gy: 2 },
   { id: 'hospitality', gx: 3, gy: 2 },
   { id: 'paddock', gx: 0, gy: 3 },
   { id: 'pitch', gx: 1, gy: 3 },
   { id: 'shop', gx: 2, gy: 3 },
-  { id: 'gates', gx: 3, gy: 3 },
 ]
-/** The three that are fields, not buildings. */
-const GRASS: ReadonlySet<string> = new Set<FacilityId>(['pitch', 'paddock', 'kicking'])
-const isScenery = (id: string): id is Scenery => id === 'gates' || id === 'trees' || id === 'park'
 
-/** Lighten or darken a club colour for the faces of a solid. Falls back to the
- *  token ramp for a club whose colours are CSS variables rather than hex. */
-function shade(hex: string, k: number): string {
-  const h = hex.replace('#', '')
-  if (h.length !== 6 || /[^0-9a-f]/i.test(h)) return hex
-  const ch = (i: number) => {
-    const v = parseInt(h.slice(i * 2, i * 2 + 2), 16)
-    return Math.max(0, Math.min(255, Math.round(k < 1 ? v * k : v + (255 - v) * (k - 1))))
-  }
-  return `rgb(${ch(0)}, ${ch(1)}, ${ch(2)})`
+/**
+ * THE GROUND'S SIX STAGES ARE CAPACITY BANDS, not a facility level. It is the
+ * one thing on this campus the board does not build in levels - it adds SEATS
+ * (requestExpansion, season.ts), anywhere from a few hundred to a new stand -
+ * so the ladder is read off the seat count instead. The bands sit where the
+ * real grounds in the database sit, so moving up one is a thing that happens
+ * across a career rather than never or constantly.
+ */
+const GROUND_TIERS = [45_000, 26_000, 17_000, 11_000, 6_000]
+const groundTier = (cap: number): number => {
+  const i = GROUND_TIERS.findIndex(n => cap >= n)
+  return i < 0 ? 0 : 5 - i
+}
+
+/**
+ * One tile, stood on its plot.
+ *
+ * THE BOX IS TALLER THAN THE TILE AND ALIGNED TO ITS FOOT. Every sprite in a
+ * ladder shares one canvas, bottom-anchored, so the foot of the image is the
+ * foot of the ground plate whatever is built on it (scripts/sprites.mjs step
+ * 4). Give SVG a generous box and `xMidYMax meet` and it scales the tile to
+ * the width, leaves the spare height empty above, and stands the plate exactly
+ * on the plot. That is what lets a level 5 grow upward out of the same
+ * footprint a level 0 sits in, rather than being scaled down to fit a box.
+ */
+function Tile({ id, lvl, gx, gy, w, alt }: {
+  id: string; lvl: number; gx: number; gy: number; w: number; alt?: string
+}) {
+  const href = sprite(id, lvl)
+  if (!href) return null
+  const [x, y] = iso(gx, gy)
+  const box = w * 1.35
+  return (
+    <image href={href} x={x - w / 2} y={y + TH / 2 - box} width={w} height={box}
+      preserveAspectRatio="xMidYMax meet" {...(alt ? { 'aria-label': alt } : {})} />
+  )
 }
 
 export default function ClubGrounds({ club, buildingId, selected, onPick }: {
@@ -125,13 +136,7 @@ export default function ClubGrounds({ club, buildingId, selected, onPick }: {
   onPick: (fid: FacilityId) => void
 }) {
   const lvl = (fid: FacilityId) => club.facilities?.[fid] ?? 0
-  const [c1, c2] = club.colors
-
-  /** The ground, and the one number on this screen that is not a facility
-   *  level: the board adds SEATS rather than levels, so its six stages are
-   *  read off the capacity. See Ground, below. */
   const cap = Math.max(2_000, club.capacity)
-  const [sx, sy] = iso(1.5, 1.5)
 
   /** Painter's order: back to front, which on this grid is depth ascending.
    *  The ground sits at the centre of the four plots it covers, so it takes
@@ -141,28 +146,30 @@ export default function ClubGrounds({ club, buildingId, selected, onPick }: {
   const front = order.filter(p => p.gx + p.gy >= 3)
 
   /** One plot, drawn at whatever it currently is. */
-  const draw = (p: { id: FacilityId | Scenery; gx: number; gy: number }) => {
-    const [x, y] = iso(p.gx, p.gy)
-    if (isScenery(p.id)) return <Scene key={p.id} kind={p.id} x={x} y={y} c1={c1} />
-
+  const draw = (p: { id: FacilityId; gx: number; gy: number }) => {
     const fid = p.id
     const l = lvl(fid)
+    const [x, y] = iso(p.gx, p.gy)
     const building = buildingId === fid
     const on = selected === fid
-    const grass = GRASS.has(fid)
     return (
       <g key={fid} className={`gplot${on ? ' on' : ''}${building ? ' building' : ''}`}
         onClick={() => onPick(fid)} role="button" tabIndex={0}
         onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onPick(fid) } }}
         aria-label={`${t(FACILITY_INFO[fid].name)} · ${t('world.infLevelOf', { n: l, max: MAX_FACILITY })}`}>
-        {grass ? <Field fid={fid} x={x} y={y} lvl={l} c1={c1} c2={c2} /> : <Block fid={fid} x={x} y={y} lvl={l} c1={c1} c2={c2} />}
+        <Tile id={fid} lvl={l} gx={p.gx} gy={p.gy} w={PLOT_W} />
+        {/* THE TAP TARGET IS THE PLOT, NOT THE PICTURE. An <image> with
+            transparent corners still takes a tap on those corners, so nine
+            overlapping rectangles would steal each other's taps along every
+            shared edge. The diamond is the footprint the eye sees. */}
+        <path className="ghit" d={`M ${x},${y - TH / 2} L ${x + TW / 2},${y} L ${x},${y + TH / 2} L ${x - TW / 2},${y} Z`} />
         {/* THE CRANE SAYS SO. A build takes weeks and the only sign of one used
             to be a line of text on a card; here the plot itself is a site. */}
         {building && (
           <g className="gcrane">
-            <path d={`M ${x - 2},${y - 4} L ${x - 2},${y - 52} L ${x + 26},${y - 52}`}
+            <path d={`M ${x - 2},${y - 4} L ${x - 2},${y - 62} L ${x + 26},${y - 62}`}
               stroke="var(--gold)" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-            <path d={`M ${x + 22},${y - 52} L ${x + 22},${y - 40}`} stroke="var(--gold)" strokeWidth="1.6" />
+            <path d={`M ${x + 22},${y - 62} L ${x + 22},${y - 50}`} stroke="var(--gold)" strokeWidth="1.6" />
           </g>
         )}
         {/* The level, as the same pips the cards use, drawn small under the
@@ -170,7 +177,7 @@ export default function ClubGrounds({ club, buildingId, selected, onPick }: {
             reads as a glance down the list. */}
         <g className="gpips">
           {Array.from({ length: MAX_FACILITY }).map((_, i) => (
-            <circle key={i} cx={x - 14 + i * 7} cy={y + TH / 2 - 3} r="2.1"
+            <circle key={i} cx={x - 14 + i * 7} cy={y + TH / 2 - 2} r="2.1"
               fill={i < l ? 'var(--gold)' : 'var(--border)'} />
           ))}
         </g>
@@ -179,932 +186,28 @@ export default function ClubGrounds({ club, buildingId, selected, onPick }: {
   }
 
   return (
-    <svg className="grounds" viewBox="0 0 360 248" role="img"
+    /* THE BOX IS MEASURED, NOT GUESSED. The first cut carried 43 units of
+       empty sky above the estate and 59 below it, which on a phone is most of
+       a thumb of nothing inside a framed card. These are the real extents:
+       the ground's roof reaches y = -9, the front plots' pips end at 205, and
+       the paddock and the gym put the sides at -10 and 370. */
+    <svg className="grounds" viewBox="-14 -16 392 232" role="img"
       aria-label={t('world.infGroundsAlt', { club: club.short })}>
-      {/* the estate's footprint: one diamond of tarmac under everything, so
-          the gaps the plots leave read as the roads between them */}
-      <path d={`M ${OX - TW * 2},${OY + TH * 1.5} L ${OX},${OY - TH / 2}
-                L ${OX + TW * 2},${OY + TH * 1.5} L ${OX},${OY + TH * 3.5} Z`}
-        fill="var(--surface-2)" stroke="var(--border)" strokeWidth="1" />
-      {PLOTS.map(p => (
-        <path key={`g${p.gx}${p.gy}`} d={plotPath(p.gx, p.gy)}
-          fill="var(--surface-1)" fillOpacity={0.55}
-          stroke="var(--border)" strokeWidth="0.7" strokeOpacity={0.6} />
-      ))}
-
+      {/* NO GROUND PLANE UNDER THE TILES. There used to be a diamond of
+          tarmac here so the gaps between the drawn boxes read as roads. Each
+          tile now arrives with its own plate - grass to the fence, gravel to
+          the kerb - so the tarmac only showed in the three cells the scenery
+          used to hold, as a grey wedge sticking out from under the estate.
+          The tiles sit on the card, the way they sit on the ladders. */}
       {back.map(draw)}
-      <Ground x={sx} y={sy} cap={cap} c1={c1} c2={c2} />
+      <Tile id="stadium" lvl={groundTier(cap)} gx={1.5} gy={1.5} w={GROUND_W} />
       {front.map(draw)}
     </svg>
   )
 }
 
-/**
- * ---- THE GROUND ----
- *
- * Rebuilt in 1.7.0 from the owner's reference ladder, which grows a bare pitch
- * into an enclosed stadium in six stages. What was here was an ellipse with
- * three rings on it: it said "stadium" and nothing else, and it said the same
- * thing for a village ground and for a Test arena except that one was wider.
- *
- * THE SIX STAGES ARE CAPACITY BANDS, not a facility level. This is the one
- * thing on the campus the board does not build in levels - it adds SEATS
- * (requestExpansion, season.ts), anywhere from a few hundred to a new stand -
- * so the ladder is read off the seat count instead. The bands are set where
- * the real grounds in the database actually sit, so that moving up one is a
- * thing that happens across a career rather than never or constantly:
- *
- *     0  under 6,000    an open pitch with banks: posts, markings, no stands
- *     1  6,000          a perimeter and the turnstile blocks at the corners
- *     2  11,000         the first covered stand, down one touchline
- *     3  17,000         a second stand behind the posts, and the floodlights
- *     4  26,000         all four sides, and a concourse round the outside
- *     5  45,000+        enclosed: a continuous roof and a glazed frontage
- *
- * A stand is added rather than swapped in at every step, so the ground a
- * manager inherits is visibly the ground he leaves plus what he built.
- *
- * DRAWN AS A RECTANGLE, because a rugby ground is one. The ellipse was easier
- * and it is the reason the old drawing could not grow: there is nowhere on an
- * ellipse to put ONE stand. On a rectangle every stage has an obvious place
- * for the next piece, which is what makes the ladder possible at all.
- */
-
-/** Where the bands fall. Read as "this many seats or more". */
-const GROUND_TIERS = [45_000, 26_000, 17_000, 11_000, 6_000]
-const groundTier = (cap: number): number => {
-  const i = GROUND_TIERS.findIndex(n => cap >= n)
-  return i < 0 ? 0 : 5 - i
-}
-
-/**
- * A box on the ground plane with a rectangular footprint, which IsoBox cannot
- * draw: its diamond has both edges at the same screen length, so its footprint
- * is always square, and a stand a hundred metres long and fifteen wide is not.
- *
- * The footprint is centred at (cx, cy) with half-extents `a` along one ground
- * axis and `b` along the other. In this projection those axes run at half
- * slope, so the four corners are the four combinations below, and the two
- * faces the viewer can see are always the two that meet at the lowest one.
- */
-function Slab({ cx, cy, a, b, h, top, left, right, opacity }: {
-  cx: number; cy: number; a: number; b: number; h: number
-  top: string; left: string; right: string; opacity?: number
-}) {
-  const S = (u: number, v: number): [number, number] => [cx + u - v, cy + u / 2 + v / 2]
-  const [x1, y1] = S(a, b)    // nearest corner
-  const [x2, y2] = S(a, -b)   // right
-  const [x3, y3] = S(-a, -b)  // furthest
-  const [x4, y4] = S(-a, b)   // left
-  return (
-    <g opacity={opacity}>
-      <path d={`M ${x4},${y4 - h} L ${x1},${y1 - h} L ${x1},${y1} L ${x4},${y4} Z`} fill={left} />
-      <path d={`M ${x1},${y1 - h} L ${x2},${y2 - h} L ${x2},${y2} L ${x1},${y1} Z`} fill={right} />
-      <path d={`M ${x1},${y1 - h} L ${x2},${y2 - h} L ${x3},${y3 - h} L ${x4},${y4 - h} Z`} fill={top} />
-    </g>
-  )
-}
-
-function Ground({ x, y, cap, c1, c2 }: {
-  x: number; y: number; cap: number; c1: string; c2: string
-}) {
-  const tier = groundTier(cap)
-  /** THE PITCH IS THE CONSTANT. It is the same size at every tier, because a
-   *  rugby pitch is the same size at every ground in the world; what grows is
-   *  what is built around it. The old drawing scaled the playing area with the
-   *  crowd, which is the one thing a stadium cannot do. */
-  // Sized to the FOUR PLOTS IT COVERS and not a unit more: that block is 92
-  // units of half-width, and pitch plus two stands has to live inside it or
-  // the ground swallows the buildings either side of it. 38 and 21 with the
-  // widest stands lands at 81.
-  const pa = 38, pb = 21
-  /** How deep a stand is, and how tall. Both grow with the band - a 45,000
-   *  seat stand is a bigger object than an 11,000 seat one - and the height is
-   *  capped where it would start hiding the plots drawn behind it. */
-  const sb = 5 + tier * 1.2
-  const sh = 5 + tier * 2.0
-  const S = (u: number, v: number): [number, number] => [x + u - v, y + u / 2 + v / 2]
-  const corners = [S(pa, pb), S(pa, -pb), S(-pa, -pb), S(-pa, pb)]
-  const pitchPath = 'M ' + corners.map(c => c.join(',')).join(' L ') + ' Z'
-
-  // The stand's own structure has to be visible or the seating deck on top of
-  // it reads as a gold ramp lying on the grass. Lifted off the background
-  // rather than left at the dark end of the club's colour.
-  const wall = shade(c1, 0.78)
-  /** THE SEATS ARE THE CLUB'S SECOND COLOUR, and that is the single strongest
-   *  signal in the whole drawing. They were the first colour shaded up, which
-   *  for a green club painted green seats onto a green pitch and made a stand
-   *  indistinguishable from the grass it faces. Every club in the database
-   *  carries two colours precisely because one of them contrasts. */
-  const seats = shade(c2, 0.78)
-  const roof = shade(c1, 0.26)
-  /** A stand, given which side it sits on. `side` is the offset in ground
-   *  units; the long stands run the length of the pitch and the end stands
-   *  the width of it. */
-  const stand = (u: number, v: number, sa: number, sbb: number) => (
-    <Slab cx={S(u, v)[0]} cy={S(u, v)[1]} a={sa} b={sbb} h={sh}
-      top={roof} left={shade(wall, 0.62)} right={wall} />
-  )
-  /** The seating deck, drawn ON the pitch side of a stand so the terrace reads
-   *  as rows of seats facing in rather than as a blank wall. */
-  const deck = (u: number, v: number, sa: number, sbb: number) => {
-    const [dx, dy] = S(u, v)
-    const D = (uu: number, vv: number): string => `${dx + uu - vv},${dy + uu / 2 + vv / 2 - sh}`
-    return (
-      <path d={`M ${D(sa, -sbb * 0.75)} L ${D(-sa, -sbb * 0.75)} L ${D(-sa, sbb * 0.3)} L ${D(sa, sbb * 0.3)} Z`}
-        fill={seats} />
-    )
-  }
-  const light = (u: number, v: number) => {
-    const [lx, ly] = S(u, v)
-    return (
-      <g>
-        <line x1={lx} y1={ly} x2={lx} y2={ly - 26} stroke="var(--text-muted)" strokeWidth="1.5" />
-        <rect x={lx - 7} y={ly - 31} width="14" height="5" rx="1" fill="var(--gold-fill)" />
-      </g>
-    )
-  }
-  const off = pb + sb       // how far out a touchline stand sits
-  const end = pa + sb       // and an end stand behind the posts
-  return (
-    <g className="gbowl">
-      {/* the concourse: paved ground round the outside, from the band where a
-          crowd needs somewhere to stand before it goes in */}
-      {tier >= 4 && (
-        <path d={`M ${S(end + 14, 0)[0]},${S(end + 14, 0)[1]} L ${S(0, -off - 14)[0]},${S(0, -off - 14)[1]}
-                  L ${S(-end - 14, 0)[0]},${S(-end - 14, 0)[1]} L ${S(0, off + 14)[0]},${S(0, off + 14)[1]} Z`}
-          fill="var(--surface-3)" opacity=".45" />
-      )}
-      {/* FAR SIDE FIRST, then the pitch, then the near side: the whole reason
-          this is a rectangle and not an ellipse is that the stands have sides,
-          and a stand in front of the pitch has to be drawn after it. */}
-      {tier >= 2 && <>{stand(0, -off, pa, sb)}{deck(0, -off, pa, sb)}</>}
-      {tier >= 3 && <>{stand(-end, 0, sb, pb)}{deck(-end, 0, sb, pb)}</>}
-
-      {/* THE MATCH PITCH IS BRIGHTER THAN THE TRAINING GRASS. Both were
-          --pitch-a and the stadium sank into the three fields around it -
-          which is the wrong way round, since this is the one piece of grass
-          the club plays on. Mixed rather than hardcoded so it still answers to
-          the theme. */}
-      <path d={pitchPath} fill="color-mix(in srgb, var(--pitch-a) 62%, var(--primary))" />
-      {/* mown stripes, the halfway line and the two 22s */}
-      {[-0.55, -0.18, 0.18, 0.55].map((f, i) => (
-        <path key={i} d={`M ${S(pa * f, pb)[0]},${S(pa * f, pb)[1]} L ${S(pa * f, -pb)[0]},${S(pa * f, -pb)[1]}`}
-          stroke="var(--pitch-a)" strokeWidth={pa * 0.34} opacity=".5" />
-      ))}
-      {[0, -0.45, 0.45].map((f, i) => (
-        <path key={i} d={`M ${S(pa * f, pb)[0]},${S(pa * f, pb)[1]} L ${S(pa * f, -pb)[0]},${S(pa * f, -pb)[1]}`}
-          stroke="rgba(255,255,255,.6)" strokeWidth={i ? 0.9 : 1.4} />
-      ))}
-      <path d={pitchPath} fill="none" stroke="rgba(255,255,255,.65)" strokeWidth="1.1" />
-      {/* the posts, at both ends and at every band: a ground with no stands is
-          still a ground */}
-      {[-0.86, 0.86].map((f, i) => {
-        const [gx1, gy1] = S(pa * f, -pb * 0.22)
-        const [gx2, gy2] = S(pa * f, pb * 0.22)
-        return (
-          <g key={i} stroke="rgba(255,255,255,.9)" strokeWidth="1.5" fill="none">
-            <path d={`M ${gx1},${gy1} L ${gx1},${gy1 - 13}`} />
-            <path d={`M ${gx2},${gy2} L ${gx2},${gy2 - 13}`} />
-            <path d={`M ${gx1},${gy1 - 9} L ${gx2},${gy2 - 9}`} />
-          </g>
-        )
-      })}
-
-      {tier >= 4 && <>{stand(end, 0, sb, pb)}{deck(end, 0, sb, pb)}</>}
-      {tier >= 4 && <>{stand(0, off, pa, sb)}{deck(0, off, pa, sb)}</>}
-      {/* ENCLOSED. The last band joins the four stands up: a continuous roof
-          over the corners, and the glazed frontage that turns a set of stands
-          into a building. */}
-      {tier >= 5 && (
-        <>
-          {[[end, off], [end, -off], [-end, off], [-end, -off]].map(([u, v], i) => (
-            <Slab key={i} cx={S(u, v)[0]} cy={S(u, v)[1]} a={sb} b={sb} h={sh}
-              top={roof} left={shade(wall, 0.72)} right={wall} />
-          ))}
-          <path d={`M ${S(pa, off + sb)[0]},${S(pa, off + sb)[1] - sh * 0.55}
-                    L ${S(-pa, off + sb)[0]},${S(-pa, off + sb)[1] - sh * 0.55}
-                    L ${S(-pa, off + sb)[0]},${S(-pa, off + sb)[1] - sh * 0.15}
-                    L ${S(pa, off + sb)[0]},${S(pa, off + sb)[1] - sh * 0.15} Z`}
-            fill={GLASS} />
-        </>
-      )}
-      {/* THE PERIMETER, which is the whole of what the first band buys: a wall
-          round the outside and the turnstile blocks on the corners. It is the
-          difference between a field somebody plays on and a ground people pay
-          to get into. */}
-      {tier >= 1 && tier < 4 && (
-        <path d={`M ${S(end, off)[0]},${S(end, off)[1]} L ${S(end, -off)[0]},${S(end, -off)[1]}
-                  L ${S(-end, -off)[0]},${S(-end, -off)[1]} L ${S(-end, off)[0]},${S(-end, off)[1]} Z`}
-          fill="none" stroke={shade(c1, 0.6)} strokeWidth="2" />
-      )}
-      {tier >= 1 && [[end, off], [-end, -off]].map(([u, v], i) => (
-        <Slab key={i} cx={S(u, v)[0]} cy={S(u, v)[1]} a={5} b={5} h={7}
-          top={shade(c2, 1.05)} left={shade(c1, 0.45)} right={shade(c1, 0.68)} />
-      ))}
-      {tier >= 3 && [[end, -off], [-end, off]].map(([u, v], i) => light(u, v))}
-      {tier >= 4 && [[end, off], [-end, -off]].map(([u, v], i) => light(u, v))}
-    </g>
-  )
-}
-
-/** ---- A BUILDING ----
- *
- * SIX STAGES, EACH ONE A THING YOU CAN NAME (v1.7.0, from the owner's
- * reference ladders for the gym and the recovery centre).
- *
- * The first pass grew one box linearly and bolted a glass band on at 2 and 4.
- * It failed its own test: at the size this is read, levels 2 and 3 differed
- * only in how big they were, so two of the six stages were invisible and the
- * five pips under the plot were doing all the work. A capital project the
- * board argued about and paid for has to look like one.
- *
- *   0  a fenced site: no building, cones at the corners, and the one object
- *      that says what belongs here
- *   1  a single-storey unit on a paved apron
- *   2  longer, a glazed frontage, and an entrance canopy
- *   3  a SECOND STOREY, with the external stair that comes with it
- *   4  plant on the roof - the dull expensive thing a finished building has
- *   5  a second plant unit and a low annex on the end
- *
- * Every stage keeps everything below it, so level 5 visibly contains the whole
- * ladder. The silhouette changes at 1, 3 and 5 (a box appears, it doubles in
- * height, it grows a wing); the face changes at 2 and 4. Alternating the two
- * is what makes each step readable at about 85 by 50 real pixels, which is all
- * a plot gets on a phone.
- *
- * WHAT IS DELIBERATELY NOT HERE. The reference art has signage, window
- * mullions, planters, bollards, kerbs and downpipes. None of them survive the
- * reduction - at 1.22 pixels per unit a mullion is a quarter of a pixel - and
- * drawing them anyway would only add noise to a silhouette that has to carry
- * the meaning. What is kept is what changes the OUTLINE.
- */
-
-/** One storey. Two of them plus the parapet is the tallest thing on the
- *  campus that is not the stadium, and it has to stay under the height that
- *  would hide the plot behind it. */
-const STOREY = 10.5
-/** Glazing. A literal rather than a token because glass is glass in both
- *  themes: it is the sky in it, not the room behind it, so it does not flip
- *  with the ground the way every painted surface here does. */
-const GLASS = 'rgba(150, 205, 235, .88)'
-
-function Block({ fid, x, y, lvl, c1, c2 }: {
-  fid: FacilityId; x: number; y: number; lvl: number; c1: string; c2: string
-}) {
-  if (lvl === 0) return <Empty fid={fid} x={x} y={y} c1={c1} c2={c2} />
-  const storeys = lvl >= 3 ? 2 : 1
-  const w = 11.5 + lvl * 2.5
-  const d = 6.2 + lvl * 1.15
-  const h = STOREY * storeys + (lvl >= 2 ? 1.5 : 0)
-  // The block stands back-left and the apron takes the front-right corner,
-  // which is how both reference ladders lay a plot out - and it is also the
-  // only arrangement that leaves the apron visible, since a solid drawn in
-  // front of it would hide it.
-  const bx = x - 4, by = y - 3
-  const wall = shade(c1, 0.62 + lvl * 0.04)
-  const roof = shade(c1, 0.3)
-  /** A band across the right face, at a height given as a fraction of the
-   *  storey it belongs to. The face is a parallelogram, so a band on it is
-   *  two parallel edges of the same slope. */
-  const band = (lo: number, hi: number) =>
-    `M ${bx + 1.5},${by + d - lo} L ${bx + w - 2},${by - lo}`
-    + ` L ${bx + w - 2},${by - hi} L ${bx + 1.5},${by + d - hi} Z`
-  return (
-    <g>
-      <ellipse cx={bx} cy={by + d * 0.6} rx={w * 1.06} ry={d * 0.85} fill="rgba(0,0,0,.22)" />
-      {/* the apron: what the building stands on, and what the facility's own
-          object stands on beside it */}
-      <path d={`M ${x + 9},${y - 1} L ${x + 25},${y + 7} L ${x + 9},${y + 15} L ${x - 7},${y + 7} Z`}
-        fill="var(--surface-3)" opacity=".38" />
-
-      <IsoBox x={bx} y={by} w={w} d={d} h={h} top={roof} left={shade(wall, 0.7)} right={wall} />
-      {/* GLAZING ARRIVES WITH THE SECOND CHEQUE, and again with the storey it
-          lights. One frontage on the ground floor at 2; the upper floor gets
-          its own the moment there is an upper floor. */}
-      {lvl >= 2 && <path d={band(h - STOREY * 0.72, h - STOREY * 0.18)} fill={GLASS} />}
-      {storeys === 2 && <path d={band(STOREY * 0.28, STOREY * 0.82)} fill={GLASS} />}
-      {/* THE STAIR IS THE SECOND STOREY'S TELL. A two-storey unit on a
-          training ground has its fire escape on the outside, and at this size
-          a zigzag on the left face says "two floors" faster than the height
-          does - the height is also what a level-2 building would have if it
-          were merely wider. */}
-      {storeys === 2 && (
-        <g>
-          {/* THE FLIGHT, not a panel. Drawn first as a dark strip and then cut
-              by its own diagonal, because a pale rectangle on the end of a
-              building reads as a lift shaft or a render patch - which is what
-              the first pass looked like at size. The diagonal is the stair. */}
-          <path d={`M ${bx - w + 0.5},${by - 0.5} L ${bx - w + 4.5},${by + 1.5} L ${bx - w + 4.5},${by - h + 4} L ${bx - w + 0.5},${by - h + 2} Z`}
-            fill={shade(c1, 0.34)} />
-          <path d={`M ${bx - w + 1},${by + 0.5} L ${bx - w + 4},${by - h + 3.5}`}
-            stroke={shade(c2, 1.1)} strokeWidth="1.4" fill="none" />
-        </g>
-      )}
-      {/* the canopy over the door */}
-      {lvl >= 2 && (
-        <path d={`M ${bx + w - 9},${by - 1} L ${bx + w + 1},${by + 4} L ${bx + w - 3},${by + 7} L ${bx + w - 13},${by + 2} Z`}
-          fill={shade(c2, 0.9)} />
-      )}
-      {/* plant on the roof: one unit at 4, a second at 5 */}
-      {/* BIG ENOUGH TO BREAK THE ROOFLINE, and on the near corner so it stands
-          against the sky rather than against its own roof. The first pass put
-          a 7-unit box in the middle of the roof and it measured out at nine
-          pixels of dark grey on dark grey: levels 3, 4 and 5 were one picture.
-          A silhouette is the only thing that survives at this size. */}
-      <RoofKit fid={fid} lvl={lvl} x={bx} y={by} w={w} d={d} h={h} c1={c1} c2={c2} />
-      {/* and the low annex on the end: the last thing built, and the only
-          stage that changes the building's FOOTPRINT rather than its face */}
-      {lvl >= 5 && (
-        <IsoBox x={bx - w - 5} y={by + d - 2} w={7} d={4} h={STOREY * 0.62}
-          top={roof} left={shade(wall, 0.62)} right={shade(wall, 0.9)} />
-      )}
-      {/* THE APRON KIT IS DRAWN AFTER THE BLOCK, and it has to be. The apron
-          takes the front-right of the plot, which in this projection is NEARER
-          the viewer than the building behind it - so a pool, a dome, a rank of
-          cars or a row of parasols painted before the block was painted over
-          by it. The academy's dome vanished completely at level 5, when the
-          building finally grew wide enough to cover the whole apron. Only the
-          paving goes underneath, because paving is ground. */}
-      <Signature fid={fid} x={x + 9} y={y + 7} lvl={lvl} c1={c1} c2={c2} />
-      <text className="gicon" x={bx} y={by - d - h - 5} textAnchor="middle">{FACILITY_INFO[fid].icon}</text>
-    </g>
-  )
-}
-
-/**
- * ---- WHAT STANDS ON THE ROOF ----
- *
- * The shared ladder's last two stages are plant: the dull, expensive boxes a
- * finished building has and a shed does not. One facility spends them on
- * something else, and that is worth the exception - the analysis suite's
- * reference ladder puts a SATELLITE DISH and a camera mast up there, and a
- * dish is the one roof object on this campus nothing else has. It is also the
- * only thing that makes this plot different from the five other blocks it
- * shares a ladder with, since everything an analysis suite does happens
- * indoors where a map cannot see it.
- */
-function RoofKit({ fid, lvl, x, y, w, d, h, c1, c2 }: {
-  fid: FacilityId; lvl: number
-  x: number; y: number; w: number; d: number; h: number; c1: string; c2: string
-}) {
-  if (lvl < 4) return null
-  const plant = (fx: number, fy: number, pw: number, ph: number, key: string) => (
-    <IsoBox key={key} x={x + w * fx} y={y - h + d * fy} w={pw} d={pw / 2} h={ph}
-      top={shade(c2, 1.25)} left={shade(c1, 0.35)} right={shade(c1, 0.52)} />
-  )
-  if (fid === 'hospitality' && lvl >= 5) {
-    // THE ROOFTOP TERRACE: a rail round the parapet and a parasol standing on
-    // it, which is the one stage of this ladder that changes the building's
-    // outline rather than what is happening beside it.
-    const rx2 = x, ry2 = y - h
-    return (
-      <g>
-        <path d={`M ${rx2 - w + 2},${ry2 - 3} L ${rx2},${ry2 + d - 3} L ${rx2 + w - 2},${ry2 - 3}`}
-          fill="none" stroke={shade(c2, 1.1)} strokeWidth="1.1" opacity=".9" />
-        <line x1={rx2 - w * 0.3} y1={ry2 + d * 0.3} x2={rx2 - w * 0.3} y2={ry2 + d * 0.3 - 6}
-          stroke={shade(c1, 0.4)} strokeWidth="1" />
-        <path d={`M ${rx2 - w * 0.3 - 4.5},${ry2 + d * 0.3 - 7} L ${rx2 - w * 0.3},${ry2 + d * 0.3 - 9.5} L ${rx2 - w * 0.3 + 4.5},${ry2 + d * 0.3 - 7} L ${rx2 - w * 0.3},${ry2 + d * 0.3 - 4.5} Z`}
-          fill={shade(c2, 1.2)} />
-      </g>
-    )
-  }
-  if (fid === 'briefing') {
-    const dx = x - w * 0.3, dy = y - h + d * 0.3
-    return (
-      <g>
-        {/* the dish: a shallow iso ellipse tipped off a stub, which at this
-            size is the whole of what a satellite dish looks like */}
-        <line x1={dx} y1={dy} x2={dx} y2={dy - 6} stroke={shade(c1, 0.4)} strokeWidth="1.6" />
-        <ellipse cx={dx} cy={dy - 9} rx="7" ry="4.2" fill={shade(c2, 1.2)}
-          stroke={shade(c1, 0.4)} strokeWidth="0.8" transform={`rotate(-18 ${dx} ${dy - 9})`} />
-        {lvl >= 5 && (
-          <g>
-            {/* and the camera mast beside it */}
-            <line x1={x + w * 0.42} y1={y - h - d * 0.1} x2={x + w * 0.42} y2={y - h - d * 0.1 - 11}
-              stroke={shade(c1, 0.4)} strokeWidth="1.4" />
-            <rect x={x + w * 0.42 - 3.4} y={y - h - d * 0.1 - 15} width="6.8" height="4" rx="1.2"
-              fill={shade(c2, 1.2)} />
-          </g>
-        )}
-      </g>
-    )
-  }
-  return (
-    <>
-      {plant(-0.34, 0.34, 9, 6.5, 'a')}
-      {lvl >= 5 && plant(0.4, -0.2, 7, 5, 'b')}
-    </>
-  )
-}
-
-/**
- * ---- WHAT MAKES A GYM A GYM ----
- *
- * The ladder above is shared by all six buildings, which is the point of it -
- * a level 3 is a level 3 whatever it houses. But six identical blocks round
- * one stadium is a business park, so each facility also owns one object on its
- * apron, and that object is the thing the eye actually names the plot by.
- *
- * Two are drawn, from the owner's reference ladders. The rest return null and
- * get the shared block alone, which is what they had before and still reads as
- * a building of the right size; they are waiting on their own reference art
- * rather than on an invented one, because a rig I made up for the analysis
- * suite would be a guess printed nine times a screen.
- */
-function Signature({ fid, x, y, lvl, c1, c2 }: {
-  fid: FacilityId; x: number; y: number; lvl: number; c1: string; c2: string
-}) {
-  // THE POOL, and it is on the plot before the building is. The reference
-  // ladder puts a single plunge tank on the bare site at level 0 and grows it
-  // into a full outdoor pool - so on this plot the water is the constant and
-  // the block is what arrives around it.
-  if (fid === 'recovery') {
-    const pw = 5.5 + lvl * 1.5, pd = 2.7 + lvl * 0.75
-    return (
-      <g>
-        <path d={`M ${x},${y - pd - 1.6} L ${x + pw + 2.6},${y} L ${x},${y + pd + 1.6} L ${x - pw - 2.6},${y} Z`}
-          fill="var(--surface-3)" />
-        <path d={`M ${x},${y - pd} L ${x + pw},${y} L ${x},${y + pd} L ${x - pw},${y} Z`}
-          fill="rgba(86, 170, 212, .95)" />
-        {/* the lane, once there is a pool long enough to have one */}
-        {lvl >= 4 && (
-          <path d={`M ${x - pw * 0.55},${y - pd * 0.2} L ${x + pw * 0.55},${y + pd * 0.2}`}
-            stroke="rgba(255,255,255,.55)" strokeWidth="1.1" />
-        )}
-      </g>
-    )
-  }
-  /**
-   * THE ACADEMY'S DOME, and the car park that comes before it.
-   *
-   * Its reference ladder is the one that does not fit the map: a Centre of
-   * Excellence grows by adding PITCHES, and this plot is one twelfth of a
-   * campus that already has three fields of its own down the left. So what is
-   * taken from the art is the two things that are not pitches - the cars that
-   * arrive when a plot starts hosting age groups, and the indoor dome, which
-   * is the only barrel roof anywhere on the estate and reads at a glance
-   * against six flat ones.
-   */
-  /**
-   * THE SHOP, and the one plot whose level 0 is not an absence.
-   *
-   * Its reference ladder starts at a matchday STALL - a trestle and a rail of
-   * shirts on the grass - rather than at a fenced site, and that is right in a
-   * way worth keeping: every club sells something on a Saturday whether it has
-   * built a shop or not. So this is the second plot after the three fields
-   * where nothing-built still has something on it.
-   *
-   * After that the ladder is the shared one, because a shop IS a glazed box
-   * and the shared box already grows a frontage. What it adds of its own is
-   * the CAR PARK, which is what the art spends its last three levels on and
-   * is the honest signal for a retail unit: people drive to a megastore.
-   */
-  /**
-   * HOSPITALITY, and the third plot whose level 0 is not an absence: its
-   * reference ladder starts at a gravel yard with picnic benches on it, which
-   * is what a club that has spent nothing on hospitality actually offers.
-   *
-   * After that the whole ladder is TERRACE. Everything else the art shows -
-   * the glazing, the second storey, the external stair - the shared block
-   * already grows; what it does not have, and what nothing else on this campus
-   * has, is a parasol. Three white caps on short stems say "people are being
-   * looked after out here" in about nine pixels each, and at level 5 the same
-   * three move up onto the roof.
-   */
-  if (fid === 'hospitality') {
-    const para = (fx: number, fy: number, i: number) => (
-      <g key={i}>
-        <line x1={x + fx} y1={y + fy} x2={x + fx} y2={y + fy - 6} stroke={shade(c1, 0.4)} strokeWidth="1" />
-        <path d={`M ${x + fx - 4.5},${y + fy - 7} L ${x + fx},${y + fy - 9.5} L ${x + fx + 4.5},${y + fy - 7} L ${x + fx},${y + fy - 4.5} Z`}
-          fill={shade(c2, 1.15)} />
-      </g>
-    )
-    if (lvl === 0) {
-      // the benches, which is the whole of what a gravel yard has on it
-      return (
-        <g>
-          {[[0, 0], [9, 4.5]].map(([fx, fy], i) => (
-            <g key={i}>
-              <path d={`M ${x + fx - 6},${y + fy} L ${x + fx},${y + fy + 3} L ${x + fx + 6},${y + fy} L ${x + fx},${y + fy - 3} Z`}
-                fill={shade(c1, 0.55)} />
-              <path d={`M ${x + fx - 6},${y + fy + 2} L ${x + fx},${y + fy + 5} L ${x + fx + 6},${y + fy + 2}`}
-                stroke={shade(c1, 0.35)} strokeWidth="1.2" fill="none" />
-            </g>
-          ))}
-        </g>
-      )
-    }
-    // the terrace fills up as the suites do, and empties onto the roof at 5
-    const n = lvl >= 3 ? 3 : 2
-    return <>{([[6, 7], [14, 11], [1, 13]] as [number, number][]).slice(0, n).map(([fx, fy], i) => para(fx, fy, i))}</>
-  }
-
-  if (fid === 'shop') {
-    if (lvl === 0) {
-      return (
-        <g>
-          {/* the trestle, the rail and the canopy over them */}
-          <IsoBox x={x} y={y + 2} w={6} d={3} h={3}
-            top={shade(c2, 1.1)} left={shade(c1, 0.35)} right={shade(c1, 0.55)} />
-          <path d={`M ${x - 9},${y - 5} L ${x},${y - 9} L ${x + 9},${y - 5} L ${x},${y - 1} Z`}
-            fill={shade(c1, 0.9)} opacity=".9" />
-          <path d={`M ${x - 7},${y - 4} L ${x - 7},${y + 1}`} stroke={shade(c1, 0.4)} strokeWidth="1.1" />
-          <path d={`M ${x + 7},${y - 4} L ${x + 7},${y + 1}`} stroke={shade(c1, 0.4)} strokeWidth="1.1" />
-        </g>
-      )
-    }
-    if (lvl < 3) return null
-    return (
-      <g>
-        {[0, 1, 2, 3].slice(0, lvl - 1).map(i => {
-          const cxx = x + 2 + i * 6.2, cyy = y + 11 + i * 3.1
-          return <rect key={i} x={cxx - 3.2} y={cyy - 2} width="6.4" height="3.4" rx="1.1"
-            fill={i % 2 ? 'var(--surface-3)' : shade(c1, 0.55)} opacity=".9" />
-        })}
-      </g>
-    )
-  }
-
-  if (fid === 'academy') {
-    const [dx, dy] = [x + 10, y + 5]
-    const L = 12, R = 7.5
-    return (
-      <g>
-        {/* the cars: three marks in a row, which at this size is a car park */}
-        {lvl >= 2 && [0, 1, 2].slice(0, lvl >= 3 ? 3 : 2).map(i => {
-          const cxx = x + 2 + i * 6.5, cyy = y + 11 + i * 3.2
-          return <rect key={i} x={cxx - 3} y={cyy - 2} width="6" height="3.2" rx="1"
-            fill={i % 2 ? 'var(--surface-3)' : shade(c2, 0.9)} opacity=".85" />
-        })}
-        {lvl >= 4 && (
-          <g>
-            <path d={`M ${dx - L},${dy + L * 0.5} A ${L},${R} -26.57 0 1 ${dx + L},${dy - L * 0.5} Z`}
-              fill={shade(c2, 1.3)} stroke={shade(c1, 0.4)} strokeWidth="0.8" />
-            {/* one rib, which is what tells a dome from a blob */}
-            <path d={`M ${dx - L * 0.1},${dy + L * 0.05 - R * 0.86} L ${dx + L * 0.34},${dy - L * 0.17}`}
-              stroke={shade(c1, 0.55)} strokeWidth="0.8" fill="none" opacity=".7" />
-          </g>
-        )}
-      </g>
-    )
-  }
-  // THE OUTDOOR RIG, last thing the gym gets and the one stage of its ladder
-  // that happens outside the building.
-  if (fid === 'gym' && lvl >= 5) {
-    return (
-      <g stroke={shade(c1, 0.5)} strokeWidth="1.8" fill="none" strokeLinecap="round">
-        <path d={`M ${x - 8},${y + 2} L ${x - 8},${y - 6}`} />
-        <path d={`M ${x + 8},${y - 2} L ${x + 8},${y - 10}`} />
-        <path d={`M ${x - 8},${y - 6} L ${x + 8},${y - 10}`} />
-        <path d={`M ${x - 1},${y - 2} L ${x - 1},${y - 8}`} stroke={shade(c2, 0.9)} strokeWidth="1.4" />
-      </g>
-    )
-  }
-  return null
-}
-
-/**
- * ---- A FIELD ----
- *
- * The three facilities that are grass rather than brick, from the owner's
- * reference ladders for the playing surface and the training paddock.
- *
- * THE TURF IS SHARED and the KIT IS NOT, which is the structure both ladders
- * turned out to have. All three grow the same ground underneath:
- *
- *   0  bare: rutted, patchy earth with the grass worn off it
- *   1  grass, though it still carries the scars
- *   2  the markings are painted on
- *   3  a surface worth mowing, so it is mown
- *
- * and then each one spends the last two levels on its own equipment, because
- * a paddock and a match pitch want completely different things from money:
- * one wants drainage and covers, the other wants tackle bags and floodlights.
- * Putting both on one ladder is what made all three read as small pitches.
- *
- * A FIELD AT LEVEL 0 IS STILL A FIELD, so these do not get the fenced empty
- * plot the buildings do. A gym you have not built is an absence; a pitch you
- * have not spent anything on is a bad pitch, and men still play on it. The
- * engine agrees: a level-0 playing surface still hosts matches, it just gives
- * up its 3.5% a level. Both reference ladders draw the same distinction.
- *
- * AND THE FIELD DOES NOT GROW, which is the opposite of every other thing on
- * the campus. A rugby pitch is the same size everywhere in the world and the
- * whole of what money buys here is the state of it - which is also what makes
- * six stages fit, because nothing is spent on scale so all of it goes on the
- * surface and the kit standing on it.
- */
-
-/** Bare earth. A literal because mud is mud under either theme - it is soil
- *  showing through, not a painted surface that should answer to the palette. */
-const BARE = 'rgb(96, 80, 60)'
-
-function Field({ fid, x, y, lvl, c1, c2 }: {
-  fid: FacilityId; x: number; y: number; lvl: number; c1: string; c2: string
-}) {
-  // Sized so that the PITCH'S SAND BANDING fits the plot, not so that the
-  // grass does: the band at level 4 adds 14% all round, and a field sized to
-  // its plot put its own drainage margin out on the road.
-  const w = 29, d = 14.5
-  const P = (fu: number, fv: number): string => `${x + w * fu},${y + d * fv}`
-  const edge = `M ${P(0, -1)} L ${P(1, 0)} L ${P(0, 1)} L ${P(-1, 0)} Z`
-  /** A line across the field at `f` of its length, touchline to touchline. */
-  const across = (f: number) =>
-    `M ${x + w * f * 0.5 + w * 0.5},${y + d * f * 0.5 - d * 0.5}`
-    + ` L ${x + w * f * 0.5 - w * 0.5},${y + d * f * 0.5 + d * 0.5}`
-  /** A point in field coordinates, where u runs the length and v the width. */
-  const pt = (u: number, v: number): [number, number] =>
-    [x + w * (u + v) * 0.5, y + d * (u - v) * 0.5]
-  const posts = (f: number) => {
-    const [px, py] = pt(f, 0)
-    return (
-      <g stroke="rgba(255,255,255,.92)" strokeWidth="1.5" fill="none">
-        <path d={`M ${px + 4},${py + 2} L ${px + 4},${py - 11}`} />
-        <path d={`M ${px - 4},${py - 2} L ${px - 4},${py - 15}`} />
-        <path d={`M ${px + 4},${py - 7} L ${px - 4},${py - 11}`} />
-      </g>
-    )
-  }
-  return (
-    <g>
-      {/* SAND BANDING reads as a band round the outside, which is what it is:
-          a drained, sand-dressed margin. Under the turf, so the playing
-          surface sits inside it. */}
-      {fid === 'pitch' && lvl >= 4 && (
-        <path d={`M ${P(0, -1.14)} L ${P(1.14, 0)} L ${P(0, 1.14)} L ${P(-1.14, 0)} Z`}
-          fill="rgb(196, 176, 134)" opacity=".62" />
-      )}
-      <path d={edge} fill={lvl === 0 ? BARE : 'var(--pitch-a)'} />
-      {/* THE SCARS HEAL OVER TWO LEVELS, not one. Bare ground at 0 is the
-          whole of what level 0 is; at 1 the grass is back but the worn areas
-          are still there, which is the difference between a field nobody has
-          spent anything on and one somebody has started on. */}
-      {lvl <= 1 && [[-0.35, 0.1, 7], [0.3, -0.2, 5.5], [0.05, 0.35, 4.5]].map(([fu, fv, r], i) => (
-        <ellipse key={i} cx={x + w * fu} cy={y + d * fv} rx={lvl ? r * 0.7 : r} ry={(lvl ? r * 0.7 : r) * 0.5}
-          fill={lvl ? BARE : 'var(--pitch-a)'} opacity={lvl ? 0.5 : 0.55} />
-      ))}
-      {/* A SURFACE WORTH MOWING IS MOWN. The stripes are the first thing a
-          groundsman does that anybody can see from a distance. */}
-      {lvl >= 3 && [-0.62, -0.21, 0.21, 0.62].map((f, i) => (
-        <path key={i} d={across(f)} stroke="var(--pitch-b)" strokeWidth={d * 0.42} opacity=".7" />
-      ))}
-      {lvl >= 2 && (
-        <g stroke="rgba(255,255,255,.72)" fill="none">
-          <path d={edge} strokeWidth="1.2" />
-          <path d={across(0)} strokeWidth="1.2" />
-          {lvl >= 3 && <path d={across(-0.55)} strokeWidth="0.9" />}
-          {lvl >= 3 && <path d={across(0.55)} strokeWidth="0.9" />}
-          {lvl >= 4 && <path d={across(-0.26)} strokeWidth="0.8" strokeDasharray="3 3" />}
-          {lvl >= 4 && <path d={across(0.26)} strokeWidth="0.8" strokeDasharray="3 3" />}
-        </g>
-      )}
-      {/* THE POSTS FOLLOW THE FACILITY, not one rule. Both ends of a playing
-          surface from the level the grass arrives; one end of a kicking
-          enclosure at EVERY level, including nothing-spent - an enclosure with
-          no posts is not a kicking enclosure, it is a field, and its reference
-          ladder has them up on the bare ground; one end of a paddock from the
-          level its own ladder puts them up. */}
-      {fid === 'kicking' && posts(-0.86)}
-      {lvl >= 1 && fid === 'pitch' && <>{posts(-0.86)}{posts(0.86)}</>}
-      {lvl >= 2 && fid === 'paddock' && posts(-0.82)}
-      <FieldKit fid={fid} lvl={lvl} pt={pt} c1={c1} c2={c2} />
-      <text className="gicon" x={x} y={y - d - 4} textAnchor="middle">{FACILITY_INFO[fid].icon}</text>
-    </g>
-  )
-}
-
-/**
- * ---- WHAT IS STANDING ON THE GRASS ----
- *
- * The last two levels of a field, and the thing that tells the three of them
- * apart at a glance. `pt(u, v)` places an object in field coordinates: u runs
- * the length from -1 to 1, v the width, so the kit lands in the same place
- * whatever the field's screen position.
- *
- * WHAT SURVIVED THE REDUCTION, out of the reference art: the perimeter fence,
- * the tackle bags, the sled, a storage shed, floodlights, a canopy, the
- * covers. What did not: agility ladders, cones, hurdles, benches, the trees
- * round the outside and the line markings inside the training grids. A field
- * is about 71 by 35 real pixels on a phone, and a cone at that scale is one
- * pixel of orange - so the kit here is the half-dozen objects with a shape,
- * and everything else the art shows is texture the eye would never resolve.
- */
-function FieldKit({ fid, lvl, pt, c1, c2 }: {
-  fid: FacilityId; lvl: number
-  pt: (u: number, v: number) => [number, number]
-  c1: string; c2: string
-}) {
-  /** A tackle bag: an upright pad, which at this size is a short thick bar. */
-  const bag = (u: number, v: number, i: number) => {
-    const [bx, by] = pt(u, v)
-    return <rect key={`b${i}`} x={bx - 1.6} y={by - 7} width="3.2" height="8" rx="1.5"
-      fill={shade(c2, 0.85)} />
-  }
-  /** A floodlight: a mast with a head, and a smaller one than the stadium's
-   *  because a training ground lights a pitch rather than a television. */
-  const light = (u: number, v: number, i: number) => {
-    const [lx, ly] = pt(u, v)
-    return (
-      <g key={`l${i}`}>
-        <line x1={lx} y1={ly} x2={lx} y2={ly - 17} stroke="var(--text-muted)" strokeWidth="1.2" />
-        <rect x={lx - 5} y={ly - 21} width="10" height="3.6" rx="1" fill="var(--gold-fill)" />
-      </g>
-    )
-  }
-
-  if (fid === 'pitch') {
-    // IRRIGATION AND COVERS, the last thing bought and the only stage that
-    // puts an object on a match pitch rather than changing it.
-    if (lvl < 5) return null
-    const [ax, ay] = pt(-0.2, 0.1)
-    const [cx, cy] = pt(0.62, 0.55)
-    return (
-      <>
-        <path d={`M ${ax},${ay} Q ${ax + 7},${ay - 13} ${ax + 15},${ay - 1}`}
-          stroke="rgba(255,255,255,.45)" strokeWidth="1.3" fill="none" />
-        <IsoBox x={cx} y={cy} w={7} d={3.5} h={4}
-          top={shade(c1, 1.05)} left={shade(c1, 0.4)} right={shade(c1, 0.62)} />
-      </>
-    )
-  }
-
-  /** THE TWO ENCLOSED FIELDS ARE FENCED AT EVERY LEVEL, and that is the
-   *  cheapest strong thing separating them from the match pitch beside them:
-   *  a line round the outside before a blade of grass has been spent on.
-   *  The match pitch has no fence, because a crowd is meant to get to it. */
-  const fence = () => {
-    const ring = ([[1, 1], [1, -1], [-1, -1], [-1, 1]] as [number, number][])
-      .map(([u, v]) => pt(u * 1.06, v * 1.06).join(',')).join(' L ')
-    return <path d={`M ${ring} Z`} fill="none" stroke={shade(c1, 0.55)} strokeWidth="1.2" />
-  }
-  /** A canopy on two legs: the covered bay both enclosures buy last. */
-  const canopy = (u: number, v: number) => {
-    const [dx, dy] = pt(u, v)
-    return (
-      <g>
-        <path d={`M ${dx - 13},${dy - 9} L ${dx},${dy - 14} L ${dx + 13},${dy - 9} L ${dx},${dy - 4} Z`}
-          fill={shade(c1, 1.15)} opacity=".9" />
-        <path d={`M ${dx - 11},${dy - 7} L ${dx - 11},${dy - 1}`} stroke={shade(c1, 0.4)} strokeWidth="1.3" />
-        <path d={`M ${dx + 11},${dy - 7} L ${dx + 11},${dy - 1}`} stroke={shade(c1, 0.4)} strokeWidth="1.3" />
-      </g>
-    )
-  }
-
-  if (fid === 'paddock') {
-    const [sx, sy] = pt(0.78, -0.62)
-    return (
-      <>
-        {fence()}
-        {/* the tyres, which is all a bare paddock has on it */}
-        {lvl === 0 && ([[0.7, 0.7], [0.55, 0.85]] as [number, number][]).map(([u, v], i) => {
-          const [tx, ty] = pt(u, v)
-          return <ellipse key={i} cx={tx} cy={ty} rx="3.4" ry="1.7" fill="rgba(0,0,0,.55)" />
-        })}
-        {lvl >= 1 && ([[0.2, -0.7], [0.05, -0.55], [-0.1, -0.4]] as [number, number][]).map(([u, v], i) => bag(u, v, i))}
-        {/* the sled, and the shed to keep it all in */}
-        {lvl >= 3 && (
-          <IsoBox x={pt(-0.45, -0.7)[0]} y={pt(-0.45, -0.7)[1]} w={5} d={2.5} h={3.5}
-            top={shade(c1, 0.9)} left={shade(c1, 0.3)} right={shade(c1, 0.5)} />
-        )}
-        {lvl >= 3 && (
-          <IsoBox x={sx} y={sy} w={7} d={3.5} h={7}
-            top={shade(c2, 1.1)} left={shade(c1, 0.35)} right={shade(c1, 0.55)} />
-        )}
-        {lvl >= 4 && ([[0.95, -0.95], [-0.95, 0.95]] as [number, number][]).map(([u, v], i) => light(u, v, i))}
-        {/* THE CANOPY is the whole of level 5: a paddock you can train on in
-            any weather, which is what the reference ladder calls world class. */}
-        {lvl >= 5 && canopy(-0.72, 0.6)}
-      </>
-    )
-  }
-
-  if (fid === 'kicking') {
-    /**
-     * THE NET IS THE WHOLE IDENTITY OF THIS PLOT. Everything else on a kicking
-     * enclosure - the fence, the grass, the markings, the covered bay - it
-     * shares with the paddock next to it, and at 71 by 35 pixels those two
-     * would be the same picture twice. A twenty-unit wall of mesh standing
-     * behind the posts is not something anything else on the campus has, and
-     * it is the one object here that changes the plot's SILHOUETTE rather than
-     * its surface. It is also what the thing is actually for: a net is how a
-     * club gets the ball back without sending somebody to fetch it.
-     */
-    const [n1x, n1y] = pt(-1.12, -1)
-    const [n2x, n2y] = pt(-1.12, 1)
-    const NH = 21
-    const [rx, ry] = pt(0.72, -0.5)
-    const [mx2, my2] = pt(0.3, 0.72)
-    return (
-      <>
-        {fence()}
-        {lvl >= 2 && (
-          <g>
-            <path d={`M ${n1x},${n1y - NH} L ${n2x},${n2y - NH} L ${n2x},${n2y} L ${n1x},${n1y} Z`}
-              fill={shade(c1, 0.75)} opacity=".42" />
-            <path d={`M ${n1x},${n1y - NH} L ${n2x},${n2y - NH}`} stroke={shade(c1, 1.05)} strokeWidth="1.2" />
-            {[0, 0.5, 1].map((f, i) => (
-              <path key={i} d={`M ${n1x + (n2x - n1x) * f},${n1y + (n2y - n1y) * f}`
-                + ` L ${n1x + (n2x - n1x) * f},${n1y + (n2y - n1y) * f - NH}`}
-                stroke={shade(c1, 0.95)} strokeWidth="1" opacity=".8" />
-            ))}
-          </g>
-        )}
-        {/* the range markings: a kicking enclosure is measured out, and the
-            dashes across it at 3 are what a distance marker looks like from
-            the air */}
-        {lvl >= 3 && (
-          <g>
-            <rect x={rx - 5} y={ry - 5} width="10" height="5" rx="1.5" fill={shade(c2, 0.8)} />
-            {[0, 1, 2].map(i => <circle key={i} cx={rx - 3 + i * 3} cy={ry - 6.5} r="1.3" fill="var(--prop-cream)" />)}
-          </g>
-        )}
-        {/* the kicking machine, and the container it lives in */}
-        {lvl >= 4 && (
-          <>
-            <IsoBox x={mx2} y={my2} w={4.5} d={2.2} h={5}
-              top={shade(c1, 0.95)} left={shade(c1, 0.28)} right={shade(c1, 0.45)} />
-            <IsoBox x={pt(-0.55, 0.78)[0]} y={pt(-0.55, 0.78)[1]} w={7} d={3.5} h={6}
-              top={shade(c2, 1.1)} left={shade(c1, 0.35)} right={shade(c1, 0.55)} />
-          </>
-        )}
-        {lvl >= 5 && canopy(0.05, 0.95)}
-        {lvl >= 5 && ([[0.95, -0.95], [-0.7, 0.95]] as [number, number][]).map(([u, v], i) => light(u, v, i))}
-      </>
-    )
-  }
-  return null
-}
-
-/** Nothing built here. A dashed plot with the facility's own icon greyed on
- *  it - the estate's gaps, named, so "we have no academy" is something you can
- *  see from the air rather than something you find by reading nine cards. */
-function Empty({ fid, x, y, c1, c2 }: { fid: FacilityId; x: number; y: number; c1?: string; c2?: string }) {
-  const w = TW / 2 - 12, d = TH / 2 - 7
-  return (
-    <g className="gempty">
-      {/* bare ground inside the line, so a site reads as a site rather than as
-          a plot somebody forgot to draw on */}
-      <path d={`M ${x},${y - d} L ${x + w},${y} L ${x},${y + d} L ${x - w},${y} Z`}
-        fill="var(--surface-2)" opacity=".7" />
-      <path d={`M ${x},${y - d} L ${x + w},${y} L ${x},${y + d} L ${x - w},${y} Z`}
-        fill="none" stroke="var(--border)" strokeWidth="1.4" strokeDasharray="4 4" />
-      {/* ONE cone, on the near corner. Four of them - a cone per corner, as the
-          reference art has it - is right for a picture of one plot and wrong
-          for a campus: a threadbare estate has nine empty plots on screen at
-          once and thirty-six gold triangles read as a rash rather than as a
-          building site. */}
-      <path d={`M ${x},${y + d - 4.2} L ${x + 2},${y + d} L ${x - 2},${y + d} Z`}
-        fill="var(--gold-fill)" opacity=".85" />
-      {/* and whatever the facility already has on site before it is built */}
-      {c1 && c2 && <Signature fid={fid} x={x + 6} y={y + 3} lvl={0} c1={c1} c2={c2} />}
-      <text className="gicon dim" x={x} y={y - 3} textAnchor="middle">{FACILITY_INFO[fid].icon}</text>
-    </g>
-  )
-}
-
-/** The three plots that are not facilities. A campus is a place before it is a
- *  spreadsheet, and the gates in particular give the eye somewhere to land. */
-function Scene({ kind, x, y, c1 }: { kind: Scenery; x: number; y: number; c1: string }) {
-  if (kind === 'trees') {
-    return (
-      <g className="gscene">
-        {[[-18, 2, 9], [4, -5, 7], [16, 6, 8]].map(([dx, dy, r], i) => (
-          <g key={i}>
-            <ellipse cx={x + dx} cy={y + dy + 4} rx={r * 0.9} ry={r * 0.4} fill="rgba(0,0,0,.2)" />
-            <circle cx={x + dx} cy={y + dy - r * 0.5} r={r} fill="var(--pitch-a)" />
-            <circle cx={x + dx - r * 0.25} cy={y + dy - r * 0.8} r={r * 0.6} fill="var(--pitch-b)" opacity=".8" />
-          </g>
-        ))}
-      </g>
-    )
-  }
-  if (kind === 'park') {
-    return (
-      <g className="gscene">
-        {[0, 1, 2, 3].map(i => (
-          <path key={i} d={`M ${x - 22 + i * 12},${y + 2 + i * 3} L ${x - 8 + i * 12},${y + 9 + i * 3}`}
-            stroke="var(--text-muted)" strokeWidth="1.2" opacity=".7" />
-        ))}
-        {[[-14, -2], [2, 5]].map(([dx, dy], i) => (
-          <rect key={i} x={x + dx} y={y + dy} width="11" height="5" rx="1.6"
-            fill={i ? 'var(--surface-3)' : shade(c1, 1.1)} opacity=".9" />
-        ))}
-      </g>
-    )
-  }
-  // the gates: a forecourt, two piers and the club's own colour on the arch
-  return (
-    <g className="gscene">
-      <path d={`M ${x},${y - 14} L ${x + 34},${y} L ${x},${y + 14} L ${x - 34},${y} Z`}
-        fill="var(--surface-3)" opacity=".85" />
-      {[[-16, -6], [12, 8]].map(([dx, dy], i) => (
-        <g key={i}>
-          <IsoBox x={x + dx} y={y + dy} w={6} d={3} h={16}
-            top={shade(c1, 1.2)} left={shade(c1, 0.55)} right={shade(c1, 0.8)} />
-        </g>
-      ))}
-      <path d={`M ${x - 16},${y - 22} L ${x + 12},${y - 8}`} stroke="var(--gold)" strokeWidth="2" fill="none" />
-    </g>
-  )
-}
+/** A plot tile is drawn a shade wider than its diamond so neighbouring plates
+ *  meet instead of leaving tarmac showing between them, which is how every
+ *  isometric tile set is laid out. The ground covers four plots. */
+const PLOT_W = 104
+const GROUND_W = 208
