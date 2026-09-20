@@ -2754,8 +2754,8 @@
   "ofNoCover_f": "Verkoop haar en jy het niemand anders wat {pos} speel nie.",
   "ofTheValuation_f": " die waardasie. Sy is ",
   "infGrounds": "Die terrein",
-  "infGroundsSub": "Elke gebou wys wat die direksie betaal het. Tik op ’n erf.",
-  "infGroundsAlt": "ʼn Lugfoto van {club} se oefenveld en stadion.",
+  "infGroundsSub": "Elke gebou wys wat die direksie betaal het. Tik op 'n erf.",
+  "infGroundsAlt": "'n Lugfoto van {club} se oefenveld en stadion.",
   "infLevelOf": "vlak {n} van {max}"
  },
  "facilities": {

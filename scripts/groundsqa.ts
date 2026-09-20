@@ -12,6 +12,13 @@
  *
  * It renders the real component, not a copy of it, against the real theme
  * files. A harness that re-implements the thing it is checking checks nothing.
+ *
+ * THE LADDER, under the three estates: the same club with every facility at
+ * level 0, then 1, then 2, and so on to 5. That row answers the only question
+ * this drawing really has to answer - can you SEE what the board paid for -
+ * and it answers it for all six states rather than for the three a career
+ * happens to pass through slowly. A level that looks like its neighbour is a
+ * level the map cannot show, and this is where that would be obvious.
  */
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
@@ -33,24 +40,44 @@ const CASES: { title: string; club: Partial<Club>; building: FacilityId | null }
     club: { short: 'STM', colors: ['#12325e', '#d8dee8'], capacity: 82_000, facilities: facs(() => 5) } },
 ]
 
-const body = CASES.map(c => `<figure><figcaption>${c.title}</figcaption>${
+const draw = (club: Partial<Club>, building: FacilityId | null) =>
   renderToStaticMarkup(createElement(ClubGrounds, {
-    club: c.club as Club, buildingId: c.building, selected: null, onPick: () => {},
-  }))}</figure>`).join('')
+    club: club as Club, buildingId: building, selected: null, onPick: () => {},
+  }))
+
+const body = CASES.map(c =>
+  `<figure><figcaption>${c.title}</figcaption>${draw(c.club, c.building)}</figure>`).join('')
+
+/** Every facility at the same level, 0 to 5. */
+const LADDER = [0, 1, 2, 3, 4, 5].map(l =>
+  `<figure><figcaption>all at level ${l}</figcaption>${draw({
+    short: 'LAD', colors: ['#1f5e3a', '#e9be68'], capacity: 24_000, facilities: facs(() => l),
+  }, null)}</figure>`).join('')
 
 const css = ['src/ui/tokens.css', 'src/ui/theme.css'].map(f => readFileSync(f, 'utf8')).join('\n')
 const shell = (cls: string) => `<!doctype html><meta charset="utf-8"><style>${css}
   body { margin: 0; background: var(--canvas); font-family: system-ui; }
+  /* .app is the GAME's shell - a 560px-wide flex column the height of a phone -
+     and this page is a contact sheet, not a phone. The class has to stay,
+     because it is what carries the theme's tokens onto everything below it;
+     the layout it brings with them does not. Without this the two rows were
+     laid out inside a 560px box and printed on top of each other. */
+  .app { display: block !important; max-width: none !important; height: auto !important;
+         box-shadow: none !important; }
   .row { display: flex; }
+  /* the ladder is a COMPARISON, so all six states have to be on one line and
+     the same size - six campuses you have to scroll between is six pictures,
+     not a ladder */
+  .row.ladder figure { flex: 0 0 ${Math.floor(1020 / 6)}px; }
   /* 330px is the width of a card on a 360px phone - the size this is
      actually read at, not whatever the window happens to be. */
   figure { margin: 0; flex: 0 0 330px; padding: 8px; }
   figcaption { font: 700 11px/1.6 system-ui; color: var(--text-primary); letter-spacing: 1px; text-transform: uppercase; }
-  </style><div class="app ${cls}"><div class="row">${body}</div></div>`
+  </style><div class="app ${cls}"><div class="row">${body}</div><div class="row ladder">${LADDER}</div></div>`
 
 const OUT = process.argv[2] ?? 'grounds.png'
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
-const page = await browser.newPage({ viewport: { width: 1050, height: 320 }, deviceScaleFactor: 2 })
+const page = await browser.newPage({ viewport: { width: 1060, height: 320 }, deviceScaleFactor: 2 })
 const shots: Buffer[] = []
 for (const cls of ['night', 'day']) {
   await page.setContent(shell(cls))
@@ -71,5 +98,5 @@ const stacked = await page.evaluate(async (b64s) => {
   return c.toDataURL('image/png')
 }, shots.map(b => b.toString('base64')))
 writeFileSync(OUT, Buffer.from(stacked.split(',')[1], 'base64'))
-console.log(`${OUT}: ${CASES.length} estates x night/day`)
+console.log(`${OUT}: ${CASES.length} estates and a 0-5 ladder, night and day`)
 await browser.close()
