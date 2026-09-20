@@ -127,21 +127,10 @@ export default function ClubGrounds({ club, buildingId, selected, onPick }: {
   const lvl = (fid: FacilityId) => club.facilities?.[fid] ?? 0
   const [c1, c2] = club.colors
 
-  /**
-   * THE GROUND ITSELF, and the one number on this screen that is not a
-   * facility level. Capacity runs from a village ground to a Test arena across
-   * more than an order of magnitude, so the bowl is drawn on the CUBE ROOT of
-   * it rather than on the figure: a stadium four times the size is about one
-   * and a half times as wide on the map, which is what a stand four times as
-   * long actually looks like from the air. Drawn linearly, an 82,000-seat bowl
-   * would have swallowed the entire campus and a 5,000-seat one would have
-   * been a dot.
-   */
+  /** The ground, and the one number on this screen that is not a facility
+   *  level: the board adds SEATS rather than levels, so its six stages are
+   *  read off the capacity. See Ground, below. */
   const cap = Math.max(2_000, club.capacity)
-  const k = Math.cbrt(cap / 20_000)
-  const rx = Math.max(50, Math.min(80, 64 * k))
-  const ry = rx * 0.5
-  const bowlH = Math.max(16, Math.min(30, 20 * k))
   const [sx, sy] = iso(1.5, 1.5)
 
   /** Painter's order: back to front, which on this grid is depth ascending.
@@ -204,42 +193,217 @@ export default function ClubGrounds({ club, buildingId, selected, onPick }: {
       ))}
 
       {back.map(draw)}
-      <Bowl x={sx} y={sy} rx={rx} ry={ry} h={bowlH} c1={c1} c2={c2} big={cap >= 30_000} />
+      <Ground x={sx} y={sy} cap={cap} c1={c1} c2={c2} />
       {front.map(draw)}
     </svg>
   )
 }
 
-/** ---- THE STADIUM ----
- *  A bowl: the footprint, a skirt of stands extruded up from it, the seating
- *  deck in the club's own colours and the pitch inside. Floodlights only on
- *  the grounds big enough to own a set, which is the one detail that makes a
- *  Premiership arena and a second-tier ground read differently at a glance. */
-function Bowl({ x, y, rx, ry, h, c1, c2, big }: {
-  x: number; y: number; rx: number; ry: number; h: number; c1: string; c2: string; big: boolean
+/**
+ * ---- THE GROUND ----
+ *
+ * Rebuilt in 1.7.0 from the owner's reference ladder, which grows a bare pitch
+ * into an enclosed stadium in six stages. What was here was an ellipse with
+ * three rings on it: it said "stadium" and nothing else, and it said the same
+ * thing for a village ground and for a Test arena except that one was wider.
+ *
+ * THE SIX STAGES ARE CAPACITY BANDS, not a facility level. This is the one
+ * thing on the campus the board does not build in levels - it adds SEATS
+ * (requestExpansion, season.ts), anywhere from a few hundred to a new stand -
+ * so the ladder is read off the seat count instead. The bands are set where
+ * the real grounds in the database actually sit, so that moving up one is a
+ * thing that happens across a career rather than never or constantly:
+ *
+ *     0  under 6,000    an open pitch with banks: posts, markings, no stands
+ *     1  6,000          a perimeter and the turnstile blocks at the corners
+ *     2  11,000         the first covered stand, down one touchline
+ *     3  17,000         a second stand behind the posts, and the floodlights
+ *     4  26,000         all four sides, and a concourse round the outside
+ *     5  45,000+        enclosed: a continuous roof and a glazed frontage
+ *
+ * A stand is added rather than swapped in at every step, so the ground a
+ * manager inherits is visibly the ground he leaves plus what he built.
+ *
+ * DRAWN AS A RECTANGLE, because a rugby ground is one. The ellipse was easier
+ * and it is the reason the old drawing could not grow: there is nowhere on an
+ * ellipse to put ONE stand. On a rectangle every stage has an obvious place
+ * for the next piece, which is what makes the ladder possible at all.
+ */
+
+/** Where the bands fall. Read as "this many seats or more". */
+const GROUND_TIERS = [45_000, 26_000, 17_000, 11_000, 6_000]
+const groundTier = (cap: number): number => {
+  const i = GROUND_TIERS.findIndex(n => cap >= n)
+  return i < 0 ? 0 : 5 - i
+}
+
+/**
+ * A box on the ground plane with a rectangular footprint, which IsoBox cannot
+ * draw: its diamond has both edges at the same screen length, so its footprint
+ * is always square, and a stand a hundred metres long and fifteen wide is not.
+ *
+ * The footprint is centred at (cx, cy) with half-extents `a` along one ground
+ * axis and `b` along the other. In this projection those axes run at half
+ * slope, so the four corners are the four combinations below, and the two
+ * faces the viewer can see are always the two that meet at the lowest one.
+ */
+function Slab({ cx, cy, a, b, h, top, left, right, opacity }: {
+  cx: number; cy: number; a: number; b: number; h: number
+  top: string; left: string; right: string; opacity?: number
 }) {
-  const skirt = `M ${x - rx},${y} A ${rx},${ry} 0 0 0 ${x + rx},${y}`
-    + ` L ${x + rx},${y - h} A ${rx},${ry} 0 0 1 ${x - rx},${y - h} Z`
-  const lights: [number, number][] = [[-0.72, -0.62], [0.72, -0.62], [-0.72, 0.62], [0.72, 0.62]]
+  const S = (u: number, v: number): [number, number] => [cx + u - v, cy + u / 2 + v / 2]
+  const [x1, y1] = S(a, b)    // nearest corner
+  const [x2, y2] = S(a, -b)   // right
+  const [x3, y3] = S(-a, -b)  // furthest
+  const [x4, y4] = S(-a, b)   // left
+  return (
+    <g opacity={opacity}>
+      <path d={`M ${x4},${y4 - h} L ${x1},${y1 - h} L ${x1},${y1} L ${x4},${y4} Z`} fill={left} />
+      <path d={`M ${x1},${y1 - h} L ${x2},${y2 - h} L ${x2},${y2} L ${x1},${y1} Z`} fill={right} />
+      <path d={`M ${x1},${y1 - h} L ${x2},${y2 - h} L ${x3},${y3 - h} L ${x4},${y4 - h} Z`} fill={top} />
+    </g>
+  )
+}
+
+function Ground({ x, y, cap, c1, c2 }: {
+  x: number; y: number; cap: number; c1: string; c2: string
+}) {
+  const tier = groundTier(cap)
+  /** THE PITCH IS THE CONSTANT. It is the same size at every tier, because a
+   *  rugby pitch is the same size at every ground in the world; what grows is
+   *  what is built around it. The old drawing scaled the playing area with the
+   *  crowd, which is the one thing a stadium cannot do. */
+  // Sized to the FOUR PLOTS IT COVERS and not a unit more: that block is 92
+  // units of half-width, and pitch plus two stands has to live inside it or
+  // the ground swallows the buildings either side of it. 38 and 21 with the
+  // widest stands lands at 81.
+  const pa = 38, pb = 21
+  /** How deep a stand is, and how tall. Both grow with the band - a 45,000
+   *  seat stand is a bigger object than an 11,000 seat one - and the height is
+   *  capped where it would start hiding the plots drawn behind it. */
+  const sb = 5 + tier * 1.2
+  const sh = 5 + tier * 2.0
+  const S = (u: number, v: number): [number, number] => [x + u - v, y + u / 2 + v / 2]
+  const corners = [S(pa, pb), S(pa, -pb), S(-pa, -pb), S(-pa, pb)]
+  const pitchPath = 'M ' + corners.map(c => c.join(',')).join(' L ') + ' Z'
+
+  // The stand's own structure has to be visible or the seating deck on top of
+  // it reads as a gold ramp lying on the grass. Lifted off the background
+  // rather than left at the dark end of the club's colour.
+  const wall = shade(c1, 0.78)
+  /** THE SEATS ARE THE CLUB'S SECOND COLOUR, and that is the single strongest
+   *  signal in the whole drawing. They were the first colour shaded up, which
+   *  for a green club painted green seats onto a green pitch and made a stand
+   *  indistinguishable from the grass it faces. Every club in the database
+   *  carries two colours precisely because one of them contrasts. */
+  const seats = shade(c2, 0.78)
+  const roof = shade(c1, 0.26)
+  /** A stand, given which side it sits on. `side` is the offset in ground
+   *  units; the long stands run the length of the pitch and the end stands
+   *  the width of it. */
+  const stand = (u: number, v: number, sa: number, sbb: number) => (
+    <Slab cx={S(u, v)[0]} cy={S(u, v)[1]} a={sa} b={sbb} h={sh}
+      top={roof} left={shade(wall, 0.62)} right={wall} />
+  )
+  /** The seating deck, drawn ON the pitch side of a stand so the terrace reads
+   *  as rows of seats facing in rather than as a blank wall. */
+  const deck = (u: number, v: number, sa: number, sbb: number) => {
+    const [dx, dy] = S(u, v)
+    const D = (uu: number, vv: number): string => `${dx + uu - vv},${dy + uu / 2 + vv / 2 - sh}`
+    return (
+      <path d={`M ${D(sa, -sbb * 0.75)} L ${D(-sa, -sbb * 0.75)} L ${D(-sa, sbb * 0.3)} L ${D(sa, sbb * 0.3)} Z`}
+        fill={seats} />
+    )
+  }
+  const light = (u: number, v: number) => {
+    const [lx, ly] = S(u, v)
+    return (
+      <g>
+        <line x1={lx} y1={ly} x2={lx} y2={ly - 26} stroke="var(--text-muted)" strokeWidth="1.5" />
+        <rect x={lx - 7} y={ly - 31} width="14" height="5" rx="1" fill="var(--gold-fill)" />
+      </g>
+    )
+  }
+  const off = pb + sb       // how far out a touchline stand sits
+  const end = pa + sb       // and an end stand behind the posts
   return (
     <g className="gbowl">
-      <ellipse cx={x} cy={y + 3} rx={rx * 1.04} ry={ry * 1.04} fill="rgba(0,0,0,.28)" />
-      <path d={skirt} fill={shade(c1, 0.58)} />
-      <ellipse cx={x} cy={y - h} rx={rx} ry={ry} fill={shade(c1, 0.88)} stroke={shade(c2, 1.15)} strokeWidth="1.2" />
-      {/* the deck, then the roof line that separates it from the pitch */}
-      <ellipse cx={x} cy={y - h} rx={rx * 0.74} ry={ry * 0.74} fill={shade(c1, 1.18)} opacity="0.85" />
-      <ellipse cx={x} cy={y - h} rx={rx * 0.58} ry={ry * 0.58} fill="var(--pitch-a)" stroke="rgba(255,255,255,.5)" strokeWidth="1" />
-      <line x1={x - rx * 0.58} y1={y - h} x2={x + rx * 0.58} y2={y - h} stroke="rgba(255,255,255,.45)" strokeWidth="0.9" />
-      {big && lights.map(([fx, fy], i) => (
-        <g key={i}>
-          <line x1={x + rx * fx} y1={y - h + ry * fy} x2={x + rx * fx} y2={y - h + ry * fy - 22}
-            stroke="var(--text-muted)" strokeWidth="1.4" />
-          <rect x={x + rx * fx - 7} y={y - h + ry * fy - 26} width="14" height="4.5" rx="1"
-            fill="var(--gold-fill)" opacity="0.95" />
-          <rect x={x + rx * fx - 5} y={y - h + ry * fy - 21.5} width="10" height="2" rx="1"
-            fill="var(--gold-fill)" opacity="0.45" />
-        </g>
+      {/* the concourse: paved ground round the outside, from the band where a
+          crowd needs somewhere to stand before it goes in */}
+      {tier >= 4 && (
+        <path d={`M ${S(end + 14, 0)[0]},${S(end + 14, 0)[1]} L ${S(0, -off - 14)[0]},${S(0, -off - 14)[1]}
+                  L ${S(-end - 14, 0)[0]},${S(-end - 14, 0)[1]} L ${S(0, off + 14)[0]},${S(0, off + 14)[1]} Z`}
+          fill="var(--surface-3)" opacity=".45" />
+      )}
+      {/* FAR SIDE FIRST, then the pitch, then the near side: the whole reason
+          this is a rectangle and not an ellipse is that the stands have sides,
+          and a stand in front of the pitch has to be drawn after it. */}
+      {tier >= 2 && <>{stand(0, -off, pa, sb)}{deck(0, -off, pa, sb)}</>}
+      {tier >= 3 && <>{stand(-end, 0, sb, pb)}{deck(-end, 0, sb, pb)}</>}
+
+      {/* THE MATCH PITCH IS BRIGHTER THAN THE TRAINING GRASS. Both were
+          --pitch-a and the stadium sank into the three fields around it -
+          which is the wrong way round, since this is the one piece of grass
+          the club plays on. Mixed rather than hardcoded so it still answers to
+          the theme. */}
+      <path d={pitchPath} fill="color-mix(in srgb, var(--pitch-a) 62%, var(--primary))" />
+      {/* mown stripes, the halfway line and the two 22s */}
+      {[-0.55, -0.18, 0.18, 0.55].map((f, i) => (
+        <path key={i} d={`M ${S(pa * f, pb)[0]},${S(pa * f, pb)[1]} L ${S(pa * f, -pb)[0]},${S(pa * f, -pb)[1]}`}
+          stroke="var(--pitch-a)" strokeWidth={pa * 0.34} opacity=".5" />
       ))}
+      {[0, -0.45, 0.45].map((f, i) => (
+        <path key={i} d={`M ${S(pa * f, pb)[0]},${S(pa * f, pb)[1]} L ${S(pa * f, -pb)[0]},${S(pa * f, -pb)[1]}`}
+          stroke="rgba(255,255,255,.6)" strokeWidth={i ? 0.9 : 1.4} />
+      ))}
+      <path d={pitchPath} fill="none" stroke="rgba(255,255,255,.65)" strokeWidth="1.1" />
+      {/* the posts, at both ends and at every band: a ground with no stands is
+          still a ground */}
+      {[-0.86, 0.86].map((f, i) => {
+        const [gx1, gy1] = S(pa * f, -pb * 0.22)
+        const [gx2, gy2] = S(pa * f, pb * 0.22)
+        return (
+          <g key={i} stroke="rgba(255,255,255,.9)" strokeWidth="1.5" fill="none">
+            <path d={`M ${gx1},${gy1} L ${gx1},${gy1 - 13}`} />
+            <path d={`M ${gx2},${gy2} L ${gx2},${gy2 - 13}`} />
+            <path d={`M ${gx1},${gy1 - 9} L ${gx2},${gy2 - 9}`} />
+          </g>
+        )
+      })}
+
+      {tier >= 4 && <>{stand(end, 0, sb, pb)}{deck(end, 0, sb, pb)}</>}
+      {tier >= 4 && <>{stand(0, off, pa, sb)}{deck(0, off, pa, sb)}</>}
+      {/* ENCLOSED. The last band joins the four stands up: a continuous roof
+          over the corners, and the glazed frontage that turns a set of stands
+          into a building. */}
+      {tier >= 5 && (
+        <>
+          {[[end, off], [end, -off], [-end, off], [-end, -off]].map(([u, v], i) => (
+            <Slab key={i} cx={S(u, v)[0]} cy={S(u, v)[1]} a={sb} b={sb} h={sh}
+              top={roof} left={shade(wall, 0.72)} right={wall} />
+          ))}
+          <path d={`M ${S(pa, off + sb)[0]},${S(pa, off + sb)[1] - sh * 0.55}
+                    L ${S(-pa, off + sb)[0]},${S(-pa, off + sb)[1] - sh * 0.55}
+                    L ${S(-pa, off + sb)[0]},${S(-pa, off + sb)[1] - sh * 0.15}
+                    L ${S(pa, off + sb)[0]},${S(pa, off + sb)[1] - sh * 0.15} Z`}
+            fill={GLASS} />
+        </>
+      )}
+      {/* THE PERIMETER, which is the whole of what the first band buys: a wall
+          round the outside and the turnstile blocks on the corners. It is the
+          difference between a field somebody plays on and a ground people pay
+          to get into. */}
+      {tier >= 1 && tier < 4 && (
+        <path d={`M ${S(end, off)[0]},${S(end, off)[1]} L ${S(end, -off)[0]},${S(end, -off)[1]}
+                  L ${S(-end, -off)[0]},${S(-end, -off)[1]} L ${S(-end, off)[0]},${S(-end, off)[1]} Z`}
+          fill="none" stroke={shade(c1, 0.6)} strokeWidth="2" />
+      )}
+      {tier >= 1 && [[end, off], [-end, -off]].map(([u, v], i) => (
+        <Slab key={i} cx={S(u, v)[0]} cy={S(u, v)[1]} a={5} b={5} h={7}
+          top={shade(c2, 1.05)} left={shade(c1, 0.45)} right={shade(c1, 0.68)} />
+      ))}
+      {tier >= 3 && [[end, -off], [-end, off]].map(([u, v], i) => light(u, v))}
+      {tier >= 4 && [[end, off], [-end, -off]].map(([u, v], i) => light(u, v))}
     </g>
   )
 }

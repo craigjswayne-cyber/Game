@@ -48,6 +48,15 @@ const draw = (club: Partial<Club>, building: FacilityId | null) =>
 const body = CASES.map(c =>
   `<figure><figcaption>${c.title}</figcaption>${draw(c.club, c.building)}</figure>`).join('')
 
+/** THE GROUND'S OWN LADDER. Its six stages are capacity bands rather than a
+ *  facility level (ClubGrounds, Ground), so it needs a row of its own: the
+ *  same modest estate at six seat counts, one inside each band. */
+const SEATS = [4_000, 8_000, 13_000, 20_000, 32_000, 60_000]
+const CROWDS = SEATS.map(n =>
+  `<figure><figcaption>${n.toLocaleString()} seats</figcaption>${draw({
+    short: 'CRO', colors: ['#1f5e3a', '#e9be68'], capacity: n, facilities: facs(() => 2),
+  }, null)}</figure>`).join('')
+
 /** Every facility at the same level, 0 to 5. */
 const LADDER = [0, 1, 2, 3, 4, 5].map(l =>
   `<figure><figcaption>all at level ${l}</figcaption>${draw({
@@ -77,7 +86,8 @@ const shell = (cls: string) => `<!doctype html><meta charset="utf-8"><style>${cs
      actually read at, not whatever the window happens to be. */
   figure { margin: 0; flex: 0 0 330px; padding: 8px; }
   figcaption { font: 700 11px/1.6 system-ui; color: var(--text-primary); letter-spacing: 1px; text-transform: uppercase; }
-  </style><div class="app ${cls}"><div class="row">${body}</div><div class="row ladder">${LADDER}</div></div>`
+  </style><div class="app ${cls}"><div class="row">${body}</div>` +
+  `<div class="row ladder">${LADDER}</div><div class="row ladder">${CROWDS}</div></div>`
 
 const OUT = process.argv[2] ?? 'grounds.png'
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
@@ -102,5 +112,5 @@ const stacked = await page.evaluate(async (b64s) => {
   return c.toDataURL('image/png')
 }, shots.map(b => b.toString('base64')))
 writeFileSync(OUT, Buffer.from(stacked.split(',')[1], 'base64'))
-console.log(`${OUT}: ${CASES.length} estates and a 0-5 ladder, night and day`)
+console.log(`${OUT}: ${CASES.length} estates, a 0-5 facility ladder and a ${SEATS.length}-band ground ladder, night and day`)
 await browser.close()
