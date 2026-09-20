@@ -9,7 +9,25 @@ import { SectionTitle } from '../components'
 import { ESTATE_SKU, hasEntitlement, tillOpen } from '../../game/monetise'
 import { estateBuiltHere } from '../../game/grants'
 import { ord as ordUI, t } from '../../game/i18n'
-import { IcoStadium } from '../icons'
+import {
+  IcoAcademy, IcoBuild, IcoCart, IcoChart, IcoDeal, IcoMedical, IcoPitch,
+  IcoStadium, IcoTarget, IcoTraining,
+} from '../icons'
+
+/** The nine plots, on the line set rather than the emoji FACILITY_INFO still
+ *  carries for the cards on the other tab. Those go when the Squad and Club
+ *  phases reach them; this panel is new, so it starts on the right one. */
+const FAC_ICON: Record<FacilityId, () => JSX.Element> = {
+  pitch: IcoPitch,
+  gym: IcoTraining,
+  recovery: IcoMedical,
+  paddock: IcoBuild,
+  kicking: IcoTarget,
+  briefing: IcoChart,
+  academy: IcoAcademy,
+  shop: IcoCart,
+  hospitality: IcoDeal,
+}
 
 /** What each level actually buys, in the manager's language. */
 const EFFECT: Record<FacilityId, (lvl: number) => string> = {
@@ -65,16 +83,18 @@ export default function Infrastructure() {
   // shelf below says what that costs).
   const [focus, setFocus] = useState<FacilityId | null>(null)
   const cards = useRef<Partial<Record<FacilityId, HTMLDivElement | null>>>({})
-  const pickPlot = (fid: FacilityId) => {
-    setFocus(fid)
-    setItab('ours')
-    // The card does not exist until the tab it lives on has rendered, so the
-    // scroll waits a frame. requestAnimationFrame rather than a timeout: it is
-    // the paint that has to have happened, not an interval that has to elapse.
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      cards.current[fid]?.scrollIntoView({ block: 'center', behavior: 'smooth' })
-    }))
-  }
+  /* TAPPING A PLOT NO LONGER LEAVES THE MAP.
+     It used to switch to Our Estate and scroll the matching card into view,
+     which answered the question and threw away the thing that raised it: you
+     tapped a building and the building went. The estate now answers in place,
+     under the picture, with the map still on screen - so the next tap is on
+     the next plot rather than on Back. The nine cards behind the other tab
+     are untouched; this is a second door to the same numbers, not a
+     replacement, and the tab is still where you go to read them all at once.
+
+     Tapping the plot you already have open closes the panel, because on a
+     map the way out of a selection is to deselect it. */
+  const pickPlot = (fid: FacilityId) => setFocus(f => (f === fid ? null : fid))
   const club = game.clubs[game.userClubId]
   const abs = game.season * 100 + game.week
   const grade = estateGrade(club)
@@ -122,10 +142,20 @@ export default function Infrastructure() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <div>
             <h3 style={{ fontSize: 15, margin: 0 }} className="inl g-2"><span className="nico"><IcoStadium /></span>{club.stadium}</h3>
-            <div className="meta">
-              {t('world.infSeats', { n: club.capacity.toLocaleString() })}
-              {plan.played >= 1 && t('world.infAvgGate', { avg: plan.avg.toLocaleString(), pct: Math.round(plan.fill * 100) })}
-            </div>
+            {/* THE CAPACITY IS THE NUMBER THIS CARD IS ABOUT, so it is the
+                number you see. It used to be one clause of a grey line that
+                began "25,849 seats" and ran on into the average gate, at the
+                same weight as the catchment sentence under it and the rank
+                beside it - four facts of equal size and no answer to "how big
+                is my ground". The figure leads now and the word that used to
+                carry it is its label. */}
+            <div className="ground-cap">{club.capacity.toLocaleString()}</div>
+            <div className="ground-cap-l">{t('world.infCapacity')}</div>
+            {plan.played >= 1 && (
+              <div className="meta">
+                {t('world.infAvgGate', { avg: plan.avg.toLocaleString(), pct: Math.round(plan.fill * 100) })}
+              </div>
+            )}
             {/* the board will not build seats it cannot sell, so say out loud
                 how many this club could shift on its name alone */}
             <div className="meta" style={{ fontSize: 11 }}>
@@ -169,6 +199,39 @@ export default function Infrastructure() {
         <ClubGrounds club={club} buildingId={game.facilityBuild?.id ?? null}
           selected={focus} onPick={pickPlot} />
       </div>
+      {focus && (() => {
+        const info = FACILITY_INFO[focus]
+        const lvl = club.facilities?.[focus] ?? 0
+        const cost = facilityCost(info, lvl)
+        const building = game.facilityBuild?.id === focus ? game.facilityBuild : null
+        const weeksLeft = building ? Math.max(1, weeksBetween100(building.done, abs)) : 0
+        const Ico = FAC_ICON[focus]
+        return (
+          <div className="fac-panel" key={focus}>
+            <div className="fp-head">
+              <span className="fp-ico"><Ico /></span>
+              <h3 className="fp-name">{t(info.name)}</h3>
+              <span className="fp-pips">{pips(lvl)}</span>
+            </div>
+            <div className="fp-effect">
+              {lvl === 0 ? t('world.infNothing') : t('world.infLevelIs', { n: lvl, effect: EFFECT[focus](lvl) })}
+            </div>
+            <div className="fp-desc">{t(info.desc)}</div>
+            {building
+              ? <div className="fp-building">{t(weeksLeft === 1 ? 'world.infBuildersOne' : 'world.infBuilders', { n: weeksLeft })}</div>
+              : lvl >= MAX_FACILITY
+                ? <div className="fp-done">{t('world.infWorldClass')}</div>
+                : (
+                  <button className="btn gold fp-act" disabled={game.facilityBuild != null}
+                    onClick={() => { setMsg({ key: focus, text: requestFacility(game, focus) }); touch() }}>
+                    {t('world.infAskBoard')}
+                    <span className="fp-cost">{t('world.infLevelCost', { n: lvl + 1, cost: fmtMoney(cost) })}</span>
+                  </button>
+                )}
+            {msg?.key === focus && <div className="fp-msg">{msg.text}</div>}
+          </div>
+        )
+      })()}
       </>}
 
       {itab === 'ours' && <>

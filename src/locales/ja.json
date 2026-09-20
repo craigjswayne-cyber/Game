@@ -2632,7 +2632,8 @@
   "infGrounds": "クラブ施設",
   "infGroundsSub": "区画をタップするとカードが開きます。",
   "infGroundsAlt": "{club}の練習場とスタジアムの俯瞰図。",
-  "infLevelOf": "レベル {n}/{max}"
+  "infLevelOf": "レベル {n}/{max}",
+  "infCapacity": "収容人数"
  },
  "facilities": {
   "pitch": "ピッチ",

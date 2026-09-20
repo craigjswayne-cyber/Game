@@ -2757,7 +2757,8 @@
   "infGrounds": "Die terrein",
   "infGroundsSub": "Tik op 'n erf om sy kaart oop te maak.",
   "infGroundsAlt": "'n Lugfoto van {club} se oefenveld en stadion.",
-  "infLevelOf": "vlak {n} van {max}"
+  "infLevelOf": "vlak {n} van {max}",
+  "infCapacity": "Kapasiteit"
  },
  "facilities": {
   "pitch": "Speeloppervlak",

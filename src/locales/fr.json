@@ -2708,7 +2708,8 @@
     "infGrounds": "Le domaine",
     "infGroundsSub": "Touchez une parcelle pour ouvrir sa fiche.",
     "infGroundsAlt": "Vue aérienne du centre d'entraînement et du stade de {club}.",
-    "infLevelOf": "niveau {n} sur {max}"
+    "infLevelOf": "niveau {n} sur {max}",
+    "infCapacity": "Capacité"
   },
   "facilities": {
     "pitch": "Pelouse",

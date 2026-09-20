@@ -2673,7 +2673,8 @@
   "infGrounds": "Las instalaciones",
   "infGroundsSub": "Toca una parcela para abrir su ficha.",
   "infGroundsAlt": "Vista aérea del centro de entrenamiento y el estadio de {club}.",
-  "infLevelOf": "nivel {n} de {max}"
+  "infLevelOf": "nivel {n} de {max}",
+  "infCapacity": "Aforo"
  },
  "facilities": {
   "pitch": "Terreno de juego",

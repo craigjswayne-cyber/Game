@@ -2690,7 +2690,8 @@
   "infGrounds": "Il complesso",
   "infGroundsSub": "Tocca un lotto per aprire la sua scheda.",
   "infGroundsAlt": "Veduta aerea del centro di allenamento e dello stadio di {club}.",
-  "infLevelOf": "livello {n} di {max}"
+  "infLevelOf": "livello {n} di {max}",
+  "infCapacity": "Capienza"
  },
  "facilities": {
   "pitch": "Terreno di gioco",

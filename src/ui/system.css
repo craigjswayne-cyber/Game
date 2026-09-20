@@ -753,3 +753,98 @@ button.tile:active { background: var(--press); }
 /* Beyond the wall the roads are context, not content. A third of the
    strength is enough to say the club is somewhere rather than nowhere. */
 .grounds .g-road.out { opacity: .34; }
+
+/* ---- the facility panel ----
+ * What a tap on a plot opens, under the map rather than instead of it. The
+ * hierarchy the brief asks for: the name, then what the place DOES at the
+ * level it is, then the flavour, then the one action. No card chrome around
+ * it - it belongs to the map above it, so it shares the map's ground and
+ * hangs off its bottom edge instead of floating as a second card.
+ */
+.fac-panel {
+  margin: -1px 0 0;
+  padding: var(--sp-3) var(--sp-4) var(--sp-4);
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-top: 0;
+  border-radius: 0 0 var(--r-panel) var(--r-panel);
+  animation: fp-in var(--dur) var(--ease);
+}
+@keyframes fp-in { from { opacity: 0; transform: translate3d(0, -6px, 0); } }
+@media (prefers-reduced-motion: reduce) { .fac-panel { animation: none; } }
+
+.fp-head { display: flex; align-items: center; gap: var(--sp-2); }
+.fp-ico { width: 20px; height: 20px; display: grid; place-items: center; color: var(--text-muted); flex: 0 0 auto; }
+.fp-ico svg { width: 100%; height: 100%; display: block; }
+.fp-name {
+  margin: 0; flex: 1; min-width: 0;
+  font-family: var(--display); font-size: var(--fs-17); font-weight: 700;
+  line-height: var(--lh-snug); letter-spacing: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.fp-pips { color: var(--gold); letter-spacing: 1px; flex: 0 0 auto; }
+
+/* The one line that says what owning this is worth. It is the reason the
+   plot was tapped, so it is the only thing here set in the text colour. */
+.fp-effect {
+  margin-top: var(--sp-2);
+  font-size: var(--fs-13); font-weight: 700; line-height: var(--lh-snug);
+  color: var(--text-primary);
+}
+.fp-desc { margin-top: var(--sp-1); font-size: var(--fs-12); color: var(--text-muted); line-height: var(--lh-body); }
+.fp-building, .fp-done { margin-top: var(--sp-3); font-size: var(--fs-12); font-weight: 700; color: var(--gold); }
+
+.fp-act { display: block; width: 100%; margin-top: var(--sp-3); padding: 9px 12px; }
+.fp-cost { display: block; font-size: var(--fs-12); font-weight: 600; opacity: .85; }
+.fp-msg {
+  margin-top: var(--sp-3); padding-top: var(--sp-3);
+  border-top: 1px solid var(--border);
+  font-size: var(--fs-12); font-weight: 600; color: var(--text-muted);
+}
+/* the map keeps its own corners until the panel is under it */
+.grounds-card:has(+ .fac-panel) { border-radius: var(--r-panel) var(--r-panel) 0 0; }
+
+/* ---- which plot is open ----
+ * It was the browser's own focus ring: a white rectangle round a diamond
+ * building, which is the "generic map pin" the brief rules out and does not
+ * even follow the shape of the thing it is marking. The plot's own footprint
+ * is the marker instead - the diamond the tap already uses - drawn in the
+ * gold the rest of the game uses for "this is the one you picked", with the
+ * tile lifting slightly under it. The keyboard gets the same mark, so the
+ * ring can go without taking the focus indicator with it.
+ */
+/* :focus, NOT :focus-visible. Measured on the real element after a tap, the
+   plot matches :focus and does NOT match :focus-visible - so neither this
+   file's rule nor theme.css's ever applied, and what was drawing the white
+   box round the selected building was Chromium's own `outline: auto 5px`,
+   sitting there since the map was first built. The keyboard still gets a
+   mark, because :focus-visible does match for the keyboard and it gets the
+   gold footprint below. */
+.grounds .gplot:focus { outline: none; }
+.grounds .gplot.on .ghit,
+.grounds .gplot:focus-visible .ghit {
+  stroke: var(--gold);
+  stroke-width: 1.8;
+  transition: stroke var(--dur-fast) var(--ease);
+}
+
+/* The ground's capacity, as the figure rather than as a clause. Tabular
+   figures so a five-digit crowd does not jitter when the board adds seats. */
+.ground-cap {
+  font-family: var(--display);
+  font-size: var(--fs-34);
+  font-weight: 800;
+  line-height: var(--lh-tight);
+  letter-spacing: -0.5px;
+  font-variant-numeric: tabular-nums;
+  margin-top: var(--sp-1);
+}
+.ground-cap-l {
+  font-family: var(--display);
+  font-size: var(--fs-12);
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-top: 1px;
+}

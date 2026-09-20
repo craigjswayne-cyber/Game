@@ -2756,7 +2756,8 @@
   "infGrounds": "The Grounds",
   "infGroundsSub": "Tap a plot to open its card.",
   "infGroundsAlt": "An aerial view of the training ground and stadium at {club}.",
-  "infLevelOf": "level {n} of {max}"
+  "infLevelOf": "level {n} of {max}",
+  "infCapacity": "Capacity"
  },
  "facilities": {
   "pitch": "Playing Surface",
