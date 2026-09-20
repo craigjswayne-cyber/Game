@@ -2703,7 +2703,11 @@
     "agSeniorSub_f": "les vingt meilleures joueuses de la planète, à ce jour",
     "agSeniorTitle_f": "Classement mondial des joueuses",
     "ofForPlayer_f": "pour {player}, et elles veulent une réponse",
-    "prQuiet_f": "La salle de presse est calme… pour l'instant. Les journalistes se présentent quand une joueuse trouve la forme, la perd, ou est annoncé ailleurs."
+    "prQuiet_f": "La salle de presse est calme… pour l'instant. Les journalistes se présentent quand une joueuse trouve la forme, la perd, ou est annoncé ailleurs.",
+    "infGrounds": "Le domaine",
+    "infGroundsSub": "Chaque bâtiment reflète ce que le conseil a financé. Touchez une parcelle.",
+    "infGroundsAlt": "Vue aérienne du centre d'entraînement et du stade de {club}.",
+    "infLevelOf": "niveau {n} sur {max}"
   },
   "facilities": {
     "pitch": "Pelouse",
@@ -5434,7 +5438,14 @@
     "doesPhysical_f": "refuse la bagarre, garde quinze joueuses sur le terrain et laisse l'arbitre faire le ménage.",
     "uncontestedShort_f": "Et cela coûte une seconde joueuse à {team} : selon la règle 3.20, une équipe qui passe en mêlée simulée à cause d'un carton doit sortir une femme de plus. {player} quitte le terrain.",
     "contestedAgain_f": "La joueuse de première ligne est revenu de la prison et la couverture avec lui : l'arbitre rétablit les MÊLÉES DISPUTÉES.",
-    "frontRowReturns_f": "Le banc est vide, alors {player} revient : une joueuse de première ligne remplacé peut reprendre la place d'un blessée, et la mêlée reste disputée."
+    "frontRowReturns_f": "Le banc est vide, alors {player} revient : une joueuse de première ligne remplacé peut reprendre la place d'un blessée, et la mêlée reste disputée.",
+    "phCarry": "{team} enchaîne les temps de jeu.",
+    "phRuck": "Ballon recyclé, {team} repart de l'avant.",
+    "phWide": "{team} écarte le jeu.",
+    "phKick": "Chandelle de {team}, la montée défensive part.",
+    "phScrum": "Mêlée. Introduction {team}.",
+    "phLineout": "Touche, et c’est {team} qui lance.",
+    "phMaul": "{team} forme le maul et avance."
   },
   "injury": {
     "ribs": "côtes contusionnées",

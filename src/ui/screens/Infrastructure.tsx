@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useStore } from '../../store'
+import ClubGrounds from '../ClubGrounds'
 import {
   FACILITY_INFO, MAX_FACILITY, demandCeiling, estateGrade, facilityCost, fmtMoney,
   type Club, type FacilityId, weeksBetween100 } from '../../game/model'
@@ -39,7 +40,40 @@ export default function Infrastructure() {
   // its "the reserves will not carry a build this size" was rendering out of
   // sight while the button under the thumb did nothing visible.
   const [msg, setMsg] = useState<{ key: string; text: string } | null>(null)
-  const [itab, setItab] = useState<'ours' | 'league'>('ours')
+  /**
+   * THREE TABS, AND THE MAP IS THE ONE YOU LAND ON (v1.7.0).
+   *
+   * The aerial view went under the facility list first, and scrollaudit failed
+   * the page for it: nine build cards plus a drawing took Club Infrastructure
+   * from 2.0 screenfuls to 3.7, past the audit's line that no fixed page gets
+   * three. That line is right - the fix is not a bigger allowance, it is that
+   * a page trying to be a picture AND a nine-row shopping list is two pages.
+   *
+   * The map leads because it is also the way in: tapping a plot switches to
+   * Facilities and puts you on that card, so the drawing is navigation rather
+   * than decoration, and the build buttons are one tap from where they were.
+   * The ground itself - seats, catchment, the expansion ask - stays above the
+   * tabs on all three, because it is the answer to "how big is this club" and
+   * that question belongs to the page rather than to any one tab.
+   */
+  const [itab, setItab] = useState<'grounds' | 'ours' | 'league'>('grounds')
+  // THE MAP AND THE LIST ARE ONE THING. Tapping a plot on the aerial view
+  // scrolls its card up and marks it, rather than opening a second place where
+  // the same nine facilities can be read and built - which is how a screen ends
+  // up with two implementations of one board request (the note on the estate
+  // shelf below says what that costs).
+  const [focus, setFocus] = useState<FacilityId | null>(null)
+  const cards = useRef<Partial<Record<FacilityId, HTMLDivElement | null>>>({})
+  const pickPlot = (fid: FacilityId) => {
+    setFocus(fid)
+    setItab('ours')
+    // The card does not exist until the tab it lives on has rendered, so the
+    // scroll waits a frame. requestAnimationFrame rather than a timeout: it is
+    // the paint that has to have happened, not an interval that has to elapse.
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      cards.current[fid]?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    }))
+  }
   const club = game.clubs[game.userClubId]
   const abs = game.season * 100 + game.week
   const grade = estateGrade(club)
@@ -56,6 +90,7 @@ export default function Infrastructure() {
   return (
     <>
       <div className="tab-bar">
+        <button className={itab === 'grounds' ? 'active' : ''} onClick={() => setItab('grounds')}>{t('world.infGrounds')}</button>
         <button className={itab === 'ours' ? 'active' : ''} onClick={() => setItab('ours')}>{t('world.infOurEstate')}</button>
         <button className={itab === 'league' ? 'active' : ''} onClick={() => setItab('league')}>{t('world.infTheLeague')}</button>
       </div>
@@ -120,6 +155,21 @@ export default function Infrastructure() {
         )}
       </div>
 
+      {/* ---- THE ESTATE, FROM THE AIR (v1.7.0) ----
+          Owner: "the club infrastructure could be visually much stronger."
+          Nine cards told you what you owned; none of them told you what the
+          place LOOKED like, which is the half of a club a manager actually
+          pictures. Every mark in it is drawn from the same facility levels the
+          cards on the next tab print, so the two can never disagree - see
+          ClubGrounds. */}
+      {itab === 'grounds' && <>
+      <SectionTitle sub={t('world.infGroundsSub')}>{t('world.infGrounds')}</SectionTitle>
+      <div className="card grounds-card">
+        <ClubGrounds club={club} buildingId={game.facilityBuild?.id ?? null}
+          selected={focus} onPick={pickPlot} />
+      </div>
+      </>}
+
       {itab === 'ours' && <>
       <SectionTitle sub={t('world.infFacilitiesSub')}>{t('world.infFacilities')}</SectionTitle>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 6 }}>
@@ -130,7 +180,9 @@ export default function Infrastructure() {
           const building = game.facilityBuild?.id === fid ? game.facilityBuild : null
           const weeksLeft = building ? Math.max(1, weeksBetween100(building.done, abs)) : 0
           return (
-            <div className="card" key={fid} style={{ margin: 0, padding: '8px 10px' }}>
+            <div className={`card fac-card${focus === fid ? ' picked' : ''}`} key={fid}
+              ref={el => { cards.current[fid] = el }}
+              style={{ margin: 0, padding: '8px 10px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
                 <div style={{ minWidth: 0 }}>
                   <h3 style={{ fontSize: 13.5, margin: 0 }}>

@@ -2627,7 +2627,11 @@
   "jbNoOffer": "テーブルの上にオファーはない。",
   "ofCover_f": "彼女の控え：{names}{more}。",
   "ofNoCover_f": "彼女を売れば、{pos}を務められる選手はいなくなる。",
-  "ofTheValuation_f": "。ちなみに彼女は"
+  "ofTheValuation_f": "。ちなみに彼女は",
+  "infGrounds": "クラブ施設",
+  "infGroundsSub": "建物は理事会が承認した投資をそのまま映します。区画をタップ。",
+  "infGroundsAlt": "{club}の練習場とスタジアムの俯瞰図。",
+  "infLevelOf": "レベル {n}/{max}"
  },
  "facilities": {
   "pitch": "ピッチ",
@@ -5203,7 +5207,14 @@
   "contestedAgain": "フロントローがシンビンから戻り、カバーも戻った。レフェリーはスクラムのコンテストを再開させる。",
   "frontRowReturns": "ベンチは使い切ったため{player}が再びピッチへ。交代したフロントローは負傷者の代わりに戻ることができ、スクラムはコンテストのままだ。",
   "tryAtTestimonial_f": "よりによってこの選手だ。{player}が自らの功労試合でトライを決め、スタンドは座ろうとしない。台本を書けと言われても、これ以上のものは書けまい。",
-  "tryRetiringOvation_f": "{player}にスタンド総立ち——敵も味方もない。この夏で引退する選手のあのプレーを見た記憶を、ここにいる誰も手放したくないのだ。"
+  "tryRetiringOvation_f": "{player}にスタンド総立ち——敵も味方もない。この夏で引退する選手のあのプレーを見た記憶を、ここにいる誰も手放したくないのだ。",
+  "phCarry": "{team}がフェーズを重ねる。",
+  "phRuck": "ボールをリサイクル、{team}が再び前へ。",
+  "phWide": "{team}がボールを大きく展開。",
+  "phKick": "{team}のハイパント、チェイスが上がる。",
+  "phScrum": "スクラム。{team}ボール。",
+  "phLineout": "ラインアウト、スローは{team}。",
+  "phMaul": "{team}がモールを組んで押し込む。"
  },
  "injury": {
   "ribs": "肋骨の打撲",

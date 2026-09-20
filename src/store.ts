@@ -133,6 +133,12 @@ interface Store {
     fixture: Fixture
     events: MatchEvent[]
     cursor: number
+    /** The minute on the scoreboard. It is not the last event's minute: the
+     *  passages of play between events walk it forward a minute at a time
+     *  (MatchDay.tsx), so it lives with the match rather than in the screen -
+     *  a reload has to bring it back where it was, and a screen's useState
+     *  cannot. */
+    clock: number
     playing: boolean
     speed: number
     /** how the manager chose to watch this one (F5). 'highlights' runs the
@@ -263,6 +269,16 @@ interface Store {
   /** the assistant takes over: play the match out instantly with your team */
   instantResult: (preTalk?: 'calm' | 'fire' | 'underdog' | 'expect') => void
   advanceLive: () => void
+  /** Run the engine until there is something new in the log, WITHOUT revealing
+   *  it (v1.7.0). The minute clock on the match screen has to know where the
+   *  next event is BEFORE it decides whether this beat is a passage of play or
+   *  a headline; advanceLive both simulates and reveals in one call, so on its
+   *  own it hands the ticker a line for the 23rd minute while the clock still
+   *  reads 19. See the note on the clock in MatchDay.tsx. */
+  simAhead: () => void
+  /** Move the scoreboard to a minute, and remember it. The match screen calls
+   *  this once per minute of a passage of play. */
+  setClock: (min: number) => void
   skipToBreak: () => void
   decide: (choice: 'posts' | 'corner' | 'tap') => string
   matchCursor: (cursor: number, playing: boolean) => void
@@ -694,6 +710,7 @@ export const useStore = create<Store>((set, get) => ({
       liveMatch: {
         ctx: out.ctx, fixture: out.fixture, events: out.ctx.events,
         cursor: Math.max(0, Math.min(rec.cursor, out.ctx.events.length)),
+        clock: rec.clock ?? 0,
         playing: false, speed: 1, mode: rec.mode,
         done: out.ctx.seg === 3, talkMsg: out.talkMsg, preTalkMsg: out.preTalkMsg,
       },
@@ -1066,13 +1083,13 @@ export const useStore = create<Store>((set, get) => ({
     if (preTalk) preTalkMsg = applyPreTalk(g, ctx, preTalk)
     const rec: MatchResume = {
       v: 1, pre, fxId: fx.id, userSideId: userTeamId, preTalk: preTalk ?? null,
-      mode: mode ?? 'full', tick: 0, cursor: 0, cmds: [],
+      mode: mode ?? 'full', tick: 0, cursor: 0, clock: 0, cmds: [],
       season: g.season, week: g.week, savedAt: Date.now(),
       seed: g.seed, saveName: g.saveName,
     }
     set(s => ({
       liveMatch: {
-        ctx, fixture: fx, events: ctx.events, cursor: 0, playing: true, speed: 1,
+        ctx, fixture: fx, events: ctx.events, cursor: 0, clock: 0, playing: true, speed: 1,
         mode: mode ?? 'full', done: false, talkMsg: null, preTalkMsg,
       },
       matchRec: rec,
@@ -1092,6 +1109,7 @@ export const useStore = create<Store>((set, get) => ({
       ...resume,
       tick: liveMatch.ctx.tick,
       cursor: liveMatch.cursor,
+      clock: liveMatch.clock,
       cmds: [...resume.cmds, { ...cmd, at: liveMatch.ctx.tick }],
     }
     set({ matchRec: rec })
@@ -1103,8 +1121,11 @@ export const useStore = create<Store>((set, get) => ({
   noteProgress: () => {
     const { matchRec: resume, liveMatch, saveSlot } = get()
     if (!resume || !liveMatch) return
-    if (resume.tick === liveMatch.ctx.tick && resume.cursor === liveMatch.cursor) return
-    const rec: MatchResume = { ...resume, tick: liveMatch.ctx.tick, cursor: liveMatch.cursor }
+    if (resume.tick === liveMatch.ctx.tick && resume.cursor === liveMatch.cursor
+      && resume.clock === liveMatch.clock) return
+    const rec: MatchResume = {
+      ...resume, tick: liveMatch.ctx.tick, cursor: liveMatch.cursor, clock: liveMatch.clock,
+    }
     set({ matchRec: rec })
     void putResume(saveSlot, rec).catch(() => {})
   },
@@ -1158,6 +1179,51 @@ export const useStore = create<Store>((set, get) => ({
     if (ctx.events.length > cursor) cursor += 1
     set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch, cursor }, tick: s.tick + 1 } : {})
     // where the match has got to, so a reload comes back to the same minute
+    get().noteProgress()
+  },
+
+  /** The minute on the scoreboard, and the record that survives a reload.
+   *
+   *  IT WRITES THE SHORT RECORD, like every other bit of match progress, and
+   *  that is a write per minute rather than a write per event - about eighty a
+   *  match instead of about fifty. The record is a few hundred bytes and the
+   *  7MB half is written once at kick-off and never again (kickOff, putResume),
+   *  so this is the same order of cost the ticker already had, and it buys the
+   *  one thing a reload could not otherwise recover. */
+  setClock: (min: number) => {
+    const lm = get().liveMatch
+    if (!lm || lm.clock === min) return
+    set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch, clock: min }, tick: s.tick + 1 } : {})
+    get().noteProgress()
+  },
+
+  /** The simulate half of advanceLive, on its own.
+   *
+   *  It is deliberately the SAME loop rather than a second one: the stopping
+   *  conditions here (a decision on the touchline, the end of a period, a
+   *  knockout still level at the whistle) are the match's rules, and two
+   *  copies of them would be two answers to "is this match over". The only
+   *  thing left out is the cursor, because revealing is the clock's job now.
+   *
+   *  Nothing is lost if it is never called: advanceLive still simulates when
+   *  the ticker catches up with the engine, exactly as it did. */
+  simAhead: () => {
+    const { game, liveMatch } = get()
+    if (!game || !liveMatch || !liveMatch.playing) return
+    const { ctx } = liveMatch
+    if (ctx.events.length > liveMatch.cursor) return // there is already a line in hand
+    if (ctx.awaiting || ctx.seg === 3 || ctx.decision) {
+      set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch, playing: false, done: ctx.seg === 3 }, tick: s.tick + 1 } : {})
+      return
+    }
+    let r: ReturnType<typeof stepTick> = 'play'
+    while (ctx.events.length <= liveMatch.cursor && r === 'play' && !ctx.decision) {
+      r = stepTick(game, ctx)
+    }
+    if (r === 'FT' && !ctx.decision) settleKnockout(game, ctx)
+    // ctx.events IS liveMatch.events - one array, mutated by stepTick - so
+    // there is nothing to copy across here. The tick is what re-renders.
+    set(s => ({ tick: s.tick + 1 }))
     get().noteProgress()
   },
 

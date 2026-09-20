@@ -24,6 +24,7 @@ import { dialLine, philosophyOf } from '../../game/philosophy'
 import { venueEffect } from '../../game/venue'
 import { sortTable } from '../../game/schedule'
 import { nationName } from '../../game/nations'
+import { phaseAt, type Phase, type PhaseKind } from '../matchphase'
 
 const WEATHER_ICON: Record<string, string> = { Dry: '☀️', Rain: '🌧️', Wind: '💨', Snow: '❄️' }
 
@@ -1454,10 +1455,27 @@ const BANNER: Partial<Record<MatchEvent['type'], string>> = {
   YC: 'matchday.banYC', RC: 'matchday.banRC', INJ: 'matchday.banINJ',
 }
 
-function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC, tickMs }: {
+/** What the pitch depicts during a passage of play, as a set-piece graphic.
+ *  The three the engine already draws, reached from the phase's own kind. */
+const PHASE_SP: Partial<Record<PhaseKind, 'SCRUM' | 'LINEOUT' | 'MAUL'>> = {
+  scrum: 'SCRUM', lineout: 'LINEOUT', maul: 'MAUL',
+}
+
+function PitchViz({ ctx, game, last, phase, min, ballLeft, fxKey, showFx, showBig, lastTeamC, tickMs }: {
   ctx: LiveCtx
   game: ReturnType<typeof useStore.getState>['game'] & object
+  /** The event the ticker is showing, or UNDEFINED during a quiet minute. It
+   *  is undefined rather than stale on purpose: every banner, burst, kick-cam
+   *  and named carrier on this pitch hangs off it, and a passage of play has
+   *  none of those - nobody has scored, and nobody is named. */
   last: MatchEvent | undefined
+  /** The passage of play, when this minute is one (matchphase.ts). */
+  phase: Phase | null
+  /** THE CLOCK, not the last event's minute (v1.7.0). Everything on this pitch
+   *  that moves by itself is seeded from the minute - the work-rate wander, the
+   *  ball's own drift, the sin-bin countdowns - so handing it a clock that
+   *  stood still for four minutes at a time was most of why the pitch did. */
+  min: number
   ballLeft: number
   fxKey: number
   showFx: boolean
@@ -1472,7 +1490,6 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
   const fx = ctx.fx
   const homeC = game!.clubs[fx.homeId]?.colors ?? ['var(--gold-fill)', 'var(--ramp-g9)']
   const awayC = game!.clubs[fx.awayId]?.colors ?? ['var(--ramp-n4)', 'var(--prop-white)']
-  const min = last?.min ?? 0
   const evType = last?.type
   const towardHome = last?.teamId === fx.homeId
   /**
@@ -1552,7 +1569,11 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
   const dots = (side: SideCtx, isHome: boolean) => {
     const cols = isHome ? homeC : awayC
     const capId = game!.clubs[side.teamId]?.captain
-    const attacking = !!last && last.teamId === side.teamId
+    // Who is going forward. During a passage of play that is whoever the phase
+    // says has the ball, which is the whole reason the defensive line steps up
+    // and the attacking backs make their support runs between events instead
+    // of thirty men standing still for four minutes.
+    const attacking = phase ? phase.teamId === side.teamId : (!!last && last.teamId === side.teamId)
 
     // Both sides live around the BALL, not around their own tryline.
     //
@@ -1687,6 +1708,31 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
       <div key={kickFx && showFx ? `k${fxKey}` : 'ball'}
         className={`ball${kickFx && showFx ? (rightward(towardHome) ? ' kick-r' : ' kick-l') : ''}`}
         style={{ left: `${mx(ballLeft)}%`, top: `${ballTop}%` }} />
+      {/* A PASSAGE OF PLAY HAS A SHAPE TOO. The engine's own set pieces are
+          drawn below off a revealed event; this draws the ones a quiet minute
+          produces - a scrum where the ball changed hands, a lineout off a kick
+          to touch, a maul inside the 22. Same graphic, same label, so nothing
+          on this pitch has two appearances depending on where it came from. */}
+      {phase && PHASE_SP[phase.kind] && (
+        <div key={`ph${min}`} className={`setp${phase.kind === 'maul' ? ' maul' : ''}`}
+          style={{ left: `${mx(ballLeft)}%`, top: `${ballTop}%` }}>
+          {phase.kind === 'lineout' ? (
+            <>
+              <span className="lo-col" style={{ background: (mirror ? awayC : homeC)[0] }} />
+              <span className="lo-col away" style={{ background: (mirror ? homeC : awayC)[0] }} />
+            </>
+          ) : (
+            <>
+              <span className="pack l" style={{ background: (mirror ? awayC : homeC)[0] }} />
+              <span className="pack r" style={{ background: (mirror ? homeC : awayC)[0] }} />
+            </>
+          )}
+          <span className="splabel">{t(`matchday.sp${PHASE_SP[phase.kind]}`)}</span>
+        </div>
+      )}
+      {/* A KICK IN A QUIET MINUTE: the ball's own travel already carries it up
+          the field, so this is the trail behind it rather than a second arc. */}
+      {phase?.kind === 'kick' && <span key={`pk${min}`} className="phase-kick" style={{ left: `${mx(ballLeft)}%`, top: `${ballTop}%` }} />}
       {setPiece && (
         <div key={`sp${fxKey}`} className={`setp${setPiece === 'MAUL' ? ' maul' : ''}`}
           style={{ left: `${mx(ballLeft)}%`, top: `${ballTop}%` }}>
@@ -1753,7 +1799,7 @@ function Live() {
   const game = useStore(s => s.game)!
   const live = useStore(s => s.liveMatch)!
   useStore(s => s.tick)
-  const { advanceLive, matchCursor, finishMatch, skipToBreak, matchMode } = useStore.getState()
+  const { advanceLive, simAhead, matchCursor, finishMatch, skipToBreak, matchMode } = useStore.getState()
   // NORMAL OUT OF THE BOX (owner, 1.5.8: "default game speed to normal with
   // fast and slow optional"). It opened on Slow, the anchor the ladder above
   // was measured from, which meant every first match of every career ran at
@@ -1774,6 +1820,48 @@ function Live() {
   const shown = events.slice(0, cursor)
   const last = shown[shown.length - 1]
   const caughtUp = cursor >= events.length
+  /**
+   * ---- THE CLOCK LEADS, AND THE COMMENTARY FOLLOWS IT (v1.7.0) ----
+   *
+   * Owner: "it says minute by minute at the minute in game but it skips huge
+   * chunks. The animation needs to be more realistic so you can see the move."
+   *
+   * Until now the beat of this screen WAS the event: one timeout, one line
+   * revealed, and the minute on the scoreboard was whatever that line said.
+   * The engine works in four-minute ticks and writes a tick's lines at one
+   * minute inside it (matchEngine.ts), so the clock jumped 3' - 6' - 6' - 14'
+   * and the pitch held one frozen shape between them. The settings sheet has
+   * offered "Every minute" against "Highlights" for six versions; this is the
+   * first one where Every Minute means it.
+   *
+   * So the minute is the beat now. Each tick of the clock is one match minute,
+   * and a minute is one of two things:
+   *
+   *   A HEADLINE, when an event lands on it. The line is revealed, the pitch
+   *   gets its banner, and the beat is the full commentary duration the tempo
+   *   ladder above was measured for. Nothing about this changed.
+   *
+   *   A PASSAGE OF PLAY, when nothing does. The clock moves on a minute, the
+   *   ball works its way towards wherever the next event is going to happen,
+   *   and the beat is a fraction of a headline's - long enough to read as play,
+   *   short enough that a quiet ten minutes is not a wait. matchphase.ts has
+   *   what is on the pitch during one, and why none of it touches the engine.
+   *
+   * The cost is honest and it is why PHASE_BEAT is where it is: a match is
+   * about a third longer to watch than it was. That is the whole of what was
+   * bought - a match that is 80 minutes long instead of 45 jump cuts - and the
+   * two settings that exist to shorten a match, Fast and Highlights, both skip
+   * the passages entirely (see phaseOn below). A manager who has asked the
+   * game to hurry up is not asking to see the move.
+   *
+   * THE MINUTE IS STORE STATE, not this screen's. It cannot be rebuilt from the
+   * cursor - that is the whole point of it - so a reload would have brought the
+   * scoreboard back several minutes BEHIND where it was, which is a clock
+   * running backwards. It rides in the match record with the tick and the
+   * cursor (store.ts, resume.ts).
+   */
+  const clock = live.clock ?? 0
+  const setClock = useStore.getState().setClock
   const atHalfTime = caughtUp && ctx.awaiting === 'HT'
   const atBreak = caughtUp && ctx.awaiting === 'BRK'
   const atDecision = caughtUp && !!ctx.decision && ctx.seg < 3
@@ -1832,7 +1920,28 @@ function Live() {
 
   const hs = last?.homeScore ?? 0
   const as = last?.awayScore ?? 0
-  const min = last?.min ?? 0
+  const nextEv: MatchEvent | undefined = events[cursor]
+  /**
+   * THE MINUTE EVERYTHING ON THIS SCREEN READS - the scoreboard, the tension
+   * curve, the sin-bin countdowns, the wander seed on the pitch.
+   *
+   * It is bounded at BOTH ends, and both bounds are load-bearing.
+   *
+   *   Never behind the story. A revealed line at 44' with the clock on 41 is a
+   *   scoreboard contradicting the commentary underneath it.
+   *
+   *   Never past the next event. The clock is monotonic - it only ever counts
+   *   up - but the cursor is not: matchCursor can put the ticker back on an
+   *   earlier line, and until this cap existed the minute stayed wherever the
+   *   clock had reached. dramaprobe parks the ticker on a 20th-minute event
+   *   after standing it on a 74th-minute one and asks whether the screen still
+   *   calls the match tense; it did, because the clock still read 74. The
+   *   honest rule is that a minute the game has not reached cannot be on the
+   *   board, and the next unrevealed event is exactly where it has reached.
+   */
+  const min = Math.max(
+    nextEv ? Math.min(clock, nextEv.min) : clock,
+    last?.min ?? 0)
 
   // TERRITORY IS MOMENTUM (v1.1.1).
   //
@@ -1852,14 +1961,51 @@ function Live() {
   // +1 momo is home dominant and home attacks right, so the signs already
   // agree with the try-zone colours. Scores stay decisive and unchanged: a try
   // is at 88/12 because that is where tries happen.
-  const ballLeft = useMemo(() => {
-    if (!last) return 50
-    const towardHome = last.teamId === fixture.homeId
-    const base = last.type === 'TRY' ? (towardHome ? 88 : 12)
-      : last.type === 'PEN' || last.type === 'DG' ? (towardHome ? 72 : 28)
+  //
+  // HOISTED OUT OF THE useMemo IT LIVED IN, because the passage of play needs
+  // to ask the same question of the NEXT event as well as the last one: a try
+  // at 22' is scored at 88, so the quiet minutes before it are a side working
+  // its way up to 88 rather than milling about wherever the last ruck was.
+  // One function, both ends, so the ball arrives exactly where the try is.
+  const ballAt = (e: MatchEvent | undefined): number => {
+    if (!e) return 50
+    const towardHome = e.teamId === fixture.homeId
+    const base = e.type === 'TRY' ? (towardHome ? 88 : 12)
+      : e.type === 'PEN' || e.type === 'DG' ? (towardHome ? 72 : 28)
       : 50 + (ctx.momo ?? 0) * 30 + (towardHome ? 9 : -9)
     return Math.max(6, Math.min(94, base))
-  }, [cursor])
+  }
+
+  /**
+   * IS THIS MINUTE A PASSAGE OF PLAY? Only if there is a next event to walk
+   * towards, its minute is still ahead of the clock, and the manager has not
+   * asked for this match to be shorter than it is:
+   *
+   *   Highlights mode exists to skip the quiet minutes. Filling them in would
+   *   be the two settings cancelling each other out.
+   *   Fast is a skim - 400ms a line, a quarter of the reading time - and is
+   *   chosen by somebody who wants the result. It keeps the old event beat.
+   *
+   * THE STOPS ARE NOT CHECKED HERE, and the first version of this checked them
+   * and was wrong for it. ctx.decision and ctx.awaiting describe where the
+   * ENGINE has got to, not where the ticker has: the simulation runs ahead of
+   * the commentary, so at the 35th minute the engine may already have raised a
+   * kickable penalty at the 39th. Refusing to fill 36, 37 and 38 because of it
+   * skipped exactly the passage that leads up to the decision - a four-minute
+   * jump straight onto the question, which minuteprobe caught on its first run.
+   * A pending event to walk towards is itself the proof that the match is not
+   * stopped where the clock is standing; the stops are handled where they
+   * belong, at the moment the cursor reaches them.
+   */
+  const phaseOn = playing && live.mode === 'full' && speedIdx < 2
+    && !!nextEv && nextEv.min > min
+  const phase = useMemo(
+    () => (phaseOn ? phaseAt(fixture.id, min, fixture.homeId, last, nextEv, ballAt(last), ballAt(nextEv)) : null),
+    // the minute and the cursor between them identify the passage; everything
+    // else phaseAt reads is derived from those two
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [phaseOn, min, cursor])
+  const ballLeft = phase ? phase.ball : ballAt(last)
 
   // TENSION IS LATE **AND** CLOSE (v1.1.1), a product and deliberately so:
   // 3-0 at 20 minutes is not tense, and neither is 40-3 at 78. Both terms
@@ -1888,13 +2034,76 @@ function Live() {
   // is three times its own cadence.
   // So the beat is the number, and theme.css divides it (see --tick).
   const tickMs = Math.round(SPEEDS[speedIdx].ms * (speedIdx < 2 ? 1 + 0.6 * tension : 1))
+  /**
+   * WHAT A QUIET MINUTE COSTS, as a fraction of a line of commentary.
+   *
+   * A headline's beat is priced against reading: the tempo ladder above sets
+   * Slow at about half the time a median line takes to read. A passage of play
+   * has nothing to read, so the only thing this number has to buy is the sense
+   * that the ball moved - and the ball's own CSS transition is 92% of the beat
+   * (theme.css, --tick), so it has to be long enough for a move to land.
+   *
+   * 0.42 puts a quiet minute at 336ms on Normal and 672ms on Slow, and a match
+   * at roughly a third longer than the 1.6.x event ticker. Lower and the pitch
+   * flickers: the dots are told to be somewhere new before they have arrived
+   * anywhere, which is the exact failure the --tick note below this records
+   * from v1.1.4. Higher and a quiet ten minutes is a wait rather than a match.
+   */
+  const PHASE_BEAT = 0.42
+  const beatMs = phase ? Math.round(tickMs * PHASE_BEAT) : tickMs
 
+  /**
+   * ONE BEAT, TWO OUTCOMES: walk the clock on a minute, or reveal the line
+   * that lands on this one. Which it is was settled above, in `phase`.
+   */
   useEffect(() => {
     if (!playing) return
     // `timer`, not `t`: t() is the translator
-    const timer = setTimeout(() => advanceLive(), tickMs)
+    const timer = setTimeout(() => {
+      if (useStore.getState().liveMatch?.playing !== true) return
+      if (phase) { setClock(min + 1); return }
+      // NOTHING IN HAND: step the engine, do not reveal. advanceLive would do
+      // both in one call and hand the ticker a line from four minutes into the
+      // future, which is the jump this whole clock exists to remove. It is
+      // still the one to call at a stop - an interval, a touchline call, full
+      // time - because stopping the playback is its job and simAhead defers to
+      // it. The effect below normally gets there first; this is the same step
+      // for the render where it does not.
+      if (!nextEv && !ctx.awaiting && !ctx.decision && ctx.seg < 3) { simAhead(); return }
+      advanceLive()
+    }, beatMs)
     return () => clearTimeout(timer)
-  }, [cursor, playing, speedIdx, events.length, tension])
+  }, [cursor, clock, playing, speedIdx, events.length, tension, phase, nextEv])
+
+  /**
+   * KEEP THE ENGINE AHEAD OF THE CLOCK.
+   *
+   * The clock can only fill a gap it can see the far side of, and the far side
+   * is `events[cursor]`. When the ticker has caught up with the simulation
+   * there is no next event, so there is no gap and no passage - the screen
+   * would fall straight back to a four-minute jump at exactly the moment most
+   * matches spend most of their time. So the engine is stepped here, without
+   * revealing anything (store.simAhead), the instant the log runs dry.
+   *
+   * It costs no beat: simulating a tick is microseconds and this runs on the
+   * render that discovered the horizon, so the clock never waits for it. The
+   * guard is simAhead's own - it returns at once if a line is already in hand,
+   * and it stops the playback at an interval, a touchline call or full time in
+   * exactly the way advanceLive does.
+   */
+  useEffect(() => {
+    if (!playing || cursor < events.length) return
+    if (ctx.awaiting || ctx.decision || ctx.seg === 3) return
+    simAhead()
+  }, [playing, cursor, events.length, ctx.awaiting, ctx.decision, ctx.seg])
+
+  /** The clock never lags a revealed line. A Skip, a scrub of the cursor, or a
+   *  reload onto a record written before the clock existed can all leave the
+   *  stored minute behind the story; `min` above already reads the later of the
+   *  two, and this writes that back so the record catches up too. */
+  useEffect(() => {
+    if (min > clock) setClock(min)
+  }, [cursor, min, clock])
 
   const cls = (e: MatchEvent) =>
     e.type === 'TRY' || e.type === 'FT' || e.type === 'DG' ? 'big'
@@ -2030,9 +2239,13 @@ function Live() {
       })()}
 
       {!panelActive && (
-        <PitchViz ctx={ctx} game={game} last={last} ballLeft={ballLeft}
-          fxKey={cursor} showFx={showFx} showBig={playing} lastTeamC={lastTeamC}
-          tickMs={tickMs} />
+        /* `last` goes in as undefined during a passage of play: see the
+           note on the prop. The banner, the try burst and the kick-cam all
+           belong to an event, and a quiet minute does not have one. */
+        <PitchViz ctx={ctx} game={game} last={phase ? undefined : last} phase={phase}
+          min={min} ballLeft={ballLeft}
+          fxKey={cursor} showFx={showFx && !phase} showBig={playing && !phase} lastTeamC={lastTeamC}
+          tickMs={beatMs} />
       )}
       {/* THE CONTROLS SIT UNDER THE PITCH (owner, v1.1.16: "4 buttons in match
           mode - should be directly underneath the pitch at the top").
@@ -2109,7 +2322,24 @@ function Live() {
           background, that takes up whatever a tall phone has spare. */}
       {!panelActive && (
         <div className="now-strip">
-          {last && (
+          {/* A QUIET MINUTE SAYS SOMETHING, and what it says is deliberately
+              almost nothing. The strip used to hold the last headline for the
+              four minutes the clock stood on it; now the clock moves, and a
+              strip that did not would read as a frozen screen with a running
+              timer on it - the same illegible gate this codebase keeps
+              finding in other shapes.
+              So the passage gets a line, and the line names no player, no
+              outcome and no score: the engine owns all three, and a filler
+              line that guessed at any of them would eventually contradict the
+              match being played. It is dimmer than a headline and carries no
+              icon, because it is not one - these lines are not events, never
+              enter the log, and are not in the full-time commentary. */}
+          {phase ? (
+            <div key={`ph${min}`} className="now-line phase">
+              <span className="min">{Math.min(80, min)}'</span>
+              <span className="txt">{t(phase.line, { team: phase.teamId ? teamShort(game, phase.teamId) : '' })}</span>
+            </div>
+          ) : last && (
             <div key={cursor} className={`now-line ${cls(last)}`}>
               <span className="min">{Math.min(80, last.min)}'</span>
               <span className="txt">{icon(last)} {eventText(last)}</span>

@@ -988,6 +988,84 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   .store-card .store-body { color: var(--text-muted); }
 }
 
+/* ---- THE ROOMS BEHIND THE PAPERWORK (v1.7.0) ----
+ *
+ * Owner: "the medical room to have a background. Should be subtle but in the
+ * background", and then the gym, for Training and the Staff tab inside it. So
+ * they are a family from the start rather than two one-offs: one rule, one
+ * scrim, one opt-out, and a line per room naming its picture.
+ *
+ * WHERE THEY ARE PAINTED. On .content, the scrolling element itself, which
+ * App.tsx now tags with the screen it is showing. A background on a scroll
+ * container is pinned to the element and does NOT travel with its contents, so
+ * the room holds still while the list moves over it - which is what a room
+ * does. Painted from inside a screen component instead, it would have been one
+ * more thing in the scroll, sliding away on the first flick and running out at
+ * the end of a short list.
+ *
+ * THE SCRIM IS MIXED FROM --canvas, not written as one colour. This game has
+ * eight skins and the ground under these screens is a different colour in every
+ * one of them; a hand-picked rgba() would have been correct in the one it was
+ * written for and a grey haze in the other seven. Mixed from the token, the
+ * scrim IS the screen's own ground with the room showing through it, whichever
+ * ground that is. It is lightest at the top, where a screen opens with one card
+ * on its own, and thickens down the page, where the tables are.
+ *
+ * WHY THEY SURVIVE DAYLIGHT, when the title screen's art does not. That picture
+ * has to carry a whole viewport under a pale theme and there is no scrim that
+ * rescues a night photograph doing that - only a washed-out copy of a good one.
+ * These are never asked to. At 82-94% of a pale canvas the photograph is a tone
+ * in the background rather than a picture, which is the brief; under the night
+ * themes the same numbers let the room come forward, because the picture and
+ * the ground already agree about the dark.
+ *
+ * WHAT THEY NEVER TOUCH: text contrast. Every word on these screens sits either
+ * on an opaque .card or on the bare ground, and the bare ground is at worst 82%
+ * of --canvas - so the ratios the rest of the theme was measured against still
+ * hold to within a few percent. The photographs are blurred in the files
+ * (scripts/roombg.mjs) rather than here: a backdrop-filter would have cost a
+ * compositor layer the length of the scroll on a phone, every frame of it.
+ *
+ * THE SCRIM IS SHARED AND THE url() IS NOT. Hoisting the picture into a custom
+ * property would have made a new room one line instead of six, and it is the
+ * wrong trade here: a relative url() inside a custom property resolves against
+ * the DOCUMENT rather than the stylesheet it was written in, so it survives
+ * only as long as the bundler happens to rewrite it, and the failure - a room
+ * that is there in dev and a flat ground in the build - is exactly the kind
+ * nobody sees until the store has it. Written out, each room's asset is an
+ * ordinary stylesheet url and Vite fingerprints it like every other one. */
+.content.scr-medical,
+.content.scr-training {
+  background-position: center top;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+/* The treatment room, and the gym that Training and its Staff tab share. */
+.content.scr-medical {
+  background-image:
+    linear-gradient(to bottom,
+      color-mix(in srgb, var(--canvas) 82%, transparent) 0%,
+      color-mix(in srgb, var(--canvas) 88%, transparent) 38%,
+      color-mix(in srgb, var(--canvas) 94%, transparent) 100%),
+    url('./med-bg.webp'),
+    linear-gradient(var(--canvas), var(--canvas));
+}
+.content.scr-training {
+  background-image:
+    linear-gradient(to bottom,
+      color-mix(in srgb, var(--canvas) 82%, transparent) 0%,
+      color-mix(in srgb, var(--canvas) 88%, transparent) 38%,
+      color-mix(in srgb, var(--canvas) 94%, transparent) 100%),
+    url('./gym-bg.webp'),
+    linear-gradient(var(--canvas), var(--canvas));
+}
+/* Same bargain as the title screen and the store card: decoration, and a
+   metered connection should not pay for it. */
+@media (prefers-reduced-data: reduce) {
+  .content.scr-medical,
+  .content.scr-training { background-image: none; background-color: var(--canvas); }
+}
+
 .title-screen .rules { width: 64px; border: none; border-top: 2px solid var(--text-primary); margin: 16px auto; }
 /* PHASE carries the action green, RUGBY MANAGER the chalk: a two-tone wordmark
    rather than one flat block of text. */
@@ -2172,6 +2250,21 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .now-line.big .txt { font-weight: 700; color: var(--text-primary); font-size: 17px; }
 .now-line.card-y { border-left-color: var(--prop-yellow-deep); }
 .now-line.card-r { border-left-color: var(--prop-red); }
+/* A PASSAGE OF PLAY, NOT A HEADLINE (v1.7.0).
+   The quiet minutes between the engine's events now have a line of their own
+   (matchphase.ts), and the one thing it must never do is read as an event. So
+   it is the same strip with the volume down: the club's own green on the edge
+   rather than a status colour, secondary text, and no icon at all - the icon
+   column is what the eye uses to tell a try from a card, and nothing is
+   happening here. It also does not animate in: `now-in` is a line ARRIVING,
+   and at a minute a beat a strip that slid up eight times in a row between
+   two tries would be the busiest thing on the screen. */
+.now-line.phase {
+  border-left-color: color-mix(in srgb, var(--primary) 55%, var(--border-strong));
+  animation: none;
+}
+.now-line.phase .txt { color: var(--text-secondary); font-style: italic; }
+.now-line.phase .min { color: var(--text-muted); }
 .now-line.inj { border-left-color: var(--danger); }
 @keyframes now-in {
   from { opacity: 0; transform: translateY(7px); }
@@ -2189,6 +2282,25 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   font-size: 14.5px; align-items: center;
 }
 .now-strip .now-line.big .txt { font-size: 15.5px; }
+
+/* The trail behind a kick in a quiet minute. The ball's own transition does
+   the travelling; this is the streak it leaves, drawn at where the ball has
+   just been and fading out inside one beat so it can never outlive the move
+   that made it. Purely decorative, so prefers-reduced-motion is free to
+   collapse it to nothing - the phase line in the strip still says what
+   happened. */
+.pitch .phase-kick {
+  position: absolute; width: 34px; height: 3px; border-radius: 2px;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(90deg, transparent, rgba(255, 246, 214, .75), transparent);
+  animation: phase-kick calc(var(--tick, 800ms) * .9) ease-out forwards;
+  pointer-events: none;
+}
+@keyframes phase-kick {
+  0% { opacity: 0; transform: translate(-50%, -50%) scaleX(.2); }
+  35% { opacity: .9; transform: translate(-50%, -50%) scaleX(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scaleX(1.25); }
+}
 
 /* match prep chips on a single scrollable line */
 .preset-row.oneline { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
@@ -4186,3 +4298,63 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .loan-sheet .loan-deal { display: flex; flex-direction: column; gap: 10px; padding: 4px 14px 0; }
 .loan-sheet .loan-deal label { display: flex; flex-direction: column; gap: 4px; font-size: 10.5px; text-transform: uppercase; letter-spacing: .4px; }
 .loan-sheet .loan-deal .inline-input { padding: 9px 10px; width: 100%; }
+
+/* ================= The club grounds (v1.7.0) ================= */
+/* The aerial view on the Infrastructure page. Everything inside the drawing is
+ * a theme token or a club colour, so this block only has to place it, size it
+ * and say what a tap looks like. See src/ui/ClubGrounds.tsx for the projection
+ * and for why the estate is drawn rather than painted. */
+.grounds-card {
+  padding: 4px 6px 2px;
+  overflow: hidden;
+  /* A sky, not a void. The ground plane is the same --surface-2 as a card, so
+     without this the campus floats on its own container with no edge to it.
+     Mixed from the tokens for the same reason the treatment room's scrim is:
+     eight skins, one rule. */
+  background:
+    radial-gradient(120% 140% at 50% 8%,
+      color-mix(in srgb, var(--primary) 10%, var(--surface-1)),
+      var(--surface-1) 70%);
+}
+.grounds {
+  display: block; width: 100%; height: auto;
+  /* A MAP IS NOT A BANNER. Left to fill its container, the drawing grew with
+     the viewport - on a landscape phone or a tablet the campus became an 800px
+     strip three-quarters of the page tall, which is how scrollaudit first met
+     it. It is read at phone width and there is nothing in it that a wider
+     drawing shows more of, so it stops there and centres. */
+  max-width: 440px; margin: 0 auto;
+}
+/* Every plot is a button, and on a phone that has to be obvious without a
+   hover state to explain it. The gold ring is the same mark the rest of the
+   game uses for "this is the one you picked". */
+.grounds .gplot { cursor: pointer; transition: filter .18s ease; }
+.grounds .gplot:active { filter: brightness(1.18); }
+.grounds .gplot.on { filter: drop-shadow(0 0 5px var(--gold-fill)) brightness(1.1); }
+.grounds .gplot:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 4px; }
+.grounds .gicon { font-size: 12.5px; }
+/* An empty plot is meant to read as a gap, so its icon is dimmed rather than
+   absent: the estate should name what it has not got. */
+.grounds .gicon.dim { font-size: 12px; opacity: .38; filter: grayscale(1); }
+.grounds .gpips { pointer-events: none; }
+/* THE BUILDERS ARE ON SITE. The crane is the one animated thing on the map and
+   it is a slow sway, not a blink - motionprobe collapses every duration in this
+   file under prefers-reduced-motion, so the crane has to still be a crane when
+   it stops moving. It is, because the plot is also the only one wearing gold. */
+.grounds .gcrane { transform-origin: center bottom; animation: crane-sway 4.5s ease-in-out infinite; }
+@keyframes crane-sway { 0%, 100% { transform: rotate(-1.6deg); } 50% { transform: rotate(1.6deg); } }
+.grounds .building { filter: drop-shadow(0 0 4px color-mix(in srgb, var(--gold) 60%, transparent)); }
+.grounds .gscene { pointer-events: none; }
+
+/* The card the map just scrolled to. It fades out on its own rather than
+   staying lit, because a permanent highlight on a list you are scrolling
+   through is a second selection state nobody asked for. */
+.fac-card { transition: box-shadow .25s ease, border-color .25s ease; }
+.fac-card.picked {
+  box-shadow: 0 0 0 2px var(--gold), 0 4px 14px rgba(0, 0, 0, .3);
+  animation: fac-lit 2.4s ease forwards;
+}
+@keyframes fac-lit {
+  0%, 55% { box-shadow: 0 0 0 2px var(--gold), 0 4px 14px rgba(0, 0, 0, .3); }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}

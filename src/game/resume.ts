@@ -82,6 +82,21 @@ export interface MatchResume {
   tick: number
   /** how much of the commentary the manager had read */
   cursor: number
+  /** WHICH MINUTE WAS ON THE SCOREBOARD (v1.7.0).
+   *
+   *  The clock is not derivable from `cursor`. It runs a minute at a time
+   *  through the passages of play between events (MatchDay.tsx), so at the
+   *  moment a phone kills the tab it can be several minutes past the last line
+   *  the manager read - and rebuilt from the cursor alone it came back at that
+   *  line's minute instead, which is a scoreboard running backwards across a
+   *  reload. Caught by scripts/reloadprobe.ts, which has held "the clock came
+   *  back to the same minute" since long before there was a clock to get wrong.
+   *
+   *  Optional, and read with a fallback, because every record written before
+   *  1.7.0 has no clock in it and is otherwise perfectly good: the worst such a
+   *  record can do now is resume at the last event's minute, which is exactly
+   *  what every version before this one did. */
+  clock?: number
   cmds: MatchCmd[]
   /** for the "is this record about the save I just loaded" check */
   season: number

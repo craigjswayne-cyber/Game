@@ -2751,7 +2751,11 @@
   "natWindowOpen_f": "Test window open - your {n}-woman squad is in camp. Pick the 23 from the match preview.",
   "ofCover_f": "Cover behind her: {names}{more}.",
   "ofNoCover_f": "Sell her and you have nobody else who plays {pos}.",
-  "ofTheValuation_f": " the valuation. She is a "
+  "ofTheValuation_f": " the valuation. She is a ",
+  "infGrounds": "The Grounds",
+  "infGroundsSub": "Every building is drawn from what the board has paid for. Tap a plot.",
+  "infGroundsAlt": "An aerial view of the training ground and stadium at {club}.",
+  "infLevelOf": "level {n} of {max}"
  },
  "facilities": {
   "pitch": "Playing Surface",
@@ -5522,7 +5526,14 @@
   "doesAerial_f": "drop a woman deep and keep the back three home.",
   "uncontestedShort_f": "And it costs {team} a second player: under Law 3.20 a side that goes uncontested through a card must take another woman off. {player} makes way.",
   "oppCoachNamed_w": "{coach} has done her homework: {team} are set up specifically for {pattern_k}. Change the picture, or play through the plan.",
-  "oppCoach_w": "The opposition coach has done her homework: {team} are set up specifically for {pattern_k}. Change the picture, or play through the plan."
+  "oppCoach_w": "The opposition coach has done her homework: {team} are set up specifically for {pattern_k}. Change the picture, or play through the plan.",
+  "phCarry": "{team} go through the phases.",
+  "phRuck": "Ball recycled, {team} coming forward again.",
+  "phWide": "{team} spin it wide.",
+  "phKick": "Up and under from {team}, and the chase is on.",
+  "phScrum": "Scrum. {team} put in.",
+  "phLineout": "Lineout, and it is {team} to throw.",
+  "phMaul": "{team} set the maul and drive."
  },
  "injury": {
   "ribs": "bruised ribs",

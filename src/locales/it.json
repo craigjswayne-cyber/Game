@@ -2685,7 +2685,11 @@
   "agFoot_f": " · le tue giocatrici evidenziate · tocca un nome per visionarla",
   "agSeniorSub_f": "le venti giocatrici più forti del pianeta, a oggi",
   "ofCover_f": "Le coperture dietro di lei: {names}{more}.",
-  "prQuiet_f": "La sala stampa è tranquilla… per ora. I giornalisti tendono a spuntare quando le giocatrici trovano la forma, la perdono o finiscono al centro di voci di mercato."
+  "prQuiet_f": "La sala stampa è tranquilla… per ora. I giornalisti tendono a spuntare quando le giocatrici trovano la forma, la perdono o finiscono al centro di voci di mercato.",
+  "infGrounds": "Il complesso",
+  "infGroundsSub": "Ogni edificio rispecchia ciò che il consiglio ha pagato. Tocca un lotto.",
+  "infGroundsAlt": "Veduta aerea del centro di allenamento e dello stadio di {club}.",
+  "infLevelOf": "livello {n} di {max}"
  },
  "facilities": {
   "pitch": "Terreno di gioco",
@@ -5343,7 +5347,14 @@
   "doesAerial_f": "arretra una donna e tiene a casa il triangolo allargato.",
   "doesPhysical_f": "rifiuta la rissa, tiene quindici donne in campo e lascia le pulizie all'arbitro.",
   "uncontestedShort_f": "E costa a {team} una seconda giocatrice: per la regola 3.20 una squadra che passa alle mischie non contese per un cartellino deve togliere un'altra donna. {player} lascia il campo.",
-  "frontRowReturns_f": "La panchina è finita, così {player} rientra: una giocatrice di prima linea sostituito può tornare per un infortunata, e la mischia resta contesa."
+  "frontRowReturns_f": "La panchina è finita, così {player} rientra: una giocatrice di prima linea sostituito può tornare per un infortunata, e la mischia resta contesa.",
+  "phCarry": "{team} costruisce le fasi.",
+  "phRuck": "Palla riciclata, {team} torna ad avanzare.",
+  "phWide": "{team} allarga il gioco.",
+  "phKick": "Calcio a campanile di {team}, parte l’inseguimento.",
+  "phScrum": "Mischia. Introduce {team}.",
+  "phLineout": "Rimessa laterale, lancia {team}.",
+  "phMaul": "{team} forma la maul e spinge."
  },
  "injury": {
   "ribs": "costole contuse",

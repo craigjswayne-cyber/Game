@@ -2752,7 +2752,11 @@
   "natWindowOpen_f": "Toetsvenster oop - jou spangroep van {n} vrou is in kamp. Kies die 23 uit die wedstrydvoorskou.",
   "ofCover_f": "Dekking agter haar: {names}{more}.",
   "ofNoCover_f": "Verkoop haar en jy het niemand anders wat {pos} speel nie.",
-  "ofTheValuation_f": " die waardasie. Sy is "
+  "ofTheValuation_f": " die waardasie. Sy is ",
+  "infGrounds": "Die terrein",
+  "infGroundsSub": "Elke gebou wys wat die direksie betaal het. Tik op ’n erf.",
+  "infGroundsAlt": "ʼn Lugfoto van {club} se oefenveld en stadion.",
+  "infLevelOf": "vlak {n} van {max}"
  },
  "facilities": {
   "pitch": "Speeloppervlak",
@@ -5558,7 +5562,14 @@
   "doesAerial_f": "sit 'n vrou diep terug en hou die agterste drie tuis.",
   "uncontestedShort_f": "En dit kos {team} nog 'n speler: onder Wet 3.20 moet 'n span wat onbestrede skrums kry weens 'n kaart, nog 'n vrou aftrek. {player} maak plek.",
   "oppCoachNamed_w": "{coach} het haar huiswerk gedoen: {team} is spesifiek opgestel vir {pattern_k}. Verander die prentjie, of speel deur die plan.",
-  "oppCoach_w": "Die opposisie-afrigter het haar huiswerk gedoen: {team} is spesifiek opgestel vir {pattern_k}. Verander die prentjie, of speel deur die plan."
+  "oppCoach_w": "Die opposisie-afrigter het haar huiswerk gedoen: {team} is spesifiek opgestel vir {pattern_k}. Verander die prentjie, of speel deur die plan.",
+  "phCarry": "{team} bou die fases op.",
+  "phRuck": "Bal herwin, {team} kom weer vorentoe.",
+  "phWide": "{team} gooi dit wyd.",
+  "phKick": "Hoë skop van {team}, en die jaagtog is aan.",
+  "phScrum": "Skrum. {team} sit in.",
+  "phLineout": "Lynstaan, en dis {team} se ingooi.",
+  "phMaul": "{team} stel die losskrum en druk."
  },
  "injury": {
   "ribs": "gekneusde ribbes",

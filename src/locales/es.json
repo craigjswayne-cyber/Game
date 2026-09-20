@@ -2668,7 +2668,11 @@
   "jbNoOffer": "No hay ninguna oferta sobre la mesa.",
   "agFoot_f": " · tus jugadoras destacadas · toca un nombre para ojearla",
   "agSeniorSub_f": "las veinte mejores jugadoras del planeta, a día de hoy",
-  "prQuiet_f": "La sala de prensa está tranquila… de momento. Los periodistas suelen aparecer cuando una jugadora entra en racha, la pierde o suena en el mercado."
+  "prQuiet_f": "La sala de prensa está tranquila… de momento. Los periodistas suelen aparecer cuando una jugadora entra en racha, la pierde o suena en el mercado.",
+  "infGrounds": "Las instalaciones",
+  "infGroundsSub": "Cada edificio refleja lo que la directiva ha pagado. Toca una parcela.",
+  "infGroundsAlt": "Vista aérea del centro de entrenamiento y el estadio de {club}.",
+  "infLevelOf": "nivel {n} de {max}"
  },
  "facilities": {
   "pitch": "Terreno de juego",
@@ -5318,7 +5322,14 @@
   "penKickableAsk_f": "GOLPE DE CASTIGO para {team}, a distancia de palos. La capitana mira a la banda esperando la decisión...",
   "doesAerial_f": "dejan una mujer atrás y mantienen a las tres de atrás en casa.",
   "uncontestedShort_f": "Y le cuesta a {team} una segunda jugadora: según la regla 3.20, un equipo que pasa a melé simulada por una tarjeta debe retirar a otro mujer. {player} se marcha.",
-  "frontRowReturns_f": "El banquillo está agotado, así que {player} vuelve a entrar: un primera línea sustituido puede regresar por un lesionada, y la melé sigue siendo disputada."
+  "frontRowReturns_f": "El banquillo está agotado, así que {player} vuelve a entrar: un primera línea sustituido puede regresar por un lesionada, y la melé sigue siendo disputada.",
+  "phCarry": "{team} encadena fases.",
+  "phRuck": "Balón reciclado, {team} vuelve a avanzar.",
+  "phWide": "{team} abre el juego.",
+  "phKick": "Patada bombeada de {team}, y van a la caza.",
+  "phScrum": "Melé. Introduce {team}.",
+  "phLineout": "Lateral, y saca {team}.",
+  "phMaul": "{team} forma el maul y empuja."
  },
  "injury": {
   "ribs": "contusión en las costillas",

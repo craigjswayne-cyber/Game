@@ -721,7 +721,16 @@ export default function App() {
           </div>
         </div>
       </header>
-      <main className="content">{screen()}</main>
+      {/* THE SCROLLER KNOWS WHICH ROOM IT IS IN (v1.7.0).
+          A screen that wants its own ground - the Medical centre's treatment
+          room, and whatever follows it - cannot paint one from inside its own
+          component: everything a screen renders lands INSIDE this scroller, so
+          a background drawn there scrolls away with the first flick and stops
+          at the end of the content rather than at the end of the screen.
+          The class goes on the scroller itself, where a background is pinned
+          to the element and the cards ride over it. One attribute, and it
+          costs nothing on the forty screens that do not use it. */}
+      <main className={`content scr-${cur.screen}`}>{screen()}</main>
       <nav className="bottom-nav">
         {/* The order the user asked for, top to bottom: news, home, the hub,
             the manager. World comes last because it is the only group that is
