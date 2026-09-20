@@ -584,35 +584,105 @@ function Signature({ fid, x, y, lvl, c1, c2 }: {
   return null
 }
 
-/** ---- A FIELD ----
- *  The three facilities that are grass. Same rule: the surface grows and gains
- *  its markings as the level does, so a level-1 playing surface is a rough
- *  paddock and a level-5 one is a marked, striped, posted pitch. */
+/**
+ * ---- A FIELD ----
+ *
+ * The three facilities that are grass rather than brick, from the owner's
+ * reference ladder for the playing surface.
+ *
+ *   0  bare: rutted, patchy earth with the grass worn off it
+ *   1  grass, and the posts go up
+ *   2  the markings are painted on
+ *   3  a surface worth mowing, so it is mown
+ *   4  drainage and sand banding round the edge
+ *   5  irrigation and covers
+ *
+ * A FIELD AT LEVEL 0 IS STILL A FIELD, which is why these do not get the
+ * fenced empty plot the buildings do. A gym you have not built is an absence;
+ * a pitch you have not spent anything on is a bad pitch, and men still play on
+ * it. The reference art makes the same distinction and it is the honest one -
+ * the engine agrees, since a level-0 playing surface still hosts matches and
+ * simply gives up its 3.5% a level.
+ *
+ * AND THE FIELD DOES NOT GROW. Every other thing on this campus gets bigger as
+ * it gets better; a pitch does not, because a rugby pitch is the same size
+ * everywhere in the world and the whole of what money buys here is the state
+ * of it. That is also what makes six stages possible in the space: nothing is
+ * spent on scale, so all of it can go on the surface.
+ */
+
+/** Bare earth. A literal because mud is mud under either theme - it is soil
+ *  showing through, not a painted surface that should answer to the palette. */
+const BARE = 'rgb(96, 80, 60)'
+
 function Field({ fid, x, y, lvl, c1 }: { fid: FacilityId; x: number; y: number; lvl: number; c1: string }) {
-  if (lvl === 0) return <Empty fid={fid} x={x} y={y} />
-  const w = 25 + lvl * 3.2
-  const d = 12.5 + lvl * 1.6
-  const diamond = `M ${x},${y - d} L ${x + w},${y} L ${x},${y + d} L ${x - w},${y} Z`
+  // Sized so that the SAND BANDING fits the plot, not so that the grass does:
+  // the band at level 4 adds 14% all round, and a field sized to the plot put
+  // its drainage margin out on the road.
+  const w = 29, d = 14.5
+  const P = (fu: number, fv: number): string => `${x + w * fu},${y + d * fv}`
+  const edge = `M ${P(0, -1)} L ${P(1, 0)} L ${P(0, 1)} L ${P(-1, 0)} Z`
+  /** A line across the pitch at `f` of its length, from touchline to
+   *  touchline: the halfway, the 22s and the 10m dashes are all this. */
+  const across = (f: number) =>
+    `M ${x + w * f * 0.5 + w * 0.5},${y + d * f * 0.5 - d * 0.5}`
+    + ` L ${x + w * f * 0.5 - w * 0.5},${y + d * f * 0.5 + d * 0.5}`
+  const posts = (f: number) => {
+    const px = x + w * f * 0.5, py = y + d * f * 0.5
+    return (
+      <g stroke="rgba(255,255,255,.92)" strokeWidth="1.5" fill="none">
+        <path d={`M ${px + 4},${py + 2} L ${px + 4},${py - 11}`} />
+        <path d={`M ${px - 4},${py - 2} L ${px - 4},${py - 15}`} />
+        <path d={`M ${px + 4},${py - 7} L ${px - 4},${py - 11}`} />
+      </g>
+    )
+  }
   return (
     <g>
-      <path d={diamond} fill="var(--pitch-a)" stroke={shade(c1, 1.2)} strokeWidth="1" />
-      {/* the stripes a mown surface has, and only once it is worth mowing */}
-      {lvl >= 2 && [0.35, 0.7].map((f, i) => (
-        <path key={i} d={`M ${x - w * f},${y - d * (1 - f)} L ${x + w * (1 - f)},${y + d * f}`}
-          stroke="var(--pitch-b)" strokeWidth={3 + lvl * 0.5} opacity="0.75" />
-      ))}
-      {/* markings, once the surface is worth marking */}
-      {lvl >= 3 && (
-        <path d={`M ${x},${y - d * 0.62} L ${x + w * 0.62},${y} L ${x},${y + d * 0.62} L ${x - w * 0.62},${y} Z`}
-          fill="none" stroke="rgba(255,255,255,.5)" strokeWidth="0.9" />
+      {/* SAND BANDING reads as a band round the outside, which is what it is:
+          a drained, sand-dressed margin. It is drawn under the turf so the
+          playing surface sits inside it. */}
+      {lvl >= 4 && (
+        <path d={`M ${P(0, -1.16)} L ${P(1.16, 0)} L ${P(0, 1.16)} L ${P(-1.16, 0)} Z`}
+          fill="rgb(196, 176, 134)" opacity=".62" />
       )}
-      {/* posts, for the enclosure that exists to kick at them */}
-      {fid === 'kicking' && (
-        <g stroke="rgba(255,255,255,.85)" strokeWidth="1.6" fill="none">
-          <path d={`M ${x - w * 0.55},${y - d * 0.1} L ${x - w * 0.55},${y - d * 0.1 - 16}`} />
-          <path d={`M ${x - w * 0.2},${y + d * 0.08} L ${x - w * 0.2},${y + d * 0.08 - 16}`} />
-          <path d={`M ${x - w * 0.55},${y - d * 0.1 - 11} L ${x - w * 0.2},${y + d * 0.08 - 11}`} />
+      <path d={edge} fill={lvl === 0 ? BARE : 'var(--pitch-a)'} />
+      {/* the worn patches, and they are the whole of level 0 */}
+      {lvl === 0 && [[-0.35, 0.1, 7], [0.3, -0.2, 5.5], [0.05, 0.35, 4.5]].map(([fu, fv, r], i) => (
+        <ellipse key={i} cx={x + w * fu} cy={y + d * fv} rx={r} ry={r * 0.5}
+          fill="var(--pitch-a)" opacity=".55" />
+      ))}
+      {/* A SURFACE WORTH MOWING IS MOWN. The stripes are the first thing a
+          groundsman does that anybody can see from a distance. */}
+      {lvl >= 3 && [-0.62, -0.21, 0.21, 0.62].map((f, i) => (
+        <path key={i} d={across(f)} stroke="var(--pitch-b)" strokeWidth={d * 0.42} opacity=".7" />
+      ))}
+      {/* the markings: the touchlines and halfway at 2, the 22s and the 10m
+          dashes once the club is paying somebody to paint them properly */}
+      {lvl >= 2 && (
+        <g stroke="rgba(255,255,255,.72)" fill="none">
+          <path d={edge} strokeWidth="1.2" />
+          <path d={across(0)} strokeWidth="1.2" />
+          {lvl >= 3 && <path d={across(-0.55)} strokeWidth="0.9" />}
+          {lvl >= 3 && <path d={across(0.55)} strokeWidth="0.9" />}
+          {lvl >= 4 && <path d={across(-0.26)} strokeWidth="0.8" strokeDasharray="3 3" />}
+          {lvl >= 4 && <path d={across(0.26)} strokeWidth="0.8" strokeDasharray="3 3" />}
         </g>
+      )}
+      {/* the posts go up with the grass, at both ends of a pitch and at one
+          end of a kicking enclosure. A paddock has none: nobody kicks at
+          anything on it. */}
+      {lvl >= 1 && fid !== 'paddock' && posts(-0.86)}
+      {lvl >= 1 && fid === 'pitch' && posts(0.86)}
+      {/* IRRIGATION AND COVERS, the last thing bought and the only stage that
+          puts an object on the grass rather than changing it. */}
+      {lvl >= 5 && (
+        <>
+          <path d={`M ${x - w * 0.1},${y + d * 0.3} Q ${x + w * 0.12},${y - d * 0.75} ${x + w * 0.34},${y + d * 0.06}`}
+            stroke="rgba(255,255,255,.45)" strokeWidth="1.3" fill="none" />
+          <IsoBox x={x + w * 0.72} y={y + d * 0.34} w={7} d={3.5} h={4}
+            top={shade(c1, 1.05)} left={shade(c1, 0.4)} right={shade(c1, 0.62)} />
+        </>
       )}
       <text className="gicon" x={x} y={y - d - 4} textAnchor="middle">{FACILITY_INFO[fid].icon}</text>
     </g>
