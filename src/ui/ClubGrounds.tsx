@@ -56,6 +56,11 @@ const SPRITES = import.meta.glob('./sprites/*.webp', {
 const sprite = (id: string, lvl: number): string | undefined =>
   SPRITES[`./sprites/${id}-${Math.max(0, Math.min(5, lvl))}.webp`]
 
+/** What scripts/sprites.mjs measured off the art it cut: the canvas each
+ *  ladder shares, and the largest ground plate in it. */
+import PLATES from './sprites/plates.json'
+type Plate = { w: number; h: number; pw: number; ph: number }
+
 /** Tile width and height in screen units. 2:1, and the whole layout is in
  *  these - change them and everything below still lands. */
 const TW = 92
@@ -65,6 +70,16 @@ const OY = 64
 
 const iso = (gx: number, gy: number): [number, number] =>
   [OX + (gx - gy) * TW / 2, OY + (gx + gy) * TH / 2]
+
+/** A quad on the ground plane, given in grid coordinates. iso(-0.5, -0.5) is
+ *  the top corner of cell (0,0), so a whole 4x4 estate is (-0.5 .. 3.5). */
+const quad = (a: number, b: number, c: number, d: number): string => {
+  const p: [number, number][] = [iso(a, b), iso(c, b), iso(c, d), iso(a, d)]
+  return `M ${p.map(([x, y]) => `${x},${y}`).join(' L ')} Z`
+}
+/** One cell, inset by `pad` cells on every side. */
+const cell = (gx: number, gy: number, pad = 0): string =>
+  quad(gx - 0.5 + pad, gy - 0.5 + pad, gx + 0.5 - pad, gy + 0.5 - pad)
 
 /**
  * WHERE EVERYTHING STANDS. The grass is kept together down the left and front
@@ -104,28 +119,48 @@ const groundTier = (cap: number): number => {
   return i < 0 ? 0 : 5 - i
 }
 
+/** How much of each cell is street. The rest is the plot. */
+const ROAD = 13
+
 /**
  * One tile, stood on its plot.
  *
- * THE BOX IS TALLER THAN THE TILE AND ALIGNED TO ITS FOOT. Every sprite in a
- * ladder shares one canvas, bottom-anchored, so the foot of the image is the
- * foot of the ground plate whatever is built on it (scripts/sprites.mjs step
- * 4). Give SVG a generous box and `xMidYMax meet` and it scales the tile to
- * the width, leaves the spare height empty above, and stands the plate exactly
- * on the plot. That is what lets a level 5 grow upward out of the same
- * footprint a level 0 sits in, rather than being scaled down to fit a box.
+ * FITTED TO ITS PLATE, NOT TO ITS IMAGE. The first version drew every sprite
+ * at one width and stood it on the bottom of its cell, which assumed two
+ * things about the art that are not true: that the plate fills the image, and
+ * that the plate is a 2:1 diamond like the grid. Measured, the ten ladders'
+ * plates run from 1.35 wide-to-tall to 2.08, because each sheet was rendered
+ * at its own camera angle. On a 2:1 lattice the flat ones spilled over their
+ * neighbours and the steep ones left holes, which is what made the estate
+ * look crooked.
+ *
+ * So the plate is what gets fitted. Each ladder is scaled until its widest
+ * plate sits inside the cell with the road still showing on every side, and
+ * the image is then placed so that plate's CENTRE - not the image's bottom
+ * edge - lands on the centre of the plot. One scale for all six levels, so a
+ * plot does not change size when the club builds on it.
  */
-function Tile({ id, lvl, gx, gy, w, alt }: {
-  id: string; lvl: number; gx: number; gy: number; w: number; alt?: string
+function Tile({ id, lvl, gx, gy, cells = 1 }: {
+  id: string; lvl: number; gx: number; gy: number; cells?: number
 }) {
   const href = sprite(id, lvl)
-  if (!href) return null
+  const p = (PLATES as Record<string, Plate>)[id]
+  if (!href || !p) return null
   const [x, y] = iso(gx, gy)
-  const box = w * 1.35
-  return (
-    <image href={href} x={x - w / 2} y={y + TH / 2 - box} width={w} height={box}
-      preserveAspectRatio="xMidYMax meet" {...(alt ? { 'aria-label': alt } : {})} />
-  )
+  const innerW = TW * cells - ROAD
+  const innerH = TH * cells - ROAD / 2
+  /* Fitted on width, with the height allowed a quarter more than the cell
+     before it starts to bind. Fitting on both at once let the steepest plates
+     - the playing surface at 1.35 wide-to-tall - shrink to two thirds the
+     width of the shallowest, so the estate read as plots of assorted sizes.
+     A plate a little taller than its cell laps into the street, which is what
+     isometric tiles do and what the painter's sort is for; a plate two thirds
+     the width of its neighbour just looks wrong. */
+  const k = Math.min(innerW / p.pw, (innerH * 1.25) / p.ph)
+  const w = p.w * k, h = p.h * k
+  // the plate's near vertex sits half a plate below the centre of the plot
+  const foot = y + (p.ph * k) / 2
+  return <image href={href} x={x - w / 2} y={foot - h} width={w} height={h} />
 }
 
 export default function ClubGrounds({ club, buildingId, selected, onPick }: {
@@ -157,7 +192,7 @@ export default function ClubGrounds({ club, buildingId, selected, onPick }: {
         onClick={() => onPick(fid)} role="button" tabIndex={0}
         onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onPick(fid) } }}
         aria-label={`${t(FACILITY_INFO[fid].name)} · ${t('world.infLevelOf', { n: l, max: MAX_FACILITY })}`}>
-        <Tile id={fid} lvl={l} gx={p.gx} gy={p.gy} w={PLOT_W} />
+        <Tile id={fid} lvl={l} gx={p.gx} gy={p.gy} />
         {/* THE TAP TARGET IS THE PLOT, NOT THE PICTURE. An <image> with
             transparent corners still takes a tap on those corners, so nine
             overlapping rectangles would steal each other's taps along every
@@ -191,23 +226,82 @@ export default function ClubGrounds({ club, buildingId, selected, onPick }: {
        a thumb of nothing inside a framed card. These are the real extents:
        the ground's roof reaches y = -9, the front plots' pips end at 205, and
        the paddock and the gym put the sides at -10 and 370. */
-    <svg className="grounds" viewBox="-14 -16 392 232" role="img"
+    /* SLICE, NOT MEET. The estate is a diamond, so a box drawn round it is
+       nearly twice as wide as it is tall and its left and right points hold
+       nothing but verge. Fitted whole into a phone-width card that left about
+       450px of empty card under it - most of a thumb of nothing, on the tab
+       whose entire job is this picture. Slicing lets the card be as tall as
+       it likes and crops the two tips, which is the only part there is
+       nothing in. */
+    <svg className="grounds" viewBox="-26 4 412 240" preserveAspectRatio="xMidYMid slice" role="img"
       aria-label={t('world.infGroundsAlt', { club: club.short })}>
-      {/* NO GROUND PLANE UNDER THE TILES. There used to be a diamond of
-          tarmac here so the gaps between the drawn boxes read as roads. Each
-          tile now arrives with its own plate - grass to the fence, gravel to
-          the kerb - so the tarmac only showed in the three cells the scenery
-          used to hold, as a grey wedge sticking out from under the estate.
-          The tiles sit on the card, the way they sit on the ladders. */}
+      {/* ---- THE ROADS ----
+          The one thing that made the reference read as a CAMPUS and this read
+          as a pile of buildings. Its plots each sit on their own island with
+          tarmac between them; ours were drawn a shade wider than their own
+          cell so their plates met, on the theory that a tile set should not
+          show its grid. That is right for terrain and wrong for an estate: a
+          club is a set of separate places you walk between, and with the
+          plates fused there was nothing to walk on and nine buildings read as
+          one block.
+
+          So the ground plane comes back, the tiles are drawn INSIDE their
+          cells rather than over the edges, and what shows in between is a
+          road. It is one surface under everything rather than a path per gap,
+          because a road network that meets itself at the corners is what
+          makes the estate look connected. */}
+      {/* NO DIAMOND OF LAND. There was one here, and at the size the map is
+          read its left and right points ran off the card and were sliced into
+          two flat wedges - a green lozenge behind the estate rather than
+          ground under it. The land is the card's own background now, so it
+          runs to every edge the way the reference's terrain does, and the
+          only shape with corners is the estate itself. */}
+      {/* STREETS, NOT A SLAB. The first version tarmacked the whole estate and
+          stood the plots on it as islands, which made the grey the subject:
+          a car park with buildings in it. The reference does the opposite -
+          its blocks are large and green and the roads between them are thin -
+          so the road is a lattice of strips along the grid lines and
+          everything they do not cover stays land. */}
+      {[0, 1, 2, 3, 4].map(k => {
+        const c = k - 0.5, r = ROAD / (2 * TW)
+        return (
+          <g key={k}>
+            <path d={quad(c - r, -0.5, c + r, 3.5)} className="g-road" />
+            <path d={quad(-0.5, c - r, 3.5, c + r)} className="g-road" />
+            <path d={`M ${iso(c, -0.42).join(',')} L ${iso(c, 3.42).join(',')}`} className="g-lane" />
+            <path d={`M ${iso(-0.42, c).join(',')} L ${iso(3.42, c).join(',')}`} className="g-lane" />
+          </g>
+        )
+      })}
+      {/* THE CAR PARKS. Nine facilities on a sixteen-cell grid leaves three
+          cells over, and bare road in them read as a hole rather than as
+          space. A car park is the right thing to put there: every ground has
+          them, it is a GROUND feature - flat, part of the road surface - and
+          so it cannot clash with the painted tiles the way the old
+          code-drawn trees did. One at the front, where a ground puts its
+          entrance, and one across the two cells at the back. */}
+      {PARKS.map(([gx, gy]) => (
+        <g key={`${gx}${gy}`}>
+          <path d={cell(gx, gy, 0.19)} className="g-park" />
+          {[0, 1, 2, 3].map(i => {
+            const t0 = -0.2 + i * 0.13
+            return <path key={i}
+              d={`M ${iso(gx + t0, gy - 0.19).join(',')} L ${iso(gx + t0, gy + 0.19).join(',')}`}
+              className="g-bay" />
+          })}
+        </g>
+      ))}
       {back.map(draw)}
-      <Tile id="stadium" lvl={groundTier(cap)} gx={1.5} gy={1.5} w={GROUND_W} />
+      <Tile id="stadium" lvl={groundTier(cap)} gx={1.5} gy={1.5} cells={2} />
       {front.map(draw)}
     </svg>
   )
 }
 
-/** A plot tile is drawn a shade wider than its diamond so neighbouring plates
- *  meet instead of leaving tarmac showing between them, which is how every
- *  isometric tile set is laid out. The ground covers four plots. */
-const PLOT_W = 104
-const GROUND_W = 208
+/** ONE CAR PARK, AT THE ENTRANCE. There were three, one per empty cell, and
+ *  at full cell size they read as two enormous grey wedges either end of the
+ *  estate - more tarmac than the whole road network. The reference has plain
+ *  green blocks in it too; the two cells at the back are simply land now, and
+ *  the park that remains is the one a ground actually has, by the gate, drawn
+ *  small enough to sit IN its block rather than be it. */
+const PARKS: [number, number][] = [[3, 3]]

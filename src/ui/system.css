@@ -706,3 +706,36 @@ button.tile:active { background: var(--press); }
 /* Selection was a drop-shadow on a drawing of flat faces. On a photograph it
    reads as a blur, so the picked plot brightens and lifts instead. */
 .grounds .gplot.on { filter: brightness(1.12) drop-shadow(0 2px 6px rgba(0, 0, 0, .55)); }
+
+/* ---- the estate's ground plane ----
+ * Tarmac has to read as tarmac under both themes and beside painted art, so
+ * every tone here is mixed from the theme's own two poles rather than picked.
+ * A flat mid grey lands correctly on a dark canvas and on a light one, which
+ * a chosen colour would not.
+ */
+/* THE LAND IS THE CARD. It was a diamond inside the card, and at this size
+   its points ran off the edge and got sliced into two flat green wedges. The
+   reference's terrain fills the screen and the estate sits ON it, so the
+   ground colour goes on the frame and the only shape with corners left in
+   the picture is the estate. Mixed from the club's own primary, so it is
+   parkland at night and a pale field in daylight. */
+.grounds-card {
+  background: color-mix(in srgb, var(--primary) 17%, var(--canvas));
+}
+.grounds .g-road { fill: color-mix(in srgb, var(--canvas) 58%, var(--text-primary)); }
+/* Dashed, thin and dim. A solid line at this size stops being a marking and
+   starts being a grid, which is the thing the roads exist to hide. */
+.grounds .g-lane {
+  stroke: color-mix(in srgb, var(--canvas) 26%, var(--text-primary));
+  stroke-width: 1; stroke-dasharray: 5 7; opacity: .45; fill: none;
+}
+.grounds .g-park { fill: color-mix(in srgb, var(--canvas) 52%, var(--text-primary)); }
+.grounds .g-bay {
+  stroke: color-mix(in srgb, var(--canvas) 26%, var(--text-primary));
+  stroke-width: 1.1; opacity: .45;
+}
+
+/* The map is the whole point of its tab, so it takes the room. 4:3 against
+   the diamond's own 1.7:1 means the tips are cropped and the tiles are not -
+   see the slice note in ClubGrounds. */
+.grounds { aspect-ratio: 4 / 3; height: auto; }

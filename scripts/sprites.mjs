@@ -86,6 +86,7 @@ await page.setContent('<canvas id="c"></canvas>')
 
 const files = readdirSync(SHEETS).filter(f => f.endsWith('.png')).sort()
 let total = 0, bytes = 0
+const plates = {}
 
 for (const f of files) {
   const name = basename(f, '.png')
@@ -240,16 +241,51 @@ for (const f of files) {
       const dw = Math.round(t.w * scale), dh = Math.round(t.h * scale)
       const o = document.createElement('canvas')
       o.width = ow; o.height = oh
-      const g = o.getContext('2d')
+      const g = o.getContext('2d', { willReadFrequently: true })
       g.imageSmoothingQuality = 'high'
       g.drawImage(t.cnv, Math.round((ow - dw) / 2), oh - dh, dw, dh)
-      return { url: o.toDataURL('image/webp', QUALITY), w: ow, h: oh, tw: t.w, th: t.h, area: t.area }
+
+      /* ---- 5. MEASURE THE GROUND PLATE ----
+       * The map cannot place these by image width, which is what it did at
+       * first and why the estate came out crooked. A tile's image is mostly
+       * building; what has to sit in the plot is the PLATE it stands on, and
+       * the ten sheets do not agree on one. Measured, their plates run from
+       * 1.56 wide-to-tall on the playing surface to 2.28 on the hospitality
+       * boxes, because each sheet was rendered at its own camera angle. A
+       * true isometric grid is 2.00, so no single lattice makes them meet:
+       * laid out by image width, the flat ones overlapped their neighbours
+       * and the steep ones left holes.
+       *
+       * So the pipeline reports what it actually cut, and the map fits each
+       * ladder to its plot from these numbers instead of assuming.
+       *
+       * The plate is the widest run of pixels in the lower half of the tile -
+       * above that is building - and it ends at the lowest opaque row, which
+       * is its near vertex. */
+      const d = g.getImageData(0, 0, ow, oh).data
+      let bottom = -1, wide = 0, wideY = -1
+      for (let y = oh - 1; y >= 0; y--) {
+        let lo = -1, hi = -1
+        for (let x = 0; x < ow; x++) if (d[((y * ow + x) << 2) + 3] > 40) { if (lo < 0) lo = x; hi = x }
+        if (lo < 0) continue
+        if (bottom < 0) bottom = y
+        if (y > oh * 0.45 && hi - lo + 1 > wide) { wide = hi - lo + 1; wideY = y }
+      }
+      return {
+        url: o.toDataURL('image/webp', QUALITY), w: ow, h: oh, tw: t.w, th: t.h, area: t.area,
+        pw: wide, ph: Math.max(2, (bottom - wideY) * 2),
+      }
     })
   }, { b64, MAX_W, MAX_H, QUALITY })
 
   // A merge shows up as one component carrying two tiles, so the areas stop
   // looking like each other. Worth saying out loud rather than finding it in
   // the contact sheet.
+  plates[name] = {
+    w: tiles[0].w, h: tiles[0].h,
+    pw: Math.max(...tiles.map(t => t.pw)),
+    ph: Math.max(...tiles.map(t => t.ph)),
+  }
   const areas = tiles.map(t => t.area)
   const spread = Math.max(...areas) / Math.min(...areas)
   let sheetBytes = 0
@@ -263,5 +299,12 @@ for (const f of files) {
     + (spread > 1.9 ? `  CHECK: areas differ ${spread.toFixed(1)}x, two tiles may have joined` : ''))
 }
 
+/* The manifest the map reads. One entry per ladder, holding the canvas the
+ * six levels share and the LARGEST plate any of them has - largest, because
+ * all six are scaled together so the plot does not change size when the club
+ * builds on it, and the biggest plate is the one that has to fit. */
+writeFileSync(join(OUT, 'plates.json'), JSON.stringify(plates, null, 1) + '\n')
 say(`\n${total} sprites, ${(bytes / 1024).toFixed(0)}KB total, into ${OUT}/`)
+say(`plates.json: ${Object.keys(plates).length} ladders, plate ratios `
+  + Object.values(plates).map(p => (p.pw / p.ph).toFixed(2)).sort().join(' '))
 await browser.close()
