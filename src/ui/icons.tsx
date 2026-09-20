@@ -426,3 +426,45 @@ export const IcoFlag = () => (
     <path d="M6 4.4h11.6l-2.4 4 2.4 4H6" />
   </svg>
 )
+
+/** A nib: a contract, a signature, terms agreed. */
+export const IcoPen = () => (
+  <svg viewBox="0 0 24 24" {...S}>
+    <path d="M4 20h4.2L20 8.2a2.1 2.1 0 0 0 0-3l-1.2-1.2a2.1 2.1 0 0 0-3 0L4 15.8z" />
+    <path d="M14.6 5.6 18.4 9.4" strokeWidth="1.4" />
+  </svg>
+)
+
+/* ================= NEWS ICONS =================
+ * ONE MAP, BECAUSE THERE WERE FIVE AND THEY DISAGREED.
+ * Home, Inbox, Wire and DayRoom each declared their own TYPE_ICON, and they
+ * had drifted into two different sets: a transfer story was a money bag on
+ * Home and Inbox and a briefcase on the Wire and in the day room, an injury
+ * was a plaster in one pair and a hospital in the other, a youth story was a
+ * mortarboard or a seedling, gossip a rolled newspaper or a microphone. The
+ * same item, read on two screens, wore two faces - and Home's copy was never
+ * rendered at all, so the game carried a fifth set that only existed to be
+ * copied from.
+ *
+ * It is one component now, and the glyphs come from the same set as the rest
+ * of the app rather than from the reader's operating system.
+ */
+const NEWS: Record<string, () => JSX.Element> = {
+  result: IcoBall,
+  transfer: IcoDeal,
+  injury: IcoMedical,
+  intl: IcoGlobe,
+  board: IcoPeople,
+  award: IcoTrophy,
+  contract: IcoPen,
+  general: IcoPress,
+  youth: IcoGrowth,
+  gossip: IcoMegaphone,
+}
+
+/** The glyph for a news item's type. Falls back to the newspaper, which is
+ *  what all five of the old maps did with '📰'. */
+export const NewsIcon = ({ type }: { type: string }) => {
+  const G = NEWS[type] ?? IcoPress
+  return <span className="nico"><G /></span>
+}

@@ -23,10 +23,6 @@ import { tillOpen } from '../../game/monetise'
 import { userWageBudget } from '../../game/grants'
 import { natWindow, weeksToSquad } from '../../game/country'
 
-const TYPE_ICON: Record<string, string> = {
-  result: '🏉', transfer: '💰', injury: '🩹', intl: '🌍', board: '🏛️',
-  award: '🏅', contract: '✍️', general: '📰', youth: '🎓', gossip: '🗞️',
-}
 
 export default function Home() {
   const game = useStore(s => s.game)!
@@ -467,11 +463,14 @@ export default function Home() {
         </button>
         <button className="hub-widget" onClick={() => go('club', club.id)}>
           <label>{t('home.wFans')}</label>
-          {(() => {
-            const m = game.fanMood ?? 60
-            const word = m >= 80 ? '🔥' : m >= 62 ? '😊' : m >= 45 ? '😐' : m >= 30 ? '😠' : '🤬'
-            return <b>{word}</b>
-          })()}
+          {/* THE FIGURE WAS AN EMOJI FACE, three lines under a comment in this
+              same file that says a key number renders in text-primary. It was
+              the one value on the dashboard drawn by the reader's operating
+              system rather than by the game, sitting beside the board's 70%
+              in the tile next door, and on Android it was a different face
+              from the one on iOS. The mood is a number, so it reads as one,
+              and the word it used to stand for is already on the line below. */}
+          <b>{Math.round(game.fanMood ?? 60)}%</b>
           <span>{(() => {
             const m = game.fanMood ?? 60
             return t(m >= 80 ? 'home.fanBouncing' : m >= 62 ? 'home.fanBehind' : m >= 45 ? 'home.fanWatching' : m >= 30 ? 'home.fanRestless' : 'home.fanMutinous')

@@ -677,3 +677,17 @@ button.tile:active { background: var(--press); }
   font-size: 0;            /* nothing in here is text any more */
 }
 .back-btn svg { width: 24px; height: 24px; display: block; }
+
+/* ---- a news glyph set in a line of text ----
+ * The five emoji maps these replace sat inline with the subject or the date,
+ * so the glyph has to sit on the text baseline and take the text's size and
+ * colour rather than a fixed box. 1em square with a small optical drop is
+ * what makes an SVG sit where a character sat.
+ */
+.nico {
+  display: inline-block;
+  width: 1.05em; height: 1.05em;
+  vertical-align: -.16em;
+  flex: 0 0 auto;
+}
+.nico svg { width: 100%; height: 100%; display: block; }

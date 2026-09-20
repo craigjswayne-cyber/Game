@@ -10,11 +10,8 @@ import { matchStakes } from '../../game/stakes'
 import { analystClaim, analystRead, prepLabel, unitLabel } from '../../game/analyst'
 import { CrestT, SectionTitle } from '../components'
 import { ord, posName, t } from '../../game/i18n'
+import { NewsIcon } from '../icons'
 
-const TYPE_ICON: Record<string, string> = {
-  result: '🏉', transfer: '💼', injury: '🏥', intl: '🌍', board: '🏛',
-  award: '🏅', contract: '✍️', general: '📰', youth: '🌱', gossip: '🎙',
-}
 
 /**
  * ---- ONE DAY OF THE WEEK ----
@@ -78,7 +75,7 @@ export default function DayRoom() {
           <div className="card" style={{ padding: '4px 0' }}>
             {stories.map(n => (
               <button key={n.id} className="day-story" onClick={() => openWire(stories.map(s => s.id), n.id)}>
-                <span className="ds-ico">{TYPE_ICON[n.type] ?? '📰'}</span>
+                <span className="ds-ico"><NewsIcon type={n.type} /></span>
                 <span className="ds-subj">{newsSubject(n)}</span>
                 <span className="ds-go">›</span>
               </button>

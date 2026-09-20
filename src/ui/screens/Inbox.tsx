@@ -5,6 +5,7 @@ import { newsBody, newsSubject, weekDate, type NewsItem } from '../../game/model
 import { RECALL_DAYS, daysLeft, inInbox, markRead } from '../../game/days'
 import { t } from '../../game/i18n'
 import { answerRequest, canAnswerRequest } from '../../game/chats'
+import { NewsIcon } from '../icons'
 
 /** The inbox: one message at a time, with a recall window.
  *
@@ -26,10 +27,6 @@ import { answerRequest, canAnswerRequest } from '../../game/chats'
  *  ages out; days.inInbox is the one predicate that decides, and the store's
  *  queue and step arrows read the same one. */
 
-const TYPE_ICON: Record<string, string> = {
-  result: '🏉', transfer: '💰', injury: '🩹', intl: '🌍', board: '🏛️',
-  award: '🏅', contract: '✍️', general: '📰', youth: '🎓', gossip: '🗞️',
-}
 
 /** Everyone this story is about, as tappable chips.
  *
@@ -115,7 +112,7 @@ export function InboxList({ compact }: { compact?: boolean }) {
       {news.slice(0, compact ? 12 : 30).map(n => (
         <button key={n.id} className={`news-item${n.read ? '' : ' unread'}`}
           onClick={() => { markRead(game, n); touch() }}>
-          <div className="when">{TYPE_ICON[n.type] ?? '📰'} {weekDate(n.season, n.week)}</div>
+          <div className="when"><NewsIcon type={n.type} /> {weekDate(n.season, n.week)}</div>
           <div className="subj">{newsSubject(n)}</div>
           <div className="body">{newsBody(n)}</div>
         </button>
@@ -195,7 +192,7 @@ export default function Inbox() {
       </div>
 
       <article className="reader">
-        <div className="when">{TYPE_ICON[n.type] ?? '📰'} {weekDate(n.season, n.week)}{shelf}</div>
+        <div className="when"><NewsIcon type={n.type} /> {weekDate(n.season, n.week)}{shelf}</div>
         <h2>{newsSubject(n)}</h2>
         {/* Real paragraphs, no spacer divs. A blank line in the source used to
             render an empty 6px div, so the spacing between paragraphs depended on

@@ -5,11 +5,8 @@ import { paragraphs } from '../components'
 import { newsBody, newsSubject, weekDate } from '../../game/model'
 import { markRead } from '../../game/days'
 import { t } from '../../game/i18n'
+import { NewsIcon } from '../icons'
 
-const TYPE_ICON: Record<string, string> = {
-  result: '🏉', transfer: '💼', injury: '🏥', intl: '🌍', board: '🏛',
-  award: '🏅', contract: '✍️', general: '📰', youth: '🌱', gossip: '🎙',
-}
 
 /** This week's stories, full screen, one page at a time - the breath between
  *  matches (8H feedback).
@@ -51,7 +48,7 @@ export default function Wire() {
           <span>{t('week.wirePos', { i: idx + 1, n: items.length })}</span>
         </div>
         <h2 style={{ fontSize: 19, lineHeight: 1.3, margin: '8px 0 10px' }}>
-          {TYPE_ICON[n.type] ?? '📰'} {newsSubject(n)}
+          <NewsIcon type={n.type} /> {newsSubject(n)}
         </h2>
         {/* PARAGRAPHS, not a wall (user: "news graphics seem so messy, tidy them
             up. use paragraphs"). pre-line honours the newlines the engine writes
