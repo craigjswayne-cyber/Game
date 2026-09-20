@@ -65,10 +65,14 @@ const shell = (cls: string) => `<!doctype html><meta charset="utf-8"><style>${cs
   .app { display: block !important; max-width: none !important; height: auto !important;
          box-shadow: none !important; }
   .row { display: flex; }
-  /* the ladder is a COMPARISON, so all six states have to be on one line and
-     the same size - six campuses you have to scroll between is six pictures,
-     not a ladder */
-  .row.ladder figure { flex: 0 0 ${Math.floor(1020 / 6)}px; }
+  /* THE LADDER IS RENDERED AT THE SIZE IT IS PLAYED AT, which is the whole
+     point of it. Six cells across one row made each campus 154px wide, and the
+     map is up to 440px wide on a phone - so every judgement made from that row
+     was made at a third of the real scale, and every detail looked worse than
+     it is. Three across, two rows down, at the same 330px the estates above
+     use. A contact sheet that lies about size is worse than no contact sheet. */
+  .row.ladder { flex-wrap: wrap; width: 1040px; }
+  .row.ladder figure { flex: 0 0 330px; }
   /* 330px is the width of a card on a 360px phone - the size this is
      actually read at, not whatever the window happens to be. */
   figure { margin: 0; flex: 0 0 330px; padding: 8px; }

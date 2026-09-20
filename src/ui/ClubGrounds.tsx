@@ -245,48 +245,179 @@ function Bowl({ x, y, rx, ry, h, c1, c2, big }: {
 }
 
 /** ---- A BUILDING ----
- *  Height, footprint and detail all read the level, so the six states are one
- *  set of numbers rather than six drawings. Level 0 is a fenced empty plot and
- *  looks like one: the estate should show you the holes in it. */
+ *
+ * SIX STAGES, EACH ONE A THING YOU CAN NAME (v1.7.0, from the owner's
+ * reference ladders for the gym and the recovery centre).
+ *
+ * The first pass grew one box linearly and bolted a glass band on at 2 and 4.
+ * It failed its own test: at the size this is read, levels 2 and 3 differed
+ * only in how big they were, so two of the six stages were invisible and the
+ * five pips under the plot were doing all the work. A capital project the
+ * board argued about and paid for has to look like one.
+ *
+ *   0  a fenced site: no building, cones at the corners, and the one object
+ *      that says what belongs here
+ *   1  a single-storey unit on a paved apron
+ *   2  longer, a glazed frontage, and an entrance canopy
+ *   3  a SECOND STOREY, with the external stair that comes with it
+ *   4  plant on the roof - the dull expensive thing a finished building has
+ *   5  a second plant unit and a low annex on the end
+ *
+ * Every stage keeps everything below it, so level 5 visibly contains the whole
+ * ladder. The silhouette changes at 1, 3 and 5 (a box appears, it doubles in
+ * height, it grows a wing); the face changes at 2 and 4. Alternating the two
+ * is what makes each step readable at about 85 by 50 real pixels, which is all
+ * a plot gets on a phone.
+ *
+ * WHAT IS DELIBERATELY NOT HERE. The reference art has signage, window
+ * mullions, planters, bollards, kerbs and downpipes. None of them survive the
+ * reduction - at 1.22 pixels per unit a mullion is a quarter of a pixel - and
+ * drawing them anyway would only add noise to a silhouette that has to carry
+ * the meaning. What is kept is what changes the OUTLINE.
+ */
+
+/** One storey. Two of them plus the parapet is the tallest thing on the
+ *  campus that is not the stadium, and it has to stay under the height that
+ *  would hide the plot behind it. */
+const STOREY = 10.5
+/** Glazing. A literal rather than a token because glass is glass in both
+ *  themes: it is the sky in it, not the room behind it, so it does not flip
+ *  with the ground the way every painted surface here does. */
+const GLASS = 'rgba(150, 205, 235, .88)'
+
 function Block({ fid, x, y, lvl, c1, c2 }: {
   fid: FacilityId; x: number; y: number; lvl: number; c1: string; c2: string
 }) {
-  if (lvl === 0) return <Empty fid={fid} x={x} y={y} />
-  // A LEVEL 5 IS TALLER THAN A LEVEL 1 AND STILL FITS ON ITS PLOT. The first
-  // pass ran the height to 46 and the campus read as a skyline: the tall
-  // buildings at the back stood over the plots in front of them and the
-  // stadium disappeared behind its own offices. Growth you can see beats
-  // growth that wins.
-  const w = 19 + lvl * 3
-  const d = 9.5 + lvl * 1.5
-  const h = 9 + lvl * 5.5
-  const wall = shade(c1, 0.5 + lvl * 0.06)
+  if (lvl === 0) return <Empty fid={fid} x={x} y={y} c1={c1} />
+  const storeys = lvl >= 3 ? 2 : 1
+  const w = 11.5 + lvl * 2.5
+  const d = 6.2 + lvl * 1.15
+  const h = STOREY * storeys + (lvl >= 2 ? 1.5 : 0)
+  // The block stands back-left and the apron takes the front-right corner,
+  // which is how both reference ladders lay a plot out - and it is also the
+  // only arrangement that leaves the apron visible, since a solid drawn in
+  // front of it would hide it.
+  const bx = x - 4, by = y - 3
+  const wall = shade(c1, 0.62 + lvl * 0.04)
+  const roof = shade(c1, 0.3)
+  /** A band across the right face, at a height given as a fraction of the
+   *  storey it belongs to. The face is a parallelogram, so a band on it is
+   *  two parallel edges of the same slope. */
+  const band = (lo: number, hi: number) =>
+    `M ${bx + 1.5},${by + d - lo} L ${bx + w - 2},${by - lo}`
+    + ` L ${bx + w - 2},${by - hi} L ${bx + 1.5},${by + d - hi} Z`
   return (
     <g>
-      <ellipse cx={x} cy={y + d * 0.5} rx={w * 1.05} ry={d * 0.8} fill="rgba(0,0,0,.22)" />
-      <IsoBox x={x} y={y} w={w} d={d} h={h}
-        top={shade(c2, 1.05)} left={shade(wall, 0.72)} right={wall} />
-      {/* GLASS ARRIVES WITH THE MONEY. One band at level 2, a second at 4, and
-          at 5 the whole right face is a frontage - the difference between a
-          unit on an industrial estate and a performance centre, and the only
-          thing that changed is what the board agreed to pay for. */}
+      <ellipse cx={bx} cy={by + d * 0.6} rx={w * 1.06} ry={d * 0.85} fill="rgba(0,0,0,.22)" />
+      {/* the apron: what the building stands on, and what the facility's own
+          object stands on beside it */}
+      <path d={`M ${x + 9},${y - 1} L ${x + 25},${y + 7} L ${x + 9},${y + 15} L ${x - 7},${y + 7} Z`}
+        fill="var(--surface-3)" opacity=".38" />
+      <Signature fid={fid} x={x + 9} y={y + 7} lvl={lvl} c1={c1} c2={c2} />
+
+      <IsoBox x={bx} y={by} w={w} d={d} h={h} top={roof} left={shade(wall, 0.7)} right={wall} />
+      {/* GLAZING ARRIVES WITH THE SECOND CHEQUE, and again with the storey it
+          lights. One frontage on the ground floor at 2; the upper floor gets
+          its own the moment there is an upper floor. */}
+      {lvl >= 2 && <path d={band(h - STOREY * 0.72, h - STOREY * 0.18)} fill={GLASS} />}
+      {storeys === 2 && <path d={band(STOREY * 0.28, STOREY * 0.82)} fill={GLASS} />}
+      {/* THE STAIR IS THE SECOND STOREY'S TELL. A two-storey unit on a
+          training ground has its fire escape on the outside, and at this size
+          a zigzag on the left face says "two floors" faster than the height
+          does - the height is also what a level-2 building would have if it
+          were merely wider. */}
+      {storeys === 2 && (
+        <g>
+          {/* THE FLIGHT, not a panel. Drawn first as a dark strip and then cut
+              by its own diagonal, because a pale rectangle on the end of a
+              building reads as a lift shaft or a render patch - which is what
+              the first pass looked like at size. The diagonal is the stair. */}
+          <path d={`M ${bx - w + 0.5},${by - 0.5} L ${bx - w + 4.5},${by + 1.5} L ${bx - w + 4.5},${by - h + 4} L ${bx - w + 0.5},${by - h + 2} Z`}
+            fill={shade(c1, 0.34)} />
+          <path d={`M ${bx - w + 1},${by + 0.5} L ${bx - w + 4},${by - h + 3.5}`}
+            stroke={shade(c2, 1.1)} strokeWidth="1.4" fill="none" />
+        </g>
+      )}
+      {/* the canopy over the door */}
       {lvl >= 2 && (
-        <path d={`M ${x + 2},${y + d - h * 0.58} L ${x + w - 3},${y - h * 0.58} L ${x + w - 3},${y - h * 0.42} L ${x + 2},${y + d - h * 0.42} Z`}
-          fill="var(--gold-fill)" opacity={lvl >= 5 ? 0.85 : 0.6} />
+        <path d={`M ${bx + w - 9},${by - 1} L ${bx + w + 1},${by + 4} L ${bx + w - 3},${by + 7} L ${bx + w - 13},${by + 2} Z`}
+          fill={shade(c2, 0.9)} />
       )}
+      {/* plant on the roof: one unit at 4, a second at 5 */}
+      {/* BIG ENOUGH TO BREAK THE ROOFLINE, and on the near corner so it stands
+          against the sky rather than against its own roof. The first pass put
+          a 7-unit box in the middle of the roof and it measured out at nine
+          pixels of dark grey on dark grey: levels 3, 4 and 5 were one picture.
+          A silhouette is the only thing that survives at this size. */}
       {lvl >= 4 && (
-        <path d={`M ${x + 2},${y + d - h * 0.88} L ${x + w - 3},${y - h * 0.88} L ${x + w - 3},${y - h * 0.72} L ${x + 2},${y + d - h * 0.72} Z`}
-          fill="var(--gold-fill)" opacity="0.55" />
+        <IsoBox x={bx - w * 0.34} y={by - h + d * 0.34} w={9} d={4.5} h={6.5}
+          top={shade(c2, 1.25)} left={shade(c1, 0.35)} right={shade(c1, 0.52)} />
       )}
-      {/* the plant on the roof: the small, dull, expensive thing only a
-          finished building has */}
       {lvl >= 5 && (
-        <IsoBox x={x} y={y - h} w={9} d={4.5} h={5}
-          top={shade(c2, 1.15)} left={shade(c1, 0.45)} right={shade(c1, 0.62)} />
+        <IsoBox x={bx + w * 0.4} y={by - h - d * 0.2} w={7} d={3.5} h={5}
+          top={shade(c2, 1.25)} left={shade(c1, 0.35)} right={shade(c1, 0.52)} />
       )}
-      <text className="gicon" x={x} y={y - d - h - 5} textAnchor="middle">{FACILITY_INFO[fid].icon}</text>
+      {/* and the low annex on the end: the last thing built, and the only
+          stage that changes the building's FOOTPRINT rather than its face */}
+      {lvl >= 5 && (
+        <IsoBox x={bx - w - 5} y={by + d - 2} w={7} d={4} h={STOREY * 0.62}
+          top={roof} left={shade(wall, 0.62)} right={shade(wall, 0.9)} />
+      )}
+      <text className="gicon" x={bx} y={by - d - h - 5} textAnchor="middle">{FACILITY_INFO[fid].icon}</text>
     </g>
   )
+}
+
+/**
+ * ---- WHAT MAKES A GYM A GYM ----
+ *
+ * The ladder above is shared by all six buildings, which is the point of it -
+ * a level 3 is a level 3 whatever it houses. But six identical blocks round
+ * one stadium is a business park, so each facility also owns one object on its
+ * apron, and that object is the thing the eye actually names the plot by.
+ *
+ * Two are drawn, from the owner's reference ladders. The rest return null and
+ * get the shared block alone, which is what they had before and still reads as
+ * a building of the right size; they are waiting on their own reference art
+ * rather than on an invented one, because a rig I made up for the analysis
+ * suite would be a guess printed nine times a screen.
+ */
+function Signature({ fid, x, y, lvl, c1, c2 }: {
+  fid: FacilityId; x: number; y: number; lvl: number; c1: string; c2: string
+}) {
+  // THE POOL, and it is on the plot before the building is. The reference
+  // ladder puts a single plunge tank on the bare site at level 0 and grows it
+  // into a full outdoor pool - so on this plot the water is the constant and
+  // the block is what arrives around it.
+  if (fid === 'recovery') {
+    const pw = 5.5 + lvl * 1.5, pd = 2.7 + lvl * 0.75
+    return (
+      <g>
+        <path d={`M ${x},${y - pd - 1.6} L ${x + pw + 2.6},${y} L ${x},${y + pd + 1.6} L ${x - pw - 2.6},${y} Z`}
+          fill="var(--surface-3)" />
+        <path d={`M ${x},${y - pd} L ${x + pw},${y} L ${x},${y + pd} L ${x - pw},${y} Z`}
+          fill="rgba(86, 170, 212, .95)" />
+        {/* the lane, once there is a pool long enough to have one */}
+        {lvl >= 4 && (
+          <path d={`M ${x - pw * 0.55},${y - pd * 0.2} L ${x + pw * 0.55},${y + pd * 0.2}`}
+            stroke="rgba(255,255,255,.55)" strokeWidth="1.1" />
+        )}
+      </g>
+    )
+  }
+  // THE OUTDOOR RIG, last thing the gym gets and the one stage of its ladder
+  // that happens outside the building.
+  if (fid === 'gym' && lvl >= 5) {
+    return (
+      <g stroke={shade(c1, 0.5)} strokeWidth="1.8" fill="none" strokeLinecap="round">
+        <path d={`M ${x - 8},${y + 2} L ${x - 8},${y - 6}`} />
+        <path d={`M ${x + 8},${y - 2} L ${x + 8},${y - 10}`} />
+        <path d={`M ${x - 8},${y - 6} L ${x + 8},${y - 10}`} />
+        <path d={`M ${x - 1},${y - 2} L ${x - 1},${y - 8}`} stroke={shade(c2, 0.9)} strokeWidth="1.4" />
+      </g>
+    )
+  }
+  return null
 }
 
 /** ---- A FIELD ----
@@ -327,12 +458,26 @@ function Field({ fid, x, y, lvl, c1 }: { fid: FacilityId; x: number; y: number; 
 /** Nothing built here. A dashed plot with the facility's own icon greyed on
  *  it - the estate's gaps, named, so "we have no academy" is something you can
  *  see from the air rather than something you find by reading nine cards. */
-function Empty({ fid, x, y }: { fid: FacilityId; x: number; y: number }) {
+function Empty({ fid, x, y, c1 }: { fid: FacilityId; x: number; y: number; c1?: string }) {
+  const w = TW / 2 - 12, d = TH / 2 - 7
   return (
     <g className="gempty">
-      <path d={`M ${x},${y - (TH / 2 - 7)} L ${x + (TW / 2 - 12)},${y} L ${x},${y + (TH / 2 - 7)} L ${x - (TW / 2 - 12)},${y} Z`}
+      {/* bare ground inside the line, so a site reads as a site rather than as
+          a plot somebody forgot to draw on */}
+      <path d={`M ${x},${y - d} L ${x + w},${y} L ${x},${y + d} L ${x - w},${y} Z`}
+        fill="var(--surface-2)" opacity=".7" />
+      <path d={`M ${x},${y - d} L ${x + w},${y} L ${x},${y + d} L ${x - w},${y} Z`}
         fill="none" stroke="var(--border)" strokeWidth="1.4" strokeDasharray="4 4" />
-      <text className="gicon dim" x={x} y={y + 4} textAnchor="middle">{FACILITY_INFO[fid].icon}</text>
+      {/* ONE cone, on the near corner. Four of them - a cone per corner, as the
+          reference art has it - is right for a picture of one plot and wrong
+          for a campus: a threadbare estate has nine empty plots on screen at
+          once and thirty-six gold triangles read as a rash rather than as a
+          building site. */}
+      <path d={`M ${x},${y + d - 4.2} L ${x + 2},${y + d} L ${x - 2},${y + d} Z`}
+        fill="var(--gold-fill)" opacity=".85" />
+      {/* and whatever the facility already has on site before it is built */}
+      {c1 && <Signature fid={fid} x={x + 6} y={y + 3} lvl={0} c1={c1} c2={c1} />}
+      <text className="gicon dim" x={x} y={y - 3} textAnchor="middle">{FACILITY_INFO[fid].icon}</text>
     </g>
   )
 }
