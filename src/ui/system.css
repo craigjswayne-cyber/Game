@@ -739,3 +739,17 @@ button.tile:active { background: var(--press); }
    the diamond's own 1.7:1 means the tips are cropped and the tiles are not -
    see the slice note in ClubGrounds. */
 .grounds { aspect-ratio: 4 / 3; height: auto; }
+
+/* The club's wall. A hairline, because the estate should be bounded, not
+   boxed: the eye needs to know where the ground ends now that the land
+   carries on past the frame. */
+.grounds .g-wall {
+  fill: none;
+  stroke: color-mix(in srgb, var(--canvas) 55%, var(--text-primary));
+  stroke-width: 1.4;
+  opacity: .7;
+}
+
+/* Beyond the wall the roads are context, not content. A third of the
+   strength is enough to say the club is somewhere rather than nowhere. */
+.grounds .g-road.out { opacity: .34; }

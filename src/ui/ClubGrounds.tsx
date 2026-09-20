@@ -262,10 +262,45 @@ export default function ClubGrounds({ club, buildingId, selected, onPick }: {
           its blocks are large and green and the roads between them are thin -
           so the road is a lattice of strips along the grid lines and
           everything they do not cover stays land. */}
-      {[0, 1, 2, 3, 4].map(k => {
+      {/* ---- THE WORLD RUNS PAST THE FRAME ----
+          Owner: "there's a weird slant on the game". Measured, nothing on
+          this screen is rotated or skewed - no transform, no clip-path, and
+          the cards, tabs, type and navigation are all exactly orthogonal. The
+          slant is the COMPOSITION: an isometric estate drawn to its own edges
+          is a diamond, and a diamond floating inside a rectangle reads as a
+          tilt against everything square around it.
+
+          The reference does not have that problem, and not because its grid
+          is any less diagonal - because its world fills the screen and is
+          cropped by it, so there is no lozenge to see. So the ground plane and
+          the street grid are drawn over a span half again wider than the
+          estate. The roads leave the picture instead of stopping at a point,
+          the canvas corners hold land rather than void, and what the frame
+          shows is a rectangle of world with the club in the middle of it. */}
+      {/* ---- THE STREETS ----
+          Inside the wall they are the estate's own, at full strength. Beyond
+          it they are the roads that get you here, at a third of it.
+
+          Two earlier attempts were worse. Stopping them at the wall left the
+          club as a diamond on an empty field, which is the floating shape the
+          owner was seeing. Carrying the whole grid out instead, a block past
+          the estate in both directions, filled the canvas corners with a
+          lattice of empty blocks - a suburb, and exactly the city-builder
+          look the brief rules out. A radial mask to fade them was no better:
+          the estate's own side vertices sit further from the centre than the
+          frame's corners do, so any fade tight enough to dim the outskirts
+          was already dimming the club.
+
+          Opacity on a second group is the control that actually fits the
+          shape of the problem. */}
+      {OUTER.map(k => {
         const c = k - 0.5, r = ROAD / (2 * TW)
         return (
           <g key={k}>
+            <path d={quad(c - r, -1.9, c + r, -0.5)} className="g-road out" />
+            <path d={quad(c - r, 3.5, c + r, 4.9)} className="g-road out" />
+            <path d={quad(-1.9, c - r, -0.5, c + r)} className="g-road out" />
+            <path d={quad(3.5, c - r, 4.9, c + r)} className="g-road out" />
             <path d={quad(c - r, -0.5, c + r, 3.5)} className="g-road" />
             <path d={quad(-0.5, c - r, 3.5, c + r)} className="g-road" />
             <path d={`M ${iso(c, -0.42).join(',')} L ${iso(c, 3.42).join(',')}`} className="g-lane" />
@@ -273,6 +308,9 @@ export default function ClubGrounds({ club, buildingId, selected, onPick }: {
           </g>
         )
       })}
+      {/* The club's boundary. Without it the estate has no edge at all once
+          the land runs past the frame, and a ground is a walled place. */}
+      <path d={quad(-0.5, -0.5, 3.5, 3.5)} className="g-wall" />
       {/* THE CAR PARKS. Nine facilities on a sixteen-cell grid leaves three
           cells over, and bare road in them read as a hole rather than as
           space. A car park is the right thing to put there: every ground has
@@ -297,6 +335,13 @@ export default function ClubGrounds({ club, buildingId, selected, onPick }: {
     </svg>
   )
 }
+
+/** THE ESTATE'S OWN FIVE STREETS EACH WAY, AND NO OTHERS. Extending the grid
+ *  a block past the club as well gave the canvas corners a full lattice of
+ *  empty blocks, which is a suburb rather than a setting. These are the same
+ *  streets that run between the plots, simply carried out of the picture, so
+ *  what is beyond the wall reads as the roads that get you there. */
+const OUTER = [0, 1, 2, 3, 4]
 
 /** ONE CAR PARK, AT THE ENTRANCE. There were three, one per empty cell, and
  *  at full cell size they read as two enormous grey wedges either end of the
