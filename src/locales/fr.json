@@ -2705,7 +2705,7 @@
     "ofForPlayer_f": "pour {player}, et elles veulent une réponse",
     "prQuiet_f": "La salle de presse est calme… pour l'instant. Les journalistes se présentent quand une joueuse trouve la forme, la perd, ou est annoncé ailleurs.",
     "infGrounds": "Le domaine",
-    "infGroundsSub": "Chaque bâtiment reflète ce que le conseil a financé. Touchez une parcelle.",
+    "infGroundsSub": "Touchez une parcelle pour ouvrir sa fiche.",
     "infGroundsAlt": "Vue aérienne du centre d'entraînement et du stade de {club}.",
     "infLevelOf": "niveau {n} sur {max}"
   },

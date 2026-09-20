@@ -152,4 +152,9 @@ try {
 
 say(fails ? `\nMINUTEPROBE FAILED (${fails})` : '\nMINUTEPROBE PASSED')
 await browser.close()
-done(server, fails ? 1 : 0)
+// done() takes the FAILURE COUNT, not the server - subline.mjs carries the
+// same note because the same mistake was made there. Passing the server object
+// makes every run exit 1, so the suite reported "FAIL minuteprobe" directly
+// above the probe's own "MINUTEPROBE PASSED".
+server.stop?.()
+done(fails)

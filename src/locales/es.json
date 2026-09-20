@@ -2670,7 +2670,7 @@
   "agSeniorSub_f": "las veinte mejores jugadoras del planeta, a día de hoy",
   "prQuiet_f": "La sala de prensa está tranquila… de momento. Los periodistas suelen aparecer cuando una jugadora entra en racha, la pierde o suena en el mercado.",
   "infGrounds": "Las instalaciones",
-  "infGroundsSub": "Cada edificio refleja lo que la directiva ha pagado. Toca una parcela.",
+  "infGroundsSub": "Toca una parcela para abrir su ficha.",
   "infGroundsAlt": "Vista aérea del centro de entrenamiento y el estadio de {club}.",
   "infLevelOf": "nivel {n} de {max}"
  },

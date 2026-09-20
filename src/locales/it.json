@@ -2687,7 +2687,7 @@
   "ofCover_f": "Le coperture dietro di lei: {names}{more}.",
   "prQuiet_f": "La sala stampa è tranquilla… per ora. I giornalisti tendono a spuntare quando le giocatrici trovano la forma, la perdono o finiscono al centro di voci di mercato.",
   "infGrounds": "Il complesso",
-  "infGroundsSub": "Ogni edificio rispecchia ciò che il consiglio ha pagato. Tocca un lotto.",
+  "infGroundsSub": "Tocca un lotto per aprire la sua scheda.",
   "infGroundsAlt": "Veduta aerea del centro di allenamento e dello stadio di {club}.",
   "infLevelOf": "livello {n} di {max}"
  },

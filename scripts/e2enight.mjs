@@ -224,11 +224,25 @@ try {
     if (wide) throw new Error('academy screen scrolls horizontally')
   }
 
-  // club infrastructure: the estate on one page
+  // Club infrastructure: the estate, on the two tabs it takes since 1.7.0.
+  // The page opens on the aerial view of the campus and the nine build cards
+  // are behind Our Estate - nine cards plus a drawing measured 3.7 screenfuls
+  // and scrollaudit allows no fixed page three, so the picture and the
+  // shopping list are two tabs. Both are shot: the map is the thing a player
+  // sees first, and the board ask is the thing the page is for.
   await page.click('.bottom-nav button[title="Hub"]')
   await page.click('.submenu-item >> text=Club Infrastructure')
-  await page.waitForSelector('text=Facilities')
+  await page.waitForSelector('.grounds')
   await shot('06i-infrastructure')
+  {
+    // every plot the map draws is a button into its own card
+    const plots = await page.locator('.grounds .gplot').count()
+    console.log(`club grounds: ${plots} facility plots drawn`)
+    if (plots !== 9) throw new Error(`the campus map drew ${plots} facility plots, not 9`)
+  }
+  await page.click('.tab-bar >> text=Our Estate')
+  await page.waitForSelector('text=Facilities')
+  await shot('06i2-infra-facilities')
   await page.locator('text=🏛 Ask board').first().click()
   await page.waitForTimeout(300)
   await shot('06j-infra-ask')

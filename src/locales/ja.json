@@ -2629,7 +2629,7 @@
   "ofNoCover_f": "彼女を売れば、{pos}を務められる選手はいなくなる。",
   "ofTheValuation_f": "。ちなみに彼女は",
   "infGrounds": "クラブ施設",
-  "infGroundsSub": "建物は理事会が承認した投資をそのまま映します。区画をタップ。",
+  "infGroundsSub": "区画をタップするとカードが開きます。",
   "infGroundsAlt": "{club}の練習場とスタジアムの俯瞰図。",
   "infLevelOf": "レベル {n}/{max}"
  },

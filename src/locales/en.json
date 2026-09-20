@@ -2753,7 +2753,7 @@
   "ofNoCover_f": "Sell her and you have nobody else who plays {pos}.",
   "ofTheValuation_f": " the valuation. She is a ",
   "infGrounds": "The Grounds",
-  "infGroundsSub": "Every building is drawn from what the board has paid for. Tap a plot.",
+  "infGroundsSub": "Tap a plot to open its card.",
   "infGroundsAlt": "An aerial view of the training ground and stadium at {club}.",
   "infLevelOf": "level {n} of {max}"
  },
