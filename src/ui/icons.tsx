@@ -135,30 +135,43 @@ export const IcoAcademy = () => (
 
 /** Money. A coin with a bar through it - a bag (💰) needs three curves the
  *  stroke weight cannot afford at this size. */
+/* A NOTE, NOT A POUND SIGN IN A CIRCLE. The first drawing put a £ at 1.4
+   stroke inside an 8.5r circle, which is legible on the systemqa contact
+   sheet at 22px and a grey smudge in the Hub at 20px in --text-muted, where
+   it actually has to work. Nothing inside a small icon can be a letterform
+   except a letterform that IS the icon (see IcoHelp). */
 export const IcoMoney = () => (
   <svg viewBox="0 0 24 24" {...S}>
-    <circle cx="12" cy="12" r="8.5" />
-    <path d="M12 7v10M9.5 9.5h4a1.9 1.9 0 0 1 0 3.8h-3a1.9 1.9 0 0 0 0 3.8h4" strokeWidth="1.4" />
+    <rect x="2.5" y="6" width="19" height="12" rx="2" />
+    <circle cx="12" cy="12" r="2.7" />
+    <path d="M6 9.6v4.8M18 9.6v4.8" strokeWidth="1.4" />
   </svg>
 )
 
 /** The ground. Stands round a pitch, seen flat on. */
+/* A BOWL WITH A RECTANGULAR PITCH IN IT. Two concentric ellipses is an eye,
+   and that is what the Hub's Club Information row looked like. The pitch has
+   to be square-ish for the shape to read as a ground seen from the stand
+   rather than as a pupil. */
 export const IcoStadium = () => (
   <svg viewBox="0 0 24 24" {...S}>
-    <ellipse cx="12" cy="12" rx="9.2" ry="5.6" />
-    <ellipse cx="12" cy="12" rx="4.4" ry="2.4" strokeWidth="1.4" />
-    <path d="M2.8 12v2.4c0 2 4.1 3.6 9.2 3.6s9.2-1.6 9.2-3.6V12" />
+    <path d="M2.6 8.7c1.8-1.8 5.3-2.9 9.4-2.9s7.6 1.1 9.4 2.9l-2 8.1c-1.7 1.3-4.4 2.1-7.4 2.1s-5.7-.8-7.4-2.1z" />
+    <path d="M8 10.7h8l-.9 4.4H8.9z" strokeWidth="1.4" />
   </svg>
 )
 
 /** Building work. A crane arm, which is also what the campus map draws on a
  *  plot the builders are on. */
+/* TWO BLOCKS AND A GROUND LINE. The first drawing was an abstract L with a
+   spur, meant to read as a crane; at 20px it read as a flag. Infrastructure
+   is buildings, so the icon is buildings - a low one and a tall one, which
+   also says the thing the screen is about, that they grow. */
 export const IcoBuild = () => (
   <svg viewBox="0 0 24 24" {...S}>
-    <path d="M5 20V4.5h11" />
-    <path d="M5 8.5h8.5" strokeWidth="1.4" />
-    <path d="M13 4.5v4" />
-    <path d="M18 20h-3.5" />
+    <path d="M2.8 20.5h18.4" />
+    <path d="M5.4 20.5V10.2h5.6v10.3" />
+    <path d="M11 20.5V4.4h7.6v16.1" />
+    <path d="M13.9 8.4h1.8M13.9 12.4h1.8" strokeWidth="1.4" />
   </svg>
 )
 
@@ -341,11 +354,16 @@ export const IcoClock = () => (
 )
 
 /** A handshake: contracts, deals, partnerships in the dressing room. */
+/* TWO ARROWS, NOT A HANDSHAKE. Four fingers and two cuffs is about fourteen
+   strokes inside a 20px box; the shape it made in the Hub was a moustache.
+   Opposing arrows are what every transfer market in every sport uses, and
+   they survive being 20px and muted. */
 export const IcoDeal = () => (
   <svg viewBox="0 0 24 24" {...S}>
-    <path d="M2.8 10.5 6 7.8l3.4 2.9 2.6-.6 2.6.6L18 7.8l3.2 2.7" />
-    <path d="M9.4 10.7 7 13.4a1.7 1.7 0 0 0 2.4 2.4l.9-.9 1.5 1.5a1.7 1.7 0 0 0 2.4-2.4" />
-    <path d="M14.6 10.7 17 13.4" strokeWidth="1.4" />
+    <path d="M4 9.2h13" />
+    <path d="M13.6 5.6 17.2 9.2l-3.6 3.6" />
+    <path d="M20 14.8H7" />
+    <path d="M10.4 18.4 6.8 14.8l3.6-3.6" />
   </svg>
 )
 
