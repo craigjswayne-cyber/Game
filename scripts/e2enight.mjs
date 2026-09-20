@@ -239,6 +239,37 @@ try {
     const plots = await page.locator('.grounds .gplot').count()
     console.log(`club grounds: ${plots} facility plots drawn`)
     if (plots !== 9) throw new Error(`the campus map drew ${plots} facility plots, not 9`)
+
+    // NOTHING ON THE ESTATE IS TILTED, and this is the check that keeps it
+    // that way. Owner: "the current estate artwork has been designed with
+    // sloping / tilted geometry... redesign the estate artwork from the ground
+    // up" as a top-down plan where the pitch, the roads, the stands and the
+    // buildings all sit on one horizontal and vertical grid. That is a
+    // property of the drawing, so it can be measured: every line must hold one
+    // axis constant, and no element may carry a rotation or a skew. A diagonal
+    // creeping back in is the exact regression this exists to catch.
+    const tilt = await page.evaluate(() => {
+      const bad = []
+      const svg = document.querySelector('.grounds')
+      for (const el of svg.querySelectorAll('line')) {
+        const x1 = +el.getAttribute('x1'), x2 = +el.getAttribute('x2')
+        const y1 = +el.getAttribute('y1'), y2 = +el.getAttribute('y2')
+        if (Math.abs(x1 - x2) > 0.01 && Math.abs(y1 - y2) > 0.01)
+          bad.push(`line ${x1},${y1} to ${x2},${y2} is diagonal`)
+      }
+      for (const el of svg.querySelectorAll('*')) {
+        const tr = el.getAttribute('transform') ?? ''
+        if (/rotate|skew|matrix/.test(tr)) bad.push(`${el.tagName} carries ${tr}`)
+        const m = getComputedStyle(el).transform.match(/matrix\(([^)]+)\)/)
+        if (m) {
+          const [, b, c] = m[1].split(',').map(Number)
+          if (Math.abs(b) > 0.001 || Math.abs(c) > 0.001) bad.push(`${el.tagName} is rotated or skewed`)
+        }
+      }
+      return { lines: svg.querySelectorAll('line').length, bad }
+    })
+    console.log(`  estate geometry: ${tilt.lines} lines, ${tilt.bad.length} tilted`)
+    if (tilt.bad.length) throw new Error(`the estate has tilted geometry: ${tilt.bad.slice(0, 3).join('; ')}`)
   }
   await page.click('.tab-bar >> text=Our Estate')
   await page.waitForSelector('text=Facilities')

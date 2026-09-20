@@ -692,68 +692,6 @@ button.tile:active { background: var(--press); }
 }
 .nico svg { width: 100%; height: 100%; display: block; }
 
-/* ---- the campus, now that it is art rather than drawing ----
- * The plots used to be SVG paths, and a path only takes a tap where it has
- * ink. An <image> is a rectangle and takes one anywhere inside it, including
- * the transparent corners, so nine overlapping tiles would steal each other's
- * taps along every shared edge - reliably the wrong facility near the corners,
- * which is where a thumb lands on a small map. The picture is inert and the
- * diamond under it is the button.
- */
-.grounds .gplot image { pointer-events: none; }
-.grounds .ghit { fill: transparent; cursor: pointer; }
-.grounds .gcrane { pointer-events: none; }
-/* Selection was a drop-shadow on a drawing of flat faces. On a photograph it
-   reads as a blur, so the picked plot brightens and lifts instead. */
-.grounds .gplot.on { filter: brightness(1.12) drop-shadow(0 2px 6px rgba(0, 0, 0, .55)); }
-
-/* ---- the estate's ground plane ----
- * Tarmac has to read as tarmac under both themes and beside painted art, so
- * every tone here is mixed from the theme's own two poles rather than picked.
- * A flat mid grey lands correctly on a dark canvas and on a light one, which
- * a chosen colour would not.
- */
-/* THE LAND IS THE CARD. It was a diamond inside the card, and at this size
-   its points ran off the edge and got sliced into two flat green wedges. The
-   reference's terrain fills the screen and the estate sits ON it, so the
-   ground colour goes on the frame and the only shape with corners left in
-   the picture is the estate. Mixed from the club's own primary, so it is
-   parkland at night and a pale field in daylight. */
-.grounds-card {
-  background: color-mix(in srgb, var(--primary) 17%, var(--canvas));
-}
-.grounds .g-road { fill: color-mix(in srgb, var(--canvas) 58%, var(--text-primary)); }
-/* Dashed, thin and dim. A solid line at this size stops being a marking and
-   starts being a grid, which is the thing the roads exist to hide. */
-.grounds .g-lane {
-  stroke: color-mix(in srgb, var(--canvas) 26%, var(--text-primary));
-  stroke-width: 1; stroke-dasharray: 5 7; opacity: .45; fill: none;
-}
-.grounds .g-park { fill: color-mix(in srgb, var(--canvas) 52%, var(--text-primary)); }
-.grounds .g-bay {
-  stroke: color-mix(in srgb, var(--canvas) 26%, var(--text-primary));
-  stroke-width: 1.1; opacity: .45;
-}
-
-/* The map is the whole point of its tab, so it takes the room. 4:3 against
-   the diamond's own 1.7:1 means the tips are cropped and the tiles are not -
-   see the slice note in ClubGrounds. */
-.grounds { aspect-ratio: 4 / 3; height: auto; }
-
-/* The club's wall. A hairline, because the estate should be bounded, not
-   boxed: the eye needs to know where the ground ends now that the land
-   carries on past the frame. */
-.grounds .g-wall {
-  fill: none;
-  stroke: color-mix(in srgb, var(--canvas) 55%, var(--text-primary));
-  stroke-width: 1.4;
-  opacity: .7;
-}
-
-/* Beyond the wall the roads are context, not content. A third of the
-   strength is enough to say the club is somewhere rather than nowhere. */
-.grounds .g-road.out { opacity: .34; }
-
 /* ---- the facility panel ----
  * What a tap on a plot opens, under the map rather than instead of it. The
  * hierarchy the brief asks for: the name, then what the place DOES at the
@@ -848,3 +786,150 @@ button.tile:active { background: var(--press); }
   color: var(--text-muted);
   margin-top: 1px;
 }
+
+/* ================= THE ESTATE, AS A SITE PLAN =================
+ *
+ * Every tone is mixed from the theme's own two poles rather than picked, so
+ * one set of rules serves eight skins and both themes. Grass is the club's
+ * primary pushed towards green; everything built is a step on the neutral
+ * ramp between the canvas and the ink.
+ *
+ * DEPTH COMES FROM LIGHT, NOT FROM TILT. Shadows fall down and right on every
+ * building, roofs carry a parapet one step lighter than their field, and the
+ * turf is darker where it is unkempt. There is no rotate() or skew() here and
+ * there is not meant to be: the brief's distinction between dimensional and
+ * tilted is the whole point of this drawing.
+ */
+/* A MAP IS NOT A BANNER, and this cap is load-bearing. Left to fill its
+   container the plan grows with the viewport, and scripts/scrollaudit.mjs
+   measures in landscape at 844x390 - where an uncapped map became a 560px
+   drawing in a 390px-tall window and pushed the page from 1.95 screenfuls to
+   2.20. The estate is read at phone width and there is nothing in it that a
+   wider drawing shows more of, so it stops at 440 and centres. The rule was
+   here before, with this reasoning on it, and rewriting the map's CSS from
+   scratch is how it got lost. */
+.grounds { display: block; width: 100%; height: auto; max-width: 440px; margin: 0 auto; }
+
+/* ---- ground ---- */
+.grounds .p-land { fill: color-mix(in srgb, var(--primary) 13%, var(--canvas)); }
+.grounds .p-inside { fill: color-mix(in srgb, var(--primary) 20%, var(--canvas)); }
+.grounds .p-wall {
+  fill: none;
+  stroke: color-mix(in srgb, var(--canvas) 62%, var(--text-primary));
+  stroke-width: 1.6;
+}
+
+/* ---- turf ----
+ * ANCHORED TO ITS OWN HUE, NOT TO THE THEME'S RAMP. Mixed mostly from the
+ * canvas, the grass came out deep green at night and pale mint in daylight,
+ * and the white pitch markings - which are white because pitch markings are -
+ * disappeared into it. Grass is a material in a photograph, not a UI surface:
+ * it is the same green whatever the interface around it is doing. Weighted
+ * hard towards the club's primary, it stays a solid green under both themes
+ * and the lines read on it either way. Only the land around the wall still
+ * follows the theme, because that is the part that meets the card.
+ */
+.grounds .p-earth { fill: color-mix(in srgb, var(--gold) 52%, var(--canvas)); }
+.grounds .p-grass-poor { fill: color-mix(in srgb, var(--primary) 58%, var(--canvas)); }
+.grounds .p-grass { fill: color-mix(in srgb, var(--primary) 78%, var(--canvas)); }
+.grounds .p-mow { fill: color-mix(in srgb, var(--primary) 92%, var(--canvas)); opacity: .5; }
+
+/* ---- markings. Thin, cool white, on turf that is always dark enough to
+       carry them ---- */
+.grounds .p-line { fill: none; stroke: var(--on-hero); stroke-width: .9; opacity: .8; }
+.grounds .p-line .p-dash { stroke-dasharray: 3 4; opacity: .85; }
+.grounds .p-line .p-post { stroke-width: 2.2; opacity: 1; }
+
+/* ---- built ----
+ * ELEVATION BY A GENTLE STEP TOWARDS THE INK, and the first cut had the mix
+ * backwards. color-mix(canvas 26%, text-primary) is three quarters ink, so
+ * under the night theme every roof came out near-white and the estate's
+ * buildings read as blank pale slabs. The ramp below moves a little way from
+ * the canvas for each step up - hardstanding, then roof, then the core above
+ * it - which reads as raised under both themes because it is contrast from
+ * the background rather than lightness in the absolute.
+ */
+.grounds .p-hard { fill: color-mix(in srgb, var(--canvas) 82%, var(--text-primary)); }
+.grounds .p-plot {
+  fill: none;
+  stroke: color-mix(in srgb, var(--canvas) 62%, var(--text-primary));
+  stroke-width: 1; stroke-dasharray: 4 3;
+}
+.grounds .p-shadow { fill: rgba(0, 0, 0, .42); }
+.grounds .p-roof { fill: color-mix(in srgb, var(--canvas) 66%, var(--text-primary)); }
+/* the stair and lift core, raised above the deck */
+.grounds .p-core { fill: color-mix(in srgb, var(--canvas) 55%, var(--text-primary)); }
+.grounds .p-parapet {
+  fill: none;
+  stroke: color-mix(in srgb, var(--canvas) 48%, var(--text-primary));
+  stroke-width: 1;
+}
+.grounds .p-light { fill: color-mix(in srgb, var(--info) 54%, var(--canvas)); opacity: .75; }
+.grounds .p-plant { fill: color-mix(in srgb, var(--canvas) 46%, var(--text-primary)); }
+.grounds .p-green { fill: color-mix(in srgb, var(--primary) 66%, var(--canvas)); }
+.grounds .p-water { fill: color-mix(in srgb, var(--info) 68%, var(--canvas)); }
+.grounds .p-water-edge {
+  fill: none; stroke: color-mix(in srgb, var(--canvas) 52%, var(--text-primary)); stroke-width: 1;
+}
+.grounds .p-kit { fill: color-mix(in srgb, var(--danger) 66%, var(--canvas)); }
+.grounds .p-canopy { fill: color-mix(in srgb, var(--canvas) 58%, var(--text-primary)); }
+
+/* ---- the ground ---- */
+.grounds .p-wall-in {
+  fill: none;
+  stroke: color-mix(in srgb, var(--canvas) 56%, var(--text-primary));
+  stroke-width: 1.4;
+}
+.grounds .p-bowl { fill: color-mix(in srgb, var(--canvas) 74%, var(--text-primary)); }
+/* the deck, the roof over most of it, and the seats in the strip the roof
+   leaves open: three tones, not one band with stripes across it */
+.grounds .p-stand { fill: color-mix(in srgb, var(--canvas) 62%, var(--text-primary)); }
+.grounds .p-stand-roof { fill: color-mix(in srgb, var(--canvas) 52%, var(--text-primary)); }
+.grounds .p-seat { stroke: color-mix(in srgb, var(--danger) 72%, var(--canvas)); stroke-width: 1; opacity: .7; }
+.grounds .p-eave {
+  stroke: color-mix(in srgb, var(--canvas) 38%, var(--text-primary));
+  stroke-width: 1.2; opacity: .85;
+}
+.grounds .p-flood { fill: var(--on-hero); opacity: .82; }
+
+/* ---- roads ---- */
+.grounds .p-road { fill: color-mix(in srgb, var(--canvas) 78%, var(--text-primary)); }
+.grounds .p-lane {
+  stroke: color-mix(in srgb, var(--canvas) 44%, var(--text-primary));
+  stroke-width: 1; stroke-dasharray: 6 8; opacity: .45; fill: none;
+}
+.grounds .p-bay {
+  stroke: color-mix(in srgb, var(--canvas) 50%, var(--text-primary));
+  stroke-width: 1; opacity: .5;
+}
+.grounds .p-tree { fill: color-mix(in srgb, var(--primary) 84%, var(--canvas)); opacity: .95; }
+
+/* ---- markers, pips, state ---- */
+.grounds .p-mark { pointer-events: none; }
+.grounds .p-mark-bg { fill: rgba(0, 0, 0, .34); }
+.grounds .p-mark-ico { color: var(--on-hero); opacity: .92; }
+.grounds .p-mark-ico svg { width: 24px; height: 24px; }
+.grounds .gpips { pointer-events: none; }
+.grounds .p-pip { fill: color-mix(in srgb, var(--canvas) 52%, var(--text-primary)); opacity: .75; }
+.grounds .p-pip.on { fill: var(--gold-fill); opacity: 1; }
+
+/* under construction: hatched and outlined, the way a plan says it */
+.grounds .p-site { fill: var(--gold-fill); opacity: .14; }
+.grounds .p-site-edge {
+  fill: none; stroke: var(--gold); stroke-width: 1.6; stroke-dasharray: 5 4;
+}
+
+/* The plot is the button, the marker and the hit area, all one rectangle. An
+   image or a fill would take a tap anywhere inside its box; this is the
+   footprint the eye already sees. */
+.grounds .gplot { cursor: pointer; }
+.grounds .gplot:focus { outline: none; }
+.grounds .ghit { fill: transparent; stroke: none; }
+.grounds .gplot.on .ghit,
+.grounds .gplot:focus-visible .ghit {
+  stroke: var(--gold);
+  stroke-width: 2;
+}
+.grounds .gplot.on { filter: brightness(1.08); }
+.grounds .gplot:active { filter: brightness(1.16); }
+.grounds .p-post-up { fill: var(--on-hero); opacity: .95; stroke: none; }
