@@ -204,7 +204,8 @@
   "wk": "wk{n}",
   "listSep": ", ",
   "nothing": "",
-  "confirmSell": "Bevestig verkoop"
+  "confirmSell": "Bevestig verkoop",
+  "back": "Terug"
  },
  "home": {
   "jobCentre": "📋 Die Werksentrum",

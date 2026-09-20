@@ -7,7 +7,12 @@ import { natSquadHold } from '../game/country'
 import { TOUR_WEEKS } from '../game/schedule'
 import { islesCoach } from '../game/isles'
 import { tillOpen } from '../game/monetise'
-import { IcoClipboard, IcoGlobe, IcoHome, IcoInbox, IcoPress, IcoTrophy } from './icons'
+import {
+  IcoAcademy, IcoAlert, IcoBook, IcoBriefcase, IcoBuild, IcoCalendar, IcoCart, IcoChart,
+  IcoChevronLeft, IcoClipboard, IcoClock, IcoCog, IcoDeal, IcoDoor, IcoFlag, IcoGlobe, IcoHelp,
+  IcoHome, IcoInbox, IcoInfo, IcoMedical, IcoMegaphone, IcoMoney, IcoPeople, IcoPerson, IcoPitch, IcoPress,
+  IcoSave, IcoSearch, IcoShirt, IcoStadium, IcoStar, IcoTraining, IcoTrophy,
+} from './icons'
 import { natWindow } from '../game/country'
 import Menu from './screens/Menu'
 import NewGame from './screens/NewGame'
@@ -352,7 +357,13 @@ function useHardwareBack(depth: number, screen: Screen) {
 }
 
 interface MenuItem {
-  ico: string
+  /* WAS A STRING, AND THE STRING WAS AN EMOJI (Phase 1). Twenty-nine of them
+     across the three group menus, next to a nav rail of drawn glyphs and a
+     drawn chevron in the header. Emoji are also the one part of a UI that is
+     rendered by the OS rather than by the app, so the Hub looked like a
+     different product on Android, iOS and the web build. No harness selects
+     on them - checked - so this swap is free. */
+  ico: ReactNode
   label: string
   /** doubles as the react key, so it stays required even for action items */
   screen: Screen
@@ -386,6 +397,36 @@ export default function App() {
 
   const cur = nav[nav.length - 1]
   useHardwareBack(nav.length, cur.screen)
+
+  /* WHICH WAY THE SCREEN WENT (Phase 1).
+     The shell had no motion at all: every navigation was a hard cut, which on
+     a stack four deep gives the manager nothing to tell "I have opened a
+     player" from "the screen has replaced itself". Depth is the only signal
+     needed - deeper is a push, shallower is a pop - and it is already in the
+     store. The motion itself is vertical rather than the sideways slide a nav
+     stack usually gets, and system.css says why: a horizontal one really does
+     make the scroller wider than the phone while it runs.
+
+     A REF, NOT STATE, on purpose: this is read during the render that follows
+     the change, so setting state here would schedule a second render for
+     something no one can see between the two. The animation is a keyframe on
+     a keyed element rather than a transition on .content, because .content is
+     the scroller: a lasting transform on it would make it the containing
+     block for anything fixed inside a screen, and a keyframe is over in
+     200ms. prefers-reduced-motion collapses it in system.css. */
+  const lastDepth = useRef(nav.length)
+  const lastScreen = useRef(cur.screen)
+  // Three outcomes, not two. The bottom rail swaps Home for the Inbox WITHOUT
+  // pushing - the stack stays one deep - so a depth-only test calls that "no
+  // navigation" and the loudest switch in the game gets no motion at all. It
+  // is a cross-fade: neither screen is inside the other, so neither direction
+  // would be telling the truth.
+  const dir = nav.length > lastDepth.current ? 'push'
+    : nav.length < lastDepth.current ? 'pop'
+    : cur.screen !== lastScreen.current ? 'fade'
+    : 'same'
+  lastDepth.current = nav.length
+  lastScreen.current = cur.screen
   // a skin is a third class on the same root: tokens.css declares the skin
   // blocks after night and day, so the skin wins the cascade and the
   // floodlight toggle still does its job underneath
@@ -563,17 +604,17 @@ export default function App() {
         // Team opens on the team sheet now (user: "Selection should be the
         // team section"), so the tactics screen is just Tactics - the how,
         // not the who.
-        { ico: '🏉', label: t('groups.team'), screen: 'squad' },
-        { ico: '📊', label: t('groups.teamReport'), screen: 'report' },
-        { ico: '📋', label: t('groups.tactics'), screen: 'tactics' },
-        { ico: '🎓', label: t('groups.academy'), screen: 'academy' },
-        { ico: '🏋️', label: t('groups.trainingStaff'), screen: 'training' },
-        { ico: '🏥', label: t('groups.medical'), screen: 'medical', badge: injuredCount },
-        { ico: '📅', label: t('groups.fixturesResults'), screen: 'fixtures' },
-        { ico: '💰', label: t('groups.finances'), screen: 'finances' },
-        { ico: '🔁', label: t('groups.transfers'), screen: 'transfers', badge: offersOpen },
-        { ico: '🏗️', label: t('groups.infra'), screen: 'infra' },
-        { ico: '🏟️', label: t('groups.clubInfo'), screen: 'club' },
+        { ico: <IcoShirt />, label: t('groups.team'), screen: 'squad' },
+        { ico: <IcoChart />, label: t('groups.teamReport'), screen: 'report' },
+        { ico: <IcoPitch />, label: t('groups.tactics'), screen: 'tactics' },
+        { ico: <IcoAcademy />, label: t('groups.academy'), screen: 'academy' },
+        { ico: <IcoTraining />, label: t('groups.trainingStaff'), screen: 'training' },
+        { ico: <IcoMedical />, label: t('groups.medical'), screen: 'medical', badge: injuredCount },
+        { ico: <IcoCalendar />, label: t('groups.fixturesResults'), screen: 'fixtures' },
+        { ico: <IcoMoney />, label: t('groups.finances'), screen: 'finances' },
+        { ico: <IcoDeal />, label: t('groups.transfers'), screen: 'transfers', badge: offersOpen },
+        { ico: <IcoBuild />, label: t('groups.infra'), screen: 'infra' },
+        { ico: <IcoStadium />, label: t('groups.clubInfo'), screen: 'club' },
         // THE STORE HAD NO NAME ANYWHERE (owner, 27 Aug: "no shop showing").
         // Everything was reachable and nothing was findable: the door sat on
         // About & legal, under the manager's own menu, next to the privacy
@@ -586,50 +627,50 @@ export default function App() {
         // keeps the web build honest: no bridge, no row, and the menu is the
         // same eleven items it has always been (storeprobe asserts exactly
         // this on a page with no bridge attached).
-        ...(tillOpen() ? [{ ico: '🛒', label: t('groups.store'), screen: 'supporter' as Screen }] : []),
+        ...(tillOpen() ? [{ ico: <IcoCart />, label: t('groups.store'), screen: 'supporter' as Screen }] : []),
       ],
     },
     manager: {
       title: game.managerName,
       items: [
-        { ico: '👤', label: t('groups.profile'), screen: 'profile' },
+        { ico: <IcoPerson />, label: t('groups.profile'), screen: 'profile' },
         // the manager is the one in front of the cameras, so the press room
         // belongs to him rather than to the team sheet
-        { ico: '🎙️', label: t('groups.press'), screen: 'press', badge: pressOpen },
+        { ico: <IcoMegaphone />, label: t('groups.press'), screen: 'press', badge: pressOpen },
         // Only the jobs he has not answered. It used to be vacancies.length, so
         // the red dot appeared because somebody somewhere got sacked and nothing
         // he could do would clear it (see GameState.vacancies).
-        { ico: '🕴️', label: t('groups.jobs'), screen: 'jobs', badge: game.vacancies.filter(v => !v.passed && !v.applied).length },
-        { ico: '📜', label: t('groups.legacy'), screen: 'legacy' },
-        { ico: '📖', label: t('groups.handbook'), screen: 'handbook' },
+        { ico: <IcoBriefcase />, label: t('groups.jobs'), screen: 'jobs', badge: game.vacancies.filter(v => !v.passed && !v.applied).length },
+        { ico: <IcoStar />, label: t('groups.legacy'), screen: 'legacy' },
+        { ico: <IcoBook />, label: t('groups.handbook'), screen: 'handbook' },
         // Settings sits ABOVE Report a Bug (owner, v1.2.1): the page you
         // want when the game looks wrong comes before the page you want when
         // it IS wrong.
-        { ico: '⚙️', label: t('groups.settings'), screen: 'settings' },
-        { ico: '🐞', label: t('groups.bug'), screen: 'bug' },
+        { ico: <IcoCog />, label: t('groups.settings'), screen: 'settings' },
+        { ico: <IcoAlert />, label: t('groups.bug'), screen: 'bug' },
         // what this is, who made it, and what it does with your data - the page
         // a store reviewer looks for and the page a player ends up on when they
         // want the privacy policy without leaving the game
-        { ico: 'ℹ️', label: t('groups.about'), screen: 'about' },
+        { ico: <IcoInfo />, label: t('groups.about'), screen: 'about' },
         // dismissing the welcome dialog used to be final and irreversible
-        { ico: '❓', label: t('groups.howToPlay'), screen: 'home', action: () => useStore.getState().openTut() },
-        { ico: '💾', label: t('groups.saveLoad'), screen: 'saves' },
+        { ico: <IcoHelp />, label: t('groups.howToPlay'), screen: 'home', action: () => useStore.getState().openTut() },
+        { ico: <IcoSave />, label: t('groups.saveLoad'), screen: 'saves' },
         // A reload now resumes the career where it was left, so a refresh is no
         // longer the way back to the title screen - and without a deliberate
         // route there, starting a second career would be impossible.
-        { ico: '🚪', label: t('groups.mainMenu'), screen: 'menu', action: () => useStore.getState().toTitle() },
+        { ico: <IcoDoor />, label: t('groups.mainMenu'), screen: 'menu', action: () => useStore.getState().toTitle() },
       ],
     },
     world: {
       title: t('groups.world'),
       items: [
-        { ico: '🏆', label: t('groups.competitions'), screen: 'tables' },
+        { ico: <IcoTrophy />, label: t('groups.competitions'), screen: 'tables' },
         // the pinnacle gets a door of its own while you hold a Test job
-        ...(game.natTeam ? [{ ico: '🌏', label: t('groups.country'), screen: 'country' as const }] : []),
-        { ico: '🌍', label: t('groups.nations'), screen: 'nations' },
-        { ico: '🏉', label: t('groups.dreamteam'), screen: 'dreamteam' },
-        { ico: '🔭', label: t('groups.agency'), screen: 'agency' },
-        { ico: '📜', label: t('groups.history'), screen: 'history' },
+        ...(game.natTeam ? [{ ico: <IcoFlag />, label: t('groups.country'), screen: 'country' as const }] : []),
+        { ico: <IcoGlobe />, label: t('groups.nations'), screen: 'nations' },
+        { ico: <IcoPeople />, label: t('groups.dreamteam'), screen: 'dreamteam' },
+        { ico: <IcoSearch />, label: t('groups.agency'), screen: 'agency' },
+        { ico: <IcoClock />, label: t('groups.history'), screen: 'history' },
       ],
     },
   }
@@ -658,10 +699,25 @@ export default function App() {
 
   return (
     <div className={appClass} style={clubVars}>
-      <header className="masthead">
+      {/* HOME WEARS THE CLUB, THE OTHER FORTY SCREENS DO NOT (Phase 1).
+          The club gradient, the radial wash and the club/gold/club rule used
+          to paint on every screen in the game, which is the fastest way to
+          make a club colour mean nothing. See system.css, SHELL. The class
+          name stays .masthead either way: 16 harnesses select on it. */}
+      <header className={cur.screen === 'home' ? 'masthead' : 'masthead masthead-plain'}>
         <div className="masthead-row">
           {nav.length > 1
-            ? <button className="back-btn" onClick={back}>‹</button>
+            ? (
+              /* ONE ICON LANGUAGE (Phase 1). This was a text chevron in the
+                 body face at 26px, sitting beside a nav rail of drawn glyphs
+                 and a submenu of emoji - three icon languages in one shell.
+                 The class and the 44px expander behind it are unchanged: nine
+                 harnesses click .back-btn and scripts/portraitqa.mjs measures
+                 where it sits against the title. */
+              <button className="back-btn" onClick={back} aria-label={t('common.back')}>
+                <IcoChevronLeft />
+              </button>
+            )
             : null}
           {/* named, not an inline style, so portrait can give it the whole width
               and drop the controls onto a second row - at 412px the back button,
@@ -730,7 +786,10 @@ export default function App() {
           The class goes on the scroller itself, where a background is pinned
           to the element and the cards ride over it. One attribute, and it
           costs nothing on the forty screens that do not use it. */}
-      <main className={`content scr-${cur.screen}`}>{screen()}</main>
+      <main key={`${nav.length}-${cur.screen}`}
+            className={`content scr-${cur.screen}${dir === 'same' ? '' : ` nav-${dir}`}`}>
+        {screen()}
+      </main>
       <nav className="bottom-nav">
         {/* The order the user asked for, top to bottom: news, home, the hub,
             the manager. World comes last because it is the only group that is

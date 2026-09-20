@@ -208,7 +208,8 @@
     "wk": "s{n}",
     "listSep": ", ",
     "nothing": "",
-    "confirmSell": "Confirmer la vente"
+    "confirmSell": "Confirmer la vente",
+    "back": "Retour"
   },
   "home": {
     "jobCentre": "📋 La bourse aux postes",

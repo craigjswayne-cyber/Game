@@ -207,7 +207,8 @@
   "wk": "sett.{n}",
   "listSep": ", ",
   "nothing": "",
-  "confirmSell": "Conferma la vendita"
+  "confirmSell": "Conferma la vendita",
+  "back": "Indietro"
  },
  "home": {
   "jobCentre": "📋 Il Centro per l'impiego",

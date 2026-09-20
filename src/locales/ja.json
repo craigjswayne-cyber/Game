@@ -205,7 +205,8 @@
   "wk": "第{n}週",
   "listSep": "、",
   "nothing": "",
-  "confirmSell": "売却を確定"
+  "confirmSell": "売却を確定",
+  "back": "戻る"
  },
  "home": {
   "jobCentre": "📋 求人センター",

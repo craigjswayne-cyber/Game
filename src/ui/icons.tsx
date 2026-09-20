@@ -357,3 +357,54 @@ export const IcoGrowth = () => (
     <path d="M12 13c0-3.4 2.6-6 6-6 0 3.4-2.6 6-6 6z" />
   </svg>
 )
+
+/* ---- Phase 1: the five the submenus still needed.
+   The three group menus carried 29 emoji, which is a fourth icon language in
+   a shell that already had drawn glyphs on the nav rail and a text chevron in
+   the header. Twenty-four of the twenty-nine had a glyph here already; these
+   are the five that did not. Same 24px grid, same stroke, same S. */
+
+/** A basket: the supporter store, the only door in the game that takes money. */
+export const IcoCart = () => (
+  <svg viewBox="0 0 24 24" {...S}>
+    <path d="M3 5h2.2l2.3 10.2a1.6 1.6 0 0 0 1.6 1.3h7.6a1.6 1.6 0 0 0 1.6-1.2L20 8H6.2" />
+    <circle cx="9.5" cy="20" r="1.3" />
+    <circle cx="17" cy="20" r="1.3" />
+  </svg>
+)
+
+/** A case: a job, a vacancy, somebody else's dugout. */
+export const IcoBriefcase = () => (
+  <svg viewBox="0 0 24 24" {...S}>
+    <rect x="3" y="7.5" width="18" height="12" rx="2" />
+    <path d="M9 7.5V6a1.8 1.8 0 0 1 1.8-1.8h2.4A1.8 1.8 0 0 1 15 6v1.5" />
+    <path d="M3 12.5h18" />
+  </svg>
+)
+
+/** About, credits, the privacy policy: what this is and who made it. */
+export const IcoInfo = () => (
+  <svg viewBox="0 0 24 24" {...S}>
+    <circle cx="12" cy="12" r="8.6" />
+    <path d="M12 11v5.2" />
+    <path d="M12 7.9h.01" strokeWidth="2.2" />
+  </svg>
+)
+
+/** How to play. The one glyph in the set that is a letterform, because a
+    question mark is read faster than any drawing of one. */
+export const IcoHelp = () => (
+  <svg viewBox="0 0 24 24" {...S}>
+    <circle cx="12" cy="12" r="8.6" />
+    <path d="M9.7 9.6a2.4 2.4 0 1 1 3.2 2.3c-.6.2-.9.8-.9 1.4v.5" />
+    <path d="M12 16.6h.01" strokeWidth="2.2" />
+  </svg>
+)
+
+/** A flag on a pole: a nation, as distinct from the globe the world wears. */
+export const IcoFlag = () => (
+  <svg viewBox="0 0 24 24" {...S}>
+    <path d="M6 21V3.8" />
+    <path d="M6 4.4h11.6l-2.4 4 2.4 4H6" />
+  </svg>
+)

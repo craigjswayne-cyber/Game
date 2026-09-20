@@ -531,3 +531,149 @@ button.tile:active { background: var(--press); }
     animation-iteration-count: 1 !important;
   }
 }
+
+/* ================= SHELL: THE SCREEN HEADER =================
+ *
+ * WHAT WAS THERE. One masthead for forty screens, painted with the club's
+ * gradient, a radial wash of the club's first colour and a three-stop
+ * club/gold/club rule under it - on the Squad list, on Finances, on the
+ * handbook, on the bug report. An identity that appears on every screen is
+ * not an identity, it is wallpaper, and it was costing the club crest the
+ * one thing a crest is for: arriving somewhere.
+ *
+ * WHAT IS THERE NOW. Home keeps all of it. Home is the club's room and it
+ * should look like the club. Every other screen gets a plain header on
+ * --surface-1 with a hairline under it, which is furniture, and the club
+ * colour goes back to meaning something.
+ *
+ * WHY THE CLASS NAMES DO NOT CHANGE. 57 of the 269 harnesses in scripts/
+ * select on this shell - 41 on .bottom-nav, 34 on .submenu, 28 on
+ * .continue-btn, 16 on .masthead, 9 on .back-btn. The names are a test
+ * contract. Everything inside them is free; the hooks are not.
+ *
+ * THE TITLE IS THE ONE PIECE OF TYPE ON EVERY SCREEN, and Phase 0 missed it:
+ * .masthead h1 asks for --sans, not --cond or --serif, so re-pointing those
+ * two at the display face left the single most-read line in the game in the
+ * body face. It is on --display now.
+ *
+ * SIZES ARE DELIBERATELY UNCHANGED IN PORTRAIT. theme.css drops the title to
+ * 17px and the date to 11px at (orientation: portrait), this file loads after
+ * it, and a bare rule here would silently undo both. scripts/portraitqa.mjs
+ * caps the whole header at 118px and checks the title and the date share a
+ * baseline, so portrait geometry is held exactly where it is and only the
+ * face changes. Barlow Condensed is the narrower of the two, so the practical
+ * effect in portrait is longer club names before the ellipsis, not fewer.
+ */
+.masthead h1 {
+  font-family: var(--display);
+  font-size: var(--fs-20);
+  font-weight: 700;
+  /* -0.8px was tuned for Inter. A condensed face is already tight; the same
+     tracking on it closes the counters and the title stops being legible at
+     a glance, which is the only thing this line has to do. */
+  letter-spacing: 0;
+  line-height: var(--lh-snug);
+}
+@media (orientation: portrait) { .masthead h1 { font-size: var(--fs-17); } }
+
+.masthead .date { font-family: var(--display); }
+
+/* ---- off Home: furniture ---- */
+.masthead-plain {
+  background: var(--surface-1);
+  color: var(--text-primary);
+}
+/* the tricolour is the club's, so it goes with the club. A hairline in its
+   place, not nothing: the header still has to separate from the scroller. */
+.masthead-plain::after { height: 1px; background: var(--border); }
+.masthead-plain h1 { text-shadow: none; }
+.masthead-plain .date { color: var(--text-muted); }
+/* --on-hero was chosen because the gradient does not flip with the theme.
+   There is no gradient here, so the chevron follows the theme like everything
+   else on the surface it now sits on. */
+.masthead-plain .back-btn { color: var(--text-primary); }
+
+/* ---- the group menus ----
+ * .mico was sized as TEXT (font-size: 17px, text-align: center) because what
+ * it held was an emoji. It holds an SVG now, and an SVG with a viewBox and no
+ * width resolves to the replaced-element default rather than to 17px, so the
+ * box has to be stated.
+ *
+ * The two hardcoded white washes below are a daylight bug of exactly the kind
+ * scripts/systemqa.ts caught in the button ramp: rgba(255,255,255,.08) as a
+ * pressed state and rgba(255,255,255,.06) as a divider are invisible on a
+ * white panel, so in daylight the Hub was twelve unseparated rows that gave
+ * no feedback when tapped. --press and --border both flip with the theme.
+ */
+.submenu-item .mico {
+  width: 20px; height: 20px;
+  display: grid; place-items: center;
+  /* muted, not primary: twelve icons at full contrast is twelve competing
+     claims on the eye, and the label is what the manager is reading. */
+  color: var(--text-muted);
+  flex: 0 0 auto;
+}
+.submenu-item .mico svg { width: 100%; height: 100%; display: block; }
+.submenu-item { border-bottom-color: var(--border); }
+.submenu-item:active { background: var(--press); }
+.submenu-item:active .mico { color: var(--text-primary); }
+
+/* ---- screen transitions ----
+ * THE MOTION IS VERTICAL, AND THAT IS NOT A STYLE CHOICE.
+ * The first cut slid the screen in from the right, 14px, which is what a push
+ * on a nav stack normally looks like. scripts/portraitqa.mjs failed it on
+ * three screens with "+14px past the right edge", and the probe was right:
+ * .content is the scroller, so for the 200ms the keyframe runs, every row in
+ * it really is 14px wider than the phone. On a real device that is a
+ * horizontal scrollbar flickering in and out on every navigation, and on a
+ * slow one it is a visible sideways jolt. There is no clipping wrapper that
+ * fixes it either, because the elements are genuinely displaced - only their
+ * painting would be hidden.
+ *
+ * Vertical costs nothing: .content already scrolls on that axis, so 6px of
+ * rise is absorbed. Push rises, pop settles, and the direction still reads.
+ * 6px, not 14: this is a lift, not a slide.
+ *
+ * The keyframe runs on mount because <main> is keyed on depth and screen, so
+ * there is nothing to clean up and nothing left transformed afterwards -
+ * which matters, because a lasting transform on the scroller would make it
+ * the containing block for any fixed element a screen puts inside it.
+ */
+@keyframes nav-push { from { opacity: 0; transform: translate3d(0, 6px, 0); } }
+@keyframes nav-pop  { from { opacity: 0; transform: translate3d(0, -6px, 0); } }
+@keyframes nav-fade { from { opacity: 0; } }
+.content.nav-push { animation: nav-push var(--dur) var(--ease); }
+.content.nav-pop  { animation: nav-pop  var(--dur) var(--ease); }
+.content.nav-fade { animation: nav-fade var(--dur-fast) var(--ease); }
+@media (prefers-reduced-motion: reduce) {
+  .content.nav-push, .content.nav-pop, .content.nav-fade { animation: none; }
+}
+
+/* ---- the back chevron ----
+ * WHAT scripts/tapsize.mjs CAUGHT, and it was right to: swapping the text
+ * chevron for an SVG dropped the button's box from 22x34 to 10x34, because an
+ * <svg> with a viewBox and no width is a replaced element and does not take
+ * the 26px font-size the old glyph did. The 44px expander behind it is sized
+ * in insets, so a narrower box gave a narrower hit area - 32px of the 44 the
+ * probe requires, on the second most-used control in the app, on every screen
+ * with a back arrow.
+ *
+ * The box is stated now and the insets are retuned to it: 24 + 10 of padding
+ * = 34 wide and 24 + 4 = 28 tall, then -10px each side and -8px top and bottom
+ * gives 54 x 44. Wider than 44 horizontally on purpose - it is against the
+ * screen edge, where a thumb arrives at an angle.
+ */
+.back-btn {
+  display: grid; place-items: center;
+  /* 24 of icon + 4 above + 6 below = the same 34px tall box the 26px text
+     glyph produced. The height is not free to choose: the button sits about
+     24px from the top of the viewport, scripts/tapsize.mjs ray-marches out
+     from the centre and stops at the screen edge, so a shorter box cannot
+     reach 44px upwards however far the expander is pushed - it would only
+     grow downwards, into the row where the floodlight toggle and Continue
+     live, and steal their taps. Restoring the box height is the fix; growing
+     the expander is not. */
+  padding: 4px 10px 6px 0;
+  font-size: 0;            /* nothing in here is text any more */
+}
+.back-btn svg { width: 24px; height: 24px; display: block; }

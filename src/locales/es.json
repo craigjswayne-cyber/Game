@@ -207,7 +207,8 @@
   "wk": "sem {n}",
   "listSep": ", ",
   "nothing": "",
-  "confirmSell": "Confirmar venta"
+  "confirmSell": "Confirmar venta",
+  "back": "Atrás"
  },
  "home": {
   "jobCentre": "📋 La oficina de empleo",

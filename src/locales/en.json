@@ -204,7 +204,8 @@
   "wk": "wk{n}",
   "listSep": ", ",
   "nothing": "",
-  "confirmSell": "Confirm sale"
+  "confirmSell": "Confirm sale",
+  "back": "Back"
  },
  "home": {
   "jobCentre": "📋 The Job Centre",
