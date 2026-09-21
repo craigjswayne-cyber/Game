@@ -1,0 +1,96 @@
+{
+  "set": "stadium",
+  "status": "locked",
+  "canvas": [
+    1254,
+    1254
+  ],
+  "measured_against": "art/masters/playing-surface",
+  "locked_goal_span_px": 773.5,
+  "locked_dead_ball_span_px": 900.5,
+  "locked_halfway_px": 627.0,
+  "safe_pitch_reference": [
+    "stadium-L0.png",
+    "stadium-L1.png",
+    "stadium-L3.png"
+  ],
+  "known_deviations": [
+    "pitch scaled to 83.6% at L4 and 71.0% at L5",
+    "L0 carries dugouts and a perimeter rail fence, specified as bare pitch",
+    "progression runs about one level early from L2"
+  ],
+  "levels": [
+    {
+      "level": 0,
+      "file": "stadium-L0.png",
+      "goal_span_px": 773.5,
+      "goal_span_pct": 100.0,
+      "dead_ball_span_px": 900.5,
+      "dead_ball_span_pct": 100.0,
+      "halfway_px": 626.5,
+      "pitch_matches_lock": true,
+      "md5": "c6de50fca56c6d77b95b4e3b243dc5ce",
+      "bytes": 1940244
+    },
+    {
+      "level": 1,
+      "file": "stadium-L1.png",
+      "goal_span_px": 774.0,
+      "goal_span_pct": 100.1,
+      "dead_ball_span_px": 900.5,
+      "dead_ball_span_pct": 100.0,
+      "halfway_px": 627.0,
+      "pitch_matches_lock": true,
+      "md5": "f64e26243b298ff5d1462d3b735581c5",
+      "bytes": 2187839
+    },
+    {
+      "level": 2,
+      "file": "stadium-L2.png",
+      "goal_span_px": 761.5,
+      "goal_span_pct": 98.4,
+      "dead_ball_span_px": 872.5,
+      "dead_ball_span_pct": 96.9,
+      "halfway_px": 626.5,
+      "pitch_matches_lock": false,
+      "md5": "f0e3fe04ff3c6620fe893861b152da10",
+      "bytes": 2117154
+    },
+    {
+      "level": 3,
+      "file": "stadium-L3.png",
+      "goal_span_px": 772.0,
+      "goal_span_pct": 99.8,
+      "dead_ball_span_px": 875.0,
+      "dead_ball_span_pct": 97.2,
+      "halfway_px": 626.5,
+      "pitch_matches_lock": true,
+      "md5": "f73a6d3c1e8a29fb5820c139183a9ac8",
+      "bytes": 2007663
+    },
+    {
+      "level": 4,
+      "file": "stadium-L4.png",
+      "goal_span_px": 646.5,
+      "goal_span_pct": 83.6,
+      "dead_ball_span_px": 749.5,
+      "dead_ball_span_pct": 83.2,
+      "halfway_px": 626.5,
+      "pitch_matches_lock": false,
+      "md5": "d56337b7d36946c68997681fff51f456",
+      "bytes": 2224175
+    },
+    {
+      "level": 5,
+      "file": "stadium-L5.png",
+      "goal_span_px": 549.0,
+      "goal_span_pct": 71.0,
+      "dead_ball_span_px": 634.0,
+      "dead_ball_span_pct": 70.4,
+      "halfway_px": 625.5,
+      "pitch_matches_lock": false,
+      "md5": "be30f7af9ba4eaf86d7e396b28d19a9f",
+      "bytes": 2626113
+    }
+  ]
+}
