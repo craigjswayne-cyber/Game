@@ -10,7 +10,7 @@ A locked set is frozen. Do not regenerate, retouch, rescale or re-crop its files
 | --- | --- | --- | --- |
 | 1 | Playing Surface | `playing-surface/` | Locked |
 | 2 | Stadium | `stadium/` | Locked |
-| 3 | Strength & Conditioning Gym | | Not started |
+| 3 | Strength & Conditioning Gym | `gym/` | Locked |
 | 4 | Recovery Centre | | Not started |
 | 5 | Training Paddock | | Not started |
 | 6 | Kicking Enclosure | | Not started |
@@ -18,6 +18,16 @@ A locked set is frozen. Do not regenerate, retouch, rescale or re-crop its files
 | 8 | Centre of Excellence | | Not started |
 | 9 | Hospitality & Boxes | | Not started |
 | 10 | Club Shop & Megastore | | Not started |
+
+**The campus site plan, adopted from the gym onward.** The four connector stubs run inward along
+the two canvas centre lines to a central paved court; those routes are permanent and nothing is
+built on them; everything else sits in the four quadrants between them. This is what finally kept
+all four stubs clear at every level. `gym/README.md` has the wording. Apply it to every remaining
+facility.
+
+**Outstanding: there is no master empty plot.** It was to have been gym level 0, which now carries
+a building. Generate it once as a standalone asset before starting facilities 4 to 10, otherwise
+each will invent its own starting plot.
 
 **The authoritative pitch reference is `playing-surface/playing-surface-L2.png`.** Every asset
 containing a pitch is generated from it and measured against the coordinates in that folder's
