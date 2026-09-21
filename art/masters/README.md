@@ -11,7 +11,7 @@ A locked set is frozen. Do not regenerate, retouch, rescale or re-crop its files
 | 1 | Playing Surface | `playing-surface/` | Locked |
 | 2 | Stadium | `stadium/` | Locked |
 | 3 | Strength & Conditioning Gym | `gym/` | Locked |
-| 4 | Recovery Centre | | Not started |
+| 4 | Recovery Centre | `recovery/` | Locked |
 | 5 | Training Paddock | | Not started |
 | 6 | Kicking Enclosure | | Not started |
 | 7 | Analysis & Briefing Suite | | Not started |
@@ -19,15 +19,22 @@ A locked set is frozen. Do not regenerate, retouch, rescale or re-crop its files
 | 9 | Hospitality & Boxes | | Not started |
 | 10 | Club Shop & Megastore | | Not started |
 
-**The campus site plan, adopted from the gym onward.** The four connector stubs run inward along
-the two canvas centre lines to a central paved court; those routes are permanent and nothing is
-built on them; everything else sits in the four quadrants between them. This is what finally kept
-all four stubs clear at every level. `gym/README.md` has the wording. Apply it to every remaining
-facility.
+**The campus site plan — use the recovery centre's, not the gym's.** The gym split the plot into
+four quadrants around a cross of routes; it kept the stubs clear but divided the square. The
+recovery centre replaced it with one central mass that grows outward until it fills the plot, ringed
+by a 6 m apron that the four stubs run straight in to meet. That fills the square AND keeps all four
+stubs connected, which the quadrant plan could not do at once. `recovery/README.md` has the wording.
 
-**Outstanding: there is no master empty plot.** It was to have been gym level 0, which now carries
-a building. Generate it once as a standalone asset before starting facilities 4 to 10, otherwise
-each will invent its own starting plot.
+**No facility needs a master empty plot any more.** Every facility now starts with one small
+building rather than bare ground, so the standalone empty plot that gym level 0 was going to
+provide is no longer a dependency.
+
+**Level 5 breaks the palette, twice running.** The gym's and the recovery centre's level 5 images
+both render with grass roughly 60% darker than their own levels 0 to 4, despite an explicit numeric
+grass value in the prompt. The working theory is that aspirational wording ("world-class",
+"excessive", "the most expensive thing on the campus") triggers a darker, more cinematic render that
+overrides the colour instruction. Write level 5 as a plain extension of level 4, with no
+superlatives.
 
 **The authoritative pitch reference is `playing-surface/playing-surface-L2.png`.** Every asset
 containing a pitch is generated from it and measured against the coordinates in that folder's
