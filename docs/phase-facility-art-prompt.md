@@ -1,5 +1,13 @@
 # PHASE: RUGBY MANAGER — FACILITY ART GENERATION PROMPT (for ChatGPT / image generation)
 
+> **Superseded for production use.** Run 1 (Playing Surface) has been generated and accepted, and the
+> accepted Level 0 is now the PHASE MASTER PITCH. Its measured proportions differ from the regulation
+> figures written below: overall ratio 1.59:1 (not 1.714:1), in-goals 8m deep (not 10m), 22m lines at
+> 23m, lengthwise dashed lines 8m and 18m in from each touchline. Those deviations were measured and
+> knowingly accepted as the house style, so every later asset must match the master image rather than
+> the numbers here. Work from the step-by-step runbook, which carries the corrected lock, the stub
+> clearance rule and the extended QC gate. This file is kept as the original brief.
+
 How to use this document:
 
 1. Paste **PART A (MASTER LOCK)** into a new ChatGPT conversation on its own. Wait for it to confirm.
