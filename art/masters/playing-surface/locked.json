@@ -1,0 +1,88 @@
+{
+  "set": "playing-surface",
+  "status": "locked",
+  "canvas": [
+    1254,
+    1254
+  ],
+  "master_pitch": "playing-surface-L2.png",
+  "px_per_metre": 7.5,
+  "geometry_px": {
+    "dead_ball_left": 176.5,
+    "goal_line_left": 240.0,
+    "line_22_left": 420.0,
+    "line_10_left": 546.5,
+    "halfway": 627.0,
+    "line_10_right": 707.0,
+    "line_22_right": 833.5,
+    "goal_line_right": 1013.5,
+    "dead_ball_right": 1077.0,
+    "touchline_north": 309.0,
+    "touchline_south": 876.5
+  },
+  "max_drift_px": 1.5,
+  "accepted_deviations": {
+    "overall_ratio": 1.59,
+    "field_of_play_m": [
+      100,
+      73
+    ],
+    "in_goal_depth_m": 8.1,
+    "line_22_m": 23.3,
+    "lengthwise_dashed_m": [
+      7.8,
+      17.9
+    ],
+    "goalpost_spacing_m": 10.7
+  },
+  "levels": [
+    {
+      "level": 0,
+      "file": "playing-surface-L0.png",
+      "surface": "bog",
+      "west_stub": "clear",
+      "md5": "61cf9932e3ef2d07d5e0996f2baa5395",
+      "bytes": 3220304
+    },
+    {
+      "level": 1,
+      "file": "playing-surface-L1.png",
+      "surface": "reclaimed",
+      "west_stub": "clear",
+      "md5": "a05ca3afc681418c93af355332d4963a",
+      "bytes": 2669487
+    },
+    {
+      "level": 2,
+      "file": "playing-surface-L2.png",
+      "surface": "polished",
+      "west_stub": "blocked",
+      "md5": "5c80a476bd3fcd99eb559312c860b356",
+      "bytes": 2271660
+    },
+    {
+      "level": 3,
+      "file": "playing-surface-L3.png",
+      "surface": "irrigation",
+      "west_stub": "blocked",
+      "md5": "9ed6d04777c4b335dadbaa1eda59b168",
+      "bytes": 2303690
+    },
+    {
+      "level": 4,
+      "file": "playing-surface-L4.png",
+      "surface": "heating",
+      "west_stub": "blocked",
+      "md5": "7e746a194b0ca615147bc0f2e5c868b9",
+      "bytes": 2177279
+    },
+    {
+      "level": 5,
+      "file": "playing-surface-L5.png",
+      "surface": "finished",
+      "west_stub": "blocked",
+      "md5": "71d16baba96ddb4048116f1190472117",
+      "bytes": 2164721
+    }
+  ]
+}
