@@ -371,6 +371,21 @@ option { font: inherit; color: var(--text-primary); background-color: var(--surf
    makes it size to the content instead, and the slack goes to the club column
    on its right, which is the one that can use it. */
 .dtable.ranks td.name { width: 1%; padding-right: 4px; }
+
+/* ---- THE TEST NATIONS TABLE IS FOUR COLUMNS, NOT SEVEN ----
+   Owner: "test nation ranking looks weirdly laid out". It is rank, movement
+   arrow, nation, points - one text column and three narrow ones - so the row
+   has nothing to spend its slack on but the nation name, and the points ended
+   an inch adrift of it with a field of nothing between.
+
+   Shrinking the name the way the seniors table does would make that gulf
+   worse, not better, so this one goes the other way: the three narrow columns
+   are pinned to their content and the name keeps the rest, which puts the
+   points hard against the figures they belong to and the flag hard against
+   the rank. */
+.dtable.natranks td:first-child, .dtable.natranks th:first-child { width: 1%; padding-right: 4px; }
+.dtable.natranks td:nth-child(2), .dtable.natranks th:nth-child(2) { width: 1%; padding: 7px 2px; }
+.dtable.natranks td:last-child, .dtable.natranks th:last-child { width: 1%; }
 .ltable th:first-child, .ltable td:first-child { padding-right: 9px; }
 
 /* ---- YOUR ROW, FOUND AT A GLANCE ----
