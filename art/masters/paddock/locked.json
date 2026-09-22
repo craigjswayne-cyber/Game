@@ -1,0 +1,150 @@
+{
+  "set": "paddock",
+  "status": "locked",
+  "canvas": [
+    1254,
+    1254
+  ],
+  "reusable_empty_plot": "paddock-L0.png",
+  "site_plan": "central mass growing outward, 6m apron ring, four stubs run in to the ring",
+  "stub_routes_clear": true,
+  "known_deviations": [
+    "L5 palette drifts: grass 63,130,71 vs set ~74,151,38 (green -12%, blue roughly doubled)",
+    "soft growth steps L1->L2 (24.3->29.7%) and L3->L4 (49.9->51.9%)"
+  ],
+  "l5_palette_experiment": {
+    "change": "level 5 prompt written with no superlatives, as a plain extension of level 4",
+    "gym_green_shortfall_pct": -34,
+    "recovery_green_shortfall_pct": -37,
+    "paddock_green_shortfall_pct": -12,
+    "verdict": "removing aspirational wording recovers roughly two thirds of the break; residual drift is a rise in the blue channel"
+  },
+  "levels": [
+    {
+      "level": 0,
+      "file": "paddock-L0.png",
+      "content": "empty plot",
+      "built_pct": 4.4,
+      "detail_density": 0.066,
+      "median_grass_rgb": [
+        80,
+        147,
+        37
+      ],
+      "stub_reach_m": {
+        "north": 83.5,
+        "south": 83.5,
+        "west": 83.5,
+        "east": 83.5
+      },
+      "palette_matches_set": true,
+      "md5": "52dbc68174c2b9e1852838a05cffa5b0",
+      "bytes": 2153029
+    },
+    {
+      "level": 1,
+      "file": "paddock-L1.png",
+      "content": "small building, outdoor half pitch",
+      "built_pct": 24.3,
+      "detail_density": 0.12,
+      "median_grass_rgb": [
+        74,
+        151,
+        42
+      ],
+      "stub_reach_m": {
+        "north": 83.5,
+        "south": 43.9,
+        "west": 83.5,
+        "east": 83.5
+      },
+      "palette_matches_set": true,
+      "md5": "11cd740038c39d4428b20dd88cf2e891",
+      "bytes": 1521143
+    },
+    {
+      "level": 2,
+      "file": "paddock-L2.png",
+      "content": "bigger building, same half pitch",
+      "built_pct": 29.7,
+      "detail_density": 0.148,
+      "median_grass_rgb": [
+        75,
+        151,
+        41
+      ],
+      "stub_reach_m": {
+        "north": 83.5,
+        "south": 43.3,
+        "west": 83.5,
+        "east": 83.5
+      },
+      "palette_matches_set": true,
+      "md5": "2682723aecf910fb739bbe55d24631b5",
+      "bytes": 1642574
+    },
+    {
+      "level": 3,
+      "file": "paddock-L3.png",
+      "content": "indoor hall, glazed roof over synthetic pitch",
+      "built_pct": 49.9,
+      "detail_density": 0.178,
+      "median_grass_rgb": [
+        73,
+        153,
+        36
+      ],
+      "stub_reach_m": {
+        "north": 28.9,
+        "south": 43.7,
+        "west": 34.9,
+        "east": 31.9
+      },
+      "palette_matches_set": true,
+      "md5": "20076f212b591da9c476a848f2a10529",
+      "bytes": 1632041
+    },
+    {
+      "level": 4,
+      "file": "paddock-L4.png",
+      "content": "larger hall, solar array",
+      "built_pct": 51.9,
+      "detail_density": 0.226,
+      "median_grass_rgb": [
+        70,
+        154,
+        34
+      ],
+      "stub_reach_m": {
+        "north": 30.5,
+        "south": 39.3,
+        "west": 30.1,
+        "east": 26.8
+      },
+      "palette_matches_set": true,
+      "md5": "666f06cf83160774a1de6a8591aacd76",
+      "bytes": 1827323
+    },
+    {
+      "level": 5,
+      "file": "paddock-L5.png",
+      "content": "hall fills the site, zoned interior",
+      "built_pct": 61.7,
+      "detail_density": 0.28,
+      "median_grass_rgb": [
+        63,
+        130,
+        71
+      ],
+      "stub_reach_m": {
+        "north": 24.9,
+        "south": 30.1,
+        "west": 19.2,
+        "east": 19.1
+      },
+      "palette_matches_set": false,
+      "md5": "3b46a09b7655e51223aa0c94e59817c5",
+      "bytes": 2016542
+    }
+  ]
+}
