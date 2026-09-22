@@ -17,7 +17,7 @@ A locked set is frozen. Do not regenerate, retouch, rescale or re-crop its files
 | 7 | Analysis & Briefing Suite | `analysis/` | Locked |
 | 8 | Centre of Excellence | `academy/` | Locked |
 | 9 | Hospitality & Boxes | `hospitality/` | Locked |
-| 10 | Club Shop & Megastore | | Not started |
+| 10 | Club Shop & Megastore | `shop/` | Locked |
 
 **The campus site plan — use the recovery centre's, not the gym's.** The gym split the plot into
 four quadrants around a cross of routes; it kept the stubs clear but divided the square. The
@@ -36,6 +36,16 @@ analysis suite — but there they were a CORRECTION pass on an already-generated
 accepted level 4 attached to sample from. The generator weights a reference image far above a number
 it reads. **Plan for it: generate level 5 normally, expect it dark, then run the correction pass
 from `analysis/README.md`. Budget one extra generation per facility.**
+
+**All ten facilities are locked: 60 assets.** Every set carries its own README with measured
+figures, a `locked.json`, and `CHECKSUMS.md5`. Nine of the ten have a level 5 palette break
+recorded; `shop/` is the only set clean at every level.
+
+**The pins reduce the palette failure rate, they do not eliminate it.** Hospitality & Boxes and the
+Club Shop were generated back to back with identical pin wording. The first broke at levels 4 and 5,
+its level 5 landing at `9,91,33`; the second held green between 148 and 154 at every level. The
+reason is not established. Plan a correction pass for level 5, and for level 4 where that level is a
+large step up; when the first attempt is clean, take it.
 
 **The palette drift can start at level 4.** Hospitality & Boxes broke at level 4 as well as level 5
 — green 124 then 91 against its own 145-150 — the first facility to do so, and its level 5 is the
