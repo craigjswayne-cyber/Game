@@ -335,11 +335,19 @@ export default function Profile() {
         <SectionTitle sub={t('profile.decisionsSub')}>{t('profile.decisions')}</SectionTitle>
         <div className="card" style={{ padding: '6px 10px' }}>
           {game.decisions!.slice(0, 12).map((d, i) => (
-            <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'baseline', padding: '3px 0', borderTop: i ? '1px solid var(--border)' : undefined }}>
+            <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '3px 0', borderTop: i ? '1px solid var(--border)' : undefined }}>
               <span className="muted" style={{ fontFamily: 'var(--cond)', fontSize: 11, minWidth: 62, flexShrink: 0 }}>
                 {seasonLabel(d.season)} w{d.week}
               </span>
-              <span style={{ flexShrink: 0, color: d.good === true ? 'var(--text-positive)' : d.good === false ? 'var(--text-negative)' : 'var(--border-strong)', fontWeight: 700 }}>
+              {/* A FIXED COLUMN FOR THE MARKER (owner: "on the decisions bit
+                  of the management - the arrows are out of alignment"). The
+                  span had no width, and the three glyphs do not share one:
+                  the bullet is roughly half the advance of a triangle, so a
+                  run of good, bad and neutral calls started its text at three
+                  different x positions. Width plus centring makes the marker a
+                  column rather than a character, and the size is pinned so the
+                  triangles stop riding above the 11.5px line beside them. */}
+              <span style={{ flexShrink: 0, width: 13, textAlign: 'center', fontSize: 10.5, lineHeight: '13px', color: d.good === true ? 'var(--text-positive)' : d.good === false ? 'var(--text-negative)' : 'var(--border-strong)', fontWeight: 700 }}>
                 {d.good === true ? '▲' : d.good === false ? '▼' : '•'}
               </span>
               <span className="meta" style={{ fontSize: 11.5 }}>{decisionText(d)}</span>

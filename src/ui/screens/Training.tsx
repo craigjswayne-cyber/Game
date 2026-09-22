@@ -66,7 +66,7 @@ export default function Training() {
                   same way the personal plans below print it (owner, v1.2.6:
                   "(Lock)" and "(LK)" on one screen was two styles for one
                   fact, and the long form wrapped the chips) */}
-              {on ? '● ' : '○ '}{p.name} ({p.pos}) <b>{p.age}</b>
+              {on ? '● ' : '○ '}{p.name} ({p.pos}) <b style={{ marginLeft: 3 }}>{p.age}</b>
             </button>
           )
         })}

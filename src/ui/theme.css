@@ -346,6 +346,31 @@ option { font: inherit; color: var(--text-primary); background-color: var(--surf
    :not() leaves the cascade to say what it was always going to say. */
 .dtable:not(.codefirst) th:first-child,
 .dtable:not(.codefirst) td:first-child { padding-left: 16px; }
+
+/* ---- A NAME SITS NEXT TO ITS RANK, NOT ADRIFT OF IT ----
+   Owner, on every table with a rank column: "the team names should be more
+   left". A league row is rank, then name, and the two cells each carried the
+   default 6px of side padding, so 12px of nothing opened between a
+   right-aligned number and the word it belongs to. The name read as a
+   separate column rather than as the label for that position.
+
+   The gutter is cut on both sides of that one join. It is scoped to a NAME
+   following a NUMBER so it cannot touch the 16px first-column gutter above -
+   that one exists to keep a name off the phone bezel and is a different
+   problem - and so a numeric column in the middle of a table, where the
+   number is data rather than a rank, is left alone. */
+.dtable td.num:first-child { padding-right: 2px; }
+.dtable td.num + td.name { padding-left: 2px; }
+
+/* ---- A RANKING TABLE'S NAME COLUMN SHRINKS TO ITS NAME ----
+   Owner, on the world rankings: "there's too much space between name and
+   position". The name cell is capped at 168px and the table is full width, so
+   the slack in a row of short nation and player names was handed to the name
+   column and the position badge was pushed most of a thumb's width clear of
+   the word it describes. Giving the cell a width smaller than its content
+   makes it size to the content instead, and the slack goes to the club column
+   on its right, which is the one that can use it. */
+.dtable.ranks td.name { width: 1%; padding-right: 4px; }
 .ltable th:first-child, .ltable td:first-child { padding-right: 9px; }
 
 /* ---- YOUR ROW, FOUND AT A GLANCE ----

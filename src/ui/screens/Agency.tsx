@@ -41,7 +41,7 @@ export default function Agency() {
           <button className="active">{t('world.agTestNations')}</button>
         </div>
         <SectionTitle sub={t('world.agTestSub')}>{t('world.agTestTitle')}</SectionTitle>
-        <div className="tblwrap"><table className="dtable">
+        <div className="tblwrap"><table className="dtable ranks">
           <thead><tr><th>{t('tables.colRank')}</th><th></th><th>{t('world.natColNation')}</th><th className="num">{t('squad.colPts')}</th></tr></thead>
           <tbody>
             {order.map((code, i) => {
@@ -86,7 +86,7 @@ export default function Agency() {
       <SectionTitle sub={t(tab === 'seniors' ? 'world.agSeniorSub' : 'world.agKidSub')}>
         {t(tab === 'seniors' ? 'world.agSeniorTitle' : 'world.agKidTitle')}
       </SectionTitle>
-      <div className="tblwrap"><table className="dtable">
+      <div className="tblwrap"><table className="dtable ranks">
         {/* No High column. It shadowed the rank number one cell to its left and
             cost the width that pushed Club off a portrait screen (user: "we dont
             want a high column"). The movement arrow already tells the story. */}
