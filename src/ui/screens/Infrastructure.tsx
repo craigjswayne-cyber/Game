@@ -61,6 +61,12 @@ export default function Infrastructure() {
   const abs = game.season * 100 + game.week
   const grade = estateGrade(club)
   const plan = expansionPlan(game)
+  // the ground is on the same builders' slot as the facilities now: the board
+  // buys a stand, the stand takes twelve weeks, and nothing else is built
+  // while it goes up
+  const standBuild = game.stadiumBuild ?? null
+  const standWeeks = standBuild ? Math.max(1, weeksBetween100(standBuild.done, abs)) : 0
+  const busy = game.facilityBuild != null || standBuild != null
   const ids = Object.keys(FACILITY_INFO) as FacilityId[]
 
   // where the estate ranks in your own league - the only comparison that stings
@@ -117,6 +123,12 @@ export default function Infrastructure() {
                   : t('world.infMoreThanHolds', { n: (demandCeiling(club) - club.capacity).toLocaleString() }),
               })}
             </div>
+            {standBuild && (
+              <div className="meta" style={{ fontSize: 11, color: 'var(--gold)', fontWeight: 700 }}>
+                {t(standWeeks === 1 ? 'world.infBuildersOne' : 'world.infBuilders', { n: standWeeks })}
+                {' '}({standBuild.seats.toLocaleString()})
+              </div>
+            )}
           </div>
           <div style={{ textAlign: 'right' }}>
             <div className="fact-label">{t('world.infEstate')}</div>
@@ -124,7 +136,7 @@ export default function Infrastructure() {
             <div className="meta" style={{ fontSize: 11 }}>{t('world.infRankLine', { sum: grade.sum, max: grade.max, ord, n: peers.length })}</div>
           </div>
           <button className="btn gold" style={{ padding: '5px 10px', fontSize: 11.5, lineHeight: 1.25 }}
-            disabled={club.capacity >= 82_000 || club.capacity >= demandCeiling(club) * 0.95 || game.facilityBuild != null}
+            disabled={club.capacity >= 82_000 || club.capacity >= demandCeiling(club) * 0.95 || busy}
             onClick={() => { setMsg({ key: 'expand', text: requestExpansion(game) }); touch() }}>
             {t('world.infAskExpand')}<br />
             <span style={{ fontSize: 10, fontWeight: 600 }}>{t('world.infSeatsCost', { seats: plan.seats.toLocaleString(), cost: fmtMoney(plan.cost) })}</span>
@@ -165,7 +177,7 @@ export default function Infrastructure() {
                 </div>
                 {!building && lvl < MAX_FACILITY && (
                   <button className="btn gold" style={{ padding: '5px 9px', fontSize: 11, lineHeight: 1.25, flexShrink: 0 }}
-                    disabled={game.facilityBuild != null}
+                    disabled={busy}
                     onClick={() => { setMsg({ key: fid, text: requestFacility(game, fid) }); touch() }}>
                     {t('world.infAskBoard')}<br />
                     <span style={{ fontSize: 10, fontWeight: 600 }}>{t('world.infLevelCost', { n: lvl + 1, cost: fmtMoney(cost) })}</span>

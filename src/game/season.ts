@@ -16,7 +16,7 @@ import { AWARD_EVERY, managerOfMonth, runLine, runVars } from './awards'
 import { boardMemo } from './boardmemo'
 import { terraceWeek } from './terraces'
 import { upkeepWeek } from './upkeep'
-import {absWeek, addGrudge, boardObjective, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, buildWeeks, finalVenue, fixtureDayOff, fmtMoney, leagueTier, LEDGER_WEEKS, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, RELEGATES, SEASON_WEEKS, seasonLabel, squadTrust, unbeatenRun, weeklyCentral, mgrWinWeight, addWeeks100 } from './model'
+import {absWeek, addGrudge, boardObjective, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, buildWeeks, finalVenue, fixtureDayOff, fmtMoney, leagueTier, LEDGER_WEEKS, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, RELEGATES, SEASON_WEEKS, seasonLabel, squadTrust, STAND_BUILD_WEEKS, unbeatenRun, weeklyCentral, mgrWinWeight, addWeeks100 } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { BARRAGE_WEEK, windowSpan } from './calendar'
 import { emptyRow, leaguePos, sortTable, snIdFor, snWeeksFor, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS, W_AUTUMN_WEEKS, W_SIX_NATIONS_WEEKS, W_PAC4_WEEKS, W_SUMMER_TEST_WEEKS } from './schedule'
@@ -94,6 +94,8 @@ export function requestFacility(state: GameState, fid: FacilityId): string {
   const lvl = club?.facilities?.[fid] ?? 0
   if (lvl >= MAX_FACILITY) return t('facilities.facAlreadyWorldClass', { facility: t(info.name).toLowerCase() })
   if (state.facilityBuild) return t('facilities.facBuildersBusy', { facility: t(FACILITY_INFO[state.facilityBuild.id].name) })
+  // one builders' slot, and the new stand is in it
+  if (state.stadiumBuild) return t('facilities.facStandBusy', { stadium: club.stadium })
   const abs = state.season * 100 + state.week
   // inside a denial the polite refusal is gone: asking again is pressing the
   // board, and pressing the board has a price (pressBoard above)
@@ -145,7 +147,7 @@ export function requestFacility(state: GameState, fid: FacilityId): string {
   state.facilityBuild = { id: fid, done: addWeeks100(abs, weeks), level: lvl + 1 }
   delete state.boardAsks?.capital // a yes wipes the slate
   const boardPut = cost - clubShare
-  logDecision(state, 'dec.facilityApproved', { lvl: lvl + 1, fac_k: info.name, cost: fmtMoney(cost) }, true)
+  logDecision(state, 'dec.facilityApproved', { lvl: lvl + 1, fac_k: info.name, cost: fmtMoney(cost), weeks }, true)
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
     subject: `🏛 Board approves: ${tIn('en', info.name)} to level ${lvl + 1}`,
@@ -196,6 +198,7 @@ export function requestExpansion(state: GameState): string {
     return t('reply.groundBigEnough', { stadium: club.stadium })
   }
   if (state.facilityBuild) return t('reply.buildersBusy')
+  if (state.stadiumBuild) return t('facilities.facStandBusy', { stadium: club.stadium })
   // same door as the facilities: inside a denial, asking again is pressing
   if ((state.facilityAskCooldown ?? 0) > abs) return pressBoard(state, 'capital')
   const { seats, cost, fill, played } = expansionPlan(state)
@@ -225,18 +228,23 @@ export function requestExpansion(state: GameState): string {
     return t('reply.declined', { why_k: whyKey, pct: Math.round(fill * 100) })
   }
   club.balance -= cost
-  club.capacity += seats
   state.expandedSeason = state.season
+  // THE SEATS ARRIVE WHEN THE STAND DOES (owner, v1.6.6). A yes used to put
+  // them on the gate the same afternoon, which made the one project big enough
+  // to reshape the club the only one that cost no time at all. The money goes
+  // now - the contract is signed - and the capacity moves when the builders
+  // are off site, twelve weeks later, holding the builders' slot meanwhile.
+  state.stadiumBuild = { done: addWeeks100(abs, STAND_BUILD_WEEKS), seats, cost }
   delete state.boardAsks?.capital // a yes wipes the slate
-  logDecision(state, 'dec.expandApproved', { stadium: club.stadium, seats, cost: fmtMoney(cost), cap: club.capacity }, true)
+  logDecision(state, 'dec.expandApproved', { stadium: club.stadium, seats, cost: fmtMoney(cost), weeks: STAND_BUILD_WEEKS }, true)
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
-    subject: `🏗 ${club.stadium} grows by ${seats.toLocaleString()} seats`,
-    body: `The board has signed off on a new stand: ${fmtMoney(cost)}, and ${club.stadium} now holds ${club.capacity.toLocaleString()}. The waiting list finally moves, and every one of those seats pays its way at the turnstile.`,
+    subject: `🏗 Builders move in at ${club.stadium}: ${seats.toLocaleString()} seats`,
+    body: `The board has signed off on a new stand: ${fmtMoney(cost)}, and ${seats.toLocaleString()} seats at ${club.stadium}. The hoardings go up this week and the stand opens in ${STAND_BUILD_WEEKS} weeks - until then the ground holds what it always held, and the builders are on this and nothing else.`,
     k: 'news.expApproved',
-    v: { stadium: club.stadium, seats, cost: fmtMoney(cost), cap: club.capacity },
+    v: { stadium: club.stadium, seats, cost: fmtMoney(cost), weeks: STAND_BUILD_WEEKS },
   })
-  return t('reply.expandApproved', { seats, cost: fmtMoney(cost), cap: club.capacity })
+  return t('reply.expandApproved', { seats, cost: fmtMoney(cost), weeks: STAND_BUILD_WEEKS })
 }
 
 /**
@@ -2405,6 +2413,24 @@ export function processWeekAndAdvance(state: GameState) {
       k: 'news.facOpens',
       v: { name_k: info.name, desc_k: info.desc, lvl: b.level },
     })
+  }
+
+  // and the stand tops out: the seats only exist once the builders are gone
+  if (state.stadiumBuild && state.season * 100 + state.week >= state.stadiumBuild.done) {
+    const b = state.stadiumBuild
+    const uc = state.clubs[state.userClubId]
+    state.stadiumBuild = null
+    if (uc) {
+      uc.capacity += b.seats
+      logDecision(state, 'dec.standOpened', { stadium: uc.stadium, seats: b.seats, cap: uc.capacity }, true)
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
+        subject: `🏟 The new stand opens at ${uc.stadium}`,
+        body: `The hoardings are down and the turnstiles are through it: ${uc.stadium} now holds ${uc.capacity.toLocaleString()}, ${b.seats.toLocaleString()} of them new. The waiting list finally moves, and every one of those seats pays its way at the gate.`,
+        k: 'news.expOpened',
+        v: { stadium: uc.stadium, seats: b.seats, cap: uc.capacity },
+      })
+    }
   }
 
   // the physio's red flag: a position group stripped below cover gets an

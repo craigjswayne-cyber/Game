@@ -2778,7 +2778,8 @@
   "gradeThreadbare": "Threadbare",
   "facNotBuildable": "That is not something the club can build.",
   "facAlreadyWorldClass": "The {facility} is already world class. There is nothing left to build.",
-  "facBuildersBusy": "The builders are already on site ({facility}). One project at a time."
+  "facBuildersBusy": "The builders are already on site ({facility}). One project at a time.",
+  "facStandBusy": "The builders are on the new stand at {stadium}. One project at a time."
  },
  "report": {
   "trWhereWeStand": "Where We Stand",
@@ -3135,7 +3136,7 @@
   "a51": "A 0 to 100 reading of how safe your job is. Results move it most, then the objectives you were set, then how you handle the press and whether you keep your promises. It appears on the Home dashboard, and a half-term report card spells out where you stand. Let it fall far enough and you will be sacked. The board's PATIENCE scales with who you manage: a genuine title favourite has a thin-skinned board that reacts hard to every swing, so a season adrift of the trophy is a real crisis - stay hands-off there and you can be out of a job by the spring. A club with modest ambitions has a patient one that barely reacts to a mid-table finish, because nobody expected more. Same numbers, same rules, a very different ride depending on the crest on your shirt.",
   "a52": "In: a weekly commercial and broadcast share set by the club's reputation, gate receipts from home matches, club shop takings, prize money at the end of the season, and transfer fees. Out: player wages, backroom wages, upkeep on the ground and the estate, and whatever you spend. The Finances screen lists every line.",
   "a53": "What it costs to open the doors, every week of the year, match or no match. The ground has to be heated, mown, stewarded and insured, and every facility level is a building with staff inside it. It is why upgrading is a commitment rather than a free ratchet: a better gym is a bill that keeps arriving. The figure is on the Finances screen.",
-  "a54": "There are nine facilities and each runs from level 0 to level 5. You cannot buy them: you ask the board, on the Club Infrastructure page, and the board weighs the price against the reserves and its confidence in you. Confidence buys backing too: a board that rates you in the high seventies underwrites seventy per cent of the bill, seventy or better more than half, one just warming to you about a third, one that merely tolerates you nothing at all, and below forty-five the answer is no whatever the balance says. Approved work takes five weeks. Only one project runs at a time, and a refusal puts you on a two-month cooling-off period before you can ask again.",
+  "a54": "There are nine facilities and each runs from level 0 to level 5. You cannot buy them: you ask the board, on the Club Infrastructure page, and the board weighs the price against the reserves and its confidence in you. Confidence buys backing too: a board that rates you in the high seventies underwrites seventy per cent of the bill, seventy or better more than half, one just warming to you about a third, one that merely tolerates you nothing at all, and below forty-five the answer is no whatever the balance says. Approved work takes three weeks at the first level and twelve at the last, and a new stand takes twelve. Only one project runs at a time, and a refusal puts you on a two-month cooling-off period before you can ask again.",
   "a55": "Playing Surface: fewer breakdowns and fewer injuries in home matches. Gym: condition recovered every week. Recovery Centre: shorter layoffs. Training Paddock: attribute training bites more often. Kicking Enclosure: sharper goal kicking. Briefing Suite: match preparation and the analyst both land harder. Centre of Excellence: better academy intakes. Club Shop: retail income every week, more when the fans are happy. Hospitality and Boxes: every home gate is worth 4 per cent more per level. Each card on the Infrastructure page states its current effect in plain numbers.",
   "a56": "Usually one of three reasons, and it says which. Not enough of the season played to judge demand, a ground that is not full enough as it is, or reserves that will not carry the build. There is a fourth: every club has a catchment, and once the ground holds about everyone who would come, more seats would be empty seats. The Infrastructure page states your catchment so you can see where the ceiling is.",
   "a57": "It did not take it, it spent it. A board will not let a large surplus sit in a deposit account while the club stands still, so over the summer anything well beyond a season of wages plus a float goes back into the club: a build on the estate, the ground debt, the academy, the community programme. The news item says what it went on, and the terraces notice.",
@@ -3564,8 +3565,8 @@
   "expNoEmpty": "the ground is only {pct}% full as it is",
   "expNoReserves": "the reserves will not carry a build this size",
   "expNoResults": "the board wants better results before it pours concrete",
-  "expApprovedSubj": "🏗 {stadium} grows by {seats} seats",
-  "expApproved": "The board has signed off on a new stand: {cost}, and {stadium} now holds {cap}. The waiting list finally moves, and every one of those seats pays its way at the turnstile.",
+  "expApprovedSubj": "🏗 Builders move in at {stadium}: {seats} seats",
+  "expApproved": "The board has signed off on a new stand: {cost}, and {seats} seats at {stadium}. The hoardings go up this week and the stand opens in {weeks} weeks - until then the ground holds what it always held, and the builders are on this and nothing else.",
   "stgQF": "quarter-final",
   "stgSF": "semi-final",
   "stgF": "FINAL",
@@ -5274,7 +5275,9 @@
   "deputationOne": "A delegation of senior players comes to the office and closes the door. Polite and blunt: the room has watched the {a} situation drift, and it wants to know who is in charge. Answer it in the {room_k}, win on Saturday, and the door stops opening.",
   "deputationNamedOne": "{player} comes to the office and closes the door. Polite and blunt: the room has watched the {a} situation drift, and it wants to know who is in charge. Answer it in the {room_k}, win on Saturday, and the door stops opening.",
   "deputationOneSubj": "🚪 The senior players ask for a meeting",
-  "deputationNamedOneSubj": "🚪 {player} asks for a meeting"
+  "deputationNamedOneSubj": "🚪 {player} asks for a meeting",
+  "expOpenedSubj": "🏟 The new stand opens at {stadium}",
+  "expOpened": "The hoardings are down and the turnstiles are through it: {stadium} now holds {cap}, {seats} of them new. The waiting list finally moves, and every one of those seats pays its way at the gate."
  },
  "comm": {
   "oppCoachNamed": "{coach} has done his homework: {team} are set up specifically for {pattern_k}. Change the picture, or play through the plan.",
@@ -5594,9 +5597,9 @@
   "stanceBoard": "Backed the board's targets at the season launch.",
   "boardReinvested": "Board reinvested {amount} in the club",
   "facilityDeclined": "Asked the board for a level {lvl} {fac_k}: declined, {why_k}.",
-  "facilityApproved": "Won board backing for a level {lvl} {fac_k}: {cost}, open in five weeks.",
+  "facilityApproved": "Won board backing for a level {lvl} {fac_k}: {cost}, open in {weeks} weeks.",
   "expandDeclined": "Asked to expand {stadium}: declined, {why_k}.",
-  "expandApproved": "{stadium} extended by {seats} seats for {cost}: capacity now {cap}.",
+  "expandApproved": "{stadium} put {seats} seats out to build for {cost}: {weeks} weeks on site.",
   "facilityOpened": "The level {lvl} {fac_k} opened. {desc_k}",
   "appointedStaff": "Appointed {name} as {role_k} ({badge_k} badge): {fee} compensation, {wage} a week.{out_k}",
   "andHeLeft": " {out} left.",
@@ -5632,7 +5635,8 @@
   "badgeFailedFee_w": "{name} failed her {badge_k} badge. The {fee} is gone and she cannot resit for a month.",
   "badgeFailedCourse_w": "{name} failed her {badge_k} badge. The course fee is gone and she resits in four weeks.",
   "requestGranted": "Granted {player} his transfer request.",
-  "requestRefused": "Refused {player} his transfer request."
+  "requestRefused": "Refused {player} his transfer request.",
+  "standOpened": "The new stand at {stadium} opened: {seats} seats, capacity now {cap}."
  },
  "persLower": {
   "Professional": "professional",
@@ -5683,7 +5687,7 @@
   "buildersBusy": "The builders are already on site elsewhere. One project at a time.",
   "groundExtendedThisSeason": "The ground has already been extended this season. The next phase waits for the summer.",
   "declined": "Declined - {why_k}.",
-  "expandApproved": "Approved. {seats} new seats for {cost} - capacity now {cap}.",
+  "expandApproved": "Approved. {seats} new seats for {cost} - the builders are in, and the stand opens in {weeks} weeks.",
   "alreadyPlayingThisWeek": "You already have a match this week.",
   "noSuchClub": "No such club.",
   "oppHasFixture": "{club} have a fixture of their own this week.",

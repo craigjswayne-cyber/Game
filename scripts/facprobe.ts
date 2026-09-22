@@ -2,7 +2,7 @@
 // stadium expansion, and the weekly effects that hang off them.
 import { newGame } from '../src/game/newgame'
 import { expansionPlan, processWeekAndAdvance, requestExpansion, requestFacility, requestFunds } from '../src/game/season'
-import { FACILITY_INFO, MAX_FACILITY, estateGrade, type FacilityId } from '../src/game/model'
+import { FACILITY_INFO, MAX_FACILITY, STAND_BUILD_WEEKS, estateGrade, type FacilityId } from '../src/game/model'
 
 let fails = 0
 const bad = (m: string) => { fails++; console.error('FAIL: ' + m) }
@@ -78,7 +78,31 @@ sc.balance = 40_000_000
 const plan = expansionPlan(s2)
 console.log(`after 12w   : ${plan.played} home games, ${plan.avg.toLocaleString()} avg (${Math.round(plan.fill * 100)}% full)`)
 console.log('second ask  :', requestExpansion(s2))
-if (plan.fill >= 0.86 && sc.capacity === cap0) bad('a full ground was refused its expansion')
+// THE SEATS ARRIVE WITH THE STAND, not with the yes (v1.6.6). The approval
+// signs the contract and puts the builders on site for twelve weeks; the
+// capacity only moves when they are gone.
+if (plan.fill >= 0.86 && !s2.stadiumBuild) bad('a full ground was refused its expansion')
+if (s2.stadiumBuild) {
+  if (sc.capacity !== cap0) bad('the seats landed before the stand was built')
+  // and the one builders' slot is taken while it goes up
+  s2.facilityAskCooldown = 0
+  sc.balance = 40_000_000
+  const blocked = requestFacility(s2, 'shop')
+  if (s2.facilityBuild) bad('a facility was started while the stand was going up')
+  console.log('mid-build   :', blocked)
+  const owed = s2.stadiumBuild.seats
+  let wk = 0
+  while (s2.stadiumBuild && wk < STAND_BUILD_WEEKS + 4) { processWeekAndAdvance(s2); wk++ }
+  console.log(`stand opens : after ${wk} weeks, ${cap0.toLocaleString()} -> ${sc.capacity.toLocaleString()}`)
+  if (s2.stadiumBuild) bad('the stand never finished')
+  else if (sc.capacity !== cap0 + owed) bad(`the stand opened at ${sc.capacity}, expected ${cap0 + owed}`)
+  // one tick more than the duration, which is the convention every build in
+  // the game already follows: the week the order is placed is still played
+  // out before the builders start counting (a three-week facility opens on
+  // the fourth tick too).
+  if (wk !== STAND_BUILD_WEEKS + 1) bad(`the stand took ${wk} ticks, not ${STAND_BUILD_WEEKS + 1}`)
+  if (!s2.news.some(n => n.k === 'news.expOpened')) bad('the stand opened with no word to the manager')
+}
 if (sc.capacity < cap0) bad('capacity went backwards')
 
 // 5. pressing the board (v1.1.4): a denial stamps the ledger; asking again

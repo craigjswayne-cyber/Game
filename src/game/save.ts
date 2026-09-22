@@ -614,6 +614,7 @@ export function migrate(s: GameState): GameState {
   s.commission ??= null
   s.scoutFinds ??= null
   s.facilityBuild ??= null
+  s.stadiumBuild ??= null
   s.facilityAskCooldown ??= 0
   // the backroom staff became people: give every level already paid for a face
   seedStaffPeople(s)

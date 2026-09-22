@@ -2779,7 +2779,8 @@
   "gradeThreadbare": "Verslete",
   "facNotBuildable": "Dis nie iets wat die klub kan bou nie.",
   "facAlreadyWorldClass": "Die {facility} is reeds wêreldklas. Daar is niks meer om te bou nie.",
-  "facBuildersBusy": "Die bouers is reeds op die terrein ({facility}). Een projek op 'n slag."
+  "facBuildersBusy": "Die bouers is reeds op die terrein ({facility}). Een projek op 'n slag.",
+  "facStandBusy": "Die bouers is op die nuwe pawiljoen by {stadium}. Een projek op 'n slag."
  },
  "report": {
   "trWhereWeStand": "Waar ons staan",
@@ -3136,7 +3137,7 @@
   "a51": "'n 0-tot-100-lesing van hoe veilig jou werk is. Uitslae beweeg dit die meeste, dan die doelwitte wat vir jou gestel is, dan hoe jy die pers hanteer en of jy jou beloftes hou. Dit verskyn op die paneelbord op die Tuisskerm, en 'n halfseisoen-verslagkaart stel duidelik waar jy staan. Laat dit ver genoeg val en jy word afgedank. Die direksie se GEDULD skaal met wie jy bestuur: 'n ware titelgunsteling het 'n dunhuidige direksie wat hard op elke wisseling reageer, sodat 'n seisoen sonder die trofee 'n regte krisis is - bly hands-off daar en jy kan teen die lente sonder werk wees. 'n Klub met beskeie ambisies het 'n geduldige een wat skaars reageer op 'n middel-tabel-plek, want niemand het meer verwag nie. Dieselfde syfers, dieselfde reëls, 'n baie ander rit na gelang van die embleem op jou trui.",
   "a52": "In: 'n weeklikse kommersiële en uitsaai-aandeel bepaal deur die klub se reputasie, hekgeld van tuiswedstryde, klubwinkel-inkomste, prysgeld aan die einde van die seisoen, en oordragfooie. Uit: spelersalarisse, agtergrondpersoneel-salarisse, onderhoud van die grond en die eiendom, en wat jy ook al spandeer. Die Finansies-skerm lys elke reël.",
   "a53": "Wat dit kos om die deure oop te maak, elke week van die jaar, wedstryd of geen wedstryd nie. Die grond moet verwarm, gesny, bemand en verseker word, en elke fasiliteitsvlak is 'n gebou met personeel binne-in. Dis waarom opgradering 'n verbintenis is eerder as 'n gratis stap op die leer: 'n beter gimnasium is 'n rekening wat aanhou opdaag. Die syfer is op die Finansies-skerm.",
-  "a54": "Daar is nege fasiliteite en elkeen loop van vlak 0 tot vlak 5. Jy kan hulle nie koop nie: jy vra die direksie, op die Klub-infrastruktuur-bladsy, en die direksie weeg die prys teenoor die reserwes en sy vertroue in jou. Vertroue koop ook rugsteun: 'n direksie wat jou in die hoë sewentigs gradeer, onderskryf sewentig persent van die rekening, sewentig of beter meer as die helfte, een wat net begin warm word vir jou sowat 'n derde, een wat jou net verdra niks, en onder vyf-en-veertig is die antwoord nee, ongeag wat die balans sê. Goedgekeurde werk neem {weeks} weke. Slegs een projek loop op 'n slag, en 'n weiering plaas jou op 'n twee-maande-afkoelperiode voordat jy weer kan vra.",
+  "a54": "Daar is nege fasiliteite en elkeen loop van vlak 0 tot vlak 5. Jy kan hulle nie koop nie: jy vra die direksie, op die Klub-infrastruktuur-bladsy, en die direksie weeg die prys teenoor die reserwes en sy vertroue in jou. Vertroue koop ook rugsteun: 'n direksie wat jou in die hoë sewentigs gradeer, onderskryf sewentig persent van die rekening, sewentig of beter meer as die helfte, een wat net begin warm word vir jou sowat 'n derde, een wat jou net verdra niks, en onder vyf-en-veertig is die antwoord nee, ongeag wat die balans sê. Goedgekeurde werk neem drie weke op die eerste vlak en twaalf op die laaste, en 'n nuwe pawiljoen neem twaalf. Slegs een projek loop op 'n slag, en 'n weiering plaas jou op 'n twee-maande-afkoelperiode voordat jy weer kan vra.",
   "a55": "Speelveld: minder afbreekpunte en minder beserings in tuiswedstryde. Gimnasium: kondisie herstel elke week. Herstelsentrum: korter uitspeeltye. Oefenkamp: eienskap-oefening byt meer gereeld. Skopkraal: skerper doelskoppe. Inligtingsuite: wedstrydvoorbereiding en die ontleder land albei harder. Sentrum van Uitnemendheid: beter akademie-inname. Klubwinkel: kleinhandelinkomste elke week, meer wanneer die ondersteuners gelukkig is. Gasvryheid en Loges: elke tuis-hekgeld is 4 persent meer werd per vlak. Elke kaart op die Infrastruktuur-bladsy noem sy huidige effek in eenvoudige syfers.",
   "a56": "Gewoonlik een van drie redes, en dit sê watter een. Nie genoeg van die seisoen gespeel om vraag te beoordeel nie, 'n grond wat nie vol genoeg is soos dit is nie, of reserwes wat nie die bou sal dra nie. Daar is 'n vierde: elke klub het 'n opvanggebied, en sodra die grond omtrent almal huisves wat sou kom, sou meer sitplekke net leë sitplekke wees. Die Infrastruktuur-bladsy noem jou opvanggebied sodat jy kan sien waar die plafon is.",
   "a57": "Dit het dit nie gevat nie, dit het dit spandeer. 'n Direksie sal nie 'n groot surplus in 'n depositorekening laat lê terwyl die klub stilstaan nie, dus gaan enigiets ver bo 'n seisoen se salarisse plus 'n bufferfonds oor die somer terug in die klub in: 'n bouprojek op die eiendom, die grondskuld, die akademie, die gemeenskapsprogram. Die nuusberig sê waaraan dit spandeer is, en die gehoor op die pawiljoene let daarop.",
@@ -3568,8 +3569,8 @@
   "expNoEmpty": "die stadion is tans net {pct}% vol",
   "expNoReserves": "die reserwes sal nie 'n bouprojek van hierdie grootte dra nie",
   "expNoResults": "die direksie wil beter resultate sien voordat dit beton giet",
-  "expApprovedSubj": "🏗 {stadium} groei met {seats} sitplekke",
-  "expApproved": "Die direksie het 'n nuwe pawiljoen goedgekeur: {cost}, en {stadium} hou nou {cap}. Die wagtelys beweeg eindelik, en elke een van daardie sitplekke verdien sy geld by die drasie.",
+  "expApprovedSubj": "🏗 Bouers trek in by {stadium}: {seats} sitplekke",
+  "expApproved": "Die direksie het 'n nuwe pawiljoen goedgekeur: {cost}, en {seats} sitplekke by {stadium}. Die skanse gaan die week op en die pawiljoen open oor {weeks} weke - tot dan hou die veld net wat dit nog altyd gehou het, en die bouers is op hierdie een en niks anders nie.",
   "stgQF": "kwarteindstryd",
   "stgSF": "halfeindstryd",
   "stgF": "EINDSTRYD",
@@ -5307,7 +5308,9 @@
   "deputationOne": "'n Afvaardiging senior spelers kom kantoor toe en maak die deur toe. Beleefd en reguit: die kleedkamer het gesien hoe die {a}-saak bly dryf, en wil weet wie hier besluit. Antwoord dit in die {room_k}, wen Saterdag, en die deur hou op oopgaan.",
   "deputationNamedOne": "{player} kom kantoor toe en maak die deur toe. Beleefd en reguit: die kleedkamer het gesien hoe die {a}-saak bly dryf, en wil weet wie hier besluit. Antwoord dit in die {room_k}, wen Saterdag, en die deur hou op oopgaan.",
   "deputationOneSubj": "🚪 Die senior spelers vra vir 'n vergadering",
-  "deputationNamedOneSubj": "🚪 {player} vra vir 'n vergadering"
+  "deputationNamedOneSubj": "🚪 {player} vra vir 'n vergadering",
+  "expOpenedSubj": "🏟 Die nuwe pawiljoen by {stadium} open",
+  "expOpened": "Die skanse is af en die hekke draai: {stadium} hou nou {cap}, waarvan {seats} nuut is. Die wagtelys beweeg eindelik, en elke een van daardie sitplekke verdien sy geld by die hek."
  },
  "comm": {
   "oppCoachNamed": "{coach} het sy huiswerk gedoen: {team} is spesifiek opgestel vir {pattern_k}. Verander die prentjie, of speel deur die plan.",
@@ -5632,7 +5635,7 @@
   "facilityDeclined": "Het die direksie gevra vir 'n vlak {lvl} {fac_k}: geweier, {why_k}.",
   "facilityApproved": "Het direksiesteun gewen vir 'n vlak {lvl} {fac_k}: {cost}, open oor {weeks} weke.",
   "expandDeclined": "Het gevra om {stadium} uit te brei: geweier, {why_k}.",
-  "expandApproved": "{stadium} uitgebrei met {seats} sitplekke vir {cost}: kapasiteit nou {cap}.",
+  "expandApproved": "{stadium}: {seats} sitplekke uitgesit vir bou teen {cost}, {weeks} weke op die terrein.",
   "facilityOpened": "Die vlak {lvl} {fac_k} het geopen. {desc_k}",
   "appointedStaff": "Het {name} as {role_k} aangestel ({badge_k}-kwalifikasie): {fee} vergoeding, {wage} per week.{out_k}",
   "andHeLeft": " {out} het vertrek.",
@@ -5673,7 +5676,8 @@
   "badgeFailedCourse_w": "{name} het haar {badge_k}-kwalifikasie gedruip. Die kursusfooi is weg en sy herskryf oor vier weke.",
   "badgeFailedCourse_fw": "{name} het haar {badge_k}-kwalifikasie gedruip. Die kursusfooi is weg en haar herskryf oor vier weke.",
   "requestGranted": "Het {player} se oordragversoek toegestaan.",
-  "requestRefused": "Het {player} se oordragversoek geweier."
+  "requestRefused": "Het {player} se oordragversoek geweier.",
+  "standOpened": "Die nuwe pawiljoen by {stadium} het oopgemaak: {seats} sitplekke, kapasiteit nou {cap}."
  },
  "persLower": {
   "Professional": "professioneel",
@@ -5724,7 +5728,7 @@
   "buildersBusy": "Die bouers is reeds elders op die perseel. Een projek op 'n slag.",
   "groundExtendedThisSeason": "Die stadion is reeds hierdie seisoen uitgebrei. Die volgende fase wag vir die somer.",
   "declined": "Geweier - {why_k}.",
-  "expandApproved": "Goedgekeur. {seats} nuwe sitplekke vir {cost} - kapasiteit nou {cap}.",
+  "expandApproved": "Goedgekeur. {seats} nuwe sitplekke vir {cost} - die bouers is in, en die pawiljoen open oor {weeks} weke.",
   "alreadyPlayingThisWeek": "Jy het reeds 'n wedstryd hierdie week.",
   "noSuchClub": "Geen sodanige klub nie.",
   "oppHasFixture": "{club} het self 'n wedstryd hierdie week.",

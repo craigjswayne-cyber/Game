@@ -2731,7 +2731,8 @@
     "facNotBuildable": "Ce n'est pas quelque chose que le club peut construire.",
     "facAlreadyWorldClass": "{facility} est déjà au niveau mondial. Il n'y a plus rien à construire.",
     "facBuildersBusy": "Les ouvriers sont déjà sur le chantier ({facility}). Un projet à la fois.",
-    "gymDesc_f": "Les joueuses récupèrent plus de condition chaque semaine."
+    "gymDesc_f": "Les joueuses récupèrent plus de condition chaque semaine.",
+    "facStandBusy": "Les ouvriers sont sur la nouvelle tribune de {stadium}. Un projet à la fois."
   },
   "report": {
     "trWhereWeStand": "Où nous en sommes",
@@ -3089,7 +3090,7 @@
     "a51": "Une lecture de 0 à 100 de la sécurité de votre poste. Les résultats la font le plus bouger, puis les objectifs qui vous ont été fixés, puis votre gestion de la presse et le respect de vos promesses. Elle apparaît sur le tableau de bord Accueil, et un bilan de mi-saison précise où vous en êtes. Laissez-la tomber assez bas et vous serez licencié. La PATIENCE du conseil dépend du club que vous dirigez : un vrai favori au titre a un conseil à fleur de peau qui réagit fort à chaque soubresaut, donc une saison loin du trophée est une vraie crise - restez passif et vous pouvez être dehors au printemps. Un club aux ambitions modestes en a un patient qui réagit à peine à une place en milieu de tableau, parce que personne n'attendait mieux. Mêmes chiffres, mêmes règles, une expérience très différente selon le blason sur votre maillot.",
     "a52": "Entrées : une part commerciale et télévisuelle hebdomadaire fixée par la réputation du club, la billetterie des matchs à domicile, les recettes de la boutique, les primes de fin de saison, et les indemnités de transfert. Sorties : les salaires des joueurs, ceux du staff, l'entretien du stade et des installations, et tout ce que vous dépensez. L'écran Finances détaille chaque ligne.",
     "a53": "Ce qu'il en coûte d'ouvrir les portes, chaque semaine de l'année, match ou pas. Le stade doit être chauffé, tondu, surveillé et assuré, et chaque niveau d'installation est un bâtiment avec du personnel dedans. C'est pourquoi améliorer est un engagement plutôt qu'un cliquet gratuit : une meilleure salle, c'est une facture qui revient. Le montant est sur l'écran Finances.",
-    "a54": "Il y a neuf installations et chacune va du niveau 0 au niveau 5. Vous ne pouvez pas les acheter : vous les demandez au conseil, sur la page Infrastructures du club, et le conseil pèse le prix face aux réserves et à sa confiance en vous. La confiance achète aussi du soutien : un conseil qui vous estime au-dessus de 75 finance soixante-dix pour cent de la facture, à 70 ou plus la moitié, un conseil qui commence à vous apprécier environ un tiers, un conseil qui vous tolère rien du tout, et en dessous de quarante-cinq la réponse est non quoi que dise le solde. Un chantier approuvé prend {weeks} semaines. Un seul projet à la fois, et un refus vous impose deux mois de délai avant de redemander.",
+    "a54": "Il y a neuf installations et chacune va du niveau 0 au niveau 5. Vous ne pouvez pas les acheter : vous les demandez au conseil, sur la page Infrastructures du club, et le conseil pèse le prix face aux réserves et à sa confiance en vous. La confiance achète aussi du soutien : un conseil qui vous estime au-dessus de 75 finance soixante-dix pour cent de la facture, à 70 ou plus la moitié, un conseil qui commence à vous apprécier environ un tiers, un conseil qui vous tolère rien du tout, et en dessous de quarante-cinq la réponse est non quoi que dise le solde. Un chantier approuvé prend trois semaines au premier niveau et douze au dernier, et une nouvelle tribune en prend douze. Un seul projet à la fois, et un refus vous impose deux mois de délai avant de redemander.",
     "a55": "Pelouse : moins de ballons perdus et moins de blessures à domicile. Salle : de la condition récupérée chaque semaine. Centre de récupération : des absences plus courtes. Terrain d'entraînement : le travail des attributs prend plus souvent. Aire de tir au but : un tir au but plus précis. Salle d'analyse : la préparation du match et l'analyste portent tous deux davantage. Centre d'excellence : de meilleures promotions de jeunes. Boutique : des recettes chaque semaine, davantage quand le public est heureux. Loges et hospitalité : chaque recette à domicile vaut 4 % de plus par niveau. Chaque carte de la page Infrastructures indique son effet actuel en chiffres clairs.",
     "a56": "Généralement pour l'une de trois raisons, et il dit laquelle. Pas assez de saison jouée pour juger la demande, un stade déjà pas assez rempli, ou des réserves qui ne porteront pas le chantier. Il y en a une quatrième : chaque club a un bassin, et une fois que le stade accueille à peu près tous ceux qui viendraient, des places en plus seraient des places vides. La page Infrastructures indique votre bassin pour que vous voyiez où est le plafond.",
     "a57": "Il ne l'a pas pris, il l'a dépensé. Un conseil ne laissera pas un large excédent dormir sur un compte pendant que le club stagne : au cours de l'été, tout ce qui dépasse nettement une saison de salaires plus un matelas retourne dans le club - un chantier, la dette du stade, le centre de formation, le programme communautaire. L'article de presse dit à quoi c'est passé, et les tribunes le remarquent.",
@@ -3539,8 +3540,8 @@
     "expNoEmpty": "le stade n'est rempli qu'à {pct}% en l'état",
     "expNoReserves": "les réserves ne supporteront pas un chantier de cette taille",
     "expNoResults": "le conseil veut de meilleurs résultats avant de couler du béton",
-    "expApprovedSubj": "🏗 {stadium} gagne {seats} places",
-    "expApproved": "Le conseil a validé une nouvelle tribune : {cost}, et {stadium} contient désormais {cap} places. La liste d'attente avance enfin, et chacune de ces places sera rentabilisée aux guichets.",
+    "expApprovedSubj": "🏗 Les ouvriers arrivent à {stadium} : {seats} places",
+    "expApproved": "Le conseil a validé une nouvelle tribune : {cost}, et {seats} places à {stadium}. Les palissades sont dressées cette semaine et la tribune ouvre dans {weeks} semaines - d'ici là le stade contient ce qu'il a toujours contenu, et les ouvriers ne sont que sur ce chantier.",
     "stgQF": "quart de finale",
     "stgSF": "demi-finale",
     "stgF": "FINALE",
@@ -5207,7 +5208,9 @@
     "deputationOne": "Une délégation de cadres entre dans le bureau et ferme la porte. Polis et directs : le vestiaire a vu le cas {a} s'enliser et veut savoir qui commande. Répondez-y dans la {room_k}, gagnez samedi, et la porte cessera de s'ouvrir.",
     "deputationNamedOne": "{player} entre dans le bureau et ferme la porte. Poli et direct : le vestiaire a vu le cas {a} s'enliser et veut savoir qui commande. Répondez-y dans la {room_k}, gagnez samedi, et la porte cessera de s'ouvrir.",
     "deputationOneSubj": "🚪 Les cadres demandent un entretien",
-    "deputationNamedOneSubj": "🚪 {player} demande un entretien"
+    "deputationNamedOneSubj": "🚪 {player} demande un entretien",
+    "expOpenedSubj": "🏟 La nouvelle tribune ouvre à {stadium}",
+    "expOpened": "Les palissades sont tombées et les tourniquets tournent : {stadium} contient désormais {cap} places, dont {seats} neuves. La liste d'attente avance enfin, et chacune de ces places sera rentabilisée aux guichets."
   },
   "comm": {
     "oppCoachNamed": "{coach} a fait ses devoirs : {team} s'est réglé spécifiquement sur {pattern_k}. Changez le visage du match, ou jouez à travers leur plan.",
@@ -5504,7 +5507,7 @@
     "facilityDeclined": "Demandé au conseil un {fac_k} de niveau {lvl} : refusé, {why_k}.",
     "facilityApproved": "Obtenu l'accord du conseil pour un {fac_k} de niveau {lvl} : {cost}, ouverture dans {weeks} semaines.",
     "expandDeclined": "Demandé l'agrandissement de {stadium} : refusé, {why_k}.",
-    "expandApproved": "{stadium} agrandi de {seats} places pour {cost} : capacité désormais {cap}.",
+    "expandApproved": "{stadium} : {seats} places mises en chantier pour {cost}, {weeks} semaines de travaux.",
     "facilityOpened": "Le {fac_k} de niveau {lvl} a ouvert. {desc_k}",
     "appointedStaff": "Nommé {name} au poste de {role_k} (diplôme {badge_k}) : {fee} d'indemnité, {wage} par semaine.{out_k}",
     "andHeLeft": " {out} est parti.",
@@ -5538,7 +5541,8 @@
     "badgeFailedFee_w": "{name} a échoué à son diplôme {badge_k}. Les {fee} sont perdus et elle ne peut pas repasser avant un mois.",
     "badgeFailedCourse_w": "{name} a échoué à son diplôme {badge_k}. Les frais de formation sont perdus et elle repasse dans quatre semaines.",
     "requestGranted": "A accordé sa demande de transfert à {player}.",
-    "requestRefused": "A refusé sa demande de transfert à {player}."
+    "requestRefused": "A refusé sa demande de transfert à {player}.",
+    "standOpened": "La nouvelle tribune de {stadium} a ouvert : {seats} places, capacité désormais {cap}."
   },
   "persLower": {
     "Professional": "professionnel",
@@ -5589,7 +5593,7 @@
     "buildersBusy": "Les ouvriers sont déjà sur un autre chantier. Un projet à la fois.",
     "groundExtendedThisSeason": "Le stade a déjà été agrandi cette saison. La phase suivante attendra l'été.",
     "declined": "Refusé - {why_k}.",
-    "expandApproved": "Approuvé. {seats} nouvelles places pour {cost} - capacité désormais {cap}.",
+    "expandApproved": "Approuvé. {seats} nouvelles places pour {cost} - le chantier commence, la tribune ouvre dans {weeks} semaines.",
     "alreadyPlayingThisWeek": "Vous avez déjà un match cette semaine.",
     "noSuchClub": "Ce club n'existe pas.",
     "oppHasFixture": "{club} a son propre match cette semaine.",
