@@ -995,6 +995,18 @@ export const facilityCost = (info: { base: number }, level: number) => info.base
  */
 export const FACILITY_BUILD_WEEKS = [3, 5, 7, 9, 12] as const
 
+/**
+ * HOW LONG A NEW STAND TAKES (owner, v1.6.6).
+ *
+ * Expansion used to be the one capital project that happened instantly: the
+ * board said yes and the seats were there the same week, while a set of gym
+ * racks kept builders on site for three. A stand is the biggest thing the club
+ * ever builds, so it takes the longest build in the game - the same twelve
+ * weeks as the top rung of a facility - and it holds the one builders' slot
+ * while it runs, exactly as a facility does.
+ */
+export const STAND_BUILD_WEEKS = 12
+
 /** Weeks to finish a build that ends at `level`. Clamped, because a corrupt
  *  save naming level 9 should take the longest build, not crash on undefined. */
 export function buildWeeks(level: number): number {
@@ -1439,6 +1451,13 @@ export interface GameState {
   /** a facility upgrade under construction: the board funded it, the
    *  builders are in, and it opens at `done` (absolute week) */
   facilityBuild?: { id: FacilityId; done: number; level: number } | null
+  /** a new stand under construction: the money has left the account, the
+   *  builders are in, and the seats arrive at `done` (absolute week). Held
+   *  apart from facilityBuild rather than folded into it because the ground
+   *  is not a FacilityId - it has no levels and no FACILITY_INFO row - and
+   *  every reader of facilityBuild would have had to learn that. The two
+   *  share the one builders' slot instead (season.ts). */
+  stadiumBuild?: { done: number; seats: number; cost: number } | null
   /** absolute week (season*100+week) before which the board will not hear
    *  another facility request - denials cost you the room for a while */
   facilityAskCooldown?: number

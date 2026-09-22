@@ -47,6 +47,10 @@ export default function CampusMap({ game, onPick }: {
 }) {
   const club = game.clubs[game.userClubId]
   const build = game.facilityBuild ?? null
+  // the ground has its own builders' record: it is not a FacilityId, so it
+  // never appears in facilityBuild (model.ts)
+  const stand = game.stadiumBuild ?? null
+  const onSite = (fid: CampusId) => fid === 'stadium' ? stand != null : build?.id === fid
 
   return (
     <div className="card" style={{ padding: 6, overflow: 'hidden' }}>
@@ -64,7 +68,7 @@ export default function CampusMap({ game, onPick }: {
             way round the light already falls. */}
         {CAMPUS_PLOTS.map(p => {
           const lvl = levelOf(club, p.fid)
-          const building = build?.id === p.fid
+          const building = onSite(p.fid)
           const src = building
             ? `${ART}campus/construction.png`
             : `${ART}facilities/${p.art}-L${lvl}.png`
@@ -87,7 +91,7 @@ export default function CampusMap({ game, onPick }: {
             it. The button is the plot itself; the pill hangs under it. */}
         {CAMPUS_PLOTS.map(p => {
           const lvl = levelOf(club, p.fid)
-          const building = build?.id === p.fid
+          const building = onSite(p.fid)
           const name = p.fid === 'stadium' ? club.stadium : iconOf(p.fid)
           return (
             <button key={p.fid} type="button" title={name}
@@ -122,7 +126,9 @@ export default function CampusMap({ game, onPick }: {
               }}>
                 <span>{building ? '🔨' : iconOf(p.fid)}</span>
                 <span style={{ letterSpacing: 0.2 }}>
-                  {building ? `L${build!.level}` : `${lvl}/${MAX_FACILITY}`}
+                  {!building ? `${lvl}/${MAX_FACILITY}`
+                    : p.fid === 'stadium' ? `+${stand!.seats.toLocaleString()}`
+                    : `L${build!.level}`}
                 </span>
               </span>
             </button>

@@ -2696,7 +2696,8 @@
   "facNotBuildable": "Eso no es algo que el club pueda construir.",
   "facAlreadyWorldClass": "{facility}: ya es de talla mundial. No queda nada por construir.",
   "facBuildersBusy": "Las obras ya están en marcha ({facility}). Un proyecto cada vez.",
-  "gymDesc_f": "Las jugadoras recuperan condición extra cada semana."
+  "gymDesc_f": "Las jugadoras recuperan condición extra cada semana.",
+  "facStandBusy": "Los obreros están con la grada nueva de {stadium}. Un proyecto cada vez."
  },
  "report": {
   "trWhereWeStand": "Dónde estamos",
@@ -3052,7 +3053,7 @@
   "a51": "Una lectura de 0 a 100 de lo seguro que está tu puesto. Los resultados son lo que más la mueve, luego los objetivos que te marcaron, luego cómo llevas la prensa y si cumples tus promesas. Aparece en el panel de Inicio, y un boletín a mitad de curso detalla dónde estás. Déjala caer lo suficiente y te despedirán. La PACIENCIA de la junta depende de a quién diriges: un favorito de verdad al título tiene una junta de piel fina que reacciona fuerte a cada vaivén, así que una temporada lejos del trofeo es una crisis de verdad; quédate de brazos cruzados allí y puedes estar en la calle en primavera. Un club de ambiciones modestas tiene una junta paciente que apenas se inmuta ante una mitad de tabla, porque nadie esperaba más. Mismos números, mismas reglas, un viaje muy distinto según el escudo de tu camiseta.",
   "a52": "Entra: una parte semanal comercial y televisiva fijada por la reputación del club, la taquilla de los partidos en casa, la caja de la tienda del club, los premios a final de temporada y los traspasos. Sale: fichas de jugadores, sueldos del cuerpo técnico, mantenimiento del estadio y las instalaciones, y lo que tú gastes. La pantalla de Finanzas lista cada partida.",
   "a53": "Lo que cuesta abrir las puertas, cada semana del año, haya partido o no. El estadio hay que calentarlo, segarlo, vigilarlo y asegurarlo, y cada nivel de instalación es un edificio con gente dentro. Por eso ampliar es un compromiso y no un trinquete gratis: un gimnasio mejor es una factura que no deja de llegar. La cifra está en la pantalla de Finanzas.",
-  "a54": "Hay nueve instalaciones y cada una va del nivel 0 al 5. No puedes comprarlas: se las pides a la junta, en la página de Infraestructura del Club, y la junta sopesa el precio frente a las reservas y su confianza en ti. La confianza también compra respaldo: una junta que te puntúa por los setenta altos avala el setenta por ciento de la factura; con setenta o más, más de la mitad; una que empieza a creer en ti, cosa de un tercio; una que apenas te tolera, nada de nada; y por debajo de cuarenta y cinco la respuesta es no, diga lo que diga el saldo. La obra aprobada tarda {weeks} semanas. Solo corre un proyecto a la vez, y una negativa te impone dos meses de reflexión antes de poder volver a pedir.",
+  "a54": "Hay nueve instalaciones y cada una va del nivel 0 al 5. No puedes comprarlas: se las pides a la junta, en la página de Infraestructura del Club, y la junta sopesa el precio frente a las reservas y su confianza en ti. La confianza también compra respaldo: una junta que te puntúa por los setenta altos avala el setenta por ciento de la factura; con setenta o más, más de la mitad; una que empieza a creer en ti, cosa de un tercio; una que apenas te tolera, nada de nada; y por debajo de cuarenta y cinco la respuesta es no, diga lo que diga el saldo. La obra aprobada tarda tres semanas en el primer nivel y doce en el último, y una grada nueva tarda doce. Solo corre un proyecto a la vez, y una negativa te impone dos meses de reflexión antes de poder volver a pedir.",
   "a55": "Terreno de Juego: menos breakdowns y menos lesiones en los partidos en casa. Gimnasio: condición recuperada cada semana. Centro de Recuperación: bajas más cortas. Campo de Entrenamiento: el entrenamiento de atributos cala más a menudo. Zona de Pateo: mejor puntería a palos. Sala de Análisis: la preparación del partido y el analista pegan más fuerte. Centro de Excelencia: mejores hornadas de la academia. Tienda del Club: ingresos semanales de tienda, más cuando la afición está contenta. Hospitalidad y Palcos: cada taquilla en casa vale un 4 por ciento más por nivel. Cada ficha de la página de Infraestructura indica su efecto actual en números claros.",
   "a56": "Normalmente por una de tres razones, y te dice cuál. No se ha jugado temporada suficiente para calibrar la demanda, un estadio que ya no se llena tal como está, o unas reservas que no aguantan la obra. Hay una cuarta: cada club tiene su zona de influencia, y cuando el estadio ya acoge a casi todos los que vendrían, más asientos serían asientos vacíos. La página de Infraestructura indica tu zona de influencia para que veas dónde está el techo.",
   "a57": "No se lo quedó: se lo gastó. Una junta no va a dejar un gran superávit criando polvo en una cuenta mientras el club se estanca, así que durante el verano todo lo que sobrepase con holgura una temporada de sueldos más un colchón vuelve al club: una obra en las instalaciones, la deuda del estadio, la academia, el programa comunitario. La noticia dice en qué se fue, y la grada lo nota.",
@@ -3506,8 +3507,8 @@
   "expNoEmpty": "el campo solo se llena al {pct}% tal y como está",
   "expNoReserves": "las reservas no aguantan una obra de este tamaño",
   "expNoResults": "la junta quiere mejores resultados antes de echar hormigón",
-  "expApprovedSubj": "🏗 {stadium} crece en {seats} asientos",
-  "expApproved": "La junta ha aprobado una grada nueva: {cost}, y {stadium} pasa a tener {cap} localidades. La lista de espera por fin avanza, y cada uno de esos asientos se paga solo en taquilla.",
+  "expApprovedSubj": "🏗 Entran las obras en {stadium}: {seats} asientos",
+  "expApproved": "La junta ha aprobado una grada nueva: {cost}, y {seats} asientos en {stadium}. Las vallas se levantan esta semana y la grada abre dentro de {weeks} semanas; hasta entonces el campo tiene el aforo de siempre, y los obreros no están en ninguna otra obra.",
   "stgQF": "cuartos de final",
   "stgSF": "semifinal",
   "stgF": "FINAL",
@@ -5098,7 +5099,9 @@
   "deputationOne": "Una delegación de veteranos entra en el despacho y cierra la puerta. Educados y directos: el vestuario ha visto encallar el caso de {a} y quiere saber quién manda. Resuélvelo en la {room_k}, gana el sábado, y la puerta dejará de abrirse.",
   "deputationNamedOne": "{player} entra en el despacho y cierra la puerta. Educado y directo: el vestuario ha visto encallar el caso de {a} y quiere saber quién manda. Resuélvelo en la {room_k}, gana el sábado, y la puerta dejará de abrirse.",
   "deputationOneSubj": "🚪 Los veteranos piden una reunión",
-  "deputationNamedOneSubj": "🚪 {player} pide una reunión"
+  "deputationNamedOneSubj": "🚪 {player} pide una reunión",
+  "expOpenedSubj": "🏟 Abre la grada nueva de {stadium}",
+  "expOpened": "Han caído las vallas y los tornos ya giran: {stadium} pasa a tener {cap} localidades, {seats} de ellas nuevas. La lista de espera por fin avanza, y cada uno de esos asientos se paga solo en taquilla."
  },
  "comm": {
   "oppCoachNamed": "{coach} ha hecho los deberes: {team} salen preparados específicamente para {pattern_k}. Cambia el dibujo, o juega a través del plan.",
@@ -5388,7 +5391,7 @@
   "facilityDeclined": "Pediste a la junta un {fac_k} de nivel {lvl}: denegado, {why_k}.",
   "facilityApproved": "Lograste el respaldo de la junta para un {fac_k} de nivel {lvl}: {cost}, abre en {weeks} semanas.",
   "expandDeclined": "Pediste ampliar {stadium}: denegado, {why_k}.",
-  "expandApproved": "{stadium} ampliado en {seats} asientos por {cost}: aforo actual, {cap}.",
+  "expandApproved": "{stadium}: {seats} asientos sacados a obra por {cost}, {weeks} semanas de trabajo.",
   "facilityOpened": "Abrió sus puertas el {fac_k} de nivel {lvl}. {desc_k}",
   "appointedStaff": "Nombraste a {name} como {role_k} (titulación {badge_k}): {fee} de compensación, {wage} a la semana.{out_k}",
   "andHeLeft": " {out} se marchó.",
@@ -5415,7 +5418,8 @@
    "other": "Reservado el retiro con especialistas: {n} mujeres recuperadas al cien por cien"
   },
   "requestGranted": "Concedió a {player} su solicitud de traspaso.",
-  "requestRefused": "Rechazó a {player} su solicitud de traspaso."
+  "requestRefused": "Rechazó a {player} su solicitud de traspaso.",
+  "standOpened": "La grada nueva de {stadium} ha abierto: {seats} asientos, aforo actual {cap}."
  },
  "persLower": {
   "Professional": "profesional",
@@ -5466,7 +5470,7 @@
   "buildersBusy": "Los obreros ya están con otra obra. Un proyecto cada vez.",
   "groundExtendedThisSeason": "El estadio ya se ha ampliado esta temporada. La siguiente fase espera al verano.",
   "declined": "Denegado: {why_k}.",
-  "expandApproved": "Aprobado. {seats} asientos nuevos por {cost}; el aforo pasa a {cap}.",
+  "expandApproved": "Aprobado. {seats} asientos nuevos por {cost}: empiezan las obras y la grada abre dentro de {weeks} semanas.",
   "alreadyPlayingThisWeek": "Ya tienes partido esta semana.",
   "noSuchClub": "Ese club no existe.",
   "oppHasFixture": "{club} ya tiene partido esta semana.",
