@@ -1391,6 +1391,13 @@ export interface LiveCtx {
   seg: 0 | 1 | 2 | 3
   /** set at HT / 60' until the user resumes play */
   awaiting: 'HT' | 'BRK' | null
+  /** A whistle the clock has reached but which has NOT been blown, because a
+   *  kickable penalty awarded before it is still in the manager's hands
+   *  (owner, twice: "half time whistle went, but i was still able to kick a
+   *  goal"). Nothing is narrated, the interval does not open and the match is
+   *  not finalised until the call is answered - see stepTick and
+   *  resolveDecision. */
+  heldWhistle?: 'HT' | 'FT' | null
   motmId: number | null
   talkUsed: boolean
   subsUsed: number
@@ -2177,6 +2184,11 @@ export function resolveDecision(state: GameState, ctx: LiveCtx, choice: 'posts' 
   // scoreboard that finalizeMatch reads forty minutes later. Only the final
   // whistle needs the record re-read, so only the final whistle does it.
   if (ctx.seg === 3) syncResult(ctx)
+  // AND NOW THE WHISTLE GOES. The clock reached it while this call was open,
+  // so it was held; the kick has been narrated above and belongs in front of
+  // it, which is exactly the order the ticker now has without any splicing.
+  if (ctx.heldWhistle === 'HT') blowHalfTime(state, ctx)
+  else if (ctx.heldWhistle === 'FT') blowFullTime(state, ctx)
   return msg
 }
 
@@ -2901,6 +2913,37 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
  * 'play' (normal), 'HT' (40'), 'BRK' (60'), 'FT' (80', match finalised).
  * At HT/BRK the context waits (`awaiting`) until resumed.
  */
+/**
+ * Blow half time: the whistle line, the interval numbers, and the break.
+ *
+ * Split out of stepTick so it can fire LATER than the tick that reached 40'.
+ * A penalty awarded in the closing minutes is still the manager's to answer,
+ * and the answer cannot arrive before stepTick returns - so when a call is
+ * outstanding the clock reaches the whistle and the whistle waits.
+ */
+function blowHalfTime(state: GameState, ctx: LiveCtx) {
+  ctx.heldWhistle = null
+  ctx.awaiting = 'HT'
+  pushLine(state, ctx, 40, 'HT', null, 'comm.halfTime', {
+    home: teamShort(state, ctx.fx.homeId), away: teamShort(state, ctx.fx.awayId),
+    hs: ctx.home.score, ascore: ctx.away.score,
+  })
+  const possTotal = ctx.home.poss + ctx.away.poss || 1
+  pushLine(state, ctx, 40, 'SUB', null, 'comm.halfTimeNumbers', {
+    hposs: Math.round((ctx.home.poss / possTotal) * 100), aposs: Math.round((ctx.away.poss / possTotal) * 100),
+    htries: ctx.home.tries, atries: ctx.away.tries, hpens: ctx.home.pens, apens: ctx.away.pens,
+  })
+}
+
+/** Blow full time. Same deal: seg only reaches 3 - which is what every caller
+ *  reads as "the match is over" - once the last call of the match is in. */
+function blowFullTime(state: GameState, ctx: LiveCtx) {
+  ctx.heldWhistle = null
+  ctx.seg = 3
+  ctx.awaiting = null
+  finalizeMatch(state, ctx)
+}
+
 export function stepTick(state: GameState, ctx: LiveCtx): 'play' | 'HT' | 'BRK' | 'FT' {
   if (ctx.tick >= 20) return 'FT'
   // play has resumed: the last substitution has now been played and cannot be
@@ -2912,18 +2955,13 @@ export function stepTick(state: GameState, ctx: LiveCtx): 'play' | 'HT' | 'BRK' 
   aiTacticShift(state, ctx)
   if (ctx.tick === 10) {
     ctx.seg = 1
-    ctx.awaiting = 'HT'
-    // a penalty awarded before the whistle is still to be kicked
-    if (ctx.decision) ctx.whistleAt = ctx.events.length
-    pushLine(state, ctx, 40, 'HT', null, 'comm.halfTime', {
-      home: teamShort(state, ctx.fx.homeId), away: teamShort(state, ctx.fx.awayId),
-      hs: ctx.home.score, ascore: ctx.away.score,
-    })
-    const possTotal = ctx.home.poss + ctx.away.poss || 1
-    pushLine(state, ctx, 40, 'SUB', null, 'comm.halfTimeNumbers', {
-      hposs: Math.round((ctx.home.poss / possTotal) * 100), aposs: Math.round((ctx.away.poss / possTotal) * 100),
-      htries: ctx.home.tries, atries: ctx.away.tries, hpens: ctx.home.pens, apens: ctx.away.pens,
-    })
+    // THE WHISTLE WAITS FOR THE KICK. A penalty awarded in the closing minutes
+    // is still to be taken, so the half has not ended: nothing is narrated and
+    // the interval does not open until resolveDecision blows it. seg moves to
+    // 1 either way - that only means "second half next", and it is what keeps
+    // the decision panel on screen instead of the interval.
+    if (ctx.decision) ctx.heldWhistle = 'HT'
+    else blowHalfTime(state, ctx)
     return 'HT'
   }
   if (ctx.tick === 15) {
@@ -2933,10 +2971,12 @@ export function stepTick(state: GameState, ctx: LiveCtx): 'play' | 'HT' | 'BRK' 
     return 'BRK'
   }
   if (ctx.tick === 20) {
-    ctx.seg = 3
-    ctx.awaiting = null
-    if (ctx.decision) ctx.whistleAt = ctx.events.length
-    finalizeMatch(state, ctx)
+    // Same at the end. seg stays at 2 while a call is outstanding, because
+    // every caller reads seg === 3 as "finished" - the store settles knockout
+    // ties on it, the screen shows the full-time panel on it - and the match
+    // is not finished while a kick that can change the result is unanswered.
+    if (ctx.decision) ctx.heldWhistle = 'FT'
+    else blowFullTime(state, ctx)
     return 'FT'
   }
   return 'play'

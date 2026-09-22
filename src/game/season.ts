@@ -16,7 +16,7 @@ import { AWARD_EVERY, managerOfMonth, runLine, runVars } from './awards'
 import { boardMemo } from './boardmemo'
 import { terraceWeek } from './terraces'
 import { upkeepWeek } from './upkeep'
-import {absWeek, addGrudge, boardObjective, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, finalVenue, fixtureDayOff, fmtMoney, leagueTier, LEDGER_WEEKS, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, RELEGATES, SEASON_WEEKS, seasonLabel, squadTrust, unbeatenRun, weeklyCentral, mgrWinWeight, addWeeks100 } from './model'
+import {absWeek, addGrudge, boardObjective, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, buildWeeks, finalVenue, fixtureDayOff, fmtMoney, leagueTier, LEDGER_WEEKS, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, RELEGATES, SEASON_WEEKS, seasonLabel, squadTrust, unbeatenRun, weeklyCentral, mgrWinWeight, addWeeks100 } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { BARRAGE_WEEK, windowSpan } from './calendar'
 import { emptyRow, leaguePos, sortTable, snIdFor, snWeeksFor, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS, W_AUTUMN_WEEKS, W_SIX_NATIONS_WEEKS, W_PAC4_WEEKS, W_SUMMER_TEST_WEEKS } from './schedule'
@@ -140,7 +140,9 @@ export function requestFacility(state: GameState, fid: FacilityId): string {
     return t('reply.declined', { why_k: whyKey })
   }
   club.balance -= clubShare
-  state.facilityBuild = { id: fid, done: addWeeks100(abs, 5), level: lvl + 1 }
+  // the higher the rung, the longer the builders stay (buildWeeks in model.ts)
+  const weeks = buildWeeks(lvl + 1)
+  state.facilityBuild = { id: fid, done: addWeeks100(abs, weeks), level: lvl + 1 }
   delete state.boardAsks?.capital // a yes wipes the slate
   const boardPut = cost - clubShare
   logDecision(state, 'dec.facilityApproved', { lvl: lvl + 1, fac_k: info.name, cost: fmtMoney(cost) }, true)
@@ -149,16 +151,16 @@ export function requestFacility(state: GameState, fid: FacilityId): string {
     subject: `🏛 Board approves: ${tIn('en', info.name)} to level ${lvl + 1}`,
     body: `${fmtMoney(cost)} signed off on a level ${lvl + 1} ${tIn('en', info.name).toLowerCase()}${boardPut > 0
       ? ` - the board underwrite ${fmtMoney(boardPut)} of it and the club funds the remaining ${fmtMoney(clubShare)}`
-      : `, all of it from club funds`}. The builders move in on Monday and it opens in about five weeks. ${tIn('en', info.desc)}`,
+      : `, all of it from club funds`}. The builders move in on Monday and it opens in about ${weeks} weeks. ${tIn('en', info.desc)}`,
     k: boardPut > 0 ? 'news.facApprovedShared' : 'news.facApproved',
     v: {
       name_k: info.name, desc_k: info.desc, lvl: lvl + 1,
-      cost: fmtMoney(cost), board: fmtMoney(boardPut), club: fmtMoney(clubShare),
+      cost: fmtMoney(cost), board: fmtMoney(boardPut), club: fmtMoney(clubShare), weeks,
     },
   })
   return boardPut > 0
-    ? `Approved. The board put up ${fmtMoney(boardPut)}, the club ${fmtMoney(clubShare)} - about five weeks to build.`
-    : `Approved. ${fmtMoney(clubShare)} released - about five weeks to build.`
+    ? `Approved. The board put up ${fmtMoney(boardPut)}, the club ${fmtMoney(clubShare)} - about ${weeks} weeks to build.`
+    : `Approved. ${fmtMoney(clubShare)} released - about ${weeks} weeks to build.`
 }
 
 /** Cost of the next stand: seats added, at the same rate the board pays. */
