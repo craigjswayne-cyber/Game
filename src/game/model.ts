@@ -980,6 +980,28 @@ export const FACILITY_INFO: Record<FacilityId, { name: string; icon: string; des
 }
 export const facilityCost = (info: { base: number }, level: number) => info.base * (level + 1)
 
+/**
+ * HOW LONG THE BUILDERS ARE ON SITE, by the level being built (owner, v1.6.6).
+ *
+ * Every project used to take a flat five weeks, which made the last rung of a
+ * facility no more of a commitment than the first: a world-class stand and a
+ * set of lifting racks both cost one five-week window, and the only thing
+ * separating them was money the board mostly underwrote. The estate is meant
+ * to be the slow half of the game - squads turn over in a season, concrete
+ * does not - so the ladder now costs time as well as cash, and the top of it
+ * costs a quarter of a season.
+ *
+ * Indexed by TARGET level, so buildWeeks(1) is the first rung.
+ */
+export const FACILITY_BUILD_WEEKS = [3, 5, 7, 9, 12] as const
+
+/** Weeks to finish a build that ends at `level`. Clamped, because a corrupt
+ *  save naming level 9 should take the longest build, not crash on undefined. */
+export function buildWeeks(level: number): number {
+  const i = Math.max(1, Math.min(MAX_FACILITY, Math.round(level))) - 1
+  return FACILITY_BUILD_WEEKS[i]
+}
+
 /** The level the user's club holds. Facilities live on the club, so taking a
  *  new job means inheriting that club's buildings, not carrying your own. */
 export function facLevel(state: GameState, fid: FacilityId): number {
