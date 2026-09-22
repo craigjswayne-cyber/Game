@@ -14,7 +14,7 @@ A locked set is frozen. Do not regenerate, retouch, rescale or re-crop its files
 | 4 | Recovery Centre | `recovery/` | Locked |
 | 5 | Training Paddock | `paddock/` | Locked |
 | 6 | Kicking Enclosure | `kicking/` | Locked |
-| 7 | Analysis & Briefing Suite | | Not started |
+| 7 | Analysis & Briefing Suite | `analysis/` | Locked |
 | 8 | Centre of Excellence | | Not started |
 | 9 | Hospitality & Boxes | | Not started |
 | 10 | Club Shop & Megastore | | Not started |
@@ -29,25 +29,26 @@ stubs connected, which the quadrant plan could not do at once. `recovery/README.
 starts bare, so its level 0 is the canonical empty plot. Reuse it for any later facility that begins
 empty rather than generating another.
 
-**Level 5 palette drift, and the fix that mostly works.** The gym's and the recovery centre's level
-5 images rendered with grass roughly 35% darker in the green channel than their own levels 0 to 4,
-despite an explicit numeric grass value in the prompt. The theory was that aspirational wording
-("world-class", "excessive", "the most expensive thing on the campus") drives a darker, more
-cinematic render that overrides the colour instruction. The training paddock's level 5 prompt was
-written with no superlatives at all, as a plain extension of level 4, and the shortfall fell from
-35% to 12%. So: write every remaining level 5 with no superlatives, and add an instruction that the
-grass BLUE channel must not rise, which is where the residual drift shows.
+**The level 5 palette recipe — three pins, all required.** Every facility's level 5 rendered darker
+or colder than its own levels 0 to 4 until all three of these were in the prompt together. Each pin
+fixes a different failure, so a partial recipe still fails.
 
-| Facility | L5 green | Set's green | Shortfall |
-| --- | --- | --- | --- |
-| Gym | 97 | 145-150 | -34% |
-| Recovery Centre | 95 | 149-152 | -37% |
-| Training Paddock | 130 | 147-154 | -12% |
-| Kicking Enclosure | 137 | 142-149 | -6% |
+1. No superlatives. Write level 5 as a plain extension of level 4, never "world-class", "excessive"
+   or "the most expensive thing on the campus".
+2. The grass BLUE channel must stay at or below 45. This stops the green going cold and grey.
+3. The grass GREEN channel must be at least 140 and close to 147. This stops it going dark, which
+   is a separate failure that pins 1 and 2 do not touch.
 
-The kicking enclosure added the blue-channel pin on top of dropping the superlatives, and its level
-4 grass, sampled outside the netting, reads `69,154,43` - a clean match. Use both devices in every
-remaining level 5 prompt.
+| Facility | Superlatives dropped | Blue capped | Green floored | L5 green vs its set |
+| --- | --- | --- | --- | --- |
+| Gym | no | no | no | -34% |
+| Recovery Centre | no | no | no | -37% |
+| Training Paddock | yes | no | no | -12% |
+| Kicking Enclosure | yes | yes | no | -6%, unverifiable |
+| Analysis, first try | yes | yes | no | -17% |
+| Analysis, regenerated | yes | yes | yes | +4% |
+
+`analysis/README.md` has the correction prompt that fixed it without touching the layout.
 
 **The authoritative pitch reference is `playing-surface/playing-surface-L2.png`.** Every asset
 containing a pitch is generated from it and measured against the coordinates in that folder's
