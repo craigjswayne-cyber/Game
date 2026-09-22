@@ -12,7 +12,7 @@ A locked set is frozen. Do not regenerate, retouch, rescale or re-crop its files
 | 2 | Stadium | `stadium/` | Locked |
 | 3 | Strength & Conditioning Gym | `gym/` | Locked |
 | 4 | Recovery Centre | `recovery/` | Locked |
-| 5 | Training Paddock | | Not started |
+| 5 | Training Paddock | `paddock/` | Locked |
 | 6 | Kicking Enclosure | | Not started |
 | 7 | Analysis & Briefing Suite | | Not started |
 | 8 | Centre of Excellence | | Not started |
@@ -25,16 +25,24 @@ recovery centre replaced it with one central mass that grows outward until it fi
 by a 6 m apron that the four stubs run straight in to meet. That fills the square AND keeps all four
 stubs connected, which the quadrant plan could not do at once. `recovery/README.md` has the wording.
 
-**No facility needs a master empty plot any more.** Every facility now starts with one small
-building rather than bare ground, so the standalone empty plot that gym level 0 was going to
-provide is no longer a dependency.
+**The empty plot is `paddock/paddock-L0.png`.** The training paddock is the only facility that
+starts bare, so its level 0 is the canonical empty plot. Reuse it for any later facility that begins
+empty rather than generating another.
 
-**Level 5 breaks the palette, twice running.** The gym's and the recovery centre's level 5 images
-both render with grass roughly 60% darker than their own levels 0 to 4, despite an explicit numeric
-grass value in the prompt. The working theory is that aspirational wording ("world-class",
-"excessive", "the most expensive thing on the campus") triggers a darker, more cinematic render that
-overrides the colour instruction. Write level 5 as a plain extension of level 4, with no
-superlatives.
+**Level 5 palette drift, and the fix that mostly works.** The gym's and the recovery centre's level
+5 images rendered with grass roughly 35% darker in the green channel than their own levels 0 to 4,
+despite an explicit numeric grass value in the prompt. The theory was that aspirational wording
+("world-class", "excessive", "the most expensive thing on the campus") drives a darker, more
+cinematic render that overrides the colour instruction. The training paddock's level 5 prompt was
+written with no superlatives at all, as a plain extension of level 4, and the shortfall fell from
+35% to 12%. So: write every remaining level 5 with no superlatives, and add an instruction that the
+grass BLUE channel must not rise, which is where the residual drift shows.
+
+| Facility | L5 green | Set's green | Shortfall |
+| --- | --- | --- | --- |
+| Gym | 97 | 145-150 | -34% |
+| Recovery Centre | 95 | 149-152 | -37% |
+| Training Paddock | 130 | 147-154 | -12% |
 
 **The authoritative pitch reference is `playing-surface/playing-surface-L2.png`.** Every asset
 containing a pitch is generated from it and measured against the coordinates in that folder's
