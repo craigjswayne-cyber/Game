@@ -8,6 +8,8 @@ import { SectionTitle } from '../components'
 import { ESTATE_SKU, hasEntitlement, tillOpen } from '../../game/monetise'
 import { estateBuiltHere } from '../../game/grants'
 import { ord as ordUI, t } from '../../game/i18n'
+import CampusMap from '../CampusMap'
+import type { CampusId } from '../../game/campusPlots'
 
 /** What each level actually buys, in the manager's language. */
 const EFFECT: Record<FacilityId, (lvl: number) => string> = {
@@ -40,6 +42,21 @@ export default function Infrastructure() {
   // sight while the button under the thumb did nothing visible.
   const [msg, setMsg] = useState<{ key: string; text: string } | null>(null)
   const [itab, setItab] = useState<'ours' | 'league'>('ours')
+  // TAPPING A PLOT ON THE MAP walks you to the card that owns it. The map is
+  // the nice half of this page and the buttons are all in the list below it,
+  // so a plot that did nothing when you pressed it read as broken. It scrolls
+  // the card into view and rings it in gold until you touch something else.
+  const [focus, setFocus] = useState<CampusId | null>(null)
+  const pick = (fid: CampusId) => {
+    setFocus(fid)
+    // rAF: on the first paint of the tab the cards may not be laid out yet
+    requestAnimationFrame(() => {
+      document.getElementById(`fac-${fid}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+  }
+  const ring = (fid: CampusId) => focus === fid
+    ? { boxShadow: '0 0 0 2px var(--gold)' }
+    : undefined
   const club = game.clubs[game.userClubId]
   const abs = game.season * 100 + game.week
   const grade = estateGrade(club)
@@ -82,7 +99,7 @@ export default function Infrastructure() {
         </button>
       )}
 
-      <div className="card" style={{ borderLeft: '4px solid var(--gold)', padding: '8px 12px' }}>
+      <div className="card" id="fac-stadium" style={{ borderLeft: '4px solid var(--gold)', padding: '8px 12px', ...ring('stadium') }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <div>
             <h3 style={{ fontSize: 15, margin: 0 }}>🏟️ {club.stadium}</h3>
@@ -121,6 +138,10 @@ export default function Infrastructure() {
       </div>
 
       {itab === 'ours' && <>
+      {/* THE CAMPUS ITSELF, above the list. Owner, v1.6.6: "get it working so
+          when you upgrade the map updates". Every tile is read from the live
+          save, so the map is the estate rather than a picture of one. */}
+      <CampusMap game={game} onPick={pick} />
       <SectionTitle sub={t('world.infFacilitiesSub')}>{t('world.infFacilities')}</SectionTitle>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 6 }}>
         {ids.map(fid => {
@@ -130,7 +151,7 @@ export default function Infrastructure() {
           const building = game.facilityBuild?.id === fid ? game.facilityBuild : null
           const weeksLeft = building ? Math.max(1, weeksBetween100(building.done, abs)) : 0
           return (
-            <div className="card" key={fid} style={{ margin: 0, padding: '8px 10px' }}>
+            <div className="card" key={fid} id={`fac-${fid}`} style={{ margin: 0, padding: '8px 10px', ...ring(fid) }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
                 <div style={{ minWidth: 0 }}>
                   <h3 style={{ fontSize: 13.5, margin: 0 }}>
