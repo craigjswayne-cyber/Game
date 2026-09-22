@@ -37,6 +37,12 @@ accepted level 4 attached to sample from. The generator weights a reference imag
 it reads. **Plan for it: generate level 5 normally, expect it dark, then run the correction pass
 from `analysis/README.md`. Budget one extra generation per facility.**
 
+**The campus map plate is in `campus/`.** A 1086 x 1448 portrait town with ten empty square plots
+that take the facility tiles. `campus/plots.json` holds every plot's measured rectangle — scale each
+tile into its own rect rather than assuming a shared size, since they vary about 3%. Two findings
+from building it: plots stay axis-aligned through curved-road layouts, and the generator will take a
+specific local correction but not a global consistency constraint like "make them all the same size".
+
 **All ten facilities are locked: 60 assets.** Every set carries its own README with measured
 figures, a `locked.json`, and `CHECKSUMS.md5`. Nine of the ten have a level 5 palette break
 recorded; `shop/` is the only set clean at every level.

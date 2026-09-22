@@ -1,0 +1,149 @@
+{
+  "asset": "campus-plate",
+  "status": "locked",
+  "file": "campus-plate.png",
+  "canvas": [
+    1086,
+    1448
+  ],
+  "aspect": "3:4",
+  "purpose": "background plate; the ten empty squares take composited facility tiles",
+  "tile_source": "art/masters/<facility>/<facility>-L<n>.png, each 1254x1254",
+  "plot_size_pct_of_canvas_width": 12.1,
+  "measurement": "connected-component bounding boxes of flat plot grass at 1px resolution, +/-1px",
+  "axis_aligned": true,
+  "bbox_fill_range": [
+    0.973,
+    0.986
+  ],
+  "notes": [
+    "plot sizes vary 131-135 px wide and 130-134 tall, about 3%; scale each tile into its own rect rather than assuming a common size",
+    "two generations both held every plot axis-aligned despite curved roads; bbox fill 0.973-0.986 where a rotated square would read 0.5-0.7",
+    "asking the generator for identical plot sizes does not work - it redistributes the variance rather than removing it",
+    "at 12.1% of canvas width a 1254px tile composites to about a tenth of native size; suitable for a zoomable overview, too small as a main view"
+  ],
+  "plots": [
+    {
+      "id": 1,
+      "x": 96,
+      "y": 106,
+      "w": 131,
+      "h": 130,
+      "centre": [
+        161,
+        171
+      ],
+      "aspect": 1.008
+    },
+    {
+      "id": 2,
+      "x": 534,
+      "y": 222,
+      "w": 131,
+      "h": 130,
+      "centre": [
+        599,
+        287
+      ],
+      "aspect": 1.008
+    },
+    {
+      "id": 3,
+      "x": 86,
+      "y": 355,
+      "w": 132,
+      "h": 130,
+      "centre": [
+        152,
+        420
+      ],
+      "aspect": 1.015
+    },
+    {
+      "id": 4,
+      "x": 847,
+      "y": 397,
+      "w": 132,
+      "h": 131,
+      "centre": [
+        913,
+        462
+      ],
+      "aspect": 1.008
+    },
+    {
+      "id": 5,
+      "x": 471,
+      "y": 511,
+      "w": 132,
+      "h": 132,
+      "centre": [
+        537,
+        577
+      ],
+      "aspect": 1.0
+    },
+    {
+      "id": 6,
+      "x": 713,
+      "y": 615,
+      "w": 135,
+      "h": 134,
+      "centre": [
+        780,
+        682
+      ],
+      "aspect": 1.007
+    },
+    {
+      "id": 7,
+      "x": 350,
+      "y": 773,
+      "w": 133,
+      "h": 133,
+      "centre": [
+        416,
+        839
+      ],
+      "aspect": 1.0
+    },
+    {
+      "id": 8,
+      "x": 70,
+      "y": 778,
+      "w": 135,
+      "h": 133,
+      "centre": [
+        137,
+        844
+      ],
+      "aspect": 1.015
+    },
+    {
+      "id": 9,
+      "x": 858,
+      "y": 874,
+      "w": 132,
+      "h": 132,
+      "centre": [
+        924,
+        940
+      ],
+      "aspect": 1.0
+    },
+    {
+      "id": 10,
+      "x": 617,
+      "y": 914,
+      "w": 131,
+      "h": 131,
+      "centre": [
+        682,
+        979
+      ],
+      "aspect": 1.0
+    }
+  ],
+  "md5": "01454fbd79607158c5c7d29d95ba9fb9",
+  "bytes": 2956229
+}
