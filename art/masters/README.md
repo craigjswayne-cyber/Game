@@ -16,7 +16,7 @@ A locked set is frozen. Do not regenerate, retouch, rescale or re-crop its files
 | 6 | Kicking Enclosure | `kicking/` | Locked |
 | 7 | Analysis & Briefing Suite | `analysis/` | Locked |
 | 8 | Centre of Excellence | `academy/` | Locked |
-| 9 | Hospitality & Boxes | | Not started |
+| 9 | Hospitality & Boxes | `hospitality/` | Locked |
 | 10 | Club Shop & Megastore | | Not started |
 
 **The campus site plan — use the recovery centre's, not the gym's.** The gym split the plot into
@@ -36,6 +36,12 @@ analysis suite — but there they were a CORRECTION pass on an already-generated
 accepted level 4 attached to sample from. The generator weights a reference image far above a number
 it reads. **Plan for it: generate level 5 normally, expect it dark, then run the correction pass
 from `analysis/README.md`. Budget one extra generation per facility.**
+
+**The palette drift can start at level 4.** Hospitality & Boxes broke at level 4 as well as level 5
+— green 124 then 91 against its own 145-150 — the first facility to do so, and its level 5 is the
+darkest asset in the project. The executive-box level is elaborate enough to trip the same response
+level 5 normally does. Check level 4 as well as level 5 on any facility whose level 4 is a large
+step up.
 
 **Name a facility's signature feature in the DO NOT ADD list of every earlier level.** The analysis
 suite's circular auditorium was specified for level 5 and arrived at level 3, leaving levels 3 and 4

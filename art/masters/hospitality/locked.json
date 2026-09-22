@@ -1,0 +1,158 @@
+{
+  "set": "hospitality",
+  "status": "locked",
+  "canvas": [
+    1254,
+    1254
+  ],
+  "contains_pitch": false,
+  "site_plan": "central mass growing outward, 6m apron ring, mirror symmetry about the south axis",
+  "stub_routes_clear": true,
+  "signature": "strict mirror symmetry about the entrance axis; double-tiered boxes at L5",
+  "palette_break_levels": [
+    4,
+    5
+  ],
+  "palette_note": "first facility where drift began at L4, not L5; L5 is the darkest asset in the project",
+  "mirror_metric_unusable": "shadows all fall down-right, so a left-right mirror test worsens with any added mass; judge symmetry by eye",
+  "known_deviations": [
+    "L4 grass 37,124,8 vs set ~73,148,33: green 16% short",
+    "L5 grass 9,91,33: green 39% short, red at 9, darkest asset in the project",
+    "L5 detail density 0.376, highest of all sixty assets and roughly double its own L4",
+    "L1 to L2 soft, +3.1 points of built area"
+  ],
+  "levels": [
+    {
+      "level": 0,
+      "file": "hospitality-L0.png",
+      "content": "one small hospitality cabin on the axis",
+      "built_pct": 8.6,
+      "detail_density": 0.065,
+      "median_grass_rgb": [
+        73,
+        150,
+        27
+      ],
+      "mirror_delta": 16.9,
+      "stub_reach_m": {
+        "north": 72.9,
+        "south": 83.5,
+        "west": 83.5,
+        "east": 75.6
+      },
+      "palette_matches_set": true,
+      "md5": "d99a7671a25f876017dbd7547c4d61cc",
+      "bytes": 1849211
+    },
+    {
+      "level": 1,
+      "file": "hospitality-L1.png",
+      "content": "white peaked marquee, mirrored service blocks",
+      "built_pct": 28.4,
+      "detail_density": 0.1,
+      "median_grass_rgb": [
+        75,
+        145,
+        34
+      ],
+      "mirror_delta": 21.7,
+      "stub_reach_m": {
+        "north": 83.5,
+        "south": 83.5,
+        "west": 83.5,
+        "east": 83.5
+      },
+      "palette_matches_set": true,
+      "md5": "01d74dbec20b0173e73c3ffa0e263adc",
+      "bytes": 1655202
+    },
+    {
+      "level": 2,
+      "file": "hospitality-L2.png",
+      "content": "permanent single-storey suite, glazed south front",
+      "built_pct": 31.5,
+      "detail_density": 0.129,
+      "median_grass_rgb": [
+        77,
+        150,
+        37
+      ],
+      "mirror_delta": 28.1,
+      "stub_reach_m": {
+        "north": 48.8,
+        "south": 83.5,
+        "west": 83.5,
+        "east": 83.5
+      },
+      "palette_matches_set": true,
+      "md5": "40671e971c58c2a50522fb1efdf8bc8e",
+      "bytes": 1677662
+    },
+    {
+      "level": 3,
+      "file": "hospitality-L3.png",
+      "content": "larger suite, covered terrace, formal gardens",
+      "built_pct": 41.3,
+      "detail_density": 0.15,
+      "median_grass_rgb": [
+        67,
+        148,
+        35
+      ],
+      "mirror_delta": 27.4,
+      "stub_reach_m": {
+        "north": 41.1,
+        "south": 83.5,
+        "west": 83.5,
+        "east": 83.5
+      },
+      "palette_matches_set": true,
+      "md5": "0c7683171e6b09260ce1ed4de48c899e",
+      "bytes": 1716090
+    },
+    {
+      "level": 4,
+      "file": "hospitality-L4.png",
+      "content": "two storeys, single row of glazed box bays",
+      "built_pct": 51.9,
+      "detail_density": 0.198,
+      "median_grass_rgb": [
+        37,
+        124,
+        8
+      ],
+      "mirror_delta": 43.4,
+      "stub_reach_m": {
+        "north": 18.9,
+        "south": 47.2,
+        "west": 74.3,
+        "east": 74.1
+      },
+      "palette_matches_set": false,
+      "md5": "3efc927a739b68a6970c27c12925b36a",
+      "bytes": 1995080
+    },
+    {
+      "level": 5,
+      "file": "hospitality-L5.png",
+      "content": "double-tiered glass boxes, axial atrium, reflecting pool",
+      "built_pct": 69.2,
+      "detail_density": 0.376,
+      "median_grass_rgb": [
+        9,
+        91,
+        33
+      ],
+      "mirror_delta": 61.4,
+      "stub_reach_m": {
+        "north": 16.0,
+        "south": 37.5,
+        "west": 83.5,
+        "east": 83.5
+      },
+      "palette_matches_set": false,
+      "md5": "10da8fe0d0a5da0a285163c1ee896196",
+      "bytes": 2448278
+    }
+  ]
+}
