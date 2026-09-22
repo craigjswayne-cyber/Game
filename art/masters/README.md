@@ -13,7 +13,7 @@ A locked set is frozen. Do not regenerate, retouch, rescale or re-crop its files
 | 3 | Strength & Conditioning Gym | `gym/` | Locked |
 | 4 | Recovery Centre | `recovery/` | Locked |
 | 5 | Training Paddock | `paddock/` | Locked |
-| 6 | Kicking Enclosure | | Not started |
+| 6 | Kicking Enclosure | `kicking/` | Locked |
 | 7 | Analysis & Briefing Suite | | Not started |
 | 8 | Centre of Excellence | | Not started |
 | 9 | Hospitality & Boxes | | Not started |
@@ -43,6 +43,11 @@ grass BLUE channel must not rise, which is where the residual drift shows.
 | Gym | 97 | 145-150 | -34% |
 | Recovery Centre | 95 | 149-152 | -37% |
 | Training Paddock | 130 | 147-154 | -12% |
+| Kicking Enclosure | 137 | 142-149 | -6% |
+
+The kicking enclosure added the blue-channel pin on top of dropping the superlatives, and its level
+4 grass, sampled outside the netting, reads `69,154,43` - a clean match. Use both devices in every
+remaining level 5 prompt.
 
 **The authoritative pitch reference is `playing-surface/playing-surface-L2.png`.** Every asset
 containing a pitch is generated from it and measured against the coordinates in that folder's
