@@ -41,7 +41,7 @@ export default function Agency() {
           <button className="active">{t('world.agTestNations')}</button>
         </div>
         <SectionTitle sub={t('world.agTestSub')}>{t('world.agTestTitle')}</SectionTitle>
-        <div className="tblwrap"><table className="dtable ranks">
+        <div className="tblwrap"><table className="dtable natranks">
           <thead><tr><th>{t('tables.colRank')}</th><th></th><th>{t('world.natColNation')}</th><th className="num">{t('squad.colPts')}</th></tr></thead>
           <tbody>
             {order.map((code, i) => {
