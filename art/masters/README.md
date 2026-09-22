@@ -15,7 +15,7 @@ A locked set is frozen. Do not regenerate, retouch, rescale or re-crop its files
 | 5 | Training Paddock | `paddock/` | Locked |
 | 6 | Kicking Enclosure | `kicking/` | Locked |
 | 7 | Analysis & Briefing Suite | `analysis/` | Locked |
-| 8 | Centre of Excellence | | Not started |
+| 8 | Centre of Excellence | `academy/` | Locked |
 | 9 | Hospitality & Boxes | | Not started |
 | 10 | Club Shop & Megastore | | Not started |
 
@@ -29,7 +29,20 @@ stubs connected, which the quadrant plan could not do at once. `recovery/README.
 starts bare, so its level 0 is the canonical empty plot. Reuse it for any later facility that begins
 empty rather than generating another.
 
-**The level 5 palette recipe — three pins, all required.** Every facility's level 5 rendered darker
+**The level 5 palette pins repair a render; they do not prevent one.** The centre of excellence
+carried all three pins in its first-pass prompt and its level 5 still came back at `41,113,51`,
+green 23% short and blue above the cap. The same three pins had produced a clean `74,151,39` on the
+analysis suite — but there they were a CORRECTION pass on an already-generated image, with the
+accepted level 4 attached to sample from. The generator weights a reference image far above a number
+it reads. **Plan for it: generate level 5 normally, expect it dark, then run the correction pass
+from `analysis/README.md`. Budget one extra generation per facility.**
+
+**Name a facility's signature feature in the DO NOT ADD list of every earlier level.** The analysis
+suite's circular auditorium was specified for level 5 and arrived at level 3, leaving levels 3 and 4
+near-identical. The centre of excellence forbade its accommodation rooflight rhythm explicitly in
+steps 3 and 4, and it landed exactly at level 4. This is the reliable control on progression pacing.
+
+**The level 5 palette recipe — three pins, all required in a correction pass.** Every facility's level 5 rendered darker
 or colder than its own levels 0 to 4 until all three of these were in the prompt together. Each pin
 fixes a different failure, so a partial recipe still fails.
 
