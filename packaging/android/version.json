@@ -35,10 +35,21 @@
     "upload of 34 was refused as already used). 35 IS 1.6.5: one calendar with",
     "an invariant, the relegation playoff on finals day, Premiership relegation",
     "restored, the runtime-brief fixes.",
+    "36 IS 1.6.9: the campus art and the live infrastructure map, the ground",
+    "as a 0-5 ladder with upkeep and wear, territory and tactics by zone,",
+    "advantage, training-ground injuries, the goal-kicking ceiling, the",
+    "training pitch, the Boardroom, and the audit round - the suite had not",
+    "been run since the territory work and was failing in fourteen places;",
+    "181 engine probes and 57 browser harnesses are green on GitHub's own",
+    "runners at 405dbe1.",
+    "35 IS ASSUMED SPENT by the 1.6.5 upload. If Play never actually took a",
+    "1.6.5 bundle then 35 is still free and this should go back to 35: a code",
+    "is spent by the first track that ACCEPTS a bundle and by nothing else.",
+    "Check the highest code on the Play Console before uploading.",
     "versionName comes from the root package.json.",
     "billingLibrary is the Play Billing Library version PhaseBilling.java is",
     "written against. Play refuses anything below 8.0.0 (learned 4 Sep 2026)."
   ],
-  "versionCode": 35,
+  "versionCode": 36,
   "billingLibrary": "8.0.0"
 }
