@@ -36,12 +36,22 @@
  */
 import type { GameState } from './model'
 import { clamp, type Rng } from './rng'
-import { seasonStart, BASE_YEAR, fmtMoney, operatingCost } from './model'
+import { seasonStart, BASE_YEAR, fmtMoney, groundLevel, operatingCost } from './model'
 import { tIn } from './i18n'
 
-/** Weeks between rolls, on average: often enough to be part of the year, rare
- *  enough that an inbox is not an accountant's. */
-const CHANCE = 0.17
+/**
+ * How often the club's non-rugby year says something. Often enough to be part
+ * of the year, rare enough that an inbox is not an accountant's.
+ *
+ * IT CLIMBS WITH THE GROUND (owner, v1.6.9). A bigger place has more of
+ * everything that can go wrong and more of everything worth hiring it out
+ * for, so a stadium hears from the maintenance department about half again as
+ * often as a village ground does. The rate is the only thing size changes
+ * here; what an event COSTS is already proportionate, because every figure in
+ * the table is priced in weeks of that club's own upkeep.
+ */
+const CHANCE_BASE = 0.165
+const chanceFor = (s: GameState) => CHANCE_BASE * (1 + stage(s) * 0.055)
 
 interface Event {
   /** the story's key; `${k}Subj` is its subject, as everywhere else */
@@ -52,7 +62,29 @@ interface Event {
   board: number
   /** only offered when this is true of the club */
   when?: (state: GameState) => boolean
+  /** WEAR AND TEAR, rather than weather or an accident. These are the stories
+   *  a ground tells you when nobody has spent anything on it for a while, so
+   *  they are weighted up by club.wear and reset by a new stand. */
+  wear?: boolean
 }
+
+/** Which of the six grounds this is, for the gates below. */
+const stage = (s: GameState) => groundLevel(s.clubs[s.userClubId]?.capacity ?? 0)
+/** A story that only makes sense once the ground is big enough to have the
+ *  thing that breaks: a village club has no concourse to light. */
+const fromStage = (n: number) => (s: GameState) => stage(s) >= n
+
+/**
+ * HOW WORN THE GROUND IS, 0 to 1.
+ *
+ * club.wear counts the weeks since the builders were last here and is reset
+ * when a stand opens (season.ts). Five seasons of spending nothing on the
+ * place takes it to the top of the range, where the wear stories are three
+ * times as likely to come up as they are the week the paint dries.
+ */
+const WEAR_FULL = 240
+const wearOf = (s: GameState) =>
+  Math.min(1, (s.clubs[s.userClubId]?.wear ?? 0) / WEAR_FULL)
 
 /** A ground with a roof over most of it has more to lose to a gale. */
 const bigGround = (state: GameState) => (state.clubs[state.userClubId]?.capacity ?? 0) >= 12_000
@@ -91,6 +123,31 @@ const EVENTS: Event[] = [
   { k: 'news.upPitch', weeks: -9, board: -1, when: newYear },
   { k: 'news.upForklift', weeks: -4, board: -1.5 },
   { k: 'news.upBadger', weeks: -2, board: -0.5 },
+  // ---- WEAR AND TEAR (owner, v1.6.9) ----
+  //
+  // "replacing seats from sun damage, toilets broken, bar issues, unexpected
+  // high electricity bill - general wear and tear". The table above is
+  // weather and accidents: things that HAPPEN to a ground. These are what a
+  // ground does on its own if you leave it alone, so they are the ones that
+  // get likelier the longer it is since anybody built anything, and they are
+  // gated by stage so a village club is never sent a stadium's bill.
+  { k: 'news.upSeats', weeks: -5, board: -1, wear: true, when: fromStage(2) },
+  { k: 'news.upToilets', weeks: -3, board: -1, wear: true, when: fromStage(1) },
+  { k: 'news.upCellar', weeks: -3, board: -0.5, wear: true, when: fromStage(1) },
+  { k: 'news.upPower', weeks: -7, board: -1.5, wear: true, when: fromStage(3) },
+  { k: 'news.upSurvey', weeks: -4, board: -1, wear: true },
+  // ---- AND A BIG GROUND IS A BIG ASSET ----
+  //
+  // The five stories above are five new ways to lose money, dropped into a
+  // table whose whole design note is "roughly balanced, slightly negative".
+  // Without these it is heavily negative and the ladder above it becomes
+  // unfundable - measured at econprobe, a Northampton that could no longer
+  // pay for its own estate. These are what a stadium actually does when it
+  // is not being played in, and they are gated the same way the losses are,
+  // so the upside arrives with the same concrete that brought the bills.
+  { k: 'news.upConference', weeks: 5, board: 1.5, when: fromStage(2) },
+  { k: 'news.upTours', weeks: 4, board: 1, when: fromStage(3) },
+  { k: 'news.upNaming', weeks: 8, board: 2.5, when: fromStage(4) },
   // ---- the events department, which is a gamble ----
   { k: 'news.upDinner', weeks: 9, board: 2 },
   { k: 'news.upBeerFest', weeks: -4, board: -1, when: lateSummer },
@@ -119,13 +176,35 @@ export function upkeepWeek(state: GameState, rng: Rng): number {
   if (state.unemployed) return 0
   const club = state.clubs[state.userClubId]
   if (!club) return 0
+  // THE GROUND AGES WHETHER OR NOT ANYTHING HAPPENS TO IT, and it ages before
+  // the pre-season guard below, so a summer counts like any other week.
+  // season.ts puts it back to nothing when a new stand opens.
+  club.wear = Math.min(WEAR_FULL, (club.wear ?? 0) + 1)
   // pre-season is the manager's own week: the fixture list has not started and
   // an inbox full of guttering before a ball is kicked reads as noise
   if (state.week < 3) return 0
-  if (rng() >= CHANCE) return 0
+  if (rng() >= chanceFor(state)) return 0
 
+  /**
+   * A WEIGHTED DRAW, not a flat one - one rng call either way, so the stream
+   * costs exactly what it always did.
+   *
+   * Every story weighs 1 except the wear ones, which weigh between 1 and 3
+   * depending on how long it is since anybody poured any concrete here. A
+   * ground that has just had a stand built gets the same year it always got;
+   * one nobody has spent a penny on for five seasons starts hearing about its
+   * seats, its toilets and its electricity bill instead of its beer festival.
+   */
   const pool = EVENTS.filter(e => !e.when || e.when(state))
-  const ev = pool[Math.floor(rng() * pool.length)]
+  const wf = 1 + wearOf(state) * 2
+  let total = 0
+  for (const e of pool) total += e.wear ? wf : 1
+  let pick = rng() * total
+  let ev: Event | undefined
+  for (const e of pool) {
+    pick -= e.wear ? wf : 1
+    if (pick < 0) { ev = e; break }
+  }
   if (!ev) return 0
 
   // priced in the club's own weeks, with a little spread so the same event is

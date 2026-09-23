@@ -22,6 +22,9 @@
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance, userFixtureThisWeek, weekRng } from '../src/game/season'
 import { beginMatch, simMatch, stepTick, resolveDecision } from '../src/game/matchEngine'
+import { requestExpansion } from '../src/game/season'
+import { upkeepWeek } from '../src/game/upkeep'
+import { GROUND_UPKEEP_F, groundLevel, groundUpkeep } from '../src/game/model'
 import { mulberry32 } from '../src/game/rng'
 
 let fails = 0
@@ -129,6 +132,54 @@ console.log('\n=== 4. the goal-kicking ladder separates at the top ===')
   // in scripts/_bal-style runs; this holds the design point it was tuned to
   ok(con(15) > 0.70 && con(15) < 0.80,
     `a good club kicker converts in the seventies, as the professional game does (${(con(15) * 100).toFixed(0)}%)`)
+}
+
+// ------------------------------------------------- 5. what a ground costs
+console.log('\n=== 5. a stadium costs more a seat than a terrace ===')
+{
+  for (const cap of [1_500, 3_000, 6_000, 9_000, 15_000, 32_000]) {
+    const wk = groundUpkeep(cap)
+    console.log(`  stage ${groundLevel(cap)}  ${cap.toLocaleString().padStart(6)} seats  £${Math.round(wk).toLocaleString()}/wk  (£${(wk / cap).toFixed(2)} a seat)`)
+  }
+  ok(groundUpkeep(32_000) / 32_000 > groundUpkeep(1_500) / 1_500 * 1.3,
+    'the seat price itself climbs with the ground, not just the number of seats')
+  // the same ground costs the same to run whoever owns it: this is the
+  // incoherence that once made the manager four times richer than the median
+  ok(GROUND_UPKEEP_F.length === 6, 'there is one multiplier per ground, and one table for the whole world')
+}
+
+console.log('\n=== 6. the ground wears out, and a stand makes it new ===')
+{
+  const g = newGame('leicester', 'Adv', 4242)
+  const club = g.clubs[g.userClubId]
+  const w0 = club.wear ?? 0
+  for (let i = 0; i < 20; i++) processWeekAndAdvance(g)
+  const w1 = club.wear ?? 0
+  ok(w1 > w0, `wear climbs while nobody builds (${w0} -> ${w1})`)
+  // and a finished stand puts it back to nothing
+  club.boardConfidence = 90; club.balance = 200_000_000
+  g.facilityAskCooldown = 0; g.expandedSeason = -1
+  requestExpansion(g)
+  if (g.stadiumBuild) {
+    for (let i = 0; i < 20 && g.stadiumBuild; i++) processWeekAndAdvance(g)
+    ok((club.wear ?? 99) === 0 || (club.wear ?? 99) < w1,
+      `a new stand resets the ground's wear (${w1} -> ${club.wear})`)
+  } else {
+    console.log('  NOTE  the board would not build this season, so the reset is untested here')
+  }
+  // a village ground never gets a stadium's electricity bill
+  const small = newGame('leicester', 'Adv', 777)
+  const sc = small.clubs[small.userClubId]
+  sc.capacity = 1_500
+  let sawBig = 0
+  for (let i = 0; i < 300; i++) {
+    const n0 = small.news.length
+    upkeepWeek(small, mulberry32(9000 + i))
+    for (const n of small.news.slice(n0)) {
+      if (n.k === 'news.upPower' || n.k === 'news.upSeats' || n.k === 'news.upNaming') sawBig++
+    }
+  }
+  ok(sawBig === 0, `a stage-zero ground is never sent a stadium's bill or a stadium's windfall (${sawBig} leaked)`)
 }
 
 console.log(fails ? `\nDESIGN ROUND PROBE: ${fails} failures` : '\nDESIGN ROUND PROBE PASSED: advantage, the Tuesday session and the kicking ladder all behave')
