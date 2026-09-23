@@ -267,7 +267,14 @@ say('\n--- 4. a man lost is a man missing, and the verdict names him')
       // fifteen shirts, less anyone sent off, anyone the referee took off under
       // Law 3.20, anyone hurt with an empty bench behind him, and anyone still
       // sitting out a bin at the final whistle
-      const sittingOut = [...side.binned].filter(id => (side.yellowUntil.get(id) ?? 0) > p.ctx.lastMin).length
+      // WHO IS STILL SITTING IS `binned`, NOT THE CLOCK. This read
+      // yellowUntil > lastMin, which is wrong at exactly the final whistle: a
+      // man binned on 70 has a yellowUntil of 80, the match ends on 80, and no
+      // further tick ever runs to release him - so he is off the pitch for
+      // good while `80 > 80` said he was back on. Two of 746 sides tripped it.
+      // simTick deletes a man from `binned` the moment it puts him back, so
+      // the set itself is the answer and it cannot be off by a minute.
+      const sittingOut = side.binned.size
       const expect = 15 - side.sent - side.short - sittingOut
       if (side.onPitch.size !== expect) {
         miscount.push(`fx ${p.fx.id} ${side.teamId}: ${side.onPitch.size} on the pitch, ${expect} accounted for `

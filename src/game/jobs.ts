@@ -292,6 +292,7 @@ function takeJob(state: GameState, clubId: string): string {
     state.gateRecord = null // a new ground sets its own bar
     state.tryOfSeason = null // the old club keeps its own best try
     state.facilityBuild = null // the old club's builders finish without you
+    state.stadiumBuild = null // and the old club's stand is the old board's problem
     state.facilityAskCooldown = 0 // a new board hears you out fresh
     state.boardAsks = undefined // and holds none of the old board's grudges
     state.fundsAskedSeason = undefined // the funds ask resets with the desk

@@ -6,7 +6,7 @@ import { simMatch } from '../src/game/matchEngine'
 import { answerPress } from '../src/game/media'
 import { cottonWool, specialistConsult } from '../src/game/medical'
 import { ROLE_BY_ID, rolesForSlot } from '../src/game/roles'
-import { FACILITY_INFO, MAX_FACILITY, SEASON_WEEKS, demandCeiling, oldBoyApps, stamp100, weeksBetween100, type FacilityId, type GameState } from '../src/game/model'
+import { FACILITY_INFO, MAX_FACILITY, SEASON_WEEKS, STAND_BUILD_WEEKS, demandCeiling, oldBoyApps, stamp100, weeksBetween100, type FacilityId, type GameState } from '../src/game/model'
 import { appointStaff, sendToCourse, type StaffRole } from '../src/game/staff'
 import { commissionScout } from '../src/game/commission'
 import { analystRead } from '../src/game/analyst'
@@ -214,7 +214,19 @@ function audit(g: GameState, tag: string) {
     const b = g.facilityBuild
     if (!FACILITY_INFO[b.id]) bad(`${tag} facility build with unknown id ${b.id}`)
     if (!(b.level >= 1 && b.level <= MAX_FACILITY)) bad(`${tag} facility build to level ${b.level}`)
-    if (b.done > g.season * 100 + g.week + 6) bad(`${tag} facility build finishes too far out (${b.done})`)
+    // MEASURED, not compared: `done` is a season*100+week stamp, so a build
+    // ordered at week 44 for twelve weeks lands at (s+1)*100+8 and any raw
+    // subtraction reads it as sixty-four weeks out (model.ts, basis-100).
+    // The bound is the longest build in the game rather than the six weeks
+    // this held when every project took five.
+    if (weeksBetween100(b.done, stamp100(g)) > 12) bad(`${tag} facility build finishes too far out (${b.done})`)
+  }
+  if (g.stadiumBuild) {
+    const b = g.stadiumBuild
+    if (!(b.seats > 0)) bad(`${tag} stand build for ${b.seats} seats`)
+    if (!(b.cost > 0)) bad(`${tag} stand build costing ${b.cost}`)
+    if (weeksBetween100(b.done, stamp100(g)) > STAND_BUILD_WEEKS) bad(`${tag} stand build finishes too far out (${b.done})`)
+    if (g.facilityBuild) bad(`${tag} a stand and a facility on site at once`)
   }
   // every club in the world carries an estate, and no level ever goes rogue
   for (const c of Object.values(g.clubs)) {

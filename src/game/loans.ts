@@ -274,7 +274,21 @@ export function loanOut(state: GameState, playerId: number): { ok: boolean; msg:
     id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: true,
     subject: `${p.name} heads out on loan`,
     body: `${p.name} joins ${feeder ? feeder.name : 'a feeder club'} for the rest of the season. Regular first-team rugby should accelerate his development - expect him back sharper next summer.`,
-    k: 'news.loanOut', v: { player: p.name, club: feeder?.name ?? tIn('en', 'news.aFeederClub') },
+    // A KEY, NOT A SENTENCE. When no feeder could be named this stored the
+    // ENGLISH words "a feeder club" into the story's variables, and a stored
+    // variable is not translated on the way out - so a French career read
+    // "rejoint a feeder club pour le reste de la saison". Found by frliveprobe,
+    // one line in 5,212. The unnamed case gets its own key, which is the same
+    // sentence with the phrase already inside it, in six languages.
+    //
+    // Written as a plain ternary on the key and not as a spread of two
+    // objects: newsprobe reads this file to check every story is FILED with a
+    // key, and it reads it as text. A `k` it cannot see is a story it counts
+    // as English for ever. Its sibling news.loanOutAnonSubj exists for the
+    // same reason news.trainInjury needed one - newsSubject builds a headline
+    // as `k + 'Subj'`.
+    k: feeder ? 'news.loanOut' : 'news.loanOutAnon',
+    v: feeder ? { player: p.name, club: feeder.name } : { player: p.name },
     playerId: p.id,
   })
   return { ok: true, msg: `${p.name} will spend the season on loan${feeder ? ` at ${feeder.name}` : ''}. He returns next summer, better for it.` }

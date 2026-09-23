@@ -319,13 +319,60 @@ const EXPECTED: string[] = [
   // seeded match that follows them in its week re-deals. Mechanical, not a
   // dial: bandcheck held every band on the pool (53.5 pts, 6.22 tries, 54.0%
   // home, 2.3% draws, 6.7% blowouts) before this line moved. Five hold exactly.
-  'leicester 6-35 gloucester',
-  'bath 34-17 saracens',
-  'newcastle 16-7 northampton',
-  'harlequins 24-31 bristol',
-  'sale 54-27 exeter',
-  'bath 62-19 leicester',
+  // REBASELINED AGAIN for the v1.6.7 design round, and all six moved because
+  // all four changes are mechanical and three of them draw on the shared rng:
+  //
+  //   ADVANTAGE. A kickable penalty now costs one draw before it is taken, and
+  //   about an eighth of them never become a kick at all - the side scores
+  //   under the arm, or the referee waves it away with ground made. Every draw
+  //   after the first penalty of a match is therefore a different draw.
+  //   INJURIES. The match roll went from 0.019 to 0.036 a side a tick and the
+  //   short end of the table came down, so a different man breaks down in a
+  //   different minute.
+  //   GOAL KICKING. No extra draw, but the threshold each kick is compared
+  //   against moved, so kicks that used to land now miss and the scoreboard
+  //   diverges from there.
+  //
+  // The training-ground roll in season.ts is outside this stream: fingerprint
+  // sims fixtures directly and never advances a week.
+  // REBASELINED for v1.8.0, THE TERRITORY ROUND, and this one had to move:
+  // the engine now spends a draw a tick deciding where the game is being
+  // played, so every draw after the first tick of every match is a different
+  // draw. TRY_BASE came down twice alongside it (0.108 to 0.096 to 0.088)
+  // because field position multiplies a ratio that is then raised to 2.6, and
+  // that convexity lifted the league from 50.6 points a game to 56.2 before
+  // it was rebased. The league now measures 52.6, which is on the band.
+  //
+  // REBASELINED AGAIN for v1.8.4, the audit round, and four of the six moved.
+  // Three deliberate mechanical changes, none of which spends a new draw - all
+  // three move a threshold a roll is compared against:
+  //
+  //   TRY_BASE, 0.088 -> 0.0832. bandcheck had the league at 6.66 tries a
+  //   game against a 6.0-6.6 band; it is 6.30 now.
+  //   THE GARBAGE-TIME DAMP, from lead > 35 with a 0.3 floor to lead > 28
+  //   with 0.26. blowprobe had two top clubs reaching 63 against a stated
+  //   ceiling of 60; the worst is 59 now, and the median margin (15) and 90th
+  //   percentile (31) did not move at all.
+  //   A SECOND SHIRT for generated players (attributes.ts). That one draws
+  //   from its OWN stream, deliberately, so it moves no attribute anywhere -
+  //   but the bench builder reads `alt`, so benches are shaped differently and
+  //   the men who come on are not always the same men.
+  //
+  // The board's extra table reviews (season.ts) are outside this stream for
+  // the same reason the training-ground roll is: fingerprint sims fixtures
+  // directly and never advances a week.
+  'leicester 26-31 gloucester',
+  'bath 7-20 saracens',
+  'newcastle 18-45 northampton',
+  'harlequins 24-26 bristol',
+  'sale 36-14 exeter',
+  'bath 41-24 leicester',
 ]
+// v1.8.1 moved three of them once more, and this time WITHOUT spending a new
+// draw: the training pitch now scales every side's breakdown and handling off
+// its own estate, so the same rolls are compared against different thresholds.
+// The home-surface term came out of the match injury roll in the same change,
+// which is one draw whose threshold no longer moves at all.
 
 if (EXPECTED[0] === '@@EXPECTED@@') {
   console.log('BASELINE (paste into EXPECTED):')

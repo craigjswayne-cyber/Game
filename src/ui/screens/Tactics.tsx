@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { planSlots, useStore } from '../../store'
 import { XV_SLOTS, type Player } from '../../game/model'
-import { DEF_SLIDER_INFO, PRESETS, SLIDER_INFO, defSliderReadout, sliderReadout } from '../../game/tactics'
+import { DEF_SLIDER_INFO, DEF_SYSTEMS, PRESETS, SLIDER_INFO, ZONE_PLANS, defSliderReadout, defSystemOf, sliderReadout, zonePlan, type ZoneId } from '../../game/tactics'
 import { ROLE_BY_ID, rolesForSlot } from '../../game/roles'
-import { PosBadge, SectionTitle } from '../components'
+import { Jersey, PosBadge, SectionTitle } from '../components'
 import { analystClaim, analystForm, analystRead, prepLabel, unitLabel } from '../../game/analyst'
 import { assistantAdvice } from '../../game/analysis'
 import { userFixtureThisWeek } from '../../game/season'
@@ -179,9 +179,18 @@ export default function Tactics() {
               <button key={i} className="form-chip"
                 style={{ '--fx': `${x}%`, '--fy': `${y}%` } as React.CSSProperties}
                 onClick={() => setRoleSlot(i)}>
-                <span className="fc-role">{role ? t(role.short) : XV_SLOTS[i].pos}</span>
+                {/* THE MAN IN THE SHIRT, not a coloured block (owner, v1.8.2:
+                    "Can you use jerseys instead of blocks?"). The Jersey
+                    component already draws every club's real kit - hoops,
+                    quarters, sleeve trim - so the fifteen on this pitch are
+                    now wearing the jersey the club actually plays in, with
+                    the shirt number on the chest where a number belongs. */}
+                <span className="fc-kit">
+                  <Jersey club={club} size={38} />
+                  <span className="fc-num">{XV_SLOTS[i].shirt}</span>
+                </span>
                 <span className="fc-name">{p ? p.name.split(' ').slice(-1)[0] : '-'}</span>
-                <span className="fc-num">{XV_SLOTS[i].shirt}</span>
+                <span className="fc-role">{role ? t(role.short) : XV_SLOTS[i].pos}</span>
               </button>
             )
           })}
@@ -497,29 +506,17 @@ export default function Tactics() {
         </div>
         {/* THE MANAGER'S OWN PLANS (owner, v1.2.7: "your own four sliders,
             set-piece calls and kicker order have to be re-dialled by hand every
-            time you switch plan"). Three slots, six with Pro Manager. An empty
-            one saves what is on the dials now - everything on this screen
-            except the team sheet - and a full one puts it back; the small
-            button beside it overwrites.
+            time you switch plan"). Two slots, and two is now the whole of it
+            for everyone (store.ts). An empty one saves what is on the dials
+            now - everything on this screen except the team sheet - and a full
+            one puts it back; the small button beside it overwrites.
 
-            The Pro slots are SHOWN to everyone and locked rather than hidden:
-            a manager who has filled A, B and C is the one who wants D, and he
-            cannot want what he cannot see. Tapping a locked one goes to the
-            Store, because a chip that looks pressable and does nothing is a
-            bug report. */}
+            There was a greyed ⭐ chip on the end offering the Pro slots. It is
+            gone with them: an invitation to unlock a number that no longer
+            differs would be a chip that looks pressable and sells nothing. */}
         <div className="plan-slots">
-          {(['A', 'B', 'C', 'D', 'E', 'F'] as const).map((letter, i) => {
-            if (i >= planSlots()) {
-              // only the first locked one is offered - six greyed chips in a
-              // row is a wall, one is an invitation
-              if (i !== planSlots()) return null
-              return (
-                <button key={letter} className="preset-chip plan-empty" onClick={() => go('supporter')}
-                  title={t('tacticsScreen.planProTitle')}>
-                  ⭐ {t('tacticsScreen.planPro')}
-                </button>
-              )
-            }
+          {(['A', 'B'] as const).map((letter, i) => {
+            if (i >= planSlots()) return null
             const slot = game.gamePlans?.[i]
             const snapshot = () => {
               const { lineup: _lineup, ...values } = tac
@@ -556,9 +553,65 @@ export default function Tactics() {
           </div>
         )}
         <SectionTitle sub={t('tacticsScreen.withTheBallSub')}>{t('tacticsScreen.withTheBall')}</SectionTitle>
-        {SLIDER_INFO.map(slider)}
+        {/* .dial-grid: one column on a phone held upright, two once there is
+            room for them. The Game Plan tab is six dials, three zones and a
+            defence by name, which is 1112px of page on a landscape phone -
+            3.41 screenfuls, and scripts/scrollaudit.mjs fails anything at
+            three. Pairing them up on a wide screen is the honest fix; nothing
+            is hidden and portrait is untouched. */}
+        <div className="dial-grid">{SLIDER_INFO.map(slider)}</div>
+        {/* ---- WHAT YOU DO WHERE (v1.8.0) ----
+            Three zones, one choice each, because the four dials above are the
+            whole-match plan and this is the one decision a coach makes in a
+            particular part of the pitch. It could not exist before the engine
+            had a field position for it to refer to. */}
+        <SectionTitle sub={t('tacticsScreen.byZoneSub')}>{t('tacticsScreen.byZone')}</SectionTitle>
+        <div className="dial-grid">
+        {(['own22', 'middle', 'opp22'] as ZoneId[]).map(z => {
+          const cur = zonePlan(z, tac.zones?.[z])
+          return (
+            <div key={z} className="zone-row" style={{ padding: '0 14px 6px' }}>
+              <div className="fact-label zone-label" style={{ marginBottom: 3 }}>{t(`tacticsScreen.zone_${z}`)}</div>
+              <div style={{ display: 'flex', gap: 5 }}>
+                {ZONE_PLANS[z].map(pl => (
+                  <button key={pl.id} className="preset-chip" title={t(pl.desc)}
+                    style={{ flex: '1 1 0', minWidth: 0,
+                      ...(cur.id === pl.id ? { background: 'var(--primary)', color: 'var(--on-primary)' } : {}) }}
+                    onClick={() => { tac.zones = { ...(tac.zones ?? {}), [z]: pl.id }; touch() }}>
+                    {t(pl.name)}
+                  </button>
+                ))}
+              </div>
+              <div className="meta" style={{ fontSize: 11, marginTop: 3 }}>{t(cur.desc)}</div>
+            </div>
+          )
+        })}
+        </div>
         <SectionTitle sub={t('tacticsScreen.withoutTheBallSub')}>{t('tacticsScreen.withoutTheBall')}</SectionTitle>
-        {DEF_SLIDER_INFO.map(defSlider)}
+        {/* THE SYSTEM, BY NAME (v1.7.0). A coach picks a defence by its name
+            and then tunes it, so the names come first and the two dials below
+            stay exactly as they were - tapping one just sets them. The
+            readout names whichever system they sit nearest, so dragging a
+            slider re-labels the row rather than leaving it stale. */}
+        {(() => {
+          const cur = defSystemOf(tac.defLine ?? 50, tac.defWidth ?? 50)
+          return (
+            <div className="zone-row" style={{ padding: '0 14px 2px' }}>
+              <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+                {DEF_SYSTEMS.map(sys => (
+                  <button key={sys.id} className="preset-chip" title={t(sys.desc)}
+                    style={{ flex: '1 1 auto', ...(cur.id === sys.id
+                      ? { background: 'var(--primary)', color: 'var(--on-primary)' } : {}) }}
+                    onClick={() => { tac.defLine = sys.line; tac.defWidth = sys.width; touch() }}>
+                    {t(sys.name)}
+                  </button>
+                ))}
+              </div>
+              <div className="meta" style={{ fontSize: 11, marginTop: 4 }}>{t(cur.desc)}</div>
+            </div>
+          )
+        })()}
+        <div className="dial-grid">{DEF_SLIDER_INFO.map(defSlider)}</div>
       </>}
 
       {roleSheet()}

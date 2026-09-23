@@ -6,7 +6,7 @@ import { applyAdminPenalties } from './season'
 import { settleInsolvency } from './insolvency'
 import { ageManager } from './career'
 import { rivalVerdict } from './boss'
-import {absWeek, BASE_YEAR, boardObjective, boardPatience, closeNatTenure, demandCeiling, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, RELEGATES, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId, worldCupSeasonFor } from './model'
+import {absWeek, BASE_YEAR, boardObjective, boardPatience, closeNatTenure, demandCeiling, MAX_FOLLOWING, GROUND_TIERS, groundLevel, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, RELEGATES, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId, worldCupSeasonFor } from './model'
 import { assignPersonality } from './attributes'
 import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildWomensContinentalCup, buildLeague, schedulePreseason, sortTable } from './schedule'
 import { punditPredictions } from './gossip'
@@ -1459,12 +1459,38 @@ export function rebuildSeason(state: GameState) {
   // bums on seats: clubs that keep selling out build bigger stands
   for (const club of Object.values(state.clubs)) {
     const home = state.fixtures.filter(f => f.played && f.homeId === club.id && f.att)
-    if (home.length < 5 || club.capacity >= 82_000) continue
+    // THE SAME LADDER THE MANAGER CLIMBS (v1.6.8). A stage-five stadium is
+    // the top of the estate for every club in the world, not only for the one
+    // the user happens to be sitting at, or the map would be drawing a rule
+    // that applies to one ground out of a hundred and one.
+    if (home.length < 5 || groundLevel(club.capacity) >= GROUND_TIERS.length - 1) continue
     const avg = home.reduce((sum, f) => sum + (f.att ?? 0), 0) / home.length
+    /**
+     * ---- A SEASON OF FULL HOUSES BUYS A BIGGER FOLLOWING (v1.6.8) ----
+     *
+     * demandCeiling used to anchor for ever on the ground a club opened with,
+     * which capped the whole world at about 1.4x its starting seats and made
+     * the 0-to-5 ground ladder unclimbable for anybody who started small.
+     *
+     * This is the only thing that moves that anchor, and it is the hardest
+     * thing in the game to fake: a whole season with the ground better than
+     * nine-tenths full. Turned away supporters become next season's season
+     * tickets. Five per cent a season compounds to the cap in about a decade
+     * of sold-out rugby, which is a career, not a quarter.
+     *
+     * It runs BEFORE the expansion vote below on purpose - a club that filled
+     * the place last season should be allowed to act on it this summer.
+     */
+    if (avg / club.capacity >= 0.9) {
+      club.following = Math.min(MAX_FOLLOWING, (club.following ?? 1) * 1.05)
+    }
     if (avg / club.capacity < 0.93 || rng() > 0.4) continue // boards dither
     // a board will not build seats it cannot sell: the catchment is the ceiling
     if (club.capacity >= demandCeiling(club) * 0.95) continue
-    const add = Math.round((club.capacity * (0.04 + rng() * 0.06)) / 100) * 100
+    // and it never overshoots the rung it is climbing toward
+    const room = Math.min(GROUND_TIERS[groundLevel(club.capacity) + 1], demandCeiling(club)) - club.capacity
+    const add = Math.min(Math.round((club.capacity * (0.04 + rng() * 0.06)) / 100) * 100,
+                         Math.round(room / 100) * 100)
     // same per-seat curve the manager is quoted in expansionPlan: a big ground
     // costs more per seat than a small one, which is what a flat 1,400 missed
     const cost = add * Math.round(1_400 * (1 + club.capacity / 45_000))

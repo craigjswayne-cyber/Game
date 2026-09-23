@@ -1,0 +1,143 @@
+{
+  "set": "shop",
+  "status": "locked",
+  "canvas": [
+    1254,
+    1254
+  ],
+  "contains_pitch": false,
+  "site_plan": "central mass growing outward, 6m apron ring, four stubs run in to the ring",
+  "stub_routes_clear": true,
+  "signature": "sawtooth north-light roof, specified for L4 and correctly held until L4",
+  "palette_break_levels": [],
+  "note": "only facility in the project with no palette break at any level; green 148-154 throughout",
+  "known_deviations": [],
+  "levels": [
+    {
+      "level": 0,
+      "file": "shop-L0.png",
+      "content": "one small retail kiosk",
+      "built_pct": 7.8,
+      "detail_density": 0.078,
+      "median_grass_rgb": [
+        76,
+        148,
+        33
+      ],
+      "stub_reach_m": {
+        "north": 70.0,
+        "south": 81.3,
+        "west": 72.1,
+        "east": 71.9
+      },
+      "palette_matches_set": true,
+      "md5": "7aa3d6678760b65ac4503b5ef33a55ea",
+      "bytes": 1813135
+    },
+    {
+      "level": 1,
+      "file": "shop-L1.png",
+      "content": "small club shop, glazed south front",
+      "built_pct": 20.3,
+      "detail_density": 0.083,
+      "median_grass_rgb": [
+        74,
+        151,
+        36
+      ],
+      "stub_reach_m": {
+        "north": 64.8,
+        "south": 83.5,
+        "west": 83.5,
+        "east": 73.7
+      },
+      "palette_matches_set": true,
+      "md5": "2303930f3cd36903971fb31160f77c8b",
+      "bytes": 1529464
+    },
+    {
+      "level": 2,
+      "file": "shop-L2.png",
+      "content": "larger shop, service yard with one delivery bay",
+      "built_pct": 32.0,
+      "detail_density": 0.116,
+      "median_grass_rgb": [
+        72,
+        153,
+        37
+      ],
+      "stub_reach_m": {
+        "north": 60.3,
+        "south": 83.5,
+        "west": 83.5,
+        "east": 55.2
+      },
+      "palette_matches_set": true,
+      "md5": "0ac151cfccf05e21ec9ea31a4bd4cb87",
+      "bytes": 1572215
+    },
+    {
+      "level": 3,
+      "file": "shop-L3.png",
+      "content": "flagship store, entrance canopy, plaza with tree grid",
+      "built_pct": 47.2,
+      "detail_density": 0.155,
+      "median_grass_rgb": [
+        75,
+        151,
+        36
+      ],
+      "stub_reach_m": {
+        "north": 56.0,
+        "south": 81.2,
+        "west": 45.2,
+        "east": 40.0
+      },
+      "palette_matches_set": true,
+      "md5": "b26196f05f0c3bc52fa65c86b2164b3b",
+      "bytes": 1735707
+    },
+    {
+      "level": 4,
+      "file": "shop-L4.png",
+      "content": "two storeys, sawtooth north-light roof, two delivery bays",
+      "built_pct": 56.7,
+      "detail_density": 0.181,
+      "median_grass_rgb": [
+        74,
+        154,
+        40
+      ],
+      "stub_reach_m": {
+        "north": 38.5,
+        "south": 74.1,
+        "west": 83.5,
+        "east": 35.6
+      },
+      "palette_matches_set": true,
+      "md5": "5109fec01116ad8cd66211f8d4e2e32e",
+      "bytes": 1740895
+    },
+    {
+      "level": 5,
+      "file": "shop-L5.png",
+      "content": "sawtooth across the whole roof with solar, plaza and yard fill the site",
+      "built_pct": 76.9,
+      "detail_density": 0.218,
+      "median_grass_rgb": [
+        69,
+        151,
+        34
+      ],
+      "stub_reach_m": {
+        "north": 27.2,
+        "south": 72.4,
+        "west": 17.9,
+        "east": 17.3
+      },
+      "palette_matches_set": true,
+      "md5": "2e51ef9b97301d09dca4169bafcabd1c",
+      "bytes": 1899579
+    }
+  ]
+}

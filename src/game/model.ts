@@ -507,6 +507,14 @@ export interface Club {
    *  ("Franklin's Gardens", under whatever is currently bolted above it) */
   stadiumBase?: string
   capacity: number
+  /** weeks since the builders were last on this ground, capped. Drives how
+   *  likely the wear-and-tear stories are in upkeep.ts, and a new stand
+   *  resets it: concrete that has just been poured does not leak. */
+  wear?: number
+  /** how much bigger this club's support has grown than the day it opened,
+   *  1 at kick-off and earned a season at a time by filling the ground
+   *  (rollover.ts). Multiplies capacity0 inside demandCeiling. */
+  following?: number
   /** the real, opening capacity of the ground - the anchor for demandCeiling,
    *  so a ground that has been extended cannot justify extending again */
   capacity0?: number
@@ -574,6 +582,12 @@ export interface Tactic {
   /** defensive line speed: 0 passive drift .. 100 all-out blitz. Absent or 50
    *  is exactly the old engine - the dial only exists once you move it. */
   defLine?: number
+  /** ---- THE ZONAL GAME PLAN (v1.8.0) ----
+   *  What this side does in its own 22, the middle third and the opposition
+   *  22, by the plan ids in tactics.ts. Absent means the neutral plan in
+   *  every zone, which is exactly the engine as it was before field position
+   *  existed - so an old save plays identically until somebody chooses. */
+  zones?: { own22?: string; middle?: string; opp22?: string }
   /** defensive width: 0 narrow around the ruck .. 100 spread to the touchlines.
    *  A matchup dial: spreading blunts an expansive attack and narrowness
    *  blunts a forward assault - set it wrong and it pays the other way. */
@@ -980,6 +994,78 @@ export const FACILITY_INFO: Record<FacilityId, { name: string; icon: string; des
 }
 export const facilityCost = (info: { base: number }, level: number) => info.base * (level + 1)
 
+/**
+ * HOW LONG THE BUILDERS ARE ON SITE, by the level being built (owner, v1.6.6).
+ *
+ * Every project used to take a flat five weeks, which made the last rung of a
+ * facility no more of a commitment than the first: a world-class stand and a
+ * set of lifting racks both cost one five-week window, and the only thing
+ * separating them was money the board mostly underwrote. The estate is meant
+ * to be the slow half of the game - squads turn over in a season, concrete
+ * does not - so the ladder now costs time as well as cash, and the top of it
+ * costs a quarter of a season.
+ *
+ * Indexed by TARGET level, so buildWeeks(1) is the first rung.
+ */
+export const FACILITY_BUILD_WEEKS = [3, 5, 7, 9, 12] as const
+
+/**
+ * ---- THE GROUND IS A LADDER, 0 TO 5 (owner, v1.6.8) ----
+ *
+ * The estate's nine facilities each run 0 to 5 and the ground did not: it was
+ * a number of seats that crept up 6% at a time, and the only thing that ever
+ * marked progress was the number itself. These are the six grounds, by the
+ * seats they hold, and they are what the campus map draws:
+ *
+ *   0  a village ground            1,500
+ *   1  a terrace and a clubhouse   3,000
+ *   2  one proper stand            6,000
+ *   3  three sides seated          9,000
+ *   4  a full bowl                15,000
+ *   5  a stadium                  32,000
+ *
+ * ABSOLUTE, not relative to where a club started. A 60,000-seat ground draws
+ * as a stadium because it IS one, and a club that opens at 9,000 opens at
+ * stage 3 with two rungs left rather than five. That is the whole point of
+ * reading the stage off the seats: the map cannot lie about the ground.
+ *
+ * Not every club climbs to the top, exactly as not every club affords a
+ * level-five academy. How far you get is set by how many people will actually
+ * come, which is demandCeiling below - and that only moves when a club fills
+ * what it already has.
+ */
+export const GROUND_TIERS = [1_500, 3_000, 6_000, 9_000, 15_000, 32_000] as const
+
+/** Which of the six grounds this is. Absolute, so it is the same answer for
+ *  every club in the world and for the art on the campus map. */
+export function groundLevel(capacity: number): number {
+  let n = 0
+  for (let i = 1; i < GROUND_TIERS.length; i++) if (capacity >= GROUND_TIERS[i]) n = i
+  return n
+}
+
+/**
+ * HOW LONG A STAND TAKES, by the stage being built.
+ *
+ * The same shape as the facility ladder: the first rung is a few weeks of
+ * groundwork and the last is most of a quarter of a season, because the last
+ * rung is a stadium. Indexed by TARGET stage, so groundBuildWeeks(1) is the
+ * climb out of a village ground.
+ */
+export const GROUND_BUILD_WEEKS = [6, 8, 10, 12, 16] as const
+
+export function groundBuildWeeks(level: number): number {
+  const i = Math.max(1, Math.min(GROUND_TIERS.length - 1, Math.round(level))) - 1
+  return GROUND_BUILD_WEEKS[i]
+}
+
+/** Weeks to finish a build that ends at `level`. Clamped, because a corrupt
+ *  save naming level 9 should take the longest build, not crash on undefined. */
+export function buildWeeks(level: number): number {
+  const i = Math.max(1, Math.min(MAX_FACILITY, Math.round(level))) - 1
+  return FACILITY_BUILD_WEEKS[i]
+}
+
 /** The level the user's club holds. Facilities live on the club, so taking a
  *  new job means inheriting that club's buildings, not carrying your own. */
 export function facLevel(state: GameState, fid: FacilityId): number {
@@ -1009,9 +1095,31 @@ export function demandCeiling(club: Club): number {
   // following by a further 15% to 40%, deeper for a bigger name. Every club
   // starts below its own ceiling, which means season one is untouched by this
   // and only growth is policed.
-  const base = club.capacity0 ?? club.capacity
+  /**
+   * ---- AND A FOLLOWING IS EARNED (v1.6.8) ----
+   *
+   * Anchoring on the opening ground alone capped every club in the world at
+   * about 1.15x to 1.4x the seats it started with, for ever. That was right
+   * while the ground crept up 6% at a time; it makes the 0-to-5 ladder above
+   * a lie, because a village club on 1,500 could never justify the 3,000 that
+   * is stage one, and a board that will not build seats it cannot sell would
+   * refuse every rung of it.
+   *
+   * So the anchor grows - but only by being earned. `following` moves at the
+   * rollover, and only for a club that filled what it already had for a whole
+   * season (rollover.ts). Nothing about this inflates a gate on its own: a
+   * club that does not sell out never moves, and one that does has a crowd
+   * that demonstrably exists. It is capped, because a following is not a
+   * compound interest account.
+   */
+  const base = (club.capacity0 ?? club.capacity) * (club.following ?? 1)
   return Math.round(base * (1.15 + Math.max(0, club.rep - 55) / 145))
 }
+
+/** The ceiling on an earned following: three and a half times the crowd a
+ *  club opened with is a generation of sold-out Saturdays, and past that the
+ *  town has run out of people. */
+export const MAX_FOLLOWING = 3.5
 
 /** Every facility level the club holds, 0 to 45 across the nine buildings. */
 export function estateSum(club: Club | undefined): number {
@@ -1032,6 +1140,70 @@ export function estateSum(club: Club | undefined): number {
  *  were 1.1 and 3.1 for a while, which made the manager's ground a third the
  *  price of everybody else's. */
 export const UPKEEP_PER_SEAT = 3.1
+
+/**
+ * ---- A STADIUM COSTS MORE PER SEAT THAN A TERRACE (owner, v1.6.9) ----
+ *
+ * The seat price was flat, so a 32,000 stadium cost exactly twice a 16,000
+ * ground to run. A real one does not: the things that arrive with size are
+ * the expensive ones. A roof and the safety certificate that comes with it.
+ * Lifts. Pumps. Floodlights that have to meet a broadcast standard rather
+ * than let you see the ball. A stewarding ratio set by the licence rather
+ * than by what you think you need. Concourse lighting and refrigeration that
+ * run whether or not there is a match.
+ *
+ * So the seat price climbs the same ladder the ground does, and it climbs
+ * faster at the top where those things live: a stage-five stadium runs at
+ * 1.55 a seat against a village ground's 1.00. At the top that is the
+ * difference between £4.8M and £7.4M a season, which is the point - a
+ * stadium is an asset you have to keep, not a number that went up.
+ *
+ * MEASURED, not chosen. The first cut topped out at 1.55 and econprobe walked
+ * four seasons at Northampton: the weekly ledger went from +£41k to +£6k, the
+ * club's balance fell over three of the four years, and the AI median dropped
+ * with it because every club in the world pays this. A ground nobody can
+ * afford to keep is not a decision either - it just means the estate is never
+ * built. At 1.45 the drag is real and the club still funds itself.
+ *
+ * ONE TABLE FOR THE WHOLE WORLD, read here for the manager and in aiecon.ts
+ * for the other hundred clubs. The last time those two disagreed the manager
+ * ran his ground at a third of everybody else's price and was four times
+ * richer than the median by season three.
+ */
+export const GROUND_UPKEEP_F = [1, 1.05, 1.12, 1.20, 1.30, 1.45] as const
+
+/** What this ground costs to run for a week, gross, before the estate and the
+ *  boxes and before it has earned anything back. */
+export function groundUpkeep(capacity: number): number {
+  return capacity * UPKEEP_PER_SEAT * GROUND_UPKEEP_F[groundLevel(capacity)]
+}
+
+/**
+ * ---- AND WHAT IT EARNS WHEN THERE IS NO RUGBY ON ----
+ *
+ * The multiplier above was measured on its own first, and on its own it
+ * breaks the world: every club in the game pays it, and eight seasons in,
+ * 57 of 101 clubs were in the red with thirteen in administration against a
+ * baseline of 36 and four. A transfer market where the median club is
+ * insolvent is not a harder game, it is a stopped one.
+ *
+ * The cause was an asymmetry rather than the number. A big ground is not
+ * only a bigger bill, it is a bigger business - conferences, banqueting,
+ * stadium tours, a naming deal, a concourse that trades midweek - and the
+ * manager was given that upside as stories in upkeep.ts while the other
+ * hundred clubs were given only the bill.
+ *
+ * So the same building earns on the same ladder, for everybody. It offsets
+ * most of the extra cost and not all of it, which is the design: a stadium
+ * is a manageable standing drag, and the REAL challenge is the variance -
+ * the seats, the toilets, the cellar and the electricity bill that arrive
+ * when they feel like it.
+ */
+export const GROUND_TRADE_F = [0, 0.15, 0.35, 0.55, 0.75, 1] as const
+
+export function groundTrade(capacity: number): number {
+  return capacity * UPKEEP_PER_SEAT * 0.26 * GROUND_TRADE_F[groundLevel(capacity)]
+}
 
 export function operatingCost(state: GameState): number {
   const club = state.clubs[state.userClubId]
@@ -1072,7 +1244,9 @@ export function operatingCost(state: GameState): number {
   // and is fixed here. The indexing is a design question about whether a
   // manager's income should track wage inflation, and it needs deciding rather
   // than patching.
-  return Math.round(club.capacity * UPKEEP_PER_SEAT + estateSum(club) * 1_400 + boxes)
+  // net of what the ground trades on a non-matchday: the same building, so
+  // the same ladder (groundTrade above)
+  return Math.round(groundUpkeep(club.capacity) - groundTrade(club.capacity) + estateSum(club) * 1_400 + boxes)
 }
 
 /**
@@ -1417,9 +1591,35 @@ export interface GameState {
   /** a facility upgrade under construction: the board funded it, the
    *  builders are in, and it opens at `done` (absolute week) */
   facilityBuild?: { id: FacilityId; done: number; level: number } | null
+  /** a new stand under construction: the money has left the account, the
+   *  builders are in, and the seats arrive at `done` (absolute week). Held
+   *  apart from facilityBuild rather than folded into it because the ground
+   *  is not a FacilityId - it has no levels and no FACILITY_INFO row - and
+   *  every reader of facilityBuild would have had to learn that. The two
+   *  share the one builders' slot instead (season.ts). */
+  stadiumBuild?: { done: number; seats: number; cost: number } | null
   /** absolute week (season*100+week) before which the board will not hear
    *  another facility request - denials cost you the room for a while */
   facilityAskCooldown?: number
+  /** ---- THE BOARDROOM DOOR (v1.8.3, boardroom.ts) ----
+   *  absolute week the board's grant of MORE TIME runs to. While it stands
+   *  the confidence sack check is suspended: a chairman who has publicly
+   *  given a manager until Christmas does not sack him in November. */
+  /** What the ground cost this week beyond the standing bill: the one repair
+   *  or windfall upkeep.ts rolled, or 0 for a quiet week. Recorded so a probe
+   *  can tell a gate from a boiler (season.ts, friendlyprobe). */
+  lastUpkeep?: number
+  boardGrace?: number
+  /** season the manager last asked for a bigger staff budget - once a season,
+   *  win or lose, the same rule the transfer-funds ask has always had */
+  staffAskedSeason?: number
+  /** extra weekly room the board has granted for the backroom, on top of
+   *  whatever the club's own wage structure allows */
+  staffRoom?: number
+  /** facilities the board has agreed to pay for outright. The next build of
+   *  one of these costs the club nothing - which is what separates the
+   *  boardroom ask from the per-facility ask on the Infrastructure page. */
+  boardGrant?: FacilityId[]
   /** cash released into the transfer allowance this season (treasury.ts,
    *  1.6.3): a club may release what it holds, once, so the allowance can
    *  never be pumped past the money behind it. Reset at the rollover. */

@@ -1,0 +1,140 @@
+{
+  "set": "gym",
+  "status": "locked",
+  "canvas": [
+    1254,
+    1254
+  ],
+  "contains_pitch": false,
+  "site_plan": "centre-line routes to a central court; buildings in the four quadrants",
+  "stub_routes_clear": true,
+  "known_deviations": [
+    "L5 palette and detail density break from L0-L4 (grass 32,97,32 vs ~80,147,45; density 0.396 vs 0.195)",
+    "progression runs about one level early: sprint track at L2, solar at L3",
+    "L4 two-storey change does not read from overhead",
+    "L5 south-east quadrant carries recovery-centre content (pool, deck, garden)"
+  ],
+  "outstanding": "master empty plot no longer produced by this run; needed for 7 facilities",
+  "levels": [
+    {
+      "level": 0,
+      "file": "gym-L0.png",
+      "content": "one small building",
+      "median_grass_rgb": [
+        95,
+        150,
+        55
+      ],
+      "detail_density": 0.076,
+      "stub_obstruction_px": {
+        "north": 0,
+        "south": 0,
+        "west": 1,
+        "east": 0
+      },
+      "palette_matches_set": true,
+      "md5": "2e84ef65b19c7b447c447735a462fa99",
+      "bytes": 2504962
+    },
+    {
+      "level": 1,
+      "file": "gym-L1.png",
+      "content": "bigger building, a few bars outside",
+      "median_grass_rgb": [
+        86,
+        148,
+        45
+      ],
+      "detail_density": 0.101,
+      "stub_obstruction_px": {
+        "north": 0,
+        "south": 0,
+        "west": 1,
+        "east": 0
+      },
+      "palette_matches_set": true,
+      "md5": "df5c55b8cbcfcfea08f8296617c1435f",
+      "bytes": 2185853
+    },
+    {
+      "level": 2,
+      "file": "gym-L2.png",
+      "content": "bigger again, tyres bars and weights outside",
+      "median_grass_rgb": [
+        82,
+        149,
+        43
+      ],
+      "detail_density": 0.134,
+      "stub_obstruction_px": {
+        "north": 0,
+        "south": 0,
+        "west": 1,
+        "east": 0
+      },
+      "palette_matches_set": true,
+      "md5": "efad3aff6d23297974c9324886c8774a",
+      "bytes": 2268002
+    },
+    {
+      "level": 3,
+      "file": "gym-L3.png",
+      "content": "big gym with solar",
+      "median_grass_rgb": [
+        79,
+        145,
+        46
+      ],
+      "detail_density": 0.154,
+      "stub_obstruction_px": {
+        "north": 0,
+        "south": 0,
+        "west": 0,
+        "east": 0
+      },
+      "palette_matches_set": true,
+      "md5": "c527ff53af708ffd997bf14e4529f290",
+      "bytes": 2245992
+    },
+    {
+      "level": 4,
+      "file": "gym-L4.png",
+      "content": "solar retained, second training compound",
+      "median_grass_rgb": [
+        77,
+        145,
+        39
+      ],
+      "detail_density": 0.195,
+      "stub_obstruction_px": {
+        "north": 0,
+        "south": 0,
+        "west": 1,
+        "east": 0
+      },
+      "palette_matches_set": true,
+      "md5": "5416dc199819b49b22f01e48335e7539",
+      "bytes": 2288830
+    },
+    {
+      "level": 5,
+      "file": "gym-L5.png",
+      "content": "three-storey glass building, running track",
+      "median_grass_rgb": [
+        32,
+        97,
+        32
+      ],
+      "detail_density": 0.396,
+      "stub_obstruction_px": {
+        "north": 3,
+        "south": 0,
+        "west": 2,
+        "east": 6
+      },
+      "palette_matches_set": false,
+      "md5": "a8eb5314707805c2cbfc16d5beef03b8",
+      "bytes": 2634031
+    }
+  ]
+}

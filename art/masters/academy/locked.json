@@ -1,0 +1,148 @@
+{
+  "set": "academy",
+  "status": "locked",
+  "canvas": [
+    1254,
+    1254
+  ],
+  "contains_pitch": false,
+  "site_plan": "central mass growing outward, 6m apron ring, four stubs run in to the ring",
+  "stub_routes_clear": true,
+  "signature": "accommodation wing rooflight rhythm, specified for L4 and correctly held until L4",
+  "signature_timing_fix": "name the signature feature in the DO NOT ADD list of every earlier level",
+  "l5_palette_pins_as_prevention": "FAILED - all three pins present from the first prompt, L5 still 41,113,51",
+  "l5_palette_pins_as_correction": "WORKS - see analysis/README.md; regenerate with L4 attached and numbers given",
+  "known_deviations": [
+    "L5 grass 41,113,51 vs set ~73,148,31: green 23% short, blue 20 over the cap",
+    "L5 detail density 47% above L4",
+    "L2 to L3 soft, +4.2 points against 8.3, 11.2 and 26.0 elsewhere"
+  ],
+  "levels": [
+    {
+      "level": 0,
+      "file": "academy-L0.png",
+      "content": "one small classroom building",
+      "built_pct": 8.0,
+      "detail_density": 0.077,
+      "median_grass_rgb": [
+        70,
+        150,
+        27
+      ],
+      "stub_reach_m": {
+        "north": 72.7,
+        "south": 82.7,
+        "west": 81.5,
+        "east": 81.5
+      },
+      "palette_matches_set": true,
+      "md5": "0c0d775d57a0fa1f3b347723d36fee98",
+      "bytes": 1884425
+    },
+    {
+      "level": 1,
+      "file": "academy-L1.png",
+      "content": "teaching block, apron ring, forecourt",
+      "built_pct": 23.7,
+      "detail_density": 0.104,
+      "median_grass_rgb": [
+        75,
+        151,
+        31
+      ],
+      "stub_reach_m": {
+        "north": 65.9,
+        "south": 74.9,
+        "west": 83.5,
+        "east": 56.0
+      },
+      "palette_matches_set": true,
+      "md5": "7a1cd5302fdf642898faf0ece904bc61",
+      "bytes": 1627328
+    },
+    {
+      "level": 2,
+      "file": "academy-L2.png",
+      "content": "second block across a paved courtyard",
+      "built_pct": 32.0,
+      "detail_density": 0.128,
+      "median_grass_rgb": [
+        75,
+        151,
+        30
+      ],
+      "stub_reach_m": {
+        "north": 43.6,
+        "south": 53.5,
+        "west": 83.5,
+        "east": 83.5
+      },
+      "palette_matches_set": true,
+      "md5": "5775f9dfa325be724a30c82ae3ee2891",
+      "bytes": 1645935
+    },
+    {
+      "level": 3,
+      "file": "academy-L3.png",
+      "content": "U of three blocks around a planted quad",
+      "built_pct": 36.2,
+      "detail_density": 0.129,
+      "median_grass_rgb": [
+        75,
+        147,
+        35
+      ],
+      "stub_reach_m": {
+        "north": 38.3,
+        "south": 49.9,
+        "west": 42.7,
+        "east": 83.5
+      },
+      "palette_matches_set": true,
+      "md5": "c5d6e48deac081a9259a48cc8815822a",
+      "bytes": 1706337
+    },
+    {
+      "level": 4,
+      "file": "academy-L4.png",
+      "content": "quadrangle closes, accommodation wing with rooflight rhythm",
+      "built_pct": 47.4,
+      "detail_density": 0.163,
+      "median_grass_rgb": [
+        72,
+        146,
+        31
+      ],
+      "stub_reach_m": {
+        "north": 31.9,
+        "south": 38.3,
+        "west": 37.7,
+        "east": 35.6
+      },
+      "palette_matches_set": true,
+      "md5": "4d6591bdea089c090778238692e64519",
+      "bytes": 1816857
+    },
+    {
+      "level": 5,
+      "file": "academy-L5.png",
+      "content": "outer ring of wings fills the site",
+      "built_pct": 73.4,
+      "detail_density": 0.24,
+      "median_grass_rgb": [
+        41,
+        113,
+        51
+      ],
+      "stub_reach_m": {
+        "north": 18.5,
+        "south": 18.4,
+        "west": 21.9,
+        "east": 19.2
+      },
+      "palette_matches_set": false,
+      "md5": "70087c97b107bc0378142415294658b1",
+      "bytes": 1971562
+    }
+  ]
+}

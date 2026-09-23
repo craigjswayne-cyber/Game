@@ -1,0 +1,155 @@
+{
+  "set": "analysis",
+  "status": "locked",
+  "canvas": [
+    1254,
+    1254
+  ],
+  "contains_pitch": false,
+  "site_plan": "central mass growing outward, 6m apron ring, four stubs run in to the ring",
+  "stub_routes_clear": true,
+  "l5_regenerated": true,
+  "l5_rejected_grass_rgb": [
+    49,
+    121,
+    42
+  ],
+  "l5_palette_recipe": [
+    "no superlatives in the L5 prompt",
+    "grass blue channel at or below 45",
+    "grass green channel at least 140, close to 147"
+  ],
+  "known_deviations": [
+    "circular form arrived at L3, two levels before the L5 signature it was specified as",
+    "soft steps L2->L3 (+5.3) and L3->L4 (+7.5) as a consequence",
+    "L4 two-storey change does not read"
+  ],
+  "levels": [
+    {
+      "level": 0,
+      "file": "analysis-L0.png",
+      "content": "one small office cabin, one camera mast",
+      "built_pct": 7.9,
+      "detail_density": 0.069,
+      "median_grass_rgb": [
+        68,
+        150,
+        33
+      ],
+      "stub_reach_m": {
+        "north": 72.4,
+        "south": 82.0,
+        "west": 82.7,
+        "east": 71.5
+      },
+      "palette_matches_set": true,
+      "md5": "ce7e6142bded5d64df018ec775b54067",
+      "bytes": 1897661
+    },
+    {
+      "level": 1,
+      "file": "analysis-L1.png",
+      "content": "bigger office, apron ring, two masts",
+      "built_pct": 23.3,
+      "detail_density": 0.098,
+      "median_grass_rgb": [
+        64,
+        152,
+        32
+      ],
+      "stub_reach_m": {
+        "north": 65.6,
+        "south": 74.9,
+        "west": 59.5,
+        "east": 56.4
+      },
+      "palette_matches_set": true,
+      "md5": "35b111a60e3e080928179b6539949c0f",
+      "bytes": 1603847
+    },
+    {
+      "level": 2,
+      "file": "analysis-L2.png",
+      "content": "server block with four-dish array, three masts",
+      "built_pct": 28.5,
+      "detail_density": 0.119,
+      "median_grass_rgb": [
+        78,
+        133,
+        39
+      ],
+      "stub_reach_m": {
+        "north": 44.3,
+        "south": 71.7,
+        "west": 47.2,
+        "east": 44.8
+      },
+      "palette_matches_set": true,
+      "md5": "87bc250d4140787ae0a858f1366103dc",
+      "bytes": 2073055
+    },
+    {
+      "level": 3,
+      "file": "analysis-L3.png",
+      "content": "circular ring building",
+      "built_pct": 33.8,
+      "detail_density": 0.136,
+      "median_grass_rgb": [
+        74,
+        145,
+        29
+      ],
+      "stub_reach_m": {
+        "north": 35.3,
+        "south": 52.4,
+        "west": 48.3,
+        "east": 45.5
+      },
+      "palette_matches_set": true,
+      "md5": "751f63c9c54c931924271c634cf05a2e",
+      "bytes": 2110104
+    },
+    {
+      "level": 4,
+      "file": "analysis-L4.png",
+      "content": "larger ring building with solar, eight dishes",
+      "built_pct": 41.3,
+      "detail_density": 0.157,
+      "median_grass_rgb": [
+        72,
+        143,
+        27
+      ],
+      "stub_reach_m": {
+        "north": 28.1,
+        "south": 46.9,
+        "west": 42.0,
+        "east": 37.5
+      },
+      "palette_matches_set": true,
+      "md5": "c27ea7a797ac310ae30c211ca2b3ce76",
+      "bytes": 2108194
+    },
+    {
+      "level": 5,
+      "file": "analysis-L5.png",
+      "content": "separate circular auditorium, office block, twelve-dish server block",
+      "built_pct": 56.7,
+      "detail_density": 0.19,
+      "median_grass_rgb": [
+        74,
+        151,
+        39
+      ],
+      "stub_reach_m": {
+        "north": 83.5,
+        "south": 36.3,
+        "west": 55.3,
+        "east": 83.5
+      },
+      "palette_matches_set": true,
+      "md5": "6e3a459b8520edba5dddf7018c1f2178",
+      "bytes": 1997343
+    }
+  ]
+}

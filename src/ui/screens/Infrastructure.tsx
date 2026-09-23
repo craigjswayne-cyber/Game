@@ -1,17 +1,23 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
 import {
-  FACILITY_INFO, MAX_FACILITY, demandCeiling, estateGrade, facilityCost, fmtMoney,
+  FACILITY_INFO, GROUND_TIERS, MAX_FACILITY, demandCeiling, estateGrade, facilityCost, fmtMoney, groundLevel,
   type Club, type FacilityId, weeksBetween100 } from '../../game/model'
 import { expansionPlan, requestExpansion, requestFacility } from '../../game/season'
 import { SectionTitle } from '../components'
 import { ESTATE_SKU, hasEntitlement, tillOpen } from '../../game/monetise'
 import { estateBuiltHere } from '../../game/grants'
 import { ord as ordUI, t } from '../../game/i18n'
+import CampusMap from '../CampusMap'
+import type { CampusId } from '../../game/campusPlots'
 
 /** What each level actually buys, in the manager's language. */
 const EFFECT: Record<FacilityId, (lvl: number) => string> = {
-  pitch: l => t('world.fxPitch', { pct: (l * 3.5).toFixed(1) }),
+  // SIGNED, and shown even at level nought, because this is the one facility
+  // whose bottom rung is a PENALTY rather than an absence: a squad doing its
+  // ruck work on a bog is worse at the breakdown than one that has no
+  // opinion. Centred on level three, matching the engine.
+  pitch: l => t('world.fxPitch', { pct: (l * 1.8 - 4.5).toFixed(1) }),
   gym: l => t('world.fxGym', { n: (l * 0.9).toFixed(1) }),
   recovery: l => t('world.fxRecovery', { pct: l * 3 }),
   paddock: l => t('world.fxPaddock', { pct: l * 20 }),
@@ -40,10 +46,31 @@ export default function Infrastructure() {
   // sight while the button under the thumb did nothing visible.
   const [msg, setMsg] = useState<{ key: string; text: string } | null>(null)
   const [itab, setItab] = useState<'ours' | 'league'>('ours')
+  // TAPPING A PLOT ON THE MAP walks you to the card that owns it. The map is
+  // the nice half of this page and the buttons are all in the list below it,
+  // so a plot that did nothing when you pressed it read as broken. It scrolls
+  // the card into view and rings it in gold until you touch something else.
+  const [focus, setFocus] = useState<CampusId | null>(null)
+  const pick = (fid: CampusId) => {
+    setFocus(fid)
+    // rAF: on the first paint of the tab the cards may not be laid out yet
+    requestAnimationFrame(() => {
+      document.getElementById(`fac-${fid}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+  }
+  const ring = (fid: CampusId) => focus === fid
+    ? { boxShadow: '0 0 0 2px var(--gold)' }
+    : undefined
   const club = game.clubs[game.userClubId]
   const abs = game.season * 100 + game.week
   const grade = estateGrade(club)
   const plan = expansionPlan(game)
+  // the ground is on the same builders' slot as the facilities now: the board
+  // buys a stand, the stand takes twelve weeks, and nothing else is built
+  // while it goes up
+  const standBuild = game.stadiumBuild ?? null
+  const standWeeks = standBuild ? Math.max(1, weeksBetween100(standBuild.done, abs)) : 0
+  const busy = game.facilityBuild != null || standBuild != null
   const ids = Object.keys(FACILITY_INFO) as FacilityId[]
 
   // where the estate ranks in your own league - the only comparison that stings
@@ -82,10 +109,15 @@ export default function Infrastructure() {
         </button>
       )}
 
-      <div className="card" style={{ borderLeft: '4px solid var(--gold)', padding: '8px 12px' }}>
+      <div className="card" id="fac-stadium" style={{ borderLeft: '4px solid var(--gold)', padding: '8px 12px', ...ring('stadium') }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <div>
-            <h3 style={{ fontSize: 15, margin: 0 }}>🏟️ {club.stadium}</h3>
+            {/* THE GROUND IS A LADDER TOO (owner, v1.6.8): six grounds from a
+                village pitch to a stadium, read off the seats. Same pips as
+                the nine facilities, because it is the same kind of thing. */}
+            <h3 style={{ fontSize: 15, margin: 0 }}>
+              🏟️ {club.stadium} <span style={{ color: 'var(--gold)', letterSpacing: 1 }}>{pips(groundLevel(club.capacity))}</span>
+            </h3>
             <div className="meta">
               {t('world.infSeats', { n: club.capacity.toLocaleString() })}
               {plan.played >= 1 && t('world.infAvgGate', { avg: plan.avg.toLocaleString(), pct: Math.round(plan.fill * 100) })}
@@ -100,18 +132,29 @@ export default function Infrastructure() {
                   : t('world.infMoreThanHolds', { n: (demandCeiling(club) - club.capacity).toLocaleString() }),
               })}
             </div>
+            {standBuild && (
+              <div className="meta" style={{ fontSize: 11, color: 'var(--gold)', fontWeight: 700 }}>
+                {t(standWeeks === 1 ? 'world.infBuildersOne' : 'world.infBuilders', { n: standWeeks })}
+                {' '}({standBuild.seats.toLocaleString()})
+              </div>
+            )}
           </div>
           <div style={{ textAlign: 'right' }}>
             <div className="fact-label">{t('world.infEstate')}</div>
             <div style={{ fontWeight: 700, color: 'var(--gold)' }}>{t(grade.label)}</div>
             <div className="meta" style={{ fontSize: 11 }}>{t('world.infRankLine', { sum: grade.sum, max: grade.max, ord, n: peers.length })}</div>
           </div>
+          {groundLevel(club.capacity) >= GROUND_TIERS.length - 1 && (
+            <span className="meta" style={{ flexShrink: 0, color: 'var(--gold)', fontWeight: 700 }}>{t('world.infWorldClass')}</span>
+          )}
+          {groundLevel(club.capacity) < GROUND_TIERS.length - 1 && (
           <button className="btn gold" style={{ padding: '5px 10px', fontSize: 11.5, lineHeight: 1.25 }}
-            disabled={club.capacity >= 82_000 || club.capacity >= demandCeiling(club) * 0.95 || game.facilityBuild != null}
+            disabled={club.capacity >= 82_000 || club.capacity >= demandCeiling(club) * 0.95 || plan.seats < 100 || busy}
             onClick={() => { setMsg({ key: 'expand', text: requestExpansion(game) }); touch() }}>
             {t('world.infAskExpand')}<br />
             <span style={{ fontSize: 10, fontWeight: 600 }}>{t('world.infSeatsCost', { seats: plan.seats.toLocaleString(), cost: fmtMoney(plan.cost) })}</span>
           </button>
+          )}
         </div>
         {msg?.key === 'expand' && (
           <div className="meta" style={{ fontSize: 11.5, fontWeight: 600, marginTop: 6, paddingTop: 6, borderTop: '1px solid var(--border)' }}>
@@ -121,6 +164,10 @@ export default function Infrastructure() {
       </div>
 
       {itab === 'ours' && <>
+      {/* THE CAMPUS ITSELF, above the list. Owner, v1.6.6: "get it working so
+          when you upgrade the map updates". Every tile is read from the live
+          save, so the map is the estate rather than a picture of one. */}
+      <CampusMap game={game} onPick={pick} />
       <SectionTitle sub={t('world.infFacilitiesSub')}>{t('world.infFacilities')}</SectionTitle>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 6 }}>
         {ids.map(fid => {
@@ -130,7 +177,7 @@ export default function Infrastructure() {
           const building = game.facilityBuild?.id === fid ? game.facilityBuild : null
           const weeksLeft = building ? Math.max(1, weeksBetween100(building.done, abs)) : 0
           return (
-            <div className="card" key={fid} style={{ margin: 0, padding: '8px 10px' }}>
+            <div className="card" key={fid} id={`fac-${fid}`} style={{ margin: 0, padding: '8px 10px', ...ring(fid) }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
                 <div style={{ minWidth: 0 }}>
                   <h3 style={{ fontSize: 13.5, margin: 0 }}>
@@ -138,13 +185,15 @@ export default function Infrastructure() {
                   </h3>
                   <div className="meta" style={{ fontSize: 11 }}>{t(info.desc)}</div>
                   <div className="meta" style={{ fontSize: 11, fontWeight: 700 }}>
-                    {lvl === 0 ? t('world.infNothing') : t('world.infLevelIs', { n: lvl, effect: EFFECT[fid](lvl) })}
+                    {lvl === 0 && fid !== 'pitch'
+                      ? t('world.infNothing')
+                      : t('world.infLevelIs', { n: lvl, effect: EFFECT[fid](lvl) })}
                   </div>
                   {building && <div className="meta" style={{ fontSize: 11, color: 'var(--gold)', fontWeight: 700 }}>{t(weeksLeft === 1 ? 'world.infBuildersOne' : 'world.infBuilders', { n: weeksLeft })}</div>}
                 </div>
                 {!building && lvl < MAX_FACILITY && (
                   <button className="btn gold" style={{ padding: '5px 9px', fontSize: 11, lineHeight: 1.25, flexShrink: 0 }}
-                    disabled={game.facilityBuild != null}
+                    disabled={busy}
                     onClick={() => { setMsg({ key: fid, text: requestFacility(game, fid) }); touch() }}>
                     {t('world.infAskBoard')}<br />
                     <span style={{ fontSize: 10, fontWeight: 600 }}>{t('world.infLevelCost', { n: lvl + 1, cost: fmtMoney(cost) })}</span>
