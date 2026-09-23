@@ -2,31 +2,39 @@
 <html lang="en-GB">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="light dark">
-<title>FWDS &amp; BCKS LTD | Game developers</title>
-<meta name="description" content="FWDS &amp; BCKS LTD is an independent London game studio and the developer of PHASE: Rugby Manager.">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0c1210">
+<title>FWDS &amp; BCKS | Independent game studio</title>
+<meta name="description" content="FWDS &amp; BCKS LTD is an independent UK game studio and the developer of PHASE: Rugby Manager.">
 <link rel="canonical" href="https://www.fwdsandbcks.com/">
+<link rel="icon" href="./img/phase-icon.svg" type="image/svg+xml">
+<link rel="preload" href="./space-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="./style.css">
+<meta property="og:type" content="website">
+<meta property="og:title" content="FWDS &amp; BCKS | Independent game studio">
+<meta property="og:description" content="The studio behind PHASE: Rugby Manager.">
+<meta property="og:url" content="https://www.fwdsandbcks.com/">
+<meta property="og:image" content="https://www.fwdsandbcks.com/img/phase-hero.webp">
 <!--
-  The company website for FWDS & BCKS LTD, the developer of PHASE: Rugby Manager.
-  It exists so the company has a public site on its own domain, which Apple asks
-  for when an organisation enrols in the Apple Developer Program.
-
+  The company website for FWDS & BCKS LTD, the developer of PHASE: Rugby Manager,
+  published from its own repo to www.fwdsandbcks.com (see README.md).
   Standalone on purpose: no build step, no scripts, no cookies, no external
-  requests. It is NOT published by .github/workflows/pages.yml (that workflow
-  serves phaserugbymanager.com, and a repo can only have one Pages domain).
-  See company/README.md for how this folder gets to www.fwdsandbcks.com.
+  requests. The palette is the PHASE night palette so the studio and the game
+  read as one brand.
 -->
 </head>
 <body>
 
 <header class="top">
   <div class="wrap">
-    <a class="logo" href="./">FWDS <span>&amp;</span> BCKS</a>
+    <a class="logo" href="./" aria-label="FWDS and BCKS home">
+      <img class="logo-mark" src="./img/phase-icon.svg" alt="" width="30" height="30">
+      <span>FWDS <span class="amp">&amp;</span> BCKS</span>
+    </a>
     <nav>
-      <a href="#about">About</a>
       <a href="#games">Games</a>
+      <a class="opt" href="#studio">Studio</a>
       <a href="#contact">Contact</a>
     </nav>
   </div>
@@ -35,64 +43,114 @@
 <main>
   <div class="hero">
     <div class="wrap">
-      <h1>Independent sports games, made in London.</h1>
-      <p>FWDS &amp; BCKS LTD is a small game studio. We make deep, thoughtful sports management games for phones, starting with rugby union.</p>
-      <a class="btn" href="#games">See our games</a>
+      <p class="eyebrow">Independent game studio</p>
+      <h1>Sports games with <span class="grad">real depth.</span></h1>
+      <p class="lead">FWDS &amp; BCKS is an independent UK studio making sports management games for your phone. Our first game, PHASE: Rugby Manager, puts a whole rugby union career in your pocket.</p>
+      <div class="cta">
+        <a class="btn btn-primary" href="#games">Meet PHASE</a>
+        <a class="btn btn-ghost" href="#contact">Get in touch</a>
+      </div>
     </div>
   </div>
 
-  <section id="about">
-    <div class="wrap">
-      <h2>About us</h2>
-      <p>We are the developers of PHASE: Rugby Manager. We build games that respect the player's time: they play offline and need no account or sign-in.</p>
-      <p>The studio is based in Covent Garden, London.</p>
-    </div>
-  </section>
+  <div class="stats" aria-label="PHASE: Rugby Manager in numbers">
+    <ul>
+      <li><b>100+</b><span>Clubs</span></li>
+      <li><b>8</b><span>Competitions</span></li>
+      <li><b>6</b><span>Languages</span></li>
+      <li><b>0</b><span>Accounts needed</span></li>
+    </ul>
+  </div>
 
   <section id="games">
     <div class="wrap">
-      <h2>Our games</h2>
-      <div class="game">
-        <div>
-          <div class="head">
-            <img src="./img/phase-icon.svg" alt="" width="56" height="56">
-            <h3>PHASE: Rugby Manager</h3>
-          </div>
-          <p>A rugby union management game. Take a club from the bottom to the top across more than a hundred clubs and eight competitions, with transfers, contracts, the press and live match days.</p>
-          <ul>
-            <li>Free to play on Android, coming soon to iPhone</li>
-            <li>Plays fully offline, with no account</li>
-            <li>Available in six languages</li>
-          </ul>
-          <div class="links">
-            <a class="btn" href="https://play.google.com/store/apps/details?id=com.phaserugbymanager.app">Get it on Google Play</a>
-            <a class="plain" href="https://phaserugbymanager.com/">Game website</a>
+      <p class="kicker">Our games</p>
+      <h2>Take a club from the bottom to the top.</h2>
+      <p class="section-lead">Build a squad, win over the board and handle the press, season after season.</p>
+
+      <article class="feature">
+        <div class="feature-art">
+          <div class="phones">
+            <img src="./img/phase-team.webp" alt="The team sheet screen, with positions, ratings and fitness." width="540" height="1170" loading="lazy">
+            <img src="./img/phase-home.webp" alt="The club home screen, with fixtures, news and the week ahead." width="540" height="1170" loading="lazy">
+            <img src="./img/phase-match.webp" alt="A finished match, with the score, the scorers and the match statistics." width="540" height="1170" loading="lazy">
           </div>
         </div>
-        <img class="shot" src="./img/phase-home.webp" alt="The PHASE: Rugby Manager club home screen, showing fixtures, news and the week ahead." width="540" height="1170" loading="lazy">
+        <div class="feature-body">
+          <div class="game-head">
+            <img src="./img/phase-icon.svg" alt="" width="64" height="64">
+            <div>
+              <h3>PHASE: Rugby Manager</h3>
+              <span class="tag">Rugby union management</span>
+            </div>
+          </div>
+          <p>Over a hundred clubs across eight competitions, with transfers, contracts, youth intakes and live match days. The men's and women's games each have their own clubs, competitions and challenges.</p>
+          <ul class="chips">
+            <li>Free to play</li>
+            <li>Plays offline</li>
+            <li>No account</li>
+            <li>Six languages</li>
+          </ul>
+          <div class="cta">
+            <a class="btn btn-primary" href="https://play.google.com/store/apps/details?id=com.phaserugbymanager.app">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.6 1.8a1.4 1.4 0 0 0-.5 1.1v18.2c0 .45.18.85.5 1.1l10-10.2-10-10.2Zm11.1 9.1 2.9-3-9.5-5.4 6.6 8.4Zm0 2.2-6.6 8.4 9.5-5.4-2.9-3Zm4.3-2.2-2.4-1.4-3 3.1 3 3.1 2.4-1.4c.9-.5.9-2.4 0-2.9v-.5Z"/></svg>
+              Get it on Google Play
+            </a>
+            <a class="btn btn-ghost" href="https://phaserugbymanager.com/">Visit the game site</a>
+          </div>
+          <p class="soon">Coming soon to the App Store.</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section id="studio" style="padding-top:0">
+    <div class="wrap">
+      <p class="kicker">The studio</p>
+      <h2>Made for people who love the game.</h2>
+      <p class="section-lead">We make the kind of management games we want to play ourselves: deep, fair, and built to last for many seasons.</p>
+      <div class="cards">
+        <div class="card">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/></svg></div>
+          <h3>Depth first</h3>
+          <p>Real decisions with real consequences. A season you play today still matters ten seasons later.</p>
+        </div>
+        <div class="card">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg></div>
+          <h3>Plays anywhere</h3>
+          <p>Our games run on your phone, offline. No signal needed on the train, the plane or the terraces.</p>
+        </div>
+        <div class="card">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg></div>
+          <h3>No sign-up</h3>
+          <p>No accounts and no logins. You open the game and play, and your career stays on your device.</p>
+        </div>
       </div>
     </div>
   </section>
 
-  <section id="contact" class="contact">
+  <section id="contact" style="padding-top:0">
     <div class="wrap">
-      <h2>Contact</h2>
-      <p>For support, press or business enquiries, email us and we will reply as soon as we can.</p>
-      <dl>
-        <dt>Email</dt>
-        <dd><a href="mailto:info@fwdsandbcks.com">info@fwdsandbcks.com</a></dd>
-        <dt>Company number</dt>
-        <dd>17473463 (registered in England and Wales)</dd>
-        <dt>Registered office</dt>
-        <dd>FWDS &amp; BCKS LTD<br>71-75 Shelton Street<br>Covent Garden<br>London<br>WC2H 9JQ<br>United Kingdom</dd>
-      </dl>
+      <div class="contact-box">
+        <div>
+          <p class="kicker">Contact</p>
+          <h2>Let's talk.</h2>
+          <p>Player support, press, partnerships or anything else: send us an email and we'll get back to you as soon as we can.</p>
+          <a class="btn btn-primary" href="mailto:info@fwdsandbcks.com">info@fwdsandbcks.com</a>
+        </div>
+        <ul class="details">
+          <li><b>Company</b><span>FWDS &amp; BCKS LTD</span></li>
+          <li><b>Company number</b><span>17473463 (England and Wales)</span></li>
+          <li><b>Registered office</b><span>71-75 Shelton Street, Covent Garden, London, WC2H 9JQ, United Kingdom</span></li>
+        </ul>
+      </div>
     </div>
   </section>
 </main>
 
 <footer>
   <div class="wrap">
-    <span>&copy; 2026 FWDS &amp; BCKS LTD. Registered in England and Wales, company number 17473463. Registered office: 71-75 Shelton Street, Covent Garden, London, WC2H 9JQ.</span>
+    <span class="legal">&copy; 2026 FWDS &amp; BCKS LTD. Registered in England and Wales, company number 17473463. Registered office: 71-75 Shelton Street, Covent Garden, London, WC2H 9JQ.</span>
     <nav>
       <a href="./privacy.html">Privacy</a>
       <a href="mailto:info@fwdsandbcks.com">Contact</a>
