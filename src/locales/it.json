@@ -1339,7 +1339,7 @@
   "splitMismatch_f": "Hai dichiarato un {want}, ma le donne in maglia lo fanno diventare un {got}. La panchina che conta è quella che scende davvero in campo.",
   "prepFitnessLong_f": "Ripetute da spaccare i polmoni. Le tue giocatrici si stancano circa l'8% più lentamente nella prossima partita.",
   "byZone": "Cosa fai e dove",
-  "byZoneSub": "La stessa squadra gioca tre partite diverse lungo il campo",
+  "byZoneSub": "tre partite, una per zona del campo",
   "zone_own22": "Nei tuoi 22",
   "zone_middle": "Il terzo centrale",
   "zone_opp22": "Nei loro 22"
@@ -2586,7 +2586,7 @@
   "infFacilitiesSub": "ogni miglioria passa dal consiglio",
   "infHoldsAll": " - lo stadio contiene già tutti quelli che verrebbero",
   "infLeagueEstates": "Impianti del campionato",
-  "infLeagueEstatesSub": "Le nove strutture che ogni club ha costruito. L'impianto ha una colonna sua: un piccolo club può avere un grande stadio.",
+  "infLeagueEstatesSub": "nove strutture a testa, l'impianto a parte",
   "infLevelCost": "L{n} · {cost}",
   "infLevelIs": "Livello {n}: {effect}",
   "infMoreThanHolds": " - {n} più di quanti ne contenga lo stadio",
@@ -6628,7 +6628,7 @@
  },
  "board": {
   "room": "Il consiglio",
-  "roomSub": "quattro cose da chiedere, e nessuna è gratis",
+  "roomSub": "quattro richieste, nessuna gratis",
   "knock": "Chiedi al consiglio",
   "ask_time": "⏳ Chiedi più tempo",
   "askDesc_time": "Un sostegno pubblico del presidente. Non vince le partite; ti compra le settimane per vincerle.",

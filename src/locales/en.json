@@ -1357,7 +1357,7 @@
   "kickerNote_f": "First choice takes everything; the second woman steps up when she is off.",
   "splitMismatch_f": "You named a {want}, and the women in the shirts make it a {got}. The bench you actually pick is the one that plays.",
   "byZone": "What You Do Where",
-  "byZoneSub": "The same side plays three different games up the pitch",
+  "byZoneSub": "three games, one up the pitch from the last",
   "zone_own22": "In your own 22",
   "zone_middle": "The middle third",
   "zone_opp22": "In their 22"
@@ -2651,7 +2651,7 @@
   "infFacilitiesSub": "every upgrade goes through the boardroom",
   "infHoldsAll": " - the ground already holds everyone who would come",
   "infLeagueEstates": "League Estates",
-  "infLeagueEstatesSub": "The nine facilities each club has built. The ground is its own column - a small club can own a big stadium.",
+  "infLeagueEstatesSub": "nine facilities each; the ground counts apart",
   "infLevelCost": "L{n} · {cost}",
   "infLevelIs": "Level {n}: {effect}",
   "infMoreThanHolds": " - {n} more than the ground holds",
@@ -6913,7 +6913,7 @@
  },
  "board": {
   "room": "The Boardroom",
-  "roomSub": "four things you can ask for, and none of them come cheap",
+  "roomSub": "four asks, and none of them cheap",
   "knock": "Ask the board",
   "ask_time": "⏳ Ask for more time",
   "askDesc_time": "A public backing from the chairman. It does not win matches; it buys you the weeks to.",

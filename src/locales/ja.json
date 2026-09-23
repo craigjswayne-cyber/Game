@@ -1316,7 +1316,7 @@
   "roleSheetSub_f": "背番号{shirt}・彼女の流儀・選択肢{n}件",
   "kickerNote_f": "第1キッカーがすべて蹴る。外し始めたら第2の選手の出番だ。",
   "byZone": "どこで何をやるか",
-  "byZoneSub": "同じチームでも、エリアごとに三つのラグビーをする",
+  "byZoneSub": "エリアごとに三つのラグビー",
   "zone_own22": "自陣の22m内",
   "zone_middle": "中央の三分の一",
   "zone_opp22": "相手の22m内"
@@ -2529,7 +2529,7 @@
   "infFacilitiesSub": "アップグレードはすべて役員会の承認が要る",
   "infHoldsAll": "――来たがる客は今の器で全員入る",
   "infLeagueEstates": "リーグ各クラブの施設",
-  "infLeagueEstatesSub": "各クラブが建てた九つの施設。スタジアムは別列――小さなクラブが大きなスタジアムを持つこともある。",
+  "infLeagueEstatesSub": "施設は各九つ、スタジアムは別扱い",
   "infLevelCost": "L{n} · {cost}",
   "infLevelIs": "レベル{n}：{effect}",
   "infMoreThanHolds": "――収容数を{n}人上回る",
@@ -6496,7 +6496,7 @@
  },
  "board": {
   "room": "取締役会",
-  "roomSub": "願い出られるのは四つ、どれも安くはない",
+  "roomSub": "願い出られるのは四つ",
   "knock": "役員会に願い出る",
   "ask_time": "⏳ 時間を願い出る",
   "askDesc_time": "会長からの公の支持。試合には勝てないが、勝つための週を買える。",

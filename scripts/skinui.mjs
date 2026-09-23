@@ -217,11 +217,18 @@ try {
   ok(/Floodlights/i.test(await page.locator('.content').innerText()),
      'and the floodlight switch is there, as it is on every skin now')
 
-  // ---- 5b. the other Pro perk: six saved game plans, not three ----
-  say('\n--- 5b. a Pro manager gets six saved game plans')
+  // ---- 5b. SAVED GAME PLANS ARE NO LONGER A PRO PERK ----
+  // It was three free and six with Pro, and the owner cut it to two for
+  // everybody (v1.8.3: "only give me 2 save custom plan options - tidy it
+  // up"). Two is now the Pro number as well, so the perk and its upsell chip
+  // are both gone; no adverts and the three locked skins still are. This
+  // section used to assert the six and is kept to assert that the perk has
+  // actually LEFT rather than half-left - a stale upsell for something
+  // everybody already has is worse than no upsell.
+  say('\n--- 5b. saved game plans: two, and not a Pro perk any more')
   await openTactics(page)
-  ok((await page.locator('.plan-slots button.plan-empty, .plan-slots .plan-slot').count()) === 6,
-    `six plan slots for a Pro manager (${await page.locator('.plan-slots button.plan-empty, .plan-slots .plan-slot').count()})`)
+  const proSlots = await page.locator('.plan-slots button.plan-empty, .plan-slots .plan-slot').count()
+  ok(proSlots === 2, `two plan slots for a Pro manager (${proSlots})`)
   ok(!/with Pro/i.test(await page.locator('.plan-slots').innerText()), 'and nothing is being sold to somebody who already bought it')
 
   ok(errs.length === 0, `no console errors${errs.length ? ': ' + errs[0] : ''}`)
@@ -271,15 +278,14 @@ try {
       'tapping a locked one does not paint the app')
     ok(/Pro Manager/i.test(await free.locator('.content').innerText()),
       'it goes to the Store instead, which is where the answer is')
-    // and the same split on the game plans: three, plus one honest offer.
-    // The bottom bar is still there on the Store, so no need to leave first.
+    // THE GAME PLANS NO LONGER SPLIT. A free manager and a Pro manager both
+    // get two, so the row reads the same either way and there is no fourth
+    // chip offering to unlock a number that does not differ.
     await openTactics(free)
     const saveable = await free.locator('.plan-slots button.plan-empty, .plan-slots .plan-slot').count()
-    ok(saveable === 4, `three plans and one offer, not six (${saveable} chips)`)
-    ok(/with Pro/i.test(await free.locator('.plan-slots').innerText()), 'the fourth chip says what it is')
-    await free.locator('.plan-slots button', { hasText: 'Pro' }).click()
-    await free.waitForTimeout(400)
-    ok(/Pro Manager/i.test(await free.locator('.content').innerText()), 'and it goes to the Store, like the skins do')
+    ok(saveable === 2, `two plans for a free manager too, and no offer (${saveable} chips)`)
+    ok(!/with Pro/i.test(await free.locator('.plan-slots').innerText()),
+      'and nothing is sold to him that he would already have')
 
     ok(ferrs.length === 0, `no console errors${ferrs.length ? ': ' + ferrs[0] : ''}`)
     await free.close()

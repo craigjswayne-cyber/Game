@@ -1345,7 +1345,7 @@
     "splitMismatch_f": "Vous avez annoncé un {want}, et les joueuses en maillot en font un {got}. Le banc que vous choisissez vraiment est celui qui joue.",
     "prepFitnessLong_f": "Du fractionné. Vos joueuses fatiguent environ 8 % moins vite au prochain match.",
     "byZone": "Ce que vous faites, et où",
-    "byZoneSub": "La même équipe joue trois jeux différents selon la zone",
+    "byZoneSub": "trois jeux, un par zone du terrain",
     "zone_own22": "Dans vos 22",
     "zone_middle": "Le tiers central",
     "zone_opp22": "Dans leurs 22"
@@ -2603,7 +2603,7 @@
     "infFacilitiesSub": "chaque amélioration passe par le conseil",
     "infHoldsAll": " - le stade accueille déjà tous ceux qui viendraient",
     "infLeagueEstates": "Installations du championnat",
-    "infLeagueEstatesSub": "Les neuf installations construites par chaque club. Le stade a sa propre colonne : un petit club peut posséder un grand stade.",
+    "infLeagueEstatesSub": "neuf installations chacun, le stade à part",
     "infLevelCost": "N{n} · {cost}",
     "infLevelIs": "Niveau {n} : {effect}",
     "infMoreThanHolds": " - {n} de plus que la capacité du stade",
@@ -6750,7 +6750,7 @@
   },
   "board": {
     "room": "Le conseil",
-    "roomSub": "quatre choses à demander, et aucune n'est gratuite",
+    "roomSub": "quatre demandes, aucune gratuite",
     "knock": "Demander au conseil",
     "ask_time": "⏳ Demander du temps",
     "askDesc_time": "Un soutien public du président. Ça ne gagne pas les matchs ; ça vous achète les semaines pour le faire.",

@@ -1354,7 +1354,7 @@
   "kickerNote_f": "Die eerste keuse vat alles; die tweede vrou tree in wanneer sy van stryk is.",
   "splitMismatch_f": "Jy het 'n {want} benoem, en die vroue in die truie maak dit 'n {got}. Die bank wat jy werklik kies, is die een wat speel.",
   "byZone": "Wat jy waar doen",
-  "byZoneSub": "Dieselfde span speel drie verskillende wedstryde op die veld",
+  "byZoneSub": "drie wedstryde, een per sone",
   "zone_own22": "In jou eie 22",
   "zone_middle": "Die middelderde",
   "zone_opp22": "In hulle 22"
@@ -2652,7 +2652,7 @@
   "infFacilitiesSub": "elke opgradering gaan deur die direksiekamer",
   "infHoldsAll": " - die stadion hou reeds almal wat sou kom",
   "infLeagueEstates": "Liga-terreine",
-  "infLeagueEstatesSub": "Die nege fasiliteite wat elke klub gebou het. Die veld het sy eie kolom - 'n klein klub kan 'n groot stadion besit.",
+  "infLeagueEstatesSub": "nege fasiliteite elk, die veld apart",
   "infLevelCost": "V{n} · {cost}",
   "infLevelIs": "Vlak {n}: {effect}",
   "infMoreThanHolds": " - {n} meer as wat die stadion hou",
@@ -6961,7 +6961,7 @@
  },
  "board": {
   "room": "Die Direksiekamer",
-  "roomSub": "vier dinge wat jy kan vra, en nie een is goedkoop nie",
+  "roomSub": "vier versoeke, nie een goedkoop nie",
   "knock": "Vra die direksie",
   "ask_time": "⏳ Vra vir meer tyd",
   "askDesc_time": "Openbare steun van die voorsitter. Dit wen nie wedstryde nie; dit koop jou die weke om dit te doen.",
