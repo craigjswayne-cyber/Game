@@ -29,16 +29,11 @@ export interface CampusPlot {
  *  even and lands on the verge rather than the road. */
 export const PLOT_OVERSIZE = 1.45
 
-/** What the ground has to hold to draw at each tier. The club ladder runs
- *  from about 1,500 seats to about 62,500, so the bands are spread across
- *  that rather than up to the 82,000 cap a top club can expand into. */
-export const STADIUM_TIERS = [3_000, 8_000, 16_000, 28_000, 45_000] as const
-
-export function stadiumLevel(capacity: number): number {
-  let n = 0
-  for (const t of STADIUM_TIERS) if (capacity >= t) n++
-  return n
-}
+/** The ground is levelled by its seats rather than by a board request,
+ *  so the map reads it straight off the club. The six grounds and the
+ *  function that names them live in model.ts (GROUND_TIERS), which is
+ *  also what the expansion ladder builds toward - one table, so the
+ *  map can never disagree with the mechanic. */
 
 export const CAMPUS_PLOTS: CampusPlot[] = [
   { fid: 'academy',     art: 'academy',         x:  8.840, y:  7.320, w: 12.063, h:  8.978 },

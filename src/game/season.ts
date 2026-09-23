@@ -16,7 +16,7 @@ import { AWARD_EVERY, managerOfMonth, runLine, runVars } from './awards'
 import { boardMemo } from './boardmemo'
 import { terraceWeek } from './terraces'
 import { upkeepWeek } from './upkeep'
-import {absWeek, addGrudge, boardObjective, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, buildWeeks, finalVenue, fixtureDayOff, fmtMoney, leagueTier, LEDGER_WEEKS, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, RELEGATES, SEASON_WEEKS, seasonLabel, squadTrust, STAND_BUILD_WEEKS, unbeatenRun, weeklyCentral, mgrWinWeight, addWeeks100 } from './model'
+import {absWeek, addGrudge, boardObjective, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, buildWeeks, finalVenue, fixtureDayOff, fmtMoney, leagueTier, LEDGER_WEEKS, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, RELEGATES, SEASON_WEEKS, seasonLabel, squadTrust, GROUND_TIERS, groundLevel, groundBuildWeeks, unbeatenRun, weeklyCentral, mgrWinWeight, addWeeks100 } from './model'
 import { simMatch, autoSelect, pickTrainingInjury, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { BARRAGE_WEEK, windowSpan } from './calendar'
 import { emptyRow, leaguePos, sortTable, snIdFor, snWeeksFor, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS, W_AUTUMN_WEEKS, W_SIX_NATIONS_WEEKS, W_PAC4_WEEKS, W_SUMMER_TEST_WEEKS } from './schedule'
@@ -168,7 +168,25 @@ export function requestFacility(state: GameState, fid: FacilityId): string {
 /** Cost of the next stand: seats added, at the same rate the board pays. */
 export function expansionPlan(state: GameState) {
   const club = state.clubs[state.userClubId]
-  const seats = Math.round((club.capacity * 0.06) / 100) * 100
+  /**
+   * ---- THE NEXT RUNG, AS FAR AS THE TOWN WILL BUY IT (owner, v1.6.8) ----
+   *
+   * The ground used to grow 6% at a time toward nothing in particular. It now
+   * climbs the six grounds in GROUND_TIERS, and what the board signs off is
+   * the gap to the next one - or, when the following will not carry a stand
+   * that big yet, as far toward it as the crowd justifies.
+   *
+   * THE STAGE IS THE TARGET, THE CATCHMENT IS THE LIMIT. A village club with
+   * 1,500 seats and 1,700 people who would come does not get a 3,000-seat
+   * stand because the ladder says so; it gets the 200 its support carries,
+   * and reaches stage one when its support does. That keeps the ladder honest
+   * on a small club without ever building a stand that stands empty.
+   */
+  const lvl = groundLevel(club.capacity)
+  const target = lvl >= GROUND_TIERS.length - 1
+    ? club.capacity
+    : Math.min(GROUND_TIERS[lvl + 1], demandCeiling(club))
+  const seats = Math.max(0, Math.round((target - club.capacity) / 100) * 100)
   // League and cup gates only. A pre-season friendly is deliberately priced
   // at 38% interest by the gate model, and this average used to include them
   // - so a club selling out every Saturday read "77% full" to its own board
@@ -181,7 +199,12 @@ export function expansionPlan(state: GameState) {
   // steel and concrete cost more the bigger the ground already is: the easy
   // terrace goes up first, the second tier needs foundations
   const perSeat = Math.round(1_400 * (1 + club.capacity / 45_000))
-  return { seats, cost: seats * perSeat, perSeat, avg: Math.round(avg), fill: avg ? avg / club.capacity : 0, played: home.length }
+  return {
+    seats, cost: seats * perSeat, perSeat, avg: Math.round(avg),
+    fill: avg ? avg / club.capacity : 0, played: home.length,
+    // the rung this build is climbing to, which sets how long it takes
+    nextLevel: Math.min(GROUND_TIERS.length - 1, lvl + 1),
+  }
 }
 
 /**
@@ -191,7 +214,11 @@ export function expansionPlan(state: GameState) {
 export function requestExpansion(state: GameState): string {
   const club = state.clubs[state.userClubId]
   const abs = state.season * 100 + state.week
-  if (club.capacity >= 82_000) return t('reply.groundAlreadyHuge', { stadium: club.stadium })
+  // THE TOP OF THE LADDER, and the hard cap above it for the handful of
+  // grounds that were already bigger than a stage-five stadium on day one
+  if (groundLevel(club.capacity) >= GROUND_TIERS.length - 1 || club.capacity >= 82_000) {
+    return t('reply.groundAlreadyHuge', { stadium: club.stadium })
+  }
   // the Infrastructure page greys the button out at this point, and the engine
   // has to agree with it: a board does not lay seats it cannot sell
   if (club.capacity >= demandCeiling(club) * 0.95) {
@@ -201,7 +228,9 @@ export function requestExpansion(state: GameState): string {
   if (state.stadiumBuild) return t('facilities.facStandBusy', { stadium: club.stadium })
   // same door as the facilities: inside a denial, asking again is pressing
   if ((state.facilityAskCooldown ?? 0) > abs) return pressBoard(state, 'capital')
-  const { seats, cost, fill, played } = expansionPlan(state)
+  const { seats, cost, fill, played, nextLevel } = expansionPlan(state)
+  // the catchment may leave nothing worth laying this season
+  if (seats < 100) return t('reply.groundBigEnough', { stadium: club.stadium })
   // one stand a season: builders, planning permission and a season ticket
   // renewal cycle all take their time
   if (state.expandedSeason === state.season) {
@@ -234,17 +263,18 @@ export function requestExpansion(state: GameState): string {
   // to reshape the club the only one that cost no time at all. The money goes
   // now - the contract is signed - and the capacity moves when the builders
   // are off site, twelve weeks later, holding the builders' slot meanwhile.
-  state.stadiumBuild = { done: addWeeks100(abs, STAND_BUILD_WEEKS), seats, cost }
+  const weeks = groundBuildWeeks(nextLevel)
+  state.stadiumBuild = { done: addWeeks100(abs, weeks), seats, cost }
   delete state.boardAsks?.capital // a yes wipes the slate
-  logDecision(state, 'dec.expandApproved', { stadium: club.stadium, seats, cost: fmtMoney(cost), weeks: STAND_BUILD_WEEKS }, true)
+  logDecision(state, 'dec.expandApproved', { stadium: club.stadium, seats, cost: fmtMoney(cost), weeks }, true)
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
     subject: `🏗 Builders move in at ${club.stadium}: ${seats.toLocaleString()} seats`,
-    body: `The board has signed off on a new stand: ${fmtMoney(cost)}, and ${seats.toLocaleString()} seats at ${club.stadium}. The hoardings go up this week and the stand opens in ${STAND_BUILD_WEEKS} weeks - until then the ground holds what it always held, and the builders are on this and nothing else.`,
+    body: `The board has signed off on a new stand: ${fmtMoney(cost)}, and ${seats.toLocaleString()} seats at ${club.stadium}. The hoardings go up this week and the stand opens in ${weeks} weeks - until then the ground holds what it always held, and the builders are on this and nothing else.`,
     k: 'news.expApproved',
-    v: { stadium: club.stadium, seats, cost: fmtMoney(cost), weeks: STAND_BUILD_WEEKS },
+    v: { stadium: club.stadium, seats, cost: fmtMoney(cost), weeks },
   })
-  return t('reply.expandApproved', { seats, cost: fmtMoney(cost), weeks: STAND_BUILD_WEEKS })
+  return t('reply.expandApproved', { seats, cost: fmtMoney(cost), weeks })
 }
 
 /**

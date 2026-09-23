@@ -507,6 +507,10 @@ export interface Club {
    *  ("Franklin's Gardens", under whatever is currently bolted above it) */
   stadiumBase?: string
   capacity: number
+  /** how much bigger this club's support has grown than the day it opened,
+   *  1 at kick-off and earned a season at a time by filling the ground
+   *  (rollover.ts). Multiplies capacity0 inside demandCeiling. */
+  following?: number
   /** the real, opening capacity of the ground - the anchor for demandCeiling,
    *  so a ground that has been extended cannot justify extending again */
   capacity0?: number
@@ -996,16 +1000,54 @@ export const facilityCost = (info: { base: number }, level: number) => info.base
 export const FACILITY_BUILD_WEEKS = [3, 5, 7, 9, 12] as const
 
 /**
- * HOW LONG A NEW STAND TAKES (owner, v1.6.6).
+ * ---- THE GROUND IS A LADDER, 0 TO 5 (owner, v1.6.8) ----
  *
- * Expansion used to be the one capital project that happened instantly: the
- * board said yes and the seats were there the same week, while a set of gym
- * racks kept builders on site for three. A stand is the biggest thing the club
- * ever builds, so it takes the longest build in the game - the same twelve
- * weeks as the top rung of a facility - and it holds the one builders' slot
- * while it runs, exactly as a facility does.
+ * The estate's nine facilities each run 0 to 5 and the ground did not: it was
+ * a number of seats that crept up 6% at a time, and the only thing that ever
+ * marked progress was the number itself. These are the six grounds, by the
+ * seats they hold, and they are what the campus map draws:
+ *
+ *   0  a village ground            1,500
+ *   1  a terrace and a clubhouse   3,000
+ *   2  one proper stand            6,000
+ *   3  three sides seated          9,000
+ *   4  a full bowl                15,000
+ *   5  a stadium                  32,000
+ *
+ * ABSOLUTE, not relative to where a club started. A 60,000-seat ground draws
+ * as a stadium because it IS one, and a club that opens at 9,000 opens at
+ * stage 3 with two rungs left rather than five. That is the whole point of
+ * reading the stage off the seats: the map cannot lie about the ground.
+ *
+ * Not every club climbs to the top, exactly as not every club affords a
+ * level-five academy. How far you get is set by how many people will actually
+ * come, which is demandCeiling below - and that only moves when a club fills
+ * what it already has.
  */
-export const STAND_BUILD_WEEKS = 12
+export const GROUND_TIERS = [1_500, 3_000, 6_000, 9_000, 15_000, 32_000] as const
+
+/** Which of the six grounds this is. Absolute, so it is the same answer for
+ *  every club in the world and for the art on the campus map. */
+export function groundLevel(capacity: number): number {
+  let n = 0
+  for (let i = 1; i < GROUND_TIERS.length; i++) if (capacity >= GROUND_TIERS[i]) n = i
+  return n
+}
+
+/**
+ * HOW LONG A STAND TAKES, by the stage being built.
+ *
+ * The same shape as the facility ladder: the first rung is a few weeks of
+ * groundwork and the last is most of a quarter of a season, because the last
+ * rung is a stadium. Indexed by TARGET stage, so groundBuildWeeks(1) is the
+ * climb out of a village ground.
+ */
+export const GROUND_BUILD_WEEKS = [6, 8, 10, 12, 16] as const
+
+export function groundBuildWeeks(level: number): number {
+  const i = Math.max(1, Math.min(GROUND_TIERS.length - 1, Math.round(level))) - 1
+  return GROUND_BUILD_WEEKS[i]
+}
 
 /** Weeks to finish a build that ends at `level`. Clamped, because a corrupt
  *  save naming level 9 should take the longest build, not crash on undefined. */
@@ -1043,9 +1085,31 @@ export function demandCeiling(club: Club): number {
   // following by a further 15% to 40%, deeper for a bigger name. Every club
   // starts below its own ceiling, which means season one is untouched by this
   // and only growth is policed.
-  const base = club.capacity0 ?? club.capacity
+  /**
+   * ---- AND A FOLLOWING IS EARNED (v1.6.8) ----
+   *
+   * Anchoring on the opening ground alone capped every club in the world at
+   * about 1.15x to 1.4x the seats it started with, for ever. That was right
+   * while the ground crept up 6% at a time; it makes the 0-to-5 ladder above
+   * a lie, because a village club on 1,500 could never justify the 3,000 that
+   * is stage one, and a board that will not build seats it cannot sell would
+   * refuse every rung of it.
+   *
+   * So the anchor grows - but only by being earned. `following` moves at the
+   * rollover, and only for a club that filled what it already had for a whole
+   * season (rollover.ts). Nothing about this inflates a gate on its own: a
+   * club that does not sell out never moves, and one that does has a crowd
+   * that demonstrably exists. It is capped, because a following is not a
+   * compound interest account.
+   */
+  const base = (club.capacity0 ?? club.capacity) * (club.following ?? 1)
   return Math.round(base * (1.15 + Math.max(0, club.rep - 55) / 145))
 }
+
+/** The ceiling on an earned following: three and a half times the crowd a
+ *  club opened with is a generation of sold-out Saturdays, and past that the
+ *  town has run out of people. */
+export const MAX_FOLLOWING = 3.5
 
 /** Every facility level the club holds, 0 to 45 across the nine buildings. */
 export function estateSum(club: Club | undefined): number {

@@ -1,5 +1,5 @@
-import { CAMPUS_PLOTS, PLOT_OVERSIZE, stadiumLevel, type CampusId } from '../game/campusPlots'
-import { FACILITY_INFO, MAX_FACILITY, type Club, type GameState } from '../game/model'
+import { CAMPUS_PLOTS, PLOT_OVERSIZE, type CampusId } from '../game/campusPlots'
+import { FACILITY_INFO, MAX_FACILITY, groundLevel, type Club, type GameState } from '../game/model'
 
 /** Where the art lives. `base` rather than a bare '/' because vite is built
  *  with base './' - the game is served from a path on some hosts and from the
@@ -15,7 +15,7 @@ const PLATE_H = 1024
  *  the club; the ground reads its own off the capacity, because seats are
  *  bought a stand at a time rather than a level at a time. */
 function levelOf(club: Club, fid: CampusId): number {
-  if (fid === 'stadium') return stadiumLevel(club.capacity)
+  if (fid === 'stadium') return groundLevel(club.capacity)
   return club.facilities?.[fid] ?? 0
 }
 

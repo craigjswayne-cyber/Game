@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
 import {
-  FACILITY_INFO, MAX_FACILITY, demandCeiling, estateGrade, facilityCost, fmtMoney,
+  FACILITY_INFO, GROUND_TIERS, MAX_FACILITY, demandCeiling, estateGrade, facilityCost, fmtMoney, groundLevel,
   type Club, type FacilityId, weeksBetween100 } from '../../game/model'
 import { expansionPlan, requestExpansion, requestFacility } from '../../game/season'
 import { SectionTitle } from '../components'
@@ -108,7 +108,12 @@ export default function Infrastructure() {
       <div className="card" id="fac-stadium" style={{ borderLeft: '4px solid var(--gold)', padding: '8px 12px', ...ring('stadium') }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <div>
-            <h3 style={{ fontSize: 15, margin: 0 }}>🏟️ {club.stadium}</h3>
+            {/* THE GROUND IS A LADDER TOO (owner, v1.6.8): six grounds from a
+                village pitch to a stadium, read off the seats. Same pips as
+                the nine facilities, because it is the same kind of thing. */}
+            <h3 style={{ fontSize: 15, margin: 0 }}>
+              🏟️ {club.stadium} <span style={{ color: 'var(--gold)', letterSpacing: 1 }}>{pips(groundLevel(club.capacity))}</span>
+            </h3>
             <div className="meta">
               {t('world.infSeats', { n: club.capacity.toLocaleString() })}
               {plan.played >= 1 && t('world.infAvgGate', { avg: plan.avg.toLocaleString(), pct: Math.round(plan.fill * 100) })}
@@ -135,12 +140,17 @@ export default function Infrastructure() {
             <div style={{ fontWeight: 700, color: 'var(--gold)' }}>{t(grade.label)}</div>
             <div className="meta" style={{ fontSize: 11 }}>{t('world.infRankLine', { sum: grade.sum, max: grade.max, ord, n: peers.length })}</div>
           </div>
+          {groundLevel(club.capacity) >= GROUND_TIERS.length - 1 && (
+            <span className="meta" style={{ flexShrink: 0, color: 'var(--gold)', fontWeight: 700 }}>{t('world.infWorldClass')}</span>
+          )}
+          {groundLevel(club.capacity) < GROUND_TIERS.length - 1 && (
           <button className="btn gold" style={{ padding: '5px 10px', fontSize: 11.5, lineHeight: 1.25 }}
-            disabled={club.capacity >= 82_000 || club.capacity >= demandCeiling(club) * 0.95 || busy}
+            disabled={club.capacity >= 82_000 || club.capacity >= demandCeiling(club) * 0.95 || plan.seats < 100 || busy}
             onClick={() => { setMsg({ key: 'expand', text: requestExpansion(game) }); touch() }}>
             {t('world.infAskExpand')}<br />
             <span style={{ fontSize: 10, fontWeight: 600 }}>{t('world.infSeatsCost', { seats: plan.seats.toLocaleString(), cost: fmtMoney(plan.cost) })}</span>
           </button>
+          )}
         </div>
         {msg?.key === 'expand' && (
           <div className="meta" style={{ fontSize: 11.5, fontWeight: 600, marginTop: 6, paddingTop: 6, borderTop: '1px solid var(--border)' }}>

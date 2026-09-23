@@ -839,6 +839,9 @@ export function migrate(s: GameState): GameState {
   // ground, and shrinking the anchor retroactively would tell the manager his
   // own stand should never have been built - so today's capacity is the anchor
   for (const c of Object.values(s.clubs)) c.capacity0 ??= c.capacity
+  // a save written before a following could be earned opens with the one it
+  // was born with: every club starts level, and the ladder is climbed from here
+  for (const c of Object.values(s.clubs)) c.following ??= 1
 
   // pre-2025 former clubs (old-boy stories): fills only players still unset.
   // First, take back the ones the seeder should never have written: exClub is
