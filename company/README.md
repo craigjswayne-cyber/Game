@@ -10,9 +10,9 @@ Plain HTML and CSS, no build step. Files:
 |---|---|
 | `index.html` | Home page: hero, game, studio and contact sections |
 | `privacy.html` | Privacy notice for this website |
-| `style.css` | Shared styles (one dark theme on the PHASE palette) |
+| `style.css` | Shared styles (one dark theme on the PHASE palette; the logo itself is black and white) |
 | `img/` | Studio logo, favicon, iPhone icon, PHASE icon, art and screenshots |
-| `brand/` | The FWDS & BCKS logo as SVG and PNG (512, 1024, and a logo-plus-name lockup) for use elsewhere |
+| `brand/` | The FWDS & BCKS logo as SVG and as transparent PNGs (512 and 1024 wide) for use elsewhere |
 | `space-grotesk-latin.woff2` | The site font, served locally |
 | `CNAME` | Tells GitHub Pages the domain is `www.fwdsandbcks.com` |
 
