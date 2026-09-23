@@ -110,6 +110,36 @@ def _paeth(a, b, c):
     return a if (pa <= pb and pa <= pc) else (b if pb <= pc else c)
 
 
+def posterise(rows, bits=2):
+    """
+    ---- DROP THE BOTTOM TWO BITS BEFORE ENCODING (owner, v1.7.1) ----
+
+    Reported from the test build: "the map was slowish to load". The town
+    plate was 1,527 KB, which is what a 768x1024 render costs in PNG, and PNG
+    pays for every last bit of a gradient nobody can see.
+
+    Snapping each channel to 64 levels instead of 256 gives the compressor
+    long runs where it had noise. Measured on the plate: 1,527 KB to 964 KB,
+    a 37% cut, and the largest change to any single channel anywhere in the
+    image is TWO of 255 - under a side-by-side crop of the river, the bridges
+    and the open grass, the two are indistinguishable.
+
+    Three bits was tried and measured at 730 KB, and is not used: 32 levels a
+    channel is where a smooth sky starts to show banding, and this image is
+    mostly smooth gradients.
+    """
+    mask = (0xFF << bits) & 0xFF
+    half = 1 << (bits - 1)
+    out = []
+    for r in rows:
+        b = bytearray(r)
+        for i in range(len(b)):
+            v = (b[i] & mask) + half
+            b[i] = 255 if v > 255 else v
+        out.append(bytes(b))
+    return out
+
+
 def write_png(path, w, h, rows):
     """Adaptive filtering: per row, pick the filter with the smallest sum of
     absolute differences. That is the standard heuristic, and on these renders
@@ -165,7 +195,7 @@ def main():
     ph = round(PLATE_W * chh / cw)
     w, h, rows = read_png(os.path.join(MASTERS, 'campus', 'campus-plate.png'))
     n = write_png(os.path.join(PUB, 'campus', 'plate.png'), PLATE_W, ph,
-                  box_resize(w, h, rows, PLATE_W, ph))
+                  posterise(box_resize(w, h, rows, PLATE_W, ph)))
     total += n
     print('plate            %4dx%-4d %6.1f KB' % (PLATE_W, ph, n/1024))
 
@@ -174,7 +204,7 @@ def main():
     if os.path.exists(src):
         w, h, rows = read_png(src)
         n = write_png(os.path.join(PUB, 'campus', 'construction.png'), TILE, TILE,
-                      box_resize(w, h, rows, TILE, TILE))
+                      posterise(box_resize(w, h, rows, TILE, TILE)))
         total += n
         print('construction     %4dx%-4d %6.1f KB' % (TILE, TILE, n/1024))
     else:
@@ -188,7 +218,7 @@ def main():
                 print('  %s L%d MISSING' % (fac, lvl)); continue
             w, h, rows = read_png(s)
             n = write_png(os.path.join(PUB, 'facilities', '%s-L%d.png' % (fac, lvl)),
-                          TILE, TILE, box_resize(w, h, rows, TILE, TILE))
+                          TILE, TILE, posterise(box_resize(w, h, rows, TILE, TILE)))
             total += n
         print('%-16s 6 tiles' % fac)
 

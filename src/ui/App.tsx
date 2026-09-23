@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { preloadCampus } from './artPreload'
 import { effectiveSkin, useStore, type Screen } from '../store'
 import { celebrationHeadline, celebrationSub, seasonLabel } from '../game/model'
 import { t } from '../game/i18n'
@@ -257,6 +258,17 @@ function useTextScale() {
   }, [scale])
 }
 
+/** THE ESTATE'S ART, FETCHED WHILE YOU ARE STILL ON THE HOME SCREEN.
+ *  Runs once a save is in memory, because the levels decide which ten tiles
+ *  are worth asking for. See artPreload.ts for why it does not block. */
+function useCampusArt() {
+  const hasGame = useStore(s => !!s.game)
+  useEffect(() => {
+    const g = useStore.getState().game
+    if (g) preloadCampus(g)
+  }, [hasGame])
+}
+
 /** A reload lands you back where you were, not on the title screen.
  *
  *  Runs once, and only from a cold start with no game in memory, so it can never
@@ -382,6 +394,7 @@ export default function App() {
   const { back, go, home, continueWeek, toggleNight, openInbox } = useStore.getState()
   const [menu, setMenu] = useState<null | 'hub' | 'world' | 'manager'>(null)
   useTextScale()
+  useCampusArt()
   useResume()
 
   const cur = nav[nav.length - 1]
