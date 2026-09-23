@@ -580,11 +580,25 @@ export function refNotes(r: Referee): string[] {
 /** The complaint is a KEY. It is quoted on the medical screen, in the day
  *  room, in two stories and in the match commentary, and a complaint recorded
  *  as English is English in all five for as long as the lay-off lasts. */
+/**
+ * ---- THE SHAPE OF A SEASON'S INJURIES (design review, v1.6.7) ----
+ *
+ * Measured before this round: about eleven time-loss injuries per club per
+ * season, mean six weeks. The professional game runs several times that many
+ * and most of them are short - a week or two of soft tissue, not a month.
+ * Eleven long ones meant a squad never really churned, and the selection
+ * problem an injury is supposed to set the manager almost never arrived.
+ *
+ * So the rate roughly doubles (the roll below) and the ranges come down at the
+ * short end, which leaves the total weeks lost about where it was while making
+ * the week-to-week medical room look like a rugby club's. The two that define
+ * a career - the knee and the achilles - are untouched.
+ */
 const INJURIES = [
-  ['injury.ribs', 1, 2], ['injury.deadLeg', 1, 1], ['injury.ankle', 2, 4],
-  ['injury.hamstring', 2, 5], ['injury.concussion', 2, 3], ['injury.shoulder', 3, 8],
-  ['injury.kneeLigament', 6, 16], ['injury.brokenHand', 4, 6], ['injury.calf', 2, 4],
-  ['injury.groin', 2, 5], ['injury.bicep', 8, 14], ['injury.achilles', 16, 30],
+  ['injury.ribs', 1, 2], ['injury.deadLeg', 1, 1], ['injury.ankle', 1, 3],
+  ['injury.hamstring', 2, 4], ['injury.concussion', 2, 3], ['injury.shoulder', 2, 6],
+  ['injury.kneeLigament', 6, 16], ['injury.brokenHand', 3, 6], ['injury.calf', 1, 3],
+  ['injury.groin', 2, 4], ['injury.bicep', 7, 12], ['injury.achilles', 16, 30],
 ] as const
 
 /**
@@ -623,6 +637,57 @@ const INJURY_WEIGHT: Record<Gender, readonly number[]> = {
  * instead of two to three, so a bad one costs most of a block of fixtures.
  */
 const CONCUSSION_W: readonly [number, number] = [2, 5]
+
+/**
+ * ---- THE TRAINING GROUND BREAKS PLAYERS TOO (design review, v1.6.7) ----
+ *
+ * Every injury in this game used to come out of a match, and a quarter to a
+ * third of rugby's do not: they come from a Tuesday session, off a hamstring
+ * that goes in a running drill or a shoulder in contact. A squad that only
+ * ever got hurt on a Saturday was a squad the manager could rest into safety.
+ *
+ * Its own list rather than the match one, because the mix is different: soft
+ * tissue dominates, the contact injuries are rarer, and the two that end
+ * seasons are rarer still - though the achilles is on it on purpose, because
+ * in the real game it goes in training as often as in a match.
+ *
+ * Weighted, and the weights are what make it a training list: a hamstring is
+ * five times a knee here. The women's row from INJURY_WEIGHT still applies on
+ * top, so a women's save keeps its knee and concussion loading.
+ */
+const TRAINING_INJURIES: readonly (readonly [string, number, number, number])[] = [
+  //  complaint              lo  hi  weight
+  ['injury.hamstring', 2, 4, 5],
+  ['injury.calf', 1, 3, 4],
+  ['injury.groin', 2, 4, 3],
+  ['injury.ankle', 1, 3, 3],
+  ['injury.deadLeg', 1, 1, 3],
+  ['injury.shoulder', 2, 6, 2],
+  ['injury.concussion', 2, 3, 1],
+  ['injury.kneeLigament', 6, 16, 1],
+  ['injury.achilles', 16, 30, 0.4],
+] as const
+
+/**
+ * Pick a training-ground complaint and how long it costs. Two rng draws: the
+ * weighted pick, then the length inside its band. The women's weighting and
+ * the longer women's return-to-play after a head knock both carry over from
+ * the match table, which is where that research is written down.
+ */
+export function pickTrainingInjury(rng: Rng, g: Gender): readonly [string, number] {
+  const byKey = new Map<string, number>(INJURIES.map((r, i) => [r[0] as string, INJURY_WEIGHT[g][i]]))
+  let total = 0
+  for (const [dk, , , w] of TRAINING_INJURIES) total += w * (byKey.get(dk) ?? 1)
+  let r = rng() * total
+  let hit = TRAINING_INJURIES[TRAINING_INJURIES.length - 1]
+  for (const row of TRAINING_INJURIES) {
+    r -= row[3] * (byKey.get(row[0]) ?? 1)
+    if (r < 0) { hit = row; break }
+  }
+  let [dk, lo, hi] = hit
+  if (g === 'w' && dk === 'injury.concussion') { lo = CONCUSSION_W[0]; hi = CONCUSSION_W[1] }
+  return [dk, lo + Math.floor(rng() * (hi - lo + 1))] as const
+}
 
 /** One rng draw, exactly as the flat pick took, so a uniform row is unchanged. */
 function pickInjury(rng: Rng, g: Gender): readonly [string, number, number] {
@@ -1973,9 +2038,29 @@ function drainEnergy(state: GameState, ctx: LiveCtx, side: SideCtx) {
   }
 }
 
-/** No kick at goal is a certainty: base skill, then form (a kicker in a
- *  purple patch is a different animal), confidence (morale) and the day's
- *  conditions all move the needle. Floor drops to 38% on a bad day. */
+/**
+ * No kick at goal is a certainty: base skill, then form (a kicker in a purple
+ * patch is a different animal), confidence (morale) and the day's conditions
+ * all move the needle. Floor drops to 38% on a bad day.
+ *
+ * ---- THE CEILING USED TO EAT THE ATTRIBUTE (design review, v1.6.7) ----
+ *
+ * The curve was `base + goa/34` for a penalty against a hard clamp at 93%, and
+ * the world's kickers run from 2 to 18. So everyone from 16 upwards kicked at
+ * exactly 93%, the attribute stopped separating men precisely where a manager
+ * cares most about it, and the measured world converted 83% of its tries -
+ * well above the professional game, which lives nearer three in four.
+ *
+ * The slope is now less than half what it was, so the top of the range has
+ * somewhere to go: a goa of 12 kicks a penalty at 75%, 14 at 79%, 16 at 83%
+ * and 18 at 86%, where all four used to be 93% alike. The 90% ceiling is
+ * reached only by a great kicker in form, backed by a kicking coach and
+ * kicking off a level-five enclosure - the investment still buys the last few
+ * points, it is simply no longer free with the attribute alone.
+ *
+ * Measured after: 72% of the world's tries converted, against 83% before and
+ * about 73% in the professional club game.
+ */
 function kickChance(state: GameState, kicker: Player | null, base: number, div: number, goalPenalty: number, side: SideCtx): number {
   if (!kicker) return 0.5 - goalPenalty + side.goalBonus
   const skill = base + kicker.a.goa / div
@@ -1983,14 +2068,14 @@ function kickChance(state: GameState, kicker: Player | null, base: number, div: 
   const confF = (kicker.morale - 6.5) * 0.008  // nerves show from the tee
   const traitB = kicker.trait === 'Siege Gun' ? 0.03 : 0
   const floor = kicker.trait === 'Metronome' ? 0.45 : 0.38
-  return clamp(skill + formF + confF - goalPenalty + side.goalBonus + traitB, floor, 0.93)
+  return clamp(skill + formF + confF - goalPenalty + side.goalBonus + traitB, floor, 0.90)
 }
 
 /** Take the three points: roll the kick at goal. */
 function takePenaltyShot(state: GameState, ctx: LiveCtx, side: SideCtx, min: number) {
   const { rng, detail, goalPenalty } = ctx
   const kicker = side.units.kickerId != null ? state.players[side.units.kickerId] : null
-  const pPen = kickChance(state, kicker, 0.5, 34, ctx.goalPenalty ?? 0, side)
+  const pPen = kickChance(state, kicker, 0.53, 54, ctx.goalPenalty ?? 0, side)
   if (rng() < pPen) {
     side.score += 3
     side.pens += 1
@@ -2086,7 +2171,7 @@ function scoreTry(
     pushLine(state, ctx, min + 1, 'SUB', side, 'comm.tryComeback', { player: scorer.name }, scorer.id)
   }
   const kicker = side.units.kickerId != null ? state.players[side.units.kickerId] : null
-  const pCon = kickChance(state, kicker, 0.45, 32, goalPenalty, side)
+  const pCon = kickChance(state, kicker, 0.495, 54, goalPenalty, side)
   if (rng() < pCon) {
     side.score += 2
     if (kicker) { kicker.stats.cons += 1; kicker.stats.points += 2 }
@@ -2682,21 +2767,67 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           checkFrontRow(state, ctx, opp, min, p, 'yellow')
         }
       }
-      // A standing instruction answers the call for you (F3). Being asked every
-      // time is the right default on a big screen and a nuisance on a phone
-      // during a nine-penalty afternoon, so the choice is the manager's.
-      const standing = state.clubs[side.teamId]?.tactic.penaltyCall ?? 'ask'
-      if (detail && side.isUser && !ctx.decision) {
-        ctx.decision = { kind: 'penalty', min }
-        if (standing === 'ask') {
-          pushLine(state, ctx, min, 'SUB', side, 'comm.penKickableAsk', { team: teamShort(state, side.teamId) })
-        } else {
-          // resolveDecision reads ctx.decision and works out the side itself, so
-          // the instruction goes through exactly the path a tap would take
-          resolveDecision(state, ctx, standing)
-        }
+      /**
+       * ---- ADVANTAGE (design review, v1.6.7) ----
+       *
+       * The arm goes out and the whistle stays down. Until now it did not:
+       * a penalty was awarded and the game stopped dead, which is not how any
+       * professional match is refereed and which quietly removed one of the
+       * sport's most recognisable moments - the side that takes the space,
+       * gets no reward, and hears "advantage over" with three points gone.
+       *
+       * Three outcomes, one draw:
+       *
+       *   a try under the advantage      the kick is irrelevant, they scored
+       *   advantage over, nothing in it  ground was made, the penalty is gone
+       *   back for the penalty           much the most common, and unchanged
+       *
+       * The try chance rides pTry, so a side already carving the defence open
+       * is the side likeliest to make something of it, and the referee's own
+       * `flow` governs how readily he waves it away: the same panel that makes
+       * one afternoon a stop-start scrum-fest and another a loose one.
+       *
+       * The infringement still counts against the offending side whatever
+       * happens next. Advantage does not pardon anything - the count climbs,
+       * and if it has reached the referee's patience the card has already been
+       * issued above, exactly as it would be at the next stoppage.
+       */
+      const advRoll = rng()
+      // DELIBERATELY MODEST, because only KICKABLE penalties reach this code
+      // (opp.penRisk is the kickable rate). Those are the ones a referee is
+      // most careful to bring back, since three points are sitting there. At
+      // a quarter of them the penalty mix collapsed from a fifth of the
+      // world's points to a seventh; at an eighth it reads right, and the
+      // moment is still on the ticker most weeks.
+      const pAdvTry = Math.min(0.10, pTry * 0.42)
+      const pAdvOver = 0.08 * refFor(ctx.fx.id).flow
+      if (advRoll < pAdvTry) {
+        // they did not need the three: the arm was still out when they scored
+        if (detail) pushLine(state, ctx, min, 'SUB', side, 'comm.advPlaying', { team: teamShort(state, side.teamId) })
+        scoreTry(state, ctx, side, min)
+      } else if (advRoll < pAdvTry + pAdvOver) {
+        // ground made, nothing at the end of it, and the kick is gone with it
+        if (detail) pushLine(state, ctx, min, 'SUB', side, 'comm.advOver', { team: teamShort(state, side.teamId) })
       } else {
-        takePenaltyShot(state, ctx, side, min)
+        // NO SCORE AND NO GROUND: he brings it back. This is the common case,
+        // and from here the code below is exactly what it always was.
+        //
+        // A standing instruction answers the call for you (F3). Being asked
+        // every time is the right default on a big screen and a nuisance on a
+        // phone during a nine-penalty afternoon, so the choice is the manager's.
+        const standing = state.clubs[side.teamId]?.tactic.penaltyCall ?? 'ask'
+        if (detail && side.isUser && !ctx.decision) {
+          ctx.decision = { kind: 'penalty', min }
+          if (standing === 'ask') {
+            pushLine(state, ctx, min, 'SUB', side, 'comm.penKickableAsk', { team: teamShort(state, side.teamId) })
+          } else {
+            // resolveDecision reads ctx.decision and works out the side itself,
+            // so the instruction goes through exactly the path a tap would take
+            resolveDecision(state, ctx, standing)
+          }
+        } else {
+          takePenaltyShot(state, ctx, side, min)
+        }
       }
     } else if (r < pTry + opp.penRisk + 0.006) {
       const fh = side.lineup[9] != null ? state.players[side.lineup[9]!] : null
@@ -2767,7 +2898,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     // true home surface keeps a few of them on their feet
     const surface = side.teamId === state.userClubId && ctx.fx.homeId === state.userClubId
       ? facLevel(state, 'pitch') : 0
-    if (rng() < 0.019 * (1 - surface * 0.035)) {
+    if (rng() < 0.036 * (1 - surface * 0.035)) {
       const ids = [...side.onPitch]
       const ps = ids.map(id => state.players[id]).filter(p => p && !p.injury)
       if (ps.length) {

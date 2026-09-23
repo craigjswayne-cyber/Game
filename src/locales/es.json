@@ -5101,7 +5101,10 @@
   "deputationOneSubj": "🚪 Los veteranos piden una reunión",
   "deputationNamedOneSubj": "🚪 {player} pide una reunión",
   "expOpenedSubj": "🏟 Abre la grada nueva de {stadium}",
-  "expOpened": "Han caído las vallas y los tornos ya giran: {stadium} pasa a tener {cap} localidades, {seats} de ellas nuevas. La lista de espera por fin avanza, y cada uno de esos asientos se paga solo en taquilla."
+  "expOpened": "Han caído las vallas y los tornos ya giran: {stadium} pasa a tener {cap} localidades, {seats} de ellas nuevas. La lista de espera por fin avanza, y cada uno de esos asientos se paga solo en taquilla.",
+  "trainInjurySubj": "🩺 {player} se lesiona en el entrenamiento",
+  "trainInjury": "{player} se ha retirado del campo de entrenamiento dolorido: {injury_k}. El fisio lo da de baja unas {n} semanas, así que queda fuera de tus planes hasta entonces.",
+  "trainInjuryOne": "{player} se ha retirado del campo de entrenamiento dolorido: {injury_k}. El fisio quiere una semana, así que se pierde el próximo partido."
  },
  "comm": {
   "oppCoachNamed": "{coach} ha hecho los deberes: {team} salen preparados específicamente para {pattern_k}. Cambia el dibujo, o juega a través del plan.",
@@ -5321,7 +5324,9 @@
   "penKickableAsk_f": "GOLPE DE CASTIGO para {team}, a distancia de palos. La capitana mira a la banda esperando la decisión...",
   "doesAerial_f": "dejan una mujer atrás y mantienen a las tres de atrás en casa.",
   "uncontestedShort_f": "Y le cuesta a {team} una segunda jugadora: según la regla 3.20, un equipo que pasa a melé simulada por una tarjeta debe retirar a otro mujer. {player} se marcha.",
-  "frontRowReturns_f": "El banquillo está agotado, así que {player} vuelve a entrar: un primera línea sustituido puede regresar por un lesionada, y la melé sigue siendo disputada."
+  "frontRowReturns_f": "El banquillo está agotado, así que {player} vuelve a entrar: un primera línea sustituido puede regresar por un lesionada, y la melé sigue siendo disputada.",
+  "advPlaying": "El brazo sigue en alto: ventaja para {team}, y el silbato no llega...",
+  "advOver": "Ventaja para {team}, jugada hasta el final, y el árbitro la da por terminada. Tres puntos perdidos."
  },
  "injury": {
   "ribs": "contusión en las costillas",

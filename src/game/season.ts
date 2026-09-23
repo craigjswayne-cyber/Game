@@ -17,7 +17,7 @@ import { boardMemo } from './boardmemo'
 import { terraceWeek } from './terraces'
 import { upkeepWeek } from './upkeep'
 import {absWeek, addGrudge, boardObjective, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, buildWeeks, finalVenue, fixtureDayOff, fmtMoney, leagueTier, LEDGER_WEEKS, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, RELEGATES, SEASON_WEEKS, seasonLabel, squadTrust, STAND_BUILD_WEEKS, unbeatenRun, weeklyCentral, mgrWinWeight, addWeeks100 } from './model'
-import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
+import { simMatch, autoSelect, pickTrainingInjury, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { BARRAGE_WEEK, windowSpan } from './calendar'
 import { emptyRow, leaguePos, sortTable, snIdFor, snWeeksFor, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS, W_AUTUMN_WEEKS, W_SIX_NATIONS_WEEKS, W_PAC4_WEEKS, W_SUMMER_TEST_WEEKS } from './schedule'
 import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice } from './ai'
@@ -1113,6 +1113,53 @@ function weeklyTraining(state: GameState, rng: Rng) {
             body: tIn('en', 'news.maternity', v),
             k: 'news.maternity', v,
           })
+        }
+      }
+      /**
+       * ---- THE TUESDAY SESSION (design review, v1.6.7) ----
+       *
+       * Rugby does a quarter to a third of its damage on the training ground,
+       * and until now this game did none of it: every injury in a save came
+       * out of a Saturday, so a manager who rested his best men kept them for
+       * ever. A hamstring goes in a running drill and a shoulder goes in
+       * contact whether or not there is a fixture that week.
+       *
+       * The rate is per available man per week and it is small on purpose.
+       * Measured at this setting: about nine a club a season against the
+       * twenty-odd the matches produce, so roughly three in ten of a squad's
+       * injuries are done in training - which is what the professional game's
+       * own surveillance reports. Heavy legs and a man just back from a
+       * lay-off carry the real risk, exactly as they do in the match roll.
+       *
+       * It runs for every club in the world, because an injury table only the
+       * user's squad can land on is not a rule, it is a tax.
+       */
+      if (!p.injury && !p.maternity && p.bans === 0) {
+        const rustF = (p.rust ?? 0) > 0 ? 2.6 : 1
+        const tiredF = p.cond < 55 ? 1.7 : 1
+        const ageF = p.age >= 32 ? 1.3 : 1
+        if (rng() < 0.0026 * rustF * tiredF * ageF) {
+          let [dk, weeks] = pickTrainingInjury(rng, genderOf(state))
+          if (isUser) {
+            // the same care that shortens a match lay-off shortens this one
+            const care = state.staff.physio * 0.12 + facLevel(state, 'recovery') * 0.03
+            if (care > 0) weeks = Math.max(1, Math.round(weeks * (1 - care)))
+          }
+          p.injury = { desc: tIn('en', dk), dk, until: state.week + weeks, weeks }
+          p.injLog = [...(p.injLog ?? []), { s: state.season, w: state.week, dk, weeks }].slice(-20)
+          // NO TICKER TO CARRY IT. A match injury is narrated as it happens;
+          // this one has nowhere to be seen, so the manager is written to or
+          // he finds out by opening the team sheet and wondering.
+          if (isUser && !p.acad) {
+            const v = { player: p.name, injury_k: dk, n: weeks }
+            state.news.push({
+              id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
+              subject: tIn('en', 'news.trainInjurySubj', v),
+              body: tIn('en', weeks === 1 ? 'news.trainInjuryOne' : 'news.trainInjury', v),
+              k: weeks === 1 ? 'news.trainInjuryOne' : 'news.trainInjury',
+              v, playerId: p.id,
+            })
+          }
         }
       }
       if (p.injury && state.week >= p.injury.until) {

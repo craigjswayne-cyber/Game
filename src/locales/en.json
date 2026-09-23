@@ -5277,7 +5277,10 @@
   "deputationOneSubj": "🚪 The senior players ask for a meeting",
   "deputationNamedOneSubj": "🚪 {player} asks for a meeting",
   "expOpenedSubj": "🏟 The new stand opens at {stadium}",
-  "expOpened": "The hoardings are down and the turnstiles are through it: {stadium} now holds {cap}, {seats} of them new. The waiting list finally moves, and every one of those seats pays its way at the gate."
+  "expOpened": "The hoardings are down and the turnstiles are through it: {stadium} now holds {cap}, {seats} of them new. The waiting list finally moves, and every one of those seats pays its way at the gate.",
+  "trainInjurySubj": "🩺 {player} hurt in training",
+  "trainInjury": "{player} came off the training paddock holding it: {injury_k}. The physio has him down for about {n} weeks, so he is out of your reckoning until then.",
+  "trainInjuryOne": "{player} came off the training paddock holding it: {injury_k}. The physio wants a week on it, so he misses the next one."
  },
  "comm": {
   "oppCoachNamed": "{coach} has done his homework: {team} are set up specifically for {pattern_k}. Change the picture, or play through the plan.",
@@ -5525,7 +5528,9 @@
   "doesAerial_f": "drop a woman deep and keep the back three home.",
   "uncontestedShort_f": "And it costs {team} a second player: under Law 3.20 a side that goes uncontested through a card must take another woman off. {player} makes way.",
   "oppCoachNamed_w": "{coach} has done her homework: {team} are set up specifically for {pattern_k}. Change the picture, or play through the plan.",
-  "oppCoach_w": "The opposition coach has done her homework: {team} are set up specifically for {pattern_k}. Change the picture, or play through the plan."
+  "oppCoach_w": "The opposition coach has done her homework: {team} are set up specifically for {pattern_k}. Change the picture, or play through the plan.",
+  "advPlaying": "The arm stays out - advantage {team}, and the whistle never comes...",
+  "advOver": "Advantage {team}, played to the end of it, and the referee waves it away. Three points gone."
  },
  "injury": {
   "ribs": "bruised ribs",
