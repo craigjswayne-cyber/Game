@@ -586,7 +586,25 @@
   "defMan": "Uomo su uomo",
   "defManDesc": "Stretta, ognuno sul suo uomo. Soffoca l'assalto degli avanti e può essere allargata.",
   "defPress": "Pressione",
-  "defPressDesc": "Su veloci e compatti per togliere loro il tempo. La miglior difesa qui, e quella che l'arbitro guarda in fuorigioco."
+  "defPressDesc": "Su veloci e compatti per togliere loro il tempo. La miglior difesa qui, e quella che l'arbitro guarda in fuorigioco.",
+  "z22Long": "Calcio lungo",
+  "z22LongDesc": "Portarlo via di lì e pensarci dopo. Più terreno, meno palla.",
+  "z22Box": "Box kick e salire",
+  "z22BoxDesc": "In alto, si contende, si prende quel che viene. La via di mezzo per uscire dai propri 22, e quella che sceglie quasi tutti.",
+  "z22Play": "Giocarla",
+  "z22PlayDesc": "Tenerla in mano sotto i propri pali. Niente vince una partita più in fretta, e niente la perde più in fretta.",
+  "zMidTerr": "Territorio",
+  "zMidTerrDesc": "Calciare negli angoli e lasciarli venire. Meno occasioni, in posti migliori.",
+  "zMidBalanced": "Equilibrato",
+  "zMidBalancedDesc": "Prendere quello che la partita concede. Nessun vantaggio da nessuna parte.",
+  "zMidHand": "Palla in mano",
+  "zMidHandDesc": "Portarla al centro e costruire fasi. Più occasioni, più lontano.",
+  "zOppDrive": "Pick and go",
+  "zOppDriveDesc": "Avanti, vicino, un metro alla volta. Difficile fermarlo regolarmente: porta calci di punizione oltre che mete.",
+  "zOppSpread": "Allargare",
+  "zOppSpreadDesc": "Portarla al largo e fidarsi degli esterni. Più mete, e più occasioni di perderla.",
+  "zOppPatient": "Giocare le percentuali",
+  "zOppPatientDesc": "Prendere quello che la difesa concede e nulla di più. Né le mete né gli errori delle altre due."
  },
  "roles": {
   "scrummager": "Uomo di mischia",
@@ -1321,7 +1339,12 @@
   "planLoad": "Piano {n}",
   "planOverTitle": "Sovrascrivi il piano {n} con i comandi attuali",
   "splitMismatch_f": "Hai dichiarato un {want}, ma le donne in maglia lo fanno diventare un {got}. La panchina che conta è quella che scende davvero in campo.",
-  "prepFitnessLong_f": "Ripetute da spaccare i polmoni. Le tue giocatrici si stancano circa l'8% più lentamente nella prossima partita."
+  "prepFitnessLong_f": "Ripetute da spaccare i polmoni. Le tue giocatrici si stancano circa l'8% più lentamente nella prossima partita.",
+  "byZone": "Cosa fai e dove",
+  "byZoneSub": "La stessa squadra gioca tre partite diverse lungo il campo",
+  "zone_own22": "Nei tuoi 22",
+  "zone_middle": "Il terzo centrale",
+  "zone_opp22": "Nei loro 22"
  },
  "staff": {
   "roleAssistant": "Vice allenatore",

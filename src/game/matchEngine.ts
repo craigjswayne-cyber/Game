@@ -2,6 +2,7 @@ import type { Club, Fixture, GameState, MatchEvent, Player, Pos, Weather } from 
 import { genderOf, type Gender, subjectVar } from './gender'
 import { prepLeaked } from './talkingpoints'
 import { ROLE_FX, rolesForSlot } from './roles'
+import { zoneAt, zonePlan } from './tactics'
 import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, addGrudge, chemKey, demandCeiling, facLevel, fmtMoney, formGuide, grudgeBetween, inRedZone, oldBoyApps, trustFactor, unbeatenRun } from './model'
 import { standing } from './authority'
 import { analystShift, archetypeOf, loudestDial, repetitionFatigue } from './oppcoach'
@@ -1483,6 +1484,22 @@ export interface LiveCtx {
    *  not finalised until the call is answered - see stepTick and
    *  resolveDecision. */
   heldWhistle?: 'HT' | 'FT' | null
+  /**
+   * ---- WHERE THE GAME IS BEING PLAYED, 0 TO 100 (owner, v1.8.0) ----
+   *
+   * 0 is the home try line, 100 is the away one, 50 is halfway. Until now
+   * this engine had no field position at all: a scoring chance came purely
+   * from the ratio of the two sides' unit strengths, and `terr` tilted that
+   * ratio by the kicking game without ever saying WHERE anybody was.
+   *
+   * That was a defensible abstraction and it cost two things. A manager's
+   * boot bought him an invisible edge rather than a visible position, and
+   * there was nothing for a zonal tactic to refer to - "in your own 22" has
+   * no meaning in an engine with no 22.
+   *
+   * So the boot now moves a line, and the line decides whose afternoon it is.
+   */
+  field: number
   motmId: number | null
   talkUsed: boolean
   subsUsed: number
@@ -1895,7 +1912,7 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     events: [], lastMin: 0,
     isUser: fx.homeId === userTeamId || fx.awayId === userTeamId,
     userSideId: fx.homeId === userTeamId ? fx.homeId : fx.awayId === userTeamId ? fx.awayId : null,
-    tick: 0, seg: 0, awaiting: null, motmId: null, talkUsed: false, subsUsed: 0,
+    tick: 0, seg: 0, awaiting: null, field: 50, motmId: null, talkUsed: false, subsUsed: 0,
     preTalk: null, decision: null, momo: 0, grudge: grudge?.reason ?? null,
   }
 
@@ -2097,6 +2114,7 @@ function takePenaltyShot(state: GameState, ctx: LiveCtx, side: SideCtx, min: num
   const kicker = side.units.kickerId != null ? state.players[side.units.kickerId] : null
   const pPen = kickChance(state, kicker, 0.53, 54, ctx.goalPenalty ?? 0, side)
   if (rng() < pPen) {
+    ctx.field = ctx.field * 0.6 + 50 * 0.4   // restart, as after any score
     side.score += 3
     side.pens += 1
     if (kicker) {
@@ -2132,6 +2150,12 @@ function scoreTry(
 ) {
   const { rng, goalPenalty } = ctx
   const scorer = forceScorer ?? tryScorer(state, side, rng)
+  // THE RESTART (v1.8.0). The position that won the try is given back: the
+  // conceding side kicks off from halfway. A HARD set to 50 was tried and
+  // measured first, and with eleven scores across twenty ticks it meant more
+  // than half of all rugby was played from exactly halfway - the restart is
+  // contested, somebody kicks long, and this leaves that in.
+  ctx.field = ctx.field * 0.6 + 50 * 0.4
   side.score += 5
   side.tries += 1
   if (scorer) {
@@ -2631,7 +2655,23 @@ const COVER_DEF = 0.937
 /** Base try chance per tick at ratio 1. Was a flat 0.115 for the whole match;
  *  the last-quarter surge in simTick spends the difference, so the season's
  *  scoring totals stay on the measured band while the tries move later. */
-const TRY_BASE = 0.108
+/**
+ * REBASED for territory (v1.8.0), from 0.108.
+ *
+ * pTry is TRY_BASE times a ratio raised to 2.6, and field position multiplies
+ * that ratio - up for the side with the position, down for the side without.
+ * Those two are exact reciprocals, so the RATIO's mean is untouched, but the
+ * 2.6 is convex: g^2.6 and g^-2.6 average to more than one, and the league
+ * measured 56.2 points a game against 50.6 before the line existed. Rebased
+ * a second time, 0.096 to 0.088, when the line was widened so that a tenth of
+ * all rugby is played inside each 22 - a wider line means a bigger convex
+ * term, and the league had drifted back up to 55.0.
+ *
+ * Same lesson, and the same fix, as the last-quarter fatigue term above - the
+ * mechanism stays at full strength and the constant underneath it comes down
+ * so the season's totals stay on the band.
+ */
+const TRY_BASE = 0.088
 
 /** The cost of a thin bench: a man in the wrong half of the team.
  *
@@ -2727,22 +2767,85 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
   // board's read of a season, none of which a bench fix should be deciding.
   const eF = (s: SideCtx) => 0.78 + 0.22 * (sideEnergy(s) / 100)
 
+  /**
+   * ---- THE LINE MOVES (v1.8.0) ----
+   *
+   * One draw a tick. The better kicking game walks the game up the pitch, and
+   * everything leaks back toward halfway because restarts, turnovers and the
+   * simple fact of eighty minutes all pull it there - without that pull a
+   * side with a marginally better boot would end every match camped on the
+   * opposition line, which is not a rugby match, it is a slow ratchet.
+   *
+   * The noise is deliberately larger than the edge. Territory in rugby swings
+   * on a single clearance or a single counter, and a field position that
+   * crept predictably would make the boot a certainty rather than a bet.
+   */
+  /**
+   * THE GAME PLAN FOR WHERE WE ARE (v1.8.0). Each side is in its own zone -
+   * home's own 22 IS away's opposition 22 - so both are read, and each side's
+   * plan pushes the line away from its own posts. A side kicking its exits
+   * long and a side running them both get what they asked for, in opposite
+   * directions, and the net is the tug of war it should be.
+   */
+  const planOf = (s: SideCtx) => {
+    const up = s === home ? ctx.field : 100 - ctx.field
+    const z = zoneAt(up)
+    return zonePlan(z, state.clubs[s.teamId]?.tactic.zones?.[z])
+  }
+  // what each side sets out to do, read from where it is standing NOW
+  const kickEdge = Math.log(home.units.kicking / Math.max(1, away.units.kicking))
+  const push = kickEdge * 7 + (rng() - 0.5) * 86 + (planOf(home).terr - planOf(away).terr)
+  ctx.field = clamp(ctx.field * 0.965 + 50 * 0.035 + push, 4, 96)
+  // AND READ AGAIN AFTER THE LINE HAS MOVED. The push above is what a side
+  // does FROM where it was; the scoring roll below happens WHERE IT ENDED UP,
+  // and the terr factor under it reads that same new position. Deriving the
+  // plan once, before the move, meant an exit plan could be scoring tries
+  // from the halfway line.
+  const hp = planOf(home)
+  const ap = planOf(away)
+
   for (const [side, opp, adv] of [[home, away, ctx.hfa], [away, home, 1]] as [SideCtx, SideCtx, number][]) {
     const numF = 1 - 0.07 * ([...side.yellowUntil.values()].filter(u => u > min).length + side.sent + side.short)
     const oppNumF = 1 - 0.07 * ([...opp.yellowUntil.values()].filter(u => u > min).length + opp.sent + opp.short)
     const att = (side.units.attack * 0.55 + side.units.breakdown * 0.25 + side.units.scrum * 0.1 + side.units.lineout * 0.1) * eF(side)
     const def = (opp.units.defence * 0.7 + opp.units.breakdown * 0.3) * eF(opp)
-    // THE BOOT IS TERRITORY (audit 16D). units.kicking was written by the dial,
-    // the exits, two roles, the coach and the wind, and read by nothing - a
-    // placebo control. It now tilts where the game is played: a ratio of the
-    // two kicking games, symmetric so the world mean cannot move (the home
-    // factor and the away factor are exact reciprocals).
-    const terr = Math.pow(side.units.kicking / Math.max(1, opp.units.kicking), 0.10)
+    /**
+     * THE BOOT IS TERRITORY (audit 16D), AND TERRITORY IS NOW A PLACE (v1.8.0).
+     *
+     * This used to be the kicking ratio applied straight to the scoring
+     * chance: a side with the better boot got a permanent invisible edge. It
+     * is now the position that boot has WON - ctx.field above - and the
+     * kicking ratio only moves the line.
+     *
+     * EXACTLY RECIPROCAL between the two sides, which is the property the
+     * original was built around and the reason the world mean cannot move:
+     * whatever this multiplies one side's chance by, it divides the other's
+     * by the same. A line at halfway is 1.0 for both. Camped on their line it
+     * is about 1.29 for the side attacking and 0.78 for the side defending,
+     * which is the whole point - being pinned in your own 22 is not a small
+     * disadvantage, and it was previously not a disadvantage at all.
+     */
+    const up = side === home ? ctx.field : 100 - ctx.field
+    const terr = Math.pow(up / Math.max(1, 100 - up), 0.20)
+    // what this side chose to do in the zone it is standing in
+    const plan = side === home ? hp : ap
+    /**
+     * HOW WIDE THE PENALTY WINDOW IS, worked out ONCE (v1.8.0).
+     *
+     * The discipline a zone plan buys belongs to the side GIVING the penalty
+     * away, which is the opposition here, so it reads their plan and not this
+     * side's. And it is a `const` because the first cut scaled it inline in
+     * the penalty branch and left the drop-goal branch below reading the raw
+     * figure - which turned the gap between the two into drop-goal territory
+     * and would have made a side playing for the corner kick five times as
+     * many of them.
+     */
+    const penWindow = opp.penRisk * (side === home ? ap : hp).penF
     let ratio = ((att * adv * numF * terr) / Math.max(1, def * oppNumF))
     if (derby) ratio = Math.pow(ratio, 0.72) // form book out the window
     else if (ctx.grudge) ratio = Math.pow(ratio, 0.85) // needle levels the contest
     side.poss += ratio
-    let pTry = clamp(TRY_BASE * Math.pow(ratio, 2.6), 0.01, 0.42)
+    let pTry = clamp(TRY_BASE * Math.pow(ratio, 2.6) * plan.tryF, 0.01, 0.42)
     // THE LAST QUARTER OPENS UP (audit 16D). Measured before this existed:
     // tries were dead flat across the 80 (11.6-14.0% per ten-minute bucket)
     // because both sides drain together and the mutual exhaustion cancels in
@@ -2751,7 +2854,21 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     // raises the try chance for BOTH sides; TRY_BASE is set below what the
     // old flat constant was so the season's totals stay on the band.
     if (tick >= 15) {
-      const tired = 1 - (sideEnergy(side) + sideEnergy(opp)) / 200
+      /**
+       * THE TIRED SIDE IS THE ONE DEFENDING (v1.8.0). This read the AVERAGE
+       * of the two tanks, which quietly meant a side raised its own try
+       * chance by exhausting itself - and the release audit's own words for
+       * the mechanism are "tired defences miss first", not "tired attacks
+       * score more". It survived because both sides drain together, so the
+       * average and the opponent's figure are nearly the same number all
+       * afternoon; it only parts company when the two diverge, which is
+       * exactly the case 1.2d exists to test. Measured there: a side emptied
+       * from the 68th minute outscored the same side rested, 36.1 to 35.0.
+       *
+       * In an ordinary match this changes almost nothing, for the same
+       * reason it hid for so long.
+       */
+      const tired = 1 - sideEnergy(opp) / 100
       if (tired > 0) pTry = Math.min(0.42, pTry * (1 + tired * 0.5))
     }
     // GARBAGE TIME IS REAL (user, after a 106-3 win at a top club: "this would
@@ -2782,7 +2899,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       side.pressure = clamp(side.pressure + 42, 0, 100)
       opp.pressure = clamp(opp.pressure * 0.55, 0, 100)
       scoreTry(state, ctx, side, min)
-    } else if (r < pTry + opp.penRisk) {
+    } else if (r < pTry + penWindow) {
       // a penalty won is a side on the front foot, whatever it does with it
       side.pressure = clamp(side.pressure + 17, 0, 100)
       opp.pressure = clamp(opp.pressure * 0.86, 0, 100)
@@ -2867,9 +2984,10 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           takePenaltyShot(state, ctx, side, min)
         }
       }
-    } else if (r < pTry + opp.penRisk + 0.006) {
+    } else if (r < pTry + penWindow + 0.006) {
       const fh = side.lineup[9] != null ? state.players[side.lineup[9]!] : null
       if (fh && rng() < 0.3 + fh.a.kic / 40) {
+        ctx.field = ctx.field * 0.6 + 50 * 0.4
         side.score += 3
         fh.stats.drops += 1; fh.stats.points += 3
         pushLine(state, ctx, min, 'DG', side, 'comm.dropGoal', { player: fh.name }, fh.id)

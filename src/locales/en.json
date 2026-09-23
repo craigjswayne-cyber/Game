@@ -583,7 +583,25 @@
   "defMan": "Man to Man",
   "defManDesc": "Narrow, everybody on their man. Strangles a forward assault and can be stretched by width.",
   "defPress": "Press",
-  "defPressDesc": "Up fast and together to take their time away. The best defence here, and the one the referee watches for offside."
+  "defPressDesc": "Up fast and together to take their time away. The best defence here, and the one the referee watches for offside.",
+  "z22Long": "Kick long",
+  "z22LongDesc": "Get it out of there and worry about it later. Most ground, least ball.",
+  "z22Box": "Box and chase",
+  "z22BoxDesc": "Up, contest it, take what comes. The middle road out of your own 22 and the one most sides take.",
+  "z22Play": "Play out",
+  "z22PlayDesc": "Keep it in hand from under your own posts. Nothing wins a match faster, and nothing loses one faster either.",
+  "zMidTerr": "Territory",
+  "zMidTerrDesc": "Kick for the corners and let them come to you. Fewer chances, in better places.",
+  "zMidBalanced": "Balanced",
+  "zMidBalancedDesc": "Take what the game gives you. No edge either way.",
+  "zMidHand": "Ball in hand",
+  "zMidHandDesc": "Carry through the middle and build phases. More chances, further out.",
+  "zOppDrive": "Pick and drive",
+  "zOppDriveDesc": "Forwards, close, one metre at a time. Hard to stop legally, so it wins penalties as well as tries.",
+  "zOppSpread": "Spread it",
+  "zOppSpreadDesc": "Move it to the edge and back your outsides. The most tries, and the most chances to drop it.",
+  "zOppPatient": "Play the percentages",
+  "zOppPatientDesc": "Take what the defence gives you and no more. Neither the tries nor the errors of the other two."
  },
  "roles": {
   "scrummager": "Scrummager",
@@ -1339,7 +1357,12 @@
   "roleSheetSub_f": "No. {shirt} · how she plays it · {n} options",
   "rolesNote_f": "Tap a shirt to set her role or open her profile. Roles are small, honest edges - the scrummager props up the set piece, the playmaker opens the game.",
   "kickerNote_f": "First choice takes everything; the second woman steps up when she is off.",
-  "splitMismatch_f": "You named a {want}, and the women in the shirts make it a {got}. The bench you actually pick is the one that plays."
+  "splitMismatch_f": "You named a {want}, and the women in the shirts make it a {got}. The bench you actually pick is the one that plays.",
+  "byZone": "What You Do Where",
+  "byZoneSub": "The same side plays three different games up the pitch",
+  "zone_own22": "In your own 22",
+  "zone_middle": "The middle third",
+  "zone_opp22": "In their 22"
  },
  "staff": {
   "roleAssistant": "Assistant Coach",

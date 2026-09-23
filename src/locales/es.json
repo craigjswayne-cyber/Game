@@ -586,7 +586,25 @@
   "defMan": "Hombre a hombre",
   "defManDesc": "Cerrada, cada uno con su hombre. Ahoga el asalto de los delanteros y se puede estirar con amplitud.",
   "defPress": "Presión",
-  "defPressDesc": "Subir rápido y en bloque para quitarles tiempo. La mejor defensa de todas, y la que el árbitro vigila por fuera de juego."
+  "defPressDesc": "Subir rápido y en bloque para quitarles tiempo. La mejor defensa de todas, y la que el árbitro vigila por fuera de juego.",
+  "z22Long": "Despejar largo",
+  "z22LongDesc": "Sacarlo de ahí y ya veremos. Más terreno, menos balón.",
+  "z22Box": "Bombear y presionar",
+  "z22BoxDesc": "Arriba, a disputarlo y a tomar lo que salga. El camino intermedio para salir de tus 22, y el que elige casi todo el mundo.",
+  "z22Play": "Jugarlo",
+  "z22PlayDesc": "Mantenerlo en la mano bajo tus propios palos. Nada gana un partido más rápido, y nada lo pierde más rápido tampoco.",
+  "zMidTerr": "Terreno",
+  "zMidTerrDesc": "Patear a las esquinas y que vengan ellos. Menos ocasiones, mejor situadas.",
+  "zMidBalanced": "Equilibrado",
+  "zMidBalancedDesc": "Tomar lo que el partido dé. Ninguna ventaja en ningún sentido.",
+  "zMidHand": "Balón en mano",
+  "zMidHandDesc": "Llevarlo por el centro y encadenar fases. Más ocasiones, más lejos.",
+  "zOppDrive": "Pick and go",
+  "zOppDriveDesc": "Delanteros, al ras, metro a metro. Difícil de parar legalmente, así que gana penales además de ensayos.",
+  "zOppSpread": "Abrirlo",
+  "zOppSpreadDesc": "Llevarlo al ala y confiar en los exteriores. Más ensayos, y más ocasiones de que se caiga.",
+  "zOppPatient": "Jugar los porcentajes",
+  "zOppPatientDesc": "Tomar lo que la defensa te dé y nada más. Ni los ensayos ni los errores de las otras dos."
  },
  "roles": {
   "scrummager": "Hombre de melé",
@@ -1314,7 +1332,12 @@
   "planLoad": "Plan {n}",
   "planOverTitle": "Sobrescribir el plan {n} con los mandos actuales",
   "splitMismatch_f": "Anunciaste un {want}, y las mujeres con camiseta lo convierten en un {got}. El banquillo que juega es el que realmente eliges.",
-  "prepFitnessLong_f": "Series hasta reventar. Tus jugadoras se cansan ~8% más despacio en el próximo partido."
+  "prepFitnessLong_f": "Series hasta reventar. Tus jugadoras se cansan ~8% más despacio en el próximo partido.",
+  "byZone": "Qué haces y dónde",
+  "byZoneSub": "El mismo equipo juega tres partidos distintos según la zona",
+  "zone_own22": "En tus 22",
+  "zone_middle": "El tercio central",
+  "zone_opp22": "En sus 22"
  },
  "staff": {
   "roleAssistant": "Entrenador asistente",

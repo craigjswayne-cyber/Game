@@ -585,7 +585,25 @@
     "defMan": "Homme à homme",
     "defManDesc": "Resserré, chacun sur son homme. Étouffe un assaut d'avants et peut être étiré par la largeur.",
     "defPress": "Pression",
-    "defPressDesc": "On monte vite et groupé pour leur prendre le temps. La meilleure défense ici, et celle que l'arbitre surveille au hors-jeu."
+    "defPressDesc": "On monte vite et groupé pour leur prendre le temps. La meilleure défense ici, et celle que l'arbitre surveille au hors-jeu.",
+    "z22Long": "Dégager loin",
+    "z22LongDesc": "Sortir de là et voir ensuite. Le plus de terrain, le moins de ballon.",
+    "z22Box": "Chandelle et monter",
+    "z22BoxDesc": "En l'air, on conteste, on prend ce qui vient. La voie du milieu pour sortir de ses 22, et celle que prennent la plupart.",
+    "z22Play": "Jouer à la main",
+    "z22PlayDesc": "Garder le ballon sous ses propres poteaux. Rien ne gagne un match plus vite, rien ne le perd plus vite non plus.",
+    "zMidTerr": "Terrain",
+    "zMidTerrDesc": "Taper dans les coins et les laisser venir. Moins d'occasions, mieux placées.",
+    "zMidBalanced": "Équilibré",
+    "zMidBalancedDesc": "Prendre ce que le match donne. Aucun avantage d'un côté ni de l'autre.",
+    "zMidHand": "Ballon en main",
+    "zMidHandDesc": "Porter dans l'axe et enchainer les temps de jeu. Plus d'occasions, plus loin.",
+    "zOppDrive": "Pick and go",
+    "zOppDriveDesc": "Les avants, au ras, mètre par mètre. Difficile à arrêter proprement : ça gagne des pénalités autant que des essais.",
+    "zOppSpread": "Écarter",
+    "zOppSpreadDesc": "Aller au large et faire confiance aux extérieurs. Le plus d'essais, et le plus d'occasions de l'échapper.",
+    "zOppPatient": "Jouer les pourcentages",
+    "zOppPatientDesc": "Prendre ce que la défense donne, et rien de plus. Ni les essais ni les fautes des deux autres."
   },
   "roles": {
     "scrummager": "Spécialiste de la mêlée",
@@ -1327,7 +1345,12 @@
     "planLoad": "Plan {n}",
     "planOverTitle": "Remplacer le plan {n} par les réglages actuels",
     "splitMismatch_f": "Vous avez annoncé un {want}, et les joueuses en maillot en font un {got}. Le banc que vous choisissez vraiment est celui qui joue.",
-    "prepFitnessLong_f": "Du fractionné. Vos joueuses fatiguent environ 8 % moins vite au prochain match."
+    "prepFitnessLong_f": "Du fractionné. Vos joueuses fatiguent environ 8 % moins vite au prochain match.",
+    "byZone": "Ce que vous faites, et où",
+    "byZoneSub": "La même équipe joue trois jeux différents selon la zone",
+    "zone_own22": "Dans vos 22",
+    "zone_middle": "Le tiers central",
+    "zone_opp22": "Dans leurs 22"
   },
   "staff": {
     "roleAssistant": "Entraîneur adjoint",

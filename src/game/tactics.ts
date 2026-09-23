@@ -141,6 +141,102 @@ export function defSliderReadout(key: DefSliderKey, v: number): string {
   return t('tactics.balancedReadout')
 }
 
+/**
+ * ---- WHAT YOU DO WHERE (owner, v1.8.0) ----
+ *
+ * Competitor read: their tactics screen sets attack, discipline and defence
+ * separately for your own 22, the middle, and the opposition 22. That is how
+ * rugby is actually coached - nobody plays the same way on his own line as he
+ * does on theirs - and it turns four whole-match dials into a game plan.
+ *
+ * It could not be built until v1.8.0 because there was nothing to refer to:
+ * the match engine had no field position, so "in your own 22" named nothing.
+ * ctx.field exists now, so these do.
+ *
+ * ONE CHOICE A ZONE, not four sliders a zone. Twelve sliders is a spreadsheet
+ * on a phone, and the four dials already cover the whole-match plan; what a
+ * zone wants is the one decision a coach actually makes there. Each plan is a
+ * small, named, two-sided trade, and every one of them costs something.
+ */
+export type ZoneId = 'own22' | 'middle' | 'opp22'
+
+export interface ZonePlan {
+  id: string
+  name: string
+  desc: string
+  /** multiplier on this side's try chance while play is in this zone */
+  tryF: number
+  /** multiplier on the penalties this side gives away here */
+  penF: number
+  /**
+   * How hard this pushes the line away from your own posts.
+   *
+   * TINY ON PURPOSE, and the numbers look wrong until you see why. ctx.field
+   * is an AR(1) that decays 0.965 a tick, so a CONSTANT push is multiplied by
+   * about 28 at equilibrium: the first cut used whole metres and the middle
+   * third alone measured a 15.8-point swing a match, against the 1.95 that
+   * dialweight prices the aggression dial at. A zone choice worth eight
+   * ordinary tactical decisions is not a decision, it is the only decision.
+   *
+   * The two end zones carry BIGGER numbers than the middle third, which looks
+   * backwards and is not: a plan only pushes while play is in its own zone,
+   * and the 22s are a tenth of the match each where the middle is four
+   * fifths. The exit is self-limiting on top of that - kicking long out of
+   * your own 22 is exactly the thing that stops you being in your own 22 -
+   * so it has to be worth more per application to be worth anything at all.
+   *
+   * They also have to beat the noise. The line swings about 43 metres a tick
+   * either way, because without that swing no rugby reaches either 22 at all,
+   * and a push of two or three against that is invisible - measured, an exit
+   * kicked long spent exactly as many ticks pinned as one played out. The
+   * middle third stays small because it applies four fifths of the time and
+   * the same numbers there were worth 15.8 points a match.
+   */
+  terr: number
+}
+
+export const ZONE_PLANS: Record<ZoneId, ZonePlan[]> = {
+  // YOUR OWN 22: the exit. Every side has to get out, and how you get out is
+  // the oldest trade in the game - distance against possession.
+  own22: [
+    { id: 'long', name: 'tactics.z22Long', desc: 'tactics.z22LongDesc', tryF: 0.85, penF: 0.90, terr: 8 },
+    { id: 'box', name: 'tactics.z22Box', desc: 'tactics.z22BoxDesc', tryF: 1, penF: 1, terr: 0 },
+    { id: 'play', name: 'tactics.z22Play', desc: 'tactics.z22PlayDesc', tryF: 1.20, penF: 1.16, terr: -6 },
+  ],
+  // THE MIDDLE THIRD: where a match is won slowly. Territory or possession.
+  middle: [
+    { id: 'terr', name: 'tactics.zMidTerr', desc: 'tactics.zMidTerrDesc', tryF: 0.9, penF: 0.95, terr: 0.45 },
+    { id: 'balanced', name: 'tactics.zMidBalanced', desc: 'tactics.zMidBalancedDesc', tryF: 1, penF: 1, terr: 0 },
+    { id: 'hand', name: 'tactics.zMidHand', desc: 'tactics.zMidHandDesc', tryF: 1.12, penF: 1.06, terr: -0.35 },
+  ],
+  // THEIR 22: the finish. You are there; the question is how you cash it.
+  opp22: [
+    { id: 'drive', name: 'tactics.zOppDrive', desc: 'tactics.zOppDriveDesc', tryF: 1.10, penF: 0.82, terr: 2 },
+    { id: 'patient', name: 'tactics.zOppPatient', desc: 'tactics.zOppPatientDesc', tryF: 1, penF: 1, terr: 0 },
+    { id: 'spread', name: 'tactics.zOppSpread', desc: 'tactics.zOppSpreadDesc', tryF: 1.30, penF: 1.06, terr: -3 },
+  ],
+}
+
+/**
+ * The plan a side is on in a zone.
+ *
+ * THE MIDDLE ENTRY OF EACH LIST IS EXACTLY NEUTRAL - 1, 1, 0 - and it is also
+ * the fallback, which is the only way an untouched save can play the game it
+ * played before zones existed. The first cut had `box` and `spread` sitting
+ * in those slots with real multipliers on them, so every club in the world
+ * was quietly running a game plan nobody had chosen, and the sim fingerprint
+ * moved for a save that had never opened the tactics screen.
+ */
+export function zonePlan(zone: ZoneId, id: string | undefined): ZonePlan {
+  const list = ZONE_PLANS[zone]
+  return list.find(p => p.id === id) ?? list[1]
+}
+
+/** Which zone a side is attacking in, given how far up the pitch it is. */
+export function zoneAt(up: number): ZoneId {
+  return up < 22 ? 'own22' : up > 78 ? 'opp22' : 'middle'
+}
+
 export interface Preset {
   id: string
   name: string

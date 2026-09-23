@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { planSlots, useStore } from '../../store'
 import { XV_SLOTS, type Player } from '../../game/model'
-import { DEF_SLIDER_INFO, DEF_SYSTEMS, PRESETS, SLIDER_INFO, defSliderReadout, defSystemOf, sliderReadout } from '../../game/tactics'
+import { DEF_SLIDER_INFO, DEF_SYSTEMS, PRESETS, SLIDER_INFO, ZONE_PLANS, defSliderReadout, defSystemOf, sliderReadout, zonePlan, type ZoneId } from '../../game/tactics'
 import { ROLE_BY_ID, rolesForSlot } from '../../game/roles'
 import { PosBadge, SectionTitle } from '../components'
 import { analystClaim, analystForm, analystRead, prepLabel, unitLabel } from '../../game/analyst'
@@ -557,6 +557,31 @@ export default function Tactics() {
         )}
         <SectionTitle sub={t('tacticsScreen.withTheBallSub')}>{t('tacticsScreen.withTheBall')}</SectionTitle>
         {SLIDER_INFO.map(slider)}
+        {/* ---- WHAT YOU DO WHERE (v1.8.0) ----
+            Three zones, one choice each, because the four dials above are the
+            whole-match plan and this is the one decision a coach makes in a
+            particular part of the pitch. It could not exist before the engine
+            had a field position for it to refer to. */}
+        <SectionTitle sub={t('tacticsScreen.byZoneSub')}>{t('tacticsScreen.byZone')}</SectionTitle>
+        {(['own22', 'middle', 'opp22'] as ZoneId[]).map(z => {
+          const cur = zonePlan(z, tac.zones?.[z])
+          return (
+            <div key={z} style={{ padding: '0 14px 6px' }}>
+              <div className="fact-label" style={{ marginBottom: 3 }}>{t(`tacticsScreen.zone_${z}`)}</div>
+              <div style={{ display: 'flex', gap: 5 }}>
+                {ZONE_PLANS[z].map(pl => (
+                  <button key={pl.id} className="preset-chip" title={t(pl.desc)}
+                    style={{ flex: '1 1 0', minWidth: 0,
+                      ...(cur.id === pl.id ? { background: 'var(--primary)', color: 'var(--on-primary)' } : {}) }}
+                    onClick={() => { tac.zones = { ...(tac.zones ?? {}), [z]: pl.id }; touch() }}>
+                    {t(pl.name)}
+                  </button>
+                ))}
+              </div>
+              <div className="meta" style={{ fontSize: 11, marginTop: 3 }}>{t(cur.desc)}</div>
+            </div>
+          )
+        })}
         <SectionTitle sub={t('tacticsScreen.withoutTheBallSub')}>{t('tacticsScreen.withoutTheBall')}</SectionTitle>
         {/* THE SYSTEM, BY NAME (v1.7.0). A coach picks a defence by its name
             and then tunes it, so the names come first and the two dials below

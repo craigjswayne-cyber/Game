@@ -335,12 +335,19 @@ const EXPECTED: string[] = [
   //
   // The training-ground roll in season.ts is outside this stream: fingerprint
   // sims fixtures directly and never advances a week.
-  'leicester 44-38 gloucester',
-  'bath 22-17 saracens',
-  'newcastle 33-42 northampton',
-  'harlequins 23-41 bristol',
-  'sale 31-19 exeter',
-  'bath 55-29 leicester',
+  // REBASELINED for v1.8.0, THE TERRITORY ROUND, and this one had to move:
+  // the engine now spends a draw a tick deciding where the game is being
+  // played, so every draw after the first tick of every match is a different
+  // draw. TRY_BASE came down twice alongside it (0.108 to 0.096 to 0.088)
+  // because field position multiplies a ratio that is then raised to 2.6, and
+  // that convexity lifted the league from 50.6 points a game to 56.2 before
+  // it was rebased. The league now measures 52.6, which is on the band.
+  'leicester 26-31 gloucester',
+  'bath 7-20 saracens',
+  'newcastle 18-45 northampton',
+  'harlequins 24-29 bristol',
+  'sale 22-43 exeter',
+  'bath 54-6 leicester',
 ]
 
 if (EXPECTED[0] === '@@EXPECTED@@') {

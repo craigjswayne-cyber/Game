@@ -582,6 +582,12 @@ export interface Tactic {
   /** defensive line speed: 0 passive drift .. 100 all-out blitz. Absent or 50
    *  is exactly the old engine - the dial only exists once you move it. */
   defLine?: number
+  /** ---- THE ZONAL GAME PLAN (v1.8.0) ----
+   *  What this side does in its own 22, the middle third and the opposition
+   *  22, by the plan ids in tactics.ts. Absent means the neutral plan in
+   *  every zone, which is exactly the engine as it was before field position
+   *  existed - so an old save plays identically until somebody chooses. */
+  zones?: { own22?: string; middle?: string; opp22?: string }
   /** defensive width: 0 narrow around the ruck .. 100 spread to the touchlines.
    *  A matchup dial: spreading blunts an expansive attack and narrowness
    *  blunts a forward assault - set it wrong and it pays the other way. */
