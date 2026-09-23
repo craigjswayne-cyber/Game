@@ -570,8 +570,8 @@ export default function Tactics() {
         {(['own22', 'middle', 'opp22'] as ZoneId[]).map(z => {
           const cur = zonePlan(z, tac.zones?.[z])
           return (
-            <div key={z} style={{ padding: '0 14px 6px' }}>
-              <div className="fact-label" style={{ marginBottom: 3 }}>{t(`tacticsScreen.zone_${z}`)}</div>
+            <div key={z} className="zone-row" style={{ padding: '0 14px 6px' }}>
+              <div className="fact-label zone-label" style={{ marginBottom: 3 }}>{t(`tacticsScreen.zone_${z}`)}</div>
               <div style={{ display: 'flex', gap: 5 }}>
                 {ZONE_PLANS[z].map(pl => (
                   <button key={pl.id} className="preset-chip" title={t(pl.desc)}
@@ -596,7 +596,7 @@ export default function Tactics() {
         {(() => {
           const cur = defSystemOf(tac.defLine ?? 50, tac.defWidth ?? 50)
           return (
-            <div style={{ padding: '0 14px 2px' }}>
+            <div className="zone-row" style={{ padding: '0 14px 2px' }}>
               <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
                 {DEF_SYSTEMS.map(sys => (
                   <button key={sys.id} className="preset-chip" title={t(sys.desc)}

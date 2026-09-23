@@ -1332,7 +1332,7 @@
   "splitMismatch_f": "Anunciaste un {want}, y las mujeres con camiseta lo convierten en un {got}. El banquillo que juega es el que realmente eliges.",
   "prepFitnessLong_f": "Series hasta reventar. Tus jugadoras se cansan ~8% más despacio en el próximo partido.",
   "byZone": "Qué haces y dónde",
-  "byZoneSub": "El mismo equipo juega tres partidos distintos según la zona",
+  "byZoneSub": "tres partidos, uno por zona del campo",
   "zone_own22": "En tus 22",
   "zone_middle": "El tercio central",
   "zone_opp22": "En sus 22"
@@ -2570,7 +2570,7 @@
   "infFacilitiesSub": "toda mejora pasa por la sala de juntas",
   "infHoldsAll": " - el campo ya da cabida a todos los que vendrían",
   "infLeagueEstates": "Complejos de la liga",
-  "infLeagueEstatesSub": "Las nueve instalaciones que ha construido cada club. El estadio va en su propia columna: un club pequeño puede tener un estadio grande.",
+  "infLeagueEstatesSub": "nueve instalaciones; el estadio aparte",
   "infLevelCost": "N{n} · {cost}",
   "infLevelIs": "Nivel {n}: {effect}",
   "infMoreThanHolds": " - {n} más de los que caben en el campo",
@@ -6594,7 +6594,7 @@
  },
  "board": {
   "room": "La junta",
-  "roomSub": "cuatro cosas que puedes pedir, y ninguna sale barata",
+  "roomSub": "cuatro peticiones, ninguna barata",
   "knock": "Pedir a la junta",
   "ask_time": "⏳ Pedir más tiempo",
   "askDesc_time": "Un respaldo público del presidente. No gana partidos; te compra las semanas para ganarlos.",

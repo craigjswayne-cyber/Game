@@ -4313,3 +4313,19 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
    while a landscape phone or a tablet puts two side by side. Nothing is hidden
    and nothing is shrunk: the same controls, on fewer swipes. */
 .dial-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); align-items: start; }
+
+/* ---- THE GAME PLAN KEEPS ITS COLOUR (v1.6.9) ----
+   The zone pickers and the named defences roughly DOUBLED the number of
+   elements on the Tactics screen, from 105 to 210, and every one of the new
+   ones was neutral: colouraudit measured the screen's content chroma falling
+   from 0.169 to 0.061 and took the whole game under its floor with it. A
+   screen that is 92% grey is not a style, it is an absence.
+   The heading over each zone takes the primary, and an unselected chip in
+   these rows carries a wash of it - enough to read as part of a set the
+   chosen one belongs to, not enough to compete with the chosen one, which
+   still fills with the flat colour. Tokens only, so tokenlint stays quiet. */
+.zone-label { color: var(--primary); }
+.zone-row .preset-chip {
+  background: color-mix(in srgb, var(--primary) 9%, var(--surface-2));
+  border: 1px solid color-mix(in srgb, var(--primary) 22%, transparent);
+}

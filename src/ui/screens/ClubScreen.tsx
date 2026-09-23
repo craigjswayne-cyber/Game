@@ -227,8 +227,14 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
                         {a.possible ? a.caseFor : a.blocked}
                       </div>
                     </div>
+                    {/* 44px MINIMUM, and it had to be said out loud here. The
+                        Infrastructure page's Ask button carries two lines -
+                        the level and the cost - so it clears the floor on its
+                        content alone; this one is a single word and came out
+                        83x28. geosweep caught it at all four phone
+                        geometries. A tap target is a number, not a look. */}
                     {a.possible && (
-                      <button className="btn gold" style={{ padding: '5px 10px', fontSize: 11.5, flexShrink: 0 }}
+                      <button className="btn gold" style={{ padding: '5px 10px', fontSize: 11.5, minHeight: 44, flexShrink: 0 }}
                         onClick={() => { setBoardMsg({ id: a.id, text: askTheBoard(game, a.id) }); touch() }}>
                         {t('board.knock')}
                       </button>
