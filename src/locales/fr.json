@@ -5210,7 +5210,10 @@
     "deputationOneSubj": "🚪 Les cadres demandent un entretien",
     "deputationNamedOneSubj": "🚪 {player} demande un entretien",
     "expOpenedSubj": "🏟 La nouvelle tribune ouvre à {stadium}",
-    "expOpened": "Les palissades sont tombées et les tourniquets tournent : {stadium} contient désormais {cap} places, dont {seats} neuves. La liste d'attente avance enfin, et chacune de ces places sera rentabilisée aux guichets."
+    "expOpened": "Les palissades sont tombées et les tourniquets tournent : {stadium} contient désormais {cap} places, dont {seats} neuves. La liste d'attente avance enfin, et chacune de ces places sera rentabilisée aux guichets.",
+    "trainInjurySubj": "🩺 {player} blessé à l'entraînement",
+    "trainInjury": "{player} a quitté le terrain d'entraînement en se tenant la jambe : {injury_k}. Le kiné l'annonce absent environ {n} semaines, il sort donc de vos plans jusque-là.",
+    "trainInjuryOne": "{player} a quitté le terrain d'entraînement en se tenant la jambe : {injury_k}. Le kiné veut une semaine de repos, il manquera donc le prochain match."
   },
   "comm": {
     "oppCoachNamed": "{coach} a fait ses devoirs : {team} s'est réglé spécifiquement sur {pattern_k}. Changez le visage du match, ou jouez à travers leur plan.",
@@ -5437,7 +5440,9 @@
     "doesPhysical_f": "refuse la bagarre, garde quinze joueuses sur le terrain et laisse l'arbitre faire le ménage.",
     "uncontestedShort_f": "Et cela coûte une seconde joueuse à {team} : selon la règle 3.20, une équipe qui passe en mêlée simulée à cause d'un carton doit sortir une femme de plus. {player} quitte le terrain.",
     "contestedAgain_f": "La joueuse de première ligne est revenu de la prison et la couverture avec lui : l'arbitre rétablit les MÊLÉES DISPUTÉES.",
-    "frontRowReturns_f": "Le banc est vide, alors {player} revient : une joueuse de première ligne remplacé peut reprendre la place d'un blessée, et la mêlée reste disputée."
+    "frontRowReturns_f": "Le banc est vide, alors {player} revient : une joueuse de première ligne remplacé peut reprendre la place d'un blessée, et la mêlée reste disputée.",
+    "advPlaying": "Le bras reste levé - avantage {team}, et le coup de sifflet ne vient pas...",
+    "advOver": "Avantage {team}, joué jusqu'au bout, et l'arbitre l'annule d'un geste. Trois points envolés."
   },
   "injury": {
     "ribs": "côtes contusionnées",

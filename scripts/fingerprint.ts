@@ -319,12 +319,28 @@ const EXPECTED: string[] = [
   // seeded match that follows them in its week re-deals. Mechanical, not a
   // dial: bandcheck held every band on the pool (53.5 pts, 6.22 tries, 54.0%
   // home, 2.3% draws, 6.7% blowouts) before this line moved. Five hold exactly.
-  'leicester 6-35 gloucester',
-  'bath 34-17 saracens',
-  'newcastle 16-7 northampton',
-  'harlequins 24-31 bristol',
-  'sale 54-27 exeter',
-  'bath 62-19 leicester',
+  // REBASELINED AGAIN for the v1.6.7 design round, and all six moved because
+  // all four changes are mechanical and three of them draw on the shared rng:
+  //
+  //   ADVANTAGE. A kickable penalty now costs one draw before it is taken, and
+  //   about an eighth of them never become a kick at all - the side scores
+  //   under the arm, or the referee waves it away with ground made. Every draw
+  //   after the first penalty of a match is therefore a different draw.
+  //   INJURIES. The match roll went from 0.019 to 0.036 a side a tick and the
+  //   short end of the table came down, so a different man breaks down in a
+  //   different minute.
+  //   GOAL KICKING. No extra draw, but the threshold each kick is compared
+  //   against moved, so kicks that used to land now miss and the scoreboard
+  //   diverges from there.
+  //
+  // The training-ground roll in season.ts is outside this stream: fingerprint
+  // sims fixtures directly and never advances a week.
+  'leicester 44-38 gloucester',
+  'bath 22-17 saracens',
+  'newcastle 33-42 northampton',
+  'harlequins 23-41 bristol',
+  'sale 31-19 exeter',
+  'bath 55-29 leicester',
 ]
 
 if (EXPECTED[0] === '@@EXPECTED@@') {

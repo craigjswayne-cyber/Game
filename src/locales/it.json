@@ -5124,7 +5124,10 @@
   "deputationOneSubj": "🚪 I senatori chiedono un incontro",
   "deputationNamedOneSubj": "🚪 {player} chiede un incontro",
   "expOpenedSubj": "🏟 La nuova tribuna apre a {stadium}",
-  "expOpened": "Le recinzioni sono giù e i tornelli girano: ora {stadium} tiene {cap} spettatori, {seats} dei quali nuovi. La lista d'attesa finalmente si muove, e ognuno di quei posti si ripaga da solo al botteghino."
+  "expOpened": "Le recinzioni sono giù e i tornelli girano: ora {stadium} tiene {cap} spettatori, {seats} dei quali nuovi. La lista d'attesa finalmente si muove, e ognuno di quei posti si ripaga da solo al botteghino.",
+  "trainInjurySubj": "🩺 {player} si fa male in allenamento",
+  "trainInjury": "{player} ha lasciato il campo d'allenamento dolorante: {injury_k}. Il fisioterapista lo dà fuori circa {n} settimane, quindi è fuori dai tuoi piani fino ad allora.",
+  "trainInjuryOne": "{player} ha lasciato il campo d'allenamento dolorante: {injury_k}. Il fisioterapista vuole una settimana, quindi salta la prossima."
  },
  "comm": {
   "oppCoachNamed": "{coach} ha fatto i compiti a casa: {team} si è schierata apposta contro {pattern_k}. Cambia il copione, o gioca dentro il loro piano.",
@@ -5346,7 +5349,9 @@
   "doesAerial_f": "arretra una donna e tiene a casa il triangolo allargato.",
   "doesPhysical_f": "rifiuta la rissa, tiene quindici donne in campo e lascia le pulizie all'arbitro.",
   "uncontestedShort_f": "E costa a {team} una seconda giocatrice: per la regola 3.20 una squadra che passa alle mischie non contese per un cartellino deve togliere un'altra donna. {player} lascia il campo.",
-  "frontRowReturns_f": "La panchina è finita, così {player} rientra: una giocatrice di prima linea sostituito può tornare per un infortunata, e la mischia resta contesa."
+  "frontRowReturns_f": "La panchina è finita, così {player} rientra: una giocatrice di prima linea sostituito può tornare per un infortunata, e la mischia resta contesa.",
+  "advPlaying": "Il braccio resta alzato: vantaggio {team}, e il fischio non arriva...",
+  "advOver": "Vantaggio {team}, giocato fino in fondo, e l'arbitro lo chiude con un gesto. Tre punti buttati."
  },
  "injury": {
   "ribs": "costole contuse",

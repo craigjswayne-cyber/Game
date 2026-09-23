@@ -5310,7 +5310,10 @@
   "deputationOneSubj": "🚪 Die senior spelers vra vir 'n vergadering",
   "deputationNamedOneSubj": "🚪 {player} vra vir 'n vergadering",
   "expOpenedSubj": "🏟 Die nuwe pawiljoen by {stadium} open",
-  "expOpened": "Die skanse is af en die hekke draai: {stadium} hou nou {cap}, waarvan {seats} nuut is. Die wagtelys beweeg eindelik, en elke een van daardie sitplekke verdien sy geld by die hek."
+  "expOpened": "Die skanse is af en die hekke draai: {stadium} hou nou {cap}, waarvan {seats} nuut is. Die wagtelys beweeg eindelik, en elke een van daardie sitplekke verdien sy geld by die hek.",
+  "trainInjurySubj": "🩺 {player} beseer op die oefenveld",
+  "trainInjury": "{player} het die oefenveld verlaat terwyl hy dit vashou: {injury_k}. Die fisio skryf hom vir sowat {n} weke af, so hy is tot dan uit jou planne.",
+  "trainInjuryOne": "{player} het die oefenveld verlaat terwyl hy dit vashou: {injury_k}. Die fisio wil 'n week daaraan hê, so hy mis die volgende een."
  },
  "comm": {
   "oppCoachNamed": "{coach} het sy huiswerk gedoen: {team} is spesifiek opgestel vir {pattern_k}. Verander die prentjie, of speel deur die plan.",
@@ -5561,7 +5564,9 @@
   "doesAerial_f": "sit 'n vrou diep terug en hou die agterste drie tuis.",
   "uncontestedShort_f": "En dit kos {team} nog 'n speler: onder Wet 3.20 moet 'n span wat onbestrede skrums kry weens 'n kaart, nog 'n vrou aftrek. {player} maak plek.",
   "oppCoachNamed_w": "{coach} het haar huiswerk gedoen: {team} is spesifiek opgestel vir {pattern_k}. Verander die prentjie, of speel deur die plan.",
-  "oppCoach_w": "Die opposisie-afrigter het haar huiswerk gedoen: {team} is spesifiek opgestel vir {pattern_k}. Verander die prentjie, of speel deur die plan."
+  "oppCoach_w": "Die opposisie-afrigter het haar huiswerk gedoen: {team} is spesifiek opgestel vir {pattern_k}. Verander die prentjie, of speel deur die plan.",
+  "advPlaying": "Die arm bly uit - voordeel {team}, en die fluitjie kom nooit...",
+  "advOver": "Voordeel {team}, tot die einde gespeel, en die skeidsregter wuif dit weg. Drie punte daarmee heen."
  },
  "injury": {
   "ribs": "gekneusde ribbes",
