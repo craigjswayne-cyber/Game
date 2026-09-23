@@ -2634,7 +2634,7 @@
   "fxHospitality": "+{pct}% on every home gate",
   "fxKicking": "+{pct}% off the tee",
   "fxPaddock": "training bites {pct}% more often",
-  "fxPitch": "{pct}% fewer breakdowns at home",
+  "fxPitch": "{pct}% at the breakdown and in the hands, and the squad develops to match",
   "fxRecovery": "injuries {pct}% shorter",
   "fxShop": "about {amount} a week",
   "infAskBoard": "🏛 Ask board",
@@ -2652,7 +2652,7 @@
   "infFacilitiesSub": "every upgrade goes through the boardroom",
   "infHoldsAll": " - the ground already holds everyone who would come",
   "infLeagueEstates": "League Estates",
-  "infLeagueEstatesSub": "what the rest of the league has built",
+  "infLeagueEstatesSub": "The nine facilities each club has built. The ground is its own column - a small club can own a big stadium.",
   "infLevelCost": "L{n} · {cost}",
   "infLevelIs": "Level {n}: {effect}",
   "infMoreThanHolds": " - {n} more than the ground holds",
@@ -2789,8 +2789,8 @@
   "ofTheValuation_f": " the valuation. She is a "
  },
  "facilities": {
-  "pitch": "Playing Surface",
-  "pitchDesc": "A true pitch: fewer breakdowns in home matches.",
+  "pitch": "Training Pitch",
+  "pitchDesc": "Where the week's work happens. A true surface sharpens the breakdown and the handling; a bog blunts both.",
   "gym": "Strength & Conditioning Gym",
   "gymDesc": "Players recover extra condition every week.",
   "recovery": "Recovery Centre",

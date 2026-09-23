@@ -2569,7 +2569,7 @@
   "fxHospitality": "+{pct}% su ogni incasso casalingo",
   "fxKicking": "+{pct}% dalla piazzola",
   "fxPaddock": "l'allenamento incide il {pct}% più spesso",
-  "fxPitch": "{pct}% di breakdown in meno in casa",
+  "fxPitch": "{pct}% a terra e con le mani, e la rosa cresce di conseguenza",
   "fxRecovery": "infortuni più corti del {pct}%",
   "fxShop": "circa {amount} a settimana",
   "infAskBoard": "🏛 Chiedi al consiglio",
@@ -2587,7 +2587,7 @@
   "infFacilitiesSub": "ogni miglioria passa dal consiglio",
   "infHoldsAll": " - lo stadio contiene già tutti quelli che verrebbero",
   "infLeagueEstates": "Impianti del campionato",
-  "infLeagueEstatesSub": "cosa ha costruito il resto del campionato",
+  "infLeagueEstatesSub": "Le nove strutture che ogni club ha costruito. L'impianto ha una colonna sua: un piccolo club può avere un grande stadio.",
   "infLevelCost": "L{n} · {cost}",
   "infLevelIs": "Livello {n}: {effect}",
   "infMoreThanHolds": " - {n} più di quanti ne contenga lo stadio",
@@ -2723,8 +2723,8 @@
   "prQuiet_f": "La sala stampa è tranquilla… per ora. I giornalisti tendono a spuntare quando le giocatrici trovano la forma, la perdono o finiscono al centro di voci di mercato."
  },
  "facilities": {
-  "pitch": "Terreno di gioco",
-  "pitchDesc": "Un terreno perfetto: meno breakdown nelle partite in casa.",
+  "pitch": "Campo d'allenamento",
+  "pitchDesc": "Dove si fa il lavoro della settimana. Un campo vero affila la fase di rilancio e le mani; un pantano smussa entrambe.",
   "gym": "Palestra di forza e condizionamento",
   "gymDesc": "I giocatori recuperano condizione extra ogni settimana.",
   "recovery": "Centro recupero",

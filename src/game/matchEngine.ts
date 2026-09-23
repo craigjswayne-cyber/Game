@@ -911,6 +911,32 @@ export interface SideCtx {
 /** Tactic + weather + coaching modifiers, applied to freshly computed units. */
 function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null) {
   const club = state.clubs[side.teamId]
+  /**
+   * ---- THE TRAINING PITCH (owner, v1.8.1) ----
+   *
+   * "Good pitch equals good prep - bad pitch means in game effect on
+   * breakdowns and skills."
+   *
+   * This facility was called the Playing Surface and did exactly one thing:
+   * shaved a few per cent off the user's injury roll at home, while the
+   * screen advertised "3.5% fewer breakdowns at home" that no line of code
+   * delivered. A placebo control with a label on it.
+   *
+   * It is the TRAINING pitch now, which is the honest version: a squad that
+   * does its ruck work on a bog arrives on Saturday rusty at the breakdown
+   * and heavy-handed, and one with a true surface arrives sharp. So it reads
+   * off the side's OWN club - the pitch you train on travels with you - and
+   * it cuts both ways around level three, because a bad pitch is a real cost
+   * and not merely an absent bonus.
+   *
+   * Every club in the world has one, so this is read per side rather than
+   * through facLevel, which only ever answers for the manager's club.
+   */
+  if (club) {
+    const lvl = club.facilities?.pitch ?? 0
+    side.units.breakdown *= 0.955 + lvl * 0.018
+    side.units.attack *= 0.97 + lvl * 0.012
+  }
   // a happy dressing room plays for each other; a sour one hesitates
   if (club) {
     const xv = side.lineup.slice(0, 15).map(id => id != null ? state.players[id] : null).filter(Boolean)
@@ -3050,11 +3076,15 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       }
     }
 
-    // injury - tired legs and rusty returners break down more, though a
-    // true home surface keeps a few of them on their feet
-    const surface = side.teamId === state.userClubId && ctx.fx.homeId === state.userClubId
-      ? facLevel(state, 'pitch') : 0
-    if (rng() < 0.036 * (1 - surface * 0.035)) {
+    // injury - tired legs and rusty returners break down more.
+    //
+    // THE HOME SURFACE TERM IS GONE (v1.8.1). It read the pitch facility,
+    // which is the TRAINING pitch now: a match is played at the ground, not
+    // on the field the squad does its ruck work on, so a training pitch
+    // cannot keep anybody on their feet on a Saturday. What it does keep
+    // people on their feet through is TRAINING, and that is where the term
+    // has moved to (season.ts, the Tuesday session).
+    if (rng() < 0.036) {
       const ids = [...side.onPitch]
       const ps = ids.map(id => state.players[id]).filter(p => p && !p.injury)
       if (ps.length) {

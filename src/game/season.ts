@@ -1168,7 +1168,13 @@ function weeklyTraining(state: GameState, rng: Rng) {
         const rustF = (p.rust ?? 0) > 0 ? 2.6 : 1
         const tiredF = p.cond < 55 ? 1.7 : 1
         const ageF = p.age >= 32 ? 1.3 : 1
-        if (rng() < 0.0026 * rustF * tiredF * ageF) {
+        // THE SURFACE YOU TRAIN ON (v1.8.1). This term used to sit in the
+        // match engine, shaving the user's injury roll at home off the old
+        // Playing Surface. A match is played at the ground; the pitch
+        // facility is where the squad WORKS, so a rutted one is what turns
+        // an ankle on a Tuesday. Every club's own, not just the manager's.
+        const surf = 1 - (club.facilities?.pitch ?? 0) * 0.05
+        if (rng() < 0.0026 * rustF * tiredF * ageF * surf) {
           let [dk, weeks] = pickTrainingInjury(rng, genderOf(state))
           if (isUser) {
             // the same care that shortens a match lay-off shortens this one
@@ -1207,7 +1213,13 @@ function weeklyTraining(state: GameState, rng: Rng) {
       // gentle in-season growth for youngsters, drift for user's training
       // focus. Damped near the top: without it the whole world's best 23
       // converge on 99 by season 12 and elite means nothing
-      const growBoost = isUser ? 1 + state.staff.assistant * 0.25 : 1
+      // GOOD PITCH, GOOD PREP (owner, v1.8.1). A squad that can actually
+      // train properly develops faster, and one working on a bog does not.
+      // Centred on level three like its match effect, so a bad pitch is a
+      // real cost rather than an absent bonus, and read off every club's own
+      // estate rather than only the manager's.
+      const surfBoost = 0.88 + (club.facilities?.pitch ?? 0) * 0.048
+      const growBoost = (isUser ? 1 + state.staff.assistant * 0.25 : 1) * surfBoost
       const eliteF = p.ca >= 94 ? 0.15 : p.ca >= 88 ? 0.5 : 1
       if (p.age <= 24 && p.ca < p.pa && rng() < 0.06 * growBoost * eliteF) p.ca += 1
       // a man on a personal plan works his own programme this week (18A);

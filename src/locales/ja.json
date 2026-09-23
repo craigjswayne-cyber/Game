@@ -2512,7 +2512,7 @@
   "fxHospitality": "ホームの入場収入+{pct}%",
   "fxKicking": "プレースキック成功率+{pct}%",
   "fxPaddock": "トレーニング効果の発生+{pct}%",
-  "fxPitch": "ホーム戦での故障者-{pct}%",
+  "fxPitch": "ブレイクダウンとハンドリングが{pct}%、育成速度もそれに見合う",
   "fxRecovery": "負傷の離脱期間-{pct}%",
   "fxShop": "週あたり約{amount}",
   "infAskBoard": "🏛 役員会に打診",
@@ -2530,7 +2530,7 @@
   "infFacilitiesSub": "アップグレードはすべて役員会の承認が要る",
   "infHoldsAll": "――来たがる客は今の器で全員入る",
   "infLeagueEstates": "リーグ各クラブの施設",
-  "infLeagueEstatesSub": "他のクラブが築いてきたもの",
+  "infLeagueEstatesSub": "各クラブが建てた九つの施設。スタジアムは別列――小さなクラブが大きなスタジアムを持つこともある。",
   "infLevelCost": "L{n} · {cost}",
   "infLevelIs": "レベル{n}：{effect}",
   "infMoreThanHolds": "――収容数を{n}人上回る",
@@ -2665,8 +2665,8 @@
   "ofTheValuation_f": "。ちなみに彼女は"
  },
  "facilities": {
-  "pitch": "ピッチ",
-  "pitchDesc": "よく整った真っ平らなピッチ：ホーム戦での故障が減る。",
+  "pitch": "練習グラウンド",
+  "pitchDesc": "一週間の仕事をこなす場所。良い芝面はブレイクダウンとハンドリングを研ぎ、泥沼はその両方を鈍らせる。",
   "gym": "S&Cジム",
   "gymDesc": "毎週、選手のコンディション回復量が増える。",
   "recovery": "リカバリーセンター",
