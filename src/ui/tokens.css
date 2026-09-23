@@ -85,6 +85,11 @@
   --scrim: rgba(0, 0, 0, 0.65);
   --pitch-a: #1d4a35;
   --pitch-b: #1a4330;
+  /* HOW FAR THE GRASS IS HELD BACK on the tactics pitch. The photograph is a
+     backdrop for fifteen jerseys, not a picture in its own right (owner,
+     v1.8.2: "make the opacity low so the players are still clear"), and the
+     night skin needs more of a veil over it than the day one. */
+  --pitch-scrim: rgba(4, 12, 8, 0.52);
   --on-danger: #2b0e0b;
   --on-info: #0d1b26;
 }
@@ -131,6 +136,7 @@
   --scrim: rgba(20, 32, 27, 0.45);
   --pitch-a: #2e7a52;
   --pitch-b: #2a7050;
+  --pitch-scrim: rgba(6, 18, 12, 0.34);
   --on-danger: #ffffff;
   --on-info: #ffffff;
 }
