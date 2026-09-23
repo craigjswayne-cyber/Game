@@ -8,9 +8,9 @@ Plain HTML and CSS, no build step. Files:
 
 | File | What it is |
 |---|---|
-| `index.html` | Home, About, Games and Contact |
+| `index.html` | Home page: hero, game, studio and contact sections |
 | `privacy.html` | Privacy notice for this website |
-| `style.css` | Shared styles (light and dark mode) |
+| `style.css` | Shared styles (one dark theme on the PHASE palette) |
 | `img/` | Studio logo, favicon, iPhone icon, PHASE icon, art and screenshots |
 | `brand/` | The FWDS & BCKS logo as SVG and PNG (512, 1024, and a logo-plus-name lockup) for use elsewhere |
 | `space-grotesk-latin.woff2` | The site font, served locally |
