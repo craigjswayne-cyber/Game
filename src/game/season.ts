@@ -1212,8 +1212,16 @@ function weeklyTraining(state: GameState, rng: Rng) {
             state.news.push({
               id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
               subject: tIn('en', 'news.trainInjurySubj', v),
-              body: tIn('en', weeks === 1 ? 'news.trainInjuryOne' : 'news.trainInjury', v),
-              k: weeks === 1 ? 'news.trainInjuryOne' : 'news.trainInjury',
+              // ONE KEY, TWO FORMS. This used to file the one-week story under
+              // news.trainInjuryOne, and newsSubject (model.ts) builds an
+              // inbox headline as `k + 'Subj'` - so every one-week training
+              // injury put the literal text "news.trainInjuryOneSubj" at the
+              // top of the manager's inbox, in all six languages. i18nprobe
+              // could not see it because that key is assembled at runtime
+              // rather than written down. news.trainInjury carries {one,
+              // other} now and the dictionary picks the form off `n`.
+              body: tIn('en', 'news.trainInjury', v),
+              k: 'news.trainInjury',
               v, playerId: p.id,
             })
           }
@@ -2180,6 +2188,68 @@ export const NEWS_KEEP = 250
  * (which the UI plays via the MatchDay screen first).
  * Then move to next week.
  */
+/**
+ * ---- THE BOARD READS THE TABLE (v1.8.4) ----
+ *
+ * It used to read it once, at half term, against a target floored at 20. Both
+ * halves of that were wrong for a big club, and autopilotprobe caught it:
+ * twelve seasons of deliberate neglect at a rep-88 club got NOBODY sacked, and
+ * the board reached crisis in two of the twelve. A manager game whose board
+ * never acts has no stakes in it at all.
+ *
+ * Two changes, both stature-scaled, and the owner's words for what this should
+ * feel like are "pressure at a title favourite should be super hard and
+ * intense".
+ *
+ *   THE FLOOR. clamp(..., 20, 96) meant no blend could ever put a board below
+ *   20, so the sack check at 3 was unreachable by this route however badly a
+ *   giant did. The floor now falls with patience: a Championship board still
+ *   bottoms out around 22 and a title favourite's can reach 2. A minnow's
+ *   board is where the old number came from and keeps it.
+ *
+ *   THE CADENCE. Once a season is not pressure, it is an annual review. The
+ *   board now looks at weeks 12, 24 and 34 - a third of the way in, half term,
+ *   and with the run-in in front of it - and leans on it harder each time. A
+ *   giant sliding all year gets three verdicts, each worse than the last;
+ *   a side that recovers by March is judged on March.
+ *
+ * Deliberately NOT a route to a sacking on its own: the blend converges toward
+ * the target rather than jumping to it, so a board that ends the season hating
+ * you still needed the weekly results to agree. An engaged manager at the same
+ * club sits around 31 - visibly under pressure at a place where second is a
+ * crisis, and nowhere near the trapdoor.
+ */
+function boardReadsTheTable(state: GameState, lean = 1) {
+  const club = state.clubs[state.userClubId]
+  const comp = state.comps[club?.leagueId ?? '']
+  if (!club || !comp || comp.table.length <= 1) return
+  // A BOARD IN THE TRAPDOOR IS NOT TALKED ROUND BY THE TABLE. Without this the
+  // three reviews became three reprieves: chaosprobe drives confidence to zero
+  // and waits for the sack, and the week-12 review blended it straight back up
+  // to the target before the check at the end of the week could fire. A board
+  // that has already decided has already decided; the sack is the only thing
+  // left to happen to it.
+  if (club.boardConfidence <= 3) return
+  const posNow = leaguePos(comp.table, club.id)
+  if (posNow <= 0) return
+  const tableLen = comp.table.length
+  const objPos = Math.min(boardObjective(club.rep).pos, tableLen)
+  const devFrac = (posNow - objPos) / Math.max(1, tableLen - 1)
+  const patience = boardPatience(club.rep)
+  const floor = clamp(30 - patience * 14, 2, 26)
+  const target = clamp(70 - devFrac * 108, floor, 96)
+  const blendW = clamp(0.25 * patience * lean, 0.12, 0.62)
+  // BOARDS SOUR FASTER THAN THEY WARM. Symmetrical was wrong in both
+  // directions: it let a slide be forgiven at the next review as readily as it
+  // punished one, and chaosprobe caught the consequence - a board driven to
+  // zero was lifted back to 21 in a single reading because the table happened
+  // to look ordinary. Goodwill is earned back over a season, not over one
+  // afternoon with a league table, so a rise carries a third of the weight of
+  // a fall.
+  const w = target < club.boardConfidence ? blendW : blendW * 0.34
+  club.boardConfidence = clamp(club.boardConfidence * (1 - w) + target * w, 0, 100)
+}
+
 export function processWeekAndAdvance(state: GameState) {
   // last week's back page is last week's: a fresh one is written below if
   // the side plays, and a stale one must never sit over a new week
@@ -3058,6 +3128,15 @@ export function processWeekAndAdvance(state: GameState) {
   // the Scouting Agency refreshes its world rankings every four weeks
   if (state.week % 4 === 2) updateAgency(state)
 
+  // THE BOARD LOOKS AT THE TABLE THREE TIMES, not once (boardReadsTheTable
+  // above). Week 24 is the half-term letter and does its own call inside that
+  // block; these are the two silent ones either side of it, and the lean grows
+  // because a board that has watched you slide since September is not still
+  // asking itself whether it is a blip.
+  if (!state.unemployed && (state.week === 12 || state.week === 34)) {
+    boardReadsTheTable(state, state.week === 12 ? 0.8 : 1.25)
+  }
+
   // half-term: the board grades the season so far, in writing
   if (state.week === 24 && !state.unemployed) {
     const club = state.clubs[state.userClubId]
@@ -3080,14 +3159,7 @@ export function processWeekAndAdvance(state: GameState) {
     // (clamped 20-96, never a mathematically impossible confidence). The
     // BLEND weight is patience-scaled too: a giant's board pulls toward the
     // half-term verdict harder, a minnow's barely moves off where it was.
-    if (posNow > 0 && (comp?.table.length ?? 0) > 1) {
-      const tableLen = comp!.table.length
-      const objPos = Math.min(boardObjective(club.rep).pos, tableLen)
-      const devFrac = (posNow - objPos) / Math.max(1, tableLen - 1)
-      const target = clamp(70 - devFrac * 108, 20, 96)
-      const blendW = clamp(0.25 * boardPatience(club.rep), 0.12, 0.5)
-      club.boardConfidence = clamp(club.boardConfidence * (1 - blendW) + target * blendW, 0, 100)
-    }
+    boardReadsTheTable(state)
     const pred = state.preds?.[club.id]
     const diff = pred && posNow ? pred - posNow : 0
     const objs = (state.objectives ?? []).map(id => OBJECTIVE_DEFS.find(o => o.id === id)).filter(Boolean)

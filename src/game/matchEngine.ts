@@ -2697,7 +2697,7 @@ const COVER_DEF = 0.937
  * mechanism stays at full strength and the constant underneath it comes down
  * so the season's totals stay on the band.
  */
-const TRY_BASE = 0.088
+const TRY_BASE = 0.0832
 
 /** The cost of a thin bench: a man in the wrong half of the team.
  *
@@ -2739,6 +2739,32 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       const p = state.players[id]
       if (p && !p.injury && s.lineup.slice(0, 15).includes(id)) s.onPitch.add(id)
     }
+    /**
+     * HE SERVED HIS TEN AND DID NOT COME BACK.
+     *
+     * The two `else` cases above are silent: a man who broke down while he sat,
+     * and a man whose shirt was given away while he sat to somebody who is not
+     * on the pitch either. In both the side finishes a man light and NOTHING
+     * was charging for it - binned no longer holds him, his yellowUntil has
+     * expired so numF has stopped counting him, and short never heard of him.
+     * Fourteen men, priced as fifteen, for the rest of the match.
+     *
+     * This is the same hole the uncovered-injury path had (the `side.short`
+     * charge further down, and its comment), one door along, and it is found
+     * the same way: journeyprobe reconciling heads on the pitch against the
+     * men the card accounts for. It surfaced when TRY_BASE moved, which is all
+     * a seeded probe can ever tell you - the bug was always there, and the
+     * dice had simply not walked into it.
+     *
+     * Reconciled rather than special-cased, because `short` IS this number:
+     * players the side had to do without, and not a card in anybody's record.
+     */
+    // `binned` IS the answer to "who is still sitting", and yellowUntil is not:
+    // the loop above deletes a man from the set the moment his ten minutes are
+    // up, so anyone left in it never came back. Reading the clock instead gets
+    // the final whistle wrong in both directions.
+    const accounted = 15 - s.sent - s.short - s.binned.size
+    if (s.onPitch.size < accounted) s.short += accounted - s.onPitch.size
   }
   // a sin-binned front-rower is back and the cover with him: the scrum is a
   // contest again, the levelling his card ordered taken back off both packs
@@ -2905,8 +2931,14 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     // close game never feels it; the floor keeps a true mismatch a rout
     // rather than a cricket score. Same rng draws either way - the stream is
     // untouched, only the threshold the roll is compared against moves.
+    // 1.8.4: the damp starts at 28 rather than 35 and bottoms lower. Territory
+    // and the advantage law both add tries at the top of the range, and
+    // blowprobe caught the result - two top clubs reached 63, past its stated
+    // ceiling of 60 - while the median margin (15) and the 90th percentile
+    // (31) had barely moved. A damp that only engages five converted tries in
+    // is a damp that never sees the games it exists for.
     const lead = side.score - opp.score
-    if (lead > 35) pTry *= Math.max(0.3, 35 / lead)
+    if (lead > 28) pTry *= Math.max(0.26, 28 / lead)
 
     /**
      * PRESSURE (v1.7.0), read off this tick and never rolled for. It decays
@@ -3596,6 +3628,30 @@ export function swapInjuryCover(state: GameState, ctx: LiveCtx, onId: number, in
   const pin = state.players[inId]
   if (slotOn < 0 || slotOn > 14 || !pon || !mine.onPitch.has(onId)) return t('touch.notOnPitch')
   if (!pin || pin.injury || mine.onPitch.has(inId) || mine.ratings.has(inId)) return t('touch.notAvailable')
+  /**
+   * HE CANNOT BE ERASED ONCE HE HAS PLAYED (coverswap, v1.8.4).
+   *
+   * The rewrite at the bottom of this function corrects ONE line - the one
+   * that said he came on - on the stated assumption that the override arrives
+   * at the same stoppage, before a tick has run. Nothing enforced that
+   * assumption. A cover who had been on for ten minutes and scored could be
+   * taken back off, out of the lineup and out of onPitch, while his try stayed
+   * in the match record under his name: a permanent, saved account of a man
+   * scoring in a game he did not play in.
+   *
+   * The window closes the moment he does something. Anything after his own
+   * substitution line that carries his id is him doing something.
+   */
+  const evs = ctx.events
+  let subIdx = -1
+  for (let i = evs.length - 1; i >= 0; i--) {
+    if (evs[i].k === 'comm.subComesOn' && evs[i].playerId === onId) { subIdx = i; break }
+  }
+  if (subIdx >= 0) {
+    for (let i = subIdx + 1; i < evs.length; i++) {
+      if (evs[i].playerId === onId) return t('touch.tooLateToUndo')
+    }
+  }
   mine.lineup[slotOn] = inId
   if (slotIn >= 0) mine.lineup[slotIn] = onId
   mine.onPitch.delete(onId)

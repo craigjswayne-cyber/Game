@@ -342,12 +342,31 @@ const EXPECTED: string[] = [
   // because field position multiplies a ratio that is then raised to 2.6, and
   // that convexity lifted the league from 50.6 points a game to 56.2 before
   // it was rebased. The league now measures 52.6, which is on the band.
+  //
+  // REBASELINED AGAIN for v1.8.4, the audit round, and four of the six moved.
+  // Three deliberate mechanical changes, none of which spends a new draw - all
+  // three move a threshold a roll is compared against:
+  //
+  //   TRY_BASE, 0.088 -> 0.0832. bandcheck had the league at 6.66 tries a
+  //   game against a 6.0-6.6 band; it is 6.30 now.
+  //   THE GARBAGE-TIME DAMP, from lead > 35 with a 0.3 floor to lead > 28
+  //   with 0.26. blowprobe had two top clubs reaching 63 against a stated
+  //   ceiling of 60; the worst is 59 now, and the median margin (15) and 90th
+  //   percentile (31) did not move at all.
+  //   A SECOND SHIRT for generated players (attributes.ts). That one draws
+  //   from its OWN stream, deliberately, so it moves no attribute anywhere -
+  //   but the bench builder reads `alt`, so benches are shaped differently and
+  //   the men who come on are not always the same men.
+  //
+  // The board's extra table reviews (season.ts) are outside this stream for
+  // the same reason the training-ground roll is: fingerprint sims fixtures
+  // directly and never advances a week.
   'leicester 26-31 gloucester',
   'bath 7-20 saracens',
-  'newcastle 18-38 northampton',
-  'harlequins 24-22 bristol',
-  'sale 15-33 exeter',
-  'bath 54-6 leicester',
+  'newcastle 18-45 northampton',
+  'harlequins 24-26 bristol',
+  'sale 36-14 exeter',
+  'bath 41-24 leicester',
 ]
 // v1.8.1 moved three of them once more, and this time WITHOUT spending a new
 // draw: the training pitch now scales every side's breakdown and handling off
