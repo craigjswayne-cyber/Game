@@ -2586,7 +2586,7 @@
     "fxHospitality": "+{pct} % sur chaque recette à domicile",
     "fxKicking": "+{pct} % au tir au but",
     "fxPaddock": "l'entraînement prend {pct} % plus souvent",
-    "fxPitch": "{pct} % de ballons perdus en moins à domicile",
+    "fxPitch": "{pct}% au sol et à la main, et le groupe progresse en conséquence",
     "fxRecovery": "blessures {pct} % plus courtes",
     "fxShop": "environ {amount} par semaine",
     "infAskBoard": "🏛 Saisir le conseil",
@@ -2604,7 +2604,7 @@
     "infFacilitiesSub": "chaque amélioration passe par le conseil",
     "infHoldsAll": " - le stade accueille déjà tous ceux qui viendraient",
     "infLeagueEstates": "Installations du championnat",
-    "infLeagueEstatesSub": "ce que le reste du championnat a construit",
+    "infLeagueEstatesSub": "Les neuf installations construites par chaque club. Le stade a sa propre colonne : un petit club peut posséder un grand stade.",
     "infLevelCost": "N{n} · {cost}",
     "infLevelIs": "Niveau {n} : {effect}",
     "infMoreThanHolds": " - {n} de plus que la capacité du stade",
@@ -2741,8 +2741,8 @@
     "prQuiet_f": "La salle de presse est calme… pour l'instant. Les journalistes se présentent quand une joueuse trouve la forme, la perd, ou est annoncé ailleurs."
   },
   "facilities": {
-    "pitch": "Pelouse",
-    "pitchDesc": "Une vraie pelouse : moins de ballons perdus à domicile.",
+    "pitch": "Terrain d'entraînement",
+    "pitchDesc": "Là où se fait le travail de la semaine. Un vrai terrain aiguise le jeu au sol et les mains ; un bourbier émousse les deux.",
     "gym": "Salle de musculation",
     "gymDesc": "Les joueurs récupèrent plus de condition chaque semaine.",
     "recovery": "Centre de récupération",

@@ -344,11 +344,16 @@ const EXPECTED: string[] = [
   // it was rebased. The league now measures 52.6, which is on the band.
   'leicester 26-31 gloucester',
   'bath 7-20 saracens',
-  'newcastle 18-45 northampton',
-  'harlequins 24-29 bristol',
-  'sale 22-43 exeter',
+  'newcastle 18-38 northampton',
+  'harlequins 24-22 bristol',
+  'sale 15-33 exeter',
   'bath 54-6 leicester',
 ]
+// v1.8.1 moved three of them once more, and this time WITHOUT spending a new
+// draw: the training pitch now scales every side's breakdown and handling off
+// its own estate, so the same rolls are compared against different thresholds.
+// The home-surface term came out of the match injury roll in the same change,
+// which is one draw whose threshold no longer moves at all.
 
 if (EXPECTED[0] === '@@EXPECTED@@') {
   console.log('BASELINE (paste into EXPECTED):')

@@ -2553,7 +2553,7 @@
   "fxHospitality": "+{pct}% de taquilla en cada partido en casa",
   "fxKicking": "+{pct}% de acierto a palos",
   "fxPaddock": "el entrenamiento surte efecto un {pct}% más a menudo",
-  "fxPitch": "{pct}% menos percances en casa",
+  "fxPitch": "{pct}% en el suelo y en las manos, y la plantilla se desarrolla acorde",
   "fxRecovery": "lesiones un {pct}% más cortas",
   "fxShop": "alrededor de {amount} a la semana",
   "infAskBoard": "🏛 Pedir a la junta",
@@ -2571,7 +2571,7 @@
   "infFacilitiesSub": "toda mejora pasa por la sala de juntas",
   "infHoldsAll": " - el campo ya da cabida a todos los que vendrían",
   "infLeagueEstates": "Complejos de la liga",
-  "infLeagueEstatesSub": "lo que ha construido el resto de la liga",
+  "infLeagueEstatesSub": "Las nueve instalaciones que ha construido cada club. El estadio va en su propia columna: un club pequeño puede tener un estadio grande.",
   "infLevelCost": "N{n} · {cost}",
   "infLevelIs": "Nivel {n}: {effect}",
   "infMoreThanHolds": " - {n} más de los que caben en el campo",
@@ -2706,8 +2706,8 @@
   "prQuiet_f": "La sala de prensa está tranquila… de momento. Los periodistas suelen aparecer cuando una jugadora entra en racha, la pierde o suena en el mercado."
  },
  "facilities": {
-  "pitch": "Terreno de juego",
-  "pitchDesc": "Un campo noble: menos percances en los partidos en casa.",
+  "pitch": "Campo de entrenamiento",
+  "pitchDesc": "Donde se hace el trabajo de la semana. Un campo en condiciones afila el juego al suelo y las manos; un barrizal embota ambos.",
   "gym": "Gimnasio de fuerza y acondicionamiento",
   "gymDesc": "Los jugadores recuperan condición extra cada semana.",
   "recovery": "Centro de recuperación",

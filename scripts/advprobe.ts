@@ -259,5 +259,41 @@ console.log('\n=== 8. a zone plan does what it says, in its own zone ===')
   }
 }
 
+// ------------------------------------------------ 9. the training pitch
+console.log('\n=== 9. good pitch, good prep ===')
+{
+  // It was called the Playing Surface and the screen advertised "3.5% fewer
+  // breakdowns at home" that no line of code delivered - the only thing it
+  // touched was the user's injury roll. Both halves of the owner's rule get
+  // a tripwire so it cannot quietly become a label again.
+  const atLevel = (lvl: number) => {
+    const g = newGame('leicester', 'Adv', 4242)
+    for (const c of Object.values(g.clubs)) c.facilities = { ...(c.facilities ?? {}), pitch: lvl }
+    const club = g.clubs[g.userClubId]
+    const fx = g.fixtures.find(f => f.homeId === club.id && g.clubs[f.awayId])!
+    const ctx = beginMatch(g, fx, mulberry32(99), false)
+    return { brk: ctx.home.units.breakdown, att: ctx.home.units.attack }
+  }
+  const bog = atLevel(0)
+  const true5 = atLevel(5)
+  console.log(`  breakdown on a bog ${bog.brk.toFixed(2)} v a true surface ${true5.brk.toFixed(2)}`)
+  ok(true5.brk > bog.brk * 1.05, `a true pitch sharpens the breakdown (${bog.brk.toFixed(2)} -> ${true5.brk.toFixed(2)})`)
+  ok(true5.att > bog.att, `and the handling with it (${bog.att.toFixed(2)} -> ${true5.att.toFixed(2)})`)
+
+  // GOOD PREP. A squad that can train properly develops faster.
+  const grown = (lvl: number) => {
+    const g = newGame('leicester', 'Adv', 777)
+    for (const c of Object.values(g.clubs)) c.facilities = { ...(c.facilities ?? {}), pitch: lvl }
+    const club = g.clubs[g.userClubId]
+    const before = club.players.reduce((n, id) => n + (g.players[id]?.ca ?? 0), 0)
+    for (let w = 0; w < 44; w++) processWeekAndAdvance(g)
+    return club.players.reduce((n, id) => n + (g.players[id]?.ca ?? 0), 0) - before
+  }
+  const gBog = grown(0)
+  const gTrue = grown(5)
+  console.log(`  a season of development: bog ${gBog}, true surface ${gTrue}`)
+  ok(gTrue > gBog, `the squad develops faster on a pitch it can work on (${gBog} -> ${gTrue})`)
+}
+
 console.log(fails ? `\nDESIGN ROUND PROBE: ${fails} failures` : '\nDESIGN ROUND PROBE PASSED: advantage, the Tuesday session and the kicking ladder all behave')
 process.exit(fails ? 1 : 0)

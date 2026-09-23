@@ -13,7 +13,11 @@ import type { CampusId } from '../../game/campusPlots'
 
 /** What each level actually buys, in the manager's language. */
 const EFFECT: Record<FacilityId, (lvl: number) => string> = {
-  pitch: l => t('world.fxPitch', { pct: (l * 3.5).toFixed(1) }),
+  // SIGNED, and shown even at level nought, because this is the one facility
+  // whose bottom rung is a PENALTY rather than an absence: a squad doing its
+  // ruck work on a bog is worse at the breakdown than one that has no
+  // opinion. Centred on level three, matching the engine.
+  pitch: l => t('world.fxPitch', { pct: (l * 1.8 - 4.5).toFixed(1) }),
   gym: l => t('world.fxGym', { n: (l * 0.9).toFixed(1) }),
   recovery: l => t('world.fxRecovery', { pct: l * 3 }),
   paddock: l => t('world.fxPaddock', { pct: l * 20 }),
@@ -181,7 +185,9 @@ export default function Infrastructure() {
                   </h3>
                   <div className="meta" style={{ fontSize: 11 }}>{t(info.desc)}</div>
                   <div className="meta" style={{ fontSize: 11, fontWeight: 700 }}>
-                    {lvl === 0 ? t('world.infNothing') : t('world.infLevelIs', { n: lvl, effect: EFFECT[fid](lvl) })}
+                    {lvl === 0 && fid !== 'pitch'
+                      ? t('world.infNothing')
+                      : t('world.infLevelIs', { n: lvl, effect: EFFECT[fid](lvl) })}
                   </div>
                   {building && <div className="meta" style={{ fontSize: 11, color: 'var(--gold)', fontWeight: 700 }}>{t(weeksLeft === 1 ? 'world.infBuildersOne' : 'world.infBuilders', { n: weeksLeft })}</div>}
                 </div>
