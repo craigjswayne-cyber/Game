@@ -507,6 +507,10 @@ export interface Club {
    *  ("Franklin's Gardens", under whatever is currently bolted above it) */
   stadiumBase?: string
   capacity: number
+  /** weeks since the builders were last on this ground, capped. Drives how
+   *  likely the wear-and-tear stories are in upkeep.ts, and a new stand
+   *  resets it: concrete that has just been poured does not leak. */
+  wear?: number
   /** how much bigger this club's support has grown than the day it opened,
    *  1 at kick-off and earned a season at a time by filling the ground
    *  (rollover.ts). Multiplies capacity0 inside demandCeiling. */
@@ -1131,6 +1135,70 @@ export function estateSum(club: Club | undefined): number {
  *  price of everybody else's. */
 export const UPKEEP_PER_SEAT = 3.1
 
+/**
+ * ---- A STADIUM COSTS MORE PER SEAT THAN A TERRACE (owner, v1.6.9) ----
+ *
+ * The seat price was flat, so a 32,000 stadium cost exactly twice a 16,000
+ * ground to run. A real one does not: the things that arrive with size are
+ * the expensive ones. A roof and the safety certificate that comes with it.
+ * Lifts. Pumps. Floodlights that have to meet a broadcast standard rather
+ * than let you see the ball. A stewarding ratio set by the licence rather
+ * than by what you think you need. Concourse lighting and refrigeration that
+ * run whether or not there is a match.
+ *
+ * So the seat price climbs the same ladder the ground does, and it climbs
+ * faster at the top where those things live: a stage-five stadium runs at
+ * 1.55 a seat against a village ground's 1.00. At the top that is the
+ * difference between £4.8M and £7.4M a season, which is the point - a
+ * stadium is an asset you have to keep, not a number that went up.
+ *
+ * MEASURED, not chosen. The first cut topped out at 1.55 and econprobe walked
+ * four seasons at Northampton: the weekly ledger went from +£41k to +£6k, the
+ * club's balance fell over three of the four years, and the AI median dropped
+ * with it because every club in the world pays this. A ground nobody can
+ * afford to keep is not a decision either - it just means the estate is never
+ * built. At 1.45 the drag is real and the club still funds itself.
+ *
+ * ONE TABLE FOR THE WHOLE WORLD, read here for the manager and in aiecon.ts
+ * for the other hundred clubs. The last time those two disagreed the manager
+ * ran his ground at a third of everybody else's price and was four times
+ * richer than the median by season three.
+ */
+export const GROUND_UPKEEP_F = [1, 1.05, 1.12, 1.20, 1.30, 1.45] as const
+
+/** What this ground costs to run for a week, gross, before the estate and the
+ *  boxes and before it has earned anything back. */
+export function groundUpkeep(capacity: number): number {
+  return capacity * UPKEEP_PER_SEAT * GROUND_UPKEEP_F[groundLevel(capacity)]
+}
+
+/**
+ * ---- AND WHAT IT EARNS WHEN THERE IS NO RUGBY ON ----
+ *
+ * The multiplier above was measured on its own first, and on its own it
+ * breaks the world: every club in the game pays it, and eight seasons in,
+ * 57 of 101 clubs were in the red with thirteen in administration against a
+ * baseline of 36 and four. A transfer market where the median club is
+ * insolvent is not a harder game, it is a stopped one.
+ *
+ * The cause was an asymmetry rather than the number. A big ground is not
+ * only a bigger bill, it is a bigger business - conferences, banqueting,
+ * stadium tours, a naming deal, a concourse that trades midweek - and the
+ * manager was given that upside as stories in upkeep.ts while the other
+ * hundred clubs were given only the bill.
+ *
+ * So the same building earns on the same ladder, for everybody. It offsets
+ * most of the extra cost and not all of it, which is the design: a stadium
+ * is a manageable standing drag, and the REAL challenge is the variance -
+ * the seats, the toilets, the cellar and the electricity bill that arrive
+ * when they feel like it.
+ */
+export const GROUND_TRADE_F = [0, 0.15, 0.35, 0.55, 0.75, 1] as const
+
+export function groundTrade(capacity: number): number {
+  return capacity * UPKEEP_PER_SEAT * 0.26 * GROUND_TRADE_F[groundLevel(capacity)]
+}
+
 export function operatingCost(state: GameState): number {
   const club = state.clubs[state.userClubId]
   if (!club) return 0
@@ -1170,7 +1238,9 @@ export function operatingCost(state: GameState): number {
   // and is fixed here. The indexing is a design question about whether a
   // manager's income should track wage inflation, and it needs deciding rather
   // than patching.
-  return Math.round(club.capacity * UPKEEP_PER_SEAT + estateSum(club) * 1_400 + boxes)
+  // net of what the ground trades on a non-matchday: the same building, so
+  // the same ladder (groundTrade above)
+  return Math.round(groundUpkeep(club.capacity) - groundTrade(club.capacity) + estateSum(club) * 1_400 + boxes)
 }
 
 /**

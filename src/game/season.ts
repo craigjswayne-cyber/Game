@@ -2499,6 +2499,11 @@ export function processWeekAndAdvance(state: GameState) {
     state.stadiumBuild = null
     if (uc) {
       uc.capacity += b.seats
+      // NEW CONCRETE DOES NOT LEAK. The wear-and-tear stories in upkeep.ts are
+      // weighted by how long it is since anybody built anything here, and a
+      // stand is the thing that resets that - which is the other half of why
+      // a manager reinvests in the ground rather than banking the gate.
+      uc.wear = 0
       logDecision(state, 'dec.standOpened', { stadium: uc.stadium, seats: b.seats, cap: uc.capacity }, true)
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,

@@ -27,7 +27,7 @@
 // £0.85M a season over ten seasons). What changes is the SPREAD: a club with a
 // bloated bill and a small ground now bleeds, and a club that fills a big stadium
 // banks it. scripts/aiecon.ts holds both the median and the spread.
-import {LEDGER_WEEKS, weeklyCentral, type Club, type GameState, type Player , UPKEEP_PER_SEAT} from './model'
+import {LEDGER_WEEKS, weeklyCentral, groundUpkeep, groundTrade, type Club, type GameState, type Player } from './model'
 
 /** Same £30 a head the manager's club takes, because it is the same ticket. */
 const GATE_PER_HEAD = 30
@@ -173,7 +173,9 @@ export function aiWeek(state: GameState, club: Club, index = moneyIndex(state)):
   const central = Math.round(weeklyCentral(club) * index)
   const commercial = Math.round(club.rep * COMMERCIAL_PER_REP * index)
   const staff = Math.round(club.rep * STAFF_PER_REP * index)
-  const upkeep = Math.round(club.capacity * UPKEEP_PER_SEAT)
+  // the same ladder the manager's ground climbs (model.ts, GROUND_UPKEEP_F):
+  // a stadium costs more a seat than a terrace, for everybody
+  const upkeep = Math.round(groundUpkeep(club.capacity) - groundTrade(club.capacity))
   return {
     gate, central, commercial, wages, staff, upkeep,
     net: gate + central + commercial - wages - staff - upkeep,
