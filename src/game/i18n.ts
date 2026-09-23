@@ -398,6 +398,36 @@ export const posName = (pos: string): string => t(`pos.${pos}`)
  *  name - shown in the reader's language. The stored value never changes: it is
  *  what the engine matches on and it is inside every save already. */
 export const attrName = (k: string): string => t(`attrs.${k}`)
+
+/**
+ * ---- A NUMBER WITH A WORD ON IT (owner, v1.7.0) ----
+ *
+ * Competitor read: every attribute on their player page carries a word as
+ * well as a figure - "Monumental 18", "Limited 4" - and the word is what
+ * does the work. You know instantly that 18 is exceptional without having
+ * been told the scale, and a page full of bare numbers only reads to
+ * somebody who already knows the game reads out of twenty.
+ *
+ * Ours are shown out of a hundred (fineAttr), so these are nine bands across
+ * that. SHORT ON PURPOSE: they sit beside the figure in a three-column grid
+ * that becomes two columns on a phone, and a long word there would push the
+ * attribute's own name off the row.
+ */
+const ATTR_BANDS: readonly (readonly [number, string])[] = [
+  [94, 'attrBand.superb'], [85, 'attrBand.elite'], [75, 'attrBand.strong'],
+  [65, 'attrBand.good'], [55, 'attrBand.solid'], [45, 'attrBand.fair'],
+  [35, 'attrBand.modest'], [25, 'attrBand.weak'], [0, 'attrBand.poor'],
+]
+
+/** The word for an attribute shown out of a hundred. */
+export const attrBand = (v: number): string =>
+  t(ATTR_BANDS.find(([floor]) => v >= floor)?.[1] ?? 'attrBand.poor')
+
+/** Which of the nine bands, 0 (poor) to 8 (superb), for colouring. */
+export const attrBandIndex = (v: number): number => {
+  const i = ATTR_BANDS.findIndex(([floor]) => v >= floor)
+  return i < 0 ? 0 : ATTR_BANDS.length - 1 - i
+}
 export const persName = (p: string): string => t(`pers.${p}`)
 export const traitName = (name: string): string => t(`traits.${name}`)
 export const traitInfo = (name: string): string => t(`traits.${name}Info`)

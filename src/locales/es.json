@@ -576,7 +576,17 @@
   "styleOffloadDesc": "Mantén el balón vivo en el contacto: mucho riesgo, puro espectáculo.",
   "sliderTempoUp_f": "Saques rápidos y rucks veloces: más pegada en ataque, pero tus jugadoras queman energía antes y la defensa se afloja.",
   "presetTightDesc_f": "Rugby de diez mujeres. Maul, carga dura y estrangula el partido delante.",
-  "styleTerritoryDesc_f": "El clásico juego al pie de diez mujeres: la posición en el campo lo es todo."
+  "styleTerritoryDesc_f": "El clásico juego al pie de diez mujeres: la posición en el campo lo es todo.",
+  "defSitBack": "Repliegue",
+  "defSitBackDesc": "Línea profunda y que vengan ellos. Menos penales, más metros concedidos.",
+  "defDrift": "Deslizamiento",
+  "defDriftDesc": "Deslizarse en bloque y llevarlos a la banda. Neutraliza el juego abierto; un pack bajará recto por el centro.",
+  "defStandard": "Estándar",
+  "defStandardDesc": "Línea pareja a ritmo parejo. Ninguna ventaja en ningún sentido y nada que el árbitro esté buscando.",
+  "defMan": "Hombre a hombre",
+  "defManDesc": "Cerrada, cada uno con su hombre. Ahoga el asalto de los delanteros y se puede estirar con amplitud.",
+  "defPress": "Presión",
+  "defPressDesc": "Subir rápido y en bloque para quitarles tiempo. La mejor defensa de todas, y la que el árbitro vigila por fuera de juego."
  },
  "roles": {
   "scrummager": "Hombre de melé",
@@ -1207,7 +1217,9 @@
   "tapSwapHintTest_f": "toca a una jugadora y a otra para intercambiarlas · toca dos veces para la plantilla completa",
   "warnNoSpeech_f": "No has elegido charla de vestuario - las jugadoras sacarán sus propias conclusiones.",
   "yourRatings_f": "Las notas de tus jugadoras",
-  "assistantTakes_w": "{home} - {away} es la tarde de tu ayudante. Ella elige el equipo y redacta el informe - lo tuyo es el Test."
+  "assistantTakes_w": "{home} - {away} es la tarde de tu ayudante. Ella elige el equipo y redacta el informe - lo tuyo es el Test.",
+  "pressureLabel": "Presión",
+  "pressureTitle": "Cuánto está amenazando cada equipo ahora mismo: sube durante un arreón y baja cuando no sale nada de él"
  },
  "tacticsScreen": {
   "tabRoles": "Roles",
@@ -6519,5 +6531,16 @@
   "leakSubj": "Alguien ha hablado",
   "leak": "Un entrenador rival ha estado inusualmente generoso con un periodista esta semana: cómo se coloca tu equipo en las jugadas a balón parado, quién da las órdenes, hacia qué lado del campo vais primero. Está impreso sin firma y con demasiado detalle para venir de un aficionado.\n\nQuien juegue contra vosotros lo ha leído. Ya no queda más que jugar.",
   "breakaway_f": "Un consorcio que nadie sabe nombrar ha informado a tres periódicos de una nueva competición: más dinero, menos clubes, modelo de franquicias y una invitación que tu junta estaría «estudiando con atención».\n\nTu presidente no ha dicho nada en público. Las jugadoras lo han leído en el móvil como todo el mundo."
+ },
+ "attrBand": {
+  "superb": "Soberbio",
+  "elite": "Elite",
+  "strong": "Fuerte",
+  "good": "Bueno",
+  "solid": "Sólido",
+  "fair": "Correcto",
+  "modest": "Modesto",
+  "weak": "Flojo",
+  "poor": "Pobre"
  }
 }

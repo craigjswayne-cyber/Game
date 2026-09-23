@@ -572,7 +572,17 @@
   "styleCounter": "Teenaanval",
   "styleCounterDesc": "Absorbeer druk, slaan toe uit gebroke spel. Omkeer = drie.",
   "styleOffload": "Die Aflaaispel",
-  "styleOffloadDesc": "Hou die bal lewendig deur kontak - hoë risiko, groot vermaak."
+  "styleOffloadDesc": "Hou die bal lewendig deur kontak - hoë risiko, groot vermaak.",
+  "defSitBack": "Sit Terug",
+  "defSitBackDesc": "Hou die lyn diep en laat hulle deur jou speel. Die minste strafskoppe, die meeste meters prysgegee.",
+  "defDrift": "Drywing",
+  "defDriftDesc": "Skuif oor en stuur hulle na die kantlyn. Stomp 'n oopspel-span af; 'n voorspelers sal reguit deur die middel kom.",
+  "defStandard": "Standaard",
+  "defStandardDesc": "'n Egalige lyn teen 'n egalige spoed. Geen voordeel aan enige kant nie, en niks waarna die skeidsregter soek nie.",
+  "defMan": "Man teen Man",
+  "defManDesc": "Nou, elkeen op sy man. Wurg 'n voorspeler-aanval en kan met wydte uitgerek word.",
+  "defPress": "Druk",
+  "defPressDesc": "Vinnig en saam op om hul tyd weg te vat. Die beste verdediging hier, en die een wat die skeidsregter vir onkant dophou."
  },
  "roles": {
   "scrummager": "Skrummer",
@@ -1227,7 +1237,9 @@
   "warnCannotStart_f": "{player} (nr. {shirt}) {problem} - sy kan vandag nie begin nie.",
   "warnRusty_f": "{player} is ROESTIG ({n}wk) - hoë risiko van herbesering as sy speel.",
   "warnUnfit_f": "{player} is net {pct}% fiks - haar tenk gaan vroeg leegloop.",
-  "assistantTakes_w": "{home} vs {away} is jou assistent se middag. Sy kies die span en lewer haar verslag - joune is die toets."
+  "assistantTakes_w": "{home} vs {away} is jou assistent se middag. Sy kies die span en lewer haar verslag - joune is die toets.",
+  "pressureLabel": "Druk",
+  "pressureTitle": "Hoeveel elke kant op die oomblik dreig - dit bou op deur 'n vlaag en verdwyn wanneer niks daarvan kom nie"
  },
  "tacticsScreen": {
   "tabRoles": "Rolle",
@@ -6886,5 +6898,16 @@
   "breakawayEnd": "Die konsortium beantwoord nie meer oproepe nie. Twee van die koerante het stilweg aanbeweeg en die derde plaas 'n stuk oor hoe dit nooit regtig sou gebeur het nie.\n\nDit gebeur ook nooit nie. Dit kom elke paar jaar om, dit vul twee weke se agterblaaie, en dan speel almal Saterdag asof niemand dit ooit genoem het nie.",
   "leakSubj": "Iemand het gepraat",
   "leak": "'n Mededingende afrigter was hierdie week ongewoon vrygewig teenoor 'n joernalis - hoe jou span van 'n vaste fase af opstel, wie die roepe maak, na watter kant van die veld julle eerste gaan. Dit is in druk sonder 'n naam daaraan en met heeltemal te veel besonderhede om van 'n ondersteuner af te kom.\n\nWie julle ook al volgende speel, het dit gelees. Niks nou daaraan te doen nie behalwe speel."
+ },
+ "attrBand": {
+  "superb": "Uitmuntend",
+  "elite": "Elite",
+  "strong": "Sterk",
+  "good": "Goed",
+  "solid": "Solied",
+  "fair": "Redelik",
+  "modest": "Beskeie",
+  "weak": "Swak",
+  "poor": "Swakkerig"
  }
 }

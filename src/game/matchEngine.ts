@@ -841,6 +841,26 @@ export interface SideCtx {
    *  itself written about. */
   aggF: number
   poss: number // accumulated momentum, for possession stats
+  /**
+   * ---- PRESSURE, 0 TO 100 (owner, v1.7.0) ----
+   *
+   * Competitor read: two bars beside the pitch saying who is on top right
+   * now. It is the one thing a commentary ticker cannot do - a ticker tells
+   * you what happened, and this tells you how the afternoon FEELS - and it
+   * needs no animation, no art and no ball-by-ball simulation.
+   *
+   * Independent per side rather than a share of one bar, which is what makes
+   * it honest: in a scrappy ten minutes where neither side can get out of
+   * its own half, BOTH bars are low, and a single seesaw would have to claim
+   * somebody was on top.
+   *
+   * It is DERIVED, never rolled: it reads the tick that just happened, so it
+   * spends no rng and cannot move a result. A try is a spike, a penalty won
+   * is a nudge, and it decays toward whatever the side's attacking threat
+   * says it ought to be sitting at, so a spell of pressure builds and then
+   * bleeds away when nothing comes of it.
+   */
+  pressure: number
   pens: number // penalty goals kicked
   /** penalties conceded - repeated infringements bring the bin into play */
   consPens: number
@@ -1207,7 +1227,7 @@ function mkSide(state: GameState, teamId: string, userTeamId: string | null, fxI
     teamId, lineup, units,
     score: 0, tries: 0, ratings, onPitch, yellowUntil: new Map(), binned: new Set(), sent: 0, short: 0,
     cardRisk: 0.012, penRisk: 0.115, aggF: 0,
-    poss: 0, pens: 0, consPens: 0,
+    poss: 0, pens: 0, consPens: 0, pressure: 12,
     energy, tempoF: 1, drainF: 1, goalBonus: 0,
     exIds: new Set(),
     isUser: teamId === userTeamId,
@@ -2744,10 +2764,28 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     // untouched, only the threshold the roll is compared against moves.
     const lead = side.score - opp.score
     if (lead > 35) pTry *= Math.max(0.3, 35 / lead)
+
+    /**
+     * PRESSURE (v1.7.0), read off this tick and never rolled for. It decays
+     * toward the level this side's threat deserves - a team carving the
+     * defence open sits high even between scores, a team pinned in its 22
+     * sinks - and the things that actually happen below spike it on top. The
+     * decay is what makes it read as MOMENTUM rather than as a stat: a spell
+     * of pressure that comes to nothing bleeds away over the next few ticks,
+     * the way it does when you are watching.
+     */
+    const floor = clamp(pTry * 190, 4, 62)
+    side.pressure = clamp(side.pressure * 0.72 + floor * 0.28, 0, 100)
+
     const r = rng()
     if (r < pTry) {
+      side.pressure = clamp(side.pressure + 42, 0, 100)
+      opp.pressure = clamp(opp.pressure * 0.55, 0, 100)
       scoreTry(state, ctx, side, min)
     } else if (r < pTry + opp.penRisk) {
+      // a penalty won is a side on the front foot, whatever it does with it
+      side.pressure = clamp(side.pressure + 17, 0, 100)
+      opp.pressure = clamp(opp.pressure * 0.86, 0, 100)
       // a kickable penalty: yours is a touchline decision, theirs is automatic
       opp.consPens += 1
       // repeated infringements: the count climbs, the referee's patience

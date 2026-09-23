@@ -576,7 +576,17 @@
   "styleOffload": "Il gioco degli offload",
   "styleOffloadDesc": "Palla viva attraverso il contatto - rischio alto, puro spettacolo.",
   "presetTightDesc_f": "Rugby delle dieci donne. Maul, cariche dure, strangola la partita fra le avanti.",
-  "styleTerritoryDesc_f": "Il classico gioco al piede delle dieci donne: la posizione in campo è tutto."
+  "styleTerritoryDesc_f": "Il classico gioco al piede delle dieci donne: la posizione in campo è tutto.",
+  "defSitBack": "Difesa bassa",
+  "defSitBackDesc": "Linea profonda, che vengano loro. Meno falli, più metri concessi.",
+  "defDrift": "Scivolamento",
+  "defDriftDesc": "Si scivola di lato e li si porta in touche. Smorza il gioco alla mano; un pacchetto verrà dritto in mezzo.",
+  "defStandard": "Standard",
+  "defStandardDesc": "Linea uniforme a velocità uniforme. Nessun vantaggio da nessuna parte e niente che l'arbitro stia cercando.",
+  "defMan": "Uomo su uomo",
+  "defManDesc": "Stretta, ognuno sul suo uomo. Soffoca l'assalto degli avanti e può essere allargata.",
+  "defPress": "Pressione",
+  "defPressDesc": "Su veloci e compatti per togliere loro il tempo. La miglior difesa qui, e quella che l'arbitro guarda in fuorigioco."
  },
  "roles": {
   "scrummager": "Uomo di mischia",
@@ -1214,7 +1224,9 @@
   "tapSwapHintTest_f": "tocca una giocatrice, poi un'altra per scambiarle · due tocchi per la rosa completa",
   "warnNoSpeech_f": "Nessun discorso scelto nello spogliatoio - le giocatrici si faranno un'idea da sole.",
   "warnScrum_f": "Problema in mischia: in tutta la rosa del match {missing}. All'arbitro servono 2 donne per ogni maglia di prima linea, altrimenti ordina mischie non contestate - niente spinta, e un pacchetto forte non vale nulla. Aggiungi coperture di prima linea in panchina.",
-  "assistantTakes_w": "{home} v {away} è il pomeriggio del tuo vice. Sceglie lei la squadra e firma il rapporto - a te tocca il Test."
+  "assistantTakes_w": "{home} v {away} è il pomeriggio del tuo vice. Sceglie lei la squadra e firma il rapporto - a te tocca il Test.",
+  "pressureLabel": "Pressione",
+  "pressureTitle": "Quanto sta minacciando ciascuna squadra in questo momento: sale durante un forcing e cala quando non ne esce nulla"
  },
  "tacticsScreen": {
   "tabRoles": "Ruoli",
@@ -6553,5 +6565,16 @@
   "leakSubj": "Qualcuno ha parlato",
   "leak": "Un allenatore rivale è stato insolitamente generoso con un giornalista questa settimana: come si schiera la vostra squadra sulle situazioni fisse, chi dà le indicazioni, da che lato del campo andate per primi. È stampato senza firma e con troppi dettagli per venire da un tifoso.\n\nChi vi incontra l'ha letto. Ora non resta che giocare.",
   "breakaway_f": "Un consorzio che nessuno sa nominare ha informato tre giornali di una nuova competizione: più soldi, meno club, un modello a franchigie e un invito che il vostro consiglio starebbe «valutando con attenzione».\n\nIl presidente non ha detto nulla in pubblico. Le giocatrici l'hanno letto sul telefono come tutti."
+ },
+ "attrBand": {
+  "superb": "Superbo",
+  "elite": "Elite",
+  "strong": "Forte",
+  "good": "Buono",
+  "solid": "Solido",
+  "fair": "Discreto",
+  "modest": "Modesto",
+  "weak": "Debole",
+  "poor": "Scarso"
  }
 }
