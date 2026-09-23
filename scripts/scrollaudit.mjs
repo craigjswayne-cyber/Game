@@ -162,6 +162,14 @@ try {
   // until 1.6.5 moved the board ask and the opposition reading to their own
   // tabs and folded the ledger and the earners: 2.2 and 2.6 now. No fixed
   // page is allowed three screenfuls.
+  // 1.7.1: the campus map (5.09) and the game plan (3.41) both went over on
+  // the same day and were both landscape faults rather than content faults -
+  // a portrait 768x1024 plate sized off the page WIDTH, and six dials stacked
+  // in one column across an 844px screen. .campus-frame caps the map against
+  // the viewport height and .dial-grid pairs the dials up; portrait renders
+  // exactly as before in both cases. 2.90 and 2.56 now. The estate page is
+  // the closest to the line of anything here, so read that number before
+  // adding a row to it.
   const deep = over.filter(r => r.screens >= 3)
   for (const r of deep) console.log(`FAIL: ${r.name} is ${r.screens.toFixed(2)} screenfuls deep`)
   await browser.close()

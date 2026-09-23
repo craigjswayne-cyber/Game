@@ -518,9 +518,9 @@
  },
  "tactics": {
   "sliderStyle": "Style",
-  "sliderStyleLo": "Forwards / pick-and-go",
-  "sliderStyleHi": "Expansive / wide",
-  "sliderStyleUp": "Wide attacking rugby: backs see more ball (attack ↑), but you concede scrum solidity and some breakdown muscle.",
+  "sliderStyleLo": "Forwards, pick and go",
+  "sliderStyleHi": "Expansive, wide",
+  "sliderStyleUp": "Wide attacking rugby: the backs see more ball and the attack improves, but you give up scrum solidity and some breakdown muscle.",
   "sliderStyleDown": "Tight, forward-first rugby: stronger scrum and maul platform, fewer strike chances out wide.",
   "sliderTempo": "Tempo",
   "sliderTempoLo": "Slow & structured",
@@ -540,10 +540,10 @@
   "sliderDefLine": "Line Speed",
   "sliderDefLineLo": "Passive drift",
   "sliderDefLineHi": "All-out blitz",
-  "sliderDefLineUp": "Fly off the line: harder tackles and turnovers (defence ↑), but offside pings and cards climb with it.",
+  "sliderDefLineUp": "Fly off the line: harder tackles and more turnovers, so the defence improves - but offside penalties and cards climb with it.",
   "sliderDefLineDown": "Drift and contain: cleaner discipline, but you give their attack time and space to work.",
   "sliderDefWidth": "Width",
-  "sliderDefWidthLo": "Narrow / ruck guard",
+  "sliderDefWidthLo": "Narrow, guard the ruck",
   "sliderDefWidthHi": "Spread wide",
   "sliderDefWidthUp": "String the line to the touchlines: smothers a wide attack, but a tight pick-and-go side runs through the middle.",
   "sliderDefWidthDown": "Pack the fringes: shuts down a forward-first side, but a wide attack finds grass out there.",
@@ -1349,8 +1349,6 @@
   "withoutTheBallSub": "how the line defends when they have it",
   "planSet": "Set: {dials}",
   "planSave": "Save as Plan {n}",
-  "planPro": "Three more plans with Pro",
-  "planProTitle": "Pro Manager gives you six saved plans instead of three - one for the wet days, one for a bigger pack, one for the last ten minutes.",
   "planSaveTitle": "Keep what is on the dials now: the four sliders, the defensive pair, set-piece calls, kicking order and exit.",
   "planLoad": "Plan {n}",
   "planOverTitle": "Overwrite Plan {n} with the current dials",
@@ -1532,7 +1530,8 @@
   "reasonNotListening_f": "The kid is not listening as closely as she might.",
   "reasonLeads_f": "{senior} leads by example and the girl has noticed.",
   "failedRetake_w": "Failed her last assessment - can sit it again in {n} weeks",
-  "failedRetakeOne_w": "Failed her last assessment - can sit it again in {n} week"
+  "failedRetakeOne_w": "Failed her last assessment - can sit it again in {n} week",
+  "boardFund": "Board's backroom fund"
  },
  "pos": {
   "LP": "Loosehead Prop",
@@ -5331,7 +5330,17 @@
   "upToursSubj": "🎟 Stadium tours are quietly making money",
   "upTours": "The tour of {stadium} - dressing room, tunnel, a go on the PA, a photograph with the trophy cabinet - has been running all season on a part-timer and a volunteer, and the school bookings have gone through the roof. {amount}, most of it in the shop on the way out, which the retail manager insists was the whole idea.",
   "upNamingSubj": "💰 The sponsor wants the stand, not the shirt",
-  "upNaming": "A sponsor has been round {stadium} with a tape measure and come back with an offer for the North Stand: their name on it, their colours in the concourse, and a hospitality package that the commercial department has already sold twice over. {amount}, up front. The supporters' trust has views about the name and has been invited to share them at the next forum."
+  "upNaming": "A sponsor has been round {stadium} with a tape measure and come back with an offer for the North Stand: their name on it, their colours in the concourse, and a hospitality package that the commercial department has already sold twice over. {amount}, up front. The supporters' trust has views about the name and has been invited to share them at the next forum.",
+  "boardNoSubj": "🏛 Board says no: {ask_k}",
+  "boardYesSubj": "🏛 The board agrees: {ask_k}",
+  "boardNo_time": "The chairman heard you out and gave you nothing. \"We back managers who are winning. Win, and you will find us very supportive.\" The door is shut for a couple of months.",
+  "boardNo_funds": "The finance director did most of the talking, and most of it was about the current account. There is no more money this season.",
+  "boardNo_facilities": "The board is not minded to pour concrete on this season's evidence. Build a case on the pitch first.",
+  "boardNo_staff": "The backroom stays the size it is. \"Get more out of the ones you have\" is a sentence every manager hears eventually.",
+  "boardYes_time": "The chairman has come out for you publicly, in print, with his name on it. That buys you until the new year whatever the table says - and it is the last thing of its kind you will get.",
+  "boardYes_funds": "The board has found money it did not have last week, which is what winning does to a balance sheet. It is in the transfer budget now.",
+  "boardYes_facilities": "The board will fund the next build itself. Go to Club Infrastructure and ask for it; the bill is theirs, not yours.",
+  "boardYes_staff": "The board has ring-fenced money for the backroom. It is not in the transfer budget and it cannot be moved there: it pays for coaches, for the courses that badge them, and for the eight weeks it takes to move one on. Spend it while the goodwill lasts, because boards have short memories about this sort of thing."
  },
  "comm": {
   "oppCoachNamed": "{coach} has done his homework: {team} are set up specifically for {pattern_k}. Change the picture, or play through the plan.",
@@ -5692,7 +5701,9 @@
   "badgeFailedCourse_w": "{name} failed her {badge_k} badge. The course fee is gone and she resits in four weeks.",
   "requestGranted": "Granted {player} his transfer request.",
   "requestRefused": "Refused {player} his transfer request.",
-  "standOpened": "The new stand at {stadium} opened: {seats} seats, capacity now {cap}."
+  "standOpened": "The new stand at {stadium} opened: {seats} seats, capacity now {cap}.",
+  "boardNo": "Asked the board for {ask_k}: turned down.",
+  "boardYes": "Asked the board for {ask_k}: granted."
  },
  "persLower": {
   "Professional": "professional",
@@ -5927,7 +5938,15 @@
   "requestGrantedSenior": "Granted, and the room went quiet when it heard. {player} was one of theirs.",
   "requestRefused": "Refused. {player} stays, and stays unhappy about it.",
   "requestRefusedBadly": "Refused, and taken badly. {player} left the office without shaking hands.",
-  "requestRefusedBadly_f": "Refused, and taken badly. {player} left the office without shaking hands."
+  "requestRefusedBadly_f": "Refused, and taken badly. {player} left the office without shaking hands.",
+  "boardNo_time": "\"We back managers who are winning.\" No. And they will not hear it again for a while.",
+  "boardNo_funds": "No. The finance director talked about the current account for ten minutes.",
+  "boardNo_facilities": "No. Build the case on the pitch first.",
+  "boardNo_staff": "No. Get more out of the ones you have.",
+  "boardYes_time": "The chairman backs you publicly. That is {n} weeks, whatever the table says.",
+  "boardYes_funds": "Approved: {amount} added to the transfer budget.",
+  "boardYes_facilities": "Approved. The board pays for the next {facility} build - ask for it on Club Infrastructure.",
+  "boardYes_staff": "Approved: {amount} ring-fenced for the backroom. It pays before the club's own money does."
  },
  "verdict": {
   "titleFavourites": "Title favourites",
@@ -6721,7 +6740,7 @@
   "bought": "Yours. It follows your store account - Restore brings it back on a new phone.",
   "needCareer": "Open a career first - the retreat needs a squad to visit.",
   "removeAds": "Pro Manager",
-  "removeAdsLine": "No adverts, ever. Three skins only Pro managers get, and six saved game plans instead of three. Nothing about the rugby changes.",
+  "removeAdsLine": "No adverts, ever. Three skins only Pro managers get. Nothing about the rugby changes.",
   "heal": "Magic Sponge - Full Fitness",
   "healLine": "Every injury healed, the whole squad fresh. Once per match played.",
   "healDone": "Done: the whole squad reports fit.",
@@ -6884,5 +6903,28 @@
   "modest": "Modest",
   "weak": "Weak",
   "poor": "Poor"
+ },
+ "board": {
+  "room": "The Boardroom",
+  "roomSub": "four things you can ask for, and none of them come cheap",
+  "knock": "Ask the board",
+  "ask_time": "⏳ Ask for more time",
+  "askDesc_time": "A public backing from the chairman. It does not win matches; it buys you the weeks to.",
+  "ask_funds": "💷 Ask for more money",
+  "askDesc_funds": "A top-up to the transfer budget, out of the club's own reserves.",
+  "ask_facilities": "🏗 Ask for a facilities upgrade",
+  "askDesc_facilities": "The board pays for the next build outright, rather than letting you spend for it.",
+  "ask_staff": "🧑‍🏫 Ask for a bigger staff budget",
+  "askDesc_staff": "A fund ring-fenced for the backroom: coaches, courses, and moving a man on.",
+  "blockEstateMax": "Nothing left to build. Every facility is already world class.",
+  "blockBuilders": "The builders are already on site. One project at a time.",
+  "blockNotStruggling": "You are not under pressure. Asking for time you do not need would create some.",
+  "blockAlreadyTime": "The chairman has already backed you publicly. Use it.",
+  "blockFundsSeason": "You have already been to them for money this season.",
+  "blockStaffSeason": "You have already been to them for the backroom this season.",
+  "caseStrong": "They will take this seriously.",
+  "caseFair": "It could go either way.",
+  "caseThin": "You would be asking on very little.",
+  "caseShut": "They said no recently. Asking again is pressing them."
  }
 }

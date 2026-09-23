@@ -1601,6 +1601,21 @@ export interface GameState {
   /** absolute week (season*100+week) before which the board will not hear
    *  another facility request - denials cost you the room for a while */
   facilityAskCooldown?: number
+  /** ---- THE BOARDROOM DOOR (v1.8.3, boardroom.ts) ----
+   *  absolute week the board's grant of MORE TIME runs to. While it stands
+   *  the confidence sack check is suspended: a chairman who has publicly
+   *  given a manager until Christmas does not sack him in November. */
+  boardGrace?: number
+  /** season the manager last asked for a bigger staff budget - once a season,
+   *  win or lose, the same rule the transfer-funds ask has always had */
+  staffAskedSeason?: number
+  /** extra weekly room the board has granted for the backroom, on top of
+   *  whatever the club's own wage structure allows */
+  staffRoom?: number
+  /** facilities the board has agreed to pay for outright. The next build of
+   *  one of these costs the club nothing - which is what separates the
+   *  boardroom ask from the per-facility ask on the Infrastructure page. */
+  boardGrant?: FacilityId[]
   /** cash released into the transfer allowance this season (treasury.ts,
    *  1.6.3): a club may release what it holds, once, so the allowance can
    *  never be pumped past the money behind it. Reset at the rollover. */

@@ -8,6 +8,8 @@ import { activeFeuds, reconcileChance, reconcileFeud } from '../../game/gossip'
 import { mulberry32 } from '../../game/rng'
 import { dialLine, philosophyOf } from '../../game/philosophy'
 import { t } from '../../game/i18n'
+import { boardRequests } from '../../game/boardroom'
+import { askTheBoard } from '../../game/season'
 import { archetypeOf } from '../../game/oppcoach'
 
 export default function ClubScreen({ clubId }: { clubId: string }) {
@@ -19,6 +21,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
   // it and be taken through to their squad"). Your own club opens on The Club,
   // because that page is about you - the dressing room, the feuds, the ground.
   // Tapping a rival's name is a scouting question, and the answer is his men.
+  const [boardMsg, setBoardMsg] = useState<{ id: string; text: string } | null>(null)
   const [ctab, setCtab] = useState<'club' | 'squad' | 'story'>(
     clubId === game.userClubId ? 'club' : 'squad')
   const [sqTab, setSqTab] = useState<'first' | 'acad'>('first')
@@ -201,6 +204,48 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           </div>
         </>
       )}
+      {/* ---- THE BOARDROOM (owner, v1.8.3) ----
+          "In the club section there needs to be a board request section."
+          Four doors that were scattered across three screens, or did not
+          exist: time, money, a building, and the backroom budget. Every one
+          shows its odds BEFORE you knock, because a refusal you could not
+          have seen coming reads as a dice roll, and every one of them costs
+          something if you knock on a door the board just shut. */}
+      {ctab === 'club' && club.id === game.userClubId && (() => {
+        const asks = boardRequests(game)
+        return (
+          <>
+            <SectionTitle sub={t('board.roomSub')}>{t('board.room')}</SectionTitle>
+            <div style={{ padding: '0 14px' }}>
+              {asks.map(a => (
+                <div key={a.id} className="card" style={{ margin: '0 0 6px', padding: '8px 10px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                    <div style={{ minWidth: 0 }}>
+                      <h3 style={{ fontSize: 13.5, margin: 0 }}>{t(`board.ask_${a.id}`)}</h3>
+                      <div className="meta" style={{ fontSize: 11 }}>{t(`board.askDesc_${a.id}`)}</div>
+                      <div className="meta" style={{ fontSize: 11, fontWeight: 700, color: a.possible ? 'var(--gold)' : 'var(--text-muted)' }}>
+                        {a.possible ? a.caseFor : a.blocked}
+                      </div>
+                    </div>
+                    {a.possible && (
+                      <button className="btn gold" style={{ padding: '5px 10px', fontSize: 11.5, flexShrink: 0 }}
+                        onClick={() => { setBoardMsg({ id: a.id, text: askTheBoard(game, a.id) }); touch() }}>
+                        {t('board.knock')}
+                      </button>
+                    )}
+                  </div>
+                  {boardMsg?.id === a.id && (
+                    <div className="meta" style={{ fontSize: 11.5, fontWeight: 600, marginTop: 4, paddingTop: 4, borderTop: '1px solid var(--border)' }}>
+                      {boardMsg.text}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
+        )
+      })()}
+
       {ctab === 'club' && club.id === game.userClubId && (() => {
         // the dressing room: who needs attention, and why - a read-only
         // window over every unhappiness the game's systems can produce

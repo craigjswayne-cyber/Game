@@ -4288,3 +4288,28 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
   transition: width 260ms ease-out;
 }
 @media (prefers-reduced-motion: reduce) { .press-fill { transition: none; } }
+
+/* ---- THE CAMPUS MAP FITS THE SCREEN IT IS ON (v1.7.1) ----
+   The plate is 768x1024, portrait, and the frame is width-driven: on a
+   landscape phone (844x390) that painted 971px of map above a 326px page, so
+   Club Infrastructure measured 5.09 screenfuls and you swiped past three
+   screens of picture before a single Ask the Board button. Capping the WIDTH
+   against the viewport height keeps the aspect ratio honest - no squashing, no
+   letterbox - and the map ends where the screen does. Portrait is unchanged:
+   there the content width is still the smaller of the two, so this max-width
+   never binds. vh first as the fallback, dvh second for the phone, same
+   reasoning as .modal above. */
+.campus-frame {
+  max-width: calc(62vh * 768 / 1024);
+  max-width: calc(62dvh * 768 / 1024);
+  margin-inline: auto;
+}
+
+/* ---- THE GAME PLAN PAIRS UP ON A WIDE SCREEN (v1.7.1) ----
+   Six dials, three zone pickers and a named defence stack to 1112px, which is
+   3.41 screenfuls of a landscape phone and one more than scripts/scrollaudit.mjs
+   allows any fixed page. auto-fit with a 320px floor means a portrait phone
+   (370px of content) still gets exactly one column and reads as it always did,
+   while a landscape phone or a tablet puts two side by side. Nothing is hidden
+   and nothing is shrunk: the same controls, on fewer swipes. */
+.dial-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); align-items: start; }

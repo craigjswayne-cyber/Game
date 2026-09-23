@@ -1339,8 +1339,6 @@
     "withoutTheBallSub": "comment la ligne défend quand ils l'ont",
     "planSet": "Réglé : {dials}",
     "planSave": "Enregistrer comme plan {n}",
-    "planPro": "Trois plans de plus avec Pro",
-    "planProTitle": "Pro Manager vous donne six plans enregistrés au lieu de trois : un pour les jours de pluie, un pour un pack plus lourd, un pour les dix dernières minutes.",
     "planSaveTitle": "Garder ce qui est sur les curseurs : les quatre réglages, la paire défensive, les annonces de touche et de mêlée, l’ordre des buteurs et la sortie de camp.",
     "planLoad": "Plan {n}",
     "planOverTitle": "Remplacer le plan {n} par les réglages actuels",
@@ -1513,7 +1511,8 @@
     "sackTitle": "Mettre fin à son contrat maintenant pour {cost}. Le poste reste vacant jusqu’à une nouvelle nomination.",
     "reasonPoorTeacher_f": "{senior} est une très bonne joueuse et une piètre pédagogue.",
     "failedRetake_w": "Elle a échoué à son dernier examen - elle peut le repasser dans {n} semaines",
-    "failedRetakeOne_w": "Elle a échoué à son dernier examen - elle peut le repasser dans {n} semaine"
+    "failedRetakeOne_w": "Elle a échoué à son dernier examen - elle peut le repasser dans {n} semaine",
+    "boardFund": "Enveloppe staff du conseil"
   },
   "pos": {
     "LP": "Pilier gauche",
@@ -5264,7 +5263,17 @@
     "upToursSubj": "🎟 Les visites du stade rapportent discrètement",
     "upTours": "La visite de {stadium} - vestiaire, tunnel, un tour au micro, une photo devant la vitrine à trophées - tourne depuis le début de saison avec un temps partiel et un bénévole, et les réservations scolaires ont explosé. {amount}, dont l'essentiel dépensé à la boutique en sortant, ce qui était tout l'intérêt selon le responsable retail.",
     "upNamingSubj": "💰 Le sponsor veut la tribune, pas le maillot",
-    "upNaming": "Un sponsor a fait le tour de {stadium} mètre en main et est revenu avec une offre sur la tribune Nord : son nom dessus, ses couleurs dans les coursives, et un pack hospitalité que le service commercial a déjà vendu deux fois. {amount}, payés d'avance. L'association de supporters a un avis sur le nom et est invitée à l'exprimer au prochain forum."
+    "upNaming": "Un sponsor a fait le tour de {stadium} mètre en main et est revenu avec une offre sur la tribune Nord : son nom dessus, ses couleurs dans les coursives, et un pack hospitalité que le service commercial a déjà vendu deux fois. {amount}, payés d'avance. L'association de supporters a un avis sur le nom et est invitée à l'exprimer au prochain forum.",
+    "boardNoSubj": "🏛 Le conseil dit non : {ask_k}",
+    "boardYesSubj": "🏛 Le conseil accepte : {ask_k}",
+    "boardNo_time": "Le président vous a écouté et ne vous a rien donné. « Nous soutenons les entraîneurs qui gagnent. » La porte est fermée pour deux mois.",
+    "boardNo_funds": "Le directeur financier a parlé le plus, et surtout du compte courant. Il n'y a plus d'argent cette saison.",
+    "boardNo_facilities": "Le conseil ne coulera pas de béton sur les résultats de cette saison. Construisez le dossier sur le terrain d'abord.",
+    "boardNo_staff": "L'encadrement reste ce qu'il est. « Tirez davantage de ceux que vous avez » : tout entraîneur l'entend un jour.",
+    "boardYes_time": "Le président vous a soutenu publiquement, noir sur blanc, avec son nom dessus. Ça vous mène jusqu'à la nouvelle année quoi que dise le classement - et c'est la dernière fois.",
+    "boardYes_funds": "Le conseil a trouvé de l'argent qu'il n'avait pas la semaine dernière, ce que la victoire fait à un bilan. C'est dans le budget transferts.",
+    "boardYes_facilities": "Le conseil financera le prochain chantier. Allez le demander sur la page Infrastructures : la facture est pour eux.",
+    "boardYes_staff": "Le conseil a mis de l'argent de côté pour le staff. Ce n'est pas dans le budget transferts et cela ne peut pas y aller : cela paie les entraîneurs, les formations qui les diplôment, et les huit semaines qu'il faut pour en remercier un. Dépensez-le tant que la bonne volonté dure, car les conseils ont la mémoire courte sur ce genre de choses."
   },
   "comm": {
     "oppCoachNamed": "{coach} a fait ses devoirs : {team} s'est réglé spécifiquement sur {pattern_k}. Changez le visage du match, ou jouez à travers leur plan.",
@@ -5598,7 +5607,9 @@
     "badgeFailedCourse_w": "{name} a échoué à son diplôme {badge_k}. Les frais de formation sont perdus et elle repasse dans quatre semaines.",
     "requestGranted": "A accordé sa demande de transfert à {player}.",
     "requestRefused": "A refusé sa demande de transfert à {player}.",
-    "standOpened": "La nouvelle tribune de {stadium} a ouvert : {seats} places, capacité désormais {cap}."
+    "standOpened": "La nouvelle tribune de {stadium} a ouvert : {seats} places, capacité désormais {cap}.",
+    "boardNo": "Demandé au conseil : {ask_k}. Refusé.",
+    "boardYes": "Demandé au conseil : {ask_k}. Accordé."
   },
   "persLower": {
     "Professional": "professionnel",
@@ -5816,7 +5827,15 @@
     "requestGrantedSenior": "Accordé, et le vestiaire s'est tu en l'apprenant. {player} était des leurs.",
     "requestRefused": "Refusé. {player} reste, et reste mécontent de rester.",
     "requestRefusedBadly": "Refusé, et très mal pris. {player} a quitté le bureau sans serrer la main.",
-    "requestRefusedBadly_f": "Refusé, et très mal pris. {player} a quitté le bureau sans serrer la main."
+    "requestRefusedBadly_f": "Refusé, et très mal pris. {player} a quitté le bureau sans serrer la main.",
+    "boardNo_time": "« Nous soutenons les entraîneurs qui gagnent. » Non. Et ils ne l'entendront plus avant un moment.",
+    "boardNo_funds": "Non. Le directeur financier a parlé du compte courant pendant dix minutes.",
+    "boardNo_facilities": "Non. Construisez le dossier sur le terrain d'abord.",
+    "boardNo_staff": "Non. Tirez davantage de ceux que vous avez.",
+    "boardYes_time": "Le président vous soutient publiquement. Cela fait {n} semaines, quoi que dise le classement.",
+    "boardYes_funds": "Approuvé : {amount} ajoutés au budget transferts.",
+    "boardYes_facilities": "Approuvé. Le conseil paie le prochain chantier de {facility} - demandez-le sur Infrastructures.",
+    "boardYes_staff": "Accordé : {amount} réservés au staff. Cette enveloppe paie avant l'argent du club."
   },
   "verdict": {
     "titleFavourites": "Favoris pour le titre",
@@ -6555,7 +6574,7 @@
     "bought": "Acquis. Lié à votre compte de boutique - Restaurer le récupère sur un nouveau téléphone.",
     "needCareer": "Ouvrez d'abord une carrière - la retraite médicale a besoin d'un effectif à soigner.",
     "removeAds": "Pro Manager",
-    "removeAdsLine": "Plus aucune publicité, jamais. Trois habillages réservés aux Pro, et six plans de jeu enregistrés au lieu de trois. Rien ne change au rugby.",
+    "removeAdsLine": "Plus aucune publicité, jamais. Trois habillages réservés aux Pro. Rien ne change au rugby.",
     "heal": "Éponge magique - pleine forme",
     "healLine": "Chaque blessure soignée, tout l'effectif frais. Une fois par match joué.",
     "healDone": "C'est fait : tout l'effectif est déclaré apte.",
@@ -6721,5 +6740,28 @@
     "modest": "Modeste",
     "weak": "Faible",
     "poor": "Pauvre"
+  },
+  "board": {
+    "room": "Le conseil",
+    "roomSub": "quatre choses à demander, et aucune n'est gratuite",
+    "knock": "Demander au conseil",
+    "ask_time": "⏳ Demander du temps",
+    "askDesc_time": "Un soutien public du président. Ça ne gagne pas les matchs ; ça vous achète les semaines pour le faire.",
+    "ask_funds": "💷 Demander de l'argent",
+    "askDesc_funds": "Une rallonge au budget transferts, prise sur les réserves du club.",
+    "ask_facilities": "🏗 Demander une installation",
+    "askDesc_facilities": "Le conseil paie le prochain chantier lui-même, au lieu de vous laisser le financer.",
+    "ask_staff": "🧑‍🏫 Demander un budget staff",
+    "askDesc_staff": "Une enveloppe réservée au staff : entraîneurs, formations, et les départs.",
+    "blockEstateMax": "Plus rien à construire. Toutes les installations sont déjà au sommet.",
+    "blockBuilders": "Les ouvriers sont déjà sur un chantier. Un projet à la fois.",
+    "blockNotStruggling": "Vous n'êtes pas sous pression. Demander du temps dont vous n'avez pas besoin en créerait.",
+    "blockAlreadyTime": "Le président vous a déjà soutenu publiquement. Servez-vous-en.",
+    "blockFundsSeason": "Vous êtes déjà allé les voir pour de l'argent cette saison.",
+    "blockStaffSeason": "Vous êtes déjà allé les voir pour l'encadrement cette saison.",
+    "caseStrong": "Ils prendront ça au sérieux.",
+    "caseFair": "Ça peut basculer d'un côté ou de l'autre.",
+    "caseThin": "Vous demanderiez sur bien peu de chose.",
+    "caseShut": "Ils ont dit non récemment. Redemander, c'est les forcer."
   }
 }

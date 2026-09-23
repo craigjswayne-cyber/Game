@@ -16,7 +16,7 @@ import { AWARD_EVERY, managerOfMonth, runLine, runVars } from './awards'
 import { boardMemo } from './boardmemo'
 import { terraceWeek } from './terraces'
 import { upkeepWeek } from './upkeep'
-import {absWeek, addGrudge, boardObjective, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, buildWeeks, finalVenue, fixtureDayOff, fmtMoney, leagueTier, LEDGER_WEEKS, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, RELEGATES, SEASON_WEEKS, seasonLabel, squadTrust, GROUND_TIERS, groundLevel, groundBuildWeeks, unbeatenRun, weeklyCentral, mgrWinWeight, addWeeks100 } from './model'
+import {absWeek, addGrudge, boardObjective, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, buildWeeks, finalVenue, fixtureDayOff, fmtMoney, leagueTier, LEDGER_WEEKS, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, RELEGATES, SEASON_WEEKS, seasonLabel, squadTrust, stamp100, GROUND_TIERS, groundLevel, groundBuildWeeks, unbeatenRun, weeklyCentral, mgrWinWeight, addWeeks100 } from './model'
 import { simMatch, autoSelect, pickTrainingInjury, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { BARRAGE_WEEK, windowSpan } from './calendar'
 import { emptyRow, leaguePos, sortTable, snIdFor, snWeeksFor, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS, W_AUTUMN_WEEKS, W_SIX_NATIONS_WEEKS, W_PAC4_WEEKS, W_SUMMER_TEST_WEEKS } from './schedule'
@@ -39,6 +39,7 @@ import { clamp, mulberry32, shuffled, type Rng } from './rng'
 import { gameTimeReview, settleGameTime } from './gametime'
 import { rebuildSeason, rollIntakeClass } from './rollover'
 import { drillWeek } from './playbook'
+import { askBoard, type BoardAsk } from './boardroom'
 import { expireLoans, loanTargets } from './loans'
 import { refreshVacancies, sackManager } from './jobs'
 import { playAcademyWeek } from './academy'
@@ -57,7 +58,7 @@ export function weekRng(state: GameState): Rng {
  *  HALVES the board's confidence; the next is the sack, that week, whatever
  *  the table says. Deterministic, rng-free, and the reply says exactly what
  *  pressing again will cost - the dismissal is a choice, never an ambush. */
-function pressBoard(state: GameState, kind: 'capital' | 'funds'): string {
+function pressBoard(state: GameState, kind: 'capital' | 'funds' | 'time' | 'staff'): string {
   const club = state.clubs[state.userClubId]
   const asks = (state.boardAsks ??= {})
   const rec = (asks[kind] ??= { deniedAt: 0, strikes: 0 })
@@ -141,7 +142,19 @@ export function requestFacility(state: GameState, fid: FacilityId): string {
     logDecision(state, 'dec.facilityDeclined', { lvl: lvl + 1, fac_k: info.name, why_k: whyKey }, false)
     return t('reply.declined', { why_k: whyKey })
   }
-  club.balance -= clubShare
+  /**
+   * A BOARDROOM GRANT IS PAID BY THE BOARD (v1.8.3). If the chairman has
+   * already agreed to fund this one, the club's share is nil and the grant
+   * is spent - one building, once. That is the whole difference between the
+   * ask on this page and the ask in the boardroom: here you are asking to be
+   * allowed to spend, there you are asking somebody else to.
+   */
+  const granted = (state.boardGrant ?? []).indexOf(fid)
+  if (granted >= 0) {
+    state.boardGrant!.splice(granted, 1)
+  } else {
+    club.balance -= clubShare
+  }
   // the higher the rung, the longer the builders stay (buildWeeks in model.ts)
   const weeks = buildWeeks(lvl + 1)
   state.facilityBuild = { id: fid, done: addWeeks100(abs, weeks), level: lvl + 1 }
@@ -286,6 +299,14 @@ export function requestExpansion(state: GameState): string {
  * adore you, or when tenure has earned it - plus the pressBoard consequences
  * for coming back inside a refusal.
  */
+/** The boardroom door (boardroom.ts). It is here rather than there because
+ *  pressBoard - the cost of knocking on a door the board just shut - has
+ *  lived in this file since it was written, and one escalation ladder is
+ *  worth more than two that agree today. */
+export function askTheBoard(state: GameState, id: BoardAsk): string {
+  return askBoard(state, id, pressBoard)
+}
+
 export function requestFunds(state: GameState): string {
   const club = state.clubs[state.userClubId]
   if (!club || state.unemployed) return ''
@@ -3360,7 +3381,19 @@ export function processWeekAndAdvance(state: GameState) {
         k: 'news.finalWarning', v: {},
       })
     }
-    if (club.boardConfidence <= 3 && state.week > 8) {
+    /**
+     * A CHAIRMAN WHO GAVE YOU UNTIL CHRISTMAS DOES NOT SACK YOU IN NOVEMBER
+     * (v1.8.3). The board can grant more time in the boardroom, and a grant
+     * that the next bad week overrides is not a grant, it is a letter. The
+     * FINAL WARNING above still goes out, because the reprieve is time, not
+     * absolution, and the manager should be able to feel the clock.
+     *
+     * Being pushed once too often is NOT covered by this: that dismissal is
+     * for ignoring the board, and a stay of execution the board granted is
+     * exactly the thing being ignored.
+     */
+    const reprieved = (state.boardGrace ?? 0) > stamp100(state)
+    if (club.boardConfidence <= 3 && state.week > 8 && !reprieved) {
       // the mechanics live in sackManager (jobs.ts) - shared with the
       // pushed-once-too-often dismissal of the board-request escalation
       sackManager(state, 'news.sacked')

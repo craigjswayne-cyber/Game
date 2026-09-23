@@ -54,7 +54,14 @@ export default function CampusMap({ game, onPick }: {
 
   return (
     <div className="card" style={{ padding: 6, overflow: 'hidden' }}>
-      <div style={{
+      {/* THE PLATE IS PORTRAIT (768x1024) and the frame is width-driven, so on
+          a landscape phone it drew 971px of map on a 326px page: three
+          screenfuls of picture before you reached a single button, and the
+          scroll audit failed the page at 5.09. .campus-frame caps it against
+          the viewport HEIGHT instead, so the map fits the screen it is on and
+          the facility list is one swipe away rather than four. Portrait is
+          untouched: there the content width still binds first. */}
+      <div className="campus-frame" style={{
         position: 'relative', width: '100%', aspectRatio: `${PLATE_W} / ${PLATE_H}`,
         borderRadius: 6, overflow: 'hidden', background: 'var(--surface-2)',
       }}>

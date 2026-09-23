@@ -1346,8 +1346,6 @@
   "withoutTheBallSub": "hoe die lyn verdedig wanneer hulle dit het",
   "planSet": "Gestel: {dials}",
   "planSave": "Stoor as Plan {n}",
-  "planPro": "Nog drie planne met Pro",
-  "planProTitle": "Pro-bestuurder gee jou ses gestoorde planne in plaas van drie - een vir die nat dae, een vir 'n groter pak, een vir die laaste tien minute.",
   "planSaveTitle": "Hou wat nou op die knoppe is: die vier glyers, die verdedigingspaar, vastespelroepe, skopvolgorde en uitgang.",
   "planLoad": "Plan {n}",
   "planOverTitle": "Oorskryf Plan {n} met die huidige instellings",
@@ -1530,7 +1528,8 @@
   "reasonNotListening_f": "Die jong speler luister nie so fyn soos sy kan nie.",
   "reasonLeads_f": "{senior} lei deur voorbeeld en die meisie het dit raakgesien.",
   "failedRetake_w": "Het haar laaste assessering gedruip - kan dit oor {n} weke weer aflê",
-  "failedRetakeOne_w": "Het haar laaste assessering gedruip - kan dit oor {n} week weer aflê"
+  "failedRetakeOne_w": "Het haar laaste assessering gedruip - kan dit oor {n} week weer aflê",
+  "boardFund": "Direksie se agterkamerfonds"
  },
  "pos": {
   "LP": "Loskopstut",
@@ -5364,7 +5363,17 @@
   "upToursSubj": "🎟 Stadiontoere maak stil-stil geld",
   "upTours": "Die toer deur {stadium} - kleedkamer, tonnel, 'n beurt oor die luidsprekers, 'n foto by die trofeekas - loop die hele seisoen met een deeltydse werker en 'n vrywilliger, en die skoolbesprekings het die hoogte ingeskiet. {amount}, die meeste daarvan in die winkel op pad uit, wat volgens die kleinhandelbestuurder die hele plan was.",
   "upNamingSubj": "💰 Die borg wil die pawiljoen hê, nie die trui nie",
-  "upNaming": "'n Borg het met 'n maatband deur {stadium} geloop en teruggekom met 'n aanbod vir die Noordpawiljoen: hul naam daarop, hul kleure in die wandelgang, en 'n onthaalpakket wat die bemarkingsafdeling reeds twee keer verkoop het. {amount}, vooruit betaal. Die ondersteunersvereniging het menings oor die naam en is genooi om dit by die volgende forum te deel."
+  "upNaming": "'n Borg het met 'n maatband deur {stadium} geloop en teruggekom met 'n aanbod vir die Noordpawiljoen: hul naam daarop, hul kleure in die wandelgang, en 'n onthaalpakket wat die bemarkingsafdeling reeds twee keer verkoop het. {amount}, vooruit betaal. Die ondersteunersvereniging het menings oor die naam en is genooi om dit by die volgende forum te deel.",
+  "boardNoSubj": "🏛 Direksie sê nee: {ask_k}",
+  "boardYesSubj": "🏛 Die direksie stem in: {ask_k}",
+  "boardNo_time": "Die voorsitter het jou aangehoor en niks gegee nie. \"Ons steun afrigters wat wen. Wen, en jy sal ons baie ondersteunend vind.\" Die deur is vir 'n paar maande toe.",
+  "boardNo_funds": "Die finansiële direkteur het die meeste gepraat, en meestal oor die lopende rekening. Daar is nie meer geld hierdie seisoen nie.",
+  "boardNo_facilities": "Die direksie is nie lus om beton te gooi op hierdie seisoen se bewyse nie. Bou eers 'n saak op die veld.",
+  "boardNo_staff": "Die agterkamer bly so groot soos hy is. \"Kry meer uit dié wat jy het\" is 'n sin wat elke afrigter uiteindelik hoor.",
+  "boardYes_time": "Die voorsitter het openlik vir jou uitgekom, in druk, met sy naam daarop. Dit koop jou tyd tot die nuwe jaar, wat ook al die punteleer sê, en dit is die laaste ding van sy soort wat jy sal kry.",
+  "boardYes_funds": "Die direksie het geld gevind wat hulle verlede week nie gehad het nie, wat is wat wen aan 'n balansstaat doen. Dit is nou in die oordragbegroting.",
+  "boardYes_facilities": "Die direksie sal die volgende bouwerk self betaal. Gaan na Klubinfrastruktuur en vra daarvoor; die rekening is hulle s'n, nie joune nie.",
+  "boardYes_staff": "Die direksie het geld vir die agterkamer opsygesit. Dit is nie in die oordragbegroting nie en kan nie daarheen geskuif word nie: dit betaal vir afrigters, vir die kursusse wat hulle kwalifiseer, en vir die agt weke wat dit neem om van een ontslae te raak. Bestee dit terwyl die goedgesindheid hou, want direksies het kort geheues oor hierdie soort ding."
  },
  "comm": {
   "oppCoachNamed": "{coach} het sy huiswerk gedoen: {team} is spesifiek opgestel vir {pattern_k}. Verander die prentjie, of speel deur die plan.",
@@ -5733,7 +5742,9 @@
   "badgeFailedCourse_fw": "{name} het haar {badge_k}-kwalifikasie gedruip. Die kursusfooi is weg en haar herskryf oor vier weke.",
   "requestGranted": "Het {player} se oordragversoek toegestaan.",
   "requestRefused": "Het {player} se oordragversoek geweier.",
-  "standOpened": "Die nuwe pawiljoen by {stadium} het oopgemaak: {seats} sitplekke, kapasiteit nou {cap}."
+  "standOpened": "Die nuwe pawiljoen by {stadium} het oopgemaak: {seats} sitplekke, kapasiteit nou {cap}.",
+  "boardNo": "Die direksie gevra vir {ask_k}: afgekeur.",
+  "boardYes": "Die direksie gevra vir {ask_k}: toegestaan."
  },
  "persLower": {
   "Professional": "professioneel",
@@ -5972,7 +5983,15 @@
   "requestGrantedSenior": "Toegestaan, en die kleedkamer het stil geword toe hulle dit hoor. {player} was een van hulle.",
   "requestRefused": "Geweier. {player} bly, en bly ongelukkig daaroor.",
   "requestRefusedBadly": "Geweier, en sleg opgeneem. {player} het die kantoor verlaat sonder om hande te skud.",
-  "requestRefusedBadly_f": "Geweier, en sleg opgeneem. {player} het die kantoor verlaat sonder om hande te skud."
+  "requestRefusedBadly_f": "Geweier, en sleg opgeneem. {player} het die kantoor verlaat sonder om hande te skud.",
+  "boardNo_time": "\"Ons steun afrigters wat wen.\" Nee. En hulle sal dit 'n ruk lank nie weer aanhoor nie.",
+  "boardNo_funds": "Nee. Die finansiële direkteur het tien minute lank oor die lopende rekening gepraat.",
+  "boardNo_facilities": "Nee. Bou eers die saak op die veld.",
+  "boardNo_staff": "Nee. Kry meer uit dié wat jy het.",
+  "boardYes_time": "Die voorsitter steun jou openlik. Dit is {n} weke, wat ook al die punteleer sê.",
+  "boardYes_funds": "Goedgekeur: {amount} by die oordragbegroting gevoeg.",
+  "boardYes_facilities": "Goedgekeur. Die direksie betaal vir die volgende {facility}-bouwerk; vra daarvoor op Klubinfrastruktuur.",
+  "boardYes_staff": "Goedgekeur: {amount} vir die agterkamer opsygesit. Dit betaal voor die klub se eie geld."
  },
  "verdict": {
   "titleFavourites": "Titelgunstelinge",
@@ -6769,7 +6788,7 @@
   "bought": "Joune. Dit volg jou winkelrekening - Herstel bring dit op 'n nuwe foon terug.",
   "needCareer": "Maak eers 'n loopbaan oop - die toevlugsoord het 'n spangroep nodig om te besoek.",
   "removeAds": "Pro-bestuurder",
-  "removeAdsLine": "Geen advertensies, ooit. Drie temas wat net Pro-bestuurders kry, en ses gestoorde spelplanne in plaas van drie. Niks aan die rugby verander nie.",
+  "removeAdsLine": "Geen advertensies, ooit. Drie temas wat net Pro-bestuurders kry. Niks aan die rugby verander nie.",
   "heal": "Towerspons - Volle fiksheid",
   "healLine": "Elke besering genees, die hele spangroep vars. Een keer per gespeelde wedstryd.",
   "healDone": "Klaar: die hele spangroep meld fiks aan.",
@@ -6932,5 +6951,28 @@
   "modest": "Beskeie",
   "weak": "Swak",
   "poor": "Swakkerig"
+ },
+ "board": {
+  "room": "Die Direksiekamer",
+  "roomSub": "vier dinge wat jy kan vra, en nie een is goedkoop nie",
+  "knock": "Vra die direksie",
+  "ask_time": "⏳ Vra vir meer tyd",
+  "askDesc_time": "Openbare steun van die voorsitter. Dit wen nie wedstryde nie; dit koop jou die weke om dit te doen.",
+  "ask_funds": "💷 Vra vir meer geld",
+  "askDesc_funds": "'n Aanvulling tot die oordragbegroting, uit die klub se eie reserwes.",
+  "ask_facilities": "🏗 Vra vir 'n fasiliteitsopgradering",
+  "askDesc_facilities": "Die direksie betaal die volgende bouwerk heeltemal, eerder as om jou daarvoor te laat spandeer.",
+  "ask_staff": "🧑‍🏫 Vra vir 'n groter personeelbegroting",
+  "askDesc_staff": "'n Fonds wat vir die agterkamer opsygesit is: afrigters, kursusse en uittredes.",
+  "blockEstateMax": "Niks oor om te bou nie. Elke fasiliteit is reeds wêreldklas.",
+  "blockBuilders": "Die bouers is reeds op die terrein. Een projek op 'n slag.",
+  "blockNotStruggling": "Jy is nie onder druk nie. Om tyd te vra wat jy nie nodig het nie, sal druk skep.",
+  "blockAlreadyTime": "Die voorsitter het jou reeds openlik gesteun. Gebruik dit.",
+  "blockFundsSeason": "Jy was hierdie seisoen al na hulle toe vir geld.",
+  "blockStaffSeason": "Jy was hierdie seisoen al na hulle toe oor die agterkamer.",
+  "caseStrong": "Hulle sal dit ernstig opneem.",
+  "caseFair": "Dit kan enige kant toe gaan.",
+  "caseThin": "Jy sou op baie min vra.",
+  "caseShut": "Hulle het onlangs nee gesê. Om weer te vra, is om hulle te druk."
  }
 }

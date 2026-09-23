@@ -1333,8 +1333,6 @@
   "withoutTheBallSub": "come difende la linea quando ce l'hanno loro",
   "planSet": "Impostato: {dials}",
   "planSave": "Salva come piano {n}",
-  "planPro": "Tre piani in più con Pro",
-  "planProTitle": "Pro Manager ti dà sei piani salvati invece di tre: uno per le giornate di pioggia, uno per un pacchetto più pesante, uno per gli ultimi dieci minuti.",
   "planSaveTitle": "Conserva quello che c’è ora sui comandi: i quattro cursori, la coppia difensiva, le chiamate di touche e mischia, l’ordine dei calciatori e l’uscita.",
   "planLoad": "Piano {n}",
   "planOverTitle": "Sovrascrivi il piano {n} con i comandi attuali",
@@ -1510,7 +1508,8 @@
   "oneKidAlready_f": " - ha già una ragazza",
   "reasonPoorTeacher_f": "{senior} è un'ottima giocatrice e una maestra mediocre.",
   "reasonNotListening_f": "La ragazza non ascolta con tutta l'attenzione che potrebbe.",
-  "reasonLeads_f": "{senior} guida con l'esempio e la ragazza se n'è accorta."
+  "reasonLeads_f": "{senior} guida con l'esempio e la ragazza se n'è accorta.",
+  "boardFund": "Fondo staff del consiglio"
  },
  "pos": {
   "LP": "Pilone sinistro",
@@ -5178,7 +5177,17 @@
   "upToursSubj": "🎟 I tour dello stadio fanno cassa in silenzio",
   "upTours": "Il tour di {stadium} - spogliatoio, tunnel, un giro al microfono, una foto davanti alla bacheca - va avanti da inizio stagione con un part-time e un volontario, e le prenotazioni scolastiche sono esplose. {amount}, per lo più spesi al negozio all'uscita, che secondo il responsabile retail era esattamente il punto.",
   "upNamingSubj": "💰 Lo sponsor vuole la tribuna, non la maglia",
-  "upNaming": "Uno sponsor ha girato {stadium} con il metro in mano ed è tornato con un'offerta per la Tribuna Nord: il suo nome sopra, i suoi colori nel concourse e un pacchetto hospitality che l'ufficio commerciale ha già venduto due volte. {amount}, anticipati. Il club dei sostenitori ha idee precise sul nome ed è stato invitato a esporle al prossimo forum."
+  "upNaming": "Uno sponsor ha girato {stadium} con il metro in mano ed è tornato con un'offerta per la Tribuna Nord: il suo nome sopra, i suoi colori nel concourse e un pacchetto hospitality che l'ufficio commerciale ha già venduto due volte. {amount}, anticipati. Il club dei sostenitori ha idee precise sul nome ed è stato invitato a esporle al prossimo forum.",
+  "boardNoSubj": "🏛 Il consiglio dice no: {ask_k}",
+  "boardYesSubj": "🏛 Il consiglio accetta: {ask_k}",
+  "boardNo_time": "Il presidente ti ha ascoltato e non ti ha dato niente. \"Sosteniamo gli allenatori che vincono.\" La porta resta chiusa un paio di mesi.",
+  "boardNo_funds": "Ha parlato soprattutto il direttore finanziario, e soprattutto del conto corrente. Non ci sono altri soldi questa stagione.",
+  "boardNo_facilities": "Il consiglio non getta cemento sui risultati di questa stagione. Prima costruisci il caso sul campo.",
+  "boardNo_staff": "Lo staff resta quello che è. \"Tira fuori di più da quelli che hai\" è una frase che ogni allenatore sente prima o poi.",
+  "boardYes_time": "Il presidente si è esposto per te pubblicamente, per iscritto e col suo nome. Questo ti porta a capodanno qualunque cosa dica la classifica, ed è l'ultima del genere che otterrai.",
+  "boardYes_funds": "Il consiglio ha trovato soldi che la settimana scorsa non aveva, che è quello che vincere fa a un bilancio. Sono già nel budget mercato.",
+  "boardYes_facilities": "Il consiglio finanzierà il prossimo cantiere. Vai su Infrastrutture del Club e chiedilo: il conto è loro, non tuo.",
+  "boardYes_staff": "Il consiglio ha messo da parte dei soldi per lo staff. Non sono nel budget trasferimenti e non possono finirci: pagano gli allenatori, i corsi che li abilitano e le otto settimane che servono per mandarne via uno. Spendili finché dura la buona volontà, perché i consigli hanno la memoria corta su queste cose."
  },
  "comm": {
   "oppCoachNamed": "{coach} ha fatto i compiti a casa: {team} si è schierata apposta contro {pattern_k}. Cambia il copione, o gioca dentro il loro piano.",
@@ -5500,7 +5509,9 @@
   },
   "requestGranted": "Ha accolto la richiesta di trasferimento di {player}.",
   "requestRefused": "Ha respinto la richiesta di trasferimento di {player}.",
-  "standOpened": "La nuova tribuna di {stadium} ha aperto: {seats} posti, capienza ora {cap}."
+  "standOpened": "La nuova tribuna di {stadium} ha aperto: {seats} posti, capienza ora {cap}.",
+  "boardNo": "Chiesto al consiglio: {ask_k}. Rifiutato.",
+  "boardYes": "Chiesto al consiglio: {ask_k}. Concesso."
  },
  "persLower": {
   "Professional": "professionale",
@@ -5704,7 +5715,15 @@
   "requestGrantedSenior": "Concessa, e lo spogliatoio è ammutolito quando l'ha saputo. {player} era uno di loro.",
   "requestRefused": "Respinta. {player} resta, e resta scontento di restare.",
   "requestRefusedBadly": "Respinta, e presa malissimo. {player} è uscito dall'ufficio senza stringere la mano.",
-  "requestRefusedBadly_f": "Respinta, e presa malissimo. {player} è uscita dall'ufficio senza stringere la mano."
+  "requestRefusedBadly_f": "Respinta, e presa malissimo. {player} è uscita dall'ufficio senza stringere la mano.",
+  "boardNo_time": "\"Sosteniamo gli allenatori che vincono.\" No. E non ne risentiranno parlare per un po'.",
+  "boardNo_funds": "No. Il direttore finanziario ha parlato del conto corrente per dieci minuti.",
+  "boardNo_facilities": "No. Prima costruisci il caso sul campo.",
+  "boardNo_staff": "No. Tira fuori di più da quelli che hai.",
+  "boardYes_time": "Il presidente ti sostiene pubblicamente. Sono {n} settimane, qualunque cosa dica la classifica.",
+  "boardYes_funds": "Approvato: {amount} aggiunti al budget mercato.",
+  "boardYes_facilities": "Approvato. Il consiglio paga il prossimo cantiere di {facility}: chiedilo su Infrastrutture del Club.",
+  "boardYes_staff": "Approvato: {amount} riservati allo staff. Si spende prima dei soldi del club."
  },
  "verdict": {
   "titleFavourites": "Favorita per il titolo",
@@ -6433,7 +6452,7 @@
   "bought": "Tuo. Segue il tuo account dello store: Ripristina lo riporta su un telefono nuovo.",
   "needCareer": "Apri prima una carriera: il ritiro ha bisogno di una squadra da visitare.",
   "removeAds": "Pro Manager",
-  "removeAdsLine": "Nessuna pubblicità, mai. Tre temi che hanno solo i Pro, e sei piani di gioco salvati invece di tre. Del rugby non cambia nulla.",
+  "removeAdsLine": "Nessuna pubblicità, mai. Tre temi che hanno solo i Pro. Del rugby non cambia nulla.",
   "heal": "Spugna magica - piena forma",
   "healLine": "Ogni infortunio guarito, tutta la rosa fresca. Una volta per partita giocata.",
   "healDone": "Fatto: tutta la rosa è abile e arruolata.",
@@ -6599,5 +6618,28 @@
   "modest": "Modesto",
   "weak": "Debole",
   "poor": "Scarso"
+ },
+ "board": {
+  "room": "Il consiglio",
+  "roomSub": "quattro cose da chiedere, e nessuna è gratis",
+  "knock": "Chiedi al consiglio",
+  "ask_time": "⏳ Chiedi più tempo",
+  "askDesc_time": "Un sostegno pubblico del presidente. Non vince le partite; ti compra le settimane per vincerle.",
+  "ask_funds": "💷 Chiedi più soldi",
+  "askDesc_funds": "Un'aggiunta al budget mercato, presa dalle riserve del club.",
+  "ask_facilities": "🏗 Chiedi una struttura",
+  "askDesc_facilities": "Il consiglio paga il prossimo cantiere di tasca sua, invece di lasciarlo a te.",
+  "ask_staff": "🧑‍🏫 Chiedi più budget per lo staff",
+  "askDesc_staff": "Un fondo riservato allo staff: allenatori, corsi e le uscite.",
+  "blockEstateMax": "Non c'è più niente da costruire. Ogni struttura è già al massimo.",
+  "blockBuilders": "Il cantiere è già aperto. Un progetto alla volta.",
+  "blockNotStruggling": "Non sei sotto pressione. Chiedere tempo che non ti serve ne creerebbe.",
+  "blockAlreadyTime": "Il presidente ti ha già sostenuto pubblicamente. Usalo.",
+  "blockFundsSeason": "Sei già andato da loro per soldi questa stagione.",
+  "blockStaffSeason": "Sei già andato da loro per lo staff questa stagione.",
+  "caseStrong": "La prenderanno sul serio.",
+  "caseFair": "Può andare in un senso o nell'altro.",
+  "caseThin": "Chiederesti avendo ben poco dalla tua.",
+  "caseShut": "Hanno detto no da poco. Richiedere significa forzarli."
  }
 }
