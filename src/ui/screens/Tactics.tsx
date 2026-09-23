@@ -506,29 +506,17 @@ export default function Tactics() {
         </div>
         {/* THE MANAGER'S OWN PLANS (owner, v1.2.7: "your own four sliders,
             set-piece calls and kicker order have to be re-dialled by hand every
-            time you switch plan"). Three slots, six with Pro Manager. An empty
-            one saves what is on the dials now - everything on this screen
-            except the team sheet - and a full one puts it back; the small
-            button beside it overwrites.
+            time you switch plan"). Two slots, and two is now the whole of it
+            for everyone (store.ts). An empty one saves what is on the dials
+            now - everything on this screen except the team sheet - and a full
+            one puts it back; the small button beside it overwrites.
 
-            The Pro slots are SHOWN to everyone and locked rather than hidden:
-            a manager who has filled A, B and C is the one who wants D, and he
-            cannot want what he cannot see. Tapping a locked one goes to the
-            Store, because a chip that looks pressable and does nothing is a
-            bug report. */}
+            There was a greyed ⭐ chip on the end offering the Pro slots. It is
+            gone with them: an invitation to unlock a number that no longer
+            differs would be a chip that looks pressable and sells nothing. */}
         <div className="plan-slots">
-          {(['A', 'B', 'C', 'D', 'E', 'F'] as const).map((letter, i) => {
-            if (i >= planSlots()) {
-              // only the first locked one is offered - six greyed chips in a
-              // row is a wall, one is an invitation
-              if (i !== planSlots()) return null
-              return (
-                <button key={letter} className="preset-chip plan-empty" onClick={() => go('supporter')}
-                  title={t('tacticsScreen.planProTitle')}>
-                  ⭐ {t('tacticsScreen.planPro')}
-                </button>
-              )
-            }
+          {(['A', 'B'] as const).map((letter, i) => {
+            if (i >= planSlots()) return null
             const slot = game.gamePlans?.[i]
             const snapshot = () => {
               const { lineup: _lineup, ...values } = tac
@@ -565,13 +553,20 @@ export default function Tactics() {
           </div>
         )}
         <SectionTitle sub={t('tacticsScreen.withTheBallSub')}>{t('tacticsScreen.withTheBall')}</SectionTitle>
-        {SLIDER_INFO.map(slider)}
+        {/* .dial-grid: one column on a phone held upright, two once there is
+            room for them. The Game Plan tab is six dials, three zones and a
+            defence by name, which is 1112px of page on a landscape phone -
+            3.41 screenfuls, and scripts/scrollaudit.mjs fails anything at
+            three. Pairing them up on a wide screen is the honest fix; nothing
+            is hidden and portrait is untouched. */}
+        <div className="dial-grid">{SLIDER_INFO.map(slider)}</div>
         {/* ---- WHAT YOU DO WHERE (v1.8.0) ----
             Three zones, one choice each, because the four dials above are the
             whole-match plan and this is the one decision a coach makes in a
             particular part of the pitch. It could not exist before the engine
             had a field position for it to refer to. */}
         <SectionTitle sub={t('tacticsScreen.byZoneSub')}>{t('tacticsScreen.byZone')}</SectionTitle>
+        <div className="dial-grid">
         {(['own22', 'middle', 'opp22'] as ZoneId[]).map(z => {
           const cur = zonePlan(z, tac.zones?.[z])
           return (
@@ -591,6 +586,7 @@ export default function Tactics() {
             </div>
           )
         })}
+        </div>
         <SectionTitle sub={t('tacticsScreen.withoutTheBallSub')}>{t('tacticsScreen.withoutTheBall')}</SectionTitle>
         {/* THE SYSTEM, BY NAME (v1.7.0). A coach picks a defence by its name
             and then tunes it, so the names come first and the two dials below
@@ -615,7 +611,7 @@ export default function Tactics() {
             </div>
           )
         })()}
-        {DEF_SLIDER_INFO.map(defSlider)}
+        <div className="dial-grid">{DEF_SLIDER_INFO.map(defSlider)}</div>
       </>}
 
       {roleSheet()}
