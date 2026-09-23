@@ -147,11 +147,17 @@ ok(fr?.played === true, 'the friendly was played')
     while (w.week < week) processWeekAndAdvance(w)
     const before = w.clubs[w.userClubId].balance
     processWeekAndAdvance(w)
-    return w.clubs[w.userClubId].balance - before
+    // MINUS THE WEEK'S REPAIR BILL. upkeep.ts rolls one story a week off the
+    // shared stream, and playing a friendly moves that stream's position - so
+    // the two worlds get DIFFERENT bills, and the delta between them was a
+    // sun-damaged stand (£644k) rather than anything to do with a gate. The
+    // charge is recorded on the save (season.ts) precisely so this probe can
+    // put it back and measure the thing it came here to measure.
+    return w.clubs[w.userClubId].balance - before - (w.lastUpkeep ?? 0)
   }
   const plain = run(false)
   const played = run(true)
-  console.log(`     one bye week, balance change: without a friendly ${plain}, with one ${played}`)
+  console.log(`     one bye week, balance change net of the week's repair bill: without a friendly ${plain}, with one ${played}`)
   ok(played === plain,
     `a friendly in an otherwise empty week moved the bank by exactly nothing (${played - plain})`)
 }
