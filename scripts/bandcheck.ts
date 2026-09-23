@@ -87,7 +87,28 @@ console.log(`\n  POOLED (${tot} games)  ${pool.pts.toFixed(1)}pts  ${pool.tries.
   `${(pool.home * 100).toFixed(1)}% home  ${(pool.draw * 100).toFixed(1)}% draws  ${(pool.blow * 100).toFixed(1)}% blowouts`)
 console.log(`  per-seed spread: pts ${spread(r => r.pts).toFixed(1)}  draws ${(spread(r => r.draw) * 100).toFixed(1)}pp  home ${(spread(r => r.home) * 100).toFixed(1)}pp\n`)
 
-ok(pool.pts >= 52 && pool.pts <= 56, `scoring is rugby-shaped (${pool.pts.toFixed(1)} pts a game, band 52-56)`)
+// ---- THE POINTS BAND, RE-DERIVED (v1.6.9) ----
+//
+// 52-56 was set when the world converted 83-89% of its tries and kicked four
+// penalty goals a game. Two deliberate changes have happened underneath it
+// since, and neither is a regression:
+//
+//   THE GOAL-KICKING CEILING (v1.6.7) took conversions to 76.8%, against
+//   "about 73% in the professional club game" - its own stated target.
+//   ADVANTAGE (v1.6.7) diverts roughly an eighth of kickable penalties away
+//   from a shot at goal, which is what an arm out and a whistle down means.
+//
+// Measured per game against the pre-territory build: tries 6.60 -> 7.14,
+// conversions 5.91 -> 5.48, penalty goals 4.19 -> 2.91, drop goals
+// 0.25 -> 0.10. The MIX is more like professional rugby than it has ever
+// been; the TOTAL is lower because the old total was propped up by kicking
+// nobody claimed was realistic. The band was the one number never re-derived
+// when the things it measures were rebuilt.
+//
+// 48-53, pooled. The top division alone reads 51.0 (320 games) and the pool
+// carries the weaker leagues with it. Owner's call, taken with the table
+// above in front of him.
+ok(pool.pts >= 48 && pool.pts <= 53, `scoring is rugby-shaped (${pool.pts.toFixed(1)} pts a game, band 48-53)`)
 ok(pool.tries >= 6.0 && pool.tries <= 6.6, `tries hold their rate (${pool.tries.toFixed(2)}, band 6.0-6.6)`)
 ok(pool.home >= 0.51 && pool.home <= 0.57, `home advantage is real and not decisive (${(pool.home * 100).toFixed(1)}%, band 51-57)`)
 ok(pool.draw >= 0.014 && pool.draw <= 0.030, `draws stay rare (${(pool.draw * 100).toFixed(1)}%, band 1.4-3.0)`)

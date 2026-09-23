@@ -341,6 +341,45 @@ export function deriveTrait(p: { id: number; pos: Player['pos']; a: Player['a'] 
 }
 // i18n-exempt-end
 
+/**
+ * ---- A SECOND SHIRT (v1.8.4) ----
+ *
+ * `alt` was only ever whatever a data file said. That was fine while the world
+ * was the data file and became a hole the moment it was not: the men's world
+ * opens with 6.1% of its players covering a second position and the WOMEN'S
+ * world opens with 0.0%, because the women's files were written without the
+ * field. Every alt path in the engine - the auto-picker's fallback ladder, the
+ * bench's Law 3 front-row cover, the scout's position match - is dead code in
+ * the women's game, and it decays toward dead in the men's too as regens
+ * replace the named players.
+ *
+ * So a player with nothing said about him gets one from the pairs the real
+ * data already describes, at about the rate the real data already shows. The
+ * table is one-directional on purpose and read both ways at the call site:
+ * these are the swaps a coach actually makes, not every adjacency on a team
+ * sheet. A hooker is not a lock and a prop is not a wing.
+ *
+ * Drawn off the same seeded stream as everything else here, so a world is
+ * still the same world twice.
+ */
+const ALT_NEIGHBOURS: Record<Pos, Pos[]> = {
+  LP: ['TP'], TP: ['LP'], HK: ['LP', 'TP'],
+  LK: ['FL', 'N8'], FL: ['N8', 'LK'], N8: ['FL', 'LK'],
+  SH: ['FH'], FH: ['FB', 'CE'],
+  CE: ['WG', 'FB', 'FH'], WG: ['FB', 'CE'], FB: ['WG', 'FH', 'CE'],
+}
+
+function rollAlt(pos: Pos, seed: number, name: string): Pos[] {
+  const near = ALT_NEIGHBOURS[pos]
+  if (!near?.length) return []
+  // ITS OWN STREAM, not buildPlayer's. Drawing from the shared one would add
+  // two calls per player and shift every attribute in the world behind it -
+  // a second shirt for a reserve prop is not worth re-rolling the planet for.
+  const rng = mulberry32((seed ^ hashString(name) ^ 0x5a17) >>> 0)
+  const r = rng()
+  return r < 0.075 ? [near[Math.floor(rng() * near.length)]] : []
+}
+
 export function buildPlayer(raw: RawPlayer, clubId: string | null, seed: number, seasonNow: number): Player {
   const a = deriveAttrs(raw, seed)
   const rng = mulberry32(seed ^ (hashString(raw.name) + 7))
@@ -359,7 +398,7 @@ export function buildPlayer(raw: RawPlayer, clubId: string | null, seed: number,
     id: nextPid(),
     name: raw.name,
     pos: raw.pos,
-    alt: raw.alt ?? [],
+    alt: raw.alt ?? rollAlt(raw.pos, seed, raw.name),
     age: raw.age,
     nat: raw.nat,
     clubId,

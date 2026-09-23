@@ -193,6 +193,37 @@ export function staffInterest(state: GameState, c: StaffCandidate): 'keen' | 'pe
  */
 export interface AppointBlock { short: string; long: string }
 
+/**
+ * ---- THE BOARD'S BACKROOM FUND (boardroom.ts, v1.8.3) ----
+ *
+ * A chairman talked into "a bigger staff budget" does not hand the manager
+ * cash to spend where he likes - that is the transfer ask, and it already
+ * exists. He ring-fences money for the backroom, and the backroom spends it
+ * FIRST: an appointment fee, a course fee, the eight weeks it takes to move a
+ * man on. Nothing else draws on it.
+ *
+ * That is what makes the grant a thing you can feel rather than a letter: a
+ * coach the club could not afford last week is affordable this week, and the
+ * club's own balance never moved to do it. It is a pot, not an allowance, so
+ * it carries across seasons and ends when it is spent.
+ */
+export function backroomFund(state: GameState): number { return Math.max(0, state.staffRoom ?? 0) }
+
+/** What the backroom can find today: the club's balance plus the board's pot. */
+export function backroomCanPay(state: GameState, cost: number): boolean {
+  const club = state.clubs[state.userClubId]
+  return !!club && club.balance + backroomFund(state) >= cost
+}
+
+/** Spend on the backroom, board's money first. */
+function payBackroom(state: GameState, cost: number): void {
+  const club = state.clubs[state.userClubId]
+  if (!club) return
+  const fromBoard = Math.min(backroomFund(state), cost)
+  if (fromBoard > 0) state.staffRoom = backroomFund(state) - fromBoard
+  club.balance -= cost - fromBoard
+}
+
 export function appointBlock(state: GameState, c: StaffCandidate): AppointBlock | null {
   const club = state.clubs[state.userClubId]
   // These are shown on the card the manager just tapped, so they are in his
@@ -204,10 +235,11 @@ export function appointBlock(state: GameState, c: StaffCandidate): AppointBlock 
       long: t('staff.blockBiggerClubLong', { ...subjectVar(c.g), name: c.name, badge: badgeLabel(c.tier).toLowerCase() }),
     }
   }
-  if (club.balance < c.fee) {
+  if (!backroomCanPay(state, c.fee)) {
+    const have = club.balance + backroomFund(state)
     return {
-      short: t('staff.blockNoBudget', { have: fmt(club.balance), need: fmt(c.fee) }),
-      long: t('staff.blockNoBudgetLong', { ...subjectVar(c.g), name: c.name, need: fmt(c.fee), have: fmt(club.balance) }),
+      short: t('staff.blockNoBudget', { have: fmt(have), need: fmt(c.fee) }),
+      long: t('staff.blockNoBudgetLong', { ...subjectVar(c.g), name: c.name, need: fmt(c.fee), have: fmt(have) }),
     }
   }
   return null
@@ -232,9 +264,11 @@ export function sackStaff(state: GameState, role: StaffRole): string {
   const p = state.staffPeople?.[role]
   if (!p) return t('staff.sackNobody')
   const cost = sackCost(state, role)
-  if (club.balance < cost) return t('staff.sackNoMoney', { ...subjectVar(p.g), need: fmt(cost), have: fmt(club.balance) })
+  if (!backroomCanPay(state, cost)) {
+    return t('staff.sackNoMoney', { ...subjectVar(p.g), need: fmt(cost), have: fmt(club.balance + backroomFund(state)) })
+  }
   const info = STAFF_INFO[role]
-  club.balance -= cost
+  payBackroom(state, cost)
   state.staff[role] = 0
   state.staffSalt = (state.staffSalt ?? 0) + 1
   const people = { ...(state.staffPeople ?? {}) } as Record<string, StaffPerson | undefined>
@@ -259,7 +293,7 @@ export function appointStaff(state: GameState, role: StaffRole, idx: number): st
   if (block) return block.long
   const info = STAFF_INFO[role]
   const outgoing = state.staffPeople?.[role]
-  club.balance -= c.fee
+  payBackroom(state, c.fee)
   state.staff[role] = c.tier
   state.staffSalt = (state.staffSalt ?? 0) + 1
   state.staffPeople = {
@@ -340,9 +374,10 @@ export function courseBlock(state: GameState, role: StaffRole): AppointBlock | n
       t(wks === 1 ? 'staff.courseResitsLongOne' : 'staff.courseResitsLong', { ...subjectVar(p.g), name: p.name, n: wks }))
   }
   const fee = courseFee(p.tier)
-  if (club.balance < fee) {
-    return say(t('staff.courseNoBudget', { have: fmt(club.balance), need: fmt(fee) }),
-      t('staff.courseNoBudgetLong', { need: fmt(fee), have: fmt(club.balance) }))
+  if (!backroomCanPay(state, fee)) {
+    const have = club.balance + backroomFund(state)
+    return say(t('staff.courseNoBudget', { have: fmt(have), need: fmt(fee) }),
+      t('staff.courseNoBudgetLong', { need: fmt(fee), have: fmt(have) }))
   }
   return null
 }
@@ -355,7 +390,7 @@ export function sendToCourse(state: GameState, role: StaffRole): string {
   const info = STAFF_INFO[role]
   const abs = state.season * 100 + state.week
   const fee = courseFee(p.tier)
-  club.balance -= fee
+  payBackroom(state, fee)
   const toTier = p.tier + 1
   const badge = BADGE[toTier].toLowerCase()
   const passed = examRoll(state.seed, abs, role) < EXAM_PASS_PCT

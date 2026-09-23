@@ -67,19 +67,36 @@ if (!found) {
     fails++
   } else {
     const before = ctx.events.length
+    // HAS HE DONE ANYTHING SINCE HE CAME ON? The probe used to assume not, and
+    // rode its luck: it takes the LAST substitution in up to six segments of
+    // rugby, which can be ten minutes old, and once the territory and
+    // advantage work put more tries in those ten minutes the assistant's man
+    // started scoring them. That is not a flake, it is the second half of the
+    // feature - a cover who has played cannot be erased, because his try is in
+    // the record - so the probe now tests whichever case it was handed.
+    const played = ctx.events.slice(at + 1).some(e => e.playerId === onId)
     const msg = swapInjuryCover(g, ctx, onId, other.id)
     console.log(`  override: ${msg}`)
-    ok(mine.onPitch.has(other.id) && !mine.onPitch.has(onId),
-      `${other.name} is on and ${assistantsMan.name} is not`)
-    ok(ctx.events[at].playerId === other.id,
-      `the line that said somebody came on now names ${other.name}`)
-    ok(ctx.events[at].text.includes(other.name) && !ctx.events[at].text.includes(assistantsMan.name),
-      `and reads "${ctx.events[at].text}"`)
-    const named = ctx.events.filter(e => (e.text ?? '').includes(assistantsMan.name))
-    ok(named.length === 0,
-      `the assistant's man is nowhere in the commentary (${named.length} line(s): ${named.map(e => e.text).join(' / ').slice(0, 120)})`)
-    ok(ctx.events.length === before,
-      'and no second line was added to explain a change the record no longer needs explaining')
+    if (played) {
+      console.log(`  (${assistantsMan.name} had already played: the window is shut)`)
+      ok(mine.onPitch.has(onId) && !mine.onPitch.has(other.id),
+        `${assistantsMan.name} stays on - a man who has played cannot be taken back off`)
+      ok(ctx.events[at].playerId === onId,
+        'and the record still says it was him who came on')
+      ok(ctx.events.length === before, 'and nothing was written about a change that did not happen')
+    } else {
+      ok(mine.onPitch.has(other.id) && !mine.onPitch.has(onId),
+        `${other.name} is on and ${assistantsMan.name} is not`)
+      ok(ctx.events[at].playerId === other.id,
+        `the line that said somebody came on now names ${other.name}`)
+      ok(ctx.events[at].text.includes(other.name) && !ctx.events[at].text.includes(assistantsMan.name),
+        `and reads "${ctx.events[at].text}"`)
+      const named = ctx.events.filter(e => (e.text ?? '').includes(assistantsMan.name))
+      ok(named.length === 0,
+        `the assistant's man is nowhere in the commentary (${named.length} line(s): ${named.map(e => e.text).join(' / ').slice(0, 120)})`)
+      ok(ctx.events.length === before,
+        'and no second line was added to explain a change the record no longer needs explaining')
+    }
   }
 }
 

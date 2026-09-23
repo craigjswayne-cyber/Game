@@ -215,7 +215,7 @@ section('1.2a red card in minute 2')
 
 section('1.2b penalty awarded on the final whistle: the clock, the kick, the scoreboard')
 {
-  let ordered = 0, counted = 0, n = 0, awarded = 0
+  let ordered = 0, counted = 0, n = 0, awarded = 0, early = 0
   const mismatch: string[] = []
   let silent = 0
   for (let i = 0; i < 120; i++) {
@@ -230,19 +230,26 @@ section('1.2b penalty awarded on the final whistle: the clock, the kick, the sco
     if (r !== 'FT') continue
     if (!ctx.decision) continue
     awarded++
-    const ftIdx = ctx.events.findIndex(e => e.type === 'FT')
+    // THE WHISTLE IS HELD, NOT YET BLOWN (1.6.6). It used to be written inside
+    // this tick and the kick spliced in front of it afterwards; now the half
+    // simply does not end until the call is answered, so at this point there
+    // is no full-time line to be ahead of - and the audit checks that too,
+    // because a whistle that arrives early is the bug the owner reported.
+    if (ctx.events.some(e => e.type === 'FT')) early++
     const before = ctx.home.score
     resolveDecision(g, ctx, 'posts')
+    const ftIdx = ctx.events.findIndex(e => e.type === 'FT')
     const kickIdx = ctx.events.findIndex((e, k) => k > 0 && (e.type === 'PEN' || (e.k ?? '').startsWith('comm.penWide')) && e.min >= 76)
     if (kickIdx < 0) silent++
-    else if (ftIdx >= 0 && kickIdx < ctx.events.findIndex(e => e.type === 'FT')) ordered++
+    else if (ftIdx >= 0 && kickIdx < ftIdx) ordered++
     const ft = ctx.events.find(e => e.type === 'FT')
     const ftSays = Number(ft?.v?.hs)
     if (ctx.fx.homeScore === ctx.home.score && ftSays === ctx.home.score && (ctx.home.score === before || ctx.home.score === before + 3)) counted++
     else if (mismatch.length < 2) mismatch.push(`ticker ${ctx.home.score}-${ctx.away.score}, fixture ${ctx.fx.homeScore}-${ctx.fx.awayScore}`)
   }
   ok(awarded > 0, `a kickable penalty can be awarded inside the last tick and is held for the manager (${awarded}/${n} rigged matches)`)
-  ok(ordered + silent === awarded, `the kick is spliced in AHEAD of the full-time line, every time (${ordered}/${awarded - silent}; ${silent} misses narrated nothing)`)
+  ok(early === 0, `the full-time whistle waits for the call - it is never narrated while one is open (${awarded - early}/${awarded})`)
+  ok(ordered + silent === awarded, `the kick is narrated AHEAD of the full-time line, every time (${ordered}/${awarded - silent}; ${silent} misses narrated nothing)`)
   ok(counted === awarded, `the fixture's recorded score AND the full-time line include a kick taken after the whistle (${counted}/${awarded})${mismatch.length ? ' - ' + mismatch.join('; ') : ''}`)
 }
 

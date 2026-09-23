@@ -1,0 +1,114 @@
+{
+  "set": "kicking",
+  "status": "locked",
+  "canvas": [
+    1254,
+    1254
+  ],
+  "site_plan": "central mass growing outward, 6m apron ring, four stubs run in to the ring",
+  "stub_routes_clear": true,
+  "signature": "full-height ball-stop netting; translucent canopy at L5, ground visible through mesh",
+  "colour_measurement_caveat": "netting desaturates grass samples; sample outside the enclosure only",
+  "l4_outer_grass_rgb": [
+    69,
+    154,
+    43
+  ],
+  "l5_green_shortfall_pct": -6,
+  "known_deviations": [
+    "L4 to L5 growth is flat: 58.6% to 60.7% built, 2.1 points against 5-24 for earlier steps",
+    "L5 grass could not be isolated for measurement because the canopy covers the plot"
+  ],
+  "levels": [
+    {
+      "level": 0,
+      "file": "kicking-L0.png",
+      "content": "one weathered set of posts on open grass",
+      "built_pct": 4.9,
+      "detail_density": 0.069,
+      "stub_reach_m": {
+        "north": 83.5,
+        "south": 83.5,
+        "west": 83.5,
+        "east": 83.5
+      },
+      "md5": "66638176954057c075358699d0473d1a",
+      "bytes": 2360548
+    },
+    {
+      "level": 1,
+      "file": "kicking-L1.png",
+      "content": "lined strip, one set of posts, low net, small store",
+      "built_pct": 18.6,
+      "detail_density": 0.105,
+      "stub_reach_m": {
+        "north": 83.5,
+        "south": 41.9,
+        "west": 83.5,
+        "east": 83.5
+      },
+      "md5": "5c731b103cb9c6457b60f83402d5dfa1",
+      "bytes": 2157543
+    },
+    {
+      "level": 2,
+      "file": "kicking-L2.png",
+      "content": "two sets of posts, netting north and east, tee stations",
+      "built_pct": 24.0,
+      "detail_density": 0.127,
+      "stub_reach_m": {
+        "north": 83.5,
+        "south": 33.6,
+        "west": 83.5,
+        "east": 83.5
+      },
+      "md5": "747bf334c4046534aef1f5b13928b2b2",
+      "bytes": 1706301
+    },
+    {
+      "level": 3,
+      "file": "kicking-L3.png",
+      "content": "fully enclosed, synthetic surface, distance arcs",
+      "built_pct": 47.9,
+      "detail_density": 0.16,
+      "stub_reach_m": {
+        "north": 83.5,
+        "south": 34.1,
+        "west": 83.5,
+        "east": 83.5
+      },
+      "md5": "a5401e8643f6901b8de03dd300fbc9cb",
+      "bytes": 1909320
+    },
+    {
+      "level": 4,
+      "file": "kicking-L4.png",
+      "content": "covered kicking bay with solar, ball-return channels",
+      "built_pct": 58.6,
+      "detail_density": 0.195,
+      "stub_reach_m": {
+        "north": 83.5,
+        "south": 31.7,
+        "west": 29.9,
+        "east": 83.5
+      },
+      "md5": "2a5306e254732af7d30a170dc061ed5b",
+      "bytes": 1948657
+    },
+    {
+      "level": 5,
+      "file": "kicking-L5.png",
+      "content": "net canopy over the whole enclosure, indoor kicking hall",
+      "built_pct": 60.7,
+      "detail_density": 0.224,
+      "stub_reach_m": {
+        "north": 83.5,
+        "south": 24.8,
+        "west": 18.7,
+        "east": 15.9
+      },
+      "md5": "bf874db0cd70ca95512103d144ac3e97",
+      "bytes": 2250637
+    }
+  ]
+}

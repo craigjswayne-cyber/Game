@@ -1986,6 +1986,25 @@ function Live() {
             </div>
           )
         })()}
+        {/* ---- PRESSURE (owner, v1.7.0) ----
+            Two bars, one a side, growing outward from the middle. The bar
+            above this is POSSESSION SHARE and always sums to one, so it can
+            only ever say who has more of the ball; these say how much either
+            side is actually doing with it, and in a scrappy ten minutes both
+            of them are short, which is the honest answer a share cannot give.
+            Derived in the engine off each tick (SideCtx.pressure), so it
+            costs no rng and cannot move a result. */}
+        {!done && (
+          <div className="press-row">
+            <div className="press-bar home" title={t('matchday.pressureTitle')}>
+              <div className="press-fill" style={{ width: `${Math.round(ctx.home.pressure)}%`, background: homeC[0] }} />
+            </div>
+            <span className="press-label">{t('matchday.pressureLabel')}</span>
+            <div className="press-bar away" title={t('matchday.pressureTitle')}>
+              <div className="press-fill" style={{ width: `${Math.round(ctx.away.pressure)}%`, background: awayC[0] }} />
+            </div>
+          </div>
+        )}
         {/* THE SCREEN SAYS SO. Above 0.45 the game names what this now is: a
             one-score match inside the closing quarter. Static, not a pulse -
             prefers-reduced-motion collapses every duration in this codebase

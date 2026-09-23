@@ -50,8 +50,20 @@ const MEASURE = () => {
     if (r.width < 6 || r.height < 6 || r.bottom < 0 || r.top > window.innerHeight) continue
     const cs = getComputedStyle(el)
     if (cs.visibility === 'hidden' || cs.display === 'none') continue
-    // background if it paints one, otherwise the text colour it contributes
-    const c = parse(cs.backgroundColor) ?? parse(cs.color)
+    // background if it paints one, otherwise the text colour it contributes -
+    // and for an SVG node, the FILL, which is where its colour actually lives.
+    //
+    // Without the fill this probe was blind to every jersey on the screen.
+    // The Tactics team sheet used to draw each man as a coloured block, whose
+    // club colour was a background-color and was read correctly; it draws a
+    // real jersey now, and the same club colour moved into `fill` where
+    // nothing here looked for it. 107 SVG nodes - paths, groups, rects -
+    // inherited the page's grey text colour and were scored as grey, and the
+    // screen's measured chroma fell from 0.169 to 0.061 while it was getting
+    // MORE colourful, not less. A probe that cannot see paint is not measuring
+    // a palette.
+    const svg = el.namespaceURI === 'http://www.w3.org/2000/svg'
+    const c = (svg ? parse(cs.fill) : null) ?? parse(cs.backgroundColor) ?? parse(cs.color)
     if (!c) continue
     const s = sat(c)
     const a = Math.min(r.width, 844) * Math.min(r.height, 390)

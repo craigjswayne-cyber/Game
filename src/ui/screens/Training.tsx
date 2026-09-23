@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
 import { STAFF_INFO, fmtMoney, fmtWage, type TrainingFocus, weeksBetween100 } from '../../game/model'
-import { BADGE_COL, EXAM_PASS_PCT, badgeLabel, traitLabel, appointBlock, appointStaff, courseBlock, courseFee, sackCost, sackStaff, sendToCourse, staffCandidates, staffChemPairs, staffInterest, type StaffRole } from '../../game/staff'
+import { BADGE_COL, EXAM_PASS_PCT, badgeLabel, traitLabel, appointBlock, appointStaff, backroomFund, courseBlock, courseFee, sackCost, sackStaff, sendToCourse, staffCandidates, staffChemPairs, staffInterest, type StaffRole } from '../../game/staff'
 import { MENTEE_MAX_AGE, MENTOR_MAX_KIDS, canBeMentored, canMentor, fitReason, fitWord, mentorCap, mentorFit } from '../../game/mentoring'
 import { activePlan, planCap } from '../../game/season'
 import { flagOf } from '../../game/nations'
@@ -66,7 +66,7 @@ export default function Training() {
                   same way the personal plans below print it (owner, v1.2.6:
                   "(Lock)" and "(LK)" on one screen was two styles for one
                   fact, and the long form wrapped the chips) */}
-              {on ? '● ' : '○ '}{p.name} ({p.pos}) <b>{p.age}</b>
+              {on ? '● ' : '○ '}{p.name} ({p.pos}) <b style={{ marginLeft: 3 }}>{p.age}</b>
             </button>
           )
         })}
@@ -166,6 +166,16 @@ function StaffPanel() {
   return (
     <>
       <SectionTitle sub={t('training.backroomStaffSub', { pct: EXAM_PASS_PCT })}>{t('training.backroomStaff')}</SectionTitle>
+      {/* THE BOARD'S FUND, IF THERE IS ONE (boardroom.ts). It is spent before
+          the club's own balance, so without a line here a manager would see
+          a coach he could not afford last week become affordable and have no
+          idea why. Shown only when there is something in it. */}
+      {backroomFund(game) > 0 && (
+        <div className="card" style={{ padding: '7px 10px', marginBottom: 6, borderLeft: '4px solid var(--gold)' }}>
+          <div className="fact-label">{t('training.boardFund')}</div>
+          <div style={{ fontWeight: 700, color: 'var(--gold)' }}>{fmtMoney(backroomFund(game))}</div>
+        </div>
+      )}
       {/* the weather in the room (25D-3): who feeds off whom and who cannot
           stand whom. Without this the chemistry is invisible three seasons
           after the hire-day letter, and the manager has no way to know why

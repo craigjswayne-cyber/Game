@@ -16,8 +16,8 @@ import { AWARD_EVERY, managerOfMonth, runLine, runVars } from './awards'
 import { boardMemo } from './boardmemo'
 import { terraceWeek } from './terraces'
 import { upkeepWeek } from './upkeep'
-import {absWeek, addGrudge, boardObjective, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, finalVenue, fixtureDayOff, fmtMoney, leagueTier, LEDGER_WEEKS, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, RELEGATES, SEASON_WEEKS, seasonLabel, squadTrust, unbeatenRun, weeklyCentral, mgrWinWeight, addWeeks100 } from './model'
-import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
+import {absWeek, addGrudge, boardObjective, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, buildWeeks, finalVenue, fixtureDayOff, fmtMoney, leagueTier, LEDGER_WEEKS, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, RELEGATES, SEASON_WEEKS, seasonLabel, squadTrust, stamp100, GROUND_TIERS, groundLevel, groundBuildWeeks, unbeatenRun, weeklyCentral, mgrWinWeight, addWeeks100 } from './model'
+import { simMatch, autoSelect, pickTrainingInjury, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { BARRAGE_WEEK, windowSpan } from './calendar'
 import { emptyRow, leaguePos, sortTable, snIdFor, snWeeksFor, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS, W_AUTUMN_WEEKS, W_SIX_NATIONS_WEEKS, W_PAC4_WEEKS, W_SUMMER_TEST_WEEKS } from './schedule'
 import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice } from './ai'
@@ -39,6 +39,7 @@ import { clamp, mulberry32, shuffled, type Rng } from './rng'
 import { gameTimeReview, settleGameTime } from './gametime'
 import { rebuildSeason, rollIntakeClass } from './rollover'
 import { drillWeek } from './playbook'
+import { askBoard, type BoardAsk } from './boardroom'
 import { expireLoans, loanTargets } from './loans'
 import { refreshVacancies, sackManager } from './jobs'
 import { playAcademyWeek } from './academy'
@@ -57,7 +58,7 @@ export function weekRng(state: GameState): Rng {
  *  HALVES the board's confidence; the next is the sack, that week, whatever
  *  the table says. Deterministic, rng-free, and the reply says exactly what
  *  pressing again will cost - the dismissal is a choice, never an ambush. */
-function pressBoard(state: GameState, kind: 'capital' | 'funds'): string {
+function pressBoard(state: GameState, kind: 'capital' | 'funds' | 'time' | 'staff'): string {
   const club = state.clubs[state.userClubId]
   const asks = (state.boardAsks ??= {})
   const rec = (asks[kind] ??= { deniedAt: 0, strikes: 0 })
@@ -94,6 +95,8 @@ export function requestFacility(state: GameState, fid: FacilityId): string {
   const lvl = club?.facilities?.[fid] ?? 0
   if (lvl >= MAX_FACILITY) return t('facilities.facAlreadyWorldClass', { facility: t(info.name).toLowerCase() })
   if (state.facilityBuild) return t('facilities.facBuildersBusy', { facility: t(FACILITY_INFO[state.facilityBuild.id].name) })
+  // one builders' slot, and the new stand is in it
+  if (state.stadiumBuild) return t('facilities.facStandBusy', { stadium: club.stadium })
   const abs = state.season * 100 + state.week
   // inside a denial the polite refusal is gone: asking again is pressing the
   // board, and pressing the board has a price (pressBoard above)
@@ -139,32 +142,64 @@ export function requestFacility(state: GameState, fid: FacilityId): string {
     logDecision(state, 'dec.facilityDeclined', { lvl: lvl + 1, fac_k: info.name, why_k: whyKey }, false)
     return t('reply.declined', { why_k: whyKey })
   }
-  club.balance -= clubShare
-  state.facilityBuild = { id: fid, done: addWeeks100(abs, 5), level: lvl + 1 }
+  /**
+   * A BOARDROOM GRANT IS PAID BY THE BOARD (v1.8.3). If the chairman has
+   * already agreed to fund this one, the club's share is nil and the grant
+   * is spent - one building, once. That is the whole difference between the
+   * ask on this page and the ask in the boardroom: here you are asking to be
+   * allowed to spend, there you are asking somebody else to.
+   */
+  const granted = (state.boardGrant ?? []).indexOf(fid)
+  if (granted >= 0) {
+    state.boardGrant!.splice(granted, 1)
+  } else {
+    club.balance -= clubShare
+  }
+  // the higher the rung, the longer the builders stay (buildWeeks in model.ts)
+  const weeks = buildWeeks(lvl + 1)
+  state.facilityBuild = { id: fid, done: addWeeks100(abs, weeks), level: lvl + 1 }
   delete state.boardAsks?.capital // a yes wipes the slate
   const boardPut = cost - clubShare
-  logDecision(state, 'dec.facilityApproved', { lvl: lvl + 1, fac_k: info.name, cost: fmtMoney(cost) }, true)
+  logDecision(state, 'dec.facilityApproved', { lvl: lvl + 1, fac_k: info.name, cost: fmtMoney(cost), weeks }, true)
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
     subject: `🏛 Board approves: ${tIn('en', info.name)} to level ${lvl + 1}`,
     body: `${fmtMoney(cost)} signed off on a level ${lvl + 1} ${tIn('en', info.name).toLowerCase()}${boardPut > 0
       ? ` - the board underwrite ${fmtMoney(boardPut)} of it and the club funds the remaining ${fmtMoney(clubShare)}`
-      : `, all of it from club funds`}. The builders move in on Monday and it opens in about five weeks. ${tIn('en', info.desc)}`,
+      : `, all of it from club funds`}. The builders move in on Monday and it opens in about ${weeks} weeks. ${tIn('en', info.desc)}`,
     k: boardPut > 0 ? 'news.facApprovedShared' : 'news.facApproved',
     v: {
       name_k: info.name, desc_k: info.desc, lvl: lvl + 1,
-      cost: fmtMoney(cost), board: fmtMoney(boardPut), club: fmtMoney(clubShare),
+      cost: fmtMoney(cost), board: fmtMoney(boardPut), club: fmtMoney(clubShare), weeks,
     },
   })
   return boardPut > 0
-    ? `Approved. The board put up ${fmtMoney(boardPut)}, the club ${fmtMoney(clubShare)} - about five weeks to build.`
-    : `Approved. ${fmtMoney(clubShare)} released - about five weeks to build.`
+    ? `Approved. The board put up ${fmtMoney(boardPut)}, the club ${fmtMoney(clubShare)} - about ${weeks} weeks to build.`
+    : `Approved. ${fmtMoney(clubShare)} released - about ${weeks} weeks to build.`
 }
 
 /** Cost of the next stand: seats added, at the same rate the board pays. */
 export function expansionPlan(state: GameState) {
   const club = state.clubs[state.userClubId]
-  const seats = Math.round((club.capacity * 0.06) / 100) * 100
+  /**
+   * ---- THE NEXT RUNG, AS FAR AS THE TOWN WILL BUY IT (owner, v1.6.8) ----
+   *
+   * The ground used to grow 6% at a time toward nothing in particular. It now
+   * climbs the six grounds in GROUND_TIERS, and what the board signs off is
+   * the gap to the next one - or, when the following will not carry a stand
+   * that big yet, as far toward it as the crowd justifies.
+   *
+   * THE STAGE IS THE TARGET, THE CATCHMENT IS THE LIMIT. A village club with
+   * 1,500 seats and 1,700 people who would come does not get a 3,000-seat
+   * stand because the ladder says so; it gets the 200 its support carries,
+   * and reaches stage one when its support does. That keeps the ladder honest
+   * on a small club without ever building a stand that stands empty.
+   */
+  const lvl = groundLevel(club.capacity)
+  const target = lvl >= GROUND_TIERS.length - 1
+    ? club.capacity
+    : Math.min(GROUND_TIERS[lvl + 1], demandCeiling(club))
+  const seats = Math.max(0, Math.round((target - club.capacity) / 100) * 100)
   // League and cup gates only. A pre-season friendly is deliberately priced
   // at 38% interest by the gate model, and this average used to include them
   // - so a club selling out every Saturday read "77% full" to its own board
@@ -177,7 +212,12 @@ export function expansionPlan(state: GameState) {
   // steel and concrete cost more the bigger the ground already is: the easy
   // terrace goes up first, the second tier needs foundations
   const perSeat = Math.round(1_400 * (1 + club.capacity / 45_000))
-  return { seats, cost: seats * perSeat, perSeat, avg: Math.round(avg), fill: avg ? avg / club.capacity : 0, played: home.length }
+  return {
+    seats, cost: seats * perSeat, perSeat, avg: Math.round(avg),
+    fill: avg ? avg / club.capacity : 0, played: home.length,
+    // the rung this build is climbing to, which sets how long it takes
+    nextLevel: Math.min(GROUND_TIERS.length - 1, lvl + 1),
+  }
 }
 
 /**
@@ -187,16 +227,23 @@ export function expansionPlan(state: GameState) {
 export function requestExpansion(state: GameState): string {
   const club = state.clubs[state.userClubId]
   const abs = state.season * 100 + state.week
-  if (club.capacity >= 82_000) return t('reply.groundAlreadyHuge', { stadium: club.stadium })
+  // THE TOP OF THE LADDER, and the hard cap above it for the handful of
+  // grounds that were already bigger than a stage-five stadium on day one
+  if (groundLevel(club.capacity) >= GROUND_TIERS.length - 1 || club.capacity >= 82_000) {
+    return t('reply.groundAlreadyHuge', { stadium: club.stadium })
+  }
   // the Infrastructure page greys the button out at this point, and the engine
   // has to agree with it: a board does not lay seats it cannot sell
   if (club.capacity >= demandCeiling(club) * 0.95) {
     return t('reply.groundBigEnough', { stadium: club.stadium })
   }
   if (state.facilityBuild) return t('reply.buildersBusy')
+  if (state.stadiumBuild) return t('facilities.facStandBusy', { stadium: club.stadium })
   // same door as the facilities: inside a denial, asking again is pressing
   if ((state.facilityAskCooldown ?? 0) > abs) return pressBoard(state, 'capital')
-  const { seats, cost, fill, played } = expansionPlan(state)
+  const { seats, cost, fill, played, nextLevel } = expansionPlan(state)
+  // the catchment may leave nothing worth laying this season
+  if (seats < 100) return t('reply.groundBigEnough', { stadium: club.stadium })
   // one stand a season: builders, planning permission and a season ticket
   // renewal cycle all take their time
   if (state.expandedSeason === state.season) {
@@ -223,18 +270,24 @@ export function requestExpansion(state: GameState): string {
     return t('reply.declined', { why_k: whyKey, pct: Math.round(fill * 100) })
   }
   club.balance -= cost
-  club.capacity += seats
   state.expandedSeason = state.season
+  // THE SEATS ARRIVE WHEN THE STAND DOES (owner, v1.6.6). A yes used to put
+  // them on the gate the same afternoon, which made the one project big enough
+  // to reshape the club the only one that cost no time at all. The money goes
+  // now - the contract is signed - and the capacity moves when the builders
+  // are off site, twelve weeks later, holding the builders' slot meanwhile.
+  const weeks = groundBuildWeeks(nextLevel)
+  state.stadiumBuild = { done: addWeeks100(abs, weeks), seats, cost }
   delete state.boardAsks?.capital // a yes wipes the slate
-  logDecision(state, 'dec.expandApproved', { stadium: club.stadium, seats, cost: fmtMoney(cost), cap: club.capacity }, true)
+  logDecision(state, 'dec.expandApproved', { stadium: club.stadium, seats, cost: fmtMoney(cost), weeks }, true)
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
-    subject: `🏗 ${club.stadium} grows by ${seats.toLocaleString()} seats`,
-    body: `The board has signed off on a new stand: ${fmtMoney(cost)}, and ${club.stadium} now holds ${club.capacity.toLocaleString()}. The waiting list finally moves, and every one of those seats pays its way at the turnstile.`,
+    subject: `🏗 Builders move in at ${club.stadium}: ${seats.toLocaleString()} seats`,
+    body: `The board has signed off on a new stand: ${fmtMoney(cost)}, and ${seats.toLocaleString()} seats at ${club.stadium}. The hoardings go up this week and the stand opens in ${weeks} weeks - until then the ground holds what it always held, and the builders are on this and nothing else.`,
     k: 'news.expApproved',
-    v: { stadium: club.stadium, seats, cost: fmtMoney(cost), cap: club.capacity },
+    v: { stadium: club.stadium, seats, cost: fmtMoney(cost), weeks },
   })
-  return t('reply.expandApproved', { seats, cost: fmtMoney(cost), cap: club.capacity })
+  return t('reply.expandApproved', { seats, cost: fmtMoney(cost), weeks })
 }
 
 /**
@@ -246,6 +299,14 @@ export function requestExpansion(state: GameState): string {
  * adore you, or when tenure has earned it - plus the pressBoard consequences
  * for coming back inside a refusal.
  */
+/** The boardroom door (boardroom.ts). It is here rather than there because
+ *  pressBoard - the cost of knocking on a door the board just shut - has
+ *  lived in this file since it was written, and one escalation ladder is
+ *  worth more than two that agree today. */
+export function askTheBoard(state: GameState, id: BoardAsk): string {
+  return askBoard(state, id, pressBoard)
+}
+
 export function requestFunds(state: GameState): string {
   const club = state.clubs[state.userClubId]
   if (!club || state.unemployed) return ''
@@ -1105,6 +1166,67 @@ function weeklyTraining(state: GameState, rng: Rng) {
           })
         }
       }
+      /**
+       * ---- THE TUESDAY SESSION (design review, v1.6.7) ----
+       *
+       * Rugby does a quarter to a third of its damage on the training ground,
+       * and until now this game did none of it: every injury in a save came
+       * out of a Saturday, so a manager who rested his best men kept them for
+       * ever. A hamstring goes in a running drill and a shoulder goes in
+       * contact whether or not there is a fixture that week.
+       *
+       * The rate is per available man per week and it is small on purpose.
+       * Measured at this setting: about nine a club a season against the
+       * twenty-odd the matches produce, so roughly three in ten of a squad's
+       * injuries are done in training - which is what the professional game's
+       * own surveillance reports. Heavy legs and a man just back from a
+       * lay-off carry the real risk, exactly as they do in the match roll.
+       *
+       * It runs for every club in the world, because an injury table only the
+       * user's squad can land on is not a rule, it is a tax.
+       */
+      if (!p.injury && !p.maternity && p.bans === 0) {
+        const rustF = (p.rust ?? 0) > 0 ? 2.6 : 1
+        const tiredF = p.cond < 55 ? 1.7 : 1
+        const ageF = p.age >= 32 ? 1.3 : 1
+        // THE SURFACE YOU TRAIN ON (v1.8.1). This term used to sit in the
+        // match engine, shaving the user's injury roll at home off the old
+        // Playing Surface. A match is played at the ground; the pitch
+        // facility is where the squad WORKS, so a rutted one is what turns
+        // an ankle on a Tuesday. Every club's own, not just the manager's.
+        const surf = 1 - (club.facilities?.pitch ?? 0) * 0.05
+        if (rng() < 0.0026 * rustF * tiredF * ageF * surf) {
+          let [dk, weeks] = pickTrainingInjury(rng, genderOf(state))
+          if (isUser) {
+            // the same care that shortens a match lay-off shortens this one
+            const care = state.staff.physio * 0.12 + facLevel(state, 'recovery') * 0.03
+            if (care > 0) weeks = Math.max(1, Math.round(weeks * (1 - care)))
+          }
+          p.injury = { desc: tIn('en', dk), dk, until: state.week + weeks, weeks }
+          p.injLog = [...(p.injLog ?? []), { s: state.season, w: state.week, dk, weeks }].slice(-20)
+          // NO TICKER TO CARRY IT. A match injury is narrated as it happens;
+          // this one has nowhere to be seen, so the manager is written to or
+          // he finds out by opening the team sheet and wondering.
+          if (isUser && !p.acad) {
+            const v = { player: p.name, injury_k: dk, n: weeks }
+            state.news.push({
+              id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
+              subject: tIn('en', 'news.trainInjurySubj', v),
+              // ONE KEY, TWO FORMS. This used to file the one-week story under
+              // news.trainInjuryOne, and newsSubject (model.ts) builds an
+              // inbox headline as `k + 'Subj'` - so every one-week training
+              // injury put the literal text "news.trainInjuryOneSubj" at the
+              // top of the manager's inbox, in all six languages. i18nprobe
+              // could not see it because that key is assembled at runtime
+              // rather than written down. news.trainInjury carries {one,
+              // other} now and the dictionary picks the form off `n`.
+              body: tIn('en', 'news.trainInjury', v),
+              k: 'news.trainInjury',
+              v, playerId: p.id,
+            })
+          }
+        }
+      }
       if (p.injury && state.week >= p.injury.until) {
         const weeksOut = p.injury.weeks ?? 2
         p.injury = null
@@ -1120,7 +1242,13 @@ function weeklyTraining(state: GameState, rng: Rng) {
       // gentle in-season growth for youngsters, drift for user's training
       // focus. Damped near the top: without it the whole world's best 23
       // converge on 99 by season 12 and elite means nothing
-      const growBoost = isUser ? 1 + state.staff.assistant * 0.25 : 1
+      // GOOD PITCH, GOOD PREP (owner, v1.8.1). A squad that can actually
+      // train properly develops faster, and one working on a bog does not.
+      // Centred on level three like its match effect, so a bad pitch is a
+      // real cost rather than an absent bonus, and read off every club's own
+      // estate rather than only the manager's.
+      const surfBoost = 0.88 + (club.facilities?.pitch ?? 0) * 0.048
+      const growBoost = (isUser ? 1 + state.staff.assistant * 0.25 : 1) * surfBoost
       const eliteF = p.ca >= 94 ? 0.15 : p.ca >= 88 ? 0.5 : 1
       if (p.age <= 24 && p.ca < p.pa && rng() < 0.06 * growBoost * eliteF) p.ca += 1
       // a man on a personal plan works his own programme this week (18A);
@@ -2060,6 +2188,68 @@ export const NEWS_KEEP = 250
  * (which the UI plays via the MatchDay screen first).
  * Then move to next week.
  */
+/**
+ * ---- THE BOARD READS THE TABLE (v1.8.4) ----
+ *
+ * It used to read it once, at half term, against a target floored at 20. Both
+ * halves of that were wrong for a big club, and autopilotprobe caught it:
+ * twelve seasons of deliberate neglect at a rep-88 club got NOBODY sacked, and
+ * the board reached crisis in two of the twelve. A manager game whose board
+ * never acts has no stakes in it at all.
+ *
+ * Two changes, both stature-scaled, and the owner's words for what this should
+ * feel like are "pressure at a title favourite should be super hard and
+ * intense".
+ *
+ *   THE FLOOR. clamp(..., 20, 96) meant no blend could ever put a board below
+ *   20, so the sack check at 3 was unreachable by this route however badly a
+ *   giant did. The floor now falls with patience: a Championship board still
+ *   bottoms out around 22 and a title favourite's can reach 2. A minnow's
+ *   board is where the old number came from and keeps it.
+ *
+ *   THE CADENCE. Once a season is not pressure, it is an annual review. The
+ *   board now looks at weeks 12, 24 and 34 - a third of the way in, half term,
+ *   and with the run-in in front of it - and leans on it harder each time. A
+ *   giant sliding all year gets three verdicts, each worse than the last;
+ *   a side that recovers by March is judged on March.
+ *
+ * Deliberately NOT a route to a sacking on its own: the blend converges toward
+ * the target rather than jumping to it, so a board that ends the season hating
+ * you still needed the weekly results to agree. An engaged manager at the same
+ * club sits around 31 - visibly under pressure at a place where second is a
+ * crisis, and nowhere near the trapdoor.
+ */
+function boardReadsTheTable(state: GameState, lean = 1) {
+  const club = state.clubs[state.userClubId]
+  const comp = state.comps[club?.leagueId ?? '']
+  if (!club || !comp || comp.table.length <= 1) return
+  // A BOARD IN THE TRAPDOOR IS NOT TALKED ROUND BY THE TABLE. Without this the
+  // three reviews became three reprieves: chaosprobe drives confidence to zero
+  // and waits for the sack, and the week-12 review blended it straight back up
+  // to the target before the check at the end of the week could fire. A board
+  // that has already decided has already decided; the sack is the only thing
+  // left to happen to it.
+  if (club.boardConfidence <= 3) return
+  const posNow = leaguePos(comp.table, club.id)
+  if (posNow <= 0) return
+  const tableLen = comp.table.length
+  const objPos = Math.min(boardObjective(club.rep).pos, tableLen)
+  const devFrac = (posNow - objPos) / Math.max(1, tableLen - 1)
+  const patience = boardPatience(club.rep)
+  const floor = clamp(30 - patience * 14, 2, 26)
+  const target = clamp(70 - devFrac * 108, floor, 96)
+  const blendW = clamp(0.25 * patience * lean, 0.12, 0.62)
+  // BOARDS SOUR FASTER THAN THEY WARM. Symmetrical was wrong in both
+  // directions: it let a slide be forgiven at the next review as readily as it
+  // punished one, and chaosprobe caught the consequence - a board driven to
+  // zero was lifted back to 21 in a single reading because the table happened
+  // to look ordinary. Goodwill is earned back over a season, not over one
+  // afternoon with a league table, so a rise carries a third of the weight of
+  // a fall.
+  const w = target < club.boardConfidence ? blendW : blendW * 0.34
+  club.boardConfidence = clamp(club.boardConfidence * (1 - w) + target * w, 0, 100)
+}
+
 export function processWeekAndAdvance(state: GameState) {
   // last week's back page is last week's: a fresh one is written below if
   // the side plays, and a stale one must never sit over a new week
@@ -2403,6 +2593,29 @@ export function processWeekAndAdvance(state: GameState) {
       k: 'news.facOpens',
       v: { name_k: info.name, desc_k: info.desc, lvl: b.level },
     })
+  }
+
+  // and the stand tops out: the seats only exist once the builders are gone
+  if (state.stadiumBuild && state.season * 100 + state.week >= state.stadiumBuild.done) {
+    const b = state.stadiumBuild
+    const uc = state.clubs[state.userClubId]
+    state.stadiumBuild = null
+    if (uc) {
+      uc.capacity += b.seats
+      // NEW CONCRETE DOES NOT LEAK. The wear-and-tear stories in upkeep.ts are
+      // weighted by how long it is since anybody built anything here, and a
+      // stand is the thing that resets that - which is the other half of why
+      // a manager reinvests in the ground rather than banking the gate.
+      uc.wear = 0
+      logDecision(state, 'dec.standOpened', { stadium: uc.stadium, seats: b.seats, cap: uc.capacity }, true)
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
+        subject: `🏟 The new stand opens at ${uc.stadium}`,
+        body: `The hoardings are down and the turnstiles are through it: ${uc.stadium} now holds ${uc.capacity.toLocaleString()}, ${b.seats.toLocaleString()} of them new. The waiting list finally moves, and every one of those seats pays its way at the gate.`,
+        k: 'news.expOpened',
+        v: { stadium: uc.stadium, seats: b.seats, cap: uc.capacity },
+      })
+    }
   }
 
   // the physio's red flag: a position group stripped below cover gets an
@@ -2915,6 +3128,15 @@ export function processWeekAndAdvance(state: GameState) {
   // the Scouting Agency refreshes its world rankings every four weeks
   if (state.week % 4 === 2) updateAgency(state)
 
+  // THE BOARD LOOKS AT THE TABLE THREE TIMES, not once (boardReadsTheTable
+  // above). Week 24 is the half-term letter and does its own call inside that
+  // block; these are the two silent ones either side of it, and the lean grows
+  // because a board that has watched you slide since September is not still
+  // asking itself whether it is a blip.
+  if (!state.unemployed && (state.week === 12 || state.week === 34)) {
+    boardReadsTheTable(state, state.week === 12 ? 0.8 : 1.25)
+  }
+
   // half-term: the board grades the season so far, in writing
   if (state.week === 24 && !state.unemployed) {
     const club = state.clubs[state.userClubId]
@@ -2937,14 +3159,7 @@ export function processWeekAndAdvance(state: GameState) {
     // (clamped 20-96, never a mathematically impossible confidence). The
     // BLEND weight is patience-scaled too: a giant's board pulls toward the
     // half-term verdict harder, a minnow's barely moves off where it was.
-    if (posNow > 0 && (comp?.table.length ?? 0) > 1) {
-      const tableLen = comp!.table.length
-      const objPos = Math.min(boardObjective(club.rep).pos, tableLen)
-      const devFrac = (posNow - objPos) / Math.max(1, tableLen - 1)
-      const target = clamp(70 - devFrac * 108, 20, 96)
-      const blendW = clamp(0.25 * boardPatience(club.rep), 0.12, 0.5)
-      club.boardConfidence = clamp(club.boardConfidence * (1 - blendW) + target * blendW, 0, 100)
-    }
+    boardReadsTheTable(state)
     const pred = state.preds?.[club.id]
     const diff = pred && posNow ? pred - posNow : 0
     const objs = (state.objectives ?? []).map(id => OBJECTIVE_DEFS.find(o => o.id === id)).filter(Boolean)
@@ -3238,7 +3453,19 @@ export function processWeekAndAdvance(state: GameState) {
         k: 'news.finalWarning', v: {},
       })
     }
-    if (club.boardConfidence <= 3 && state.week > 8) {
+    /**
+     * A CHAIRMAN WHO GAVE YOU UNTIL CHRISTMAS DOES NOT SACK YOU IN NOVEMBER
+     * (v1.8.3). The board can grant more time in the boardroom, and a grant
+     * that the next bad week overrides is not a grant, it is a letter. The
+     * FINAL WARNING above still goes out, because the reprieve is time, not
+     * absolution, and the manager should be able to feel the clock.
+     *
+     * Being pushed once too often is NOT covered by this: that dismissal is
+     * for ignoring the board, and a stay of execution the board granted is
+     * exactly the thing being ignored.
+     */
+    const reprieved = (state.boardGrace ?? 0) > stamp100(state)
+    if (club.boardConfidence <= 3 && state.week > 8 && !reprieved) {
       // the mechanics live in sackManager (jobs.ts) - shared with the
       // pushed-once-too-often dismissal of the board-request escalation
       sackManager(state, 'news.sacked')
@@ -3811,7 +4038,21 @@ export function processWeekAndAdvance(state: GameState) {
   // pitches, failed events, successful events"). The books were entirely a
   // function of the sport and therefore entirely predictable; a roof, a storm
   // and a sportsman's dinner are what make balancing them a job.
-  upkeepWeek(state, rng)
+  //
+  // THE WEEK'S REPAIR BILL IS RECORDED (v1.6.9), because a probe cannot
+  // otherwise tell a gate from a boiler. upkeepWeek draws from the week's
+  // shared rng, so anything that happened earlier in the week moves its
+  // position and changes WHICH bill lands - and friendlyprobe, whose whole job
+  // is to assert that a midweek friendly costs and earns exactly nothing, was
+  // reading a £644k swing that was a sun-damaged stand rather than takings.
+  //
+  // Giving upkeep its own stream was tried first and is the better engineering
+  // - a roof does not leak because the academy played on Wednesday - but it
+  // re-deals every draw behind it and moved two unrelated probes on a release
+  // day. Recording the charge costs nothing, moves nothing, and lets the probe
+  // subtract the noise it was never trying to measure. The stream fix is worth
+  // doing on a quieter afternoon.
+  state.lastUpkeep = upkeepWeek(state, rng)
   // AND THE BOARD COUNTS THE WEEKS IN THE RED. After upkeep, so the week's
   // non-rugby luck is already in the balance being judged.
   debtWeek(state)

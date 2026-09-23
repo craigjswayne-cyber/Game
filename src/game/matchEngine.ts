@@ -2,6 +2,7 @@ import type { Club, Fixture, GameState, MatchEvent, Player, Pos, Weather } from 
 import { genderOf, type Gender, subjectVar } from './gender'
 import { prepLeaked } from './talkingpoints'
 import { ROLE_FX, rolesForSlot } from './roles'
+import { zoneAt, zonePlan } from './tactics'
 import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, addGrudge, chemKey, demandCeiling, facLevel, fmtMoney, formGuide, grudgeBetween, inRedZone, oldBoyApps, trustFactor, unbeatenRun } from './model'
 import { standing } from './authority'
 import { analystShift, archetypeOf, loudestDial, repetitionFatigue } from './oppcoach'
@@ -580,11 +581,25 @@ export function refNotes(r: Referee): string[] {
 /** The complaint is a KEY. It is quoted on the medical screen, in the day
  *  room, in two stories and in the match commentary, and a complaint recorded
  *  as English is English in all five for as long as the lay-off lasts. */
+/**
+ * ---- THE SHAPE OF A SEASON'S INJURIES (design review, v1.6.7) ----
+ *
+ * Measured before this round: about eleven time-loss injuries per club per
+ * season, mean six weeks. The professional game runs several times that many
+ * and most of them are short - a week or two of soft tissue, not a month.
+ * Eleven long ones meant a squad never really churned, and the selection
+ * problem an injury is supposed to set the manager almost never arrived.
+ *
+ * So the rate roughly doubles (the roll below) and the ranges come down at the
+ * short end, which leaves the total weeks lost about where it was while making
+ * the week-to-week medical room look like a rugby club's. The two that define
+ * a career - the knee and the achilles - are untouched.
+ */
 const INJURIES = [
-  ['injury.ribs', 1, 2], ['injury.deadLeg', 1, 1], ['injury.ankle', 2, 4],
-  ['injury.hamstring', 2, 5], ['injury.concussion', 2, 3], ['injury.shoulder', 3, 8],
-  ['injury.kneeLigament', 6, 16], ['injury.brokenHand', 4, 6], ['injury.calf', 2, 4],
-  ['injury.groin', 2, 5], ['injury.bicep', 8, 14], ['injury.achilles', 16, 30],
+  ['injury.ribs', 1, 2], ['injury.deadLeg', 1, 1], ['injury.ankle', 1, 3],
+  ['injury.hamstring', 2, 4], ['injury.concussion', 2, 3], ['injury.shoulder', 2, 6],
+  ['injury.kneeLigament', 6, 16], ['injury.brokenHand', 3, 6], ['injury.calf', 1, 3],
+  ['injury.groin', 2, 4], ['injury.bicep', 7, 12], ['injury.achilles', 16, 30],
 ] as const
 
 /**
@@ -623,6 +638,57 @@ const INJURY_WEIGHT: Record<Gender, readonly number[]> = {
  * instead of two to three, so a bad one costs most of a block of fixtures.
  */
 const CONCUSSION_W: readonly [number, number] = [2, 5]
+
+/**
+ * ---- THE TRAINING GROUND BREAKS PLAYERS TOO (design review, v1.6.7) ----
+ *
+ * Every injury in this game used to come out of a match, and a quarter to a
+ * third of rugby's do not: they come from a Tuesday session, off a hamstring
+ * that goes in a running drill or a shoulder in contact. A squad that only
+ * ever got hurt on a Saturday was a squad the manager could rest into safety.
+ *
+ * Its own list rather than the match one, because the mix is different: soft
+ * tissue dominates, the contact injuries are rarer, and the two that end
+ * seasons are rarer still - though the achilles is on it on purpose, because
+ * in the real game it goes in training as often as in a match.
+ *
+ * Weighted, and the weights are what make it a training list: a hamstring is
+ * five times a knee here. The women's row from INJURY_WEIGHT still applies on
+ * top, so a women's save keeps its knee and concussion loading.
+ */
+const TRAINING_INJURIES: readonly (readonly [string, number, number, number])[] = [
+  //  complaint              lo  hi  weight
+  ['injury.hamstring', 2, 4, 5],
+  ['injury.calf', 1, 3, 4],
+  ['injury.groin', 2, 4, 3],
+  ['injury.ankle', 1, 3, 3],
+  ['injury.deadLeg', 1, 1, 3],
+  ['injury.shoulder', 2, 6, 2],
+  ['injury.concussion', 2, 3, 1],
+  ['injury.kneeLigament', 6, 16, 1],
+  ['injury.achilles', 16, 30, 0.4],
+] as const
+
+/**
+ * Pick a training-ground complaint and how long it costs. Two rng draws: the
+ * weighted pick, then the length inside its band. The women's weighting and
+ * the longer women's return-to-play after a head knock both carry over from
+ * the match table, which is where that research is written down.
+ */
+export function pickTrainingInjury(rng: Rng, g: Gender): readonly [string, number] {
+  const byKey = new Map<string, number>(INJURIES.map((r, i) => [r[0] as string, INJURY_WEIGHT[g][i]]))
+  let total = 0
+  for (const [dk, , , w] of TRAINING_INJURIES) total += w * (byKey.get(dk) ?? 1)
+  let r = rng() * total
+  let hit = TRAINING_INJURIES[TRAINING_INJURIES.length - 1]
+  for (const row of TRAINING_INJURIES) {
+    r -= row[3] * (byKey.get(row[0]) ?? 1)
+    if (r < 0) { hit = row; break }
+  }
+  let [dk, lo, hi] = hit
+  if (g === 'w' && dk === 'injury.concussion') { lo = CONCUSSION_W[0]; hi = CONCUSSION_W[1] }
+  return [dk, lo + Math.floor(rng() * (hi - lo + 1))] as const
+}
 
 /** One rng draw, exactly as the flat pick took, so a uniform row is unchanged. */
 function pickInjury(rng: Rng, g: Gender): readonly [string, number, number] {
@@ -776,6 +842,26 @@ export interface SideCtx {
    *  itself written about. */
   aggF: number
   poss: number // accumulated momentum, for possession stats
+  /**
+   * ---- PRESSURE, 0 TO 100 (owner, v1.7.0) ----
+   *
+   * Competitor read: two bars beside the pitch saying who is on top right
+   * now. It is the one thing a commentary ticker cannot do - a ticker tells
+   * you what happened, and this tells you how the afternoon FEELS - and it
+   * needs no animation, no art and no ball-by-ball simulation.
+   *
+   * Independent per side rather than a share of one bar, which is what makes
+   * it honest: in a scrappy ten minutes where neither side can get out of
+   * its own half, BOTH bars are low, and a single seesaw would have to claim
+   * somebody was on top.
+   *
+   * It is DERIVED, never rolled: it reads the tick that just happened, so it
+   * spends no rng and cannot move a result. A try is a spike, a penalty won
+   * is a nudge, and it decays toward whatever the side's attacking threat
+   * says it ought to be sitting at, so a spell of pressure builds and then
+   * bleeds away when nothing comes of it.
+   */
+  pressure: number
   pens: number // penalty goals kicked
   /** penalties conceded - repeated infringements bring the bin into play */
   consPens: number
@@ -825,6 +911,32 @@ export interface SideCtx {
 /** Tactic + weather + coaching modifiers, applied to freshly computed units. */
 function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null) {
   const club = state.clubs[side.teamId]
+  /**
+   * ---- THE TRAINING PITCH (owner, v1.8.1) ----
+   *
+   * "Good pitch equals good prep - bad pitch means in game effect on
+   * breakdowns and skills."
+   *
+   * This facility was called the Playing Surface and did exactly one thing:
+   * shaved a few per cent off the user's injury roll at home, while the
+   * screen advertised "3.5% fewer breakdowns at home" that no line of code
+   * delivered. A placebo control with a label on it.
+   *
+   * It is the TRAINING pitch now, which is the honest version: a squad that
+   * does its ruck work on a bog arrives on Saturday rusty at the breakdown
+   * and heavy-handed, and one with a true surface arrives sharp. So it reads
+   * off the side's OWN club - the pitch you train on travels with you - and
+   * it cuts both ways around level three, because a bad pitch is a real cost
+   * and not merely an absent bonus.
+   *
+   * Every club in the world has one, so this is read per side rather than
+   * through facLevel, which only ever answers for the manager's club.
+   */
+  if (club) {
+    const lvl = club.facilities?.pitch ?? 0
+    side.units.breakdown *= 0.955 + lvl * 0.018
+    side.units.attack *= 0.97 + lvl * 0.012
+  }
   // a happy dressing room plays for each other; a sour one hesitates
   if (club) {
     const xv = side.lineup.slice(0, 15).map(id => id != null ? state.players[id] : null).filter(Boolean)
@@ -1142,7 +1254,7 @@ function mkSide(state: GameState, teamId: string, userTeamId: string | null, fxI
     teamId, lineup, units,
     score: 0, tries: 0, ratings, onPitch, yellowUntil: new Map(), binned: new Set(), sent: 0, short: 0,
     cardRisk: 0.012, penRisk: 0.115, aggF: 0,
-    poss: 0, pens: 0, consPens: 0,
+    poss: 0, pens: 0, consPens: 0, pressure: 12,
     energy, tempoF: 1, drainF: 1, goalBonus: 0,
     exIds: new Set(),
     isUser: teamId === userTeamId,
@@ -1391,6 +1503,29 @@ export interface LiveCtx {
   seg: 0 | 1 | 2 | 3
   /** set at HT / 60' until the user resumes play */
   awaiting: 'HT' | 'BRK' | null
+  /** A whistle the clock has reached but which has NOT been blown, because a
+   *  kickable penalty awarded before it is still in the manager's hands
+   *  (owner, twice: "half time whistle went, but i was still able to kick a
+   *  goal"). Nothing is narrated, the interval does not open and the match is
+   *  not finalised until the call is answered - see stepTick and
+   *  resolveDecision. */
+  heldWhistle?: 'HT' | 'FT' | null
+  /**
+   * ---- WHERE THE GAME IS BEING PLAYED, 0 TO 100 (owner, v1.8.0) ----
+   *
+   * 0 is the home try line, 100 is the away one, 50 is halfway. Until now
+   * this engine had no field position at all: a scoring chance came purely
+   * from the ratio of the two sides' unit strengths, and `terr` tilted that
+   * ratio by the kicking game without ever saying WHERE anybody was.
+   *
+   * That was a defensible abstraction and it cost two things. A manager's
+   * boot bought him an invisible edge rather than a visible position, and
+   * there was nothing for a zonal tactic to refer to - "in your own 22" has
+   * no meaning in an engine with no 22.
+   *
+   * So the boot now moves a line, and the line decides whose afternoon it is.
+   */
+  field: number
   motmId: number | null
   talkUsed: boolean
   subsUsed: number
@@ -1803,7 +1938,7 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     events: [], lastMin: 0,
     isUser: fx.homeId === userTeamId || fx.awayId === userTeamId,
     userSideId: fx.homeId === userTeamId ? fx.homeId : fx.awayId === userTeamId ? fx.awayId : null,
-    tick: 0, seg: 0, awaiting: null, motmId: null, talkUsed: false, subsUsed: 0,
+    tick: 0, seg: 0, awaiting: null, field: 50, motmId: null, talkUsed: false, subsUsed: 0,
     preTalk: null, decision: null, momo: 0, grudge: grudge?.reason ?? null,
   }
 
@@ -1966,9 +2101,29 @@ function drainEnergy(state: GameState, ctx: LiveCtx, side: SideCtx) {
   }
 }
 
-/** No kick at goal is a certainty: base skill, then form (a kicker in a
- *  purple patch is a different animal), confidence (morale) and the day's
- *  conditions all move the needle. Floor drops to 38% on a bad day. */
+/**
+ * No kick at goal is a certainty: base skill, then form (a kicker in a purple
+ * patch is a different animal), confidence (morale) and the day's conditions
+ * all move the needle. Floor drops to 38% on a bad day.
+ *
+ * ---- THE CEILING USED TO EAT THE ATTRIBUTE (design review, v1.6.7) ----
+ *
+ * The curve was `base + goa/34` for a penalty against a hard clamp at 93%, and
+ * the world's kickers run from 2 to 18. So everyone from 16 upwards kicked at
+ * exactly 93%, the attribute stopped separating men precisely where a manager
+ * cares most about it, and the measured world converted 83% of its tries -
+ * well above the professional game, which lives nearer three in four.
+ *
+ * The slope is now less than half what it was, so the top of the range has
+ * somewhere to go: a goa of 12 kicks a penalty at 75%, 14 at 79%, 16 at 83%
+ * and 18 at 86%, where all four used to be 93% alike. The 90% ceiling is
+ * reached only by a great kicker in form, backed by a kicking coach and
+ * kicking off a level-five enclosure - the investment still buys the last few
+ * points, it is simply no longer free with the attribute alone.
+ *
+ * Measured after: 72% of the world's tries converted, against 83% before and
+ * about 73% in the professional club game.
+ */
 function kickChance(state: GameState, kicker: Player | null, base: number, div: number, goalPenalty: number, side: SideCtx): number {
   if (!kicker) return 0.5 - goalPenalty + side.goalBonus
   const skill = base + kicker.a.goa / div
@@ -1976,15 +2131,16 @@ function kickChance(state: GameState, kicker: Player | null, base: number, div: 
   const confF = (kicker.morale - 6.5) * 0.008  // nerves show from the tee
   const traitB = kicker.trait === 'Siege Gun' ? 0.03 : 0
   const floor = kicker.trait === 'Metronome' ? 0.45 : 0.38
-  return clamp(skill + formF + confF - goalPenalty + side.goalBonus + traitB, floor, 0.93)
+  return clamp(skill + formF + confF - goalPenalty + side.goalBonus + traitB, floor, 0.90)
 }
 
 /** Take the three points: roll the kick at goal. */
 function takePenaltyShot(state: GameState, ctx: LiveCtx, side: SideCtx, min: number) {
   const { rng, detail, goalPenalty } = ctx
   const kicker = side.units.kickerId != null ? state.players[side.units.kickerId] : null
-  const pPen = kickChance(state, kicker, 0.5, 34, ctx.goalPenalty ?? 0, side)
+  const pPen = kickChance(state, kicker, 0.53, 54, ctx.goalPenalty ?? 0, side)
   if (rng() < pPen) {
+    ctx.field = ctx.field * 0.6 + 50 * 0.4   // restart, as after any score
     side.score += 3
     side.pens += 1
     if (kicker) {
@@ -2020,6 +2176,12 @@ function scoreTry(
 ) {
   const { rng, goalPenalty } = ctx
   const scorer = forceScorer ?? tryScorer(state, side, rng)
+  // THE RESTART (v1.8.0). The position that won the try is given back: the
+  // conceding side kicks off from halfway. A HARD set to 50 was tried and
+  // measured first, and with eleven scores across twenty ticks it meant more
+  // than half of all rugby was played from exactly halfway - the restart is
+  // contested, somebody kicks long, and this leaves that in.
+  ctx.field = ctx.field * 0.6 + 50 * 0.4
   side.score += 5
   side.tries += 1
   if (scorer) {
@@ -2079,7 +2241,7 @@ function scoreTry(
     pushLine(state, ctx, min + 1, 'SUB', side, 'comm.tryComeback', { player: scorer.name }, scorer.id)
   }
   const kicker = side.units.kickerId != null ? state.players[side.units.kickerId] : null
-  const pCon = kickChance(state, kicker, 0.45, 32, goalPenalty, side)
+  const pCon = kickChance(state, kicker, 0.495, 54, goalPenalty, side)
   if (rng() < pCon) {
     side.score += 2
     if (kicker) { kicker.stats.cons += 1; kicker.stats.points += 2 }
@@ -2177,6 +2339,11 @@ export function resolveDecision(state: GameState, ctx: LiveCtx, choice: 'posts' 
   // scoreboard that finalizeMatch reads forty minutes later. Only the final
   // whistle needs the record re-read, so only the final whistle does it.
   if (ctx.seg === 3) syncResult(ctx)
+  // AND NOW THE WHISTLE GOES. The clock reached it while this call was open,
+  // so it was held; the kick has been narrated above and belongs in front of
+  // it, which is exactly the order the ticker now has without any splicing.
+  if (ctx.heldWhistle === 'HT') blowHalfTime(state, ctx)
+  else if (ctx.heldWhistle === 'FT') blowFullTime(state, ctx)
   return msg
 }
 
@@ -2514,7 +2681,23 @@ const COVER_DEF = 0.937
 /** Base try chance per tick at ratio 1. Was a flat 0.115 for the whole match;
  *  the last-quarter surge in simTick spends the difference, so the season's
  *  scoring totals stay on the measured band while the tries move later. */
-const TRY_BASE = 0.108
+/**
+ * REBASED for territory (v1.8.0), from 0.108.
+ *
+ * pTry is TRY_BASE times a ratio raised to 2.6, and field position multiplies
+ * that ratio - up for the side with the position, down for the side without.
+ * Those two are exact reciprocals, so the RATIO's mean is untouched, but the
+ * 2.6 is convex: g^2.6 and g^-2.6 average to more than one, and the league
+ * measured 56.2 points a game against 50.6 before the line existed. Rebased
+ * a second time, 0.096 to 0.088, when the line was widened so that a tenth of
+ * all rugby is played inside each 22 - a wider line means a bigger convex
+ * term, and the league had drifted back up to 55.0.
+ *
+ * Same lesson, and the same fix, as the last-quarter fatigue term above - the
+ * mechanism stays at full strength and the constant underneath it comes down
+ * so the season's totals stay on the band.
+ */
+const TRY_BASE = 0.0832
 
 /** The cost of a thin bench: a man in the wrong half of the team.
  *
@@ -2556,6 +2739,32 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       const p = state.players[id]
       if (p && !p.injury && s.lineup.slice(0, 15).includes(id)) s.onPitch.add(id)
     }
+    /**
+     * HE SERVED HIS TEN AND DID NOT COME BACK.
+     *
+     * The two `else` cases above are silent: a man who broke down while he sat,
+     * and a man whose shirt was given away while he sat to somebody who is not
+     * on the pitch either. In both the side finishes a man light and NOTHING
+     * was charging for it - binned no longer holds him, his yellowUntil has
+     * expired so numF has stopped counting him, and short never heard of him.
+     * Fourteen men, priced as fifteen, for the rest of the match.
+     *
+     * This is the same hole the uncovered-injury path had (the `side.short`
+     * charge further down, and its comment), one door along, and it is found
+     * the same way: journeyprobe reconciling heads on the pitch against the
+     * men the card accounts for. It surfaced when TRY_BASE moved, which is all
+     * a seeded probe can ever tell you - the bug was always there, and the
+     * dice had simply not walked into it.
+     *
+     * Reconciled rather than special-cased, because `short` IS this number:
+     * players the side had to do without, and not a card in anybody's record.
+     */
+    // `binned` IS the answer to "who is still sitting", and yellowUntil is not:
+    // the loop above deletes a man from the set the moment his ten minutes are
+    // up, so anyone left in it never came back. Reading the clock instead gets
+    // the final whistle wrong in both directions.
+    const accounted = 15 - s.sent - s.short - s.binned.size
+    if (s.onPitch.size < accounted) s.short += accounted - s.onPitch.size
   }
   // a sin-binned front-rower is back and the cover with him: the scrum is a
   // contest again, the levelling his card ordered taken back off both packs
@@ -2610,22 +2819,85 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
   // board's read of a season, none of which a bench fix should be deciding.
   const eF = (s: SideCtx) => 0.78 + 0.22 * (sideEnergy(s) / 100)
 
+  /**
+   * ---- THE LINE MOVES (v1.8.0) ----
+   *
+   * One draw a tick. The better kicking game walks the game up the pitch, and
+   * everything leaks back toward halfway because restarts, turnovers and the
+   * simple fact of eighty minutes all pull it there - without that pull a
+   * side with a marginally better boot would end every match camped on the
+   * opposition line, which is not a rugby match, it is a slow ratchet.
+   *
+   * The noise is deliberately larger than the edge. Territory in rugby swings
+   * on a single clearance or a single counter, and a field position that
+   * crept predictably would make the boot a certainty rather than a bet.
+   */
+  /**
+   * THE GAME PLAN FOR WHERE WE ARE (v1.8.0). Each side is in its own zone -
+   * home's own 22 IS away's opposition 22 - so both are read, and each side's
+   * plan pushes the line away from its own posts. A side kicking its exits
+   * long and a side running them both get what they asked for, in opposite
+   * directions, and the net is the tug of war it should be.
+   */
+  const planOf = (s: SideCtx) => {
+    const up = s === home ? ctx.field : 100 - ctx.field
+    const z = zoneAt(up)
+    return zonePlan(z, state.clubs[s.teamId]?.tactic.zones?.[z])
+  }
+  // what each side sets out to do, read from where it is standing NOW
+  const kickEdge = Math.log(home.units.kicking / Math.max(1, away.units.kicking))
+  const push = kickEdge * 7 + (rng() - 0.5) * 86 + (planOf(home).terr - planOf(away).terr)
+  ctx.field = clamp(ctx.field * 0.965 + 50 * 0.035 + push, 4, 96)
+  // AND READ AGAIN AFTER THE LINE HAS MOVED. The push above is what a side
+  // does FROM where it was; the scoring roll below happens WHERE IT ENDED UP,
+  // and the terr factor under it reads that same new position. Deriving the
+  // plan once, before the move, meant an exit plan could be scoring tries
+  // from the halfway line.
+  const hp = planOf(home)
+  const ap = planOf(away)
+
   for (const [side, opp, adv] of [[home, away, ctx.hfa], [away, home, 1]] as [SideCtx, SideCtx, number][]) {
     const numF = 1 - 0.07 * ([...side.yellowUntil.values()].filter(u => u > min).length + side.sent + side.short)
     const oppNumF = 1 - 0.07 * ([...opp.yellowUntil.values()].filter(u => u > min).length + opp.sent + opp.short)
     const att = (side.units.attack * 0.55 + side.units.breakdown * 0.25 + side.units.scrum * 0.1 + side.units.lineout * 0.1) * eF(side)
     const def = (opp.units.defence * 0.7 + opp.units.breakdown * 0.3) * eF(opp)
-    // THE BOOT IS TERRITORY (audit 16D). units.kicking was written by the dial,
-    // the exits, two roles, the coach and the wind, and read by nothing - a
-    // placebo control. It now tilts where the game is played: a ratio of the
-    // two kicking games, symmetric so the world mean cannot move (the home
-    // factor and the away factor are exact reciprocals).
-    const terr = Math.pow(side.units.kicking / Math.max(1, opp.units.kicking), 0.10)
+    /**
+     * THE BOOT IS TERRITORY (audit 16D), AND TERRITORY IS NOW A PLACE (v1.8.0).
+     *
+     * This used to be the kicking ratio applied straight to the scoring
+     * chance: a side with the better boot got a permanent invisible edge. It
+     * is now the position that boot has WON - ctx.field above - and the
+     * kicking ratio only moves the line.
+     *
+     * EXACTLY RECIPROCAL between the two sides, which is the property the
+     * original was built around and the reason the world mean cannot move:
+     * whatever this multiplies one side's chance by, it divides the other's
+     * by the same. A line at halfway is 1.0 for both. Camped on their line it
+     * is about 1.29 for the side attacking and 0.78 for the side defending,
+     * which is the whole point - being pinned in your own 22 is not a small
+     * disadvantage, and it was previously not a disadvantage at all.
+     */
+    const up = side === home ? ctx.field : 100 - ctx.field
+    const terr = Math.pow(up / Math.max(1, 100 - up), 0.20)
+    // what this side chose to do in the zone it is standing in
+    const plan = side === home ? hp : ap
+    /**
+     * HOW WIDE THE PENALTY WINDOW IS, worked out ONCE (v1.8.0).
+     *
+     * The discipline a zone plan buys belongs to the side GIVING the penalty
+     * away, which is the opposition here, so it reads their plan and not this
+     * side's. And it is a `const` because the first cut scaled it inline in
+     * the penalty branch and left the drop-goal branch below reading the raw
+     * figure - which turned the gap between the two into drop-goal territory
+     * and would have made a side playing for the corner kick five times as
+     * many of them.
+     */
+    const penWindow = opp.penRisk * (side === home ? ap : hp).penF
     let ratio = ((att * adv * numF * terr) / Math.max(1, def * oppNumF))
     if (derby) ratio = Math.pow(ratio, 0.72) // form book out the window
     else if (ctx.grudge) ratio = Math.pow(ratio, 0.85) // needle levels the contest
     side.poss += ratio
-    let pTry = clamp(TRY_BASE * Math.pow(ratio, 2.6), 0.01, 0.42)
+    let pTry = clamp(TRY_BASE * Math.pow(ratio, 2.6) * plan.tryF, 0.01, 0.42)
     // THE LAST QUARTER OPENS UP (audit 16D). Measured before this existed:
     // tries were dead flat across the 80 (11.6-14.0% per ten-minute bucket)
     // because both sides drain together and the mutual exhaustion cancels in
@@ -2634,7 +2906,21 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     // raises the try chance for BOTH sides; TRY_BASE is set below what the
     // old flat constant was so the season's totals stay on the band.
     if (tick >= 15) {
-      const tired = 1 - (sideEnergy(side) + sideEnergy(opp)) / 200
+      /**
+       * THE TIRED SIDE IS THE ONE DEFENDING (v1.8.0). This read the AVERAGE
+       * of the two tanks, which quietly meant a side raised its own try
+       * chance by exhausting itself - and the release audit's own words for
+       * the mechanism are "tired defences miss first", not "tired attacks
+       * score more". It survived because both sides drain together, so the
+       * average and the opponent's figure are nearly the same number all
+       * afternoon; it only parts company when the two diverge, which is
+       * exactly the case 1.2d exists to test. Measured there: a side emptied
+       * from the 68th minute outscored the same side rested, 36.1 to 35.0.
+       *
+       * In an ordinary match this changes almost nothing, for the same
+       * reason it hid for so long.
+       */
+      const tired = 1 - sideEnergy(opp) / 100
       if (tired > 0) pTry = Math.min(0.42, pTry * (1 + tired * 0.5))
     }
     // GARBAGE TIME IS REAL (user, after a 106-3 win at a top club: "this would
@@ -2645,12 +2931,36 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     // close game never feels it; the floor keeps a true mismatch a rout
     // rather than a cricket score. Same rng draws either way - the stream is
     // untouched, only the threshold the roll is compared against moves.
+    // 1.8.4: the damp starts at 28 rather than 35 and bottoms lower. Territory
+    // and the advantage law both add tries at the top of the range, and
+    // blowprobe caught the result - two top clubs reached 63, past its stated
+    // ceiling of 60 - while the median margin (15) and the 90th percentile
+    // (31) had barely moved. A damp that only engages five converted tries in
+    // is a damp that never sees the games it exists for.
     const lead = side.score - opp.score
-    if (lead > 35) pTry *= Math.max(0.3, 35 / lead)
+    if (lead > 28) pTry *= Math.max(0.26, 28 / lead)
+
+    /**
+     * PRESSURE (v1.7.0), read off this tick and never rolled for. It decays
+     * toward the level this side's threat deserves - a team carving the
+     * defence open sits high even between scores, a team pinned in its 22
+     * sinks - and the things that actually happen below spike it on top. The
+     * decay is what makes it read as MOMENTUM rather than as a stat: a spell
+     * of pressure that comes to nothing bleeds away over the next few ticks,
+     * the way it does when you are watching.
+     */
+    const floor = clamp(pTry * 190, 4, 62)
+    side.pressure = clamp(side.pressure * 0.72 + floor * 0.28, 0, 100)
+
     const r = rng()
     if (r < pTry) {
+      side.pressure = clamp(side.pressure + 42, 0, 100)
+      opp.pressure = clamp(opp.pressure * 0.55, 0, 100)
       scoreTry(state, ctx, side, min)
-    } else if (r < pTry + opp.penRisk) {
+    } else if (r < pTry + penWindow) {
+      // a penalty won is a side on the front foot, whatever it does with it
+      side.pressure = clamp(side.pressure + 17, 0, 100)
+      opp.pressure = clamp(opp.pressure * 0.86, 0, 100)
       // a kickable penalty: yours is a touchline decision, theirs is automatic
       opp.consPens += 1
       // repeated infringements: the count climbs, the referee's patience
@@ -2670,25 +2980,72 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           checkFrontRow(state, ctx, opp, min, p, 'yellow')
         }
       }
-      // A standing instruction answers the call for you (F3). Being asked every
-      // time is the right default on a big screen and a nuisance on a phone
-      // during a nine-penalty afternoon, so the choice is the manager's.
-      const standing = state.clubs[side.teamId]?.tactic.penaltyCall ?? 'ask'
-      if (detail && side.isUser && !ctx.decision) {
-        ctx.decision = { kind: 'penalty', min }
-        if (standing === 'ask') {
-          pushLine(state, ctx, min, 'SUB', side, 'comm.penKickableAsk', { team: teamShort(state, side.teamId) })
-        } else {
-          // resolveDecision reads ctx.decision and works out the side itself, so
-          // the instruction goes through exactly the path a tap would take
-          resolveDecision(state, ctx, standing)
-        }
+      /**
+       * ---- ADVANTAGE (design review, v1.6.7) ----
+       *
+       * The arm goes out and the whistle stays down. Until now it did not:
+       * a penalty was awarded and the game stopped dead, which is not how any
+       * professional match is refereed and which quietly removed one of the
+       * sport's most recognisable moments - the side that takes the space,
+       * gets no reward, and hears "advantage over" with three points gone.
+       *
+       * Three outcomes, one draw:
+       *
+       *   a try under the advantage      the kick is irrelevant, they scored
+       *   advantage over, nothing in it  ground was made, the penalty is gone
+       *   back for the penalty           much the most common, and unchanged
+       *
+       * The try chance rides pTry, so a side already carving the defence open
+       * is the side likeliest to make something of it, and the referee's own
+       * `flow` governs how readily he waves it away: the same panel that makes
+       * one afternoon a stop-start scrum-fest and another a loose one.
+       *
+       * The infringement still counts against the offending side whatever
+       * happens next. Advantage does not pardon anything - the count climbs,
+       * and if it has reached the referee's patience the card has already been
+       * issued above, exactly as it would be at the next stoppage.
+       */
+      const advRoll = rng()
+      // DELIBERATELY MODEST, because only KICKABLE penalties reach this code
+      // (opp.penRisk is the kickable rate). Those are the ones a referee is
+      // most careful to bring back, since three points are sitting there. At
+      // a quarter of them the penalty mix collapsed from a fifth of the
+      // world's points to a seventh; at an eighth it reads right, and the
+      // moment is still on the ticker most weeks.
+      const pAdvTry = Math.min(0.10, pTry * 0.42)
+      const pAdvOver = 0.08 * refFor(ctx.fx.id).flow
+      if (advRoll < pAdvTry) {
+        // they did not need the three: the arm was still out when they scored
+        if (detail) pushLine(state, ctx, min, 'SUB', side, 'comm.advPlaying', { team: teamShort(state, side.teamId) })
+        scoreTry(state, ctx, side, min)
+      } else if (advRoll < pAdvTry + pAdvOver) {
+        // ground made, nothing at the end of it, and the kick is gone with it
+        if (detail) pushLine(state, ctx, min, 'SUB', side, 'comm.advOver', { team: teamShort(state, side.teamId) })
       } else {
-        takePenaltyShot(state, ctx, side, min)
+        // NO SCORE AND NO GROUND: he brings it back. This is the common case,
+        // and from here the code below is exactly what it always was.
+        //
+        // A standing instruction answers the call for you (F3). Being asked
+        // every time is the right default on a big screen and a nuisance on a
+        // phone during a nine-penalty afternoon, so the choice is the manager's.
+        const standing = state.clubs[side.teamId]?.tactic.penaltyCall ?? 'ask'
+        if (detail && side.isUser && !ctx.decision) {
+          ctx.decision = { kind: 'penalty', min }
+          if (standing === 'ask') {
+            pushLine(state, ctx, min, 'SUB', side, 'comm.penKickableAsk', { team: teamShort(state, side.teamId) })
+          } else {
+            // resolveDecision reads ctx.decision and works out the side itself,
+            // so the instruction goes through exactly the path a tap would take
+            resolveDecision(state, ctx, standing)
+          }
+        } else {
+          takePenaltyShot(state, ctx, side, min)
+        }
       }
-    } else if (r < pTry + opp.penRisk + 0.006) {
+    } else if (r < pTry + penWindow + 0.006) {
       const fh = side.lineup[9] != null ? state.players[side.lineup[9]!] : null
       if (fh && rng() < 0.3 + fh.a.kic / 40) {
+        ctx.field = ctx.field * 0.6 + 50 * 0.4
         side.score += 3
         fh.stats.drops += 1; fh.stats.points += 3
         pushLine(state, ctx, min, 'DG', side, 'comm.dropGoal', { player: fh.name }, fh.id)
@@ -2751,11 +3108,15 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       }
     }
 
-    // injury - tired legs and rusty returners break down more, though a
-    // true home surface keeps a few of them on their feet
-    const surface = side.teamId === state.userClubId && ctx.fx.homeId === state.userClubId
-      ? facLevel(state, 'pitch') : 0
-    if (rng() < 0.019 * (1 - surface * 0.035)) {
+    // injury - tired legs and rusty returners break down more.
+    //
+    // THE HOME SURFACE TERM IS GONE (v1.8.1). It read the pitch facility,
+    // which is the TRAINING pitch now: a match is played at the ground, not
+    // on the field the squad does its ruck work on, so a training pitch
+    // cannot keep anybody on their feet on a Saturday. What it does keep
+    // people on their feet through is TRAINING, and that is where the term
+    // has moved to (season.ts, the Tuesday session).
+    if (rng() < 0.036) {
       const ids = [...side.onPitch]
       const ps = ids.map(id => state.players[id]).filter(p => p && !p.injury)
       if (ps.length) {
@@ -2901,6 +3262,37 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
  * 'play' (normal), 'HT' (40'), 'BRK' (60'), 'FT' (80', match finalised).
  * At HT/BRK the context waits (`awaiting`) until resumed.
  */
+/**
+ * Blow half time: the whistle line, the interval numbers, and the break.
+ *
+ * Split out of stepTick so it can fire LATER than the tick that reached 40'.
+ * A penalty awarded in the closing minutes is still the manager's to answer,
+ * and the answer cannot arrive before stepTick returns - so when a call is
+ * outstanding the clock reaches the whistle and the whistle waits.
+ */
+function blowHalfTime(state: GameState, ctx: LiveCtx) {
+  ctx.heldWhistle = null
+  ctx.awaiting = 'HT'
+  pushLine(state, ctx, 40, 'HT', null, 'comm.halfTime', {
+    home: teamShort(state, ctx.fx.homeId), away: teamShort(state, ctx.fx.awayId),
+    hs: ctx.home.score, ascore: ctx.away.score,
+  })
+  const possTotal = ctx.home.poss + ctx.away.poss || 1
+  pushLine(state, ctx, 40, 'SUB', null, 'comm.halfTimeNumbers', {
+    hposs: Math.round((ctx.home.poss / possTotal) * 100), aposs: Math.round((ctx.away.poss / possTotal) * 100),
+    htries: ctx.home.tries, atries: ctx.away.tries, hpens: ctx.home.pens, apens: ctx.away.pens,
+  })
+}
+
+/** Blow full time. Same deal: seg only reaches 3 - which is what every caller
+ *  reads as "the match is over" - once the last call of the match is in. */
+function blowFullTime(state: GameState, ctx: LiveCtx) {
+  ctx.heldWhistle = null
+  ctx.seg = 3
+  ctx.awaiting = null
+  finalizeMatch(state, ctx)
+}
+
 export function stepTick(state: GameState, ctx: LiveCtx): 'play' | 'HT' | 'BRK' | 'FT' {
   if (ctx.tick >= 20) return 'FT'
   // play has resumed: the last substitution has now been played and cannot be
@@ -2912,18 +3304,13 @@ export function stepTick(state: GameState, ctx: LiveCtx): 'play' | 'HT' | 'BRK' 
   aiTacticShift(state, ctx)
   if (ctx.tick === 10) {
     ctx.seg = 1
-    ctx.awaiting = 'HT'
-    // a penalty awarded before the whistle is still to be kicked
-    if (ctx.decision) ctx.whistleAt = ctx.events.length
-    pushLine(state, ctx, 40, 'HT', null, 'comm.halfTime', {
-      home: teamShort(state, ctx.fx.homeId), away: teamShort(state, ctx.fx.awayId),
-      hs: ctx.home.score, ascore: ctx.away.score,
-    })
-    const possTotal = ctx.home.poss + ctx.away.poss || 1
-    pushLine(state, ctx, 40, 'SUB', null, 'comm.halfTimeNumbers', {
-      hposs: Math.round((ctx.home.poss / possTotal) * 100), aposs: Math.round((ctx.away.poss / possTotal) * 100),
-      htries: ctx.home.tries, atries: ctx.away.tries, hpens: ctx.home.pens, apens: ctx.away.pens,
-    })
+    // THE WHISTLE WAITS FOR THE KICK. A penalty awarded in the closing minutes
+    // is still to be taken, so the half has not ended: nothing is narrated and
+    // the interval does not open until resolveDecision blows it. seg moves to
+    // 1 either way - that only means "second half next", and it is what keeps
+    // the decision panel on screen instead of the interval.
+    if (ctx.decision) ctx.heldWhistle = 'HT'
+    else blowHalfTime(state, ctx)
     return 'HT'
   }
   if (ctx.tick === 15) {
@@ -2933,10 +3320,12 @@ export function stepTick(state: GameState, ctx: LiveCtx): 'play' | 'HT' | 'BRK' 
     return 'BRK'
   }
   if (ctx.tick === 20) {
-    ctx.seg = 3
-    ctx.awaiting = null
-    if (ctx.decision) ctx.whistleAt = ctx.events.length
-    finalizeMatch(state, ctx)
+    // Same at the end. seg stays at 2 while a call is outstanding, because
+    // every caller reads seg === 3 as "finished" - the store settles knockout
+    // ties on it, the screen shows the full-time panel on it - and the match
+    // is not finished while a kick that can change the result is unanswered.
+    if (ctx.decision) ctx.heldWhistle = 'FT'
+    else blowFullTime(state, ctx)
     return 'FT'
   }
   return 'play'
@@ -3239,6 +3628,30 @@ export function swapInjuryCover(state: GameState, ctx: LiveCtx, onId: number, in
   const pin = state.players[inId]
   if (slotOn < 0 || slotOn > 14 || !pon || !mine.onPitch.has(onId)) return t('touch.notOnPitch')
   if (!pin || pin.injury || mine.onPitch.has(inId) || mine.ratings.has(inId)) return t('touch.notAvailable')
+  /**
+   * HE CANNOT BE ERASED ONCE HE HAS PLAYED (coverswap, v1.8.4).
+   *
+   * The rewrite at the bottom of this function corrects ONE line - the one
+   * that said he came on - on the stated assumption that the override arrives
+   * at the same stoppage, before a tick has run. Nothing enforced that
+   * assumption. A cover who had been on for ten minutes and scored could be
+   * taken back off, out of the lineup and out of onPitch, while his try stayed
+   * in the match record under his name: a permanent, saved account of a man
+   * scoring in a game he did not play in.
+   *
+   * The window closes the moment he does something. Anything after his own
+   * substitution line that carries his id is him doing something.
+   */
+  const evs = ctx.events
+  let subIdx = -1
+  for (let i = evs.length - 1; i >= 0; i--) {
+    if (evs[i].k === 'comm.subComesOn' && evs[i].playerId === onId) { subIdx = i; break }
+  }
+  if (subIdx >= 0) {
+    for (let i = subIdx + 1; i < evs.length; i++) {
+      if (evs[i].playerId === onId) return t('touch.tooLateToUndo')
+    }
+  }
   mine.lineup[slotOn] = inId
   if (slotIn >= 0) mine.lineup[slotIn] = onId
   mine.onPitch.delete(onId)

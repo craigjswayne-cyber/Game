@@ -2,7 +2,7 @@
 // stadium expansion, and the weekly effects that hang off them.
 import { newGame } from '../src/game/newgame'
 import { expansionPlan, processWeekAndAdvance, requestExpansion, requestFacility, requestFunds } from '../src/game/season'
-import { FACILITY_INFO, MAX_FACILITY, estateGrade, type FacilityId } from '../src/game/model'
+import { FACILITY_INFO, GROUND_TIERS, MAX_FACILITY, groundBuildWeeks, groundLevel, estateGrade, type FacilityId } from '../src/game/model'
 
 let fails = 0
 const bad = (m: string) => { fails++; console.error('FAIL: ' + m) }
@@ -68,6 +68,33 @@ const s2 = newGame('leicester', 'Probe', 31337)
 const sc = s2.clubs[s2.userClubId]
 sc.balance = 40_000_000
 sc.boardConfidence = 80
+// ---- THE GROUND IS A LADDER, 0 TO 5 (owner, v1.6.8) ----
+{
+  const w = newGame('leicester', 'Probe', 4242)
+  const byStage = new Map<number, number>()
+  for (const c of Object.values(w.clubs)) {
+    const l = groundLevel(c.capacity)
+    if (l < 0 || l > 5) bad(`${c.id} reads as ground stage ${l}`)
+    byStage.set(l, (byStage.get(l) ?? 0) + 1)
+  }
+  const spread = [0, 1, 2, 3, 4, 5].map(i => byStage.get(i) ?? 0)
+  console.log(`ground stages: ${spread.map((n, i) => `${i}:${n}`).join(' ')}`)
+  // A LADDER EVERY CLUB IS ALREADY AT THE TOP OF IS NOT A LADDER. The six
+  // tiers are absolute seat counts, so this is a fact about the club table
+  // and it is worth holding: if a data round moved every ground above
+  // 32,000 the map would be one picture for everybody.
+  if (spread.filter(n => n > 0).length < 4) bad(`the world only occupies ${spread.filter(n => n > 0).length} of the six grounds`)
+  if (spread[5] > Object.keys(w.clubs).length * 0.4) bad('more than two fifths of the world already holds a stadium')
+  // the top of the ladder is the end of it
+  const big = Object.values(w.clubs).find(c => groundLevel(c.capacity) === 5)!
+  w.userClubId = big.id
+  big.boardConfidence = 90; big.balance = 400_000_000
+  w.facilityAskCooldown = 0
+  const refused = requestExpansion(w)
+  if (w.stadiumBuild) bad('a stage-five stadium was allowed to grow again')
+  console.log(`stage 5 ask : ${refused.slice(0, 70)}`)
+}
+
 console.log('early ask   :', requestExpansion(s2))
 if (sc.capacity !== s2.clubs[s2.userClubId].capacity) bad('capacity changed on a declined request')
 const cap0 = sc.capacity
@@ -78,7 +105,32 @@ sc.balance = 40_000_000
 const plan = expansionPlan(s2)
 console.log(`after 12w   : ${plan.played} home games, ${plan.avg.toLocaleString()} avg (${Math.round(plan.fill * 100)}% full)`)
 console.log('second ask  :', requestExpansion(s2))
-if (plan.fill >= 0.86 && sc.capacity === cap0) bad('a full ground was refused its expansion')
+// THE SEATS ARRIVE WITH THE STAND, not with the yes (v1.6.6). The approval
+// signs the contract and puts the builders on site for twelve weeks; the
+// capacity only moves when they are gone.
+if (plan.fill >= 0.86 && !s2.stadiumBuild) bad('a full ground was refused its expansion')
+if (s2.stadiumBuild) {
+  if (sc.capacity !== cap0) bad('the seats landed before the stand was built')
+  // and the one builders' slot is taken while it goes up
+  s2.facilityAskCooldown = 0
+  sc.balance = 40_000_000
+  const blocked = requestFacility(s2, 'shop')
+  if (s2.facilityBuild) bad('a facility was started while the stand was going up')
+  console.log('mid-build   :', blocked)
+  const owed = s2.stadiumBuild.seats
+  let wk = 0
+  const due = groundBuildWeeks(groundLevel(cap0) + 1)
+  while (s2.stadiumBuild && wk < due + 4) { processWeekAndAdvance(s2); wk++ }
+  console.log(`stand opens : after ${wk} weeks, ${cap0.toLocaleString()} -> ${sc.capacity.toLocaleString()}`)
+  if (s2.stadiumBuild) bad('the stand never finished')
+  else if (sc.capacity !== cap0 + owed) bad(`the stand opened at ${sc.capacity}, expected ${cap0 + owed}`)
+  // one tick more than the duration, which is the convention every build in
+  // the game already follows: the week the order is placed is still played
+  // out before the builders start counting (a three-week facility opens on
+  // the fourth tick too).
+  if (wk !== due + 1) bad(`the stand took ${wk} ticks, not ${due + 1}`)
+  if (!s2.news.some(n => n.k === 'news.expOpened')) bad('the stand opened with no word to the manager')
+}
 if (sc.capacity < cap0) bad('capacity went backwards')
 
 // 5. pressing the board (v1.1.4): a denial stamps the ledger; asking again

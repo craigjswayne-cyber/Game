@@ -1,0 +1,144 @@
+{
+  "set": "recovery",
+  "status": "locked",
+  "canvas": [
+    1254,
+    1254
+  ],
+  "contains_pitch": false,
+  "site_plan": "central mass growing outward, 6m apron ring, four stubs run in to the ring",
+  "stub_routes_clear": true,
+  "known_deviations": [
+    "L5 palette breaks from L0-L4 (grass 30,95,27 vs ~72,150,35; detail 0.313 vs 0.225)",
+    "second consecutive facility where L5 alone breaks palette, despite a numeric grass pin",
+    "theory: aspirational wording in the L5 prompt triggers a darker cinematic render"
+  ],
+  "levels": [
+    {
+      "level": 0,
+      "file": "recovery-L0.png",
+      "content": "one small timber cabin",
+      "built_pct": 8.2,
+      "detail_density": 0.078,
+      "median_grass_rgb": [
+        75,
+        151,
+        32
+      ],
+      "stub_reach_m": {
+        "north": 67.7,
+        "south": 83.5,
+        "west": 83.5,
+        "east": 83.5
+      },
+      "palette_matches_set": true,
+      "md5": "fbd36f29b3d389ee476d765569b1fe31",
+      "bytes": 1842331
+    },
+    {
+      "level": 1,
+      "file": "recovery-L1.png",
+      "content": "bigger cabin, apron ring, one plunge tub",
+      "built_pct": 24.1,
+      "detail_density": 0.113,
+      "median_grass_rgb": [
+        75,
+        151,
+        35
+      ],
+      "stub_reach_m": {
+        "north": 57.2,
+        "south": 83.5,
+        "west": 83.5,
+        "east": 83.5
+      },
+      "palette_matches_set": true,
+      "md5": "04424e36ef6bcde6ede8f28165722515",
+      "bytes": 1705439
+    },
+    {
+      "level": 2,
+      "file": "recovery-L2.png",
+      "content": "rendered building, two contrast pools",
+      "built_pct": 35.9,
+      "detail_density": 0.156,
+      "median_grass_rgb": [
+        73,
+        149,
+        38
+      ],
+      "stub_reach_m": {
+        "north": 41.2,
+        "south": 67.9,
+        "west": 83.5,
+        "east": 83.5
+      },
+      "palette_matches_set": true,
+      "md5": "ffc68bc313c86c7fd2a78bfc4701457c",
+      "bytes": 1808821
+    },
+    {
+      "level": 3,
+      "file": "recovery-L3.png",
+      "content": "indoor hydrotherapy pool under glazed roof",
+      "built_pct": 46.4,
+      "detail_density": 0.198,
+      "median_grass_rgb": [
+        73,
+        150,
+        37
+      ],
+      "stub_reach_m": {
+        "north": 42.9,
+        "south": 62.3,
+        "west": 83.5,
+        "east": 43.2
+      },
+      "palette_matches_set": true,
+      "md5": "5360aa3a81accbfcd112572214e6298a",
+      "bytes": 1828523
+    },
+    {
+      "level": 4,
+      "file": "recovery-L4.png",
+      "content": "larger block, solar, cryo wing, three-pool courtyard",
+      "built_pct": 54.1,
+      "detail_density": 0.225,
+      "median_grass_rgb": [
+        69,
+        152,
+        33
+      ],
+      "stub_reach_m": {
+        "north": 38.4,
+        "south": 58.3,
+        "west": 38.7,
+        "east": 31.5
+      },
+      "palette_matches_set": true,
+      "md5": "1dffb7cf9149e915c8dd4cd2ff5c616a",
+      "bytes": 1925922
+    },
+    {
+      "level": 5,
+      "file": "recovery-L5.png",
+      "content": "glazed complex filling the site, pool garden",
+      "built_pct": 80.5,
+      "detail_density": 0.313,
+      "median_grass_rgb": [
+        30,
+        95,
+        27
+      ],
+      "stub_reach_m": {
+        "north": 14.5,
+        "south": 40.7,
+        "west": 32.4,
+        "east": 15.6
+      },
+      "palette_matches_set": false,
+      "md5": "5c01327fbd2195a4ccd99b22b96c470a",
+      "bytes": 2300566
+    }
+  ]
+}

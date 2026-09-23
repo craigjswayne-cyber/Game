@@ -51,15 +51,23 @@ export function proLocked(): boolean { return tillOpen() && !hasSupporter() }
 
 export function skinLocked(s: Skin): boolean { return s !== FREE_SKIN && proLocked() }
 
-/** SAVED GAME PLANS. Three is what everyone has always had and still has;
- *  Pro Manager doubles it. Six is the number a manager who runs a plan for
- *  wet days, a plan for a bigger pack and a plan for the last ten minutes
- *  actually reaches - and that manager is the one most likely to pay.
+/** SAVED GAME PLANS: TWO, FOR EVERYONE (owner, v1.8.3: "only give me 2 save
+ *  custom plan options - tidy it up").
  *
- *  A plan saved in a Pro slot is never deleted, only hidden, the same way a
- *  chosen skin survives an entitlement that has not restored yet. */
-export const FREE_PLANS = 3
-export const PRO_PLANS = 6
+ *  It was three free and six with Pro, and the row under the quick plans was
+ *  a second row of buttons doing nearly the same job as the first. Cutting the
+ *  free tier alone would not have fixed what the owner was looking at: the web
+ *  build has no billing bridge, so tillOpen() is false, proLocked() is false,
+ *  and every web player was being handed the PRO number. Two is therefore the
+ *  Pro number as well, and saved plans stop being a Pro perk - no adverts and
+ *  the three locked skins still are. The upsell chip that sat at the end of
+ *  the row went with it: with one number there is nothing to unlock.
+ *
+ *  Plans saved into the old slots C through F are not deleted, only hidden,
+ *  the same way a chosen skin survives an entitlement that has not restored
+ *  yet. planSlots() stays a function so the row still asks once per render. */
+export const FREE_PLANS = 2
+export const PRO_PLANS = 2
 export function planSlots(): number { return proLocked() ? FREE_PLANS : PRO_PLANS }
 /** What the app actually wears, as opposed to what was chosen. */
 export function effectiveSkin(chosen: Skin): Skin { return skinLocked(chosen) ? FREE_SKIN : chosen }

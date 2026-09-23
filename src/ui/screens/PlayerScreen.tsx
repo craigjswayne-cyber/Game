@@ -13,7 +13,7 @@ import { releaseBlock, releaseCost, releasePlayer } from '../../game/release'
 import { MARQUEE_SLOTS } from '../../game/cap'
 import { answerRequest, canAnswerRequest, canChat, chatBudget, praisePlayer, warnPlayer } from '../../game/chats'
 import { mulberry32 } from '../../game/rng'
-import { attrName, persName, posName, t, traitInfo, traitName } from '../../game/i18n'
+import { attrBand, attrBandIndex, attrName, persName, posName, t, traitInfo, traitName } from '../../game/i18n'
 
 export default function PlayerScreen({ playerId }: { playerId: number }) {
   const game = useStore(s => s.game)!
@@ -272,6 +272,12 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
               return (
                 <div className="fm-attr" key={k}>
                   <span className="fm-name">{attrName(k)}</span>
+                  {/* THE WORD, not only the figure (owner, v1.7.0). A page of
+                      bare numbers only reads to somebody who already knows
+                      what the scale is. Hidden while a man is unscouted,
+                      because a range has no single word for it - the dashed
+                      chip is already saying "we do not know yet". */}
+                  {exact && <span className={`fm-word b${attrBandIndex(v)}`}>{attrBand(v)}</span>}
                   {rv != null && (
                     <b className="fm-rival" style={{ color: v > rv ? 'var(--text-positive)' : v < rv ? 'var(--text-negative)' : 'var(--text-muted)' }}>{rv}</b>
                   )}
