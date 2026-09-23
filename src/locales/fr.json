@@ -575,7 +575,17 @@
     "styleCounterDesc": "Encaisser la pression, frapper sur ballon rendu. Turnover = essai.",
     "styleOffload": "Le jeu d'offload",
     "styleOffloadDesc": "Garder le ballon vivant dans le contact - risqué, spectaculaire.",
-    "sliderTempoUp_f": "Jeu rapide et rucks propres : plus de percussion en attaque, mais vos joueuses brûlent leur énergie et la défense se relâche."
+    "sliderTempoUp_f": "Jeu rapide et rucks propres : plus de percussion en attaque, mais vos joueuses brûlent leur énergie et la défense se relâche.",
+    "defSitBack": "En retrait",
+    "defSitBackDesc": "Ligne basse, on les laisse venir. Le moins de pénalités, le plus de mètres concédés.",
+    "defDrift": "Glissement",
+    "defDriftDesc": "On glisse en travers et on les pousse vers la touche. Émousse un jeu déployé ; un pack viendra tout droit au milieu.",
+    "defStandard": "Standard",
+    "defStandardDesc": "Une ligne égale à vitesse égale. Aucun avantage d'un côté ni de l'autre, et rien que l'arbitre guette.",
+    "defMan": "Homme à homme",
+    "defManDesc": "Resserré, chacun sur son homme. Étouffe un assaut d'avants et peut être étiré par la largeur.",
+    "defPress": "Pression",
+    "defPressDesc": "On monte vite et groupé pour leur prendre le temps. La meilleure défense ici, et celle que l'arbitre surveille au hors-jeu."
   },
   "roles": {
     "scrummager": "Spécialiste de la mêlée",
@@ -1220,7 +1230,9 @@
     "warnRusty_f": "{player} MANQUE DE RYTHME ({n} sem.) - gros risque de rechute si elle joue.",
     "warnScrum_f": "Problème en mêlée : dans tout votre groupe du match, vous avez {missing}. L'arbitre exige 2 joueuses pour chaque poste de première ligne, sinon il ordonne des mêlées simulées - plus de poussée, et un pack solide ne vaut plus rien. Mettez davantage de première ligne sur le banc.",
     "yourRatings_f": "Les notes de vos joueuses",
-    "assistantTakes_w": "{home} - {away} est l'après-midi de votre adjointe. Elle compose l'équipe et remet son rapport - la vôtre, c'est le Test."
+    "assistantTakes_w": "{home} - {away} est l'après-midi de votre adjointe. Elle compose l'équipe et remet son rapport - la vôtre, c'est le Test.",
+    "pressureLabel": "Pression",
+    "pressureTitle": "À quel point chaque équipe menace en ce moment - ça monte pendant un temps fort et retombe quand rien n'en sort"
   },
   "tacticsScreen": {
     "tabRoles": "Rôles",
@@ -6675,5 +6687,16 @@
     "leakSubj": "Quelqu'un a parlé",
     "leak": "Un entraîneur rival s'est montré étonnamment généreux avec un journaliste cette semaine : comment votre équipe se place sur les phases arrêtées, qui donne les consignes, de quel côté du terrain vous allez en premier. C'est imprimé sans signature et bien trop détaillé pour venir d'un supporter.\n\nVotre prochain adversaire l'a lu. Il n'y a plus rien à faire que jouer.",
     "breakaway_f": "Un consortium que personne ne sait nommer a briefé trois journaux sur une nouvelle compétition : plus d'argent, moins de clubs, un modèle de franchises, et une invitation que votre conseil « étudierait avec attention ».\n\nVotre président n'a rien dit publiquement. Les joueuses l'ont lu sur leur téléphone comme tout le monde."
+  },
+  "attrBand": {
+    "superb": "Superbe",
+    "elite": "Élite",
+    "strong": "Solide",
+    "good": "Bon",
+    "solid": "Correct",
+    "fair": "Moyen",
+    "modest": "Modeste",
+    "weak": "Faible",
+    "poor": "Pauvre"
   }
 }

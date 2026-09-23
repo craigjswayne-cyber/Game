@@ -573,7 +573,17 @@
   "styleCounter": "Counter-Attack",
   "styleCounterDesc": "Soak pressure, strike from broken field. Turnover = try.",
   "styleOffload": "The Offloading Game",
-  "styleOffloadDesc": "Keep the ball alive through contact - high risk, box office."
+  "styleOffloadDesc": "Keep the ball alive through contact - high risk, box office.",
+  "defSitBack": "Sit Back",
+  "defSitBackDesc": "Hold the line deep and make them play through you. Fewest penalties, most metres conceded.",
+  "defDrift": "Drift",
+  "defDriftDesc": "Slide across and shepherd them to the touchline. Blunts an expansive side; a forward pack will come straight down the middle of it.",
+  "defStandard": "Standard",
+  "defStandardDesc": "An even line at an even speed. No edge either way, and nothing the referee is looking for.",
+  "defMan": "Man to Man",
+  "defManDesc": "Narrow, everybody on their man. Strangles a forward assault and can be stretched by width.",
+  "defPress": "Press",
+  "defPressDesc": "Up fast and together to take their time away. The best defence here, and the one the referee watches for offside."
  },
  "roles": {
   "scrummager": "Scrummager",
@@ -1230,7 +1240,9 @@
   "warnCannotStart_f": "{player} (no. {shirt}) {problem} - she cannot start today.",
   "warnRusty_f": "{player} is RUSTY ({n}w) - high re-injury risk if she plays.",
   "warnUnfit_f": "{player} is only {pct}% fit - her tank will empty early.",
-  "assistantTakes_w": "{home} v {away} is your assistant's afternoon. She picks the side and files her report - yours is the Test."
+  "assistantTakes_w": "{home} v {away} is your assistant's afternoon. She picks the side and files her report - yours is the Test.",
+  "pressureLabel": "Pressure",
+  "pressureTitle": "How much either side is threatening right now - it builds through a spell and fades when nothing comes of it"
  },
  "tacticsScreen": {
   "tabRoles": "Roles",
@@ -6838,5 +6850,16 @@
   "breakawayEnd": "The consortium has stopped returning calls. Two of the newspapers have quietly moved on and the third is running a piece about how it was never really going to happen.\n\nIt never is. It comes round every few years, it fills a fortnight of back pages, and then everybody plays on Saturday as though nobody had ever mentioned it.",
   "leakSubj": "Somebody has been talking",
   "leak": "A rival coach has been unusually generous with a journalist this week - how your team lines up from a set piece, who makes the calls, which side of the field you go to first. It is in print with no name attached and far too much detail to have come from a supporter.\n\nWhoever you play next has read it. Nothing to be done about it now but play."
+ },
+ "attrBand": {
+  "superb": "Superb",
+  "elite": "Elite",
+  "strong": "Strong",
+  "good": "Good",
+  "solid": "Solid",
+  "fair": "Fair",
+  "modest": "Modest",
+  "weak": "Weak",
+  "poor": "Poor"
  }
 }

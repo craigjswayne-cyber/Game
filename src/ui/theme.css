@@ -1689,6 +1689,19 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .fm-attr .fm-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .fm-attr .fm-rival { font-family: var(--cond); font-size: 12px; width: 26px; text-align: right; }
+/* THE ATTRIBUTE'S WORD (v1.7.0). It sits between the name and the figure and
+   it is the first thing to go when the row runs out of room: the name and the
+   number both carry meaning on their own, and the word is the one that is
+   there to save a newcomer looking up a scale. Nine bands, cool to warm. */
+.fm-attr .fm-word {
+  font-family: var(--cond); font-size: 10.5px; font-weight: 700;
+  letter-spacing: 0.3px; white-space: nowrap; flex-shrink: 0;
+  color: var(--text-muted);
+}
+.fm-attr .fm-word.b8, .fm-attr .fm-word.b7 { color: var(--primary); }
+.fm-attr .fm-word.b6 { color: var(--info); }
+.fm-attr .fm-word.b1, .fm-attr .fm-word.b0 { color: var(--text-negative); }
+@media (max-width: 420px) { .fm-attr .fm-word { display: none; } }
 .fm-attr .fm-chip {
   min-width: 34px; text-align: center; padding: 1px 5px;
   border-radius: 5px; font-family: var(--cond); font-size: 12.5px; font-weight: 800;
@@ -4226,3 +4239,31 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .loan-sheet .loan-deal { display: flex; flex-direction: column; gap: 10px; padding: 4px 14px 0; }
 .loan-sheet .loan-deal label { display: flex; flex-direction: column; gap: 4px; font-size: 10.5px; text-transform: uppercase; letter-spacing: .4px; }
 .loan-sheet .loan-deal .inline-input { padding: 9px 10px; width: 100%; }
+
+
+/* ---- THE PRESSURE BARS (v1.7.0) ----
+   Two bars either side of a centred label, each filling OUTWARD from the
+   middle, so a glance at the scoreboard says who is on top without reading a
+   number. They sit on the scoreboard's hero gradient, so the track is a light
+   wash rather than a surface colour and the fill is the club's own. */
+.press-row {
+  display: flex; align-items: center; gap: 6px;
+  padding: 3px 14px 1px;
+}
+.press-label {
+  font-family: var(--cond); font-size: 9px; font-weight: 800;
+  letter-spacing: 1.2px; text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.62); white-space: nowrap; flex-shrink: 0;
+}
+.press-bar {
+  flex: 1; height: 5px; border-radius: 3px; overflow: hidden;
+  background: rgba(255, 255, 255, 0.14);
+  display: flex;
+}
+/* the home bar grows right-to-left so both fills meet at the label */
+.press-bar.home { justify-content: flex-end; }
+.press-fill {
+  height: 100%; border-radius: 3px;
+  transition: width 260ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) { .press-fill { transition: none; } }

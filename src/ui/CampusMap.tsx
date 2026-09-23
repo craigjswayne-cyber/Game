@@ -56,7 +56,7 @@ export default function CampusMap({ game, onPick }: {
     <div className="card" style={{ padding: 6, overflow: 'hidden' }}>
       <div style={{
         position: 'relative', width: '100%', aspectRatio: `${PLATE_W} / ${PLATE_H}`,
-        borderRadius: 6, overflow: 'hidden', background: 'var(--panel, #10141a)',
+        borderRadius: 6, overflow: 'hidden', background: 'var(--surface-2)',
       }}>
         <img src={`${ART}campus/plate.png`} alt=""
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block' }} />
@@ -122,7 +122,7 @@ export default function CampusMap({ game, onPick }: {
                 padding: '1px 4px', borderRadius: 7, fontSize: 9, lineHeight: 1.35, fontWeight: 700,
                 background: 'rgba(8, 11, 15, 0.72)',
                 border: `1px solid ${building ? 'var(--gold)' : 'rgba(255,255,255,0.18)'}`,
-                color: building ? 'var(--gold)' : '#fff',
+                color: building ? 'var(--gold)' : 'var(--on-hero)',
               }}>
                 <span>{building ? '🔨' : iconOf(p.fid)}</span>
                 <span style={{ letterSpacing: 0.2 }}>

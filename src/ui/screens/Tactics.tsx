@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { planSlots, useStore } from '../../store'
 import { XV_SLOTS, type Player } from '../../game/model'
-import { DEF_SLIDER_INFO, PRESETS, SLIDER_INFO, defSliderReadout, sliderReadout } from '../../game/tactics'
+import { DEF_SLIDER_INFO, DEF_SYSTEMS, PRESETS, SLIDER_INFO, defSliderReadout, defSystemOf, sliderReadout } from '../../game/tactics'
 import { ROLE_BY_ID, rolesForSlot } from '../../game/roles'
 import { PosBadge, SectionTitle } from '../components'
 import { analystClaim, analystForm, analystRead, prepLabel, unitLabel } from '../../game/analyst'
@@ -558,6 +558,29 @@ export default function Tactics() {
         <SectionTitle sub={t('tacticsScreen.withTheBallSub')}>{t('tacticsScreen.withTheBall')}</SectionTitle>
         {SLIDER_INFO.map(slider)}
         <SectionTitle sub={t('tacticsScreen.withoutTheBallSub')}>{t('tacticsScreen.withoutTheBall')}</SectionTitle>
+        {/* THE SYSTEM, BY NAME (v1.7.0). A coach picks a defence by its name
+            and then tunes it, so the names come first and the two dials below
+            stay exactly as they were - tapping one just sets them. The
+            readout names whichever system they sit nearest, so dragging a
+            slider re-labels the row rather than leaving it stale. */}
+        {(() => {
+          const cur = defSystemOf(tac.defLine ?? 50, tac.defWidth ?? 50)
+          return (
+            <div style={{ padding: '0 14px 2px' }}>
+              <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+                {DEF_SYSTEMS.map(sys => (
+                  <button key={sys.id} className="preset-chip" title={t(sys.desc)}
+                    style={{ flex: '1 1 auto', ...(cur.id === sys.id
+                      ? { background: 'var(--primary)', color: 'var(--on-primary)' } : {}) }}
+                    onClick={() => { tac.defLine = sys.line; tac.defWidth = sys.width; touch() }}>
+                    {t(sys.name)}
+                  </button>
+                ))}
+              </div>
+              <div className="meta" style={{ fontSize: 11, marginTop: 4 }}>{t(cur.desc)}</div>
+            </div>
+          )
+        })()}
         {DEF_SLIDER_INFO.map(defSlider)}
       </>}
 

@@ -85,6 +85,54 @@ export const DEF_SLIDER_INFO: { key: DefSliderKey; label: string; lo: string; hi
   },
 ]
 
+/**
+ * ---- THE DEFENSIVE SYSTEM, BY NAME (owner, v1.7.0) ----
+ *
+ * Competitor read: their defence is a dropdown of rugby words - drift, man to
+ * man, press, sit back - where ours is two numbered dials. The engine has had
+ * the mechanics since 18D (line speed buys defence and costs penalties; width
+ * is a matchup against an expansive attack or a forward one), and a coach does
+ * not think "sixty-two and thirty-eight", he thinks "we're going man on man".
+ *
+ * So these are five named points in that same two-dial space. Nothing new in
+ * the engine: picking one SETS the dials, and the dials still move freely
+ * afterwards - the readout simply names whichever system they now sit nearest.
+ * That keeps one mechanism rather than two, so a system can never mean
+ * something the sliders do not.
+ */
+export interface DefSystem {
+  id: string
+  name: string
+  desc: string
+  /** where this system sits on the two without-ball dials */
+  line: number
+  width: number
+}
+
+export const DEF_SYSTEMS: DefSystem[] = [
+  { id: 'sitback', name: 'tactics.defSitBack', desc: 'tactics.defSitBackDesc', line: 14, width: 46 },
+  { id: 'drift', name: 'tactics.defDrift', desc: 'tactics.defDriftDesc', line: 30, width: 82 },
+  { id: 'standard', name: 'tactics.defStandard', desc: 'tactics.defStandardDesc', line: 50, width: 50 },
+  { id: 'man', name: 'tactics.defMan', desc: 'tactics.defManDesc', line: 60, width: 38 },
+  { id: 'press', name: 'tactics.defPress', desc: 'tactics.defPressDesc', line: 88, width: 64 },
+]
+
+/**
+ * Which system the dials currently describe: the nearest of the five, by
+ * straight-line distance across the two. Always answers, because a manager
+ * who has dragged a slider two notches off Drift is still playing a drift
+ * defence and the screen should say so rather than going blank.
+ */
+export function defSystemOf(line: number, width: number): DefSystem {
+  let best = DEF_SYSTEMS[2]
+  let bestD = Infinity
+  for (const sys of DEF_SYSTEMS) {
+    const d = (sys.line - line) ** 2 + (sys.width - width) ** 2
+    if (d < bestD) { bestD = d; best = sys }
+  }
+  return best
+}
+
 /** Plain-English readout of a without-ball dial, for the UI. */
 export function defSliderReadout(key: DefSliderKey, v: number): string {
   const info = DEF_SLIDER_INFO.find(s => s.key === key)!
