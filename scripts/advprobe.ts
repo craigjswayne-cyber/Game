@@ -25,6 +25,7 @@ import { beginMatch, simMatch, stepTick, resolveDecision } from '../src/game/mat
 import { requestExpansion } from '../src/game/season'
 import { upkeepWeek } from '../src/game/upkeep'
 import { GROUND_UPKEEP_F, groundLevel, groundUpkeep } from '../src/game/model'
+import { ZONE_PLANS, zonePlan } from '../src/game/tactics'
 import { mulberry32 } from '../src/game/rng'
 
 let fails = 0
@@ -180,6 +181,82 @@ console.log('\n=== 6. the ground wears out, and a stand makes it new ===')
     }
   }
   ok(sawBig === 0, `a stage-zero ground is never sent a stadium's bill or a stadium's windfall (${sawBig} leaked)`)
+}
+
+// ------------------------------------------------- 7. territory, and zones
+console.log('\n=== 7. the game is played somewhere ===')
+{
+  const g = newGame('leicester', 'Adv', 4242)
+  const fxs = g.fixtures.filter(f => g.clubs[f.homeId] && g.clubs[f.awayId]).slice(0, 60)
+  const hist: number[] = []
+  for (const fx of fxs) {
+    const ctx = beginMatch(g, fx, mulberry32(fx.id * 31 + 7), false)
+    for (let i = 0; i < 20; i++) {
+      stepTick(g, ctx)
+      if (ctx.awaiting) ctx.awaiting = null
+      if (ctx.decision) ctx.decision = null
+      hist.push(ctx.field)
+    }
+  }
+  const mean = hist.reduce((a, b) => a + b, 0) / hist.length
+  const own = hist.filter(f => f < 22).length / hist.length
+  const opp = hist.filter(f => f > 78).length / hist.length
+  console.log(`  ${hist.length} ticks: mean ${mean.toFixed(1)}, own 22 ${(own * 100).toFixed(0)}%, their 22 ${(opp * 100).toFixed(0)}%`)
+  // NEUTRAL ACROSS THE WORLD. The position factor is an exact reciprocal
+  // between the two sides, so if the line itself had a bias the whole league
+  // would tilt with it - and nothing else in this engine would say so.
+  ok(Math.abs(mean - 50) < 3, `the line has no bias of its own (mean ${mean.toFixed(1)}, want 50 +/- 3)`)
+  // and it has to actually go places, or the zones below name nothing
+  ok(own > 0.05 && opp > 0.05, `rugby is played in both 22s (${(own * 100).toFixed(0)}% / ${(opp * 100).toFixed(0)}%)`)
+  ok(own < 0.3 && opp < 0.3, 'and is not played only in the 22s')
+}
+
+console.log('\n=== 8. a zone plan does what it says, in its own zone ===')
+{
+  // MEASURED IN THE ZONE, not across a match. A plan only applies where it
+  // applies, and each 22 is about a tenth of an afternoon, so a whole-match
+  // difference for those two sits under the noise of any run this size. What
+  // has to be true is that the mechanism bites where it is meant to.
+  // AVERAGE FIELD POSITION, not a count of ticks past a threshold. The count
+  // version was measured first and could not tell the two exits apart at any
+  // sample size this probe can afford - a threshold throws away every metre
+  // of the difference and keeps only whether it crossed a line.
+  const inZone = (planId: string, zone: 'own22' | 'opp22' | 'middle') => {
+    let ticks = 0, sum = 0
+    for (const seed of [5, 15, 25, 35, 45]) {
+      const g = newGame('toulouse', 'Adv', seed)
+      const club = g.clubs[g.userClubId]
+      club.tactic.zones = { [zone]: planId } as never
+      const fxs = g.fixtures.filter(f => f.homeId === club.id && g.clubs[f.awayId]).slice(0, 14)
+      for (const fx of fxs) {
+        const ctx = beginMatch(g, fx, mulberry32(seed * 131 + fx.id), false)
+        for (let i = 0; i < 20; i++) {
+          stepTick(g, ctx)
+          if (ctx.awaiting) ctx.awaiting = null
+          if (ctx.decision) ctx.decision = null
+          ticks++; sum += ctx.field
+        }
+      }
+    }
+    return { ticks, avgUp: ticks ? sum / ticks : 0 }
+  }
+  const long = inZone('long', 'own22')
+  const play = inZone('play', 'own22')
+  console.log(`  average line: kicking exits long ${long.avgUp.toFixed(1)}, playing them out ${play.avgUp.toFixed(1)} (n=${long.ticks} ticks)`)
+  ok(long.avgUp > play.avgUp + 0.5,
+    `kicking your exits long holds a higher line than playing them out (${long.avgUp.toFixed(1)} v ${play.avgUp.toFixed(1)})`)
+  const drive = inZone('drive', 'opp22')
+  const spread = inZone('spread', 'opp22')
+  console.log(`  in their 22: pick and drive ${drive.avgUp.toFixed(1)}, spreading it ${spread.avgUp.toFixed(1)}`)
+  ok(drive.avgUp > spread.avgUp + 0.3,
+    `driving close holds the line up where spreading it gives ground back (${drive.avgUp.toFixed(1)} v ${spread.avgUp.toFixed(1)})`)
+  // every plan id the screen offers must resolve, or a chip sets nothing
+  for (const z of ['own22', 'middle', 'opp22'] as const) {
+    for (const pl of ZONE_PLANS[z]) {
+      ok(zonePlan(z, pl.id).id === pl.id, `${z}/${pl.id} resolves to itself`)
+    }
+    ok(zonePlan(z, 'nonsense').id === ZONE_PLANS[z][1].id, `${z} falls back to its neutral plan`)
+  }
 }
 
 console.log(fails ? `\nDESIGN ROUND PROBE: ${fails} failures` : '\nDESIGN ROUND PROBE PASSED: advantage, the Tuesday session and the kicking ladder all behave')

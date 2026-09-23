@@ -582,7 +582,25 @@
   "defMan": "Man teen Man",
   "defManDesc": "Nou, elkeen op sy man. Wurg 'n voorspeler-aanval en kan met wydte uitgerek word.",
   "defPress": "Druk",
-  "defPressDesc": "Vinnig en saam op om hul tyd weg te vat. Die beste verdediging hier, en die een wat die skeidsregter vir onkant dophou."
+  "defPressDesc": "Vinnig en saam op om hul tyd weg te vat. Die beste verdediging hier, en die een wat die skeidsregter vir onkant dophou.",
+  "z22Long": "Skop ver",
+  "z22LongDesc": "Kry dit daar uit en bekommer later. Die meeste veld, die minste bal.",
+  "z22Box": "Boks en jaag",
+  "z22BoxDesc": "Op, beding daarvoor, vat wat kom. Die middelweg uit jou eie 22 en die een wat die meeste spanne vat.",
+  "z22Play": "Speel dit uit",
+  "z22PlayDesc": "Hou dit in die hand onder jou eie pale. Niks wen 'n wedstryd vinniger nie, en niks verloor een vinniger nie.",
+  "zMidTerr": "Terrein",
+  "zMidTerrDesc": "Skop vir die hoeke en laat hulle kom. Minder kanse, op beter plekke.",
+  "zMidBalanced": "Gebalanseerd",
+  "zMidBalancedDesc": "Vat wat die wedstryd gee. Geen voordeel aan enige kant nie.",
+  "zMidHand": "Bal in die hand",
+  "zMidHandDesc": "Dra deur die middel en bou fases. Meer kanse, verder weg.",
+  "zOppDrive": "Optel en stoot",
+  "zOppDriveDesc": "Voorspelers, naby, een meter op 'n slag. Moeilik om wettig te stop, so dit wen strafskoppe sowel as drieë.",
+  "zOppSpread": "Sprei dit",
+  "zOppSpreadDesc": "Vat dit na die punt en vertrou jou buitespelers. Die meeste drieë, en die meeste kanse om dit te laat val.",
+  "zOppPatient": "Speel die persentasies",
+  "zOppPatientDesc": "Vat wat die verdediging gee en niks meer nie. Nie die drieë en nie die foute van die ander twee nie."
  },
  "roles": {
   "scrummager": "Skrummer",
@@ -1336,7 +1354,12 @@
   "roleSheetSub_f": "Nr. {shirt} · hoe sy dit speel · {n} opsies",
   "rolesNote_f": "Tik op 'n trui om haar rol te stel of haar profiel oop te maak. Rolle is klein, eerlike voordele - die skrummer stut die vaste spel, die spelmaker maak die wedstryd oop.",
   "kickerNote_f": "Die eerste keuse vat alles; die tweede vrou tree in wanneer sy van stryk is.",
-  "splitMismatch_f": "Jy het 'n {want} benoem, en die vroue in die truie maak dit 'n {got}. Die bank wat jy werklik kies, is die een wat speel."
+  "splitMismatch_f": "Jy het 'n {want} benoem, en die vroue in die truie maak dit 'n {got}. Die bank wat jy werklik kies, is die een wat speel.",
+  "byZone": "Wat jy waar doen",
+  "byZoneSub": "Dieselfde span speel drie verskillende wedstryde op die veld",
+  "zone_own22": "In jou eie 22",
+  "zone_middle": "Die middelderde",
+  "zone_opp22": "In hulle 22"
  },
  "staff": {
   "roleAssistant": "Assistent-afrigter",
