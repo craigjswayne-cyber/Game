@@ -4038,7 +4038,15 @@ export function processWeekAndAdvance(state: GameState) {
   // pitches, failed events, successful events"). The books were entirely a
   // function of the sport and therefore entirely predictable; a roof, a storm
   // and a sportsman's dinner are what make balancing them a job.
-  upkeepWeek(state, rng)
+  //
+  // ITS OWN STREAM (v1.6.9). This drew from the week's shared rng, whose
+  // position depends on everything that happened earlier in the week - so
+  // playing a midweek friendly, a fixture deliberately worth nothing to the
+  // club, changed WHICH repair bill landed and moved the balance by up to
+  // £644k. friendlyprobe exists to assert that a friendly costs and earns
+  // exactly nothing, and it could not see its own subject past the noise.
+  // A roof does not leak because the academy played on Wednesday.
+  upkeepWeek(state, mulberry32((state.seed ^ (state.season * 1013 + state.week * 7919) ^ 0x9e37) >>> 0))
   // AND THE BOARD COUNTS THE WEEKS IN THE RED. After upkeep, so the week's
   // non-rugby luck is already in the balance being judged.
   debtWeek(state)

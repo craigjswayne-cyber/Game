@@ -18,7 +18,7 @@
 //
 // Run: npx tsx scripts/legsprobe.ts
 import { newGame } from '../src/game/newgame'
-import { beginMatch, stepTick } from '../src/game/matchEngine'
+import { beginMatch, resolveDecision, stepTick } from '../src/game/matchEngine'
 import { processWeekAndAdvance, userFixtureThisWeek } from '../src/game/season'
 import { mulberry32 } from '../src/game/rng'
 
@@ -30,7 +30,17 @@ const playLiveNoSubs = (g: ReturnType<typeof newGame>, seed: number) => {
   const fx = userFixtureThisWeek(g)!
   const ctx = beginMatch(g, fx, mulberry32(seed), true)
   for (let i = 0; i < 4000; i++) {
+    // ANSWER THE TOUCHLINE CALL. A kickable penalty awarded at the death holds
+    // the whistle (stepTick: `if (ctx.decision) ctx.heldWhistle = 'FT'`), so
+    // full time never blows, finalizeMatch never runs, and NOBODY'S CONDITION
+    // IS EVER WRITTEN - which is why this probe read exactly 100% after a
+    // friendly and exactly 80% after a league match: the numbers players
+    // started the week with, untouched. The engine was right and the harness
+    // was driving it wrong; a real manager answers the call and the whistle
+    // follows. Other harnesses in here already do this.
+    if (ctx.decision) resolveDecision(g, ctx, 'posts')
     const out = stepTick(g, ctx)
+    if (ctx.decision) resolveDecision(g, ctx, 'posts')
     if (out === 'HT' || out === 'BRK') { ctx.awaiting = null; continue }
     if (out === 'FT') break
   }
