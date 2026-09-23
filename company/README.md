@@ -11,7 +11,9 @@ Plain HTML and CSS, no build step. Files:
 | `index.html` | Home, About, Games and Contact |
 | `privacy.html` | Privacy notice for this website |
 | `style.css` | Shared styles (light and dark mode) |
-| `img/` | PHASE icon and one screenshot |
+| `img/` | Studio logo, favicon, iPhone icon, PHASE icon, art and screenshots |
+| `brand/` | The FWDS & BCKS logo as SVG and PNG (512, 1024, and a logo-plus-name lockup) for use elsewhere |
+| `space-grotesk-latin.woff2` | The site font, served locally |
 | `CNAME` | Tells GitHub Pages the domain is `www.fwdsandbcks.com` |
 
 ## Why it is not published by this repo's Pages workflow
