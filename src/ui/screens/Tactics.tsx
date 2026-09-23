@@ -3,7 +3,7 @@ import { planSlots, useStore } from '../../store'
 import { XV_SLOTS, type Player } from '../../game/model'
 import { DEF_SLIDER_INFO, DEF_SYSTEMS, PRESETS, SLIDER_INFO, ZONE_PLANS, defSliderReadout, defSystemOf, sliderReadout, zonePlan, type ZoneId } from '../../game/tactics'
 import { ROLE_BY_ID, rolesForSlot } from '../../game/roles'
-import { PosBadge, SectionTitle } from '../components'
+import { Jersey, PosBadge, SectionTitle } from '../components'
 import { analystClaim, analystForm, analystRead, prepLabel, unitLabel } from '../../game/analyst'
 import { assistantAdvice } from '../../game/analysis'
 import { userFixtureThisWeek } from '../../game/season'
@@ -179,9 +179,18 @@ export default function Tactics() {
               <button key={i} className="form-chip"
                 style={{ '--fx': `${x}%`, '--fy': `${y}%` } as React.CSSProperties}
                 onClick={() => setRoleSlot(i)}>
-                <span className="fc-role">{role ? t(role.short) : XV_SLOTS[i].pos}</span>
+                {/* THE MAN IN THE SHIRT, not a coloured block (owner, v1.8.2:
+                    "Can you use jerseys instead of blocks?"). The Jersey
+                    component already draws every club's real kit - hoops,
+                    quarters, sleeve trim - so the fifteen on this pitch are
+                    now wearing the jersey the club actually plays in, with
+                    the shirt number on the chest where a number belongs. */}
+                <span className="fc-kit">
+                  <Jersey club={club} size={38} />
+                  <span className="fc-num">{XV_SLOTS[i].shirt}</span>
+                </span>
                 <span className="fc-name">{p ? p.name.split(' ').slice(-1)[0] : '-'}</span>
-                <span className="fc-num">{XV_SLOTS[i].shirt}</span>
+                <span className="fc-role">{role ? t(role.short) : XV_SLOTS[i].pos}</span>
               </button>
             )
           })}

@@ -1784,44 +1784,65 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
      midnight, a sepia one on heritage (owner, v1.2.6: "the pitch on the
      tactics page should always be green still"). --pitch-a is the one
      token no skin may repaint (skinprobe holds them to it). */
-  background: var(--pitch-a);
-  
+  /* ---- A REAL PITCH (owner, v1.8.2) ----
+     "The pitch background doesnt work - remove. Make it a textured training
+     pitch like below."
+
+     The first cut drew the markings as elements over flat green and it read
+     as a diagram rather than as grass. This is the owner's own reference:
+     the marked rectangle cropped out of it, turned ninety degrees so the
+     long axis runs up the screen the way this formation is laid out, and cut
+     to 420px wide - the mowing stripes and the worn centre survive that, and
+     they are what make it look like a pitch somebody actually trains on.
+
+     THE SCRIM IS THE POINT, and it is the instruction from the round before
+     this one: "make the opacity low so the players are still clear". Fifteen
+     jerseys have to read against it, so the grass is held back rather than
+     shown off. --pitch-a stays underneath as the colour a skin can repaint
+     and as what shows if the image has not arrived yet. */
+  background-color: var(--pitch-a);
+  background-image:
+    linear-gradient(var(--pitch-scrim), var(--pitch-scrim)),
+    url('./tactics-pitch.png');
+  background-size: cover;
+  background-position: center top;
   border: 1px solid rgba(0, 0, 0, .3);
   box-shadow: inset 0 2px 14px rgba(0, 0, 20, .25);
   overflow: hidden;
-}
-.form-pitch::before {
-  content: '';
-  position: absolute; left: 0; right: 0; top: 40%;
-  border-top: 1px dashed rgba(255, 255, 255, .16);
-}
-.form-pitch::after {
-  content: '';
-  position: absolute; left: 0; right: 0; top: 5%;
-  border-top: 1px solid rgba(255, 255, 255, .2);
 }
 .form-chip {
   position: absolute;
   left: var(--fx); top: var(--fy);
   transform: translate(-50%, -50%);
-  display: flex; flex-direction: column; align-items: center;
-  min-width: 64px; padding: 4px 7px;
-  border-radius: 8px;
-  background: linear-gradient(180deg, var(--club1, var(--primary)), color-mix(in srgb, var(--club1, var(--primary)) 70%, black));
-  border: 1px solid rgba(255, 255, 255, .25);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, .35);
-  color: var(--club1-ink);
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  padding: 2px;
+  background: none; border: 0;
+  color: var(--on-hero);
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 20, .55));
+}
+.form-chip .fc-kit { position: relative; display: block; line-height: 0; }
+/* ON A PRINTED PANEL, because the number has to read on a white kit and on a
+   black one. A bare white numeral was measured on Leicester's shirt and
+   disappeared into it; a shadow alone is not contrast, it is a smudge. */
+.form-chip .fc-num {
+  position: absolute; left: 50%; top: 46%;
+  transform: translate(-50%, -50%);
+  min-width: 15px; padding: 0 3px;
+  border-radius: 4px;
+  background: rgba(8, 12, 18, .58);
+  font-family: var(--cond); font-size: 12px; font-weight: 800; line-height: 15px;
+  text-align: center; color: var(--on-hero);
+  pointer-events: none;
+}
+.form-chip .fc-name {
+  font-size: 10.5px; font-weight: 700; max-width: 62px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0, 0, 20, .85);
 }
 .form-chip .fc-role {
-  font-family: var(--cond); font-size: 9.5px; font-weight: 800;
+  font-family: var(--cond); font-size: 9px; font-weight: 800;
   letter-spacing: 1px; color: var(--gold);
-}
-.form-chip .fc-name { font-size: 11px; font-weight: 700; max-width: 86px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.form-chip .fc-num {
-  position: absolute; top: -7px; right: -7px;
-  width: 17px; height: 17px; border-radius: 50%;
-  background: var(--gold-fill); color: var(--on-gold);
-  font-size: 10px; font-weight: 800; line-height: 17px;
+  text-shadow: 0 1px 2px rgba(0, 0, 20, .85);
 }
 
 /* last-10-minutes possession strip with the momentum needle riding it */
