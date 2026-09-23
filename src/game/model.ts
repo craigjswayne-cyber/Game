@@ -1605,6 +1605,10 @@ export interface GameState {
    *  absolute week the board's grant of MORE TIME runs to. While it stands
    *  the confidence sack check is suspended: a chairman who has publicly
    *  given a manager until Christmas does not sack him in November. */
+  /** What the ground cost this week beyond the standing bill: the one repair
+   *  or windfall upkeep.ts rolled, or 0 for a quiet week. Recorded so a probe
+   *  can tell a gate from a boiler (season.ts, friendlyprobe). */
+  lastUpkeep?: number
   boardGrace?: number
   /** season the manager last asked for a bigger staff budget - once a season,
    *  win or lose, the same rule the transfer-funds ask has always had */

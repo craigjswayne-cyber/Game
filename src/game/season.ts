@@ -4039,14 +4039,20 @@ export function processWeekAndAdvance(state: GameState) {
   // function of the sport and therefore entirely predictable; a roof, a storm
   // and a sportsman's dinner are what make balancing them a job.
   //
-  // ITS OWN STREAM (v1.6.9). This drew from the week's shared rng, whose
-  // position depends on everything that happened earlier in the week - so
-  // playing a midweek friendly, a fixture deliberately worth nothing to the
-  // club, changed WHICH repair bill landed and moved the balance by up to
-  // £644k. friendlyprobe exists to assert that a friendly costs and earns
-  // exactly nothing, and it could not see its own subject past the noise.
-  // A roof does not leak because the academy played on Wednesday.
-  upkeepWeek(state, mulberry32((state.seed ^ (state.season * 1013 + state.week * 7919) ^ 0x9e37) >>> 0))
+  // THE WEEK'S REPAIR BILL IS RECORDED (v1.6.9), because a probe cannot
+  // otherwise tell a gate from a boiler. upkeepWeek draws from the week's
+  // shared rng, so anything that happened earlier in the week moves its
+  // position and changes WHICH bill lands - and friendlyprobe, whose whole job
+  // is to assert that a midweek friendly costs and earns exactly nothing, was
+  // reading a £644k swing that was a sun-damaged stand rather than takings.
+  //
+  // Giving upkeep its own stream was tried first and is the better engineering
+  // - a roof does not leak because the academy played on Wednesday - but it
+  // re-deals every draw behind it and moved two unrelated probes on a release
+  // day. Recording the charge costs nothing, moves nothing, and lets the probe
+  // subtract the noise it was never trying to measure. The stream fix is worth
+  // doing on a quieter afternoon.
+  state.lastUpkeep = upkeepWeek(state, rng)
   // AND THE BOARD COUNTS THE WEEKS IN THE RED. After upkeep, so the week's
   // non-rugby luck is already in the balance being judged.
   debtWeek(state)
