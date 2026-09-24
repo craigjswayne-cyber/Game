@@ -60,9 +60,10 @@ export default function Agency() {
                   <td className="name" style={mine ? { fontWeight: 800 } : undefined}>
                     {n?.flag ?? ''} {nationName(code)}{mine ? t('world.agYou') : ''}
                   </td>
-                  {/* breathing room on the table's outer edge - the points sat
-                      flush against the screen (round 25, from a screenshot) */}
-                  <td className="num" style={{ paddingRight: 14 }}>{(game.natRank?.[code] ?? 0).toFixed(2)}</td>
+                  {/* the gap to the screen's edge is .natranks' last-child
+                      rule in theme.css, so the heading moves with the figures
+                      instead of drifting away from them */}
+                  <td className="num">{(game.natRank?.[code] ?? 0).toFixed(2)}</td>
                 </tr>
               )
             })}

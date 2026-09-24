@@ -386,6 +386,25 @@ option { font: inherit; color: var(--text-primary); background-color: var(--surf
 .dtable.natranks td:first-child, .dtable.natranks th:first-child { width: 1%; padding-right: 4px; }
 .dtable.natranks td:nth-child(2), .dtable.natranks th:nth-child(2) { width: 1%; padding: 7px 2px; }
 .dtable.natranks td:last-child, .dtable.natranks th:last-child { width: 1%; }
+
+/* ---- THE RANK SITS UNDER THE HASH (v1.7.0) ----
+   The rank cells carry .num, which right-aligns, and the # heading above them
+   does not - so in a column sized to its widest content (14, or 20) the single
+   digits hung a whole digit-width to the right of the heading and the column
+   read as two ragged edges. Owner, from three screenshots: "the numbers for
+   the positions should be aligned to the # so they are all in line."
+   All three rankings tables share the fault and share the fix. A rank is a
+   label rather than a quantity - nobody adds up a column of positions - so
+   left is the right edge to line them on. */
+.dtable.ranks td:first-child, .dtable.ranks th:first-child,
+.dtable.natranks td:first-child, .dtable.natranks th:first-child { text-align: left; }
+
+/* ---- AND THE POINTS COME IN OFF THE EDGE ----
+   14px of right padding was enough to stop them sitting flush against the
+   glass and not enough to stop them looking adrift of it. Owner: "the ranking
+   points column needs to be moved to the left." The nation name keeps the
+   slack either way; this only moves where the points stop. */
+.dtable.natranks td:last-child, .dtable.natranks th:last-child { padding-right: 30px; }
 .ltable th:first-child, .ltable td:first-child { padding-right: 9px; }
 
 /* ---- YOUR ROW, FOUND AT A GLANCE ----
