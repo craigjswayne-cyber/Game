@@ -22,8 +22,11 @@ import { t, tIn } from './i18n'
  * THE RULES THIS FOLLOWS
  *
  *   RARE, and earned rather than random. Every ask needs a CASE - silverware,
- *   a run of wins, a board that already rates you - and the case is shown
- *   before you knock, so a refusal is never a surprise.
+ *   a run of wins, a board that already rates you. The case used to be shown
+ *   before you knocked; it is shown after now (owner, v1.7.0), because four
+ *   lines of gold telling you what would happen before anything had was the
+ *   whole screen giving its answer away. `caseFor` is still computed the same
+ *   way and still read by the UI - only later.
  *
  *   A THING THAT CANNOT BE GIVEN IS NOT A REFUSAL. A maxed estate is not the
  *   board saying no to you, it is there being nothing to ask for, so it costs
@@ -198,7 +201,15 @@ export function askBoard(state: GameState, id: BoardAsk, pressBoard: (s: GameSta
     logDecision(state, 'dec.boardNo', { ask_k: `board.ask_${id}` }, false)
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
-      subject: tIn('en', 'news.boardNoSubj', { ask_k: `board.ask_${id}` }),
+      // EVERY STORY NEEDS ITS OWN Subj SIBLING. newsSubject (model.ts) builds
+      // an inbox headline as `k + 'Subj'`, and these eight keys are assembled
+      // at runtime from the ask's id - so nothing that reads this file as text
+      // can see them, and the generic news.boardNoSubj they used to share was
+      // never the key that got asked for. The result reached a real inbox:
+      // "news.boardNo_facilitiesSubj" as a headline, in all six languages.
+      // Same fault as news.trainInjuryOne, same week. boardroomprobe now files
+      // all eight and reads the headline back.
+      subject: tIn('en', `news.boardNo_${id}Subj`),
       body: tIn('en', `news.boardNo_${id}`),
       k: `news.boardNo_${id}`, v: {},
     })
@@ -243,7 +254,7 @@ export function askBoard(state: GameState, id: BoardAsk, pressBoard: (s: GameSta
   logDecision(state, 'dec.boardYes', { ask_k: `board.ask_${id}` }, true)
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
-    subject: tIn('en', 'news.boardYesSubj', { ask_k: `board.ask_${id}` }),
+    subject: tIn('en', `news.boardYes_${id}Subj`),
     body: tIn('en', `news.boardYes_${id}`),
     k: `news.boardYes_${id}`, v: {},
   })
