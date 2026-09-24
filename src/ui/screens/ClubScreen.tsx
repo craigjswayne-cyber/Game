@@ -223,9 +223,25 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
                     <div style={{ minWidth: 0 }}>
                       <h3 style={{ fontSize: 13.5, margin: 0 }}>{t(`board.ask_${a.id}`)}</h3>
                       <div className="meta" style={{ fontSize: 11 }}>{t(`board.askDesc_${a.id}`)}</div>
-                      <div className="meta" style={{ fontSize: 11, fontWeight: 700, color: a.possible ? 'var(--gold)' : 'var(--text-muted)' }}>
-                        {a.possible ? a.caseFor : a.blocked}
-                      </div>
+                      {/* THE CASE IS NOT SHOWN UNTIL YOU HAVE ASKED (owner,
+                          v1.7.0: "the yellow text 'asking on very little'
+                          shouldn't show before you've clicked the button").
+                          It was there so a refusal could never be a surprise,
+                          and the cost of that was four lines of gold telling
+                          you what would happen before anything had. Knocking
+                          on the door is the interesting part; the reading of
+                          the room can wait until you have.
+
+                          The BLOCKED line is different and stays put. It is
+                          the only thing explaining why an ask has no button
+                          at all, and a card that offers nothing and says
+                          nothing is a card that looks broken. */}
+                      {!a.possible && (
+                        <div className="meta" style={{ fontSize: 11, fontWeight: 700 }}>{a.blocked}</div>
+                      )}
+                      {a.possible && boardMsg?.id === a.id && (
+                        <div className="meta" style={{ fontSize: 11, fontWeight: 700, color: 'var(--gold)' }}>{a.caseFor}</div>
+                      )}
                     </div>
                     {/* 44px MINIMUM, and it had to be said out loud here. The
                         Infrastructure page's Ask button carries two lines -
