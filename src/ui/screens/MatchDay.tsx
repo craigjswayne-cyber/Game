@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { useStore } from '../../store'
 import { analystArmed } from '../../game/rewarded'
 import { rewardedAvailable } from '../../game/monetise'
@@ -18,6 +18,7 @@ import { coachFixes, gradeFixes, gradeLine, unitBattles, type FixTag } from '../
 import { CrestT, Jersey, PosBadge, SectionTitle, Stars, RewardedButton } from '../components'
 import { stageName } from './Home'
 import { matchSfx, soundOn, toggleSound } from '../audio'
+import { GOAL_ARRIVES, buildPassage, playKind, restingRow, teeSpot, type Key, type Pt } from '../phasePlay'
 import { derbyName } from '../../game/rivalries'
 import { matchStakes } from '../../game/stakes'
 import { dialLine, philosophyOf } from '../../game/philosophy'
@@ -1470,6 +1471,13 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
   tickMs: number
 }) {
   const fx = ctx.fx
+  const pitchEl = useRef<HTMLDivElement>(null)
+  const ballEl = useRef<HTMLDivElement | null>(null)
+  const shadowEl = useRef<HTMLDivElement>(null)
+  const dotEls = useRef(new Map<number, HTMLDivElement>())
+  /** the last line the pitch drew: where the ball and every man were left */
+  const prevPlay = useRef<{ key: number; stepped: boolean; ball: Pt; dots: Map<number, Pt> } | null>(null)
+  const running = useRef<Animation[]>([])
   const homeC = game!.clubs[fx.homeId]?.colors ?? ['var(--gold-fill)', 'var(--ramp-g9)']
   const awayC = game!.clubs[fx.awayId]?.colors ?? ['var(--ramp-n4)', 'var(--prop-white)']
   const min = last?.min ?? 0
@@ -1545,9 +1553,30 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
   // drifting on a sawtooth of its own.
   const carrierSlotOf = (s: SideCtx) => (last?.playerId != null ? s.lineup.slice(0, 15).indexOf(last.playerId) : -1)
   const carrierSlot = Math.max(carrierSlotOf(ctx.home), carrierSlotOf(ctx.away))
-  const ballTop = carrierSlot >= 0
+  const carrierTop = carrierSlot >= 0
     ? 8 + SPOTS[carrierSlot][1] * 0.84
     : 38 + ((min * 13) % 25)
+  // What the line acts out (phasePlay.ts). A kick to touch comes to rest ON the
+  // touchline and a cross-field kick out on the far wing, so the row the men
+  // converge on moves with it; how far up the field stays the territory model's.
+  const kind = playKind(last)
+  const ballTop = restingRow(kind, carrierTop) ?? carrierTop
+
+  // THE PASSAGE. Between one line and the next the ball goes through hands, into
+  // contact, or up in the air, instead of sliding in a straight line. It is all
+  // `translate` on top of the resting spot (so `left` is still the territory
+  // model to the decimal), it ends at zero, and it only runs when the effects
+  // do: not on Fast, not on a scrub backwards, not with reduced motion on.
+  const reduced = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  const prev = prevPlay.current
+  // a re-render inside the same beat is still the same step: without the
+  // second half, any unrelated render mid-flight dropped the ball under the men
+  const stepped = !!prev && (fxKey > prev.key || (fxKey === prev.key && prev.stepped))
+  const flying = showFx && !reduced && kind !== 'none'
+    && (stepped || kind === 'goal' || kind === 'miss' || kind === 'restart')
+  const manId = flying && last?.playerId != null ? last.playerId : null
+  /** where the layout put each man this render, fixture frame, for the next passage */
+  const layout = new Map<number, Pt>()
 
   const dots = (side: SideCtx, isHome: boolean) => {
     const cols = isHome ? homeC : awayC
@@ -1618,6 +1647,7 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
       // the field rather than running off the end of it
       x = Math.max(3.5, Math.min(96.5, x))
       y = Math.max(5, Math.min(95, y))
+      layout.set(id, { x, y })
       const hl = last?.playerId === id
       const scorerRun = hl && evType === 'TRY' && showFx
       // what each man is DOING between repositions (theme.css, v1.1.4):
@@ -1643,7 +1673,8 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
         : {}
       return (
         <div key={id}
-          className={`pdot${hl ? ' hl' : ''}${capId === id ? ' cap' : ''}${motion}`}
+          ref={el => { if (el) dotEls.current.set(id, el); else dotEls.current.delete(id) }}
+          className={`pdot${hl ? ' hl' : ''}${capId === id ? ' cap' : ''}${motion}${manId === id ? ' carry' : ''}`}
           style={{
             left: `${mx(x)}%`, top: `${y}%`,
             background: cols[0], borderColor: cols[1], color: contrastText(cols[0]),
@@ -1657,8 +1688,83 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
     })
   }
 
+  const homeDots = dots(ctx.home, true)
+  const awayDots = dots(ctx.away, false)
+  const now = { stepped, flying, kind, manId, layout, ball: { x: ballLeft, y: ballTop }, dir: towardHome ? 1 : -1, min, tickMs, type: evType }
+  const nowRef = useRef(now)
+  nowRef.current = now
+
+  // Run the passage for the line just revealed. A layout effect, so the ball is
+  // put back where the last line left it before the browser paints the new spot.
+  useLayoutEffect(() => {
+    const c = nowRef.current
+    const p = prevPlay.current
+    prevPlay.current = { key: fxKey, stepped: c.stepped, ball: c.ball, dots: c.layout }
+    for (const a of running.current) a.cancel()
+    running.current = []
+    const pitch = pitchEl.current, ball = ballEl.current
+    if (!c.flying || !pitch || !ball || typeof ball.animate !== 'function') return
+    const W = pitch.clientWidth, H = pitch.clientHeight
+    const from = c.kind === 'goal' || c.kind === 'miss'
+      ? teeSpot(c.type ?? 'PEN', c.ball, c.stepped && p ? p.ball : null, c.dir)
+      : c.stepped && p ? p.ball : c.ball
+    const manNow = c.manId != null ? c.layout.get(c.manId) : undefined
+    const manWas = c.manId != null ? p?.dots.get(c.manId) ?? manNow : undefined
+    const ps = buildPassage(c.kind, from, c.ball, c.dir, fxKey * 97 + c.min,
+      manNow && manWas ? { was: manWas, now: manNow } : null)
+    if (!ps) return
+    const duration = Math.max(320, c.tickMs * 0.94)
+    // how far a ball at the top of its flight rises up the screen: this is a
+    // pitch seen from above, so height is drawn as lift off its own shadow
+    // - but never out of the top of the frame, which clips: a kick-off from
+    // the middle of a strip this shallow would otherwise leave the picture
+    const lift = H * 0.34
+    const rise = (k: Key) => Math.min(k.h * lift, Math.max(0, k.y / 100 * H - 12))
+    const off = (k: Pt, rest: Pt) => [(mx(k.x) - mx(rest.x)) / 100 * W, (k.y - rest.y) / 100 * H]
+    const ease = (ks: Key[], i: number) => (ks[i].h > 0 || (ks[i + 1]?.h ?? 0) > 0 ? 'linear' : 'ease-in-out')
+    // end over end in the air: half-turns, so it lands the way it left
+    let spin = 0
+    const ballFrames = ps.ball.map((k, i) => {
+      if (i > 0 && (k.h > 0.05 || ps.ball[i - 1].h > 0.05)) spin += 180
+      const [dx, dy] = off(k, c.ball)
+      const fade = ps.away ? Math.max(0, Math.min(1, 1 - (k.at - GOAL_ARRIVES) / 0.14)) : 1
+      return {
+        offset: k.at, easing: ease(ps.ball, i),
+        translate: `${dx.toFixed(1)}px ${(dy - rise(k)).toFixed(1)}px`,
+        scale: `${(1 + k.h * 0.9).toFixed(3)}`,
+        rotate: `${ps.away ? spin : spin % 360}deg`,
+        opacity: fade,
+      }
+    })
+    // no spin left over when it lands: the resting ball is the CSS one
+    if (!ps.away) ballFrames[ballFrames.length - 1].rotate = '0deg'
+    const opts: KeyframeAnimationOptions = { duration, fill: ps.away ? 'forwards' : 'none' }
+    running.current.push(ball.animate(ballFrames, opts))
+    const sh = shadowEl.current
+    if (sh) {
+      running.current.push(sh.animate(ps.ball.map((k, i) => {
+        const [dx, dy] = off(k, c.ball)
+        const air = Math.min(1, k.h * 6)
+        return {
+          offset: k.at, easing: ease(ps.ball, i),
+          translate: `${dx.toFixed(1)}px ${dy.toFixed(1)}px`,
+          scale: `${(1 - k.h * 0.35).toFixed(3)}`,
+          opacity: ps.away && k.at > GOAL_ARRIVES ? 0 : air * (0.55 - k.h * 0.2),
+        }
+      }), { duration }))
+    }
+    const dot = c.manId != null ? dotEls.current.get(c.manId) : undefined
+    if (ps.carrier && dot && manNow) {
+      running.current.push(dot.animate(ps.carrier.map((k, i) => {
+        const [dx, dy] = off(k, manNow)
+        return { offset: k.at, easing: ease(ps.carrier!, i), translate: `${dx.toFixed(1)}px ${dy.toFixed(1)}px` }
+      }), { duration }))
+    }
+  }, [fxKey])
+  useEffect(() => () => { for (const a of running.current) a.cancel() }, [])
+
   return (
-    <div className={`pitch${showFx && evType === 'TRY' ? (rightward(towardHome) ? ' try-r' : ' try-l') : ''}`}
+    <div ref={pitchEl} className={`pitch${showFx && evType === 'TRY' ? (rightward(towardHome) ? ' try-r' : ' try-l') : ''}`}
       style={{ '--tick': `${tickMs}ms` } as CSSProperties}>
       {/* each in-goal wears the colours of the side that DEFENDS it, so the
           zone you are attacking is always the far one on the right */}
@@ -1670,8 +1776,9 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
       <div className="posts" style={{ right: '7%' }} />
       <div className="zone-label" style={{ left: '2.5%' }}>{clubCode(teamShort(game!, mirror ? fx.awayId : fx.homeId))}</div>
       <div className="zone-label" style={{ right: '2.5%' }}>{clubCode(teamShort(game!, mirror ? fx.homeId : fx.awayId))}</div>
-      {dots(ctx.home, true)}
-      {dots(ctx.away, false)}
+      {homeDots}
+      {awayDots}
+      <div ref={shadowEl} className="ball-shadow" style={{ left: `${mx(ballLeft)}%`, top: `${ballTop}%` }} />
       {/* ballTop, NOT a second copy of its fallback.
           ballTop (above) is the carrier's own row, and its comment says what it
           is for: "the ball is with the carrier instead of drifting on a sawtooth
@@ -1684,8 +1791,8 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
           thirty men converged on one row while the ball sat at an unrelated
           height. The ball was the only thing on the pitch that did not know
           where the ball was. */}
-      <div key={kickFx && showFx ? `k${fxKey}` : 'ball'}
-        className={`ball${kickFx && showFx ? (rightward(towardHome) ? ' kick-r' : ' kick-l') : ''}`}
+      <div key={kickFx && showFx ? `k${fxKey}` : 'ball'} ref={ballEl}
+        className={`ball${kickFx && showFx ? (rightward(towardHome) ? ' kick-r' : ' kick-l') : ''}${flying ? ' flight' : ''}`}
         style={{ left: `${mx(ballLeft)}%`, top: `${ballTop}%` }} />
       {setPiece && (
         <div key={`sp${fxKey}`} className={`setp${setPiece === 'MAUL' ? ' maul' : ''}`}
@@ -1731,7 +1838,7 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
       ))}
       {banner && (
         <div key={`b${fxKey}`}
-          className={`ev-banner${evType === 'YC' ? ' yc' : ''}${evType === 'RC' ? ' rc' : ''}${evType === 'INJ' ? ' inj' : ''}`}
+          className={`ev-banner${flying && (kind === 'goal' || kind === 'miss') ? ' late' : ''}${evType === 'YC' ? ' yc' : ''}${evType === 'RC' ? ' rc' : ''}${evType === 'INJ' ? ' inj' : ''}`}
           style={scoringFx ? { background: lastTeamC[0], color: contrastText(lastTeamC[0]) } : undefined}>
           {evType === 'YC' && <span className="cardchip y" />}
           {evType === 'RC' && <span className="cardchip r" />}
