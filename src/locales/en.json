@@ -481,7 +481,10 @@
   "onFumesSub_f": "condition under 62% - it costs a starter; off the bench she still comes on at 60%",
   "jokerBtn": "Sign a medical joker",
   "jokerTitle": "Medical joker for {hurt}",
-  "jokerExplain": "Out for {n} weeks, so you may sign one free agent to cover. The wage sits outside the salary cap during the cover; the club still pays it. The deal ends when {hurt} is fit, or at the end of the season.",
+  "jokerExplain": {
+   "one": "Out for {n} week, so you may sign one free agent to cover. The wage sits outside the salary cap during the cover; the club still pays it. The deal ends when {hurt} is fit, or at the end of the season.",
+   "other": "Out for {n} weeks, so you may sign one free agent to cover. The wage sits outside the salary cap during the cover; the club still pays it. The deal ends when {hurt} is fit, or at the end of the season."
+  },
   "jokerCovered": "Medical joker: {name}",
   "jokerNone": "No free agent can cover this position right now.",
   "jokerSign": "Sign · {wage}",
@@ -5061,7 +5064,10 @@
   "releasedSubj": "{name} released by {club}",
   "released": "{club} have released {name} ({pos}, {age}) with immediate effect, paying off the remainder of his contract at a cost of {cost}. He is a free agent.",
   "knockFlaredSubj": "🩹 {name}'s knock flares up",
-  "knockFlared": "Playing through it has cost more than it saved: {name}'s injury flared up in the match, and the physio now has a lay-off of {n} weeks.",
+  "knockFlared": {
+   "one": "Playing through it has cost more than it saved: {name}'s injury flared up in the match, and the physio now has a lay-off of {n} week.",
+   "other": "Playing through it has cost more than it saved: {name}'s injury flared up in the match, and the physio now has a lay-off of {n} weeks."
+  },
   "jokerSignedSubj": "🩺 Medical joker: {name}",
   "jokerSigned": "{name} ({pos}, {age}) joins on a short-term deal to cover for {hurt}. The wage of {wage} sits outside the salary cap during the cover, and the deal ends when {hurt} is fit again or at the end of the season.",
   "jokerEndsFitSubj": "🩺 {name}'s cover ends",

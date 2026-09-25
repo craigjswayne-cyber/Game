@@ -549,14 +549,21 @@ export function refFor(fxId: number): Referee {
  * occasion - the size of the ground, a derby, a knockout - and applies
  * whoever has the whistle; the briefing says it is the crowd.
  *
- * Nothing at a neutral venue, in a friendly, or at a small ground on an
- * ordinary Saturday. Read before kick-off (capacity, not the gate, which is
- * only known once it is counted), so the briefing and the match agree. No draw.
+ * THE CROWD THAT IS THERE, NOT THE SEATS. The first cut read the stadium's
+ * capacity, and pointsprobe caught it at once: a 60,000-seat ground a third
+ * full leaned as hard as a sell-out, so a club with a vast empty bowl got
+ * the referee's ear it had done nothing to earn. The match reads the counted
+ * gate (fx.att, set in beginMatch after the draw for it); before kick-off,
+ * for the briefing, it reads the seats the club can actually sell.
+ *
+ * Nothing at a neutral venue, in a friendly, or in front of a small crowd on
+ * an ordinary Saturday. No draw.
  */
 export function homeCrowdLean(state: GameState, fx: Fixture): number {
   if (fx.venue || fx.compId === 'fr') return 0
-  const cap = state.clubs[fx.homeId]?.capacity ?? 0
-  const size = clamp((cap - 12000) / 18000, 0, 1)
+  const club = state.clubs[fx.homeId]
+  const crowd = fx.att ?? (club ? Math.min(club.capacity, demandCeiling(club)) : 0)
+  const size = clamp((crowd - 12000) / 18000, 0, 1)
   const occasion = (isDerby(fx.homeId, fx.awayId) ? 0.5 : 0) + (fx.stage ? 0.35 : 0)
   return 0.07 * Math.min(1, size + occasion)
 }
@@ -1714,7 +1721,6 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
   fx.derby = derby
   let goalPenalty = 0
   const ref = refFor(fx.id)
-  const crowdLean = homeCrowdLean(state, fx)
   for (const side of [home, away]) {
     if (weather === 'Rain' || weather === 'Snow') {
       side.units.attack *= weather === 'Snow' ? 0.86 : 0.90
@@ -1748,7 +1754,7 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     // claimed this since the panel shipped, and the penalty rate never read
     // the referee at all. A fussy whistle (breakdown 0.90) now blows a tenth
     // more penalties; a lenient one (1.10) a tenth fewer (audit 16D)
-    side.refPenF = (2 - ref.breakdown) * (side === home ? 1 - crowdLean : 1 + crowdLean)
+    side.refPenF = 2 - ref.breakdown
     // SWAPPED IN AS A RATIO, NOT ASSIGNED. The first version of this wrote
     // `side.penRisk = aggPenRisk(...)` outright, which was wrong in a way only
     // splitprobe caught: by the time we get here the dial block has already
@@ -1951,6 +1957,18 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     fx.att = Math.max(400, Math.round(sellable * interest) - jitter)
     // a testimonial packs the ground whatever the fixture list says
     if (fx.testimonial != null) fx.att = Math.max(fx.att, sellable - jitter)
+  }
+  // THE HOME CROWD, now that it has been counted (homeCrowdLean). Folded into
+  // refPenF, which every later recompute reads, and swapped into penRisk as a
+  // ratio for the same reason the referee's own price is (see above).
+  const crowdLean = homeCrowdLean(state, fx)
+  if (crowdLean > 0) {
+    for (const side of [home, away]) {
+      const rp = side.refPenF ?? 1
+      const f = side === home ? 1 - crowdLean : 1 + crowdLean
+      side.penRisk *= aggPenRisk(side.aggF, rp * f) / aggPenRisk(side.aggF, rp)
+      side.refPenF = rp * f
+    }
   }
 
   // every match started together deepens a partnership (counted at kick-off,

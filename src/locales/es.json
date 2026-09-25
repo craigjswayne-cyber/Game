@@ -480,7 +480,10 @@
   "returningSub_f": "puede jugar, pero forzar la vuelta arriesga una recaída · a una mujer por semana se le puede envolver en algodones",
   "jokerBtn": "Fichar un joker médico",
   "jokerTitle": "Joker médico para {hurt}",
-  "jokerExplain": "Baja de {n} semanas: puedes fichar a alguien sin equipo para cubrirla. El salario queda fuera del límite salarial durante la cobertura, aunque el club lo paga. El contrato termina cuando {hurt} vuelva o al final de la temporada.",
+  "jokerExplain": {
+   "one": "Baja de {n} semana: puedes fichar a alguien sin equipo para cubrirla. El salario queda fuera del límite salarial durante la cobertura, aunque el club lo paga. El contrato termina cuando {hurt} vuelva o al final de la temporada.",
+   "other": "Baja de {n} semanas: puedes fichar a alguien sin equipo para cubrirla. El salario queda fuera del límite salarial durante la cobertura, aunque el club lo paga. El contrato termina cuando {hurt} vuelva o al final de la temporada."
+  },
   "jokerCovered": "Joker médico: {name}",
   "jokerNone": "Ahora mismo no hay nadie sin equipo que pueda cubrir esta posición.",
   "jokerSign": "Fichar · {wage}",
@@ -5003,7 +5006,10 @@
   "releasedSubj": "{club} rescinde a {name}",
   "released": "El {club} ha rescindido el contrato de {name} ({pos}, {age}) con efecto inmediato, pagando lo que quedaba por {cost}. Queda libre.",
   "knockFlaredSubj": "🩹 Recaída de {name}",
-  "knockFlared": "Jugar con molestias salió caro: la lesión de {name} se agravó durante el partido y ahora los médicos prevén {n} semanas de baja.",
+  "knockFlared": {
+   "one": "Jugar con molestias salió caro: la lesión de {name} se agravó durante el partido y ahora los médicos prevén {n} semana de baja.",
+   "other": "Jugar con molestias salió caro: la lesión de {name} se agravó durante el partido y ahora los médicos prevén {n} semanas de baja."
+  },
   "jokerSignedSubj": "🩺 Joker médico: {name}",
   "jokerSigned": "{name} ({pos}, {age}) llega con un contrato corto para cubrir a {hurt}. El salario de {wage} queda fuera del límite salarial durante la cobertura, y el contrato termina cuando {hurt} vuelva o al final de la temporada.",
   "jokerEndsFitSubj": "🩺 Termina la cobertura de {name}",
