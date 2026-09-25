@@ -32,7 +32,7 @@ import { updateAgency } from './agency'
 import { OBJECTIVE_DEFS } from './objectives'
 import { derbyName, isDerby, rivalsOf } from './rivalries'
 import { NAT_DEPTH, NAT_SQUAD_FLOOR, NAT_SQUAD_SIZE, NAT_TIERS, pickableNations, homeBased, nationByCode, nationNameIn, nationVars, regenName, worldNames } from './nations'
-import { logDecision } from './model'
+import { isMyClub, logDecision } from './model'
 import { resolveCourses, staffWageBill } from './staff'
 import { resolveCommission, scoutPostcard } from './commission'
 import { clamp, mulberry32, shuffled, type Rng } from './rng'
@@ -838,8 +838,8 @@ function manageInternationals(state: GameState, rng: Rng) {
             // no - THIS is the proudest phone call in rugby
             p.lions = (p.lions ?? 0) + 1
             p.morale = clamp(p.morale + 0.5, 1, 10)
-            if (p.clubId === state.userClubId) lionsCalls.push(p)
-          } else if (p.clubId === state.userClubId) userCalls.push(p)
+            if (isMyClub(state, p.clubId)) lionsCalls.push(p)
+          } else if (isMyClub(state, p.clubId)) userCalls.push(p)
         }
         // the national coach announces HIS squad - a proper occasion
         if (nat === state.natTeam || (nat === 'LIO' && islesCoach(state))) {
@@ -929,7 +929,7 @@ function manageInternationals(state: GameState, rng: Rng) {
             // Test rugby empties the tank - returning internationals need
             // managing, not flogging
             p.cond = clamp(p.cond - 10, 20, 100)
-            if (p.clubId === state.userClubId) {
+            if (isMyClub(state, p.clubId)) {
               if (nat === 'LIO') lionsHome.push(p)
               else returnedMine.push(p.name)
             }
@@ -1122,7 +1122,11 @@ function weeklyTraining(state: GameState, rng: Rng) {
   // thing three times over, and he still had to open each one to learn who.
   const returned: Player[] = []
   for (const club of Object.values(state.clubs)) {
-    const isUser = club.id === state.userClubId
+    // NOT state.userClubId directly: that still names the club after a
+    // sacking, and this flag is what decides whose gym, physio, coaching staff
+    // and training plans are applied, and whose injuries make the inbox
+    // (model.ts isMyClub).
+    const isUser = isMyClub(state, club.id)
     for (const id of club.players) {
       const p = state.players[id]
       if (!p) continue
@@ -2325,7 +2329,7 @@ export function processWeekAndAdvance(state: GameState) {
   const thisWeek = state.fixtures.filter(f => f.week === state.week && !f.played)
   let simmedUserFx: Fixture | null = null
   for (const fx of thisWeek) {
-    const mine = fx.homeId === state.userClubId || fx.awayId === state.userClubId ||
+    const mine = isMyClub(state, fx.homeId) || isMyClub(state, fx.awayId) ||
       (state.natTeam != null && (fx.homeId === state.natTeam || fx.awayId === state.natTeam ||
         (islesCoach(state) && (fx.homeId === 'LIO' || fx.awayId === 'LIO'))))
     // A MIDWEEK FRIENDLY IS THE ASSISTANT'S GAME, not the manager's: it never
@@ -3339,12 +3343,22 @@ export function processWeekAndAdvance(state: GameState) {
   // there for what silently went missing before.
   const userFx = state.fixtures.find(f =>
     f.week === state.week && f.played && !f.tableApplied &&
-    (f.homeId === state.userClubId || f.awayId === state.userClubId ||
+    // isMyClub, not a bare id compare: after a sacking the old club goes on
+    // playing every Saturday and its fixture still carries that id. Matching
+    // it here found a match that was not a club match of his and not a Test
+    // either, so it fell through to the international branch below and filed a
+    // VICTORY/DEFEAT report - and put the result on his own W-D-L - for a team
+    // he no longer picked.
+    (isMyClub(state, f.homeId) || isMyClub(state, f.awayId) ||
      (state.natTeam != null && (f.homeId === state.natTeam || f.awayId === state.natTeam ||
        (islesCoach(state) && (f.homeId === 'LIO' || f.awayId === 'LIO'))))))
     ?? simmedUserFx
   if (userFx) {
-    const isClubMatch = userFx.homeId === state.userClubId || userFx.awayId === state.userClubId
+    // A sacked manager's old club still plays every week, and the fixture
+    // still carries his old id - but the afternoon is not his. Reading it
+    // through isMyClub keeps the board reaction, the match report, the record
+    // gate, the milestones and his own W-D-L off a team he does not pick.
+    const isClubMatch = isMyClub(state, userFx.homeId) || isMyClub(state, userFx.awayId)
     const comp = state.comps[userFx.compId]
     // only if the loop above has not already done it: applying a result to the
     // table twice would double every point the club won
@@ -3440,6 +3454,36 @@ export function processWeekAndAdvance(state: GameState) {
       },
       fixtureId: cfx.id,
     })
+  }
+
+  // ---- A PLAYED FIXTURE THAT NEVER REACHED THE TABLE ----
+  //
+  // The loop that sims the week tables everything it sims. What it does not sim
+  // is a match somebody already played: the manager's own, watched through
+  // MatchDay, arrives here played-but-untabled, and the two blocks above settle
+  // it as part of working out his afternoon.
+  //
+  // His OLD club's match can arrive in exactly that state. MatchDay and the
+  // harnesses both reach for userFixtureThisWeek, which finds a fixture by club
+  // id and knows nothing about whether he still works there - so a week out of
+  // work leaves a played match that the blocks above, which are about HIS
+  // afternoon and not that club's, will never table. A league whose played
+  // counts do not match its fixtures is a broken league, and breakit duly found
+  // it: "leicester's table says 10 played, the fixture list says 11".
+  //
+  // It sweeps AFTER those blocks, not before. Run first, it tabled the club
+  // fixture on an assistant's Saturday, so the `!tableApplied` in the find
+  // above stopped picking out the Test and the manager's own afternoon became
+  // the league game - which is how testweekprobe caught the first draft of
+  // this. Last, it only ever sees what nobody claimed, and a manager in work
+  // has nothing for it to do.
+  for (const f of state.fixtures) {
+    if (f.week !== state.week || !f.played || f.tableApplied) continue
+    const comp = state.comps[f.compId]
+    if (!comp) continue
+    if (f.stage) resolveKnockoutDraw(state, f, rng)
+    applyToTable(comp, f)
+    f.tableApplied = true
   }
 
   // board pressure: warnings, then the sack

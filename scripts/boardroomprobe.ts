@@ -10,7 +10,8 @@ import { newGame } from '../src/game/newgame'
 import { askTheBoard } from '../src/game/season'
 import { boardRequests, nextBuild, BOARD_ASKS } from '../src/game/boardroom'
 import { appointBlock, appointStaff, backroomFund, staffCandidates } from '../src/game/staff'
-import { FACILITY_INFO, MAX_FACILITY, stamp100, type FacilityId, type GameState } from '../src/game/model'
+import { FACILITY_INFO, MAX_FACILITY, newsSubject, stamp100, type FacilityId, type GameState } from '../src/game/model'
+import { setLang, t, type Lang } from '../src/game/i18n'
 
 let fails = 0
 const bad = (m: string) => { fails++; console.error('FAIL: ' + m) }
@@ -147,6 +148,51 @@ const askOf = (g: GameState, id: typeof BOARD_ASKS[number]) => boardRequests(g).
   ok(!g.unemployed, 'but does not cost the job on its own')
   askTheBoard(g, 'staff')                       // strike two
   ok(g.unemployed, 'pressing it again after the warning does')
+}
+
+// ---- 8. every story the room files reads as words, in every language ----
+//
+// newsSubject builds an inbox headline as `k + 'Subj'`, and this file's eight
+// story keys are assembled at runtime from the ask's id - so no probe that
+// reads source as TEXT can see them. newsprobe checks the keys it can find and
+// found nothing wrong; a real inbox then showed the headline
+// "news.boardNo_facilitiesSubj". The only way to catch that is to file the
+// story and read the headline back, which is what this does - both answers,
+// all four asks, and the body too.
+{
+  const langs: Lang[] = ['en', 'fr', 'es', 'it', 'ja', 'af']
+  const filed: { k: string; item: GameState['news'][number] }[] = []
+  for (const id of BOARD_ASKS) {
+    for (const grant of [false, true]) {
+      const g = fresh()
+      const club = g.clubs[g.userClubId]
+      if (grant) {
+        club.boardConfidence = 88
+        g.mgr.trophies.push({ compId: 'epd', season: g.season, clubId: club.id })
+        g.mgr.trophies.push({ compId: 'cup', season: g.season - 1, clubId: club.id })
+      } else {
+        club.boardConfidence = 40
+      }
+      if (id === 'time') club.boardConfidence = grant ? 25 : 44
+      const before = g.news.length
+      askTheBoard(g, id)
+      for (const item of g.news.slice(before)) filed.push({ k: item.k ?? '(none)', item })
+    }
+  }
+  ok(filed.length >= 8, `the room files a story for every answer it gives (${filed.length})`)
+  const bad: string[] = []
+  for (const lang of langs) {
+    setLang(lang)
+    for (const { k, item } of filed) {
+      const subj = newsSubject(item)
+      const body = item.k ? t(item.k, item.v) : item.body
+      if (!subj || subj.startsWith('news.') || /\{\w+\}/.test(subj)) bad.push(`${lang} subject of ${k}: "${subj}"`)
+      if (!body || body.startsWith('news.') || /\{\w+\}/.test(body)) bad.push(`${lang} body of ${k}: "${body.slice(0, 40)}"`)
+    }
+  }
+  setLang('en')
+  ok(bad.length === 0, `every headline and body reads as words in all six languages${bad.length ? ` - ${bad[0]}` : ''}`)
+  bad.slice(1, 4).forEach(b => console.log(`        ${b}`))
 }
 
 if (fails) { console.error(`BOARDROOM PROBE: ${fails} failures`); process.exit(1) }

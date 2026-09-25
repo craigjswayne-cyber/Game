@@ -342,7 +342,12 @@ export function aiTransfers(state: GameState, rng: Rng) {
 
   // AI bids for user players: a trickle in normal weeks, a feeding frenzy
   // on deadline day - several bids can land at once, at panic premiums
-  for (let k = 0; k < (deadline ? 3 : 1); k++) {
+  //
+  // NOBODY BIDS THROUGH A SACKED MANAGER. state.userClubId still names the old
+  // club after a dismissal, so this loop went on putting offers for his former
+  // players on his desk - and sackManager empties the inbox precisely because
+  // answering one from a new desk sold another club's player.
+  for (let k = 0; !state.unemployed && k < (deadline ? 3 : 1); k++) {
     if (rng() > (deadline ? 0.55 : 0.3)) continue
     const user = state.clubs[state.userClubId]
     const squad = user.players.map(id => state.players[id]).filter(Boolean)
