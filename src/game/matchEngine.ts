@@ -1618,6 +1618,20 @@ const DEPICTS: Record<string, NonNullable<MatchEvent['fx']>> = {
  * The English is still computed and still stored, because the engine reads its
  * own commentary back - see MatchEvent.text. It is stored, not shown.
  */
+/**
+ * TEN MINUTES FROM THE CARD YOU SAW. pushEvent never lets the clock run
+ * backwards, so a card shown on a tick whose earlier lines were stamped a
+ * minute on (a conversion is `min + 1`) reads a minute later than the tick it
+ * happened on - and the ten minutes were counted from the tick. The man came
+ * back after ten real minutes and nine on the screen, and scored at 71' off a
+ * card shown at 62' (auditprobe, seed 999, surfaced when the TMO moved the
+ * stream). Counted from the minute the card is shown, the bin is ten minutes
+ * on the ticker, which is the only clock anyone watching has. No draw.
+ */
+function binUntil(ctx: LiveCtx, min: number): number {
+  return Math.max(min, ctx.detail ? ctx.lastMin : min) + 10
+}
+
 function pushLine(
   state: GameState, ctx: LiveCtx, min: number, type: MatchEvent['type'], side: SideCtx | null,
   k: string, v?: Record<string, string | number>, playerId?: number,
@@ -3017,7 +3031,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
         const ps = [...opp.onPitch].map(id => state.players[id]).filter(Boolean)
         if (ps.length) {
           const p = wpick(rng, ps, ps.map(x => x.a.agg))
-          opp.yellowUntil.set(p.id, min + 10)
+          opp.yellowUntil.set(p.id, binUntil(ctx, min))
           opp.onPitch.delete(p.id)
           opp.binned.add(p.id)
           p.stats.yc += 1
@@ -3141,7 +3155,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           pushLine(state, ctx, min, 'RC', side, 'comm.redCard', { player: p.name }, p.id)
           checkFrontRow(state, ctx, side, min, p, 'red')
         } else {
-          side.yellowUntil.set(p.id, min + 10)
+          side.yellowUntil.set(p.id, binUntil(ctx, min))
           // he SITS the ten minutes: off the pitch pools, so a man in the bin
           // cannot score a try, take another card or pull an injury while he
           // sits (audit 16D). numF still charges the missing man's strength.
