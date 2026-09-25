@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../../store'
-import { fmtMoney, fmtWage, inRedZone, type Player } from '../../game/model'
+import { fmtMoney, fmtWage, inRedZone, injuryDesc, type Player } from '../../game/model'
 import { SPECIALIST_FEE, cottonWool, specialistConsult } from '../../game/medical'
 import { jokerCandidates, jokerFor, jokerOpen, jokerWage, signMedicalJoker, weeksOut } from '../../game/joker'
 import { fuzzedCa } from '../../game/scout'
@@ -140,8 +140,8 @@ export default function Medical() {
         return (
         // the controls wrap under the line: with the knock and the joker there
         // can be three of them, and a row wider than the phone hides the last
-        <span style={{ color: 'var(--text-negative)', fontWeight: 700, fontSize: 12, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6, whiteSpace: 'normal' }}>
-          <span>{p.injury!.desc} · {t('common.weeksOut', { n: left })}</span>
+        <span style={{ color: 'var(--text-negative)', fontWeight: 700, fontSize: 12, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, whiteSpace: 'normal' }}>
+          <span>{injuryDesc(p.injury!)} · {t('common.weeksOut', { n: left })}</span>
           {/* the sponsor's consultant (v1.1.0): the same door with the fee
               replaced by a watched spot - only where a provider exists, and
               only while the week's ledger allows it (rewarded.ts). It is
@@ -149,14 +149,14 @@ export default function Medical() {
               owner's note was that the two read as interchangeable. */}
           {favourOn && (
             <RewardedButton place="medical" label={t('till.physioCut', { n: favourCut })}
-              className="btn ghost" style={{ padding: '2px 8px', fontSize: 11 }}
+              className="btn ghost rowact"
               onDone={out => {
                 if (out === 'completed') setMsg({ id: p.id, text: rewardPhysio(p.id) ?? t('till.favourGone') })
                 else setMsg({ id: p.id, text: t(out === 'skipped' ? 'till.spotSkipped' : 'till.spotUnavailable') })
               }} />
           )}
           {feeOn && (
-            <button className="btn gold" style={{ padding: '2px 8px', fontSize: 11 }}
+            <button className="btn gold rowact"
               onClick={e => { e.stopPropagation(); setMsg({ id: p.id, text: specialistConsult(game, p.id) }); touch() }}>
               {t('medical.specialistCut', { n: feeCut })}
             </button>
@@ -165,7 +165,7 @@ export default function Medical() {
               played on, at a risk the button states. Never a head injury, and
               the room says so rather than leaving the button to go missing. */}
           {canPlayThrough(game, p) && (
-            <button className="btn ghost" style={{ padding: '2px 8px', fontSize: 11 }}
+            <button className="btn ghost rowact"
               onClick={e => {
                 e.stopPropagation()
                 const r = playThrough(game, p.id)
@@ -185,7 +185,7 @@ export default function Medical() {
             if (cover) return <div className="meta" style={{ color: 'var(--gold)', fontWeight: 700 }}>{t('medical.jokerCovered', { name: cover.name })}</div>
             if (!jokerOpen(game, p)) return null
             return (
-              <button className="btn ghost" style={{ padding: '2px 8px', fontSize: 11 }}
+              <button className="btn ghost rowact"
                 onClick={e => { e.stopPropagation(); setJokerHurt(p) }}>
                 {t('medical.jokerBtn')}
               </button>
@@ -196,9 +196,9 @@ export default function Medical() {
       })}
 
       {section(t('medical.knockTitle'), t('medical.knockSub'), knocks, p => (
-        <span style={{ color: 'var(--gold)', fontWeight: 700, fontSize: 12, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6, whiteSpace: 'normal' }}>
+        <span style={{ color: 'var(--gold)', fontWeight: 700, fontSize: 12, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, whiteSpace: 'normal' }}>
           <span>{t('medical.knockRow', { n: Math.max(0, p.knock!.until - game.week), pct: Math.round(flareChance(p.knock!.early) * 100) })}</span>
-          <button className="btn ghost" style={{ padding: '2px 8px', fontSize: 11 }}
+          <button className="btn ghost rowact"
             onClick={e => {
               e.stopPropagation()
               const r = restKnock(game, p.id)
@@ -218,7 +218,7 @@ export default function Medical() {
         <span style={{ color: 'var(--gold)', fontWeight: 700, fontSize: 12 }}>
           {t('medical.rusty', { n: p.rust ?? 0 })}
           {game.cottonWk !== game.season * 100 + game.week && (
-            <button className="btn ghost" style={{ marginLeft: 8, padding: '2px 8px', fontSize: 11 }}
+            <button className="btn ghost rowact" style={{ marginLeft: 8 }}
               onClick={e => { e.stopPropagation(); setMsg({ id: p.id, text: cottonWool(game, p.id) }); touch() }}>
               {t('medical.cottonWool')}
             </button>
@@ -265,7 +265,7 @@ export default function Medical() {
                         <td className="name">{c.name} <span className="muted">{c.age}</span></td>
                         <td><Stars ca={fuzzedCa(game, c)} /></td>
                         <td>
-                          <button className="btn gold" style={{ padding: '2px 8px', fontSize: 11 }}
+                          <button className="btn gold rowact"
                             onClick={() => {
                               const r = signMedicalJoker(game, jokerHurt.id, c.id)
                               setMsg({ id: jokerHurt.id, text: r.msg })

@@ -206,7 +206,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         <span className="chip" title={t('player.fitnessTitle')}>{t('player.fitness')} <b>{Math.round(p.cond)}%</b></span>
         <span className="chip" title={t('player.sharpnessTitle')}>{t('player.sharpness')} <b>{Math.round(p.sharp)}%</b></span>
         {p.injury && <span className="chip" style={{ borderColor: 'var(--text-negative)', color: 'var(--text-negative)' }}>
-          {t('player.injuredChip', { desc: p.injury.desc, n: Math.max(0, p.injury.until - game.week) })}</span>}
+          {t('player.injuredChip', { desc: injuryDesc(p.injury), n: Math.max(0, p.injury.until - game.week) })}</span>}
         {p.bans > 0 && <span className="chip" style={{ color: 'var(--text-negative)' }}>{t(p.bans === 1 ? 'player.suspendedChipOne' : 'player.suspendedChip', { n: p.bans })}</span>}
         {p.acad && <span className="chip" style={{ color: 'var(--info)', fontWeight: 700 }}>{t('player.academySquad')}</span>}
         {p.natSquad && <span className="chip">{t('player.onIntlDuty')}</span>}
@@ -819,7 +819,7 @@ function verdictLine(game: GameState, p: Player, mine: boolean): string {
   }))
   if (p.injury) {
     const wks = Math.max(0, p.injury.until - game.week)
-    bits.push(t(wks === 1 ? 'player.vInjuredOne' : 'player.vInjured', { desc: p.injury.desc.toLowerCase(), n: wks }))
+    bits.push(t(wks === 1 ? 'player.vInjuredOne' : 'player.vInjured', { desc: injuryDesc(p.injury).toLowerCase(), n: wks }))
   } else if (p.bans > 0) {
     bits.push(t(p.bans === 1 ? 'player.vSuspendedOne' : 'player.vSuspended', { n: p.bans }))
   } else if (p.natSquad) {

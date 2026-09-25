@@ -2727,6 +2727,17 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .btn.tiny::after {
   content: ''; position: absolute; inset: -13px -3px;
 }
+/* A control that sits in a table row (the Medical Centre's specialist, favour,
+   knock and joker buttons). Tapped on a phone like any other button, so it is
+   36px of box and 5px of reach either side: 46px, clear of the 44 floor.
+   Rows of them wrap 10px apart, so neighbouring reaches meet and never overlap
+   - a .btn.tiny's 13px reach would steal the tap from the button below it
+   (tapsize, release audit 1.7.1). */
+.btn.rowact {
+  padding: 6px 10px; font-size: 12px; letter-spacing: .3px;
+  min-height: 36px; border-radius: 8px; position: relative;
+}
+.btn.rowact::after { content: ''; position: absolute; inset: -5px 0; }
 
 /* ---- two columns where one column was two swipes ----
    Both of these were measured, not guessed: the club picker ran 639px into a
