@@ -48,14 +48,17 @@
     "and the sacking repairs - a sacked manager no longer gets his old club's",
     "news, no longer has his staff quietly running their week, and the board",
     "that sacked him will not interview him for three months.",
-    "35 IS ASSUMED SPENT by the 1.6.5 upload. If Play never actually took a",
-    "1.6.5 bundle then 35 is still free and this should go back to 35: a code",
-    "is spent by the first track that ACCEPTS a bundle and by nothing else.",
-    "Check the highest code on the Play Console before uploading.",
+    "37 IS THE NUMBER 1.7.0 ACTUALLY SHIPS ON. 36 was written up above as",
+    "1.7.0 and is treated as spent - owner's call, 25 Sep 2026, on the Play",
+    "Console's own record. 35 is likewise treated as spent by the 1.6.5",
+    "upload. A code is spent by the first track that ACCEPTS a bundle and by",
+    "nothing else, which is the distinction that cost 34, so the rule stands:",
+    "check the highest accepted code on the Console before every upload and",
+    "never reuse a number.",
     "versionName comes from the root package.json.",
     "billingLibrary is the Play Billing Library version PhaseBilling.java is",
     "written against. Play refuses anything below 8.0.0 (learned 4 Sep 2026)."
   ],
-  "versionCode": 36,
+  "versionCode": 37,
   "billingLibrary": "8.0.0"
 }
