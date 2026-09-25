@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../../store'
-import { fmtMoney, inRedZone, type Player } from '../../game/model'
+import { fmtMoney, fmtWage, inRedZone, type Player } from '../../game/model'
 import { SPECIALIST_FEE, cottonWool, specialistConsult } from '../../game/medical'
+import { jokerCandidates, jokerFor, jokerOpen, jokerWage, signMedicalJoker, weeksOut } from '../../game/joker'
+import { fuzzedCa } from '../../game/scout'
 import { canPhysioFavour } from '../../game/rewarded'
 import { rewardedAvailable } from '../../game/monetise'
 import { badgeLabel } from '../../game/staff'
-import { PosBadge, SectionTitle, RewardedButton } from '../components'
+import { PosBadge, SectionTitle, RewardedButton, Stars } from '../components'
 import FullFitness from '../FullFitness'
 import { t } from '../../game/i18n'
 
@@ -22,6 +24,8 @@ export default function Medical() {
   // dead. The line now lands in his own row.
   const [msg, setMsg] = useState<{ id: number; text: string } | null>(null)
   const [query, setQuery] = useState('')
+  /** the injured man a medical joker is being chosen for (joker.ts) */
+  const [jokerHurt, setJokerHurt] = useState<Player | null>(null)
   const club = game.clubs[game.userClubId]
   const q = query.trim().toLowerCase()
   const squad = club.players.map(id => game.players[id]).filter((p): p is Player => !!p)
@@ -152,6 +156,19 @@ export default function Medical() {
               {t('medical.specialistCut', { n: feeCut })}
             </button>
           )}
+          {/* THE MEDICAL JOKER (joker.ts): a long lay-off can be covered by one
+              short-term signing whose wage sits outside the cap */}
+          {(() => {
+            const cover = jokerFor(game, p.id)
+            if (cover) return <div className="meta" style={{ color: 'var(--gold)', fontWeight: 700 }}>{t('medical.jokerCovered', { name: cover.name })}</div>
+            if (!jokerOpen(game, p)) return null
+            return (
+              <button className="btn ghost" style={{ marginLeft: 8, padding: '2px 8px', fontSize: 11 }}
+                onClick={e => { e.stopPropagation(); setJokerHurt(p) }}>
+                {t('medical.jokerBtn')}
+              </button>
+            )
+          })()}
         </span>
         )
       })}
@@ -190,6 +207,48 @@ export default function Medical() {
         <span style={{ color: 'var(--gold)', fontWeight: 700, fontSize: 12 }}>{t(p.onLoan ? 'medical.onLoan' : 'medical.intlDuty')}</span>
       ))}
       <div className="spacer" />
+      {jokerHurt && (
+        <div className="modal-veil" onClick={() => setJokerHurt(null)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="grab" />
+            <h3 style={{ fontSize: 16, margin: '2px 0 6px' }}>{t('medical.jokerTitle', { hurt: jokerHurt.name })}</h3>
+            <div className="meta" style={{ marginBottom: 8 }}>
+              {t('medical.jokerExplain', { n: weeksOut(game, jokerHurt), hurt: jokerHurt.name })}
+            </div>
+            {(() => {
+              const pool = jokerCandidates(game, jokerHurt)
+              if (!pool.length) return <div className="meta">{t('medical.jokerNone')}</div>
+              return (
+                <div className="tblwrap">
+                  <table className="dtable"><tbody>
+                    {pool.map(c => (
+                      <tr key={c.id}>
+                        <td><PosBadge pos={c.pos} /></td>
+                        <td className="name">{c.name} <span className="muted">{c.age}</span></td>
+                        <td><Stars ca={fuzzedCa(game, c)} /></td>
+                        <td>
+                          <button className="btn gold" style={{ padding: '2px 8px', fontSize: 11 }}
+                            onClick={() => {
+                              const r = signMedicalJoker(game, jokerHurt.id, c.id)
+                              setMsg({ id: jokerHurt.id, text: r.msg })
+                              setJokerHurt(null)
+                              touch()
+                            }}>
+                            {t('medical.jokerSign', { wage: fmtWage(jokerWage(c)) })}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody></table>
+                </div>
+              )
+            })()}
+            <button className="btn ghost block" style={{ marginTop: 10 }} onClick={() => setJokerHurt(null)}>
+              {t('medical.jokerClose')}
+            </button>
+          </div>
+        </div>
+      )}
     </>
   )
 }

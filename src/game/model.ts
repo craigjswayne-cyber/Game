@@ -404,6 +404,10 @@ export interface Player {
    *  arrival, 'academy' for a graduate's first senior rugby ever.
    *  Cleared the moment it comes, memorable or not */
   debutPending?: 'signing' | 'academy' | null
+  /** A medical joker (joker.ts): the id of the injured man he was signed to
+   *  cover. His wage is outside the salary cap while this is set, and he
+   *  leaves when that man is fit, leaves the club, or the season ends. */
+  joker?: number
   /** has announced this is his final season: retires at the rollover.
    *  Set at the midwinter announcement for every player aged 37+ */
   retiring?: boolean
