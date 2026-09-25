@@ -1,39 +1,12 @@
 /**
- * THE AFTERNOON AROUND THE MATCH (owner, 25 Sep 2026: ideas 6 and 7, "weather
- * you can see" and "sound under the picture").
+ * THE AFTERNOON AROUND THE MATCH (owner, 25 Sep 2026: idea 7, "sound under
+ * the picture"). The weather you could see (idea 6) was tried and taken back
+ * out at the owner's call; the weather you can hear stays (audio.ts).
  *
- * Picture and sound only. Everything here reads the fixture and the live
+ * Sound only. Everything here reads the fixture and the live
  * state the match screen already has; nothing is written back, and nothing
  * draws from the match's rng.
  */
-import type { Fixture } from '../game/model'
-
-/** A stable 0..1 from a fixture id, so the same fixture always looks the same. */
-function idHash(id: string | number): number {
-  id = String(id)
-  let h = 2166136261
-  for (let i = 0; i < id.length; i++) h = Math.imul(h ^ id.charCodeAt(i), 16777619)
-  h = Math.imul(h ^ (h >>> 13), 0x5bd1e995)
-  return ((h ^ (h >>> 15)) >>> 0) / 4294967296
-}
-
-/**
- * UNDER THE LIGHTS. The fixture list has no kick-off times, so this is a
- * picture decision rather than a fact: a midweek match is an evening match,
- * and about a third of weekend fixtures are the Friday-night or Saturday
- * teatime slot. Picked from the fixture id, never drawn, so a match does not
- * change its lighting between a reload and a replay.
- */
-export function underLights(fx: Fixture): boolean {
-  return !!fx.midweek || idHash(fx.id) < 0.34
-}
-
-/** Which way the wind blows down the pitch on a windy day: +1 towards the
- *  away end (x = 100 in the fixture frame), -1 towards the home end. */
-export function windDir(fx: Fixture): number {
-  return idHash(fx.id + ':wind') < 0.5 ? 1 : -1
-}
-
 /**
  * HOW LOUD THE GROUND IS, 0..1, for the crowd bed (audio.ts).
  *
