@@ -2239,8 +2239,8 @@ function takePenaltyShot(state: GameState, ctx: LiveCtx, side: SideCtx, min: num
 /** How often a try goes to the TMO, and how often a review chalks it off.
  *  Together about one try in twenty is disallowed (the four-seed balance in
  *  fingerprint.ts records what that did to the scoring). */
-const TMO_REVIEW = 0.16
-const TMO_OVERTURN = 0.33
+export const TMO_REVIEW = 0.16
+export const TMO_OVERTURN = 0.33
 
 /** Score a try (+ conversion attempt) for a side - shared by open play and set-piece strikes. */
 /** `line`/`lineV` let a set-piece strike supply its own wording - a maul that

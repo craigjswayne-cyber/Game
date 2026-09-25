@@ -103,6 +103,16 @@ export const HANDBOOK: HandbookEntry[] = [
   },
   {
     cat: 'match',
+    q: 'handbook.q106',
+    a: 'handbook.a106',
+  },
+  {
+    cat: 'match',
+    q: 'handbook.q107',
+    a: 'handbook.a107',
+  },
+  {
+    cat: 'match',
     q: 'handbook.q13',
     a: 'handbook.a13',
   },
@@ -208,6 +218,16 @@ export const HANDBOOK: HandbookEntry[] = [
     cat: 'squad',
     q: 'handbook.q33',
     a: 'handbook.a33',
+  },
+  {
+    cat: 'squad',
+    q: 'handbook.q104',
+    a: 'handbook.a104',
+  },
+  {
+    cat: 'squad',
+    q: 'handbook.q105',
+    a: 'handbook.a105',
   },
   {
     cat: 'squad',

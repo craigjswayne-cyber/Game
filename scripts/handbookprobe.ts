@@ -31,7 +31,9 @@ import { MARQUEE_SLOTS } from '../src/game/cap'
 import { EXAM_PASS_PCT, RETAKE_WEEKS, courseFee } from '../src/game/staff'
 import { AWARD_EVERY, MIN_MATCHES, MIN_WINS } from '../src/game/awards'
 import { MAX_HAGGLE } from '../src/game/ai'
-import { MAX_SUBS } from '../src/game/matchEngine'
+import { MAX_SUBS, TMO_OVERTURN, TMO_REVIEW } from '../src/game/matchEngine'
+import { JOKER_MIN_WEEKS } from '../src/game/joker'
+import { KNOCK_MAX_WEEKS, flareChance } from '../src/game/knock'
 import { CHEM_SLOTS } from '../src/game/model'
 
 let fails = 0
@@ -164,6 +166,20 @@ says('hospitality boxes', ['four per cent', 'nine thousand'],
   'the hospitality rate and the measured break-even crowd are right')
 avoids('hospitality boxes', ['fifteen thousand'],
   'and the old fifteen-thousand break-even is gone')
+
+// 1.7.1: the medical joker, playing through a knock, and the TMO. Each number
+// in the prose is derived from the constant the engine reads, so a retune of
+// any of them fails here with the word the entry now needs.
+const WORD: Record<number, string> = { 2: 'two', 3: 'three', 4: 'four', 5: 'five', 6: 'six', 7: 'seven', 8: 'eight' }
+says('medical joker', [`${WORD[JOKER_MIN_WEEKS]} weeks or more`, 'outside the salary cap', 'one joker per injured player'],
+  `the joker entry has the ${JOKER_MIN_WEEKS}-week threshold, the cap waiver and the one-per-man rule`)
+says('play through it', [`last ${WORD[KNOCK_MAX_WEEKS]} weeks`, `${Math.round(flareChance(1) * 100)}% a match`,
+  `${Math.round(flareChance(KNOCK_MAX_WEEKS) * 100)}% ${WORD[KNOCK_MAX_WEEKS]} weeks early`, 'head injury is never'],
+  `the knock entry has the ${KNOCK_MAX_WEEKS}-week window, the ${Math.round(flareChance(1) * 100)}-${Math.round(flareChance(KNOCK_MAX_WEEKS) * 100)}% risk and the head rule`)
+ok(Math.round(1 / TMO_REVIEW) === 6 && Math.round(TMO_OVERTURN * 3) === 1,
+  `TMO_REVIEW (${TMO_REVIEW}) is "about one try in six" and TMO_OVERTURN (${TMO_OVERTURN}) "roughly a third"`)
+says('what is the tmo', ['one try in six', 'a third of those'], 'the TMO entry says a try can be ruled out, and how often')
+says('sway the referee', ['crowd, not the referee'], 'the crowd entry puts the lean on the crowd, not a named official')
 
 if (fails) { console.error(`\nHANDBOOK PROBE: ${fails} failures`); process.exit(1) }
 console.log('\nHANDBOOK PROBE PASSED: the handbook agrees with the engine')
