@@ -19,6 +19,7 @@ import { CrestT, Jersey, PosBadge, SectionTitle, Stars, RewardedButton } from '.
 import { stageName } from './Home'
 import { matchSfx, soundOn, toggleSound } from '../audio'
 import { GOAL_ARRIVES, buildPassage, playKind, restingRow, teeSpot, type Key, type Pt } from '../phasePlay'
+import { formation, shapeFor, shapeRow } from '../phaseShape'
 import { derbyName } from '../../game/rivalries'
 import { matchStakes } from '../../game/stakes'
 import { dialLine, philosophyOf } from '../../game/philosophy'
@@ -1476,7 +1477,7 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
   const shadowEl = useRef<HTMLDivElement>(null)
   const dotEls = useRef(new Map<number, HTMLDivElement>())
   /** the last line the pitch drew: where the ball and every man were left */
-  const prevPlay = useRef<{ key: number; stepped: boolean; ball: Pt; dots: Map<number, Pt> } | null>(null)
+  const prevPlay = useRef<{ key: number; stepped: boolean; ball: Pt; before: Pt | null; dots: Map<number, Pt> } | null>(null)
   const running = useRef<Animation[]>([])
   const homeC = game!.clubs[fx.homeId]?.colors ?? ['var(--gold-fill)', 'var(--ramp-g9)']
   const awayC = game!.clubs[fx.awayId]?.colors ?? ['var(--ramp-n4)', 'var(--prop-white)']
@@ -1560,7 +1561,8 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
   // touchline and a cross-field kick out on the far wing, so the row the men
   // converge on moves with it; how far up the field stays the territory model's.
   const kind = playKind(last)
-  const ballTop = restingRow(kind, carrierTop) ?? carrierTop
+  const shape = shapeFor(last, kind, depicts)
+  const ballTop = shapeRow(shape, restingRow(kind, carrierTop) ?? carrierTop)
 
   // THE PASSAGE. Between one line and the next the ball goes through hands, into
   // contact, or up in the air, instead of sliding in a straight line. It is all
@@ -1575,6 +1577,13 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
   const flying = showFx && !reduced && kind !== 'none'
     && (stepped || kind === 'goal' || kind === 'miss' || kind === 'restart')
   const manId = flying && last?.playerId != null ? last.playerId : null
+  const teeBall = (shape === 'goal' || shape === 'conversion') && !flying && !!last && last.type !== 'SUB'
+  // where the last line left the ball, for this step (kept through re-renders)
+  const fromBall = prev ? (fxKey > prev.key ? prev.ball : prev.before) : null
+  // a kick at goal is set up round the TEE, not the resting spot
+  const shapeBall: Pt = shape === 'goal' || shape === 'conversion'
+    ? teeSpot(evType ?? 'PEN', { x: ballLeft, y: ballTop }, fromBall, towardHome ? 1 : -1)
+    : { x: ballLeft, y: ballTop }
   /** where the layout put each man this render, fixture frame, for the next passage */
   const layout = new Map<number, Pt>()
 
@@ -1583,33 +1592,28 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
     const capId = game!.clubs[side.teamId]?.captain
     const attacking = !!last && last.teamId === side.teamId
 
-    // Both sides live around the BALL, not around their own tryline.
+    // Both sides live around the BALL, not around their own tryline (they were
+    // once pinned to their own halves and never met). Where around it is the
+    // phase's own template now (phaseShape.ts, roadmap 1a): a scrum is two
+    // packs bound on the mark, a lineout two lines off the touchline, a ruck a
+    // breakdown with a defensive line across the field in front of it.
     //
-    // They used to be pinned to their own half: home spanned 10-40% of the pitch
-    // and away 60-90%, with a twenty-percent dead band down the middle that
-    // neither could enter. Fifteen men in green at one end and fifteen in yellow
-    // at the other never met, so the pitch read as two teams lined up for the
-    // anthems rather than a game - the packs were never in contact and the
-    // defence never faced the attack.
-    //
-    // SPOTS gives each shirt its distance from its own line (sx) and its position
-    // across the field (sy). Read sx as DEPTH BEHIND THE BALL instead and the
-    // whole thing falls out correctly: front rows meet over the ball, back rows
-    // sit deeper, and each side stays on its own side of it. Home defends the
-    // left, so its shape runs leftwards from the ball; away mirrors it.
-    const dir = isHome ? -1 : 1
-    // A defending line is flatter than an attacking shape and sits off the ball,
-    // roughly where the offside line would be.
-    const depthScale = attacking ? 0.34 : 0.26
-    const standOff = attacking ? 1.5 : 5.5
-    const anchor = ballLeft + dir * standOff
-    const baseX = (slot: number) => anchor + dir * (SPOTS[slot][0] - 14) * depthScale
-
-    // the two nearest forwards of each side work the breakdown
-    const fwdSlots = [0, 1, 2, 3, 4, 5, 6, 7]
-    const ruckers = [...fwdSlots]
-      .sort((a, b) => Math.abs(baseX(a) - ballLeft) - Math.abs(baseX(b) - ballLeft))
-      .slice(0, 2)
+    // For a kick-off, the side with the ball in the event is not always the
+    // side kicking it (a restart line credits the catcher), so the kicking side
+    // is read off where the ball came down: in the other half from theirs.
+    const sideDir = isHome ? 1 : -1
+    const inPossession = shape === 'kickoff'
+      ? (ballLeft > 50) === isHome
+      : !!last && last.teamId === side.teamId
+    const spots = formation({ shape, ball: shapeBall, dir: sideDir, attacking: inPossession, seed: fxKey })
+    // the named kicker takes the tee whatever his shirt; the man whose spot it
+    // was takes his
+    if ((shape === 'goal' || shape === 'conversion') && inPossession && last?.playerId != null) {
+      const k = side.lineup.slice(0, 15).indexOf(last.playerId)
+      if (k >= 0 && k !== 9) [spots[k], spots[9]] = [spots[9], spots[k]]
+    }
+    const openPlay = shape === 'open' || shape === 'kickoff'
+    const setShape = shape === 'scrum' || shape === 'lineout' || shape === 'maul'
     return side.lineup.slice(0, 15).map((id, slot) => {
       if (id == null) return null
       if (cardedNow(id)) return null
@@ -1618,28 +1622,22 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
       if (!side.onPitch.has(id) && !sentOffIds.has(id)) return null
       const p = game!.players[id]
       if (!p) return null
-      const [, sy] = SPOTS[slot]
-      // every man moves: work-rate wander re-seeded each match minute
+      // every man moves: work-rate wander re-seeded each match minute, and
+      // barely at all in a set piece, which is men standing where they are put
       const wx = ((min * 13 + slot * 29 + (isHome ? 0 : 7)) % 9) - 4
       const wy = ((min * 11 + slot * 17 + (isHome ? 3 : 0)) % 7) - 3
-      const ruck = ruckers.includes(slot)
-      let x = baseX(slot) + wx * 0.35
-      let y = 8 + sy * 0.84 + wy * 0.9
-      if (ruck) {
-        // converge on the ball - bodies over the tackle area
-        x = x * 0.45 + (ballLeft + dir * 1.5) * 0.55
-        y = y * 0.5 + ballTop * 0.5
-      } else if (attacking && slot >= 8) {
-        // backs fan out wider and deeper, looking for space
-        y = y + (y > 50 ? 3 : -3)
-        x -= dir * 1.2
-      }
+      const wander = openPlay ? 1 : 0.2
+      let x = spots[slot].x + wx * 0.35 * wander
+      let y = spots[slot].y + wy * 0.9 * wander
+      // the men working the breakdown: whoever the shape put over the ball
+      const ruck = (shape === 'open' || shape === 'maul') && Math.abs(spots[slot].x - ballLeft) < 2.5 && Math.abs(spots[slot].y - ballTop) < 9
       const isCarrier = last?.playerId === id
       // The man the commentary is talking about has the ball, so he stands where
       // the ball is. He used to hold his formation spot while the ball sat ten
       // metres away, which made the one dot you were actually reading the least
-      // convincing thing on the pitch.
-      if (isCarrier && !ruck) {
+      // convincing thing on the pitch. In open play only: in a set piece or at
+      // the tee the shape already has him where he belongs.
+      if (isCarrier && !ruck && openPlay) {
         x = x * 0.35 + ballLeft * 0.65
         y = y * 0.35 + ballTop * 0.65
       }
@@ -1658,8 +1656,10 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
       const motion = scorerRun ? (rightward(isHome) ? ' run-r' : ' run-l')
         : hl ? ''
         : ruck ? ' jog'
-        : attacking && slot >= 8 ? ' supp'
-        : !attacking ? ' dline'
+        : !openPlay && !setShape ? ' jog'
+        : setShape && slot < 8 ? ' jog'
+        : inPossession && slot >= 8 ? ' supp'
+        : !inPossession ? ' dline'
         : ' jog'
       // supp and dline own their duration in CSS (it rides --tick); the jog
       // keeps its per-shirt spread, faster at the ruck than in midfield
@@ -1690,7 +1690,7 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
 
   const homeDots = dots(ctx.home, true)
   const awayDots = dots(ctx.away, false)
-  const now = { stepped, flying, kind, manId, layout, ball: { x: ballLeft, y: ballTop }, dir: towardHome ? 1 : -1, min, tickMs, type: evType }
+  const now = { stepped, fromBall, shapeBall, flying, kind, manId, layout, ball: { x: ballLeft, y: ballTop }, dir: towardHome ? 1 : -1, min, tickMs, type: evType }
   const nowRef = useRef(now)
   nowRef.current = now
 
@@ -1699,15 +1699,15 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
   useLayoutEffect(() => {
     const c = nowRef.current
     const p = prevPlay.current
-    prevPlay.current = { key: fxKey, stepped: c.stepped, ball: c.ball, dots: c.layout }
+    prevPlay.current = { key: fxKey, stepped: c.stepped, ball: c.ball, before: c.fromBall, dots: c.layout }
     for (const a of running.current) a.cancel()
     running.current = []
     const pitch = pitchEl.current, ball = ballEl.current
     if (!c.flying || !pitch || !ball || typeof ball.animate !== 'function') return
     const W = pitch.clientWidth, H = pitch.clientHeight
     const from = c.kind === 'goal' || c.kind === 'miss'
-      ? teeSpot(c.type ?? 'PEN', c.ball, c.stepped && p ? p.ball : null, c.dir)
-      : c.stepped && p ? p.ball : c.ball
+      ? teeSpot(c.type ?? 'PEN', c.ball, c.fromBall, c.dir)
+      : c.stepped && c.fromBall ? c.fromBall : c.ball
     const manNow = c.manId != null ? c.layout.get(c.manId) : undefined
     const manWas = c.manId != null ? p?.dots.get(c.manId) ?? manNow : undefined
     const ps = buildPassage(c.kind, from, c.ball, c.dir, fxKey * 97 + c.min,
@@ -1792,24 +1792,18 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
           height. The ball was the only thing on the pitch that did not know
           where the ball was. */}
       <div key={kickFx && showFx ? `k${fxKey}` : 'ball'} ref={ballEl}
-        className={`ball${kickFx && showFx ? (rightward(towardHome) ? ' kick-r' : ' kick-l') : ''}${flying ? ' flight' : ''}`}
+        className={`ball${kickFx && showFx ? (rightward(towardHome) ? ' kick-r' : ' kick-l') : ''}${flying ? ' flight' : ''}${teeBall ? ' parked' : ''}`}
         style={{ left: `${mx(ballLeft)}%`, top: `${ballTop}%` }} />
+      {/* A kick at goal with nothing in flight (paused, Fast, reduced motion):
+          the ball is on the tee with the kicker, not out on the territory spot,
+          which for a conversion can be half a pitch away. The real .ball keeps
+          its spot (dramaprobe reads it) and stands aside; this draws the tee. */}
+      {teeBall && <div className="tee-ball" style={{ left: `${mx(shapeBall.x)}%`, top: `${shapeBall.y}%` }} />}
       {setPiece && (
-        <div key={`sp${fxKey}`} className={`setp${setPiece === 'MAUL' ? ' maul' : ''}`}
+        // the men make the shape now (phaseShape.ts); this only names it, and
+        // below the ball when the ball is on the top touchline
+        <div key={`sp${fxKey}`} className={`setp${ballTop < 20 ? ' below' : ''}`}
           style={{ left: `${mx(ballLeft)}%`, top: `${ballTop}%` }}>
-          {setPiece === 'LINEOUT' ? (
-            <>
-              <span className="lo-col" style={{ background: (mirror ? awayC : homeC)[0] }} />
-              <span className="lo-col away" style={{ background: (mirror ? homeC : awayC)[0] }} />
-            </>
-          ) : (
-            <>
-              {/* the packs sit on the side each team is defending, so a scrum
-                  mirrors with the rest of the pitch */}
-              <span className="pack l" style={{ background: (mirror ? awayC : homeC)[0] }} />
-              <span className="pack r" style={{ background: (mirror ? homeC : awayC)[0] }} />
-            </>
-          )}
           <span className="splabel">{t(`matchday.sp${setPiece}`)}</span>
         </div>
       )}
