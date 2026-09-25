@@ -1597,6 +1597,14 @@ const DEPICTS: Record<string, NonNullable<MatchEvent['fx']>> = {
   'comm.penWide': 'MISS',           // the kick that misses
   'comm.penWideNamed': 'MISS',
   'comm.conWide': 'MISS',
+  'comm.tmoReview1': 'TMO',         // the referee goes upstairs (scoreTry)
+  'comm.tmoReview2': 'TMO',
+  'comm.tmoReview3': 'TMO',
+  'comm.tmoReview4': 'TMO',
+  'comm.tmoNoTry1': 'NOTRY',        // and the TMO says no
+  'comm.tmoNoTry2': 'NOTRY',
+  'comm.tmoNoTry3': 'NOTRY',
+  'comm.tmoNoTry4': 'NOTRY',
 }
 
 /**
@@ -2166,6 +2174,12 @@ function takePenaltyShot(state: GameState, ctx: LiveCtx, side: SideCtx, min: num
   }
 }
 
+/** How often a try goes to the TMO, and how often a review chalks it off.
+ *  Together about one try in twenty is disallowed (the four-seed balance in
+ *  fingerprint.ts records what that did to the scoring). */
+const TMO_REVIEW = 0.16
+const TMO_OVERTURN = 0.33
+
 /** Score a try (+ conversion attempt) for a side - shared by open play and set-piece strikes. */
 /** `line`/`lineV` let a set-piece strike supply its own wording - a maul that
  *  rumbles over reads better than the generic bank - and it is a KEY, not a
@@ -2176,6 +2190,34 @@ function scoreTry(
 ) {
   const { rng, goalPenalty } = ctx
   const scorer = forceScorer ?? tryScorer(state, side, rng)
+  // ---- THE TMO (owner, 25 Sep 2026: "we need to be able to overturn a try
+  // if the tmo finds it ... there is randomness to whether its a try or not").
+  //
+  // A MECHANICAL CHANGE, on the rng stream on purpose: two draws per try, the
+  // second only when the first sends it upstairs, so fingerprint.ts is
+  // rebaselined in the same commit. Every match takes it, AI and Instant
+  // Result included, or the user's fixtures would score differently from the
+  // rest of the league.
+  //
+  // What the review is ABOUT (grounding, knock-on, the last pass, the
+  // touchline) is picked from the minute and the scorer, not drawn: which
+  // question the referee asks is wording, and wording never moves the stream.
+  // The question and the verdict agree - a try chalked off for a knock-on was
+  // being checked for a knock-on.
+  if (rng() < TMO_REVIEW) {
+    const q = 1 + ((min + (scorer?.id ?? 0)) % 4)
+    // the lines name the side, not the man: no pronoun to get wrong, and a
+    // pack drive has no single scorer to name
+    const team = { team: teamShort(state, side.teamId) }
+    pushLine(state, ctx, min, 'SUB', side, `comm.tmoReview${q}`, team, scorer?.id)
+    if (rng() < TMO_OVERTURN) {
+      // No points, no conversion, no credit. The ball stays where it was, down
+      // at the defending side's line: a scrum five metres out or a drop-out,
+      // and the attack still has the field it had earned.
+      pushLine(state, ctx, min, 'SUB', side, `comm.tmoNoTry${q}`, team, scorer?.id)
+      return
+    }
+  }
   // THE RESTART (v1.8.0). The position that won the try is given back: the
   // conceding side kicks off from halfway. A HARD set to 50 was tried and
   // measured first, and with eleven scores across twenty ticks it meant more
@@ -2696,8 +2738,13 @@ const COVER_DEF = 0.937
  * Same lesson, and the same fix, as the last-quarter fatigue term above - the
  * mechanism stays at full strength and the constant underneath it comes down
  * so the season's totals stay on the band.
+ *
+ * And a third time the other way, 0.0832 to 0.0895, when the TMO started
+ * chalking tries off (scoreTry): about one in eighteen is disallowed, so a few
+ * more are scored in the first place and the season lands where it was
+ * (fingerprint.ts has the before-and-after).
  */
-const TRY_BASE = 0.0832
+const TRY_BASE = 0.0895
 
 /** The cost of a thin bench: a man in the wrong half of the team.
  *
