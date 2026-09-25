@@ -380,10 +380,17 @@ const EXPECTED: string[] = [
   // FOUR-SEED BALANCE (bandcheck, 3960 games pooled), before -> after:
   //   pts 49.4 -> 49.5   tries 6.30 -> 6.30   home 51.3% -> 52.8%
   //   draws 2.4% -> 1.5%   blowouts 4.6% -> 4.1%
+  //
+  // REBASELINED for the home crowd (matchEngine.homeCrowdLean): a big ground,
+  // a derby or a knockout tilts who concedes the penalties by up to 7% toward
+  // the home side. No draw is added; a threshold moves, so only a fixture
+  // with a lean can change, and exactly one did - harlequins-bristol, at a
+  // ground big enough to lean. bandcheck, pooled: home wins 52.8% -> 54.6%
+  // (band 51-57), pts 49.5 -> 49.6, tries 6.30 -> 6.32.
   'leicester 39-30 gloucester',
   'bath 8-29 saracens',
   'newcastle 20-23 northampton',
-  'harlequins 27-27 bristol',
+  'harlequins 3-37 bristol',
   'sale 10-57 exeter',
   'bath 35-12 leicester',
 ]

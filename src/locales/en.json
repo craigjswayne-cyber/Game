@@ -1045,6 +1045,7 @@
   "refFussy": "Fussy at the tackle - hands off, or it is a penalty.",
   "refJackal": "Lets the jackal work - a strong breakdown will win turnovers.",
   "refNothing": "Nothing marked in his book: he lets the players decide it.",
+  "refCrowd": "A big home crowd: the tight calls may lean {team}'s way.",
   "refPatient": "Patient: he allows {n} before reaching for a card.",
   "refScrumLoose": "Waves the scrum away - your set piece is worth less today.",
   "refScrumTight": "Pedantic at the scrum - the dominant front row gets rewarded.",

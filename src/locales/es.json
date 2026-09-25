@@ -1040,6 +1040,7 @@
   "refFussy": "Quisquilloso en el placaje: manos fuera o es castigo.",
   "refJackal": "Deja trabajar al jackal: un ruck fuerte robará balones.",
   "refNothing": "Nada anotado en su libreta: deja que lo decidan los jugadores.",
+  "refCrowd": "Gran ambiente local: las decisiones ajustadas pueden caer del lado de {team}.",
   "refPatient": "Paciente: permite {n} antes de echar mano de la tarjeta.",
   "refScrumLoose": "Le quita hierro a la melé - hoy tu fase estática vale menos.",
   "refScrumTight": "Pedante en la melé - la primera línea dominante tendrá premio.",
