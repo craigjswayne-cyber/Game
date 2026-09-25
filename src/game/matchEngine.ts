@@ -534,6 +534,32 @@ export function refFor(fxId: number): Referee {
   return REF_PANEL[h % REF_PANEL.length]
 }
 
+/**
+ * ---- THE HOME CROWD (owner, 25 Sep 2026: "home-crowd referees") ----
+ *
+ * Some afternoons the fifty-fifty calls go the home side's way: a full,
+ * loud ground, a derby, a knockout. This puts that in, as a tilt on who
+ * concedes the penalties - fewer against the home side, as many more against
+ * the visitors - of up to 7%.
+ *
+ * IT IS THE GROUND'S, NOT THE REFEREE'S. The panel above carries real
+ * officials' names, and a trait that says a named referee favours home sides
+ * is a claim about a real person's integrity. So the lean is read off the
+ * occasion - the size of the ground, a derby, a knockout - and applies
+ * whoever has the whistle; the briefing says it is the crowd.
+ *
+ * Nothing at a neutral venue, in a friendly, or at a small ground on an
+ * ordinary Saturday. Read before kick-off (capacity, not the gate, which is
+ * only known once it is counted), so the briefing and the match agree. No draw.
+ */
+export function homeCrowdLean(state: GameState, fx: Fixture): number {
+  if (fx.venue || fx.compId === 'fr') return 0
+  const cap = state.clubs[fx.homeId]?.capacity ?? 0
+  const size = clamp((cap - 12000) / 18000, 0, 1)
+  const occasion = (isDerby(fx.homeId, fx.awayId) ? 0.5 : 0) + (fx.stage ? 0.35 : 0)
+  return 0.07 * Math.min(1, size + occasion)
+}
+
 /** Law 3: a 23 must be able to replace all three front-row positions.
  *
  *  Six suitably trained front-rowers, in practice two who can play each of
@@ -1685,6 +1711,7 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
   fx.derby = derby
   let goalPenalty = 0
   const ref = refFor(fx.id)
+  const crowdLean = homeCrowdLean(state, fx)
   for (const side of [home, away]) {
     if (weather === 'Rain' || weather === 'Snow') {
       side.units.attack *= weather === 'Snow' ? 0.86 : 0.90
@@ -1718,7 +1745,7 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     // claimed this since the panel shipped, and the penalty rate never read
     // the referee at all. A fussy whistle (breakdown 0.90) now blows a tenth
     // more penalties; a lenient one (1.10) a tenth fewer (audit 16D)
-    side.refPenF = 2 - ref.breakdown
+    side.refPenF = (2 - ref.breakdown) * (side === home ? 1 - crowdLean : 1 + crowdLean)
     // SWAPPED IN AS A RATIO, NOT ASSIGNED. The first version of this wrote
     // `side.penRisk = aggPenRisk(...)` outright, which was wrong in a way only
     // splitprobe caught: by the time we get here the dial block has already

@@ -1044,6 +1044,7 @@
     "refFussy": "Tatillon au plaquage - lâchez le ballon, sinon c'est pénalité.",
     "refJackal": "Laisse travailler le gratteur - un bon jeu au sol produira des turnovers.",
     "refNothing": "Rien de particulier dans son carnet : il laisse les joueurs décider.",
+    "refCrowd": "Grosse ambiance à domicile : les décisions serrées pourraient pencher du côté de {team}.",
     "refPatient": "Patient : il en tolère {n} avant de sortir un carton.",
     "refScrumLoose": "Expédie les mêlées - vos phases statiques valent moins aujourd'hui.",
     "refScrumTight": "Pointilleux en mêlée - la première ligne dominante est récompensée.",
