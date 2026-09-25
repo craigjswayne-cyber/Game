@@ -1533,6 +1533,8 @@ export function rebuildSeason(state: GameState) {
     p.cond = 100
     p.sharp = 60
     p.injury = null
+    // a summer heals a knock too, and its week numbers were last season's
+    p.knock = undefined
     p.specialist = false
     p.bans = 0
     p.rust = 0

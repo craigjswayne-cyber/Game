@@ -4,6 +4,7 @@ import { fmtMoney, fmtWage, inRedZone, type Player } from '../../game/model'
 import { SPECIALIST_FEE, cottonWool, specialistConsult } from '../../game/medical'
 import { jokerCandidates, jokerFor, jokerOpen, jokerWage, signMedicalJoker, weeksOut } from '../../game/joker'
 import { fuzzedCa } from '../../game/scout'
+import { HEAD_INJURIES, canPlayThrough, flareChance, playThrough, restKnock, weeksLeft } from '../../game/knock'
 import { canPhysioFavour } from '../../game/rewarded'
 import { rewardedAvailable } from '../../game/monetise'
 import { badgeLabel } from '../../game/staff'
@@ -37,6 +38,8 @@ export default function Medical() {
   const tired = squad.filter(p => !p.injury && p.cond < 62).sort((a, b) => a.cond - b.cond)
   const loaded = squad.filter(p => !p.injury && inRedZone(p)).sort((a, b) => b.stats.mins - a.stats.mins)
   const away = squad.filter(p => p.natSquad || p.onLoan)
+  /** playing through a knock (knock.ts) */
+  const knocks = squad.filter(p => !!p.knock)
 
   // Standing on this page IS reading the notification (13E), so the rail badge
   // clears here rather than counting injured men forever. Not filtered by the
@@ -81,7 +84,7 @@ export default function Medical() {
         </div>
       </>
     )
-  const allClear = !injured.length && !rusty.length && !banned.length && !tired.length && !loaded.length && !away.length
+  const allClear = !injured.length && !rusty.length && !banned.length && !tired.length && !loaded.length && !away.length && !knocks.length
 
   return (
     <>
@@ -135,8 +138,10 @@ export default function Medical() {
         const favourOn = rewardedAvailable('medical') && canPhysioFavour(game, p.id)
         const feeOn = !p.specialist && p.injury!.until - game.week >= 3 && (!favourOn || feeCut > favourCut)
         return (
-        <span style={{ color: 'var(--text-negative)', fontWeight: 700, fontSize: 12 }}>
-          {p.injury!.desc} · {t('common.weeksOut', { n: left })}
+        // the controls wrap under the line: with the knock and the joker there
+        // can be three of them, and a row wider than the phone hides the last
+        <span style={{ color: 'var(--text-negative)', fontWeight: 700, fontSize: 12, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6, whiteSpace: 'normal' }}>
+          <span>{p.injury!.desc} · {t('common.weeksOut', { n: left })}</span>
           {/* the sponsor's consultant (v1.1.0): the same door with the fee
               replaced by a watched spot - only where a provider exists, and
               only while the week's ledger allows it (rewarded.ts). It is
@@ -144,17 +149,34 @@ export default function Medical() {
               owner's note was that the two read as interchangeable. */}
           {favourOn && (
             <RewardedButton place="medical" label={t('till.physioCut', { n: favourCut })}
-              className="btn ghost" style={{ marginLeft: 8, padding: '2px 8px', fontSize: 11 }}
+              className="btn ghost" style={{ padding: '2px 8px', fontSize: 11 }}
               onDone={out => {
                 if (out === 'completed') setMsg({ id: p.id, text: rewardPhysio(p.id) ?? t('till.favourGone') })
                 else setMsg({ id: p.id, text: t(out === 'skipped' ? 'till.spotSkipped' : 'till.spotUnavailable') })
               }} />
           )}
           {feeOn && (
-            <button className="btn gold" style={{ marginLeft: 8, padding: '2px 8px', fontSize: 11 }}
+            <button className="btn gold" style={{ padding: '2px 8px', fontSize: 11 }}
               onClick={e => { e.stopPropagation(); setMsg({ id: p.id, text: specialistConsult(game, p.id) }); touch() }}>
               {t('medical.specialistCut', { n: feeCut })}
             </button>
+          )}
+          {/* PLAY THROUGH IT (knock.ts): the last weeks of a lay-off can be
+              played on, at a risk the button states. Never a head injury, and
+              the room says so rather than leaving the button to go missing. */}
+          {canPlayThrough(game, p) && (
+            <button className="btn ghost" style={{ padding: '2px 8px', fontSize: 11 }}
+              onClick={e => {
+                e.stopPropagation()
+                const r = playThrough(game, p.id)
+                setMsg({ id: p.id, text: t(r.k, r.v) })
+                touch()
+              }}>
+              {t('medical.knockBtn', { pct: Math.round(flareChance(weeksLeft(game, p)) * 100) })}
+            </button>
+          )}
+          {HEAD_INJURIES.has(p.injury!.dk ?? '') && weeksLeft(game, p) <= 3 && (
+            <div className="meta" style={{ fontWeight: 600 }}>{t('medical.knockHead')}</div>
           )}
           {/* THE MEDICAL JOKER (joker.ts): a long lay-off can be covered by one
               short-term signing whose wage sits outside the cap */}
@@ -163,7 +185,7 @@ export default function Medical() {
             if (cover) return <div className="meta" style={{ color: 'var(--gold)', fontWeight: 700 }}>{t('medical.jokerCovered', { name: cover.name })}</div>
             if (!jokerOpen(game, p)) return null
             return (
-              <button className="btn ghost" style={{ marginLeft: 8, padding: '2px 8px', fontSize: 11 }}
+              <button className="btn ghost" style={{ padding: '2px 8px', fontSize: 11 }}
                 onClick={e => { e.stopPropagation(); setJokerHurt(p) }}>
                 {t('medical.jokerBtn')}
               </button>
@@ -172,6 +194,21 @@ export default function Medical() {
         </span>
         )
       })}
+
+      {section(t('medical.knockTitle'), t('medical.knockSub'), knocks, p => (
+        <span style={{ color: 'var(--gold)', fontWeight: 700, fontSize: 12, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6, whiteSpace: 'normal' }}>
+          <span>{t('medical.knockRow', { n: Math.max(0, p.knock!.until - game.week), pct: Math.round(flareChance(p.knock!.early) * 100) })}</span>
+          <button className="btn ghost" style={{ padding: '2px 8px', fontSize: 11 }}
+            onClick={e => {
+              e.stopPropagation()
+              const r = restKnock(game, p.id)
+              setMsg({ id: p.id, text: t(r.k, r.v) })
+              touch()
+            }}>
+            {t('medical.knockRest')}
+          </button>
+        </span>
+      ))}
 
       {section(t('medical.redZone'), t('medical.redZoneSub'), loaded, p => (
         <span style={{ color: 'var(--text-negative)', fontWeight: 700, fontSize: 12 }}>{t('medical.minsThisSeason', { mins: p.stats.mins })}</span>
@@ -211,6 +248,7 @@ export default function Medical() {
         <div className="modal-veil" onClick={() => setJokerHurt(null)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="grab" />
+            <div style={{ padding: '0 16px' }}>
             <h3 style={{ fontSize: 16, margin: '2px 0 6px' }}>{t('medical.jokerTitle', { hurt: jokerHurt.name })}</h3>
             <div className="meta" style={{ marginBottom: 8 }}>
               {t('medical.jokerExplain', { n: weeksOut(game, jokerHurt), hurt: jokerHurt.name })}
@@ -246,6 +284,7 @@ export default function Medical() {
             <button className="btn ghost block" style={{ marginTop: 10 }} onClick={() => setJokerHurt(null)}>
               {t('medical.jokerClose')}
             </button>
+            </div>
           </div>
         </div>
       )}

@@ -14,6 +14,7 @@ import { analystEdge, settleAnalyst } from './analyst'
 import { t, tIn } from './i18n'
 import { venueEffect } from './venue'
 import { clamp, gauss, mulberry32, wpick, type Rng } from './rng'
+import { KNOCK_ENERGY } from './knock'
 import { DEFAULT_LINEOUT, DEFAULT_SCRUM, ROUTINE_BY_ID, playbookOf, routineEffect } from './playbook'
 import {
 
@@ -1267,7 +1268,9 @@ function mkSide(state: GameState, teamId: string, userTeamId: string | null, fxI
       // and trustprobe's near-even season lurched 26 -> 6 instead of drifting.
       // The floor is load-bearing for the board's read of a season, which is
       // not something a bench fix should be quietly deciding.
-      energy.set(id, Math.max(50, state.players[id]?.cond ?? 85))
+      // carrying a knock (knock.ts): he starts short of his usual tank
+      const knockF = state.players[id]?.knock ? KNOCK_ENERGY : 1
+      energy.set(id, Math.max(50, state.players[id]?.cond ?? 85) * knockF)
     }
   })
   const units = teamUnits(state, lineup, { fxId, big })

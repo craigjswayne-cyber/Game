@@ -404,6 +404,20 @@ export interface Player {
    *  arrival, 'academy' for a graduate's first senior rugby ever.
    *  Cleared the moment it comes, memorable or not */
   debutPending?: 'signing' | 'academy' | null
+  /** Playing through a knock (knock.ts): an injury near its end that the
+   *  manager chose to send him out on. Available, short of a full tank, and
+   *  every match he plays is a roll on it flaring up. Never a head injury. */
+  knock?: {
+    dk: string; desc: string
+    /** the week the physio had him down as fit */
+    until: number
+    /** the original lay-off, which sizes a flare-up */
+    weeks: number
+    /** weeks early he was sent out: the flare-up risk reads it */
+    early: number
+    /** his minutes when last looked at: more since means he played on it */
+    mins: number
+  }
   /** A medical joker (joker.ts): the id of the injured man he was signed to
    *  cover. His wage is outside the salary cap while this is set, and he
    *  leaves when that man is fit, leaves the club, or the season ends. */
