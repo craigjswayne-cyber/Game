@@ -810,6 +810,69 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   background: inherit;
   transition: transform calc(var(--tick, 1100ms) * .9) cubic-bezier(.45, .05, .35, 1);
 }
+/* ---- THE WEATHER YOU CAN SEE (idea 6) ------------------------------------
+   Over the pitch and over the camera: weather falls in front of the lens.
+   Every moving layer is a small repeating tile slid by exactly one tile on
+   `translate`, so it loops without a seam and runs on the compositor; reduced
+   motion stops it where it stands, which still reads as rain or snow. */
+.pitch .wx {
+  position: absolute; inset: 0; z-index: 5; pointer-events: none;
+  overflow: hidden; border-radius: inherit;
+}
+/* wet grass is darker grass, lying snow a paler one */
+.pitch .wx.rain::before, .pitch .wx.snow::before { content: ''; position: absolute; inset: 0; }
+.pitch .wx.rain::before { background: linear-gradient(180deg, rgba(14, 28, 46, .30), rgba(14, 28, 46, .18)); }
+.pitch .wx.snow::before { background: linear-gradient(180deg, rgba(236, 244, 250, .26), rgba(236, 244, 250, .16)); }
+.pitch .wx .wx-fall {
+  position: absolute; left: 0; right: 0; top: -64px; height: calc(100% + 64px);
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='44' height='64'><g stroke='%23dbe7ff' stroke-opacity='.5' stroke-width='1.1' stroke-linecap='round'><line x1='6' y1='2' x2='3' y2='15'/><line x1='27' y1='33' x2='24' y2='46'/><line x1='17' y1='49' x2='14' y2='62'/><line x1='38' y1='12' x2='35' y2='25'/></g></svg>") repeat;
+  animation: wx-rain .42s linear infinite;
+}
+@keyframes wx-rain { from { translate: 0 0; } to { translate: 0 64px; } }
+.pitch .wx.snow .wx-fall.a {
+  top: -80px; height: calc(100% + 80px);
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='70' height='80'><g fill='%23ffffff' fill-opacity='.85'><circle cx='9' cy='12' r='1.6'/><circle cx='41' cy='36' r='1.2'/><circle cx='60' cy='66' r='1.8'/><circle cx='24' cy='58' r='1.1'/></g></svg>") repeat;
+  animation: wx-snow-a 4.2s linear infinite;
+}
+.pitch .wx.snow .wx-fall.b {
+  top: -56px; height: calc(100% + 56px);
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='52' height='56'><g fill='%23ffffff' fill-opacity='.6'><circle cx='14' cy='20' r='1'/><circle cx='40' cy='44' r='1.3'/><circle cx='31' cy='6' r='.9'/></g></svg>") repeat;
+  animation: wx-snow-b 6.5s linear infinite;
+}
+@keyframes wx-snow-a { from { translate: 0 0; } to { translate: 0 80px; } }
+@keyframes wx-snow-b { from { translate: 0 0; } to { translate: 0 56px; } }
+/* the wind streams across the way it blows (--wd, +1 to the right) */
+.pitch .wx .wx-gust {
+  position: absolute; top: 0; bottom: 0; left: -180px; right: -180px;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='46'><g stroke='%23ffffff' stroke-opacity='.42' stroke-width='1.2' stroke-linecap='round'><line x1='8' y1='9' x2='70' y2='7'/><line x1='92' y1='27' x2='170' y2='25'/><line x1='36' y1='40' x2='84' y2='39'/><line x1='120' y1='14' x2='150' y2='14'/></g></svg>") repeat;
+  animation: wx-gust 1.3s linear infinite;
+}
+@keyframes wx-gust { from { translate: 0 0; } to { translate: calc(var(--wd, 1) * 180px) 0; } }
+/* under the lights: the corners lit by the pylons, the sky dark beyond */
+.pitch .wx .wx-lights {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(circle at 0 0, rgba(255, 246, 214, .30), rgba(255, 246, 214, 0) 42%),
+    radial-gradient(circle at 100% 0, rgba(255, 246, 214, .30), rgba(255, 246, 214, 0) 42%),
+    radial-gradient(circle at 0 100%, rgba(255, 246, 214, .24), rgba(255, 246, 214, 0) 40%),
+    radial-gradient(circle at 100% 100%, rgba(255, 246, 214, .24), rgba(255, 246, 214, 0) 40%),
+    radial-gradient(ellipse at 50% 50%, rgba(4, 10, 24, 0) 45%, rgba(4, 10, 24, .34));
+}
+/* the corner flags: a post and a pennant, still on a calm day, streaming and
+   snapping on a windy one, out the way the wind blows */
+.pitch .cflag {
+  position: absolute; width: 2px; height: 10px; margin: -10px 0 0 -1px;
+  background: rgba(255, 255, 255, .9); border-radius: 1px; z-index: 1; pointer-events: none;
+  scale: var(--wd, 1) 1;
+}
+.pitch .cflag::after {
+  content: ''; position: absolute; left: 2px; top: 0; width: 8px; height: 6px;
+  background: var(--prop-yellow); clip-path: polygon(0 0, 100% 50%, 0 100%);
+  transform-origin: left center; scale: .7 1;
+}
+.pitch .cflag.windy::after { animation: flag-snap .35s ease-in-out infinite alternate; }
+@keyframes flag-snap { from { scale: 1 1; } to { scale: .82 .8; } }
+
 /* the whole pitch, small, in the top corner: where the picture is */
 .pitch .minimap {
   position: absolute; top: 6px; right: 8px; z-index: 6; pointer-events: none;
