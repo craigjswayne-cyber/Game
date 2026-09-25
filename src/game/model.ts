@@ -768,7 +768,7 @@ export interface MatchEvent {
    *
    *  Absent on saves written before this, which is why MatchDay still falls
    *  back to the old patterns when it is missing. */
-  fx?: 'SCRUM' | 'LINEOUT' | 'MAUL' | 'MISS'
+  fx?: 'SCRUM' | 'LINEOUT' | 'MAUL' | 'MISS' | 'TMO' | 'NOTRY'
   homeScore: number
   awayScore: number
 }

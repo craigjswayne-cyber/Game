@@ -1451,14 +1451,10 @@ const SPOTS: [number, number][] = [
   [64, 10], [58, 40], [63, 66], [64, 90], [76, 50], // 11-15
 ]
 
-/** The stages of a try at Slow and Normal: under review, given, replayed. */
-type TryPhase = 'tmo' | 'try' | 'replay'
-
-/** 0..1 from an integer, the same every time: which tries go to the TMO. */
-function momentHash(n: number): number {
-  let h = Math.imul(n ^ 0x5bd1e995, 0x27d4eb2d)
-  h = Math.imul(h ^ (h >>> 15), 0x165667b1)
-  return ((h ^ (h >>> 13)) >>> 0) / 4294967296
+/** Which question a TMO review line asked (comm.tmoReview1..4), 1 if unknown. */
+function tmoQuestion(ev: MatchEvent | undefined): number {
+  const n = Number(/tmoReview(\d)/.exec(ev?.k ?? '')?.[1])
+  return n >= 1 && n <= 4 ? n : 1
 }
 
 const BANNER: Partial<Record<MatchEvent['type'], string>> = {
@@ -1466,7 +1462,7 @@ const BANNER: Partial<Record<MatchEvent['type'], string>> = {
   YC: 'matchday.banYC', RC: 'matchday.banRC', INJ: 'matchday.banINJ',
 }
 
-function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC, tickMs, tryPhase = null, tmoCheck = 1, tmoMs = 0, replayMs = 0, onSkip }: {
+function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC, tickMs, afterReview = false }: {
   ctx: LiveCtx
   game: ReturnType<typeof useStore.getState>['game'] & object
   last: MatchEvent | undefined
@@ -1480,14 +1476,8 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
    *  position on this pitch. The dots' travel is derived from it so a man
    *  ARRIVES before he is sent somewhere else; see --tick in theme.css. */
   tickMs: number
-  /** a try's stage at Slow and Normal (Live's try moment), or null */
-  tryPhase?: TryPhase | null
-  /** which of the TMO's questions this review is asking */
-  tmoCheck?: number
-  tmoMs?: number
-  replayMs?: number
-  /** tapping the pitch during the replay moves on */
-  onSkip?: () => void
+  /** the line before this one was a TMO review: a try now is its verdict */
+  afterReview?: boolean
 }) {
   const fx = ctx.fx
   const pitchEl = useRef<HTMLDivElement>(null)
@@ -1530,11 +1520,7 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
   const rightward = (isHomeSide: boolean): boolean => isHomeSide !== mirror
   const scoringFx = evType === 'TRY' || evType === 'PEN' || evType === 'DG' || evType === 'CON'
   const kickFx = evType === 'PEN' || evType === 'CON' || evType === 'DG'
-  // a try under review: the banner, the burst, the floodlit in-goal and the
-  // scorer's dash all wait for the verdict (they mount when it comes, so their
-  // animations start then)
-  const underReview = evType === 'TRY' && tryPhase === 'tmo'
-  const banner = evType && !underReview && tryPhase !== 'replay' && (showFx || (showBig && scoringFx)) ? BANNER[evType] : undefined
+  const banner = evType && (showFx || (showBig && scoringFx)) ? BANNER[evType] : undefined
   // The event says what it depicts (MatchEvent.fx, set in matchEngine's
   // DEPICTS). What follows is the way it used to be worked out - regular
   // expressions over the line's stored English - and it is kept ONLY for
@@ -1553,7 +1539,7 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
       : /wide/i.test(txt) ? 'MISS'
       : null
   const depicts = last ? (last.k ? last.fx ?? null : legacyFx()) : null
-  const setPiece = showFx && evType === 'SUB' && depicts !== 'MISS' ? depicts : null
+  const setPiece = showFx && evType === 'SUB' && (depicts === 'SCRUM' || depicts === 'LINEOUT' || depicts === 'MAUL') ? depicts : null
   const kickMiss = evType === 'SUB' && depicts === 'MISS'
   const kickCam = showFx && (kickFx || kickMiss)
   const binned = (side: SideCtx) =>
@@ -1669,7 +1655,7 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
       y = Math.max(5, Math.min(95, y))
       layout.set(id, { x, y })
       const hl = last?.playerId === id
-      const scorerRun = hl && evType === 'TRY' && showFx && tryPhase !== 'tmo' && tryPhase !== 'replay'
+      const scorerRun = hl && evType === 'TRY' && showFx
       // what each man is DOING between repositions (theme.css, v1.1.4):
       // ruckers work the breakdown (the jog, sped right up), attacking backs
       // make staggered support runs onto the ball, everyone defending steps up
@@ -1790,32 +1776,12 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
     play(ps, c, manNow, Math.max(320, c.tickMs * 0.94))
   }, [fxKey])
 
-  // THE REPLAY: the run to the line again, from a good way out, a little
-  // slower, under a REPLAY chip. Same machinery as a passage; the try spot is
-  // where it ends, so when it is over the picture is the one it interrupted.
-  useLayoutEffect(() => {
-    if (tryPhase !== 'replay') return
-    const c = nowRef.current
-    for (const a of running.current) a.cancel()
-    running.current = []
-    if (!ballEl.current || typeof ballEl.current.animate !== 'function') return
-    const reach = c.dir > 0 ? c.ball.x - 30 : c.ball.x + 30
-    const from = c.fromBall ?? { x: reach, y: 50 }
-    const start: Pt = { x: c.dir > 0 ? Math.min(from.x, reach) : Math.max(from.x, reach), y: from.y }
-    const scorer = last?.playerId ?? null
-    const manNow = scorer != null ? c.layout.get(scorer) : undefined
-    const ps = buildPassage('break', start, c.ball, c.dir, fxKey * 31 + 5,
-      manNow ? { was: { x: start.x - c.dir * 3, y: start.y + (start.y < 50 ? 9 : -9) }, now: manNow } : null)
-    if (!ps) return
-    play(ps, { ...c, manId: scorer }, manNow, Math.max(600, replayMs * 0.88))
-  }, [fxKey, tryPhase])
   useEffect(() => () => { for (const a of running.current) a.cancel() }, [])
 
   return (
     <div ref={pitchEl}
-      className={`pitch${showFx && evType === 'TRY' && tryPhase !== 'tmo' ? (rightward(towardHome) ? ' try-r' : ' try-l') : ''}${tryPhase === 'replay' ? ' replay' : ''}`}
-      style={{ '--tick': `${tickMs}ms` } as CSSProperties}
-      onClick={onSkip}>
+      className={`pitch${showFx && evType === 'TRY' ? (rightward(towardHome) ? ' try-r' : ' try-l') : ''}`}
+      style={{ '--tick': `${tickMs}ms` } as CSSProperties}>
       {/* each in-goal wears the colours of the side that DEFENDS it, so the
           zone you are attacking is always the far one on the right */}
       <div className="tryzone tz-l" style={{ left: 0, background: `linear-gradient(90deg, ${(mirror ? awayC : homeC)[0]}cc, ${(mirror ? awayC : homeC)[0]}55)` }} />
@@ -1842,7 +1808,7 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
           height. The ball was the only thing on the pitch that did not know
           where the ball was. */}
       <div key={kickFx && showFx ? `k${fxKey}` : 'ball'} ref={ballEl}
-        className={`ball${kickFx && showFx ? (rightward(towardHome) ? ' kick-r' : ' kick-l') : ''}${flying || tryPhase === 'replay' ? ' flight' : ''}${teeBall ? ' parked' : ''}`}
+        className={`ball${kickFx && showFx ? (rightward(towardHome) ? ' kick-r' : ' kick-l') : ''}${flying ? ' flight' : ''}${teeBall ? ' parked' : ''}`}
         style={{ left: `${mx(ballLeft)}%`, top: `${ballTop}%` }} />
       {/* A kick at goal with nothing in flight (paused, Fast, reduced motion):
           the ball is on the tee with the kicker, not out on the territory spot,
@@ -1857,7 +1823,7 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
           <span className="splabel">{t(`matchday.sp${setPiece}`)}</span>
         </div>
       )}
-      {showFx && evType === 'TRY' && !underReview && tryPhase !== 'replay' && (
+      {showFx && evType === 'TRY' && (
         <div key={`tb${fxKey}`} className="try-burst" style={{ left: towardHome ? '90%' : '10%' }}>
           {Array.from({ length: 10 }).map((_, i) => (
             <i key={i} style={{
@@ -1874,15 +1840,18 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
           <span className="kc-verdict">{t(kickMiss ? 'matchday.kickWide' : 'matchday.kickGood')}</span>
         </div>
       )}
-      {underReview && (
-        <div key={`tmo${fxKey}`} className="tmo-card" style={{ '--tmo': `${tmoMs}ms` } as CSSProperties}>
+      {/* THE TMO (idea 5). The engine sends a try upstairs (scoreTry) and says
+          so in a line of its own; the next line is the verdict, a TRY or a NO
+          TRY. This is the monitor for the wait in between, asking the question
+          the line asked. It is information, not decoration, so it shows at
+          every speed the effects do and with reduced motion too. */}
+      {showFx && depicts === 'TMO' && (
+        <div key={`tmo${fxKey}`} className="tmo-card">
           <span className="tmo-title">📺 {t('matchday.tmoTitle')}</span>
           <span className="tmo-screen"><i /></span>
-          <span className="tmo-line check">{t(`matchday.tmoCheck${tmoCheck}`)}</span>
-          <span className="tmo-line verdict">{t('matchday.tmoAwarded')}</span>
+          <span className="tmo-line">{t(`matchday.tmoCheck${tmoQuestion(last)}`)}</span>
         </div>
       )}
-      {tryPhase === 'replay' && <span key={`rp${fxKey}`} className="replay-chip">{t('matchday.replay')}</span>}
       {binned(ctx.home).map((m, i) => (
         <span key={`bh${i}`} className="bin-chip" style={{ left: `${3 + i * 13}%` }}>🟨 {m}′</span>
       ))}
@@ -1895,8 +1864,11 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
           style={scoringFx ? { background: lastTeamC[0], color: contrastText(lastTeamC[0]) } : undefined}>
           {evType === 'YC' && <span className="cardchip y" />}
           {evType === 'RC' && <span className="cardchip r" />}
-          {t(banner)}
+          {t(evType === 'TRY' && afterReview ? 'matchday.tmoAwarded' : banner)}
         </div>
+      )}
+      {showFx && depicts === 'NOTRY' && (
+        <div key={`nt${fxKey}`} className="ev-banner notry">{t('matchday.tmoNoTry')}</div>
       )}
     </div>
   )
@@ -1929,7 +1901,6 @@ function Live() {
   /** the match-day squad, opened from the Squad button in the control row */
   const [sheet, setSheet] = useState(false)
   const tickerRef = useRef<HTMLDivElement>(null)
-  const tryPlanRef = useRef<{ tmo: boolean } | null>(null)
 
   const { events, cursor, playing, fixture, ctx } = live
   const shown = events.slice(0, cursor)
@@ -1952,8 +1923,7 @@ function Live() {
 
   // stadium sound & haptics on key events (skip when fast-forwarding)
   useEffect(() => {
-    // a try under review makes its noise when it is given (below)
-    if (last && speedIdx < 2 && playing && !(last.type === 'TRY' && tryPlanRef.current?.tmo)) matchSfx(last.type)
+    if (last && speedIdx < 2 && playing) matchSfx(last.type)
   }, [cursor])
 
   // A serious injury stops the clock and opens the match-day squad (feedback
@@ -1994,9 +1964,6 @@ function Live() {
 
   const hs = last?.homeScore ?? 0
   const as = last?.awayScore ?? 0
-  // the numbers the scoreboard draws: the same, except while the TMO has a
-  // try (set further down, once the plan for this line is known)
-  let heldHs = hs, heldAs = as
   const min = last?.min ?? 0
 
   // TERRITORY IS MOMENTUM (v1.1.1).
@@ -2020,7 +1987,11 @@ function Live() {
   const ballLeft = useMemo(() => {
     if (!last) return 50
     const towardHome = last.teamId === fixture.homeId
-    const base = last.type === 'TRY' ? (towardHome ? 88 : 12)
+    // a try under review, and the one the TMO chalks off, happened where tries
+    // happen: at the line (dramaprobe leaves them out of the territory check
+    // for exactly that reason)
+    const atLine = last.type === 'TRY' || last.fx === 'TMO' || last.fx === 'NOTRY'
+    const base = atLine ? (towardHome ? 88 : 12)
       : last.type === 'PEN' || last.type === 'DG' ? (towardHome ? 72 : 28)
       : 50 + (ctx.momo ?? 0) * 30 + (towardHome ? 9 : -9)
     return Math.max(6, Math.min(94, base))
@@ -2054,70 +2025,29 @@ function Live() {
   // So the beat is the number, and theme.css divides it (see --tick).
   const tickMs = Math.round(SPEEDS[speedIdx].ms * (speedIdx < 2 ? 1 + 0.6 * tension : 1))
 
-  // THE TRY MOMENT (owner, 25 Sep 2026, idea 5: a TMO review and a replay).
-  //
-  // A try used to be one beat like any other line. Now, at Slow and Normal,
-  // the clock holds for it: sometimes the referee goes upstairs first, and the
-  // score waits on the verdict; then the try itself; then the run to the line
-  // again, as a replay. Fast, Skip and a scrub are left exactly alone.
-  //
-  // The TMO cannot overturn anything - the try is already on the engine's
-  // books, and presentation does not get to change a result - so the review
-  // is about the WAIT. It happens only while the game is within two scores
-  // (a review in a rout is procedure, not drama), and on about half of those,
-  // picked by a hash of the line so a replayed match reviews the same tries.
-  const reduced = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-  const tryPlan = useMemo(() => {
-    if (!last || last.type !== 'TRY' || !playing || speedIdx >= 2) return null
-    const before = shown[shown.length - 2]
-    const margin = before ? Math.abs(before.homeScore - before.awayScore) : 0
-    const h = momentHash(cursor * 131 + last.min * 7 + (last.playerId ?? 0))
-    const tmo = margin <= 14 && h < 0.45
-    return {
-      tmo,
-      tmoMs: tmo ? Math.round(Math.min(2800, Math.max(1800, tickMs * 2.2))) : 0,
-      replayMs: reduced ? 0 : Math.round(Math.min(2600, Math.max(1600, tickMs * 2))),
-      check: 1 + Math.floor(momentHash(cursor * 17 + 3) * 4),
-    }
-  }, [cursor, playing, speedIdx])
-  tryPlanRef.current = tryPlan
-  const [tryStage, setTryStage] = useState<{ key: number; phase: TryPhase } | null>(null)
-  // derived rather than read, so the very first frame of a reviewed try is
-  // already the review and not a flash of the banner it is holding back
-  const tryPhase: TryPhase | null = !tryPlan ? null
-    : tryStage?.key === cursor ? tryStage.phase
-    : tryPlan.tmo ? 'tmo' : 'try'
-  if (tryPhase === 'tmo') {
-    const before = shown[shown.length - 2]
-    heldHs = before?.homeScore ?? 0; heldAs = before?.awayScore ?? 0
-  }
-  useEffect(() => {
-    if (!tryPlan) return
-    const timers: ReturnType<typeof setTimeout>[] = []
-    if (tryPlan.tmo) timers.push(setTimeout(() => setTryStage({ key: cursor, phase: 'try' }), tryPlan.tmoMs))
-    if (tryPlan.replayMs) timers.push(setTimeout(() => setTryStage({ key: cursor, phase: 'replay' }), tryPlan.tmoMs + tickMs))
-    return () => timers.forEach(clearTimeout)
-  }, [cursor, tryPlan])
-  // the crowd and the buzz wait for the verdict too
-  useEffect(() => {
-    if (tryPlan?.tmo && tryPhase === 'try') matchSfx('TRY')
-  }, [tryPhase])
+  // THE TMO HOLDS THE CLOCK (idea 5). A review line is the wait for a verdict,
+  // so at Slow and Normal it gets longer than a beat; Fast, Skip and a scrub
+  // are left alone. A rout never has one to hold for longer than any other
+  // review, and there are about one in six tries sent upstairs, so the pacing
+  // a manager chose is still the pacing he gets.
+  const tmoHold = last?.fx === 'TMO' && playing && speedIdx < 2
+    ? Math.round(Math.min(2800, Math.max(1800, tickMs * 2.2))) - tickMs : 0
 
   useEffect(() => {
     if (!playing) return
     // `timer`, not `t`: t() is the translator
-    const hold = tryPlan ? tryPlan.tmoMs + tryPlan.replayMs : 0
-    const timer = setTimeout(() => advanceLive(), tickMs + hold)
+    const timer = setTimeout(() => advanceLive(), tickMs + tmoHold)
     return () => clearTimeout(timer)
-  }, [cursor, playing, speedIdx, events.length, tension, tryPlan])
+  }, [cursor, playing, speedIdx, events.length, tension, tmoHold])
 
   const cls = (e: MatchEvent) =>
-    e.type === 'TRY' || e.type === 'FT' || e.type === 'DG' ? 'big'
+    e.fx === 'TMO' || e.fx === 'NOTRY' ? 'tmo'
+      : e.type === 'TRY' || e.type === 'FT' || e.type === 'DG' ? 'big'
       : e.type === 'YC' ? 'card-y'
       : e.type === 'RC' ? 'card-r'
       : e.type === 'INJ' ? 'inj' : ''
 
-  const icon = (e: MatchEvent) => ({
+  const icon = (e: MatchEvent) => e.fx === 'TMO' || e.fx === 'NOTRY' ? '📺' : ({
     TRY: '🏉', CON: '🎯', PEN: '🥅', DG: '🎯', YC: '🟨', RC: '🟥', INJ: '🩹', HT: '⏸', FT: '🏁', KO: '⏱', SUB: '·', BRK: '💧',
   }[e.type] ?? '·')
 
@@ -2145,8 +2075,7 @@ function Live() {
       <div className="scoreboard" style={{ '--home-c': homeC[0], '--away-c': awayC[0] } as React.CSSProperties}>
         <div className="teams">
           <div className="tname"><CrestT g={game} teamId={fixture.homeId} size={26} />{teamShort(game, fixture.homeId)}<span className="clubbar" style={{ background: homeC[0] }} /></div>
-          {/* under review, the board still shows what it was before the try */}
-          <div className="score" key={`${heldHs}-${heldAs}`}>{heldHs} – {heldAs}</div>
+          <div className="score" key={`${hs}-${as}`}>{hs} – {as}</div>
           <div className="tname"><CrestT g={game} teamId={fixture.awayId} size={26} />{teamShort(game, fixture.awayId)}<span className="clubbar" style={{ background: awayC[0] }} /></div>
         </div>
         <div className="minute">
@@ -2267,9 +2196,7 @@ function Live() {
       {!panelActive && (
         <PitchViz ctx={ctx} game={game} last={last} ballLeft={ballLeft}
           fxKey={cursor} showFx={showFx} showBig={playing} lastTeamC={lastTeamC}
-          tickMs={tickMs} tryPhase={tryPhase} tmoCheck={tryPlan?.check ?? 1}
-          tmoMs={tryPlan?.tmoMs ?? 0} replayMs={tryPlan?.replayMs ?? 0}
-          onSkip={tryPhase === 'replay' ? () => advanceLive() : undefined} />
+          tickMs={tickMs} afterReview={shown[shown.length - 2]?.fx === 'TMO'} />
       )}
       {/* THE CONTROLS SIT UNDER THE PITCH (owner, v1.1.16: "4 buttons in match
           mode - should be directly underneath the pitch at the top").
@@ -2346,14 +2273,7 @@ function Live() {
           background, that takes up whatever a tall phone has spare. */}
       {!panelActive && (
         <div className="now-strip">
-          {last && tryPhase === 'tmo' && (
-            // the line says TRY! and the referee has not said so yet
-            <div key={`tmo${cursor}`} className="now-line tmo">
-              <span className="min">{Math.min(80, last.min)}'</span>
-              <span className="txt">📺 {t('matchday.tmoTitle')} · {t(`matchday.tmoCheck${tryPlan!.check}`)}</span>
-            </div>
-          )}
-          {last && tryPhase !== 'tmo' && (
+          {last && (
             <div key={cursor} className={`now-line ${cls(last)}`}>
               <span className="min">{Math.min(80, last.min)}'</span>
               <span className="txt">{icon(last)} {eventText(last)}</span>
@@ -2422,7 +2342,7 @@ function Live() {
           <TouchlinePanel title={t('matchday.pausedTitle')} showTalk={false} onResume={() => { setDrawer(false); matchCursor(cursor, true) }} resumeLabel={t('matchday.resumePlay')} />
         )}
         {(atHalfTime || atBreak) && (
-          <ScoreCard label={t(atBreak ? 'matchday.breakSixty' : 'matchday.halfTime')} />
+          <ScoreCard label={t(atBreak ? 'matchday.breakSixty' : 'matchday.halfTime')} story />
         )}
         {(atHalfTime || atBreak) && (
           <TouchlinePanel
@@ -2740,7 +2660,7 @@ function Highlights() {
  * Everything on it is read from the events; nothing is computed that the
  * engine did not say.
  */
-function ScoreCard({ label }: { label: string }) {
+function ScoreCard({ label, story = false }: { label: string; story?: boolean }) {
   const game = useStore(s => s.game)!
   const live = useStore(s => s.liveMatch)!
   const { fixture, ctx } = live
@@ -2774,6 +2694,8 @@ function ScoreCard({ label }: { label: string }) {
         <div className="sc-score">{hs}<i>–</i>{as}</div>
         <div className="sc-team"><CrestT g={game} teamId={fixture.awayId} size={34} /><span>{teamShort(game, fixture.awayId)}</span></div>
       </div>
+      {/* at a stoppage this IS the story so far (audit 20E), and says so */}
+      {story && <div className="fact-label sc-story">{t('matchday.storySoFar')}</div>}
       <div className="sc-lists">
         {scorers(fixture.homeId)}
         {scorers(fixture.awayId)}
