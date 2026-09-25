@@ -106,6 +106,12 @@ const STAGE_WEEK: Record<Exclude<HuntStage, 0>, number> = { 1: 6, 2: 16, 3: 28 }
  */
 export function advanceHunt(state: GameState): void {
   if (state.retired) return
+  // The hunt is a story about ONE of your players and the club circling him,
+  // and it ends in a formal bid on your desk. A sacked manager has no players
+  // and no desk - state.userClubId names where he used to work, not where he
+  // works (model.ts myClubId), so an open hunt simply pauses until he is back
+  // in a job.
+  if (state.unemployed) return
   const user = state.clubs[state.userClubId]
   if (!user) return
 
