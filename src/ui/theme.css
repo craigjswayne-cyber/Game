@@ -800,6 +800,38 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
     top calc(var(--tick, 1100ms) * .7) ease;
   box-shadow: 0 3px 8px rgba(0, 0, 0, .45);
 }
+/* THE CAMERA'S WORLD (idea 4). Everything on the grass sits in this layer at
+   exactly the pitch's size, so every percentage inside it means what it did
+   before. With the Broadcast camera it is scaled and panned (MatchDay's cam),
+   and it takes the mown stripes with it so the grass zooms with the lines; with
+   the full pitch it is an untransformed box and the pitch paints the grass. */
+.pitch .pitch-world { position: absolute; inset: 0; transform-origin: 0 0; }
+.pitch .pitch-world.cam {
+  background: inherit;
+  transition: transform calc(var(--tick, 1100ms) * .9) cubic-bezier(.45, .05, .35, 1);
+}
+/* the whole pitch, small, in the top corner: where the picture is */
+.pitch .minimap {
+  position: absolute; top: 6px; right: 8px; z-index: 6; pointer-events: none;
+  width: 76px; height: 34px; border-radius: 4px; overflow: hidden;
+  background: rgba(8, 30, 22, .78);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .45), 0 2px 6px rgba(0, 0, 0, .4);
+}
+.pitch .minimap i { position: absolute; display: block; }
+.pitch .minimap .mm-tz { top: 0; bottom: 0; width: 8%; opacity: .85; }
+.pitch .minimap .mm-tz.l { left: 0; }
+.pitch .minimap .mm-tz.r { right: 0; }
+.pitch .minimap .mm-half { left: 50%; top: 0; bottom: 0; width: 1px; background: rgba(255, 255, 255, .5); }
+.pitch .minimap .mm-view {
+  border: 1.5px solid var(--gold); border-radius: 2px;
+  transition: left calc(var(--tick, 1100ms) * .9) ease, top calc(var(--tick, 1100ms) * .9) ease,
+    width calc(var(--tick, 1100ms) * .9) ease, height calc(var(--tick, 1100ms) * .9) ease;
+}
+.pitch .minimap .mm-ball {
+  width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; border-radius: 50%;
+  background: var(--prop-cream); box-shadow: 0 0 0 1px rgba(0, 0, 0, .5);
+  transition: left calc(var(--tick, 1100ms) * .9) ease, top calc(var(--tick, 1100ms) * .9) ease;
+}
 /* A ball in the air (phasePlay.ts). The passage draws the whole path in
    `translate` from the spot the last line left it, so the glide on left/top
    has to stand aside or the ball would travel twice. It flies over the men,
