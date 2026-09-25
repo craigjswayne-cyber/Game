@@ -786,13 +786,33 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   background: radial-gradient(circle at 35% 30%, var(--prop-cream), var(--prop-cream-deep));
   border: 2px solid var(--canvas);
   border-radius: 50%;
-  transform: translate(-50%, -50%) rotate(-25deg);
+  /* Centred by margin, not by translate(-50%, -50%) in the transform. The
+     passage (phasePlay.ts) spins and swells the ball through `rotate` and
+     `scale`, and those apply OUTSIDE the transform: with the centring shift in
+     there, a spinning ball orbited its own spot at eleven pixels and a rising
+     one slid up and left. With nothing in the transform but the resting tilt,
+     both turn about the middle of the ball. */
+  margin: -6.5px 0 0 -9.5px;
+  transform: rotate(-25deg);
   /* same beat as the men who are chasing it - see .pitch .pdot */
   transition:
     left calc(var(--tick, 1100ms) * .92) cubic-bezier(.45, .05, .35, 1),
     top calc(var(--tick, 1100ms) * .7) ease;
   box-shadow: 0 3px 8px rgba(0, 0, 0, .45);
 }
+/* A ball in the air (phasePlay.ts). The passage draws the whole path in
+   `translate` from the spot the last line left it, so the glide on left/top
+   has to stand aside or the ball would travel twice. It flies over the men,
+   and its shadow stays on the grass and shows how high it is. */
+.pitch .ball.flight { transition: none; z-index: 5; }
+.pitch .ball-shadow {
+  position: absolute; width: 15px; height: 7px; margin: -3.5px 0 0 -7.5px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(0, 0, 0, .55), rgba(0, 0, 0, 0));
+  opacity: 0; pointer-events: none; z-index: 1;
+}
+/* the man the line names runs his own path during the passage, the same way */
+.pitch .pdot.carry { transition: transform .3s ease; }
 /* The club code at each end of the pitch. It sits ON THE TRYZONE, and the
    tryzone is painted in that club's own colour - which for eleven clubs in
    the world (Clermont's yellow, Racing's sky blue, Ulster's white...) is
@@ -2096,20 +2116,13 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    vertical drift to settle onto the posts' line, swelling as it rises and
    shrinking as it sails away over the bar. It fades before the far edge, so
    the flight reads the same wherever on the field it was struck from. */
-.pitch .ball.kick-r { animation: kick-arc-r 1.15s cubic-bezier(.25, .55, .4, 1) forwards; }
-.pitch .ball.kick-l { animation: kick-arc-l 1.15s cubic-bezier(.25, .55, .4, 1) forwards; }
-@keyframes kick-arc-r {
-  0% { transform: translate(-50%, -50%) rotate(-25deg) scale(1); opacity: 1; }
-  30% { transform: translate(60%, -80%) rotate(160deg) scale(1.18); opacity: 1; }
-  75% { transform: translate(260%, -40%) rotate(430deg) scale(.72); opacity: .9; }
-  100% { transform: translate(400%, -20%) rotate(600deg) scale(.42); opacity: 0; }
-}
-@keyframes kick-arc-l {
-  0% { transform: translate(-50%, -50%) rotate(25deg) scale(1); opacity: 1; }
-  30% { transform: translate(-160%, -80%) rotate(-160deg) scale(1.18); opacity: 1; }
-  75% { transform: translate(-360%, -40%) rotate(-430deg) scale(.72); opacity: .9; }
-  100% { transform: translate(-500%, -20%) rotate(-600deg) scale(.42); opacity: 0; }
-}
+/* THIRD CORRECTION, 25 Sep 2026: the flight is the passage's now
+   (phasePlay.ts, kind 'goal'), which knows where the posts really are rather
+   than guessing a distance in ball-widths - so a penalty from halfway and one
+   from the 22 both land on the bar. It waits on the tee, rises off its shadow,
+   turns end over end, and fades going through. These classes only hold the
+   ball still for it (the working loop would fight the flight). */
+.pitch .ball.kick-r, .pitch .ball.kick-l { animation: none; }
 
 /* broadcast banner sweeping across the pitch */
 .ev-banner {
@@ -2134,6 +2147,11 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .ev-banner.yc { background: var(--prop-yellow); color: var(--prop-ink-dark); }
 .ev-banner.rc { background: var(--prop-red); color: var(--prop-ink); }
 .ev-banner.inj { background: var(--prop-white); color: var(--prop-red); font-size: 15px; letter-spacing: 2px; }
+/* A kick at goal: the verdict waits for the ball (phasePlay.ts, GOAL_ARRIVES).
+   The banner used to land the instant the line was read, while the ball was
+   still on the tee, so the flight was an animation of something you already
+   knew. Held back to the moment it reaches the posts, on the same beat. */
+.ev-banner.late { animation-delay: calc(var(--tick, 1100ms) * .56); animation-fill-mode: both; }
 @keyframes banner-in {
   0% { opacity: 0; transform: translate(-50%, -50%) translateX(-70px) skewX(-8deg); }
   12% { opacity: 1; transform: translate(-50%, -50%) skewX(0); }
@@ -2203,7 +2221,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
   width: 92px; height: 74px; z-index: 7; pointer-events: none;
   background: rgba(8, 18, 34, .55); border-radius: 10px;
-  animation: kc-fade 1.6s ease both;
+  animation: kc-fade calc(var(--tick, 1500ms) * 1.05) ease both;
 }
 .kickcam .kc-post {
   position: absolute; bottom: 8px; width: 3px; height: 42px; border-radius: 2px;
@@ -2219,7 +2237,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   position: absolute; bottom: 6px; left: 50%; width: 7px; height: 9px;
   margin-left: -3.5px; border-radius: 50%; background: var(--prop-tee);
   border: 1px solid var(--prop-tee-edge);
-  animation: kc-flight 1.1s cubic-bezier(.3, .1, .5, 1) both;
+  animation: kc-flight calc(var(--tick, 1600ms) * .42) cubic-bezier(.3, .1, .5, 1) calc(var(--tick, 1600ms) * .16) both;
 }
 .kickcam.miss .kc-ball { animation-name: kc-flight-miss; }
 @keyframes kc-flight {
@@ -2234,7 +2252,9 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   position: absolute; top: 4px; left: 0; right: 0; text-align: center;
   font-family: var(--cond); font-weight: 800; font-size: 10.5px; letter-spacing: 1.5px;
   color: var(--primary-hover); opacity: 0;
-  animation: kc-verdict-in .3s ease .95s both;
+  /* on the pitch's beat, with the ball on the main pitch: the close-up used to
+     say GOOD at .95s, after an 800ms beat had already moved on to the next line */
+  animation: kc-verdict-in .3s ease calc(var(--tick, 1600ms) * .56) both;
 }
 .kickcam.miss .kc-verdict { color: var(--danger); }
 @keyframes kc-verdict-in { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: translateY(0); } }
