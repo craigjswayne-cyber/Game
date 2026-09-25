@@ -3341,35 +3341,8 @@ export function processWeekAndAdvance(state: GameState) {
   // table is applied below. Simmed by the loop above it is already on the table,
   // and `simmedUserFx` is how we still know it happened - see the long note up
   // there for what silently went missing before.
-  // ---- A PLAYED FIXTURE THAT NEVER REACHED THE TABLE ----
-  //
-  // The loop above tables everything it sims. What it does not sim is a match
-  // somebody already played: the manager's own, watched through MatchDay,
-  // arrives here played-but-untabled, and the block below settles it.
-  //
-  // His OLD club's match can arrive in exactly that state too. MatchDay and the
-  // harnesses both reach for userFixtureThisWeek, which finds a fixture by the
-  // club id and knows nothing about whether he still works there - so a week
-  // out of work could leave a played match that the block below, which is now
-  // about HIS afternoon and not that club's, would never table. A league whose
-  // played counts do not match its fixtures is a broken league, and breakit
-  // duly found it: "leicester's table says 10 played, the fixture list says 11".
-  //
-  // So the table is settled here for any fixture in that state, whoever played
-  // it. With a manager in work there is normally exactly one - his own - and it
-  // is tabled in the same place in the week it always was, which is why the
-  // fingerprint does not move.
-  for (const f of state.fixtures) {
-    if (f.week !== state.week || !f.played || f.tableApplied) continue
-    const comp = state.comps[f.compId]
-    if (!comp) continue
-    if (f.stage) resolveKnockoutDraw(state, f, rng)
-    applyToTable(comp, f)
-    f.tableApplied = true
-  }
-
   const userFx = state.fixtures.find(f =>
-    f.week === state.week && f.played &&
+    f.week === state.week && f.played && !f.tableApplied &&
     // isMyClub, not a bare id compare: after a sacking the old club goes on
     // playing every Saturday and its fixture still carries that id. Matching
     // it here found a match that was not a club match of his and not a Test
@@ -3481,6 +3454,36 @@ export function processWeekAndAdvance(state: GameState) {
       },
       fixtureId: cfx.id,
     })
+  }
+
+  // ---- A PLAYED FIXTURE THAT NEVER REACHED THE TABLE ----
+  //
+  // The loop that sims the week tables everything it sims. What it does not sim
+  // is a match somebody already played: the manager's own, watched through
+  // MatchDay, arrives here played-but-untabled, and the two blocks above settle
+  // it as part of working out his afternoon.
+  //
+  // His OLD club's match can arrive in exactly that state. MatchDay and the
+  // harnesses both reach for userFixtureThisWeek, which finds a fixture by club
+  // id and knows nothing about whether he still works there - so a week out of
+  // work leaves a played match that the blocks above, which are about HIS
+  // afternoon and not that club's, will never table. A league whose played
+  // counts do not match its fixtures is a broken league, and breakit duly found
+  // it: "leicester's table says 10 played, the fixture list says 11".
+  //
+  // It sweeps AFTER those blocks, not before. Run first, it tabled the club
+  // fixture on an assistant's Saturday, so the `!tableApplied` in the find
+  // above stopped picking out the Test and the manager's own afternoon became
+  // the league game - which is how testweekprobe caught the first draft of
+  // this. Last, it only ever sees what nobody claimed, and a manager in work
+  // has nothing for it to do.
+  for (const f of state.fixtures) {
+    if (f.week !== state.week || !f.played || f.tableApplied) continue
+    const comp = state.comps[f.compId]
+    if (!comp) continue
+    if (f.stage) resolveKnockoutDraw(state, f, rng)
+    applyToTable(comp, f)
+    f.tableApplied = true
   }
 
   // board pressure: warnings, then the sack
