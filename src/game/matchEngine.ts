@@ -4053,7 +4053,9 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
       if (isNation) {
         // a Test match: another cap, and the milestones are forever
         p.caps = (p.caps ?? 0) + 1
-        if (p.clubId === state.userClubId && (p.caps === 1 || p.caps === 50 || p.caps === 100)) {
+        // (not while he is out of work: userClubId still names the club that
+        // sacked him, and its players' caps are not his news - exileprobe)
+        if (!state.unemployed && p.clubId === state.userClubId && (p.caps === 1 || p.caps === 50 || p.caps === 100)) {
           state.news.push({
             id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
             subject: p.caps === 1 ? `🌍 First cap: ${p.name}`
