@@ -384,10 +384,11 @@ const EXPECTED: string[] = [
   // REBASELINED for the home crowd (matchEngine.homeCrowdLean): a big ground,
   // a derby or a knockout tilts who concedes the penalties by up to 7% toward
   // the home side. No draw is added; a threshold moves, so only a fixture
-  // with a lean can change, and exactly one did - harlequins-bristol, at a
-  // ground big enough to lean. bandcheck, pooled: home wins 52.8% -> 54.6%
-  // (band 51-57), pts 49.5 -> 49.6, tries 6.30 -> 6.32.
-  'leicester 39-30 gloucester',
+  // with a lean can change, and two did, both on the size of the ground:
+  // leicester-gloucester (25,849, a 5.4% lean) and harlequins-bristol (14,800,
+  // 1.1%). Neither is a derby. bandcheck, pooled: home wins 52.8% ->
+  // 54.6% (band 51-57), pts 49.5 -> 49.6, tries 6.30 -> 6.32.
+  'leicester 43-33 gloucester',
   'bath 8-29 saracens',
   'newcastle 20-23 northampton',
   'harlequins 3-37 bristol',
