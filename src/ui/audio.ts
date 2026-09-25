@@ -9,6 +9,7 @@ export function soundOn(): boolean { return !muted }
 export function toggleSound(): boolean {
   muted = !muted
   try { localStorage.setItem('rm-sound', muted ? '0' : '1') } catch { /* private mode */ }
+  if (muted) groundSound(null)
   return !muted
 }
 
@@ -94,6 +95,97 @@ function vibrate(pattern: number | number[]) {
   try { navigator.vibrate?.(pattern) } catch { /* unsupported */ }
 }
 
+/**
+ * THE GROUND (idea 7). Under the whistles and the roars, a crowd that never
+ * quite stops: a bed of shaped noise whose level follows the match - it
+ * builds as the ball nears a tryline, louder when it is the home side doing
+ * the building, and swells in a close finish and while the TMO decides. On a
+ * wet day the rain hisses under it, on a windy one the wind rushes and eases.
+ *
+ * One set of nodes for the whole match, looped, with the level eased to each
+ * new target so it breathes rather than steps. `groundSound(null)` fades it
+ * out and lets it go (a pause, an interval, full time, leaving the screen).
+ */
+interface Bed { master: GainNode; gain: GainNode; stops: AudioScheduledSourceNode[]; weather: string }
+let bed: Bed | null = null
+
+/** Loopable noise, a little browner than white so a crowd does not hiss. */
+function noiseBuffer(a: AudioContext, secs: number, brown: number): AudioBuffer {
+  const n = Math.floor(a.sampleRate * secs)
+  const buf = a.createBuffer(1, n, a.sampleRate)
+  const d = buf.getChannelData(0)
+  let last = 0
+  for (let i = 0; i < n; i++) {
+    const w = Math.random() * 2 - 1
+    last = last * brown + w * (1 - brown)
+    d[i] = last * (1 + brown * 2.5)
+  }
+  return buf
+}
+
+export function groundSound(level: number | null, weather = 'Dry') {
+  if (level == null || muted) {
+    if (!bed) return
+    const old = bed
+    bed = null
+    try {
+      // everything goes out together, the weather with the crowd, so nothing clicks
+      const t = old.master.context.currentTime
+      old.master.gain.cancelScheduledValues(t)
+      old.master.gain.setTargetAtTime(0.0001, t, 0.25)
+      for (const s of old.stops) s.stop(t + 1.2)
+    } catch { /* context gone */ }
+    return
+  }
+  const a = ac(); if (!a) return
+  if (bed && bed.weather !== weather) groundSound(null)
+  if (!bed) {
+    const master = a.createGain()
+    master.gain.value = 0.0001
+    master.connect(a.destination)
+    master.gain.setTargetAtTime(1, a.currentTime, 0.4)
+    const gain = a.createGain()
+    gain.gain.value = 0.0001
+    gain.connect(master)
+    // the crowd: voices sit in the low mids
+    const src = a.createBufferSource()
+    src.buffer = noiseBuffer(a, 4, 0.6); src.loop = true
+    const bp = a.createBiquadFilter()
+    bp.type = 'bandpass'; bp.frequency.value = 620; bp.Q.value = 0.45
+    src.connect(bp).connect(gain)
+    src.start()
+    const stops: AudioScheduledSourceNode[] = [src]
+    if (weather === 'Rain' || weather === 'Snow') {
+      // rain on the stand roof: bright, steady, well under the crowd
+      const r = a.createBufferSource()
+      r.buffer = noiseBuffer(a, 3, 0.1); r.loop = true
+      const hp = a.createBiquadFilter()
+      hp.type = 'highpass'; hp.frequency.value = weather === 'Snow' ? 5200 : 3200
+      const rg = a.createGain(); rg.gain.value = weather === 'Snow' ? 0.012 : 0.035
+      r.connect(hp).connect(rg).connect(master)
+      r.start(); stops.push(r)
+    }
+    if (weather === 'Wind') {
+      // the wind: low and rushing, gusting on a slow swell
+      const w = a.createBufferSource()
+      w.buffer = noiseBuffer(a, 5, 0.92); w.loop = true
+      const lp = a.createBiquadFilter()
+      lp.type = 'lowpass'; lp.frequency.value = 420
+      const wg = a.createGain(); wg.gain.value = 0.05
+      const lfo = a.createOscillator(); lfo.frequency.value = 0.13
+      const depth = a.createGain(); depth.gain.value = 0.035
+      lfo.connect(depth).connect(wg.gain)
+      w.connect(lp).connect(wg).connect(master)
+      w.start(); lfo.start(); stops.push(w, lfo)
+    }
+    bed = { master, gain, stops, weather }
+  }
+  const target = 0.015 + 0.13 * Math.max(0, Math.min(1, level))
+  const t = a.currentTime
+  bed.gain.gain.cancelScheduledValues(t)
+  bed.gain.gain.setTargetAtTime(target, t, 0.7)
+}
+
 /** Play the right effect for a live-match event type. */
 export function matchSfx(type: string) {
   switch (type) {
@@ -112,5 +204,7 @@ export function matchSfx(type: string) {
     case 'KO': whistle(1); crowd(0.9, 0.3, 700); break
     case 'HT': whistle(2); break
     case 'FT': whistle(3); crowd(1.6, 0.5, 750); vibrate([50, 50, 50, 50, 120]); break
+    // the TMO's NO TRY: a long low groan from most of the ground
+    case 'NOTRY': crowd(1.5, 0.4, 330); break
   }
 }

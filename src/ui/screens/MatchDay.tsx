@@ -17,9 +17,10 @@ import { subjectVar } from '../../game/gender'
 import { coachFixes, gradeFixes, gradeLine, unitBattles, type FixTag } from '../../game/coachfix'
 import { CrestT, Jersey, PosBadge, SectionTitle, Stars, RewardedButton } from '../components'
 import { stageName } from './Home'
-import { matchSfx, soundOn, toggleSound } from '../audio'
+import { groundSound, matchSfx, soundOn, toggleSound } from '../audio'
 import { GOAL_ARRIVES, buildPassage, playKind, restingRow, teeSpot, type Key, type Passage, type Pt } from '../phasePlay'
 import { formation, shapeFor, shapeRow } from '../phaseShape'
+import { crowdLevel, underLights, windDir } from '../matchAtmos'
 import { derbyName } from '../../game/rivalries'
 import { matchStakes } from '../../game/stakes'
 import { dialLine, philosophyOf } from '../../game/philosophy'
@@ -1517,6 +1518,10 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
    * counter-flipping them fights the running animations, which own transform.
    */
   const mirror = ctx.userSideId != null && ctx.userSideId === fx.awayId
+  const weather = fx.weather ?? 'Dry'
+  const lights = underLights(fx)
+  /** the wind's direction on the SCREEN, so it mirrors with everything else */
+  const windScreen = windDir(fx) * (mirror ? -1 : 1)
   /** fixture frame -> screen. The identity when the manager is at home. */
   const mx = (x: number): number => (mirror ? 100 - x : x)
   /** does this side attack towards the right of the SCREEN */
@@ -1829,6 +1834,12 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
       {[36, 64].map(x => <div key={x} className="line dashed" style={{ left: `${x}%` }} />)}
       <div className="posts" style={{ left: '7%' }} />
       <div className="posts" style={{ right: '7%' }} />
+      {/* the four corner flags, where the goal lines meet the touchlines; they
+          stand still on a calm day and stream out on a windy one */}
+      {[8, 92].flatMap(x => [3, 97].map(y => (
+        <i key={`cf${x}-${y}`} className={`cflag${weather === 'Wind' ? ' windy' : ''}`}
+          style={{ left: `${x}%`, top: `${y}%`, '--wd': windScreen } as CSSProperties} />
+      )))}
       <div className="zone-label" style={{ left: '2.5%' }}>{clubCode(teamShort(game!, mirror ? fx.awayId : fx.homeId))}</div>
       <div className="zone-label" style={{ right: '2.5%' }}>{clubCode(teamShort(game!, mirror ? fx.homeId : fx.awayId))}</div>
       {homeDots}
@@ -1873,6 +1884,22 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
         </div>
       )}
       </div>
+      {/* THE WEATHER YOU CAN SEE (idea 6). The engine has always played the
+          weather - rain costs attack, wind costs the kickers - and the screen
+          said so with an emoji in the score line. Now it is on the pitch: rain
+          darkens the grass and falls across it, snow lies and falls, a wind
+          streams across in the direction it blows and puts the corner flags
+          out, and an evening kick-off is played under the lights. Over the
+          camera, not in it: weather falls in front of the lens. */}
+      {(weather !== 'Dry' || lights) && (
+        <div className={`wx${weather === 'Rain' ? ' rain' : weather === 'Snow' ? ' snow' : weather === 'Wind' ? ' wind' : ''}${lights ? ' lights' : ''}`}
+          style={{ '--wd': windScreen } as CSSProperties} aria-hidden="true">
+          {lights && <i className="wx-lights" />}
+          {weather === 'Rain' && <i className="wx-fall" />}
+          {weather === 'Snow' && <><i className="wx-fall a" /><i className="wx-fall b" /></>}
+          {weather === 'Wind' && <i className="wx-gust" />}
+        </div>
+      )}
       {camera && (
         // the whole pitch in a corner: both in-goals, halfway, the ball, and the
         // box the camera is showing
@@ -1977,6 +2004,8 @@ function Live() {
   useEffect(() => {
     const wake = () => {
       const lm = useStore.getState().liveMatch
+      // the ground goes quiet with the screen; the next beat brings it back
+      if (document.visibilityState !== 'visible') groundSound(null)
       if (document.visibilityState === 'visible' && lm?.playing) advanceLive()
     }
     document.addEventListener('visibilitychange', wake)
@@ -1985,7 +2014,7 @@ function Live() {
 
   // stadium sound & haptics on key events (skip when fast-forwarding)
   useEffect(() => {
-    if (last && speedIdx < 2 && playing) matchSfx(last.type)
+    if (last && speedIdx < 2 && playing) matchSfx(last.fx === 'NOTRY' ? 'NOTRY' : last.type)
   }, [cursor])
 
   // A serious injury stops the clock and opens the match-day squad (feedback
@@ -2131,6 +2160,18 @@ function Live() {
   const lastTeamC = last?.teamId === fixture.awayId ? awayC : homeC
   const showFx = playing && speedIdx < 2
   const panelActive = done || atHalfTime || atBreak || atDecision || (drawer && paused)
+
+  // THE GROUND (idea 7): the crowd under the match, at a level that follows it
+  // (matchAtmos.crowdLevel), quiet whenever the match is not being played -
+  // a pause, an interval, a touchline call, full time, the screen left.
+  const groundLevel = crowdLevel({
+    ballX: ballLeft, homeAttacking: last?.teamId === fixture.homeId,
+    tension, review: last?.fx === 'TMO', att: fixture.att,
+  })
+  useEffect(() => {
+    groundSound(playing && sound && !panelActive ? groundLevel : null, fixture.weather ?? 'Dry')
+  }, [cursor, playing, sound, panelActive, groundLevel])
+  useEffect(() => () => groundSound(null), [])
 
   return (
     <div className="live-wrap">
