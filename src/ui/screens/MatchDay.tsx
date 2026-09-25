@@ -1462,7 +1462,7 @@ const BANNER: Partial<Record<MatchEvent['type'], string>> = {
   YC: 'matchday.banYC', RC: 'matchday.banRC', INJ: 'matchday.banINJ',
 }
 
-function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC, tickMs, afterReview = false }: {
+function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC, tickMs, afterReview = false, camera = false }: {
   ctx: LiveCtx
   game: ReturnType<typeof useStore.getState>['game'] & object
   last: MatchEvent | undefined
@@ -1478,6 +1478,9 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
   tickMs: number
   /** the line before this one was a TMO review: a try now is its verdict */
   afterReview?: boolean
+  /** the Broadcast camera (match settings): follow the ball instead of
+   *  showing the whole pitch, with a mini-map of where the picture is */
+  camera?: boolean
 }) {
   const fx = ctx.fx
   const pitchEl = useRef<HTMLDivElement>(null)
@@ -1696,6 +1699,38 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
     })
   }
 
+  // THE BROADCAST CAMERA (owner, 25 Sep 2026: idea 4, "an option in settings
+  // to change to"). Off, the pitch is the whole pitch, as it always was. On,
+  // the world layer is scaled up and panned to what matters, the way a
+  // television director would frame it: tight on a set piece, close on open
+  // play and at the line, wider for anything in the air, wide enough at a kick
+  // at goal to hold the tee and the posts. It moves on the beat, and it is
+  // transform only, so it is compositor work however much it moves.
+  //
+  // `left`/`top` are the corner of the view in percent of the pitch, held so
+  // the picture never runs past the edge of the grass.
+  const cam = (() => {
+    if (!camera) return { zoom: 1, left: 0, top: 0, style: undefined as CSSProperties | undefined }
+    const inAir = kind === 'touch' || kind === 'box' || kind === 'cross' || kind === 'catch' || kind === 'grubber'
+    const zoom = shape === 'scrum' || shape === 'lineout' || shape === 'maul' ? 2
+      : shape === 'kickoff' ? 1.2
+      : shape === 'goal' || shape === 'conversion' ? 1.3
+      : evType === 'TRY' || depicts === 'TMO' || depicts === 'NOTRY' ? 1.6
+      : inAir ? 1.35
+      : 1.7
+    // at the tee, frame the kick: halfway between the ball and the posts
+    const focus: Pt = shape === 'goal' || shape === 'conversion'
+      ? { x: (shapeBall.x + (towardHome ? 93 : 7)) / 2, y: 50 }
+      : { x: ballLeft, y: ballTop }
+    const span = 100 / zoom
+    const left = Math.max(0, Math.min(100 - span, mx(focus.x) - span / 2))
+    const top = Math.max(0, Math.min(100 - span, focus.y - span / 2))
+    return {
+      zoom, left, top,
+      style: { transform: `translate(${(-left * zoom).toFixed(2)}%, ${(-top * zoom).toFixed(2)}%) scale(${zoom})` } as CSSProperties,
+    }
+  })()
+
   const homeDots = dots(ctx.home, true)
   const awayDots = dots(ctx.away, false)
   const now = { stepped, fromBall, shapeBall, flying, kind, manId, layout, ball: { x: ballLeft, y: ballTop }, dir: towardHome ? 1 : -1, min, tickMs, type: evType }
@@ -1782,6 +1817,10 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
     <div ref={pitchEl}
       className={`pitch${showFx && evType === 'TRY' ? (rightward(towardHome) ? ' try-r' : ' try-l') : ''}`}
       style={{ '--tick': `${tickMs}ms` } as CSSProperties}>
+      {/* THE WORLD: everything that is ON the pitch, so the camera can move it
+          as one. What sits over the picture (banners, the TMO, the kick
+          close-up, the bin clocks, the mini-map) is outside it and stays put. */}
+      <div className={`pitch-world${camera ? ' cam' : ''}`} style={cam.style}>
       {/* each in-goal wears the colours of the side that DEFENDS it, so the
           zone you are attacking is always the far one on the right */}
       <div className="tryzone tz-l" style={{ left: 0, background: `linear-gradient(90deg, ${(mirror ? awayC : homeC)[0]}cc, ${(mirror ? awayC : homeC)[0]}55)` }} />
@@ -1833,6 +1872,18 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
           ))}
         </div>
       )}
+      </div>
+      {camera && (
+        // the whole pitch in a corner: both in-goals, halfway, the ball, and the
+        // box the camera is showing
+        <div className="minimap" aria-hidden="true">
+          <i className="mm-tz l" style={{ background: (mirror ? awayC : homeC)[0] }} />
+          <i className="mm-tz r" style={{ background: (mirror ? homeC : awayC)[0] }} />
+          <i className="mm-half" />
+          <i className="mm-view" style={{ left: `${cam.left}%`, top: `${cam.top}%`, width: `${100 / cam.zoom}%`, height: `${100 / cam.zoom}%` }} />
+          <i className="mm-ball" style={{ left: `${mx(ballLeft)}%`, top: `${ballTop}%` }} />
+        </div>
+      )}
       {kickCam && (
         <div key={`kc${fxKey}`} className={`kickcam${kickMiss ? ' miss' : ''}`}>
           <span className="kc-post l" /><span className="kc-post r" /><span className="kc-bar" />
@@ -1881,6 +1932,8 @@ function contrastText(bg: string): string {
   return (r * 299 + g * 587 + b * 114) / 1000 > 140 ? 'var(--prop-ink-dark)' : 'var(--prop-ink)'
 }
 
+const CAMERA_KEY = 'rm-camera'
+
 function Live() {
   const game = useStore(s => s.game)!
   const live = useStore(s => s.liveMatch)!
@@ -1893,6 +1946,15 @@ function Live() {
   // rung - followable without stopping - and both neighbours are one tap away.
   const [speedIdx, setSpeedIdx] = useState(1)
   const [sound, setSound] = useState(soundOn())
+  // the Broadcast camera: off unless the manager turns it on, and remembered
+  // on this device like the sound and the night theme
+  const [camera, setCamera] = useState(() => {
+    try { return localStorage.getItem(CAMERA_KEY) === 'broadcast' } catch { return false }
+  })
+  const chooseCamera = (on: boolean) => {
+    setCamera(on)
+    try { localStorage.setItem(CAMERA_KEY, on ? 'broadcast' : 'full') } catch { /* private mode */ }
+  }
   const [drawer, setDrawer] = useState(false)
   const [settings, setSettings] = useState(false)
   const [showLog, setShowLog] = useState(false)
@@ -2196,7 +2258,7 @@ function Live() {
       {!panelActive && (
         <PitchViz ctx={ctx} game={game} last={last} ballLeft={ballLeft}
           fxKey={cursor} showFx={showFx} showBig={playing} lastTeamC={lastTeamC}
-          tickMs={tickMs} afterReview={shown[shown.length - 2]?.fx === 'TMO'} />
+          tickMs={tickMs} afterReview={shown[shown.length - 2]?.fx === 'TMO'} camera={camera} />
       )}
       {/* THE CONTROLS SIT UNDER THE PITCH (owner, v1.1.16: "4 buttons in match
           mode - should be directly underneath the pitch at the top").
@@ -2320,6 +2382,13 @@ function Live() {
                 onClick={() => matchMode('full')}>{t('matchday.everyMinute')}</button>
               <button className={`btn ${live.mode === 'highlights' ? 'gold' : 'ghost'}`} style={{ flex: 1 }}
                 onClick={() => matchMode('highlights')}>{t('matchday.highlightsBtn')}</button>
+            </div>
+            <div className="set-label">{t('matchday.camera')}</div>
+            <div className="btn-row">
+              <button className={`btn ${!camera ? 'gold' : 'ghost'}`} style={{ flex: 1 }}
+                onClick={() => chooseCamera(false)}>{t('matchday.camFull')}</button>
+              <button className={`btn ${camera ? 'gold' : 'ghost'}`} style={{ flex: 1 }}
+                onClick={() => chooseCamera(true)}>{t('matchday.camBroadcast')}</button>
             </div>
             {/* One switch, and it has to name everything it turns off. The buzz
                 used to survive Silent, so the label lied by omission. */}
