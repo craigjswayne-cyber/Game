@@ -481,7 +481,10 @@
   "returningSub_f": "schierabile, ma un rientro affrettato rischia la ricaduta · una donna a settimana può stare nella bambagia",
   "jokerBtn": "Ingaggia un joker medico",
   "jokerTitle": "Joker medico per {hurt}",
-  "jokerExplain": "Fuori per {n} settimane: puoi ingaggiare qualcuno senza squadra per coprire il ruolo. Lo stipendio resta fuori dal tetto salariale durante la sostituzione, ma lo paga il club. Il contratto termina al rientro di {hurt} o a fine stagione.",
+  "jokerExplain": {
+   "one": "Fuori per {n} settimana: puoi ingaggiare qualcuno senza squadra per coprire il ruolo. Lo stipendio resta fuori dal tetto salariale durante la sostituzione, ma lo paga il club. Il contratto termina al rientro di {hurt} o a fine stagione.",
+   "other": "Fuori per {n} settimane: puoi ingaggiare qualcuno senza squadra per coprire il ruolo. Lo stipendio resta fuori dal tetto salariale durante la sostituzione, ma lo paga il club. Il contratto termina al rientro di {hurt} o a fine stagione."
+  },
   "jokerCovered": "Joker medico: {name}",
   "jokerNone": "Al momento nessuno senza squadra può coprire questo ruolo.",
   "jokerSign": "Ingaggia · {wage}",
@@ -5023,7 +5026,10 @@
   "releasedSubj": "{name} svincolato dal {club}",
   "released": "Il {club} ha svincolato {name} ({pos}, {age}) con effetto immediato, pagando il resto del contratto per {cost}. È libero.",
   "knockFlaredSubj": "🩹 Ricaduta per {name}",
-  "knockFlared": "Giocare col fastidio è costato caro: l'infortunio di {name} si è aggravato durante la partita e lo staff medico ora prevede {n} settimane di stop.",
+  "knockFlared": {
+   "one": "Giocare col fastidio è costato caro: l'infortunio di {name} si è aggravato durante la partita e lo staff medico ora prevede {n} settimana di stop.",
+   "other": "Giocare col fastidio è costato caro: l'infortunio di {name} si è aggravato durante la partita e lo staff medico ora prevede {n} settimane di stop."
+  },
   "jokerSignedSubj": "🩺 Joker medico: {name}",
   "jokerSigned": "{name} ({pos}, {age}) arriva con un contratto breve per sostituire {hurt}. Lo stipendio di {wage} resta fuori dal tetto salariale durante la sostituzione, e il contratto termina al rientro di {hurt} o a fine stagione.",
   "jokerEndsFitSubj": "🩺 Finisce la sostituzione di {name}",

@@ -481,7 +481,10 @@
     "returningSub_f": "jouables, mais un retour précipité risque la rechute · une joueuse par semaine peut être ménagée",
     "jokerBtn": "Engager un joker médical",
     "jokerTitle": "Joker médical pour {hurt}",
-    "jokerExplain": "Absence de {n} semaines : vous pouvez engager un remplaçant libre de tout contrat. Le salaire est hors plafond pendant l'intérim, mais le club le paie. Le contrat prend fin au retour de {hurt} ou en fin de saison.",
+    "jokerExplain": {
+     "one": "Absence de {n} semaine : vous pouvez engager un remplaçant libre de tout contrat. Le salaire est hors plafond pendant l'intérim, mais le club le paie. Le contrat prend fin au retour de {hurt} ou en fin de saison.",
+     "other": "Absence de {n} semaines : vous pouvez engager un remplaçant libre de tout contrat. Le salaire est hors plafond pendant l'intérim, mais le club le paie. Le contrat prend fin au retour de {hurt} ou en fin de saison."
+    },
     "jokerCovered": "Joker médical : {name}",
     "jokerNone": "Aucun remplaçant libre à ce poste pour l'instant.",
     "jokerSign": "Engager · {wage}",
@@ -5036,7 +5039,10 @@
     "releasedSubj": "{name} libéré par {club}",
     "released": "{club} libère {name} ({pos}, {age} ans) avec effet immédiat, en soldant le reste de son contrat pour {cost}. Il est agent libre.",
     "knockFlaredSubj": "🩹 Rechute pour {name}",
-    "knockFlared": "Jouer malgré la gêne a coûté cher : la blessure de {name} s'est aggravée pendant le match, et le staff médical prévoit désormais {n} semaines d'absence.",
+    "knockFlared": {
+     "one": "Jouer malgré la gêne a coûté cher : la blessure de {name} s'est aggravée pendant le match, et le staff médical prévoit désormais {n} semaine d'absence.",
+     "other": "Jouer malgré la gêne a coûté cher : la blessure de {name} s'est aggravée pendant le match, et le staff médical prévoit désormais {n} semaines d'absence."
+    },
     "jokerSignedSubj": "🩺 Joker médical : {name}",
     "jokerSigned": "{name} ({pos}, {age} ans) arrive pour une courte durée afin de remplacer {hurt}. Le salaire de {wage} est hors plafond salarial pendant l'intérim, et le contrat prend fin au retour de {hurt} ou à la fin de la saison.",
     "jokerEndsFitSubj": "🩺 Fin de l'intérim pour {name}",

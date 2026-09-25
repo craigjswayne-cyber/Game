@@ -480,7 +480,10 @@
   "returningSub_f": "speelbaar, maar 'n oorhaastige terugkeer waag 'n terugslag · een vrou per week kan in watte toegedraai word",
   "jokerBtn": "Teken 'n mediese joker",
   "jokerTitle": "Mediese joker vir {hurt}",
-  "jokerExplain": "{n} weke uit, so jy mag een vrye agent teken om in te staan. Die loon tel nie teen die salarisplafon terwyl die dekking duur nie, maar die klub betaal dit steeds. Die kontrak eindig wanneer {hurt} terugkeer of aan die einde van die seisoen.",
+  "jokerExplain": {
+   "one": "{n} week uit, so jy mag een vrye agent teken om in te staan. Die loon tel nie teen die salarisplafon terwyl die dekking duur nie, maar die klub betaal dit steeds. Die kontrak eindig wanneer {hurt} terugkeer of aan die einde van die seisoen.",
+   "other": "{n} weke uit, so jy mag een vrye agent teken om in te staan. Die loon tel nie teen die salarisplafon terwyl die dekking duur nie, maar die klub betaal dit steeds. Die kontrak eindig wanneer {hurt} terugkeer of aan die einde van die seisoen."
+  },
   "jokerCovered": "Mediese joker: {name}",
   "jokerNone": "Geen vrye agent kan tans hierdie posisie vul nie.",
   "jokerSign": "Teken · {wage}",
@@ -5065,7 +5068,10 @@
   "releasedSubj": "{name} deur {club} vrygestel",
   "released": "{club} het {name} ({pos}, {age}) met onmiddellike ingang vrygestel en die res van sy kontrak teen 'n koste van {cost} uitbetaal. Hy is 'n vry agent.",
   "knockFlaredSubj": "🩹 {name} se besering vlam op",
-  "knockFlared": "Om daardeur te speel het duur te staan gekom: {name} se besering het in die wedstryd opgevlam, en die mediese span verwag nou {n} weke se afwesigheid.",
+  "knockFlared": {
+   "one": "Om daardeur te speel het duur te staan gekom: {name} se besering het in die wedstryd opgevlam, en die mediese span verwag nou {n} week se afwesigheid.",
+   "other": "Om daardeur te speel het duur te staan gekom: {name} se besering het in die wedstryd opgevlam, en die mediese span verwag nou {n} weke se afwesigheid."
+  },
   "jokerSignedSubj": "🩺 Mediese joker: {name}",
   "jokerSigned": "{name} ({pos}, {age}) sluit op 'n korttermynkontrak aan om vir {hurt} in te staan. Die loon van {wage} tel nie teen die salarisplafon terwyl die dekking duur nie, en die kontrak eindig wanneer {hurt} terugkeer of aan die einde van die seisoen.",
   "jokerEndsFitSubj": "🩺 {name} se dekking eindig",
