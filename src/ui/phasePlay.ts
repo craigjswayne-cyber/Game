@@ -281,12 +281,12 @@ export function buildPassage(kind: PlayKind, from: Pt, to: Pt, dir: number, seed
       const posts: Pt = { x: dir > 0 ? 93 : 7, y: 50 }
       const aim: Pt = kind === 'miss' ? { x: posts.x, y: 50 + side * 15 } : posts
       const beyond = lerp(from, aim, 1.1)
-      const ball = [at(from, 0, 0), at(from, 0, 0.16), ...flight(from, aim, 0.16, GOAL_ARRIVES, 0.55, 0.45, 8),
-        at(beyond, 0.4, 0.74), at(beyond, 0.4, 1)]
-      // the kicker named in the line stands over the tee, strikes it, and
-      // watches it go before jogging back to where the layout wants him
-      const kicker = man ? [at(man.was, 0, 0), at({ x: from.x - dir * 1.5, y: from.y }, 0, 0.12),
-        at(from, 0, 0.2), at(from, 0, 0.7), at(man.now, 0, 1)] : null
+      const ball = [at(from, 0, 0), at(from, 0, 0.16), ...flight(from, aim, 0.16, GOAL_ARRIVES, 0.4, 0.3, 8),
+        at(beyond, 0.28, 0.74), at(beyond, 0.28, 1)]
+      // the kicker named in the line: at the end of his run-up, through the
+      // ball and a stride after it, then back to the side of the tee
+      const kicker = man ? [at(man.was, 0, 0), at(man.now, 0, 0.1),
+        at(from, 0, 0.18), at(lerp(from, aim, 0.06), 0, 0.3), at(man.now, 0, 1)] : null
       return { ball, carrier: kicker, away: true }
     }
   }
