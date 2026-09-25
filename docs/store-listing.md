@@ -147,6 +147,35 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.7.0, Play version code 37
+
+The ground becomes a 0-5 ladder with upkeep and wear behind it, the
+Infrastructure page draws the campus live off the save, matches are played
+somewhere at last (territory, and tactics by zone), advantage is played, the
+training pitch does something, and the Boardroom opens. Written up as 1.6.9
+before the version moved.
+
+```
+<en-GB>
+Your ground is a ladder now, 0 to 5, from a roped-off field to a 32,000-seat stadium, and the bigger it gets the more it costs to keep: five kinds of wear, likelier the longer you leave it, and the bill resets when you build. The Infrastructure page draws your campus live, so you watch it change. Matches are played somewhere: territory, and tactics set by zone. Advantage is called. The training pitch affects the breakdown. And the Boardroom opens: ask for time, money or a bigger backroom.
+</en-GB>
+<fr-FR>
+Votre stade est une échelle, de 0 à 5, du terrain avec une corde au stade de 32 000 places, et plus il grandit, plus il coûte cher : cinq types d'usure, d'autant plus probables que vous attendez, et la facture repart à zéro quand vous construisez. La page Infrastructures dessine votre campus en direct. Les matchs se jouent quelque part : le territoire, et des consignes par zone. L'avantage est joué. La pelouse d'entraînement pèse sur les rucks. Et le Conseil ouvre ses portes.
+</fr-FR>
+<es-ES>
+Tu estadio es una escalera, del 0 al 5, del campo acordonado al recinto de 32.000 asientos, y cuanto mayor es, más cuesta mantenerlo: cinco clases de desgaste, más probables cuanto más lo dejas, y la factura se reinicia al construir. La página de Infraestructuras dibuja tu campus en vivo. Los partidos se juegan en algún sitio: territorio y táctica por zonas. Se aplica la ley de la ventaja. El campo de entrenamiento pesa en el breakdown. Y se abre la Sala de Juntas.
+</es-ES>
+<it-IT>
+Il tuo impianto è una scala, da 0 a 5, dal campo transennato allo stadio da 32.000 posti, e più cresce più costa tenerlo: cinque tipi di usura, tanto più probabili quanto più aspetti, e il conto riparte quando costruisci. La pagina Infrastrutture disegna il tuo campus dal vivo. Le partite si giocano da qualche parte: territorio e tattica per zone. Il vantaggio viene giocato. Il campo d'allenamento pesa sui punti d'incontro. E si apre il Consiglio.
+</it-IT>
+<ja-JP>
+スタジアムが0から5の階段になった。ロープを張っただけの原っぱから32,000人収容の本拠地まで。大きくなるほど維持費は上がり、5種類の傷みが放置するほど起きやすくなる。建て替えれば請求書はリセット。施設ページは今のキャンパスをそのまま描く。試合は「どこで」起きるかを持つ。陣地、そしてゾーンごとの指示。アドバンテージも適用される。練習グラウンドの状態はブレイクダウンに響く。そして役員室が開く。
+</ja-JP>
+```
+*(en-GB 493. The Boardroom, the sacking repairs and the alignment round are all
+inside this one - 38 commits since 1.6.5, which is why the copy names the five
+things a player will see rather than listing them.)*
+
 ### What's new (500 max) - v1.6.5, Play version code 35
 
 One calendar for both worlds with a hard invariant behind it, the

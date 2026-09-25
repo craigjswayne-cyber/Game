@@ -2,7 +2,7 @@
 // A living-world feed so there is always something happening between matches.
 
 import type { GameState, Player } from './model'
-import {absWeek, RELEGATES, SEASON_WEEKS, fmtMoney, formGuide, mgrReputation, poss, weeksBetween100 } from './model'
+import {absWeek, RELEGATES, SEASON_WEEKS, fmtMoney, formGuide, isMyClub, mgrReputation, poss, weeksBetween100 } from './model'
 import { sortTable } from './schedule'
 import { clamp, gauss, pick, type Rng } from './rng'
 import { tIn, type Vars } from './i18n'
@@ -289,10 +289,10 @@ function moneyMen(state: GameState, rng: Rng) {
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
           subject: `📉 TAKEOVER COMPLETE: belts tighten at ${club.name}`,
-          body: club.id === state.userClubId
+          body: isMyClub(state, club.id)
             ? `The deal is done - and the new owners' first act is an audit, their second a memo. Your transfer budget is cut to ${fmtMoney(club.budget)} and every contract will be "reviewed for value". Sell before you buy, and expect the new chairman to watch every result.`
             : `${club.name}'s new owners have arrived with accountants, not ambition. Expect their best players to be quietly available - at the right price.`,
-          k: club.id === state.userClubId ? 'news.takeoverTightMine' : 'news.takeoverTight',
+          k: isMyClub(state, club.id) ? 'news.takeoverTightMine' : 'news.takeoverTight',
           v: { club: club.name, budget: fmtMoney(club.budget) },
         })
       } else {
@@ -304,16 +304,16 @@ function moneyMen(state: GameState, rng: Rng) {
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
           subject: `🤝 TAKEOVER COMPLETE: new owners at ${club.name}`,
-          body: club.id === state.userClubId
+          body: isMyClub(state, club.id)
             ? `It's done. Your new owner walks the training ground on day one and leaves a message with your secretary: the transfer budget is up ${fmtMoney(boost)}, the wage ceiling is raised - and mediocrity is no longer on the menu. The next two months are your audition.`
             : `It's done. The consortium has completed its purchase of ${club.name} and immediately pledged fresh investment. The rest of the league takes note: ${club.short} just became dangerous in the market.`,
-          k: club.id === state.userClubId ? 'news.takeoverRichMine' : 'news.takeoverRich',
+          k: isMyClub(state, club.id) ? 'news.takeoverRichMine' : 'news.takeoverRich',
           v: { club: club.name, short: club.short, boost: fmtMoney(boost) },
         })
       }
       // a new boss upstairs: the slate is half-wiped, and for two months
       // every result lands harder while he makes up his mind about you
-      if (club.id === state.userClubId) {
+      if (isMyClub(state, club.id)) {
         club.boardConfidence = 58
         state.newOwnerUntil = Math.min(state.week + 8, 45)
       }
@@ -802,10 +802,21 @@ export function generateGossip(state: GameState, rng: Rng) {
   lawWatch(state, rng)
   aroundTheGrounds(state)
   if (!state.unemployed) clubhouseTales(state, rng)
-  sicknessSweep(state, rng)
+  // THREE THAT FOLLOWED HIM OUT OF THE DOOR. Each reads
+  // state.clubs[state.userClubId] and files a story about it, and each MUTATES
+  // it - the sickness sweep drops condition, the community day and the boot
+  // deal lift morale, the training report names the man in form. A sacked
+  // manager was getting all three about the club that sacked him (user,
+  // 1.7.0), and quietly running their week while he was at it. moneyMen stays
+  // unguarded between them: it is a world beat about any big club, and the
+  // ORDER of these four calls is the order of their rng draws, so it does not
+  // move for a manager in work.
+  if (!state.unemployed) sicknessSweep(state, rng)
   moneyMen(state, rng)
-  trainingReport(state, rng)
-  midweekMoment(state, rng)
+  if (!state.unemployed) {
+    trainingReport(state, rng)
+    midweekMoment(state, rng)
+  }
   if (state.unemployed) {
     if (windowOpen(state) && rng() < 0.5) transferRumour(state, rng)
     if (rng() < 0.6) socialBuzz(state, rng)
