@@ -1499,6 +1499,19 @@ export interface GameState {
   /** A club has offered the job and is waiting on an answer (jobs.ts). One at
    *  a time, cleared by either answer, and it goes stale with its vacancy. */
   jobOffer?: { clubId: string; week: number } | null
+  /**
+   * EVERY CLUB THAT HAS SACKED YOU, AND THE ABSOLUTE WEEK IT DID IT.
+   *
+   * A board that has just paid a manager off does not interview him again
+   * three weeks later, and the game let it happen: a vacancy at the club that
+   * sacked you opened the following month and the Job Centre rolled it like
+   * any other (user, 1.7.0: "if fired by a club - you should be instantly
+   * dismissed if you apply for the job again within a 3 month period"). One
+   * row per sacking, never pruned - the same club can sack the same man twice
+   * in a career and jobs.ts reads the most recent (SACK_COOLOFF). A resignation
+   * writes nothing here: leaving on your own terms is not being shown the door.
+   */
+  sackedBy?: { clubId: string; at: number }[]
   /** the scripted challenge this career started as - cleared when conquered */
   challenge?: string
   /**
@@ -2535,6 +2548,28 @@ export function fmtWage(v: number): string {
  * badge and a different one on the touchline. A code the player is meant to
  * recognise has to be the same code everywhere it appears.
  */
+/**
+ * ---- THE CLUB YOU ACTUALLY RUN ----
+ *
+ * state.userClubId goes on naming the last club after a sacking, and that is
+ * deliberate: the annals, the era summary and the legend list all need to know
+ * where the man worked. But every LIVE "my club" feature reads the same field,
+ * and a sacked manager was still being sent his old side's training report,
+ * their transfer bids, their match reports and their record gate - 146 stories
+ * over 25 weeks out of work in the probe that found it (user, 1.7.0: "I was
+ * fired by a team but still see news stories related to them appear in my news
+ * feed"). Worse, the training tick went on applying his gym, his physio and
+ * his staff to a squad he no longer picked.
+ *
+ * So: history reads state.userClubId, anything happening NOW reads this. It is
+ * null when you are out of work, which makes `p.clubId === myClubId(state)`
+ * false for every player in the world and costs nothing to write.
+ * scripts/exileprobe.ts is the guard.
+ */
+export function myClubId(state: GameState): string | null {
+  return state.unemployed ? null : state.userClubId
+}
+
 export function clubCode(short: string): string {
   return short.replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 3) || 'RUG'
 }

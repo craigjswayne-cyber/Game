@@ -3,7 +3,7 @@
 
 import type { GameState } from './model'
 import { genderOf, staffGender } from './gender'
-import { fmtMoney, mgrReputation, poss, weeksBetween100, stamp100 } from './model'
+import { absWeek, fmtMoney, mgrReputation, poss, weeksBetween100, stamp100 } from './model'
 import { sortTable } from './schedule'
 import { autoSelect } from './matchEngine'
 import { clamp, mulberry32, type Rng } from './rng'
@@ -11,6 +11,43 @@ import { nationByCode, regenName } from './nations'
 import { inheritStaff } from './staff'
 import { newCoachPhilosophy, seedPhilosophies } from './philosophy'
 import { t, tIn } from './i18n'
+
+/**
+ * ---- THE THREE MONTHS AFTER THEY SACK YOU ----
+ *
+ * Owner, 1.7.0: "if fired by a club - you should be instantly dismissed if you
+ * apply for the job again within a 3 month period."
+ *
+ * A board that has just written a manager a cheque to leave does not shortlist
+ * him in the spring, and until now nothing stopped it: the club you were sacked
+ * from opens as a vacancy within five weeks of the dismissal (sackManager
+ * pushes it there itself), and the Job Centre rolled it at whatever your
+ * reputation bought. So a career could end at Leicester in October and restart
+ * at Leicester in November, with the same squad, the same board and the same
+ * confidence number that had just sacked you.
+ *
+ * Thirteen weeks is three months at this calendar's 48-week season. Within
+ * them the answer is no before the dice are reached - not a low chance, a
+ * refusal - and the card says so rather than reading "Long shot", because a
+ * long shot invites a tap and this one can never land.
+ *
+ * A RESIGNATION IS NOT A SACKING. Walking out is a decision the manager made,
+ * and a board that never pushed him has nothing to be sore about, so resignJob
+ * writes no row and a club you left can take you back next week.
+ */
+export const SACK_COOLOFF = 13
+
+/** Weeks still to run on a club's cold spell, 0 if there is none. */
+export function sackCooloff(state: GameState, clubId: string): number {
+  const rows = (state.sackedBy ?? []).filter(r => r.clubId === clubId)
+  if (!rows.length) return 0
+  // the most recent dismissal is the one that counts: sacked twice by the same
+  // board, the second cheque restarts the clock rather than running out on the
+  // first one's schedule
+  const last = Math.max(...rows.map(r => r.at))
+  const gone = absWeek(state.season, state.week) - last
+  return gone >= SACK_COOLOFF ? 0 : SACK_COOLOFF - gone
+}
 
 /** Chance an application succeeds, from reputation vs club stature.
  *
@@ -29,6 +66,8 @@ import { t, tIn } from './i18n'
 export function jobChance(state: GameState, clubId: string): number {
   const club = state.clubs[clubId]
   if (!club) return 0
+  // a board that sacked you this season is not interviewing you (SACK_COOLOFF)
+  if (sackCooloff(state, clubId) > 0) return 0
   const rep = mgrReputation(state)
   // THE SEAT YOU ARE SITTING IN IS THE LOUDEST LINE ON THE CV (owner, v1.1.12:
   // "if you are head coach of a national team and of a top team, other jobs a
@@ -192,6 +231,12 @@ export function applyForJob(state: GameState, clubId: string): string {
   // are a career's paperwork and stay as written (docs/i18n.md)
   if (!v || !club) return t('world.jbFilled')
   if (v.applied) return t('world.jbPatient')
+  // THE DOOR THEY SHOWED YOU IS STILL SHUT. No dice, no news item, and the
+  // vacancy is NOT marked applied - the cold spell runs out inside the five
+  // weeks a vacancy lives, so the manager can come back and apply properly
+  // once it does rather than having burnt his one application on a refusal.
+  const cold = sackCooloff(state, clubId)
+  if (cold > 0) return t('world.jbSacked', { club: club.name, n: cold, weeks_k: cold === 1 ? 'count.weekOne' : 'count.weekMany' })
   v.applied = true
   const rng = mulberry32(state.seed ^ (state.week * 31 + club.rep))
   if (rng() < jobChance(state, clubId)) {
@@ -389,6 +434,10 @@ export function resignJob(state: GameState) {
 export function sackManager(state: GameState, k: string, extraV: Record<string, string | number> = {}) {
   const club = state.clubs[state.userClubId]
   state.unemployed = true
+  // and the board remembers for three months (SACK_COOLOFF). Written here
+  // rather than at either call site, for the same reason the rest of the
+  // mechanics are: there is no route out of a job that can forget to do it.
+  ;(state.sackedBy ??= []).push({ clubId: club.id, at: absWeek(state.season, state.week) })
   // bids for the old club's players go with the job (see resignJob)
   state.offers = []
   state.vacancies.push({ clubId: club.id, week: state.week })

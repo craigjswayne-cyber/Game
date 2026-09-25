@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../../store'
 import { fmtMoney, mgrReputation } from '../../game/model'
-import { jobChance } from '../../game/jobs'
+import { jobChance, sackCooloff } from '../../game/jobs'
 import { squadValue } from '../../game/analysis'
 import { Crest, SectionTitle } from '../components'
 import { t } from '../../game/i18n'
@@ -56,6 +56,10 @@ export default function Jobs() {
 
   const jobCard = ({ v, club }: typeof vacancies[number]) => {
     const chance = jobChance(game, club.id)
+    // THE CLUB THAT SACKED YOU (jobs.ts SACK_COOLOFF). Applying here can only
+    // be refused for three months, so the card says so and the button goes -
+    // "Long shot" beside a live Apply invites a tap that can never land.
+    const cold = sackCooloff(game, club.id)
     return (
       <div className="card" key={club.id} style={v.passed ? { opacity: .62 } : undefined}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -66,10 +70,12 @@ export default function Jobs() {
               {t('world.jbClubMeta', { league: game.comps[club.leagueId]?.short ?? '', rep: club.rep, squad: fmtMoney(squadValue(game, club.id)), budget: fmtMoney(club.budget) })}
             </div>
           </div>
-          <button className="btn gold" disabled={!!v.applied}
-            onClick={() => setMsg({ key: club.id, text: applyJob(club.id) })}>
-            {t(v.applied ? 'world.jbApplied' : 'world.jbApply')}
-          </button>
+          {cold === 0 && (
+            <button className="btn gold" disabled={!!v.applied}
+              onClick={() => setMsg({ key: club.id, text: applyJob(club.id) })}>
+              {t(v.applied ? 'world.jbApplied' : 'world.jbApply')}
+            </button>
+          )}
         </div>
         {/* TURNING IT DOWN IS AN ANSWER. The badge on the rail counts jobs he
             has not answered, and before this there was no way to answer one
@@ -101,9 +107,17 @@ export default function Jobs() {
           </div>
         )}
         <div className="meta" style={{ marginTop: 5 }}>
-          {t('world.jbProspects')}<b style={{ color: chance > 0.65 ? 'var(--text-positive)' : chance > 0.35 ? 'var(--gold)' : 'var(--danger)' }}>
-            {t(chance > 0.75 ? 'world.jbExcellent' : chance > 0.5 ? 'world.jbGood' : chance > 0.3 ? 'world.jbOutsideShot' : 'world.jbLongShot')}
-          </b>
+          {cold > 0 ? (
+            <b style={{ color: 'var(--danger)' }}>
+              {t('world.jbShutDoor', { n: cold, weeks_k: cold === 1 ? 'count.weekOne' : 'count.weekMany' })}
+            </b>
+          ) : (
+            <>
+              {t('world.jbProspects')}<b style={{ color: chance > 0.65 ? 'var(--text-positive)' : chance > 0.35 ? 'var(--gold)' : 'var(--danger)' }}>
+                {t(chance > 0.75 ? 'world.jbExcellent' : chance > 0.5 ? 'world.jbGood' : chance > 0.3 ? 'world.jbOutsideShot' : 'world.jbLongShot')}
+              </b>
+            </>
+          )}
         </div>
       </div>
     )
