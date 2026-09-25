@@ -147,7 +147,7 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
-### What's new (500 max) - v1.7.0, Play version code 36
+### What's new (500 max) - v1.7.0, Play version code 37
 
 The ground becomes a 0-5 ladder with upkeep and wear behind it, the
 Infrastructure page draws the campus live off the save, matches are played
