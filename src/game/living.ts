@@ -109,7 +109,7 @@ export function advanceHunt(state: GameState): void {
   // The hunt is a story about ONE of your players and the club circling him,
   // and it ends in a formal bid on your desk. A sacked manager has no players
   // and no desk - state.userClubId names where he used to work, not where he
-  // works (model.ts myClubId), so an open hunt simply pauses until he is back
+  // works (model.ts isMyClub), so an open hunt simply pauses until he is back
   // in a job.
   if (state.unemployed) return
   const user = state.clubs[state.userClubId]
