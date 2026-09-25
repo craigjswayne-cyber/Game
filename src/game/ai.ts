@@ -69,7 +69,7 @@ function capBreak(state: GameState, clubId: string, wage: number, replacing = 0,
 }
 
 /** Is the club barred from signing anybody for a cap breach? */
-function embargoed(state: GameState, clubId: string): boolean {
+export function embargoed(state: GameState, clubId: string): boolean {
   const until = state.clubs[clubId]?.capEmbargoUntil
   return typeof until === 'number' && state.season <= until
 }
@@ -240,6 +240,8 @@ export function executeTransfer(state: GameState, p: Player, toClubId: string, f
       })
     }
   }
+  // a medical joker who moves on is not covering anybody any more (joker.ts)
+  p.joker = undefined
   to.players.push(p.id)
   to.balance -= fee
   to.budget = Math.max(0, to.budget - fee)
@@ -772,6 +774,9 @@ export function capBill(state: GameState, club: { players: number[]; marquee?: n
     // a hand-demoted senior still counts (v1.1.18): demotion moves a man to
     // the academy LIST, not out of the wage bill - or the button is a cap dodge
     if (!p || (p.acad && !p.demoted)) return s
+    // a medical joker's wage is outside the cap while he covers (joker.ts):
+    // the club still pays him, the cap just does not count him
+    if (p.joker != null) return s
     return s + p.wage
   }, 0)
 }
