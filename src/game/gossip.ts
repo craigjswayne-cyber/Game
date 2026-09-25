@@ -2,7 +2,7 @@
 // A living-world feed so there is always something happening between matches.
 
 import type { GameState, Player } from './model'
-import {absWeek, RELEGATES, SEASON_WEEKS, fmtMoney, formGuide, mgrReputation, myClubId, poss, weeksBetween100 } from './model'
+import {absWeek, RELEGATES, SEASON_WEEKS, fmtMoney, formGuide, isMyClub, mgrReputation, poss, weeksBetween100 } from './model'
 import { sortTable } from './schedule'
 import { clamp, gauss, pick, type Rng } from './rng'
 import { tIn, type Vars } from './i18n'
@@ -289,10 +289,10 @@ function moneyMen(state: GameState, rng: Rng) {
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
           subject: `📉 TAKEOVER COMPLETE: belts tighten at ${club.name}`,
-          body: club.id === myClubId(state)
+          body: isMyClub(state, club.id)
             ? `The deal is done - and the new owners' first act is an audit, their second a memo. Your transfer budget is cut to ${fmtMoney(club.budget)} and every contract will be "reviewed for value". Sell before you buy, and expect the new chairman to watch every result.`
             : `${club.name}'s new owners have arrived with accountants, not ambition. Expect their best players to be quietly available - at the right price.`,
-          k: club.id === myClubId(state) ? 'news.takeoverTightMine' : 'news.takeoverTight',
+          k: isMyClub(state, club.id) ? 'news.takeoverTightMine' : 'news.takeoverTight',
           v: { club: club.name, budget: fmtMoney(club.budget) },
         })
       } else {
@@ -304,16 +304,16 @@ function moneyMen(state: GameState, rng: Rng) {
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
           subject: `🤝 TAKEOVER COMPLETE: new owners at ${club.name}`,
-          body: club.id === myClubId(state)
+          body: isMyClub(state, club.id)
             ? `It's done. Your new owner walks the training ground on day one and leaves a message with your secretary: the transfer budget is up ${fmtMoney(boost)}, the wage ceiling is raised - and mediocrity is no longer on the menu. The next two months are your audition.`
             : `It's done. The consortium has completed its purchase of ${club.name} and immediately pledged fresh investment. The rest of the league takes note: ${club.short} just became dangerous in the market.`,
-          k: club.id === myClubId(state) ? 'news.takeoverRichMine' : 'news.takeoverRich',
+          k: isMyClub(state, club.id) ? 'news.takeoverRichMine' : 'news.takeoverRich',
           v: { club: club.name, short: club.short, boost: fmtMoney(boost) },
         })
       }
       // a new boss upstairs: the slate is half-wiped, and for two months
       // every result lands harder while he makes up his mind about you
-      if (club.id === myClubId(state)) {
+      if (isMyClub(state, club.id)) {
         club.boardConfidence = 58
         state.newOwnerUntil = Math.min(state.week + 8, 45)
       }

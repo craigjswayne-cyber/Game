@@ -2570,6 +2570,21 @@ export function myClubId(state: GameState): string | null {
   return state.unemployed ? null : state.userClubId
 }
 
+/**
+ * "Is this the club I run?" - and the only safe way to ASK it.
+ *
+ * NEVER write `p.clubId === myClubId(state)`. A player's clubId is nullable and
+ * so is this helper's answer, so out of work the comparison reads null === null
+ * and every clubless man in the world becomes one of yours. That shipped for
+ * about an hour: the international call-up story named 113 players from every
+ * nation on earth and ran to 3,008 characters, which is how brevityprobe found
+ * it. This form is false for an absent club id whatever the manager's
+ * situation, and false for every id while he is out of work.
+ */
+export function isMyClub(state: GameState, clubId: string | null | undefined): boolean {
+  return !!clubId && !state.unemployed && clubId === state.userClubId
+}
+
 export function clubCode(short: string): string {
   return short.replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 3) || 'RUG'
 }
