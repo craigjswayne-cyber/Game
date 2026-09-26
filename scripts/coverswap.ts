@@ -59,9 +59,16 @@ if (!found) {
   const mine = ctx.home
   const assistantsMan = g.players[onId]
   console.log(`\n  the assistant sent on ${assistantsMan.name} (line ${at}: "${ctx.events[at].text}")`)
-  const other = mine.lineup.slice(15)
+  // A LIKE-FOR-LIKE OVERRIDE when the bench has one. The first free man used
+  // to be taken whatever he played, and once the TMO moved the stream that
+  // was a hooker for an injured centre - and the engine rightly said so
+  // ("out of cover ... finishes the game at CE"), which is news about the man
+  // who came on, not a line explaining the change. So the probe asks for the
+  // swap it means to test, and only falls back to any free man if it must.
+  const free = mine.lineup.slice(15)
     .map(id => (id != null ? g.players[id] : null))
-    .find(p => !!p && p.id !== onId && !p.injury && !mine.onPitch.has(p.id) && !mine.ratings.has(p.id))
+    .filter(p => !!p && p.id !== onId && !p.injury && !mine.onPitch.has(p.id) && !mine.ratings.has(p.id))
+  const other = free.find(p => p!.pos === assistantsMan.pos) ?? free[0]
   if (!other) {
     console.log('  FAIL  no second bench option to override with')
     fails++
@@ -94,7 +101,8 @@ if (!found) {
       const named = ctx.events.filter(e => (e.text ?? '').includes(assistantsMan.name))
       ok(named.length === 0,
         `the assistant's man is nowhere in the commentary (${named.length} line(s): ${named.map(e => e.text).join(' / ').slice(0, 120)})`)
-      ok(ctx.events.length === before,
+      const added = ctx.events.slice(before).filter(e => e.k !== 'comm.outOfCover')
+      ok(added.length === 0,
         'and no second line was added to explain a change the record no longer needs explaining')
     }
   }

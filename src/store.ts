@@ -331,7 +331,8 @@ const HIGHLIGHTS = new Set<MatchEvent['type']>(['TRY', 'CON', 'PEN', 'DG', 'YC',
  *  never stall on a quiet passage. */
 function nextHighlight(events: MatchEvent[], cursor: number): number {
   let c = cursor
-  while (c < events.length && !HIGHLIGHTS.has(events[c].type)) c += 1
+  // a TMO review and its NO TRY are moments too (they are SUB lines by type)
+  while (c < events.length && !HIGHLIGHTS.has(events[c].type) && events[c].fx !== 'TMO' && events[c].fx !== 'NOTRY') c += 1
   return Math.min(events.length, Math.max(cursor + 1, c + 1))
 }
 

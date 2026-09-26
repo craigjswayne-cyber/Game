@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { useStore } from '../../store'
 import { analystArmed } from '../../game/rewarded'
 import { rewardedAvailable } from '../../game/monetise'
 import { AdSlot } from '../AdSlot'
 import {
   matchStats, teamShort, teamUnits, rosterOf, assistantJudgement, autoSelect, availablePlayers,
-  refFor, refNotes, frontRowCover, repairSheet, rollWeather, sideEnergy, MAX_SUBS, type LiveCtx, type SideCtx,
+  refFor, refNotes, homeCrowdLean, frontRowCover, repairSheet, rollWeather, sideEnergy, MAX_SUBS, type LiveCtx, type SideCtx,
 } from '../../game/matchEngine'
 import { MIDWEEK_OFF, BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, chemKey, clubCode, chemTier, eventText, injuryDesc, fixtureDate, fixtureDayOff, grudgeBetween, inRedZone, oldBoyApps, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
 import { BRIEF_BY_ID, SPLIT_BY_ID, benchSeats, briefForSeat, splitFor } from '../../game/bench'
@@ -17,7 +17,10 @@ import { subjectVar } from '../../game/gender'
 import { coachFixes, gradeFixes, gradeLine, unitBattles, type FixTag } from '../../game/coachfix'
 import { CrestT, Jersey, PosBadge, SectionTitle, Stars, RewardedButton } from '../components'
 import { stageName } from './Home'
-import { matchSfx, soundOn, toggleSound } from '../audio'
+import { groundSound, matchSfx, soundOn, toggleSound } from '../audio'
+import { GOAL_ARRIVES, buildPassage, playKind, restingRow, teeSpot, type Key, type Passage, type Pt } from '../phasePlay'
+import { formation, shapeFor, shapeRow } from '../phaseShape'
+import { crowdLevel } from '../matchAtmos'
 import { derbyName } from '../../game/rivalries'
 import { matchStakes } from '../../game/stakes'
 import { dialLine, philosophyOf } from '../../game/philosophy'
@@ -860,6 +863,8 @@ function Preview({ fxId }: { fxId: number }) {
                 // could pick a back row around.
                 const ref = refFor(fx.id)
                 const notes = refNotes(ref)
+                // the ground's, not the referee's (matchEngine.homeCrowdLean)
+                if (homeCrowdLean(game, fx) >= 0.03) notes.push(t('matchday.refCrowd', { team: teamShort(game, fx.homeId) }))
                 return (
                   <div className="card">
                     <div className="fact-label">{t('matchday.theWhistle')}</div>
@@ -1449,12 +1454,18 @@ const SPOTS: [number, number][] = [
   [64, 10], [58, 40], [63, 66], [64, 90], [76, 50], // 11-15
 ]
 
+/** Which question a TMO review line asked (comm.tmoReview1..4), 1 if unknown. */
+function tmoQuestion(ev: MatchEvent | undefined): number {
+  const n = Number(/tmoReview(\d)/.exec(ev?.k ?? '')?.[1])
+  return n >= 1 && n <= 4 ? n : 1
+}
+
 const BANNER: Partial<Record<MatchEvent['type'], string>> = {
   TRY: 'matchday.banTRY', PEN: 'matchday.banPEN', DG: 'matchday.banDG', CON: 'matchday.banCON',
   YC: 'matchday.banYC', RC: 'matchday.banRC', INJ: 'matchday.banINJ',
 }
 
-function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC, tickMs }: {
+function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC, tickMs, afterReview = false, camera = false }: {
   ctx: LiveCtx
   game: ReturnType<typeof useStore.getState>['game'] & object
   last: MatchEvent | undefined
@@ -1468,8 +1479,20 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
    *  position on this pitch. The dots' travel is derived from it so a man
    *  ARRIVES before he is sent somewhere else; see --tick in theme.css. */
   tickMs: number
+  /** the line before this one was a TMO review: a try now is its verdict */
+  afterReview?: boolean
+  /** the Broadcast camera (match settings): follow the ball instead of
+   *  showing the whole pitch, with a mini-map of where the picture is */
+  camera?: boolean
 }) {
   const fx = ctx.fx
+  const pitchEl = useRef<HTMLDivElement>(null)
+  const ballEl = useRef<HTMLDivElement | null>(null)
+  const shadowEl = useRef<HTMLDivElement>(null)
+  const dotEls = useRef(new Map<number, HTMLDivElement>())
+  /** the last line the pitch drew: where the ball and every man were left */
+  const prevPlay = useRef<{ key: number; stepped: boolean; ball: Pt; before: Pt | null; dots: Map<number, Pt> } | null>(null)
+  const running = useRef<Animation[]>([])
   const homeC = game!.clubs[fx.homeId]?.colors ?? ['var(--gold-fill)', 'var(--ramp-g9)']
   const awayC = game!.clubs[fx.awayId]?.colors ?? ['var(--ramp-n4)', 'var(--prop-white)']
   const min = last?.min ?? 0
@@ -1522,7 +1545,7 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
       : /wide/i.test(txt) ? 'MISS'
       : null
   const depicts = last ? (last.k ? last.fx ?? null : legacyFx()) : null
-  const setPiece = showFx && evType === 'SUB' && depicts !== 'MISS' ? depicts : null
+  const setPiece = showFx && evType === 'SUB' && (depicts === 'SCRUM' || depicts === 'LINEOUT' || depicts === 'MAUL') ? depicts : null
   const kickMiss = evType === 'SUB' && depicts === 'MISS'
   const kickCam = showFx && (kickFx || kickMiss)
   const binned = (side: SideCtx) =>
@@ -1545,42 +1568,66 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
   // drifting on a sawtooth of its own.
   const carrierSlotOf = (s: SideCtx) => (last?.playerId != null ? s.lineup.slice(0, 15).indexOf(last.playerId) : -1)
   const carrierSlot = Math.max(carrierSlotOf(ctx.home), carrierSlotOf(ctx.away))
-  const ballTop = carrierSlot >= 0
+  const carrierTop = carrierSlot >= 0
     ? 8 + SPOTS[carrierSlot][1] * 0.84
     : 38 + ((min * 13) % 25)
+  // What the line acts out (phasePlay.ts). A kick to touch comes to rest ON the
+  // touchline and a cross-field kick out on the far wing, so the row the men
+  // converge on moves with it; how far up the field stays the territory model's.
+  const kind = playKind(last)
+  const shape = shapeFor(last, kind, depicts)
+  const ballTop = shapeRow(shape, restingRow(kind, carrierTop) ?? carrierTop)
+
+  // THE PASSAGE. Between one line and the next the ball goes through hands, into
+  // contact, or up in the air, instead of sliding in a straight line. It is all
+  // `translate` on top of the resting spot (so `left` is still the territory
+  // model to the decimal), it ends at zero, and it only runs when the effects
+  // do: not on Fast, not on a scrub backwards, not with reduced motion on.
+  const reduced = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  const prev = prevPlay.current
+  // a re-render inside the same beat is still the same step: without the
+  // second half, any unrelated render mid-flight dropped the ball under the men
+  const stepped = !!prev && (fxKey > prev.key || (fxKey === prev.key && prev.stepped))
+  const flying = showFx && !reduced && kind !== 'none'
+    && (stepped || kind === 'goal' || kind === 'miss' || kind === 'restart')
+  const manId = flying && last?.playerId != null ? last.playerId : null
+  const teeBall = (shape === 'goal' || shape === 'conversion') && !flying && !!last && last.type !== 'SUB'
+  // where the last line left the ball, for this step (kept through re-renders)
+  const fromBall = prev ? (fxKey > prev.key ? prev.ball : prev.before) : null
+  // a kick at goal is set up round the TEE, not the resting spot
+  const shapeBall: Pt = shape === 'goal' || shape === 'conversion'
+    ? teeSpot(evType ?? 'PEN', { x: ballLeft, y: ballTop }, fromBall, towardHome ? 1 : -1)
+    : { x: ballLeft, y: ballTop }
+  /** where the layout put each man this render, fixture frame, for the next passage */
+  const layout = new Map<number, Pt>()
 
   const dots = (side: SideCtx, isHome: boolean) => {
     const cols = isHome ? homeC : awayC
     const capId = game!.clubs[side.teamId]?.captain
     const attacking = !!last && last.teamId === side.teamId
 
-    // Both sides live around the BALL, not around their own tryline.
+    // Both sides live around the BALL, not around their own tryline (they were
+    // once pinned to their own halves and never met). Where around it is the
+    // phase's own template now (phaseShape.ts, roadmap 1a): a scrum is two
+    // packs bound on the mark, a lineout two lines off the touchline, a ruck a
+    // breakdown with a defensive line across the field in front of it.
     //
-    // They used to be pinned to their own half: home spanned 10-40% of the pitch
-    // and away 60-90%, with a twenty-percent dead band down the middle that
-    // neither could enter. Fifteen men in green at one end and fifteen in yellow
-    // at the other never met, so the pitch read as two teams lined up for the
-    // anthems rather than a game - the packs were never in contact and the
-    // defence never faced the attack.
-    //
-    // SPOTS gives each shirt its distance from its own line (sx) and its position
-    // across the field (sy). Read sx as DEPTH BEHIND THE BALL instead and the
-    // whole thing falls out correctly: front rows meet over the ball, back rows
-    // sit deeper, and each side stays on its own side of it. Home defends the
-    // left, so its shape runs leftwards from the ball; away mirrors it.
-    const dir = isHome ? -1 : 1
-    // A defending line is flatter than an attacking shape and sits off the ball,
-    // roughly where the offside line would be.
-    const depthScale = attacking ? 0.34 : 0.26
-    const standOff = attacking ? 1.5 : 5.5
-    const anchor = ballLeft + dir * standOff
-    const baseX = (slot: number) => anchor + dir * (SPOTS[slot][0] - 14) * depthScale
-
-    // the two nearest forwards of each side work the breakdown
-    const fwdSlots = [0, 1, 2, 3, 4, 5, 6, 7]
-    const ruckers = [...fwdSlots]
-      .sort((a, b) => Math.abs(baseX(a) - ballLeft) - Math.abs(baseX(b) - ballLeft))
-      .slice(0, 2)
+    // For a kick-off, the side with the ball in the event is not always the
+    // side kicking it (a restart line credits the catcher), so the kicking side
+    // is read off where the ball came down: in the other half from theirs.
+    const sideDir = isHome ? 1 : -1
+    const inPossession = shape === 'kickoff'
+      ? (ballLeft > 50) === isHome
+      : !!last && last.teamId === side.teamId
+    const spots = formation({ shape, ball: shapeBall, dir: sideDir, attacking: inPossession, seed: fxKey })
+    // the named kicker takes the tee whatever his shirt; the man whose spot it
+    // was takes his
+    if ((shape === 'goal' || shape === 'conversion') && inPossession && last?.playerId != null) {
+      const k = side.lineup.slice(0, 15).indexOf(last.playerId)
+      if (k >= 0 && k !== 9) [spots[k], spots[9]] = [spots[9], spots[k]]
+    }
+    const openPlay = shape === 'open' || shape === 'kickoff'
+    const setShape = shape === 'scrum' || shape === 'lineout' || shape === 'maul'
     return side.lineup.slice(0, 15).map((id, slot) => {
       if (id == null) return null
       if (cardedNow(id)) return null
@@ -1589,28 +1636,22 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
       if (!side.onPitch.has(id) && !sentOffIds.has(id)) return null
       const p = game!.players[id]
       if (!p) return null
-      const [, sy] = SPOTS[slot]
-      // every man moves: work-rate wander re-seeded each match minute
+      // every man moves: work-rate wander re-seeded each match minute, and
+      // barely at all in a set piece, which is men standing where they are put
       const wx = ((min * 13 + slot * 29 + (isHome ? 0 : 7)) % 9) - 4
       const wy = ((min * 11 + slot * 17 + (isHome ? 3 : 0)) % 7) - 3
-      const ruck = ruckers.includes(slot)
-      let x = baseX(slot) + wx * 0.35
-      let y = 8 + sy * 0.84 + wy * 0.9
-      if (ruck) {
-        // converge on the ball - bodies over the tackle area
-        x = x * 0.45 + (ballLeft + dir * 1.5) * 0.55
-        y = y * 0.5 + ballTop * 0.5
-      } else if (attacking && slot >= 8) {
-        // backs fan out wider and deeper, looking for space
-        y = y + (y > 50 ? 3 : -3)
-        x -= dir * 1.2
-      }
+      const wander = openPlay ? 1 : 0.2
+      let x = spots[slot].x + wx * 0.35 * wander
+      let y = spots[slot].y + wy * 0.9 * wander
+      // the men working the breakdown: whoever the shape put over the ball
+      const ruck = (shape === 'open' || shape === 'maul') && Math.abs(spots[slot].x - ballLeft) < 2.5 && Math.abs(spots[slot].y - ballTop) < 9
       const isCarrier = last?.playerId === id
       // The man the commentary is talking about has the ball, so he stands where
       // the ball is. He used to hold his formation spot while the ball sat ten
       // metres away, which made the one dot you were actually reading the least
-      // convincing thing on the pitch.
-      if (isCarrier && !ruck) {
+      // convincing thing on the pitch. In open play only: in a set piece or at
+      // the tee the shape already has him where he belongs.
+      if (isCarrier && !ruck && openPlay) {
         x = x * 0.35 + ballLeft * 0.65
         y = y * 0.35 + ballTop * 0.65
       }
@@ -1618,6 +1659,7 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
       // the field rather than running off the end of it
       x = Math.max(3.5, Math.min(96.5, x))
       y = Math.max(5, Math.min(95, y))
+      layout.set(id, { x, y })
       const hl = last?.playerId === id
       const scorerRun = hl && evType === 'TRY' && showFx
       // what each man is DOING between repositions (theme.css, v1.1.4):
@@ -1628,8 +1670,10 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
       const motion = scorerRun ? (rightward(isHome) ? ' run-r' : ' run-l')
         : hl ? ''
         : ruck ? ' jog'
-        : attacking && slot >= 8 ? ' supp'
-        : !attacking ? ' dline'
+        : !openPlay && !setShape ? ' jog'
+        : setShape && slot < 8 ? ' jog'
+        : inPossession && slot >= 8 ? ' supp'
+        : !inPossession ? ' dline'
         : ' jog'
       // supp and dline own their duration in CSS (it rides --tick); the jog
       // keeps its per-shirt spread, faster at the ruck than in midfield
@@ -1643,7 +1687,8 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
         : {}
       return (
         <div key={id}
-          className={`pdot${hl ? ' hl' : ''}${capId === id ? ' cap' : ''}${motion}`}
+          ref={el => { if (el) dotEls.current.set(id, el); else dotEls.current.delete(id) }}
+          className={`pdot${hl ? ' hl' : ''}${capId === id ? ' cap' : ''}${motion}${manId === id ? ' carry' : ''}`}
           style={{
             left: `${mx(x)}%`, top: `${y}%`,
             background: cols[0], borderColor: cols[1], color: contrastText(cols[0]),
@@ -1657,9 +1702,128 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
     })
   }
 
+  // THE BROADCAST CAMERA (owner, 25 Sep 2026: idea 4, "an option in settings
+  // to change to"). Off, the pitch is the whole pitch, as it always was. On,
+  // the world layer is scaled up and panned to what matters, the way a
+  // television director would frame it: tight on a set piece, close on open
+  // play and at the line, wider for anything in the air, wide enough at a kick
+  // at goal to hold the tee and the posts. It moves on the beat, and it is
+  // transform only, so it is compositor work however much it moves.
+  //
+  // `left`/`top` are the corner of the view in percent of the pitch, held so
+  // the picture never runs past the edge of the grass.
+  const cam = (() => {
+    if (!camera) return { zoom: 1, left: 0, top: 0, style: undefined as CSSProperties | undefined }
+    const inAir = kind === 'touch' || kind === 'box' || kind === 'cross' || kind === 'catch' || kind === 'grubber'
+    const zoom = shape === 'scrum' || shape === 'lineout' || shape === 'maul' ? 2
+      : shape === 'kickoff' ? 1.2
+      : shape === 'goal' || shape === 'conversion' ? 1.3
+      : evType === 'TRY' || depicts === 'TMO' || depicts === 'NOTRY' ? 1.6
+      : inAir ? 1.35
+      : 1.7
+    // at the tee, frame the kick: halfway between the ball and the posts
+    const focus: Pt = shape === 'goal' || shape === 'conversion'
+      ? { x: (shapeBall.x + (towardHome ? 93 : 7)) / 2, y: 50 }
+      : { x: ballLeft, y: ballTop }
+    const span = 100 / zoom
+    const left = Math.max(0, Math.min(100 - span, mx(focus.x) - span / 2))
+    const top = Math.max(0, Math.min(100 - span, focus.y - span / 2))
+    return {
+      zoom, left, top,
+      style: { transform: `translate(${(-left * zoom).toFixed(2)}%, ${(-top * zoom).toFixed(2)}%) scale(${zoom})` } as CSSProperties,
+    }
+  })()
+
+  const homeDots = dots(ctx.home, true)
+  const awayDots = dots(ctx.away, false)
+  const now = { stepped, fromBall, shapeBall, flying, kind, manId, layout, ball: { x: ballLeft, y: ballTop }, dir: towardHome ? 1 : -1, min, tickMs, type: evType }
+  const nowRef = useRef(now)
+  nowRef.current = now
+
+  /** Put a scripted passage on the ball, its shadow and the named man. */
+  const play = (ps: Passage, c: typeof now, manNow: Pt | undefined, duration: number) => {
+    const pitch = pitchEl.current, ball = ballEl.current
+    if (!pitch || !ball) return
+    const W = pitch.clientWidth, H = pitch.clientHeight
+    // how far a ball at the top of its flight rises up the screen: this is a
+    // pitch seen from above, so height is drawn as lift off its own shadow
+    // - but never out of the top of the frame, which clips: a kick-off from
+    // the middle of a strip this shallow would otherwise leave the picture
+    const lift = H * 0.34
+    const rise = (k: Key) => Math.min(k.h * lift, Math.max(0, k.y / 100 * H - 12))
+    const off = (k: Pt, rest: Pt) => [(mx(k.x) - mx(rest.x)) / 100 * W, (k.y - rest.y) / 100 * H]
+    const ease = (ks: Key[], i: number) => (ks[i].h > 0 || (ks[i + 1]?.h ?? 0) > 0 ? 'linear' : 'ease-in-out')
+    // end over end in the air: half-turns, so it lands the way it left
+    let spin = 0
+    const ballFrames = ps.ball.map((k, i) => {
+      if (i > 0 && (k.h > 0.05 || ps.ball[i - 1].h > 0.05)) spin += 180
+      const [dx, dy] = off(k, c.ball)
+      const fade = ps.away ? Math.max(0, Math.min(1, 1 - (k.at - GOAL_ARRIVES) / 0.14)) : 1
+      return {
+        offset: k.at, easing: ease(ps.ball, i),
+        translate: `${dx.toFixed(1)}px ${(dy - rise(k)).toFixed(1)}px`,
+        scale: `${(1 + k.h * 0.9).toFixed(3)}`,
+        rotate: `${ps.away ? spin : spin % 360}deg`,
+        opacity: fade,
+      }
+    })
+    // no spin left over when it lands: the resting ball is the CSS one
+    if (!ps.away) ballFrames[ballFrames.length - 1].rotate = '0deg'
+    const opts: KeyframeAnimationOptions = { duration, fill: ps.away ? 'forwards' : 'none' }
+    running.current.push(ball.animate(ballFrames, opts))
+    const sh = shadowEl.current
+    if (sh) {
+      running.current.push(sh.animate(ps.ball.map((k, i) => {
+        const [dx, dy] = off(k, c.ball)
+        const air = Math.min(1, k.h * 6)
+        return {
+          offset: k.at, easing: ease(ps.ball, i),
+          translate: `${dx.toFixed(1)}px ${dy.toFixed(1)}px`,
+          scale: `${(1 - k.h * 0.35).toFixed(3)}`,
+          opacity: ps.away && k.at > GOAL_ARRIVES ? 0 : air * (0.55 - k.h * 0.2),
+        }
+      }), { duration }))
+    }
+    const dot = c.manId != null ? dotEls.current.get(c.manId) : undefined
+    if (ps.carrier && dot && manNow) {
+      running.current.push(dot.animate(ps.carrier.map((k, i) => {
+        const [dx, dy] = off(k, manNow)
+        return { offset: k.at, easing: ease(ps.carrier!, i), translate: `${dx.toFixed(1)}px ${dy.toFixed(1)}px` }
+      }), { duration }))
+    }
+  }
+
+  // Run the passage for the line just revealed. A layout effect, so the ball is
+  // put back where the last line left it before the browser paints the new spot.
+  useLayoutEffect(() => {
+    const c = nowRef.current
+    const p = prevPlay.current
+    prevPlay.current = { key: fxKey, stepped: c.stepped, ball: c.ball, before: c.fromBall, dots: c.layout }
+    for (const a of running.current) a.cancel()
+    running.current = []
+    const pitch = pitchEl.current, ball = ballEl.current
+    if (!c.flying || !pitch || !ball || typeof ball.animate !== 'function') return
+    const from = c.kind === 'goal' || c.kind === 'miss'
+      ? teeSpot(c.type ?? 'PEN', c.ball, c.fromBall, c.dir)
+      : c.stepped && c.fromBall ? c.fromBall : c.ball
+    const manNow = c.manId != null ? c.layout.get(c.manId) : undefined
+    const manWas = c.manId != null ? p?.dots.get(c.manId) ?? manNow : undefined
+    const ps = buildPassage(c.kind, from, c.ball, c.dir, fxKey * 97 + c.min,
+      manNow && manWas ? { was: manWas, now: manNow } : null)
+    if (!ps) return
+    play(ps, c, manNow, Math.max(320, c.tickMs * 0.94))
+  }, [fxKey])
+
+  useEffect(() => () => { for (const a of running.current) a.cancel() }, [])
+
   return (
-    <div className={`pitch${showFx && evType === 'TRY' ? (rightward(towardHome) ? ' try-r' : ' try-l') : ''}`}
+    <div ref={pitchEl}
+      className={`pitch${showFx && evType === 'TRY' ? (rightward(towardHome) ? ' try-r' : ' try-l') : ''}`}
       style={{ '--tick': `${tickMs}ms` } as CSSProperties}>
+      {/* THE WORLD: everything that is ON the pitch, so the camera can move it
+          as one. What sits over the picture (banners, the TMO, the kick
+          close-up, the bin clocks, the mini-map) is outside it and stays put. */}
+      <div className={`pitch-world${camera ? ' cam' : ''}`} style={cam.style}>
       {/* each in-goal wears the colours of the side that DEFENDS it, so the
           zone you are attacking is always the far one on the right */}
       <div className="tryzone tz-l" style={{ left: 0, background: `linear-gradient(90deg, ${(mirror ? awayC : homeC)[0]}cc, ${(mirror ? awayC : homeC)[0]}55)` }} />
@@ -1670,8 +1834,9 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
       <div className="posts" style={{ right: '7%' }} />
       <div className="zone-label" style={{ left: '2.5%' }}>{clubCode(teamShort(game!, mirror ? fx.awayId : fx.homeId))}</div>
       <div className="zone-label" style={{ right: '2.5%' }}>{clubCode(teamShort(game!, mirror ? fx.homeId : fx.awayId))}</div>
-      {dots(ctx.home, true)}
-      {dots(ctx.away, false)}
+      {homeDots}
+      {awayDots}
+      <div ref={shadowEl} className="ball-shadow" style={{ left: `${mx(ballLeft)}%`, top: `${ballTop}%` }} />
       {/* ballTop, NOT a second copy of its fallback.
           ballTop (above) is the carrier's own row, and its comment says what it
           is for: "the ball is with the carrier instead of drifting on a sawtooth
@@ -1684,25 +1849,19 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
           thirty men converged on one row while the ball sat at an unrelated
           height. The ball was the only thing on the pitch that did not know
           where the ball was. */}
-      <div key={kickFx && showFx ? `k${fxKey}` : 'ball'}
-        className={`ball${kickFx && showFx ? (rightward(towardHome) ? ' kick-r' : ' kick-l') : ''}`}
+      <div key={kickFx && showFx ? `k${fxKey}` : 'ball'} ref={ballEl}
+        className={`ball${kickFx && showFx ? (rightward(towardHome) ? ' kick-r' : ' kick-l') : ''}${flying ? ' flight' : ''}${teeBall ? ' parked' : ''}`}
         style={{ left: `${mx(ballLeft)}%`, top: `${ballTop}%` }} />
+      {/* A kick at goal with nothing in flight (paused, Fast, reduced motion):
+          the ball is on the tee with the kicker, not out on the territory spot,
+          which for a conversion can be half a pitch away. The real .ball keeps
+          its spot (dramaprobe reads it) and stands aside; this draws the tee. */}
+      {teeBall && <div className="tee-ball" style={{ left: `${mx(shapeBall.x)}%`, top: `${shapeBall.y}%` }} />}
       {setPiece && (
-        <div key={`sp${fxKey}`} className={`setp${setPiece === 'MAUL' ? ' maul' : ''}`}
+        // the men make the shape now (phaseShape.ts); this only names it, and
+        // below the ball when the ball is on the top touchline
+        <div key={`sp${fxKey}`} className={`setp${ballTop < 20 ? ' below' : ''}`}
           style={{ left: `${mx(ballLeft)}%`, top: `${ballTop}%` }}>
-          {setPiece === 'LINEOUT' ? (
-            <>
-              <span className="lo-col" style={{ background: (mirror ? awayC : homeC)[0] }} />
-              <span className="lo-col away" style={{ background: (mirror ? homeC : awayC)[0] }} />
-            </>
-          ) : (
-            <>
-              {/* the packs sit on the side each team is defending, so a scrum
-                  mirrors with the rest of the pitch */}
-              <span className="pack l" style={{ background: (mirror ? awayC : homeC)[0] }} />
-              <span className="pack r" style={{ background: (mirror ? homeC : awayC)[0] }} />
-            </>
-          )}
           <span className="splabel">{t(`matchday.sp${setPiece}`)}</span>
         </div>
       )}
@@ -1716,11 +1875,35 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
           ))}
         </div>
       )}
+      </div>
+      {camera && (
+        // the whole pitch in a corner: both in-goals, halfway, the ball, and the
+        // box the camera is showing
+        <div className="minimap" aria-hidden="true">
+          <i className="mm-tz l" style={{ background: (mirror ? awayC : homeC)[0] }} />
+          <i className="mm-tz r" style={{ background: (mirror ? homeC : awayC)[0] }} />
+          <i className="mm-half" />
+          <i className="mm-view" style={{ left: `${cam.left}%`, top: `${cam.top}%`, width: `${100 / cam.zoom}%`, height: `${100 / cam.zoom}%` }} />
+          <i className="mm-ball" style={{ left: `${mx(ballLeft)}%`, top: `${ballTop}%` }} />
+        </div>
+      )}
       {kickCam && (
         <div key={`kc${fxKey}`} className={`kickcam${kickMiss ? ' miss' : ''}`}>
           <span className="kc-post l" /><span className="kc-post r" /><span className="kc-bar" />
           <span className="kc-ball" />
           <span className="kc-verdict">{t(kickMiss ? 'matchday.kickWide' : 'matchday.kickGood')}</span>
+        </div>
+      )}
+      {/* THE TMO (idea 5). The engine sends a try upstairs (scoreTry) and says
+          so in a line of its own; the next line is the verdict, a TRY or a NO
+          TRY. This is the monitor for the wait in between, asking the question
+          the line asked. It is information, not decoration, so it shows at
+          every speed the effects do and with reduced motion too. */}
+      {showFx && depicts === 'TMO' && (
+        <div key={`tmo${fxKey}`} className="tmo-card">
+          <span className="tmo-title">📺 {t('matchday.tmoTitle')}</span>
+          <span className="tmo-screen"><i /></span>
+          <span className="tmo-line">{t(`matchday.tmoCheck${tmoQuestion(last)}`)}</span>
         </div>
       )}
       {binned(ctx.home).map((m, i) => (
@@ -1731,12 +1914,15 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
       ))}
       {banner && (
         <div key={`b${fxKey}`}
-          className={`ev-banner${evType === 'YC' ? ' yc' : ''}${evType === 'RC' ? ' rc' : ''}${evType === 'INJ' ? ' inj' : ''}`}
+          className={`ev-banner${flying && (kind === 'goal' || kind === 'miss') ? ' late' : ''}${evType === 'YC' ? ' yc' : ''}${evType === 'RC' ? ' rc' : ''}${evType === 'INJ' ? ' inj' : ''}`}
           style={scoringFx ? { background: lastTeamC[0], color: contrastText(lastTeamC[0]) } : undefined}>
           {evType === 'YC' && <span className="cardchip y" />}
           {evType === 'RC' && <span className="cardchip r" />}
-          {t(banner)}
+          {t(evType === 'TRY' && afterReview ? 'matchday.tmoAwarded' : banner)}
         </div>
+      )}
+      {showFx && depicts === 'NOTRY' && (
+        <div key={`nt${fxKey}`} className="ev-banner notry">{t('matchday.tmoNoTry')}</div>
       )}
     </div>
   )
@@ -1748,6 +1934,8 @@ function contrastText(bg: string): string {
   const r = parseInt(hex.slice(0, 2), 16), g = parseInt(hex.slice(2, 4), 16), b = parseInt(hex.slice(4, 6), 16)
   return (r * 299 + g * 587 + b * 114) / 1000 > 140 ? 'var(--prop-ink-dark)' : 'var(--prop-ink)'
 }
+
+const CAMERA_KEY = 'rm-camera'
 
 function Live() {
   const game = useStore(s => s.game)!
@@ -1761,6 +1949,15 @@ function Live() {
   // rung - followable without stopping - and both neighbours are one tap away.
   const [speedIdx, setSpeedIdx] = useState(1)
   const [sound, setSound] = useState(soundOn())
+  // the Broadcast camera: off unless the manager turns it on, and remembered
+  // on this device like the sound and the night theme
+  const [camera, setCamera] = useState(() => {
+    try { return localStorage.getItem(CAMERA_KEY) === 'broadcast' } catch { return false }
+  })
+  const chooseCamera = (on: boolean) => {
+    setCamera(on)
+    try { localStorage.setItem(CAMERA_KEY, on ? 'broadcast' : 'full') } catch { /* private mode */ }
+  }
   const [drawer, setDrawer] = useState(false)
   const [settings, setSettings] = useState(false)
   const [showLog, setShowLog] = useState(false)
@@ -1783,6 +1980,8 @@ function Live() {
   useEffect(() => {
     const wake = () => {
       const lm = useStore.getState().liveMatch
+      // the ground goes quiet with the screen; the next beat brings it back
+      if (document.visibilityState !== 'visible') groundSound(null)
       if (document.visibilityState === 'visible' && lm?.playing) advanceLive()
     }
     document.addEventListener('visibilitychange', wake)
@@ -1791,7 +1990,7 @@ function Live() {
 
   // stadium sound & haptics on key events (skip when fast-forwarding)
   useEffect(() => {
-    if (last && speedIdx < 2 && playing) matchSfx(last.type)
+    if (last && speedIdx < 2 && playing) matchSfx(last.fx === 'NOTRY' ? 'NOTRY' : last.type)
   }, [cursor])
 
   // A serious injury stops the clock and opens the match-day squad (feedback
@@ -1855,7 +2054,11 @@ function Live() {
   const ballLeft = useMemo(() => {
     if (!last) return 50
     const towardHome = last.teamId === fixture.homeId
-    const base = last.type === 'TRY' ? (towardHome ? 88 : 12)
+    // a try under review, and the one the TMO chalks off, happened where tries
+    // happen: at the line (dramaprobe leaves them out of the territory check
+    // for exactly that reason)
+    const atLine = last.type === 'TRY' || last.fx === 'TMO' || last.fx === 'NOTRY'
+    const base = atLine ? (towardHome ? 88 : 12)
       : last.type === 'PEN' || last.type === 'DG' ? (towardHome ? 72 : 28)
       : 50 + (ctx.momo ?? 0) * 30 + (towardHome ? 9 : -9)
     return Math.max(6, Math.min(94, base))
@@ -1889,20 +2092,29 @@ function Live() {
   // So the beat is the number, and theme.css divides it (see --tick).
   const tickMs = Math.round(SPEEDS[speedIdx].ms * (speedIdx < 2 ? 1 + 0.6 * tension : 1))
 
+  // THE TMO HOLDS THE CLOCK (idea 5). A review line is the wait for a verdict,
+  // so at Slow and Normal it gets longer than a beat; Fast, Skip and a scrub
+  // are left alone. A rout never has one to hold for longer than any other
+  // review, and there are about one in six tries sent upstairs, so the pacing
+  // a manager chose is still the pacing he gets.
+  const tmoHold = last?.fx === 'TMO' && playing && speedIdx < 2
+    ? Math.round(Math.min(2800, Math.max(1800, tickMs * 2.2))) - tickMs : 0
+
   useEffect(() => {
     if (!playing) return
     // `timer`, not `t`: t() is the translator
-    const timer = setTimeout(() => advanceLive(), tickMs)
+    const timer = setTimeout(() => advanceLive(), tickMs + tmoHold)
     return () => clearTimeout(timer)
-  }, [cursor, playing, speedIdx, events.length, tension])
+  }, [cursor, playing, speedIdx, events.length, tension, tmoHold])
 
   const cls = (e: MatchEvent) =>
-    e.type === 'TRY' || e.type === 'FT' || e.type === 'DG' ? 'big'
+    e.fx === 'TMO' || e.fx === 'NOTRY' ? 'tmo'
+      : e.type === 'TRY' || e.type === 'FT' || e.type === 'DG' ? 'big'
       : e.type === 'YC' ? 'card-y'
       : e.type === 'RC' ? 'card-r'
       : e.type === 'INJ' ? 'inj' : ''
 
-  const icon = (e: MatchEvent) => ({
+  const icon = (e: MatchEvent) => e.fx === 'TMO' || e.fx === 'NOTRY' ? '📺' : ({
     TRY: '🏉', CON: '🎯', PEN: '🥅', DG: '🎯', YC: '🟨', RC: '🟥', INJ: '🩹', HT: '⏸', FT: '🏁', KO: '⏱', SUB: '·', BRK: '💧',
   }[e.type] ?? '·')
 
@@ -1924,6 +2136,18 @@ function Live() {
   const lastTeamC = last?.teamId === fixture.awayId ? awayC : homeC
   const showFx = playing && speedIdx < 2
   const panelActive = done || atHalfTime || atBreak || atDecision || (drawer && paused)
+
+  // THE GROUND (idea 7): the crowd under the match, at a level that follows it
+  // (matchAtmos.crowdLevel), quiet whenever the match is not being played -
+  // a pause, an interval, a touchline call, full time, the screen left.
+  const groundLevel = crowdLevel({
+    ballX: ballLeft, homeAttacking: last?.teamId === fixture.homeId,
+    tension, review: last?.fx === 'TMO', att: fixture.att,
+  })
+  useEffect(() => {
+    groundSound(playing && sound && !panelActive ? groundLevel : null, fixture.weather ?? 'Dry')
+  }, [cursor, playing, sound, panelActive, groundLevel])
+  useEffect(() => () => groundSound(null), [])
 
   return (
     <div className="live-wrap">
@@ -2051,7 +2275,7 @@ function Live() {
       {!panelActive && (
         <PitchViz ctx={ctx} game={game} last={last} ballLeft={ballLeft}
           fxKey={cursor} showFx={showFx} showBig={playing} lastTeamC={lastTeamC}
-          tickMs={tickMs} />
+          tickMs={tickMs} afterReview={shown[shown.length - 2]?.fx === 'TMO'} camera={camera} />
       )}
       {/* THE CONTROLS SIT UNDER THE PITCH (owner, v1.1.16: "4 buttons in match
           mode - should be directly underneath the pitch at the top").
@@ -2159,9 +2383,9 @@ function Live() {
 
       {settings && (
         <div className="modal-veil" onClick={() => setSettings(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
+          <div className="modal settings-sheet" onClick={e => e.stopPropagation()}>
             <div className="grab" />
-            <h3 style={{ fontSize: 16, margin: '2px 0 8px' }}>{t('matchday.matchSettings')}</h3>
+            <h3 style={{ fontSize: 16, margin: '2px 16px 8px' }}>{t('matchday.matchSettings')}</h3>
             <div className="set-label">{t('matchday.commentarySpeed')}</div>
             <div className="btn-row">
               {SPEEDS.map((s, i) => (
@@ -2175,6 +2399,13 @@ function Live() {
                 onClick={() => matchMode('full')}>{t('matchday.everyMinute')}</button>
               <button className={`btn ${live.mode === 'highlights' ? 'gold' : 'ghost'}`} style={{ flex: 1 }}
                 onClick={() => matchMode('highlights')}>{t('matchday.highlightsBtn')}</button>
+            </div>
+            <div className="set-label">{t('matchday.camera')}</div>
+            <div className="btn-row">
+              <button className={`btn ${!camera ? 'gold' : 'ghost'}`} style={{ flex: 1 }}
+                onClick={() => chooseCamera(false)}>{t('matchday.camFull')}</button>
+              <button className={`btn ${camera ? 'gold' : 'ghost'}`} style={{ flex: 1 }}
+                onClick={() => chooseCamera(true)}>{t('matchday.camBroadcast')}</button>
             </div>
             {/* One switch, and it has to name everything it turns off. The buzz
                 used to survive Silent, so the label lied by omission. */}
@@ -2195,6 +2426,9 @@ function Live() {
         {atDecision && <DecisionPanel />}
         {drawer && paused && !done && !atDecision && (
           <TouchlinePanel title={t('matchday.pausedTitle')} showTalk={false} onResume={() => { setDrawer(false); matchCursor(cursor, true) }} resumeLabel={t('matchday.resumePlay')} />
+        )}
+        {(atHalfTime || atBreak) && (
+          <ScoreCard label={t(atBreak ? 'matchday.breakSixty' : 'matchday.halfTime')} story />
         )}
         {(atHalfTime || atBreak) && (
           <TouchlinePanel
@@ -2222,7 +2456,8 @@ function Live() {
             : null
           return (
             <>
-              <div className="card" style={{ margin: '8px 14px' }}>
+              {/* at the intervals the broadcast card above has the scorers */}
+              {atDecision && <div className="card" style={{ margin: '8px 14px' }}>
                 <div className="fact-label">{t('matchday.storySoFar')}</div>
                 {scores.length === 0 && <div className="meta muted">{t('matchday.noScores')}</div>}
                 {scores.map((e, i) => (
@@ -2232,7 +2467,7 @@ function Live() {
                     <b>{e.homeScore}-{e.awayScore}</b>
                   </div>
                 ))}
-              </div>
+              </div>}
               {slice && (
                 <div className="card" style={{ margin: '8px 14px' }}>
                   <div className="fact-label">{t('matchday.asItStood')}</div>
@@ -2254,6 +2489,7 @@ function Live() {
         })()}
         {done && (
           <>
+            <ScoreCard label={t('matchday.fullTime')} />
             <div className="review-grid">
               <div>
                 <MatchVerdict />
@@ -2500,17 +2736,85 @@ function Highlights() {
   )
 }
 
+/**
+ * THE BROADCAST CARD (owner, 25 Sep 2026, idea 5): half-time, the hour and
+ * full time as a television would put them up. Both crests and the score, who
+ * got the points (tries with their minutes, kicks as a row of marks). The
+ * numbers are the Match Stats panel's, which sits under it and fills its bars
+ * in as it opens; one list of them, not two.
+ *
+ * Everything on it is read from the events; nothing is computed that the
+ * engine did not say.
+ */
+function ScoreCard({ label, story = false }: { label: string; story?: boolean }) {
+  const game = useStore(s => s.game)!
+  const live = useStore(s => s.liveMatch)!
+  const { fixture, ctx } = live
+  const shown = ctx.events.slice(0, live.cursor)
+  const last = shown[shown.length - 1]
+  const hs = last?.homeScore ?? 0
+  const as = last?.awayScore ?? 0
+  const scorers = (teamId: string) => {
+    const tries = new Map<string, number[]>()
+    const kicks = new Map<string, string>()
+    for (const e of shown) {
+      if (e.teamId !== teamId) continue
+      const full = e.playerId != null ? game.players[e.playerId]?.name : e.playerName
+      if (!full) continue
+      const who = full.split(' ').slice(-1)[0]
+      if (e.type === 'TRY') tries.set(who, [...(tries.get(who) ?? []), Math.min(80, e.min)])
+      else if (e.type === 'CON' || e.type === 'PEN' || e.type === 'DG') kicks.set(who, (kicks.get(who) ?? '') + (e.type === 'PEN' ? '🥅' : '🎯'))
+    }
+    return (
+      <div className="sc-scorers">
+        {[...tries].map(([who, mins]) => <div key={`t${who}`}>🏉 {who} <span className="muted">{mins.map(m => `${m}'`).join(' ')}</span></div>)}
+        {[...kicks].map(([who, marks]) => <div key={`k${who}`}>{marks} {who}</div>)}
+      </div>
+    )
+  }
+  return (
+    <div className="card score-card">
+      <div className="sc-head">{label}</div>
+      <div className="sc-teams">
+        <div className="sc-team"><CrestT g={game} teamId={fixture.homeId} size={34} /><span>{teamShort(game, fixture.homeId)}</span></div>
+        <div className="sc-score">{hs}<i>–</i>{as}</div>
+        <div className="sc-team"><CrestT g={game} teamId={fixture.awayId} size={34} /><span>{teamShort(game, fixture.awayId)}</span></div>
+      </div>
+      {/* at a stoppage this IS the story so far (audit 20E), and says so */}
+      {story && <div className="fact-label sc-story">{t('matchday.storySoFar')}</div>}
+      <div className="sc-lists">
+        {scorers(fixture.homeId)}
+        {scorers(fixture.awayId)}
+      </div>
+    </div>
+  )
+}
+
 function StatsPanel() {
   const game = useStore(s => s.game)!
   const live = useStore(s => s.liveMatch)!
   const st = matchStats(live.ctx)
-  const row = (label: string, v: [number, number], pct = false) => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '5px 0', borderBottom: '1px solid var(--border)', fontSize: 13 }}>
-      <b style={{ width: 34, textAlign: 'right', fontFamily: 'var(--cond)', fontSize: 15 }}>{v[0]}{pct ? '%' : ''}</b>
-      <span style={{ flex: 1, textAlign: 'center', color: 'var(--text-muted)', fontFamily: 'var(--cond)', textTransform: 'uppercase', letterSpacing: 1, fontSize: 12 }}>{label}</span>
-      <b style={{ width: 34, fontFamily: 'var(--cond)', fontSize: 15 }}>{v[1]}{pct ? '%' : ''}</b>
-    </div>
-  )
+  const colour = (id: string) => game.clubs[id]?.colors?.[0] ?? 'var(--ramp-n4)'
+  // Each row carries a split bar in the two clubs' colours, and the bars fill
+  // in one after another as the panel opens (idea 5: "the match stats panel
+  // animating"). Transform only, so the fill is compositor work.
+  let n = 0
+  const row = (label: string, v: [number, number], pct = false) => {
+    const share = v[0] + v[1] > 0 ? v[0] / (v[0] + v[1]) : 0.5
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '5px 0', borderBottom: '1px solid var(--border)', fontSize: 13 }}>
+        <b style={{ width: 34, textAlign: 'right', fontFamily: 'var(--cond)', fontSize: 15 }}>{v[0]}{pct ? '%' : ''}</b>
+        <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <span style={{ textAlign: 'center', color: 'var(--text-muted)', fontFamily: 'var(--cond)', textTransform: 'uppercase', letterSpacing: 1, fontSize: 12 }}>{label}</span>
+          <span className="stat-bar" style={{ '--d': `${150 + n++ * 110}ms` } as CSSProperties}>
+            <i className="h" style={{ transform: `scaleX(${share.toFixed(3)})`, background: colour(live.fixture.homeId) }} />
+            <i className="a" style={{ transform: `scaleX(${(1 - share).toFixed(3)})`, background: colour(live.fixture.awayId) }} />
+          </span>
+        </span>
+        <b style={{ width: 34, fontFamily: 'var(--cond)', fontSize: 15 }}>{v[1]}{pct ? '%' : ''}</b>
+      </div>
+    )
+  }
   return (
     <div className="card" style={{ margin: '12px 0' }}>
       <h3 style={{ fontSize: 14, textAlign: 'center' }}>

@@ -142,14 +142,18 @@ try {
       if (!ev || !ball) continue
       out.push({
         left: parseFloat(ball.style.left), momo: now.ctx.momo,
-        min: ev.min, type: ev.type, home: ev.teamId === homeId,
+        min: ev.min, type: ev.type, fx: ev.fx ?? null, home: ev.teamId === homeId,
       })
     }
     return out
   })
 
   const clamp = x => Math.max(6, Math.min(94, x))
-  const play = samples.filter(s => s.type !== 'TRY' && s.type !== 'PEN' && s.type !== 'DG')
+  // A TMO review and its NO TRY are a try at the line, not open play: the
+  // pitch draws them where tries are drawn (MatchDay's ballLeft), so they are
+  // left out with the tries.
+  const play = samples.filter(s => s.type !== 'TRY' && s.type !== 'PEN' && s.type !== 'DG'
+    && s.fx !== 'TMO' && s.fx !== 'NOTRY')
   say(`  drove the rest of the match: ${samples.length} revealed events, ${play.length} of them open play`)
   // A FLOOR ON THE SAMPLE, NOT A CLAIM ABOUT THE MATCH.
   //

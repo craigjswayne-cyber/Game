@@ -32,6 +32,12 @@ function thin(g: GameState, clubId: string, keep: number) {
   const club = g.clubs[clubId]
   for (const id of club.players.slice(keep)) g.players[id].clubId = null
   club.players = club.players.slice(0, keep)
+  // "N available players" means N who can play: the men kept are made fit and
+  // free. The first ten on the list used to be kept as they were, and when
+  // the TMO moved the stream one of them was carrying a knock from the weeks
+  // before, so ten on the books was nine available and the rule (rightly)
+  // called a walkover the probe had labelled a match.
+  for (const id of club.players) { const p = g.players[id]; p.injury = null; p.bans = 0 }
 }
 
 // ---- nine forfeits, ten plays -----------------------------------------------
