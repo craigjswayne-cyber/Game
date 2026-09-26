@@ -15,7 +15,7 @@ the first thing a reviewer sees.
 
 | Field | Value |
 |---|---|
-| App name | PHASE: Rugby Manager |
+| App name | PHASE: Rugby Manager 27 |
 | Package / bundle id | `com.phaserugbymanager.app` |
 | Category | Games → Sports (Play), Games → Sports / Simulation (App Store) |
 | Price | free, with in-app purchases (decided 27 Aug: the free edition, not paid up front - see `docs/monetisation.md`) |
@@ -32,9 +32,9 @@ the first thing a reviewer sees.
 ### Title (30 max)
 
 ```
-PHASE: Rugby Manager
+PHASE: Rugby Manager 27
 ```
-*(20)*
+*(23)*
 
 ### Short description (80 max)
 
@@ -48,7 +48,7 @@ Take a club from the bottom to the top. A deep, offline rugby union manager.
 ```
 Pick a club. Pick a side. Live with it.
 
-PHASE: Rugby Manager is a management game in the tradition of the great
+PHASE: Rugby Manager 27 is a management game in the tradition of the great
 text-driven sims: dense squad tables, real decisions every week, and a career
 that remembers what you did in season one when you get to season fifteen.
 
@@ -118,7 +118,7 @@ BUILT FOR A PHONE
   is yours to keep.
 • English, French, Spanish, Italian, Japanese and Afrikaans.
 
-PHASE: Rugby Manager is an unofficial, independent game. Club names are real;
+PHASE: Rugby Manager 27 is an unofficial, independent game. Club names are real;
 competitions, grounds and sponsors are renamed or invented. Player names are
 real, used to identify people in a sporting database and for nothing else. The
 game is not affiliated with, endorsed by or licensed by any player, club, league
@@ -147,7 +147,7 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
-### What's new (500 max) - v1.7.4, Play version code 41
+### What's new (500 max) - v1.8.0, Play version code 41 (PRM27; 1.7.4 folded in)
 
 The match view in the classic top-down style, kicks at goal from the opposition
 half only, no ball zoom on kicks, and more humour.
@@ -1050,9 +1050,9 @@ five languages at once, each inside its own tag. Every one is under 500.
 ### Name (30 max)
 
 ```
-PHASE: Rugby Manager
+PHASE: Rugby Manager 27
 ```
-*(20)*
+*(23)*
 
 ### Subtitle (30 max)
 
@@ -1146,7 +1146,7 @@ who wishes to be removed.
 ### Titre (30)
 
 ```
-PHASE: Rugby Manager
+PHASE: Rugby Manager 27
 ```
 
 ### Description courte (80)
@@ -1182,7 +1182,7 @@ rugby,manager,gestion,simulation,equipe,tactique,transferts,carriere,sport,hors 
 ```
 Choisissez un club. Choisissez une équipe. Assumez-la.
 
-PHASE: Rugby Manager est un jeu de gestion dans la tradition des grandes
+PHASE: Rugby Manager 27 est un jeu de gestion dans la tradition des grandes
 simulations textuelles : des tableaux d'effectif denses, de vraies décisions
 chaque semaine, et une carrière qui se souvient en saison quinze de ce que vous
 avez fait en saison une.
@@ -1223,7 +1223,7 @@ CONÇU POUR UN TÉLÉPHONE
   garder vos propres sauvegardes.
 • En français et en anglais, avec un réglage de taille de texte.
 
-PHASE: Rugby Manager est un jeu indépendant et non officiel. Les clubs,
+PHASE: Rugby Manager 27 est un jeu indépendant et non officiel. Les clubs,
 compétitions, stades et sponsors sont fictifs. Les noms de joueurs sont réels,
 utilisés pour identifier des personnes dans une base de données sportive et rien
 d'autre ; le jeu n'est ni affilié, ni approuvé, ni sous licence d'un joueur, d'un
@@ -1470,9 +1470,9 @@ the count is printed under it. Paste as-is.
 ### Name (30 max)
 
 ```
-PHASE: Rugby Manager
+PHASE: Rugby Manager 27
 ```
-*(20)*
+*(23)*
 
 ### Subtitle (30 max)
 
@@ -1501,7 +1501,7 @@ It also never mentioned the women's game, which is half the app.*
 ```
 PICK A CLUB. PICK A SIDE. LIVE WITH IT.
 
-PHASE: Rugby Manager is a management simulation in the tradition of the great text-driven sports sims: dense squad tables, real decisions every week, and a career that remembers what you did in season one when you reach season fifteen. You take a job, you name a team, and you find out what kind of manager you are.
+PHASE: Rugby Manager 27 is a management simulation in the tradition of the great text-driven sports sims: dense squad tables, real decisions every week, and a career that remembers what you did in season one when you reach season fifteen. You take a job, you name a team, and you find out what kind of manager you are.
 
 TWO GAMES, ONE APP
 • The men's game: nine leagues and 107 clubs across England, France, the United Provinces, the Pacific, Japan and the United States, top flight down to National One.
@@ -1538,7 +1538,7 @@ BUILT FOR A PHONE
 • Four career slots, autosave after every week, and export and import so a backup is yours to keep.
 • English, French, Spanish, Italian, Japanese and Afrikaans.
 
-PHASE: Rugby Manager is an unofficial, independent game. Club names are real; competitions, grounds and sponsors are renamed or invented. Player names are real, used to identify people in a sporting database and for nothing else; the game is not affiliated with, endorsed by or licensed by any player, club, league or governing body, and contains no official badges, kits or logos.
+PHASE: Rugby Manager 27 is an unofficial, independent game. Club names are real; competitions, grounds and sponsors are renamed or invented. Player names are real, used to identify people in a sporting database and for nothing else; the game is not affiliated with, endorsed by or licensed by any player, club, league or governing body, and contains no official badges, kits or logos.
 
 Optional in-app purchases support development and add conveniences. Nothing in the game is behind a paywall.
 ```

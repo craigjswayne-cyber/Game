@@ -138,7 +138,7 @@ export function buildReport(input: ReportInput): string {
   const club = state ? state.clubs[state.userClubId] : null
 
   let out = ''
-  out += 'PHASE: RUGBY MANAGER - BUG REPORT\n'
+  out += 'PHASE: RUGBY MANAGER 27 - BUG REPORT\n'
   out += '=================================\n\n'
 
   out += 'WHAT HAPPENED\n'
@@ -222,7 +222,7 @@ export function reportFilename(state?: GameState | null): string {
  *  the whole thing, and the screen says so. */
 export const MAILTO_LIMIT = 1800
 
-export function mailtoUrl(report: string, subject = 'PHASE: Rugby Manager - bug report'): string {
+export function mailtoUrl(report: string, subject = 'PHASE: Rugby Manager 27 - bug report'): string {
   const body = report.length > MAILTO_LIMIT
     ? report.slice(0, MAILTO_LIMIT) + '\n\n[trimmed for e-mail - use Copy or Save for the full report]'
     : report

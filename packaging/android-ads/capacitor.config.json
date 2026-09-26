@@ -16,7 +16,7 @@
     "match or a white frame flashes between the launch screen and first paint."
   ],
   "appId": "com.phaserugbymanager.app",
-  "appName": "PHASE: Rugby Manager",
+  "appName": "PHASE: Rugby Manager 27",
   "webDir": "../../dist",
   "backgroundColor": "#1a201e",
   "android": {
