@@ -37,7 +37,10 @@ export const KNOCK_ENERGY = 0.85
  *  left when he was sent out: one week early is a gamble (20%), three is
  *  reckless (46%). */
 export function flareChance(weeksEarly: number): number {
-  return Math.min(0.55, 0.2 + 0.13 * Math.max(0, weeksEarly - 1))
+  // a damaged save can lose the number: a lost one reads as the riskiest case
+  // rather than as NaN on a button (hostile171)
+  const w = Number.isFinite(weeksEarly) ? weeksEarly : KNOCK_MAX_WEEKS
+  return Math.min(0.55, 0.2 + 0.13 * Math.max(0, w - 1))
 }
 
 function isHead(p: Player): boolean {
@@ -95,6 +98,11 @@ export function settleKnocks(state: GameState) {
     const k = p.knock
     if (!k) continue
     if (p.clubId !== state.userClubId) { p.knock = undefined; continue }
+    // a knock whose return week was lost (a damaged save) cannot be settled or
+    // shown - "Fit in NaN wk" - so it is cleared, which is what reaching the
+    // physio's date would have done (hostile171)
+    if (!Number.isFinite(k.until)) { p.knock = undefined; continue }
+    if (!Number.isFinite(k.mins)) k.mins = p.stats.mins
     // a new season starts the minutes from zero: take the new count as the base
     if (p.stats.mins < k.mins) k.mins = p.stats.mins
     const played = p.stats.mins > k.mins
