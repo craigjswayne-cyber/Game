@@ -921,12 +921,17 @@ export interface PressOption {
    *  Saying it and then quietly leaving him on the bench is exactly the kind
    *  of thing a squad remembers, so the game does not let you. */
   lock?: boolean
+  /** TALK-BACK (1.7.3): which answer this is, in the office's own terms
+   *  (talkback.FIT). Present, the outcome is settled by who the man is -
+   *  good, mixed or bad fit - rather than by the fixed morale above. Absent on
+   *  every item saved before 1.7.3, which keep answering as they always did. */
+  tb?: string
 }
 
 /** A subject a player can raise behind the office door. The office keeps a
  *  memo of who asked what and when, so the same man does not knock again
  *  about the same thing seven days after you answered him. */
-export type OfficeTopic = 'plans' | 'loan' | 'deal'
+export type OfficeTopic = 'plans' | 'loan' | 'deal' | 'dropped' | 'signing' | 'armband' | 'position'
 
 /** A promise made to a player in the office. The squad keeps the receipts:
  *  at the due week it is settled as kept or broken, with consequences. */
@@ -965,6 +970,8 @@ export interface PressItem {
   rv?: Vars
   /** set on office conversations: what he came in to talk about */
   topic?: OfficeTopic
+  /** how he took the answer (talkback.ts), once it is given */
+  fit?: 'good' | 'mixed' | 'bad'
   /** set on discipline conversations: the incident this one resolves */
   incidentId?: number
 }
