@@ -794,10 +794,8 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
      both turn about the middle of the ball. */
   margin: -6.5px 0 0 -9.5px;
   transform: rotate(-25deg);
-  /* same beat as the men who are chasing it - see .pitch .pdot */
-  transition:
-    left calc(var(--tick, 1100ms) * .92) cubic-bezier(.45, .05, .35, 1),
-    top calc(var(--tick, 1100ms) * .7) ease;
+  /* same glide as the men who are chasing it: pitchGlide.ts, which writes
+     the transform (this tilt included) every frame */
   box-shadow: 0 3px 8px rgba(0, 0, 0, .45);
 }
 /* THE CAMERA'S WORLD (idea 4). Everything on the grass sits in this layer at
@@ -853,7 +851,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   z-index: 3; pointer-events: none;
 }
 /* the man the line names runs his own path during the passage, the same way */
-.pitch .pdot.carry { transition: transform .3s ease; }
+.pitch .pdot.carry { transition: scale .3s ease; }
 /* the lineout jumper goes up over the men lifting him (pitchActs.ts) */
 .pitch .pdot.lift { z-index: 5; }
 /* A man leaving the field, drawn after his own dot has gone: a replaced man
@@ -1528,14 +1526,16 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
      that was nothing to do with where he was going. The same duration and
      the same easing makes every move a straight line, the way the classic
      top-down match view drew its circles. */
-  transition:
-    left calc(var(--tick, 1100ms) * .92) cubic-bezier(.42, 0, .25, 1),
-    top calc(var(--tick, 1100ms) * .92) cubic-bezier(.42, 0, .25, 1),
-    transform .3s ease;
+  /* THE GLIDE MOVED TO pitchGlide.ts (1.8.1). A transition per line starts
+     and ends every man at rest, which measured as the whole pitch standing
+     still for 38% of the match. A spring there carries each dot on from line
+     to line; left/top here are only its mark. `scale` for the highlight, so
+     the glide can own `transform`. */
+  transition: scale .3s ease;
   z-index: 2;
 }
 .pitch .pdot.hl {
-  transform: scale(1.55);
+  scale: 1.55;
   z-index: 4;
   /* a steady ring on the man in the line, not a pulse (1.7.4): the eye
      should find him, not be pulled back to him every beat */
@@ -4584,9 +4584,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
   border-radius: 50%; font-family: var(--cond); font-size: 7px; font-weight: 800; line-height: 11px;
   text-align: center; background: var(--prop-yellow); color: var(--prop-ink-dark);
   box-shadow: 0 1px 2px rgba(0, 0, 0, .5); pointer-events: none;
-  transition:
-    left calc(var(--tick, 1100ms) * .92) cubic-bezier(.42, 0, .25, 1),
-    top calc(var(--tick, 1100ms) * .92) cubic-bezier(.42, 0, .25, 1);
+  /* on the players' glide (pitchGlide.ts) */
 }
 .pitch .official.aj { width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; line-height: 9px; font-size: 6px; }
 

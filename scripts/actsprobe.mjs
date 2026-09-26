@@ -97,7 +97,10 @@ async function at(page, t) {
     return {
       dots: dots.length,
       down: dots.filter(d => cs(d).scale.includes(' ')).length,
-      lifted: dots.filter(d => { const s = cs(d).scale; return s !== 'none' && !s.includes(' ') && Number(s) > 1.3 }).length,
+      // a lift is an ANIMATED scale (pitchActs): the named man's steady size
+      // step is the `scale` property too since 1.8.1 (the glide owns
+      // transform), so a still 1.55 on .hl is not a man in the air
+      lifted: dots.filter(d => { const s = cs(d).scale; return s !== 'none' && !s.includes(' ') && Number(s) > 1.3 && d.getAnimations().length > 0 }).length,
       moved: dots.filter(d => { const t = cs(d).translate; return t && t !== 'none' && Math.abs(parseFloat(t)) > 2 }).length,
       ring: document.querySelectorAll('.pitch .tackle-hit').length,
       ghosts: [...document.querySelectorAll('.pitch .pdot.ghost')].map(g => ({ ...box(g), o: Number(cs(g).opacity), card: !!g.querySelector('.cardchip') })),

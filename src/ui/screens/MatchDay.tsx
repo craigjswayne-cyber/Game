@@ -24,6 +24,7 @@ import { formation, shapeFor, shapeRow } from '../phaseShape'
 import { MoodTable } from '../MoodTable'
 import { MatchPanels, Visits, Zones } from '../MatchPanels'
 import { useTablet } from '../tablet'
+import { usePitchGlide } from '../pitchGlide'
 import { crowdLevel } from '../matchAtmos'
 import { derbyName } from '../../game/rivalries'
 import { matchStakes } from '../../game/stakes'
@@ -1523,6 +1524,7 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
   const fx = ctx.fx
   const pitchEl = useRef<HTMLDivElement>(null)
   const worldEl = useRef<HTMLDivElement>(null)
+  const glide = usePitchGlide(worldEl, tickMs)
   /** men leaving the field, drawn after their own dot has gone (pitchActs.ts) */
   const ghosts = useRef<HTMLDivElement[]>([])
   const ballEl = useRef<HTMLDivElement | null>(null)
@@ -1914,6 +1916,8 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
     const p = prevPlay.current
     prevPlay.current = { key: fxKey, stepped: c.stepped, ball: c.ball, before: c.fromBall, dots: c.layout, beforeDots: p?.dots ?? null, who: c.who }
     pitchMemory = { fixtureId: fx.id, play: prevPlay.current }
+    // the handover runs inside preserve() so nothing jumps (pitchGlide.ts)
+    glide.preserve(() => {
     for (const a of running.current) a.cancel()
     running.current = []
     const pitch = pitchEl.current, ball = ballEl.current
@@ -1934,6 +1938,7 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
       manNow && manWas ? { was: manWas, now: manNow } : null)
     if (!ps) return
     play(ps, c, manNow, duration)
+    })
   }, [fxKey])
 
   /** Screen pixels for a fixture-frame offset from a man's resting spot. */
@@ -2119,7 +2124,12 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
           thirty men converged on one row while the ball sat at an unrelated
           height. The ball was the only thing on the pitch that did not know
           where the ball was. */}
-      <div key={kickFx && showFx ? `k${fxKey}` : 'ball'} ref={ballEl}
+      {/* ONE BALL, NOT ONE PER KICK (1.8.1). It was keyed k{fxKey} on a kick,
+          which made a new element every time: left over from a CSS kick
+          animation that is now `animation: none`, and it threw away the ball's
+          glide, so the ball teleported onto the tee. The passage cancels the
+          last flight itself; the same element carries on. */}
+      <div key="ball" ref={ballEl}
         className={`ball${kickFx && showFx ? (rightward(towardHome) ? ' kick-r' : ' kick-l') : ''}${flying ? ' flight' : ''}${teeBall ? ' parked' : ''}`}
         style={{ left: `${mx(ballLeft)}%`, top: `${ballTop}%` }} />
       {/* A kick at goal with nothing in flight (paused, Fast, reduced motion):
