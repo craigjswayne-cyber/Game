@@ -1042,7 +1042,11 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
     const rk = f(tac.ruckContest ?? 50)
     side.units.defence *= 1 - rk * 0.03
     side.ruckContest = 1 + rk * 0.1
-    side.penRisk *= 1 + rk * 0.1 * (side.refPenF ?? 1)
+    // 0.11 from 1.8.0 (was 0.1): an own-half penalty now goes to touch rather
+    // than at the posts, so each one conceded costs a little less and the full
+    // contest had drifted to +3.2 a match against balanced (kickbreakprobe;
+    // 0.12 fixed that but left draws one game under bandcheck's floor).
+    side.penRisk *= 1 + rk * 0.11 * (side.refPenF ?? 1)
     side.cardRisk += rk * 0.0015
 
     // The called set-piece routines (F2). What you get is the routine's ceiling
@@ -1600,7 +1604,7 @@ export interface LiveCtx {
   lastSub?: { outId: number; inId: number; blewCover: boolean; briefed: boolean } | null
   preTalk: string | null
   /** a touchline call waiting on the user (kickable penalty etc) */
-  decision: { kind: 'penalty'; min: number } | null
+  decision: { kind: 'penalty'; min: number; fld?: number } | null
   /** Index of the whistle line for the period that has just ended, while a
    *  touchline call awarded BEFORE it is still unanswered. The kick belongs
    *  in front of that line, not behind it - see resolveDecision. Null
@@ -2557,7 +2561,7 @@ function syncResult(ctx: LiveCtx) {
 }
 
 function decide(
-  state: GameState, ctx: LiveCtx, d: { kind: 'penalty'; min: number },
+  state: GameState, ctx: LiveCtx, d: { kind: 'penalty'; min: number; fld?: number },
   choice: 'posts' | 'corner' | 'tap',
 ): string {
   const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
@@ -2565,6 +2569,12 @@ function decide(
   // the kick belongs to the half the penalty was awarded in, and cannot run
   // past that half's whistle however late the answer arrives
   const min = Math.min(d.min <= 40 ? 40 : 79, d.min + 1)
+  // AND IT BELONGS TO THE SPOT IT WAS AWARDED ON (1.8.0). The rest of the tick
+  // plays on while the call waits, so an opposition kick to touch could move
+  // the ball back into your half before the answer came, and a shot "at the
+  // posts" went up from your own 43 (kickrangeprobe, 1 in 533). Absent on a
+  // decision saved before 1.8.0, which keeps the old behaviour.
+  if (d.fld != null) ctx.field = d.fld
   const rng = ctx.rng
   if (choice === 'posts') {
     takePenaltyShot(state, ctx, mine, min)
@@ -2897,6 +2907,10 @@ const COVER_DEF = 0.937
 const TRY_BASE = 0.0930
 /** how hard the penalty count leans toward the defending side's half (1.7.4) */
 const PEN_LEAN = 1.7
+/** how hard a zone plan moves the line (1.8.0, see simTick): at 1 the kicking
+ *  and own-half penalty changes had shrunk the gap between plans (advprobe:
+ *  long vs play 0.5, drive vs spread 0.2); at 2 the gaps are 1.3 and 0.6 */
+const ZONE_PULL = 2
 
 /** The cost of a thin bench: a man in the wrong half of the team.
  *
@@ -3045,7 +3059,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
   }
   // what each side sets out to do, read from where it is standing NOW
   const kickEdge = Math.log(home.units.kicking / Math.max(1, away.units.kicking))
-  const push = kickEdge * 7 + (rng() - 0.5) * 86 + (planOf(home).terr - planOf(away).terr)
+  const push = kickEdge * 7 + (rng() - 0.5) * 86 + (planOf(home).terr - planOf(away).terr) * ZONE_PULL
   ctx.field = clamp(ctx.field * 0.965 + 50 * 0.035 + push, 4, 96)
   // AND READ AGAIN AFTER THE LINE HAS MOVED. The push above is what a side
   // does FROM where it was; the scoring roll below happens WHERE IT ENDED UP,
@@ -3246,7 +3260,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
         // phone during a nine-penalty afternoon, so the choice is the manager's.
         const standing = state.clubs[side.teamId]?.tactic.penaltyCall ?? 'ask'
         if (detail && side.isUser && !ctx.decision) {
-          ctx.decision = { kind: 'penalty', min }
+          ctx.decision = { kind: 'penalty', min, fld: ctx.field }
           if (standing === 'ask') {
             pushLine(state, ctx, min, 'SUB', side, 'comm.penKickableAsk', { team: teamShort(state, side.teamId) })
           } else {
