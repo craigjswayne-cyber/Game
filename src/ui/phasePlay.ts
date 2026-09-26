@@ -42,6 +42,7 @@ export type PlayKind =
   | 'cross'    // a cross-field kick to the far wing
   | 'catch'    // a high ball arriving from the other side
   | 'restart'  // a kick-off or restart from halfway
+  | 'throw'    // a lineout: thrown in, caught at the top of the lift
   | 'goal'     // a kick at the posts (penalty, conversion, drop goal)
   | 'miss'     // a kick at the posts that goes wide
   | 'none'     // nothing to act out: the old straight glide
@@ -81,7 +82,8 @@ export function playKind(ev: MatchEvent | undefined): PlayKind {
   if (ev.type === 'KO') return 'restart'
   if (ev.type !== 'SUB') return 'none'
   if (ev.fx === 'MISS') return 'miss'
-  if (ev.fx) return 'none'          // scrum, lineout and maul keep their own overlay
+  if (ev.fx === 'LINEOUT') return 'throw'
+  if (ev.fx) return 'none'          // scrum and maul: the men act those out (setPiece.ts)
   const key = (ev.k ?? '').replace(/_[fw]$/, '')
   if (BY_KEY[key]) return BY_KEY[key]
   if (!key || OFF_BALL.test(key)) return 'none'
@@ -103,6 +105,43 @@ export interface Pt { x: number; y: number }
 /** One point on a path: where, how high off the ground (0..1), and when, as a
  *  fraction of the passage. */
 export interface Key extends Pt { h: number; at: number }
+
+/**
+ * THE TACKLE (owner, 26 Sep 2026: "tackles and rucks you can see").
+ *
+ * Where and when a line's carry meets the defence, and what happens to the men
+ * in it. The pitch reads this to put a tackler on the carrier, take the one
+ * who is tackled to ground, and send the nearest men of each side in over the
+ * ball, which is the ruck. buildPassage uses the same point, so the ball and
+ * the men meet at the same place at the same moment.
+ */
+export interface Contact {
+  /** fraction of the beat at which the tackle is made */
+  at: number
+  /** where, in the fixture frame */
+  pt: Pt
+  /** the side carrying the ball is the one the line credits (+1) or the other (-1) */
+  carrying: 1 | -1
+  /** what the man the line names is doing in it */
+  named: 'carrier' | 'tackler' | 'jackler'
+  /** does the carrier go to ground (an offload stays on his feet) */
+  down: boolean
+}
+
+/** The tackle in a line, if it has one. Same arguments as buildPassage. */
+export function contactOf(kind: PlayKind, from: Pt, to: Pt, dir: number, seed: number): Contact | null {
+  switch (kind) {
+    case 'phase': return { at: 0.72, pt: clampPt(to), carrying: 1, named: 'carrier', down: true }
+    // he is hit most of the way to where the line puts the ball, and gets it away
+    case 'offload': return { at: 0.52, pt: clampPt(lerp(from, to, 0.6)), carrying: 1, named: 'carrier', down: false }
+    // the carry is stopped where the ball comes to rest, and the ruck forms on it
+    case 'hit': return { at: 0.62, pt: clampPt(to), carrying: -1, named: 'tackler', down: true }
+    case 'turnover': return { at: 0.08, pt: clampPt(from), carrying: -1, named: 'jackler', down: true }
+    // the high ball comes down on the named man, he takes it, and the chase is on him
+    case 'catch': return { at: 0.86, pt: clampPt(to), carrying: 1, named: 'carrier', down: true }
+    default: return null
+  }
+}
 
 export interface Passage {
   ball: Key[]
@@ -136,6 +175,7 @@ function noise(seed: number, i: number): number {
 const clampX = (x: number) => Math.max(3, Math.min(97, x))
 const clampY = (y: number) => Math.max(5, Math.min(95, y))
 const at = (p: Pt, h: number, t: number): Key => ({ x: clampX(p.x), y: clampY(p.y), h, at: t })
+const clampPt = (p: Pt): Pt => ({ x: clampX(p.x), y: clampY(p.y) })
 const lerp = (a: Pt, b: Pt, s: number): Pt => ({ x: a.x + (b.x - a.x) * s, y: a.y + (b.y - a.y) * s })
 
 /** A ball in the air between two points, sampled so the height reads as an arc
@@ -192,9 +232,10 @@ export function buildPassage(kind: PlayKind, from: Pt, to: Pt, dir: number, seed
   switch (kind) {
     case 'phase': {
       const rec = receiver(dir, 10)
+      // carried into contact at the tackle (contactOf), and it goes to ground there
       const ball = [at(from, 0, 0), at(from, 0, 0.14), at(lerp(from, rec, 0.5), 0.08, 0.26),
-        at(rec, 0.02, 0.38), at(to, 0, 0.9), at(to, 0, 1)]
-      return { ball, carrier: carrierPath([at(rec, 0, 0.38), at(to, 0, 0.9)]), away: false }
+        at(rec, 0.02, 0.38), at(to, 0, 0.72), at(to, 0, 1)]
+      return { ball, carrier: carrierPath([at(rec, 0, 0.38), at(to, 0, 0.72), at(to, 0, 0.9)]), away: false }
     }
     case 'wide': {
       const r1: Pt = { x: from.x - dir * 3, y: from.y + side * 12 }
@@ -215,20 +256,19 @@ export function buildPassage(kind: PlayKind, from: Pt, to: Pt, dir: number, seed
     }
     case 'offload': {
       const rec = receiver(dir, 8)
-      const contact = lerp(rec, to, 0.45)
+      const contact = contactOf('offload', from, to, dir, seed)!.pt
       const pop: Pt = { x: contact.x - dir * 1, y: contact.y + side * 6 }
       const ball = [at(from, 0, 0), at(from, 0, 0.1), at(rec, 0.04, 0.26), at(contact, 0, 0.52),
         at(pop, 0.06, 0.62), at(to, 0, 0.92), at(to, 0, 1)]
       return { ball, carrier: carrierPath([at(rec, 0, 0.26), at(contact, 0, 0.52)]), away: false }
     }
     case 'hit': {
-      // the OTHER side have it, run at the named tackler and get put down behind
-      // where they were going: the ball ends up back on the model's spot
+      // the OTHER side have it, run at the named tackler and are stopped dead
+      // where the ball comes to rest (contactOf), which is where the ruck forms
       const opp = -dir
       const rec: Pt = { x: from.x - opp * 3, y: from.y + side * 9 }
-      const contact: Pt = { x: rec.x + opp * 5, y: rec.y - side * 2 }
-      const ball = [at(from, 0, 0), at(from, 0, 0.12), at(rec, 0.04, 0.3), at(contact, 0, 0.62),
-        at(to, 0, 0.78), at(to, 0, 1)]
+      const contact = contactOf('hit', from, to, dir, seed)!.pt
+      const ball = [at(from, 0, 0), at(from, 0, 0.12), at(rec, 0.04, 0.3), at(contact, 0, 0.62), at(to, 0, 1)]
       return { ball, carrier: carrierPath([at(contact, 0, 0.62)]), away: false }
     }
     case 'turnover': {
@@ -269,6 +309,14 @@ export function buildPassage(kind: PlayKind, from: Pt, to: Pt, dir: number, seed
       const spot: Pt = { x: 50, y: 50 }
       const ball = [at(spot, 0, 0), at(spot, 0, 0.12), ...flight(spot, to, 0.12, 0.88, 1, 0, 8), at(to, 0, 1)]
       return { ball, carrier: carrierPath([at(to, 0, 0.86)]), away: false }
+    }
+    case 'throw': {
+      // `from` is the hooker on the touchline, `to` the jumper: a flat, quick
+      // throw, caught at the top of the lift, held while he is up, and brought
+      // down with him
+      const ball = [at(from, 0, 0), at(from, 0, 0.14), ...flight(from, to, 0.14, 0.4, 0.5, 0.42, 5),
+        at(to, 0.42, 0.62), at(to, 0, 0.8), at(to, 0, 1)]
+      return { ball, carrier: null, away: false }
     }
     case 'goal':
     case 'miss': {
