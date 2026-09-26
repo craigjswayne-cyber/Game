@@ -107,6 +107,9 @@ sc.balance = 40_000_000
 // board said no, correctly (its bar is 90%), and the build path below went
 // untested. The gates are set, so the path runs whatever the results were.
 for (const f of s2.fixtures) if (f.played && f.homeId === sc.id && f.att && f.compId !== 'fr') f.att = Math.round(sc.capacity * 0.95)
+// and a board that is not already out of patience with an unmanaged side's
+// results: the demand rule is the thing under test, not the league table
+sc.boardConfidence = Math.max(sc.boardConfidence, 70)
 const plan = expansionPlan(s2)
 console.log(`after 12w   : ${plan.played} home games, ${plan.avg.toLocaleString()} avg (${Math.round(plan.fill * 100)}% full)`)
 console.log('second ask  :', requestExpansion(s2))
