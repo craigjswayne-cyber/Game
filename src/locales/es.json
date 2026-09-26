@@ -6951,7 +6951,10 @@
   "onlyExpiring": "Solo contratos que vencen",
   "includeInjured": "Incluir lesionados",
   "reset": "Restablecer",
-  "show": "Ver {n} jugadores"
+  "show": {
+   "one": "Ver {n} jugador",
+   "other": "Ver {n} jugadores"
+  }
  },
  "attrShort": {
   "tac": "Pla",
