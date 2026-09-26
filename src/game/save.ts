@@ -300,6 +300,7 @@ export function migrate(s: GameState): GameState {
     champ: ['English Championship', 'Championship'],
     prod2: ['French Elite 2', 'Elite 2'],
     jl1: ['Japan Division One', 'Japan D1'],
+    mrc: ['Major Rugby Competition', 'MRC'],
     natl1: ['English National One', 'National 1'],
     cc: ['Continental Cup', 'Continental Cup'],
     chc: ['Continental Shield', 'Continental Shield'],

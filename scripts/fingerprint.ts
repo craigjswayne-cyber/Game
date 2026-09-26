@@ -390,12 +390,23 @@ const EXPECTED: string[] = [
   // capacity (pointsprobe caught a vast empty bowl leaning like a sell-out),
   // and these six did not move when that changed. bandcheck, pooled: home wins 52.8% ->
   // 54.6% (band 51-57), pts 49.5 -> 49.6, tries 6.30 -> 6.32.
-  'leicester 43-33 gloucester',
-  'bath 8-29 saracens',
-  'newcastle 20-23 northampton',
-  'harlequins 3-37 bristol',
-  'sale 10-57 exeter',
-  'bath 35-12 leicester',
+  //
+  // REBASELINED for the Major Rugby Competition (1.7.3): six American clubs
+  // joined the world, and a world with more clubs in it is drawn differently
+  // before the first ball is kicked (the squad, academy and fixture draws all
+  // run over every club on the shared stream). NOTHING IN THE MATCH ENGINE
+  // CHANGED - the diff touches data and registration only - so all six picks
+  // moved at once, including which fixtures they are, which is what a changed
+  // world looks like and not what an engine leak looks like (that moves scores
+  // on the SAME fixtures). bandcheck, pooled over four seeds, before -> after:
+  //   pts 49.5 -> 49.7   tries 6.30 -> 6.31   home 54.6% -> 54.5%
+  //   draws 1.7% -> 1.8%   blowouts 4.7% -> 5.2% (4068 games; every band holds)
+  'saracens 34-25 bath',
+  'exeter 8-29 gloucester',
+  'sale 28-36 bristol',
+  'harlequins 3-25 leicester',
+  'newcastle 13-39 northampton',
+  'exeter 21-39 saracens',
 ]
 // v1.8.1 moved three of them once more, and this time WITHOUT spending a new
 // draw: the training pitch now scales every side's breakdown and handling off
