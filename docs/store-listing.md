@@ -147,6 +147,31 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.7.3, Play version code 40
+
+Players who talk back (four new reasons to knock, and every answer read
+against who the player is), and the Major Rugby Competition, a six-club
+American league.
+
+```
+<en-GB>
+Players now talk back. A dropped regular asks why, your captain warns you about a new signing, a natural leader asks for the armband, and a squad player asks to try another position. How your answer lands depends on who they are: the same words that fire up a professional can insult a mercenary, and a senior voice carries it into the dressing room. New in the men's game: the Major Rugby Competition, a six-club American league.
+</en-GB>
+<fr-FR>
+Les joueurs vous répondent désormais. Un titulaire écarté demande pourquoi, votre capitaine vous alerte sur une recrue, un meneur réclame le brassard et un remplaçant veut essayer un autre poste. L'effet de votre réponse dépend de la personnalité : les mêmes mots qui motivent un pro peuvent vexer un mercenaire, et une voix respectée porte l'affaire jusqu'au vestiaire. Nouveau chez les hommes : la Major Rugby Competition, un championnat américain à six clubs.
+</fr-FR>
+<es-ES>
+Los jugadores ahora te responden. Un titular apartado pregunta por qué, tu capitán te avisa sobre un fichaje, un líder nato pide el brazalete y un suplente quiere probar en otra posición. Cómo cae tu respuesta depende de su carácter: las mismas palabras que motivan a un profesional pueden ofender a un mercenario, y una voz veterana lo lleva al vestuario. Novedad masculina: la Major Rugby Competition, una liga estadounidense de seis clubes.
+</es-ES>
+<it-IT>
+Ora i giocatori ti rispondono. Un titolare escluso chiede perché, il capitano ti avverte su un nuovo acquisto, un leader nato chiede la fascia e un panchinaro vuole provare un altro ruolo. L'effetto della tua risposta dipende dal carattere: le stesse parole che caricano un professionista possono offendere un mercenario, e una voce autorevole porta tutto nello spogliatoio. Novità maschile: la Major Rugby Competition, un campionato americano a sei club.
+</it-IT>
+<ja-JP>
+選手が言い返すようになった。外された主力が理由を尋ね、キャプテンは新加入選手について警告し、生まれながらのリーダーはキャプテンの座を求め、控え選手は別ポジションを試したいと言う。答えの受け止め方は性格次第。プロを奮い立たせる言葉が傭兵気質の選手を怒らせることもあり、ベテランの声はロッカールームに広がる。男子に新リーグ、6クラブのアメリカリーグ「メジャー・ラグビー・コンペティション」が登場。
+</ja-JP>
+```
+*(en-GB 430, fr-FR 462, es-ES 443, it-IT 455, ja-JP 196 - all inside Play's 500.)*
+
 ### What's new (500 max) - v1.7.2, Play version code 39
 
 The men around the ball: tackles that go to ground with a ruck over them, the
