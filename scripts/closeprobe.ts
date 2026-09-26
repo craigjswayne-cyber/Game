@@ -63,6 +63,14 @@ const g = newGame('leicester', 'Test', 9)
 while (g.week <= LEDGER_WEEKS) processWeekAndAdvance(g)
 ok(isCloseSeason(g.week), `the season reached the close season (week ${g.week})`)
 const before = g.clubs[g.userClubId].balance
+// THE SAME SUMMER WITHOUT THE BOOKINGS, for comparison. Before and after
+// alone measured everything else a summer costs too: in 1.7.3 this world's
+// ground threw two maintenance bills in weeks 47 and 48 (the lighting and the
+// drainage, £800k between them) and the balance fell while the events earned
+// £165k. What the bookings are worth is the gap to a summer without them.
+const quiet = structuredClone(g)
+while (isCloseSeason(quiet.week)) processWeekAndAdvance(quiet)
+const unbooked = quiet.clubs[quiet.userClubId].balance
 let earned = 0
 while (isCloseSeason(g.week)) {
   const best = CLOSE_EVENTS.filter(e => eventOpen(g, e)).sort((a, b) => eventFee(g, b) - eventFee(g, a))[0]
@@ -80,7 +88,7 @@ const after = g.clubs[g.userClubId].balance
 console.log(`     three weeks of events: ${fmtMoney(earned)} booked, balance ${fmtMoney(before)} -> ${fmtMoney(after)}`)
 ok(earned > 150_000, `"some money" means something (${fmtMoney(earned)})`)
 ok(earned < 1_500_000, `and not league money - the books stay paused for a reason (${fmtMoney(earned)})`)
-ok(after > before, 'the club is better off for a busy summer')
+ok(after > unbooked, `the club is better off for a busy summer (${fmtMoney(after)} against ${fmtMoney(unbooked)} unbooked)`)
 
 // ---- 4b. three in the diary, and some of them bite ----------------------
 //

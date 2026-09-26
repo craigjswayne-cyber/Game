@@ -89,14 +89,28 @@ console.log('\n--- 4. an empty ground is a board matter')
 // honest way to read the cost: the story fires somewhere inside the season, so
 // sampling confidence afterwards and comparing it with itself measures nothing,
 // which is exactly what the first version of this did.
-const run = (capacity: number) => {
-  const s2 = newGame('bath', 'Test', 11)
+//
+// A MANAGER WHO IS STILL IN THE JOB. Nobody picks this side, and an unmanaged
+// Bath loses its manager by week 30 in about half of all worlds, full ground or
+// not (six seeds read 53/12/0/9/49/25 confidence before 1.7.3's ageing and
+// 0/1/7/0/57/40 after). Seed 11 was one of the survivors until ageing moved it;
+// a sacked manager is at zero in both worlds and the comparison reads nothing.
+// So the world is the first of a few in which the full ground keeps him.
+const run = (capacity: number, seed: number) => {
+  const s2 = newGame('bath', 'Test', seed)
   s2.clubs[s2.userClubId].capacity = capacity
   for (let i = 0; i < 30; i++) processWeekAndAdvance(s2)
   return s2
 }
-const t = run(60_000)   // a ground that cannot be filled
-const f = run(1_000)    // a ground that cannot help selling out
+const WORLDS = [11, 15, 16, 12]
+let seed4 = WORLDS[0]
+let f = run(1_000, seed4)    // a ground that cannot help selling out
+for (const sd of WORLDS.slice(1)) {
+  if (f.clubs[f.userClubId].boardConfidence >= 30) break
+  seed4 = sd; f = run(1_000, sd)
+}
+const t = run(60_000, seed4)   // a ground that cannot be filled
+console.log(`     world ${seed4}`)
 console.log(`     empty ground ${Math.round(fillRate(t) * 100)}% full, board confidence ${t.clubs[t.userClubId].boardConfidence.toFixed(1)}`)
 console.log(`     full ground  ${Math.round(fillRate(f) * 100)}% full, board confidence ${f.clubs[f.userClubId].boardConfidence.toFixed(1)}`)
 ok(seen(t, 'point.tickets'), 'the board raises it when the ground is empty')

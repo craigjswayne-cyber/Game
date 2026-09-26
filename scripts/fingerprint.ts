@@ -390,12 +390,41 @@ const EXPECTED: string[] = [
   // capacity (pointsprobe caught a vast empty bowl leaning like a sell-out),
   // and these six did not move when that changed. bandcheck, pooled: home wins 52.8% ->
   // 54.6% (band 51-57), pts 49.5 -> 49.6, tries 6.30 -> 6.32.
-  'leicester 43-33 gloucester',
-  'bath 8-29 saracens',
-  'newcastle 20-23 northampton',
-  'harlequins 3-37 bristol',
-  'sale 10-57 exeter',
-  'bath 35-12 leicester',
+  //
+  // REBASELINED for the Major Rugby Competition (1.7.3): six American clubs
+  // joined the world, and a world with more clubs in it is drawn differently
+  // before the first ball is kicked (the squad, academy and fixture draws all
+  // run over every club on the shared stream). NOTHING IN THE MATCH ENGINE
+  // CHANGED - the diff touches data and registration only - so all six picks
+  // moved at once, including which fixtures they are, which is what a changed
+  // world looks like and not what an engine leak looks like (that moves scores
+  // on the SAME fixtures). bandcheck, pooled over four seeds, before -> after:
+  //   pts 49.5 -> 49.7   tries 6.30 -> 6.31   home 54.6% -> 54.5%
+  //   draws 1.7% -> 1.8%   blowouts 4.7% -> 5.2% (4068 games; every band holds)
+  //
+  // REBASELINED for kicking styles and the two breakdown dials (1.7.3). The
+  // user's side with no style and both dials at 50 plays the old game bit for
+  // bit (kickbreakprobe proves it), but every AI philosophy now sets a kicking
+  // style and a commit/contest pair, so the AI sides in this stream moved. The
+  // SAME six fixtures, three scores changed, the other three held: the new
+  // levers at work, not a leak. bandcheck, pooled over four seeds:
+  //   pts 49.7 -> 50.2   tries 6.31 -> 6.40   home 54.5% -> 54.7%
+  //   draws 1.8% -> 1.6%   blowouts 5.2% -> 5.0% (every band holds)
+  //
+  // REBASELINED for ageing (1.7.3, ageing.ts). Two things moved at once, both
+  // deliberately. A man built into the world at 31 now carries the summers he
+  // has lived (less pace, more craft), which changes every veteran's
+  // attributes before a ball is kicked; and TRY_BASE went 0.0895 -> 0.0945,
+  // because slower veteran backs and surer veteran tacklers score fewer tries.
+  // Same six fixtures, four scores moved. bandcheck, pooled over four seeds:
+  //   pts 50.2 -> 50.3   tries 6.40 -> 6.38   home 54.7% -> 53.7%
+  //   draws 1.6% -> 1.9%   blowouts 5.0% -> 5.0% (every band holds)
+  'saracens 37-18 bath',
+  'exeter 15-21 gloucester',
+  'sale 30-7 bristol',
+  'harlequins 3-25 leicester',
+  'newcastle 13-39 northampton',
+  'exeter 21-39 saracens',
 ]
 // v1.8.1 moved three of them once more, and this time WITHOUT spending a new
 // draw: the training pitch now scales every side's breakdown and handling off

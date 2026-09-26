@@ -1,3 +1,4 @@
+import { talkbackWeek } from './talkback'
 import type { Competition, FacilityId, Fixture, GameState, Player, Pos, TableRow, TrainingFocus } from './model'
 import { W, genderOf, mayTakeMaternityLeave, MATERNITY_WEEKS, subjectVar } from './gender'
 // FRIENDLY_DAY below is the Wednesday index this hands to dayDate
@@ -4074,6 +4075,9 @@ export function processWeekAndAdvance(state: GameState) {
     // the dressing room's own ledger (pillar 1): incidents surface, unanswered
     // ones fester, and the senior players knock when the room has had enough
     disciplineWeek(state)
+    // players who talk back (1.7.3): the four new knocks, on the office's own
+    // stream, and only when nobody else is already at the door
+    talkbackWeek(state)
     // press tone cools toward neutral unless you keep feeding it
     if (state.pressTone) state.pressTone = Math.abs(state.pressTone * 0.8) < 0.5 ? 0 : state.pressTone * 0.8
   }

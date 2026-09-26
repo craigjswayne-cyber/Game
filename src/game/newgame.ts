@@ -14,6 +14,7 @@ import { SRP_B } from '../data/leagues/srp_b'
 import { CHAMP } from '../data/leagues/champ'
 import { PROD2 } from '../data/leagues/prod2'
 import { JL1 } from '../data/leagues/jl1'
+import { MRC } from '../data/leagues/mrc'
 import { NATL1 } from '../data/leagues/natl1'
 import { W_PWR } from '../data/leagues/w_pwr'
 import { W_PAC } from '../data/leagues/w_pac'
@@ -210,6 +211,13 @@ const M_LEAGUE_DEFS: () => LeagueDef[] = () => [
   { id: 'prod2', name: 'French Elite 2', short: 'Elite 2', double: true, playoffTeams: 6, clubs: PROD2 },
   { id: 'jl1', name: 'Japan Division One', short: 'Japan D1', double: true, playoffTeams: 4, clubs: JL1 },
   { id: 'natl1', name: 'English National One', short: 'National 1', double: true, playoffTeams: 0, clubs: NATL1 },
+  // LAST, so the leagues before it build exactly as they did (owner, 1.7.3:
+  // "add USA MLR - call it Major Rugby Competition"). Six clubs, home and
+  // away, the top four into semi-finals and a final, as the real league ran
+  // 2026. Spread over the whole season like every other men's league, by the
+  // owner's choice: the real one plays March to June, and a manager there
+  // would otherwise wait from August to February for a match.
+  { id: 'mrc', name: 'Major Rugby Competition', short: 'MRC', double: true, playoffTeams: 4, clubs: MRC },
 ]
 
 /**
@@ -776,6 +784,16 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
 
   // the salary cap for every division, measured from the division itself (F6)
   refreshCaps(state, true)
+
+  // THE FIRST WEEK WALKS THROUGH THE WELCOME. The board's letter, the
+  // terraces, the staff and the scouts are this week's news, so the day walk
+  // files them on their days (days.ts storiesForDay) instead of leaving the
+  // first Continue to find them all on the wire at kick-off. Until 1.7.3 the
+  // first week's only bulletin was a Friday preview, which the fixture-id hash
+  // happened to allow; the Major Rugby Competition moved every id and every
+  // club's week-1 friendly onto a Friday, and the first week had no days at all.
+  const firstStory = state.news.reduce((m, n) => Math.min(m, n.id), state.nextId)
+  state.newsFrom = firstStory
 
   // the id counter travels with the save from here (GameState.pidNext, 1.6.4)
   state.pidNext = peekPid()

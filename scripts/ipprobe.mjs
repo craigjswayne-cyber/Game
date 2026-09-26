@@ -36,13 +36,19 @@ const MARKS = {
     'Bedford Blues', 'Plymouth Albion', 'Rosslyn Park', 'Leeds Tykes', 'Saitama Wild Knights',
     'Brave Lupus', 'Sungoliath', 'Kubota Spears', 'Canon Eagles', 'Toyota Verblitz',
     'Kobelco', 'Blue Revs', 'Black Rams', 'Dynaboars', 'D-Rocks', 'Honda Heat',
+    // the American league (1.7.3), every side that has played in it, so none of
+    // them can come back as a club name or a line of copy
+    'New England Free Jacks', 'Free Jacks', 'Chicago Hounds', 'Seattle Seawolves', 'Seawolves',
+    'California Legion', 'San Diego Legion', 'Old Glory DC', 'Anthem RC', 'Anthem Rugby Carolina',
+    'Houston SaberCats', 'SaberCats', 'Utah Warriors', 'Miami Sharks', 'Rugby New York',
+    'NOLA Gold', 'Dallas Jackals', 'Rugby FC Los Angeles', 'Austin Gilgronis',
   ],
   'competition marks': [
     'Gallagher Premiership', 'Premiership Rugby', 'Top 14', 'Pro D2',
     'United Rugby Championship', 'Super Rugby', 'Japan Rugby League One', 'Japan League One',
     'National League One', 'Champions Cup', 'Challenge Cup', 'Six Nations',
     'Rugby World Cup', 'Rugby Championship', 'Pacific Nations Cup', 'British & Irish Lions',
-    'British and Irish Lions', 'Currie Cup', 'Heineken Cup',
+    'British and Irish Lions', 'Currie Cup', 'Heineken Cup', 'Major League Rugby',
     // The touring side was called the Northern Lions until 7 Sep, when the owner
     // took the view that the lion is the distinctive half of the real mark:
     // "we shouldn't say Lions... should just be british and irish isles xv tour".
@@ -62,6 +68,9 @@ const MARKS = {
     'Stade Mayol', 'Matmut', 'GGL Stadium', 'Aimé-Giral', 'Wembley Stadium', 'Murrayfield',
     'Stade de France', 'Principality Stadium', 'Croke Park', 'Stade Velodrome',
     'Heineken Cup', 'Heineken Champions',
+    // the American grounds (1.7.3): the sponsor goes, and each real name with it
+    'SeatGeek', 'Starfire Stadium', 'Torero Stadium', 'SoccerPlex',
+    'Veterans Memorial Stadium', 'American Legion Memorial',
     // the women's competitions, added v1.5. Élite 1 and Élite 2 are exactly
     // what the French women's divisions are called, and Celtic Challenge and
     // Pacific Four Series are exactly what those two are called - all four

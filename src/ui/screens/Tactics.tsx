@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { planSlots, useStore } from '../../store'
 import { XV_SLOTS, type Player } from '../../game/model'
-import { DEF_SLIDER_INFO, DEF_SYSTEMS, PRESETS, SLIDER_INFO, ZONE_PLANS, defSliderReadout, defSystemOf, sliderReadout, zonePlan, type ZoneId } from '../../game/tactics'
+import { DEF_SLIDER_INFO, DEF_SYSTEMS, PRESETS, SLIDER_INFO, ZONE_PLANS, defSliderReadout, defSystemOf, sliderReadout, zonePlan, type ZoneId, BRK_SLIDER_INFO, brkSliderReadout } from '../../game/tactics'
 import { ROLE_BY_ID, rolesForSlot } from '../../game/roles'
 import { Jersey, PosBadge, SectionTitle } from '../components'
 import { analystClaim, analystForm, analystRead, prepLabel, unitLabel } from '../../game/analyst'
@@ -49,6 +49,16 @@ export default function Tactics() {
 
   // The without-ball dials (18D). Same row shell, but these live off the
   // preset system and default to 50 when a save predates them.
+  // the breakdown dials (1.7.3): the same row shell, 50 when a save predates them
+  const brkSlider = (info: typeof BRK_SLIDER_INFO[number]) => (
+    <div className="slider-row" key={info.key}>
+      <div className="lbls"><span>{t(info.lo)}</span><b style={{ color: 'var(--info)' }}>{t(info.label)}</b><span>{t(info.hi)}</span></div>
+      <input type="range" min={0} max={100} value={tac[info.key] ?? 50}
+        onChange={e => { tac[info.key] = Number(e.target.value); touch() }} />
+      <div className="meta" style={{ fontSize: 11, marginTop: 2 }}>{brkSliderReadout(info.key, tac[info.key] ?? 50)}</div>
+    </div>
+  )
+
   const defSlider = (info: typeof DEF_SLIDER_INFO[number]) => (
     <div className="slider-row" key={info.key}>
       {/* t(), like its sibling above. DEF_SLIDER_INFO's strings became KEYS in
@@ -296,6 +306,33 @@ export default function Tactics() {
               counter: 'tacticsScreen.exitCounterDesc',
               fifty22: 'tacticsScreen.exitFifty22Desc',
             })[tac.exit ?? 'long'])}
+          </div>
+        </div>
+
+        {/* KICKING STYLE (1.7.3): what kind of kick, where the Game Plan's
+            kicking dial says how many. Unset is Balanced, on the screen and in
+            the engine alike (the exit row above shows 'long' for unset while
+            the engine applies nothing - this one does not repeat that). */}
+        <SectionTitle>{t('tacticsScreen.kickStyle')}</SectionTitle>
+        <div className="card">
+          <div className="opt-2x2">
+            {([
+              ['territory', 'tacticsScreen.kickTerritory'],
+              ['contest', 'tacticsScreen.kickContest'],
+              ['attack', 'tacticsScreen.kickAttack'],
+              ['balanced', 'tacticsScreen.kickBalanced'],
+            ] as const).map(([id, label]) => (
+              <button key={id} className={`preset-chip${(tac.kickStyle ?? 'balanced') === id ? ' on' : ''}`}
+                onClick={() => { tac.kickStyle = id; touch() }}>{t(label)}</button>
+            ))}
+          </div>
+          <div className="meta" style={{ marginTop: 6 }}>
+            {t(({
+              territory: 'tacticsScreen.kickTerritoryDesc',
+              contest: 'tacticsScreen.kickContestDesc',
+              attack: 'tacticsScreen.kickAttackDesc',
+              balanced: 'tacticsScreen.kickBalancedDesc',
+            })[tac.kickStyle ?? 'balanced'])}
           </div>
         </div>
 
@@ -612,6 +649,11 @@ export default function Tactics() {
           )
         })()}
         <div className="dial-grid">{DEF_SLIDER_INFO.map(defSlider)}</div>
+        {/* THE BREAKDOWN, BOTH WAYS (1.7.3). Attack and defence dials, but one
+            row: each sat alone at the foot of its own section and took the tab
+            past three screenfuls on a landscape phone (scrollaudit). */}
+        <SectionTitle sub={t('tacticsScreen.atBreakdownSub')}>{t('tacticsScreen.atBreakdown')}</SectionTitle>
+        <div className="dial-grid">{BRK_SLIDER_INFO.map(brkSlider)}</div>
       </>}
 
       {roleSheet()}

@@ -202,6 +202,27 @@ Fuchu (its actual home) and the other keeps Tokyo; Black Rams take their
 Setagaya district; Verblitz can't be "Toyota" without reading as the company,
 so it takes the Mikawa region.
 
+## Major League Rugby (mrc.ts) - added 1.7.3
+
+The owner named the competition: **Major Rugby Competition** ("MRC"). The six
+clubs of the 2026 season, kept as six by the owner even though Charlotte folded
+at the end of it. Squads are generated with no real names.
+
+| Real club | In game | Real ground | In game |
+|---|---|---|---|
+| New England Free Jacks | New England RFC | Veterans Memorial Stadium, Quincy | Quincy Veterans Field |
+| Chicago Hounds | Chicago RFC | SeatGeek Stadium, Bridgeview | Bridgeview Stadium (sponsor stripped, district kept) |
+| Seattle Seawolves | Seattle RFC | Starfire Stadium, Tukwila | Starlight Stadium |
+| California Legion | California RFC | Torero Stadium, San Diego (2026 home games were spread over five cities) | Toreador Stadium |
+| Old Glory DC | Washington RFC | Maryland SoccerPlex, Germantown | Germantown Park |
+| Anthem RC | Charlotte RFC | American Legion Memorial Stadium | Legion Memorial Field |
+
+New England and California take their region, as Auckland RFC does, because
+neither club carries a single city. Every real name above, and every side that
+has ever played in the league, is in `scripts/ipprobe.mjs`. As with Cardiff,
+"<City> RFC" can also be a real amateur club in the US; the risk is low and
+noted here rather than designed around.
+
 ## Competitions (v1.0.3)
 
 The league picker still carried the real competition marks after the club pass,

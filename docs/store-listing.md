@@ -147,6 +147,32 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.7.3, Play version code 40
+
+Players who talk back (four new reasons to knock, and every answer read
+against who the player is), kicking styles and two breakdown dials, ageing
+that turns pace into craft, and the Major Rugby Competition, a six-club
+American league.
+
+```
+<en-GB>
+Players now talk back: a dropped regular asks why, your captain warns about a signing, a leader wants the armband, a squad player asks to change position. How your answer lands depends on who they are. New tactics: four kicking styles, and separate breakdown dials in attack and defence. Players now age like players: pace fades from 28, while scrummaging, kicking and reading the game keep improving to about 30. New men's league: the Major Rugby Competition, six American clubs.
+</en-GB>
+<fr-FR>
+Les joueurs vous répondent : un titulaire écarté demande pourquoi, le capitaine alerte sur une recrue, un meneur réclame le brassard, un remplaçant veut changer de poste. L'effet dépend de la personnalité. Tactique : quatre styles de jeu au pied et deux réglages du ruck (attaque, défense). Le vieillissement change : la vitesse baisse dès 28 ans, la mêlée, le pied et la lecture du jeu progressent jusque vers 30 ans. Nouveau chez les hommes : la Major Rugby Competition, six clubs américains.
+</fr-FR>
+<es-ES>
+Los jugadores te responden: un titular apartado pregunta por qué, el capitán avisa sobre un fichaje, un líder pide el brazalete, un suplente quiere cambiar de posición. El efecto depende de su carácter. Táctica: cuatro estilos de juego al pie y dos ajustes del ruck, en ataque y en defensa. Envejecer cambia: la velocidad cae desde los 28, mientras la melé, el pie y la lectura del juego mejoran hasta cerca de los 30. Nueva liga masculina: la Major Rugby Competition, seis clubes estadounidenses.
+</es-ES>
+<it-IT>
+I giocatori ti rispondono: un titolare escluso chiede perché, il capitano avverte su un acquisto, un leader chiede la fascia, un panchinaro vuole cambiare ruolo. L'effetto dipende dal carattere. Tattica: quattro stili di gioco al piede e due regolazioni del ruck, in attacco e in difesa. L'età conta: la velocità cala dai 28 anni, mentre mischia, piede e lettura del gioco migliorano fino ai 30 circa. Nuovo campionato maschile: la Major Rugby Competition, sei club americani.
+</it-IT>
+<ja-JP>
+選手が言い返すようになった。外された主力は理由を尋ね、キャプテンは新加入選手について警告し、リーダーはキャプテンの座を求め、控え選手はポジション変更を願い出る。受け止め方は性格次第。戦術に4つのキックスタイルと、攻守別のブレイクダウン設定が追加。年齢の重ね方も変わり、スピードは28歳から落ちるが、スクラム、キック、試合を読む力は30歳ごろまで伸び続ける。男子に新リーグ、6クラブのアメリカリーグ「メジャー・ラグビー・コンペティション」が登場。
+</ja-JP>
+```
+*(en-GB 480, fr-FR 494, es-ES 497, it-IT 476, ja-JP 222 - all inside Play's 500.)*
+
 ### What's new (500 max) - v1.7.2, Play version code 39
 
 The men around the ball: tackles that go to ground with a ruck over them, the
@@ -1454,7 +1480,7 @@ PICK A CLUB. PICK A SIDE. LIVE WITH IT.
 PHASE: Rugby Manager is a management simulation in the tradition of the great text-driven sports sims: dense squad tables, real decisions every week, and a career that remembers what you did in season one when you reach season fifteen. You take a job, you name a team, and you find out what kind of manager you are.
 
 TWO GAMES, ONE APP
-• The men's game: eight leagues and 101 clubs across England, France, the United Provinces, the Pacific and Japan, top flight down to National One.
+• The men's game: nine leagues and 107 clubs across England, France, the United Provinces, the Pacific, Japan and the United States, top flight down to National One.
 • The women's game, built the same way rather than bolted on: six leagues and 64 clubs across England, France, the Pacific and the Celtic provinces, with its own continental cup, Test calendar, squads and career challenges.
 • Choose at New Game. Every screen, every system and every season works in both.
 

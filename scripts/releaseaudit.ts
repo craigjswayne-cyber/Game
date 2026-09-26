@@ -112,9 +112,14 @@ section('1.1 weather x tactics: the multipliers the engine applies, then 200 mat
 {
   // the exact modifiers, read off the units beginMatch produced for the same two sides
   const same = mkFx(g, strong.id, weak.id) // one fixture id = one referee, so only the sky differs
+  // the SKY's multiplier, so the kicking style (1.7.3), which also reads the
+  // weather (an attacking kick game hates a wet ball), is held at balanced
+  const styles = [strong, weak].map(c => c.tactic.kickStyle)
+  strong.tactic.kickStyle = 'balanced'; weak.tactic.kickStyle = 'balanced'
   const dry = beginWith(g, same, 'Dry', 1)!
   const rain = beginWith(g, same, 'Rain', 2)!
   const wind = beginWith(g, same, 'Wind', 3)!
+  strong.tactic.kickStyle = styles[0]; weak.tactic.kickStyle = styles[1]
   const rA = rain.home.units.attack / dry.home.units.attack
   const rB = rain.home.units.breakdown / dry.home.units.breakdown
   const wK = wind.home.units.kicking / dry.home.units.kicking

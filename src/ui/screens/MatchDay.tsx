@@ -1583,6 +1583,11 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
   // event timeline, not the final-state sets
   const sentOffEvts = ctx.events.filter(e => e.type === 'RC' && e.playerId != null)
   const sentOffIds = new Set(sentOffEvts.map(e => e.playerId!))
+  // and a man still in the bin when the half's state was taken is out of that
+  // final onPitch set too, so he vanished from the first line of the half, not
+  // from his card. Anyone carded in the timeline may render; cardedNow below
+  // decides whether he is off at the line being shown
+  const cardIds = new Set([...sentOffIds, ...ctx.events.filter(e => e.type === 'YC' && e.playerId != null).map(e => e.playerId!)])
   // A card counts from the line that SHOWS it, not from its minute: a match
   // minute holds several lines, and reading the whole timeline by minute took
   // the man off one line before anybody had shown him anything (and so there
@@ -1642,7 +1647,7 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
 
   /** is this man on the field at the minute being shown */
   const onField = (side: SideCtx, id: number | null): id is number =>
-    id != null && !cardedNow(id) && (side.onPitch.has(id) || sentOffIds.has(id)) && !!game!.players[id]
+    id != null && !cardedNow(id) && (side.onPitch.has(id) || cardIds.has(id)) && !!game!.players[id]
 
   const openPlay = shape === 'open' || shape === 'kickoff'
   const setShape = shape === 'scrum' || shape === 'lineout' || shape === 'maul'
@@ -1672,7 +1677,14 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
       const k = side.lineup.slice(0, 15).indexOf(last.playerId)
       if (k >= 0 && k !== 9) [spots[k], spots[9]] = [spots[9], spots[k]]
     }
-    return side.lineup.slice(0, 15).map((id, slot) => {
+    // THE HIA STAND-IN. A head assessment puts a replacement on for a few
+    // minutes without touching the team sheet (matchEngine side.hia: the man
+    // assessed may come back), so the sheet's slot held a man off the field
+    // and the stand-in had no slot at all - the side played on with fourteen
+    // dots. He takes the assessed man's spot until the verdict.
+    const standIn = side.hia && side.onPitch.has(side.hia.subId) && !side.onPitch.has(side.hia.pid) ? side.hia : null
+    return side.lineup.slice(0, 15).map((sheetId, slot) => {
+      const id = standIn && sheetId === standIn.pid ? standIn.subId : sheetId
       // sent-off men are out of the final onPitch set but must still render
       // before their card; everyone else absent from onPitch was subbed off
       if (!onField(side, id)) return null

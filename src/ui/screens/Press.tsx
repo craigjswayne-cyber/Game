@@ -61,6 +61,13 @@ export default function Press() {
               <div className="when">{item.outlet === OFFICE_OUTLET ? t('world.prPrivate') : item.outlet} · {weekDate(item.season, item.week)}</div>
               <div className="subj" style={{ fontWeight: 400 }}>“{pressQuestion(item)}”</div>
               <div className="body">{t('world.prYouSaid', { answer: pressAnswer(item), reaction: pressReaction(item) })}</div>
+              {/* how he took it (talkback.ts): the reply already says so in
+                  words; this is the same verdict at a glance */}
+              {item.fit && (
+                <span className={`took ${item.fit}`}>
+                  {t(item.fit === 'good' ? 'world.prTookGood' : item.fit === 'bad' ? 'world.prTookBad' : 'world.prTookMixed')}
+                </span>
+              )}
             </div>
           ))}
         </>

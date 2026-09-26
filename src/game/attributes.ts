@@ -2,6 +2,7 @@ import type { Pos, RawPlayer } from '../data/types'
 import type { Attrs, Personality, Player } from './model'
 import { emptyStats } from './model'
 import { clamp, gauss, hashString, mulberry32, wpick, type Rng } from './rng'
+import { shapeSoFar, shiftAttrs } from './ageing'
 
 /** Assign a character type, nudged by leadership and aggression. */
 export function assignPersonality(rng: Rng, a: Attrs): Personality {
@@ -34,6 +35,13 @@ const TEMPLATES: Record<Pos, T> = {
   CE: { han: 0.85, tac: 0.85, str: 0.75, pac: 0.8, agi: 0.75, vis: 0.7, pas: 0.75, dec: 0.75, kic: 0.4, goa: 0.1, ruc: 0.55, scr: 0.03, lin: 0.05 },
   WG: { pac: 1, agi: 0.95, han: 0.8, tac: 0.55, pos: 0.7, str: 0.55, vis: 0.5, pas: 0.5, kic: 0.35, goa: 0.05, ruc: 0.4, scr: 0.02, lin: 0.05 },
   FB: { pos: 1, kic: 0.85, han: 0.85, pac: 0.85, agi: 0.8, tac: 0.7, dec: 0.8, vis: 0.7, pas: 0.65, goa: 0.3, str: 0.5, ruc: 0.35, scr: 0.02, lin: 0.03 },
+}
+
+/** How much a position leans on an attribute (0-1): the weight deriveAttrs
+ *  builds it with, and the share of a rating change the summer passes to it. */
+export function attrWeight(pos: Pos, k: keyof Attrs): number {
+  const t = TEMPLATES[pos]
+  return t[k] !== undefined ? t[k]! : BASE[k]
 }
 
 export function deriveAttrs(raw: RawPlayer, seed: number): Attrs {
@@ -84,8 +92,8 @@ export function deriveAttrs(raw: RawPlayer, seed: number): Attrs {
  * holds the fee-by-era bands; econprobe holds solvency), so the ECONOMY is
  * unchanged - what moved is who the money says is worth having.
  */
-const LATE_PEAK = new Set<string>(['LP', 'TP', 'HK', 'FH'])   // technique holds
-const EARLY_FADE = new Set<string>(['WG', 'FB'])              // speed does not
+export const LATE_PEAK = new Set<string>(['LP', 'TP', 'HK', 'FH'])   // technique holds
+export const EARLY_FADE = new Set<string>(['WG', 'FB'])              // speed does not
 
 /**
  * THE LATE BLOOMER (25D, from the FM blueprint the user loves: "the random
@@ -432,6 +440,10 @@ export function buildPlayer(raw: RawPlayer, clubId: string | null, seed: number,
   // before his standing existed. Re-strike it rather than reorder the maker:
   // deriveCaps reads fields the literal is still assembling.
   player.value = playerValue(ca, raw.age, pa, raw.pos, undefined, undefined, player.caps)
+  // a man built into the world at 31 has lived through the summers that turn
+  // legs into craft (ageing.ts). Applied last, so his personality and trait,
+  // read from the attributes above, are the ones he always had
+  shiftAttrs(player, shapeSoFar(raw.age, raw.pos), seed, -1)
   return player
 }
 
