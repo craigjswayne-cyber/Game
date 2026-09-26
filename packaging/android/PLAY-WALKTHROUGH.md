@@ -1,5 +1,9 @@
 # The Android app, as a real app: every click
 
+> **Moving to the company account (Sep 2026):** do `PLAY-ORG-MOVE.md` first.
+> The app transfers to the company's Play account with its players, purchases
+> and signing key; every step below is unchanged after that.
+
 This replaces the Bubblewrap build in `packaging/twa/`. The old Play app was a
 Trusted Web Activity: Chrome, showing phaserugbymanager.com. The new one is a
 Capacitor shell: the game itself inside the app, purchases through Google Play
