@@ -419,12 +419,22 @@ const EXPECTED: string[] = [
   // Same six fixtures, four scores moved. bandcheck, pooled over four seeds:
   //   pts 50.2 -> 50.3   tries 6.40 -> 6.38   home 54.7% -> 53.7%
   //   draws 1.6% -> 1.9%   blowouts 5.0% -> 5.0% (every band holds)
-  'saracens 37-18 bath',
-  'exeter 15-21 gloucester',
-  'sale 30-7 bristol',
-  'harlequins 3-25 leicester',
-  'newcastle 13-39 northampton',
-  'exeter 21-39 saracens',
+  //
+  // REBASELINED for 1.7.4. Three engine changes at once, all deliberate:
+  // a penalty in a side's own half goes to touch instead of at the posts,
+  // the penalty count leans toward the defending side's half (PEN_LEAN 1.7,
+  // TRY_BASE 0.0945 -> 0.0930 to hold the totals), and a rare light moment
+  // joins the atmosphere lines (one more draw on the stream). Every line now
+  // also carries where the ball was (MatchEvent.fld), which draws nothing.
+  // All six scores moved. bandcheck, pooled over four seeds:
+  //   pts 50.3 -> 50.2   tries 6.38 -> 6.41   home 53.7% -> 52.6%
+  //   draws 1.9% -> 1.6%   blowouts 5.0% -> 7.1% (every band holds)
+  'saracens 67-7 bath',
+  'exeter 15-50 gloucester',
+  'sale 20-25 bristol',
+  'harlequins 24-26 leicester',
+  'newcastle 17-38 northampton',
+  'exeter 32-24 saracens',
 ]
 // v1.8.1 moved three of them once more, and this time WITHOUT spending a new
 // draw: the training pitch now scales every side's breakdown and handling off

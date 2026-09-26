@@ -271,6 +271,17 @@ function render(entry: unknown, vars: Vars | undefined, lang: Lang): string | nu
 function fill(text: string, vars?: Vars, lang: Lang = current): string {
   if (!vars) return text
   return text.replace(/\{(\w+)\}/g, (whole, name: string) => {
+    // AN ENGLISH POSSESSIVE STAYS IN ENGLISH (1.7.4). The gossip column stores
+    // shortPoss as "Bath's" (model.poss), and every other language was
+    // printing it as it came: "le nouveau maillot Bath's", "Bath'sの". Each
+    // translation already places the club name where the possessive goes, so
+    // outside English it is the name in that language's own possessive: "de
+    // Bath", "Bath se", and the bare name where the sentence brings its own
+    // ("di {shortPoss}", "{shortPoss}の").
+    if (name === 'shortPoss' && lang !== 'en' && vars.short != null) {
+      const club = String(vars.short)
+      return lang === 'fr' ? `de ${club}` : lang === 'af' ? `${club} se` : club
+    }
     const v = vars[name]
     if (v == null) return whole
     // A VARIABLE THAT IS ITSELF A KEY, marked by a _k suffix on its name.
