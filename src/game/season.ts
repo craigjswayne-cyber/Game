@@ -39,6 +39,8 @@ import { clamp, mulberry32, shuffled, type Rng } from './rng'
 import { gameTimeReview, settleGameTime } from './gametime'
 import { rebuildSeason, rollIntakeClass } from './rollover'
 import { drillWeek } from './playbook'
+import { settleJokers } from './joker'
+import { settleKnocks } from './knock'
 import { askBoard, type BoardAsk } from './boardroom'
 import { expireLoans, loanTargets } from './loans'
 import { refreshVacancies, sackManager } from './jobs'
@@ -2261,6 +2263,11 @@ export function processWeekAndAdvance(state: GameState) {
   // never mint below the counter the save carries: a career opened in the
   // same session as another must not reuse ids the other career freed (1.6.4)
   resetIds(Math.max(peekPid(), state.pidNext ?? 0))
+  // did last week's match make a knock worse? (knock.ts) - before the jokers,
+  // so a flare-up that puts a man out long-term is one a joker can cover
+  settleKnocks(state)
+  // a medical joker whose man is fit again, or gone, leaves (joker.ts)
+  settleJokers(state)
 
   // ---- A DRAW IS NEWS, AND NEWS GOES OFF ----
   //

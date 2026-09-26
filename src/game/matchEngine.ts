@@ -14,6 +14,7 @@ import { analystEdge, settleAnalyst } from './analyst'
 import { t, tIn } from './i18n'
 import { venueEffect } from './venue'
 import { clamp, gauss, mulberry32, wpick, type Rng } from './rng'
+import { KNOCK_ENERGY } from './knock'
 import { DEFAULT_LINEOUT, DEFAULT_SCRUM, ROUTINE_BY_ID, playbookOf, routineEffect } from './playbook'
 import {
 
@@ -532,6 +533,41 @@ const REF_PANEL: Referee[] = [
 export function refFor(fxId: number): Referee {
   const h = (fxId * 2654435761) >>> 0
   return REF_PANEL[h % REF_PANEL.length]
+}
+
+/**
+ * ---- THE HOME CROWD (owner, 25 Sep 2026: "home-crowd referees") ----
+ *
+ * Some afternoons the fifty-fifty calls go the home side's way: a full,
+ * loud ground, a derby, a knockout. This puts that in, as a tilt on who
+ * concedes the penalties - fewer against the home side, as many more against
+ * the visitors - of up to 7%.
+ *
+ * IT IS THE GROUND'S, NOT THE REFEREE'S. The panel above carries real
+ * officials' names, and a trait that says a named referee favours home sides
+ * is a claim about a real person's integrity. So the lean is read off the
+ * occasion - the size of the ground, a derby, a knockout - and applies
+ * whoever has the whistle; the briefing says it is the crowd.
+ *
+ * THE CROWD THAT IS THERE, NOT THE SEATS. The first cut read the stadium's
+ * capacity, and pointsprobe caught it at once: a 60,000-seat ground a third
+ * full leaned as hard as a sell-out, so a club with a vast empty bowl got
+ * the referee's ear it had done nothing to earn. The match reads the counted
+ * gate (fx.att, set in beginMatch after the draw for it); before kick-off,
+ * for the briefing, it reads the seats the club can actually sell.
+ *
+ * Nothing at a neutral venue, in a friendly, or in front of a small crowd on
+ * an ordinary Saturday. No draw.
+ */
+export function homeCrowdLean(state: GameState, fx: Fixture): number {
+  if (fx.venue || fx.compId === 'fr') return 0
+  const club = state.clubs[fx.homeId]
+  const crowd = fx.att ?? (club ? Math.min(club.capacity, demandCeiling(club)) : 0)
+  // a gate that is not a number (a damaged save) leans nobody's way (hostile171)
+  if (!Number.isFinite(crowd)) return 0
+  const size = clamp((crowd - 12000) / 18000, 0, 1)
+  const occasion = (isDerby(fx.homeId, fx.awayId) ? 0.5 : 0) + (fx.stage ? 0.35 : 0)
+  return 0.07 * Math.min(1, size + occasion)
 }
 
 /** Law 3: a 23 must be able to replace all three front-row positions.
@@ -1241,7 +1277,9 @@ function mkSide(state: GameState, teamId: string, userTeamId: string | null, fxI
       // and trustprobe's near-even season lurched 26 -> 6 instead of drifting.
       // The floor is load-bearing for the board's read of a season, which is
       // not something a bench fix should be quietly deciding.
-      energy.set(id, Math.max(50, state.players[id]?.cond ?? 85))
+      // carrying a knock (knock.ts): he starts short of his usual tank
+      const knockF = state.players[id]?.knock ? KNOCK_ENERGY : 1
+      energy.set(id, Math.max(50, state.players[id]?.cond ?? 85) * knockF)
     }
   })
   const units = teamUnits(state, lineup, { fxId, big })
@@ -1597,6 +1635,14 @@ const DEPICTS: Record<string, NonNullable<MatchEvent['fx']>> = {
   'comm.penWide': 'MISS',           // the kick that misses
   'comm.penWideNamed': 'MISS',
   'comm.conWide': 'MISS',
+  'comm.tmoReview1': 'TMO',         // the referee goes upstairs (scoreTry)
+  'comm.tmoReview2': 'TMO',
+  'comm.tmoReview3': 'TMO',
+  'comm.tmoReview4': 'TMO',
+  'comm.tmoNoTry1': 'NOTRY',        // and the TMO says no
+  'comm.tmoNoTry2': 'NOTRY',
+  'comm.tmoNoTry3': 'NOTRY',
+  'comm.tmoNoTry4': 'NOTRY',
 }
 
 /**
@@ -1610,6 +1656,20 @@ const DEPICTS: Record<string, NonNullable<MatchEvent['fx']>> = {
  * The English is still computed and still stored, because the engine reads its
  * own commentary back - see MatchEvent.text. It is stored, not shown.
  */
+/**
+ * TEN MINUTES FROM THE CARD YOU SAW. pushEvent never lets the clock run
+ * backwards, so a card shown on a tick whose earlier lines were stamped a
+ * minute on (a conversion is `min + 1`) reads a minute later than the tick it
+ * happened on - and the ten minutes were counted from the tick. The man came
+ * back after ten real minutes and nine on the screen, and scored at 71' off a
+ * card shown at 62' (auditprobe, seed 999, surfaced when the TMO moved the
+ * stream). Counted from the minute the card is shown, the bin is ten minutes
+ * on the ticker, which is the only clock anyone watching has. No draw.
+ */
+function binUntil(ctx: LiveCtx, min: number): number {
+  return Math.max(min, ctx.detail ? ctx.lastMin : min) + 10
+}
+
 function pushLine(
   state: GameState, ctx: LiveCtx, min: number, type: MatchEvent['type'], side: SideCtx | null,
   k: string, v?: Record<string, string | number>, playerId?: number,
@@ -1900,6 +1960,18 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     // a testimonial packs the ground whatever the fixture list says
     if (fx.testimonial != null) fx.att = Math.max(fx.att, sellable - jitter)
   }
+  // THE HOME CROWD, now that it has been counted (homeCrowdLean). Folded into
+  // refPenF, which every later recompute reads, and swapped into penRisk as a
+  // ratio for the same reason the referee's own price is (see above).
+  const crowdLean = homeCrowdLean(state, fx)
+  if (crowdLean > 0) {
+    for (const side of [home, away]) {
+      const rp = side.refPenF ?? 1
+      const f = side === home ? 1 - crowdLean : 1 + crowdLean
+      side.penRisk *= aggPenRisk(side.aggF, rp * f) / aggPenRisk(side.aggF, rp)
+      side.refPenF = rp * f
+    }
+  }
 
   // every match started together deepens a partnership (counted at kick-off,
   // after this match's units were computed from the old familiarity)
@@ -2166,6 +2238,12 @@ function takePenaltyShot(state: GameState, ctx: LiveCtx, side: SideCtx, min: num
   }
 }
 
+/** How often a try goes to the TMO, and how often a review chalks it off.
+ *  Together about one try in twenty is disallowed (the four-seed balance in
+ *  fingerprint.ts records what that did to the scoring). */
+export const TMO_REVIEW = 0.16
+export const TMO_OVERTURN = 0.33
+
 /** Score a try (+ conversion attempt) for a side - shared by open play and set-piece strikes. */
 /** `line`/`lineV` let a set-piece strike supply its own wording - a maul that
  *  rumbles over reads better than the generic bank - and it is a KEY, not a
@@ -2176,6 +2254,34 @@ function scoreTry(
 ) {
   const { rng, goalPenalty } = ctx
   const scorer = forceScorer ?? tryScorer(state, side, rng)
+  // ---- THE TMO (owner, 25 Sep 2026: "we need to be able to overturn a try
+  // if the tmo finds it ... there is randomness to whether its a try or not").
+  //
+  // A MECHANICAL CHANGE, on the rng stream on purpose: two draws per try, the
+  // second only when the first sends it upstairs, so fingerprint.ts is
+  // rebaselined in the same commit. Every match takes it, AI and Instant
+  // Result included, or the user's fixtures would score differently from the
+  // rest of the league.
+  //
+  // What the review is ABOUT (grounding, knock-on, the last pass, the
+  // touchline) is picked from the minute and the scorer, not drawn: which
+  // question the referee asks is wording, and wording never moves the stream.
+  // The question and the verdict agree - a try chalked off for a knock-on was
+  // being checked for a knock-on.
+  if (rng() < TMO_REVIEW) {
+    const q = 1 + ((min + (scorer?.id ?? 0)) % 4)
+    // the lines name the side, not the man: no pronoun to get wrong, and a
+    // pack drive has no single scorer to name
+    const team = { team: teamShort(state, side.teamId) }
+    pushLine(state, ctx, min, 'SUB', side, `comm.tmoReview${q}`, team, scorer?.id)
+    if (rng() < TMO_OVERTURN) {
+      // No points, no conversion, no credit. The ball stays where it was, down
+      // at the defending side's line: a scrum five metres out or a drop-out,
+      // and the attack still has the field it had earned.
+      pushLine(state, ctx, min, 'SUB', side, `comm.tmoNoTry${q}`, team, scorer?.id)
+      return
+    }
+  }
   // THE RESTART (v1.8.0). The position that won the try is given back: the
   // conceding side kicks off from halfway. A HARD set to 50 was tried and
   // measured first, and with eleven scores across twenty ticks it meant more
@@ -2696,8 +2802,13 @@ const COVER_DEF = 0.937
  * Same lesson, and the same fix, as the last-quarter fatigue term above - the
  * mechanism stays at full strength and the constant underneath it comes down
  * so the season's totals stay on the band.
+ *
+ * And a third time the other way, 0.0832 to 0.0895, when the TMO started
+ * chalking tries off (scoreTry): about one in eighteen is disallowed, so a few
+ * more are scored in the first place and the season lands where it was
+ * (fingerprint.ts has the before-and-after).
  */
-const TRY_BASE = 0.0832
+const TRY_BASE = 0.0895
 
 /** The cost of a thin bench: a man in the wrong half of the team.
  *
@@ -2970,7 +3081,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
         const ps = [...opp.onPitch].map(id => state.players[id]).filter(Boolean)
         if (ps.length) {
           const p = wpick(rng, ps, ps.map(x => x.a.agg))
-          opp.yellowUntil.set(p.id, min + 10)
+          opp.yellowUntil.set(p.id, binUntil(ctx, min))
           opp.onPitch.delete(p.id)
           opp.binned.add(p.id)
           p.stats.yc += 1
@@ -3094,7 +3205,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           pushLine(state, ctx, min, 'RC', side, 'comm.redCard', { player: p.name }, p.id)
           checkFrontRow(state, ctx, side, min, p, 'red')
         } else {
-          side.yellowUntil.set(p.id, min + 10)
+          side.yellowUntil.set(p.id, binUntil(ctx, min))
           // he SITS the ten minutes: off the pitch pools, so a man in the bin
           // cannot score a try, take another card or pull an injury while he
           // sits (audit 16D). numF still charges the missing man's strength.
@@ -3992,7 +4103,9 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
       if (isNation) {
         // a Test match: another cap, and the milestones are forever
         p.caps = (p.caps ?? 0) + 1
-        if (p.clubId === state.userClubId && (p.caps === 1 || p.caps === 50 || p.caps === 100)) {
+        // (not while he is out of work: userClubId still names the club that
+        // sacked him, and its players' caps are not his news - exileprobe)
+        if (!state.unemployed && p.clubId === state.userClubId && (p.caps === 1 || p.caps === 50 || p.caps === 100)) {
           state.news.push({
             id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
             subject: p.caps === 1 ? `🌍 First cap: ${p.name}`

@@ -361,12 +361,41 @@ const EXPECTED: string[] = [
   // The board's extra table reviews (season.ts) are outside this stream for
   // the same reason the training-ground roll is: fingerprint sims fixtures
   // directly and never advances a week.
-  'leicester 26-31 gloucester',
-  'bath 7-20 saracens',
-  'newcastle 18-45 northampton',
-  'harlequins 24-26 bristol',
-  'sale 36-14 exeter',
-  'bath 41-24 leicester',
+  //
+  // REBASELINED for the TMO (owner, 25 Sep 2026: "we need to be able to
+  // overturn a try if the tmo finds it ... there is randomness to whether its
+  // a try or not"). All six move, deliberately: scoreTry now spends one draw
+  // per try on whether it goes upstairs (16%) and a second, only then, on
+  // whether it stands (a third are chalked off), so every draw after the first
+  // try of every match is a different draw. About one try in eighteen is
+  // disallowed.
+  //
+  // Alone, that took the league off the bottom of the band: bandcheck pooled
+  // 48.0 pts and 6.06 tries against floors of 48 and 6.0. TRY_BASE went up to
+  // put the season back where it was, 0.0832 -> 0.0895, the same lever and the
+  // same reasoning as every rebase above: the mechanism at full strength, the
+  // constant under it moved so the totals stay on the band. More tries are
+  // scored and a few are taken away again.
+  //
+  // FOUR-SEED BALANCE (bandcheck, 3960 games pooled), before -> after:
+  //   pts 49.4 -> 49.5   tries 6.30 -> 6.30   home 51.3% -> 52.8%
+  //   draws 2.4% -> 1.5%   blowouts 4.6% -> 4.1%
+  //
+  // REBASELINED for the home crowd (matchEngine.homeCrowdLean): a big ground,
+  // a derby or a knockout tilts who concedes the penalties by up to 7% toward
+  // the home side. No draw is added; a threshold moves, so only a fixture
+  // with a lean can change, and two did, both on the size of the crowd:
+  // leicester-gloucester (Welford Road, a 25,849 ground) and harlequins-bristol
+  // (14,800). Neither is a derby. The lean reads the counted gate, not the
+  // capacity (pointsprobe caught a vast empty bowl leaning like a sell-out),
+  // and these six did not move when that changed. bandcheck, pooled: home wins 52.8% ->
+  // 54.6% (band 51-57), pts 49.5 -> 49.6, tries 6.30 -> 6.32.
+  'leicester 43-33 gloucester',
+  'bath 8-29 saracens',
+  'newcastle 20-23 northampton',
+  'harlequins 3-37 bristol',
+  'sale 10-57 exeter',
+  'bath 35-12 leicester',
 ]
 // v1.8.1 moved three of them once more, and this time WITHOUT spending a new
 // draw: the training pitch now scales every side's breakdown and handling off

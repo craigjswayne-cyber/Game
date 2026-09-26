@@ -55,10 +55,18 @@
     "nothing else, which is the distinction that cost 34, so the rule stands:",
     "check the highest accepted code on the Console before every upload and",
     "never reuse a number.",
+    "38 IS 1.7.1: the match as something you watch (play between the lines,",
+    "phase shapes, kicks in the air, the TMO overturning tries in the engine,",
+    "the Broadcast camera and mini-map, the crowd under the match, half-time",
+    "and full-time cards) and three management features (medical jokers,",
+    "playing through a late knock, the home crowd on the tight calls).",
+    "38 IS ASSUMED FREE AND NOT YET VERIFIED: it assumes 37 was the last code",
+    "Play accepted. Check the highest accepted code on the Console before the",
+    "bundle is built - scaffold.sh reads this file - and never reuse a number.",
     "versionName comes from the root package.json.",
     "billingLibrary is the Play Billing Library version PhaseBilling.java is",
     "written against. Play refuses anything below 8.0.0 (learned 4 Sep 2026)."
   ],
-  "versionCode": 37,
+  "versionCode": 38,
   "billingLibrary": "8.0.0"
 }

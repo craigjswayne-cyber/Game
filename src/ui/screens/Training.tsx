@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
-import { STAFF_INFO, fmtMoney, fmtWage, type TrainingFocus, weeksBetween100 } from '../../game/model'
+import { STAFF_INFO, fmtMoney, fmtWage, injuryDesc, type TrainingFocus, weeksBetween100 } from '../../game/model'
 import { BADGE_COL, EXAM_PASS_PCT, badgeLabel, traitLabel, appointBlock, appointStaff, backroomFund, courseBlock, courseFee, sackCost, sackStaff, sendToCourse, staffCandidates, staffChemPairs, staffInterest, type StaffRole } from '../../game/staff'
 import { MENTEE_MAX_AGE, MENTOR_MAX_KIDS, canBeMentored, canMentor, fitReason, fitWord, mentorCap, mentorFit } from '../../game/mentoring'
 import { activePlan, planCap } from '../../game/season'
@@ -129,7 +129,7 @@ export default function Training() {
               <td className="name">{p.name}</td>
               <td className="num" style={{ color: p.cond < 70 ? 'var(--text-negative)' : undefined }}>{Math.round(p.cond)}%</td>
               <td className="num">{Math.round(p.sharp)}%</td>
-              <td className="muted">{p.injury ? t('training.statusInjured', { desc: p.injury.desc, n: Math.max(0, p.injury.until - game.week) })
+              <td className="muted">{p.injury ? t('training.statusInjured', { desc: injuryDesc(p.injury), n: Math.max(0, p.injury.until - game.week) })
                 : p.natSquad ? t('training.statusIntl') : p.bans > 0 ? t('training.statusBanned', { n: p.bans }) : t('training.statusAvailable')}</td>
             </tr>
           ))}

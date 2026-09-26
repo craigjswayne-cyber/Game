@@ -147,6 +147,33 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.7.1, Play version code 38
+
+The match as something you watch: play between every line with real phase
+shapes, kicks that fly, the TMO able to rule out a try, an optional
+Broadcast camera with a mini-map, and a crowd you can hear. Off the pitch,
+medical jokers, playing through a late knock, and the home crowd on the
+tight calls.
+
+```
+<en-GB>
+Match day comes alive: the ball is passed, carried and kicked between every line, scrums, lineouts and mauls take their real shape, and kicks at goal fly from the tee. The TMO can now rule out a try. An optional Broadcast camera follows the play with a mini-map, and the crowd builds as the ball nears the line. Cover a long injury with a medical joker outside the salary cap, send someone out on a late knock at a stated risk, and feel a big home crowd lean on the tight calls.
+</en-GB>
+<fr-FR>
+Le jour de match prend vie : le ballon est passé, porté et tapé entre chaque action, mêlées, touches et mauls prennent leur vraie forme, et les tirs au but partent du tee. La vidéo peut désormais refuser un essai. Une caméra « Style TV » suit le jeu avec une mini-carte, et la foule monte près de la ligne. Un joker médical couvre une longue blessure hors plafond salarial, on peut jouer malgré une gêne à un risque annoncé, et un grand public pèse sur les décisions serrées.
+</fr-FR>
+<es-ES>
+El día de partido cobra vida: el balón se pasa, se lleva y se patea entre cada acción, melés, touches y mauls toman su forma real, y las patadas a palos salen del tee. El TMO ya puede anular un ensayo. Una cámara Estilo TV opcional sigue el juego con minimapa, y el público crece cerca de la línea. Un joker médico cubre una lesión larga fuera del límite salarial, se puede jugar con molestias a un riesgo indicado y un gran público local inclina las decisiones ajustadas.
+</es-ES>
+<it-IT>
+Il giorno della partita prende vita: il pallone viene passato, portato e calciato a ogni azione, mischie, touche e maul prendono la loro vera forma, e i calci piazzati partono dal tee. Il TMO ora può annullare una meta. Una telecamera Stile TV opzionale segue il gioco con minimappa, e il pubblico cresce vicino alla linea. Un joker medico copre un lungo infortunio fuori dal tetto salariale, si può giocare col dolore a un rischio dichiarato e un grande pubblico pesa sulle decisioni al limite.
+</it-IT>
+<ja-JP>
+試合日が生まれ変わった。ボールは毎プレーごとにパス、キャリー、キックされ、スクラム、ラインアウト、モールは本物の形をとり、ゴールキックはティーから飛ぶ。TMOがトライを取り消せるようになった。任意の中継スタイルカメラがミニマップ付きでプレーを追い、ボールがラインに迫ると観客の声が高まる。長期離脱はサラリーキャップ外のメディカルジョーカーで補え、終盤の負傷は示されたリスクを承知で押して出場させられる。大観衆のホームは際どい判定に影響する。
+</ja-JP>
+```
+*(en-GB 478, fr-FR 475, es-ES 472, it-IT 495, ja-JP 220 - all inside Play's 500.)*
+
 ### What's new (500 max) - v1.7.0, Play version code 37
 
 The ground becomes a 0-5 ladder with upkeep and wear behind it, the

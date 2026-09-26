@@ -6,7 +6,7 @@ import { COACHING_STYLES } from '../../game/tactics'
 import type { RawClub } from '../../data/types'
 import { ClubStars, Crest, Jersey } from '../components'
 import { playerValue } from '../../game/attributes'
-import { fmtMoney } from '../../game/model'
+import { fmtMoney, seasonLabel } from '../../game/model'
 import { t } from '../../game/i18n'
 
 // Guided setup: STEP x OF 4, breadcrumbs, tile grids,
@@ -337,7 +337,7 @@ export default function NewGame() {
                 <div><label>{t('wizard.manager')}</label><span>{name.trim()}</span></div>
                 <div><label>{t('wizard.competition')}</label><span>{league.name}</span></div>
                 <div><label>{t('wizard.philosophyShort')}</label><span>{t(COACHING_STYLES.find(s => s.id === styleId)?.name ?? '')}</span></div>
-                <div><label>{t('wizard.season')}</label><span>2025-26</span></div>
+                <div><label>{t('wizard.season')}</label><span>{seasonLabel(0)}</span></div>
                 {challenge && <div><label>{t('wizard.challenge')}</label><span>{t(challenge.title)}</span></div>}
                 <div><label>{t('wizard.objective')}</label><span>{t(club.rep >= 87 ? 'wizard.objTitle' : club.rep >= 80 ? 'wizard.objPlayoffs' : club.rep >= 72 ? 'wizard.objTopHalf' : 'wizard.objSurvive')}</span></div>
               </div>

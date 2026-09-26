@@ -76,7 +76,11 @@ const measure = () => page.evaluate(({ MIN, FLOOR }) => {
   // target, and a 28px chip in a 6px-gapped row measured 41px. Tapping a row's
   // padding does nothing, so it is not part of the target.
   const owns = (el, hit) => !!hit && (el === hit || el.contains(hit))
+  // with a sheet open, only what is in the sheet can be tapped: the page under
+  // the veil is covered on purpose and is measured on its own stage
+  const sheet = document.querySelector('.modal-veil .modal')
   for (const el of document.querySelectorAll('button:not([disabled])')) {
+    if (sheet && !sheet.contains(el)) continue
     if (el.getBoundingClientRect().height === 0) continue
     const cs = getComputedStyle(el)
     if (cs.visibility === 'hidden' || cs.display === 'none' || Number(cs.opacity) < 0.05) continue
@@ -169,6 +173,34 @@ try {
   await page.click('.submenu-item >> text=Finances')
   await page.waitForTimeout(400)
   await check('Finances')
+
+  // THE TREATMENT ROOM WITH SOMEBODY IN IT (release audit 1.7.1). The walk
+  // above reaches no screen where the Medical Centre's row controls exist -
+  // nobody is hurt in week one - so the specialist, the physio favour, "play
+  // through it", "sign a medical joker" and "rest instead" had never once been
+  // measured, and all of them were ~20px tall in a wrapping row. Seeded here:
+  // a hamstring near its end, a long knee, a knock carried, and two free
+  // agents who can cover the long one so the joker picker has rows to measure.
+  await page.evaluate(() => {
+    const S = window.rugbyStore.getState(); const g = S.game
+    const ids = g.clubs[g.userClubId].players.filter(id => !g.players[id].acad)
+    const hurt = (id, dk, left, weeks) => { g.players[id].injury = { desc: 'Hamstring', dk, until: g.week + left, weeks, seen: true } }
+    hurt(ids[0], 'injury.hamstring', 2, 4)
+    hurt(ids[1], 'injury.kneeLigament', 11, 12)
+    hurt(ids[2], 'injury.calf', 1, 3)
+    const pos = g.players[ids[1]].pos
+    const other = Object.values(g.clubs).find(c => c.id !== g.userClubId && c.players.some(id => g.players[id]?.pos === pos))
+    for (const id of other.players.filter(id => g.players[id]?.pos === pos).slice(0, 2)) {
+      other.players = other.players.filter(x => x !== id); g.players[id].clubId = null
+    }
+    S.touch(); S.go('medical')
+  })
+  await page.waitForSelector('text=Play through it')
+  await page.locator('button', { hasText: 'Play through it' }).last().click()
+  await check('Medical: treatment room and a knock carried')
+  await page.locator('button', { hasText: 'Sign a medical joker' }).first().click()
+  await page.waitForSelector('.modal')
+  await check('Medical: the joker picker')
 } catch (e) {
   say('PROBE THREW: ' + (e?.message ?? e))
   fails++

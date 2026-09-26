@@ -24,6 +24,7 @@ import { clamp, mulberry32, pick, type Rng } from './rng'
 import { resetFamiliarity } from './playbook'
 import { closeAcademySeason, ensureAcademyLeague, topUpAcademy, acadCeiling } from './academy'
 import { mentorBoost } from './mentoring'
+import { endSeasonJokers } from './joker'
 import { staffChem } from './staff'
 import { tIn, type Vars } from './i18n'
 
@@ -637,6 +638,9 @@ function clubServiceApps(state: GameState, p: Player): number {
 }
 
 function handleContracts(state: GameState, rng: Rng) {
+  // every medical joker's deal ends with the season, before anybody can mistake
+  // one for an expiring contract to roll (joker.ts)
+  endSeasonJokers(state)
   // pre-contracts go through first: the moves were agreed in the spring
   const freeMoves: { p: Player; to: Club; from: Club | null }[] = []
   for (const pc of state.preContracts ?? []) {
@@ -1529,6 +1533,8 @@ export function rebuildSeason(state: GameState) {
     p.cond = 100
     p.sharp = 60
     p.injury = null
+    // a summer heals a knock too, and its week numbers were last season's
+    p.knock = undefined
     p.specialist = false
     p.bans = 0
     p.rust = 0
