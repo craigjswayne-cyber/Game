@@ -47,10 +47,22 @@ const SEASONS = 10
  *  it. One seed over ten seasons is a coin that lands anywhere in that range,
  *  so the rate is now pooled over five and held to the measured 1.7.0 mean
  *  (release audit, 26 Sep 2026). */
-const WAS_PER_SEASON = 0.33e6
+/*  RE-REFERENCED in 1.7.3. The Major Rugby Competition (six new clubs on
+ *  five home gates a season) moved the median, and ageing (which stopped
+ *  attributes compounding) moved it again, while the MEAN club's gain did
+ *  not move at all: 0.46M a season before ageing, 0.47M after, on eight
+ *  worlds, with wage bills and ratings the same to the thousand. The median
+ *  over twelve worlds read 0.23M before ageing and 0.13M after, and one
+ *  world's median ranges -0.09M to 0.64M, so five worlds could not tell the
+ *  two apart. The rate now pools eight worlds against the twelve-world
+ *  post-MRC median (0.23M), and the mean, which is steady, is held tightly
+ *  below (MEAN_WAS). */
+const WAS_PER_SEASON = 0.23e6
+/** the mean AI club's gain a season, eight worlds, 1.7.3 */
+const MEAN_WAS = 0.465e6
 /** Worlds the rate and solvency checks pool over; the first is also the one
  *  every other check below reads. */
-const RATE_SEEDS = [4242, 11, 99, 2025, 31337]
+const RATE_SEEDS = [4242, 11, 99, 2025, 31337, 7, 23, 404]
 
 const med = (xs: number[]) => {
   const s = [...xs].sort((a, b) => a - b)
@@ -60,6 +72,7 @@ const ai = (g: GameState) => Object.values(g.clubs).filter(c => c.id !== g.userC
 
 const g = newGame('northampton', 'AI Econ', RATE_SEEDS[0])
 const start = med(ai(g).map(c => c.balance))
+const meanStart = ai(g).reduce((t, c) => t + c.balance, 0) / ai(g).length
 let peakRed = 0
 let listedPeak = 0
 
@@ -82,12 +95,15 @@ const index = moneyIndex(g)
 // the other worlds, for the rate alone
 const rates = [perSeason]
 const ends = [end]
+const avgBal = (w: GameState) => ai(w).reduce((t, c) => t + c.balance, 0) / ai(w).length
+const meanRates = [(avgBal(g) - meanStart) / SEASONS]
 for (const seed of RATE_SEEDS.slice(1)) {
   const w = newGame('northampton', 'AI Econ', seed)
-  const s0 = med(ai(w).map(c => c.balance))
+  const s0 = med(ai(w).map(c => c.balance)), m0 = avgBal(w)
   while (w.season < SEASONS) processWeekAndAdvance(w)
   const e = med(ai(w).map(c => c.balance))
   rates.push((e - s0) / SEASONS)
+  meanRates.push((avgBal(w) - m0) / SEASONS)
   ends.push(e)
 }
 const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length
@@ -107,6 +123,9 @@ console.log(`  the manager       ${(g.clubs[g.userClubId].balance / 1e6).toFixed
 // not that it matches to the pound. Pooled, because one seed is not a measure.
 ok(pooledRate > WAS_PER_SEASON * 0.4 && pooledRate < WAS_PER_SEASON * 2,
   `the median club still gains money at about the rate it used to (${(pooledRate / 1e6).toFixed(2)}M a season)`)
+const meanRate = mean(meanRates)
+ok(Math.abs(meanRate - MEAN_WAS) < MEAN_WAS * 0.15,
+  `and the mean club's gain, which does not wobble, holds too (${(meanRate / 1e6).toFixed(2)}M a season, was ${(MEAN_WAS / 1e6).toFixed(2)}M)`)
 ok(mean(ends) > 0 && ends.every(e => e > -3e6),
   'and the median club is solvent after a decade, in every world')
 

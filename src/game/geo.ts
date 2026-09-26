@@ -28,6 +28,13 @@ export interface Venue {
 
 /** City -> where it is. Keyed on the city string the club data already carries. */
 export const VENUES: Record<string, Venue> = {
+  // ---- United States (the MRC, 1.7.3)
+  Bridgeview: { lat: 41.7, lon: -87.8, alt: 185 },
+  Charlotte: { lat: 35.2, lon: -80.8, alt: 229 },
+  Germantown: { lat: 39.2, lon: -77.3, alt: 140 },
+  Quincy: { lat: 42.3, lon: -71.0, alt: 10 },
+  'San Diego': { lat: 32.8, lon: -117.2, alt: 20 },
+  Tukwila: { lat: 47.5, lon: -122.3, alt: 10 },
   // ---- Australia
   Brisbane: { lat: -27.5, lon: 153.0, alt: 27 },
   Canberra: { lat: -35.3, lon: 149.1, alt: 577 },
@@ -151,6 +158,7 @@ export const COUNTRY_CENTRES: Record<string, Venue> = {
   AUS: { lat: -25.0, lon: 134.0, alt: 300 },
   FIJ: { lat: -17.8, lon: 178.0, alt: 30 },
   JPN: { lat: 36.0, lon: 138.0, alt: 300 },
+  USA: { lat: 39.8, lon: -98.6, alt: 400 },
 }
 
 /** Where a club plays, by city if it is known and by country if it is not. */

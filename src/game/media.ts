@@ -6,6 +6,7 @@ import { offersFor, signOffer, type SlotId } from './commercial'
 import { derbyName, isDerby } from './rivalries'
 import { nationByCode, nationNameIn, nationVars } from './nations'
 import { applyResponse } from './authority'
+import { settleTalk } from './talkback'
 import { clamp, pick, type Rng } from './rng'
 import { tIn, type Vars } from './i18n'
 
@@ -48,7 +49,7 @@ export function askedRecently(state: GameState, pid: number, topic: OfficeTopic)
 /** Record that he came in about it. Written when the conversation is raised,
  *  not when it is answered: ignoring a player is also an answer, and it does
  *  not entitle him to ask again next week. */
-function rememberAsk(state: GameState, pid: number, topic: OfficeTopic) {
+export function rememberAsk(state: GameState, pid: number, topic: OfficeTopic) {
   ;(state.officeMemo ??= []).push({ pid, topic, season: state.season, week: state.week })
   // two seasons of memos is far more than the cooldown needs, and keeps the
   // save from carrying a list that only ever grows
@@ -816,11 +817,11 @@ export function generatePress(state: GameState, rng: Rng) {
     const item = mk(state,
       { k: pick(rng, ['press.plansQ1', 'press.plansQ2', 'press.plansQ3']), v: { player: p.name } },
       p.id, [
-        opt({ morale: 1.1, board: 0, pledge: 'plans', lk: 'press.plansIn',
+        opt({ morale: 1.1, board: 0, pledge: 'plans', tb: 'in', lk: 'press.plansIn',
           rk: pick(rng, ['press.plansInR1', 'press.plansInR2']), rv: { player: p.name } }),
-        opt({ morale: -0.9, board: 0.3, unsettle: true, lk: 'press.plansOut',
+        opt({ morale: -0.9, board: 0.3, unsettle: true, tb: 'out', lk: 'press.plansOut',
           rk: pick(rng, ['press.plansOutR1', 'press.plansOutR2']), rv: { player: p.name } }),
-        opt({ morale: -0.4, board: 0.2, lk: 'press.plansEarn',
+        opt({ morale: -0.4, board: 0.2, tb: 'earn', lk: 'press.plansEarn',
           rk: pick(rng, ['press.plansEarnR1', 'press.plansEarnR2']) }),
       ], rng)
     item.outlet = OFFICE
@@ -837,11 +838,11 @@ export function generatePress(state: GameState, rng: Rng) {
     const item = mk(state,
       { k: pick(rng, ['press.loanQ1', 'press.loanQ2', 'press.loanQ3']), v: { player: p.name, age: p.age } },
       p.id, [
-        opt({ morale: 0.9, board: 0, pledge: 'minutes', lk: 'press.loanMinutes',
+        opt({ morale: 0.9, board: 0, pledge: 'minutes', tb: 'minutes', lk: 'press.loanMinutes',
           rk: pick(rng, ['press.loanMinutesR1', 'press.loanMinutesR2']), rv: { player: p.name } }),
-        opt({ morale: 0.5, board: 0.2, loan: true, lk: 'press.loanAgree',
+        opt({ morale: 0.5, board: 0.2, loan: true, tb: 'agree', lk: 'press.loanAgree',
           rk: pick(rng, ['press.loanAgreeR1', 'press.loanAgreeR2']) }),
-        opt({ morale: -0.7, board: 0, lk: 'press.loanStay',
+        opt({ morale: -0.7, board: 0, tb: 'stay', lk: 'press.loanStay',
           rk: pick(rng, ['press.loanStayR1', 'press.loanStayR2']) }),
       ], rng)
     item.outlet = OFFICE
@@ -858,11 +859,11 @@ export function generatePress(state: GameState, rng: Rng) {
     const item = mk(state,
       { k: pick(rng, ['press.dealQ1', 'press.dealQ2', 'press.dealQ3']), v: { player: p.name, age: p.age } },
       p.id, [
-        opt({ morale: 1.2, board: -0.2, pledge: 'deal', lk: 'press.dealYear',
+        opt({ morale: 1.2, board: -0.2, pledge: 'deal', tb: 'year', lk: 'press.dealYear',
           rk: pick(rng, ['press.dealYearR1', 'press.dealYearR2']), rv: { player: p.name } }),
-        opt({ morale: -1.0, board: 0.4, lk: 'press.dealLast',
+        opt({ morale: -1.0, board: 0.4, tb: 'last', lk: 'press.dealLast',
           rk: pick(rng, ['press.dealLastR1', 'press.dealLastR2']) }),
-        opt({ morale: -0.3, board: 0, lk: 'press.dealWait',
+        opt({ morale: -0.3, board: 0, tb: 'wait', lk: 'press.dealWait',
           rk: pick(rng, ['press.dealWaitR1', 'press.dealWaitR2']) }),
       ], rng)
     item.outlet = OFFICE
@@ -1123,12 +1124,20 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
       logDecision(state, 'dec.agreedLoan', { player: state.players[item.playerId]?.name ?? '' }, true)
     }
   }
+  // TALK-BACK (1.7.3): an office answer with a tag is settled by who he is,
+  // not by the fixed number on the option (talkback.ts)
+  const talk = settleTalk(state, item, opt)
+  if (talk) {
+    item.fit = talk.fit
+    item.rk = talk.rk; item.rv = talk.rv
+    item.reaction = tIn('en', talk.rk, talk.rv)
+  }
   if (item.playerId != null) {
     const p = state.players[item.playerId]
     if (p) {
       const swing = p.pers === 'Temperamental' ? 1.7 : 1
-      p.morale = clamp(p.morale + opt.morale * swing, 1, 10)
-      if (opt.unsettle) p.morale = clamp(p.morale - 1, 1, 10) // agents circle an unsettled player
+      p.morale = clamp(p.morale + (talk ? talk.morale : opt.morale) * swing, 1, 10)
+      if (talk ? talk.unsettle : opt.unsettle) p.morale = clamp(p.morale - 1, 1, 10) // agents circle an unsettled player
       // a promise made is a promise recorded - it falls due in a few weeks
       if (opt.pledge && !(state.pledges ?? []).some(pl => pl.playerId === p.id && pl.kind === opt.pledge)) {
         ;(state.pledges ??= []).push({

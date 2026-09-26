@@ -622,6 +622,15 @@ export interface Tactic {
   kickers?: (number | null)[]
   /** How you get out of your own 22. */
   exit?: 'box' | 'long' | 'counter' | 'fifty22'
+  /** KICKING STYLE (1.7.3): what kind of kick, where the slider above says how
+   *  many. Absent is 'balanced', and balanced is exactly the engine as it was. */
+  kickStyle?: 'territory' | 'contest' | 'attack' | 'balanced'
+  /** THE BREAKDOWN (1.7.3), both 0..100, absent reading as 50 (no effect).
+   *  ruckCommit: how many you commit to your own ruck - few keeps men in the
+   *  line to attack with, many keeps the ball. ruckContest: how hard you go
+   *  after theirs - fan out and hold the line, or counter-ruck and jackal. */
+  ruckCommit?: number
+  ruckContest?: number
   /** Standing instruction on a kickable penalty. 'ask' keeps the touchline
    *  prompt; anything else answers it for you, which matters on a phone. */
   penaltyCall?: 'ask' | 'posts' | 'corner' | 'tap'
@@ -921,12 +930,17 @@ export interface PressOption {
    *  Saying it and then quietly leaving him on the bench is exactly the kind
    *  of thing a squad remembers, so the game does not let you. */
   lock?: boolean
+  /** TALK-BACK (1.7.3): which answer this is, in the office's own terms
+   *  (talkback.FIT). Present, the outcome is settled by who the man is -
+   *  good, mixed or bad fit - rather than by the fixed morale above. Absent on
+   *  every item saved before 1.7.3, which keep answering as they always did. */
+  tb?: string
 }
 
 /** A subject a player can raise behind the office door. The office keeps a
  *  memo of who asked what and when, so the same man does not knock again
  *  about the same thing seven days after you answered him. */
-export type OfficeTopic = 'plans' | 'loan' | 'deal'
+export type OfficeTopic = 'plans' | 'loan' | 'deal' | 'dropped' | 'signing' | 'armband' | 'position'
 
 /** A promise made to a player in the office. The squad keeps the receipts:
  *  at the due week it is settled as kept or broken, with consequences. */
@@ -965,6 +979,8 @@ export interface PressItem {
   rv?: Vars
   /** set on office conversations: what he came in to talk about */
   topic?: OfficeTopic
+  /** how he took the answer (talkback.ts), once it is given */
+  fit?: 'good' | 'mixed' | 'bad'
   /** set on discipline conversations: the incident this one resolves */
   incidentId?: number
 }
@@ -1295,7 +1311,13 @@ export function weeklyCentral(club: Club): number {
   const expectedSeats = Math.min(23_000, Math.max(0, club.rep - 45) * 620)
   const missingSeats = Math.max(0, expectedSeats - club.capacity)
   // 8.5 per missing seat: 30 a ticket, ~85% full, one home game every three weeks
-  return Math.round(commercial + missingSeats * 8.5)
+  // The MRC plays five home games where everyone else plays eleven (1.7.3), so
+  // its central pot carries the gates its calendar does not: about six missing
+  // home games of a small ground, spread over the ledger's weeks. Without it an
+  // American club was broke by design, and fire-sold its best men into the
+  // rest of the world every season.
+  const shortSeason = club.leagueId === 'mrc' ? 18_000 : 0
+  return Math.round(commercial + missingSeats * 8.5 + shortSeason)
 }
 
 /**
@@ -2278,7 +2300,9 @@ export const RELEGATES = ['prem', 'champ', 'top14']
  *  League One. Loan gravity reads it - how far down a move is decides who
  *  would actually make it. */
 export const LEAGUE_TIER: Record<string, number> = {
-  prem: 1, top14: 1, urc: 1, srp: 1, jl1: 1,
+  // the MRC is a top flight with nowhere above it to reach: tier 1, like Japan's,
+  // so no club in it is offered a promotion dream it can never win
+  prem: 1, top14: 1, urc: 1, srp: 1, jl1: 1, mrc: 1,
   champ: 2, prod2: 2,
   natl1: 3,
 }

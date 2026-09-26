@@ -1,6 +1,6 @@
 import type { Competition, Fixture, GameState, TableRow } from './model'
 import { W, genderOf, type Gender } from './gender'
-import {absWeek, BASE_YEAR, worldCupSeasonFor } from './model'
+import {absWeek, BASE_YEAR, fixtureDayOff, worldCupSeasonFor } from './model'
 import {
   AUTUMN_WEEKS, CC_KO_WEEKS, CC_POOL_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, SUMMER_TEST_WEEKS, TOUR_WEEKS, TRC_WEEKS,
   WC_KO_WEEKS, WC_POOL_WEEKS, W_AUTUMN_WEEKS, W_CC_KO_WEEKS, W_CC_POOL_WEEKS, W_PAC4_WEEKS, W_SIX_NATIONS_WEEKS,
@@ -222,6 +222,21 @@ export function schedulePreseason(state: GameState, rng: Rng) {
       used.add(partner)
       mkFr(week, id, partner)
     }
+  }
+  // THE SEASON OPENS ON A SATURDAY. A fixture's weekday is a hash of its id
+  // (model.fixtureDayOff), so a third of all openers fell on a Friday, and a
+  // Friday match leaves the first week no Friday bulletin: the day walk goes
+  // from Monday straight to kick-off. The Major Rugby Competition (1.7.3)
+  // shifted every id and put every club's opener on a Friday. The manager's
+  // opener now trades ids with a Saturday friendly in the same week - no id
+  // is drawn or wasted, so nothing else in the world moves.
+  const openWeek = Math.min(...state.fixtures.filter(f => f.compId === 'fr' && !f.played).map(f => f.week))
+  const mine = state.fixtures.find(f => f.compId === 'fr' && f.week === openWeek && !f.played
+    && (f.homeId === state.userClubId || f.awayId === state.userClubId))
+  if (mine && fixtureDayOff(mine.id) !== 0) {
+    const swap = state.fixtures.find(f => f.compId === 'fr' && f.week === openWeek && !f.played && f !== mine
+      && fixtureDayOff(f.id) === 0)
+    if (swap) [mine.id, swap.id] = [swap.id, mine.id]
   }
 }
 

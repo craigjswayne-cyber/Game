@@ -4517,3 +4517,13 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
   15%  { opacity: .95; }
   100% { opacity: 0; scale: 1.9; }
 }
+
+/* How a player took what was said in the office (talkback.ts, 1.7.3). */
+.news-item .took {
+  display: inline-block; margin-top: 6px; padding: 2px 8px; border-radius: 999px;
+  font-size: 11px; font-weight: 700; letter-spacing: .3px;
+  border: 1px solid currentColor;
+}
+.news-item .took.good { color: var(--positive); }
+.news-item .took.mixed { color: var(--info); }
+.news-item .took.bad { color: var(--danger); }

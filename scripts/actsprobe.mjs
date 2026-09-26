@@ -32,14 +32,14 @@ const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM 
 
 /** A career, a match, up to the first kick-off: seeded, so it is the same match
  *  every run. */
-async function kickOff(reduced) {
+async function kickOff(reduced, seed = 0x9e3779b9) {
   const page = await browser.newPage({ viewport: { width: 412, height: 915 }, reducedMotion: reduced ? 'reduce' : 'no-preference' })
   const errs = []
   page.on('pageerror', e => errs.push(String(e)))
-  await page.addInitScript(() => {
-    let a = 0x9e3779b9
+  await page.addInitScript(s0 => {
+    let a = s0
     Math.random = () => { a = (a + 0x6d2b79f5) >>> 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296 }
-  })
+  }, seed)
   await page.goto(`http://localhost:${PORT}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 20000 })
   await page.click('text=New Career'); await page.click('text=English Premier Division'); await page.waitForSelector('.club-tile')
@@ -166,9 +166,22 @@ try {
     }
 
     say('--- 3. the yellow card')
-    const yi = first('yc')
-    ok(yi > 0, 'the match has a yellow card')
+    // NOT EVERY MATCH HAS ONE. The seeded match above had a card until 1.7.3
+    // (ageing, kicking styles and the new clubs all change what a seeded
+    // career plays), so the card is looked for in the next few seeded careers
+    // when this one is clean. The checks are the same whichever match it is.
+    let cardPage = page, cardEvs = evs, yi = first('yc')
+    for (const sd of [0x2545f491, 0x51ed270b, 0x7feb352d, 0x68e31da4]) {
+      if (yi > 0) break
+      const k = await kickOff(false, sd)
+      await playUntil(k.page, lm => lm.ctx.seg === 3 && lm.cursor >= lm.ctx.events.length)
+      const e2 = await k.page.evaluate(() => window.rugbyStore.getState().liveMatch.ctx.events.map(e => ({ k: e.k, type: e.type, fx: e.fx, playerId: e.playerId, min: e.min })))
+      const j = e2.findIndex((e, n) => n > 2 && tagOf(e) === 'yc')
+      if (j > 0) { cardPage = k.page; cardEvs = e2; yi = j; errs.push(...k.errs) } else await k.page.close()
+    }
+    ok(yi > 0, `a match has a yellow card (${cardEvs[yi]?.k})`)
     if (yi > 0) {
+      const page = cardPage
       await reveal(page, yi - 1)
       const before = await at(page, 2000)
       await reveal(page, yi)
