@@ -23,7 +23,7 @@ import { mulberry32 } from '../src/game/rng'
 // fallback lets the old loanTargets show its 11-wonderkid list red per assert
 import * as M from '../src/game/model'
 const leagueTier = (M as { leagueTier?: (id?: string | null) => number }).leagueTier ??
-  ((id?: string | null) => ({ prem: 1, top14: 1, urc: 1, srp: 1, jl1: 1, champ: 2, prod2: 2, natl1: 3 } as Record<string, number>)[id ?? ''] ?? 2)
+  ((id?: string | null) => ({ prem: 1, top14: 1, urc: 1, srp: 1, jl1: 1, mrc: 1, champ: 2, prod2: 2, natl1: 3 } as Record<string, number>)[id ?? ''] ?? 2)
 
 let fails = 0
 const ok = (c: boolean, what: string) => {

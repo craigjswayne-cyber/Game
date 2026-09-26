@@ -1454,7 +1454,7 @@ PICK A CLUB. PICK A SIDE. LIVE WITH IT.
 PHASE: Rugby Manager is a management simulation in the tradition of the great text-driven sports sims: dense squad tables, real decisions every week, and a career that remembers what you did in season one when you reach season fifteen. You take a job, you name a team, and you find out what kind of manager you are.
 
 TWO GAMES, ONE APP
-• The men's game: eight leagues and 101 clubs across England, France, the United Provinces, the Pacific and Japan, top flight down to National One.
+• The men's game: nine leagues and 107 clubs across England, France, the United Provinces, the Pacific, Japan and the United States, top flight down to National One.
 • The women's game, built the same way rather than bolted on: six leagues and 64 clubs across England, France, the Pacific and the Celtic provinces, with its own continental cup, Test calendar, squads and career challenges.
 • Choose at New Game. Every screen, every system and every season works in both.
 

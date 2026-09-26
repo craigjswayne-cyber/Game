@@ -14,6 +14,7 @@ import { SRP_B } from '../data/leagues/srp_b'
 import { CHAMP } from '../data/leagues/champ'
 import { PROD2 } from '../data/leagues/prod2'
 import { JL1 } from '../data/leagues/jl1'
+import { MRC } from '../data/leagues/mrc'
 import { NATL1 } from '../data/leagues/natl1'
 import { W_PWR } from '../data/leagues/w_pwr'
 import { W_PAC } from '../data/leagues/w_pac'
@@ -210,6 +211,13 @@ const M_LEAGUE_DEFS: () => LeagueDef[] = () => [
   { id: 'prod2', name: 'French Elite 2', short: 'Elite 2', double: true, playoffTeams: 6, clubs: PROD2 },
   { id: 'jl1', name: 'Japan Division One', short: 'Japan D1', double: true, playoffTeams: 4, clubs: JL1 },
   { id: 'natl1', name: 'English National One', short: 'National 1', double: true, playoffTeams: 0, clubs: NATL1 },
+  // LAST, so the leagues before it build exactly as they did (owner, 1.7.3:
+  // "add USA MLR - call it Major Rugby Competition"). Six clubs, home and
+  // away, the top four into semi-finals and a final, as the real league ran
+  // 2026. Spread over the whole season like every other men's league, by the
+  // owner's choice: the real one plays March to June, and a manager there
+  // would otherwise wait from August to February for a match.
+  { id: 'mrc', name: 'Major Rugby Competition', short: 'MRC', double: true, playoffTeams: 4, clubs: MRC },
 ]
 
 /**

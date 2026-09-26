@@ -533,7 +533,7 @@ function agePlayers(state: GameState, rng: Rng) {
       const club = state.clubs[clubId]
       const q = 42 + Math.floor(rng() * 14)
       const raw = {
-        name: regenName(rng, p.nat in { ENG:1, FRA:1, IRE:1, SCO:1, WAL:1, ITA:1, NZL:1, AUS:1, RSA:1, ARG:1, FIJ:1, SAM:1, TGA:1, JPN:1, GEO:1 } ? p.nat : club.country, worldNames(state), genderOf(state)),
+        name: regenName(rng, p.nat in { ENG:1, FRA:1, IRE:1, SCO:1, WAL:1, ITA:1, NZL:1, AUS:1, RSA:1, ARG:1, FIJ:1, SAM:1, TGA:1, JPN:1, GEO:1, USA:1 } ? p.nat : club.country, worldNames(state), genderOf(state)),
         pos: p.pos, age: 17 + Math.floor(rng() * 2), nat: p.nat, q,
         gk: p.gk && rng() < 0.6,
       }

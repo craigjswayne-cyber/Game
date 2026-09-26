@@ -2278,7 +2278,9 @@ export const RELEGATES = ['prem', 'champ', 'top14']
  *  League One. Loan gravity reads it - how far down a move is decides who
  *  would actually make it. */
 export const LEAGUE_TIER: Record<string, number> = {
-  prem: 1, top14: 1, urc: 1, srp: 1, jl1: 1,
+  // the MRC is a top flight with nowhere above it to reach: tier 1, like Japan's,
+  // so no club in it is offered a promotion dream it can never win
+  prem: 1, top14: 1, urc: 1, srp: 1, jl1: 1, mrc: 1,
   champ: 2, prod2: 2,
   natl1: 3,
 }
