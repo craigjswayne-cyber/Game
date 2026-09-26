@@ -149,27 +149,30 @@ First release.
 
 ### What's new (500 max) - v1.8.0, Play version code 41 (PRM27; 1.7.4 folded in)
 
-The match view in the classic top-down style, kicks at goal from the opposition
-half only, no ball zoom on kicks, and more humour.
+The new name, PHASE: Rugby Manager 27, and the depth from the FM26 mobile
+screens: the match menu, the mood of the room at the team talk, a club card
+beside the news, and player search with filters and views. Folded in from
+1.7.4: the top-down match view, kicks at goal from the opposition half only,
+no ball zoom on kicks, and more humour.
 
 ```
 <en-GB>
-The match view now plays like the classic top-down manager games: every circle glides to where the play is and holds its team's shape, with the commentary alongside, and the ball no longer swells towards the screen on kicks. Kicks at goal come only from the opposition half; a penalty in your own half goes to touch. And more fun: new stories in the news and gossip, in the clubhouse and on the pitch.
+Now PHASE: Rugby Manager 27. The match plays like the classic top-down manager games: circles glide, the ball no longer swells on kicks, and a new match menu shows line-ups, how your players feel, who did what, territory and visits to the 22. Kicks at goal come only from the opposition half. Team talks show the mood of the room, news has a club card, and player search has filters and views. Plus more fun stories.
 </en-GB>
 <fr-FR>
-Le match se regarde désormais comme dans les jeux de gestion classiques vus de haut : chaque pion glisse vers l'action et garde la forme de son équipe, avec le commentaire à côté, et le ballon ne grossit plus vers l'écran sur les coups de pied. On ne tente les pénalités qu'à partir du camp adverse ; dans votre camp, elles partent en touche. Et plus d'humour : nouvelles histoires dans l'actualité, les rumeurs, le club-house et sur le terrain.
+Le jeu devient PHASE: Rugby Manager 27. Le match se regarde comme les jeux de gestion classiques vus de haut : les pions glissent, le ballon ne grossit plus sur les coups de pied, et un menu de match montre compositions, moral, stats, territoire et visites dans les 22. Pénalités tentées seulement dans le camp adverse. Causerie avec l'humeur du vestiaire, fiche club dans l'actualité, recherche avec filtres et vues. Et plus d'humour.
 </fr-FR>
 <es-ES>
-El partido se ve ahora como en los clásicos juegos de gestión vistos desde arriba: cada ficha se desliza hacia la jugada y mantiene la forma de su equipo, con la narración al lado, y el balón ya no crece hacia la pantalla en las patadas. Solo se patea a palos desde el campo rival; un golpe en tu propio campo va a touche. Y más humor: nuevas historias en las noticias, los rumores, el vestuario y el campo.
+Ahora es PHASE: Rugby Manager 27. El partido se ve como los clásicos de gestión desde arriba: las fichas se deslizan, el balón ya no crece en las patadas y un nuevo menú muestra alineaciones, ánimo, estadísticas, territorio y visitas a la 22. Solo se patea a palos desde el campo rival. La charla muestra el ánimo del vestuario, las noticias una ficha del club y la búsqueda filtros y vistas. Y más humor.
 </es-ES>
 <it-IT>
-La partita ora si guarda come nei classici manageriali visti dall'alto: ogni pedina scivola verso l'azione e mantiene la forma della squadra, con la telecronaca a fianco, e il pallone non si ingrandisce più verso lo schermo sui calci. Si calcia ai pali solo dalla metà campo avversaria; una punizione nella propria metà va in touche. E più divertimento: nuove storie nelle notizie, nei pettegolezzi, nella club house e in campo.
+Ora è PHASE: Rugby Manager 27. La partita si guarda come i classici manageriali dall'alto: le pedine scivolano, il pallone non si ingrandisce sui calci e un nuovo menu mostra formazioni, umore, statistiche, territorio e visite nei 22. Si calcia ai pali solo dalla metà campo avversaria. Il discorso mostra l'umore dello spogliatoio, le notizie una scheda del club e la ricerca filtri e viste. E più divertimento.
 </it-IT>
 <ja-JP>
-試合画面が往年の上から見る監督ゲームのようになった。選手の丸はプレーの場所へ滑らかに動き、チームの形を保ち、横に実況が流れる。キックでボールが画面に向かって大きくなる演出はなくなった。ゴールを狙えるのは敵陣でのペナルティのみ。自陣ではタッチへ蹴り出す。さらにユーモアも増量。ニュース、ゴシップ、クラブハウス、そしてピッチ上に新しい話題。
+タイトルが「PHASE: Rugby Manager 27」に。試合は往年の上から見る監督ゲームのように、選手の丸が滑らかに動き、キックでボールが大きくなる演出はなくなった。新しい試合メニューで先発、選手の気分、個人成績、陣地、22mへの侵入を確認できる。ゴールを狙えるのは敵陣のみ。チームトークでは控室の雰囲気、ニュースにはクラブカード、選手検索には絞り込みと表示切替。ユーモアも増量。
 </ja-JP>
 ```
-*(en-GB 401, fr-FR 445, es-ES 407, it-IT 428, ja-JP 168 - all inside Play's 500.)*
+*(en-GB 416, fr-FR 435, es-ES 405, it-IT 412, ja-JP 194 - all inside Play's 500.)*
 
 ### What's new (500 max) - v1.7.3, Play version code 40
 

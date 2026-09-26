@@ -142,7 +142,13 @@ export function refreshVacancies(state: GameState, rng: Rng) {
     return keep
   })
 
-  if (state.vacancies.length >= 3 || rng() > (state.unemployed ? 0.55 : 0.22)) return
+  if (state.vacancies.length >= 3) return
+  // A MANAGER OUT OF WORK NEVER FINDS THE JOB CENTRE EMPTY (1.8.0). Vacancies
+  // last five weeks and a new one opened 55% of weeks, so a run of misses left
+  // nothing to apply for at all (chaosprobe caught it fifteen weeks after a
+  // sack). The same one draw either way, so the stream does not shift.
+  const roll = rng()
+  if (roll > (state.unemployed ? 0.55 : 0.22) && !(state.unemployed && !state.vacancies.length)) return
 
   // struggling sides sack managers: weight by league position from the bottom
   const candidates: { clubId: string; w: number }[] = []
