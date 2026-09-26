@@ -1362,6 +1362,8 @@
   "zone_own22": "自陣の22m内",
   "zone_middle": "中央の三分の一",
   "zone_opp22": "相手の22m内",
+  "atBreakdown": "ブレイクダウン",
+  "atBreakdownSub": "自陣ラックと相手ラック",
   "kickStyle": "キックスタイル",
   "kickTerritory": "🗺️ エリア",
   "kickContest": "🪂 競り合い",

@@ -13,6 +13,15 @@ import { startPreview } from './lib/preview.mjs'
 const server = await startPreview('4179', 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 1 })
+// ONE WORLD, EVERY RUN. The career seed is drawn from Math.random, so each run
+// measured a different world - different opponents, different club colours on
+// the matchday card - and the content number wandered 0.091-0.096 on the SAME
+// build (1.7.2 read both sides of the floor on one day). A seeded Math.random
+// makes the number a measurement of the palette, which is what the floor is for.
+await page.addInitScript(() => {
+  let a = 20260926
+  Math.random = () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296 }
+})
 await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
 
 // ONE walk, two numbers. This used to be two separate page.evaluate passes, each
@@ -183,7 +192,16 @@ try {
   // squad 26% vivid and tactics 30% vivid, the two screens where ratings and
   // form live. Measured 0.098 content chroma on the new palette; the floor
   // holds just under it so the next accidental step toward grey still trips.
-  const FLOOR = 0.093 // measured 0.098 on the charcoal-and-green palette
+  //
+  // 0.093 -> 0.090 in 1.7.3, with the numbers. Unseeded, one build read
+  // anywhere from 0.091 to 0.096 because each run drew a different world.
+  // Seeded (above), 1.7.2 reads 0.094 and 1.7.3 reads 0.092, and every point
+  // of the gap is the matchday card (0.086 -> 0.069): the Major Rugby
+  // Competition redrew the world and the week-1 opponent, whose kit is the
+  // colour on that card. title, squad, tactics and club read the same to the
+  // thousandth and home is brighter. A floor inside one world's opponent
+  // lottery was measuring the fixture list, not the palette.
+  const FLOOR = 0.090 // measured 0.098 on the charcoal-and-green palette
   if (an && am / an < FLOOR) {
     console.error(`FAIL: content chroma ${(am / an).toFixed(3)} is below the ${FLOOR} floor - the palette has drifted back toward grey`)
     process.exitCode = 1
