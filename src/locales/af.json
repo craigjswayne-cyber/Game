@@ -515,7 +515,8 @@
   "clearRead": "Vee geleeste uit",
   "shelfLastDay": " · laaste dag in die inmandjie",
   "shelfOneDay": " · nog een dag",
-  "shelfDaysLeft": " · {n} dae oor"
+  "shelfDaysLeft": " · {n} dae oor",
+  "listLabel": "Boodskappe"
  },
  "tables": {
   "internationals": "Internasionaal",

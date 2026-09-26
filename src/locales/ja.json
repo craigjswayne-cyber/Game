@@ -502,7 +502,8 @@
   "clearRead": "既読を整理",
   "shelfLastDay": "・受信箱に残るのは今日まで",
   "shelfOneDay": "・あと1日",
-  "shelfDaysLeft": "・あと{n}日"
+  "shelfDaysLeft": "・あと{n}日",
+  "listLabel": "メッセージ"
  },
  "tables": {
   "internationals": "国際試合",

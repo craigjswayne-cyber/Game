@@ -52,6 +52,7 @@ import Infrastructure from './screens/Infrastructure'
 import Academy from './screens/Academy'
 import Tutorial from './Tutorial'
 import { Intro } from './Intro'
+import { bigTablet, useTablet } from './tablet'
 
 /* The masthead title for every screen that is not Home (Home shows the club).
  *
@@ -247,18 +248,35 @@ function Overlays() {
  *  own (release audit, Part 2.3). This is the game's answer: a zoom on the
  *  document root, chosen on the title screen, persisted like night mode.
  *  Viewport-unit lengths are exempt from zoom by spec, so the app shell stays
- *  screen-sized while the type and controls inside it grow. */
-function useTextScale() {
+ *  screen-sized while the type and controls inside it grow.
+ *
+ *  TABLET MODE (1.8.0, owner: "I want to add in tablet mode. So it can be
+ *  played on tablet too"). A tablet showed the phone column, 560px wide in the
+ *  middle of the glass with dark bars either side and type sized for a hand
+ *  six inches away. A tablet is read further off and has twice the width, so
+ *  on one the same zoom carries a size step of its own (1.15, or 1.25 from
+ *  1000px) on top of whatever the manager picked, and the .tablet class lets
+ *  the layout use the width. "A tablet" is a touch-first screen at least 700px
+ *  on BOTH sides: a phone on its side is under 500 tall, and a desktop browser
+ *  has a fine pointer, so neither moves. */
+function useTextScale(tablet: boolean) {
   const scale = useStore(s => s.textScale)
+  const [big, setBig] = useState(bigTablet)
+  useEffect(() => {
+    const f = () => setBig(bigTablet())
+    window.addEventListener('resize', f)
+    return () => window.removeEventListener('resize', f)
+  }, [])
+  const z = tablet ? scale * (big ? 1.25 : 1.15) : scale
   useEffect(() => {
     try {
       const st = document.documentElement.style
-      st.setProperty('zoom', String(scale))
+      st.setProperty('zoom', String(z))
       // read by theme.css to divide dvh-sized boxes back down to the real
       // viewport: zoom scales rendered dvh lengths along with everything else
-      st.setProperty('--zoom', String(scale))
+      st.setProperty('--zoom', String(z))
     } catch { /* very old engines */ }
-  }, [scale])
+  }, [z])
 }
 
 /** THE ESTATE'S ART, FETCHED WHILE YOU ARE STILL ON THE HOME SCREEN.
@@ -396,7 +414,8 @@ export default function App() {
   useStore(s => s.tick)
   const { back, go, home, continueWeek, toggleNight, openInbox } = useStore.getState()
   const [menu, setMenu] = useState<null | 'hub' | 'world' | 'manager'>(null)
-  useTextScale()
+  const tablet = useTablet()
+  useTextScale(tablet)
   useCampusArt()
   useResume()
 
@@ -423,7 +442,7 @@ export default function App() {
   const onTour = !!game && islesCoach(game)
     && game.week >= TOUR_WEEKS[0] - 1 && game.week <= TOUR_WEEKS[TOUR_WEEKS.length - 1]
   const worn = onTour ? 'tour' : skin
-  const appClass = `app${night ? ' night' : ''}${worn !== 'default' ? ` skin-${worn}` : ''}`
+  const appClass = `app${tablet ? ' tablet' : ''}${night ? ' night' : ''}${worn !== 'default' ? ` skin-${worn}` : ''}`
 
   // NO DESK, NO DESK SCREENS (19E). Resigning or getting sacked sets
   // unemployed but leaves the nav trail - and the resume-where feature
@@ -737,7 +756,7 @@ export default function App() {
           </div>
         </div>
       </header>
-      <main className="content">{screen()}</main>
+      <main className="content" data-screen={cur.screen}>{screen()}</main>
       <nav className="bottom-nav">
         {/* The order the user asked for, top to bottom: news, home, the hub,
             the manager. World comes last because it is the only group that is

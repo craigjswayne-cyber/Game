@@ -516,7 +516,8 @@
     "clearRead": "Tout classer",
     "shelfLastDay": " · dernier jour dans la messagerie",
     "shelfOneDay": " · encore un jour",
-    "shelfDaysLeft": " · encore {n} jours"
+    "shelfDaysLeft": " · encore {n} jours",
+    "listLabel": "Messages"
   },
   "tables": {
     "internationals": "Internationaux",

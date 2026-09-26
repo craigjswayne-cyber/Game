@@ -516,7 +516,8 @@
   "clearRead": "Elimina i letti",
   "shelfLastDay": " · ultimo giorno in posta",
   "shelfOneDay": " · ancora un giorno",
-  "shelfDaysLeft": " · {n} giorni rimasti"
+  "shelfDaysLeft": " · {n} giorni rimasti",
+  "listLabel": "Messaggi"
  },
  "tables": {
   "internationals": "Internazionali",

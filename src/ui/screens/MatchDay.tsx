@@ -22,7 +22,8 @@ import { GOAL_ARRIVES, buildPassage, contactOf, playKind, restingRow, teeSpot, t
 import { LIFT_BEATS, LINEOUT, SCRUM_BEATS, benchEntry, lineoutSpots, scrumDrive, tackleActs, touchlineExit, type Man } from '../pitchActs'
 import { formation, shapeFor, shapeRow } from '../phaseShape'
 import { MoodTable } from '../MoodTable'
-import { MatchPanels } from '../MatchPanels'
+import { MatchPanels, Visits, Zones } from '../MatchPanels'
+import { useTablet } from '../tablet'
 import { crowdLevel } from '../matchAtmos'
 import { derbyName } from '../../game/rivalries'
 import { matchStakes } from '../../game/stakes'
@@ -2240,6 +2241,7 @@ function Live() {
   /** the match-day squad, opened from the Squad button in the control row */
   const [sheet, setSheet] = useState(false)
   const [mpanels, setMpanels] = useState(false)
+  const tablet = useTablet()
   const tickerRef = useRef<HTMLDivElement>(null)
 
   const { events, cursor, playing, fixture, ctx } = live
@@ -2671,6 +2673,28 @@ function Live() {
               <span className="txt">{icon(last)} {eventText(last)}</span>
             </div>
           )}
+        </div>
+      )}
+
+      {/* THE TABLET DECK (1.8.0). A phone reads the match a line at a time;
+          a tablet has half a screen under the pitch that used to be empty, so
+          it gets the running commentary, newest first and coloured like the
+          now-line (gold scores, red and yellow cards, the TMO), beside the
+          two panels a manager checks most: visits to the 22 and territory. */}
+      {tablet && !panelActive && (
+        <div className="tab-deck">
+          <div className="tab-feed" aria-live="off">
+            {shown.slice(-12).reverse().map((e, k) => (
+              <div key={shown.length - k} className={`feed-line ${cls(e)}${k === 0 ? ' newest' : ''}`}>
+                <span className="min">{Math.min(80, e.min)}'</span>
+                <span className="txt">{icon(e)} {eventText(e)}</span>
+              </div>
+            ))}
+          </div>
+          <div className="tab-stats">
+            <Visits ctx={ctx} shown={shown} />
+            <Zones ctx={ctx} shown={shown} />
+          </div>
         </div>
       )}
 

@@ -153,7 +153,7 @@ function PlayerLines({ ctx, shown }: { ctx: LiveCtx; shown: MatchEvent[] }) {
 
 /** The field in three: where the lines revealed so far were played, from each
  *  side's point of view (its own third, the middle, the opposition's). */
-function Zones({ ctx, shown }: { ctx: LiveCtx; shown: MatchEvent[] }) {
+export function Zones({ ctx, shown }: { ctx: LiveCtx; shown: MatchEvent[] }) {
   const game = useStore(s => s.game)!
   const f = shown.map(e => e.fld).filter((x): x is number => x != null)
   const n = f.length || 1
@@ -179,7 +179,7 @@ function Zones({ ctx, shown }: { ctx: LiveCtx; shown: MatchEvent[] }) {
 /** Visits to the 22 and what each side made of them: the rugby version of
  *  "attack areas", and the number coaches actually quote. A visit starts on the
  *  first line inside the opposition 22 after a line outside it. */
-function Visits({ ctx, shown }: { ctx: LiveCtx; shown: MatchEvent[] }) {
+export function Visits({ ctx, shown }: { ctx: LiveCtx; shown: MatchEvent[] }) {
   const game = useStore(s => s.game)!
   const tally = (home: boolean) => {
     let visits = 0, inside = false, pts = 0, lastScore = 0
