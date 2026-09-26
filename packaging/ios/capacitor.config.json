@@ -10,7 +10,7 @@
     "or a white frame flashes between the launch screen and the first paint."
   ],
   "appId": "com.phaserugbymanager.app",
-  "appName": "PHASE: Rugby Manager",
+  "appName": "PHASE: Rugby Manager 27",
   "webDir": "../../dist",
   "backgroundColor": "#1a201e",
   "ios": {

@@ -29,7 +29,7 @@ ok(!!canvas, `tokens.css names the night ground (${canvas})`)
 
 // ---- the manifest ----
 const mf = JSON.parse(readFileSync('public/manifest.webmanifest', 'utf8'))
-ok(mf.name === 'PHASE: Rugby Manager' && mf.short_name === 'PHASE',
+ok(mf.name === 'PHASE: Rugby Manager 27' && mf.short_name === 'PRM27',
   'manifest still carries the brand')
 ok(mf.orientation !== 'landscape',
   `manifest does not force landscape onto a portrait-tuned game (orientation: ${mf.orientation})`)

@@ -73,8 +73,8 @@ export default function BugReport() {
   }
 
   // an idea is sent as itself: no save, no user agent, no crash ring
-  const ideaBody = `PHASE: RUGBY MANAGER - IDEA\n\n${idea.trim()}\n`
-  const ideaMail = mailtoUrl(ideaBody, 'PHASE: Rugby Manager - an idea')
+  const ideaBody = `PHASE: RUGBY MANAGER 27 - IDEA\n\n${idea.trim()}\n`
+  const ideaMail = mailtoUrl(ideaBody, 'PHASE: Rugby Manager 27 - an idea')
 
   const doShareIdea = async () => {
     if (!idea.trim()) { setIdeaMsg(t('legacy.bgIdeaEmpty')); return }
