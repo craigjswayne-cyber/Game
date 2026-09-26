@@ -1302,7 +1302,13 @@ export function weeklyCentral(club: Club): number {
   const expectedSeats = Math.min(23_000, Math.max(0, club.rep - 45) * 620)
   const missingSeats = Math.max(0, expectedSeats - club.capacity)
   // 8.5 per missing seat: 30 a ticket, ~85% full, one home game every three weeks
-  return Math.round(commercial + missingSeats * 8.5)
+  // The MRC plays five home games where everyone else plays eleven (1.7.3), so
+  // its central pot carries the gates its calendar does not: about six missing
+  // home games of a small ground, spread over the ledger's weeks. Without it an
+  // American club was broke by design, and fire-sold its best men into the
+  // rest of the world every season.
+  const shortSeason = club.leagueId === 'mrc' ? 18_000 : 0
+  return Math.round(commercial + missingSeats * 8.5 + shortSeason)
 }
 
 /**

@@ -12,6 +12,12 @@
 // Squads are generated (an American core with southern-hemisphere and European
 // imports), like Japan's, and the names are drawn so that none of them can be a
 // real man's: no marquee stars are named.
+//
+// THE STANDARD IS THE CHAMPIONSHIP'S (reputations 52-60). The first cut sat at
+// 58-66, which built squads better than English second-tier ones on revenue a
+// little below it - five home gates a season, not eleven - and scripts/aiecon.ts
+// caught the result: the American clubs sank, fire-sold their best men into the
+// world, and the median club everywhere else banked a fraction of what it had.
 
 import type { Pos, RawClub, RawPlayer } from '../types'
 import { mulberry32 } from '../../game/rng'
@@ -69,10 +75,10 @@ const club = (
 })
 
 export const MRC: RawClub[] = [
-  club('freejacks', 'New England RFC', 'New England', 'Quincy', 'Quincy Veterans Field', 5000, ['#c02f3a', '#12295c'], 66, 1_100_000),
-  club('hounds', 'Chicago RFC', 'Chicago', 'Bridgeview', 'Bridgeview Stadium', 20000, ['#1f6b3a', '#8fc1e3'], 65, 1_050_000),
-  club('seawolves', 'Seattle RFC', 'Seattle', 'Tukwila', 'Starlight Stadium', 4500, ['#0e0e0e', '#9aa5ad'], 64, 950_000),
-  club('legion', 'California RFC', 'California', 'San Diego', 'Toreador Stadium', 6000, ['#b3202a', '#f2c200'], 64, 950_000),
-  club('oldglory', 'Washington RFC', 'Washington', 'Germantown', 'Germantown Park', 5000, ['#12295c', '#c02f3a'], 61, 800_000),
-  club('anthem', 'Charlotte RFC', 'Charlotte', 'Charlotte', 'Legion Memorial Field', 10500, ['#1e5aa8', '#f2c200'], 58, 600_000),
+  club('freejacks', 'New England RFC', 'New England', 'Quincy', 'Quincy Veterans Field', 5000, ['#c02f3a', '#12295c'], 60, 1_100_000),
+  club('hounds', 'Chicago RFC', 'Chicago', 'Bridgeview', 'Bridgeview Stadium', 20000, ['#1f6b3a', '#8fc1e3'], 59, 1_050_000),
+  club('seawolves', 'Seattle RFC', 'Seattle', 'Tukwila', 'Starlight Stadium', 4500, ['#0e0e0e', '#9aa5ad'], 58, 950_000),
+  club('legion', 'California RFC', 'California', 'San Diego', 'Toreador Stadium', 6000, ['#b3202a', '#f2c200'], 58, 950_000),
+  club('oldglory', 'Washington RFC', 'Washington', 'Germantown', 'Germantown Park', 5000, ['#12295c', '#c02f3a'], 55, 800_000),
+  club('anthem', 'Charlotte RFC', 'Charlotte', 'Charlotte', 'Legion Memorial Field', 10500, ['#1e5aa8', '#f2c200'], 52, 600_000),
 ]
