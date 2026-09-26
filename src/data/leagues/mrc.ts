@@ -75,10 +75,10 @@ const club = (
 })
 
 export const MRC: RawClub[] = [
-  club('freejacks', 'New England RFC', 'New England', 'Quincy', 'Quincy Veterans Field', 5000, ['#c02f3a', '#12295c'], 60, 1_100_000),
-  club('hounds', 'Chicago RFC', 'Chicago', 'Bridgeview', 'Bridgeview Stadium', 20000, ['#1f6b3a', '#8fc1e3'], 59, 1_050_000),
-  club('seawolves', 'Seattle RFC', 'Seattle', 'Tukwila', 'Starlight Stadium', 4500, ['#0e0e0e', '#9aa5ad'], 58, 950_000),
-  club('legion', 'California RFC', 'California', 'San Diego', 'Toreador Stadium', 6000, ['#b3202a', '#f2c200'], 58, 950_000),
-  club('oldglory', 'Washington RFC', 'Washington', 'Germantown', 'Germantown Park', 5000, ['#12295c', '#c02f3a'], 55, 800_000),
-  club('anthem', 'Charlotte RFC', 'Charlotte', 'Charlotte', 'Legion Memorial Field', 10500, ['#1e5aa8', '#f2c200'], 52, 600_000),
+  club('newengland', 'New England RFC', 'New England', 'Quincy', 'Quincy Veterans Field', 5000, ['#c02f3a', '#12295c'], 60, 1_100_000),
+  club('chicago', 'Chicago RFC', 'Chicago', 'Bridgeview', 'Bridgeview Stadium', 20000, ['#1f6b3a', '#8fc1e3'], 59, 1_050_000),
+  club('seattle', 'Seattle RFC', 'Seattle', 'Tukwila', 'Starlight Stadium', 4500, ['#0e0e0e', '#9aa5ad'], 58, 950_000),
+  club('california', 'California RFC', 'California', 'San Diego', 'Toreador Stadium', 6000, ['#b3202a', '#f2c200'], 58, 950_000),
+  club('washington', 'Washington RFC', 'Washington', 'Germantown', 'Germantown Park', 5000, ['#12295c', '#c02f3a'], 55, 800_000),
+  club('charlotte', 'Charlotte RFC', 'Charlotte', 'Charlotte', 'Legion Memorial Field', 10500, ['#1e5aa8', '#f2c200'], 52, 600_000),
 ]

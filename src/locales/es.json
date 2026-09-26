@@ -1378,6 +1378,8 @@
   "zone_own22": "En tus 22",
   "zone_middle": "El tercio central",
   "zone_opp22": "En sus 22",
+  "atBreakdown": "En el ruck",
+  "atBreakdownSub": "tu ruck y el suyo",
   "kickStyle": "Estilo de juego al pie",
   "kickTerritory": "🗺️ Territorio",
   "kickContest": "🪂 Disputa",

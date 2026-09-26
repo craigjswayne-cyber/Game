@@ -596,7 +596,7 @@ export default function Tactics() {
             3.41 screenfuls, and scripts/scrollaudit.mjs fails anything at
             three. Pairing them up on a wide screen is the honest fix; nothing
             is hidden and portrait is untouched. */}
-        <div className="dial-grid">{SLIDER_INFO.map(slider)}{brkSlider(BRK_SLIDER_INFO[0])}</div>
+        <div className="dial-grid">{SLIDER_INFO.map(slider)}</div>
         {/* ---- WHAT YOU DO WHERE (v1.8.0) ----
             Three zones, one choice each, because the four dials above are the
             whole-match plan and this is the one decision a coach makes in a
@@ -648,7 +648,12 @@ export default function Tactics() {
             </div>
           )
         })()}
-        <div className="dial-grid">{DEF_SLIDER_INFO.map(defSlider)}{brkSlider(BRK_SLIDER_INFO[1])}</div>
+        <div className="dial-grid">{DEF_SLIDER_INFO.map(defSlider)}</div>
+        {/* THE BREAKDOWN, BOTH WAYS (1.7.3). Attack and defence dials, but one
+            row: each sat alone at the foot of its own section and took the tab
+            past three screenfuls on a landscape phone (scrollaudit). */}
+        <SectionTitle sub={t('tacticsScreen.atBreakdownSub')}>{t('tacticsScreen.atBreakdown')}</SectionTitle>
+        <div className="dial-grid">{BRK_SLIDER_INFO.map(brkSlider)}</div>
       </>}
 
       {roleSheet()}

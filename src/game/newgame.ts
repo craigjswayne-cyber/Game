@@ -785,6 +785,16 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   // the salary cap for every division, measured from the division itself (F6)
   refreshCaps(state, true)
 
+  // THE FIRST WEEK WALKS THROUGH THE WELCOME. The board's letter, the
+  // terraces, the staff and the scouts are this week's news, so the day walk
+  // files them on their days (days.ts storiesForDay) instead of leaving the
+  // first Continue to find them all on the wire at kick-off. Until 1.7.3 the
+  // first week's only bulletin was a Friday preview, which the fixture-id hash
+  // happened to allow; the Major Rugby Competition moved every id and every
+  // club's week-1 friendly onto a Friday, and the first week had no days at all.
+  const firstStory = state.news.reduce((m, n) => Math.min(m, n.id), state.nextId)
+  state.newsFrom = firstStory
+
   // the id counter travels with the save from here (GameState.pidNext, 1.6.4)
   state.pidNext = peekPid()
   return state

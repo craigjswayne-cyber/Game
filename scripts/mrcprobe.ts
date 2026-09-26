@@ -29,7 +29,7 @@ let fails = 0
 const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
 console.log('--- 1. the league')
-const g = newGame('freejacks', 'MRC Probe', 1776)
+const g = newGame('newengland', 'MRC Probe', 1776)
 const comp = g.comps.mrc
 ok(!!comp && comp.name === 'Major Rugby Competition' && comp.short === 'MRC', `the competition is there and named (${comp?.name})`)
 const ids = Object.values(g.clubs).filter(c => c.leagueId === 'mrc').map(c => c.id).sort()

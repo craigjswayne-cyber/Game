@@ -15,8 +15,6 @@
 // exactly what two queued touch events do.
 import { newGame } from '../src/game/newgame'
 import { TAP_GUARD_MS, useStore } from '../src/store'
-import { nextStep } from '../src/game/days'
-import { fixtureDayOff } from '../src/game/model'
 
 let fails = 0
 const ok = (c: boolean, what: string) => {
@@ -32,21 +30,7 @@ const where = () => {
 
 // ---- a double tap on a bulletin day moves exactly one day ------------------
 {
-  // A WEEK WITH A BULLETIN DAY IN IT. Northampton's week 1 had one until the
-  // Major Rugby Competition (1.7.3) added six clubs: a fixture's weekday is a
-  // hash of its id, the ids all moved, and every club's week-1 friendly now
-  // kicks off on a Friday - so there is no Friday bulletin, the first step is
-  // the match, and Continue correctly sends an unread desk to the wire. The
-  // friendly is given a Saturday id (an unused one), so this still tests what
-  // it was written for: a double tap on a day that walks.
   const g = newGame('northampton', 'Tap Probe', 31)
-  const fx1 = g.fixtures.find(f => f.week === g.week && (f.homeId === g.userClubId || f.awayId === g.userClubId))
-  if (fx1 && fixtureDayOff(fx1.id) !== 0) {
-    let id = 9_000_000
-    while (fixtureDayOff(id) !== 0 || g.fixtures.some(f => f.id === id)) id++
-    fx1.id = id
-  }
-  ok(nextStep(g).kind === 'day', 'the first Continue of the week walks a day')
   st.setState({ game: g, nav: [{ screen: 'home' }], lastAdvanceAt: 0 })
   const before = where()
   st.getState().continueWeek()
