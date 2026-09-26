@@ -6853,7 +6853,10 @@
   "onlyExpiring": "契約満了間近のみ",
   "includeInjured": "負傷中の選手を含める",
   "reset": "リセット",
-  "show": "{n}人を表示"
+  "show": {
+   "one": "{n}人を表示",
+   "other": "{n}人を表示"
+  }
  },
  "attrShort": {
   "tac": "タック",

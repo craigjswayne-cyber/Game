@@ -7270,7 +7270,10 @@
   "onlyExpiring": "Contract expiring only",
   "includeInjured": "Include injured players",
   "reset": "Reset",
-  "show": "Show {n} players"
+  "show": {
+   "one": "Show {n} player",
+   "other": "Show {n} players"
+  }
  },
  "attrShort": {
   "tac": "Tck",

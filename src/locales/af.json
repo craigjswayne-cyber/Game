@@ -7318,7 +7318,10 @@
   "onlyExpiring": "Net kontrakte wat verval",
   "includeInjured": "Sluit beseerde spelers in",
   "reset": "Herstel",
-  "show": "Wys {n} spelers"
+  "show": {
+   "one": "Wys {n} speler",
+   "other": "Wys {n} spelers"
+  }
  },
  "attrShort": {
   "tac": "Lvt",

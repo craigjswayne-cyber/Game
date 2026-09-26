@@ -6986,7 +6986,10 @@
   "onlyExpiring": "Solo contratti in scadenza",
   "includeInjured": "Includi gli infortunati",
   "reset": "Azzera",
-  "show": "Mostra {n} giocatori"
+  "show": {
+   "one": "Mostra {n} giocatore",
+   "other": "Mostra {n} giocatori"
+  }
  },
  "attrShort": {
   "tac": "Pla",
