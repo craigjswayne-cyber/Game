@@ -482,8 +482,8 @@
     "jokerBtn": "Engager un joker médical",
     "jokerTitle": "Joker médical pour {hurt}",
     "jokerExplain": {
-     "one": "Absence de {n} semaine : vous pouvez engager un remplaçant libre de tout contrat. Le salaire est hors plafond pendant l'intérim, mais le club le paie. Le contrat prend fin au retour de {hurt} ou en fin de saison.",
-     "other": "Absence de {n} semaines : vous pouvez engager un remplaçant libre de tout contrat. Le salaire est hors plafond pendant l'intérim, mais le club le paie. Le contrat prend fin au retour de {hurt} ou en fin de saison."
+      "one": "Absence de {n} semaine : vous pouvez engager un remplaçant libre de tout contrat. Le salaire est hors plafond pendant l'intérim, mais le club le paie. Le contrat prend fin au retour de {hurt} ou en fin de saison.",
+      "other": "Absence de {n} semaines : vous pouvez engager un remplaçant libre de tout contrat. Le salaire est hors plafond pendant l'intérim, mais le club le paie. Le contrat prend fin au retour de {hurt} ou en fin de saison."
     },
     "jokerCovered": "Joker médical : {name}",
     "jokerNone": "Aucun remplaçant libre à ce poste pour l'instant.",
@@ -1631,7 +1631,6 @@
     "toValue": "jusqu'à {amount}",
     "ageOrUnder": "{n} ans ou moins",
     "freeAgents": "Agents libres",
-    "listed": "🏷️ Sur la liste",
     "colClub": "Club",
     "colAbility": "Niveau",
     "colForm": "Forme",
@@ -1666,7 +1665,6 @@
     "scoutReportsSub": "tout ce que les recruteurs ont classé",
     "fromClub": "en provenance de {club}",
     "fromFree": "sans contrat",
-    "interested": "Intéressés",
     "loanLenShort": "pour trois mois",
     "loanLenHalf": "pour six mois",
     "loanLenSeason": "jusqu’à la fin de la saison",
@@ -5114,8 +5112,8 @@
     "released": "{club} libère {name} ({pos}, {age} ans) avec effet immédiat, en soldant le reste de son contrat pour {cost}. Il est agent libre.",
     "knockFlaredSubj": "🩹 Rechute pour {name}",
     "knockFlared": {
-     "one": "Jouer malgré la gêne a coûté cher : la blessure de {name} s'est aggravée pendant le match, et le staff médical prévoit désormais {n} semaine d'absence.",
-     "other": "Jouer malgré la gêne a coûté cher : la blessure de {name} s'est aggravée pendant le match, et le staff médical prévoit désormais {n} semaines d'absence."
+      "one": "Jouer malgré la gêne a coûté cher : la blessure de {name} s'est aggravée pendant le match, et le staff médical prévoit désormais {n} semaine d'absence.",
+      "other": "Jouer malgré la gêne a coûté cher : la blessure de {name} s'est aggravée pendant le match, et le staff médical prévoit désormais {n} semaines d'absence."
     },
     "jokerSignedSubj": "🩺 Joker médical : {name}",
     "jokerSigned": "{name} ({pos}, {age} ans) arrive pour une courte durée afin de remplacer {hurt}. Le salaire de {wage} est hors plafond salarial pendant l'intérim, et le contrat prend fin au retour de {hurt} ou à la fin de la saison.",
@@ -7085,8 +7083,6 @@
   "search": {
     "anyAttr": "Attribut",
     "atLeast": "{n}+",
-    "injured": "Blessure",
-    "expiring": "Fin de contrat",
     "view": "Vue",
     "view_general": "Général",
     "view_contract": "Contrat",
@@ -7098,7 +7094,17 @@
     "colWage": "Salaire",
     "colStatus": "Statut",
     "listed": "Sur la liste",
-    "expiringShort": "Fin contrat"
+    "expiringShort": "Fin contrat",
+    "filters": "Filtres",
+    "filtersOn": "Filtres ({n})",
+    "any": "Tous",
+    "viewIs": "Vue : {view}",
+    "onlyListed": "Joueurs sur la liste des transferts",
+    "onlyInterested": "Joueurs prêts à nous rejoindre",
+    "onlyExpiring": "Contrats en fin de validité",
+    "includeInjured": "Inclure les blessés",
+    "reset": "Réinitialiser",
+    "show": "Afficher {n} joueurs"
   },
   "attrShort": {
     "tac": "Plaq",

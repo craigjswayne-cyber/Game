@@ -48,6 +48,7 @@ export default function Transfers() {
   const [attrMin, setAttrMin] = useState(12)
   const [withInjured, setWithInjured] = useState(true)
   const [expiringOnly, setExpiringOnly] = useState(false)
+  const [filtersOpen, setFiltersOpen] = useState(false)
   const [msort, setMsort] = useState<'ca' | 'value' | 'age' | 'name' | 'form'>('ca')
   const [mdesc, setMdesc] = useState(false)
   // KEYED TO THE ROW, not to the page. Same class of bug as the coach market:
@@ -111,6 +112,8 @@ export default function Transfers() {
     })
     return list.slice(0, 120)
   }, [game, game.players, game.clubs, pos, query, maxVal, maxAge, league, listedOnly, keenOnly, withInjured, expiringOnly, attrKey, attrMin, msort, mdesc, game.week])
+  const activeFilters = [pos !== 'ALL', league !== 'ALL', maxVal > 0, maxAge > 0, !!attrKey,
+    listedOnly, keenOnly, expiringOnly, !withInjured].filter(Boolean).length
   const pages = Math.max(1, Math.ceil(results.length / PER_PAGE))
   const pageSafe = Math.min(page, pages - 1)
   const pageRows = results.slice(pageSafe * PER_PAGE, (pageSafe + 1) * PER_PAGE)
@@ -406,66 +409,96 @@ export default function Transfers() {
           row equally, and every resting label is the filter's own name - short
           enough to fit, and it reads as a placeholder, which is what an unset
           filter is. */}
+      {/* ---- ONE ROW, THEN A SHEET (PRM27) ----
+          Owner, 26 Sep 2026, circling the four rows of dropdowns and chips:
+          "tidy this section up. Make it so its a filter and you select what
+          you want to see". The name search stays on the page because it is
+          the one thing typed every time; every other filter lives in a sheet
+          behind one button that says how many are on, and the columns are a
+          single View menu. */}
       <div className="filter-line">
         <input className="inline-input" placeholder={t('transfers.nameOrClub')} value={query}
           onChange={e => { setQuery(e.target.value); setPage(0) }}
           style={{ flex: '2 1 0' }} />
-        <select className="inline-input" value={pos} onChange={e => { setPos(e.target.value as Pos | 'ALL'); setPage(0) }}>
-          <option value="ALL">{t('transfers.filterPosition')}</option>
-          {POS_ORDER.map(p => <option key={p} value={p}>{p}</option>)}
+        <button className={`inline-input filter-btn${activeFilters ? ' on' : ''}`} onClick={() => setFiltersOpen(true)}>
+          {activeFilters ? t('search.filtersOn', { n: activeFilters }) : t('search.filters')}
+        </button>
+        <select className="inline-input" aria-label={t('search.view')} value={view} onChange={e => setView(e.target.value as SearchView)}>
+          {SEARCH_VIEWS.map(v => <option key={v} value={v}>{t('search.viewIs', { view: t(`search.view_${v}`) })}</option>)}
         </select>
       </div>
-      <div className="filter-line">
-        <select className="inline-input" value={maxVal} onChange={e => { setMaxVal(Number(e.target.value)); setPage(0) }}>
-          <option value={0}>{t('transfers.filterValue')}</option>
-          <option value={250000}>{t('transfers.toValue', { amount: '£250k' })}</option>
-          <option value={1000000}>{t('transfers.toValue', { amount: '£1m' })}</option>
-          <option value={3000000}>{t('transfers.toValue', { amount: '£3m' })}</option>
-          <option value={8000000}>{t('transfers.toValue', { amount: '£8m' })}</option>
-        </select>
-        <select className="inline-input" value={maxAge} onChange={e => { setMaxAge(Number(e.target.value)); setPage(0) }}>
-          <option value={0}>{t('transfers.filterAge')}</option>
-          {[21, 24, 28, 32].map(n => <option key={n} value={n}>{t('transfers.ageOrUnder', { n })}</option>)}
-        </select>
-        <select className="inline-input" value={league} onChange={e => { setLeague(e.target.value); setPage(0) }}>
-          <option value="ALL">{t('transfers.filterLeague')}</option>
-          {/* a free agent's league is nowhere, which makes this the natural
-              place to find him (user: "you should be able to search for free
-              agents on the transfer centre") */}
-          <option value="FA">{t('transfers.freeAgents')}</option>
-          {Object.values(game.comps).filter(c => c.type === 'league').map(c => (
-            <option key={c.id} value={c.id}>{c.short}</option>
-          ))}
-        </select>
-        <button className="preset-chip" style={listedOnly ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
-          onClick={() => { setListedOnly(!listedOnly); setPage(0) }}>{t('transfers.listed')}</button>
-        <button className="preset-chip" style={keenOnly ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
-          onClick={() => { setKeenOnly(!keenOnly); setPage(0) }}>{t('transfers.interested')}</button>
-      </div>
-      {/* ---- MORE FILTERS AND THE VIEW (PRM27) ----
-          One attribute and a floor for it, the injured in or out, and the
-          contracts running down; then which columns the table shows. The
-          attributes are what the scouts can see (scout.attrRange): a range
-          until the player is well known, exact after that. */}
-      <div className="filter-line">
-        <select className="inline-input" value={attrKey} onChange={e => { setAttrKey(e.target.value as keyof Attrs | ''); setPage(0) }}>
-          <option value="">{t('search.anyAttr')}</option>
-          {ATTR_ORDER.map(k => <option key={k} value={k}>{attrName(k)}</option>)}
-        </select>
-        <select className="inline-input" value={attrMin} disabled={!attrKey} onChange={e => { setAttrMin(Number(e.target.value)); setPage(0) }}>
-          {[8, 10, 12, 14, 16, 18].map(n => <option key={n} value={n}>{t('search.atLeast', { n })}</option>)}
-        </select>
-        <button className="preset-chip" style={withInjured ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
-          onClick={() => { setWithInjured(!withInjured); setPage(0) }}>{t('search.injured')}</button>
-        <button className="preset-chip" style={expiringOnly ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
-          onClick={() => { setExpiringOnly(!expiringOnly); setPage(0) }}>{t('search.expiring')}</button>
-      </div>
-      <div className="view-chips" role="tablist" aria-label={t('search.view')}>
-        {SEARCH_VIEWS.map(v => (
-          <button key={v} role="tab" aria-selected={view === v} className={`preset-chip${view === v ? '' : ' off'}`}
-            onClick={() => setView(v)}>{t(`search.view_${v}`)}</button>
-        ))}
-      </div>
+      {filtersOpen && (
+        <div className="modal-veil" onClick={() => setFiltersOpen(false)}>
+          <div className="modal filter-sheet" onClick={e => e.stopPropagation()}>
+            <div className="grab" />
+            <h3>{t('search.filters')}</h3>
+            <div className="fs-grid">
+              <label>{t('transfers.filterPosition')}</label>
+              <select className="inline-input" value={pos} onChange={e => { setPos(e.target.value as Pos | 'ALL'); setPage(0) }}>
+                <option value="ALL">{t('search.any')}</option>
+                {POS_ORDER.map(p => <option key={p} value={p}>{posName(p)}</option>)}
+              </select>
+              <label>{t('transfers.filterLeague')}</label>
+              <select className="inline-input" value={league} onChange={e => { setLeague(e.target.value); setPage(0) }}>
+                <option value="ALL">{t('search.any')}</option>
+                {/* a free agent's league is nowhere, which makes this the natural
+                    place to find him (user: "you should be able to search for free
+                    agents on the transfer centre") */}
+                <option value="FA">{t('transfers.freeAgents')}</option>
+                {Object.values(game.comps).filter(c => c.type === 'league').map(c => (
+                  <option key={c.id} value={c.id}>{c.short}</option>
+                ))}
+              </select>
+              <label>{t('transfers.filterValue')}</label>
+              <select className="inline-input" value={maxVal} onChange={e => { setMaxVal(Number(e.target.value)); setPage(0) }}>
+                <option value={0}>{t('search.any')}</option>
+                <option value={250000}>{t('transfers.toValue', { amount: '£250k' })}</option>
+                <option value={1000000}>{t('transfers.toValue', { amount: '£1m' })}</option>
+                <option value={3000000}>{t('transfers.toValue', { amount: '£3m' })}</option>
+                <option value={8000000}>{t('transfers.toValue', { amount: '£8m' })}</option>
+              </select>
+              <label>{t('transfers.filterAge')}</label>
+              <select className="inline-input" value={maxAge} onChange={e => { setMaxAge(Number(e.target.value)); setPage(0) }}>
+                <option value={0}>{t('search.any')}</option>
+                {[21, 24, 28, 32].map(n => <option key={n} value={n}>{t('transfers.ageOrUnder', { n })}</option>)}
+              </select>
+              {/* the attributes are what the scouts can see (scout.attrRange) */}
+              <label>{t('search.anyAttr')}</label>
+              <div className="fs-pair">
+                <select className="inline-input" value={attrKey} onChange={e => { setAttrKey(e.target.value as keyof Attrs | ''); setPage(0) }}>
+                  <option value="">{t('search.any')}</option>
+                  {ATTR_ORDER.map(k => <option key={k} value={k}>{attrName(k)}</option>)}
+                </select>
+                <select className="inline-input" value={attrMin} disabled={!attrKey} onChange={e => { setAttrMin(Number(e.target.value)); setPage(0) }}>
+                  {[8, 10, 12, 14, 16, 18].map(n => <option key={n} value={n}>{t('search.atLeast', { n })}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="fs-toggles">
+              {([
+                [listedOnly, () => setListedOnly(!listedOnly), 'search.onlyListed'],
+                [keenOnly, () => setKeenOnly(!keenOnly), 'search.onlyInterested'],
+                [expiringOnly, () => setExpiringOnly(!expiringOnly), 'search.onlyExpiring'],
+                [withInjured, () => setWithInjured(!withInjured), 'search.includeInjured'],
+              ] as [boolean, () => void, string][]).map(([on, flip, k]) => (
+                <label key={k} className="fs-toggle">
+                  <input type="checkbox" checked={on} onChange={() => { flip(); setPage(0) }} />
+                  <span>{t(k)}</span>
+                </label>
+              ))}
+            </div>
+            <div className="btn-row" style={{ marginTop: 10 }}>
+              <button className="btn ghost" onClick={() => {
+                setPos('ALL'); setLeague('ALL'); setMaxVal(0); setMaxAge(0); setAttrKey('')
+                setListedOnly(false); setKeenOnly(false); setExpiringOnly(false); setWithInjured(true); setPage(0)
+              }}>{t('search.reset')}</button>
+              <button className="btn gold" style={{ flex: 2 }} onClick={() => setFiltersOpen(false)}>
+                {t('search.show', { n: results.length === 120 ? t('transfers.best120') : results.length })}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* codefirst: the leading column is a position code, so it forgoes the
           16px first-column gutter - eight columns already fill a 412px phone */}
       {view !== 'general' ? (

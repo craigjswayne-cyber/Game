@@ -1628,7 +1628,6 @@
   "toValue": "fino a {amount}",
   "ageOrUnder": "{n} o meno",
   "freeAgents": "Svincolati",
-  "listed": "🏷️ In vendita",
   "colClub": "Club",
   "colAbility": "Abilità",
   "colForm": "Forma",
@@ -1663,7 +1662,6 @@
   "scoutReportsSub": "tutto ciò che gli osservatori hanno reso",
   "fromClub": "da {club}",
   "fromFree": "senza contratto",
-  "interested": "Interessato",
   "loanLenShort": "per tre mesi",
   "loanLenHalf": "per sei mesi",
   "loanLenSeason": "fino a fine stagione",
@@ -6964,8 +6962,6 @@
  "search": {
   "anyAttr": "Attributo",
   "atLeast": "{n}+",
-  "injured": "Con infortunio",
-  "expiring": "In scadenza",
   "view": "Vista",
   "view_general": "Generale",
   "view_contract": "Contratto",
@@ -6977,7 +6973,17 @@
   "colWage": "Ingaggio",
   "colStatus": "Stato",
   "listed": "In lista",
-  "expiringShort": "Scade"
+  "expiringShort": "Scade",
+  "filters": "Filtri",
+  "filtersOn": "Filtri ({n})",
+  "any": "Tutti",
+  "viewIs": "Vista: {view}",
+  "onlyListed": "Solo in lista trasferimenti",
+  "onlyInterested": "Solo interessati a venire",
+  "onlyExpiring": "Solo contratti in scadenza",
+  "includeInjured": "Includi gli infortunati",
+  "reset": "Azzera",
+  "show": "Mostra {n} giocatori"
  },
  "attrShort": {
   "tac": "Pla",

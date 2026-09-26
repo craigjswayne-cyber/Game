@@ -34,6 +34,8 @@ const unreachableAtBottom = () => page.evaluate(() => {
   for (const el of sc.querySelectorAll('*')) {
     const r = el.getBoundingClientRect()
     if (r.height < 6 || r.width < 6 || el.querySelector('*')) continue
+    // a sheet is fixed on top of the nav, not page content scrolling under it
+    if (el.closest('.modal-veil')) continue
     const txt = (el.textContent ?? '').trim()
     if (!txt) continue
     if (r.top < navTop && r.bottom > navTop + 2) covered.push(`${txt.slice(0, 30)} (${Math.round(r.bottom - navTop)}px under)`)
@@ -320,12 +322,29 @@ try {
     ok(row.spread <= 2, `all on one line (${row.spread}px spread)`)
     ok(row.clipped.length === 0, `no filter label is clipped by its own box${row.clipped.length ? ` [${row.clipped.join(', ')}]` : ''}`)
   }
-  // 2 then 5 since v1.1.14: the Interested filter joined the second row
-  // (owner: "there needs to be an interested switch on button - for players who
-  // would sign for the club"). The count is pinned so a control cannot be added
-  // without somebody checking it still fits; the clipping claim above is the
-  // one that decides whether it does.
-  ok(fr.length === 2 && fr[0].n === 2 && fr[1].n === 5, `two rows of filters, 2 then 5 (${fr.map(r => r.n).join('+')})`)
+  // ONE ROW OF 3 since 1.8.0 (PRM27). It was 2 then 5 from v1.1.14, when the
+  // Interested filter joined the second row; then the owner circled the four
+  // rows of filters and view chips: "tidy this section up. Make it so its a
+  // filter and you select what you want to see". The name search, a Filters
+  // button and the View menu stay; everything else is in the sheet, checked
+  // below. The count is pinned so a control cannot creep back onto the page
+  // without somebody checking it still fits.
+  ok(fr.length === 1 && fr[0].n === 3, `one row of filters, 3 controls (${fr.map(r => r.n).join('+')})`)
+  await page.click('.filter-btn')
+  await page.waitForSelector('.filter-sheet', { timeout: 4000 })
+  const sheet = await page.evaluate(() => {
+    const el = document.querySelector('.filter-sheet')
+    const show = el.querySelector('.btn.gold').getBoundingClientRect()
+    const ctrls = [...el.querySelectorAll('select, .fs-toggle')]
+    const clipped = ctrls.filter(e => e.scrollWidth > e.clientWidth + 2)
+      .map(e => (e.tagName === 'SELECT' ? e.options[e.selectedIndex].text : e.textContent.trim()))
+    return { n: ctrls.length, clipped, showIn: show.bottom <= innerHeight + 1 && show.top >= 0, scrolls: el.scrollHeight > el.clientHeight + 2 }
+  })
+  console.log(`--- filter sheet: ${sheet.n} controls, ${sheet.scrolls ? 'scrolls' : 'fits'}`)
+  ok(sheet.clipped.length === 0, `no control in the filter sheet is clipped${sheet.clipped.length ? ` [${sheet.clipped.join(', ')}]` : ''}`)
+  ok(sheet.showIn, 'the Show button is on screen with the sheet open')
+  await report('transfers-filters')
+  await page.click('.filter-sheet .btn.gold')
   await report('transfers')
 
   // ---- every squad table keeps its heading at the top, and fits the screen

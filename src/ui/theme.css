@@ -4621,8 +4621,35 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .mp-zone span { font-size: 12px; color: var(--text-muted); }
 
 /* ---- the search screen's views (PRM27, Transfers.tsx) ---- */
-.view-chips { display: flex; flex-wrap: wrap; gap: 5px; padding: 0 14px 8px; }
-.view-chips .preset-chip.off { background: var(--surface-2); color: var(--text-secondary); }
+/* ---- THE FILTER SHEET (PRM27) ----
+   The market's one row: the name search, a Filters button that says how many
+   are on, and the View menu. Everything else sits in a bottom sheet with a
+   label beside each control, so nothing on the page is a dropdown whose only
+   label is its own placeholder. */
+.filter-line > .filter-btn { flex: 1 1 0; min-width: 0; text-align: center; cursor: pointer; font-weight: 600; }
+.filter-line > .filter-btn.on { background: var(--primary-tint); border-color: var(--primary); color: var(--primary); }
+.filter-sheet { padding: 0 16px calc(var(--safe-area-inset-bottom) + 12px); }
+.filter-sheet h3 { margin: 2px 0 10px; }
+.fs-grid { display: grid; grid-template-columns: auto 1fr; gap: 8px 12px; align-items: center; }
+.fs-grid > label { font-size: 13px; color: var(--text-secondary); }
+.fs-grid .inline-input { margin: 0; width: 100%; min-width: 0; }
+.fs-pair { display: grid; grid-template-columns: 2fr 1fr; gap: 6px; }
+.fs-toggles { display: flex; flex-direction: column; gap: 2px; margin-top: 12px; border-top: 1px solid var(--border); padding-top: 8px; }
+.fs-toggle { display: flex; align-items: center; gap: 10px; min-height: 40px; font-size: 14px; cursor: pointer; }
+.fs-toggle input { width: 18px; height: 18px; accent-color: var(--primary); flex: none; }
+.filter-sheet .btn-row {
+  margin: 12px 0 0; padding: 10px 0 2px;
+  /* Show stays in reach however tall the sheet gets */
+  position: sticky; bottom: 0; background: var(--canvas);
+}
+/* landscape: the phone is 412 tall, so the sheet goes wide instead of long,
+   two label-and-control pairs to a row and the switches in two columns */
+@media (orientation: landscape) and (max-height: 560px) {
+  .filter-sheet { max-width: 760px; max-height: 94vh; max-height: 94dvh; }
+  .fs-grid { grid-template-columns: auto 1fr auto 1fr; gap: 6px 12px; }
+  .fs-toggles { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; margin-top: 8px; }
+  .fs-toggle { min-height: 36px; }
+}
 .dtable td.attr-cell { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ctx-gutter { padding: 0 14px; }
 @media (min-width: 720px) { .ctx-gutter { padding: 0 14px 0 0; } }
