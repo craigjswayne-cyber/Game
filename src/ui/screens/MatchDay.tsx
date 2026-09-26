@@ -2383,9 +2383,9 @@ function Live() {
 
       {settings && (
         <div className="modal-veil" onClick={() => setSettings(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
+          <div className="modal settings-sheet" onClick={e => e.stopPropagation()}>
             <div className="grab" />
-            <h3 style={{ fontSize: 16, margin: '2px 0 8px' }}>{t('matchday.matchSettings')}</h3>
+            <h3 style={{ fontSize: 16, margin: '2px 16px 8px' }}>{t('matchday.matchSettings')}</h3>
             <div className="set-label">{t('matchday.commentarySpeed')}</div>
             <div className="btn-row">
               {SPEEDS.map((s, i) => (
