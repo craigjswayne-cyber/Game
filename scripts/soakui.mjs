@@ -158,6 +158,7 @@ async function look() {
       saveWarn: !!q('.save-warn'),
       tut: !!q('.tut-box'),
       celebrate: !!q('.celebrate-veil'),
+      sack: !!q('.sack-veil'),
       talk: !!q('.talk-modal'),
       modal: !!q('.modal-veil'),
       rotate: !!q('.rotate-veil'),
@@ -302,6 +303,7 @@ try {
   // the week cannot move while a match is being played, so watching one gets its
   // own patience counter rather than counting against the stuck detector
   let livePatience = 0
+  let sackAnswers = 0
 
   // every screen the rail can reach, checked periodically
   const HUB = ['Team', 'Tactics', 'Fixtures & Results', 'Finances', 'Transfer Centre',
@@ -377,6 +379,22 @@ try {
 
     // ---- clear whatever is in the way, in the order a thumb would
     if (v.tut) { await page.click('.tut-close .btn').catch(() => {}); await page.waitForTimeout(120); continue }
+    // ---- THE SACKING IS ANSWERED, THEN CLOSED (1.7.1 audit).
+    //
+    // A sacked manager gets a veil over every screen: three things to say to
+    // the cameras, then the reply and a button to close it. The driver knew no
+    // .sack-veil, so the first career of 1.7.1 that was sacked mid-round-up
+    // sat tapping "Back to the Dressing Room" underneath it until the watchdog
+    // photographed it. A player answers in one tap and closes in a second; so
+    // does this, rotating the answer (never random: see the press room below).
+    if (v.sack) {
+      const said = page.locator('.sack-box .btn.ghost')
+      const n = await said.count()
+      if (n) await said.nth(sackAnswers++ % n).click().catch(() => {})
+      else await page.click('.sack-box .btn.gold').catch(() => {})
+      await page.waitForTimeout(200)
+      continue
+    }
     if (v.celebrate) {
       // the celebration wants a tap to move on
       const btn = page.locator('.celebrate-veil button').first()
