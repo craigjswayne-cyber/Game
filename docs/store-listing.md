@@ -150,27 +150,28 @@ First release.
 ### What's new (500 max) - v1.7.3, Play version code 40
 
 Players who talk back (four new reasons to knock, and every answer read
-against who the player is), and the Major Rugby Competition, a six-club
+against who the player is), kicking styles and two breakdown dials, ageing
+that turns pace into craft, and the Major Rugby Competition, a six-club
 American league.
 
 ```
 <en-GB>
-Players now talk back. A dropped regular asks why, your captain warns you about a new signing, a natural leader asks for the armband, and a squad player asks to try another position. How your answer lands depends on who they are: the same words that fire up a professional can insult a mercenary, and a senior voice carries it into the dressing room. New in the men's game: the Major Rugby Competition, a six-club American league.
+Players now talk back: a dropped regular asks why, your captain warns about a signing, a leader wants the armband, a squad player asks to change position. How your answer lands depends on who they are. New tactics: four kicking styles, and separate breakdown dials in attack and defence. Players now age like players: pace fades from 28, while scrummaging, kicking and reading the game keep improving to about 30. New men's league: the Major Rugby Competition, six American clubs.
 </en-GB>
 <fr-FR>
-Les joueurs vous répondent désormais. Un titulaire écarté demande pourquoi, votre capitaine vous alerte sur une recrue, un meneur réclame le brassard et un remplaçant veut essayer un autre poste. L'effet de votre réponse dépend de la personnalité : les mêmes mots qui motivent un pro peuvent vexer un mercenaire, et une voix respectée porte l'affaire jusqu'au vestiaire. Nouveau chez les hommes : la Major Rugby Competition, un championnat américain à six clubs.
+Les joueurs vous répondent : un titulaire écarté demande pourquoi, le capitaine alerte sur une recrue, un meneur réclame le brassard, un remplaçant veut changer de poste. L'effet dépend de la personnalité. Tactique : quatre styles de jeu au pied et deux réglages du ruck (attaque, défense). Le vieillissement change : la vitesse baisse dès 28 ans, la mêlée, le pied et la lecture du jeu progressent jusque vers 30 ans. Nouveau chez les hommes : la Major Rugby Competition, six clubs américains.
 </fr-FR>
 <es-ES>
-Los jugadores ahora te responden. Un titular apartado pregunta por qué, tu capitán te avisa sobre un fichaje, un líder nato pide el brazalete y un suplente quiere probar en otra posición. Cómo cae tu respuesta depende de su carácter: las mismas palabras que motivan a un profesional pueden ofender a un mercenario, y una voz veterana lo lleva al vestuario. Novedad masculina: la Major Rugby Competition, una liga estadounidense de seis clubes.
+Los jugadores te responden: un titular apartado pregunta por qué, el capitán avisa sobre un fichaje, un líder pide el brazalete, un suplente quiere cambiar de posición. El efecto depende de su carácter. Táctica: cuatro estilos de juego al pie y dos ajustes del ruck, en ataque y en defensa. Envejecer cambia: la velocidad cae desde los 28, mientras la melé, el pie y la lectura del juego mejoran hasta cerca de los 30. Nueva liga masculina: la Major Rugby Competition, seis clubes estadounidenses.
 </es-ES>
 <it-IT>
-Ora i giocatori ti rispondono. Un titolare escluso chiede perché, il capitano ti avverte su un nuovo acquisto, un leader nato chiede la fascia e un panchinaro vuole provare un altro ruolo. L'effetto della tua risposta dipende dal carattere: le stesse parole che caricano un professionista possono offendere un mercenario, e una voce autorevole porta tutto nello spogliatoio. Novità maschile: la Major Rugby Competition, un campionato americano a sei club.
+I giocatori ti rispondono: un titolare escluso chiede perché, il capitano avverte su un acquisto, un leader chiede la fascia, un panchinaro vuole cambiare ruolo. L'effetto dipende dal carattere. Tattica: quattro stili di gioco al piede e due regolazioni del ruck, in attacco e in difesa. L'età conta: la velocità cala dai 28 anni, mentre mischia, piede e lettura del gioco migliorano fino ai 30 circa. Nuovo campionato maschile: la Major Rugby Competition, sei club americani.
 </it-IT>
 <ja-JP>
-選手が言い返すようになった。外された主力が理由を尋ね、キャプテンは新加入選手について警告し、生まれながらのリーダーはキャプテンの座を求め、控え選手は別ポジションを試したいと言う。答えの受け止め方は性格次第。プロを奮い立たせる言葉が傭兵気質の選手を怒らせることもあり、ベテランの声はロッカールームに広がる。男子に新リーグ、6クラブのアメリカリーグ「メジャー・ラグビー・コンペティション」が登場。
+選手が言い返すようになった。外された主力は理由を尋ね、キャプテンは新加入選手について警告し、リーダーはキャプテンの座を求め、控え選手はポジション変更を願い出る。受け止め方は性格次第。戦術に4つのキックスタイルと、攻守別のブレイクダウン設定が追加。年齢の重ね方も変わり、スピードは28歳から落ちるが、スクラム、キック、試合を読む力は30歳ごろまで伸び続ける。男子に新リーグ、6クラブのアメリカリーグ「メジャー・ラグビー・コンペティション」が登場。
 </ja-JP>
 ```
-*(en-GB 430, fr-FR 462, es-ES 443, it-IT 455, ja-JP 196 - all inside Play's 500.)*
+*(en-GB 480, fr-FR 494, es-ES 497, it-IT 476, ja-JP 222 - all inside Play's 500.)*
 
 ### What's new (500 max) - v1.7.2, Play version code 39
 

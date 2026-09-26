@@ -2881,8 +2881,14 @@ const COVER_DEF = 0.937
  * chalking tries off (scoreTry): about one in eighteen is disallowed, so a few
  * more are scored in the first place and the season lands where it was
  * (fingerprint.ts has the before-and-after).
+ *
+ * And 0.0895 to 0.0945 in 1.7.3, when ageing began turning an older side's
+ * pace into tackling and handling (ageing.ts): every veteran back is a little
+ * slower and every veteran tackler a little surer, so fewer tries were
+ * scored until the constant moved (bandcheck pooled, tries a game: 6.40
+ * before ageing, 6.38 after it with this constant; points 50.2 -> 50.3).
  */
-const TRY_BASE = 0.0895
+const TRY_BASE = 0.0945
 
 /** The cost of a thin bench: a man in the wrong half of the team.
  *

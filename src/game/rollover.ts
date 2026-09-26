@@ -7,7 +7,8 @@ import { settleInsolvency } from './insolvency'
 import { ageManager } from './career'
 import { rivalVerdict } from './boss'
 import {absWeek, BASE_YEAR, boardObjective, boardPatience, closeNatTenure, demandCeiling, MAX_FOLLOWING, GROUND_TIERS, groundLevel, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, RELEGATES, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId, worldCupSeasonFor } from './model'
-import { assignPersonality } from './attributes'
+import { assignPersonality, EARLY_FADE, LATE_PEAK } from './attributes'
+import { ageAttributes } from './ageing'
 import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildWomensContinentalCup, buildLeague, schedulePreseason, sortTable } from './schedule'
 import { punditPredictions } from './gossip'
 import { CHALLENGES, LEAGUE_DEFS } from './newgame'
@@ -354,6 +355,7 @@ function agePlayers(state: GameState, rng: Rng) {
     // declined before 31, and every retiring 78+ man was reborn with his
     // own potential. So: the late phase is a coin toss for one point, the
     // slide starts at 29, and the rebirth below is rarer and lower.
+    const caBefore = p.ca
     if (p.age <= (bloom ? 25 : 23) && p.ca < p.pa) p.ca = clamp(p.ca + growth(scaled(2 + Math.floor(rng() * 3))), 1, p.pa)
     // (a late bloomer keeps his old late phase - a point or two a year to 29
     // is the whole point of him, and scripts/round25d.ts holds it)
@@ -362,13 +364,22 @@ function agePlayers(state: GameState, rng: Rng) {
     else if (p.age >= 33) p.ca = clamp(p.ca - (2 + Math.floor(rng() * 3)), 30, 99)
     else if (p.age >= 31) p.ca = clamp(p.ca - (1 + Math.floor(rng() * 2)), 30, 99)
     else if (p.age >= 29 && !bloom) p.ca = clamp(p.ca - (rng() < 0.5 ? 1 : 0), 30, 99)
-    // attribute drift toward new ca
-    const scale = p.ca / Math.max(30, p.q0)
-    if (Math.abs(scale - 1) > 0.05) {
-      for (const k of Object.keys(p.a) as (keyof Player['a'])[]) {
-        p.a[k] = clamp(Math.round(p.a[k] * (0.85 + 0.15 * scale) + (scale > 1 ? 0.5 : -0.5)), 1, 20)
-      }
+    // THE SLIDE READS THE POSITION (1.7.3, "physical vs tactical aging"). A
+    // wing's game is his legs and the legs go first; a prop, a hooker or a
+    // fly-half lives on craft that holds. Between 29 and 33 a wing or full
+    // back loses an extra point two summers in five, and a front-rower or
+    // fly-half who slipped keeps the point one summer in four. Five of one,
+    // eight of the other in a squad: the two roughly cancel. By hash, so the
+    // rolls above are the same rolls.
+    if (p.age >= 29 && p.age <= 33 && !bloom) {
+      const u = mulberry32((state.seed ^ Math.imul(p.id, 0x3c6ef372) ^ Math.imul(state.season + 7, 0x7f4a7c15)) >>> 0)()
+      if (EARLY_FADE.has(p.pos) && u < 0.4) p.ca = clamp(p.ca - 1, 30, 99)
+      else if (LATE_PEAK.has(p.pos) && u < 0.25 && p.ca < caBefore) p.ca += 1
     }
+    // the attributes follow the rating, shaped by age (ageing.ts). This used
+    // to scale every attribute by rating against BIRTH rating every summer,
+    // which compounded without end
+    ageAttributes(state, p, caBefore)
     // retirement
     const retireChance = p.farewell || p.retiring ? 1 // he said it was the last dance, and he meant it
       : p.age >= 38 ? 1 : p.age >= 36 ? 0.6 : p.age >= 34 ? (p.ca < 72 ? 0.45 : 0.2) : p.age >= 33 && p.ca < 60 ? 0.3 : 0

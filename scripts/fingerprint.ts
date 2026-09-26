@@ -410,11 +410,20 @@ const EXPECTED: string[] = [
   // levers at work, not a leak. bandcheck, pooled over four seeds:
   //   pts 49.7 -> 50.2   tries 6.31 -> 6.40   home 54.5% -> 54.7%
   //   draws 1.8% -> 1.6%   blowouts 5.2% -> 5.0% (every band holds)
-  'saracens 33-18 bath',
-  'exeter 5-29 gloucester',
-  'sale 28-36 bristol',
+  //
+  // REBASELINED for ageing (1.7.3, ageing.ts). Two things moved at once, both
+  // deliberately. A man built into the world at 31 now carries the summers he
+  // has lived (less pace, more craft), which changes every veteran's
+  // attributes before a ball is kicked; and TRY_BASE went 0.0895 -> 0.0945,
+  // because slower veteran backs and surer veteran tacklers score fewer tries.
+  // Same six fixtures, four scores moved. bandcheck, pooled over four seeds:
+  //   pts 50.2 -> 50.3   tries 6.40 -> 6.38   home 54.7% -> 53.7%
+  //   draws 1.6% -> 1.9%   blowouts 5.0% -> 5.0% (every band holds)
+  'saracens 37-18 bath',
+  'exeter 15-21 gloucester',
+  'sale 30-7 bristol',
   'harlequins 3-25 leicester',
-  'newcastle 13-34 northampton',
+  'newcastle 13-39 northampton',
   'exeter 21-39 saracens',
 ]
 // v1.8.1 moved three of them once more, and this time WITHOUT spending a new
