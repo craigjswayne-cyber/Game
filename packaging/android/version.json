@@ -68,10 +68,14 @@
     "walking off, replacements jogging on). 39 IS ASSUMED FREE AND NOT YET",
     "VERIFIED: codes only have to rise, so it is right whether or not 38 was",
     "ever uploaded, but check the highest accepted code on the Console first.",
+    "40 IS 1.7.3: players who talk back (answers read against personality,",
+    "four new reasons to knock) and the Major Rugby Competition. 40 IS ASSUMED",
+    "FREE AND NOT YET VERIFIED: check the highest accepted code on the Console",
+    "first. Codes only have to rise, so 40 is right whichever of 38 and 39 went up.",
     "versionName comes from the root package.json.",
     "billingLibrary is the Play Billing Library version PhaseBilling.java is",
     "written against. Play refuses anything below 8.0.0 (learned 4 Sep 2026)."
   ],
-  "versionCode": 39,
+  "versionCode": 40,
   "billingLibrary": "8.0.0"
 }
