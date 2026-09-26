@@ -288,6 +288,24 @@ try {
   // The button reads Continue on the bulletin days and Matchday on the day the
   // game actually falls, so the walk to kick-off is a handful of taps, not one.
   // Bounded so a stuck flow fails the test rather than hanging it.
+  //
+  // A SATURDAY MATCH, SO THERE IS A FRIDAY. A fixture's weekday is a hash of
+  // its id (model.fixtureDayOff), and since the Major Rugby Competition
+  // (1.7.3) shifted every id, the week-1 friendly kicks off on a Friday for
+  // every club - Friday is then the match day and the only bulletin, the
+  // opposition preview, has nowhere to go. The friendly gets an unused
+  // Saturday id so the walk this checks has days in it.
+  await page.evaluate(() => {
+    const st = window.rugbyStore.getState(), g = st.game
+    const fx = g.fixtures.find(f => f.week === g.week && !f.played && (f.homeId === g.userClubId || f.awayId === g.userClubId))
+    const off = id => { const h = (id * 2654435761) >>> 0; return h % 3 === 0 ? -1 : h % 3 === 2 ? 1 : 0 }
+    if (fx && off(fx.id) !== 0) {
+      let id = 9_000_000
+      while (off(id) !== 0 || g.fixtures.some(f => f.id === id)) id++
+      fx.id = id
+      window.rugbyStore.setState({ tick: st.tick + 1 })
+    }
+  })
   const bulletins = []
   for (let tap = 0; tap < 8; tap++) {
     const label = (await page.locator('.continue-btn').innerText()).trim()
