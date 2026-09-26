@@ -1741,7 +1741,7 @@ function pushEvent(
     ctx.lastMin = min
   }
   ctx.events.push({
-    min, type, teamId: side?.teamId ?? '',
+    min, type, teamId: side?.teamId ?? '', fld: Math.round(ctx.field ?? 50),
     playerId, playerName: playerId != null ? state.players[playerId]?.name : undefined,
     text, k, v, fx, homeScore: ctx.home.score, awayScore: ctx.away.score,
   })
@@ -2286,7 +2286,6 @@ function takePenaltyShot(state: GameState, ctx: LiveCtx, side: SideCtx, min: num
   const kicker = side.units.kickerId != null ? state.players[side.units.kickerId] : null
   const pPen = kickChance(state, kicker, 0.53, 54, ctx.goalPenalty ?? 0, side)
   if (rng() < pPen) {
-    ctx.field = ctx.field * 0.6 + 50 * 0.4   // restart, as after any score
     side.score += 3
     side.pens += 1
     if (kicker) {
@@ -2306,6 +2305,9 @@ function takePenaltyShot(state: GameState, ctx: LiveCtx, side: SideCtx, min: num
     if (ctx.weather !== 'Rain' && ctx.weather !== 'Snow' && PEN_WET[line]) line = PEN_WET[line]
     pushLine(state, ctx, min, 'PEN', side, line,
       { player: kicker?.name ?? tIn('en', 'comm.theKicker') }, kicker?.id)
+    // restart, as after any score - AFTER the line, so the line is stamped
+    // with where the kick was taken (MatchEvent.fld), not the halfway restart
+    ctx.field = ctx.field * 0.6 + 50 * 0.4
   } else if (detail && rng() < 0.7) {
     pushLine(state, ctx, min, 'SUB', side, kicker ? 'comm.penWideNamed' : 'comm.penWide',
       { player: kicker?.name ?? '' }, kicker?.id)
@@ -2888,7 +2890,9 @@ const COVER_DEF = 0.937
  * scored until the constant moved (bandcheck pooled, tries a game: 6.40
  * before ageing, 6.38 after it with this constant; points 50.2 -> 50.3).
  */
-const TRY_BASE = 0.0945
+const TRY_BASE = 0.0930
+/** how hard the penalty count leans toward the defending side's half (1.7.4) */
+const PEN_LEAN = 1.7
 
 /** The cost of a thin bench: a man in the wrong half of the team.
  *
@@ -3085,7 +3089,12 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
      * and would have made a side playing for the corner kick five times as
      * many of them.
      */
-    const penWindow = opp.penRisk * (side === home ? ap : hp).penF
+    // WHERE PENALTIES ARE GIVEN AWAY (1.7.4). A side defending its own half
+    // gives away more of them than one pressing in the other: that is where
+    // the pressure is. Kicks at goal are now confined to the opposition half
+    // (below), so the chance leans with territory - (up/50)^PEN_LEAN, 1 at
+    // halfway - rather than sitting flat across the field.
+    const penWindow = opp.penRisk * (side === home ? ap : hp).penF * Math.pow(up / 50, PEN_LEAN)
     let ratio = ((att * adv * numF * terr) / Math.max(1, def * oppNumF))
     if (derby) ratio = Math.pow(ratio, 0.72) // form book out the window
     else if (ctx.grudge) ratio = Math.pow(ratio, 0.85) // needle levels the contest
@@ -3214,6 +3223,16 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       } else if (advRoll < pAdvTry + pAdvOver) {
         // ground made, nothing at the end of it, and the kick is gone with it
         if (detail) pushLine(state, ctx, min, 'SUB', side, 'comm.advOver', { team: teamShort(state, side.teamId) })
+      } else if (up < 50) {
+        // OUT OF RANGE: KICK FOR TOUCH (1.7.4, owner: "kicks at goal should be
+        // limited to within the opposition teams halfway"). A penalty in your
+        // own half is not a shot at goal, so nobody is asked and nobody lines
+        // one up: the kicker finds touch and the lineout is further up the
+        // field. How far is the boot's, with no draw on the stream.
+        // the line first, so it is stamped where the penalty was given
+        if (detail) pushLine(state, ctx, min, 'SUB', side, 'comm.penTouchOwnHalf', { team: teamShort(state, side.teamId) })
+        const gain = 14 + Math.min(12, side.units.kicking * 0.8)
+        ctx.field = side === home ? clamp(ctx.field + gain, 4, 96) : clamp(ctx.field - gain, 4, 96)
       } else {
         // NO SCORE AND NO GROUND: he brings it back. This is the common case,
         // and from here the code below is exactly what it always was.

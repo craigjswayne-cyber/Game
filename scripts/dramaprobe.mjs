@@ -140,8 +140,14 @@ try {
       const ev = now.ctx.events[now.cursor - 1]
       const ball = document.querySelector('.pitch .ball')
       if (!ev || !ball) continue
+      // the 1.7.4 model: a running average of where the engine had the ball
+      let smooth = null
+      for (const e of now.ctx.events.slice(0, now.cursor)) {
+        if (e.fld == null) continue
+        smooth = smooth == null ? e.fld : smooth * 0.7 + e.fld * 0.3
+      }
       out.push({
-        left: parseFloat(ball.style.left), momo: now.ctx.momo,
+        left: parseFloat(ball.style.left), momo: now.ctx.momo, smooth,
         min: ev.min, type: ev.type, fx: ev.fx ?? null, home: ev.teamId === homeId,
       })
     }
@@ -168,9 +174,17 @@ try {
   // nothing because the harness broke - and eight is still that.
   ok(play.length >= 8, `enough open play to measure (${play.length})`)
 
-  const err = play.map(s => Math.abs(s.left - clamp(50 + s.momo * 30 + (s.home ? 9 : -9))))
+  // 1.7.4: THE MODEL IS WHERE THE ENGINE HAS THE BALL. Every line carries it
+  // (MatchEvent.fld) and the pitch follows a running average of it. The old
+  // model - momentum plus a nine-point nudge toward whoever the line named -
+  // is kept below as the thing this has to be smoother than.
+  const err = play.map(s => Math.abs(s.left - clamp(8 + s.smooth * 0.84)))
   const worst = Math.max(...err)
   ok(worst < 0.01, `every ball position IS the territory model (worst error ${worst.toFixed(4)}%)`)
+  const stepOf = xs => xs.slice(1).reduce((a, x, i) => a + Math.abs(x - xs[i]), 0) / Math.max(1, xs.length - 1)
+  const newStep = stepOf(play.map(s => s.left))
+  const oldStep = stepOf(play.map(s => clamp(50 + s.momo * 30 + (s.home ? 9 : -9))))
+  ok(newStep < oldStep, `and it moves more smoothly than the momentum guess it replaced (${newStep.toFixed(1)}% a line against ${oldStep.toFixed(1)}%)`)
 
   // and is not what it used to be: the old sawtooth, scored against the same
   // events, would have put the ball somewhere else entirely

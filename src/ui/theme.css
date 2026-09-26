@@ -1523,17 +1523,23 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
      before the next minute moves him; top is quicker than left because a rugby
      pitch is wider than it is deep and the across-field move is the longer one.
      The fallback matters: .pitch renders in places with no live clock. */
+  /* ONE GLIDE, BOTH AXES (1.7.4). left and top used to run on different
+     durations and curves, so a man moving diagonally bowed out along a curve
+     that was nothing to do with where he was going. The same duration and
+     the same easing makes every move a straight line, the way the classic
+     top-down match view drew its circles. */
   transition:
-    left calc(var(--tick, 1100ms) * .92) cubic-bezier(.45, .05, .35, 1),
-    top calc(var(--tick, 1100ms) * .78) ease,
+    left calc(var(--tick, 1100ms) * .92) cubic-bezier(.42, 0, .25, 1),
+    top calc(var(--tick, 1100ms) * .92) cubic-bezier(.42, 0, .25, 1),
     transform .3s ease;
   z-index: 2;
 }
 .pitch .pdot.hl {
   transform: scale(1.55);
   z-index: 4;
+  /* a steady ring on the man in the line, not a pulse (1.7.4): the eye
+     should find him, not be pulled back to him every beat */
   box-shadow: 0 0 0 3px rgba(255, 255, 255, .55), 0 0 14px rgba(255, 245, 200, .9);
-  animation: dot-pulse .9s ease infinite;
 }
 .pitch .pdot .pname {
   position: absolute;
@@ -2507,7 +2513,10 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
  * the centring transform above and with the left/top glide instead of
  * replacing them; the kick classes below set `animation`, so a kicked ball
  * flies its arc uninterrupted and the loop resumes on the next mount. */
-.pitch .ball { animation: ballwork calc(var(--tick, 1100ms) * 1.2) ease-in-out infinite; }
+/* 1.7.4: the ball no longer bobs on a loop of its own between lines. It sits
+ * where the play is and moves when the play does (the passage for a kick,
+ * a pass or a run is still drawn by phasePlay.ts). The keyframes stay for
+ * anything that asks for them by name. */
 @keyframes ballwork {
   0%, 100% { translate: 0 0; rotate: 0deg; }
   30% { translate: 4px -3px; rotate: 13deg; }
