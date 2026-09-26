@@ -18,7 +18,7 @@
  *
  * Run: npx vite-node scripts/talkprobe.ts
  */
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance, userFixtureThisWeek, weekRng } from '../src/game/season'
 import { simMatch } from '../src/game/matchEngine'
@@ -240,7 +240,29 @@ console.log('--- 6. a conversation saved before 1.7.3')
   ok(fitFor('plans', 'in', p) === 'good', 'while the same answer, tagged, is read against who he is')
 }
 
-console.log('--- 7. its own dice')
+console.log('--- 7. the scale')
+{
+  // attributes run 1-20; a comparison against 21 or more can never be true,
+  // which is how a leadership check sat dead in chats.ts and talkback.ts
+  const bad: string[] = []
+  for (const f of readdirSync('src/game')) {
+    if (!f.endsWith('.ts')) continue
+    const src = readFileSync(`src/game/${f}`, 'utf8')
+    for (const m of src.matchAll(/\.a\.(tac|str|scr|lin|ruc|han|pas|kic|goa|pac|sta|agi|vis|dec|pos|agg|lea|wor)\s*(>=|>|<=|<)\s*(\d+)/g)) {
+      if (Number(m[3]) > 20) bad.push(`${f}: ${m[0]}`)
+    }
+  }
+  ok(bad.length === 0, `no attribute is compared against a number it can never reach (${bad.join('; ') || 'none'})`)
+  const g = tenWeeksIn()
+  const club = g.clubs[g.userClubId]
+  const p = squad(g).find(q => q.id !== club.captain && q.id !== club.vice && q.age >= 25 && q.ca >= 70)!
+  p.pers = 'Professional'; p.a.lea = 17; p.morale = 7; p.stats.apps = Math.max(p.stats.apps, 4)
+  let asked = false
+  for (let s = 0; s < 40 && !asked; s++) { const h = clone(g); h.seed += s; talkbackWeek(h); asked = h.press.some(q => q.topic === 'armband' && q.playerId === p.id) }
+  ok(asked, 'a natural leader by attribute, not only by personality, asks for the armband')
+}
+
+console.log('--- 8. its own dice')
 {
   const src = readFileSync('src/game/talkback.ts', 'utf8')
   ok(!/Math\.random|weekRng|\brng\s*:\s*Rng/.test(src), 'talk-back never touches Math.random or the week\'s shared stream')
