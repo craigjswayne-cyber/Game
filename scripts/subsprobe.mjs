@@ -68,12 +68,14 @@ try {
     return { n: bs.length, labels: bs.map(b => (b.textContent ?? '').trim()) }
   })
   console.log(`  control row: ${ctrl.n} buttons [${ctrl.labels.join(' | ')}]`)
-  ok(ctrl.n === 4, 'the control row is four buttons, not seven')
+  // five since 1.8.0: the match menu (📊, PRM27) joined Pause, Skip, Squad and
+  // settings. Still one row, still not seven.
+  ok(ctrl.n === 5, `the control row is five buttons, not seven (${ctrl.n})`)
   const plays = ctrl.labels.filter(l => l.includes('▶')).length
   ok(plays <= 1, `only one play glyph on the row (found ${plays})`)
 
   // ---- the settings sheet holds speed and sound
-  await page.click('.speed-controls .btn >> nth=3')
+  await page.click('.speed-controls .btn >> nth=-1')  // settings is the last button on the row
   await page.waitForSelector('text=Match Settings', { timeout: 5000 })
   ok(await page.locator('text=Commentary speed').count() > 0, 'settings sheet has the speed control')
   ok(await page.locator('.modal .btn >> text=Fast').count() > 0, 'settings sheet has the Fast speed')

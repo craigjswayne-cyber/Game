@@ -7016,7 +7016,7 @@
   },
   "mood": {
     "room": "Le vestiaire",
-    "roomSub": "l'état d'esprit de chaque membre du groupe avant la causerie",
+    "roomSub": "le moral de chacun avant la causerie",
     "summary": "{good} à fond · {ok} stables · {low} à remobiliser",
     "name": "Nom",
     "personality": "Personnalité",
