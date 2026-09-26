@@ -3404,11 +3404,24 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           if (slot >= 0 && slot < 15) { side.lineup[slot] = subId; if (bSlot >= 0) side.lineup[bSlot] = pid }
           pushLine(state, ctx, min, 'INJ', side, 'comm.hiaFailed', { player: p.name, sub: sub.name }, pid)
           checkFrontRow(state, ctx, side, min, p, 'injury')
-        } else {
+        } else if (side.onPitch.has(subId)) {
           side.onPitch.delete(subId)
           side.onPitch.add(pid)
           pushLine(state, ctx, min, 'SUB', side, 'comm.hiaPassed', { player: p.name }, pid)
+        } else if (side.binned.has(subId)) {
+          // THE STAND-IN IS IN THE BIN. The side is a man down for the card
+          // whoever the man is: the assessed man takes the rest of the ten
+          // minutes' place (he comes on when the bin ends) and the stand-in
+          // goes back to the bench. Swapping him straight on made sixteen
+          // when the bin emptied (journeyprobe: 15 on and 1 binned at FT).
+          side.binned.delete(subId)
+          side.binned.add(pid)
+          side.yellowUntil.set(pid, side.yellowUntil.get(subId) ?? min)
+          pushLine(state, ctx, min, 'SUB', side, 'comm.hiaPassed', { player: p.name }, pid)
         }
+        // otherwise the stand-in has already gone (sent off, or hurt and
+        // replaced himself): the place he held is spoken for, so the assessed
+        // man stays on the bench rather than make a sixteenth
       }
       side.hia = undefined
     }
