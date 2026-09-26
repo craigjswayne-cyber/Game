@@ -4896,3 +4896,53 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 @media (prefers-reduced-motion: reduce) { .feed-line.newest { animation: none; } }
 /* the feed's newest line IS the now-line on a tablet: one of them, not both */
 @media (orientation: portrait) { .app.tablet .now-strip .now-line { display: none; } }
+
+/* ================================================================
+   THE MOTION LAYER (1.8.0). Owner: "Could we add subtle motion throughout
+   the game at opportunities?" The rule is the one FM26 was punished for
+   breaking (its slow screen changes got community "speed patches"): motion
+   confirms, it never makes you wait. So nothing here is longer than 250ms
+   except a bar filling, nothing delays a tap, and all of it is transform and
+   opacity. Only under html[data-motion="on"] (main.tsx), and the OS
+   reduce-motion setting turns every line of it off.
+
+   FILL MODE BACKWARDS, NEVER BOTH. A transform animation that holds its end
+   state makes the element a containing block for position: fixed, and the
+   sheets (.modal-veil) render inside the screens: held, a Squad sheet would
+   pin itself to the screen's first card instead of the glass. Backwards
+   covers the delay and then lets go completely.
+================================================================ */
+@media (prefers-reduced-motion: no-preference) {
+  /* a new screen rises into place: 180ms, 6px. Every direct child of the
+     content pane is new DOM when the screen changes, so this plays on a
+     screen change and not on a re-render. */
+  [data-motion="on"] .content > * { animation: m-rise .18s cubic-bezier(.2, 0, 0, 1) backwards; }
+  /* Home deals its cards in, 30ms apart, the first eight only */
+  [data-motion="on"] .content[data-screen="home"] .card-grid > * { animation: m-rise .22s cubic-bezier(.2, 0, 0, 1) backwards; }
+  [data-motion="on"] .content[data-screen="home"] .card-grid > :nth-child(2) { animation-delay: .03s; }
+  [data-motion="on"] .content[data-screen="home"] .card-grid > :nth-child(3) { animation-delay: .06s; }
+  [data-motion="on"] .content[data-screen="home"] .card-grid > :nth-child(4) { animation-delay: .09s; }
+  [data-motion="on"] .content[data-screen="home"] .card-grid > :nth-child(5) { animation-delay: .12s; }
+  [data-motion="on"] .content[data-screen="home"] .card-grid > :nth-child(6) { animation-delay: .15s; }
+  [data-motion="on"] .content[data-screen="home"] .card-grid > :nth-child(7) { animation-delay: .18s; }
+  [data-motion="on"] .content[data-screen="home"] .card-grid > :nth-child(n+8) { animation-delay: .21s; }
+  /* bottom sheets slide up with their veil, the Material "emphasized" curve */
+  [data-motion="on"] .modal { animation: m-sheet .24s cubic-bezier(.2, 0, 0, 1) backwards; }
+  /* bars fill from the left the first time they are drawn */
+  [data-motion="on"] .grow-x { transform-origin: left center; animation: m-grow .6s cubic-bezier(.2, 0, 0, 1) .1s backwards; }
+  [data-motion="on"] .mp-zone .bar i { transform-origin: bottom center; animation: m-grow-y .5s cubic-bezier(.2, 0, 0, 1) backwards; }
+  /* a new count on the inbox badge pops once */
+  [data-motion="on"] .bottom-nav .dot { animation: m-pop .3s cubic-bezier(.3, 1.6, .5, 1) backwards; }
+  /* cards that open something give under the thumb, 100ms */
+  [data-motion="on"] button.card, [data-motion="on"] .dash-panel, [data-motion="on"] .submenu-item, [data-motion="on"] .inbox-li {
+    transition: transform .1s ease, background-color .15s ease;
+  }
+  [data-motion="on"] button.card:active, [data-motion="on"] .dash-panel:active, [data-motion="on"] .submenu-item:active { transform: scale(.985); }
+  /* the tab underline slides rather than jumps */
+  [data-motion="on"] .tab-bar button::after { transition: transform .2s cubic-bezier(.2, 0, 0, 1), opacity .2s ease; }
+}
+@keyframes m-rise { from { opacity: 0; transform: translateY(6px); } }
+@keyframes m-sheet { from { opacity: .4; transform: translateY(28px); } }
+@keyframes m-grow { from { transform: scaleX(0); } }
+@keyframes m-grow-y { from { transform: scaleY(0); } }
+@keyframes m-pop { from { transform: scale(.4); } }
