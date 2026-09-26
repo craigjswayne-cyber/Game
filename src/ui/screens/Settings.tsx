@@ -1,5 +1,7 @@
 import { SKINS, skinLocked, useStore, type Skin } from '../../store'
-import { SectionTitle } from '../components'
+import { useState } from 'react'
+import { SectionTitle, Toggle } from '../components'
+import { introOn, setIntroOn } from '../Intro'
 import { LANGS, getLang, t } from '../../game/i18n'
 
 /**
@@ -66,6 +68,7 @@ export default function Settings() {
   const setMgrGender = useStore(s => s.setMgrGender)
   const textScale = useStore(s => s.textScale)
   const setTextScale = useStore(s => s.setTextScale)
+  const [intro, setIntro] = useState(introOn)
 
   return (
     <>
@@ -129,6 +132,12 @@ export default function Settings() {
         <button className="btn ghost block" style={{ marginTop: 8 }} onClick={toggleNight}>
           {t(night ? 'settings.goDay' : 'settings.goNight')}
         </button>
+      </div>
+
+      {/* ---- the opening titles (1.8.0): on by default, off for good here ---- */}
+      <div className="card">
+        <Toggle on={intro} onChange={v => { setIntroOn(v); setIntro(v) }}
+          label={t('settings.intro')} sub={t('settings.introLine')} />
       </div>
 
       {/* ---- language: the same picker as the title screen ----

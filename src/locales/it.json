@@ -6672,7 +6672,9 @@
   "textNormal": "Normale",
   "textBigger": "Più grande",
   "textBiggest": "La più grande",
-  "fineprint": "I colori, la luce e la dimensione del testo vivono su questo telefono, non nel salvataggio: una carriera portata altrove arriva con i colori di quell’altro. Il modo in cui la stampa parla di te viaggia con la carriera. Al momento si legge in {lang}."
+  "fineprint": "I colori, la luce e la dimensione del testo vivono su questo telefono, non nel salvataggio: una carriera portata altrove arriva con i colori di quell’altro. Il modo in cui la stampa parla di te viaggia con la carriera. Al momento si legge in {lang}.",
+  "intro": "Sigla iniziale",
+  "introLine": "L’intro di cinque secondi all’avvio del gioco. Un tocco la salta."
  },
  "sack": {
   "breaking": "Ultim’ora",
@@ -7004,5 +7006,8 @@
   "agg": "Agg",
   "lea": "Lea",
   "wor": "Imp"
+ },
+ "intro": {
+  "skip": "Tocca per saltare"
  }
 }

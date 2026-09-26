@@ -6793,7 +6793,9 @@
     "textNormal": "Normale",
     "textBigger": "Plus grande",
     "textBiggest": "La plus grande",
-    "fineprint": "Les couleurs, la lumière et la taille du texte vivent sur ce téléphone, pas dans la sauvegarde - une carrière emportée ailleurs arrive aux couleurs de l’autre appareil. La façon dont la presse parle de vous suit la carrière. Lecture en cours en {lang}."
+    "fineprint": "Les couleurs, la lumière et la taille du texte vivent sur ce téléphone, pas dans la sauvegarde - une carrière emportée ailleurs arrive aux couleurs de l’autre appareil. La façon dont la presse parle de vous suit la carrière. Lecture en cours en {lang}.",
+    "intro": "Générique d’ouverture",
+    "introLine": "L’intro de cinq secondes au lancement du jeu. Un toucher la passe."
   },
   "sack": {
     "breaking": "Flash info",
@@ -7125,5 +7127,8 @@
     "agg": "Agr",
     "lea": "Lead",
     "wor": "Vol"
+  },
+  "intro": {
+    "skip": "Touchez pour passer"
   }
 }
