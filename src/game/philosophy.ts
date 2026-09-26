@@ -58,6 +58,12 @@ export interface Philosophy {
    *  its world mean holds because who you play is uncorrelated with your own
    *  width - measured, not assumed (see the 20C fingerprint note). */
   dials: { style: number; tempo: number; kicking: number; aggression: number; defLine: number; defWidth: number }
+  /** the breakdown and the kind of kick (1.7.3). The two dials mirror about 50
+   *  within each pair, as every dial here does, so the world's average side
+   *  commits and contests exactly as much as the old engine assumed; the kick
+   *  style is the one each idea of rugby would reach for. */
+  breakdown: { ruckCommit: number; ruckContest: number }
+  kickStyle: 'territory' | 'contest' | 'attack' | 'balanced'
   /** true if this member of the pair suits a forward-heavy squad */
   packSide: boolean
 }
@@ -68,48 +74,56 @@ export const PHILOSOPHIES: Philosophy[] = [
     blurb: 'philosophy.packBlurb',
     soft: 'philosophy.packSoft',
     dials: { style: 26, tempo: 42, kicking: 60, aggression: 62, defLine: 56, defWidth: 38 },
+    breakdown: { ruckCommit: 64, ruckContest: 60 }, kickStyle: 'territory',
   },
   {
     id: 'width', pair: 'A', name: 'philosophy.width', packSide: false,
     blurb: 'philosophy.widthBlurb',
     soft: 'philosophy.widthSoft',
     dials: { style: 74, tempo: 58, kicking: 40, aggression: 38, defLine: 44, defWidth: 62 },
+    breakdown: { ruckCommit: 36, ruckContest: 40 }, kickStyle: 'attack',
   },
   {
     id: 'tempo', pair: 'B', name: 'philosophy.tempo', packSide: false,
     blurb: 'philosophy.tempoBlurb',
     soft: 'philosophy.tempoSoft',
     dials: { style: 62, tempo: 78, kicking: 38, aggression: 50, defLine: 58, defWidth: 56 },
+    breakdown: { ruckCommit: 40, ruckContest: 46 }, kickStyle: 'attack',
   },
   {
     id: 'squeeze', pair: 'B', name: 'philosophy.squeeze', packSide: true,
     blurb: 'philosophy.squeezeBlurb',
     soft: 'philosophy.squeezeSoft',
     dials: { style: 38, tempo: 22, kicking: 62, aggression: 50, defLine: 42, defWidth: 44 },
+    breakdown: { ruckCommit: 60, ruckContest: 54 }, kickStyle: 'territory',
   },
   {
     id: 'blitz', pair: 'C', name: 'philosophy.blitz', packSide: true,
     blurb: 'philosophy.blitzBlurb',
     soft: 'philosophy.blitzSoft',
     dials: { style: 42, tempo: 40, kicking: 66, aggression: 58, defLine: 72, defWidth: 46 },
+    breakdown: { ruckCommit: 56, ruckContest: 70 }, kickStyle: 'contest',
   },
   {
     id: 'counter', pair: 'C', name: 'philosophy.counter', packSide: false,
     blurb: 'philosophy.counterBlurb',
     soft: 'philosophy.counterSoft',
     dials: { style: 58, tempo: 60, kicking: 34, aggression: 42, defLine: 28, defWidth: 54 },
+    breakdown: { ruckCommit: 44, ruckContest: 30 }, kickStyle: 'attack',
   },
   {
     id: 'chaos', pair: 'D', name: 'philosophy.chaos', packSide: true,
     blurb: 'philosophy.chaosBlurb',
     soft: 'philosophy.chaosSoft',
     dials: { style: 66, tempo: 70, kicking: 44, aggression: 66, defLine: 62, defWidth: 60 },
+    breakdown: { ruckCommit: 42, ruckContest: 64 }, kickStyle: 'contest',
   },
   {
     id: 'structure', pair: 'D', name: 'philosophy.structure', packSide: false,
     blurb: 'philosophy.structureBlurb',
     soft: 'philosophy.structureSoft',
     dials: { style: 34, tempo: 30, kicking: 56, aggression: 34, defLine: 38, defWidth: 40 },
+    breakdown: { ruckCommit: 58, ruckContest: 36 }, kickStyle: 'territory',
   },
 ]
 
@@ -214,6 +228,9 @@ export function applyPhilosophy(club: Club, id: string) {
   club.tactic.aggression = ph.dials.aggression
   club.tactic.defLine = ph.dials.defLine
   club.tactic.defWidth = ph.dials.defWidth
+  club.tactic.ruckCommit = ph.breakdown.ruckCommit
+  club.tactic.ruckContest = ph.breakdown.ruckContest
+  club.tactic.kickStyle = ph.kickStyle
 }
 
 /** Give every dugout but yours an idea. Used at kickoff of a career and on load. */
@@ -225,7 +242,8 @@ export function seedPhilosophies(state: GameState) {
       // a save from before 20C has the coach's attacking idea but not his
       // defensive one: re-applying is idempotent on the four old dials and
       // fills in the two new ones, so old saves defend with an identity too
-      if (club.tactic.defLine == null) applyPhilosophy(club, club.philosophy)
+      // (and a save from before 1.7.3 gets its breakdown and kick style the same way)
+      if (club.tactic.defLine == null || club.tactic.ruckCommit == null) applyPhilosophy(club, club.philosophy)
       continue
     }
     applyPhilosophy(club, pickPhilosophy(state, club, club.coachGen ?? 0, median))

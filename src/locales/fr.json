@@ -624,7 +624,17 @@
     "zOppSpread": "Écarter",
     "zOppSpreadDesc": "Aller au large et faire confiance aux extérieurs. Le plus d'essais, et le plus d'occasions de l'échapper.",
     "zOppPatient": "Jouer les pourcentages",
-    "zOppPatientDesc": "Prendre ce que la défense donne, et rien de plus. Ni les essais ni les fautes des deux autres."
+    "zOppPatientDesc": "Prendre ce que la défense donne, et rien de plus. Ni les essais ni les fautes des deux autres.",
+    "sliderCommit": "Au ruck",
+    "sliderCommitLo": "Peu, garder la largeur",
+    "sliderCommitHi": "Beaucoup, ballon sûr",
+    "sliderCommitUp": "Du monde sur chaque ruck : le ballon est protégé et les turnovers se tarissent, mais ce monde-là n'est pas dans la ligne d'attaque.",
+    "sliderCommitDown": "Un ou deux au ruck : plus de monde pour attaquer et du ballon plus rapide au large, mais un bon gratteur va se régaler.",
+    "sliderContest": "Contestation",
+    "sliderContestLo": "Se déployer",
+    "sliderContestHi": "Disputer à fond",
+    "sliderContestUp": "Contre-ruck et grattage : plus de ballons récupérés, mais une ligne défensive plus mince et plus de pénalités, surtout avec un arbitre pointilleux.",
+    "sliderContestDown": "Laisser leur ruck tranquille et garnir la ligne : un mur défensif solide, mais ils obtiennent du ballon rapide et propre."
   },
   "roles": {
     "scrummager": "Spécialiste de la mêlée",
@@ -1380,7 +1390,16 @@
     "byZoneSub": "trois jeux, un par zone du terrain",
     "zone_own22": "Dans vos 22",
     "zone_middle": "Le tiers central",
-    "zone_opp22": "Dans leurs 22"
+    "zone_opp22": "Dans leurs 22",
+    "kickStyle": "Jeu au pied",
+    "kickTerritory": "🗺️ Territoire",
+    "kickContest": "🪂 Aérien",
+    "kickAttack": "⚡ Attaque",
+    "kickBalanced": "⚖️ Équilibré",
+    "kickTerritoryDesc": "Des coups de pied en touche pour gagner du terrain. Idéal quand votre touche est plus forte que la leur.",
+    "kickContestDesc": "Des chandelles pour récupérer le ballon. Brillant sous la pluie, un cadeau de possession par temps sec.",
+    "kickAttackDesc": "Petits coups de pied rasants et coups de pied croisés. Redoutable derrière une défense qui monte vite, mais on cède du terrain, et un ballon mouillé n'en fait qu'à sa tête.",
+    "kickBalancedDesc": "Un peu de tout, chaque coup de pied lu comme il vient. Aucun avantage, aucun risque."
   },
   "staff": {
     "roleAssistant": "Entraîneur adjoint",

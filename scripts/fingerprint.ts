@@ -401,11 +401,20 @@ const EXPECTED: string[] = [
   // on the SAME fixtures). bandcheck, pooled over four seeds, before -> after:
   //   pts 49.5 -> 49.7   tries 6.30 -> 6.31   home 54.6% -> 54.5%
   //   draws 1.7% -> 1.8%   blowouts 4.7% -> 5.2% (4068 games; every band holds)
-  'saracens 34-25 bath',
-  'exeter 8-29 gloucester',
+  //
+  // REBASELINED for kicking styles and the two breakdown dials (1.7.3). The
+  // user's side with no style and both dials at 50 plays the old game bit for
+  // bit (kickbreakprobe proves it), but every AI philosophy now sets a kicking
+  // style and a commit/contest pair, so the AI sides in this stream moved. The
+  // SAME six fixtures, three scores changed, the other three held: the new
+  // levers at work, not a leak. bandcheck, pooled over four seeds:
+  //   pts 49.7 -> 50.2   tries 6.31 -> 6.40   home 54.5% -> 54.7%
+  //   draws 1.8% -> 1.6%   blowouts 5.2% -> 5.0% (every band holds)
+  'saracens 33-18 bath',
+  'exeter 5-29 gloucester',
   'sale 28-36 bristol',
   'harlequins 3-25 leicester',
-  'newcastle 13-39 northampton',
+  'newcastle 13-34 northampton',
   'exeter 21-39 saracens',
 ]
 // v1.8.1 moved three of them once more, and this time WITHOUT spending a new

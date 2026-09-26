@@ -608,7 +608,17 @@
   "zOppSpread": "広げる",
   "zOppSpreadDesc": "外へ回してバックスに托す。トライは最多、落とす危険も最多。",
   "zOppPatient": "確率で選ぶ",
-  "zOppPatientDesc": "ディフェンスがくれるものだけを取る。他の二つほどのトライもないが、ミスもない。"
+  "zOppPatientDesc": "ディフェンスがくれるものだけを取る。他の二つほどのトライもないが、ミスもない。",
+  "sliderCommit": "ラック人数",
+  "sliderCommitLo": "少数／幅を保つ",
+  "sliderCommitHi": "多数／確実に確保",
+  "sliderCommitUp": "ラックごとに人数を注ぎ込む：ボールは安全でターンオーバーも減るが、その分だけ攻撃のラインから人が消える。",
+  "sliderCommitDown": "ラックには1人か2人：攻撃に回せる人数が増え、外へ速いボールが出るが、腕利きのジャッカルには格好の餌食だ。",
+  "sliderContest": "ボール争奪",
+  "sliderContestLo": "ラインに散る",
+  "sliderContestHi": "激しく競る",
+  "sliderContestUp": "カウンターラックとジャッカル：ターンオーバーは増えるが、守備ラインは薄くなり反則も増える。笛の細かいレフェリー相手なら特にそうだ。",
+  "sliderContestDown": "相手のラックには手を出さずラインを埋める：堅い守備の壁ができるが、相手には速くきれいなボールが出る。"
  },
  "roles": {
   "scrummager": "スクラム職人",
@@ -1351,7 +1361,16 @@
   "byZoneSub": "エリアごとに三つのラグビー",
   "zone_own22": "自陣の22m内",
   "zone_middle": "中央の三分の一",
-  "zone_opp22": "相手の22m内"
+  "zone_opp22": "相手の22m内",
+  "kickStyle": "キックスタイル",
+  "kickTerritory": "🗺️ エリア",
+  "kickContest": "🪂 競り合い",
+  "kickAttack": "⚡ 攻撃",
+  "kickBalanced": "⚖️ バランス",
+  "kickTerritoryDesc": "タッチを切って陣地を稼ぐ。自軍のラインアウトが相手より強いときに最適。",
+  "kickContestDesc": "ハイパントで奪い返す。雨なら絶大、乾いた日には相手へのボールの贈り物。",
+  "kickAttackDesc": "グラバーとクロスキック。前に出てくる守備の裏には致命的だが、陣地は手放すことになり、濡れたボールは言うことを聞かない。",
+  "kickBalancedDesc": "何でも少しずつ、一本ごとに状況を読んで蹴る。強みもなければ、リスクもない。"
  },
  "staff": {
   "roleAssistant": "アシスタントコーチ",

@@ -1,4 +1,4 @@
-import type { Club, Fixture, GameState, MatchEvent, Player, Pos, Weather } from './model'
+import type { Club, Fixture, GameState, MatchEvent, Player, Pos, Tactic, Weather } from './model'
 import { genderOf, type Gender, subjectVar } from './gender'
 import { prepLeaked } from './talkingpoints'
 import { ROLE_FX, rolesForSlot } from './roles'
@@ -871,6 +871,10 @@ export interface SideCtx {
   /** the referee's contribution to penRisk, locked in at kick-off so a unit
    *  recompute can rebuild the dial part without losing the whistle */
   refPenF?: number
+  /** the breakdown dials (1.7.3): how much this side's commitment protects
+   *  its own ball, and how hard its contest attacks the opponent's. 1 is none */
+  ruckSecure?: number
+  ruckContest?: number
   /** f(aggression), -1..1, stashed at build time. penRisk is now computed in two
    *  places - once before the referee is known and again once he is - and both
    *  need the dial. Storing the resolved figure is what stops the two copies of
@@ -1023,6 +1027,23 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
     side.units.defence *= 1 + dl * 0.04
     side.penRisk *= 1 + dl * 0.12
     side.cardRisk += dl * 0.002
+    // THE BREAKDOWN (1.7.3, owner: "breakdown commitments", attack and defence
+    // separately). Both are trades, both exactly nothing at 50.
+    //   COMMIT - how many you send into your own ruck. Many: the ball is safe
+    //   (your breakdown counts for more when you have it) but those men are
+    //   not in the attacking line. Few: the reverse, and quick ball goes wide.
+    //   CONTEST - how hard you go after theirs. Counter-rucking and jackalling
+    //   make your breakdown bite on their ball, but the men on the floor are
+    //   not in the defensive line, and a fussy referee (refPenF above 1) sees
+    //   more of it: penalties up, and a little more card risk.
+    const rc = f(tac.ruckCommit ?? 50)
+    side.units.attack *= 1 - rc * 0.035
+    side.ruckSecure = 1 + rc * 0.1
+    const rk = f(tac.ruckContest ?? 50)
+    side.units.defence *= 1 - rk * 0.03
+    side.ruckContest = 1 + rk * 0.1
+    side.penRisk *= 1 + rk * 0.1 * (side.refPenF ?? 1)
+    side.cardRisk += rk * 0.0015
 
     // The called set-piece routines (F2). What you get is the routine's ceiling
     // scaled by how well drilled it is and how sick of it the analysts are.
@@ -1598,6 +1619,21 @@ export interface LiveCtx {
 }
 
 /**
+ * THE KICK YOU SEE IS THE KICK YOU ASKED FOR (1.7.3). When the commentary's
+ * pick lands on one of this side's own kicks, it is shown as the side's style
+ * of kick: a touch-finder for territory, a high ball won for the contest, a
+ * grubber or a cross-kick for attack. It re-labels the draw already made and
+ * never makes one, so no match changes by a single point.
+ */
+const OWN_KICKS = new Set(['comm.flav7', 'comm.flav10', 'comm.flav17'])
+function styledKick(key: string, style: Tactic['kickStyle']): string {
+  if (!style || style === 'balanced' || !OWN_KICKS.has(key)) return key
+  if (style === 'territory') return 'comm.flav7'
+  if (style === 'contest') return 'comm.flav20'
+  return key === 'comm.flav17' ? key : 'comm.flav10'
+}
+
+/**
  * WHAT A LINE DEPICTS, where a line depicts something the pitch can draw.
  *
  * The mock-up used to work this out by running regular expressions over the
@@ -1915,6 +1951,44 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
       if (!myT || !oppT) continue
       const w = 1 + 0.05 * fT(myT.defWidth) * fT(oppT.style)
       if (w !== 1) layer(mine, 'defence', w)
+    }
+  }
+
+  // KICKING STYLE (1.7.3, owner: "kick strategy", four styles). What kind of
+  // kick, read against the day and the opponent at kick-off, scaled by how
+  // much the side kicks at all (the kicking dial: a side that barely kicks
+  // barely cares what kind). Every style trades something; 'balanced', or no
+  // style at all, multiplies by exactly 1 and the fingerprint holds.
+  //   TERRITORY  touch-finders: more ground from every kick; pays when your
+  //              lineout is the better one (the ball comes back to you in
+  //              their half), costs a little when it is theirs
+  //   CONTEST    up-and-unders to win it back: the chase is a breakdown
+  //              battle, and in the wet a spilled high ball is the best
+  //              attacking platform in the game; in the dry it is a gift of
+  //              possession more often than not
+  //   ATTACK     grubbers and cross-kicks: behind a rushing line they are the
+  //              way through, against a patient one less so, and a wet ball
+  //              does not bounce where you want it; territory is given up
+  for (const [mine, theirs] of [[home, away], [away, home]] as const) {
+    const myT = state.clubs[mine.teamId]?.tactic
+    const oppT = state.clubs[theirs.teamId]?.tactic
+    const ks = myT?.kickStyle
+    if (!myT || !ks || ks === 'balanced') continue
+    const kick = Number.isFinite(myT.kicking) ? Math.max(0, Math.min(100, myT.kicking)) : 50
+    const k = 0.4 + 0.6 * kick / 100
+    const wet = weather === 'Rain' || weather === 'Snow'
+    const oppLine = Number.isFinite(oppT?.defLine as number) ? ((oppT!.defLine as number) - 50) / 50 : 0
+    if (ks === 'territory') {
+      layer(mine, 'kicking', 1 + 0.06 * k)
+      const setEdge = mine.units.lineout >= theirs.units.lineout
+      layer(mine, 'attack', setEdge ? 1 + 0.025 * k : 1 - 0.015 * k)
+    } else if (ks === 'contest') {
+      layer(mine, 'breakdown', 1 + 0.03 * k)
+      layer(mine, 'attack', 1 + (wet ? 0.05 : -0.01) * k)
+      layer(mine, 'kicking', 1 - 0.02 * k)
+    } else if (ks === 'attack') {
+      layer(mine, 'attack', 1 + (0.02 + 0.03 * Math.max(0, oppLine)) * k - (wet ? 0.045 * k : 0))
+      layer(mine, 'kicking', 1 - 0.05 * k)
     }
   }
 
@@ -2970,8 +3044,10 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
   for (const [side, opp, adv] of [[home, away, ctx.hfa], [away, home, 1]] as [SideCtx, SideCtx, number][]) {
     const numF = 1 - 0.07 * ([...side.yellowUntil.values()].filter(u => u > min).length + side.sent + side.short)
     const oppNumF = 1 - 0.07 * ([...opp.yellowUntil.values()].filter(u => u > min).length + opp.sent + opp.short)
-    const att = (side.units.attack * 0.55 + side.units.breakdown * 0.25 + side.units.scrum * 0.1 + side.units.lineout * 0.1) * eF(side)
-    const def = (opp.units.defence * 0.7 + opp.units.breakdown * 0.3) * eF(opp)
+    // the breakdown dials (1.7.3): your commitment protects your own ball, and
+    // their contest attacks it - both exactly 1 when nobody has touched them
+    const att = (side.units.attack * 0.55 + side.units.breakdown * 0.25 * (side.ruckSecure ?? 1) + side.units.scrum * 0.1 + side.units.lineout * 0.1) * eF(side)
+    const def = (opp.units.defence * 0.7 + opp.units.breakdown * 0.3 * (opp.ruckContest ?? 1)) * eF(opp)
     /**
      * THE BOOT IS TERRITORY (audit 16D), AND TERRITORY IS NOW A PLACE (v1.8.0).
      *
@@ -3180,7 +3256,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
             : wet && rng() < 0.3 ? FLAVOR_WET
             : ctx.weather === 'Wind' && rng() < 0.25 ? FLAVOR_WIND
             : FLAVOR
-          pushLine(state, ctx, min, 'SUB', side, pool[Math.floor(rng() * pool.length)],
+          pushLine(state, ctx, min, 'SUB', side, styledKick(pool[Math.floor(rng() * pool.length)], state.clubs[side.teamId]?.tactic.kickStyle),
             { player: p.name, team: teamShort(state, side.teamId) }, p.id)
         }
       }
