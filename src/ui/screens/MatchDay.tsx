@@ -1690,8 +1690,14 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
       if (!onField(side, id)) return null
       // every man moves: work-rate wander re-seeded each match minute, and
       // barely at all in a set piece, which is men standing where they are put
-      const wx = ((min * 13 + slot * 29 + (isHome ? 0 : 7)) % 9) - 4
-      const wy = ((min * 11 + slot * 17 + (isHome ? 3 : 0)) % 7) - 3
+      // A MAN'S OWN SPOT IN THE SHAPE, not a new one every minute (1.7.4). The
+      // wander was re-seeded on the match clock, so every line scattered the
+      // side to fresh random spots and the pitch read as noise (owner: "the
+      // animation feels a bit random now... more like football manager before
+      // they went 3d"). It is keyed on the shirt alone now: the line keeps its
+      // slight irregularity, and the only thing that moves a man is the play.
+      const wx = ((slot * 29 + (isHome ? 0 : 7)) % 9) - 4
+      const wy = ((slot * 17 + (isHome ? 3 : 0)) % 7) - 3
       const wander = openPlay ? 1 : 0.2
       let x = spots[slot].x + wx * 0.35 * wander
       let y = spots[slot].y + wy * 0.9 * wander
@@ -1755,24 +1761,14 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
       // make staggered support runs onto the ball, everyone defending steps up
       // and off as one line, and non-rucking forwards jog on the spot. The
       // carrier and the scorer keep their own animations.
-      const motion = scorerRun ? (rightward(isHome) ? ' run-r' : ' run-l')
-        : hl ? ''
-        : ruck ? ' jog'
-        : !openPlay && !setShape ? ' jog'
-        : setShape && slot < 8 ? ' jog'
-        : inPossession && slot >= 8 ? ' supp'
-        : !inPossession ? ' dline'
-        : ' jog'
-      // supp and dline own their duration in CSS (it rides --tick); the jog
-      // keeps its per-shirt spread, faster at the ruck than in midfield
-      const timing: CSSProperties = motion === ' jog'
-        ? {
-            animationDuration: ruck ? `${1.05 + (slot % 3) * 0.25}s` : `${2.2 + (slot % 5) * 0.35}s`,
-            animationDelay: `-${((slot * 0.41) % 2.2).toFixed(2)}s`,
-          }
-        : motion === ' supp'
-        ? { animationDelay: `-${((slot * 0.53) % 1.6).toFixed(2)}s` }
-        : {}
+      // NO IDLE LOOPS (1.7.4). Every man used to wobble on a loop of his own
+      // between lines - a jog on the spot, a support run, a defensive drift -
+      // thirty dots each doing something unconnected to the play. The classic
+      // top-down match view the owner asked for is the opposite: a circle
+      // stands in its place in the shape and glides when the play moves it.
+      // The scorer's dash stays, because that is the play.
+      const motion = scorerRun ? (rightward(isHome) ? ' run-r' : ' run-l') : ''
+      const timing: CSSProperties = {}
       return (
         <div key={id}
           ref={el => { if (el) dotEls.current.set(id, el); else dotEls.current.delete(id) }}
@@ -1860,7 +1856,11 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
       return {
         offset: k.at, easing: ease(ps.ball, i),
         translate: `${dx.toFixed(1)}px ${(dy - rise(k)).toFixed(1)}px`,
-        scale: `${(1 + k.h * 0.9).toFixed(3)}`,
+        // THE BALL KEEPS ITS SIZE (1.7.4). It used to swell to nearly twice
+        // its size at the top of every kick, which read as the ball flying at
+        // the screen (owner: "remove the weird animation where the ball comes
+        // closer to the screen"). Height is the lift off its shadow, and that
+        // is all a view from above needs to say
         rotate: `${ps.away ? spin : spin % 360}deg`,
         opacity: fade,
       }
@@ -2310,7 +2310,23 @@ function Live() {
     // happen: at the line (dramaprobe leaves them out of the territory check
     // for exactly that reason)
     const atLine = last.type === 'TRY' || last.fx === 'TMO' || last.fx === 'NOTRY'
+    // WHERE THE ENGINE HAS THE BALL (1.7.4). Every line carries it now
+    // (MatchEvent.fld), so the play is drawn where it is instead of guessed
+    // from momentum and nudged nine points toward whoever the line names -
+    // which threw the ball from end to end on alternate lines. A line from an
+    // older save has no fld and falls back to the guess.
+    //
+    // SMOOTHED, because the engine's position is a tug of war that can swing
+    // most of the field in one tick. The pitch follows a running average of
+    // the lines revealed so far, weighted to the latest: it goes where the
+    // territory went and gets there in a line, not in leaps.
+    let smooth: number | null = null
+    for (const e of ctx.events.slice(0, cursor)) {
+      if (e.fld == null) continue
+      smooth = smooth == null ? e.fld : smooth * 0.7 + e.fld * 0.3
+    }
     const base = atLine ? (towardHome ? 88 : 12)
+      : smooth != null ? 8 + smooth * 0.84
       : last.type === 'PEN' || last.type === 'DG' ? (towardHome ? 72 : 28)
       : 50 + (ctx.momo ?? 0) * 30 + (towardHome ? 9 : -9)
     return Math.max(6, Math.min(94, base))

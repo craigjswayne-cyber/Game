@@ -766,6 +766,11 @@ export interface MatchEvent {
   min: number
   type: 'TRY' | 'CON' | 'PEN' | 'DG' | 'YC' | 'RC' | 'INJ' | 'SUB' | 'HT' | 'FT' | 'KO' | 'BRK'
   teamId: string
+  /** where the engine had the ball when the line was called, 0 at the home
+   *  side's own line and 100 at the away side's (1.7.4): the pitch draws the
+   *  play there instead of guessing it from momentum. Absent on events written
+   *  by an older build. */
+  fld?: number
   playerId?: number
   playerName?: string
   /** The line as it was CALLED, in English, always - and not display text.
