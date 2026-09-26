@@ -335,12 +335,20 @@ function windowOpen(state: GameState): boolean {
   return state.week <= 7 || (state.week >= 25 && state.week <= 28)
 }
 
+/** The club that sacked him, while he is out of work: the wire's random beats
+ *  pass it over, as the rest of the unemployed inbox does (exileprobe). Null in
+ *  work, so a manager with a job draws exactly what he always drew. */
+function exClub(state: GameState): string | null {
+  return state.unemployed ? state.userClubId : null
+}
+
 function transferRumour(state: GameState, rng: Rng) {
-  const clubs = Object.values(state.clubs)
+  const gone = exClub(state)
+  const clubs = Object.values(state.clubs).filter(c => c.id !== gone)
   const buyer = pick(rng, clubs.filter(c => c.rep >= 74))
   if (!buyer) return
   const targets = Object.values(state.players).filter(p =>
-    p.clubId && p.clubId !== buyer.id && p.ca >= 78 && p.age <= 30 && !p.onLoan)
+    p.clubId && p.clubId !== buyer.id && p.clubId !== gone && p.ca >= 78 && p.age <= 30 && !p.onLoan)
   if (!targets.length) return
   const t = pick(rng, targets)
   const owner = state.clubs[t.clubId!]
@@ -510,7 +518,8 @@ function wireLog(state: GameState): Record<string, number> {
  *  that only reports a thing is a filler item; a story where the last sentence
  *  undercuts the first is one somebody screenshots. */
 function socialBuzz(state: GameState, rng: Rng) {
-  const clubs = Object.values(state.clubs)
+  const gone = exClub(state)
+  const clubs = Object.values(state.clubs).filter(c => c.id !== gone)
   const club = pick(rng, clubs)
   if (!club) return
   const squad = club.players.map(id => state.players[id]).filter((p): p is Player => !!p)
