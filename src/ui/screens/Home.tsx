@@ -323,7 +323,7 @@ export default function Home() {
             <div className="fact-label">{t(d.progress.done ? 'home.dreamDone' : 'home.dream')}</div>
             <div style={{ fontWeight: 700, fontSize: 14.5, marginTop: 2 }}>{dreamTitle(d.def, d.ctx)}</div>
             <div style={{ height: 6, background: 'var(--border-strong)', borderRadius: 3, overflow: 'hidden', margin: '7px 0 4px' }}>
-              <div style={{ width: `${pct}%`, height: '100%', background: d.progress.done ? 'var(--primary)' : 'var(--gold-fill)' }} />
+              <div className="grow-x" style={{ width: `${pct}%`, height: '100%', background: d.progress.done ? 'var(--primary)' : 'var(--gold-fill)' }} />
             </div>
             <div className="meta">{dreamNote(d.progress)}</div>
           </button>
