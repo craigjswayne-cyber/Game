@@ -214,7 +214,8 @@ export default function Inbox() {
         <RequestAnswer n={n} />
         <PeopleChips n={n} />
       </article>
-      <ContextCard n={n} />
+      {/* the reader carries its own gutter; the card needs the page's */}
+      <div className="ctx-gutter"><ContextCard n={n} /></div>
       </div>
 
       {/* The "Also In The Inbox" table of contents lived here for one round

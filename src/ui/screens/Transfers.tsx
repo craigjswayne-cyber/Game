@@ -1,15 +1,27 @@
 import { Fragment, useMemo, useState } from 'react'
 import { useStore } from '../../store'
-import { clubCode, fmtMoney, fmtWage, newsBody, newsSubject, POS_ORDER, weekDate, type Pos, weeksBetween100 } from '../../game/model'
+import { clubCode, fmtMoney, fmtWage, newsBody, newsSubject, POS_ORDER, seasonLabel, weekDate, type Attrs, type Pos, weeksBetween100 } from '../../game/model'
 import { counterIncomingOffer, renewalDemand, respondToOffer } from '../../game/ai'
 import { LOAN_LENGTHS, LOAN_SHARES, loanApproachable, loanIn, loanTargets, type LoanLength } from '../../game/loans'
-import { fuzzedCa, knowledge } from '../../game/scout'
+import { attrRange, fuzzedCa, knowledge } from '../../game/scout'
 import { commissionScout, searchFee, type SearchMonths } from '../../game/commission'
 import { badgeLabel } from '../../game/staff'
 import { ClubLink, FormPill, Nat, PosBadge, SectionTitle, Stars, TwoStep } from '../components'
-import { posName, t } from '../../game/i18n'
+import { attrName, posName, t } from '../../game/i18n'
 import { userWageBudget } from '../../game/grants'
 import { transferInterest } from '../../game/interest'
+
+/** The classic search screen's views (PRM27): which columns the table shows. */
+type SearchView = 'general' | 'contract' | 'physical' | 'setpiece' | 'handling' | 'mind'
+const SEARCH_VIEWS: SearchView[] = ['general', 'contract', 'physical', 'setpiece', 'handling', 'mind']
+/** four attributes a view, so a phone never scrolls sideways (sidescroll.mjs) */
+const VIEW_ATTRS: Record<Exclude<SearchView, 'general' | 'contract'>, (keyof Attrs)[]> = {
+  physical: ['pac', 'str', 'sta', 'agi'],
+  setpiece: ['scr', 'lin', 'kic', 'goa'],
+  handling: ['pas', 'han', 'tac', 'ruc'],
+  mind: ['vis', 'dec', 'pos', 'lea'],
+}
+const ATTR_ORDER: (keyof Attrs)[] = ['pac', 'str', 'sta', 'agi', 'scr', 'lin', 'kic', 'goa', 'pas', 'han', 'tac', 'ruc', 'vis', 'dec', 'pos', 'lea', 'agg', 'wor']
 
 export default function Transfers() {
   const game = useStore(s => s.game)!
@@ -29,6 +41,13 @@ export default function Transfers() {
   // far below a happy player's, and never said so until you had spent the bid
   // (interest.ts). This chip asks that same question up front.
   const [keenOnly, setKeenOnly] = useState(false)
+  // PRM27, the classic search screen: which columns you are looking at, one
+  // attribute to filter on, the injured and the expiring
+  const [view, setView] = useState<SearchView>('general')
+  const [attrKey, setAttrKey] = useState<keyof Attrs | ''>('')
+  const [attrMin, setAttrMin] = useState(12)
+  const [withInjured, setWithInjured] = useState(true)
+  const [expiringOnly, setExpiringOnly] = useState(false)
   const [msort, setMsort] = useState<'ca' | 'value' | 'age' | 'name' | 'form'>('ca')
   const [mdesc, setMdesc] = useState(false)
   // KEYED TO THE ROW, not to the page. Same class of bug as the coach market:
@@ -76,6 +95,10 @@ export default function Transfers() {
     else if (league !== 'ALL') list = list.filter(p => p.clubId && game.clubs[p.clubId]?.leagueId === league)
     if (listedOnly) list = list.filter(p => p.transferListed)
     if (keenOnly) list = list.filter(p => transferInterest(game, p) !== 'no')
+    if (!withInjured) list = list.filter(p => !p.injury)
+    if (expiringOnly) list = list.filter(p => p.clubId && p.contractEnds <= game.season)
+    // an attribute filter reads what the scouts can see: the middle of the range
+    if (attrKey) list = list.filter(p => { const [lo, hi] = attrRange(game, p, attrKey); return (lo + hi) / 2 >= attrMin })
     const dir = mdesc ? -1 : 1
     list.sort((a, b) => {
       switch (msort) {
@@ -87,7 +110,7 @@ export default function Transfers() {
       }
     })
     return list.slice(0, 120)
-  }, [game, game.players, game.clubs, pos, query, maxVal, maxAge, league, listedOnly, keenOnly, msort, mdesc, game.week])
+  }, [game, game.players, game.clubs, pos, query, maxVal, maxAge, league, listedOnly, keenOnly, withInjured, expiringOnly, attrKey, attrMin, msort, mdesc, game.week])
   const pages = Math.max(1, Math.ceil(results.length / PER_PAGE))
   const pageSafe = Math.min(page, pages - 1)
   const pageRows = results.slice(pageSafe * PER_PAGE, (pageSafe + 1) * PER_PAGE)
@@ -419,8 +442,66 @@ export default function Transfers() {
         <button className="preset-chip" style={keenOnly ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
           onClick={() => { setKeenOnly(!keenOnly); setPage(0) }}>{t('transfers.interested')}</button>
       </div>
+      {/* ---- MORE FILTERS AND THE VIEW (PRM27) ----
+          One attribute and a floor for it, the injured in or out, and the
+          contracts running down; then which columns the table shows. The
+          attributes are what the scouts can see (scout.attrRange): a range
+          until the player is well known, exact after that. */}
+      <div className="filter-line">
+        <select className="inline-input" value={attrKey} onChange={e => { setAttrKey(e.target.value as keyof Attrs | ''); setPage(0) }}>
+          <option value="">{t('search.anyAttr')}</option>
+          {ATTR_ORDER.map(k => <option key={k} value={k}>{attrName(k)}</option>)}
+        </select>
+        <select className="inline-input" value={attrMin} disabled={!attrKey} onChange={e => { setAttrMin(Number(e.target.value)); setPage(0) }}>
+          {[8, 10, 12, 14, 16, 18].map(n => <option key={n} value={n}>{t('search.atLeast', { n })}</option>)}
+        </select>
+        <button className="preset-chip" style={withInjured ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
+          onClick={() => { setWithInjured(!withInjured); setPage(0) }}>{t('search.injured')}</button>
+        <button className="preset-chip" style={expiringOnly ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
+          onClick={() => { setExpiringOnly(!expiringOnly); setPage(0) }}>{t('search.expiring')}</button>
+      </div>
+      <div className="view-chips" role="tablist" aria-label={t('search.view')}>
+        {SEARCH_VIEWS.map(v => (
+          <button key={v} role="tab" aria-selected={view === v} className={`preset-chip${view === v ? '' : ' off'}`}
+            onClick={() => setView(v)}>{t(`search.view_${v}`)}</button>
+        ))}
+      </div>
       {/* codefirst: the leading column is a position code, so it forgoes the
           16px first-column gutter - eight columns already fill a 412px phone */}
+      {view !== 'general' ? (
+      <div className="tblwrap"><table className="dtable codefirst">
+        <thead><tr>
+          <th>{t('squad.colPos')}</th>
+          <MTh k="name">{t('squad.colName')}</MTh>
+          {view === 'contract'
+            ? <><th className="num">{t('search.colUntil')}</th><th className="num">{t('search.colWage')}</th><th>{t('search.colStatus')}</th></>
+            : VIEW_ATTRS[view].map(k => <th key={k} className="num" title={attrName(k)}>{t(`attrShort.${k}`)}</th>)}
+        </tr></thead>
+        <tbody>
+          {pageRows.length === 0 && (
+            <tr><td colSpan={6} className="muted" style={{ padding: 12 }}>
+              {t('transfers.noMatches', { listedHint: listedOnly ? t('transfers.listedHint') : '' })}
+            </td></tr>
+          )}
+          {pageRows.map(p => (
+            <tr key={p.id} onClick={() => go('player', p.id)}>
+              <td><PosBadge pos={p.pos} /></td>
+              <td className="name">{p.name}{p.injury ? ' 🩹' : ''}</td>
+              {view === 'contract'
+                ? <>
+                    <td className="num">{p.clubId ? seasonLabel(p.contractEnds) : '-'}</td>
+                    <td className="num">{fmtWage(p.wage)}</td>
+                    <td className="muted">{p.transferListed ? t('search.listed') : p.clubId && p.contractEnds <= game.season ? t('search.expiringShort') : !p.clubId ? t('transfers.freeAgent') : ''}</td>
+                  </>
+                : VIEW_ATTRS[view].map(k => {
+                    const [lo, hi] = attrRange(game, p, k)
+                    return <td key={k} className="num attr-cell">{lo === hi ? lo : `${lo}-${hi}`}</td>
+                  })}
+            </tr>
+          ))}
+        </tbody>
+      </table></div>
+      ) : (
       <div className="tblwrap"><table className="dtable codefirst">
         <thead><tr>
           <th>{t('squad.colPos')}</th>
@@ -459,6 +540,7 @@ export default function Transfers() {
           ))}
         </tbody>
       </table></div>
+      )}
       {pages > 1 && (
         <div className="pager">
           <button className="btn ghost" disabled={pageSafe === 0} onClick={() => setPage(pageSafe - 1)}>{t('transfers.prev')}</button>

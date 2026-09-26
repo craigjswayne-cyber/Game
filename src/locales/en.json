@@ -7244,5 +7244,43 @@
     "visits22": "Visits to the 22",
     "pointsFrom22": "Points from the 22",
     "perVisit": "Points per visit"
+  },
+  "search": {
+    "anyAttr": "Attribute",
+    "atLeast": "{n}+",
+    "injured": "Injured",
+    "expiring": "Expiring",
+    "view": "View",
+    "view_general": "General",
+    "view_contract": "Contract",
+    "view_physical": "Physical",
+    "view_setpiece": "Set piece",
+    "view_handling": "Ball skills",
+    "view_mind": "Mental",
+    "colUntil": "Until",
+    "colWage": "Wage",
+    "colStatus": "Status",
+    "listed": "Listed",
+    "expiringShort": "Expiring"
+  },
+  "attrShort": {
+    "tac": "Tck",
+    "str": "Str",
+    "scr": "Scr",
+    "lin": "Lin",
+    "ruc": "Ruc",
+    "han": "Han",
+    "pas": "Pas",
+    "kic": "Kic",
+    "goa": "Goa",
+    "pac": "Pac",
+    "sta": "Sta",
+    "agi": "Agi",
+    "vis": "Vis",
+    "dec": "Dec",
+    "pos": "Pos",
+    "agg": "Agg",
+    "lea": "Lea",
+    "wor": "Wor"
   }
 }
