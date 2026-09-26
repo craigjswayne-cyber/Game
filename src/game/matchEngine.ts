@@ -563,6 +563,8 @@ export function homeCrowdLean(state: GameState, fx: Fixture): number {
   if (fx.venue || fx.compId === 'fr') return 0
   const club = state.clubs[fx.homeId]
   const crowd = fx.att ?? (club ? Math.min(club.capacity, demandCeiling(club)) : 0)
+  // a gate that is not a number (a damaged save) leans nobody's way (hostile171)
+  if (!Number.isFinite(crowd)) return 0
   const size = clamp((crowd - 12000) / 18000, 0, 1)
   const occasion = (isDerby(fx.homeId, fx.awayId) ? 0.5 : 0) + (fx.stage ? 0.35 : 0)
   return 0.07 * Math.min(1, size + occasion)
