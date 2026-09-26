@@ -1597,7 +1597,6 @@
   "toValue": "{amount}まで",
   "ageOrUnder": "{n}歳以下",
   "freeAgents": "フリーの選手",
-  "listed": "🏷️ 放出リスト",
   "colClub": "クラブ",
   "colAbility": "能力",
   "colForm": "調子",
@@ -1632,7 +1631,6 @@
   "scoutReportsSub": "スカウト陣が上げてきた全報告",
   "fromClub": "所属:{club}",
   "fromFree": "契約満了",
-  "interested": "興味あり",
   "loanLenShort": "3か月の",
   "loanLenHalf": "6か月の",
   "loanLenSeason": "シーズン終了までの",
@@ -6831,8 +6829,6 @@
  "search": {
   "anyAttr": "能力",
   "atLeast": "{n}以上",
-  "injured": "負傷中",
-  "expiring": "契約満了間近",
   "view": "表示",
   "view_general": "一般",
   "view_contract": "契約",
@@ -6844,7 +6840,17 @@
   "colWage": "週給",
   "colStatus": "状態",
   "listed": "リスト入り",
-  "expiringShort": "満了間近"
+  "expiringShort": "満了間近",
+  "filters": "絞り込み",
+  "filtersOn": "絞り込み（{n}）",
+  "any": "すべて",
+  "viewIs": "表示：{view}",
+  "onlyListed": "移籍リストの選手のみ",
+  "onlyInterested": "加入に前向きな選手のみ",
+  "onlyExpiring": "契約満了間近のみ",
+  "includeInjured": "負傷中の選手を含める",
+  "reset": "リセット",
+  "show": "{n}人を表示"
  },
  "attrShort": {
   "tac": "タック",

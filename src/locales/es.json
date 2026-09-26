@@ -1613,7 +1613,6 @@
   "toValue": "hasta {amount}",
   "ageOrUnder": "{n} o menos",
   "freeAgents": "Agentes libres",
-  "listed": "🏷️ Transferible",
   "colClub": "Club",
   "colAbility": "Nivel",
   "colForm": "Forma",
@@ -1648,7 +1647,6 @@
   "scoutReportsSub": "todo lo que han presentado los ojeadores",
   "fromClub": "del {club}",
   "fromFree": "sin contrato",
-  "interested": "Interesado",
   "loanLenShort": "por tres meses",
   "loanLenHalf": "por seis meses",
   "loanLenSeason": "hasta el final de la temporada",
@@ -6929,8 +6927,6 @@
  "search": {
   "anyAttr": "Atributo",
   "atLeast": "{n}+",
-  "injured": "De baja",
-  "expiring": "Fin de contrato",
   "view": "Vista",
   "view_general": "General",
   "view_contract": "Contrato",
@@ -6942,7 +6938,17 @@
   "colWage": "Sueldo",
   "colStatus": "Estado",
   "listed": "Transferible",
-  "expiringShort": "Acaba"
+  "expiringShort": "Acaba",
+  "filters": "Filtros",
+  "filtersOn": "Filtros ({n})",
+  "any": "Todos",
+  "viewIs": "Vista: {view}",
+  "onlyListed": "Solo transferibles",
+  "onlyInterested": "Solo interesados en venir",
+  "onlyExpiring": "Solo contratos que vencen",
+  "includeInjured": "Incluir lesionados",
+  "reset": "Restablecer",
+  "show": "Ver {n} jugadores"
  },
  "attrShort": {
   "tac": "Pla",

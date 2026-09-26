@@ -1648,7 +1648,6 @@
   "toValue": "tot {amount}",
   "ageOrUnder": "{n} of jonger",
   "freeAgents": "Kontrakvry",
-  "listed": "🏷️ Gelys",
   "colClub": "Klub",
   "colAbility": "Vermoë",
   "colForm": "Vorm",
@@ -1683,7 +1682,6 @@
   "scoutReportsSub": "alles wat die talentsoekers ingedien het",
   "fromClub": "van {club}",
   "fromFree": "kontrak verstryk",
-  "interested": "Geïnteresseerd",
   "loanLenShort": "vir drie maande",
   "loanLenHalf": "vir ses maande",
   "loanLenSeason": "tot die einde van die seisoen",
@@ -7296,8 +7294,6 @@
  "search": {
   "anyAttr": "Eienskap",
   "atLeast": "{n}+",
-  "injured": "Beseer",
-  "expiring": "Verstryk",
   "view": "Aansig",
   "view_general": "Algemeen",
   "view_contract": "Kontrak",
@@ -7309,7 +7305,17 @@
   "colWage": "Salaris",
   "colStatus": "Status",
   "listed": "Gelys",
-  "expiringShort": "Verstryk"
+  "expiringShort": "Verstryk",
+  "filters": "Filters",
+  "filtersOn": "Filters ({n})",
+  "any": "Enige",
+  "viewIs": "Aansig: {view}",
+  "onlyListed": "Net spelers op die oordraglys",
+  "onlyInterested": "Net spelers wat wil aansluit",
+  "onlyExpiring": "Net kontrakte wat verval",
+  "includeInjured": "Sluit beseerde spelers in",
+  "reset": "Herstel",
+  "show": "Wys {n} spelers"
  },
  "attrShort": {
   "tac": "Lvt",
