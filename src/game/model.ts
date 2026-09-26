@@ -622,6 +622,15 @@ export interface Tactic {
   kickers?: (number | null)[]
   /** How you get out of your own 22. */
   exit?: 'box' | 'long' | 'counter' | 'fifty22'
+  /** KICKING STYLE (1.7.3): what kind of kick, where the slider above says how
+   *  many. Absent is 'balanced', and balanced is exactly the engine as it was. */
+  kickStyle?: 'territory' | 'contest' | 'attack' | 'balanced'
+  /** THE BREAKDOWN (1.7.3), both 0..100, absent reading as 50 (no effect).
+   *  ruckCommit: how many you commit to your own ruck - few keeps men in the
+   *  line to attack with, many keeps the ball. ruckContest: how hard you go
+   *  after theirs - fan out and hold the line, or counter-ruck and jackal. */
+  ruckCommit?: number
+  ruckContest?: number
   /** Standing instruction on a kickable penalty. 'ask' keeps the touchline
    *  prompt; anything else answers it for you, which matters on a phone. */
   penaltyCall?: 'ask' | 'posts' | 'corner' | 'tap'

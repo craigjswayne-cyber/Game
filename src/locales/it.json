@@ -625,7 +625,17 @@
   "zOppSpread": "Allargare",
   "zOppSpreadDesc": "Portarla al largo e fidarsi degli esterni. Più mete, e più occasioni di perderla.",
   "zOppPatient": "Giocare le percentuali",
-  "zOppPatientDesc": "Prendere quello che la difesa concede e nulla di più. Né le mete né gli errori delle altre due."
+  "zOppPatientDesc": "Prendere quello che la difesa concede e nulla di più. Né le mete né gli errori delle altre due.",
+  "sliderCommit": "Ruck",
+  "sliderCommitLo": "Leggero, più ampiezza",
+  "sliderCommitHi": "Pesante, palla sicura",
+  "sliderCommitUp": "Corpi su ogni ruck: il pallone è al sicuro e i turnover spariscono, ma chi entra in ruck non è nella linea d'attacco.",
+  "sliderCommitDown": "Una o due maglie in ruck: più numeri in attacco e palla più rapida al largo, ma un buon sciacallo ci banchetterà.",
+  "sliderContest": "Contesa",
+  "sliderContestLo": "Riempi la linea",
+  "sliderContestHi": "Contesa dura",
+  "sliderContestUp": "Contro-ruck e sciacallo: più turnover vinti, ma una linea difensiva più sottile e più punizioni, soprattutto con un arbitro pignolo.",
+  "sliderContestDown": "Lascia stare la loro ruck e riempi la linea: un muro difensivo solido, ma a loro arriva palla rapida e pulita."
  },
  "roles": {
   "scrummager": "Uomo di mischia",
@@ -1374,7 +1384,16 @@
   "byZoneSub": "tre partite, una per zona del campo",
   "zone_own22": "Nei tuoi 22",
   "zone_middle": "Il terzo centrale",
-  "zone_opp22": "Nei loro 22"
+  "zone_opp22": "Nei loro 22",
+  "kickStyle": "Stile al piede",
+  "kickTerritory": "🗺️ Territorio",
+  "kickContest": "🪂 Contesa",
+  "kickAttack": "⚡ Attacco",
+  "kickBalanced": "⚖️ Equilibrato",
+  "kickTerritoryDesc": "Calci in touche per la posizione in campo. Ideale quando la tua touche è più forte della loro.",
+  "kickContestDesc": "Calci a campanile per riprendersi il pallone. Splendido sul bagnato, un regalo di possesso sull'asciutto.",
+  "kickAttackDesc": "Grubber e calci incrociati. Micidiali alle spalle di una difesa che sale forte, ma cedono territorio, e un pallone bagnato non obbedisce.",
+  "kickBalancedDesc": "Un po' di tutto, leggendo ogni calcio al momento. Nessun vantaggio, nessun rischio."
  },
  "staff": {
   "roleAssistant": "Vice allenatore",

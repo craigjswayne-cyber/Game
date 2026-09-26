@@ -622,7 +622,17 @@
   "zOppSpread": "Spread it",
   "zOppSpreadDesc": "Move it to the edge and back your outsides. The most tries, and the most chances to drop it.",
   "zOppPatient": "Play the percentages",
-  "zOppPatientDesc": "Take what the defence gives you and no more. Neither the tries nor the errors of the other two."
+  "zOppPatientDesc": "Take what the defence gives you and no more. Neither the tries nor the errors of the other two.",
+  "sliderCommit": "Ruck Numbers",
+  "sliderCommitLo": "Few, keep width",
+  "sliderCommitHi": "Many, secure ball",
+  "sliderCommitUp": "Bodies over every ruck: the ball is safe and turnovers dry up, but those men are not in the attacking line.",
+  "sliderCommitDown": "One or two at the ruck: more men to attack with and quicker ball wide, but a good jackal will feast.",
+  "sliderContest": "Contest",
+  "sliderContestLo": "Fan out",
+  "sliderContestHi": "Compete hard",
+  "sliderContestUp": "Counter-ruck and jackal: more turnovers won, but a thinner defensive line and more penalties, especially under a fussy referee.",
+  "sliderContestDown": "Leave their ruck alone and fill the line: a solid defensive wall, but they get quick, clean ball."
  },
  "roles": {
   "scrummager": "Scrummager",
@@ -1392,7 +1402,16 @@
   "byZoneSub": "three games, one up the pitch from the last",
   "zone_own22": "In your own 22",
   "zone_middle": "The middle third",
-  "zone_opp22": "In their 22"
+  "zone_opp22": "In their 22",
+  "kickStyle": "Kicking Style",
+  "kickTerritory": "🗺️ Territory",
+  "kickContest": "🪂 Contest",
+  "kickAttack": "⚡ Attack",
+  "kickBalanced": "⚖️ Balanced",
+  "kickTerritoryDesc": "Touch-finders for field position. Best when your lineout is stronger than theirs.",
+  "kickContestDesc": "Up-and-unders to win it back. Brilliant in the wet, a gift of possession in the dry.",
+  "kickAttackDesc": "Grubbers and cross-kicks. Deadly behind a rushing defence, gives up territory, and a wet ball will not behave.",
+  "kickBalancedDesc": "A bit of everything, reading each kick as it comes. No edge, no risk."
  },
  "staff": {
   "roleAssistant": "Assistant Coach",

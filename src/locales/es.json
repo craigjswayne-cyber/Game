@@ -625,7 +625,17 @@
   "zOppSpread": "Abrirlo",
   "zOppSpreadDesc": "Llevarlo al ala y confiar en los exteriores. Más ensayos, y más ocasiones de que se caiga.",
   "zOppPatient": "Jugar los porcentajes",
-  "zOppPatientDesc": "Tomar lo que la defensa te dé y nada más. Ni los ensayos ni los errores de las otras dos."
+  "zOppPatientDesc": "Tomar lo que la defensa te dé y nada más. Ni los ensayos ni los errores de las otras dos.",
+  "sliderCommit": "Ruck",
+  "sliderCommitLo": "Pocos / amplitud",
+  "sliderCommitHi": "Muchos / balón seguro",
+  "sliderCommitUp": "Cuerpos en cada ruck: el balón está a salvo y apenas hay robos, pero esos efectivos no están en la línea de ataque.",
+  "sliderCommitDown": "Uno o dos en el ruck: más efectivos para atacar y balón rápido por fuera, pero un buen jackal se dará un festín.",
+  "sliderContest": "Disputa",
+  "sliderContestLo": "Abrirse en línea",
+  "sliderContestHi": "Pelear a fondo",
+  "sliderContestUp": "Contrarruck y jackal: más balones robados, pero una línea defensiva más fina y más castigos, sobre todo con un árbitro quisquilloso.",
+  "sliderContestDown": "Deja su ruck en paz y llena la línea: un muro defensivo sólido, pero reciben balón rápido y limpio."
  },
  "roles": {
   "scrummager": "Hombre de melé",
@@ -1367,7 +1377,16 @@
   "byZoneSub": "tres partidos, uno por zona del campo",
   "zone_own22": "En tus 22",
   "zone_middle": "El tercio central",
-  "zone_opp22": "En sus 22"
+  "zone_opp22": "En sus 22",
+  "kickStyle": "Estilo de juego al pie",
+  "kickTerritory": "🗺️ Territorio",
+  "kickContest": "🪂 Disputa",
+  "kickAttack": "⚡ Ataque",
+  "kickBalanced": "⚖️ Equilibrado",
+  "kickTerritoryDesc": "Patadas a touche para ganar posición de campo. Lo mejor cuando tu touche es más fuerte que la suya.",
+  "kickContestDesc": "Up-and-unders para recuperar el balón. Brillante con lluvia, un regalo de posesión en seco.",
+  "kickAttackDesc": "Grubbers y patadas cruzadas. Letales a la espalda de una defensa que sube rápido, pero ceden territorio y con el balón mojado no obedecen.",
+  "kickBalancedDesc": "Un poco de todo, decidiendo cada patada sobre la marcha. Sin ventaja y sin riesgo."
  },
  "staff": {
   "roleAssistant": "Entrenador asistente",

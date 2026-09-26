@@ -133,6 +133,37 @@ export function defSystemOf(line: number, width: number): DefSystem {
   return best
 }
 
+/**
+ * ---- THE BREAKDOWN (owner, 1.7.3: "breakdown commitments", attack and
+ * defence separately) ----
+ *
+ * Two dials, both 50 by default, which the engine treats as absent: how many
+ * you commit to your own ruck, and how hard you contest theirs. The trades are
+ * in matchEngine.applyModifiers; the words below say what they cost.
+ */
+export type BrkSliderKey = 'ruckCommit' | 'ruckContest'
+
+export const BRK_SLIDER_INFO: { key: BrkSliderKey; label: string; lo: string; hi: string; up: string; down: string }[] = [
+  {
+    key: 'ruckCommit', label: 'tactics.sliderCommit', lo: 'tactics.sliderCommitLo', hi: 'tactics.sliderCommitHi',
+    up: 'tactics.sliderCommitUp',
+    down: 'tactics.sliderCommitDown',
+  },
+  {
+    key: 'ruckContest', label: 'tactics.sliderContest', lo: 'tactics.sliderContestLo', hi: 'tactics.sliderContestHi',
+    up: 'tactics.sliderContestUp',
+    down: 'tactics.sliderContestDown',
+  },
+]
+
+/** Plain-English readout of a breakdown dial, for the UI. */
+export function brkSliderReadout(key: BrkSliderKey, v: number): string {
+  const info = BRK_SLIDER_INFO.find(s => s.key === key)!
+  if (v >= 66) return t(info.up)
+  if (v <= 34) return t(info.down)
+  return t('tactics.balancedReadout')
+}
+
 /** Plain-English readout of a without-ball dial, for the UI. */
 export function defSliderReadout(key: DefSliderKey, v: number): string {
   const info = DEF_SLIDER_INFO.find(s => s.key === key)!

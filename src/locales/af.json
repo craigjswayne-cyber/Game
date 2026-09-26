@@ -621,7 +621,17 @@
   "zOppSpread": "Sprei dit",
   "zOppSpreadDesc": "Vat dit na die punt en vertrou jou buitespelers. Die meeste drieë, en die meeste kanse om dit te laat val.",
   "zOppPatient": "Speel die persentasies",
-  "zOppPatientDesc": "Vat wat die verdediging gee en niks meer nie. Nie die drieë en nie die foute van die ander twee nie."
+  "zOppPatientDesc": "Vat wat die verdediging gee en niks meer nie. Nie die drieë en nie die foute van die ander twee nie.",
+  "sliderCommit": "Losskrum",
+  "sliderCommitLo": "Min, hou breedte",
+  "sliderCommitHi": "Baie, bal veilig",
+  "sliderCommitUp": "Liggame oor elke losskrum: die bal is veilig en omkere droog op, maar daardie spelers is nie in die aanvalslyn nie.",
+  "sliderCommitDown": "Een of twee by die losskrum: meer spelers om mee aan te val en vinniger bal wyd uit, maar 'n goeie jakkals sal smul.",
+  "sliderContest": "Betwisting",
+  "sliderContestLo": "Sprei uit",
+  "sliderContestHi": "Betwis hard",
+  "sliderContestUp": "Teen-losskrum en jakkals: meer omkere gewen, maar 'n dunner verdedigingslyn en meer strafskoppe, veral onder 'n puntenerige skeidsregter.",
+  "sliderContestDown": "Los hul losskrum uit en vul die lyn: 'n soliede verdedigingsmuur, maar hulle kry vinnige, skoon bal."
  },
  "roles": {
   "scrummager": "Skrummer",
@@ -1389,7 +1399,16 @@
   "byZoneSub": "drie wedstryde, een per sone",
   "zone_own22": "In jou eie 22",
   "zone_middle": "Die middelderde",
-  "zone_opp22": "In hulle 22"
+  "zone_opp22": "In hulle 22",
+  "kickStyle": "Skopstyl",
+  "kickTerritory": "🗺️ Gebied",
+  "kickContest": "🪂 Betwis",
+  "kickAttack": "⚡ Aanval",
+  "kickBalanced": "⚖️ Gebalanseerd",
+  "kickTerritoryDesc": "Skoppe na die kantlyn vir veldposisie. Die beste as jou lynstaan sterker as hulle s'n is.",
+  "kickContestDesc": "Hoë skoppe om die bal terug te wen. Briljant in die nat, 'n geskenk van besit in droë weer.",
+  "kickAttackDesc": "Rolskoppe en dwarsskoppe. Dodelik agter 'n stormende verdediging, gee gebied prys, en 'n nat bal sal nie gehoorsaam nie.",
+  "kickBalancedDesc": "'n Bietjie van alles, en elke skop word gelees soos dit kom. Geen voordeel, geen risiko nie."
  },
  "staff": {
   "roleAssistant": "Assistent-afrigter",
