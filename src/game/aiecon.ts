@@ -82,6 +82,14 @@ export function moneyIndex(state: GameState): number {
   const bills: number[] = []
   for (const club of Object.values(state.clubs)) {
     if (club.id === state.userClubId) continue
+    // THE INDEX IS THE ESTABLISHED GAME'S WAGES (1.7.3). It was calibrated on
+    // the hundred clubs that were here when BASE_WAGE_BILL was measured, and it
+    // scales every club's income - where income only just outruns wages, so a
+    // few per cent is the whole of a club's year. Six American clubs with
+    // smaller bills pulled the median down 3-5% and took the median club's
+    // gain from 0.33M a season to about nothing (scripts/aiecon.ts). A new
+    // league joining the world is not the sport's money deflating.
+    if (club.leagueId === 'mrc') continue
     bills.push(club.players.reduce((s, id) => s + (state.players[id]?.wage ?? 0), 0))
   }
   if (!bills.length) return 1
