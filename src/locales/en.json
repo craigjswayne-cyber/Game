@@ -7175,5 +7175,74 @@
   "positionNoGood": "{player} takes it well. \"Fair enough. I'll keep working at {from_k}.\"",
   "positionNoMixed": "{player} is disappointed. \"Okay. Worth asking.\"",
   "positionNoBad": "{player} bristles. \"Then I'm a {from_k} who doesn't play. That can't go on.\""
- }
+ },
+  "mood": {
+    "room": "The room",
+    "roomSub": "how each player feels before the talk",
+    "summary": "{good} up for it · {ok} steady · {low} need lifting",
+    "name": "Name",
+    "personality": "Personality",
+    "mood": "Mood",
+    "believes": "Believes the team will come out on top",
+    "lookingForward": "Looking forward to the match",
+    "eager": "Eager to play",
+    "happySquad": "Happy to be in the matchday squad",
+    "balanced": "Has balanced expectations",
+    "nervous": "Nervous about the game",
+    "lowConfidence": "Low on confidence",
+    "leggy": "Feeling the week in the legs"
+  },
+  "ctx": {
+    "age": "age {n}",
+    "club": "Club",
+    "rating": "Rating",
+    "mood": "Mood",
+    "value": "Value",
+    "contract": "Contract",
+    "until": "until {season}",
+    "viewPlayer": "View player",
+    "position": "League position",
+    "form": "Form",
+    "nextMatch": "Next match",
+    "home": "H",
+    "away": "A",
+    "fanFavourites": "Fan favourites",
+    "responseNeeded": {
+      "one": "Response needed",
+      "other": "Response needed ({n})"
+    }
+  },
+  "mstatus": {
+    "subs": "Replacements {left}/{max}"
+  },
+  "mpanel": {
+    "open": "Match menu",
+    "prev": "Previous panel",
+    "next": "Next panel",
+    "back": "Back to the match",
+    "lineups": "Line-ups",
+    "room": "The room",
+    "players": "Who did what",
+    "zones": "Where it was played",
+    "visits": "The 22",
+    "cond": "Cond",
+    "rating": "Rtg",
+    "tries": "T",
+    "kicks": "K",
+    "cards": "C",
+    "seen": "Lines",
+    "triesTitle": "Tries",
+    "kicksTitle": "Kicks at goal landed",
+    "cardsTitle": "Cards",
+    "seenTitle": "Lines in the commentary that name the player",
+    "playersNote": "Counted from the commentary so far.",
+    "zonesNote": "Where the ball was on the {n} lines so far.",
+    "zoneHomeThird": "{team}'s third",
+    "zoneMiddle": "The middle",
+    "zoneAwayThird": "{team}'s third",
+    "visitsNote": "A visit starts when a side gets inside the opposition 22.",
+    "visits22": "Visits to the 22",
+    "pointsFrom22": "Points from the 22",
+    "perVisit": "Points per visit"
+  }
 }

@@ -5,6 +5,7 @@ import { newsBody, newsSubject, weekDate, type NewsItem } from '../../game/model
 import { RECALL_DAYS, daysLeft, inInbox, markRead } from '../../game/days'
 import { t } from '../../game/i18n'
 import { answerRequest, canAnswerRequest } from '../../game/chats'
+import { ContextCard, ResponseNeeded } from '../ContextCard'
 
 /** The inbox: one message at a time, with a recall window.
  *
@@ -189,11 +190,13 @@ export default function Inbox() {
         <button className="btn ghost tiny" disabled={i <= 0}
           title={t('inbox.newerMessage')} aria-label={t('inbox.newerMessage')}
           onClick={() => inboxStep(1)}>▶</button>
+        <ResponseNeeded />
         {unread > 0
           ? <button className="btn gold tiny" onClick={() => openInbox()}>{t('inbox.nextUnread', { n: unread })}</button>
           : <button className="btn ghost tiny" onClick={() => clearRead()}>{t('inbox.clearRead')}</button>}
       </div>
 
+      <div className="news-split">
       <article className="reader">
         <div className="when">{TYPE_ICON[n.type] ?? '📰'} {weekDate(n.season, n.week)}{shelf}</div>
         <h2>{newsSubject(n)}</h2>
@@ -211,6 +214,8 @@ export default function Inbox() {
         <RequestAnswer n={n} />
         <PeopleChips n={n} />
       </article>
+      <ContextCard n={n} />
+      </div>
 
       {/* The "Also In The Inbox" table of contents lived here for one round
           (the 10D one-at-a-time reader made a heavy morning invisible), and

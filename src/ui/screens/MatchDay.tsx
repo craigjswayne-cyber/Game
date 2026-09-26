@@ -21,6 +21,8 @@ import { groundSound, matchSfx, soundOn, toggleSound } from '../audio'
 import { GOAL_ARRIVES, buildPassage, contactOf, playKind, restingRow, teeSpot, type Key, type Passage, type Pt } from '../phasePlay'
 import { LIFT_BEATS, LINEOUT, SCRUM_BEATS, benchEntry, lineoutSpots, scrumDrive, tackleActs, touchlineExit, type Man } from '../pitchActs'
 import { formation, shapeFor, shapeRow } from '../phaseShape'
+import { MoodTable } from '../MoodTable'
+import { MatchPanels } from '../MatchPanels'
 import { crowdLevel } from '../matchAtmos'
 import { derbyName } from '../../game/rivalries'
 import { matchStakes } from '../../game/stakes'
@@ -1082,6 +1084,8 @@ function Preview({ fxId }: { fxId: number }) {
         </>}
 
         {ptab === 'talk' && <>
+        <SectionTitle sub={t('mood.roomSub')}>{t('mood.room')}</SectionTitle>
+        <MoodTable game={game} lineup={tac.lineup} />
         <SectionTitle sub={t('matchday.dressingRoomSub')}>{t('matchday.dressingRoom')}</SectionTitle>
         <div className="speech-grid">
           {SPEECHES.map(s => (
@@ -1125,6 +1129,11 @@ function Preview({ fxId }: { fxId: number }) {
                   buried and nobody found it. This modal is the last thing before
                   the tunnel and has nothing above it. */}
               <ViewPicker view={view} onPick={setView} />
+              {/* the room before you speak to it (PRM27) */}
+              <details className="mood-fold">
+                <summary>{t('mood.room')}</summary>
+                <MoodTable game={game} lineup={tac.lineup} />
+              </details>
               <div className="speech-grid" style={{ marginTop: 6 }}>
                 {SPEECHES.map(sp => (
                   <button key={sp.id} className={`speech-tile${speech === sp.id ? ' sel' : ''}`}
@@ -1456,6 +1465,12 @@ const SPOTS: [number, number][] = [
 ]
 
 /** Which question a TMO review line asked (comm.tmoReview1..4), 1 if unknown. */
+/** the kicking style's own chip label (Tactics screen), for the status strip */
+const KICK_STYLE_LABEL: Record<string, string> = {
+  territory: 'tacticsScreen.kickTerritory', contest: 'tacticsScreen.kickContest',
+  attack: 'tacticsScreen.kickAttack', balanced: 'tacticsScreen.kickBalanced',
+}
+
 function tmoQuestion(ev: MatchEvent | undefined): number {
   const n = Number(/tmoReview(\d)/.exec(ev?.k ?? '')?.[1])
   return n >= 1 && n <= 4 ? n : 1
@@ -2083,6 +2098,13 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
       <div className="zone-label" style={{ right: '2.5%' }}>{clubCode(teamShort(game!, mirror ? fx.homeId : fx.awayId))}</div>
       {homeDots}
       {awayDots}
+      {/* THE OFFICIALS (PRM27). The classic top-down view draws the referee and
+          the touch judges as their own markers: the referee a few metres off
+          the ball, a touch judge on each touchline level with play. They move
+          on the same glide as the players and never wobble. */}
+      <div className="official ref" style={{ left: `${mx(Math.max(4, Math.min(96, ballLeft + (ballLeft > 50 ? -5 : 5))))}%`, top: `${Math.max(8, Math.min(92, ballTop + 16))}%` }}>R</div>
+      <div className="official aj" style={{ left: `${mx(ballLeft)}%`, top: '4%' }}>A</div>
+      <div className="official aj" style={{ left: `${mx(ballLeft)}%`, top: '96%' }}>A</div>
       <div ref={shadowEl} className="ball-shadow" style={{ left: `${mx(ballLeft)}%`, top: `${ballTop}%` }} />
       {/* ballTop, NOT a second copy of its fallback.
           ballTop (above) is the carrier's own row, and its comment says what it
@@ -2217,6 +2239,7 @@ function Live() {
   const [injury, setInjury] = useState<{ hurt: string; desc: string; weeks: number; coverId: number | null } | null>(null)
   /** the match-day squad, opened from the Squad button in the control row */
   const [sheet, setSheet] = useState(false)
+  const [mpanels, setMpanels] = useState(false)
   const tickerRef = useRef<HTMLDivElement>(null)
 
   const { events, cursor, playing, fixture, ctx } = live
@@ -2620,6 +2643,11 @@ function Live() {
               setSheet(true)
             }}>👥 <span className="ctrl-cap">{t('matchday.squadBtn')}</span></button>
         )}
+        {/* the match menu (PRM27): line-ups, the room, who did what, where
+            it has been played, the 22 - paused while you read it */}
+        <button className="btn ghost" style={{ flex: '0 0 46px' }}
+          title={t('mpanel.open')} aria-label={t('mpanel.open')}
+          onClick={() => { matchCursor(cursor, false); setSettings(false); setDrawer(false); setMpanels(true) }}>📊</button>
         <button className={`btn ${settings ? 'gold' : 'ghost'}`} style={{ flex: '0 0 46px' }}
           title={t('matchday.settingsTitle')} aria-label={t('matchday.settingsTitle')}
           onClick={() => { setDrawer(false); setSettings(!settings) }}>⚙</button>
@@ -2630,8 +2658,15 @@ function Live() {
           background, that takes up whatever a tall phone has spare. */}
       {!panelActive && (
         <div className="now-strip">
+          {/* the touchline at a glance (PRM27): replacements left and how you
+              are kicking, the two things a manager changes mid-match */}
+          <div className="match-status">
+            <span>⇄ {t('mstatus.subs', { left: MAX_SUBS - ctx.subsUsed, max: MAX_SUBS })}</span>
+            <span>{t(KICK_STYLE_LABEL[game.clubs[ctx.userSideId ?? '']?.tactic.kickStyle ?? 'balanced'] ?? 'tacticsScreen.kickBalanced')}</span>
+          </div>
           {last && (
-            <div key={cursor} className={`now-line ${cls(last)}`}>
+            <div key={cursor} className={`now-line ${cls(last)}`}
+              style={last.teamId ? { borderLeftColor: lastTeamC[0] } : undefined}>
               <span className="min">{Math.min(80, last.min)}'</span>
               <span className="txt">{icon(last)} {eventText(last)}</span>
             </div>
@@ -2639,6 +2674,7 @@ function Live() {
         </div>
       )}
 
+      {mpanels && <MatchPanels onClose={() => { setMpanels(false); matchCursor(cursor, true) }} />}
       {sheet && !injury && (
         <SquadSheet
           onClose={() => { setSheet(false); matchCursor(cursor, true) }}

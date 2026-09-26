@@ -4536,3 +4536,86 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .news-item .took.good { color: var(--positive); }
 .news-item .took.mixed { color: var(--info); }
 .news-item .took.bad { color: var(--danger); }
+
+/* ---- the room before the team talk (PRM27, MoodTable.tsx) ---- */
+.mood-wrap { padding: 0 14px 8px; }
+.mood-sum { font-size: 12px; color: var(--text-muted); margin: 2px 0 6px; }
+.mood-table td.nm { font-weight: 600; white-space: nowrap; }
+.mood-table td.num { width: 26px; font-variant-numeric: tabular-nums; color: var(--text-muted); }
+.mood-table tr.bench td { opacity: .78; }
+.mood-chip {
+  display: inline-block; padding: 2px 8px; border-radius: 9px; font-size: 12px;
+  border: 1.5px solid var(--border-strong); white-space: nowrap;
+}
+.mood-chip.good { border-color: var(--primary); background: var(--primary-tint); }
+.mood-chip.low { border-color: var(--danger); background: var(--danger-tint); }
+.mood-fold { margin: 6px 0 2px; }
+.mood-fold > summary { cursor: pointer; font-weight: 700; font-size: 13px; padding: 6px 0; color: var(--info); }
+.mood-fold .mood-wrap { padding: 0 0 6px; }
+
+/* ---- the story and what it is about, side by side (PRM27, ContextCard.tsx) ----
+ * One column on a phone held upright (the card follows the story); two once
+ * there is room, the classic reader's message-and-panel. */
+.news-split { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; flex: 1; }
+@media (min-width: 720px) {
+  .news-split { grid-template-columns: minmax(0, 1fr) 250px; align-items: start; }
+}
+.ctx-card {
+  background: var(--surface-1); border: 1px solid var(--border-strong); border-radius: 10px;
+  padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; margin: 0 14px 0;
+}
+.news-split .ctx-card { margin: 0; }
+.ctx-head { display: flex; gap: 10px; align-items: center; }
+.ctx-head b { display: block; font-size: 15px; }
+.ctx-head span { display: block; font-size: 12px; color: var(--text-muted); }
+.ctx-rows { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 5px 10px; margin: 0; font-size: 13px; }
+.ctx-rows dt { color: var(--text-muted); }
+.ctx-rows dd { margin: 0; text-align: right; font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.ctx-form { display: flex; gap: 3px; justify-content: flex-end; }
+.ctx-form i { font-style: normal; font-size: 11px; width: 17px; text-align: center; border-radius: 3px; border: 1px solid var(--border-strong); }
+.ctx-form i.W { border-color: var(--primary); background: var(--primary-tint); }
+.ctx-form i.L { border-color: var(--danger); background: var(--danger-tint); }
+.ctx-favs { display: flex; flex-direction: column; align-items: flex-end; }
+.resp-needed { white-space: nowrap; }
+
+/* ---- the officials on the pitch (PRM27) ---- */
+.pitch .official {
+  position: absolute; z-index: 2; width: 11px; height: 11px; margin: -5.5px 0 0 -5.5px;
+  border-radius: 50%; font-family: var(--cond); font-size: 7px; font-weight: 800; line-height: 11px;
+  text-align: center; background: var(--prop-yellow); color: var(--prop-ink-dark);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .5); pointer-events: none;
+  transition:
+    left calc(var(--tick, 1100ms) * .92) cubic-bezier(.42, 0, .25, 1),
+    top calc(var(--tick, 1100ms) * .92) cubic-bezier(.42, 0, .25, 1);
+}
+.pitch .official.aj { width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; line-height: 9px; font-size: 6px; }
+
+/* ---- the touchline at a glance, above the commentary (PRM27) ---- */
+.match-status {
+  display: flex; justify-content: space-between; gap: 10px; padding: 0 4px 5px;
+  font-family: var(--cond); font-size: 12px; letter-spacing: .5px; color: var(--text-muted);
+}
+
+/* ---- the match menu (PRM27, MatchPanels.tsx) ---- */
+.mpanels { max-width: 920px; width: calc(100% - 24px); padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 8px; max-height: 88vh; max-height: 88dvh; }
+.mp-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.mp-head b { font-family: var(--cond); font-size: 15px; letter-spacing: 1px; text-transform: uppercase; }
+.mp-dots { display: flex; justify-content: center; gap: 6px; }
+.mp-dots button { width: 9px; height: 9px; min-width: 0; padding: 0; border-radius: 2px; border: none; background: var(--border-strong); }
+.mp-dots button.on { background: var(--text-primary); }
+.mp-body { overflow: auto; min-height: 0; flex: 1; }
+.mp-two { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+@media (min-width: 640px) { .mp-two { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.mp-table td.nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+.mp-table td.num, .mp-table th { text-align: center; font-variant-numeric: tabular-nums; }
+.mp-table td.pos { color: var(--text-positive); }
+.mp-table td.neg { color: var(--text-negative); }
+.mp-table tr.off td { opacity: .5; }
+.mp-table .mp-mid { text-align: center; color: var(--text-muted); }
+.mp-note { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+.mp-zones { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: end; padding: 6px 4px; }
+.mp-zone { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
+.mp-zone .bar { height: 110px; width: 44px; display: flex; align-items: flex-end; border-bottom: 1px solid var(--border-strong); }
+.mp-zone .bar i { display: block; width: 100%; border-radius: 3px 3px 0 0; background: var(--primary); }
+.mp-zone b { font-family: var(--cond); font-size: 17px; }
+.mp-zone span { font-size: 12px; color: var(--text-muted); }
