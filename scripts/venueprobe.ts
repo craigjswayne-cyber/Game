@@ -143,7 +143,7 @@ for (const [k, v] of Object.entries(byComp).sort((a, b) => b[1].sum / b[1].n - a
 {
   const { simMatch } = await import('../src/game/matchEngine')
   const { mulberry32 } = await import('../src/game/rng')
-  type Row = { raw: number; homeWin: number; draw: number }
+  type Row = { raw: number; homeWin: number; draw: number; comp: string }
   const rows: Row[] = []
   // Nine worlds, not three: the quartile gap is a one-to-two point effect
   // measured against about +/-1.7 points of sampling noise per quartile at
@@ -161,24 +161,37 @@ for (const [k, v] of Object.entries(byComp).sort((a, b) => b[1].sum / b[1].n - a
       const e = venueEffect(g, fx.homeId, fx.awayId, fx.week)
       simMatch(g, fx, mulberry32(seed * 7919 + i), false)
       const hs = fx.homeScore ?? 0, as = fx.awayScore ?? 0
-      rows.push({ raw: e.raw, homeWin: hs > as ? 1 : 0, draw: hs === as ? 1 : 0 })
+      rows.push({ raw: e.raw, homeWin: hs > as ? 1 : 0, draw: hs === as ? 1 : 0, comp: fx.compId })
     })
   }
+  // QUARTERS WITHIN EACH LEAGUE, then pooled. Ranked across the whole world,
+  // the hardest quarter was whichever leagues travel furthest, so it measured
+  // leagues as much as trips: the Major Rugby Competition (1.7.3) puts all 270
+  // of its fixtures at US distances, into the top quarter, with its small
+  // crowds' smaller home lean - and took the hardest quarter from 55.1% to
+  // 53.9% with the engine unchanged. Inside a league the only thing that
+  // differs between its easy and hard trips is the trip.
+  const byComp = new Map<string, typeof rows>()
+  for (const r of rows) byComp.set(r.comp, [...(byComp.get(r.comp) ?? []), r])
+  const easyRows: typeof rows = [], hardRows: typeof rows = []
+  for (const list of byComp.values()) {
+    list.sort((a, b) => a.raw - b.raw)
+    const k = Math.floor(list.length / 4)
+    easyRows.push(...list.slice(0, k)); hardRows.push(...list.slice(list.length - k))
+  }
   rows.sort((a, b) => a.raw - b.raw)
-  const q = Math.floor(rows.length / 4)
-  const band = (from: number, to: number) => {
-    const slice = rows.slice(from, to)
+  const band = (slice: typeof rows) => {
     const w = slice.reduce((s, r) => s + r.homeWin, 0) / slice.length
     const d = slice.reduce((s, r) => s + r.draw, 0) / slice.length
     const mr = slice.reduce((s, r) => s + r.raw, 0) / slice.length
     return { n: slice.length, w: w * 100, d: d * 100, mr }
   }
-  const easiest = band(0, q)
-  const hardest = band(rows.length - q, rows.length)
-  const all = band(0, rows.length)
+  const easiest = band(easyRows)
+  const hardest = band(hardRows)
+  const all = band(rows)
   console.log(`\n${rows.length} league fixtures simmed over 9 worlds:`)
-  console.log(`  easiest quarter (mean raw ${easiest.mr.toFixed(3)}): home win ${easiest.w.toFixed(1)}%`)
-  console.log(`  hardest quarter (mean raw ${hardest.mr.toFixed(3)}): home win ${hardest.w.toFixed(1)}%`)
+  console.log(`  easiest quarter of each league (mean raw ${easiest.mr.toFixed(3)}): home win ${easiest.w.toFixed(1)}%`)
+  console.log(`  hardest quarter of each league (mean raw ${hardest.mr.toFixed(3)}): home win ${hardest.w.toFixed(1)}%`)
   console.log(`  all fixtures: home win ${all.w.toFixed(1)}%, draws ${all.d.toFixed(1)}%`)
   if (hardest.w <= easiest.w) {
     bad(`the hardest trips are not harder to win: ${hardest.w.toFixed(1)}% against ${easiest.w.toFixed(1)}% on the easiest. The edge is built but nothing reads it.`)
