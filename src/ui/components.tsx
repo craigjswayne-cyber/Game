@@ -11,6 +11,26 @@ import { useStore } from '../store'
 
 
 /**
+ * ---- AN ON/OFF SWITCH (1.8.0) ----
+ *
+ * Owner, with FM26's match settings on screen: "I like the toggle on/off
+ * option". A real switch rather than a button whose label flips, so the state
+ * reads at a glance and the tap target is the whole row. role="switch" with
+ * aria-checked is what a screen reader expects of one.
+ */
+export function Toggle({ on, onChange, label, sub }: { on: boolean; onChange: (v: boolean) => void; label: ReactNode; sub?: ReactNode }) {
+  return (
+    <button type="button" role="switch" aria-checked={on} className={`toggle-row${on ? ' on' : ''}`} onClick={() => onChange(!on)}>
+      <span className="toggle-text">
+        <span className="toggle-label">{label}</span>
+        {sub && <span className="toggle-sub">{sub}</span>}
+      </span>
+      <span className="toggle" aria-hidden><i /></span>
+    </button>
+  )
+}
+
+/**
  * ---- THE PHASE RUGBY BALL ----
  *
  * The mark is the ball, tilted, white leather with a heavy keyline, sitting inside

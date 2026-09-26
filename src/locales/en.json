@@ -6959,7 +6959,9 @@
   "textNormal": "Normal",
   "textBigger": "Bigger",
   "textBiggest": "Biggest",
-  "fineprint": "The colours, the light and the type size live on this phone, not in the save - a career carried to another device arrives in that one’s colours. How the press refer to you goes with the career. Currently reading in {lang}."
+  "fineprint": "The colours, the light and the type size live on this phone, not in the save - a career carried to another device arrives in that one’s colours. How the press refer to you goes with the career. Currently reading in {lang}.",
+  "intro": "Opening titles",
+  "introLine": "The five-second intro when the game starts. A tap skips it."
  },
  "sack": {
   "breaking": "Breaking news",
@@ -7288,5 +7290,8 @@
   "agg": "Agg",
   "lea": "Lea",
   "wor": "Wor"
+ },
+ "intro": {
+  "skip": "Tap to skip"
  }
 }

@@ -51,6 +51,7 @@ import Country from './screens/Country'
 import Infrastructure from './screens/Infrastructure'
 import Academy from './screens/Academy'
 import Tutorial from './Tutorial'
+import { Intro } from './Intro'
 
 /* The masthead title for every screen that is not Home (Home shows the club).
  *
@@ -227,6 +228,8 @@ function Overlays() {
       <Celebration />
       {/* last, so it sits over the lot: nothing outranks losing your job */}
       <Sacked />
+      {/* the opening titles, once per launch, over everything (Intro.tsx) */}
+      <Intro />
     </>
   )
 }

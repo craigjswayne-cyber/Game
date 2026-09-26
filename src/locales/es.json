@@ -6638,7 +6638,9 @@
   "textNormal": "Normal",
   "textBigger": "Más grande",
   "textBiggest": "La más grande",
-  "fineprint": "Los colores, la luz y el tamaño del texto viven en este móvil, no en la partida: una carrera que se lleva a otro dispositivo llega con los colores de aquel. Cómo se refiere a ti la prensa viaja con la carrera. Ahora mismo se lee en {lang}."
+  "fineprint": "Los colores, la luz y el tamaño del texto viven en este móvil, no en la partida: una carrera que se lleva a otro dispositivo llega con los colores de aquel. Cómo se refiere a ti la prensa viaja con la carrera. Ahora mismo se lee en {lang}.",
+  "intro": "Cabecera de inicio",
+  "introLine": "La intro de cinco segundos al abrir el juego. Un toque la salta."
  },
  "sack": {
   "breaking": "Última hora",
@@ -6969,5 +6971,8 @@
   "agg": "Agr",
   "lea": "Lid",
   "wor": "Sac"
+ },
+ "intro": {
+  "skip": "Toca para saltar"
  }
 }
