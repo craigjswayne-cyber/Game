@@ -516,7 +516,8 @@
   "clearRead": "Clear read",
   "shelfLastDay": " · last day in the inbox",
   "shelfOneDay": " · one more day",
-  "shelfDaysLeft": " · {n} days left"
+  "shelfDaysLeft": " · {n} days left",
+  "listLabel": "Messages"
  },
  "tables": {
   "internationals": "Internationals",

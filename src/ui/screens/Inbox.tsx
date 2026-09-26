@@ -196,6 +196,22 @@ export default function Inbox() {
           : <button className="btn ghost tiny" onClick={() => clearRead()}>{t('inbox.clearRead')}</button>}
       </div>
 
+      <div className="inbox-panes">
+      {/* THE LIST BESIDE THE LETTER, ON A TABLET ONLY (1.8.0). A phone reads
+          one story and its arrows (the owner cut the table of contents in
+          19D); a tablet has the width for the mail client everyone knows, so
+          the twenty stories the arrows walk sit down the left and a tap opens
+          one. Hidden by CSS everywhere but .app.tablet. */}
+      <nav className="inbox-list" aria-label={t('inbox.listLabel')}>
+        {window20.map(x => (
+          <button key={x.id} className={`inbox-li${x.id === n.id ? ' on' : ''}${x.read ? '' : ' unread'}`}
+            aria-current={x.id === n.id}
+            onClick={() => { markRead(game, x); useStore.setState(s => ({ inboxId: x.id, tick: s.tick + 1 })) }}>
+            <span className="when">{TYPE_ICON[x.type] ?? '📰'} {weekDate(x.season, x.week)}</span>
+            <span className="subj">{newsSubject(x)}</span>
+          </button>
+        ))}
+      </nav>
       <div className="news-split">
       <article className="reader">
         <div className="when">{TYPE_ICON[n.type] ?? '📰'} {weekDate(n.season, n.week)}{shelf}</div>
@@ -216,6 +232,7 @@ export default function Inbox() {
       </article>
       {/* the reader carries its own gutter; the card needs the page's */}
       <div className="ctx-gutter"><ContextCard n={n} /></div>
+      </div>
       </div>
 
       {/* The "Also In The Inbox" table of contents lived here for one round
