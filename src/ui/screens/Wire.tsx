@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../../store'
 import { PeopleChips, RequestAnswer } from './Inbox'
+import { ContextCard, ResponseNeeded } from '../ContextCard'
 import { paragraphs } from '../components'
 import { newsBody, newsSubject, weekDate } from '../../game/model'
 import { markRead } from '../../game/days'
@@ -45,6 +46,7 @@ export default function Wire() {
   const last = idx >= items.length - 1
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%', padding: '6px 14px 12px' }}>
+      <div className="news-split">
       <div className="card" style={{ flex: 1, display: 'flex', flexDirection: 'column', margin: 0 }}>
         <div className="wire-date" style={{ display: 'flex', justifyContent: 'space-between' }}>
           <span>{t('week.wireDateNews', { date: weekDate(n.season, n.week) })}</span>
@@ -66,7 +68,10 @@ export default function Wire() {
         <RequestAnswer n={n} />
         <PeopleChips n={n} />
       </div>
+      <ContextCard n={n} />
+      </div>
       <div className="btn-row" style={{ marginTop: 10 }}>
+        <ResponseNeeded />
         {/* a way back (owner, v1.2.8: "there is no back button to previous
             story") - the reader only ever moved forward */}
         {idx > 0 && (
