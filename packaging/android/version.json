@@ -63,10 +63,15 @@
     "38 IS ASSUMED FREE AND NOT YET VERIFIED: it assumes 37 was the last code",
     "Play accepted. Check the highest accepted code on the Console before the",
     "bundle is built - scaffold.sh reads this file - and never reuse a number.",
+    "39 IS 1.7.2: the men around the ball (tackles to ground with a ruck over",
+    "them, the scrum driving and wheeling, the lineout lift, carded players",
+    "walking off, replacements jogging on). 39 IS ASSUMED FREE AND NOT YET",
+    "VERIFIED: codes only have to rise, so it is right whether or not 38 was",
+    "ever uploaded, but check the highest accepted code on the Console first.",
     "versionName comes from the root package.json.",
     "billingLibrary is the Play Billing Library version PhaseBilling.java is",
     "written against. Play refuses anything below 8.0.0 (learned 4 Sep 2026)."
   ],
-  "versionCode": 38,
+  "versionCode": 39,
   "billingLibrary": "8.0.0"
 }
