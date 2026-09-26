@@ -1936,7 +1936,13 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .last10 .l10-bar {
   position: relative; flex: 1; height: 8px; border-radius: 4px;
-  overflow: visible;
+  /* CLIPPED ACROSS, OPEN UP AND DOWN (release audit 1.7.1). The needle's
+     .momo-track is the whole bar wide and slides up to 94% of it sideways, so
+     unclipped its box ran off the phone and the match page scrolled sideways
+     whenever momentum leant home (pressureprobe: 463px on a 412px screen).
+     clip, not hidden, on x alone: the needle still stands proud of the bar
+     above and below, and nothing becomes a scroll container. */
+  overflow-x: clip; overflow-y: visible;
   background: rgba(255, 255, 255, .1);
   border: 1px solid rgba(0, 0, 0, .25);
 }
@@ -2946,6 +2952,11 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   font-family: var(--cond); font-size: 11px; letter-spacing: 1.2px;
   text-transform: uppercase; opacity: .62; margin: 8px 2px 5px;
 }
+/* The match settings sheet: its title and section labels sat on the glass at
+   x=0 while every button below them is inset 14px by .btn-row and .btn.block
+   (release audit 1.7.1, seen at 360px). Same inset, so the labels line up
+   with the buttons they name. */
+.settings-sheet > .set-label { margin-left: 16px; margin-right: 16px; }
 /* four buttons fit their captions at every landscape width we support, so the
    captions no longer vanish on a narrow phone - that hiding rule existed only
    because seven buttons could not fit */
