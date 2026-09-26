@@ -147,6 +147,32 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.7.2, Play version code 39
+
+The men around the ball: tackles that go to ground with a ruck over them, the
+scrum driving and wheeling, the lineout jumper lifted, carded players walking
+off, and replacements jogging on (half-time changes included). If 1.7.1 (code
+38) never went up, this text stands on its own and 39 replaces it.
+
+```
+<en-GB>
+The pitch shows more of the game: in a tackle the carrier and the tackler go to ground and both sides pile into the ruck, a contested scrum drives the other pack back and sometimes wheels, and the lineout jumper is lifted to take the throw. A player shown a card now walks off the pitch, and replacements jog on from the bench as the man replaced jogs off, including changes made at half time.
+</en-GB>
+<fr-FR>
+Le terrain montre davantage le match : sur un plaquage, le porteur et le plaqueur vont au sol et les deux équipes s'engagent dans le ruck, une mêlée disputée fait reculer l'autre pack et tourne parfois, et le sauteur est soulevé en touche pour prendre le lancer. Un joueur qui reçoit un carton quitte désormais le terrain en marchant, et les remplaçants entrent en trottinant pendant que le remplacé sort, y compris à la mi-temps.
+</fr-FR>
+<es-ES>
+El campo muestra más del partido: en un placaje el portador y el placador van al suelo y ambos equipos entran al ruck, una melé disputada hace retroceder al otro paquete y a veces gira, y el saltador de la touche es elevado para atrapar el lanzamiento. Un jugador que ve una tarjeta ahora sale del campo caminando, y los suplentes entran trotando desde el banquillo mientras sale el sustituido, también en los cambios del descanso.
+</es-ES>
+<it-IT>
+Il campo mostra di più della partita: in un placcaggio il portatore e il placcatore vanno a terra ed entrambe le squadre entrano nel ruck, una mischia contesa fa arretrare l'altro pacchetto e a volte gira, e il saltatore in touche viene sollevato per prendere la rimessa. Un giocatore che riceve un cartellino ora esce dal campo camminando, e i sostituti entrano di corsa dalla panchina mentre esce il sostituito, anche nei cambi all'intervallo.
+</it-IT>
+<ja-JP>
+ピッチが試合をもっと見せる。タックルではボールキャリアーとタックラーが倒れ、両チームがラックに入る。競り合うスクラムは相手パックを押し込み、時に回る。ラインアウトではジャンパーがリフトされてスローを捕る。カードを受けた選手は歩いてピッチを去り、交代選手はベンチから駆け込み、退く選手は走って下がる。ハーフタイムの交代も同じだ。
+</ja-JP>
+```
+*(en-GB 393, fr-FR 430, es-ES 431, it-IT 445, ja-JP 163 - all inside Play's 500.)*
+
 ### What's new (500 max) - v1.7.1, Play version code 38
 
 The match as something you watch: play between every line with real phase
