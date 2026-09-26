@@ -285,7 +285,7 @@ export function talkbackWeek(state: GameState) {
   // 3. ARMBAND: a natural leader who is not wearing it
   if (wk >= 6 && wk <= 36 && club.captain != null) {
     const leaders = squad.filter(p => club.captain !== p.id && club.vice !== p.id && p.age >= 25 && p.ca >= 70 &&
-      p.stats.apps >= 3 && p.morale >= 5 && (p.pers === 'Leader' || p.a.lea >= 75) &&
+      p.stats.apps >= 3 && p.morale >= 5 && (p.pers === 'Leader' || p.a.lea >= 15) &&
       !askedRecently(state, p.id, 'armband'))
     if (leaders.length && rng() < 0.5) {
       const p = leaders[Math.floor(rng() * leaders.length)]

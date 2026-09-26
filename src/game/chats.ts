@@ -145,7 +145,10 @@ export function answerRequest(state: GameState, p: Player, accept: boolean): str
   p.reqAns = absWeek(state.season, state.week)
   const room = teammates(state, p)
   // a senior man the squad follows, rather than anyone with a high number
-  const senior = p.a.lea >= 70 || p.pers === 'Leader'
+  // attributes run 1-20: this read 70, which no man can reach, so only a
+  // Leader by personality ever counted as senior (1.7.3; 14 is where the game
+  // itself starts calling a man a leader, attributes.assignPersonality)
+  const senior = p.a.lea >= 14 || p.pers === 'Leader'
   const awkward = p.pers === 'Mercenary' || p.pers === 'Temperamental'
 
   if (accept) {
