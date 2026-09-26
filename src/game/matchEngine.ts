@@ -1518,6 +1518,10 @@ const FLAVOR_WET = [
   'comm.flavWet5',
   'comm.flavWet6',
 ]
+/** the light moments (1.7.4, owner: "need more humour in the game"): a dog on
+ *  the pitch, a lost boot, a seagull that will not move. Rare, about one in
+ *  thirty atmosphere lines, so a match has one now and then and never a set. */
+const FLAVOR_FUN = ['comm.fun1', 'comm.fun2', 'comm.fun3', 'comm.fun4', 'comm.fun5', 'comm.fun6']
 const FLAVOR_WIND = [
   'comm.flavWind1',
   'comm.flavWind2',
@@ -3275,7 +3279,8 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           pushLine(state, ctx, min, 'SUB', side, TIRED_LINES[Math.floor(rng() * TIRED_LINES.length)], { player: p.name }, p.id)
         } else {
           const wet = ctx.weather === 'Rain' || ctx.weather === 'Snow'
-          const pool = derby && rng() < 0.3 ? FLAVOR_DERBY
+          const pool = rng() < 0.035 ? FLAVOR_FUN
+            : derby && rng() < 0.3 ? FLAVOR_DERBY
             : ctx.fx.compId === 'natl1' && rng() < 0.3 ? FLAVOR_GRASSROOTS
             : ctx.fx.compId === 'pnc' && rng() < 0.3 ? FLAVOR_PACIFIC
             : wet && rng() < 0.3 ? FLAVOR_WET

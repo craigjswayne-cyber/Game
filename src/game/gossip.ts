@@ -591,6 +591,35 @@ function socialBuzz(state: GameState, rng: Rng) {
     { id: 'scrum-cafe', k: 'news.grScrumCafe' },
     { id: 'lineout-ladder', k: 'news.grLineoutLadder' },
     { id: 'fog-match', k: 'news.grFogMatch' },
+    // 1.7.4, owner: "need more humour in the game - research all the stories
+    // in rugby for the last 6 months - find the fun alongside the usual". The
+    // shapes are real ones from the 2026 season (a floodlight failure, a
+    // trophy lost overboard, a coach walking out over the music next door, a
+    // kit clash played in bibs, a deer on the pitch); the names are never
+    // real, and nobody in them is the butt of anything cruel.
+    { id: 'floodlights', k: 'news.grFloodlights' },
+    { id: 'harbour', k: 'news.grHarbourShield' },
+    { id: 'inflatables', k: 'news.grInflatables' },
+    { id: 'storm-pizza', k: 'news.grStormPizza' },
+    { id: 'lightning', k: 'news.grLightning' },
+  )
+  if (star) takes.push(
+    { id: 'deer', who: star.id, k: 'news.grDeer' },
+    { id: 'grip', who: star.id, k: 'news.grGripMachine' },
+    { id: 'tattoo', who: star.id, k: 'news.grTattooPact' },
+    { id: 'airport', who: star.id, k: 'news.grAirportCafe' },
+  )
+  if (prop) takes.push(
+    { id: 'feeds-six', who: prop.id, k: 'news.grFeedsSix' },
+    { id: 'barbecue', who: prop.id, k: 'news.grBarbecue' },
+    { id: 'heatwave', who: prop.id, k: 'news.grHeatwave' },
+  )
+  if (nine) takes.push({ id: 'lovely-decision', who: nine.id, k: 'news.grLovelyDecision' })
+  if (kid) takes.push({ id: 'golden-point', who: kid.id, k: 'news.grGoldenPoint' })
+  if (other) takes.push(
+    { id: 'kit-clash', k: 'news.grKitClash' },
+    { id: 'playlist', k: 'news.grPlaylist' },
+    { id: 'wandering-fan', k: 'news.grWanderingFan' },
   )
 
   if (!takes.length) return
@@ -620,7 +649,9 @@ function socialBuzz(state: GameState, rng: Rng) {
 /** Clubhouse tales: warm, daft, deeply rugby stories with no losers.
  *  A couple a season, never negative - the game should make you smile. */
 function clubhouseTales(state: GameState, rng: Rng) {
-  if (rng() > 0.055) return
+  // 0.055 -> 0.09 in 1.7.4 ("need more humour"): about four a season, not
+  // two or three. The same single draw either way, so nothing downstream moves
+  if (rng() > 0.09) return
   if (state.news.some(n => n.season === state.season && n.subject.startsWith('CLUBHOUSE') && state.week - n.week < 6)) return
   const club = state.clubs[state.userClubId]
   const squad = club.players.map(id => state.players[id]).filter((p): p is Player => !!p)
@@ -647,7 +678,12 @@ function clubhouseTales(state: GameState, rng: Rng) {
     ['news.chTale6'],
     ['news.chTale7'],
     ['news.chTale8'],
+    // 1.7.4, more of them (see socialBuzz)
+    ['news.chTale10'],
+    ['news.chTale12'],
   )
+  if (prop) tales.push(['news.chTale9', prop.id])
+  if (wing) tales.push(['news.chTale11', wing.id])
   if (!tales.length) return
   const t = tales[(state.season * 11 + state.week * 7) % tales.length]
   wire(state, t[0], {
