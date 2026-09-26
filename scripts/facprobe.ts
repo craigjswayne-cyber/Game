@@ -102,6 +102,11 @@ const cap0 = sc.capacity
 for (let i = 0; i < 12; i++) processWeekAndAdvance(s2)
 s2.facilityAskCooldown = 0
 sc.balance = 40_000_000
+// A FULL GROUND ON PURPOSE. This used to trust the seeded world to fill it,
+// and in 1.7.3 ageing moved this world's gates from 94% to 89% full: the
+// board said no, correctly (its bar is 90%), and the build path below went
+// untested. The gates are set, so the path runs whatever the results were.
+for (const f of s2.fixtures) if (f.played && f.homeId === sc.id && f.att && f.compId !== 'fr') f.att = Math.round(sc.capacity * 0.95)
 const plan = expansionPlan(s2)
 console.log(`after 12w   : ${plan.played} home games, ${plan.avg.toLocaleString()} avg (${Math.round(plan.fill * 100)}% full)`)
 console.log('second ask  :', requestExpansion(s2))
@@ -109,6 +114,7 @@ console.log('second ask  :', requestExpansion(s2))
 // signs the contract and puts the builders on site for twelve weeks; the
 // capacity only moves when they are gone.
 if (plan.fill >= 0.86 && !s2.stadiumBuild) bad('a full ground was refused its expansion')
+if (!s2.stadiumBuild) bad('the build path below never ran')
 if (s2.stadiumBuild) {
   if (sc.capacity !== cap0) bad('the seats landed before the stand was built')
   // and the one builders' slot is taken while it goes up
