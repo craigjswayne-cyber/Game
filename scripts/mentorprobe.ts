@@ -221,8 +221,13 @@ console.log('\n--- 3. the 1-100 attribute rating is finer than a multiple of fiv
     const before = Object.values(kid.a).reduce((s, v) => s + v, 0)
     for (let i = 0; i < 30; i++) processWeekAndAdvance(g2)
     const after = Object.values(g2.players[kid.id]!.a).reduce((s, v) => s + v, 0)
-    console.log(`  ${kid.name} (${kid.age}, senior squad) attributes ${before} -> ${after} over 30 weeks with ${mentor.name}`)
-    ok(after >= before, 'a senior under-21 develops under a mentor rather than being ignored')
+    // 1.8.0: a coached point is a training point, paid for elsewhere, so the
+    // attribute total barely moves; what the pairing gave is on its ledger
+    // (mentoring.mentorWeek, and scripts/mentorimpact.ts for the rates)
+    const led = (g2.mentors ?? []).find(mp => mp.kid === kid.id)
+    const coached = Object.values(led?.taught ?? {}).reduce((s, v) => s + (v ?? 0), 0)
+    console.log(`  ${kid.name} (${kid.age}, senior squad) attributes ${before} -> ${after} over 30 weeks with ${mentor.name}; ledger: ${coached} coached, ${led?.grew ?? 0} rating`)
+    ok(after >= before - 2 && !!led && coached + (led.grew ?? 0) > 0, 'a senior under-21 develops under a mentor rather than being ignored')
   }
 
   ok(REPORT_EVERY === 8, `progress reports are filed every ${REPORT_EVERY} weeks`)
