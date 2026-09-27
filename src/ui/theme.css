@@ -1910,9 +1910,22 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   padding: 2px;
   background: none; border: 0;
   color: var(--on-hero);
-  filter: drop-shadow(0 2px 3px rgba(0, 0, 20, .55));
 }
-.form-chip .fc-kit { position: relative; display: block; line-height: 0; }
+/* THE SHIRTS STAND OFF THE GRASS (owner, 27 Sep 2026, Tactics > Roles: "make
+   it so the shirts have a way to stand out on the dark pitch behind"). A navy,
+   black or bottle-green kit sank into the scrimmed pitch with only a dark
+   shadow under it. Each shirt now has a thin light rim traced round its own
+   outline (two tight drop-shadows follow the shape, not a box) over the shadow
+   that lifts it, and the name and role sit on a dark label, as a broadcast
+   graphic does, so they read whatever the grass or the kit is doing. */
+.form-chip .fc-kit {
+  position: relative; display: block; line-height: 0;
+  filter:
+    drop-shadow(0 0 .6px rgba(255, 255, 255, .95))
+    drop-shadow(0 0 .6px rgba(255, 255, 255, .95))
+    drop-shadow(0 0 5px rgba(255, 255, 255, .28))
+    drop-shadow(0 2px 3px rgba(0, 0, 20, .6));
+}
 /* ON A PRINTED PANEL, because the number has to read on a white kit and on a
    black one. A bare white numeral was measured on Leicester's shirt and
    disappeared into it; a shadow alone is not contrast, it is a smudge. */
@@ -1927,14 +1940,18 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   pointer-events: none;
 }
 .form-chip .fc-name {
-  font-size: 10.5px; font-weight: 700; max-width: 62px;
+  font-size: 10.5px; font-weight: 700; max-width: 66px;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  text-shadow: 0 1px 2px rgba(0, 0, 20, .85);
+  margin-top: 2px; padding: 1px 5px; border-radius: 4px;
+  background: rgba(8, 12, 18, .78);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .14);
+  line-height: 14px;
 }
 .form-chip .fc-role {
   font-family: var(--cond); font-size: 9px; font-weight: 800;
   letter-spacing: 1px; color: var(--gold);
-  text-shadow: 0 1px 2px rgba(0, 0, 20, .85);
+  padding: 0 4px; border-radius: 3px; line-height: 12px;
+  background: rgba(8, 12, 18, .7);
 }
 
 /* last-10-minutes possession strip with the momentum needle riding it */
@@ -2410,6 +2427,10 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .now-line.card-y { border-left-color: var(--prop-yellow-deep); }
 .now-line.card-r { border-left-color: var(--prop-red); }
 .now-line.inj { border-left-color: var(--danger); }
+/* a line about a side wears its kit (MatchDay.tsx lineStyle): the text takes
+   the colour worked out for the fill */
+.now-line.kit .txt, .now-line.kit.big .txt { color: inherit; }
+.now-line.kit .min { color: inherit; opacity: .8; }
 @keyframes now-in {
   from { opacity: 0; transform: translateY(7px); }
   to { opacity: 1; transform: translateY(0); }
@@ -4557,26 +4578,19 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 /* ---- the story and what it is about, side by side (1.8.0, ContextCard.tsx) ----
  * One column on a phone held upright (the card follows the story); two once
  * there is room, the classic reader's message-and-panel. */
-.news-split { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; flex: 1; }
-@media (min-width: 720px) {
-  .news-split { grid-template-columns: minmax(0, 1fr) 250px; align-items: start; }
-}
+.news-split { display: flex; flex-direction: column; gap: 10px; flex: 1; }
 .ctx-card {
-  background: var(--surface-1); border: 1px solid var(--border-strong); border-radius: 10px;
-  padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; margin: 0 14px 0;
+  background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px;
+  padding: 7px 10px; margin: 0 14px 0; display: flex; gap: 10px; align-items: center;
+  font: inherit; color: inherit; text-align: left; cursor: pointer; width: auto;
 }
-.news-split .ctx-card { margin: 0; }
-.ctx-head { display: flex; gap: 10px; align-items: center; }
-.ctx-head b { display: block; font-size: 15px; }
-.ctx-head span { display: block; font-size: 12px; color: var(--text-muted); }
-.ctx-rows { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 5px 10px; margin: 0; font-size: 13px; }
-.ctx-rows dt { color: var(--text-muted); }
-.ctx-rows dd { margin: 0; text-align: right; font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
-.ctx-form { display: flex; gap: 3px; justify-content: flex-end; }
-.ctx-form i { font-style: normal; font-size: 11px; width: 17px; text-align: center; border-radius: 3px; border: 1px solid var(--border-strong); }
-.ctx-form i.W { border-color: var(--primary); background: var(--primary-tint); }
-.ctx-form i.L { border-color: var(--danger); background: var(--danger-tint); }
-.ctx-favs { display: flex; flex-direction: column; align-items: flex-end; }
+.news-split .ctx-card, .ctx-gutter .ctx-card { margin: 0; width: 100%; box-sizing: border-box; }
+.ctx-link:hover { border-color: var(--border-strong); }
+.ctx-link:active { background: var(--surface-2); }
+.ctx-name { flex: 1; min-width: 0; }
+.ctx-name b { display: block; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ctx-name span { display: block; font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ctx-go { font-size: 20px; color: var(--text-muted); line-height: 1; }
 .resp-needed { white-space: nowrap; }
 
 /* ---- the officials on the pitch (1.8.0) ---- */
@@ -4611,6 +4625,22 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .mp-table td.neg { color: var(--text-negative); }
 .mp-table tr.off td { opacity: .5; }
 .mp-table .mp-mid { text-align: center; color: var(--text-muted); }
+/* THE NAMES LINE UP (owner, 27 Sep 2026: "Check the alignment of names in the
+   in-game stats piece"). The club's name was centred over the shirt and name
+   columns while the names ran from the left, and each table sized its own
+   columns from its own longest name, so home and away sat differently. Fixed
+   columns now: the shirt, the name taking what is left, and the figures in
+   equal narrow columns; the club name starts where the shirt number does. */
+.mp-grid { table-layout: fixed; }
+.mp-grid col.c-shirt { width: 30px; }
+.mp-grid col.c-stat { width: 36px; }
+.mp-grid col.c-stat.w { width: 48px; }
+.mp-grid th.mp-team { text-align: left; padding-left: 6px; }
+.mp-grid td.shirt { text-align: right; padding-right: 8px; color: var(--text-muted); }
+.mp-grid td.nm { max-width: none; color: var(--text-primary); }
+.mp-grid th:last-child, .mp-grid td:last-child { padding-right: 6px; }
+.mp-grid th:first-child, .mp-grid td:first-child { padding-left: 6px; }
+.mp-grid th, .mp-grid td { padding-left: 4px; padding-right: 4px; }
 .mp-note { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
 .mp-zones { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: end; padding: 6px 4px; }
 .mp-zone { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
@@ -4651,7 +4681,6 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 }
 .dtable td.attr-cell { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ctx-gutter { padding: 0 14px; }
-@media (min-width: 720px) { .ctx-gutter { padding: 0 14px 0 0; } }
 
 /* ---- THE OPENING TITLES (1.8.0, src/ui/Intro.tsx) ----
    The office from the title card, coming alive. Every timing below is the
@@ -4842,7 +4871,6 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
   display: grid; grid-template-columns: minmax(200px, 34%) minmax(0, 1fr);
   gap: 12px; padding: 0 14px 0 0; align-items: start;
 }
-.app.tablet .inbox-panes .news-split { grid-template-columns: minmax(0, 1fr); }
 .app.tablet .inbox-panes .ctx-gutter { padding: 0 0 0 0; }
 .app.tablet .inbox-list {
   display: flex; flex-direction: column;
@@ -4905,6 +4933,10 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .feed-line.card-r { border-left-color: var(--prop-red); }
 .feed-line.tmo { border-left-color: var(--gold); }
 .feed-line.inj { border-left-color: var(--danger); }
+.feed-line.kit { opacity: .82; }
+.feed-line.kit.newest { opacity: 1; }
+.feed-line.kit .min, .feed-line.kit.big .min { color: inherit; opacity: .8; }
+.feed-line.kit + .feed-line { border-top-color: transparent; }
 @keyframes feed-in { from { opacity: 0; transform: translateY(-6px); } }
 .tab-stats {
   overflow-y: auto; min-height: 0; display: flex; flex-direction: column; gap: 10px;

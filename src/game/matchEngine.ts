@@ -851,6 +851,10 @@ export interface SideCtx {
    *  at half time and settled ones after. */
   finalR?: Map<number, number>
   onPitch: Set<number>
+  /** the minute each replacement came on (starters are absent: they have
+   *  been on since the kick-off). Only the in-match player sheet reads it, to
+   *  share a side's tackles by the minutes each man has been out there. */
+  onAt?: Map<number, number>
   yellowUntil: Map<number, number>
   /** players currently sitting out a yellow - off the pitch, back in ten.
    *  Before this existed a sin-binned man stayed in onPitch and could score
@@ -2745,6 +2749,7 @@ function aiAutoSubs(state: GameState, ctx: LiveCtx, side: SideCtx, min: number) 
     if (!best) return
     side.onPitch.delete(outId)
     side.onPitch.add(best.id)
+    cameOn(side, best.id, min)
     side.ratings.set(best.id, 6)
     side.energy.set(best.id, benchTank(state.players[best.id]))
     const benchSlot = side.lineup.indexOf(best.id)
@@ -3383,6 +3388,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           const sub = back ?? pickBenchSub(state, side, p.id)
           if (sub) {
             side.onPitch.add(sub.id)
+            cameOn(side, sub.id, min)
             if (!back) side.ratings.set(sub.id, 6)
             side.energy.set(sub.id, back ? Math.min(benchTank(sub), side.energy.get(sub.id) ?? benchTank(sub)) : benchTank(sub))
             const slot = side.lineup.indexOf(p.id)
@@ -3470,6 +3476,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       if (p && sub) {
         side.onPitch.delete(p.id)
         side.onPitch.add(sub.id)
+        cameOn(side, sub.id, min)
         side.ratings.set(sub.id, 6)
         side.energy.set(sub.id, benchTank(sub))
         side.hia = { pid: p.id, subId: sub.id, failed: rng() < 0.4, returnTick: ctx.tick + 3 }
@@ -3831,6 +3838,7 @@ export function makeSubstitution(state: GameState, ctx: LiveCtx, outId: number, 
   if (slotIn >= 0) mine.lineup[slotIn] = outId
   mine.onPitch.delete(outId)
   mine.onPitch.add(inId)
+  cameOn(mine, inId, Math.min(79, Math.max(1, ctx.lastMin)))
   if (!mine.ratings.has(inId)) mine.ratings.set(inId, 6)
   mine.energy.set(inId, benchTank(pin))
   ctx.subsUsed += 1
@@ -3900,6 +3908,7 @@ export function swapInjuryCover(state: GameState, ctx: LiveCtx, onId: number, in
   if (slotIn >= 0) mine.lineup[slotIn] = onId
   mine.onPitch.delete(onId)
   mine.onPitch.add(inId)
+  cameOn(mine, inId, mine.onAt?.get(onId) ?? Math.min(79, Math.max(1, ctx.lastMin)))
   // He never actually got on, so he goes back to being a bench option rather
   // than carrying a rating for a cameo that did not happen.
   mine.ratings.delete(onId)
@@ -3969,6 +3978,7 @@ export function undoSubstitution(state: GameState, ctx: LiveCtx): string {
   if (slotOut >= 0) mine.lineup[slotOut] = inId
   mine.onPitch.delete(inId)
   mine.onPitch.add(outId)
+  mine.onAt?.delete(inId)
   // he never actually got on, so he carries no rating for a cameo that did
   // not happen and burns no replacement
   mine.ratings.delete(inId)
@@ -4057,6 +4067,10 @@ export function applyTacticsChange(state: GameState, ctx: LiveCtx) {
  * NO RNG. A pure function of state that already exists, so it can be called
  * on every render of a live match without the stream ever noticing.
  */
+function cameOn(side: SideCtx, id: number, min: number) {
+  (side.onAt ??= new Map()).set(id, min)
+}
+
 export function matchStats(ctx: LiveCtx) {
   const tot = ctx.home.poss + ctx.away.poss || 1
   const share = (s: SideCtx) => s.poss / tot
