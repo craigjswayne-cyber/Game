@@ -37,6 +37,7 @@ import { isMyClub, logDecision } from './model'
 import { resolveCourses, staffWageBill } from './staff'
 import { resolveCommission, scoutPostcard } from './commission'
 import { clamp, mulberry32, shuffled, type Rng } from './rng'
+import { trainPoint } from './ageing'
 import { gameTimeReview, settleGameTime } from './gametime'
 import { rebuildSeason, rollIntakeClass } from './rollover'
 import { drillWeek } from './playbook'
@@ -1021,9 +1022,14 @@ export function rollPlan(state: GameState, p: Player, rng: Rng): boolean {
   const coach = FOCUS_COACH[plan]
   const coachLvl = coach ? (state.staff[coach] ?? 0) : 0
   const ageF = p.age <= 23 ? 1.3 : p.age <= 28 ? 1 : 0.6
-  if (rng() >= 0.055 * (1 + coachLvl * 0.5 + facLevel(state, 'paddock') * 0.2) * ageF) return false
-  for (const k of FOCUS_ATTRS[plan]) p.a[k] = clamp(p.a[k] + 1, 1, 20)
-  return true
+  // 0.011 a week at the base, was 0.055: a season on a plan was 26 attribute
+  // points (12 rating points' worth) against two to four of natural growth.
+  // Now a gold coach and a real paddock buy four to six points a season, each
+  // paid for elsewhere the same week (ageing.ts trainPoint)
+  if (rng() >= 0.011 * (1 + coachLvl * 0.5 + facLevel(state, 'paddock') * 0.2) * ageF) return false
+  let moved = false
+  for (const k of FOCUS_ATTRS[plan]) moved = trainPoint(p, k, FOCUS_ATTRS[plan]) || moved
+  return moved
 }
 
 function weeklyTraining(state: GameState, rng: Rng) {
@@ -1265,8 +1271,10 @@ function weeklyTraining(state: GameState, rng: Rng) {
       } else if (isUser && state.training !== 'balanced') {
         const coach = coachFor[state.training]
         const coachLvl = coach ? (state.staff[coach] ?? 0) : 0
-        if (rng() < 0.03 * (1 + state.staff.assistant * 0.5 + coachLvl * 0.45 + facLevel(state, 'paddock') * 0.2)) {
-          for (const k of focusMap[state.training]) p.a[k] = clamp(p.a[k] + 1, 1, 20)
+        // 0.008, was 0.03, for the same reason as rollPlan's rate: the whole
+        // squad took ten attribute points a season from the session
+        if (rng() < 0.008 * (1 + state.staff.assistant * 0.5 + coachLvl * 0.45 + facLevel(state, 'paddock') * 0.2)) {
+          for (const k of focusMap[state.training]) trainPoint(p, k, focusMap[state.training])
         }
       }
       // Morale drift, made conditional (v1.1.4, owner: "make morale genuinely

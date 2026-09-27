@@ -2,7 +2,7 @@ import type { Club, GameState, Player, Pos } from './model'
 import { returnLoanIn } from './loans'
 import { runTeamOfTheYear } from './yearend'
 import { aiBoardsReinvest } from './aiecon'
-import { applyAdminPenalties } from './season'
+import { activePlan, applyAdminPenalties } from './season'
 import { settleInsolvency } from './insolvency'
 import { ageManager } from './career'
 import { rivalVerdict } from './boss'
@@ -325,7 +325,7 @@ export function devFactor(state: GameState, p: Player): number {
   return clamp(f, p.acad ? 0.6 : 0.65, p.acad ? 1.65 : 1.4)
 }
 
-function agePlayers(state: GameState, rng: Rng) {
+export function agePlayers(state: GameState, rng: Rng) {
   const retirees: Player[] = []
   for (const p of Object.values(state.players)) {
     p.age += 1
@@ -376,6 +376,11 @@ function agePlayers(state: GameState, rng: Rng) {
       if (EARLY_FADE.has(p.pos) && u < 0.4) p.ca = clamp(p.ca - 1, 30, 99)
       else if (LATE_PEAK.has(p.pos) && u < 0.25 && p.ca < caBefore) p.ca += 1
     }
+    // THE PERSONAL PLAN'S GROWTH (1.8.0): training decides where a man's
+    // ability goes (ageing.ts trainPoint); what a programme adds is this, one
+    // rating point a summer while he is below his potential, the owner's
+    // chosen "redirect + small boost". The user's club only, like the plans.
+    if (p.clubId === state.userClubId && activePlan(state, p.id) && p.ca < p.pa) p.ca += 1
     // the attributes follow the rating, shaped by age (ageing.ts). This used
     // to scale every attribute by rating against BIRTH rating every summer,
     // which compounded without end

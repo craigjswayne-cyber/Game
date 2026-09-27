@@ -337,6 +337,10 @@ export interface Player {
   exClub?: string | null
   /** appearances made at that former club before 2025 */
   exApps?: number
+  /** TRAINING'S OWED CHANGE (1.8.0, ageing.ts trainPoint): the part of a
+   *  trained point not yet paid for by a point elsewhere, in rating units.
+   *  Carried so the books balance exactly over a season. */
+  tdebt?: number
   /** the user's scouting knowledge of this player, 0-100 */
   sc: number
   /** away on a season loan */

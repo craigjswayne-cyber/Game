@@ -76,7 +76,7 @@ written down as intended.
 plain sentence: every match, watched or not, runs on the same engine, and
 AI coaches' reactions are announced in the commentary.
 
-### Recommended for 1.9 (improvements, need long balance runs)
+### 1.8.1 (owner: everything remaining)
 
 **E5. Growth scaled by the gap to potential (M).** fm-arena: the gap is the
 growth rate. Today a 50/95 kid and a 50/60 kid grow alike.
@@ -97,7 +97,7 @@ season should feel harder for a visible reason.
 **E11. Rewatch highlights of past matches (M).** Store the user's events;
 clips are built from events alone.
 
-### 2.0
+### 1.8.1 or later (to confirm)
 
 **E12. Two-layer match engine (L).** The per-player breakdown engine from
 `design/match-engine-csharp`, so highlights show what actually happened and
@@ -121,8 +121,23 @@ mental attributes can gate technical ones. Needs its own calibration round.
 
 ---
 
-## 4. Decisions needed now
+## 4. Decisions (owner, 27 Sep 2026)
 
-1. Scope: E1-E4 in 1.8.0 and E5-E11 in 1.9, as recommended? Or ship 1.8.0 now
-   with only E1 and E4 and move E2/E3 to 1.8.1?
-2. Store release with 1.8.0, or web only first?
+- **Scope: E1-E4 are 1.8.0; everything remaining is 1.8.1.**
+- **Training: "redirect + small boost".** A trained point is paid for at
+  once by a point elsewhere (ageing.ts trainPoint), a trained attribute stops
+  near what his position plays at for his potential, and a man on a personal
+  plan gains one rating point a summer while below potential.
+- Correction to E8: hidden Consistency and Big Match temperament already
+  exist (attributes.ts, read by teamUnits since round 25D-2); they are never
+  shown by design. What is left for 1.8.1 is whether scouting hints at them.
+- Still open: the store question below, and whether the two-layer engine
+  (E12) is in 1.8.1 or a later release.
+
+## 5. Decisions still needed
+
+1. Store release with 1.8.0, or web only first?
+2. E12 (two-layer engine) in 1.8.1, or its own release?
+3. Two settings are both called "Highlights" on the match screen (the
+   ticker's Every minute / Highlights, and Highlights: Key / Extended).
+   Rename the ticker one (for example "Stops: Every minute / Big moments")?

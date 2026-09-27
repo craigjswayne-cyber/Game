@@ -110,6 +110,63 @@ export function shiftAttrs(p: Player, d: Partial<Record<K, number>>, seed: numbe
   })
 }
 
+/**
+ * ---- TRAINING DIRECTS, IT DOES NOT PRINT (1.8.0) ----
+ *
+ * Measured before (scripts/trainprobe.ts): a season on a personal plan with a
+ * level-3 coach added 12.1 rating points' worth of attributes to a man whose
+ * rating did not move, against two to four points of natural growth. Every
+ * summer the level pull above then took a quarter of that gap back out of
+ * EVERY attribute: three seasons of the Attack plan left the trained three up
+ * 31.6 points and the other fifteen down 17.6, so a man's tackling fell
+ * because he had worked on his handling, with nothing on screen to say why,
+ * and 14 players in 20 read above their potential.
+ *
+ * Football Manager's rule, and now this game's: training decides WHERE the
+ * ability goes, growth decides how much there is. A trained point is paid for
+ * at once by a point from an attribute the programme does not cover - the one
+ * his position needs least, of those he has most of - so the change and its
+ * price arrive in the same week, and his rating stays true. What a point costs
+ * is its weight on the rating (1/slope), carried in p.tdebt until a donor
+ * point covers it, so a prop's handling costs more than his scrummaging and
+ * the books balance over a season. Goal kicking and leadership sit outside the
+ * rating and cost nothing.
+ *
+ * The growth the plan DOES buy is explicit and small: agePlayers gives a man
+ * on a personal plan one rating point a summer while he is below potential.
+ * Returns false when the attribute is already 20.
+ */
+export function trainPoint(p: Player, k: K, focus: K[]): boolean {
+  // THE POSITION IS THE CEILING: a programme takes an attribute to what a man
+  // of his potential plays at in his position, and a little past it, not to
+  // 20. Without it three seasons of the Attack plan made a loosehead's
+  // handling, passing and vision 20 and paid for them out of his scrummaging.
+  if (p.a[k] >= Math.min(20, Math.round(slope(p.pos, k) * p.pa) + 3)) return false
+  p.a[k] += 1
+  if (!LEVEL.includes(k)) return true
+  let debt = (p.tdebt ?? 0) + 1 / slope(p.pos, k)
+  // donors: rated attributes the programme does not cover, and never one
+  // already below what his position expects of his rating
+  const donors = LEVEL.filter(j => !focus.includes(j) && j !== k)
+  for (let guard = 0; guard < 8; guard++) {
+    let best: K | null = null, bestS = -Infinity
+    for (const j of donors) {
+      const expect = slope(p.pos, j) * p.ca
+      if (p.a[j] <= Math.max(5, Math.round(expect) - 2)) continue
+      const cost = 1 / slope(p.pos, j)
+      if (cost > debt + 1e-9) continue
+      // his surplus first, and of that what his position needs least
+      const s = (p.a[j] - expect) - 4 * attrWeight(p.pos, j)
+      if (s > bestS) { bestS = s; best = j }
+    }
+    if (!best) break
+    p.a[best] -= 1
+    debt -= 1 / slope(p.pos, best)
+  }
+  p.tdebt = debt
+  return true
+}
+
 /** The summer, for one man: his age already turned, his rating already moved
  *  by dCa. */
 export function ageAttributes(state: GameState, p: Player, caBefore: number) {
