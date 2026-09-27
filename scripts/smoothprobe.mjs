@@ -104,11 +104,31 @@ const ballSnaps = snapsOf(r.map(f => f.ball))
 let dotSnaps = 0
 const most = Math.max(...r.map(f => f.dots.length))
 for (let k = 0; k < most; k++) dotSnaps += snapsOf(r.map(f => f.dots.length === most ? f.dots[k] : null))
+// STAMPEDES: frames where most of the men are sprinting at once (faster than
+// 250px/s, the width of a phone pitch in about a second and a half). That is
+// the whole side sliding across the field, which the owner's recording showed
+// after every score and into every replay ("erratic ... unclear what is
+// happening"); restarts and replays are cuts now, not slides.
+let stampede = 0
+for (let i = 1; i < n; i++) {
+  const a = r[i - 1], b = r[i]
+  if (a.dots.length !== b.dots.length || !b.dots.length) continue
+  // a step over 30px in one frame is a cut (everyone put in place at once), not a run
+  const fast = b.dots.filter((p, k) => { const d = Math.hypot(p[0] - a.dots[k][0], p[1] - a.dots[k][1]); return d < 30 && d / (b.dt / 1000) > 250 }).length
+  if (fast > b.dots.length * 0.6) stampede++
+}
+// THE BALL IS NEVER LEFT ON ITS OWN: the nearest man, nine frames in ten
+const near = []
+for (const f of r) { if (!f.ball || !f.dots.length) continue; near.push(Math.min(...f.dots.map(p => Math.hypot(p[0] - f.ball[0], p[1] - f.ball[1])))) }
+near.sort((x, y) => x - y)
+const p90 = near[Math.floor(near.length * 0.9)] ?? 0
 console.log(`  ${n} frames in ${secs.toFixed(1)}s, ${new Set(r.map(f => f.line)).size} commentary lines, median man ${Math.round(mean)}px/s`)
 ok(stillPct < 10, `in open play nobody stands still between lines (${stillPct.toFixed(1)}% of ${speedsAt.length} open-play frames with the median man at rest)`)
 ok(stops <= 2, `no stop-start rhythm in open play (${stops})`)
 ok(ballSnaps <= 1, `the ball never snaps (${ballSnaps})`)
 ok(dotSnaps <= 3, `no man snaps (${dotSnaps} across ${most} dots)`)
 ok(long === 0, `no frame over 50ms (${long})`)
+ok(p90 <= 22, `the ball is never left on its own (nearest man ${p90.toFixed(1)}px or closer, nine frames in ten)`)
+ok(stampede <= 6, `no stampedes: frames with most of the men sprinting at once (${stampede})`)
 console.log(fails ? `\nSMOOTH PROBE FAILED (${fails})` : '\nSMOOTH PROBE PASSED: thirty men who keep moving, and a ball that never jumps')
 await browser.close(); server.stop(); process.exit(fails ? 1 : 0)
