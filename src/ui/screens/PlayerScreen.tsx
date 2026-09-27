@@ -6,6 +6,7 @@ import { FormPill, Nat, PosBadge, SectionTitle, Stars, TwoStep, RewardedButton }
 import { flagOf, nationName } from '../../game/nations'
 import { fineAttr, playerWage } from '../../game/attributes'
 import { attrRange, fuzzedCa, knowledge, persKnown, reportStage } from '../../game/scout'
+import { benchNote, temperRead } from '../../game/temperament'
 import { canAgencyFile } from '../../game/rewarded'
 import { rewardedAvailable } from '../../game/monetise'
 import { LOAN_BUY_MIN_WEEKS, loanBuy, loanBuyOffer, loanOut, loanRecall } from '../../game/loans'
@@ -132,6 +133,25 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
       <div className="card" style={{ borderLeft: `4px solid ${p.injury || p.bans > 0 ? 'var(--danger)' : p.form >= 7 ? 'var(--text-positive)' : 'var(--gold)'}` }}>
         <div className="meta" style={{ fontSize: 13, lineHeight: 1.5 }}>{verdictLine(game, p, mine)}</div>
       </div>
+
+      {/* ---- HIS NERVE, AND HIS MINUTES (1.8.0, E7 + E8) ----
+          The hidden consistency and big-match traits in plain words, as sure
+          as the club's knowledge of him (game/temperament.ts): nothing for
+          another club's man until a detailed report, hedged until the full
+          file; your own after some matches for you or a good analyst. And the
+          growth cost of sitting out, which the game charged and never said. */}
+      {(() => {
+        const tr = temperRead(game, p)
+        const bn = benchNote(game, p)
+        if (!tr.lines.length && !bn) return null
+        return (
+          <div className="card temper-card">
+            <div className="fact-label">{t(mine ? 'player.readStaff' : 'player.readScouts')}</div>
+            {tr.lines.map(l => <div key={l.k} className="meta">{t(l.k, l.v)}</div>)}
+            {bn && <div className="meta bench-note">{t(bn.k, bn.v)}</div>}
+          </div>
+        )
+      })()}
 
       {/* ---- THE RECORD (owner, v1.2.7) ----
           One form pill and one last rating could not answer the question a
