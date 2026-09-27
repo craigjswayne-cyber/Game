@@ -21,6 +21,14 @@ const VIEW_ATTRS: Record<Exclude<SearchView, 'general' | 'contract'>, (keyof Att
   handling: ['pas', 'han', 'tac', 'ruc'],
   mind: ['vis', 'dec', 'pos', 'lea'],
 }
+/** "Louis Bielle-Biarrey" as "L. Bielle-Biarrey": the search table's form of a
+ *  name, as the classic manager games print it, so eight columns fit a phone
+ *  without cutting anyone's surname. A single name stays whole. */
+function initialName(name: string): string {
+  const parts = name.trim().split(/\s+/)
+  return parts.length < 2 ? name : `${parts[0][0]}. ${parts.slice(1).join(' ')}`
+}
+
 /** The leagues the scouts can be pointed at, the MRC beside the Premier
  *  (owner, 27 Sep 2026: "MRC should be on the same line as prem ... not on its
  *  own down below"). It was the last league created, so it came last and sat
@@ -478,7 +486,7 @@ export default function Transfers() {
           {pageRows.map(p => (
             <tr key={p.id} onClick={() => openRow(p.id)}>
               <td><PosBadge pos={p.pos} /></td>
-              <td className="name">{p.name}{p.injury ? ' 🩹' : ''}</td>
+              <td className="name" title={p.name}>{initialName(p.name)}{p.injury ? ' 🩹' : ''}</td>
               {view === 'contract'
                 ? <>
                     <td className="num">{p.clubId ? seasonLabel(p.contractEnds) : '-'}</td>
@@ -514,7 +522,7 @@ export default function Transfers() {
           {pageRows.map(p => (
             <tr key={p.id} onClick={() => openRow(p.id)}>
               <td><PosBadge pos={p.pos} /></td>
-              <td className="name">{p.name}{deal === 'transfer' && p.transferListed ? ' 🏷️' : ''}{deal === 'loan' && !listedLoans.has(p.id) ? <span className="muted"> {t('transfers.loanAskTag')}</span> : ''}</td>
+              <td className="name" title={p.name}>{initialName(p.name)}{deal === 'transfer' && p.transferListed ? ' 🏷️' : ''}{deal === 'loan' && !listedLoans.has(p.id) ? <span className="muted"> {t('transfers.loanAskTag')}</span> : ''}</td>
               <td className="num">{p.age}</td>
               <td><Nat code={p.nat} /></td>
               {/* THREE LETTERS. This column was 76px of an eight-column table
