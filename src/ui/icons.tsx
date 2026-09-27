@@ -96,3 +96,20 @@ export const IcoPeople = () => (
     <circle cx="16.5" cy="9" r="2.6" /><path d="M16.2 14.1c2.8.1 4.8 2.1 4.8 5" />
   </svg>
 )
+
+// The leadership portfolios and the armbands (Selection), replacing emoji
+export const IcoPack = () => (
+  <svg viewBox="0 0 24 24" {...S} aria-hidden><circle cx="7" cy="9" r="2.4" /><circle cx="12" cy="8" r="2.4" /><circle cx="17" cy="9" r="2.4" /><path d="M3.5 17c.6-2.6 2-4 3.5-4s2.3.7 2.8 1.5M20.5 17c-.6-2.6-2-4-3.5-4s-2.3.7-2.8 1.5M8 18c.5-2.8 2.1-4.3 4-4.3s3.5 1.5 4 4.3" /></svg>
+)
+export const IcoShield = () => (
+  <svg viewBox="0 0 24 24" {...S} aria-hidden><path d="M12 3l7.5 3v5.5c0 4.4-3.1 8.1-7.5 9.5-4.4-1.4-7.5-5.1-7.5-9.5V6z" /></svg>
+)
+export const IcoAttack = () => (
+  <svg viewBox="0 0 24 24" {...S} aria-hidden><path d="M4 12h13M13 7l5 5-5 5" /><path d="M4 7h5M4 17h5" /></svg>
+)
+export const IcoHandshake = () => (
+  <svg viewBox="0 0 24 24" {...S} aria-hidden><path d="M3 12l3-3 3 1 3-2 3 2 3-1 3 3" /><path d="M7 13l3 3 1.5-1.5M10 11l4 4 1.5-1.5M13 10l3 3" /><path d="M3 12l3.5 3.5M21 12l-3.5 3.5" /></svg>
+)
+export const IcoChevron = () => (
+  <svg viewBox="0 0 24 24" {...S} aria-hidden><path d="M9 6l6 6-6 6" /></svg>
+)

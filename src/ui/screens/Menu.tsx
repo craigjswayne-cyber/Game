@@ -138,8 +138,14 @@ export default function Menu() {
       {supporter && (
         <div className="supporter-mark" style={{ marginTop: 18 }}>★ {t('supporter.badge')}</div>
       )}
+      {/* two lines (owner, 27 Sep 2026: "unofficial and independent on a
+          single line, then the not affiliated on the line below"): split
+          after the first sentence, in every language */}
       <div style={{ marginTop: 22, fontSize: 11, opacity: .65 }}>
-        {t('menu.disclaimer')}
+        {(() => {
+          const d = t('menu.disclaimer'), m = /^(.+?[.。])\s*(.+)$/.exec(d)
+          return m ? <><div>{m[1]}</div><div>{m[2]}</div></> : d
+        })()}
       </div>
       {/* WHICH BUILD IS THIS? Two phones, two people, and no way to tell a stale
           tab from a fresh deploy except by hunting for a feature. Stamped in at

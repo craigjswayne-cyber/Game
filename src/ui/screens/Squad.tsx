@@ -122,24 +122,6 @@ export default function Squad() {
     </th>
   )
 
-  const Pkd = ({ p }: { p: Player }) => {
-    const i = club.tactic.lineup.indexOf(p.id)
-    if (i < 0) return <td />
-    const xv = i < 15
-    return (
-      <td>
-        <span style={{
-          display: 'inline-block', minWidth: 26, textAlign: 'center',
-          fontFamily: 'var(--cond)', fontWeight: 700, fontSize: 13,
-          borderRadius: 4, padding: '1.5px 4px',
-          background: xv ? 'var(--club1)' : 'color-mix(in srgb, var(--club1) 30%, var(--surface-1))',
-          color: xv ? 'var(--club1-ink)' : 'var(--text-primary)',
-          boxShadow: 'inset 0 1px 0 rgba(255,255,255,.15)',
-        }}>{xv ? i + 1 : `S${i - 14}`}</span>
-      </td>
-    )
-  }
-
   const NameCell = ({ p }: { p: Player }) => (
     <td className="name">
       <FitRing v={p.cond} />{' '}
@@ -236,14 +218,13 @@ export default function Squad() {
           the scrollport again and the heading sticks under the controls where
           it belongs. */}
       {view !== 'selection' && view !== 'depth' && <div className="tblwrap fitwrap"><table className="dtable zebra fit">
-        {view === 'general' && <colgroup><col width="32" /><col /><col width="36" /><col width="32" /><col width="28" /><col width="26" /><col width="44" /><col width="56" /></colgroup>}
+        {view === 'general' && <colgroup><col /><col width="36" /><col width="32" /><col width="28" /><col width="26" /><col width="44" /><col width="56" /></colgroup>}
         {view === 'stats' && <colgroup><col /><col width="34" /><col width="30" /><col width="38" /><col width="32" /><col width="32" /><col width="44" /></colgroup>}
-        {view === 'gametime' && <colgroup><col width="32" /><col /><col width="104" /><col width="30" /><col width="32" /><col width="48" /></colgroup>}
-        {view === 'contracts' && <colgroup><col width="32" /><col /><col width="36" /><col width="30" /><col width="48" /><col width="44" /><col width="36" /></colgroup>}
+        {view === 'gametime' && <colgroup><col /><col width="104" /><col width="30" /><col width="32" /><col width="48" /></colgroup>}
+        {view === 'contracts' && <colgroup><col /><col width="36" /><col width="30" /><col width="56" /><col width="44" /><col width="46" /></colgroup>}
         <thead>
           {view === 'general' && (
             <tr>
-              <Th k="pkd">{t('squad.colPkd')}</Th>
               <Th k="name">{t('squad.colName')}</Th>
               <Th k="pos">{t('squad.colPos')}</Th>
               <Th k="age" right>{t('squad.colAge')}</Th>
@@ -255,7 +236,6 @@ export default function Squad() {
           )}
           {view === 'gametime' && (
             <tr>
-              <Th k="pkd">{t('squad.colPkd')}</Th>
               <Th k="name">{t('squad.colName')}</Th>
               <th>{t('squad.colToldHim')}</th>
               <Th k="apps" right>{t('squad.colAp')}</Th>
@@ -276,15 +256,15 @@ export default function Squad() {
           )}
           {view === 'contracts' && (
             <tr>
-              <Th k="pkd">{t('squad.colPkd')}</Th>
               <Th k="name">{t('squad.colName')}</Th>
               <Th k="pos">{t('squad.colPos')}</Th>
               <Th k="age" right>{t('squad.colAge')}</Th>
               <Th k="wage" right>{t('squad.colWage')}</Th>
               <Th k="until" right>{t('squad.colUntil')}</Th>
-              {/* an icon, not a phrase: "under contract" is the answer for 38 of
-                  42 men and it was eating 78px of a 412px screen to say so */}
-              <th>?</th>
+              {/* A TRAFFIC LIGHT (owner, 27 Sep 2026: "red out of contract,
+                  amber ending soon, green all good"). It was a bare "?" over
+                  two emoji, which nobody could read. */}
+              <th className="center">{t('squad.colStatus')}</th>
             </tr>
           )}
         </thead>
@@ -298,7 +278,6 @@ export default function Squad() {
             const avr = p.stats.apps ? (p.stats.ratingSum / p.stats.apps) : 0
             return (
               <tr key={p.id} onClick={() => go('player', p.id)}>
-                {view !== 'stats' && <Pkd p={p} />}
                 <NameCell p={p} />
                 {view === 'general' && (<>
                   <td><PosBadge pos={p.pos} /></td>
@@ -361,12 +340,13 @@ export default function Squad() {
                   <td className="num" style={{ fontWeight: 700, color: p.contractEnds <= game.season ? 'var(--danger)' : p.contractEnds === game.season + 1 ? 'var(--gold)' : undefined }}>
                     {2026 + p.contractEnds}
                   </td>
-                  <td style={{ whiteSpace: 'nowrap' }}>
-                    {p.contractEnds <= game.season
-                      ? <span title={t('squad.dealExpires')}>⏳</span>
-                      : (p.wantsDeal ?? 0) > 0
-                        ? <span title={t('squad.wantsTerms')}>💼</span>
-                        : <span className="muted" title={t('squad.underContract')}>·</span>}
+                  <td className="center">
+                    {(() => {
+                      const [c, k] = p.contractEnds <= game.season ? ['var(--danger)', 'squad.dealExpires']
+                        : p.contractEnds === game.season + 1 || (p.wantsDeal ?? 0) > 0 ? ['var(--gold)', (p.wantsDeal ?? 0) > 0 ? 'squad.wantsTerms' : 'squad.endsSoon']
+                        : ['var(--text-positive)', 'squad.underContract']
+                      return <span className="status-dot" style={{ background: c }} title={t(k)} aria-label={t(k)} />
+                    })()}
                   </td>
                 </>)}
                 {view === 'stats' && (<>

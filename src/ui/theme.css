@@ -2413,6 +2413,21 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   min-width: 22px; text-align: center; color: var(--info);
 }
 .lead-row .fact-label { min-width: 52px; }
+/* a leadership job is a button that opens a sheet (owner: the native select
+   drew the whole squad as a full-screen list) */
+.lead-btn {
+  width: 100%; background: none; border: 0; border-bottom: 1px solid var(--border);
+  color: inherit; font: inherit; text-align: left; cursor: pointer; min-height: 44px;
+}
+.lead-btn:last-child { border-bottom: 0; }
+.lead-btn .lead-tag svg { width: 18px; height: 18px; vertical-align: middle; }
+.lead-btn .lead-who { flex: 1; min-width: 0; text-align: right; font-weight: 600; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lead-btn .lead-chev svg { width: 16px; height: 16px; color: var(--text-muted); vertical-align: middle; }
+.lead-sheet .lead-list { max-height: min(56vh, 460px); overflow-y: auto; margin: 0 -2px 10px; }
+.lead-sheet tr { cursor: pointer; }
+.lead-sheet tr.sel td { background: color-mix(in srgb, var(--gold) 14%, transparent); }
+.lead-sheet .lead-bar { width: 34%; }
+.lead-sheet .lead-bar span { display: block; height: 6px; border-radius: 3px; background: var(--info); }
 .lead-row .inline-input { margin: 0; flex: 1; min-width: 0; }
 
 /* ---- the sticky column header was never sticky ----
@@ -3362,6 +3377,9 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 @media (orientation: portrait) {
   .filter-line.friendly-dates { gap: 8px; padding-bottom: 12px; }
 }
+/* three dates, one line (owner, 27 Sep 2026) */
+.filter-line.friendly-dates { flex-wrap: nowrap; }
+.filter-line.friendly-dates > .chip { flex: 1 1 0; min-width: 0; justify-content: center; text-align: center; white-space: nowrap; padding-left: 6px; padding-right: 6px; }
 .filter-line > .inline-input, .filter-line > .preset-chip {
   flex: 1 1 0; min-width: 0; margin: 0;
   font-size: 12px; padding-left: 7px; padding-right: 7px;
@@ -4676,3 +4694,10 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .med-row .med-act .rowact { display: flex; width: 100%; min-width: 118px; justify-content: center; white-space: nowrap; margin: 0; min-height: 32px; padding: 4px 10px; font-size: 11px; }
 .med-row .med-act .rowact::after { inset: -7px 0; }
 .med-row .med-act .rowact + .rowact { margin-top: 14px; }
+
+/* the contract traffic light on the squad table */
+.status-dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; vertical-align: middle; box-shadow: 0 0 0 2px color-mix(in srgb, var(--surface-1) 70%, transparent); }
+
+/* the A League table: rank under "#", the crest and name a step in */
+.a-table td.name { padding-left: 10px; }
+.a-table td.name > :first-child { margin-right: 6px; }
