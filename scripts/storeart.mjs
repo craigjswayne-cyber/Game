@@ -68,7 +68,7 @@ async function walk(page, dir) {
   // Team, off the Hub menu. It opens on the team sheet, so the squad TABLE is
   // the second tab - taking them in this order stops the two shots being the
   // same picture, which is what happened when both read "the first tab".
-  await page.locator('.bottom-nav button', { hasText: '▸' }).first().click()
+  await page.locator('.bottom-nav button[data-group]').first().click()
   await page.waitForSelector('.submenu')
   await page.waitForTimeout(500)
   await page.locator('.submenu-item').first().click()
