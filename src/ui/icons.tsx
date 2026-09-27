@@ -74,3 +74,25 @@ export const IcoPress = () => (
     <path d="M8.5 9h6M8.5 12.2h6M8.5 15.4h3.6" strokeWidth="1.4" />
   </svg>
 )
+
+// The match controls (owner, 27 Sep 2026: "play should be just a play/pause
+// button, skip becomes a fast-forward button, squad just the two heads").
+// Filled, not stroked: at 20px on a button a stroked triangle reads thin.
+export const IcoPlay = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M8 5.5v13a.8.8 0 0 0 1.2.7l10.4-6.5a.8.8 0 0 0 0-1.4L9.2 4.8A.8.8 0 0 0 8 5.5z" /></svg>
+)
+export const IcoPause = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden><rect x="6.5" y="5" width="4" height="14" rx="1" /><rect x="13.5" y="5" width="4" height="14" rx="1" /></svg>
+)
+export const IcoFastForward = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+    <path d="M3 6.3v11.4a.8.8 0 0 0 1.2.7l8.3-5.7a.8.8 0 0 0 0-1.4L4.2 5.6A.8.8 0 0 0 3 6.3z" />
+    <path d="M12 6.3v11.4a.8.8 0 0 0 1.2.7l8.3-5.7a.8.8 0 0 0 0-1.4l-8.3-5.7a.8.8 0 0 0-1.2.7z" />
+  </svg>
+)
+export const IcoPeople = () => (
+  <svg viewBox="0 0 24 24" {...S} aria-hidden>
+    <circle cx="9" cy="8" r="3.2" /><path d="M3 19.5c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5" />
+    <circle cx="16.5" cy="9" r="2.6" /><path d="M16.2 14.1c2.8.1 4.8 2.1 4.8 5" />
+  </svg>
+)

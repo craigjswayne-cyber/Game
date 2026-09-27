@@ -452,18 +452,18 @@
   "physioShorter": " · beserings sowat {pct}% korter",
   "findPlayer": "Soek 'n speler…",
   "nothingOnHim": "Niks oor hom nie",
-  "quietRoom": "✅ 'n Stil behandelingskamer",
+  "quietRoom": "'n Stil behandelingskamer",
   "nothingOnHimSub": "Geen speler wat by daardie soektog pas, is beseer, geskors, roesterig of kort aan speeltyd nie.",
   "quietRoomSub": "Niemand beseer, geskors, roesterig of leeg getap nie. Geniet dit - dit hou nooit.",
   "treatmentRoom": "Behandelingskamer",
-  "treatmentSub": "buite aksie - die borg se guns knip tot twee weke gratis af, en die {fee}-konsultasie gaan verder met 'n lang besering",
+  "treatmentSub": "Buite aksie",
   "redZone": "Rooi Sone - seisoenlading",
-  "redZoneSub": "1 300+ minute: hulle breek makliker en raak vinniger moeg. Laat hulle rus.",
-  "minsThisSeason": "🔋 {mins}′ hierdie seisoen",
+  "redZoneSub": "1 300+ minute hierdie seisoen",
+  "minsThisSeason": "{mins}′ hierdie seisoen",
   "returning": "Terug van Besering",
-  "returningSub": "speelbaar, maar 'n oorhaastige terugkeer waag 'n terugslag · een man per week kan in watte toegedraai word",
-  "rusty": "⚠ ROESTERIG {n}w",
-  "cottonWool": "🛌 In watte",
+  "returningSub": "Speelbaar, maar kort aan wedstrydskerpte",
+  "rusty": "ROESTERIG {n}w",
+  "cottonWool": "In watte",
   "suspended": "Geskors",
   "suspendedSub": "dien skorsings uit",
   "banMatches": {
@@ -471,13 +471,13 @@
    "other": "{n} wedstryde"
   },
   "onFumes": "Loop op Dampe",
-  "onFumesSub": "kondisie onder 62% - dit kos 'n beginspeler; van die bank af kom hy steeds op 60% aan",
+  "onFumesSub": "Kondisie onder 62%",
   "awayFromClub": "Weg van die Klub",
   "awayFromClubSub": "internasionale diens & leen",
   "onLoan": "OP LEEN",
   "intlDuty": "INTL DIENS",
   "nothingOnHim_f": "Niks oor haar nie",
-  "returningSub_f": "speelbaar, maar 'n oorhaastige terugkeer waag 'n terugslag · een vrou per week kan in watte toegedraai word",
+  "returningSub_f": "Speelbaar, maar kort aan wedstrydskerpte",
   "jokerBtn": "Teken 'n mediese joker",
   "jokerTitle": "Mediese joker vir {hurt}",
   "jokerExplain": {
@@ -495,11 +495,11 @@
   "knockRested": "{name} gaan toe tog terug na die behandelingskamer.",
   "knockNotOpen": "Daar kan nie nou deur hierdie besering gespeel word nie.",
   "knockTitle": "Speel met 'n besering",
-  "knockSub": "Kiesbaar, maar nie met 'n vol tenk nie, en elke wedstryd kan die besering laat opvlam. 'n Kopbesering word nooit deurgespeel nie.",
+  "knockSub": "Kiesbaar, met 'n risiko dat dit opvlam",
   "knockRow": "Fiks oor {n} w. · {pct}% opvlamrisiko per wedstryd",
   "knockRest": "Laat rus",
   "knockHead": "Kopbesering: nooit deurgespeel nie",
-  "specialistCut": "🩺 Spesialis -{n}w"
+  "specialistCut": "Spesialis -{n}w · {fee}"
  },
  "inbox": {
   "freeAgent": " · vrye agent",
@@ -1024,7 +1024,6 @@
   "planWide1": "Hul kantverdediging is die sagte kol. Gaan wyd en skuif die aanvalspunt.",
   "planWide2": "Getalle wyd uit wen hierdie een. Twee aangees verby die losskrum en hulle krabbel.",
   "planWide3": "Hul vleuels trek in. Verdien die hoek en die drieë sal volg.",
-  "play": "Speel",
   "playFinalQuarter": "▸ Speel die Laaste Kwart",
   "prepAttack": "⚡ Aanvalspatrone - aanvalsbewegings die hele week gedril. Aanval verskerp.",
   "prepDefence": "🛡 Verdedigingsoefeninge - die muur is gebou. Verdediging verskerp.",
@@ -1088,7 +1087,7 @@
    "other": "{n} punte tussen julle"
   },
   "sixLevel": "gelykop op punte",
-  "skip": "Slaan oor ▸",
+  "skip": "Slaan oor",
   "skipTook": {
    "one": "⏭ Slaan oor het {n} kantlynbesluit namens jou geneem - die punte is gevat.",
    "other": "⏭ Slaan oor het {n} kantlynbesluite namens jou geneem - die punte is gevat."
@@ -1111,7 +1110,6 @@
   "spdSlow": "Stadig",
   "spdSlowName": "Stadig - lees elke reël",
   "speechLabel": "Toespraak: ",
-  "squadBtn": "Spangroep",
   "squadTitle": "Wedstryddag-spangroep: maak 'n vervanging",
   "stCards": "Kaarte",
   "stEnergy": "Energie oor",
@@ -6883,7 +6881,7 @@
    "one": "📺 Die ontleder het nog een lesing - haar deurnagsessie vir 'n advertensie",
    "other": "📺 Die ontleder het nog {n} lesings - haar deurnagsessie vir 'n advertensie"
   },
-  "physioCut": "📺 Guns -{n}w"
+  "physioCut": "Guns -{n}w"
  },
  "store": {
   "title": "Winkel",

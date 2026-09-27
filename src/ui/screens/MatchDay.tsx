@@ -31,6 +31,7 @@ import { venueEffect } from '../../game/venue'
 import { sortTable } from '../../game/schedule'
 import { nationName } from '../../game/nations'
 import { kitColours, luma } from '../kit'
+import { IcoFastForward, IcoPause, IcoPeople, IcoPlay } from '../icons'
 
 const WEATHER_ICON: Record<string, string> = { Dry: '☀️', Rain: '🌧️', Wind: '💨', Snow: '❄️' }
 
@@ -1676,9 +1677,9 @@ function Live() {
       : e.type === 'INJ' ? 'inj'
       : e.type === 'PEN' || e.k === 'comm.penTouchOwnHalf' || e.k === 'comm.penKickableAsk' ? 'pen' : ''
 
-  const icon = (e: MatchEvent) => e.fx === 'TMO' || e.fx === 'NOTRY' ? '📺' : ({
-    TRY: '🏉', CON: '🎯', PEN: '🥅', DG: '🎯', YC: '🟨', RC: '🟥', INJ: '🩹', HT: '⏸', FT: '🏁', KO: '⏱', SUB: '·', BRK: '💧',
-  }[e.type] ?? '·')
+  // CLEAN COMMENTARY (owner, 27 Sep 2026: "remove any emojis and bullet
+  // points from commentary, make it super clean"). The line is the words;
+  // its kind is carried by cls(): gold for a score, the card colours, the TMO.
 
   const kits = kitColours(game.clubs[fixture.homeId]?.colors, game.clubs[fixture.awayId]?.colors ?? ['var(--gold-fill)', 'var(--ramp-g9)'])
   // Half-time and the 60' break are the two states where the match is stopped
@@ -1864,7 +1865,8 @@ function Live() {
           the match story growing underneath. The panel state already read this
           way, so the row no longer moves at all.
           The advertising box, when there is one, goes below this row. */}
-      {/* One row, four jobs: play, skip, touchline, settings. Speed and sound
+      {/* One row: play/pause, fast-forward, squad, the match menu, settings.
+          Icons only (owner, 27 Sep 2026), each named for screen readers. Speed and sound
           moved into the settings sheet - they are set once a season, and having
           them out here is what put two ▶ buttons side by side. */}
       <div className="speed-controls">
@@ -1879,7 +1881,7 @@ function Live() {
             had to scroll to find it. Skip was dead for the same reason: its loop
             is `while (!ctx.awaiting ...)`, which never ran. */}
         {!done && (
-          <button className={`btn ${playing ? 'ghost' : 'gold'}`} style={{ flex: 1.6 }}
+          <button className={`btn ctl-ico ${playing ? 'ghost' : 'gold'}`} data-ctl="play" data-playing={playing ? 'true' : 'false'}
             disabled={atDecision}
             title={atInterval ? intervalLabel : atDecision ? t('matchday.callFirst') : t(playing ? 'matchday.pause' : 'matchday.resume')}
             aria-label={atInterval ? intervalLabel : t(playing ? 'matchday.pause' : 'matchday.resume')}
@@ -1887,11 +1889,12 @@ function Live() {
               if (atInterval) { leaveInterval(); return }
               matchCursor(cursor, !playing)
             }}>
-            {playing ? '❚❚' : '▶'} <span className="ctrl-cap">{atInterval ? intervalLabel : t(playing ? 'matchday.pause' : 'matchday.play')}</span>
+            {playing ? <IcoPause /> : <IcoPlay />}
           </button>
         )}
         {!done && (
-          <button className="btn" style={{ flex: 1.2 }} disabled={atDecision}
+          <button className="btn ctl-ico" disabled={atDecision} data-ctl="skip"
+            title={t('matchday.skip')} aria-label={t('matchday.skip')}
             onClick={() => {
               setDrawer(false)
               setSettings(false)
@@ -1899,7 +1902,7 @@ function Live() {
               setClip(null)
               if (atInterval) leaveInterval(true)
               else skipToBreak()
-            }}>{t('matchday.skip')}</button>
+            }}><IcoFastForward /></button>
         )}
         {/* Squad, not "Touchline" (user: "rather than touchline ... have it as
             squad selection so you click it and can make changes"). The panel it
@@ -1908,7 +1911,7 @@ function Live() {
             pressing it wants. Tactics still live behind the same panel via the
             drawer button on the squad sheet. */}
         {!done && ctx.seg < 3 && (
-          <button className={`btn ${sheet ? 'gold' : 'ghost'}`} style={{ flex: 1.2 }}
+          <button className={`btn ctl-ico ${sheet ? 'gold' : 'ghost'}`} data-ctl="squad"
             title={t('matchday.squadTitle')}
             aria-label={t('matchday.squadTitle')}
             onClick={() => {
@@ -1916,14 +1919,14 @@ function Live() {
               setSettings(false)
               setDrawer(false)
               setSheet(true)
-            }}>👥 <span className="ctrl-cap">{t('matchday.squadBtn')}</span></button>
+            }}><IcoPeople /></button>
         )}
         {/* the match menu (1.8.0): line-ups, the room, who did what, where
             it has been played, the 22 - paused while you read it */}
-        <button className="btn ghost" style={{ flex: '0 0 46px' }}
+        <button className="btn ghost" data-ctl="menu"
           title={t('mpanel.open')} aria-label={t('mpanel.open')}
           onClick={() => { matchCursor(cursor, false); setSettings(false); setDrawer(false); setMpanels(true) }}>📊</button>
-        <button className={`btn ${settings ? 'gold' : 'ghost'}`} style={{ flex: '0 0 46px' }}
+        <button className={`btn ${settings ? 'gold' : 'ghost'}`} data-ctl="settings"
           title={t('matchday.settingsTitle')} aria-label={t('matchday.settingsTitle')}
           onClick={() => { setDrawer(false); setSettings(!settings) }}>⚙</button>
       </div>
@@ -1943,7 +1946,7 @@ function Live() {
             <div key={cursor} className={`now-line ${cls(last)}${last.teamId ? ' kit' : ''}`}
               style={lineStyle(last)}>
               <span className="min">{Math.min(80, last.min)}'</span>
-              <span className="txt">{icon(last)} {eventText(last)}</span>
+              <span className="txt">{eventText(last)}</span>
             </div>
           )}
         </div>
@@ -1972,7 +1975,7 @@ function Live() {
               <div key={shown.length - k} className={`feed-line ${cls(e)}${e.teamId ? ' kit' : ''}${k === 0 ? ' newest' : ''}`}
                 style={lineStyle(e)}>
                 <span className="min">{Math.min(80, e.min)}'</span>
-                <span className="txt">{icon(e)} {eventText(e)}</span>
+                <span className="txt">{eventText(e)}</span>
               </div>
             ))}
           </div>
@@ -2093,7 +2096,7 @@ function Live() {
                 {scores.map((e, i) => (
                   <div key={i} className="meta" style={{ display: 'flex', gap: 8 }}>
                     <span className="muted" style={{ flex: '0 0 26px' }}>{Math.min(80, e.min)}'</span>
-                    <span style={{ flex: 1 }}>{icon(e)} {e.playerId != null ? game.players[e.playerId]?.name ?? teamShort(game, e.teamId ?? '') : teamShort(game, e.teamId ?? '')}</span>
+                    <span style={{ flex: 1 }}>{e.playerId != null ? game.players[e.playerId]?.name ?? teamShort(game, e.teamId ?? '') : teamShort(game, e.teamId ?? '')}</span>
                     <b>{e.homeScore}-{e.awayScore}</b>
                   </div>
                 ))}
@@ -2141,7 +2144,7 @@ function Live() {
             {showLog && shown.map((e, i) => (
               <div key={i} className={`tick-event ${cls(e)}`}>
                 <span className="min">{e.min}'</span>
-                <span className="txt">{icon(e)} {eventText(e)}</span>
+                <span className="txt">{eventText(e)}</span>
               </div>
             ))}
             <button className="btn gold block" style={{ margin: '10px 14px 14px' }} onClick={finishMatch}>

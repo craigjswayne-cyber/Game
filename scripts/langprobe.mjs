@@ -510,11 +510,13 @@ try {
 
     ok(await page.locator('.live-wrap').count() > 0, 'and the match starts')
     if (await page.locator('.live-wrap').count()) {
-      const caps = await page.locator('.ctrl-cap').allInnerTexts()
+      // the controls are icons since 1.8.0: what is read is what a screen
+      // reader says for each
+      const caps = await page.locator('.speed-controls .btn').evaluateAll(bs => bs.map(b => b.getAttribute('aria-label') ?? ''))
       say(`  touchline controls: ${caps.join(' | ')}`)
       // 'Pause' is not on the list: it is the same word in both languages, so it
       // is no evidence either way
-      ok(!caps.some(x => /^(Play|Squad)$/i.test(x)), 'the touchline controls are French')
+      ok(caps.every(Boolean) && !caps.some(x => /^(Resume|Skip)$|^Match-day squad|^Match settings/i.test(x)), 'the touchline controls are French')
       const l10 = await page.locator('.l10-label').innerText().catch(() => '')
       ok(!/PENALTIES/i.test(l10), `and the possession strip is French ("${l10}")`)
 
@@ -546,7 +548,7 @@ try {
 
       // to full time: Skip, and press through half-time and the hour
       for (let i = 0; i < 30 && !(await page.locator('.ft-stamp').count()); i++) {
-        const skip = page.locator('.speed-controls .btn', { hasText: 'Passer' })
+        const skip = page.locator('.speed-controls [data-ctl=skip]')
         if (await skip.count()) await skip.first().click().catch(() => {})
         else if (await page.locator('.panel-area .btn.gold').count()) {
           await page.locator('.panel-area .btn.gold').first().click().catch(() => {})

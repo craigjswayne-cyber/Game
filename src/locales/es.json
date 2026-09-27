@@ -450,18 +450,18 @@
   "physioShorter": " · lesiones alrededor de un {pct}% más cortas",
   "findPlayer": "Buscar jugador…",
   "nothingOnHim": "Nada sobre él",
-  "quietRoom": "✅ Una enfermería tranquila",
+  "quietRoom": "Una enfermería tranquila",
   "nothingOnHimSub": "Ningún jugador de esa búsqueda está lesionado, sancionado, oxidado ni falto de rodaje.",
   "quietRoomSub": "Nadie lesionado, sancionado, oxidado ni con el depósito vacío. Disfrútalo: nunca dura.",
   "treatmentRoom": "Sala de tratamiento",
-  "treatmentSub": "de baja - el favor del patrocinador quita hasta dos semanas gratis, y la consulta de {fee} llega más lejos en una lesión larga",
+  "treatmentSub": "De baja",
   "redZone": "Zona roja - carga de la temporada",
-  "redZoneSub": "Más de 1300 minutos: se rompen antes y se cansan más rápido. Dales descanso.",
-  "minsThisSeason": "🔋 {mins}′ esta temporada",
+  "redZoneSub": "Más de 1300 minutos esta temporada",
+  "minsThisSeason": "{mins}′ esta temporada",
   "returning": "De vuelta de lesión",
-  "returningSub": "puede jugar, pero forzar la vuelta arriesga una recaída · a un hombre por semana se le puede envolver en algodones",
-  "rusty": "⚠ OXIDADO {n}s",
-  "cottonWool": "🛌 Entre algodones",
+  "returningSub": "Aptos, pero sin ritmo de partido",
+  "rusty": "OXIDADO {n}s",
+  "cottonWool": "Entre algodones",
   "suspended": "Sancionados",
   "suspendedSub": "cumpliendo sanción",
   "banMatches": {
@@ -469,7 +469,7 @@
    "other": "{n} partidos"
   },
   "onFumes": "Con la reserva encendida",
-  "onFumesSub": "estado físico por debajo del 62%: penaliza a un titular; desde el banquillo aún entra al 60%",
+  "onFumesSub": "Estado físico por debajo del 62%",
   "awayFromClub": "Fuera del club",
   "awayFromClubSub": "selecciones y cesiones",
   "onLoan": "CEDIDO",
@@ -477,7 +477,7 @@
   "findPlayer_f": "Buscar jugadora…",
   "nothingOnHimSub_f": "Ninguna jugadora de esa búsqueda está lesionada, sancionada, oxidada ni falta de rodaje.",
   "quietRoomSub_f": "Ninguna lesionada, sancionada, oxidada ni con el depósito vacío. Disfrútalo: nunca dura.",
-  "returningSub_f": "puede jugar, pero forzar la vuelta arriesga una recaída · a una mujer por semana se le puede envolver en algodones",
+  "returningSub_f": "Aptos, pero sin ritmo de partido",
   "jokerBtn": "Fichar un joker médico",
   "jokerTitle": "Joker médico para {hurt}",
   "jokerExplain": {
@@ -495,11 +495,11 @@
   "knockRested": "Al final, {name} vuelve a la sala de tratamiento.",
   "knockNotOpen": "Ahora no se puede jugar con esta lesión.",
   "knockTitle": "Jugando con molestias",
-  "knockSub": "Disponible para la convocatoria, pero sin el depósito lleno, y cada partido jugado puede agravar la lesión. Las lesiones en la cabeza nunca se juegan.",
+  "knockSub": "Disponible, con riesgo de recaída",
   "knockRow": "Alta en {n} sem. · {pct}% de riesgo de recaída por partido",
   "knockRest": "Dar descanso",
   "knockHead": "Lesión en la cabeza: nunca se juega con ella",
-  "specialistCut": "🩺 Especialista -{n}sem"
+  "specialistCut": "Especialista -{n}sem · {fee}"
  },
  "inbox": {
   "freeAgent": " · agente libre",
@@ -1023,7 +1023,6 @@
   "planWide1": "Su defensa exterior es el punto blando. Abre el juego y mueve el punto de ataque.",
   "planWide2": "Este se gana con superioridad en las bandas. Dos pases más allá del ruck y ya van a remolque.",
   "planWide3": "Sus alas se meten hacia dentro. Gánate la esquina y los ensayos llegarán.",
-  "play": "Jugar",
   "playFinalQuarter": "▸ Jugar el último cuarto",
   "prepAttack": "⚡ Estructuras de ataque - jugadas ensayadas toda la semana. Ataque afilado.",
   "prepDefence": "🛡 Ejercicios defensivos - el muro está levantado. Defensa afilada.",
@@ -1087,7 +1086,7 @@
    "other": "{n} puntos os separan"
   },
   "sixLevel": "empatados a puntos",
-  "skip": "Saltar ▸",
+  "skip": "Saltar",
   "skipTook": {
    "one": "⏭ Saltar respondió por ti {n} decisión desde la banda - se fue a palos.",
    "other": "⏭ Saltar respondió por ti {n} decisiones desde la banda - se fue a palos."
@@ -1110,7 +1109,6 @@
   "spdSlow": "Lenta",
   "spdSlowName": "Lento - lee cada línea",
   "speechLabel": "Charla: ",
-  "squadBtn": "Plantilla",
   "squadTitle": "Convocatoria: haz una sustitución",
   "stCards": "Tarjetas",
   "stEnergy": "Energía restante",
@@ -6517,7 +6515,7 @@
   "owedHeld": "Ya está pagado. Aún no se ha entregado, así que no se te ha vuelto a cobrar: el juego sigue intentándolo en segundo plano. Vuelve en un minuto.",
   "asking": "Consultando la tienda…",
   "townBody_f": "La peña de socios pasará la gorra por un club en apuros de verdad: ve un anuncio y la colecta entra en el banco. Paga sueldos y luz, nunca jugadoras.",
-  "physioCut": "📺 Favor -{n}sem"
+  "physioCut": "Favor -{n}sem"
  },
  "store": {
   "title": "Tienda",

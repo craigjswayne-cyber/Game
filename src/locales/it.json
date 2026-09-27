@@ -451,18 +451,18 @@
   "physioShorter": " · infortuni più corti di circa il {pct}%",
   "findPlayer": "Cerca un giocatore…",
   "nothingOnHim": "Niente a suo carico",
-  "quietRoom": "✅ Un'infermeria tranquilla",
+  "quietRoom": "Un'infermeria tranquilla",
   "nothingOnHimSub": "Nessun giocatore con quel nome è infortunato, squalificato, arrugginito o a corto di benzina.",
   "quietRoomSub": "Nessuno infortunato, squalificato, arrugginito o in riserva. Goditela - non dura mai.",
   "treatmentRoom": "Infermeria",
-  "treatmentSub": "fuori - il favore dello sponsor toglie fino a due settimane gratis, e il consulto da {fee} va oltre su un infortunio lungo",
+  "treatmentSub": "Fuori",
   "redZone": "Zona rossa - carico stagionale",
-  "redZoneSub": "Oltre 1.300 minuti: si rompono più facilmente e si stancano prima. Falli riposare.",
-  "minsThisSeason": "🔋 {mins}′ in stagione",
+  "redZoneSub": "Oltre 1.300 minuti in stagione",
+  "minsThisSeason": "{mins}′ in stagione",
   "returning": "Rientri dall'infortunio",
-  "returningSub": "schierabile, ma un rientro affrettato rischia la ricaduta · un uomo a settimana può stare nella bambagia",
-  "rusty": "⚠ RUGGINE {n}s",
-  "cottonWool": "🛌 Nella bambagia",
+  "returningSub": "Schierabili, ma senza ritmo partita",
+  "rusty": "RUGGINE {n}s",
+  "cottonWool": "Nella bambagia",
   "suspended": "Squalificati",
   "suspendedSub": "stanno scontando squalifiche",
   "banMatches": {
@@ -470,7 +470,7 @@
    "other": "{n} partite"
   },
   "onFumes": "In riserva",
-  "onFumesSub": "condizione sotto il 62% - da titolare si paga; dalla panchina entra comunque al 60%",
+  "onFumesSub": "Condizione sotto il 62%",
   "awayFromClub": "Lontani dal club",
   "awayFromClubSub": "impegni in nazionale e prestiti",
   "onLoan": "IN PRESTITO",
@@ -478,7 +478,7 @@
   "findPlayer_f": "Cerca una giocatrice…",
   "nothingOnHimSub_f": "Nessuna giocatrice con quel nome è infortunata, squalificata, arrugginita o a corto di benzina.",
   "quietRoomSub_f": "Nessuna infortunata, squalificata, arrugginita o in riserva. Goditela - non dura mai.",
-  "returningSub_f": "schierabile, ma un rientro affrettato rischia la ricaduta · una donna a settimana può stare nella bambagia",
+  "returningSub_f": "Schierabili, ma senza ritmo partita",
   "jokerBtn": "Ingaggia un joker medico",
   "jokerTitle": "Joker medico per {hurt}",
   "jokerExplain": {
@@ -496,11 +496,11 @@
   "knockRested": "Alla fine {name} torna in infermeria.",
   "knockNotOpen": "Al momento non si può giocare con questo infortunio.",
   "knockTitle": "Gioca con un fastidio",
-  "knockSub": "Selezionabile, ma senza il pieno di energie, e ogni partita giocata rischia di aggravare l'infortunio. Con un infortunio alla testa non si gioca mai.",
+  "knockSub": "Selezionabile, con rischio di ricaduta",
   "knockRow": "Rientro previsto tra {n} sett. · rischio ricaduta {pct}% a partita",
   "knockRest": "Metti a riposo",
   "knockHead": "Infortunio alla testa: non si gioca mai",
-  "specialistCut": "🩺 Specialista -{n}set"
+  "specialistCut": "Specialista -{n}set · {fee}"
  },
  "inbox": {
   "freeAgent": " · svincolato",
@@ -1026,7 +1026,6 @@
   "planWide1": "La loro difesa sui lati è il punto molle. Vai largo e sposta il punto d'attacco.",
   "planWide2": "Al largo si vince coi numeri. Due passaggi oltre la ruck e sono in affanno.",
   "planWide3": "Le loro ali si stringono. Guadagnati l'angolo e le mete arriveranno.",
-  "play": "Gioca",
   "playFinalQuarter": "▸ Gioca l'ultimo quarto",
   "prepAttack": "⚡ Schemi d'attacco - giocate provate tutta la settimana. Attacco affilato.",
   "prepDefence": "🛡 Esercizi difensivi - il muro è pronto. Difesa affilata.",
@@ -1090,7 +1089,7 @@
    "other": "{n} punti tra voi"
   },
   "sixLevel": "pari punti",
-  "skip": "Salta ▸",
+  "skip": "Salta",
   "skipTook": {
    "one": "⏭ Il salto ha risposto per te a {n} chiamata dalla laterale - punti presi.",
    "other": "⏭ Il salto ha risposto per te a {n} chiamate dalla laterale - punti presi."
@@ -1113,7 +1112,6 @@
   "spdSlow": "Lenta",
   "spdSlowName": "Lento - leggi ogni riga",
   "speechLabel": "Discorso: ",
-  "squadBtn": "Rosa",
   "squadTitle": "Rosa del match: fai una sostituzione",
   "stCards": "Cartellini",
   "stEnergy": "Energia residua",
@@ -6551,7 +6549,7 @@
   "owedHeld": "Già pagato. Non è ancora stato consegnato, quindi non ti è stato addebitato di nuovo: il gioco continua a provarci in background. Torna fra un minuto.",
   "asking": "Chiedo allo store…",
   "townBody_f": "Per un club davvero nei guai, il trust dei tifosi fa girare il cappello: guarda uno spot e la colletta arriva in banca. Paga stipendi e bollette, mai le giocatrici.",
-  "physioCut": "📺 Favore -{n}set"
+  "physioCut": "Favore -{n}set"
  },
  "store": {
   "title": "Negozio",
