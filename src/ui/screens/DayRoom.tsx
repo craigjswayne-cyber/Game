@@ -10,7 +10,7 @@ import { matchStakes } from '../../game/stakes'
 import { analystClaim, analystRead, prepLabel, unitLabel } from '../../game/analyst'
 import { CrestT, SectionTitle } from '../components'
 import { ord, posName, t } from '../../game/i18n'
-import { newsGlyph } from '../glyphs'
+import { Glyph, newsGlyph } from '../glyphs'
 
 
 /**
@@ -203,10 +203,10 @@ function MondayBlocks() {
           <SectionTitle sub={t('dayroom.treatmentSub')}>{t('dayroom.treatmentRoom')}</SectionTitle>
           <div className="card">
             {med.out.map(line => (
-              <div key={line} className="meta" style={{ padding: '2px 0' }}>🏥 {line}</div>
+              <div key={line} className="meta" style={{ padding: '2px 0' }}><Glyph name="medical" /> {line}</div>
             ))}
             {med.back.map(line => (
-              <div key={line} className="meta" style={{ padding: '2px 0', color: 'var(--text-positive)' }}>🟢 {line}</div>
+              <div key={line} className="meta" style={{ padding: '2px 0', color: 'var(--text-positive)' }}><Glyph name="check" /> {line}</div>
             ))}
             <button className="btn ghost block" style={{ marginTop: 8 }} onClick={() => go('medical')}>
               {t('dayroom.medicalCentre')}
@@ -377,7 +377,7 @@ function ThursdayBlocks() {
             <div className="fact-label">{t('dayroom.selection')}</div>
             {out.slice(0, 3).map(p => (
               <div key={p.id} className="meta" style={{ padding: '2px 0' }}>
-                ⚠️ <b>{p.name}</b> ({posName(p.pos)}) · {t(p.injury ? 'dayroom.selInjured' : p.bans > 0 ? 'dayroom.selBanned' : p.natSquad ? 'dayroom.selAway' : 'dayroom.selOnLoan')}
+                <span style={{ color: 'var(--danger)' }}><Glyph name="warning" /></span> <b>{p.name}</b> ({posName(p.pos)}) · {t(p.injury ? 'dayroom.selInjured' : p.bans > 0 ? 'dayroom.selBanned' : p.natSquad ? 'dayroom.selAway' : 'dayroom.selOnLoan')}
               </div>
             ))}
             {out.length > 3 && <div className="meta muted">{t('dayroom.selMore', { n: out.length - 3 })}</div>}
@@ -471,7 +471,7 @@ function FridayBlocks() {
                 season when the fixture card is not just a fixture card */}
             {fx.stage === 'F' && fx.compId !== 'fr' && (
               <div className="meta" style={{ marginTop: 3 }}>
-                🏆 <b>{t('dayroom.theFinalB')}</b>
+                <span style={{ color: 'var(--gold)' }}><Glyph name="trophy" /></span> <b>{t('dayroom.theFinalB')}</b>
                 {fx.venue ? t('dayroom.finalVenue', { n: fx.venue.capacity, venue: fx.venue.name }) : ''}
                 {t('dayroom.finalRest')}
               </div>
@@ -483,7 +483,7 @@ function FridayBlocks() {
               if (run < 8 || fx.compId === 'fr') return null
               return (
                 <div className="meta" style={{ marginTop: 3 }}>
-                  🛡️ <b>{t('dayroom.unbeatenB', { n: run })}</b>{t('dayroom.unbeatenRest')}
+                  <span style={{ color: 'var(--gold)' }}><Glyph name="shield" /></span> <b>{t('dayroom.unbeatenB', { n: run })}</b>{t('dayroom.unbeatenRest')}
                 </div>
               )
             })()}

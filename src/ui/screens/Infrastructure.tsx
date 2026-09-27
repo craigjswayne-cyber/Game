@@ -10,6 +10,7 @@ import { estateBuiltHere } from '../../game/grants'
 import { ord as ordUI, t } from '../../game/i18n'
 import CampusMap from '../CampusMap'
 import type { CampusId } from '../../game/campusPlots'
+import { Glyph } from '../glyphs'
 
 /** What each level actually buys, in the manager's language. */
 const EFFECT: Record<FacilityId, (lvl: number) => string> = {
@@ -116,7 +117,7 @@ export default function Infrastructure() {
                 village pitch to a stadium, read off the seats. Same pips as
                 the nine facilities, because it is the same kind of thing. */}
             <h3 style={{ fontSize: 16, margin: 0 }}>
-              🏟️ {club.stadium} <span style={{ color: 'var(--gold)', letterSpacing: 1 }}>{pips(groundLevel(club.capacity))}</span>
+              <Glyph name="stadium" /> {club.stadium} <span style={{ color: 'var(--gold)', letterSpacing: 1 }}>{pips(groundLevel(club.capacity))}</span>
             </h3>
             <div className="meta">
               {t('world.infSeats', { n: club.capacity.toLocaleString() })}
@@ -181,7 +182,7 @@ export default function Infrastructure() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
                 <div style={{ minWidth: 0 }}>
                   <h3 style={{ fontSize: 14, margin: 0 }}>
-                    {info.icon} {t(info.name)} <span style={{ color: 'var(--gold)', letterSpacing: 1 }}>{pips(lvl)}</span>
+                    <Glyph name={info.icon} /> {t(info.name)} <span style={{ color: 'var(--gold)', letterSpacing: 1 }}>{pips(lvl)}</span>
                   </h3>
                   <div className="meta" style={{ fontSize: 11 }}>{t(info.desc)}</div>
                   <div className="meta" style={{ fontSize: 11, fontWeight: 700 }}>

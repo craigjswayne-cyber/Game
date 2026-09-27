@@ -2,6 +2,7 @@ import { useStore } from '../../store'
 import { fmtMoney, seasonLabel } from '../../game/model'
 import { Crest, SectionTitle } from '../components'
 import { ord, t } from '../../game/i18n'
+import { Glyph } from '../glyphs'
 
 /** The annual: last season on one page - the league, the cups, the
  *  stars, the money and the board's mood. */
@@ -77,7 +78,7 @@ export default function SeasonReview() {
             </div>
           )}
           {r.trophies.length > 0 && (
-            <div className="sc-cup">🏆 {r.trophies.join(' · ')}</div>
+            <div className="sc-cup"><Glyph name="trophy" /> {r.trophies.join(' · ')}</div>
           )}
         </div>
 
@@ -158,7 +159,7 @@ export default function SeasonReview() {
                       {a.league.pos > 0 ? ord(a.league.pos) : '-'}
                     </td>
                     <td className="num">{a.overall.w}-{a.overall.d}-{a.overall.l}</td>
-                    <td>{a.trophies.length ? `🏆 ${a.trophies.length > 1 ? `×${a.trophies.length}` : a.trophies[0]}` : ''}</td>
+                    <td>{a.trophies.length > 0 && <><span style={{ color: 'var(--gold)' }}><Glyph name="trophy" /></span> {a.trophies.length > 1 ? `×${a.trophies.length}` : a.trophies[0]}</>}</td>
                   </tr>
                 ))}
               </tbody>
@@ -177,7 +178,7 @@ export default function SeasonReview() {
                   return (
                     <tr key={w.season}>
                       <td>{seasonLabel(w.season)}</td>
-                      <td style={mine ? { color: 'var(--info)', fontWeight: 700 } : undefined}>🏅 {w.name}</td>
+                      <td style={mine ? { color: 'var(--info)', fontWeight: 700 } : undefined}>{w.name}</td>
                       <td>{w.clubName}</td>
                     </tr>
                   )

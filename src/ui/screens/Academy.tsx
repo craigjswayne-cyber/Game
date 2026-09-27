@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useStore } from '../../store'
 import { teamShort } from '../../game/matchEngine'
 import { fixtureDate } from '../../game/model'
-import { CrestT, PosBadge, SectionTitle, Stars } from '../components'
+import { CrestT, Mark, PosBadge, SectionTitle, Stars } from '../components'
 import { acadLeagueName, acadStandings, academySquad, academyStrength, academyXV, ensureAcademyLeague, ACADEMY_SIZE } from '../../game/academy'
 import { ord, t } from '../../game/i18n'
 
@@ -71,7 +71,7 @@ export default function Academy() {
               {[...squad].sort((a, b) => b.ca + b.pa / 2 - (a.ca + a.pa / 2)).map(p => (
                 <tr key={p.id} onClick={() => go('player', p.id)} style={{ cursor: 'pointer' }}>
                   <td><PosBadge pos={p.pos} /></td>
-                  <td className="name">{p.name}{p.injury ? ' 🩹' : ''}</td>
+                  <td className="name">{p.name}{p.injury && <> <Mark name="medical" color="var(--danger)" title={t('selection.injured')} /></>}</td>
                   <td className="num muted">{p.age}</td>
                   <td><Stars ca={p.ca} /></td>
                   <td className="num">{(p.stats.acadApps ?? 0) + p.stats.apps}</td>

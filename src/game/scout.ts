@@ -119,7 +119,7 @@ export function weeklyScouting(state: GameState) {
       state.slAlerted.push(id)
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
-        subject: `🔔 Shortlist alert: ${p.name}`,
+        subject: `Shortlist alert: ${p.name}`,
         body: `The chief scout rings it in: ${p.name} (${p.pos}, ${state.clubs[p.clubId]?.short}) ${alert}`,
         k: 'news.shortlistAlert',
         v: { player: p.name, pos: p.pos, ...alertV, alert_k: alertKey! },

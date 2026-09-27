@@ -4,6 +4,7 @@ import { HEAL_SKU, bankReceipts, buyConsumable, claimHeld, creditCount, creditTa
 import { healReady } from '../game/grants'
 import { t } from '../game/i18n'
 import { endingText } from './purchase'
+import { Glyph } from './glyphs'
 
 /**
  * ---- FULL FITNESS, WHERE THE INJURIES ARE ----
@@ -96,7 +97,7 @@ export default function FullFitness({ compact }: { compact?: boolean }) {
   return (
     <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <span style={{ fontSize: 20, flexShrink: 0 }}>🏥</span>
+        <span className="row-ico" style={{ fontSize: 20 }}><Glyph name="medical" /></span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontWeight: 700, fontSize: 14 }}>{t('store.heal')}</div>
           {!compact && <div className="meta" style={{ marginTop: 1 }}>{t('store.healLine')}</div>}

@@ -8,6 +8,7 @@ import { nemesis, protegeLine } from '../../game/records'
 import { CHALLENGES } from '../../game/newgame'
 import { horizon, horizonPct } from '../../game/legacy'
 import { ord, t } from '../../game/i18n'
+import { Glyph } from '../glyphs'
 
 export default function Legacy() {
   const game = useStore(s => s.game)!
@@ -33,8 +34,8 @@ export default function Legacy() {
             went with the In-Game Editor (removed v1.1.3, never sold). */}
         {(game.licensed || game.uncapped) && (
           <div className="meta" style={{ marginTop: 3 }}>
-            {game.licensed && <span title={t('till.stampLicensed')}>🎓 </span>}
-            {game.uncapped && <span title={t('till.stampCharter')}>🖋 </span>}
+            {game.licensed && <span title={t('till.stampLicensed')}><Glyph name="academy" /> </span>}
+            {game.uncapped && <span title={t('till.stampCharter')}><Glyph name="pen" /> </span>}
             <span className="muted" style={{ fontSize: 12 }}>
               {[game.licensed && t('till.stampLicensed'), game.uncapped && t('till.stampCharter')].filter(Boolean).join(' · ')}
             </span>
@@ -211,7 +212,7 @@ export default function Legacy() {
                   <b style={{ color: 'var(--danger)' }}>{t('legacy.lgNemesis')}</b>{nem.line}
                 </div>
               )}
-              {prot && <div className="meta" style={{ marginTop: 6 }}>🎓 {prot}</div>}
+              {prot && <div className="meta" style={{ marginTop: 6 }}><Glyph name="academy" /> {prot}</div>}
             </div>
           </>
         )
@@ -240,7 +241,7 @@ export default function Legacy() {
         <div className="chips">
           {m.trophies.map((t, i) => (
             <span key={i} className="chip" style={{ borderColor: 'var(--gold)' }}>
-              🏆 <b>{game.comps[t.compId]?.name ?? t.compId}</b> {seasonLabel(t.season)}
+              <Glyph name="trophy" /> <b>{game.comps[t.compId]?.name ?? t.compId}</b> {seasonLabel(t.season)}
             </span>
           ))}
         </div>
@@ -267,7 +268,7 @@ export default function Legacy() {
                       {game.comps[f.leagueId]?.name ?? f.leagueId}
                       {cups.map((t, j) => (
                         <div key={j} style={{ color: 'var(--gold)', fontSize: 11, fontWeight: 700 }}>
-                          🏆 {game.comps[t.compId]?.name ?? t.compId}
+                          <Glyph name="trophy" /> {game.comps[t.compId]?.name ?? t.compId}
                         </div>
                       ))}
                     </td>

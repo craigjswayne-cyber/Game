@@ -32,6 +32,7 @@ import { sortTable } from '../../game/schedule'
 import { nationName } from '../../game/nations'
 import { kitColours, luma } from '../kit'
 import { IcoFastForward, IcoPause, IcoPeople, IcoPlay } from '../icons'
+import { Glyph } from '../glyphs'
 
 const WEATHER_ICON: Record<string, string> = { Dry: '☀️', Rain: '🌧️', Wind: '💨', Snow: '❄️' }
 
@@ -2734,8 +2735,8 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
       <div className="preset-row">
         {PRESETS.map(p => (
           <button key={p.id} className="preset-chip" title={t(p.desc)}
-            onClick={() => { applyPreset(p.values); setExplain(`${p.icon} ${t(p.name)}: ${t(p.desc)}`) }}>
-            {p.icon} {t(p.name)}
+            onClick={() => { applyPreset(p.values); setExplain(`${t(p.name)}: ${t(p.desc)}`) }}>
+            <Glyph name={p.icon} /> {t(p.name)}
           </button>
         ))}
       </div>
