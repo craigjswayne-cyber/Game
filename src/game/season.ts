@@ -13,6 +13,7 @@ import { offerResult, offerRun } from './records'
 import { rivalBeat } from './boss'
 import { auditCaps, refreshCaps } from './cap'
 import { commercialWeekly, expireDeals } from './commercial'
+import { book } from './books'
 import { AWARD_EVERY, managerOfMonth, runLine, runVars } from './awards'
 import { boardMemo } from './boardmemo'
 import { terraceWeek } from './terraces'
@@ -158,6 +159,7 @@ export function requestFacility(state: GameState, fid: FacilityId): string {
     state.boardGrant!.splice(granted, 1)
   } else {
     club.balance -= clubShare
+    book(state, 'works', -clubShare)
   }
   // the higher the rung, the longer the builders stay (buildWeeks in model.ts)
   const weeks = buildWeeks(lvl + 1)
@@ -274,6 +276,7 @@ export function requestExpansion(state: GameState): string {
     return t('reply.declined', { why_k: whyKey, pct: Math.round(fill * 100) })
   }
   club.balance -= cost
+  book(state, 'works', -cost)
   state.expandedSeason = state.season
   // THE SEATS ARRIVE WHEN THE STAND DOES (owner, v1.6.6). A yes used to put
   // them on the gate the same afternoon, which made the one project big enough
@@ -1430,15 +1433,22 @@ function weeklyFinance(state: GameState, rng: Rng) {
     return s + (p.loanFrom ? Math.round(p.wage * (p.loanShare ?? 0.5)) : p.wage)
   }, 0)
   club.balance -= wages
+  book(state, 'wages', -wages)
   // backroom staff wages - real salaries where a real man holds the job
-  club.balance -= staffWageBill(state)
+  const staffBill = staffWageBill(state)
+  club.balance -= staffBill
+  book(state, 'staff', -staffBill)
   // sponsorship, broadcast and the central-distribution top-up for a club whose
   // ground is smaller than its name (weeklyCentral documents why that top-up
   // exists and why it is shaped as a gap rather than a flat rise for everyone)
-  club.balance += weeklyCentral(club)
+  const central = weeklyCentral(club)
+  club.balance += central
+  book(state, 'central', central)
   // and the commercial department: whatever the three deals are worth this week,
   // clauses included. An empty slot pays nothing, which is the point of it (F30).
-  club.balance += commercialWeekly(state)
+  const deals = commercialWeekly(state)
+  club.balance += deals
+  book(state, 'deals', deals)
   // Gate receipts from this week's home fixture - A COMPETITIVE ONE.
   //
   // This line paid out on friendlies for as long as friendlies have existed,
@@ -1459,15 +1469,25 @@ function weeklyFinance(state: GameState, rng: Rng) {
   // maxed block lifts a £30 head to £36. operatingCost documents why this one
   // facility carries an extra weekly bill.
   const hosp = 1 + facLevel(state, 'hospitality') * 0.04
-  if (home?.att) club.balance += Math.round(home.att * 30 * hosp)
+  if (home?.att) {
+    const gate = Math.round(home.att * 30 * hosp)
+    club.balance += gate
+    book(state, 'gate', gate)
+  }
   // the club shop: replica shirts shift faster when the terraces are happy
   const shop = facLevel(state, 'shop')
-  if (shop > 0) club.balance += Math.round(shop * 9_000 * (0.6 + (state.fanMood ?? 60) / 100))
+  if (shop > 0) {
+    const takings = Math.round(shop * 9_000 * (0.6 + (state.fanMood ?? 60) / 100))
+    club.balance += takings
+    book(state, 'shop', takings)
+  }
   // running the place. A ground has to be heated, mown, stewarded and
   // insured 52 weeks a year, and every facility level is a building with
   // staff in it. This is what stops the estate being a free ratchet: going
   // from a good gym to a great one is a bill that never stops arriving.
-  club.balance -= operatingCost(state)
+  const running = operatingCost(state)
+  club.balance -= running
+  book(state, 'upkeep', -running)
   // weekly balance snapshot for the season chart
   ;(state.finHist ??= []).push({ w: state.week, b: club.balance })
   if (state.finHist.length > 50) state.finHist = state.finHist.slice(-50)

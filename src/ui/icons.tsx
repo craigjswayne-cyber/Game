@@ -181,3 +181,11 @@ export const IcoRecharge = () => (
     <path d="M11.8 9.5 9.5 12.3h3l-2.3 2.7" />
   </svg>
 )
+// The board's objectives on Finances (1.8.0): met, on course, not yet. They
+// were three emoji, and the owner will not have emoji in the game's UI.
+export const IcoTick = () => (
+  <svg viewBox="0 0 24 24" {...S} aria-hidden><circle cx="12" cy="12" r="8.5" /><path d="M8 12.4l2.7 2.7L16.2 9.6" /></svg>
+)
+export const IcoOpen = () => (
+  <svg viewBox="0 0 24 24" {...S} aria-hidden><rect x="4.5" y="4.5" width="15" height="15" rx="2.5" /></svg>
+)

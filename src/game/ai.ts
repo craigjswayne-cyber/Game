@@ -11,6 +11,7 @@ import { rivalsOf } from './rivalries'
 import { interestPremium, transferInterest } from './interest'
 import { playerValue, playerWage } from './attributes'
 import { clamp, mulberry32, pick, type Rng } from './rng'
+import { book } from './books'
 
 // ------------------------------------------------------------------
 // Transfer market
@@ -220,6 +221,8 @@ export function executeTransfer(state: GameState, p: Player, toClubId: string, f
     from.players = from.players.filter(id => id !== p.id)
     if (from.marquee) from.marquee = from.marquee.filter(id => id !== p.id)
     from.balance += fee
+    // the manager's balance sheet carries the fee as a line (books.ts)
+    if (from.id === state.userClubId) book(state, 'sales', fee)
     from.budget += Math.round(fee * 0.7)
     from.tactic.lineup = from.tactic.lineup.map(id => (id === p.id ? null : id))
     // the armband doesn't travel: reappoint leaders if he wore it
@@ -244,6 +247,7 @@ export function executeTransfer(state: GameState, p: Player, toClubId: string, f
   p.joker = undefined
   to.players.push(p.id)
   to.balance -= fee
+  if (to.id === state.userClubId) book(state, 'buys', -fee)
   to.budget = Math.max(0, to.budget - fee)
   p.clubId = toClubId
   p.morale = clamp(p.morale + 1, 1, 10)
@@ -610,6 +614,7 @@ export function signOnTerms(state: GameState, playerId: number, fee: number, wag
   executeTransfer(state, p, user.id, fee)
   p.wage = wage
   user.balance -= signOn
+  book(state, 'buys', -signOn)
   if (asMarquee && marqueeSlots > 0) user.marquee = [...(user.marquee ?? []), p.id]
   if (promiseMinutes) {
     ;(state.pledges ??= []).push({
