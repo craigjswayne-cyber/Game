@@ -259,6 +259,10 @@ export interface Units {
 }
 
 const avg = (ns: number[]) => ns.length ? ns.reduce((a, b) => a + b, 0) / ns.length : 8
+/** the blended units' world mean against the single-attribute ones they
+ *  replaced (scripts/_units measured over 321 sides, three seeds), so the
+ *  engine's calibration stands */
+const UNIT_NORM = { breakdown: 0.98818, attack: 1.02380, defence: 1.05597 }
 
 export function teamUnits(state: GameState, lineup: (number | null)[], day?: { fxId: number; big: boolean }): Units {
   const xv = lineup.slice(0, 15).map(id => (id != null ? state.players[id] : null))
@@ -294,13 +298,26 @@ export function teamUnits(state: GameState, lineup: (number | null)[], day?: { f
   const bk = [8, 9, 10, 11, 12, 13, 14]
   let scrum = avg([at(0, 'scr'), at(1, 'scr'), at(2, 'scr'), at(3, 'str'), at(4, 'str'), at(0, 'str'), at(2, 'str')])
   let lineout = avg([at(1, 'lin'), at(3, 'lin'), at(4, 'lin'), at(5, 'lin'), at(7, 'lin')])
-  let breakdown = avg(fw.map(i => at(i, 'ruc')))
+  // ---- NO ONE ATTRIBUTE IS A WHOLE UNIT (1.8.0, scripts/ladderprobe.ts) ----
+  // Measured: +2 tackling across a squad was worth 3.8 points a match, three
+  // times the third attribute, because the defence unit WAS tackling; rucking
+  // was the whole breakdown and came second. And decisions, agility and work
+  // rate were read by nothing in a match while counting towards the rating.
+  // So a defence is tackling, the reads (positioning) and getting back into
+  // the line (work rate); a breakdown is rucking and the strength to win the
+  // clear-out; an attack reads its half-backs' decisions and its backs'
+  // agility as well as their hands and legs. Each unit is then scaled by the
+  // world's measured mean (UNIT_NORM) so the game plays at the same level and
+  // only what each attribute is worth moves.
+  let breakdown = avg(fw.map(i => at(i, 'ruc') * 0.7 + at(i, 'str') * 0.3)) * UNIT_NORM.breakdown
   let attack = avg([
     ...bk.map(i => at(i, 'han')),
     at(9, 'vis') * 1.5, at(8, 'pas') * 1.3, at(11, 'pac'), at(12, 'pac'),
     at(10, 'pac'), at(13, 'pac'), at(14, 'pos'),
-  ])
-  let defence = avg([...fw.map(i => at(i, 'tac')), ...bk.map(i => at(i, 'tac')), at(14, 'pos') * 1.2])
+    at(8, 'dec'), at(9, 'dec') * 1.2, at(11, 'agi'), at(13, 'agi'), at(14, 'agi'),
+  ]) * UNIT_NORM.attack
+  const dman = (i: number) => at(i, 'tac') * 0.6 + at(i, 'pos') * 0.2 + at(i, 'wor') * 0.2
+  let defence = avg([...fw.map(dman), ...bk.map(dman), at(14, 'pos') * 1.2]) * UNIT_NORM.defence
   let kicking = avg([at(9, 'kic') * 1.6, at(8, 'kic'), at(14, 'kic')])
   // partnership chemistry: combinations that have played together click
   if (state.chem) {
@@ -1744,7 +1761,8 @@ const DEPICTS: Record<string, NonNullable<MatchEvent['fx']>> = {
  * on the ticker, which is the only clock anyone watching has. No draw.
  */
 function binUntil(ctx: LiveCtx, min: number): number {
-  return Math.max(min, ctx.detail ? ctx.lastMin : min) + 10
+  // the clock runs watched or not (clockTo), so the bin reads it either way
+  return Math.max(min, ctx.lastMin) + 10
 }
 
 function pushLine(
