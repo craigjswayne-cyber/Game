@@ -166,6 +166,39 @@ mental attributes can gate technical ones. Needs its own calibration round.
 - Not done, and why: the engine does not log missed drop goals, so only
   successful ones can be shown late in a game (an engine change, 1.8.1).
 
+### Owner feedback round 3, 27 Sep 2026 (all in 1.8.0, owner's call)
+
+Done by the lead:
+- Squad tables start with the name (the clipped Pkd column is gone);
+  contracts show a traffic light (red out of contract, amber ending next
+  summer or wanting terms, green all good) instead of a "?" column.
+- Leadership: a picker sheet ranked by leadership instead of native
+  selects that filled the phone screen.
+- A League: no badges in the fixture list; ranks under "#".
+- Three friendly dates, one line; the pundits' prediction on its own line.
+- The board's confidence joins the board room in Club Information.
+- Title screen disclaimer on two lines.
+- World rankings seeded from World Rugby's table of 21 Sep 2026.
+- Icons instead of emoji: menus, news, and every locale string outside the
+  features below (national flags stay: they are flags).
+
+In progress (parallel work, merged when each is checked):
+- Engine: missed drop goals; charge-downs (1 in 40 kicks from hand, 1 in
+  80 kicks a try to the chargers, otherwise lineout, scrum or a loose ball
+  at random); commentary from about 48 lines a match to 100-150.
+- Highlights: no caption; referee a pink circle (orange if a side wears
+  pink, cyan if both); players 20% bigger; the full-back kept in play.
+- Finances as a balance sheet (cash in the bank, transfer budget, wage
+  bill with red minus when over; no attendance); commercial deals as a
+  negotiated gamble, the sleeve a smaller deal.
+- Press room: a sentiment barometer that moves with results and answers.
+- Set Piece and Bench & Prep made visual.
+- Development plans open to every eligible player; mentoring moved into
+  the Team Report and redesigned.
+
+Owner to do: update the signing certificate for the change of ownership
+before the store release.
+
 ## 4. Decisions (owner, 27 Sep 2026)
 
 - **Scope: E1-E4 are 1.8.0; everything remaining is 1.8.1.**
