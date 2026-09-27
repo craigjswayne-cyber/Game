@@ -12,6 +12,7 @@ import { fmtMoney, fmtWage } from '../../game/model'
 import { NAT_TIERS, pickableNations, flagOf, nationName } from '../../game/nations'
 import { t } from '../../game/i18n'
 import { endingText } from '../purchase'
+import { Glyph } from '../glyphs'
 
 /**
  * THE STORE. One row per product, one line per row (owner, v1.1.4: "strip
@@ -59,7 +60,7 @@ function Row({ icon, title, line, right, msg, children, hero }: {
   return (
     <div className={`card${hero ? ' store-hero' : ''}`} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <span style={{ fontSize: hero ? 24 : 20, flexShrink: 0 }}>{icon}</span>
+        <span className="row-ico" style={{ fontSize: hero ? 24 : 20 }}><Glyph name={icon} /></span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontWeight: 700, fontSize: hero ? 16 : 14 }}>{title}</div>
           <div className="meta" style={{ marginTop: 1 }}>{line}</div>
@@ -394,20 +395,20 @@ export default function Supporter() {
 
   if (adsExist || ownsAds) {
     row('ads', ownsAds,
-      <Row hero icon="⭐" title={t('store.removeAds')} line={t('store.removeAdsLine')} msg={msgs[SUPPORTER_SKU]}
+      <Row hero icon="star" title={t('store.removeAds')} line={t('store.removeAdsLine')} msg={msgs[SUPPORTER_SKU]}
         right={ownsAds ? <OwnedChip /> : <BuyBtn sku={SUPPORTER_SKU} busy={isBusy(SUPPORTER_SKU)} onBuy={() => void buyNC(SUPPORTER_SKU)} />} />)
   }
 
   // the jar is never done: it takes another coin whenever anybody wants to
   row('support', false,
-      <Row icon="💛" title={t('store.support')} line={t('store.supportLine')} msg={msgs[SUPPORT_SKU]}
+      <Row icon="heart" title={t('store.support')} line={t('store.supportLine')} msg={msgs[SUPPORT_SKU]}
         right={<BuyBtn sku={SUPPORT_SKU} busy={isBusy(SUPPORT_SKU)} onBuy={() => void buySupport()} />}>
         {tips > 0 && <div className="meta muted">{t('store.supportThanks', { n: tips })}</div>}
       </Row>)
 
   // a heal is bought per match played, so the row always has a next time
   row('heal', false,
-      <Row icon="🏥" title={t('store.heal')} line={t('store.healLine')} msg={msgs[HEAL_SKU]}
+      <Row icon="medical" title={t('store.heal')} line={t('store.healLine')} msg={msgs[HEAL_SKU]}
         right={<BuyBtn sku={HEAL_SKU} busy={isBusy(HEAL_SKU)} onBuy={() => void buyHeal()}
           disabled={!!(inCareer && game && !healReady(game) && !healPending)} />}>
         {/* the standing line says WHEN it is back, before anybody taps
@@ -432,7 +433,7 @@ export default function Supporter() {
   // row shows the picker again whenever no national post is in hand, and only
   // counts as done when there is no door to walk through.
   row('pinnacle', ownsPinnacle && !canCall,
-      <Row icon="🌍" title={t('store.pinnacle')} line={t('store.pinnacleLine')} msg={msgs[PINNACLE_SKU]}
+      <Row icon="nations" title={t('store.pinnacle')} line={t('store.pinnacleLine')} msg={msgs[PINNACLE_SKU]}
         right={ownsPinnacle
           ? (canCall ? undefined : <OwnedChip />)
           : <BuyBtn sku={PINNACLE_SKU} busy={isBusy(PINNACLE_SKU)} onBuy={() => void buyNC(PINNACLE_SKU, () => {
@@ -471,7 +472,7 @@ export default function Supporter() {
   const canBuildFree = ownsEstate && inCareer && !!game && !builtHere && groundsBuilt === 0
   const needsRepeat = ownsEstate && inCareer && !!game && !builtHere && groundsBuilt > 0
   row('estate', ownsEstate && !canBuildFree && !needsRepeat,
-      <Row icon="🏗️" title={t('store.estate')} line={t('store.estateLine')} msg={msgs[ESTATE_SKU]}
+      <Row icon="build" title={t('store.estate')} line={t('store.estateLine')} msg={msgs[ESTATE_SKU]}
         right={!ownsEstate
           ? <BuyBtn sku={ESTATE_SKU} busy={isBusy(ESTATE_SKU)} onBuy={() => void buyNC(ESTATE_SKU)} />
           : needsRepeat
@@ -495,7 +496,7 @@ export default function Supporter() {
 
   // owned AND already applied to this career - an unapplied one still has a button
   row('charter', ownsCharter && !(inCareer && !!game && !game.uncapped),
-      <Row icon="🖋" title={t('store.charter')} line={t('store.charterLine')} msg={msgs[CHARTER_SKU]}
+      <Row icon="pen" title={t('store.charter')} line={t('store.charterLine')} msg={msgs[CHARTER_SKU]}
         right={ownsCharter ? <OwnedChip /> : <BuyBtn sku={CHARTER_SKU} busy={isBusy(CHARTER_SKU)} onBuy={() => void buyNC(CHARTER_SKU)} />}>
         {/* ALREADY PAID FOR MEANS ACTIVATE, NOT PAY AGAIN (owner, v1.1.13: "if
             they've paid for it previously and started a new game it should be
@@ -523,7 +524,7 @@ export default function Supporter() {
 
   // spent for the season across every tier - the well refills at the rollover
   row('funding', !!game && (Object.keys(INJECT_TIERS) as InjectTier[]).every(tr => injectionsLeft(game, tr) <= 0),
-      <Row icon="💰" title={t('store.funding')} line={t('store.fundingLine')}>
+      <Row icon="finances" title={t('store.funding')} line={t('store.fundingLine')}>
         {(Object.keys(INJECT_TIERS) as InjectTier[]).map(tier => {
           const sku = INJECT_SKUS[tier]
           const left = game ? injectionsLeft(game, tier) : INJECT_TIERS[tier].perSeason

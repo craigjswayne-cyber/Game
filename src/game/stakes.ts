@@ -198,6 +198,7 @@ export function matchStakes(state: GameState, fx: Fixture): string | null {
  * Anticipation needs dates. Everything here already fires on schedule somewhere
  * in the engine; the player has simply never been able to see it coming.
  */
+/** `icon` is a glyphs.tsx name, not an emoji */
 export interface Tentpole { week: number; icon: string; label: string }
 
 export function seasonTentpoles(state: GameState): Tentpole[] {
@@ -205,16 +206,16 @@ export function seasonTentpoles(state: GameState): Tentpole[] {
   const out: Tentpole[] = []
   for (const fx of state.fixtures) {
     if (fx.homeId !== uid && fx.awayId !== uid) continue
-    if (fx.derby) out.push({ week: fx.week, icon: '🔥', label: t('stakes.tpDerby', { club: state.clubs[fx.homeId === uid ? fx.awayId : fx.homeId]?.short ?? '' }) })
-    if (fx.stage === 'F') out.push({ week: fx.week, icon: '🏆', label: t('stakes.tpFinal') })
-    else if (fx.stage === 'SF') out.push({ week: fx.week, icon: '🏆', label: t('stakes.tpSemi') })
+    if (fx.derby) out.push({ week: fx.week, icon: 'derby', label: t('stakes.tpDerby', { club: state.clubs[fx.homeId === uid ? fx.awayId : fx.homeId]?.short ?? '' }) })
+    if (fx.stage === 'F') out.push({ week: fx.week, icon: 'trophy', label: t('stakes.tpFinal') })
+    else if (fx.stage === 'SF') out.push({ week: fx.week, icon: 'trophy', label: t('stakes.tpSemi') })
   }
   // the fixed furniture of a season
-  out.push({ week: 7, icon: '📝', label: t('stakes.tpDeadline') })
-  out.push({ week: 24, icon: '🏛', label: t('stakes.tpHalfTerm') })
-  out.push({ week: 27, icon: '📝', label: t('stakes.tpMidDeadline') })
-  out.push({ week: 30, icon: '🎓', label: t('stakes.tpAcademyPreview') })
-  out.push({ week: 44, icon: '🎓', label: t('stakes.tpIntake') })
+  out.push({ week: 7, icon: 'contract', label: t('stakes.tpDeadline') })
+  out.push({ week: 24, icon: 'board', label: t('stakes.tpHalfTerm') })
+  out.push({ week: 27, icon: 'contract', label: t('stakes.tpMidDeadline') })
+  out.push({ week: 30, icon: 'academy', label: t('stakes.tpAcademyPreview') })
+  out.push({ week: 44, icon: 'academy', label: t('stakes.tpIntake') })
   out.sort((a, b) => a.week - b.week)
   // one entry per week, the most interesting kept: a derby beats the calendar
   // `tp`, not `t`: t() is the translator

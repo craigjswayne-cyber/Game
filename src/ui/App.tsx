@@ -133,7 +133,7 @@ function Celebration() {
         }} />
       ))}
       <div className="celebrate-box">
-        <div style={{ fontSize: 64, lineHeight: 1 }}>{cel.icon}</div>
+        <div className="celebrate-ico"><Glyph name={cel.icon} /></div>
         {/* THE KEYS, and the English only when a save predates them. This was
             filed English-only and rendered raw, so the biggest moment the game
             has - promotion, a title, an unbeaten season - arrived in English
@@ -202,7 +202,7 @@ function Sacked() {
     <div className="sack-veil">
       <div className="sack-box">
         <div className="sack-flash">{t('sack.breaking')}</div>
-        <div style={{ fontSize: 52, lineHeight: 1, margin: '6px 0 10px' }}>📺</div>
+        <div className="sack-ico"><Glyph name="tv" /></div>
         <h1 className="sack-head">{t('sack.head', { club: sk.club })}</h1>
         {/* the board's own letter, in the manager's own language */}
         <div className="sack-body">{t(sk.k, sk.v)}</div>

@@ -22,7 +22,7 @@ import { AdSlot } from '../AdSlot'
 import { tillOpen } from '../../game/monetise'
 import { userWageBudget } from '../../game/grants'
 import { natWindow, weeksToSquad } from '../../game/country'
-import { newsGlyph } from '../glyphs'
+import { Glyph, newsGlyph } from '../glyphs'
 
 
 export default function Home() {
@@ -357,7 +357,7 @@ export default function Home() {
             <div className="meta" style={{ display: 'flex', flexWrap: 'wrap', gap: '2px 14px', marginTop: 2 }}>
               {soon.map(tp => (
                 <span key={`${tp.week}-${tp.label}`}>
-                  {tp.icon} {tp.label}
+                  <Glyph name={tp.icon} /> {tp.label}
                   <b style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>
                     {tp.week === game.week ? t('home.tentpoleThisWeek') : t('home.tentpoleIn', { n: tp.week - game.week })}
                   </b>
@@ -466,8 +466,10 @@ export default function Home() {
           <label>{t('home.wFans')}</label>
           {(() => {
             const m = game.fanMood ?? 60
-            const word = m >= 80 ? '🔥' : m >= 62 ? '😊' : m >= 45 ? '😐' : m >= 30 ? '😠' : '🤬'
-            return <b>{word}</b>
+            // a coloured light, not a face (owner, 27 Sep 2026: icons, not
+            // emoji); the word under it says what the light means
+            const c = m >= 62 ? 'var(--positive)' : m >= 45 ? 'var(--gold)' : 'var(--danger)'
+            return <b><span className="status-dot mood-dot" style={{ background: c }} /></b>
           })()}
           <span>{(() => {
             const m = game.fanMood ?? 60

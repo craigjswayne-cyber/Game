@@ -118,7 +118,7 @@ function OnesToWatch({ leagueId }: { leagueId: string }) {
         {kids.map(p => (
           <tr key={p.id} onClick={() => go('player', p.id)}>
             <td className="num">{p.age}</td>
-            <td className="name">🌟 {p.name}
+            <td className="name">{p.name}
               <span className="muted"> ({p.pos} · {p.clubId ? <ClubLink g={game} clubId={p.clubId}>{teamShort(game, p.clubId)}</ClubLink> : t('world.dtFreeAgent')})</span>
             </td>
             <td className="num muted">{p.nat}</td>

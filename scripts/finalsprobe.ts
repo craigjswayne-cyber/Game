@@ -54,7 +54,7 @@ for (let s = 0; s < 2; s++) {
         captured.push({ season: startSeason, fx: { ...f } })
       }
     }
-    const a = g2.news.find(n => n.season === startSeason && n.subject.startsWith('🏟️ FINALS WEEKEND'))
+    const a = g2.news.find(n => n.season === startSeason && n.subject.startsWith('FINALS WEEKEND'))
     if (a && !announcements.some(x => x.season === startSeason)) {
       announcements.push({ season: startSeason, week: a.week })
     }
