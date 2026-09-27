@@ -1120,7 +1120,6 @@
     "squadTitle": "Groupe du match : faire un remplacement",
     "stCards": "Cartons",
     "stEnergy": "Énergie restante",
-    "stPens": "Pénalités passées",
     "stPossession": "Possession",
     "stTries": "Essais",
     "stakes": "L'enjeu",
@@ -1273,6 +1272,8 @@
     "pressureTitle": "À quel point chaque équipe menace en ce moment - ça monte pendant un temps fort et retombe quand rien n'en sort",
     "stTerritory": "Territoire",
     "st22": "Entrées dans les 22",
+    "stPerVisit": "Points par entrée dans les 22",
+    "stGoalKicks": "Coups de pied au but",
     "liveStats": "Stats en direct"
   },
   "tacticsScreen": {

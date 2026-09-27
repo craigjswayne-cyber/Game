@@ -144,9 +144,18 @@ try {
       if (!ev || !row) continue
       const shown = now.ctx.events.slice(0, now.cursor).filter(e => e.fld != null)
       const mean = shown.length ? shown.reduce((a, e) => a + e.fld, 0) / shown.length : 50
+      // and the scoring rows read the ticker, not the engine a tick ahead:
+      // the tries and kicks on the stats must add up to the scoreboard
+      const byLabel = l => [...document.querySelectorAll('.live-stats .ls-row')].find(r => r.querySelector('.ls-label')?.textContent === l)
+      const two = r => [...r.querySelectorAll(':scope > b')].map(b => b.textContent)
+      const tries = two(byLabel('Tries')).map(Number)
+      const kicks = two(byLabel('Kicks at goal')).map(x => x.split('/').map(Number))
+      const score = [ev.homeScore ?? 0, ev.awayScore ?? 0]
+      const adds = [0, 1].every(i => { const kp = score[i] - 5 * tries[i]; return kicks[i][0] <= kicks[i][1] && kp >= 2 * kicks[i][0] && kp <= 3 * kicks[i][0] })
       out.push({
         home: parseInt(row.querySelector('b').textContent), away: parseInt(row.querySelectorAll('b')[1].textContent),
         want: Math.round(mean), fld: ev.fld ?? null, type: ev.type, fx: ev.fx ?? null,
+        adds, sheet: `${score.join('-')} tries ${tries.join('-')} kicks ${kicks.map(k => k.join('/')).join(' ')}`,
       })
     }
     return out
@@ -161,6 +170,8 @@ try {
   // side of halfway, which swung to 0 and 100 on a handful of early lines.
   const wrong = samples.filter(s => s.home !== s.want || s.home + s.away !== 100)
   ok(wrong.length === 0, `territory on screen IS the mean field position, every line (${wrong.length} wrong${wrong[0] ? `, e.g. ${JSON.stringify(wrong[0])}` : ''})`)
+  const ahead = samples.filter(s => !s.adds)
+  ok(ahead.length === 0, `the tries and kicks on the stats add up to the scoreboard on every line (${ahead.length} that did not${ahead[0] ? `, e.g. ${ahead[0].sheet}` : ''})`)
   const late = samples.slice(Math.floor(samples.length / 2))
   ok(late.every(s => s.home >= 10 && s.home <= 90), 'and by the second half of the drive it reads like rugby, not 0% or 100%')
   const steps = samples.slice(1).map((s, i) => Math.abs(s.home - samples[i].home))

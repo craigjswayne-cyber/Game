@@ -855,6 +855,11 @@ export interface SideCtx {
    *  been on since the kick-off). Only the in-match player sheet reads it, to
    *  share a side's tackles by the minutes each man has been out there. */
   onAt?: Map<number, number>
+  /** KICKS AT GOAL (1.8.0): conversions, penalties and drop goals taken and
+   *  put over. Counted, never drawn, so they cannot move the stream; they are
+   *  what lets a side that dominated and lost see that it missed five kicks. */
+  kicksAt?: number
+  kicksMade?: number
   /** TACKLES MADE AND MISSED, by player (1.8.0, countTackles). */
   tackles?: Map<number, number>
   missed?: Map<number, number>
@@ -1569,6 +1574,12 @@ export interface LiveCtx {
    *  every watched match a different match from the same fixture played
    *  silently (scripts/detailprobe.ts: 0 of 120 alike before this). */
   crng: Rng
+  /** EVERY KICK AT GOAL, in the order of the commentary (1.8.0): [the index
+   *  of the line it belongs to, 0 home / 1 away, 1 made / 0 missed]. The
+   *  engine runs a tick ahead of the ticker, so the live stats count only
+   *  the kicks whose line has been shown; reading the side's totals put a
+   *  kick on the screen before the ticker had taken it. */
+  kickLog?: [number, 0 | 1, 0 | 1][]
   detail: boolean
   weather: Weather
   derby: boolean
@@ -2322,12 +2333,21 @@ function kickChance(state: GameState, kicker: Player | null, base: number, div: 
   return clamp(skill + formF + confF - goalPenalty + side.goalBonus + traitB, floor, 0.90)
 }
 
+/** Count a kick at goal on the side, and log it against the commentary. */
+function noteKick(ctx: LiveCtx, side: SideCtx, made: boolean) {
+  side.kicksAt = (side.kicksAt ?? 0) + 1
+  if (made) side.kicksMade = (side.kicksMade ?? 0) + 1
+  if (ctx.detail) (ctx.kickLog ??= []).push([ctx.events.length, side === ctx.home ? 0 : 1, made ? 1 : 0])
+}
+
 /** Take the three points: roll the kick at goal. */
 function takePenaltyShot(state: GameState, ctx: LiveCtx, side: SideCtx, min: number) {
   const { rng, detail, goalPenalty } = ctx
   const kicker = side.units.kickerId != null ? state.players[side.units.kickerId] : null
   const pPen = kickChance(state, kicker, 0.53, 54, ctx.goalPenalty ?? 0, side)
-  if (rng() < pPen) {
+  const penOver = rng() < pPen
+  noteKick(ctx, side, penOver)
+  if (penOver) {
     side.score += 3
     side.pens += 1
     if (kicker) {
@@ -2466,7 +2486,9 @@ function scoreTry(
   }
   const kicker = side.units.kickerId != null ? state.players[side.units.kickerId] : null
   const pCon = kickChance(state, kicker, 0.495, 54, goalPenalty, side)
-  if (rng() < pCon) {
+  const conOver = rng() < pCon
+  noteKick(ctx, side, conOver)
+  if (conOver) {
     side.score += 2
     if (kicker) { kicker.stats.cons += 1; kicker.stats.points += 2 }
     // A TRY UNDER THE POSTS IS NOT CONVERTED FROM THE TOUCHLINE (1.6.3). The
@@ -3323,7 +3345,9 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       }
     } else if (r < pTry + penWindow + 0.006) {
       const fh = side.lineup[9] != null ? state.players[side.lineup[9]!] : null
-      if (fh && rng() < 0.3 + fh.a.kic / 40) {
+      const dgOver = !!fh && rng() < 0.3 + fh.a.kic / 40
+      if (fh) noteKick(ctx, side, dgOver)
+      if (dgOver && fh) {
         ctx.field = ctx.field * 0.6 + 50 * 0.4
         side.score += 3
         fh.stats.drops += 1; fh.stats.points += 3
@@ -4221,6 +4245,8 @@ export function matchStats(ctx: LiveCtx) {
     lineoutsWon: [hlw, alw] as [number, number],
     lineoutsLost: [hll, all_] as [number, number],
     tackles: [tackles(ctx.home), tackles(ctx.away)] as [number, number],
+    /** [made, taken] for each side: conversions, penalties and drop goals */
+    goalKicks: [[ctx.home.kicksMade ?? 0, ctx.home.kicksAt ?? 0], [ctx.away.kicksMade ?? 0, ctx.away.kicksAt ?? 0]] as [[number, number], [number, number]],
   }
 }
 

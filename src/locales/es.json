@@ -1114,7 +1114,6 @@
   "squadTitle": "Convocatoria: haz una sustitución",
   "stCards": "Tarjetas",
   "stEnergy": "Energía restante",
-  "stPens": "Golpes de castigo",
   "stPossession": "Posesión",
   "stTries": "Ensayos",
   "stakes": "Lo que hay en juego",
@@ -1258,6 +1257,8 @@
   "pressureTitle": "Cuánto está amenazando cada equipo ahora mismo: sube durante un arreón y baja cuando no sale nada de él",
   "stTerritory": "Territorio",
   "st22": "Entradas en la 22",
+  "stPerVisit": "Puntos por entrada en la 22",
+  "stGoalKicks": "Patadas a palos",
   "liveStats": "Estadísticas en directo"
  },
  "tacticsScreen": {

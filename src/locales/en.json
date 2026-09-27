@@ -1116,7 +1116,6 @@
   "squadTitle": "Match-day squad: make a substitution",
   "stCards": "Cards",
   "stEnergy": "Energy left",
-  "stPens": "Penalty goals",
   "stPossession": "Possession",
   "stTries": "Tries",
   "stakes": "The Stakes",
@@ -1278,6 +1277,8 @@
   "pressureTitle": "How much either side is threatening right now - it builds through a spell and fades when nothing comes of it",
   "stTerritory": "Territory",
   "st22": "22 visits",
+  "stPerVisit": "Points per 22 visit",
+  "stGoalKicks": "Kicks at goal",
   "liveStats": "Live stats"
  },
  "tacticsScreen": {
