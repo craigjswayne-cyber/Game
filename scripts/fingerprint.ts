@@ -445,8 +445,10 @@ const EXPECTED: string[] = [
   // to the world's old mean so the level holds (bandcheck: 50.6 points, 6.47
   // tries over 4,068 games). Same rolls, different thresholds: two of six
   // moved, sale-bristol and harlequins-leicester.
+  // and the scrum wins penalties (penWindow x scrumEdge, reciprocal): one
+  // of six moved, exeter-gloucester. Bands after: 50.7 pts, 6.48 tries.
   'saracens 27-30 bath',
-  'exeter 27-18 gloucester',
+  'exeter 34-9 gloucester',
   'sale 55-13 bristol',
   'harlequins 43-20 leicester',
   'newcastle 17-38 northampton',
