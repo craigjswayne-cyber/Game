@@ -588,6 +588,13 @@ export interface Club {
   /** how many head coaches this club has been through, so the next man's ideas
    *  are drawn afresh rather than inherited */
   coachGen?: number
+  /** THE PLAN FOR YOU (1.8.0, E9, oppcoach.ts setUpForUser): set the week
+   *  this club plays the manager, when it respects him, and undone the week
+   *  after. `base` is the club's own dials to put back, `ph` the philosophy
+   *  they belong to (a new coach in the meantime keeps his own), `r` how much
+   *  respect, `unit` the weakness it goes after. Absent on most weeks and on
+   *  every save written before it. */
+  vsUser?: { ph: string; base: Pick<Tactic, 'style' | 'tempo' | 'kicking' | 'aggression' | 'defLine' | 'defWidth' | 'kickStyle' | 'ruckContest'>; r: number; unit?: string }
   /** set-piece routines: how well drilled, and how well known */
   playbook?: Playbook
   /** bricks and mortar: levels 0-5 per facility, set from the club's standing */

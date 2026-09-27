@@ -39,6 +39,7 @@ import { facLevel, XV_SLOTS } from './model'
 // redeclared so the two calendars can never drift apart.
 import { LEAGUE_WEEKS } from './schedule'
 import { buildPlayer } from './attributes'
+import { gapGrowth } from './ageing'
 import { regenName, worldNames } from './nations'
 
 /** A senior squad is 38. An academy is 27: a XV, a bench, and cover for the
@@ -400,7 +401,8 @@ function playAcad(state: GameState, fx: AcadFixture, rng: Rng) {
       p.form = clamp(p.form + (won ? 0.35 : -0.2), 1, 10)
       // minutes make players. Ceiling-aware, so a limited lad does not become a
       // Test player by playing thirty A League games.
-      if (p.ca < p.pa && rng() < 0.16 + coach * 0.035) p.ca = Math.min(p.pa, p.ca + 1)
+      // the gap to his potential sets the pace here too (E5, ageing.ts gapGrowth)
+      if (p.ca < p.pa && rng() < (0.16 + coach * 0.035) * gapGrowth(p.ca, p.pa)) p.ca = Math.min(p.pa, p.ca + 1)
       // and playing beats not playing: an academy man in the side is a happy one
       if (p.morale < 7.5) p.morale = clamp(p.morale + 0.12, 1, 10)
     }

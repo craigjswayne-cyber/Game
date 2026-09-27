@@ -26,7 +26,7 @@ import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice } from './ai'
 import { OFFICE_OUTLET, PRESS_KEEP_WEEKS, generatePress } from './media'
 import { debtWeek } from './treasury'
 import { generateGossip } from './gossip'
-import { buildPlayer, playerValue, playerWage, peekPid, resetIds } from './attributes'
+import { benchDrag, buildPlayer, playerValue, playerWage, peekPid, resetIds } from './attributes'
 import { recruitmentMeeting, scoutOpponent, weeklyScouting } from './scout'
 import { recordTendency } from './tendency'
 import { disciplineWeek } from './authority'
@@ -38,9 +38,10 @@ import { isMyClub, logDecision } from './model'
 import { resolveCourses, staffWageBill } from './staff'
 import { resolveCommission, scoutPostcard } from './commission'
 import { clamp, mulberry32, shuffled, type Rng } from './rng'
-import { trainPoint } from './ageing'
+import { attrOdds, attrRoll, gapGrowth, trainPoint } from './ageing'
 import { gameTimeReview, settleGameTime } from './gametime'
 import { rebuildSeason, rollIntakeClass } from './rollover'
+import { setUpForUser } from './oppcoach'
 import { drillWeek } from './playbook'
 import { settleJokers } from './joker'
 import { settleKnocks } from './knock'
@@ -1031,7 +1032,8 @@ export function rollPlan(state: GameState, p: Player, rng: Rng): boolean {
   // paid for elsewhere the same week (ageing.ts trainPoint)
   if (rng() >= 0.011 * (1 + coachLvl * 0.5 + facLevel(state, 'paddock') * 0.2) * ageF) return false
   let moved = false
-  for (const k of FOCUS_ATTRS[plan]) moved = trainPoint(p, k, FOCUS_ATTRS[plan]) || moved
+  const abs = absWeek(state.season, state.week)
+  for (const k of FOCUS_ATTRS[plan]) moved = trainPoint(p, k, FOCUS_ATTRS[plan], attrRoll(state.seed, p.id, abs, k)) || moved
   return moved
 }
 
@@ -1266,7 +1268,8 @@ function weeklyTraining(state: GameState, rng: Rng) {
       const surfBoost = 0.88 + (club.facilities?.pitch ?? 0) * 0.048
       const growBoost = (isUser ? 1 + state.staff.assistant * 0.25 : 1) * surfBoost
       const eliteF = p.ca >= 94 ? 0.15 : p.ca >= 88 ? 0.5 : 1
-      if (p.age <= 24 && p.ca < p.pa && rng() < 0.06 * growBoost * eliteF) p.ca += 1
+      // and the gap to his potential is the pace (E5, ageing.ts gapGrowth)
+      if (p.age <= 24 && p.ca < p.pa && rng() < 0.06 * growBoost * eliteF * gapGrowth(p.ca, p.pa)) p.ca += 1
       // a man on a personal plan works his own programme this week (18A);
       // everyone else takes the squad session
       if (isUser && activePlan(state, p.id)) {
@@ -1277,7 +1280,8 @@ function weeklyTraining(state: GameState, rng: Rng) {
         // 0.008, was 0.03, for the same reason as rollPlan's rate: the whole
         // squad took ten attribute points a season from the session
         if (rng() < 0.008 * (1 + state.staff.assistant * 0.5 + coachLvl * 0.45 + facLevel(state, 'paddock') * 0.2)) {
-          for (const k of focusMap[state.training]) trainPoint(p, k, focusMap[state.training])
+          const abs = absWeek(state.season, state.week)
+          for (const k of focusMap[state.training]) trainPoint(p, k, focusMap[state.training], attrRoll(state.seed, p.id, abs, k))
         }
       }
       // Morale drift, made conditional (v1.1.4, owner: "make morale genuinely
@@ -1298,7 +1302,8 @@ function weeklyTraining(state: GameState, rng: Rng) {
         p.morale += (target - p.morale) * (p.morale < target ? 0.035 : 0.06)
         const frozen = !played && (p.lastWk ?? -9) < state.week - 3 && !p.injury && !p.acad && !p.natSquad && p.stats.apps + 3 < state.week
         if (played) p.morale = clamp(p.morale + 0.1, 1, 10)
-        else if (frozen) p.morale = clamp(p.morale - (p.pers === 'Mercenary' || p.pers === 'Ambitious' ? 0.35 : 0.2), 1, 10)
+        // a professional takes being left out better (E7, attributes.ts benchDrag)
+        else if (frozen) p.morale = clamp(p.morale - (p.pers === 'Mercenary' || p.pers === 'Ambitious' ? 0.35 : 0.2 * benchDrag(p)), 1, 10)
       }
       // an unresolved contract demand sours by the week
       if (isUser && (p.wantsDeal ?? 0) > 0) {
@@ -1330,7 +1335,8 @@ function weeklyTraining(state: GameState, rng: Rng) {
       if (isUser && p.acad && rng() < 0.025 + state.staff.academyCoach * 0.025) {
         const keys = Object.keys(p.a) as (keyof Player['a'])[]
         const k = keys[Math.floor(rng() * keys.length)]
-        p.a[k] = clamp(p.a[k] + 1, 1, 20)
+        // the last points are the hardest (E6, ageing.ts attrOdds)
+        if (attrRoll(state.seed, p.id, absWeek(state.season, state.week), k) < attrOdds(p.a[k])) p.a[k] = clamp(p.a[k] + 1, 1, 20)
       }
       if (isUser && state.staff.physio > 0) p.cond = clamp(p.cond + state.staff.physio * 3, 20, 100)
       // the medical room earns its money: injured men can come back early
@@ -4178,7 +4184,8 @@ If you go, your assistant takes your national side for the duration. Nobody prep
         if (rng() < 0.6) {
           const keys = Object.keys(p.a) as (keyof typeof p.a)[]
           const k = keys[Math.floor(rng() * keys.length)]
-          p.a[k] = clamp(p.a[k] + 1, 1, 20)
+          // the last points are the hardest (E6, ageing.ts attrOdds)
+          if (attrRoll(state.seed, p.id, absWeek(state.season, state.week), k) < attrOdds(p.a[k])) p.a[k] = clamp(p.a[k] + 1, 1, 20)
         }
       }
     }
@@ -4303,6 +4310,11 @@ If you go, your assistant takes your national side for the duration. Nobody prep
   // to sit above the advance, which let the season rollover file its honours,
   // retirements and expiries on top of a list that had already been cut
   if (state.news.length > NEWS_KEEP) state.news = state.news.slice(-NEWS_KEEP)
+
+  // the new week's opponent decides how it sets up for you, and last week's
+  // takes its plan off (E9, oppcoach.ts setUpForUser): after the advance, so
+  // it is the fixture the manager is about to prepare for
+  setUpForUser(state, userFixtureThisWeek(state))
 
   // (derby build-up now lives in the pre-advance block above, with the
   // all-time ledger - the old duplicate beat here was removed)

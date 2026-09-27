@@ -947,6 +947,15 @@ function Preview({ fxId }: { fxId: number }) {
                           <b>{t(ph.name)}.</b> {t(ph.blurb)}
                         </div>
                         <div className="meta muted">{dialLine(oppClub.tactic)}</div>
+                        {/* THEY RESPECT YOU NOW (1.8.0, E9): the dials above are
+                            already this week's plan for you (oppcoach.ts
+                            setUpForUser); this says why, and what it goes after */}
+                        {oppClub.vsUser && (
+                          <div className="meta respect-line">
+                            <b>{t('matchday.respectLine')}</b>
+                            {oppClub.vsUser.unit && <> {t(`matchday.respectAt_${oppClub.vsUser.unit}`)}</>}
+                          </div>
+                        )}
                         {suite >= 1 && (
                           <div className="meta" style={{ marginTop: 4 }}>
                             <b>{t('matchday.theAngle')}</b> {t(ph.soft)}
