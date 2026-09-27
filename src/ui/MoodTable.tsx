@@ -3,7 +3,7 @@ import { persName, t } from '../game/i18n'
 import { persKnown } from '../game/scout'
 
 /**
- * ---- HOW THE ROOM FEELS, BEFORE YOU SPEAK TO IT (PRM27) ----
+ * ---- HOW THE ROOM FEELS, BEFORE YOU SPEAK TO IT (1.8.0) ----
  *
  * The classic manager game puts the whole matchday squad in front of you
  * before the team talk: every name, what kind of person they are and how they

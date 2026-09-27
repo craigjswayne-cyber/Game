@@ -1132,7 +1132,7 @@ function Preview({ fxId }: { fxId: number }) {
                   buried and nobody found it. This modal is the last thing before
                   the tunnel and has nothing above it. */}
               <ViewPicker view={view} onPick={setView} />
-              {/* the room before you speak to it (PRM27) */}
+              {/* the room before you speak to it (1.8.0) */}
               <details className="mood-fold">
                 <summary>{t('mood.room')}</summary>
                 <MoodTable game={game} lineup={tac.lineup} />
@@ -2138,7 +2138,7 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
           <i />
         </div>
       )}
-      {/* THE OFFICIALS (PRM27). The classic top-down view draws the referee and
+      {/* THE OFFICIALS (1.8.0). The classic top-down view draws the referee and
           the touch judges as their own markers: the referee a few metres off
           the ball, a touch judge on each touchline level with play. They move
           on the same glide as the players and never wobble. */}
@@ -2697,7 +2697,7 @@ function Live() {
               setSheet(true)
             }}>👥 <span className="ctrl-cap">{t('matchday.squadBtn')}</span></button>
         )}
-        {/* the match menu (PRM27): line-ups, the room, who did what, where
+        {/* the match menu (1.8.0): line-ups, the room, who did what, where
             it has been played, the 22 - paused while you read it */}
         <button className="btn ghost" style={{ flex: '0 0 46px' }}
           title={t('mpanel.open')} aria-label={t('mpanel.open')}
@@ -2712,7 +2712,7 @@ function Live() {
           background, that takes up whatever a tall phone has spare. */}
       {!panelActive && (
         <div className="now-strip">
-          {/* the touchline at a glance (PRM27): replacements left and how you
+          {/* the touchline at a glance (1.8.0): replacements left and how you
               are kicking, the two things a manager changes mid-match */}
           <div className="match-status">
             <span>⇄ {t('mstatus.subs', { left: MAX_SUBS - ctx.subsUsed, max: MAX_SUBS })}</span>

@@ -15,7 +15,7 @@ the first thing a reviewer sees.
 
 | Field | Value |
 |---|---|
-| App name | PHASE: Rugby Manager 27 |
+| App name | PHASE: Rugby Manager |
 | Package / bundle id | `com.phaserugbymanager.app` |
 | Category | Games → Sports (Play), Games → Sports / Simulation (App Store) |
 | Price | free, with in-app purchases (decided 27 Aug: the free edition, not paid up front - see `docs/monetisation.md`) |
@@ -32,9 +32,9 @@ the first thing a reviewer sees.
 ### Title (30 max)
 
 ```
-PHASE: Rugby Manager 27
+PHASE: Rugby Manager
 ```
-*(23)*
+*(20)*
 
 ### Short description (80 max)
 
@@ -48,7 +48,7 @@ Take a club from the bottom to the top. A deep, offline rugby union manager.
 ```
 Pick a club. Pick a side. Live with it.
 
-PHASE: Rugby Manager 27 is a management game in the tradition of the great
+PHASE: Rugby Manager is a management game in the tradition of the great
 text-driven sims: dense squad tables, real decisions every week, and a career
 that remembers what you did in season one when you get to season fifteen.
 
@@ -118,7 +118,7 @@ BUILT FOR A PHONE
   is yours to keep.
 • English, French, Spanish, Italian, Japanese and Afrikaans.
 
-PHASE: Rugby Manager 27 is an unofficial, independent game. Club names are real;
+PHASE: Rugby Manager is an unofficial, independent game. Club names are real;
 competitions, grounds and sponsors are renamed or invented. Player names are
 real, used to identify people in a sporting database and for nothing else. The
 game is not affiliated with, endorsed by or licensed by any player, club, league
@@ -147,34 +147,32 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
-### What's new (500 max) - v1.8.0, Play version code 41 (PRM27; 1.7.4 and the 1.8.1 match view folded in)
+### What's new (500 max) - v1.8.0, Play version code 41 (1.7.4 and the planned 1.8.1 folded in)
 
-The new name, PHASE: Rugby Manager 27, with its opening titles; tablet mode;
-the match view rebuilt on a glide with overlays, condition rings, larger
-commentary and the match menu; the depth from the FM26 mobile screens (mood
-of the room, a club card by the news, player search filters and views); kicks
-at goal from the opposition half only; more humour. If 1.8.0 ships without
-the match view work, drop "every player glides ... match menu" and keep the
-rest.
+Opening titles; tablet and iPad layouts; the match view rebuilt on a glide
+with overlays, condition rings, larger commentary and the match menu; the
+depth from the FM26 mobile screens (mood of the room, a club card by the
+news, player search filters and views); kicks at goal from the opposition
+half only; more humour. The name stays PHASE: Rugby Manager.
 
 ```
 <en-GB>
-Now PHASE: Rugby Manager 27, with a five-second opening. Plays on tablets, using the whole screen. The match: every player glides and keeps moving like the classic top-down games, gainline and offside lines, condition rings, bigger commentary, and a match menu with line-ups, mood and territory. Kicks at goal only from the other half. Team talks show the room's mood, player search has filters, and there are more fun stories.
+A new five-second opening, and the game now plays on tablets and iPad, using the whole screen. The match: every player glides and keeps moving like the classic top-down games, gainline and offside lines, condition rings, bigger commentary, and a match menu with line-ups, mood and territory. Kicks at goal only from the other half. Team talks show the room's mood, player search has filters, and there are more fun stories.
 </en-GB>
 <fr-FR>
-Voici PHASE: Rugby Manager 27, avec un générique de cinq secondes. Jouable sur tablette, en plein écran. Le match : chaque joueur glisse sans s'arrêter, lignes d'avantage et de hors-jeu, anneaux de fraîcheur, commentaire plus grand, menu de match. Pénalités tentées seulement dans le camp adverse. Causerie avec l'humeur du vestiaire, recherche avec filtres, et plus d'humour.
+Un nouveau générique de cinq secondes, et le jeu se joue désormais sur tablette et iPad, en plein écran. Le match : chaque joueur glisse sans s'arrêter, lignes d'avantage et de hors-jeu, anneaux de fraîcheur, commentaire plus grand, menu de match. Pénalités tentées seulement dans le camp adverse. Causerie avec l'humeur du vestiaire, recherche avec filtres, et plus d'humour.
 </fr-FR>
 <es-ES>
-Ahora es PHASE: Rugby Manager 27, con una intro de cinco segundos. Se juega en tableta, a pantalla completa. El partido: cada jugador se desliza sin pararse, líneas de ventaja y fuera de juego, anillos de estado físico, narración más grande y menú de partido. Solo se patea a palos desde el campo rival. Charla con el ánimo del vestuario, búsqueda con filtros y más humor.
+Una nueva intro de cinco segundos, y el juego ya funciona en tableta e iPad, a pantalla completa. El partido: cada jugador se desliza sin pararse, líneas de ventaja y fuera de juego, anillos de estado físico, narración más grande y menú de partido. Solo se patea a palos desde el campo rival. Charla con el ánimo del vestuario, búsqueda con filtros y más humor.
 </es-ES>
 <it-IT>
-Ora è PHASE: Rugby Manager 27, con una sigla di cinque secondi. Si gioca su tablet, a tutto schermo. La partita: ogni giocatore scivola senza fermarsi, linee del vantaggio e del fuorigioco, anelli di condizione, telecronaca più grande e menu partita. Si calcia ai pali solo dalla metà campo avversaria. Discorso con l'umore dello spogliatoio, ricerca con filtri e più divertimento.
+Una nuova sigla di cinque secondi, e ora il gioco funziona su tablet e iPad, a tutto schermo. La partita: ogni giocatore scivola senza fermarsi, linee del vantaggio e del fuorigioco, anelli di condizione, telecronaca più grande e menu partita. Si calcia ai pali solo dalla metà campo avversaria. Discorso con l'umore dello spogliatoio, ricerca con filtri e più divertimento.
 </it-IT>
 <ja-JP>
-タイトルが「PHASE: Rugby Manager 27」に。5秒のオープニング付き。タブレットでも全画面でプレー可能。試合では全選手が止まらず滑らかに動き、ゲインラインとオフサイドライン、コンディションの輪、大きな実況、試合メニューを追加。ゴールを狙えるのは敵陣のみ。チームトークでは控室の雰囲気、選手検索には絞り込み。ユーモアも増量。
+5秒の新しいオープニングを追加。タブレットとiPadでも全画面でプレー可能に。試合では全選手が止まらず滑らかに動き、ゲインラインとオフサイドライン、コンディションの輪、大きな実況、試合メニューを追加。ゴールを狙えるのは敵陣のみ。チームトークでは控室の雰囲気、選手検索には絞り込み。ユーモアも増量。
 </ja-JP>
 ```
-*(en-GB 427, fr-FR 376, es-ES 372, it-IT 381, ja-JP 170 - all inside Play's 500.)*
+*(en-GB 423, fr-FR 376, es-ES 361, it-IT 374, ja-JP 148 - all inside Play's 500.)*
 
 ### What's new (500 max) - v1.7.3, Play version code 40
 
@@ -1055,9 +1053,9 @@ five languages at once, each inside its own tag. Every one is under 500.
 ### Name (30 max)
 
 ```
-PHASE: Rugby Manager 27
+PHASE: Rugby Manager
 ```
-*(23)*
+*(20)*
 
 ### Subtitle (30 max)
 
@@ -1151,7 +1149,7 @@ who wishes to be removed.
 ### Titre (30)
 
 ```
-PHASE: Rugby Manager 27
+PHASE: Rugby Manager
 ```
 
 ### Description courte (80)
@@ -1187,7 +1185,7 @@ rugby,manager,gestion,simulation,equipe,tactique,transferts,carriere,sport,hors 
 ```
 Choisissez un club. Choisissez une équipe. Assumez-la.
 
-PHASE: Rugby Manager 27 est un jeu de gestion dans la tradition des grandes
+PHASE: Rugby Manager est un jeu de gestion dans la tradition des grandes
 simulations textuelles : des tableaux d'effectif denses, de vraies décisions
 chaque semaine, et une carrière qui se souvient en saison quinze de ce que vous
 avez fait en saison une.
@@ -1228,7 +1226,7 @@ CONÇU POUR UN TÉLÉPHONE
   garder vos propres sauvegardes.
 • En français et en anglais, avec un réglage de taille de texte.
 
-PHASE: Rugby Manager 27 est un jeu indépendant et non officiel. Les clubs,
+PHASE: Rugby Manager est un jeu indépendant et non officiel. Les clubs,
 compétitions, stades et sponsors sont fictifs. Les noms de joueurs sont réels,
 utilisés pour identifier des personnes dans une base de données sportive et rien
 d'autre ; le jeu n'est ni affilié, ni approuvé, ni sous licence d'un joueur, d'un
@@ -1475,9 +1473,9 @@ the count is printed under it. Paste as-is.
 ### Name (30 max)
 
 ```
-PHASE: Rugby Manager 27
+PHASE: Rugby Manager
 ```
-*(23)*
+*(20)*
 
 ### Subtitle (30 max)
 
@@ -1506,7 +1504,7 @@ It also never mentioned the women's game, which is half the app.*
 ```
 PICK A CLUB. PICK A SIDE. LIVE WITH IT.
 
-PHASE: Rugby Manager 27 is a management simulation in the tradition of the great text-driven sports sims: dense squad tables, real decisions every week, and a career that remembers what you did in season one when you reach season fifteen. You take a job, you name a team, and you find out what kind of manager you are.
+PHASE: Rugby Manager is a management simulation in the tradition of the great text-driven sports sims: dense squad tables, real decisions every week, and a career that remembers what you did in season one when you reach season fifteen. You take a job, you name a team, and you find out what kind of manager you are.
 
 TWO GAMES, ONE APP
 • The men's game: nine leagues and 107 clubs across England, France, the United Provinces, the Pacific, Japan and the United States, top flight down to National One.
@@ -1543,7 +1541,7 @@ BUILT FOR A PHONE
 • Four career slots, autosave after every week, and export and import so a backup is yours to keep.
 • English, French, Spanish, Italian, Japanese and Afrikaans.
 
-PHASE: Rugby Manager 27 is an unofficial, independent game. Club names are real; competitions, grounds and sponsors are renamed or invented. Player names are real, used to identify people in a sporting database and for nothing else; the game is not affiliated with, endorsed by or licensed by any player, club, league or governing body, and contains no official badges, kits or logos.
+PHASE: Rugby Manager is an unofficial, independent game. Club names are real; competitions, grounds and sponsors are renamed or invented. Player names are real, used to identify people in a sporting database and for nothing else; the game is not affiliated with, endorsed by or licensed by any player, club, league or governing body, and contains no official badges, kits or logos.
 
 Optional in-app purchases support development and add conveniences. Nothing in the game is behind a paywall.
 ```
@@ -1698,5 +1696,5 @@ Fixes: the team sheet lines up from 1 to 15, deal years print plain, seasonal st
 | Privacy nutrition label | Data Not Collected |
 | App uses encryption | No (the App Encryption Documentation answer is "none") |
 | Sign-in required | No |
-| Devices | iPhone only |
+| Devices | iPhone and iPad (from 1.8.0: tablet mode; 13-inch iPad screenshots from `scripts/ipadshots.mjs`, 2048 x 2732) |
 | App Review notes | `packaging/ios/APP-REVIEW-REPLY.md`, the six answers |

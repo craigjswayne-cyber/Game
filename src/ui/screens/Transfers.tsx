@@ -11,7 +11,7 @@ import { attrName, posName, t } from '../../game/i18n'
 import { userWageBudget } from '../../game/grants'
 import { transferInterest } from '../../game/interest'
 
-/** The classic search screen's views (PRM27): which columns the table shows. */
+/** The classic search screen's views (1.8.0): which columns the table shows. */
 type SearchView = 'general' | 'contract' | 'physical' | 'setpiece' | 'handling' | 'mind'
 const SEARCH_VIEWS: SearchView[] = ['general', 'contract', 'physical', 'setpiece', 'handling', 'mind']
 /** four attributes a view, so a phone never scrolls sideways (sidescroll.mjs) */
@@ -41,7 +41,7 @@ export default function Transfers() {
   // far below a happy player's, and never said so until you had spent the bid
   // (interest.ts). This chip asks that same question up front.
   const [keenOnly, setKeenOnly] = useState(false)
-  // PRM27, the classic search screen: which columns you are looking at, one
+  // 1.8.0, the classic search screen: which columns you are looking at, one
   // attribute to filter on, the injured and the expiring
   const [view, setView] = useState<SearchView>('general')
   const [attrKey, setAttrKey] = useState<keyof Attrs | ''>('')
@@ -409,7 +409,7 @@ export default function Transfers() {
           row equally, and every resting label is the filter's own name - short
           enough to fit, and it reads as a placeholder, which is what an unset
           filter is. */}
-      {/* ---- ONE ROW, THEN A SHEET (PRM27) ----
+      {/* ---- ONE ROW, THEN A SHEET (1.8.0) ----
           Owner, 26 Sep 2026, circling the four rows of dropdowns and chips:
           "tidy this section up. Make it so its a filter and you select what
           you want to see". The name search stays on the page because it is
