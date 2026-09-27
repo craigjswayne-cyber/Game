@@ -85,7 +85,9 @@ console.log('\n--- the numbers answer to the pack, not to nothing\n')
 console.log('\n--- live, it only ever climbs\n')
 {
   // walk the clock the way the screen does and watch every figure
-  const KEYS = ['scrumsWon', 'scrumsLost', 'lineoutsWon', 'lineoutsLost', 'tackles'] as const
+  // (tackles are counted by the engine since 1.8.0, not worked out from the
+  // clock, so they are walked on a real match below instead)
+  const KEYS = ['scrumsWon', 'scrumsLost', 'lineoutsWon', 'lineoutsLost'] as const
   let prev = matchStats(dress({ lastMin: 0 }))
   let climbed = true
   let fellAt = ''
@@ -99,6 +101,22 @@ console.log('\n--- live, it only ever climbs\n')
   ok(climbed, `no figure ever falls as the match runs${climbed ? '' : ` (${fellAt})`}`)
   const atKO = matchStats(dress({ lastMin: 0 }))
   ok(KEYS.every(k => atKO[k][0] === 0 && atKO[k][1] === 0), 'and the sheet starts empty at kick-off')
+
+  // TACKLES ARE COUNTED (1.8.0, countTackles): none before a ball is played,
+  // never fewer as the match runs, and the sheet's figure is the sum of every
+  // man's own count
+  const g2 = newGame('northampton', 'Stats', 4242)
+  const fx2 = g2.fixtures.find(f => f.week === g2.week && (f.homeId === g2.userClubId || f.awayId === g2.userClubId))!
+  const live = beginMatch(g2, fx2, mulberry32(4242), true)
+  const t0 = matchStats(live).tackles
+  playHalf(g2, live)
+  const t1 = matchStats(live).tackles
+  playHalf(g2, live)
+  const t2 = matchStats(live).tackles
+  ok(t0[0] === 0 && t0[1] === 0, `no tackles before kick-off (${t0.join('-')})`)
+  ok(t1[0] <= t2[0] && t1[1] <= t2[1] && t1[0] > 0 && t1[1] > 0, `tackles only climb: ${t1.join('-')} at half-time, ${t2.join('-')} at full-time`)
+  const sum = (m?: Map<number, number>) => [...(m ?? new Map()).values()].reduce((a, b) => a + b, 0)
+  ok(sum(live.home.tackles) === t2[0] && sum(live.away.tackles) === t2[1], 'and the sheet is the sum of every player\'s own count')
 }
 
 console.log(fails ? `\nSTATS PROBE FAILED (${fails})` : '\nSTATS PROBE PASSED: the sheet answers to the match it came from')

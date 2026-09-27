@@ -1650,9 +1650,7 @@
   "loanDone": "Hecho",
   "renewNote_f": "Toca una jugadora para renovarla desde su página. A partir de la semana 25, quien no haya renovado puede firmar un precontrato con otro club e irse gratis en verano.",
   "offersForYourPlayers_f": "Ofertas por tus jugadoras",
-  "noLoans_f": "Ningún club por encima del tuyo cede jugadoras ahora mismo.",
   "listedHint_f": " - los clubes ponen transferibles a sus jugadoras cuando se acerca el mercado; vuelve más tarde",
-  "loanNoHits_f": "Nadie con ese nombre a quien pudieras formar. Debe ser una jugadora de 23 años o menos, en forma y no cedida ya.",
   "tabScouting": "Ojeo",
   "loanMarketSub2": "{n} disponibles · toca para ofertar",
   "loanAskTag": "(no ofrecido)"

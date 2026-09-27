@@ -1665,8 +1665,6 @@
   "loanDone": "Fatto",
   "renewNote_f": "Tocca una giocatrice per rinnovare dalla sua pagina. Dalla settimana 25 chi non ha rinnovato può firmare un pre-contratto altrove e andarsene a zero in estate.",
   "offersForYourPlayers_f": "Offerte per le tue giocatrici",
-  "noLoans_f": "Nessun club sopra di te sta prestando giocatrici al momento.",
-  "loanNoHits_f": "Nessuno con quel nome che potresti far crescere. Serve una giocatrice di 23 anni o meno, integra e non già in prestito.",
   "tabScouting": "Osservatori",
   "loanMarketSub2": "{n} disponibili · tocca per fare un'offerta",
   "loanAskTag": "(non offerto)"
