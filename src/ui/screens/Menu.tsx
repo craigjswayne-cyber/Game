@@ -26,7 +26,9 @@ export default function Menu() {
     <div className="title-screen">
       <BrandMark size={60} />
       <hr className="rules" />
-      <h1><b>PHASE</b><br />RUGBY MANAGER</h1>
+      {/* three lines, as the key art sets it (owner: "Phase Rugby Manager
+          should be over three lines on the title screen") */}
+      <h1 aria-label="PHASE: Rugby Manager"><b>PHASE</b><br />RUGBY<br />MANAGER</h1>
       {/* set in caps at the user's request, so it reads as a strapline under the
           title rather than as a sentence someone left there */}
       <div className="tagline">{t('menu.tagline')}</div>
