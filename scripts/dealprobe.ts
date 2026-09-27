@@ -25,7 +25,7 @@ const bad = (m: string) => { fails++; console.error('FAIL: ' + m) }
 // 1. the shares sum to exactly one, which is the whole neutrality claim
 const shareSum = SLOTS.reduce((s, x) => s + x.share, 0)
 console.log(`slot shares: ${SLOTS.map(s => `${s.id} ${(s.share * 100).toFixed(0)}%`).join(', ')} = ${(shareSum * 100).toFixed(2)}%`)
-if (Math.abs(shareSum - 1) > 1e-9) bad(`the three slots share ${(shareSum * 100).toFixed(2)}% of the pot, not 100%`)
+if (Math.abs(shareSum - 1) > 1e-9) bad(`the ${SLOTS.length} slots share ${(shareSum * 100).toFixed(2)}% of the pot, not 100%`)
 
 // 2. a fully-sold club at market rate earns exactly what the old flat formula
 //    paid. This is checked as MONEY, over the reputation range the world holds,
@@ -53,9 +53,10 @@ if (Math.abs(shareSum - 1) > 1e-9) bad(`the three slots share ${(shareSum * 100)
   const filled = SLOTS.filter(s => g.deals?.[s.id]).length
   const paid = commercialWeekly(g) + weeklyCentral(club)
   const old = club.rep * 1800 + 40_000
-  console.log(`${club.short} (rep ${club.rep}): ${filled}/3 slots inherited, commercial + central ${fmtMoney(paid)} a week`)
+  console.log(`${club.short} (rep ${club.rep}): ${filled}/${SLOTS.length} slots inherited, commercial + central ${fmtMoney(paid)} a week`)
   console.log(`  the old flat formula would have paid ${fmtMoney(old)}`)
-  if (filled !== 3) bad(`a new career should inherit all three slots sold, not ${filled}`)
+  // four since the sleeve joined in 1.8.0 (talksprobe covers the sleeve itself)
+  if (filled !== SLOTS.length) bad(`a new career should inherit all ${SLOTS.length} slots sold, not ${filled}`)
   // weeklyCentral also carries the small-ground top-up, so paid can be HIGHER
   // than old for a big name in a small ground. It must never be lower.
   if (paid < old - 2) bad(`the department pays ${fmtMoney(old - paid)} a week less than the formula it replaced`)
@@ -68,7 +69,7 @@ if (Math.abs(shareSum - 1) > 1e-9) bad(`the three slots share ${(shareSum * 100)
   // and they must not all fall due in the same summer, or the manager loses the
   // whole department at once through no decision of his own
   const ends = new Set(SLOTS.map(s => g.deals?.[s.id]?.until))
-  if (ends.size < 2) bad('all three inherited deals expire in the same season')
+  if (ends.size < 2) bad('every inherited deal expires in the same season')
 }
 
 // 4. an empty slot costs exactly its share, which is what makes neglect a choice
@@ -222,8 +223,8 @@ if (Math.abs(shareSum - 1) > 1e-9) bad(`the three slots share ${(shareSum * 100)
   const filled = SLOTS.filter(s => loaded.deals?.[s.id]).length
   const paid = commercialWeekly(loaded) + weeklyCentral(loaded.clubs[loaded.userClubId])
   const oldFormula = loaded.clubs[loaded.userClubId].rep * 1800 + 40_000
-  console.log(`migrated save: ${filled}/3 slots, ${fmtMoney(paid)} a week against ${fmtMoney(oldFormula)} before`)
-  if (filled !== 3) bad(`a migrated save has ${filled}/3 slots sold`)
+  console.log(`migrated save: ${filled}/${SLOTS.length} slots, ${fmtMoney(paid)} a week against ${fmtMoney(oldFormula)} before`)
+  if (filled !== SLOTS.length) bad(`a migrated save has ${filled}/${SLOTS.length} slots sold`)
   if (paid < oldFormula - 2) bad('a migrated save lost sponsorship income on load')
   // and it must be idempotent: loading twice must not resell anything
   const again = migrate(JSON.parse(JSON.stringify(loaded)))

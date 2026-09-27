@@ -1529,9 +1529,18 @@ export interface GameState {
   /** bumped on every appointment so the candidate market refreshes */
   staffSalt?: number
   mgr: ManagerStats
-  /** the three commercial slots and what is signed in them (F30). Absent on a
-   *  save written before the department existed; seedDeals fills it. */
-  deals?: Partial<Record<'shirt' | 'naming' | 'kit', import('./commercial').Deal>>
+  /** the commercial slots and what is signed in them (F30; the sleeve joined
+   *  in 1.8.0). Absent on a save written before the department existed;
+   *  seedDeals fills it. */
+  deals?: Partial<Record<import('./commercial').SlotId, import('./commercial').Deal>>
+  /** sponsor negotiations in progress this season, one per slot, and the
+   *  sponsors who walked out of one (1.8.0, sponsortalks.ts). Optional: a save
+   *  from before the negotiating table simply has no talks open. */
+  talks?: import('./sponsortalks').TalksState
+  /** this season's accounts and last season's, for the balance sheet (1.8.0,
+   *  books.ts). Optional: an older save opens its books the first week it plays. */
+  books?: import('./books').SeasonBooks
+  booksPrev?: import('./books').SeasonBooks
   /** what the dressing room makes of you, 0-100. Optional so old saves load. */
   mgrTrust?: number
   /** the manager's backstory, chosen at career creation (18B) */
@@ -1720,7 +1729,7 @@ export interface GameState {
   /** per-slot count of commercial deals ended early (v1.1.5): part of the
    *  offer hash, so each early exit deals three genuinely new offers - the
    *  gamble - while revisiting the screen still rerolls nothing */
-  dealReroll?: Partial<Record<'shirt' | 'naming' | 'kit', number>>
+  dealReroll?: Partial<Record<import('./commercial').SlotId, number>>
   /** a trophy moment waiting to be celebrated full-screen */
   /** THE FULL-SCREEN MOMENT. Promotion, a title, an unbeaten season, a
    *  challenge finished - the rarest things the game has to show, and every

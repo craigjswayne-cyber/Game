@@ -14,6 +14,8 @@ import { punditPredictions } from './gossip'
 import { CHALLENGES, LEAGUE_DEFS } from './newgame'
 import { genderOf, W } from './gender'
 import { SLOTS, expireDeals, offersFor } from './commercial'
+import { settleSponsorBonuses } from './sponsortalks'
+import { book, closeBooks } from './books'
 import { OFFICE_OUTLET } from './media'
 import { autoSelect } from './matchEngine'
 import { ensureCaptains } from './analysis'
@@ -1459,6 +1461,10 @@ export function rebuildSeason(state: GameState) {
     }
   }
 
+  // the sponsors' performance bonuses (1.8.0) are read off the same final
+  // tables, so they are paid here, before anything below wipes them
+  settleSponsorBonuses(state)
+
   // prize money & budget refresh (uses final tables before wipe)
   // Also records where every club finished, as a 0 (top) to 1 (bottom) share of
   // its league, because the boardroom reset near the end of this function needs
@@ -1473,6 +1479,7 @@ export function rebuildSeason(state: GameState) {
       if (order.length > 1) finishFrac.set(teamId, idx / (order.length - 1))
       const prize = Math.max(0, (order.length - idx)) * 120_000 + (comp.champion === teamId ? 1_500_000 : 0)
       club.balance += prize
+      if (teamId === state.userClubId) book(state, 'prize', prize)
     })
   }
 
@@ -1795,6 +1802,9 @@ export function rebuildSeason(state: GameState) {
     if (p.maternity) p.contractEnds += 1
   }
 
+  // the season's books close on the balance as it stands, and the next
+  // season's open on the same figure the first time money moves (books.ts)
+  closeBooks(state)
   state.season += 1
   // F30: a deal whose term ran out with the old season is gone, and the manager
   // is told, because an empty commercial slot pays nothing and that has to be a
