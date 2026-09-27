@@ -3266,7 +3266,7 @@
   "q106": "Does a big crowd sway the referee?",
   "a106": "On a big day it can. In front of a large home crowd, in a derby or in a knockout, the tight calls lean toward the home side, and the pre-match briefing says so when they will. It is the crowd, not the referee: the same match in front of empty stands would not lean.",
   "q107": "When does the pitch come on during a match?",
-  "a107": "For the moments that matter. In between, the match is the commentary with the live stats underneath. Highlights in Match Settings (the cog on the match screen) chooses which moments: Key shows tries and tries sent to the TMO; Extended adds kicks at goal and breaks into the 22. A highlight plays the phases that led to it, then the finish, and the commentary keeps pace with the picture.",
+  "a107": "For the moments that matter. In between, the match is the commentary with the live stats underneath. Highlights in Match Settings (the cog on the match screen) chooses which moments: Key shows tries and tries sent to the TMO; Extended adds kicks at goal and breaks into the 22. A highlight plays the phases that led to it, then the finish, and the commentary keeps pace with the picture. In the last ten minutes of a close match (seven points or fewer in it), Key shows the kicks and the attacks too.",
   "q108": "Is a match I watch different from one I skip or play with Instant Result?",
   "a108": "No. Every match in the game, yours or anybody else's, watched line by line, skipped or played with Instant Result, runs on the same engine with the same rules. Watching only decides what is written down for you to read. When the other dugout changes its plan to counter you, the commentary says so.",
   "a103": "A Head Injury Assessment. A player who takes a blow to the head leaves the field to be checked; he returns only if he passes, and the game will not let him back if he does not.",
@@ -7244,7 +7244,7 @@
   "highlights": "Highlights",
   "hlKey": "Key",
   "hlExtended": "Extended",
-  "hlKeySub": "The pitch shows tries.",
+  "hlKeySub": "The pitch shows tries, and the kicks and attacks late in a close match.",
   "hlExtendedSub": "The pitch shows tries, kicks at goal and breaks into the 22."
  },
  "hl": {
@@ -7252,6 +7252,10 @@
   "review": "TMO CHECK",
   "notry": "NO TRY",
   "good": "GOOD",
-  "wide": "WIDE"
+  "wide": "WIDE",
+  "chase": "Can they make it?",
+  "maul": "The maul rolls on",
+  "turnover": "TURNOVER",
+  "saved": "TRY SAVER"
  }
 }

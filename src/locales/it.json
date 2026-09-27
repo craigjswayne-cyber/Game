@@ -3207,7 +3207,7 @@
   "q106": "Un grande pubblico influenza l'arbitro?",
   "a106": "Nei giorni importanti, sì. Davanti a un grande pubblico di casa, in un derby o in una partita a eliminazione, le decisioni al limite pendono verso la squadra di casa, e il briefing prepartita lo segnala. È il pubblico, non l'arbitro: la stessa partita con le tribune vuote non penderebbe.",
   "q107": "Quando compare il campo durante una partita?",
-  "a107": "Nei momenti che contano. Tra l'uno e l'altro, la partita è la cronaca con le statistiche in diretta sotto. Momenti salienti, nelle impostazioni della partita (l'ingranaggio nella schermata della partita), sceglie quali: Chiave mostra le mete e le mete riviste dal TMO; Estesi aggiunge i calci piazzati e gli ingressi nei 22. Un momento saliente ripropone le fasi che lo hanno preparato, poi la conclusione, e la cronaca va di pari passo con l'immagine.",
+  "a107": "Nei momenti che contano. Tra l'uno e l'altro, la partita è la cronaca con le statistiche in diretta sotto. Momenti salienti, nelle impostazioni della partita (l'ingranaggio nella schermata della partita), sceglie quali: Chiave mostra le mete e le mete riviste dal TMO; Estesi aggiunge i calci piazzati e gli ingressi nei 22. Un momento saliente ripropone le fasi che lo hanno preparato, poi la conclusione, e la cronaca va di pari passo con l'immagine. Negli ultimi dieci minuti di una partita equilibrata (sette punti di scarto o meno), Chiave mostra anche i calci e gli attacchi.",
   "q108": "Una partita che guardo è diversa da una che salto o gioco con Risultato Immediato?",
   "a108": "No. Ogni partita del gioco, la tua o quella di chiunque altro, seguita riga per riga, saltata o giocata con Risultato Immediato, gira sullo stesso motore con le stesse regole. Guardarla decide solo che cosa viene scritto per te. Quando la panchina avversaria cambia piano per contrastarti, la cronaca lo dice.",
   "a103": "Una valutazione per trauma cranico. Un giocatore colpito alla testa lascia il campo per i controlli; rientra solo se li supera, e il gioco non lo farà rientrare altrimenti.",
@@ -6964,7 +6964,7 @@
   "highlights": "Momenti salienti",
   "hlKey": "Chiave",
   "hlExtended": "Estesi",
-  "hlKeySub": "Il campo mostra le mete.",
+  "hlKeySub": "Il campo mostra le mete, e i calci e gli attacchi nel finale di una partita equilibrata.",
   "hlExtendedSub": "Il campo mostra mete, calci piazzati e ingressi nei 22."
  },
  "hl": {
@@ -6972,6 +6972,10 @@
   "review": "CONTROLLO TMO",
   "notry": "META NON VALIDA",
   "good": "DENTRO",
-  "wide": "FUORI"
+  "wide": "FUORI",
+  "chase": "Ce la faranno?",
+  "maul": "La maul avanza",
+  "turnover": "TURNOVER",
+  "saved": "SALVATAGGIO"
  }
 }

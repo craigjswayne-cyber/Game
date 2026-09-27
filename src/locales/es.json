@@ -3187,7 +3187,7 @@
   "q106": "¿Influye un gran público en el árbitro?",
   "a106": "En los días grandes, sí. Ante un gran público local, en un derbi o en eliminatorias, las decisiones ajustadas se inclinan hacia el equipo local, y la charla previa al partido lo avisa. Es el público, no el árbitro: el mismo partido con las gradas vacías no se inclinaría.",
   "q107": "¿Cuándo aparece el campo durante un partido?",
-  "a107": "En los momentos que importan. Entre ellos, el partido es el comentario con las estadísticas en directo debajo. Jugadas destacadas, en los ajustes del partido (la rueda dentada de la pantalla de partido), elige cuáles: Clave muestra los ensayos y los ensayos que revisa el TMO; Ampliadas añade las patadas a palos y las entradas en la 22. Una jugada destacada reproduce las fases que llevaron a ella y después la definición, y el comentario va al ritmo de la imagen.",
+  "a107": "En los momentos que importan. Entre ellos, el partido es el comentario con las estadísticas en directo debajo. Jugadas destacadas, en los ajustes del partido (la rueda dentada de la pantalla de partido), elige cuáles: Clave muestra los ensayos y los ensayos que revisa el TMO; Ampliadas añade las patadas a palos y las entradas en la 22. Una jugada destacada reproduce las fases que llevaron a ella y después la definición, y el comentario va al ritmo de la imagen. En los últimos diez minutos de un partido igualado (siete puntos o menos), Clave también muestra las patadas y los ataques.",
   "q108": "¿Es distinto un partido que veo de uno que salto o juego con Resultado Instantáneo?",
   "a108": "No. Todos los partidos del juego, el tuyo o el de cualquiera, vistos línea a línea, saltados o jugados con Resultado Instantáneo, se juegan con el mismo motor y las mismas reglas. Verlo solo decide qué queda escrito para que lo leas. Cuando el banquillo rival cambia su plan para contrarrestarte, el comentario lo dice.",
   "a103": "Una evaluación por golpe en la cabeza. El jugador sale del campo para ser revisado; vuelve solo si la pasa, y el juego no le dejará volver si no.",
@@ -6929,7 +6929,7 @@
   "highlights": "Jugadas destacadas",
   "hlKey": "Clave",
   "hlExtended": "Ampliadas",
-  "hlKeySub": "El campo muestra los ensayos.",
+  "hlKeySub": "El campo muestra los ensayos, y las patadas y los ataques al final de un partido igualado.",
   "hlExtendedSub": "El campo muestra ensayos, patadas a palos y entradas en la 22."
  },
  "hl": {
@@ -6937,6 +6937,10 @@
   "review": "REVISIÓN TMO",
   "notry": "NO ES ENSAYO",
   "good": "DENTRO",
-  "wide": "FUERA"
+  "wide": "FUERA",
+  "chase": "¿Llegarán?",
+  "maul": "El maul avanza",
+  "turnover": "RECUPERACIÓN",
+  "saved": "PLACAJE SALVADOR"
  }
 }

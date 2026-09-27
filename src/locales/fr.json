@@ -3226,7 +3226,7 @@
     "q106": "Une grosse affluence influence-t-elle l'arbitre ?",
     "a106": "Les grands jours, oui. Devant une grosse affluence à domicile, dans un derby ou en phase finale, les décisions serrées penchent vers l'équipe qui reçoit, et le briefing d'avant-match le signale. C'est le public, pas l'arbitre : le même match devant des tribunes vides ne pencherait pas.",
     "q107": "Quand le terrain apparaît-il pendant un match ?",
-    "a107": "Pour les moments qui comptent. Entre les deux, le match, c'est le commentaire avec les statistiques en direct en dessous. Temps forts, dans les réglages du match (la roue dentée de l'écran de match), choisit lesquels : Essentiels montre les essais et les essais soumis à l'arbitre vidéo ; Étendus ajoute les coups de pied au but et les percées dans les 22. Un temps fort rejoue les phases qui y ont mené, puis la finition, et le commentaire suit l'image.",
+    "a107": "Pour les moments qui comptent. Entre les deux, le match, c'est le commentaire avec les statistiques en direct en dessous. Temps forts, dans les réglages du match (la roue dentée de l'écran de match), choisit lesquels : Essentiels montre les essais et les essais soumis à l'arbitre vidéo ; Étendus ajoute les coups de pied au but et les percées dans les 22. Un temps fort rejoue les phases qui y ont mené, puis la finition, et le commentaire suit l'image. Dans les dix dernières minutes d'un match serré (sept points d'écart au plus), Essentiels montre aussi les coups de pied et les attaques.",
     "q108": "Un match que je regarde est-il différent d'un match passé ou joué en Résultat immédiat ?",
     "a108": "Non. Chaque match du jeu, le vôtre ou celui d'un autre, suivi ligne par ligne, passé ou joué en Résultat immédiat, tourne sur le même moteur avec les mêmes règles. Regarder décide seulement de ce qui est écrit pour vous. Quand le banc adverse change son plan pour vous contrer, le commentaire le dit.",
     "a103": "Un joueur touché à la tête quitte le terrain pour être examiné. Il ne revient que s'il passe le test, et le jeu ne le laissera pas revenir sinon.",
@@ -7087,7 +7087,7 @@
     "highlights": "Temps forts",
     "hlKey": "Essentiels",
     "hlExtended": "Étendus",
-    "hlKeySub": "Le terrain montre les essais.",
+    "hlKeySub": "Le terrain montre les essais, et les coups de pied et les attaques en fin de match serré.",
     "hlExtendedSub": "Le terrain montre les essais, les tirs au but et les entrées dans les 22."
   },
   "hl": {
@@ -7095,6 +7095,10 @@
     "review": "ARBITRAGE VIDÉO",
     "notry": "PAS D'ESSAI",
     "good": "RÉUSSI",
-    "wide": "MANQUÉ"
+    "wide": "MANQUÉ",
+    "chase": "Vont-ils y arriver ?",
+    "maul": "Le maul avance",
+    "turnover": "BALLON RÉCUPÉRÉ",
+    "saved": "PLAQUAGE SALVATEUR"
   }
 }
