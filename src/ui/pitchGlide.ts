@@ -42,7 +42,7 @@ import { useEffect, useRef, type RefObject } from 'react'
  * go and the new ones start, measures again, and gives each element the
  * difference as spring offset, so it eases from where the eye last saw it.
  */
-const GLIDE = '.pdot:not(.ghost), .ball, .ball-shadow, .official'
+const GLIDE = '.pdot:not(.ghost), .ball, .official, .phase-line, .contest-bar'
 
 type S = { tx: number; ty: number; ox: number; oy: number; vx: number; vy: number }
 

@@ -7013,5 +7013,13 @@
  },
  "intro": {
   "skip": "Tocca per saltare"
+ },
+ "mset": {
+  "overlays": "Sovrimpressioni",
+  "overlaysSub": "Linee del vantaggio e del fuorigioco, e chi vince la fase statica",
+  "stamina": "Anelli di condizione",
+  "staminaSub": "Quanto resta a ciascuno, quando il gioco si ferma",
+  "bigText": "Telecronaca grande",
+  "bigTextSub": "La telecronaca della partita a caratteri più grandi"
  }
 }

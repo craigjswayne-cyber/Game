@@ -7134,5 +7134,13 @@
   },
   "intro": {
     "skip": "Touchez pour passer"
+  },
+  "mset": {
+    "overlays": "Surimpressions",
+    "overlaysSub": "Lignes d’avantage et de hors-jeu, et qui domine la phase statique",
+    "stamina": "Anneaux de fraîcheur",
+    "staminaSub": "Ce qu’il reste à chacun, quand le jeu s’arrête",
+    "bigText": "Grand commentaire",
+    "bigTextSub": "Le commentaire du match en plus grand"
   }
 }
