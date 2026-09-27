@@ -115,7 +115,7 @@ export default function Infrastructure() {
             {/* THE GROUND IS A LADDER TOO (owner, v1.6.8): six grounds from a
                 village pitch to a stadium, read off the seats. Same pips as
                 the nine facilities, because it is the same kind of thing. */}
-            <h3 style={{ fontSize: 15, margin: 0 }}>
+            <h3 style={{ fontSize: 16, margin: 0 }}>
               🏟️ {club.stadium} <span style={{ color: 'var(--gold)', letterSpacing: 1 }}>{pips(groundLevel(club.capacity))}</span>
             </h3>
             <div className="meta">
@@ -148,7 +148,7 @@ export default function Infrastructure() {
             <span className="meta" style={{ flexShrink: 0, color: 'var(--gold)', fontWeight: 700 }}>{t('world.infWorldClass')}</span>
           )}
           {groundLevel(club.capacity) < GROUND_TIERS.length - 1 && (
-          <button className="btn gold" style={{ padding: '5px 10px', fontSize: 11.5, lineHeight: 1.25 }}
+          <button className="btn gold" style={{ padding: '5px 10px', fontSize: 12, lineHeight: 1.25 }}
             disabled={club.capacity >= 82_000 || club.capacity >= demandCeiling(club) * 0.95 || plan.seats < 100 || busy}
             onClick={() => { setMsg({ key: 'expand', text: requestExpansion(game) }); touch() }}>
             {t('world.infAskExpand')}<br />
@@ -157,7 +157,7 @@ export default function Infrastructure() {
           )}
         </div>
         {msg?.key === 'expand' && (
-          <div className="meta" style={{ fontSize: 11.5, fontWeight: 600, marginTop: 6, paddingTop: 6, borderTop: '1px solid var(--border)' }}>
+          <div className="meta" style={{ fontSize: 12, fontWeight: 600, marginTop: 6, paddingTop: 6, borderTop: '1px solid var(--border)' }}>
             {msg.text}
           </div>
         )}
@@ -180,7 +180,7 @@ export default function Infrastructure() {
             <div className="card" key={fid} id={`fac-${fid}`} style={{ margin: 0, padding: '8px 10px', ...ring(fid) }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
                 <div style={{ minWidth: 0 }}>
-                  <h3 style={{ fontSize: 13.5, margin: 0 }}>
+                  <h3 style={{ fontSize: 14, margin: 0 }}>
                     {info.icon} {t(info.name)} <span style={{ color: 'var(--gold)', letterSpacing: 1 }}>{pips(lvl)}</span>
                   </h3>
                   <div className="meta" style={{ fontSize: 11 }}>{t(info.desc)}</div>
@@ -202,7 +202,7 @@ export default function Infrastructure() {
                 {lvl >= MAX_FACILITY && <span className="meta" style={{ flexShrink: 0, color: 'var(--gold)', fontWeight: 700 }}>{t('world.infWorldClass')}</span>}
               </div>
               {msg?.key === fid && (
-                <div className="meta" style={{ fontSize: 11.5, fontWeight: 600, marginTop: 4, paddingTop: 4, borderTop: '1px solid var(--border)' }}>
+                <div className="meta" style={{ fontSize: 12, fontWeight: 600, marginTop: 4, paddingTop: 4, borderTop: '1px solid var(--border)' }}>
                   {msg.text}
                 </div>
               )}

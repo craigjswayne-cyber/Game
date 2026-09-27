@@ -69,7 +69,7 @@ export default function Agency() {
             })}
           </tbody>
         </table></div>
-        <div className="meta" style={{ padding: '4px 16px', fontSize: 11.5 }}>
+        <div className="meta" style={{ padding: '4px 16px', fontSize: 12 }}>
           {sinceLine(game)}{t('world.agNatFoot')}
         </div>
         <div className="spacer" />
@@ -124,7 +124,7 @@ export default function Agency() {
           })}
         </tbody>
       </table></div>
-      <div className="meta" style={{ padding: '4px 16px', fontSize: 11.5 }}>
+      <div className="meta" style={{ padding: '4px 16px', fontSize: 12 }}>
         {sinceLine(game)}{t('world.agFoot')}
       </div>
       <div className="spacer" />

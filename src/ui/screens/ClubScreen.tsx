@@ -221,7 +221,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
                 <div key={a.id} className="card" style={{ margin: '0 0 6px', padding: '8px 10px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
                     <div style={{ minWidth: 0 }}>
-                      <h3 style={{ fontSize: 13.5, margin: 0 }}>{t(`board.ask_${a.id}`)}</h3>
+                      <h3 style={{ fontSize: 14, margin: 0 }}>{t(`board.ask_${a.id}`)}</h3>
                       <div className="meta" style={{ fontSize: 11 }}>{t(`board.askDesc_${a.id}`)}</div>
                       {/* THE CASE IS NOT SHOWN UNTIL YOU HAVE ASKED (owner,
                           v1.7.0: "the yellow text 'asking on very little'
@@ -250,14 +250,14 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
                         83x28. geosweep caught it at all four phone
                         geometries. A tap target is a number, not a look. */}
                     {a.possible && (
-                      <button className="btn gold" style={{ padding: '5px 10px', fontSize: 11.5, minHeight: 44, flexShrink: 0 }}
+                      <button className="btn gold" style={{ padding: '5px 10px', fontSize: 12, minHeight: 44, flexShrink: 0 }}
                         onClick={() => { setBoardMsg({ id: a.id, text: askTheBoard(game, a.id) }); touch() }}>
                         {t('board.knock')}
                       </button>
                     )}
                   </div>
                   {boardMsg?.id === a.id && (
-                    <div className="meta" style={{ fontSize: 11.5, fontWeight: 600, marginTop: 4, paddingTop: 4, borderTop: '1px solid var(--border)' }}>
+                    <div className="meta" style={{ fontSize: 12, fontWeight: 600, marginTop: 4, paddingTop: 4, borderTop: '1px solid var(--border)' }}>
                       {boardMsg.text}
                     </div>
                   )}
@@ -312,7 +312,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
                   </b>
                 </div>
               ))}
-              {!rows.length && <div className="muted" style={{ fontSize: 12.5 }}>{t('club.nobodyAgitating')}</div>}
+              {!rows.length && <div className="muted" style={{ fontSize: 13 }}>{t('club.nobodyAgitating')}</div>}
             </div>
           </>
         )

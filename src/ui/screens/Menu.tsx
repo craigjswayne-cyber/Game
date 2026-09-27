@@ -69,12 +69,12 @@ export default function Menu() {
             answers to it. This screen offers the door; what is behind it is
             chosen once you are through. */}
         <button className={saves.length ? 'btn ghost' : 'btn gold'}
-          style={saves.length ? { color: 'var(--text-primary)', borderColor: 'var(--border-strong)', fontSize: 15 } : { fontSize: 16, padding: '13px' }}
+          style={saves.length ? { color: 'var(--text-primary)', borderColor: 'var(--border-strong)', fontSize: 16 } : { fontSize: 16, padding: '13px' }}
           onClick={() => go('newgame')}>
           {t('menu.newCareer')}
         </button>
         {saves.length > 0 && (
-          <button className="btn ghost" style={{ color: 'var(--text-primary)', borderColor: 'var(--border-strong)', fontSize: 15 }}
+          <button className="btn ghost" style={{ color: 'var(--text-primary)', borderColor: 'var(--border-strong)', fontSize: 16 }}
             onClick={() => setShowLoad(!showLoad)}>
             {t('menu.loadCareer')}
           </button>

@@ -117,7 +117,7 @@ export default function CampusMap({ game, onPick }: {
                 <span style={{
                   position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
                   display: 'grid', placeItems: 'center', width: '58%', aspectRatio: '1',
-                  borderRadius: '50%', fontSize: 15, lineHeight: 1,
+                  borderRadius: '50%', fontSize: 16, lineHeight: 1,
                   background: 'rgba(8, 11, 15, 0.62)',
                   border: '1.5px solid var(--gold)',
                   textShadow: '0 1px 2px rgba(0,0,0,0.7)',

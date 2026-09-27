@@ -95,7 +95,7 @@ export default function Fixtures() {
         <>
       {weekend.length > 0 && (
         <div className="card" style={{ padding: '10px 0' }}>
-          <h3 style={{ textAlign: 'center', fontFamily: 'var(--cond)', letterSpacing: 3, fontSize: 15 }}>{t('fixtures.thisWeekend')}</h3>
+          <h3 style={{ textAlign: 'center', fontFamily: 'var(--cond)', letterSpacing: 3, fontSize: 16 }}>{t('fixtures.thisWeekend')}</h3>
           <div className="meta" style={{ textAlign: 'center', marginBottom: 4 }}>{weekDate(game.season, game.week)} · {game.comps[leagueId!]?.short}</div>
           {weekend.map(f => (
             /* YOUR game is marked by tinting the row and bolding YOUR name, and the V

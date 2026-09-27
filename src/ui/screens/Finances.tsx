@@ -255,7 +255,7 @@ export default function Finances() {
                     const under = belowReserve(game, amount)
                     const safe = Math.max(0, club.balance - cashReserve(game))
                     return (
-                      <div className="meta" style={{ fontSize: 11.5, marginBottom: 8, color: under > 0 ? 'var(--text-negative)' : undefined }}>
+                      <div className="meta" style={{ fontSize: 12, marginBottom: 8, color: under > 0 ? 'var(--text-negative)' : undefined }}>
                         {under > 0
                           ? t('finances.treasuryDeep', { under: fmtMoney(under) })
                           : t('finances.treasurySafe', { safe: fmtMoney(safe) })}
@@ -268,7 +268,7 @@ export default function Finances() {
                 onClick={() => { const r = releaseToBudget(game, amount); setRelMsg(r.msg); setRelAmt(0); touch() }}>
                 {most > 0 ? t('finances.treasuryMove', { amount: fmtMoney(amount) }) : t('finances.moveMoney', { amount: fmtMoney(RELEASE_STEP) })}
               </button>
-              <div className="meta" style={{ paddingTop: 6, fontSize: 11.5 }}>
+              <div className="meta" style={{ paddingTop: 6, fontSize: 12 }}>
                 {block ?? t('finances.reserveNote', { reserve: fmtMoney(cashReserve(game)), step: fmtMoney(RELEASE_STEP) })}
               </div>
             </div>
@@ -483,7 +483,7 @@ export default function Finances() {
       </button>
       <SectionTitle>{t('finances.seasonObjectives')}</SectionTitle>
       <div className="card" style={{ marginTop: 6 }}>
-        <h3 style={{ fontSize: 15 }}>{t('finances.boardExpects', { objective: t(boardObjective(club.rep).text) })}</h3>
+        <h3 style={{ fontSize: 16 }}>{t('finances.boardExpects', { objective: t(boardObjective(club.rep).text) })}</h3>
         <div className="meta">{t('finances.fallShort')}</div>
         {(game.objectives ?? []).map(id => {
           const def = OBJECTIVE_DEFS.find(o => o.id === id)
@@ -494,7 +494,7 @@ export default function Finances() {
           // Bedford report behind it), so it reads as on course until then.
           const done = ok && def.banked
           return (
-            <div key={id} style={{ display: 'flex', gap: 8, marginTop: 8, fontSize: 12.5, alignItems: 'flex-start' }}>
+            <div key={id} style={{ display: 'flex', gap: 8, marginTop: 8, fontSize: 13, alignItems: 'flex-start' }}>
               <span>{done ? '✅' : ok ? '🕗' : '⬜'}</span>
               <span style={{ color: done ? 'var(--text-positive)' : 'var(--text-secondary)' }}>
                 {t(def.textKey(game))}{ok && !def.banked ? t('finances.onCourseSettled') : ''}
@@ -573,11 +573,11 @@ function BoardFunds() {
   return (
     <>
       <SectionTitle sub={t('till.boardSub')}>{t('till.boardTitle')}</SectionTitle>
-      <div className="muted" style={{ padding: '0 14px 6px', fontSize: 12.5 }}>{t('till.boardBlurb')}</div>
+      <div className="muted" style={{ padding: '0 14px 6px', fontSize: 13 }}>{t('till.boardBlurb')}</div>
 
       {game.uncapped ? (
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-          <h3 style={{ fontSize: 15 }}>{t('till.charterTitle')}</h3>
+          <h3 style={{ fontSize: 16 }}>{t('till.charterTitle')}</h3>
           <div className="meta">{t('till.charterSigned')}</div>
           {/* the signing tap's own answer renders HERE, because the card it
               belonged to just changed into this branch - dropping it is the
@@ -589,7 +589,7 @@ function BoardFunds() {
         </div>
       ) : (
         <div className="card">
-          <h3 style={{ fontSize: 15 }}>{t('till.charterTitle')}</h3>
+          <h3 style={{ fontSize: 16 }}>{t('till.charterTitle')}</h3>
           <div className="meta">{t('till.charterBody')}</div>
           {hasEntitlement(CHARTER_SKU) ? (
             !confirmCharter ? (

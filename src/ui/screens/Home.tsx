@@ -184,7 +184,7 @@ export default function Home() {
         <div className="card" onClick={() => go(assistants ? 'country' : 'squad')} style={{
           borderLeft: `4px solid ${assistants ? 'var(--border-strong)' : game.clubs[fx.homeId === club.id ? fx.awayId : fx.homeId]?.colors[0] ?? 'var(--gold)'}`,
         }}>
-          <div className="meta" style={{ textTransform: 'uppercase', letterSpacing: 1, fontSize: 10.5 }}>
+          <div className="meta" style={{ textTransform: 'uppercase', letterSpacing: 1, fontSize: 11 }}>
             {t(assistants ? 'home.assistantMatch' : 'home.nextMatch')} · {comp?.name ?? (fx.compId === 'fr' ? t('common.clubFriendly') : '')}{fx.stage ? ` · ${stageName(fx.stage)}` : ''}
           </div>
           {/* a class, not an inline font-size: inline wins over any media query,
@@ -228,7 +228,7 @@ export default function Home() {
         const testWeek = next && next.week === game.week
         return (
           <div className="card" onClick={() => go('country')} style={{ borderLeft: '4px solid var(--text-positive)' }}>
-            <div className="meta" style={{ textTransform: 'uppercase', letterSpacing: 1, fontSize: 10.5 }}>
+            <div className="meta" style={{ textTransform: 'uppercase', letterSpacing: 1, fontSize: 11 }}>
               {t('home.headCoach')} · {nationName(game.natTeam)}{rank > 0 ? t('home.worldNo', { rank }) : ''}{game.natConfidence != null ? t('home.unionPct', { pct: Math.round(game.natConfidence) }) : ''}
             </div>
             {next ? (
@@ -321,7 +321,7 @@ export default function Home() {
           <button className="card" style={{ borderLeft: `4px solid ${d.progress.done ? 'var(--primary)' : 'var(--gold)'}` }}
             onClick={() => go('legacy')}>
             <div className="fact-label">{t(d.progress.done ? 'home.dreamDone' : 'home.dream')}</div>
-            <div style={{ fontWeight: 700, fontSize: 14.5, marginTop: 2 }}>{dreamTitle(d.def, d.ctx)}</div>
+            <div style={{ fontWeight: 700, fontSize: 14, marginTop: 2 }}>{dreamTitle(d.def, d.ctx)}</div>
             <div style={{ height: 6, background: 'var(--border-strong)', borderRadius: 3, overflow: 'hidden', margin: '7px 0 4px' }}>
               <div className="grow-x" style={{ width: `${pct}%`, height: '100%', background: d.progress.done ? 'var(--primary)' : 'var(--gold-fill)' }} />
             </div>

@@ -73,7 +73,7 @@ export default function LeagueTable({ compId, compact }: { compId: string; compa
         </tbody>
       </table></div>
       {!compact && (playoffLine || relegates || game.preds?.[game.userClubId] != null) && (
-        <div className="meta" style={{ padding: '4px 16px', fontSize: 11.5 }}>
+        <div className="meta" style={{ padding: '4px 16px', fontSize: 12 }}>
           {playoffLine ? t('tables.playoffLine', { n: playoffLine }) : ''}
           {playoffLine && relegates ? ' · ' : ''}
           {relegates ? t('tables.relegationLine') : ''}

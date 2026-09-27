@@ -19,10 +19,11 @@
 //
 // Run: npx vite-node scripts/optionsprobe.ts
 import { newGame } from '../src/game/newgame'
-import { simMatch } from '../src/game/matchEngine'
+import { beginMatch, playHalf } from '../src/game/matchEngine'
+import { refillBench } from '../src/game/bench'
 import { mulberry32 } from '../src/game/rng'
 import { DEF_SYSTEMS, PRESETS } from '../src/game/tactics'
-import type { Fixture, GameState, MatchEvent, Tactic } from '../src/game/model'
+import type { Fixture, GameState, Tactic } from '../src/game/model'
 
 let fails = 0
 const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
@@ -30,7 +31,6 @@ const userFixture = (g: GameState) =>
   g.fixtures.find(f => f.week === g.week && (f.homeId === g.userClubId || f.awayId === g.userClubId))!
 
 type Stats = { margin: number; triesFor: number; triesAgainst: number; pensFor: number; cardsFor: number; pointsFor: number }
-const real = (e: MatchEvent) => e.fx !== 'TMO' && e.fx !== 'NOTRY'
 
 const pool: { g: GameState; fx: Fixture }[] = []
 for (const seed of [3, 11, 29, 47, 83, 101, 131, 157, 181, 211]) {
@@ -52,15 +52,19 @@ function play(set: Partial<Tactic>, opp: Partial<Tactic> = {}): Stats {
     // call of 'ask' would otherwise wait for an answer
     Object.assign(h.clubs[me].tactic, { penaltyCall: 'posts' }, set)
     Object.assign(h.clubs[oppId].tactic, opp)
-    const r = simMatch(h, f, mulberry32(7000 + i * 13), false)
-    const mine = f.homeId === me
-    s.margin += mine ? f.homeScore - f.awayScore : f.awayScore - f.homeScore
-    s.pointsFor += mine ? f.homeScore : f.awayScore
-    for (const e of r.events) {
-      if (e.type === 'TRY' && real(e)) { if (e.teamId === me) s.triesFor++; else s.triesAgainst++ }
-      if (e.type === 'PEN' && e.teamId === me) s.pensFor++
-      if ((e.type === 'YC' || e.type === 'RC') && e.teamId === me) s.cardsFor++
-    }
+    // a new split reseats the bench, as it does when the manager picks one
+    if (set.bench) refillBench(h, h.clubs[me])
+    // the match's own tallies (a simulated match writes no commentary, so
+    // there are no lines to count)
+    const ctx = beginMatch(h, f, mulberry32(7000 + i * 13), false)
+    playHalf(h, ctx); playHalf(h, ctx)
+    const mine = ctx.home.teamId === me ? ctx.home : ctx.away
+    const theirs = mine === ctx.home ? ctx.away : ctx.home
+    s.margin += mine.score - theirs.score
+    s.pointsFor += mine.score
+    s.triesFor += mine.tries; s.triesAgainst += theirs.tries
+    s.pensFor += mine.pens
+    s.cardsFor += mine.yellowUntil.size + mine.sent
   })
   const n = pool.length
   return { margin: s.margin / n, triesFor: s.triesFor / n, triesAgainst: s.triesAgainst / n, pensFor: s.pensFor / n, cardsFor: s.cardsFor / n, pointsFor: s.pointsFor / n }

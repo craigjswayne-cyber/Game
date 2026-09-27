@@ -204,7 +204,7 @@ export default function NewGame() {
               {defs.map((d, i) => (
                 <button key={d.id} className={`club-pick${leagueIdx === i ? ' sel' : ''}`} style={{ margin: 0 }}
                   onClick={() => { setLeagueIdx(i); setClubId(null); setStep(1) }}>
-                  <span style={{ fontSize: 15 }}>🏆</span>
+                  <span style={{ fontSize: 16 }}>🏆</span>
                   <span className="cname">{d.name}</span>
                   <span className="muted">{t('wizard.clubCount', { n: d.clubs.length })}</span>
                 </button>
@@ -228,7 +228,7 @@ export default function NewGame() {
                     {chClub && <Crest club={chClub} size={28} mr={10} />}
                     <span style={{ flex: 1, textAlign: 'left', minWidth: 0 }}>
                       <b style={{ fontFamily: 'var(--serif)', fontSize: 14, color: 'var(--text-primary)' }}>{t(ch.title)}</b>
-                      <span className="meta" style={{ fontSize: 11.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{t(ch.desc)}</span>
+                      <span className="meta" style={{ fontSize: 12, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{t(ch.desc)}</span>
                     </span>
                   </button>
                 )
@@ -291,7 +291,7 @@ export default function NewGame() {
             <div className="wizard-hint">{t('wizard.profileAt', { club: club.name })}</div>
             {challenge && (
               <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-                <h3 style={{ fontSize: 15 }}>{t('wizard.challengeAccepted', { title: t(challenge.title) })}</h3>
+                <h3 style={{ fontSize: 16 }}>{t('wizard.challengeAccepted', { title: t(challenge.title) })}</h3>
                 <div className="meta">{t(challenge.desc)}</div>
               </div>
             )}
@@ -364,7 +364,7 @@ export default function NewGame() {
       <div className="action-bar wiz-bar">
         {needed && <div className="wiz-need">{needed}</div>}
         <button className="btn ghost" onClick={prev}>{step === 0 ? t('wizard.mainMenu') : t('wizard.back')}</button>
-        <button className="btn gold" style={{ flex: 1.6, fontSize: 15 }} disabled={!canNext} onClick={next}
+        <button className="btn gold" style={{ flex: 1.6, fontSize: 16 }} disabled={!canNext} onClick={next}
           title={needed ?? undefined}>
           {step === 3 ? t('wizard.startCareer') : t('wizard.confirm')}
         </button>

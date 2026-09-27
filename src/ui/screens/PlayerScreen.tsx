@@ -168,7 +168,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
               <>
                 <div className="fact-label" style={{ marginTop: (p.ratings?.length ?? 0) > 0 ? 8 : 0 }}>{t('player.injuryRecord')}</div>
                 <div className="meta">{t('player.injuryTally', { n: log.length })}, {t('player.injuryWeeksOut', { n: weeks })} · <b>{t(read)}</b></div>
-                <div className="meta muted" style={{ fontSize: 11.5 }}>
+                <div className="meta muted" style={{ fontSize: 12 }}>
                   {log.slice(-3).reverse().map((e, i) => (
                     <span key={i}>{i > 0 ? ' · ' : ''}{injuryDesc({ desc: e.dk, dk: e.dk })} ({t('player.injWeeks', { n: e.weeks })})</span>
                   ))}
@@ -189,7 +189,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           {t('player.scouted')} <b>{Math.round(know)}%</b></span>}
       </div>
       {!mine && (
-        <div className="meta" style={{ padding: '2px 16px 4px', fontSize: 11.5 }}>
+        <div className="meta" style={{ padding: '2px 16px 4px', fontSize: 12 }}>
           🔍 {t(`scoutStage.${reportStage(game, p)}`)}
         </div>
       )}
@@ -391,7 +391,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
 
       {termsFee != null && (
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-          <h3 style={{ fontSize: 15 }}>{t('player.personalTerms', { fee: fmtMoney(termsFee) })}</h3>
+          <h3 style={{ fontSize: 16 }}>{t('player.personalTerms', { fee: fmtMoney(termsFee) })}</h3>
           <div className="meta" style={{ margin: '4px 0' }}>{t('player.campOpensAt')}<b>{fmtWage(personalTermsDemand(game, p))}{t('common.perWeek')}</b>{t('player.campOpensRest')}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0' }}>
             <span className="fact-label" style={{ width: 84 }}>{t('player.wagePerWeek')}</span>
@@ -659,7 +659,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                   title={block ? t(`player.release${block[0].toUpperCase()}${block.slice(1)}`, { name: p.name, n: 24 }) : undefined}
                   label={t('player.release', { cost: fmtMoney(cost) })} confirm={t('player.releaseConfirm', { cost: fmtMoney(cost) })}
                   onConfirm={() => { const r = releasePlayer(game, p.id); setMsg(t(r.k, r.v)); touch() }} />
-                {block && <div className="meta muted" style={{ fontSize: 11.5, marginTop: 3 }}>{t(`player.release${block[0].toUpperCase()}${block.slice(1)}`, { name: p.name, n: 24 })}</div>}
+                {block && <div className="meta muted" style={{ fontSize: 12, marginTop: 3 }}>{t(`player.release${block[0].toUpperCase()}${block.slice(1)}`, { name: p.name, n: 24 })}</div>}
               </div>
             )
           })()}
@@ -745,7 +745,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             </>
             : (
               <div className="card">
-                <h3 style={{ fontSize: 15 }}>{t('player.yourOffer', { club: club.short })}</h3>
+                <h3 style={{ fontSize: 16 }}>{t('player.yourOffer', { club: club.short })}</h3>
                 <div className="meta">{t('player.askAndBudget', { ask: fmtMoney(ask), budget: fmtMoney(game.clubs[game.userClubId].budget) })}</div>
                 {floorPrice(game, p) < ask - 50_000 && (
                   <div className="meta muted">{t('player.asLowAs', { floor: fmtMoney(floorPrice(game, p)) })}</div>
