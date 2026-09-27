@@ -264,7 +264,7 @@ try {
   // and "Infrastructures du club" against "Club Infrastructure". Opened by the
   // caret, not by position: the rail's labels are translated, so a title=
   // selector would be an English assumption hiding inside a French test.
-  await page.locator('.bottom-nav button', { hasText: '▸' }).first().click()
+  await page.locator('.bottom-nav button[data-group]').first().click()
   await page.waitForSelector('.submenu')
   // the menu slides in; measured mid-flight it reports left: -37 and fails a
   // check that has nothing to do with the language it is in
@@ -336,7 +336,7 @@ try {
   await page.evaluate(() => localStorage.setItem('rm-lang', 'en'))
   await page.reload()
   await page.waitForSelector('.bottom-nav', { timeout: 15000 })
-  await page.locator('.bottom-nav button', { hasText: '▸' }).first().click()
+  await page.locator('.bottom-nav button[data-group]').first().click()
   await page.waitForSelector('.submenu')
   await page.waitForTimeout(400)
   await page.locator('.submenu-item', { hasText: 'Team' }).first().click()
@@ -359,7 +359,7 @@ try {
   await page.waitForSelector('.bottom-nav', { timeout: 15000 })
 
   // the treatment room, whose section subtitles are full sentences
-  await page.locator('.bottom-nav button', { hasText: '▸' }).first().click()
+  await page.locator('.bottom-nav button[data-group]').first().click()
   await page.waitForSelector('.submenu')
   await page.locator('.submenu-item', { hasText: 'Infirmerie' }).click()
   await page.waitForSelector('.inline-input')
@@ -375,7 +375,7 @@ try {
   // label tables. Those are the ones that silently stay English, because the
   // screen renders whatever the table holds and no screen-level sweep can see
   // it. So this walks the tabs and looks at what the tables produced.
-  await page.locator('.bottom-nav button', { hasText: '▸' }).first().click()
+  await page.locator('.bottom-nav button[data-group]').first().click()
   await page.waitForSelector('.submenu')
   await page.waitForTimeout(400)
   await page.locator('.submenu-item', { hasText: 'Tactique' }).first().click()
@@ -582,7 +582,7 @@ try {
       await page.waitForTimeout(700)
     }
     ok(await page.locator('.bottom-nav').count() > 0, 'the match hands back to the rest of the game')
-    await page.locator('.bottom-nav button', { hasText: '▸' }).nth(1).click()
+    await page.locator('.bottom-nav button[data-group]').nth(1).click()
     await page.waitForSelector('.submenu')
     await page.waitForTimeout(500)
     const about = page.locator('.submenu-item', { hasText: 'propos' })

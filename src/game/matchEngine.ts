@@ -1740,9 +1740,9 @@ function pushLine(
   state: GameState, ctx: LiveCtx, min: number, type: MatchEvent['type'], side: SideCtx | null,
   k: string, v?: Record<string, string | number>, playerId?: number,
 ) {
-  // silent, the line is not written, but its minute still moves the clock
-  // (pushEvent), so a silent match keeps the same time as a watched one
-  if (!ctx.detail) { pushEvent(state, ctx, min, type, side, '', playerId); return }
+  // silent, the line is not written, but its minute still moves the clock,
+  // so a silent match keeps the same time as a watched one
+  if (!ctx.detail) { clockTo(ctx, min, type); return }
   pushEvent(state, ctx, min, type, side, tIn('en', k, v), playerId, k, v, DEPICTS[k])
 }
 
@@ -1751,6 +1751,20 @@ function pushEvent(
   text: string, playerId?: number, k?: string, v?: Record<string, string | number>,
   fx?: MatchEvent['fx'],
 ) {
+  min = clockTo(ctx, min, type)
+  // only the writing down is for the watcher
+  if (!ctx.detail) return
+  ctx.events.push({
+    min, type, teamId: side?.teamId ?? '', fld: Math.round(ctx.field ?? 50),
+    playerId, playerName: playerId != null ? state.players[playerId]?.name : undefined,
+    text, k, v, fx, homeScore: ctx.home.score, awayScore: ctx.away.score,
+  })
+}
+
+/** THE CLOCK RUNS WATCHED OR NOT (1.8.0): a line's minute moves the match
+ *  clock in a silent match too, so a sin bin and the match sheet read the
+ *  same minute either way. Returns the minute the line is stamped with. */
+function clockTo(ctx: LiveCtx, min: number, type: MatchEvent['type']): number {
   if (type !== 'HT' && type !== 'FT') {
     // NOTHING HAPPENS AFTER THE WHISTLE (owner: "ive noticed a few times a
     // penalty kick comes after the half-time whistle has blown... this should
@@ -1771,15 +1785,7 @@ function pushEvent(
     min = Math.min(Math.max(min, ctx.lastMin), whistle)
     ctx.lastMin = min
   }
-  // THE CLOCK RUNS WATCHED OR NOT (1.8.0): everything above happens in a
-  // silent match too, so a sin bin and the match sheet read the same minute
-  // either way. Only the writing down is for the watcher.
-  if (!ctx.detail) return
-  ctx.events.push({
-    min, type, teamId: side?.teamId ?? '', fld: Math.round(ctx.field ?? 50),
-    playerId, playerName: playerId != null ? state.players[playerId]?.name : undefined,
-    text, k, v, fx, homeScore: ctx.home.score, awayScore: ctx.away.score,
-  })
+  return min
 }
 
 export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: boolean, userTeamId: string | null = state.userClubId): LiveCtx {

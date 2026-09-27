@@ -429,12 +429,22 @@ const EXPECTED: string[] = [
   // All six scores moved. bandcheck, pooled over four seeds:
   //   pts 50.3 -> 50.2   tries 6.38 -> 6.41   home 53.7% -> 52.6%
   //   draws 1.9% -> 1.6%   blowouts 5.0% -> 7.1% (every band holds)
-  'saracens 67-7 bath',
-  'exeter 15-50 gloucester',
-  'sale 20-25 bristol',
+  // REBASELINED for ONE MATCH ENGINE (1.8.0, scripts/detailprobe.ts). The
+  // three WATCHED fixtures moved because commentary no longer draws from the
+  // match's stream (LiveCtx.crng): the atmosphere lines and a missed kick's
+  // line used to spend rng() only when somebody was watching, so a watched
+  // match was a different match from the same fixture played silently (0 of
+  // 120 alike). The silent ones read the same clock as a watched match now
+  // (clockTo), so a sin bin runs from the minute the card is stamped in both;
+  // fixture six is Saracens again, carrying fixture one's knocks and legs.
+  // Fixtures four and five did not move, which is the stream staying put
+  // where nothing touched it.
+  'saracens 27-30 bath',
+  'exeter 27-18 gloucester',
+  'sale 37-14 bristol',
   'harlequins 24-26 leicester',
   'newcastle 17-38 northampton',
-  'exeter 32-24 saracens',
+  'exeter 12-39 saracens',
 ]
 // v1.8.1 moved three of them once more, and this time WITHOUT spending a new
 // draw: the training pitch now scales every side's breakdown and handling off
