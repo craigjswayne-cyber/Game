@@ -58,7 +58,12 @@ const ok = (c: boolean, what: string) => {
 // was reporting world-to-world variance as a difficulty regression, which is
 // the same failure annualprobe had with a fixed iteration budget. The
 // assertions are unchanged; only the evidence under them is.
-const SEEDS = [9, 777, 101, 55, 2024, 4242, 31337, 8080, 2468]
+// EIGHTEEN, NOT NINE (1.8.0). The same thing again one size up: the nine
+// read 4.6 after the unit rebalance and 8.1 on the commit before it, while
+// eighteen fresh worlds read 9.4 and 10.9 on the same two commits. Nine
+// worlds still carried enough world-to-world swing to cross the threshold on
+// a change that moved the true figure by a point or two.
+const SEEDS = [9, 777, 101, 55, 2024, 4242, 31337, 8080, 2468, 11, 23, 37, 41, 59, 67, 73, 89, 97]
 type Mode = 'sleepwalk' | 'optimise' | 'sabotage'
 
 function pick(state: GameState, mode: Mode): (number | null)[] | null {
