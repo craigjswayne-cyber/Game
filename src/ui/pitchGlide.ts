@@ -48,7 +48,7 @@ import { parseRun, runAt, type Waypoint } from './offBall'
  */
 const GLIDE = '.pdot:not(.ghost), .ball, .official, .phase-line, .contest-bar'
 
-type S = { tx: number; ty: number; ox: number; oy: number; vx: number; vy: number; runKey?: string; run?: Waypoint[] | null; runAt0?: number; pace?: number; line?: number }
+type S = { tx: number; ty: number; ox: number; oy: number; vx: number; vy: number; runKey?: string; run?: Waypoint[] | null; runAt0?: number; pace?: number; line?: number; snapped?: boolean }
 
 /** The same step in two dimensions with a top speed (Unity's SmoothDamp with
  *  maxSpeed): the part of the offset the dot may close in one smoothing time
@@ -85,6 +85,8 @@ export const GLIDE_SHARE = 0.42
 /** the share of a beat a man takes to cover the way to a new mark, at an even
  *  pace: most of it, so he is still running when the next line comes */
 export const PACE_SHARE = 0.85
+/** a man's top speed, in pitch widths a second (about a third of the field) */
+export const TOP_SPEED = 0.3
 
 export function usePitchGlide(world: RefObject<HTMLElement | null>, tickMs: number, lineKey = 0) {
   const tick = useRef(tickMs)
@@ -124,6 +126,7 @@ export function usePitchGlide(world: RefObject<HTMLElement | null>, tickMs: numb
             tx += o.x / 100 * W
             ty += o.y / 100 * H
           }
+          if (s.snapped) { s.snapped = false; s.tx = tx; s.ty = ty; s.line = line.current }
           if (tx !== s.tx || ty !== s.ty) {
             // the mark moved: the dot stays where it is drawn and runs on
             s.ox += s.tx - tx; s.oy += s.ty - ty
@@ -134,6 +137,14 @@ export function usePitchGlide(world: RefObject<HTMLElement | null>, tickMs: numb
             if (fresh) {
               s.line = line.current
               s.pace = Math.max(24, Math.hypot(s.ox, s.oy) / Math.max(0.2, tick.current / 1000 * PACE_SHARE))
+              // A MAN HAS A TOP SPEED (1.8.0): the owner's recording showed
+              // whole sides crossing half the pitch in under a second. A man
+              // who cannot reach his new spot in one beat keeps running into
+              // the next; the ball has no cap, so it leads and they follow.
+              // (the men AT the ball - the carrier, the man named, the ruck, who
+              // have no run of their own - keep up with it)
+              const atBall = el.classList.contains('carry') || el.classList.contains('hl') || !el.dataset.run
+              if (el.classList.contains('pdot') && !atBall) s.pace = Math.min(s.pace, TOP_SPEED * W)
             }
           }
           ;[s.ox, s.oy, s.vx, s.vy] = damp2(s.ox, s.oy, s.vx, s.vy, smooth, dt, s.pace ?? Infinity)
@@ -171,5 +182,21 @@ export function usePitchGlide(world: RefObject<HTMLElement | null>, tickMs: numb
       el.style.transform = el.classList.contains('ball') ? `${t} rotate(-25deg)` : t
     }
   }
-  return { preserve }
+  /** A CUT (1.8.0, owner: "far too erratic and unclear what is happening"):
+   *  everyone straight to their marks, no glide. For the moments a camera cuts
+   *  rather than pans - a restart after a score, into and out of a replay -
+   *  where thirty men sliding the length of the pitch in a second is noise. */
+  const snap = () => {
+    const w = world.current
+    if (!w) return
+    for (const el of w.querySelectorAll<HTMLElement>(GLIDE)) {
+      const s = state.current.get(el)
+      if (!s) continue
+      s.ox = 0; s.oy = 0; s.vx = 0; s.vy = 0; s.pace = undefined
+      // the mark this frame is the mark: nothing left to travel
+      s.tx = NaN; s.ty = NaN; s.snapped = true
+      el.style.transform = el.classList.contains('ball') ? 'translate3d(0px, 0px, 0) rotate(-25deg)' : 'translate3d(0px, 0px, 0)'
+    }
+  }
+  return { preserve, snap }
 }

@@ -2184,16 +2184,20 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .pitch .ball.kick-r, .pitch .ball.kick-l { animation: none; }
 
 /* broadcast banner sweeping across the pitch */
+/* A STRIP ALONG THE FOOT OF THE PITCH, NOT A BOX ON THE ACTION (1.8.0).
+   The banner sat dead centre at 21px, over the very players it was about,
+   and with the kick-at-goal inset at the top and a replay badge the picture
+   was more labels than rugby (owner: "unclear what is happening"). */
 .ev-banner {
   position: absolute;
-  left: 50%; top: 50%;
-  transform: translate(-50%, -50%);
+  left: 50%; bottom: 7px; top: auto;
+  transform: translate(-50%, 0);
   z-index: 6;
   font-family: var(--sans);
   font-weight: 800;
-  font-size: 21px;
-  letter-spacing: 3px;
-  padding: 7px 24px;
+  font-size: 14px;
+  letter-spacing: 2.5px;
+  padding: 3px 14px;
   border-radius: 6px;
   background: var(--prop-white);
   color: var(--prop-ink-dark);
@@ -2205,18 +2209,22 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .ev-banner.yc { background: var(--prop-yellow); color: var(--prop-ink-dark); }
 .ev-banner.rc { background: var(--prop-red); color: var(--prop-ink); }
-.ev-banner.inj { background: var(--prop-white); color: var(--prop-red); font-size: 15px; letter-spacing: 2px; }
+.ev-banner.inj { background: var(--prop-white); color: var(--prop-red); font-size: 13px; letter-spacing: 2px; }
 /* A kick at goal: the verdict waits for the ball (phasePlay.ts, GOAL_ARRIVES).
    The banner used to land the instant the line was read, while the ball was
    still on the tee, so the flight was an animation of something you already
    knew. Held back to the moment it reaches the posts, on the same beat. */
 .ev-banner.late { animation-delay: calc(var(--tick, 1100ms) * .56); animation-fill-mode: both; }
 @keyframes banner-in {
-  0% { opacity: 0; transform: translate(-50%, -50%) translateX(-70px) skewX(-8deg); }
-  12% { opacity: 1; transform: translate(-50%, -50%) skewX(0); }
-  80% { opacity: 1; transform: translate(-50%, -50%); }
-  100% { opacity: 0; transform: translate(-50%, -50%) translateX(50px); }
+  0% { opacity: 0; transform: translate(-50%, 8px); }
+  12% { opacity: 1; transform: translate(-50%, 0); }
+  85% { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, 0); }
 }
+/* the cut: a quick dip of the picture while everyone is put where they are */
+.pitch.cut .pitch-world { animation: pitch-cut .26s ease-out; }
+@keyframes pitch-cut { from { opacity: .15; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .pitch.cut .pitch-world { animation: none; } }
 .ev-banner .cardchip { width: 13px; height: 18px; border-radius: 2.5px; display: inline-block; box-shadow: 0 1px 3px rgba(0,0,0,.4); }
 .ev-banner .cardchip.y { background: linear-gradient(160deg, var(--prop-yellow), var(--prop-yellow-deep)); }
 .ev-banner .cardchip.r { background: linear-gradient(160deg, var(--prop-red), var(--prop-red-deep)); }

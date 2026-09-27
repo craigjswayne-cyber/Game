@@ -1581,7 +1581,8 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
   const rightward = (isHomeSide: boolean): boolean => isHomeSide !== mirror
   const scoringFx = evType === 'TRY' || evType === 'PEN' || evType === 'DG' || evType === 'CON'
   const kickFx = evType === 'PEN' || evType === 'CON' || evType === 'DG'
-  const banner = evType && (showFx || (showBig && scoringFx)) ? BANNER[evType] : undefined
+  // no banners in a replay: the REPLAY badge says what this is
+  const banner = !badge && evType && (showFx || (showBig && scoringFx)) ? BANNER[evType] : undefined
   // The event says what it depicts (MatchEvent.fx, set in matchEngine's
   // DEPICTS). What follows is the way it used to be worked out - regular
   // expressions over the line's stored English - and it is kept ONLY for
@@ -1942,6 +1943,28 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
     const p = prevPlay.current
     prevPlay.current = { key: fxKey, stepped: c.stepped, ball: c.ball, before: c.fromBall, dots: c.layout, beforeDots: p?.dots ?? null, who: c.who }
     pitchMemory = { fixtureId: fx.id, play: prevPlay.current }
+    // A CUT, NOT A PAN (1.8.0). Owner, with a screen recording: "the in-game
+    // animation feels erratic not smooth ... unclear what is happening". The
+    // frames showed thirty men sliding the length of the pitch in under a
+    // second after every score, and again into and out of every replay. A
+    // broadcast cuts there, and so does the classic 2D view: after a score it
+    // jumps to the restart. So: a restart, a replay starting or ending (the
+    // line number jumps rather than steps), or the ball's mark moving a quarter
+    // of the pitch with no kick to carry it, and everyone is simply where they
+    // are, under a quick dip of the picture.
+    const jumped = p != null && (fxKey < p.key || fxKey > p.key + 1)
+    // (not a try: the scorer's run to the line IS the moment)
+    const farMark = p != null && Math.abs(c.ball.x - p.ball.x) > 25 && !c.flying && c.type !== 'TRY'
+    const cut = !!p && (jumped || farMark || (c.shape === 'kickoff' && c.stepped))
+    // Only the arrival changes: the moment's own acts (a replacement jogging
+    // on, a card walking off) and any kick still play after the cut.
+    if (cut) {
+      for (const a of running.current) a.cancel()
+      running.current = []
+      glide.snap()
+      const el = pitchEl.current
+      if (el) { el.classList.remove('cut'); void el.offsetWidth; el.classList.add('cut') }
+    }
     // the handover runs inside preserve() so nothing jumps (pitchGlide.ts)
     glide.preserve(() => {
     for (const a of running.current) a.cancel()
@@ -2256,7 +2279,7 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
           {t(evType === 'TRY' && afterReview ? 'matchday.tmoAwarded' : banner)}
         </div>
       )}
-      {showFx && depicts === 'NOTRY' && (
+      {showFx && !badge && depicts === 'NOTRY' && (
         <div key={`nt${fxKey}`} className="ev-banner notry">{t('matchday.tmoNoTry')}</div>
       )}
     </div>
