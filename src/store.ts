@@ -272,6 +272,9 @@ interface Store {
   /** the assistant takes over: play the match out instantly with your team */
   instantResult: (preTalk?: 'calm' | 'fire' | 'underdog' | 'expect') => void
   advanceLive: () => void
+  /** Simulate the next stretch of the live match without revealing any of it,
+   *  so the match screen can see a try coming and play its build-up (1.8.0). */
+  simAhead: () => void
   skipToBreak: () => void
   decide: (choice: 'posts' | 'corner' | 'tap') => string
   matchCursor: (cursor: number, playing: boolean) => void
@@ -1166,6 +1169,19 @@ export const useStore = create<Store>((set, get) => ({
     if (ctx.events.length > cursor) cursor += 1
     set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch, cursor }, tick: s.tick + 1 } : {})
     // where the match has got to, so a reload comes back to the same minute
+    get().noteProgress()
+  },
+
+  simAhead: () => {
+    const { game, liveMatch } = get()
+    if (!game || !liveMatch) return
+    const { ctx, cursor } = liveMatch
+    if (cursor < ctx.events.length || ctx.awaiting || ctx.seg === 3 || ctx.decision) return
+    // the same loop advanceLive runs, stopping short of revealing the line
+    let r: ReturnType<typeof stepTick> = 'play'
+    while (ctx.events.length <= cursor && r === 'play' && !ctx.decision) r = stepTick(game, ctx)
+    if (r === 'FT' && !ctx.decision) settleKnockout(game, ctx)
+    set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch }, tick: s.tick + 1 } : {})
     get().noteProgress()
   },
 

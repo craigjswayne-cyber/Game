@@ -88,20 +88,22 @@ try {
   say(`  score pop under reduced motion: ${score?.name} ${score?.dur}`)
   ok(!!score && parseFloat(score.dur) < 0.01, 'the score pop is collapsed to nothing')
 
-  // and the banner, which must keep its length, has swapped to the opacity hold
-  const banner = await page.evaluate(() => {
-    const host = document.querySelector('.pitch') ?? document.body
+  // and the highlight banner (1.8.0) is SHOWN, not animated in: under reduced
+  // motion the clip jumps to the grounding and the banner has to be there at
+  // once, at full opacity, rather than collapsed to its hidden first frame
+  const banner = await page.evaluate(async () => {
     const d = document.createElement('div')
-    d.className = 'ev-banner'
-    host.appendChild(d)
+    d.className = 'hl-banner'
+    document.body.appendChild(d)
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))
     const cs = getComputedStyle(d)
-    const out = { name: cs.animationName, dur: cs.animationDuration }
+    const out = { dur: cs.animationDuration, opacity: cs.opacity }
     d.remove()
     return out
   })
-  say(`  event banner under reduced motion: ${banner.name} ${banner.dur}`)
-  ok(banner.name === 'rm-hold', 'the event banner keeps an animation rather than jumping to its hidden last frame')
-  ok(parseFloat(banner.dur) > 1, 'and keeps its full length, so the try is still announced')
+  say(`  highlight banner under reduced motion: ${banner.dur}, opacity ${banner.opacity}`)
+  ok(parseFloat(banner.dur) < 0.01, 'the highlight banner does not slide in')
+  ok(Number(banner.opacity) === 1, 'and is fully shown, so the try is still announced')
 
   // ---- the possession strip moves on the compositor -----------------------
   //

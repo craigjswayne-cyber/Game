@@ -55,8 +55,6 @@
    component rules that genuinely differ at night beyond what semantic
    tokens already express. */
 
-
-
 /* Nothing here needs a night spelling any more: every rule below reads
    semantic tokens, and tokens.css swaps the whole palette per mode. */
 
@@ -492,7 +490,7 @@ option { font: inherit; color: var(--text-primary); background-color: var(--surf
   border-radius: 10px;
   margin: 9px 12px;
   padding: 11px 13px;
-  
+
 }
 /* a card that is also a button: the width used to be an inline
    calc(100% - 28px) on every one of them, which no grid could override */
@@ -558,38 +556,49 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
   --safe-area-inset-left: env(safe-area-inset-left, 0px);
 }
+/* ---- THE BOTTOM NAV (1.8.0) ----
+   Owner: "I really like the Sainsbury's bottom menu selection - can we
+   incorporate that into the add for our buttons down the bottom". So it is
+   the same shape: a rounded bar floating clear of the screen edge, every
+   button an icon over its name, and the one you are on sitting in a soft pill
+   in the club colour. Badges stay on the icons. The FM-style icon-only rail
+   it replaces made a new manager guess what a clipboard meant.
+   The floor under it (home indicator, the ad banner) is a margin now, so the
+   bar floats above the banner rather than stretching down behind it. */
 .bottom-nav {
-  display: flex;
+  display: flex; gap: 2px;
+  margin: 0 10px calc(var(--safe-area-inset-bottom) + var(--ad-inset, 0px) + 8px);
+  padding: 5px;
   background: var(--surface-1);
-  border-top: 1px solid var(--border);
-  padding-bottom: calc(var(--safe-area-inset-bottom) + var(--ad-inset, 0px));
+  border: 1px solid var(--border);
+  border-radius: 24px;
   flex-shrink: 0;
-  box-shadow: 0 -4px 16px rgba(0, 0, 0, .25);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .32);
 }
 .bottom-nav button {
-  flex: 1;
+  flex: 1 1 0; min-width: 0;
   position: relative;
   color: var(--text-muted);
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: .5px;
-  padding: 11px 0;
+  letter-spacing: .2px;
+  padding: 6px 2px 5px;
+  border-radius: 19px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 3px;
-  transition: color .15s ease;
+  transition: color .15s ease, background-color .2s ease;
 }
-.bottom-nav button.active { color: var(--primary); }
-.bottom-nav button.active::before {
-  content: '';
-  position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-  width: 26px; height: 2.5px; border-radius: 0 0 3px 3px;
-  background: var(--primary);
+.bottom-nav button.active {
+  color: var(--primary);
+  background: color-mix(in srgb, var(--text-primary) 10%, transparent);
 }
-/* FM-style rail: symbols only - labels live in tooltips/flyouts */
-.bottom-nav .nlbl { display: none; }
-.bottom-nav .ico { width: 32px; height: 32px; display: block; }
+.bottom-nav .nlbl {
+  display: block; max-width: 100%; line-height: 1.15;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.bottom-nav .ico { width: 26px; height: 26px; display: block; }
 .bottom-nav .ico svg { width: 100%; height: 100%; display: block; }
 .bottom-nav .nbadge { position: relative; }
 .bottom-nav .dot {
@@ -598,7 +607,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   color: var(--on-danger); font-size: 8.5px; font-weight: 800;
   min-width: 15px; height: 15px; border-radius: 8px;
   display: flex; align-items: center; justify-content: center; padding: 0 4px;
-  border: 1.5px solid var(--canvas);
+  border: 1.5px solid var(--surface-1);
 }
 
 /* ================= Buttons ================= */
@@ -682,7 +691,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   font-size: 11px;
   font-weight: 500;
   color: var(--text-secondary);
-  
+
 }
 .chip b { font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
 
@@ -729,166 +738,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   font-family: var(--cond); font-style: normal; font-weight: 700;
   letter-spacing: .8px; text-transform: uppercase;
   font-size: 12px; color: var(--on-hero-soft); margin-top: 6px; letter-spacing: .5px;
-}
-
-.pitch {
-  position: relative;
-  margin: 12px 14px;
-  height: 132px;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.10), rgba(0,0,0,.16)),
-    repeating-linear-gradient(90deg, var(--pitch-a) 0 40px, var(--pitch-b) 40px 80px);
-  border: 1px solid rgba(8, 43, 32, .35);
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: inset 0 2px 14px rgba(0, 0, 0, .3);
-}
-/* On a phone around 900px tall, 132px plus the scoreboard, controls and the
-   now-strip fill the screen and this never mattered. On the Play Store's own
-   screenshot geometry (540x1170, taller than every phone devicematrix and
-   geosweep test) it does not fill: .live-wrap is a flex column and none of
-   its children grow, so live play left the bottom third of the screen as
-   bare background - visible on every store screenshot of a match in progress,
-   and on any real device with a comparably tall viewport (found chasing
-   store-art regeneration for v1.1.1, 26 Aug). Every mark inside the pitch is
-   positioned in percent or centered, so growing it some is free - but a
-   rugby pitch drawn touchline-to-touchline is wide, not tall, and letting it
-   flex-grow uncapped (or even to 60vh) chased the gap onto a viewport this
-   tall by turning the pitch nearly SQUARE, which reads as broken in its own
-   way. 210px keeps it a believable wide strip on anything short of enormous;
-   .live-wrap's justify-content: center (below) takes the rest of the slack
-   as even top-and-bottom margin instead of asking one element to swallow it
-   all. */
-.live-wrap .pitch { height: auto; min-height: 132px; max-height: 210px; flex: 1 1 132px; }
-.pitch .line { position: absolute; top: 0; bottom: 0; width: 2px; background: rgba(255,255,255,.8); }
-.pitch .line.dashed {
-  width: 0;
-  border-left: 2px dashed rgba(255,255,255,.35);
-  background: none;
-}
-.pitch .tryzone { position: absolute; top: 0; bottom: 0; width: 8%; }
-/* RUGBY POSTS, SEEN FROM ABOVE (owner, v1.1.9: "the rugby posts need to look
-   more like rugby posts with pad protectors on").
-   
-   The pitch is drawn overhead, so the goal line runs vertically and the two
-   uprights sit at either end of it. What was here drew the bar between them
-   and then put ::before and ::after at the SAME top: 8px - two identical
-   crossbars stacked on each other - so the whole thing read as a tick on a
-   line rather than as posts at all.
-   
-   Now the element is the bar, and the pseudo-elements are the two posts: from
-   directly above a padded upright is a circle, because what you are looking
-   down at is the foam sleeve wrapped round its base. Lit from the same corner
-   as the ball, so the two objects on the pitch that are round agree about
-   where the light is. */
-.pitch .posts {
-  position: absolute; top: 50%; transform: translateY(-50%);
-  font-size: 0;
-  /* a size down (owner, 27 Sep 2026: "make the in-game rugby posts a bit
-     smaller"): 44px of bar and 10px pads were 32 and 7 */
-  width: 2px; height: 32px; background: rgba(255,255,255,.85); border-radius: 2px;
-}
-.pitch .posts::before, .pitch .posts::after {
-  content: ''; position: absolute; left: -2.5px;
-  width: 7px; height: 7px; border-radius: 50%;
-  background: radial-gradient(circle at 38% 32%,
-    rgba(255, 255, 255, .95), rgba(214, 228, 236, .78) 55%, rgba(126, 146, 156, .6));
-  box-shadow: 0 1px 3px rgba(0, 0, 0, .45);
-}
-.pitch .posts::before { top: -3.5px; }
-.pitch .posts::after { top: auto; bottom: -3.5px; }
-.pitch .ball {
-  position: absolute; top: 50%; width: 19px; height: 13px;
-  background: radial-gradient(circle at 35% 30%, var(--prop-cream), var(--prop-cream-deep));
-  border: 2px solid var(--canvas);
-  border-radius: 50%;
-  /* Centred by margin, not by translate(-50%, -50%) in the transform. The
-     passage (phasePlay.ts) spins and swells the ball through `rotate` and
-     `scale`, and those apply OUTSIDE the transform: with the centring shift in
-     there, a spinning ball orbited its own spot at eleven pixels and a rising
-     one slid up and left. With nothing in the transform but the resting tilt,
-     both turn about the middle of the ball. */
-  margin: -6.5px 0 0 -9.5px;
-  transform: rotate(-25deg);
-  /* same glide as the men who are chasing it: pitchGlide.ts, which writes
-     the transform (this tilt included) every frame */
-  box-shadow: 0 3px 8px rgba(0, 0, 0, .45);
-}
-/* THE CAMERA'S WORLD (idea 4). Everything on the grass sits in this layer at
-   exactly the pitch's size, so every percentage inside it means what it did
-   before. With the Broadcast camera it is scaled and panned (MatchDay's cam),
-   and it takes the mown stripes with it so the grass zooms with the lines; with
-   the full pitch it is an untransformed box and the pitch paints the grass. */
-.pitch .pitch-world { position: absolute; inset: 0; transform-origin: 0 0; }
-.pitch .pitch-world.cam {
-  background: inherit;
-  transition: transform calc(var(--tick, 1100ms) * .9) cubic-bezier(.45, .05, .35, 1);
-}
-/* the whole pitch, small, in the top corner: where the picture is */
-.pitch .minimap {
-  position: absolute; top: 6px; right: 8px; z-index: 6; pointer-events: none;
-  width: 76px; height: 34px; border-radius: 4px; overflow: hidden;
-  background: rgba(8, 30, 22, .78);
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, .45), 0 2px 6px rgba(0, 0, 0, .4);
-}
-.pitch .minimap i { position: absolute; display: block; }
-.pitch .minimap .mm-tz { top: 0; bottom: 0; width: 8%; opacity: .85; }
-.pitch .minimap .mm-tz.l { left: 0; }
-.pitch .minimap .mm-tz.r { right: 0; }
-.pitch .minimap .mm-half { left: 50%; top: 0; bottom: 0; width: 1px; background: rgba(255, 255, 255, .5); }
-.pitch .minimap .mm-view {
-  border: 1.5px solid var(--gold); border-radius: 2px;
-  transition: left calc(var(--tick, 1100ms) * .9) ease, top calc(var(--tick, 1100ms) * .9) ease,
-    width calc(var(--tick, 1100ms) * .9) ease, height calc(var(--tick, 1100ms) * .9) ease;
-}
-.pitch .minimap .mm-ball {
-  width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; border-radius: 50%;
-  background: var(--prop-cream); box-shadow: 0 0 0 1px rgba(0, 0, 0, .5);
-  transition: left calc(var(--tick, 1100ms) * .9) ease, top calc(var(--tick, 1100ms) * .9) ease;
-}
-/* A ball in the air (phasePlay.ts). The passage draws the whole path in
-   `translate` from the spot the last line left it, and flies over the men.
-   Its shadow went in 1.8.1 at the owner's choice: height is the lift alone. */
-.pitch .ball.flight { z-index: 5; }
-/* a kick at goal at rest: the ball on the tee, and the territory ball hidden */
-.pitch .ball.parked { opacity: 0; }
-.pitch .tee-ball {
-  position: absolute; width: 19px; height: 13px; margin: -6.5px 0 0 -9.5px;
-  background: radial-gradient(circle at 35% 30%, var(--prop-cream), var(--prop-cream-deep));
-  border: 2px solid var(--canvas); border-radius: 50%;
-  transform: rotate(-70deg); box-shadow: 0 3px 8px rgba(0, 0, 0, .45);
-  z-index: 3; pointer-events: none;
-}
-/* the man the line names runs his own path during the passage, the same way */
-.pitch .pdot.carry { transition: scale .3s ease; }
-/* the lineout jumper goes up over the men lifting him (pitchActs.ts) */
-.pitch .pdot.lift { z-index: 5; }
-/* A man leaving the field, drawn after his own dot has gone: a replaced man
-   jogs to the bench, a man shown a card walks off with it held over him. It is
-   made and removed by PitchViz, so it never glides and never takes a tap. */
-.pitch .pdot.ghost { transition: none; pointer-events: none; z-index: 1; }
-.pitch .pdot.ghost.carded { z-index: 6; }
-.pitch .pdot.ghost .cardchip {
-  position: absolute; left: 50%; bottom: 13px; width: 7px; height: 10px; margin-left: -3.5px;
-  border-radius: 1.5px; box-shadow: 0 1px 2px rgba(0, 0, 0, .5);
-}
-.pitch .pdot.ghost .cardchip.y { background: linear-gradient(160deg, var(--prop-yellow), var(--prop-yellow-deep)); }
-.pitch .pdot.ghost .cardchip.r { background: linear-gradient(160deg, var(--prop-red), var(--prop-red-deep)); }
-/* The club code at each end of the pitch. It sits ON THE TRYZONE, and the
-   tryzone is painted in that club's own colour - which for eleven clubs in
-   the world (Clermont's yellow, Racing's sky blue, Ulster's white...) is
-   light enough that the old bare white text measured as low as 1.4:1. Which
-   is why nightcontrast only failed SOMETIMES: the ratio depended on who was
-   playing that day. Every other chip on the pitch (bin-chip, the scorer's
-   name plate) already owns a dark backing for exactly this reason; this is
-   the one that never got its chip. Worst case now - the chip's dark at .68
-   over Clermont yellow - still measures ~7:1. */
-.pitch .zone-label {
-  position: absolute; bottom: 4px;
-  font-family: var(--cond); font-weight: 700; font-size: 11px; letter-spacing: 2px;
-  color: rgba(255,255,255,.92);
-  background: rgba(8, 30, 22, .68);
-  padding: 1px 6px 1px 7px; border-radius: 8px;
 }
 
 .ticker { padding: 4px 16px; }
@@ -942,7 +791,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   font-family: var(--sans);
   font-size: 16px;
   font-weight: 700;
- 
+
   color: var(--text-primary);
   padding: 4px 16px 12px;
   line-height: 1.5;
@@ -1212,7 +1061,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   display: flex; overflow-x: auto;
   background: var(--surface-1);
   border-bottom: 2px solid var(--border-strong);
-  
+
 }
 .tab-bar button {
   /* six tabs on Selection, four on Finances, and every one of them was 36px.
@@ -1290,7 +1139,9 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    to keep it clear of the header too - a decision card or half-time panel
    sitting a long way above the bottom of a very tall screen is a smaller
    problem than the header one this rule exists to fix. */
-.live-wrap .now-strip { flex: 1; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; }
+/* natural height since the always-on pitch went (1.8.0): the live stats or
+   the highlight sit under it, not a stretched empty box */
+.live-wrap .now-strip { flex: none; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; }
 .live-wrap .ticker { flex: 1; overflow-y: auto; }
 
 /* ================================================================
@@ -1314,24 +1165,25 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   .content > .card, .content > .chips { max-width: 820px; }
   .app > .title-screen { grid-row: 1 / -1; grid-column: 1 / -1; }
 
+  /* on its side the bar is the left rail, flush to the edge, icons only
+     (a landscape phone is 390px tall and seven names do not fit); the pill
+     still marks where you are */
   .bottom-nav {
     grid-area: nav;
     flex-direction: column;
     /* fill the whole column: big, evenly spread targets (8B feedback) */
     justify-content: space-evenly;
-    gap: 0;
-    padding: calc(var(--safe-area-inset-top) + 6px) 0 6px var(--safe-area-inset-left);
-    border-top: none;
+    gap: 2px;
+    margin: 0;
+    padding: calc(var(--safe-area-inset-top) + 6px) 5px 6px calc(var(--safe-area-inset-left) + 5px);
+    border: none;
     border-right: 1px solid var(--border);
+    border-radius: 0;
     box-shadow: 4px 0 18px rgba(0, 0, 0, .22);
     overflow-y: auto;
   }
-  .bottom-nav button { flex: 1 1 0; min-height: 44px; padding: 4px 0; font-size: 9px; justify-content: center; }
-  .bottom-nav button.active::before {
-    top: 50%; left: 0; transform: translateY(-50%);
-    width: 3px; height: 34px;
-    border-radius: 0 3px 3px 0;
-  }
+  .bottom-nav button { flex: 1 1 0; min-height: 44px; padding: 4px 0; font-size: 9px; justify-content: center; border-radius: 14px; }
+  .bottom-nav .nlbl { display: none; }
   .bottom-nav .ico { width: 34px; height: 34px; }
 
   /* denser grids with the extra width */
@@ -1354,8 +1206,9 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
     min-height: 0;
   }
   .live-wrap .scoreboard { grid-area: score; padding-top: 6px; padding-bottom: 4px; }
-  .live-wrap .pitch { grid-area: main; height: auto; min-height: 130px; align-self: stretch; margin: 4px 10px; }
+
   .live-wrap .now-strip { grid-area: now; }
+  .live-wrap .hl-clip, .live-wrap .live-stats { grid-area: main; align-self: start; }
   .live-wrap .speed-controls { grid-area: ctrl; }
   .app .live-wrap .ticker.panel-area {
     grid-area: main / main / now / now;
@@ -1409,7 +1262,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   padding: 13px 8px;
   display: flex; flex-direction: column; align-items: center; gap: 5px;
   text-align: center;
-  
+
   color: var(--text-primary);
   transition: border-color .12s ease;
 }
@@ -1508,64 +1361,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    guideline without taking a pixel off the button next to it. */
 .night-btn::after { content: ''; position: absolute; inset: -5px; }
 
-/* ================= Live pitch: the two XVs ================= */
-.pitch .pdot {
-  position: absolute;
-  width: 13px; height: 13px;
-  margin: -6.5px 0 0 -6.5px;
-  border-radius: 50%;
-  border: 1.5px solid;
-  font-family: var(--cond);
-  font-size: 8px; font-weight: 700; line-height: 11px;
-  text-align: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, .5);
-  /* TRAVEL IS THE BEAT, not a number somebody liked the look of.
-     This was `left 1.1s, top .9s` flat, against a live beat of 350ms at Normal
-     speed (SPEEDS in MatchDay.tsx) - so a fresh target arrived when the last
-     move was a third finished, the browser restarted the transition from
-     wherever the dot had reached, and no man ever arrived anywhere. The pitch
-     read as fifteen dots drifting because that is literally what it was.
-     --tick is the real beat, set on .pitch from the same number the playback
-     timer uses (so the tension drag stretches it too). .92 lands the man just
-     before the next minute moves him; top is quicker than left because a rugby
-     pitch is wider than it is deep and the across-field move is the longer one.
-     The fallback matters: .pitch renders in places with no live clock. */
-  /* ONE GLIDE, BOTH AXES (1.7.4). left and top used to run on different
-     durations and curves, so a man moving diagonally bowed out along a curve
-     that was nothing to do with where he was going. The same duration and
-     the same easing makes every move a straight line, the way the classic
-     top-down match view drew its circles. */
-  /* THE GLIDE MOVED TO pitchGlide.ts (1.8.1). A transition per line starts
-     and ends every man at rest, which measured as the whole pitch standing
-     still for 38% of the match. A spring there carries each dot on from line
-     to line; left/top here are only its mark. `scale` for the highlight, so
-     the glide can own `transform`. */
-  transition: scale .3s ease;
-  z-index: 2;
-}
-.pitch .pdot.hl {
-  scale: 1.55;
-  z-index: 4;
-  /* a steady ring on the man in the line, not a pulse (1.7.4): the eye
-     should find him, not be pulled back to him every beat */
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, .55), 0 0 14px rgba(255, 245, 200, .9);
-}
-.pitch .pdot .pname {
-  position: absolute;
-  bottom: 14px; left: 50%;
-  transform: translateX(-50%) scale(.68);
-  background: rgba(8, 30, 22, .92);
-  color: var(--prop-ink);
-  font-size: 9px; font-weight: 700; letter-spacing: .4px;
-  padding: 2px 6px; border-radius: 4px;
-  white-space: nowrap;
-  pointer-events: none;
-}
-@keyframes dot-pulse {
-  0%, 100% { box-shadow: 0 0 0 3px rgba(255,255,255,.55), 0 0 14px rgba(255,245,200,.9); }
-  50% { box-shadow: 0 0 0 5px rgba(255,255,255,.3), 0 0 20px rgba(255,245,200,.7); }
-}
-
 /* ================= Pre-match: speeches & ready check ================= */
 .speech-grid {
   display: grid;
@@ -1579,7 +1374,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   border-radius: 9px;
   padding: 10px 11px;
   text-align: left;
-  
+
   transition: border-color .15s, transform .1s;
 }
 .speech-tile:active { transform: scale(.98); }
@@ -1603,7 +1398,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
      rather than pretending they meet the 44px rule. */
   min-height: 36px;
   font-size: 11px; font-weight: 700; font-family: var(--sans);
-  
+
 }
 .preset-chip:active { background: var(--row-hover-bg); }
 
@@ -1699,7 +1494,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   padding: 10px 11px;
   opacity: .55;
   filter: grayscale(.8);
-  
+
 }
 .spec-tile.on { opacity: 1; filter: none; border-color: var(--row-selected-border); }
 .spec-tile .ico { font-size: 18px; }
@@ -1719,7 +1514,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   border: 1px solid var(--border);
   border-radius: 9px;
   padding: 9px 4px;
-  
+
 }
 .hub-widget label {
   font-family: var(--cond); font-size: 10px; font-weight: 700;
@@ -1806,9 +1601,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   letter-spacing: 0.3px; white-space: nowrap; flex-shrink: 0;
   color: var(--text-muted);
 }
-.fm-attr .fm-word.b8, .fm-attr .fm-word.b7 { color: var(--primary); }
-.fm-attr .fm-word.b6 { color: var(--info); }
-.fm-attr .fm-word.b1, .fm-attr .fm-word.b0 { color: var(--text-negative); }
+
 @media (max-width: 420px) { .fm-attr .fm-word { display: none; } }
 .fm-attr .fm-chip {
   min-width: 34px; text-align: center; padding: 1px 5px;
@@ -2040,7 +1833,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   /* the movement is on .momo-track above; this only draws the needle */
   box-shadow: 0 1px 4px rgba(0, 0, 0, .4);
 }
-.pitch .pdot.cap { outline: 1.5px solid var(--gold-fill); outline-offset: 1px; }
 
 /* The tension band (v1.1.1): late AND close, and the scoreboard says so.
    STATIC on purpose - no pulse, no flash. prefers-reduced-motion collapses
@@ -2104,7 +1896,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   border-radius: 12px;
   overflow: hidden;
   background: var(--surface-3);
-  
+
 }
 .dt-board { background: var(--surface-2); }
 .dt-head {
@@ -2175,14 +1967,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   100% { transform: scale(1); }
 }
 
-/* try-zone floodlight when a try is scored */
-.pitch.try-r .tz-r, .pitch.try-l .tz-l { animation: tz-flash 1.5s ease; }
-@keyframes tz-flash {
-  0%, 100% { filter: brightness(1); }
-  20%, 60% { filter: brightness(2.1) saturate(1.4); }
-  40%, 80% { filter: brightness(1.3); }
-}
-
 /* scorer's dash for the line */
 /* The scorer's dash (run-r / run-l) was a transform animation: 46px of run
    into the in-goal. Since 1.8.1 the glide carries him there from wherever he
@@ -2209,94 +1993,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    vertical drift to settle onto the posts' line, swelling as it rises and
    shrinking as it sails away over the bar. It fades before the far edge, so
    the flight reads the same wherever on the field it was struck from. */
-/* THIRD CORRECTION, 25 Sep 2026: the flight is the passage's now
-   (phasePlay.ts, kind 'goal'), which knows where the posts really are rather
-   than guessing a distance in ball-widths - so a penalty from halfway and one
-   from the 22 both land on the bar. It waits on the tee, rises off its shadow,
-   turns end over end, and fades going through. These classes only hold the
-   ball still for it (the working loop would fight the flight). */
-.pitch .ball.kick-r, .pitch .ball.kick-l { animation: none; }
 
-/* broadcast banner sweeping across the pitch */
-/* A STRIP ALONG THE FOOT OF THE PITCH, NOT A BOX ON THE ACTION (1.8.0).
-   The banner sat dead centre at 21px, over the very players it was about,
-   and with the kick-at-goal inset at the top and a replay badge the picture
-   was more labels than rugby (owner: "unclear what is happening"). */
-.ev-banner {
-  position: absolute;
-  left: 50%; bottom: 7px; top: auto;
-  transform: translate(-50%, 0);
-  z-index: 6;
-  font-family: var(--sans);
-  font-weight: 800;
-  font-size: 14px;
-  letter-spacing: 2.5px;
-  padding: 3px 14px;
-  border-radius: 6px;
-  background: var(--prop-white);
-  color: var(--prop-ink-dark);
-  box-shadow: 0 6px 26px rgba(0, 0, 0, .45);
-  animation: banner-in 1.6s cubic-bezier(.2, .9, .3, 1) forwards;
-  display: flex; align-items: center; gap: 10px;
-  white-space: nowrap;
-  pointer-events: none;
-}
-.ev-banner.yc { background: var(--prop-yellow); color: var(--prop-ink-dark); }
-.ev-banner.rc { background: var(--prop-red); color: var(--prop-ink); }
-.ev-banner.inj { background: var(--prop-white); color: var(--prop-red); font-size: 13px; letter-spacing: 2px; }
-/* A kick at goal: the verdict waits for the ball (phasePlay.ts, GOAL_ARRIVES).
-   The banner used to land the instant the line was read, while the ball was
-   still on the tee, so the flight was an animation of something you already
-   knew. Held back to the moment it reaches the posts, on the same beat. */
-.ev-banner.late { animation-delay: calc(var(--tick, 1100ms) * .56); animation-fill-mode: both; }
-@keyframes banner-in {
-  0% { opacity: 0; transform: translate(-50%, 8px); }
-  12% { opacity: 1; transform: translate(-50%, 0); }
-  85% { opacity: 1; transform: translate(-50%, 0); }
-  100% { opacity: 0; transform: translate(-50%, 0); }
-}
-/* the cut: a quick dip of the picture while everyone is put where they are */
-.pitch.cut .pitch-world { animation: pitch-cut .26s ease-out; }
-@keyframes pitch-cut { from { opacity: .15; } to { opacity: 1; } }
-@media (prefers-reduced-motion: reduce) { .pitch.cut .pitch-world { animation: none; } }
-.ev-banner .cardchip { width: 13px; height: 18px; border-radius: 2.5px; display: inline-block; box-shadow: 0 1px 3px rgba(0,0,0,.4); }
-.ev-banner .cardchip.y { background: linear-gradient(160deg, var(--prop-yellow), var(--prop-yellow-deep)); }
-.ev-banner .cardchip.r { background: linear-gradient(160deg, var(--prop-red), var(--prop-red-deep)); }
-
-/* ---- the TMO (idea 5) ---------------------------------------------------
-   The engine sends a try upstairs in a line of its own (scoreTry), and the
-   next line is the verdict. For the wait between: a dark monitor over the
-   pitch, a scan line working across it, and the question being asked. */
-.tmo-card {
-  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-  z-index: 7; pointer-events: none;
-  display: flex; flex-direction: column; align-items: center; gap: 5px;
-  padding: 8px 14px 9px; min-width: 190px;
-  background: rgba(8, 18, 34, .9); border-radius: 10px;
-  box-shadow: 0 6px 26px rgba(0, 0, 0, .5);
-  animation: tmo-in .3s ease-out both;
-}
-.tmo-card .tmo-title {
-  font-family: var(--cond); font-weight: 800; font-size: 12px; letter-spacing: 2px;
-  color: var(--prop-ink);
-}
-.tmo-card .tmo-screen {
-  position: relative; width: 150px; height: 6px; border-radius: 3px; overflow: hidden;
-  background: rgba(255, 255, 255, .14);
-}
-.tmo-card .tmo-screen i {
-  position: absolute; top: 0; bottom: 0; left: 0; width: 34%;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, .85), rgba(255, 255, 255, 0));
-  animation: tmo-scan .9s ease-in-out infinite alternate;
-}
-.tmo-card .tmo-line {
-  font-family: var(--cond); font-weight: 700; font-size: 13px; letter-spacing: .6px;
-  color: var(--prop-ink); white-space: nowrap;
-}
-@keyframes tmo-in { from { opacity: 0; transform: translate(-50%, -50%) scale(.92); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
-@keyframes tmo-scan { from { translate: 0 0; } to { translate: 195% 0; } }
-/* the verdict that goes against: the banner, in the colour of a card */
-.ev-banner.notry { background: var(--prop-red); color: var(--prop-ink); }
 .now-line.tmo { border-left-color: var(--gold); }
 .now-line.tmo .txt { font-weight: 700; }
 .tick-event.tmo .txt { font-weight: 700; }
@@ -2341,29 +2038,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   position: absolute; width: 58px; height: 34px; z-index: 5;
   transform: translate(-50%, -50%); pointer-events: none;
 }
-.setp .splabel {
-  position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
-  font-family: var(--cond); font-weight: 800; font-size: 8.5px; letter-spacing: 1.2px;
-  color: var(--prop-ink); text-shadow: 0 1px 3px rgba(0, 0, 0, .6); white-space: nowrap;
-  animation: splabel-in .35s ease-out both;
-}
-/* the ball is on the top touchline for a lineout there: name it underneath */
-.setp.below .splabel { top: auto; bottom: -14px; }
-@keyframes splabel-in { from { opacity: 0; transform: translateX(-50%) translateY(4px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
-
-/* ---- try celebration burst ---- */
-.try-burst {
-  position: absolute; top: 46%; width: 0; height: 0; z-index: 6; pointer-events: none;
-}
-.try-burst i {
-  position: absolute; left: -2px; top: -5px; width: 5px; height: 10px; border-radius: 2px;
-  animation: burst-fly .95s cubic-bezier(.15, .6, .4, 1) both;
-}
-@keyframes burst-fly {
-  0% { opacity: 1; transform: rotate(var(--ang)) translateY(0) scale(1); }
-  70% { opacity: 1; }
-  100% { opacity: 0; transform: rotate(var(--ang)) translateY(-46px) scale(.55); }
-}
 
 /* ---- sin-bin countdown chips ---- */
 .bin-chip {
@@ -2373,50 +2047,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   border: 1px solid rgba(255, 225, 77, .5); border-radius: 9px; padding: 1px 6px;
   pointer-events: none;
 }
-
-/* ---- kick cam: goalposts overlay on every shot at goal ---- */
-.kickcam {
-  position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
-  width: 92px; height: 74px; z-index: 7; pointer-events: none;
-  background: rgba(8, 18, 34, .55); border-radius: 10px;
-  animation: kc-fade calc(var(--tick, 1500ms) * 1.05) ease both;
-}
-.kickcam .kc-post {
-  position: absolute; bottom: 8px; width: 3px; height: 42px; border-radius: 2px;
-  background: var(--prop-white); box-shadow: 0 1px 3px rgba(0, 0, 0, .5);
-}
-.kickcam .kc-post.l { left: 30px; }
-.kickcam .kc-post.r { right: 30px; }
-.kickcam .kc-bar {
-  position: absolute; bottom: 28px; left: 30px; right: 30px; height: 3px;
-  border-radius: 2px; background: var(--prop-white); box-shadow: 0 1px 3px rgba(0, 0, 0, .5);
-}
-.kickcam .kc-ball {
-  position: absolute; bottom: 6px; left: 50%; width: 7px; height: 9px;
-  margin-left: -3.5px; border-radius: 50%; background: var(--prop-tee);
-  border: 1px solid var(--prop-tee-edge);
-  animation: kc-flight calc(var(--tick, 1600ms) * .42) cubic-bezier(.3, .1, .5, 1) calc(var(--tick, 1600ms) * .16) both;
-}
-.kickcam.miss .kc-ball { animation-name: kc-flight-miss; }
-@keyframes kc-flight {
-  0% { transform: translateY(0) scale(1); }
-  100% { transform: translateY(-52px) scale(.55); }
-}
-@keyframes kc-flight-miss {
-  0% { transform: translate(0, 0) scale(1); }
-  100% { transform: translate(26px, -50px) scale(.55); }
-}
-.kickcam .kc-verdict {
-  position: absolute; top: 4px; left: 0; right: 0; text-align: center;
-  font-family: var(--cond); font-weight: 800; font-size: 11px; letter-spacing: 1.5px;
-  color: var(--primary-hover); opacity: 0;
-  /* on the pitch's beat, with the ball on the main pitch: the close-up used to
-     say GOOD at .95s, after an 800ms beat had already moved on to the next line */
-  animation: kc-verdict-in .3s ease calc(var(--tick, 1600ms) * .56) both;
-}
-.kickcam.miss .kc-verdict { color: var(--danger); }
-@keyframes kc-verdict-in { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes kc-fade { 0% { opacity: 0; } 10% { opacity: 1; } 82% { opacity: 1; } 100% { opacity: 0; } }
 
 /* The derby billing on the match-day card: its own line, its own colour,
    and it wraps like a sentence rather than trailing off the weather. */
@@ -2428,7 +2058,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   display: flex; gap: 10px; align-items: flex-start;
   margin: 10px 14px; padding: 14px 16px;
   background: var(--surface-1); border-radius: 10px;
-  
+
   border-left: 4px solid var(--border-strong);
   font-size: 16px; line-height: 1.45;
   animation: now-in .32s ease both;
@@ -2484,68 +2114,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   .review-grid { grid-template-columns: 1fr 1fr; align-items: start; }
 }
 
-/* ---- every player is alive: idle jog between repositions ----
- *
- * IT USED TO ANIMATE `margin`, and the reason was sound: .pdot.hl and the
- * scorer's dash-l/dash-r both own `transform`, so a jog written in transform
- * would have been wiped the moment a man was named or scored. Margin was the
- * one free property. It was also a LAYOUT property, animated infinitely, on up
- * to thirty dots at once, while left/top transitions ran on the same elements -
- * so every frame of a match reflowed the whole pitch, on a phone, for a wobble.
- *
- * `translate` is the modern individual property: it is NOT `transform`, so it
- * composes with the halo scale and the dash instead of fighting them, and it is
- * composited rather than reflowed. Same isolation, none of the layout. The
- * centring stays in margin where it belongs - it is a constant, not an
- * animation, and there is no longer anything animating margin to trample it. */
-.pitch .pdot.jog { animation-name: pjog; animation-timing-function: ease-in-out; animation-iteration-count: infinite; }
-@keyframes pjog {
-  0%   { translate: 0 0; }
-  27%  { translate: 2.5px -2px; }
-  52%  { translate: -2.5px 1.5px; }
-  76%  { translate: 1px -1.5px; }
-  100% { translate: 0 0; }
-}
-
-/* v1.1.4, "more ball and player movement": the wobble above is a man waiting.
- * These two are men DOING something, and both are written in `translate` for
- * exactly the reasons pjog is (composited, composes with the halo and the
- * dash), and both start and end at zero so reduced-motion's instant-finish
- * leaves every dot where the layout put it.
- *
- * `--adir` is the side's attacking direction (+1 rightwards for home, -1 for
- * away), set inline by PitchViz. One keyframe set serves both directions.
- *
- * The support runner: an attacking back off the ball makes a short angled run
- * onto it and drifts back out. Staggered per shirt (inline delay), so the back
- * line ripples rather than lunging as one.  The defensive line: everyone not
- * at the ruck steps up toward the ball and back off it TOGETHER - same
- * duration, same phase, no inline override - because a defensive line moving
- * as one line is what a defensive line is.  Both ride the live beat, so
- * fast-forward works the pitch harder instead of leaving the dots strolling
- * through a sprint. */
-.pitch .pdot.supp {
-  animation-name: psupp; animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
-  animation-duration: calc(var(--tick, 1100ms) * 1.6);
-}
-@keyframes psupp {
-  0%   { translate: 0 0; }
-  38%  { translate: calc(var(--adir, 1) * 8px) -2.5px; }
-  62%  { translate: calc(var(--adir, 1) * 5px) 2px; }
-  100% { translate: 0 0; }
-}
-.pitch .pdot.dline {
-  animation-name: pdrift; animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
-  animation-duration: calc(var(--tick, 1100ms) * 2);
-}
-@keyframes pdrift {
-  0%, 100% { translate: 0 0; }
-  45% { translate: calc(var(--adir, 1) * 5px) 0; }
-  60% { translate: calc(var(--adir, 1) * 4px) 1px; }
-}
-
 /* The ball is never dead between minutes: a small working loop - shifted at
  * the base, tipped end over end a few degrees - on the same beat as the men.
  * `translate`/`rotate` are the individual properties, so they compose with
@@ -2556,12 +2124,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
  * where the play is and moves when the play does (the passage for a kick,
  * a pass or a run is still drawn by phasePlay.ts). The keyframes stay for
  * anything that asks for them by name. */
-@keyframes ballwork {
-  0%, 100% { translate: 0 0; rotate: 0deg; }
-  30% { translate: 4px -3px; rotate: 13deg; }
-  55% { translate: -4px 1.5px; rotate: -11deg; }
-  80% { translate: 2px -2px; rotate: 5deg; }
-}
 
 /* ---- the trophy moment: full-screen celebration ---- */
 .celebrate-veil {
@@ -2594,10 +2156,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   0% { transform: translateY(-4vh) rotate(0deg); opacity: 1; }
   100% { transform: translateY(106vh) rotate(720deg); opacity: .75; }
 }
-
-/* kicked balls streak through the air */
-.pitch .ball.kick-r { box-shadow: -14px 3px 10px rgba(255, 244, 200, .35), 0 1px 3px rgba(0, 0, 0, .5); }
-.pitch .ball.kick-l { box-shadow: 14px 3px 10px rgba(255, 244, 200, .35), 0 1px 3px rgba(0, 0, 0, .5); }
 
 /* landscape tile grids: these overrides must come AFTER the base rules -
    the copies inside the earlier media block lost the cascade and left
@@ -2686,14 +2244,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   }
   .fin-head .chips { padding: 10px 8px 10px 16px; align-content: flex-start; }
   .fin-chart .card { margin: 4px 12px 4px 0; }
-}
-
-/* Club picker in landscape: a ten-club league has to fit above the action bar
-   without scrolling, because it is the first screen of the game. Five columns
-   makes two even rows of five, and the tiles lose the height they did not need.
-   Bigger leagues (14 to 16 clubs) still scroll, which is unavoidable and fine
-   now that the bar is opaque. */
-@media (orientation: landscape) and (min-width: 640px) {
 }
 
 /* MatchDay header in landscape: badges left, fixture details right. Centred and
@@ -2914,15 +2464,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   }
 }
 
-/* The club picker's badge grid was five fixed columns. Dropped into half a
-   screen next to the club's detail card it overflowed its own container and slid
-   under it, hiding Leicester and Newcastle behind the panel - 7px past the edge
-   in the harness, 59px on a narrower phone. auto-fit means it reflows into
-   however many columns actually fit, at any width, which is what it should have
-   been all along. */
-@media (orientation: landscape) and (min-width: 640px) {
-}
-
 /* ---- a selected tile is the same size as an unselected one ----
    .tile.sel had `box-shadow: 0 0 0 1.5px var(--gold)`, a ring painted OUTSIDE
    the tile's border. It costs no layout, so the grid stays even, but it reads as
@@ -3139,7 +2680,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .sh-nrg.amber { color: var(--gold); }
 .sh-nrg.red { color: var(--danger); font-weight: 700; }
 .sheet-log { margin-top: 4px; }
-
 
 /* ---- the tactics pitch was the wrong way round (feedback 9-5) ----------
    A vertical half-pitch, 430px tall, on a phone whose content area is about
@@ -3404,19 +2944,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   .bottom-nav button svg { width: 24px; height: 24px; }
 }
 
-/* ---- the shirts have to read against grass ------------------------------
-   A dot is filled with the club's primary colour, and plenty of clubs play in
-   dark green or black - Northampton's XV was near-invisible on its own pitch.
-   A dark drop shadow plus a hairline of light lifts every kit off the turf
-   without tinting any of them. */
-.pitch .pdot {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, .6), 0 0 0 1px rgba(255, 255, 255, .3);
-}
-/* the highlighted man keeps his own halo - it has to beat this one */
-.pitch .pdot.hl {
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, .6), 0 0 16px rgba(255, 245, 200, .95), 0 2px 5px rgba(0, 0, 0, .6);
-}
-
 /* ---- the set-piece playbook (F2) ---------------------------------------
    Six lineout calls and four scrum calls, each needing a name, a line of why,
    a drilled bar and a worth-it readout. Two-up on a phone, more when there is
@@ -3447,7 +2974,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .brief-list { padding: 3px 14px; display: grid; gap: 4px; }
 .brief-row {
   background: var(--surface-2); border-radius: 8px; padding: 5px 8px;
-  
+
 }
 /* Landscape has 844px to play with, so the man and his four options share one
    line: stacked, eight seats came to 1080px of scrolling on a 390px-tall
@@ -3550,7 +3077,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   background: var(--surface-2); border: 1px solid var(--border);
   border-left: 3px solid var(--gold);
   border-radius: 7px; padding: 6px 10px; text-align: left;
-  
+
 }
 .who-chip b { font-size: 13px; color: var(--text-primary); }
 .who-chip span { font-size: 11px; color: var(--text-muted); font-weight: 700; }
@@ -3653,7 +3180,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    only thing the portrait media query held was the rotate veil and nothing in
    here had ever been laid out for a tall narrow screen. The user plays in
    portrait, so it is a real layout now.
-   
+
    Everything below is driven by measurements from scripts/portraitqa.mjs at
    412x915 (a 1080x2340 phone at DPR 2.625) rather than guesswork. */
 @media (orientation: portrait) {
@@ -3801,7 +3328,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 /* The transfer filters on one row of their own. Equal flex with min-width 0 so
    four controls divide whatever width there is instead of wrapping into three
    rows and eating a third of a portrait screen before the results start.
-   
+
    Its own class name, NOT .filter-row: the Squad screen already owns that one
    for its six chips and a search box, and forcing equal flex on those crushed
    every chip to 47px ("🚑 Unavailable" lost 35 characters' worth). Reusing a
@@ -4006,7 +3533,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
     scroll-behavior: auto !important;
   }
   .ft-stamp { animation: rm-hold 2.8s linear forwards !important; }
-  .ev-banner { animation: rm-hold 1.6s linear forwards !important; }
+
   @keyframes rm-hold { 0%, 86% { opacity: 1; } 100% { opacity: 0; } }
 }
 
@@ -4198,7 +3725,6 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
   text-align: center; margin-bottom: 2px;
 }
 
-
 /* ---- the bid stepper fits the phone --------------------------------------
    User, from a 412px screen: "the reduce or plus 500 go off the screen and
    dont fit in the box". It was five items on one nowrap flex line, which needs
@@ -4241,7 +3767,6 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
    reachable, not a new one - and a real one, because these chips are how a
    manager taps from a story to the player it is about. */
 .who-chip { min-height: 44px; }
-
 
 /* ================= Report a Bug ================= */
 /* The label is the fact-label at a size a form can carry: 9.5px is a caption
@@ -4297,7 +3822,6 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
   word-break: break-word;
   color: var(--text-secondary);
 }
-
 
 /* Every direct child of a masthead row must be allowed to shrink. App's own
    header gets this from .mast-text in portrait; MatchDay, SeasonReview and
@@ -4425,8 +3949,6 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
   margin-top: 14px; color: var(--gold);
 }
 
-
-
 /* ---- v1.2.7: the record, the manager's plans, the depth chart, and a
    button that asks once ---- */
 .btn.armed { animation: armed-pulse .9s ease-in-out infinite alternate; }
@@ -4482,7 +4004,6 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .loan-sheet .loan-deal { display: flex; flex-direction: column; gap: 10px; padding: 4px 14px 0; }
 .loan-sheet .loan-deal label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; text-transform: uppercase; letter-spacing: .4px; }
 .loan-sheet .loan-deal .inline-input { padding: 9px 10px; width: 100%; }
-
 
 /* ---- THE PRESSURE BARS (v1.7.0) ----
    Two bars either side of a centred label, each filling OUTWARD from the
@@ -4552,22 +4073,6 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
   border: 1px solid color-mix(in srgb, var(--primary) 22%, transparent);
 }
 
-/* THE HIT (pitchActs.ts, owner 26 Sep 2026: "tackles and rucks you can see").
-   A ring where the tackle is made, at the moment it is made: the animation
-   delay is the tackle's own moment in the beat, set inline by PitchViz. It is
-   only drawn when the passage runs, so reduced motion never sees it. */
-.pitch .tackle-hit {
-  position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px;
-  border: 2px solid var(--prop-cream); border-radius: 50%;
-  pointer-events: none; z-index: 3; opacity: 0;
-  animation: tackle-thud 320ms ease-out both;
-}
-@keyframes tackle-thud {
-  0%   { opacity: 0; scale: .3; }
-  15%  { opacity: .95; }
-  100% { opacity: 0; scale: 1.9; }
-}
-
 /* How a player took what was said in the office (talkback.ts, 1.7.3). */
 .news-item .took {
   display: inline-block; margin-top: 6px; padding: 2px 8px; border-radius: 999px;
@@ -4611,16 +4116,6 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .ctx-name span { display: block; font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ctx-go { font-size: 20px; color: var(--text-muted); line-height: 1; }
 .resp-needed { white-space: nowrap; }
-
-/* ---- the officials on the pitch (1.8.0) ---- */
-.pitch .official {
-  position: absolute; z-index: 2; width: 11px; height: 11px; margin: -5.5px 0 0 -5.5px;
-  border-radius: 50%; font-family: var(--cond); font-size: 7px; font-weight: 800; line-height: 11px;
-  text-align: center; background: var(--prop-yellow); color: var(--prop-ink-dark);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, .5); pointer-events: none;
-  /* on the players' glide (pitchGlide.ts) */
-}
-.pitch .official.aj { width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; line-height: 9px; font-size: 6px; }
 
 /* ---- the touchline at a glance, above the commentary (1.8.0) ---- */
 .match-status {
@@ -4937,10 +4432,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
    about 1.6 times as long as it is wide), capped so the deck below still has
    room, and the deck fills the rest. */
 @media (orientation: portrait) {
-  .app.tablet .live-wrap .pitch {
-    flex: none; min-height: 0; max-height: calc(44dvh / var(--zoom, 1));
-    height: auto; aspect-ratio: 16 / 10;
-  }
+
   .app.tablet .live-wrap .now-strip { flex: none; }
 }
 .tab-deck {
@@ -5029,49 +4521,6 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 @keyframes m-grow-y { from { transform: scaleY(0); } }
 @keyframes m-pop { from { transform: scale(.4); } }
 
-/* ================================================================
-   THE MATCH OVERLAYS (1.8.1). Switched in Match Settings (matchPrefs.ts).
-================================================================ */
-/* the breakdown: a pale-lime gainline through the ball (green on grass would
-   vanish, so it is the lightest green on the ramp) and the offside line in
-   red where the defence's front line has to stand. Both ride the glide. */
-.pitch .phase-line {
-  position: absolute; top: 0; bottom: 0; width: 0; z-index: 1; pointer-events: none;
-  border-left: 2px dashed; opacity: .75;
-}
-.pitch .phase-line.gain { border-left-color: var(--ramp-g2); }
-.pitch .phase-line.offside { border-left-color: var(--prop-red); border-left-style: solid; opacity: .7; }
-/* the contest bar over a scrum, lineout or maul: the two packs' units side by
-   side in their colours, then it swings to the side that won it, halfway
-   through the beat */
-.pitch .contest-bar {
-  position: absolute; z-index: 6; width: 54px; height: 7px; margin: -3.5px 0 0 -27px;
-  border-radius: 4px; overflow: hidden; pointer-events: none;
-  background: var(--rc); box-shadow: 0 0 0 1.5px var(--canvas), 0 2px 5px rgba(0, 0, 0, .5);
-}
-.pitch .contest-bar i {
-  position: absolute; inset: 0; background: var(--lc); transform-origin: left center;
-  transform: scaleX(var(--w));
-  animation: contest-swing var(--beat, 1100ms) cubic-bezier(.2, 0, 0, 1) both;
-}
-@keyframes contest-swing {
-  0%, 40% { transform: scaleX(var(--p)); }
-  100% { transform: scaleX(var(--w)); }
-}
-/* condition at a stoppage: a ring round each man */
-.pitch .pdot .stam {
-  position: absolute; inset: -4px; border-radius: 50%; pointer-events: none;
-  border: 2px solid; animation: stam-in .3s ease-out;
-}
-.pitch .pdot .stam.hi { border-color: var(--ramp-g3); }
-.pitch .pdot .stam.mid { border-color: var(--prop-yellow); }
-.pitch .pdot .stam.lo { border-color: var(--prop-red); }
-@keyframes stam-in { from { opacity: 0; } }
-@media (prefers-reduced-motion: reduce) {
-  .pitch .contest-bar i { animation: none; }
-  .pitch .pdot .stam { animation: none; }
-}
-
 /* LARGE COMMENTARY (Match Settings, on by default; owner: "The size of the
    text in fm stands out"). The now-line was 14px body and 17px for a score. */
 .live-wrap.big-text .now-strip .now-line .txt { font-size: 16px; line-height: 1.35; }
@@ -5109,11 +4558,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
     padding: 4px 14px 4px 0; min-height: 0;
   }
   .app.tablet .live-wrap .now-strip .now-line { display: none; }
-  /* the pitch takes a pitch's shape in the room it has, not the phone's strip */
-  .app.tablet .live-wrap .pitch {
-    max-height: 100%; min-height: 0; height: auto; aspect-ratio: 16 / 10;
-    align-self: center; justify-self: stretch; margin: 6px 10px 6px 14px;
-  }
+
 }
 
 /* ---- THE STUDIO MARK (1.8.0, components.tsx StudioMark) ----
@@ -5137,3 +4582,54 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 }
 .studio-mark i span { flex: 1; height: max(1px, calc(var(--sm) * .035)); background: currentColor; border-radius: 1px; }
 .studio-foot { margin-top: 22px; display: flex; justify-content: center; opacity: .92; }
+
+/* ---- HIGHLIGHTS AND LIVE STATS (1.8.0, HighlightClip.tsx, MatchDay LiveStats) ----
+   The match is the commentary line over the live stats; the pitch comes on
+   for a highlight in the same place, the size of the stats panel it covers,
+   and goes when the moment is done. */
+.hl-clip {
+  position: relative; margin: 8px 10px 0; border-radius: 12px; overflow: hidden;
+  aspect-ratio: 56 / 34; background: #2f6b3a;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .35), inset 0 0 0 1px rgba(255, 255, 255, .08);
+  animation: hl-in .35s cubic-bezier(.2, 0, 0, 1) both;
+}
+@keyframes hl-in { from { opacity: 0; transform: translateY(8px) scale(.985); } }
+.hl-canvas { display: block; width: 100%; height: 100%; }
+.hl-banner {
+  position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  padding: 6px 18px 7px; border-radius: 10px; white-space: nowrap;
+  background: rgba(10, 14, 12, .86); color: #ffffff;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .45);
+  animation: hl-banner .45s cubic-bezier(.2, .9, .3, 1.2) both;
+}
+.hl-banner b { font-family: var(--cond); font-weight: 800; font-size: 26px; letter-spacing: 2px; line-height: 1; }
+.hl-banner span { font-size: 13px; font-weight: 600; opacity: .92; }
+.hl-banner.review, .hl-banner.notry { background: rgba(10, 14, 12, .9); color: var(--gold-fill); }
+.hl-banner.miss { color: #ffb3a8; }
+@keyframes hl-banner { from { opacity: 0; transform: translate(-50%, 10px) scale(.9); } }
+
+.live-stats {
+  margin: 8px 10px 0; padding: 6px 12px 8px; border-radius: 12px;
+  background: var(--surface-1); border: 1px solid var(--border);
+  animation: hl-in .3s ease-out both;
+}
+.ls-head {
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+  padding: 4px 0 6px; border-bottom: 1px solid var(--border);
+  font-size: 13px; font-weight: 700; color: var(--text-primary);
+}
+.ls-head span:last-child { text-align: right; }
+.ls-head b { font-family: var(--cond); font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-muted); }
+.ls-row { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; gap: 10px; padding: 5px 0; }
+.ls-row + .ls-row { border-top: 1px solid var(--border); }
+.ls-row > b { font-family: var(--cond); font-size: 16px; font-variant-numeric: tabular-nums; }
+.ls-row > b:last-child { text-align: right; }
+.ls-mid { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.ls-label { text-align: center; font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .6px; }
+.ls-bar { position: relative; display: flex; height: 5px; border-radius: 3px; overflow: hidden; background: var(--surface-2); }
+.ls-bar { gap: 2px; }
+.ls-bar i { display: block; height: 100%; transition: width .6s cubic-bezier(.2, 0, 0, 1); }
+.ms-note { grid-column: 1 / -1; font-size: 12px; color: var(--text-muted); margin: -4px 0 4px; }
+.app.tablet .hl-clip { max-width: 760px; margin-left: auto; margin-right: auto; }
+.app.tablet .tab-stats .live-stats { margin: 0; }

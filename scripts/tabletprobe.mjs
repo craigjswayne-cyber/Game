@@ -132,17 +132,16 @@ try {
         await page.click('text=Take the Points')
         await page.waitForTimeout(2500)
       }
+      // 1.8.0: no always-on pitch. The tablet deck is the stage between
+      // highlights: the running feed beside the live stats, inside the screen
       const m = await page.evaluate(() => {
-        const p = document.querySelector('.pitch')?.getBoundingClientRect()
-        const k = document.querySelector('.tab-deck')?.getBoundingClientRect()
-        return p ? { w: Math.round(p.width), h: Math.round(p.height), right: Math.round(p.right), deckLeft: k ? Math.round(k.left) : null } : null
+        const r = sel => { const b = document.querySelector(sel)?.getBoundingClientRect(); return b ? { l: Math.round(b.left), r: Math.round(b.right), w: Math.round(b.width), h: Math.round(b.height) } : null }
+        return { deck: r('.tab-deck'), feed: r('.tab-feed'), stats: r('.tab-stats .live-stats'), rows: document.querySelectorAll('.tab-stats .ls-row').length }
       })
-      if (d.w > d.h) {
-        ok(m && m.h >= 400 && m.deckLeft != null && m.deckLeft >= m.right - 2 && m.right <= d.w + 1,
-          `match on its side: a full-height pitch with the deck beside it (${JSON.stringify(m)})`)
-      } else {
-        ok(m && m.w >= d.w * 0.85 && m.right <= d.w + 1, `match: the pitch takes the width (${JSON.stringify(m)})`)
-      }
+      ok(m.deck && m.feed && m.stats && m.deck.r <= d.w + 1 && m.deck.l >= -1,
+        `match: the deck sits inside the screen (${JSON.stringify(m.deck)})`)
+      ok(m.stats && m.stats.w >= 260 && m.rows >= 8, `match: the live stats beside the feed, every row there (${m.stats?.w}px, ${m.rows} rows)`)
+      ok(m.feed && m.feed.w >= 260 && m.feed.h >= 120, `match: the running commentary has room to read (${JSON.stringify(m.feed)})`)
       await page.screenshot({ path: `shots/tablet-${d.name}-match.png` })
     }
     await page.close()

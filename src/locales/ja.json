@@ -951,9 +951,6 @@
   "tmoCheck4": "タッチラインを確認中",
   "tmoAwarded": "トライ成立",
   "tmoNoTry": "ノートライ",
-  "camera": "カメラ",
-  "camFull": "全体表示",
-  "camBroadcast": "中継スタイル",
   "kickOff": "キックオフ ▸",
   "kickOffHighlights": "キックオフ(ハイライト) ▸",
   "kickWide": "外れ",
@@ -1260,7 +1257,10 @@
   "rotSummary_f": "メディカルスタッフが予定XVのうち{n}人に警告を出した――脚の疲労か出場時間の超過だ。指示をくれれば、彼女らを休ませたフレッシュなXVを組む。",
   "assistantTakes_w": "{home} 対 {away}はアシスタントに任せる午後だ。メンバー選びも報告書も彼女の仕事――君の仕事はテストマッチだ。",
   "pressureLabel": "プレッシャー",
-  "pressureTitle": "今、どちらがどれだけ脅かしているか。攻め続ければ上がり、実らなければ下がる。"
+  "pressureTitle": "今、どちらがどれだけ脅かしているか。攻め続ければ上がり、実らなければ下がる。",
+  "stTerritory": "テリトリー",
+  "st22": "22m侵入",
+  "liveStats": "ライブスタッツ"
  },
  "tacticsScreen": {
   "tabRoles": "役割",
@@ -6854,11 +6854,19 @@
   "sound": "サウンド"
  },
  "mset": {
-  "overlays": "オーバーレイ",
-  "overlaysSub": "ゲインラインとオフサイドライン、セットプレーの優劣",
-  "stamina": "コンディションの輪",
-  "staminaSub": "プレーが止まったとき、各選手の残り体力",
   "bigText": "大きな実況",
-  "bigTextSub": "試合の実況を大きな文字で"
+  "bigTextSub": "試合の実況を大きな文字で",
+  "highlights": "ハイライト",
+  "hlKey": "主要",
+  "hlExtended": "拡張",
+  "hlKeySub": "トライの場面をピッチで表示する。",
+  "hlExtendedSub": "トライ、ゴールキック、22m侵入をピッチで表示する。"
+ },
+ "hl": {
+  "try": "トライ！",
+  "review": "TMO確認",
+  "notry": "ノートライ",
+  "good": "成功",
+  "wide": "失敗"
  }
 }

@@ -693,7 +693,7 @@ export default function App() {
     <button className={menu === id ? 'active' : ''} title={label} aria-label={label}
       onClick={() => setMenu(menu === id ? null : id)}>
       <span className="ico nbadge">{ico}{badge ? <span className="dot">{badge > 9 ? '9+' : badge}</span> : null}</span>
-      <span className="nlbl">{label} ▸</span>
+      <span className="nlbl">{label}</span>
     </button>
   )
 

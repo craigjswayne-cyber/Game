@@ -1,12 +1,16 @@
-// ---- THE MATCH OVERLAYS (1.8.1) ----
+// ---- MATCH SETTINGS (1.8.0) ----
 //
-// Match Settings in the FM26 layout the owner picked ("I like the toggle
-// on/off option"), and what its switches show on a seeded match:
+// The owner, 28 Sep 2026: "We are aiming for football manager level of
+// animation. Smooth and show tries properly, then just commentary only ...
+// maybe show stats when nothing interesting happens??" So the always-on pitch
+// and the switches that decorated it (overlays, condition rings) are gone, and
+// Match Settings holds what is left, on a seeded match:
 //
-//   open play draws the gainline and the offside line
-//   a scrum, lineout or maul draws the contest bar
-//   condition rings only while play is stopped, on every man
-//   four switches, on by default, that do what they say and are remembered
+//   between highlights the stage is the live stats, every row there
+//   Highlights: Key Moments (tries and TMO calls) or Extended (plus kicks at
+//     goal and attacks into the 22), Key by default, with a line saying which
+//   Large commentary, on by default
+//   every choice remembered on this device, and nothing else stored
 //
 // Run: npm run build && node scripts/overlayprobe.mjs
 import { chromium } from 'playwright-core'
@@ -53,43 +57,45 @@ const clear = async () => {
 const ok = (c, what) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 try {
   await page.waitForTimeout(1500)
-  ok(await page.evaluate(() => document.querySelectorAll('.pitch .stam').length) === 0, 'no condition rings while the match is playing')
-  await tap('.speed-controls .btn >> nth=0')
-  await page.waitForTimeout(500)
-  const rings = await page.evaluate(() => document.querySelectorAll('.pitch .stam').length)
-  ok(rings >= 28, `paused, every man wears his condition ring (${rings})`)
+  await clear()
+  const rows = await page.evaluate(() => [...document.querySelectorAll('.live-stats .ls-row .ls-label')].map(e => e.textContent))
+  ok(rows.length === 9 && rows.includes('Territory') && rows.includes('Tackles'), `between highlights the stage is the live stats (${rows.join(', ')})`)
+  ok(await page.evaluate(() => !document.querySelector('.pitch')), 'and there is no always-on pitch')
   await tap('.speed-controls .btn >> nth=-1')
   await page.waitForSelector('.settings-sheet')
+  const seg = () => page.evaluate(() => {
+    const label = [...document.querySelectorAll('.settings-sheet .set-label')].find(e => e.textContent === 'Highlights')
+    const row = label?.nextElementSibling
+    return { btns: [...(row?.querySelectorAll('.btn') ?? [])].map(b => ({ text: b.textContent, on: b.classList.contains('gold') })), note: document.querySelector('.settings-sheet .ms-note')?.textContent ?? '' }
+  })
+  const before = await seg()
+  ok(before.btns.length === 2 && before.btns[0].on && !before.btns[1].on, `Highlights: two choices, Key Moments by default (${before.btns.map(b => b.text + (b.on ? '*' : '')).join(' / ')})`)
   const sw = await page.evaluate(() => [...document.querySelectorAll('.settings-sheet [role=switch]')].map(e => e.getAttribute('aria-checked')))
-  ok(sw.length === 4 && sw.every(v => v === 'true'), `four switches, all on by default (${sw.join(',')})`)
-  await page.locator('.settings-sheet [role=switch]').nth(2).click()
+  ok(sw.length === 2 && sw.every(v => v === 'true'), `two switches (sound, large commentary), both on (${sw.join(',')})`)
+  await page.click(`.settings-sheet .btn >> text=${before.btns[1].text}`)
   await page.waitForTimeout(200)
-  ok(await page.evaluate(() => document.querySelectorAll('.pitch .stam').length) === 0, 'turning Condition rings off takes them away')
-  await page.locator('.settings-sheet [role=switch]').nth(3).click()
+  const after = await seg()
+  ok(after.btns[1].on && !after.btns[0].on, 'picking Extended selects it')
+  ok(after.note !== before.note && after.note.length > 10, `and the line under it says what Extended adds ("${after.note}")`)
+  await page.locator('.settings-sheet [role=switch]').nth(1).click()
   ok(await page.evaluate(() => !document.querySelector('.live-wrap')?.classList.contains('big-text')), 'turning Large commentary off returns the old size')
   const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('phase.matchPrefs') ?? '{}'))
-  ok(saved.stamina === false && saved.bigText === false && saved.overlays === true, `the choices are remembered on this device (${JSON.stringify(saved)})`)
-  // back to the match, and play on to see the overlays
+  ok(saved.highlights === 'extended' && saved.bigText === false && Object.keys(saved).sort().join() === 'bigText,highlights',
+    `the choices are remembered on this device, and nothing else is (${JSON.stringify(saved)})`)
   await page.click('.settings-sheet > .btn.gold.block')
   await page.waitForTimeout(300)
-  // closing Match Settings resumes play by itself
-  const seen = { lines: 0, contest: 0 }
-  for (let k = 0; k < 50 && !(seen.lines && seen.contest); k++) {
-    const st = await page.evaluate(() => ({
-      lines: document.querySelectorAll('.pitch .phase-line').length,
-      contest: document.querySelectorAll('.pitch .contest-bar').length,
-    }))
-    if (st.lines) seen.lines = st.lines
-    if (st.contest) seen.contest = st.contest
-    await clear()
-    await page.waitForTimeout(500)
-  }
-  ok(seen.lines === 2, `open play shows the gainline and the offside line (${seen.lines})`)
-  ok(seen.contest >= 1, 'a set piece shows the contest bar')
+  ok(await page.evaluate(() => !document.querySelector('.settings-sheet')), 'closing Match Settings goes back to the match')
+  // an old save with the retired switches in it (1.8.0 betas) reads cleanly
+  const errors = []
+  page.on('pageerror', e => errors.push(e.message))
+  await page.evaluate(() => localStorage.setItem('phase.matchPrefs', JSON.stringify({ overlays: false, stamina: false, bigText: true, highlights: 'bogus' })))
+  await page.reload()
+  await page.waitForTimeout(2500)
+  ok(errors.length === 0 && await page.evaluate(() => document.body.innerText.length > 50), `a device holding the retired switches still loads the game (${errors.length} errors)`)
 } catch (e) {
   console.error(`FAIL  stopped early: ${e.message.split('\n')[0]}`)
   fails++
 }
 await browser.close(); server.stop()
-console.log(fails ? `\nOVERLAY PROBE FAILED (${fails})` : '\nOVERLAY PROBE PASSED: the lines, the contest and the rings come and go when they should')
+console.log(fails ? `\nOVERLAY PROBE FAILED (${fails})` : '\nOVERLAY PROBE PASSED: Match Settings does what it says and remembers it')
 process.exit(fails ? 1 : 0)

@@ -964,9 +964,6 @@
   "tmoCheck4": "Checking the touchline",
   "tmoAwarded": "TRY AWARDED",
   "tmoNoTry": "NO TRY",
-  "camera": "Camera",
-  "camFull": "Full pitch",
-  "camBroadcast": "Broadcast",
   "kickOff": "Kick Off ▸",
   "kickOffHighlights": "Kick Off (Highlights) ▸",
   "kickWide": "WIDE",
@@ -1297,7 +1294,10 @@
   "warnUnfit_f": "{player} is only {pct}% fit - her tank will empty early.",
   "assistantTakes_w": "{home} v {away} is your assistant's afternoon. She picks the side and files her report - yours is the Test.",
   "pressureLabel": "Pressure",
-  "pressureTitle": "How much either side is threatening right now - it builds through a spell and fades when nothing comes of it"
+  "pressureTitle": "How much either side is threatening right now - it builds through a spell and fades when nothing comes of it",
+  "stTerritory": "Territory",
+  "st22": "22 visits",
+  "liveStats": "Live stats"
  },
  "tacticsScreen": {
   "tabRoles": "Roles",
@@ -7265,11 +7265,19 @@
   "sound": "Sound"
  },
  "mset": {
-  "overlays": "Overlays",
-  "overlaysSub": "Gainline and offside lines, and who is winning the set piece",
-  "stamina": "Condition rings",
-  "staminaSub": "How much each man has left, when play stops",
   "bigText": "Large commentary",
-  "bigTextSub": "The match commentary in bigger type"
+  "bigTextSub": "The match commentary in bigger type",
+  "highlights": "Highlights",
+  "hlKey": "Key",
+  "hlExtended": "Extended",
+  "hlKeySub": "The pitch shows tries.",
+  "hlExtendedSub": "The pitch shows tries, kicks at goal and breaks into the 22."
+ },
+ "hl": {
+  "try": "TRY!",
+  "review": "TMO CHECK",
+  "notry": "NO TRY",
+  "good": "GOOD",
+  "wide": "WIDE"
  }
 }
