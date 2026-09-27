@@ -415,13 +415,13 @@
   "onTestDuty": "on Test duty",
   "outOnLoan": "out on loan",
   "awaySuffix": " - {why}",
-  "leadershipNote": "The skipper lifts attack and defence and calms tempers; the vice leads at half effect when he is missing. A portfolio below that does not add strength, it concentrates it: only XV men with real authority carry one, and a real leader can carry more than one.",
+  "leadershipNote": "The skipper lifts attack and defence and calms tempers; the vice leads at half effect when he is missing. A role below that does not add strength, it concentrates it: give one only to starters with real authority, and a real leader can carry more than one.",
   "pfPack": "Leads the Pack",
   "pfDefence": "Calls the Line",
   "pfAttack": "Runs the Attack",
   "pfCulture": "Sets the Standards",
   "pickAnybody_f": "Pick anybody - the shirt takes her position",
-  "leadershipNote_f": "The skipper lifts attack and defence and calms tempers; the vice leads at half effect when she is missing. A portfolio below that does not add strength, it concentrates it: only XV women with real authority carry one, and a real leader can carry more than one.",
+  "leadershipNote_f": "The skipper lifts attack and defence and calms tempers; the vice leads at half effect when she is missing. A role below that does not add strength, it concentrates it: give one only to starters with real authority, and a real leader can carry more than one.",
   "untouched_w": "Untouched sheet: your assistant named this side, with her eye for it, not yours - and nobody is updating it for form or fitness. Change a shirt and it becomes your team."
  },
  "fixtures": {
@@ -773,7 +773,7 @@
   "howAttack": "Defensive drills. Squeeze the space and let them run out of ideas.",
   "noMatchToStudy_w": "No match this week, so nothing to study. She will have a read on the next opponent as soon as one is in the diary.",
   "followedReads_w": "Followed {n} of her reads: right {right}, wrong {wrong}.",
-  "weekIsHis_w": "The week is her. If she has read them right you will feel it in that area on Saturday.",
+  "weekIsHis_w": "The week is hers. If she has read them right you will feel it in that area on Saturday.",
   "ignoreHim_w": "Ignore her and prepare as you see fit - she is wrong often enough to argue with."
  },
  "philosophy": {
@@ -1302,6 +1302,10 @@
    "one": "{n} week running at the same extreme on {dial}. The GPS numbers say the squad is running {pct}% hotter than it should, and the last twenty minutes are where you feel that. The league reads a manager who repeats himself, too. Two weeks nearer the middle walks both back.",
    "other": "{n} weeks running at the same extreme on {dial}. The GPS numbers say the squad is running {pct}% hotter than it should, and the last twenty minutes are where you feel that. The league reads a manager who repeats himself, too. Two weeks nearer the middle walks both back."
   },
+  "condLine_w": {
+   "one": "{n} week running at the same extreme on {dial}. The GPS numbers say the squad is running {pct}% hotter than it should, and the last twenty minutes are where you feel that. The league reads a manager who repeats herself, too. Two weeks nearer the middle walks both back.",
+   "other": "{n} weeks running at the same extreme on {dial}. The GPS numbers say the squad is running {pct}% hotter than it should, and the last twenty minutes are where you feel that. The league reads a manager who repeats herself, too. Two weeks nearer the middle walks both back."
+  },
   "dialDefLine": "defensive line",
   "dialTempo": "tempo",
   "dialAggression": "aggression",
@@ -1627,7 +1631,9 @@
   },
   "sack": "Sack",
   "sackConfirm": "Sack him · {cost}",
+  "sackConfirm_w": "Sack her · {cost}",
   "sackTitle": "End his contract now for {cost}. The role stays vacant until you appoint again.",
+  "sackTitle_w": "End her contract now for {cost}. The role stays vacant until you appoint again.",
   "twoKids_f": " Two kids on her wing: each learns at three-quarter speed, and she will say so.",
   "reasonBest_f": "A {sPers} teaching a {kPers}: she could not have picked a better example.",
   "reasonNotListening_f": "The kid is not listening as closely as she might.",
@@ -1950,7 +1956,7 @@
   "endEarly": "End the deal early",
   "endConfirm": "End it - the money stops today",
   "dealEnded": "{sponsor} pack up. Three new parties are already interested - their numbers may be better than what you gave up, or worse.",
-  "nothingToEnd": "There is nothing in term to end.",
+  "nothingToEnd": "There is no sponsorship deal to end.",
   "noLimit": "No limit",
   "treasurySlide": "Move to the transfer budget",
   "treasuryMove": "Move {amount} ▸",
