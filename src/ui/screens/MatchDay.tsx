@@ -15,7 +15,7 @@ import { PRESETS, SLIDER_INFO, sliderReadout, type SliderKey } from '../../game/
 import { ord, posName, t } from '../../game/i18n'
 import { subjectVar } from '../../game/gender'
 import { coachFixes, gradeFixes, gradeLine, unitBattles, type FixTag } from '../../game/coachfix'
-import { CrestT, Jersey, PosBadge, SectionTitle, Stars, RewardedButton } from '../components'
+import { CrestT, Jersey, PosBadge, SectionTitle, Stars, RewardedButton, Toggle } from '../components'
 import { stageName } from './Home'
 import { groundSound, matchSfx, soundOn, toggleSound } from '../audio'
 import { GOAL_ARRIVES, buildPassage, contactOf, playKind, restingRow, teeSpot, type Key, type Passage, type Pt } from '../phasePlay'
@@ -25,6 +25,7 @@ import { MoodTable } from '../MoodTable'
 import { MatchPanels, Visits, Zones } from '../MatchPanels'
 import { useTablet } from '../tablet'
 import { usePitchGlide } from '../pitchGlide'
+import { readMatchPrefs, writeMatchPrefs, type MatchPrefs } from '../matchPrefs'
 import { crowdLevel } from '../matchAtmos'
 import { derbyName } from '../../game/rivalries'
 import { matchStakes } from '../../game/stakes'
@@ -1498,8 +1499,16 @@ interface PitchMemory {
 /** Outlives the pitch itself, for the break (see prevPlay). One match at a time. */
 let pitchMemory: PitchMemory | null = null
 
-function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC, tickMs, holdMs = 0, afterReview = false, camera = false }: {
+/** the Broadcast camera's one distance: close enough to follow a phase,
+ *  wide enough to keep both touchlines' worth of the play in the picture */
+const BROADCAST_ZOOM = 1.6
+
+function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC, tickMs, holdMs = 0, afterReview = false, camera = false, overlays = false, stamina = false, stopped = false }: {
   ctx: LiveCtx
+  /** Match Settings switches (matchPrefs.ts) and whether play is stopped */
+  overlays?: boolean
+  stamina?: boolean
+  stopped?: boolean
   game: ReturnType<typeof useStore.getState>['game'] & object
   last: MatchEvent | undefined
   ballLeft: number
@@ -1528,7 +1537,6 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
   /** men leaving the field, drawn after their own dot has gone (pitchActs.ts) */
   const ghosts = useRef<HTMLDivElement[]>([])
   const ballEl = useRef<HTMLDivElement | null>(null)
-  const shadowEl = useRef<HTMLDivElement>(null)
   const dotEls = useRef(new Map<number, HTMLDivElement>())
   /** the last line the pitch drew: where the ball and every man were left */
   // Remembered across the break: the pitch is taken down for half-time and the
@@ -1589,6 +1597,17 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
       : null
   const depicts = last ? (last.k ? last.fx ?? null : legacyFx()) : null
   const setPiece = showFx && evType === 'SUB' && (depicts === 'SCRUM' || depicts === 'LINEOUT' || depicts === 'MAUL') ? depicts : null
+  // the contest bar reads the unit the set piece is decided on, both packs
+  const contest = (() => {
+    if (!setPiece || !last?.teamId) return null
+    const unit = (sd: SideCtx) => setPiece === 'LINEOUT' ? sd.units.lineout
+      : setPiece === 'SCRUM' ? sd.units.scrum : (sd.units.lineout + sd.units.scrum) / 2
+    const leftSide = mirror ? ctx.away : ctx.home, rightSide = mirror ? ctx.home : ctx.away
+    const l = Math.max(0.1, unit(leftSide)), r = Math.max(0.1, unit(rightSide))
+    const lc = (game.clubs[leftSide.teamId]?.colors ?? ['var(--primary)'])[0]
+    const rc = (game.clubs[rightSide.teamId]?.colors ?? ['var(--gold)'])[0]
+    return { p: l / (l + r), w: last.teamId === leftSide.teamId ? 1 : 0, lc, rc }
+  })()
   const kickMiss = evType === 'SUB' && depicts === 'MISS'
   const kickCam = showFx && (kickFx || kickMiss)
   const binned = (side: SideCtx) =>
@@ -1651,6 +1670,9 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
   const stepped = !!prev && (fxKey > prev.key || (fxKey === prev.key && prev.stepped))
   const flying = showFx && !reduced && kind !== 'none'
     && (stepped || kind === 'goal' || kind === 'miss' || kind === 'restart')
+  // open play, for the breakdown lines: not a set piece, a kick, a score or a whistle
+  const breakdownLines = !!last && !flying && !setPiece && shape === 'open'
+    && evType !== 'TRY' && evType !== 'HT' && evType !== 'FT' && evType !== 'KO' && evType !== 'BRK'
   const manId = flying && last?.playerId != null ? last.playerId : null
   const teeBall = (shape === 'goal' || shape === 'conversion') && !flying && !!last && last.type !== 'SUB'
   // where the last line left the ball, for this step (kept through re-renders)
@@ -1763,6 +1785,7 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
   const credited = last?.teamId === fx.homeId ? ctx.home : ctx.away
   const jumperId = showFx && shape === 'lineout' ? credited.lineup[LINEOUT.jumper] ?? null : null
 
+  const ringOn = stamina && stopped
   const dots = (side: SideCtx, isHome: boolean) => {
     const cols = isHome ? homeC : awayC
     const capId = game!.clubs[side.teamId]?.captain
@@ -1799,6 +1822,10 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
           } as CSSProperties}>
           {XV_SLOTS[slot].shirt}
           {hl && <span className="pname">{p.name.split(' ').slice(-1)[0]}</span>}
+          {/* CONDITION AT A STOPPAGE (1.8.1): a ring in the colour of how much
+              he has left, only while the clock is stopped, when a manager has
+              time to read thirty of them */}
+          {ringOn && (() => { const e = side.energy.get(id) ?? 100; return <i className={`stam ${e >= 75 ? 'hi' : e >= 55 ? 'mid' : 'lo'}`} /> })()}
         </div>
       )
     })
@@ -1807,22 +1834,20 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
   // THE BROADCAST CAMERA (owner, 25 Sep 2026: idea 4, "an option in settings
   // to change to"). Off, the pitch is the whole pitch, as it always was. On,
   // the world layer is scaled up and panned to what matters, the way a
-  // television director would frame it: tight on a set piece, close on open
-  // play and at the line, wider for anything in the air, wide enough at a kick
-  // at goal to hold the tee and the posts. It moves on the beat, and it is
-  // transform only, so it is compositor work however much it moves.
+  // television director would frame it, at one distance since 1.8.1 (see
+  // BROADCAST_ZOOM); at a kick at goal it frames the tee and the posts. It
+  // moves on the beat, and it is transform only, so it is compositor work
+  // however much it moves.
   //
   // `left`/`top` are the corner of the view in percent of the pitch, held so
   // the picture never runs past the edge of the grass.
   const cam = (() => {
     if (!camera) return { zoom: 1, left: 0, top: 0, style: undefined as CSSProperties | undefined }
-    const inAir = kind === 'touch' || kind === 'box' || kind === 'cross' || kind === 'catch' || kind === 'grubber'
-    const zoom = shape === 'scrum' || shape === 'lineout' || shape === 'maul' ? 2
-      : shape === 'kickoff' ? 1.2
-      : shape === 'goal' || shape === 'conversion' ? 1.3
-      : evType === 'TRY' || depicts === 'TMO' || depicts === 'NOTRY' ? 1.6
-      : inAir ? 1.35
-      : 1.7
+    // ONE FRAMING, NO ZOOMING (1.8.1). The camera used to zoom in to 2x at
+    // a scrum, out to 1.2 for a kick-off and to four other levels between,
+    // on every line. Asked about it, the owner chose "Keep Broadcast, no
+    // zoom": it still follows the play, at one steady distance.
+    const zoom = BROADCAST_ZOOM
     // at the tee, frame the kick: halfway between the ball and the posts
     const focus: Pt = shape === 'goal' || shape === 'conversion'
       ? { x: (shapeBall.x + (towardHome ? 93 : 7)) / 2, y: 50 }
@@ -1887,19 +1912,6 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
     if (!ps.away) ballFrames[ballFrames.length - 1].rotate = '0deg'
     const opts: KeyframeAnimationOptions = { duration, fill: ps.away ? 'forwards' : 'none' }
     running.current.push(ball.animate(ballFrames, opts))
-    const sh = shadowEl.current
-    if (sh) {
-      running.current.push(sh.animate(ps.ball.map((k, i) => {
-        const [dx, dy] = off(k, c.ball)
-        const air = Math.min(1, k.h * 6)
-        return {
-          offset: k.at, easing: ease(ps.ball, i),
-          translate: `${dx.toFixed(1)}px ${dy.toFixed(1)}px`,
-          scale: `${(1 - k.h * 0.35).toFixed(3)}`,
-          opacity: ps.away && k.at > GOAL_ARRIVES ? 0 : air * (0.55 - k.h * 0.2),
-        }
-      }), { duration }))
-    }
     const dot = c.manId != null ? dotEls.current.get(c.manId) : undefined
     if (ps.carrier && dot && manNow) {
       running.current.push(dot.animate(ps.carrier.map((k, i) => {
@@ -2104,6 +2116,28 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
       <div className="zone-label" style={{ right: '2.5%' }}>{clubCode(teamShort(game!, mirror ? fx.homeId : fx.awayId))}</div>
       {homeDots}
       {awayDots}
+      {/* THE LINES AT THE BREAKDOWN (1.8.1, Match Settings > Overlays). In
+          open play, a green gainline through the ball and a red offside line
+          a couple of metres towards the defence, which is where their front
+          line has to stand. Not at set pieces, kicks or scores, where they
+          would be telling you nothing. */}
+      {overlays && breakdownLines && (
+        <>
+          <div className="phase-line gain" style={{ left: `${mx(ballLeft)}%` }} />
+          <div className="phase-line offside" style={{ left: `${mx(Math.max(4, Math.min(96, ballLeft + (towardHome ? 2.5 : -2.5))))}%` }} />
+        </>
+      )}
+      {/* THE CONTEST BAR (1.8.1): at a scrum, lineout or maul, the two packs'
+          strength at that set piece from the engine's own units, then it
+          swings to the side the line says won it */}
+      {overlays && contest && (
+        <div className="contest-bar" key={`cb${fxKey}`}
+          style={{ left: `${mx(ballLeft)}%`, top: `${Math.max(7, Math.min(80, ballTop - 27))}%`,
+            '--p': contest.p.toFixed(3), '--w': contest.w, '--beat': `${tickMs + holdMs}ms`,
+            '--lc': contest.lc, '--rc': contest.rc } as CSSProperties}>
+          <i />
+        </div>
+      )}
       {/* THE OFFICIALS (PRM27). The classic top-down view draws the referee and
           the touch judges as their own markers: the referee a few metres off
           the ball, a touch judge on each touchline level with play. They move
@@ -2111,7 +2145,8 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
       <div className="official ref" style={{ left: `${mx(Math.max(4, Math.min(96, ballLeft + (ballLeft > 50 ? -5 : 5))))}%`, top: `${Math.max(8, Math.min(92, ballTop + 16))}%` }}>R</div>
       <div className="official aj" style={{ left: `${mx(ballLeft)}%`, top: '4%' }}>A</div>
       <div className="official aj" style={{ left: `${mx(ballLeft)}%`, top: '96%' }}>A</div>
-      <div ref={shadowEl} className="ball-shadow" style={{ left: `${mx(ballLeft)}%`, top: `${ballTop}%` }} />
+      {/* NO SHADOW UNDER THE BALL (1.8.1): the owner chose to remove both the
+          kick shadow and the camera zoom. Height is the ball's lift alone. */}
       {/* ballTop, NOT a second copy of its fallback.
           ballTop (above) is the carrier's own row, and its comment says what it
           is for: "the ball is with the carrier instead of drifting on a sawtooth
@@ -2252,6 +2287,8 @@ function Live() {
   const [sheet, setSheet] = useState(false)
   const [mpanels, setMpanels] = useState(false)
   const tablet = useTablet()
+  const [prefs, setPrefs] = useState(readMatchPrefs)
+  const setPref = (p: Partial<MatchPrefs>) => setPrefs(o => { const n = { ...o, ...p }; writeMatchPrefs(n); return n })
   const tickerRef = useRef<HTMLDivElement>(null)
 
   const { events, cursor, playing, fixture, ctx } = live
@@ -2425,7 +2462,8 @@ function Live() {
       : e.type === 'TRY' || e.type === 'FT' || e.type === 'DG' ? 'big'
       : e.type === 'YC' ? 'card-y'
       : e.type === 'RC' ? 'card-r'
-      : e.type === 'INJ' ? 'inj' : ''
+      : e.type === 'INJ' ? 'inj'
+      : e.type === 'PEN' || e.k === 'comm.penTouchOwnHalf' || e.k === 'comm.penKickableAsk' ? 'pen' : ''
 
   const icon = (e: MatchEvent) => e.fx === 'TMO' || e.fx === 'NOTRY' ? '📺' : ({
     TRY: '🏉', CON: '🎯', PEN: '🥅', DG: '🎯', YC: '🟨', RC: '🟥', INJ: '🩹', HT: '⏸', FT: '🏁', KO: '⏱', SUB: '·', BRK: '💧',
@@ -2463,7 +2501,7 @@ function Live() {
   useEffect(() => () => groundSound(null), [])
 
   return (
-    <div className="live-wrap">
+    <div className={`live-wrap${prefs.bigText ? ' big-text' : ''}`}>
       <div className="scoreboard" style={{ '--home-c': homeC[0], '--away-c': awayC[0] } as React.CSSProperties}>
         <div className="teams">
           <div className="tname"><CrestT g={game} teamId={fixture.homeId} size={26} />{teamShort(game, fixture.homeId)}<span className="clubbar" style={{ background: homeC[0] }} /></div>
@@ -2588,7 +2626,8 @@ function Live() {
       {!panelActive && (
         <PitchViz ctx={ctx} game={game} last={last} ballLeft={ballLeft}
           fxKey={cursor} showFx={showFx} showBig={playing} lastTeamC={lastTeamC}
-          tickMs={tickMs} holdMs={momentHold} afterReview={shown[shown.length - 2]?.fx === 'TMO'} camera={camera} />
+          tickMs={tickMs} holdMs={momentHold} afterReview={shown[shown.length - 2]?.fx === 'TMO'} camera={camera}
+          overlays={prefs.overlays} stamina={prefs.stamina} stopped={!playing} />
       )}
       {/* THE CONTROLS SIT UNDER THE PITCH (owner, v1.1.16: "4 buttons in match
           mode - should be directly underneath the pitch at the top").
@@ -2734,33 +2773,44 @@ function Live() {
           <div className="modal settings-sheet" onClick={e => e.stopPropagation()}>
             <div className="grab" />
             <h3 style={{ fontSize: 16, margin: '2px 16px 8px' }}>{t('matchday.matchSettings')}</h3>
-            <div className="set-label">{t('matchday.commentarySpeed')}</div>
-            <div className="btn-row">
-              {SPEEDS.map((s, i) => (
-                <button key={i} className={`btn ${i === speedIdx ? 'gold' : 'ghost'}`} style={{ flex: 1 }}
-                  title={t(s.name)} onClick={() => setSpeedIdx(i)}>{t(s.label)}</button>
-              ))}
+            {/* THE FM26 LAYOUT (1.8.1, from the owner's screenshot of its match
+                settings): each choice on a row with its name beside it, then
+                the on/off switches in a grid. */}
+            <div className="ms-rows">
+              <div className="set-label">{t('matchday.commentarySpeed')}</div>
+              <div className="btn-row ms-seg">
+                {SPEEDS.map((s, i) => (
+                  <button key={i} className={`btn ${i === speedIdx ? 'gold' : 'ghost'}`} style={{ flex: 1 }}
+                    title={t(s.name)} onClick={() => setSpeedIdx(i)}>{t(s.label)}</button>
+                ))}
+              </div>
+              <div className="set-label">{t('matchday.tickerStops')}</div>
+              <div className="btn-row ms-seg">
+                <button className={`btn ${live.mode === 'full' ? 'gold' : 'ghost'}`} style={{ flex: 1 }}
+                  onClick={() => matchMode('full')}>{t('matchday.everyMinute')}</button>
+                <button className={`btn ${live.mode === 'highlights' ? 'gold' : 'ghost'}`} style={{ flex: 1 }}
+                  onClick={() => matchMode('highlights')}>{t('matchday.highlightsBtn')}</button>
+              </div>
+              <div className="set-label">{t('matchday.camera')}</div>
+              <div className="btn-row ms-seg">
+                <button className={`btn ${!camera ? 'gold' : 'ghost'}`} style={{ flex: 1 }}
+                  onClick={() => chooseCamera(false)}>{t('matchday.camFull')}</button>
+                <button className={`btn ${camera ? 'gold' : 'ghost'}`} style={{ flex: 1 }}
+                  onClick={() => chooseCamera(true)}>{t('matchday.camBroadcast')}</button>
+              </div>
             </div>
-            <div className="set-label">{t('matchday.tickerStops')}</div>
-            <div className="btn-row">
-              <button className={`btn ${live.mode === 'full' ? 'gold' : 'ghost'}`} style={{ flex: 1 }}
-                onClick={() => matchMode('full')}>{t('matchday.everyMinute')}</button>
-              <button className={`btn ${live.mode === 'highlights' ? 'gold' : 'ghost'}`} style={{ flex: 1 }}
-                onClick={() => matchMode('highlights')}>{t('matchday.highlightsBtn')}</button>
+            <div className="ms-toggles">
+              {/* One switch, and it has to name everything it turns off. The
+                  buzz used to survive Silent, so the label lied by omission. */}
+              <Toggle on={sound} onChange={() => setSound(toggleSound())}
+                label={t('matchday.soundAndBuzz')} sub={t(sound ? 'matchday.soundOn' : 'matchday.soundOff')} />
+              <Toggle on={prefs.overlays} onChange={v => setPref({ overlays: v })}
+                label={t('mset.overlays')} sub={t('mset.overlaysSub')} />
+              <Toggle on={prefs.stamina} onChange={v => setPref({ stamina: v })}
+                label={t('mset.stamina')} sub={t('mset.staminaSub')} />
+              <Toggle on={prefs.bigText} onChange={v => setPref({ bigText: v })}
+                label={t('mset.bigText')} sub={t('mset.bigTextSub')} />
             </div>
-            <div className="set-label">{t('matchday.camera')}</div>
-            <div className="btn-row">
-              <button className={`btn ${!camera ? 'gold' : 'ghost'}`} style={{ flex: 1 }}
-                onClick={() => chooseCamera(false)}>{t('matchday.camFull')}</button>
-              <button className={`btn ${camera ? 'gold' : 'ghost'}`} style={{ flex: 1 }}
-                onClick={() => chooseCamera(true)}>{t('matchday.camBroadcast')}</button>
-            </div>
-            {/* One switch, and it has to name everything it turns off. The buzz
-                used to survive Silent, so the label lied by omission. */}
-            <div className="set-label">{t('matchday.soundAndBuzz')}</div>
-            <button className="btn ghost block" onClick={() => setSound(toggleSound())}>
-              {t(sound ? 'matchday.soundOn' : 'matchday.soundOff')}
-            </button>
             <button className="btn gold block" style={{ marginTop: 10 }}
               onClick={() => { setSettings(false); if (!done) matchCursor(cursor, true) }}>
               {t(done ? 'matchday.close' : 'matchday.backToMatch')}

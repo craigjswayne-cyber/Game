@@ -6978,5 +6978,13 @@
  },
  "intro": {
   "skip": "Toca para saltar"
+ },
+ "mset": {
+  "overlays": "Superposiciones",
+  "overlaysSub": "Líneas de ventaja y de fuera de juego, y quién gana la fase estática",
+  "stamina": "Anillos de estado físico",
+  "staminaSub": "Lo que le queda a cada uno, cuando el juego se para",
+  "bigText": "Narración grande",
+  "bigTextSub": "La narración del partido con letra más grande"
  }
 }

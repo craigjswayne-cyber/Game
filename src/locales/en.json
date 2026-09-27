@@ -7297,5 +7297,13 @@
  },
  "intro": {
   "skip": "Tap to skip"
+ },
+ "mset": {
+  "overlays": "Overlays",
+  "overlaysSub": "Gainline and offside lines, and who is winning the set piece",
+  "stamina": "Condition rings",
+  "staminaSub": "How much each man has left, when play stops",
+  "bigText": "Large commentary",
+  "bigTextSub": "The match commentary in bigger type"
  }
 }

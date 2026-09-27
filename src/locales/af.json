@@ -7345,5 +7345,13 @@
  },
  "intro": {
   "skip": "Tik om oor te slaan"
+ },
+ "mset": {
+  "overlays": "Oorlegsels",
+  "overlaysSub": "Voordeellyn en onkantlyn, en wie die vaste stuk wen",
+  "stamina": "Kondisieringe",
+  "staminaSub": "Hoeveel elkeen oor het, wanneer die spel stop",
+  "bigText": "Groot kommentaar",
+  "bigTextSub": "Die wedstrydkommentaar in groter letters"
  }
 }
