@@ -11,6 +11,7 @@ import { t } from '../../game/i18n'
 import { boardRequests } from '../../game/boardroom'
 import { askTheBoard } from '../../game/season'
 import { archetypeOf } from '../../game/oppcoach'
+import { Glyph } from '../glyphs'
 
 export default function ClubScreen({ clubId }: { clubId: string }) {
   const game = useStore(s => s.game)!
@@ -61,7 +62,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           if (!ph || club.id === game.userClubId) return null
           return (
             <div className="meta">
-              📋 {t(ph.name)} <span className="muted">({dialLine(club.tactic)})</span>
+              <Glyph name="tactics" /> {t(ph.name)} <span className="muted">({dialLine(club.tactic)})</span>
             </div>
           )
         })()}
@@ -74,7 +75,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
             : arch === 'reactive' ? 'club.archTinkererDesc' : 'club.archBelieverDesc')
           return (
             <div className="meta">
-              🧠 <b>{t(arch === 'analyst' ? 'club.archAnalyst' : arch === 'reactive' ? 'club.archTinkerer' : 'club.archBeliever')}</b>: {word}
+              <Glyph name="trait" /> <b>{t(arch === 'analyst' ? 'club.archAnalyst' : arch === 'reactive' ? 'club.archTinkerer' : 'club.archBeliever')}</b>: {word}
             </div>
           )
         })()}
@@ -199,7 +200,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           <SectionTitle>{t('club.honoursEra')}</SectionTitle>
           <div className="chips">
             {honours.map((h, i) => (
-              <span key={i} className="chip">🏆 {game.comps[h.compId]?.name ?? h.compId} {2025 + h.season}-{String((2026 + h.season) % 100).padStart(2, '0')}</span>
+              <span key={i} className="chip"><Glyph name="trophy" /> {game.comps[h.compId]?.name ?? h.compId} {2025 + h.season}-{String((2026 + h.season) % 100).padStart(2, '0')}</span>
             ))}
           </div>
         </>
@@ -445,13 +446,13 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
                 const opp = g.a === club.id ? g.b : g.a
                 return (
                   <div key={`f${i}`} className="meta" style={{ padding: '3px 0' }}>
-                    🔥 <b>{game.clubs[opp]?.short ?? opp}</b> - {grudgeReason(g)} <span className="muted">{t('club.feudRuns', { years: `${2025 + g.until}-${String((g.until + 26) % 100).padStart(2, '0')}` })}</span>
+                    <Glyph name="derby" /> <b>{game.clubs[opp]?.short ?? opp}</b> - {grudgeReason(g)} <span className="muted">{t('club.feudRuns', { years: `${2025 + g.until}-${String((g.until + 26) % 100).padStart(2, '0')}` })}</span>
                   </div>
                 )
               })}
               {duos.map((d, i) => (
                 <div key={`d${i}`} className="meta" style={{ padding: '3px 0' }}>
-                  🤝 <b>{surname(d.a.name)} & {surname(d.b.name)}</b> - {t('club.duoLine', { n: d.g, tier: chemTier(d.g) })}
+                  <Glyph name="handshake" /> <b>{surname(d.a.name)} & {surname(d.b.name)}</b> - {t('club.duoLine', { n: d.g, tier: chemTier(d.g) })}
                 </div>
               ))}
             </div>
@@ -480,7 +481,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           {shown.map(p => (
             <tr key={p.id} onClick={() => go('player', p.id)}>
               <td><PosBadge pos={p.pos} /></td>
-              <td className="name">{p.name}{starPlayerIds(game, club.id).has(p.id) ? ' ⭐' : ''}</td>
+              <td className="name">{p.name}{starPlayerIds(game, club.id).has(p.id) ? <> <Glyph name="star" /></> : ''}</td>
               <td className="num">{p.age}</td>
               <td><Nat code={p.nat} /></td>
               <td><Stars ca={p.ca} /></td>

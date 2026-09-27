@@ -7,6 +7,7 @@ import { leaguePos } from '../../game/schedule'
 import { PosBadge, SectionTitle, Stars } from '../components'
 import { t } from '../../game/i18n'
 import MentoringPanel from './MentoringPanel'
+import { Glyph } from '../glyphs'
 
 /** The assistant's full report on the squad, FM Team Report style. */
 export default function TeamReport({ initial }: { initial?: string }) {
@@ -82,7 +83,7 @@ export default function TeamReport({ initial }: { initial?: string }) {
         {squad.filter(p => stars.has(p.id)).map(p => (
           <tr key={p.id} onClick={() => go('player', p.id)}>
             <td><PosBadge pos={p.pos} /></td>
-            <td className="name">⭐ {p.name}</td>
+            <td className="name"><Glyph name="star" /> {p.name}</td>
             <td><Stars ca={p.ca} /></td>
             <td className="num">{fmtMoney(p.value)}</td>
           </tr>

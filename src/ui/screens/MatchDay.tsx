@@ -35,7 +35,7 @@ import { kitColours, luma, pageSpares } from '../kit'
 import { IcoFastForward, IcoPause, IcoPeople, IcoPlay } from '../icons'
 import { Glyph } from '../glyphs'
 
-const WEATHER_ICON: Record<string, string> = { Dry: '☀️', Rain: '🌧️', Wind: '💨', Snow: '❄️' }
+const WEATHER_ICON: Record<string, string> = { Dry: 'sun', Rain: 'rain', Wind: 'wind', Snow: 'snow' }
 
 /** The forecast in words. The VALUE stays English everywhere it is stored or
  *  compared - the engine reads fixture.weather - and only the label moves. */
@@ -77,10 +77,10 @@ export default function MatchDay() {
 // the tables hold KEYS, the tiles call t() - the speech id is what reaches the
 // engine and the save, so only the words on the tile change with the language
 const SPEECHES = [
-  { id: 'calm', icon: '🧊', name: 'matchday.spCalm', desc: 'matchday.spCalmD' },
-  { id: 'fire', icon: '🔥', name: 'matchday.spFire', desc: 'matchday.spFireD' },
-  { id: 'underdog', icon: '🐺', name: 'matchday.spUnderdog', desc: 'matchday.spUnderdogD' },
-  { id: 'expect', icon: '👑', name: 'matchday.spExpect', desc: 'matchday.spExpectD' },
+  { id: 'calm', icon: 'calm', name: 'matchday.spCalm', desc: 'matchday.spCalmD' },
+  { id: 'fire', icon: 'derby', name: 'matchday.spFire', desc: 'matchday.spFireD' },
+  { id: 'underdog', icon: 'wolf', name: 'matchday.spUnderdog', desc: 'matchday.spUnderdogD' },
+  { id: 'expect', icon: 'crown', name: 'matchday.spExpect', desc: 'matchday.spExpectD' },
 ] as const
 type SpeechId = typeof SPEECHES[number]['id']
 
@@ -92,9 +92,9 @@ type SpeechId = typeof SPEECHES[number]['id']
  *  team sheet). The middle one is the useful one, and putting all three in a row
  *  makes the choice a decision rather than a button nobody finds. */
 const VIEW_MODES = [
-  { id: 'full', icon: '📺', name: 'matchday.vmFull', desc: 'matchday.vmFullD' },
-  { id: 'highlights', icon: '🎬', name: 'matchday.vmHighlights', desc: 'matchday.vmHighlightsD' },
-  { id: 'instant', icon: '⏩', name: 'matchday.vmInstant', desc: 'matchday.vmInstantD' },
+  { id: 'full', icon: 'tv', name: 'matchday.vmFull', desc: 'matchday.vmFullD' },
+  { id: 'highlights', icon: 'film', name: 'matchday.vmHighlights', desc: 'matchday.vmHighlightsD' },
+  { id: 'instant', icon: 'ffwd', name: 'matchday.vmInstant', desc: 'matchday.vmInstantD' },
 ] as const
 
 /** Chips on one line with a readout underneath, the same shape as the exit
@@ -114,7 +114,7 @@ function ViewPicker({ view, onPick }: {
       <div className="preset-row">
         {VIEW_MODES.map(v => (
           <button key={v.id} className={`preset-chip${view === v.id ? ' on' : ''}`} title={t(v.desc)}
-            onClick={() => onPick(v.id)}>{v.icon} {t(v.name)}</button>
+            onClick={() => onPick(v.id)}><Glyph name={v.icon} /> {t(v.name)}</button>
         ))}
       </div>
       <div className="meta" style={{ marginTop: 4 }}>
@@ -541,7 +541,7 @@ function Preview({ fxId }: { fxId: number }) {
                     color: w.level === 'bad' ? 'var(--text-negative)' : w.level === 'warn' ? 'var(--gold)' : 'var(--text-secondary)',
                     borderBottom: i < warnings.length - 1 ? '1px solid var(--border)' : 'none',
                   }}>
-                    <span>{w.level === 'bad' ? '⛔' : w.level === 'warn' ? '⚠️' : 'ℹ️'}</span>
+                    <span><Glyph name={w.level === 'bad' ? 'stop' : w.level === 'warn' ? 'warning' : 'info'} /></span>
                     <span>{w.text}</span>
                   </div>
                 ))}
@@ -609,7 +609,7 @@ function Preview({ fxId }: { fxId: number }) {
           </div>
           <div className="mday-facts">
           <h3 style={{ fontSize: 18 }}>{t('matchday.vsLine', { home: teamShort(game, fx.homeId), away: teamShort(game, fx.awayId) })}</h3>
-          <div className="meta">🏟️ {fx.venue
+          <div className="meta"><Glyph name="stadium" /> {fx.venue
             ? t('matchday.venueNeutral', { name: fx.venue.name, city: fx.venue.city })
             : home ? t('matchday.venueHome', { stadium: home.stadium, city: home.city }) : t('common.neutralVenue')}</div>
           {/* THE DERBY IS NOT A FOOTNOTE ON THE WEATHER. It used to be glued to
@@ -619,11 +619,11 @@ function Preview({ fxId }: { fxId: number }) {
               forecast is a fact; the derby is the reason you are nervous.
               Separate lines, and the derby carries its own mark. */}
           <div className="meta" style={{ marginTop: 3 }}>
-            {WEATHER_ICON[rollWeather(game.week, weekRng(game))]} {t('matchday.forecast', { weather: weatherWord(rollWeather(game.week, weekRng(game))) })}
+            <Glyph name={WEATHER_ICON[rollWeather(game.week, weekRng(game))]} /> {t('matchday.forecast', { weather: weatherWord(rollWeather(game.week, weekRng(game))) })}
           </div>
           {derbyName(fx.homeId, fx.awayId) && (
             <div className="meta derby-line" style={{ marginTop: 4 }}>
-              🔥 <b>{t('matchday.derbyTag', { derby: derbyName(fx.homeId, fx.awayId) ?? '' })}</b>
+              <Glyph name="derby" /> <b>{t('matchday.derbyTag', { derby: derbyName(fx.homeId, fx.awayId) ?? '' })}</b>
             </div>
           )}
           </div>
@@ -753,7 +753,7 @@ function Preview({ fxId }: { fxId: number }) {
                 const played = rec ? rec.w + rec.d + rec.l : 0
                 return (
                   <div className="card" style={{ borderLeft: '4px solid var(--danger)' }}>
-                    <div className="fact-label">🔥 {dn}</div>
+                    <div className="fact-label"><Glyph name="derby" /> {dn}</div>
                     <div className="meta">
                       {t('matchday.derbyBody')}
                       {played > 0
@@ -1095,7 +1095,7 @@ function Preview({ fxId }: { fxId: number }) {
           {SPEECHES.map(s => (
             <button key={s.id} className={`speech-tile${speech === s.id ? ' sel' : ''}`}
               onClick={() => setSpeech(speech === s.id ? null : s.id)}>
-              <span className="ico">{s.icon}</span>
+              <span className="ico"><Glyph name={s.icon} /></span>
               <b>{t(s.name)}</b>
               <span className="d">{t(s.desc)}</span>
             </button>
@@ -1145,7 +1145,7 @@ function Preview({ fxId }: { fxId: number }) {
                       setSpeech(sp.id); setTalkDone(true); setTalkOpen(false)
                       goDownTheTunnel(sp.id)
                     }}>
-                    <span className="ico">{sp.icon}</span>
+                    <span className="ico"><Glyph name={sp.icon} /></span>
                     <b>{t(sp.name)}</b>
                     <span className="d">{t(sp.desc)}</span>
                   </button>
@@ -1340,7 +1340,7 @@ function NationPreview({ fxId }: { fxId: number }) {
           {SPEECHES.map(s => (
             <button key={s.id} className={`speech-tile${speech === s.id ? ' sel' : ''}`}
               onClick={() => setSpeech(speech === s.id ? null : s.id)}>
-              <span className="ico">{s.icon}</span>
+              <span className="ico"><Glyph name={s.icon} /></span>
               <b>{t(s.name)}</b>
               <span className="d">{t(s.desc)}</span>
             </button>
@@ -1747,8 +1747,8 @@ function Live() {
               would be. The dot belongs to the thing after it. */}
           {done ? t('matchday.fullTime') : atHalfTime ? t('matchday.halfTime') : atBreak ? t('matchday.breakSixty') : `${Math.min(80, min)}'`}
           {game.comps[fixture.compId]?.short ? ` · ${game.comps[fixture.compId]?.short}${fixture.stage ? ` ${stageName(fixture.stage)}` : ''}` : ''}
-          {fixture.weather && fixture.weather !== 'Dry' ? ` · ${WEATHER_ICON[fixture.weather]} ${weatherWord(fixture.weather)}` : ''}
-          {fixture.att ? ` · 👥 ${fixture.att.toLocaleString()}` : ''}
+          {fixture.weather && fixture.weather !== 'Dry' ? <> · <Glyph name={WEATHER_ICON[fixture.weather]} /> {weatherWord(fixture.weather)}</> : ''}
+          {fixture.att ? <> · <Glyph name="crowd" /> {fixture.att.toLocaleString()}</> : ''}
           {/* say so, or a ticker that skips the quiet minutes looks broken (F5) */}
           {live.mode === 'highlights' && !done ? t('matchday.highlightsTag') : ''}
         </div>
@@ -1770,7 +1770,7 @@ function Live() {
           return (
             <div className="last10">
               <span className="l10-pens" title={t('matchday.pensTitle')}>
-                ⚠ <b style={{ color: penC(ctx.home.consPens) }}>{ctx.home.consPens}</b>
+                <Glyph name="warning" /> <b style={{ color: penC(ctx.home.consPens) }}>{ctx.home.consPens}</b>
               </span>
               {/* the flanking numbers are penalties conceded, and a phone cannot
                   hover a tooltip to find that out - so the label says it */}
@@ -1789,7 +1789,7 @@ function Live() {
                 </div>
               </div>
               <span className="l10-pens" title={t('matchday.pensTitle')}>
-                <b style={{ color: penC(ctx.away.consPens) }}>{ctx.away.consPens}</b> ⚠
+                <b style={{ color: penC(ctx.away.consPens) }}>{ctx.away.consPens}</b> <Glyph name="warning" />
               </span>
             </div>
           )
@@ -1928,10 +1928,10 @@ function Live() {
             it has been played, the 22 - paused while you read it */}
         <button className="btn ghost" data-ctl="menu"
           title={t('mpanel.open')} aria-label={t('mpanel.open')}
-          onClick={() => { matchCursor(cursor, false); setSettings(false); setDrawer(false); setMpanels(true) }}>📊</button>
+          onClick={() => { matchCursor(cursor, false); setSettings(false); setDrawer(false); setMpanels(true) }}><Glyph name="chart" /></button>
         <button className={`btn ${settings ? 'gold' : 'ghost'}`} data-ctl="settings"
           title={t('matchday.settingsTitle')} aria-label={t('matchday.settingsTitle')}
-          onClick={() => { setDrawer(false); setSettings(!settings) }}>⚙</button>
+          onClick={() => { setDrawer(false); setSettings(!settings) }}><Glyph name="settings" /></button>
       </div>
 
       {/* THE MATCH STORY, UNDER THE CONTROLS. It grows (theme.css gives
@@ -2191,16 +2191,16 @@ function DecisionPanel() {
 
   const options = [
     {
-      id: 'posts' as const, icon: '🥅', name: t('matchday.optPosts'),
+      id: 'posts' as const, icon: 'posts', name: t('matchday.optPosts'),
       desc: t(diff < 0 && diff >= -3 ? 'matchday.optPostsDLead' : 'matchday.optPostsD',
         { kicker: kicker ? kicker.name : t('matchday.yourKicker') }),
     },
     {
-      id: 'corner' as const, icon: '🚀', name: t('matchday.optCorner'),
+      id: 'corner' as const, icon: 'attack', name: t('matchday.optCorner'),
       desc: t('matchday.optCornerD'),
     },
     {
-      id: 'tap' as const, icon: '⚡', name: t('matchday.optTap'),
+      id: 'tap' as const, icon: 'bolt', name: t('matchday.optTap'),
       desc: t('matchday.optTapD'),
     },
   ]
@@ -2217,7 +2217,7 @@ function DecisionPanel() {
         {options.map(o => (
           <button key={o.id} className="btn ghost" style={{ textAlign: 'left', padding: '10px 12px', display: 'flex', gap: 10, alignItems: 'center' }}
             onClick={() => decide(o.id)}>
-            <span style={{ fontSize: 20 }}>{o.icon}</span>
+            <span style={{ fontSize: 20 }}><Glyph name={o.icon} /></span>
             <span>
               <b style={{ display: 'block', fontSize: 14 }}>{o.name}</b>
               <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{o.desc}</span>
@@ -2310,7 +2310,7 @@ function MatchVerdict() {
 
       {verdictOnLast && (
         <div className={`fix-grade${grade.missed.length === 0 ? ' good' : ''}`}>
-          {grade.missed.length === 0 ? '✅ ' : '📋 '}{verdictOnLast}
+          <Glyph name={grade.missed.length === 0 ? 'check' : 'tactics'} /> {verdictOnLast}
         </div>
       )}
 
@@ -2392,19 +2392,24 @@ function ScoreCard({ label, story = false }: { label: string; story?: boolean })
   const as = last?.awayScore ?? 0
   const scorers = (teamId: string) => {
     const tries = new Map<string, number[]>()
-    const kicks = new Map<string, string>()
+    const kicks = new Map<string, { c: number; p: number; dg: number }>()
     for (const e of shown) {
       if (e.teamId !== teamId) continue
       const full = e.playerId != null ? game.players[e.playerId]?.name : e.playerName
       if (!full) continue
       const who = full.split(' ').slice(-1)[0]
       if (e.type === 'TRY') tries.set(who, [...(tries.get(who) ?? []), Math.min(80, e.min)])
-      else if (e.type === 'CON' || e.type === 'PEN' || e.type === 'DG') kicks.set(who, (kicks.get(who) ?? '') + (e.type === 'PEN' ? '🥅' : '🎯'))
+      else if (e.type === 'CON' || e.type === 'PEN' || e.type === 'DG') {
+        // counted, in the scoreline's own shorthand (2c, 1p, 1dg), not a row of emoji
+        const k = kicks.get(who) ?? { c: 0, p: 0, dg: 0 }
+        if (e.type === 'CON') k.c++; else if (e.type === 'PEN') k.p++; else k.dg++
+        kicks.set(who, k)
+      }
     }
     return (
       <div className="sc-scorers">
-        {[...tries].map(([who, mins]) => <div key={`t${who}`}>🏉 {who} <span className="muted">{mins.map(m => `${m}'`).join(' ')}</span></div>)}
-        {[...kicks].map(([who, marks]) => <div key={`k${who}`}>{marks} {who}</div>)}
+        {[...tries].map(([who, mins]) => <div key={`t${who}`}><Glyph name="ball" /> {who} <span className="muted">{mins.map(m => `${m}'`).join(' ')}</span></div>)}
+        {[...kicks].map(([who, k]) => <div key={`k${who}`}><Glyph name="posts" /> {who} <span className="muted">({[k.c && `${k.c}c`, k.p && `${k.p}p`, k.dg && `${k.dg}dg`].filter(Boolean).join(', ')})</span></div>)}
       </div>
     )
   }
@@ -2627,7 +2632,7 @@ function RatingsPanel() {
         {rows.map(({ p, r }) => (
           <tr key={p!.id}>
             <td><PosBadge pos={p!.pos} /></td>
-            <td className="name">{p!.name}{ctx.motmId === p!.id ? ' ⭐' : ''}</td>
+            <td className="name">{p!.name}{ctx.motmId === p!.id ? <> <Glyph name="star" /></> : ''}</td>
             <td className="num" style={{ fontWeight: 700, color: r >= 7.5 ? 'var(--text-positive)' : r < 5.5 ? 'var(--text-negative)' : undefined }}>
               {Math.min(10, Math.max(1, r)).toFixed(1)}
             </td>
@@ -2881,7 +2886,7 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
               paragraph of instructions */}
           {hurtName && (
             <div className="sheet-casualty">
-              🏥 <b>{hurtName}</b>{t('matchday.casualty')}{hurtDesc ? t('matchday.casualtyDesc', { desc: hurtDesc }) : ''}
+              <Glyph name="medical" /> <b>{hurtName}</b>{t('matchday.casualty')}{hurtDesc ? t('matchday.casualtyDesc', { desc: hurtDesc }) : ''}
             </div>
           )}
           <div className="meta sheet-hint">
@@ -2935,15 +2940,15 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
                       numbering by heart to work out who you were taking off. */}
                   <span className="sh-pos">{p.pos}</span>
                   <span className="sh-name">{p.name}</span>
-                  {binned && <span className="sh-flag" title={t('matchday.inTheBin')}>🟨</span>}
-                  {p.injury && <span className="sh-flag" title={t('matchday.injuredFlag')}>🏥</span>}
+                  {binned && <span className="sh-flag" title={t('matchday.inTheBin')} style={{ color: 'var(--gold)' }}><Glyph name="card" /></span>}
+                  {p.injury && <span className="sh-flag" title={t('matchday.injuredFlag')}><Glyph name="medical" /></span>}
                   {/* A man off the pitch who is neither binned nor hurt was sent
                       off - a substituted man leaves the lineup entirely, so this
                       is the only remaining way to be gone. Without the flag his
                       row was just dead grey with no reason on it, which is how
                       subreach failed one suite run and taught the sheet to say
                       why (round 23). */}
-                  {!on && !binned && !p.injury && <span className="sh-flag" title={t('matchday.sentOff')}>🟥</span>}
+                  {!on && !binned && !p.injury && <span className="sh-flag" title={t('matchday.sentOff')} style={{ color: 'var(--danger)' }}><Glyph name="card" /></span>}
                   {r != null && <span className="sh-rate">{r.toFixed(1)}</span>}
                   {/* THE NUMBER, NOT THE WORD (Round 27, user: "percentage
                       rather than words"). 25D-2 put the assistant's phrasing in

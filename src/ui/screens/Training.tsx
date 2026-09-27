@@ -6,6 +6,7 @@ import DevelopmentPanel from './DevelopmentPanel'
 import { flagOf } from '../../game/nations'
 import { SectionTitle, TwoStep } from '../components'
 import { t } from '../../game/i18n'
+import { Glyph } from '../glyphs'
 
 /* keys, not words - see docs/i18n.md */
 const FOCUSES: { id: TrainingFocus; name: string; desc: string }[] = [
@@ -63,7 +64,7 @@ export default function Training() {
       </button>
       <SectionTitle sub={t('training.infrastructureSub')}>{t('training.infrastructure')}</SectionTitle>
       <button className="club-pick" onClick={() => go('infra')}>
-        <span style={{ fontSize: 16 }}>🏗️</span>
+        <span style={{ fontSize: 16 }}><Glyph name="build" /></span>
         <span className="cname">{t('titles.infra')}</span>
         <span className="muted">{t('training.infraLink')}</span>
       </button>
@@ -243,7 +244,7 @@ function StaffPanel() {
                   broken or he is skint. */}
               {courseNo && p && p.tier < 3 && !p.course && (p.retakeAt ?? 0) <= abs && (
                 <div className="meta" style={{ fontSize: 11, color: 'var(--danger)', fontWeight: 600, marginTop: 3 }}>
-                  🎓 {courseNo.short}
+                  <Glyph name="academy" /> {courseNo.short}
                 </div>
               )}
               {said && (

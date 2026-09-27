@@ -18,6 +18,22 @@ const G = ({ children }: { children: ReactNode }) => (
 
 /** Every icon by name. A name the table lacks draws nothing, never an emoji. */
 const PATHS: Record<string, ReactNode> = {
+  // the match screen (weather, cards, calls, how to watch)
+  rain: <><path d="M7 15a4.5 4.5 0 1 1 1-8.9A5.5 5.5 0 0 1 18.5 9 3.5 3.5 0 0 1 18 16H7z" /><path d="M8 19l-1 2M12 19l-1 2M16 19l-1 2" /></>,
+  wind: <><path d="M3 9h11a3 3 0 1 0-3-3M3 13h15a3 3 0 1 1-3 3M3 17h7" /></>,
+  snow: <><path d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9M9.5 4.5L12 7l2.5-2.5M9.5 19.5L12 17l2.5 2.5" /></>,
+  info: <><circle cx="12" cy="12" r="8.5" /><path d="M12 11v5M12 8h.01" /></>,
+  stop: <><circle cx="12" cy="12" r="8.5" /><path d="M8 12h8" /></>,
+  card: <><rect x="7" y="4" width="10" height="16" rx="1.5" fill="currentColor" stroke="none" /></>,
+  film: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 9h18M3 15h18M7 5v4M12 5v4M17 5v4M7 15v4M12 15v4M17 15v4" /></>,
+  ffwd: <><path d="M3 6.3v11.4l8.5-5.7zM12 6.3v11.4l8.5-5.7z" /></>,
+  posts: <><path d="M7 3v18M17 3v18M7 12h10" /></>,
+  bolt: <><path d="M13 2L5 13h6l-1 9 8-11h-6z" /></>,
+  ball: <><ellipse cx="12" cy="12" rx="9" ry="5.5" transform="rotate(-35 12 12)" /><path d="M9 15l6-6M10.5 10.5l3 3" /></>,
+  crowd: <><circle cx="8" cy="9" r="2.6" /><circle cx="16" cy="9" r="2.6" /><path d="M3 19c0-2.8 2.2-4.6 5-4.6s5 1.8 5 4.6M11 19c0-2.8 2.2-4.6 5-4.6s5 1.8 5 4.6" /></>,
+  calm: <><path d="M3 10c2-2 4-2 6 0s4 2 6 0 4-2 6 0M3 15c2-2 4-2 6 0s4 2 6 0 4-2 6 0" /></>,
+  wolf: <><path d="M4 4l3 5 5-2 5 2 3-5v9c0 4-3.6 7-8 7s-8-3-8-7z" /><path d="M9 13h.01M15 13h.01M11 16.5h2" /></>,
+  chart: <><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></>,
   // the club menu
   team: <><circle cx="9" cy="8" r="3.2" /><path d="M3 19.5c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5" /><circle cx="16.5" cy="9" r="2.6" /><path d="M16.2 14.1c2.8.1 4.8 2.1 4.8 5" /></>,
   report: <><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></>,

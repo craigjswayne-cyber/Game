@@ -622,7 +622,7 @@ export default function Tactics() {
             if (!slot) {
               return (
                 <button key={letter} className="preset-chip plan-empty" onClick={snapshot} title={t('tacticsScreen.planSaveTitle')}>
-                  💾 {t('tacticsScreen.planSave', { n: letter })}
+                  <Glyph name="save" /> {t('tacticsScreen.planSave', { n: letter })}
                 </button>
               )
             }
@@ -630,7 +630,7 @@ export default function Tactics() {
               <span key={letter} className="plan-slot">
                 <button className="preset-chip plan-load" title={dialLine({ ...tac, ...slot.values })}
                   onClick={() => { Object.assign(tac, JSON.parse(JSON.stringify(slot.values))); setPlanMsg(dialLine(tac)); touch() }}>
-                  📋 {t('tacticsScreen.planLoad', { n: slot.name })}
+                  <Glyph name="tactics" /> {t('tacticsScreen.planLoad', { n: slot.name })}
                 </button>
                 <button className="preset-chip plan-over" title={t('tacticsScreen.planOverTitle', { n: slot.name })} aria-label={t('tacticsScreen.planOverTitle', { n: slot.name })}
                   onClick={snapshot}>⟳</button>
