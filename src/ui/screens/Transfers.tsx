@@ -1,4 +1,4 @@
-import { Fragment, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useStore } from '../../store'
 import { clubCode, fmtMoney, fmtWage, newsBody, newsSubject, POS_ORDER, seasonLabel, weekDate, type Attrs, type Pos, weeksBetween100 } from '../../game/model'
 import { counterIncomingOffer, renewalDemand, respondToOffer } from '../../game/ai'
@@ -21,6 +21,19 @@ const VIEW_ATTRS: Record<Exclude<SearchView, 'general' | 'contract'>, (keyof Att
   handling: ['pas', 'han', 'tac', 'ruc'],
   mind: ['vis', 'dec', 'pos', 'lea'],
 }
+/** The leagues the scouts can be pointed at, the MRC beside the Premier
+ *  (owner, 27 Sep 2026: "MRC should be on the same line as prem ... not on its
+ *  own down below"). It was the last league created, so it came last and sat
+ *  alone on a row of its own. The game's own order is left alone: the season
+ *  runs its leagues in that order. */
+function scoutLeagues(game: NonNullable<ReturnType<typeof useStore.getState>['game']>) {
+  const all = Object.values(game.comps).filter(c => c.type === 'league')
+  const mrc = all.find(c => c.id === 'mrc')
+  if (!mrc) return all
+  const rest = all.filter(c => c !== mrc)
+  const at = rest.findIndex(c => c.id === 'prem')
+  return at < 0 ? all : [...rest.slice(0, at + 1), mrc, ...rest.slice(at + 1)]
+}
 const ATTR_ORDER: (keyof Attrs)[] = ['pac', 'str', 'sta', 'agi', 'scr', 'lin', 'kic', 'goa', 'pas', 'han', 'tac', 'ruc', 'vis', 'dec', 'pos', 'lea', 'agg', 'wor']
 
 export default function Transfers() {
@@ -35,8 +48,12 @@ export default function Transfers() {
   const [listedOnly, setListedOnly] = useState(false)
   /** the loan being negotiated: who, for how long, and who pays (v1.2.8) */
   const [loanDeal, setLoanDeal] = useState<{ id: number; length: LoanLength; share: number } | null>(null)
-  /** the unsolicited loan approach: a name typed, not a list browsed */
-  const [aq, setAq] = useState('')
+  /** TRANSFER OR LOAN (owner, 27 Sep 2026: "loans should be part of the
+   *  transfer market with a loan option available in the filter section").
+   *  Loan shows the men offered on loan, and, once three letters of a name are
+   *  typed, anyone else a club might lend (the unsolicited approach): tapping
+   *  either opens the loan sheet. */
+  const [deal, setDeal] = useState<'transfer' | 'loan'>('transfer')
   // WHO WOULD ACTUALLY COME? The engine has always refused a bid from a club
   // far below a happy player's, and never said so until you had spent the bid
   // (interest.ts). This chip asks that same question up front.
@@ -55,27 +72,19 @@ export default function Transfers() {
   // a banner above the tab bar answers a Sign on loan tapped eleven rows down,
   // where the manager never sees it.
   const [msg, setMsg] = useState<{ key: string; text: string } | null>(null)
-  const [xtab, setXtab] = useState<'market' | 'shortlist' | 'loans' | 'deals'>('market')
+  // Market, Scouting and Deals. Shortlist became Scouting and Loans moved into
+  // the market's filters (owner, 27 Sep 2026)
+  const [xtab, setXtab] = useState<'market' | 'scouting' | 'deals'>('market')
   const [page, setPage] = useState(0)
   const PER_PAGE = 10
 
   const user = game.clubs[game.userClubId]
 
-  // WHO YOU MAY RING ABOUT. Every under-23 in the world is far too many rows to
-  // list, so this is a search and not a browse: three characters of a name or a
-  // club, capped at a dozen hits. loanApproachable is the same gate the engine
-  // applies, so nothing appears here that the phone call would refuse outright.
-  const approachHits = useMemo(() => {
-    const q = aq.trim().toLowerCase()
-    if (q.length < 3) return []
-    const listed = new Set(loanTargets(game).map(p => p.id))
-    return Object.values(game.players)
-      .filter(p => !listed.has(p.id) && loanApproachable(game, p)
-        && (p.name.toLowerCase().includes(q)
-          || (p.clubId ? (game.clubs[p.clubId]?.short ?? '').toLowerCase().includes(q) : false)))
-      .sort((a, b) => b.ca - a.ca)
-      .slice(0, 12)
-  }, [game, aq])
+  // WHO YOU MAY RING ABOUT. The loan list is the shop window; beyond it, the
+  // unsolicited approach finds anyone loanApproachable (the same gate the
+  // engine applies), but only from a typed name: every under-23 in the world
+  // is far too many rows to browse.
+  const listedLoans = useMemo(() => new Set(loanTargets(game).map(p => p.id)), [game, game.week])
   const offers = game.offers.filter(o => o.status === 'pending' && o.forUser)
 
   const MTh = ({ k, children, right }: { k: typeof msort; children: React.ReactNode; right?: boolean }) => (
@@ -88,6 +97,7 @@ export default function Transfers() {
   const results = useMemo(() => {
     const q = query.trim().toLowerCase()
     let list = Object.values(game.players).filter(p => p.clubId !== game.userClubId)
+    if (deal === 'loan') list = list.filter(p => listedLoans.has(p.id) || (q.length >= 3 && loanApproachable(game, p)))
     if (pos !== 'ALL') list = list.filter(p => p.pos === pos || p.alt.includes(pos))
     if (q) list = list.filter(p => p.name.toLowerCase().includes(q) || (p.clubId ? game.clubs[p.clubId]?.short.toLowerCase().includes(q) : false))
     if (maxVal > 0) list = list.filter(p => p.value <= maxVal)
@@ -111,12 +121,16 @@ export default function Transfers() {
       }
     })
     return list.slice(0, 120)
-  }, [game, game.players, game.clubs, pos, query, maxVal, maxAge, league, listedOnly, keenOnly, withInjured, expiringOnly, attrKey, attrMin, msort, mdesc, game.week])
-  const activeFilters = [pos !== 'ALL', league !== 'ALL', maxVal > 0, maxAge > 0, !!attrKey,
+  }, [game, game.players, game.clubs, pos, query, maxVal, maxAge, league, listedOnly, keenOnly, withInjured, expiringOnly, attrKey, attrMin, msort, mdesc, game.week, deal, listedLoans])
+  const activeFilters = [deal === 'loan', pos !== 'ALL', league !== 'ALL', maxVal > 0, maxAge > 0, !!attrKey,
     listedOnly, keenOnly, expiringOnly, !withInjured].filter(Boolean).length
   const pages = Math.max(1, Math.ceil(results.length / PER_PAGE))
   const pageSafe = Math.min(page, pages - 1)
   const pageRows = results.slice(pageSafe * PER_PAGE, (pageSafe + 1) * PER_PAGE)
+  // a row opens the player, or in Loan the loan sheet
+  const openRow = (id: number) => deal === 'loan'
+    ? (setLoanDeal({ id, length: 'season', share: 0.5 }), setMsg(null))
+    : go('player', id)
 
   return (
     <>
@@ -139,8 +153,7 @@ export default function Transfers() {
 
       <div className="tab-bar">
         <button className={xtab === 'market' ? 'active' : ''} onClick={() => setXtab('market')}>{t('transfers.tabMarket')}</button>
-        <button className={xtab === 'shortlist' ? 'active' : ''} onClick={() => setXtab('shortlist')}>{t('transfers.tabShortlist')}</button>
-        <button className={xtab === 'loans' ? 'active' : ''} onClick={() => setXtab('loans')}>{t('transfers.tabLoans')}</button>
+        <button className={xtab === 'scouting' ? 'active' : ''} onClick={() => setXtab('scouting')}>{t('transfers.tabScouting')}</button>
         <button className={xtab === 'deals' ? 'active' : ''} onClick={() => setXtab('deals')}>{t('transfers.tabDeals')}</button>
       </div>
 
@@ -216,7 +229,7 @@ export default function Transfers() {
         )
       })()}
 
-      {xtab === 'shortlist' && <>
+      {xtab === 'scouting' && <>
       <ScoutCommission />
       <div className="card">
         <div className="fact-label">{t('transfers.scoutingAssignment')}</div>
@@ -224,7 +237,7 @@ export default function Transfers() {
           {t('transfers.assignmentNote', { unassigned: game.scoutFocus ? '' : t('transfers.unassigned') })}
         </div>
         <div className="chips" style={{ padding: 0 }}>
-          {Object.values(game.comps).filter(c => c.type === 'league').map(c => (
+          {scoutLeagues(game).map(c => (
             <button key={c.id} className="chip" onClick={() => { game.scoutFocus = game.scoutFocus === c.id ? null : c.id; touch() }}
               style={game.scoutFocus === c.id ? { borderColor: 'var(--gold)', color: 'var(--info)', fontWeight: 700 } : undefined}>
               {game.scoutFocus === c.id ? '🔭 ' : ''}{c.short}
@@ -267,7 +280,7 @@ export default function Transfers() {
         </>
       )}
 
-      {xtab === 'shortlist' && game.shortlist.length > 0 && (
+      {xtab === 'scouting' && game.shortlist.length > 0 && (
         <>
           <SectionTitle sub={t('transfers.shortlistSub')}>{t('transfers.shortlist')}</SectionTitle>
           <div className="tblwrap"><table className="dtable codefirst"><tbody>
@@ -290,68 +303,6 @@ export default function Transfers() {
         </>
       )}
 
-      {xtab === 'loans' && <>
-      <SectionTitle sub={t('transfers.loanMarketSub')}>{t('transfers.loanMarket')}</SectionTitle>
-      <div className="tblwrap"><table className="dtable codefirst"><tbody>
-        {loanTargets(game).map(p => (
-          <Fragment key={p.id}>
-          <tr>
-            <td onClick={() => go('player', p.id)}><PosBadge pos={p.pos} /></td>
-            <td className="name" onClick={() => go('player', p.id)}>
-              {p.name} <span className="muted">({p.age} · {p.clubId ? game.clubs[p.clubId]?.short : ''})</span>
-            </td>
-            <td onClick={() => go('player', p.id)}><Stars ca={fuzzedCa(game, p)} /></td>
-            <td>
-              {/* A LOAN IS NEGOTIATED (owner, v1.2.8): the button opens a
-                  sheet - "make it a pop up on screen otherwise it messes up
-                  the screen" - with the length, the wage share and the offer */}
-              <button className="btn ghost" style={{ fontSize: 11, padding: '5px 10px' }}
-                onClick={() => { setLoanDeal({ id: p.id, length: 'season', share: 0.5 }); setMsg(null) }}>
-                {t('transfers.signOnLoan')}
-              </button>
-            </td>
-          </tr>
-          </Fragment>
-        ))}
-        {loanTargets(game).length === 0 && (
-          <tr><td className="muted" style={{ padding: 12 }}>{t('transfers.noLoans')}</td></tr>
-        )}
-      </tbody></table></div>
-
-      {/* ---- ASKING ABOUT SOMEBODY WHO WAS NEVER OFFERED ----
-          Owner, 7 Sep: "can you propose to loan players even if they dont have
-          loan available?" The list above is the shop window; this is the phone
-          call. It reuses the same negotiating sheet, so the length and the wage
-          share work exactly as they do for a listed player - only the odds are
-          worse, and a rival hangs up. Search rather than a list, because every
-          under-23 at every club in the world is thousands of rows. */}
-      <SectionTitle sub={t('transfers.loanApproachSub')}>{t('transfers.loanApproach')}</SectionTitle>
-      <div className="filter-line">
-        <input className="inline-input" placeholder={t('transfers.nameOrClub')} value={aq}
-          onChange={e => setAq(e.target.value)} style={{ flex: '1 1 0' }} />
-      </div>
-      {aq.trim().length >= 3 && (
-        <div className="tblwrap"><table className="dtable codefirst"><tbody>
-          {approachHits.map(p => (
-            <tr key={p.id}>
-              <td onClick={() => go('player', p.id)}><PosBadge pos={p.pos} /></td>
-              <td className="name" onClick={() => go('player', p.id)}>
-                {p.name} <span className="muted">({p.age} · {p.clubId ? game.clubs[p.clubId]?.short : ''})</span>
-              </td>
-              <td onClick={() => go('player', p.id)}><Stars ca={fuzzedCa(game, p)} /></td>
-              <td>
-                <button className="btn ghost" style={{ fontSize: 11, padding: '5px 10px' }}
-                  onClick={() => { setLoanDeal({ id: p.id, length: 'season', share: 0.5 }); setMsg(null) }}>
-                  {t('transfers.loanAsk')}
-                </button>
-              </td>
-            </tr>
-          ))}
-          {approachHits.length === 0 && (
-            <tr><td className="muted" style={{ padding: 12 }}>{t('transfers.loanNoHits')}</td></tr>
-          )}
-        </tbody></table></div>
-      )}
       {loanDeal && (() => {
         const lp = game.players[loanDeal.id]
         const parent = lp?.clubId ? game.clubs[lp.clubId] : null
@@ -394,11 +345,14 @@ export default function Transfers() {
         )
       })()}
 
-      </>}
       {xtab === 'market' && <>
       {/* "120 found (best 120)" said the cap twice and paid for it in width:
           the device matrix clipped "tap to bid" clean off at 360px. Once. */}
-      <SectionTitle sub={t('transfers.marketSub', { n: results.length === 120 ? t('transfers.best120') : results.length })}>{t('transfers.scoutTheMarket')}</SectionTitle>
+      <SectionTitle sub={deal === 'loan'
+        ? t('transfers.loanMarketSub2', { n: results.length })
+        : t('transfers.marketSub', { n: results.length === 120 ? t('transfers.best120') : results.length })}>
+        {t(deal === 'loan' ? 'transfers.loanMarket' : 'transfers.scoutTheMarket')}
+      </SectionTitle>
       {/* ---- six filters, two tidy rows, nothing bigger than it needs to be ----
           These controls were three different sizes: a flex-grow search box, a
           116px select whose label "All positions" did not fit inside it, and
@@ -433,6 +387,11 @@ export default function Transfers() {
             <div className="grab" />
             <h3>{t('search.filters')}</h3>
             <div className="fs-grid">
+              <label>{t('search.deal')}</label>
+              <select className="inline-input" value={deal} onChange={e => { setDeal(e.target.value as 'transfer' | 'loan'); setPage(0) }}>
+                <option value="transfer">{t('search.dealTransfer')}</option>
+                <option value="loan">{t('search.dealLoan')}</option>
+              </select>
               <label>{t('transfers.filterPosition')}</label>
               <select className="inline-input" value={pos} onChange={e => { setPos(e.target.value as Pos | 'ALL'); setPage(0) }}>
                 <option value="ALL">{t('search.any')}</option>
@@ -489,7 +448,7 @@ export default function Transfers() {
             </div>
             <div className="btn-row" style={{ marginTop: 10 }}>
               <button className="btn ghost" onClick={() => {
-                setPos('ALL'); setLeague('ALL'); setMaxVal(0); setMaxAge(0); setAttrKey('')
+                setDeal('transfer'); setPos('ALL'); setLeague('ALL'); setMaxVal(0); setMaxAge(0); setAttrKey('')
                 setListedOnly(false); setKeenOnly(false); setExpiringOnly(false); setWithInjured(true); setPage(0)
               }}>{t('search.reset')}</button>
               <button className="btn gold" style={{ flex: 2 }} onClick={() => setFiltersOpen(false)}>
@@ -517,7 +476,7 @@ export default function Transfers() {
             </td></tr>
           )}
           {pageRows.map(p => (
-            <tr key={p.id} onClick={() => go('player', p.id)}>
+            <tr key={p.id} onClick={() => openRow(p.id)}>
               <td><PosBadge pos={p.pos} /></td>
               <td className="name">{p.name}{p.injury ? ' 🩹' : ''}</td>
               {view === 'contract'
@@ -553,9 +512,9 @@ export default function Transfers() {
             </td></tr>
           )}
           {pageRows.map(p => (
-            <tr key={p.id} onClick={() => go('player', p.id)}>
+            <tr key={p.id} onClick={() => openRow(p.id)}>
               <td><PosBadge pos={p.pos} /></td>
-              <td className="name">{p.name}{p.transferListed ? ' 🏷️' : ''}</td>
+              <td className="name">{p.name}{deal === 'transfer' && p.transferListed ? ' 🏷️' : ''}{deal === 'loan' && !listedLoans.has(p.id) ? <span className="muted"> {t('transfers.loanAskTag')}</span> : ''}</td>
               <td className="num">{p.age}</td>
               <td><Nat code={p.nat} /></td>
               {/* THREE LETTERS. This column was 76px of an eight-column table

@@ -156,7 +156,7 @@ try {
     await check(`team report: ${t.toLowerCase()}`)
   }
   await club('Transfer Centre', 'transfers: market')
-  for (const t of ['Shortlist', 'Loans', 'Deals']) {
+  for (const t of ['Scouting', 'Deals']) {
     await page.click(`.tab-bar >> text=${t}`)
     await check(`transfers: ${t.toLowerCase()}`)
   }

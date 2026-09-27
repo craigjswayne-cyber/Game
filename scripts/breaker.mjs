@@ -230,7 +230,7 @@ try {
   // of buyable men: the first .dtable row there led nowhere, which is why the
   // first version of this attack fed nonsense to nothing. The market is behind
   // the Search tab, and a row-item is what opens a player.
-  for (const t of ['Search', 'Market', 'Shortlist']) {
+  for (const t of ['Search', 'Market', 'Scouting']) {
     const tab = page.locator('.tab-bar button', { hasText: t })
     if (await tab.count()) { await tab.first().click().catch(() => {}); await page.waitForTimeout(700); break }
   }

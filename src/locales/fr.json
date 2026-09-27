@@ -1588,8 +1588,6 @@
     "deadlineWindow": "⏰ Mercato de clôture · ferme en s. 28",
     "windowClosed": "Mercato fermé · clôture en s. 26",
     "tabMarket": "Marché",
-    "tabShortlist": "Liste",
-    "tabLoans": "Prêts",
     "tabDeals": "En cours",
     "contractSituations": "Situations contractuelles",
     "contractSituationsSub": "contrats qui s'achèvent, exigences posées",
@@ -1605,7 +1603,7 @@
     "incomingLine": "{age} ans · {from_k} · libre",
     "agreed": "🖊 signé",
     "scoutingAssignment": "Mission de recrutement",
-    "assignmentNote": "Orientez le réseau vers un championnat - ses joueurs sont observés chaque semaine{unassigned}. Les joueurs de votre liste sont toujours suivis, avec une alerte dès que leur situation change.",
+    "assignmentNote": "Vos recruteurs suivent chaque semaine tous les joueurs d'un championnat{unassigned}. Les joueurs de votre liste sont toujours suivis.",
     "unassigned": " (aucune pour l'instant)",
     "offersForYourPlayers": "Offres pour vos joueurs",
     "bidLine": "{club} offre {fee} pour {player}",
@@ -1618,9 +1616,6 @@
     "shortlistSub": "un rapport des recruteurs chaque semaine",
     "freeAgent": "Agent libre",
     "loanMarket": "Marché des prêts",
-    "loanMarketSub": "emprunter plus haut · à vos conditions",
-    "signOnLoan": "Prendre en prêt",
-    "noLoans": "Aucun club au-dessus de vous ne prête en ce moment.",
     "scoutTheMarket": "Prospecter le marché",
     "marketSub": "{n} trouvés · touchez pour faire une offre",
     "best120": "les 120 meilleurs",
@@ -1652,7 +1647,7 @@
     "focusLeague": "championnat ciblé",
     "reportsBack": " Il rend son rapport dans environ {n} semaines.",
     "reportsBackOne": " Il rend son rapport dans environ {n} semaine.",
-    "longerTrip": "Un déplacement plus long, c'est plus de rugby vu : plus de noms, et plus de noms qui valent une signature. Il observe{where} - fixez le championnat ciblé ci-dessous pour affiner.",
+    "longerTrip": "Plus la mission est longue, plus elle trouve de joueurs, et de meilleurs. Zone :{where}.",
     "watchesLeague": " le championnat {league}",
     "watchesWorld": " le monde entier",
     "anyPosition": "Tous les postes",
@@ -1677,16 +1672,13 @@
     "loanCostLine": "Votre part de son salaire : {wage}/sem.",
     "loanClose": "Pas maintenant",
     "loanDone": "Terminé",
-    "loanApproachSub": "Sonder un jeune que personne n'a proposé.",
-    "loanApproach": "Faire une approche",
-    "loanAsk": "Demander",
-    "loanNoHits": "Personne de ce nom que vous pourriez former. Il faut un joueur de 23 ans ou moins, apte, et pas déjà prêté.",
     "renewNote_f": "Touchez une joueuse pour prolonger depuis sa fiche. À partir de la semaine 25, une joueuse non prolongée peut signer un pré-contrat ailleurs et partir libre l'été venu.",
-    "assignmentNote_f": "Orientez le réseau vers un championnat - ses joueuses sont observées chaque semaine{unassigned}. Les joueuses de votre liste sont toujours suivis, avec une alerte dès que leur situation change.",
     "offersForYourPlayers_f": "Offres pour vos joueuses",
     "listedHint_f": " - les clubs placent des joueuses sur la liste à l'approche du mercato, réessayez plus tard",
     "loanNoHits_f": "Personne de ce nom que vous pourriez former. Il faut une joueuse de 23 ans ou moins, apte, et pas déjà prêtée.",
-    "longerTrip_w": "Un déplacement plus long, c'est plus de rugby vu : plus de noms, et plus de noms qui valent une signature. Elle observe{where} - fixez le championnat ciblé ci-dessous pour affiner."
+    "tabScouting": "Recrutement",
+    "loanMarketSub2": "{n} disponibles · touchez pour faire une offre",
+    "loanAskTag": "(non proposé)"
   },
   "objectives": {
     "youth": "Lancer les jeunes : donner 6 titularisations ou plus à des joueurs de 21 ans ou moins",
@@ -7092,7 +7084,10 @@
     "show": {
       "one": "Afficher {n} joueur",
       "other": "Afficher {n} joueurs"
-    }
+    },
+    "deal": "Type",
+    "dealTransfer": "Transfert",
+    "dealLoan": "Prêt"
   },
   "attrShort": {
     "tac": "Plaq",
