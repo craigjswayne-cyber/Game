@@ -49,15 +49,18 @@ export const INTRO_KEY = 'phase.intro'
 const LENGTH_MS = 5000
 let playedThisLaunch = false
 
-/** the art's own size, and where things are in it (fractions of the picture) */
-const ART = { w: 900, h: 1601 }
-/** where the crop sits across the art: left of centre, so the mug (far left
- *  of the picture) stays in frame on a portrait phone. theme.css matches it. */
-const POS_X = 0.2
+/** the art's own size, and where things are in it (fractions of the picture).
+ *  The key art was redrawn on 28 Sep 2026 (owner: the STARTING XV sheet showed
+ *  a football pitch; the new art has a rugby pitch, posts and all), so these
+ *  are measured off the new picture. */
+const ART = { w: 1024, h: 1536 }
+/** where the crop sits across the art: near the left edge, so the mug (far
+ *  left of the picture) stays in frame on a portrait phone. theme.css matches it. */
+const POS_X = 0.06
 const SPOT = {
-  mug: { x: 0.07, y: 0.552 },    // the coffee's surface
-  lamp: { x: 0.105, y: 0.158 },  // under the shade
-  tv: { x: 0.025, y: 0.028, w: 0.325, h: 0.186 }, // the framed match, top left
+  mug: { x: 0.059, y: 0.505 },   // the coffee's surface
+  lamp: { x: 0.088, y: 0.173 },  // under the shade
+  tv: { x: 0.054, y: 0.042, w: 0.283, h: 0.179 }, // the framed match, top left
 }
 
 export function introOn(): boolean {

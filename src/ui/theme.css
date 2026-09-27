@@ -1023,7 +1023,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
       rgba(8, 12, 10, 0.58) 58%,
       rgba(8, 12, 10, 0.88) 74%,
       rgba(8, 12, 10, 0.92) 100%),
-    url('./title-bg.webp') center center / cover no-repeat,
+    url('./title-bg.webp') 6% center / cover no-repeat,
     var(--canvas);
 }
 
@@ -4716,7 +4716,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 /* the room: the art at cover, pushing in slowly for the whole five seconds */
 .intro-room { position: absolute; inset: 0; transform-origin: 30% 45%; animation: intro-push 5s linear both; }
 @keyframes intro-push { from { transform: scale(1); } to { transform: scale(1.07); } }
-.intro-art { position: absolute; inset: 0; background: var(--art) 20% center / cover no-repeat; } /* 20%: Intro.tsx POS_X */
+.intro-art { position: absolute; inset: 0; background: var(--art) 6% center / cover no-repeat; } /* 6%: Intro.tsx POS_X */
 
 /* the lamp catching: the room is black, then flickers up to a dim glow */
 .intro-dark {
