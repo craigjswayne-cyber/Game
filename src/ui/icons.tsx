@@ -109,9 +109,6 @@ export const IcoPeople = () => (
 export const IcoPack = () => (
   <svg viewBox="0 0 24 24" {...S} aria-hidden><circle cx="7" cy="9" r="2.4" /><circle cx="12" cy="8" r="2.4" /><circle cx="17" cy="9" r="2.4" /><path d="M3.5 17c.6-2.6 2-4 3.5-4s2.3.7 2.8 1.5M20.5 17c-.6-2.6-2-4-3.5-4s-2.3.7-2.8 1.5M8 18c.5-2.8 2.1-4.3 4-4.3s3.5 1.5 4 4.3" /></svg>
 )
-export const IcoShield = () => (
-  <svg viewBox="0 0 24 24" {...S} aria-hidden><path d="M12 3l7.5 3v5.5c0 4.4-3.1 8.1-7.5 9.5-4.4-1.4-7.5-5.1-7.5-9.5V6z" /></svg>
-)
 export const IcoAttack = () => (
   <svg viewBox="0 0 24 24" {...S} aria-hidden><path d="M4 12h13M13 7l5 5-5 5" /><path d="M4 7h5M4 17h5" /></svg>
 )
@@ -120,4 +117,67 @@ export const IcoHandshake = () => (
 )
 export const IcoChevron = () => (
   <svg viewBox="0 0 24 24" {...S} aria-hidden><path d="M9 6l6 6-6 6" /></svg>
+)
+
+// ---- the bench briefs and the week's preparation (1.8.0) ----
+// These replaced emoji (a shirt, a collision, a shield, a target) on the bench
+// page and the live substitution sheet: the owner's rule is that emojis
+// cheapen the game, and a brief is read at a glance beside a man's name.
+
+/** Do the same job: the shirt he takes over */
+export const IcoShirt = () => (
+  <svg viewBox="0 0 24 24" {...S} aria-hidden>
+    <path d="M9 4 5 6.5 3.5 11l3 1.2L7 11v9h10v-9l.5 1.2 3-1.2L19 6.5 15 4c-.5 1.4-1.6 2.2-3 2.2S9.5 5.4 9 4z" />
+  </svg>
+)
+/** Make an impact: a collision */
+export const IcoBurst = () => (
+  <svg viewBox="0 0 24 24" {...S} aria-hidden>
+    <path d="M12 3.2l1.9 5 5.3-1.3-3.2 4.4 4 3.6-5.4.2L12 20l-2.6-4.9-5.4-.2 4-3.6-3.2-4.4 5.3 1.3z" />
+  </svg>
+)
+/** Calm it down, and defensive drills: the shield */
+export const IcoShield = () => (
+  <svg viewBox="0 0 24 24" {...S} aria-hidden>
+    <path d="M12 3.2 19 6v5.2c0 4.4-2.9 7.8-7 9.6-4.1-1.8-7-5.2-7-9.6V6z" />
+    <path d="M9 12l2.2 2.2L15.2 10" />
+  </svg>
+)
+/** Kill the clock */
+export const IcoClock = () => (
+  <svg viewBox="0 0 24 24" {...S} aria-hidden>
+    <circle cx="12" cy="12" r="8.5" />
+    <path d="M12 7.5V12l3.2 2" />
+  </svg>
+)
+/** Attacking shapes: a line broken through */
+export const IcoBreak = () => (
+  <svg viewBox="0 0 24 24" {...S} aria-hidden>
+    <path d="M17.5 3.5v17" strokeDasharray="2.2 2.6" />
+    <path d="M3 12h17" />
+    <path d="M15.5 7.5 20 12l-4.5 4.5" />
+  </svg>
+)
+/** Set-piece work: two lineout files and the ball thrown between them */
+export const IcoLineout = () => (
+  <svg viewBox="0 0 24 24" {...S} aria-hidden>
+    <circle cx="8" cy="9" r="1.7" /><circle cx="8" cy="14" r="1.7" /><circle cx="8" cy="19" r="1.7" />
+    <circle cx="16" cy="9" r="1.7" /><circle cx="16" cy="14" r="1.7" /><circle cx="16" cy="19" r="1.7" />
+    <ellipse cx="12" cy="4" rx="2.6" ry="1.6" />
+  </svg>
+)
+/** Conditioning: the stopwatch */
+export const IcoStopwatch = () => (
+  <svg viewBox="0 0 24 24" {...S} aria-hidden>
+    <circle cx="12" cy="13.5" r="7" />
+    <path d="M12 13.5V9.5M10 3.5h4M12 3.5v3M18 7l1.3-1.3" />
+  </svg>
+)
+/** Recovery week: the battery filling */
+export const IcoRecharge = () => (
+  <svg viewBox="0 0 24 24" {...S} aria-hidden>
+    <rect x="3" y="7.5" width="16" height="9" rx="2" />
+    <path d="M21.5 10.5v3" />
+    <path d="M11.8 9.5 9.5 12.3h3l-2.3 2.7" />
+  </svg>
 )
