@@ -2682,9 +2682,16 @@ function decide(
     pushLine(state, ctx, min + 1, 'SUB', mine, 'comm.maulRepelledPenalty')
     return t('touch.pinnedNoPoints')
   }
-  // tap and go
+  // TAP AND GO READS THE PLACE AND THE MATCHUP (1.8.0, optionsprobe). It
+  // scored 17% of the time from anywhere against anyone, 1.01 points a call
+  // from twenty metres against 2.47 for the posts, so "always tap" gave away
+  // seven points a match. Close in with an attack that has the beating of
+  // their defence it is now a real rival to the posts; from forty metres out
+  // it is still a punt, which is rugby.
   mine.poss += 1.4
-  if (rng() < 0.17) {
+  const toLine = mine === ctx.home ? 100 - ctx.field : ctx.field
+  const pTap = clamp(0.42 - toLine * 0.006 + (mine.units.attack - opp.units.defence) * 0.03, 0.10, 0.55)
+  if (rng() < pTap) {
     scoreTry(state, ctx, mine, min, undefined)
     return t('touch.quickTapWorks')
   }
@@ -3192,7 +3199,14 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     // the pressure is. Kicks at goal are now confined to the opposition half
     // (below), so the chance leans with territory - (up/50)^PEN_LEAN, 1 at
     // halfway - rather than sitting flat across the field.
-    const penWindow = opp.penRisk * (side === home ? ap : hp).penF * Math.pow(up / 50, PEN_LEAN)
+    // THE SCRUM WINS PENALTIES (1.8.0, ladderprobe). A pack that goes
+    // forward at the scrum is where a real side's penalties come from, and
+    // here the scrum decided almost nothing: +4 scrummaging across a squad
+    // was worth 0.06 points a match. So the side whose scrum is on top draws
+    // more of them, bounded, and reciprocal between the two packs so the
+    // world's count of penalties does not move.
+    const scrumEdge = Math.pow(clamp(side.units.scrum / Math.max(1, opp.units.scrum), 0.8, 1.25), 0.8)
+    const penWindow = opp.penRisk * (side === home ? ap : hp).penF * Math.pow(up / 50, PEN_LEAN) * scrumEdge
     let ratio = ((att * adv * numF * terr) / Math.max(1, def * oppNumF))
     if (derby) ratio = Math.pow(ratio, 0.72) // form book out the window
     else if (ctx.grudge) ratio = Math.pow(ratio, 0.85) // needle levels the contest
