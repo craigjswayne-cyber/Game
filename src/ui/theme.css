@@ -293,7 +293,9 @@ option { font: inherit; color: var(--text-primary); background-color: var(--surf
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1.1px;
+  /* .5px, not 1.1: at 11px the wider tracking pushed the eight-column market
+     table 10px off a 412px phone in Italian (sidescroll.mjs) */
+  letter-spacing: .5px;
   color: var(--text-muted);
   text-align: left;
   padding: 9px 7px 7px;
@@ -346,6 +348,10 @@ option { font: inherit; color: var(--text-primary); background-color: var(--surf
    :not() leaves the cascade to say what it was always going to say. */
 .dtable:not(.codefirst) th:first-child,
 .dtable:not(.codefirst) td:first-child { padding-left: 16px; }
+/* The search tables (position code first, eight columns) give the name the
+   room that is left and no more: at 13px a long name pushed the market 10px
+   off a 412px phone in Italian (sidescroll.mjs). It shortens with an ellipsis. */
+.dtable.codefirst td.name { max-width: 108px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ---- A NAME SITS NEXT TO ITS RANK, NOT ADRIFT OF IT ----
    Owner, on every table with a rank column: "the team names should be more
