@@ -1,3 +1,5 @@
+// first, before anything can read storage: a sandboxed page has none
+import './safeStorage'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './ui/App'
