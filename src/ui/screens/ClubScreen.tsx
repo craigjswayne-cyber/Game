@@ -215,6 +215,23 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
         const asks = boardRequests(game)
         return (
           <>
+            {/* THE BOARD, ALL IN ONE PLACE (owner, 27 Sep 2026: "the board
+                should be in club information on the hub menu"). Its confidence
+                in you used to sit on Finances, a screen away from the doors
+                you knock on. */}
+            <SectionTitle sub={`${Math.round(club.boardConfidence)}%`}>{t('finances.boardConfidence')}</SectionTitle>
+            <div style={{ margin: '8px 14px', height: 10, background: 'var(--border-strong)', borderRadius: 5 }}>
+              <div style={{
+                width: `${club.boardConfidence}%`, height: '100%', borderRadius: 5,
+                background: club.boardConfidence > 60 ? 'var(--primary)' : club.boardConfidence > 30 ? 'var(--gold-fill)' : 'var(--danger)',
+              }} />
+            </div>
+            <div className="muted" style={{ padding: '4px 14px 10px' }}>
+              {t(club.boardConfidence > 75 ? 'finances.boardDelighted'
+                : club.boardConfidence > 50 ? 'finances.boardSatisfied'
+                : club.boardConfidence > 30 ? 'finances.boardExpectsBetter'
+                : 'finances.boardImpatient')}
+            </div>
             <SectionTitle sub={t('board.roomSub')}>{t('board.room')}</SectionTitle>
             <div style={{ padding: '0 14px' }}>
               {asks.map(a => (

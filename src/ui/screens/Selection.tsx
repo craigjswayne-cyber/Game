@@ -6,6 +6,7 @@ import { effAt } from '../../game/attributes'
 import { AvailTag, FormPill, PosBadge, SectionTitle, Stars } from '../components'
 import { benchSeats, splitFor } from '../../game/bench'
 import { t } from '../../game/i18n'
+import { IcoAttack, IcoChevron, IcoHandshake, IcoPack, IcoShield } from '../icons'
 
 /* Keys, not words: this array is built once at module load and the language
    can change afterwards. The English wording is in src/locales/en.json.
@@ -15,10 +16,10 @@ import { t } from '../../game/i18n'
    dead weight in every language rather than one. Left in English, and left
    alone: giving it a home is a product decision, not a translation. */
 const PORTFOLIOS = [
-  { id: 'pack' as const, icon: '🐘', name: 'selection.pfPack', desc: 'Set piece and the breakdown, at the cost of the general lift.' },
-  { id: 'defence' as const, icon: '🛡', name: 'selection.pfDefence', desc: 'The defensive system, taken off attacking shape.' },
-  { id: 'attack' as const, icon: '⚡', name: 'selection.pfAttack', desc: 'Attacking shape, taken off the defensive line.' },
-  { id: 'culture' as const, icon: '🤝', name: 'selection.pfCulture', desc: 'The room and the discipline. No unit moves.' },
+  { id: 'pack' as const, icon: <IcoPack />, name: 'selection.pfPack', desc: 'Set piece and the breakdown, at the cost of the general lift.' },
+  { id: 'defence' as const, icon: <IcoShield />, name: 'selection.pfDefence', desc: 'The defensive system, taken off attacking shape.' },
+  { id: 'attack' as const, icon: <IcoAttack />, name: 'selection.pfAttack', desc: 'Attacking shape, taken off the defensive line.' },
+  { id: 'culture' as const, icon: <IcoHandshake />, name: 'selection.pfCulture', desc: 'The room and the discipline. No unit moves.' },
 ]
 
 /**
@@ -36,6 +37,8 @@ export default function SelectionPane() {
   const touch = useStore(s => s.touch)
   const [pickSlot, setPickSlot] = useState<number | null>(null)
   const [sel, setSel] = useState<number | null>(null)
+  /** the leadership job being filled: the armbands or a portfolio */
+  const [roleSheet, setRoleSheet] = useState<'captain' | 'vice' | typeof PORTFOLIOS[number]['id'] | null>(null)
 
   const club = game.clubs[game.userClubId]
   // `tac`, not `t`: t() is the translator now, and a shadow here would be
@@ -125,6 +128,71 @@ export default function SelectionPane() {
         <td>{p && <FormPill v={p.form} />}</td>
         <td className="num">{p ? `${Math.round(p.cond)}%` : ''}</td>
       </tr>
+    )
+  }
+
+  const holderOf = (role: NonNullable<typeof roleSheet>): number | null =>
+    role === 'captain' ? club.captain ?? null : role === 'vice' ? club.vice ?? null : club.leaders?.[role] ?? null
+  const appoint = (role: NonNullable<typeof roleSheet>, pid: number | null) => {
+    if (role === 'captain') { if (pid != null) club.captain = pid }
+    else if (role === 'vice') club.vice = pid
+    // A MAN CAN HOLD MORE THAN ONE JOB (user: "players can play multiple
+    // roles"): each portfolio is a trade in the engine - it lifts one unit
+    // and taxes another - so a second job is a second trade, not a second
+    // helping.
+    else club.leaders = { ...(club.leaders ?? {}), [role]: pid }
+    touch()
+    setRoleSheet(null)
+  }
+  const roleButton = (role: NonNullable<typeof roleSheet>, tag: React.ReactNode, label: string, cur: number | null) => {
+    const p = cur != null ? game.players[cur] : undefined
+    return (
+      <button className="lead-row lead-btn" onClick={() => setRoleSheet(role)} aria-haspopup="dialog">
+        <span className="lead-tag">{tag}</span>
+        <span className="fact-label">{label}</span>
+        <span className="lead-who">
+          {p ? <>{p.name} <span className="muted">{t('selection.ldrShort', { lea: p.a.lea })}</span>{awayNote(p)}</> : <span className="muted">{t('selection.nobodyHasIt')}</span>}
+        </span>
+        <span className="lead-chev"><IcoChevron /></span>
+      </button>
+    )
+  }
+  /** The sheet: the senior squad by leadership, a bar to read it at a glance,
+   *  the men who cannot play this week marked rather than hidden (a portfolio
+   *  is a season-long job, not a match-day label). */
+  const roleSheetEl = () => {
+    if (!roleSheet) return null
+    const cur = holderOf(roleSheet)
+    const title = roleSheet === 'captain' ? t('selection.captain') : roleSheet === 'vice' ? t('selection.vice')
+      : t(PORTFOLIOS.find(x => x.id === roleSheet)!.name)
+    const pool = club.players.map(id => game.players[id])
+      .filter((x): x is Player => !!x && (roleSheet === 'captain' || !x.acad) && !(roleSheet === 'vice' && x.id === club.captain))
+      .sort((a, b) => b.a.lea - a.a.lea)
+    return (
+      <div className="modal-veil" onClick={() => setRoleSheet(null)}>
+        <div className="modal lead-sheet" role="dialog" aria-label={title} onClick={e => e.stopPropagation()}>
+          <div className="grab" />
+          <SectionTitle sub={t('selection.roleSheetSub')}>{title}</SectionTitle>
+          <div className="lead-list">
+            <table className="dtable"><tbody>
+              {pool.map(p => {
+                const away = awayReason(p)
+                return (
+                  <tr key={p.id} className={p.id === cur ? 'sel' : undefined} onClick={() => appoint(roleSheet, p.id)}>
+                    <td><PosBadge pos={p.pos} /></td>
+                    <td className="name">{p.name}{away && <div className="meta">{away}</div>}</td>
+                    <td className="lead-bar"><span style={{ width: `${p.a.lea * 5}%` }} /></td>
+                    <td className="num"><b>{p.a.lea}</b></td>
+                  </tr>
+                )
+              })}
+            </tbody></table>
+          </div>
+          {roleSheet !== 'captain' && (
+            <button className="btn ghost block" onClick={() => appoint(roleSheet, null)}>{t('selection.nobodyHasIt')}</button>
+          )}
+        </div>
+      </div>
     )
   }
 
@@ -235,32 +303,12 @@ export default function SelectionPane() {
           taller than the bench it was meant to sit beside. */}
       <div className="card-grid one">
       <div className="card">
-        <div className="lead-row">
-          <span className="lead-tag">©</span>
-          <span className="fact-label">{t('selection.captain')}</span>
-          <select className="inline-input"
-            value={club.captain ?? ''}
-            onChange={e => { club.captain = e.target.value ? Number(e.target.value) : null; touch() }}>
-            {club.players.map(id => game.players[id]).filter(Boolean)
-              .sort((a, b) => b.a.lea - a.a.lea)
-              .map(p => (
-                <option key={p.id} value={p.id}>{t('selection.leaderOption', { player: p.name, lea: p.a.lea })}{awayNote(p)}</option>
-              ))}
-          </select>
-        </div>
-        <div className="lead-row">
-          <span className="lead-tag">VC</span>
-          <span className="fact-label">{t('selection.vice')}</span>
-          <select className="inline-input"
-            value={club.vice ?? ''}
-            onChange={e => { club.vice = e.target.value ? Number(e.target.value) : null; touch() }}>
-            {club.players.map(id => game.players[id]).filter(p => p && p.id !== club.captain)
-              .sort((a, b) => b.a.lea - a.a.lea)
-              .map(p => (
-                <option key={p.id} value={p.id}>{t('selection.leaderOption', { player: p.name, lea: p.a.lea })}{awayNote(p)}</option>
-              ))}
-          </select>
-        </div>
+        {/* A LEADERSHIP JOB IS A BUTTON THAT OPENS A SHEET (owner, 27 Sep
+            2026: "when selecting a player for the leadership roles, the names
+            fill the page"). These were native selects, and a phone draws a
+            select of 40 names as a full-screen list of radio buttons. */}
+        {roleButton('captain', 'C', t('selection.captain'), club.captain ?? null)}
+        {roleButton('vice', 'VC', t('selection.vice'), club.vice ?? null)}
         {/* The leadership group (F11) shares the skipper's card rather than
             taking a section of its own. As a separate block below the split it
             pushed the Selection page to 3.2 screenfuls, which is the same
@@ -286,35 +334,8 @@ export default function SelectionPane() {
           const squad = club.players
             .map(id => game.players[id])
             .filter((x): x is Player => !!x && !x.acad)
-          return (
-            <div className="lead-row" key={pf.id}>
-              <span className="lead-tag">{pf.icon}</span>
-              <span className="fact-label">{t(pf.name)}</span>
-              <select className="inline-input" value={cur ?? ''}
-                onChange={e => {
-                  club.leaders = { ...(club.leaders ?? {}) }
-                  const v = e.target.value ? Number(e.target.value) : null
-                  // A MAN CAN HOLD MORE THAN ONE JOB (user: "players can play
-                  // multiple roles"). This used to clear his other portfolio on
-                  // appointment. There is no exploit in allowing it: each
-                  // portfolio is a trade in the engine - it lifts one unit and
-                  // taxes another - so a second job is a second trade, not a
-                  // second helping.
-                  club.leaders[pf.id] = v
-                  touch()
-                }}>
-                <option value="">{t('selection.nobodyHasIt')}</option>
-                {[...squad].sort((a, b) => b.a.lea - a.a.lea).map(p => {
-                  const away = awayReason(p)
-                  return (
-                    <option key={p.id} value={p.id}>
-                      {t('selection.leaderOption', { player: p.name, lea: p.a.lea })}{away ? t('selection.awaySuffix', { why: away }) : ''}
-                    </option>
-                  )
-                })}
-              </select>
-            </div>
-          )
+          void squad
+          return <div key={pf.id}>{roleButton(pf.id, pf.icon, t(pf.name), cur)}</div>
         })}
         </div>
         <div className="meta" style={{ marginTop: 5 }}>
@@ -325,6 +346,7 @@ export default function SelectionPane() {
       </div>
       </div>
       {picker()}
+      {roleSheetEl()}
     </>
   )
 }

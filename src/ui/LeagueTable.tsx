@@ -77,9 +77,10 @@ export default function LeagueTable({ compId, compact }: { compId: string; compa
           {playoffLine ? t('tables.playoffLine', { n: playoffLine }) : ''}
           {playoffLine && relegates ? ' · ' : ''}
           {relegates ? t('tables.relegationLine') : ''}
-          {comp.teamIds.includes(game.userClubId) && game.preds?.[game.userClubId] != null
-            ? `${playoffLine || relegates ? ' · ' : ''}${t('tables.punditsPredicted', { place: ord(game.preds[game.userClubId]) })}`
-            : ''}
+          {/* the prediction on a line of its own (owner, 27 Sep 2026) */}
+          {comp.teamIds.includes(game.userClubId) && game.preds?.[game.userClubId] != null && (
+            <div>{t('tables.punditsPredicted', { place: ord(game.preds[game.userClubId]) })}</div>
+          )}
         </div>
       )}
     </>

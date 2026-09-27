@@ -2024,8 +2024,9 @@ export function friendlyWeekOk(state: GameState, week: number): boolean {
   return midweekOk(state, week, state.userClubId)
 }
 
-/** The first few weeks ahead that could take a midweek friendly. */
-export function friendlyWeeks(state: GameState, howMany = 4): number[] {
+/** The first few weeks ahead that could take a midweek friendly: three, so
+ *  the dates sit on one line (owner, 27 Sep 2026). */
+export function friendlyWeeks(state: GameState, howMany = 3): number[] {
   const out: number[] = []
   for (let w = state.week + 1; w <= SEASON_WEEKS && out.length < howMany; w++) {
     if (friendlyWeekOk(state, w)) out.push(w)
