@@ -92,6 +92,15 @@
   --pitch-scrim: rgba(4, 12, 8, 0.52);
   --on-danger: #2b0e0b;
   --on-info: #0d1b26;
+  /* THE PRESS BAROMETER (1.8.0, Press.tsx): the five moods of the press
+     pack and the colour of a pack trying to unsettle a winning squad. Role
+     tokens underneath, so every skin repaints the dial with its own. */
+  --baro-hostile: var(--danger);
+  --baro-sceptical: var(--gold);
+  --baro-neutral: var(--text-muted);
+  --baro-warm: var(--primary);
+  --baro-adoring: var(--primary);
+  --baro-stir: var(--info);
 }
 
 /* ---------------- day ---------------- */
@@ -139,6 +148,15 @@
   --pitch-scrim: rgba(6, 18, 12, 0.34);
   --on-danger: #ffffff;
   --on-info: #ffffff;
+  /* THE PRESS BAROMETER (1.8.0, Press.tsx): the five moods of the press
+     pack and the colour of a pack trying to unsettle a winning squad. Role
+     tokens underneath, so every skin repaints the dial with its own. */
+  --baro-hostile: var(--danger);
+  --baro-sceptical: var(--gold);
+  --baro-neutral: var(--text-muted);
+  --baro-warm: var(--primary);
+  --baro-adoring: var(--primary);
+  --baro-stir: var(--info);
 }
 
 /* ==================================================================
