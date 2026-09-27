@@ -1561,6 +1561,14 @@ export interface LiveCtx {
   home: SideCtx
   away: SideCtx
   rng: Rng
+  /** THE COMMENTARY'S OWN DICE (1.8.0). Anything drawn only because somebody
+   *  is watching (which atmosphere line, whether a missed kick gets a line)
+   *  draws from here, never from rng. The match is ONE engine whether it is
+   *  watched or not, as Football Manager's is: the detail level decides what
+   *  is written down, never what happens. Drawing commentary from rng made
+   *  every watched match a different match from the same fixture played
+   *  silently (scripts/detailprobe.ts: 0 of 120 alike before this). */
+  crng: Rng
   detail: boolean
   weather: Weather
   derby: boolean
@@ -1732,7 +1740,9 @@ function pushLine(
   state: GameState, ctx: LiveCtx, min: number, type: MatchEvent['type'], side: SideCtx | null,
   k: string, v?: Record<string, string | number>, playerId?: number,
 ) {
-  if (!ctx.detail) return
+  // silent, the line is not written, but its minute still moves the clock
+  // (pushEvent), so a silent match keeps the same time as a watched one
+  if (!ctx.detail) { pushEvent(state, ctx, min, type, side, '', playerId); return }
   pushEvent(state, ctx, min, type, side, tIn('en', k, v), playerId, k, v, DEPICTS[k])
 }
 
@@ -1741,7 +1751,6 @@ function pushEvent(
   text: string, playerId?: number, k?: string, v?: Record<string, string | number>,
   fx?: MatchEvent['fx'],
 ) {
-  if (!ctx.detail) return
   if (type !== 'HT' && type !== 'FT') {
     // NOTHING HAPPENS AFTER THE WHISTLE (owner: "ive noticed a few times a
     // penalty kick comes after the half-time whistle has blown... this should
@@ -1762,6 +1771,10 @@ function pushEvent(
     min = Math.min(Math.max(min, ctx.lastMin), whistle)
     ctx.lastMin = min
   }
+  // THE CLOCK RUNS WATCHED OR NOT (1.8.0): everything above happens in a
+  // silent match too, so a sin bin and the match sheet read the same minute
+  // either way. Only the writing down is for the watcher.
+  if (!ctx.detail) return
   ctx.events.push({
     min, type, teamId: side?.teamId ?? '', fld: Math.round(ctx.field ?? 50),
     playerId, playerName: playerId != null ? state.players[playerId]?.name : undefined,
@@ -2102,6 +2115,7 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
 
   const ctx: LiveCtx = {
     fx, home, away, rng, detail, weather, derby, goalPenalty,
+    crng: mulberry32(((Math.imul(fx.id | 0, 2654435761) ^ Math.imul(state.season | 0, 40503) ^ 0x5eed) >>> 0) || 1),
     hfa,
     events: [], lastMin: 0,
     isUser: fx.homeId === userTeamId || fx.awayId === userTeamId,
@@ -2330,7 +2344,7 @@ function takePenaltyShot(state: GameState, ctx: LiveCtx, side: SideCtx, min: num
     // restart, as after any score - AFTER the line, so the line is stamped
     // with where the kick was taken (MatchEvent.fld), not the halfway restart
     ctx.field = ctx.field * 0.6 + 50 * 0.4
-  } else if (detail && rng() < 0.7) {
+  } else if (detail && ctx.crng() < 0.7) {
     pushLine(state, ctx, min, 'SUB', side, kicker ? 'comm.penWideNamed' : 'comm.penWide',
       { player: kicker?.name ?? '' }, kicker?.id)
   }
@@ -2956,6 +2970,10 @@ function forcedSwitchCost(state: GameState, ctx: LiveCtx, side: SideCtx, outId: 
 function simTick(state: GameState, ctx: LiveCtx, tick: number) {
   const { rng, detail, derby, goalPenalty, home, away } = ctx
   const min = tick * 4 + Math.floor(rng() * 4) + 1
+  // the clock reaches this tick whether or not anybody writes a line in it
+  // (1.8.0): a silent match used to stop its clock at its last written line,
+  // so its sheet counted fewer minutes of scrums than the same match watched
+  ctx.lastMin = Math.max(ctx.lastMin, Math.min(min, ctx.seg === 0 ? 40 : 80))
   const poss0: [number, number] = [home.poss, away.poss]
 
   // the bin empties: ten minutes served and the man comes back on, unless he
@@ -3308,27 +3326,36 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     }
 
     // atmosphere lines for the live ticker
-    if (detail && rng() < 0.3) {
+    if (detail && ctx.crng() < 0.3) {
       const ids = [...side.onPitch]
       const ps = ids.map(id => state.players[id]).filter(Boolean)
       if (ps.length) {
-        const p = ps[Math.floor(rng() * ps.length)]
+        const p = ps[Math.floor(ctx.crng() * ps.length)]
         const e = side.energy.get(p.id) ?? 70
-        if (e < 22 && rng() < 0.5) {
-          pushLine(state, ctx, min, 'SUB', side, TIRED_LINES[Math.floor(rng() * TIRED_LINES.length)], { player: p.name }, p.id)
+        if (e < 22 && ctx.crng() < 0.5) {
+          pushLine(state, ctx, min, 'SUB', side, TIRED_LINES[Math.floor(ctx.crng() * TIRED_LINES.length)], { player: p.name }, p.id)
         } else {
           const wet = ctx.weather === 'Rain' || ctx.weather === 'Snow'
-          const pool = rng() < 0.035 ? FLAVOR_FUN
-            : derby && rng() < 0.3 ? FLAVOR_DERBY
-            : ctx.fx.compId === 'natl1' && rng() < 0.3 ? FLAVOR_GRASSROOTS
-            : ctx.fx.compId === 'pnc' && rng() < 0.3 ? FLAVOR_PACIFIC
-            : wet && rng() < 0.3 ? FLAVOR_WET
-            : ctx.weather === 'Wind' && rng() < 0.25 ? FLAVOR_WIND
+          const pool = ctx.crng() < 0.035 ? FLAVOR_FUN
+            : derby && ctx.crng() < 0.3 ? FLAVOR_DERBY
+            : ctx.fx.compId === 'natl1' && ctx.crng() < 0.3 ? FLAVOR_GRASSROOTS
+            : ctx.fx.compId === 'pnc' && ctx.crng() < 0.3 ? FLAVOR_PACIFIC
+            : wet && ctx.crng() < 0.3 ? FLAVOR_WET
+            : ctx.weather === 'Wind' && ctx.crng() < 0.25 ? FLAVOR_WIND
             : FLAVOR
-          const key = styledKick(pool[Math.floor(rng() * pool.length)], state.clubs[side.teamId]?.tactic.kickStyle)
+          let key = styledKick(pool[Math.floor(ctx.crng() * pool.length)], state.clubs[side.teamId]?.tactic.kickStyle)
+          // a line that names a man for a hit names one the tackle count
+          // already has making hits: it describes the count, it does not add
+          // to it (it used to add one, so a watched match's sheet had more
+          // tackles than the same match played silently)
+          let who = p
+          if (TACKLE_LINES.has(key)) {
+            const hitters = ps.filter(q => (side.tackles?.get(q.id) ?? 0) > 0)
+            if (hitters.length) who = hitters[Math.floor(ctx.crng() * hitters.length)]
+            else key = FLAVOR[0]
+          }
           pushLine(state, ctx, min, 'SUB', side, key,
-            { player: p.name, team: teamShort(state, side.teamId) }, p.id)
-          if (TACKLE_LINES.has(key)) (side.tackles ??= new Map()).set(p.id, (side.tackles.get(p.id) ?? 0) + 1)
+            { player: who.name, team: teamShort(state, side.teamId) }, who.id)
         }
       }
     }

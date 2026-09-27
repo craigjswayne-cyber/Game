@@ -1209,6 +1209,22 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 
   .live-wrap .now-strip { grid-area: now; }
   .live-wrap .hl-clip, .live-wrap .live-stats { grid-area: main; align-self: start; }
+  /* the main row is what is left of a 390px screen: the stage must fit IN it,
+     or it spills over the controls below (e2e, 844x390: Skip could not be
+     tapped). The clip takes the height and keeps its shape; the stats go two
+     columns and scroll if they must. */
+  .live-wrap .hl-clip {
+    align-self: stretch; justify-self: center;
+    height: calc(100% - 6px); width: auto; max-width: calc(100% - 20px);
+    margin: 6px auto 0; min-height: 0;
+  }
+  .live-wrap .live-stats {
+    align-self: stretch; min-height: 0; overflow-y: auto;
+    display: grid; grid-template-columns: 1fr 1fr; column-gap: 28px; align-content: start;
+    margin-top: 6px;
+  }
+  .live-wrap .live-stats .ls-head { grid-column: 1 / -1; }
+  .live-wrap .live-stats .ls-row + .ls-row { border-top: none; }
   .live-wrap .speed-controls { grid-area: ctrl; }
   .app .live-wrap .ticker.panel-area {
     grid-area: main / main / now / now;
@@ -4589,7 +4605,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
    and goes when the moment is done. */
 .hl-clip {
   position: relative; margin: 8px 10px 0; border-radius: 12px; overflow: hidden;
-  aspect-ratio: 56 / 34; background: #2f6b3a;
+  aspect-ratio: 56 / 34; background: var(--hl-grass-b);
   box-shadow: 0 6px 18px rgba(0, 0, 0, .35), inset 0 0 0 1px rgba(255, 255, 255, .08);
   animation: hl-in .35s cubic-bezier(.2, 0, 0, 1) both;
 }
@@ -4599,14 +4615,14 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
   position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%);
   display: flex; flex-direction: column; align-items: center; gap: 1px;
   padding: 6px 18px 7px; border-radius: 10px; white-space: nowrap;
-  background: rgba(10, 14, 12, .86); color: #ffffff;
+  background: rgba(10, 14, 12, .86); color: var(--prop-ink);
   box-shadow: 0 4px 16px rgba(0, 0, 0, .45);
   animation: hl-banner .45s cubic-bezier(.2, .9, .3, 1.2) both;
 }
 .hl-banner b { font-family: var(--cond); font-weight: 800; font-size: 26px; letter-spacing: 2px; line-height: 1; }
 .hl-banner span { font-size: 13px; font-weight: 600; opacity: .92; }
 .hl-banner.review, .hl-banner.notry { background: rgba(10, 14, 12, .9); color: var(--gold-fill); }
-.hl-banner.miss { color: #ffb3a8; }
+.hl-banner.miss { color: var(--hl-miss); }
 @keyframes hl-banner { from { opacity: 0; transform: translate(-50%, 10px) scale(.9); } }
 
 .live-stats {

@@ -22,7 +22,7 @@ import { MoodTable } from '../MoodTable'
 import { MatchPanels, Visits, Zones } from '../MatchPanels'
 import { useTablet } from '../tablet'
 import { readMatchPrefs, writeMatchPrefs, type MatchPrefs } from '../matchPrefs'
-import { HighlightClip, buildClip, nextMoment, type ClipSpec } from '../HighlightClip'
+import { HighlightClip, buildClip, nextMoment, tokenColor, type ClipSpec } from '../HighlightClip'
 import { crowdLevel } from '../matchAtmos'
 import { derbyName } from '../../game/rivalries'
 import { matchStakes } from '../../game/stakes'
@@ -1644,10 +1644,13 @@ function Live() {
     const skipping = live.mode === 'highlights'
     const nx = nextMoment(events, cursor, fixture.homeId, prefs.highlights, played.current, skipping ? 40 : 6)
     if (!nx) return false
-    const hc = game.clubs[fixture.homeId]?.colors ?? ['#2f8f55', '#ffffff']
-    const ac = game.clubs[fixture.awayId]?.colors ?? ['#b33a3a', '#ffffff']
+    // the canvas needs real colours: a club with no kit on file gets the
+    // token kit, read off the page
+    const white = tokenColor('--prop-ink')
+    const hc = game.clubs[fixture.homeId]?.colors ?? [tokenColor('--kit-home'), white]
+    const ac = game.clubs[fixture.awayId]?.colors ?? [tokenColor('--kit-away'), white]
     const spec = buildClip(events, nx.at, nx.kind, fixture.homeId, shirtOf,
-      { home: [hc[0], hc[1] ?? '#ffffff'], away: [ac[0], ac[1] ?? '#ffffff'] },
+      { home: [hc[0], hc[1] ?? white], away: [ac[0], ac[1] ?? white] },
       { try: t('hl.try'), review: t('hl.review'), notry: t('hl.notry'), good: t('hl.good'), wide: t('hl.wide') },
       pid => (pid != null ? game.players[pid]?.name : undefined))
     // the clip starts with its build-up, so the commentary never jumps: the
@@ -2438,7 +2441,8 @@ function LiveStats({ shown }: { shown: MatchEvent[] }) {
   const st = matchStats(live.ctx)
   const homeId = live.fixture.homeId
   const col = (id: string) => {
-    const c = game.clubs[id]?.colors ?? ['#888888', '#cccccc']
+    const c = game.clubs[id]?.colors
+    if (!c) return 'var(--text-muted)'
     return luma(c[0]) < 40 && c[1] ? c[1] : c[0]
   }
   // TERRITORY is where the ball has been on average: 50 is halfway, and the

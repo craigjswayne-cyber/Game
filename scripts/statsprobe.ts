@@ -72,15 +72,26 @@ console.log('\n--- the numbers answer to the pack, not to nothing\n')
   ok(as >= 0.7 && as < hs, `the beaten pack still keeps most of its own ball (${Math.round(as * 100)}%)`)
 }
 {
-  // the side without the ball does the tackling
-  const l = matchStats(dress({
-    home: side(ctx.home, { poss: 800 }),
-    away: side(ctx.away, { poss: 200 }),
-  }))
-  ok(l.tackles[1] > l.tackles[0],
-    `the side chasing the game makes more tackles (${l.tackles[1]} v ${l.tackles[0]})`)
-  ok(l.possession[0] === 80, `and possession reads what the match recorded (${l.possession[0]}%)`)
+  // THE SIDE WITHOUT THE BALL DOES THE TACKLING. Tackles are counted from the
+  // play since 1.8.0 (countTackles), so dressing up the possession of one
+  // match cannot move them; this asks real matches instead. Not every one -
+  // a side can dominate the ball and still be made to tackle all afternoon -
+  // but most.
+  let chasing = 0, n = 0
+  for (let i = 0; i < 24; i++) {
+    const gi = newGame('leicester', 'Stats Probe', 91000 + i)
+    const fi = gi.fixtures.find(f => f.week >= 4 && gi.clubs[f.homeId] && gi.clubs[f.awayId])!
+    const ci = beginMatch(gi, fi, mulberry32(5000 + i), true)
+    playHalf(gi, ci); playHalf(gi, ci)
+    const si = matchStats(ci)
+    if (Math.abs(si.possession[0] - si.possession[1]) < 6) continue
+    n++
+    const less = si.possession[0] < si.possession[1] ? 0 : 1
+    if (si.tackles[less] > si.tackles[1 - less]) chasing++
+  }
+  ok(n >= 10 && chasing / n >= 0.7, `the side with less of the ball makes more tackles in most matches (${chasing} of ${n})`)
 }
+
 
 console.log('\n--- live, it only ever climbs\n')
 {
