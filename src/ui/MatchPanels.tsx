@@ -7,7 +7,7 @@ import type { LiveCtx, SideCtx } from '../game/matchEngine'
 import { moodOf } from './MoodTable'
 
 /**
- * ---- THE MATCH MENU (PRM27) ----
+ * ---- THE MATCH MENU (1.8.0) ----
  *
  * The classic manager game lets you page through the match while it is on:
  * the line-ups with condition and ratings, how your players feel, who has done
@@ -186,11 +186,14 @@ export function Visits({ ctx, shown }: { ctx: LiveCtx; shown: MatchEvent[] }) {
     for (const e of shown) {
       if (e.fld == null) continue
       const up = home ? e.fld : 100 - e.fld
-      const now = up >= 78
+      const score = home ? e.homeScore : e.awayScore
+      // a try from long range crosses the 22 on the way to the line: that
+      // is a visit, or the panel read "0 visits, 5 points from the 22"
+      const scoredTry = e.type === 'TRY' && score > lastScore
+      const now = up >= 78 || scoredTry
       if (now && !inside) visits++
       inside = now
-      const score = home ? e.homeScore : e.awayScore
-      if (score > lastScore && (inside || e.type === 'TRY')) pts += score - lastScore
+      if (score > lastScore && (inside || e.type === 'TRY' || e.type === 'CON')) pts += score - lastScore
       lastScore = score
     }
     return { visits, pts, per: visits ? (pts / visits).toFixed(1) : '-' }
