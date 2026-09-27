@@ -1504,10 +1504,9 @@ let pitchMemory: PitchMemory | null = null
  *  wide enough to keep both touchlines' worth of the play in the picture */
 const BROADCAST_ZOOM = 1.6
 
-function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC, tickMs, holdMs = 0, afterReview = false, camera = false, overlays = false, stamina = false, stopped = false, badge }: {
+function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC, tickMs, holdMs = 0, afterReview = false, camera = false, overlays = false, stamina = false, stopped = false }: {
   ctx: LiveCtx
   /** a label over the picture: REPLAY while a try is shown again */
-  badge?: string
   /** Match Settings switches (matchPrefs.ts) and whether play is stopped */
   overlays?: boolean
   stamina?: boolean
@@ -1581,8 +1580,7 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
   const rightward = (isHomeSide: boolean): boolean => isHomeSide !== mirror
   const scoringFx = evType === 'TRY' || evType === 'PEN' || evType === 'DG' || evType === 'CON'
   const kickFx = evType === 'PEN' || evType === 'CON' || evType === 'DG'
-  // no banners in a replay: the REPLAY badge says what this is
-  const banner = !badge && evType && (showFx || (showBig && scoringFx)) ? BANNER[evType] : undefined
+  const banner = evType && (showFx || (showBig && scoringFx)) ? BANNER[evType] : undefined
   // The event says what it depicts (MatchEvent.fx, set in matchEngine's
   // DEPICTS). What follows is the way it used to be worked out - regular
   // expressions over the line's stored English - and it is kept ONLY for
@@ -1905,10 +1903,9 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
     const rise = (k: Key) => Math.min(k.h * lift, Math.max(0, k.y / 100 * H - 12))
     const off = (k: Pt, rest: Pt) => [(mx(k.x) - mx(rest.x)) / 100 * W, (k.y - rest.y) / 100 * H]
     const ease = (ks: Key[], i: number) => (ks[i].h > 0 || (ks[i + 1]?.h ?? 0) > 0 ? 'linear' : 'ease-in-out')
-    // end over end in the air: half-turns, so it lands the way it left
-    let spin = 0
+    // NO SPIN (owner, 27 Sep 2026: "Remove the spinning ball in the in-game").
+    // It went end over end on every kick; it now flies at its resting tilt
     const ballFrames = ps.ball.map((k, i) => {
-      if (i > 0 && (k.h > 0.05 || ps.ball[i - 1].h > 0.05)) spin += 180
       const [dx, dy] = off(k, c.ball)
       const fade = ps.away ? Math.max(0, Math.min(1, 1 - (k.at - GOAL_ARRIVES) / 0.14)) : 1
       return {
@@ -1919,12 +1916,9 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
         // the screen (owner: "remove the weird animation where the ball comes
         // closer to the screen"). Height is the lift off its shadow, and that
         // is all a view from above needs to say
-        rotate: `${ps.away ? spin : spin % 360}deg`,
         opacity: fade,
       }
     })
-    // no spin left over when it lands: the resting ball is the CSS one
-    if (!ps.away) ballFrames[ballFrames.length - 1].rotate = '0deg'
     const opts: KeyframeAnimationOptions = { duration, fill: ps.away ? 'forwards' : 'none' }
     running.current.push(ball.animate(ballFrames, opts))
     const dot = c.manId != null ? dotEls.current.get(c.manId) : undefined
@@ -1946,9 +1940,9 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
     // A CUT, NOT A PAN (1.8.0). Owner, with a screen recording: "the in-game
     // animation feels erratic not smooth ... unclear what is happening". The
     // frames showed thirty men sliding the length of the pitch in under a
-    // second after every score, and again into and out of every replay. A
+    // second after every score. A
     // broadcast cuts there, and so does the classic 2D view: after a score it
-    // jumps to the restart. So: a restart, a replay starting or ending (the
+    // jumps to the restart. So: a restart, a jump in the line number (the
     // line number jumps rather than steps), or the ball's mark moving a quarter
     // of the pitch with no kick to carry it, and everyone is simply where they
     // are, under a quick dip of the picture.
@@ -2137,7 +2131,6 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
     <div ref={pitchEl}
       className={`pitch${showFx && evType === 'TRY' ? (rightward(towardHome) ? ' try-r' : ' try-l') : ''}`}
       style={{ '--tick': `${tickMs}ms` } as CSSProperties}>
-      {badge && <div className="replay-badge">↺ {badge}</div>}
       {/* THE WORLD: everything that is ON the pitch, so the camera can move it
           as one. What sits over the picture (banners, the TMO, the kick
           close-up, the bin clocks, the mini-map) is outside it and stays put. */}
@@ -2279,7 +2272,7 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
           {t(evType === 'TRY' && afterReview ? 'matchday.tmoAwarded' : banner)}
         </div>
       )}
-      {showFx && !badge && depicts === 'NOTRY' && (
+      {showFx && depicts === 'NOTRY' && (
         <div key={`nt${fxKey}`} className="ev-banner notry">{t('matchday.tmoNoTry')}</div>
       )}
     </div>
@@ -2502,50 +2495,12 @@ function Live() {
     ? Math.max(0, Math.round(Math.min(1600, Math.max(1200, tickMs * 1.5))) - tickMs) : 0
   const hold = tmoHold + momentHold
 
-  // ---- TRY REPLAYS (1.8.0) ----
-  // FM Mobile replays its goals; the report's first match-day gap. After a
-  // try the pitch plays the lines that led to it again, slower, under a
-  // REPLAY badge, and then the match carries on. Match Settings has the
-  // switch (on by default), and the most recent try can be replayed by hand.
-  // Automated browsers do not replay on their own (they time the ticker);
-  // ?replays=1 asks for it (scripts/replayprobe.mjs).
-  const [replay, setReplay] = useState<{ from: number; to: number; i: number; resume: boolean } | null>(null)
-  const replayed = useRef(new Set<number>())
-  const autoReplay = prefs.replays && (() => {
-    try { return /[?&]replays=1\b/.test(location.search) || !navigator.webdriver } catch { return true }
-  })()
-  /** the lines to replay for the try revealed as line `end` (a cursor count):
-   *  up to four before it, never reaching back past the last score or whistle */
-  const startReplay = (end: number) => {
-    let from = end
-    while (from > 1 && end - from < 4) {
-      const e = events[from - 2]
-      if (!e || ['TRY', 'CON', 'PEN', 'DG', 'HT', 'BRK', 'KO'].includes(e.type)) break
-      from--
-    }
-    setReplay({ from, to: end, i: from, resume: playing })
-    if (playing) matchCursor(cursor, false)
-  }
-  const lastTry = (() => { for (let k = cursor; k > 0; k--) if (events[k - 1]?.type === 'TRY' && events[k - 1]?.fx !== 'TMO') return k; return 0 })()
-  const replayTick = Math.round(Math.max(900, tickMs * 1.6))
-  useEffect(() => {
-    if (!replay) return
-    const timer = setTimeout(() => {
-      if (replay.i >= replay.to) {
-        setReplay(null)
-        if (replay.resume && !done) matchCursor(cursor, true)
-      } else setReplay({ ...replay, i: replay.i + 1 })
-    }, replay.i >= replay.to ? replayTick * 1.4 : replayTick)
-    return () => clearTimeout(timer)
-  }, [replay])
+  // TRY REPLAYS came in with 1.8.0 and went out before it shipped (owner,
+  // 27 Sep 2026: "remove the try replay - I dont think it really works for
+  // this"). Replaying commentary lines is not a replay of the play.
 
   useEffect(() => {
     if (!playing) return
-    // a try just in, and replays on: let it land, then show it again
-    if (autoReplay && speedIdx < 2 && last?.type === 'TRY' && last.fx !== 'TMO' && !replayed.current.has(cursor)) {
-      const timer = setTimeout(() => { replayed.current.add(cursor); startReplay(cursor) }, tickMs + hold)
-      return () => clearTimeout(timer)
-    }
     // `timer`, not `t`: t() is the translator
     const timer = setTimeout(() => advanceLive(), tickMs + hold)
     return () => clearTimeout(timer)
@@ -2738,17 +2693,10 @@ function Live() {
       })()}
 
       {!panelActive && (
-        replay ? (
-          <PitchViz ctx={ctx} game={game} last={events[replay.i - 1]} ballLeft={ballAt(replay.i)}
-            fxKey={replay.i} showFx showBig={false} lastTeamC={lastTeamC}
-            tickMs={replayTick} holdMs={0} camera={camera}
-            overlays={prefs.overlays} stamina={false} stopped={false} badge={t('replay.badge')} />
-        ) : (
         <PitchViz ctx={ctx} game={game} last={last} ballLeft={ballLeft}
           fxKey={cursor} showFx={showFx} showBig={playing} lastTeamC={lastTeamC}
           tickMs={tickMs} holdMs={momentHold} afterReview={shown[shown.length - 2]?.fx === 'TMO'} camera={camera}
           overlays={prefs.overlays} stamina={prefs.stamina} stopped={!playing} />
-        )
       )}
       {/* THE CONTROLS SIT UNDER THE PITCH (owner, v1.1.16: "4 buttons in match
           mode - should be directly underneath the pitch at the top").
@@ -2834,9 +2782,6 @@ function Live() {
               are kicking, the two things a manager changes mid-match */}
           <div className="match-status">
             <span>⇄ {t('mstatus.subs', { left: MAX_SUBS - ctx.subsUsed, max: MAX_SUBS })}</span>
-            {lastTry > 0 && !replay && (
-              <button className="replay-btn" onClick={() => startReplay(lastTry)}>↺ {t('replay.button')}</button>
-            )}
             <span>{t(KICK_STYLE_LABEL[game.clubs[ctx.userSideId ?? '']?.tactic.kickStyle ?? 'balanced'] ?? 'tacticsScreen.kickBalanced')}</span>
           </div>
           {last && (
@@ -2935,8 +2880,6 @@ function Live() {
                 label={t('mset.stamina')} sub={t('mset.staminaSub')} />
               <Toggle on={prefs.bigText} onChange={v => setPref({ bigText: v })}
                 label={t('mset.bigText')} sub={t('mset.bigTextSub')} />
-              <Toggle on={prefs.replays} onChange={v => setPref({ replays: v })}
-                label={t('mset.replays')} sub={t('mset.replaysSub')} />
             </div>
             <button className="btn gold block" style={{ marginTop: 10 }}
               onClick={() => { setSettings(false); if (!done) matchCursor(cursor, true) }}>

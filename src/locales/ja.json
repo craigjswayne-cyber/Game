@@ -1285,7 +1285,7 @@
   "natural": "ナチュラル",
   "noInstruction": "特別な指示はなし。",
   "openProfile": "{name}のプロフィールを開く ›",
-  "rolesNote": "シャツをタップして役割を決めるか、プロフィールを開く。役割はささやかで正直な強みだ——スクラマーはセットプレーを支え、プレーメーカーは試合をこじ開ける。",
+  "rolesNote": "シャツをタップして役割を決める。",
   "setPieceRule": "このページの掟はひとつ。",
   "setPieceRuleRest": "コールする手は毎週磨かれ、使わない手は錆びていく。本気で使い続けるムーブを選ぶこと。準備のセットプレー強化で上達は早まり、天井はスクラムコーチの腕で決まる。",
   "lineoutCall": "ラインアウトコール",
@@ -2750,7 +2750,6 @@
  },
  "report": {
   "trWhereWeStand": "現在地",
-  "trSquadDepth": "スカッドの層",
   "trBestXV": "ベストXV",
   "trVerdict": "アシスタントの見立て",
   "trLeaguePos": "リーグ順位",
@@ -2761,11 +2760,6 @@
   "trSquadSize": "スカッド人数",
   "trStarPlayers": "スター選手",
   "trStarSub": "⭐ = 相手が恐れる男たち",
-  "trDepth": "ポジション別の層",
-  "trDepthSub": "各背番号の控え――赤は補強が必要",
-  "trColRole": "役割",
-  "trColCover": "控え",
-  "trColBest": "最有力",
   "trAgeProfile": "年齢構成",
   "trAgeSub": "健全なスカッドは中間が厚い",
   "trCurrentXV": "現在のベストXV",
@@ -6876,12 +6870,6 @@
   "stamina": "コンディションの輪",
   "staminaSub": "プレーが止まったとき、各選手の残り体力",
   "bigText": "大きな実況",
-  "bigTextSub": "試合の実況を大きな文字で",
-  "replays": "トライのリプレイ",
-  "replaysSub": "トライの後、そこまでの流れをスローで再生"
- },
- "replay": {
-  "badge": "リプレイ",
-  "button": "トライを再生"
+  "bigTextSub": "試合の実況を大きな文字で"
  }
 }

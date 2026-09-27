@@ -151,7 +151,7 @@ try {
 
   // the widest tables in the game live behind tabs, so the tabs get walked too
   await club('Team Report', 'team report')
-  for (const t of ['Squad Depth', 'Best XV']) {
+  for (const t of ['Best XV']) {
     await page.click(`.tab-bar >> text=${t}`)
     await check(`team report: ${t.toLowerCase()}`)
   }

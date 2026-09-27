@@ -1308,7 +1308,7 @@
   "natural": "Naturale",
   "noInstruction": "Nessuna istruzione particolare.",
   "openProfile": "Apri il profilo di {name} ›",
-  "rolesNote": "Tocca una maglia per assegnare un ruolo o aprire il profilo. I ruoli sono piccoli vantaggi onesti: il mischiaiolo puntella le fasi statiche, il regista apre il gioco.",
+  "rolesNote": "Tocca una maglia per scegliere il ruolo.",
   "setPieceRule": "Una sola regola governa questa pagina.",
   "setPieceRuleRest": "Ciò che chiami si affina di settimana in settimana e tutto il resto arrugginisce, quindi scegli schemi che intendi continuare a chiamare. Il lavoro sulle fasi statiche in Prep accelera i tempi e il tuo allenatore della mischia fissa il tetto.",
   "lineoutCall": "Schema in touche",
@@ -2809,7 +2809,6 @@
  },
  "report": {
   "trWhereWeStand": "A che punto siamo",
-  "trSquadDepth": "Profondità della rosa",
   "trBestXV": "Miglior XV",
   "trVerdict": "Il verdetto del vice",
   "trLeaguePos": "Posizione in classifica",
@@ -2820,11 +2819,6 @@
   "trSquadSize": "Giocatori in rosa",
   "trStarPlayers": "Le stelle",
   "trStarSub": "⭐ = gli uomini che gli avversari temono",
-  "trDepth": "Profondità per ruolo",
-  "trDepthSub": "coperture per maglia - il rosso chiede rinforzi",
-  "trColRole": "Ruolo",
-  "trColCover": "Riserve",
-  "trColBest": "Miglior opzione",
   "trAgeProfile": "Profilo anagrafico",
   "trAgeSub": "una rosa sana ha il picco nel mezzo",
   "trCurrentXV": "Miglior XV attuale",
@@ -7009,12 +7003,6 @@
   "stamina": "Anelli di condizione",
   "staminaSub": "Quanto resta a ciascuno, quando il gioco si ferma",
   "bigText": "Telecronaca grande",
-  "bigTextSub": "La telecronaca della partita a caratteri più grandi",
-  "replays": "Replay delle mete",
-  "replaysSub": "Dopo una meta, l'azione di nuovo, più lenta"
- },
- "replay": {
-  "badge": "REPLAY",
-  "button": "Rivedi la meta"
+  "bigTextSub": "La telecronaca della partita a caratteri più grandi"
  }
 }

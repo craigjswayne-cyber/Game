@@ -1314,7 +1314,7 @@
     "natural": "Naturel",
     "noInstruction": "Aucune consigne particulière.",
     "openProfile": "Ouvrir la fiche de {name} ›",
-    "rolesNote": "Touchez un maillot pour fixer son rôle ou ouvrir sa fiche. Les rôles sont de petits avantages honnêtes - le spécialiste de la mêlée renforce la conquête, le meneur de jeu ouvre le match.",
+    "rolesNote": "Touchez un maillot pour choisir son rôle.",
     "setPieceRule": "Une seule règle sur cette page.",
     "setPieceRuleRest": "Ce que vous appelez s'affûte chaque semaine et tout le reste rouille : choisissez des lancements que vous comptez rappeler. Le travail de conquête en Prépa accélère les choses et votre entraîneur des avants fixe le plafond.",
     "lineoutCall": "Lancement en touche",
@@ -2827,7 +2827,6 @@
   },
   "report": {
     "trWhereWeStand": "Où nous en sommes",
-    "trSquadDepth": "Profondeur d'effectif",
     "trBestXV": "Meilleur XV",
     "trVerdict": "L'avis de l'adjoint",
     "trLeaguePos": "Place au classement",
@@ -2838,11 +2837,6 @@
     "trSquadSize": "Taille de l'effectif",
     "trStarPlayers": "Joueurs vedettes",
     "trStarSub": "⭐ = ceux que les adversaires craignent",
-    "trDepth": "Profondeur par poste",
-    "trDepthSub": "doublures par poste · rouge = recruter",
-    "trColRole": "Poste",
-    "trColCover": "Doublures",
-    "trColBest": "Meilleure option",
     "trAgeProfile": "Pyramide des âges",
     "trAgeSub": "un effectif sain culmine au milieu",
     "trCurrentXV": "Meilleur XV actuel",
@@ -7130,12 +7124,6 @@
     "stamina": "Anneaux de fraîcheur",
     "staminaSub": "Ce qu’il reste à chacun, quand le jeu s’arrête",
     "bigText": "Grand commentaire",
-    "bigTextSub": "Le commentaire du match en plus grand",
-    "replays": "Ralentis des essais",
-    "replaysSub": "Après un essai, l'action revue au ralenti"
-  },
-  "replay": {
-    "badge": "RALENTI",
-    "button": "Revoir l'essai"
+    "bigTextSub": "Le commentaire du match en plus grand"
   }
 }
