@@ -221,7 +221,7 @@ export default function Tactics() {
             top. */}
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
           <div className="meta">
-            <b>{t('tacticsScreen.setPieceRule')}</b> {t('tacticsScreen.setPieceRuleRest')}
+            {t('tacticsScreen.setPieceRuleRest')}
           </div>
         </div>
         {([['lineout', 'tacticsScreen.lineoutCall', DEFAULT_LINEOUT, 'lineoutCall'],

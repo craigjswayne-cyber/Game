@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
-import { preloadCampus } from './artPreload'
+import { preloadAllArt, preloadCampus } from './artPreload'
 import { effectiveSkin, useStore, type Screen } from '../store'
 import { celebrationHeadline, celebrationSub, seasonLabel } from '../game/model'
 import { t } from '../game/i18n'
@@ -284,6 +284,9 @@ function useTextScale(tablet: boolean) {
  *  are worth asking for. See artPreload.ts for why it does not block. */
 function useCampusArt() {
   const hasGame = useStore(s => !!s.game)
+  // everything else, when the browser is idle, for a launch with no intro
+  // (a no-op if the intro already started it)
+  useEffect(() => { preloadAllArt() }, [])
   useEffect(() => {
     const g = useStore.getState().game
     if (g) preloadCampus(g)
