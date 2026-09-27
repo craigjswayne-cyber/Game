@@ -1,7 +1,7 @@
 import type { Attrs, GameState, Personality, Player, Pos } from './model'
 import { absWeek, facLevel } from './model'
 import { attrWeight } from './attributes'
-import { trainPoint } from './ageing'
+import { attrRoll, trainPoint } from './ageing'
 import { clamp, type Rng } from './rng'
 import { t, tIn } from './i18n'
 
@@ -361,7 +361,8 @@ export function mentorWeek(state: GameState, p: Player, rng: Rng) {
     const teaches = mentorTeaches(senior, p)
     const pick = rng()
     const k = teaches.length ? teaches[Math.floor(pick * teaches.length)] : null
-    if (k && trainPoint(p, k, teaches)) {
+    // the last points are the hardest (E6): the same deterministic roll as training
+    if (k && trainPoint(p, k, teaches, attrRoll(state.seed, p.id, absWeek(state.season, state.week), k))) {
       pair.taught = { ...(pair.taught ?? {}), [k]: (pair.taught?.[k] ?? 0) + 1 }
     }
   }

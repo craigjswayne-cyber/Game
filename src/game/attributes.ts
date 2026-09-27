@@ -125,6 +125,26 @@ export function consistency(seed: number, id: number): number {
 }
 
 /**
+ * PROFESSIONALISM (1.8.0, E7, from the fm-arena thread: a professional keeps
+ * working when he is not picked). The game has no hidden professionalism
+ * number; what stands for it is the character the scouts already report -
+ * Professional, and a Leader half as much - and the work rate on his sheet,
+ * whose top half adds up to 0.4 more. 0 is a man who stops training properly
+ * the week he is dropped, 1 a Professional with a work rate of 20.
+ */
+export function professionalism(p: Pick<Player, 'pers' | 'a'>): number {
+  const pers = p.pers === 'Professional' ? 0.6 : p.pers === 'Leader' ? 0.3 : 0
+  return Math.min(1, pers + Math.max(0, (p.a.wor ?? 10) - 10) / 10 * 0.4)
+}
+
+/** How much of the no-minutes penalty a man takes: 1 with no professionalism,
+ *  0.5 at full (E7). Read by devFactor, the weekly morale drift and the
+ *  player screen's development note, so all three say the same thing. */
+export function benchDrag(p: Pick<Player, 'pers' | 'a'>): number {
+  return 1 - 0.5 * professionalism(p)
+}
+
+/**
  * BIG MATCH TEMPERAMENT (25D-2). -1 freezes on the big day, +1 grows an inch
  * walking out for a final. Uniform and symmetric, so the world's mean is zero
  * and finals stay fair in aggregate - what changes is WHO wins them.

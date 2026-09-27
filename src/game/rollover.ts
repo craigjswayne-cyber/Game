@@ -8,7 +8,7 @@ import { ageManager } from './career'
 import { rivalVerdict } from './boss'
 import {absWeek, BASE_YEAR, boardObjective, boardPatience, closeNatTenure, demandCeiling, MAX_FOLLOWING, GROUND_TIERS, groundLevel, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, RELEGATES, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId, worldCupSeasonFor } from './model'
 import { assignPersonality, EARLY_FADE, LATE_PEAK } from './attributes'
-import { ageAttributes } from './ageing'
+import { ageAttributes, gapGrowth } from './ageing'
 import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildWomensContinentalCup, buildLeague, schedulePreseason, sortTable } from './schedule'
 import { punditPredictions } from './gossip'
 import { CHALLENGES, LEAGUE_DEFS } from './newgame'
@@ -21,7 +21,7 @@ import { autoSelect } from './matchEngine'
 import { ensureCaptains } from './analysis'
 import { dreamState } from './dream'
 import { objectiveBonus, objectiveById, pickObjectives } from './objectives'
-import { deriveAttrs, isLateBloomer, nextPid, playerValue, playerWage, repriceAcademies } from './attributes'
+import { deriveAttrs, isLateBloomer, nextPid, playerValue, playerWage, benchDrag, repriceAcademies } from './attributes'
 import { nationByCode, regenName, worldNames } from './nations'
 import { clamp, mulberry32, pick, type Rng } from './rng'
 import { resetFamiliarity } from './playbook'
@@ -310,8 +310,13 @@ export function devFactor(state: GameState, p: Player): number {
   // slightly more young pros clear ten starts than sit under three (about
   // 35% vs 33% on three seeded seasons), so the middle carries a small drag
   // to keep the u24 growth mean where it was (held by scripts/round25d.ts).
+  // A PROFESSIONAL LOSES LESS OF IT (1.8.0, E7, fm-arena: the pro keeps doing
+  // the extras when he is not picked). The no-minutes drag is halved for a
+  // man at full professionalism and untouched for one with none
+  // (attributes.ts benchDrag); the reward for ten starts is not his to earn
+  // by attitude.
   if (!p.acad && p.age <= 23 && p.lastStarts != null) {
-    f += p.lastStarts >= 10 ? 0.10 : p.lastStarts <= 2 ? -0.10 : -0.012
+    f += p.lastStarts >= 10 ? 0.10 : p.lastStarts <= 2 ? -0.10 * benchDrag(p) : -0.012
   }
   if (p.clubId === state.userClubId) {
     const pair = (state.mentors ?? []).find(mp => mp.kid === p.id)
@@ -341,7 +346,10 @@ export function agePlayers(state: GameState, rng: Rng) {
     // the dev factor scales the roll; the fraction is settled by a second
     // roll so a 1.1x factor means 10% more growth on average, not rounding
     // noise (probabilistic rounding keeps the world mean exactly scaled)
-    const dev = devFactor(state, p)
+    // ...and the gap to his potential sets the pace (ageing.ts gapGrowth, E5):
+    // read once, before any of this summer's growth, so a big gap is a fast
+    // summer and a man a point off his ceiling barely moves
+    const dev = devFactor(state, p) * gapGrowth(p.ca, p.pa)
     const scaled = (b: number) => { const r = b * dev; const n = Math.floor(r); return n + (rng() < r - n ? 1 : 0) }
     // the late bloomer's clock runs slow (25D): his fast lane reaches 25 and
     // growth stays alive to 29 - the hidden flag is a pure function of

@@ -4196,6 +4196,11 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .record-card .rating-dot.hi { background: color-mix(in srgb, var(--positive) 28%, var(--surface-3)); color: var(--text-positive); }
 .record-card .rating-dot.lo { background: color-mix(in srgb, var(--danger) 26%, var(--surface-3)); color: var(--text-negative); }
 
+/* the staff's / scouts' read on a man's nerve, and the no-minutes note (E7, E8) */
+.temper-card .meta { font-size: 13px; line-height: 1.45; margin-top: 2px; }
+.respect-line { margin-top: 6px; padding-left: 8px; border-left: 3px solid var(--gold); }
+.temper-card .bench-note { margin-top: 6px; padding-left: 8px; border-left: 3px solid var(--gold); }
+
 .plan-slots { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 16px 0; }
 .plan-slot { display: inline-flex; gap: 2px; align-items: stretch; }
 .plan-slot .plan-over { padding-left: 8px; padding-right: 8px; min-width: 32px; }
