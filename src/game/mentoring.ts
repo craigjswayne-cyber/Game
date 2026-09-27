@@ -1,5 +1,8 @@
-import type { GameState, Personality, Player } from './model'
-import { facLevel } from './model'
+import type { Attrs, GameState, Personality, Player, Pos } from './model'
+import { absWeek, facLevel } from './model'
+import { attrWeight } from './attributes'
+import { trainPoint } from './ageing'
+import { clamp, type Rng } from './rng'
 import { t, tIn } from './i18n'
 
 /**
@@ -245,6 +248,172 @@ export function fitReasonEn(senior: Player, kid: Player): string {
 }
 
 /**
+ * ---- WHAT A PAIRING ACTUALLY DOES (1.8.0) ----
+ *
+ * Owner: "We need to rethink how we select these and the impact this has."
+ *
+ * Before this, a paired kid had a 4.5% chance a week (times the fit) of +1 on
+ * a RANDOM attribute - a prop could come out of a season under a hooker's wing
+ * with better goal kicking - printed on top of his rating and then quietly
+ * taken back by the summer's level pull (ageing.ts). The only lasting part was
+ * a +6% on his summer growth roll (rollover.devFactor), which nobody could see.
+ * The mentor's position, his experience and what he was actually good at did
+ * not enter into it, and nothing recorded what the kid had gained.
+ *
+ * Now, user club only as before:
+ *   WHAT HE TEACHES is what he has: the mentor's clearest edges over the kid,
+ *     among the attributes the kid's own position leans on (mentorTeaches).
+ *     A coached point is a training point (ageing.trainPoint): it goes where
+ *     the mentor points it and is paid for from the kid's least needed
+ *     surplus, so the kid becomes more of the player he is, not a bigger one.
+ *   THE REAL GROWTH is a rating point, below his potential, at 2% a week times
+ *     the pairing's rate: about one a season for an average pairing, about
+ *     1.5 for the best and under half for the worst. The same order as the
+ *     old printed points were worth, but real, and it stays.
+ *   THE RATE is the fit (character and leadership, mentorBoost, unchanged and
+ *     still mean-neutral), times the position link (same position 1.2, same
+ *     unit 1.05, the other end of the pitch 0.85), times experience (up to
+ *     +10% for an older, capped man), times the two-kids load.
+ * The devFactor term and the slow take-over of the mentor's character are
+ * untouched. Every coached point and rating point goes on the pair's ledger
+ * (taught, grew) so the Team Report shows it happening.
+ */
+
+/** The four units of a side: a man teaches his own unit best. */
+const UNITS: Pos[][] = [['LP', 'HK', 'TP'], ['LK', 'FL', 'N8'], ['SH', 'FH'], ['CE', 'WG', 'FB']]
+
+export type PosLink = 'same' | 'related' | 'other'
+
+/** How close the two men's jobs are: the same position (either man's
+ *  alternatives count), the same unit, or neither. */
+export function posLink(senior: Pick<Player, 'pos' | 'alt'>, kid: Pick<Player, 'pos' | 'alt'>): PosLink {
+  if (senior.pos === kid.pos || (senior.alt ?? []).includes(kid.pos) || (kid.alt ?? []).includes(senior.pos)) return 'same'
+  const unit = UNITS.find(u => u.includes(kid.pos))
+  return unit?.includes(senior.pos) ? 'related' : 'other'
+}
+
+export const POS_RATE: Record<PosLink, number> = { same: 1.2, related: 1.05, other: 0.85 }
+
+/** 0 to 1: how much a man has seen. Half of it is years past the mentoring
+ *  age, half is Test caps - a 34-year-old with forty caps is the full set. */
+export function mentorExperience(senior: Pick<Player, 'age' | 'caps'>): number {
+  const yrs = clamp((senior.age - MENTOR_MIN_AGE) / 6, 0, 1)
+  const caps = clamp((senior.caps ?? 0) / 40, 0, 1)
+  return (yrs + caps) / 2
+}
+
+/**
+ * The pairing's rate against an average one at full attention (1.0). The
+ * load reads the pairs as they stand, so a preview of a senior who already
+ * has another kid is quoted the three-quarter speed he would actually give.
+ */
+export function mentorRate(state: GameState, senior: Player, kid: Player): number {
+  const others = (state.mentors ?? []).filter(mp => mp.senior === senior.id && mp.kid !== kid.id).length
+  const load = others >= 1 ? 0.75 : 1
+  return mentorBoost(senior, kid) * load * POS_RATE[posLink(senior, kid)] * (1 + 0.1 * mentorExperience(senior))
+}
+
+/** Weekly chances at a rate of 1.0. */
+export const COACHED_PER_WEEK = 0.045
+export const GROWTH_PER_WEEK = 0.02
+/** roughly the weeks a season's training loop runs, for "a season" estimates */
+const SEASON_TRAINING_WEEKS = 44
+
+/**
+ * What the senior can pass on to this kid: up to three attributes where the
+ * senior is clearly better (two points or more) and the kid's position
+ * actually uses them (template weight 0.5 or more), biggest useful edge first.
+ */
+export function mentorTeaches(senior: Player, kid: Player): (keyof Attrs)[] {
+  const edge = (k: keyof Attrs) => (senior.a[k] - kid.a[k]) * attrWeight(kid.pos, k)
+  return (Object.keys(kid.a) as (keyof Attrs)[])
+    .filter(k => k !== 'lea' && attrWeight(kid.pos, k) >= 0.5 && senior.a[k] - kid.a[k] >= 2)
+    .sort((a, b) => edge(b) - edge(a))
+    .slice(0, 3)
+}
+
+/** The expected effect over a season, for the screen: rating points and
+ *  coached attribute points. Growth stops at his potential, so a kid close to
+ *  it is quoted only the room he has. */
+export function mentorForecast(state: GameState, senior: Player, kid: Player) {
+  const rate = mentorRate(state, senior, kid)
+  const teaches = mentorTeaches(senior, kid)
+  const rating = Math.min(Math.max(0, kid.pa - kid.ca), GROWTH_PER_WEEK * rate * SEASON_TRAINING_WEEKS)
+  const coached = teaches.length ? COACHED_PER_WEEK * rate * SEASON_TRAINING_WEEKS : 0
+  return { rate, teaches, rating, coached, link: posLink(senior, kid), exp: mentorExperience(senior) }
+}
+
+/**
+ * One week of a pairing, for a kid at the user's club (season.weeklyTraining).
+ * Replaces the old random-attribute roll and spends its draws in the same
+ * order (the coached roll, its pick, the character roll) plus one for the
+ * growth roll, so the rest of the week moves as little as it can.
+ */
+export function mentorWeek(state: GameState, p: Player, rng: Rng) {
+  const pair = (state.mentors ?? []).find(mp => mp.kid === p.id)
+  if (!pair) return
+  const senior = state.players[pair.senior]
+  if (!senior) return
+  // a pairing from an older save opens its ledger on its first week here
+  if (pair.since == null) { pair.since = absWeek(state.season, state.week); pair.ca0 = p.ca }
+  const rate = mentorRate(state, senior, p)
+  if (rng() < COACHED_PER_WEEK * rate) {
+    const teaches = mentorTeaches(senior, p)
+    const pick = rng()
+    const k = teaches.length ? teaches[Math.floor(pick * teaches.length)] : null
+    if (k && trainPoint(p, k, teaches)) {
+      pair.taught = { ...(pair.taught ?? {}), [k]: (pair.taught?.[k] ?? 0) + 1 }
+    }
+  }
+  if (p.ca < p.pa && rng() < GROWTH_PER_WEEK * rate) {
+    p.ca += 1
+    pair.grew = (pair.grew ?? 0) + 1
+  }
+  if (rng() < 0.008 && p.pers !== senior.pers) {
+    p.pers = senior.pers
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: false,
+      subject: `${p.name.split(' ').slice(-1)[0]} is turning into his mentor`,
+      body: `The coaches have noticed it in the little things - the extras after training, the way he talks in the huddle. ${p.name} is starting to carry himself like ${senior.name}. Character: now ${senior.pers.toLowerCase()}.`,
+      k: 'news.becomesMentor',
+      v: { player: p.name, last: p.name.split(' ').slice(-1)[0], mentor: senior.name },
+      playerId: p.id,
+    })
+  }
+}
+
+/** Why a pairing cannot be made, or null. One predicate for the screen and
+ *  startMentoring, so a button is never live for a pairing that would fail. */
+export function pairBlock(state: GameState, senior: Player, kid: Player): 'ineligible' | 'taken' | 'full' | 'cap' | null {
+  const pairs = state.mentors ?? []
+  if (!canMentor(senior) || !canBeMentored(kid) || senior.id === kid.id) return 'ineligible'
+  if (pairs.some(mp => mp.kid === kid.id)) return 'taken'
+  if (pairs.filter(mp => mp.senior === senior.id).length >= MENTOR_MAX_KIDS) return 'full'
+  if (pairs.length >= mentorCap(state)) return 'cap'
+  return null
+}
+
+/** Start a pairing with its ledger open. The one place a pair is made, so the
+ *  screen and the probes build the same record. Returns why not, or null. */
+export function startMentoring(state: GameState, seniorId: number, kidId: number): string | null {
+  const s = state.players[seniorId]
+  const k = state.players[kidId]
+  if (!s || !k) return 'ineligible'
+  const no = pairBlock(state, s, k)
+  if (no) return no
+  // pers0: what he was when the pairing began, so graduation can see him
+  // change (mentorGraduations)
+  state.mentors = [...(state.mentors ?? []), { senior: seniorId, kid: kidId, pers0: k.pers, since: absWeek(state.season, state.week), ca0: k.ca, taught: {}, grew: 0 }]
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: true,
+    subject: `${s.name} takes ${k.name.split(' ').slice(-1)[0]} under his wing`,
+    body: `The old pro and the academy kid: ${s.name} will mentor ${k.name} for the season - extras after training, lifts to the ground, the lot. This is how clubs pass themselves on.`,
+    playerId: k.id,
+  })
+  return null
+}
+
+/**
  * The mentoring beat: a note on how each pairing is going.
  *
  * Filed every REPORT_EVERY weeks so it is a progress report rather than a nag,
@@ -285,7 +454,7 @@ export function mentorReports(state: GameState) {
         subject: `The ${s.name.split(' ').slice(-1)[0]} and ${last} pairing is not taking`,
         body: `${tIn('en', fitKey(fit))}. ${fitReasonEn(s, k)} ${k.name} is getting very little out of it. `
           + `Nothing has gone wrong between them; it simply is not working. `
-          + `End the pairing on the Training and Staff screen and put him with somebody else - there is an End button on the row, and the season is long enough for a fresh start to pay.`,
+          + `End the pairing on the Mentoring tab of the Team Report and put him with somebody else - there is an End button on the row, and the season is long enough for a fresh start to pay.`,
         k: 'news.mentFailing',
         v: {
           last, seniorLast: s.name.split(' ').slice(-1)[0], kid: k.name,

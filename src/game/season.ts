@@ -47,7 +47,7 @@ import { askBoard, type BoardAsk } from './boardroom'
 import { expireLoans, loanTargets } from './loans'
 import { refreshVacancies, sackManager } from './jobs'
 import { playAcademyWeek } from './academy'
-import { canBeMentored, mentorBoost, mentorGraduations, mentorLoad, mentorReports } from './mentoring'
+import { canBeMentored, mentorGraduations, mentorReports, mentorWeek } from './mentoring'
 import { t, tIn, type Vars } from './i18n'
 
 export function weekRng(state: GameState): Rng {
@@ -1312,40 +1312,16 @@ function weeklyTraining(state: GameState, rng: Rng) {
         }
       }
       // A good mentor is worth an extra coach - and a bad one is worth almost
-      // nothing. The pairing's chance of a bump now scales with how well the two
-      // men actually work together (game/mentoring.ts), so pairing a Mercenary
-      // with a Temperamental kid is the waste of a season it ought to be. The
-      // base rate is unchanged at the mid-fit case, so a squad's average paired
-      // kid develops exactly as before.
+      // nothing. How much a pairing gives scales with how well the two men
+      // work together, how close their jobs are and how much the senior has
+      // seen, and what he teaches is what he is good at (mentoring.mentorWeek,
+      // 1.8.0; it used to be a random attribute printed on top of the rating).
       // canBeMentored rather than p.acad (user: "all players under 21 can have a
-      // mentor"). This gate and the Training screen's dropdown are the same rule
-      // and now read the same function: widening one without the other would
+      // mentor"). This gate and the Team Report's picker are the same rule
+      // and read the same function: widening one without the other would
       // produce a pairing the game shows, reports on, and does nothing for.
       if (isUser && canBeMentored(p) && (state.mentors ?? []).some(mp => mp.kid === p.id)) {
-        const mpair = (state.mentors ?? []).find(mp => mp.kid === p.id)!
-        const mentor = state.players[mpair.senior]
-        // a senior with two kids splits his attention: mentorLoad is 1 for one
-        // kid, so every pairing that existed before multi-mentee arrived
-        // develops exactly as it did
-        const fitMult = mentor ? mentorBoost(mentor, p) * mentorLoad(state, mpair.senior) : 1
-        if (rng() < 0.045 * fitMult) {
-          const keys = Object.keys(p.a) as (keyof Player['a'])[]
-          const k = keys[Math.floor(rng() * keys.length)]
-          p.a[k] = clamp(p.a[k] + 1, 1, 20)
-        }
-        const pair = (state.mentors ?? []).find(mp => mp.kid === p.id)!
-        const senior = state.players[pair.senior]
-        if (senior && rng() < 0.008 && p.pers !== senior.pers) {
-          p.pers = senior.pers
-          state.news.push({
-            id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: false,
-            subject: `${p.name.split(' ').slice(-1)[0]} is turning into his mentor`,
-            body: `The coaches have noticed it in the little things - the extras after training, the way he talks in the huddle. ${p.name} is starting to carry himself like ${senior.name}. Character: now ${senior.pers.toLowerCase()}.`,
-            k: 'news.becomesMentor',
-            v: { player: p.name, last: p.name.split(' ').slice(-1)[0], mentor: senior.name },
-            playerId: p.id,
-          })
-        }
+        mentorWeek(state, p, rng)
       }
       // the academy coach quietly builds tomorrow's team
       if (isUser && p.acad && rng() < 0.025 + state.staff.academyCoach * 0.025) {
