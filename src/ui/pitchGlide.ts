@@ -1,4 +1,5 @@
 import { useEffect, useRef, type RefObject } from 'react'
+import { parseRun, runAt, type Waypoint } from './offBall'
 
 /**
  * ---- THE GLIDE (1.8.1) ----
@@ -33,6 +34,9 @@ import { useEffect, useRef, type RefObject } from 'react'
  *   same reason; the ball keeps its resting tilt inside the transform written
  *   here.
  * - Reduced motion: no glide, the dots go straight to where they are.
+ * - A dot with a data-run (offBall.ts) has a MOVING mark: the waypoints of his
+ *   own run through the beat, so the spring carries him along a support line,
+ *   a defensive push or a kick chase rather than to one spot.
  *
  * THE HANDOVER. A kick's flight holds the ball where it landed (in touch, at
  * the posts) until the next line cancels it and starts the next passage from
@@ -44,15 +48,26 @@ import { useEffect, useRef, type RefObject } from 'react'
  */
 const GLIDE = '.pdot:not(.ghost), .ball, .official, .phase-line, .contest-bar'
 
-type S = { tx: number; ty: number; ox: number; oy: number; vx: number; vy: number }
+type S = { tx: number; ty: number; ox: number; oy: number; vx: number; vy: number; runKey?: string; run?: Waypoint[] | null; runAt0?: number; pace?: number; line?: number }
 
-/** One SmoothDamp step on an offset whose target is zero. */
-function damp(o: number, v: number, smooth: number, dt: number): [number, number] {
+/** The same step in two dimensions with a top speed (Unity's SmoothDamp with
+ *  maxSpeed): the part of the offset the dot may close in one smoothing time
+ *  is capped, so a long way to go is covered at an even pace. */
+function damp2(ox: number, oy: number, vx: number, vy: number, smooth: number, dt: number, maxSpeed: number): [number, number, number, number] {
   const omega = 2 / smooth
   const x = omega * dt
   const e = 1 / (1 + x + 0.48 * x * x + 0.235 * x * x * x)
-  const temp = (v + omega * o) * dt
-  return [(o + temp) * e, (v - omega * temp) * e]
+  let cx = ox, cy = oy
+  const cap = maxSpeed * smooth, m = Math.hypot(cx, cy)
+  if (m > cap) { cx *= cap / m; cy *= cap / m }
+  const tx = ox - cx, ty = oy - cy   // where the capped step aims, short of the mark
+  const ux = (vx + omega * cx) * dt, uy = (vy + omega * cy) * dt
+  vx = (vx - omega * ux) * e; vy = (vy - omega * uy) * e
+  let nx = tx + (cx + ux) * e, ny = ty + (cy + uy) * e
+  // never run through the mark and back
+  if (ox * nx < 0) { nx = 0; vx = 0 }
+  if (oy * ny < 0) { ny = 0; vy = 0 }
+  return [nx, ny, vx, vy]
 }
 
 function px(v: string, size: number): number | null {
@@ -67,10 +82,16 @@ function px(v: string, size: number): number | null {
  *  job arrives, short enough that he is never more than a beat behind the
  *  commentary. */
 export const GLIDE_SHARE = 0.42
+/** the share of a beat a man takes to cover the way to a new mark, at an even
+ *  pace: most of it, so he is still running when the next line comes */
+export const PACE_SHARE = 0.85
 
-export function usePitchGlide(world: RefObject<HTMLElement | null>, tickMs: number) {
+export function usePitchGlide(world: RefObject<HTMLElement | null>, tickMs: number, lineKey = 0) {
   const tick = useRef(tickMs)
   tick.current = tickMs
+  // which commentary line is on screen: a new one resets every man's pace
+  const line = useRef(lineKey)
+  line.current = lineKey
   const state = useRef(new WeakMap<HTMLElement, S>())
   const on = useRef(false)
   useEffect(() => {
@@ -88,18 +109,34 @@ export function usePitchGlide(world: RefObject<HTMLElement | null>, tickMs: numb
         const W = w.clientWidth, H = w.clientHeight
         const smooth = Math.max(0.05, tick.current / 1000 * GLIDE_SHARE)
         w.querySelectorAll<HTMLElement>(GLIDE).forEach(el => {
-          const tx = px(el.style.left, W) ?? (el.style.right ? W - (px(el.style.right, W) ?? 0) : null)
-          const ty = px(el.style.top, H)
+          let tx = px(el.style.left, W) ?? (el.style.right ? W - (px(el.style.right, W) ?? 0) : null)
+          let ty = px(el.style.top, H)
           if (tx == null || ty == null) return
           let s = st.get(el)
           if (!s) { s = { tx, ty, ox: 0, oy: 0, vx: 0, vy: 0 }; st.set(el, s) }
-          else if (tx !== s.tx || ty !== s.ty) {
+          // OFF THE BALL (offBall.ts): the mark moves along the man's run
+          // through the beat, and the spring chases the moving mark
+          const key = el.dataset.run
+          if (key !== s.runKey) { s.runKey = key; s.run = parseRun(key); s.runAt0 = now }
+          const fresh = s.line !== line.current
+          if (s.run) {
+            const o = runAt(s.run, Math.min(1, (now - (s.runAt0 ?? now)) / Math.max(1, tick.current)))
+            tx += o.x / 100 * W
+            ty += o.y / 100 * H
+          }
+          if (tx !== s.tx || ty !== s.ty) {
             // the mark moved: the dot stays where it is drawn and runs on
             s.ox += s.tx - tx; s.oy += s.ty - ty
             s.tx = tx; s.ty = ty
+            // A NEW LINE SETS HIS PACE: enough to reach the new mark in about
+            // one beat, so he runs there at an even speed instead of sprinting
+            // off and crawling in (SmoothDamp's maxSpeed)
+            if (fresh) {
+              s.line = line.current
+              s.pace = Math.max(24, Math.hypot(s.ox, s.oy) / Math.max(0.2, tick.current / 1000 * PACE_SHARE))
+            }
           }
-          ;[s.ox, s.vx] = damp(s.ox, s.vx, smooth, dt)
-          ;[s.oy, s.vy] = damp(s.oy, s.vy, smooth, dt)
+          ;[s.ox, s.oy, s.vx, s.vy] = damp2(s.ox, s.oy, s.vx, s.vy, smooth, dt, s.pace ?? Infinity)
           if (Math.abs(s.ox) < 0.05 && Math.abs(s.vx) < 0.5) { s.ox = 0; s.vx = 0 }
           if (Math.abs(s.oy) < 0.05 && Math.abs(s.vy) < 0.5) { s.oy = 0; s.vy = 0 }
           const t = `translate3d(${s.ox.toFixed(2)}px, ${s.oy.toFixed(2)}px, 0)`

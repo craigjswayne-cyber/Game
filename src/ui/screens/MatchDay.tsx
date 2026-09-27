@@ -25,6 +25,7 @@ import { MoodTable } from '../MoodTable'
 import { MatchPanels, Visits, Zones } from '../MatchPanels'
 import { useTablet } from '../tablet'
 import { usePitchGlide } from '../pitchGlide'
+import { offBallRun, runAttr } from '../offBall'
 import { readMatchPrefs, writeMatchPrefs, type MatchPrefs } from '../matchPrefs'
 import { crowdLevel } from '../matchAtmos'
 import { derbyName } from '../../game/rivalries'
@@ -1533,7 +1534,8 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
   const fx = ctx.fx
   const pitchEl = useRef<HTMLDivElement>(null)
   const worldEl = useRef<HTMLDivElement>(null)
-  const glide = usePitchGlide(worldEl, tickMs)
+  // the glide and the runs are paced on the beat the line is actually held for
+  const glide = usePitchGlide(worldEl, tickMs + holdMs, fxKey)
   /** men leaving the field, drawn after their own dot has gone (pitchActs.ts) */
   const ghosts = useRef<HTMLDivElement[]>([])
   const ballEl = useRef<HTMLDivElement | null>(null)
@@ -1757,7 +1759,15 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
       // the field rather than running off the end of it
       x = Math.max(3.5, Math.min(96.5, x))
       y = Math.max(5, Math.min(95, y))
-      return { id, slot, x, y, ruck, inPossession }
+      // HIS OWN RUN THROUGH THE BEAT (offBall.ts): a support line, the
+      // defensive line speed and drift, a kick chase. Only while the moment
+      // is being played out, not at fast-forward.
+      const run = showFx && !reduced ? offBallRun({
+        shape, kind, slot, dir: sideDir as 1 | -1, inPossession, ruck, carrier: isCarrier,
+        mark: { x, y }, ball: { x: ballLeft, y: ballTop },
+        jitter: (((id * 2654435761) ^ (fxKey * 40503)) >>> 0) % 1000 / 1000,
+      }) : null
+      return { id, slot, x, y, ruck, inPossession, run }
     })
   }
   const placedHome = place(ctx.home, true)
@@ -1791,7 +1801,7 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
     const capId = game!.clubs[side.teamId]?.captain
     return (isHome ? placedHome : placedAway).map(m => {
       if (!m) return null
-      const { id, slot, x, y, ruck, inPossession } = m
+      const { id, slot, x, y, ruck, inPossession, run } = m
       const p = game!.players[id]!
       layout.set(id, { x, y })
       who.set(id, { home: isHome, shirt: XV_SLOTS[slot].shirt })
@@ -1814,6 +1824,8 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
         <div key={id}
           ref={el => { if (el) dotEls.current.set(id, el); else dotEls.current.delete(id) }}
           className={`pdot${hl ? ' hl' : ''}${capId === id ? ' cap' : ''}${motion}${manId === id || inTackle.has(id) ? ' carry' : ''}${jumperId === id ? ' lift' : ''}`}
+          data-side={isHome ? 'h' : 'a'} data-slot={slot} data-poss={inPossession ? 1 : 0}
+          data-run={manId === id || inTackle.has(id) ? undefined : runAttr(run, mirror)}
           style={{
             left: `${mx(x)}%`, top: `${y}%`,
             background: cols[0], borderColor: cols[1], color: contrastText(cols[0]),
