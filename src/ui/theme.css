@@ -801,6 +801,47 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   color: var(--gold); padding: 14px 16px 3px; font-weight: 800;
 }
 
+/* ---- the press barometer (1.8.0, Press.tsx) ---- */
+.baro {
+  display: flex; align-items: center; gap: 12px;
+  margin: 12px 14px 4px; padding: 12px 14px;
+  background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px;
+  --baro-c: var(--baro-neutral);
+}
+.baro.hostile { --baro-c: var(--baro-hostile); }
+.baro.sceptical { --baro-c: var(--baro-sceptical); }
+.baro.warm { --baro-c: var(--baro-warm); }
+.baro.adoring { --baro-c: var(--baro-adoring); }
+.baro.stir { --baro-c: var(--baro-stir); border-color: var(--baro-stir); }
+.baro-dial { flex: 0 0 auto; width: 112px; height: auto; overflow: visible; }
+.baro-dial .seg { fill: none; stroke-width: 10; stroke-linecap: butt; opacity: .28; }
+.baro-dial .seg.on { opacity: 1; }
+.baro-dial .seg.hostile { stroke: var(--baro-hostile); }
+.baro-dial .seg.sceptical { stroke: var(--baro-sceptical); }
+.baro-dial .seg.neutral { stroke: var(--baro-neutral); }
+.baro-dial .seg.warm { stroke: var(--baro-warm); }
+.baro-dial .seg.adoring { stroke: var(--baro-adoring); }
+.baro-dial .needle { stroke: var(--text-primary); stroke-width: 3; stroke-linecap: round; }
+.baro-dial .hub { fill: var(--text-primary); }
+.baro-text { min-width: 0; flex: 1 1 auto; }
+.baro-title {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 2px;
+  color: var(--text-muted); font-weight: 800;
+}
+.baro-word { font-size: 22px; font-weight: 800; line-height: 1.15; color: var(--baro-c); margin-top: 2px; }
+.baro-why { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-top: 3px; }
+.baro-expect { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+/* what an answer did, under the reaction on the coverage card */
+.press-fx { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+.press-fx .fx {
+  display: inline-block; padding: 2px 8px; border-radius: 999px;
+  font-size: 11px; font-weight: 700; letter-spacing: .3px;
+  border: 1px solid currentColor;
+}
+.press-fx .fx.good { color: var(--positive, var(--primary)); }
+.press-fx .fx.mixed { color: var(--info); }
+.press-fx .fx.bad { color: var(--danger); }
+
 /* ================= Sliders ================= */
 .slider-row { padding: 11px 16px; }
 .slider-row .lbls { display: flex; justify-content: space-between; font-size: 11px; font-weight: 500; color: var(--text-muted); margin-bottom: 3px; }

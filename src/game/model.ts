@@ -944,6 +944,14 @@ export interface PressOption {
    *  good, mixed or bad fit - rather than by the fixed morale above. Absent on
    *  every item saved before 1.7.3, which keep answering as they always did. */
   tb?: string
+  /** THE PRESS BAROMETER (1.8.0, pressmood.ts). Morale for the WHOLE squad,
+   *  on the same scale as `morale` - the room hears how you talk about them
+   *  as a group. A few tenths at most. */
+  squad?: number
+  /** how the answer moves the press's own sentiment, on its -100..100 scale */
+  press?: number
+  /** talking a winning run up: the press turn on the squad a win sooner */
+  hype?: number
 }
 
 /** A subject a player can raise behind the office door. The office keeps a
@@ -992,6 +1000,28 @@ export interface PressItem {
   fit?: 'good' | 'mixed' | 'bad'
   /** set on discipline conversations: the incident this one resolves */
   incidentId?: number
+  /** what the answer did, recorded when it is given (pressmood.applyMoodAnswer)
+   *  so the coverage card can say it in words: squad morale, the terraces,
+   *  the press, the board, the man named, and whether the run was talked up.
+   *  Absent on everything answered before 1.8.0. */
+  fx?: { squad?: number; fans?: number; press?: number; board?: number; player?: number; hype?: boolean }
+}
+
+/** The press barometer (1.8.0, pressmood.ts): how the pack feel about the
+ *  manager, read off his results and moved by his answers. */
+export interface PressMood {
+  /** -100 hostile .. +100 adoring; 0 is neutral */
+  v: number
+  /** the absolute week results have been read through */
+  at: number
+  /** the club it was measured at - a new job starts level */
+  club: string
+  /** the season it was last settled in - the summer halves it */
+  s: number
+  /** a long winning run: the press are trying to unsettle the squad */
+  stir?: boolean
+  /** times the manager has talked this run up (brings `stir` a win closer) */
+  hype?: number
 }
 
 export interface TransferOffer {
@@ -1633,6 +1663,9 @@ export interface GameState {
   /** running press-conference tone: heavy praise breeds swagger, constant
    *  criticism breeds fragility. Decays weekly toward neutral. */
   pressTone?: number
+  /** the press barometer (1.8.0). Absent on older saves, which read as
+   *  neutral until the first weekly settle folds the season's results in. */
+  pressMood?: PressMood
   /** the board owes you one (objectives delivered) - spend it on a request */
   boardOwed?: boolean
   /** the season the ground was last extended - one stand a season */
