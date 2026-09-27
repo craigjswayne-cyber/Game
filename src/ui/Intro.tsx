@@ -15,7 +15,7 @@ import { t } from '../game/i18n'
  *   0.0 - 1.2  the pitch lines draw across the dark, halfway first
  *   0.5 - 2.0  the badge lands and the ball turns into its place
  *   1.6 - 3.4  PHASE rises letter by letter, the rule wipes out, RUGBY MANAGER
- *              27 tracks in with the 27 in gold, and a light runs over it
+ *              tracks in, and a light runs over it
  *   4.3 - 5.0  the whole card lifts away and the title screen is underneath
  *
  * WHAT IT IS NOT: the launch screen. Apple's guidelines say a launch screen
@@ -82,7 +82,7 @@ export function Intro() {
           {'PHASE'.split('').map((ch, i) => <span key={i} style={{ animationDelay: `${1.6 + i * 0.08}s` }}>{ch}</span>)}
         </div>
         <div className="intro-rule" />
-        <div className="intro-sub">RUGBY MANAGER <b>27</b></div>
+        <div className="intro-sub">RUGBY MANAGER</div>
         <div className="intro-tag">{t('menu.tagline')}</div>
       </div>
       <div className="intro-skip">{t('intro.skip')}</div>

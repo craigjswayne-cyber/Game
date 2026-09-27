@@ -68,7 +68,7 @@ try {
     return { n: bs.length, labels: bs.map(b => (b.textContent ?? '').trim()) }
   })
   console.log(`  control row: ${ctrl.n} buttons [${ctrl.labels.join(' | ')}]`)
-  // five since 1.8.0: the match menu (📊, PRM27) joined Pause, Skip, Squad and
+  // five since 1.8.0: the match menu (📊, 1.8.0) joined Pause, Skip, Squad and
   // settings. Still one row, still not seven.
   ok(ctrl.n === 5, `the control row is five buttons, not seven (${ctrl.n})`)
   const plays = ctrl.labels.filter(l => l.includes('▶')).length

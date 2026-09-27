@@ -322,7 +322,7 @@ try {
     ok(row.spread <= 2, `all on one line (${row.spread}px spread)`)
     ok(row.clipped.length === 0, `no filter label is clipped by its own box${row.clipped.length ? ` [${row.clipped.join(', ')}]` : ''}`)
   }
-  // ONE ROW OF 3 since 1.8.0 (PRM27). It was 2 then 5 from v1.1.14, when the
+  // ONE ROW OF 3 since 1.8.0. It was 2 then 5 from v1.1.14, when the
   // Interested filter joined the second row; then the owner circled the four
   // rows of filters and view chips: "tidy this section up. Make it so its a
   // filter and you select what you want to see". The name search, a Filters

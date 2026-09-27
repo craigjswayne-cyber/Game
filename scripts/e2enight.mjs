@@ -123,7 +123,7 @@ try {
   await page.click('.submenu-item >> text=Transfer Centre')
   await page.waitForTimeout(600)
   await shot('06c-transfers')
-  // the filters live in a sheet since 1.8.0 (PRM27): open it, shot it at
+  // the filters live in a sheet since 1.8.0: open it, shot it at
   // night, switch on Transfer-listed only and show the result
   await page.click('.filter-btn')
   await page.waitForSelector('.filter-sheet')

@@ -6,7 +6,7 @@ import { CrestT, Stars } from './components'
 import { moodOf } from './MoodTable'
 
 /**
- * ---- WHAT THE STORY IS ABOUT, BESIDE THE STORY (PRM27) ----
+ * ---- WHAT THE STORY IS ABOUT, BESIDE THE STORY (1.8.0) ----
  *
  * The classic manager game reads a message with its subject beside it: the
  * club's crest, where it stands and who it plays next, or the player the story

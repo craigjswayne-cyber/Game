@@ -6,7 +6,7 @@
 // asks for it with ?intro=1 and checks the promises:
 //
 //   it is there at once and the title screen is underneath it
-//   the lockup is on screen by the middle of it, badge, PHASE and 27
+//   the lockup is on screen by the middle of it, badge, PHASE and RUGBY MANAGER
 //   it is gone by five and a half seconds, and the menu takes taps
 //   a tap skips it
 //   without ?intro=1 an automated browser never sees it
@@ -40,7 +40,7 @@ try {
       const vis = s => { const e = document.querySelector(s); if (!e) return false; const r = e.getBoundingClientRect(); return +getComputedStyle(e).opacity > 0.5 && r.width > 0 && r.top >= 0 && r.bottom <= innerHeight }
       return { badge: vis('.intro-badge'), word: vis('.intro-word span:last-child'), sub: vis('.intro-sub') }
     })
-    ok(lock.badge && lock.word && lock.sub, `${w}px: badge, PHASE and RUGBY MANAGER 27 all on screen by 4.4s (${JSON.stringify(lock)})`)
+    ok(lock.badge && lock.word && lock.sub, `${w}px: badge, PHASE and RUGBY MANAGER all on screen by 4.4s (${JSON.stringify(lock)})`)
     await page.waitForTimeout(Math.max(0, 5600 - (Date.now() - t0)))
     ok(await page.$('.intro') == null, `${w}px: gone by 5.6s`)
     await page.click('text=New Career', { timeout: 3000 }).then(() => ok(true, `${w}px: and the menu takes a tap`), () => ok(false, `${w}px: and the menu takes a tap`))
