@@ -7194,20 +7194,6 @@
   "leggy": "Feeling the week in the legs"
  },
  "ctx": {
-  "age": "age {n}",
-  "club": "Club",
-  "rating": "Rating",
-  "mood": "Mood",
-  "value": "Value",
-  "contract": "Contract",
-  "until": "until {season}",
-  "viewPlayer": "View player",
-  "position": "League position",
-  "form": "Form",
-  "nextMatch": "Next match",
-  "home": "H",
-  "away": "A",
-  "fanFavourites": "Fan favourites",
   "responseNeeded": {
    "one": "Response needed",
    "other": "Response needed ({n})"

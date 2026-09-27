@@ -7031,20 +7031,6 @@
     "leggy": "Sent la semaine dans les jambes"
   },
   "ctx": {
-    "age": "{n} ans",
-    "club": "Club",
-    "rating": "Note",
-    "mood": "Humeur",
-    "value": "Valeur",
-    "contract": "Contrat",
-    "until": "jusqu'en {season}",
-    "viewPlayer": "Voir la fiche",
-    "position": "Classement",
-    "form": "Forme",
-    "nextMatch": "Prochain match",
-    "home": "D",
-    "away": "E",
-    "fanFavourites": "Idoles du public",
     "responseNeeded": {
       "one": "Réponse attendue",
       "other": "Réponses attendues ({n})"

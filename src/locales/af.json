@@ -7242,20 +7242,6 @@
   "leggy": "Voel die week in die bene"
  },
  "ctx": {
-  "age": "ouderdom {n}",
-  "club": "Klub",
-  "rating": "Punt",
-  "mood": "Bui",
-  "value": "Waarde",
-  "contract": "Kontrak",
-  "until": "tot {season}",
-  "viewPlayer": "Bekyk speler",
-  "position": "Ligaposisie",
-  "form": "Vorm",
-  "nextMatch": "Volgende wedstryd",
-  "home": "T",
-  "away": "U",
-  "fanFavourites": "Skaregunstelinge",
   "responseNeeded": {
    "one": "Reaksie nodig",
    "other": "Reaksie nodig ({n})"
