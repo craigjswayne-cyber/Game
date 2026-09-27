@@ -164,22 +164,26 @@ node -e '
   console.log("    wired at load() - the consent form now has a screen to open on")
 '
 
-# ---- iPHONE ONLY ----
+# ---- iPHONE AND iPAD (1.8.0) ----
 #
-# Owner, mid-submission: "this game is not for ipad or watch, its purely for
-# mobile". Capacitor scaffolds every project as UNIVERSAL - the generated
-# pbxproj carries TARGETED_DEVICE_FAMILY = "1,2", which is iPhone plus iPad -
-# and Xcode's General tab then lists four destinations: iPhone, iPad, Mac
-# (Designed for iPad) and Apple Vision (Designed for iPad). The last two are
-# free consequences of claiming iPad, not separate choices.
+# Owner, mid-submission, before tablet mode existed: "this game is not for
+# ipad or watch, its purely for mobile" - so this set the build iPhone-only.
+# Owner, 27 Sep 2026, with tablet mode built: "Make it so its built for IPad
+# tablet too." So the build is iPhone plus iPad again.
 #
-# Claiming iPad is not cosmetic. App Store Connect demands a full set of iPad
-# screenshots for any binary that supports it, and holds the submission until
-# they exist - so a game nobody intends to ship on iPad blocks its own release
-# waiting for artwork of a layout that was never designed.
+# Capacitor scaffolds every project as UNIVERSAL: TARGETED_DEVICE_FAMILY =
+# "1,2" (1 = iPhone, 2 = iPad), which is what we want. This makes sure of it
+# (an older checkout patched it to "1") and keeps the two destinations that
+# ride along with iPad switched off: Mac (Designed for iPad) and Apple Vision
+# (Designed for iPad). Nobody has tested the game on either.
 #
-# 1 = iPhone. 2 = iPad. "1,2" = both. The three SUPPORTS_ flags drop the Mac
-# and Vision destinations that ride along with iPad.
+# ORIENTATION: Capacitor's Info.plist lists all four orientations for iPad
+# (UISupportedInterfaceOrientations~ipad), which Apple requires of an iPad app
+# that takes part in multitasking. Leave it: the game has a landscape layout
+# and tablet mode covers both (src/ui/tablet.ts).
+#
+# App Store Connect needs a set of 13-inch iPad screenshots for a binary that
+# supports iPad: scripts/ipadshots.mjs makes them at 2048 x 2732.
 #
 # Patched here rather than in Xcode because `cap add ios` regenerates this file
 # from Capacitor's own template, so a change made only in the UI is lost the
@@ -189,13 +193,12 @@ node -e '
 # target that has to be added deliberately, and this project has never had one.
 PBX=ios/App/App.xcodeproj/project.pbxproj
 if [ -f "$PBX" ]; then
-  if grep -q 'TARGETED_DEVICE_FAMILY = "1,2"' "$PBX"; then
-    sed -i.bak 's/TARGETED_DEVICE_FAMILY = "1,2";/TARGETED_DEVICE_FAMILY = "1";\n\t\t\t\tSUPPORTS_MACCATALYST = NO;\n\t\t\t\tSUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;\n\t\t\t\tSUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;/g' "$PBX"
-    rm -f "$PBX.bak"
-    echo "    set iPhone-only (TARGETED_DEVICE_FAMILY = 1)"
-  else
-    echo "    already iPhone-only"
+  sed -i.bak 's/TARGETED_DEVICE_FAMILY = "1";/TARGETED_DEVICE_FAMILY = "1,2";/g' "$PBX"
+  if ! grep -q 'SUPPORTS_MACCATALYST = NO;' "$PBX"; then
+    sed -i.bak 's/TARGETED_DEVICE_FAMILY = "1,2";/TARGETED_DEVICE_FAMILY = "1,2";\n\t\t\t\tSUPPORTS_MACCATALYST = NO;\n\t\t\t\tSUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;\n\t\t\t\tSUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;/g' "$PBX"
   fi
+  rm -f "$PBX.bak"
+  echo "    iPhone and iPad (TARGETED_DEVICE_FAMILY = 1,2), no Mac or Vision"
 fi
 
 BUNDLE=$(grep -m1 'PRODUCT_BUNDLE_IDENTIFIER' ios/App/App.xcodeproj/project.pbxproj | tr -d '\t ;' | cut -d= -f2)
