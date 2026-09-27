@@ -9,7 +9,11 @@
 //
 // Run: npx vite-node scripts/clashprobe.ts
 import { newGame } from '../src/game/newgame'
-import { kitColours, kitGap, luma } from '../src/ui/kit'
+import { kitColours, kitGap, luma, type Spares } from '../src/ui/kit'
+import { readFileSync } from 'node:fs'
+// the spare kits, read from the token file the page reads them from
+const tok = (n: string) => readFileSync('src/ui/tokens.css', 'utf8').match(new RegExp(`${n}:\\s*(#[0-9a-fA-F]{6})`))![1]
+const SP: Spares = { white: tok('--kit-spare-white'), slate: tok('--kit-spare-slate'), gold: tok('--kit-spare-gold'), ink: tok('--kit-spare-ink') }
 
 let fails = 0
 const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
@@ -24,12 +28,12 @@ for (const h of clubs) for (const a of clubs) {
   const old = (c: string[]) => (luma(c[0]) < 40 && c[1] ? c[1] : c[0])
   if (kitGap(old(h.colors), old(a.colors)) < 150) before++
   for (const dark of [true, false]) {
-    const k = kitColours(h.colors, a.colors, dark)
+    const k = kitColours(SP, h.colors, a.colors, dark)
     if (kitGap(k.home[0], k.away[0]) < 150) bad.push(`${h.id} v ${a.id}${dark ? '' : ' (grass)'}`)
     if (dark && (luma(k.home[0]) < 40 || luma(k.away[0]) < 40)) dim.push(`${h.id} v ${a.id}`)
   }
 }
-const nc = kitColours(g.clubs.northampton.colors, g.clubs.connacht.colors)
+const nc = kitColours(SP, g.clubs.northampton.colors, g.clubs.connacht.colors)
 console.log(`${clubs.length} clubs, ${pairs} pairings; the old stats bars clashed in ${before}`)
 console.log(`Northampton v Connacht: ${nc.home[0]} against ${nc.away[0]}`)
 ok(kitGap(nc.home[0], nc.away[0]) >= 150, 'Northampton v Connacht: the bars are two colours')

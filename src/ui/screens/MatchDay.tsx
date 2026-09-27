@@ -31,7 +31,7 @@ import { dialLine, philosophyOf } from '../../game/philosophy'
 import { venueEffect } from '../../game/venue'
 import { sortTable } from '../../game/schedule'
 import { nationName } from '../../game/nations'
-import { kitColours, luma } from '../kit'
+import { kitColours, luma, pageSpares } from '../kit'
 import { IcoFastForward, IcoPause, IcoPeople, IcoPlay } from '../icons'
 
 const WEATHER_ICON: Record<string, string> = { Dry: '☀️', Rain: '🌧️', Wind: '💨', Snow: '❄️' }
@@ -1641,7 +1641,7 @@ function Live() {
     // the canvas needs real colours: a club with no kit on file gets the
     // token kit, read off the page
     const white = tokenColor('--prop-ink')
-    const onGrass = kitColours(game.clubs[fixture.homeId]?.colors ?? [tokenColor('--kit-home'), white],
+    const onGrass = kitColours(pageSpares(tokenColor), game.clubs[fixture.homeId]?.colors ?? [tokenColor('--kit-home'), white],
       game.clubs[fixture.awayId]?.colors ?? [tokenColor('--kit-away'), white], false)
     const hc = onGrass.home, ac = onGrass.away
     const spec = buildClip(events, nx.at, nx.kind, fixture.homeId, shirtOf,
@@ -1683,7 +1683,7 @@ function Live() {
   // points from commentary, make it super clean"). The line is the words;
   // its kind is carried by cls(): gold for a score, the card colours, the TMO.
 
-  const kits = kitColours(game.clubs[fixture.homeId]?.colors, game.clubs[fixture.awayId]?.colors ?? ['var(--gold-fill)', 'var(--ramp-g9)'])
+  const kits = kitColours(pageSpares(tokenColor), game.clubs[fixture.homeId]?.colors, game.clubs[fixture.awayId]?.colors ?? ['var(--gold-fill)', 'var(--ramp-g9)'])
   // Half-time and the 60' break are the two states where the match is stopped
   // waiting for the manager rather than paused. The control row treats them as
   // one thing: Play means "get back out there".
@@ -2495,7 +2495,7 @@ function LiveStats({ shown }: { shown: MatchEvent[] }) {
   const live = useStore(s => s.liveMatch)!
   const st = matchStats(live.ctx)
   const homeId = live.fixture.homeId
-  const kits = kitColours(game.clubs[homeId]?.colors, game.clubs[live.fixture.awayId]?.colors)
+  const kits = kitColours(pageSpares(tokenColor), game.clubs[homeId]?.colors, game.clubs[live.fixture.awayId]?.colors)
   const col = (id: string) => {
     if (!game.clubs[id]?.colors) return 'var(--text-muted)'
     return (id === homeId ? kits.home : kits.away)[0]
@@ -2561,7 +2561,7 @@ function StatsPanel() {
   const [hv, hp] = visitStats(shown, homeId, true), [av, ap] = visitStats(shown, homeId, false)
   const shownSt = shownStats(live, shown, homeId, st.goalKicks)
   const [gk0, gk1] = shownSt.kicks
-  const kits = kitColours(game.clubs[homeId]?.colors, game.clubs[live.fixture.awayId]?.colors)
+  const kits = kitColours(pageSpares(tokenColor), game.clubs[homeId]?.colors, game.clubs[live.fixture.awayId]?.colors)
   const colour = (id: string) => (id === homeId ? kits.home : kits.away)[0]
   // Each row carries a split bar in the two clubs' colours, and the bars fill
   // in one after another as the panel opens (idea 5: "the match stats panel
