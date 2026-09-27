@@ -75,6 +75,14 @@ export const IcoPress = () => (
   </svg>
 )
 
+// A magnifier for the name searches on the development lists (1.8.0). Sized
+// by its box, since it sits inline in a form control rather than in the nav.
+export const IcoSearch = () => (
+  <svg viewBox="0 0 24 24" width="100%" height="100%" {...S} aria-hidden>
+    <circle cx="10.5" cy="10.5" r="6" /><path d="M15 15l5 5" />
+  </svg>
+)
+
 // The match controls (owner, 27 Sep 2026: "play should be just a play/pause
 // button, skip becomes a fast-forward button, squad just the two heads").
 // Filled, not stroked: at 20px on a button a stroked triangle reads thin.
