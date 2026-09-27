@@ -2245,23 +2245,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .qa-list .news-item { padding: 9px 14px 8px; }
 .qa-list .news-item .subj { font-size: 14px; }
 
-/* Finances in landscape: the ledger chips and the season graph share a row
-   rather than stacking, which is what pushed the top earners table off the
-   first screen. display:contents leaves portrait exactly as it was. */
-.fin-head { display: contents; }
-@media (orientation: landscape) and (min-width: 640px) {
-  .fin-head {
-    /* auto-fit, not two fixed tracks: before week 2 there is no season chart
-       yet, and a fixed 2-column grid squeezed the chips into half the width so
-       they wrapped onto more lines than they had started on. auto-fit collapses
-       the empty track and gives the chips the full row back. */
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-    gap: 0 6px; align-items: start;
-  }
-  .fin-head .chips { padding: 10px 8px 10px 16px; align-content: flex-start; }
-  .fin-chart .card { margin: 4px 12px 4px 0; }
-}
-
 /* MatchDay header in landscape: badges left, fixture details right. Centred and
    stacked it ran to 280px on a 390px screen, which pushed the team sheet - the
    thing you opened the screen to do - below the fold. */
@@ -3446,6 +3429,74 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .ledger-row.total .lg-what { color: var(--text-primary); font-weight: 700; }
 .ledger-row.total .lg-amt { font-size: 14px; }
+
+/* The balance sheet on Finances (1.8.0, owner: "more clear and like a balance
+   sheet ... needs to be more a list"). The cash in the bank is the one big
+   figure; everything under it is label left, amount right, in tabular
+   figures, with totals ruled off the way an account is. */
+/* Portrait is one list, top to bottom; a landscape phone or a tablet puts
+   the sheet in one column and the week, the treasury and the earners in the
+   other (scrollaudit measured the single column at 4.15 screenfuls). */
+.fin-cols, .fin-col { display: contents; }
+@media (orientation: landscape) and (min-width: 640px) {
+  .fin-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 4px; align-items: start; }
+  .fin-col { display: block; min-width: 0; }
+}
+.bs-cash { text-align: left; }
+.bs-cash-amt {
+  font-family: var(--cond); font-weight: 800; font-size: 38px; line-height: 1.05;
+  font-variant-numeric: tabular-nums; color: var(--text-primary); margin-top: 2px;
+}
+.bs-cash-amt.neg { color: var(--text-negative); }
+.bs .ledger-row { padding: 7px 0; font-size: 14px; }
+.bs .ledger-row .lg-amt { text-align: right; }
+.bs-head {
+  font-size: 10.5px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase;
+  color: var(--text-muted); padding: 12px 0 2px; border-top: 1px solid var(--border);
+}
+.ledger-row.bs-sub { border-top: 1px solid var(--border-strong); }
+.ledger-row.bs-sub .lg-what { color: var(--text-primary); font-weight: 600; }
+.ledger-row.bs-strong .lg-what { color: var(--text-primary); font-weight: 700; }
+.ledger-row.bs-net { border-top: 2px solid var(--border-strong); margin-top: 6px; padding-top: 9px; }
+.ledger-row.bs-close { border-top: 3px double var(--border-strong); }
+.ledger-row.bs-close .lg-what { color: var(--text-primary); font-weight: 700; }
+.ledger-row.bs-close .lg-amt { font-size: 16px; }
+.bs-pos { color: var(--text-positive); }
+.bs-neg { color: var(--text-negative); }
+.bs-note { margin-top: 6px; }
+.bs-seg { display: inline-flex; border: 1px solid var(--border-strong); border-radius: 8px; overflow: hidden; }
+.bs-seg button {
+  min-height: 36px; padding: 6px 10px; font-size: 12px; font-weight: 700;
+  color: var(--text-muted); background: transparent; position: relative;
+}
+/* the 44px tap floor without a 44px-tall pill (tapsize, geosweep) */
+.bs-seg button::after { content: ''; position: absolute; inset: -4px 0; }
+.bs-seg button.on { background: var(--surface-3); color: var(--text-primary); }
+
+/* The negotiating table on the Commercial tab (1.8.0, sponsortalks.ts). */
+.talk { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-strong); }
+.talk-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.talk-mood { font-size: 12.5px; font-weight: 700; }
+.talk-mood.m-keen { color: var(--text-positive); }
+.talk-mood.m-interested { color: var(--text-secondary); }
+.talk-mood.m-wary { color: var(--gold); }
+.talk-mood.m-impatient { color: var(--text-negative); }
+.talk-said {
+  margin-top: 6px; padding: 6px 10px; border-left: 3px solid var(--gold);
+  font-size: 13px; color: var(--text-secondary);
+}
+.talk-struct { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 4px; }
+.talk-struct button {
+  min-height: 44px; padding: 6px 6px; border-radius: 8px; line-height: 1.2;
+  border: 1px solid var(--border-strong); font-size: 12.5px; font-weight: 700;
+  color: var(--text-secondary); background: transparent; white-space: normal;
+}
+.talk-struct button.on { border-color: var(--primary); color: var(--text-primary); box-shadow: inset 0 0 0 1px var(--primary); }
+.talk-struct button:disabled { opacity: .4; }
+.talk-acts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
+.talk-acts .btn { margin: 0; width: 100%; min-height: 44px; white-space: normal; line-height: 1.2; }
+.obj-mark { flex: 0 0 18px; width: 18px; height: 18px; margin-top: 1px; }
+.obj-mark svg { width: 18px; height: 18px; display: block; }
 
 /* Four standing instructions, two by two (user: "tidy kickable penalty options
    so its 2 by 2 distributed buttons and do the same for exit strategy"). As a
