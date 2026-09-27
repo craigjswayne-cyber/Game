@@ -42,7 +42,7 @@ export default function Training() {
         {FOCUSES.map(f => (
           <button key={f.id} className={`club-pick${game.training === f.id ? ' sel' : ''}`} style={{ margin: 0 }}
             onClick={() => { game.training = f.id; touch() }}>
-            <span style={{ fontSize: 15 }}>{game.training === f.id ? '●' : '○'}</span>
+            <span style={{ fontSize: 16 }}>{game.training === f.id ? '●' : '○'}</span>
             <span className="cname">{t(f.name)}</span>
             <span className="muted" style={{ maxWidth: '52%', textAlign: 'right', fontSize: 11 }}>{t(f.desc)}</span>
           </button>
@@ -187,7 +187,7 @@ function StaffPanel() {
         return (
           <div className="card" style={{ padding: '7px 10px', marginBottom: 6, borderLeft: `4px solid ${net > 0 ? 'var(--text-positive)' : net < 0 ? 'var(--text-negative)' : 'var(--gold)'}` }}>
             <div className="fact-label">{t('training.staffRoom')}</div>
-            <div className="meta" style={{ fontSize: 11.5, marginBottom: 3 }}>
+            <div className="meta" style={{ fontSize: 12, marginBottom: 3 }}>
               {t(net > 0 ? 'training.roomPulling' : net < 0 ? 'training.roomDisagrees' : 'training.roomCancels')}
             </div>
             {/* ONE OF EACH, NOT EIGHT OF THREE (owner, v1.1.13: "the staff
@@ -244,7 +244,7 @@ function StaffPanel() {
                   {p ? (
                     <>
                       <h3 style={{ fontSize: 14, margin: 0 }}>
-                        {flagOf(p.nat)} {p.name} <b style={{ color: BADGE_COL[p.tier], fontSize: 11.5 }}>{badgeLabel(p.tier).toUpperCase()}</b>
+                        {flagOf(p.nat)} {p.name} <b style={{ color: BADGE_COL[p.tier], fontSize: 12 }}>{badgeLabel(p.tier).toUpperCase()}</b>
                       </h3>
                       <div className="meta" style={{ fontSize: 11 }}>
                         {t('training.staffLine', { age: p.age, trait: traitLabel(p.trait), wage: fmtWage(p.wage) })}
@@ -298,7 +298,7 @@ function StaffPanel() {
                 </div>
               )}
               {said && (
-                <div className="meta" style={{ fontSize: 11.5, fontWeight: 600, marginTop: 4, paddingTop: 4, borderTop: '1px solid var(--border)' }}>
+                <div className="meta" style={{ fontSize: 12, fontWeight: 600, marginTop: 4, paddingTop: 4, borderTop: '1px solid var(--border)' }}>
                   {said}
                 </div>
               )}
@@ -309,21 +309,21 @@ function StaffPanel() {
                 return (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, borderTop: '1px solid var(--border)', paddingTop: 5, marginTop: 5 }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 12.5, fontWeight: 700 }}>
-                        {flagOf(c.nat)} {c.name} <span style={{ color: BADGE_COL[c.tier], fontSize: 10.5 }}>{badgeLabel(c.tier).toUpperCase()}</span>
+                      <div style={{ fontSize: 13, fontWeight: 700 }}>
+                        {flagOf(c.nat)} {c.name} <span style={{ color: BADGE_COL[c.tier], fontSize: 11 }}>{badgeLabel(c.tier).toUpperCase()}</span>
                       </div>
-                      <div className="meta" style={{ fontSize: 10.5 }}>
+                      <div className="meta" style={{ fontSize: 11 }}>
                         {t('training.candLine', { age: c.age, trait: traitLabel(c.trait), wage: fmtWage(c.wage), fee: fmtMoney(c.fee) })}
                       </div>
                       {/* the money truth, on his row, before the tap - this is
                           the line the user went looking for and never found */}
                       {no && (
-                        <div className="meta" style={{ fontSize: 10.5, color: 'var(--danger)', fontWeight: 700 }}>
+                        <div className="meta" style={{ fontSize: 11, color: 'var(--danger)', fontWeight: 700 }}>
                           {no.short}
                         </div>
                       )}
                     </div>
-                    <span className="meta" style={{ fontSize: 10.5, color: keen === 'keen' ? 'var(--text-positive)' : keen === 'persuadable' ? 'var(--border-strong)' : 'var(--text-negative)', fontWeight: 700, flexShrink: 0 }}>
+                    <span className="meta" style={{ fontSize: 11, color: keen === 'keen' ? 'var(--text-positive)' : keen === 'persuadable' ? 'var(--border-strong)' : 'var(--text-negative)', fontWeight: 700, flexShrink: 0 }}>
                       {t(keen === 'keen' ? 'training.keen' : keen === 'persuadable' ? 'training.listening' : 'training.notInterested')}
                     </span>
                     <button className="btn" style={{ padding: '4px 9px', fontSize: 11, flexShrink: 0 }}

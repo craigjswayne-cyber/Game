@@ -855,6 +855,9 @@ export interface SideCtx {
    *  been on since the kick-off). Only the in-match player sheet reads it, to
    *  share a side's tackles by the minutes each man has been out there. */
   onAt?: Map<number, number>
+  /** TACKLES MADE AND MISSED, by player (1.8.0, countTackles). */
+  tackles?: Map<number, number>
+  missed?: Map<number, number>
   yellowUntil: Map<number, number>
   /** players currently sitting out a yellow - off the pitch, back in ten.
    *  Before this existed a sin-binned man stayed in onPitch and could score
@@ -3273,6 +3276,15 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
             // so the instruction goes through exactly the path a tap would take
             resolveDecision(state, ctx, standing)
           }
+        } else if (side.isUser && standing !== 'ask' && !ctx.decision) {
+          // THE STANDING CALL HOLDS ON AN INSTANT RESULT TOO (1.8.0). It was
+          // only read in a match being watched, so a manager who set "go for
+          // the corner" and simmed the match had the AI's choice made for
+          // them (found by scripts/optionsprobe.ts: corner and tap changed
+          // nothing at all). 'ask' with nobody to ask still falls to the
+          // kicker's judgement, as before.
+          ctx.decision = { kind: 'penalty', min, fld: ctx.field }
+          resolveDecision(state, ctx, standing)
         } else {
           takePenaltyShot(state, ctx, side, min)
         }
@@ -3305,8 +3317,10 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
             : wet && rng() < 0.3 ? FLAVOR_WET
             : ctx.weather === 'Wind' && rng() < 0.25 ? FLAVOR_WIND
             : FLAVOR
-          pushLine(state, ctx, min, 'SUB', side, styledKick(pool[Math.floor(rng() * pool.length)], state.clubs[side.teamId]?.tactic.kickStyle),
+          const key = styledKick(pool[Math.floor(rng() * pool.length)], state.clubs[side.teamId]?.tactic.kickStyle)
+          pushLine(state, ctx, min, 'SUB', side, key,
             { player: p.name, team: teamShort(state, side.teamId) }, p.id)
+          if (TACKLE_LINES.has(key)) (side.tackles ??= new Map()).set(p.id, (side.tackles.get(p.id) ?? 0) + 1)
         }
       }
     }
@@ -3502,6 +3516,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
   // momentum needle: who owned the last few minutes
   const dh = home.poss - poss0[0]
   const da = away.poss - poss0[1]
+  countTackles(state, ctx, tick, dh, da)
   ctx.momo = clamp(ctx.momo * 0.62 + (dh - da) * 0.55, -1, 1)
   // rolling possession history: each entry is the home share of one tick,
   // so the live 'LAST 10 MINUTES' graphic can average the recent window
@@ -4053,7 +4068,9 @@ export function applyTacticsChange(state: GameState, ctx: LiveCtx) {
  * Possession, tries, penalties, cards and energy are MEASURED: the engine has
  * been keeping every one of them all along.
  *
- * The set pieces and tackles are DERIVED, and the difference is worth being
+ * (Tackles were derived too, until 1.8.0 counted them: countTackles.)
+ *
+ * The set pieces are DERIVED, and the difference is worth being
  * straight about. The engine does not simulate an individual scrum, so these
  * are computed from things it does simulate - how much ball each side has
  * actually had, and the two packs' real scrum, lineout and defence numbers.
@@ -4067,6 +4084,59 @@ export function applyTacticsChange(state: GameState, ctx: LiveCtx) {
  * NO RNG. A pure function of state that already exists, so it can be called
  * on every render of a live match without the stream ever noticing.
  */
+/** How a side's tackling is shared across the XV by shirt: flankers make the
+ *  most, then the locks, hooker, No. 8 and centres; the back three the fewest.
+ *  From the tackle counts of top-flight games. */
+const SLOT_TACKLES = [7, 10, 7, 11, 11, 13, 14, 11, 7, 8, 4, 10, 10, 4, 3]
+
+/**
+ * ---- EVERY TACKLE, COUNTED AND NAMED (1.8.0) ----
+ *
+ * Owner, 27 Sep 2026: "track the tackles accurately? How do we do that?" The
+ * engine plays a match in twenty four-minute ticks and never simulated a
+ * single tackle: the stats panel's figure was worked out afterwards from
+ * possession, and the first per-player column shared that figure out by
+ * shirt. Now each tick the engine plays the tackles: a side makes about 4
+ * attempts a minute for every minute the other side has the ball (the ball
+ * each side actually won this tick, dh and da), a better defence gets through
+ * more, and every attempt goes to a man on the pitch - weighted by his shirt,
+ * his tackling and how much he has left in his legs. His tackling decides
+ * whether he makes it or misses it. A man in the bin, off injured or not yet
+ * on makes none, because he is not in onPitch.
+ *
+ * ITS OWN DICE. The draws come from a stream seeded by the fixture and the
+ * tick, never from the match's rng, so counting tackles cannot move a single
+ * score, card or injury, and a resumed match counts them exactly as before.
+ */
+function countTackles(state: GameState, ctx: LiveCtx, tick: number, dh: number, da: number) {
+  const total = dh + da
+  if (total <= 0) return
+  const rng = mulberry32((((ctx.fx.id | 0) * 7919) ^ (tick * 104729) ^ ((state.season | 0) * 31)) >>> 0)
+  for (const [def, attPoss] of [[ctx.home, da], [ctx.away, dh]] as [SideCtx, number][]) {
+    const men = [...def.onPitch].map(id => state.players[id]).filter((p): p is Player => !!p)
+    if (!men.length) continue
+    // 4 minutes a tick, 4 attempts a minute without the ball: about 160 a
+    // match at even possession, 140 of them made, a top-flight side's count
+    const expected = 4 * 4 * (attPoss / total) * (0.9 + def.units.defence / 900)
+    const n = Math.floor(expected) + (rng() < expected % 1 ? 1 : 0)
+    const weights = men.map(p => {
+      const slot = def.lineup.indexOf(p.id)
+      const shirt = slot >= 0 && slot < 15 ? SLOT_TACKLES[slot] : 8
+      return shirt * (0.7 + 0.6 * p.a.tac / 20) * (0.6 + 0.4 * (def.energy.get(p.id) ?? 80) / 100)
+    })
+    const made = (def.tackles ??= new Map()), miss = (def.missed ??= new Map())
+    for (let i = 0; i < n; i++) {
+      const p = wpick(rng, men, weights)
+      const hold = clamp(0.8 + (p.a.tac - 12) * 0.012, 0.62, 0.96)
+      if (rng() < hold) made.set(p.id, (made.get(p.id) ?? 0) + 1)
+      else miss.set(p.id, (miss.get(p.id) ?? 0) + 1)
+    }
+  }
+}
+
+/** A commentary line that names a man for a hit is a tackle he made. */
+const TACKLE_LINES = new Set(['comm.flavPac5', 'comm.flav8', 'comm.flav12', 'comm.flav15'])
+
 function cameOn(side: SideCtx, id: number, min: number) {
   (side.onAt ??= new Map()).set(id, min)
 }
@@ -4093,9 +4163,12 @@ export function matchStats(ctx: LiveCtx) {
   const [asw, asl] = setPiece(ctx.away, 0.16, ctx.away.units.scrum, ctx.home.units.scrum)
   const [hlw, hll] = setPiece(ctx.home, 0.30, ctx.home.units.lineout, ctx.away.units.lineout)
   const [alw, all_] = setPiece(ctx.away, 0.30, ctx.away.units.lineout, ctx.home.units.lineout)
-  // you tackle when they have the ball, and a real defence gets through more
-  const tackles = (s: SideCtx) =>
-    Math.round(mins * (1 - share(s)) * 3.6 * (0.9 + s.units.defence / 900))
+  // COUNTED, since 1.8.0 (countTackles): the sum of every man's tackles. A
+  // match begun by an older build has no counts, and falls back to the
+  // figure this used to work out from possession and the defence.
+  const tackles = (s: SideCtx) => s.tackles
+    ? [...s.tackles.values()].reduce((a, b) => a + b, 0)
+    : Math.round(mins * (1 - share(s)) * 3.6 * (0.9 + s.units.defence / 900))
   return {
     possession: [Math.round((ctx.home.poss / tot) * 100), Math.round((ctx.away.poss / tot) * 100)] as [number, number],
     tries: [ctx.home.tries, ctx.away.tries] as [number, number],

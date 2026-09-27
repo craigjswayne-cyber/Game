@@ -280,7 +280,7 @@ export function AvailTag({ p, g }: { p: Player; g: GameState }) {
   // `tag`, not `t`: t() is the translator
   const tag = availabilityTag(p, g.week)
   if (!tag) return null
-  return <span style={{ color: tag.color, fontWeight: 700, fontSize: 10.5 }}>{tag.txt}</span>
+  return <span style={{ color: tag.color, fontWeight: 700, fontSize: 11 }}>{tag.txt}</span>
 }
 
 export function attrClass(v: number): string {

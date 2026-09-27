@@ -145,7 +145,7 @@ function MondayBlocks() {
             <div className="fact-label">{t('dayroom.satReviewed')}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
               <CrestT g={game} teamId={oppId} size={22} />
-              <b style={{ fontSize: 15, color: col }}>{verdict} {us}-{them}</b>
+              <b style={{ fontSize: 16, color: col }}>{verdict} {us}-{them}</b>
               <span className="muted">
                 {t(home ? 'dayroom.homeTo' : 'dayroom.awayAt', { club: teamShort(game, oppId) })}
               </span>

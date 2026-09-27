@@ -695,7 +695,7 @@ function AnalystCard() {
         <b style={{ color: 'var(--gold)' }}>{unitLabel(read.unit)}.</b> {analystClaim(read)}
       </div>
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 6, flexWrap: 'wrap' }}>
-        <button className="btn gold" style={{ padding: '5px 10px', fontSize: 11.5 }}
+        <button className="btn gold" style={{ padding: '5px 10px', fontSize: 12 }}
           disabled={followed}
           onClick={() => { game.matchPrep = read.prep; touch() }}>
           {followed ? t('analyst.preparing', { prep: prepLabel(read.prep) }) : t('analyst.workOnIt', { prep: prepLabel(read.prep) })}

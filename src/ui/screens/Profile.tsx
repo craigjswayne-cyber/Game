@@ -119,7 +119,7 @@ export default function Profile() {
     <>
       <div className="card" style={{ textAlign: 'center' }}>
         <div style={{ fontSize: 44, lineHeight: 1 }}>{badge.icon}</div>
-        <h3 style={{ fontSize: 19, marginTop: 6 }}>{game.managerName}</h3>
+        <h3 style={{ fontSize: 18, marginTop: 6 }}>{game.managerName}</h3>
         <div className="meta">{game.unemployed ? t('profile.unemployed') : t('profile.directorOfRugby', { club: club.name })}</div>
         <div style={{ marginTop: 8, fontFamily: 'var(--cond)', fontWeight: 700, letterSpacing: 1, color: badge.color, textTransform: 'uppercase' }}>
           {badge.name}
@@ -161,7 +161,7 @@ export default function Profile() {
 
       {game.natOffer && (
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-          <h3 style={{ fontSize: 15 }}>{t('profile.natOffer', { nat: nationName(game.natOffer.nat) })}</h3>
+          <h3 style={{ fontSize: 16 }}>{t('profile.natOffer', { nat: nationName(game.natOffer.nat) })}</h3>
           <div className="meta">{t('profile.natOfferBody')}</div>
           {/* v1.1.5 (owner): taking the national side asks about the club job
               - keep both, or clear the desk and go all-in on country. An
@@ -203,7 +203,7 @@ export default function Profile() {
           back on the screen. */}
       {game.natKeepAsk && game.natTeam && !game.unemployed && club && (
         <div className="card" style={{ borderLeft: '4px solid var(--text-positive)' }}>
-          <h3 style={{ fontSize: 15 }}>{t('profile.natKeepAskTitle', { nat: nationName(game.natKeepAsk) })}</h3>
+          <h3 style={{ fontSize: 16 }}>{t('profile.natKeepAskTitle', { nat: nationName(game.natKeepAsk) })}</h3>
           <div className="meta">{t('profile.natKeepAskBody', { nat: nationName(game.natKeepAsk), club: club.short })}</div>
           <div className="btn-row" style={{ marginTop: 10 }}>
             <button className="btn danger" onClick={() => answerNatKeep(false)}>{t('profile.natResignClub')}</button>
@@ -233,7 +233,7 @@ export default function Profile() {
           current, stays on the CV for good */}
       {((game.natHistory ?? []).length > 0 || (game.natTeam && game.natRecord)) && (
         <div className="card" style={{ borderLeft: '4px solid var(--text-positive)' }}>
-          <h3 style={{ fontSize: 15 }}>{t('profile.intlRecord')}</h3>
+          <h3 style={{ fontSize: 16 }}>{t('profile.intlRecord')}</h3>
           {(game.natHistory ?? []).map((ten, i) => (
             <div key={i} className="meta" style={{ padding: '3px 0' }}>
               {flagOf(ten.nat)} <b>{nationName(ten.nat)}</b> · {t(ten.m === 1 ? 'profile.testLineOne' : 'profile.testLine', { m: ten.m, w: ten.w, d: ten.d, l: ten.l })}
@@ -248,7 +248,7 @@ export default function Profile() {
       )}
       {(game.challengesDone ?? []).length > 0 && (
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-          <h3 style={{ fontSize: 15 }}>{t('profile.challengesConquered')}</h3>
+          <h3 style={{ fontSize: 16 }}>{t('profile.challengesConquered')}</h3>
           {(game.challengesDone ?? []).map(id => (
             <div key={id} className="meta" style={{ padding: '3px 0', fontWeight: 700 }}>
               {t(CHALLENGES.find(c => c.id === id)?.title ?? id)}
@@ -347,10 +347,10 @@ export default function Profile() {
                   different x positions. Width plus centring makes the marker a
                   column rather than a character, and the size is pinned so the
                   triangles stop riding above the 11.5px line beside them. */}
-              <span style={{ flexShrink: 0, width: 13, textAlign: 'center', fontSize: 10.5, lineHeight: '13px', color: d.good === true ? 'var(--text-positive)' : d.good === false ? 'var(--text-negative)' : 'var(--border-strong)', fontWeight: 700 }}>
+              <span style={{ flexShrink: 0, width: 13, textAlign: 'center', fontSize: 11, lineHeight: '13px', color: d.good === true ? 'var(--text-positive)' : d.good === false ? 'var(--text-negative)' : 'var(--border-strong)', fontWeight: 700 }}>
                 {d.good === true ? '▲' : d.good === false ? '▼' : '•'}
               </span>
-              <span className="meta" style={{ fontSize: 11.5 }}>{decisionText(d)}</span>
+              <span className="meta" style={{ fontSize: 12 }}>{decisionText(d)}</span>
             </div>
           ))}
         </div>

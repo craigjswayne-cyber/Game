@@ -114,7 +114,7 @@ export default function Medical() {
 
       {allClear && (
         <div className="card center" style={{ borderLeft: '4px solid var(--text-positive)' }}>
-          <h3 style={{ fontSize: 15 }}>{t(q ? 'medical.nothingOnHim' : 'medical.quietRoom')}</h3>
+          <h3 style={{ fontSize: 16 }}>{t(q ? 'medical.nothingOnHim' : 'medical.quietRoom')}</h3>
           <div className="meta">{t(q ? 'medical.nothingOnHimSub' : 'medical.quietRoomSub')}</div>
         </div>
       )}

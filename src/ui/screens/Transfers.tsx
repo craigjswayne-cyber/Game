@@ -272,7 +272,7 @@ export default function Transfers() {
                   <button className="btn danger" onClick={() => { setMsg({ key: `offer:${o.id}`, text: respondToOffer(game, o.id, false) }); touch() }}>{t('transfers.reject')}</button>
                 </div>
                 {msg?.key === `offer:${o.id}` && (
-                  <div className="meta" style={{ fontSize: 11.5, fontWeight: 600, marginTop: 6 }}>{msg.text}</div>
+                  <div className="meta" style={{ fontSize: 12, fontWeight: 600, marginTop: 6 }}>{msg.text}</div>
                 )}
               </div>
             )
@@ -609,7 +609,7 @@ function ScoutCommission() {
             </select>
             <div style={{ display: 'flex', gap: 8 }}>
               {([3, 6, 9] as SearchMonths[]).map(m => (
-                <button key={m} className="btn gold" style={{ flex: '1 1 0', minWidth: 0, padding: '9px 4px', fontSize: 11.5, lineHeight: 1.25 }}
+                <button key={m} className="btn gold" style={{ flex: '1 1 0', minWidth: 0, padding: '9px 4px', fontSize: 12, lineHeight: 1.25 }}
                   onClick={() => { setMsg(commissionScout(game, pos, m)); touch() }}>
                   {t('transfers.months', { n: m })}<br />
                   <span style={{ fontSize: 10, fontWeight: 600 }}>{fmtMoney(searchFee(m, Math.max(1, tier)))}</span>
@@ -679,10 +679,10 @@ function ScoutReports() {
         {reports.map((n, i) => (
           <div key={n.id} style={{ padding: '6px 0', borderTop: i ? '1px solid var(--border)' : undefined }}
             onClick={() => setOpenId(openId === n.id ? null : n.id)}>
-            <div className="meta" style={{ fontSize: 10.5 }}>{weekDate(n.season, n.week)}</div>
-            <div style={{ fontWeight: 700, fontSize: 12.5, lineHeight: 1.3 }}>{newsSubject(n)}</div>
+            <div className="meta" style={{ fontSize: 11 }}>{weekDate(n.season, n.week)}</div>
+            <div style={{ fontWeight: 700, fontSize: 13, lineHeight: 1.3 }}>{newsSubject(n)}</div>
             {openId === n.id && (
-              <div className="meta" style={{ whiteSpace: 'pre-line', fontSize: 11.5, marginTop: 3 }}>{newsBody(n)}</div>
+              <div className="meta" style={{ whiteSpace: 'pre-line', fontSize: 12, marginTop: 3 }}>{newsBody(n)}</div>
             )}
           </div>
         ))}

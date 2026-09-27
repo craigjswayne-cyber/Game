@@ -92,7 +92,7 @@ export default function SeasonReview() {
           <>
             <SectionTitle sub={t('legacy.srDreamSub')}>{t('legacy.lgTheDream')}</SectionTitle>
             <div className="card" style={{ borderLeft: `4px solid ${r.dream.done ? 'var(--primary)' : 'var(--gold)'}` }}>
-              <div style={{ fontWeight: 700, fontSize: 15 }}>{r.dream.titleK ? t(r.dream.titleK, r.dream.titleV) : r.dream.title}</div>
+              <div style={{ fontWeight: 700, fontSize: 16 }}>{r.dream.titleK ? t(r.dream.titleK, r.dream.titleV) : r.dream.title}</div>
               <div style={{ height: 7, background: 'var(--border-strong)', borderRadius: 4, overflow: 'hidden', margin: '8px 0 5px' }}>
                 <div style={{ width: `${Math.min(100, Math.round((r.dream.at / Math.max(1, r.dream.goal)) * 100))}%`, height: '100%', background: r.dream.done ? 'var(--primary)' : 'var(--gold-fill)' }} />
               </div>
@@ -187,7 +187,7 @@ export default function SeasonReview() {
           </>
         )}
 
-        <button className="btn gold block" style={{ marginTop: 12, fontSize: 15 }} onClick={back}>
+        <button className="btn gold block" style={{ marginTop: 12, fontSize: 16 }} onClick={back}>
           {t('legacy.srFileAway')}
         </button>
         <div className="spacer" />

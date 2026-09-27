@@ -482,8 +482,8 @@ function Preview({ fxId }: { fxId: number }) {
         <td style={{ width: 38 }}><PosBadge pos={pos} /></td>
         <td className="name">
           {p ? p.name : <span className="muted">{t('matchday.tapToPick')}</span>}
-          {prob && p && <span style={{ color: 'var(--text-negative)', fontSize: 10.5, fontWeight: 700 }}> {prob}</span>}
-          {!prob && p && (p.rust ?? 0) > 0 && <span style={{ color: 'var(--gold)', fontSize: 10.5, fontWeight: 700 }}> {t('matchday.rusty')}</span>}
+          {prob && p && <span style={{ color: 'var(--text-negative)', fontSize: 11, fontWeight: 700 }}> {prob}</span>}
+          {!prob && p && (p.rust ?? 0) > 0 && <span style={{ color: 'var(--gold)', fontSize: 11, fontWeight: 700 }}> {t('matchday.rusty')}</span>}
         </td>
         <td style={{ width: 92 }}>{p && <Stars ca={effAt(p, pos)} />}</td>
         <td className="num" style={{ width: 44 }}>{p ? `${Math.round(p.cond)}%` : ''}</td>
@@ -509,7 +509,7 @@ function Preview({ fxId }: { fxId: number }) {
                 style={tac.lineup.includes(p.id) ? { opacity: .55 } : undefined}>
                 <td><PosBadge pos={p.pos} /></td>
                 <td className="name">{p.name}{tac.lineup.includes(p.id) ? t('matchday.selected') : ''}
-                  {(p.rust ?? 0) > 0 && <span style={{ color: 'var(--gold)', fontSize: 10.5, fontWeight: 700 }}> {t('matchday.rustyW', { n: p.rust ?? 0 })}</span>}
+                  {(p.rust ?? 0) > 0 && <span style={{ color: 'var(--gold)', fontSize: 11, fontWeight: 700 }}> {t('matchday.rustyW', { n: p.rust ?? 0 })}</span>}
                 </td>
                 <td><Stars ca={effAt(p, pos)} /></td>
                 <td className="num">{Math.round(p.cond)}%</td>
@@ -529,7 +529,7 @@ function Preview({ fxId }: { fxId: number }) {
         <div className="modal" onClick={e => e.stopPropagation()}>
           <div className="grab" />
           <div style={{ padding: '0 18px 4px' }}>
-            <h3 style={{ fontSize: 17, margin: '2px 0 8px', textAlign: 'center' }}>{t('matchday.readyTitle')}</h3>
+            <h3 style={{ fontSize: 18, margin: '2px 0 8px', textAlign: 'center' }}>{t('matchday.readyTitle')}</h3>
             {warnings.length === 0 && (
               <div className="meta" style={{ margin: '6px 0', textAlign: 'center' }}>{t('matchday.readyOk')}</div>
             )}
@@ -537,7 +537,7 @@ function Preview({ fxId }: { fxId: number }) {
               <div style={{ maxHeight: '34vh', overflowY: 'auto', border: '1px solid var(--border)', borderRadius: 10, padding: '2px 10px' }}>
                 {warnings.map((w, i) => (
                   <div key={i} style={{
-                    display: 'flex', gap: 8, padding: '6px 0', fontSize: 12.5, lineHeight: 1.4,
+                    display: 'flex', gap: 8, padding: '6px 0', fontSize: 13, lineHeight: 1.4,
                     color: w.level === 'bad' ? 'var(--text-negative)' : w.level === 'warn' ? 'var(--gold)' : 'var(--text-secondary)',
                     borderBottom: i < warnings.length - 1 ? '1px solid var(--border)' : 'none',
                   }}>
@@ -567,7 +567,7 @@ function Preview({ fxId }: { fxId: number }) {
               {/* the gold button's label keeps the exact 'Take the Field' text
                   inside it because that substring is what a tap looks for -
                   scripts/i18nprobe.ts pins the English value for the same reason */}
-              <button className="btn gold" style={{ flex: 1.5, fontSize: 15 }}
+              <button className="btn gold" style={{ flex: 1.5, fontSize: 16 }}
                 onClick={() => {
                   if (hasBad && fixedLineup) { tac.lineup = fixedLineup; touch() }
                   setConfirm(false)
@@ -603,12 +603,12 @@ function Preview({ fxId }: { fxId: number }) {
           <div className="mday-badges" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 4 }}>
             <CrestT g={game} teamId={fx.homeId} size={38} />
             {game.clubs[fx.homeId] && <Jersey club={game.clubs[fx.homeId]} size={54} />}
-            <span style={{ fontFamily: 'var(--cond)', fontWeight: 700, fontSize: 15, color: 'var(--text-muted)', letterSpacing: 2 }}>{t('matchday.vs')}</span>
+            <span style={{ fontFamily: 'var(--cond)', fontWeight: 700, fontSize: 16, color: 'var(--text-muted)', letterSpacing: 2 }}>{t('matchday.vs')}</span>
             {game.clubs[fx.awayId] && <Jersey club={game.clubs[fx.awayId]} size={54} />}
             <CrestT g={game} teamId={fx.awayId} size={38} />
           </div>
           <div className="mday-facts">
-          <h3 style={{ fontSize: 19 }}>{t('matchday.vsLine', { home: teamShort(game, fx.homeId), away: teamShort(game, fx.awayId) })}</h3>
+          <h3 style={{ fontSize: 18 }}>{t('matchday.vsLine', { home: teamShort(game, fx.homeId), away: teamShort(game, fx.awayId) })}</h3>
           <div className="meta">🏟️ {fx.venue
             ? t('matchday.venueNeutral', { name: fx.venue.name, city: fx.venue.city })
             : home ? t('matchday.venueHome', { stadium: home.stadium, city: home.city }) : t('common.neutralVenue')}</div>
@@ -1003,7 +1003,7 @@ function Preview({ fxId }: { fxId: number }) {
               {t(planApplied ? 'matchday.planApplied' : 'matchday.planApply')}
             </button>
             {rewardedAvailable('matchday') && !fullRead && allPlans.length > gamePlan.length && (
-              <RewardedButton place="matchday" style={{ marginTop: 6, fontSize: 12.5 }}
+              <RewardedButton place="matchday" style={{ marginTop: 6, fontSize: 13 }}
                 label={t('till.watchAnalyst', { n: allPlans.length - gamePlan.length, ...subjectVar(game.analystGender) })}
                 onDone={out => {
                   if (out === 'completed') rewardAnalyst()
@@ -1034,7 +1034,7 @@ function Preview({ fxId }: { fxId: number }) {
               <SectionTitle sub={t('matchday.partnershipsSub')}>{t('matchday.partnerships')}</SectionTitle>
               <div className="card" style={{ paddingTop: 6, paddingBottom: 6 }}>
                 {rows.map(r => (
-                  <div key={r.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', borderBottom: '1px solid var(--border)', fontSize: 12.5 }}>
+                  <div key={r.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', borderBottom: '1px solid var(--border)', fontSize: 13 }}>
                     <span><span style={{ color: 'var(--text-muted)', fontFamily: 'var(--cond)', textTransform: 'uppercase', letterSpacing: .5, fontSize: 11 }}>{r.key}</span> · {surname(r.a.name)} & {surname(r.b.name)}</span>
                     <span style={{ color: r.g >= 25 ? 'var(--text-positive)' : r.g < 5 ? 'var(--text-negative)' : 'var(--text-secondary)', fontWeight: 600 }}>
                       {t('matchday.partTogether', { n: r.g, tier: r.tier })}
@@ -1247,10 +1247,10 @@ function NationPreview({ fxId }: { fxId: number }) {
         <div className="card center">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, marginBottom: 4 }}>
             <CrestT g={game} teamId={fx.homeId} size={40} />
-            <span style={{ fontFamily: 'var(--cond)', fontWeight: 700, fontSize: 15, color: 'var(--text-muted)', letterSpacing: 2 }}>{t('matchday.vs')}</span>
+            <span style={{ fontFamily: 'var(--cond)', fontWeight: 700, fontSize: 16, color: 'var(--text-muted)', letterSpacing: 2 }}>{t('matchday.vs')}</span>
             <CrestT g={game} teamId={fx.awayId} size={40} />
           </div>
-          <h3 style={{ fontSize: 19 }}>{t('matchday.vsLine', { home: teamShort(game, fx.homeId), away: teamShort(game, fx.awayId) })}</h3>
+          <h3 style={{ fontSize: 18 }}>{t('matchday.vsLine', { home: teamShort(game, fx.homeId), away: teamShort(game, fx.awayId) })}</h3>
           <div className="meta">{t('matchday.intlLine')}</div>
         </div>
         {/* THE OTHER SATURDAY, NAMED. The club fixture does not vanish because
@@ -1380,12 +1380,12 @@ function NationPreview({ fxId }: { fxId: number }) {
                 big for the screen". The club ready sheet has always had this
                 wrapper and this centring; the Test one never did. */}
             <div style={{ padding: '0 18px 4px' }}>
-              <h3 style={{ fontSize: 17, margin: '2px 0 8px', textAlign: 'center' }}>{t('matchday.readyNation', { nat: nationName(nat) })}</h3>
+              <h3 style={{ fontSize: 18, margin: '2px 0 8px', textAlign: 'center' }}>{t('matchday.readyNation', { nat: nationName(nat) })}</h3>
               <div className="meta" style={{ margin: '6px 0', textAlign: 'center' }}>{t('matchday.anthems')}</div>
             </div>
             <div className="btn-row" style={{ marginTop: 12 }}>
               <button className="btn ghost" onClick={() => setConfirm(false)}>{t('matchday.notYet')}</button>
-              <button className="btn gold" style={{ flex: 1.5, fontSize: 15 }}
+              <button className="btn gold" style={{ flex: 1.5, fontSize: 16 }}
                 onClick={() => {
                   setConfirm(false)
                   if (view === 'instant') instantResult(speech ?? undefined)
@@ -3039,7 +3039,7 @@ function DecisionPanel() {
 
   return (
     <div className="card" style={{ margin: '12px 0', borderLeft: '4px solid var(--danger)' }}>
-      <h3 style={{ fontSize: 15 }}>{t('matchday.penCall')}</h3>
+      <h3 style={{ fontSize: 16 }}>{t('matchday.penCall')}</h3>
       <div className="meta" style={{ marginBottom: 8 }}>
         {t('matchday.penScore', { home: teamShort(game, mine.teamId), hs: mine.score, as: opp.score, away: teamShort(game, opp.teamId) })}
         {diff < 0 ? t('matchday.penBehind', { n: -diff }) : diff > 0 ? t('matchday.penAhead', { n: diff }) : t('matchday.penLevel')}
@@ -3051,8 +3051,8 @@ function DecisionPanel() {
             onClick={() => decide(o.id)}>
             <span style={{ fontSize: 20 }}>{o.icon}</span>
             <span>
-              <b style={{ display: 'block', fontSize: 13.5 }}>{o.name}</b>
-              <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>{o.desc}</span>
+              <b style={{ display: 'block', fontSize: 14 }}>{o.name}</b>
+              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{o.desc}</span>
             </span>
           </button>
         ))}
@@ -3132,7 +3132,7 @@ function MatchVerdict() {
             <b>{star.name}</b>{' '}
             <span className="muted">({clubCode(teamShort(game, starMine ? mine.teamId : opp.teamId))})</span>
           </div>
-          <span className="form-pill" style={{ background: 'var(--text-positive)', fontSize: 15 }}>
+          <span className="form-pill" style={{ background: 'var(--text-positive)', fontSize: 16 }}>
             {ctx.motmId != null ? (mine.ratings.get(ctx.motmId) ?? opp.ratings.get(ctx.motmId) ?? 7).toFixed(1) : ''}
           </span>
         </div>
@@ -3155,8 +3155,8 @@ function MatchVerdict() {
             <div key={i} className="fix-row">
               <span className="fix-no">{i + 1}</span>
               <span>
-                <b style={{ display: 'block', fontSize: 12.5 }}>{f.head}</b>
-                <span className="muted" style={{ fontSize: 11.5 }}>{f.how}</span>
+                <b style={{ display: 'block', fontSize: 13 }}>{f.head}</b>
+                <span className="muted" style={{ fontSize: 12 }}>{f.how}</span>
               </span>
             </div>
           ))}
@@ -3170,7 +3170,7 @@ function MatchVerdict() {
         // emporté de peu' put the subject in different places, so each whole
         // half-sentence is its own key
         return (
-          <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '3px 0', borderBottom: '1px solid var(--border)', fontSize: 12.5 }}>
+          <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '3px 0', borderBottom: '1px solid var(--border)', fontSize: 13 }}>
             <span style={{ color: 'var(--text-secondary)' }}>{t(label)}</span>
             <span><b style={{ color, fontFamily: 'var(--cond)', fontSize: 14 }}>{pct}%</b>
               <span className="muted">{t(`matchday.uw${verdict[0].toUpperCase()}${verdict.slice(1)}`)}</span>
@@ -3271,7 +3271,7 @@ function StatsPanel() {
     const share = v[0] + v[1] > 0 ? v[0] / (v[0] + v[1]) : 0.5
     return (
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '5px 0', borderBottom: '1px solid var(--border)', fontSize: 13 }}>
-        <b style={{ width: 34, textAlign: 'right', fontFamily: 'var(--cond)', fontSize: 15 }}>{v[0]}{pct ? '%' : ''}</b>
+        <b style={{ width: 34, textAlign: 'right', fontFamily: 'var(--cond)', fontSize: 16 }}>{v[0]}{pct ? '%' : ''}</b>
         <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
           <span style={{ textAlign: 'center', color: 'var(--text-muted)', fontFamily: 'var(--cond)', textTransform: 'uppercase', letterSpacing: 1, fontSize: 12 }}>{label}</span>
           <span className="stat-bar" style={{ '--d': `${150 + n++ * 110}ms` } as CSSProperties}>
@@ -3279,7 +3279,7 @@ function StatsPanel() {
             <i className="a" style={{ transform: `scaleX(${(1 - share).toFixed(3)})`, background: colour(live.fixture.awayId) }} />
           </span>
         </span>
-        <b style={{ width: 34, fontFamily: 'var(--cond)', fontSize: 15 }}>{v[1]}{pct ? '%' : ''}</b>
+        <b style={{ width: 34, fontFamily: 'var(--cond)', fontSize: 16 }}>{v[1]}{pct ? '%' : ''}</b>
       </div>
     )
   }
@@ -3404,7 +3404,7 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
 
   return (
     <div className="card" style={{ margin: '12px 0', borderLeft: '4px solid var(--gold)' }}>
-      <h3 style={{ fontSize: 15 }}>{title}</h3>
+      <h3 style={{ fontSize: 16 }}>{title}</h3>
       {advice.length > 0 && (
         <div style={{ margin: '6px 0 2px', padding: '8px 10px', background: 'color-mix(in srgb, var(--gold) 14%, var(--surface-1))', borderRadius: 8 }}>
           <div className="fact-label">{t('matchday.assistantNotes')}</div>
@@ -3419,7 +3419,7 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
           <div className="fact-label" style={{ marginTop: 4 }}>{t('matchday.teamTalk')}</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 6 }}>
             {talks.map(([k, label]) => (
-              <button key={k} className="btn ghost" style={{ fontSize: 12.5, padding: '9px 6px' }}
+              <button key={k} className="btn ghost" style={{ fontSize: 13, padding: '9px 6px' }}
                 onClick={() => teamTalk(k)}>{t(label)}</button>
             ))}
           </div>
@@ -3735,7 +3735,7 @@ function EnergyBars({ mine }: { mine: SideCtx }) {
     <div style={{ marginTop: 8 }}>
       <div className="fact-label">{t('matchday.assistantsEye')}</div>
       {rows.map(({ p, e }) => (
-        <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '2px 0', fontSize: 11.5 }}>
+        <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '2px 0', fontSize: 12 }}>
           <span style={{ width: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</span>
           <div style={{ flex: 1, height: 7, background: 'var(--border-strong)', borderRadius: 4, overflow: 'hidden' }}>
             {/* the true width, not a banded one: a gauge that rounds to fifths

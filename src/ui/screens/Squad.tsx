@@ -130,7 +130,7 @@ export default function Squad() {
       <td>
         <span style={{
           display: 'inline-block', minWidth: 26, textAlign: 'center',
-          fontFamily: 'var(--cond)', fontWeight: 700, fontSize: 12.5,
+          fontFamily: 'var(--cond)', fontWeight: 700, fontSize: 13,
           borderRadius: 4, padding: '1.5px 4px',
           background: xv ? 'var(--club1)' : 'color-mix(in srgb, var(--club1) 30%, var(--surface-1))',
           color: xv ? 'var(--club1-ink)' : 'var(--text-primary)',

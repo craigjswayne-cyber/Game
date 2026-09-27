@@ -24,7 +24,7 @@ export default function Legacy() {
     <>
       <div className="card" style={{ textAlign: 'center' }}>
         <div style={{ display: 'flex', justifyContent: 'center' }}><Crest club={club} size={44} mr={0} /></div>
-        <h3 style={{ fontSize: 21, marginTop: 6 }}>{game.managerName}</h3>
+        <h3 style={{ fontSize: 22, marginTop: 6 }}>{game.managerName}</h3>
         <div className="meta">{t('legacy.lgDirectorOf', { club: club.name })}</div>
         {challenge && <div className="meta" style={{ color: 'var(--gold)', fontWeight: 700, marginTop: 3 }}>{t('legacy.lgChallenge', { title: t(challenge.title) })}</div>}
         {/* the save's stamps (v1.1.0): visible, not shaming - a licensed start
@@ -58,7 +58,7 @@ export default function Legacy() {
           <>
             <SectionTitle sub={t(d.progress.done ? 'legacy.lgRealised' : 'legacy.lgWhatFor')}>{t('legacy.lgTheDream')}</SectionTitle>
             <div className="card" style={{ borderLeft: `4px solid ${d.progress.done ? 'var(--primary)' : 'var(--gold)'}` }}>
-              <div style={{ fontWeight: 700, fontSize: 15.5 }}>{dreamTitle(d.def, d.ctx)}</div>
+              <div style={{ fontWeight: 700, fontSize: 16 }}>{dreamTitle(d.def, d.ctx)}</div>
               <div style={{ height: 7, background: 'var(--border-strong)', borderRadius: 4, overflow: 'hidden', margin: '8px 0 5px' }}>
                 <div style={{ width: `${dreamPct(d.progress)}%`, height: '100%', background: d.progress.done ? 'var(--primary)' : 'var(--gold-fill)' }} />
               </div>
@@ -103,7 +103,7 @@ export default function Legacy() {
               <div className="meta" style={{ letterSpacing: 1 }}>
                 {t('legacy.lgRetiredLine', { how: t(game.retired.forced ? 'legacy.lgForced' : 'legacy.lgOwnTerms'), age: game.retired.age })}
               </div>
-              <h3 style={{ fontSize: 19, marginTop: 4 }}>{v.title}</h3>
+              <h3 style={{ fontSize: 18, marginTop: 4 }}>{v.title}</h3>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, margin: '8px 0' }}>
                 <b style={{ fontSize: 34, color: 'var(--gold)', lineHeight: 1 }}>{v.grade}</b>
                 <span className="muted">{t('legacy.lgCareerGrade')}</span>
@@ -221,7 +221,7 @@ export default function Legacy() {
       <div className="card">
         {horizon(game).map((h, i, all) => (
           <div key={h.label} style={{ marginBottom: i === all.length - 1 ? 0 : 9 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
               <b>{h.label}</b>
               <span className="muted">{h.note}</span>
             </div>
