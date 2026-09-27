@@ -235,7 +235,7 @@ try {
   await page.click('.submenu-item >> text=Club Infrastructure')
   await page.waitForSelector('text=Facilities')
   await shot('06i-infrastructure')
-  await page.locator('text=🏛 Ask board').first().click()
+  await page.locator('text=Ask board').first().click()
   await page.waitForTimeout(300)
   await shot('06j-infra-ask')
 
