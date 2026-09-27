@@ -3,6 +3,7 @@ import { BrandMark } from './components'
 import { t } from '../game/i18n'
 import { introSound, introUnlocked, soundOn, unlockAudio } from './audio'
 import titleArt from './title-bg.webp'
+import { preloadAllArt } from './artPreload'
 
 /**
  * ---- THE OPENING TITLES (1.8.0) ----
@@ -88,6 +89,9 @@ export function Intro() {
     if (!on) return
     playedThisLaunch = true
     began.current = performance.now()
+    // the five seconds nothing else is fetching: every picture in the game
+    // comes down now, so no page waits for one later (artPreload.ts)
+    preloadAllArt({ now: true })
     const measure = () => { const r = el.current; if (r) setBox({ w: r.clientWidth, h: r.clientHeight }) }
     measure()
     window.addEventListener('resize', measure)
