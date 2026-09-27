@@ -439,10 +439,16 @@ const EXPECTED: string[] = [
   // fixture six is Saracens again, carrying fixture one's knocks and legs.
   // Fixtures four and five did not move, which is the stream staying put
   // where nothing touched it.
+  // AND AGAIN, same release: no one attribute is a whole unit any more
+  // (teamUnits: defence is tackling, positioning and work rate; breakdown is
+  // rucking and strength; attack reads decisions and agility), each scaled
+  // to the world's old mean so the level holds (bandcheck: 50.6 points, 6.47
+  // tries over 4,068 games). Same rolls, different thresholds: two of six
+  // moved, sale-bristol and harlequins-leicester.
   'saracens 27-30 bath',
   'exeter 27-18 gloucester',
-  'sale 37-14 bristol',
-  'harlequins 24-26 leicester',
+  'sale 55-13 bristol',
+  'harlequins 43-20 leicester',
   'newcastle 17-38 northampton',
   'exeter 12-39 saracens',
 ]

@@ -64,9 +64,14 @@ console.log()
 const [first, , third] = rows
 ok(first.d <= 4, `no attribute is a meta on its own (+2 ${first.k} is worth ${first.d.toFixed(2)} points a match)`)
 ok(first.d <= 2 * Math.max(0.25, third.d), `nothing runs away from the rest (${first.k} ${first.d.toFixed(2)} against third-placed ${third.k} ${third.d.toFixed(2)})`)
+// the core, at +4: a +2 on the three men in a front row is a small signal
+// over 120 matches (scrummaging read +0.36 on one run and -0.10 on the next),
+// so the question "does it count" is asked where the answer is out of the noise
 const core: (keyof Attrs)[] = ['tac', 'han', 'scr', 'lin', 'ruc']
-const dead = core.filter(k => (rows.find(r => r.k === k)!.d) <= 0.05)
-ok(dead.length === 0, `the core of the game counts: tackling, handling, scrum, lineout and rucking each move the margin${dead.length ? ` (not: ${dead.join(', ')})` : ''}`)
+const coreD = core.map(k => ({ k, d: play(k, 4) - base }))
+console.log(`  at +4: ${coreD.map(r => `${r.k} ${r.d >= 0 ? '+' : ''}${r.d.toFixed(2)}`).join(', ')}`)
+const dead = coreD.filter(r => r.d <= 0.2).map(r => r.k)
+ok(dead.length === 0, `the core of the game counts: tackling, handling, scrum, lineout and rucking each move the margin at +4${dead.length ? ` (not: ${dead.join(', ')})` : ''}`)
 const flat = rows.filter(r => Math.abs(r.d) <= 0.05).map(r => r.k)
 if (flat.length) console.log(`\n  worth nothing on the scoreboard here: ${flat.join(', ')} (read elsewhere, or a gap worth a look)`)
 
