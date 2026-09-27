@@ -599,3 +599,59 @@ against the template that produced it.
 
 Row 28 stands, and now it is about the game rather than the dictionary.
 
+
+## Addendum, 2026-09-27: 1.8.0 release candidate
+
+Branch `claude/rugby-game-animation-ideas-qusfd5` at commit 304acb7 and after. What
+changed since the last sign-off, and the evidence, all run on this code.
+
+### What changed
+
+* **The match view.** Commentary with live stats between highlights; the pitch
+  comes on only for tries and big moments (Key / Extended), played as a baked
+  simulation with real speed limits. The ticker's own "Highlights" mode is now
+  "Big moments" so the two settings no longer share a name.
+* **One match engine.** A watched match and the same fixture played silently are
+  the same match: commentary draws its own dice, the match clock runs in both
+  modes, the sin bin reads it either way.
+* **Stats that explain an upset** (points per 22 visit, kicks at goal), counted up
+  to the line on screen, which also closes an older leak where a try or a kick
+  reached the stats before its commentary line.
+* **Training directs, it does not print.** A trained point is paid for elsewhere
+  the same week and stops near what the position plays at; a personal plan adds
+  one rating point a summer below potential.
+* **Engine balance.** No single attribute builds a whole unit; the scrum wins
+  penalties; tap and go reads the place and the matchup; the lineout maul call
+  trimmed.
+* **A page with no storage still plays** (sandboxed frames, some private windows):
+  in-memory settings and saves for the session.
+* The bottom navigation bar, the Handbook, the release notes and the store art.
+
+### The evidence
+
+| Check | Result |
+|---|---|
+| Full suite, default mode (engine + browser), final engine | 159 pass; the 4 failures were probes whose samples could not resolve their thresholds (autopilot 9 -> 18 worlds, kickbreak 32 -> 96 matches, wmarket 3 -> 9 women's worlds) and a load race (motion); each fixed and re-run green |
+| bandcheck, 4,068 games | 50.7 points, 6.48 tries, 51.7% home, 2.1% draws, 8.1% blowouts: every band inside |
+| detailprobe, 120 fixtures watched and silent | identical score, tries, sheet and players 120/120 (0/120 before) |
+| hlprobe, 215 clips at 60 fps | fastest player 12.0 m/s, every try grounded over the line, longest clip 15.9 s |
+| ladderprobe (exact) | tackling 5.7%, rucking 5.1%, positioning 3.0% of strength (was 9.0 / 7.4 / handling 3.6); every rated attribute read in a match |
+| optionsprobe, 120 matches per option | none moves the margin by 4 points; maul +2.8 (was +4.5), always-tap -3.1 (was -7.1) |
+| planprobe | trained points paid for; a prop stays a scrummager; the summer point lands |
+| autopilotprobe, 18 worlds | picking your side worth 7.7 points a season; sleepwalking never takes the title |
+| releasesim, 15 seasons | the world still works; the pyramid keeps its height |
+| stresstest | 60 chaotic interactive matches, all invariants held |
+| soakhealth, 20 seasons | 0 prose violations, 0 integrity faults |
+| soakui, 5 seasons through the interface | nothing broke |
+| e2edeep | complete, no console errors |
+| dialweight, deepsave | pass |
+| Save battery (savefuzz, backupprobe, cloneprobe, resumeprobe, reloadprobe, savequeue) | pass, with and after the no-storage fallback |
+| A sandboxed frame (allow-scripts only) | title, a new career, a week and a live match play with no save failure |
+
+### What remains, and whose it is
+
+The owner's playtest of the test build, the store screenshots' sign-off, the
+store-or-web decision, and approving the merge into `main`, which is what
+deploys. Items 1-4 of the store sign-off above (domain, Play account and
+keystore, iOS wrapper, the listing read-through) are unchanged and still the
+owner's.
