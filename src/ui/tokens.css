@@ -766,6 +766,11 @@
   /* a club with no kit on file, home and away */
   --kit-home: #2f8f55;
   --kit-away: #b33a3a;
+  /* a side whose kit clashes wears one of these (src/ui/kit.ts) */
+  --kit-spare-white: #ffffff;
+  --kit-spare-slate: #8c98a4;
+  --kit-spare-gold: #e0b44a;
+  --kit-spare-ink: #1d2733;
   /* the FWDS & BCKS studio mark: black and white in every skin and mode */
   --studio-ink: #0b0b0b;
   --studio-paper: #ffffff;
