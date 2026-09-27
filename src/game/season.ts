@@ -1342,7 +1342,7 @@ function weeklyTraining(state: GameState, rng: Rng) {
             subject: `${p.name.split(' ').slice(-1)[0]} is turning into his mentor`,
             body: `The coaches have noticed it in the little things - the extras after training, the way he talks in the huddle. ${p.name} is starting to carry himself like ${senior.name}. Character: now ${senior.pers.toLowerCase()}.`,
             k: 'news.becomesMentor',
-            v: { player: p.name, last: p.name.split(' ').slice(-1)[0], mentor: senior.name, pers_k: `pers.${senior.pers}` },
+            v: { player: p.name, last: p.name.split(' ').slice(-1)[0], mentor: senior.name },
             playerId: p.id,
           })
         }

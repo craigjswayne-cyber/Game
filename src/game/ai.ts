@@ -737,7 +737,7 @@ export function respondToOffer(state: GameState, offerId: number, accept: boolea
   }
   if (p.morale <= 4 || (sulky && bidder.rep > (state.clubs[state.userClubId]?.rep ?? 0))) {
     p.morale = clamp(p.morale - (sulky ? 1.4 : 0.5), 1, 10)
-    return t('reply.bidRejectedFrustrated', { player: p.name, pers_k: `persLower.${p.pers}` })
+    return t('reply.bidRejectedFrustrated', { player: p.name })
   }
   return t('reply.bidRejectedStays', { player: p.name })
 }

@@ -3687,7 +3687,7 @@
   "agentPublicSubj": "💼 {player}'s agent goes public",
   "agentPublic": "Two months of silence from the club, so the agent has taken it to the papers: \"{player} is one of the best-performing players in the league and the club knows our position.\" Rival clubs will have noticed. Sort a new deal on his player page - or brace for bids.",
   "becomesMentorSubj": "{last} is turning into his mentor",
-  "becomesMentor": "The coaches have noticed it in the little things - the extras after training, the way he talks in the huddle. {player} is starting to carry himself like {mentor}. Character: now {pers_k}.",
+  "becomesMentor": "The coaches have noticed it in the little things - the extras after training, the way he talks in the huddle. {player} is starting to carry himself like {mentor}.",
   "aheadOfScheduleSubj": "{player} ahead of schedule",
   "aheadOfSchedule": "Good news from the treatment table: {player} ({injury_k}) has smashed his rehab targets and is available again this week, earlier than anyone dared hope.",
   "backInTrainingSubj": {
@@ -3716,7 +3716,7 @@
   "wFrosty3Subj": "Still frosty at {short}",
   "wFrosty3": "No thaw yet between {a} and {b}: separate gym slots, separate tables, one very tired captain shuttling between them.",
   "wRiftSubj": "EXCLUSIVE: {aLast} and {bLast} in dressing-room rift",
-  "wRift": "The Wire understands {a} ({aPers_k}) and {b} ({bPers_k}) had {flash_k}. Coaches separated the pair. Expect the mood to suffer until it's resolved. Keep winning and these things heal quicker.",
+  "wRift": "The Wire understands {a} and {b} had {flash_k}. Coaches separated the pair. Expect the mood to suffer until it's resolved. Keep winning and these things heal quicker.",
   "wCommunity1Subj": "Community day at {short}",
   "wCommunity1": "The whole squad spent Wednesday coaching at local schools and visiting the children's ward. Corny? Maybe. But the group came back closer, and the town noticed.",
   "wCommunity2Subj": "Community day at {short}",
@@ -5162,7 +5162,7 @@
   },
   "agentPublic_f": "Two months of silence from the club, so the agent has taken it to the papers: \"{player} is one of the best-performing players in the league and the club knows our position.\" Rival clubs will have noticed. Sort a new deal on her player page - or brace for bids.",
   "becomesMentorSubj_f": "{last} is turning into her mentor",
-  "becomesMentor_f": "The coaches have noticed it in the little things - the extras after training, the way she talks in the huddle. {player} is starting to carry herself like {mentor}. Character: now {pers_k}.",
+  "becomesMentor_f": "The coaches have noticed it in the little things - the extras after training, the way she talks in the huddle. {player} is starting to carry herself like {mentor}.",
   "aheadOfSchedule_f": "Good news from the treatment table: {player} ({injury_k}) has smashed her rehab targets and is available again this week, earlier than anyone dared hope.",
   "wPeaceBrokered_f": "The manager got them in a room and shut the door. Both women came out and trained. Nobody is pretending they are friends, but the squad can get on with its week.",
   "wBoot1_f": "{player} has signed a personal sponsorship with a boot manufacturer. Her locker now contains fourteen boxes of boots and one very smug grin.",
@@ -5810,14 +5810,6 @@
   "boardYes": "Asked the board for {ask_k}: granted.",
   "newCaptain": "Made {player} captain after a word in the office."
  },
- "persLower": {
-  "Professional": "professional",
-  "Loyal": "loyal",
-  "Ambitious": "ambitious",
-  "Mercenary": "mercenary",
-  "Temperamental": "temperamental",
-  "Leader": "leader"
- },
  "persShort": {
   "Professional": "Pro",
   "Loyal": "Loyal",
@@ -5840,7 +5832,7 @@
   "bidRejectedKnew": "Bid rejected. {player} knows {club} came back with more and you still said no - {mood_k}.",
   "bidRejectedFurious": "he is furious, and his agent is already on the phone",
   "bidRejectedSoured": "he accepts it, but something has soured",
-  "bidRejectedFrustrated": "Bid rejected. {player} ({pers_k}) is frustrated the move was blocked.",
+  "bidRejectedFrustrated": "Bid rejected. {player} is frustrated the move was blocked.",
   "bidRejectedStays": "Bid rejected. {player} stays.",
   "chatPraiseSarcasm": "He squints at you. \"Am I being set up here?\" The compliment lands like a slap.",
   "chatPraiseLoyal": "\"Means a lot, boss.\" He walks out an inch taller.",

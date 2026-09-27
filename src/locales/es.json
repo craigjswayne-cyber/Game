@@ -3633,7 +3633,7 @@
   "agentPublicSubj": "💼 El agente de {player} va a la prensa",
   "agentPublic": "Dos meses de silencio del club, así que el agente lo ha llevado a los periódicos: «{player} es uno de los jugadores más en forma de la liga y el club conoce nuestra postura». Los clubes rivales habrán tomado nota. Cierra una renovación en su ficha de jugador... o prepárate para las ofertas.",
   "becomesMentorSubj": "{last} se está pareciendo a su mentor",
-  "becomesMentor": "Los técnicos lo notan en los detalles: los extras después de entrenar, cómo habla en la piña. {player} empieza a comportarse como {mentor}. Carácter: ahora {pers_k}.",
+  "becomesMentor": "Los técnicos lo notan en los detalles: los extras después de entrenar, cómo habla en la piña. {player} empieza a comportarse como {mentor}.",
   "aheadOfScheduleSubj": "{player} va adelantado",
   "aheadOfSchedule": "Buenas noticias desde la camilla: {player} ({injury_k}) ha pulverizado los plazos de su recuperación y vuelve a estar disponible esta semana, antes de lo que nadie se atrevía a esperar.",
   "backInTrainingSubj": {
@@ -3662,7 +3662,7 @@
   "wFrosty3Subj": "Sigue el hielo en {short}",
   "wFrosty3": "Sin deshielo entre {a} y {b}: turnos de gimnasio separados, mesas separadas y un capitán agotado haciendo de mensajero.",
   "wRiftSubj": "EXCLUSIVA: {aLast} y {bLast}, enfrentados en el vestuario",
-  "wRift": "Según The Wire, {a} ({aPers_k}) y {b} ({bPers_k}) tuvieron {flash_k}. Los técnicos separaron a la pareja. El ambiente se resentirá hasta que se resuelva: sigue ganando y estas cosas curan antes.",
+  "wRift": "Según The Wire, {a} y {b} tuvieron {flash_k}. Los técnicos separaron a la pareja. El ambiente se resentirá hasta que se resuelva: sigue ganando y estas cosas curan antes.",
   "wCommunity1Subj": "Día solidario en {short}",
   "wCommunity1": "La plantilla al completo pasó el miércoles entrenando a niños en colegios de la zona y visitando la planta infantil del hospital. ¿Cursi? Puede. Pero el grupo volvió más unido, y la ciudad tomó nota.",
   "wCommunity2Subj": "Día solidario en {short}",
@@ -5597,14 +5597,6 @@
   "boardYes": "Pedido a la junta: {ask_k}. Concedido.",
   "newCaptain": "Diste el brazalete a {player} tras una charla en el despacho."
  },
- "persLower": {
-  "Professional": "profesional",
-  "Loyal": "leal",
-  "Ambitious": "ambicioso",
-  "Mercenary": "mercenario",
-  "Temperamental": "temperamental",
-  "Leader": "líder"
- },
  "persShort": {
   "Professional": "Pro",
   "Loyal": "Leal",
@@ -5627,7 +5619,7 @@
   "bidRejectedKnew": "Oferta rechazada. {player} sabe que {club} volvió con más dinero y aun así dijiste que no: {mood_k}.",
   "bidRejectedFurious": "está furioso, y su agente ya está al teléfono",
   "bidRejectedSoured": "lo acepta, pero algo se ha torcido",
-  "bidRejectedFrustrated": "Oferta rechazada. {player} ({pers_k}) está frustrado porque le han cerrado la puerta.",
+  "bidRejectedFrustrated": "Oferta rechazada. {player} está frustrado porque le han cerrado la puerta.",
   "bidRejectedStays": "Oferta rechazada. {player} se queda.",
   "chatPraiseSarcasm": "Entorna los ojos. «¿Esto es una encerrona?». El cumplido le sienta como una bofetada.",
   "chatPraiseLoyal": "«Significa mucho, míster». Sale por la puerta un palmo más alto.",
