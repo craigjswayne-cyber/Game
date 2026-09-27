@@ -85,8 +85,8 @@ THE SQUAD
   yourself, and a depth chart that tells you where one injury would hurt.
 
 THE MATCH
-• Live text commentary with a pitch view: tries, cards, injuries, the lot, at
-  three speeds - or hand it to your assistant and read the report.
+• Live text commentary with live stats, and the pitch for the tries and big
+  moments: at three speeds - or hand it to your assistant and read the report.
 • Touchline decisions that are yours: the kick at goal or the corner, the
   half-time talk, the counter-plan when they change shape, when to empty the
   bench and who onto which shirt.
@@ -149,30 +149,34 @@ First release.
 
 ### What's new (500 max) - v1.8.0, Play version code 41 (1.7.4 and the planned 1.8.1 folded in)
 
-Opening titles; tablet and iPad layouts; the match view rebuilt on a glide
-with overlays, condition rings, larger commentary and the match menu; the
-depth from the FM26 mobile screens (mood of the room, a club card by the
-news, player search filters and views); kicks at goal from the opposition
-half only; more humour. The name stays PHASE: Rugby Manager.
+Rewritten 27 Sep 2026: the first draft advertised the always-on gliding
+pitch, its overlays and condition rings, all of which were replaced before
+release by commentary + live stats with the pitch for highlights only.
+
+Opening titles; tablet and iPad layouts; the match view rebuilt (commentary
+and live stats, the pitch for tries and big moments); upset-explaining stats;
+training that redirects ability; the engine rebalanced (no one attribute is a
+whole unit, the scrum wins penalties); the new bottom bar; the FM26 mobile
+depth (room mood, player search filters); more humour.
 
 ```
 <en-GB>
-A new five-second opening, and the game now plays on tablets and iPad, using the whole screen. The match: every player glides and keeps moving like the classic top-down games, gainline and offside lines, condition rings, bigger commentary, and a match menu with line-ups, mood and territory. Kicks at goal only from the other half. Team talks show the room's mood, player search has filters, and there are more fun stories.
+A new five-second opening, and the game plays on tablets and iPad using the whole screen. The match is rebuilt: commentary with live stats, and the pitch comes on for tries and big moments as smooth highlights. The stats show points per 22 visit and kicks at goal. Training now decides where ability goes rather than printing it, and the engine is rebalanced so no single attribute rules. A new bottom bar, the room's mood at team talks, player search filters and more humour.
 </en-GB>
 <fr-FR>
-Un nouveau générique de cinq secondes, et le jeu se joue désormais sur tablette et iPad, en plein écran. Le match : chaque joueur glisse sans s'arrêter, lignes d'avantage et de hors-jeu, anneaux de fraîcheur, commentaire plus grand, menu de match. Pénalités tentées seulement dans le camp adverse. Causerie avec l'humeur du vestiaire, recherche avec filtres, et plus d'humour.
+Un nouveau générique de cinq secondes, et le jeu occupe tout l'écran sur tablette et iPad. Le match est refait : commentaire et statistiques en direct, et le terrain apparaît pour les essais et les grands moments. Points par entrée dans les 22 et coups de pied au but. L'entraînement oriente le potentiel au lieu de l'inventer, et le moteur est rééquilibré. Nouvelle barre du bas, humeur du vestiaire, filtres de recherche, plus d'humour.
 </fr-FR>
 <es-ES>
-Una nueva intro de cinco segundos, y el juego ya funciona en tableta e iPad, a pantalla completa. El partido: cada jugador se desliza sin pararse, líneas de ventaja y fuera de juego, anillos de estado físico, narración más grande y menú de partido. Solo se patea a palos desde el campo rival. Charla con el ánimo del vestuario, búsqueda con filtros y más humor.
+Nueva intro de cinco segundos, y el juego ocupa toda la pantalla en tableta e iPad. El partido, renovado: narración con estadísticas en directo, y el campo aparece para los ensayos y los momentos clave. Puntos por entrada en la 22 y patadas a palos. El entrenamiento dirige la calidad en vez de inventarla, y el motor está reequilibrado. Nueva barra inferior, ánimo del vestuario, filtros de búsqueda y más humor.
 </es-ES>
 <it-IT>
-Una nuova sigla di cinque secondi, e ora il gioco funziona su tablet e iPad, a tutto schermo. La partita: ogni giocatore scivola senza fermarsi, linee del vantaggio e del fuorigioco, anelli di condizione, telecronaca più grande e menu partita. Si calcia ai pali solo dalla metà campo avversaria. Discorso con l'umore dello spogliatoio, ricerca con filtri e più divertimento.
+Nuova sigla di cinque secondi, e il gioco usa tutto lo schermo su tablet e iPad. La partita è rifatta: cronaca con statistiche in diretta, e il campo compare per mete e momenti chiave. Punti per ingresso nei 22 e calci piazzati. L'allenamento indirizza la qualità invece di inventarla, e il motore è riequilibrato. Nuova barra in basso, umore dello spogliatoio, filtri di ricerca e più divertimento.
 </it-IT>
 <ja-JP>
-5秒の新しいオープニングを追加。タブレットとiPadでも全画面でプレー可能に。試合では全選手が止まらず滑らかに動き、ゲインラインとオフサイドライン、コンディションの輪、大きな実況、試合メニューを追加。ゴールを狙えるのは敵陣のみ。チームトークでは控室の雰囲気、選手検索には絞り込み。ユーモアも増量。
+5秒の新オープニング。タブレットとiPadで全画面表示に対応。試合を一新：実況とライブスタッツで進み、トライや重要場面ではピッチがハイライトとして登場。22m侵入あたりの得点とゴールキック成功数を表示。トレーニングは能力を生み出すのではなく配分するように変更し、エンジンも再調整。新しい下部バー、控室の雰囲気、選手検索の絞り込み、ユーモアも増量。
 </ja-JP>
 ```
-*(en-GB 423, fr-FR 376, es-ES 361, it-IT 374, ja-JP 148 - all inside Play's 500.)*
+*(en-GB 476, fr-FR 438, es-ES 413, it-IT 399, ja-JP 173 - all inside Play's 500.)*
 
 ### What's new (500 max) - v1.7.3, Play version code 40
 
@@ -1211,8 +1215,9 @@ LA SEMAINE
   retient le score d'un derby plus longtemps que le classement.
 
 LE MATCH
-• Un commentaire en direct avec vue du terrain : essais, cartons, blessures, à
-  trois vitesses - ou confiez la rencontre à votre adjoint et lisez le rapport.
+• Un commentaire en direct avec statistiques, et le terrain pour les essais et
+  les grands moments, à trois vitesses - ou confiez la rencontre à votre
+  adjoint et lisez le rapport.
 • Des décisions de touche qui vous appartiennent : la pénalité ou le coin, la
   causerie de mi-temps, quand vider le banc et sur quel poste.
 • Un verdict du coach qui nomme deux choses à corriger, et qui vérifie la
@@ -1525,7 +1530,7 @@ THE WEEK
 • A board with an opinion about you, a press pack that quotes you back, fans with a mood, and rivals who remember a derby longer than the league table does.
 
 THE MATCH
-• Live text commentary with a pitch view: tries, cards, injuries, the set piece, at three speeds. Or hand it to your assistant and read the report.
+• Live text commentary with live stats, and the pitch for the tries and big moments, at three speeds. Or hand it to your assistant and read the report.
 • Touchline decisions that are yours: the kick at goal or the corner, the half-time talk, when to empty the bench and who onto which shirt.
 • Tactics that mean something: four dials, a defensive shape, set-piece calls, a kicking order, a playbook, and saved game plans to switch between.
 • A coach's verdict afterwards that names two things to fix, and checks next week whether you did.
