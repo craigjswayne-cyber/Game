@@ -3653,7 +3653,7 @@
   "agentPublicSubj": "💼 L'agente di {player} esce allo scoperto",
   "agentPublic": "Due mesi di silenzio dal club, così l'agente è andato sui giornali: «{player} è tra i giocatori più in forma del campionato e il club conosce la nostra posizione.» I club rivali avranno preso nota. Sistema il rinnovo dalla sua pagina giocatore - o preparati alle offerte.",
   "becomesMentorSubj": "{last} sta diventando il suo mentore",
-  "becomesMentor": "Gli allenatori l'hanno notato nelle piccole cose - il lavoro extra dopo l'allenamento, il modo in cui parla nel capannello. {player} inizia a portarsi come {mentor}. Carattere: ora {pers_k}.",
+  "becomesMentor": "Gli allenatori l'hanno notato nelle piccole cose - il lavoro extra dopo l'allenamento, il modo in cui parla nel capannello. {player} inizia a portarsi come {mentor}.",
   "aheadOfScheduleSubj": "{player} in anticipo sulla tabella",
   "aheadOfSchedule": "Buone notizie dal lettino: {player} ({injury_k}) ha polverizzato gli obiettivi della riabilitazione ed è di nuovo disponibile questa settimana, prima di quanto chiunque osasse sperare.",
   "backInTrainingSubj": {
@@ -3682,7 +3682,7 @@
   "wFrosty3Subj": "Ancora gelo in casa {short}",
   "wFrosty3": "Nessun disgelo tra {a} e {b}: turni separati in palestra, tavoli separati, e un capitano molto stanco a fare la spola.",
   "wRiftSubj": "ESCLUSIVA: rottura nello spogliatoio tra {aLast} e {bLast}",
-  "wRift": "Secondo quanto apprende The Wire, {a} ({aPers_k}) e {b} ({bPers_k}) hanno avuto {flash_k}. Gli allenatori hanno separato i due. Aspettati un morale in calo finché non si risolve. Continua a vincere e queste cose guariscono prima.",
+  "wRift": "Secondo quanto apprende The Wire, {a} e {b} hanno avuto {flash_k}. Gli allenatori hanno separato i due. Aspettati un morale in calo finché non si risolve. Continua a vincere e queste cose guariscono prima.",
   "wCommunity1Subj": "Giornata con la comunità in casa {short}",
   "wCommunity1": "L'intera rosa ha passato il mercoledì ad allenare nelle scuole della zona e a visitare il reparto pediatrico. Retorico? Forse. Ma il gruppo è tornato più unito, e la città se n'è accorta.",
   "wCommunity2Subj": "Giornata con la comunità in casa {short}",
@@ -5622,14 +5622,6 @@
   "boardYes": "Chiesto al consiglio: {ask_k}. Concesso.",
   "newCaptain": "Affidata la fascia di capitano a {player} dopo due parole in ufficio."
  },
- "persLower": {
-  "Professional": "professionale",
-  "Loyal": "fedele",
-  "Ambitious": "ambizioso",
-  "Mercenary": "mercenario",
-  "Temperamental": "lunatico",
-  "Leader": "leader"
- },
  "persShort": {
   "Professional": "Pro",
   "Loyal": "Fedele",
@@ -5652,7 +5644,7 @@
   "bidRejectedKnew": "Offerta respinta. {player} sa che {club} è tornato con un rilancio e che hai detto ancora no - {mood_k}.",
   "bidRejectedFurious": "è furioso, e il suo agente è già al telefono",
   "bidRejectedSoured": "la accetta, ma qualcosa si è incrinato",
-  "bidRejectedFrustrated": "Offerta respinta. {player} ({pers_k}) è frustrato per il trasferimento bloccato.",
+  "bidRejectedFrustrated": "Offerta respinta. {player} è frustrato per il trasferimento bloccato.",
   "bidRejectedStays": "Offerta respinta. {player} resta.",
   "chatPraiseSarcasm": "Ti guarda storto. «Mi state prendendo in giro?» Il complimento arriva come uno schiaffo.",
   "chatPraiseLoyal": "«Significa molto, coach.» Esce dalla stanza più alto di due centimetri.",

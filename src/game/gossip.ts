@@ -177,7 +177,7 @@ function dressingRoomFallout(state: GameState, rng: Rng) {
       const flash = tIn('en', flashK)
       wire(state, 'news.wRift',
         { a: a.name, b: b.name, aLast: a.name.split(' ').slice(-1)[0], bLast: b.name.split(' ').slice(-1)[0],
-          aPers_k: `pers.${a.pers}`, bPers_k: `pers.${b.pers}`, flash, flash_k: flashK }, a.id)
+          flash, flash_k: flashK }, a.id)
       break
     }
   }

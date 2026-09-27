@@ -3549,7 +3549,7 @@
   "agentPublicSubj": "💼 {player}の代理人、公然と口を開く",
   "agentPublic": "クラブが2か月沈黙を続けたので、代理人はメディアに持ち込んだ。「{player}はリーグ屈指のパフォーマンスを見せている。クラブはこちらの立場を分かっているはずだ」。ライバルクラブは聞き逃していない。選手ページで新契約をまとめるか——オファーの嵐に備えるか。",
   "becomesMentorSubj": "{last}、メンターの背中に近づく",
-  "becomesMentor": "コーチ陣は細部の変化に気づいている——練習後の自主練、ハドルでの話しぶり。{player}は{mentor}のような立ち居振る舞いを見せ始めた。性格:{pers_k}に。",
+  "becomesMentor": "コーチ陣は細部の変化に気づいている——練習後の自主練、ハドルでの話しぶり。{player}は{mentor}のような立ち居振る舞いを見せ始めた。",
   "aheadOfScheduleSubj": "{player}、回復前倒し",
   "aheadOfSchedule": "治療室から朗報だ。{player}({injury_k})がリハビリ目標を軽々と越え、今週から復帰可能になった——誰の予想よりも早い。",
   "backInTrainingSubj": {
@@ -3578,7 +3578,7 @@
   "wFrosty3Subj": "{short}、いまだ冷戦中",
   "wFrosty3": "{a}と{b}の雪解けはまだ先だ。ジムの時間は別々、食事のテーブルも別々、その間を往復してすっかり疲れ果てたキャプテンがひとり。",
   "wRiftSubj": "独占:{aLast}と{bLast}、ロッカールームで対立",
-  "wRift": "ザ・ワイヤーの取材によれば、{a}({aPers_k})と{b}({bPers_k})の間で{flash_k}があった。コーチ陣がふたりを引き離した。解決するまでチームの空気は重くなる——勝ち続ければ、この手の傷は早く癒える。",
+  "wRift": "ザ・ワイヤーの取材によれば、{a}と{b}の間で{flash_k}があった。コーチ陣がふたりを引き離した。解決するまでチームの空気は重くなる——勝ち続ければ、この手の傷は早く癒える。",
   "wCommunity1Subj": "{short}、地域貢献デー",
   "wCommunity1": "水曜、スカッド全員が地元の学校でコーチをし、小児病棟を訪ねた。ベタか?かもしれない。だがチームは前より結束して帰ってきたし、街はちゃんと見ていた。",
   "wCommunity2Subj": "{short}、地域貢献デー",
@@ -5479,14 +5479,6 @@
   "boardYes": "役員会への願い出：{ask_k}。承認。",
   "newCaptain": "オフィスで話し合い、{player}をキャプテンに任命した。"
  },
- "persLower": {
-  "Professional": "プロフェッショナル",
-  "Loyal": "忠実",
-  "Ambitious": "野心的",
-  "Mercenary": "金銭第一",
-  "Temperamental": "気分屋",
-  "Leader": "リーダー気質"
- },
  "persShort": {
   "Professional": "プロ",
   "Loyal": "忠実",
@@ -5509,7 +5501,7 @@
   "bidRejectedKnew": "入札を拒否した。{player}は、{club}が上乗せしてきたのにあなたが首を縦に振らなかったことを知っている——{mood_k}。",
   "bidRejectedFurious": "彼は激怒し、エージェントはすでに電話をかけ始めている",
   "bidRejectedSoured": "彼は受け入れたものの、何かがこじれてしまった",
-  "bidRejectedFrustrated": "入札を拒否した。{player}（{pers_k}）は移籍を阻まれて苛立っている。",
+  "bidRejectedFrustrated": "入札を拒否した。{player}は移籍を阻まれて苛立っている。",
   "bidRejectedStays": "入札を拒否した。{player}は残留する。",
   "chatPraiseSarcasm": "彼は目を細めてこちらを見た。「これは何かの罠ですか？」褒め言葉が平手打ちのように響いた。",
   "chatPraiseLoyal": "「うれしいです、ボス」。彼は少し背筋を伸ばして出ていった。",

@@ -3668,7 +3668,7 @@
     "agentPublicSubj": "💼 L'agent de {player} sort dans la presse",
     "agentPublic": "Deux mois de silence du club, alors l'agent a porté l'affaire dans les journaux : « {player} est l'un des joueurs les plus performants du championnat et le club connaît notre position. » Les clubs rivaux l'auront remarqué. Réglez un nouveau contrat sur sa fiche - ou préparez-vous aux offres.",
     "becomesMentorSubj": "{last} devient son mentor",
-    "becomesMentor": "Les entraîneurs l'ont remarqué dans les détails - les extras après l'entraînement, sa façon de parler dans la mêlée d'avant-match. {player} commence à se comporter comme {mentor}. Caractère : désormais {pers_k}.",
+    "becomesMentor": "Les entraîneurs l'ont remarqué dans les détails - les extras après l'entraînement, sa façon de parler dans la mêlée d'avant-match. {player} commence à se comporter comme {mentor}.",
     "aheadOfScheduleSubj": "{player} en avance sur les délais",
     "aheadOfSchedule": "Bonne nouvelle de la table de soins : {player} ({injury_k}) a pulvérisé ses objectifs de rééducation et est de nouveau disponible cette semaine, plus tôt que personne n'osait l'espérer.",
     "backInTrainingSubj": {
@@ -3697,7 +3697,7 @@
     "wFrosty3Subj": "Toujours glacial à {short}",
     "wFrosty3": "Toujours pas de dégel entre {a} et {b} : créneaux de musculation séparés, tables séparées, et un capitaine très fatigué qui fait la navette.",
     "wRiftSubj": "EXCLUSIF : {aLast} et {bLast}, fracture dans le vestiaire",
-    "wRift": "The Wire croit savoir que {a} ({aPers_k}) et {b} ({bPers_k}) ont eu {flash_k}. Les entraîneurs ont séparé les deux hommes. Attendez-vous à ce que l'ambiance en pâtisse jusqu'au règlement. Continuez à gagner et ces choses se soignent plus vite.",
+    "wRift": "The Wire croit savoir que {a} et {b} ont eu {flash_k}. Les entraîneurs ont séparé les deux hommes. Attendez-vous à ce que l'ambiance en pâtisse jusqu'au règlement. Continuez à gagner et ces choses se soignent plus vite.",
     "wCommunity1Subj": "Journée citoyenne à {short}",
     "wCommunity1": "Tout le groupe a passé mercredi à encadrer des écoles locales et à visiter le service pédiatrique. Cliché ? Peut-être. Mais le groupe est revenu plus soudé, et la ville l'a remarqué.",
     "wCommunity2Subj": "Journée citoyenne à {short}",
@@ -5150,7 +5150,7 @@
     "wPeace2_f": "Quoi qu'il ait été dit entre {a} et {b}, cela a marché : les deux femmes ont fait les mêmes exercices toute la semaine et partagé un banc au déjeuner. Le groupe a discrètement soufflé.",
     "wFrosty2_f": "{a} et {b} se sont échauffés à deux bouts opposés du terrain cette semaine encore. Les entraîneurs font mine de ne pas voir. Les joueuses voient tout.",
     "wFrosty3_f": "Toujours pas de dégel entre {a} et {b} : créneaux de musculation séparés, tables séparées, et une capitaine très fatiguée qui fait la navette.",
-    "wRift_f": "The Wire croit savoir que {a} ({aPers_k}) et {b} ({bPers_k}) ont eu {flash_k}. Les entraîneurs ont séparé les deux femmes. Attendez-vous à ce que l'ambiance en pâtisse jusqu'au règlement. Continuez à gagner et ces choses se soignent plus vite.",
+    "wRift_f": "The Wire croit savoir que {a} et {b} ont eu {flash_k}. Les entraîneurs ont séparé les deux femmes. Attendez-vous à ce que l'ambiance en pâtisse jusqu'au règlement. Continuez à gagner et ces choses se soignent plus vite.",
     "wBug2_f": "{names} se sont toutes annoncées pâles et grelottantes cette semaine. Diagnostic du médecin : « le truc qui circule ». Elles peuvent jouer, mais n'attendez pas quatre-vingts minutes pleines.",
     "wRumour1_f": "{buyerName} a envoyé des recruteurs aux trois derniers matchs {ownerPoss} - la joueuse qu'ils observent est {player}.",
     "wRumour3_f": "{player} à {buyer} ? Une source à l'agence de la joueuse affirme « qu'il y a de l'intérêt, et qu'elle est sérieuse ».",
@@ -5722,14 +5722,6 @@
     "boardYes": "Demandé au conseil : {ask_k}. Accordé.",
     "newCaptain": "Nommé {player} capitaine après un entretien dans le bureau."
   },
-  "persLower": {
-    "Professional": "professionnel",
-    "Loyal": "fidèle",
-    "Ambitious": "ambitieux",
-    "Mercenary": "mercenaire",
-    "Temperamental": "caractériel",
-    "Leader": "leader"
-  },
   "persShort": {
     "Professional": "Pro",
     "Loyal": "Loyal",
@@ -5752,7 +5744,7 @@
     "bidRejectedKnew": "Offre refusée. {player} sait que {club} est revenu à la hausse et que vous avez quand même dit non - {mood_k}.",
     "bidRejectedFurious": "il est furieux, et son agent est déjà au téléphone",
     "bidRejectedSoured": "il l'accepte, mais quelque chose s'est abîmé",
-    "bidRejectedFrustrated": "Offre refusée. {player} ({pers_k}) est frustré que le transfert ait été bloqué.",
+    "bidRejectedFrustrated": "Offre refusée. {player} est frustré que le transfert ait été bloqué.",
     "bidRejectedStays": "Offre refusée. {player} reste.",
     "chatPraiseSarcasm": "Il vous regarde de travers. « On se moque de moi, là ? » Le compliment tombe comme une gifle.",
     "chatPraiseLoyal": "« Ça compte beaucoup, coach. » Il ressort grandi.",
