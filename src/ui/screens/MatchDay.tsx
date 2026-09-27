@@ -2286,11 +2286,18 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
   )
 }
 
-function contrastText(bg: string): string {
-  const hex = bg.replace('#', '')
-  if (hex.length < 6) return 'var(--prop-ink)'
+/** perceived brightness of a #rrggbb colour, 0-255 (a CSS variable reads as
+ *  mid-grey: it is one of ours, and ours are never near-black) */
+function luma(c: string): number {
+  const hex = c.replace('#', '')
+  if (hex.length < 6) return 128
   const r = parseInt(hex.slice(0, 2), 16), g = parseInt(hex.slice(2, 4), 16), b = parseInt(hex.slice(4, 6), 16)
-  return (r * 299 + g * 587 + b * 114) / 1000 > 140 ? 'var(--prop-ink-dark)' : 'var(--prop-ink)'
+  return (r * 299 + g * 587 + b * 114) / 1000
+}
+
+function contrastText(bg: string): string {
+  if (bg.replace('#', '').length < 6) return 'var(--prop-ink)'
+  return luma(bg) > 140 ? 'var(--prop-ink-dark)' : 'var(--prop-ink)'
 }
 
 const CAMERA_KEY = 'rm-camera'
@@ -2572,6 +2579,26 @@ function Live() {
   }
   const paused = !playing && !done && !atHalfTime && !atBreak
   const lastTeamC = last?.teamId === fixture.awayId ? awayC : homeC
+  // THE LINE WEARS THE KIT (owner, 27 Sep 2026: "The commentary lines on the
+  // in game should be the colour of who is being talked about"). A line about
+  // a side is filled with that side's first colour, its text in whichever of
+  // ink or white reads on it, and edged in the second colour. A near-black
+  // first colour (Northampton, the All Blacks' kind of kit) would look like no
+  // colour at all on the dark panel, so those lines take the second colour
+  // with the black as the edge. The stripe on the left keeps its meaning:
+  // gold for a score, yellow and red for cards. A line about nobody
+  // (kick-off, the whistles) stays plain.
+  const lineStyle = (e: MatchEvent): React.CSSProperties | undefined => {
+    if (!e.teamId) return undefined
+    const kit = e.teamId === fixture.awayId ? awayC : homeC
+    const [fill, edge] = luma(kit[0]) < 40 && kit[1] && luma(kit[1]) > luma(kit[0]) ? [kit[1], kit[0]] : [kit[0], kit[1]]
+    const plain = !cls(e)
+    return {
+      background: fill, color: contrastText(fill),
+      boxShadow: `inset 0 0 0 1px ${edge ?? 'var(--border-strong)'}`,
+      ...(plain ? { borderLeftColor: edge ?? fill } : {}),
+    }
+  }
   const showFx = playing && speedIdx < 2
   const panelActive = done || atHalfTime || atBreak || atDecision || (drawer && paused)
 
@@ -2813,8 +2840,8 @@ function Live() {
             <span>{t(KICK_STYLE_LABEL[game.clubs[ctx.userSideId ?? '']?.tactic.kickStyle ?? 'balanced'] ?? 'tacticsScreen.kickBalanced')}</span>
           </div>
           {last && (
-            <div key={cursor} className={`now-line ${cls(last)}`}
-              style={last.teamId ? { borderLeftColor: lastTeamC[0] } : undefined}>
+            <div key={cursor} className={`now-line ${cls(last)}${last.teamId ? ' kit' : ''}`}
+              style={lineStyle(last)}>
               <span className="min">{Math.min(80, last.min)}'</span>
               <span className="txt">{icon(last)} {eventText(last)}</span>
             </div>
@@ -2831,7 +2858,8 @@ function Live() {
         <div className="tab-deck">
           <div className="tab-feed" aria-live="off">
             {shown.slice(-12).reverse().map((e, k) => (
-              <div key={shown.length - k} className={`feed-line ${cls(e)}${k === 0 ? ' newest' : ''}`}>
+              <div key={shown.length - k} className={`feed-line ${cls(e)}${e.teamId ? ' kit' : ''}${k === 0 ? ' newest' : ''}`}
+                style={lineStyle(e)}>
                 <span className="min">{Math.min(80, e.min)}'</span>
                 <span className="txt">{icon(e)} {eventText(e)}</span>
               </div>
