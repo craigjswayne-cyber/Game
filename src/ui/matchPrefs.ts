@@ -1,24 +1,31 @@
 /**
- * ---- WHAT THE MATCH VIEW SHOWS (1.8.1) ----
+ * ---- WHAT THE MATCH VIEW SHOWS ----
  *
- * The switches in Match Settings, the FM26 layout the owner picked out ("I
- * like the toggle on/off option"). Remembered on this device like the camera
- * and the sound, and all on by default: they are the depth, and a manager who
- * wants the plain pitch turns them off.
+ * The choices in Match Settings, in the FM26 layout the owner picked out.
+ * Remembered on this device like the sound.
  *
- *   overlays   the gainline and offside lines at a breakdown, and the contest
- *              bar at a scrum, lineout or maul
- *   stamina    a ring under every man showing his condition, while play is
- *              stopped
- *   bigText    the commentary at the size FM Mobile sets it (owner: "The size
- *              of the text in fm stands out")
+ *   highlights  which moments bring the pitch on screen (owner, 28 Sep 2026:
+ *               "show tries properly, then just commentary only"). 'key' is
+ *               tries and tries under review; 'extended' adds kicks at goal
+ *               and breaks into the opposition 22.
+ *   bigText     the commentary at the size FM Mobile sets it (owner: "The size
+ *               of the text in fm stands out")
+ *
+ * The overlay and condition-ring switches belonged to the always-on pitch and
+ * went with it.
  */
-export type MatchPrefs = { overlays: boolean; stamina: boolean; bigText: boolean }
+export type MatchPrefs = { highlights: 'key' | 'extended'; bigText: boolean }
 const KEY = 'phase.matchPrefs'
-const DEFAULTS: MatchPrefs = { overlays: true, stamina: true, bigText: true }
+const DEFAULTS: MatchPrefs = { highlights: 'key', bigText: true }
 
 export function readMatchPrefs(): MatchPrefs {
-  try { return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(KEY) ?? '{}') } } catch { return { ...DEFAULTS } }
+  try {
+    const raw = JSON.parse(localStorage.getItem(KEY) ?? '{}')
+    return {
+      highlights: raw.highlights === 'extended' ? 'extended' : 'key',
+      bigText: typeof raw.bigText === 'boolean' ? raw.bigText : DEFAULTS.bigText,
+    }
+  } catch { return { ...DEFAULTS } }
 }
 export function writeMatchPrefs(p: MatchPrefs) {
   try { localStorage.setItem(KEY, JSON.stringify(p)) } catch { /* private mode */ }

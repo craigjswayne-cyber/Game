@@ -965,9 +965,6 @@
   "tmoCheck4": "Verifica della linea laterale",
   "tmoAwarded": "META CONCESSA",
   "tmoNoTry": "NIENTE META",
-  "camera": "Telecamera",
-  "camFull": "Campo intero",
-  "camBroadcast": "Stile TV",
   "kickOff": "Calcio d'inizio ▸",
   "kickOffHighlights": "Calcio d'inizio (highlights) ▸",
   "kickWide": "FUORI",
@@ -1284,7 +1281,10 @@
   "warnScrum_f": "Problema in mischia: in tutta la rosa del match {missing}. All'arbitro servono 2 donne per ogni maglia di prima linea, altrimenti ordina mischie non contestate - niente spinta, e un pacchetto forte non vale nulla. Aggiungi coperture di prima linea in panchina.",
   "assistantTakes_w": "{home} v {away} è il pomeriggio del tuo vice. Sceglie lei la squadra e firma il rapporto - a te tocca il Test.",
   "pressureLabel": "Pressione",
-  "pressureTitle": "Quanto sta minacciando ciascuna squadra in questo momento: sale durante un forcing e cala quando non ne esce nulla"
+  "pressureTitle": "Quanto sta minacciando ciascuna squadra in questo momento: sale durante un forcing e cala quando non ne esce nulla",
+  "stTerritory": "Territorio",
+  "st22": "Ingressi nei 22",
+  "liveStats": "Statistiche live"
  },
  "tacticsScreen": {
   "tabRoles": "Ruoli",
@@ -6985,11 +6985,19 @@
   "sound": "Audio"
  },
  "mset": {
-  "overlays": "Sovrimpressioni",
-  "overlaysSub": "Linee del vantaggio e del fuorigioco, e chi vince la fase statica",
-  "stamina": "Anelli di condizione",
-  "staminaSub": "Quanto resta a ciascuno, quando il gioco si ferma",
   "bigText": "Telecronaca grande",
-  "bigTextSub": "La telecronaca della partita a caratteri più grandi"
+  "bigTextSub": "La telecronaca della partita a caratteri più grandi",
+  "highlights": "Momenti salienti",
+  "hlKey": "Chiave",
+  "hlExtended": "Estesi",
+  "hlKeySub": "Il campo mostra le mete.",
+  "hlExtendedSub": "Il campo mostra mete, calci piazzati e ingressi nei 22."
+ },
+ "hl": {
+  "try": "META!",
+  "review": "CONTROLLO TMO",
+  "notry": "META NON VALIDA",
+  "good": "DENTRO",
+  "wide": "FUORI"
  }
 }

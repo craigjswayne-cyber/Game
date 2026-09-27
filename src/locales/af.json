@@ -963,9 +963,6 @@
   "tmoCheck4": "Die kantlyn word nagegaan",
   "tmoAwarded": "DRIE TOEGEKEN",
   "tmoNoTry": "GEEN DRIE",
-  "camera": "Kamera",
-  "camFull": "Hele veld",
-  "camBroadcast": "TV-styl",
   "kickOff": "Afskop ▸",
   "kickOffHighlights": "Afskop (Hoogtepunte) ▸",
   "kickWide": "MIS",
@@ -1294,7 +1291,10 @@
   "warnUnfit_f": "{player} is net {pct}% fiks - haar tenk gaan vroeg leegloop.",
   "assistantTakes_w": "{home} vs {away} is jou assistent se middag. Sy kies die span en lewer haar verslag - joune is die toets.",
   "pressureLabel": "Druk",
-  "pressureTitle": "Hoeveel elke kant op die oomblik dreig - dit bou op deur 'n vlaag en verdwyn wanneer niks daarvan kom nie"
+  "pressureTitle": "Hoeveel elke kant op die oomblik dreig - dit bou op deur 'n vlaag en verdwyn wanneer niks daarvan kom nie",
+  "stTerritory": "Gebied",
+  "st22": "Besoeke aan die 22",
+  "liveStats": "Regstreekse statistiek"
  },
  "tacticsScreen": {
   "tabRoles": "Rolle",
@@ -7314,11 +7314,19 @@
   "sound": "Klank"
  },
  "mset": {
-  "overlays": "Oorlegsels",
-  "overlaysSub": "Voordeellyn en onkantlyn, en wie die vaste stuk wen",
-  "stamina": "Kondisieringe",
-  "staminaSub": "Hoeveel elkeen oor het, wanneer die spel stop",
   "bigText": "Groot kommentaar",
-  "bigTextSub": "Die wedstrydkommentaar in groter letters"
+  "bigTextSub": "Die wedstrydkommentaar in groter letters",
+  "highlights": "Hoogtepunte",
+  "hlKey": "Sleutel",
+  "hlExtended": "Uitgebrei",
+  "hlKeySub": "Die veld wys drieë.",
+  "hlExtendedSub": "Die veld wys drieë, doelskoppe en deurbrake in die 22."
+ },
+ "hl": {
+  "try": "DRIE!",
+  "review": "TMO-KONTROLE",
+  "notry": "GEEN DRIE",
+  "good": "OOR",
+  "wide": "MIS"
  }
 }

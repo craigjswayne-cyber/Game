@@ -22,11 +22,12 @@
 // anything: by driving a real match and reading the actual pixels the actual
 // renderer produced.
 //
-//   1. every ball position is exactly the territory model, to 0.01%
-//   2. and is demonstrably NOT the sawtooth it used to be
+//   1. the territory the live stats show is the mean of where the engine has
+//      had the ball (1.8.0: the always-on pitch is gone; the numbers are what
+//      carry the state of the game between highlights)
+//   2. and it settles into a rugby-looking share rather than swinging
 //   3. a one-score finish paces slower than a rout, measured on the wall clock
 //   4. the band appears only when late AND close, and says the right thing
-//   5. the ball never leaves the pitch
 //
 // Run: node scripts/dramaprobe.mjs   (needs a fresh npm run build)
 import { chromium } from 'playwright-core'
@@ -138,64 +139,32 @@ try {
       const now = S().liveMatch
       if (!now) break
       const ev = now.ctx.events[now.cursor - 1]
-      const ball = document.querySelector('.pitch .ball')
-      if (!ev || !ball) continue
-      // the 1.7.4 model: a running average of where the engine had the ball
-      let smooth = null
-      for (const e of now.ctx.events.slice(0, now.cursor)) {
-        if (e.fld == null) continue
-        // 0.6 on the latest since 1.8.1 (was 0.3): the glide smooths the picture now
-        smooth = smooth == null ? e.fld : smooth * 0.4 + e.fld * 0.6
-      }
+      // 1.8.0: no always-on pitch; territory is a row of the live stats
+      const row = [...document.querySelectorAll('.live-stats .ls-row')][1]
+      if (!ev || !row) continue
+      const shown = now.ctx.events.slice(0, now.cursor).filter(e => e.fld != null)
+      const mean = shown.length ? shown.reduce((a, e) => a + e.fld, 0) / shown.length : 50
       out.push({
-        left: parseFloat(ball.style.left), momo: now.ctx.momo, smooth,
-        min: ev.min, type: ev.type, fx: ev.fx ?? null, home: ev.teamId === homeId,
+        home: parseInt(row.querySelector('b').textContent), away: parseInt(row.querySelectorAll('b')[1].textContent),
+        want: Math.round(mean), fld: ev.fld ?? null, type: ev.type, fx: ev.fx ?? null,
       })
     }
     return out
   })
 
-  const clamp = x => Math.max(6, Math.min(94, x))
-  // A TMO review and its NO TRY are a try at the line, not open play: the
-  // pitch draws them where tries are drawn (MatchDay's ballLeft), so they are
-  // left out with the tries.
-  const play = samples.filter(s => s.type !== 'TRY' && s.type !== 'PEN' && s.type !== 'DG'
-    && s.fx !== 'TMO' && s.fx !== 'NOTRY')
-  say(`  drove the rest of the match: ${samples.length} revealed events, ${play.length} of them open play`)
-  // A FLOOR ON THE SAMPLE, NOT A CLAIM ABOUT THE MATCH.
-  //
-  // This drives ONE match to the whistle and measures every open-play event in
-  // it, so the count is a property of the fixture the calendar happens to serve
-  // up. It read 13 on a 45-week season and 9 on a 48-week one - not a
-  // regression, a different game of rugby, because the season's shape moved
-  // which fixture the probe walks into. The guarantee this probe exists for is
-  // the assertion below it (the ball position IS the territory model, worst
-  // error 0.0000%), and that holds at nine samples as firmly as at thirteen.
-  // The floor is here to catch a DEGENERATE sample - a match that revealed
-  // nothing because the harness broke - and eight is still that.
-  ok(play.length >= 8, `enough open play to measure (${play.length})`)
-
-  // 1.7.4: THE MODEL IS WHERE THE ENGINE HAS THE BALL. Every line carries it
-  // (MatchEvent.fld) and the pitch follows a running average of it. The old
-  // model - momentum plus a nine-point nudge toward whoever the line named -
-  // is kept below as the thing this has to be smoother than.
-  const err = play.map(s => Math.abs(s.left - clamp(8 + s.smooth * 0.84)))
-  const worst = Math.max(...err)
-  ok(worst < 0.01, `every ball position IS the territory model (worst error ${worst.toFixed(4)}%)`)
-  const stepOf = xs => xs.slice(1).reduce((a, x, i) => a + Math.abs(x - xs[i]), 0) / Math.max(1, xs.length - 1)
-  const newStep = stepOf(play.map(s => s.left))
-  const oldStep = stepOf(play.map(s => clamp(50 + s.momo * 30 + (s.home ? 9 : -9))))
-  ok(newStep < oldStep, `and it moves more smoothly than the momentum guess it replaced (${newStep.toFixed(1)}% a line against ${oldStep.toFixed(1)}%)`)
-
-  // and is not what it used to be: the old sawtooth, scored against the same
-  // events, would have put the ball somewhere else entirely
-  const sawErr = play.map(s => Math.abs(s.left - clamp(50 + (s.home ? 1 : -1) * (10 + (s.min % 20)))))
-  const sawMean = sawErr.reduce((a, b) => a + b, 0) / (sawErr.length || 1)
-  ok(sawMean > 5, `and is nothing like the clock sawtooth it replaced (mean ${sawMean.toFixed(1)}% apart)`)
-
-  const spread = Math.max(...play.map(s => s.left)) - Math.min(...play.map(s => s.left))
-  ok(spread > 12, `the ball uses the field rather than sitting on halfway (${spread.toFixed(1)}% spread)`)
-  ok(samples.every(s => s.left >= 6 && s.left <= 94), 'and never once leaves the pitch')
+  say(`  drove the rest of the match: ${samples.length} revealed events with the live stats up`)
+  // a floor against a broken harness, not a claim about the match: the drive
+  // is one second half, and its length is whatever that half produced
+  ok(samples.length >= 15, `enough of the match to measure (${samples.length})`)
+  // TERRITORY IS WHERE THE ENGINE HAS HAD THE BALL: the mean of every line's
+  // field position so far, home share out of 100. Not a count of lines either
+  // side of halfway, which swung to 0 and 100 on a handful of early lines.
+  const wrong = samples.filter(s => s.home !== s.want || s.home + s.away !== 100)
+  ok(wrong.length === 0, `territory on screen IS the mean field position, every line (${wrong.length} wrong${wrong[0] ? `, e.g. ${JSON.stringify(wrong[0])}` : ''})`)
+  const late = samples.slice(Math.floor(samples.length / 2))
+  ok(late.every(s => s.home >= 10 && s.home <= 90), 'and by the second half of the drive it reads like rugby, not 0% or 100%')
+  const steps = samples.slice(1).map((s, i) => Math.abs(s.home - samples[i].home))
+  ok(Math.max(...steps.slice(10)) <= 4, `and settles: after the first few lines it moves a point or two a line (max ${Math.max(...steps.slice(10))})`)
 
   // ---- 3-4. pacing and the band, on fabricated end-games
   //

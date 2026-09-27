@@ -962,9 +962,6 @@
   "tmoCheck4": "Comprobando la línea de touch",
   "tmoAwarded": "ENSAYO CONCEDIDO",
   "tmoNoTry": "NO HAY ENSAYO",
-  "camera": "Cámara",
-  "camFull": "Campo completo",
-  "camBroadcast": "Estilo TV",
   "kickOff": "Saque inicial ▸",
   "kickOffHighlights": "Saque inicial (resumen) ▸",
   "kickWide": "FUERA",
@@ -1277,7 +1274,10 @@
   "yourRatings_f": "Las notas de tus jugadoras",
   "assistantTakes_w": "{home} - {away} es la tarde de tu ayudante. Ella elige el equipo y redacta el informe - lo tuyo es el Test.",
   "pressureLabel": "Presión",
-  "pressureTitle": "Cuánto está amenazando cada equipo ahora mismo: sube durante un arreón y baja cuando no sale nada de él"
+  "pressureTitle": "Cuánto está amenazando cada equipo ahora mismo: sube durante un arreón y baja cuando no sale nada de él",
+  "stTerritory": "Territorio",
+  "st22": "Entradas en la 22",
+  "liveStats": "Estadísticas en directo"
  },
  "tacticsScreen": {
   "tabRoles": "Roles",
@@ -6950,11 +6950,19 @@
   "sound": "Sonido"
  },
  "mset": {
-  "overlays": "Superposiciones",
-  "overlaysSub": "Líneas de ventaja y de fuera de juego, y quién gana la fase estática",
-  "stamina": "Anillos de estado físico",
-  "staminaSub": "Lo que le queda a cada uno, cuando el juego se para",
   "bigText": "Narración grande",
-  "bigTextSub": "La narración del partido con letra más grande"
+  "bigTextSub": "La narración del partido con letra más grande",
+  "highlights": "Jugadas destacadas",
+  "hlKey": "Clave",
+  "hlExtended": "Ampliadas",
+  "hlKeySub": "El campo muestra los ensayos.",
+  "hlExtendedSub": "El campo muestra ensayos, patadas a palos y entradas en la 22."
+ },
+ "hl": {
+  "try": "¡ENSAYO!",
+  "review": "REVISIÓN TMO",
+  "notry": "NO ES ENSAYO",
+  "good": "DENTRO",
+  "wide": "FUERA"
  }
 }

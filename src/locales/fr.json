@@ -968,9 +968,6 @@
     "tmoCheck4": "Vérification de la ligne de touche",
     "tmoAwarded": "ESSAI ACCORDÉ",
     "tmoNoTry": "PAS D'ESSAI",
-    "camera": "Caméra",
-    "camFull": "Terrain entier",
-    "camBroadcast": "Style TV",
     "kickOff": "Coup d'envoi ▸",
     "kickOffHighlights": "Coup d'envoi (temps forts) ▸",
     "kickWide": "À CÔTÉ",
@@ -1292,7 +1289,10 @@
     "yourRatings_f": "Les notes de vos joueuses",
     "assistantTakes_w": "{home} - {away} est l'après-midi de votre adjointe. Elle compose l'équipe et remet son rapport - la vôtre, c'est le Test.",
     "pressureLabel": "Pression",
-    "pressureTitle": "À quel point chaque équipe menace en ce moment - ça monte pendant un temps fort et retombe quand rien n'en sort"
+    "pressureTitle": "À quel point chaque équipe menace en ce moment - ça monte pendant un temps fort et retombe quand rien n'en sort",
+    "stTerritory": "Territoire",
+    "st22": "Entrées dans les 22",
+    "liveStats": "Stats en direct"
   },
   "tacticsScreen": {
     "tabRoles": "Rôles",
@@ -7108,11 +7108,19 @@
     "sound": "Son"
   },
   "mset": {
-    "overlays": "Surimpressions",
-    "overlaysSub": "Lignes d’avantage et de hors-jeu, et qui domine la phase statique",
-    "stamina": "Anneaux de fraîcheur",
-    "staminaSub": "Ce qu’il reste à chacun, quand le jeu s’arrête",
     "bigText": "Grand commentaire",
-    "bigTextSub": "Le commentaire du match en plus grand"
+    "bigTextSub": "Le commentaire du match en plus grand",
+    "highlights": "Temps forts",
+    "hlKey": "Essentiels",
+    "hlExtended": "Étendus",
+    "hlKeySub": "Le terrain montre les essais.",
+    "hlExtendedSub": "Le terrain montre les essais, les tirs au but et les entrées dans les 22."
+  },
+  "hl": {
+    "try": "ESSAI !",
+    "review": "ARBITRAGE VIDÉO",
+    "notry": "PAS D'ESSAI",
+    "good": "RÉUSSI",
+    "wide": "MANQUÉ"
   }
 }
