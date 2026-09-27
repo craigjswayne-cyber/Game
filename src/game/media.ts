@@ -7,6 +7,7 @@ import { derbyName, isDerby } from './rivalries'
 import { nationByCode, nationNameIn, nationVars } from './nations'
 import { applyResponse } from './authority'
 import { settleTalk } from './talkback'
+import { applyMoodAnswer, moodRoom, settlePressMood, userResults, trailingRun } from './pressmood'
 import { clamp, pick, type Rng } from './rng'
 import { tIn, type Vars } from './i18n'
 
@@ -133,6 +134,9 @@ function roundMoney(v: number): number {
 
 /** Weekly press generation for the user's club. */
 export function generatePress(state: GameState, rng: Rng) {
+  // the barometer reads the week's results first, so whatever is asked below
+  // is asked by the press the manager is actually facing (pressmood.ts)
+  const mood = settlePressMood(state)
   const club = state.clubs[state.userClubId]
   const squad = club.players.map(id => state.players[id]).filter(Boolean)
   const open = state.press.filter(p => !p.answered).length
@@ -803,6 +807,98 @@ export function generatePress(state: GameState, rng: Rng) {
     }
   }
 
+  // THE BAROMETER ASKS ITS OWN QUESTION (1.8.0, owner: "losing they start
+  // to pile on the pressure, winning too many on the bounce and they try to
+  // unsettle your squad too"). Whatever the needle says decides the family:
+  // warm and friendly, sceptical, hostile and about the job, or - five wins
+  // on - about the squad itself: a contract, a suitor, a man left out, or
+  // simply whether they have started believing it. Every answer moves the
+  // whole squad, the terraces and the needle (squad/fans/press), a little.
+  // A fortnight between them, and no draw on the shared rng: the subject and
+  // the wording turn on the calendar like voice() does. A hostile or
+  // stirring press goes in twice, so it is the likelier question - which is
+  // what a press pack with the bit between its teeth is like.
+  {
+    const recent = state.press.some(q => (q.qk ?? '').startsWith('press.baro') &&
+      absWeek(state.season, state.week) - absWeek(q.season, q.week) < 2)
+    const room = recent ? null : moodRoom(mood)
+    let item: PressItem | null = null
+    if (room === 'stir') {
+      const run = trailingRun(userResults(state)).n
+      const pool: (() => PressItem | null)[] = []
+      // a starter whose deal is up this season or next
+      const deal = squad.find(q => xvIds.includes(q.id) && !q.onLoan && q.contractEnds <= state.season + 1)
+      if (deal) pool.push(() => mk(state,
+        { k: voice(51 + deal.id, ['press.baroDealQ1', 'press.baroDealQ2']), v: { player: deal.name } },
+        deal.id, [
+          opt({ morale: 0.5, board: 0, squad: 0.1, press: -2, fans: 0.1, lk: 'press.baroDealPrivate', rk: 'press.baroDealPrivateR', rv: { player: deal.name } }),
+          opt({ morale: -1, board: 0.1, squad: -0.3, press: 4, unsettle: true, lk: 'press.baroDealPrice', rk: 'press.baroDealPriceR' }),
+          opt({ morale: 0, board: -0.1, squad: 0.3, press: -6, fans: 0.4, lk: 'press.baroBite', rk: 'press.baroBiteR' }),
+          opt({ morale: 0, board: 0, press: 1, lk: 'press.baroDealSaturday', rk: 'press.baroDealSaturdayR' }),
+        ], rng))
+      // the best man in the side, and a club at least as big as this one
+      const star = squad.filter(q => xvIds.includes(q.id) && !q.onLoan).sort((a, b) => b.ca - a.ca)[0]
+      const suitors = Object.values(state.clubs).filter(c => c.id !== club.id && c.rep >= club.rep && c.leagueId)
+        .sort((a, b) => a.id.localeCompare(b.id))
+      const suitor = suitors.length ? suitors[(state.season * 7 + state.week) % suitors.length] : null
+      if (star && suitor) pool.push(() => mk(state,
+        { k: voice(52 + star.id, ['press.baroSuitorQ1', 'press.baroSuitorQ2']), v: { player: star.name, club: suitor.name } },
+        star.id, [
+          opt({ morale: 0.6, board: 0, squad: 0.2, press: -2, fans: 0.3, lk: 'press.baroSuitorNo', rk: 'press.baroSuitorNoR', rv: { player: star.name } }),
+          opt({ morale: -1, board: 0.2, squad: -0.3, press: 3, unsettle: true, lk: 'press.baroSuitorListen', rk: 'press.baroSuitorListenR' }),
+          opt({ morale: 0, board: -0.1, squad: 0.3, press: -6, fans: 0.4, lk: 'press.baroBite', rk: 'press.baroBiteR' }),
+          opt({ morale: 0, board: 0, press: 1, lk: 'press.baroSuitorNoCall', rk: 'press.baroSuitorNoCallR' }),
+        ], rng))
+      // a regular starter now on the bench
+      const left = club.tactic.lineup.slice(15).filter((x): x is number => x != null).map(id => state.players[id])
+        .find(q => q && !q.onLoan && q.stats.starts >= 2)
+      if (left) pool.push(() => mk(state,
+        { k: voice(53 + left.id, ['press.baroRowQ1', 'press.baroRowQ2']), v: { player: left.name } },
+        left.id, [
+          opt({ morale: 0.3, board: 0, squad: 0.2, press: -1, lk: 'press.baroRowNone', rk: 'press.baroRowNoneR' }),
+          opt({ morale: -0.8, board: 0.1, squad: -0.1, press: 3, lk: 'press.baroRowTrain', rk: 'press.baroRowTrainR', rv: { player: left.name } }),
+          opt({ morale: 0.2, board: -0.1, squad: 0.2, press: -5, fans: 0.2, lk: 'press.baroRowGuess', rk: 'press.baroRowGuessR' }),
+          opt({ morale: 0, board: 0, press: 1, lk: 'press.baroRowPrivate', rk: 'press.baroRowPrivateR' }),
+        ], rng))
+      // and always the oldest question in the book
+      pool.push(() => mk(state,
+        { k: voice(54, ['press.baroSmugQ1', 'press.baroSmugQ2']), v: { n: run } },
+        undefined, [
+          opt({ morale: 0, board: 0, squad: 0.3, press: -1, fans: 0.1, lk: 'press.baroSmugHungry', rk: 'press.baroSmugHungryR' }),
+          opt({ morale: 0, board: 0.2, squad: -0.1, press: 2, lk: 'press.baroSmugNothing', rk: 'press.baroSmugNothingR' }),
+          opt({ morale: 0, board: -0.1, squad: 0.2, press: 3, fans: 0.4, hype: 1, lk: 'press.baroAllTheWay', rk: 'press.baroAllTheWayR' }),
+          opt({ morale: 0, board: 0, press: 1, fans: 0.1, lk: 'press.baroSmugMay', rk: 'press.baroSmugMayR' }),
+        ], rng))
+      item = pool[(state.season * 3 + state.week) % pool.length]()
+    } else if (room === 'hostile') {
+      item = mk(state, { k: voice(55, ['press.baroHostileQ1', 'press.baroHostileQ2', 'press.baroHostileQ3']) }, undefined, [
+        opt({ morale: 0, board: -0.1, squad: 0.4, press: -3, fans: 0.1, lk: 'press.baroDefend', rk: 'press.baroDefendR' }),
+        opt({ morale: 0, board: 0.2, squad: 0.2, press: 5, fans: 0.2, lk: 'press.baroOnMe', rk: 'press.baroOnMeR' }),
+        opt({ morale: 0, board: 0, press: 2, lk: 'press.baroNextGame', rk: 'press.baroNextGameR' }),
+        opt({ morale: 0, board: -0.2, squad: 0.2, press: -8, fans: 0.5, lk: 'press.baroWroteOff', rk: 'press.baroWroteOffR' }),
+        opt({ morale: 0, board: 0.1, squad: -0.5, press: 4, fans: -0.1, lk: 'press.baroBlame', rk: 'press.baroBlameR' }),
+      ], rng)
+    } else if (room === 'sceptical') {
+      item = mk(state, { k: voice(56, ['press.baroScepticQ1', 'press.baroScepticQ2']) }, undefined, [
+        opt({ morale: 0, board: 0, squad: 0.3, press: -2, lk: 'press.baroDefend', rk: 'press.baroDefendR' }),
+        opt({ morale: 0, board: 0.1, squad: 0.1, press: 4, lk: 'press.baroOnMe', rk: 'press.baroOnMeR' }),
+        opt({ morale: 0, board: 0, press: 2, lk: 'press.baroNextGame', rk: 'press.baroNextGameR' }),
+        opt({ morale: 0, board: -0.1, squad: 0.1, press: -5, fans: 0.3, lk: 'press.baroWroteOff', rk: 'press.baroWroteOffR' }),
+      ], rng)
+    } else if (room === 'warm') {
+      item = mk(state, { k: voice(57, ['press.baroWarmQ1', 'press.baroWarmQ2', 'press.baroWarmQ3']) }, undefined, [
+        opt({ morale: 0, board: 0, squad: 0.3, press: 2, lk: 'press.baroWarmPlayers', rk: 'press.baroWarmPlayersR' }),
+        opt({ morale: 0, board: -0.1, squad: 0.2, press: 3, fans: 0.4, hype: 1, lk: 'press.baroAllTheWay', rk: 'press.baroAllTheWayR' }),
+        opt({ morale: 0, board: 0, squad: 0.1, press: 1, fans: 0.5, lk: 'press.baroWarmFans', rk: 'press.baroWarmFansR' }),
+        opt({ morale: 0, board: 0.2, squad: 0.1, press: -1, lk: 'press.baroWarmFeet', rk: 'press.baroWarmFeetR' }),
+      ], rng)
+    }
+    if (item) {
+      candidates.push(item)
+      if (room === 'hostile' || room === 'stir') candidates.push(item)
+    }
+  }
+
   // the manager's office: players knock on your door - but a man who has
   // already signed a pre-contract elsewhere has nothing left to ask you
   const OFFICE = OFFICE_OUTLET
@@ -1132,12 +1228,15 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
     item.rk = talk.rk; item.rv = talk.rv
     item.reaction = tIn('en', talk.rk, talk.rv)
   }
+  let playerDelta = 0
   if (item.playerId != null) {
     const p = state.players[item.playerId]
     if (p) {
+      const was = p.morale
       const swing = p.pers === 'Temperamental' ? 1.7 : 1
       p.morale = clamp(p.morale + (talk ? talk.morale : opt.morale) * swing, 1, 10)
       if (talk ? talk.unsettle : opt.unsettle) p.morale = clamp(p.morale - 1, 1, 10) // agents circle an unsettled player
+      playerDelta = p.morale - was
       // a promise made is a promise recorded - it falls due in a few weeks
       if (opt.pledge && !(state.pledges ?? []).some(pl => pl.playerId === p.id && pl.kind === opt.pledge)) {
         ;(state.pledges ??= []).push({
@@ -1259,6 +1358,9 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
   // tone ledger: what you say in public adds up - but words behind the
   // office door are private, and never move the public needle
   if (item.outlet === OFFICE_OUTLET) return
+  // the barometer (1.8.0): the whole squad, the needle and the hype, and the
+  // record of what the answer did for the coverage card
+  applyMoodAnswer(state, item, opt, playerDelta)
   const prev = state.pressTone ?? 0
   if (opt.morale >= 0.5) state.pressTone = clamp(prev + 1, -6, 6)
   else if (opt.morale <= -0.5) state.pressTone = clamp(prev - 1, -6, 6)
