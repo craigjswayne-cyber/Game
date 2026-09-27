@@ -62,6 +62,8 @@ const TABLETS = [
   { name: 'ipad-air', w: 820, h: 1180 },
   { name: 'galaxy-tab', w: 800, h: 1280 },
   { name: 'ipad-pro', w: 1024, h: 1366 },
+  // an iPad on its side (1.8.0, iPad builds): the deck goes beside the pitch
+  { name: 'ipad-pro-land', w: 1366, h: 1024 },
 ]
 try {
   for (const d of TABLETS) {
@@ -111,7 +113,7 @@ try {
       ok((await overflow(page)).length === 0, `${tag}: nothing past the right edge ${JSON.stringify(await overflow(page))}`)
       await page.screenshot({ path: `shots/tablet-${d.name}-${tag}.png` })
     }
-    if (d.name === 'ipad-air' || d.name === 'ipad-pro') {
+    if (d.name === 'ipad-air' || d.name === 'ipad-pro' || d.name === 'ipad-pro-land') {
       // the match itself: the pitch takes the width, and nothing hangs off it
       await page.click('.bottom-nav button[title="Home"]').catch(() => {})
       for (let tap = 0; tap < 8; tap++) {
@@ -132,9 +134,15 @@ try {
       }
       const m = await page.evaluate(() => {
         const p = document.querySelector('.pitch')?.getBoundingClientRect()
-        return p ? { w: Math.round(p.width), h: Math.round(p.height), right: Math.round(p.right) } : null
+        const k = document.querySelector('.tab-deck')?.getBoundingClientRect()
+        return p ? { w: Math.round(p.width), h: Math.round(p.height), right: Math.round(p.right), deckLeft: k ? Math.round(k.left) : null } : null
       })
-      ok(m && m.w >= d.w * 0.85 && m.right <= d.w + 1, `match: the pitch takes the width (${JSON.stringify(m)})`)
+      if (d.w > d.h) {
+        ok(m && m.h >= 400 && m.deckLeft != null && m.deckLeft >= m.right - 2 && m.right <= d.w + 1,
+          `match on its side: a full-height pitch with the deck beside it (${JSON.stringify(m)})`)
+      } else {
+        ok(m && m.w >= d.w * 0.85 && m.right <= d.w + 1, `match: the pitch takes the width (${JSON.stringify(m)})`)
+      }
       await page.screenshot({ path: `shots/tablet-${d.name}-match.png` })
     }
     await page.close()
