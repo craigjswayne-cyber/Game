@@ -3,7 +3,7 @@ import { useStore } from '../../store'
 import { listSaves, loadGame, deleteSave, type SaveMeta } from '../../game/save'
 import { seasonLabel } from '../../game/model'
 import { LANGS, t } from '../../game/i18n'
-import { BrandMark } from '../components'
+import { BrandMark, StudioMark } from '../components'
 import { dismiss, dismissed, isAndroidShell } from '../../game/shell'
 
 export default function Menu() {
@@ -144,6 +144,9 @@ export default function Menu() {
           build time by vite.config.ts, and deliberately the quietest thing on
           the screen. */}
       <div className="build-tag">{__BUILD_TAG__}</div>
+      {/* the studio, under the build line (owner, circling the space at the
+          foot of the title screen: "Put the logo here instead") */}
+      <div className="studio-foot"><StudioMark size={52} /></div>
     </div>
   )
 }

@@ -90,6 +90,6 @@ try {
   console.error(`FAIL  stopped early: ${e.message.split('\n')[0]}`)
   fails++
 }
-await browser.close(); server.kill?.()
+await browser.close(); server.stop()
 console.log(fails ? `\nOVERLAY PROBE FAILED (${fails})` : '\nOVERLAY PROBE PASSED: the lines, the contest and the rings come and go when they should')
 process.exit(fails ? 1 : 0)

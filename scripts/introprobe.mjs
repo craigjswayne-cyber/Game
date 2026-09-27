@@ -64,6 +64,6 @@ try {
   fails++
 }
 await browser.close()
-server.kill?.()
+server.stop()
 console.log(fails ? `\nINTRO PROBE FAILED (${fails})` : '\nINTRO PROBE PASSED: five seconds of titles, then the game, and a tap is always quicker')
 process.exit(fails ? 1 : 0)

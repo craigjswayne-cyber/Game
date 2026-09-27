@@ -165,6 +165,6 @@ try {
   fails++
 }
 await browser.close()
-server.kill?.()
+server.stop()
 console.log(fails ? `\nTABLET PROBE FAILED (${fails})` : '\nTABLET PROBE PASSED: a tablet gets the whole glass, and a phone is left alone')
 process.exit(fails ? 1 : 0)

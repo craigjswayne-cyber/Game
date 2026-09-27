@@ -718,6 +718,9 @@
   --prop-tee-edge: #9a7b3f;
   --prop-ink: #ffffff;
   --prop-ink-dark: #1d2733;
+  /* the FWDS & BCKS studio mark: black and white in every skin and mode */
+  --studio-ink: #0b0b0b;
+  --studio-paper: #ffffff;
 }
 
 /* ---------------- focus and disabled, as rules ---------------- */

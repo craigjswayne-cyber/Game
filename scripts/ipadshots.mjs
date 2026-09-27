@@ -64,6 +64,6 @@ for (let k = 0; k < 3 && await page.locator('text=Take the Points').count(); k++
 await shot('match')
 
 await browser.close()
-server.kill?.()
+server.stop()
 console.log(`IPAD SHOTS: ${n} at 2048 x 2732 in ${OUT}/`)
 process.exit(0)
