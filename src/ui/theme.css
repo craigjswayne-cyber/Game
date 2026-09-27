@@ -1453,7 +1453,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   border-bottom: 1px solid rgba(255, 255, 255, .06);
 }
 .submenu-item:active { background: rgba(255, 255, 255, .08); }
-.submenu-item .mico { font-size: 18px; width: 24px; text-align: center; }
+.submenu-item .mico { font-size: 20px; width: 24px; text-align: center; display: inline-flex; align-items: center; justify-content: center; color: var(--text-secondary, currentColor); }
 .submenu-item .mbadge {
   background: var(--danger); color: var(--on-danger);
   font-size: 10px; font-weight: 700;
@@ -4701,3 +4701,6 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 /* the A League table: rank under "#", the crest and name a step in */
 .a-table td.name { padding-left: 10px; }
 .a-table td.name > :first-child { margin-right: 6px; }
+
+/* icons in place of emoji (glyphs.tsx): sit on the text's baseline */
+.glyph { display: inline-block; vertical-align: -0.14em; flex-shrink: 0; }
