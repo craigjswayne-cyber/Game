@@ -144,7 +144,8 @@ try {
       let smooth = null
       for (const e of now.ctx.events.slice(0, now.cursor)) {
         if (e.fld == null) continue
-        smooth = smooth == null ? e.fld : smooth * 0.7 + e.fld * 0.3
+        // 0.6 on the latest since 1.8.1 (was 0.3): the glide smooths the picture now
+        smooth = smooth == null ? e.fld : smooth * 0.4 + e.fld * 0.6
       }
       out.push({
         left: parseFloat(ball.style.left), momo: now.ctx.momo, smooth,

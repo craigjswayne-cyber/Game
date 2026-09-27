@@ -2392,10 +2392,13 @@ function Live() {
     // most of the field in one tick. The pitch follows a running average of
     // the lines revealed so far, weighted to the latest: it goes where the
     // territory went and gets there in a line, not in leaps.
+    // MOSTLY THE LATEST SINCE 1.8.1 (0.6, was 0.3). The glide (pitchGlide.ts)
+    // now does the visual smoothing, and at 0.3 the average kept play where
+    // it had been: a 50:22 "lineout deep in the corner" was drawn at halfway.
     let smooth: number | null = null
     for (const e of ctx.events.slice(0, cursor)) {
       if (e.fld == null) continue
-      smooth = smooth == null ? e.fld : smooth * 0.7 + e.fld * 0.3
+      smooth = smooth == null ? e.fld : smooth * 0.4 + e.fld * 0.6
     }
     const base = atLine ? (towardHome ? 88 : 12)
       : smooth != null ? 8 + smooth * 0.84
