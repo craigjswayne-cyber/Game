@@ -7344,7 +7344,8 @@
   "wor": "Wrk"
  },
  "intro": {
-  "skip": "Tik om oor te slaan"
+  "skip": "Tik om oor te slaan",
+  "sound": "Klank"
  },
  "mset": {
   "overlays": "Oorlegsels",

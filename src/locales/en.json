@@ -7296,7 +7296,8 @@
   "wor": "Wor"
  },
  "intro": {
-  "skip": "Tap to skip"
+  "skip": "Tap to skip",
+  "sound": "Sound"
  },
  "mset": {
   "overlays": "Overlays",

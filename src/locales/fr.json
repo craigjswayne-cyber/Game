@@ -7133,7 +7133,8 @@
     "wor": "Vol"
   },
   "intro": {
-    "skip": "Touchez pour passer"
+    "skip": "Touchez pour passer",
+    "sound": "Son"
   },
   "mset": {
     "overlays": "Surimpressions",
