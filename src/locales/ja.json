@@ -1554,8 +1554,6 @@
   "deadlineWindow": "⏰ 締切ウィンドウ・第28週で完全閉鎖",
   "windowClosed": "移籍期間外・締切は第26週",
   "tabMarket": "市場",
-  "tabShortlist": "ショートリスト",
-  "tabLoans": "ローン",
   "tabDeals": "取引",
   "contractSituations": "契約状況",
   "contractSituationsSub": "満了が迫る契約と、突きつけられた要求",
@@ -1571,7 +1569,7 @@
   "incomingLine": "{age}歳・{from_k}・移籍金なし",
   "agreed": "🖊 合意済み",
   "scoutingAssignment": "スカウト任務",
-  "assignmentNote": "スカウト網をひとつのリーグに向ければ、そのリーグの選手は毎週視察される{unassigned}。ショートリストの選手は常に追跡され、状況が変われば通知が届く。",
+  "assignmentNote": "スカウトはひとつのリーグの全選手を毎週チェックする{unassigned}。ショートリストの選手は常にチェックされる。",
   "unassigned": "(現在は未指定)",
   "offersForYourPlayers": "選手へのオファー",
   "bidLine": "{club}が{player}に{fee}を提示",
@@ -1584,9 +1582,6 @@
   "shortlistSub": "スカウトが毎週報告を上げる",
   "freeAgent": "フリー",
   "loanMarket": "ローン市場",
-  "loanMarketSub": "上位から借りる · 条件は交渉",
-  "signOnLoan": "ローンで獲得",
-  "noLoans": "いま選手を貸し出している上位クラブはない。",
   "scoutTheMarket": "市場を探す",
   "marketSub": "{n}人ヒット・タップで入札",
   "best120": "上位120人",
@@ -1618,7 +1613,7 @@
   "focusLeague": "重点リーグ",
   "reportsBack": " 報告はおよそ{n}週間後。",
   "reportsBackOne": " 報告はおよそ{n}週間後。",
-  "longerTrip": "旅が長いほど多くのラグビーを観られる——名前も増え、獲る価値のある者も増える。視察先は{where}——下の重点リーグ設定で絞り込める。",
+  "longerTrip": "期間が長いほど、見つかる選手は多く、質も上がる。対象：{where}。",
   "watchesLeague": "{league}",
   "watchesWorld": "世界中",
   "anyPosition": "全ポジション",
@@ -1643,11 +1638,10 @@
   "loanCostLine": "あなたが負担する給与: 週{wage}",
   "loanClose": "今はやめる",
   "loanDone": "完了",
-  "loanApproachSub": "誰も勧めてこない若手に打診する。",
-  "loanApproach": "打診する",
-  "loanAsk": "打診",
-  "loanNoHits": "その名前で育成できる選手はいない。23歳以下で、健康で、まだレンタルに出ていない選手であること。",
-  "scoutsReportSub_w": "彼女の見立て・名前をタップで詳細"
+  "scoutsReportSub_w": "彼女の見立て・名前をタップで詳細",
+  "tabScouting": "スカウト",
+  "loanMarketSub2": "{n}人が対象 · タップしてオファー",
+  "loanAskTag": "（未提示）"
  },
  "objectives": {
   "youth": "アカデミー登用:21歳以下の選手に6試合以上の先発を",
@@ -6838,7 +6832,10 @@
   "show": {
    "one": "{n}人を表示",
    "other": "{n}人を表示"
-  }
+  },
+  "deal": "契約形態",
+  "dealTransfer": "移籍",
+  "dealLoan": "ローン"
  },
  "attrShort": {
   "tac": "タック",

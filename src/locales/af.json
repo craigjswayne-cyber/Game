@@ -1604,8 +1604,6 @@
   "deadlineWindow": "⏰ Sperdatumvenster · klap toe wk 28",
   "windowClosed": "Venster gesluit · sperdatum wk 26",
   "tabMarket": "Mark",
-  "tabShortlist": "Kortlys",
-  "tabLoans": "Lenings",
   "tabDeals": "Transaksies",
   "contractSituations": "Kontraksituasies",
   "contractSituationsSub": "kontrakte wat afloop en eise op die tafel",
@@ -1621,7 +1619,7 @@
   "incomingLine": "{age} jr · {from_k} · verniet",
   "agreed": "🖊 ooreengekom",
   "scoutingAssignment": "Talentsoek-opdrag",
-  "assignmentNote": "Rig die netwerk op een liga - sy spelers word elke week dopgehou{unassigned}. Kortlysmanne word altyd gevolg, met waarskuwings wanneer hul situasie verander.",
+  "assignmentNote": "Jou talentsoekers hou elke week al die spelers in een liga dop{unassigned}. Spelers op jou kortlys word altyd dopgehou.",
   "unassigned": " (tans nie toegewys nie)",
   "offersForYourPlayers": "Aanbiedinge vir jou spelers",
   "bidLine": "{club} bied {fee} vir {player}",
@@ -1634,9 +1632,6 @@
   "shortlistSub": "talentsoekers lewer weeklikse verslae",
   "freeAgent": "Kontrakvry",
   "loanMarket": "Leenmark",
-  "loanMarketSub": "leen van hoër op · jy stel die terme",
-  "signOnLoan": "Teken op leen",
-  "noLoans": "Geen klubs bo jou leen tans uit nie.",
   "scoutTheMarket": "Verken die mark",
   "marketSub": "{n} gevind · tik om te bie",
   "best120": "beste 120",
@@ -1668,7 +1663,7 @@
   "focusLeague": "fokusliga",
   "reportsBack": " Hy doen oor ongeveer {n} weke verslag.",
   "reportsBackOne": " Hy doen oor ongeveer {n} week verslag.",
-  "longerTrip": "'n Langer reis sien meer rugby: meer name, en meer van hulle die moeite werd om te teken. Hy hou{where} dop - stel die fokusliga hieronder om dit te vernou.",
+  "longerTrip": "Hoe langer die soektog, hoe meer spelers kry dit, en beter spelers. Gebied:{where}.",
   "watchesLeague": " die {league}",
   "watchesWorld": " die hele wêreld",
   "anyPosition": "Enige posisie",
@@ -1693,15 +1688,13 @@
   "loanCostLine": "Jou deel van sy salaris: {wage}/wk",
   "loanClose": "Nie nou nie",
   "loanDone": "Klaar",
-  "loanApproachSub": "Vra na 'n jong speler wat niemand aanbied nie",
-  "loanApproach": "Doen navraag",
-  "loanAsk": "Vra",
-  "loanNoHits": "Niemand met daardie naam wat jy kan ontwikkel nie. Dit moet 'n speler van 23 of jonger wees, fiks, en nie reeds op leen nie.",
   "renewNote_f": "Tik op 'n speler om vanaf haar bladsy te hernu. Vanaf week 25 kan 'n vrou sonder nuwe kontrak elders 'n voorkontrak teken en in die somer verniet loop.",
   "loanShare_f": "Deel van haar salaris wat jy betaal",
   "loanCostLine_f": "Jou deel van haar salaris: {wage}/wk",
-  "longerTrip_w": "'n Langer reis sien meer rugby: meer name, en meer van hulle die moeite werd om te teken. Sy hou{where} dop - stel die fokusliga hieronder om dit te vernou.",
-  "scoutsReportSub_w": "haar oordeel · tik op 'n naam vir meer"
+  "scoutsReportSub_w": "haar oordeel · tik op 'n naam vir meer",
+  "tabScouting": "Talentsoek",
+  "loanMarketSub2": "{n} beskikbaar · tik om 'n aanbod te maak",
+  "loanAskTag": "(nie aangebied nie)"
  },
  "objectives": {
   "youth": "Gee die akademie kans: gee 6+ beginplekke aan spelers van 21 of jonger",
@@ -7302,7 +7295,10 @@
   "show": {
    "one": "Wys {n} speler",
    "other": "Wys {n} spelers"
-  }
+  },
+  "deal": "Transaksie",
+  "dealTransfer": "Oordrag",
+  "dealLoan": "Lening"
  },
  "attrShort": {
   "tac": "Lvt",

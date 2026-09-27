@@ -1570,8 +1570,6 @@
   "deadlineWindow": "⏰ Recta final · se cierra de golpe la sem. 28",
   "windowClosed": "Mercado cerrado · límite sem. 26",
   "tabMarket": "Mercado",
-  "tabShortlist": "Lista",
-  "tabLoans": "Cesiones",
   "tabDeals": "Operaciones",
   "contractSituations": "Situaciones contractuales",
   "contractSituationsSub": "contratos que acaban y exigencias en la mesa",
@@ -1587,7 +1585,7 @@
   "incomingLine": "{age} años · {from_k} · llega gratis",
   "agreed": "🖊 acordado",
   "scoutingAssignment": "Misión de ojeo",
-  "assignmentNote": "Apunta la red hacia una liga y sus jugadores serán observados cada semana{unassigned}. Los de tu lista siempre están vigilados, con avisos cuando su situación cambie.",
+  "assignmentNote": "Tus ojeadores siguen cada semana a todos los jugadores de una liga{unassigned}. Los de tu lista siempre están vigilados.",
   "unassigned": " (ahora sin asignar)",
   "offersForYourPlayers": "Ofertas por tus jugadores",
   "bidLine": "{club} ofrece {fee} por {player}",
@@ -1600,9 +1598,6 @@
   "shortlistSub": "ojeadores enviando informes semanales",
   "freeAgent": "Agente libre",
   "loanMarket": "Mercado de cesiones",
-  "loanMarketSub": "cedidos de arriba · tus condiciones",
-  "signOnLoan": "Fichar cedido",
-  "noLoans": "Ningún club por encima del tuyo cede jugadores ahora mismo.",
   "scoutTheMarket": "Ojear el mercado",
   "marketSub": "{n} encontrados · toca para pujar",
   "best120": "los 120 mejores",
@@ -1634,7 +1629,7 @@
   "focusLeague": "liga prioritaria",
   "reportsBack": " Vuelve con el informe en unas {n} semanas.",
   "reportsBackOne": " Vuelve con el informe en cosa de {n} semana.",
-  "longerTrip": "Un viaje más largo ve más rugby: más nombres, y más de ellos dignos de fichar. Observa{where}; fija abajo la liga prioritaria para acotar.",
+  "longerTrip": "Cuanto más larga la búsqueda, más jugadores encuentra, y mejores. Zona:{where}.",
   "watchesLeague": " la {league}",
   "watchesWorld": " el mundo entero",
   "anyPosition": "Cualquier posición",
@@ -1659,16 +1654,14 @@
   "loanCostLine": "Tu parte de su salario: {wage}/sem.",
   "loanClose": "Ahora no",
   "loanDone": "Hecho",
-  "loanApproachSub": "Pregunta por un joven que nadie ofreció.",
-  "loanApproach": "Hacer una consulta",
-  "loanAsk": "Preguntar",
-  "loanNoHits": "Nadie con ese nombre a quien pudieras formar. Debe ser un jugador de 23 años o menos, en forma y no cedido ya.",
   "renewNote_f": "Toca una jugadora para renovarla desde su página. A partir de la semana 25, quien no haya renovado puede firmar un precontrato con otro club e irse gratis en verano.",
-  "assignmentNote_f": "Apunta la red hacia una liga y sus jugadoras serán observadas cada semana{unassigned}. Las de tu lista siempre están vigiladas, con avisos cuando su situación cambie.",
   "offersForYourPlayers_f": "Ofertas por tus jugadoras",
   "noLoans_f": "Ningún club por encima del tuyo cede jugadoras ahora mismo.",
   "listedHint_f": " - los clubes ponen transferibles a sus jugadoras cuando se acerca el mercado; vuelve más tarde",
-  "loanNoHits_f": "Nadie con ese nombre a quien pudieras formar. Debe ser una jugadora de 23 años o menos, en forma y no cedida ya."
+  "loanNoHits_f": "Nadie con ese nombre a quien pudieras formar. Debe ser una jugadora de 23 años o menos, en forma y no cedida ya.",
+  "tabScouting": "Ojeo",
+  "loanMarketSub2": "{n} disponibles · toca para ofertar",
+  "loanAskTag": "(no ofrecido)"
  },
  "objectives": {
   "youth": "Curte a la cantera: da 6 o más titularidades a jugadores de 21 años o menos",
@@ -6936,7 +6929,10 @@
   "show": {
    "one": "Ver {n} jugador",
    "other": "Ver {n} jugadores"
-  }
+  },
+  "deal": "Operación",
+  "dealTransfer": "Traspaso",
+  "dealLoan": "Cesión"
  },
  "attrShort": {
   "tac": "Pla",

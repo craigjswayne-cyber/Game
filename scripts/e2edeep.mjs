@@ -113,7 +113,7 @@ try {
 
   await page.click('.bottom-nav button[title="Hub"]')
   await page.click('.submenu-item >> text=Transfer Centre')
-  await page.click('.tab-bar >> text=Shortlist')
+  await page.click('.tab-bar >> text=Scouting')
   await page.waitForSelector('.section-title >> text=Scouting', { timeout: 10000 }) // the heading is t('transfers.commissionedSearch'), which reads "Scouting" now
   await shot('deep-08-scout-report')
 

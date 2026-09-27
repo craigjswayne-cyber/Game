@@ -132,8 +132,8 @@ try {
   await page.click('.filter-sheet > .btn-row .btn.gold')
   await page.waitForTimeout(300)
   await shot('06c2-transfers-filtered')
-  // commissioned scouting lives on the Shortlist tab
-  await page.click('.tab-bar >> text=Shortlist')
+  // commissioned scouting lives on the Scouting tab
+  await page.click('.tab-bar >> text=Scouting')
   await page.waitForSelector('.section-title >> text=Scouting') // the heading is t('transfers.commissionedSearch'), which reads "Scouting" now
   await shot('06c3-commission')
 

@@ -1585,8 +1585,6 @@
   "deadlineWindow": "⏰ Finestra deadline · si chiude di colpo sett. 28",
   "windowClosed": "Mercato chiuso · deadline sett. 26",
   "tabMarket": "Mercato",
-  "tabShortlist": "Lista",
-  "tabLoans": "Prestiti",
   "tabDeals": "Trattative",
   "contractSituations": "Situazioni contrattuali",
   "contractSituationsSub": "contratti in scadenza e richieste sul tavolo",
@@ -1602,7 +1600,7 @@
   "incomingLine": "{age} anni · {from_k} · a parametro zero",
   "agreed": "🖊 accordo fatto",
   "scoutingAssignment": "Incarico di osservazione",
-  "assignmentNote": "Punta la rete su un campionato: i suoi giocatori vengono seguiti ogni settimana{unassigned}. Gli uomini in lista sono sempre monitorati, con avvisi quando la loro situazione cambia.",
+  "assignmentNote": "I tuoi osservatori seguono ogni settimana tutti i giocatori di un campionato{unassigned}. Chi è nella tua lista è sempre seguito.",
   "unassigned": " (al momento nessun incarico)",
   "offersForYourPlayers": "Offerte per i tuoi giocatori",
   "bidLine": "{club} offre {fee} per {player}",
@@ -1615,9 +1613,6 @@
   "shortlistSub": "gli osservatori riferiscono ogni settimana",
   "freeAgent": "Svincolato",
   "loanMarket": "Mercato prestiti",
-  "loanMarketSub": "prestiti dall’alto · alle tue condizioni",
-  "signOnLoan": "Prendi in prestito",
-  "noLoans": "Nessun club sopra di te sta prestando giocatori al momento.",
   "scoutTheMarket": "Esplora il mercato",
   "marketSub": "{n} trovati · tocca per offrire",
   "best120": "i migliori 120",
@@ -1649,7 +1644,7 @@
   "focusLeague": "campionato prioritario",
   "reportsBack": " Riferisce tra circa {n} settimane.",
   "reportsBackOne": " Riferisce tra circa {n} settimana.",
-  "longerTrip": "Un viaggio più lungo vede più rugby: più nomi, e più nomi che vale la pena firmare. Osserva{where} - imposta il campionato prioritario qui sotto per restringere il campo.",
+  "longerTrip": "Più lunga è la ricerca, più giocatori trova, e migliori. Zona:{where}.",
   "watchesLeague": " la {league}",
   "watchesWorld": " il mondo intero",
   "anyPosition": "Qualsiasi ruolo",
@@ -1674,15 +1669,13 @@
   "loanCostLine": "La tua quota del suo stipendio: {wage}/sett.",
   "loanClose": "Non ora",
   "loanDone": "Fatto",
-  "loanApproachSub": "Sonda un giovane che nessuno ha offerto.",
-  "loanApproach": "Fare un sondaggio",
-  "loanAsk": "Chiedere",
-  "loanNoHits": "Nessuno con quel nome che potresti far crescere. Serve un giocatore di 23 anni o meno, integro e non già in prestito.",
   "renewNote_f": "Tocca una giocatrice per rinnovare dalla sua pagina. Dalla settimana 25 chi non ha rinnovato può firmare un pre-contratto altrove e andarsene a zero in estate.",
-  "assignmentNote_f": "Punta la rete su un campionato: le sue giocatrici vengono seguite ogni settimana{unassigned}. Le donne in lista sono sempre monitorate, con avvisi quando la loro situazione cambia.",
   "offersForYourPlayers_f": "Offerte per le tue giocatrici",
   "noLoans_f": "Nessun club sopra di te sta prestando giocatrici al momento.",
-  "loanNoHits_f": "Nessuno con quel nome che potresti far crescere. Serve una giocatrice di 23 anni o meno, integra e non già in prestito."
+  "loanNoHits_f": "Nessuno con quel nome che potresti far crescere. Serve una giocatrice di 23 anni o meno, integra e non già in prestito.",
+  "tabScouting": "Osservatori",
+  "loanMarketSub2": "{n} disponibili · tocca per fare un'offerta",
+  "loanAskTag": "(non offerto)"
  },
  "objectives": {
   "youth": "Lancia l'academy: almeno 6 partite da titolare a giocatori di 21 anni o meno",
@@ -6971,7 +6964,10 @@
   "show": {
    "one": "Mostra {n} giocatore",
    "other": "Mostra {n} giocatori"
-  }
+  },
+  "deal": "Operazione",
+  "dealTransfer": "Trasferimento",
+  "dealLoan": "Prestito"
  },
  "attrShort": {
   "tac": "Pla",

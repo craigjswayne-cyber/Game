@@ -1606,8 +1606,6 @@
   "deadlineWindow": "⏰ Deadline window · slams shut wk 28",
   "windowClosed": "Window closed · deadline wk 26",
   "tabMarket": "Market",
-  "tabShortlist": "Shortlist",
-  "tabLoans": "Loans",
   "tabDeals": "Deals",
   "contractSituations": "Contract Situations",
   "contractSituationsSub": "deals running down and demands on the table",
@@ -1623,7 +1621,7 @@
   "incomingLine": "{age} yrs · {from_k} · on a free",
   "agreed": "🖊 agreed",
   "scoutingAssignment": "Scouting Assignment",
-  "assignmentNote": "Point the network at one league - its players get watched every week{unassigned}. Shortlisted men are always tracked, with alerts when their situation changes.",
+  "assignmentNote": "Your scouts watch every player in one league each week{unassigned}. Players on your shortlist are always watched.",
   "unassigned": " (currently unassigned)",
   "offersForYourPlayers": "Offers For Your Players",
   "bidLine": "{club} bid {fee} for {player}",
@@ -1636,9 +1634,6 @@
   "shortlistSub": "scouts filing weekly reports",
   "freeAgent": "Free agent",
   "loanMarket": "Loan Market",
-  "loanMarketSub": "borrow from above · you set the terms",
-  "signOnLoan": "Sign on loan",
-  "noLoans": "No clubs above you are loaning right now.",
   "scoutTheMarket": "Scout The Market",
   "marketSub": "{n} found · tap to bid",
   "best120": "best 120",
@@ -1670,7 +1665,7 @@
   "focusLeague": "focus league",
   "reportsBack": " He reports back in about {n} weeks.",
   "reportsBackOne": " He reports back in about {n} week.",
-  "longerTrip": "A longer trip sees more rugby: more names, and more of them worth signing. He watches{where} - set the focus league below to narrow it.",
+  "longerTrip": "Longer searches find more players, and better ones. Searching{where}.",
   "watchesLeague": " the {league}",
   "watchesWorld": " the whole world",
   "anyPosition": "Any position",
@@ -1695,16 +1690,13 @@
   "loanCostLine": "Your share of his wage: {wage}/wk",
   "loanClose": "Not now",
   "loanDone": "Done",
-  "loanApproachSub": "Ask about a young player nobody offered.",
-  "loanApproach": "Make an approach",
-  "loanAsk": "Ask",
-  "loanNoHits": "Nobody by that name you could develop. It has to be a player of 23 or under, fit, and not already out on loan.",
   "renewNote_f": "Tap a player to renew from her page. From week 25 an unrenewed woman can sign a pre-contract elsewhere and walk for nothing in the summer.",
-  "assignmentNote_f": "Point the network at one league - its players get watched every week{unassigned}. Shortlisted women are always tracked, with alerts when their situation changes.",
   "loanShare_f": "Share of her wage you pay",
   "loanCostLine_f": "Your share of her wage: {wage}/wk",
-  "longerTrip_w": "A longer trip sees more rugby: more names, and more of them worth signing. She watches{where} - set the focus league below to narrow it.",
-  "scoutsReportSub_w": "her verdict · tap a name for more"
+  "scoutsReportSub_w": "her verdict · tap a name for more",
+  "tabScouting": "Scouting",
+  "loanMarketSub2": "{n} available · tap to make an offer",
+  "loanAskTag": "(not offered)"
  },
  "objectives": {
   "youth": "Blood the academy: give 6+ starts to players aged 21 or under",
@@ -7254,7 +7246,10 @@
   "show": {
    "one": "Show {n} player",
    "other": "Show {n} players"
-  }
+  },
+  "deal": "Deal",
+  "dealTransfer": "Transfer",
+  "dealLoan": "Loan"
  },
  "attrShort": {
   "tac": "Tck",
