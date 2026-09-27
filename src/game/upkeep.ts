@@ -38,6 +38,7 @@ import type { GameState } from './model'
 import { clamp, type Rng } from './rng'
 import { seasonStart, BASE_YEAR, fmtMoney, groundLevel, operatingCost } from './model'
 import { tIn } from './i18n'
+import { book } from './books'
 
 /**
  * How often the club's non-rugby year says something. Often enough to be part
@@ -230,6 +231,9 @@ export function upkeepWeek(state: GameState, rng: Rng): number {
     amount = -Math.min(-amount, affordable)
   }
   club.balance += amount
+  // a repair bill is the ground's running cost on the balance sheet (books.ts);
+  // a windfall stays in the sheet's "other items"
+  if (amount < 0) book(state, 'upkeep', amount)
 
   // A WINDFALL IS THE CLUB'S, NOT THE MANAGER'S. It lands in the balance and
   // stays there: turning every summer fete into transfer money would make the

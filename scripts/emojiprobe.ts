@@ -33,11 +33,10 @@ const ROOT = join(__dirname, '..')
 // lead EMPTIES BOTH LISTS after merging them, and from then on this probe
 // covers the whole game with no exceptions.
 const TEMP_FILES = new Set([
-  // the match engine and highlights, and finances: still being merged
-  'src/game/matchEngine.ts', 'src/ui/HighlightClip.tsx', 'src/game/commercial.ts',
-  'src/ui/screens/Finances.tsx',
+  // the match engine and highlights: still being merged
+  'src/game/matchEngine.ts', 'src/ui/HighlightClip.tsx',
 ])
-const TEMP_NAMESPACES = new Set(['comm', 'hl', 'finances', 'till'])
+const TEMP_NAMESPACES = new Set(['comm', 'hl'])
 // ---- END TEMPORARY EXCEPTIONS ----
 
 // Not temporary: the nations table's flag fields. A flag is a flag, and two
