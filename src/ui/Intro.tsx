@@ -4,6 +4,7 @@ import { t } from '../game/i18n'
 import { introSound, introUnlocked, soundOn, unlockAudio } from './audio'
 import titleArt from './title-bg.webp'
 import { preloadAllArt } from './artPreload'
+import { Glyph } from './glyphs'
 
 /**
  * ---- THE OPENING TITLES (1.8.0) ----
@@ -155,7 +156,7 @@ export function Intro() {
         <div className="intro-tag">{words.join(' ')} <b>{lastWord}</b></div>
       </div>
       {needTap && (
-        <button className="intro-sound" onClick={sound} aria-label={t('intro.sound')}>🔊</button>
+        <button className="intro-sound" onClick={sound} aria-label={t('intro.sound')}><Glyph name="sound" /></button>
       )}
       <div className="intro-skip">{t('intro.skip')}</div>
     </div>

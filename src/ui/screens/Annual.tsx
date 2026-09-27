@@ -2,6 +2,7 @@ import { useStore } from '../../store'
 import { seasonLabel } from '../../game/model'
 import { SectionTitle } from '../components'
 import { t } from '../../game/i18n'
+import { Glyph } from '../glyphs'
 
 /**
  * The Annual: the forced page between seasons (user: "when a season is
@@ -31,7 +32,7 @@ export default function Annual() {
       </SectionTitle>
       {(game.licensed || game.uncapped) && (
         <div className="muted" style={{ padding: '0 16px 4px', fontSize: 12 }}>
-          {game.licensed ? '🎓 ' : ''}{game.uncapped ? '🖋 ' : ''}
+          {game.licensed && <><Glyph name="academy" /> </>}{game.uncapped && <><Glyph name="pen" /> </>}
           {[game.licensed && t('till.stampLicensed'), game.uncapped && t('till.stampCharter')].filter(Boolean).join(' · ')}
         </div>
       )}

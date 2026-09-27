@@ -145,7 +145,7 @@ try {
 
   // ---------- A5: the celebration overlay ----------
   console.log('A5 the celebration overlay')
-  const set = await mutate(`g => { g.celebration = { headline: 'CHAMPIONS OF ENGLAND', sub: 'Gallagher Premiership winners', icon: '🏆' } }`)
+  const set = await mutate(`g => { g.celebration = { headline: 'CHAMPIONS OF ENGLAND', sub: 'Gallagher Premiership winners', icon: 'trophy' } }`)
   check(set === 'ok', `the celebration can be written to the live state (${set})`)
   await page.click('.bottom-nav button[title="Home"]')
   await page.waitForSelector('.celebrate-veil', { timeout: 5000 })
@@ -303,7 +303,7 @@ try {
   await page.waitForSelector('.submenu')
   await page.click('.submenu-item >> text=Save / Load Game')
   await page.waitForSelector('text=Save Slots', { timeout: 8000 })
-  await page.click('button >> text=💾 Save >> nth=0')
+  await page.click('button.slot-act >> text=/^Save$/ >> nth=0')
   await page.waitForSelector('.save-warn', { timeout: 20000 })
   check(/Could not save/.test(await page.textContent('.card') ?? ''), 'and the Saves screen says so where you asked for the save')
   const warn = await page.textContent('.save-warn')

@@ -2,10 +2,11 @@ import { useMemo, useState } from 'react'
 import { useStore } from '../../store'
 import { POS_ORDER, fmtMoney, fmtWage, type Player } from '../../game/model'
 import { starPlayerIds } from '../../game/analysis'
-import { AvailTag, Nat, PosBadge, Stars, StickyControls } from '../components'
+import { AvailTag, Mark, Nat, PosBadge, Stars, StickyControls } from '../components'
 import { STATUSES, STATUS_BY_ID, clubMatchesPlayed, ledgerRow, statusOf, type SquadStatus } from '../../game/gametime'
 import SelectionPane from './Selection'
 import { posName, t } from '../../game/i18n'
+import { Glyph } from '../glyphs'
 
 // Handheld squad layout: the team sheet first, then the tables - Pkd chip,
 // fitness ring, starred names, morale arrows, Av R and Value.
@@ -128,7 +129,7 @@ export default function Squad() {
       {/* red while he is away with his country (user: "if a player is on
           International duty they should have a red colour for their name") -
           one glance down the list shows who the Test window has taken */}
-      <span style={p.natSquad ? { color: 'var(--danger)', fontWeight: 700 } : undefined}>{p.name}</span>{game.clubs[game.userClubId].captain === p.id ? <b style={{ color: 'var(--gold)' }}> (C)</b> : ''}{stars.has(p.id) ? ' ⭐' : ''} <AvailTag p={p} g={game} />
+      <span style={p.natSquad ? { color: 'var(--danger)', fontWeight: 700 } : undefined}>{p.name}</span>{game.clubs[game.userClubId].captain === p.id ? <b style={{ color: 'var(--gold)' }}> (C)</b> : ''}{stars.has(p.id) && <> <Mark name="star" color="var(--gold)" /></>} <AvailTag p={p} g={game} />
     </td>
   )
 
@@ -185,10 +186,10 @@ export default function Squad() {
             same line as first team and academy"). */}
         {/* the two icons carry no words in any language; only Everyone and the
             tooltips need the dictionary */}
-        {([['any', 'squad.everyone', 'squad.whyEveryone'], ['fit', '✅', 'squad.whyFit'], ['out', '🚑', 'squad.whyOut']] as const).map(([k, label, why]) => (
+        {([['any', 'squad.everyone', 'squad.whyEveryone'], ['fit', 'check', 'squad.whyFit'], ['out', 'medical', 'squad.whyOut']] as const).map(([k, label, why]) => (
           <button key={k} className="preset-chip" title={t(why)} aria-label={t(why)}
             style={avail === k ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
-            onClick={() => setAvail(k)}>{label.includes('.') ? t(label) : label}</button>
+            onClick={() => setAvail(k)}>{label.includes('.') ? t(label) : <Glyph name={label} />}</button>
         ))}
         {view === 'gametime' && (
           <button className="preset-chip" style={gtAll ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
@@ -220,7 +221,7 @@ export default function Squad() {
       {view !== 'selection' && view !== 'depth' && <div className="tblwrap fitwrap"><table className="dtable zebra fit">
         {view === 'general' && <colgroup><col /><col width="36" /><col width="32" /><col width="28" /><col width="26" /><col width="44" /><col width="56" /></colgroup>}
         {view === 'stats' && <colgroup><col /><col width="34" /><col width="30" /><col width="38" /><col width="32" /><col width="32" /><col width="44" /></colgroup>}
-        {view === 'gametime' && <colgroup><col /><col width="104" /><col width="30" /><col width="32" /><col width="48" /></colgroup>}
+        {view === 'gametime' && <colgroup><col /><col width="104" /><col width="30" /><col width="32" /><col width="82" /></colgroup>}
         {view === 'contracts' && <colgroup><col /><col width="36" /><col width="30" /><col width="56" /><col width="44" /><col width="46" /></colgroup>}
         <thead>
           {view === 'general' && (
@@ -312,11 +313,14 @@ export default function Squad() {
                   // is unhappy about it.
                   const row = ledgerRow(game, club, p, played)
                   const cur = statusOf(game, club, p)
+                  // a coloured light and the word, not a face (owner, 27 Sep
+                  // 2026: icons, not emoji); the gap is in the tooltip, and
+                  // the two columns beside it already give both its halves
                   const MOOD: Record<string, [string, string]> = {
-                    happy: ['😀', 'var(--text-positive)'], content: ['🙂', 'var(--text-positive)'],
-                    restless: ['😐', 'var(--gold)'], unhappy: ['😠', 'var(--danger)'],
+                    happy: ['squad.moodHappy', 'var(--positive)'], content: ['squad.moodContent', 'var(--positive)'],
+                    restless: ['squad.moodRestless', 'var(--gold)'], unhappy: ['squad.moodUnhappy', 'var(--danger)'],
                   }
-                  const [icon, col] = MOOD[row.mood]
+                  const [moodK, col] = MOOD[row.mood]
                   return (<>
                     <td onClick={e => e.stopPropagation()}>
                       <select className="inline-input gt-sel" value={cur}
@@ -328,8 +332,8 @@ export default function Squad() {
                     </td>
                     <td className="num" style={{ fontWeight: 700 }}>{row.actual}</td>
                     <td className="num" style={{ color: row.gap < -2 ? 'var(--danger)' : undefined }}>{row.expected}</td>
-                    <td title={t(`squad.status${cur[0].toUpperCase()}${cur.slice(1)}Desc`)} style={{ color: col, whiteSpace: 'nowrap' }}>
-                      {icon} {row.gap >= 0 ? `+${row.gap}` : row.gap}
+                    <td className="gt-mood" title={`${row.gap >= 0 ? `+${row.gap}` : row.gap} · ${t(`squad.status${cur[0].toUpperCase()}${cur.slice(1)}Desc`)}`}>
+                      <span className="status-dot" style={{ background: col }} /> {t(moodK)}
                     </td>
                   </>)
                 })()}

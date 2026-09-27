@@ -32,7 +32,7 @@ export default function History() {
             <tr key={i}>
               <td>{seasonLabel(h.season)}</td>
               <td>{game.comps[h.compId]?.name ?? (GONE_BUT_NOT_FORGOTTEN[h.compId] ? t(GONE_BUT_NOT_FORGOTTEN[h.compId]) : h.compId)}</td>
-              <td className="name">🏆 {teamShort(game, h.champion)}</td>
+              <td className="name">{teamShort(game, h.champion)}</td>
             </tr>
           ))}
         </tbody>

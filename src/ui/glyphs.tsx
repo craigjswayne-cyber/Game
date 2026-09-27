@@ -61,6 +61,47 @@ const PATHS: Record<string, ReactNode> = {
   general: <><rect x="3" y="5" width="18" height="15" rx="2" /><path d="M7 9h10M7 13h10M7 17h6" /></>,
   youth: <><path d="M2 9l10-5 10 5-10 5z" /><path d="M6 11v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5" /></>,
   gossip: <><path d="M4 5h16v11H9l-5 4z" /><path d="M8 9h8M8 12h5" /></>,
+  // the facilities and the ground (model.ts FACILITY_INFO, CampusMap, the store)
+  pitch: <><rect x="3" y="5" width="18" height="14" rx="1.5" /><path d="M12 5v14M3 9.5h2.5v5H3M21 9.5h-2.5v5H21" /></>,
+  gym: <><path d="M6 8v8M18 8v8M3 10v4M21 10v4M6 12h12" /></>,
+  recovery: <><path d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9M9.5 4.5L12 7l2.5-2.5M9.5 19.5L12 17l2.5 2.5" /></>,
+  paddock: <><path d="M12 21v-9M12 12C12 8 9.5 6 5 6c0 4 2.5 6 7 6zM12 14c0-3.5 2.2-5.5 7-5.5 0 3.5-2.5 5.5-7 5.5zM6 21h12" /></>,
+  kicking: <><path d="M7 21V3M17 21V3M7 13h10" /><ellipse cx="12" cy="7" rx="2.4" ry="1.5" transform="rotate(-30 12 7)" /></>,
+  briefing: <><rect x="3" y="4" width="18" height="12" rx="1.5" /><path d="M12 16v5M8 21h8M7.5 12l3-3 2 2 4-4" /></>,
+  hospitality: <><path d="M7 3h10l-.5 5a4.5 4.5 0 0 1-9 0z" /><path d="M12 12.5V20M8.5 20.5h7" /></>,
+  stadium: <><ellipse cx="12" cy="9" rx="9" ry="3.5" /><path d="M3 9v6c0 1.9 4 3.5 9 3.5s9-1.6 9-3.5V9M7.5 12.1v5.6M16.5 12.1v5.6M12 12.5v6" /></>,
+  build: <><path d="M12.5 3.5l8 8-2.5 2.5-8-8z" /><path d="M12.25 9.75l-8.5 8.5a1.6 1.6 0 0 0 2.25 2.25l8.5-8.5" /></>,
+  // honours and moments
+  trophy: <><path d="M8 4h8v5a4 4 0 0 1-8 0z" /><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M9 20h6M10 17h4" /></>,
+  star: <><path d="M12 3l2.6 5.5 6 .8-4.4 4.2 1.1 6-5.3-2.9-5.3 2.9 1.1-6L3.4 9.3l6-.8z" /></>,
+  shield: <><path d="M12 3l7.5 3v5.5c0 4.4-3.1 8.1-7.5 9.5-4.4-1.4-7.5-5.1-7.5-9.5V6z" /></>,
+  promoted: <><circle cx="12" cy="12" r="8.5" /><path d="M12 16.5v-9M8 11l4-4 4 4" /></>,
+  crown: <><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z" /></>,
+  badge: <><circle cx="12" cy="9" r="6" /><path d="M8.5 13.9L7 21l5-2.8 5 2.8-1.5-7.1" /><path d="M12 6.3l.9 1.8 2 .3-1.45 1.4.35 2-1.8-.95-1.8.95.35-2L9.1 8.4l2-.3z" /></>,
+  trait: <><path d="M11 3l1.8 5.2L18 10l-5.2 1.8L11 17l-1.8-5.2L4 10l5.2-1.8z" /><path d="M19 15v5M16.5 17.5h5" /></>,
+  target: <><circle cx="12" cy="12" r="8.5" /><circle cx="12" cy="12" r="4.5" /><circle cx="12" cy="12" r=".9" /></>,
+  derby: <><path d="M12 21c-3.9 0-6.5-2.6-6.5-6.2 0-3.3 2.3-5.3 3.5-8.3.9 1.6 1.2 2.9 1.2 4 1.6-1.4 2.6-4 2.3-7.5 3.6 2.4 6 6.3 6 10.9 0 4.1-2.6 7.1-6.5 7.1z" /></>,
+  // people and paper
+  handshake: <><path d="M2.5 10.5L6 7l3.5 1.5M21.5 10.5L18 7l-4.5 1.5-4 3.5a1.4 1.4 0 0 0 2 2l2-1.5 4.5 4" /><path d="M5 12.5l5 5a1.4 1.4 0 0 0 2-2M8.5 15.5l2.5 2.5a1.4 1.4 0 0 0 2-2l-1-1" /></>,
+  pen: <><path d="M4 20l1.2-4.8L15.5 4.9a2 2 0 0 1 2.8 0l.8.8a2 2 0 0 1 0 2.8L8.8 18.8z" /><path d="M13.5 7l3.5 3.5" /></>,
+  talk: <><path d="M4 5h16v11H9l-5 4z" /></>,
+  scout: <><circle cx="6.5" cy="15.5" r="3.5" /><circle cx="17.5" cy="15.5" r="3.5" /><path d="M10 15.5h4M4.5 12.5L6.5 5H9l.8 7.5M19.5 12.5L17.5 5H15l-.8 7.5" /></>,
+  tag: <><path d="M3.5 12.5v-8a1 1 0 0 1 1-1h8l8 8-9 9z" /><circle cx="8.5" cy="8.5" r="1.5" /></>,
+  heart: <><path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.2a4.3 4.3 0 0 1 7.5 2.6C19.5 15.4 12 20 12 20z" /></>,
+  paper: <><path d="M4 5h13v14a1.5 1.5 0 0 0 1.5 1.5H5.5A1.5 1.5 0 0 1 4 19z" /><path d="M17 9h3v10a1.5 1.5 0 0 1-3 0M7 9h7M7 12.5h7M7 16h4" /></>,
+  tv: <><rect x="3" y="7" width="18" height="13" rx="2" /><path d="M8 3l4 4 4-4" /></>,
+  // states and settings
+  warning: <><path d="M12 3.5l9.5 16.5h-19z" /><path d="M12 10v4.5M12 17.5h.01" /></>,
+  check: <><path d="M5 12.5l4.5 4.5L19 7.5" /></>,
+  sun: <><circle cx="12" cy="12" r="4" /><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4" /></>,
+  moon: <><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z" /></>,
+  text: <><path d="M3 19L8 6l5 13M4.8 14.5h6.4M14.5 19l3.25-8.5L21 19M15.6 16.2h4.3" /></>,
+  sound: <><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" /><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" /></>,
+  // the match plans (tactics.ts PRESETS)
+  attack: <><path d="M5 6l6 6-6 6M13 6l6 6-6 6" /></>,
+  wall: <><rect x="3" y="5" width="18" height="14" rx="1" /><path d="M3 9.7h18M3 14.3h18M9 5v4.7M15 5v4.7M6 9.7v4.6M12 9.7v4.6M18 9.7v4.6M9 14.3V19M15 14.3V19" /></>,
+  tight: <><path d="M3 12h6M6 9l3 3-3 3M21 12h-6M18 9l-3 3 3 3" /></>,
+  scales: <><path d="M12 4v16M8 20h8M5 7h14M5 7l-2.5 6a2.5 2.5 0 0 0 5 0zM19 7l-2.5 6a2.5 2.5 0 0 0 5 0z" /></>,
 }
 
 export function Glyph({ name }: { name: string }) {

@@ -199,6 +199,6 @@ export const UNIT_LABEL: Record<AnalystRead['unit'], string> = {
   scrum: 'Scrum', lineout: 'Lineout', defence: 'Defence', attack: 'Attack', kicking: 'Kicking game',
 }
 export const PREP_LABEL: Record<MatchPrep, string> = {
-  attack: '⚡ Attacking Shapes', defence: '🛡 Defensive Drills', setpiece: '🏗 Set-Piece Work',
-  fitness: '🏃 Conditioning', recovery: '🧖 Recovery Week',
+  attack: 'Attacking Shapes', defence: 'Defensive Drills', setpiece: 'Set-Piece Work',
+  fitness: 'Conditioning', recovery: 'Recovery Week',
 }

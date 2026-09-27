@@ -488,7 +488,7 @@ export function playAcademyWeek(state: GameState, rng: Rng) {
   const tailKey = `news.${won ? 'aWonLine' : 'aLostLine'}${mine[0].round % sign.length}`
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: false,
-    subject: `🎓 A League: ${mine.map(f => {
+    subject: `A League: ${mine.map(f => {
       const homeMine = f.homeId === state.userClubId
       return `${homeMine ? f.homeScore : f.awayScore}-${homeMine ? f.awayScore : f.homeScore} v ${clubName(state, homeMine ? f.awayId : f.homeId)}`
     }).join(', ')}`,
@@ -555,7 +555,7 @@ export function closeAcademySeason(state: GameState) {
   if (state.unemployed) return
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: false,
-    subject: mine ? `🏆 Your academy win the ${l.name}` : `🎓 ${clubName(state, top.teamId)} take the ${l.name}`,
+    subject: mine ? `Your academy win the ${l.name}` : `${clubName(state, top.teamId)} take the ${l.name}`,
     body: mine
       ? `The A side finish top of the ${l.name}: ${top.w} wins from ${top.p}, ${top.pf} points scored. Nobody hangs a flag for it, and every coach in the building knows what it means - the pipeline is working, and the men who won it are the ones you will be picking in three years.`
       : `${state.clubs[top.teamId]?.name ?? top.teamId} win the ${l.name} with ${top.pts} points from ${top.p} games.${pos > 0 ? ` Your academy finished ${ordinal(pos)}.` : ''} Development tables are not league tables, but the clubs at the top of them tend to be the clubs producing players.`,

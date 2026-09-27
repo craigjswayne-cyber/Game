@@ -1,5 +1,7 @@
 import { CAMPUS_PLOTS, PLOT_OVERSIZE, type CampusId } from '../game/campusPlots'
 import { FACILITY_INFO, MAX_FACILITY, groundLevel, type Club, type GameState } from '../game/model'
+import { Glyph } from './glyphs'
+import { t } from '../game/i18n'
 
 /** Where the art lives. `base` rather than a bare '/' because vite is built
  *  with base './' - the game is served from a path on some hosts and from the
@@ -20,7 +22,7 @@ function levelOf(club: Club, fid: CampusId): number {
 }
 
 function iconOf(fid: CampusId): string {
-  return fid === 'stadium' ? '🏟️' : FACILITY_INFO[fid].icon
+  return fid === 'stadium' ? 'stadium' : FACILITY_INFO[fid].icon
 }
 
 /**
@@ -99,7 +101,7 @@ export default function CampusMap({ game, onPick }: {
         {CAMPUS_PLOTS.map(p => {
           const lvl = levelOf(club, p.fid)
           const building = onSite(p.fid)
-          const name = p.fid === 'stadium' ? club.stadium : iconOf(p.fid)
+          const name = p.fid === 'stadium' ? club.stadium : t(FACILITY_INFO[p.fid].name)
           return (
             <button key={p.fid} type="button" title={name}
               onClick={() => onPick?.(p.fid)}
@@ -120,8 +122,8 @@ export default function CampusMap({ game, onPick }: {
                   borderRadius: '50%', fontSize: 16, lineHeight: 1,
                   background: 'rgba(8, 11, 15, 0.62)',
                   border: '1.5px solid var(--gold)',
-                  textShadow: '0 1px 2px rgba(0,0,0,0.7)',
-                }}>🔨</span>
+                  color: 'var(--gold)',
+                }}><Glyph name="build" /></span>
               )}
               <span style={{
                 position: 'absolute', left: '50%', top: '100%', transform: 'translate(-50%, 2px)',
@@ -131,7 +133,7 @@ export default function CampusMap({ game, onPick }: {
                 border: `1px solid ${building ? 'var(--gold)' : 'rgba(255,255,255,0.18)'}`,
                 color: building ? 'var(--gold)' : 'var(--on-hero)',
               }}>
-                <span>{building ? '🔨' : iconOf(p.fid)}</span>
+                <Glyph name={building ? 'build' : iconOf(p.fid)} />
                 <span style={{ letterSpacing: 0.2 }}>
                   {!building ? `${lvl}/${MAX_FACILITY}`
                     : p.fid === 'stadium' ? `+${stand!.seats.toLocaleString()}`

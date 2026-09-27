@@ -14,6 +14,7 @@ import { BRIEFS, SPLITS, actualSplit, benchFrontRow, benchSeats, briefForSeat, r
 import { t } from '../../game/i18n'
 import { subjectVar } from '../../game/gender'
 import { BenchClock, BriefIcon, ExitDiagram, KickStyleDiagram, LineoutDiagram, PREP_ICON, PenaltyDiagram, ScrumDiagram, SplitPips, TheTwentyThree } from '../tacticsArt'
+import { Glyph } from '../glyphs'
 
 /** The Tactics screen: HOW the side plays. Roles on a pitch, the set-piece
  *  playbook, the bench shape, the week's preparation and the game plan.
@@ -592,7 +593,7 @@ export default function Tactics() {
           {PRESETS.map(p => (
             <button key={p.id} className="preset-chip" title={t(p.desc)}
               onClick={() => { Object.assign(tac, p.values); setPlanMsg(dialLine(tac)); touch() }}>
-              {p.icon} {t(p.name)}
+              <Glyph name={p.icon} /> {t(p.name)}
             </button>
           ))}
         </div>

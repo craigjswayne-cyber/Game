@@ -14,6 +14,7 @@ import { MARQUEE_SLOTS } from '../../game/cap'
 import { answerRequest, canAnswerRequest, canChat, chatBudget, praisePlayer, warnPlayer } from '../../game/chats'
 import { mulberry32 } from '../../game/rng'
 import { attrBand, attrBandIndex, attrName, persName, posName, t, traitInfo, traitName } from '../../game/i18n'
+import { Glyph } from '../glyphs'
 
 export default function PlayerScreen({ playerId }: { playerId: number }) {
   const game = useStore(s => s.game)!
@@ -183,14 +184,14 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         <span className="chip" title={t('player.overallTitle')}>
           {t('player.overall')} <b style={{ fontSize: 13 }}>{Math.round(fuzzedCa(game, p))}</b><span className="muted">/100</span></span>
         <span className="chip" title={t('player.characterTitle')}>{t('player.character')} <b>{persKnown(game, p) ? persName(p.pers) : t('player.unknown')}</b>{!persKnown(game, p) && <span className="muted" title={t('player.characterUnknownTitle')}> ?</span>}</span>
-        {(p.caps ?? 0) > 0 && <span className="chip">🌍 <b>{p.caps}</b> {t('player.caps')}</span>}
-        {p.trait && reportStage(game, p) >= 2 && <span className="chip" title={traitInfo(p.trait)} style={{ color: 'var(--info)', fontWeight: 700 }}>✨ {traitName(p.trait)}</span>}
+        {(p.caps ?? 0) > 0 && <span className="chip"><Glyph name="nations" /> <b>{p.caps}</b> {t('player.caps')}</span>}
+        {p.trait && reportStage(game, p) >= 2 && <span className="chip" title={traitInfo(p.trait)} style={{ color: 'var(--info)', fontWeight: 700 }}><Glyph name="trait" /> {traitName(p.trait)}</span>}
         {!mine && <span className="chip" style={know < 55 ? { color: 'var(--gold)' } : undefined}>
           {t('player.scouted')} <b>{Math.round(know)}%</b></span>}
       </div>
       {!mine && (
         <div className="meta" style={{ padding: '2px 16px 4px', fontSize: 12 }}>
-          🔍 {t(`scoutStage.${reportStage(game, p)}`)}
+          <Glyph name="agency" /> {t(`scoutStage.${reportStage(game, p)}`)}
         </div>
       )}
       <div className="chips">
@@ -311,20 +312,20 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             {p.ca > (p.ca0 ?? p.ca) ? '▲' : '▼'} {Math.abs(p.ca - (p.ca0 ?? p.ca))}
           </b></span>
         )}
-        {p.age <= 21 && p.pa >= 86 && <span className="chip" style={{ borderColor: 'var(--gold)' }}>🌟 <b>{t('player.wonderkid')}</b></span>}
+        {p.age <= 21 && p.pa >= 86 && <span className="chip" style={{ borderColor: 'var(--gold)' }}><Glyph name="star" /> <b>{t('player.wonderkid')}</b></span>}
         {(p.poty ?? 0) > 0 && (
           <span className="chip" style={{ borderColor: 'var(--gold)' }}>
-            🏅 <b>{t('player.worldPoty')}{(p.poty ?? 0) > 1 ? ` ×${p.poty}` : ''}</b>
+            <Glyph name="award" /> <b>{t('player.worldPoty')}{(p.poty ?? 0) > 1 ? ` ×${p.poty}` : ''}</b>
           </span>
         )}
         {p.retiring && !p.farewell && (
           <span className="chip" style={{ borderColor: 'var(--danger)' }} title={t('player.retiringTitle')}>
-            🎤 <b>{t('player.retiringSummer')}</b>
+            <Glyph name="press" /> <b>{t('player.retiringSummer')}</b>
           </span>
         )}
         {(game.pledges ?? []).some(pl => pl.playerId === p.id) && !(game.preContracts ?? []).some(x => x.playerId === p.id) && (
           <span className="chip" style={{ borderColor: 'var(--gold)' }} title={t('player.promiseTitle')}>
-            🤝 <b>{t('player.promiseMade')}</b>
+            <Glyph name="handshake" /> <b>{t('player.promiseMade')}</b>
           </span>
         )}
         {(() => {
@@ -334,7 +335,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           const incoming = pc.toClubId === game.userClubId
           return (
             <span className="chip" style={{ borderColor: incoming ? 'var(--gold)' : 'var(--danger)' }}>
-              🖊 <b>{t('player.preContract', { club: to?.short ?? '?' })}</b>
+              <Glyph name="pen" /> <b>{t('player.preContract', { club: to?.short ?? '?' })}</b>
             </span>
           )
         })()}
@@ -580,7 +581,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
               {talkOutcome ? (
                 <>
                   <div className="sheet-casualty" style={{ borderLeftColor: talkSigned ? 'var(--text-positive)' : 'var(--text-negative)' }}>
-                    {talkSigned ? '🖊 ' : '💬 '}{talkOutcome}
+                    <Glyph name={talkSigned ? 'pen' : 'talk'} /> {talkOutcome}
                   </div>
                   {talkSigned
                     ? <div className="meta">{t('player.heIsOn', { wage: fmtWage(p.wage), year: String(2026 + p.contractEnds) })}</div>

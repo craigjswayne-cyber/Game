@@ -239,7 +239,7 @@ export function addGrudge(state: GameState, a: string, b: string, rk: string, rv
     const opp = a === state.userClubId ? b : a
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
-      subject: `🔥 Bad blood with ${state.clubs[opp].short}`,
+      subject: `Bad blood with ${state.clubs[opp].short}`,
       body: `There is genuine needle between the clubs now - ${reason}. The next meeting will be spicy: expect cards, a hostile crowd and a match where the form book means nothing.`,
       k: 'news.badBlood', v: { short: state.clubs[opp].short, reason_k: rk, ...(rv ?? {}) },
     })
@@ -1045,25 +1045,26 @@ export interface TransferOffer {
   raises?: number
 }
 
-/** Club infrastructure, levels 0-5 - bricks and mortar that outlast any squad. */
+/** Club infrastructure, levels 0-5 - bricks and mortar that outlast any squad.
+ *  `icon` is a glyphs.tsx name, not an emoji (owner, 27 Sep 2026). */
 export type FacilityId = 'gym' | 'kicking' | 'paddock' | 'briefing' | 'academy' | 'pitch' | 'recovery' | 'shop' | 'hospitality'
 export const MAX_FACILITY = 5
 export const FACILITY_INFO: Record<FacilityId, { name: string; icon: string; desc: string; base: number }> = {
-  pitch: { name: 'facilities.pitch', icon: '🏉', desc: 'facilities.pitchDesc', base: 260_000 },
-  gym: { name: 'facilities.gym', icon: '🏋️', desc: 'facilities.gymDesc', base: 350_000 },
-  recovery: { name: 'facilities.recovery', icon: '🧊', desc: 'facilities.recoveryDesc', base: 420_000 },
-  paddock: { name: 'facilities.paddock', icon: '🌱', desc: 'facilities.paddockDesc', base: 400_000 },
-  kicking: { name: 'facilities.kicking', icon: '🥅', desc: 'facilities.kickingDesc', base: 300_000 },
-  briefing: { name: 'facilities.briefing', icon: '📽️', desc: 'facilities.briefingDesc', base: 380_000 },
-  academy: { name: 'facilities.academy', icon: '🎓', desc: 'facilities.academyDesc', base: 500_000 },
-  shop: { name: 'facilities.shop', icon: '🛍️', desc: 'facilities.shopDesc', base: 240_000 },
+  pitch: { name: 'facilities.pitch', icon: 'pitch', desc: 'facilities.pitchDesc', base: 260_000 },
+  gym: { name: 'facilities.gym', icon: 'gym', desc: 'facilities.gymDesc', base: 350_000 },
+  recovery: { name: 'facilities.recovery', icon: 'recovery', desc: 'facilities.recoveryDesc', base: 420_000 },
+  paddock: { name: 'facilities.paddock', icon: 'paddock', desc: 'facilities.paddockDesc', base: 400_000 },
+  kicking: { name: 'facilities.kicking', icon: 'kicking', desc: 'facilities.kickingDesc', base: 300_000 },
+  briefing: { name: 'facilities.briefing', icon: 'briefing', desc: 'facilities.briefingDesc', base: 380_000 },
+  academy: { name: 'facilities.academy', icon: 'academy', desc: 'facilities.academyDesc', base: 500_000 },
+  shop: { name: 'facilities.shop', icon: 'store', desc: 'facilities.shopDesc', base: 240_000 },
   // F31: ground development past the turnstile. Capacity expansion already
   // exists (requestExpansion) and adds SEATS; this adds what each seat is
   // worth. Boxes, a members' lounge, a decent kitchen: the same crowd spends
   // more. Built as a facility rather than a new system because the estate
   // already handles levels, costs, board requests and weekly upkeep, and a
   // second parallel mechanism for buildings would be the same thing twice.
-  hospitality: { name: 'Hospitality & Boxes', icon: '🥂', desc: 'Corporate boxes and lounges: every home crowd is worth more at the gate.', base: 460_000 },
+  hospitality: { name: 'Hospitality & Boxes', icon: 'hospitality', desc: 'Corporate boxes and lounges: every home crowd is worth more at the gate.', base: 460_000 },
 }
 export const facilityCost = (info: { base: number }, level: number) => info.base * (level + 1)
 
@@ -1765,6 +1766,8 @@ export interface GameState {
   celebration?: {
     headline: string
     sub: string
+    /** a glyphs.tsx name ('trophy', 'promoted'...); a save from before the
+     *  icon pass holds an emoji here, which draws nothing */
     icon: string
     hk?: string
     hv?: Record<string, string | number>
@@ -2420,8 +2423,16 @@ export function closeNatTenure(state: GameState) {
  *    since v1.1.6 the offer itself arrives immediately instead. */
 export const LEGACY_NEWS_KEYS = ['news.dressingDown', 'news.pinnacle'] as const
 
-export const newsBody = (n: NewsItem): string => (n.k ? t(n.k, n.v) : n.body)
-export const newsSubject = (n: NewsItem): string => (n.k ? t(n.k + 'Subj', n.v) : n.subject)
+/** A story filed before the icon pass (owner, 27 Sep 2026: "use icons instead
+ *  of emojis") still has an emoji at the front of its English in an old save;
+ *  the reader loses it with the space after it. Flags (regional-indicator
+ *  pairs, and the black flag England, Scotland and Wales build on) stay, and
+ *  so do the typographic ★ ☆ ✓ ✕ ✗. */
+const OLD_EMOJI = /(?!\u{1F3F4}[\u{E0020}-\u{E007F}])[\u{1F000}-\u{1F1E5}\u{1F200}-\u{1FFFF}\u{2600}-\u{2604}\u{2607}-\u{2712}\u{2714}\u{2716}\u{2718}-\u{27BF}\u{2B50}\u{2B55}\u{23E9}-\u{23F3}]\u{FE0F}? ?/gu
+const noEmoji = (s: string): string => s.replace(OLD_EMOJI, '')
+
+export const newsBody = (n: NewsItem): string => (n.k ? t(n.k, n.v) : noEmoji(n.body))
+export const newsSubject = (n: NewsItem): string => (n.k ? t(n.k + 'Subj', n.v) : noEmoji(n.subject))
 
 /** What is wrong with him, in the reader's language - or in the English it was
  *  recorded in, on a save written before injuries carried a key. */
