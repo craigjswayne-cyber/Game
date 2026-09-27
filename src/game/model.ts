@@ -1810,8 +1810,13 @@ export interface GameState {
    *  pers0 is the kid's personality when the pairing was made, so graduation
    *  can tell "he BECAME his mentor" from "they always matched" - a
    *  Professional teaching a Professional is the second-best pairing in the
-   *  game and must not end at birth. Absent on pairs made before it existed. */
-  mentors?: { senior: number; kid: number; pers0?: Personality }[]
+   *  game and must not end at birth. Absent on pairs made before it existed.
+   *  since/ca0/taught/grew (1.8.0) are the pairing's ledger, so the Team
+   *  Report can show what the kid has actually taken from it: the week it
+   *  began, his rating then, the coached points by attribute, and the rating
+   *  points the pairing itself added (mentoring.mentorWeek). All absent on
+   *  older saves, which read as "nothing recorded yet". */
+  mentors?: { senior: number; kid: number; pers0?: Personality; since?: number; ca0?: number; taught?: Partial<Record<keyof Attrs, number>>; grew?: number }[]
   /** banked objectives already celebrated in the news this season, so hitting
    *  one makes the inbox exactly once (user: "get achievements into the news").
    *  Reset with the objectives themselves at rollover. */

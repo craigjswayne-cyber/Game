@@ -558,7 +558,7 @@ export default function App() {
       case 'jobs': return <Jobs />
       case 'wire': return <Wire />
       case 'medical': return <Medical />
-      case 'report': return <TeamReport />
+      case 'report': return <TeamReport initial={cur.param as string | undefined} />
       case 'profile': return <Profile />
       case 'saves': return <Saves />
       case 'day': return <DayRoom />
