@@ -30,6 +30,7 @@ import { dialLine, philosophyOf } from '../../game/philosophy'
 import { venueEffect } from '../../game/venue'
 import { sortTable } from '../../game/schedule'
 import { nationName } from '../../game/nations'
+import { kitColours, luma } from '../kit'
 
 const WEATHER_ICON: Record<string, string> = { Dry: '☀️', Rain: '🌧️', Wind: '💨', Snow: '❄️' }
 
@@ -1461,15 +1462,6 @@ const KICK_STYLE_LABEL: Record<string, string> = {
   attack: 'tacticsScreen.kickAttack', balanced: 'tacticsScreen.kickBalanced',
 }
 
-/** perceived brightness of a #rrggbb colour, 0-255 (a CSS variable reads as
- *  mid-grey: it is one of ours, and ours are never near-black) */
-function luma(c: string): number {
-  const hex = c.replace('#', '')
-  if (hex.length < 6) return 128
-  const r = parseInt(hex.slice(0, 2), 16), g = parseInt(hex.slice(2, 4), 16), b = parseInt(hex.slice(4, 6), 16)
-  return (r * 299 + g * 587 + b * 114) / 1000
-}
-
 function contrastText(bg: string): string {
   if (bg.replace('#', '').length < 6) return 'var(--prop-ink)'
   return luma(bg) > 140 ? 'var(--prop-ink-dark)' : 'var(--prop-ink)'
@@ -1647,8 +1639,9 @@ function Live() {
     // the canvas needs real colours: a club with no kit on file gets the
     // token kit, read off the page
     const white = tokenColor('--prop-ink')
-    const hc = game.clubs[fixture.homeId]?.colors ?? [tokenColor('--kit-home'), white]
-    const ac = game.clubs[fixture.awayId]?.colors ?? [tokenColor('--kit-away'), white]
+    const onGrass = kitColours(game.clubs[fixture.homeId]?.colors ?? [tokenColor('--kit-home'), white],
+      game.clubs[fixture.awayId]?.colors ?? [tokenColor('--kit-away'), white], false)
+    const hc = onGrass.home, ac = onGrass.away
     const spec = buildClip(events, nx.at, nx.kind, fixture.homeId, shirtOf,
       { home: [hc[0], hc[1] ?? white], away: [ac[0], ac[1] ?? white] },
       { try: t('hl.try'), review: t('hl.review'), notry: t('hl.notry'), good: t('hl.good'), wide: t('hl.wide') },
@@ -1687,8 +1680,7 @@ function Live() {
     TRY: '🏉', CON: '🎯', PEN: '🥅', DG: '🎯', YC: '🟨', RC: '🟥', INJ: '🩹', HT: '⏸', FT: '🏁', KO: '⏱', SUB: '·', BRK: '💧',
   }[e.type] ?? '·')
 
-  const homeC = game.clubs[fixture.homeId]?.colors ?? ['var(--gold-fill)', 'var(--ramp-g9)']
-  const awayC = game.clubs[fixture.awayId]?.colors ?? ['var(--gold-fill)', 'var(--ramp-g9)']
+  const kits = kitColours(game.clubs[fixture.homeId]?.colors, game.clubs[fixture.awayId]?.colors ?? ['var(--gold-fill)', 'var(--ramp-g9)'])
   // Half-time and the 60' break are the two states where the match is stopped
   // waiting for the manager rather than paused. The control row treats them as
   // one thing: Play means "get back out there".
@@ -1713,8 +1705,7 @@ function Live() {
   // (kick-off, the whistles) stays plain.
   const lineStyle = (e: MatchEvent): React.CSSProperties | undefined => {
     if (!e.teamId) return undefined
-    const kit = e.teamId === fixture.awayId ? awayC : homeC
-    const [fill, edge] = luma(kit[0]) < 40 && kit[1] && luma(kit[1]) > luma(kit[0]) ? [kit[1], kit[0]] : [kit[0], kit[1]]
+    const [fill, edge] = e.teamId === fixture.awayId ? kits.away : kits.home
     const plain = !cls(e)
     return {
       background: fill, color: contrastText(fill),
@@ -1740,11 +1731,11 @@ function Live() {
 
   return (
     <div className={`live-wrap${prefs.bigText ? ' big-text' : ''}`}>
-      <div className="scoreboard" style={{ '--home-c': homeC[0], '--away-c': awayC[0] } as React.CSSProperties}>
+      <div className="scoreboard" style={{ '--home-c': kits.home[0], '--away-c': kits.away[0] } as React.CSSProperties}>
         <div className="teams">
-          <div className="tname"><CrestT g={game} teamId={fixture.homeId} size={26} />{teamShort(game, fixture.homeId)}<span className="clubbar" style={{ background: homeC[0] }} /></div>
+          <div className="tname"><CrestT g={game} teamId={fixture.homeId} size={26} />{teamShort(game, fixture.homeId)}<span className="clubbar" style={{ background: kits.home[0] }} /></div>
           <div className="score" key={`${hs}-${as}`}>{hs} – {as}</div>
-          <div className="tname"><CrestT g={game} teamId={fixture.awayId} size={26} />{teamShort(game, fixture.awayId)}<span className="clubbar" style={{ background: awayC[0] }} /></div>
+          <div className="tname"><CrestT g={game} teamId={fixture.awayId} size={26} />{teamShort(game, fixture.awayId)}<span className="clubbar" style={{ background: kits.away[0] }} /></div>
         </div>
         <div className="minute">
           {/* A FRIENDLY HAS NO COMPETITION, and this line used to print the
@@ -1786,8 +1777,8 @@ function Live() {
                     more - a scaled box does not push its sibling, and transform
                     is the only part of this the compositor can animate alone. */}
                 <div className="l10-fills">
-                  <div className="l10-away" style={{ background: awayC[0] }} />
-                  <div className="l10-home" style={{ transform: `scaleX(${share})`, background: homeC[0] }} />
+                  <div className="l10-away" style={{ background: kits.away[0] }} />
+                  <div className="l10-home" style={{ transform: `scaleX(${share})`, background: kits.home[0] }} />
                 </div>
                 <div className="momo-track" style={{ transform: `translateX(${50 + ctx.momo * 44}%)` }}>
                   <div className="momo-needle" />
@@ -1810,11 +1801,11 @@ function Live() {
         {!done && (
           <div className="press-row">
             <div className="press-bar home" title={t('matchday.pressureTitle')}>
-              <div className="press-fill" style={{ width: `${Math.round(ctx.home.pressure)}%`, background: homeC[0] }} />
+              <div className="press-fill" style={{ width: `${Math.round(ctx.home.pressure)}%`, background: kits.home[0] }} />
             </div>
             <span className="press-label">{t('matchday.pressureLabel')}</span>
             <div className="press-bar away" title={t('matchday.pressureTitle')}>
-              <div className="press-fill" style={{ width: `${Math.round(ctx.away.pressure)}%`, background: awayC[0] }} />
+              <div className="press-fill" style={{ width: `${Math.round(ctx.away.pressure)}%`, background: kits.away[0] }} />
             </div>
           </div>
         )}
@@ -2499,10 +2490,10 @@ function LiveStats({ shown }: { shown: MatchEvent[] }) {
   const live = useStore(s => s.liveMatch)!
   const st = matchStats(live.ctx)
   const homeId = live.fixture.homeId
+  const kits = kitColours(game.clubs[homeId]?.colors, game.clubs[live.fixture.awayId]?.colors)
   const col = (id: string) => {
-    const c = game.clubs[id]?.colors
-    if (!c) return 'var(--text-muted)'
-    return luma(c[0]) < 40 && c[1] ? c[1] : c[0]
+    if (!game.clubs[id]?.colors) return 'var(--text-muted)'
+    return (id === homeId ? kits.home : kits.away)[0]
   }
   // TERRITORY is where the ball has been on average: 50 is halfway, and the
   // further up the away side's end the play has lived the bigger the home
@@ -2565,7 +2556,8 @@ function StatsPanel() {
   const [hv, hp] = visitStats(shown, homeId, true), [av, ap] = visitStats(shown, homeId, false)
   const shownSt = shownStats(live, shown, homeId, st.goalKicks)
   const [gk0, gk1] = shownSt.kicks
-  const colour = (id: string) => game.clubs[id]?.colors?.[0] ?? 'var(--ramp-n4)'
+  const kits = kitColours(game.clubs[homeId]?.colors, game.clubs[live.fixture.awayId]?.colors)
+  const colour = (id: string) => (id === homeId ? kits.home : kits.away)[0]
   // Each row carries a split bar in the two clubs' colours, and the bars fill
   // in one after another as the panel opens (idea 5: "the match stats panel
   // animating"). Transform only, so the fill is compositor work.
