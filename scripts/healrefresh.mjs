@@ -106,7 +106,7 @@ try {
 }
 
 await browser.close()
-server.kill?.()
+server.stop()
 console.log(fails === 0
   ? '\nHEAL REFRESH PASSED: what you paid for shows on the screen you paid from'
   : `\nHEAL REFRESH FAILED: ${fails}`)

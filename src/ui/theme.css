@@ -5038,3 +5038,25 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
   color: var(--gold); font: inherit; font-size: 12px; font-weight: 700;
   padding: 3px 10px; cursor: pointer; min-height: 28px;
 }
+
+/* ---- THE STUDIO MARK (1.8.0, components.tsx StudioMark) ----
+   Sized off one number (--sm, the square's width): the letters, the rules and
+   the keyline all scale with it. A heavy condensed face at the full width of
+   the square, as in the owner's artwork. */
+.studio-mark {
+  --sm: 44px;
+  display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
+  width: var(--sm); height: calc(var(--sm) * .9);
+  background: var(--studio-ink); color: var(--studio-paper);
+  border-radius: calc(var(--sm) * .16);
+  box-shadow: 0 0 0 calc(var(--sm) * .045) var(--studio-paper), 0 3px 10px rgba(0, 0, 0, .35);
+  font-family: var(--cond); font-weight: 800; line-height: .9;
+  letter-spacing: -.02em; user-select: none;
+}
+.studio-mark b { font-size: calc(var(--sm) * .3); font-weight: 800; }
+.studio-mark i {
+  display: flex; align-items: center; gap: calc(var(--sm) * .05); width: 82%;
+  font-style: normal; font-size: calc(var(--sm) * .2); line-height: 1; margin: calc(var(--sm) * .01) 0;
+}
+.studio-mark i span { flex: 1; height: max(1px, calc(var(--sm) * .035)); background: currentColor; border-radius: 1px; }
+.studio-foot { margin-top: 22px; display: flex; justify-content: center; opacity: .92; }

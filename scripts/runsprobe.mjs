@@ -109,4 +109,4 @@ ok(fwdN > 0 && fwdClose / fwdN >= 0.6, `the attacking forwards are running at th
 ok(defN > 0 && defUp / defN >= 0.6, `the defensive line is coming up at the ball (${defUp}/${defN})`)
 ok(dirN > 0 && dirs / dirN >= 3, `men move in different directions at once (${(dirs / Math.max(1, dirN)).toFixed(1)} headings of 8)`)
 console.log(fails ? `\nRUNS PROBE FAILED (${fails})` : '\nRUNS PROBE PASSED: men make their own runs, and the defence comes up to meet them')
-await browser.close(); server.kill?.(); process.exit(fails ? 1 : 0)
+await browser.close(); server.stop(); process.exit(fails ? 1 : 0)

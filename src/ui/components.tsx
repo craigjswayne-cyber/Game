@@ -11,6 +11,25 @@ import { useStore } from '../store'
 
 
 /**
+ * ---- FWDS & BCKS, THE STUDIO (1.8.0) ----
+ *
+ * The company behind the game, from the owner's artwork: a black rounded
+ * square with a white keyline, FWDS over BCKS with an ampersand between two
+ * rules. Drawn in markup rather than shipped as an image so it is sharp at
+ * every size and weighs nothing. The label is for screen readers; the letters
+ * themselves are decoration.
+ */
+export function StudioMark({ size = 44 }: { size?: number }) {
+  return (
+    <span className="studio-mark" role="img" aria-label="FWDS & BCKS" style={{ '--sm': `${size}px` } as CSSProperties}>
+      <b aria-hidden>FWDS</b>
+      <i aria-hidden><span />&amp;<span /></i>
+      <b aria-hidden>BCKS</b>
+    </span>
+  )
+}
+
+/**
  * ---- AN ON/OFF SWITCH (1.8.0) ----
  *
  * Owner, with FM26's match settings on screen: "I like the toggle on/off

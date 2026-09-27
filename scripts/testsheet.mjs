@@ -185,7 +185,7 @@ try {
 }
 
 await browser.close()
-server.kill?.()
+server.stop()
 console.log(fails === 0
   ? '\nTEST SHEET PASSED: the last sheet before a Test fits the phone it is read on'
   : `\nTEST SHEET FAILED: ${fails}`)

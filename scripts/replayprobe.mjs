@@ -57,6 +57,6 @@ try {
   console.error(`FAIL  stopped early: ${e.message.split('\n')[0]}`)
   fails++
 }
-await browser.close(); server.kill?.()
+await browser.close(); server.stop()
 console.log(fails ? `\nREPLAY PROBE FAILED (${fails})` : '\nREPLAY PROBE PASSED: a try is shown again, and then the game goes on')
 process.exit(fails ? 1 : 0)

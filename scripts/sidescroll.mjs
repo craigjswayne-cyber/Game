@@ -86,7 +86,7 @@ try {
 }
 
 await browser.close()
-server.kill?.()
+server.stop()
 console.log(fails === 0
   ? '\nSIDE SCROLL PASSED: every table fits the phone it is read on, in five languages'
   : `\nSIDE SCROLL FAILED: ${fails}`)

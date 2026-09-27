@@ -81,6 +81,6 @@ try {
   fails++
 }
 await browser.close()
-server.kill?.()
+server.stop()
 console.log(fails ? `\nAMBIENT PROBE FAILED (${fails})` : '\nAMBIENT PROBE PASSED: things arrive rather than appear, and never make you wait')
 process.exit(fails ? 1 : 0)
