@@ -109,7 +109,11 @@ console.log('--- nothing is a meta')
     return sum / fxs.length
   }
   const pool: { g: GameState; fx: Fixture }[] = []
-  for (const seed of [3, 11, 29, 47, 83, 101, 131, 157]) {
+  // 24 WORLDS, NOT 8 (1.8.0): at 32 pairs "contest 0" read +4.44 after the
+  // unit rebalance and +0.07 over 96 on the same commit - common random
+  // numbers only hold until the first event differs, and 32 matches could not
+  // resolve a 3-point band. optionsprobe asks the same at 120 on the slow list.
+  for (const seed of [3, 11, 29, 47, 83, 101, 131, 157, 181, 211, 239, 263, 281, 307, 331, 353, 379, 401, 421, 443, 463, 487, 503, 521]) {
     for (const club of ['northampton', 'bath', 'exeter', 'sale']) {
       const g = newGame(club, 'KB', seed)
       for (const c of Object.values(g.clubs)) { delete c.tactic.kickStyle; c.tactic.ruckCommit = 50; c.tactic.ruckContest = 50 }
