@@ -3268,7 +3268,7 @@
   "q106": "Swaai 'n groot skare die skeidsregter?",
   "a106": "Op 'n groot dag kan dit. Voor 'n groot tuisskare, in 'n derby of in 'n uitklopwedstryd, leun die noue beslissings na die tuisspan, en die voorwedstrydinligting sê dit wanneer dit gaan gebeur. Dit is die skare, nie die skeidsregter nie: dieselfde wedstryd voor leë pawiljoene sou nie leun nie.",
   "q107": "Wanneer kom die veld op die skerm tydens 'n wedstryd?",
-  "a107": "Vir die oomblikke wat saak maak. Tussenin is die wedstryd die kommentaar met die regstreekse statistiek daaronder. Hoogtepunte in die wedstrydinstellings (die rat op die wedstrydskerm) kies watter: Sleutel wys drieë en drieë wat na die TMO gaan; Uitgebrei voeg skoppe na die pale en deurbrake in die 22 by. 'n Hoogtepunt speel die fases wat daartoe gelei het, dan die afronding, en die kommentaar hou tred met die prent.",
+  "a107": "Vir die oomblikke wat saak maak. Tussenin is die wedstryd die kommentaar met die regstreekse statistiek daaronder. Hoogtepunte in die wedstrydinstellings (die rat op die wedstrydskerm) kies watter: Sleutel wys drieë en drieë wat na die TMO gaan; Uitgebrei voeg skoppe na die pale en deurbrake in die 22 by. 'n Hoogtepunt speel die fases wat daartoe gelei het, dan die afronding, en die kommentaar hou tred met die prent. In die laaste tien minute van 'n taai wedstryd (sewe punte of minder), wys Sleutel ook die skoppe en die aanvalle.",
   "q108": "Is 'n wedstryd wat ek kyk anders as een wat ek oorslaan of met Onmiddellike Uitslag speel?",
   "a108": "Nee. Elke wedstryd in die spel, joune of enigiemand anders s'n, reël vir reël gekyk, oorgeslaan of met Onmiddellike Uitslag gespeel, loop op dieselfde enjin met dieselfde reëls. Kyk besluit net wat vir jou neergeskryf word. Wanneer die ander bank sy plan verander om jou teen te werk, sê die kommentaar so.",
   "a103": "'n Kopbeseringstoets (HIA). 'n Speler wat 'n hou teen die kop kry, verlaat die veld om nagegaan te word; hy keer slegs terug as hy dit slaag, en die spel sal hom nie terug toelaat as hy nie slaag nie.",
@@ -7293,7 +7293,7 @@
   "highlights": "Hoogtepunte",
   "hlKey": "Sleutel",
   "hlExtended": "Uitgebrei",
-  "hlKeySub": "Die veld wys drieë.",
+  "hlKeySub": "Die veld wys drieë, en die skoppe en aanvalle laat in 'n taai wedstryd.",
   "hlExtendedSub": "Die veld wys drieë, doelskoppe en deurbrake in die 22."
  },
  "hl": {
@@ -7301,6 +7301,10 @@
   "review": "TMO-KONTROLE",
   "notry": "GEEN DRIE",
   "good": "OOR",
-  "wide": "MIS"
+  "wide": "MIS",
+  "chase": "Sal hulle dit maak?",
+  "maul": "Die losgemaal rol voort",
+  "turnover": "OMKEER",
+  "saved": "DRIE-REDDING"
  }
 }

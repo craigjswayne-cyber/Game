@@ -140,6 +140,32 @@ mental attributes can gate technical ones. Needs its own calibration round.
 - In progress: the soak and long-run list (releasesim, stresstest, deepsave,
   dialweight, soakhealth, soakui, e2edeep).
 
+### Owner feedback round, 27 Sep 2026 (done)
+
+- News stories no longer name a player's personality ("(Temperamental)").
+- Kit clash: the away side never wears the home colour in the stats, the
+  scoreboard, the commentary lines or the clip (Northampton v Connacht were
+  two greens); clashprobe sweeps all 11,342 pairings.
+- Match controls: icons only, smaller, spaced: play/pause, fast-forward,
+  two heads for the squad; stats and settings as they were.
+- Commentary: words only, no emoji or bullet in front of any line.
+- Treatment Room: short subtitles, no emoji, the injury under the name,
+  smaller buttons stacked with room between them.
+- Highlights, round two: the whole pitch, locked; the referee on it; the
+  finisher runs through the gap and the men he beats dive and go down; a
+  backs move is three passes; the try is played as the commentary called
+  it (intercept, maul from a lineout, chip, grubber, crossfield, charge-down);
+  "Can they make it?" over the finish and the try called only when the ball
+  is down; attacks that did not score end with the full-back's tackle or a
+  turnover; kicks and attacks in the last ten minutes of a close match come
+  on in Key Moments too. hlprobe (578 clips) and the new hlliveprobe check it.
+- How a try is chosen: from the engine's commentary key. An intercept,
+  chip, grubber and maul are what the line says; a crossfield kick is used
+  for "finishes superbly in the corner", and a charge-down for the wet
+  "ball squirts loose and he pounces" try or after the charge-down line.
+- Not done, and why: the engine does not log missed drop goals, so only
+  successful ones can be shown late in a game (an engine change, 1.8.1).
+
 ## 4. Decisions (owner, 27 Sep 2026)
 
 - **Scope: E1-E4 are 1.8.0; everything remaining is 1.8.1.**
