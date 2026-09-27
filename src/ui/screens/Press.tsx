@@ -2,6 +2,8 @@ import { useStore } from '../../store'
 import { SectionTitle } from '../components'
 import {absWeek, SEASON_WEEKS, pressAnswer, pressLabel, pressQuestion, pressReaction, weekDate } from '../../game/model'
 import { OFFICE_OUTLET, PRESS_KEEP_WEEKS } from '../../game/media'
+import { bandOf, currentMood, effectLines, moodRoom, pressWhy, type Baro } from '../../game/pressmood'
+import type { GameState } from '../../game/model'
 import { t } from '../../game/i18n'
 
 /* THE QUESTIONS AND THE ANSWERS STAY AS THEY WERE ASKED. A press item is written
@@ -27,6 +29,7 @@ export default function Press() {
 
   return (
     <>
+      <Barometer game={game} />
       {open.length === 0 && (
         <div className="muted" style={{ padding: 14 }}>{t('world.prQuiet')}</div>
       )}
@@ -61,6 +64,14 @@ export default function Press() {
               <div className="when">{item.outlet === OFFICE_OUTLET ? t('world.prPrivate') : item.outlet} · {weekDate(item.season, item.week)}</div>
               <div className="subj" style={{ fontWeight: 400 }}>“{pressQuestion(item)}”</div>
               <div className="body">{t('world.prYouSaid', { answer: pressAnswer(item), reaction: pressReaction(item) })}</div>
+              {/* what the answer did, in words (pressmood.effectLines) */}
+              {item.fx && (
+                <div className="press-fx">
+                  {effectLines(item, item.playerId != null ? game.players[item.playerId]?.name : undefined).map(l => (
+                    <span key={l.k} className={`fx ${l.tone}`}>{t(l.k, l.v)}</span>
+                  ))}
+                </div>
+              )}
               {/* how he took it (talkback.ts): the reply already says so in
                   words; this is the same verdict at a glance */}
               {item.fit && (
@@ -74,5 +85,61 @@ export default function Press() {
       )}
       <div className="spacer" />
     </>
+  )
+}
+
+/* ---- THE BAROMETER (1.8.0, pressmood.ts) ----
+   A half-dial, hostile on the left and adoring on the right, with the band the
+   needle sits in drawn at full strength and the rest faded. The word says it,
+   the line under it says why - from the real results - and the last line says
+   what that means for the questions coming. Colours are the --baro-* tokens,
+   which are role tokens underneath, so every skin repaints the dial. */
+const BANDS: { b: Baro; from: number; to: number }[] = [
+  { b: 'hostile', from: -100, to: -45 },
+  { b: 'sceptical', from: -45, to: -15 },
+  { b: 'neutral', from: -15, to: 15 },
+  { b: 'warm', from: 15, to: 45 },
+  { b: 'adoring', from: 45, to: 100 },
+]
+const WORD: Record<Baro, string> = {
+  hostile: 'world.prBaroHostile', sceptical: 'world.prBaroSceptical', neutral: 'world.prBaroNeutral',
+  warm: 'world.prBaroWarm', adoring: 'world.prBaroAdoring',
+}
+const CX = 60, CY = 60, R = 48
+/** -100..100 onto the dial: 180 degrees at the left, 0 at the right */
+const ang = (v: number) => Math.PI * (1 - (v + 100) / 200)
+const pt = (v: number, r: number) => [CX + r * Math.cos(ang(v)), CY - r * Math.sin(ang(v))]
+
+function Barometer({ game }: { game: GameState }) {
+  const pm = currentMood(game)
+  const band = bandOf(pm.v)
+  const why = pressWhy(game, pm)
+  const room = moodRoom(pm)
+  const word = t(pm.stir ? 'world.prBaroStir' : WORD[band])
+  const reason = t(why.k, why.v)
+  const expect = room === 'stir' ? 'world.prBaroExpectStir' : room === 'hostile' ? 'world.prBaroExpectHostile'
+    : room === 'sceptical' ? 'world.prBaroExpectSceptical' : room === 'warm' ? 'world.prBaroExpectWarm' : 'world.prBaroExpectNeutral'
+  const [nx, ny] = pt(pm.v, R - 12)
+  return (
+    <div className={`baro ${pm.stir ? 'stir' : band}`}>
+      <svg className="baro-dial" viewBox="0 0 120 68" role="img" aria-label={t('world.prBaroAria', { word, why: reason })}>
+        {BANDS.map(({ b, from, to }) => {
+          // a hair of air between the bands so they read as five, not a rainbow
+          const [x1, y1] = pt(from + 1.5, R), [x2, y2] = pt(to - 1.5, R)
+          return (
+            <path key={b} className={`seg ${b}${b === band ? ' on' : ''}`}
+              d={`M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${R} ${R} 0 0 1 ${x2.toFixed(2)} ${y2.toFixed(2)}`} />
+          )
+        })}
+        <line className="needle" x1={CX} y1={CY} x2={nx.toFixed(2)} y2={ny.toFixed(2)} />
+        <circle className="hub" cx={CX} cy={CY} r={4.5} />
+      </svg>
+      <div className="baro-text">
+        <div className="baro-title">{t('world.prBaroTitle')}</div>
+        <div className="baro-word">{word}</div>
+        <div className="baro-why">{reason}</div>
+        <div className="baro-expect">{t(expect)}</div>
+      </div>
+    </div>
   )
 }
