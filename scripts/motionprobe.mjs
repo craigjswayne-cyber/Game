@@ -147,15 +147,15 @@ try {
      'and not left, which is what made it judder')
 
   // play it out
-  await page.click('.speed-controls >> text=Skip')
+  await page.click('.speed-controls [data-ctl=skip]')
   await page.waitForSelector('text=Start Second Half', { timeout: 25000 })
   await page.click('text=▸ Start Second Half')
   await page.waitForTimeout(300)
-  await page.click('.speed-controls >> text=Skip')
+  await page.click('.speed-controls [data-ctl=skip]')
   await page.waitForSelector('text=Play the Final Quarter', { timeout: 25000 })
   await page.click('text=▸ Play the Final Quarter')
   await page.waitForTimeout(300)
-  await page.click('.speed-controls >> text=Skip')
+  await page.click('.speed-controls [data-ctl=skip]')
   await page.waitForSelector('text=Continue to Results', { timeout: 25000 })
 
   // THE MOMENT. The stamp is mounted for as long as the match is done, so its

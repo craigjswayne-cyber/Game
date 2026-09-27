@@ -59,27 +59,34 @@ export default function Medical() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // empty sections say nothing at all - six headers of "nobody" was noise
-  const section = (title: string, sub: string, rows: Player[], render: (p: Player) => React.ReactNode) =>
+  // empty sections say nothing at all - six headers of "nobody" was noise.
+  // A ROW IS A NAME WITH ITS LINE UNDER IT, AND ITS BUTTONS TO THE RIGHT
+  // (owner, 27 Sep 2026: "tidy up the treatment room"). The injury text used
+  // to sit in the same cell as up to three buttons, wrapping between them.
+  const section = (title: string, sub: string, rows: Player[], render: (p: Player) => { info: React.ReactNode; act?: React.ReactNode }) =>
     rows.length === 0 ? null : (
       <>
         <SectionTitle sub={sub}>{title}</SectionTitle>
         <div className="tblwrap">
           <table className="dtable"><tbody>
-            {rows.map(p => (
-              <tr key={p.id} onClick={() => go('player', p.id)}>
+            {rows.map(p => {
+              const { info, act } = render(p)
+              return (
+              <tr key={p.id} className="med-row" onClick={() => go('player', p.id)}>
                 <td><PosBadge pos={p.pos} /></td>
                 <td className="name">
                   {p.name}
+                  <div className="med-info">{info}</div>
                   {msg?.id === p.id && (
                     <div className="meta" style={{ fontSize: 11, fontWeight: 600, whiteSpace: 'normal' }}>
                       {msg.text}
                     </div>
                   )}
                 </td>
-                <td>{render(p)}</td>
+                <td className="med-act">{act}</td>
               </tr>
-            ))}
+              )
+            })}
           </tbody></table>
         </div>
       </>
@@ -90,7 +97,7 @@ export default function Medical() {
     <>
       <div className="card" style={{ borderLeft: '4px solid var(--gold)', padding: '8px 14px' }}>
         <div className="meta">
-          🏥 <b>{game.staffPeople?.physio
+          <b>{game.staffPeople?.physio
             ? t('medical.physioNamed', { name: game.staffPeople.physio.name, badge: badgeLabel(game.staff.physio).toLowerCase() })
             : t('medical.headPhysio')}</b>
           {game.staff.physio === 0
@@ -119,7 +126,7 @@ export default function Medical() {
         </div>
       )}
 
-      {section(t('medical.treatmentRoom'), t('medical.treatmentSub', { fee: fmtMoney(SPECIALIST_FEE) }), injured, p => {
+      {section(t('medical.treatmentRoom'), t('medical.treatmentSub'), injured, p => {
         /* ---- TWO DOORS, AND ONLY EVER ONE OF THEM IS A DECISION ----
            Owner, 1.5.8: the paid consult sat next to the free watch-an-ad
            button doing the same job. It nearly did. specialistConsult takes a
@@ -137,11 +144,15 @@ export default function Medical() {
         const favourCut = Math.min(2, feeCut)
         const favourOn = rewardedAvailable('medical') && canPhysioFavour(game, p.id)
         const feeOn = !p.specialist && p.injury!.until - game.week >= 3 && (!favourOn || feeCut > favourCut)
-        return (
-        // the controls wrap under the line: with the knock and the joker there
-        // can be three of them, and a row wider than the phone hides the last
-        <span style={{ color: 'var(--text-negative)', fontWeight: 700, fontSize: 12, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, whiteSpace: 'normal' }}>
-          <span>{injuryDesc(p.injury!)} · {t('common.weeksOut', { n: left })}</span>
+        const cover = jokerFor(game, p.id)
+        return { info: (
+          <>
+            <span className="neg">{injuryDesc(p.injury!)} · {t('common.weeksOut', { n: left })}</span>
+            {HEAD_INJURIES.has(p.injury!.dk ?? '') && weeksLeft(game, p) <= 3 && <span>{t('medical.knockHead')}</span>}
+            {cover && <span className="gold">{t('medical.jokerCovered', { name: cover.name })}</span>}
+          </>
+        ), act: (
+        <>
           {/* the sponsor's consultant (v1.1.0): the same door with the fee
               replaced by a watched spot - only where a provider exists, and
               only while the week's ledger allows it (rewarded.ts). It is
@@ -158,7 +169,7 @@ export default function Medical() {
           {feeOn && (
             <button className="btn gold rowact"
               onClick={e => { e.stopPropagation(); setMsg({ id: p.id, text: specialistConsult(game, p.id) }); touch() }}>
-              {t('medical.specialistCut', { n: feeCut })}
+              {t('medical.specialistCut', { n: feeCut, fee: fmtMoney(SPECIALIST_FEE) })}
             </button>
           )}
           {/* PLAY THROUGH IT (knock.ts): the last weeks of a lay-off can be
@@ -175,29 +186,21 @@ export default function Medical() {
               {t('medical.knockBtn', { pct: Math.round(flareChance(weeksLeft(game, p)) * 100) })}
             </button>
           )}
-          {HEAD_INJURIES.has(p.injury!.dk ?? '') && weeksLeft(game, p) <= 3 && (
-            <div className="meta" style={{ fontWeight: 600 }}>{t('medical.knockHead')}</div>
-          )}
           {/* THE MEDICAL JOKER (joker.ts): a long lay-off can be covered by one
               short-term signing whose wage sits outside the cap */}
-          {(() => {
-            const cover = jokerFor(game, p.id)
-            if (cover) return <div className="meta" style={{ color: 'var(--gold)', fontWeight: 700 }}>{t('medical.jokerCovered', { name: cover.name })}</div>
-            if (!jokerOpen(game, p)) return null
-            return (
-              <button className="btn ghost rowact"
-                onClick={e => { e.stopPropagation(); setJokerHurt(p) }}>
-                {t('medical.jokerBtn')}
-              </button>
-            )
-          })()}
-        </span>
-        )
+          {!cover && jokerOpen(game, p) && (
+            <button className="btn ghost rowact"
+              onClick={e => { e.stopPropagation(); setJokerHurt(p) }}>
+              {t('medical.jokerBtn')}
+            </button>
+          )}
+        </>
+        ) }
       })}
 
-      {section(t('medical.knockTitle'), t('medical.knockSub'), knocks, p => (
-        <span style={{ color: 'var(--gold)', fontWeight: 700, fontSize: 12, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, whiteSpace: 'normal' }}>
-          <span>{t('medical.knockRow', { n: Math.max(0, p.knock!.until - game.week), pct: Math.round(flareChance(p.knock!.early) * 100) })}</span>
+      {section(t('medical.knockTitle'), t('medical.knockSub'), knocks, p => ({
+        info: <span className="gold">{t('medical.knockRow', { n: Math.max(0, p.knock!.until - game.week), pct: Math.round(flareChance(p.knock!.early) * 100) })}</span>,
+        act: (
           <button className="btn ghost rowact"
             onClick={e => {
               e.stopPropagation()
@@ -207,28 +210,26 @@ export default function Medical() {
             }}>
             {t('medical.knockRest')}
           </button>
-        </span>
-      ))}
+        ),
+      }))}
 
-      {section(t('medical.redZone'), t('medical.redZoneSub'), loaded, p => (
-        <span style={{ color: 'var(--text-negative)', fontWeight: 700, fontSize: 12 }}>{t('medical.minsThisSeason', { mins: p.stats.mins })}</span>
-      ))}
+      {section(t('medical.redZone'), t('medical.redZoneSub'), loaded, p => ({
+        info: <span className="neg">{t('medical.minsThisSeason', { mins: p.stats.mins })}</span>,
+      }))}
 
-      {section(t('medical.returning'), t('medical.returningSub'), rusty, p => (
-        <span style={{ color: 'var(--gold)', fontWeight: 700, fontSize: 12 }}>
-          {t('medical.rusty', { n: p.rust ?? 0 })}
-          {game.cottonWk !== game.season * 100 + game.week && (
-            <button className="btn ghost rowact" style={{ marginLeft: 8 }}
-              onClick={e => { e.stopPropagation(); setMsg({ id: p.id, text: cottonWool(game, p.id) }); touch() }}>
-              {t('medical.cottonWool')}
-            </button>
-          )}
-        </span>
-      ))}
+      {section(t('medical.returning'), t('medical.returningSub'), rusty, p => ({
+        info: <span className="gold">{t('medical.rusty', { n: p.rust ?? 0 })}</span>,
+        act: game.cottonWk !== game.season * 100 + game.week && (
+          <button className="btn ghost rowact"
+            onClick={e => { e.stopPropagation(); setMsg({ id: p.id, text: cottonWool(game, p.id) }); touch() }}>
+            {t('medical.cottonWool')}
+          </button>
+        ),
+      }))}
 
-      {section(t('medical.suspended'), t('medical.suspendedSub'), banned, p => (
-        <span style={{ color: 'var(--text-negative)', fontWeight: 700, fontSize: 12 }}>{t('medical.banMatches', { n: p.bans })}</span>
-      ))}
+      {section(t('medical.suspended'), t('medical.suspendedSub'), banned, p => ({
+        info: <span className="neg">{t('medical.banMatches', { n: p.bans })}</span>,
+      }))}
 
       {/* The figure is honest for a STARTER and overstates the problem for a
           replacement: benchTank() floors every man who comes off the bench at
@@ -236,13 +237,13 @@ export default function Medical() {
           the hour sitting down (matchEngine.ts). Saying "consider resting" flat
           out told half a squad something untrue, so the line now names who it
           is actually talking to. */}
-      {section(t('medical.onFumes'), t('medical.onFumesSub'), tired, p => (
-        <span style={{ fontWeight: 700, fontSize: 12 }}>{Math.round(p.cond)}%</span>
-      ))}
+      {section(t('medical.onFumes'), t('medical.onFumesSub'), tired, p => ({
+        info: <span>{Math.round(p.cond)}%</span>,
+      }))}
 
-      {section(t('medical.awayFromClub'), t('medical.awayFromClubSub'), away, p => (
-        <span style={{ color: 'var(--gold)', fontWeight: 700, fontSize: 12 }}>{t(p.onLoan ? 'medical.onLoan' : 'medical.intlDuty')}</span>
-      ))}
+      {section(t('medical.awayFromClub'), t('medical.awayFromClubSub'), away, p => ({
+        info: <span className="gold">{t(p.onLoan ? 'medical.onLoan' : 'medical.intlDuty')}</span>,
+      }))}
       <div className="spacer" />
       {jokerHurt && (
         <div className="modal-veil" onClick={() => setJokerHurt(null)}>

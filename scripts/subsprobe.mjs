@@ -65,14 +65,14 @@ try {
   // ---- the control row: four buttons, and only one of them is a play glyph
   const ctrl = await page.evaluate(() => {
     const bs = [...document.querySelectorAll('.speed-controls .btn')]
-    return { n: bs.length, labels: bs.map(b => (b.textContent ?? '').trim()) }
+    return { n: bs.length, labels: bs.map(b => b.getAttribute('aria-label') ?? ''), plays: bs.filter(b => b.getAttribute('data-ctl') === 'play').length }
   })
   console.log(`  control row: ${ctrl.n} buttons [${ctrl.labels.join(' | ')}]`)
   // five since 1.8.0: the match menu (📊, 1.8.0) joined Pause, Skip, Squad and
   // settings. Still one row, still not seven.
   ok(ctrl.n === 5, `the control row is five buttons, not seven (${ctrl.n})`)
-  const plays = ctrl.labels.filter(l => l.includes('▶')).length
-  ok(plays <= 1, `only one play glyph on the row (found ${plays})`)
+  const plays = ctrl.plays
+  ok(plays <= 1, `only one play button on the row (found ${plays})`)
 
   // ---- the settings sheet holds speed and sound
   await page.click('.speed-controls .btn >> nth=-1')  // settings is the last button on the row
@@ -140,7 +140,7 @@ try {
     }
     return false
   }
-  const skip = page.locator('.speed-controls .btn').filter({ hasText: 'Skip' }).first()
+  const skip = page.locator('.speed-controls [data-ctl=skip]').first()
   // THE STORE, THEN THE SCREEN. A DOM-only check calls a match "not at
   // half-time" during the frames between the state arriving and React drawing
   // it - and the loop below answers that by pressing Skip, which AT an
@@ -231,8 +231,8 @@ try {
       () => window.rugbyStore.getState().liveMatch?.ctx?.awaiting ?? null).catch(() => null)
     if (awaiting === 'HT') { skipped = true; break }
     if (!awaiting) {
-      const play = page.locator('.speed-controls .btn').first()
-      if ((await play.textContent() ?? '').includes('▶')) {
+      const play = page.locator('.speed-controls [data-ctl=play]').first()
+      if (await play.getAttribute('data-playing') === 'false') {
         try { await play.click({ timeout: 1500 }) } catch { /* disabled too */ }
       }
     }
@@ -243,7 +243,7 @@ try {
     // leaving the next reader to guess at a locator timeout
     const state = await page.evaluate(() => ({
       controls: [...document.querySelectorAll('.speed-controls .btn')]
-        .map(b => `${(b.textContent ?? '').trim()}${b.disabled ? '(off)' : ''}`),
+        .map(b => `${b.getAttribute('aria-label') ?? ''}${b.disabled ? '(off)' : ''}`),
       panels: ['Start Second Half', 'Take the Points', 'Full Time', 'Match Review', 'Continue to Results']
         .filter(t => document.body.innerText.includes(t)),
       veil: document.querySelector('.modal-veil h3')?.textContent ?? null,
@@ -506,8 +506,8 @@ try {
     `the panel agrees ${MAX_SUBS - CHANGES} are left after ${CHANGES} changes`)
 
   // still at half-time: the control row must say what it will do, and do it
-  const playCap = (await page.locator('.speed-controls .btn').first().textContent() ?? '').trim()
-  console.log(`  half-time play button reads "${playCap}"`)
+  const playCap = (await page.locator('.speed-controls .btn').first().getAttribute('aria-label') ?? '').trim()
+  console.log(`  half-time play button is named "${playCap}"`)
   ok(/Second Half/.test(playCap), 'at half-time the play button names the restart')
   ok(await press(page.locator('.speed-controls .btn').first()), 'the play button could be pressed, answering any touchline call first')
   await page.waitForTimeout(900)
@@ -521,8 +521,8 @@ try {
 
   // the 60' break is the same state and must behave the same way
   if (/60' Break/.test(resumed)) {
-    const brkCap = (await page.locator('.speed-controls .btn').first().textContent() ?? '').trim()
-    console.log(`  60' break play button reads "${brkCap}"`)
+    const brkCap = (await page.locator('.speed-controls .btn').first().getAttribute('aria-label') ?? '').trim()
+    console.log(`  60' break play button is named "${brkCap}"`)
     ok(/Final Quarter/.test(brkCap), "at the 60' break the play button names the restart")
     ok(await press(page.locator('.speed-controls .btn').first()), 'the play button could be pressed, answering any touchline call first')
     await page.waitForTimeout(900)

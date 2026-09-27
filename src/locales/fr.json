@@ -452,18 +452,18 @@
     "physioShorter": " · blessures raccourcies d'environ {pct} %",
     "findPlayer": "Chercher un joueur…",
     "nothingOnHim": "Rien à son sujet",
-    "quietRoom": "✅ Une infirmerie tranquille",
+    "quietRoom": "Une infirmerie tranquille",
     "nothingOnHimSub": "Aucun joueur correspondant n'est blessé, suspendu, en manque de rythme ou à court de jambes.",
     "quietRoomSub": "Personne de blessé, suspendu, rouillé ou à bout de souffle. Profitez-en - ça ne dure jamais.",
     "treatmentRoom": "Salle de soins",
-    "treatmentSub": "absent - la faveur du sponsor retire jusqu'à deux semaines gratuitement, et la consultation à {fee} va plus loin sur une longue absence",
+    "treatmentSub": "Indisponibles",
     "redZone": "Zone rouge - charge de la saison",
-    "redZoneSub": "1 300 minutes et plus : ils cassent plus vite et fatiguent plus vite. Faites-les souffler.",
-    "minsThisSeason": "🔋 {mins}′ cette saison",
+    "redZoneSub": "1 300 minutes et plus cette saison",
+    "minsThisSeason": "{mins}′ cette saison",
     "returning": "Retour de blessure",
-    "returningSub": "jouables, mais un retour précipité risque la rechute · un joueur par semaine peut être ménagé",
-    "rusty": "⚠ MANQUE DE RYTHME {n}s",
-    "cottonWool": "🛌 Ménager",
+    "returningSub": "Aptes, en manque de rythme",
+    "rusty": "MANQUE DE RYTHME {n}s",
+    "cottonWool": "Ménager",
     "suspended": "Suspendus",
     "suspendedSub": "purgent leur suspension",
     "banMatches": {
@@ -471,14 +471,14 @@
       "other": "{n} matchs"
     },
     "onFumes": "À bout de souffle",
-    "onFumesSub": "condition sous 62 % - cela coûte à un titulaire ; sortant du banc il entre quand même à 60 %",
+    "onFumesSub": "Condition sous 62 %",
     "awayFromClub": "Loin du club",
     "awayFromClubSub": "sélections et prêts",
     "onLoan": "EN PRÊT",
     "intlDuty": "EN SÉLECTION",
     "findPlayer_f": "Chercher une joueuse…",
     "nothingOnHimSub_f": "Aucune joueuse correspondante n'est blessée, suspendue, en manque de rythme ou à court de jambes.",
-    "returningSub_f": "jouables, mais un retour précipité risque la rechute · une joueuse par semaine peut être ménagée",
+    "returningSub_f": "Aptes, en manque de rythme",
     "jokerBtn": "Engager un joker médical",
     "jokerTitle": "Joker médical pour {hurt}",
     "jokerExplain": {
@@ -496,11 +496,11 @@
     "knockRested": "Retour en salle de soins pour {name}, finalement.",
     "knockNotOpen": "Impossible de jouer malgré cette blessure pour l'instant.",
     "knockTitle": "Joue avec une gêne",
-    "knockSub": "Sélectionnable, mais sans pleine énergie, et chaque match joué risque d'aggraver la blessure. Une blessure à la tête ne se joue jamais.",
+    "knockSub": "Sélectionnable, avec un risque de rechute",
     "knockRow": "Retour prévu dans {n} sem. · risque de rechute {pct} % par match",
     "knockRest": "Mettre au repos",
     "knockHead": "Blessure à la tête : jamais de jeu malgré tout",
-    "specialistCut": "🩺 Spécialiste -{n}sem"
+    "specialistCut": "Spécialiste -{n}sem · {fee}"
   },
   "inbox": {
     "freeAgent": " · agent libre",
@@ -1029,7 +1029,6 @@
     "planWide1": "Leur défense sur les extérieurs est le point faible. Écartez et déplacez le point de fixation.",
     "planWide2": "Le surnombre au large fera la différence. Deux passes après le ruck et ils sont en retard.",
     "planWide3": "Leurs ailiers rentrent à l'intérieur. Gagnez le coin et les essais suivront.",
-    "play": "Lecture",
     "playFinalQuarter": "▸ Jouer le dernier quart",
     "prepAttack": "⚡ Systèmes offensifs - combinaisons travaillées toute la semaine. Attaque affûtée.",
     "prepDefence": "🛡 Ateliers défensifs - le mur est bâti. Défense affûtée.",
@@ -1093,7 +1092,7 @@
       "other": "{n} points d'écart entre vous"
     },
     "sixLevel": "à égalité de points",
-    "skip": "Passer ▸",
+    "skip": "Passer",
     "skipTook": {
       "one": "⏭ Passer a répondu à {n} décision à votre place - les points ont été pris.",
       "other": "⏭ Passer a répondu à {n} décisions à votre place - les points ont été pris."
@@ -1116,7 +1115,6 @@
     "spdSlow": "Lent",
     "spdSlowName": "Lent - lisez chaque ligne",
     "speechLabel": "Causerie : ",
-    "squadBtn": "Groupe",
     "squadTitle": "Groupe du match : faire un remplacement",
     "stCards": "Cartons",
     "stEnergy": "Énergie restante",
@@ -6674,7 +6672,7 @@
     "owedHeld": "Déjà payé. La livraison n’est pas encore passée, donc rien ne vous a été facturé une seconde fois : le jeu continue en arrière-plan. Revenez dans une minute.",
     "asking": "Demande à la boutique…",
     "townBody_f": "L'association des supporters fera passer le seau pour un club en vraie difficulté : regardez un spot et la collecte arrive en banque. Elle paie les salaires et la lumière, jamais les joueuses.",
-    "physioCut": "📺 Faveur -{n}sem"
+    "physioCut": "Faveur -{n}sem"
   },
   "store": {
     "title": "Boutique",

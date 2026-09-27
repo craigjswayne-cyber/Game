@@ -97,7 +97,7 @@ try {
     // a touchline call pauses the skip: take the points and move on
     const call = page.locator('.panel-area .speech-tile, .panel-area .dec-tile')
     if (await call.count()) { await call.first().click(); await page.waitForTimeout(300); continue }
-    const skip = page.locator('button >> text=Skip ▸')
+    const skip = page.locator('.speed-controls [data-ctl=skip]')
     if (await skip.count()) { await skip.first().click().catch(() => {}) }
     await page.waitForTimeout(400)
   }

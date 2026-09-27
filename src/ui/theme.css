@@ -2275,10 +2275,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   .mday-head h3 { margin-bottom: 2px; }
 }
 
-/* the touchline button carries a word as well as an icon: it is the most
-   important control in a live match and it was a bare clipboard */
-.speed-controls .ctrl-cap { font-size: 11px; font-weight: 700; letter-spacing: .3px; }
-@media (max-width: 620px) { .speed-controls .ctrl-cap { display: none; } }
 
 /* ---- controls that ride along with a long list ----
    The squad is a 38-man table, four screenfuls deep. Its view tabs and filter
@@ -2575,10 +2571,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    (release audit 1.7.1, seen at 360px). Same inset, so the labels line up
    with the buttons they name. */
 .settings-sheet > .set-label { margin-left: 16px; margin-right: 16px; }
-/* four buttons fit their captions at every landscape width we support, so the
-   captions no longer vanish on a narrow phone - that hiding rule existed only
-   because seven buttons could not fit */
-.speed-controls .ctrl-cap { display: inline; }
 
 /* ---- Match-day squad sheet (feedback 9-2) ------------------------------
    Two columns, the XV and the bench, so a change is two taps and several
@@ -4649,3 +4641,27 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .ms-note { grid-column: 1 / -1; font-size: 12px; color: var(--text-muted); margin: -4px 0 4px; }
 .app.tablet .hl-clip { max-width: 760px; margin-left: auto; margin-right: auto; }
 .app.tablet .tab-stats .live-stats { margin: 0; }
+
+/* the match controls are icons (owner, 27 Sep 2026), and small with room
+   between them ("make the buttons smaller so there is more space between
+   them"): five 48px squares spread across the row, clear of the 44 floor */
+.speed-controls { justify-content: space-between; width: 100%; max-width: 440px; margin-inline: auto; box-sizing: border-box; }
+.speed-controls .btn { flex: 0 0 48px; width: 48px; padding: 0; }
+.speed-controls .ctl-ico { display: inline-flex; align-items: center; justify-content: center; }
+.speed-controls .ctl-ico svg { width: 22px; height: 22px; }
+
+/* THE TREATMENT ROOM (owner, 27 Sep 2026: "tidy up the treatment room"): the
+   line under the name, the buttons stacked to the right at one width */
+.med-row td { vertical-align: middle; }
+.med-row td:first-child { width: 1%; }
+.med-row .med-info { display: flex; flex-direction: column; gap: 2px; margin-top: 3px; font-size: 12px; font-weight: 700; white-space: normal; color: var(--text-muted); }
+.med-row .med-info .neg { color: var(--text-negative); }
+.med-row .med-info .gold { color: var(--gold); }
+.med-row .med-act { text-align: right; width: 1%; }
+.med-row .med-act:empty { display: none; }
+/* smaller buttons with more room between them (owner, 27 Sep 2026): 32px
+   of box and 6px of reach either side is still 44 to tap, and 14px apart the
+   reaches of neighbours never meet */
+.med-row .med-act .rowact { display: flex; width: 100%; min-width: 118px; justify-content: center; white-space: nowrap; margin: 0; min-height: 32px; padding: 4px 10px; font-size: 11px; }
+.med-row .med-act .rowact::after { inset: -7px 0; }
+.med-row .med-act .rowact + .rowact { margin-top: 14px; }

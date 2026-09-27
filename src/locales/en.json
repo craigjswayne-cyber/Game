@@ -452,18 +452,18 @@
   "physioShorter": " · injuries roughly {pct}% shorter",
   "findPlayer": "Find a player…",
   "nothingOnHim": "Nothing on him",
-  "quietRoom": "✅ A quiet treatment room",
+  "quietRoom": "A quiet treatment room",
   "nothingOnHimSub": "No player matching that search is injured, suspended, rusty or short of a gallop.",
   "quietRoomSub": "Nobody injured, suspended, rusty or running on empty. Enjoy it - it never lasts.",
   "treatmentRoom": "Treatment Room",
-  "treatmentSub": "ruled out - the sponsor's favour takes up to two weeks off for nothing, and the {fee} consult goes further on a long lay-off",
+  "treatmentSub": "Ruled out",
   "redZone": "Red Zone - season load",
-  "redZoneSub": "1,300+ minutes: they break easier and tire faster. Rest them.",
-  "minsThisSeason": "🔋 {mins}′ this season",
+  "redZoneSub": "1,300+ minutes this season",
+  "minsThisSeason": "{mins}′ this season",
   "returning": "Returning from Injury",
-  "returningSub": "playable, but a rushed return risks a breakdown · one man a week can be wrapped in cotton wool",
-  "rusty": "⚠ RUSTY {n}w",
-  "cottonWool": "🛌 Cotton wool",
+  "returningSub": "Fit, short of match sharpness",
+  "rusty": "RUSTY {n}w",
+  "cottonWool": "Cotton wool",
   "suspended": "Suspended",
   "suspendedSub": "serving bans",
   "banMatches": {
@@ -471,14 +471,14 @@
    "other": "{n} matches"
   },
   "onFumes": "Running on Fumes",
-  "onFumesSub": "condition under 62% - it costs a starter; off the bench he still comes on at 60%",
+  "onFumesSub": "Condition under 62%",
   "awayFromClub": "Away from the Club",
   "awayFromClubSub": "international duty & loans",
   "onLoan": "ON LOAN",
   "intlDuty": "INTL DUTY",
   "nothingOnHim_f": "Nothing on her",
-  "returningSub_f": "playable, but a rushed return risks a breakdown · one woman a week can be wrapped in cotton wool",
-  "onFumesSub_f": "condition under 62% - it costs a starter; off the bench she still comes on at 60%",
+  "returningSub_f": "Fit, short of match sharpness",
+  "onFumesSub_f": "Condition under 62%",
   "jokerBtn": "Sign a medical joker",
   "jokerTitle": "Medical joker for {hurt}",
   "jokerExplain": {
@@ -496,11 +496,11 @@
   "knockRested": "{name} is back in the treatment room after all.",
   "knockNotOpen": "That can't be played through now.",
   "knockTitle": "Carrying a knock",
-  "knockSub": "Available to pick, but short of a full tank, and every match played risks the injury flaring up. Head injuries are never played through.",
+  "knockSub": "Can play, with a risk of flare-up",
   "knockRow": "Fit in {n} wk · {pct}% flare-up risk a match",
   "knockRest": "Rest instead",
   "knockHead": "Head injury: never played through",
-  "specialistCut": "🩺 Specialist -{n}w"
+  "specialistCut": "Specialist -{n}w · {fee}"
  },
  "inbox": {
   "freeAgent": " · free agent",
@@ -1025,7 +1025,6 @@
   "planWide1": "Their edge defence is the soft spot. Go wide and shift the point of attack.",
   "planWide2": "Numbers out wide win this. Two passes past the ruck and they are scrambling.",
   "planWide3": "Their wings tuck in. Earn the corner and the tries will follow.",
-  "play": "Play",
   "playFinalQuarter": "▸ Play the Final Quarter",
   "prepAttack": "⚡ Attacking Shapes - strike moves drilled all week. Attack sharpened.",
   "prepDefence": "🛡 Defensive Drills - the wall is built. Defence sharpened.",
@@ -1089,7 +1088,7 @@
    "other": "{n} points between you"
   },
   "sixLevel": "level on points",
-  "skip": "Skip ▸",
+  "skip": "Skip",
   "skipTook": {
    "one": "⏭ Skip answered {n} touchline call for you - the points were taken.",
    "other": "⏭ Skip answered {n} touchline calls for you - the points were taken."
@@ -1112,7 +1111,6 @@
   "spdSlow": "Slow",
   "spdSlowName": "Slow - read every line",
   "speechLabel": "Speech: ",
-  "squadBtn": "Squad",
   "squadTitle": "Match-day squad: make a substitution",
   "stCards": "Cards",
   "stEnergy": "Energy left",
@@ -6834,7 +6832,7 @@
    "one": "📺 The analyst has one more read - her all-nighter for a spot",
    "other": "📺 The analyst has {n} more reads - her all-nighter for a spot"
   },
-  "physioCut": "📺 Favour -{n}w"
+  "physioCut": "Favour -{n}w"
  },
  "store": {
   "title": "Store",

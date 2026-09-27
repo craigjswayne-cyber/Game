@@ -61,6 +61,11 @@ try {
   const rows = await page.evaluate(() => [...document.querySelectorAll('.live-stats .ls-row .ls-label')].map(e => e.textContent))
   ok(rows.length === 10 && rows.includes('Territory') && rows.includes('Kicks at goal') && rows.includes('Points per 22 visit'), `between highlights the stage is the live stats (${rows.join(', ')})`)
   ok(await page.evaluate(() => !document.querySelector('.pitch')), 'and there is no always-on pitch')
+  // CLEAN COMMENTARY (owner, 27 Sep 2026: "remove any emojis and bullet
+  // points from commentary, make it super clean")
+  const comm = await page.evaluate(() => [...document.querySelectorAll('.now-line .txt, .tick-event .txt')].map(e => e.textContent ?? ''))
+  const dirty = comm.filter(x => /[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{23E9}-\u{23FA}\u{25A0}-\u{25FF}\u00B7\u2022]/u.test(x))
+  ok(comm.length > 0 && dirty.length === 0, `the commentary is words only, no emoji or bullet (${comm.length} lines${dirty.length ? `; not: "${dirty[0]}"` : ''})`)
   await tap('.speed-controls .btn >> nth=-1')
   await page.waitForSelector('.settings-sheet')
   const seg = () => page.evaluate(() => {
