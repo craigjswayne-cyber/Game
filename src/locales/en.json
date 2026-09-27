@@ -1324,7 +1324,7 @@
   "natural": "Natural",
   "noInstruction": "No special instruction.",
   "openProfile": "Open {name}'s profile ›",
-  "rolesNote": "Tap a shirt to set his role or open his profile. Roles are small, honest edges - the scrummager props up the set piece, the playmaker opens the game.",
+  "rolesNote": "Tap a shirt to set their role.",
   "setPieceRule": "One rule runs this page.",
   "setPieceRuleRest": "Whatever you call gets sharper every week and everything else goes rusty, so pick moves you mean to keep calling. Set-Piece Work in Prep speeds it up and your scrum coach sets the ceiling.",
   "lineoutCall": "Lineout Call",
@@ -1396,7 +1396,6 @@
   "planLoad": "Plan {n}",
   "planOverTitle": "Overwrite Plan {n} with the current dials",
   "roleSheetSub_f": "No. {shirt} · how she plays it · {n} options",
-  "rolesNote_f": "Tap a shirt to set her role or open her profile. Roles are small, honest edges - the scrummager props up the set piece, the playmaker opens the game.",
   "kickerNote_f": "First choice takes everything; the second woman steps up when she is off.",
   "splitMismatch_f": "You named a {want}, and the women in the shirts make it a {got}. The bench you actually pick is the one that plays.",
   "byZone": "What You Do Where",
@@ -2874,7 +2873,6 @@
  },
  "report": {
   "trWhereWeStand": "Where We Stand",
-  "trSquadDepth": "Squad Depth",
   "trBestXV": "Best XV",
   "trVerdict": "The Assistant's Verdict",
   "trLeaguePos": "League position",
@@ -2885,11 +2883,6 @@
   "trSquadSize": "Squad size",
   "trStarPlayers": "Star Players",
   "trStarSub": "⭐ = the men opponents fear",
-  "trDepth": "Positional Depth",
-  "trDepthSub": "cover per shirt - red needs recruits",
-  "trColRole": "Role",
-  "trColCover": "Cover",
-  "trColBest": "Best option",
   "trAgeProfile": "Age Profile",
   "trAgeSub": "a healthy squad peaks in the middle",
   "trCurrentXV": "Current Best XV",
@@ -7293,12 +7286,6 @@
   "stamina": "Condition rings",
   "staminaSub": "How much each man has left, when play stops",
   "bigText": "Large commentary",
-  "bigTextSub": "The match commentary in bigger type",
-  "replays": "Try replays",
-  "replaysSub": "After a try, the build-up again, slower"
- },
- "replay": {
-  "badge": "REPLAY",
-  "button": "Replay the try"
+  "bigTextSub": "The match commentary in bigger type"
  }
 }

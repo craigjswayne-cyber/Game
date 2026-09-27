@@ -230,8 +230,8 @@ try {
   await shot('06b-club-menu')
   await page.click('.submenu-item >> text=Team Report')
   await page.waitForSelector('text=Where We Stand')
-  await page.click('.tab-bar >> text=Squad Depth')
-  await page.waitForSelector('text=Positional Depth')
+  // (squad depth is the Squad screen's; the report no longer repeats it)
+  await page.waitForSelector('text=Age Profile')
   await shot('06c-team-report')
 
   // Club submenu -> Medical Centre

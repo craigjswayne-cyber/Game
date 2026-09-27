@@ -6,7 +6,7 @@
 //   open play draws the gainline and the offside line
 //   a scrum, lineout or maul draws the contest bar
 //   condition rings only while play is stopped, on every man
-//   five switches, on by default, that do what they say and are remembered
+//   four switches, on by default, that do what they say and are remembered
 //
 // Run: npm run build && node scripts/overlayprobe.mjs
 import { chromium } from 'playwright-core'
@@ -61,14 +61,14 @@ try {
   await tap('.speed-controls .btn >> nth=-1')
   await page.waitForSelector('.settings-sheet')
   const sw = await page.evaluate(() => [...document.querySelectorAll('.settings-sheet [role=switch]')].map(e => e.getAttribute('aria-checked')))
-  ok(sw.length === 5 && sw.every(v => v === 'true'), `five switches, all on by default (${sw.join(',')})`)
+  ok(sw.length === 4 && sw.every(v => v === 'true'), `four switches, all on by default (${sw.join(',')})`)
   await page.locator('.settings-sheet [role=switch]').nth(2).click()
   await page.waitForTimeout(200)
   ok(await page.evaluate(() => document.querySelectorAll('.pitch .stam').length) === 0, 'turning Condition rings off takes them away')
   await page.locator('.settings-sheet [role=switch]').nth(3).click()
   ok(await page.evaluate(() => !document.querySelector('.live-wrap')?.classList.contains('big-text')), 'turning Large commentary off returns the old size')
   const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('phase.matchPrefs') ?? '{}'))
-  ok(saved.stamina === false && saved.bigText === false && saved.overlays === true && saved.replays === true, `the choices are remembered on this device (${JSON.stringify(saved)})`)
+  ok(saved.stamina === false && saved.bigText === false && saved.overlays === true, `the choices are remembered on this device (${JSON.stringify(saved)})`)
   // back to the match, and play on to see the overlays
   await page.click('.settings-sheet > .btn.gold.block')
   await page.waitForTimeout(300)

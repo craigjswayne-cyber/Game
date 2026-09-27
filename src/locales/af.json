@@ -1321,7 +1321,7 @@
   "natural": "Natuurlik",
   "noInstruction": "Geen spesiale instruksie nie.",
   "openProfile": "Maak {name} se profiel oop ›",
-  "rolesNote": "Tik op 'n trui om sy rol te stel of sy profiel oop te maak. Rolle is klein, eerlike voordele - die skrummer stut die vaste spel, die spelmaker maak die wedstryd oop.",
+  "rolesNote": "Tik op 'n trui om die rol te kies.",
   "setPieceRule": "Een reël beheer hierdie bladsy.",
   "setPieceRuleRest": "Wat jy ook al roep, word elke week skerper en al die res raak roestig, dus kies bewegings wat jy van plan is om aan te hou roep. Vastespelwerk onder Voorbereiding versnel dit en jou skrumafrigter stel die plafon.",
   "lineoutCall": "Lynstaanroep",
@@ -1393,7 +1393,6 @@
   "planLoad": "Plan {n}",
   "planOverTitle": "Oorskryf Plan {n} met die huidige instellings",
   "roleSheetSub_f": "Nr. {shirt} · hoe sy dit speel · {n} opsies",
-  "rolesNote_f": "Tik op 'n trui om haar rol te stel of haar profiel oop te maak. Rolle is klein, eerlike voordele - die skrummer stut die vaste spel, die spelmaker maak die wedstryd oop.",
   "kickerNote_f": "Die eerste keuse vat alles; die tweede vrou tree in wanneer sy van stryk is.",
   "splitMismatch_f": "Jy het 'n {want} benoem, en die vroue in die truie maak dit 'n {got}. Die bank wat jy werklik kies, is die een wat speel.",
   "byZone": "Wat jy waar doen",
@@ -2875,7 +2874,6 @@
  },
  "report": {
   "trWhereWeStand": "Waar ons staan",
-  "trSquadDepth": "Spangroepdiepte",
   "trBestXV": "Beste XV",
   "trVerdict": "Die assistent se oordeel",
   "trLeaguePos": "Ligaposisie",
@@ -2886,11 +2884,6 @@
   "trSquadSize": "Spangroepgrootte",
   "trStarPlayers": "Sterspelers",
   "trStarSub": "⭐ = die manne vir wie teenstanders bang is",
-  "trDepth": "Posisionele diepte",
-  "trDepthSub": "dekking per trui - rooi het versterkings nodig",
-  "trColRole": "Rol",
-  "trColCover": "Dekking",
-  "trColBest": "Beste opsie",
   "trAgeProfile": "Ouderdomsprofiel",
   "trAgeSub": "'n gesonde spangroep piek in die middel",
   "trCurrentXV": "Huidige beste XV",
@@ -7341,12 +7334,6 @@
   "stamina": "Kondisieringe",
   "staminaSub": "Hoeveel elkeen oor het, wanneer die spel stop",
   "bigText": "Groot kommentaar",
-  "bigTextSub": "Die wedstrydkommentaar in groter letters",
-  "replays": "Driepunt-herhalings",
-  "replaysSub": "Ná 'n drie, die aanloop weer, stadiger"
- },
- "replay": {
-  "badge": "HERHALING",
-  "button": "Kyk weer na die drie"
+  "bigTextSub": "Die wedstrydkommentaar in groter letters"
  }
 }

@@ -770,17 +770,19 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .pitch .posts {
   position: absolute; top: 50%; transform: translateY(-50%);
   font-size: 0;
-  width: 3px; height: 44px; background: rgba(255,255,255,.85); border-radius: 2px;
+  /* a size down (owner, 27 Sep 2026: "make the in-game rugby posts a bit
+     smaller"): 44px of bar and 10px pads were 32 and 7 */
+  width: 2px; height: 32px; background: rgba(255,255,255,.85); border-radius: 2px;
 }
 .pitch .posts::before, .pitch .posts::after {
-  content: ''; position: absolute; left: -3.5px;
-  width: 10px; height: 10px; border-radius: 50%;
+  content: ''; position: absolute; left: -2.5px;
+  width: 7px; height: 7px; border-radius: 50%;
   background: radial-gradient(circle at 38% 32%,
     rgba(255, 255, 255, .95), rgba(214, 228, 236, .78) 55%, rgba(126, 146, 156, .6));
   box-shadow: 0 1px 3px rgba(0, 0, 0, .45);
 }
-.pitch .posts::before { top: -5px; }
-.pitch .posts::after { top: auto; bottom: -5px; }
+.pitch .posts::before { top: -3.5px; }
+.pitch .posts::after { top: auto; bottom: -3.5px; }
 .pitch .ball {
   position: absolute; top: 50%; width: 19px; height: 13px;
   background: radial-gradient(circle at 35% 30%, var(--prop-cream), var(--prop-cream-deep));
@@ -5084,21 +5086,6 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
     max-height: 100%; min-height: 0; height: auto; aspect-ratio: 16 / 10;
     align-self: center; justify-self: stretch; margin: 6px 10px 6px 14px;
   }
-}
-
-/* TRY REPLAYS (1.8.0): the badge over the picture while a try is shown again,
-   and the button beside the replacements count */
-.pitch .replay-badge {
-  position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 8;
-  padding: 3px 10px; border-radius: 4px; pointer-events: none;
-  font-family: var(--cond); font-weight: 800; font-size: 12px; letter-spacing: 2px;
-  background: var(--gold); color: var(--prop-ink-dark);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, .45);
-}
-.match-status .replay-btn {
-  background: none; border: 1px solid var(--border-strong); border-radius: 999px;
-  color: var(--gold); font: inherit; font-size: 12px; font-weight: 700;
-  padding: 3px 10px; cursor: pointer; min-height: 28px;
 }
 
 /* ---- THE STUDIO MARK (1.8.0, components.tsx StudioMark) ----

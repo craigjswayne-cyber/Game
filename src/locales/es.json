@@ -1301,7 +1301,7 @@
   "natural": "Natural",
   "noInstruction": "Sin instrucción especial.",
   "openProfile": "Abrir el perfil de {name} ›",
-  "rolesNote": "Toca una camiseta para asignarle rol o abrir su perfil. Los roles son ventajas pequeñas y honestas: el meleador apuntala la fase estática, el creador abre el partido.",
+  "rolesNote": "Toca una camiseta para elegir su rol.",
   "setPieceRule": "Esta página se rige por una sola regla.",
   "setPieceRuleRest": "Lo que anuncias se afina cada semana y todo lo demás se oxida, así que elige jugadas que pienses seguir usando. El trabajo de estáticas en Preparación lo acelera, y tu técnico de melé marca el techo.",
   "lineoutCall": "Jugada de touch",
@@ -2792,7 +2792,6 @@
  },
  "report": {
   "trWhereWeStand": "Dónde estamos",
-  "trSquadDepth": "Fondo de armario",
   "trBestXV": "Mejor XV",
   "trVerdict": "El veredicto del ayudante",
   "trLeaguePos": "Posición en la liga",
@@ -2803,11 +2802,6 @@
   "trSquadSize": "Tamaño de plantilla",
   "trStarPlayers": "Estrellas",
   "trStarSub": "⭐ = los hombres que temen los rivales",
-  "trDepth": "Fondo por posición",
-  "trDepthSub": "recambios por camiseta - el rojo pide fichajes",
-  "trColRole": "Puesto",
-  "trColCover": "Recambios",
-  "trColBest": "Mejor opción",
   "trAgeProfile": "Pirámide de edad",
   "trAgeSub": "en una plantilla sana, el grueso va en medio",
   "trCurrentXV": "Mejor XV actual",
@@ -6974,12 +6968,6 @@
   "stamina": "Anillos de estado físico",
   "staminaSub": "Lo que le queda a cada uno, cuando el juego se para",
   "bigText": "Narración grande",
-  "bigTextSub": "La narración del partido con letra más grande",
-  "replays": "Repeticiones de ensayos",
-  "replaysSub": "Tras un ensayo, la jugada otra vez, más lenta"
- },
- "replay": {
-  "badge": "REPETICIÓN",
-  "button": "Ver el ensayo otra vez"
+  "bigTextSub": "La narración del partido con letra más grande"
  }
 }
