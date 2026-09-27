@@ -130,5 +130,29 @@ console.log('\n--- live, it only ever climbs\n')
   ok(sum(live.home.tackles) === t2[0] && sum(live.away.tackles) === t2[1], 'and the sheet is the sum of every player\'s own count')
 }
 
+console.log('\n--- kicks at goal: counted, and they add up\n')
+{
+  // every point that is not a try is a kick that went over: 2 for a
+  // conversion, 3 for a penalty or a drop goal. So the made count is bounded
+  // by the score, and the success rate lands where the kicking model is
+  // calibrated (about 72% of tries converted, higher for penalties).
+  let made = 0, taken = 0, bad = 0
+  for (let i = 0; i < 24; i++) {
+    const gi = newGame('leicester', 'Stats Probe', 93000 + i)
+    const fi = gi.fixtures.find(f => f.week >= 4 && gi.clubs[f.homeId] && gi.clubs[f.awayId])!
+    const ci = beginMatch(gi, fi, mulberry32(6000 + i), i % 2 === 0)
+    playHalf(gi, ci); playHalf(gi, ci)
+    const si = matchStats(ci)
+    for (const [side, [m, t]] of [[ci.home, si.goalKicks[0]], [ci.away, si.goalKicks[1]]] as const) {
+      made += m; taken += t
+      const kickPts = side.score - 5 * side.tries
+      if (m > t || kickPts < 2 * m || kickPts > 3 * m || t < side.tries) bad++
+    }
+  }
+  ok(bad === 0, `every side's kicks made fit its score, and every try got its conversion attempt (${bad} that did not)`)
+  const rate = made / taken
+  ok(rate >= 0.6 && rate <= 0.85, `kicks at goal go over ${Math.round(rate * 100)}% of the time (${made} of ${taken})`)
+}
+
 console.log(fails ? `\nSTATS PROBE FAILED (${fails})` : '\nSTATS PROBE PASSED: the sheet answers to the match it came from')
 if (fails) process.exit(1)

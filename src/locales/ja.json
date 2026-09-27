@@ -1103,7 +1103,6 @@
   "squadTitle": "マッチデースコッド:交代を行う",
   "stCards": "カード",
   "stEnergy": "残り体力",
-  "stPens": "PG",
   "stPossession": "ポゼッション",
   "stTries": "トライ",
   "stakes": "懸かるもの",
@@ -1241,6 +1240,8 @@
   "pressureTitle": "今、どちらがどれだけ脅かしているか。攻め続ければ上がり、実らなければ下がる。",
   "stTerritory": "テリトリー",
   "st22": "22m侵入",
+  "stPerVisit": "22m侵入あたりの得点",
+  "stGoalKicks": "ゴールキック",
   "liveStats": "ライブスタッツ"
  },
  "tacticsScreen": {

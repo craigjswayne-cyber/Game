@@ -1117,7 +1117,6 @@
   "squadTitle": "Rosa del match: fai una sostituzione",
   "stCards": "Cartellini",
   "stEnergy": "Energia residua",
-  "stPens": "Piazzati",
   "stPossession": "Possesso",
   "stTries": "Mete",
   "stakes": "La posta in palio",
@@ -1265,6 +1264,8 @@
   "pressureTitle": "Quanto sta minacciando ciascuna squadra in questo momento: sale durante un forcing e cala quando non ne esce nulla",
   "stTerritory": "Territorio",
   "st22": "Ingressi nei 22",
+  "stPerVisit": "Punti per ingresso nei 22",
+  "stGoalKicks": "Calci piazzati",
   "liveStats": "Statistiche live"
  },
  "tacticsScreen": {

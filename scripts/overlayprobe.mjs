@@ -59,7 +59,7 @@ try {
   await page.waitForTimeout(1500)
   await clear()
   const rows = await page.evaluate(() => [...document.querySelectorAll('.live-stats .ls-row .ls-label')].map(e => e.textContent))
-  ok(rows.length === 9 && rows.includes('Territory') && rows.includes('Tackles'), `between highlights the stage is the live stats (${rows.join(', ')})`)
+  ok(rows.length === 10 && rows.includes('Territory') && rows.includes('Kicks at goal') && rows.includes('Points per 22 visit'), `between highlights the stage is the live stats (${rows.join(', ')})`)
   ok(await page.evaluate(() => !document.querySelector('.pitch')), 'and there is no always-on pitch')
   await tap('.speed-controls .btn >> nth=-1')
   await page.waitForSelector('.settings-sheet')

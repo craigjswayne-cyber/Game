@@ -1115,7 +1115,6 @@
   "squadTitle": "Wedstryddag-spangroep: maak 'n vervanging",
   "stCards": "Kaarte",
   "stEnergy": "Energie oor",
-  "stPens": "Strafdoele",
   "stPossession": "Besit",
   "stTries": "Drieë",
   "stakes": "Wat op die spel is",
@@ -1275,6 +1274,8 @@
   "pressureTitle": "Hoeveel elke kant op die oomblik dreig - dit bou op deur 'n vlaag en verdwyn wanneer niks daarvan kom nie",
   "stTerritory": "Gebied",
   "st22": "Besoeke aan die 22",
+  "stPerVisit": "Punte per besoek aan die 22",
+  "stGoalKicks": "Skoppe na die pale",
   "liveStats": "Regstreekse statistiek"
  },
  "tacticsScreen": {
