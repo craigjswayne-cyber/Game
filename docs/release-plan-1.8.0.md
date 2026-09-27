@@ -121,6 +121,25 @@ mental attributes can gate technical ones. Needs its own calibration round.
 
 ---
 
+## Progress (27 Sep 2026)
+
+- E1 done: points per 22 visit and kicks at goal, read off the ticker (an
+  older leak that showed a try or kick before its line is closed with it).
+- E2 done: training redirects (trainPoint), plans +1 rating a summer below
+  potential; level vs rating -0.6 (was +7.2), 1 in 20 above potential (14).
+- E3 done: units blended (tackling 9.0% -> 5.7% of strength, 2.5x -> 1.9x the
+  third; decisions, agility, work rate now read), the scrum wins penalties,
+  tap and go reads the place, the maul call trimmed (+4.5 -> +2.8). Bands
+  hold (50.7 pts, 6.48 tries). Measured exactly by ladderprobe.
+- E4 done: Handbook entries on one engine and on when the pitch comes on.
+- Also: the ticker's Highlights mode renamed Big moments; release notes and
+  store description rewritten; store art regenerated; test artifact v9.
+- Suite on the final engine: 159 pass; the 4 failures were probes whose
+  samples could not resolve their own thresholds (autopilot, kickbreak,
+  wmarket) and a load race (motion) - each widened or fixed and re-run green.
+- In progress: the soak and long-run list (releasesim, stresstest, deepsave,
+  dialweight, soakhealth, soakui, e2edeep).
+
 ## 4. Decisions (owner, 27 Sep 2026)
 
 - **Scope: E1-E4 are 1.8.0; everything remaining is 1.8.1.**
@@ -131,6 +150,7 @@ mental attributes can gate technical ones. Needs its own calibration round.
 - Correction to E8: hidden Consistency and Big Match temperament already
   exist (attributes.ts, read by teamUnits since round 25D-2); they are never
   shown by design. What is left for 1.8.1 is whether scouting hints at them.
+- The ticker's Highlights mode is renamed (done: Big moments).
 - Still open: the store question below, and whether the two-layer engine
   (E12) is in 1.8.1 or a later release.
 
@@ -138,6 +158,4 @@ mental attributes can gate technical ones. Needs its own calibration round.
 
 1. Store release with 1.8.0, or web only first?
 2. E12 (two-layer engine) in 1.8.1, or its own release?
-3. Two settings are both called "Highlights" on the match screen (the
-   ticker's Every minute / Highlights, and Highlights: Key / Extended).
-   Rename the ticker one (for example "Stops: Every minute / Big moments")?
+
