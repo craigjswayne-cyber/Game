@@ -999,6 +999,8 @@ export const useStore = create<Store>((set, get) => ({
     if (forfeit) settleForfeit(g, fx, forfeit)
     else {
       const ctx = beginMatch(g, fx, weekRng(g), true, userTeamId)
+      // the assistant has the match, so the assistant makes the changes
+      ctx.assistantSubs = true
       if (preTalk) applyPreTalk(g, ctx, preTalk)
       playHalf(g, ctx)
       playHalf(g, ctx)

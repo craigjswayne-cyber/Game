@@ -5,7 +5,8 @@
 //
 // Every option on the Tactics screen, played over the same pool of full
 // matches as the standard setting (common random numbers: the same fixture,
-// state and dice, only the option differs), and three questions of each:
+// state and dice, only the option differs), 120 matches played as the
+// Instant Result plays them, and three questions of each:
 //
 //   DOES IT CHANGE THE GAME? At least one of tries for, tries against,
 //     penalty goals, cards or the margin moves by a real amount.
@@ -21,6 +22,7 @@
 import { newGame } from '../src/game/newgame'
 import { beginMatch, playHalf } from '../src/game/matchEngine'
 import { refillBench } from '../src/game/bench'
+import { playbookOf } from '../src/game/playbook'
 import { mulberry32 } from '../src/game/rng'
 import { DEF_SYSTEMS, PRESETS } from '../src/game/tactics'
 import type { Fixture, GameState, Tactic } from '../src/game/model'
@@ -33,7 +35,7 @@ const userFixture = (g: GameState) =>
 type Stats = { margin: number; triesFor: number; triesAgainst: number; pensFor: number; cardsFor: number; pointsFor: number }
 
 const pool: { g: GameState; fx: Fixture }[] = []
-for (const seed of [3, 11, 29, 47, 83, 101, 131, 157, 181, 211]) {
+for (const seed of [3, 11, 29, 47, 83, 101, 131, 157, 181, 211, 239, 263, 281, 307, 331, 353, 379, 401, 421, 443, 463, 487, 503, 521]) {
   for (const club of ['northampton', 'bath', 'exeter', 'sale', 'leicester']) {
     const g = newGame(club, 'Options', seed)
     pool.push({ g, fx: userFixture(g) })
@@ -54,9 +56,14 @@ function play(set: Partial<Tactic>, opp: Partial<Tactic> = {}): Stats {
     Object.assign(h.clubs[oppId].tactic, opp)
     // a new split reseats the bench, as it does when the manager picks one
     if (set.bench) refillBench(h, h.clubs[me])
-    // the match's own tallies (a simulated match writes no commentary, so
-    // there are no lines to count)
-    const ctx = beginMatch(h, f, mulberry32(7000 + i * 13), false)
+    // a set-piece call is drilled over weeks before it pays (playbook.ts):
+    // measure it as a side that has drilled it, not one calling it cold
+    const pb = playbookOf(h.clubs[me])
+    for (const id of [set.lineoutCall, set.scrumCall]) if (id) pb.drilled[id] = 100
+    // played exactly as the Instant Result plays the manager's match: the
+    // live engine, with the assistant making the changes
+    const ctx = beginMatch(h, f, mulberry32(7000 + i * 13), true, me)
+    ctx.assistantSubs = true
     playHalf(h, ctx); playHalf(h, ctx)
     const mine = ctx.home.teamId === me ? ctx.home : ctx.away
     const theirs = mine === ctx.home ? ctx.away : ctx.home
@@ -82,7 +89,7 @@ function delta(name: string, set: Partial<Tactic>, opp: Partial<Tactic> = {}) {
     pensFor: r.pensFor - base.pensFor, cardsFor: r.cardsFor - base.cardsFor,
   }
   // "a real amount": a tenth of a try, a tenth of a penalty goal or card, or
-  // a point of margin, per match, across fifty matches
+  // a point of margin, per match, across 120 matches
   const moved = Math.abs(d.triesFor) >= 0.1 || Math.abs(d.triesAgainst) >= 0.1 || Math.abs(d.pensFor) >= 0.1
     || Math.abs(d.cardsFor) >= 0.05 || Math.abs(d.margin) >= 1
   console.log(`  ${name.padEnd(22)} margin ${fmt(d.margin)}  tries ${fmt(d.triesFor)}/${fmt(d.triesAgainst)}  pens ${fmt(d.pensFor)}  cards ${fmt(d.cardsFor)}`)
