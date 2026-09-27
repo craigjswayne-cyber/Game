@@ -299,10 +299,13 @@ export function teamUnits(state: GameState, lineup: (number | null)[], day?: { f
   let scrum = avg([at(0, 'scr'), at(1, 'scr'), at(2, 'scr'), at(3, 'str'), at(4, 'str'), at(0, 'str'), at(2, 'str')])
   let lineout = avg([at(1, 'lin'), at(3, 'lin'), at(4, 'lin'), at(5, 'lin'), at(7, 'lin')])
   // ---- NO ONE ATTRIBUTE IS A WHOLE UNIT (1.8.0, scripts/ladderprobe.ts) ----
-  // Measured: +2 tackling across a squad was worth 3.8 points a match, three
-  // times the third attribute, because the defence unit WAS tackling; rucking
-  // was the whole breakdown and came second. And decisions, agility and work
-  // rate were read by nothing in a match while counting towards the rating.
+  // Measured exactly (ladderprobe: what +2 across a 23 does to the attacking
+  // and defending strength every tick is decided by): tackling raised it 9.0%,
+  // 2.5 times the third attribute (handling 3.6%), because the defence unit
+  // WAS tackling; rucking was the whole breakdown and came second at 7.4%.
+  // Decisions, agility and work rate read 0.0%: counted in the rating, read
+  // by nothing in a match. After: tackling 5.7%, rucking 5.1%, positioning
+  // 3.0%, and all three of those now count.
   // So a defence is tackling, the reads (positioning) and getting back into
   // the line (work rate); a breakdown is rucking and the strength to win the
   // clear-out; an attack reads its half-backs' decisions and its backs'
