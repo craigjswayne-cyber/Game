@@ -101,6 +101,48 @@ function hashRound(x: number, seed: number, id: number, season: number, i: numbe
   return n + (u < x - n ? 1 : 0)
 }
 
+/**
+ * ---- THE GAP IS THE GROWTH RATE (1.8.0, E5) ----
+ *
+ * fm-arena, the thread the owner pulled this from: how far a man is from his
+ * potential is how fast he closes it. Before this a 50/95 kid and a 50/60 kid
+ * took exactly the same annual roll (2-4 points, age and devFactor only) and the
+ * same 6% weekly bump, so the one with the ceiling simply grew for longer; for
+ * his first three summers nobody could tell them apart.
+ *
+ * Now the roll is scaled by the gap: 1.0 at a gap of GAP_MID points, which is
+ * where the world's young growers sit (12-13, measured on a fresh world), a
+ * little over half as fast when he is a couple of points short of his ceiling,
+ * up to 1.8x when there are thirty points still to come. Age, training,
+ * minutes and facilities scale it as before (devFactor multiplies it), and the
+ * pa clamp still stops him at his potential. MEAN-NEUTRAL BY MEASUREMENT like
+ * devFactor: GAP_MID and the floor were tuned until the world's mean rating
+ * followed the old curve (scripts/gapprobe.ts, three worlds, eight seasons).
+ */
+const GAP_MID = 11.5
+export function gapGrowth(ca: number, pa: number): number {
+  const gap = Math.max(0, pa - ca)
+  return clamp(0.5 + 0.5 * gap / GAP_MID, 0.55, 1.8)
+}
+
+/**
+ * ---- THE LAST POINTS ARE THE HARDEST (1.8.0, E6) ----
+ *
+ * 17 to 18 should cost more than 8 to 9. The odds that a point of work turns
+ * into a point on the sheet: every point up to 13 lands, then each one above
+ * costs another tenth, so the step from 17 to 18 takes about 1.7 times the
+ * work of 8 to 9 and 19 to 20 about 2.5 times.
+ */
+export function attrOdds(v: number): number {
+  return v <= 13 ? 1 : clamp(1 - (v - 13) * 0.1, 0.3, 1)
+}
+
+/** A deterministic 0..1 for one attribute's point of training this week: no
+ *  rng draw is spent, so every other roll in the week stays where it was. */
+export function attrRoll(seed: number, id: number, abs: number, k: K): number {
+  return mulberry32((seed ^ Math.imul(id, 0x2c1b3c6d) ^ Math.imul(abs + 1, 0x297a2d39) ^ Math.imul(KEYS.indexOf(k) + 3, 0x68e31da4)) >>> 0)()
+}
+
 /** Add shifts (in attribute points) to a man's attributes, rounded by hash. */
 export function shiftAttrs(p: Player, d: Partial<Record<K, number>>, seed: number, season: number) {
   KEYS.forEach((k, i) => {
@@ -136,12 +178,15 @@ export function shiftAttrs(p: Player, d: Partial<Record<K, number>>, seed: numbe
  * on a personal plan one rating point a summer while he is below potential.
  * Returns false when the attribute is already 20.
  */
-export function trainPoint(p: Player, k: K, focus: K[]): boolean {
+export function trainPoint(p: Player, k: K, focus: K[], roll?: number): boolean {
   // THE POSITION IS THE CEILING: a programme takes an attribute to what a man
   // of his potential plays at in his position, and a little past it, not to
   // 20. Without it three seasons of the Attack plan made a loosehead's
   // handling, passing and vision 20 and paid for them out of his scrummaging.
   if (p.a[k] >= Math.min(20, Math.round(slope(p.pos, k) * p.pa) + 3)) return false
+  // and the last points are the hardest (E6): a week's work on a 17 lands
+  // far less often than on an 8. The callers pass attrRoll, so no rng is spent
+  if (roll != null && roll >= attrOdds(p.a[k])) return false
   p.a[k] += 1
   if (!LEVEL.includes(k)) return true
   let debt = (p.tdebt ?? 0) + 1 / slope(p.pos, k)
@@ -183,6 +228,25 @@ export function ageAttributes(state: GameState, p: Player, caBefore: number) {
     // leadership keeps the world's own clock: a point every three years from 24
     if (k === 'lea') v = (p.age >= 25 ? 1 / 3 : 0) + dCa * slope(p.pos, k)
     d[k] = v
+  }
+  // THE LAST POINTS ARE THE HARDEST, IN THE SUMMER TOO (E6). A rise on an
+  // attribute already high lands at attrOdds, and what does not land is not
+  // lost: it goes, rating point for rating point, to his attributes still
+  // under 14, so the rating the attributes describe is exactly what it was
+  // and the growth just spreads wider instead of stacking a 19 into a 20.
+  // (a man with nothing under 14 has nowhere to spread it, and keeps the lot)
+  const low = LEVEL.filter(k => p.a[k] <= 13)
+  let spare = 0
+  for (const k of LEVEL) {
+    const v = d[k]!
+    if (!low.length || v <= 0 || p.a[k] <= 13) continue
+    const kept = v * attrOdds(p.a[k] + v / 2)
+    spare += (v - kept) / slope(p.pos, k)
+    d[k] = kept
+  }
+  if (spare > 0) {
+    // x_j = spare * slope_j / n puts back exactly `spare` on the rating scale
+    for (const k of low) d[k] = d[k]! + spare * slope(p.pos, k) / low.length
   }
   shiftAttrs(p, d, state.seed, state.season)
 }
