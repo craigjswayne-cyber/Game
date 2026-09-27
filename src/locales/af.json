@@ -7352,6 +7352,12 @@
   "stamina": "Kondisieringe",
   "staminaSub": "Hoeveel elkeen oor het, wanneer die spel stop",
   "bigText": "Groot kommentaar",
-  "bigTextSub": "Die wedstrydkommentaar in groter letters"
+  "bigTextSub": "Die wedstrydkommentaar in groter letters",
+  "replays": "Driepunt-herhalings",
+  "replaysSub": "Ná 'n drie, die aanloop weer, stadiger"
+ },
+ "replay": {
+  "badge": "HERHALING",
+  "button": "Kyk weer na die drie"
  }
 }

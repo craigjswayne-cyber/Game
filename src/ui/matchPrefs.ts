@@ -12,10 +12,11 @@
  *              stopped
  *   bigText    the commentary at the size FM Mobile sets it (owner: "The size
  *              of the text in fm stands out")
+ *   replays    after a try, the lines that led to it again, slower (1.8.0)
  */
-export type MatchPrefs = { overlays: boolean; stamina: boolean; bigText: boolean }
+export type MatchPrefs = { overlays: boolean; stamina: boolean; bigText: boolean; replays: boolean }
 const KEY = 'phase.matchPrefs'
-const DEFAULTS: MatchPrefs = { overlays: true, stamina: true, bigText: true }
+const DEFAULTS: MatchPrefs = { overlays: true, stamina: true, bigText: true, replays: true }
 
 export function readMatchPrefs(): MatchPrefs {
   try { return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(KEY) ?? '{}') } } catch { return { ...DEFAULTS } }
