@@ -91,6 +91,7 @@ import { deskBlock, deskGates, firstStepOfWeek, inInbox, markRead, matchDayIndex
 import { natSquadHold } from './game/country'
 import { clearResume, getResume, loadGame, migrate, putResume, saveGame } from './game/save'
 import { replayMatch, resumeFits, type MatchCmdBody, type MatchResume } from './game/resume'
+import { isHighlight } from './game/highlights'
 
 /**
  * How close together two Continue taps have to be before the second is treated as
@@ -317,22 +318,18 @@ interface Store {
   closeDraw: () => void
 }
 
-/** The event types worth stopping the ticker for in highlights mode (F5).
- *
- *  'SUB' is deliberately not on the list: the engine uses it for substitutions
- *  but also for atmosphere lines, the half-time numbers and the penalty prompt,
- *  so treating it as a highlight would stop on almost everything. Touchline
- *  decisions and intervals still halt play through ctx.decision and ctx.awaiting,
- *  which is where those stops belong. */
-const HIGHLIGHTS = new Set<MatchEvent['type']>(['TRY', 'CON', 'PEN', 'DG', 'YC', 'RC', 'INJ', 'HT', 'BRK', 'FT'])
-
 /** The cursor position that reveals the next highlight, or the end of what has
  *  been simulated so far. Always advances by at least one so the ticker can
- *  never stall on a quiet passage. */
-function nextHighlight(events: MatchEvent[], cursor: number): number {
+ *  never stall on a quiet passage. What counts as a highlight depends on how
+ *  close the game is (game/highlights.ts, 1.8.0).
+ *
+ *  'SUB' lines are not highlights by type: the engine uses them for
+ *  substitutions but also for atmosphere lines, the half-time numbers and the
+ *  penalty prompt. Touchline decisions and intervals still halt play through
+ *  ctx.decision and ctx.awaiting, which is where those stops belong. */
+function nextHighlight(events: MatchEvent[], cursor: number, homeId: string): number {
   let c = cursor
-  // a TMO review and its NO TRY are moments too (they are SUB lines by type)
-  while (c < events.length && !HIGHLIGHTS.has(events[c].type) && events[c].fx !== 'TMO' && events[c].fx !== 'NOTRY') c += 1
+  while (c < events.length && !isHighlight(events, c, homeId)) c += 1
   return Math.min(events.length, Math.max(cursor + 1, c + 1))
 }
 
@@ -1138,7 +1135,7 @@ export const useStore = create<Store>((set, get) => ({
       // log, so the full commentary is there at full-time for anyone who wants
       // it - this only changes what the ticker stops on.
       const step = liveMatch.mode === 'highlights'
-        ? nextHighlight(ctx.events, cursor)
+        ? nextHighlight(ctx.events, cursor, liveMatch.fixture.homeId)
         : cursor + 1
       set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch, cursor: step }, tick: s.tick + 1 } : {})
       // THE REVEAL IS PROGRESS TOO. This branch used to return without writing
