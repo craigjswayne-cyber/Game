@@ -7,13 +7,14 @@ import { flagOf, nationName } from '../../game/nations'
 import { SectionTitle } from '../components'
 import { supportCount } from '../../game/monetise'
 import { t } from '../../game/i18n'
+import { Glyph } from '../glyphs'
 
 /** Coaching badge tiers, earned through reputation. */
 export function badgeOf(rep: number): { name: string; icon: string; color: string; next: string | null; at: number | null } {
-  if (rep >= 85) return { name: t('profile.badgePlatinum'), icon: '💎', color: 'var(--info)', next: null, at: null }
-  if (rep >= 70) return { name: t('profile.badgeGold'), icon: '🥇', color: 'var(--gold)', next: t('profile.nextPlatinum'), at: 85 }
-  if (rep >= 55) return { name: t('profile.badgeSilver'), icon: '🥈', color: 'var(--text-secondary)', next: t('profile.nextGold'), at: 70 }
-  return { name: t('profile.badgeBronze'), icon: '🥉', color: 'var(--prop-tee-edge)', next: t('profile.nextSilver'), at: 55 }
+  if (rep >= 85) return { name: t('profile.badgePlatinum'), icon: 'badge', color: 'var(--info)', next: null, at: null }
+  if (rep >= 70) return { name: t('profile.badgeGold'), icon: 'badge', color: 'var(--gold)', next: t('profile.nextPlatinum'), at: 85 }
+  if (rep >= 55) return { name: t('profile.badgeSilver'), icon: 'badge', color: 'var(--text-secondary)', next: t('profile.nextGold'), at: 70 }
+  return { name: t('profile.badgeBronze'), icon: 'badge', color: 'var(--prop-tee-edge)', next: t('profile.nextSilver'), at: 55 }
 }
 
 interface Speciality {
@@ -45,38 +46,38 @@ export const SPEC_MIN_GAMES = 10
 
 export const SPECIALITIES: Speciality[] = [
   {
-    id: 'youth', name: 'profile.specYouth', icon: '🌱',
+    id: 'youth', name: 'profile.specYouth', icon: 'paddock',
     desc: 'profile.specYouthDesc',
     earned: g => Object.values(g.players).filter(p =>
       p.clubId === g.userClubId && p.youth && (p.stats.apps > 0 || p.career.some(c => c.apps > 0))).length >= 5,
     hint: 'profile.specYouthHint',
   },
   {
-    id: 'dealer', name: 'profile.specDealer', icon: '🤝',
+    id: 'dealer', name: 'profile.specDealer', icon: 'handshake',
     desc: 'profile.specDealerDesc',
     earned: g => g.mgr.signings >= 12,
     hint: 'profile.specDealerHint',
   },
   {
-    id: 'tactician', name: 'profile.specTactician', icon: '🧠',
+    id: 'tactician', name: 'profile.specTactician', icon: 'tactics',
     desc: 'profile.specTacticianDesc',
     earned: g => g.mgr.m >= 30 && g.mgr.w / Math.max(1, g.mgr.m) >= 0.62,
     hint: 'profile.specTacticianHint',
   },
   {
-    id: 'winner', name: 'profile.specWinner', icon: '🏆',
+    id: 'winner', name: 'profile.specWinner', icon: 'trophy',
     desc: 'profile.specWinnerDesc',
     earned: g => g.mgr.trophies.length >= 2,
     hint: 'profile.specWinnerHint',
   },
   {
-    id: 'euro', name: 'profile.specEuro', icon: '👑',
+    id: 'euro', name: 'profile.specEuro', icon: 'crown',
     desc: 'profile.specEuroDesc',
     earned: g => g.mgr.trophies.some(t => t.compId === 'cc'),
     hint: 'profile.specEuroHint',
   },
   {
-    id: 'manman', name: 'profile.specManman', icon: '🫂',
+    id: 'manman', name: 'profile.specManman', icon: 'team',
     desc: 'profile.specManmanDesc',
     earned: g => {
       const squad = g.clubs[g.userClubId]?.players.map(id => g.players[id]).filter(Boolean) ?? []
@@ -85,13 +86,13 @@ export const SPECIALITIES: Speciality[] = [
     hint: 'profile.specManmanHint',
   },
   {
-    id: 'survivor', name: 'profile.specSurvivor', icon: '🛡️',
+    id: 'survivor', name: 'profile.specSurvivor', icon: 'shield',
     desc: 'profile.specSurvivorDesc',
     earned: g => g.mgr.finishes.length >= 3,
     hint: 'profile.specSurvivorHint',
   },
   {
-    id: 'miracle', name: 'profile.specMiracle', icon: '✨',
+    id: 'miracle', name: 'profile.specMiracle', icon: 'trait',
     desc: 'profile.specMiracleDesc',
     earned: g => g.mgr.trophies.some(t => {
       const club = g.clubs[g.userClubId]
@@ -118,7 +119,7 @@ export default function Profile() {
   return (
     <>
       <div className="card" style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: 44, lineHeight: 1 }}>{badge.icon}</div>
+        <div style={{ fontSize: 44, lineHeight: 1, color: badge.color }}><Glyph name={badge.icon} /></div>
         <h3 style={{ fontSize: 18, marginTop: 6 }}>{game.managerName}</h3>
         <div className="meta">{game.unemployed ? t('profile.unemployed') : t('profile.directorOfRugby', { club: club.name })}</div>
         <div style={{ marginTop: 8, fontFamily: 'var(--cond)', fontWeight: 700, letterSpacing: 1, color: badge.color, textTransform: 'uppercase' }}>
@@ -213,7 +214,7 @@ export default function Profile() {
       )}
       {game.natTeam && (
         <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 22 }}>🌍</span>
+          <span className="row-ico"><Glyph name="nations" /></span>
           <div style={{ flex: 1 }}>
             <h3 style={{ fontSize: 14 }}>{flagOf(game.natTeam)} {t('profile.natHeadCoach', { nat: nationName(game.natTeam) })}</h3>
             <div className="meta">
@@ -258,7 +259,7 @@ export default function Profile() {
       )}
       {game.challenge && (
         <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 22 }}>🎯</span>
+          <span className="row-ico"><Glyph name="target" /></span>
           <div>
             <h3 style={{ fontSize: 14 }}>{t(CHALLENGES.find(c => c.id === game.challenge)?.title ?? game.challenge)}</h3>
             <div className="meta">{t('profile.challengeLive')}</div>
@@ -305,7 +306,7 @@ export default function Profile() {
       {supportCount() > 0 && (
         <div className="card supporters-club">
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 22, flexShrink: 0 }}>👑</span>
+            <span className="row-ico"><Glyph name="crown" /></span>
             <div style={{ flex: 1, minWidth: 0 }}>
               <h3 style={{ fontSize: 14 }}>{t('profile.supportersClub')}</h3>
               <div className="meta">{t('profile.supportersCount', { n: supportCount() })}</div>
@@ -323,7 +324,7 @@ export default function Profile() {
           const has = game.mgr.m >= SPEC_MIN_GAMES && s.earned(game)
           return (
             <div key={s.id} className={`spec-tile${has ? ' on' : ''}`}>
-              <span className="ico">{s.icon}</span>
+              <span className="ico"><Glyph name={s.icon} /></span>
               <b>{t(s.name)}</b>
               <span className="d">{t(has ? s.desc : s.hint)}</span>
             </div>
@@ -363,7 +364,7 @@ export default function Profile() {
           <div className="tblwrap"><table className="dtable"><tbody>
             {m.trophies.map((t, i) => (
               <tr key={i}>
-                <td>🏆</td>
+                <td style={{ color: 'var(--gold)' }}><Glyph name="trophy" /></td>
                 <td className="name">{game.comps[t.compId]?.name ?? t.compId}</td>
                 <td className="num">{seasonLabel(t.season)}</td>
               </tr>

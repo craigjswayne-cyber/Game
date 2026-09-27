@@ -4,6 +4,7 @@ import { flagOf } from '../game/nations'
 import { kitCycle, kitHoops, kitPattern, kitQuarters, kitSleeves, kitTrim, type KitPattern } from '../game/kits'
 import { hasHoopRow } from '../game/kits'
 import { t } from '../game/i18n'
+import { Glyph } from './glyphs'
 import { showRewarded, type RewardedPlace } from '../game/monetise'
 // the store, for ClubLink's one job: opening a club. store.ts imports nothing
 // from ui/, so this direction is the only one and there is no cycle.
@@ -274,6 +275,14 @@ export function availabilityTag(p: Player, week: number): { txt: string; color: 
   if ((p.rust ?? 0) > 0) return { txt: t('medical.rusty', { n: p.rust ?? 0 }), color: 'var(--gold)' }
   if (p.loanFrom) return { txt: t('common.loanHereTag'), color: 'var(--info)' }
   return null
+}
+
+/** A small icon beside a name that carries meaning (injured, on the list,
+ *  the scout's focus): the job an emoji used to do, drawn as a glyph at the
+ *  text's own size in a token colour (owner, 27 Sep 2026: "icons instead of
+ *  emojis"). The title is the word for a reader who cannot see the icon. */
+export function Mark({ name, color, title }: { name: string; color?: string; title?: string }) {
+  return <span className="mark" style={color ? { color } : undefined} title={title} aria-label={title}><Glyph name={name} /></span>
 }
 
 export function AvailTag({ p, g }: { p: Player; g: GameState }) {

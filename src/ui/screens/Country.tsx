@@ -9,6 +9,7 @@ import { NAT_SQUAD_FLOOR, natCallUp, natDrop, natEligible, natWindow, weeksToSqu
 import { ClubLink, PosBadge, SectionTitle } from '../components'
 import FullFitness from '../FullFitness'
 import { ord, posName, t } from '../../game/i18n'
+import { Glyph } from '../glyphs'
 
 const FWD = ['LP', 'HK', 'TP', 'LK', 'FL', 'N8']
 
@@ -156,7 +157,7 @@ export default function Country() {
         <SectionTitle sub={t('legacy.coAppointmentsSub')}>{t('legacy.coAppointments')}</SectionTitle>
         {club && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0' }}>
-            <span style={{ fontSize: 20 }}>🏟️</span>
+            <span className="row-ico" style={{ fontSize: 20 }}><Glyph name="stadium" /></span>
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 700, fontSize: 14 }}>{club.name}</div>
               <div className="meta">{t('legacy.coDirectorBoard', { n: Math.round(club.boardConfidence) })}</div>
@@ -167,7 +168,7 @@ export default function Country() {
           </div>
         )}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0' }}>
-          <span style={{ fontSize: 20 }}>{flagOf(natId) || '🌍'}</span>
+          <span style={{ fontSize: 20 }}>{flagOf(natId)}</span>
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 700, fontSize: 14 }}>{nationName(natId)}</div>
             <div className="meta">{t('legacy.coNatCoach')}{conf != null ? t('legacy.coNatUnion', { n: conf }) : ''}</div>

@@ -1521,7 +1521,7 @@ export const useStore = create<Store>((set, get) => ({
       g.natRecord = { m: 0, w: 0, d: 0, l: 0 } // a new tenure starts at nought
       g.news.push({
         id: g.nextId++, week: g.week, season: g.season, type: 'board', read: false,
-        subject: `🌍 Appointed: national head coach of ${nat}`,
+        subject: `Appointed: national head coach of ${nat}`,
         body: keepClub && !g.unemployed
           ? `A proud day. You now coach ${nat} alongside your club duties. In Test windows, when your club has no fixture, you'll take charge of the national side on match day - and every championship they win goes in YOUR cabinet.`
           : `A proud day. ${nat} is your whole job now: Test windows, championship campaigns, and every trophy they win goes in YOUR cabinet.`,

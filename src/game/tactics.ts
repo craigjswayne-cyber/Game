@@ -271,6 +271,7 @@ export function zoneAt(up: number): ZoneId {
 export interface Preset {
   id: string
   name: string
+  /** a glyphs.tsx name, not an emoji */
   icon: string
   desc: string
   values: Omit<Tactic, 'lineup'>
@@ -279,27 +280,27 @@ export interface Preset {
 /** One-tap game plans, FM shout style. */
 export const PRESETS: Preset[] = [
   {
-    id: 'allout', name: 'tactics.presetAllout', icon: '⚔️',
+    id: 'allout', name: 'tactics.presetAllout', icon: 'attack',
     desc: 'tactics.presetAlloutDesc',
     values: { style: 82, tempo: 85, kicking: 18, aggression: 58 },
   },
   {
-    id: 'shutup', name: 'tactics.presetShutup', icon: '🧱',
+    id: 'shutup', name: 'tactics.presetShutup', icon: 'wall',
     desc: 'tactics.presetShutupDesc',
     values: { style: 32, tempo: 22, kicking: 70, aggression: 42 },
   },
   {
-    id: 'corners', name: 'tactics.presetCorners', icon: '🎯',
+    id: 'corners', name: 'tactics.presetCorners', icon: 'target',
     desc: 'tactics.presetCornersDesc',
     values: { style: 42, tempo: 45, kicking: 86, aggression: 52 },
   },
   {
-    id: 'tight', name: 'tactics.presetTight', icon: '🤜',
+    id: 'tight', name: 'tactics.presetTight', icon: 'tight',
     desc: 'tactics.presetTightDesc',
     values: { style: 14, tempo: 34, kicking: 56, aggression: 68 },
   },
   {
-    id: 'balanced', name: 'tactics.presetBalanced', icon: '⚖️',
+    id: 'balanced', name: 'tactics.presetBalanced', icon: 'scales',
     desc: 'tactics.presetBalancedDesc',
     values: { style: 50, tempo: 50, kicking: 50, aggression: 50 },
   },

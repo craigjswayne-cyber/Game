@@ -6,10 +6,11 @@ import { LOAN_LENGTHS, LOAN_SHARES, loanApproachable, loanIn, loanTargets, type 
 import { attrRange, fuzzedCa, knowledge } from '../../game/scout'
 import { commissionScout, searchFee, type SearchMonths } from '../../game/commission'
 import { badgeLabel } from '../../game/staff'
-import { ClubLink, FormPill, Nat, PosBadge, SectionTitle, Stars, TwoStep } from '../components'
+import { ClubLink, FormPill, Mark, Nat, PosBadge, SectionTitle, Stars, TwoStep } from '../components'
 import { attrName, posName, t } from '../../game/i18n'
 import { userWageBudget } from '../../game/grants'
 import { transferInterest } from '../../game/interest'
+import { Glyph } from '../glyphs'
 
 /** The classic search screen's views (1.8.0): which columns the table shows. */
 type SearchView = 'general' | 'contract' | 'physical' | 'setpiece' | 'handling' | 'mind'
@@ -248,7 +249,7 @@ export default function Transfers() {
           {scoutLeagues(game).map(c => (
             <button key={c.id} className="chip" onClick={() => { game.scoutFocus = game.scoutFocus === c.id ? null : c.id; touch() }}
               style={game.scoutFocus === c.id ? { borderColor: 'var(--gold)', color: 'var(--info)', fontWeight: 700 } : undefined}>
-              {game.scoutFocus === c.id ? '🔭 ' : ''}{c.short}
+              {game.scoutFocus === c.id && <><Glyph name="scout" /> </>}{c.short}
             </button>
           ))}
         </div>
@@ -486,7 +487,7 @@ export default function Transfers() {
           {pageRows.map(p => (
             <tr key={p.id} onClick={() => openRow(p.id)}>
               <td><PosBadge pos={p.pos} /></td>
-              <td className="name" title={p.name}>{initialName(p.name)}{p.injury ? ' 🩹' : ''}</td>
+              <td className="name" title={p.name}>{initialName(p.name)}{p.injury && <> <Mark name="medical" color="var(--danger)" title={t('selection.injured')} /></>}</td>
               {view === 'contract'
                 ? <>
                     <td className="num">{p.clubId ? seasonLabel(p.contractEnds) : '-'}</td>
@@ -522,7 +523,7 @@ export default function Transfers() {
           {pageRows.map(p => (
             <tr key={p.id} onClick={() => openRow(p.id)}>
               <td><PosBadge pos={p.pos} /></td>
-              <td className="name" title={p.name}>{initialName(p.name)}{deal === 'transfer' && p.transferListed ? ' 🏷️' : ''}{deal === 'loan' && !listedLoans.has(p.id) ? <span className="muted"> {t('transfers.loanAskTag')}</span> : ''}</td>
+              <td className="name" title={p.name}>{initialName(p.name)}{deal === 'transfer' && p.transferListed && <> <Mark name="tag" color="var(--gold)" title={t('player.transferListed')} /></>}{deal === 'loan' && !listedLoans.has(p.id) ? <span className="muted"> {t('transfers.loanAskTag')}</span> : ''}</td>
               <td className="num">{p.age}</td>
               <td><Nat code={p.nat} /></td>
               {/* THREE LETTERS. This column was 76px of an eight-column table
@@ -584,7 +585,7 @@ function ScoutCommission() {
         )}
         {man && out && (
           <div className="meta">
-            🔭 <b>{t('transfers.onTheRoad', { name: man.name })}</b>
+            <Glyph name="scout" /> <b>{t('transfers.onTheRoad', { name: man.name })}</b>
             {t('transfers.briefLine', {
               months: out.months,
               pos: out.pos !== 'any' ? t('transfers.briefForPos', { pos: posName(out.pos).toLowerCase() }) : t('transfers.briefForAnyone'),

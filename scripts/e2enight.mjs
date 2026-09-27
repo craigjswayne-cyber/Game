@@ -105,7 +105,7 @@ try {
 
   // squad filters: availability is two icons now, not two words plus a search box
   if (await page.locator('.filter-row input').count()) throw new Error('the squad search box is back')
-  await page.locator('.preset-chip >> text=🚑').click()
+  await page.locator('.preset-chip[aria-label="injured, banned, away or on loan"]').click()
   await page.waitForTimeout(250)
   await shot('06a2-squad-filtered')
   await page.locator('.preset-chip >> text=Everyone').click()

@@ -52,10 +52,11 @@ for (let w = 0; w < SEASON_WEEKS * 3 + 4; w++) {
   for (const n of g.news) {
     if (seen.has(n.id)) continue
     seen.add(n.id)
-    // NOT just the microphone: the pundits' pre-season predictions carry the same
-    // glyph and are nobody's quote, and the first version of this probe swept one
-    // up and then failed its own "every one of them names a person" check on it.
-    if (/🎙/.test(n.subject) && !/Pundits/.test(n.subject)) beats.push(n)
+    // by the story's key, not a glyph: the subjects carried a microphone until
+    // the owner asked for icons instead of emoji (27 Sep 2026), and the pundits'
+    // pre-season predictions wore the same one, so the glyph was never the
+    // rival's alone. news.bossTight / bossNotLookingDown / bossPressure / bossSizeN.
+    if (/^news\.boss(Tight|NotLookingDown|Pressure|Size\d)$/.test(n.k ?? '')) beats.push(n)
     if (/finished above|did not last the season/.test(n.subject)) verdicts.push(n)
   }
 }

@@ -4859,3 +4859,15 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 
 /* icons in place of emoji (glyphs.tsx): sit on the text's baseline */
 .glyph { display: inline-block; vertical-align: -0.14em; flex-shrink: 0; }
+/* the glyph where an emoji used to stand on its own: a card row's leading
+   icon, a moment's big mark, a marker beside a name */
+.row-ico { font-size: 22px; line-height: 1; flex-shrink: 0; display: inline-flex; color: var(--gold); }
+.row-ico .glyph { vertical-align: 0; }
+.celebrate-ico { font-size: 64px; line-height: 1; color: var(--gold); }
+.sack-ico { font-size: 52px; line-height: 1; margin: 6px 0 10px; }
+.celebrate-ico .glyph, .sack-ico .glyph { vertical-align: 0; }
+.mark { display: inline-flex; font-size: 1em; }
+.hub-widget .mood-dot { width: 14px; height: 14px; }
+.gt-mood { white-space: nowrap; font-size: 12px; }
+.gt-mood .status-dot { width: 9px; height: 9px; vertical-align: 0; }
+.preset-chip .glyph { font-size: 1.3em; vertical-align: -0.28em; }
