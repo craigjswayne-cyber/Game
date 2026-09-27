@@ -6875,20 +6875,6 @@
   "leggy": "Nota la semana en las piernas"
  },
  "ctx": {
-  "age": "{n} años",
-  "club": "Club",
-  "rating": "Valoración",
-  "mood": "Ánimo",
-  "value": "Valor",
-  "contract": "Contrato",
-  "until": "hasta {season}",
-  "viewPlayer": "Ver ficha",
-  "position": "Puesto en la liga",
-  "form": "Forma",
-  "nextMatch": "Próximo partido",
-  "home": "L",
-  "away": "V",
-  "fanFavourites": "Ídolos de la afición",
   "responseNeeded": {
    "one": "Respuesta pendiente",
    "other": "Respuestas pendientes ({n})"

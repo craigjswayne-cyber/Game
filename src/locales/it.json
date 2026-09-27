@@ -6910,20 +6910,6 @@
   "leggy": "Sente la settimana nelle gambe"
  },
  "ctx": {
-  "age": "{n} anni",
-  "club": "Club",
-  "rating": "Valutazione",
-  "mood": "Umore",
-  "value": "Valore",
-  "contract": "Contratto",
-  "until": "fino al {season}",
-  "viewPlayer": "Apri la scheda",
-  "position": "Posizione in classifica",
-  "form": "Forma",
-  "nextMatch": "Prossima partita",
-  "home": "C",
-  "away": "T",
-  "fanFavourites": "Idoli dei tifosi",
   "responseNeeded": {
    "one": "Risposta richiesta",
    "other": "Risposte richieste ({n})"
