@@ -123,7 +123,13 @@ try {
   await page.click('.submenu-item >> text=Transfer Centre')
   await page.waitForTimeout(600)
   await shot('06c-transfers')
-  await page.locator('.preset-chip >> text=🏷️ Listed').click()
+  // the filters live in a sheet since 1.8.0 (PRM27): open it, shot it at
+  // night, switch on Transfer-listed only and show the result
+  await page.click('.filter-btn')
+  await page.waitForSelector('.filter-sheet')
+  await shot('06c1-transfers-filter-sheet')
+  await page.locator('.fs-toggle >> text=Transfer-listed only').click()
+  await page.click('.filter-sheet > .btn-row .btn.gold')
   await page.waitForTimeout(300)
   await shot('06c2-transfers-filtered')
   // commissioned scouting lives on the Shortlist tab
