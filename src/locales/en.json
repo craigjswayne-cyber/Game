@@ -7227,7 +7227,6 @@
   "filters": "Filters",
   "filtersOn": "Filters ({n})",
   "any": "Any",
-  "viewIs": "View: {view}",
   "onlyListed": "Transfer-listed only",
   "onlyInterested": "Only players interested in joining",
   "onlyExpiring": "Contract expiring only",

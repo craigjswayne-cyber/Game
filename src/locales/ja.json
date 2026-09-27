@@ -6816,7 +6816,6 @@
   "filters": "絞り込み",
   "filtersOn": "絞り込み（{n}）",
   "any": "すべて",
-  "viewIs": "表示：{view}",
   "onlyListed": "移籍リストの選手のみ",
   "onlyInterested": "加入に前向きな選手のみ",
   "onlyExpiring": "契約満了間近のみ",

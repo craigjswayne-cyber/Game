@@ -386,7 +386,7 @@ export default function Transfers() {
           {activeFilters ? t('search.filtersOn', { n: activeFilters }) : t('search.filters')}
         </button>
         <select className="inline-input" aria-label={t('search.view')} value={view} onChange={e => setView(e.target.value as SearchView)}>
-          {SEARCH_VIEWS.map(v => <option key={v} value={v}>{t('search.viewIs', { view: t(`search.view_${v}`) })}</option>)}
+          {SEARCH_VIEWS.map(v => <option key={v} value={v}>{t(`search.view_${v}`)}</option>)}
         </select>
       </div>
       {filtersOpen && (

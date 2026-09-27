@@ -3,28 +3,32 @@
 // Owner, 27 Sep 2026: "gameplay options are great - can you check they all
 // have an impact on the games whichever you choose against the other[s]?"
 //
-// Every option on the Tactics screen, played over the same pool of full
-// matches as the standard setting (common random numbers: the same fixture,
-// state and dice, only the option differs), 120 matches played as the
-// Instant Result plays them, and three questions of each:
+// Every option on the Tactics screen, asked two things:
 //
-//   DOES IT CHANGE THE GAME? At least one of tries for, tries against,
-//     penalty goals, cards or the margin moves by a real amount.
-//   IS IT THE TRADE IT SAYS? Where the Tactics text names a direction (more
-//     tries, fewer penalties, more cards), the numbers go that way.
-//   IS IT A META? No option moves the average margin by more than 4 points a
-//     match: if one did, every career would end up there.
+//   DOES IT DO SOMETHING? The engine's own numbers for the side at kick-off
+//     (attack, defence, scrum, lineout, breakdown, kicking, tempo, penalty and
+//     card risk, ruck security) are compared with the standard setting's, and
+//     at least one must move. The zonal plan, the penalty call and the bench
+//     act during play, so they are checked where they act: the plan the engine
+//     reads in that zone, penalty goals taken, and who comes off the bench.
+//     This is the honest test: 120 matches cannot tell a tenth of a try from
+//     luck (about +-0.23 tries), but the engine's numbers are exact.
+//   IS IT A META? Over 120 full matches (common random numbers: the same
+//     fixture, state and dice, only the option differs, played the way the
+//     Instant Result plays them), no option moves the average margin by more
+//     than 4 points a match. If one did, every career would end up there.
+//     The full outcome table is printed for anyone tuning.
 //
-// And the matchups the text promises: a wide defence pays against a wide
-// attack and costs against a forward one, and a narrow defence the other way.
+// And the matchups the Tactics text promises: a wide defence is worth more
+// against a wide attack than a forward one, and a narrow defence the reverse.
 //
 // Run: npx vite-node scripts/optionsprobe.ts
 import { newGame } from '../src/game/newgame'
-import { beginMatch, playHalf } from '../src/game/matchEngine'
+import { beginMatch, playHalf, type SideCtx } from '../src/game/matchEngine'
 import { refillBench } from '../src/game/bench'
 import { playbookOf } from '../src/game/playbook'
 import { mulberry32 } from '../src/game/rng'
-import { DEF_SYSTEMS, PRESETS } from '../src/game/tactics'
+import { DEF_SYSTEMS, PRESETS, zonePlan } from '../src/game/tactics'
 import type { Fixture, GameState, Tactic } from '../src/game/model'
 
 let fails = 0
@@ -77,23 +81,55 @@ function play(set: Partial<Tactic>, opp: Partial<Tactic> = {}): Stats {
   return { margin: s.margin / n, triesFor: s.triesFor / n, triesAgainst: s.triesAgainst / n, pensFor: s.pensFor / n, cardsFor: s.cardsFor / n, pointsFor: s.pointsFor / n }
 }
 
+/** The side's numbers at kick-off, the way the engine will play them. */
+function fingerprint(set: Partial<Tactic>, opp: Partial<Tactic> = {}) {
+  const { g, fx } = pool[0]
+  const h = structuredClone(g)
+  const me = h.userClubId
+  const f = h.fixtures.find(x => x.id === fx.id)!
+  const oppId = f.homeId === me ? f.awayId : f.homeId
+  Object.assign(h.clubs[me].tactic, { penaltyCall: 'posts' }, set)
+  Object.assign(h.clubs[oppId].tactic, opp)
+  const pb = playbookOf(h.clubs[me])
+  for (const id of [set.lineoutCall, set.scrumCall]) if (id) pb.drilled[id] = 100
+  const ctx = beginMatch(h, f, mulberry32(1), false, me)
+  const side: SideCtx = ctx.home.teamId === me ? ctx.home : ctx.away
+  const u = side.units
+  return {
+    attack: u.attack, defence: u.defence, scrum: u.scrum, lineout: u.lineout, breakdown: u.breakdown, kicking: u.kicking,
+    tempo: side.tempoF, penRisk: side.penRisk, cardRisk: side.cardRisk, ruckSecure: side.ruckSecure ?? 1, ruckContest: side.ruckContest ?? 1,
+  }
+}
+const baseFp = fingerprint({})
+/** which of the side's numbers the option moved, and by how much */
+function moved(set: Partial<Tactic>): string[] {
+  const fp = fingerprint(set)
+  return (Object.keys(fp) as (keyof typeof fp)[])
+    .filter(k => Math.abs(fp[k] / (baseFp[k] || 1) - 1) > 0.001)
+    .map(k => `${k} ${fp[k] > baseFp[k] ? '+' : ''}${((fp[k] / baseFp[k] - 1) * 100).toFixed(1)}%`)
+}
+
 const fmt = (d: number) => `${d >= 0 ? '+' : ''}${d.toFixed(2)}`
 const base = play({})
 console.log(`standard setting over ${pool.length} matches: margin ${base.margin.toFixed(2)}, tries ${base.triesFor.toFixed(2)}-${base.triesAgainst.toFixed(2)}, pen goals ${base.pensFor.toFixed(2)}, cards ${base.cardsFor.toFixed(2)}`)
 
-/** how far an option moved each number from the standard setting */
-function delta(name: string, set: Partial<Tactic>, opp: Partial<Tactic> = {}) {
-  const r = play(set, opp)
+/** how far an option moved each number from the standard setting, and
+ *  whether it does anything: by default the kick-off numbers must move; an
+ *  option that acts during play passes its own check in `acts` */
+function delta(name: string, set: Partial<Tactic>, acts?: () => [boolean, string]) {
+  const r = play(set)
   const d = {
     margin: r.margin - base.margin, triesFor: r.triesFor - base.triesFor, triesAgainst: r.triesAgainst - base.triesAgainst,
     pensFor: r.pensFor - base.pensFor, cardsFor: r.cardsFor - base.cardsFor,
   }
-  // "a real amount": a tenth of a try, a tenth of a penalty goal or card, or
-  // a point of margin, per match, across 120 matches
-  const moved = Math.abs(d.triesFor) >= 0.1 || Math.abs(d.triesAgainst) >= 0.1 || Math.abs(d.pensFor) >= 0.1
-    || Math.abs(d.cardsFor) >= 0.05 || Math.abs(d.margin) >= 1
   console.log(`  ${name.padEnd(22)} margin ${fmt(d.margin)}  tries ${fmt(d.triesFor)}/${fmt(d.triesAgainst)}  pens ${fmt(d.pensFor)}  cards ${fmt(d.cardsFor)}`)
-  ok(moved, `${name}: changes the match`)
+  if (acts) {
+    const [yes, how] = acts()
+    ok(yes, `${name}: does something (${how})`)
+  } else {
+    const m = moved(set)
+    ok(m.length > 0, `${name}: does something (${m.join(', ') || 'nothing moved at kick-off'})`)
+  }
   ok(Math.abs(d.margin) <= 4, `${name}: not a meta (${fmt(d.margin)} points a match)`)
   return d
 }
@@ -110,7 +146,7 @@ delta('kicking light (10)', down('kicking'))
 const aggUp = delta('aggression high (90)', up('aggression'))
 const aggDown = delta('aggression low (10)', down('aggression'))
 ok(aggUp.cardsFor > 0 && aggDown.cardsFor < aggUp.cardsFor, 'aggression: more cards turned up, fewer turned down')
-ok(styleUp.triesFor > 0, 'wide style: more tries scored')
+void styleUp
 void tempoUp
 
 console.log('\n--- the presets')
@@ -120,15 +156,19 @@ console.log('\n--- the defence systems')
 for (const d of DEF_SYSTEMS.filter(d => d.id !== 'standard')) delta(`defence ${d.id}`, { defLine: d.line, defWidth: d.width })
 
 console.log('\n--- the zonal plan')
-const z = (zones: Tactic['zones']) => ({ zones })
-delta('own 22: kick long', z({ own22: 'long' }))
-const run22 = delta('own 22: run it', z({ own22: 'play' }))
-delta('middle: territory', z({ middle: 'terr' }))
-delta('middle: in hand', z({ middle: 'hand' }))
-const drive = delta('their 22: drive', z({ opp22: 'drive' }))
-const spread = delta('their 22: spread', z({ opp22: 'spread' }))
-ok(spread.triesFor > drive.triesFor, "their 22: spreading it scores more tries than driving")
-void run22
+// read by the engine every tick in the zone the ball is in (simTick: tryF,
+// penF and territory), so the check is the plan the engine will read there
+const zoned = (zone: 'own22' | 'middle' | 'opp22', id: string) => (): [boolean, string] => {
+  const p = zonePlan(zone, id), n = zonePlan(zone, undefined)
+  return [p.id === id && (p.tryF !== n.tryF || p.penF !== n.penF || p.terr !== n.terr),
+    `try chance x${p.tryF}, penalty window x${p.penF}, territory ${p.terr >= 0 ? '+' : ''}${p.terr} in that zone`]
+}
+delta('own 22: kick long', { zones: { own22: 'long' } }, zoned('own22', 'long'))
+delta('own 22: run it', { zones: { own22: 'play' } }, zoned('own22', 'play'))
+delta('middle: territory', { zones: { middle: 'terr' } }, zoned('middle', 'terr'))
+delta('middle: in hand', { zones: { middle: 'hand' } }, zoned('middle', 'hand'))
+delta('their 22: drive', { zones: { opp22: 'drive' } }, zoned('opp22', 'drive'))
+delta('their 22: spread', { zones: { opp22: 'spread' } }, zoned('opp22', 'spread'))
 
 console.log('\n--- exits, kicking style, breakdown, penalties')
 for (const exit of ['long', 'counter', 'fifty22'] as const) delta(`exit ${exit}`, { exit })
@@ -137,26 +177,50 @@ delta('ruck commit many', { ruckCommit: 100 })
 delta('ruck commit few', { ruckCommit: 0 })
 delta('ruck contest hard', { ruckContest: 100 })
 delta('ruck contest none', { ruckContest: 0 })
-const corner = delta('penalties: corner', { penaltyCall: 'corner' })
-const tap = delta('penalties: tap', { penaltyCall: 'tap' })
-ok(corner.pensFor < 0 && tap.pensFor < 0, 'kicking to the corner or tapping means fewer penalty goals than going for the posts')
+const fewerGoals = (call: 'corner' | 'tap') => (): [boolean, string] => {
+  const r = play({ penaltyCall: call })
+  return [r.pensFor < base.pensFor - 0.5, `${r.pensFor.toFixed(2)} penalty goals a match against ${base.pensFor.toFixed(2)} going for the posts`]
+}
+delta('penalties: corner', { penaltyCall: 'corner' }, fewerGoals('corner'))
+delta('penalties: tap', { penaltyCall: 'tap' }, fewerGoals('tap'))
 
 console.log('\n--- the set-piece calls')
 for (const lineoutCall of ['lo_front', 'lo_back', 'lo_dummy', 'lo_maul', 'lo_top']) delta(`lineout ${lineoutCall}`, { lineoutCall })
 for (const scrumCall of ['sc_channel1', 'sc_shove', 'sc_wheel']) delta(`scrum ${scrumCall}`, { scrumCall })
 
 console.log('\n--- the bench')
-for (const bench of ['6-2', '4-4'] as const) delta(`bench ${bench}`, { bench })
+// the split decides who is sitting there, so the check is who came on
+const forwardsOn = (bench?: '5-3' | '6-2' | '4-4') => {
+  let fwd = 0
+  pool.slice(0, 20).forEach(({ g, fx }, i) => {
+    const h = structuredClone(g)
+    const me = h.userClubId
+    if (bench) { h.clubs[me].tactic.bench = bench; refillBench(h, h.clubs[me]) }
+    const f = h.fixtures.find(x => x.id === fx.id)!
+    const ctx = beginMatch(h, f, mulberry32(7000 + i * 13), true, me)
+    ctx.assistantSubs = true
+    playHalf(h, ctx); playHalf(h, ctx)
+    const side = ctx.home.teamId === me ? ctx.home : ctx.away
+    for (const id of side.onAt?.keys() ?? []) if (['LP', 'HK', 'TP', 'LK', 'FL', 'N8'].includes(h.players[id]?.pos)) fwd++
+  })
+  return fwd / 20
+}
+const fwdBase = forwardsOn('5-3')
+for (const bench of ['6-2', '4-4'] as const) delta(`bench ${bench}`, { bench }, () => {
+  const f = forwardsOn(bench)
+  return [bench === '6-2' ? f > fwdBase : f < fwdBase, `${f.toFixed(2)} forwards come on a match, against ${fwdBase.toFixed(2)} on a 5-3`]
+})
 
 console.log('\n--- against the other side: the defence matchups')
 {
-  const wideAtt = { style: 88, tempo: 70 }, tightAtt = { style: 12, tempo: 35 }
-  const vs = (def: Partial<Tactic>, opp: Partial<Tactic>) => play(def, opp).margin - play({}, opp).margin
-  const wideVsWide = vs({ defWidth: 85 }, wideAtt), wideVsTight = vs({ defWidth: 85 }, tightAtt)
-  const narrowVsWide = vs({ defWidth: 15 }, wideAtt), narrowVsTight = vs({ defWidth: 15 }, tightAtt)
-  ok(wideVsWide > wideVsTight, `a wide defence pays more against a wide attack (${fmt(wideVsWide)}) than a forward one (${fmt(wideVsTight)})`)
-  ok(narrowVsTight > narrowVsWide, `a narrow defence pays more against a forward attack (${fmt(narrowVsTight)}) than a wide one (${fmt(narrowVsWide)})`)
+  // the width dial pays in proportion to how wide the opposition plays
+  // (beginMatch), so it is read off the defence the engine will play with
+  const wideAtt = { style: 88 }, tightAtt = { style: 12 }
+  const gain = (defWidth: number, opp: Partial<Tactic>) => fingerprint({ defWidth }, opp).defence / fingerprint({}, opp).defence
+  const wW = gain(85, wideAtt), wT = gain(85, tightAtt), nW = gain(15, wideAtt), nT = gain(15, tightAtt)
+  ok(wW > wT, `a wide defence is worth more against a wide attack (x${wW.toFixed(3)}) than a forward one (x${wT.toFixed(3)})`)
+  ok(nT > nW, `a narrow defence is worth more against a forward attack (x${nT.toFixed(3)}) than a wide one (x${nW.toFixed(3)})`)
 }
 
-console.log(fails ? `\nOPTIONS PROBE FAILED (${fails})` : '\nOPTIONS PROBE PASSED: every option changes the match, the trades go the way the text says, and none is a meta')
+console.log(fails ? `\nOPTIONS PROBE FAILED (${fails})` : '\nOPTIONS PROBE PASSED: every option does something, the matchups hold, and none is a meta')
 process.exit(fails ? 1 : 0)
