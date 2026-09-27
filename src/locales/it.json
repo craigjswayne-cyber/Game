@@ -7012,7 +7012,8 @@
   "wor": "Imp"
  },
  "intro": {
-  "skip": "Tocca per saltare"
+  "skip": "Tocca per saltare",
+  "sound": "Audio"
  },
  "mset": {
   "overlays": "Sovrimpressioni",

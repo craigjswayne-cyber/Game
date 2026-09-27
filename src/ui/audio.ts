@@ -208,3 +208,134 @@ export function matchSfx(type: string) {
     case 'NOTRY': crowd(1.5, 0.4, 330); break
   }
 }
+
+/**
+ * ---- THE OFFICE, BEFORE THE MENU (1.8.0, Intro.tsx) ----
+ *
+ * Owner: "the desk, steam rising from the coffee mug, the light flickering,
+ * sound of a rugby game on the tv in the background. With some sound fx as
+ * the title appears." All synthesised, like the rest of the game's sound:
+ *
+ *   0.0 - 5.0  the telly in the corner: a crowd squeezed through a small
+ *              speaker (band-passed high and narrow), a whistle far off at
+ *              1.1s and a roar going up on it at 1.6s
+ *   0.2 - 1.1  the lamp: a mains buzz and a click on each flicker
+ *   1.9 - 2.6  a rising whoosh into the title
+ *   2.6        the title lands: a low hit and a chord that rings out
+ *
+ * Returns a stop that fades it all out (a tap to skip, the end of the intro).
+ * Silent if the manager has the sound off. The browser may hold the context
+ * suspended until a tap: `introUnlocked()` says whether it is running.
+ */
+export function introUnlocked(): boolean {
+  return !muted && !!ctx && ctx.state === 'running'
+}
+
+export function introSound(offset = 0): () => void {
+  const a = ac()
+  if (!a) return () => {}
+  const out = a.createGain()
+  out.gain.value = 0.9
+  out.connect(a.destination)
+  const t0 = a.currentTime - offset
+  const at = (s: number) => Math.max(a.currentTime, t0 + s)
+  // started late (the sound button, mid-intro): one-off sounds already in the
+  // past are skipped rather than all fired at once
+  const gone = (s: number) => t0 + s < a.currentTime - 0.02
+  const nodes: AudioScheduledSourceNode[] = []
+
+  // the telly: a crowd through a small speaker
+  const tv = a.createBufferSource()
+  tv.buffer = noiseBuffer(a, 4, 0.55); tv.loop = true
+  const hp = a.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 520
+  const bp = a.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1500; bp.Q.value = 0.9
+  const tvg = a.createGain()
+  tvg.gain.setValueAtTime(0.0001, at(0))
+  tvg.gain.exponentialRampToValueAtTime(0.05, at(0.5))
+  tvg.gain.setTargetAtTime(0.16, at(1.6), 0.18)   // the roar goes up
+  tvg.gain.setTargetAtTime(0.06, at(2.6), 0.5)    // and settles under the title
+  tv.connect(hp).connect(bp).connect(tvg).connect(out)
+  tv.start(at(0)); tv.stop(at(5.2)); nodes.push(tv)
+  // a whistle, far off, on the telly
+  if (!gone(1.1)) for (const f of [2350, 2680]) {
+    const o = a.createOscillator(); o.type = 'square'; o.frequency.value = f
+    const g = a.createGain()
+    g.gain.setValueAtTime(0.0001, at(1.1))
+    g.gain.exponentialRampToValueAtTime(0.008, at(1.12))
+    g.gain.exponentialRampToValueAtTime(0.0001, at(1.34))
+    const lp = a.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2600
+    o.connect(lp).connect(g).connect(out)
+    o.start(at(1.1)); o.stop(at(1.4)); nodes.push(o)
+  }
+
+  // the lamp: mains buzz while it catches, and a click on each flicker
+  const hum = a.createOscillator(); hum.type = 'sawtooth'; hum.frequency.value = 100
+  const humLp = a.createBiquadFilter(); humLp.type = 'lowpass'; humLp.frequency.value = 400
+  const humG = a.createGain()
+  humG.gain.setValueAtTime(0.0001, at(0.2))
+  humG.gain.exponentialRampToValueAtTime(0.03, at(0.3))
+  humG.gain.exponentialRampToValueAtTime(0.0001, at(1.2))
+  hum.connect(humLp).connect(humG).connect(out)
+  hum.start(at(0.2)); hum.stop(at(1.25)); nodes.push(hum)
+  const click = noiseBuffer(a, 0.03, 0)
+  for (const s of [0.22, 0.38, 0.52, 0.78, 1.02]) {
+    if (gone(s)) continue
+    const c = a.createBufferSource(); c.buffer = click
+    const cg = a.createGain(); cg.gain.value = 0.18
+    const chp = a.createBiquadFilter(); chp.type = 'highpass'; chp.frequency.value = 1800
+    c.connect(chp).connect(cg).connect(out)
+    c.start(at(s)); nodes.push(c)
+  }
+
+  // the whoosh into the title
+  if (!gone(1.9)) {
+  const wh = a.createBufferSource(); wh.buffer = noiseBuffer(a, 1, 0.2)
+  const whF = a.createBiquadFilter(); whF.type = 'bandpass'; whF.Q.value = 1.2
+  whF.frequency.setValueAtTime(300, at(1.9))
+  whF.frequency.exponentialRampToValueAtTime(3200, at(2.6))
+  const whG = a.createGain()
+  whG.gain.setValueAtTime(0.0001, at(1.9))
+  whG.gain.exponentialRampToValueAtTime(0.22, at(2.55))
+  whG.gain.exponentialRampToValueAtTime(0.0001, at(2.7))
+  wh.connect(whF).connect(whG).connect(out)
+  wh.start(at(1.9)); wh.stop(at(2.75)); nodes.push(wh)
+  }
+
+  // the title lands: a low hit, and a chord that rings out
+  if (!gone(2.6)) {
+  const hit = a.createOscillator(); hit.type = 'sine'
+  hit.frequency.setValueAtTime(120, at(2.6))
+  hit.frequency.exponentialRampToValueAtTime(42, at(2.95))
+  const hitG = a.createGain()
+  hitG.gain.setValueAtTime(0.5, at(2.6))
+  hitG.gain.exponentialRampToValueAtTime(0.0001, at(3.1))
+  hit.connect(hitG).connect(out)
+  hit.start(at(2.6)); hit.stop(at(3.15)); nodes.push(hit)
+  for (const [f, v] of [[110, 0.05], [164.8, 0.04], [220, 0.035], [329.6, 0.02]] as const) {
+    const o = a.createOscillator(); o.type = 'triangle'; o.frequency.value = f
+    const g = a.createGain()
+    g.gain.setValueAtTime(0.0001, at(2.6))
+    g.gain.exponentialRampToValueAtTime(v, at(2.68))
+    g.gain.exponentialRampToValueAtTime(0.0001, at(4.8))
+    o.connect(g).connect(out)
+    o.start(at(2.6)); o.stop(at(4.9)); nodes.push(o)
+  }
+  }
+
+  return () => {
+    try {
+      const t = a.currentTime
+      out.gain.cancelScheduledValues(t)
+      out.gain.setTargetAtTime(0.0001, t, 0.12)
+      for (const n of nodes) { try { n.stop(t + 0.6) } catch { /* already stopped */ } }
+    } catch { /* context gone */ }
+  }
+}
+
+/** Wake the audio context from a tap (browsers hold it until one). */
+export function unlockAudio(): boolean {
+  const a = ac()
+  if (!a) return false
+  if (a.state === 'suspended') void a.resume()
+  return true
+}

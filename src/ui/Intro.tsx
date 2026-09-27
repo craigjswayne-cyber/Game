@@ -1,39 +1,63 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { BrandMark } from './components'
 import { t } from '../game/i18n'
+import { introSound, introUnlocked, soundOn, unlockAudio } from './audio'
+import titleArt from './title-bg.webp'
 
 /**
  * ---- THE OPENING TITLES (1.8.0) ----
  *
  * Owner, 26 Sep 2026: "I want a 5 second motion intro to the loading in of the
  * game. It should feel premium, the style of the game with the logo of the game
- * before the menu page launches."
+ * before the menu page launches." And a day later, with the key art: "The intro
+ * title should be more based around the title card - the desk, steam rising
+ * from the coffee mug, the light flickering, sound of a rugby game on the tv in
+ * the background. With some sound fx as the title appears."
  *
- * Five seconds, in four beats, all of it transform and opacity so a budget
- * Android phone plays it on the compositor and not the main thread:
+ * So it is the manager's office from the title card, and it comes alive:
  *
- *   0.0 - 1.2  the pitch lines draw across the dark, halfway first
- *   0.5 - 2.0  the badge lands and the ball turns into its place
- *   1.6 - 3.4  PHASE rises letter by letter, the rule wipes out, RUGBY MANAGER
- *              tracks in, and a light runs over it
- *   4.3 - 5.0  the whole card lifts away and the title screen is underneath
+ *   0.0 - 1.1  dark; the desk lamp flickers on (a click on each flicker, the
+ *              mains buzz), the framed match on the wall glows and flickers
+ *              like a telly, and the telly's crowd is on in the background
+ *   0.8 -      steam curls up off the coffee mug; the room slowly pushes in
+ *   1.9 - 2.6  a whoosh rises
+ *   2.6 - 3.6  the title lands as the key art sets it: the badge, PHASE in
+ *              green, RUGBY and MANAGER stacked in white, the rule, and the
+ *              strapline with its last word in green; a low hit and a chord
+ *   4.3 - 5.0  it lifts away, and the title screen (the same office) is there
+ *
+ * The lamp, the mug and the frame are placed on the art itself: their spots in
+ * the 900 x 1601 picture are mapped through the same cover crop the screen uses,
+ * so they sit on the lamp, the mug and the frame on any phone or tablet.
+ *
+ * SOUND. Browsers (and Android's web view) hold sound until the first tap, and
+ * this plays before anyone has tapped. If the device lets it play, it plays; if
+ * not, a small speaker button starts it from where the pictures are, without
+ * skipping. Everywhere else a tap skips. The sound setting silences it.
  *
  * WHAT IT IS NOT: the launch screen. Apple's guidelines say a launch screen
  * "isn't a branding opportunity" and Android's splash API wants its icon
- * animation under a second, so the native launch screens stay exactly as they
- * are and this plays once the app has drawn, as the game's own title sequence.
- * Which is also why it gives way at once: a tap anywhere skips it, it plays
- * once per launch, a manager can turn it off in Settings, and a phone set to
- * reduce motion never sees it.
+ * animation under a second, so the native launch screens are untouched and this
+ * is the game's own title sequence: once per launch, a switch in Settings to
+ * turn it off, and never under reduce motion.
  *
- * Automated browsers skip it too (navigator.webdriver). Some fifty harnesses
- * open on the title screen and click New Career in the first second; they are
- * testing the game, not waiting for the credits. scripts/introprobe.mjs plays
- * it on purpose with ?intro=1.
+ * Automated browsers skip it (navigator.webdriver): some fifty harnesses open on
+ * the title screen. scripts/introprobe.mjs plays it on purpose with ?intro=1.
  */
 export const INTRO_KEY = 'phase.intro'
 const LENGTH_MS = 5000
 let playedThisLaunch = false
+
+/** the art's own size, and where things are in it (fractions of the picture) */
+const ART = { w: 900, h: 1601 }
+/** where the crop sits across the art: left of centre, so the mug (far left
+ *  of the picture) stays in frame on a portrait phone. theme.css matches it. */
+const POS_X = 0.2
+const SPOT = {
+  mug: { x: 0.07, y: 0.552 },    // the coffee's surface
+  lamp: { x: 0.105, y: 0.158 },  // under the shade
+  tv: { x: 0.025, y: 0.028, w: 0.325, h: 0.186 }, // the framed match, top left
+}
 
 export function introOn(): boolean {
   try { return localStorage.getItem(INTRO_KEY) !== 'off' } catch { return true }
@@ -54,37 +78,78 @@ function shouldPlay(): boolean {
 export function Intro() {
   const [on, setOn] = useState(shouldPlay)
   const [leaving, setLeaving] = useState(false)
+  const [needTap, setNeedTap] = useState(false)
+  const [box, setBox] = useState({ w: 0, h: 0 })
+  const el = useRef<HTMLDivElement>(null)
+  const stopSound = useRef<() => void>(() => {})
+  const began = useRef(0)
+
   useEffect(() => {
     if (!on) return
     playedThisLaunch = true
+    began.current = performance.now()
+    const measure = () => { const r = el.current; if (r) setBox({ w: r.clientWidth, h: r.clientHeight }) }
+    measure()
+    window.addEventListener('resize', measure)
+    if (soundOn()) {
+      stopSound.current = introSound(0)
+      // if the browser is holding sound until a tap, offer the speaker
+      const check = setTimeout(() => { if (!introUnlocked()) setNeedTap(true) }, 250)
+      const out = setTimeout(() => setLeaving(true), LENGTH_MS - 700)
+      const done = setTimeout(() => { stopSound.current(); setOn(false) }, LENGTH_MS)
+      return () => { clearTimeout(check); clearTimeout(out); clearTimeout(done); window.removeEventListener('resize', measure) }
+    }
     const out = setTimeout(() => setLeaving(true), LENGTH_MS - 700)
     const done = setTimeout(() => setOn(false), LENGTH_MS)
-    return () => { clearTimeout(out); clearTimeout(done) }
+    return () => { clearTimeout(out); clearTimeout(done); window.removeEventListener('resize', measure) }
   }, [on])
+
   if (!on) return null
-  const skip = () => { setLeaving(true); setTimeout(() => setOn(false), 280) }
+  const skip = () => { stopSound.current(); setLeaving(true); setTimeout(() => setOn(false), 280) }
+  const sound = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    stopSound.current()
+    unlockAudio()
+    stopSound.current = introSound((performance.now() - began.current) / 1000)
+    setNeedTap(false)
+  }
+
+  // the art's cover crop, so a spot in the picture lands on the screen
+  const k = Math.max(box.w / ART.w, box.h / ART.h) || 0
+  const ox = (box.w - ART.w * k) * POS_X, oy = (box.h - ART.h * k) / 2
+  const at = (x: number, y: number) => ({ left: ox + x * ART.w * k, top: oy + y * ART.h * k })
+  const mug = at(SPOT.mug.x, SPOT.mug.y)
+  const lamp = at(SPOT.lamp.x, SPOT.lamp.y)
+  const tv = at(SPOT.tv.x, SPOT.tv.y)
+  const words = t('menu.tagline').split(' ')
+  const lastWord = words.pop()
+
   return (
-    <div className={`intro${leaving ? ' leaving' : ''}`} onClick={skip} role="presentation" data-testid="intro">
-      <svg className="intro-pitch" viewBox="0 0 100 160" preserveAspectRatio="xMidYMid slice" aria-hidden>
-        <rect x="8" y="8" width="84" height="144" rx="1" pathLength={1} className="l l0" />
-        <line x1="8" y1="80" x2="92" y2="80" pathLength={1} className="l l1" />
-        <line x1="8" y1="48" x2="92" y2="48" pathLength={1} className="l l2" />
-        <line x1="8" y1="112" x2="92" y2="112" pathLength={1} className="l l2" />
-        <line x1="8" y1="68" x2="92" y2="68" pathLength={1} className="l l3 dash" />
-        <line x1="8" y1="92" x2="92" y2="92" pathLength={1} className="l l3 dash" />
-        <line x1="8" y1="18" x2="92" y2="18" pathLength={1} className="l l4" />
-        <line x1="8" y1="142" x2="92" y2="142" pathLength={1} className="l l4" />
-      </svg>
-      <div className="intro-glow" />
-      <div className="intro-lockup">
-        <div className="intro-badge"><BrandMark size={92} /></div>
-        <div className="intro-word" aria-label="PHASE">
-          {'PHASE'.split('').map((ch, i) => <span key={i} style={{ animationDelay: `${1.6 + i * 0.08}s` }}>{ch}</span>)}
-        </div>
-        <div className="intro-rule" />
-        <div className="intro-sub">RUGBY MANAGER</div>
-        <div className="intro-tag">{t('menu.tagline')}</div>
+    <div ref={el} className={`intro${leaving ? ' leaving' : ''}`} onClick={skip} role="presentation" data-testid="intro"
+      style={{ '--art': `url(${titleArt})`, '--k': k } as CSSProperties}>
+      <div className="intro-room">
+        <div className="intro-art" />
+        {k > 0 && (
+          <>
+            <div className="intro-tv" style={{ left: tv.left, top: tv.top, width: SPOT.tv.w * ART.w * k, height: SPOT.tv.h * ART.h * k }} />
+            <div className="intro-lamp" style={{ left: lamp.left, top: lamp.top }} />
+            <div className="intro-steam" style={{ left: mug.left, top: mug.top }}>
+              <i /><i /><i />
+            </div>
+          </>
+        )}
       </div>
+      <div className="intro-dark" />
+      <div className="intro-lockup">
+        <div className="intro-badge"><BrandMark size={84} /></div>
+        <div className="intro-word">PHASE</div>
+        <div className="intro-sub"><span>RUGBY</span><span>MANAGER</span></div>
+        <div className="intro-rule"><span /><i /><span /></div>
+        <div className="intro-tag">{words.join(' ')} <b>{lastWord}</b></div>
+      </div>
+      {needTap && (
+        <button className="intro-sound" onClick={sound} aria-label={t('intro.sound')}>🔊</button>
+      )}
       <div className="intro-skip">{t('intro.skip')}</div>
     </div>
   )

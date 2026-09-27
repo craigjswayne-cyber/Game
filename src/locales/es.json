@@ -6977,7 +6977,8 @@
   "wor": "Sac"
  },
  "intro": {
-  "skip": "Toca para saltar"
+  "skip": "Toca para saltar",
+  "sound": "Sonido"
  },
  "mset": {
   "overlays": "Superposiciones",

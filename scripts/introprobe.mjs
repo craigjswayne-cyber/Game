@@ -9,6 +9,8 @@
 //   the lockup is on screen by the middle of it, badge, PHASE and RUGBY MANAGER
 //   it is gone by five and a half seconds, and the menu takes taps
 //   a tap skips it
+//   where the browser holds sound back, a speaker button starts it without
+//   skipping (the office: the telly, the lamp, the title landing)
 //   without ?intro=1 an automated browser never sees it
 //
 // Frames go to shots/intro-*.png at 412 and 820 wide for a look.
@@ -38,7 +40,7 @@ try {
     }
     const lock = await page.evaluate(() => {
       const vis = s => { const e = document.querySelector(s); if (!e) return false; const r = e.getBoundingClientRect(); return +getComputedStyle(e).opacity > 0.5 && r.width > 0 && r.top >= 0 && r.bottom <= innerHeight }
-      return { badge: vis('.intro-badge'), word: vis('.intro-word span:last-child'), sub: vis('.intro-sub') }
+      return { badge: vis('.intro-badge'), word: vis('.intro-word'), sub: vis('.intro-sub') }
     })
     ok(lock.badge && lock.word && lock.sub, `${w}px: badge, PHASE and RUGBY MANAGER all on screen by 4.4s (${JSON.stringify(lock)})`)
     await page.waitForTimeout(Math.max(0, 5600 - (Date.now() - t0)))
@@ -54,6 +56,19 @@ try {
   await page.click('.intro')
   await page.waitForTimeout(600)
   ok(await page.$('.intro') == null, 'a tap skips it')
+
+  // the speaker: a headless browser holds sound until a tap, so it is offered;
+  // pressing it starts the sound and does NOT skip the titles
+  await page.goto('http://localhost:4247/?intro=1')
+  await page.waitForSelector('.intro')
+  const spk = await page.waitForSelector('.intro-sound', { timeout: 2000 }).catch(() => null)
+  ok(!!spk, 'with sound held back, the speaker button is offered')
+  if (spk) {
+    await spk.click()
+    await page.waitForTimeout(300)
+    ok(await page.$('.intro') != null && await page.$('.intro-sound') == null, 'the speaker starts the sound and the titles carry on')
+  }
+  await page.waitForTimeout(5500)
   await page.goto('http://localhost:4247/')
   await page.waitForSelector('.title-screen')
   await page.waitForTimeout(300)
