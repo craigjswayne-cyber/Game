@@ -7020,6 +7020,12 @@
   "stamina": "Anelli di condizione",
   "staminaSub": "Quanto resta a ciascuno, quando il gioco si ferma",
   "bigText": "Telecronaca grande",
-  "bigTextSub": "La telecronaca della partita a caratteri più grandi"
+  "bigTextSub": "La telecronaca della partita a caratteri più grandi",
+  "replays": "Replay delle mete",
+  "replaysSub": "Dopo una meta, l'azione di nuovo, più lenta"
+ },
+ "replay": {
+  "badge": "REPLAY",
+  "button": "Rivedi la meta"
  }
 }

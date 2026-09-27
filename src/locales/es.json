@@ -6985,6 +6985,12 @@
   "stamina": "Anillos de estado físico",
   "staminaSub": "Lo que le queda a cada uno, cuando el juego se para",
   "bigText": "Narración grande",
-  "bigTextSub": "La narración del partido con letra más grande"
+  "bigTextSub": "La narración del partido con letra más grande",
+  "replays": "Repeticiones de ensayos",
+  "replaysSub": "Tras un ensayo, la jugada otra vez, más lenta"
+ },
+ "replay": {
+  "badge": "REPETICIÓN",
+  "button": "Ver el ensayo otra vez"
  }
 }

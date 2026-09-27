@@ -7141,6 +7141,12 @@
     "stamina": "Anneaux de fraîcheur",
     "staminaSub": "Ce qu’il reste à chacun, quand le jeu s’arrête",
     "bigText": "Grand commentaire",
-    "bigTextSub": "Le commentaire du match en plus grand"
+    "bigTextSub": "Le commentaire du match en plus grand",
+    "replays": "Ralentis des essais",
+    "replaysSub": "Après un essai, l'action revue au ralenti"
+  },
+  "replay": {
+    "badge": "RALENTI",
+    "button": "Revoir l'essai"
   }
 }

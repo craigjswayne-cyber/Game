@@ -1504,8 +1504,10 @@ let pitchMemory: PitchMemory | null = null
  *  wide enough to keep both touchlines' worth of the play in the picture */
 const BROADCAST_ZOOM = 1.6
 
-function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC, tickMs, holdMs = 0, afterReview = false, camera = false, overlays = false, stamina = false, stopped = false }: {
+function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC, tickMs, holdMs = 0, afterReview = false, camera = false, overlays = false, stamina = false, stopped = false, badge }: {
   ctx: LiveCtx
+  /** a label over the picture: REPLAY while a try is shown again */
+  badge?: string
   /** Match Settings switches (matchPrefs.ts) and whether play is stopped */
   overlays?: boolean
   stamina?: boolean
@@ -2112,6 +2114,7 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
     <div ref={pitchEl}
       className={`pitch${showFx && evType === 'TRY' ? (rightward(towardHome) ? ' try-r' : ' try-l') : ''}`}
       style={{ '--tick': `${tickMs}ms` } as CSSProperties}>
+      {badge && <div className="replay-badge">↺ {badge}</div>}
       {/* THE WORLD: everything that is ON the pitch, so the camera can move it
           as one. What sits over the picture (banners, the TMO, the kick
           close-up, the bin clocks, the mini-map) is outside it and stays put. */}
@@ -2387,7 +2390,10 @@ function Live() {
   // +1 momo is home dominant and home attacks right, so the signs already
   // agree with the try-zone colours. Scores stay decisive and unchanged: a try
   // is at 88/12 because that is where tries happen.
-  const ballLeft = useMemo(() => {
+  /** where the ball is drawn with the first c lines revealed (the live cursor,
+   *  or a replay's) */
+  const ballAt = (c: number): number => {
+    const last = ctx.events[c - 1]
     if (!last) return 50
     const towardHome = last.teamId === fixture.homeId
     // a try under review, and the one the TMO chalks off, happened where tries
@@ -2408,7 +2414,7 @@ function Live() {
     // now does the visual smoothing, and at 0.3 the average kept play where
     // it had been: a 50:22 "lineout deep in the corner" was drawn at halfway.
     let smooth: number | null = null
-    for (const e of ctx.events.slice(0, cursor)) {
+    for (const e of ctx.events.slice(0, c)) {
       if (e.fld == null) continue
       smooth = smooth == null ? e.fld : smooth * 0.4 + e.fld * 0.6
     }
@@ -2417,7 +2423,8 @@ function Live() {
       : last.type === 'PEN' || last.type === 'DG' ? (towardHome ? 72 : 28)
       : 50 + (ctx.momo ?? 0) * 30 + (towardHome ? 9 : -9)
     return Math.max(6, Math.min(94, base))
-  }, [cursor])
+  }
+  const ballLeft = useMemo(() => ballAt(cursor), [cursor])
 
   // TENSION IS LATE **AND** CLOSE (v1.1.1), a product and deliberately so:
   // 3-0 at 20 minutes is not tense, and neither is 40-3 at 78. Both terms
@@ -2465,8 +2472,50 @@ function Live() {
     ? Math.max(0, Math.round(Math.min(1600, Math.max(1200, tickMs * 1.5))) - tickMs) : 0
   const hold = tmoHold + momentHold
 
+  // ---- TRY REPLAYS (1.8.0) ----
+  // FM Mobile replays its goals; the report's first match-day gap. After a
+  // try the pitch plays the lines that led to it again, slower, under a
+  // REPLAY badge, and then the match carries on. Match Settings has the
+  // switch (on by default), and the most recent try can be replayed by hand.
+  // Automated browsers do not replay on their own (they time the ticker);
+  // ?replays=1 asks for it (scripts/replayprobe.mjs).
+  const [replay, setReplay] = useState<{ from: number; to: number; i: number; resume: boolean } | null>(null)
+  const replayed = useRef(new Set<number>())
+  const autoReplay = prefs.replays && (() => {
+    try { return /[?&]replays=1\b/.test(location.search) || !navigator.webdriver } catch { return true }
+  })()
+  /** the lines to replay for the try revealed as line `end` (a cursor count):
+   *  up to four before it, never reaching back past the last score or whistle */
+  const startReplay = (end: number) => {
+    let from = end
+    while (from > 1 && end - from < 4) {
+      const e = events[from - 2]
+      if (!e || ['TRY', 'CON', 'PEN', 'DG', 'HT', 'BRK', 'KO'].includes(e.type)) break
+      from--
+    }
+    setReplay({ from, to: end, i: from, resume: playing })
+    if (playing) matchCursor(cursor, false)
+  }
+  const lastTry = (() => { for (let k = cursor; k > 0; k--) if (events[k - 1]?.type === 'TRY' && events[k - 1]?.fx !== 'TMO') return k; return 0 })()
+  const replayTick = Math.round(Math.max(900, tickMs * 1.6))
+  useEffect(() => {
+    if (!replay) return
+    const timer = setTimeout(() => {
+      if (replay.i >= replay.to) {
+        setReplay(null)
+        if (replay.resume && !done) matchCursor(cursor, true)
+      } else setReplay({ ...replay, i: replay.i + 1 })
+    }, replay.i >= replay.to ? replayTick * 1.4 : replayTick)
+    return () => clearTimeout(timer)
+  }, [replay])
+
   useEffect(() => {
     if (!playing) return
+    // a try just in, and replays on: let it land, then show it again
+    if (autoReplay && speedIdx < 2 && last?.type === 'TRY' && last.fx !== 'TMO' && !replayed.current.has(cursor)) {
+      const timer = setTimeout(() => { replayed.current.add(cursor); startReplay(cursor) }, tickMs + hold)
+      return () => clearTimeout(timer)
+    }
     // `timer`, not `t`: t() is the translator
     const timer = setTimeout(() => advanceLive(), tickMs + hold)
     return () => clearTimeout(timer)
@@ -2639,10 +2688,17 @@ function Live() {
       })()}
 
       {!panelActive && (
+        replay ? (
+          <PitchViz ctx={ctx} game={game} last={events[replay.i - 1]} ballLeft={ballAt(replay.i)}
+            fxKey={replay.i} showFx showBig={false} lastTeamC={lastTeamC}
+            tickMs={replayTick} holdMs={0} camera={camera}
+            overlays={prefs.overlays} stamina={false} stopped={false} badge={t('replay.badge')} />
+        ) : (
         <PitchViz ctx={ctx} game={game} last={last} ballLeft={ballLeft}
           fxKey={cursor} showFx={showFx} showBig={playing} lastTeamC={lastTeamC}
           tickMs={tickMs} holdMs={momentHold} afterReview={shown[shown.length - 2]?.fx === 'TMO'} camera={camera}
           overlays={prefs.overlays} stamina={prefs.stamina} stopped={!playing} />
+        )
       )}
       {/* THE CONTROLS SIT UNDER THE PITCH (owner, v1.1.16: "4 buttons in match
           mode - should be directly underneath the pitch at the top").
@@ -2728,6 +2784,9 @@ function Live() {
               are kicking, the two things a manager changes mid-match */}
           <div className="match-status">
             <span>⇄ {t('mstatus.subs', { left: MAX_SUBS - ctx.subsUsed, max: MAX_SUBS })}</span>
+            {lastTry > 0 && !replay && (
+              <button className="replay-btn" onClick={() => startReplay(lastTry)}>↺ {t('replay.button')}</button>
+            )}
             <span>{t(KICK_STYLE_LABEL[game.clubs[ctx.userSideId ?? '']?.tactic.kickStyle ?? 'balanced'] ?? 'tacticsScreen.kickBalanced')}</span>
           </div>
           {last && (
@@ -2825,6 +2884,8 @@ function Live() {
                 label={t('mset.stamina')} sub={t('mset.staminaSub')} />
               <Toggle on={prefs.bigText} onChange={v => setPref({ bigText: v })}
                 label={t('mset.bigText')} sub={t('mset.bigTextSub')} />
+              <Toggle on={prefs.replays} onChange={v => setPref({ replays: v })}
+                label={t('mset.replays')} sub={t('mset.replaysSub')} />
             </div>
             <button className="btn gold block" style={{ marginTop: 10 }}
               onClick={() => { setSettings(false); if (!done) matchCursor(cursor, true) }}>

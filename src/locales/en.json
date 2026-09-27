@@ -7304,6 +7304,12 @@
   "stamina": "Condition rings",
   "staminaSub": "How much each man has left, when play stops",
   "bigText": "Large commentary",
-  "bigTextSub": "The match commentary in bigger type"
+  "bigTextSub": "The match commentary in bigger type",
+  "replays": "Try replays",
+  "replaysSub": "After a try, the build-up again, slower"
+ },
+ "replay": {
+  "badge": "REPLAY",
+  "button": "Replay the try"
  }
 }
