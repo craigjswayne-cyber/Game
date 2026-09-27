@@ -22,11 +22,8 @@ import { AdSlot } from '../AdSlot'
 import { tillOpen } from '../../game/monetise'
 import { userWageBudget } from '../../game/grants'
 import { natWindow, weeksToSquad } from '../../game/country'
+import { newsGlyph } from '../glyphs'
 
-const TYPE_ICON: Record<string, string> = {
-  result: '🏉', transfer: '💰', injury: '🩹', intl: '🌍', board: '🏛️',
-  award: '🏅', contract: '✍️', general: '📰', youth: '🎓', gossip: '🗞️',
-}
 
 export default function Home() {
   const game = useStore(s => s.game)!

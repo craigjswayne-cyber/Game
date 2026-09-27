@@ -9,6 +9,7 @@ import { TOUR_WEEKS } from '../game/schedule'
 import { islesCoach } from '../game/isles'
 import { tillOpen } from '../game/monetise'
 import { IcoClipboard, IcoGlobe, IcoHome, IcoInbox, IcoPress, IcoTrophy } from './icons'
+import { Glyph } from './glyphs'
 import { natWindow } from '../game/country'
 import Menu from './screens/Menu'
 import NewGame from './screens/NewGame'
@@ -388,7 +389,7 @@ function useHardwareBack(depth: number, screen: Screen) {
 }
 
 interface MenuItem {
-  ico: string
+  ico: ReactNode
   label: string
   /** doubles as the react key, so it stays required even for action items */
   screen: Screen
@@ -604,17 +605,17 @@ export default function App() {
         // Team opens on the team sheet now (user: "Selection should be the
         // team section"), so the tactics screen is just Tactics - the how,
         // not the who.
-        { ico: '🏉', label: t('groups.team'), screen: 'squad' },
-        { ico: '📊', label: t('groups.teamReport'), screen: 'report' },
-        { ico: '📋', label: t('groups.tactics'), screen: 'tactics' },
-        { ico: '🎓', label: t('groups.academy'), screen: 'academy' },
-        { ico: '🏋️', label: t('groups.trainingStaff'), screen: 'training' },
-        { ico: '🏥', label: t('groups.medical'), screen: 'medical', badge: injuredCount },
-        { ico: '📅', label: t('groups.fixturesResults'), screen: 'fixtures' },
-        { ico: '💰', label: t('groups.finances'), screen: 'finances' },
-        { ico: '🔁', label: t('groups.transfers'), screen: 'transfers', badge: offersOpen },
-        { ico: '🏗️', label: t('groups.infra'), screen: 'infra' },
-        { ico: '🏟️', label: t('groups.clubInfo'), screen: 'club' },
+        { ico: <Glyph name="team" />, label: t('groups.team'), screen: 'squad' },
+        { ico: <Glyph name="report" />, label: t('groups.teamReport'), screen: 'report' },
+        { ico: <Glyph name="tactics" />, label: t('groups.tactics'), screen: 'tactics' },
+        { ico: <Glyph name="academy" />, label: t('groups.academy'), screen: 'academy' },
+        { ico: <Glyph name="training" />, label: t('groups.trainingStaff'), screen: 'training' },
+        { ico: <Glyph name="medical" />, label: t('groups.medical'), screen: 'medical', badge: injuredCount },
+        { ico: <Glyph name="fixtures" />, label: t('groups.fixturesResults'), screen: 'fixtures' },
+        { ico: <Glyph name="finances" />, label: t('groups.finances'), screen: 'finances' },
+        { ico: <Glyph name="transfers" />, label: t('groups.transfers'), screen: 'transfers', badge: offersOpen },
+        { ico: <Glyph name="infra" />, label: t('groups.infra'), screen: 'infra' },
+        { ico: <Glyph name="club" />, label: t('groups.clubInfo'), screen: 'club' },
         // THE STORE HAD NO NAME ANYWHERE (owner, 27 Aug: "no shop showing").
         // Everything was reachable and nothing was findable: the door sat on
         // About & legal, under the manager's own menu, next to the privacy
@@ -627,50 +628,50 @@ export default function App() {
         // keeps the web build honest: no bridge, no row, and the menu is the
         // same eleven items it has always been (storeprobe asserts exactly
         // this on a page with no bridge attached).
-        ...(tillOpen() ? [{ ico: '🛒', label: t('groups.store'), screen: 'supporter' as Screen }] : []),
+        ...(tillOpen() ? [{ ico: <Glyph name="store" />, label: t('groups.store'), screen: 'supporter' as Screen }] : []),
       ],
     },
     manager: {
       title: game.managerName,
       items: [
-        { ico: '👤', label: t('groups.profile'), screen: 'profile' },
+        { ico: <Glyph name="profile" />, label: t('groups.profile'), screen: 'profile' },
         // the manager is the one in front of the cameras, so the press room
         // belongs to him rather than to the team sheet
-        { ico: '🎙️', label: t('groups.press'), screen: 'press', badge: pressOpen },
+        { ico: <Glyph name="press" />, label: t('groups.press'), screen: 'press', badge: pressOpen },
         // Only the jobs he has not answered. It used to be vacancies.length, so
         // the red dot appeared because somebody somewhere got sacked and nothing
         // he could do would clear it (see GameState.vacancies).
-        { ico: '🕴️', label: t('groups.jobs'), screen: 'jobs', badge: game.vacancies.filter(v => !v.passed && !v.applied).length },
-        { ico: '📜', label: t('groups.legacy'), screen: 'legacy' },
-        { ico: '📖', label: t('groups.handbook'), screen: 'handbook' },
+        { ico: <Glyph name="jobs" />, label: t('groups.jobs'), screen: 'jobs', badge: game.vacancies.filter(v => !v.passed && !v.applied).length },
+        { ico: <Glyph name="legacy" />, label: t('groups.legacy'), screen: 'legacy' },
+        { ico: <Glyph name="handbook" />, label: t('groups.handbook'), screen: 'handbook' },
         // Settings sits ABOVE Report a Bug (owner, v1.2.1): the page you
         // want when the game looks wrong comes before the page you want when
         // it IS wrong.
-        { ico: '⚙️', label: t('groups.settings'), screen: 'settings' },
-        { ico: '🐞', label: t('groups.bug'), screen: 'bug' },
+        { ico: <Glyph name="settings" />, label: t('groups.settings'), screen: 'settings' },
+        { ico: <Glyph name="bug" />, label: t('groups.bug'), screen: 'bug' },
         // what this is, who made it, and what it does with your data - the page
         // a store reviewer looks for and the page a player ends up on when they
         // want the privacy policy without leaving the game
-        { ico: 'ℹ️', label: t('groups.about'), screen: 'about' },
+        { ico: <Glyph name="about" />, label: t('groups.about'), screen: 'about' },
         // dismissing the welcome dialog used to be final and irreversible
-        { ico: '❓', label: t('groups.howToPlay'), screen: 'home', action: () => useStore.getState().openTut() },
-        { ico: '💾', label: t('groups.saveLoad'), screen: 'saves' },
+        { ico: <Glyph name="help" />, label: t('groups.howToPlay'), screen: 'home', action: () => useStore.getState().openTut() },
+        { ico: <Glyph name="save" />, label: t('groups.saveLoad'), screen: 'saves' },
         // A reload now resumes the career where it was left, so a refresh is no
         // longer the way back to the title screen - and without a deliberate
         // route there, starting a second career would be impossible.
-        { ico: '🚪', label: t('groups.mainMenu'), screen: 'menu', action: () => useStore.getState().toTitle() },
+        { ico: <Glyph name="exit" />, label: t('groups.mainMenu'), screen: 'menu', action: () => useStore.getState().toTitle() },
       ],
     },
     world: {
       title: t('groups.world'),
       items: [
-        { ico: '🏆', label: t('groups.competitions'), screen: 'tables' },
+        { ico: <Glyph name="competitions" />, label: t('groups.competitions'), screen: 'tables' },
         // the pinnacle gets a door of its own while you hold a Test job
-        ...(game.natTeam ? [{ ico: '🌏', label: t('groups.country'), screen: 'country' as const }] : []),
-        { ico: '🌍', label: t('groups.nations'), screen: 'nations' },
-        { ico: '🏉', label: t('groups.dreamteam'), screen: 'dreamteam' },
-        { ico: '🔭', label: t('groups.agency'), screen: 'agency' },
-        { ico: '📜', label: t('groups.history'), screen: 'history' },
+        ...(game.natTeam ? [{ ico: <Glyph name="country" />, label: t('groups.country'), screen: 'country' as const }] : []),
+        { ico: <Glyph name="nations" />, label: t('groups.nations'), screen: 'nations' },
+        { ico: <Glyph name="dreamteam" />, label: t('groups.dreamteam'), screen: 'dreamteam' },
+        { ico: <Glyph name="agency" />, label: t('groups.agency'), screen: 'agency' },
+        { ico: <Glyph name="history" />, label: t('groups.history'), screen: 'history' },
       ],
     },
   }
