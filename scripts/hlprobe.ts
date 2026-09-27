@@ -79,7 +79,7 @@ const over = (s: ClipSpec) => { const b = frameAt(s, clipLength(s)).ball; return
 const tries = specs.filter(s => s.kind === 'try' || s.kind === 'notry')
 ok(tries.every(s => over(s.spec)), `every try ends with the ball grounded over the line (${tries.filter(s => over(s.spec)).length}/${tries.length})`)
 ok(tries.every(s => s.spec.beats.length >= 2), 'every try has a build-up of at least two phases')
-ok(tries.every(s => clipLength(s.spec) >= 4 && clipLength(s.spec) <= 18), 'a try clip runs between 4 and 18 seconds')
+ok(tries.every(s => clipLength(s.spec) >= 4 && clipLength(s.spec) <= 16), 'a try clip runs between 4 and 16 seconds')
 const fwd = tries.every(({ spec }) => {
   const xs = [...spec.beats.map(b => b.x), spec.finish.x]
   return xs.every((x, i) => i === 0 || (spec.attackHome ? x >= xs[i - 1] : x <= xs[i - 1]))

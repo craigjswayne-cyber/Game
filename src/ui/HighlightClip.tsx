@@ -134,7 +134,10 @@ export function buildClip(events: MatchEvent[], m: number, kind: ClipKind, homeI
   const review = events[m - 1]?.fx === 'TMO' ? m - 1 : -1
   // the build-up: up to four lines back, the same side, no stoppage between
   const from: number[] = []
-  for (let k = (review >= 0 ? review : m) - 1; k >= Math.max(0, m - 5); k--) {
+  // the last three phases at most: a highlight is the move that scored, and
+  // five phases of a forward carrying 14 m across the field ran to 22 s
+  const reach = (review >= 0 ? review : m) - 3
+  for (let k = (review >= 0 ? review : m) - 1; k >= Math.max(0, reach); k--) {
     const b = events[k]
     if (!b || STOP.has(b.type) || (b.teamId && b.teamId !== e.teamId)) break
     from.unshift(k)
@@ -151,7 +154,9 @@ export function buildClip(events: MatchEvent[], m: number, kind: ClipKind, homeI
     const want = line >= 0 && events[line].fld != null ? up(events[line].fld!) : u + 6
     u = Math.min(endU - 12, Math.max(u + 3 + 3 * hash(m + i), want))
     // the play swings to the open side and back, as phases do
-    const swing = (8 + 10 * hash(m * 7 + i)) * (y < 35 ? 1 : -1)
+    // (a carry drifts a few metres; the width comes from the pass, whose
+    // receiver already stands out in the line - see receiveSpot)
+    const swing = (4 + 6 * hash(m * 7 + i)) * (y < 35 ? 1 : -1)
     y = Math.max(9, Math.min(61, y + swing))
     const forward = i < steps - 1
     beats.push({ x: toX(u), y, line, carrier: forward ? [8, 4, 6, 1, 5, 7][Math.floor(hash(m + i * 5) * 6)] : [12, 13, 10][Math.floor(hash(m + i) * 3)] })
