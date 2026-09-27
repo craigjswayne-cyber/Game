@@ -95,6 +95,10 @@ try {
     const d = document.createElement('div')
     d.className = 'hl-banner'
     document.body.appendChild(d)
+    // wait for the animation itself to finish, not two frames: on a loaded
+    // machine two frames came round before the 0.01ms animation had been
+    // ticked, and the opacity read was its first frame (full suite, 1.8.0)
+    await Promise.all(d.getAnimations().map(a => a.finished.catch(() => null)))
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))
     const cs = getComputedStyle(d)
     const out = { dur: cs.animationDuration, opacity: cs.opacity }
