@@ -13,6 +13,8 @@
 import { newGame } from '../src/game/newgame'
 import { activePlan, planCap, rollPlan } from '../src/game/season'
 import { mulberry32 } from '../src/game/rng'
+import { attrLevel } from '../src/game/ageing'
+import { agePlayers } from '../src/game/rollover'
 import type { GameState, Player } from '../src/game/model'
 
 let fails = 0
@@ -30,8 +32,15 @@ const rate = (p: Player, seed: number, weeks = 4000) => {
   const rng = mulberry32(seed)
   let hits = 0
   const before = { ...p.a }
-  for (let i = 0; i < weeks; i++) if (rollPlan(g, p, rng)) hits++
+  // put him back after every week, so the rate is the programme's and not
+  // how soon his position's ceiling stops it (1.8.0, ageing.ts trainPoint);
+  // and measured on a man with room to grow, since a capped attribute bites
+  // on nothing
+  const room = { ...p.a }
+  for (const k of Object.keys(room) as (keyof Player['a'])[]) room[k] = Math.min(room[k], 6)
+  for (let i = 0; i < weeks; i++) { Object.assign(p.a, room); p.tdebt = 0; if (rollPlan(g, p, rng)) hits++ }
   Object.assign(p.a, before) // put the attributes back
+  p.tdebt = 0
   return hits / weeks
 }
 
@@ -86,9 +95,45 @@ const rate = (p: Player, seed: number, weeks = 4000) => {
   let bumped = false
   for (let i = 0; i < 500 && !bumped; i++) bumped = rollPlan(g, p, rng)
   ok(bumped, 'the programme eventually bites')
-  const moved = (Object.keys(p.a) as (keyof Player['a'])[]).filter(k => p.a[k] !== before[k])
-  ok(moved.every(k => k === 'kic' || k === 'goa'), `and it moved only the kicking attributes (${moved.join(', ')})`)
-  ok(moved.length > 0, 'visibly')
+  const keys = Object.keys(p.a) as (keyof Player['a'])[]
+  const up = keys.filter(k => p.a[k] > before[k]), down = keys.filter(k => p.a[k] < before[k])
+  ok(up.length > 0 && up.every(k => k === 'kic' || k === 'goa'), `and what rose is the kicking (${up.join(', ')})`)
+  // 1.8.0: training directs, it does not print. Anything that fell paid for
+  // the rise, and the man's level against his rating barely moves
+  ok(down.every(k => k !== 'kic' && k !== 'goa'), `what paid for it is elsewhere (${down.join(', ') || 'owed for now'})`)
+  const lv = (a: Player['a']) => attrLevel({ pos: p.pos, a })
+  ok(Math.abs(lv(p.a) - lv(before)) < 1.5, `and his level moved ${(lv(p.a) - lv(before)).toFixed(2)} rating points, not a stat printer`)
+}
+
+// ---- three seasons on a plan: a specialist, not a different player ----------
+{
+  // a loosehead on the Attack plan grew into a fly-half before 1.8.0:
+  // handling, passing and vision to 20 paid for out of his scrummaging
+  const prop = seniors.find(x => x.pos === 'LP' || x.pos === 'TP')!
+  g.plans = [{ id: prop.id, plan: 'attack' }]
+  g.staff.attack = 3
+  const before = { ...prop.a }
+  const rng = mulberry32(11)
+  for (let w = 0; w < 120; w++) rollPlan(g, prop, rng)
+  ok(prop.a.han > before.han || prop.a.pas > before.pas || prop.a.vis > before.vis, `the plan works on him (han ${before.han}->${prop.a.han}, pas ${before.pas}->${prop.a.pas}, vis ${before.vis}->${prop.a.vis})`)
+  ok(prop.a.han <= 15 && prop.a.pas <= 15, 'but a prop does not become a fly-half (handling and passing stop near what his position plays at)')
+  ok(prop.a.scr >= before.scr - 1 && prop.a.str >= before.str - 1, `and he is still a scrummager (scr ${before.scr}->${prop.a.scr}, str ${before.str}->${prop.a.str})`)
+  Object.assign(prop.a, before)
+}
+
+// ---- the plan's own growth: one rating point a summer below potential -----
+{
+  // agePlayers runs every man in the world, so it runs on a copy; the same
+  // copy twice, with and without the plan, and every roll the same
+  const kid = seniors.find(x => x.age <= 23 && x.pa - x.ca >= 6)!
+  const summer = (planned: boolean) => {
+    const h = structuredClone(g)
+    h.plans = planned ? [{ id: kid.id, plan: 'attack' }] : []
+    agePlayers(h, mulberry32(77))
+    return h.players[kid.id]?.ca ?? 0
+  }
+  const withPlan = summer(true), without = summer(false)
+  ok(withPlan === without + 1, `a man on a plan below his potential gains one rating point more in the summer (${without} -> ${withPlan})`)
 }
 
 // ---- no plan, no roll -------------------------------------------------------
