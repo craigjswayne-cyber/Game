@@ -1571,6 +1571,13 @@ export interface LiveCtx {
   isUser: boolean
   /** the team the user is coaching in this match (club or national side) */
   userSideId: string | null
+  /** THE ASSISTANT HAS THE BENCH (1.8.0): set by the instant result, where the
+   *  manager has handed the match over. The user's side then makes its
+   *  replacements the way every AI side does (aiAutoSubs), instead of none -
+   *  measured before this: 0.8 replacements a match, all of them injuries,
+   *  against the opposition's 6.5, so tired starters played the full eighty
+   *  and the bench split and the replacement briefs did nothing. */
+  assistantSubs?: boolean
   /** next tick to simulate, 0..20 */
   tick: number
   /** 0 = pre-KO, 1 = HT reached, 2 = 60' break reached, 3 = full-time */
@@ -2726,8 +2733,9 @@ export function checkFrontRow(state: GameState, ctx: LiveCtx, side: SideCtx, min
 }
 
 function aiAutoSubs(state: GameState, ctx: LiveCtx, side: SideCtx, min: number) {
-  // the user manages his own bench (except forced injury subs elsewhere)
-  if (side.isUser) return
+  // the user manages their own bench (except forced injury subs elsewhere),
+  // unless they handed the match to the assistant
+  if (side.isUser && !ctx.assistantSubs) return
   if (ctx.tick < 11) return
   const bulk = ctx.tick === 15 // classic 55-60' bench emptying
   let made = 0
