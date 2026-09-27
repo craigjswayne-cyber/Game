@@ -520,6 +520,9 @@ export default function App() {
   const clubVars = {
     '--club1': club.colors[0],
     '--club2': club.colors[1],
+    // the club colour that shows on the dark theme: a near-black first colour
+    // (Northampton, Saracens) gives way to the second, as the commentary does
+    '--club-show': showable(club.colors),
   } as CSSProperties
 
   // Home wears the club's own name, which is never translated; every other
@@ -832,4 +835,14 @@ export default function App() {
       <Overlays />
     </div>
   )
+}
+
+/** a club colour that reads on the dark page: the first, unless it is near-black */
+function showable(colors: [string, string] | string[]): string {
+  const luma = (c: string) => {
+    const h = c.replace('#', '')
+    if (h.length < 6) return 128
+    return (parseInt(h.slice(0, 2), 16) * 299 + parseInt(h.slice(2, 4), 16) * 587 + parseInt(h.slice(4, 6), 16) * 114) / 1000
+  }
+  return luma(colors[0]) < 40 && colors[1] && luma(colors[1]) > luma(colors[0]) ? colors[1] : colors[0]
 }

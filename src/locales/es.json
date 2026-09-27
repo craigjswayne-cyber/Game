@@ -6914,7 +6914,6 @@
   "filters": "Filtros",
   "filtersOn": "Filtros ({n})",
   "any": "Todos",
-  "viewIs": "Vista: {view}",
   "onlyListed": "Solo transferibles",
   "onlyInterested": "Solo interesados en venir",
   "onlyExpiring": "Solo contratos que vencen",

@@ -94,7 +94,7 @@ export default function TeamReport() {
         {buckets.map(b => (
           <div key={b.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
             <span style={{ fontSize: 11, fontWeight: 700 }}>{b.n}</span>
-            <div style={{ width: '100%', height: `${(b.n / maxB) * 58}px`, background: 'var(--club1)', borderRadius: '4px 4px 0 0', minHeight: 2 }} />
+            <div style={{ width: '100%', height: `${(b.n / maxB) * 58}px`, background: 'var(--club-show, var(--club1))', borderRadius: '4px 4px 0 0', minHeight: 2 }} />
             <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{b.label}</span>
           </div>
         ))}

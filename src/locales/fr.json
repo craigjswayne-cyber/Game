@@ -7071,7 +7071,6 @@
     "filters": "Filtres",
     "filtersOn": "Filtres ({n})",
     "any": "Tous",
-    "viewIs": "Vue : {view}",
     "onlyListed": "Joueurs sur la liste des transferts",
     "onlyInterested": "Joueurs prêts à nous rejoindre",
     "onlyExpiring": "Contrats en fin de validité",
