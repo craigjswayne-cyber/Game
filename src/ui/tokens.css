@@ -749,6 +749,20 @@
   /* the referee on the highlight pitch (a square, so no kit is mistaken for him;
      HighlightClip swaps to pink, cyan or white when a kit is close to this) */
   --hl-ref: #f2d14b;
+  /* the set-piece and bench diagrams (1.8.0, Tactics: owner "I want them to be
+     more visual"). They stand on the highlight pitch's grass above, so the
+     chalk, the two sides and the call are depictions too and read the same in
+     both modes: our men white, theirs dark with a light rim, the call itself
+     (the jumper, the ball's path, the drive) in yellow so it is the first
+     thing the eye finds. */
+  --dg-chalk: rgba(255, 255, 255, 0.82);
+  --dg-chalk-soft: rgba(255, 255, 255, 0.4);
+  --dg-shade: rgba(0, 0, 0, 0.2);
+  --dg-us: #f3f5f8;
+  --dg-us-edge: #1d2733;
+  --dg-them: #1d2733;
+  --dg-them-edge: rgba(255, 255, 255, 0.6);
+  --dg-move: #f2c200;
   /* a club with no kit on file, home and away */
   --kit-home: #2f8f55;
   --kit-away: #b33a3a;

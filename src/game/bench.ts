@@ -243,14 +243,16 @@ export interface BriefDef {
   short: string
   /** what you actually say to him */
   desc: string
-  icon: string
+  /** which stroke icon the UI draws for it (src/ui/icons.tsx). An id, not an
+   *  emoji: the owner's rule is no emoji in the game's own interface. */
+  icon: 'shirt' | 'burst' | 'shield' | 'clock'
 }
 
 export const BRIEFS: BriefDef[] = [
-  { id: 'orders', name: 'bench.briefOrders', short: 'bench.briefOrdersShort', icon: '👕', desc: 'bench.briefOrdersDesc' },
-  { id: 'impact', name: 'bench.briefImpact', short: 'bench.briefImpactShort', icon: '💥', desc: 'bench.briefImpactDesc' },
-  { id: 'shore', name: 'bench.briefShore', short: 'bench.briefShoreShort', icon: '🛡', desc: 'bench.briefShoreDesc' },
-  { id: 'manage', name: 'bench.briefManage', short: 'bench.briefManageShort', icon: '🎯', desc: 'bench.briefManageDesc' },
+  { id: 'orders', name: 'bench.briefOrders', short: 'bench.briefOrdersShort', icon: 'shirt', desc: 'bench.briefOrdersDesc' },
+  { id: 'impact', name: 'bench.briefImpact', short: 'bench.briefImpactShort', icon: 'burst', desc: 'bench.briefImpactDesc' },
+  { id: 'shore', name: 'bench.briefShore', short: 'bench.briefShoreShort', icon: 'shield', desc: 'bench.briefShoreDesc' },
+  { id: 'manage', name: 'bench.briefManage', short: 'bench.briefManageShort', icon: 'clock', desc: 'bench.briefManageDesc' },
 ]
 
 export const BRIEF_BY_ID: Record<string, BriefDef> =

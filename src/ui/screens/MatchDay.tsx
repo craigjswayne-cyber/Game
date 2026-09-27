@@ -9,6 +9,7 @@ import {
 } from '../../game/matchEngine'
 import { MIDWEEK_OFF, BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, chemKey, clubCode, chemTier, eventText, injuryDesc, fixtureDate, fixtureDayOff, grudgeBetween, inRedZone, oldBoyApps, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
 import { BRIEF_BY_ID, SPLIT_BY_ID, benchSeats, briefForSeat, splitFor } from '../../game/bench'
+import { BriefIcon } from '../tacticsArt'
 import { assistantFixtureThisWeek, isKnockoutTie, userMatchThisWeek, weekRng } from '../../game/season'
 import { effAt } from '../../game/attributes'
 import { PRESETS, SLIDER_INFO, sliderReadout, type SliderKey } from '../../game/tactics'
@@ -2971,7 +2972,7 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
                   <span className="sh-num">{p.pos}</span>
                   <span className="sh-name">{p.name}</span>
                   {brief !== 'orders' && (
-                    <span className="sh-flag" title={t(BRIEF_BY_ID[brief].name)}>{BRIEF_BY_ID[brief].icon}</span>
+                    <span className="sh-flag" title={t(BRIEF_BY_ID[brief].name)}><BriefIcon brief={brief} /></span>
                   )}
                   {off && covers(p) && <span className="sh-flag" title={t('matchday.naturalCover')}>✓</span>}
                   <span className="sh-rate">{p.ca}</span>

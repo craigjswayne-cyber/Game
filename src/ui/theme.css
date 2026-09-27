@@ -3058,6 +3058,120 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .brief-row .preset-row { margin-top: 5px; gap: 5px; }
 .brief-row .preset-chip { padding: 5px 9px; font-size: 11px; }
 
+/* ---- the set piece and the bench, drawn (1.8.0) -------------------------
+   Owner: "I want to work on Set Piece / Bench & Prep... I want them to be
+   more visual." Every call carries its whiteboard picture (src/ui/tacticsArt
+   .tsx), drawn on the highlight pitch's grass so the two read as one game.
+   The picture goes on top, two tiles to a row on a phone: beside the words
+   it was 112px wide and a lineout's jumper was a four-pixel dot. The
+   four-way calls (exit, kick, penalty) are two by two, like the grid they
+   replaced. */
+.dg { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; border-radius: 6px; }
+.routine-grid.sp-routines { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.sp-call { align-items: stretch; gap: 6px; padding: 7px; }
+.sp-txt { display: flex; flex-direction: column; gap: 3px; min-width: 0; padding: 0 2px 2px; }
+.sp-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; margin-top: 6px; }
+.sp-card { align-items: stretch; gap: 6px; padding: 7px; }
+.sp-card b { text-align: center; line-height: 1.25; }
+@media (min-width: 700px) {
+  .sp-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  /* six lineout calls as three and three, four scrum calls in a row: an
+     auto-fill grid left the last two lineouts alone on their own line */
+  .routine-grid.sp-lineout { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .routine-grid.sp-scrum { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+/* the 23: the fifteen in a team-sheet shape on the grass, the eight on a bench */
+.b23 { margin: 6px 14px; display: grid; gap: 8px; }
+@media (min-width: 700px) {
+  .b23 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+}
+.b23-pitch {
+  position: relative; height: 340px; border-radius: 10px; overflow: hidden;
+  background: repeating-linear-gradient(180deg, var(--hl-grass-a) 0 12.5%, var(--hl-grass-b) 12.5% 25%);
+  border: 1px solid var(--border);
+}
+.b23-man {
+  position: absolute; left: var(--fx); top: var(--fy); width: 31%;
+  transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center;
+}
+/* each shirt on a dark disc with a light rim: a bottle-green or black kit
+   (Northampton's is both) otherwise vanishes into the grass at this size */
+.b23-kit {
+  position: relative; display: block; line-height: 0;
+  padding: 3px; border-radius: 50%;
+  background: rgba(8, 12, 18, .55);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .35);
+}
+.b23-seat .b23-kit { background: var(--surface-3); box-shadow: 0 0 0 1px var(--border-strong); }
+.b23-num {
+  position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%);
+  padding: 0 2px; border-radius: 3px; background: rgba(8, 12, 18, .58);
+  font-family: var(--cond); font-size: 10px; font-weight: 800; line-height: 12px; color: var(--on-hero);
+}
+.b23-name {
+  margin-top: 2px; padding: 0 4px; border-radius: 3px; max-width: 100%;
+  background: rgba(8, 12, 18, .78); color: var(--on-hero);
+  font-size: 10.5px; font-weight: 700; line-height: 13px; text-align: center; overflow-wrap: anywhere;
+}
+.b23-bench { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 8px; }
+.b23-seats {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 6px;
+  padding-bottom: 8px; border-bottom: 4px solid var(--border-strong);
+}
+.b23-seat {
+  display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0;
+  padding: 6px 2px; border-radius: 8px; background: var(--surface-2); text-align: center;
+}
+.b23-sname { font-size: 11px; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere; }
+.b23-seat .pos-badge { font-size: 10px; padding: 1px 4px; }
+.b23-brief { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; line-height: 1.2; color: var(--text-muted); }
+.b23-brief.on { color: var(--gold); font-weight: 700; }
+
+/* a split, as the eight seats: filled for a forward, open for a back */
+.split-pips { display: flex; gap: 4px; margin: 3px 0 1px; }
+.split-pips i {
+  width: 11px; height: 11px; border-radius: 50%; box-sizing: border-box;
+  border: 1.5px solid var(--text-secondary);
+}
+.split-pips i.fw { background: var(--text-primary); border-color: var(--text-primary); }
+
+/* the bench's clock: the two rules the engine keeps, on the eighty minutes */
+.bclock { margin-top: 8px; }
+.bclock-bar { position: relative; height: 10px; margin: 6px 10px 0; border-radius: 5px; background: var(--surface-2); }
+.bclock-late { position: absolute; left: 80%; right: 0; top: 0; bottom: 0; border-radius: 0 5px 5px 0; background: var(--gold-fill); }
+.bclock-ht { position: absolute; left: 50%; top: -3px; bottom: -3px; width: 2px; background: var(--border-strong); }
+.bclock-mark { position: absolute; left: 80%; top: -4px; bottom: -4px; width: 2px; background: var(--gold); }
+.bclock-axis { position: relative; height: 14px; margin: 3px 10px 0; font-size: 10px; color: var(--text-muted); }
+.bclock-axis span { position: absolute; transform: translateX(-50%); }
+
+/* a brief's icon, sized to the words beside it (bench page and live sheet) */
+.brief-ico { display: inline-flex; line-height: 0; vertical-align: -0.25em; }
+.brief-ico svg { width: 1.3em; height: 1.3em; }
+.brief-key { margin: 8px 14px 0; display: grid; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+.brief-key-row { display: flex; gap: 8px; align-items: flex-start; line-height: 1.35; }
+.brief-key-row .brief-ico svg { width: 18px; height: 18px; }
+.brief-key b { color: var(--text-primary); }
+@media (min-width: 700px) {
+  .brief-key { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+}
+
+/* the week's preparation: five cards, the odd one out spanning on a phone */
+.prep-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; padding: 0 14px; }
+.prep-grid .prep-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
+@media (min-width: 700px) {
+  .prep-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .prep-grid .prep-card:last-child:nth-child(odd) { grid-column: auto; }
+}
+.prep-ico {
+  display: flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--surface-2); color: var(--text-secondary);
+}
+.prep-ico svg { width: 20px; height: 20px; }
+.prep-card.sel .prep-ico { background: var(--pick); color: var(--pick-ink); }
+
 /* ---- the game-time ledger's status picker (F18) --------------------------
    .inline-input is a form control built for a card: 11px padding and a 6px
    margin. Dropped into a table row it made each row 140px tall, which put
