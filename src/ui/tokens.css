@@ -718,6 +718,19 @@
   --prop-tee-edge: #9a7b3f;
   --prop-ink: #ffffff;
   --prop-ink-dark: #1d2733;
+  /* the highlight pitch (1.8.0, HighlightClip.tsx): the mown grass in two
+     stripes, the dark surround past the dead-ball lines, the ball and its
+     seam, and the verdict colour of a missed kick. The canvas reads these at
+     draw time (tokenColor), so they are real colours in one place. */
+  --hl-grass-a: #347441;
+  --hl-grass-b: #2f6b3a;
+  --hl-surround: #23512c;
+  --hl-ball: #f4ead2;
+  --hl-ball-edge: #6b5a3a;
+  --hl-miss: #ffb3a8;
+  /* a club with no kit on file, home and away */
+  --kit-home: #2f8f55;
+  --kit-away: #b33a3a;
   /* the FWDS & BCKS studio mark: black and white in every skin and mode */
   --studio-ink: #0b0b0b;
   --studio-paper: #ffffff;

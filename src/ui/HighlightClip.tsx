@@ -522,6 +522,7 @@ export function HighlightClip({ spec, speed = 1, paused, onReveal, onDone }: {
     const d = spec.attackHome ? 1 : -1
     let raf = 0, clock = 0, lastNow = performance.now(), revealed = 0, landed = false, finished = false, reviewing = false
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    const ink = readInk()
 
     // the pitch, drawn once
     const field = document.createElement('canvas')
@@ -534,7 +535,7 @@ export function HighlightClip({ spec, speed = 1, paused, onReveal, onDone }: {
       field.width = Math.round(FIELD_W * sc * dpr); field.height = Math.round(70 * sc * dpr)
       const f = field.getContext('2d')!
       f.setTransform(dpr, 0, 0, dpr, 0, 0)
-      drawField(f, FIELD_W * sc, 70 * sc)
+      drawField(f, FIELD_W * sc, 70 * sc, ink)
       return { w, h, dpr, sc }
     }
     let dim = size()
@@ -564,7 +565,7 @@ export function HighlightClip({ spec, speed = 1, paused, onReveal, onDone }: {
       const g = cv.getContext('2d')!
       cam = camAt(t)
       g.setTransform(1, 0, 0, 1, 0, 0)
-      g.fillStyle = '#23512c'; g.fillRect(0, 0, cv.width, cv.height)
+      g.fillStyle = ink.surround; g.fillRect(0, 0, cv.width, cv.height)
       g.drawImage(field, Math.round((X(-PAD)) * dim.dpr), Math.round(Y(0) * dim.dpr))
       g.setTransform(dim.dpr, 0, 0, dim.dpr, 0, 0)
       const f = frameAt(spec, t)
@@ -576,8 +577,8 @@ export function HighlightClip({ spec, speed = 1, paused, onReveal, onDone }: {
         const x = X(p.x), y = Y(clamp(p.y, 0.5, 69.5))
         g.beginPath(); g.arc(x, y + 1.2, R, 0, Math.PI * 2); g.fillStyle = 'rgba(0,0,0,.28)'; g.fill()
         g.beginPath(); g.arc(x, y, R, 0, Math.PI * 2); g.fillStyle = fill; g.fill()
-        g.lineWidth = ring ? 2.2 : 1.4; g.strokeStyle = ring ? '#ffffff' : edge; g.stroke()
-        g.fillStyle = readable(fill); g.font = `700 ${Math.round(R * 1.05)}px system-ui, sans-serif`
+        g.lineWidth = ring ? 2.2 : 1.4; g.strokeStyle = ring ? ink.white : edge; g.stroke()
+        g.fillStyle = isLight(fill) ? ink.dark : ink.white; g.font = `700 ${Math.round(R * 1.05)}px system-ui, sans-serif`
         g.textAlign = 'center'; g.textBaseline = 'middle'
         g.fillText(String(num), x, y + 0.5)
       }
@@ -589,7 +590,7 @@ export function HighlightClip({ spec, speed = 1, paused, onReveal, onDone }: {
       const bx = X(now.p.x), by = Y(now.p.y)
       g.beginPath(); g.ellipse(bx, by + 2, R * 0.55, R * 0.3, 0, 0, Math.PI * 2); g.fillStyle = 'rgba(0,0,0,.35)'; g.fill()
       g.beginPath(); g.ellipse(bx, by - f.lift * dim.sc * 0.6, R * 0.6, R * 0.42, -0.4, 0, Math.PI * 2)
-      g.fillStyle = '#f4ead2'; g.fill(); g.lineWidth = 1; g.strokeStyle = '#6b5a3a'; g.stroke()
+      g.fillStyle = ink.ball; g.fill(); g.lineWidth = 1; g.strokeStyle = ink.ballEdge; g.stroke()
     }
 
     raf = requestAnimationFrame(frame)
@@ -604,7 +605,7 @@ export function HighlightClip({ spec, speed = 1, paused, onReveal, onDone }: {
       )}
       {banner === 'final' && (
         <div className={`hl-banner ${spec.kind}${spec.kind === 'kick' && !spec.kickGood ? ' miss' : ''}`}
-          style={{ background: spec.kind === 'try' || (spec.kind === 'kick' && spec.kickGood) ? spec.att[0] : undefined, color: spec.kind === 'try' || (spec.kind === 'kick' && spec.kickGood) ? readable(spec.att[0]) : undefined }}>
+          style={{ background: spec.kind === 'try' || (spec.kind === 'kick' && spec.kickGood) ? spec.att[0] : undefined, color: spec.kind === 'try' || (spec.kind === 'kick' && spec.kickGood) ? (isLight(spec.att[0]) ? 'var(--prop-ink-dark)' : 'var(--prop-ink)') : undefined }}>
           <b>{spec.label}</b>
           {spec.sub && <span>{spec.sub}</span>}
         </div>
@@ -613,21 +614,34 @@ export function HighlightClip({ spec, speed = 1, paused, onReveal, onDone }: {
   )
 }
 
-/** ink or white, whichever reads on this colour */
-function readable(bg: string): string {
+/** is this a light colour, so the writing on it wants to be dark? */
+function isLight(bg: string): boolean {
   const h = bg.replace('#', '')
-  if (h.length < 6) return '#ffffff'
-  const l = (parseInt(h.slice(0, 2), 16) * 299 + parseInt(h.slice(2, 4), 16) * 587 + parseInt(h.slice(4, 6), 16) * 114) / 1000
-  return l > 150 ? '#111111' : '#ffffff'
+  if (h.length < 6) return false
+  return (parseInt(h.slice(0, 2), 16) * 299 + parseInt(h.slice(2, 4), 16) * 587 + parseInt(h.slice(4, 6), 16) * 114) / 1000 > 150
+}
+
+/** A colour token's value, for the canvas (which cannot read var()). */
+export function tokenColor(name: string): string {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+}
+
+/** the canvas's colours, all from tokens.css */
+function readInk() {
+  return {
+    surround: tokenColor('--hl-surround'), grassA: tokenColor('--hl-grass-a'), grassB: tokenColor('--hl-grass-b'),
+    ball: tokenColor('--hl-ball'), ballEdge: tokenColor('--hl-ball-edge'),
+    white: tokenColor('--prop-ink'), dark: tokenColor('--prop-ink-dark'),
+  }
 }
 
 /** A rugby pitch, side on: stripes, try lines, 22s, halfway, the dashed 10s,
  *  5s and 15s, and the posts. */
-function drawField(g: CanvasRenderingContext2D, w: number, h: number) {
+function drawField(g: CanvasRenderingContext2D, w: number, h: number, ink: ReturnType<typeof readInk>) {
   const X = (x: number) => (x + PAD) / FIELD_W * w
   const Y = (y: number) => y / 70 * h
   for (let i = 0; i < 12; i++) {
-    g.fillStyle = i % 2 ? '#2f6b3a' : '#347441'
+    g.fillStyle = i % 2 ? ink.grassB : ink.grassA
     g.fillRect(X(-PAD + i * (FIELD_W / 12)), 0, w / 12 + 1, h)
   }
   // the in-goals a shade darker
@@ -643,8 +657,8 @@ function drawField(g: CanvasRenderingContext2D, w: number, h: number) {
   g.strokeRect(0.7, 0.7, w - 1.4, h - 1.4)
   // the posts: a crossbar on the try line and the two uprights, seen from above
   for (const x of [0, 100]) {
-    g.lineWidth = 2.2; g.strokeStyle = '#ffffff'
+    g.lineWidth = 2.2; g.strokeStyle = ink.white
     g.beginPath(); g.moveTo(X(x), Y(32.2)); g.lineTo(X(x), Y(37.8)); g.stroke()
-    for (const y of [32.2, 37.8]) { g.beginPath(); g.arc(X(x), Y(y), 2, 0, Math.PI * 2); g.fillStyle = '#ffffff'; g.fill() }
+    for (const y of [32.2, 37.8]) { g.beginPath(); g.arc(X(x), Y(y), 2, 0, Math.PI * 2); g.fillStyle = ink.white; g.fill() }
   }
 }
