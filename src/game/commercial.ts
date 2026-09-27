@@ -42,6 +42,7 @@ export type SlotId = 'shirt' | 'sleeve' | 'naming' | 'kit'
 export interface SlotInfo {
   id: SlotId
   name: string
+  /** a glyph name (glyphs.tsx) */
   icon: string
   /** what the sponsor is actually buying */
   desc: string
@@ -55,19 +56,19 @@ export interface SlotInfo {
 // sleeve is worth a fifth of the front of the shirt.
 export const SLOTS: SlotInfo[] = [
   {
-    id: 'shirt', name: 'finances.slotShirt', icon: '👕', share: 0.40,
+    id: 'shirt', name: 'finances.slotShirt', icon: 'club', share: 0.40,
     desc: 'finances.slotShirtDesc',
   },
   {
-    id: 'sleeve', name: 'finances.slotSleeve', icon: '🎽', share: 0.08,
+    id: 'sleeve', name: 'finances.slotSleeve', icon: 'tag', share: 0.08,
     desc: 'finances.slotSleeveDesc',
   },
   {
-    id: 'naming', name: 'finances.slotNaming', icon: '🏟', share: 0.24,
+    id: 'naming', name: 'finances.slotNaming', icon: 'stadium', share: 0.24,
     desc: 'finances.slotNamingDesc',
   },
   {
-    id: 'kit', name: 'finances.slotKit', icon: '🧵', share: 0.28,
+    id: 'kit', name: 'finances.slotKit', icon: 'store', share: 0.28,
     desc: 'finances.slotKitDesc',
   },
 ]
@@ -294,7 +295,7 @@ export function endDealEarly(state: GameState, slot: SlotId): string {
   const v = { icon: info.icon, sponsor: live.sponsor, slot_k: info.name, short: club.short }
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
-    subject: `${info.icon} ${live.sponsor} released early`,
+    subject: `${live.sponsor} released early`,
     body: tIn('en', 'news.sponsorEnded', v),
     k: 'news.sponsorEnded', v,
   })
@@ -419,7 +420,7 @@ export function signOffer(state: GameState, offer: Offer): string {
   }
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
-    subject: `${SLOT_BY_ID[offer.slot].icon} ${offer.sponsor} sign on with ${club.short}`,
+    subject: `${offer.sponsor} sign on with ${club.short}`,
     body: tIn('en', k, v),
     k, v,
   })
@@ -457,7 +458,7 @@ export function expireDeals(state: GameState) {
     }
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
-      subject: `${slot.icon} ${d.sponsor} deal expires`,
+      subject: `${d.sponsor} deal expires`,
       body: tIn('en', 'news.sponsorExpires', v),
       k: 'news.sponsorExpires',
       v,
