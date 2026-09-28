@@ -16,6 +16,7 @@ import { genderOf, W } from './gender'
 import { SLOTS, expireDeals, offersFor } from './commercial'
 import { settleSponsorBonuses } from './sponsortalks'
 import { book, closeBooks } from './books'
+import { identityIntakeBonus, identitySeasonEnd } from './identity'
 import { OFFICE_OUTLET } from './media'
 import { autoSelect } from './matchEngine'
 import { ensureCaptains } from './analysis'
@@ -812,7 +813,7 @@ export function rollIntakeClass(state: GameState, rng: Rng): NonNullable<GameSta
   const out: NonNullable<GameState['intakeClass']> = []
   for (let i = 0; i < n; i++) {
     const pos = pick(rng, YOUTH_POS)
-    const q = 38 + Math.floor(rng() * 22) + Math.floor(club.rep / 12) + Math.round(coe * 1.2) + natTalentBonus(club.country)
+    const q = 38 + Math.floor(rng() * 22) + Math.floor(club.rep / 12) + Math.round(coe * 1.2) + natTalentBonus(club.country) + identityIntakeBonus(state)
     // A wonderkid every couple of seasons rather than every four (user: "there
     // should be more wonderkids in academy's"). The balance holds because the
     // flag is only a CEILING: whether he ever reaches it is now down to the
@@ -1543,6 +1544,7 @@ export function rebuildSeason(state: GameState) {
     }
   }
 
+  identitySeasonEnd(state) // the identity's expectations, met or missed (identity.ts)
   // archive player season -> career
   for (const p of Object.values(state.players)) {
     if (p.stats.apps > 0 && p.clubId) {

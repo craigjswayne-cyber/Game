@@ -2006,6 +2006,9 @@ export interface GameState {
   /** per-dial run length of consecutive user matches played at an extreme
    *  (pillar 2's repetition fatigue) - written at settle, read at kick-off */
   dialStreak?: Record<string, number>
+  /** the user's club identity, smoothed over seasons (identity.ts). Absent on
+   *  an older save, which is seeded from its current state on first read. */
+  identity?: import('./identity').ClubIdentity | null
   /** absolute week the availability counter last ticked (see settleGameTime),
    *  so a double-called settle cannot count one match twice */
   availWeek?: number

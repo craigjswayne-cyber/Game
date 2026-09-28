@@ -12,6 +12,7 @@ import { interestPremium, transferInterest } from './interest'
 import { playerValue, playerWage } from './attributes'
 import { clamp, mulberry32, pick, type Rng } from './rng'
 import { book } from './books'
+import { identitySigning } from './identity'
 
 // ------------------------------------------------------------------
 // Transfer market
@@ -263,6 +264,7 @@ export function executeTransfer(state: GameState, p: Player, toClubId: string, f
     // and the biggest cheque of the era goes in the book (records.ts)
     offerSigning(state, p.id, fee)
     p.sc = 100
+    identitySigning(state, p, fee) // an academy club's crowd has a view on a big fee (identity.ts)
   }
   p.wage = Math.max(p.wage, playerWage(p.ca, p.age))
   p.contractEnds = state.season + 2 + (p.age < 30 ? 1 : 0)
