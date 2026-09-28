@@ -1,6 +1,6 @@
 import { useEffect, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import { useStore } from '../../store'
-import { absWeek, boardObjective, facLevel, fmtMoney, fmtWage, operatingCost, pressAnswer, pressLabel, pressQuestion, pressReaction, SEASON_WEEKS, weeklyCentral } from '../../game/model'
+import { boardObjective, facLevel, fmtMoney, fmtWage, operatingCost, pressAnswer, pressLabel, pressQuestion, pressReaction, weeklyCentral } from '../../game/model'
 import type { GameState } from '../../game/model'
 import {
   CHARTER_SKU, buyOwnable, hasEntitlement,
@@ -26,7 +26,7 @@ import { sheetOf } from '../../game/books'
 import { RELEASE_STEP, belowReserve, cashReserve, releasable, releaseBlock, releaseToBudget } from '../../game/treasury'
 import { requestFunds } from '../../game/season'
 import { prose, unwrap } from '../../game/quotes'
-import { PRESS_KEEP_WEEKS, isBoardroom } from '../../game/media'
+import { isBoardroom } from '../../game/media'
 import { INJECT_TIERS, injectionsLeft, userWageBudget, type InjectTier } from '../../game/grants'
 
 export default function Finances() {
@@ -985,9 +985,8 @@ function BoardDecisions() {
   const game = useStore(s => s.game)!
   const answer = useStore(s => s.answerPressOption)
   const open = game.press.filter(p => !p.answered && isBoardroom(p))
-  const now = game.season * SEASON_WEEKS + game.week
   const done = game.press
-    .filter(p => p.answered && isBoardroom(p) && now - absWeek(p.season, p.week) <= PRESS_KEEP_WEEKS)
+    .filter(p => p.answered && isBoardroom(p) && p.season === game.season)
     .reverse()
   if (!open.length && !done.length) return null
   return (
