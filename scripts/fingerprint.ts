@@ -486,12 +486,24 @@ const EXPECTED: string[] = [
   // replacements pay (subvalueprobe: four changes +1.27 points over none).
   // One of six moved (harlequins-leicester). bandcheck: 49.7 pts, 6.30 tries,
   // 51.8% home, 1.5% draws, 8.6% blowouts.
+  // REBASELINED for who is actually on the pitch (matchEngine fieldChanged).
+  // Every side's units are now rebuilt when its personnel changes, so an AI
+  // side's replacements, injury cover and HIA stand-ins reach its scrum and
+  // its defence (they never did: only the manager's own changes rebuilt
+  // anything), and a rebuild starts from a clean base, so a Test side no
+  // longer stacks its coaching bonus once per change. The goal kicker is
+  // whoever is out there (goalKicker), not a name fixed at kick-off, and an
+  // AI side's change for tired legs is like for like. No new draw: the same
+  // rolls meet different thresholds, and two of six moved, both after the
+  // hour, which is when the benches go on. bandcheck, pooled over four seeds:
+  //   pts 49.7 -> 49.6   tries 6.30 -> 6.31   home 51.7% -> 52.2%
+  //   draws 1.5% -> 1.7%   blowouts 8.7% -> 8.9% (every band holds)
   'saracens 14-27 bath',
   'exeter 20-3 gloucester',
   'sale 39-25 bristol',
-  'harlequins 38-8 leicester',
+  'harlequins 31-18 leicester',
   'newcastle 13-30 northampton',
-  'exeter 19-39 saracens',
+  'exeter 10-42 saracens',
 ]
 // v1.8.1 moved three of them once more, and this time WITHOUT spending a new
 // draw: the training pitch now scales every side's breakdown and handling off

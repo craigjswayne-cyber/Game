@@ -265,7 +265,7 @@ const avg = (ns: number[]) => ns.length ? ns.reduce((a, b) => a + b, 0) / ns.len
  *  engine's calibration stands */
 const UNIT_NORM = { breakdown: 0.98818, attack: 1.02380, defence: 1.05597 }
 
-export function teamUnits(state: GameState, lineup: (number | null)[], day?: { fxId: number; big: boolean }): Units {
+export function teamUnits(state: GameState, lineup: (number | null)[], day?: { fxId: number; big: boolean; chemToday?: Set<string> }): Units {
   const xv = lineup.slice(0, 15).map(id => (id != null ? state.players[id] : null))
   const P = (i: number) => xv[i]
   // THE MATCH-DAY WOBBLE (25D-2). With `day` set - only ever by the live sim,
@@ -327,7 +327,9 @@ export function teamUnits(state: GameState, lineup: (number | null)[], day?: { f
   if (state.chem) {
     const games = (i: number, j: number) => {
       const a = lineup[i], b = lineup[j]
-      return a != null && b != null ? state.chem![chemKey(a, b)] ?? 0 : 0
+      if (a == null || b == null) return 0
+      const k = chemKey(a, b)
+      return (state.chem![k] ?? 0) - (day?.chemToday?.has(k) ? 1 : 0)
     }
     const f = (g: number) => (g >= 50 ? 0.03 : g >= 25 ? 0.02 : g >= 10 ? 0.01 : 0)
     scrum *= 1 + (f(games(0, 1)) + f(games(1, 2))) / 2
@@ -984,11 +986,50 @@ export interface SideCtx {
   briefsUsed?: number
   /** a man is playing out of his depth after a forced positional switch */
   coverBlown?: boolean
+
+  // ---- who was out there, and for how long ----------------------------------
+  /** the XV on the pitch when the first tick ran. The lineup array is
+   *  rewritten by every substitution, so reading it at full time handed the
+   *  start to whoever finished the match in the shirt. */
+  starters?: Set<number>
+  /** the minute each man now on the pitch began his current stint */
+  since?: Map<number, number>
+  /** minutes each man has banked from stints that have ended */
+  played?: Map<number, number>
+  /** the personnel the units were last built from (see fieldChanged) */
+  unitsKey?: string
+  /** the three set-piece units summed over the ticks played, and how many.
+   *  The coach's verdict reads the match's average from these: now that a
+   *  side's units follow its replacements, the full-time figure is the pack
+   *  that finished the game, not the one that contested most of it. */
+  setAcc?: { scrum: number; lineout: number; breakdown: number; n: number }
 }
 
 /** Tactic + weather + coaching modifiers, applied to freshly computed units. */
 function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null) {
   const club = state.clubs[side.teamId]
+  // FROM A CLEAN BASE EVERY TIME. This runs at kick-off and again on every
+  // recompute, and the figures below are only ASSIGNED on some paths: a Test
+  // side has no club, so its tempo, card and penalty risk were never reset and
+  // each recompute multiplied the layered mods into them again, and the
+  // coaching block ADDS its goal-kicking bonus. A side that changed personnel
+  // five times kicked with five coaching bonuses. Resetting here, to exactly
+  // the values mkSide starts from, is what makes a recompute idempotent: the
+  // kick-off numbers are unchanged and the tenth rebuild lands where the
+  // first did. The penalty price reads refPenF, which carries the referee and
+  // the crowd, so nothing beginMatch folded in is lost.
+  side.goalBonus = 0
+  side.tempoF = 1
+  side.drainF = 1
+  side.cardRisk = 0.012
+  side.aggF = 0
+  side.penRisk = aggPenRisk(0, side.refPenF ?? 1)
+  // who is actually out there: a sent-off captain does not lead, a man in the
+  // bin does not call the lineouts and a hot head in the stand cannot be sent
+  // off again. At kick-off this is the XV, so nothing changes there.
+  const present = (id: number | null | undefined): id is number => id != null && side.onPitch.has(id)
+  // and the shirts as the units read them, an HIA stand-in in his (fieldLineup)
+  const shirts = fieldLineup(side).slice(0, 15)
   /**
    * ---- THE TRAINING PITCH (owner, v1.8.1) ----
    *
@@ -1017,7 +1058,7 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
   }
   // a happy dressing room plays for each other; a sour one hesitates
   if (club) {
-    const xv = side.lineup.slice(0, 15).map(id => id != null ? state.players[id] : null).filter(Boolean)
+    const xv = shirts.map(id => id != null ? state.players[id] : null).filter(Boolean)
     if (xv.length) {
       const avgMor = xv.reduce((s, p) => s + p!.morale, 0) / xv.length
       const mF = 1 + (avgMor - 6.5) * 0.009 // roughly ±3% at the extremes
@@ -1105,7 +1146,13 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
 
     // The kicking game (F3). A designated kicker is a decision; the automatic
     // pick of whoever has the best attribute is not.
-    const named = (tac.kickers ?? []).find(id => id != null && side.onPitch.has(id) && !state.players[id]?.injury)
+    // Read against the SHIRTS, not against who is on the pitch this minute: a
+    // first-choice kicker sitting out ten in the bin is still the first-choice
+    // kicker, and goalKicker() finds a stand-in while he sits and hands the tee
+    // back when he returns. Keyed on onPitch, a rebuild during his ten minutes
+    // quietly demoted him for the rest of the match. At kick-off the two sets
+    // are the same, so the pick there is unchanged.
+    const named = (tac.kickers ?? []).find(id => id != null && side.lineup.slice(0, 15).includes(id) && !state.players[id]?.injury)
     if (named != null) side.units.kickerId = named
     // exit strategy: how you play your way out of your own 22
     switch (tac.exit) {
@@ -1122,7 +1169,7 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
   if (club?.tactic.roles) {
     for (let i = 0; i < 15; i++) {
       const r = club.tactic.roles[i]
-      if (!r || side.lineup[i] == null) continue
+      if (!r || shirts[i] == null) continue
       // A ROLE HAS TO BE LEGAL FOR THE SHIRT. rolesForSlot is the rule and it was
       // enforced only in Tactics.tsx, so fifteen jackals were one save-edit away
       // and measured +7.1 points a match. An engine rule a screen can bypass is
@@ -1141,13 +1188,13 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
   }
 
   // hot heads walk the disciplinary tightrope every week
-  for (const id of side.lineup.slice(0, 15)) {
-    const p = id != null ? state.players[id] : null
+  for (const id of shirts) {
+    const p = present(id) ? state.players[id] : null
     if (p?.trait === 'Hot Head') side.cardRisk += 0.002
   }
   // a proper captain in the XV steadies the ship and keeps discipline;
   // when he's missing, the vice-captain leads at half the effect
-  const xvIds = side.lineup.slice(0, 15)
+  const xvIds = shirts.filter(present)
   const leader = club?.captain != null && xvIds.includes(club.captain)
     ? { p: state.players[club.captain], f: 1 }
     : club?.vice != null && xvIds.includes(club.vice)
@@ -1166,7 +1213,7 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
   // responsibility sits, not a free upgrade, and a world where nobody names one
   // is exactly where it was.
   if (club?.leaders) {
-    const onField = new Set(side.lineup.slice(0, 15).filter((x): x is number => x != null))
+    const onField = new Set(shirts.filter(present))
     for (const [area, id] of Object.entries(club.leaders)) {
       if (id == null || !onField.has(id)) continue
       const h = state.players[id]
@@ -1380,6 +1427,11 @@ function mkSide(state: GameState, teamId: string, userTeamId: string | null, fxI
   // penalty entirely - the same isUser-versus-teamId trap the coaching
   // department comment above was written about.
   if (side.teamId === state.userClubId) side.repF = repetitionFatigue(state)
+  // the XV start their stints at the kick-off, and the units just built are
+  // the units of this personnel, so the first tick has nothing to rebuild
+  side.since = new Map([...onPitch].map(id => [id, 0]))
+  side.played = new Map()
+  side.unitsKey = personnelKey(side)
   return side
 }
 
@@ -1705,6 +1757,11 @@ export interface LiveCtx {
   /** the seed of the kicks-from-hand dice (kicksFromHand), drawn once from
    *  rng at kick-off so every match has its own */
   kickSeed?: number
+  /** the partnerships this match has already been counted into (state.chem,
+   *  at kick-off). A rebuild of the units reads them one game short, so it
+   *  sees the familiarity the kick-off units were built from and does not
+   *  hand a side a chemistry step for having made a substitution. */
+  chemToday?: Set<string>
   detail: boolean
   weather: Weather
   derby: boolean
@@ -2237,12 +2294,14 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
   // every match started together deepens a partnership (counted at kick-off,
   // after this match's units were computed from the old familiarity)
   state.chem ??= {}
+  const chemToday = new Set<string>()
   for (const side of [home, away]) {
     for (const [i, j] of CHEM_SLOTS) {
       const a = side.lineup[i], b = side.lineup[j]
       if (a != null && b != null) {
         const k = chemKey(a, b)
         state.chem[k] = (state.chem[k] ?? 0) + 1
+        chemToday.add(k)
       }
     }
   }
@@ -2276,6 +2335,7 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     preTalk: null, decision: null, momo: 0, grudge: grudge?.reason ?? null,
   }
   ctx.kickSeed = Math.floor(rng() * 4294967296) >>> 0
+  ctx.chemToday = chemToday
 
   // THE ANALYST'S HOMEWORK (pillar 2): an analyst-archetype dugout facing the
   // user starts with its plan pulled toward the counter to the user's habit.
@@ -2484,7 +2544,7 @@ function noteKick(ctx: LiveCtx, side: SideCtx, made: boolean) {
 /** Take the three points: roll the kick at goal. */
 function takePenaltyShot(state: GameState, ctx: LiveCtx, side: SideCtx, min: number) {
   const { rng, detail, goalPenalty } = ctx
-  const kicker = side.units.kickerId != null ? state.players[side.units.kickerId] : null
+  const kicker = goalKicker(state, side)
   const pPen = kickChance(state, kicker, 0.53, 54, ctx.goalPenalty ?? 0, side)
   const penOver = rng() < pPen
   noteKick(ctx, side, penOver)
@@ -2826,7 +2886,7 @@ function dropChance(ctx: LiveCtx, side: SideCtx, opp: SideCtx, up: number, tick:
 function dropGoalAttempt(state: GameState, ctx: LiveCtx, side: SideCtx, min: number, up: number) {
   const { rng } = ctx
   const fh = inShirt(state, side, 9)
-    ?? (side.units.kickerId != null && side.onPitch.has(side.units.kickerId) ? state.players[side.units.kickerId] : null)
+    ?? goalKicker(state, side)
   if (!fh) return
   const pOver = clamp(0.12 + fh.a.kic / 40 + (up - 68) * 0.006, 0.12, 0.75)
   const dgOver = rng() < pOver
@@ -2955,7 +3015,7 @@ function scoreTry(
     // never move the sim stream - see the EK lesson
     pushLine(state, ctx, min + 1, 'SUB', side, 'comm.tryComeback', { player: scorer.name }, scorer.id)
   }
-  const kicker = side.units.kickerId != null ? state.players[side.units.kickerId] : null
+  const kicker = goalKicker(state, side)
   const pCon = kickChance(state, kicker, 0.495, 54, goalPenalty, side)
   const conOver = rng() < pCon
   noteKick(ctx, side, conOver)
@@ -3249,6 +3309,7 @@ export function checkFrontRow(state: GameState, ctx: LiveCtx, side: SideCtx, min
     for (const p of rest) if ((side.ratings.get(p.id) ?? 6) < (side.ratings.get(nom.id) ?? 6)) nom = p
     side.onPitch.delete(nom.id)
     side.short += 1
+    fieldChanged(state, ctx, side, min)
     pushLine(state, ctx, min, 'SUB', side, 'comm.uncontestedShort', { team: teamShort(state, side.teamId), player: nom.name }, nom.id)
   }
 }
@@ -3276,9 +3337,21 @@ function aiAutoSubs(state: GameState, ctx: LiveCtx, side: SideCtx, min: number) 
       const p = state.players[id]
       if (!p || p.injury || side.ratings.has(id) || side.onPitch.has(id)) continue
       const s = effAt(p, pos)
+      // A CHANGE FOR TIRED LEGS IS LIKE FOR LIKE. This took the best of
+      // whatever was left, and once the bench prop had gone on for an injury
+      // that could be a centre at tighthead. It cost nothing while an AI
+      // side's units ignored its replacements; now that they read the men on
+      // the pitch, a centre in the front row scrummages like one. A tired
+      // specialist is kept on rather than swapped for a man who does not play
+      // there (his own position, a listed alternative or the neighbouring
+      // shirt, which is what effAt's 0.8 marks). Injuries still take whoever
+      // is left: that change is forced.
+      if (s < p.ca * 0.8) continue
       if (s > bestS) { bestS = s; best = p }
     }
-    if (!best) return
+    // nobody on the bench plays there: this shirt keeps its man, and the next
+    // tired shirt may still have a like-for-like change waiting
+    if (!best) continue
     side.onPitch.delete(outId)
     side.onPitch.add(best.id)
     cameOn(side, best.id, min)
@@ -3290,6 +3363,7 @@ function aiAutoSubs(state: GameState, ctx: LiveCtx, side: SideCtx, min: number) 
     // the AI coach's bench plan is subject to the same laws (F4)
     applyBrief(state, side, best.id)
     forcedSwitchCost(state, ctx, side, outId, best, min)
+    fieldChanged(state, ctx, side, min)
     made++
   }
 }
@@ -3528,6 +3602,16 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     // the final whistle wrong in both directions.
     const accounted = 15 - s.sent - s.short - s.binned.size
     if (s.onPitch.size < accounted) s.short += accounted - s.onPitch.size
+  }
+  // the men back from the bin are timed from now, and the net for anything
+  // else that changed since the last tick (see fieldChanged). The XV that
+  // walks out for the first tick is the one that started, whatever the
+  // manager did to the sheet before kick-off.
+  for (const s of [home, away]) {
+    s.starters ??= new Set(s.onPitch)
+    fieldChanged(state, ctx, s, min)
+    const acc = (s.setAcc ??= { scrum: 0, lineout: 0, breakdown: 0, n: 0 })
+    acc.scrum += s.units.scrum; acc.lineout += s.units.lineout; acc.breakdown += s.units.breakdown; acc.n += 1
   }
   // a sin-binned front-rower is back and the cover with him: the scrum is a
   // contest again, the levelling his card ordered taken back off both packs
@@ -3788,6 +3872,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           pushLine(state, ctx, min, 'YC', opp, 'comm.ycRepeated',
             { n: opp.consPens, team: teamShort(state, opp.teamId), player: p.name }, p.id)
           checkFrontRow(state, ctx, opp, min, p, 'yellow')
+          fieldChanged(state, ctx, opp, min)
         }
       }
       /**
@@ -3945,6 +4030,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           pushLine(state, ctx, min, 'YC', side, 'comm.yellowCard', { player: p.name }, p.id)
           checkFrontRow(state, ctx, side, min, p, 'yellow')
         }
+        fieldChanged(state, ctx, side, min)
       }
     }
 
@@ -4027,6 +4113,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
             side.short += 1
           }
           checkFrontRow(state, ctx, side, min, p, 'injury')
+          fieldChanged(state, ctx, side, min)
         }
       }
     }
@@ -4072,6 +4159,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
         // man stays on the bench rather than make a sixteenth
       }
       side.hia = undefined
+      fieldChanged(state, ctx, side, min)
     }
     if (!side.hia && rng() < 0.0085) {
       const ids = [...side.onPitch].filter(id => state.players[id] && !state.players[id].injury)
@@ -4085,6 +4173,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
         side.energy.set(sub.id, benchTank(sub))
         side.hia = { pid: p.id, subId: sub.id, failed: rng() < 0.4, returnTick: ctx.tick + 3 }
         pushLine(state, ctx, min, 'INJ', side, 'comm.hiaLedAway', { player: p.name, sub: sub.name }, p.id)
+        fieldChanged(state, ctx, side, min)
       }
     }
 
@@ -4447,7 +4536,7 @@ export function makeSubstitution(state: GameState, ctx: LiveCtx, outId: number, 
   if (!mine.ratings.has(inId)) mine.ratings.set(inId, 6)
   mine.energy.set(inId, benchTank(pin))
   ctx.subsUsed += 1
-  recomputeSideUnits(state, ctx, mine)
+  fieldChanged(state, ctx, mine, ctx.lastMin)
   const min = Math.min(79, Math.max(1, ctx.lastMin))
   // the brief he was given, and the bill if the shirt does not fit him (F4)
   const briefsBefore = mine.briefsUsed ?? 0
@@ -4520,7 +4609,11 @@ export function swapInjuryCover(state: GameState, ctx: LiveCtx, onId: number, in
   mine.energy.delete(onId)
   mine.ratings.set(inId, 6)
   mine.energy.set(inId, benchTank(pin))
-  recomputeSideUnits(state, ctx, mine)
+  // and the minutes he was on the pitch are the other man's, from the same
+  // moment, because as far as the match is concerned it was always him
+  const from = mine.since?.get(onId)
+  if (from != null) { mine.since!.delete(onId); mine.since!.set(inId, from) }
+  fieldChanged(state, ctx, mine, ctx.lastMin)
   const min = Math.min(79, Math.max(1, ctx.lastMin))
   // A better cover pick can undo the shortage the assistant walked into, so the
   // bill charged a moment ago is refunded exactly and then re-tested (F4). Only
@@ -4603,7 +4696,9 @@ export function undoSubstitution(state: GameState, ctx: LiveCtx): string {
     layer(mine, 'attack', 1 / COVER_ATT)
     layer(mine, 'defence', 1 / COVER_DEF)
   }
-  recomputeSideUnits(state, ctx, mine)
+  // he never played a second, so his stint closes empty (play has not
+  // resumed, so the clock has not moved since he came on)
+  fieldChanged(state, ctx, mine, ctx.lastMin)
   ctx.lastSub = null
   const min = Math.min(79, Math.max(1, ctx.lastMin))
   pushLine(state, ctx, min, 'SUB', mine, pin ? 'comm.subUndoneNamed' : 'comm.subUndone',
@@ -4639,9 +4734,116 @@ export function swapShirts(state: GameState, ctx: LiveCtx, aId: number, bId: num
 export function recomputeSideUnits(state: GameState, ctx: LiveCtx, side: SideCtx) {
   // same fixture, same day: the match-day wobble a recompute rebuilds is the
   // one kick-off dealt, because it is keyed on (seed, fixture, player)
-  side.units = teamUnits(state, side.lineup, { fxId: ctx.fx.id, big: !!ctx.fx.stage || ctx.derby })
+  side.units = teamUnits(state, fieldLineup(side), { fxId: ctx.fx.id, big: !!ctx.fx.stage || ctx.derby, chemToday: ctx.chemToday })
   applyModifiers(state, side, ctx.weather)
   if (ctx.derby) side.cardRisk *= 1.35
+  side.unitsKey = personnelKey(side)
+}
+
+/**
+ * The shirts the units are built from. The lineup, except that a man off for
+ * a head injury assessment is played by his stand-in: the HIA keeps the
+ * assessed man's name on the shirt so that he can come back to it, and the
+ * units used to go on reading his attributes for the ten minutes somebody
+ * else was wearing it.
+ *
+ * A man in the bin or sent off keeps his place here on purpose. numF charges
+ * the missing man, and building the units without him as well (teamUnits
+ * reads an empty shirt as a 5 in everything) would charge him twice.
+ */
+function fieldLineup(side: SideCtx): (number | null)[] {
+  const h = side.hia
+  if (!h || !side.onPitch.has(h.subId)) return side.lineup
+  const i = side.lineup.indexOf(h.pid)
+  if (i < 0 || i > 14) return side.lineup
+  const out = side.lineup.slice()
+  out[i] = h.subId
+  return out
+}
+
+/** Everything a rebuild of the units reads that a match can change: the
+ *  shirts (with an HIA stand-in in his) and who is on the pitch. */
+function personnelKey(side: SideCtx): string {
+  return fieldLineup(side).slice(0, 15).join(',') + '|' + [...side.onPitch].sort((a, b) => a - b).join(',')
+}
+
+/**
+ * ---- SOMEBODY CAME ON OR WENT OFF ----
+ *
+ * The one place a change of personnel is settled, for every side in the
+ * world. Until this existed the units were rebuilt only by the manager's own
+ * hand (a substitution, an undo, a shirt swap, a slider), so an AI side
+ * played its whole afternoon on the fifteen it kicked off with: a
+ * replacement's attributes never reached its scrum or its defence, an injury
+ * cover never counted, and a sent-off captain went on leading. The manager's
+ * own side had the same hole for everything he did not do himself - an
+ * injury, an HIA, a card.
+ *
+ * Two jobs, both cheap and neither drawing on the match rng:
+ *
+ *  - the minutes. Each man's stint is opened when he appears in onPitch and
+ *    closed when he leaves it, at the minute given. A man in the bin is not on
+ *    the pitch and banks nothing for his ten minutes: the figure feeds the
+ *    season's workload (the 1,300-minute red zone), and a man sitting on the
+ *    bench by the touchline is resting, not playing.
+ *
+ *  - the units, rebuilt only when the personnel they are built from has
+ *    actually changed (personnelKey), so calling this when nothing moved is
+ *    free and a rebuild is never repeated. applyModifiers starts from a clean
+ *    base, so a rebuild is idempotent: the tenth lands where the first did.
+ *
+ * Called straight after each change with the minute of it, and once at the
+ * top of every tick as a net for anything that moved without saying so; a
+ * stint the net catches is timed to that tick's minute instead.
+ */
+function fieldChanged(state: GameState, ctx: LiveCtx, side: SideCtx, min: number) {
+  const at = clamp(min, 0, 80)
+  const since = (side.since ??= new Map())
+  const played = (side.played ??= new Map())
+  for (const [id, from] of since) {
+    if (side.onPitch.has(id)) continue
+    played.set(id, (played.get(id) ?? 0) + Math.max(0, at - from))
+    since.delete(id)
+  }
+  for (const id of side.onPitch) if (!since.has(id)) since.set(id, at)
+  if (side.unitsKey !== personnelKey(side)) recomputeSideUnits(state, ctx, side)
+}
+
+/** A man's minutes in this match so far: the stints he has finished and the
+ *  one he is in, counted to `now`. */
+export function minutesPlayed(side: SideCtx, id: number, now: number): number {
+  const from = side.since?.get(id)
+  return (side.played?.get(id) ?? 0) + (from != null ? Math.max(0, now - from) : 0)
+}
+
+/**
+ * ---- WHO TAKES THE KICK ----
+ *
+ * units.kickerId is the side's first choice: the named kicker, or the best
+ * boot in the XV. It is a name on a sheet, and it used to be the only thing
+ * read, so a kicker who had been sent off, sin-binned or replaced went on
+ * taking the side's kicks from the stand and being credited with the points.
+ *
+ * Now the kick goes to the first choice if he is on the pitch; failing him,
+ * to the next of the manager's named kickers who is out there; failing them,
+ * to the best goal kicker on the field. Nothing is stored, so a first choice
+ * back from the bin takes the tee again at the next kick. A tie for the best
+ * boot goes to the man who has been out there longest. At kick-off the first
+ * choice is always on, so the pick there is exactly the one it always was.
+ */
+export function goalKicker(state: GameState, side: SideCtx): Player | null {
+  const first = side.units.kickerId
+  if (first != null && side.onPitch.has(first)) return state.players[first] ?? null
+  for (const id of state.clubs[side.teamId]?.tactic.kickers ?? []) {
+    if (id != null && side.onPitch.has(id) && !state.players[id]?.injury) return state.players[id] ?? null
+  }
+  let best: Player | null = null
+  let goal = 5
+  for (const id of side.onPitch) {
+    const p = state.players[id]
+    if (p && !p.injury && p.a.goa > goal) { goal = p.a.goa; best = p }
+  }
+  return best
 }
 
 /** Apply the user's (possibly changed) tactic sliders mid-match. */
@@ -4962,9 +5164,18 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
       } else if (!isNation) {
         if (p.debutPending) { debutants.push({ p, r, kind: p.debutPending }); p.debutPending = null }
         p.stats.apps += 1
-        const started = side.lineup.slice(0, 15).includes(pid)
+        // WHO STARTED AND HOW LONG HE PLAYED, as it happened. This read the
+        // lineup at full time and credited a flat 75 or 25, and the lineup is
+        // rewritten by every substitution: the replacement who finished in
+        // the shirt was given the start and 75 minutes, and the man who
+        // played the first hour got 25 and no start. The minutes feed the
+        // 1,300-minute red zone, so the wrong men were being rested. Now the
+        // start is the XV of the first tick and the minutes are the stints
+        // fieldChanged timed, the bin excluded, closed at the final whistle.
+        // A man who got on at all has played at least a minute of it.
+        const started = (side.starters ?? new Set(side.lineup.slice(0, 15))).has(pid)
         if (started) p.stats.starts += 1
-        p.stats.mins += started ? 75 : 25
+        p.stats.mins += Math.max(1, Math.round(minutesPlayed(side, pid, 80)))
         p.stats.ratingSum += r
         // and the same rating against the award window, which is cleared every
         // time a Player of the Month is named (see SeasonStats.mSum)

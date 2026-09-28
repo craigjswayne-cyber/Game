@@ -74,7 +74,9 @@ export const emptyStats = (): SeasonStats => ({
   yc: 0, rc: 0, ratingSum: 0, motm: 0, mins: 0, mSum: 0, mApps: 0,
 })
 
-/** 1,300+ minutes (~17 full games) is the red zone: tired bodies break. */
+/** 1,300+ minutes (about sixteen full eighty-minute games) is the red zone:
+ *  tired bodies break. Counted from the minutes each man was actually on the
+ *  pitch (matchEngine finalizeMatch), not a flat figure per appearance. */
 export const inRedZone = (p: { stats: { mins: number } }) => p.stats.mins >= 1300
 
 /** Partnership chemistry: lineup slot pairs whose familiarity matters -
