@@ -154,7 +154,7 @@ try {
 
   // ---- a French career: the chrome is translated and still fits ------------
   await page.click('text=Nouvelle carrière')
-  await page.waitForSelector('text=English Premier Division')
+  await page.waitForSelector('[data-league="prem"]')
 
   // The wizard is the first minute of the game, so it is the worst place to
   // leave English lying about. Competition and club names are data and stay as
@@ -176,7 +176,7 @@ try {
   ok(await page.locator('.action-bar >> text=Confirmer').count() === 1, 'and the forward button says Confirmer')
 
   // a gated step must still say what it wants, in French
-  await page.click('text=English Premier Division')
+  await page.click('[data-league="prem"]')
   await page.waitForSelector('.club-tile')
   await page.click('.tile >> text=Northampton')
   await page.waitForSelector('text=Joueur vedette')
