@@ -341,5 +341,31 @@ if (Math.abs(shareSum - 1) > 1e-9) bad(`the ${SLOTS.length} slots share ${(share
   }
 }
 
+// 5. ONE EARLY EXIT A SLOT A SEASON (1.8.0). Signing and ending again cost
+// nothing and rerolled the offers on wider bands each time, so a manager could
+// shop a slot for the top of its band in one sitting. The second exit in the
+// same season must be refused, leave the deal and the offers where they were,
+// and the next season must open the door again.
+{
+  const g: GameState = newGame('leicester', 'Deal Shop', 51)
+  for (const s of SLOTS) delete g.deals?.[s.id]
+  signOffer(g, offersFor(g, 'shirt')[0])
+  if (!g.deals?.shirt) bad('the shop test could not sign a shirt deal')
+  endDealEarly(g, 'shirt')
+  if (g.deals?.shirt) bad('the first early exit of the season was refused')
+  signOffer(g, offersFor(g, 'shirt')[1])
+  const signed = g.deals?.shirt
+  const offersBefore = JSON.stringify(offersFor(g, 'shirt'))
+  endDealEarly(g, 'shirt')
+  if (g.deals?.shirt !== signed) bad('a second early exit in the same season went through: the offers can be shopped')
+  if (JSON.stringify(offersFor(g, 'shirt')) !== offersBefore) bad('a refused exit still rerolled the offers')
+  g.season += 1
+  if (g.deals?.shirt && g.deals.shirt.until >= g.season) {
+    endDealEarly(g, 'shirt')
+    if (g.deals?.shirt) bad('next season the door did not open again')
+  }
+  console.log('early exits: one a slot a season, and the next season opens it again')
+}
+
 if (fails) { console.error(`DEAL PROBE: ${fails} failures`); process.exit(1) }
 console.log('DEAL PROBE PASSED')

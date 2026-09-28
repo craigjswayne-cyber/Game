@@ -286,9 +286,16 @@ export function endDealEarly(state: GameState, slot: SlotId): string {
   if (!club) return t('finances.treasuryNoClub')
   const live = state.deals?.[slot]
   if (!live || live.until < state.season) return t('finances.nothingToEnd')
+  // ONCE A SEASON A SLOT (1.8.0). Ending early cost nothing and rerolled the
+  // offers on wider bands, so signing and ending again, over and over, let a
+  // manager shop every slot for the top of its band (short deals at up to
+  // 1.13 times market) in one sitting. The gamble stays a gamble: one throw
+  // of it per slot per season, and the market you get is the one you keep.
+  if (state.dealEndedSeason?.[slot] === state.season) return t('finances.endedThisSeason')
   const info = SLOT_BY_ID[slot]
   delete state.deals![slot]
   ;(state.dealReroll ??= {})[slot] = (state.dealReroll?.[slot] ?? 0) + 1
+  ;(state.dealEndedSeason ??= {})[slot] = state.season
   // the gates keep the club's own name until somebody new pays for them
   if (slot === 'naming' && club.stadiumBase) club.stadium = club.stadiumBase
   logDecision(state, 'dec.endedSponsor', { sponsor: live.sponsor, slot_k: info.name }, false)

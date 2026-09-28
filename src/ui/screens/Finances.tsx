@@ -451,7 +451,10 @@ export default function Finances() {
                       </b>
                     </div>
                   )}
-                  {!live!.auto && (ending ? (
+                  {!live!.auto && game.dealEndedSeason?.[slot.id] === game.season && (
+                    <div className="meta muted" style={{ marginTop: 6 }}>{t('finances.endedThisSeason')}</div>
+                  )}
+                  {!live!.auto && game.dealEndedSeason?.[slot.id] !== game.season && (ending ? (
                     <div className="btn-row" style={{ marginTop: 6 }}>
                       <button className="btn danger" onClick={() => { setEndArm(null); setDealMsg(endDealEarly(game, slot.id)); touch() }}>
                         {t('finances.endConfirm')}

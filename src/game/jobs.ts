@@ -347,6 +347,7 @@ function takeJob(state: GameState, clubId: string): string {
     state.facilityAskCooldown = 0 // a new board hears you out fresh
     state.boardAsks = undefined // and holds none of the old board's grudges
     state.fundsAskedSeason = undefined // the funds ask resets with the desk
+    state.dealEndedSeason = undefined // and a new commercial department may end a deal of its own
     // a new club, a new backroom: the department here is what it is
     state.staffSalt = (state.staffSalt ?? 0) + 1
     inheritStaff(state)

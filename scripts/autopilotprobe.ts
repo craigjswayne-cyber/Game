@@ -327,8 +327,19 @@ ok(giantSleep.filter(r => r.sacked).length >= 1,
   const sleepSacked = giantSleep.filter(r => r.sacked).length
   ok(optSacked < sleepSacked,
     `engaged management is sacked less often than sleepwalking at the same club (${optSacked} v ${sleepSacked} of ${STATURE_SEEDS.length})`)
-  ok(optSacked <= 1 * K,
-    `and it stays rare (${optSacked}/${STATURE_SEEDS.length})`)
+  // EARNED, NOT RATIONED (1.8.0). This read "at most one in twelve", and the
+  // owner's shorter honeymoon at a top club (honeymoonEnd, season.ts: "it
+  // should be harder as the fans expect results") took it to 4 of 36. Every
+  // one of the four was Bath in the bottom half, 8th to 10th, after week 28:
+  // a title favourite having a genuinely bad season, which the owner accepted
+  // ("bad seasons do happen even to the best sides"). So the property is
+  // now the one that matters: nobody doing the job is sacked while the table
+  // says they are doing it, and it is still the exception.
+  const engagedSacks = giantOpt.filter(r => r.sacked)
+  ok(engagedSacks.every(r => (r.sackPos ?? 0) >= 6),
+    `every engaged sacking came with the club in the bottom half (${engagedSacks.map(r => `${r.sackPos}th`).join(', ') || 'none'})`)
+  ok(optSacked <= 2 * K,
+    `and it stays the exception (${optSacked}/${STATURE_SEEDS.length})`)
 }
 ok(minnowSleep.filter(r => r.sacked).length === 0,
   `a minnow's sleepwalk manager always survives the season - patience protects (${minnowSleep.filter(r => r.sacked).length}/${STATURE_SEEDS.length})`)
