@@ -10,7 +10,7 @@ import {
 import { MIDWEEK_OFF, BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, chemKey, clubCode, chemTier, eventText, injuryDesc, fixtureDate, fixtureDayOff, grudgeBetween, inRedZone, oldBoyApps, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
 import { BRIEF_BY_ID, SPLIT_BY_ID, benchSeats, briefForSeat, splitFor } from '../../game/bench'
 import { BriefIcon } from '../tacticsArt'
-import { assistantFixtureThisWeek, isKnockoutTie, userMatchThisWeek, weekRng } from '../../game/season'
+import { assistantFixtureThisWeek, isKnockoutTie, matchRng, userMatchThisWeek } from '../../game/season'
 import { effAt } from '../../game/attributes'
 import { PRESETS, SLIDER_INFO, sliderReadout, type SliderKey } from '../../game/tactics'
 import { ord, posName, t, localeTag, compLabel } from '../../game/i18n'
@@ -352,7 +352,7 @@ function Preview({ fxId }: { fxId: number }) {
   }
 
   // the assistant reads the matchup and proposes a game plan in plain English
-  const forecast = rollWeather(game.week, weekRng(game))
+  const forecast = rollWeather(game.week, matchRng(game))
   const matchRef = refFor(fx.id)
   const oppCond = (() => {
     const xv = oppLineup.slice(0, 15).map(id => id != null ? game.players[id] : null).filter(Boolean)
@@ -619,7 +619,7 @@ function Preview({ fxId }: { fxId: number }) {
               forecast is a fact; the derby is the reason you are nervous.
               Separate lines, and the derby carries its own mark. */}
           <div className="meta" style={{ marginTop: 3 }}>
-            <Glyph name={WEATHER_ICON[rollWeather(game.week, weekRng(game))]} /> {t('matchday.forecast', { weather: weatherWord(rollWeather(game.week, weekRng(game))) })}
+            <Glyph name={WEATHER_ICON[rollWeather(game.week, matchRng(game))]} /> {t('matchday.forecast', { weather: weatherWord(rollWeather(game.week, matchRng(game))) })}
           </div>
           {derbyName(fx.homeId, fx.awayId) && (
             <div className="meta derby-line" style={{ marginTop: 4 }}>
@@ -2289,8 +2289,11 @@ function MatchVerdict() {
   const fresh = !!hw && hw.fxId !== live.fixture.id && hw.season === game.season && game.week - hw.week <= 4
   // "using the bench" is a job you DO, so it is graded on evidence rather than
   // on the complaint staying quiet - ctx.subsUsed is the only honest witness.
+  // Two changes, not one (1.8.1): the bench advice itself speaks below two
+  // and asks for "the two or three", so a single change had the homework
+  // marked done on a match where the advice would have been given again.
   const grade = fresh && hw
-    ? gradeFixes(hw.tags as FixTag[], fixes.map(f => f.tag), { fitness: live.ctx.subsUsed > 0 })
+    ? gradeFixes(hw.tags as FixTag[], fixes.map(f => f.tag), { fitness: live.ctx.subsUsed >= 2 })
     : { fixed: [], missed: [] }
   const verdictOnLast = gradeLine(grade.fixed, grade.missed)
 

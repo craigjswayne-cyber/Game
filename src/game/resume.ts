@@ -46,7 +46,7 @@ import {
   applyPreTalk, applyTacticsChange, applyTeamTalk, beginMatch, makeSubstitution,
   resolveDecision, stepTick, swapInjuryCover, swapShirts, undoSubstitution, type LiveCtx,
 } from './matchEngine'
-import { weekRng } from './season'
+import { matchRng, weekRng } from './season'
 
 /**
  * Everything the manager can do to a match in progress.
@@ -74,6 +74,9 @@ export interface MatchResume {
   v: 1
   /** the pre-match save, before beginMatch touched anything */
   pre: GameState
+  /** 'match' when the match was played on its own dice (matchRng, 1.8.1);
+   *  absent on older records, which replay on weekRng as they were played */
+  stream?: 'match'
   fxId: number
   userSideId: string | null
   preTalk: 'calm' | 'fire' | 'underdog' | 'expect' | null
@@ -115,7 +118,8 @@ export function replayMatch(state: GameState, rec: MatchResume): Resumed | null 
   const fx = state.fixtures.find(f => f.id === rec.fxId)
   if (!fx || fx.played) return null
 
-  const ctx = beginMatch(state, fx, weekRng(state), true, rec.userSideId)
+  // a record written before 1.8.1 was played on the week's dice (matchRng)
+  const ctx = beginMatch(state, fx, rec.stream === 'match' ? matchRng(state) : weekRng(state), true, rec.userSideId)
   const preTalkMsg = rec.preTalk ? applyPreTalk(state, ctx, rec.preTalk) : null
   let talkMsg: string | null = null
 

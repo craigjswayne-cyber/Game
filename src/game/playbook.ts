@@ -46,6 +46,9 @@ export interface Routine {
   tell: number
   /** what it costs elsewhere - a shape that eats time starves the backs */
   attack?: number
+  /** How hard the shape makes the side run. The engine spends it as energy
+   *  (tempoF is read by the drain alone), so under 1 saves legs and over 1
+   *  costs them; it does not change how fast the play goes. */
   tempo?: number
 }
 
@@ -141,13 +144,20 @@ export function routineEffect(club: Club, id: string): { mult: number; drilled: 
   const pb = playbookOf(club)
   const drilled = pb.drilled[id] ?? 30
   const seen = pb.used[id] ?? 0
-  // 20 calls at tell 1.0 is full familiarity; a deniable move takes far longer
+  // at tell 1.0 the analysts have it as read as they ever will (the 0.75 cap)
+  // after 15 calls; an obvious move gets there sooner, a deniable one far later
   const familiar = Math.min(0.75, (seen / 20) * r.tell)
   // Competence runs from -1 to +1 around a threshold of 60, so a routine you have
   // not drilled MISFIRES rather than quietly working slightly less well. An
   // undrilled drive maul should be worse than the middle jump you know cold.
   const q = clamp((drilled - 60) / 40, -1, 1)
-  const gain = (r.peak - 1) * (1 - familiar) * q
+  // A MISFIRE IS ALWAYS A LOSS (1.8.1). With a signed reach, the safe calls
+  // that sit below the orthodox one (peak under 1) turned a negative q into a
+  // gain: an undrilled front ball was worth x1.02 and a fully drilled one
+  // x0.98. Drilled, a routine gives what it is worth; undrilled, it costs
+  // as much as it could have moved you, whichever way that was.
+  const reach = q >= 0 ? r.peak - 1 : Math.abs(r.peak - 1)
+  const gain = reach * (1 - familiar) * q
   return { mult: 1 + gain, drilled, seen, q }
 }
 
@@ -158,7 +168,9 @@ export function routineEffect(club: Club, id: string): { mult: number; drilled: 
  *  down, which is what stops a club from having ten world-class moves. */
 export function drillWeek(state: GameState, club: Club, emphasisSetPiece: boolean) {
   const pb = playbookOf(club)
-  const coach = club.id === state.userClubId ? (state.staff?.scrumCoach ?? 0) : Math.round(club.rep / 25)
+  // an AI forwards coach is on the same 0-3 scale as the manager's; rep/25
+  // alone made every club above 88 a level 4 nobody could hire (1.8.1)
+  const coach = club.id === state.userClubId ? (state.staff?.scrumCoach ?? 0) : Math.min(3, Math.round(club.rep / 25))
   const called = new Set([club.tactic.lineoutCall ?? DEFAULT_LINEOUT, club.tactic.scrumCall ?? DEFAULT_SCRUM])
   // AUTHORITY GATES THE DRILLING (pillar 1): a room that outranks its
   // manager trains his patterns at half pace - not malice, re-examination.
@@ -169,8 +181,14 @@ export function drillWeek(state: GameState, club: Club, emphasisSetPiece: boolea
     const cur = pb.drilled[r.id] ?? 30
     // a hard routine has a lower ceiling without real coaching behind it
     const ceiling = Math.min(98, 72 + coach * 6 + (emphasisSetPiece ? 8 : 0) - (r.tell <= 0.7 ? 6 : 0))
+    // Calling a routine never makes it worse (1.8.1). Capped by min() alone,
+    // a routine drilled above this club's ceiling fell TO it the first week
+    // it was called: a rep-90 club's default lineout starts at 81, and a
+    // manager with no forwards coach (ceiling 72) lost nine points by
+    // calling the move his pack knew best, while shelving it cost 0.35.
+    // Above the ceiling, the call holds what the pack already has.
     pb.drilled[r.id] = called.has(r.id)
-      ? Math.min(ceiling, cur + up)
+      ? Math.max(cur, Math.min(ceiling, cur + up))
       : Math.max(6, cur - 0.35)
   }
 }
