@@ -164,7 +164,8 @@ try {
   // rather than assuming which one comes first.
   const hints = (await page.locator('.wizard-hint').allInnerTexts()).join(' | ')
   ok(hints.includes('compétition'), `the wizard opens in French (${hints})`)
-  ok(/Quel jeu|jeu/i.test(hints), 'including the question it now asks first')
+  // the French asks "Rugby masculin ou féminin" (language QA pass): "Quel jeu" read as "which video game"
+  ok(/Quel jeu|jeu|rugby masculin/i.test(hints), 'including the question it now asks first')
   // innerText, not textContent: these read back through the stylesheet, and
   // the masthead and the fact labels are both text-transform: uppercase - so
   // the assertion has to be case-blind or it is testing the CSS. (The accent
@@ -191,7 +192,7 @@ try {
   await page.click('.action-bar >> text=Confirmer')
   // the placeholder is translated too, so a French probe cannot use the
   // English selector every other harness uses
-  await page.fill('input[placeholder="ex. A. Gaffer"]', 'Le Gaffer')
+  await page.fill('input[placeholder="ex. : A. Martin"]', 'Le Gaffer')
   // the coaching philosophies come from game/tactics.ts, so this is French now
   // too - every other harness picks the same tile by its English name
   await page.click('.speech-tile >> text=Domination des avants')

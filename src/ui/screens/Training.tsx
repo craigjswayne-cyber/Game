@@ -223,8 +223,8 @@ function StaffPanel() {
                       (owner, v1.2.7): eight weeks of his wage, asked twice */}
                   {p && !p.course && (
                     <TwoStep className="btn ghost" style={{ padding: '4px 8px', fontSize: 11, lineHeight: 1.25 }}
-                      label={t('training.sack')} confirm={t('training.sackConfirm', { cost: fmtMoney(sackCost(game, role)) })}
-                      title={t('training.sackTitle', { cost: fmtMoney(sackCost(game, role)) })}
+                      label={t('training.sack')} confirm={t('training.sackConfirm', { g: p.g ?? 'm', cost: fmtMoney(sackCost(game, role)) })}
+                      title={t('training.sackTitle', { g: p.g ?? 'm', cost: fmtMoney(sackCost(game, role)) })}
                       onConfirm={() => { setMsg({ role, text: sackStaff(game, role) }); touch() }} />
                   )}
                   {p && p.tier < 3 && !p.course && (p.retakeAt ?? 0) <= abs && (
