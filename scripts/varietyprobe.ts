@@ -131,49 +131,68 @@ say('\n--- 2. no single line is most of what a bank ever says')
 // the version of this bug a player meets weekly rather than once.
 // ---------------------------------------------------------------------------
 say('\n--- 3. the press room varies week to week')
+// TWELVE SEASONS, NOT ONE (28 Sep 2026). This read a single synthetic season
+// (world 777), 14 to 20 questions, and its "at least eight stems" verdict
+// flipped on a shifted seed (10, 9, 6, 9 stems on four lists). Measured over
+// forty such seasons the stems per season ran 6 (x7), 7 (x9), 8 (x15), 9 (x7),
+// 10 (x2): a mean of 7.7, under eight in 16 of 40 (and in 60 of 120 on a
+// longer run). World 777 was one of the lucky ones. The claim is still every
+// season, so twelve are read and every one is held to it: this now FAILS on
+// the game, not on the seed, and is reported as such. The top-stem share was
+// never over 47% in those 120 seasons, so its ceiling of half stands clear.
 {
   const league = LEAGUE_DEFS('m')[0]
-  const state: GameState = newGame(league.clubs[3].id, 'Variety', 777, undefined, 'coach', 'm')
-  const asked: string[] = []       // the question STEM, before wording
-  const rendered: string[] = []    // and the sentence a player actually reads
-  const rng = mulberry32(777)
-  for (let w = 1; w <= 30; w++) {
-    state.week = w
-    const before = state.press.length
-    generatePress(state, rng)
-    // qk is the QUESTION key - the stem, before its wording is chosen. Two
-    // items with the same qk are the same question asked twice.
-    for (const p of state.press.slice(before)) { asked.push(p.qk ?? ''); rendered.push(p.question ?? '') }
-    // and answer them, because the room stops asking while questions are left
-    // open. A probe that never replies measures a manager ignoring the press,
-    // which is a different thing from the press having nothing to say.
-    for (const p of state.press) p.answered = true
+  let repeatAt = '', nRendered = 0, worstShare = 0, worstShareAt = ''
+  const thin: number[] = []
+  const stems: number[] = []
+  for (let i = 0; i < 12; i++) {
+    const seed = 777 + i * 1009
+    const state: GameState = newGame(league.clubs[3].id, 'Variety', seed, undefined, 'coach', 'm')
+    const asked: string[] = []       // the question STEM, before wording
+    const rendered: string[] = []    // and the sentence a player actually reads
+    const rng = mulberry32(seed)
+    for (let w = 1; w <= 30; w++) {
+      state.week = w
+      const before = state.press.length
+      generatePress(state, rng)
+      // qk is the QUESTION key - the stem, before its wording is chosen. Two
+      // items with the same qk are the same question asked twice.
+      for (const p of state.press.slice(before)) { asked.push(p.qk ?? ''); rendered.push(p.question ?? '') }
+      // and answer them, because the room stops asking while questions are left
+      // open. A probe that never replies measures a manager ignoring the press,
+      // which is a different thing from the press having nothing to say.
+      for (const p of state.press) p.answered = true
+    }
+    // THE SAME STEM IS NOT A REPEAT. "Six weeks on the bench for X" two weeks
+    // running, about two different players, is a newspaper doing its job. The
+    // first draft of this probe failed on exactly that and was wrong to. What is
+    // a repeat is the same WORDS about the same subject - the reader cannot tell
+    // that apart from a bug, because it is one.
+    nRendered += rendered.length
+    const rep = rendered.find((q, j) => j > 0 && q === rendered[j - 1] && q !== '')
+    if (rep && !repeatAt) repeatAt = `world ${seed}: "${rep.slice(0, 60)}..."`
+    // and no one question shape is most of a season. This is the measurable
+    // version of "it feels repetitive": a stem the room reaches for again and
+    // again reads as a game with one question, however many players it names.
+    const byStem = new Map<string, number>()
+    for (const k of asked.filter(Boolean)) byStem.set(k, (byStem.get(k) ?? 0) + 1)
+    const worstStem = [...byStem.entries()].sort((a, b) => b[1] - a[1])[0]
+    const share = worstStem[1] / asked.filter(Boolean).length
+    if (share > worstShare) { worstShare = share; worstShareAt = `${worstStem[0]}, ${worstStem[1]} of ${asked.filter(Boolean).length} in world ${seed}` }
+    stems.push(byStem.size)
+    if (byStem.size < 8) thin.push(seed)
   }
-  // THE SAME STEM IS NOT A REPEAT. "Six weeks on the bench for X" two weeks
-  // running, about two different players, is a newspaper doing its job. The
-  // first draft of this probe failed on exactly that and was wrong to. What is
-  // a repeat is the same WORDS about the same subject - the reader cannot tell
-  // that apart from a bug, because it is one.
-  const repeats = rendered.filter((q, i) => i > 0 && q === rendered[i - 1] && q !== '')
-  ok(repeats.length === 0,
-    `${rendered.length} questions over thirty weeks, none printing the same sentence twice running${repeats.length ? ` - "${repeats[0].slice(0, 60)}..."` : ''}`)
-
-  // and no one question shape is most of a season. This is the measurable
-  // version of "it feels repetitive": a stem the room reaches for again and
-  // again reads as a game with one question, however many players it names.
-  const byStem = new Map<string, number>()
-  for (const k of asked.filter(Boolean)) byStem.set(k, (byStem.get(k) ?? 0) + 1)
-  const worstStem = [...byStem.entries()].sort((a, b) => b[1] - a[1])[0]
-  const share = worstStem[1] / asked.filter(Boolean).length
+  say(`    stems per season over 12 worlds: ${stems.join(', ')}`)
+  ok(!repeatAt,
+    `${nRendered} questions over twelve seasons of thirty weeks, none printing the same sentence twice running${repeatAt ? ` - ${repeatAt}` : ''}`)
   // This world never plays a match, so every man is "benched" every week and
   // the bench question is the only recurring candidate; 0.35 passed by one
   // question before 1.6.3 gated who bids for the user's players (fewer rumour
   // questions). The property is that no stem owns the room, and the game now
   // spaces bench questions a fortnight apart (media.ts): half is the ceiling.
-  ok(share <= 0.5,
-    `the most-used question is ${(share * 100).toFixed(0)}% of the season's press (${worstStem[0]}, ${worstStem[1]} of ${asked.filter(Boolean).length})`)
-  const distinct = byStem.size
-  ok(distinct >= 8, `and the room draws on at least eight different questions in a season (${distinct})`)
+  ok(worstShare <= 0.5,
+    `the most-used question is at most ${(worstShare * 100).toFixed(0)}% of a season's press (${worstShareAt})`)
+  ok(thin.length === 0, `and the room draws on at least eight different questions in every season (${thin.length} of 12 seasons fall short${thin.length ? `: worlds ${thin.join(', ')}` : ''})`)
 }
 
 // ---------------------------------------------------------------------------

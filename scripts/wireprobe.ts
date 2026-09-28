@@ -19,6 +19,7 @@
 //   the pool is genuinely deep, not one story wearing hats.
 //   nothing carries an em dash, and every item has a turn in it - a body of one
 //     flat sentence is a filler item, not a story somebody screenshots.
+import { readFileSync } from 'fs'
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { SEASON_WEEKS } from '../src/game/model'
@@ -138,6 +139,29 @@ ok(colour.length >= 25, `enough colour stories to judge the writing (${colour.le
 const flat = colour.filter(s => s.body.split(/[.!?] /).length < 3)
 for (const f of flat) console.log(`    FLAT: ${f.subject}`)
 ok(flat.length === 0, `every colour story has a turn in it${flat.length ? ` (${flat.length} do not)` : ''}`)
+
+// AND EVERY ONE IN THE BANK, NOT ONLY THE ONES THIS WORLD AIRED (28 Sep 2026).
+// Four seasons of one world air about 75 colour stories out of the pool, so
+// the check above judged whichever templates the stream happened to reach:
+// on four shifted seed lists it passed, passed, failed and failed, every
+// failure the same two-sentence clubhouse tale (news.chTale9, "banned from
+// the team quiz"), which world 606 simply never drew. A writing rule is not
+// a matter of luck, so every keyed colour template (a subject carrying one
+// of the colour prefixes above) is read straight from the English bank.
+{
+  const en = JSON.parse(readFileSync(new URL('../src/locales/en.json', import.meta.url), 'utf8')) as Record<string, unknown>
+  const leaves = (o: Record<string, unknown>, pre = ''): [string, unknown][] =>
+    Object.entries(o).flatMap(([k, v]) => v && typeof v === 'object' ? leaves(v as Record<string, unknown>, `${pre}${k}.`) : [[`${pre}${k}`, v] as [string, unknown]])
+  const bank = Object.fromEntries(leaves(en))
+  const keyed = Object.entries(bank)
+    .filter(([k, v]) => k.endsWith('Subj') && typeof v === 'string' && COLOUR.has(/^([A-Z][A-Z ]+):/.exec(v)?.[1] ?? '')
+      && typeof bank[k.slice(0, -4)] === 'string')
+    .map(([k]) => k.slice(0, -4))
+  const flatBank = keyed.filter(k => (bank[k] as string).split(/[.!?] /).length < 3)
+  for (const k of flatBank) console.log(`    FLAT IN THE BANK: ${k}: ${(bank[k] as string).slice(0, 80)}...`)
+  ok(keyed.length >= 25, `the keyed colour bank is there to read (${keyed.length} templates)`)
+  ok(flatBank.length === 0, `and every keyed colour template has a turn in it${flatBank.length ? ` (${flatBank.join(', ')} ${flatBank.length === 1 ? 'does' : 'do'} not)` : ''}`)
+}
 
 const dashes = seen.filter(s => (s.subject + s.body).includes('—'))
 ok(dashes.length === 0, 'no em dashes on the wire')
