@@ -27,6 +27,11 @@ version 12.
 - **Language review** of the six languages (merged as far as it got; see
   below).
 
+- **Money and targets moved to the board (your note, 28 Sep).** The
+  pre-season camp, the season's expectations and sponsor slot deals are now
+  asked on Finances > The Board, not in the Press Room. A waiting decision
+  no longer blocks press questions or players knocking on your door.
+
 ## Balance (4,068 simulated games)
 
 | | Before tonight | Now | Target |
@@ -74,9 +79,18 @@ were loosened; each now reads a bigger sample:
    - its last batch of screens: till, store, settings, sack, isles, close
      and point;
    - the match commentary and highlight lines (the comm and hl sets).
-3. **Japanese commentary keeps 63 double dashes (——).** This is normal
+3. **A side out of legs still scores a fraction more.** Release audit 1.2d:
+   a side emptied from the 68th minute scored 37.6 points a match against
+   36.7 rested (38.5 v 38.0 on the engine before tonight, so this predates
+   the contest). Probably restarts: a tired side concedes more, and whoever
+   concedes gets the ball back. Under a point, inside the noise; a 1.8.1
+   look.
+4. **memoprobe flips on its sample floor** ("enough verdicts to judge"),
+   passing and failing on commits that do not touch it. Needs a bigger
+   sample, like the four probes above.
+5. **Japanese commentary keeps 63 double dashes (——).** This is normal
    Japanese punctuation, left alone.
-4. **UI items the sweep found but left for a decision:**
+6. **UI items the sweep found but left for a decision:**
    - Another club's page says "Club" in its header, not the club's name,
      and keeps the tab you last used.
    - World rankings: the movement column is mostly a lone dot.
