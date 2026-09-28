@@ -2534,6 +2534,8 @@
   "deskSquad": "あと{n}人を指名 ▸",
   "deskPress": "プレスルーム",
   "deskPressN": "プレスルーム（{n}）",
+  "deskBoard": "取締役会",
+  "deskBoardN": "取締役会（{n}）",
   "deskRead": "読む（{n}）",
   "drawCup": "カップ",
   "drawTies": {
