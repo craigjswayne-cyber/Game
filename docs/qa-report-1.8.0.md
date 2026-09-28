@@ -63,49 +63,66 @@ were loosened; each now reads a bigger sample:
 - **autopilotprobe:** 54 worlds, not 18. It now reads a title rate (two in
   eighteen, as before) and has moved to the slow set.
 
-## Open findings, for your decision
+## Owner round, morning of 28 Sep: fixed
 
-1. **The engaged manager at a big club is sacked more since E5-E8.**
-   - At Bath, a manager doing everything right hits board crisis in 5 of
-     12 seasons and is sacked in 2. Before E5-E9 it was 0 crises.
-   - AI respect (E9) is ruled out: switching it off changed nothing.
-   - The cause is somewhere in growth by the gap, dearer high attributes,
-     professionalism or scouted temperament.
-   - Needs a proper look in 1.8.1. It isn't a crash, but a player doing
-     everything right at a giant can lose the job about one season in six.
-2. **The language review is not complete.** The agent stopped on the
-   account's monthly spend limit. What it finished passes every check (key
-   parity, placeholders, no emoji, no em dashes). Not reached:
-   - its last batch of screens: till, store, settings, sack, isles, close
-     and point;
-   - the match commentary and highlight lines (the comm and hl sets).
-3. **A side out of legs still scores a fraction more.** Release audit 1.2d:
-   a side emptied from the 68th minute scored 37.6 points a match against
-   36.7 rested (38.5 v 38.0 on the engine before tonight, so this predates
-   the contest). Probably restarts: a tired side concedes more, and whoever
-   concedes gets the ball back. Under a point, inside the noise; a 1.8.1
-   look.
-4. **memoprobe flips on its sample floor** ("enough verdicts to judge"),
-   passing and failing on commits that do not touch it. Needs a bigger
-   sample, like the four probes above.
-5. **Japanese commentary keeps 63 double dashes (——).** This is normal
-   Japanese punctuation, left alone.
-6. **UI items the sweep found but left for a decision:**
-   - Another club's page says "Club" in its header, not the club's name,
-     and keeps the tab you last used.
-   - World rankings: the movement column is mostly a lone dot.
-   - Press Room: quotes inside quotes display wrongly, and unanswered
-     questions show an empty "You:".
-   - Finances: the "Season balance" chart has no axis and says little;
-     "show the lines" is lower case.
-   - French: Team of the Week shows English competition names, and the
-     player summary starts with a lower-case letter.
+1. **Sacked while doing everything right.** Measured over 48 seasons of a
+   best-XV Bath first. The sackings were genuine collapses (7th to 10th,
+   records like 4-13), the same spread an AI-run Bath shows, and not caused
+   by E5-E9 (the engine before them read 13 crises and 4 sackings in 48).
+   The board was the unfair part:
+   - a win over a weaker side earned about 2 confidence and a defeat cost
+     about 7.5, so a big club had to win four in five to stand still. A win
+     now earns at least 55% of what the same defeat costs;
+   - a sacking needs the floor for three weeks running, not one reading;
+   - a manager's first season at a club: no results sacking before week 32
+     (final warnings still go out).
+   Result (autopilotprobe): engaged Bath 0 of 12 sacked (was 2); a Bath
+   manager who only presses Continue is still sacked in 4 of 12.
+2. **Tired sides.** From minute 68, an emptied side now scores 4.17
+   against 4.71 rested and concedes 3.31 against 2.81 (the old audit
+   compared different matches, which is why it read the other way). A
+   tired defence gives up to 80% more (was 50%), a tired attack up to 30%
+   less.
+3. **Subs matter.** The bench used to cost points: four changes about
+   level with none, eight 0.4 worse. From the 56th minute an empty tank now
+   keeps 60% of a side's strength, not 78%. New subvalueprobe: four changes
+   +1.27 points over none, eight +1.32, so the bench pays and emptying it
+   is no better than choosing well.
+4. **Language review finished** in all six languages: every namespace,
+   plus the match commentary, highlights and celebrations. Competition
+   names now show in the reader's language on 18 screens and in the news
+   (French: Elite 14 and Elite 2). Sentences on the player card start with
+   a capital. The trophy press question names its trophies in the reader's
+   language.
+5. **Press Room quotes.** One rule per language for the manager's words
+   (English “ ” with ‘ ’ inside, French « » with “ ”, Japanese 「」 with
+   『』), questions no longer wrapped, and "No answer given." instead of an
+   empty "You:".
+6. **Finances Season balance chart** rebuilt: zero line, gridlines, week
+   marks, start and end values, red below zero, tap a week to read it.
+7. **Board decisions** stay on Finances > The Board for the whole season.
+
+## Still open
+
+1. **The strongest squad has a losing season about one year in six**, under
+   the AI too. That is the league's randomness, not the board, and changing
+   it is a balance decision.
+2. **memoprobe and other thin tests**: a separate pass is making every test
+   use samples large enough to be trusted (report to follow).
+3. **Spaced hyphens used as dashes** (" - ") remain in about 740 English
+   lines; it has been the house style. A sweep to replace them is possible.
+4. **Japanese commentary keeps its double dashes (——)**, which is normal
+   Japanese punctuation.
+5. **Tablet portrait layout**: 1.8.1, as agreed.
+6. **Still open from the UI sweep**:
+   - another club's page says "Club" rather than its name;
+   - the World rankings movement column is mostly a lone dot.
 
 ## Areas that feel unfinished (most noticeable first)
 
 1. Other clubs' pages: a generic title, a one-paragraph History tab and a
    bare squad list. Opening a rival should feel like scouting them.
-2. The Finances "Season balance" chart.
+2. The Finances "Season balance" chart (done 28 Sep).
 3. Roll of Honour and Trophy Cabinet in season one: one line on an empty
    page for a whole season.
 4. Tablet portrait: a phone-width column with dark bars either side.
