@@ -451,7 +451,7 @@ try {
   if (rail.length !== wantHead.length) throw new Error(`rail has ${rail.length} buttons, expected ${wantHead.length}`)
 
   // ---- and the title screen's Continue tile stays on one line (user:
-  // "'continue - craig, northampton saints' should be on one line").
+  // "'continue - <manager>, northampton saints' should be on one line").
   // Height is the honest measure. scrollWidth has a floor of clientWidth, so
   // comparing the two can only ever catch overflow, never a snug fit - and with
   // white-space: nowrap there is no overflow to catch. One line of this text is
