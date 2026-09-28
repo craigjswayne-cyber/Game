@@ -125,6 +125,17 @@ export function legendsAfterMatch(state: GameState): void {
   const h = book(state)
   const recs = (h.recs[uid] ??= {})
   const squad = club.players.map(id => state.players[id]).filter((p): p is Player => !!p && !p.youth)
+  // a record the book has never held is read in quietly from the best in the
+  // squad, never "broken" one man at a time in squad order
+  for (const stat of ['apps', 'tries', 'pts'] as RecStat[]) {
+    if (recs[stat]) continue
+    let best: ClubRec | null = null
+    for (const p of squad) {
+      const val = service(p, uid)[stat]
+      if (val > 0 && (!best || val > best.val)) best = { name: p.name, pid: p.id, val, season: -1 }
+    }
+    if (best) recs[stat] = best
+  }
 
   for (const p of squad) {
     const s = service(p, uid)
