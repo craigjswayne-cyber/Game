@@ -498,10 +498,15 @@ const EXPECTED: string[] = [
   // hour, which is when the benches go on. bandcheck, pooled over four seeds:
   //   pts 49.7 -> 49.6   tries 6.30 -> 6.31   home 51.7% -> 52.2%
   //   draws 1.5% -> 1.7%   blowouts 8.7% -> 8.9% (every band holds)
+  // And the empty tank 0.6 -> 0.55 (LATE_FLOOR), because an AI replacement
+  // now brings his own quality and the manager's bench had fallen to +0.43
+  // points (subvalueprobe; +0.91 now). No new draw; one of six moved back
+  // (harlequins-leicester). bandcheck: 49.1 pts, 6.24 tries, 52.7% home,
+  // 1.6% draws, 8.8% blowouts.
   'saracens 14-27 bath',
   'exeter 20-3 gloucester',
   'sale 39-25 bristol',
-  'harlequins 31-18 leicester',
+  'harlequins 38-8 leicester',
   'newcastle 13-30 northampton',
   'exeter 10-42 saracens',
 ]
