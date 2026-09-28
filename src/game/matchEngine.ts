@@ -3447,6 +3447,8 @@ const COVER_DEF = 0.937
  * total where it was. See scripts/fingerprint.ts for the before and after.
  */
 const TRY_BASE = 0.0815
+/** late in a match: how much an empty tank costs the side defending, and the side attacking */
+const TIRED_DEF = 0.8, TIRED_ATT = 0.3
 /** how hard the penalty count leans toward the defending side's half (1.7.4) */
 const PEN_LEAN = 1.7
 /** how hard a zone plan moves the line (1.8.0, see simTick): at 1 the kicking
@@ -3705,7 +3707,16 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
        * reason it hid for so long.
        */
       const tired = 1 - sideEnergy(opp) / 100
-      if (tired > 0) pTry = Math.min(0.42, pTry * (1 + tired * 0.5))
+      // AND A TIRED ATTACK GOES NOWHERE (1.8.0, owner: "if a team is tired
+      // then they shouldn't score more they should be easier to score
+      // against. Subs should be important"). Measured on the 1.2d scenario
+      // over the last twelve minutes only, with the first 68 identical: an
+      // emptied side already scored less (4.92 v 5.55) and conceded more
+      // (3.86 v 3.13), but by too little to feel. The tired defence now
+      // gives up to 80% more (was 50%) and a tired attack loses up to 30%,
+      // so the bench is where a last quarter is won.
+      const own = 1 - sideEnergy(side) / 100
+      pTry = Math.min(0.42, pTry * (1 + Math.max(0, tired) * TIRED_DEF) * (1 - Math.max(0, own) * TIRED_ATT))
     }
     // GARBAGE TIME IS REAL (user, after a 106-3 win at a top club: "this would
     // be a tight game in real life - the scores feel well off at present").

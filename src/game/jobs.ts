@@ -355,6 +355,7 @@ function takeJob(state: GameState, clubId: string): string {
     state.commission = null // the old club's scout finishes his brief for them
     state.scoutFinds = null
     state.tenureStart = state.season // the clock on your era starts today
+    state.boardFloorWeeks = 0 // and the old board's patience does not follow you
     for (const id of club.players) {
       const p = state.players[id]
       if (p) p.sc = 100

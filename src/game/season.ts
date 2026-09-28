@@ -1766,7 +1766,17 @@ function boardReaction(state: GameState, fx: Fixture, delegated = false) {
   // A floor of 0.8 keeps the whole gradient and removes both inversions: a win
   // always helps a little, a defeat always hurts a little, and how much still
   // depends on who it was against.
-  const mag = Math.max(0.8, us > them ? 2.5 + diff * 2 : 2.5 - diff * 2)
+  // A WIN IS WORTH SOMETHING AT A BIG CLUB TOO (1.8.0, owner: "why if they
+  // are doing everything right do they get sacked? This needs to be fixed").
+  // A favourite beating a weaker side earned max(0.8, 2.5 + diff * 2), about
+  // a quarter of what losing the same game cost, so Bath had to win four in
+  // five just to hold its board still: a title-chasing 11-7 season drifted
+  // down, and a best-XV Bath was sacked in 6 of 48 simulated seasons. A win
+  // is now worth at least 55% of the loss against the same opponent, which
+  // holds a favourite's board level at about a 65% win rate. Where the win
+  // was already worth more (an underdog's), nothing changes.
+  const lossMag = Math.max(0.8, 2.5 - diff * 2)
+  const mag = us > them ? Math.max(0.8, 2.5 + diff * 2, 0.55 * lossMag) : lossMag
   // THE STANCE (25C, user: "the manager should set the expectations... if the
   // manager is losing then pressure should build"). Aim high at the season
   // launch and every result is measured against your own words: wins earn a
@@ -3528,7 +3538,14 @@ export function processWeekAndAdvance(state: GameState) {
      * exactly the thing being ignored.
      */
     const reprieved = (state.boardGrace ?? 0) > stamp100(state)
-    if (club.boardConfidence <= 3 && state.week > 8 && !reprieved) {
+    // ONE BAD READING IS NOT A SACKING, AND A NEW MAN GETS A SEASON (1.8.0,
+    // owner, as above). The floor has to hold for three weeks running, and in
+    // his first season at the club the board waits until the last third of
+    // it (week 32) before acting on results alone: the final warnings above
+    // still go out, so he can feel the clock.
+    state.boardFloorWeeks = club.boardConfidence <= 3 ? (state.boardFloorWeeks ?? 0) + 1 : 0
+    const honeymoon = (state.tenureStart ?? -1) === state.season && state.week < 32
+    if (club.boardConfidence <= 3 && state.week > 8 && !reprieved && !honeymoon && state.boardFloorWeeks >= 3) {
       // the mechanics live in sackManager (jobs.ts) - shared with the
       // pushed-once-too-often dismissal of the board-request escalation
       sackManager(state, 'news.sacked')

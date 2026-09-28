@@ -476,12 +476,17 @@ const EXPECTED: string[] = [
   // trips' gap over the easiest 1.8 -> 0.5 points; now 1.2). With the edge
   // carried there, hfa is back to 1.06. bandcheck: 50.6 pts, 6.45 tries,
   // 52.1% home, 1.6% draws, 8.0% blowouts. Five of six moved.
-  'saracens 14-33 bath',
+  // AND ONCE MORE (owner: "if a team is tired then they shouldn't score
+  // more they should be easier to score against"): late in a match a tired
+  // defence concedes up to 80% more (was 50%) and a tired attack scores up to
+  // 30% less. No new draw; two of six moved on the new thresholds. bandcheck:
+  // 49.4 pts, 6.29 tries, 52.5% home, 1.5% draws, 8.1% blowouts.
+  'saracens 14-27 bath',
   'exeter 20-3 gloucester',
   'sale 39-25 bristol',
   'harlequins 31-18 leicester',
   'newcastle 13-30 northampton',
-  'exeter 16-34 saracens',
+  'exeter 19-39 saracens',
 ]
 // v1.8.1 moved three of them once more, and this time WITHOUT spending a new
 // draw: the training pitch now scales every side's breakdown and handling off
