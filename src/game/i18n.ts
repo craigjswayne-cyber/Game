@@ -99,6 +99,11 @@ export function initLang(): Lang {
 }
 
 export const getLang = (): Lang => current
+/** The BCP 47 tag for the language on screen, for the toLocaleString calls
+ *  the UI makes itself. With no argument they follow the DEVICE, so a French
+ *  game on an English phone wrote 15,249 seats where every number that came
+ *  through t() said 15 249 (UI QA, 1.8.0). */
+export const localeTag = (): string => NUMBER_LOCALE[current]
 
 /**
  * ---- WHICH WORLD THE READER IS IN ----

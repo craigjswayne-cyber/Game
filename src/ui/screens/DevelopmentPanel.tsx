@@ -125,7 +125,7 @@ export default function DevelopmentPanel() {
                   <div className="meta" style={{ fontSize: 12, color: no ? 'var(--text-negative)' : undefined }}>{why}</div>
                 </div>
                 {view === 'focus' ? (
-                  <button className={on || full ? 'btn ghost' : 'btn'} style={{ padding: '5px 12px', fontSize: 12, flexShrink: 0 }}
+                  <button className={on || full ? 'btn ghost dev-act' : 'btn dev-act'} style={{ padding: '5px 12px', fontSize: 12, flexShrink: 0 }}
                     disabled={!on && !!no}
                     onClick={() => {
                       if (!on && full) { setSaid(p.id); return }
@@ -157,7 +157,7 @@ export default function DevelopmentPanel() {
         })}
       </div>
       {hiddenIneligible > 0 || showAll ? (
-        <button className="btn ghost" style={{ margin: '6px 14px 0', fontSize: 12, padding: '6px 12px' }} onClick={() => setShowAll(!showAll)}>
+        <button className="btn ghost dev-act" style={{ margin: '6px 14px 0', fontSize: 12, padding: '6px 12px' }} onClick={() => setShowAll(!showAll)}>
           {showAll ? t('training.hideIneligible') : t('training.showIneligible', { n: hiddenIneligible })}
         </button>
       ) : null}

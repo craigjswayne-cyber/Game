@@ -43,7 +43,7 @@ const overflow = () => page.evaluate(() => {
 // first cut of this probe read x1.95 and called the zoom broken. A short
 // single-line label's height is a pure zoom measure.
 const labelHeight = () => page.evaluate(() => {
-  const el = document.querySelector('.text-scale-row .muted')
+  const el = document.querySelector('.text-scale-row .ts-label')
   return el ? el.getBoundingClientRect().height : 0
 })
 
