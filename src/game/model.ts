@@ -1695,6 +1695,9 @@ export interface GameState {
   analyst?: import('./analyst').AnalystRead | null
   /** how often following his read has paid off */
   analystRecord?: { right: number; wrong: number }
+  /** the tactical loop (#181): this week's chosen plan and the last few
+   *  post-match findings, capped (oppreport.ts) */
+  tacLoop?: import('./oppreport').TacLoop
   /** the chief scout is away on a commissioned brief */
   commission?: import('./commission').Commission | null
   /** the report he filed when he got back */
