@@ -9,7 +9,7 @@ fictional (location-based identities, since v1.0.2) and no official badge, kit
 or logo ships with the game. Player names are real, used to identify people in a
 sporting database and for nothing else; the game is not affiliated with,
 endorsed by or licensed by any player, club, league or governing body. Anybody
-named who would rather not be can write to phaserugbymanager@gmail.com and will
+named who would rather not be can write to info@fwdsandbcks.com and will
 be removed in the next update.
 
 The game collects nothing and sends nothing anywhere: no accounts, no analytics,
