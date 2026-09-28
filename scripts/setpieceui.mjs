@@ -145,6 +145,11 @@ async function bench(page, label, full) {
   ok(b23.overlaps === 0 && b23.outside === 0, `${label}: no two names on the 23 overlap (${b23.overlaps}), none off the grass (${b23.outside})`)
   ok(b23.pips.join() === '5,6,4', `${label}: the splits drawn as forwards on the bench (${b23.pips.join(' / ')})`)
   ok(!b23.emoji, `${label}: no emoji left on the bench page`)
+  // the eight brief rows are folded behind a toggle since the drawn 23 took
+  // over showing them (scrollaudit had the tab at 3.9 screenfuls), so they are
+  // opened here: the brief clicks below and the fit check both need them there
+  if (await page.locator('.brief-row').count() === 0) await page.click('[data-briefs-toggle]')
+  ok(await page.locator('.brief-row').count() === 8, `${label}: the brief controls open on a tap, one row per seat`)
   if (full) {
     for (const sp of ['6-2', '4-4', '5-3']) {
       await page.click(`.split-grid [data-split="${sp}"]`)

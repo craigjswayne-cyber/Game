@@ -1320,6 +1320,8 @@
   "splitCount": "ベンチはFW{fw}人・BK{bk}人",
   "finisherBriefs": "フィニッシャーへの指令",
   "finisherBriefsSub": "最初の3人の交代選手",
+  "changeBriefs": "指令を変更",
+  "closeBriefs": "指令を閉じる",
   "emptySeat": "- 空席 -",
   "b23Sub": "先発15人、控え8人とそれぞれの指示",
   "b23Xv": "先発15人",
