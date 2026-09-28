@@ -3449,6 +3449,8 @@ const COVER_DEF = 0.937
 const TRY_BASE = 0.0815
 /** late in a match: how much an empty tank costs the side defending, and the side attacking */
 const TIRED_DEF = 0.8, TIRED_ATT = 0.3
+/** the strength a side keeps on an empty tank from the 56th minute (0.78 before it) */
+const LATE_FLOOR = 0.6
 /** how hard the penalty count leans toward the defending side's half (1.7.4) */
 const PEN_LEAN = 1.7
 /** how hard a zone plan moves the line (1.8.0, see simTick): at 1 the kicking
@@ -3568,6 +3570,12 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
   // something else that is measured, and NOTHING IN THE ENGINE IS CHANGED HERE:
   // the bench inversion is still real and still open.
   //
+  // CLOSED IN 1.8.0 for the part that matters: the band is unchanged for the
+  // first hour and steeper from the 56th minute (LATE_FLOOR, below), which
+  // is where replacements come on. scripts/subvalueprobe.ts: four changes
+  // +1.27 points over none, eight +1.32 (were about 0 and -0.4), and
+  // awardprobe's Player of the Month floor holds.
+  //
   // What was fixed is the part that was actively harmful - coachfix.ts was
   // telling managers to make all eight changes, which measures 2.5 points a
   // match worse than making none.
@@ -3578,7 +3586,14 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
   // average that every other system reads. Both attempts here failed because a
   // side-wide energy term is load-bearing for ratings, cup progression and the
   // board's read of a season, none of which a bench fix should be deciding.
-  const eF = (s: SideCtx) => 0.78 + 0.22 * (sideEnergy(s) / 100)
+  // THE LAST QUARTER IS THE BENCH'S (1.8.0, owner: "subs should be
+  // important"). The side-wide band above stays as it was for the first
+  // hour - widening it everywhere was tried and reverted, see the note - and
+  // from the 56th minute, where every replacement actually comes on, an
+  // empty tank costs more: LATE_FLOOR at zero instead of 0.78.
+  const eF = (s: SideCtx) => tick >= 14
+    ? LATE_FLOOR + (1 - LATE_FLOOR) * (sideEnergy(s) / 100)
+    : 0.78 + 0.22 * (sideEnergy(s) / 100)
 
   /**
    * ---- THE LINE MOVES (v1.8.0) ----

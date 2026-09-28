@@ -211,7 +211,15 @@ ok(posn('optimise') < posn('sleepwalk'),
 // 4242 below is a giant that gets a soft season by chance and its board barely
 // notices. The claim that has to hold is the SHAPE across seeds, not that
 // every single one crosses the sack line by a fixed date.
-const STATURE_SEEDS = [9, 777, 101, 55, 2024, 4242, 31, 88, 2026, 515, 7, 1212]
+// THIRTY-SIX, NOT TWELVE (1.8.0). With the board made fair to a big club
+// (season.ts boardReaction, the floor streak and the first-season grace) the
+// engaged Bath went from 2 of 12 sacked to 0, and the crisis count read 3
+// against 6: one seed from the line on a count of a dozen. Three times the
+// seasons; every count below is scaled by K, the same rates as before.
+const STATURE_SEEDS = [9, 777, 101, 55, 2024, 4242, 31, 88, 2026, 515, 7, 1212,
+  103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163,
+  167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229]
+const K = STATURE_SEEDS.length / 12
 
 function statureRun(clubId: string, seed: number, mode: Mode) {
   const g: GameState = newGame(clubId, 'Stature', seed)
@@ -285,11 +293,11 @@ console.log(`  esher rep38  sleepwalk  mean min-confidence ${meanMin(minnowSleep
 const CRISIS = 20
 const crisis = (rows: { minConf: number }[]) => rows.filter(r => r.minConf < CRISIS).length
 console.log(`  crisis seeds (board under ${CRISIS}): giant sleepwalk ${crisis(giantSleep)}, giant optimise ${crisis(giantOpt)}, minnow sleepwalk ${crisis(minnowSleep)} of ${STATURE_SEEDS.length}`)
-ok(crisis(giantSleep) >= 3,
+ok(crisis(giantSleep) >= 3 * K,
   `a sleepwalking giant's board falls into crisis in a good share of seasons (${crisis(giantSleep)}/${STATURE_SEEDS.length} under ${CRISIS})`)
 ok(crisis(giantOpt) * 2 < crisis(giantSleep),
   `and its engaged board does so far less often (${crisis(giantOpt)} v ${crisis(giantSleep)})`)
-ok(crisis(giantSleep) > crisis(minnowSleep) + 2,
+ok(crisis(giantSleep) > crisis(minnowSleep) + 2 * K,
   `the SAME sleepwalk season puts a giant's board in crisis where a minnow's stays patient (${crisis(giantSleep)} v ${crisis(minnowSleep)} seeds)`)
 ok(meanMin(giantSleep) < meanMin(giantOpt) * 0.8,
   `a giant's sleepwalk board sinks lower than its engaged board (${meanMin(giantSleep).toFixed(1)} v ${meanMin(giantOpt).toFixed(1)}, ${(meanMin(giantSleep) / meanMin(giantOpt) * 100).toFixed(0)}% of it)`)
@@ -313,7 +321,7 @@ ok(giantSleep.filter(r => r.sacked).length >= 1,
   const sleepSacked = giantSleep.filter(r => r.sacked).length
   ok(optSacked < sleepSacked,
     `engaged management is sacked less often than sleepwalking at the same club (${optSacked} v ${sleepSacked} of ${STATURE_SEEDS.length})`)
-  ok(optSacked <= 1,
+  ok(optSacked <= 1 * K,
     `and it stays rare (${optSacked}/${STATURE_SEEDS.length})`)
 }
 ok(minnowSleep.filter(r => r.sacked).length === 0,
