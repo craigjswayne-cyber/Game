@@ -1,18 +1,24 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
-import { fmtMoney, POS_ORDER, XV_SLOTS, type Player, type Pos } from '../../game/model'
+import { fmtMoney, XV_SLOTS, type Player } from '../../game/model'
 import { effAt } from '../../game/attributes'
 import { assistantAdvice, squadValue, starPlayerIds } from '../../game/analysis'
-import { leaguePos, sortTable } from '../../game/schedule'
+import { leaguePos } from '../../game/schedule'
 import { PosBadge, SectionTitle, Stars } from '../components'
-import { posName, ord, t } from '../../game/i18n'
+import { t } from '../../game/i18n'
+import MentoringPanel from './MentoringPanel'
+import { Glyph } from '../glyphs'
 
 /** The assistant's full report on the squad, FM Team Report style. */
-export default function TeamReport() {
+export default function TeamReport({ initial }: { initial?: string }) {
   const game = useStore(s => s.game)!
   const go = useStore(s => s.go)
-  // two pages: where we stand, and how deep we are (user: fewer long scrolls)
-  const [rtab, setRtab] = useState<'standing' | 'depth' | 'xv'>('standing')
+  // two pages: where we stand, and the XV. Squad depth lived here too, as a
+  // second copy of the Squad screen's Depth tab (owner, 27 Sep 2026: "weve got
+  // two squad depths in the game - remove it from team report"). Squad keeps it.
+  // Mentoring is the third (owner, 1.8.0: "Club/Mentoring should be moved into
+  // team report"); the Training screen's signpost opens it directly.
+  const [rtab, setRtab] = useState<'standing' | 'xv' | 'mentoring'>(initial === 'mentoring' ? 'mentoring' : 'standing')
   const club = game.clubs[game.userClubId]
   const squad = club.players.map(id => game.players[id]).filter((p): p is Player => !!p && !p.onLoan)
   const stars = starPlayerIds(game, club.id)
@@ -23,14 +29,6 @@ export default function TeamReport() {
     .findIndex(c => c.id === club.id) + 1
   const repRank = [...leagueClubs].sort((a, b) => b.rep - a.rep).findIndex(c => c.id === club.id) + 1
   const pos = leaguePos(game.comps[club.leagueId]?.table, club.id)
-
-  // positional depth
-  const depth = POS_ORDER.map(pos => {
-    const fit = squad.filter(p => (p.pos === pos || p.alt.includes(pos)) && !p.injury)
-    const best = [...squad].filter(p => !p.injury).sort((a, b) => effAt(b, pos) - effAt(a, pos))[0]
-    const need = pos === 'LK' || pos === 'FL' || pos === 'CE' || pos === 'WG' ? 3 : 2
-    return { pos, count: fit.length, need, best: best && effAt(best, pos) >= 60 ? best : null }
-  })
 
   // age profile
   const buckets = [
@@ -52,13 +50,14 @@ export default function TeamReport() {
     <>
       <div className="tab-bar">
         <button className={rtab === 'standing' ? 'active' : ''} onClick={() => setRtab('standing')}>{t('report.trWhereWeStand')}</button>
-        <button className={rtab === 'depth' ? 'active' : ''} onClick={() => setRtab('depth')}>{t('report.trSquadDepth')}</button>
         <button className={rtab === 'xv' ? 'active' : ''} onClick={() => setRtab('xv')}>{t('report.trBestXV')}</button>
+        <button className={rtab === 'mentoring' ? 'active' : ''} onClick={() => setRtab('mentoring')}>{t('training.mentoring')}</button>
       </div>
-      <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+      {rtab !== 'mentoring' && <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
         <h3 style={{ fontSize: 14 }}>{t('report.trVerdict')}</h3>
         <div className="meta" style={{  }}>{assistantAdvice(game)}</div>
-      </div>
+      </div>}
+      {rtab === 'mentoring' && <MentoringPanel />}
 
       {rtab === 'standing' && <>
       <SectionTitle>{t('report.trWhereWeStand')}</SectionTitle>
@@ -84,30 +83,11 @@ export default function TeamReport() {
         {squad.filter(p => stars.has(p.id)).map(p => (
           <tr key={p.id} onClick={() => go('player', p.id)}>
             <td><PosBadge pos={p.pos} /></td>
-            <td className="name">⭐ {p.name}</td>
+            <td className="name"><Glyph name="star" /> {p.name}</td>
             <td><Stars ca={p.ca} /></td>
             <td className="num">{fmtMoney(p.value)}</td>
           </tr>
         ))}
-        </tbody>
-      </table></div>
-
-      </>}
-      {rtab === 'depth' && <>
-      <SectionTitle sub={t('report.trDepthSub')}>{t('report.trDepth')}</SectionTitle>
-      <div className="tblwrap"><table className="dtable">
-        <thead><tr><th>{t('squad.colPos')}</th><th>{t('report.trColRole')}</th><th className="num">{t('report.trColCover')}</th><th>{t('report.trColBest')}</th></tr></thead>
-        <tbody>
-          {depth.map(d => (
-            <tr key={d.pos} className={d.count < d.need ? 'prob-row' : undefined}>
-              <td><PosBadge pos={d.pos} /></td>
-              <td className="name" style={{ fontSize: 12 }}>{posName(d.pos)}</td>
-              <td className="num" style={d.count < d.need ? { color: 'var(--text-negative)', fontWeight: 700 } : undefined}>
-                {d.count}/{d.need}
-              </td>
-              <td style={{ fontSize: 12 }}>{d.best?.name ?? '-'}</td>
-            </tr>
-          ))}
         </tbody>
       </table></div>
 
@@ -120,7 +100,7 @@ export default function TeamReport() {
         {buckets.map(b => (
           <div key={b.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
             <span style={{ fontSize: 11, fontWeight: 700 }}>{b.n}</span>
-            <div style={{ width: '100%', height: `${(b.n / maxB) * 58}px`, background: 'var(--club1)', borderRadius: '4px 4px 0 0', minHeight: 2 }} />
+            <div style={{ width: '100%', height: `${(b.n / maxB) * 58}px`, background: 'var(--club-show, var(--club1))', borderRadius: '4px 4px 0 0', minHeight: 2 }} />
             <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{b.label}</span>
           </div>
         ))}

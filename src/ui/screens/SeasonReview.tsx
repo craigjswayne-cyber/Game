@@ -1,7 +1,8 @@
 import { useStore } from '../../store'
 import { fmtMoney, seasonLabel } from '../../game/model'
 import { Crest, SectionTitle } from '../components'
-import { ord, t } from '../../game/i18n'
+import { ord, t, compLabel } from '../../game/i18n'
+import { Glyph } from '../glyphs'
 
 /** The annual: last season on one page - the league, the cups, the
  *  stars, the money and the board's mood. */
@@ -77,7 +78,7 @@ export default function SeasonReview() {
             </div>
           )}
           {r.trophies.length > 0 && (
-            <div className="sc-cup">🏆 {r.trophies.join(' · ')}</div>
+            <div className="sc-cup"><Glyph name="trophy" /> {r.trophies.join(' · ')}</div>
           )}
         </div>
 
@@ -92,7 +93,7 @@ export default function SeasonReview() {
           <>
             <SectionTitle sub={t('legacy.srDreamSub')}>{t('legacy.lgTheDream')}</SectionTitle>
             <div className="card" style={{ borderLeft: `4px solid ${r.dream.done ? 'var(--primary)' : 'var(--gold)'}` }}>
-              <div style={{ fontWeight: 700, fontSize: 15 }}>{r.dream.titleK ? t(r.dream.titleK, r.dream.titleV) : r.dream.title}</div>
+              <div style={{ fontWeight: 700, fontSize: 16 }}>{r.dream.titleK ? t(r.dream.titleK, r.dream.titleV) : r.dream.title}</div>
               <div style={{ height: 7, background: 'var(--border-strong)', borderRadius: 4, overflow: 'hidden', margin: '8px 0 5px' }}>
                 <div style={{ width: `${Math.min(100, Math.round((r.dream.at / Math.max(1, r.dream.goal)) * 100))}%`, height: '100%', background: r.dream.done ? 'var(--primary)' : 'var(--gold-fill)' }} />
               </div>
@@ -113,7 +114,7 @@ export default function SeasonReview() {
           </>
         )}
 
-        <SectionTitle sub={r.league.name}>{t('legacy.srTheLeague')}</SectionTitle>
+        <SectionTitle sub={compLabel(r.league.name)}>{t('legacy.srTheLeague')}</SectionTitle>
         <div className="card">
           {row(t('legacy.srFinished'), r.league.pos > 0 ? ord(r.league.pos) : '-', true)}
           {r.league.predicted ? row(t('legacy.srPunditsSaid'), ord(r.league.predicted)) : null}
@@ -158,7 +159,7 @@ export default function SeasonReview() {
                       {a.league.pos > 0 ? ord(a.league.pos) : '-'}
                     </td>
                     <td className="num">{a.overall.w}-{a.overall.d}-{a.overall.l}</td>
-                    <td>{a.trophies.length ? `🏆 ${a.trophies.length > 1 ? `×${a.trophies.length}` : a.trophies[0]}` : ''}</td>
+                    <td>{a.trophies.length > 0 && <><span style={{ color: 'var(--gold)' }}><Glyph name="trophy" /></span> {a.trophies.length > 1 ? `×${a.trophies.length}` : a.trophies[0]}</>}</td>
                   </tr>
                 ))}
               </tbody>
@@ -177,7 +178,7 @@ export default function SeasonReview() {
                   return (
                     <tr key={w.season}>
                       <td>{seasonLabel(w.season)}</td>
-                      <td style={mine ? { color: 'var(--info)', fontWeight: 700 } : undefined}>🏅 {w.name}</td>
+                      <td style={mine ? { color: 'var(--info)', fontWeight: 700 } : undefined}>{w.name}</td>
                       <td>{w.clubName}</td>
                     </tr>
                   )
@@ -187,7 +188,7 @@ export default function SeasonReview() {
           </>
         )}
 
-        <button className="btn gold block" style={{ marginTop: 12, fontSize: 15 }} onClick={back}>
+        <button className="btn gold block" style={{ marginTop: 12, fontSize: 16 }} onClick={back}>
           {t('legacy.srFileAway')}
         </button>
         <div className="spacer" />

@@ -177,7 +177,7 @@ function dressingRoomFallout(state: GameState, rng: Rng) {
       const flash = tIn('en', flashK)
       wire(state, 'news.wRift',
         { a: a.name, b: b.name, aLast: a.name.split(' ').slice(-1)[0], bLast: b.name.split(' ').slice(-1)[0],
-          aPers_k: `pers.${a.pers}`, bPers_k: `pers.${b.pers}`, flash, flash_k: flashK }, a.id)
+          flash, flash_k: flashK }, a.id)
       break
     }
   }
@@ -288,7 +288,7 @@ function moneyMen(state: GameState, rng: Rng) {
         club.wageBudget = Math.round(club.wageBudget * 0.92)
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
-          subject: `📉 TAKEOVER COMPLETE: belts tighten at ${club.name}`,
+          subject: `TAKEOVER COMPLETE: belts tighten at ${club.name}`,
           body: isMyClub(state, club.id)
             ? `The deal is done - and the new owners' first act is an audit, their second a memo. Your transfer budget is cut to ${fmtMoney(club.budget)} and every contract will be "reviewed for value". Sell before you buy, and expect the new chairman to watch every result.`
             : `${club.name}'s new owners have arrived with accountants, not ambition. Expect their best players to be quietly available - at the right price.`,
@@ -303,7 +303,7 @@ function moneyMen(state: GameState, rng: Rng) {
         club.rep = clamp(club.rep + 2, 30, 95)
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
-          subject: `🤝 TAKEOVER COMPLETE: new owners at ${club.name}`,
+          subject: `TAKEOVER COMPLETE: new owners at ${club.name}`,
           body: isMyClub(state, club.id)
             ? `It's done. Your new owner walks the training ground on day one and leaves a message with your secretary: the transfer budget is up ${fmtMoney(boost)}, the wage ceiling is raised - and mediocrity is no longer on the menu. The next two months are your audition.`
             : `It's done. The consortium has completed its purchase of ${club.name} and immediately pledged fresh investment. The rest of the league takes note: ${club.short} just became dangerous in the market.`,
@@ -591,6 +591,35 @@ function socialBuzz(state: GameState, rng: Rng) {
     { id: 'scrum-cafe', k: 'news.grScrumCafe' },
     { id: 'lineout-ladder', k: 'news.grLineoutLadder' },
     { id: 'fog-match', k: 'news.grFogMatch' },
+    // 1.7.4, owner: "need more humour in the game - research all the stories
+    // in rugby for the last 6 months - find the fun alongside the usual". The
+    // shapes are real ones from the 2026 season (a floodlight failure, a
+    // trophy lost overboard, a coach walking out over the music next door, a
+    // kit clash played in bibs, a deer on the pitch); the names are never
+    // real, and nobody in them is the butt of anything cruel.
+    { id: 'floodlights', k: 'news.grFloodlights' },
+    { id: 'harbour', k: 'news.grHarbourShield' },
+    { id: 'inflatables', k: 'news.grInflatables' },
+    { id: 'storm-pizza', k: 'news.grStormPizza' },
+    { id: 'lightning', k: 'news.grLightning' },
+  )
+  if (star) takes.push(
+    { id: 'deer', who: star.id, k: 'news.grDeer' },
+    { id: 'grip', who: star.id, k: 'news.grGripMachine' },
+    { id: 'tattoo', who: star.id, k: 'news.grTattooPact' },
+    { id: 'airport', who: star.id, k: 'news.grAirportCafe' },
+  )
+  if (prop) takes.push(
+    { id: 'feeds-six', who: prop.id, k: 'news.grFeedsSix' },
+    { id: 'barbecue', who: prop.id, k: 'news.grBarbecue' },
+    { id: 'heatwave', who: prop.id, k: 'news.grHeatwave' },
+  )
+  if (nine) takes.push({ id: 'lovely-decision', who: nine.id, k: 'news.grLovelyDecision' })
+  if (kid) takes.push({ id: 'golden-point', who: kid.id, k: 'news.grGoldenPoint' })
+  if (other) takes.push(
+    { id: 'kit-clash', k: 'news.grKitClash' },
+    { id: 'playlist', k: 'news.grPlaylist' },
+    { id: 'wandering-fan', k: 'news.grWanderingFan' },
   )
 
   if (!takes.length) return
@@ -620,7 +649,9 @@ function socialBuzz(state: GameState, rng: Rng) {
 /** Clubhouse tales: warm, daft, deeply rugby stories with no losers.
  *  A couple a season, never negative - the game should make you smile. */
 function clubhouseTales(state: GameState, rng: Rng) {
-  if (rng() > 0.055) return
+  // 0.055 -> 0.09 in 1.7.4 ("need more humour"): about four a season, not
+  // two or three. The same single draw either way, so nothing downstream moves
+  if (rng() > 0.09) return
   if (state.news.some(n => n.season === state.season && n.subject.startsWith('CLUBHOUSE') && state.week - n.week < 6)) return
   const club = state.clubs[state.userClubId]
   const squad = club.players.map(id => state.players[id]).filter((p): p is Player => !!p)
@@ -647,7 +678,12 @@ function clubhouseTales(state: GameState, rng: Rng) {
     ['news.chTale6'],
     ['news.chTale7'],
     ['news.chTale8'],
+    // 1.7.4, more of them (see socialBuzz)
+    ['news.chTale10'],
+    ['news.chTale12'],
   )
+  if (prop) tales.push(['news.chTale9', prop.id])
+  if (wing) tales.push(['news.chTale11', wing.id])
   if (!tales.length) return
   const t = tales[(state.season * 11 + state.week * 7) % tales.length]
   wire(state, t[0], {
@@ -779,7 +815,7 @@ export function postPredictionsNews(state: GameState) {
   const verdict = tIn('en', verdictKey, { club: nm(club.id) })
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'gossip', read: false,
-    subject: `🎙 Pundits' ${comp.name} predictions are in`,
+    subject: `Pundits' ${comp.name} predictions are in`,
     body: [
       `Title: ${nm(order[0])}. Chasing: ${nm(order[1])}, ${nm(order[2])}.`,
       `Bottom: ${nm(order[order.length - 1])}.`,

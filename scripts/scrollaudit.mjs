@@ -25,8 +25,8 @@ try {
   await page.goto('http://localhost:4177/')
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   await page.click('text=New Career')
-  await page.waitForSelector('text=English Premier Division')
-  await page.click('text=English Premier Division')
+  await page.waitForSelector('[data-league="prem"]')
+  await page.click('[data-league="prem"]')
   await page.waitForSelector('.club-tile')
   await page.click('.tile >> text=Leicester')
   await page.waitForSelector('text=Star Player')
@@ -83,6 +83,19 @@ try {
     await page.click('.bottom-nav button[title="Hub"]')
     await page.click(`.submenu-item >> text=${item}`)
     await measure(label)
+    // Training carries the development list (see LISTS below), so the page as
+    // a whole is a list; what it shows BEFORE the list is fixed and is still
+    // policed, measured to the top of the card that holds the rows
+    if (label === 'training') {
+      const m = await page.evaluate(() => {
+        const el = document.querySelector('main.content') ?? document.scrollingElement
+        const card = document.querySelector('[data-dev-row]')?.parentElement
+        if (!card) return null
+        return { h: card.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop, v: el.clientHeight }
+      })
+      if (m) rows.push({ name: 'training: above the list', screens: m.h / m.v, h: m.h, v: m.v })
+      else console.error('SCROLL AUDIT: the development list was not found on the training page')
+    }
   }
 
   await page.click('.bottom-nav button[title="Manager"]')
@@ -143,7 +156,18 @@ try {
   // note in theme.css). A bench you cannot read is worse than one more swipe.
   // The only remaining fat is ~50px of static help text, and shaving that to
   // land at 1.97 would be gaming the threshold, not improving the screen.
-  const LISTS = new Set(['squad', 'fixtures', 'transfers', 'scouting agency', 'international rugby', 'home', 'handbook', 'tactics: selection'])
+  //
+  // 'training' joins them in 1.8.0, on the owner's word rather than as a
+  // shortcut: the development focus list used to be ten names, and he asked
+  // for "more so I can select any player who reaches the criteria"
+  // (DevelopmentPanel.tsx), so it now lists every qualifying man with a
+  // search and a forwards/backs filter, 52px a row. With 53 who qualify at
+  // Leicester that is 2,759px of the page's 3,345 (10.2 screenfuls at 844x390,
+  // 6.3 at 412x740). Folding it back to ten would undo what was asked for.
+  // Everything above the list - the tab bar, the weekly focus, the list's own
+  // tabs, the rule card and the filters - is measured on its own as
+  // 'training: above the list' and held to the same limits as any fixed page.
+  const LISTS = new Set(['squad', 'fixtures', 'transfers', 'scouting agency', 'international rugby', 'home', 'handbook', 'tactics: selection', 'training'])
   rows.sort((a, b) => b.screens - a.screens)
   console.log('\nscreenfuls  screen')
   for (const r of rows) {

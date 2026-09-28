@@ -3,7 +3,7 @@ import { useStore } from '../../store'
 import { leaguePos, parseResultsParam, sortTable } from '../../game/schedule'
 import { teamShort } from '../../game/matchEngine'
 import { CrestT, SectionTitle } from '../components'
-import { ord, t } from '../../game/i18n'
+import { ord, t, compLabel } from '../../game/i18n'
 import { AdSlot } from '../AdSlot'
 
 /** The full-time round-up: everyone else's scores and the table as it
@@ -33,7 +33,7 @@ export default function WeekResults({ param }: { param: string }) {
         )}
       </div>
       {tab === 'results' && (<>
-      <SectionTitle sub={comp?.name ?? (compId === 'fr' ? t('week.wrFriendlies') : undefined)}>{t('week.wrThisWeek')}</SectionTitle>
+      <SectionTitle sub={compLabel(comp?.name) ?? (compId === 'fr' ? t('week.wrFriendlies') : undefined)}>{t('week.wrThisWeek')}</SectionTitle>
       <div className="tblwrap"><table className="dtable"><tbody>
         {results.map(f => {
           const mine = f.homeId === game.userClubId || f.awayId === game.userClubId
@@ -75,7 +75,7 @@ export default function WeekResults({ param }: { param: string }) {
               <col style={{ width: '15%' }} /><col style={{ width: '13%' }} />
             </colgroup>
             <thead>
-              <tr><th>{t('tables.colRank')}</th><th>{t('tables.colTeam')}</th><th className="num">{t('tables.colP')}</th><th className="num">{t('common.w')}</th>
+              <tr><th className="num">{t('tables.colRank')}</th><th>{t('tables.colTeam')}</th><th className="num">{t('tables.colP')}</th><th className="num">{t('common.w')}</th>
                 <th className="num">{t('tables.colDiff')}</th><th className="num">{t('squad.colPts')}</th></tr>
             </thead>
             <tbody>

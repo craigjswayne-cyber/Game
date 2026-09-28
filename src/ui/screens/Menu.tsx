@@ -3,7 +3,7 @@ import { useStore } from '../../store'
 import { listSaves, loadGame, deleteSave, type SaveMeta } from '../../game/save'
 import { seasonLabel } from '../../game/model'
 import { LANGS, t } from '../../game/i18n'
-import { BrandMark } from '../components'
+import { BrandMark, StudioMark } from '../components'
 import { dismiss, dismissed, isAndroidShell } from '../../game/shell'
 
 export default function Menu() {
@@ -26,7 +26,9 @@ export default function Menu() {
     <div className="title-screen">
       <BrandMark size={60} />
       <hr className="rules" />
-      <h1><b>PHASE</b><br />RUGBY MANAGER</h1>
+      {/* three lines, as the key art sets it (owner: "Phase Rugby Manager
+          should be over three lines on the title screen") */}
+      <h1 aria-label="PHASE: Rugby Manager"><b>PHASE</b><br />RUGBY<br />MANAGER</h1>
       {/* set in caps at the user's request, so it reads as a strapline under the
           title rather than as a sentence someone left there */}
       <div className="tagline">{t('menu.tagline')}</div>
@@ -67,12 +69,12 @@ export default function Menu() {
             answers to it. This screen offers the door; what is behind it is
             chosen once you are through. */}
         <button className={saves.length ? 'btn ghost' : 'btn gold'}
-          style={saves.length ? { color: 'var(--text-primary)', borderColor: 'var(--border-strong)', fontSize: 15 } : { fontSize: 16, padding: '13px' }}
+          style={saves.length ? { color: 'var(--text-primary)', borderColor: 'var(--border-strong)', fontSize: 16 } : { fontSize: 16, padding: '13px' }}
           onClick={() => go('newgame')}>
           {t('menu.newCareer')}
         </button>
         {saves.length > 0 && (
-          <button className="btn ghost" style={{ color: 'var(--text-primary)', borderColor: 'var(--border-strong)', fontSize: 15 }}
+          <button className="btn ghost" style={{ color: 'var(--text-primary)', borderColor: 'var(--border-strong)', fontSize: 16 }}
             onClick={() => setShowLoad(!showLoad)}>
             {t('menu.loadCareer')}
           </button>
@@ -136,14 +138,23 @@ export default function Menu() {
       {supporter && (
         <div className="supporter-mark" style={{ marginTop: 18 }}>★ {t('supporter.badge')}</div>
       )}
+      {/* two lines (owner, 27 Sep 2026: "unofficial and independent on a
+          single line, then the not affiliated on the line below"): split
+          after the first sentence, in every language */}
       <div style={{ marginTop: 22, fontSize: 11, opacity: .65 }}>
-        {t('menu.disclaimer')}
+        {(() => {
+          const d = t('menu.disclaimer'), m = /^(.+?[.。])\s*(.+)$/.exec(d)
+          return m ? <><div>{m[1]}</div><div>{m[2]}</div></> : d
+        })()}
       </div>
       {/* WHICH BUILD IS THIS? Two phones, two people, and no way to tell a stale
           tab from a fresh deploy except by hunting for a feature. Stamped in at
           build time by vite.config.ts, and deliberately the quietest thing on
           the screen. */}
       <div className="build-tag">{__BUILD_TAG__}</div>
+      {/* the studio, under the build line (owner, circling the space at the
+          foot of the title screen: "Put the logo here instead") */}
+      <div className="studio-foot"><StudioMark size={52} /></div>
     </div>
   )
 }

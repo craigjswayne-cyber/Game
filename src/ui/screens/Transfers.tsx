@@ -1,15 +1,49 @@
-import { Fragment, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useStore } from '../../store'
-import { clubCode, fmtMoney, fmtWage, newsBody, newsSubject, POS_ORDER, weekDate, type Pos, weeksBetween100 } from '../../game/model'
+import { clubCode, fmtMoney, fmtWage, newsBody, newsSubject, POS_ORDER, seasonLabel, weekDate, type Attrs, type Pos, weeksBetween100 } from '../../game/model'
 import { counterIncomingOffer, renewalDemand, respondToOffer } from '../../game/ai'
 import { LOAN_LENGTHS, LOAN_SHARES, loanApproachable, loanIn, loanTargets, type LoanLength } from '../../game/loans'
-import { fuzzedCa, knowledge } from '../../game/scout'
+import { attrRange, fuzzedCa, knowledge } from '../../game/scout'
 import { commissionScout, searchFee, type SearchMonths } from '../../game/commission'
 import { badgeLabel } from '../../game/staff'
-import { ClubLink, FormPill, Nat, PosBadge, SectionTitle, Stars, TwoStep } from '../components'
-import { posName, t } from '../../game/i18n'
+import { ClubLink, FormPill, Mark, Nat, PosBadge, SectionTitle, Stars, TwoStep } from '../components'
+import { attrName, posName, t, compLabel } from '../../game/i18n'
 import { userWageBudget } from '../../game/grants'
 import { transferInterest } from '../../game/interest'
+import { Glyph } from '../glyphs'
+
+/** The classic search screen's views (1.8.0): which columns the table shows. */
+type SearchView = 'general' | 'contract' | 'physical' | 'setpiece' | 'handling' | 'mind'
+const SEARCH_VIEWS: SearchView[] = ['general', 'contract', 'physical', 'setpiece', 'handling', 'mind']
+/** four attributes a view, so a phone never scrolls sideways (sidescroll.mjs) */
+const VIEW_ATTRS: Record<Exclude<SearchView, 'general' | 'contract'>, (keyof Attrs)[]> = {
+  physical: ['pac', 'str', 'sta', 'agi'],
+  setpiece: ['scr', 'lin', 'kic', 'goa'],
+  handling: ['pas', 'han', 'tac', 'ruc'],
+  mind: ['vis', 'dec', 'pos', 'lea'],
+}
+/** "Louis Bielle-Biarrey" as "L. Bielle-Biarrey": the search table's form of a
+ *  name, as the classic manager games print it, so eight columns fit a phone
+ *  without cutting anyone's surname. A single name stays whole. */
+function initialName(name: string): string {
+  const parts = name.trim().split(/\s+/)
+  return parts.length < 2 ? name : `${parts[0][0]}. ${parts.slice(1).join(' ')}`
+}
+
+/** The leagues the scouts can be pointed at, the MRC beside the Premier
+ *  (owner, 27 Sep 2026: "MRC should be on the same line as prem ... not on its
+ *  own down below"). It was the last league created, so it came last and sat
+ *  alone on a row of its own. The game's own order is left alone: the season
+ *  runs its leagues in that order. */
+function scoutLeagues(game: NonNullable<ReturnType<typeof useStore.getState>['game']>) {
+  const all = Object.values(game.comps).filter(c => c.type === 'league')
+  const mrc = all.find(c => c.id === 'mrc')
+  if (!mrc) return all
+  const rest = all.filter(c => c !== mrc)
+  const at = rest.findIndex(c => c.id === 'prem')
+  return at < 0 ? all : [...rest.slice(0, at + 1), mrc, ...rest.slice(at + 1)]
+}
+const ATTR_ORDER: (keyof Attrs)[] = ['pac', 'str', 'sta', 'agi', 'scr', 'lin', 'kic', 'goa', 'pas', 'han', 'tac', 'ruc', 'vis', 'dec', 'pos', 'lea', 'agg', 'wor']
 
 export default function Transfers() {
   const game = useStore(s => s.game)!
@@ -23,39 +57,43 @@ export default function Transfers() {
   const [listedOnly, setListedOnly] = useState(false)
   /** the loan being negotiated: who, for how long, and who pays (v1.2.8) */
   const [loanDeal, setLoanDeal] = useState<{ id: number; length: LoanLength; share: number } | null>(null)
-  /** the unsolicited loan approach: a name typed, not a list browsed */
-  const [aq, setAq] = useState('')
+  /** TRANSFER OR LOAN (owner, 27 Sep 2026: "loans should be part of the
+   *  transfer market with a loan option available in the filter section").
+   *  Loan shows the men offered on loan, and, once three letters of a name are
+   *  typed, anyone else a club might lend (the unsolicited approach): tapping
+   *  either opens the loan sheet. */
+  const [deal, setDeal] = useState<'transfer' | 'loan'>('transfer')
   // WHO WOULD ACTUALLY COME? The engine has always refused a bid from a club
   // far below a happy player's, and never said so until you had spent the bid
   // (interest.ts). This chip asks that same question up front.
   const [keenOnly, setKeenOnly] = useState(false)
+  // 1.8.0, the classic search screen: which columns you are looking at, one
+  // attribute to filter on, the injured and the expiring
+  const [view, setView] = useState<SearchView>('general')
+  const [attrKey, setAttrKey] = useState<keyof Attrs | ''>('')
+  const [attrMin, setAttrMin] = useState(12)
+  const [withInjured, setWithInjured] = useState(true)
+  const [expiringOnly, setExpiringOnly] = useState(false)
+  const [filtersOpen, setFiltersOpen] = useState(false)
   const [msort, setMsort] = useState<'ca' | 'value' | 'age' | 'name' | 'form'>('ca')
   const [mdesc, setMdesc] = useState(false)
   // KEYED TO THE ROW, not to the page. Same class of bug as the coach market:
   // a banner above the tab bar answers a Sign on loan tapped eleven rows down,
   // where the manager never sees it.
   const [msg, setMsg] = useState<{ key: string; text: string } | null>(null)
-  const [xtab, setXtab] = useState<'market' | 'shortlist' | 'loans' | 'deals'>('market')
+  // Market, Scouting and Deals. Shortlist became Scouting and Loans moved into
+  // the market's filters (owner, 27 Sep 2026)
+  const [xtab, setXtab] = useState<'market' | 'scouting' | 'deals'>('market')
   const [page, setPage] = useState(0)
   const PER_PAGE = 10
 
   const user = game.clubs[game.userClubId]
 
-  // WHO YOU MAY RING ABOUT. Every under-23 in the world is far too many rows to
-  // list, so this is a search and not a browse: three characters of a name or a
-  // club, capped at a dozen hits. loanApproachable is the same gate the engine
-  // applies, so nothing appears here that the phone call would refuse outright.
-  const approachHits = useMemo(() => {
-    const q = aq.trim().toLowerCase()
-    if (q.length < 3) return []
-    const listed = new Set(loanTargets(game).map(p => p.id))
-    return Object.values(game.players)
-      .filter(p => !listed.has(p.id) && loanApproachable(game, p)
-        && (p.name.toLowerCase().includes(q)
-          || (p.clubId ? (game.clubs[p.clubId]?.short ?? '').toLowerCase().includes(q) : false)))
-      .sort((a, b) => b.ca - a.ca)
-      .slice(0, 12)
-  }, [game, aq])
+  // WHO YOU MAY RING ABOUT. The loan list is the shop window; beyond it, the
+  // unsolicited approach finds anyone loanApproachable (the same gate the
+  // engine applies), but only from a typed name: every under-23 in the world
+  // is far too many rows to browse.
+  const listedLoans = useMemo(() => new Set(loanTargets(game).map(p => p.id)), [game, game.week])
   const offers = game.offers.filter(o => o.status === 'pending' && o.forUser)
 
   const MTh = ({ k, children, right }: { k: typeof msort; children: React.ReactNode; right?: boolean }) => (
@@ -68,6 +106,7 @@ export default function Transfers() {
   const results = useMemo(() => {
     const q = query.trim().toLowerCase()
     let list = Object.values(game.players).filter(p => p.clubId !== game.userClubId)
+    if (deal === 'loan') list = list.filter(p => listedLoans.has(p.id) || (q.length >= 3 && loanApproachable(game, p)))
     if (pos !== 'ALL') list = list.filter(p => p.pos === pos || p.alt.includes(pos))
     if (q) list = list.filter(p => p.name.toLowerCase().includes(q) || (p.clubId ? game.clubs[p.clubId]?.short.toLowerCase().includes(q) : false))
     if (maxVal > 0) list = list.filter(p => p.value <= maxVal)
@@ -76,6 +115,10 @@ export default function Transfers() {
     else if (league !== 'ALL') list = list.filter(p => p.clubId && game.clubs[p.clubId]?.leagueId === league)
     if (listedOnly) list = list.filter(p => p.transferListed)
     if (keenOnly) list = list.filter(p => transferInterest(game, p) !== 'no')
+    if (!withInjured) list = list.filter(p => !p.injury)
+    if (expiringOnly) list = list.filter(p => p.clubId && p.contractEnds <= game.season)
+    // an attribute filter reads what the scouts can see: the middle of the range
+    if (attrKey) list = list.filter(p => { const [lo, hi] = attrRange(game, p, attrKey); return (lo + hi) / 2 >= attrMin })
     const dir = mdesc ? -1 : 1
     list.sort((a, b) => {
       switch (msort) {
@@ -87,10 +130,16 @@ export default function Transfers() {
       }
     })
     return list.slice(0, 120)
-  }, [game, game.players, game.clubs, pos, query, maxVal, maxAge, league, listedOnly, keenOnly, msort, mdesc, game.week])
+  }, [game, game.players, game.clubs, pos, query, maxVal, maxAge, league, listedOnly, keenOnly, withInjured, expiringOnly, attrKey, attrMin, msort, mdesc, game.week, deal, listedLoans])
+  const activeFilters = [deal === 'loan', pos !== 'ALL', league !== 'ALL', maxVal > 0, maxAge > 0, !!attrKey,
+    listedOnly, keenOnly, expiringOnly, !withInjured].filter(Boolean).length
   const pages = Math.max(1, Math.ceil(results.length / PER_PAGE))
   const pageSafe = Math.min(page, pages - 1)
   const pageRows = results.slice(pageSafe * PER_PAGE, (pageSafe + 1) * PER_PAGE)
+  // a row opens the player, or in Loan the loan sheet
+  const openRow = (id: number) => deal === 'loan'
+    ? (setLoanDeal({ id, length: 'season', share: 0.5 }), setMsg(null))
+    : go('player', id)
 
   return (
     <>
@@ -113,8 +162,7 @@ export default function Transfers() {
 
       <div className="tab-bar">
         <button className={xtab === 'market' ? 'active' : ''} onClick={() => setXtab('market')}>{t('transfers.tabMarket')}</button>
-        <button className={xtab === 'shortlist' ? 'active' : ''} onClick={() => setXtab('shortlist')}>{t('transfers.tabShortlist')}</button>
-        <button className={xtab === 'loans' ? 'active' : ''} onClick={() => setXtab('loans')}>{t('transfers.tabLoans')}</button>
+        <button className={xtab === 'scouting' ? 'active' : ''} onClick={() => setXtab('scouting')}>{t('transfers.tabScouting')}</button>
         <button className={xtab === 'deals' ? 'active' : ''} onClick={() => setXtab('deals')}>{t('transfers.tabDeals')}</button>
       </div>
 
@@ -190,7 +238,7 @@ export default function Transfers() {
         )
       })()}
 
-      {xtab === 'shortlist' && <>
+      {xtab === 'scouting' && <>
       <ScoutCommission />
       <div className="card">
         <div className="fact-label">{t('transfers.scoutingAssignment')}</div>
@@ -198,10 +246,10 @@ export default function Transfers() {
           {t('transfers.assignmentNote', { unassigned: game.scoutFocus ? '' : t('transfers.unassigned') })}
         </div>
         <div className="chips" style={{ padding: 0 }}>
-          {Object.values(game.comps).filter(c => c.type === 'league').map(c => (
+          {scoutLeagues(game).map(c => (
             <button key={c.id} className="chip" onClick={() => { game.scoutFocus = game.scoutFocus === c.id ? null : c.id; touch() }}
               style={game.scoutFocus === c.id ? { borderColor: 'var(--gold)', color: 'var(--info)', fontWeight: 700 } : undefined}>
-              {game.scoutFocus === c.id ? '🔭 ' : ''}{c.short}
+              {game.scoutFocus === c.id && <><Glyph name="scout" /> </>}{compLabel(c.short)}
             </button>
           ))}
         </div>
@@ -233,7 +281,7 @@ export default function Transfers() {
                   <button className="btn danger" onClick={() => { setMsg({ key: `offer:${o.id}`, text: respondToOffer(game, o.id, false) }); touch() }}>{t('transfers.reject')}</button>
                 </div>
                 {msg?.key === `offer:${o.id}` && (
-                  <div className="meta" style={{ fontSize: 11.5, fontWeight: 600, marginTop: 6 }}>{msg.text}</div>
+                  <div className="meta" style={{ fontSize: 12, fontWeight: 600, marginTop: 6 }}>{msg.text}</div>
                 )}
               </div>
             )
@@ -241,7 +289,7 @@ export default function Transfers() {
         </>
       )}
 
-      {xtab === 'shortlist' && game.shortlist.length > 0 && (
+      {xtab === 'scouting' && game.shortlist.length > 0 && (
         <>
           <SectionTitle sub={t('transfers.shortlistSub')}>{t('transfers.shortlist')}</SectionTitle>
           <div className="tblwrap"><table className="dtable codefirst"><tbody>
@@ -264,68 +312,6 @@ export default function Transfers() {
         </>
       )}
 
-      {xtab === 'loans' && <>
-      <SectionTitle sub={t('transfers.loanMarketSub')}>{t('transfers.loanMarket')}</SectionTitle>
-      <div className="tblwrap"><table className="dtable codefirst"><tbody>
-        {loanTargets(game).map(p => (
-          <Fragment key={p.id}>
-          <tr>
-            <td onClick={() => go('player', p.id)}><PosBadge pos={p.pos} /></td>
-            <td className="name" onClick={() => go('player', p.id)}>
-              {p.name} <span className="muted">({p.age} · {p.clubId ? game.clubs[p.clubId]?.short : ''})</span>
-            </td>
-            <td onClick={() => go('player', p.id)}><Stars ca={fuzzedCa(game, p)} /></td>
-            <td>
-              {/* A LOAN IS NEGOTIATED (owner, v1.2.8): the button opens a
-                  sheet - "make it a pop up on screen otherwise it messes up
-                  the screen" - with the length, the wage share and the offer */}
-              <button className="btn ghost" style={{ fontSize: 11, padding: '5px 10px' }}
-                onClick={() => { setLoanDeal({ id: p.id, length: 'season', share: 0.5 }); setMsg(null) }}>
-                {t('transfers.signOnLoan')}
-              </button>
-            </td>
-          </tr>
-          </Fragment>
-        ))}
-        {loanTargets(game).length === 0 && (
-          <tr><td className="muted" style={{ padding: 12 }}>{t('transfers.noLoans')}</td></tr>
-        )}
-      </tbody></table></div>
-
-      {/* ---- ASKING ABOUT SOMEBODY WHO WAS NEVER OFFERED ----
-          Owner, 7 Sep: "can you propose to loan players even if they dont have
-          loan available?" The list above is the shop window; this is the phone
-          call. It reuses the same negotiating sheet, so the length and the wage
-          share work exactly as they do for a listed player - only the odds are
-          worse, and a rival hangs up. Search rather than a list, because every
-          under-23 at every club in the world is thousands of rows. */}
-      <SectionTitle sub={t('transfers.loanApproachSub')}>{t('transfers.loanApproach')}</SectionTitle>
-      <div className="filter-line">
-        <input className="inline-input" placeholder={t('transfers.nameOrClub')} value={aq}
-          onChange={e => setAq(e.target.value)} style={{ flex: '1 1 0' }} />
-      </div>
-      {aq.trim().length >= 3 && (
-        <div className="tblwrap"><table className="dtable codefirst"><tbody>
-          {approachHits.map(p => (
-            <tr key={p.id}>
-              <td onClick={() => go('player', p.id)}><PosBadge pos={p.pos} /></td>
-              <td className="name" onClick={() => go('player', p.id)}>
-                {p.name} <span className="muted">({p.age} · {p.clubId ? game.clubs[p.clubId]?.short : ''})</span>
-              </td>
-              <td onClick={() => go('player', p.id)}><Stars ca={fuzzedCa(game, p)} /></td>
-              <td>
-                <button className="btn ghost" style={{ fontSize: 11, padding: '5px 10px' }}
-                  onClick={() => { setLoanDeal({ id: p.id, length: 'season', share: 0.5 }); setMsg(null) }}>
-                  {t('transfers.loanAsk')}
-                </button>
-              </td>
-            </tr>
-          ))}
-          {approachHits.length === 0 && (
-            <tr><td className="muted" style={{ padding: 12 }}>{t('transfers.loanNoHits')}</td></tr>
-          )}
-        </tbody></table></div>
-      )}
       {loanDeal && (() => {
         const lp = game.players[loanDeal.id]
         const parent = lp?.clubId ? game.clubs[lp.clubId] : null
@@ -368,11 +354,14 @@ export default function Transfers() {
         )
       })()}
 
-      </>}
       {xtab === 'market' && <>
       {/* "120 found (best 120)" said the cap twice and paid for it in width:
           the device matrix clipped "tap to bid" clean off at 360px. Once. */}
-      <SectionTitle sub={t('transfers.marketSub', { n: results.length === 120 ? t('transfers.best120') : results.length })}>{t('transfers.scoutTheMarket')}</SectionTitle>
+      <SectionTitle sub={deal === 'loan'
+        ? t('transfers.loanMarketSub2', { n: results.length })
+        : t('transfers.marketSub', { n: results.length === 120 ? t('transfers.best120') : results.length })}>
+        {t(deal === 'loan' ? 'transfers.loanMarket' : 'transfers.scoutTheMarket')}
+      </SectionTitle>
       {/* ---- six filters, two tidy rows, nothing bigger than it needs to be ----
           These controls were three different sizes: a flex-grow search box, a
           116px select whose label "All positions" did not fit inside it, and
@@ -383,44 +372,137 @@ export default function Transfers() {
           row equally, and every resting label is the filter's own name - short
           enough to fit, and it reads as a placeholder, which is what an unset
           filter is. */}
+      {/* ---- ONE ROW, THEN A SHEET (1.8.0) ----
+          Owner, 26 Sep 2026, circling the four rows of dropdowns and chips:
+          "tidy this section up. Make it so its a filter and you select what
+          you want to see". The name search stays on the page because it is
+          the one thing typed every time; every other filter lives in a sheet
+          behind one button that says how many are on, and the columns are a
+          single View menu. */}
       <div className="filter-line">
         <input className="inline-input" placeholder={t('transfers.nameOrClub')} value={query}
           onChange={e => { setQuery(e.target.value); setPage(0) }}
           style={{ flex: '2 1 0' }} />
-        <select className="inline-input" value={pos} onChange={e => { setPos(e.target.value as Pos | 'ALL'); setPage(0) }}>
-          <option value="ALL">{t('transfers.filterPosition')}</option>
-          {POS_ORDER.map(p => <option key={p} value={p}>{p}</option>)}
+        <button className={`inline-input filter-btn${activeFilters ? ' on' : ''}`} onClick={() => setFiltersOpen(true)}>
+          {activeFilters ? t('search.filtersOn', { n: activeFilters }) : t('search.filters')}
+        </button>
+        <select className="inline-input" aria-label={t('search.view')} value={view} onChange={e => setView(e.target.value as SearchView)}>
+          {SEARCH_VIEWS.map(v => <option key={v} value={v}>{t(`search.view_${v}`)}</option>)}
         </select>
       </div>
-      <div className="filter-line">
-        <select className="inline-input" value={maxVal} onChange={e => { setMaxVal(Number(e.target.value)); setPage(0) }}>
-          <option value={0}>{t('transfers.filterValue')}</option>
-          <option value={250000}>{t('transfers.toValue', { amount: '£250k' })}</option>
-          <option value={1000000}>{t('transfers.toValue', { amount: '£1m' })}</option>
-          <option value={3000000}>{t('transfers.toValue', { amount: '£3m' })}</option>
-          <option value={8000000}>{t('transfers.toValue', { amount: '£8m' })}</option>
-        </select>
-        <select className="inline-input" value={maxAge} onChange={e => { setMaxAge(Number(e.target.value)); setPage(0) }}>
-          <option value={0}>{t('transfers.filterAge')}</option>
-          {[21, 24, 28, 32].map(n => <option key={n} value={n}>{t('transfers.ageOrUnder', { n })}</option>)}
-        </select>
-        <select className="inline-input" value={league} onChange={e => { setLeague(e.target.value); setPage(0) }}>
-          <option value="ALL">{t('transfers.filterLeague')}</option>
-          {/* a free agent's league is nowhere, which makes this the natural
-              place to find him (user: "you should be able to search for free
-              agents on the transfer centre") */}
-          <option value="FA">{t('transfers.freeAgents')}</option>
-          {Object.values(game.comps).filter(c => c.type === 'league').map(c => (
-            <option key={c.id} value={c.id}>{c.short}</option>
-          ))}
-        </select>
-        <button className="preset-chip" style={listedOnly ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
-          onClick={() => { setListedOnly(!listedOnly); setPage(0) }}>{t('transfers.listed')}</button>
-        <button className="preset-chip" style={keenOnly ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
-          onClick={() => { setKeenOnly(!keenOnly); setPage(0) }}>{t('transfers.interested')}</button>
-      </div>
+      {filtersOpen && (
+        <div className="modal-veil" onClick={() => setFiltersOpen(false)}>
+          <div className="modal filter-sheet" onClick={e => e.stopPropagation()}>
+            <div className="grab" />
+            <h3>{t('search.filters')}</h3>
+            <div className="fs-grid">
+              <label>{t('search.deal')}</label>
+              <select className="inline-input" value={deal} onChange={e => { setDeal(e.target.value as 'transfer' | 'loan'); setPage(0) }}>
+                <option value="transfer">{t('search.dealTransfer')}</option>
+                <option value="loan">{t('search.dealLoan')}</option>
+              </select>
+              <label>{t('transfers.filterPosition')}</label>
+              <select className="inline-input" value={pos} onChange={e => { setPos(e.target.value as Pos | 'ALL'); setPage(0) }}>
+                <option value="ALL">{t('search.any')}</option>
+                {POS_ORDER.map(p => <option key={p} value={p}>{posName(p)}</option>)}
+              </select>
+              <label>{t('transfers.filterLeague')}</label>
+              <select className="inline-input" value={league} onChange={e => { setLeague(e.target.value); setPage(0) }}>
+                <option value="ALL">{t('search.any')}</option>
+                {/* a free agent's league is nowhere, which makes this the natural
+                    place to find him (user: "you should be able to search for free
+                    agents on the transfer centre") */}
+                <option value="FA">{t('transfers.freeAgents')}</option>
+                {Object.values(game.comps).filter(c => c.type === 'league').map(c => (
+                  <option key={c.id} value={c.id}>{compLabel(c.short)}</option>
+                ))}
+              </select>
+              <label>{t('transfers.filterValue')}</label>
+              <select className="inline-input" value={maxVal} onChange={e => { setMaxVal(Number(e.target.value)); setPage(0) }}>
+                <option value={0}>{t('search.any')}</option>
+                <option value={250000}>{t('transfers.toValue', { amount: '£250k' })}</option>
+                <option value={1000000}>{t('transfers.toValue', { amount: '£1m' })}</option>
+                <option value={3000000}>{t('transfers.toValue', { amount: '£3m' })}</option>
+                <option value={8000000}>{t('transfers.toValue', { amount: '£8m' })}</option>
+              </select>
+              <label>{t('transfers.filterAge')}</label>
+              <select className="inline-input" value={maxAge} onChange={e => { setMaxAge(Number(e.target.value)); setPage(0) }}>
+                <option value={0}>{t('search.any')}</option>
+                {[21, 24, 28, 32].map(n => <option key={n} value={n}>{t('transfers.ageOrUnder', { n })}</option>)}
+              </select>
+              {/* the attributes are what the scouts can see (scout.attrRange) */}
+              <label>{t('search.anyAttr')}</label>
+              <div className="fs-pair">
+                <select className="inline-input" value={attrKey} onChange={e => { setAttrKey(e.target.value as keyof Attrs | ''); setPage(0) }}>
+                  <option value="">{t('search.any')}</option>
+                  {ATTR_ORDER.map(k => <option key={k} value={k}>{attrName(k)}</option>)}
+                </select>
+                <select className="inline-input" value={attrMin} disabled={!attrKey} onChange={e => { setAttrMin(Number(e.target.value)); setPage(0) }}>
+                  {[8, 10, 12, 14, 16, 18].map(n => <option key={n} value={n}>{t('search.atLeast', { n })}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="fs-toggles">
+              {([
+                [listedOnly, () => setListedOnly(!listedOnly), 'search.onlyListed'],
+                [keenOnly, () => setKeenOnly(!keenOnly), 'search.onlyInterested'],
+                [expiringOnly, () => setExpiringOnly(!expiringOnly), 'search.onlyExpiring'],
+                [withInjured, () => setWithInjured(!withInjured), 'search.includeInjured'],
+              ] as [boolean, () => void, string][]).map(([on, flip, k]) => (
+                <label key={k} className="fs-toggle">
+                  <input type="checkbox" checked={on} onChange={() => { flip(); setPage(0) }} />
+                  <span>{t(k)}</span>
+                </label>
+              ))}
+            </div>
+            <div className="btn-row" style={{ marginTop: 10 }}>
+              <button className="btn ghost" onClick={() => {
+                setDeal('transfer'); setPos('ALL'); setLeague('ALL'); setMaxVal(0); setMaxAge(0); setAttrKey('')
+                setListedOnly(false); setKeenOnly(false); setExpiringOnly(false); setWithInjured(true); setPage(0)
+              }}>{t('search.reset')}</button>
+              <button className="btn gold" style={{ flex: 2 }} onClick={() => setFiltersOpen(false)}>
+                {t('search.show', { n: results.length === 120 ? t('transfers.best120') : results.length })}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* codefirst: the leading column is a position code, so it forgoes the
           16px first-column gutter - eight columns already fill a 412px phone */}
+      {view !== 'general' ? (
+      <div className="tblwrap"><table className="dtable codefirst">
+        <thead><tr>
+          <th>{t('squad.colPos')}</th>
+          <MTh k="name">{t('squad.colName')}</MTh>
+          {view === 'contract'
+            ? <><th className="num">{t('search.colUntil')}</th><th className="num">{t('search.colWage')}</th><th>{t('search.colStatus')}</th></>
+            : VIEW_ATTRS[view].map(k => <th key={k} className="num" title={attrName(k)}>{t(`attrShort.${k}`)}</th>)}
+        </tr></thead>
+        <tbody>
+          {pageRows.length === 0 && (
+            <tr><td colSpan={6} className="muted" style={{ padding: 12 }}>
+              {t('transfers.noMatches', { listedHint: listedOnly ? t('transfers.listedHint') : '' })}
+            </td></tr>
+          )}
+          {pageRows.map(p => (
+            <tr key={p.id} onClick={() => openRow(p.id)}>
+              <td><PosBadge pos={p.pos} /></td>
+              <td className="name" title={p.name}>{initialName(p.name)}{p.injury && <> <Mark name="medical" color="var(--danger)" title={t('selection.injured')} /></>}</td>
+              {view === 'contract'
+                ? <>
+                    <td className="num">{p.clubId ? seasonLabel(p.contractEnds) : '-'}</td>
+                    <td className="num">{fmtWage(p.wage)}</td>
+                    <td className="muted">{p.transferListed ? t('search.listed') : p.clubId && p.contractEnds <= game.season ? t('search.expiringShort') : !p.clubId ? t('transfers.freeAgent') : ''}</td>
+                  </>
+                : VIEW_ATTRS[view].map(k => {
+                    const [lo, hi] = attrRange(game, p, k)
+                    return <td key={k} className="num attr-cell">{lo === hi ? lo : `${lo}-${hi}`}</td>
+                  })}
+            </tr>
+          ))}
+        </tbody>
+      </table></div>
+      ) : (
       <div className="tblwrap"><table className="dtable codefirst">
         <thead><tr>
           <th>{t('squad.colPos')}</th>
@@ -439,9 +521,9 @@ export default function Transfers() {
             </td></tr>
           )}
           {pageRows.map(p => (
-            <tr key={p.id} onClick={() => go('player', p.id)}>
+            <tr key={p.id} onClick={() => openRow(p.id)}>
               <td><PosBadge pos={p.pos} /></td>
-              <td className="name">{p.name}{p.transferListed ? ' 🏷️' : ''}</td>
+              <td className="name" title={p.name}>{initialName(p.name)}{deal === 'transfer' && p.transferListed && <> <Mark name="tag" color="var(--gold)" title={t('player.transferListed')} /></>}{deal === 'loan' && !listedLoans.has(p.id) ? <span className="muted"> {t('transfers.loanAskTag')}</span> : ''}</td>
               <td className="num">{p.age}</td>
               <td><Nat code={p.nat} /></td>
               {/* THREE LETTERS. This column was 76px of an eight-column table
@@ -459,6 +541,7 @@ export default function Transfers() {
           ))}
         </tbody>
       </table></div>
+      )}
       {pages > 1 && (
         <div className="pager">
           <button className="btn ghost" disabled={pageSafe === 0} onClick={() => setPage(pageSafe - 1)}>{t('transfers.prev')}</button>
@@ -502,11 +585,11 @@ function ScoutCommission() {
         )}
         {man && out && (
           <div className="meta">
-            🔭 <b>{t('transfers.onTheRoad', { name: man.name })}</b>
+            <Glyph name="scout" /> <b>{t('transfers.onTheRoad', { name: man.name })}</b>
             {t('transfers.briefLine', {
               months: out.months,
               pos: out.pos !== 'any' ? t('transfers.briefForPos', { pos: posName(out.pos).toLowerCase() }) : t('transfers.briefForAnyone'),
-              league: out.leagueId ? t('transfers.briefInLeague', { league: game.comps[out.leagueId]?.short ?? t('transfers.focusLeague') }) : '',
+              league: out.leagueId ? t('transfers.briefInLeague', { league: compLabel(game.comps[out.leagueId]?.short) ?? t('transfers.focusLeague') }) : '',
             })}
             {t(weeksLeft === 1 ? 'transfers.reportsBackOne' : 'transfers.reportsBack', { n: weeksLeft })}
           </div>
@@ -517,7 +600,7 @@ function ScoutCommission() {
               {t('transfers.longerTrip', {
                 g: game.staffPeople?.scout?.g ?? 'm',
                 where: game.scoutFocus
-                  ? t('transfers.watchesLeague', { league: game.comps[game.scoutFocus]?.short ?? t('transfers.focusLeague') })
+                  ? t('transfers.watchesLeague', { league: compLabel(game.comps[game.scoutFocus]?.short) ?? t('transfers.focusLeague') })
                   : t('transfers.watchesWorld'),
               })}
             </div>
@@ -535,7 +618,7 @@ function ScoutCommission() {
             </select>
             <div style={{ display: 'flex', gap: 8 }}>
               {([3, 6, 9] as SearchMonths[]).map(m => (
-                <button key={m} className="btn gold" style={{ flex: '1 1 0', minWidth: 0, padding: '9px 4px', fontSize: 11.5, lineHeight: 1.25 }}
+                <button key={m} className="btn gold" style={{ flex: '1 1 0', minWidth: 0, padding: '9px 4px', fontSize: 12, lineHeight: 1.25 }}
                   onClick={() => { setMsg(commissionScout(game, pos, m)); touch() }}>
                   {t('transfers.months', { n: m })}<br />
                   <span style={{ fontSize: 10, fontWeight: 600 }}>{fmtMoney(searchFee(m, Math.max(1, tier)))}</span>
@@ -605,10 +688,10 @@ function ScoutReports() {
         {reports.map((n, i) => (
           <div key={n.id} style={{ padding: '6px 0', borderTop: i ? '1px solid var(--border)' : undefined }}
             onClick={() => setOpenId(openId === n.id ? null : n.id)}>
-            <div className="meta" style={{ fontSize: 10.5 }}>{weekDate(n.season, n.week)}</div>
-            <div style={{ fontWeight: 700, fontSize: 12.5, lineHeight: 1.3 }}>{newsSubject(n)}</div>
+            <div className="meta" style={{ fontSize: 11 }}>{weekDate(n.season, n.week)}</div>
+            <div style={{ fontWeight: 700, fontSize: 13, lineHeight: 1.3 }}>{newsSubject(n)}</div>
             {openId === n.id && (
-              <div className="meta" style={{ whiteSpace: 'pre-line', fontSize: 11.5, marginTop: 3 }}>{newsBody(n)}</div>
+              <div className="meta" style={{ whiteSpace: 'pre-line', fontSize: 12, marginTop: 3 }}>{newsBody(n)}</div>
             )}
           </div>
         ))}

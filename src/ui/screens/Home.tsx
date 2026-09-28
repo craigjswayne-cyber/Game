@@ -17,16 +17,14 @@ import { inInbox } from '../../game/days'
 import { fmtMoney, fmtWage, formGuide, grudgeBetween, grudgeReason, newsSubject, weekDate } from '../../game/model'
 import { OBJECTIVE_DEFS } from '../../game/objectives'
 import { natRankOrder } from '../../game/natrank'
-import { ord, t } from '../../game/i18n'
+import { ord, t, compLabel } from '../../game/i18n'
 import { AdSlot } from '../AdSlot'
 import { tillOpen } from '../../game/monetise'
 import { userWageBudget } from '../../game/grants'
 import { natWindow, weeksToSquad } from '../../game/country'
+import { Glyph, newsGlyph } from '../glyphs'
+import { isBoardroom } from '../../game/media'
 
-const TYPE_ICON: Record<string, string> = {
-  result: '🏉', transfer: '💰', injury: '🩹', intl: '🌍', board: '🏛️',
-  award: '🏅', contract: '✍️', general: '📰', youth: '🎓', gossip: '🗞️',
-}
 
 export default function Home() {
   const game = useStore(s => s.game)!
@@ -74,7 +72,8 @@ export default function Home() {
   // played another international game").
   const assistantFx = assistantFixtureThisWeek(game)
   const assistants = !!assistantFx && !!fx && assistantFx.id === fx.id
-  const pressOpen = game.press.filter(p => !p.answered).length
+  const pressOpen = game.press.filter(p => !p.answered && !isBoardroom(p)).length
+  const boardOpen = game.press.filter(p => !p.answered && isBoardroom(p)).length
 
   // hub widgets: form pips, league position, money. The pips sort by week
   // inside formGuide - see its comment for the W W W W W screenshot this
@@ -129,7 +128,7 @@ export default function Home() {
         return (
           <div className="card" onClick={() => go('nations')}
             style={{ background: 'var(--surface-2)', color: 'var(--text-primary)', cursor: 'pointer' }}>
-            <div className="fact-label" style={{ color: 'var(--gold)' }}>{t('home.snLabel', { comp: (game.comps[snId]?.name ?? t('home.theChampionship')).toUpperCase() })}</div>
+            <div className="fact-label" style={{ color: 'var(--gold)' }}>{t('home.snLabel', { comp: (compLabel(game.comps[snId]?.name) ?? t('home.theChampionship')).toUpperCase() })}</div>
             {thisWk.map(f => (
               <div key={f.id} style={{ fontSize: 13, marginTop: 3 }}>
                 {flagOf(f.homeId)} {nationName(f.homeId)} {f.played ? <b>{f.homeScore}–{f.awayScore}</b> : t('common.v')} {nationName(f.awayId)} {flagOf(f.awayId)}
@@ -184,8 +183,8 @@ export default function Home() {
         <div className="card" onClick={() => go(assistants ? 'country' : 'squad')} style={{
           borderLeft: `4px solid ${assistants ? 'var(--border-strong)' : game.clubs[fx.homeId === club.id ? fx.awayId : fx.homeId]?.colors[0] ?? 'var(--gold)'}`,
         }}>
-          <div className="meta" style={{ textTransform: 'uppercase', letterSpacing: 1, fontSize: 10.5 }}>
-            {t(assistants ? 'home.assistantMatch' : 'home.nextMatch')} · {comp?.name ?? (fx.compId === 'fr' ? t('common.clubFriendly') : '')}{fx.stage ? ` · ${stageName(fx.stage)}` : ''}
+          <div className="meta" style={{ textTransform: 'uppercase', letterSpacing: 1, fontSize: 11 }}>
+            {t(assistants ? 'home.assistantMatch' : 'home.nextMatch')} · {compLabel(comp?.name) ?? (fx.compId === 'fr' ? t('common.clubFriendly') : '')}{fx.stage ? ` · ${stageName(fx.stage)}` : ''}
           </div>
           {/* a class, not an inline font-size: inline wins over any media query,
               so portrait could not shrink this and "Northampton v La Rochelle"
@@ -228,7 +227,7 @@ export default function Home() {
         const testWeek = next && next.week === game.week
         return (
           <div className="card" onClick={() => go('country')} style={{ borderLeft: '4px solid var(--text-positive)' }}>
-            <div className="meta" style={{ textTransform: 'uppercase', letterSpacing: 1, fontSize: 10.5 }}>
+            <div className="meta" style={{ textTransform: 'uppercase', letterSpacing: 1, fontSize: 11 }}>
               {t('home.headCoach')} · {nationName(game.natTeam)}{rank > 0 ? t('home.worldNo', { rank }) : ''}{game.natConfidence != null ? t('home.unionPct', { pct: Math.round(game.natConfidence) }) : ''}
             </div>
             {next ? (
@@ -321,9 +320,9 @@ export default function Home() {
           <button className="card" style={{ borderLeft: `4px solid ${d.progress.done ? 'var(--primary)' : 'var(--gold)'}` }}
             onClick={() => go('legacy')}>
             <div className="fact-label">{t(d.progress.done ? 'home.dreamDone' : 'home.dream')}</div>
-            <div style={{ fontWeight: 700, fontSize: 14.5, marginTop: 2 }}>{dreamTitle(d.def, d.ctx)}</div>
+            <div style={{ fontWeight: 700, fontSize: 14, marginTop: 2 }}>{dreamTitle(d.def, d.ctx)}</div>
             <div style={{ height: 6, background: 'var(--border-strong)', borderRadius: 3, overflow: 'hidden', margin: '7px 0 4px' }}>
-              <div style={{ width: `${pct}%`, height: '100%', background: d.progress.done ? 'var(--primary)' : 'var(--gold-fill)' }} />
+              <div className="grow-x" style={{ width: `${pct}%`, height: '100%', background: d.progress.done ? 'var(--primary)' : 'var(--gold-fill)' }} />
             </div>
             <div className="meta">{dreamNote(d.progress)}</div>
           </button>
@@ -360,7 +359,7 @@ export default function Home() {
             <div className="meta" style={{ display: 'flex', flexWrap: 'wrap', gap: '2px 14px', marginTop: 2 }}>
               {soon.map(tp => (
                 <span key={`${tp.week}-${tp.label}`}>
-                  {tp.icon} {tp.label}
+                  <Glyph name={tp.icon} /> {tp.label}
                   <b style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>
                     {tp.week === game.week ? t('home.tentpoleThisWeek') : t('home.tentpoleIn', { n: tp.week - game.week })}
                   </b>
@@ -410,6 +409,13 @@ export default function Home() {
           <div className="meta">{t('home.annualSub')}</div>
         </button>
       )}
+      {boardOpen > 0 && (
+        <button className="card" style={{ borderLeft: '4px solid var(--gold)' }}
+          onClick={() => go('finances')}>
+          <h3>{t('home.boardWord')}</h3>
+          <div className="meta">{t('home.boardSub', { n: boardOpen })}</div>
+        </button>
+      )}
       {pressOpen > 0 && (
         <button className="card" style={{ borderLeft: '4px solid var(--gold)' }}
           onClick={() => go('press')}>
@@ -445,7 +451,7 @@ export default function Home() {
         <button className="hub-widget" onClick={() => go('tables')}>
           <label>{t('home.wLeague')}</label>
           <b>{pos > 0 ? ord(pos) : '-'}</b>
-          <span>{game.comps[club.leagueId]?.short}</span>
+          <span>{compLabel(game.comps[club.leagueId]?.short)}</span>
         </button>
         <button className="hub-widget" onClick={() => go('fixtures')}>
           <label>{t('home.wForm')}</label>
@@ -469,8 +475,10 @@ export default function Home() {
           <label>{t('home.wFans')}</label>
           {(() => {
             const m = game.fanMood ?? 60
-            const word = m >= 80 ? '🔥' : m >= 62 ? '😊' : m >= 45 ? '😐' : m >= 30 ? '😠' : '🤬'
-            return <b>{word}</b>
+            // a coloured light, not a face (owner, 27 Sep 2026: icons, not
+            // emoji); the word under it says what the light means
+            const c = m >= 62 ? 'var(--positive)' : m >= 45 ? 'var(--gold)' : 'var(--danger)'
+            return <b><span className="status-dot mood-dot" style={{ background: c }} /></b>
           })()}
           <span>{(() => {
             const m = game.fanMood ?? 60

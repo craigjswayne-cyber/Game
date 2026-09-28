@@ -7,9 +7,10 @@ import { expansionPlan, requestExpansion, requestFacility } from '../../game/sea
 import { SectionTitle } from '../components'
 import { ESTATE_SKU, hasEntitlement, tillOpen } from '../../game/monetise'
 import { estateBuiltHere } from '../../game/grants'
-import { ord as ordUI, t } from '../../game/i18n'
+import { ord as ordUI, t, localeTag } from '../../game/i18n'
 import CampusMap from '../CampusMap'
 import type { CampusId } from '../../game/campusPlots'
+import { Glyph } from '../glyphs'
 
 /** What each level actually buys, in the manager's language. */
 const EFFECT: Record<FacilityId, (lvl: number) => string> = {
@@ -115,27 +116,27 @@ export default function Infrastructure() {
             {/* THE GROUND IS A LADDER TOO (owner, v1.6.8): six grounds from a
                 village pitch to a stadium, read off the seats. Same pips as
                 the nine facilities, because it is the same kind of thing. */}
-            <h3 style={{ fontSize: 15, margin: 0 }}>
-              🏟️ {club.stadium} <span style={{ color: 'var(--gold)', letterSpacing: 1 }}>{pips(groundLevel(club.capacity))}</span>
+            <h3 style={{ fontSize: 16, margin: 0 }}>
+              <Glyph name="stadium" /> {club.stadium} <span style={{ color: 'var(--gold)', letterSpacing: 1 }}>{pips(groundLevel(club.capacity))}</span>
             </h3>
             <div className="meta">
-              {t('world.infSeats', { n: club.capacity.toLocaleString() })}
-              {plan.played >= 1 && t('world.infAvgGate', { avg: plan.avg.toLocaleString(), pct: Math.round(plan.fill * 100) })}
+              {t('world.infSeats', { n: club.capacity.toLocaleString(localeTag()) })}
+              {plan.played >= 1 && t('world.infAvgGate', { avg: plan.avg.toLocaleString(localeTag()), pct: Math.round(plan.fill * 100) })}
             </div>
             {/* the board will not build seats it cannot sell, so say out loud
                 how many this club could shift on its name alone */}
             <div className="meta" style={{ fontSize: 11 }}>
               {t('world.infCatchment', {
-                n: demandCeiling(club).toLocaleString(),
+                n: demandCeiling(club).toLocaleString(localeTag()),
                 rest: club.capacity >= demandCeiling(club) * 0.95
                   ? t('world.infHoldsAll')
-                  : t('world.infMoreThanHolds', { n: (demandCeiling(club) - club.capacity).toLocaleString() }),
+                  : t('world.infMoreThanHolds', { n: (demandCeiling(club) - club.capacity).toLocaleString(localeTag()) }),
               })}
             </div>
             {standBuild && (
               <div className="meta" style={{ fontSize: 11, color: 'var(--gold)', fontWeight: 700 }}>
                 {t(standWeeks === 1 ? 'world.infBuildersOne' : 'world.infBuilders', { n: standWeeks })}
-                {' '}({standBuild.seats.toLocaleString()})
+                {' '}({standBuild.seats.toLocaleString(localeTag())})
               </div>
             )}
           </div>
@@ -148,16 +149,16 @@ export default function Infrastructure() {
             <span className="meta" style={{ flexShrink: 0, color: 'var(--gold)', fontWeight: 700 }}>{t('world.infWorldClass')}</span>
           )}
           {groundLevel(club.capacity) < GROUND_TIERS.length - 1 && (
-          <button className="btn gold" style={{ padding: '5px 10px', fontSize: 11.5, lineHeight: 1.25 }}
+          <button className="btn gold" style={{ padding: '5px 10px', fontSize: 12, lineHeight: 1.25 }}
             disabled={club.capacity >= 82_000 || club.capacity >= demandCeiling(club) * 0.95 || plan.seats < 100 || busy}
             onClick={() => { setMsg({ key: 'expand', text: requestExpansion(game) }); touch() }}>
             {t('world.infAskExpand')}<br />
-            <span style={{ fontSize: 10, fontWeight: 600 }}>{t('world.infSeatsCost', { seats: plan.seats.toLocaleString(), cost: fmtMoney(plan.cost) })}</span>
+            <span style={{ fontSize: 10, fontWeight: 600 }}>{t('world.infSeatsCost', { seats: plan.seats.toLocaleString(localeTag()), cost: fmtMoney(plan.cost) })}</span>
           </button>
           )}
         </div>
         {msg?.key === 'expand' && (
-          <div className="meta" style={{ fontSize: 11.5, fontWeight: 600, marginTop: 6, paddingTop: 6, borderTop: '1px solid var(--border)' }}>
+          <div className="meta" style={{ fontSize: 12, fontWeight: 600, marginTop: 6, paddingTop: 6, borderTop: '1px solid var(--border)' }}>
             {msg.text}
           </div>
         )}
@@ -180,8 +181,8 @@ export default function Infrastructure() {
             <div className="card" key={fid} id={`fac-${fid}`} style={{ margin: 0, padding: '8px 10px', ...ring(fid) }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
                 <div style={{ minWidth: 0 }}>
-                  <h3 style={{ fontSize: 13.5, margin: 0 }}>
-                    {info.icon} {t(info.name)} <span style={{ color: 'var(--gold)', letterSpacing: 1 }}>{pips(lvl)}</span>
+                  <h3 style={{ fontSize: 14, margin: 0 }}>
+                    <Glyph name={info.icon} /> {t(info.name)} <span style={{ color: 'var(--gold)', letterSpacing: 1 }}>{pips(lvl)}</span>
                   </h3>
                   <div className="meta" style={{ fontSize: 11 }}>{t(info.desc)}</div>
                   <div className="meta" style={{ fontSize: 11, fontWeight: 700 }}>
@@ -202,7 +203,7 @@ export default function Infrastructure() {
                 {lvl >= MAX_FACILITY && <span className="meta" style={{ flexShrink: 0, color: 'var(--gold)', fontWeight: 700 }}>{t('world.infWorldClass')}</span>}
               </div>
               {msg?.key === fid && (
-                <div className="meta" style={{ fontSize: 11.5, fontWeight: 600, marginTop: 4, paddingTop: 4, borderTop: '1px solid var(--border)' }}>
+                <div className="meta" style={{ fontSize: 12, fontWeight: 600, marginTop: 4, paddingTop: 4, borderTop: '1px solid var(--border)' }}>
                   {msg.text}
                 </div>
               )}
@@ -224,7 +225,7 @@ export default function Infrastructure() {
                 <td className="name">{c.short}</td>
                 <td className="num">{g2.sum}/{g2.max}</td>
                 <td className="muted">{t(g2.label)}</td>
-                <td className="num">{c.capacity.toLocaleString()}</td>
+                <td className="num">{c.capacity.toLocaleString(localeTag())}</td>
               </tr>
             )
           })}

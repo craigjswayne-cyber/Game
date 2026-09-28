@@ -7,7 +7,8 @@ import { careerVerdict, clockLine, mayRetire, retire } from '../../game/career'
 import { nemesis, protegeLine } from '../../game/records'
 import { CHALLENGES } from '../../game/newgame'
 import { horizon, horizonPct } from '../../game/legacy'
-import { ord, t } from '../../game/i18n'
+import { ord, t, compLabel } from '../../game/i18n'
+import { Glyph } from '../glyphs'
 
 export default function Legacy() {
   const game = useStore(s => s.game)!
@@ -24,7 +25,7 @@ export default function Legacy() {
     <>
       <div className="card" style={{ textAlign: 'center' }}>
         <div style={{ display: 'flex', justifyContent: 'center' }}><Crest club={club} size={44} mr={0} /></div>
-        <h3 style={{ fontSize: 21, marginTop: 6 }}>{game.managerName}</h3>
+        <h3 style={{ fontSize: 22, marginTop: 6 }}>{game.managerName}</h3>
         <div className="meta">{t('legacy.lgDirectorOf', { club: club.name })}</div>
         {challenge && <div className="meta" style={{ color: 'var(--gold)', fontWeight: 700, marginTop: 3 }}>{t('legacy.lgChallenge', { title: t(challenge.title) })}</div>}
         {/* the save's stamps (v1.1.0): visible, not shaming - a licensed start
@@ -33,8 +34,8 @@ export default function Legacy() {
             went with the In-Game Editor (removed v1.1.3, never sold). */}
         {(game.licensed || game.uncapped) && (
           <div className="meta" style={{ marginTop: 3 }}>
-            {game.licensed && <span title={t('till.stampLicensed')}>🎓 </span>}
-            {game.uncapped && <span title={t('till.stampCharter')}>🖋 </span>}
+            {game.licensed && <span title={t('till.stampLicensed')}><Glyph name="academy" /> </span>}
+            {game.uncapped && <span title={t('till.stampCharter')}><Glyph name="pen" /> </span>}
             <span className="muted" style={{ fontSize: 12 }}>
               {[game.licensed && t('till.stampLicensed'), game.uncapped && t('till.stampCharter')].filter(Boolean).join(' · ')}
             </span>
@@ -58,7 +59,7 @@ export default function Legacy() {
           <>
             <SectionTitle sub={t(d.progress.done ? 'legacy.lgRealised' : 'legacy.lgWhatFor')}>{t('legacy.lgTheDream')}</SectionTitle>
             <div className="card" style={{ borderLeft: `4px solid ${d.progress.done ? 'var(--primary)' : 'var(--gold)'}` }}>
-              <div style={{ fontWeight: 700, fontSize: 15.5 }}>{dreamTitle(d.def, d.ctx)}</div>
+              <div style={{ fontWeight: 700, fontSize: 16 }}>{dreamTitle(d.def, d.ctx)}</div>
               <div style={{ height: 7, background: 'var(--border-strong)', borderRadius: 4, overflow: 'hidden', margin: '8px 0 5px' }}>
                 <div style={{ width: `${dreamPct(d.progress)}%`, height: '100%', background: d.progress.done ? 'var(--primary)' : 'var(--gold-fill)' }} />
               </div>
@@ -103,7 +104,7 @@ export default function Legacy() {
               <div className="meta" style={{ letterSpacing: 1 }}>
                 {t('legacy.lgRetiredLine', { how: t(game.retired.forced ? 'legacy.lgForced' : 'legacy.lgOwnTerms'), age: game.retired.age })}
               </div>
-              <h3 style={{ fontSize: 19, marginTop: 4 }}>{v.title}</h3>
+              <h3 style={{ fontSize: 18, marginTop: 4 }}>{v.title}</h3>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, margin: '8px 0' }}>
                 <b style={{ fontSize: 34, color: 'var(--gold)', lineHeight: 1 }}>{v.grade}</b>
                 <span className="muted">{t('legacy.lgCareerGrade')}</span>
@@ -211,7 +212,7 @@ export default function Legacy() {
                   <b style={{ color: 'var(--danger)' }}>{t('legacy.lgNemesis')}</b>{nem.line}
                 </div>
               )}
-              {prot && <div className="meta" style={{ marginTop: 6 }}>🎓 {prot}</div>}
+              {prot && <div className="meta" style={{ marginTop: 6 }}><Glyph name="academy" /> {prot}</div>}
             </div>
           </>
         )
@@ -221,7 +222,7 @@ export default function Legacy() {
       <div className="card">
         {horizon(game).map((h, i, all) => (
           <div key={h.label} style={{ marginBottom: i === all.length - 1 ? 0 : 9 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
               <b>{h.label}</b>
               <span className="muted">{h.note}</span>
             </div>
@@ -240,7 +241,7 @@ export default function Legacy() {
         <div className="chips">
           {m.trophies.map((t, i) => (
             <span key={i} className="chip" style={{ borderColor: 'var(--gold)' }}>
-              🏆 <b>{game.comps[t.compId]?.name ?? t.compId}</b> {seasonLabel(t.season)}
+              <Glyph name="trophy" /> <b>{compLabel(game.comps[t.compId]?.name) ?? t.compId}</b> {seasonLabel(t.season)}
             </span>
           ))}
         </div>
@@ -264,10 +265,10 @@ export default function Legacy() {
                         shove the Finish column half off a 412px screen (user:
                         "1st is out of screen") */}
                     <td className="name">
-                      {game.comps[f.leagueId]?.name ?? f.leagueId}
+                      {compLabel(game.comps[f.leagueId]?.name) ?? f.leagueId}
                       {cups.map((t, j) => (
                         <div key={j} style={{ color: 'var(--gold)', fontSize: 11, fontWeight: 700 }}>
-                          🏆 {game.comps[t.compId]?.name ?? t.compId}
+                          <Glyph name="trophy" /> {compLabel(game.comps[t.compId]?.name) ?? t.compId}
                         </div>
                       ))}
                     </td>

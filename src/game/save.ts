@@ -21,9 +21,63 @@ import { migratePress } from './pressmigrate'
 const DB_NAME = 'rugby-manager'
 const STORE = 'saves'
 
+/**
+ * SAVES FOR A PAGE WITH NO DATABASE (1.8.0). A sandboxed Artifact (the
+ * owner's test build) and some private windows refuse IndexedDB outright:
+ * open() throws a SecurityError. Every save then failed and the save banner
+ * sat over Continue every week. There is nowhere to keep a career in such a
+ * page, so it is kept in memory for the session: the game plays, and the
+ * career is gone when the tab closes, as the sandbox dictates.
+ *
+ * Only the handful of calls this file makes are provided (a transaction's
+ * store, put / get / getAll / delete, the request and transaction events),
+ * with IndexedDB's own timing: requests settle on a microtask, the
+ * transaction completes after them. Values are cloned on the way in, as
+ * IndexedDB clones them.
+ */
+let memDb: IDBDatabase | null = null
+function memoryDb(): IDBDatabase {
+  if (memDb) return memDb
+  const rows = new Map<IDBValidKey, unknown>()
+  const request = (result: unknown) => {
+    const req = { result, error: null, onsuccess: null as null | (() => void), onerror: null }
+    queueMicrotask(() => req.onsuccess?.())
+    return req
+  }
+  const db = {
+    objectStoreNames: { contains: () => true },
+    close() { /* nothing to close */ },
+    transaction() {
+      const store = {
+        put(v: unknown, k: IDBValidKey) { rows.set(k, structuredClone(v)); return request(k) },
+        get(k: IDBValidKey) { return request(rows.has(k) ? structuredClone(rows.get(k)) : undefined) },
+        getAll() { return request([...rows.values()].map(v => structuredClone(v))) },
+        delete(k: IDBValidKey) { rows.delete(k); return request(undefined) },
+      }
+      const tx = { error: null, oncomplete: null as null | (() => void), onerror: null, objectStore: () => store }
+      setTimeout(() => tx.oncomplete?.(), 0)
+      return tx
+    },
+  }
+  memDb = db as unknown as IDBDatabase
+  return memDb
+}
+
 function openDb(): Promise<IDBDatabase> {
+  // a page with no database at all keeps its saves in memory (memoryDb)
+  try {
+    if (typeof indexedDB === 'undefined') return Promise.resolve(memoryDb())
+  } catch {
+    return Promise.resolve(memoryDb())
+  }
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, 1)
+    let req: IDBOpenDBRequest
+    try {
+      req = indexedDB.open(DB_NAME, 1)
+    } catch {
+      resolve(memoryDb())
+      return
+    }
     req.onupgradeneeded = () => {
       if (!req.result.objectStoreNames.contains(STORE)) {
         req.result.createObjectStore(STORE)

@@ -91,6 +91,7 @@ import { deskBlock, deskGates, firstStepOfWeek, inInbox, markRead, matchDayIndex
 import { natSquadHold } from './game/country'
 import { clearResume, getResume, loadGame, migrate, putResume, saveGame } from './game/save'
 import { replayMatch, resumeFits, type MatchCmdBody, type MatchResume } from './game/resume'
+import { isHighlight } from './game/highlights'
 
 /**
  * How close together two Continue taps have to be before the second is treated as
@@ -271,6 +272,9 @@ interface Store {
   /** the assistant takes over: play the match out instantly with your team */
   instantResult: (preTalk?: 'calm' | 'fire' | 'underdog' | 'expect') => void
   advanceLive: () => void
+  /** Simulate the next stretch of the live match without revealing any of it,
+   *  so the match screen can see a try coming and play its build-up (1.8.0). */
+  simAhead: () => void
   skipToBreak: () => void
   decide: (choice: 'posts' | 'corner' | 'tap') => string
   matchCursor: (cursor: number, playing: boolean) => void
@@ -317,22 +321,18 @@ interface Store {
   closeDraw: () => void
 }
 
-/** The event types worth stopping the ticker for in highlights mode (F5).
- *
- *  'SUB' is deliberately not on the list: the engine uses it for substitutions
- *  but also for atmosphere lines, the half-time numbers and the penalty prompt,
- *  so treating it as a highlight would stop on almost everything. Touchline
- *  decisions and intervals still halt play through ctx.decision and ctx.awaiting,
- *  which is where those stops belong. */
-const HIGHLIGHTS = new Set<MatchEvent['type']>(['TRY', 'CON', 'PEN', 'DG', 'YC', 'RC', 'INJ', 'HT', 'BRK', 'FT'])
-
 /** The cursor position that reveals the next highlight, or the end of what has
  *  been simulated so far. Always advances by at least one so the ticker can
- *  never stall on a quiet passage. */
-function nextHighlight(events: MatchEvent[], cursor: number): number {
+ *  never stall on a quiet passage. What counts as a highlight depends on how
+ *  close the game is (game/highlights.ts, 1.8.0).
+ *
+ *  'SUB' lines are not highlights by type: the engine uses them for
+ *  substitutions but also for atmosphere lines, the half-time numbers and the
+ *  penalty prompt. Touchline decisions and intervals still halt play through
+ *  ctx.decision and ctx.awaiting, which is where those stops belong. */
+function nextHighlight(events: MatchEvent[], cursor: number, homeId: string): number {
   let c = cursor
-  // a TMO review and its NO TRY are moments too (they are SUB lines by type)
-  while (c < events.length && !HIGHLIGHTS.has(events[c].type) && events[c].fx !== 'TMO' && events[c].fx !== 'NOTRY') c += 1
+  while (c < events.length && !isHighlight(events, c, homeId)) c += 1
   return Math.min(events.length, Math.max(cursor + 1, c + 1))
 }
 
@@ -836,9 +836,12 @@ export const useStore = create<Store>((set, get) => ({
     {
       const press = pressBlock(g)
       if (press) {
-        const onPress = get().nav[get().nav.length - 1]?.screen === 'press'
-        if (!onPress) {
-          set(s => ({ nav: [...s.nav, { screen: 'press' as const }], tick: s.tick + 1 }))
+        // a board decision is answered on Finances > The Board, which opens on
+        // that tab while one is waiting
+        const where = press.kind === 'board' ? 'finances' as const : 'press' as const
+        const onIt = get().nav[get().nav.length - 1]?.screen === where
+        if (!onIt) {
+          set(s => ({ nav: [...s.nav, { screen: where }], tick: s.tick + 1 }))
         }
         return
       }
@@ -1002,6 +1005,8 @@ export const useStore = create<Store>((set, get) => ({
     if (forfeit) settleForfeit(g, fx, forfeit)
     else {
       const ctx = beginMatch(g, fx, weekRng(g), true, userTeamId)
+      // the assistant has the match, so the assistant makes the changes
+      ctx.assistantSubs = true
       if (preTalk) applyPreTalk(g, ctx, preTalk)
       playHalf(g, ctx)
       playHalf(g, ctx)
@@ -1138,7 +1143,7 @@ export const useStore = create<Store>((set, get) => ({
       // log, so the full commentary is there at full-time for anyone who wants
       // it - this only changes what the ticker stops on.
       const step = liveMatch.mode === 'highlights'
-        ? nextHighlight(ctx.events, cursor)
+        ? nextHighlight(ctx.events, cursor, liveMatch.fixture.homeId)
         : cursor + 1
       set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch, cursor: step }, tick: s.tick + 1 } : {})
       // THE REVEAL IS PROGRESS TOO. This branch used to return without writing
@@ -1167,6 +1172,19 @@ export const useStore = create<Store>((set, get) => ({
     if (ctx.events.length > cursor) cursor += 1
     set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch, cursor }, tick: s.tick + 1 } : {})
     // where the match has got to, so a reload comes back to the same minute
+    get().noteProgress()
+  },
+
+  simAhead: () => {
+    const { game, liveMatch } = get()
+    if (!game || !liveMatch) return
+    const { ctx, cursor } = liveMatch
+    if (cursor < ctx.events.length || ctx.awaiting || ctx.seg === 3 || ctx.decision) return
+    // the same loop advanceLive runs, stopping short of revealing the line
+    let r: ReturnType<typeof stepTick> = 'play'
+    while (ctx.events.length <= cursor && r === 'play' && !ctx.decision) r = stepTick(game, ctx)
+    if (r === 'FT' && !ctx.decision) settleKnockout(game, ctx)
+    set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch }, tick: s.tick + 1 } : {})
     get().noteProgress()
   },
 
@@ -1506,7 +1524,7 @@ export const useStore = create<Store>((set, get) => ({
       g.natRecord = { m: 0, w: 0, d: 0, l: 0 } // a new tenure starts at nought
       g.news.push({
         id: g.nextId++, week: g.week, season: g.season, type: 'board', read: false,
-        subject: `🌍 Appointed: national head coach of ${nat}`,
+        subject: `Appointed: national head coach of ${nat}`,
         body: keepClub && !g.unemployed
           ? `A proud day. You now coach ${nat} alongside your club duties. In Test windows, when your club has no fixture, you'll take charge of the national side on match day - and every championship they win goes in YOUR cabinet.`
           : `A proud day. ${nat} is your whole job now: Test windows, championship campaigns, and every trophy they win goes in YOUR cabinet.`,

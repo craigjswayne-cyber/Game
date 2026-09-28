@@ -37,29 +37,38 @@
 import { fmtMoney, logDecision, type GameState } from './model'
 import { t, tIn } from './i18n'
 
-export type SlotId = 'shirt' | 'naming' | 'kit'
+export type SlotId = 'shirt' | 'sleeve' | 'naming' | 'kit'
 
 export interface SlotInfo {
   id: SlotId
   name: string
+  /** a glyph name (glyphs.tsx) */
   icon: string
   /** what the sponsor is actually buying */
   desc: string
-  /** this slot's share of the club's commercial income. The three sum to 1. */
+  /** this slot's share of the club's commercial income. The shares sum to 1. */
   share: number
 }
 
+// THE SLEEVE (1.8.0, owner: "shirt sleeve sponsor should be a smaller deal").
+// It is carved out of the pot rather than added to it, so the neutrality claim
+// above still holds: the shirt gives up six points and the kit two, and the
+// sleeve is worth a fifth of the front of the shirt.
 export const SLOTS: SlotInfo[] = [
   {
-    id: 'shirt', name: 'finances.slotShirt', icon: '👕', share: 0.46,
+    id: 'shirt', name: 'finances.slotShirt', icon: 'club', share: 0.40,
     desc: 'finances.slotShirtDesc',
   },
   {
-    id: 'naming', name: 'finances.slotNaming', icon: '🏟', share: 0.24,
+    id: 'sleeve', name: 'finances.slotSleeve', icon: 'tag', share: 0.08,
+    desc: 'finances.slotSleeveDesc',
+  },
+  {
+    id: 'naming', name: 'finances.slotNaming', icon: 'stadium', share: 0.24,
     desc: 'finances.slotNamingDesc',
   },
   {
-    id: 'kit', name: 'finances.slotKit', icon: '🧵', share: 0.30,
+    id: 'kit', name: 'finances.slotKit', icon: 'store', share: 0.28,
     desc: 'finances.slotKitDesc',
   },
 ]
@@ -155,6 +164,10 @@ export interface Deal {
   /** true when the department took this itself because you did not act. A
    *  stopgap rather than a contract: you may replace it whenever you like. */
   auto?: boolean
+  /** a performance structure struck at the negotiating table (1.8.0): the
+   *  weekly above is only the guaranteed part, and these bonuses are paid at
+   *  the end of each season the deal covers (sponsortalks.settleSponsorBonuses) */
+  perf?: import('./sponsortalks').PerfTerms
 }
 
 // Invented brand names, deliberately. Real sponsors would be putting words in
@@ -169,6 +182,11 @@ export const NAMES: Record<SlotId, string[]> = {
     'Stanmoor', 'Ravensbank', 'Alderfield', 'Quenby', 'Thornecroft',
     'Larkhill', 'Brackenmoor', 'Westerhay', 'Coldwell', 'Marchmont',
   ],
+  sleeve: [
+    'Brightwell Tyres', 'Oakhurst Lettings', 'Carrow Print', 'Fenwick Dairies',
+    'Tallis Accountancy', 'Wrenfold Coaches', 'Harrow Glass', 'Pendle Security',
+    'Moorgate Removals', 'Lindell Opticians',
+  ],
   kit: [
     'Kestrel Athletic', 'Voltura', 'Brackett Sport', 'Ossian', 'Tanner & Hyde',
     'Meridian Kit', 'Foundry Athletic', 'Halstead Sportswear', 'Trueline', 'Verrick',
@@ -177,7 +195,7 @@ export const NAMES: Record<SlotId, string[]> = {
 
 /** Deterministic on (seed, season, slot, index). No shared rng, ever: revisiting
  *  the screen must not reroll the offers on the table. */
-function hash(seed: number, key: string): number {
+export function hash(seed: number, key: string): number {
   let h = (seed ^ 0x1b873593) >>> 0
   for (let i = 0; i < key.length; i++) h = Math.imul(h ^ key.charCodeAt(i), 16777619) >>> 0
   h ^= h >>> 16; h = Math.imul(h, 0x85ebca6b) >>> 0
@@ -268,16 +286,23 @@ export function endDealEarly(state: GameState, slot: SlotId): string {
   if (!club) return t('finances.treasuryNoClub')
   const live = state.deals?.[slot]
   if (!live || live.until < state.season) return t('finances.nothingToEnd')
+  // ONCE A SEASON A SLOT (1.8.0). Ending early cost nothing and rerolled the
+  // offers on wider bands, so signing and ending again, over and over, let a
+  // manager shop every slot for the top of its band (short deals at up to
+  // 1.13 times market) in one sitting. The gamble stays a gamble: one throw
+  // of it per slot per season, and the market you get is the one you keep.
+  if (state.dealEndedSeason?.[slot] === state.season) return t('finances.endedThisSeason')
   const info = SLOT_BY_ID[slot]
   delete state.deals![slot]
   ;(state.dealReroll ??= {})[slot] = (state.dealReroll?.[slot] ?? 0) + 1
+  ;(state.dealEndedSeason ??= {})[slot] = state.season
   // the gates keep the club's own name until somebody new pays for them
   if (slot === 'naming' && club.stadiumBase) club.stadium = club.stadiumBase
   logDecision(state, 'dec.endedSponsor', { sponsor: live.sponsor, slot_k: info.name }, false)
   const v = { icon: info.icon, sponsor: live.sponsor, slot_k: info.name, short: club.short }
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
-    subject: `${info.icon} ${live.sponsor} released early`,
+    subject: `${live.sponsor} released early`,
     body: tIn('en', 'news.sponsorEnded', v),
     k: 'news.sponsorEnded', v,
   })
@@ -402,7 +427,7 @@ export function signOffer(state: GameState, offer: Offer): string {
   }
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
-    subject: `${SLOT_BY_ID[offer.slot].icon} ${offer.sponsor} sign on with ${club.short}`,
+    subject: `${offer.sponsor} sign on with ${club.short}`,
     body: tIn('en', k, v),
     k, v,
   })
@@ -440,7 +465,7 @@ export function expireDeals(state: GameState) {
     }
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
-      subject: `${slot.icon} ${d.sponsor} deal expires`,
+      subject: `${d.sponsor} deal expires`,
       body: tIn('en', 'news.sponsorExpires', v),
       k: 'news.sponsorExpires',
       v,
@@ -459,7 +484,22 @@ export function expireDeals(state: GameState) {
  */
 export function seedDeals(state: GameState) {
   const club = state.clubs[state.userClubId]
-  if (!club || state.deals) return
+  if (!club) return
+  if (state.deals) {
+    // A SAVE FROM BEFORE THE SLEEVE (1.8.0). Its shirt deal was struck at the
+    // old, larger share, which is fairly read as covering the sleeve too, so
+    // nothing is added to the income: the sleeve arrives as a slot whose term
+    // has already run, open to offers today, and the department takes a
+    // stopgap for it at the next rollover like any other lapsed slot.
+    if (!state.deals.sleeve) {
+      const h = hash(state.seed, `inherit|sleeve|${club.id}`)
+      state.deals.sleeve = {
+        slot: 'sleeve', sponsor: NAMES.sleeve[h % NAMES.sleeve.length],
+        weekly: 0, clause: 'none', from: state.season - 1, until: state.season - 1, repAt: club.rep,
+      }
+    }
+    return
+  }
   state.deals = {}
   for (const [i, slot] of SLOTS.entries()) {
     const h = hash(state.seed, `inherit|${slot.id}|${club.id}`)

@@ -92,6 +92,15 @@
   --pitch-scrim: rgba(4, 12, 8, 0.52);
   --on-danger: #2b0e0b;
   --on-info: #0d1b26;
+  /* THE PRESS BAROMETER (1.8.0, Press.tsx): the five moods of the press
+     pack and the colour of a pack trying to unsettle a winning squad. Role
+     tokens underneath, so every skin repaints the dial with its own. */
+  --baro-hostile: var(--danger);
+  --baro-sceptical: var(--gold);
+  --baro-neutral: var(--text-muted);
+  --baro-warm: var(--primary);
+  --baro-adoring: var(--primary);
+  --baro-stir: var(--info);
 }
 
 /* ---------------- day ---------------- */
@@ -139,6 +148,15 @@
   --pitch-scrim: rgba(6, 18, 12, 0.34);
   --on-danger: #ffffff;
   --on-info: #ffffff;
+  /* THE PRESS BAROMETER (1.8.0, Press.tsx): the five moods of the press
+     pack and the colour of a pack trying to unsettle a winning squad. Role
+     tokens underneath, so every skin repaints the dial with its own. */
+  --baro-hostile: var(--danger);
+  --baro-sceptical: var(--gold);
+  --baro-neutral: var(--text-muted);
+  --baro-warm: var(--primary);
+  --baro-adoring: var(--primary);
+  --baro-stir: var(--info);
 }
 
 /* ==================================================================
@@ -718,6 +736,47 @@
   --prop-tee-edge: #9a7b3f;
   --prop-ink: #ffffff;
   --prop-ink-dark: #1d2733;
+  /* the highlight pitch (1.8.0, HighlightClip.tsx): the mown grass in two
+     stripes, the dark surround past the dead-ball lines, the ball and its
+     seam, and the verdict colour of a missed kick. The canvas reads these at
+     draw time (tokenColor), so they are real colours in one place. */
+  --hl-grass-a: #347441;
+  --hl-grass-b: #2f6b3a;
+  --hl-surround: #23512c;
+  --hl-ball: #f4ead2;
+  --hl-ball-edge: #6b5a3a;
+  --hl-miss: #ffb3a8;
+  /* the referee on the highlight pitch (owner, 1.8.0): pink, orange when a
+     kit is pink, cyan when the kits are pink and orange (HighlightClip,
+     refereeColour) */
+  --hl-ref-pink: #ec4f9c;
+  --hl-ref-orange: #f28a1e;
+  --hl-ref-cyan: #22c8dc;
+  /* the set-piece and bench diagrams (1.8.0, Tactics: owner "I want them to be
+     more visual"). They stand on the highlight pitch's grass above, so the
+     chalk, the two sides and the call are depictions too and read the same in
+     both modes: our men white, theirs dark with a light rim, the call itself
+     (the jumper, the ball's path, the drive) in yellow so it is the first
+     thing the eye finds. */
+  --dg-chalk: rgba(255, 255, 255, 0.82);
+  --dg-chalk-soft: rgba(255, 255, 255, 0.4);
+  --dg-shade: rgba(0, 0, 0, 0.2);
+  --dg-us: #f3f5f8;
+  --dg-us-edge: #1d2733;
+  --dg-them: #1d2733;
+  --dg-them-edge: rgba(255, 255, 255, 0.6);
+  --dg-move: #f2c200;
+  /* a club with no kit on file, home and away */
+  --kit-home: #2f8f55;
+  --kit-away: #b33a3a;
+  /* a side whose kit clashes wears one of these (src/ui/kit.ts) */
+  --kit-spare-white: #ffffff;
+  --kit-spare-slate: #8c98a4;
+  --kit-spare-gold: #e0b44a;
+  --kit-spare-ink: #1d2733;
+  /* the FWDS & BCKS studio mark: black and white in every skin and mode */
+  --studio-ink: #0b0b0b;
+  --studio-paper: #ffffff;
 }
 
 /* ---------------- focus and disabled, as rules ---------------- */

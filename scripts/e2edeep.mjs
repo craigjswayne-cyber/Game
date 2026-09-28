@@ -113,7 +113,7 @@ try {
 
   await page.click('.bottom-nav button[title="Hub"]')
   await page.click('.submenu-item >> text=Transfer Centre')
-  await page.click('.tab-bar >> text=Shortlist')
+  await page.click('.tab-bar >> text=Scouting')
   await page.waitForSelector('.section-title >> text=Scouting', { timeout: 10000 }) // the heading is t('transfers.commissionedSearch'), which reads "Scouting" now
   await shot('deep-08-scout-report')
 
@@ -126,6 +126,10 @@ try {
   // should share a row in landscape, which week one can never show
   await page.click('.bottom-nav button[title="Hub"]')
   await page.click('.submenu-item >> text=Finances')
+  // a board decision waiting opens the page on The Board tab (ffdbde4 moved
+  // money asks to the board), and the deep save always has one pending, so
+  // the table this waits for is a tab away rather than missing
+  await page.click('.tab-bar >> text=Finances')
   await page.waitForSelector('text=Top Earners', { timeout: 10000 })
   await shot('deep-10-finances')
   await page.click('.bottom-nav button[title="Manager"]')

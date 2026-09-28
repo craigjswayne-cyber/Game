@@ -99,6 +99,11 @@ export function initLang(): Lang {
 }
 
 export const getLang = (): Lang => current
+/** The BCP 47 tag for the language on screen, for the toLocaleString calls
+ *  the UI makes itself. With no argument they follow the DEVICE, so a French
+ *  game on an English phone wrote 15,249 seats where every number that came
+ *  through t() said 15 249 (UI QA, 1.8.0). */
+export const localeTag = (): string => NUMBER_LOCALE[current]
 
 /**
  * ---- WHICH WORLD THE READER IS IN ----
@@ -271,6 +276,35 @@ function render(entry: unknown, vars: Vars | undefined, lang: Lang): string | nu
 function fill(text: string, vars?: Vars, lang: Lang = current): string {
   if (!vars) return text
   return text.replace(/\{(\w+)\}/g, (whole, name: string) => {
+    // AN ENGLISH POSSESSIVE STAYS IN ENGLISH (1.7.4). The gossip column stores
+    // shortPoss as "Bath's" (model.poss), and every other language was
+    // printing it as it came: "le nouveau maillot Bath's", "Bath'sの". Each
+    // translation already places the club name where the possessive goes, so
+    // outside English it is the name in that language's own possessive: "de
+    // Bath", "Bath se", and the bare name where the sentence brings its own
+    // ("di {shortPoss}", "{shortPoss}の").
+    if (name === 'shortPoss' && lang !== 'en' && vars.short != null) {
+      const club = String(vars.short)
+      return lang === 'fr' ? `de ${club}` : lang === 'af' ? `${club} se` : club
+    }
+    // A LIST OF COMPETITIONS, marked by _cl: a JSON array of English names,
+    // each put into the reader's language and joined the way that language
+    // lists things ("the Premiership and the Cup", "la Premiership et la
+    // Coupe"). A save written before a line used it carries the English
+    // string under the bare name, so that is read when the _cl one is absent.
+    if (name.endsWith('_cl')) {
+      const raw = vars[name] ?? vars[name.slice(0, -3)]
+      if (raw == null) return whole
+      try {
+        const names = JSON.parse(String(raw)) as string[]
+        if (!Array.isArray(names)) return String(raw)
+        const labels = names.map(n => compLabel(n, lang) ?? n)
+        if (labels.length < 2) return labels[0] ?? ''
+        const sep = (lookup(DICTS[lang], 'common.listSep') ?? ', ') as string
+        const and = (lookup(DICTS[lang], 'common.listAnd') ?? lookup(DICTS.en, 'common.listAnd') ?? ' and ') as string
+        return labels.slice(0, -1).join(sep) + and + labels[labels.length - 1]
+      } catch { return String(raw) }
+    }
     const v = vars[name]
     if (v == null) return whole
     // A VARIABLE THAT IS ITSELF A KEY, marked by a _k suffix on its name.
@@ -289,7 +323,8 @@ function fill(text: string, vars?: Vars, lang: Lang = current): string {
     // the `_f` sibling of "Player of the Month" and not just of the headline.
     if (name.endsWith('_k') && typeof v === 'string') {
       const frag = lookupForWorld(DICTS[lang], v, subjectOf(vars)) ?? lookupForWorld(DICTS.en, v, subjectOf(vars))
-      return render(frag, vars, lang) ?? v
+      // a competition's English name travels in comp_k on some stories
+      return render(frag, vars, lang) ?? compLabel(v, lang)
     }
     // A LIST OF TRANSLATED FRAGMENTS, marked by a _l suffix.
     //
@@ -328,9 +363,70 @@ function fill(text: string, vars?: Vars, lang: Lang = current): string {
         }).join(sep)
       } catch { return v }
     }
+    if (typeof v === 'string' && COMP_VARS.has(name)) return compLabel(v, lang)
+    if (name === 'host' && typeof v === 'string' && TOUR_HOST[v]) return tourHost(v, lang)
     return typeof v === 'number' ? v.toLocaleString(NUMBER_LOCALE[lang]) : String(v)
   })
 }
+
+/**
+ * A COMPETITION'S NAME IN THE READER'S LANGUAGE.
+ *
+ * state.comps[id].name and .short are English, built once and saved, and news
+ * stories carry them as plain variables - so the French Team of the Week read
+ * "FRENCH ELITE 2" above "ÉQUIPE TYPE". Rather than migrate every save and
+ * every stored story, the English name is the key: compName.* (by id) and
+ * compShort.* (by distinct short) hold it in en.json, and this looks the
+ * English string up and answers in `lang`. Anything it does not recognise - a
+ * club name, a fallback already in the reader's language - comes back as
+ * given. The tour's name carries its host, which is a nation and is localised
+ * as one.
+ */
+let COMP_INDEX: Map<string, string> | null = null
+const TOUR_NAME = /^(Women's )?British & Irish Isles Tour of (.+)$/
+const TOUR_HOST: Record<string, string> = { 'New Zealand': 'NZL', 'South Africa': 'RSA', Australia: 'AUS' }
+function compIndex(): Map<string, string> {
+  if (!COMP_INDEX) {
+    const idx = new Map<string, string>()
+    const add = (ns: string, key: (k: string) => string) => {
+      const d = lookup(DICTS.en, ns)
+      if (!d || typeof d !== 'object') return
+      for (const [k, v] of Object.entries(d as Record<string, unknown>)) {
+        if (typeof v === 'string' && !v.includes('{')) idx.set(v, key(k))
+      }
+    }
+    // shorts first, so a full name that equals a short (Continental Cup) is
+    // answered as the full name
+    add('compShort', k => `compShort.${k}`)
+    add('compName', k => `compName.${k}`)
+    COMP_INDEX = idx
+  }
+  return COMP_INDEX
+}
+const tourHost = (host: string, lang: Lang): string => {
+  const code = TOUR_HOST[host]
+  const s = code ? lookup(DICTS[lang], `nation.${code}`) ?? lookup(DICTS.en, `nation.${code}`) : undefined
+  return typeof s === 'string' ? s : host
+}
+export function compLabel(name: string, lang?: Lang): string
+export function compLabel(name: string | undefined | null, lang?: Lang): string | undefined
+export function compLabel(name: string | undefined | null, lang: Lang = current): string | undefined {
+  if (!name) return name ?? undefined
+  const key = compIndex().get(name)
+  if (key) {
+    const s = lookup(DICTS[lang], key) ?? lookup(DICTS.en, key)
+    return typeof s === 'string' ? s : name
+  }
+  const m = TOUR_NAME.exec(name)
+  if (m) {
+    const k = m[1] ? 'compName.w_lions' : 'compName.lions'
+    const s = lookup(DICTS[lang], k) ?? lookup(DICTS.en, k)
+    return typeof s === 'string' ? s.replace('{host}', tourHost(m[2], lang)) : name
+  }
+  return name
+}
+/** Variables that carry a competition's English name into a sentence. */
+const COMP_VARS = new Set(['comp', 'league', 'tour', 'comp_k'])
 
 /** Names that were looked up and were not there. Read by scripts/i18nprobe.ts,
  *  and printed once each in dev so a missing key is noticed rather than

@@ -304,22 +304,35 @@ section('1.2d mass fatigue: a side at 0% from minute 68')
 {
   const tired = agg(), ctl = agg()
   let negative = 0, floorE = 0, n = 0
+  let tiredFor = 0, tiredAgainst = 0, restFor = 0, restAgainst = 0
   for (let i = 0; i < 200; i++) {
     const ctx = beginWith(g, mkFx(g, strong.id, weak.id), 'Dry', 13000 + i); if (!ctx) continue
     while (ctx.tick < 17) { stepTick(g, ctx); if (ctx.decision) resolveDecision(g, ctx, 'posts') }
     for (const id of ctx.home.onPitch) ctx.home.energy.set(id, 0)
+    const s0 = ctx.home.score, o0 = ctx.away.score
     const e0 = sideEnergy(ctx.home)
     if (e0 !== 0) floorE++
     playToEnd(g, ctx); n++
     for (const v of ctx.home.energy.values()) if (v < 0) negative++
     add(tired, g, ctx, strong.id)
+    tiredFor += ctx.home.score - s0; tiredAgainst += ctx.away.score - o0
+    // THE SAME FIRST 68 MINUTES (1.8.0). The rested match used to be played
+    // from kick-off by a different path, so its first 68 minutes were not the
+    // tired one's and they swamped the last twelve: the audit read an empty
+    // tank "scoring more" (37.6 v 36.7) when, minute 68 onwards, it scored
+    // less. Both now step to minute 68 the same way, and only the tank differs.
     const c2 = beginWith(g, mkFx(g, strong.id, weak.id), 'Dry', 13000 + i); if (!c2) continue
+    while (c2.tick < 17) { stepTick(g, c2); if (c2.decision) resolveDecision(g, c2, 'posts') }
+    const r0 = c2.home.score, q0 = c2.away.score
     playToEnd(g, c2); add(ctl, g, c2, strong.id)
+    restFor += c2.home.score - r0; restAgainst += c2.away.score - q0
   }
   ok(negative === 0 && floorE === 0, `energy is floored at 0 and never goes negative (${negative} negatives)`)
   measured(`last 12 minutes on empty: ${f1(avg(tired, 'inj') * 100 / 100)} injuries/match v ${f1(avg(ctl, 'inj'))} rested; ${f1(avg(tired, 'cards'))} cards v ${f1(avg(ctl, 'cards'))}; ${f1(avg(tired, 'pts'))} pts v ${f1(avg(ctl, 'pts'))}`)
   note('engine multipliers: injury weight x1.8 below 25% energy, card risk x1.25 below 35% side energy, attack/defence strength floor 0.78 at 0% (eF), and tired defences raise BOTH sides\' try chance after the hour. There is no separate missed-tackle or handling-error counter; both live inside the defence and attack units.')
-  ok(avg(tired, 'pts') <= avg(ctl, 'pts'), `an empty tank scores no more than a rested one (${f1(avg(tired, 'pts'))} v ${f1(avg(ctl, 'pts'))})`)
+  measured(`minute 68 onwards: empty tank ${f1(tiredFor / n)} for, ${f1(tiredAgainst / n)} against; rested ${f1(restFor / n)} for, ${f1(restAgainst / n)} against`)
+  ok(tiredFor < restFor, `an empty tank scores less than a rested one from minute 68 (${f1(tiredFor / n)} v ${f1(restFor / n)})`)
+  ok(tiredAgainst > restAgainst, `and it is easier to score against (${f1(tiredAgainst / n)} v ${f1(restAgainst / n)} conceded)`)
 }
 
 // ================================================================ SECTION 2

@@ -250,13 +250,12 @@ export function boardMemo(state: GameState): void {
     bill: fmtMoney(bill), cap: fmtMoney(cap.cap ?? 0), room: fmtMoney(cap.headroom ?? 0),
   })
 
-  const kind = conf >= 62 ? '👔' : conf >= 45 ? '👔' : '⚠️'
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
     // the position the prose quotes, stamped so a reader arriving after the
     // table has moved on can still check the memo against what it actually saw
     ...(pos ? { quotedPos: pos } : {}),
-    subject: `${kind} Board review: ${club.short} - boardroom confidence ${conf}%`,
+    subject: `Board review: ${club.short} - boardroom confidence ${conf}%`,
     body: [
       // "monthly review" and a six-week window were the same mismatch in miniature:
       // the memo fires every AWARD_EVERY weeks and six weeks is not a month. It
@@ -273,7 +272,7 @@ export function boardMemo(state: GameState): void {
     ].join('\n'),
     k: 'news.boardMemo',
     v: {
-      kind, short: club.short, conf, weeks,
+      short: club.short, conf, weeks,
       rows_ll: JSON.stringify(memoRows), verdict_k: verdictKey,
     },
   })

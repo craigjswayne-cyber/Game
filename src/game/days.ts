@@ -1,3 +1,4 @@
+import { isBoardroom } from './media'
 import type { GameState, NewsItem } from './model'
 import { seasonStart, BASE_YEAR, dayAbbr, fixtureDayOff, injuryDesc, monthName, weekDate } from './model'
 import { userMatchThisWeek } from './season'
@@ -366,6 +367,7 @@ export function nextStep(state: GameState): NextStep {
 export type DeskBlock =
   | { kind: 'mail'; n: number; label: string }
   | { kind: 'press'; n: number; label: string }
+  | { kind: 'board'; n: number; label: string }
   | { kind: 'squad'; n: number; label: string }
 
 export function deskBlock(state: GameState): DeskBlock | null {
@@ -406,9 +408,16 @@ export function pressBlock(state: GameState): DeskBlock | null {
   // the whole pile in one tap, so deferring costs the press nothing - the week
   // still cannot turn until both are done.
   if (state.news.some(n => !n.read && !n.cleared && inInbox(state, n))) return null
-  const open = state.press.filter(p => !p.answered && (p.options?.length ?? 0) > 0).length
-  if (open === 0) return null
-  return { kind: 'press', n: open, label: open === 1 ? t('dayroom.deskPress') : t('dayroom.deskPressN', { n: open }) }
+  const waiting = state.press.filter(p => !p.answered && (p.options?.length ?? 0) > 0)
+  const open = waiting.filter(p => !isBoardroom(p)).length
+  if (open > 0) return { kind: 'press', n: open, label: open === 1 ? t('dayroom.deskPress') : t('dayroom.deskPressN', { n: open }) }
+  // A BOARD DECISION HOLDS THE WEEK TOO, AND SAYS WHERE IT IS (1.8.0). The
+  // camp, the season's pitch and the sponsor deals are answered on Finances >
+  // The Board (media.isBoardroom); counting them as press sent Continue to a
+  // press room that no longer shows them.
+  const board = waiting.length - open
+  if (board === 0) return null
+  return { kind: 'board', n: board, label: board === 1 ? t('dayroom.deskBoard') : t('dayroom.deskBoardN', { n: board }) }
 }
 
 /** Does the desk get a say on this step? Only when the week is about to leave -

@@ -11,6 +11,7 @@ import { rivalsOf } from './rivalries'
 import { interestPremium, transferInterest } from './interest'
 import { playerValue, playerWage } from './attributes'
 import { clamp, mulberry32, pick, type Rng } from './rng'
+import { book } from './books'
 
 // ------------------------------------------------------------------
 // Transfer market
@@ -220,6 +221,8 @@ export function executeTransfer(state: GameState, p: Player, toClubId: string, f
     from.players = from.players.filter(id => id !== p.id)
     if (from.marquee) from.marquee = from.marquee.filter(id => id !== p.id)
     from.balance += fee
+    // the manager's balance sheet carries the fee as a line (books.ts)
+    if (from.id === state.userClubId) book(state, 'sales', fee)
     from.budget += Math.round(fee * 0.7)
     from.tactic.lineup = from.tactic.lineup.map(id => (id === p.id ? null : id))
     // the armband doesn't travel: reappoint leaders if he wore it
@@ -244,6 +247,7 @@ export function executeTransfer(state: GameState, p: Player, toClubId: string, f
   p.joker = undefined
   to.players.push(p.id)
   to.balance -= fee
+  if (to.id === state.userClubId) book(state, 'buys', -fee)
   to.budget = Math.max(0, to.budget - fee)
   p.clubId = toClubId
   p.morale = clamp(p.morale + 1, 1, 10)
@@ -374,7 +378,7 @@ export function aiTransfers(state: GameState, rng: Rng) {
     })
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
-      subject: deadline ? `🚨 Deadline-day bid: ${p.name}` : `Bid received: ${p.name}`,
+      subject: deadline ? `Deadline-day bid: ${p.name}` : `Bid received: ${p.name}`,
       body: deadline
         ? `${bidder.name} have come in late for ${p.name} - ${fmtMoney(fee)}, and the panic premium is baked in. The window shuts within days: respond from the Transfers screen or the offer dies with it.`
         : `${bidder.name} have tabled a bid of ${fmtMoney(fee)} for ${p.name}. Respond via the Transfers screen - the offer will not stay open for long.`,
@@ -415,7 +419,7 @@ export function aiTransfers(state: GameState, rng: Rng) {
     o.countered = false // a fresh bidder can still be haggled once
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
-      subject: `💰 Bidding war: ${rival.short} top the offer for ${p.name}`,
+      subject: `Bidding war: ${rival.short} top the offer for ${p.name}`,
       body: `${rival.name} have gazumped ${ousted}: the bid on your desk for ${p.name} now reads ${fmtMoney(o.fee)}${(o.raises ?? 0) >= 3 ? ', and that is the market done bidding - answer it' : '. Hold your nerve and the price may climb again; wait too long and the window does what windows do'}. Respond from the Transfers screen.`,
       k: 'news.biddingWar',
       v: {
@@ -610,6 +614,7 @@ export function signOnTerms(state: GameState, playerId: number, fee: number, wag
   executeTransfer(state, p, user.id, fee)
   p.wage = wage
   user.balance -= signOn
+  book(state, 'buys', -signOn)
   if (asMarquee && marqueeSlots > 0) user.marquee = [...(user.marquee ?? []), p.id]
   if (promiseMinutes) {
     ;(state.pledges ??= []).push({
@@ -737,7 +742,7 @@ export function respondToOffer(state: GameState, offerId: number, accept: boolea
   }
   if (p.morale <= 4 || (sulky && bidder.rep > (state.clubs[state.userClubId]?.rep ?? 0))) {
     p.morale = clamp(p.morale - (sulky ? 1.4 : 0.5), 1, 10)
-    return t('reply.bidRejectedFrustrated', { player: p.name, pers_k: `persLower.${p.pers}` })
+    return t('reply.bidRejectedFrustrated', { player: p.name })
   }
   return t('reply.bidRejectedStays', { player: p.name })
 }
@@ -813,7 +818,7 @@ export function agreePreContract(state: GameState, playerId: number): { ok: bool
   if (seller && p.ca >= 80) addGrudge(state, seller.id, user.id, 'news.grudgePreContract', { player: p.name })
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'contract', read: false,
-    subject: `🖊 Pre-contract agreed: ${p.name}`,
+    subject: `Pre-contract agreed: ${p.name}`,
     body: `${p.name} (${p.pos}, ${p.age}) has signed a pre-contract with ${user.name}. He sees the season out at ${seller?.name ?? 'his club'}, then joins on a free at terms of ${fmtMoney(wage)}/week. ${seller ? `${seller.short} found out from the press release.` : ''}`,
     k: 'news.preAgreed',
     v: {
@@ -848,7 +853,7 @@ export function aiPreContractPoach(state: GameState, rng: Rng) {
   p.morale = clamp(p.morale + 0.5, 1, 10)
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'contract', read: false,
-    subject: `💔 GAZUMPED: ${p.name} signs pre-contract with ${to.short}`,
+    subject: `GAZUMPED: ${p.name} signs pre-contract with ${to.short}`,
     body: `You left his renewal on the desk too long. ${p.name} has agreed a pre-contract with ${to.name} and will walk for nothing when the season ends. The deal is binding - there is no fee, no negotiation, and no way back.`,
     k: 'news.gazumped', v: { player: p.name, to: to.name, short: to.short },
     playerId: p.id,

@@ -1,7 +1,7 @@
 import { useStore } from '../../store'
 import { teamShort } from '../../game/matchEngine'
 import { SectionTitle } from '../components'
-import { t } from '../../game/i18n'
+import { t, compLabel } from '../../game/i18n'
 
 /* keys, not words - the table is built once, the language can change after */
 const STAGE_NAME: Record<string, string> = {
@@ -51,7 +51,7 @@ export default function DrawRoom() {
 
   return (
     <div className="draw-room">
-      <SectionTitle sub={t('week.drawSub', { comp: comp?.name ?? t('week.drawCup'), n: draw.ties.length })}>
+      <SectionTitle sub={t('week.drawSub', { comp: compLabel(comp?.name) ?? t('week.drawCup'), n: draw.ties.length })}>
         {t('week.drawTitle', { stage })}
       </SectionTitle>
 

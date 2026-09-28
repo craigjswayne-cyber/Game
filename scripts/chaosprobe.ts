@@ -159,12 +159,26 @@ console.log('\nCHAOS 2: positional sabotage - the XV nobody would pick\n')
   club.tactic.lineup = lu
   club.tactic.userPicked = true
   const fx = userFixtureThisWeek(g) ?? g.fixtures.find(f => !f.played && (f.homeId === club.id || f.awayId === club.id))!
+  // the same kick-off on five more streams first, from copies, so "loses it"
+  // is not one match's word (28 Sep 2026): four shifted seed lists read
+  // 0-51, 14-62, 13-26 and 0-40, the third a single match from a 13-point
+  // swing. The claim is now that it loses on average and in most of six.
+  const replays: number[] = []
+  for (let k = 1; k <= 5; k++) {
+    const h = structuredClone(g)
+    const f = h.fixtures.find(x => x.id === fx.id)!
+    simMatch(h, f, mulberry32(42 + k * 7919), true)
+    replays.push(f.homeId === club.id ? f.homeScore - f.awayScore : f.awayScore - f.homeScore)
+  }
   guard('all-out-of-position XV', () => simMatch(g, fx, mulberry32(42), true))
   ok(fx.played && Number.isFinite(fx.homeScore) && Number.isFinite(fx.awayScore) && fx.homeScore >= 0 && fx.awayScore >= 0,
     `backs in the pack, pack in the backs: the match still produces a score (${fx.homeScore}-${fx.awayScore})`)
   const us = fx.homeId === club.id ? fx.homeScore : fx.awayScore
   const them = fx.homeId === club.id ? fx.awayScore : fx.homeScore
-  ok(them >= us, `and the sabotaged side loses it (${us}-${them}) - out of position costs, it does not crash`)
+  const margins = [us - them, ...replays]
+  const avg = margins.reduce((a, b) => a + b, 0) / margins.length
+  ok(avg < 0 && margins.filter(m => m <= 0).length >= 4,
+    `and the sabotaged side loses it (${us}-${them}; margins over six streams ${margins.join(', ')}) - out of position costs, it does not crash`)
   saveHolds(g, 'positional sabotage')
 }
 

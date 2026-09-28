@@ -4,7 +4,7 @@ import { fmtMoney, mgrReputation } from '../../game/model'
 import { jobChance, sackCooloff } from '../../game/jobs'
 import { squadValue } from '../../game/analysis'
 import { Crest, SectionTitle } from '../components'
-import { t } from '../../game/i18n'
+import { t, compLabel } from '../../game/i18n'
 
 /** The reply slot for a tap whose card is no longer in the pile. Falling back
  *  above the list is right (the card it belongs on is gone) but the thumb that
@@ -65,9 +65,9 @@ export default function Jobs() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <Crest club={club} size={30} mr={4} />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <h3 style={{ fontSize: 15 }}>{club.name}</h3>
+            <h3 style={{ fontSize: 16 }}>{club.name}</h3>
             <div className="meta">
-              {t('world.jbClubMeta', { league: game.comps[club.leagueId]?.short ?? '', rep: club.rep, squad: fmtMoney(squadValue(game, club.id)), budget: fmtMoney(club.budget) })}
+              {t('world.jbClubMeta', { league: compLabel(game.comps[club.leagueId]?.short) ?? '', rep: club.rep, squad: fmtMoney(squadValue(game, club.id)), budget: fmtMoney(club.budget) })}
             </div>
           </div>
           {cold === 0 && (
@@ -82,7 +82,7 @@ export default function Jobs() {
             except by applying for it - so the red dot sat there for a job he
             had no interest in. */}
         {!v.applied && (
-          <button className="btn ghost block" style={{ marginTop: 6, fontSize: 12.5 }}
+          <button className="btn ghost block" style={{ marginTop: 6, fontSize: 13 }}
             onClick={() => {
               // READ IT BEFORE THE CALL. passJob writes v.passed straight onto the
               // vacancy in game state, and `v` here is that same object - so a
@@ -138,7 +138,7 @@ export default function Jobs() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <Crest club={offer} size={30} mr={4} />
             <div style={{ flex: 1, minWidth: 0 }}>
-              <h3 style={{ fontSize: 15 }}>{t('world.jbOfferHead', { club: offer.name })}</h3>
+              <h3 style={{ fontSize: 16 }}>{t('world.jbOfferHead', { club: offer.name })}</h3>
               <div className="meta">{t('world.jbOfferBody', { club: offer.short, stadium: offer.stadium, budget: fmtMoney(offer.budget) })}</div>
             </div>
           </div>
@@ -200,7 +200,7 @@ export default function Jobs() {
 
       {turned.length > 0 && (
         <>
-          <button className="btn ghost block" style={{ marginTop: 8, fontSize: 12.5 }}
+          <button className="btn ghost block" style={{ marginTop: 8, fontSize: 13 }}
             onClick={() => setShowPassed(!showPassed)}>
             {showPassed ? t('world.jbHideTurned') : t('world.jbShowTurned', { n: turned.length })}
           </button>

@@ -97,33 +97,77 @@ console.log('--- nothing is a meta')
 {
   // paired full matches: the same fixture, the same state and the same rng,
   // only the setting differs (common random numbers, as dialweight does)
-  const margin = (set: Partial<Tactic>, fxs: { g: GameState; fx: Fixture }[]) => {
-    let sum = 0
-    fxs.forEach(({ g, fx }, i) => {
-      const h = structuredClone(g)
-      Object.assign(h.clubs[h.userClubId].tactic, set)
-      const f = h.fixtures.find(x => x.id === fx.id)!
-      simMatch(h, f, mulberry32(9000 + i * 17), false)
-      sum += f.homeId === h.userClubId ? f.homeScore - f.awayScore : f.awayScore - f.homeScore
-    })
-    return sum / fxs.length
+  //
+  // TEN SIMS A FIXTURE, RESTORED RATHER THAN CLONED (28 Sep 2026). One sim
+  // of each of the 96 fixtures still left a standard error near 1.9 points on
+  // each row (a paired match's margin moves about 19 points once the streams
+  // part), so seven rows against a band of 3 failed a run in two: four
+  // shifted seed lists read attack -4.53 (FAIL) and contest 0 +3.45 (FAIL)
+  // among rows that otherwise sat within a point or two. Each fixture is now
+  // played ten times on ten streams, every setting on the same ten, from a
+  // kick-off restored in place (the two clubs, their men and the chemistry
+  // ledger, which is everything a match reads or writes that the next could
+  // feel) instead of a 150 ms structuredClone. 960 pairs a row, a standard
+  // error near 0.6, the same band.
+  type Entry = { g: GameState; fx: Fixture; restore: () => void }
+  const K = 10
+  const play = (e: Entry, set: Partial<Tactic>, seed: number) => {
+    e.restore()
+    Object.assign(e.g.clubs[e.g.userClubId].tactic, set)
+    const f: Fixture = { ...e.fx, played: false, homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0 }
+    simMatch(e.g, f, mulberry32(seed), false)
+    return f.homeId === e.g.userClubId ? f.homeScore - f.awayScore : f.awayScore - f.homeScore
   }
-  const pool: { g: GameState; fx: Fixture }[] = []
-  for (const seed of [3, 11, 29, 47, 83, 101, 131, 157]) {
+  const seedOf = (i: number, k: number) => (9000 + i * 17 + k * 104729) >>> 0
+  const margin = (set: Partial<Tactic>, fxs: Entry[]) => {
+    let sum = 0
+    fxs.forEach((e, i) => { for (let k = 0; k < K; k++) sum += play(e, set, seedOf(i, k)) })
+    return sum / (fxs.length * K)
+  }
+  const pool: Entry[] = []
+  // 24 WORLDS, NOT 8 (1.8.0): at 32 pairs "contest 0" read +4.44 after the
+  // unit rebalance and +0.07 over 96 on the same commit - common random
+  // numbers only hold until the first event differs, and 32 matches could not
+  // resolve a 3-point band. optionsprobe asks the same at 120 on the slow list.
+  for (const seed of [3, 11, 29, 47, 83, 101, 131, 157, 181, 211, 239, 263, 281, 307, 331, 353, 379, 401, 421, 443, 463, 487, 503, 521]) {
     for (const club of ['northampton', 'bath', 'exeter', 'sale']) {
       const g = newGame(club, 'KB', seed)
       for (const c of Object.values(g.clubs)) { delete c.tactic.kickStyle; c.tactic.ruckCommit = 50; c.tactic.ruckContest = 50 }
-      pool.push({ g, fx: userFixture(g) })
+      const fx = userFixture(g)
+      const clubIds = [fx.homeId, fx.awayId]
+      const pids = clubIds.flatMap(c => g.clubs[c].players)
+      const snapC = structuredClone(clubIds.map(c => g.clubs[c]))
+      const snapP = structuredClone(pids.map(id => g.players[id]))
+      const snapChem = structuredClone(g.chem)
+      const snapMisc = { news: g.news.slice(), nextId: g.nextId, grudges: structuredClone(g.grudges) }
+      const restore = () => {
+        clubIds.forEach((c, j) => { g.clubs[c] = structuredClone(snapC[j]) })
+        pids.forEach((id, j) => { g.players[id] = structuredClone(snapP[j]) })
+        g.chem = structuredClone(snapChem)
+        // a match also files news, takes ids and can start a grudge the next
+        // one reads, so those go back too
+        g.news = snapMisc.news.slice(); g.nextId = snapMisc.nextId; g.grudges = structuredClone(snapMisc.grudges)
+      }
+      pool.push({ g, fx, restore })
     }
   }
-  const base = margin({ kickStyle: 'balanced', ruckCommit: 50, ruckContest: 50, kicking: 60 }, pool)
+  // the pairing is only as good as the restore: the same setting on the same
+  // stream from the same kick-off has to replay the same match
+  const neutralSet = { kickStyle: 'balanced', ruckCommit: 50, ruckContest: 50, kicking: 60 } as Partial<Tactic>
+  const replays = pool.slice(0, 8).filter((e, i) => {
+    // with a different match in between, so anything left behind would show
+    const first = play(e, neutralSet, seedOf(i, 0)); play(e, { ruckContest: 100 }, seedOf(i, 1))
+    return first === play(e, neutralSet, seedOf(i, 0))
+  }).length
+  ok(replays === 8, `a restored kick-off replays the same match on the same stream (${replays}/8)`)
+  const base = margin(neutralSet, pool)
   const rows: [string, Partial<Tactic>][] = [
     ['territory', { kickStyle: 'territory', kicking: 60 }], ['contest', { kickStyle: 'contest', kicking: 60 }], ['attack', { kickStyle: 'attack', kicking: 60 }],
     ['commit 100', { ruckCommit: 100 }], ['commit 0', { ruckCommit: 0 }], ['contest 100', { ruckContest: 100 }], ['contest 0', { ruckContest: 0 }],
   ]
   for (const [name, set] of rows) {
     const m = margin({ kicking: 60, ...set }, pool) - base
-    ok(Math.abs(m) <= 3, `${name}: ${m >= 0 ? '+' : ''}${m.toFixed(2)} points a match against balanced, over ${pool.length} paired matches (within 3)`)
+    ok(Math.abs(m) <= 3, `${name}: ${m >= 0 ? '+' : ''}${m.toFixed(2)} points a match against balanced, over ${pool.length * K} paired matches (within 3)`)
   }
 }
 

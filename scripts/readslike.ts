@@ -66,6 +66,8 @@ const PROPER = new Set([
   'store.removeAds', 'challenges.sapiac', 'week.compWc', 'week.compPnc',
   'player.worldPoty', 'world.dtTitle', 'world.natPnc', 'world.natSn',
   'world.natTrc', 'world.natWc', 'legacy.lgHallOfFame', 'matchday.testMatch',
+  // the American league's own name, which it keeps abroad as its clubs do
+  'compName.mrc',
 ])
 
 // ---------------------------------------------------------------------------

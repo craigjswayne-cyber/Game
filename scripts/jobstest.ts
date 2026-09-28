@@ -1,6 +1,6 @@
 // Job-market regression: get sacked, wait for vacancies, get re-hired.
 import { newGame } from '../src/game/newgame'
-import { processWeekAndAdvance, userFixtureThisWeek, weekRng } from '../src/game/season'
+import { honeymoonEnd, processWeekAndAdvance, userFixtureThisWeek, weekRng } from '../src/game/season'
 import { simMatch } from '../src/game/matchEngine'
 import { answerJobOffer, applyForJob, jobChance } from '../src/game/jobs'
 import { mgrReputation } from '../src/game/model'
@@ -27,10 +27,39 @@ while (g.week < 10) {
 // duly failed the moment an unrelated content change moved the world rng stream.
 // Zero is below anything one result can lift clear, so the assertion is now about
 // the sack mechanism rather than about Montauban's Saturday.
-g.clubs[g.userClubId].boardConfidence = 0
-processWeekAndAdvance(g)
+//
+// THREE WEEKS ON THE FLOOR, AND NOT IN THE HONEYMOON (1.8.0). One reading at
+// the floor used to end the job; the owner's fairness round made it three
+// weeks running, and a new manager's first season has a honeymoon whose length
+// follows the club's standing (honeymoonEnd). So this now holds the board at
+// zero and checks all three halves: the honeymoon protects, one week is not
+// enough, and the third week is the end.
+const floor = (weeks: number) => {
+  for (let i = 0; i < weeks && !g.unemployed; i++) {
+    g.clubs[g.userClubId].boardConfidence = 0
+    processWeekAndAdvance(g)
+  }
+}
+const hmEnd = honeymoonEnd(g.clubs[g.userClubId].rep)
+if (g.week + 3 < hmEnd) {
+  floor(3)
+  if (g.unemployed) {
+    console.error(`BUG: a first-season manager was sacked at week ${g.week}, inside his honeymoon (ends week ${hmEnd})`)
+    process.exit(1)
+  }
+  console.log(`  honeymoon holds: three weeks on the floor at week ${g.week}, grace until week ${hmEnd}`)
+}
+// out of the honeymoon: as if he had been here since last season
+g.tenureStart = g.season - 1
+g.boardFloorWeeks = 0
+floor(1)
+if (g.unemployed) {
+  console.error('BUG: one week on the floor ended the job; the board waits three')
+  process.exit(1)
+}
+floor(2)
 if (!g.unemployed) {
-  console.error(`BUG: confidence on the floor past week 8 did not end the job (now ${g.clubs[g.userClubId].boardConfidence.toFixed(1)})`)
+  console.error(`BUG: three weeks on the floor past week 8 did not end the job (now ${g.clubs[g.userClubId].boardConfidence.toFixed(1)})`)
   process.exit(1)
 }
 

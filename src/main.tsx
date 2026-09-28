@@ -1,3 +1,5 @@
+// first, before anything can read storage: a sandboxed page has none
+import './safeStorage'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './ui/App'
@@ -23,6 +25,14 @@ installCrashCapture()
 installDialogA11y()
 // which box the game is in has to be read off the first navigation's referrer
 noteShell()
+// THE MOTION LAYER (1.8.0): screens, sheets and cards arrive rather than
+// appear. Switched on here for people and off for automated browsers, which
+// measure layout and colour mid-frame and would read a card 6px low or half
+// faded; motionprobe turns it on with ?motion=1. The OS reduce-motion setting
+// still wins in theme.css.
+try {
+  if (/[?&]motion=1\b/.test(location.search) || !navigator.webdriver) document.documentElement.dataset.motion = 'on'
+} catch { /* no DOM */ }
 
 /**
  * A RESTORE NOBODY HAS TO ASK FOR.

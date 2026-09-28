@@ -3,12 +3,12 @@ import { useStore } from '../../store'
 import { deleteSave, listSaves, loadGame, migrate, saveGame, type SaveMeta } from '../../game/save'
 import { seasonLabel, weekDate, type GameState } from '../../game/model'
 import { SectionTitle } from '../components'
-import { t } from '../../game/i18n'
+import { t, localeTag } from '../../game/i18n'
 
-const SLOTS = ['slot1', 'slot2', 'slot3', 'slot4']
+export const SLOTS = ['slot1', 'slot2', 'slot3', 'slot4']
 /* keys, not words - t()d wherever a slot is named */
 const SLOT_NAMES: Record<string, string> = { slot1: 'world.svSlotA', slot2: 'world.svSlotB', slot3: 'world.svSlotC', slot4: 'world.svSlotD' }
-const slotName = (slot: string) => (SLOT_NAMES[slot] ? t(SLOT_NAMES[slot]) : slot)
+export const slotName = (slot: string) => (SLOT_NAMES[slot] ? t(SLOT_NAMES[slot]) : slot)
 
 /** Game Status: multi-slot save & load, FM style. */
 export default function Saves() {
@@ -149,7 +149,7 @@ export default function Saves() {
                 {meta ? (
                   <div className="meta">
                     {meta.managerName} - {meta.club}<br />
-                    {t('world.svSavedAt', { season: seasonLabel(meta.season), date: weekDate(meta.season, meta.week), when: new Date(meta.savedAt).toLocaleString() })}
+                    {t('world.svSavedAt', { season: seasonLabel(meta.season), date: weekDate(meta.season, meta.week), when: new Date(meta.savedAt).toLocaleString(localeTag()) })}
                   </div>
                 ) : (
                   <div className="meta">{t('world.svEmpty')}</div>

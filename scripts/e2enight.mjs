@@ -105,7 +105,7 @@ try {
 
   // squad filters: availability is two icons now, not two words plus a search box
   if (await page.locator('.filter-row input').count()) throw new Error('the squad search box is back')
-  await page.locator('.preset-chip >> text=🚑').click()
+  await page.locator('.preset-chip[aria-label="injured, banned, away or on loan"]').click()
   await page.waitForTimeout(250)
   await shot('06a2-squad-filtered')
   await page.locator('.preset-chip >> text=Everyone').click()
@@ -123,11 +123,17 @@ try {
   await page.click('.submenu-item >> text=Transfer Centre')
   await page.waitForTimeout(600)
   await shot('06c-transfers')
-  await page.locator('.preset-chip >> text=🏷️ Listed').click()
+  // the filters live in a sheet since 1.8.0: open it, shot it at
+  // night, switch on Transfer-listed only and show the result
+  await page.click('.filter-btn')
+  await page.waitForSelector('.filter-sheet')
+  await shot('06c1-transfers-filter-sheet')
+  await page.locator('.fs-toggle >> text=Transfer-listed only').click()
+  await page.click('.filter-sheet > .btn-row .btn.gold')
   await page.waitForTimeout(300)
   await shot('06c2-transfers-filtered')
-  // commissioned scouting lives on the Shortlist tab
-  await page.click('.tab-bar >> text=Shortlist')
+  // commissioned scouting lives on the Scouting tab
+  await page.click('.tab-bar >> text=Scouting')
   await page.waitForSelector('.section-title >> text=Scouting') // the heading is t('transfers.commissionedSearch'), which reads "Scouting" now
   await shot('06c3-commission')
 
@@ -229,7 +235,7 @@ try {
   await page.click('.submenu-item >> text=Club Infrastructure')
   await page.waitForSelector('text=Facilities')
   await shot('06i-infrastructure')
-  await page.locator('text=🏛 Ask board').first().click()
+  await page.locator('text=Ask board').first().click()
   await page.waitForTimeout(300)
   await shot('06j-infra-ask')
 

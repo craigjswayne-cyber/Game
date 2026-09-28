@@ -120,7 +120,7 @@ const startCareer = async (page) => {
 }
 
 const openAbout = async (page) => {
-  await page.locator('.bottom-nav button', { hasText: '▸' }).nth(1).click()
+  await page.locator('.bottom-nav button[data-group]').nth(1).click()
   await page.waitForSelector('.submenu')
   await page.waitForTimeout(400)
   await page.locator('.submenu-item', { hasText: 'About' }).click()
@@ -320,7 +320,7 @@ try {
       'the purchase completes and the row is a receipt')
 
     // the mark, on the screen it was promised on
-    await page.locator('.bottom-nav button', { hasText: '▸' }).nth(1).click()
+    await page.locator('.bottom-nav button[data-group]').nth(1).click()
     await page.waitForSelector('.submenu')
     await page.waitForTimeout(400)
     await page.locator('.submenu-item', { hasText: 'Main Menu' }).click()

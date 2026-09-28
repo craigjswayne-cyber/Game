@@ -6,14 +6,15 @@ import { CHALLENGES } from '../../game/newgame'
 import { flagOf, nationName } from '../../game/nations'
 import { SectionTitle } from '../components'
 import { supportCount } from '../../game/monetise'
-import { t } from '../../game/i18n'
+import { t, compLabel } from '../../game/i18n'
+import { Glyph } from '../glyphs'
 
 /** Coaching badge tiers, earned through reputation. */
 export function badgeOf(rep: number): { name: string; icon: string; color: string; next: string | null; at: number | null } {
-  if (rep >= 85) return { name: t('profile.badgePlatinum'), icon: '💎', color: 'var(--info)', next: null, at: null }
-  if (rep >= 70) return { name: t('profile.badgeGold'), icon: '🥇', color: 'var(--gold)', next: t('profile.nextPlatinum'), at: 85 }
-  if (rep >= 55) return { name: t('profile.badgeSilver'), icon: '🥈', color: 'var(--text-secondary)', next: t('profile.nextGold'), at: 70 }
-  return { name: t('profile.badgeBronze'), icon: '🥉', color: 'var(--prop-tee-edge)', next: t('profile.nextSilver'), at: 55 }
+  if (rep >= 85) return { name: t('profile.badgePlatinum'), icon: 'badge', color: 'var(--info)', next: null, at: null }
+  if (rep >= 70) return { name: t('profile.badgeGold'), icon: 'badge', color: 'var(--gold)', next: t('profile.nextPlatinum'), at: 85 }
+  if (rep >= 55) return { name: t('profile.badgeSilver'), icon: 'badge', color: 'var(--text-secondary)', next: t('profile.nextGold'), at: 70 }
+  return { name: t('profile.badgeBronze'), icon: 'badge', color: 'var(--prop-tee-edge)', next: t('profile.nextSilver'), at: 55 }
 }
 
 interface Speciality {
@@ -45,38 +46,38 @@ export const SPEC_MIN_GAMES = 10
 
 export const SPECIALITIES: Speciality[] = [
   {
-    id: 'youth', name: 'profile.specYouth', icon: '🌱',
+    id: 'youth', name: 'profile.specYouth', icon: 'paddock',
     desc: 'profile.specYouthDesc',
     earned: g => Object.values(g.players).filter(p =>
       p.clubId === g.userClubId && p.youth && (p.stats.apps > 0 || p.career.some(c => c.apps > 0))).length >= 5,
     hint: 'profile.specYouthHint',
   },
   {
-    id: 'dealer', name: 'profile.specDealer', icon: '🤝',
+    id: 'dealer', name: 'profile.specDealer', icon: 'handshake',
     desc: 'profile.specDealerDesc',
     earned: g => g.mgr.signings >= 12,
     hint: 'profile.specDealerHint',
   },
   {
-    id: 'tactician', name: 'profile.specTactician', icon: '🧠',
+    id: 'tactician', name: 'profile.specTactician', icon: 'tactics',
     desc: 'profile.specTacticianDesc',
     earned: g => g.mgr.m >= 30 && g.mgr.w / Math.max(1, g.mgr.m) >= 0.62,
     hint: 'profile.specTacticianHint',
   },
   {
-    id: 'winner', name: 'profile.specWinner', icon: '🏆',
+    id: 'winner', name: 'profile.specWinner', icon: 'trophy',
     desc: 'profile.specWinnerDesc',
     earned: g => g.mgr.trophies.length >= 2,
     hint: 'profile.specWinnerHint',
   },
   {
-    id: 'euro', name: 'profile.specEuro', icon: '👑',
+    id: 'euro', name: 'profile.specEuro', icon: 'crown',
     desc: 'profile.specEuroDesc',
     earned: g => g.mgr.trophies.some(t => t.compId === 'cc'),
     hint: 'profile.specEuroHint',
   },
   {
-    id: 'manman', name: 'profile.specManman', icon: '🫂',
+    id: 'manman', name: 'profile.specManman', icon: 'team',
     desc: 'profile.specManmanDesc',
     earned: g => {
       const squad = g.clubs[g.userClubId]?.players.map(id => g.players[id]).filter(Boolean) ?? []
@@ -85,13 +86,13 @@ export const SPECIALITIES: Speciality[] = [
     hint: 'profile.specManmanHint',
   },
   {
-    id: 'survivor', name: 'profile.specSurvivor', icon: '🛡️',
+    id: 'survivor', name: 'profile.specSurvivor', icon: 'shield',
     desc: 'profile.specSurvivorDesc',
     earned: g => g.mgr.finishes.length >= 3,
     hint: 'profile.specSurvivorHint',
   },
   {
-    id: 'miracle', name: 'profile.specMiracle', icon: '✨',
+    id: 'miracle', name: 'profile.specMiracle', icon: 'trait',
     desc: 'profile.specMiracleDesc',
     earned: g => g.mgr.trophies.some(t => {
       const club = g.clubs[g.userClubId]
@@ -118,8 +119,8 @@ export default function Profile() {
   return (
     <>
       <div className="card" style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: 44, lineHeight: 1 }}>{badge.icon}</div>
-        <h3 style={{ fontSize: 19, marginTop: 6 }}>{game.managerName}</h3>
+        <div style={{ fontSize: 44, lineHeight: 1, color: badge.color }}><Glyph name={badge.icon} /></div>
+        <h3 style={{ fontSize: 18, marginTop: 6 }}>{game.managerName}</h3>
         <div className="meta">{game.unemployed ? t('profile.unemployed') : t('profile.directorOfRugby', { club: club.name })}</div>
         <div style={{ marginTop: 8, fontFamily: 'var(--cond)', fontWeight: 700, letterSpacing: 1, color: badge.color, textTransform: 'uppercase' }}>
           {badge.name}
@@ -161,7 +162,7 @@ export default function Profile() {
 
       {game.natOffer && (
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-          <h3 style={{ fontSize: 15 }}>{t('profile.natOffer', { nat: nationName(game.natOffer.nat) })}</h3>
+          <h3 style={{ fontSize: 16 }}>{t('profile.natOffer', { nat: nationName(game.natOffer.nat) })}</h3>
           <div className="meta">{t('profile.natOfferBody')}</div>
           {/* v1.1.5 (owner): taking the national side asks about the club job
               - keep both, or clear the desk and go all-in on country. An
@@ -203,7 +204,7 @@ export default function Profile() {
           back on the screen. */}
       {game.natKeepAsk && game.natTeam && !game.unemployed && club && (
         <div className="card" style={{ borderLeft: '4px solid var(--text-positive)' }}>
-          <h3 style={{ fontSize: 15 }}>{t('profile.natKeepAskTitle', { nat: nationName(game.natKeepAsk) })}</h3>
+          <h3 style={{ fontSize: 16 }}>{t('profile.natKeepAskTitle', { nat: nationName(game.natKeepAsk) })}</h3>
           <div className="meta">{t('profile.natKeepAskBody', { nat: nationName(game.natKeepAsk), club: club.short })}</div>
           <div className="btn-row" style={{ marginTop: 10 }}>
             <button className="btn danger" onClick={() => answerNatKeep(false)}>{t('profile.natResignClub')}</button>
@@ -213,7 +214,7 @@ export default function Profile() {
       )}
       {game.natTeam && (
         <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 22 }}>🌍</span>
+          <span className="row-ico"><Glyph name="nations" /></span>
           <div style={{ flex: 1 }}>
             <h3 style={{ fontSize: 14 }}>{flagOf(game.natTeam)} {t('profile.natHeadCoach', { nat: nationName(game.natTeam) })}</h3>
             <div className="meta">
@@ -233,7 +234,7 @@ export default function Profile() {
           current, stays on the CV for good */}
       {((game.natHistory ?? []).length > 0 || (game.natTeam && game.natRecord)) && (
         <div className="card" style={{ borderLeft: '4px solid var(--text-positive)' }}>
-          <h3 style={{ fontSize: 15 }}>{t('profile.intlRecord')}</h3>
+          <h3 style={{ fontSize: 16 }}>{t('profile.intlRecord')}</h3>
           {(game.natHistory ?? []).map((ten, i) => (
             <div key={i} className="meta" style={{ padding: '3px 0' }}>
               {flagOf(ten.nat)} <b>{nationName(ten.nat)}</b> · {t(ten.m === 1 ? 'profile.testLineOne' : 'profile.testLine', { m: ten.m, w: ten.w, d: ten.d, l: ten.l })}
@@ -248,7 +249,7 @@ export default function Profile() {
       )}
       {(game.challengesDone ?? []).length > 0 && (
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-          <h3 style={{ fontSize: 15 }}>{t('profile.challengesConquered')}</h3>
+          <h3 style={{ fontSize: 16 }}>{t('profile.challengesConquered')}</h3>
           {(game.challengesDone ?? []).map(id => (
             <div key={id} className="meta" style={{ padding: '3px 0', fontWeight: 700 }}>
               {t(CHALLENGES.find(c => c.id === id)?.title ?? id)}
@@ -258,7 +259,7 @@ export default function Profile() {
       )}
       {game.challenge && (
         <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 22 }}>🎯</span>
+          <span className="row-ico"><Glyph name="target" /></span>
           <div>
             <h3 style={{ fontSize: 14 }}>{t(CHALLENGES.find(c => c.id === game.challenge)?.title ?? game.challenge)}</h3>
             <div className="meta">{t('profile.challengeLive')}</div>
@@ -305,7 +306,7 @@ export default function Profile() {
       {supportCount() > 0 && (
         <div className="card supporters-club">
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 22, flexShrink: 0 }}>👑</span>
+            <span className="row-ico"><Glyph name="crown" /></span>
             <div style={{ flex: 1, minWidth: 0 }}>
               <h3 style={{ fontSize: 14 }}>{t('profile.supportersClub')}</h3>
               <div className="meta">{t('profile.supportersCount', { n: supportCount() })}</div>
@@ -323,7 +324,7 @@ export default function Profile() {
           const has = game.mgr.m >= SPEC_MIN_GAMES && s.earned(game)
           return (
             <div key={s.id} className={`spec-tile${has ? ' on' : ''}`}>
-              <span className="ico">{s.icon}</span>
+              <span className="ico"><Glyph name={s.icon} /></span>
               <b>{t(s.name)}</b>
               <span className="d">{t(has ? s.desc : s.hint)}</span>
             </div>
@@ -347,10 +348,10 @@ export default function Profile() {
                   different x positions. Width plus centring makes the marker a
                   column rather than a character, and the size is pinned so the
                   triangles stop riding above the 11.5px line beside them. */}
-              <span style={{ flexShrink: 0, width: 13, textAlign: 'center', fontSize: 10.5, lineHeight: '13px', color: d.good === true ? 'var(--text-positive)' : d.good === false ? 'var(--text-negative)' : 'var(--border-strong)', fontWeight: 700 }}>
+              <span style={{ flexShrink: 0, width: 13, textAlign: 'center', fontSize: 11, lineHeight: '13px', color: d.good === true ? 'var(--text-positive)' : d.good === false ? 'var(--text-negative)' : 'var(--border-strong)', fontWeight: 700 }}>
                 {d.good === true ? '▲' : d.good === false ? '▼' : '•'}
               </span>
-              <span className="meta" style={{ fontSize: 11.5 }}>{decisionText(d)}</span>
+              <span className="meta" style={{ fontSize: 12 }}>{decisionText(d)}</span>
             </div>
           ))}
         </div>
@@ -363,8 +364,8 @@ export default function Profile() {
           <div className="tblwrap"><table className="dtable"><tbody>
             {m.trophies.map((t, i) => (
               <tr key={i}>
-                <td>🏆</td>
-                <td className="name">{game.comps[t.compId]?.name ?? t.compId}</td>
+                <td style={{ color: 'var(--gold)' }}><Glyph name="trophy" /></td>
+                <td className="name">{compLabel(game.comps[t.compId]?.name) ?? t.compId}</td>
                 <td className="num">{seasonLabel(t.season)}</td>
               </tr>
             ))}
@@ -381,7 +382,7 @@ export default function Profile() {
               {[...m.finishes].reverse().map((f, i) => (
                 <tr key={i}>
                   <td>{seasonLabel(f.season)}</td>
-                  <td className="name">{game.comps[f.leagueId]?.name ?? f.leagueId}</td>
+                  <td className="name">{compLabel(game.comps[f.leagueId]?.name) ?? f.leagueId}</td>
                   <td className="num" style={{ fontWeight: 700 }}>{f.pos}</td>
                 </tr>
               ))}

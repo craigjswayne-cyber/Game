@@ -58,7 +58,20 @@ const ok = (c: boolean, what: string) => {
 // was reporting world-to-world variance as a difficulty regression, which is
 // the same failure annualprobe had with a fixed iteration budget. The
 // assertions are unchanged; only the evidence under them is.
-const SEEDS = [9, 777, 101, 55, 2024, 4242, 31337, 8080, 2468]
+// EIGHTEEN, NOT NINE (1.8.0). The same thing again one size up: the nine
+// read 4.6 after the unit rebalance and 8.1 on the commit before it, while
+// eighteen fresh worlds read 9.4 and 10.9 on the same two commits. Nine
+// worlds still carried enough world-to-world swing to cross the threshold on
+// a change that moved the true figure by a point or two.
+// FIFTY-FOUR, NOT EIGHTEEN (1.8.0, the two-layer engine). The title count
+// read 3/18 on the new engine; at 54 worlds it read 3/54 - the same three
+// seasons and none in the other 36 - while the engaged manager's edge GREW
+// (best side worth 10.9 a season against 9.1, 8 titles against 3). Eighteen
+// could not tell one lucky autopilot season from a strategy. The title line
+// below now reads a RATE: the old two in eighteen, about 11%, scaled.
+const SEEDS = [9, 777, 101, 55, 2024, 4242, 31337, 8080, 2468, 11, 23, 37, 41, 59, 67, 73, 89, 97,
+  103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181,
+  191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281, 283, 293]
 type Mode = 'sleepwalk' | 'optimise' | 'sabotage'
 
 function pick(state: GameState, mode: Mode): (number | null)[] | null {
@@ -157,7 +170,7 @@ const optTitles = rows.optimise.filter(r => r.champion).length
 // So the count is read WITH that check rather than instead of it: up to two
 // fluke titles in nine seasons is what "fluke, not strategy" looks like on
 // nine samples; three would not be.
-ok(sleepTitles.length <= 2,
+ok(sleepTitles.length <= Math.round(2 * SEEDS.length / 18),
   `Continue lifting a trophy stays a fluke, not a strategy (${sleepTitles.length}/${SEEDS.length} titles)`)
 // ONE TITLE OF SLACK (1.5.1). This read optTitles >= sleepTitles and sat, like
 // its two retired ancestors, one seed from the line. Law 3.35 arrived - a
@@ -198,7 +211,15 @@ ok(posn('optimise') < posn('sleepwalk'),
 // 4242 below is a giant that gets a soft season by chance and its board barely
 // notices. The claim that has to hold is the SHAPE across seeds, not that
 // every single one crosses the sack line by a fixed date.
-const STATURE_SEEDS = [9, 777, 101, 55, 2024, 4242, 31, 88, 2026, 515, 7, 1212]
+// THIRTY-SIX, NOT TWELVE (1.8.0). With the board made fair to a big club
+// (season.ts boardReaction, the floor streak and the first-season grace) the
+// engaged Bath went from 2 of 12 sacked to 0, and the crisis count read 3
+// against 6: one seed from the line on a count of a dozen. Three times the
+// seasons; every count below is scaled by K, the same rates as before.
+const STATURE_SEEDS = [9, 777, 101, 55, 2024, 4242, 31, 88, 2026, 515, 7, 1212,
+  103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163,
+  167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229]
+const K = STATURE_SEEDS.length / 12
 
 function statureRun(clubId: string, seed: number, mode: Mode) {
   const g: GameState = newGame(clubId, 'Stature', seed)
@@ -206,6 +227,7 @@ function statureRun(clubId: string, seed: number, mode: Mode) {
   let minConf = 100
   let sacked = false
   let sackWeek: number | null = null
+  let sackPos: number | null = null
   while (g.week < SEASON_WEEKS && guard++ < SEASON_WEEKS + 5) {
     if (mode !== 'sleepwalk' && !g.unemployed) {
       const lu = pick(g, mode)
@@ -231,9 +253,13 @@ function statureRun(clubId: string, seed: number, mode: Mode) {
     // less. Read the reading, then break.
     const c = g.clubs[clubId]
     if (c) minConf = Math.min(minConf, c.boardConfidence)
-    if (g.unemployed) { sacked = true; sackWeek = g.week; break }
+    if (g.unemployed) {
+      sacked = true; sackWeek = g.week
+      sackPos = sortTable(g.comps['prem'].table).findIndex(r => r.teamId === clubId) + 1
+      break
+    }
   }
-  return { minConf: Math.round(minConf), sacked, sackWeek }
+  return { minConf: Math.round(minConf), sacked, sackWeek, sackPos }
 }
 
 const giantSleep = STATURE_SEEDS.map(s => statureRun('bath', s, 'sleepwalk'))
@@ -246,7 +272,8 @@ const worstMin = (rows: { minConf: number }[]) => Math.min(...rows.map(r => r.mi
 console.log(`\nboard patience by stature (${STATURE_SEEDS.length} seeds each):`)
 console.log(`  bath rep88   sleepwalk  mean min-confidence ${meanMin(giantSleep).toFixed(1)}, ${giantSleep.filter(r => r.sacked).length}/${STATURE_SEEDS.length} sacked`
   + (giantSleep.some(r => r.sacked) ? ` (${giantSleep.filter(r => r.sacked).map(r => `wk${r.sackWeek}`).join(', ')})` : ''))
-console.log(`  bath rep88   optimise   mean min-confidence ${meanMin(giantOpt).toFixed(1)}, ${giantOpt.filter(r => r.sacked).length}/${STATURE_SEEDS.length} sacked`)
+console.log(`  bath rep88   optimise   mean min-confidence ${meanMin(giantOpt).toFixed(1)}, ${giantOpt.filter(r => r.sacked).length}/${STATURE_SEEDS.length} sacked`
+  + (giantOpt.some(r => r.sacked) ? ` (${giantOpt.filter(r => r.sacked).map(r => `wk${r.sackWeek} ${r.sackPos}th`).join(', ')})` : ''))
 console.log(`  esher rep38  sleepwalk  mean min-confidence ${meanMin(minnowSleep).toFixed(1)}, ${minnowSleep.filter(r => r.sacked).length}/${STATURE_SEEDS.length} sacked`)
 
 // A COUNT OF CRISIS SEASONS, NOT A MEAN (1.6.4).
@@ -272,11 +299,11 @@ console.log(`  esher rep38  sleepwalk  mean min-confidence ${meanMin(minnowSleep
 const CRISIS = 20
 const crisis = (rows: { minConf: number }[]) => rows.filter(r => r.minConf < CRISIS).length
 console.log(`  crisis seeds (board under ${CRISIS}): giant sleepwalk ${crisis(giantSleep)}, giant optimise ${crisis(giantOpt)}, minnow sleepwalk ${crisis(minnowSleep)} of ${STATURE_SEEDS.length}`)
-ok(crisis(giantSleep) >= 3,
+ok(crisis(giantSleep) >= 3 * K,
   `a sleepwalking giant's board falls into crisis in a good share of seasons (${crisis(giantSleep)}/${STATURE_SEEDS.length} under ${CRISIS})`)
 ok(crisis(giantOpt) * 2 < crisis(giantSleep),
   `and its engaged board does so far less often (${crisis(giantOpt)} v ${crisis(giantSleep)})`)
-ok(crisis(giantSleep) > crisis(minnowSleep) + 2,
+ok(crisis(giantSleep) > crisis(minnowSleep) + 2 * K,
   `the SAME sleepwalk season puts a giant's board in crisis where a minnow's stays patient (${crisis(giantSleep)} v ${crisis(minnowSleep)} seeds)`)
 ok(meanMin(giantSleep) < meanMin(giantOpt) * 0.8,
   `a giant's sleepwalk board sinks lower than its engaged board (${meanMin(giantSleep).toFixed(1)} v ${meanMin(giantOpt).toFixed(1)}, ${(meanMin(giantSleep) / meanMin(giantOpt) * 100).toFixed(0)}% of it)`)
@@ -300,8 +327,19 @@ ok(giantSleep.filter(r => r.sacked).length >= 1,
   const sleepSacked = giantSleep.filter(r => r.sacked).length
   ok(optSacked < sleepSacked,
     `engaged management is sacked less often than sleepwalking at the same club (${optSacked} v ${sleepSacked} of ${STATURE_SEEDS.length})`)
-  ok(optSacked <= 1,
-    `and it stays rare (${optSacked}/${STATURE_SEEDS.length})`)
+  // EARNED, NOT RATIONED (1.8.0). This read "at most one in twelve", and the
+  // owner's shorter honeymoon at a top club (honeymoonEnd, season.ts: "it
+  // should be harder as the fans expect results") took it to 4 of 36. Every
+  // one of the four was Bath in the bottom half, 8th to 10th, after week 28:
+  // a title favourite having a genuinely bad season, which the owner accepted
+  // ("bad seasons do happen even to the best sides"). So the property is
+  // now the one that matters: nobody doing the job is sacked while the table
+  // says they are doing it, and it is still the exception.
+  const engagedSacks = giantOpt.filter(r => r.sacked)
+  ok(engagedSacks.every(r => (r.sackPos ?? 0) >= 6),
+    `every engaged sacking came with the club in the bottom half (${engagedSacks.map(r => `${r.sackPos}th`).join(', ') || 'none'})`)
+  ok(optSacked <= 2 * K,
+    `and it stays the exception (${optSacked}/${STATURE_SEEDS.length})`)
 }
 ok(minnowSleep.filter(r => r.sacked).length === 0,
   `a minnow's sleepwalk manager always survives the season - patience protects (${minnowSleep.filter(r => r.sacked).length}/${STATURE_SEEDS.length})`)

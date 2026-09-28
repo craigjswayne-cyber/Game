@@ -1,6 +1,9 @@
 import { SKINS, skinLocked, useStore, type Skin } from '../../store'
-import { SectionTitle } from '../components'
+import { useState } from 'react'
+import { SectionTitle, Toggle } from '../components'
+import { introOn, setIntroOn } from '../Intro'
 import { LANGS, getLang, t } from '../../game/i18n'
+import { Glyph } from '../glyphs'
 
 /**
  * SETTINGS. Above Report a Bug in the manager's menu, because it is the page a
@@ -66,6 +69,7 @@ export default function Settings() {
   const setMgrGender = useStore(s => s.setMgrGender)
   const textScale = useStore(s => s.textScale)
   const setTextScale = useStore(s => s.setTextScale)
+  const [intro, setIntro] = useState(introOn)
 
   return (
     <>
@@ -120,7 +124,7 @@ export default function Settings() {
           four. */}
       <div className="card">
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 20, flexShrink: 0 }}>{night ? '🌙' : '☀️'}</span>
+          <span className="row-ico" style={{ fontSize: 20 }}><Glyph name={night ? 'moon' : 'sun'} /></span>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontWeight: 700, fontSize: 14 }}>{t('settings.floodlights')}</div>
             <div className="meta" style={{ marginTop: 1 }}>{t(night ? 'settings.floodOn' : 'settings.floodOff')}</div>
@@ -129,6 +133,12 @@ export default function Settings() {
         <button className="btn ghost block" style={{ marginTop: 8 }} onClick={toggleNight}>
           {t(night ? 'settings.goDay' : 'settings.goNight')}
         </button>
+      </div>
+
+      {/* ---- the opening titles (1.8.0): on by default, off for good here ---- */}
+      <div className="card">
+        <Toggle on={intro} onChange={v => { setIntroOn(v); setIntro(v) }}
+          label={t('settings.intro')} sub={t('settings.introLine')} />
       </div>
 
       {/* ---- language: the same picker as the title screen ----
@@ -140,9 +150,11 @@ export default function Settings() {
           name fits at every type size, in all five languages. */}
       <div className="card">
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 20, flexShrink: 0 }}>🌐</span>
+          <span className="row-ico" style={{ fontSize: 20 }}><Glyph name="nations" /></span>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontWeight: 700, fontSize: 14 }}>{t('menu.language')}</div>
+            {/* the title screen's label is capitals; here it sits among
+                sentence-case titles, so it is put into their case (UI QA) */}
+            <div className="set-title-case" style={{ fontWeight: 700, fontSize: 14 }}>{t('menu.language')}</div>
             <div className="meta" style={{ marginTop: 1 }}>{t('settings.langLine')}</div>
           </div>
         </div>
@@ -172,7 +184,7 @@ export default function Settings() {
       {game && (
         <div className="card">
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 20, flexShrink: 0 }}>🗞️</span>
+            <span className="row-ico" style={{ fontSize: 20 }}><Glyph name="paper" /></span>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontWeight: 700, fontSize: 14 }}>{t('settings.pronoun')}</div>
               <div className="meta" style={{ marginTop: 1 }}>{t('settings.pronounLine')}</div>
@@ -198,9 +210,9 @@ export default function Settings() {
            the control - the same control, at its one address. */}
       <div className="card text-scale-row">
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 20, flexShrink: 0 }}>🔠</span>
+          <span className="row-ico" style={{ fontSize: 20 }}><Glyph name="text" /></span>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="muted" style={{ fontWeight: 700, fontSize: 14 }}>{t('settings.textSize')}</div>
+            <div className="ts-label" style={{ fontWeight: 700, fontSize: 14 }}>{t('settings.textSize')}</div>
             <div className="meta" style={{ marginTop: 1 }}>{t('settings.textSizeLine')}</div>
           </div>
         </div>

@@ -29,7 +29,7 @@ REPORTERS="analysis gapreport icons shots qa-shots qa-shots2 newspeak boardprobe
 # ~290 paired seasons and alone took ten of the Gate's thirty minutes. Its
 # own header calls it "release audit, Pass 2" - it runs in `all` and in the
 # release deep test, not on every push.
-SLOW="soakhealth soakui stresstest deepsave e2edeep releasesim dialweight"
+SLOW="soakhealth soakui stresstest deepsave e2edeep releasesim dialweight optionsprobe autopilotprobe aiecon stackprobe"
 
 run() {
   local name="$1"; shift
@@ -97,7 +97,7 @@ if [ "$MODE" != fast ]; then
 # not run what CI runs is not a gate, it is a rehearsal.
 echo "=== build, then the browser ==="
   run build npm run build
-  for n in e2e e2enight backprobe savequeue resilience reloadprobe subsprobe dramaprobe jobsprobe hubprobe tapsize motionprobe drawui portraitqa densityaudit stickyaudit scrollaudit overlapaudit blockprobe pickaudit nightcontrast contrastprobe colouraudit breaker subreach injurygate unemployedprobe stakesprobe devicematrix backlogprobe annualprobe geosweep strangerpath hireprobe bidprobe deskgate textscale langprobe skinui sackui engageui tillface keyscreen storeprobe backupreach replyreach subline testsheet healrefresh sidescroll adsprobe womensui mgrgender joboffer matchad boardroomui pressureprobe actsprobe ipprobe; do
+  for n in e2e e2enight backprobe savequeue resilience reloadprobe subsprobe dramaprobe jobsprobe hubprobe tapsize motionprobe drawui portraitqa densityaudit stickyaudit scrollaudit overlapaudit blockprobe pickaudit nightcontrast contrastprobe colouraudit breaker subreach injurygate unemployedprobe stakesprobe devicematrix backlogprobe annualprobe geosweep strangerpath hireprobe bidprobe deskgate textscale langprobe skinui sackui engageui tillface keyscreen storeprobe backupreach replyreach subline testsheet healrefresh sidescroll adsprobe womensui mgrgender joboffer matchad boardroomui pressureprobe introprobe tabletprobe ambientprobe overlayprobe tidyprobe ipprobe slotprobe; do
     [ -f "scripts/$n.mjs" ] || continue
     run "$n" timeout 1200 node "scripts/$n.mjs"
   done

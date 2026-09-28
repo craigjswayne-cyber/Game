@@ -37,12 +37,21 @@ console.log('--- 1. a season of talking points')
 // week 1 is long gone by week 48, so reading state.news at the end of a season
 // answers "what is still in the inbox", not "what happened". The first version
 // of this asked the wrong question and reported one story where there were four.
+//
+// BY ID, NOT BY LENGTH (28 Sep 2026). The capture used to be
+// news.slice(lengthBefore), which is exactly the window contractclock warns
+// about: once the log reaches NEWS_KEEP (250, about week 29 at eight or nine
+// stories a week) the trim holds its length at 250, slice(250) is empty, and
+// the last twenty weeks of the season were never read at all. A talking point
+// that fired twice after Christmas would have passed "never twice".
+const newStories = (st: ReturnType<typeof newGame>, ids: Set<number>) =>
+  st.news.filter(n => !ids.has(n.id) && (ids.add(n.id), true))
 const g = newGame('bath', 'Test', 4242)
 const tally = new Map<string, number>()
+const gIds = new Set(g.news.map(n => n.id))
 for (let i = 0; i < SEASON_WEEKS; i++) {
-  const before = g.news.length
   processWeekAndAdvance(g)
-  for (const n of g.news.slice(before)) {
+  for (const n of newStories(g, gIds)) {
     if (n.k?.startsWith('point.')) tally.set(n.k, (tally.get(n.k) ?? 0) + 1)
   }
 }
@@ -115,7 +124,15 @@ console.log(`     empty ground ${Math.round(fillRate(t) * 100)}% full, board con
 console.log(`     full ground  ${Math.round(fillRate(f) * 100)}% full, board confidence ${f.clubs[f.userClubId].boardConfidence.toFixed(1)}`)
 ok(seen(t, 'point.tickets'), 'the board raises it when the ground is empty')
 ok(!seen(f, 'point.tickets'), 'and never when the club is selling out')
-ok(t.clubs[t.userClubId].boardConfidence < f.clubs[f.userClubId].boardConfidence,
+// AVERAGED OVER THE FOUR WORLDS (1.8.0, 28 Sep 2026). One world compared
+// 30 weeks of results as much as it compared two grounds: the two-layer
+// engine moved the stream and the single world read 34.9 against 34.5 the
+// wrong way round. The claim is the same; the evidence is four worlds.
+const conf = (g: ReturnType<typeof run>) => g.clubs[g.userClubId].boardConfidence
+let emptySum = 0, fullSum = 0
+for (const sd of WORLDS) { emptySum += conf(run(60_000, sd)); fullSum += conf(run(1_000, sd)) }
+console.log(`     over ${WORLDS.length} worlds: empty ground confidence ${(emptySum / WORLDS.length).toFixed(1)}, full ground ${(fullSum / WORLDS.length).toFixed(1)}`)
+ok(emptySum < fullSum,
   'the empty ground costs the manager standing, not just words')
 
 // ---- 5. THE BREAKAWAY NEVER HAPPENS -------------------------------------
@@ -135,15 +152,17 @@ const compsBefore = Object.keys(b.comps).length
 // cap. Anything counted over more than a season or two has to be counted as it
 // happens.
 let threats = 0, ends = 0
-let read = b.news.length
+// (By id, for the reason given in section 1: slicing from the old length
+// read nothing at all once the log hit its cap, so this counted the first
+// twenty-nine weeks of five seasons and then went blind.)
+const bIds = new Set(b.news.map(n => n.id))
 for (let s = 0; s < 5; s++) {
   for (let i = 0; i < SEASON_WEEKS; i++) {
     processWeekAndAdvance(b)
-    for (const n of b.news.slice(read)) {
+    for (const n of newStories(b, bIds)) {
       if (n.k === 'point.breakaway') threats++
       if (n.k === 'point.breakawayEnd') ends++
     }
-    read = b.news.length
   }
 }
 console.log(`     five seasons: ${threats} threat(s), ${ends} collapse(s)`)

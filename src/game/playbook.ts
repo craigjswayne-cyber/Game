@@ -74,7 +74,9 @@ export const ROUTINES: Routine[] = [
   {
     id: 'lo_maul', name: 'playbook.lo_maul', kind: 'lineout',
     desc: 'playbook.lo_maulDesc',
-    peak: 1.11, tell: 1.1, attack: 1.04, tempo: 0.94,
+    // attack 1.04 -> 1.02 (1.8.0, optionsprobe): the best lineout, the best
+    // attack and a cheap tempo cost made the maul +4.5 points a match, a meta
+    peak: 1.11, tell: 1.1, attack: 1.02, tempo: 0.94,
   },
   {
     id: 'lo_top', name: 'playbook.lo_top', kind: 'lineout',

@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import { useStore } from '../../store'
-import { boardObjective, facLevel, fmtMoney, fmtWage, operatingCost, weeklyCentral } from '../../game/model'
+import { boardObjective, facLevel, fmtMoney, fmtWage, operatingCost, pressAnswer, pressLabel, pressQuestion, pressReaction, weeklyCentral } from '../../game/model'
+import type { GameState } from '../../game/model'
 import {
   CHARTER_SKU, buyOwnable, hasEntitlement,
   billingReason, rewardedAvailable, tillOpen,
@@ -10,19 +11,29 @@ import { staffWageBill } from '../../game/staff'
 import { OBJECTIVE_DEFS, objectiveBonus } from '../../game/objectives'
 import { MARQUEE_SLOTS, capPosition, capWord, rosterGrid, rosterWarnings } from '../../game/cap'
 import { SectionTitle, RewardedButton } from '../components'
+import { IcoClock, IcoOpen, IcoTick } from '../icons'
 import { t } from '../../game/i18n'
 import { bookEvent, bookedThisWeek, eventFee, eventSlate, isCloseSeason } from '../../game/closeseason'
 import {
   CLAUSES, SLOTS, clauseActive, commercialWeekly, dealWeekly, endDealEarly, marketRate,
-  offersFor, signOffer,
+  offersFor,
 } from '../../game/commercial'
+import {
+  MAX_MOVES, STRUCTURES, acceptTalk, breakOff, leverage, moodOf, openTalk, perfTerms, pushTalk,
+  restructure, slotOpen, talksOf, walkChance, type Structure,
+} from '../../game/sponsortalks'
+import { sheetOf } from '../../game/books'
 import { RELEASE_STEP, belowReserve, cashReserve, releasable, releaseBlock, releaseToBudget } from '../../game/treasury'
 import { requestFunds } from '../../game/season'
+import { prose, unwrap } from '../../game/quotes'
+import { isBoardroom } from '../../game/media'
 import { INJECT_TIERS, injectionsLeft, userWageBudget, type InjectTier } from '../../game/grants'
 
 export default function Finances() {
   // two pages rather than one long scroll
-  const [ftab, setFtab] = useState<'money' | 'deals' | 'cap' | 'board'>('money')
+  // a decision waiting for the board opens the page on it
+  const [ftab, setFtab] = useState<'money' | 'deals' | 'cap' | 'board'>(
+    () => useStore.getState().game?.press.some(p => !p.answered && isBoardroom(p)) ? 'board' : 'money')
   const [dealMsg, setDealMsg] = useState<string | null>(null)
   const [endArm, setEndArm] = useState<string | null>(null)
   const game = useStore(s => s.game)!
@@ -36,6 +47,8 @@ export default function Finances() {
   const [allEarners, setAllEarners] = useState(false)
   // the ledger opens on its bottom line; the six lines behind it are a tap away
   const [ledgerOpen, setLedgerOpen] = useState(false)
+  // the balance sheet shows this season's books, or last season's closed ones
+  const [sheetWhich, setSheetWhich] = useState<'now' | 'prev'>('now')
   const [relMsg, setRelMsg] = useState<string | null>(null)
   /** where the treasury slider is sitting; 0 means "not touched yet", which
    *  falls back to one step so the control is useful before it is dragged */
@@ -50,8 +63,6 @@ export default function Finances() {
     Math.floor(game.boardAsks.funds.deniedAt / 100) === game.season
   const asked = game.fundsAskedSeason === game.season && !fundsDenied
   const wages = club.players.reduce((s, id) => s + (game.players[id]?.wage ?? 0), 0)
-  const gate = game.fixtures.filter(f => f.played && f.homeId === club.id && f.att)
-  const avgAtt = gate.length ? Math.round(gate.reduce((s, f) => s + (f.att ?? 0), 0) / gate.length) : 0
   const topEarners = club.players.map(id => game.players[id]).filter(Boolean)
     .sort((a, b) => b.wage - a.wage).slice(0, 10)
 
@@ -113,80 +124,170 @@ export default function Finances() {
         <button className={ftab === 'cap' ? 'active' : ''} onClick={() => setFtab('cap')}>{t('finances.tabCapSquad')}</button>
         <button className={ftab === 'board' ? 'active' : ''} onClick={() => setFtab('board')}>{t('finances.tabBoard')}</button>
       </div>
-      {/* the ledger and the graph sit side by side in landscape: two chip
-          blocks under a full-width chart was a screenful before the table.
-          The chips label themselves, so the Matchday heading was only height. */}
-      <div className="fin-head">
+      {/* The other tabs keep a one-line summary of the money; the Finances tab
+          carries the full sheet below instead, so it does not say it twice. */}
+      {ftab !== 'money' && (
         <div className="chips">
-          <span className="chip">{t('finances.balance')} <b style={{ color: club.balance < 0 ? 'var(--text-negative)' : 'var(--text-positive)' }}>{fmtMoney(club.balance)}</b></span>
-          <span className="chip">{t('finances.transferBudget')} <b>{fmtMoney(club.budget)}</b></span>
+          <span className="chip">{t('finances.cashInBank')} <b style={{ color: club.balance < 0 ? 'var(--text-negative)' : undefined }}>{fmtMoney(club.balance)}</b></span>
+          <span className="chip">{t('finances.transferLeft')} <b>{fmtMoney(club.budget)}</b></span>
           <span className="chip">{t('finances.wageBill')} <b>{fmtWage(wages)}{t('common.perWeek')}</b></span>
-          <span className="chip">{t('finances.wageBudget')} <b>{Number.isFinite(userWageBudget(game, club)) ? `${fmtWage(userWageBudget(game, club))}${t('common.perWeek')}` : t('finances.noLimit')}</b></span>
-          {ftab === 'money' && <>
-            <span className="chip">{club.stadium} <b>{club.capacity.toLocaleString()}</b></span>
-            <span className="chip">{t('finances.avgAttendance')} <b>{avgAtt ? avgAtt.toLocaleString() : '-'}</b></span>
-            <span className="chip">{t('finances.estGate')} <b>{avgAtt ? fmtMoney(avgAtt * 30) : '-'}</b></span>
-            <span className="chip">{t('finances.weeklyCommercial')} <b>{fmtMoney(weeklyCentral(club) + commercialWeekly(game))}</b></span>
-            {/* the ground and the estate cost money every week of the year, and
-                a cost the manager cannot see reads to him as a bug */}
-            <span className="chip">{t('finances.upkeep')} <b>{fmtWage(operatingCost(game))}{t('common.perWeek')}</b></span>
-          </>}
         </div>
-        {(game.finHist?.length ?? 0) >= 2 && <div className="fin-chart"><BalanceChart hist={game.finHist!} /></div>}
-      </div>
+      )}
       {ftab === 'money' && <>
-      {/* ---- where the money actually goes ----
-          The chips above are a set of true numbers that never added up to
-          anything (user: "make it more clear what the balance etc is being spent
-          on"). Every line below is read from the same functions the weekly
+      {/* ---- THE BALANCE SHEET (1.8.0) ----
+          Owner: "Can we make the financial page more clear and like a balance
+          sheet. Balance in big at top, transfer money, wage bill with a + or
+          negative if over spending in red. Needs to be more a list. Attendance
+          isn't needed in this." The balance is the cash in the bank; then the
+          budgets as a list of label and amount; then the season's money in and
+          out, read from the books the engine keeps as it moves it (books.ts),
+          so the bottom line is the bank and never an estimate of it. The
+          actions that lived on this page sit under the sheet. */}
+      {/* two columns in landscape (scrollaudit: one column of sheet, ledger,
+          chart, treasury and earners measured 4.15 screenfuls at 844x390);
+          display:contents in portrait, where it is one list top to bottom */}
+      <div className="fin-cols"><div className="fin-col">
+      <div className="card bs-cash">
+        <div className="fact-label">{t('finances.cashInBank')}</div>
+        <div className={`bs-cash-amt${club.balance < 0 ? ' neg' : ''}`}>{fmtMoney(club.balance)}</div>
+      </div>
+      {(() => {
+        const wb = userWageBudget(game, club)
+        const cap = capPosition(game, club.id)
+        const signed = (v: number, fmt: (x: number) => string, suffix = '') => (
+          <span className={`lg-amt ${v < 0 ? 'bs-neg' : 'bs-pos'}`}>{v < 0 ? '−' : '+'}{fmt(Math.abs(v))}{suffix}</span>
+        )
+        return (
+          <div className="card bs">
+            <div className="ledger-row">
+              <span className="lg-what">{t('finances.transferLeft')}</span>
+              <span className="lg-amt">{fmtMoney(club.budget)}</span>
+            </div>
+            <div className="ledger-row">
+              <span className="lg-what">{t('finances.wageBill')}</span>
+              <span className="lg-amt">{fmtWage(wages)}{t('common.perWeek')}</span>
+            </div>
+            <div className="ledger-row">
+              <span className="lg-what">{t('finances.wageBudget')}</span>
+              <span className="lg-amt">{Number.isFinite(wb) ? `${fmtWage(wb)}${t('common.perWeek')}` : t('finances.noLimit')}</span>
+            </div>
+            {Number.isFinite(wb) && (
+              <div className="ledger-row bs-strong">
+                <span className="lg-what">{t('finances.wageHeadroom')}</span>
+                {signed(wb - wages, fmtWage, t('common.perWeek'))}
+              </div>
+            )}
+            {cap.cap != null && <>
+              <div className="ledger-row">
+                <span className="lg-what">{t('finances.salaryCapRow')}</span>
+                <span className="lg-amt">{fmtWage(cap.cap)}{t('common.perWeek')}</span>
+              </div>
+              <div className="ledger-row bs-strong">
+                <span className="lg-what">{t('finances.capHeadroom')}</span>
+                {signed(cap.headroom, fmtWage, t('common.perWeek'))}
+              </div>
+            </>}
+          </div>
+        )
+      })()}
+      {(() => {
+        const which = sheetWhich === 'prev' && game.booksPrev ? 'prev' : 'now'
+        const sh = sheetOf(game, which)
+        if (!sh) return null
+        const net = sh.totalIn - sh.totalOut
+        const LABEL: Record<string, string> = {
+          deals: 'finances.bkDeals', bonus: 'finances.bkBonus', central: 'finances.lgBroadcast',
+          gate: 'finances.bkGate', shop: 'finances.lgShop', sales: 'finances.bkSales', prize: 'finances.bkPrize',
+          wages: 'finances.lgWages', staff: 'finances.lgStaff', upkeep: 'finances.lgUpkeep',
+          works: 'finances.bkWorks', buys: 'finances.bkBuys', other: 'finances.bkOther',
+        }
+        // a line that has not moved this season is left off: a sheet of
+        // zeroes in August is a list of things that have not happened
+        const rows = (xs: { line: string; amount: number }[]) => xs.filter(x => x.amount !== 0).map(x => (
+          <div className="ledger-row" key={x.line}>
+            <span className="lg-what">{t(LABEL[x.line])}</span>
+            <span className="lg-amt">{fmtMoney(x.amount)}</span>
+          </div>
+        ))
+        const hasOther = [...sh.income, ...sh.spend].some(x => x.line === 'other' && x.amount !== 0)
+        return (
+          <>
+            <SectionTitle sub={sh.fromWeek > 1 ? t('finances.sheetFrom', { w: sh.fromWeek }) : undefined}
+              right={game.booksPrev ? (
+                <span className="bs-seg" role="group">
+                  <button className={which === 'now' ? 'on' : ''} aria-pressed={which === 'now'} onClick={() => setSheetWhich('now')}>{t('finances.sheetThis')}</button>
+                  <button className={which === 'prev' ? 'on' : ''} aria-pressed={which === 'prev'} onClick={() => setSheetWhich('prev')}>{t('finances.sheetPrev')}</button>
+                </span>
+              ) : undefined}>
+              {t(which === 'prev' ? 'finances.sheetPrev' : 'finances.sheetThis')}
+            </SectionTitle>
+            <div className="card bs">
+              <div className="ledger-row">
+                <span className="lg-what">{t('finances.openingBal')}</span>
+                <span className="lg-amt">{fmtMoney(sh.opening)}</span>
+              </div>
+              <div className="bs-head">{t('finances.income')}</div>
+              {rows(sh.income)}
+              <div className="ledger-row bs-sub">
+                <span className="lg-what">{t('finances.totalIncome')}</span>
+                <span className="lg-amt">{fmtMoney(sh.totalIn)}</span>
+              </div>
+              <div className="bs-head">{t('finances.spending')}</div>
+              {rows(sh.spend)}
+              <div className="ledger-row bs-sub">
+                <span className="lg-what">{t('finances.totalSpending')}</span>
+                <span className="lg-amt">{fmtMoney(sh.totalOut)}</span>
+              </div>
+              <div className="ledger-row bs-strong bs-net">
+                <span className="lg-what">{t('finances.netSeason')}</span>
+                <span className={`lg-amt ${net < 0 ? 'bs-neg' : 'bs-pos'}`}>{net < 0 ? '−' : '+'}{fmtMoney(Math.abs(net))}</span>
+              </div>
+              <div className="ledger-row bs-close">
+                <span className="lg-what">{t('finances.cashInBank')}</span>
+                <span className={`lg-amt${sh.closing < 0 ? ' bs-neg' : ''}`}>{fmtMoney(sh.closing)}</span>
+              </div>
+              {hasOther && <div className="meta bs-note">{t('finances.sheetOtherNote')}</div>}
+            </div>
+          </>
+        )
+      })()}
+      </div><div className="fin-col">
+      {/* ---- the week ahead ----
+          Every line below is read from the same functions the weekly
           settlement uses - see weeklyFinance in season.ts - so the bottom line
           here is the number that will hit the balance on Continue, not an
           estimate of it. */}
       <SectionTitle sub={t('finances.weeklyLedgerSub')}>{t('finances.weeklyLedger')}</SectionTitle>
-      <div className="card">
+      <div className="card bs">
         {(() => {
           const staff = staffWageBill(game)
           const upkeep = operatingCost(game)
           const central = weeklyCentral(club)
           const deals = commercialWeekly(game)
-          const commercial = central + deals
           const shopLvl = facLevel(game, 'shop')
           const shop = shopLvl > 0 ? Math.round(shopLvl * 9_000 * (0.6 + (game.fanMood ?? 60) / 100)) : 0
-          // a home gate arrives every third week or so, so it is shown as one
-          // and labelled as one rather than smeared across the average
-          const homeGate = avgAtt ? Math.round(avgAtt * 30) : 0
-          const net = commercial + shop - wages - staff - upkeep
+          const net = central + deals + shop - wages - staff - upkeep
           const line = (label: string, amount: number, note?: string) => (
             <div className="ledger-row" key={label}>
               <span className="lg-what">{label}{note ? <span className="muted"> {note}</span> : null}</span>
-              <span className="lg-amt" style={{ color: amount >= 0 ? 'var(--text-positive)' : 'var(--text-negative)' }}>
-                {amount >= 0 ? '+' : '−'}{fmtMoney(Math.abs(amount))}
-              </span>
+              <span className="lg-amt">{amount < 0 ? '−' : ''}{fmtMoney(Math.abs(amount))}</span>
             </div>
           )
           return (
             <>
-              {/* F30 split these: the deals are yours to sell, the central money
-                  arrives regardless, and showing them as one line again would
-                  hide the hole an unsold slot leaves. */}
               {ledgerOpen && <>
-                {line(t('finances.lgCommercialDeals'), deals, t('finances.lgSlotsSold', { n: SLOTS.filter(x => game.deals?.[x.id]).length }))}
+                {line(t('finances.lgCommercialDeals'), deals, t('finances.lgSlotsSold', { n: SLOTS.filter(x => { const d = game.deals?.[x.id]; return !!d && d.until >= game.season }).length }))}
                 {line(t('finances.lgBroadcast'), central)}
                 {shop > 0 && line(t('finances.lgShop'), shop, t('finances.lgShopLevel', { n: shopLvl }))}
                 {line(t('finances.lgWages'), -wages, t('finances.lgMen', { n: club.players.length }))}
                 {line(t('finances.lgStaff'), -staff)}
                 {line(t('finances.lgUpkeep'), -upkeep)}
               </>}
-              <div className="ledger-row total">
+              <div className="ledger-row bs-strong">
                 <span className="lg-what">{t('finances.lgTotal')}</span>
-                <span className="lg-amt" style={{ color: net >= 0 ? 'var(--text-positive)' : 'var(--text-negative)' }}>
-                  {net >= 0 ? '+' : '−'}{fmtMoney(Math.abs(net))}
-                </span>
+                <span className={`lg-amt ${net < 0 ? 'bs-neg' : 'bs-pos'}`}>{net < 0 ? '−' : '+'}{fmtMoney(Math.abs(net))}</span>
               </div>
-              <div className="meta" style={{ marginTop: 6 }}>
-                {homeGate > 0 ? t('finances.gateNote', { amount: fmtMoney(homeGate) }) : t('finances.gateNoteNone')}
-                {' '}{t(net >= 0 ? 'finances.paysItsWay' : 'finances.losesMoney')}
-              </div>
+              <div className="meta" style={{ marginTop: 6 }}>{t(net >= 0 ? 'finances.paysItsWay' : 'finances.losesMoney')}</div>
               {/* a full-width row, not an inline chip: the tap floor is 44px (tapsize, geosweep) */}
               <button className="btn ghost block" style={{ marginTop: 6 }} onClick={() => setLedgerOpen(v => !v)}>
                 {t(ledgerOpen ? 'finances.hideLedgerLines' : 'finances.showLedgerLines')}
@@ -195,25 +296,7 @@ export default function Finances() {
           )
         })()}
       </div>
-      <SectionTitle>{t('finances.topEarners')}</SectionTitle>
-      <div className="tblwrap"><table className="dtable">
-        <thead><tr><th>{t('squad.colName')}</th><th className="num">{t('finances.colWage')}</th><th className="num">{t('squad.colUntil')}</th><th className="num">{t('squad.colValue')}</th></tr></thead>
-        <tbody>
-          {(allEarners ? topEarners : topEarners.slice(0, 5)).map(p => (
-            <tr key={p.id}>
-              <td className="name">{p.name}</td>
-              <td className="num">{fmtWage(p.wage)}</td>
-              <td className="num">{2026 + p.contractEnds}</td>
-              <td className="num">{fmtMoney(p.value)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table></div>
-      {topEarners.length > 5 && (
-        <button className="btn ghost block" onClick={() => setAllEarners(v => !v)}>
-          {t(allEarners ? 'finances.showFewerEarners' : 'finances.showAllEarners', { n: topEarners.length })}
-        </button>
-      )}
+      <BalanceChart game={game} />
       {/* THE TREASURY (user: "should be able to transfer balance into
           transfer money"). The button and the engine read one predicate
           (releaseBlock), so when the move is off the button says why - the
@@ -255,7 +338,7 @@ export default function Finances() {
                     const under = belowReserve(game, amount)
                     const safe = Math.max(0, club.balance - cashReserve(game))
                     return (
-                      <div className="meta" style={{ fontSize: 11.5, marginBottom: 8, color: under > 0 ? 'var(--text-negative)' : undefined }}>
+                      <div className="meta" style={{ fontSize: 12, marginBottom: 8, color: under > 0 ? 'var(--text-negative)' : undefined }}>
                         {under > 0
                           ? t('finances.treasuryDeep', { under: fmtMoney(under) })
                           : t('finances.treasurySafe', { safe: fmtMoney(safe) })}
@@ -268,7 +351,7 @@ export default function Finances() {
                 onClick={() => { const r = releaseToBudget(game, amount); setRelMsg(r.msg); setRelAmt(0); touch() }}>
                 {most > 0 ? t('finances.treasuryMove', { amount: fmtMoney(amount) }) : t('finances.moveMoney', { amount: fmtMoney(RELEASE_STEP) })}
               </button>
-              <div className="meta" style={{ paddingTop: 6, fontSize: 11.5 }}>
+              <div className="meta" style={{ paddingTop: 6, fontSize: 12 }}>
                 {block ?? t('finances.reserveNote', { reserve: fmtMoney(cashReserve(game)), step: fmtMoney(RELEASE_STEP) })}
               </div>
             </div>
@@ -299,37 +382,67 @@ export default function Finances() {
           </button>
         )
       })()}
+      <SectionTitle>{t('finances.topEarners')}</SectionTitle>
+      <div className="tblwrap"><table className="dtable">
+        <thead><tr><th>{t('squad.colName')}</th><th className="num">{t('finances.colWage')}</th><th className="num">{t('squad.colUntil')}</th><th className="num">{t('squad.colValue')}</th></tr></thead>
+        <tbody>
+          {(allEarners ? topEarners : topEarners.slice(0, 5)).map(p => (
+            <tr key={p.id}>
+              <td className="name">{p.name}</td>
+              <td className="num">{fmtWage(p.wage)}</td>
+              <td className="num">{2026 + p.contractEnds}</td>
+              <td className="num">{fmtMoney(p.value)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table></div>
+      {topEarners.length > 5 && (
+        <button className="btn ghost block" onClick={() => setAllEarners(v => !v)}>
+          {t(allEarners ? 'finances.showFewerEarners' : 'finances.showAllEarners', { n: topEarners.length })}
+        </button>
+      )}
+      </div></div>
       </>}
-      {/* ---- the commercial department (F30) ----
-          Three things to sell, and what is in each slot right now. The offers
-          are deliberately shown with their multiple of market rate on them: the
-          judgement is meant to be about YOUR season, not about decoding whether
-          a number is good. */}
+      {/* ---- the commercial department (F30; the negotiating table, 1.8.0) ----
+          Four things to sell, and what is in each slot right now. An offer is
+          the sponsor's opening position, not a price: tapping Negotiate sits
+          the manager down with them (sponsortalks.ts). The odds of a push are
+          never printed, only the sponsor's mood, because the owner asked for a
+          gamble and a printed percentage is a calculation. */}
       {ftab === 'deals' && <>
-        <SectionTitle sub={t('finances.commercialSub', { amount: fmtMoney(commercialWeekly(game)), n: SLOTS.filter(x => game.deals?.[x.id]).length })}>
+        <SectionTitle sub={t('finances.commercialSub', { amount: fmtMoney(commercialWeekly(game)), n: SLOTS.filter(x => { const d = game.deals?.[x.id]; return !!d && d.until >= game.season }).length })}>
           {t('finances.commercialDept')}
         </SectionTitle>
         {dealMsg && <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}><div className="meta">{dealMsg}</div></div>}
         {/* v1.1.5, "the commercial page is very messy, too much text": the
             slot blurbs and the advice card are gone - the label, the deal and
-            the offers say it all. What arrived instead is the early exit: end
-            a live deal and three new parties present themselves at once, on
-            wider terms than the season's standard three - the gamble is real
-            in both directions (offersFor, dealReroll). */}
+            the offers say it all. The early exit stays: end a live deal and
+            three new parties present themselves at once, on wider terms than
+            the season's standard three (offersFor, dealReroll). */}
         {SLOTS.map(slot => {
           const live = game.deals?.[slot.id]
           const inTerm = !!live && live.until >= game.season
           const mkt = marketRate(club.rep, slot.id)
           const ending = endArm === slot.id
+          const talks = talksOf(game)
+          const talk = talks.open[slot.id]
+          const gone = talks.gone[slot.id] ?? []
+          const ended = talks.ended?.[slot.id]
+          const years = (n: number) => n === 1 ? t('finances.oneSeason') : t('finances.seasons', { n })
           return (
             <div className="card" key={slot.id}>
-              <div className="fact-label">{slot.icon} {t(slot.name)}</div>
-              {inTerm ? (
+              <div className="fact-label">{t(slot.name)}</div>
+              {inTerm && (
                 <>
                   <div className="meta" style={{ marginTop: 4 }}>
-                    {t('finances.dealLive', { sponsor: live!.sponsor, weekly: fmtMoney(dealWeekly(game, live!)), year: String(2026 + live!.until) })}
-                    {live!.weekly < mkt * 0.92 && <span className="muted"> · {t('finances.underMarket', { rate: fmtMoney(mkt) })}</span>}
+                    {t(live!.auto ? 'finances.dealStopgap' : live!.perf ? 'finances.dealPerf' : 'finances.dealLive', { sponsor: live!.sponsor, weekly: fmtMoney(dealWeekly(game, live!)), year: String(2026 + live!.until) })}
+                    {!live!.perf && live!.weekly < mkt * 0.92 && <span className="muted"> · {t('finances.underMarket', { rate: fmtMoney(mkt) })}</span>}
                   </div>
+                  {live!.perf && (
+                    <div className="meta muted">
+                      {t('finances.dealPerfBonus', { amount: fmtMoney(live!.perf.league + live!.perf.title + live!.perf.final + live!.perf.tries), n: live!.perf.target })}
+                    </div>
+                  )}
                   {live!.clause !== 'none' && (
                     <div className="meta muted">
                       {t(CLAUSES[live!.clause].text)}{' '}
@@ -338,7 +451,10 @@ export default function Finances() {
                       </b>
                     </div>
                   )}
-                  {ending ? (
+                  {!live!.auto && game.dealEndedSeason?.[slot.id] === game.season && (
+                    <div className="meta muted" style={{ marginTop: 6 }}>{t('finances.endedThisSeason')}</div>
+                  )}
+                  {!live!.auto && game.dealEndedSeason?.[slot.id] !== game.season && (ending ? (
                     <div className="btn-row" style={{ marginTop: 6 }}>
                       <button className="btn danger" onClick={() => { setEndArm(null); setDealMsg(endDealEarly(game, slot.id)); touch() }}>
                         {t('finances.endConfirm')}
@@ -349,27 +465,109 @@ export default function Finances() {
                     <button className="btn ghost tiny" style={{ marginTop: 6 }} onClick={() => setEndArm(slot.id)}>
                       {t('finances.endEarly')}
                     </button>
-                  )}
-                </>
-              ) : (
-                <>
-                  <div className="meta" style={{ marginTop: 4 }}>
-                    <b>{t('finances.unsold')}</b>{t('finances.unsoldRest', { rate: fmtMoney(mkt) })}
-                  </div>
-                  {offersFor(game, slot.id).map((o, i) => (
-                    <div className="ledger-row" key={i} style={{ alignItems: 'center' }}>
-                      <span className="lg-what">
-                        <b>{o.sponsor}</b>{' '}
-                        <span className="muted">
-                          {t('finances.offerMeta', { weekly: fmtMoney(o.weekly), years: o.years === 1 ? t('finances.oneSeason') : t('finances.seasons', { n: o.years }), pct: Math.round(o.vsMarket * 100) })}
-                        </span>
-                        {o.clause !== 'none' && <div className="meta muted">{t(CLAUSES[o.clause].text)}</div>}
-                      </span>
-                      <button className="btn gold tiny" onClick={() => { setDealMsg(signOffer(game, o)); touch() }}>{t('finances.sign')}</button>
-                    </div>
                   ))}
                 </>
               )}
+              {!inTerm && (
+                <div className="meta" style={{ marginTop: 4 }}>
+                  <b>{t('finances.unsold')}</b>{t('finances.unsoldRest', { rate: fmtMoney(mkt) })}
+                </div>
+              )}
+              {slotOpen(game, slot.id) && talk && (() => {
+                // ---- a negotiation in progress ----
+                const p = walkChance(talk, 'ask', mkt, leverage(game))
+                const mood = moodOf(p)
+                const terms = perfTerms(game, talk.fee, talk.structure)
+                const final = talk.moves >= MAX_MOVES
+                // the sponsor's reply is on the talk itself (talk.last), so the
+                // tap only has to clear the last handshake and redraw
+                const act = () => { setDealMsg(null); touch() }
+                return (
+                  <div className="talk">
+                    <div className="talk-head">
+                      <b>{talk.sponsor}</b>
+                      <span className={`talk-mood m-${mood}`}>{t('finances.talkMood')}: {t(`finances.mood_${mood}`)}</span>
+                    </div>
+                    {talk.last && <div className="talk-said">{t(talk.last.k, talk.last.v)}</div>}
+                    <div className="fact-label" style={{ marginTop: 8 }}>{t('finances.talkStructure')}</div>
+                    <div className="talk-struct" role="group">
+                      {(Object.keys(STRUCTURES) as Structure[]).map(s => (
+                        <button key={s} className={talk.structure === s ? 'on' : ''} aria-pressed={talk.structure === s}
+                          disabled={final && talk.structure !== s}
+                          onClick={() => { restructure(game, slot.id, s); act() }}>{t(STRUCTURES[s].label)}</button>
+                      ))}
+                    </div>
+                    <div className="meta muted" style={{ marginTop: 4 }}>{t(STRUCTURES[talk.structure].desc)}</div>
+                    <div className="fact-label" style={{ marginTop: 8 }}>{t('finances.talkOnTable')}</div>
+                    <div className="ledger-row">
+                      <span className="lg-what">{t('finances.talkGuaranteed')}</span>
+                      <span className="lg-amt">{fmtWage(terms.weekly)}{t('common.perWeek')} · {years(talk.years)}</span>
+                    </div>
+                    {terms.perf && <>
+                      <div className="ledger-row">
+                        <span className="lg-what">{t('finances.bonusLeague', { n: terms.perf.target })}</span>
+                        <span className="lg-amt">{fmtMoney(terms.perf.league)}</span>
+                      </div>
+                      <div className="ledger-row">
+                        <span className="lg-what">{t('finances.bonusTitle')}</span>
+                        <span className="lg-amt">{fmtMoney(terms.perf.title)}</span>
+                      </div>
+                      <div className="ledger-row">
+                        <span className="lg-what">{t('finances.bonusFinal')}</span>
+                        <span className="lg-amt">{fmtMoney(terms.perf.final)}</span>
+                      </div>
+                      <div className="ledger-row">
+                        <span className="lg-what">{t('finances.bonusTries', { n: terms.perf.target })}</span>
+                        <span className="lg-amt">{fmtMoney(terms.perf.tries)}</span>
+                      </div>
+                      <div className="ledger-row bs-sub">
+                        <span className="lg-what">{t('finances.talkBonusMax')}</span>
+                        <span className="lg-amt">{fmtMoney(terms.perf.league + terms.perf.title + terms.perf.final + terms.perf.tries)}</span>
+                      </div>
+                    </>}
+                    {talk.clause !== 'none' && talk.structure === 'flat' && (
+                      <div className="meta muted" style={{ marginTop: 4 }}>{t(CLAUSES[talk.clause].text)}</div>
+                    )}
+                    <div className="meta" style={{ marginTop: 6, fontWeight: 700 }}>
+                      {final ? t('finances.talkFinalTag') : t('finances.talkMoves', { n: MAX_MOVES - talk.moves })}
+                    </div>
+                    <div className="talk-acts">
+                      <button className="btn gold" onClick={() => { setDealMsg(acceptTalk(game, slot.id)); touch() }}>{t('finances.talkAccept')}</button>
+                      <button className="btn ghost" disabled={final} onClick={() => { pushTalk(game, slot.id, 'ask'); act() }}>{t('finances.talkAsk')}</button>
+                      <button className="btn ghost" disabled={final} onClick={() => { pushTalk(game, slot.id, 'demand'); act() }}>{t('finances.talkDemand')}</button>
+                      <button className="btn ghost" onClick={() => { breakOff(game, slot.id); act() }}>{t('finances.talkBreak')}</button>
+                    </div>
+                    <div className="meta muted" style={{ marginTop: 6 }}>{t('finances.talkHint')}</div>
+                  </div>
+                )
+              })()}
+              {slotOpen(game, slot.id) && !talk && (() => {
+                const offers = offersFor(game, slot.id)
+                const left = offers.filter(o => !gone.includes(o.sponsor)).length
+                return (
+                  <>
+                    {ended && <div className="talk-said" style={{ marginTop: 6 }}>{t(ended.k, ended.v)}</div>}
+                    {offers.map((o, i) => {
+                      const walked = gone.includes(o.sponsor)
+                      return (
+                        <div className="ledger-row" key={i} style={{ alignItems: 'center' }}>
+                          <span className="lg-what">
+                            <b>{o.sponsor}</b>{' '}
+                            <span className="muted">
+                              {t('finances.offerMeta', { weekly: fmtMoney(o.weekly), years: years(o.years), pct: Math.round(o.vsMarket * 100) })}
+                            </span>
+                            {o.clause !== 'none' && <div className="meta muted">{t(CLAUSES[o.clause].text)}</div>}
+                          </span>
+                          {walked
+                            ? <span className="meta" style={{ color: 'var(--text-negative)', fontWeight: 700 }}>{t('finances.walkedTag')}</span>
+                            : <button className="btn gold tiny" onClick={() => { setDealMsg(null); openTalk(game, slot.id, i); touch() }}>{t('finances.negotiate')}</button>}
+                        </div>
+                      )
+                    })}
+                    {left === 0 && <div className="meta" style={{ marginTop: 6 }}>{t('finances.allGone')}</div>}
+                  </>
+                )
+              })()}
             </div>
           )
         })}
@@ -456,6 +654,7 @@ export default function Finances() {
         )
       })()}
       {ftab === 'board' && <>
+      <BoardDecisions />
       {/* asking the board for transfer funds is a boardroom matter, and it
           lived on the money tab, which was the deepest page in the game
           (scrollaudit, 3.3 screenfuls); the ask and the town collection sit
@@ -483,7 +682,7 @@ export default function Finances() {
       </button>
       <SectionTitle>{t('finances.seasonObjectives')}</SectionTitle>
       <div className="card" style={{ marginTop: 6 }}>
-        <h3 style={{ fontSize: 15 }}>{t('finances.boardExpects', { objective: t(boardObjective(club.rep).text) })}</h3>
+        <h3 style={{ fontSize: 16 }}>{t('finances.boardExpects', { objective: t(boardObjective(club.rep).text) })}</h3>
         <div className="meta">{t('finances.fallShort')}</div>
         {(game.objectives ?? []).map(id => {
           const def = OBJECTIVE_DEFS.find(o => o.id === id)
@@ -494,8 +693,10 @@ export default function Finances() {
           // Bedford report behind it), so it reads as on course until then.
           const done = ok && def.banked
           return (
-            <div key={id} style={{ display: 'flex', gap: 8, marginTop: 8, fontSize: 12.5, alignItems: 'flex-start' }}>
-              <span>{done ? '✅' : ok ? '🕗' : '⬜'}</span>
+            <div key={id} style={{ display: 'flex', gap: 8, marginTop: 8, fontSize: 13, alignItems: 'flex-start' }}>
+              <span className="obj-mark" style={{ color: done ? 'var(--text-positive)' : ok ? 'var(--gold)' : 'var(--text-muted)' }}>
+                {done ? <IcoTick /> : ok ? <IcoClock /> : <IcoOpen />}
+              </span>
               <span style={{ color: done ? 'var(--text-positive)' : 'var(--text-secondary)' }}>
                 {t(def.textKey(game))}{ok && !def.banked ? t('finances.onCourseSettled') : ''}
                 {/* what it is worth TO THIS CLUB. It read a flat "+£250k" for
@@ -507,19 +708,8 @@ export default function Finances() {
           )
         })}
       </div>
-      <SectionTitle sub={`${Math.round(club.boardConfidence)}%`}>{t('finances.boardConfidence')}</SectionTitle>
-      <div style={{ margin: '8px 14px', height: 10, background: 'var(--border-strong)', borderRadius: 5 }}>
-        <div style={{
-          width: `${club.boardConfidence}%`, height: '100%', borderRadius: 5,
-          background: club.boardConfidence > 60 ? 'var(--primary)' : club.boardConfidence > 30 ? 'var(--gold-fill)' : 'var(--danger)',
-        }} />
-      </div>
-      <div className="muted" style={{ padding: '4px 14px 14px' }}>
-        {t(club.boardConfidence > 75 ? 'finances.boardDelighted'
-          : club.boardConfidence > 50 ? 'finances.boardSatisfied'
-          : club.boardConfidence > 30 ? 'finances.boardExpectsBetter'
-          : 'finances.boardImpatient')}
-      </div>
+      {/* the confidence meter moved to Club Information (1.8.0, owner: the
+          board belongs there); the objectives it is judged on stay here */}
       <BoardFunds />
       </>}
     </>
@@ -573,11 +763,11 @@ function BoardFunds() {
   return (
     <>
       <SectionTitle sub={t('till.boardSub')}>{t('till.boardTitle')}</SectionTitle>
-      <div className="muted" style={{ padding: '0 14px 6px', fontSize: 12.5 }}>{t('till.boardBlurb')}</div>
+      <div className="muted" style={{ padding: '0 14px 6px', fontSize: 13 }}>{t('till.boardBlurb')}</div>
 
       {game.uncapped ? (
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-          <h3 style={{ fontSize: 15 }}>{t('till.charterTitle')}</h3>
+          <h3 style={{ fontSize: 16 }}>{t('till.charterTitle')}</h3>
           <div className="meta">{t('till.charterSigned')}</div>
           {/* the signing tap's own answer renders HERE, because the card it
               belonged to just changed into this branch - dropping it is the
@@ -589,7 +779,7 @@ function BoardFunds() {
         </div>
       ) : (
         <div className="card">
-          <h3 style={{ fontSize: 15 }}>{t('till.charterTitle')}</h3>
+          <h3 style={{ fontSize: 16 }}>{t('till.charterTitle')}</h3>
           <div className="meta">{t('till.charterBody')}</div>
           {hasEntitlement(CHARTER_SKU) ? (
             !confirmCharter ? (
@@ -619,38 +809,214 @@ function BoardFunds() {
   )
 }
 
-/** Season balance, week by week. Blue above zero, red below - one glance
- *  tells you which way the club is heading. */
-function BalanceChart({ hist }: { hist: { w: number; b: number }[] }) {
-  const max = Math.max(...hist.map(h => Math.abs(h.b)), 1)
-  const first = hist[0], latest = hist[hist.length - 1]
-  const trend = latest.b - first.b
+/**
+ * THE SEASON'S CASH, WEEK BY WEEK. The QA sweep had the old chart as a row of
+ * near-identical bars with no axis, which said nothing. This is a line over
+ * the cash in the bank at the end of every settled week (state.finHist,
+ * written by weeklyFinance), starting from the balance the books opened on,
+ * against a labelled zero line: the club's money is measured from nothing,
+ * not from wherever the chart happened to start, so a fall that looks big is
+ * big. Anything under zero is drawn in the danger colour.
+ *
+ * No projection. The weekly settle is the only week the game can call in
+ * advance, and gates, prize money, transfers and the board all land in lumps
+ * it cannot see, so a straight line to May would be a guess drawn as a fact.
+ *
+ * The plot is an SVG in a 0-100 box stretched to the card (the strokes do not
+ * stretch), and every word on it is HTML placed by percentage, so the text
+ * stays crisp and the same size on a 360px phone and a tablet. A tap or a drag
+ * across it reads any week out in the header.
+ */
+type BalPt = { w: number; b: number }
+
+function balancePoints(game: GameState): { pts: BalPt[]; fromStart: boolean } {
+  const club = game.clubs[game.userClubId]
+  const books = game.books
+  const own = books && club && books.season === game.season && books.clubId === club.id ? books : undefined
+  // a manager who changed jobs mid-season: the weeks before the books opened
+  // were another club's money
+  const from = own?.fromWeek ?? 1
+  const hist = (game.finHist ?? []).filter(h => Number.isFinite(h.b) && h.w >= from)
+  const pts: BalPt[] = []
+  if (own && Number.isFinite(own.opening) && (!hist.length || hist[0].w === from)) pts.push({ w: from - 1, b: own.opening })
+  for (const h of hist) if (!pts.length || h.w > pts[pts.length - 1].w) pts.push(h)
+  // and where it stands today. A week's money does not all wait for the
+  // settle - a sale, a sponsor's cheque, a board injection land on the day -
+  // so the line ends on the cash in the bank the page quotes above it, not
+  // on last week's close.
+  if (hist.length && club && Number.isFinite(club.balance) && game.week > pts[pts.length - 1].w) {
+    pts.push({ w: game.week, b: club.balance })
+  }
+  return { pts: hist.length ? pts : [], fromStart: from === 1 && pts[0]?.w === 0 }
+}
+
+/** A round step for the money gridlines: 1, 2 or 5 times a power of ten. */
+function niceStep(span: number, lines: number): number {
+  const raw = Math.max(span, 1) / lines
+  const mag = Math.pow(10, Math.floor(Math.log10(raw)))
+  const f = raw / mag
+  return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * mag
+}
+
+function BalanceChart({ game }: { game: GameState }) {
+  const { pts, fromStart } = balancePoints(game)
+  const [sel, setSel] = useState<number | null>(null)
+  if (pts.length < 2) return null
+  const first = pts[0], last = pts[pts.length - 1]
+  const lo = Math.min(0, ...pts.map(p => p.b)), hi = Math.max(0, ...pts.map(p => p.b))
+  const step = niceStep(hi - lo, 3)
+  // the scale runs from zero (or the lowest point, when the club has been in
+  // the red) to the gridline just above the highest week
+  const yMax = hi > 0 ? Math.ceil((hi * 1.04) / step) * step : 0
+  const yMin = lo < 0 ? Math.floor((lo * 1.04) / step) * step : 0
+  const span = yMax - yMin || 1
+  const w0 = first.w, w1 = last.w
+  const X = (w: number) => ((w - w0) / Math.max(1, w1 - w0)) * 100
+  const Y = (b: number) => ((yMax - b) / span) * 100
+  const zeroY = Y(0)
+
+  const line = pts.map((p, i) => `${i ? 'L' : 'M'}${X(p.w).toFixed(3)} ${Y(p.b).toFixed(3)}`).join(' ')
+  const area = `${line} L${X(w1).toFixed(3)} ${zeroY.toFixed(3)} L${X(w0).toFixed(3)} ${zeroY.toFixed(3)} Z`
+  const grid: number[] = []
+  for (let v = yMin; v <= yMax + 1; v += step) grid.push(v)
+  const tickStep = w1 - w0 <= 6 ? 1 : w1 - w0 <= 14 ? 2 : w1 - w0 <= 30 ? 5 : 10
+  const ticks: number[] = []
+  for (let w = Math.ceil(w0 / tickStep) * tickStep; w <= w1; w += tickStep) if (w > w0) ticks.push(w)
+  // the last tick is the current week, always, and nothing crowds it
+  if (ticks[ticks.length - 1] !== w1) {
+    if (ticks.length && (w1 - ticks[ticks.length - 1]) < tickStep * 0.6) ticks.pop()
+    ticks.push(w1)
+  }
+  const red = pts.filter(p => p.w > w0 && p.b < 0).length
+  const low = pts.reduce((m, p) => p.b < m.b ? p : m, first)
+
+  const shown = sel != null && pts[sel] ? pts[sel] : last
+  const cap = sel == null || sel === pts.length - 1 ? t('finances.balNow', { w: last.w })
+    : sel === 0 && fromStart ? t('finances.balAtStart') : t('finances.balWeekLong', { w: shown.w })
+  const delta = last.b - first.b
+  const deltaTxt = `${delta >= 0 ? '+' : '-'}${fmtMoney(Math.abs(delta)).replace(/^-/, '')}`
+
+  // a tap or a drag picks the nearest week
+  const pick = (e: ReactPointerEvent<HTMLDivElement>, toggle = false) => {
+    // measured on the plot itself, not the gutter the money labels sit in
+    const r = (e.currentTarget.querySelector('.bal-area') ?? e.currentTarget).getBoundingClientRect()
+    const x = Math.min(1, Math.max(0, (e.clientX - r.left) / Math.max(1, r.width)))
+    const w = w0 + x * (w1 - w0)
+    let best = 0
+    pts.forEach((p, i) => { if (Math.abs(p.w - w) < Math.abs(pts[best].w - w)) best = i })
+    // a second tap on the week already read out goes back to today
+    setSel(toggle && best === sel ? null : best)
+  }
+  const place = (p: BalPt) => ({ left: `${X(p.w)}%`, top: `${Y(p.b)}%` })
+  // the start and end values sit above their point unless it is near the top
+  const pill = (p: BalPt, side: 'start' | 'end') => (
+    <span className={`bal-pill ${side}${p.b < 0 ? ' neg' : ''}${Y(p.b) < 30 ? ' below' : ''}`} style={place(p)}>
+      {side === 'start' && fromStart ? `${t('finances.balStart')} ` : ''}{fmtMoney(p.b)}
+    </span>
+  )
+  const aria = t('finances.balAria', {
+    start: fmtMoney(first.b), end: fmtMoney(last.b), w: last.w, low: fmtMoney(low.b),
+  })
+
   return (
     <>
-      <SectionTitle sub={t('finances.sinceWeek', { delta: `${trend >= 0 ? '+' : '−'}${fmtMoney(Math.abs(trend))}`, week: first.w })}>{t('finances.seasonBalance')}</SectionTitle>
-      <div className="card">
-        <div style={{ position: 'relative', display: 'flex', gap: 2, height: 72 }}>
-          <span style={{ position: 'absolute', left: 0, right: 0, top: 35, height: 1, background: 'var(--border)' }} />
-          {hist.map(h => {
-            const bar = Math.max(2, Math.round((Math.abs(h.b) / max) * 34))
-            return (
-              <span key={h.w} title={t('finances.weekBalance', { w: h.w, amount: fmtMoney(h.b) })}
-                style={{ flex: 1, minWidth: 2, position: 'relative' }}>
-                <i style={{
-                  position: 'absolute', left: 0, right: 0,
-                  ...(h.b >= 0 ? { bottom: 36, height: bar } : { top: 36, height: bar }),
-                  background: h.b >= 0 ? 'var(--surface-3)' : 'var(--danger)',
-                  borderRadius: 2.5,
-                }} />
+      <SectionTitle>{t('finances.seasonBalance')}</SectionTitle>
+      <div className="card bal">
+        <div className="bal-head">
+          <div>
+            <div className="bal-cap">{cap}</div>
+            <div className={`bal-now${shown.b < 0 ? ' neg' : ''}`}>{fmtMoney(shown.b)}</div>
+          </div>
+          <div className={`bal-delta ${delta < 0 ? 'down' : 'up'}`}>
+            {t(fromStart ? 'finances.balSinceStart' : 'finances.sinceWeek', { delta: deltaTxt, week: first.w })}
+          </div>
+        </div>
+        <div className="bal-plot" role="img" aria-label={aria}
+          onPointerDown={e => pick(e, true)} onPointerMove={e => { if (e.buttons || e.pointerType === 'mouse') pick(e) }}
+          onPointerLeave={e => { if (e.pointerType === 'mouse') setSel(null) }}>
+          <div className="bal-area">
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+              <defs>
+                <clipPath id="bal-above"><rect x="-1" y="-1" width="102" height={Math.max(0, zeroY + 1)} /></clipPath>
+                <clipPath id="bal-below"><rect x="-1" y={zeroY} width="102" height={Math.max(0, 101 - zeroY)} /></clipPath>
+              </defs>
+              {grid.filter(v => v !== 0).map(v => (
+                <line key={v} className="bal-grid" x1="0" x2="100" y1={Y(v)} y2={Y(v)} />
+              ))}
+              <path className="bal-fill" d={area} clipPath="url(#bal-above)" />
+              <path className="bal-fill neg" d={area} clipPath="url(#bal-below)" />
+              <line className="bal-zero" x1="0" x2="100" y1={zeroY} y2={zeroY} />
+              {sel != null && <line className="bal-cross" x1={X(shown.w)} x2={X(shown.w)} y1="0" y2="100" />}
+              <path className="bal-line" d={line} clipPath="url(#bal-above)" />
+              <path className="bal-line neg" d={line} clipPath="url(#bal-below)" />
+            </svg>
+            {grid.map(v => (
+              <span key={v} className={`bal-gl${v === 0 ? ' zero' : ''}`} style={{ top: `${Y(v)}%` }}>
+                {v === 0 ? '0' : fmtMoney(v)}
               </span>
-            )
-          })}
+            ))}
+            {pill(first, 'start')}
+            {sel == null && pill(last, 'end')}
+            <span className={`bal-dot${shown.b < 0 ? ' neg' : ''}`} style={place(shown)} />
+          </div>
+          <div className="bal-x">
+            {fromStart && <span style={{ left: '0%' }} className="first">{t('finances.balStart')}</span>}
+            {ticks.map(w => (
+              <span key={w} style={{ left: `${X(w)}%` }} className={w === w1 ? 'last' : undefined}>
+                {t('finances.balWeekShort', { w })}
+              </span>
+            ))}
+          </div>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-          <span className="meta">{t('finances.wkFrom', { w: first.w, amount: fmtMoney(first.b) })}</span>
-          <span className="meta" style={{ fontWeight: 700 }}>{t('finances.nowIs', { amount: fmtMoney(latest.b) })}</span>
-        </div>
+        {red > 0 && (
+          <div className="bal-note"><i className="bal-key neg" />{t('finances.balRed', { n: red })}</div>
+        )}
       </div>
+    </>
+  )
+}
+
+/**
+ * BOARDROOM DECISIONS (owner, 28 Sep 2026). The pre-season camp, the pitch
+ * for the season and the sponsor slot deals were asked in the press room,
+ * among the journalists, when they are money and targets: the board's
+ * business. They are asked here now (media.isBoardroom), answered through
+ * the same store action, and what was decided stays on the page for as long
+ * as the press room keeps its coverage.
+ */
+function BoardDecisions() {
+  const game = useStore(s => s.game)!
+  const answer = useStore(s => s.answerPressOption)
+  const open = game.press.filter(p => !p.answered && isBoardroom(p))
+  const done = game.press
+    .filter(p => p.answered && isBoardroom(p) && p.season === game.season)
+    .reverse()
+  if (!open.length && !done.length) return null
+  return (
+    <>
+      <SectionTitle>{t('finances.boardDecisions')}</SectionTitle>
+      {open.map(item => (
+        <div key={item.id} className="card">
+          <div className="press-q" style={{ padding: 0, marginBottom: 10 }}>{prose(pressQuestion(item))}</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {item.options.map((o, i) => (
+              <button key={i} className="btn ghost" style={{ textAlign: 'left' }}
+                onClick={() => answer(item.id, i)}>
+                {unwrap(pressLabel(o))}
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
+      {done.map(item => (
+        <div key={item.id} className="card">
+          <div className="meta">{prose(pressQuestion(item))}</div>
+          <div style={{ marginTop: 6, fontSize: 14 }}>
+            <b>{t('finances.boardDecided')}</b> {unwrap(pressAnswer(item)) || t('world.prNoAnswer')}
+          </div>
+          {pressReaction(item) && <div className="meta" style={{ marginTop: 4 }}>{prose(pressReaction(item))}</div>}
+        </div>
+      ))}
     </>
   )
 }

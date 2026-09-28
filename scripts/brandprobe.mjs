@@ -32,7 +32,7 @@ try {
     return { title: document.title, h1: h1?.textContent ?? '', mfName: mf.name, mfShort: mf.short_name, body }
   })
   ok(t.title === 'PHASE: Rugby Manager', `the browser tab says PHASE: Rugby Manager (saw "${t.title}")`)
-  ok(t.h1.includes('PHASE') && t.h1.includes('RUGBY MANAGER'), `the wordmark is PHASE / RUGBY MANAGER (saw "${t.h1}")`)
+  ok(t.h1.includes('PHASE') && t.h1.includes('RUGBY') && t.h1.includes('MANAGER'), `the wordmark is PHASE / RUGBY / MANAGER (saw "${t.h1}")`)
   ok(!t.h1.includes('FAB'), 'and the old name is gone from it')
   ok(t.mfName === 'PHASE: Rugby Manager' && t.mfShort === 'PHASE',
     `the PWA manifest carries the new name (saw "${t.mfName}" / "${t.mfShort}")`)

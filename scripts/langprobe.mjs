@@ -154,7 +154,7 @@ try {
 
   // ---- a French career: the chrome is translated and still fits ------------
   await page.click('text=Nouvelle carrière')
-  await page.waitForSelector('text=English Premier Division')
+  await page.waitForSelector('[data-league="prem"]')
 
   // The wizard is the first minute of the game, so it is the worst place to
   // leave English lying about. Competition and club names are data and stay as
@@ -164,7 +164,8 @@ try {
   // rather than assuming which one comes first.
   const hints = (await page.locator('.wizard-hint').allInnerTexts()).join(' | ')
   ok(hints.includes('compétition'), `the wizard opens in French (${hints})`)
-  ok(/Quel jeu|jeu/i.test(hints), 'including the question it now asks first')
+  // the French asks "Rugby masculin ou féminin" (language QA pass): "Quel jeu" read as "which video game"
+  ok(/Quel jeu|jeu|rugby masculin/i.test(hints), 'including the question it now asks first')
   // innerText, not textContent: these read back through the stylesheet, and
   // the masthead and the fact labels are both text-transform: uppercase - so
   // the assertion has to be case-blind or it is testing the CSS. (The accent
@@ -175,7 +176,7 @@ try {
   ok(await page.locator('.action-bar >> text=Confirmer').count() === 1, 'and the forward button says Confirmer')
 
   // a gated step must still say what it wants, in French
-  await page.click('text=English Premier Division')
+  await page.click('[data-league="prem"]')
   await page.waitForSelector('.club-tile')
   await page.click('.tile >> text=Northampton')
   await page.waitForSelector('text=Joueur vedette')
@@ -190,8 +191,11 @@ try {
 
   await page.click('.action-bar >> text=Confirmer')
   // the placeholder is translated too, so a French probe cannot use the
-  // English selector every other harness uses
-  await page.fill('input[placeholder="ex. A. Gaffer"]', 'Le Gaffer')
+  // English selector every other harness uses. It is matched on the name
+  // rather than the whole string because French typography puts a
+  // non-breaking space before the colon ("ex. : A. Martin"), which an
+  // exact attribute selector typed with an ordinary space never finds.
+  await page.getByPlaceholder(/A\. Martin/).fill('Le Gaffer')
   // the coaching philosophies come from game/tactics.ts, so this is French now
   // too - every other harness picks the same tile by its English name
   await page.click('.speech-tile >> text=Domination des avants')
@@ -264,7 +268,7 @@ try {
   // and "Infrastructures du club" against "Club Infrastructure". Opened by the
   // caret, not by position: the rail's labels are translated, so a title=
   // selector would be an English assumption hiding inside a French test.
-  await page.locator('.bottom-nav button', { hasText: '▸' }).first().click()
+  await page.locator('.bottom-nav button[data-group]').first().click()
   await page.waitForSelector('.submenu')
   // the menu slides in; measured mid-flight it reports left: -37 and fails a
   // check that has nothing to do with the language it is in
@@ -336,7 +340,7 @@ try {
   await page.evaluate(() => localStorage.setItem('rm-lang', 'en'))
   await page.reload()
   await page.waitForSelector('.bottom-nav', { timeout: 15000 })
-  await page.locator('.bottom-nav button', { hasText: '▸' }).first().click()
+  await page.locator('.bottom-nav button[data-group]').first().click()
   await page.waitForSelector('.submenu')
   await page.waitForTimeout(400)
   await page.locator('.submenu-item', { hasText: 'Team' }).first().click()
@@ -359,7 +363,7 @@ try {
   await page.waitForSelector('.bottom-nav', { timeout: 15000 })
 
   // the treatment room, whose section subtitles are full sentences
-  await page.locator('.bottom-nav button', { hasText: '▸' }).first().click()
+  await page.locator('.bottom-nav button[data-group]').first().click()
   await page.waitForSelector('.submenu')
   await page.locator('.submenu-item', { hasText: 'Infirmerie' }).click()
   await page.waitForSelector('.inline-input')
@@ -375,7 +379,7 @@ try {
   // label tables. Those are the ones that silently stay English, because the
   // screen renders whatever the table holds and no screen-level sweep can see
   // it. So this walks the tabs and looks at what the tables produced.
-  await page.locator('.bottom-nav button', { hasText: '▸' }).first().click()
+  await page.locator('.bottom-nav button[data-group]').first().click()
   await page.waitForSelector('.submenu')
   await page.waitForTimeout(400)
   await page.locator('.submenu-item', { hasText: 'Tactique' }).first().click()
@@ -510,11 +514,13 @@ try {
 
     ok(await page.locator('.live-wrap').count() > 0, 'and the match starts')
     if (await page.locator('.live-wrap').count()) {
-      const caps = await page.locator('.ctrl-cap').allInnerTexts()
+      // the controls are icons since 1.8.0: what is read is what a screen
+      // reader says for each
+      const caps = await page.locator('.speed-controls .btn').evaluateAll(bs => bs.map(b => b.getAttribute('aria-label') ?? ''))
       say(`  touchline controls: ${caps.join(' | ')}`)
       // 'Pause' is not on the list: it is the same word in both languages, so it
       // is no evidence either way
-      ok(!caps.some(x => /^(Play|Squad)$/i.test(x)), 'the touchline controls are French')
+      ok(caps.every(Boolean) && !caps.some(x => /^(Resume|Skip)$|^Match-day squad|^Match settings/i.test(x)), 'the touchline controls are French')
       const l10 = await page.locator('.l10-label').innerText().catch(() => '')
       ok(!/PENALTIES/i.test(l10), `and the possession strip is French ("${l10}")`)
 
@@ -546,7 +552,7 @@ try {
 
       // to full time: Skip, and press through half-time and the hour
       for (let i = 0; i < 30 && !(await page.locator('.ft-stamp').count()); i++) {
-        const skip = page.locator('.speed-controls .btn', { hasText: 'Passer' })
+        const skip = page.locator('.speed-controls [data-ctl=skip]')
         if (await skip.count()) await skip.first().click().catch(() => {})
         else if (await page.locator('.panel-area .btn.gold').count()) {
           await page.locator('.panel-area .btn.gold').first().click().catch(() => {})
@@ -582,7 +588,7 @@ try {
       await page.waitForTimeout(700)
     }
     ok(await page.locator('.bottom-nav').count() > 0, 'the match hands back to the rest of the game')
-    await page.locator('.bottom-nav button', { hasText: '▸' }).nth(1).click()
+    await page.locator('.bottom-nav button[data-group]').nth(1).click()
     await page.waitForSelector('.submenu')
     await page.waitForTimeout(500)
     const about = page.locator('.submenu-item', { hasText: 'propos' })

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
-import { preloadCampus } from './artPreload'
+import { preloadAllArt, preloadCampus } from './artPreload'
 import { effectiveSkin, useStore, type Screen } from '../store'
 import { celebrationHeadline, celebrationSub, seasonLabel } from '../game/model'
 import { t } from '../game/i18n'
@@ -9,6 +9,7 @@ import { TOUR_WEEKS } from '../game/schedule'
 import { islesCoach } from '../game/isles'
 import { tillOpen } from '../game/monetise'
 import { IcoClipboard, IcoGlobe, IcoHome, IcoInbox, IcoPress, IcoTrophy } from './icons'
+import { Glyph } from './glyphs'
 import { natWindow } from '../game/country'
 import Menu from './screens/Menu'
 import NewGame from './screens/NewGame'
@@ -37,6 +38,7 @@ import Supporter from './screens/Supporter'
 import Jobs from './screens/Jobs'
 import Wire from './screens/Wire'
 import Medical from './screens/Medical'
+import { isBoardroom } from '../game/media'
 import TeamReport from './screens/TeamReport'
 import Profile from './screens/Profile'
 import Saves from './screens/Saves'
@@ -51,6 +53,8 @@ import Country from './screens/Country'
 import Infrastructure from './screens/Infrastructure'
 import Academy from './screens/Academy'
 import Tutorial from './Tutorial'
+import { Intro } from './Intro'
+import { bigTablet, useTablet } from './tablet'
 
 /* The masthead title for every screen that is not Home (Home shows the club).
  *
@@ -130,7 +134,7 @@ function Celebration() {
         }} />
       ))}
       <div className="celebrate-box">
-        <div style={{ fontSize: 64, lineHeight: 1 }}>{cel.icon}</div>
+        <div className="celebrate-ico"><Glyph name={cel.icon} /></div>
         {/* THE KEYS, and the English only when a save predates them. This was
             filed English-only and rendered raw, so the biggest moment the game
             has - promotion, a title, an unbeaten season - arrived in English
@@ -199,7 +203,7 @@ function Sacked() {
     <div className="sack-veil">
       <div className="sack-box">
         <div className="sack-flash">{t('sack.breaking')}</div>
-        <div style={{ fontSize: 52, lineHeight: 1, margin: '6px 0 10px' }}>📺</div>
+        <div className="sack-ico"><Glyph name="tv" /></div>
         <h1 className="sack-head">{t('sack.head', { club: sk.club })}</h1>
         {/* the board's own letter, in the manager's own language */}
         <div className="sack-body">{t(sk.k, sk.v)}</div>
@@ -227,6 +231,8 @@ function Overlays() {
       <Celebration />
       {/* last, so it sits over the lot: nothing outranks losing your job */}
       <Sacked />
+      {/* the opening titles, once per launch, over everything (Intro.tsx) */}
+      <Intro />
     </>
   )
 }
@@ -244,18 +250,35 @@ function Overlays() {
  *  own (release audit, Part 2.3). This is the game's answer: a zoom on the
  *  document root, chosen on the title screen, persisted like night mode.
  *  Viewport-unit lengths are exempt from zoom by spec, so the app shell stays
- *  screen-sized while the type and controls inside it grow. */
-function useTextScale() {
+ *  screen-sized while the type and controls inside it grow.
+ *
+ *  TABLET MODE (1.8.0, owner: "I want to add in tablet mode. So it can be
+ *  played on tablet too"). A tablet showed the phone column, 560px wide in the
+ *  middle of the glass with dark bars either side and type sized for a hand
+ *  six inches away. A tablet is read further off and has twice the width, so
+ *  on one the same zoom carries a size step of its own (1.15, or 1.25 from
+ *  1000px) on top of whatever the manager picked, and the .tablet class lets
+ *  the layout use the width. "A tablet" is a touch-first screen at least 700px
+ *  on BOTH sides: a phone on its side is under 500 tall, and a desktop browser
+ *  has a fine pointer, so neither moves. */
+function useTextScale(tablet: boolean) {
   const scale = useStore(s => s.textScale)
+  const [big, setBig] = useState(bigTablet)
+  useEffect(() => {
+    const f = () => setBig(bigTablet())
+    window.addEventListener('resize', f)
+    return () => window.removeEventListener('resize', f)
+  }, [])
+  const z = tablet ? scale * (big ? 1.25 : 1.15) : scale
   useEffect(() => {
     try {
       const st = document.documentElement.style
-      st.setProperty('zoom', String(scale))
+      st.setProperty('zoom', String(z))
       // read by theme.css to divide dvh-sized boxes back down to the real
       // viewport: zoom scales rendered dvh lengths along with everything else
-      st.setProperty('--zoom', String(scale))
+      st.setProperty('--zoom', String(z))
     } catch { /* very old engines */ }
-  }, [scale])
+  }, [z])
 }
 
 /** THE ESTATE'S ART, FETCHED WHILE YOU ARE STILL ON THE HOME SCREEN.
@@ -263,6 +286,9 @@ function useTextScale() {
  *  are worth asking for. See artPreload.ts for why it does not block. */
 function useCampusArt() {
   const hasGame = useStore(s => !!s.game)
+  // everything else, when the browser is idle, for a launch with no intro
+  // (a no-op if the intro already started it)
+  useEffect(() => { preloadAllArt() }, [])
   useEffect(() => {
     const g = useStore.getState().game
     if (g) preloadCampus(g)
@@ -364,7 +390,7 @@ function useHardwareBack(depth: number, screen: Screen) {
 }
 
 interface MenuItem {
-  ico: string
+  ico: ReactNode
   label: string
   /** doubles as the react key, so it stays required even for action items */
   screen: Screen
@@ -393,7 +419,8 @@ export default function App() {
   useStore(s => s.tick)
   const { back, go, home, continueWeek, toggleNight, openInbox } = useStore.getState()
   const [menu, setMenu] = useState<null | 'hub' | 'world' | 'manager'>(null)
-  useTextScale()
+  const tablet = useTablet()
+  useTextScale(tablet)
   useCampusArt()
   useResume()
 
@@ -420,7 +447,7 @@ export default function App() {
   const onTour = !!game && islesCoach(game)
     && game.week >= TOUR_WEEKS[0] - 1 && game.week <= TOUR_WEEKS[TOUR_WEEKS.length - 1]
   const worn = onTour ? 'tour' : skin
-  const appClass = `app${night ? ' night' : ''}${worn !== 'default' ? ` skin-${worn}` : ''}`
+  const appClass = `app${tablet ? ' tablet' : ''}${night ? ' night' : ''}${worn !== 'default' ? ` skin-${worn}` : ''}`
 
   // NO DESK, NO DESK SCREENS (19E). Resigning or getting sacked sets
   // unemployed but leaves the nav trail - and the resume-where feature
@@ -465,7 +492,8 @@ export default function App() {
   //
   // One predicate now, in one place, for the dot and for the reader.
   const unread = game.news.filter(n => inInbox(game, n) && !n.read).length
-  const pressOpen = game.press.filter(p => !p.answered).length
+  const pressOpen = game.press.filter(p => !p.answered && !isBoardroom(p)).length
+  const boardOpen = game.press.filter(p => !p.answered && isBoardroom(p)).length
   const offersOpen = game.offers.filter(o => o.status === 'pending' && o.forUser).length
   const openJobs = game.vacancies.filter(v => !v.passed && !v.applied).length
   // The Country button's badge is the one thing on that screen that is a JOB
@@ -495,13 +523,19 @@ export default function App() {
   const clubVars = {
     '--club1': club.colors[0],
     '--club2': club.colors[1],
+    // the club colour that shows on the dark theme: a near-black first colour
+    // (Northampton, Saracens) gives way to the second, as the commentary does
+    '--club-show': showable(club.colors),
   } as CSSProperties
 
   // Home wears the club's own name, which is never translated; every other
   // screen wears its title from the dictionary.
   const mastheadTitle = cur.screen === 'home'
     ? (game.unemployed ? t('titles.unemployed') : club.name)
-    : TITLES.includes(cur.screen) ? t(`titles.${cur.screen}`) : ''
+    : TITLES.includes(cur.screen) ? t(`titles.${cur.screen}`)
+    // the Academy was the one screen off the Hub with a blank masthead (UI QA,
+    // 1.8.0): it borrows the menu's own word rather than a new key per language
+    : cur.screen === 'academy' ? t('groups.academy') : ''
 
   const screen = () => {
     switch (cur.screen) {
@@ -529,7 +563,7 @@ export default function App() {
       case 'jobs': return <Jobs />
       case 'wire': return <Wire />
       case 'medical': return <Medical />
-      case 'report': return <TeamReport />
+      case 'report': return <TeamReport initial={cur.param as string | undefined} />
       case 'profile': return <Profile />
       case 'saves': return <Saves />
       case 'day': return <DayRoom />
@@ -576,17 +610,17 @@ export default function App() {
         // Team opens on the team sheet now (user: "Selection should be the
         // team section"), so the tactics screen is just Tactics - the how,
         // not the who.
-        { ico: '🏉', label: t('groups.team'), screen: 'squad' },
-        { ico: '📊', label: t('groups.teamReport'), screen: 'report' },
-        { ico: '📋', label: t('groups.tactics'), screen: 'tactics' },
-        { ico: '🎓', label: t('groups.academy'), screen: 'academy' },
-        { ico: '🏋️', label: t('groups.trainingStaff'), screen: 'training' },
-        { ico: '🏥', label: t('groups.medical'), screen: 'medical', badge: injuredCount },
-        { ico: '📅', label: t('groups.fixturesResults'), screen: 'fixtures' },
-        { ico: '💰', label: t('groups.finances'), screen: 'finances' },
-        { ico: '🔁', label: t('groups.transfers'), screen: 'transfers', badge: offersOpen },
-        { ico: '🏗️', label: t('groups.infra'), screen: 'infra' },
-        { ico: '🏟️', label: t('groups.clubInfo'), screen: 'club' },
+        { ico: <Glyph name="team" />, label: t('groups.team'), screen: 'squad' },
+        { ico: <Glyph name="report" />, label: t('groups.teamReport'), screen: 'report' },
+        { ico: <Glyph name="tactics" />, label: t('groups.tactics'), screen: 'tactics' },
+        { ico: <Glyph name="academy" />, label: t('groups.academy'), screen: 'academy' },
+        { ico: <Glyph name="training" />, label: t('groups.trainingStaff'), screen: 'training' },
+        { ico: <Glyph name="medical" />, label: t('groups.medical'), screen: 'medical', badge: injuredCount },
+        { ico: <Glyph name="fixtures" />, label: t('groups.fixturesResults'), screen: 'fixtures' },
+        { ico: <Glyph name="finances" />, label: t('groups.finances'), screen: 'finances', badge: boardOpen },
+        { ico: <Glyph name="transfers" />, label: t('groups.transfers'), screen: 'transfers', badge: offersOpen },
+        { ico: <Glyph name="infra" />, label: t('groups.infra'), screen: 'infra' },
+        { ico: <Glyph name="club" />, label: t('groups.clubInfo'), screen: 'club' },
         // THE STORE HAD NO NAME ANYWHERE (owner, 27 Aug: "no shop showing").
         // Everything was reachable and nothing was findable: the door sat on
         // About & legal, under the manager's own menu, next to the privacy
@@ -599,50 +633,50 @@ export default function App() {
         // keeps the web build honest: no bridge, no row, and the menu is the
         // same eleven items it has always been (storeprobe asserts exactly
         // this on a page with no bridge attached).
-        ...(tillOpen() ? [{ ico: '🛒', label: t('groups.store'), screen: 'supporter' as Screen }] : []),
+        ...(tillOpen() ? [{ ico: <Glyph name="store" />, label: t('groups.store'), screen: 'supporter' as Screen }] : []),
       ],
     },
     manager: {
       title: game.managerName,
       items: [
-        { ico: '👤', label: t('groups.profile'), screen: 'profile' },
+        { ico: <Glyph name="profile" />, label: t('groups.profile'), screen: 'profile' },
         // the manager is the one in front of the cameras, so the press room
         // belongs to him rather than to the team sheet
-        { ico: '🎙️', label: t('groups.press'), screen: 'press', badge: pressOpen },
+        { ico: <Glyph name="press" />, label: t('groups.press'), screen: 'press', badge: pressOpen },
         // Only the jobs he has not answered. It used to be vacancies.length, so
         // the red dot appeared because somebody somewhere got sacked and nothing
         // he could do would clear it (see GameState.vacancies).
-        { ico: '🕴️', label: t('groups.jobs'), screen: 'jobs', badge: game.vacancies.filter(v => !v.passed && !v.applied).length },
-        { ico: '📜', label: t('groups.legacy'), screen: 'legacy' },
-        { ico: '📖', label: t('groups.handbook'), screen: 'handbook' },
+        { ico: <Glyph name="jobs" />, label: t('groups.jobs'), screen: 'jobs', badge: game.vacancies.filter(v => !v.passed && !v.applied).length },
+        { ico: <Glyph name="legacy" />, label: t('groups.legacy'), screen: 'legacy' },
+        { ico: <Glyph name="handbook" />, label: t('groups.handbook'), screen: 'handbook' },
         // Settings sits ABOVE Report a Bug (owner, v1.2.1): the page you
         // want when the game looks wrong comes before the page you want when
         // it IS wrong.
-        { ico: '⚙️', label: t('groups.settings'), screen: 'settings' },
-        { ico: '🐞', label: t('groups.bug'), screen: 'bug' },
+        { ico: <Glyph name="settings" />, label: t('groups.settings'), screen: 'settings' },
+        { ico: <Glyph name="bug" />, label: t('groups.bug'), screen: 'bug' },
         // what this is, who made it, and what it does with your data - the page
         // a store reviewer looks for and the page a player ends up on when they
         // want the privacy policy without leaving the game
-        { ico: 'ℹ️', label: t('groups.about'), screen: 'about' },
+        { ico: <Glyph name="about" />, label: t('groups.about'), screen: 'about' },
         // dismissing the welcome dialog used to be final and irreversible
-        { ico: '❓', label: t('groups.howToPlay'), screen: 'home', action: () => useStore.getState().openTut() },
-        { ico: '💾', label: t('groups.saveLoad'), screen: 'saves' },
+        { ico: <Glyph name="help" />, label: t('groups.howToPlay'), screen: 'home', action: () => useStore.getState().openTut() },
+        { ico: <Glyph name="save" />, label: t('groups.saveLoad'), screen: 'saves' },
         // A reload now resumes the career where it was left, so a refresh is no
         // longer the way back to the title screen - and without a deliberate
         // route there, starting a second career would be impossible.
-        { ico: '🚪', label: t('groups.mainMenu'), screen: 'menu', action: () => useStore.getState().toTitle() },
+        { ico: <Glyph name="exit" />, label: t('groups.mainMenu'), screen: 'menu', action: () => useStore.getState().toTitle() },
       ],
     },
     world: {
       title: t('groups.world'),
       items: [
-        { ico: '🏆', label: t('groups.competitions'), screen: 'tables' },
+        { ico: <Glyph name="competitions" />, label: t('groups.competitions'), screen: 'tables' },
         // the pinnacle gets a door of its own while you hold a Test job
-        ...(game.natTeam ? [{ ico: '🌏', label: t('groups.country'), screen: 'country' as const }] : []),
-        { ico: '🌍', label: t('groups.nations'), screen: 'nations' },
-        { ico: '🏉', label: t('groups.dreamteam'), screen: 'dreamteam' },
-        { ico: '🔭', label: t('groups.agency'), screen: 'agency' },
-        { ico: '📜', label: t('groups.history'), screen: 'history' },
+        ...(game.natTeam ? [{ ico: <Glyph name="country" />, label: t('groups.country'), screen: 'country' as const }] : []),
+        { ico: <Glyph name="nations" />, label: t('groups.nations'), screen: 'nations' },
+        { ico: <Glyph name="dreamteam" />, label: t('groups.dreamteam'), screen: 'dreamteam' },
+        { ico: <Glyph name="agency" />, label: t('groups.agency'), screen: 'agency' },
+        { ico: <Glyph name="history" />, label: t('groups.history'), screen: 'history' },
       ],
     },
   }
@@ -662,10 +696,11 @@ export default function App() {
   )
 
   const groupBtn = (id: 'hub' | 'world' | 'manager', ico: ReactNode, label: string, badge?: number) => (
-    <button className={menu === id ? 'active' : ''} title={label} aria-label={label}
+    <button className={menu === id ? 'active' : ''} title={label} aria-label={label} data-group={id}
+      aria-haspopup="menu" aria-expanded={menu === id}
       onClick={() => setMenu(menu === id ? null : id)}>
       <span className="ico nbadge">{ico}{badge ? <span className="dot">{badge > 9 ? '9+' : badge}</span> : null}</span>
-      <span className="nlbl">{label} ▸</span>
+      <span className="nlbl">{label}</span>
     </button>
   )
 
@@ -734,7 +769,7 @@ export default function App() {
           </div>
         </div>
       </header>
-      <main className="content">{screen()}</main>
+      <main className="content" data-screen={cur.screen}>{screen()}</main>
       <nav className="bottom-nav">
         {/* The order the user asked for, top to bottom: news, home, the hub,
             the manager. World comes last because it is the only group that is
@@ -753,7 +788,7 @@ export default function App() {
           </>
         ) : (
           <>
-            {groupBtn('hub', <IcoClipboard />, t('nav.hub'), offersOpen + injuredCount)}
+            {groupBtn('hub', <IcoClipboard />, t('nav.hub'), offersOpen + injuredCount + boardOpen)}
             {/* THE COUNTRY DESK IS A JOB, SO IT IS A BUTTON (owner: "i thought
                 we were adding international coach as a new button on the
                 bottom when in charge? and remove when not? needs to be more of
@@ -807,4 +842,14 @@ export default function App() {
       <Overlays />
     </div>
   )
+}
+
+/** a club colour that reads on the dark page: the first, unless it is near-black */
+function showable(colors: [string, string] | string[]): string {
+  const luma = (c: string) => {
+    const h = c.replace('#', '')
+    if (h.length < 6) return 128
+    return (parseInt(h.slice(0, 2), 16) * 299 + parseInt(h.slice(2, 4), 16) * 587 + parseInt(h.slice(4, 6), 16) * 114) / 1000
+  }
+  return luma(colors[0]) < 40 && colors[1] && luma(colors[1]) > luma(colors[0]) ? colors[1] : colors[0]
 }

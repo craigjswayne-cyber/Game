@@ -35,9 +35,11 @@ export default function LeagueTable({ compId, compact }: { compId: string; compa
           right edge, and the sideways scroll it fell into is a scroll nothing
           else on the phone has. A colgroup plus .fit makes the table exactly
           as wide as the screen, the name column ellipsises, and the pred chip
-          moves to the legend line below where it costs no width. */}
+          moves to the legend line below where it costs no width.
+          The rank column is 32, not 26: after its 8px and 9px of padding, 26
+          left room for one digit, and "10" to "16" ran into the crest. */}
       <div className="tblwrap fitwrap"><table className="dtable ltable fit">
-        <colgroup><col width="26" /><col /><col width="24" /><col width="24" /><col width="24" /><col width="24" /><col width="42" /><col width="26" /><col width="34" /></colgroup>
+        <colgroup><col width="32" /><col /><col width="24" /><col width="24" /><col width="24" /><col width="24" /><col width="42" /><col width="26" /><col width="34" /></colgroup>
         <thead>
           <tr><th>{t('tables.colRank')}</th><th>{t('tables.colTeam')}</th><th className="num">{t('tables.colP')}</th><th className="num">{t('common.w')}</th>
             <th className="num">{t('common.d')}</th><th className="num">{t('common.l')}</th><th className="num">{t('tables.colDiff')}</th>
@@ -73,13 +75,14 @@ export default function LeagueTable({ compId, compact }: { compId: string; compa
         </tbody>
       </table></div>
       {!compact && (playoffLine || relegates || game.preds?.[game.userClubId] != null) && (
-        <div className="meta" style={{ padding: '4px 16px', fontSize: 11.5 }}>
+        <div className="meta" style={{ padding: '4px 16px', fontSize: 12 }}>
           {playoffLine ? t('tables.playoffLine', { n: playoffLine }) : ''}
           {playoffLine && relegates ? ' · ' : ''}
           {relegates ? t('tables.relegationLine') : ''}
-          {comp.teamIds.includes(game.userClubId) && game.preds?.[game.userClubId] != null
-            ? `${playoffLine || relegates ? ' · ' : ''}${t('tables.punditsPredicted', { place: ord(game.preds[game.userClubId]) })}`
-            : ''}
+          {/* the prediction on a line of its own (owner, 27 Sep 2026) */}
+          {comp.teamIds.includes(game.userClubId) && game.preds?.[game.userClubId] != null && (
+            <div>{t('tables.punditsPredicted', { place: ord(game.preds[game.userClubId]) })}</div>
+          )}
         </div>
       )}
     </>

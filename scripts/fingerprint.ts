@@ -419,12 +419,96 @@ const EXPECTED: string[] = [
   // Same six fixtures, four scores moved. bandcheck, pooled over four seeds:
   //   pts 50.2 -> 50.3   tries 6.40 -> 6.38   home 54.7% -> 53.7%
   //   draws 1.6% -> 1.9%   blowouts 5.0% -> 5.0% (every band holds)
-  'saracens 37-18 bath',
-  'exeter 15-21 gloucester',
-  'sale 30-7 bristol',
-  'harlequins 3-25 leicester',
-  'newcastle 13-39 northampton',
-  'exeter 21-39 saracens',
+  //
+  // REBASELINED for 1.7.4. Three engine changes at once, all deliberate:
+  // a penalty in a side's own half goes to touch instead of at the posts,
+  // the penalty count leans toward the defending side's half (PEN_LEAN 1.7,
+  // TRY_BASE 0.0945 -> 0.0930 to hold the totals), and a rare light moment
+  // joins the atmosphere lines (one more draw on the stream). Every line now
+  // also carries where the ball was (MatchEvent.fld), which draws nothing.
+  // All six scores moved. bandcheck, pooled over four seeds:
+  //   pts 50.3 -> 50.2   tries 6.38 -> 6.41   home 53.7% -> 52.6%
+  //   draws 1.9% -> 1.6%   blowouts 5.0% -> 7.1% (every band holds)
+  // REBASELINED for ONE MATCH ENGINE (1.8.0, scripts/detailprobe.ts). The
+  // three WATCHED fixtures moved because commentary no longer draws from the
+  // match's stream (LiveCtx.crng): the atmosphere lines and a missed kick's
+  // line used to spend rng() only when somebody was watching, so a watched
+  // match was a different match from the same fixture played silently (0 of
+  // 120 alike). The silent ones read the same clock as a watched match now
+  // (clockTo), so a sin bin runs from the minute the card is stamped in both;
+  // fixture six is Saracens again, carrying fixture one's knocks and legs.
+  // Fixtures four and five did not move, which is the stream staying put
+  // where nothing touched it.
+  // AND AGAIN, same release: no one attribute is a whole unit any more
+  // (teamUnits: defence is tackling, positioning and work rate; breakdown is
+  // rucking and strength; attack reads decisions and agility), each scaled
+  // to the world's old mean so the level holds (bandcheck: 50.6 points, 6.47
+  // tries over 4,068 games). Same rolls, different thresholds: two of six
+  // moved, sale-bristol and harlequins-leicester.
+  // and the scrum wins penalties (penWindow x scrumEdge, reciprocal): one
+  // of six moved, exeter-gloucester. Bands after: 50.7 pts, 6.48 tries.
+  // REBASELINED for kicks from hand and charge-downs (1.8.0). Every side now
+  // kicks from hand, counted on a stream of their own that is seeded by one
+  // new draw at kick-off, and one kick in forty is charged down (half of them
+  // a try for the side that blocked it, the rest on rng like any other event);
+  // the drop goal is struck only from their half and more often late in a
+  // close game; TRY_BASE 0.0930 -> 0.0843 so the tries off blocked kicks
+  // (about 0.4 a match) come out of the scoring roll rather than on top of
+  // it. A new draw at kick-off moves everything after it, so all six moved. The
+  // hundred-odd new commentary lines draw only from crng and moved nothing
+  // (detailprobe 120/120). bandcheck, pooled over four seeds:
+  //   pts 50.7 -> 51.0   tries 6.48 -> 6.52   home 51.7% -> 51.3%
+  //   draws 2.1% -> 1.7%   blowouts 8.1% -> 8.4% (every band holds)
+  // REBASELINED for the two-layer engine (1.8.0, E12). Under every tick,
+  // each side's phase is now a contest between men (src/game/contest.ts):
+  // a carrier, a tackler and a jackal, whose collision tilts the try and
+  // penalty chances by a factor that averages exactly 1 across the world
+  // (contestprobe). It draws four numbers per side per tick, always, so all
+  // six moved. Same commit: the AI respect layers (E9) are read at kick-off,
+  // the home edge 1.06 -> 1.07 (since undone, below) and TRY_BASE 0.0843 -> 0.0815, because the
+  // contest's extra variance thinned home advantage below its band. bandcheck,
+  // pooled over four seeds, against the numbers just above:
+  //   pts 51.0 -> 50.5   tries 6.52 -> 6.40   home 51.3% -> 51.9%
+  //   draws 1.7% -> 1.4%   blowouts 8.4% -> 8.4% (every band holds)
+  // AND AGAIN, same night: the home edge now also leans on the contest (the
+  // home side's carries x hfa, the away side's / hfa), because the home-blind
+  // contest had thinned the travel effect (venueprobe, 36 worlds: the hardest
+  // trips' gap over the easiest 1.8 -> 0.5 points; now 1.2). With the edge
+  // carried there, hfa is back to 1.06. bandcheck: 50.6 pts, 6.45 tries,
+  // 52.1% home, 1.6% draws, 8.0% blowouts. Five of six moved.
+  // AND ONCE MORE (owner: "if a team is tired then they shouldn't score
+  // more they should be easier to score against"): late in a match a tired
+  // defence concedes up to 80% more (was 50%) and a tired attack scores up to
+  // 30% less. No new draw; two of six moved on the new thresholds. bandcheck:
+  // 49.4 pts, 6.29 tries, 52.5% home, 1.5% draws, 8.1% blowouts.
+  // And the bench matters (owner: "subs should be important"): from the 56th
+  // minute an empty tank keeps 60% of a side's strength, not 78%, so fresh
+  // replacements pay (subvalueprobe: four changes +1.27 points over none).
+  // One of six moved (harlequins-leicester). bandcheck: 49.7 pts, 6.30 tries,
+  // 51.8% home, 1.5% draws, 8.6% blowouts.
+  // REBASELINED for who is actually on the pitch (matchEngine fieldChanged).
+  // Every side's units are now rebuilt when its personnel changes, so an AI
+  // side's replacements, injury cover and HIA stand-ins reach its scrum and
+  // its defence (they never did: only the manager's own changes rebuilt
+  // anything), and a rebuild starts from a clean base, so a Test side no
+  // longer stacks its coaching bonus once per change. The goal kicker is
+  // whoever is out there (goalKicker), not a name fixed at kick-off, and an
+  // AI side's change for tired legs is like for like. No new draw: the same
+  // rolls meet different thresholds, and two of six moved, both after the
+  // hour, which is when the benches go on. bandcheck, pooled over four seeds:
+  //   pts 49.7 -> 49.6   tries 6.30 -> 6.31   home 51.7% -> 52.2%
+  //   draws 1.5% -> 1.7%   blowouts 8.7% -> 8.9% (every band holds)
+  // And the empty tank 0.6 -> 0.55 (LATE_FLOOR), because an AI replacement
+  // now brings his own quality and the manager's bench had fallen to +0.43
+  // points (subvalueprobe; +0.91 now). No new draw; one of six moved back
+  // (harlequins-leicester). bandcheck: 49.1 pts, 6.24 tries, 52.7% home,
+  // 1.6% draws, 8.8% blowouts.
+  'saracens 14-27 bath',
+  'exeter 20-3 gloucester',
+  'sale 39-25 bristol',
+  'harlequins 38-8 leicester',
+  'newcastle 13-30 northampton',
+  'exeter 10-42 saracens',
 ]
 // v1.8.1 moved three of them once more, and this time WITHOUT spending a new
 // draw: the training pitch now scales every side's breakdown and handling off
