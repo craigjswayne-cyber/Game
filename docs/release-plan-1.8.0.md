@@ -211,11 +211,15 @@ Also done, by the parallel workers (each merged after its probes passed):
 - **E10, real pace in highlight clips.** Runners and cover run at their
   own pace (0.92x at pace 1 to 1.12x at 20, unchanged for an average man).
 - **E11 (rewatching highlights) scrapped** by the owner.
-- **Balance (owner: "very attacking heavy").** To keep home advantage in its
-  band once the contest's variance was added, the home edge went 1.06 to
-  1.07; the try base 0.0930 to 0.0843 (charge-downs) and then to 0.0815.
-  bandcheck, 4,068 games: 50.5 points (was 50.7 before this round), 6.40
-  tries (6.48), 51.9% home wins, 1.4% draws, 8.4% blowouts.
+- **Balance (owner: "very attacking heavy").** The contest's tilt was
+  softened, and the home edge now leans on the contest as well as the team
+  units (the home side's carries x the edge, the away side's divided by
+  it), so the crowd and the length of the trip are felt in the collisions.
+  The try base went 0.0930 to 0.0843 (charge-downs) and then to 0.0815.
+  bandcheck, 4,068 games: 50.6 points (50.7 before this round), 6.45 tries
+  (6.48), 52.1% home wins, 1.6% draws, 8.0% blowouts. venueprobe: the
+  hardest trips are 1.2 points of home wins harder than the easiest (1.8
+  before the contest, 0.5 with a home-blind contest).
 
 Owner to do: update the signing certificate for the change of ownership
 before the store release.
