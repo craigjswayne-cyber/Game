@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import { useStore } from '../../store'
 import { absWeek, boardObjective, facLevel, fmtMoney, fmtWage, operatingCost, pressAnswer, pressLabel, pressQuestion, pressReaction, SEASON_WEEKS, weeklyCentral } from '../../game/model'
+import type { GameState } from '../../game/model'
 import {
   CHARTER_SKU, buyOwnable, hasEntitlement,
   billingReason, rewardedAvailable, tillOpen,
@@ -24,6 +25,7 @@ import {
 import { sheetOf } from '../../game/books'
 import { RELEASE_STEP, belowReserve, cashReserve, releasable, releaseBlock, releaseToBudget } from '../../game/treasury'
 import { requestFunds } from '../../game/season'
+import { prose, unwrap } from '../../game/quotes'
 import { PRESS_KEEP_WEEKS, isBoardroom } from '../../game/media'
 import { INJECT_TIERS, injectionsLeft, userWageBudget, type InjectTier } from '../../game/grants'
 
@@ -294,7 +296,7 @@ export default function Finances() {
           )
         })()}
       </div>
-      {(game.finHist?.length ?? 0) >= 2 && <BalanceChart hist={game.finHist!} />}
+      <BalanceChart game={game} />
       {/* THE TREASURY (user: "should be able to transfer balance into
           transfer money"). The button and the engine read one predicate
           (releaseBlock), so when the move is off the button says why - the
@@ -804,37 +806,168 @@ function BoardFunds() {
   )
 }
 
-/** Season balance, week by week. Blue above zero, red below - one glance
- *  tells you which way the club is heading. */
-function BalanceChart({ hist }: { hist: { w: number; b: number }[] }) {
-  const max = Math.max(...hist.map(h => Math.abs(h.b)), 1)
-  const first = hist[0], latest = hist[hist.length - 1]
-  const trend = latest.b - first.b
+/**
+ * THE SEASON'S CASH, WEEK BY WEEK. The QA sweep had the old chart as a row of
+ * near-identical bars with no axis, which said nothing. This is a line over
+ * the cash in the bank at the end of every settled week (state.finHist,
+ * written by weeklyFinance), starting from the balance the books opened on,
+ * against a labelled zero line: the club's money is measured from nothing,
+ * not from wherever the chart happened to start, so a fall that looks big is
+ * big. Anything under zero is drawn in the danger colour.
+ *
+ * No projection. The weekly settle is the only week the game can call in
+ * advance, and gates, prize money, transfers and the board all land in lumps
+ * it cannot see, so a straight line to May would be a guess drawn as a fact.
+ *
+ * The plot is an SVG in a 0-100 box stretched to the card (the strokes do not
+ * stretch), and every word on it is HTML placed by percentage, so the text
+ * stays crisp and the same size on a 360px phone and a tablet. A tap or a drag
+ * across it reads any week out in the header.
+ */
+type BalPt = { w: number; b: number }
+
+function balancePoints(game: GameState): { pts: BalPt[]; fromStart: boolean } {
+  const club = game.clubs[game.userClubId]
+  const books = game.books
+  const own = books && club && books.season === game.season && books.clubId === club.id ? books : undefined
+  // a manager who changed jobs mid-season: the weeks before the books opened
+  // were another club's money
+  const from = own?.fromWeek ?? 1
+  const hist = (game.finHist ?? []).filter(h => Number.isFinite(h.b) && h.w >= from)
+  const pts: BalPt[] = []
+  if (own && Number.isFinite(own.opening) && (!hist.length || hist[0].w === from)) pts.push({ w: from - 1, b: own.opening })
+  for (const h of hist) if (!pts.length || h.w > pts[pts.length - 1].w) pts.push(h)
+  // and where it stands today. A week's money does not all wait for the
+  // settle - a sale, a sponsor's cheque, a board injection land on the day -
+  // so the line ends on the cash in the bank the page quotes above it, not
+  // on last week's close.
+  if (hist.length && club && Number.isFinite(club.balance) && game.week > pts[pts.length - 1].w) {
+    pts.push({ w: game.week, b: club.balance })
+  }
+  return { pts: hist.length ? pts : [], fromStart: from === 1 && pts[0]?.w === 0 }
+}
+
+/** A round step for the money gridlines: 1, 2 or 5 times a power of ten. */
+function niceStep(span: number, lines: number): number {
+  const raw = Math.max(span, 1) / lines
+  const mag = Math.pow(10, Math.floor(Math.log10(raw)))
+  const f = raw / mag
+  return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * mag
+}
+
+function BalanceChart({ game }: { game: GameState }) {
+  const { pts, fromStart } = balancePoints(game)
+  const [sel, setSel] = useState<number | null>(null)
+  if (pts.length < 2) return null
+  const first = pts[0], last = pts[pts.length - 1]
+  const lo = Math.min(0, ...pts.map(p => p.b)), hi = Math.max(0, ...pts.map(p => p.b))
+  const step = niceStep(hi - lo, 3)
+  // the scale runs from zero (or the lowest point, when the club has been in
+  // the red) to the gridline just above the highest week
+  const yMax = hi > 0 ? Math.ceil((hi * 1.04) / step) * step : 0
+  const yMin = lo < 0 ? Math.floor((lo * 1.04) / step) * step : 0
+  const span = yMax - yMin || 1
+  const w0 = first.w, w1 = last.w
+  const X = (w: number) => ((w - w0) / Math.max(1, w1 - w0)) * 100
+  const Y = (b: number) => ((yMax - b) / span) * 100
+  const zeroY = Y(0)
+
+  const line = pts.map((p, i) => `${i ? 'L' : 'M'}${X(p.w).toFixed(3)} ${Y(p.b).toFixed(3)}`).join(' ')
+  const area = `${line} L${X(w1).toFixed(3)} ${zeroY.toFixed(3)} L${X(w0).toFixed(3)} ${zeroY.toFixed(3)} Z`
+  const grid: number[] = []
+  for (let v = yMin; v <= yMax + 1; v += step) grid.push(v)
+  const tickStep = w1 - w0 <= 6 ? 1 : w1 - w0 <= 14 ? 2 : w1 - w0 <= 30 ? 5 : 10
+  const ticks: number[] = []
+  for (let w = Math.ceil(w0 / tickStep) * tickStep; w <= w1; w += tickStep) if (w > w0) ticks.push(w)
+  // the last tick is the current week, always, and nothing crowds it
+  if (ticks[ticks.length - 1] !== w1) {
+    if (ticks.length && (w1 - ticks[ticks.length - 1]) < tickStep * 0.6) ticks.pop()
+    ticks.push(w1)
+  }
+  const red = pts.filter(p => p.w > w0 && p.b < 0).length
+  const low = pts.reduce((m, p) => p.b < m.b ? p : m, first)
+
+  const shown = sel != null && pts[sel] ? pts[sel] : last
+  const cap = sel == null || sel === pts.length - 1 ? t('finances.balNow', { w: last.w })
+    : sel === 0 && fromStart ? t('finances.balAtStart') : t('finances.balWeekLong', { w: shown.w })
+  const delta = last.b - first.b
+  const deltaTxt = `${delta >= 0 ? '+' : '-'}${fmtMoney(Math.abs(delta)).replace(/^-/, '')}`
+
+  // a tap or a drag picks the nearest week
+  const pick = (e: ReactPointerEvent<HTMLDivElement>, toggle = false) => {
+    // measured on the plot itself, not the gutter the money labels sit in
+    const r = (e.currentTarget.querySelector('.bal-area') ?? e.currentTarget).getBoundingClientRect()
+    const x = Math.min(1, Math.max(0, (e.clientX - r.left) / Math.max(1, r.width)))
+    const w = w0 + x * (w1 - w0)
+    let best = 0
+    pts.forEach((p, i) => { if (Math.abs(p.w - w) < Math.abs(pts[best].w - w)) best = i })
+    // a second tap on the week already read out goes back to today
+    setSel(toggle && best === sel ? null : best)
+  }
+  const place = (p: BalPt) => ({ left: `${X(p.w)}%`, top: `${Y(p.b)}%` })
+  // the start and end values sit above their point unless it is near the top
+  const pill = (p: BalPt, side: 'start' | 'end') => (
+    <span className={`bal-pill ${side}${p.b < 0 ? ' neg' : ''}${Y(p.b) < 30 ? ' below' : ''}`} style={place(p)}>
+      {side === 'start' && fromStart ? `${t('finances.balStart')} ` : ''}{fmtMoney(p.b)}
+    </span>
+  )
+  const aria = t('finances.balAria', {
+    start: fmtMoney(first.b), end: fmtMoney(last.b), w: last.w, low: fmtMoney(low.b),
+  })
+
   return (
     <>
-      <SectionTitle sub={t('finances.sinceWeek', { delta: `${trend >= 0 ? '+' : '−'}${fmtMoney(Math.abs(trend))}`, week: first.w })}>{t('finances.seasonBalance')}</SectionTitle>
-      <div className="card">
-        <div style={{ position: 'relative', display: 'flex', gap: 2, height: 72 }}>
-          <span style={{ position: 'absolute', left: 0, right: 0, top: 35, height: 1, background: 'var(--border)' }} />
-          {hist.map(h => {
-            const bar = Math.max(2, Math.round((Math.abs(h.b) / max) * 34))
-            return (
-              <span key={h.w} title={t('finances.weekBalance', { w: h.w, amount: fmtMoney(h.b) })}
-                style={{ flex: 1, minWidth: 2, position: 'relative' }}>
-                <i style={{
-                  position: 'absolute', left: 0, right: 0,
-                  ...(h.b >= 0 ? { bottom: 36, height: bar } : { top: 36, height: bar }),
-                  background: h.b >= 0 ? 'var(--surface-3)' : 'var(--danger)',
-                  borderRadius: 2.5,
-                }} />
+      <SectionTitle>{t('finances.seasonBalance')}</SectionTitle>
+      <div className="card bal">
+        <div className="bal-head">
+          <div>
+            <div className="bal-cap">{cap}</div>
+            <div className={`bal-now${shown.b < 0 ? ' neg' : ''}`}>{fmtMoney(shown.b)}</div>
+          </div>
+          <div className={`bal-delta ${delta < 0 ? 'down' : 'up'}`}>
+            {t(fromStart ? 'finances.balSinceStart' : 'finances.sinceWeek', { delta: deltaTxt, week: first.w })}
+          </div>
+        </div>
+        <div className="bal-plot" role="img" aria-label={aria}
+          onPointerDown={e => pick(e, true)} onPointerMove={e => { if (e.buttons || e.pointerType === 'mouse') pick(e) }}
+          onPointerLeave={e => { if (e.pointerType === 'mouse') setSel(null) }}>
+          <div className="bal-area">
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+              <defs>
+                <clipPath id="bal-above"><rect x="-1" y="-1" width="102" height={Math.max(0, zeroY + 1)} /></clipPath>
+                <clipPath id="bal-below"><rect x="-1" y={zeroY} width="102" height={Math.max(0, 101 - zeroY)} /></clipPath>
+              </defs>
+              {grid.filter(v => v !== 0).map(v => (
+                <line key={v} className="bal-grid" x1="0" x2="100" y1={Y(v)} y2={Y(v)} />
+              ))}
+              <path className="bal-fill" d={area} clipPath="url(#bal-above)" />
+              <path className="bal-fill neg" d={area} clipPath="url(#bal-below)" />
+              <line className="bal-zero" x1="0" x2="100" y1={zeroY} y2={zeroY} />
+              {sel != null && <line className="bal-cross" x1={X(shown.w)} x2={X(shown.w)} y1="0" y2="100" />}
+              <path className="bal-line" d={line} clipPath="url(#bal-above)" />
+              <path className="bal-line neg" d={line} clipPath="url(#bal-below)" />
+            </svg>
+            {grid.map(v => (
+              <span key={v} className={`bal-gl${v === 0 ? ' zero' : ''}`} style={{ top: `${Y(v)}%` }}>
+                {v === 0 ? '0' : fmtMoney(v)}
               </span>
-            )
-          })}
+            ))}
+            {pill(first, 'start')}
+            {sel == null && pill(last, 'end')}
+            <span className={`bal-dot${shown.b < 0 ? ' neg' : ''}`} style={place(shown)} />
+          </div>
+          <div className="bal-x">
+            {fromStart && <span style={{ left: '0%' }} className="first">{t('finances.balStart')}</span>}
+            {ticks.map(w => (
+              <span key={w} style={{ left: `${X(w)}%` }} className={w === w1 ? 'last' : undefined}>
+                {t('finances.balWeekShort', { w })}
+              </span>
+            ))}
+          </div>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-          <span className="meta">{t('finances.wkFrom', { w: first.w, amount: fmtMoney(first.b) })}</span>
-          <span className="meta" style={{ fontWeight: 700 }}>{t('finances.nowIs', { amount: fmtMoney(latest.b) })}</span>
-        </div>
+        {red > 0 && (
+          <div className="bal-note"><i className="bal-key neg" />{t('finances.balRed', { n: red })}</div>
+        )}
       </div>
     </>
   )
@@ -862,12 +995,12 @@ function BoardDecisions() {
       <SectionTitle>{t('finances.boardDecisions')}</SectionTitle>
       {open.map(item => (
         <div key={item.id} className="card">
-          <div className="press-q" style={{ padding: 0, marginBottom: 10 }}>{pressQuestion(item)}</div>
+          <div className="press-q" style={{ padding: 0, marginBottom: 10 }}>{prose(pressQuestion(item))}</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {item.options.map((o, i) => (
               <button key={i} className="btn ghost" style={{ textAlign: 'left' }}
                 onClick={() => answer(item.id, i)}>
-                {pressLabel(o)}
+                {unwrap(pressLabel(o))}
               </button>
             ))}
           </div>
@@ -875,11 +1008,11 @@ function BoardDecisions() {
       ))}
       {done.map(item => (
         <div key={item.id} className="card">
-          <div className="meta">{pressQuestion(item)}</div>
+          <div className="meta">{prose(pressQuestion(item))}</div>
           <div style={{ marginTop: 6, fontSize: 14 }}>
-            <b>{t('finances.boardDecided')}</b> {pressAnswer(item)}
+            <b>{t('finances.boardDecided')}</b> {unwrap(pressAnswer(item)) || t('world.prNoAnswer')}
           </div>
-          <div className="meta" style={{ marginTop: 4 }}>{pressReaction(item)}</div>
+          {pressReaction(item) && <div className="meta" style={{ marginTop: 4 }}>{prose(pressReaction(item))}</div>}
         </div>
       ))}
     </>
