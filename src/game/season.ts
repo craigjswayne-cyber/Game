@@ -23,7 +23,7 @@ import { simMatch, autoSelect, pickTrainingInjury, teamShort, teamUnits, rosterO
 import { BARRAGE_WEEK, windowSpan } from './calendar'
 import { emptyRow, leaguePos, sortTable, snIdFor, snWeeksFor, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS, W_AUTUMN_WEEKS, W_SIX_NATIONS_WEEKS, W_PAC4_WEEKS, W_SUMMER_TEST_WEEKS } from './schedule'
 import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice } from './ai'
-import { OFFICE_OUTLET, PRESS_KEEP_WEEKS, generatePress } from './media'
+import { OFFICE_OUTLET, PRESS_KEEP_WEEKS, generatePress, isBoardroom } from './media'
 import { debtWeek } from './treasury'
 import { generateGossip } from './gossip'
 import { benchDrag, buildPlayer, playerValue, playerWage, peekPid, resetIds } from './attributes'
@@ -4281,8 +4281,12 @@ If you go, your assistant takes your national side for the duration. Nobody prep
   // then hid anyway. Same rule, one clock.
   {
     const next = absWeek(state.season, state.week) + 1
+    // a board decision stays on Finances > The Board for the season it was
+    // made in: the camp and the season's pitch are asked in weeks 1 and 2,
+    // and "what did we decide?" is a question for March too
     state.press = state.press.filter(q =>
-      !q.answered || next - (q.season * SEASON_WEEKS + q.week) <= PRESS_KEEP_WEEKS)
+      !q.answered || next - (q.season * SEASON_WEEKS + q.week) <= PRESS_KEEP_WEEKS ||
+      (isBoardroom(q) && q.season === state.season))
   }
   for (const q of state.press) {
     if (q.answered || q.topic || q.outlet === OFFICE_OUTLET) continue
