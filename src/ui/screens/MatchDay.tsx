@@ -1657,7 +1657,7 @@ function Live() {
     const spec = buildClip(events, nx.at, nx.kind, fixture.homeId, shirtOf,
       { home: [hc[0], hc[1] ?? white], away: [ac[0], ac[1] ?? white] },
       { try: t('hl.try'), review: t('hl.review'), notry: t('hl.notry'), good: t('hl.good'), wide: t('hl.wide'),
-        chase: t('hl.chase'), maul: t('hl.maul'), turnover: t('hl.turnover'), saved: t('hl.saved') },
+        turnover: t('hl.turnover'), saved: t('hl.saved') },
       pid => (pid != null ? game.players[pid]?.name : undefined))
     // the clip starts with its build-up, so the commentary never jumps: the
     // ticker reads on until it reaches the first line of it (in Key Moments,

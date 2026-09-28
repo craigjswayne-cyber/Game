@@ -27,17 +27,11 @@ const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  
 
 const ROOT = join(__dirname, '..')
 
-// ---- TEMPORARY EXCEPTIONS ----
-// These files and locale namespaces belong to tasks running in parallel with
-// the icon pass (27 Sep 2026); each of those tasks strips its own emoji. The
-// lead EMPTIES BOTH LISTS after merging them, and from then on this probe
-// covers the whole game with no exceptions.
-const TEMP_FILES = new Set([
-  // the match engine and highlights: still being merged
-  'src/game/matchEngine.ts', 'src/ui/HighlightClip.tsx',
-])
-const TEMP_NAMESPACES = new Set(['comm', 'hl'])
-// ---- END TEMPORARY EXCEPTIONS ----
+// No exceptions: every file and every locale namespace is checked (the
+// temporary list used while tonight's parallel work was being merged,
+// 27-28 Sep 2026, is empty and gone).
+const TEMP_FILES = new Set<string>()
+const TEMP_NAMESPACES = new Set<string>()
 
 // Not temporary: the nations table's flag fields. A flag is a flag, and two
 // entries have no national flag to show - the touring Lions (a red disc) and

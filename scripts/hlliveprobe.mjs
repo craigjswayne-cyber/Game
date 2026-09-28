@@ -7,7 +7,9 @@
 //
 //   the pitch comes on for a try, the whole pitch (dead-ball line to
 //     dead-ball line, 114 by 70), and it does not move
-//   "Can they make it?" is over the finish, and the try is called after it
+//   nothing is written over the pitch (the "Can they make it?" and maul
+//     captions came off in 1.8.0), and the verdict only comes once the ball
+//     is down (the clip marks that moment with data-down)
 //   the clip goes and the live stats come back
 //   no console errors
 //
@@ -52,20 +54,26 @@ try {
   if (seen) {
     const box = await page.locator('.hl-clip').boundingBox()
     ok(box && Math.abs(box.width / box.height - 114 / 70) < 0.03, `the whole pitch, 114 by 70 (${box ? (box.width / box.height).toFixed(3) : '-'} against ${(114 / 70).toFixed(3)})`)
-    // watch it: the caption, then the verdict
-    let caption = '', banner = '', captionBeforeBanner = false
+    // watch it: no caption at any point, and the verdict only with the ball down
+    let caption = '', banner = '', early = false, sawDown = false
     for (let i = 0; i < 120; i++) {
       const s = await page.evaluate(() => ({
         cap: document.querySelector('.hl-caption')?.textContent ?? '',
         ban: document.querySelector('.hl-banner b')?.textContent ?? '',
+        down: document.querySelector('.hl-clip')?.getAttribute('data-down') === '1',
+        kind: document.querySelector('.hl-clip')?.className ?? '',
         on: !!document.querySelector('.hl-clip'),
       }))
-      if (s.cap) { caption = s.cap; if (!banner) captionBeforeBanner = true }
+      if (s.cap) caption = s.cap
+      if (s.down) sawDown = true
+      // a try or a no-try is called only once the ball is down
+      if (s.ban && /\b(try|notry)\b/.test(s.kind) && !s.down && s.ban !== 'TMO CHECK') early = true
       if (s.ban) banner = s.ban
       if (!s.on) break
       await page.waitForTimeout(150)
     }
-    ok(caption === 'Can they make it?' && captionBeforeBanner, `"${caption}" over the finish, before the verdict`)
+    ok(!caption, `nothing written over the pitch${caption ? ` ("${caption}")` : ''}`)
+    ok(sawDown && !early, `the verdict comes only once the ball is down${early ? ' (it came before)' : ''}`)
     ok(/TRY|NO TRY|TMO|GOOD|WIDE|TURNOVER|TRY SAVER/.test(banner), `then the verdict ("${banner}")`)
     await page.waitForSelector('.live-stats', { timeout: 20000 }).catch(() => {})
     ok(await page.locator('.live-stats').count() > 0 && await page.locator('.hl-clip').count() === 0, 'the clip goes and the live stats come back')

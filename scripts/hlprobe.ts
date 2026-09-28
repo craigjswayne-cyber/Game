@@ -15,7 +15,7 @@
 import { newGame } from '../src/game/newgame'
 import { beginMatch, playHalf } from '../src/game/matchEngine'
 import { mulberry32 } from '../src/game/rng'
-import { buildClip, momentAt, lateAndClose, frameAt, clipLength, clipTimeline, type ClipSpec, type ClipKind, type ClipStyle } from '../src/ui/HighlightClip'
+import { buildClip, momentAt, lateAndClose, frameAt, clipLength, clipTimeline, refereeColour, type ClipSpec, type ClipKind, type ClipStyle } from '../src/ui/HighlightClip'
 import type { MatchEvent } from '../src/game/model'
 
 let fails = 0
@@ -27,7 +27,7 @@ const FPS = 60
 const PLAYER_MAX = 13
 const BALL_MAX = 40        // a long pass or a kick in flight
 
-const labels = { try: 'TRY', review: 'TMO', notry: 'NO TRY', good: 'GOOD', wide: 'WIDE', chase: 'Can they make it?', maul: 'The maul rolls on', turnover: 'TURNOVER', saved: 'TRY SAVER' }
+const labels = { try: 'TRY', review: 'TMO', notry: 'NO TRY', good: 'GOOD', wide: 'WIDE', turnover: 'TURNOVER', saved: 'TRY SAVER' }
 const colours = { home: ['#c00', '#fff'] as [string, string], away: ['#00c', '#fff'] as [string, string] }
 
 const specs: { spec: ClipSpec; kind: ClipKind }[] = []
@@ -35,7 +35,7 @@ const specs: { spec: ClipSpec; kind: ClipKind }[] = []
 // engine's key for that kind of try (the rare ones, an intercept or a chip,
 // turn up once in a few matches)
 const STYLE_KEYS: [ClipStyle, string][] = [['maul', 'comm.tryMaulRumbles'], ['intercept', 'comm.try13'], ['chip', 'comm.try14'],
-  ['grubber', 'comm.try8'], ['crossfield', 'comm.try2'], ['charge', 'comm.tryWet2'], ['overlap', 'comm.try6'], ['phases', 'comm.try1'], ['phases', 'comm.try18']]
+  ['grubber', 'comm.try8'], ['crossfield', 'comm.try2'], ['charge', 'comm.tryCharge1'], ['overlap', 'comm.try6'], ['phases', 'comm.try1'], ['phases', 'comm.try18']]
 let late = 0
 let real = 0
 for (let seed = 1; seed <= 12 && real < 400; seed++) {
@@ -123,8 +123,34 @@ ok(maulPace.every(v => v > 0.4 && v < 2), `a maul drives over at a walk (${maulP
 // a backs move is passes: the ball changes hands at least three times after the last ruck
 const passes = (s: ClipSpec) => { let n = 0, was = -1; const tl = clipTimeline(s); for (let t = 0; t < tl.land; t += 1 / 30) { const c = frameAt(s, t).carrying.findIndex(x => x > 0.5); if (c >= 0 && c !== was) { if (was >= 0) n++; was = c } } return n }
 ok(tries.filter(s => s.spec.style === 'overlap').every(s => passes(s.spec) >= 3), 'a backs move is at least three passes')
-// "can they make it?" is up for the run, and the try is not called before the ball is down
-ok(tries.every(s => { const tl = clipTimeline(s.spec); return !!tl.caption && tl.caption[1] <= tl.banner + 0.01 }), 'every try has "Can they make it?" over the finish, gone before the verdict')
+// NOTHING IS WRITTEN OVER THE PITCH (owner, 1.8.0: the "Can they make it?"
+// and maul captions came off), and the try is not called before the ball is down
+ok(specs.every(({ spec }) => !('caption' in spec) && !('caption' in clipTimeline(spec))), 'no clip carries a caption over the pitch')
+ok(tries.every(s => { const tl = clipTimeline(s.spec); return tl.land > 0 && tl.banner >= tl.land }), 'the try is only called once the ball is down')
+
+// THE CHARGE-DOWN, as the engine calls it (1.8.0): their kicker has the ball,
+// it comes off the boot into the charger, bounces back over their line, and
+// the side that charged it scores
+const charges = tries.filter(s => s.spec.style === 'charge').map(s => s.spec)
+const chargeOk = charges.every(s => {
+  const tl = clipTimeline(s)
+  const kickerHas = [0.9, 1.3].some(t => frameAt(s, t).carrying[15 + 9] > 0.5)
+  const own = (x: number) => s.attackHome ? x : 100 - x
+  // the moment it is blocked the ball is moving back towards their line
+  const a = frameAt(s, 1.55).ball, b = frameAt(s, 1.95).ball
+  const back = own(b.x) > own(a.x)
+  const end = frameAt(s, clipLength(s))
+  const scorer = end.carrying.findIndex(x => x > 0.5)
+  const bounced = [1.7, 1.9, 2.1, 2.3].some(t => frameAt(s, t).lift > 0.3)
+  return kickerHas && back && bounced && scorer >= 0 && scorer < 15 && tl.run != null
+})
+ok(charges.length > 0 && chargeOk, `a charge-down clip: their kicker has it, it is blocked and bounces back over their line, and the chargers score (${charges.length})`)
+// and the block is the moment the charge-down line is read out
+ok(charges.filter(s => s.beats.length > 1 && s.beats[s.beats.length - 1].line >= 0).every(s => {
+  const last = s.beats[s.beats.length - 1].line
+  const r = clipTimeline(s).reveals.find(x => x.line === last)
+  return !!r && r.t >= 1.3
+}), 'the charge-down line is read out as the kick is blocked, not before')
 
 console.log('\n--- through the gap, not through people\n')
 // on the finisher's run, nobody but the men who go for him (and miss, or
@@ -182,6 +208,35 @@ const inField = specs.every(({ spec }) => {
   return true
 })
 ok(inField, 'all thirty and the referee are inside the touchlines and dead-ball lines throughout')
+// IN-GOAL ONLY WHEN THE PLAY IS (owner, 1.8.0: the defending full-back stood
+// past the dead-ball line). A defender behind his own line is allowed only
+// with the ball within a dozen metres of it, and then only a few metres back
+let behind = '', deepest = 0
+for (const { spec, kind } of specs) {
+  if (kind === 'kick' || spec.style === 'intercept' || spec.style === 'charge') continue
+  const own = (x: number) => spec.attackHome ? x : 100 - x
+  for (let t = 0; t < clipLength(spec); t += 0.1) {
+    const f = frameAt(spec, t)
+    f.def.forEach((p, i) => {
+      const depth = own(p.x) - 100
+      // (a maul driven over takes the men bound in it over with it)
+      if (own(f.ball.x) < 100) deepest = Math.max(deepest, depth)
+      if (depth > 1 && own(f.ball.x) < 88 && !behind) behind = `${kind}/${spec.style} line ${spec.endLine} def ${i + 1} t=${t.toFixed(1)} ${depth.toFixed(1)} m in-goal with the ball ${(100 - own(f.ball.x)).toFixed(0)} m out`
+    })
+  }
+}
+ok(!behind, `nobody defends from in-goal while the play is upfield${behind ? ` (${behind})` : ''}`)
+ok(deepest <= 4.5, `and nobody stands more than a few metres behind his own line (deepest ${deepest.toFixed(1)} m)`)
+
+console.log('\n--- the referee\n')
+// pink; orange when a side wears pink; cyan when the kits are pink and
+// orange; and never a colour either side is wearing
+const REF: [string, string, string] = ['#ec4f9c', '#f28a1e', '#22c8dc']
+ok(refereeColour(['#c00000', '#ffffff', '#0000c0', '#ffffff'], REF) === REF[0], 'pink against red and blue')
+ok(refereeColour(['#e8559b', '#000000', '#0000c0', '#ffffff'], REF) === REF[1], 'orange when a side wears pink')
+ok(refereeColour(['#1d1d1d', '#ff6fb0', '#0000c0', '#ffffff'], REF) === REF[1], 'orange when pink is only the second colour')
+ok(refereeColour(['#e8559b', '#000000', '#f58220', '#ffffff'], REF) === REF[2], 'cyan when the kits are pink and orange')
+ok(refereeColour(['#e8559b', '#f58220', '#20c4d8', '#ffffff'], REF) !== undefined, 'a colour even when a side wears all three')
 const oneCarrier = specs.every(({ spec }) => {
   for (let t = 0.6; t < clipLength(spec); t += 0.1) if (frameAt(spec, t).carrying.filter(c => c > 0.5).length > 1) return false
   return true
