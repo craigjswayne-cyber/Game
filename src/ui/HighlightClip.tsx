@@ -89,6 +89,10 @@ export interface ClipSpec {
   sub?: string
   att: [string, string]
   def: [string, string]
+  /** pace (1..20) by shirt, index 0 = No. 1 (1.8.0, E10): a quick wing pulls
+   *  away from the cover and a slow prop is run down. Absent, everyone is 11. */
+  attPace?: (number | undefined)[]
+  defPace?: (number | undefined)[]
 }
 
 export interface ClipLabels {
@@ -218,9 +222,11 @@ function styleOf(events: MatchEvent[], m: number, first: number): ClipStyle {
 
 export function buildClip(events: MatchEvent[], m: number, kind: ClipKind, homeId: string,
   shirtOf: (playerId?: number) => number | undefined, colours: { home: [string, string]; away: [string, string] },
-  labels: ClipLabels, nameOf: (playerId?: number) => string | undefined): ClipSpec {
+  labels: ClipLabels, nameOf: (playerId?: number) => string | undefined,
+  paceOf?: (home: boolean, shirt: number) => number | undefined): ClipSpec {
   const e = events[m]
   const attackHome = e.teamId === homeId
+  const paces = (home: boolean) => paceOf ? Array.from({ length: 15 }, (_, i) => paceOf(home, i + 1)) : undefined
   const up = (f: number) => attackHome ? f : 100 - f       // metres towards their line
   const toX = (u: number) => attackHome ? u : 100 - u
   const att = attackHome ? colours.home : colours.away
@@ -310,6 +316,7 @@ export function buildClip(events: MatchEvent[], m: number, kind: ClipKind, homeI
       : ending === 'turnover' ? labels.turnover : ending === 'saved' ? labels.saved : '',
     sub: kind === 'attack' ? undefined : nameOf(e.playerId),
     att, def,
+    attPace: paces(attackHome), defPace: paces(!attackHome),
   }
 }
 
@@ -383,6 +390,14 @@ function backAcross(i: number, across: number, y: number) {
  */
 const FPS = 60, DT = 1 / FPS
 const V_PLAYER = 11, A_PLAYER = 16
+/** REAL PACE (E10): a man's top speed from his pace, from 0.92x at 1 to
+ *  1.12x at 20, and exactly as before for an average man (10.5). The slow
+ *  end is gentler: a slow man is run down by the cover, not filmed in slow
+ *  motion, and a clip must not drag past 16 s. */
+const paceK = (pac: number | undefined) => pac == null ? 1
+  : pac < 10.5 ? 1 - 0.08 * clamp((10.5 - pac) / 9.5, 0, 1) : 1 + 0.12 * clamp((pac - 10.5) / 9.5, 0, 1)
+/** hlprobe's ceiling is 13 m/s: nobody sprints past it, however quick */
+const V_CAP = 12.8
 /** how close two players stand before they are eased apart (m) */
 const ROOM = 1.3
 
@@ -998,7 +1013,7 @@ function bake(c: ClipSpec): Baked {
         if (ph.end === 'held') contact.push(14)
       } else ph.ctrl = { x: (ph.from.x + ph.to.x) / 2, y: (ph.from.y + ph.to.y) / 2 }
       const dist = bezLen(ph.from, ph.ctrl, ph.to)
-      const pace = ph.who >= 9 ? 9.5 : 7.5
+      const pace = (ph.who >= 9 ? 9.5 : 7.5) * paceK(c.attPace?.[ph.who - 1])
       ph.ta = 0.4
       ph.dur = Math.max(0.9, dist / pace + ph.ta)
       if (ph.line >= 0) reveals.push({ t, line: ph.line })
@@ -1099,7 +1114,7 @@ function bake(c: ClipSpec): Baked {
         tgt = ahead ? { x: frozen[i].x + d * 0.6, y: frozen[i].y }
           : hunt ? { x: ball.x - d * (3.5 + (i % 4)), y: ball.y + ((i % 3) - 1) * 2.5 }
           : { x: ball.x - d * (10 + (i % 5) * 3), y: lerp(def[i].y, ball.y, 0.3) }
-        vmax = ahead ? 3 : hunt ? 9 : 5.5
+        vmax = ahead ? 3 : hunt ? Math.min(V_CAP, 9 * paceK(c.defPace?.[i])) : 5.5
       } else if (ph.k === 'kick' && c.style === 'chip') {
         tgt = { x: ownLine(def[i].x + d * 0.6, ball, d), y: def[i].y }; vmax = 4
       } else if (finishK > 0 && c.kind !== 'attack') {
@@ -1112,7 +1127,7 @@ function bake(c: ClipSpec): Baked {
         const at = bez(ph.from!, ph.ctrl!, ph.to, m.s)
         const near = Math.hypot(ball.x - def[i].x, ball.y - def[i].y)
         if (!m.dove && near < 2.4) { m.dove = t }
-        if (!m.dove) { tgt = at; vmax = V_PLAYER }
+        if (!m.dove) { tgt = at; vmax = Math.min(V_CAP, V_PLAYER * paceK(c.defPace?.[i])) }
         else if (t - m.dove < 0.3) { tgt = { x: ball.x - d * 1.2, y: ball.y }; def[i].touch = true }
         else if (!def[i].down && t - m.dove < 0.35) def[i].down = 1.1
       }
@@ -1122,7 +1137,7 @@ function bake(c: ClipSpec): Baked {
       // the full-back's last-gasp tackle, and the openside over the ball after it
       if (c.kind === 'attack' && i === 14 && (finishing || ph.k === 'done')) {
         tgt = finishing ? { x: ph.to.x + d * 0.8, y: ph.to.y } : { x: ball.x + d * 0.8, y: ball.y }
-        def[i].touch = true; vmax = 12
+        def[i].touch = true; vmax = Math.min(V_CAP, 12 * paceK(c.defPace?.[i]))
       }
       if (c.kind === 'attack' && i === thiefI && ph.k === 'done' && c.ending === 'turnover') { tgt = { x: ball.x + d * 0.6, y: ball.y + 0.5 }; def[i].touch = true }
       def[i].steer(fieldX(tgt.x), fieldY(tgt.y), vmax, A_PLAYER)

@@ -2244,7 +2244,7 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
 
   // the terraces are worth points: a bouncing home crowd lifts the side,
   // a mutinous one flattens it (user's club only - the AI crowds average out)
-  let hfa = state.clubs[fx.homeId] ? 1.06 : 1.03
+  let hfa = state.clubs[fx.homeId] ? 1.07 : 1.03
   // F27: and the trip the other lot made. A flat 1.06 said a bus up the M1 and a
   // flight to the highveld cost a visiting side the same thing, which is nonsense
   // in a world where Belfast and Pretoria are in the same competition. The edge is
@@ -3441,7 +3441,7 @@ const COVER_DEF = 0.937
  * so the tries the scoring roll hands out come down to leave the season's
  * total where it was. See scripts/fingerprint.ts for the before and after.
  */
-const TRY_BASE = 0.0843
+const TRY_BASE = 0.0815
 /** how hard the penalty count leans toward the defending side's half (1.7.4) */
 const PEN_LEAN = 1.7
 /** how hard a zone plan moves the line (1.8.0, see simTick): at 1 the kicking
