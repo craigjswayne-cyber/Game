@@ -6197,7 +6197,7 @@
     "deadLeg": "béquille",
     "ankle": "entorse de la cheville",
     "hamstring": "élongation des ischio-jambiers",
-    "hiaFail": "commotion (protocole commotion échoué)",
+    "hiaFail": "commotion (protocole non validé)",
     "concussion": "commotion cérébrale",
     "shoulder": "blessure à l'épaule",
     "kneeLigament": "ligaments du genou touchés",
