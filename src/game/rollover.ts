@@ -30,6 +30,7 @@ import { mentorBoost } from './mentoring'
 import { endSeasonJokers } from './joker'
 import { staffChem } from './staff'
 import { tIn, type Vars } from './i18n'
+import { historyYearEnd } from './history'
 
 const ordinal = (n: number) =>
   n <= 0 ? '-' : `${n}${n % 10 === 1 && n !== 11 ? 'st' : n % 10 === 2 && n !== 12 ? 'nd' : n % 10 === 3 && n !== 13 ? 'rd' : 'th'}`
@@ -1813,6 +1814,8 @@ export function rebuildSeason(state: GameState) {
   // the season's books close on the balance as it stands, and the next
   // season's open on the same figure the first time money moves (books.ts)
   closeBooks(state)
+  // the club's memory closes the year: rivalries, legends, the annals line (history.ts)
+  historyYearEnd(state)
   state.season += 1
   // F30: a deal whose term ran out with the old season is gone, and the manager
   // is told, because an empty commercial slot pays nothing and that has to be a

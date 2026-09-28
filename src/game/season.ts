@@ -48,6 +48,7 @@ import { settleKnocks } from './knock'
 import { askBoard, type BoardAsk } from './boardroom'
 import { expireLoans, loanTargets } from './loans'
 import { refreshVacancies, sackManager } from './jobs'
+import { historyAfterMatch, historyPreview, historyWeight } from './history'
 import { playAcademyWeek } from './academy'
 import { canBeMentored, mentorGraduations, mentorReports, mentorWeek } from './mentoring'
 import { t, tIn, type Vars } from './i18n'
@@ -1583,6 +1584,7 @@ function matchReport(state: GameState, fx: Fixture) {
 export function afterClubMatch(state: GameState, fx: Fixture) {
   const club = state.clubs[state.userClubId]
   if (!club || fx.compId === 'fr') return
+  historyAfterMatch(state, fx) // the club's memory: tenure, legends, records (history.ts)
   const isHome = fx.homeId === club.id
   const oppId = isHome ? fx.awayId : fx.homeId
   const opp = state.clubs[oppId]
@@ -1754,7 +1756,9 @@ function boardReaction(state: GameState, fx: Fixture, delegated = false) {
   const them = isHome ? fx.awayScore : fx.homeScore
   const oppRep = state.clubs[isHome ? fx.awayId : fx.homeId]?.rep ?? 70
   const diff = (oppRep - club.rep) / 25
-  const derbyF = fx.derby ? 1.8 : 1 // derbies echo in the boardroom
+  // derbies echo in the boardroom; an earned rivalry or a return to a club
+  // that remembers you echoes a little (history.ts, never above 1.3)
+  const derbyF = fx.derby ? 1.8 : historyWeight(state, fx)
   // a new owner watches every result like it is a referendum on you
   const ownerF = state.newOwnerUntil != null && state.week <= state.newOwnerUntil ? 1.4 : 1
   // The opponent's standing scales the swing: beating a better side is worth more,
@@ -1918,7 +1922,7 @@ function boardReaction(state: GameState, fx: Fixture, delegated = false) {
 
   // the terraces have longer memories and shorter fuses than the board
   const before = state.fanMood ?? 60
-  const heat = fx.derby || grudgeBetween(state, fx.homeId, fx.awayId) ? 1.7 : 1
+  const heat = fx.derby || grudgeBetween(state, fx.homeId, fx.awayId) ? 1.7 : historyWeight(state, fx)
   let mood = before + (us > them ? 4 * heat : us < them ? -(5 * heat + (isHome ? 1.5 : 0)) : -1)
   mood += (55 - mood) * 0.03 // everything fades toward "fine"
   state.fanMood = clamp(mood, 5, 98)
@@ -4351,6 +4355,8 @@ If you go, your assistant takes your national side for the duration. Nobody prep
   // takes its plan off (E9, oppcoach.ts setUpForUser): after the advance, so
   // it is the fixture the manager is about to prepare for
   setUpForUser(state, userFixtureThisWeek(state))
+  // and the week's history: a former club, a legend on the other side (history.ts)
+  historyPreview(state)
 
   // (derby build-up now lives in the pre-advance block above, with the
   // all-time ledger - the old duplicate beat here was removed)
