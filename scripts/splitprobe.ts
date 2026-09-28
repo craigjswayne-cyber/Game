@@ -23,6 +23,7 @@
 import { newGame } from '../src/game/newgame'
 import { weekRng } from '../src/game/season'
 import { beginMatch, simMatch } from '../src/game/matchEngine'
+import { mulberry32 } from '../src/game/rng'
 import type { GameState } from '../src/game/model'
 
 let fails = 0
@@ -117,21 +118,59 @@ ok(Math.abs(narrowVsTight - 1.05) < 0.001, 'where a narrow line stuffs the pick-
 // outside noise. Measured at commit time over three independent 150-seed
 // blocks: drift +0.96, -0.59, +0.53 points - the sign alternates, which is
 // what noise looks like. A real lean drifts the same way in every block.
-const N = 150
-const margins = (line: number | undefined) => {
-  let sum = 0
-  for (let i = 0; i < N; i++) {
-    const g = newGame('northampton', 'Arena', 100 + i)
+//
+// PAIRED, AND 800 OF THEM, NOT 150 WORLDS A SIDE (28 Sep 2026). The old
+// blocks were one match per world, each arm in its own copy, so a match's
+// margin (sd about 23 points) was the whole error: the drift's standard error
+// was about 1.9 points against a band of 2.5, and four shifted seed lists
+// read +0.47, +1.09, +3.06 (FAIL) and -1.83 with nothing changed. Now each of
+// 40 worlds plays its opening fixture 20 times, both arms from an identical
+// kick-off on the same stream. Paired, the drift's standard error is 0.47
+// points, so the unchanged band of 2.5 sits over five of them; the probe
+// prints its own se every run. 28 s, against 73 s for the old 300 worlds.
+const WORLDS = 40, K = 20
+const diffs: number[] = []
+let sumBase = 0, sumAggro = 0, replayed = 0, replays = 0
+for (let i = 0; i < WORLDS; i++) {
+  const g = newGame('northampton', 'Arena', 100 + i)
+  const fx0 = userFixture(g)
+  // the two clubs, their men and the chemistry ledger are all a match reads
+  // or writes that the next match could feel (found by diffing the state
+  // around a sim); restoring them (rather than cloning a 5 MB world
+  // per sim, 150 ms a time) puts every sim back on the same kick-off
+  const clubIds = [fx0.homeId, fx0.awayId]
+  const pids = clubIds.flatMap(c => g.clubs[c].players)
+  const snapC = structuredClone(clubIds.map(c => g.clubs[c]))
+  const snapP = structuredClone(pids.map(id => g.players[id]))
+  const snapChem = structuredClone(g.chem)
+  const snapMisc = { news: g.news.slice(), nextId: g.nextId, grudges: structuredClone(g.grudges) }
+  const play = (line: number | undefined, seed: number) => {
+    clubIds.forEach((c, j) => { g.clubs[c] = structuredClone(snapC[j]) })
+    pids.forEach((id, j) => { g.players[id] = structuredClone(snapP[j]) })
+    g.chem = structuredClone(snapChem)
+    // a match also files news, takes ids and can start a grudge the next
+    // one reads, so those go back too
+    g.news = snapMisc.news.slice(); g.nextId = snapMisc.nextId; g.grudges = structuredClone(snapMisc.grudges)     // a match builds chemistry, and reads it
     if (line != null) g.clubs[g.userClubId].tactic.defLine = line
-    const fx = userFixture(g)
-    simMatch(g, fx, weekRng(g), false)
-    sum += fx.homeId === g.userClubId ? fx.homeScore - fx.awayScore : fx.awayScore - fx.homeScore
+    const fx = { ...fx0, played: false, homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0 }
+    simMatch(g, fx, mulberry32(seed), false)
+    return fx.homeId === g.userClubId ? fx.homeScore - fx.awayScore : fx.awayScore - fx.homeScore
   }
-  return sum / N
+  for (let k = 0; k < K; k++) {
+    const seed = (i * 7919 + k * 104729 + 17) >>> 0
+    const m = [play(undefined, seed), play(100, seed)]
+    sumBase += m[0]; sumAggro += m[1]; diffs.push(m[1] - m[0])
+    // the pairing is only as good as the restore: the same stream from the
+    // same kick-off has to replay the same match
+    if (k === 0) { replays++; play(100, seed + 1); if (play(undefined, seed) === m[0]) replayed++ }
+  }
 }
-const base = margins(undefined), aggro = margins(100)
-console.log(`  mean margin over ${N} matches: dial untouched ${base.toFixed(2)}, full blitz ${aggro.toFixed(2)}`)
-ok(Math.abs(aggro - base) < 2.5, `the blitz is not a free upgrade (drift ${(aggro - base).toFixed(2)} pts, band 2.5)`)
+ok(replayed === replays, `a restored kick-off replays the same match on the same stream (${replayed}/${replays})`)
+const n = diffs.length
+const blitzDrift = diffs.reduce((a, b) => a + b, 0) / n
+const se = Math.sqrt(diffs.reduce((a, b) => a + (b - blitzDrift) ** 2, 0) / (n - 1) / n)
+console.log(`  mean margin over ${n} paired matches: dial untouched ${(sumBase / n).toFixed(2)}, full blitz ${(sumAggro / n).toFixed(2)} (drift se ${se.toFixed(2)})`)
+ok(Math.abs(blitzDrift) < 2.5, `the blitz is not a free upgrade (drift ${blitzDrift.toFixed(2)} pts, band 2.5, ${(2.5 / se).toFixed(1)} se)`)
 
 console.log(fails ? `\nSPLIT PROBE FAILED (${fails})` : '\nSPLIT PROBE PASSED: the without-ball dials are a priced trade')
 process.exit(fails ? 1 : 0)

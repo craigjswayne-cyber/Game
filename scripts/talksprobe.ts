@@ -139,6 +139,35 @@ const freeSlot = (g: GameState, slot: SlotId) => { g.deals![slot]!.until = g.sea
 // ---- 3 + 4. real seasons: the bonus odds, and a real payout --------------
 type Out = { league: boolean; title: boolean; final: boolean; tries: boolean; R: number }
 const outcomes: Out[] = []
+/** each league club's stature rank within its league, taken at a season's start */
+const rankWorld = (g: GameState, ranks: Map<string, number>) => {
+  ranks.clear()
+  for (const c of Object.values(g.comps)) {
+    if (c.type !== 'league') continue
+    c.teamIds.filter(id => g.clubs[id]).sort((a, b) => g.clubs[b].rep - g.clubs[a].rep)
+      .forEach((id, i) => ranks.set(`${c.id}|${id}`, i + 1))
+  }
+}
+/** every league club's bonus lines as the table stands now */
+const snapWorld = (g: GameState, ranks: Map<string, number>): Out[] => {
+  const snap: Out[] = []
+  for (const c of Object.values(g.comps)) {
+    if (c.type !== 'league' || !c.table.length) continue
+    const ord = sortTable(c.table).map(r => r.teamId)
+    const tr = [...c.table].sort((a, b) => b.tf - a.tf || b.pf - a.pf).map(r => r.teamId)
+    for (const id of ord) {
+      const R = ranks.get(`${c.id}|${id}`)
+      if (!R || !g.clubs[id]) continue
+      const T = stretchTarget(R)
+      snap.push({
+        R, league: ord.indexOf(id) + 1 <= T, title: ord[0] === id || c.champion === id,
+        final: g.fixtures.some(f => f.stage === 'F' && (f.homeId === id || f.awayId === id)),
+        tries: tr.indexOf(id) + 1 <= T,
+      })
+    }
+  }
+  return snap
+}
 let paidSeen = 0, bookedSeen = 0, letterSeen = 0, seasonsWithBold = 0
 {
   const g = newGame('northampton', 'Talks', 99)
@@ -150,36 +179,12 @@ let paidSeen = 0, bookedSeen = 0, letterSeen = 0, seasonsWithBold = 0
   const bold = g.deals!.shirt!
   ok(!!bold.perf, `the probe's own bold deal signed (${bold.sponsor}, target ${bold.perf?.target ?? '-'})`)
   const ranks = new Map<string, number>()
-  const takeRanks = () => {
-    ranks.clear()
-    for (const c of Object.values(g.comps)) {
-      if (c.type !== 'league') continue
-      c.teamIds.filter(id => g.clubs[id]).sort((a, b) => g.clubs[b].rep - g.clubs[a].rep)
-        .forEach((id, i) => ranks.set(`${c.id}|${id}`, i + 1))
-    }
-  }
+  const takeRanks = () => rankWorld(g, ranks)
   takeRanks()
   for (let s = 0; s < SEASONS; s++) {
     let snap: Out[] = []
     while (g.season === s) {
-      if (g.week >= 40) {
-        snap = []
-        for (const c of Object.values(g.comps)) {
-          if (c.type !== 'league' || !c.table.length) continue
-          const ord = sortTable(c.table).map(r => r.teamId)
-          const tr = [...c.table].sort((a, b) => b.tf - a.tf || b.pf - a.pf).map(r => r.teamId)
-          for (const id of ord) {
-            const R = ranks.get(`${c.id}|${id}`)
-            if (!R || !g.clubs[id]) continue
-            const T = stretchTarget(R)
-            snap.push({
-              R, league: ord.indexOf(id) + 1 <= T, title: ord[0] === id || c.champion === id,
-              final: g.fixtures.some(f => f.stage === 'F' && (f.homeId === id || f.awayId === id)),
-              tries: tr.indexOf(id) + 1 <= T,
-            })
-          }
-        }
-      }
+      if (g.week >= 40) snap = snapWorld(g, ranks)
       // the harness keeps the board sweet: this probe is about the sponsor's
       // cheque, and a sacking in season two would end the measurement
       g.clubs[g.userClubId].boardConfidence = 100
@@ -205,6 +210,31 @@ let paidSeen = 0, bookedSeen = 0, letterSeen = 0, seasonsWithBold = 0
   ok(seasonsWithBold > 0 && letterSeen === seasonsWithBold, `every season of the bold deal ended with a bonus letter (${letterSeen}/${seasonsWithBold})`)
   ok(bookedSeen === paidSeen, `every bonus paid was booked on the balance sheet (${bookedSeen}/${paidSeen})`)
 }
+// TWO MORE WORLDS FOR THE ODDS (28 Sep 2026). One world's three seasons
+// give 54 club-seasons at stature rank 1-2, and that bucket's mean multiple
+// read 0.90, 0.79, 0.97 and 0.83 on four shifted seed lists against a floor
+// of 0.7: a standard error of about 0.08, so the floor stood under two of
+// them. The odds are a property of the world's tables, not of the probe's
+// bold deal, so two more worlds (board held, nothing signed) are walked for
+// their tables alone: three times the club-seasons (162 at rank 1-2), a
+// standard error near 0.045 and the same band, now over three of them away.
+// Five worlds read 0.96 on the top bucket; each extra world costs about 20 s.
+for (const seed of [101, 202]) {
+  const g = newGame('northampton', 'Talks', seed)
+  const ranks = new Map<string, number>()
+  rankWorld(g, ranks)
+  for (let s = 0; s < SEASONS; s++) {
+    let snap: Out[] = []
+    while (g.season === s) {
+      if (g.week >= 40) snap = snapWorld(g, ranks)
+      g.clubs[g.userClubId].boardConfidence = 100
+      processWeekAndAdvance(g)
+    }
+    outcomes.push(...snap)
+    rankWorld(g, ranks)
+  }
+}
+
 const W = BONUS_WEIGHTS
 const multiples = outcomes.map(o => (o.league ? W.league : 0) + (o.title ? W.title : 0) + (o.final ? W.final : 0) + (o.tries ? W.tries : 0))
 const meanM = multiples.reduce((a, b) => a + b, 0) / Math.max(1, multiples.length)
