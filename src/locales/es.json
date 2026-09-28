@@ -261,6 +261,8 @@
    "one": "{n} pregunta espera tu respuesta: tus palabras mueven la moral.",
    "other": "{n} preguntas esperan tu respuesta: tus palabras mueven la moral."
   },
+  "boardWord": "La junta necesita una decisión",
+  "boardSub": {"one": "{n} decisión sobre dinero u objetivos, en Finanzas.", "other": "{n} decisiones sobre dinero u objetivos, en Finanzas."},
   "blankWeekend": "Fin de semana libre",
   "blankSub": "No hay partido esta semana. Un amistoso da ritmo y rodaje a la plantilla, pero una lesión en un partido intrascendente duele el doble.",
   "friendlyChip": "{club} (rep. {rep})",
@@ -1804,6 +1806,8 @@
   "tabCommercial": "Comercial",
   "tabCapSquad": "Tope y plantilla",
   "tabBoard": "La junta",
+  "boardDecisions": "Decisiones para la junta",
+  "boardDecided": "Decidido.",
   "wageBill": "Masa salarial",
   "wageBudget": "Presupuesto salarial",
   "cashInBank": "Dinero en el banco",

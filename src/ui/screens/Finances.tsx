@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../../store'
-import { boardObjective, facLevel, fmtMoney, fmtWage, operatingCost, weeklyCentral } from '../../game/model'
+import { absWeek, boardObjective, facLevel, fmtMoney, fmtWage, operatingCost, pressAnswer, pressLabel, pressQuestion, pressReaction, SEASON_WEEKS, weeklyCentral } from '../../game/model'
 import {
   CHARTER_SKU, buyOwnable, hasEntitlement,
   billingReason, rewardedAvailable, tillOpen,
@@ -24,11 +24,14 @@ import {
 import { sheetOf } from '../../game/books'
 import { RELEASE_STEP, belowReserve, cashReserve, releasable, releaseBlock, releaseToBudget } from '../../game/treasury'
 import { requestFunds } from '../../game/season'
+import { PRESS_KEEP_WEEKS, isBoardroom } from '../../game/media'
 import { INJECT_TIERS, injectionsLeft, userWageBudget, type InjectTier } from '../../game/grants'
 
 export default function Finances() {
   // two pages rather than one long scroll
-  const [ftab, setFtab] = useState<'money' | 'deals' | 'cap' | 'board'>('money')
+  // a decision waiting for the board opens the page on it
+  const [ftab, setFtab] = useState<'money' | 'deals' | 'cap' | 'board'>(
+    () => useStore.getState().game?.press.some(p => !p.answered && isBoardroom(p)) ? 'board' : 'money')
   const [dealMsg, setDealMsg] = useState<string | null>(null)
   const [endArm, setEndArm] = useState<string | null>(null)
   const game = useStore(s => s.game)!
@@ -646,6 +649,7 @@ export default function Finances() {
         )
       })()}
       {ftab === 'board' && <>
+      <BoardDecisions />
       {/* asking the board for transfer funds is a boardroom matter, and it
           lived on the money tab, which was the deepest page in the game
           (scrollaudit, 3.3 screenfuls); the ask and the town collection sit
@@ -832,6 +836,52 @@ function BalanceChart({ hist }: { hist: { w: number; b: number }[] }) {
           <span className="meta" style={{ fontWeight: 700 }}>{t('finances.nowIs', { amount: fmtMoney(latest.b) })}</span>
         </div>
       </div>
+    </>
+  )
+}
+
+/**
+ * BOARDROOM DECISIONS (owner, 28 Sep 2026). The pre-season camp, the pitch
+ * for the season and the sponsor slot deals were asked in the press room,
+ * among the journalists, when they are money and targets: the board's
+ * business. They are asked here now (media.isBoardroom), answered through
+ * the same store action, and what was decided stays on the page for as long
+ * as the press room keeps its coverage.
+ */
+function BoardDecisions() {
+  const game = useStore(s => s.game)!
+  const answer = useStore(s => s.answerPressOption)
+  const open = game.press.filter(p => !p.answered && isBoardroom(p))
+  const now = game.season * SEASON_WEEKS + game.week
+  const done = game.press
+    .filter(p => p.answered && isBoardroom(p) && now - absWeek(p.season, p.week) <= PRESS_KEEP_WEEKS)
+    .reverse()
+  if (!open.length && !done.length) return null
+  return (
+    <>
+      <SectionTitle>{t('finances.boardDecisions')}</SectionTitle>
+      {open.map(item => (
+        <div key={item.id} className="card">
+          <div className="press-q" style={{ padding: 0, marginBottom: 10 }}>{pressQuestion(item)}</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {item.options.map((o, i) => (
+              <button key={i} className="btn ghost" style={{ textAlign: 'left' }}
+                onClick={() => answer(item.id, i)}>
+                {pressLabel(o)}
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
+      {done.map(item => (
+        <div key={item.id} className="card">
+          <div className="meta">{pressQuestion(item)}</div>
+          <div style={{ marginTop: 6, fontSize: 14 }}>
+            <b>{t('finances.boardDecided')}</b> {pressAnswer(item)}
+          </div>
+          <div className="meta" style={{ marginTop: 4 }}>{pressReaction(item)}</div>
+        </div>
+      ))}
     </>
   )
 }

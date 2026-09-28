@@ -257,6 +257,8 @@
    "one": "{n} vraag wag op jou antwoord - jou antwoorde skuif die moreel.",
    "other": "{n} vrae wag op jou antwoord - jou antwoorde skuif die moreel."
   },
+  "boardWord": "Die direksie wag op 'n besluit",
+  "boardSub": {"one": "{n} besluit oor geld of teikens, in Finansies.", "other": "{n} besluite oor geld of teikens, in Finansies."},
   "blankWeekend": "Oop naweek",
   "blankSub": "Geen wedstryd hierdie week nie. 'n Vriendskaplike wedstryd bou skerpte en kombinasies vir die spangroep - maar beserings in 'n betekenislose wedstryd steek dubbel so seer.",
   "friendlyChip": "{club} (rep {rep})",
@@ -1787,6 +1789,8 @@
   "tabCommercial": "Kommersieel",
   "tabCapSquad": "Perk & spangroep",
   "tabBoard": "Die direksie",
+  "boardDecisions": "Besluite vir die direksie",
+  "boardDecided": "Besluit.",
   "wageBill": "Salarisrekening",
   "wageBudget": "Salarisbegroting",
   "cashInBank": "Kontant in die bank",

@@ -260,6 +260,8 @@
    "one": "{n} domanda attende risposta - le tue parole muovono il morale.",
    "other": "{n} domande attendono risposta - le tue parole muovono il morale."
   },
+  "boardWord": "Il consiglio aspetta una decisione",
+  "boardSub": {"one": "{n} decisione su soldi o obiettivi, in Finanze.", "other": "{n} decisioni su soldi o obiettivi, in Finanze."},
   "blankWeekend": "Weekend libero",
   "blankSub": "Nessun impegno questa settimana. Un'amichevole dà ritmo e intesa alla rosa - ma un infortunio in una gara che non conta brucia il doppio.",
   "friendlyChip": "{club} (rep {rep})",
@@ -1814,6 +1816,8 @@
   "tabCommercial": "Commerciale",
   "tabCapSquad": "Tetto e rosa",
   "tabBoard": "Il consiglio",
+  "boardDecisions": "Decisioni per il consiglio",
+  "boardDecided": "Deciso.",
   "wageBill": "Monte ingaggi",
   "wageBudget": "Budget ingaggi",
   "cashInBank": "Liquidità in banca",

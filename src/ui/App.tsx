@@ -38,6 +38,7 @@ import Supporter from './screens/Supporter'
 import Jobs from './screens/Jobs'
 import Wire from './screens/Wire'
 import Medical from './screens/Medical'
+import { isBoardroom } from '../game/media'
 import TeamReport from './screens/TeamReport'
 import Profile from './screens/Profile'
 import Saves from './screens/Saves'
@@ -491,7 +492,8 @@ export default function App() {
   //
   // One predicate now, in one place, for the dot and for the reader.
   const unread = game.news.filter(n => inInbox(game, n) && !n.read).length
-  const pressOpen = game.press.filter(p => !p.answered).length
+  const pressOpen = game.press.filter(p => !p.answered && !isBoardroom(p)).length
+  const boardOpen = game.press.filter(p => !p.answered && isBoardroom(p)).length
   const offersOpen = game.offers.filter(o => o.status === 'pending' && o.forUser).length
   const openJobs = game.vacancies.filter(v => !v.passed && !v.applied).length
   // The Country button's badge is the one thing on that screen that is a JOB
@@ -615,7 +617,7 @@ export default function App() {
         { ico: <Glyph name="training" />, label: t('groups.trainingStaff'), screen: 'training' },
         { ico: <Glyph name="medical" />, label: t('groups.medical'), screen: 'medical', badge: injuredCount },
         { ico: <Glyph name="fixtures" />, label: t('groups.fixturesResults'), screen: 'fixtures' },
-        { ico: <Glyph name="finances" />, label: t('groups.finances'), screen: 'finances' },
+        { ico: <Glyph name="finances" />, label: t('groups.finances'), screen: 'finances', badge: boardOpen },
         { ico: <Glyph name="transfers" />, label: t('groups.transfers'), screen: 'transfers', badge: offersOpen },
         { ico: <Glyph name="infra" />, label: t('groups.infra'), screen: 'infra' },
         { ico: <Glyph name="club" />, label: t('groups.clubInfo'), screen: 'club' },
@@ -786,7 +788,7 @@ export default function App() {
           </>
         ) : (
           <>
-            {groupBtn('hub', <IcoClipboard />, t('nav.hub'), offersOpen + injuredCount)}
+            {groupBtn('hub', <IcoClipboard />, t('nav.hub'), offersOpen + injuredCount + boardOpen)}
             {/* THE COUNTRY DESK IS A JOB, SO IT IS A BUTTON (owner: "i thought
                 we were adding international coach as a new button on the
                 bottom when in charge? and remove when not? needs to be more of

@@ -1,7 +1,7 @@
 import { useStore } from '../../store'
 import { SectionTitle } from '../components'
 import {absWeek, SEASON_WEEKS, pressAnswer, pressLabel, pressQuestion, pressReaction, weekDate } from '../../game/model'
-import { OFFICE_OUTLET, PRESS_KEEP_WEEKS } from '../../game/media'
+import { OFFICE_OUTLET, PRESS_KEEP_WEEKS, isBoardroom } from '../../game/media'
 import { bandOf, currentMood, effectLines, moodRoom, pressWhy, type Baro } from '../../game/pressmood'
 import type { GameState } from '../../game/model'
 import { t } from '../../game/i18n'
@@ -16,7 +16,9 @@ export default function Press() {
   const answer = useStore(s => s.answerPressOption)
   const go = useStore(s => s.go)
 
-  const open = game.press.filter(p => !p.answered).reverse()
+  // the camp, the season's pitch and the sponsor deals are the board's
+  // business and are answered on Finances (media.isBoardroom)
+  const open = game.press.filter(p => !p.answered && !isBoardroom(p)).reverse()
   // RECENT MEANS RECENT. The room used to show the last twelve answers however
   // old they were, so a week-8 press room carried August (owner: "tidy the
   // press room up - remove anything older than 2 weeks"). The weekly settle
@@ -24,7 +26,7 @@ export default function Press() {
   // the rule changed, and on a save loaded mid-week.
   const now = game.season * SEASON_WEEKS + game.week
   const past = game.press
-    .filter(p => p.answered && now - (absWeek(p.season, p.week)) <= PRESS_KEEP_WEEKS)
+    .filter(p => p.answered && !isBoardroom(p) && now - (absWeek(p.season, p.week)) <= PRESS_KEEP_WEEKS)
     .reverse()
 
   return (
