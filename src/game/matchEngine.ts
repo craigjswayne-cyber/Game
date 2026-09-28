@@ -4950,6 +4950,44 @@ function cameOn(side: SideCtx, id: number, min: number) {
   (side.onAt ??= new Map()).set(id, min)
 }
 
+/**
+ * VISITS TO THE 22, and the points a side came away with (1.8.1). One count
+ * for the live stats and the Visits panel, read off the lines shown so far.
+ * A visit starts on the first line of the side's own inside the opposition 22
+ * after a line that was not; the other side's line, or its own further out,
+ * ends it.
+ *
+ * A TRY IS ALWAYS A VISIT. scoreTry moves the ball back towards halfway for
+ * the restart before the try line is written, so a try finished from a long
+ * break was stamped outside the 22 and the store screenshot showed a try, 0
+ * visits and 0.0 points per visit. The line is scored over, so a try line
+ * counts as inside whatever its stamp says, and the conversion that follows
+ * belongs to the same visit. The scoreboard is read as a high-water mark, so a
+ * whistle line stamped with an older score cannot count the same points twice.
+ */
+export function visitsTo22(events: readonly MatchEvent[], homeId: string, home: boolean): { visits: number; pts: number } {
+  let visits = 0, pts = 0, inside = false, best = 0
+  for (const e of events) {
+    const was = inside
+    const ours = !!e.teamId && (e.teamId === homeId) === home
+    // the conversion is stamped at the restart, so it neither opens nor
+    // closes a visit: it is the second half of the try before it
+    const con = ours && e.type === 'CON'
+    if (e.fld != null && e.teamId && !con) {
+      const up = home ? e.fld : 100 - e.fld
+      const now = ours && (up >= 78 || e.type === 'TRY')
+      if (now && !inside) visits++
+      inside = now
+    }
+    const score = home ? e.homeScore : e.awayScore
+    if (score != null && score > best) {
+      if (inside || was || con) pts += score - best
+      best = score
+    }
+  }
+  return { visits, pts }
+}
+
 export function matchStats(ctx: LiveCtx) {
   const tot = ctx.home.poss + ctx.away.poss || 1
   const share = (s: SideCtx) => s.poss / tot
