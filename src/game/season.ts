@@ -1739,6 +1739,13 @@ function mgrMilestones(state: GameState, won: boolean) {
   }
 }
 
+/** The last week of a new manager's first-season grace: 32 at a club of
+ *  reputation 50 or less, 12 at 88 or more, a straight line between. */
+export function honeymoonEnd(rep: number): number {
+  const t = Math.max(0, Math.min(1, (rep - 50) / 38))
+  return Math.round(32 - 20 * t)
+}
+
 function boardReaction(state: GameState, fx: Fixture, delegated = false) {
   const club = state.clubs[state.userClubId]
   const isHome = fx.homeId === club.id
@@ -3538,13 +3545,16 @@ export function processWeekAndAdvance(state: GameState) {
      * exactly the thing being ignored.
      */
     const reprieved = (state.boardGrace ?? 0) > stamp100(state)
-    // ONE BAD READING IS NOT A SACKING, AND A NEW MAN GETS A SEASON (1.8.0,
+    // ONE BAD READING IS NOT A SACKING, AND A NEW MAN GETS SOME TIME (1.8.0,
     // owner, as above). The floor has to hold for three weeks running, and in
-    // his first season at the club the board waits until the last third of
-    // it (week 32) before acting on results alone: the final warnings above
-    // still go out, so he can feel the clock.
+    // his first season at the club the board waits before acting on results
+    // alone. HOW LONG DEPENDS ON THE CLUB (owner: "Honeymoon period should be
+    // a lot smaller if managing a top team, it should be harder as the fans
+    // expect results"): week 32 at a club of reputation 50 or less, falling
+    // in a straight line to week 12 at 88 or more (honeymoonEnd). The final
+    // warnings above still go out, so he can feel the clock.
     state.boardFloorWeeks = club.boardConfidence <= 3 ? (state.boardFloorWeeks ?? 0) + 1 : 0
-    const honeymoon = (state.tenureStart ?? -1) === state.season && state.week < 32
+    const honeymoon = (state.tenureStart ?? -1) === state.season && state.week < honeymoonEnd(club.rep)
     if (club.boardConfidence <= 3 && state.week > 8 && !reprieved && !honeymoon && state.boardFloorWeeks >= 3) {
       // the mechanics live in sackManager (jobs.ts) - shared with the
       // pushed-once-too-often dismissal of the board-request escalation
