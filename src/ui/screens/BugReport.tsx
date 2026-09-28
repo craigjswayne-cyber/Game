@@ -5,6 +5,7 @@ import {
   DEV_CONTACT, buildReport, crashCount, mailtoUrl, reportFilename,
 } from '../../game/bugreport'
 import { t } from '../../game/i18n'
+import { COMMUNITY_URL } from '../../game/community'
 
 /**
  * Report a Bug. Under the Handbook in the menu, because it is the other half of
@@ -72,6 +73,14 @@ export default function BugReport() {
     }
   }
 
+  // THE DISCORD ROUTE (1.8.1). The link opens the server; the tap also puts
+  // the report on the clipboard, so the player lands in Discord with it ready
+  // to paste into /bug. Nothing is sent: the player pastes it themselves.
+  const copyFor = (text: string, done: string, set: (m: string) => void) => {
+    navigator.clipboard?.writeText(text).then(() => set(t(done)), () => set(t('legacy.bgDiscordFailed')))
+      ?? set(t('legacy.bgDiscordFailed'))
+  }
+
   // an idea is sent as itself: no save, no user agent, no crash ring
   const ideaBody = `PHASE: RUGBY MANAGER - IDEA\n\n${idea.trim()}\n`
   const ideaMail = mailtoUrl(ideaBody, 'PHASE: Rugby Manager - an idea')
@@ -124,6 +133,10 @@ export default function BugReport() {
           {canShare && <button className="btn gold" onClick={() => { void doShare() }}>{t('legacy.bgShare')}</button>}
           <a className="btn" href={mailtoUrl(report)}>{t('legacy.bgEmail')}</a>
           <button className="btn" onClick={() => { void doCopy() }}>{t('legacy.bgCopy')}</button>
+          <a className="btn" href={COMMUNITY_URL} target="_blank" rel="noopener noreferrer"
+            onClick={() => copyFor(report, 'legacy.bgDiscordDone', setMsg)}>
+            {t('legacy.bgDiscord')}
+          </a>
           <button className="btn ghost" onClick={doDownload}>{t('legacy.bgSaveFile')}</button>
         </div>
         {msg && <div className="bug-msg">{msg}</div>}
@@ -164,6 +177,13 @@ export default function BugReport() {
             {t('legacy.bgEmail')}
           </a>
           <button className="btn" onClick={() => { void doCopyIdea() }}>{t('legacy.bgCopy')}</button>
+          <a className="btn" href={COMMUNITY_URL} target="_blank" rel="noopener noreferrer"
+            onClick={e => {
+              if (!idea.trim()) { e.preventDefault(); setIdeaMsg(t('legacy.bgIdeaEmpty')); return }
+              copyFor(ideaBody, 'legacy.bgIdeaDiscordDone', setIdeaMsg)
+            }}>
+            {t('legacy.bgDiscord')}
+          </a>
         </div>
         {ideaMsg && <div className="bug-msg">{ideaMsg}</div>}
         <div className="muted" style={{ fontSize: 12, marginTop: 10 }}>
