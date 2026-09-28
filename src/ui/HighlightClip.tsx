@@ -50,8 +50,9 @@ import { kitGap } from './kit'
  *   scored, so the clip plays that: an intercept run from halfway, a maul
  *   driven over from a lineout, a chip and regather, a grubber, a crossfield
  *   kick to the wing, a charge-down pounced on.
- *   "CAN THEY MAKE IT?" is over the pitch while the finish is on, and the
- *   try is only called when the ball is down.
+ *   THE TRY IS ONLY CALLED WHEN THE BALL IS DOWN. Nothing else is written
+ *   over the pitch: the "Can they make it?" and maul captions were taken off
+ *   at the owner's request (1.8.0).
  *   AN ATTACK THAT DID NOT SCORE ends as it did: the full-back's last-gasp
  *   tackle, or the ball turned over.
  *   THE LAST TEN MINUTES OF A CLOSE MATCH bring the pitch on in Key Moments
@@ -77,12 +78,13 @@ export interface ClipSpec {
   reviewLine?: number
   reviewLabel?: string
   kickGood?: boolean
+  /** a drop goal, made or missed (1.8.0): struck in open play with the
+   *  defence rushing him, not a place kick with them behind the posts */
+  drop?: boolean
   /** tacklers the finisher beats on his way (the commentary says how many) */
   misses: number
   /** how an attack that did not score ends */
   ending?: 'saved' | 'turnover'
-  /** over the pitch while the finish is on */
-  caption?: string
   label: string
   sub?: string
   att: [string, string]
@@ -91,7 +93,7 @@ export interface ClipSpec {
 
 export interface ClipLabels {
   try: string; review: string; notry: string; good: string; wide: string
-  chase: string; maul: string; turnover: string; saved: string
+  turnover: string; saved: string
 }
 
 // ---------------------------------------------------------------- building
@@ -99,6 +101,9 @@ export interface ClipLabels {
 const STOP = new Set<MatchEvent['type']>(['TRY', 'CON', 'PEN', 'DG', 'HT', 'BRK', 'FT', 'KO', 'YC', 'RC', 'INJ'])
 const isKick = (e: MatchEvent) =>
   e.type === 'PEN' || e.type === 'DG' || e.type === 'CON' || e.k === 'comm.penWide' || e.k === 'comm.penWideNamed' || e.k === 'comm.conWide'
+  // a drop goal that misses is a kick at goal too (1.8.0): late in a close
+  // game it comes on in Key Moments like the one that goes over
+  || /^comm\.dropMiss\d/.test(e.k ?? '')
 const isTryMoment = (e: MatchEvent) => e.type === 'TRY' || e.fx === 'NOTRY'
 
 /** a stable 0..1 from a number, so a clip replays identically */
@@ -108,7 +113,12 @@ const hash = (n: number) => { const s = Math.sin(n * 12.9898 + 78.233) * 43758.5
 const STYLE: Record<string, ClipStyle> = {
   'comm.try4': 'maul', 'comm.tryPackDrive': 'maul', 'comm.tryMaulRumbles': 'maul', 'comm.tryWet5': 'maul',
   'comm.try13': 'intercept', 'comm.try14': 'chip', 'comm.try8': 'grubber', 'comm.tryWet1': 'grubber',
-  'comm.tryWet2': 'charge', 'comm.try2': 'crossfield',
+  'comm.try2': 'crossfield',
+  // a charge-down called by the engine (matchEngine chargeDown, 1.8.0): the
+  // kick is blocked and the side that blocked it scores
+  'comm.tryCharge1': 'charge', 'comm.tryCharge2': 'charge', 'comm.tryCharge3': 'charge', 'comm.tryCharge4': 'charge',
+  // the greasy ball squirting loose close in, pounced on after the phases
+  'comm.tryWet2': 'phases',
   'comm.try1': 'phases', 'comm.try7': 'phases', 'comm.try10': 'phases', 'comm.try15': 'phases', 'comm.try18': 'phases',
   'comm.try20': 'phases', 'comm.try23': 'phases', 'comm.try25': 'phases',
   'comm.try3': 'overlap', 'comm.try5': 'overlap', 'comm.try6': 'overlap', 'comm.try9': 'overlap', 'comm.try11': 'overlap',
@@ -120,6 +130,11 @@ const STYLE: Record<string, ClipStyle> = {
 const MISSES: Record<string, number> = {
   'comm.try18': 3, 'comm.try11': 1, 'comm.try21': 1, 'comm.try3': 1, 'comm.try5': 1, 'comm.try16': 0, 'comm.try19': 0,
 }
+/** lines that are not a side carrying the ball (1.8.0): the defence, a kick,
+ *  a set piece, a restart, the state of the game. A side's tackle in its own
+ *  22 reads, by field position, like that side "in the 22", and is not an
+ *  attack worth a clip */
+const NOT_A_CARRY = /^comm\.(def|kick|restart|terr|late|charge|scrum|lineout|pbpRuck|pbpPhases|pbpWet|dropMiss)/
 /** an attack in the 22 that ends with the ball lost */
 const LOST = new Set(['comm.maulHeldUp', 'comm.howler3', 'comm.howler5'])
 
@@ -131,6 +146,23 @@ export type HighlightLevel = 'key' | 'extended'
 export function lateAndClose(events: MatchEvent[], i: number): boolean {
   const e = events[i], before = events[i - 1] ?? e
   return !!e && e.min >= 70 && Math.abs(before.homeScore - before.awayScore) <= 7
+}
+
+/**
+ * The side's own last line before line i. With both sides called every tick
+ * (1.8.0, a hundred-odd lines a match) the line just before is as often the
+ * other side's as this one's, and "the line before was not in the 22" read
+ * every such alternation as a fresh entry: extended highlights went from under
+ * one attack clip a match to eight or nine. Looking back to this side's own
+ * last line asks the question that was meant - was THIS side already there.
+ */
+export function lastOwnLine(events: MatchEvent[], i: number): MatchEvent | undefined {
+  const e = events[i]
+  for (let k = i - 1; k >= Math.max(0, i - 12); k--) {
+    const b = events[k]
+    if (b.teamId === e.teamId && b.fld != null) return b
+  }
+  return undefined
 }
 
 /** Is line i a moment the pitch comes on for, at this level? */
@@ -149,10 +181,10 @@ export function momentAt(events: MatchEvent[], i: number, homeId: string, level:
   // (the try's own clip will show those carries)
   if (e.fld != null && e.teamId) {
     const up = (f: number) => e.teamId === homeId ? f : 100 - f
-    const prev = events[i - 1]
-    const was = prev?.fld != null && prev.teamId === e.teamId ? up(prev.fld) : 0
+    const prev = lastOwnLine(events, i)
+    const was = prev?.fld != null ? up(prev.fld) : 0
     const soon = events.slice(i + 1, i + 3).some(isTryMoment)
-    if (up(e.fld) >= 78 && was < 78 && !soon && !STOP.has(e.type)) return 'attack'
+    if (up(e.fld) >= 78 && was < 78 && !soon && !STOP.has(e.type) && !NOT_A_CARRY.test(e.k ?? '')) return 'attack'
   }
   return null
 }
@@ -196,11 +228,12 @@ export function buildClip(events: MatchEvent[], m: number, kind: ClipKind, homeI
 
   if (kind === 'kick') {
     const good = e.type === 'PEN' || e.type === 'DG' || e.type === 'CON'
-    const u = e.type === 'CON' ? 85 : Math.max(58, Math.min(90, up(e.fld ?? 72)))
+    const drop = e.type === 'DG' || /^comm\.dropMiss\d/.test(e.k ?? '')
+    const u = e.type === 'CON' ? 85 : Math.max(58, Math.min(drop ? 80 : 90, up(e.fld ?? 72)))
     const y = e.type === 'CON' ? 12 + hash(m) * 46 : 16 + hash(m) * 38
     return {
       kind, style: 'phases', attackHome, beats: [], finish: { x: toX(u), y, carrier: shirtOf(e.playerId) ?? 10 }, endLine: m,
-      kickGood: good, label: good ? labels.good : labels.wide, att, def, misses: 0,
+      kickGood: good, drop, label: good ? labels.good : labels.wide, att, def, misses: 0,
       sub: nameOf(e.playerId),
     }
   }
@@ -222,10 +255,16 @@ export function buildClip(events: MatchEvent[], m: number, kind: ClipKind, homeI
   // positions: the engine's own for each line, pushed so the play only ever
   // goes forward, and started far enough out for the finish to be a run (or,
   // for a kick through, close enough for the kick to be one)
-  let u = Math.min(endU - 16, Math.max(kicked ? 70 : style === 'overlap' ? 55 : 40, from.length ? up(events[from[0]].fld ?? 60) : 60))
+  const steps = Math.max(2, from.length)
+  // AND NO FURTHER OUT THAN THE CLIP HAS TIME FOR (1.8.0). With both sides
+  // called every tick the lines before a try are often the same tick's, all
+  // at one spot far out, and three phases from 40 m then a run from halfway
+  // ran to 17 s. The last ruck is within about 38 m of the line, and 26 m
+  // when the TMO's look (3.6 s after the grounding) is to come as well.
+  const reach38 = endU - (review >= 0 ? 26 : 38) - 3 * steps
+  let u = Math.min(endU - 16, Math.max(kicked ? 70 : style === 'overlap' ? 55 : 40, reach38, from.length ? up(events[from[0]].fld ?? 60) : 60))
   let y = 18 + hash(m * 3) * 34
   const beats: ClipSpec['beats'] = []
-  const steps = Math.max(2, from.length)
   for (let i = 0; i < steps; i++) {
     const line = from[i] ?? -1
     const want = line >= 0 && events[line].fld != null ? up(events[line].fld!) : u + 6
@@ -252,7 +291,11 @@ export function buildClip(events: MatchEvent[], m: number, kind: ClipKind, homeI
   let ending: ClipSpec['ending']
   if (kind === 'attack') {
     const after = events.slice(m + 1, m + 4)
-    const lost = after.some(a => a.k && LOST.has(a.k)) || after.some(a => a.teamId && a.teamId !== e.teamId && !STOP.has(a.type))
+    // the ball is lost when the next lines say so, or when the other side's
+    // next line has them carrying it; their tackle or a word about the
+    // defence (NOT_A_CARRY) is the attack being stopped, not the ball lost
+    const lost = after.some(a => a.k && LOST.has(a.k))
+      || after.some(a => a.teamId && a.teamId !== e.teamId && !STOP.has(a.type) && !NOT_A_CARRY.test(a.k ?? ''))
     ending = lost ? 'turnover' : 'saved'
   }
   return {
@@ -263,7 +306,6 @@ export function buildClip(events: MatchEvent[], m: number, kind: ClipKind, homeI
     reviewLabel: labels.review,
     misses: kind === 'attack' ? 0 : e.k && e.k in MISSES ? MISSES[e.k] : hash(m * 17) < 0.4 ? 1 : 0,
     ending,
-    caption: style === 'maul' ? labels.maul : labels.chase,
     label: kind === 'try' ? labels.try : kind === 'review' ? labels.review : kind === 'notry' ? labels.notry
       : ending === 'turnover' ? labels.turnover : ending === 'saved' ? labels.saved : '',
     sub: kind === 'attack' ? undefined : nameOf(e.playerId),
@@ -277,8 +319,6 @@ type Pt = { x: number; y: number }
 export interface Timeline {
   reveals: { t: number; line: number }[]
   land: number; end: number; banner: number
-  /** when "Can they make it?" is up */
-  caption?: [number, number]
   /** the finisher's run, and the defenders allowed to touch him in it */
   run?: [number, number]
   contact: number[]
@@ -366,7 +406,7 @@ class Body {
     const v = Math.hypot(this.vx, this.vy)
     if (v > vmax) { this.vx *= vmax / v; this.vy *= vmax / v }
     // never over the touchline or the dead-ball line, however hard the turn
-    this.x = clamp(this.x + this.vx * DT, -PAD + 0.5, 100 + PAD - 0.5)
+    this.x = clamp(this.x + this.vx * DT, -PAD + 1.4, 100 + PAD - 1.4)
     this.y = clamp(this.y + this.vy * DT, 0.4, 69.6)
   }
   /** put it exactly here (the ball carrier on his line), keeping the velocity honest */
@@ -410,22 +450,34 @@ function bake(c: ClipSpec): Baked {
   const d = c.attackHome ? 1 : -1
   const U = (u: number) => c.attackHome ? u : 100 - u
   const uOf = (x: number) => c.attackHome ? x : 100 - x
-  const fieldX = (x: number) => clamp(x, -PAD + 1, 100 + PAD - 1)
+  // a man's whole dot inside the dead-ball line, not only his middle
+  const fieldX = (x: number) => clamp(x, -PAD + 1.4, 100 + PAD - 1.4)
   const fieldY = (y: number) => clamp(y, 1, 69)
   const reveals: { t: number; line: number }[] = []
   const contact: number[] = []
   let land = 0, banner = 0, end = 0
-  let caption: [number, number] | undefined, run: [number, number] | undefined
+  let run: [number, number] | undefined
 
   // ---- the shapes: dir is the way the side with the ball is going
+  // IN-GOAL ONLY WHEN THE PLAY IS THERE (owner, 1.8.0: the full-back stood
+  // past the dead-ball line). `dir` points at the line the side is defending;
+  // nobody stands behind it until the ball is within eight metres of it, and
+  // then no more than two and a half metres back.
+  const ownLine = (x: number, b: Pt, dir: number) => {
+    const line = dir > 0 ? 100 : 0
+    const room = (line - b.x) * dir < 8 ? 2.5 : 0
+    return dir > 0 ? Math.min(x, line + room) : Math.max(x, line - room)
+  }
   const shapeAtt = (i: number, b: Pt, dir: number): Pt => {
     const [back, across, open] = ATT[i]
-    return { x: fieldX(b.x - dir * back), y: fieldY(b.y + (open ? backAcross(i, across, b.y) : across)) }
+    // the side with the ball stays out of its own in-goal too (a clearance
+    // from their 22 stood their full-back five metres behind his line)
+    return { x: fieldX(ownLine(b.x - dir * back, b, -dir)), y: fieldY(b.y + (open ? backAcross(i, across, b.y) : across)) }
   }
   const shapeDef = (i: number, b: Pt, dir: number): Pt => {
-    if (i === 14) return { x: fieldX(b.x + dir * 22), y: fieldY(35 + (b.y - 35) * 0.4) }
+    if (i === 14) return { x: fieldX(ownLine(b.x + dir * 22, b, dir)), y: fieldY(35 + (b.y - 35) * 0.4) }
     const [ahead, across] = DEF[i]
-    return { x: fieldX(b.x + dir * ahead), y: fieldY(b.y + across) }
+    return { x: fieldX(ownLine(b.x + dir * ahead, b, dir)), y: fieldY(b.y + across) }
   }
 
   // ---- the bodies
@@ -437,19 +489,29 @@ function bake(c: ClipSpec): Baked {
   ball.x = start.x; ball.y = start.y
   // who has the ball at the start: the defence, for an intercept or a charge-down
   const theirs = c.style === 'intercept' || c.style === 'charge'
+  // a drop goal: struck from the pocket seven metres behind the last ruck,
+  // the attack's shape on that ruck and the defence set in front of it,
+  // coming up hard at him
+  const ruckAt: Pt = { x: fieldX(c.finish.x + d * 7), y: c.finish.y }
+  const dropAt = (i: number, rush: number): Pt => { const q = shapeDef(i, ruckAt, d); return { x: fieldX(q.x + d * rush), y: q.y } }
   const att = Array.from({ length: 15 }, (_, i) => {
-    const p = c.kind === 'kick' ? { x: fieldX(c.finish.x - d * (8 + (i % 5) * 2.5)), y: fieldY(10 + i * 3.6) }
+    const p = c.kind === 'kick' && c.drop ? shapeAtt(i, ruckAt, d)
+      : c.kind === 'kick' ? { x: fieldX(c.finish.x - d * (8 + (i % 5) * 2.5)), y: fieldY(10 + i * 3.6) }
       : theirs ? shapeDef(i, start, -d) : shapeAtt(i, start, d)
     return new Body(p.x, p.y)
   })
   const def = Array.from({ length: 15 }, (_, i) => {
-    const p = c.kind === 'kick' ? { x: fieldX((c.attackHome ? 100 : 0) + d * 3), y: fieldY(22 + (i % 8) * 3.6) }
+    const p = c.kind === 'kick' && c.drop ? dropAt(i, 2)
+      : c.kind === 'kick' ? { x: fieldX((c.attackHome ? 100 : 0) + d * 3), y: fieldY(22 + (i % 8) * 3.6) }
       : theirs ? shapeAtt(i, start, -d) : shapeDef(i, start, d)
     return new Body(p.x, p.y)
   })
   // THE REFEREE, a few metres behind the play on the open side
   const refSpot = (): Pt => c.kind === 'kick'
     ? { x: fieldX((c.attackHome ? 100 : 0) - d * 4), y: 45 }
+    // a charge-down: he follows the ball in from the field side, to see it
+    // grounded, rather than waiting on the dead-ball line
+    : c.style === 'charge' ? { x: fieldX(ownLine(ball.x - d * 6, ball, d)), y: fieldY(ball.y + (ball.y < 35 ? 8 : -8)) }
     : { x: fieldX(ball.x - (theirs ? -d : d) * 7), y: fieldY(ball.y + (ball.y < 35 ? 8 : -8)) }
   const ref = new Body(refSpot().x, refSpot().y)
   let carrier = -1   // 0..14 the attack, 15..29 the defence
@@ -511,7 +573,7 @@ function bake(c: ClipSpec): Baked {
       return a
     }
     return {
-      tl: { reveals, land, banner, end, caption, run, contact }, n,
+      tl: { reveals, land, banner, end, run, contact }, n,
       ball: pack('ball', 3), att: pack('att', 30), def: pack('def', 30), ref: pack('ref', 2), carry: pack('carry', 30), down: pack('down', 30),
     }
   }
@@ -544,9 +606,12 @@ function bake(c: ClipSpec): Baked {
       carrier = t < 0.9 ? kicker : -1
       for (let i = 0; i < 15; i++) {
         if (i === kicker) { const kx = t < 0.9 ? c.finish.x - d * 1.2 : c.finish.x + d * 2; att[i].steer(kx, c.finish.y, 6, 10) }
+        else if (c.drop) { const p = shapeAtt(i, ruckAt, d); att[i].steer(p.x, p.y, 3, A_PLAYER) }
         else { const p = { x: fieldX(c.finish.x - d * (8 + (i % 5) * 2.5)), y: fieldY(10 + i * 3.6) }; att[i].steer(p.x, p.y, V_PLAYER, A_PLAYER) }
-        const q = { x: fieldX((c.attackHome ? 100 : 0) + d * 3), y: fieldY(22 + (i % 8) * 3.6) }
-        def[i].steer(q.x, q.y, V_PLAYER, A_PLAYER)
+        // a drop goal: they come up hard until it is struck, then turn to watch
+        const q = c.drop ? dropAt(i, t < 0.9 ? -2 : 0)
+          : { x: fieldX((c.attackHome ? 100 : 0) + d * 3), y: fieldY(22 + (i % 8) * 3.6) }
+        def[i].steer(q.x, q.y, c.drop ? (t < 0.9 ? 7 : 2) : V_PLAYER, A_PLAYER)
       }
     })
   }
@@ -600,12 +665,15 @@ function bake(c: ClipSpec): Baked {
         const k = smooth((t - CATCH) / (BOUND - CATCH))
         ball.x = lerp(jumper.x, back.x, k); ball.y = lerp(jumper.y, back.y, k); ball.lift = lerp(1.2, 0.4, k)
         carrier = t < BOUND ? 3 : scorer
-        if (land <= 0 && uOf(ball.x) >= 101.2) { grounded(t); caption = [BOUND, land] }
+        if (land <= 0 && uOf(ball.x) >= 101.2) grounded(t)
         if (land > 0) ball.lift = 0
       }
       for (let i = 0; i < 8; i++) {
         att[i].touch = def[i].touch = t > CATCH
-        if (i === carrier) { att[i].hold(ball.x - d * 0.4, ball.y); continue }
+        // the hooker stands on his mark until the throw (holding him a step
+        // behind a ball that sat on him walked him seven metres back from
+        // the touchline before it went in)
+        if (i === carrier) { if (t >= THROW) att[i].hold(ball.x - d * 0.4, ball.y); else att[i].place(att[i].x, att[i].y); continue }
         const a = t < CATCH ? { x: att[i].x, y: att[i].y } : i === scorer ? { x: ball.x - d * 0.4, y: ball.y } : slot(ATTS[order.indexOf(i)], i)
         const q = t < CATCH ? { x: def[i].x, y: def[i].y } : slot(DEFS[i], i + 9)
         att[i].steer(a.x, a.y, V_PLAYER, A_PLAYER); def[i].steer(q.x, q.y, V_PLAYER, A_PLAYER)
@@ -670,7 +738,7 @@ function bake(c: ClipSpec): Baked {
           const near = (bs: Body[]) => bs.map((b, i) => ({ i, dd: Math.hypot(b.x - go.x, b.y - go.y) })).sort((a, b) => a.dd - b.dd).map(r => r.i)
           hunt = new Set(near(def).filter(i => !beaten.some(x => x.i === i)).slice(0, 4))
           back = new Set(near(att).filter(i => i !== who).slice(0, 2))
-          run = [caught, caught + T]; caption = [caught, caught + T]
+          run = [caught, caught + T]
           grounded(caught + T)
         }
       }
@@ -712,51 +780,90 @@ function bake(c: ClipSpec): Baked {
 
   // =========================================================== a charge-down
   // Owner: "kicks can be charged down and the other team can turn over and
-  // score". Their clearance from their own 22 is blocked and the ball is
-  // pounced on behind their line.
+  // score"; and in 1.8.0, with the engine now calling charge-downs, the clip
+  // shows the kick, the block, the bounce and the score. Their fly-half stands deep
+  // to clear from his own 22; the charger comes off the line as the pass goes,
+  // meets the ball on the boot, and it cannons back over their line, bouncing,
+  // with him after it. The block is the moment the engine's charge-down line
+  // is read out, so the words land on the picture.
   if (c.style === 'charge') {
     const kicker = 9, chargerI = clamp(c.finish.carrier, 1, 15) - 1
-    const setUp = { x: fieldX(U(96)), y: ball.y }
-    const PASS = 0.5, KICK = 1.35
+    // the fly-half stands deep and to the charger's side of the ruck, so the
+    // charger's run at him is not through the ruck
+    const side = Math.sign(att[chargerI].y - ball.y) || 1
+    const setUp = { x: fieldX(U(96)), y: fieldY(ball.y + side * 5) }
+    const PASS = 0.5, KICK = 1.4, HIT = 0.1, T = 1.15
     const spot = { x: fieldX(U(102.2)), y: fieldY(ball.y + (ball.y < 35 ? 3 : -3)) }
-    let from: Pt = { ...ball }
-    readOut(0.1, 0.4)
+    let from: Pt = { ...ball }, block: Pt = { ...ball }
+    // the build-up read out over the ruck, and the charge-down line itself
+    // (the last of them) as the ball hits him
+    c.beats.forEach((bt, j) => {
+      if (bt.line < 0) return
+      reveals.push({ t: j === c.beats.length - 1 && c.beats.length > 1 ? KICK + HIT : 0.1 + j * 0.4, line: bt.line })
+    })
+    // who races for the loose ball: picked at the block, the nearest to it
+    let follow = new Set<number>(), chase = new Set<number>()
+    const nearest = (bs: Body[], p: Pt, skip: number, n: number) => new Set(bs.map((q, i) => ({ i, dd: Math.hypot(q.x - p.x, q.y - p.y) }))
+      .filter(r => r.i !== skip).sort((x, y) => x.dd - y.dd).slice(0, n).map(r => r.i))
     return record(endAfter, (t) => {
+      if (t >= KICK && !follow.size) { follow = nearest(att, block, chargerI, 3); chase = nearest(def, block, kicker, 3) }
       if (t < PASS) { carrier = -1 }
-      else if (t < KICK - 0.3) {
-        const k = smooth((t - PASS) / 0.4), r = def[kicker]
+      else if (t < KICK - 0.35) {
+        const k = smooth((t - PASS) / 0.45), r = def[kicker]
         ball.x = lerp(start.x, r.x, k); ball.y = lerp(start.y, r.y, k); ball.lift = Math.sin(Math.PI * k) * 0.6
         carrier = k >= 1 ? 15 + kicker : -1
       } else if (t < KICK) {
-        ball.x = def[kicker].x; ball.y = def[kicker].y; ball.lift = 0.3; carrier = 15 + kicker
+        // in his hands, dropping it onto the boot
+        ball.x = def[kicker].x; ball.y = def[kicker].y; ball.lift = 0.3 * (KICK - t) / 0.35 + 0.2; carrier = 15 + kicker
         from = { x: ball.x, y: ball.y }
-      } else {
-        // off the boot, straight into him, and bouncing back over the line
+        block = { x: fieldX(from.x - d * 1.3), y: from.y }
+      } else if (t < KICK + HIT) {
+        // off the boot and straight into him
         carrier = -1
-        const T = 1.1, k = clamp((t - KICK) / T, 0, 1), e = 1 - (1 - k) * (1 - k)
-        ball.x = lerp(from.x, spot.x, e); ball.y = lerp(from.y, spot.y, e)
-        ball.lift = Math.abs(Math.sin(k * Math.PI * 2.5)) * 1.1 * (1 - k)
-        if (!land) { grounded(KICK + T); caption = [KICK, land]; run = [KICK, land] }
+        const k = (t - KICK) / HIT
+        ball.x = lerp(from.x, block.x, k); ball.y = lerp(from.y, block.y, k); ball.lift = 0.4 + k * 0.8
+      } else {
+        // and back the way it came, bouncing over their line
+        carrier = -1
+        const k = clamp((t - KICK - HIT) / T, 0, 1), e = 1 - (1 - k) * (1 - k)
+        ball.x = lerp(block.x, spot.x, e); ball.y = lerp(block.y, spot.y, e)
+        ball.lift = Math.abs(Math.sin(k * Math.PI * 3)) * 1.4 * (1 - k)
+        if (!land) { grounded(KICK + HIT + T); run = [KICK, land] }
         if (t >= land) { carrier = chargerI; ball.lift = 0 }
       }
       for (let i = 0; i < 15; i++) {
         if (i === chargerI) {
-          if (t >= land && land > 0) att[i].hold(spot.x - d * 0.4, spot.y)
-          else {
-            const tgt = t < KICK ? { x: def[kicker].x - d * 1.0, y: def[kicker].y } : { x: ball.x - d * 0.5, y: ball.y }
-            att[i].touch = true; att[i].steer(tgt.x, tgt.y, V_PLAYER, A_PLAYER)
-          }
+          att[i].touch = true
+          if (land > 0 && t >= land) att[i].hold(spot.x - d * 0.4, spot.y)
+          else if (t < KICK) {
+            // off the line as the pass goes, at the kicker
+            const go = t > 0.15
+            const tgt = go ? { x: def[kicker].x - d * 1.4, y: def[kicker].y } : shapeDef(i, start, -d)
+            att[i].steer(tgt.x, tgt.y, V_PLAYER, A_PLAYER + 4)
+          } else att[i].steer(ball.x - d * 0.5, ball.y, V_PLAYER, A_PLAYER + 4)
         } else {
-          const a = t < KICK ? shapeDef(i, ball, -d) : trail(att[chargerI], i, d, 9)
-          att[i].steer(a.x, a.y, V_PLAYER, A_PLAYER)
+          // after the block: the nearest few race in behind him, the rest
+          // come up at a jog
+          // (their shape is set on the ruck, not on the kicker, so the man
+          // standing deep to kick is on his own and the charger's run is clear)
+          const a: Pt & { vmax?: number } = t < KICK ? shapeDef(i, start, -d)
+            : follow.has(i) ? trail(att[chargerI], i, d, 9)
+            : { x: fieldX(lerp(att[i].x, ball.x - d * (12 + (i % 5) * 3), 0.5)), y: att[i].y, vmax: 4 }
+          att[i].steer(a.x, a.y, a.vmax ?? V_PLAYER, A_PLAYER)
         }
         if (i === kicker) {
           def[i].touch = true
-          const tgt = t < KICK ? setUp : { x: def[i].x + d * 0.5, y: def[i].y }
-          def[i].steer(tgt.x, tgt.y, t < KICK ? V_PLAYER : 5, A_PLAYER)
+          // set deep for the clearance, knocked back a step by the block, then
+          // turning to chase a ball he will not reach
+          const tgt = t < KICK ? setUp : t < KICK + 0.5 ? { x: def[i].x + d * 0.6, y: def[i].y } : { x: ball.x, y: ball.y + 1.5 }
+          def[i].steer(tgt.x, tgt.y, t < KICK ? V_PLAYER : t < KICK + 0.5 ? 3 : 6.5, A_PLAYER)
         } else {
-          const q = t < KICK ? shapeAtt(i, ball, -d) : trail(att[chargerI], i + 2, -d, 7.5)
-          def[i].steer(q.x, q.y, V_PLAYER, A_PLAYER)
+          // the kicking side turns and chases from the field side, never from
+          // behind its own dead-ball line (they all stood in-goal before)
+          const q: Pt & { vmax?: number } = t < KICK ? shapeAtt(i, start, -d)
+            : chase.has(i) ? trail(att[chargerI], i + 2, d, 7.5)
+            : { x: fieldX(ownLine(def[i].x + d * 2, ball, d)), y: def[i].y, vmax: 3.5 }
+          def[i].steer(q.x, q.y, q.vmax ?? V_PLAYER, A_PLAYER)
         }
       }
     })
@@ -865,6 +972,10 @@ function bake(c: ClipSpec): Baked {
         return
       }
       const scoring = ph.end === 'score' || ph.end === 'held'
+      // a finisher who took the last pass on the far side of the field goes
+      // in on his own side of it, not forty metres across the in-goal (that
+      // run ran a clip past sixteen seconds)
+      if (scoring && Math.abs(ph.to.y - ph.from.y) > 22) ph.to = { x: ph.to.x, y: fieldY(ph.from.y + Math.sign(ph.to.y - ph.from.y) * 22) }
       if (scoring) {
         // THROUGH THE GAP: his line bends through the widest one; the line
         // stands where it was (wrong-footed) until he is past, then turns and
@@ -891,7 +1002,7 @@ function bake(c: ClipSpec): Baked {
       ph.ta = 0.4
       ph.dur = Math.max(0.9, dist / pace + ph.ta)
       if (ph.line >= 0) reveals.push({ t, line: ph.line })
-      if (scoring) { land = t + ph.dur; run = [t, land]; if (!caption) caption = [t, land] }
+      if (scoring) { land = t + ph.dur; run = [t, land] }
     } else if (ph.k === 'kick') {
       ph.from = { x: ball.x, y: ball.y }
       const dist = Math.hypot(ph.to.x - ball.x, ph.to.y - ball.y)
@@ -899,7 +1010,6 @@ function bake(c: ClipSpec): Baked {
       const ch = att[ph.chaser - 1]
       const need = Math.hypot(ph.to.x - ch.x, ph.to.y - ch.y) / 9 + 0.45
       ph.dur = Math.max(ph.dur, ph.low ? dist / 16 : dist / 20, need, 0.9)
-      caption = [t, t + ph.dur]
       if (c.style === 'grubber') { land = t + ph.dur; run = [t, land] }
     }
   }
@@ -991,7 +1101,7 @@ function bake(c: ClipSpec): Baked {
           : { x: ball.x - d * (10 + (i % 5) * 3), y: lerp(def[i].y, ball.y, 0.3) }
         vmax = ahead ? 3 : hunt ? 9 : 5.5
       } else if (ph.k === 'kick' && c.style === 'chip') {
-        tgt = { x: def[i].x + d * 0.6, y: def[i].y }; vmax = 4
+        tgt = { x: ownLine(def[i].x + d * 0.6, ball, d), y: def[i].y }; vmax = 4
       } else if (finishK > 0 && c.kind !== 'attack') {
         const chase = { x: ball.x - d * (2 + (i % 5)), y: ball.y + ((i % 3) - 1) * 3 }
         tgt = { x: lerp(tgt.x, chase.x, finishK * 0.8), y: lerp(tgt.y, chase.y, finishK * 0.8) }
@@ -1021,7 +1131,7 @@ function bake(c: ClipSpec): Baked {
   end = endOf()
   banner = c.reviewLine != null ? land + 2.0 : c.ending === 'turnover' ? land + 0.7 : land + 0.05
   if (c.reviewLine != null) reveals.push({ t: land, line: c.reviewLine })
-  baked.tl = { reveals, land, banner, end, caption, run, contact }
+  baked.tl = { reveals, land, banner, end, run, contact }
   return baked
 }
 
@@ -1070,7 +1180,8 @@ export function HighlightClip({ spec, speed = 1, paused, onReveal, onDone }: {
 }) {
   const canvas = useRef<HTMLCanvasElement>(null)
   const [banner, setBanner] = useState<'review' | 'final' | null>(null)
-  const [captionOn, setCaptionOn] = useState(false)
+  // the ball is down: the try is only called from here (hlliveprobe reads it)
+  const [down, setDown] = useState(false)
   const pausedRef = useRef(!!paused)
   pausedRef.current = !!paused
   const cb = useRef({ onReveal, onDone })
@@ -1080,14 +1191,10 @@ export function HighlightClip({ spec, speed = 1, paused, onReveal, onDone }: {
     const cv = canvas.current
     if (!cv) return
     const tl = bakeOf(spec).tl
-    let raf = 0, clock = 0, lastNow = performance.now(), revealed = 0, landed = false, finished = false, reviewing = false, capShown = false
+    let raf = 0, clock = 0, lastNow = performance.now(), revealed = 0, landed = false, finished = false, reviewing = false, isDown = false
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
     const ink = readInk()
-    // the referee wears whatever neither side does: of the colours referees
-    // wear, the one furthest from both kits (Wellington are yellow)
-    const refKit = [ink.ref, '#e8559b', '#27c6d9', '#f4f4f4']
-      .map(c => ({ c, gap: Math.min(kitGap(c, spec.att[0]), kitGap(c, spec.def[0])) }))
-      .sort((a, b) => b.gap - a.gap)[0].c
+    const refKit = refereeColour([...spec.att, ...spec.def], [ink.refPink, ink.refOrange, ink.refCyan])
 
     // THE WHOLE PITCH, LOCKED: dead-ball line to dead-ball line, drawn once,
     // scaled to fit and centred
@@ -1118,8 +1225,7 @@ export function HighlightClip({ spec, speed = 1, paused, onReveal, onDone }: {
       const t = reduce ? Math.max(clock, tl.land) : clock
       // commentary in step with the picture
       while (revealed < tl.reveals.length && t >= tl.reveals[revealed].t) cb.current.onReveal(tl.reveals[revealed++].line)
-      const cap = !!tl.caption && t >= tl.caption[0] && t < tl.caption[1]
-      if (cap !== capShown) { capShown = cap; setCaptionOn(cap) }
+      if (!isDown && tl.land > 0 && t >= tl.land) { isDown = true; setDown(true) }
       if (spec.reviewLine != null && !reviewing && t >= tl.land) { reviewing = true; setBanner('review') }
       if (!landed && t >= tl.banner) { landed = true; cb.current.onReveal(spec.endLine); if (spec.label) setBanner('final') }
       draw(t)
@@ -1134,7 +1240,9 @@ export function HighlightClip({ spec, speed = 1, paused, onReveal, onDone }: {
       g.drawImage(field, Math.round(X(-PAD) * dim.dpr), Math.round(Y(0) * dim.dpr))
       g.setTransform(dim.dpr, 0, 0, dim.dpr, 0, 0)
       const f = frameAt(spec, t)
-      const R = Math.max(5.5, dim.sc * 1.1)
+      // the ball keeps its size; the men are a fifth bigger than they were
+      // (owner, 1.8.0), and their numbers with them
+      const R0 = Math.max(5.5, dim.sc * 1.1), R = R0 * 1.2
       const finishing = t > tl.land - 0.01
 
       const dot = (p: Pt, fill: string, edge: string, num: number, ring: boolean, down: boolean) => {
@@ -1152,16 +1260,18 @@ export function HighlightClip({ spec, speed = 1, paused, onReveal, onDone }: {
       for (let i = 0; i < 15; i++) dot(f.def[i], spec.def[0], spec.def[1], i + 1, f.carrying[15 + i] > 0.5, f.down[15 + i] > 0.5)
       for (let i = 0; i < 15; i++) dot(f.att[i], spec.att[0], spec.att[1], i + 1, f.carrying[i] > 0.5 && !finishing, f.down[i] > 0.5)
 
-      // the referee: a small square, so no kit is ever mistaken for his
-      const rx = X(f.ref.x), ry = Y(f.ref.y), rs = R * 0.75
-      g.fillStyle = 'rgba(0,0,0,.28)'; g.fillRect(rx - rs, ry - rs + 1, rs * 2, rs * 2)
-      g.fillStyle = refKit; g.fillRect(rx - rs, ry - rs, rs * 2, rs * 2)
-      g.lineWidth = 1.2; g.strokeStyle = ink.dark; g.strokeRect(rx - rs, ry - rs, rs * 2, rs * 2)
+      // THE REFEREE (owner, 1.8.0): a circle like everybody else, told apart
+      // by the colour neither side wears, no number, a little smaller, and a
+      // dark edge
+      const rx = X(f.ref.x), ry = Y(clamp(f.ref.y, 0.5, 69.5)), rs = R * 0.78
+      g.beginPath(); g.arc(rx, ry + 1, rs, 0, Math.PI * 2); g.fillStyle = 'rgba(0,0,0,.28)'; g.fill()
+      g.beginPath(); g.arc(rx, ry, rs, 0, Math.PI * 2); g.fillStyle = refKit; g.fill()
+      g.lineWidth = 2; g.strokeStyle = ink.dark; g.stroke()
 
       // the ball, lifted off its shadow in flight
       const bx = X(f.ball.x), by = Y(f.ball.y)
-      g.beginPath(); g.ellipse(bx, by + 2, R * 0.55, R * 0.3, 0, 0, Math.PI * 2); g.fillStyle = 'rgba(0,0,0,.35)'; g.fill()
-      g.beginPath(); g.ellipse(bx, by - f.lift * dim.sc * 0.6, R * 0.6, R * 0.42, -0.4, 0, Math.PI * 2)
+      g.beginPath(); g.ellipse(bx, by + 2, R0 * 0.55, R0 * 0.3, 0, 0, Math.PI * 2); g.fillStyle = 'rgba(0,0,0,.35)'; g.fill()
+      g.beginPath(); g.ellipse(bx, by - f.lift * dim.sc * 0.6, R0 * 0.6, R0 * 0.42, -0.4, 0, Math.PI * 2)
       g.fillStyle = ink.ball; g.fill(); g.lineWidth = 1; g.strokeStyle = ink.ballEdge; g.stroke()
     }
 
@@ -1171,9 +1281,8 @@ export function HighlightClip({ spec, speed = 1, paused, onReveal, onDone }: {
 
   const good = spec.kind === 'try' || (spec.kind === 'kick' && spec.kickGood)
   return (
-    <div className={`hl-clip ${spec.kind}`} data-testid="hl-clip">
+    <div className={`hl-clip ${spec.kind}`} data-testid="hl-clip" data-down={down ? '1' : '0'}>
       <canvas ref={canvas} className="hl-canvas" />
-      {captionOn && !banner && spec.caption && <div className="hl-caption">{spec.caption}</div>}
       {banner === 'review' && (
         <div className="hl-banner review"><b>{spec.reviewLabel}</b></div>
       )}
@@ -1186,6 +1295,24 @@ export function HighlightClip({ spec, speed = 1, paused, onReveal, onDone }: {
       )}
     </div>
   )
+}
+
+/**
+ * WHAT THE REFEREE WEARS (owner, 1.8.0): pink, orange when either side wears
+ * pink, cyan when the kits use pink and orange, and never a colour either
+ * side is wearing. A kit "wears" a colour when either of its two
+ * colours is within REF_NEAR of it by kitGap (the summed channel distance the
+ * away-kit rule uses), so a cerise or a coral counts as pink and a tangerine
+ * or a deep gold as orange. If even cyan is near a kit (a side in all three),
+ * he takes whichever of the three is furthest from every kit colour.
+ */
+const REF_NEAR = 150
+export function refereeColour(kits: string[], [pink, orange, cyan]: [string, string, string]): string {
+  const near = (c: string) => kits.some(k => kitGap(c, k) < REF_NEAR)
+  const pick = !near(pink) ? pink : !near(orange) ? orange : cyan
+  if (!near(pick)) return pick
+  return [pink, orange, cyan].map(c => ({ c, gap: Math.min(...kits.map(k => kitGap(c, k))) }))
+    .sort((a, b) => b.gap - a.gap)[0].c
 }
 
 /** is this a light colour, so the writing on it wants to be dark? */
@@ -1205,7 +1332,8 @@ function readInk() {
   return {
     surround: tokenColor('--hl-surround'), grassA: tokenColor('--hl-grass-a'), grassB: tokenColor('--hl-grass-b'),
     ball: tokenColor('--hl-ball'), ballEdge: tokenColor('--hl-ball-edge'),
-    white: tokenColor('--prop-ink'), dark: tokenColor('--prop-ink-dark'), ref: tokenColor('--hl-ref'),
+    white: tokenColor('--prop-ink'), dark: tokenColor('--prop-ink-dark'),
+    refPink: tokenColor('--hl-ref-pink'), refOrange: tokenColor('--hl-ref-orange'), refCyan: tokenColor('--hl-ref-cyan'),
   }
 }
 

@@ -447,12 +447,24 @@ const EXPECTED: string[] = [
   // moved, sale-bristol and harlequins-leicester.
   // and the scrum wins penalties (penWindow x scrumEdge, reciprocal): one
   // of six moved, exeter-gloucester. Bands after: 50.7 pts, 6.48 tries.
-  'saracens 27-30 bath',
-  'exeter 34-9 gloucester',
-  'sale 55-13 bristol',
-  'harlequins 43-20 leicester',
-  'newcastle 17-38 northampton',
-  'exeter 12-39 saracens',
+  // REBASELINED for kicks from hand and charge-downs (1.8.0). Every side now
+  // kicks from hand, counted on a stream of their own that is seeded by one
+  // new draw at kick-off, and one kick in forty is charged down (half of them
+  // a try for the side that blocked it, the rest on rng like any other event);
+  // the drop goal is struck only from their half and more often late in a
+  // close game; TRY_BASE 0.0930 -> 0.0843 so the tries off blocked kicks
+  // (about 0.4 a match) come out of the scoring roll rather than on top of
+  // it. A new draw at kick-off moves everything after it, so all six moved. The
+  // hundred-odd new commentary lines draw only from crng and moved nothing
+  // (detailprobe 120/120). bandcheck, pooled over four seeds:
+  //   pts 50.7 -> 51.0   tries 6.48 -> 6.52   home 51.7% -> 51.3%
+  //   draws 2.1% -> 1.7%   blowouts 8.1% -> 8.4% (every band holds)
+  'saracens 18-47 bath',
+  'exeter 43-18 gloucester',
+  'sale 6-38 bristol',
+  'harlequins 51-12 leicester',
+  'newcastle 13-39 northampton',
+  'exeter 21-46 saracens',
 ]
 // v1.8.1 moved three of them once more, and this time WITHOUT spending a new
 // draw: the training pitch now scales every side's breakdown and handling off

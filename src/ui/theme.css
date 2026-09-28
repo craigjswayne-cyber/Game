@@ -4617,16 +4617,6 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .hl-banner.review, .hl-banner.notry { background: rgba(10, 14, 12, .9); color: var(--gold-fill); }
 .hl-banner.miss { color: var(--hl-miss); }
 @keyframes hl-banner { from { opacity: 0; transform: translate(-50%, 10px) scale(.9); } }
-/* "Can they make it?" over the pitch while the finish is on */
-.hl-caption {
-  position: absolute; left: 50%; top: 8px; transform: translateX(-50%);
-  padding: 3px 12px; border-radius: 999px; white-space: nowrap;
-  background: rgba(10, 14, 12, .78); color: var(--prop-ink);
-  font-family: var(--cond); font-weight: 700; font-size: 13px; letter-spacing: .5px;
-  animation: hl-cap .3s ease-out both;
-}
-@keyframes hl-cap { from { opacity: 0; transform: translate(-50%, -4px); } }
-@media (prefers-reduced-motion: reduce) { .hl-caption { animation: none; } }
 
 .live-stats {
   margin: 8px 10px 0; padding: 6px 12px 8px; border-radius: 12px;
