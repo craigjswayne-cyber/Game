@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../../store'
-import { deleteSave, listSaves, loadGame, migrate, saveGame, type SaveMeta } from '../../game/save'
+import { deleteSave, isPlayable, listSaves, loadGame, migrate, saveGame, type SaveMeta } from '../../game/save'
 import { seasonLabel, weekDate, type GameState } from '../../game/model'
 import { SectionTitle } from '../components'
 import { t, localeTag } from '../../game/i18n'
@@ -113,6 +113,16 @@ export default function Saves() {
         return
       }
       const g = migrate(raw)
+      // THE SAME BAR AS LOADING (1.8.1). The shape check above is only a sniff
+      // for "is this a save at all"; loadGame also refuses a healed state with
+      // no competitions or a manager's club that is not in it (isPlayable), and
+      // an import skipped that, so a damaged file was written to a slot and
+      // opened, then fell over some weeks later. Refused here, it is the same
+      // "not a save" message as any other file that is not one.
+      if (!isPlayable(g)) {
+        setMsg(t('world.svNotASave'))
+        return
+      }
       void saveGame('imported', g).then(() => {
         setGame(g, 'imported')
         setMsg(null)

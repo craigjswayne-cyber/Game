@@ -29,7 +29,9 @@ export default function Wire() {
   const n = items[Math.min(idx, Math.max(0, items.length - 1))]
 
   // markRead stamps WHEN, so the inbox's five-day shelf starts from the reading
-  useEffect(() => { if (n) { markRead(game, n) } }, [n])
+  // and marks the save: read is career state (the desk gate counts it), and a
+  // story read here and lost to a reload came back as unread mail (1.8.1)
+  useEffect(() => { if (n) { markRead(game, n); void useStore.getState().persist() } }, [n])
 
   if (!n) {
     return (
@@ -81,7 +83,7 @@ export default function Wire() {
             onClick={() => setIdx(idx - 1)}>◀</button>
         )}
         {!last && (
-          <button className="btn ghost" onClick={() => { for (const it of items) markRead(game, it); home() }}>
+          <button className="btn ghost" onClick={() => { for (const it of items) markRead(game, it); void useStore.getState().persist(); home() }}>
             {t('week.wireSkipRest')}
           </button>
         )}

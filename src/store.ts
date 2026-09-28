@@ -47,7 +47,15 @@ export const FREE_SKIN: Skin = 'default'
  *
  *  Every Pro perk asks this one function, so there is one answer to keep
  *  right rather than one per perk. */
-export function proLocked(): boolean { return tillOpen() && !hasSupporter() }
+/*
+ *  AND ONLY WHERE PRO MANAGER IS ON THE SHELF (1.8.1). The Store shows the
+ *  Pro Manager row only when an advert bridge exists, because selling the
+ *  absence of adverts in a build that has none is the dishonesty v1.1.3 took
+ *  out (storeprobe holds it). A build with a till and no adverts therefore
+ *  locked the skins behind a product it would never offer, and "Get the other
+ *  three" opened a Store with nothing on it that unlocked them. No product,
+ *  no lock: the same reasoning as the website above. */
+export function proLocked(): boolean { return tillOpen() && adBridgePresent() && !hasSupporter() }
 
 export function skinLocked(s: Skin): boolean { return s !== FREE_SKIN && proLocked() }
 
@@ -72,7 +80,7 @@ export function planSlots(): number { return proLocked() ? FREE_PLANS : PRO_PLAN
 /** What the app actually wears, as opposed to what was chosen. */
 export function effectiveSkin(chosen: Skin): Skin { return skinLocked(chosen) ? FREE_SKIN : chosen }
 import { getLang, initLang, onLangChange, setLang as applyLang, setManagerGender, setWorld, t, type Lang } from './game/i18n'
-import { hasSupporter, tillOpen } from './game/monetise'
+import { adBridgePresent, hasSupporter, tillOpen } from './game/monetise'
 import { applyCharter, applyEstate, applyHeal, applyInjection, applyPinnacle, type InjectTier } from './game/grants'
 import { agencyFile, armAnalyst, physioFavour, townCollection } from './game/rewarded'
 import { dreamState, dreamsFor } from './game/dream'
@@ -117,7 +125,10 @@ export const TAP_GUARD_MS = 220
 export type Screen =
   | 'menu' | 'newgame' | 'home' | 'inbox' | 'squad' | 'player' | 'tactics' | 'fixtures'
   | 'tables' | 'transfers' | 'training' | 'finances' | 'club' | 'matchday'
-  | 'press' | 'comp' | 'history' | 'nations' | 'legacy' | 'jobs'
+  // 'comp' was here too, with no case in App.tsx: a route to Home under
+  // another name. Removed in 1.8.1; an old bookmark naming it still lands on
+  // Home, through the same default every unknown screen takes.
+  | 'press' | 'history' | 'nations' | 'legacy' | 'jobs'
   // 'feed' was The Rugby Wire, a second news browser over the same array. Merged
   // into 'inbox'; 'wire' stays as the between-weeks bulletin reader, not a screen
   // you navigate to.
@@ -555,14 +566,19 @@ export const useStore = create<Store>((set, get) => ({
     if (!g || g.fixHw?.fxId === fxId) return
     g.fixHw = { fxId, season: g.season, week: g.week, tags }
     // no touch(): nothing on screen reads this until the next full time, and a
-    // re-render from inside a full-time effect would loop
+    // re-render from inside a full-time effect would loop. The mark alone
+    // redraws nothing, and the watermark is saved state like any other.
+    void get().persist()
   },
 
   /** The news reader's recall window: everything unread, plus what you have read
    *  in the last five days. Gossip is in this list too now that the wire and the
    *  news are one screen, cleared stories are filed, and days.inInbox is the one
    *  place that decides. */
-  openInbox: () => set(s => {
+  // markRead and the cleared flag are career state (the desk gate and the
+  // unread count read them), so each of these marks the save as well as
+  // redrawing. They did not, and a story read before a reload came back unread.
+  openInbox: () => { set(s => {
     const g = s.game
     if (!g) return {}
     const live = g.news.filter(n => inInbox(g, n))
@@ -585,9 +601,9 @@ export const useStore = create<Store>((set, get) => ({
       nav: onInbox ? s.nav : [...s.nav, { screen: 'inbox' as const }],
       tick: s.tick + 1,
     }
-  }),
+  }); void get().persist() },
 
-  inboxStep: (dir) => set(s => {
+  inboxStep: (dir) => { set(s => {
     const g = s.game
     if (!g) return {}
     const live = g.news.filter(n => inInbox(g, n)).sort((a, b) => b.id - a.id).slice(0, 20)
@@ -597,9 +613,9 @@ export const useStore = create<Store>((set, get) => ({
     const j = Math.max(0, Math.min(live.length - 1, (i < 0 ? 0 : i) + (dir === -1 ? 1 : -1)))
     markRead(g, live[j])
     return { inboxId: live[j].id, tick: s.tick + 1 }
-  }),
+  }); void get().persist() },
 
-  clearRead: () => set(s => {
+  clearRead: () => { set(s => {
     const g = s.game
     if (!g) return {}
     // gossip clears like everything else now that the wire and the news are one
@@ -607,7 +623,7 @@ export const useStore = create<Store>((set, get) => ({
     for (const n of g.news) if (n.read) n.cleared = true
     const left = g.news.filter(n => inInbox(g, n))
     return { inboxId: left.length ? left.sort((a, b) => b.id - a.id)[0].id : null, tick: s.tick + 1 }
-  }),
+  }); void get().persist() },
 
   newGender: 'm',
   setNewGender: (g) => set({ newGender: g }),
@@ -739,7 +755,20 @@ export const useStore = create<Store>((set, get) => ({
     await get().resumeLiveMatch().catch(() => false)
     return true
   },
-  touch: () => set(s => ({ tick: s.tick + 1 })),
+  /** Re-render after a screen changed the career in place, AND mark it for
+   *  saving (1.8.1). touch() used to be only the first half. Some forty screen
+   *  actions (a tactic dial, a staff hire, a transfer reply, a retirement, the
+   *  Annual's button) mutate the game and then call touch() to redraw, and
+   *  none of them marked the save dirty, so pagehide's flush found nothing to
+   *  write and a phone that killed the app before the next Continue lost the
+   *  action. Every touch() in the tree follows a mutation, so the mark belongs
+   *  here, once, rather than beside each of them where the next screen would
+   *  forget it. It is the soft mark: a dial being dragged calls this on every
+   *  step, and one write after the hand stops is the right cost for that. */
+  touch: () => {
+    set(s => ({ tick: s.tick + 1 }))
+    if (get().game) saveQueue.mark(true)
+  },
 
   /** CM-style Continue: play user's match if there is one, else process the week. */
   continueWeek: () => {
@@ -931,6 +960,9 @@ export const useStore = create<Store>((set, get) => ({
       const md = matchDayIndex(g)
       if (md != null) g.day = md
       set(s => ({ nav: [...s.nav, { screen: 'matchday' }], tick: s.tick + 1 }))
+      // the day moved, so a reload should come back to the match day rather
+      // than the day before it
+      void get().persist()
       return
     }
     if (step.kind === 'day') {
@@ -1636,9 +1668,18 @@ const saveQueue = (() => {
   let inFlight: Promise<void> | null = null
   let dirty = false
 
-  const write = async (): Promise<void> => {
-    const { game, saveSlot } = useStore.getState()
-    if (!game) return
+  /** False when the write was held back and the save is still dirty. */
+  const write = async (): Promise<boolean> => {
+    const { game, saveSlot, liveMatch } = useStore.getState()
+    if (!game) return true
+    // NEVER A HALF-PLAYED MATCH (1.8.1). From the first tick the engine writes
+    // tries, cards and injuries onto the players (game/resume.ts), so the game
+    // object mid-match is neither the pre-match save nor the finished one. The
+    // resume record holds the match; the career slot waits for finishMatch,
+    // whose own mark writes it. This only ever mattered by accident (a mark
+    // made just before Kick Off whose timer fired after it), but touch() now
+    // marks, and the live tactic dials call touch().
+    if (liveMatch) return false
     dirty = false
     try {
       saveStats.writes++
@@ -1654,21 +1695,30 @@ const saveQueue = (() => {
       saveStats.failures++
       useStore.setState(s => ({ saveFail: s.saveFail + 1, saveFailMsg: msg, tick: s.tick + 1 }))
     }
+    return true
   }
 
   /** One writer. A second caller joins the write in flight rather than racing it. */
   const run = async (): Promise<void> => {
     if (inFlight) { dirty = true; await inFlight; if (dirty) await run(); return }
-    inFlight = write()
+    let wrote = true
+    const w = write()
+    inFlight = w.then(r => { wrote = r })
     try { await inFlight } finally { inFlight = null }
-    if (dirty) await run()
+    // held back for a live match: stay dirty and let the next mark bring it
+    // round, rather than spinning here until full time
+    if (wrote && dirty) await run()
   }
 
   return {
-    mark() {
+    /** soft: restart the idle timer rather than keep the first one, so a
+     *  stream of marks (a slider dragged through twenty steps) is one write
+     *  after the last of them, not one write in the middle of the drag */
+    mark(soft = false) {
       saveStats.marks++
       dirty = true
-      if (timer) return
+      if (timer && !soft) return
+      if (timer) clearTimeout(timer)
       timer = setTimeout(() => { timer = null; void run() }, SAVE_IDLE_MS)
     },
     async flush() {
