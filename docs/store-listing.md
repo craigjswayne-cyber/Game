@@ -59,8 +59,7 @@ THE WORLD
   Japan, with second tiers, a continental cup, playoffs and promotion underneath
   them.
 • Bonus points, knockout draws made in front of you, and an international window
-  that takes your best players at the worst moment - and hands an academy kid
-  his chance.
+  that takes your best players at the worst moment.
 • Rival clubs run their own books, sign their own players and sack their own
   managers. The table you climb is one others are climbing too.
 
@@ -74,8 +73,6 @@ THE WEEK
 • A board with an opinion about you, a press pack that quotes you, sponsors to
   keep sweet, facilities to build, and a town that keeps the score of a derby
   longer than the table does.
-• Run out of money and it bites: wage bills, debt, a board that stops asking
-  nicely.
 
 THE SQUAD
 • Every player has form you can read - his last ten ratings - an injury history,
@@ -106,8 +103,8 @@ NEW TO RUGBY?
   6-2 bench buys you - it is in there.
 
 BUILT FOR A PHONE
-• Portrait, one-handed, designed for it rather than shrunk into it. Four skins,
-  day and night, and a text-size setting.
+• Portrait and one-handed, with four skins, day and night, and a text-size
+  setting.
 • Completely offline: no account, no login, no cloud, and nothing about your
   career leaves your device. The adverts are the only part that uses the
   network.
@@ -117,6 +114,10 @@ BUILT FOR A PHONE
 • Four career slots, saved after every week, with export and import so a backup
   is yours to keep.
 • English, French, Spanish, Italian, Japanese and Afrikaans.
+
+THE COMMUNITY
+• Report a problem in any of the six languages, share ideas and talk rugby
+  with other managers on the PHASE Discord: discord.gg/3KKfDVsMb
 
 PHASE: Rugby Manager is an unofficial, independent game. Club names are real;
 competitions, grounds and sponsors are renamed or invented. Player names are
@@ -1231,6 +1232,11 @@ CONÇU POUR UN TÉLÉPHONE
   garder vos propres sauvegardes.
 • En français et en anglais, avec un réglage de taille de texte.
 
+LA COMMUNAUTÉ
+• Signalez un problème dans n'importe quelle langue, partagez vos idées et
+  parlez rugby avec d'autres entraîneurs sur le Discord PHASE :
+  discord.gg/3KKfDVsMb
+
 PHASE: Rugby Manager est un jeu indépendant et non officiel. Les clubs,
 compétitions, stades et sponsors sont fictifs. Les noms de joueurs sont réels,
 utilisés pour identifier des personnes dans une base de données sportive et rien
@@ -1514,11 +1520,10 @@ PHASE: Rugby Manager is a management simulation in the tradition of the great te
 TWO GAMES, ONE APP
 • The men's game: nine leagues and 107 clubs across England, France, the United Provinces, the Pacific, Japan and the United States, top flight down to National One.
 • The women's game, built the same way rather than bolted on: six leagues and 64 clubs across England, France, the Pacific and the Celtic provinces, with its own continental cup, Test calendar, squads and career challenges.
-• Choose at New Game. Every screen, every system and every season works in both.
 
 THE WORLD
 • Full seasons with bonus points, knockout cups drawn in front of you, continental competition, playoffs, promotion and relegation.
-• An international calendar that takes your best players away at the worst possible moment, and a national job to chase once your name is made.
+• An international calendar that takes your best players away at the worst moment, and a national job to chase once your name is made.
 • Season after season, for as long as you last. Players age, decline and retire, and the academy players you brought through take their shirts.
 
 THE WEEK
@@ -1537,7 +1542,6 @@ THE MATCH
 
 THE RECORD
 • Every player carries their last ten ratings and every injury of their career, so you can tell a slump from a bad week.
-• A depth chart that shows where you are one injury from trouble.
 • A manager profile with badges, a trophy cabinet, a Hall of Fame and a Roll of Honour that outlive any one club.
 
 BUILT FOR A PHONE
@@ -1546,11 +1550,14 @@ BUILT FOR A PHONE
 • Four career slots, autosave after every week, and export and import so a backup is yours to keep.
 • English, French, Spanish, Italian, Japanese and Afrikaans.
 
+THE COMMUNITY
+• Report a problem in any of the six languages, share ideas and talk rugby with other managers on the PHASE Discord: discord.gg/3KKfDVsMb
+
 PHASE: Rugby Manager is an unofficial, independent game. Club names are real; competitions, grounds and sponsors are renamed or invented. Player names are real, used to identify people in a sporting database and for nothing else; the game is not affiliated with, endorsed by or licensed by any player, club, league or governing body, and contains no official badges, kits or logos.
 
 Optional in-app purchases support development and add conveniences. Nothing in the game is behind a paywall.
 ```
-*(3967)*
+*(3986, counted as characters including line breaks; the Discord section added for 1.8.1)*
 
 ### Keywords (100 max, comma-separated, no spaces after commas)
 
