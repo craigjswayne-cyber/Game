@@ -3523,8 +3523,13 @@ const COVER_DEF = 0.937
 const TRY_BASE = 0.0815
 /** late in a match: how much an empty tank costs the side defending, and the side attacking */
 const TIRED_DEF = 0.8, TIRED_ATT = 0.3
-/** the strength a side keeps on an empty tank from the 56th minute (0.78 before it) */
-const LATE_FLOOR = 0.6
+/** the strength a side keeps on an empty tank from the 56th minute (0.78 before it).
+ *  0.6, then 0.55 once AI replacements brought their own quality instead of
+ *  the starters' (creditprobe): a sub became a real trade for the AI too, the
+ *  side that never changed was punished less, and the manager's whole bench
+ *  fell to +0.43 points (subvalueprobe). At 0.55 it reads +0.91, four fresh
+ *  men +1.09, and bandcheck holds every band (49.1 pts, 52.7% home). */
+const LATE_FLOOR = 0.55
 /** how hard the penalty count leans toward the defending side's half (1.7.4) */
 const PEN_LEAN = 1.7
 /** how hard a zone plan moves the line (1.8.0, see simTick): at 1 the kicking
