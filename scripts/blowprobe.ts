@@ -42,30 +42,37 @@ console.log(`  strongest ${strongest.short} (rep ${strongest.rep}), second ${sec
 // Both ceilings were asserted as the single worst margin in 120 or so
 // matches, and a maximum is the least stable number a sample has: four
 // shifted seed lists read 79, 83, 84 and 97 (FAIL) against 90, and 51, 62
-// (FAIL), 54 and 48 against 60. Measured over 20,000 matches each, the
-// ceilings sit almost exactly at the one-in-a-thousand tail: the mismatch
-// goes past 90 in 15 of 20,000 (worst 97, none reaches 100) and top v top
-// past 60 in 13 of 20,000 (worst 70). So a 120-match maximum fails about one
-// run in twelve per ceiling with nothing changed.
+// (FAIL), 54 and 48 against 60. Measured over 40,000 matches each (every one
+// from the same kick-off), the ceilings sit at the one-in-a-thousand tail:
+// the mismatch goes past 90 in 34 of 40,000 (0.085%, worst 99) and top v top
+// past 60 in 50 of 40,000 (0.125%, worst 78). A 120-match maximum therefore
+// fails about one run in ten on the mismatch and one in seven on top v top
+// with nothing changed.
 //
 // The claim is now the rate: past the ceiling in fewer than 1 match in 500,
-// over 10,000 of each. A 120-match window is still clean four times in five
-// at that rate, which is what the old test tolerated in practice; measured,
-// the game runs at about 1 in 1,400, and the 1-in-1,300 blowout that started
-// this (100-pointers across world fixtures) would be many times over it.
+// over 20,000 of each. At the measured top-v-top rate that is 25 expected
+// against a limit of 40, three standard errors clear (10,000 left it at two).
+// A 1-in-500 tail still means a 120-match window is clean four times in
+// five, which is what the old test tolerated in practice; the 1-in-1,300
+// hundred-pointer that started this would sit far over it. This is the
+// slowest of the engine probes now (about three minutes).
 //
-// Restored, not cloned: the two clubs, their men and the chemistry ledger are
-// put back before each sim (150 ms a structuredClone, about 3 ms this way),
+// Restored, not cloned: the three clubs, their men, the chemistry ledger, the
+// news, the id counter and the grudges are put back before each sim (150 ms a structuredClone, about 3 ms this way),
 // and the first 30 are checked against the clone to prove it is the same.
 const ids = [...new Set([strongest.id, second.id, weakest.id])]
 const pids = ids.flatMap(c => base.clubs[c].players)
 const snapC = structuredClone(ids.map(c => base.clubs[c]))
 const snapP = structuredClone(pids.map(id => base.players[id]))
 const snapChem = structuredClone(base.chem)
+const snapMisc = { news: base.news.slice(), nextId: base.nextId, grudges: structuredClone(base.grudges) }
 const restore = () => {
   ids.forEach((c, j) => { base.clubs[c] = structuredClone(snapC[j]) })
   pids.forEach((id, j) => { base.players[id] = structuredClone(snapP[j]) })
   base.chem = structuredClone(snapChem)
+  // a match also files news, takes ids and can start a grudge the next
+  // one reads, so those go back too
+  base.news = snapMisc.news.slice(); base.nextId = snapMisc.nextId; base.grudges = structuredClone(snapMisc.grudges)
 }
 
 function margins(homeId: string, awayId: string, n: number, clone = false): number[] {
@@ -84,7 +91,7 @@ function margins(homeId: string, awayId: string, n: number, clone = false): numb
 }
 
 const q = (xs: number[], p: number) => xs[Math.min(xs.length - 1, Math.floor(p * xs.length))]
-const N = 10_000
+const N = 20_000
 const RATE = 1 / 500
 
 {

@@ -139,10 +139,14 @@ console.log('--- nothing is a meta')
       const snapC = structuredClone(clubIds.map(c => g.clubs[c]))
       const snapP = structuredClone(pids.map(id => g.players[id]))
       const snapChem = structuredClone(g.chem)
+      const snapMisc = { news: g.news.slice(), nextId: g.nextId, grudges: structuredClone(g.grudges) }
       const restore = () => {
         clubIds.forEach((c, j) => { g.clubs[c] = structuredClone(snapC[j]) })
         pids.forEach((id, j) => { g.players[id] = structuredClone(snapP[j]) })
         g.chem = structuredClone(snapChem)
+        // a match also files news, takes ids and can start a grudge the next
+        // one reads, so those go back too
+        g.news = snapMisc.news.slice(); g.nextId = snapMisc.nextId; g.grudges = structuredClone(snapMisc.grudges)
       }
       pool.push({ g, fx, restore })
     }
@@ -150,7 +154,11 @@ console.log('--- nothing is a meta')
   // the pairing is only as good as the restore: the same setting on the same
   // stream from the same kick-off has to replay the same match
   const neutralSet = { kickStyle: 'balanced', ruckCommit: 50, ruckContest: 50, kicking: 60 } as Partial<Tactic>
-  const replays = pool.slice(0, 8).filter((e, i) => play(e, neutralSet, seedOf(i, 0)) === play(e, neutralSet, seedOf(i, 0))).length
+  const replays = pool.slice(0, 8).filter((e, i) => {
+    // with a different match in between, so anything left behind would show
+    const first = play(e, neutralSet, seedOf(i, 0)); play(e, { ruckContest: 100 }, seedOf(i, 1))
+    return first === play(e, neutralSet, seedOf(i, 0))
+  }).length
   ok(replays === 8, `a restored kick-off replays the same match on the same stream (${replays}/8)`)
   const base = margin(neutralSet, pool)
   const rows: [string, Partial<Tactic>][] = [
