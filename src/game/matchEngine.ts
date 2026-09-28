@@ -2244,7 +2244,7 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
 
   // the terraces are worth points: a bouncing home crowd lifts the side,
   // a mutinous one flattens it (user's club only - the AI crowds average out)
-  let hfa = state.clubs[fx.homeId] ? 1.07 : 1.03
+  let hfa = state.clubs[fx.homeId] ? 1.06 : 1.03
   // F27: and the trip the other lot made. A flat 1.06 said a bus up the M1 and a
   // flight to the highveld cost a visiting side the same thing, which is nonsense
   // in a world where Belfast and Pretoria are in the same competition. The edge is
@@ -3618,7 +3618,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     // from the main dice (four draws, always, watched or not) and centred
     // on the world's average collision, so it decides who wins the carries
     // the units have earned without moving the season's scoring
-    const contest = resolveContest(side, opp, state.players, rng)
+    const contest = resolveContest(side, opp, state.players, rng, side === home ? ctx.hfa : 1 / ctx.hfa)
     // the rugby this side plays in the tick, before what it comes to
     describePlay(state, ctx, side, opp, contest)
     const scores0 = side.score + opp.score

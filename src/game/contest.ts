@@ -109,7 +109,7 @@ export const tackleScore = (a: Attrs) =>
  * Draws exactly FOUR numbers from rng, always, so the draw count never
  * depends on who is on the pitch.
  */
-export function resolveContest(att: ContestSide, def: ContestSide, players: Record<number, Player>, rng: () => number): Contest | null {
+export function resolveContest(att: ContestSide, def: ContestSide, players: Record<number, Player>, rng: () => number, lean = 1): Contest | null {
   const carriers = onField(att, CARRY_W, players)
   const tacklers = onField(def, TACKLE_W, players)
   const r1 = rng(), r2 = rng(), r3 = rng(), r4 = rng()
@@ -124,7 +124,13 @@ export function resolveContest(att: ContestSide, def: ContestSide, players: Reco
   const j = players[jackalId]
 
   // ---- the collision
-  const cs = fresh(att, c.id) * carryScore(c.p.a)
+  // THE GROUND LEANS ON THE MEN TOO: `lean` is the match's home edge (crowd,
+  // and the trip the visitors made) for the home side's carries and its
+  // reciprocal for the away side's, so a long trip is felt in the collisions
+  // as well as in the team units. Without it the contest's home-blind
+  // variance thinned the travel effect (venueprobe: the hardest trips' gap
+  // over the easiest went from 1.8 to 0.5 points of home wins).
+  const cs = fresh(att, c.id) * carryScore(c.p.a) * lean
   const ts = fresh(def, tk.id) * tackleScore(tk.p.a)
   const d = logistic(cs - ts - CENTRE, SPREAD_K)
 

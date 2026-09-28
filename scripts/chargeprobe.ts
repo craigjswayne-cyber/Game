@@ -42,7 +42,10 @@ let lateTicks = 0, lateDrops = 0, otherTicks = 0, otherDrops = 0
 let quietSame = 0, quietN = 0
 const outcomes = new Map<string, number>()
 
-for (let seed = 1; seed <= 30; seed++) {
+// 100 seeds, not 30 (28 Sep 2026): the late-and-close drop-goal count was
+// about ten events at 30 and swung from 5.2x to 0.6x on unrelated stream
+// changes; at 120 seeds both sides of that change read 2x to 3.7x
+for (let seed = 1; seed <= 100; seed++) {
   const g = newGame(['leicester', 'toulouse', 'leinster', 'crusaders', 'northampton'][seed % 5], 'Charge Probe', 7100 + seed)
   const fxs = g.fixtures.filter(f => g.clubs[f.homeId] && g.clubs[f.awayId]).slice(0, 12)
   for (const [i, fx] of fxs.entries()) {
@@ -95,7 +98,7 @@ for (let seed = 1; seed <= 30; seed++) {
       if (tick >= 17 && margin <= 3) { lateTicks += 2; lateDrops += drops } else { otherTicks += 2; otherDrops += drops }
     }
     // and the same fixture silently: the same match (quick version of detailprobe)
-    if (i % 4 === 0) {
+    if (i % 4 === 0 && seed <= 30) {
       const g2 = newGame(['leicester', 'toulouse', 'leinster', 'crusaders', 'northampton'][seed % 5], 'Charge Probe', 7100 + seed)
       const fx2 = g2.fixtures.find(f => f.id === fx.id)!
       // the watched copy above ran on g, whose earlier fixtures were played:
