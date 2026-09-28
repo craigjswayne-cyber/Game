@@ -115,7 +115,15 @@ console.log(`     empty ground ${Math.round(fillRate(t) * 100)}% full, board con
 console.log(`     full ground  ${Math.round(fillRate(f) * 100)}% full, board confidence ${f.clubs[f.userClubId].boardConfidence.toFixed(1)}`)
 ok(seen(t, 'point.tickets'), 'the board raises it when the ground is empty')
 ok(!seen(f, 'point.tickets'), 'and never when the club is selling out')
-ok(t.clubs[t.userClubId].boardConfidence < f.clubs[f.userClubId].boardConfidence,
+// AVERAGED OVER THE FOUR WORLDS (1.8.0, 28 Sep 2026). One world compared
+// 30 weeks of results as much as it compared two grounds: the two-layer
+// engine moved the stream and the single world read 34.9 against 34.5 the
+// wrong way round. The claim is the same; the evidence is four worlds.
+const conf = (g: ReturnType<typeof run>) => g.clubs[g.userClubId].boardConfidence
+let emptySum = 0, fullSum = 0
+for (const sd of WORLDS) { emptySum += conf(run(60_000, sd)); fullSum += conf(run(1_000, sd)) }
+console.log(`     over ${WORLDS.length} worlds: empty ground confidence ${(emptySum / WORLDS.length).toFixed(1)}, full ground ${(fullSum / WORLDS.length).toFixed(1)}`)
+ok(emptySum < fullSum,
   'the empty ground costs the manager standing, not just words')
 
 // ---- 5. THE BREAKAWAY NEVER HAPPENS -------------------------------------

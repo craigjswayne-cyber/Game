@@ -148,7 +148,8 @@ export function generatePress(state: GameState, rng: Rng) {
   const mood = settlePressMood(state)
   const club = state.clubs[state.userClubId]
   const squad = club.players.map(id => state.players[id]).filter(Boolean)
-  const open = state.press.filter(p => !p.answered).length
+  // a board decision waiting on Finances is not a journalist at the door
+  const open = state.press.filter(p => !p.answered && !isBoardroom(p)).length
   // deterministic voicing: the same question wears different words from week
   // to week without ever drawing on the shared rng (zero stream footprint)
   const voice = (salt: number, opts: string[]) =>

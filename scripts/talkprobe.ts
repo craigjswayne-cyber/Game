@@ -185,6 +185,10 @@ console.log('--- 4. the knocks')
   const newcomer = squad(sg).find(q => q.id !== incumbent.id && q.id !== sc.captain && q.pos === incumbent.pos) ?? squad(sg).find(q => q.id !== incumbent.id && q.id !== sc.captain)!
   newcomer.pos = incumbent.pos; newcomer.ca = Math.max(newcomer.ca, 72)
   newcomer.joinedAt = sg.season * 48 + sg.week - 1
+  // the captain has to be fit to knock (an injured one does not), and which
+  // man is hurt in week 10 is the stream's business, not this test's
+  const capP = sg.players[sc.captain!]
+  if (capP) capP.injury = undefined
   let sig: PressItem | undefined
   for (let s = 0; s < 40 && !sig; s++) { const h = clone(sg); h.seed += s; talkbackWeek(h); sig = h.press.find(q => q.topic === 'signing') }
   ok(!!sig && sig.playerId === sc.captain, `the captain comes in about the new signing (${sig?.qv?.signing}, worrying ${sig?.qv?.rival})`)

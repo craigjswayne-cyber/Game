@@ -27,7 +27,7 @@
 import { absWeek, logDecision, type GameState, type Personality, type Player, type PressItem, type PressOption, type OfficeTopic } from './model'
 import { clamp, mulberry32 } from './rng'
 import { tIn } from './i18n'
-import { OFFICE_OUTLET, askedRecently, rememberAsk } from './media'
+import { OFFICE_OUTLET, askedRecently, isBoardroom, rememberAsk } from './media'
 
 export type Fit = 'good' | 'mixed' | 'bad'
 
@@ -225,7 +225,9 @@ export function talkbackWeek(state: GameState) {
   if (state.unemployed) return
   const club = state.clubs[state.userClubId]
   if (!club) return
-  const open = state.press.filter(q => !q.answered)
+  // a board decision waiting on Finances (media.isBoardroom) does not keep
+  // a player from knocking: it is the board's business, not the office queue
+  const open = state.press.filter(q => !q.answered && !isBoardroom(q))
   if (open.length >= 2 || open.some(q => q.outlet === OFFICE_OUTLET)) return
   const rng = mulberry32((state.seed ^ Math.imul(absWeek(state.season, state.week) + 1, 2246822519) ^ 0x7a1cb) >>> 0)
   const wk = state.week

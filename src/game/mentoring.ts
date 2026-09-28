@@ -409,6 +409,8 @@ export function startMentoring(state: GameState, seniorId: number, kidId: number
     id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: true,
     subject: `${s.name} takes ${k.name.split(' ').slice(-1)[0]} under his wing`,
     body: `The old pro and the academy kid: ${s.name} will mentor ${k.name} for the season - extras after training, lifts to the ground, the lot. This is how clubs pass themselves on.`,
+    k: 'news.mentorStart',
+    v: { mentor: s.name, player: k.name, last: k.name.split(' ').slice(-1)[0] },
     playerId: k.id,
   })
   return null

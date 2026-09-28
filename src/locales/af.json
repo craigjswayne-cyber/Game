@@ -3903,7 +3903,9 @@
   "agentPublicSubj": "{player} se agent gaan publiek",
   "agentPublic": "Twee maande se stilte van die klub, so die agent het dit koerant toe gevat: \"{player} is een van die beste presterende spelers in die liga en die klub ken ons standpunt.\" Mededingende klubs sal dit raakgesien het. Reël 'n nuwe kontrak op sy spelerbladsy - of maak gereed vir bods.",
   "becomesMentorSubj": "{last} word al hoe meer soos sy mentor",
+  "mentorStartSubj": "{mentor} neem {last} onder sy vlerk",
   "becomesMentor": "Die afrigters het dit in die klein dingetjies opgemerk - die ekstra werk na oefening, die manier waarop hy in die spankring praat. {player} begin homself soos {mentor} dra.",
+  "mentorStart": "Die ou kalant en die akademie-knaap: {mentor} sal {player} die seisoen lank begelei. Ekstra ná oefening, saamry grond toe, alles. Só gee klubs hulself oor.",
   "aheadOfScheduleSubj": "{player} voor op skedule",
   "aheadOfSchedule": "Goeie nuus van die behandeltafel: {player} ({injury_k}) het sy hersteldoelwitte verpletter en is hierdie week weer beskikbaar, vroeër as wat enigiemand gewaag het om te hoop.",
   "backInTrainingSubj": {
