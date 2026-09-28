@@ -29,7 +29,7 @@ REPORTERS="analysis gapreport icons shots qa-shots qa-shots2 newspeak boardprobe
 # ~290 paired seasons and alone took ten of the Gate's thirty minutes. Its
 # own header calls it "release audit, Pass 2" - it runs in `all` and in the
 # release deep test, not on every push.
-SLOW="soakhealth soakui stresstest deepsave e2edeep releasesim dialweight optionsprobe"
+SLOW="soakhealth soakui stresstest deepsave e2edeep releasesim dialweight optionsprobe autopilotprobe"
 
 run() {
   local name="$1"; shift
