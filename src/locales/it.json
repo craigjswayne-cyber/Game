@@ -1355,7 +1355,6 @@
   "first": "Primo",
   "second": "Secondo",
   "assistantPicks": "Sceglie il vice",
-  "kickerOption": "{name} ({pos}) - calci ai pali {goa}",
   "kickerNote": "Il primo piazzatore batte ogni calcio. Il secondo subentra se il primo è fuori dal campo.",
   "kickerSheetSub": "Per calci piazzati, tutta la rosa.",
   "exiting": "Uscire dai propri 22",

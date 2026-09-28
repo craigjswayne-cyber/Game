@@ -1351,7 +1351,6 @@
   "first": "Primero",
   "second": "Segundo",
   "assistantPicks": "Elige el asistente",
-  "kickerOption": "{name} ({pos}): patada a palos {goa}",
   "kickerNote": "El primer pateador tira todas las patadas. El segundo toma el relevo si el primero está fuera del campo.",
   "kickerSheetSub": "Por pateo a palos, toda la plantilla.",
   "exiting": "Salir de tu 22",

@@ -1366,7 +1366,6 @@
     "first": "Premier",
     "second": "Second",
     "assistantPicks": "L'adjoint choisit",
-    "kickerOption": "{name} ({pos}) - tir au but {goa}",
     "kickerNote": "Le premier buteur prend tous les coups de pied. Le second prend le relais si le premier quitte le terrain.",
     "kickerSheetSub": "Par jeu au pied, tout l'effectif.",
     "exiting": "Sortir de vos 22",

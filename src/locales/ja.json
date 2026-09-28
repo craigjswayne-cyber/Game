@@ -1293,7 +1293,6 @@
   "first": "第1",
   "second": "第2",
   "assistantPicks": "アシスタント任せ",
-  "kickerOption": "{name}（{pos}）・ゴールキック{goa}",
   "kickerNote": "第1キッカーがすべてのキックを蹴る。第1キッカーがピッチを離れた場合は第2キッカーが引き継ぐ。",
   "kickerSheetSub": "プレースキック順、スカッド全員。",
   "exiting": "自陣22mからの脱出",
