@@ -14,6 +14,7 @@ import { applyStadiumName, seedDeals } from './commercial'
 import { seedStaffPeople } from './staff'
 import { ensureAcademyLeague, topUpAcademy } from './academy'
 import { migratePress } from './pressmigrate'
+import { migrateHistory } from './history'
 
 // NOT renamed with the game. This string is the key every existing save lives
 // under, so changing it to 'fab-rugby' would not rename anything - it would point
@@ -697,6 +698,7 @@ export function migrate(s: GameState): GameState {
   s.tenureStart ??= s.season
   s.legendOf = list(s.legendOf) as typeof s.legendOf
   s.vsBook ??= {}
+  migrateHistory(s) // the club's memory (history.ts): made whole, never invented
   s.gateRecord ??= null
   s.potyRoll = list(s.potyRoll) as typeof s.potyRoll
   s.retiredNames = list(s.retiredNames) as typeof s.retiredNames
