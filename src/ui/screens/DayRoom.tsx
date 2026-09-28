@@ -9,7 +9,7 @@ import { leaguePos } from '../../game/schedule'
 import { matchStakes } from '../../game/stakes'
 import { analystClaim, analystRead, prepLabel, unitLabel } from '../../game/analyst'
 import { CrestT, SectionTitle } from '../components'
-import { ord, posName, t } from '../../game/i18n'
+import { ord, posName, t, compLabel } from '../../game/i18n'
 import { Glyph, newsGlyph } from '../glyphs'
 
 
@@ -108,7 +108,7 @@ function DrawWaiting() {
   return (
     <button className="card day-draw" onClick={() => go('draw')}>
       <div className="day-draw-top">
-        {t('dayroom.drawTitle', { comp: comp?.short ?? t('dayroom.drawCup'), stage: stageName })}
+        {t('dayroom.drawTitle', { comp: compLabel(comp?.short) ?? t('dayroom.drawCup'), stage: stageName })}
       </div>
       <div className="meta">
         {watched ? t('dayroom.drawWatched') : t('dayroom.drawTies', { n: draw.ties.length })}
@@ -428,7 +428,7 @@ function FridayBlocks() {
               </b>
             </div>
             <div className="meta" style={{ marginTop: 3 }}>
-              {game.comps[fx.compId]?.name ?? t('dayroom.friendly')} · {fx.venue
+              {compLabel(game.comps[fx.compId]?.name) ?? t('dayroom.friendly')} · {fx.venue
                 ? t('dayroom.venueLine', { name: fx.venue.name, city: fx.venue.city })
                 : home ? `${club?.stadium}` : `${opp?.stadium ?? t('dayroom.away')}`}
             </div>

@@ -7,7 +7,7 @@ import { careerVerdict, clockLine, mayRetire, retire } from '../../game/career'
 import { nemesis, protegeLine } from '../../game/records'
 import { CHALLENGES } from '../../game/newgame'
 import { horizon, horizonPct } from '../../game/legacy'
-import { ord, t } from '../../game/i18n'
+import { ord, t, compLabel } from '../../game/i18n'
 import { Glyph } from '../glyphs'
 
 export default function Legacy() {
@@ -241,7 +241,7 @@ export default function Legacy() {
         <div className="chips">
           {m.trophies.map((t, i) => (
             <span key={i} className="chip" style={{ borderColor: 'var(--gold)' }}>
-              <Glyph name="trophy" /> <b>{game.comps[t.compId]?.name ?? t.compId}</b> {seasonLabel(t.season)}
+              <Glyph name="trophy" /> <b>{compLabel(game.comps[t.compId]?.name) ?? t.compId}</b> {seasonLabel(t.season)}
             </span>
           ))}
         </div>
@@ -265,10 +265,10 @@ export default function Legacy() {
                         shove the Finish column half off a 412px screen (user:
                         "1st is out of screen") */}
                     <td className="name">
-                      {game.comps[f.leagueId]?.name ?? f.leagueId}
+                      {compLabel(game.comps[f.leagueId]?.name) ?? f.leagueId}
                       {cups.map((t, j) => (
                         <div key={j} style={{ color: 'var(--gold)', fontSize: 11, fontWeight: 700 }}>
-                          <Glyph name="trophy" /> {game.comps[t.compId]?.name ?? t.compId}
+                          <Glyph name="trophy" /> {compLabel(game.comps[t.compId]?.name) ?? t.compId}
                         </div>
                       ))}
                     </td>

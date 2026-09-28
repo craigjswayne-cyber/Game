@@ -7,7 +7,7 @@ import { squadValue, starPlayerIds } from '../../game/analysis'
 import { activeFeuds, reconcileChance, reconcileFeud } from '../../game/gossip'
 import { mulberry32 } from '../../game/rng'
 import { dialLine, philosophyOf } from '../../game/philosophy'
-import { t, localeTag } from '../../game/i18n'
+import { t, localeTag, compLabel } from '../../game/i18n'
 import { boardRequests } from '../../game/boardroom'
 import { askTheBoard } from '../../game/season'
 import { archetypeOf } from '../../game/oppcoach'
@@ -52,7 +52,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           <h3 style={{ fontSize: 20, flex: 1 }}>{club.name}</h3>
           <Jersey club={club} size={52} />
         </div>
-        <div className="meta">{t('club.cityLine', { city: club.city, country: nationName(club.country), league: league?.name ?? '' })}</div>
+        <div className="meta">{t('club.cityLine', { city: club.city, country: nationName(club.country), league: compLabel(league?.name) ?? '' })}</div>
         <div className="meta">{t('club.stadiumLine', { stadium: club.stadium, capacity: club.capacity.toLocaleString(localeTag()) })}</div>
         <div className="meta">{t('club.headCoach', { name: club.id === game.userClubId ? game.managerName : club.coach ?? t('club.vacant') })}</div>
         {/* F23: how this dugout wants the game played. Yours is not listed here
@@ -89,7 +89,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
               <div className="fact-label">{t('club.honoursBoard')}</div>
               {Object.entries(byComp).map(([compId, years]) => (
                 <div key={compId} className="meta">
-                  {game.comps[compId]?.name ?? compId} × {years.length} <span className="muted">({years.map(y => `${y}-${String((y + 1) % 100).padStart(2, '0')}`).join(', ')})</span>
+                  {compLabel(game.comps[compId]?.name) ?? compId} × {years.length} <span className="muted">({years.map(y => `${y}-${String((y + 1) % 100).padStart(2, '0')}`).join(', ')})</span>
                 </div>
               ))}
             </div>
@@ -142,7 +142,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
                 {t('club.storyStadium', { stadium: club.stadium, city: club.city, capacity: club.capacity.toLocaleString(localeTag()) })}
               </div>
               <div className="meta" style={{ padding: '2px 0' }}>
-                {t('club.storyLeague', { league: league?.name ?? t('club.noLeague'), rep: club.rep })}
+                {t('club.storyLeague', { league: compLabel(league?.name) ?? t('club.noLeague'), rep: club.rep })}
               </div>
               {capped > 0 && (
                 <div className="meta" style={{ padding: '2px 0' }}>
@@ -200,7 +200,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           <SectionTitle>{t('club.honoursEra')}</SectionTitle>
           <div className="chips">
             {honours.map((h, i) => (
-              <span key={i} className="chip"><Glyph name="trophy" /> {game.comps[h.compId]?.name ?? h.compId} {2025 + h.season}-{String((2026 + h.season) % 100).padStart(2, '0')}</span>
+              <span key={i} className="chip"><Glyph name="trophy" /> {compLabel(game.comps[h.compId]?.name) ?? h.compId} {2025 + h.season}-{String((2026 + h.season) % 100).padStart(2, '0')}</span>
             ))}
           </div>
         </>

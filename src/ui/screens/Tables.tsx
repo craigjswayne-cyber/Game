@@ -5,7 +5,7 @@ import { weekDate } from '../../game/model'
 import { ClubLink, CrestT, SectionTitle } from '../components'
 import LeagueTable from '../LeagueTable'
 import { stageName } from './Home'
-import { t } from '../../game/i18n'
+import { t, compLabel } from '../../game/i18n'
 
 export default function Tables({ initial }: { initial?: string }) {
   const game = useStore(s => s.game)!
@@ -23,7 +23,7 @@ export default function Tables({ initial }: { initial?: string }) {
       <div className="tab-bar">
         {comps.map(id => (
           <button key={id} className={id === compId ? 'active' : ''} onClick={() => setCompId(id)}>
-            {game.comps[id].short}
+            {compLabel(game.comps[id].short)}
           </button>
         ))}
         <button onClick={() => go('nations')}>{t('tables.internationals')}</button>

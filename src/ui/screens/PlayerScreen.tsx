@@ -861,5 +861,16 @@ function verdictLine(game: GameState, p: Player, mine: boolean): string {
   } else if (p.transferListed) {
     bits.push(t('player.vListed'))
   }
-  return bits.join(' ')
+  // Every bit is a sentence of its own, and some open on a lower-case word
+  // spliced in from elsewhere: the French opening is "{pos} de {age} ans",
+  // and the position is lower-cased for the middle of a sentence. The capital
+  // goes on here, once, rather than in six templates. Afrikaans starts a
+  // sentence on 'n with the word after it capitalised ("'n Stut").
+  return bits.map(sentenceStart).join(' ')
+}
+
+function sentenceStart(s: string): string {
+  const up = (c: string) => c.toLocaleUpperCase(localeTag())
+  if (s.startsWith("'n ") && s.length > 3) return "'n " + up(s.charAt(3)) + s.slice(4)
+  return s ? up(s.charAt(0)) + s.slice(1) : s
 }

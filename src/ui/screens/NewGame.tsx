@@ -7,7 +7,7 @@ import type { RawClub } from '../../data/types'
 import { ClubStars, Crest, Jersey } from '../components'
 import { playerValue } from '../../game/attributes'
 import { fmtMoney, seasonLabel } from '../../game/model'
-import { t, localeTag } from '../../game/i18n'
+import { t, localeTag, compLabel } from '../../game/i18n'
 import { Glyph } from '../glyphs'
 
 // Guided setup: STEP x OF 4, breadcrumbs, tile grids,
@@ -152,7 +152,7 @@ export default function NewGame() {
             Each one steps back to the screen that set it. */}
         {(() => {
           const trail = [
-            league ? { label: league.short, at: 0 } : null,
+            league ? { label: compLabel(league.short), at: 0 } : null,
             club ? { label: club.short, at: 1 } : null,
             name.trim() ? { label: name.trim(), at: 2 } : null,
           ].filter((x): x is { label: string; at: number } => !!x)
@@ -206,7 +206,7 @@ export default function NewGame() {
                 <button key={d.id} className={`club-pick${leagueIdx === i ? ' sel' : ''}`} style={{ margin: 0 }}
                   onClick={() => { setLeagueIdx(i); setClubId(null); setStep(1) }}>
                   <span style={{ fontSize: 16, color: 'var(--gold)' }}><Glyph name="trophy" /></span>
-                  <span className="cname">{d.name}</span>
+                  <span className="cname">{compLabel(d.name)}</span>
                   <span className="muted">{t('wizard.clubCount', { n: d.clubs.length })}</span>
                 </button>
               ))}
@@ -309,7 +309,7 @@ export default function NewGame() {
                   setTimeout(() => el.scrollIntoView({ block: 'center', behavior: 'smooth' }), 250)
                 }} />
               <label className="fact-label" style={{ marginTop: 10, display: 'block' }}>{t('wizard.club')}</label>
-              <div className="meta">{club.name} · {league?.name}</div>
+              <div className="meta">{club.name} · {compLabel(league?.name)}</div>
             </div>
             <div className="card">
               <label className="fact-label">{t('wizard.philosophy')}</label>
@@ -336,7 +336,7 @@ export default function NewGame() {
               </div>
               <div className="fact-grid">
                 <div><label>{t('wizard.manager')}</label><span>{name.trim()}</span></div>
-                <div><label>{t('wizard.competition')}</label><span>{league.name}</span></div>
+                <div><label>{t('wizard.competition')}</label><span>{compLabel(league.name)}</span></div>
                 <div><label>{t('wizard.philosophyShort')}</label><span>{t(COACHING_STYLES.find(s => s.id === styleId)?.name ?? '')}</span></div>
                 <div><label>{t('wizard.season')}</label><span>{seasonLabel(0)}</span></div>
                 {challenge && <div><label>{t('wizard.challenge')}</label><span>{t(challenge.title)}</span></div>}
