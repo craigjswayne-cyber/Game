@@ -997,7 +997,7 @@ export interface SideCtx {
   /** minutes each man has banked from stints that have ended */
   played?: Map<number, number>
   /** the personnel the units were last built from (see fieldChanged) */
-  unitsKey?: string
+  unitsKey?: number | string
   /** the three set-piece units summed over the ticks played, and how many.
    *  The coach's verdict reads the match's average from these: now that a
    *  side's units follow its replacements, the full-time figure is the pack
@@ -3363,9 +3363,11 @@ function aiAutoSubs(state: GameState, ctx: LiveCtx, side: SideCtx, min: number) 
     // the AI coach's bench plan is subject to the same laws (F4)
     applyBrief(state, side, best.id)
     forcedSwitchCost(state, ctx, side, outId, best, min)
-    fieldChanged(state, ctx, side, min)
     made++
   }
+  // once for the lot, not once a man: nothing in the loop reads the units,
+  // and the hour's bulk change used to rebuild them four times over
+  if (made) fieldChanged(state, ctx, side, min)
 }
 
 /** The last twenty minutes belong to the bench (F4).
@@ -4768,8 +4770,18 @@ function fieldLineup(side: SideCtx): (number | null)[] {
 
 /** Everything a rebuild of the units reads that a match can change: the
  *  shirts (with an HIA stand-in in his) and who is on the pitch. */
-function personnelKey(side: SideCtx): string {
-  return fieldLineup(side).slice(0, 15).join(',') + '|' + [...side.onPitch].sort((a, b) => a - b).join(',')
+function personnelKey(side: SideCtx): number {
+  // A number, not a string (1.8.0): this runs at the top of every tick for
+  // both sides of every match in the world, and joining and sorting two lists
+  // there cost a week about a third of its time (perfprobe, 99-126 ms to
+  // 141-158 ms). The shirts are hashed in order, the men on the pitch by an
+  // order-free mix, and a rebuild is all a collision could ever cost.
+  const lu = fieldLineup(side)
+  let h = 17
+  for (let i = 0; i < 15; i++) h = (Math.imul(h, 31) + (lu[i] ?? -1)) | 0
+  let set = side.onPitch.size
+  for (const id of side.onPitch) set = (set + Math.imul(id ^ (id >>> 7), 0x9e3779b1)) | 0
+  return (h ^ Math.imul(set, 0x85ebca6b)) | 0
 }
 
 /**

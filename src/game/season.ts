@@ -1739,8 +1739,9 @@ function mgrMilestones(state: GameState, won: boolean) {
   }
 }
 
-/** The last week of a new manager's first-season grace: 32 at a club of
- *  reputation 50 or less, 12 at 88 or more, a straight line between. */
+/** The week a new manager's first-season grace ends (no results sacking
+ *  before it): 32 at a club of reputation 50 or less, 12 at 88 or more, a
+ *  straight line between. */
 export function honeymoonEnd(rep: number): number {
   const t = Math.max(0, Math.min(1, (rep - 50) / 38))
   return Math.round(32 - 20 * t)

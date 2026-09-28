@@ -148,6 +148,12 @@ console.log('--- coached points do not inflate the kid')
 console.log('--- the ledger, over real weeks')
 {
   const h = newGame('northampton', 'Ledger', 5)
+  // THE BOARD IS NOT UNDER TEST HERE. Sixty weeks of an unpicked Northampton is
+  // a sacking since the honeymoon at a big club got short (season.ts,
+  // honeymoonEnd), and an unemployed manager has no squad to mentor: the old
+  // pairing below then waited twenty weeks for a training session that never
+  // came. Keep the board content so the ledger is what is measured.
+  const week = () => { h.clubs[h.userClubId].boardConfidence = Math.max(60, h.clubs[h.userClubId].boardConfidence); processWeekAndAdvance(h) }
   const hsq = h.clubs[h.userClubId].players.map(id => h.players[id]).filter((p): p is Player => !!p)
   // the pairing a manager reading the screen would make: the best-rated
   // mentor who has something to teach a kid with room to grow
@@ -171,7 +177,7 @@ console.log('--- the ledger, over real weeks')
   // so each pair's ledger is read as it stood on its last week
   const last = new Map(h.mentors!.map(mp => [mp.kid, { mp: structuredClone(mp), weeks: 0, ca: h.players[mp.kid]!.ca }]))
   for (let i = 0; i < 40; i++) {
-    processWeekAndAdvance(h)
+    week()
     for (const mp of h.mentors ?? []) {
       const l = last.get(mp.kid)
       if (l) { l.mp = structuredClone(mp); l.weeks++; l.ca = h.players[mp.kid]!.ca }
@@ -189,13 +195,28 @@ console.log('--- the ledger, over real weeks')
   ok(honest, 'no ledger claims more rating than its kid actually gained')
 
   // a pairing from an older save has no ledger; its first week opens one
-  const k2 = hsq.filter(p => canBeMentored(p) && p.id !== k.id && p.ca < p.pa)[0]
-  const s2 = hsq.filter(p => canMentor(p) && p.id !== s.id)[0]
+  // picked from the squad as it stands NOW, forty weeks on: the opening
+  // squad's men may have left, aged out or reached their ceiling since, and
+  // any of those dissolves a pairing before its first week can open a ledger
+  const nowSq = h.clubs[h.userClubId].players.map(id => h.players[id]).filter((p): p is Player => !!p)
+  const paired = new Set((h.mentors ?? []).flatMap(mp => [mp.kid, mp.senior]))
+  // and young enough to still qualify after the summer birthday: forty weeks
+  // in is the close season, the ledger opens in the first training week, and a
+  // kid who ages out at the rollover graduates before it
+  const k2 = nowSq.filter(p => canBeMentored(p) && canBeMentored({ ...p, age: p.age + 1 }) && !paired.has(p.id) && p.ca < p.pa - 1)[0]
+  const s2 = nowSq.filter(p => canMentor(p) && !paired.has(p.id))[0]
+  ok(!!k2 && !!s2, 'there is a free kid and a free senior to pair the old way')
   if (k2 && s2) {
     h.mentors = [...(h.mentors ?? []), { senior: s2.id, kid: k2.id }]
-    processWeekAndAdvance(h)
+    // the ledger opens in the week's training (season.ts, mentorWeek), and
+    // forty weeks in is the close season, when nobody trains: so it opens on
+    // the first training week, whenever that falls
+    let waited = 0
+    const opened = () => h.mentors!.find(mp => mp.kid === k2.id)?.since != null
+    while (!opened() && waited++ < 20) week()
+    ok(!h.unemployed, 'and the manager is still in the job to see it')
     const old = h.mentors!.find(mp => mp.kid === k2.id)
-    ok(!!old && old.since != null && old.ca0 != null, 'a pairing from an older save opens its ledger on its first week')
+    ok(!!old && old.since != null && old.ca0 != null, `a pairing from an older save opens its ledger on its first training week (${waited} week(s))`)
   }
 }
 
