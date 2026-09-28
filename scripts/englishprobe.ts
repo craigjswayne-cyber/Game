@@ -139,6 +139,8 @@ const CANNOT_BE_ONE: Record<string, string> = {
   'club.duoLine': 'a partnership needs games behind it to register at all',
   'news.brokePlans': 'a promise falls due six or eight weeks after it is made',
   'news.boardMemo': 'the memo names its own six-week window',
+  'news.boardMemoV2': 'the same memo told another way (tellings.ts): the same six-week window',
+  'news.tryRace': 'season.ts tryRace: filed only when the leader has three tries or more',
   'news.tenureSubj': 'tenure milestones are 5, 10, 15, 20, 25 years',
   'news.tenure': 'the wins and defeats of an era five seasons long',
   'news.aTitleMine': 'winning an A League takes more than one win',

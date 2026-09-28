@@ -21,6 +21,11 @@
  *   ranking exchange created points at its bounds and gave a World
  *   Championship "home" side three points of soil it was not standing on.
  *
+ *   THE NEWS. "Feels too samey at times" (owner, 1.8.1). The wire's three-line
+ *   pools each printed one line all season; the stories filed most often read
+ *   the same way every time. The retellings exist in every language, a pool
+ *   rotates, and the new stories come from the season as it is played.
+ *
  * Run: npx vite-node scripts/careerloop.ts
  */
 import { newGame, LEAGUE_DEFS } from '../src/game/newgame'
@@ -36,6 +41,8 @@ import { updateNatRank } from '../src/game/natrank'
 import { applyPinnacle } from '../src/game/grants'
 import { advanceHunt, talismanOf } from '../src/game/living'
 import { SEASON_WEEKS, type Fixture, type GameState } from '../src/game/model'
+import { RETOLD, nextTelling, tellingsOf } from '../src/game/tellings'
+import { readFileSync } from 'node:fs'
 
 let fails = 0
 const ok = (c: boolean, what: string) => {
@@ -245,6 +252,60 @@ console.log('\n--- 6. the wider world')
   g.natRank = { ENG: 80, FRA: 80 }
   updateNatRank(g, fx('aut', 20, 20))
   ok(g.natRank.ENG < 80, 'a home draw between equals still costs the hosts')
+}
+
+// ---- 7. the news: variety, not volume (1.8.1) -------------------------------
+console.log('\n--- 7. the same story does not read the same way twice running')
+{
+  // every retelling exists in all six languages, with a headline when it is a story
+  const dicts = Object.fromEntries(['en', 'fr', 'es', 'it', 'ja', 'af'].map(l =>
+    [l, JSON.parse(readFileSync(`src/locales/${l}.json`, 'utf8')) as Record<string, Record<string, unknown>>]))
+  const FRAGMENTS = ['news.aCoachNamed', 'news.aCoachAnon']
+  const missing: string[] = []
+  for (const base of Object.keys(RETOLD)) {
+    for (const k of tellingsOf(base)) {
+      const leaf = k.slice('news.'.length)
+      for (const [l, d] of Object.entries(dicts)) {
+        if (d.news[leaf] == null) missing.push(`${l}:${k}`)
+        if (!FRAGMENTS.includes(base) && d.news[`${leaf}Subj`] == null) missing.push(`${l}:${k}Subj`)
+      }
+    }
+  }
+  for (const k of ['news.coachIn', 'news.tryRace', 'news.ruHot', 'news.ruCold']) {
+    const leaf = k.slice('news.'.length)
+    for (const [l, d] of Object.entries(dicts)) if (d.news[leaf] == null) missing.push(`${l}:${k}`)
+  }
+  ok(missing.length === 0, `every new telling and story is in all six languages (${missing.slice(0, 4).join(', ') || 'none missing'})`)
+
+  // a pool is a rotation: three tellings in a season are three different lines
+  const g = newGame('leicester', 'Probe', 777)
+  g.news = []
+  const pool = ['news.wFrosty1', 'news.wFrosty2', 'news.wFrosty3']
+  const told: string[] = []
+  for (let i = 0; i < 3; i++) {
+    g.week = 10 + i * 3
+    const k = nextTelling(g, pool)
+    told.push(k)
+    g.news.push({ id: i + 1, week: g.week, season: g.season, type: 'gossip', read: false, subject: '', body: '', k })
+  }
+  ok(new Set(told).size === 3, `a three-line wire pool tells three different lines (${told.map(k => k.slice(-1)).join(', ')})`)
+
+  // and the new stories come from the season as it is played
+  const s = newGame('leicester', 'Probe', 4242)
+  let seen = 0, race = 0, form = 0, total = 0
+  for (let i = 0; i < 44; i++) {
+    const c = s.clubs[s.userClubId]
+    c.boardConfidence = Math.max(c.boardConfidence, 60)
+    processWeekAndAdvance(s)
+    const fresh = s.news.filter(n => n.id > seen)
+    seen = Math.max(seen, ...s.news.map(n => n.id))
+    total += fresh.length
+    race += fresh.filter(n => n.k === 'news.tryRace').length
+    form += fresh.filter(n => n.k === 'news.roundUp' && /ruHot|ruCold/.test(String(n.v?.rows_ll ?? ''))).length
+  }
+  ok(race === 2, `the try race is reported twice in a season (${race})`)
+  ok(form > 0, `the round-up carries a form line when a run reaches a mark (${form} weeks)`)
+  console.log(`     ${total} stories in 44 weeks (${(total / 44).toFixed(2)} a week)`)
 }
 
 console.log('')

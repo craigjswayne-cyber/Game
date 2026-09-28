@@ -27,6 +27,7 @@
 //      squad of generated stand-ins.
 //   7. Leaving the job moves the Test record to the profile's permanent
 //      history instead of the bin.
+import { storyOf } from '../src/game/tellings'
 import { newGame } from '../src/game/newgame'
 import { activeWindows, natFixtureThisWeek, processWeekAndAdvance, userMatchThisWeek } from '../src/game/season'
 import { natCallUp, natDrop, natEligible, natWindow, weeksToSquad, NAT_SQUAD_FLOOR } from '../src/game/country'
@@ -300,14 +301,14 @@ console.log('\n--- 9. a Test weekend is one card, and the names on it are still 
     }
     processWeekAndAdvance(g9)
     for (const n of g9.news) {
-      if ((n.k === 'news.caps' || n.k === 'news.capsMore' || n.k === 'news.campRound') && !campIds.has(n.id)) {
+      if ((n.k === 'news.caps' || n.k === 'news.capsMore' || storyOf(n.k ?? '') === 'news.campRound') && !campIds.has(n.id)) {
         campIds.add(n.id); camp.push(n)
       }
     }
   }
   ok(!g9.unemployed, 'the manager held his job for the three seasons under test')
   const singles = camp.filter(n => n.k === 'news.caps' || n.k === 'news.capsMore')
-  const rounds = camp.filter(n => n.k === 'news.campRound')
+  const rounds = camp.filter(n => storyOf(n.k ?? '') === 'news.campRound')
   ok(singles.length > 0 && rounds.length > 0,
     `both shapes occur over three seasons (${singles.length} single, ${rounds.length} round-ups)`)
   ok(singles.every(n => (n.playerIds?.length ?? 0) > 0),

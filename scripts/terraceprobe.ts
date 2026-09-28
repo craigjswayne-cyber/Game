@@ -23,6 +23,7 @@
 //      once, and recovery is announced too.
 //   4. A running campaign presses board confidence every week - which is the
 //      only thing that makes any of it more than a mood bar.
+import { storyOf } from '../src/game/tellings'
 import { newGame } from '../src/game/newgame'
 import { executeTransfer } from '../src/game/ai'
 import { campaignStage, terraceStanding, terraceWeek } from '../src/game/terraces'
@@ -112,8 +113,8 @@ console.log('\n--- 3. a campaign builds in stages, each announced once\n')
   club.boardConfidence = 55
   terraceWeek(g)
   ok(campaignStage(g) === 1, `the phone-ins start when both have gone (stage ${campaignStage(g)})`)
-  ok(g.news.some(n => n.k === 'news.fanRumble'), 'and it is announced')
-  const rumbles = () => g.news.filter(n => n.k === 'news.fanRumble').length
+  ok(g.news.some(n => storyOf(n.k ?? '') === 'news.fanRumble'), 'and it is announced')
+  const rumbles = () => g.news.filter(n => storyOf(n.k ?? '') === 'news.fanRumble').length
   terraceWeek(g); terraceWeek(g); terraceWeek(g)
   ok(rumbles() === 1, `a bad autumn is one story, not fifteen (${rumbles()})`)
 
@@ -127,7 +128,7 @@ console.log('\n--- 3. a campaign builds in stages, each announced once\n')
 
   g.fanMood = 70; club.boardConfidence = 70
   terraceWeek(g)
-  ok(g.news.some(n => n.k === 'news.fanForgiven'), 'and when the mood turns, the game says so')
+  ok(g.news.some(n => storyOf(n.k ?? '') === 'news.fanForgiven'), 'and when the mood turns, the game says so')
   ok(g.fanCampaign === 0, 'with the campaign closed rather than left standing')
 }
 

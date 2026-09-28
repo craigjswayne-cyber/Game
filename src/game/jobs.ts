@@ -1,16 +1,17 @@
 // The managerial merry-go-round: vacancies, applications, resignations.
 // The job market - wait for the right job, or take what's available.
 
-import type { GameState } from './model'
-import { genderOf, staffGender } from './gender'
+import type { Club, GameState } from './model'
+import { genderOf, staffGender, subjectVar } from './gender'
 import { absWeek, fmtMoney, mgrReputation, poss, weeksBetween100, stamp100 } from './model'
-import { sortTable } from './schedule'
+import { leaguePos, sortTable } from './schedule'
 import { autoSelect } from './matchEngine'
 import { clamp, hashString, mulberry32, type Rng } from './rng'
 import { nationByCode, regenName } from './nations'
 import { inheritStaff } from './staff'
 import { newCoachPhilosophy, seedPhilosophies } from './philosophy'
 import { t, tIn } from './i18n'
+import { telling } from './tellings'
 
 /**
  * ---- THE THREE MONTHS AFTER THEY SACK YOU ----
@@ -141,6 +142,7 @@ export function refreshVacancies(state: GameState, rng: Rng) {
       // F23: the new man brings his own idea of how to play, which is why a club
       // you have had the measure of for three seasons can start kicking at you.
       newCoachPhilosophy(state, state.clubs[v.clubId])
+      coachAppointed(state, state.clubs[v.clubId])
     }
     return keep
   })
@@ -180,13 +182,15 @@ export function refreshVacancies(state: GameState, rng: Rng) {
       const coachK = club.coach ? 'news.coachNamed' : 'news.theirHeadCoach'
       club.coach = undefined
       const pos = sortTable(state.comps[club.leagueId]?.table ?? []).findIndex(x => x.teamId === c.clubId) + 1
-      const ord = pos <= 0 ? 'poor' : `${pos}${pos % 10 === 1 && pos !== 11 ? 'st' : pos % 10 === 2 && pos !== 12 ? 'nd' : pos % 10 === 3 && pos !== 13 ? 'rd' : 'th'}-placed`
+      // eleven sackings a season across the world, so the story is told three
+      // ways in turn (tellings.ts); the no-table version keeps its one wording
+      const k = pos <= 0 ? 'news.coachOutPoor' : telling(state, 'news.coachOut')
+      const v = { short: club.short, club: club.name, coach: exCoach, coach_k: coachK, pos_o: pos }
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
-        subject: `${club.short} part company with ${exCoach}`,
-        body: `${club.name} are searching for a new Director of Rugby after a ${ord} run of form. The position is open.`,
-        k: pos <= 0 ? 'news.coachOutPoor' : 'news.coachOut',
-        v: { short: club.short, club: club.name, coach: exCoach, coach_k: coachK, pos_o: pos },
+        subject: tIn('en', `${k}Subj`, v),
+        body: tIn('en', k, v),
+        k, v,
       })
       break
     }
@@ -229,6 +233,29 @@ export function refreshVacancies(state: GameState, rng: Rng) {
       }
     }
   }
+}
+
+/**
+ * THE OTHER HALF OF THE SACKING STORY (1.8.1). The inbox reported every club
+ * that parted company with its coach and never said who came in, so a rival's
+ * season read as a door that opened and nobody walked through. Only for the
+ * manager's own league, where he will meet the new man, and only once a table
+ * exists to say what he is taking on: a summer appointment is filed quietly.
+ * Reads the appointment that has just happened; draws nothing.
+ */
+function coachAppointed(state: GameState, club: Club) {
+  if (state.unemployed || !club.coach) return
+  const league = state.clubs[state.userClubId]?.leagueId
+  if (!league || club.leagueId !== league) return
+  const pos = leaguePos(state.comps[league]?.table, club.id)
+  if (pos <= 0) return
+  const v = { short: club.short, club: club.name, coach: club.coach, pos_o: pos, ...subjectVar(club.coachGender) }
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+    subject: tIn('en', 'news.coachInSubj', v),
+    body: tIn('en', 'news.coachIn', v),
+    k: 'news.coachIn', v,
+  })
 }
 
 /** Apply for a vacancy. Returns the outcome message. */

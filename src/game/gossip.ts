@@ -6,6 +6,7 @@ import {absWeek, RELEGATES, SEASON_WEEKS, fmtMoney, formGuide, isMyClub, mgrRepu
 import { sortTable } from './schedule'
 import { clamp, gauss, pick, type Rng } from './rng'
 import { tIn, type Vars } from './i18n'
+import { nextTelling } from './tellings'
 
 /** File a Wire story.
  *
@@ -33,8 +34,10 @@ function wire(state: GameState, k: string, v: Vars, playerId?: number) {
 // week without drawing on the shared rng, so the world stream is untouched.
 // The options are KEYS now - picking the wording and picking the language are
 // different questions, and this one only answers the first.
-const voice = (state: GameState, salt: number, opts: string[]) =>
-  opts[(state.season * 5 + state.week * 3 + salt) % opts.length]
+//
+// A rotation since 1.8.1 (tellings.ts): the old `week * 3` term never moved a
+// three-line pool, so every one of them printed a single line all season.
+const voice = (state: GameState, salt: number, opts: string[]) => nextTelling(state, opts, salt)
 
 /** Personality pairs that rub each other the wrong way. */
 const CLASHES: [string, string][] = [

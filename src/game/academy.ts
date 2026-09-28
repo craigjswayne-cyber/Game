@@ -29,6 +29,7 @@
 //   screens, the fixture lists, the knockout builder and the champion history, and
 //   every one of those would need a special case. state.academy is invisible until
 //   the Academy screen asks for it.
+import { telling, tellingsOf } from './tellings'
 import type { Club, GameState, Player, Pos, TableRow } from './model'
 import { genderOf, subjectVar } from './gender'
 import { t, type Vars } from './i18n'
@@ -500,7 +501,9 @@ export function playAcademyWeek(state: GameState, rng: Rng) {
       pos > 0 ? `That leaves the A side ${ordinal(pos)} in the ${l.name}.` : '',
       tail,
     ].filter(Boolean).join('\n'),
-    k: pos > 0 ? 'news.aLeaguePos' : 'news.aLeague',
+    // eighteen of these a season: the report's opening and its table line are
+    // told three ways in turn (tellings.ts), as the sign-off already rotates
+    k: pos > 0 ? telling(state, 'news.aLeaguePos', 0, A_REPORTS) : 'news.aLeague',
     v: {
       // the subject's " v " is English and l.name ends in "A League", so both
       // travel as fragments: the scoreline as a list, the competition as its
@@ -513,12 +516,15 @@ export function playAcademyWeek(state: GameState, rng: Rng) {
           opp: clubName(state, hm ? f.awayId : f.homeId),
         }
       })),
-      ...subjectVar(state.staffPeople?.academyCoach?.g), coach_k: coachName ? 'news.aCoachNamed' : 'news.aCoachAnon', coach: coachName ?? '',
+      ...subjectVar(state.staffPeople?.academyCoach?.g), coach_k: telling(state, coachName ? 'news.aCoachNamed' : 'news.aCoachAnon', 1, A_REPORTS), coach: coachName ?? '',
       rows_ll: JSON.stringify(rows), pos_o: pos, comp: state.comps[l.leagueId]?.short ?? '', tail_k: tailKey,
     },
     playerIds: ids.slice(0, 6),
   })
 }
+
+/** Every A League report, for counting how many have been told this season. */
+const A_REPORTS = [...tellingsOf('news.aLeaguePos'), 'news.aLeague']
 
 // What the academy coach says at the bottom of his report. Six of each, picked by
 // round, because the same closing line eighteen weeks running reads like a form
