@@ -366,15 +366,15 @@ export function leversFor(state: GameState, unit: Unit, prep: MatchPrep): PlanLe
   const tac = club.tactic
   switch (unit) {
     case 'scrum':
-      return { prep, dials: { style: nudge(tac.style, -8) }, ...(drilledEnough(club, 'sc_shove') ? { scrumCall: 'sc_shove' } : {}) }
+      return { prep, dials: { style: nudge(tac.style, -5) }, ...(drilledEnough(club, 'sc_shove') ? { scrumCall: 'sc_shove' } : {}) }
     case 'lineout':
       return { prep, kickStyle: 'territory', ...(drilledEnough(club, 'lo_maul') ? { lineoutCall: 'lo_maul' } : {}) }
     case 'defence':
-      return { prep, dials: { style: nudge(tac.style, 8), tempo: nudge(tac.tempo, 6) } }
+      return { prep, dials: { style: nudge(tac.style, 6) } }
     case 'attack':
-      return { prep, dials: { defLine: nudge(tac.defLine, 8) } }
+      return { prep, dials: { defLine: nudge(tac.defLine, 6) } }
     case 'kicking':
-      return { prep, dials: { kicking: nudge(tac.kicking, -8), tempo: nudge(tac.tempo, 5) } }
+      return { prep, dials: { kicking: nudge(tac.kicking, -6) } }
   }
 }
 
