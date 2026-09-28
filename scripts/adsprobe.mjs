@@ -155,7 +155,8 @@ const BANNER_CALLS = ['showBanner', 'hideBanner', 'resumeBanner', 'removeBanner'
 const lastBanner = async (page) =>
   (await log(page)).filter(x => BANNER_CALLS.some(c => x === c || x.startsWith(`${c}:`))).at(-1)
 const inset = (page) => page.evaluate(() => document.documentElement.style.getPropertyValue('--ad-inset'))
-const navPad = (page) => page.evaluate(() => parseFloat(getComputedStyle(document.querySelector('.bottom-nav')).paddingBottom))
+// the floating bar (1.8.0) keeps its floor as a margin: the room under it is margin plus padding
+const navPad = (page) => page.evaluate(() => { const cs = getComputedStyle(document.querySelector('.bottom-nav')); return parseFloat(cs.marginBottom) + parseFloat(cs.paddingBottom) })
 const settle = (page, ms = 250) => page.waitForTimeout(ms)
 
 try {
@@ -177,7 +178,7 @@ try {
     ok(l.some(x => x === `showBanner:${ADS.android.banner['home-foot']}:BOTTOM_CENTER`), `with the Home unit id, at the bottom (${l.find(x => x.startsWith('showBanner'))})`)
     ok(await page.evaluate(() => document.querySelectorAll('.ad-slot').length === 1), 'the game rendered one slot, on Home')
     ok((await inset(page)) === '50px', `the page was told the banner is 50px tall (--ad-inset ${await inset(page)})`)
-    ok((await navPad(page)) >= 50, `so the bottom nav made room under itself (padding-bottom ${await navPad(page)}px)`)
+    ok((await navPad(page)) >= 50, `so the bottom nav made room under itself (${await navPad(page)}px)`)
 
     // a sheet over the page: the banner steps aside
     await page.evaluate(() => { const v = document.createElement('div'); v.className = 'modal-veil'; v.id = 'probe-veil'; document.body.appendChild(v) })

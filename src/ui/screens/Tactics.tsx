@@ -13,6 +13,8 @@ import { ROUTINES, DEFAULT_LINEOUT, DEFAULT_SCRUM, routineEffect } from '../../g
 import { BRIEFS, SPLITS, actualSplit, benchFrontRow, benchSeats, briefForSeat, refillBench, splitFor, type BenchSplit, type Brief } from '../../game/bench'
 import { t } from '../../game/i18n'
 import { subjectVar } from '../../game/gender'
+import { BenchClock, BriefIcon, ExitDiagram, KickStyleDiagram, LineoutDiagram, PREP_ICON, PenaltyDiagram, ScrumDiagram, SplitPips, TheTwentyThree } from '../tacticsArt'
+import { Glyph } from '../glyphs'
 
 /** The Tactics screen: HOW the side plays. Roles on a pitch, the set-piece
  *  playbook, the bench shape, the week's preparation and the game plan.
@@ -30,6 +32,9 @@ export default function Tactics() {
   /** what the last one-tap plan set, so a control whose sliders are three
    *  screenfuls away still answers the tap that pressed it */
   const [planMsg, setPlanMsg] = useState<string | null>(null)
+  /** the eight brief rows open on a tap: the drawn 23 above already says what
+   *  each replacement has been told, so the controls are for changing it */
+  const [briefsOpen, setBriefsOpen] = useState(false)
 
   const club = game.clubs[game.userClubId]
   // `tac`, not `t`: t() is the translator (src/game/i18n.ts)
@@ -221,27 +226,34 @@ export default function Tactics() {
             top. */}
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
           <div className="meta">
-            <b>{t('tacticsScreen.setPieceRule')}</b> {t('tacticsScreen.setPieceRuleRest')}
+            {t('tacticsScreen.setPieceRuleRest')}
           </div>
         </div>
         {([['lineout', 'tacticsScreen.lineoutCall', DEFAULT_LINEOUT, 'lineoutCall'],
            ['scrum', 'tacticsScreen.scrumCall', DEFAULT_SCRUM, 'scrumCall']] as const).map(([kind, heading, dflt, key]) => (
           <div key={kind}>
             <SectionTitle>{t(heading)}</SectionTitle>
-            <div className="routine-grid">
+            <div className={`routine-grid sp-routines sp-${kind}`}>
               {ROUTINES.filter(r => r.kind === kind).map(r => {
                 const on = (tac[key] ?? dflt) === r.id
                 const e = routineEffect(club, r.id)
+                // THE CALL, DRAWN (1.8.0, owner: "I want them to be more
+                // visual"): the whiteboard picture sits above the words, so
+                // the jumper and the drive are seen before they are read
                 return (
-                  <button key={r.id} className={`speech-tile${on ? ' sel' : ''}`}
+                  <button key={r.id} className={`speech-tile sp-call${on ? ' sel' : ''}`} aria-pressed={on}
+                    data-call={r.id}
                     onClick={() => { tac[key] = r.id; touch() }}>
-                    <b>{t(r.name)}</b>
-                    <span className="d">{t(r.desc)}</span>
-                    <span className="rt-bar"><i style={{ width: `${e.drilled}%` }} /></span>
-                    <span className="d">
-                      {t('tacticsScreen.drilled', { pct: Math.round(e.drilled) })}
-                      {e.mult >= 1.02 ? t('tacticsScreen.worth', { pct: Math.round((e.mult - 1) * 100) })
-                        : e.mult <= 0.98 ? t('tacticsScreen.costing', { pct: Math.round((1 - e.mult) * 100) }) : t('tacticsScreen.aboutLevel')}
+                    {kind === 'lineout' ? <LineoutDiagram call={r.id} /> : <ScrumDiagram call={r.id} />}
+                    <span className="sp-txt">
+                      <b>{t(r.name)}</b>
+                      <span className="d">{t(r.desc)}</span>
+                      <span className="rt-bar"><i style={{ width: `${e.drilled}%` }} /></span>
+                      <span className="d">
+                        {t('tacticsScreen.drilled', { pct: Math.round(e.drilled) })}
+                        {e.mult >= 1.02 ? t('tacticsScreen.worth', { pct: Math.round((e.mult - 1) * 100) })
+                          : e.mult <= 0.98 ? t('tacticsScreen.costing', { pct: Math.round((1 - e.mult) * 100) }) : t('tacticsScreen.aboutLevel')}
+                      </span>
                     </span>
                   </button>
                 )
@@ -288,16 +300,22 @@ export default function Tactics() {
 
         <SectionTitle>{t('tacticsScreen.exiting')}</SectionTitle>
         <div className="card">
-          <div className="opt-2x2">
+          <div className="sp-grid">
             {([
               ['box', 'tacticsScreen.exitBox'],
               ['long', 'tacticsScreen.exitLong'],
               ['counter', 'tacticsScreen.exitCounter'],
               ['fifty22', 'tacticsScreen.exitFifty22'],
-            ] as const).map(([id, label]) => (
-              <button key={id} className={`preset-chip${(tac.exit ?? 'long') === id ? ' on' : ''}`}
-                onClick={() => { tac.exit = id; touch() }}>{t(label)}</button>
-            ))}
+            ] as const).map(([id, label]) => {
+              const on = (tac.exit ?? 'long') === id
+              return (
+                <button key={id} className={`speech-tile sp-card${on ? ' sel' : ''}`} aria-pressed={on} data-opt={`exit-${id}`}
+                  onClick={() => { tac.exit = id; touch() }}>
+                  <ExitDiagram id={id} />
+                  <b>{t(label)}</b>
+                </button>
+              )
+            })}
           </div>
           <div className="meta" style={{ marginTop: 6 }}>
             {t(({
@@ -315,16 +333,22 @@ export default function Tactics() {
             the engine applies nothing - this one does not repeat that). */}
         <SectionTitle>{t('tacticsScreen.kickStyle')}</SectionTitle>
         <div className="card">
-          <div className="opt-2x2">
+          <div className="sp-grid">
             {([
               ['territory', 'tacticsScreen.kickTerritory'],
               ['contest', 'tacticsScreen.kickContest'],
               ['attack', 'tacticsScreen.kickAttack'],
               ['balanced', 'tacticsScreen.kickBalanced'],
-            ] as const).map(([id, label]) => (
-              <button key={id} className={`preset-chip${(tac.kickStyle ?? 'balanced') === id ? ' on' : ''}`}
-                onClick={() => { tac.kickStyle = id; touch() }}>{t(label)}</button>
-            ))}
+            ] as const).map(([id, label]) => {
+              const on = (tac.kickStyle ?? 'balanced') === id
+              return (
+                <button key={id} className={`speech-tile sp-card${on ? ' sel' : ''}`} aria-pressed={on} data-opt={`kick-${id}`}
+                  onClick={() => { tac.kickStyle = id; touch() }}>
+                  <KickStyleDiagram id={id} />
+                  <b>{t(label)}</b>
+                </button>
+              )
+            })}
           </div>
           <div className="meta" style={{ marginTop: 6 }}>
             {t(({
@@ -338,16 +362,22 @@ export default function Tactics() {
 
         <SectionTitle>{t('tacticsScreen.kickablePenalty')}</SectionTitle>
         <div className="card">
-          <div className="opt-2x2">
+          <div className="sp-grid">
             {([
               ['ask', 'tacticsScreen.penAsk'],
               ['posts', 'tacticsScreen.penPosts'],
               ['corner', 'tacticsScreen.penCorner'],
               ['tap', 'tacticsScreen.penTap'],
-            ] as const).map(([id, label]) => (
-              <button key={id} className={`preset-chip${(tac.penaltyCall ?? 'ask') === id ? ' on' : ''}`}
-                onClick={() => { tac.penaltyCall = id; touch() }}>{t(label)}</button>
-            ))}
+            ] as const).map(([id, label]) => {
+              const on = (tac.penaltyCall ?? 'ask') === id
+              return (
+                <button key={id} className={`speech-tile sp-card${on ? ' sel' : ''}`} aria-pressed={on} data-opt={`pen-${id}`}
+                  onClick={() => { tac.penaltyCall = id; touch() }}>
+                  <PenaltyDiagram id={id} />
+                  <b>{t(label)}</b>
+                </button>
+              )
+            })}
           </div>
           <div className="meta" style={{ marginTop: 6 }}>
             {t(({
@@ -385,13 +415,18 @@ export default function Tactics() {
             </div>
           )
         })()}
-        <SectionTitle sub={t('tacticsScreen.the23Sub')}>{t('tacticsScreen.the23')}</SectionTitle>
-        <div className="routine-grid">
+        {/* THE 23, DRAWN (1.8.0, owner: "more visual"): the fifteen in their
+            shape and the eight on the bench with what each has been told,
+            before the controls that change them */}
+        <SectionTitle sub={t('tacticsScreen.b23Sub')}>{t('tacticsScreen.the23')}</SectionTitle>
+        <TheTwentyThree game={game} club={club} />
+        <SectionTitle sub={t('tacticsScreen.the23Sub')}>{t('tacticsScreen.benchSplit')}</SectionTitle>
+        <div className="routine-grid split-grid">
           {SPLITS.map(sp => {
             const on = splitFor(club) === sp.id
             const fw = sp.seats.filter(x => ['LP', 'HK', 'TP', 'LK', 'FL', 'N8'].includes(x.pos[0])).length
             return (
-              <button key={sp.id} className={`speech-tile${on ? ' sel' : ''}`}
+              <button key={sp.id} className={`speech-tile${on ? ' sel' : ''}`} aria-pressed={on} data-split={sp.id}
                 onClick={() => {
                   tac.bench = sp.id as BenchSplit
                   // the seats changed shape, so the men in them are re-chosen
@@ -399,13 +434,26 @@ export default function Tactics() {
                   touch()
                 }}>
                 <b>{t(sp.name)}</b>
+                {/* the pips say the count; the words stay for a screen reader */}
+                <SplitPips seats={sp.seats} label={t('tacticsScreen.splitCount', { fw, bk: 8 - fw })} />
                 <span className="d">{t(sp.desc)}</span>
-                <span className="d">{t('tacticsScreen.splitCount', { fw, bk: 8 - fw })}</span>
               </button>
             )
           })}
         </div>
+        <BenchClock neutral={splitFor(club) === '5-3'} />
         <SectionTitle sub={t('tacticsScreen.finisherBriefsSub')}>{t('tacticsScreen.finisherBriefs')}</SectionTitle>
+        {/* Folded until asked for (1.8.0). When the drawn 23 arrived it put
+            every replacement and his brief at the top of this tab, and the
+            eight rows below then listed the same eight men a second time: the
+            page went from under three screenfuls to nearly four on a landscape
+            phone (scrollaudit). The drawing is the reading; this is the
+            changing, and a full-width row keeps the 44px tap floor. */}
+        <button className="btn ghost block" aria-expanded={briefsOpen} data-briefs-toggle
+          onClick={() => setBriefsOpen(v => !v)}>
+          {t(briefsOpen ? 'tacticsScreen.closeBriefs' : 'tacticsScreen.changeBriefs')}
+        </button>
+        {briefsOpen && <>
         <div className="brief-list">
           {seats.map((seat, i) => {
             const pid = tac.lineup[15 + i]
@@ -421,19 +469,31 @@ export default function Tactics() {
                 <div className="preset-row">
                   {BRIEFS.map(b => (
                     <button key={b.id} className={`preset-chip${cur === b.id ? ' on' : ''}`} title={t(b.desc)}
+                      aria-pressed={cur === b.id} data-brief={b.id}
                       onClick={() => {
                         const arr = [...(tac.briefs ?? new Array(8).fill(null))]
                         while (arr.length < 8) arr.push(null)
                         arr[i] = b.id as Brief
                         tac.briefs = arr
                         touch()
-                      }}>{b.icon} {t(b.short)}</button>
+                      }}><BriefIcon brief={b.id} /> {t(b.short)}</button>
                   ))}
                 </div>
               </div>
             )
           })}
         </div>
+        {/* what each brief means, said once under the eight rows: the chips
+            only carry it as a tooltip, and a phone has no hover */}
+        <div className="brief-key">
+          {BRIEFS.map(b => (
+            <div key={b.id} className="brief-key-row">
+              <BriefIcon brief={b.id} />
+              <span><b>{t(b.name)}</b> {t(b.desc)}</span>
+            </div>
+          ))}
+        </div>
+        </>}
         <div className="spacer" />
       </>}
 
@@ -500,20 +560,31 @@ export default function Tactics() {
           )
         })()}
         <SectionTitle sub={t('tacticsScreen.matchPrepSub')}>{t('tacticsScreen.matchPrep')}</SectionTitle>
-        <div className="preset-row" style={{ padding: '0 14px', flexWrap: 'wrap', gap: 8 }}>
+        {/* FIVE CARDS, NOT FIVE CHIPS (1.8.0, owner: "more visual"). The
+            chips kept their effect in a tooltip a phone cannot show, and the
+            chosen one differed from the rest only by a shade of grey. Each
+            focus is now a card with its own icon and what it buys and costs
+            written on it; the chosen one wears the same ring as every other
+            pick in the game. Tapping it again still clears the week. */}
+        <div className="prep-grid">
           {([
             ['attack', 'analyst.prepAttack', 'tacticsScreen.prepAttackShort'],
             ['defence', 'analyst.prepDefence', 'tacticsScreen.prepDefenceShort'],
             ['setpiece', 'analyst.prepSetpiece', 'tacticsScreen.prepSetpieceShort'],
             ['fitness', 'analyst.prepFitness', 'tacticsScreen.prepFitnessShort'],
             ['recovery', 'analyst.prepRecovery', 'tacticsScreen.prepRecoveryShort'],
-          ] as const).map(([k, label, desc]) => (
-            <button key={k} className="preset-chip" title={t(desc)}
-              style={game.matchPrep === k ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
-              onClick={() => { game.matchPrep = game.matchPrep === k ? undefined : k; touch() }}>
-              {t(label)}
-            </button>
-          ))}
+          ] as const).map(([k, label, desc]) => {
+            const on = game.matchPrep === k
+            const I = PREP_ICON[k]
+            return (
+              <button key={k} className={`speech-tile prep-card${on ? ' sel' : ''}`} aria-pressed={on} data-prep={k}
+                onClick={() => { game.matchPrep = game.matchPrep === k ? undefined : k; touch() }}>
+                <span className="prep-ico"><I /></span>
+                <b>{t(label)}</b>
+                <span className="d">{t(desc)}</span>
+              </button>
+            )
+          })}
         </div>
         <div className="card" style={{ marginTop: 10 }}>
           <div className="meta">
@@ -537,7 +608,7 @@ export default function Tactics() {
           {PRESETS.map(p => (
             <button key={p.id} className="preset-chip" title={t(p.desc)}
               onClick={() => { Object.assign(tac, p.values); setPlanMsg(dialLine(tac)); touch() }}>
-              {p.icon} {t(p.name)}
+              <Glyph name={p.icon} /> {t(p.name)}
             </button>
           ))}
         </div>
@@ -566,7 +637,7 @@ export default function Tactics() {
             if (!slot) {
               return (
                 <button key={letter} className="preset-chip plan-empty" onClick={snapshot} title={t('tacticsScreen.planSaveTitle')}>
-                  💾 {t('tacticsScreen.planSave', { n: letter })}
+                  <Glyph name="save" /> {t('tacticsScreen.planSave', { n: letter })}
                 </button>
               )
             }
@@ -574,7 +645,7 @@ export default function Tactics() {
               <span key={letter} className="plan-slot">
                 <button className="preset-chip plan-load" title={dialLine({ ...tac, ...slot.values })}
                   onClick={() => { Object.assign(tac, JSON.parse(JSON.stringify(slot.values))); setPlanMsg(dialLine(tac)); touch() }}>
-                  📋 {t('tacticsScreen.planLoad', { n: slot.name })}
+                  <Glyph name="tactics" /> {t('tacticsScreen.planLoad', { n: slot.name })}
                 </button>
                 <button className="preset-chip plan-over" title={t('tacticsScreen.planOverTitle', { n: slot.name })} aria-label={t('tacticsScreen.planOverTitle', { n: slot.name })}
                   onClick={snapshot}>⟳</button>
@@ -695,7 +766,7 @@ function AnalystCard() {
         <b style={{ color: 'var(--gold)' }}>{unitLabel(read.unit)}.</b> {analystClaim(read)}
       </div>
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 6, flexWrap: 'wrap' }}>
-        <button className="btn gold" style={{ padding: '5px 10px', fontSize: 11.5 }}
+        <button className="btn gold" style={{ padding: '5px 10px', fontSize: 12 }}
           disabled={followed}
           onClick={() => { game.matchPrep = read.prep; touch() }}>
           {followed ? t('analyst.preparing', { prep: prepLabel(read.prep) }) : t('analyst.workOnIt', { prep: prepLabel(read.prep) })}

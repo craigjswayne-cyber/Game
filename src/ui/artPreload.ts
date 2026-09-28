@@ -1,5 +1,6 @@
 import { CAMPUS_PLOTS } from '../game/campusPlots'
 import { groundLevel, type GameState } from '../game/model'
+import tacticsPitch from './tactics-pitch.png'
 
 const ART = import.meta.env.BASE_URL + 'art/'
 
@@ -60,6 +61,51 @@ export function preloadCampus(game: GameState): void {
     }
   }
 
+  const idle = (window as unknown as {
+    requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => void
+  }).requestIdleCallback
+  if (idle) idle(fetchAll, { timeout: 4000 })
+  else setTimeout(fetchAll, 1500)
+}
+
+/**
+ * ---- EVERY PICTURE, LOADED UNDER THE OPENING TITLES (1.8.0) ----
+ *
+ * Owner, 27 Sep 2026: "use the intro animation to load up all images in game
+ * so they dont have to load when you switch to that page". The game has few
+ * pictures and they add up to about 3.3MB: the tactics pitch, the campus map
+ * and its building site, and six levels of each of the ten buildings. All of
+ * it is asked for as the intro starts (it has five seconds with nothing else
+ * to fetch), decoded, and held here so the browser keeps it, so the first
+ * visit to Tactics or Club Infrastructure paints at once.
+ *
+ * With the intro off (the Settings switch, reduce motion, a second launch in
+ * the same session) the same list is fetched when the browser is idle, as the
+ * campus art always was. Either way it never blocks anything: a picture that
+ * has not arrived loads itself when its page opens, exactly as before.
+ */
+const held: HTMLImageElement[] = []
+let allStarted = false
+
+export function allArtUrls(): string[] {
+  const urls = [tacticsPitch, `${ART}campus/plate.png`, `${ART}campus/construction.png`]
+  for (const plot of CAMPUS_PLOTS) for (let l = 0; l <= 5; l++) urls.push(`${ART}facilities/${plot.art}-L${l}.png`)
+  return urls
+}
+
+export function preloadAllArt(opts: { now?: boolean } = {}): void {
+  if (allStarted || typeof Image === 'undefined') return
+  allStarted = true
+  const fetchAll = () => {
+    for (const src of allArtUrls()) {
+      const img = new Image()
+      img.decoding = 'async'
+      img.src = src
+      img.decode?.().catch(() => { /* a missing file loads on its page instead */ })
+      held.push(img)
+    }
+  }
+  if (opts.now) { fetchAll(); return }
   const idle = (window as unknown as {
     requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => void
   }).requestIdleCallback

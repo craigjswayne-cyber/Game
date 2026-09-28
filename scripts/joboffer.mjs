@@ -30,7 +30,7 @@ await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
 // The Jobs tab on the rail is only there while a manager is out of work; in a
 // job it lives in the manager's menu, which is where a curious manager finds it.
 const openJobs = async () => {
-  await page.locator('.bottom-nav button', { hasText: '▸' }).nth(1).click()
+  await page.locator('.bottom-nav button[data-group]').nth(1).click()
   await page.waitForSelector('.submenu')
   await page.waitForTimeout(300)
   await page.locator('.submenu-item', { hasText: 'Job Centre' }).click()

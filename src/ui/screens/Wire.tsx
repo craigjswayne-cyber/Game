@@ -1,15 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../../store'
 import { PeopleChips, RequestAnswer } from './Inbox'
+import { ContextCard, ResponseNeeded } from '../ContextCard'
 import { paragraphs } from '../components'
 import { newsBody, newsSubject, weekDate } from '../../game/model'
 import { markRead } from '../../game/days'
 import { t } from '../../game/i18n'
+import { newsGlyph } from '../glyphs'
 
-const TYPE_ICON: Record<string, string> = {
-  result: '🏉', transfer: '💼', injury: '🏥', intl: '🌍', board: '🏛',
-  award: '🏅', contract: '✍️', general: '📰', youth: '🌱', gossip: '🎙',
-}
 
 /** This week's stories, full screen, one page at a time - the breath between
  *  matches (8H feedback).
@@ -45,20 +43,24 @@ export default function Wire() {
   const last = idx >= items.length - 1
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%', padding: '6px 14px 12px' }}>
-      <div className="card" style={{ flex: 1, display: 'flex', flexDirection: 'column', margin: 0 }}>
+      <div className="news-split">
+      {/* THE STORY IS ITS OWN HEIGHT (owner, 27 Sep 2026, a screenshot of a
+          three-line story in a box filling the phone: "boxes around them
+          dont dwarf the page"). It used to stretch to fill the screen. */}
+      <div className="card" style={{ display: 'flex', flexDirection: 'column', margin: 0 }}>
         <div className="wire-date" style={{ display: 'flex', justifyContent: 'space-between' }}>
           <span>{t('week.wireDateNews', { date: weekDate(n.season, n.week) })}</span>
           <span>{t('week.wirePos', { i: idx + 1, n: items.length })}</span>
         </div>
-        <h2 style={{ fontSize: 19, lineHeight: 1.3, margin: '8px 0 10px' }}>
-          {TYPE_ICON[n.type] ?? '📰'} {newsSubject(n)}
+        <h2 style={{ fontSize: 18, lineHeight: 1.3, margin: '8px 0 10px' }}>
+          {newsGlyph(n.type)} {newsSubject(n)}
         </h2>
         {/* PARAGRAPHS, not a wall (user: "news graphics seem so messy, tidy them
             up. use paragraphs"). pre-line honours the newlines the engine writes
             but gives them no space, so a three-part story read as one block with
             odd gaps in it. Real paragraphs get real air between them, and a blank
             line in the source no longer produces an empty one on screen. */}
-        <div className="wire-body" style={{ flex: 1, overflowY: 'auto' }}>
+        <div className="wire-body">
           {paragraphs(newsBody(n)).map((para, i) => <p key={i}>{para}</p>)}
         </div>
         {/* the same chip row the inbox reader uses, so a name looks tappable in
@@ -66,7 +68,12 @@ export default function Wire() {
         <RequestAnswer n={n} />
         <PeopleChips n={n} />
       </div>
-      <div className="btn-row" style={{ marginTop: 10 }}>
+      <ContextCard n={n} />
+      </div>
+      {/* ONE ROW, ONE LINE EACH (the same screenshot: "Skip the rest" wrapped
+          onto three lines beside two wider buttons). Response Needed went: the
+          header's own button already says Press Room when one is waiting. */}
+      <div className="btn-row wire-actions" style={{ marginTop: 10 }}>
         {/* a way back (owner, v1.2.8: "there is no back button to previous
             story") - the reader only ever moved forward */}
         {idx > 0 && (
@@ -78,7 +85,7 @@ export default function Wire() {
             {t('week.wireSkipRest')}
           </button>
         )}
-        <button className="btn gold" style={{ flex: 2, fontSize: 15 }}
+        <button className="btn gold" style={{ flex: 2 }}
           onClick={() => { if (last) home(); else setIdx(idx + 1) }}>
           {t(last ? 'week.wireOnToWeek' : 'week.wireNextStory')}
         </button>

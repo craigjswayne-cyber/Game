@@ -284,7 +284,10 @@ try {
         .sort((a, b) => b.length - a.length)[0] ?? '',
       advance: [...document.querySelectorAll('button:not([disabled])')]
         .filter(b => { const r = b.getBoundingClientRect(); return r.width > 2 && r.height > 2 })
-        .map(b => t(b)).filter(s => s.length && s.length < 20).slice(0, 8),
+        // the 1.8.0 match bar is icons (play/pause, skip, squad), each named by
+        // its aria-label: what a screen reader says is what the icon means
+        .map(b => t(b) || b.getAttribute('aria-label') || b.getAttribute('title') || '')
+        .filter(s => s.length && s.length < 30).slice(0, 8),
     }
   })
   say(`  scoreboard: ${m.board.slice(0, 80)}`)

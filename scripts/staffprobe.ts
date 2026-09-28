@@ -1,7 +1,7 @@
 // Probe: named backroom staff, the candidate market and the 58% course.
 import { newGame } from '../src/game/newgame'
 import { STAFF_INFO } from '../src/game/model'
-import { BADGE, EXAM_PASS_PCT, appointStaff, sendToCourse, staffCandidates, staffInterest, staffWageBill, type StaffRole } from '../src/game/staff'
+import { BADGE, EXAM_PASS_PCT, RETAKE_WEEKS, appointStaff, sendToCourse, staffCandidates, staffInterest, staffWageBill, type StaffRole } from '../src/game/staff'
 
 let fails = 0
 const bad = (m: string) => { fails++; console.error('FAIL: ' + m) }
@@ -63,13 +63,32 @@ const wage0 = c2.staffPeople?.physio?.wage ?? 0
 const purse0 = c2.clubs[c2.userClubId].balance
 console.log('course  :', sendToCourse(c2, 'physio'))
 if (c2.clubs[c2.userClubId].balance >= purse0) bad('the course was free')
-console.log('again   :', sendToCourse(c2, 'physio'))
+// SIT UNTIL IT MOVES, AT MOST EIGHT TIMES (28 Sep 2026). This sat twice and
+// demanded a promotion, but a sitting passes 58% of the time and a failure
+// locks the man out (RETAKE_WEEKS), so the second call was usually refused
+// and "two sittings" was one: the badge stayed put in about four worlds in
+// ten, and on a shifted seed list it did. Worse, the gold loop below then
+// spun for ever against the lock-out (the run hit the suite's 20-minute
+// timeout). The clock is now moved to the end of each lock-out, as a manager would
+// wait it out; eight sittings all failing is 0.42^8, about 1 in 1,000.
+const sit = () => {
+  const msg = sendToCourse(c2, 'physio')
+  const at = c2.staffPeople?.physio?.retakeAt
+  if (/cannot sit it again yet/.test(msg) && at != null) {
+    // to the week the lock-out ends (RETAKE_WEEKS on), across a summer if need be
+    c2.season = Math.floor(at / 100); c2.week = at % 100
+    return sendToCourse(c2, 'physio')
+  }
+  return msg
+}
+for (let i = 0; i < 7 && (c2.staffPeople?.physio?.tier ?? 0) === before2; i++) console.log('again   :', sit())
 if (c2.staffPeople?.physio?.course) bad('a course was left in flight, which nothing sets any more')
 // a verdict, not a wait: the tier has already moved by the time the call returns
-if ((c2.staffPeople?.physio?.tier ?? 0) === before2) bad('two sittings and the badge never moved')
+if ((c2.staffPeople?.physio?.tier ?? 0) === before2) bad('eight sittings and the badge never moved')
 if ((c2.staffPeople?.physio?.wage ?? 0) <= wage0) bad('a better badge did not cost more in wages')
 // and gold is the ceiling: he is refused, and not charged
-while ((c2.staffPeople?.physio?.tier ?? 0) < 3) sendToCourse(c2, 'physio')
+for (let i = 0; i < 40 && (c2.staffPeople?.physio?.tier ?? 0) < 3; i++) sit()
+if ((c2.staffPeople?.physio?.tier ?? 0) < 3) bad('forty sittings and no gold badge')
 const goldPurse = c2.clubs[c2.userClubId].balance
 const refusal = sendToCourse(c2, 'physio')
 if (!/gold badge/i.test(refusal)) bad(`a gold-badged man was not turned away: ${refusal}`)
@@ -91,23 +110,31 @@ if (c2.staff.physio !== after) bad('staff level out of step with tier after the 
 // course took six weeks to resolve; now the verdict lands inside the call, and
 // advancing the world afterwards only gave a season rollover the chance to
 // replace the man and confuse the count.
+//
+// EVERY ROLE IN EACH WORLD, 300 WORLDS (28 Sep 2026), not the assistant alone
+// in 900. The gate reads (seed, week, role), so each role in a world is its
+// own draw: about 2,100 sittings for a third of the worlds. At 900 the rate's
+// standard error was 1.6 points against a band of 4 (2.4 of them); at 2,100
+// it is 1.1 (3.7), and the probe spends a minute less building worlds.
 let pass = 0, n = 0
-for (let seed = 1; seed <= 900; seed++) {
+const ROLES = Object.keys(STAFF_INFO) as StaffRole[]
+for (let seed = 1; seed <= 300; seed++) {
   const t = newGame('leicester', 'Rate', seed)
   t.clubs[t.userClubId].balance = 9_000_000
-  t.week = 1 + (seed % 20)          // spread the sittings across the season
-  const role: StaffRole = 'assistant'
-  if (!t.staffPeople?.[role]) {
-    const i = staffCandidates(t, role).findIndex(c => c.tier < 3 && staffInterest(t, c) !== 'no')
-    if (i < 0) continue
-    appointStaff(t, role, i)
-  }
-  const person = t.staffPeople?.[role]
-  if (!person || person.tier >= 3) continue
-  const tier0 = person.tier
-  sendToCourse(t, role)
-  n++
-  if ((t.staffPeople?.[role]?.tier ?? 0) > tier0) pass++
+  ROLES.forEach((role, ri) => {
+    t.week = 1 + ((seed + ri * 7) % 20)          // spread the sittings across the season
+    if (!t.staffPeople?.[role]) {
+      const i = staffCandidates(t, role).findIndex(c => c.tier < 3 && staffInterest(t, c) !== 'no')
+      if (i < 0) return
+      appointStaff(t, role, i)
+    }
+    const person = t.staffPeople?.[role]
+    if (!person || person.tier >= 3 || person.retakeAt != null) return
+    const tier0 = person.tier
+    sendToCourse(t, role)
+    n++
+    if ((t.staffPeople?.[role]?.tier ?? 0) > tier0) pass++
+  })
 }
 const pct = (pass / n) * 100
 console.log(`course pass rate over ${n} sittings: ${pct.toFixed(1)}% (target ${EXAM_PASS_PCT}%)`)

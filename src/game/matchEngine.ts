@@ -5,7 +5,8 @@ import { ROLE_FX, rolesForSlot } from './roles'
 import { zoneAt, zonePlan } from './tactics'
 import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, addGrudge, chemKey, demandCeiling, facLevel, fmtMoney, formGuide, grudgeBetween, inRedZone, oldBoyApps, trustFactor, unbeatenRun } from './model'
 import { standing } from './authority'
-import { analystShift, archetypeOf, loudestDial, repetitionFatigue } from './oppcoach'
+import { analystShift, archetypeOf, loudestDial, repetitionFatigue, respectLayers } from './oppcoach'
+import { resolveContest, type Contest } from './contest'
 import { updateNatRank } from './natrank'
 import { bigMatchTemper, consistency, effAt } from './attributes'
 import { nationName, nationNameIn, nationVars } from './nations'
@@ -259,8 +260,12 @@ export interface Units {
 }
 
 const avg = (ns: number[]) => ns.length ? ns.reduce((a, b) => a + b, 0) / ns.length : 8
+/** the blended units' world mean against the single-attribute ones they
+ *  replaced (scripts/_units measured over 321 sides, three seeds), so the
+ *  engine's calibration stands */
+const UNIT_NORM = { breakdown: 0.98818, attack: 1.02380, defence: 1.05597 }
 
-export function teamUnits(state: GameState, lineup: (number | null)[], day?: { fxId: number; big: boolean }): Units {
+export function teamUnits(state: GameState, lineup: (number | null)[], day?: { fxId: number; big: boolean; chemToday?: Set<string> }): Units {
   const xv = lineup.slice(0, 15).map(id => (id != null ? state.players[id] : null))
   const P = (i: number) => xv[i]
   // THE MATCH-DAY WOBBLE (25D-2). With `day` set - only ever by the live sim,
@@ -294,19 +299,37 @@ export function teamUnits(state: GameState, lineup: (number | null)[], day?: { f
   const bk = [8, 9, 10, 11, 12, 13, 14]
   let scrum = avg([at(0, 'scr'), at(1, 'scr'), at(2, 'scr'), at(3, 'str'), at(4, 'str'), at(0, 'str'), at(2, 'str')])
   let lineout = avg([at(1, 'lin'), at(3, 'lin'), at(4, 'lin'), at(5, 'lin'), at(7, 'lin')])
-  let breakdown = avg(fw.map(i => at(i, 'ruc')))
+  // ---- NO ONE ATTRIBUTE IS A WHOLE UNIT (1.8.0, scripts/ladderprobe.ts) ----
+  // Measured exactly (ladderprobe: what +2 across a 23 does to the attacking
+  // and defending strength every tick is decided by): tackling raised it 9.0%,
+  // 2.5 times the third attribute (handling 3.6%), because the defence unit
+  // WAS tackling; rucking was the whole breakdown and came second at 7.4%.
+  // Decisions, agility and work rate read 0.0%: counted in the rating, read
+  // by nothing in a match. After: tackling 5.7%, rucking 5.1%, positioning
+  // 3.0%, and all three of those now count.
+  // So a defence is tackling, the reads (positioning) and getting back into
+  // the line (work rate); a breakdown is rucking and the strength to win the
+  // clear-out; an attack reads its half-backs' decisions and its backs'
+  // agility as well as their hands and legs. Each unit is then scaled by the
+  // world's measured mean (UNIT_NORM) so the game plays at the same level and
+  // only what each attribute is worth moves.
+  let breakdown = avg(fw.map(i => at(i, 'ruc') * 0.7 + at(i, 'str') * 0.3)) * UNIT_NORM.breakdown
   let attack = avg([
     ...bk.map(i => at(i, 'han')),
     at(9, 'vis') * 1.5, at(8, 'pas') * 1.3, at(11, 'pac'), at(12, 'pac'),
     at(10, 'pac'), at(13, 'pac'), at(14, 'pos'),
-  ])
-  let defence = avg([...fw.map(i => at(i, 'tac')), ...bk.map(i => at(i, 'tac')), at(14, 'pos') * 1.2])
+    at(8, 'dec'), at(9, 'dec') * 1.2, at(11, 'agi'), at(13, 'agi'), at(14, 'agi'),
+  ]) * UNIT_NORM.attack
+  const dman = (i: number) => at(i, 'tac') * 0.6 + at(i, 'pos') * 0.2 + at(i, 'wor') * 0.2
+  let defence = avg([...fw.map(dman), ...bk.map(dman), at(14, 'pos') * 1.2]) * UNIT_NORM.defence
   let kicking = avg([at(9, 'kic') * 1.6, at(8, 'kic'), at(14, 'kic')])
   // partnership chemistry: combinations that have played together click
   if (state.chem) {
     const games = (i: number, j: number) => {
       const a = lineup[i], b = lineup[j]
-      return a != null && b != null ? state.chem![chemKey(a, b)] ?? 0 : 0
+      if (a == null || b == null) return 0
+      const k = chemKey(a, b)
+      return (state.chem![k] ?? 0) - (day?.chemToday?.has(k) ? 1 : 0)
     }
     const f = (g: number) => (g >= 50 ? 0.03 : g >= 25 ? 0.02 : g >= 10 ? 0.01 : 0)
     scrum *= 1 + (f(games(0, 1)) + f(games(1, 2))) / 2
@@ -851,6 +874,23 @@ export interface SideCtx {
    *  at half time and settled ones after. */
   finalR?: Map<number, number>
   onPitch: Set<number>
+  /** the minute each replacement came on (starters are absent: they have
+   *  been on since the kick-off). Only the in-match player sheet reads it, to
+   *  share a side's tackles by the minutes each man has been out there. */
+  onAt?: Map<number, number>
+  /** KICKS AT GOAL (1.8.0): conversions, penalties and drop goals taken and
+   *  put over. Counted, never drawn, so they cannot move the stream; they are
+   *  what lets a side that dominated and lost see that it missed five kicks. */
+  kicksAt?: number
+  kicksMade?: number
+  /** KICKS FROM HAND (1.8.0, kicksFromHand): clearances, box kicks and kicks
+   *  for territory this side put boot to, and how many of them were charged
+   *  down. Absent on a match begun by an older build. */
+  handKicks?: number
+  chargedDown?: number
+  /** TACKLES MADE AND MISSED, by player (1.8.0, countTackles). */
+  tackles?: Map<number, number>
+  missed?: Map<number, number>
   yellowUntil: Map<number, number>
   /** players currently sitting out a yellow - off the pitch, back in ten.
    *  Before this existed a sin-binned man stayed in onPitch and could score
@@ -946,11 +986,50 @@ export interface SideCtx {
   briefsUsed?: number
   /** a man is playing out of his depth after a forced positional switch */
   coverBlown?: boolean
+
+  // ---- who was out there, and for how long ----------------------------------
+  /** the XV on the pitch when the first tick ran. The lineup array is
+   *  rewritten by every substitution, so reading it at full time handed the
+   *  start to whoever finished the match in the shirt. */
+  starters?: Set<number>
+  /** the minute each man now on the pitch began his current stint */
+  since?: Map<number, number>
+  /** minutes each man has banked from stints that have ended */
+  played?: Map<number, number>
+  /** the personnel the units were last built from (see fieldChanged) */
+  unitsKey?: number | string
+  /** the three set-piece units summed over the ticks played, and how many.
+   *  The coach's verdict reads the match's average from these: now that a
+   *  side's units follow its replacements, the full-time figure is the pack
+   *  that finished the game, not the one that contested most of it. */
+  setAcc?: { scrum: number; lineout: number; breakdown: number; n: number }
 }
 
 /** Tactic + weather + coaching modifiers, applied to freshly computed units. */
 function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null) {
   const club = state.clubs[side.teamId]
+  // FROM A CLEAN BASE EVERY TIME. This runs at kick-off and again on every
+  // recompute, and the figures below are only ASSIGNED on some paths: a Test
+  // side has no club, so its tempo, card and penalty risk were never reset and
+  // each recompute multiplied the layered mods into them again, and the
+  // coaching block ADDS its goal-kicking bonus. A side that changed personnel
+  // five times kicked with five coaching bonuses. Resetting here, to exactly
+  // the values mkSide starts from, is what makes a recompute idempotent: the
+  // kick-off numbers are unchanged and the tenth rebuild lands where the
+  // first did. The penalty price reads refPenF, which carries the referee and
+  // the crowd, so nothing beginMatch folded in is lost.
+  side.goalBonus = 0
+  side.tempoF = 1
+  side.drainF = 1
+  side.cardRisk = 0.012
+  side.aggF = 0
+  side.penRisk = aggPenRisk(0, side.refPenF ?? 1)
+  // who is actually out there: a sent-off captain does not lead, a man in the
+  // bin does not call the lineouts and a hot head in the stand cannot be sent
+  // off again. At kick-off this is the XV, so nothing changes there.
+  const present = (id: number | null | undefined): id is number => id != null && side.onPitch.has(id)
+  // and the shirts as the units read them, an HIA stand-in in his (fieldLineup)
+  const shirts = fieldLineup(side).slice(0, 15)
   /**
    * ---- THE TRAINING PITCH (owner, v1.8.1) ----
    *
@@ -979,7 +1058,7 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
   }
   // a happy dressing room plays for each other; a sour one hesitates
   if (club) {
-    const xv = side.lineup.slice(0, 15).map(id => id != null ? state.players[id] : null).filter(Boolean)
+    const xv = shirts.map(id => id != null ? state.players[id] : null).filter(Boolean)
     if (xv.length) {
       const avgMor = xv.reduce((s, p) => s + p!.morale, 0) / xv.length
       const mF = 1 + (avgMor - 6.5) * 0.009 // roughly ±3% at the extremes
@@ -1042,7 +1121,11 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
     const rk = f(tac.ruckContest ?? 50)
     side.units.defence *= 1 - rk * 0.03
     side.ruckContest = 1 + rk * 0.1
-    side.penRisk *= 1 + rk * 0.1 * (side.refPenF ?? 1)
+    // 0.11 from 1.8.0 (was 0.1): an own-half penalty now goes to touch rather
+    // than at the posts, so each one conceded costs a little less and the full
+    // contest had drifted to +3.2 a match against balanced (kickbreakprobe;
+    // 0.12 fixed that but left draws one game under bandcheck's floor).
+    side.penRisk *= 1 + rk * 0.11 * (side.refPenF ?? 1)
     side.cardRisk += rk * 0.0015
 
     // The called set-piece routines (F2). What you get is the routine's ceiling
@@ -1063,7 +1146,13 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
 
     // The kicking game (F3). A designated kicker is a decision; the automatic
     // pick of whoever has the best attribute is not.
-    const named = (tac.kickers ?? []).find(id => id != null && side.onPitch.has(id) && !state.players[id]?.injury)
+    // Read against the SHIRTS, not against who is on the pitch this minute: a
+    // first-choice kicker sitting out ten in the bin is still the first-choice
+    // kicker, and goalKicker() finds a stand-in while he sits and hands the tee
+    // back when he returns. Keyed on onPitch, a rebuild during his ten minutes
+    // quietly demoted him for the rest of the match. At kick-off the two sets
+    // are the same, so the pick there is unchanged.
+    const named = (tac.kickers ?? []).find(id => id != null && side.lineup.slice(0, 15).includes(id) && !state.players[id]?.injury)
     if (named != null) side.units.kickerId = named
     // exit strategy: how you play your way out of your own 22
     switch (tac.exit) {
@@ -1080,7 +1169,7 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
   if (club?.tactic.roles) {
     for (let i = 0; i < 15; i++) {
       const r = club.tactic.roles[i]
-      if (!r || side.lineup[i] == null) continue
+      if (!r || shirts[i] == null) continue
       // A ROLE HAS TO BE LEGAL FOR THE SHIRT. rolesForSlot is the rule and it was
       // enforced only in Tactics.tsx, so fifteen jackals were one save-edit away
       // and measured +7.1 points a match. An engine rule a screen can bypass is
@@ -1099,13 +1188,13 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
   }
 
   // hot heads walk the disciplinary tightrope every week
-  for (const id of side.lineup.slice(0, 15)) {
-    const p = id != null ? state.players[id] : null
+  for (const id of shirts) {
+    const p = present(id) ? state.players[id] : null
     if (p?.trait === 'Hot Head') side.cardRisk += 0.002
   }
   // a proper captain in the XV steadies the ship and keeps discipline;
   // when he's missing, the vice-captain leads at half the effect
-  const xvIds = side.lineup.slice(0, 15)
+  const xvIds = shirts.filter(present)
   const leader = club?.captain != null && xvIds.includes(club.captain)
     ? { p: state.players[club.captain], f: 1 }
     : club?.vice != null && xvIds.includes(club.vice)
@@ -1124,7 +1213,7 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
   // responsibility sits, not a free upgrade, and a world where nobody names one
   // is exactly where it was.
   if (club?.leaders) {
-    const onField = new Set(side.lineup.slice(0, 15).filter((x): x is number => x != null))
+    const onField = new Set(shirts.filter(present))
     for (const [area, id] of Object.entries(club.leaders)) {
       if (id == null || !onField.has(id)) continue
       const h = state.players[id]
@@ -1248,7 +1337,12 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
       // default when the read is sound, or the whole analyst chain is
       // decoration again. Re-measured at 0.045: +36.9 points a season, ahead
       // in 10 of 12 paired seasons.
-      const homework = 0.045 * prepF
+      // 0.07 from 1.8.0: the same collapse again, in two steps. E5-E9 took
+      // the edge from +78.7 points a season to +27.3, and kicks from hand,
+      // charge-downs and the two-layer contest took it to -14.0 and then
+      // -0.3 (following sound reads was worth nothing against a fitness
+      // week). At 0.07: +44.4, ahead in 14 of 24 paired seasons.
+      const homework = 0.07 * prepF
       if (read.unit === 'defence') side.units.attack *= 1 + homework
       else if (read.unit === 'attack') side.units.defence *= 1 + homework
       else side.units[read.unit] *= 1 + homework
@@ -1333,6 +1427,11 @@ function mkSide(state: GameState, teamId: string, userTeamId: string | null, fxI
   // penalty entirely - the same isUser-versus-teamId trap the coaching
   // department comment above was written about.
   if (side.teamId === state.userClubId) side.repF = repetitionFatigue(state)
+  // the XV start their stints at the kick-off, and the units just built are
+  // the units of this personnel, so the first tick has nothing to rebuild
+  side.since = new Map([...onPitch].map(id => [id, 0]))
+  side.played = new Map()
+  side.unitsKey = personnelKey(side)
   return side
 }
 
@@ -1518,6 +1617,10 @@ const FLAVOR_WET = [
   'comm.flavWet5',
   'comm.flavWet6',
 ]
+/** the light moments (1.7.4, owner: "need more humour in the game"): a dog on
+ *  the pitch, a lost boot, a seagull that will not move. Rare, about one in
+ *  thirty atmosphere lines, so a match has one now and then and never a set. */
+const FLAVOR_FUN = ['comm.fun1', 'comm.fun2', 'comm.fun3', 'comm.fun4', 'comm.fun5', 'comm.fun6']
 const FLAVOR_WIND = [
   'comm.flavWind1',
   'comm.flavWind2',
@@ -1538,6 +1641,97 @@ const TIRED_LINES = [
   'comm.tired4',
 ]
 
+/**
+ * ---- THE MATCH, CALLED AS IT IS PLAYED (1.8.0) ----
+ *
+ * The owner asked for more commentary, about 100 to 150 lines a match. A watched match
+ * used to be about 48 lines, most of them scores and the odd atmosphere line,
+ * so four minutes of rugby could pass in one sentence. These banks describe
+ * the rugby the engine is already playing: where the ball is (ctx.field), who
+ * has been winning it (the tick's scoring roll), the kicks from hand it now
+ * counts, the restarts after a score, the set piece the match sheet derives.
+ *
+ * WORDS ONLY. Every pick in here is ctx.crng, the commentary's own dice, and
+ * every line is stamped at the minute the clock has already reached (see
+ * colour() below), so a watched match and the same fixture played silently
+ * stay the same match (scripts/detailprobe.ts). Nothing here reads a line
+ * back or changes a number.
+ *
+ * Grouped by where the ball is, so a line never puts a side in the wrong 22.
+ */
+/** a side running it out of its own 22 */
+const PBP_DEEP = ['comm.pbpDeep1', 'comm.pbpDeep2', 'comm.pbpDeep3', 'comm.pbpDeep4', 'comm.pbpDeep5', 'comm.pbpDeep6']
+/** phase play between the 22s */
+const PBP_MID = [
+  'comm.pbpMid1', 'comm.pbpMid2', 'comm.pbpMid3', 'comm.pbpMid4', 'comm.pbpMid5', 'comm.pbpMid6',
+  'comm.pbpMid7', 'comm.pbpMid8', 'comm.pbpMid9', 'comm.pbpMid10', 'comm.pbpMid11', 'comm.pbpMid12',
+]
+/** close to their line */
+const PBP_RED = [
+  'comm.pbpRed1', 'comm.pbpRed2', 'comm.pbpRed3', 'comm.pbpRed4', 'comm.pbpRed5',
+  'comm.pbpRed6', 'comm.pbpRed7', 'comm.pbpRed8', 'comm.pbpRed9', 'comm.pbpRed10',
+]
+/** the breakdown, anywhere */
+const PBP_RUCK = [
+  'comm.pbpRuck1', 'comm.pbpRuck2', 'comm.pbpRuck3', 'comm.pbpRuck4', 'comm.pbpRuck5',
+  'comm.pbpRuck6', 'comm.pbpRuck7', 'comm.pbpRuck8', 'comm.pbpRuck9', 'comm.pbpRuck10',
+]
+/** a count of phases: {n} is the phase count, a word choice like the rest */
+const PBP_PHASES = ['comm.pbpPhases1', 'comm.pbpPhases2', 'comm.pbpPhases3', 'comm.pbpPhases4', 'comm.pbpPhases5', 'comm.pbpPhases6']
+/** the side without the ball, as a unit */
+const DEF_SET = [
+  'comm.defSet1', 'comm.defSet2', 'comm.defSet3', 'comm.defSet4', 'comm.defSet5',
+  'comm.defSet6', 'comm.defSet7', 'comm.defSet8', 'comm.defSet9', 'comm.defSet10',
+]
+/** a named tackler: always a man the tackle count already has making hits */
+const DEF_HIT = ['comm.defHit1', 'comm.defHit2', 'comm.defHit3', 'comm.defHit4', 'comm.defHit5', 'comm.defHit6', 'comm.defHit7', 'comm.defHit8']
+/** the set piece the match sheet derives (matchStats): words, no count moves */
+const SP_LINEOUT = [
+  'comm.lineout1', 'comm.lineout2', 'comm.lineout3', 'comm.lineout4', 'comm.lineout5',
+  'comm.lineout6', 'comm.lineout7', 'comm.lineout8', 'comm.lineout9', 'comm.lineout10',
+]
+const SP_SCRUM = [
+  'comm.scrum1', 'comm.scrum2', 'comm.scrum3', 'comm.scrum4', 'comm.scrum5',
+  'comm.scrum6', 'comm.scrum7', 'comm.scrum8', 'comm.scrum9', 'comm.scrum10',
+]
+/** the kick-off after a score, taken by the side that conceded it */
+const RESTART = [
+  'comm.restart1', 'comm.restart2', 'comm.restart3', 'comm.restart4', 'comm.restart5',
+  'comm.restart6', 'comm.restart7', 'comm.restart8', 'comm.restart9', 'comm.restart10',
+]
+/** where the game is being played, now and then */
+const TERR_CAMPED = ['comm.terrCamped1', 'comm.terrCamped2', 'comm.terrCamped3', 'comm.terrCamped4', 'comm.terrCamped5']
+const TERR_MIDDLE = ['comm.terrMiddle1', 'comm.terrMiddle2', 'comm.terrMiddle3', 'comm.terrMiddle4', 'comm.terrMiddle5']
+/** the last ten minutes, read off the scoreboard as it stands */
+const LATE_CHASE = ['comm.lateChase1', 'comm.lateChase2', 'comm.lateChase3', 'comm.lateChase4']
+const LATE_HOLD = ['comm.lateHold1', 'comm.lateHold2', 'comm.lateHold3', 'comm.lateHold4']
+const LATE_LEVEL = ['comm.lateLevel1', 'comm.lateLevel2', 'comm.lateLevel3']
+/** a greasy ball, when it is raining */
+const PBP_WET = ['comm.pbpWet1', 'comm.pbpWet2', 'comm.pbpWet3', 'comm.pbpWet4', 'comm.pbpWet5']
+
+/** KICKS FROM HAND (1.8.0), each one a kick the engine counted (kicksFromHand) */
+const KICK_EXIT = ['comm.kickExit1', 'comm.kickExit2', 'comm.kickExit3', 'comm.kickExit4', 'comm.kickExit5', 'comm.kickExit6', 'comm.kickExit7']
+const KICK_BOX = ['comm.kickBox1', 'comm.kickBox2', 'comm.kickBox3', 'comm.kickBox4', 'comm.kickBox5', 'comm.kickBox6', 'comm.kickBox7']
+const KICK_TOUCH = ['comm.kickTouch1', 'comm.kickTouch2', 'comm.kickTouch3', 'comm.kickTouch4', 'comm.kickTouch5', 'comm.kickTouch6']
+const KICK_LONG = ['comm.kickLong1', 'comm.kickLong2', 'comm.kickLong3', 'comm.kickLong4', 'comm.kickLong5', 'comm.kickLong6']
+const KICK_UP = ['comm.kickUp1', 'comm.kickUp2', 'comm.kickUp3', 'comm.kickUp4', 'comm.kickUp5', 'comm.kickUp6']
+const KICK_PIN = ['comm.kickPin1', 'comm.kickPin2', 'comm.kickPin3', 'comm.kickPin4', 'comm.kickPin5', 'comm.kickPin6']
+/** the other side's answer to a kick, named for the man who fields it */
+const KICK_FIELD = ['comm.kickField1', 'comm.kickField2', 'comm.kickField3', 'comm.kickField4', 'comm.kickField5', 'comm.kickField6', 'comm.kickField7']
+
+/** CHARGE-DOWNS (1.8.0): the block, the try that can come of it, and the
+ *  four other ways the ball can land */
+const CHARGE_DOWN = ['comm.chargeDown1', 'comm.chargeDown2', 'comm.chargeDown3', 'comm.chargeDown4', 'comm.chargeDown5']
+const CHARGE_TRY_LINES = ['comm.tryCharge1', 'comm.tryCharge2', 'comm.tryCharge3', 'comm.tryCharge4']
+const CHARGE_LINEOUT = ['comm.chargeLineout1', 'comm.chargeLineout2', 'comm.chargeLineout3']
+const CHARGE_SCRUM = ['comm.chargeScrum1', 'comm.chargeScrum2', 'comm.chargeScrum3']
+const CHARGE_REGATHER = ['comm.chargeRegather1', 'comm.chargeRegather2', 'comm.chargeRegather3']
+const CHARGE_SAFE = ['comm.chargeSafe1', 'comm.chargeSafe2', 'comm.chargeSafe3']
+
+/** DROP GOALS THAT MISS (1.8.0): the attempt was always rolled and counted as
+ *  a kick at goal, and a miss said nothing at all */
+const DROP_MISS = ['comm.dropMiss1', 'comm.dropMiss2', 'comm.dropMiss3', 'comm.dropMiss4', 'comm.dropMiss5']
+
 /** Live match context. The match is simulated tick by tick (4 minutes per
  *  tick, 20 ticks) so tactics changes and substitutions genuinely change
  *  what happens next, at any point in the game. */
@@ -1546,6 +1740,28 @@ export interface LiveCtx {
   home: SideCtx
   away: SideCtx
   rng: Rng
+  /** THE COMMENTARY'S OWN DICE (1.8.0). Anything drawn only because somebody
+   *  is watching (which atmosphere line, whether a missed kick gets a line)
+   *  draws from here, never from rng. The match is ONE engine whether it is
+   *  watched or not, as Football Manager's is: the detail level decides what
+   *  is written down, never what happens. Drawing commentary from rng made
+   *  every watched match a different match from the same fixture played
+   *  silently (scripts/detailprobe.ts: 0 of 120 alike before this). */
+  crng: Rng
+  /** EVERY KICK AT GOAL, in the order of the commentary (1.8.0): [the index
+   *  of the line it belongs to, 0 home / 1 away, 1 made / 0 missed]. The
+   *  engine runs a tick ahead of the ticker, so the live stats count only
+   *  the kicks whose line has been shown; reading the side's totals put a
+   *  kick on the screen before the ticker had taken it. */
+  kickLog?: [number, 0 | 1, 0 | 1][]
+  /** the seed of the kicks-from-hand dice (kicksFromHand), drawn once from
+   *  rng at kick-off so every match has its own */
+  kickSeed?: number
+  /** the partnerships this match has already been counted into (state.chem,
+   *  at kick-off). A rebuild of the units reads them one game short, so it
+   *  sees the familiarity the kick-off units were built from and does not
+   *  hand a side a chemistry step for having made a substitution. */
+  chemToday?: Set<string>
   detail: boolean
   weather: Weather
   derby: boolean
@@ -1556,6 +1772,13 @@ export interface LiveCtx {
   isUser: boolean
   /** the team the user is coaching in this match (club or national side) */
   userSideId: string | null
+  /** THE ASSISTANT HAS THE BENCH (1.8.0): set by the instant result, where the
+   *  manager has handed the match over. The user's side then makes its
+   *  replacements the way every AI side does (aiAutoSubs), instead of none -
+   *  measured before this: 0.8 replacements a match, all of them injuries,
+   *  against the opposition's 6.5, so tired starters played the full eighty
+   *  and the bench split and the replacement briefs did nothing. */
+  assistantSubs?: boolean
   /** next tick to simulate, 0..20 */
   tick: number
   /** 0 = pre-KO, 1 = HT reached, 2 = 60' break reached, 3 = full-time */
@@ -1596,7 +1819,7 @@ export interface LiveCtx {
   lastSub?: { outId: number; inId: number; blewCover: boolean; briefed: boolean } | null
   preTalk: string | null
   /** a touchline call waiting on the user (kickable penalty etc) */
-  decision: { kind: 'penalty'; min: number } | null
+  decision: { kind: 'penalty'; min: number; fld?: number } | null
   /** Index of the whistle line for the period that has just ended, while a
    *  touchline call awarded BEFORE it is still unanswered. The kick belongs
    *  in front of that line, not behind it - see resolveDecision. Null
@@ -1671,6 +1894,15 @@ const DEPICTS: Record<string, NonNullable<MatchEvent['fx']>> = {
   'comm.penWide': 'MISS',           // the kick that misses
   'comm.penWideNamed': 'MISS',
   'comm.conWide': 'MISS',
+  'comm.dropMiss1': 'MISS',         // and the drop goal that misses
+  'comm.dropMiss2': 'MISS',
+  'comm.dropMiss3': 'MISS',
+  'comm.dropMiss4': 'MISS',
+  'comm.dropMiss5': 'MISS',
+  'comm.lineout3': 'LINEOUT',       // the jumper lifted, the throw taken
+  'comm.lineout7': 'LINEOUT',
+  'comm.scrum2': 'SCRUM',           // the scrum that goes forward
+  'comm.scrum6': 'SCRUM',
   'comm.tmoReview1': 'TMO',         // the referee goes upstairs (scoreTry)
   'comm.tmoReview2': 'TMO',
   'comm.tmoReview3': 'TMO',
@@ -1703,14 +1935,17 @@ const DEPICTS: Record<string, NonNullable<MatchEvent['fx']>> = {
  * on the ticker, which is the only clock anyone watching has. No draw.
  */
 function binUntil(ctx: LiveCtx, min: number): number {
-  return Math.max(min, ctx.detail ? ctx.lastMin : min) + 10
+  // the clock runs watched or not (clockTo), so the bin reads it either way
+  return Math.max(min, ctx.lastMin) + 10
 }
 
 function pushLine(
   state: GameState, ctx: LiveCtx, min: number, type: MatchEvent['type'], side: SideCtx | null,
   k: string, v?: Record<string, string | number>, playerId?: number,
 ) {
-  if (!ctx.detail) return
+  // silent, the line is not written, but its minute still moves the clock,
+  // so a silent match keeps the same time as a watched one
+  if (!ctx.detail) { clockTo(ctx, min, type); return }
   pushEvent(state, ctx, min, type, side, tIn('en', k, v), playerId, k, v, DEPICTS[k])
 }
 
@@ -1719,7 +1954,20 @@ function pushEvent(
   text: string, playerId?: number, k?: string, v?: Record<string, string | number>,
   fx?: MatchEvent['fx'],
 ) {
+  min = clockTo(ctx, min, type)
+  // only the writing down is for the watcher
   if (!ctx.detail) return
+  ctx.events.push({
+    min, type, teamId: side?.teamId ?? '', fld: Math.round(ctx.field ?? 50),
+    playerId, playerName: playerId != null ? state.players[playerId]?.name : undefined,
+    text, k, v, fx, homeScore: ctx.home.score, awayScore: ctx.away.score,
+  })
+}
+
+/** THE CLOCK RUNS WATCHED OR NOT (1.8.0): a line's minute moves the match
+ *  clock in a silent match too, so a sin bin and the match sheet read the
+ *  same minute either way. Returns the minute the line is stamped with. */
+function clockTo(ctx: LiveCtx, min: number, type: MatchEvent['type']): number {
   if (type !== 'HT' && type !== 'FT') {
     // NOTHING HAPPENS AFTER THE WHISTLE (owner: "ive noticed a few times a
     // penalty kick comes after the half-time whistle has blown... this should
@@ -1740,11 +1988,7 @@ function pushEvent(
     min = Math.min(Math.max(min, ctx.lastMin), whistle)
     ctx.lastMin = min
   }
-  ctx.events.push({
-    min, type, teamId: side?.teamId ?? '',
-    playerId, playerName: playerId != null ? state.players[playerId]?.name : undefined,
-    text, k, v, fx, homeScore: ctx.home.score, awayScore: ctx.away.score,
-  })
+  return min
 }
 
 export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: boolean, userTeamId: string | null = state.userClubId): LiveCtx {
@@ -2050,12 +2294,14 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
   // every match started together deepens a partnership (counted at kick-off,
   // after this match's units were computed from the old familiarity)
   state.chem ??= {}
+  const chemToday = new Set<string>()
   for (const side of [home, away]) {
     for (const [i, j] of CHEM_SLOTS) {
       const a = side.lineup[i], b = side.lineup[j]
       if (a != null && b != null) {
         const k = chemKey(a, b)
         state.chem[k] = (state.chem[k] ?? 0) + 1
+        chemToday.add(k)
       }
     }
   }
@@ -2080,6 +2326,7 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
 
   const ctx: LiveCtx = {
     fx, home, away, rng, detail, weather, derby, goalPenalty,
+    crng: mulberry32(((Math.imul(fx.id | 0, 2654435761) ^ Math.imul(state.season | 0, 40503) ^ 0x5eed) >>> 0) || 1),
     hfa,
     events: [], lastMin: 0,
     isUser: fx.homeId === userTeamId || fx.awayId === userTeamId,
@@ -2087,6 +2334,8 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     tick: 0, seg: 0, awaiting: null, field: 50, motmId: null, talkUsed: false, subsUsed: 0,
     preTalk: null, decision: null, momo: 0, grudge: grudge?.reason ?? null,
   }
+  ctx.kickSeed = Math.floor(rng() * 4294967296) >>> 0
+  ctx.chemToday = chemToday
 
   // THE ANALYST'S HOMEWORK (pillar 2): an analyst-archetype dugout facing the
   // user starts with its plan pulled toward the counter to the user's habit.
@@ -2095,6 +2344,11 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
   // every calibrated harness and every fresh world.
   for (const side of [home, away]) {
     if (side.isUser || !ctx.isUser) continue
+    // A BIG NAME IS RESPECTED (E9, oppcoach.setUpForUser): a coach who has
+    // set up to spoil the manager's game also works harder at it, a little
+    // more effort in defence and at the breakdown, for this match only
+    const rl = respectLayers(state, side.teamId)
+    if (rl) for (const [u, m] of Object.entries(rl)) layer(side, u as keyof SideMods, m)
     const shift = analystShift(state, side.teamId)
     if (!shift) continue
     for (const [u, m] of Object.entries(shift.layers)) layer(side, u as keyof SideMods, m)
@@ -2280,13 +2534,21 @@ function kickChance(state: GameState, kicker: Player | null, base: number, div: 
   return clamp(skill + formF + confF - goalPenalty + side.goalBonus + traitB, floor, 0.90)
 }
 
+/** Count a kick at goal on the side, and log it against the commentary. */
+function noteKick(ctx: LiveCtx, side: SideCtx, made: boolean) {
+  side.kicksAt = (side.kicksAt ?? 0) + 1
+  if (made) side.kicksMade = (side.kicksMade ?? 0) + 1
+  if (ctx.detail) (ctx.kickLog ??= []).push([ctx.events.length, side === ctx.home ? 0 : 1, made ? 1 : 0])
+}
+
 /** Take the three points: roll the kick at goal. */
 function takePenaltyShot(state: GameState, ctx: LiveCtx, side: SideCtx, min: number) {
   const { rng, detail, goalPenalty } = ctx
-  const kicker = side.units.kickerId != null ? state.players[side.units.kickerId] : null
+  const kicker = goalKicker(state, side)
   const pPen = kickChance(state, kicker, 0.53, 54, ctx.goalPenalty ?? 0, side)
-  if (rng() < pPen) {
-    ctx.field = ctx.field * 0.6 + 50 * 0.4   // restart, as after any score
+  const penOver = rng() < pPen
+  noteKick(ctx, side, penOver)
+  if (penOver) {
     side.score += 3
     side.pens += 1
     if (kicker) {
@@ -2306,9 +2568,340 @@ function takePenaltyShot(state: GameState, ctx: LiveCtx, side: SideCtx, min: num
     if (ctx.weather !== 'Rain' && ctx.weather !== 'Snow' && PEN_WET[line]) line = PEN_WET[line]
     pushLine(state, ctx, min, 'PEN', side, line,
       { player: kicker?.name ?? tIn('en', 'comm.theKicker') }, kicker?.id)
-  } else if (detail && rng() < 0.7) {
+    // restart, as after any score - AFTER the line, so the line is stamped
+    // with where the kick was taken (MatchEvent.fld), not the halfway restart
+    ctx.field = ctx.field * 0.6 + 50 * 0.4
+    describeRestart(state, ctx, side)
+  } else if (detail && ctx.crng() < 0.7) {
     pushLine(state, ctx, min, 'SUB', side, kicker ? 'comm.penWideNamed' : 'comm.penWide',
       { player: kicker?.name ?? '' }, kicker?.id)
+  }
+}
+
+/**
+ * A line of colour: written only when somebody is watching, and stamped at
+ * the minute the clock has ALREADY reached. pushLine moves the clock in a
+ * silent match as well (clockTo), so a line that exists only when watched must
+ * never move it, or the sin bin (binUntil reads lastMin) would be timed
+ * differently in the two. Stamped at lastMin it cannot.
+ */
+function colour(
+  state: GameState, ctx: LiveCtx, side: SideCtx | null, key: string,
+  v?: Record<string, string | number>, playerId?: number,
+) {
+  if (!ctx.detail) return
+  pushLine(state, ctx, ctx.lastMin, 'SUB', side, key, v, playerId)
+}
+
+/** one of a bank, on the commentary's dice */
+function said<T>(ctx: LiveCtx, xs: readonly T[]): T {
+  return xs[Math.floor(ctx.crng() * xs.length)]
+}
+
+/** the men a side has on the pitch */
+function onField(state: GameState, side: SideCtx): Player[] {
+  return [...side.onPitch].map(id => state.players[id]).filter((p): p is Player => !!p)
+}
+
+/** whoever wears shirt slot `i` (0-based) and is on the pitch, else null */
+function inShirt(state: GameState, side: SideCtx, i: number): Player | null {
+  const id = side.lineup[i]
+  return id != null && side.onPitch.has(id) ? state.players[id] ?? null : null
+}
+
+/** a man for a line, by shirt: the first of `slots` on the pitch, weighted by
+ *  `w`, on the commentary's dice; anybody on the pitch if none of them is */
+function sayWho(state: GameState, ctx: LiveCtx, side: SideCtx, slots: number[], w?: number[]): Player | null {
+  const men = slots.map(s => inShirt(state, side, s))
+  const ok = men.map((p, i) => (p ? (w?.[i] ?? 1) : 0))
+  const tot = ok.reduce((a, b) => a + b, 0)
+  if (tot > 0) {
+    let r = ctx.crng() * tot
+    for (let i = 0; i < men.length; i++) { r -= ok[i]; if (r < 0 && men[i]) return men[i] }
+  }
+  const all = onField(state, side)
+  return all.length ? all[Math.floor(ctx.crng() * all.length)] : null
+}
+
+/** how far up the pitch a side is, 0 its own line, 100 theirs */
+const upOf = (ctx: LiveCtx, side: SideCtx) => side === ctx.home ? ctx.field : 100 - ctx.field
+/** move the line `m` metres towards a side's own posts */
+function backTowards(ctx: LiveCtx, side: SideCtx, m: number) {
+  ctx.field = clamp(side === ctx.home ? ctx.field - m : ctx.field + m, 4, 96)
+}
+
+/**
+ * THE RUGBY BETWEEN THE SCORES, called for a watched match (1.8.0). Read
+ * before the tick's scoring roll, so a try that follows is preceded by the
+ * carries that made it - the highlight clip plays those lines as its build-up
+ * (HighlightClip.buildClip), and at most the last three of them.
+ */
+function describePlay(state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideCtx, contest?: Contest | null) {
+  if (!ctx.detail) return
+  const up = upOf(ctx, side)
+  const team = teamShort(state, side.teamId), oppT = teamShort(state, opp.teamId)
+  // the set piece now and then: the sheet derives about thirteen scrums and
+  // twenty-five lineouts a match, and these name a few of them
+  const sp = ctx.crng()
+  if (sp < 0.13) {
+    const p = sayWho(state, ctx, side, [3, 4, 5, 6, 7], [3, 3, 1, 2, 1])
+    if (p) colour(state, ctx, side, said(ctx, SP_LINEOUT), { team, opp: oppT, player: p.name }, p.id)
+  } else if (sp < 0.21) {
+    colour(state, ctx, side, said(ctx, SP_SCRUM), { team, opp: oppT })
+  }
+  // the carry, where the ball is: forwards close in, backs in space
+  if (ctx.crng() < 0.45) {
+    const bank = up < 22 ? PBP_DEEP : up > 78 ? PBP_RED : PBP_MID
+    // the man the contest put into contact, when there was one
+    const real = contest && side.onPitch.has(contest.carrier) ? state.players[contest.carrier] : null
+    const p = real ?? (up > 78
+      ? sayWho(state, ctx, side, [0, 1, 2, 3, 4, 5, 6, 7, 11], [1, 2, 1, 2, 2, 2, 2, 3, 1])
+      : up < 22
+        ? sayWho(state, ctx, side, [8, 9, 14, 10, 13, 11], [2, 3, 3, 1, 1, 1])
+        : sayWho(state, ctx, side, [3, 5, 6, 7, 9, 10, 11, 12, 13, 14], [1, 1, 1, 2, 2, 1, 2, 2, 1, 1]))
+    if (p) colour(state, ctx, side, said(ctx, bank), { team, opp: oppT, player: p.name }, p.id)
+  }
+  // the breakdown, or the count of phases
+  const bd = ctx.crng()
+  if (bd < 0.15) {
+    const p = sayWho(state, ctx, side, [0, 1, 2, 3, 4, 5, 6, 7, 8], [1, 1, 1, 1, 1, 2, 2, 1, 2])
+    if (p) colour(state, ctx, side, said(ctx, PBP_RUCK), { team, opp: oppT, player: p.name }, p.id)
+  } else if (bd < 0.24) {
+    colour(state, ctx, side, said(ctx, PBP_PHASES), { team, opp: oppT, n: 3 + Math.floor(ctx.crng() * 9) })
+  }
+  if ((ctx.weather === 'Rain' || ctx.weather === 'Snow') && ctx.crng() < 0.07) {
+    const p = sayWho(state, ctx, side, [8, 9, 11, 12, 13, 14])
+    if (p) colour(state, ctx, side, said(ctx, PBP_WET), { team, opp: oppT, player: p.name }, p.id)
+  }
+}
+
+/** The side without the ball, when the tick came to nothing for the side
+ *  that had it: a line about the defence. A man named for a hit is one the
+ *  tackle count already has making hits (TACKLE_LINES rule). */
+function describeDefence(state: GameState, ctx: LiveCtx, def: SideCtx, att: SideCtx, contest?: Contest | null) {
+  if (!ctx.detail || ctx.crng() >= 0.25) return
+  const team = teamShort(state, def.teamId), oppT = teamShort(state, att.teamId)
+  const hitters = onField(state, def).filter(q => (def.tackles?.get(q.id) ?? 0) > 0)
+  if (hitters.length && ctx.crng() < 0.45) {
+    // the man who won this tick's collision, if the tackle count has him
+    const won = contest && contest.dominance < 0.5 ? hitters.find(q => q.id === contest.tackler) : undefined
+    const p = won ?? hitters[Math.floor(ctx.crng() * hitters.length)]
+    colour(state, ctx, def, said(ctx, DEF_HIT), { team, opp: oppT, player: p.name }, p.id)
+  } else {
+    colour(state, ctx, def, said(ctx, DEF_SET), { team, opp: oppT })
+  }
+}
+
+/** The kick-off after a score, by the side that conceded it. Not when a
+ *  whistle is standing on the call that produced the score: that line goes
+ *  in front of half time or full time, and nothing restarts after it. */
+function describeRestart(state: GameState, ctx: LiveCtx, scored: SideCtx) {
+  if (!ctx.detail || ctx.heldWhistle || ctx.crng() >= 0.85) return
+  const kickers = scored === ctx.home ? ctx.away : ctx.home
+  const p = sayWho(state, ctx, kickers, [9, 11, 14], [6, 1, 1])
+  if (!p) return
+  colour(state, ctx, kickers, said(ctx, RESTART),
+    { team: teamShort(state, kickers.teamId), opp: teamShort(state, scored.teamId), player: p.name }, p.id)
+}
+
+/** Where the game is, and in the last ten minutes what the scoreboard asks
+ *  of each side: at most one line a tick, read off the score as it stands. */
+function describeState(state: GameState, ctx: LiveCtx, tick: number) {
+  if (!ctx.detail) return
+  const { home, away } = ctx
+  const margin = home.score - away.score
+  if (tick >= 17 && Math.abs(margin) <= 14 && ctx.crng() < 0.4) {
+    if (margin === 0) {
+      colour(state, ctx, null, said(ctx, LATE_LEVEL), { home: teamShort(state, home.teamId), away: teamShort(state, away.teamId) })
+    } else {
+      const lead = margin > 0 ? home : away, trail = lead === home ? away : home
+      const chase = ctx.crng() < 0.5
+      const s = chase ? trail : lead, o = chase ? lead : trail
+      colour(state, ctx, s, said(ctx, chase ? LATE_CHASE : LATE_HOLD), { team: teamShort(state, s.teamId), opp: teamShort(state, o.teamId) })
+    }
+    return
+  }
+  if (ctx.crng() < 0.14) {
+    if (ctx.field < 25 || ctx.field > 75) {
+      const on = ctx.field > 75 ? home : away, off = on === home ? away : home
+      colour(state, ctx, on, said(ctx, TERR_CAMPED), { team: teamShort(state, on.teamId), opp: teamShort(state, off.teamId) })
+    } else {
+      colour(state, ctx, null, said(ctx, TERR_MIDDLE), { home: teamShort(state, home.teamId), away: teamShort(state, away.teamId) })
+    }
+  }
+}
+
+/**
+ * ---- KICKS FROM HAND, AND THE ONES THAT ARE CHARGED DOWN (owner, 1.8.0) ----
+ *
+ * The owner's numbers: one kick from hand in forty is charged down, and one
+ * in eighty ends in a try for the side that charged it.
+ *
+ * The engine had no kicks from hand at all: the kicking game was the line's
+ * drift (ctx.field) and a handful of words. So the kicks are counted here, on
+ * the match's own dice because a charge-down changes the match: a side kicks
+ * a little more in its own half (the exit, the clearance, the box kick) than
+ * in theirs, more with the kicking dial up and a territory game, and less with
+ * the ball in hand. About seventeen a side a match, on the neutral dials.
+ *
+ * ONLY A LITTLE MORE DEEP, on purpose. With a steep gradient (half as many
+ * kicks between the 22s as inside your own) territory paid twice: the side
+ * with the field position also got the other side's charge-downs, and the
+ * long exit from your own 22 went past optionsprobe's meta line.
+ *
+ * Each kick is a single draw against CHARGE_RATE. A charge-down is half a try
+ * for the side that blocked it (a proper try, converted as any other, and not
+ * sent to the TMO: nobody reviews a man falling on a loose ball in-goal), and
+ * otherwise the ball lands where it lands - touch, a scrum, the chargers or
+ * the kicker's own side - one draw between the four, and each moves the line
+ * towards the kicking side's posts by what that outcome is worth.
+ *
+ * TWO SETS OF DICE, BOTH THE MATCH'S. How many kicks a side puts in and
+ * whether each is charged come off a stream of their own, seeded once from
+ * rng at kick-off and then by the tick and the side, because the count depends on the
+ * tactics and the field: drawn from rng, a change of kicking dial shifted every
+ * draw after it, and optionsprobe's common random numbers - the same match
+ * with only the option changed - fell apart (a zone plan read +5.3 points one
+ * run and +2.0 the next). What a charge-down DOES (who blocked it, whether it
+ * is a try, where the ball goes, the try and the conversion) is rng, like
+ * everything else that changes a match. Nothing here is the commentary's: the
+ * same whether the match is watched or not, and only the words (which line,
+ * which kicker is named) are crng.
+ */
+const HAND_KICKS_BY_PLAN: Record<string, number> = { long: 1.25, box: 1.1, play: 0.6, terr: 1.15, hand: 0.8 }
+export const CHARGE_RATE = 1 / 40
+export const CHARGE_TRY = 0.5
+function kicksFromHand(state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideCtx, min: number, tick: number) {
+  const rng = mulberry32((((ctx.kickSeed ?? ctx.fx.id) ^ Math.imul(tick + 1, 104729) ^ (side === ctx.home ? 0x4b1c : 0x2e7d)) >>> 0) || 1)
+  const up = upOf(ctx, side)
+  const tac = state.clubs[side.teamId]?.tactic
+  let rate = up < 22 ? 1.0 : up < 50 ? 0.9 : up < 78 ? 0.8 : 0.7
+  rate *= 0.75 + (tac?.kicking ?? 50) / 200
+  rate *= tac?.kickStyle === 'territory' ? 1.15 : tac?.kickStyle === 'attack' ? 0.9 : 1
+  // and the plan for where the ball is: a side kicking its exits long, or
+  // playing for territory, puts in more of the kicks that can be charged, and
+  // a side running it out of its own 22 fewer. Without this the kicking plans
+  // won the ground AND dodged the risk that comes with it (optionsprobe: the
+  // long exit read +4.0 points a match against a meta line of 4).
+  rate *= HAND_KICKS_BY_PLAN[zonePlan(zoneAt(up), tac?.zones?.[zoneAt(up)]).id] ?? 1
+  const n = Math.floor(rate) + (rng() < rate % 1 ? 1 : 0)
+  for (let i = 0; i < n; i++) {
+    side.handKicks = (side.handKicks ?? 0) + 1
+    if (rng() < CHARGE_RATE) { chargeDown(state, ctx, side, opp, min); return }
+    describeKick(state, ctx, side, opp, up, tac?.kickStyle)
+  }
+}
+
+/** a kick from hand, in words: where it was kicked from decides what kind */
+function describeKick(state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideCtx, up: number, style?: Tactic['kickStyle']) {
+  if (!ctx.detail || ctx.crng() >= 0.42) return
+  const c = ctx.crng()
+  const bank = up < 22 ? (c < 0.5 ? KICK_EXIT : KICK_BOX)
+    : up < 50 ? (style === 'territory' ? (c < 0.6 ? KICK_TOUCH : KICK_LONG) : style === 'contest' ? (c < 0.6 ? KICK_BOX : KICK_UP)
+      : c < 0.3 ? KICK_BOX : c < 0.65 ? KICK_TOUCH : KICK_LONG)
+    : up < 78 ? (style === 'attack' ? (c < 0.6 ? KICK_PIN : KICK_UP) : c < 0.5 ? KICK_UP : c < 0.75 ? KICK_LONG : KICK_TOUCH)
+    : KICK_PIN
+  const p = bank === KICK_BOX ? sayWho(state, ctx, side, [8]) : sayWho(state, ctx, side, [9, 14, 11], [6, 3, 1])
+  if (!p) return
+  const team = teamShort(state, side.teamId), oppT = teamShort(state, opp.teamId)
+  colour(state, ctx, side, said(ctx, bank), { team, opp: oppT, player: p.name }, p.id)
+  // the other side's answer to a kick they have to field
+  if ((bank === KICK_LONG || bank === KICK_UP || bank === KICK_BOX) && ctx.crng() < 0.35) {
+    const q = sayWho(state, ctx, opp, [14, 10, 13, 8], [4, 2, 2, 1])
+    if (q) colour(state, ctx, opp, said(ctx, KICK_FIELD), { team: oppT, opp: team, player: q.name }, q.id)
+  }
+}
+
+/** The kick is charged down. Who got a hand (a body, a shin) to it is the
+ *  match's dice, since he may be the man who scores; the rest is words. */
+function chargeDown(state: GameState, ctx: LiveCtx, kick: SideCtx, charge: SideCtx, min: number) {
+  const { rng } = ctx
+  kick.chargedDown = (kick.chargedDown ?? 0) + 1
+  const men = onField(state, charge)
+  if (!men.length) return
+  // the men who charge are the ones nearest the kicker: the back row, the
+  // locks and the midfield more than the wings
+  const W: Partial<Record<Pos, number>> = { FL: 3, N8: 2.2, LK: 2, HK: 1.4, LP: 1, TP: 1, SH: 1.2, FH: 1.5, CE: 1.6, WG: 0.7, FB: 0.6 }
+  const charger = wpick(rng, men, men.map(p => W[p.pos] ?? 1))
+  const kicker = sayWho(state, ctx, kick, [8, 9, 14], [3, 5, 2])
+  const team = teamShort(state, charge.teamId), oppT = teamShort(state, kick.teamId)
+  colour(state, ctx, charge, said(ctx, CHARGE_DOWN), { team, opp: oppT, player: charger.name, kicker: kicker?.name ?? oppT }, charger.id)
+  charge.ratings.set(charger.id, (charge.ratings.get(charger.id) ?? 6) + 0.2)
+  const o = rng()
+  if (o < CHARGE_TRY) {
+    // loose behind them, and the chargers get there first. The line is left
+    // where the kick was taken: moving it onto the kicking side's own line
+    // first made every charge-down try restart the game deep in their 22,
+    // which quietly paid the own-22 exit plans twice (optionsprobe)
+    charge.pressure = clamp(charge.pressure + 42, 0, 100)
+    kick.pressure = clamp(kick.pressure * 0.55, 0, 100)
+    scoreTry(state, ctx, charge, min, said(ctx, CHARGE_TRY_LINES), charger, { player: charger.name }, false)
+    return
+  }
+  // otherwise one of four, evenly: touch, a scrum, the chargers regather, or
+  // the kicking side does. Every one of them costs the kicker ground.
+  const k = Math.min(3, Math.floor((o - CHARGE_TRY) / ((1 - CHARGE_TRY) / 4)))
+  if (k === 0) {
+    backTowards(ctx, kick, 5)
+    colour(state, ctx, kick, said(ctx, CHARGE_LINEOUT), { team: oppT, opp: team })
+  } else if (k === 1) {
+    backTowards(ctx, kick, 6)
+    colour(state, ctx, charge, said(ctx, CHARGE_SCRUM), { team, opp: oppT })
+  } else if (k === 2) {
+    backTowards(ctx, kick, 10)
+    charge.pressure = clamp(charge.pressure + 20, 0, 100)
+    charge.poss += 0.3
+    colour(state, ctx, charge, said(ctx, CHARGE_REGATHER), { team, opp: oppT, player: charger.name }, charger.id)
+  } else {
+    backTowards(ctx, kick, 3)
+    colour(state, ctx, kick, said(ctx, CHARGE_SAFE), { team: oppT, opp: team })
+  }
+}
+
+/**
+ * ---- THE DROP GOAL, MADE OR MISSED (owner, 1.8.0) ----
+ *
+ * The attempt was always rolled and always counted as a kick at goal, and a
+ * miss said nothing, so the stats panel could show a kick taken that the
+ * commentary never mentioned. Every attempt now has its line.
+ *
+ * And it is a kick from where the ball is: only in their half (it was rolled
+ * from anywhere, halfway line included), better the closer in, and read off
+ * the fly-half's kicking from hand - or the goal-kicker's if the 10 is off.
+ * LATE IN A CLOSE GAME IT IS THE PLAY: from the 68th minute a side level or
+ * within a score goes for it about four times as often, a side a score up
+ * twice as often. The base rate is set so the world kicks as many drop goals
+ * as it did before any of this: 0.18 over a match, 0.53 points, measured on
+ * the same 1,440 watched fixtures before and after - and now about 0.12
+ * missed ones a match with them, which used to be silent.
+ */
+const DROP_BASE = 0.0135
+function dropChance(ctx: LiveCtx, side: SideCtx, opp: SideCtx, up: number, tick: number): number {
+  if (up < 55) return 0
+  const diff = side.score - opp.score
+  const late = tick >= 17 ? (diff >= -3 && diff <= 0 ? 4 : diff > 0 && diff <= 4 ? 2 : 1) : 1
+  return DROP_BASE * late * (up > 70 ? 1.25 : 1)
+}
+
+function dropGoalAttempt(state: GameState, ctx: LiveCtx, side: SideCtx, min: number, up: number) {
+  const { rng } = ctx
+  const fh = inShirt(state, side, 9)
+    ?? goalKicker(state, side)
+  if (!fh) return
+  const pOver = clamp(0.12 + fh.a.kic / 40 + (up - 68) * 0.006, 0.12, 0.75)
+  const dgOver = rng() < pOver
+  noteKick(ctx, side, dgOver)
+  if (dgOver) {
+    side.score += 3
+    fh.stats.drops += 1; fh.stats.points += 3
+    // the line before the restart, so it is stamped where it was struck
+    pushLine(state, ctx, min, 'DG', side, 'comm.dropGoal', { player: fh.name }, fh.id)
+    ctx.field = ctx.field * 0.6 + 50 * 0.4
+    describeRestart(state, ctx, side)
+  } else {
+    // a missed drop goal is a 22 drop-out for the other side, which is where
+    // the ball already is: nothing moves but the words
+    pushLine(state, ctx, min, 'SUB', side, said(ctx, DROP_MISS), { player: fh.name }, fh.id)
   }
 }
 
@@ -2325,6 +2918,8 @@ export const TMO_OVERTURN = 0.33
 function scoreTry(
   state: GameState, ctx: LiveCtx, side: SideCtx, min: number,
   line?: string, forceScorer?: Player | null, lineV?: Record<string, string | number>,
+  /** false for a try nobody would send upstairs (a charge-down fallen on) */
+  review = true,
 ) {
   const { rng, goalPenalty } = ctx
   const scorer = forceScorer ?? tryScorer(state, side, rng)
@@ -2342,7 +2937,7 @@ function scoreTry(
   // question the referee asks is wording, and wording never moves the stream.
   // The question and the verdict agree - a try chalked off for a knock-on was
   // being checked for a knock-on.
-  if (rng() < TMO_REVIEW) {
+  if (review && rng() < TMO_REVIEW) {
     const q = 1 + ((min + (scorer?.id ?? 0)) % 4)
     // the lines name the side, not the man: no pronoun to get wrong, and a
     // pack drive has no single scorer to name
@@ -2420,9 +3015,11 @@ function scoreTry(
     // never move the sim stream - see the EK lesson
     pushLine(state, ctx, min + 1, 'SUB', side, 'comm.tryComeback', { player: scorer.name }, scorer.id)
   }
-  const kicker = side.units.kickerId != null ? state.players[side.units.kickerId] : null
+  const kicker = goalKicker(state, side)
   const pCon = kickChance(state, kicker, 0.495, 54, goalPenalty, side)
-  if (rng() < pCon) {
+  const conOver = rng() < pCon
+  noteKick(ctx, side, conOver)
+  if (conOver) {
     side.score += 2
     if (kicker) { kicker.stats.cons += 1; kicker.stats.points += 2 }
     // A TRY UNDER THE POSTS IS NOT CONVERTED FROM THE TOUCHLINE (1.6.3). The
@@ -2437,6 +3034,7 @@ function scoreTry(
   } else {
     pushLine(state, ctx, min + 1, 'SUB', side, 'comm.conWide')
   }
+  describeRestart(state, ctx, side)
 }
 
 /**
@@ -2551,7 +3149,7 @@ function syncResult(ctx: LiveCtx) {
 }
 
 function decide(
-  state: GameState, ctx: LiveCtx, d: { kind: 'penalty'; min: number },
+  state: GameState, ctx: LiveCtx, d: { kind: 'penalty'; min: number; fld?: number },
   choice: 'posts' | 'corner' | 'tap',
 ): string {
   const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
@@ -2559,6 +3157,12 @@ function decide(
   // the kick belongs to the half the penalty was awarded in, and cannot run
   // past that half's whistle however late the answer arrives
   const min = Math.min(d.min <= 40 ? 40 : 79, d.min + 1)
+  // AND IT BELONGS TO THE SPOT IT WAS AWARDED ON (1.8.0). The rest of the tick
+  // plays on while the call waits, so an opposition kick to touch could move
+  // the ball back into your half before the answer came, and a shot "at the
+  // posts" went up from your own 43 (kickrangeprobe, 1 in 533). Absent on a
+  // decision saved before 1.8.0, which keeps the old behaviour.
+  if (d.fld != null) ctx.field = d.fld
   const rng = ctx.rng
   if (choice === 'posts') {
     takePenaltyShot(state, ctx, mine, min)
@@ -2592,9 +3196,16 @@ function decide(
     pushLine(state, ctx, min + 1, 'SUB', mine, 'comm.maulRepelledPenalty')
     return t('touch.pinnedNoPoints')
   }
-  // tap and go
+  // TAP AND GO READS THE PLACE AND THE MATCHUP (1.8.0, optionsprobe). It
+  // scored 17% of the time from anywhere against anyone, 1.01 points a call
+  // from twenty metres against 2.47 for the posts, so "always tap" gave away
+  // seven points a match. Close in with an attack that has the beating of
+  // their defence it is now a real rival to the posts; from forty metres out
+  // it is still a punt, which is rugby.
   mine.poss += 1.4
-  if (rng() < 0.17) {
+  const toLine = mine === ctx.home ? 100 - ctx.field : ctx.field
+  const pTap = clamp(0.42 - toLine * 0.006 + (mine.units.attack - opp.units.defence) * 0.03, 0.10, 0.55)
+  if (rng() < pTap) {
     scoreTry(state, ctx, mine, min, undefined)
     return t('touch.quickTapWorks')
   }
@@ -2698,13 +3309,15 @@ export function checkFrontRow(state: GameState, ctx: LiveCtx, side: SideCtx, min
     for (const p of rest) if ((side.ratings.get(p.id) ?? 6) < (side.ratings.get(nom.id) ?? 6)) nom = p
     side.onPitch.delete(nom.id)
     side.short += 1
+    fieldChanged(state, ctx, side, min)
     pushLine(state, ctx, min, 'SUB', side, 'comm.uncontestedShort', { team: teamShort(state, side.teamId), player: nom.name }, nom.id)
   }
 }
 
 function aiAutoSubs(state: GameState, ctx: LiveCtx, side: SideCtx, min: number) {
-  // the user manages his own bench (except forced injury subs elsewhere)
-  if (side.isUser) return
+  // the user manages their own bench (except forced injury subs elsewhere),
+  // unless they handed the match to the assistant
+  if (side.isUser && !ctx.assistantSubs) return
   if (ctx.tick < 11) return
   const bulk = ctx.tick === 15 // classic 55-60' bench emptying
   let made = 0
@@ -2724,11 +3337,24 @@ function aiAutoSubs(state: GameState, ctx: LiveCtx, side: SideCtx, min: number) 
       const p = state.players[id]
       if (!p || p.injury || side.ratings.has(id) || side.onPitch.has(id)) continue
       const s = effAt(p, pos)
+      // A CHANGE FOR TIRED LEGS IS LIKE FOR LIKE. This took the best of
+      // whatever was left, and once the bench prop had gone on for an injury
+      // that could be a centre at tighthead. It cost nothing while an AI
+      // side's units ignored its replacements; now that they read the men on
+      // the pitch, a centre in the front row scrummages like one. A tired
+      // specialist is kept on rather than swapped for a man who does not play
+      // there (his own position, a listed alternative or the neighbouring
+      // shirt, which is what effAt's 0.8 marks). Injuries still take whoever
+      // is left: that change is forced.
+      if (s < p.ca * 0.8) continue
       if (s > bestS) { bestS = s; best = p }
     }
-    if (!best) return
+    // nobody on the bench plays there: this shirt keeps its man, and the next
+    // tired shirt may still have a like-for-like change waiting
+    if (!best) continue
     side.onPitch.delete(outId)
     side.onPitch.add(best.id)
+    cameOn(side, best.id, min)
     side.ratings.set(best.id, 6)
     side.energy.set(best.id, benchTank(state.players[best.id]))
     const benchSlot = side.lineup.indexOf(best.id)
@@ -2739,6 +3365,9 @@ function aiAutoSubs(state: GameState, ctx: LiveCtx, side: SideCtx, min: number) 
     forcedSwitchCost(state, ctx, side, outId, best, min)
     made++
   }
+  // once for the lot, not once a man: nothing in the loop reads the units,
+  // and the hour's bulk change used to rebuild them four times over
+  if (made) fieldChanged(state, ctx, side, min)
 }
 
 /** The last twenty minutes belong to the bench (F4).
@@ -2887,8 +3516,28 @@ const COVER_DEF = 0.937
  * slower and every veteran tackler a little surer, so fewer tries were
  * scored until the constant moved (bandcheck pooled, tries a game: 6.40
  * before ageing, 6.38 after it with this constant; points 50.2 -> 50.3).
+ *
+ * And 0.0930 to 0.0843 in 1.8.0, for the charge-downs (kicksFromHand): about
+ * 0.4 tries a match now come off a blocked kick, whoever is the better side,
+ * so the tries the scoring roll hands out come down to leave the season's
+ * total where it was. See scripts/fingerprint.ts for the before and after.
  */
-const TRY_BASE = 0.0945
+const TRY_BASE = 0.0815
+/** late in a match: how much an empty tank costs the side defending, and the side attacking */
+const TIRED_DEF = 0.8, TIRED_ATT = 0.3
+/** the strength a side keeps on an empty tank from the 56th minute (0.78 before it).
+ *  0.6, then 0.55 once AI replacements brought their own quality instead of
+ *  the starters' (creditprobe): a sub became a real trade for the AI too, the
+ *  side that never changed was punished less, and the manager's whole bench
+ *  fell to +0.43 points (subvalueprobe). At 0.55 it reads +0.91, four fresh
+ *  men +1.09, and bandcheck holds every band (49.1 pts, 52.7% home). */
+const LATE_FLOOR = 0.55
+/** how hard the penalty count leans toward the defending side's half (1.7.4) */
+const PEN_LEAN = 1.7
+/** how hard a zone plan moves the line (1.8.0, see simTick): at 1 the kicking
+ *  and own-half penalty changes had shrunk the gap between plans (advprobe:
+ *  long vs play 0.5, drive vs spread 0.2); at 2 the gaps are 1.3 and 0.6 */
+const ZONE_PULL = 2
 
 /** The cost of a thin bench: a man in the wrong half of the team.
  *
@@ -2918,6 +3567,10 @@ function forcedSwitchCost(state: GameState, ctx: LiveCtx, side: SideCtx, outId: 
 function simTick(state: GameState, ctx: LiveCtx, tick: number) {
   const { rng, detail, derby, goalPenalty, home, away } = ctx
   const min = tick * 4 + Math.floor(rng() * 4) + 1
+  // the clock reaches this tick whether or not anybody writes a line in it
+  // (1.8.0): a silent match used to stop its clock at its last written line,
+  // so its sheet counted fewer minutes of scrums than the same match watched
+  ctx.lastMin = Math.max(ctx.lastMin, Math.min(min, ctx.seg === 0 ? 40 : 80))
   const poss0: [number, number] = [home.poss, away.poss]
 
   // the bin empties: ten minutes served and the man comes back on, unless he
@@ -2956,6 +3609,16 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     // the final whistle wrong in both directions.
     const accounted = 15 - s.sent - s.short - s.binned.size
     if (s.onPitch.size < accounted) s.short += accounted - s.onPitch.size
+  }
+  // the men back from the bin are timed from now, and the net for anything
+  // else that changed since the last tick (see fieldChanged). The XV that
+  // walks out for the first tick is the one that started, whatever the
+  // manager did to the sheet before kick-off.
+  for (const s of [home, away]) {
+    s.starters ??= new Set(s.onPitch)
+    fieldChanged(state, ctx, s, min)
+    const acc = (s.setAcc ??= { scrum: 0, lineout: 0, breakdown: 0, n: 0 })
+    acc.scrum += s.units.scrum; acc.lineout += s.units.lineout; acc.breakdown += s.units.breakdown; acc.n += 1
   }
   // a sin-binned front-rower is back and the cover with him: the scrum is a
   // contest again, the levelling his card ordered taken back off both packs
@@ -2998,6 +3661,12 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
   // something else that is measured, and NOTHING IN THE ENGINE IS CHANGED HERE:
   // the bench inversion is still real and still open.
   //
+  // CLOSED IN 1.8.0 for the part that matters: the band is unchanged for the
+  // first hour and steeper from the 56th minute (LATE_FLOOR, below), which
+  // is where replacements come on. scripts/subvalueprobe.ts: four changes
+  // +1.27 points over none, eight +1.32 (were about 0 and -0.4), and
+  // awardprobe's Player of the Month floor holds.
+  //
   // What was fixed is the part that was actively harmful - coachfix.ts was
   // telling managers to make all eight changes, which measures 2.5 points a
   // match worse than making none.
@@ -3008,7 +3677,14 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
   // average that every other system reads. Both attempts here failed because a
   // side-wide energy term is load-bearing for ratings, cup progression and the
   // board's read of a season, none of which a bench fix should be deciding.
-  const eF = (s: SideCtx) => 0.78 + 0.22 * (sideEnergy(s) / 100)
+  // THE LAST QUARTER IS THE BENCH'S (1.8.0, owner: "subs should be
+  // important"). The side-wide band above stays as it was for the first
+  // hour - widening it everywhere was tried and reverted, see the note - and
+  // from the 56th minute, where every replacement actually comes on, an
+  // empty tank costs more: LATE_FLOOR at zero instead of 0.78.
+  const eF = (s: SideCtx) => tick >= 14
+    ? LATE_FLOOR + (1 - LATE_FLOOR) * (sideEnergy(s) / 100)
+    : 0.78 + 0.22 * (sideEnergy(s) / 100)
 
   /**
    * ---- THE LINE MOVES (v1.8.0) ----
@@ -3037,7 +3713,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
   }
   // what each side sets out to do, read from where it is standing NOW
   const kickEdge = Math.log(home.units.kicking / Math.max(1, away.units.kicking))
-  const push = kickEdge * 7 + (rng() - 0.5) * 86 + (planOf(home).terr - planOf(away).terr)
+  const push = kickEdge * 7 + (rng() - 0.5) * 86 + (planOf(home).terr - planOf(away).terr) * ZONE_PULL
   ctx.field = clamp(ctx.field * 0.965 + 50 * 0.035 + push, 4, 96)
   // AND READ AGAIN AFTER THE LINE HAS MOVED. The push above is what a side
   // does FROM where it was; the scoring roll below happens WHERE IT ENDED UP,
@@ -3046,8 +3722,19 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
   // from the halfway line.
   const hp = planOf(home)
   const ap = planOf(away)
+  // where the game is, in words (watched only, and no draw on rng)
+  describeState(state, ctx, tick)
 
   for (const [side, opp, adv] of [[home, away, ctx.hfa], [away, home, 1]] as [SideCtx, SideCtx, number][]) {
+    // THE SECOND LAYER (E12, contest.ts): this tick's phase is a contest
+    // between men - a carrier into a tackler, a jackal at the ruck - drawn
+    // from the main dice (four draws, always, watched or not) and centred
+    // on the world's average collision, so it decides who wins the carries
+    // the units have earned without moving the season's scoring
+    const contest = resolveContest(side, opp, state.players, rng, side === home ? ctx.hfa : 1 / ctx.hfa)
+    // the rugby this side plays in the tick, before what it comes to
+    describePlay(state, ctx, side, opp, contest)
+    const scores0 = side.score + opp.score
     const numF = 1 - 0.07 * ([...side.yellowUntil.values()].filter(u => u > min).length + side.sent + side.short)
     const oppNumF = 1 - 0.07 * ([...opp.yellowUntil.values()].filter(u => u > min).length + opp.sent + opp.short)
     // the breakdown dials (1.7.3): your commitment protects your own ball, and
@@ -3085,12 +3772,24 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
      * and would have made a side playing for the corner kick five times as
      * many of them.
      */
-    const penWindow = opp.penRisk * (side === home ? ap : hp).penF
+    // WHERE PENALTIES ARE GIVEN AWAY (1.7.4). A side defending its own half
+    // gives away more of them than one pressing in the other: that is where
+    // the pressure is. Kicks at goal are now confined to the opposition half
+    // (below), so the chance leans with territory - (up/50)^PEN_LEAN, 1 at
+    // halfway - rather than sitting flat across the field.
+    // THE SCRUM WINS PENALTIES (1.8.0, ladderprobe). A pack that goes
+    // forward at the scrum is where a real side's penalties come from, and
+    // here the scrum decided almost nothing: +4 scrummaging across a squad
+    // was worth 0.06 points a match. So the side whose scrum is on top draws
+    // more of them, bounded, and reciprocal between the two packs so the
+    // world's count of penalties does not move.
+    const scrumEdge = Math.pow(clamp(side.units.scrum / Math.max(1, opp.units.scrum), 0.8, 1.25), 0.8)
+    const penWindow = opp.penRisk * (side === home ? ap : hp).penF * Math.pow(up / 50, PEN_LEAN) * scrumEdge * (contest?.penF ?? 1)
     let ratio = ((att * adv * numF * terr) / Math.max(1, def * oppNumF))
     if (derby) ratio = Math.pow(ratio, 0.72) // form book out the window
     else if (ctx.grudge) ratio = Math.pow(ratio, 0.85) // needle levels the contest
     side.poss += ratio
-    let pTry = clamp(TRY_BASE * Math.pow(ratio, 2.6) * plan.tryF, 0.01, 0.42)
+    let pTry = clamp(TRY_BASE * Math.pow(ratio, 2.6) * plan.tryF * (contest?.tryF ?? 1), 0.01, 0.42)
     // THE LAST QUARTER OPENS UP (audit 16D). Measured before this existed:
     // tries were dead flat across the 80 (11.6-14.0% per ten-minute bucket)
     // because both sides drain together and the mutual exhaustion cancels in
@@ -3114,7 +3813,16 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
        * reason it hid for so long.
        */
       const tired = 1 - sideEnergy(opp) / 100
-      if (tired > 0) pTry = Math.min(0.42, pTry * (1 + tired * 0.5))
+      // AND A TIRED ATTACK GOES NOWHERE (1.8.0, owner: "if a team is tired
+      // then they shouldn't score more they should be easier to score
+      // against. Subs should be important"). Measured on the 1.2d scenario
+      // over the last twelve minutes only, with the first 68 identical: an
+      // emptied side already scored less (4.92 v 5.55) and conceded more
+      // (3.86 v 3.13), but by too little to feel. The tired defence now
+      // gives up to 80% more (was 50%) and a tired attack loses up to 30%,
+      // so the bench is where a last quarter is won.
+      const own = 1 - sideEnergy(side) / 100
+      pTry = Math.min(0.42, pTry * (1 + Math.max(0, tired) * TIRED_DEF) * (1 - Math.max(0, own) * TIRED_ATT))
     }
     // GARBAGE TIME IS REAL (user, after a 106-3 win at a top club: "this would
     // be a tight game in real life - the scores feel well off at present").
@@ -3171,6 +3879,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           pushLine(state, ctx, min, 'YC', opp, 'comm.ycRepeated',
             { n: opp.consPens, team: teamShort(state, opp.teamId), player: p.name }, p.id)
           checkFrontRow(state, ctx, opp, min, p, 'yellow')
+          fieldChanged(state, ctx, opp, min)
         }
       }
       /**
@@ -3214,6 +3923,16 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       } else if (advRoll < pAdvTry + pAdvOver) {
         // ground made, nothing at the end of it, and the kick is gone with it
         if (detail) pushLine(state, ctx, min, 'SUB', side, 'comm.advOver', { team: teamShort(state, side.teamId) })
+      } else if (up < 50) {
+        // OUT OF RANGE: KICK FOR TOUCH (1.7.4, owner: "kicks at goal should be
+        // limited to within the opposition teams halfway"). A penalty in your
+        // own half is not a shot at goal, so nobody is asked and nobody lines
+        // one up: the kicker finds touch and the lineout is further up the
+        // field. How far is the boot's, with no draw on the stream.
+        // the line first, so it is stamped where the penalty was given
+        if (detail) pushLine(state, ctx, min, 'SUB', side, 'comm.penTouchOwnHalf', { team: teamShort(state, side.teamId) })
+        const gain = 14 + Math.min(12, side.units.kicking * 0.8)
+        ctx.field = side === home ? clamp(ctx.field + gain, 4, 96) : clamp(ctx.field - gain, 4, 96)
       } else {
         // NO SCORE AND NO GROUND: he brings it back. This is the common case,
         // and from here the code below is exactly what it always was.
@@ -3223,7 +3942,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
         // phone during a nine-penalty afternoon, so the choice is the manager's.
         const standing = state.clubs[side.teamId]?.tactic.penaltyCall ?? 'ask'
         if (detail && side.isUser && !ctx.decision) {
-          ctx.decision = { kind: 'penalty', min }
+          ctx.decision = { kind: 'penalty', min, fld: ctx.field }
           if (standing === 'ask') {
             pushLine(state, ctx, min, 'SUB', side, 'comm.penKickableAsk', { team: teamShort(state, side.teamId) })
           } else {
@@ -3231,39 +3950,59 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
             // so the instruction goes through exactly the path a tap would take
             resolveDecision(state, ctx, standing)
           }
+        } else if (side.isUser && standing !== 'ask' && !ctx.decision) {
+          // THE STANDING CALL HOLDS ON AN INSTANT RESULT TOO (1.8.0). It was
+          // only read in a match being watched, so a manager who set "go for
+          // the corner" and simmed the match had the AI's choice made for
+          // them (found by scripts/optionsprobe.ts: corner and tap changed
+          // nothing at all). 'ask' with nobody to ask still falls to the
+          // kicker's judgement, as before.
+          ctx.decision = { kind: 'penalty', min, fld: ctx.field }
+          resolveDecision(state, ctx, standing)
         } else {
           takePenaltyShot(state, ctx, side, min)
         }
       }
-    } else if (r < pTry + penWindow + 0.006) {
-      const fh = side.lineup[9] != null ? state.players[side.lineup[9]!] : null
-      if (fh && rng() < 0.3 + fh.a.kic / 40) {
-        ctx.field = ctx.field * 0.6 + 50 * 0.4
-        side.score += 3
-        fh.stats.drops += 1; fh.stats.points += 3
-        pushLine(state, ctx, min, 'DG', side, 'comm.dropGoal', { player: fh.name }, fh.id)
-      }
+    } else if (r < pTry + penWindow + dropChance(ctx, side, opp, up, tick)) {
+      dropGoalAttempt(state, ctx, side, min, up)
     }
 
+    // the kicks from hand this side puts in, and any that are charged down
+    kicksFromHand(state, ctx, side, opp, min, tick)
+    // and when nothing came of the tick, a word for the side that stopped it
+    if (side.score + opp.score === scores0) describeDefence(state, ctx, opp, side, contest)
+
     // atmosphere lines for the live ticker
-    if (detail && rng() < 0.3) {
+    if (detail && ctx.crng() < 0.3) {
       const ids = [...side.onPitch]
       const ps = ids.map(id => state.players[id]).filter(Boolean)
       if (ps.length) {
-        const p = ps[Math.floor(rng() * ps.length)]
+        const p = ps[Math.floor(ctx.crng() * ps.length)]
         const e = side.energy.get(p.id) ?? 70
-        if (e < 22 && rng() < 0.5) {
-          pushLine(state, ctx, min, 'SUB', side, TIRED_LINES[Math.floor(rng() * TIRED_LINES.length)], { player: p.name }, p.id)
+        if (e < 22 && ctx.crng() < 0.5) {
+          pushLine(state, ctx, min, 'SUB', side, TIRED_LINES[Math.floor(ctx.crng() * TIRED_LINES.length)], { player: p.name }, p.id)
         } else {
           const wet = ctx.weather === 'Rain' || ctx.weather === 'Snow'
-          const pool = derby && rng() < 0.3 ? FLAVOR_DERBY
-            : ctx.fx.compId === 'natl1' && rng() < 0.3 ? FLAVOR_GRASSROOTS
-            : ctx.fx.compId === 'pnc' && rng() < 0.3 ? FLAVOR_PACIFIC
-            : wet && rng() < 0.3 ? FLAVOR_WET
-            : ctx.weather === 'Wind' && rng() < 0.25 ? FLAVOR_WIND
+          const pool = ctx.crng() < 0.035 ? FLAVOR_FUN
+            : derby && ctx.crng() < 0.3 ? FLAVOR_DERBY
+            : ctx.fx.compId === 'natl1' && ctx.crng() < 0.3 ? FLAVOR_GRASSROOTS
+            : ctx.fx.compId === 'pnc' && ctx.crng() < 0.3 ? FLAVOR_PACIFIC
+            : wet && ctx.crng() < 0.3 ? FLAVOR_WET
+            : ctx.weather === 'Wind' && ctx.crng() < 0.25 ? FLAVOR_WIND
             : FLAVOR
-          pushLine(state, ctx, min, 'SUB', side, styledKick(pool[Math.floor(rng() * pool.length)], state.clubs[side.teamId]?.tactic.kickStyle),
-            { player: p.name, team: teamShort(state, side.teamId) }, p.id)
+          let key = styledKick(pool[Math.floor(ctx.crng() * pool.length)], state.clubs[side.teamId]?.tactic.kickStyle)
+          // a line that names a man for a hit names one the tackle count
+          // already has making hits: it describes the count, it does not add
+          // to it (it used to add one, so a watched match's sheet had more
+          // tackles than the same match played silently)
+          let who = p
+          if (TACKLE_LINES.has(key)) {
+            const hitters = ps.filter(q => (side.tackles?.get(q.id) ?? 0) > 0)
+            if (hitters.length) who = hitters[Math.floor(ctx.crng() * hitters.length)]
+            else key = FLAVOR[0]
+          }
+          pushLine(state, ctx, min, 'SUB', side, key,
+            { player: who.name, team: teamShort(state, side.teamId) }, who.id)
         }
       }
     }
@@ -3298,6 +4037,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           pushLine(state, ctx, min, 'YC', side, 'comm.yellowCard', { player: p.name }, p.id)
           checkFrontRow(state, ctx, side, min, p, 'yellow')
         }
+        fieldChanged(state, ctx, side, min)
       }
     }
 
@@ -3345,6 +4085,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           const sub = back ?? pickBenchSub(state, side, p.id)
           if (sub) {
             side.onPitch.add(sub.id)
+            cameOn(side, sub.id, min)
             if (!back) side.ratings.set(sub.id, 6)
             side.energy.set(sub.id, back ? Math.min(benchTank(sub), side.energy.get(sub.id) ?? benchTank(sub)) : benchTank(sub))
             const slot = side.lineup.indexOf(p.id)
@@ -3379,6 +4120,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
             side.short += 1
           }
           checkFrontRow(state, ctx, side, min, p, 'injury')
+          fieldChanged(state, ctx, side, min)
         }
       }
     }
@@ -3424,6 +4166,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
         // man stays on the bench rather than make a sixteenth
       }
       side.hia = undefined
+      fieldChanged(state, ctx, side, min)
     }
     if (!side.hia && rng() < 0.0085) {
       const ids = [...side.onPitch].filter(id => state.players[id] && !state.players[id].injury)
@@ -3432,10 +4175,12 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       if (p && sub) {
         side.onPitch.delete(p.id)
         side.onPitch.add(sub.id)
+        cameOn(side, sub.id, min)
         side.ratings.set(sub.id, 6)
         side.energy.set(sub.id, benchTank(sub))
         side.hia = { pid: p.id, subId: sub.id, failed: rng() < 0.4, returnTick: ctx.tick + 3 }
         pushLine(state, ctx, min, 'INJ', side, 'comm.hiaLedAway', { player: p.name, sub: sub.name }, p.id)
+        fieldChanged(state, ctx, side, min)
       }
     }
 
@@ -3457,6 +4202,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
   // momentum needle: who owned the last few minutes
   const dh = home.poss - poss0[0]
   const da = away.poss - poss0[1]
+  countTackles(state, ctx, tick, dh, da)
   ctx.momo = clamp(ctx.momo * 0.62 + (dh - da) * 0.55, -1, 1)
   // rolling possession history: each entry is the home share of one tick,
   // so the live 'LAST 10 MINUTES' graphic can average the recent window
@@ -3793,10 +4539,11 @@ export function makeSubstitution(state: GameState, ctx: LiveCtx, outId: number, 
   if (slotIn >= 0) mine.lineup[slotIn] = outId
   mine.onPitch.delete(outId)
   mine.onPitch.add(inId)
+  cameOn(mine, inId, Math.min(79, Math.max(1, ctx.lastMin)))
   if (!mine.ratings.has(inId)) mine.ratings.set(inId, 6)
   mine.energy.set(inId, benchTank(pin))
   ctx.subsUsed += 1
-  recomputeSideUnits(state, ctx, mine)
+  fieldChanged(state, ctx, mine, ctx.lastMin)
   const min = Math.min(79, Math.max(1, ctx.lastMin))
   // the brief he was given, and the bill if the shirt does not fit him (F4)
   const briefsBefore = mine.briefsUsed ?? 0
@@ -3862,13 +4609,18 @@ export function swapInjuryCover(state: GameState, ctx: LiveCtx, onId: number, in
   if (slotIn >= 0) mine.lineup[slotIn] = onId
   mine.onPitch.delete(onId)
   mine.onPitch.add(inId)
+  cameOn(mine, inId, mine.onAt?.get(onId) ?? Math.min(79, Math.max(1, ctx.lastMin)))
   // He never actually got on, so he goes back to being a bench option rather
   // than carrying a rating for a cameo that did not happen.
   mine.ratings.delete(onId)
   mine.energy.delete(onId)
   mine.ratings.set(inId, 6)
   mine.energy.set(inId, benchTank(pin))
-  recomputeSideUnits(state, ctx, mine)
+  // and the minutes he was on the pitch are the other man's, from the same
+  // moment, because as far as the match is concerned it was always him
+  const from = mine.since?.get(onId)
+  if (from != null) { mine.since!.delete(onId); mine.since!.set(inId, from) }
+  fieldChanged(state, ctx, mine, ctx.lastMin)
   const min = Math.min(79, Math.max(1, ctx.lastMin))
   // A better cover pick can undo the shortage the assistant walked into, so the
   // bill charged a moment ago is refunded exactly and then re-tested (F4). Only
@@ -3931,6 +4683,7 @@ export function undoSubstitution(state: GameState, ctx: LiveCtx): string {
   if (slotOut >= 0) mine.lineup[slotOut] = inId
   mine.onPitch.delete(inId)
   mine.onPitch.add(outId)
+  mine.onAt?.delete(inId)
   // he never actually got on, so he carries no rating for a cameo that did
   // not happen and burns no replacement
   mine.ratings.delete(inId)
@@ -3950,7 +4703,9 @@ export function undoSubstitution(state: GameState, ctx: LiveCtx): string {
     layer(mine, 'attack', 1 / COVER_ATT)
     layer(mine, 'defence', 1 / COVER_DEF)
   }
-  recomputeSideUnits(state, ctx, mine)
+  // he never played a second, so his stint closes empty (play has not
+  // resumed, so the clock has not moved since he came on)
+  fieldChanged(state, ctx, mine, ctx.lastMin)
   ctx.lastSub = null
   const min = Math.min(79, Math.max(1, ctx.lastMin))
   pushLine(state, ctx, min, 'SUB', mine, pin ? 'comm.subUndoneNamed' : 'comm.subUndone',
@@ -3986,9 +4741,126 @@ export function swapShirts(state: GameState, ctx: LiveCtx, aId: number, bId: num
 export function recomputeSideUnits(state: GameState, ctx: LiveCtx, side: SideCtx) {
   // same fixture, same day: the match-day wobble a recompute rebuilds is the
   // one kick-off dealt, because it is keyed on (seed, fixture, player)
-  side.units = teamUnits(state, side.lineup, { fxId: ctx.fx.id, big: !!ctx.fx.stage || ctx.derby })
+  side.units = teamUnits(state, fieldLineup(side), { fxId: ctx.fx.id, big: !!ctx.fx.stage || ctx.derby, chemToday: ctx.chemToday })
   applyModifiers(state, side, ctx.weather)
   if (ctx.derby) side.cardRisk *= 1.35
+  side.unitsKey = personnelKey(side)
+}
+
+/**
+ * The shirts the units are built from. The lineup, except that a man off for
+ * a head injury assessment is played by his stand-in: the HIA keeps the
+ * assessed man's name on the shirt so that he can come back to it, and the
+ * units used to go on reading his attributes for the ten minutes somebody
+ * else was wearing it.
+ *
+ * A man in the bin or sent off keeps his place here on purpose. numF charges
+ * the missing man, and building the units without him as well (teamUnits
+ * reads an empty shirt as a 5 in everything) would charge him twice.
+ */
+function fieldLineup(side: SideCtx): (number | null)[] {
+  const h = side.hia
+  if (!h || !side.onPitch.has(h.subId)) return side.lineup
+  const i = side.lineup.indexOf(h.pid)
+  if (i < 0 || i > 14) return side.lineup
+  const out = side.lineup.slice()
+  out[i] = h.subId
+  return out
+}
+
+/** Everything a rebuild of the units reads that a match can change: the
+ *  shirts (with an HIA stand-in in his) and who is on the pitch. */
+function personnelKey(side: SideCtx): number {
+  // A number, not a string (1.8.0): this runs at the top of every tick for
+  // both sides of every match in the world, and joining and sorting two lists
+  // there cost a week about a third of its time (perfprobe, 99-126 ms to
+  // 141-158 ms). The shirts are hashed in order, the men on the pitch by an
+  // order-free mix, and a rebuild is all a collision could ever cost.
+  const lu = fieldLineup(side)
+  let h = 17
+  for (let i = 0; i < 15; i++) h = (Math.imul(h, 31) + (lu[i] ?? -1)) | 0
+  let set = side.onPitch.size
+  for (const id of side.onPitch) set = (set + Math.imul(id ^ (id >>> 7), 0x9e3779b1)) | 0
+  return (h ^ Math.imul(set, 0x85ebca6b)) | 0
+}
+
+/**
+ * ---- SOMEBODY CAME ON OR WENT OFF ----
+ *
+ * The one place a change of personnel is settled, for every side in the
+ * world. Until this existed the units were rebuilt only by the manager's own
+ * hand (a substitution, an undo, a shirt swap, a slider), so an AI side
+ * played its whole afternoon on the fifteen it kicked off with: a
+ * replacement's attributes never reached its scrum or its defence, an injury
+ * cover never counted, and a sent-off captain went on leading. The manager's
+ * own side had the same hole for everything he did not do himself - an
+ * injury, an HIA, a card.
+ *
+ * Two jobs, both cheap and neither drawing on the match rng:
+ *
+ *  - the minutes. Each man's stint is opened when he appears in onPitch and
+ *    closed when he leaves it, at the minute given. A man in the bin is not on
+ *    the pitch and banks nothing for his ten minutes: the figure feeds the
+ *    season's workload (the 1,300-minute red zone), and a man sitting on the
+ *    bench by the touchline is resting, not playing.
+ *
+ *  - the units, rebuilt only when the personnel they are built from has
+ *    actually changed (personnelKey), so calling this when nothing moved is
+ *    free and a rebuild is never repeated. applyModifiers starts from a clean
+ *    base, so a rebuild is idempotent: the tenth lands where the first did.
+ *
+ * Called straight after each change with the minute of it, and once at the
+ * top of every tick as a net for anything that moved without saying so; a
+ * stint the net catches is timed to that tick's minute instead.
+ */
+function fieldChanged(state: GameState, ctx: LiveCtx, side: SideCtx, min: number) {
+  const at = clamp(min, 0, 80)
+  const since = (side.since ??= new Map())
+  const played = (side.played ??= new Map())
+  for (const [id, from] of since) {
+    if (side.onPitch.has(id)) continue
+    played.set(id, (played.get(id) ?? 0) + Math.max(0, at - from))
+    since.delete(id)
+  }
+  for (const id of side.onPitch) if (!since.has(id)) since.set(id, at)
+  if (side.unitsKey !== personnelKey(side)) recomputeSideUnits(state, ctx, side)
+}
+
+/** A man's minutes in this match so far: the stints he has finished and the
+ *  one he is in, counted to `now`. */
+export function minutesPlayed(side: SideCtx, id: number, now: number): number {
+  const from = side.since?.get(id)
+  return (side.played?.get(id) ?? 0) + (from != null ? Math.max(0, now - from) : 0)
+}
+
+/**
+ * ---- WHO TAKES THE KICK ----
+ *
+ * units.kickerId is the side's first choice: the named kicker, or the best
+ * boot in the XV. It is a name on a sheet, and it used to be the only thing
+ * read, so a kicker who had been sent off, sin-binned or replaced went on
+ * taking the side's kicks from the stand and being credited with the points.
+ *
+ * Now the kick goes to the first choice if he is on the pitch; failing him,
+ * to the next of the manager's named kickers who is out there; failing them,
+ * to the best goal kicker on the field. Nothing is stored, so a first choice
+ * back from the bin takes the tee again at the next kick. A tie for the best
+ * boot goes to the man who has been out there longest. At kick-off the first
+ * choice is always on, so the pick there is exactly the one it always was.
+ */
+export function goalKicker(state: GameState, side: SideCtx): Player | null {
+  const first = side.units.kickerId
+  if (first != null && side.onPitch.has(first)) return state.players[first] ?? null
+  for (const id of state.clubs[side.teamId]?.tactic.kickers ?? []) {
+    if (id != null && side.onPitch.has(id) && !state.players[id]?.injury) return state.players[id] ?? null
+  }
+  let best: Player | null = null
+  let goal = 5
+  for (const id of side.onPitch) {
+    const p = state.players[id]
+    if (p && !p.injury && p.a.goa > goal) { goal = p.a.goa; best = p }
+  }
+  return best
 }
 
 /** Apply the user's (possibly changed) tactic sliders mid-match. */
@@ -4005,7 +4877,9 @@ export function applyTacticsChange(state: GameState, ctx: LiveCtx) {
  * Possession, tries, penalties, cards and energy are MEASURED: the engine has
  * been keeping every one of them all along.
  *
- * The set pieces and tackles are DERIVED, and the difference is worth being
+ * (Tackles were derived too, until 1.8.0 counted them: countTackles.)
+ *
+ * The set pieces are DERIVED, and the difference is worth being
  * straight about. The engine does not simulate an individual scrum, so these
  * are computed from things it does simulate - how much ball each side has
  * actually had, and the two packs' real scrum, lineout and defence numbers.
@@ -4019,6 +4893,63 @@ export function applyTacticsChange(state: GameState, ctx: LiveCtx) {
  * NO RNG. A pure function of state that already exists, so it can be called
  * on every render of a live match without the stream ever noticing.
  */
+/** How a side's tackling is shared across the XV by shirt: flankers make the
+ *  most, then the locks, hooker, No. 8 and centres; the back three the fewest.
+ *  From the tackle counts of top-flight games. */
+const SLOT_TACKLES = [7, 10, 7, 11, 11, 13, 14, 11, 7, 8, 4, 10, 10, 4, 3]
+
+/**
+ * ---- EVERY TACKLE, COUNTED AND NAMED (1.8.0) ----
+ *
+ * Owner, 27 Sep 2026: "track the tackles accurately? How do we do that?" The
+ * engine plays a match in twenty four-minute ticks and never simulated a
+ * single tackle: the stats panel's figure was worked out afterwards from
+ * possession, and the first per-player column shared that figure out by
+ * shirt. Now each tick the engine plays the tackles: a side makes about 4
+ * attempts a minute for every minute the other side has the ball (the ball
+ * each side actually won this tick, dh and da), a better defence gets through
+ * more, and every attempt goes to a man on the pitch - weighted by his shirt,
+ * his tackling and how much he has left in his legs. His tackling decides
+ * whether he makes it or misses it. A man in the bin, off injured or not yet
+ * on makes none, because he is not in onPitch.
+ *
+ * ITS OWN DICE. The draws come from a stream seeded by the fixture and the
+ * tick, never from the match's rng, so counting tackles cannot move a single
+ * score, card or injury, and a resumed match counts them exactly as before.
+ */
+function countTackles(state: GameState, ctx: LiveCtx, tick: number, dh: number, da: number) {
+  const total = dh + da
+  if (total <= 0) return
+  const rng = mulberry32((((ctx.fx.id | 0) * 7919) ^ (tick * 104729) ^ ((state.season | 0) * 31)) >>> 0)
+  for (const [def, attPoss] of [[ctx.home, da], [ctx.away, dh]] as [SideCtx, number][]) {
+    const men = [...def.onPitch].map(id => state.players[id]).filter((p): p is Player => !!p)
+    if (!men.length) continue
+    // 4 minutes a tick, 4 attempts a minute without the ball: about 160 a
+    // match at even possession, 140 of them made, a top-flight side's count
+    const expected = 4 * 4 * (attPoss / total) * (0.9 + def.units.defence / 900)
+    const n = Math.floor(expected) + (rng() < expected % 1 ? 1 : 0)
+    const weights = men.map(p => {
+      const slot = def.lineup.indexOf(p.id)
+      const shirt = slot >= 0 && slot < 15 ? SLOT_TACKLES[slot] : 8
+      return shirt * (0.7 + 0.6 * p.a.tac / 20) * (0.6 + 0.4 * (def.energy.get(p.id) ?? 80) / 100)
+    })
+    const made = (def.tackles ??= new Map()), miss = (def.missed ??= new Map())
+    for (let i = 0; i < n; i++) {
+      const p = wpick(rng, men, weights)
+      const hold = clamp(0.8 + (p.a.tac - 12) * 0.012, 0.62, 0.96)
+      if (rng() < hold) made.set(p.id, (made.get(p.id) ?? 0) + 1)
+      else miss.set(p.id, (miss.get(p.id) ?? 0) + 1)
+    }
+  }
+}
+
+/** A commentary line that names a man for a hit is a tackle he made. */
+const TACKLE_LINES = new Set(['comm.flavPac5', 'comm.flav8', 'comm.flav12', 'comm.flav15'])
+
+function cameOn(side: SideCtx, id: number, min: number) {
+  (side.onAt ??= new Map()).set(id, min)
+}
+
 export function matchStats(ctx: LiveCtx) {
   const tot = ctx.home.poss + ctx.away.poss || 1
   const share = (s: SideCtx) => s.poss / tot
@@ -4041,9 +4972,12 @@ export function matchStats(ctx: LiveCtx) {
   const [asw, asl] = setPiece(ctx.away, 0.16, ctx.away.units.scrum, ctx.home.units.scrum)
   const [hlw, hll] = setPiece(ctx.home, 0.30, ctx.home.units.lineout, ctx.away.units.lineout)
   const [alw, all_] = setPiece(ctx.away, 0.30, ctx.away.units.lineout, ctx.home.units.lineout)
-  // you tackle when they have the ball, and a real defence gets through more
-  const tackles = (s: SideCtx) =>
-    Math.round(mins * (1 - share(s)) * 3.6 * (0.9 + s.units.defence / 900))
+  // COUNTED, since 1.8.0 (countTackles): the sum of every man's tackles. A
+  // match begun by an older build has no counts, and falls back to the
+  // figure this used to work out from possession and the defence.
+  const tackles = (s: SideCtx) => s.tackles
+    ? [...s.tackles.values()].reduce((a, b) => a + b, 0)
+    : Math.round(mins * (1 - share(s)) * 3.6 * (0.9 + s.units.defence / 900))
   return {
     possession: [Math.round((ctx.home.poss / tot) * 100), Math.round((ctx.away.poss / tot) * 100)] as [number, number],
     tries: [ctx.home.tries, ctx.away.tries] as [number, number],
@@ -4055,6 +4989,11 @@ export function matchStats(ctx: LiveCtx) {
     lineoutsWon: [hlw, alw] as [number, number],
     lineoutsLost: [hll, all_] as [number, number],
     tackles: [tackles(ctx.home), tackles(ctx.away)] as [number, number],
+    /** [made, taken] for each side: conversions, penalties and drop goals */
+    goalKicks: [[ctx.home.kicksMade ?? 0, ctx.home.kicksAt ?? 0], [ctx.away.kicksMade ?? 0, ctx.away.kicksAt ?? 0]] as [[number, number], [number, number]],
+    /** kicks from hand put in, and how many of each side's were charged down */
+    handKicks: [ctx.home.handKicks ?? 0, ctx.away.handKicks ?? 0] as [number, number],
+    chargedDown: [ctx.home.chargedDown ?? 0, ctx.away.chargedDown ?? 0] as [number, number],
   }
 }
 
@@ -4094,7 +5033,7 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
       }
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
-        subject: `🎗 ${hero.name}'s testimonial: ${fx.att.toLocaleString()} say thank you`,
+        subject: `${hero.name}'s testimonial: ${fx.att.toLocaleString()} say thank you`,
         body: `${club.stadium} was full for ${hero.name}'s testimonial${hero.name && ctx.events.some(e => e.type === 'TRY' && e.playerId === hero.id) ? ' - and he scored, because of course he did' : ''}. The gate receipts (${fmtMoney(gate)}) go to the club at his insistence. One season left in the shirt: make it a good one.`,
         k: 'news.testimonialDay',
         v: {
@@ -4203,8 +5142,8 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
         if (!state.unemployed && p.clubId === state.userClubId && (p.caps === 1 || p.caps === 50 || p.caps === 100)) {
           state.news.push({
             id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
-            subject: p.caps === 1 ? `🌍 First cap: ${p.name}`
-              : `🌍 ${p.name}: ${p.caps} Test caps`,
+            subject: p.caps === 1 ? `First cap: ${p.name}`
+              : `${p.name}: ${p.caps} Test caps`,
             body: p.caps === 1
               ? `${p.name} won his first Test cap for ${nationNameIn('en', side.teamId)} this week. The shirt gets framed; the club that made him gets the reflected glow.`
               : `${p.name} brought up his ${p.caps}th cap for ${nationNameIn('en', side.teamId)} this week - a special jersey, a guard of honour, and a proud week around the club.`,
@@ -4242,9 +5181,18 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
       } else if (!isNation) {
         if (p.debutPending) { debutants.push({ p, r, kind: p.debutPending }); p.debutPending = null }
         p.stats.apps += 1
-        const started = side.lineup.slice(0, 15).includes(pid)
+        // WHO STARTED AND HOW LONG HE PLAYED, as it happened. This read the
+        // lineup at full time and credited a flat 75 or 25, and the lineup is
+        // rewritten by every substitution: the replacement who finished in
+        // the shirt was given the start and 75 minutes, and the man who
+        // played the first hour got 25 and no start. The minutes feed the
+        // 1,300-minute red zone, so the wrong men were being rested. Now the
+        // start is the XV of the first tick and the minutes are the stints
+        // fieldChanged timed, the bin excluded, closed at the final whistle.
+        // A man who got on at all has played at least a minute of it.
+        const started = (side.starters ?? new Set(side.lineup.slice(0, 15))).has(pid)
         if (started) p.stats.starts += 1
-        p.stats.mins += started ? 75 : 25
+        p.stats.mins += Math.max(1, Math.round(minutesPlayed(side, pid, 80)))
         p.stats.ratingSum += r
         // and the same rating against the award window, which is cleared every
         // time a Player of the Month is named (see SeasonStats.mSum)
@@ -4305,7 +5253,7 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
     const homegrown = kind === 'academy'
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
-      subject: homegrown ? `🌟 A debut to tell his grandkids about: ${p.name}` : `🌟 Dream debut for ${p.name}`,
+      subject: homegrown ? `A debut to tell his grandkids about: ${p.name}` : `Dream debut for ${p.name}`,
       body: [
         homegrown
           ? `${p.name} (${p.age}, ${p.pos}) made his first-team debut today - the academy's own, first competitive rugby of his life.`

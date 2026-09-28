@@ -70,15 +70,20 @@ ok(typeof L.clubIntent === 'function' && typeof L.advanceHunt === 'function',
   ok(!!star, `the club has a talisman (${star?.name})`)
   star.ca = 88
   const seen: number[] = []
+  // the hunt's stories collected by id as they land: a season is twice the
+  // NEWS_KEEP cap, so an early-season "admire" was trimmed away before the
+  // count at the end could see it
+  const huntIds = new Set<number>()
   let guard = 0
   while (g.week < SEASON_WEEKS && guard++ < SEASON_WEEKS + 4) {
     processWeekAndAdvance(g)
     const st = g.hunt?.stage ?? 0
     if (st && !seen.includes(st)) seen.push(st)
+    for (const n of g.news) if (/admire|not deny|bid/i.test(n.subject)) huntIds.add(n.id)
   }
   if (seen.length) {
     ok(seen.every((v, i) => v === i + 1), `the hunt escalates in order without skipping (${seen.join(' -> ')})`)
-    const stories = g.news.filter(n => /admire|not deny|bid/i.test(n.subject)).length
+    const stories = huntIds.size
     ok(stories >= seen.length, `and the manager is told at every stage (${stories} stories)`)
   } else {
     ok(true, 'no hunt opened on this seed, which is allowed - it is gated, not guaranteed')

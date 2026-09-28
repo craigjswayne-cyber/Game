@@ -49,7 +49,7 @@ const start = async (page) => {
 /** The club menu's Tactics page, where the saved game plans live. */
 const openTactics = async (page) => {
   // the group buttons carry a marker: hub is the first, manager the second
-  await page.locator('.bottom-nav button', { hasText: '\u25b8' }).nth(0).click()
+  await page.locator('.bottom-nav button[data-group]').nth(0).click()
   await page.waitForSelector('.submenu')
   await page.waitForTimeout(300)
   await page.locator('.submenu-item', { hasText: 'Tactics' }).click()
@@ -60,7 +60,7 @@ const openTactics = async (page) => {
 }
 
 const openSettings = async (page) => {
-  await page.locator('.bottom-nav button', { hasText: '\u25b8' }).nth(1).click()
+  await page.locator('.bottom-nav button[data-group]').nth(1).click()
   await page.waitForSelector('.submenu')
   await page.waitForTimeout(300)
   await page.locator('.submenu-item', { hasText: 'Settings' }).click()
@@ -100,7 +100,7 @@ try {
 
   // ---- 1. the door, where it was asked for ----
   say('\n--- 1. Settings is in the manager menu, above Report a Bug')
-  await page.locator('.bottom-nav button', { hasText: '▸' }).nth(1).click()
+  await page.locator('.bottom-nav button[data-group]').nth(1).click()
   await page.waitForSelector('.submenu')
   await page.waitForTimeout(400)
   const items = await page.locator('.submenu-item').allInnerTexts()
@@ -205,7 +205,7 @@ try {
 
   // ---- 5. and it can be taken back off ----
   say('\n--- 5. the built-in palette is one tap away again')
-  await page.locator('.bottom-nav button', { hasText: '▸' }).nth(1).click()
+  await page.locator('.bottom-nav button[data-group]').nth(1).click()
   await page.waitForSelector('.submenu')
   await page.waitForTimeout(300)
   await page.locator('.submenu-item', { hasText: 'Settings' }).click()

@@ -37,10 +37,48 @@ const second = byRep.find(c => c.id !== strongest.id && c.leagueId !== strongest
 const weakest = byRep[byRep.length - 1]
 console.log(`  strongest ${strongest.short} (rep ${strongest.rep}), second ${second.short} (rep ${second.rep}), weakest ${weakest.short} (rep ${weakest.rep})`)
 
-function margins(homeId: string, awayId: string, n: number): number[] {
+// A RATE OVER THOUSANDS, NOT THE MAXIMUM OF 120 (28 Sep 2026).
+//
+// Both ceilings were asserted as the single worst margin in 120 or so
+// matches, and a maximum is the least stable number a sample has: four
+// shifted seed lists read 79, 83, 84 and 97 (FAIL) against 90, and 51, 62
+// (FAIL), 54 and 48 against 60. Measured over 40,000 matches each (every one
+// from the same kick-off), the ceilings sit at the one-in-a-thousand tail:
+// the mismatch goes past 90 in 34 of 40,000 (0.085%, worst 99) and top v top
+// past 60 in 50 of 40,000 (0.125%, worst 78). A 120-match maximum therefore
+// fails about one run in ten on the mismatch and one in seven on top v top
+// with nothing changed.
+//
+// The claim is now the rate: past the ceiling in fewer than 1 match in 500,
+// over 20,000 of each. At the measured top-v-top rate that is 25 expected
+// against a limit of 40, three standard errors clear (10,000 left it at two).
+// A 1-in-500 tail still means a 120-match window is clean four times in
+// five, which is what the old test tolerated in practice; the 1-in-1,300
+// hundred-pointer that started this would sit far over it. This is the
+// slowest of the engine probes now (about three minutes).
+//
+// Restored, not cloned: the three clubs, their men, the chemistry ledger, the
+// news, the id counter and the grudges are put back before each sim (150 ms a structuredClone, about 3 ms this way),
+// and the first 30 are checked against the clone to prove it is the same.
+const ids = [...new Set([strongest.id, second.id, weakest.id])]
+const pids = ids.flatMap(c => base.clubs[c].players)
+const snapC = structuredClone(ids.map(c => base.clubs[c]))
+const snapP = structuredClone(pids.map(id => base.players[id]))
+const snapChem = structuredClone(base.chem)
+const snapMisc = { news: base.news.slice(), nextId: base.nextId, grudges: structuredClone(base.grudges) }
+const restore = () => {
+  ids.forEach((c, j) => { base.clubs[c] = structuredClone(snapC[j]) })
+  pids.forEach((id, j) => { base.players[id] = structuredClone(snapP[j]) })
+  base.chem = structuredClone(snapChem)
+  // a match also files news, takes ids and can start a grudge the next
+  // one reads, so those go back too
+  base.news = snapMisc.news.slice(); base.nextId = snapMisc.nextId; base.grudges = structuredClone(snapMisc.grudges)
+}
+
+function margins(homeId: string, awayId: string, n: number, clone = false): number[] {
   const out: number[] = []
   for (let i = 0; i < n; i++) {
-    const g: GameState = structuredClone(base)
+    const g: GameState = clone ? structuredClone(base) : (restore(), base)
     const fx: Fixture = {
       id: 900_000 + i, compId: 'cc', round: 1, week: 20, homeId, awayId,
       played: false, homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
@@ -48,15 +86,25 @@ function margins(homeId: string, awayId: string, n: number): number[] {
     simMatch(g, fx, mulberry32(4242 + i * 13), false)
     out.push(Math.abs(fx.homeScore - fx.awayScore))
   }
+  restore()
   return out.sort((a, b) => a - b)
 }
 
 const q = (xs: number[], p: number) => xs[Math.min(xs.length - 1, Math.floor(p * xs.length))]
+const N = 20_000
+const RATE = 1 / 500
+
+{
+  const a = margins(strongest.id, weakest.id, 30, true).join(',')
+  const b = margins(strongest.id, weakest.id, 30).join(',')
+  ok(a === b, 'a restored world plays the same 30 matches as a cloned one')
+}
 
 // ---- the total mismatch: a rout, never a cricket score ---------------------
 {
-  const m = margins(strongest.id, weakest.id, 120)
-  console.log(`  mismatch margins: p50 ${q(m, 0.5)}, p90 ${q(m, 0.9)}, max ${m[m.length - 1]}`)
+  const m = margins(strongest.id, weakest.id, N)
+  const over = m.filter(x => x > 90).length
+  console.log(`  mismatch margins over ${N}: p50 ${q(m, 0.5)}, p90 ${q(m, 0.9)}, p99.9 ${q(m, 0.999)}, max ${m[m.length - 1]}, past 90 in ${over}`)
   ok(q(m, 0.5) >= 25, `the gulf still shows: median margin ${q(m, 0.5)} (floor 25)`)
   // Ceiling raised 88 -> 90 with the verified August 2026 squads: the world's
   // strongest side got genuinely stronger at the top end, and its worst
@@ -64,16 +112,17 @@ const q = (xs: number[], p: number) => xs[Math.min(xs.length - 1, Math.floor(p *
   // 90-point rout for a full-strength giant against a part-time club is still
   // inside rugby; three figures is not, and the top-v-top ceiling below is
   // what actually guards the leagues people play in.
-  ok(m[m.length - 1] <= 90, `even the worst afternoon stays inside rugby: max ${m[m.length - 1]} (ceiling 90)`)
+  ok(over < N * RATE, `even the worst afternoons stay inside rugby: past 90 in ${over} of ${N} (under 1 in 500 is ${N * RATE})`)
 }
 
-// ---- top v top: the user's screenshot, 120 times over ----------------------
+// ---- top v top: the user's screenshot, thousands of times over -------------
 {
-  const m1 = margins(strongest.id, second.id, 60)
-  const m2 = margins(second.id, strongest.id, 60)
+  const m1 = margins(strongest.id, second.id, N / 2)
+  const m2 = margins(second.id, strongest.id, N / 2)
   const m = [...m1, ...m2].sort((a, b) => a - b)
-  console.log(`  top-v-top margins: p50 ${q(m, 0.5)}, p90 ${q(m, 0.9)}, max ${m[m.length - 1]}`)
-  ok(m[m.length - 1] <= 60, `two top clubs never approach three figures: max ${m[m.length - 1]} (ceiling 60)`)
+  const over = m.filter(x => x > 60).length
+  console.log(`  top-v-top margins over ${N}: p50 ${q(m, 0.5)}, p90 ${q(m, 0.9)}, p99.9 ${q(m, 0.999)}, max ${m[m.length - 1]}, past 60 in ${over}`)
+  ok(over < N * RATE, `two top clubs never approach three figures: past 60 in ${over} of ${N} (under 1 in 500 is ${N * RATE})`)
 }
 
 console.log(fails ? `\nBLOWPROBE FAILED (${fails})` : '\nBLOWPROBE PASSED')

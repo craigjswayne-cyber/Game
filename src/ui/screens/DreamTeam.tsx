@@ -3,7 +3,7 @@ import { useStore } from '../../store'
 import { XV_SLOTS, type Player } from '../../game/model'
 import { teamShort } from '../../game/matchEngine'
 import { ClubLink, Jersey, SectionTitle } from '../components'
-import { t } from '../../game/i18n'
+import { t, compLabel } from '../../game/i18n'
 
 /** Magazine-style Dream Team of the round + season leaderboards -
  *  straight off the rugby magazine's socials. */
@@ -57,7 +57,10 @@ export default function DreamTeam() {
     )
   }
 
-  const lb = (title: string, rows: Player[], val: (p: Player) => string) => (
+  // A board with nobody on it is left out (UI QA, 1.8.0): two rounds into a
+  // league nobody has the three appearances these need, and three headings
+  // stacked over nothing read as a page that had failed to load.
+  const lb = (title: string, rows: Player[], val: (p: Player) => string) => rows.length === 0 ? null : (
     <>
       <SectionTitle>{title}</SectionTitle>
       <div className="tblwrap"><table className="dtable"><tbody>
@@ -76,12 +79,12 @@ export default function DreamTeam() {
     <>
       <div className="tab-bar">
         {leagues.map(l => (
-          <button key={l.id} className={l.id === leagueId ? 'active' : ''} onClick={() => setLeagueId(l.id)}>{l.short}</button>
+          <button key={l.id} className={l.id === leagueId ? 'active' : ''} onClick={() => setLeagueId(l.id)}>{compLabel(l.short)}</button>
         ))}
       </div>
       <div className="dt-board">
         <div className="dt-head">
-          <span className="dt-league">{comp?.name?.toUpperCase()}</span>
+          <span className="dt-league">{compLabel(comp?.name)?.toLocaleUpperCase()}</span>
           <span className="dt-title">{t('world.dtTitle')}</span>
           <span className="dt-sub">{lastWeek ? t('world.dtGameweek', { n: lastWeek }) : t('world.dtNoRugby')}</span>
         </div>
@@ -117,9 +120,11 @@ function OnesToWatch({ leagueId }: { leagueId: string }) {
       <div className="tblwrap"><table className="dtable"><tbody>
         {kids.map(p => (
           <tr key={p.id} onClick={() => go('player', p.id)}>
-            <td className="num">{p.age}</td>
-            <td className="name">🌟 {p.name}
-              <span className="muted"> ({p.pos} · {p.clubId ? <ClubLink g={game} clubId={p.clubId}>{teamShort(game, p.clubId)}</ClubLink> : t('world.dtFreeAgent')})</span>
+            {/* the age rides with the position, as on the mentoring list: a
+                bare number in the first column, under three ranked boards,
+                read as a fourth ranking (UI QA, 1.8.0) */}
+            <td className="name">{p.name}
+              <span className="muted"> ({p.pos} · {p.age} · {p.clubId ? <ClubLink g={game} clubId={p.clubId}>{teamShort(game, p.clubId)}</ClubLink> : t('world.dtFreeAgent')})</span>
             </td>
             <td className="num muted">{p.nat}</td>
           </tr>

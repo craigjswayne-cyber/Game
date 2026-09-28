@@ -90,13 +90,19 @@ console.log('\n=== 3. the Tuesday session ===')
     const g = newGame('leicester', 'Adv', seed)
     const seen = new Map<number, number>()
     for (const p of Object.values(g.players)) seen.set(p.id, (p.injLog ?? []).length)
-    const news0 = g.news.length
+    // letters counted by id as they land: 44 weeks is past the NEWS_KEEP cap,
+    // and slicing the trimmed log from its old length dropped the early ones
+    const newsSeen = new Set(g.news.map(n => n.id))
     for (let w = 0; w < 44; w++) {
       const fx = userFixtureThisWeek(g)
       if (fx) simMatch(g, fx, weekRng(g, 'tw' + w), false)
       processWeekAndAdvance(g)
+      for (const n of g.news) {
+        if (newsSeen.has(n.id)) continue
+        newsSeen.add(n.id)
+        if (n.k === 'news.trainInjury' || n.k === 'news.trainInjuryOne') letters++
+      }
     }
-    letters += g.news.slice(news0).filter(n => n.k === 'news.trainInjury' || n.k === 'news.trainInjuryOne').length
     for (const club of Object.values(g.clubs)) {
       clubSeasons++
       for (const id of club.players) {
@@ -305,18 +311,35 @@ console.log('\n=== 9. good pitch, good prep ===')
   ok(true5.att > bog.att, `and the handling with it (${bog.att.toFixed(2)} -> ${true5.att.toFixed(2)})`)
 
   // GOOD PREP. A squad that can train properly develops faster.
+  //
+  // THE WHOLE WORLD'S GROWTH, NOT ONE SQUAD'S (28 Sep 2026). This summed the
+  // user's roster at the end against a different roster at the start, so
+  // transfers in and out counted as "development", and one squad's rating
+  // gains are only forty-odd +1 rolls: shifted seed lists read +10, +17, -6
+  // (FAIL) and +31 for the same 0.88x -> 1.12x rate, a one-standard-error
+  // test. The surface is read off every club's own estate (season.ts), so
+  // the same paired worlds now count every man who was in the world at the
+  // start - thousands of rolls, the effect many standard errors clear - and
+  // the user's squad is printed alongside for the reader.
   const grown = (lvl: number) => {
     const g = newGame('leicester', 'Adv', 777)
     for (const c of Object.values(g.clubs)) c.facilities = { ...(c.facilities ?? {}), pitch: lvl }
-    const club = g.clubs[g.userClubId]
-    const before = club.players.reduce((n, id) => n + (g.players[id]?.ca ?? 0), 0)
+    const start = new Map(Object.values(g.players).map(p => [p.id, p.ca]))
+    const squad0 = new Set(g.clubs[g.userClubId].players)
     for (let w = 0; w < 44; w++) processWeekAndAdvance(g)
-    return club.players.reduce((n, id) => n + (g.players[id]?.ca ?? 0), 0) - before
+    let world = 0, squad = 0
+    for (const [id, ca0] of start) {
+      const p = g.players[id]
+      if (!p) continue
+      world += p.ca - ca0
+      if (squad0.has(id)) squad += p.ca - ca0
+    }
+    return { world, squad }
   }
   const gBog = grown(0)
   const gTrue = grown(5)
-  console.log(`  a season of development: bog ${gBog}, true surface ${gTrue}`)
-  ok(gTrue > gBog, `the squad develops faster on a pitch it can work on (${gBog} -> ${gTrue})`)
+  console.log(`  a season of development: bog ${gBog.world}, true surface ${gTrue.world} rating points world-wide (the user's squad ${gBog.squad} -> ${gTrue.squad})`)
+  ok(gTrue.world > gBog.world, `the squad develops faster on a pitch it can work on (${gBog.world} -> ${gTrue.world} across the world)`)
 }
 
 console.log(fails ? `\nDESIGN ROUND PROBE: ${fails} failures` : '\nDESIGN ROUND PROBE PASSED: advantage, the Tuesday session and the kicking ladder all behave')

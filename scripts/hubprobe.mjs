@@ -159,7 +159,7 @@ try {
       await page.click('text=▸ Start Second Half')
         .catch(() => page.click('text=▸ Play the Final Quarter').catch(() => {}))
     } else {
-      await page.click('.speed-controls >> text=Skip').catch(() => {})
+      await page.click('.speed-controls [data-ctl=skip]').catch(() => {})
     }
     await page.waitForTimeout(250)
   }

@@ -55,8 +55,6 @@
    component rules that genuinely differ at night beyond what semantic
    tokens already express. */
 
-
-
 /* Nothing here needs a night spelling any more: every rule below reads
    semantic tokens, and tokens.css swaps the whole palette per mode. */
 
@@ -89,7 +87,7 @@ body {
   background: var(--canvas);
   color: var(--text-primary);
   font-family: var(--sans);
-  font-size: 13.5px;
+  font-size: 14px;
   line-height: 1.45;
   overscroll-behavior: none;
   /* the viewport allows pinch-zoom again (v1.2.7: a game that blocked it was
@@ -166,7 +164,7 @@ option { font: inherit; color: var(--text-primary); background-color: var(--surf
 .mast-ctl { display: flex; align-items: center; gap: 10px; }
 .masthead h1 {
   font-family: var(--sans);
-  font-size: 19px;
+  font-size: 18px;
   font-weight: 700;
   letter-spacing: .2px;
   white-space: nowrap;
@@ -234,7 +232,7 @@ option { font: inherit; color: var(--text-primary); background-color: var(--surf
 
 .section-title {
   font-family: var(--cond);
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1.5px;
@@ -290,10 +288,12 @@ option { font: inherit; color: var(--text-primary); background-color: var(--surf
 .dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
 .dtable th {
   font-family: var(--sans);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1.1px;
+  /* .5px, not 1.1: at 11px the wider tracking pushed the eight-column market
+     table 10px off a 412px phone in Italian (sidescroll.mjs) */
+  letter-spacing: .5px;
   color: var(--text-muted);
   text-align: left;
   padding: 9px 7px 7px;
@@ -312,7 +312,7 @@ option { font: inherit; color: var(--text-primary); background-color: var(--surf
   color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
 }
-.dtable td.name { color: var(--text-primary); font-weight: 600; font-size: 12.5px; max-width: 168px; overflow: hidden; text-overflow: ellipsis; }
+.dtable td.name { color: var(--text-primary); font-weight: 600; font-size: 13px; max-width: 168px; overflow: hidden; text-overflow: ellipsis; }
 .dtable tr:active td { background: var(--row-hover-bg); }
 .dtable.zebra tbody tr:nth-child(even) td { background: color-mix(in srgb, var(--surface-2) 45%, var(--surface-1)); }
 .dtable.zebra tbody tr:nth-child(even).me td,
@@ -346,6 +346,10 @@ option { font: inherit; color: var(--text-primary); background-color: var(--surf
    :not() leaves the cascade to say what it was always going to say. */
 .dtable:not(.codefirst) th:first-child,
 .dtable:not(.codefirst) td:first-child { padding-left: 16px; }
+/* The search tables (position code first, eight columns) give the name the
+   room that is left and no more: at 13px a long name pushed the market 10px
+   off a 412px phone in Italian (sidescroll.mjs). It shortens with an ellipsis. */
+.dtable.codefirst td.name { max-width: 108px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ---- A NAME SITS NEXT TO ITS RANK, NOT ADRIFT OF IT ----
    Owner, on every table with a rank column: "the team names should be more
@@ -486,12 +490,12 @@ option { font: inherit; color: var(--text-primary); background-color: var(--surf
   border-radius: 10px;
   margin: 9px 12px;
   padding: 11px 13px;
-  
+
 }
 /* a card that is also a button: the width used to be an inline
    calc(100% - 28px) on every one of them, which no grid could override */
 button.card { display: block; width: calc(100% - 28px); text-align: left; }
-.card h3 { font-family: var(--sans); font-size: 16.5px; font-weight: 700; color: var(--text-primary); margin-bottom: 3px; letter-spacing: .1px; }
+.card h3 { font-family: var(--sans); font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: 3px; letter-spacing: .1px; }
 .fx-line { font-size: 18px; margin: 4px 0; }
 .card .meta { font-size: 12px; color: var(--text-secondary); font-weight: 500; }
 
@@ -505,7 +509,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .news-item .subj {
   font-family: var(--sans);
   font-weight: 700;
-  font-size: 14.5px;
+  font-size: 14px;
   color: var(--text-primary);
   letter-spacing: .1px;
   line-height: 1.3;
@@ -519,7 +523,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   vertical-align: 2px;
 }
 .news-item .body {
-  font-size: 12.5px; color: var(--text-secondary); margin-top: 3px; font-weight: 500;
+  font-size: 13px; color: var(--text-secondary); margin-top: 3px; font-weight: 500;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
   overflow: hidden; white-space: pre-line; line-height: 1.5;
 }
@@ -552,38 +556,49 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
   --safe-area-inset-left: env(safe-area-inset-left, 0px);
 }
+/* ---- THE BOTTOM NAV (1.8.0) ----
+   Owner: "I really like the Sainsbury's bottom menu selection - can we
+   incorporate that into the add for our buttons down the bottom". So it is
+   the same shape: a rounded bar floating clear of the screen edge, every
+   button an icon over its name, and the one you are on sitting in a soft pill
+   in the club colour. Badges stay on the icons. The FM-style icon-only rail
+   it replaces made a new manager guess what a clipboard meant.
+   The floor under it (home indicator, the ad banner) is a margin now, so the
+   bar floats above the banner rather than stretching down behind it. */
 .bottom-nav {
-  display: flex;
+  display: flex; gap: 2px;
+  margin: 0 10px calc(var(--safe-area-inset-bottom) + var(--ad-inset, 0px) + 8px);
+  padding: 5px;
   background: var(--surface-1);
-  border-top: 1px solid var(--border);
-  padding-bottom: calc(var(--safe-area-inset-bottom) + var(--ad-inset, 0px));
+  border: 1px solid var(--border);
+  border-radius: 24px;
   flex-shrink: 0;
-  box-shadow: 0 -4px 16px rgba(0, 0, 0, .25);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .32);
 }
 .bottom-nav button {
-  flex: 1;
+  flex: 1 1 0; min-width: 0;
   position: relative;
   color: var(--text-muted);
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: .5px;
-  padding: 11px 0;
+  letter-spacing: .2px;
+  padding: 6px 2px 5px;
+  border-radius: 19px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 3px;
-  transition: color .15s ease;
+  transition: color .15s ease, background-color .2s ease;
 }
-.bottom-nav button.active { color: var(--primary); }
-.bottom-nav button.active::before {
-  content: '';
-  position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-  width: 26px; height: 2.5px; border-radius: 0 0 3px 3px;
-  background: var(--primary);
+.bottom-nav button.active {
+  color: var(--primary);
+  background: color-mix(in srgb, var(--text-primary) 10%, transparent);
 }
-/* FM-style rail: symbols only - labels live in tooltips/flyouts */
-.bottom-nav .nlbl { display: none; }
-.bottom-nav .ico { width: 32px; height: 32px; display: block; }
+.bottom-nav .nlbl {
+  display: block; max-width: 100%; line-height: 1.15;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.bottom-nav .ico { width: 26px; height: 26px; display: block; }
 .bottom-nav .ico svg { width: 100%; height: 100%; display: block; }
 .bottom-nav .nbadge { position: relative; }
 .bottom-nav .dot {
@@ -592,7 +607,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   color: var(--on-danger); font-size: 8.5px; font-weight: 800;
   min-width: 15px; height: 15px; border-radius: 8px;
   display: flex; align-items: center; justify-content: center; padding: 0 4px;
-  border: 1.5px solid var(--canvas);
+  border: 1.5px solid var(--surface-1);
 }
 
 /* ================= Buttons ================= */
@@ -601,7 +616,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   background: var(--surface-3);
   color: var(--text-primary);
   font-weight: 700;
-  font-size: 12.5px;
+  font-size: 13px;
   letter-spacing: .3px;
   padding: 9px 13px;
   border-radius: 8px;
@@ -630,12 +645,20 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .btn:active { transform: translateY(1px); }
 .btn-row { display: flex; gap: 10px; margin: 12px 14px; }
 .btn-row .btn { flex: 1; }
+/* THE NEWS READER'S BUTTONS (27 Sep 2026): one line each, never three */
+.wire-actions .btn { white-space: nowrap; min-height: 44px; }
+/* ONE TYPE SCALE (owner, 27 Sep 2026, beside FM26 screenshots: "make sure
+   there is a consistent text sizing and the way its shown"). Thirty sizes,
+   half of them half-pixels (10.5, 11.5, 12.5...), became eight steps: 11
+   captions, 12 labels, 13 small body and buttons, 14 body, 16 subheads and
+   big buttons, 18 and 20 headings, 22 titles. Display type (the title,
+   scores, the pitch's own labels) keeps its own sizes. */
 
 /* ================= Attributes ================= */
 .attr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 22px; padding: 10px 16px; background: var(--surface-1); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
 .attr {
   display: flex; align-items: center; gap: 8px;
-  font-size: 12.5px; font-weight: 500; color: var(--text-secondary);
+  font-size: 13px; font-weight: 500; color: var(--text-secondary);
   padding: 4.5px 0;
   border-bottom: 1px solid var(--border);
 }
@@ -651,7 +674,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .attr .v {
   font-family: var(--cond);
-  font-weight: 700; font-size: 15px;
+  font-weight: 700; font-size: 16px;
   width: 22px; text-align: right; color: var(--text-primary);
 }
 .attr .v.elite { color: var(--gold); }
@@ -668,7 +691,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   font-size: 11px;
   font-weight: 500;
   color: var(--text-secondary);
-  
+
 }
 .chip b { font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
 
@@ -690,7 +713,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .scoreboard .teams { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .scoreboard .tname {
   font-family: var(--sans);
-  font-size: 15px; font-weight: 700; flex: 1; line-height: 1.25;
+  font-size: 16px; font-weight: 700; flex: 1; line-height: 1.25;
 }
 .scoreboard .tname .clubbar { display: block; width: 30px; height: 3px; border-radius: 2px; margin: 5px auto 0; }
 .scoreboard .score {
@@ -717,173 +740,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   font-size: 12px; color: var(--on-hero-soft); margin-top: 6px; letter-spacing: .5px;
 }
 
-.pitch {
-  position: relative;
-  margin: 12px 14px;
-  height: 132px;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.10), rgba(0,0,0,.16)),
-    repeating-linear-gradient(90deg, var(--pitch-a) 0 40px, var(--pitch-b) 40px 80px);
-  border: 1px solid rgba(8, 43, 32, .35);
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: inset 0 2px 14px rgba(0, 0, 0, .3);
-}
-/* On a phone around 900px tall, 132px plus the scoreboard, controls and the
-   now-strip fill the screen and this never mattered. On the Play Store's own
-   screenshot geometry (540x1170, taller than every phone devicematrix and
-   geosweep test) it does not fill: .live-wrap is a flex column and none of
-   its children grow, so live play left the bottom third of the screen as
-   bare background - visible on every store screenshot of a match in progress,
-   and on any real device with a comparably tall viewport (found chasing
-   store-art regeneration for v1.1.1, 26 Aug). Every mark inside the pitch is
-   positioned in percent or centered, so growing it some is free - but a
-   rugby pitch drawn touchline-to-touchline is wide, not tall, and letting it
-   flex-grow uncapped (or even to 60vh) chased the gap onto a viewport this
-   tall by turning the pitch nearly SQUARE, which reads as broken in its own
-   way. 210px keeps it a believable wide strip on anything short of enormous;
-   .live-wrap's justify-content: center (below) takes the rest of the slack
-   as even top-and-bottom margin instead of asking one element to swallow it
-   all. */
-.live-wrap .pitch { height: auto; min-height: 132px; max-height: 210px; flex: 1 1 132px; }
-.pitch .line { position: absolute; top: 0; bottom: 0; width: 2px; background: rgba(255,255,255,.8); }
-.pitch .line.dashed {
-  width: 0;
-  border-left: 2px dashed rgba(255,255,255,.35);
-  background: none;
-}
-.pitch .tryzone { position: absolute; top: 0; bottom: 0; width: 8%; }
-/* RUGBY POSTS, SEEN FROM ABOVE (owner, v1.1.9: "the rugby posts need to look
-   more like rugby posts with pad protectors on").
-   
-   The pitch is drawn overhead, so the goal line runs vertically and the two
-   uprights sit at either end of it. What was here drew the bar between them
-   and then put ::before and ::after at the SAME top: 8px - two identical
-   crossbars stacked on each other - so the whole thing read as a tick on a
-   line rather than as posts at all.
-   
-   Now the element is the bar, and the pseudo-elements are the two posts: from
-   directly above a padded upright is a circle, because what you are looking
-   down at is the foam sleeve wrapped round its base. Lit from the same corner
-   as the ball, so the two objects on the pitch that are round agree about
-   where the light is. */
-.pitch .posts {
-  position: absolute; top: 50%; transform: translateY(-50%);
-  font-size: 0;
-  width: 3px; height: 44px; background: rgba(255,255,255,.85); border-radius: 2px;
-}
-.pitch .posts::before, .pitch .posts::after {
-  content: ''; position: absolute; left: -3.5px;
-  width: 10px; height: 10px; border-radius: 50%;
-  background: radial-gradient(circle at 38% 32%,
-    rgba(255, 255, 255, .95), rgba(214, 228, 236, .78) 55%, rgba(126, 146, 156, .6));
-  box-shadow: 0 1px 3px rgba(0, 0, 0, .45);
-}
-.pitch .posts::before { top: -5px; }
-.pitch .posts::after { top: auto; bottom: -5px; }
-.pitch .ball {
-  position: absolute; top: 50%; width: 19px; height: 13px;
-  background: radial-gradient(circle at 35% 30%, var(--prop-cream), var(--prop-cream-deep));
-  border: 2px solid var(--canvas);
-  border-radius: 50%;
-  /* Centred by margin, not by translate(-50%, -50%) in the transform. The
-     passage (phasePlay.ts) spins and swells the ball through `rotate` and
-     `scale`, and those apply OUTSIDE the transform: with the centring shift in
-     there, a spinning ball orbited its own spot at eleven pixels and a rising
-     one slid up and left. With nothing in the transform but the resting tilt,
-     both turn about the middle of the ball. */
-  margin: -6.5px 0 0 -9.5px;
-  transform: rotate(-25deg);
-  /* same beat as the men who are chasing it - see .pitch .pdot */
-  transition:
-    left calc(var(--tick, 1100ms) * .92) cubic-bezier(.45, .05, .35, 1),
-    top calc(var(--tick, 1100ms) * .7) ease;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, .45);
-}
-/* THE CAMERA'S WORLD (idea 4). Everything on the grass sits in this layer at
-   exactly the pitch's size, so every percentage inside it means what it did
-   before. With the Broadcast camera it is scaled and panned (MatchDay's cam),
-   and it takes the mown stripes with it so the grass zooms with the lines; with
-   the full pitch it is an untransformed box and the pitch paints the grass. */
-.pitch .pitch-world { position: absolute; inset: 0; transform-origin: 0 0; }
-.pitch .pitch-world.cam {
-  background: inherit;
-  transition: transform calc(var(--tick, 1100ms) * .9) cubic-bezier(.45, .05, .35, 1);
-}
-/* the whole pitch, small, in the top corner: where the picture is */
-.pitch .minimap {
-  position: absolute; top: 6px; right: 8px; z-index: 6; pointer-events: none;
-  width: 76px; height: 34px; border-radius: 4px; overflow: hidden;
-  background: rgba(8, 30, 22, .78);
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, .45), 0 2px 6px rgba(0, 0, 0, .4);
-}
-.pitch .minimap i { position: absolute; display: block; }
-.pitch .minimap .mm-tz { top: 0; bottom: 0; width: 8%; opacity: .85; }
-.pitch .minimap .mm-tz.l { left: 0; }
-.pitch .minimap .mm-tz.r { right: 0; }
-.pitch .minimap .mm-half { left: 50%; top: 0; bottom: 0; width: 1px; background: rgba(255, 255, 255, .5); }
-.pitch .minimap .mm-view {
-  border: 1.5px solid var(--gold); border-radius: 2px;
-  transition: left calc(var(--tick, 1100ms) * .9) ease, top calc(var(--tick, 1100ms) * .9) ease,
-    width calc(var(--tick, 1100ms) * .9) ease, height calc(var(--tick, 1100ms) * .9) ease;
-}
-.pitch .minimap .mm-ball {
-  width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; border-radius: 50%;
-  background: var(--prop-cream); box-shadow: 0 0 0 1px rgba(0, 0, 0, .5);
-  transition: left calc(var(--tick, 1100ms) * .9) ease, top calc(var(--tick, 1100ms) * .9) ease;
-}
-/* A ball in the air (phasePlay.ts). The passage draws the whole path in
-   `translate` from the spot the last line left it, so the glide on left/top
-   has to stand aside or the ball would travel twice. It flies over the men,
-   and its shadow stays on the grass and shows how high it is. */
-.pitch .ball.flight { transition: none; z-index: 5; }
-.pitch .ball-shadow {
-  position: absolute; width: 15px; height: 7px; margin: -3.5px 0 0 -7.5px;
-  border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(0, 0, 0, .55), rgba(0, 0, 0, 0));
-  opacity: 0; pointer-events: none; z-index: 1;
-}
-/* a kick at goal at rest: the ball on the tee, and the territory ball hidden */
-.pitch .ball.parked { opacity: 0; }
-.pitch .tee-ball {
-  position: absolute; width: 19px; height: 13px; margin: -6.5px 0 0 -9.5px;
-  background: radial-gradient(circle at 35% 30%, var(--prop-cream), var(--prop-cream-deep));
-  border: 2px solid var(--canvas); border-radius: 50%;
-  transform: rotate(-70deg); box-shadow: 0 3px 8px rgba(0, 0, 0, .45);
-  z-index: 3; pointer-events: none;
-}
-/* the man the line names runs his own path during the passage, the same way */
-.pitch .pdot.carry { transition: transform .3s ease; }
-/* the lineout jumper goes up over the men lifting him (pitchActs.ts) */
-.pitch .pdot.lift { z-index: 5; }
-/* A man leaving the field, drawn after his own dot has gone: a replaced man
-   jogs to the bench, a man shown a card walks off with it held over him. It is
-   made and removed by PitchViz, so it never glides and never takes a tap. */
-.pitch .pdot.ghost { transition: none; pointer-events: none; z-index: 1; }
-.pitch .pdot.ghost.carded { z-index: 6; }
-.pitch .pdot.ghost .cardchip {
-  position: absolute; left: 50%; bottom: 13px; width: 7px; height: 10px; margin-left: -3.5px;
-  border-radius: 1.5px; box-shadow: 0 1px 2px rgba(0, 0, 0, .5);
-}
-.pitch .pdot.ghost .cardchip.y { background: linear-gradient(160deg, var(--prop-yellow), var(--prop-yellow-deep)); }
-.pitch .pdot.ghost .cardchip.r { background: linear-gradient(160deg, var(--prop-red), var(--prop-red-deep)); }
-/* The club code at each end of the pitch. It sits ON THE TRYZONE, and the
-   tryzone is painted in that club's own colour - which for eleven clubs in
-   the world (Clermont's yellow, Racing's sky blue, Ulster's white...) is
-   light enough that the old bare white text measured as low as 1.4:1. Which
-   is why nightcontrast only failed SOMETIMES: the ratio depended on who was
-   playing that day. Every other chip on the pitch (bin-chip, the scorer's
-   name plate) already owns a dark backing for exactly this reason; this is
-   the one that never got its chip. Worst case now - the chip's dark at .68
-   over Clermont yellow - still measures ~7:1. */
-.pitch .zone-label {
-  position: absolute; bottom: 4px;
-  font-family: var(--cond); font-weight: 700; font-size: 10.5px; letter-spacing: 2px;
-  color: rgba(255,255,255,.92);
-  background: rgba(8, 30, 22, .68);
-  padding: 1px 6px 1px 7px; border-radius: 8px;
-}
-
 .ticker { padding: 4px 16px; }
 .tick-event {
   display: flex; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border);
@@ -900,7 +756,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   margin: 0 -16px; padding: 11px 16px;
   border-left: 4px solid var(--gold);
 }
-.tick-event.big .txt { font-weight: 700; font-family: var(--sans); font-size: 14.5px; color: var(--text-primary); }
+.tick-event.big .txt { font-weight: 700; font-family: var(--sans); font-size: 14px; color: var(--text-primary); }
 .tick-event.card-y { border-left: 4px solid var(--prop-yellow-deep); margin: 0 -16px; padding: 9px 16px; }
 .tick-event.card-r, .tick-event.inj { border-left: 4px solid var(--danger); margin: 0 -16px; padding: 9px 16px; }
 
@@ -927,7 +783,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .speed-controls .btn {
   flex: 1; min-height: 48px;
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  padding: 8px 4px; font-family: var(--cond); font-size: 15px; letter-spacing: 1px;
+  padding: 8px 4px; font-family: var(--cond); font-size: 16px; letter-spacing: 1px;
 }
 
 /* ================= Press ================= */
@@ -935,7 +791,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   font-family: var(--sans);
   font-size: 16px;
   font-weight: 700;
- 
+
   color: var(--text-primary);
   padding: 4px 16px 12px;
   line-height: 1.5;
@@ -944,6 +800,47 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   font-size: 10px; text-transform: uppercase; letter-spacing: 2px;
   color: var(--gold); padding: 14px 16px 3px; font-weight: 800;
 }
+
+/* ---- the press barometer (1.8.0, Press.tsx) ---- */
+.baro {
+  display: flex; align-items: center; gap: 12px;
+  margin: 12px 14px 4px; padding: 12px 14px;
+  background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px;
+  --baro-c: var(--baro-neutral);
+}
+.baro.hostile { --baro-c: var(--baro-hostile); }
+.baro.sceptical { --baro-c: var(--baro-sceptical); }
+.baro.warm { --baro-c: var(--baro-warm); }
+.baro.adoring { --baro-c: var(--baro-adoring); }
+.baro.stir { --baro-c: var(--baro-stir); border-color: var(--baro-stir); }
+.baro-dial { flex: 0 0 auto; width: 112px; height: auto; overflow: visible; }
+.baro-dial .seg { fill: none; stroke-width: 10; stroke-linecap: butt; opacity: .28; }
+.baro-dial .seg.on { opacity: 1; }
+.baro-dial .seg.hostile { stroke: var(--baro-hostile); }
+.baro-dial .seg.sceptical { stroke: var(--baro-sceptical); }
+.baro-dial .seg.neutral { stroke: var(--baro-neutral); }
+.baro-dial .seg.warm { stroke: var(--baro-warm); }
+.baro-dial .seg.adoring { stroke: var(--baro-adoring); }
+.baro-dial .needle { stroke: var(--text-primary); stroke-width: 3; stroke-linecap: round; }
+.baro-dial .hub { fill: var(--text-primary); }
+.baro-text { min-width: 0; flex: 1 1 auto; }
+.baro-title {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 2px;
+  color: var(--text-muted); font-weight: 800;
+}
+.baro-word { font-size: 22px; font-weight: 800; line-height: 1.15; color: var(--baro-c); margin-top: 2px; }
+.baro-why { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-top: 3px; }
+.baro-expect { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+/* what an answer did, under the reaction on the coverage card */
+.press-fx { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+.press-fx .fx {
+  display: inline-block; padding: 2px 8px; border-radius: 999px;
+  font-size: 11px; font-weight: 700; letter-spacing: .3px;
+  border: 1px solid currentColor;
+}
+.press-fx .fx.good { color: var(--positive, var(--primary)); }
+.press-fx .fx.mixed { color: var(--info); }
+.press-fx .fx.bad { color: var(--danger); }
 
 /* ================= Sliders ================= */
 .slider-row { padding: 11px 16px; }
@@ -1016,7 +913,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
       rgba(8, 12, 10, 0.58) 58%,
       rgba(8, 12, 10, 0.88) 74%,
       rgba(8, 12, 10, 0.92) 100%),
-    url('./title-bg.webp') center center / cover no-repeat,
+    url('./title-bg.webp') 6% center / cover no-repeat,
     var(--canvas);
 }
 
@@ -1082,7 +979,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .store-card .store-sub {
   margin-top: 7px;
-  font-weight: 700; font-size: 14.5px; line-height: 1.3;
+  font-weight: 700; font-size: 14px; line-height: 1.3;
   color: rgba(255, 255, 255, .95);
 }
 /* MORE OBVIOUS (v1.2.5, a friend of the owner's could not find the shop). The
@@ -1131,7 +1028,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   text-shadow: 0 2px 20px rgba(159, 194, 232, .3);
   letter-spacing: 4px;
 }
-.title-screen .tagline { font-family: var(--serif); font-weight: 700; color: var(--text-secondary); margin-top: 8px; font-size: 15px; }
+.title-screen .tagline { font-family: var(--serif); font-weight: 700; color: var(--text-secondary); margin-top: 8px; font-size: 16px; }
 .title-screen .menu-btns { margin-top: 38px; display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 300px; }
 
 /* ---- the two how-it-reads controls, under the buttons ----
@@ -1151,7 +1048,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 /* ================= Misc ================= */
 .form-pill {
   display: inline-block; min-width: 30px; text-align: center;
-  font-family: var(--cond); font-size: 13.5px; font-weight: 700;
+  font-family: var(--cond); font-size: 14px; font-weight: 700;
   border-radius: 5px; padding: 2px 5px; color: var(--club1-ink);
   box-shadow: inset 0 1px 0 rgba(255,255,255,.2);
 }
@@ -1184,7 +1081,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   border: 1px solid rgba(0,0,0,.18); flex-shrink: 0;
   box-shadow: inset 0 1px 1px rgba(255,255,255,.3);
 }
-.club-pick .cname { font-weight: 650; flex: 1; font-size: 13.5px; }
+.club-pick .cname { font-weight: 650; flex: 1; font-size: 14px; }
 .badge-row { display: flex; gap: 6px; align-items: center; }
 
 .team-dot {
@@ -1205,7 +1102,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   display: flex; overflow-x: auto;
   background: var(--surface-1);
   border-bottom: 2px solid var(--border-strong);
-  
+
 }
 .tab-bar button {
   /* six tabs on Selection, four on Finances, and every one of them was 36px.
@@ -1283,7 +1180,9 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    to keep it clear of the header too - a decision card or half-time panel
    sitting a long way above the bottom of a very tall screen is a smaller
    problem than the header one this rule exists to fix. */
-.live-wrap .now-strip { flex: 1; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; }
+/* natural height since the always-on pitch went (1.8.0): the live stats or
+   the highlight sit under it, not a stretched empty box */
+.live-wrap .now-strip { flex: none; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; }
 .live-wrap .ticker { flex: 1; overflow-y: auto; }
 
 /* ================================================================
@@ -1307,24 +1206,25 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   .content > .card, .content > .chips { max-width: 820px; }
   .app > .title-screen { grid-row: 1 / -1; grid-column: 1 / -1; }
 
+  /* on its side the bar is the left rail, flush to the edge, icons only
+     (a landscape phone is 390px tall and seven names do not fit); the pill
+     still marks where you are */
   .bottom-nav {
     grid-area: nav;
     flex-direction: column;
     /* fill the whole column: big, evenly spread targets (8B feedback) */
     justify-content: space-evenly;
-    gap: 0;
-    padding: calc(var(--safe-area-inset-top) + 6px) 0 6px var(--safe-area-inset-left);
-    border-top: none;
+    gap: 2px;
+    margin: 0;
+    padding: calc(var(--safe-area-inset-top) + 6px) 5px 6px calc(var(--safe-area-inset-left) + 5px);
+    border: none;
     border-right: 1px solid var(--border);
+    border-radius: 0;
     box-shadow: 4px 0 18px rgba(0, 0, 0, .22);
     overflow-y: auto;
   }
-  .bottom-nav button { flex: 1 1 0; min-height: 44px; padding: 4px 0; font-size: 9px; justify-content: center; }
-  .bottom-nav button.active::before {
-    top: 50%; left: 0; transform: translateY(-50%);
-    width: 3px; height: 34px;
-    border-radius: 0 3px 3px 0;
-  }
+  .bottom-nav button { flex: 1 1 0; min-height: 44px; padding: 4px 0; font-size: 9px; justify-content: center; border-radius: 14px; }
+  .bottom-nav .nlbl { display: none; }
   .bottom-nav .ico { width: 34px; height: 34px; }
 
   /* denser grids with the extra width */
@@ -1347,8 +1247,25 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
     min-height: 0;
   }
   .live-wrap .scoreboard { grid-area: score; padding-top: 6px; padding-bottom: 4px; }
-  .live-wrap .pitch { grid-area: main; height: auto; min-height: 130px; align-self: stretch; margin: 4px 10px; }
+
   .live-wrap .now-strip { grid-area: now; }
+  .live-wrap .hl-clip, .live-wrap .live-stats { grid-area: main; align-self: start; }
+  /* the main row is what is left of a 390px screen: the stage must fit IN it,
+     or it spills over the controls below (e2e, 844x390: Skip could not be
+     tapped). The clip takes the height and keeps its shape; the stats go two
+     columns and scroll if they must. */
+  .live-wrap .hl-clip {
+    align-self: stretch; justify-self: center;
+    height: calc(100% - 6px); width: auto; max-width: calc(100% - 20px);
+    margin: 6px auto 0; min-height: 0;
+  }
+  .live-wrap .live-stats {
+    align-self: stretch; min-height: 0; overflow-y: auto;
+    display: grid; grid-template-columns: 1fr 1fr; column-gap: 28px; align-content: start;
+    margin-top: 6px;
+  }
+  .live-wrap .live-stats .ls-head { grid-column: 1 / -1; }
+  .live-wrap .live-stats .ls-row + .ls-row { border-top: none; }
   .live-wrap .speed-controls { grid-area: ctrl; }
   .app .live-wrap .ticker.panel-area {
     grid-area: main / main / now / now;
@@ -1390,7 +1307,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 
 .wizard-hint {
   font-family: var(--sans); font-style: normal; font-weight: 700;
-  color: var(--text-secondary); font-size: 13.5px;
+  color: var(--text-secondary); font-size: 14px;
   padding: 14px 16px 4px;
 }
 
@@ -1402,7 +1319,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   padding: 13px 8px;
   display: flex; flex-direction: column; align-items: center; gap: 5px;
   text-align: center;
-  
+
   color: var(--text-primary);
   transition: border-color .12s ease;
 }
@@ -1481,7 +1398,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .tut-close { margin-top: 14px; }
 .tut-close .btn { width: 100%; }
-.tut-box h3 { font-family: var(--sans); font-size: 17px; font-weight: 700; color: var(--gold); margin-bottom: 8px; }
+.tut-box h3 { font-family: var(--sans); font-size: 18px; font-weight: 700; color: var(--gold); margin-bottom: 8px; }
 .tut-box .muted { color: var(--text-secondary); margin-top: 12px; }
 
 /* floodlit toggle in masthead */
@@ -1501,56 +1418,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    guideline without taking a pixel off the button next to it. */
 .night-btn::after { content: ''; position: absolute; inset: -5px; }
 
-/* ================= Live pitch: the two XVs ================= */
-.pitch .pdot {
-  position: absolute;
-  width: 13px; height: 13px;
-  margin: -6.5px 0 0 -6.5px;
-  border-radius: 50%;
-  border: 1.5px solid;
-  font-family: var(--cond);
-  font-size: 8px; font-weight: 700; line-height: 11px;
-  text-align: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, .5);
-  /* TRAVEL IS THE BEAT, not a number somebody liked the look of.
-     This was `left 1.1s, top .9s` flat, against a live beat of 350ms at Normal
-     speed (SPEEDS in MatchDay.tsx) - so a fresh target arrived when the last
-     move was a third finished, the browser restarted the transition from
-     wherever the dot had reached, and no man ever arrived anywhere. The pitch
-     read as fifteen dots drifting because that is literally what it was.
-     --tick is the real beat, set on .pitch from the same number the playback
-     timer uses (so the tension drag stretches it too). .92 lands the man just
-     before the next minute moves him; top is quicker than left because a rugby
-     pitch is wider than it is deep and the across-field move is the longer one.
-     The fallback matters: .pitch renders in places with no live clock. */
-  transition:
-    left calc(var(--tick, 1100ms) * .92) cubic-bezier(.45, .05, .35, 1),
-    top calc(var(--tick, 1100ms) * .78) ease,
-    transform .3s ease;
-  z-index: 2;
-}
-.pitch .pdot.hl {
-  transform: scale(1.55);
-  z-index: 4;
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, .55), 0 0 14px rgba(255, 245, 200, .9);
-  animation: dot-pulse .9s ease infinite;
-}
-.pitch .pdot .pname {
-  position: absolute;
-  bottom: 14px; left: 50%;
-  transform: translateX(-50%) scale(.68);
-  background: rgba(8, 30, 22, .92);
-  color: var(--prop-ink);
-  font-size: 9px; font-weight: 700; letter-spacing: .4px;
-  padding: 2px 6px; border-radius: 4px;
-  white-space: nowrap;
-  pointer-events: none;
-}
-@keyframes dot-pulse {
-  0%, 100% { box-shadow: 0 0 0 3px rgba(255,255,255,.55), 0 0 14px rgba(255,245,200,.9); }
-  50% { box-shadow: 0 0 0 5px rgba(255,255,255,.3), 0 0 20px rgba(255,245,200,.7); }
-}
-
 /* ================= Pre-match: speeches & ready check ================= */
 .speech-grid {
   display: grid;
@@ -1564,14 +1431,14 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   border-radius: 9px;
   padding: 10px 11px;
   text-align: left;
-  
+
   transition: border-color .15s, transform .1s;
 }
 .speech-tile:active { transform: scale(.98); }
 .speech-tile.sel { border-color: var(--row-selected-border); background: var(--row-selected-bg); }
-.speech-tile .ico { font-size: 17px; }
-.speech-tile b { font-size: 12.5px; color: var(--text-primary); font-family: var(--sans); }
-.speech-tile .d { font-size: 10.5px; color: var(--text-muted); line-height: 1.35; }
+.speech-tile .ico { font-size: 18px; }
+.speech-tile b { font-size: 13px; color: var(--text-primary); font-family: var(--sans); }
+.speech-tile .d { font-size: 11px; color: var(--text-muted); line-height: 1.35; }
 
 /* one-tap game plans */
 .preset-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
@@ -1588,7 +1455,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
      rather than pretending they meet the 44px rule. */
   min-height: 36px;
   font-size: 11px; font-weight: 700; font-family: var(--sans);
-  
+
 }
 .preset-chip:active { background: var(--row-hover-bg); }
 
@@ -1612,7 +1479,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 @keyframes submenu-in { from { transform: translateX(-40px); opacity: 0; } to { transform: none; opacity: 1; } }
 .submenu-head {
   font-family: var(--cond);
-  font-weight: 700; font-size: 15px; letter-spacing: 1.5px; text-transform: uppercase;
+  font-weight: 700; font-size: 16px; letter-spacing: 1.5px; text-transform: uppercase;
   color: var(--gold);
   padding: calc(var(--safe-area-inset-top) + 16px) 18px 12px;
   border-bottom: 1px solid rgba(255, 255, 255, .1);
@@ -1627,7 +1494,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   border-bottom: 1px solid rgba(255, 255, 255, .06);
 }
 .submenu-item:active { background: rgba(255, 255, 255, .08); }
-.submenu-item .mico { font-size: 17px; width: 24px; text-align: center; }
+.submenu-item .mico { font-size: 20px; width: 24px; text-align: center; display: inline-flex; align-items: center; justify-content: center; color: var(--text-secondary, currentColor); }
 .submenu-item .mbadge {
   background: var(--danger); color: var(--on-danger);
   font-size: 10px; font-weight: 700;
@@ -1649,7 +1516,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .wire-brand {
   font-family: var(--serif, Georgia);
-  font-weight: 800; font-size: 21px; letter-spacing: 3px;
+  font-weight: 800; font-size: 22px; letter-spacing: 3px;
   color: var(--text-primary);
 }
 .wire-brand { color: var(--text-primary); }
@@ -1666,7 +1533,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .wire-body p { font-size: 14px; line-height: 1.62; margin: 0 0 10px; }
 .wire-body p:last-child { margin-bottom: 0; }
 .wire-card .wire-date {
-  font-family: var(--cond); font-size: 10.5px; letter-spacing: 1px; text-transform: uppercase;
+  font-family: var(--cond); font-size: 11px; letter-spacing: 1px; text-transform: uppercase;
   color: var(--text-muted); margin-bottom: 3px;
 }
 
@@ -1684,12 +1551,12 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   padding: 10px 11px;
   opacity: .55;
   filter: grayscale(.8);
-  
+
 }
 .spec-tile.on { opacity: 1; filter: none; border-color: var(--row-selected-border); }
 .spec-tile .ico { font-size: 18px; }
-.spec-tile b { font-size: 12.5px; color: var(--text-primary); font-family: var(--sans); }
-.spec-tile .d { font-size: 10.5px; color: var(--text-muted); line-height: 1.35; }
+.spec-tile b { font-size: 13px; color: var(--text-primary); font-family: var(--sans); }
+.spec-tile .d { font-size: 11px; color: var(--text-muted); line-height: 1.35; }
 
 /* ================= Home hub widgets ================= */
 .hub-row {
@@ -1704,7 +1571,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   border: 1px solid var(--border);
   border-radius: 9px;
   padding: 9px 4px;
-  
+
 }
 .hub-widget label {
   font-family: var(--cond); font-size: 10px; font-weight: 700;
@@ -1770,7 +1637,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   padding: 0 14px 6px;
 }
 .fm-col-head {
-  font-family: var(--cond); font-size: 10.5px; font-weight: 800;
+  font-family: var(--cond); font-size: 11px; font-weight: 800;
   letter-spacing: 1px; text-transform: uppercase;
   color: var(--text-muted); padding: 4px 0 2px;
   border-bottom: 2px solid var(--border-strong);
@@ -1787,17 +1654,15 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    number both carry meaning on their own, and the word is the one that is
    there to save a newcomer looking up a scale. Nine bands, cool to warm. */
 .fm-attr .fm-word {
-  font-family: var(--cond); font-size: 10.5px; font-weight: 700;
+  font-family: var(--cond); font-size: 11px; font-weight: 700;
   letter-spacing: 0.3px; white-space: nowrap; flex-shrink: 0;
   color: var(--text-muted);
 }
-.fm-attr .fm-word.b8, .fm-attr .fm-word.b7 { color: var(--primary); }
-.fm-attr .fm-word.b6 { color: var(--info); }
-.fm-attr .fm-word.b1, .fm-attr .fm-word.b0 { color: var(--text-negative); }
+
 @media (max-width: 420px) { .fm-attr .fm-word { display: none; } }
 .fm-attr .fm-chip {
   min-width: 34px; text-align: center; padding: 1px 5px;
-  border-radius: 5px; font-family: var(--cond); font-size: 12.5px; font-weight: 800;
+  border-radius: 5px; font-family: var(--cond); font-size: 13px; font-weight: 800;
   color: var(--text-primary);
 }
 .fm-attr .fm-chip.hi { background: var(--primary); color: var(--on-primary); }
@@ -1835,7 +1700,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .dash-line {
   display: flex; align-items: center; gap: 6px;
-  font-size: 11.5px; padding: 2px 0;
+  font-size: 12px; padding: 2px 0;
   border-bottom: 1px solid var(--border);
 }
 .dash-line .dl-t { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
@@ -1911,9 +1776,23 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   padding: 2px;
   background: none; border: 0;
   color: var(--on-hero);
-  filter: drop-shadow(0 2px 3px rgba(0, 0, 20, .55));
 }
-.form-chip .fc-kit { position: relative; display: block; line-height: 0; }
+/* THE SHIRTS STAND OFF THE GRASS (owner, 27 Sep 2026, Tactics > Roles: "make
+   it so the shirts have a way to stand out on the dark pitch behind"). A navy,
+   black or bottle-green kit sank into the scrimmed pitch with only a dark
+   shadow under it. Each shirt now has a thin light rim traced round its own
+   outline (two tight drop-shadows follow the shape, not a box) over the shadow
+   that lifts it, the name sits on a dark label and the role on a gold tag, as
+   a broadcast graphic does, so they read whatever the grass or the kit is
+   doing. */
+.form-chip .fc-kit {
+  position: relative; display: block; line-height: 0;
+  filter:
+    drop-shadow(0 0 .6px rgba(255, 255, 255, .95))
+    drop-shadow(0 0 .6px rgba(255, 255, 255, .95))
+    drop-shadow(0 0 5px rgba(255, 255, 255, .28))
+    drop-shadow(0 2px 3px rgba(0, 0, 20, .6));
+}
 /* ON A PRINTED PANEL, because the number has to read on a white kit and on a
    black one. A bare white numeral was measured on Leicester's shirt and
    disappeared into it; a shadow alone is not contrast, it is a smudge. */
@@ -1928,14 +1807,18 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   pointer-events: none;
 }
 .form-chip .fc-name {
-  font-size: 10.5px; font-weight: 700; max-width: 62px;
+  font-size: 11px; font-weight: 700; max-width: 76px;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  text-shadow: 0 1px 2px rgba(0, 0, 20, .85);
+  margin-top: 2px; padding: 1px 5px; border-radius: 4px;
+  background: rgba(8, 12, 18, .78);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .14);
+  line-height: 14px;
 }
 .form-chip .fc-role {
   font-family: var(--cond); font-size: 9px; font-weight: 800;
-  letter-spacing: 1px; color: var(--gold);
-  text-shadow: 0 1px 2px rgba(0, 0, 20, .85);
+  letter-spacing: 1px; color: var(--on-gold);
+  padding: 0 4px; border-radius: 3px; line-height: 12px;
+  background: var(--gold-fill);
 }
 
 /* last-10-minutes possession strip with the momentum needle riding it */
@@ -2007,7 +1890,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   /* the movement is on .momo-track above; this only draws the needle */
   box-shadow: 0 1px 4px rgba(0, 0, 0, .4);
 }
-.pitch .pdot.cap { outline: 1.5px solid var(--gold-fill); outline-offset: 1px; }
 
 /* The tension band (v1.1.1): late AND close, and the scoreboard says so.
    STATIC on purpose - no pulse, no flash. prefers-reduced-motion collapses
@@ -2040,7 +1922,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   background: color-mix(in srgb, var(--gold-fill) 14%, transparent);
   color: var(--gold-fill);
   font-family: var(--cond); font-weight: 700;
-  font-size: 10.5px; letter-spacing: 1.2px;
+  font-size: 11px; letter-spacing: 1.2px;
   text-align: center;
   overflow-wrap: break-word;
 }
@@ -2071,7 +1953,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   border-radius: 12px;
   overflow: hidden;
   background: var(--surface-3);
-  
+
 }
 .dt-board { background: var(--surface-2); }
 .dt-head {
@@ -2108,7 +1990,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .dt-score {
   background: var(--info); color: var(--on-info);
-  font-family: var(--cond); font-weight: 700; font-size: 10.5px;
+  font-family: var(--cond); font-weight: 700; font-size: 11px;
   padding: 1px 10px; border-radius: 3px;
   box-shadow: 0 1px 3px rgba(0,0,0,.35);
 }
@@ -2142,19 +2024,11 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   100% { transform: scale(1); }
 }
 
-/* try-zone floodlight when a try is scored */
-.pitch.try-r .tz-r, .pitch.try-l .tz-l { animation: tz-flash 1.5s ease; }
-@keyframes tz-flash {
-  0%, 100% { filter: brightness(1); }
-  20%, 60% { filter: brightness(2.1) saturate(1.4); }
-  40%, 80% { filter: brightness(1.3); }
-}
-
 /* scorer's dash for the line */
-.pitch .pdot.run-r { animation: dash-r 1.2s cubic-bezier(.3, .1, .3, 1); }
-.pitch .pdot.run-l { animation: dash-l 1.2s cubic-bezier(.3, .1, .3, 1); }
-@keyframes dash-r { 0% { transform: translateX(-46px) scale(1.55); } 100% { transform: translateX(0) scale(1.55); } }
-@keyframes dash-l { 0% { transform: translateX(46px) scale(1.55); } 100% { transform: translateX(0) scale(1.55); } }
+/* The scorer's dash (run-r / run-l) was a transform animation: 46px of run
+   into the in-goal. Since 1.8.1 the glide carries him there from wherever he
+   was, which is the real run, and a transform animation would have overridden
+   the glide and doubled his size step, so the classes stay as hooks only. */
 
 /* the kick at goal: ball arcs for the posts, end over end */
 /* A KICK AT GOAL FLIES AT THE GOAL, AND STAYS GONE. The old arc rose towards
@@ -2176,86 +2050,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    vertical drift to settle onto the posts' line, swelling as it rises and
    shrinking as it sails away over the bar. It fades before the far edge, so
    the flight reads the same wherever on the field it was struck from. */
-/* THIRD CORRECTION, 25 Sep 2026: the flight is the passage's now
-   (phasePlay.ts, kind 'goal'), which knows where the posts really are rather
-   than guessing a distance in ball-widths - so a penalty from halfway and one
-   from the 22 both land on the bar. It waits on the tee, rises off its shadow,
-   turns end over end, and fades going through. These classes only hold the
-   ball still for it (the working loop would fight the flight). */
-.pitch .ball.kick-r, .pitch .ball.kick-l { animation: none; }
 
-/* broadcast banner sweeping across the pitch */
-.ev-banner {
-  position: absolute;
-  left: 50%; top: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 6;
-  font-family: var(--sans);
-  font-weight: 800;
-  font-size: 21px;
-  letter-spacing: 3px;
-  padding: 7px 24px;
-  border-radius: 6px;
-  background: var(--prop-white);
-  color: var(--prop-ink-dark);
-  box-shadow: 0 6px 26px rgba(0, 0, 0, .45);
-  animation: banner-in 1.6s cubic-bezier(.2, .9, .3, 1) forwards;
-  display: flex; align-items: center; gap: 10px;
-  white-space: nowrap;
-  pointer-events: none;
-}
-.ev-banner.yc { background: var(--prop-yellow); color: var(--prop-ink-dark); }
-.ev-banner.rc { background: var(--prop-red); color: var(--prop-ink); }
-.ev-banner.inj { background: var(--prop-white); color: var(--prop-red); font-size: 15px; letter-spacing: 2px; }
-/* A kick at goal: the verdict waits for the ball (phasePlay.ts, GOAL_ARRIVES).
-   The banner used to land the instant the line was read, while the ball was
-   still on the tee, so the flight was an animation of something you already
-   knew. Held back to the moment it reaches the posts, on the same beat. */
-.ev-banner.late { animation-delay: calc(var(--tick, 1100ms) * .56); animation-fill-mode: both; }
-@keyframes banner-in {
-  0% { opacity: 0; transform: translate(-50%, -50%) translateX(-70px) skewX(-8deg); }
-  12% { opacity: 1; transform: translate(-50%, -50%) skewX(0); }
-  80% { opacity: 1; transform: translate(-50%, -50%); }
-  100% { opacity: 0; transform: translate(-50%, -50%) translateX(50px); }
-}
-.ev-banner .cardchip { width: 13px; height: 18px; border-radius: 2.5px; display: inline-block; box-shadow: 0 1px 3px rgba(0,0,0,.4); }
-.ev-banner .cardchip.y { background: linear-gradient(160deg, var(--prop-yellow), var(--prop-yellow-deep)); }
-.ev-banner .cardchip.r { background: linear-gradient(160deg, var(--prop-red), var(--prop-red-deep)); }
-
-/* ---- the TMO (idea 5) ---------------------------------------------------
-   The engine sends a try upstairs in a line of its own (scoreTry), and the
-   next line is the verdict. For the wait between: a dark monitor over the
-   pitch, a scan line working across it, and the question being asked. */
-.tmo-card {
-  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-  z-index: 7; pointer-events: none;
-  display: flex; flex-direction: column; align-items: center; gap: 5px;
-  padding: 8px 14px 9px; min-width: 190px;
-  background: rgba(8, 18, 34, .9); border-radius: 10px;
-  box-shadow: 0 6px 26px rgba(0, 0, 0, .5);
-  animation: tmo-in .3s ease-out both;
-}
-.tmo-card .tmo-title {
-  font-family: var(--cond); font-weight: 800; font-size: 12px; letter-spacing: 2px;
-  color: var(--prop-ink);
-}
-.tmo-card .tmo-screen {
-  position: relative; width: 150px; height: 6px; border-radius: 3px; overflow: hidden;
-  background: rgba(255, 255, 255, .14);
-}
-.tmo-card .tmo-screen i {
-  position: absolute; top: 0; bottom: 0; left: 0; width: 34%;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, .85), rgba(255, 255, 255, 0));
-  animation: tmo-scan .9s ease-in-out infinite alternate;
-}
-.tmo-card .tmo-line {
-  font-family: var(--cond); font-weight: 700; font-size: 13px; letter-spacing: .6px;
-  color: var(--prop-ink); white-space: nowrap;
-}
-@keyframes tmo-in { from { opacity: 0; transform: translate(-50%, -50%) scale(.92); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
-@keyframes tmo-scan { from { translate: 0 0; } to { translate: 195% 0; } }
-/* the verdict that goes against: the banner, in the colour of a card */
-.ev-banner.notry { background: var(--prop-red); color: var(--prop-ink); }
 .now-line.tmo { border-left-color: var(--gold); }
 .now-line.tmo .txt { font-weight: 700; }
 .tick-event.tmo .txt { font-weight: 700; }
@@ -2300,29 +2095,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   position: absolute; width: 58px; height: 34px; z-index: 5;
   transform: translate(-50%, -50%); pointer-events: none;
 }
-.setp .splabel {
-  position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
-  font-family: var(--cond); font-weight: 800; font-size: 8.5px; letter-spacing: 1.2px;
-  color: var(--prop-ink); text-shadow: 0 1px 3px rgba(0, 0, 0, .6); white-space: nowrap;
-  animation: splabel-in .35s ease-out both;
-}
-/* the ball is on the top touchline for a lineout there: name it underneath */
-.setp.below .splabel { top: auto; bottom: -14px; }
-@keyframes splabel-in { from { opacity: 0; transform: translateX(-50%) translateY(4px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
-
-/* ---- try celebration burst ---- */
-.try-burst {
-  position: absolute; top: 46%; width: 0; height: 0; z-index: 6; pointer-events: none;
-}
-.try-burst i {
-  position: absolute; left: -2px; top: -5px; width: 5px; height: 10px; border-radius: 2px;
-  animation: burst-fly .95s cubic-bezier(.15, .6, .4, 1) both;
-}
-@keyframes burst-fly {
-  0% { opacity: 1; transform: rotate(var(--ang)) translateY(0) scale(1); }
-  70% { opacity: 1; }
-  100% { opacity: 0; transform: rotate(var(--ang)) translateY(-46px) scale(.55); }
-}
 
 /* ---- sin-bin countdown chips ---- */
 .bin-chip {
@@ -2332,50 +2104,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   border: 1px solid rgba(255, 225, 77, .5); border-radius: 9px; padding: 1px 6px;
   pointer-events: none;
 }
-
-/* ---- kick cam: goalposts overlay on every shot at goal ---- */
-.kickcam {
-  position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
-  width: 92px; height: 74px; z-index: 7; pointer-events: none;
-  background: rgba(8, 18, 34, .55); border-radius: 10px;
-  animation: kc-fade calc(var(--tick, 1500ms) * 1.05) ease both;
-}
-.kickcam .kc-post {
-  position: absolute; bottom: 8px; width: 3px; height: 42px; border-radius: 2px;
-  background: var(--prop-white); box-shadow: 0 1px 3px rgba(0, 0, 0, .5);
-}
-.kickcam .kc-post.l { left: 30px; }
-.kickcam .kc-post.r { right: 30px; }
-.kickcam .kc-bar {
-  position: absolute; bottom: 28px; left: 30px; right: 30px; height: 3px;
-  border-radius: 2px; background: var(--prop-white); box-shadow: 0 1px 3px rgba(0, 0, 0, .5);
-}
-.kickcam .kc-ball {
-  position: absolute; bottom: 6px; left: 50%; width: 7px; height: 9px;
-  margin-left: -3.5px; border-radius: 50%; background: var(--prop-tee);
-  border: 1px solid var(--prop-tee-edge);
-  animation: kc-flight calc(var(--tick, 1600ms) * .42) cubic-bezier(.3, .1, .5, 1) calc(var(--tick, 1600ms) * .16) both;
-}
-.kickcam.miss .kc-ball { animation-name: kc-flight-miss; }
-@keyframes kc-flight {
-  0% { transform: translateY(0) scale(1); }
-  100% { transform: translateY(-52px) scale(.55); }
-}
-@keyframes kc-flight-miss {
-  0% { transform: translate(0, 0) scale(1); }
-  100% { transform: translate(26px, -50px) scale(.55); }
-}
-.kickcam .kc-verdict {
-  position: absolute; top: 4px; left: 0; right: 0; text-align: center;
-  font-family: var(--cond); font-weight: 800; font-size: 10.5px; letter-spacing: 1.5px;
-  color: var(--primary-hover); opacity: 0;
-  /* on the pitch's beat, with the ball on the main pitch: the close-up used to
-     say GOOD at .95s, after an 800ms beat had already moved on to the next line */
-  animation: kc-verdict-in .3s ease calc(var(--tick, 1600ms) * .56) both;
-}
-.kickcam.miss .kc-verdict { color: var(--danger); }
-@keyframes kc-verdict-in { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes kc-fade { 0% { opacity: 0; } 10% { opacity: 1; } 82% { opacity: 1; } 100% { opacity: 0; } }
 
 /* The derby billing on the match-day card: its own line, its own colour,
    and it wraps like a sentence rather than trailing off the weather. */
@@ -2387,22 +2115,26 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   display: flex; gap: 10px; align-items: flex-start;
   margin: 10px 14px; padding: 14px 16px;
   background: var(--surface-1); border-radius: 10px;
-  
+
   border-left: 4px solid var(--border-strong);
   font-size: 16px; line-height: 1.45;
   animation: now-in .32s ease both;
   min-height: 76px;
 }
 .now-line .min {
-  font-family: var(--cond); font-weight: 800; font-size: 15px;
+  font-family: var(--cond); font-weight: 800; font-size: 16px;
   color: var(--info); flex-shrink: 0; min-width: 30px;
 }
 .now-line .txt { color: var(--text-primary); }
 .now-line.big { border-left-color: var(--gold); }
-.now-line.big .txt { font-weight: 700; color: var(--text-primary); font-size: 17px; }
+.now-line.big .txt { font-weight: 700; color: var(--text-primary); font-size: 18px; }
 .now-line.card-y { border-left-color: var(--prop-yellow-deep); }
 .now-line.card-r { border-left-color: var(--prop-red); }
 .now-line.inj { border-left-color: var(--danger); }
+/* a line about a side wears its kit (MatchDay.tsx lineStyle): the text takes
+   the colour worked out for the fill */
+.now-line.kit .txt, .now-line.kit.big .txt { color: inherit; }
+.now-line.kit .min { color: inherit; opacity: .8; }
 @keyframes now-in {
   from { opacity: 0; transform: translateY(7px); }
   to { opacity: 1; transform: translateY(0); }
@@ -2416,9 +2148,9 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .now-strip { padding: 0 10px 2px; }
 .now-strip .now-line {
   margin: 0; min-height: 54px; padding: 9px 14px;
-  font-size: 14.5px; align-items: center;
+  font-size: 14px; align-items: center;
 }
-.now-strip .now-line.big .txt { font-size: 15.5px; }
+.now-strip .now-line.big .txt { font-size: 16px; }
 
 /* match prep chips on a single scrollable line */
 .preset-row.oneline { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
@@ -2429,7 +2161,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 @media (max-height: 480px) {
   .title-screen h1 { font-size: 30px; letter-spacing: 2.5px; }
   .title-screen .rules { margin: 8px auto; }
-  .title-screen .tagline { font-size: 12.5px; margin-top: 4px; }
+  .title-screen .tagline { font-size: 13px; margin-top: 4px; }
   .title-screen .menu-btns { margin-top: 14px; gap: 8px; }
 }
 
@@ -2439,81 +2171,16 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   .review-grid { grid-template-columns: 1fr 1fr; align-items: start; }
 }
 
-/* ---- every player is alive: idle jog between repositions ----
- *
- * IT USED TO ANIMATE `margin`, and the reason was sound: .pdot.hl and the
- * scorer's dash-l/dash-r both own `transform`, so a jog written in transform
- * would have been wiped the moment a man was named or scored. Margin was the
- * one free property. It was also a LAYOUT property, animated infinitely, on up
- * to thirty dots at once, while left/top transitions ran on the same elements -
- * so every frame of a match reflowed the whole pitch, on a phone, for a wobble.
- *
- * `translate` is the modern individual property: it is NOT `transform`, so it
- * composes with the halo scale and the dash instead of fighting them, and it is
- * composited rather than reflowed. Same isolation, none of the layout. The
- * centring stays in margin where it belongs - it is a constant, not an
- * animation, and there is no longer anything animating margin to trample it. */
-.pitch .pdot.jog { animation-name: pjog; animation-timing-function: ease-in-out; animation-iteration-count: infinite; }
-@keyframes pjog {
-  0%   { translate: 0 0; }
-  27%  { translate: 2.5px -2px; }
-  52%  { translate: -2.5px 1.5px; }
-  76%  { translate: 1px -1.5px; }
-  100% { translate: 0 0; }
-}
-
-/* v1.1.4, "more ball and player movement": the wobble above is a man waiting.
- * These two are men DOING something, and both are written in `translate` for
- * exactly the reasons pjog is (composited, composes with the halo and the
- * dash), and both start and end at zero so reduced-motion's instant-finish
- * leaves every dot where the layout put it.
- *
- * `--adir` is the side's attacking direction (+1 rightwards for home, -1 for
- * away), set inline by PitchViz. One keyframe set serves both directions.
- *
- * The support runner: an attacking back off the ball makes a short angled run
- * onto it and drifts back out. Staggered per shirt (inline delay), so the back
- * line ripples rather than lunging as one.  The defensive line: everyone not
- * at the ruck steps up toward the ball and back off it TOGETHER - same
- * duration, same phase, no inline override - because a defensive line moving
- * as one line is what a defensive line is.  Both ride the live beat, so
- * fast-forward works the pitch harder instead of leaving the dots strolling
- * through a sprint. */
-.pitch .pdot.supp {
-  animation-name: psupp; animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
-  animation-duration: calc(var(--tick, 1100ms) * 1.6);
-}
-@keyframes psupp {
-  0%   { translate: 0 0; }
-  38%  { translate: calc(var(--adir, 1) * 8px) -2.5px; }
-  62%  { translate: calc(var(--adir, 1) * 5px) 2px; }
-  100% { translate: 0 0; }
-}
-.pitch .pdot.dline {
-  animation-name: pdrift; animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
-  animation-duration: calc(var(--tick, 1100ms) * 2);
-}
-@keyframes pdrift {
-  0%, 100% { translate: 0 0; }
-  45% { translate: calc(var(--adir, 1) * 5px) 0; }
-  60% { translate: calc(var(--adir, 1) * 4px) 1px; }
-}
-
 /* The ball is never dead between minutes: a small working loop - shifted at
  * the base, tipped end over end a few degrees - on the same beat as the men.
  * `translate`/`rotate` are the individual properties, so they compose with
  * the centring transform above and with the left/top glide instead of
  * replacing them; the kick classes below set `animation`, so a kicked ball
  * flies its arc uninterrupted and the loop resumes on the next mount. */
-.pitch .ball { animation: ballwork calc(var(--tick, 1100ms) * 1.2) ease-in-out infinite; }
-@keyframes ballwork {
-  0%, 100% { translate: 0 0; rotate: 0deg; }
-  30% { translate: 4px -3px; rotate: 13deg; }
-  55% { translate: -4px 1.5px; rotate: -11deg; }
-  80% { translate: 2px -2px; rotate: 5deg; }
-}
+/* 1.7.4: the ball no longer bobs on a loop of its own between lines. It sits
+ * where the play is and moves when the play does (the passage for a kick,
+ * a pass or a run is still drawn by phasePlay.ts). The keyframes stay for
+ * anything that asks for them by name. */
 
 /* ---- the trophy moment: full-screen celebration ---- */
 .celebrate-veil {
@@ -2535,7 +2202,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .celebrate-box .sub {
   margin-top: 8px; font-family: var(--cond); font-weight: 700; letter-spacing: 1.4px;
-  text-transform: uppercase; font-size: 12.5px; color: var(--gold);
+  text-transform: uppercase; font-size: 13px; color: var(--gold);
 }
 @keyframes cel-pop { from { opacity: 0; transform: scale(.7); } to { opacity: 1; transform: scale(1); } }
 .confetti {
@@ -2546,10 +2213,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   0% { transform: translateY(-4vh) rotate(0deg); opacity: 1; }
   100% { transform: translateY(106vh) rotate(720deg); opacity: .75; }
 }
-
-/* kicked balls streak through the air */
-.pitch .ball.kick-r { box-shadow: -14px 3px 10px rgba(255, 244, 200, .35), 0 1px 3px rgba(0, 0, 0, .5); }
-.pitch .ball.kick-l { box-shadow: 14px 3px 10px rgba(255, 244, 200, .35), 0 1px 3px rgba(0, 0, 0, .5); }
 
 /* landscape tile grids: these overrides must come AFTER the base rules -
    the copies inside the earlier media block lost the cascade and left
@@ -2623,31 +2286,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .qa-list .news-item { padding: 9px 14px 8px; }
 .qa-list .news-item .subj { font-size: 14px; }
 
-/* Finances in landscape: the ledger chips and the season graph share a row
-   rather than stacking, which is what pushed the top earners table off the
-   first screen. display:contents leaves portrait exactly as it was. */
-.fin-head { display: contents; }
-@media (orientation: landscape) and (min-width: 640px) {
-  .fin-head {
-    /* auto-fit, not two fixed tracks: before week 2 there is no season chart
-       yet, and a fixed 2-column grid squeezed the chips into half the width so
-       they wrapped onto more lines than they had started on. auto-fit collapses
-       the empty track and gives the chips the full row back. */
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-    gap: 0 6px; align-items: start;
-  }
-  .fin-head .chips { padding: 10px 8px 10px 16px; align-content: flex-start; }
-  .fin-chart .card { margin: 4px 12px 4px 0; }
-}
-
-/* Club picker in landscape: a ten-club league has to fit above the action bar
-   without scrolling, because it is the first screen of the game. Five columns
-   makes two even rows of five, and the tiles lose the height they did not need.
-   Bigger leagues (14 to 16 clubs) still scroll, which is unavoidable and fine
-   now that the bar is opaque. */
-@media (orientation: landscape) and (min-width: 640px) {
-}
-
 /* MatchDay header in landscape: badges left, fixture details right. Centred and
    stacked it ran to 280px on a 390px screen, which pushed the team sheet - the
    thing you opened the screen to do - below the fold. */
@@ -2661,10 +2299,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   .mday-head h3 { margin-bottom: 2px; }
 }
 
-/* the touchline button carries a word as well as an icon: it is the most
-   important control in a live match and it was a bare clipboard */
-.speed-controls .ctrl-cap { font-size: 11px; font-weight: 700; letter-spacing: .3px; }
-@media (max-width: 620px) { .speed-controls .ctrl-cap { display: none; } }
 
 /* ---- controls that ride along with a long list ----
    The squad is a 38-man table, four screenfuls deep. Its view tabs and filter
@@ -2715,7 +2349,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   flex-wrap: wrap; align-items: center;
 }
 .filter-note {
-  font-family: var(--sans); font-size: 10.5px; font-weight: 600;
+  font-family: var(--sans); font-size: 11px; font-weight: 600;
   letter-spacing: .2px; color: var(--text-muted);
   margin-left: auto; text-align: right;
 }
@@ -2803,6 +2437,21 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   min-width: 22px; text-align: center; color: var(--info);
 }
 .lead-row .fact-label { min-width: 52px; }
+/* a leadership job is a button that opens a sheet (owner: the native select
+   drew the whole squad as a full-screen list) */
+.lead-btn {
+  width: 100%; background: none; border: 0; border-bottom: 1px solid var(--border);
+  color: inherit; font: inherit; text-align: left; cursor: pointer; min-height: 44px;
+}
+.lead-btn:last-child { border-bottom: 0; }
+.lead-btn .lead-tag svg { width: 18px; height: 18px; vertical-align: middle; }
+.lead-btn .lead-who { flex: 1; min-width: 0; text-align: right; font-weight: 600; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lead-btn .lead-chev svg { width: 16px; height: 16px; color: var(--text-muted); vertical-align: middle; }
+.lead-sheet .lead-list { max-height: min(56vh, 460px); max-height: min(56dvh, 460px); overflow-y: auto; margin: 0 -2px 10px; }
+.lead-sheet tr { cursor: pointer; }
+.lead-sheet tr.sel td { background: color-mix(in srgb, var(--gold) 14%, transparent); }
+.lead-sheet .lead-bar { width: 34%; }
+.lead-sheet .lead-bar span { display: block; height: 6px; border-radius: 3px; background: var(--info); }
 .lead-row .inline-input { margin: 0; flex: 1; min-width: 0; }
 
 /* ---- the sticky column header was never sticky ----
@@ -2864,15 +2513,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
     max-width: none; /* fixed layout owns the width now */
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
-}
-
-/* The club picker's badge grid was five fixed columns. Dropped into half a
-   screen next to the club's detail card it overflowed its own container and slid
-   under it, hiding Leicester and Newcastle behind the panel - 7px past the edge
-   in the harness, 59px on a narrower phone. auto-fit means it reflows into
-   however many columns actually fit, at any width, which is what it should have
-   been all along. */
-@media (orientation: landscape) and (min-width: 640px) {
 }
 
 /* ---- a selected tile is the same size as an unselected one ----
@@ -2970,10 +2610,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    (release audit 1.7.1, seen at 360px). Same inset, so the labels line up
    with the buttons they name. */
 .settings-sheet > .set-label { margin-left: 16px; margin-right: 16px; }
-/* four buttons fit their captions at every landscape width we support, so the
-   captions no longer vanish on a narrow phone - that hiding rule existed only
-   because seven buttons could not fit */
-.speed-controls .ctrl-cap { display: inline; }
 
 /* ---- Match-day squad sheet (feedback 9-2) ------------------------------
    Two columns, the XV and the bench, so a change is two taps and several
@@ -3079,7 +2715,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 /* what a man is, next to what number he wears (Round 27) */
 .sh-pos {
-  flex: 0 0 26px; font-family: var(--cond); font-weight: 700; font-size: 10.5px;
+  flex: 0 0 26px; font-family: var(--cond); font-weight: 700; font-size: 11px;
   letter-spacing: .5px; text-transform: uppercase; opacity: .9; color: var(--info);
 }
 .sh-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -3091,7 +2727,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .sh-nrg.amber { color: var(--gold); }
 .sh-nrg.red { color: var(--danger); font-weight: 700; }
 .sheet-log { margin-top: 4px; }
-
 
 /* ---- the tactics pitch was the wrong way round (feedback 9-5) ----------
    A vertical half-pitch, 430px tall, on a phone whose content area is about
@@ -3126,7 +2761,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    about landscape it produced a bug the audits had to find. */
 @media (orientation: landscape) and (min-width: 640px) {
   .card { margin: 6px 12px; padding: 8px 11px; }
-  .card h3 { font-size: 15.5px; margin-bottom: 1px; }
+  .card h3 { font-size: 16px; margin-bottom: 1px; }
   .fact-grid label, .fact-label { margin-bottom: 1px; }
   .section-title { padding-top: 6px; padding-bottom: 4px; }
 }
@@ -3191,7 +2826,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .game-pick button:active { transform: translateY(1px); }
 .ct-line {
-  font-size: 15.5px; letter-spacing: 0;
+  font-size: 16px; letter-spacing: 0;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .ct-sub { font-size: 11px; opacity: .85; }
@@ -3348,25 +2983,12 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 
 /* the one line of the inbox that stays on Home: whether there is anything to read */
 .inbox-cue { border-left: 4px solid var(--pick); display: block; width: auto; text-align: left; }
-.inbox-cue h3 { font-size: 15px; }
+.inbox-cue h3 { font-size: 16px; }
 /* seven rail buttons instead of six, on a screen that is 390px tall: they still
    need a thumb-sized target, so the icon gives up two pixels rather than the row
    giving up a button */
 @media (orientation: landscape) and (min-width: 640px) {
   .bottom-nav button svg { width: 24px; height: 24px; }
-}
-
-/* ---- the shirts have to read against grass ------------------------------
-   A dot is filled with the club's primary colour, and plenty of clubs play in
-   dark green or black - Northampton's XV was near-invisible on its own pitch.
-   A dark drop shadow plus a hairline of light lifts every kit off the turf
-   without tinting any of them. */
-.pitch .pdot {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, .6), 0 0 0 1px rgba(255, 255, 255, .3);
-}
-/* the highlighted man keeps his own halo - it has to beat this one */
-.pitch .pdot.hl {
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, .6), 0 0 16px rgba(255, 245, 200, .95), 0 2px 5px rgba(0, 0, 0, .6);
 }
 
 /* ---- the set-piece playbook (F2) ---------------------------------------
@@ -3399,7 +3021,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .brief-list { padding: 3px 14px; display: grid; gap: 4px; }
 .brief-row {
   background: var(--surface-2); border-radius: 8px; padding: 5px 8px;
-  
+
 }
 /* Landscape has 844px to play with, so the man and his four options share one
    line: stacked, eight seats came to 1080px of scrolling on a 390px-tall
@@ -3410,14 +3032,128 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   .brief-row .preset-row { margin-top: 0; flex: 1; justify-content: flex-end; }
 }
 
-.brief-who { display: flex; align-items: center; gap: 6px; font-size: 12.5px; }
+.brief-who { display: flex; align-items: center; gap: 6px; font-size: 13px; }
 .brief-who .num {
   font-family: monospace; font-weight: 700; min-width: 18px;
-  color: var(--text-secondary); font-size: 11.5px;
+  color: var(--text-secondary); font-size: 12px;
 }
 .brief-who .nm { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .brief-row .preset-row { margin-top: 5px; gap: 5px; }
-.brief-row .preset-chip { padding: 5px 9px; font-size: 10.5px; }
+.brief-row .preset-chip { padding: 5px 9px; font-size: 11px; }
+
+/* ---- the set piece and the bench, drawn (1.8.0) -------------------------
+   Owner: "I want to work on Set Piece / Bench & Prep... I want them to be
+   more visual." Every call carries its whiteboard picture (src/ui/tacticsArt
+   .tsx), drawn on the highlight pitch's grass so the two read as one game.
+   The picture goes on top, two tiles to a row on a phone: beside the words
+   it was 112px wide and a lineout's jumper was a four-pixel dot. The
+   four-way calls (exit, kick, penalty) are two by two, like the grid they
+   replaced. */
+.dg { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; border-radius: 6px; }
+.routine-grid.sp-routines { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.sp-call { align-items: stretch; gap: 6px; padding: 7px; }
+.sp-txt { display: flex; flex-direction: column; gap: 3px; min-width: 0; padding: 0 2px 2px; }
+.sp-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; margin-top: 6px; }
+.sp-card { align-items: stretch; gap: 6px; padding: 7px; }
+.sp-card b { text-align: center; line-height: 1.25; }
+@media (min-width: 700px) {
+  .sp-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  /* six lineout calls as three and three, four scrum calls in a row: an
+     auto-fill grid left the last two lineouts alone on their own line */
+  .routine-grid.sp-lineout { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .routine-grid.sp-scrum { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+/* the 23: the fifteen in a team-sheet shape on the grass, the eight on a bench */
+.b23 { margin: 6px 14px; display: grid; gap: 8px; }
+@media (min-width: 700px) {
+  .b23 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+}
+.b23-pitch {
+  position: relative; height: 340px; border-radius: 10px; overflow: hidden;
+  background: repeating-linear-gradient(180deg, var(--hl-grass-a) 0 12.5%, var(--hl-grass-b) 12.5% 25%);
+  border: 1px solid var(--border);
+}
+.b23-man {
+  position: absolute; left: var(--fx); top: var(--fy); width: 31%;
+  transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center;
+}
+/* each shirt on a dark disc with a light rim: a bottle-green or black kit
+   (Northampton's is both) otherwise vanishes into the grass at this size */
+.b23-kit {
+  position: relative; display: block; line-height: 0;
+  padding: 3px; border-radius: 50%;
+  background: rgba(8, 12, 18, .55);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .35);
+}
+.b23-seat .b23-kit { background: var(--surface-3); box-shadow: 0 0 0 1px var(--border-strong); }
+.b23-num {
+  position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%);
+  padding: 0 2px; border-radius: 3px; background: rgba(8, 12, 18, .58);
+  font-family: var(--cond); font-size: 10px; font-weight: 800; line-height: 12px; color: var(--on-hero);
+}
+.b23-name {
+  margin-top: 2px; padding: 0 4px; border-radius: 3px; max-width: 100%;
+  background: rgba(8, 12, 18, .78); color: var(--on-hero);
+  font-size: 10.5px; font-weight: 700; line-height: 13px; text-align: center; overflow-wrap: anywhere;
+}
+.b23-bench { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 8px; }
+.b23-seats {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 6px;
+  padding-bottom: 8px; border-bottom: 4px solid var(--border-strong);
+}
+.b23-seat {
+  display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0;
+  padding: 6px 2px; border-radius: 8px; background: var(--surface-2); text-align: center;
+}
+.b23-sname { font-size: 11px; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere; }
+.b23-seat .pos-badge { font-size: 10px; padding: 1px 4px; }
+.b23-brief { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; line-height: 1.2; color: var(--text-muted); }
+.b23-brief.on { color: var(--gold); font-weight: 700; }
+
+/* a split, as the eight seats: filled for a forward, open for a back */
+.split-pips { display: flex; gap: 4px; margin: 3px 0 1px; }
+.split-pips i {
+  width: 11px; height: 11px; border-radius: 50%; box-sizing: border-box;
+  border: 1.5px solid var(--text-secondary);
+}
+.split-pips i.fw { background: var(--text-primary); border-color: var(--text-primary); }
+
+/* the bench's clock: the two rules the engine keeps, on the eighty minutes */
+.bclock { margin-top: 8px; }
+.bclock-bar { position: relative; height: 10px; margin: 6px 10px 0; border-radius: 5px; background: var(--surface-2); }
+.bclock-late { position: absolute; left: 80%; right: 0; top: 0; bottom: 0; border-radius: 0 5px 5px 0; background: var(--gold-fill); }
+.bclock-ht { position: absolute; left: 50%; top: -3px; bottom: -3px; width: 2px; background: var(--border-strong); }
+.bclock-mark { position: absolute; left: 80%; top: -4px; bottom: -4px; width: 2px; background: var(--gold); }
+.bclock-axis { position: relative; height: 14px; margin: 3px 10px 0; font-size: 10px; color: var(--text-muted); }
+.bclock-axis span { position: absolute; transform: translateX(-50%); }
+
+/* a brief's icon, sized to the words beside it (bench page and live sheet) */
+.brief-ico { display: inline-flex; line-height: 0; vertical-align: -0.25em; }
+.brief-ico svg { width: 1.3em; height: 1.3em; }
+.brief-key { margin: 8px 14px 0; display: grid; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+.brief-key-row { display: flex; gap: 8px; align-items: flex-start; line-height: 1.35; }
+.brief-key-row .brief-ico svg { width: 18px; height: 18px; }
+.brief-key b { color: var(--text-primary); }
+@media (min-width: 700px) {
+  .brief-key { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+}
+
+/* the week's preparation: five cards, the odd one out spanning on a phone */
+.prep-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; padding: 0 14px; }
+.prep-grid .prep-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
+@media (min-width: 700px) {
+  .prep-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .prep-grid .prep-card:last-child:nth-child(odd) { grid-column: auto; }
+}
+.prep-ico {
+  display: flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--surface-2); color: var(--text-secondary);
+}
+.prep-ico svg { width: 20px; height: 20px; }
+.prep-card.sel .prep-ico { background: var(--pick); color: var(--pick-ink); }
 
 /* ---- the game-time ledger's status picker (F18) --------------------------
    .inline-input is a form control built for a card: 11px padding and a 6px
@@ -3474,11 +3210,11 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   letter-spacing: .05em; text-transform: uppercase; color: var(--gold);
 }
 .reader h2 {
-  font-family: var(--serif); font-size: 19px; line-height: 1.2;
+  font-family: var(--serif); font-size: 18px; line-height: 1.2;
   margin: 3px 0 7px; color: var(--text-primary);
 }
 /* Paragraph air, matched to the Wire so a story reads the same in both places. */
-.reader p { font-size: 13.5px; line-height: 1.6; margin: 0 0 10px; color: var(--text-primary); }
+.reader p { font-size: 14px; line-height: 1.6; margin: 0 0 10px; color: var(--text-primary); }
 .reader p:last-of-type { margin-bottom: 2px; }
 
 /* ---- people named in a story (feedback 10F) -----------------------------
@@ -3502,10 +3238,10 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   background: var(--surface-2); border: 1px solid var(--border);
   border-left: 3px solid var(--gold);
   border-radius: 7px; padding: 6px 10px; text-align: left;
-  
+
 }
-.who-chip b { font-size: 12.5px; color: var(--text-primary); }
-.who-chip span { font-size: 10.5px; color: var(--text-muted); font-weight: 700; }
+.who-chip b { font-size: 13px; color: var(--text-primary); }
+.who-chip span { font-size: 11px; color: var(--text-muted); font-weight: 700; }
 .who-chip:active { background: var(--row-hover-bg); }
 
 /* The one-line core-loop hint, first three weeks of a first career only. Sized
@@ -3517,7 +3253,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   border-left: 3px solid var(--gold);
   border-radius: 7px;
   background: var(--gold-tint);
-  font-size: 12.5px; line-height: 1.45; color: var(--text-secondary);
+  font-size: 13px; line-height: 1.45; color: var(--text-secondary);
 }
 .first-hint b { color: var(--text-primary); }
 
@@ -3532,7 +3268,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   flex: 0 0 18px; height: 18px; margin-top: 1px;
   display: flex; align-items: center; justify-content: center;
   border-radius: 5px; background: var(--surface-3); color: var(--text-primary);
-  font-family: var(--cond); font-size: 11.5px; font-weight: 700;
+  font-family: var(--cond); font-size: 12px; font-weight: 700;
 }
 
 /* a dressing-room rift and the button that might end it (10H) */
@@ -3563,10 +3299,10 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   padding: 18px 16px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, .55);
 }
-.crash-box h2 { font-size: 17px; font-weight: 700; color: var(--gold); margin: 0 0 8px; }
+.crash-box h2 { font-size: 18px; font-weight: 700; color: var(--gold); margin: 0 0 8px; }
 .crash-box p { font-size: 13px; line-height: 1.55; margin: 0 0 10px; color: var(--text-secondary); }
 .crash-err {
-  font-family: ui-monospace, monospace; font-size: 11.5px; line-height: 1.4;
+  font-family: ui-monospace, monospace; font-size: 12px; line-height: 1.4;
   white-space: pre-wrap; word-break: break-word;
   background: rgba(0, 0, 0, .35); border-radius: 7px;
   padding: 9px 10px; margin: 0 0 12px; color: var(--danger);
@@ -3575,7 +3311,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .crash-btns { display: flex; gap: 9px; flex-wrap: wrap; }
 .crash-btns .btn { flex: 1; min-width: 150px; padding: 12px 10px; font-size: 13px; }
 .crash-btns .btn.ghost { color: var(--gold); border-color: color-mix(in srgb, var(--gold) 50%, transparent); }
-.crash-note { font-size: 11.5px; color: var(--text-muted); margin-top: 11px; line-height: 1.45; }
+.crash-note { font-size: 12px; color: var(--text-muted); margin-top: 11px; line-height: 1.45; }
 
 /* ---- the save-failed banner (blocker A4) --------------------------------
    Top of the screen, above everything except the crash screen and the portrait
@@ -3605,7 +3341,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    only thing the portrait media query held was the rotate veil and nothing in
    here had ever been laid out for a tall narrow screen. The user plays in
    portrait, so it is a real layout now.
-   
+
    Everything below is driven by measurements from scripts/portraitqa.mjs at
    412x915 (a 1080x2340 phone at DPR 2.625) rather than guesswork. */
 @media (orientation: portrait) {
@@ -3642,7 +3378,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
      control the thumb is reaching for is in the same place on every screen. */
   .masthead-row > .continue-btn { flex: 1 1 100%; }
   /* and a size down, because a 412px screen is not a 844px one */
-  .masthead h1 { font-size: 17px; }
+  .masthead h1 { font-size: 18px; }
   .masthead .date { font-size: 11px; }
 
   /* THE TAB BAR. Selection/Tactics/Set Piece/Bench/Prep/Game Plan is six tabs;
@@ -3652,7 +3388,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
      the gesture is discoverable. */
   .tab-bar { scrollbar-width: none; }
   .tab-bar::-webkit-scrollbar { display: none; }
-  .tab-bar button { padding: 10px 11px 8px; font-size: 12.5px; letter-spacing: .4px; }
+  .tab-bar button { padding: 10px 11px 8px; font-size: 13px; letter-spacing: .4px; }
   /* Faded on the right, permanently, because six tabs never fit 412px at any
      legible size - so the strip is always scrollable and a fade that is always
      there is telling the truth. A mask rather than an overlay element, so it
@@ -3725,33 +3461,35 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
      width for all fifteen means the spacing in SPOTS is the spacing you see. */
   /* the vertical padding pays back exactly what the smaller name costs: the
      chip is a touch target first, and tapsize holds it to a 36px floor */
-  .form-chip { width: 74px; min-width: 0; padding: 4px 4px; }
+  .form-chip { width: 74px; min-width: 0; padding: 4px 2px; }
   /* AND THE NAME COMES DOWN A STEP (owner, v1.1.16: "The names on the roles
      in tactics are super big - can we reduce them in size?"). This block is
      the one that governs a phone - the base rule above never applies there -
      so it is the one to change. The chip width stays 74px, because that fixed
      width is what makes the spacing in SPOTS the spacing you see; the name
      just stops filling it to the ellipsis. */
-  .form-chip .fc-name { font-size: 9.5px; max-width: 64px; }
+  /* the dark label (27 Sep 2026) keeps the name its 64px: thin side padding,
+     counted inside the cap, and the chip's own side padding given up for it */
+  .form-chip .fc-name { font-size: 9.5px; max-width: 70px; box-sizing: border-box; padding: 1px 3px; }
   .form-chip .fc-role { font-size: 8.5px; letter-spacing: .5px; }
   .form-pitch { height: 460px; }
 
   /* THE TYPE LADDER, one step down across the board. The user asked for smaller
      text so more of it fits, and every truncation above was a symptom of type
      sized for a 844px-wide screen. */
-  .section-title { font-size: 13.5px; }
-  .card h3, .news-item .subj { font-size: 15px; }
-  .card .meta, .news-item .body { font-size: 11.5px; }
+  .section-title { font-size: 14px; }
+  .card h3, .news-item .subj { font-size: 16px; }
+  .card .meta, .news-item .body { font-size: 12px; }
   .dtable { font-size: 12px; }
   .dtable td.name { font-size: 12px; }
-  .submenu-head { font-size: 12.5px; letter-spacing: 1px; }
-  .submenu-item { font-size: 14.5px; padding-top: 11px; padding-bottom: 11px; }
+  .submenu-head { font-size: 13px; letter-spacing: 1px; }
+  .submenu-item { font-size: 14px; padding-top: 11px; padding-bottom: 11px; }
 }
 
 /* The transfer filters on one row of their own. Equal flex with min-width 0 so
    four controls divide whatever width there is instead of wrapping into three
    rows and eating a third of a portrait screen before the results start.
-   
+
    Its own class name, NOT .filter-row: the Squad screen already owns that one
    for its six chips and a search box, and forcing equal flex on those crushed
    every chip to 47px ("🚑 Unavailable" lost 35 characters' worth). Reusing a
@@ -3777,6 +3515,9 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 @media (orientation: portrait) {
   .filter-line.friendly-dates { gap: 8px; padding-bottom: 12px; }
 }
+/* three dates, one line (owner, 27 Sep 2026) */
+.filter-line.friendly-dates { flex-wrap: nowrap; }
+.filter-line.friendly-dates > .chip { flex: 1 1 0; min-width: 0; justify-content: center; text-align: center; white-space: nowrap; padding-left: 6px; padding-right: 6px; }
 .filter-line > .inline-input, .filter-line > .preset-chip {
   flex: 1 1 0; min-width: 0; margin: 0;
   font-size: 12px; padding-left: 7px; padding-right: 7px;
@@ -3807,12 +3548,12 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .day-head .dh-theme {
   font-family: var(--sans);
-  font-size: 15px; font-weight: 700; color: var(--info);
+  font-size: 16px; font-weight: 700; color: var(--info);
   margin-top: 3px;
 }
 .day-head .dh-date {
   font-family: var(--cond);
-  font-size: 11.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
+  font-size: 12px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
   color: var(--text-muted); margin-top: 5px;
 }
 .day-head .dh-sub {
@@ -3828,7 +3569,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   color: var(--text-primary);
 }
 .day-story:first-child { border-top: none; }
-.day-story .ds-ico { font-size: 15px; flex-shrink: 0; }
+.day-story .ds-ico { font-size: 16px; flex-shrink: 0; }
 .day-story .ds-subj { flex: 1; min-width: 0; font-weight: 600; line-height: 1.3; }
 .day-story .ds-go { color: var(--text-muted); flex-shrink: 0; }
 .day-story:active { background: var(--row-hover-bg); }
@@ -3837,21 +3578,21 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .day-fx {
   display: flex; align-items: center; gap: 6px;
   padding: 5px 12px; border-top: 1px solid var(--border);
-  font-family: var(--sans); font-size: 12.5px;
+  font-family: var(--sans); font-size: 13px;
 }
 .day-fx:first-child { border-top: none; }
 .day-fx .dfx-side { flex: 1; min-width: 0; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .day-fx .dfx-side.right { text-align: left; }
 .day-fx .dfx-v { color: var(--text-muted); font-family: var(--cond); font-weight: 700; }
 
-.day-next { margin: 12px 14px 0; font-size: 15px; }
+.day-next { margin: 12px 14px 0; font-size: 16px; }
 
 /* The weekly ledger on Finances: a what and an amount, right-aligned so the
    money reads as a column. */
 .ledger-row {
   display: flex; align-items: baseline; gap: 8px;
   padding: 4px 0; border-top: 1px solid var(--border);
-  font-family: var(--sans); font-size: 12.5px;
+  font-family: var(--sans); font-size: 13px;
 }
 .ledger-row:first-child { border-top: none; }
 .ledger-row .lg-what { flex: 1; min-width: 0; color: var(--text-secondary); }
@@ -3861,6 +3602,135 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .ledger-row.total .lg-what { color: var(--text-primary); font-weight: 700; }
 .ledger-row.total .lg-amt { font-size: 14px; }
+
+/* The balance sheet on Finances (1.8.0, owner: "more clear and like a balance
+   sheet ... needs to be more a list"). The cash in the bank is the one big
+   figure; everything under it is label left, amount right, in tabular
+   figures, with totals ruled off the way an account is. */
+/* Portrait is one list, top to bottom; a landscape phone or a tablet puts
+   the sheet in one column and the week, the treasury and the earners in the
+   other (scrollaudit measured the single column at 4.15 screenfuls). */
+.fin-cols, .fin-col { display: contents; }
+@media (orientation: landscape) and (min-width: 640px) {
+  .fin-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 4px; align-items: start; }
+  .fin-col { display: block; min-width: 0; }
+}
+.bs-cash { text-align: left; }
+.bs-cash-amt {
+  font-family: var(--cond); font-weight: 800; font-size: 38px; line-height: 1.05;
+  font-variant-numeric: tabular-nums; color: var(--text-primary); margin-top: 2px;
+}
+.bs-cash-amt.neg { color: var(--text-negative); }
+.bs .ledger-row { padding: 7px 0; font-size: 14px; }
+.bs .ledger-row .lg-amt { text-align: right; }
+.bs-head {
+  font-size: 10.5px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase;
+  color: var(--text-muted); padding: 12px 0 2px; border-top: 1px solid var(--border);
+}
+.ledger-row.bs-sub { border-top: 1px solid var(--border-strong); }
+.ledger-row.bs-sub .lg-what { color: var(--text-primary); font-weight: 600; }
+.ledger-row.bs-strong .lg-what { color: var(--text-primary); font-weight: 700; }
+.ledger-row.bs-net { border-top: 2px solid var(--border-strong); margin-top: 6px; padding-top: 9px; }
+.ledger-row.bs-close { border-top: 3px double var(--border-strong); }
+.ledger-row.bs-close .lg-what { color: var(--text-primary); font-weight: 700; }
+.ledger-row.bs-close .lg-amt { font-size: 16px; }
+.bs-pos { color: var(--text-positive); }
+.bs-neg { color: var(--text-negative); }
+.bs-note { margin-top: 6px; }
+.bs-seg { display: inline-flex; border: 1px solid var(--border-strong); border-radius: 8px; overflow: hidden; }
+.bs-seg button {
+  min-height: 36px; padding: 6px 10px; font-size: 12px; font-weight: 700;
+  color: var(--text-muted); background: transparent; position: relative;
+}
+/* the 44px tap floor without a 44px-tall pill (tapsize, geosweep) */
+.bs-seg button::after { content: ''; position: absolute; inset: -4px 0; }
+.bs-seg button.on { background: var(--surface-3); color: var(--text-primary); }
+
+/* THE SEASON'S CASH (Finances, BalanceChart). One line over the balance at
+   the end of each settled week, from the figure the books opened on, against
+   a labelled zero. The plot is an SVG stretched to the box with strokes that
+   do not stretch; every word on it is HTML placed by percentage, so it reads
+   the same at 360px and on a tablet. Money gridlines are labelled in a gutter
+   on the left, clear of the start value. */
+.bal-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.bal-head > div:first-child { flex-shrink: 0; }
+.bal-cap { white-space: nowrap; font-size: 10.5px; font-weight: 800; letter-spacing: 1.1px; text-transform: uppercase; color: var(--text-muted); }
+.bal-now {
+  font-family: var(--cond); font-weight: 800; font-size: 30px; line-height: 1.05;
+  font-variant-numeric: tabular-nums; color: var(--text-primary); margin-top: 2px;
+}
+.bal-now.neg { color: var(--text-negative); }
+.bal-delta { flex: 1; min-width: 0; font-size: 12px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+.bal-delta.up { color: var(--text-positive); }
+.bal-delta.down { color: var(--text-negative); }
+.bal-plot { position: relative; padding-left: 38px; touch-action: pan-y; user-select: none; -webkit-user-select: none; cursor: crosshair; }
+.bal-area { position: relative; height: 132px; margin: 22px 0 0; }
+.bal-area svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.bal-grid { stroke: var(--border); stroke-width: 1; stroke-dasharray: 2 3; vector-effect: non-scaling-stroke; }
+.bal-zero { stroke: var(--text-muted); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.bal-cross { stroke: var(--border-strong); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.bal-fill { fill: var(--primary); fill-opacity: .14; stroke: none; }
+.bal-fill.neg { fill: var(--danger); fill-opacity: .18; }
+.bal-line {
+  fill: none; stroke: var(--primary); stroke-width: 2.25; stroke-linejoin: round; stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+.bal-line.neg { stroke: var(--danger); }
+.bal-gl {
+  position: absolute; left: -38px; width: 32px; transform: translateY(-50%);
+  font-size: 10px; font-weight: 600; color: var(--text-muted); text-align: right;
+  font-variant-numeric: tabular-nums; white-space: nowrap; pointer-events: none;
+}
+.bal-gl.zero { color: var(--text-secondary); font-weight: 800; }
+.bal-dot {
+  position: absolute; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%;
+  background: var(--primary); box-shadow: 0 0 0 2px var(--surface-1); pointer-events: none;
+}
+.bal-dot.neg { background: var(--danger); }
+.bal-pill {
+  position: absolute; transform: translateY(calc(-100% - 7px)); white-space: nowrap; pointer-events: none;
+  font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text-primary);
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 1px 6px;
+}
+.bal-pill.below { transform: translateY(7px); }
+.bal-pill.end { translate: -100% 0; }
+.bal-pill.start { translate: -4px 0; }
+.bal-pill.neg { color: var(--text-negative); }
+.bal-x { position: relative; height: 18px; margin-top: 5px; }
+.bal-x span {
+  position: absolute; top: 0; transform: translateX(-50%); white-space: nowrap;
+  font-size: 10px; font-weight: 600; color: var(--text-muted); font-variant-numeric: tabular-nums;
+}
+.bal-x span.first { transform: none; }
+.bal-x span.last { transform: translateX(-100%); color: var(--text-secondary); font-weight: 800; }
+.bal-note { display: flex; align-items: center; gap: 7px; margin-top: 8px; font-size: 12px; color: var(--text-secondary); }
+.bal-key { display: inline-block; width: 14px; height: 3px; border-radius: 2px; background: var(--primary); }
+.bal-key.neg { background: var(--danger); }
+
+/* The negotiating table on the Commercial tab (1.8.0, sponsortalks.ts). */
+.talk { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-strong); }
+.talk-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.talk-mood { font-size: 12.5px; font-weight: 700; }
+.talk-mood.m-keen { color: var(--text-positive); }
+.talk-mood.m-interested { color: var(--text-secondary); }
+.talk-mood.m-wary { color: var(--gold); }
+.talk-mood.m-impatient { color: var(--text-negative); }
+.talk-said {
+  margin-top: 6px; padding: 6px 10px; border-left: 3px solid var(--gold);
+  font-size: 13px; color: var(--text-secondary);
+}
+.talk-struct { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 4px; }
+.talk-struct button {
+  min-height: 44px; padding: 6px 6px; border-radius: 8px; line-height: 1.2;
+  border: 1px solid var(--border-strong); font-size: 12.5px; font-weight: 700;
+  color: var(--text-secondary); background: transparent; white-space: normal;
+}
+.talk-struct button.on { border-color: var(--primary); color: var(--text-primary); box-shadow: inset 0 0 0 1px var(--primary); }
+.talk-struct button:disabled { opacity: .4; }
+.talk-acts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
+.talk-acts .btn { margin: 0; width: 100%; min-height: 44px; white-space: normal; line-height: 1.2; }
+.obj-mark { flex: 0 0 18px; width: 18px; height: 18px; margin-top: 1px; }
+.obj-mark svg { width: 18px; height: 18px; display: block; }
 
 /* Four standing instructions, two by two (user: "tidy kickable penalty options
    so its 2 by 2 distributed buttons and do the same for exit strategy"). As a
@@ -3889,7 +3759,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 /* The bar can overfill: being over the cap is a state the manager must be able
    to see at a glance, so the fill is allowed to reach the end and turn red
    rather than silently clamping and looking compliant. */
-.cap-line { font-size: 17px; }
+.cap-line { font-size: 18px; }
 .cap-bar {
   position: relative; height: 12px; margin-top: 8px;
   /* the same track the rating bars use: a dark wash on a dark ground would leave
@@ -3905,7 +3775,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 /* ================= The draw room (F19) ================= */
 .draw-room { padding: 4px 14px 12px; }
 .day-draw { display: block; width: calc(100% - 28px); margin: 8px 14px; text-align: left; border-left: 4px solid var(--gold); }
-.day-draw-top { font-family: var(--sans); font-weight: 700; font-size: 14.5px; margin-bottom: 2px; }
+.day-draw-top { font-family: var(--sans); font-weight: 700; font-size: 14px; margin-bottom: 2px; }
 .draw-balls { margin: 6px 0 10px; }
 .draw-tie {
   display: flex; align-items: center; gap: 8px;
@@ -3915,7 +3785,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
      painted in both themes while the names followed --ink and went pale at
      night. See scripts/cssaudit.mjs, which now refuses a token nobody defines. */
   background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px;
-  font-size: 14.5px;
+  font-size: 14px;
   /* each ball arrives rather than appearing: the reveal is the point of the room */
   animation: draw-in .28s ease;
 }
@@ -3923,14 +3793,14 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .draw-num {
   flex: 0 0 22px; height: 22px; border-radius: 11px;
   background: var(--primary); color: var(--on-primary);
-  font-size: 11.5px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;
 }
 .draw-home, .draw-away { flex: 1; }
 .draw-away { text-align: right; }
 .draw-v { color: var(--text-secondary); font-size: 12px; }
 .draw-waiting { text-align: center; padding: 8px 0; }
 .draw-verdict { border-left: 4px solid var(--gold); }
-.draw-next { margin-top: 10px; font-size: 15px; }
+.draw-next { margin-top: 10px; font-size: 16px; }
 @keyframes draw-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
 
 /* ================= Reduced motion =================
@@ -3956,7 +3826,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
     scroll-behavior: auto !important;
   }
   .ft-stamp { animation: rm-hold 2.8s linear forwards !important; }
-  .ev-banner { animation: rm-hold 1.6s linear forwards !important; }
+
   @keyframes rm-hold { 0%, 86% { opacity: 1; } 100% { opacity: 0; } }
 }
 
@@ -3976,7 +3846,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    voice. Both are gone by week four and never come back. */
 .submenu-note {
   padding: 7px 14px 8px;
-  font-size: 11.5px; line-height: 1.4;
+  font-size: 12px; line-height: 1.4;
   color: var(--gold);
   border-bottom: 1px solid rgba(255, 255, 255, .08);
 }
@@ -4020,7 +3890,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   color: var(--on-hero);
 }
 .sc-top { display: flex; align-items: center; gap: 2px; }
-.sc-top b { font-size: 15px; letter-spacing: -.2px; }
+.sc-top b { font-size: 16px; letter-spacing: -.2px; }
 .sc-sub {
   font-family: var(--cond); font-size: 11px; font-weight: 700;
   letter-spacing: 1px; text-transform: uppercase; color: var(--gold);
@@ -4038,10 +3908,10 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   font-family: var(--cond); font-size: 12px; letter-spacing: .6px;
   color: var(--on-hero-soft); text-transform: uppercase;
 }
-.sc-row b { font-family: var(--sans); font-size: 15px; color: var(--on-hero); margin-right: 3px; }
+.sc-row b { font-family: var(--sans); font-size: 16px; color: var(--on-hero); margin-right: 3px; }
 .sc-pct { margin-left: auto; }
 .sc-star, .sc-cup {
-  margin-top: 8px; font-size: 11.5px; line-height: 1.35; color: var(--on-hero-soft);
+  margin-top: 8px; font-size: 12px; line-height: 1.35; color: var(--on-hero-soft);
   border-top: 1px solid rgba(255, 255, 255, .1); padding-top: 7px;
 }
 .sc-cup { color: var(--gold-fill); font-weight: 700; }
@@ -4148,7 +4018,6 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
   text-align: center; margin-bottom: 2px;
 }
 
-
 /* ---- the bid stepper fits the phone --------------------------------------
    User, from a 412px screen: "the reduce or plus 500 go off the screen and
    dont fit in the box". It was five items on one nowrap flex line, which needs
@@ -4169,7 +4038,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .bid-step .bid-amt {
   grid-column: 1 / -1;
   text-align: center;
-  font-size: 21px;
+  font-size: 22px;
   letter-spacing: .5px;
   padding-bottom: 4px;
 }
@@ -4191,7 +4060,6 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
    reachable, not a new one - and a real one, because these chips are how a
    manager taps from a story to the player it is about. */
 .who-chip { min-height: 44px; }
-
 
 /* ================= Report a Bug ================= */
 /* The label is the fact-label at a size a form can carry: 9.5px is a caption
@@ -4241,13 +4109,12 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
   border: 1px solid var(--border);
   border-radius: 8px;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 11.5px;
+  font-size: 12px;
   line-height: 1.45;
   white-space: pre-wrap;
   word-break: break-word;
   color: var(--text-secondary);
 }
-
 
 /* Every direct child of a masthead row must be allowed to shrink. App's own
    header gets this from .mast-text in portrait; MatchDay, SeasonReview and
@@ -4362,20 +4229,18 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
   background: var(--danger-fill);
   color: var(--on-danger);
   font-family: var(--cond); font-weight: 900;
-  letter-spacing: 1.6px; text-transform: uppercase; font-size: 11.5px;
+  letter-spacing: 1.6px; text-transform: uppercase; font-size: 12px;
   padding: 4px 10px; border-radius: 3px;
 }
 .sack-head {
   font-family: var(--serif); font-weight: 900; font-size: 24px;
   line-height: 1.15; margin: 0 0 10px;
 }
-.sack-body { font-size: 13.5px; line-height: 1.5; color: var(--text-secondary); text-align: left; }
+.sack-body { font-size: 14px; line-height: 1.5; color: var(--text-secondary); text-align: left; }
 .sack-quote {
-  font-family: var(--serif); font-size: 19px; line-height: 1.35;
+  font-family: var(--serif); font-size: 18px; line-height: 1.35;
   margin-top: 14px; color: var(--gold);
 }
-
-
 
 /* ---- v1.2.7: the record, the manager's plans, the depth chart, and a
    button that asks once ---- */
@@ -4391,6 +4256,11 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 }
 .record-card .rating-dot.hi { background: color-mix(in srgb, var(--positive) 28%, var(--surface-3)); color: var(--text-positive); }
 .record-card .rating-dot.lo { background: color-mix(in srgb, var(--danger) 26%, var(--surface-3)); color: var(--text-negative); }
+
+/* the staff's / scouts' read on a man's nerve, and the no-minutes note (E7, E8) */
+.temper-card .meta { font-size: 13px; line-height: 1.45; margin-top: 2px; }
+.respect-line { margin-top: 6px; padding-left: 8px; border-left: 3px solid var(--gold); }
+.temper-card .bench-note { margin-top: 6px; padding-left: 8px; border-left: 3px solid var(--gold); }
 
 .plan-slots { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 16px 0; }
 .plan-slot { display: inline-flex; gap: 2px; align-items: stretch; }
@@ -4411,7 +4281,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .depth-man .depth-ca { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--gold); }
 .depth-man.cover .depth-name { font-style: italic; }
 .depth-man.out { opacity: .55; }
-.depth-man .depth-why { font-size: 10.5px; color: var(--text-negative); font-weight: 700; }
+.depth-man .depth-why { font-size: 11px; color: var(--text-negative); font-weight: 700; }
 .depth-warn { margin-top: 6px; color: var(--text-negative); font-weight: 600; }
 
 /* v1.2.8: the Selection team sheet pins all six columns so its two tables
@@ -4430,9 +4300,8 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 /* the sheet's own gutter: the owner saw labels and selects flush to the
    screen edge ("watch the clipping of text on the sides") */
 .loan-sheet .loan-deal { display: flex; flex-direction: column; gap: 10px; padding: 4px 14px 0; }
-.loan-sheet .loan-deal label { display: flex; flex-direction: column; gap: 4px; font-size: 10.5px; text-transform: uppercase; letter-spacing: .4px; }
+.loan-sheet .loan-deal label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; text-transform: uppercase; letter-spacing: .4px; }
 .loan-sheet .loan-deal .inline-input { padding: 9px 10px; width: 100%; }
-
 
 /* ---- THE PRESSURE BARS (v1.7.0) ----
    Two bars either side of a centred label, each filling OUTWARD from the
@@ -4502,22 +4371,6 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
   border: 1px solid color-mix(in srgb, var(--primary) 22%, transparent);
 }
 
-/* THE HIT (pitchActs.ts, owner 26 Sep 2026: "tackles and rucks you can see").
-   A ring where the tackle is made, at the moment it is made: the animation
-   delay is the tackle's own moment in the beat, set inline by PitchViz. It is
-   only drawn when the passage runs, so reduced motion never sees it. */
-.pitch .tackle-hit {
-  position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px;
-  border: 2px solid var(--prop-cream); border-radius: 50%;
-  pointer-events: none; z-index: 3; opacity: 0;
-  animation: tackle-thud 320ms ease-out both;
-}
-@keyframes tackle-thud {
-  0%   { opacity: 0; scale: .3; }
-  15%  { opacity: .95; }
-  100% { opacity: 0; scale: 1.9; }
-}
-
 /* How a player took what was said in the office (talkback.ts, 1.7.3). */
 .news-item .took {
   display: inline-block; margin-top: 6px; padding: 2px 8px; border-radius: 999px;
@@ -4527,3 +4380,687 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .news-item .took.good { color: var(--positive); }
 .news-item .took.mixed { color: var(--info); }
 .news-item .took.bad { color: var(--danger); }
+
+/* ---- the room before the team talk (1.8.0, MoodTable.tsx) ---- */
+.mood-wrap { padding: 0 14px 8px; }
+.mood-sum { font-size: 12px; color: var(--text-muted); margin: 2px 0 6px; }
+.mood-table td.nm { font-weight: 600; white-space: nowrap; }
+.mood-table td.num { width: 26px; font-variant-numeric: tabular-nums; color: var(--text-muted); }
+.mood-table tr.bench td { opacity: .78; }
+.mood-chip {
+  display: inline-block; padding: 2px 8px; border-radius: 9px; font-size: 12px;
+  border: 1.5px solid var(--border-strong); white-space: nowrap;
+}
+.mood-chip.good { border-color: var(--primary); background: var(--primary-tint); }
+.mood-chip.low { border-color: var(--danger); background: var(--danger-tint); }
+.mood-fold { margin: 6px 0 2px; }
+.mood-fold > summary { cursor: pointer; font-weight: 700; font-size: 13px; padding: 6px 0; color: var(--info); }
+.mood-fold .mood-wrap { padding: 0 0 6px; }
+
+/* ---- the story and what it is about, side by side (1.8.0, ContextCard.tsx) ----
+ * One column on a phone held upright (the card follows the story); two once
+ * there is room, the classic reader's message-and-panel. */
+.news-split { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.ctx-card {
+  background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px;
+  padding: 7px 10px; margin: 0 14px 0; display: flex; gap: 10px; align-items: center;
+  font: inherit; color: inherit; text-align: left; cursor: pointer; width: auto;
+}
+.news-split .ctx-card, .ctx-gutter .ctx-card { margin: 0; width: 100%; box-sizing: border-box; }
+.ctx-link:hover { border-color: var(--border-strong); }
+.ctx-link:active { background: var(--surface-2); }
+.ctx-name { flex: 1; min-width: 0; }
+.ctx-name b { display: block; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ctx-name span { display: block; font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ctx-go { font-size: 20px; color: var(--text-muted); line-height: 1; }
+.resp-needed { white-space: nowrap; }
+
+/* ---- the touchline at a glance, above the commentary (1.8.0) ---- */
+.match-status {
+  display: flex; justify-content: space-between; gap: 10px; padding: 0 4px 5px;
+  font-family: var(--cond); font-size: 12px; letter-spacing: .5px; color: var(--text-muted);
+}
+
+/* ---- the match menu (1.8.0, MatchPanels.tsx) ---- */
+.mpanels { max-width: 920px; width: calc(100% - 24px); padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 8px; max-height: 88vh; max-height: 88dvh; }
+.mp-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.mp-head b { font-family: var(--cond); font-size: 16px; letter-spacing: 1px; text-transform: uppercase; }
+.mp-dots { display: flex; justify-content: center; gap: 6px; }
+.mp-dots button { width: 9px; height: 9px; min-width: 0; padding: 0; border-radius: 2px; border: none; background: var(--border-strong); }
+.mp-dots button.on { background: var(--text-primary); }
+.mp-body { overflow: auto; min-height: 0; flex: 1; }
+.mp-two { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+@media (min-width: 640px) { .mp-two { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.mp-table td.nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+.mp-table td.num, .mp-table th { text-align: center; font-variant-numeric: tabular-nums; }
+.mp-table td.pos { color: var(--text-positive); }
+.mp-table td.neg { color: var(--text-negative); }
+.mp-table tr.off td { opacity: .5; }
+.mp-table .mp-mid { text-align: center; color: var(--text-muted); }
+/* THE NAMES LINE UP (owner, 27 Sep 2026: "Check the alignment of names in the
+   in-game stats piece"). The club's name was centred over the shirt and name
+   columns while the names ran from the left, and each table sized its own
+   columns from its own longest name, so home and away sat differently. Fixed
+   columns now: the shirt, the name taking what is left, and the figures in
+   equal narrow columns; the club name starts where the shirt number does. */
+.mp-grid { table-layout: fixed; }
+.mp-grid col.c-shirt { width: 30px; }
+.mp-grid col.c-stat { width: 36px; }
+.mp-grid col.c-stat.w { width: 48px; }
+.mp-grid th.mp-team { text-align: left; padding-left: 6px; }
+.mp-grid td.shirt { text-align: right; padding-right: 8px; color: var(--text-muted); }
+.mp-grid td.nm { max-width: none; color: var(--text-primary); }
+.mp-grid th:last-child, .mp-grid td:last-child { padding-right: 6px; }
+.mp-grid th:first-child, .mp-grid td:first-child { padding-left: 6px; }
+.mp-grid th, .mp-grid td { padding-left: 4px; padding-right: 4px; }
+.mp-note { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+.mp-zones { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: end; padding: 6px 4px; }
+.mp-zone { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
+.mp-zone .bar { height: 110px; width: 44px; display: flex; align-items: flex-end; border-bottom: 1px solid var(--border-strong); }
+.mp-zone .bar i { display: block; width: 100%; border-radius: 3px 3px 0 0; background: var(--primary); }
+.mp-zone b { font-family: var(--cond); font-size: 18px; }
+.mp-zone span { font-size: 12px; color: var(--text-muted); }
+
+/* ---- the search screen's views (1.8.0, Transfers.tsx) ---- */
+/* ---- THE FILTER SHEET (1.8.0) ----
+   The market's one row: the name search, a Filters button that says how many
+   are on, and the View menu. Everything else sits in a bottom sheet with a
+   label beside each control, so nothing on the page is a dropdown whose only
+   label is its own placeholder. */
+.filter-line > .filter-btn { flex: 1 1 0; min-width: 0; text-align: center; cursor: pointer; font-weight: 600; }
+.filter-line > .filter-btn.on { background: var(--primary-tint); border-color: var(--primary); color: var(--primary); }
+.filter-sheet { padding: 0 16px calc(var(--safe-area-inset-bottom) + 12px); }
+.filter-sheet h3 { margin: 2px 0 10px; }
+.fs-grid { display: grid; grid-template-columns: auto 1fr; gap: 8px 12px; align-items: center; }
+.fs-grid > label { font-size: 13px; color: var(--text-secondary); }
+.fs-grid .inline-input { margin: 0; width: 100%; min-width: 0; }
+.fs-pair { display: grid; grid-template-columns: 2fr 1fr; gap: 6px; }
+.fs-toggles { display: flex; flex-direction: column; gap: 2px; margin-top: 12px; border-top: 1px solid var(--border); padding-top: 8px; }
+.fs-toggle { display: flex; align-items: center; gap: 10px; min-height: 40px; font-size: 14px; cursor: pointer; }
+.fs-toggle input { width: 18px; height: 18px; accent-color: var(--primary); flex: none; }
+.filter-sheet .btn-row {
+  margin: 12px 0 0; padding: 10px 0 2px;
+  /* Show stays in reach however tall the sheet gets */
+  position: sticky; bottom: 0; background: var(--canvas);
+}
+/* landscape: the phone is 412 tall, so the sheet goes wide instead of long,
+   two label-and-control pairs to a row and the switches in two columns */
+@media (orientation: landscape) and (max-height: 560px) {
+  .filter-sheet { max-width: 760px; max-height: 94vh; max-height: 94dvh; }
+  .fs-grid { grid-template-columns: auto 1fr auto 1fr; gap: 6px 12px; }
+  .fs-toggles { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; margin-top: 8px; }
+  .fs-toggle { min-height: 36px; }
+}
+.dtable td.attr-cell { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ctx-gutter { padding: 0 14px; }
+
+/* ---- THE OPENING TITLES (1.8.0, src/ui/Intro.tsx) ----
+   The office from the title card, coming alive. Every timing below is the
+   component's comment in numbers. Transform and opacity throughout (the steam
+   wisps are blurred once, then only moved), so a budget phone keeps up. */
+.intro {
+  position: fixed; inset: 0; z-index: 400; overflow: hidden; cursor: pointer;
+  background: var(--studio-ink); color: var(--studio-paper);
+  display: flex; align-items: flex-start; justify-content: center;
+}
+.intro.leaving { animation: intro-out .7s cubic-bezier(.4, 0, .2, 1) forwards; }
+@keyframes intro-out { to { opacity: 0; } }
+
+/* the room: the art at cover, pushing in slowly for the whole five seconds */
+.intro-room { position: absolute; inset: 0; transform-origin: 30% 45%; animation: intro-push 5s linear both; }
+@keyframes intro-push { from { transform: scale(1); } to { transform: scale(1.07); } }
+.intro-art { position: absolute; inset: 0; background: var(--art) 6% center / cover no-repeat; } /* 6%: Intro.tsx POS_X */
+
+/* the lamp catching: the room is black, then flickers up to a dim glow */
+.intro-dark {
+  position: absolute; inset: 0; pointer-events: none;
+  /* DARKER, SO THE TITLE READS (owner, 28 Sep 2026: "the intro motion
+     background needs to fade to black a bit more so all text is clear"). It
+     settled at about a quarter black once the lamp caught; it now settles
+     near two-thirds, and a band behind the lockup deepens as the title lands
+     (::after, 2.2 s), so the room is seen first and the words win after. */
+  background: radial-gradient(120% 90% at 50% 30%, rgba(0, 0, 0, .55), rgba(0, 0, 0, .85));
+  animation: intro-flicker 1.2s steps(1, end) both;
+}
+.intro-dark::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(to bottom,
+    rgba(0, 0, 0, .35) 0%, rgba(0, 0, 0, .78) 14%, rgba(0, 0, 0, .82) 58%, rgba(0, 0, 0, .3) 78%, rgba(0, 0, 0, .15) 88%, rgba(0, 0, 0, .6) 100%);
+  opacity: 0;
+  animation: intro-band .8s ease-out 2.2s forwards;
+}
+@keyframes intro-band { to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .intro-dark::after { animation: none; opacity: 1; } }
+@keyframes intro-flicker {
+  0% { opacity: 1; }
+  18% { opacity: .5; }
+  25% { opacity: .95; }
+  32% { opacity: .45; }
+  38% { opacity: .9; }
+  43% { opacity: .4; }
+  58% { opacity: .82; }
+  65% { opacity: .38; }
+  85% { opacity: .82; }
+  92%, 100% { opacity: .78; }
+}
+.intro-lamp {
+  position: absolute; width: calc(var(--k) * 700px); height: calc(var(--k) * 700px);
+  margin: calc(var(--k) * -250px) 0 0 calc(var(--k) * -300px); pointer-events: none;
+  background: radial-gradient(closest-side, rgba(255, 214, 150, .42), rgba(255, 190, 110, .12) 55%, transparent 72%);
+  mix-blend-mode: screen; opacity: 0;
+  animation: intro-lamp 1.2s steps(1, end) both, intro-lamp-breathe 3.6s ease-in-out 1.2s infinite alternate;
+}
+@keyframes intro-lamp {
+  0% { opacity: 0; } 18% { opacity: .8; } 25% { opacity: .1; } 32% { opacity: .9; } 38% { opacity: .15; }
+  43% { opacity: 1; } 58% { opacity: .3; } 65% { opacity: 1; } 85% { opacity: .75; } 92%, 100% { opacity: 1; }
+}
+@keyframes intro-lamp-breathe { from { opacity: 1; } to { opacity: .86; } }
+
+/* the telly: the framed match on the wall, glowing and flickering */
+.intro-tv {
+  position: absolute; pointer-events: none; border-radius: 3px;
+  background: linear-gradient(160deg, rgba(120, 190, 255, .35), rgba(60, 220, 140, .25));
+  mix-blend-mode: screen; opacity: .5;
+  box-shadow: 0 0 calc(var(--k) * 90px) rgba(110, 180, 255, .35);
+  animation: intro-tv .9s steps(3, jump-none) infinite;
+}
+@keyframes intro-tv { 0% { opacity: .35; } 33% { opacity: .6; } 66% { opacity: .45; } 100% { opacity: .7; } }
+
+/* the steam: three soft wisps curling up off the coffee, staggered */
+.intro-steam { position: absolute; width: 0; height: 0; pointer-events: none; }
+.intro-steam i {
+  position: absolute; left: calc(var(--k) * -22px); bottom: 0;
+  width: calc(var(--k) * 44px); height: calc(var(--k) * 110px);
+  border-radius: 50%; opacity: 0;
+  background: radial-gradient(closest-side, rgba(255, 255, 255, .32), transparent);
+  filter: blur(calc(var(--k) * 8px));
+  animation: intro-steam 2.4s ease-out .8s infinite;
+}
+.intro-steam i:nth-child(2) { animation-delay: 1.5s; left: calc(var(--k) * -6px); }
+.intro-steam i:nth-child(3) { animation-delay: 2.2s; left: calc(var(--k) * -38px); }
+@keyframes intro-steam {
+  0% { opacity: 0; transform: translate(0, 0) scale(.5, .5); }
+  30% { opacity: .8; }
+  65% { transform: translate(calc(var(--k) * 14px), calc(var(--k) * -80px)) scale(.9, 1.1) rotate(10deg); }
+  100% { opacity: 0; transform: translate(calc(var(--k) * -10px), calc(var(--k) * -160px)) scale(1.2, 1.4) rotate(-8deg); }
+}
+
+/* the title, set as the key art sets it */
+.intro-lockup {
+  position: relative; z-index: 2; margin-top: max(13vh, 60px); margin-top: max(13dvh, 60px); text-align: center; padding: 0 16px;
+  display: flex; flex-direction: column; align-items: center;
+}
+.intro-badge {
+  opacity: 0; animation: intro-badge .7s cubic-bezier(.2, 0, 0, 1) 2.6s forwards;
+}
+.intro-badge svg { display: block; filter: drop-shadow(0 6px 22px rgba(0, 0, 0, .6)); }
+@keyframes intro-badge { from { opacity: 0; transform: translateY(-18px) scale(.8); } to { opacity: 1; transform: none; } }
+.intro-word, .intro-sub span {
+  font-family: var(--cond); font-weight: 800; line-height: .9; letter-spacing: -.01em;
+  text-shadow: 0 4px 28px rgba(0, 0, 0, .7);
+}
+.intro-word {
+  margin-top: 14px; font-size: 76px; color: var(--primary);
+  opacity: 0; animation: intro-slam .55s cubic-bezier(.2, 0, 0, 1) 2.6s forwards;
+}
+@keyframes intro-slam { from { opacity: 0; transform: scale(1.35); } to { opacity: 1; transform: none; } }
+.intro-sub { display: flex; flex-direction: column; align-items: center; }
+.intro-sub span { font-size: 70px; color: var(--studio-paper); opacity: 0; animation: intro-rise .6s cubic-bezier(.2, 0, 0, 1) forwards; }
+.intro-sub span:first-child { animation-delay: 2.75s; }
+.intro-sub span:last-child { animation-delay: 2.88s; }
+@keyframes intro-rise { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+.intro-rule { display: flex; align-items: center; gap: 6px; width: min(78vw, 360px); margin: 18px 0 12px; opacity: 0; animation: intro-fade .5s ease-out 3.15s forwards; }
+.intro-rule span { flex: 1; height: 2px; background: var(--primary); transform-origin: center; animation: intro-wipe .6s cubic-bezier(.2, 0, 0, 1) 3.15s both; }
+.intro-rule i { width: 2px; height: 10px; background: var(--primary); }
+@keyframes intro-wipe { from { transform: scaleX(0); } }
+.intro-tag {
+  font-family: var(--serif); font-weight: 700; font-size: 16px; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--studio-paper); opacity: 0; animation: intro-fade .7s ease-out 3.35s forwards;
+}
+.intro-tag b { color: var(--primary); font-weight: 700; }
+@keyframes intro-fade { to { opacity: 1; } }
+
+.intro-sound {
+  position: absolute; z-index: 3; left: 16px; bottom: calc(var(--safe-area-inset-bottom) + 14px);
+  width: 44px; height: 44px; border-radius: 50%; font-size: 20px; cursor: pointer;
+  background: rgba(0, 0, 0, .5); border: 1px solid rgba(255, 255, 255, .35); color: var(--studio-paper);
+}
+.intro-skip {
+  position: absolute; z-index: 3; bottom: calc(var(--safe-area-inset-bottom) + 26px); left: 0; right: 0;
+  text-align: center; font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+  color: rgba(255, 255, 255, .55); opacity: 0; animation: intro-fade .5s ease-out 1.2s forwards; pointer-events: none;
+}
+@media (min-width: 700px) {
+  .intro-word { font-size: 110px; }
+  .intro-sub span { font-size: 100px; }
+  .intro-tag { font-size: 22px; }
+}
+@media (max-width: 360px) {
+  .intro-word { font-size: 62px; }
+  .intro-sub span { font-size: 56px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .intro, .intro * { animation-duration: .01s !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; }
+}
+
+/* ---- THE SWITCH (1.8.0, components.tsx Toggle) ----
+   The whole row is the target; the switch is the state. 150ms on the knob,
+   the duration a toggle should take and no longer. */
+.toggle-row {
+  display: flex; align-items: center; gap: 12px; width: 100%;
+  min-height: 44px; padding: 4px 0; background: none; border: none;
+  color: var(--text-primary); text-align: left; cursor: pointer; font: inherit;
+}
+.toggle-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.toggle-label { font-weight: 700; font-size: 14px; }
+.toggle-sub { font-size: 12px; color: var(--text-muted); line-height: 1.35; }
+.toggle {
+  position: relative; flex: none; width: 46px; height: 26px; border-radius: 13px;
+  background: var(--surface-2); border: 1px solid var(--border-strong);
+  transition: background-color .15s ease, border-color .15s ease;
+}
+.toggle i {
+  position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%;
+  background: var(--text-secondary);
+  transition: transform .15s cubic-bezier(.2, 0, 0, 1), background-color .15s ease;
+}
+.toggle-row.on .toggle { background: var(--primary); border-color: var(--primary); }
+.toggle-row.on .toggle i { transform: translateX(20px); background: var(--on-primary); }
+.toggle-row:focus-visible .toggle { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+/* ================================================================
+   TABLET MODE (1.8.0). .app.tablet is set in App.tsx on a touch screen at
+   least 700px on both sides, where the root zoom also carries a size step.
+   The phone column opens out to the glass, and the screens with two things
+   to show put them side by side.
+================================================================ */
+.inbox-list { display: none; }
+.inbox-panes { display: block; }
+.app.tablet { max-width: none; box-shadow: none; }
+@media (orientation: portrait) {
+  .app.tablet .content > .card, .app.tablet .content > .chips { max-width: none; }
+
+  /* HOME, TWO COLUMNS: the same card grid landscape already uses (see
+     "one clean screen in landscape"), which is display:contents on a phone. */
+  .app.tablet .card-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 10px; padding: 8px 14px 0; align-items: start;
+  }
+  .app.tablet .card-grid > .card { margin: 0; width: auto; }
+  .app.tablet .card-grid.one { grid-template-columns: minmax(0, 1fr); }
+  .app.tablet .dash-row { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+
+}
+/* THE INBOX, A MAIL CLIENT, in either orientation: the list down the left,
+   the letter on the right, the context card under the letter. */
+.app.tablet .inbox-panes {
+  display: grid; grid-template-columns: minmax(200px, 34%) minmax(0, 1fr);
+  gap: 12px; padding: 0 14px 0 0; align-items: start;
+}
+.app.tablet .inbox-panes .ctx-gutter { padding: 0 0 0 0; }
+.app.tablet .inbox-list {
+  display: flex; flex-direction: column;
+  position: sticky; top: 0; max-height: calc(100dvh / var(--zoom, 1) - 190px); overflow-y: auto;
+  border-right: 1px solid var(--border); padding: 4px 0;
+}
+
+.inbox-li {
+  display: flex; flex-direction: column; gap: 2px; text-align: left;
+  padding: 9px 12px 9px 14px; background: none; border: none; border-left: 3px solid transparent;
+  color: var(--text-secondary); cursor: pointer; font: inherit;
+  transition: background-color .15s ease;
+}
+.inbox-li .when { font-size: 11px; color: var(--text-muted); }
+.inbox-li .subj { font-size: 14px; line-height: 1.3; }
+.inbox-li.unread .subj { color: var(--text-primary); font-weight: 700; }
+.inbox-li.on { background: var(--row-selected-bg); border-left-color: var(--primary); color: var(--text-primary); }
+/* THE TEAM SHEET READS ACROSS on a tablet as it does in landscape: forwards
+   left, backs right, instead of one list with a canyon between each name and
+   its stars. Same minmax(0, 1fr) reasoning as the landscape rule. */
+@media (orientation: portrait) {
+  .app.tablet .xv-split {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0 14px; align-items: start; padding-right: 8px;
+  }
+}
+
+/* THE MATCH ON A TABLET (1.8.0). The pitch was capped at 210px for a phone
+   and came out a 788x242 strip across an iPad with half the glass empty under
+   it. On a tablet it takes a pitch's own shape (a field with its in-goals is
+   about 1.6 times as long as it is wide), capped so the deck below still has
+   room, and the deck fills the rest. */
+@media (orientation: portrait) {
+
+  .app.tablet .live-wrap .now-strip { flex: none; }
+}
+.tab-deck {
+  display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 12px; padding: 4px 14px calc(var(--safe-area-inset-bottom) + 10px);
+  flex: 1 1 0; min-height: 0;
+}
+.tab-feed {
+  overflow-y: auto; min-height: 0;
+  background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px;
+  padding: 4px 0;
+}
+.feed-line {
+  display: flex; gap: 10px; padding: 7px 12px; font-size: 14px; line-height: 1.35;
+  border-left: 3px solid transparent; color: var(--text-secondary);
+}
+.feed-line + .feed-line { border-top: 1px solid var(--border); }
+.feed-line .min { flex: none; width: 30px; color: var(--info); font-variant-numeric: tabular-nums; }
+.feed-line.newest { color: var(--text-primary); animation: feed-in .3s cubic-bezier(.2, 0, 0, 1); }
+.feed-line.big { border-left-color: var(--gold); color: var(--text-primary); font-weight: 700; }
+.feed-line.big .min { color: var(--gold); }
+.feed-line.card-y { border-left-color: var(--prop-yellow-deep); }
+.feed-line.card-r { border-left-color: var(--prop-red); }
+.feed-line.tmo { border-left-color: var(--gold); }
+.feed-line.inj { border-left-color: var(--danger); }
+.feed-line.kit { opacity: .82; }
+.feed-line.kit.newest { opacity: 1; }
+.feed-line.kit .min, .feed-line.kit.big .min { color: inherit; opacity: .8; }
+.feed-line.kit + .feed-line { border-top-color: transparent; }
+@keyframes feed-in { from { opacity: 0; transform: translateY(-6px); } }
+.tab-stats {
+  overflow-y: auto; min-height: 0; display: flex; flex-direction: column; gap: 10px;
+  background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px;
+}
+@media (prefers-reduced-motion: reduce) { .feed-line.newest { animation: none; } }
+/* the feed's newest line IS the now-line on a tablet: one of them, not both */
+@media (orientation: portrait) { .app.tablet .now-strip .now-line { display: none; } }
+
+/* ================================================================
+   THE MOTION LAYER (1.8.0). Owner: "Could we add subtle motion throughout
+   the game at opportunities?" The rule is the one FM26 was punished for
+   breaking (its slow screen changes got community "speed patches"): motion
+   confirms, it never makes you wait. So nothing here is longer than 250ms
+   except a bar filling, nothing delays a tap, and all of it is transform and
+   opacity. Only under html[data-motion="on"] (main.tsx), and the OS
+   reduce-motion setting turns every line of it off.
+
+   FILL MODE BACKWARDS, NEVER BOTH. A transform animation that holds its end
+   state makes the element a containing block for position: fixed, and the
+   sheets (.modal-veil) render inside the screens: held, a Squad sheet would
+   pin itself to the screen's first card instead of the glass. Backwards
+   covers the delay and then lets go completely.
+================================================================ */
+@media (prefers-reduced-motion: no-preference) {
+  /* a new screen rises into place: 180ms, 6px. Every direct child of the
+     content pane is new DOM when the screen changes, so this plays on a
+     screen change and not on a re-render. */
+  [data-motion="on"] .content > * { animation: m-rise .18s cubic-bezier(.2, 0, 0, 1) backwards; }
+  /* Home deals its cards in, 30ms apart, the first eight only */
+  [data-motion="on"] .content[data-screen="home"] .card-grid > * { animation: m-rise .22s cubic-bezier(.2, 0, 0, 1) backwards; }
+  [data-motion="on"] .content[data-screen="home"] .card-grid > :nth-child(2) { animation-delay: .03s; }
+  [data-motion="on"] .content[data-screen="home"] .card-grid > :nth-child(3) { animation-delay: .06s; }
+  [data-motion="on"] .content[data-screen="home"] .card-grid > :nth-child(4) { animation-delay: .09s; }
+  [data-motion="on"] .content[data-screen="home"] .card-grid > :nth-child(5) { animation-delay: .12s; }
+  [data-motion="on"] .content[data-screen="home"] .card-grid > :nth-child(6) { animation-delay: .15s; }
+  [data-motion="on"] .content[data-screen="home"] .card-grid > :nth-child(7) { animation-delay: .18s; }
+  [data-motion="on"] .content[data-screen="home"] .card-grid > :nth-child(n+8) { animation-delay: .21s; }
+  /* bottom sheets slide up with their veil, the Material "emphasized" curve */
+  [data-motion="on"] .modal { animation: m-sheet .24s cubic-bezier(.2, 0, 0, 1) backwards; }
+  /* bars fill from the left the first time they are drawn */
+  [data-motion="on"] .grow-x { transform-origin: left center; animation: m-grow .6s cubic-bezier(.2, 0, 0, 1) .1s backwards; }
+  [data-motion="on"] .mp-zone .bar i { transform-origin: bottom center; animation: m-grow-y .5s cubic-bezier(.2, 0, 0, 1) backwards; }
+  /* a new count on the inbox badge pops once */
+  [data-motion="on"] .bottom-nav .dot { animation: m-pop .3s cubic-bezier(.3, 1.6, .5, 1) backwards; }
+  /* cards that open something give under the thumb, 100ms */
+  [data-motion="on"] button.card, [data-motion="on"] .dash-panel, [data-motion="on"] .submenu-item, [data-motion="on"] .inbox-li {
+    transition: transform .1s ease, background-color .15s ease;
+  }
+  [data-motion="on"] button.card:active, [data-motion="on"] .dash-panel:active, [data-motion="on"] .submenu-item:active { transform: scale(.985); }
+  /* the tab underline slides rather than jumps */
+  [data-motion="on"] .tab-bar button::after { transition: transform .2s cubic-bezier(.2, 0, 0, 1), opacity .2s ease; }
+}
+@keyframes m-rise { from { opacity: 0; transform: translateY(6px); } }
+@keyframes m-sheet { from { opacity: .4; transform: translateY(28px); } }
+@keyframes m-grow { from { transform: scaleX(0); } }
+@keyframes m-grow-y { from { transform: scaleY(0); } }
+@keyframes m-pop { from { transform: scale(.4); } }
+
+/* LARGE COMMENTARY (Match Settings, on by default; owner: "The size of the
+   text in fm stands out"). The now-line was 14px body and 17px for a score. */
+.live-wrap.big-text .now-strip .now-line .txt { font-size: 16px; line-height: 1.35; }
+.live-wrap.big-text .now-strip .now-line.big .txt { font-size: 18px; }
+.live-wrap.big-text .now-strip .now-line .min { font-size: 16px; }
+.live-wrap.big-text .feed-line { font-size: 16px; }
+/* penalties in blue, beside the gold scores and the card colours */
+.now-line.pen { border-left-color: var(--info); }
+.feed-line.pen { border-left-color: var(--info); }
+
+/* THE SETTINGS SHEET IN THE FM26 LAYOUT: the choices, then the switches */
+.settings-sheet .ms-rows { padding: 0 16px; }
+.settings-sheet .ms-rows .set-label { margin-left: 2px; }
+.settings-sheet .ms-seg { margin: 0 0 4px; }
+.settings-sheet .ms-toggles {
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px 16px;
+  margin: 10px 16px 0; padding-top: 8px; border-top: 1px solid var(--border);
+}
+@media (min-width: 560px) { .settings-sheet .ms-toggles { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.settings-sheet > .btn.gold.block { margin-left: 16px; margin-right: 16px; width: calc(100% - 32px); }
+
+/* THE MATCH ON A TABLET IN LANDSCAPE (1.8.0, iPad). The glass is wide, so the
+   deck goes BESIDE the pitch rather than under it: pitch and now-strip on the
+   left, the feed over the 22 and territory panels on the right, controls
+   across the foot. The phone landscape layout (ticker over the pitch area) is
+   untouched: this is only .app.tablet. */
+@media (orientation: landscape) {
+  .app.tablet .live-wrap {
+    grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    grid-template-areas: 'score score' 'main deck' 'now deck' 'ctrl ctrl';
+  }
+  .app.tablet .live-wrap .tab-deck {
+    grid-area: deck; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1.4fr) minmax(0, 1fr);
+    padding: 4px 14px 4px 0; min-height: 0;
+  }
+  .app.tablet .live-wrap .now-strip .now-line { display: none; }
+
+}
+
+/* ---- THE STUDIO MARK (1.8.0, components.tsx StudioMark) ----
+   Sized off one number (--sm, the square's width): the letters, the rules and
+   the keyline all scale with it. A heavy condensed face at the full width of
+   the square, as in the owner's artwork. */
+.studio-mark {
+  --sm: 44px;
+  display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
+  width: var(--sm); height: calc(var(--sm) * .9);
+  background: var(--studio-ink); color: var(--studio-paper);
+  border-radius: calc(var(--sm) * .16);
+  box-shadow: 0 0 0 calc(var(--sm) * .045) var(--studio-paper), 0 3px 10px rgba(0, 0, 0, .35);
+  font-family: var(--cond); font-weight: 800; line-height: .9;
+  letter-spacing: -.02em; user-select: none;
+}
+.studio-mark b { font-size: calc(var(--sm) * .3); font-weight: 800; }
+.studio-mark i {
+  display: flex; align-items: center; gap: calc(var(--sm) * .05); width: 82%;
+  font-style: normal; font-size: calc(var(--sm) * .2); line-height: 1; margin: calc(var(--sm) * .01) 0;
+}
+.studio-mark i span { flex: 1; height: max(1px, calc(var(--sm) * .035)); background: currentColor; border-radius: 1px; }
+.studio-foot { margin-top: 22px; display: flex; justify-content: center; opacity: .92; }
+
+/* ---- HIGHLIGHTS AND LIVE STATS (1.8.0, HighlightClip.tsx, MatchDay LiveStats) ----
+   The match is the commentary line over the live stats; the pitch comes on
+   for a highlight in the same place, the size of the stats panel it covers,
+   and goes when the moment is done. */
+.hl-clip {
+  position: relative; margin: 8px 10px 0; border-radius: 12px; overflow: hidden;
+  /* the whole pitch, dead-ball line to dead-ball line (114 m by 70 m), locked */
+  aspect-ratio: 114 / 70; background: var(--hl-surround);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .35), inset 0 0 0 1px rgba(255, 255, 255, .08);
+  animation: hl-in .35s cubic-bezier(.2, 0, 0, 1) both;
+}
+@keyframes hl-in { from { opacity: 0; transform: translateY(8px) scale(.985); } }
+.hl-canvas { display: block; width: 100%; height: 100%; }
+.hl-banner {
+  position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  padding: 6px 18px 7px; border-radius: 10px; white-space: nowrap;
+  background: rgba(10, 14, 12, .86); color: var(--prop-ink);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .45);
+  animation: hl-banner .45s cubic-bezier(.2, .9, .3, 1.2) both;
+}
+.hl-banner b { font-family: var(--cond); font-weight: 800; font-size: 26px; letter-spacing: 2px; line-height: 1; }
+.hl-banner span { font-size: 13px; font-weight: 600; opacity: .92; }
+.hl-banner.review, .hl-banner.notry { background: rgba(10, 14, 12, .9); color: var(--gold-fill); }
+.hl-banner.miss { color: var(--hl-miss); }
+@keyframes hl-banner { from { opacity: 0; transform: translate(-50%, 10px) scale(.9); } }
+
+.live-stats {
+  margin: 8px 10px 0; padding: 6px 12px 8px; border-radius: 12px;
+  background: var(--surface-1); border: 1px solid var(--border);
+  animation: hl-in .3s ease-out both;
+}
+.ls-head {
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+  padding: 4px 0 6px; border-bottom: 1px solid var(--border);
+  font-size: 13px; font-weight: 700; color: var(--text-primary);
+}
+.ls-head span:last-child { text-align: right; }
+.ls-head b { font-family: var(--cond); font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-muted); }
+.ls-row { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; gap: 10px; padding: 5px 0; }
+.ls-row + .ls-row { border-top: 1px solid var(--border); }
+.ls-row > b { font-family: var(--cond); font-size: 16px; font-variant-numeric: tabular-nums; }
+.ls-row > b:last-child { text-align: right; }
+.ls-mid { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.ls-label { text-align: center; font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .6px; }
+.ls-bar { position: relative; display: flex; height: 5px; border-radius: 3px; overflow: hidden; background: var(--surface-2); }
+.ls-bar { gap: 2px; }
+.ls-bar i { display: block; height: 100%; transition: width .6s cubic-bezier(.2, 0, 0, 1); }
+.ms-note { grid-column: 1 / -1; font-size: 12px; color: var(--text-muted); margin: -4px 0 4px; }
+.app.tablet .hl-clip { max-width: 760px; margin-left: auto; margin-right: auto; }
+.app.tablet .tab-stats .live-stats { margin: 0; }
+
+/* the match controls are icons (owner, 27 Sep 2026), and small with room
+   between them ("make the buttons smaller so there is more space between
+   them"): five 48px squares spread across the row, clear of the 44 floor */
+.speed-controls { justify-content: space-between; width: 100%; max-width: 440px; margin-inline: auto; box-sizing: border-box; }
+.speed-controls .btn { flex: 0 0 48px; width: 48px; padding: 0; }
+.speed-controls .ctl-ico { display: inline-flex; align-items: center; justify-content: center; }
+.speed-controls .ctl-ico svg { width: 22px; height: 22px; }
+
+/* THE TREATMENT ROOM (owner, 27 Sep 2026: "tidy up the treatment room"): the
+   line under the name, the buttons stacked to the right at one width */
+.med-row td { vertical-align: middle; }
+.med-row td:first-child { width: 1%; }
+.med-row .med-info { display: flex; flex-direction: column; gap: 2px; margin-top: 3px; font-size: 12px; font-weight: 700; white-space: normal; color: var(--text-muted); }
+.med-row .med-info .neg { color: var(--text-negative); }
+.med-row .med-info .gold { color: var(--gold); }
+.med-row .med-act { text-align: right; width: 1%; }
+.med-row .med-act:empty { display: none; }
+/* smaller buttons with more room between them (owner, 27 Sep 2026): 32px
+   of box and 6px of reach either side is still 44 to tap, and 14px apart the
+   reaches of neighbours never meet */
+.med-row .med-act .rowact { display: flex; width: 100%; min-width: 118px; justify-content: center; white-space: nowrap; margin: 0; min-height: 32px; padding: 4px 10px; font-size: 11px; }
+.med-row .med-act .rowact::after { inset: -7px 0; }
+.med-row .med-act .rowact + .rowact { margin-top: 14px; }
+
+/* the contract traffic light on the squad table */
+.status-dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; vertical-align: middle; box-shadow: 0 0 0 2px color-mix(in srgb, var(--surface-1) 70%, transparent); }
+
+/* the A League table: rank under "#", the crest and name a step in */
+.a-table td.name { padding-left: 10px; }
+.a-table td.name > :first-child { margin-right: 6px; }
+
+/* icons in place of emoji (glyphs.tsx): sit on the text's baseline */
+.glyph { display: inline-block; vertical-align: -0.14em; flex-shrink: 0; }
+/* the glyph where an emoji used to stand on its own: a card row's leading
+   icon, a moment's big mark, a marker beside a name */
+.row-ico { font-size: 22px; line-height: 1; flex-shrink: 0; display: inline-flex; color: var(--gold); }
+.row-ico .glyph { vertical-align: 0; }
+.celebrate-ico { font-size: 64px; line-height: 1; color: var(--gold); }
+.sack-ico { font-size: 52px; line-height: 1; margin: 6px 0 10px; }
+.celebrate-ico .glyph, .sack-ico .glyph { vertical-align: 0; }
+.mark { display: inline-flex; font-size: 1em; }
+.hub-widget .mood-dot { width: 14px; height: 14px; }
+.gt-mood { white-space: nowrap; font-size: 12px; }
+.gt-mood .status-dot { width: 9px; height: 9px; vertical-align: 0; }
+.preset-chip .glyph { font-size: 1.3em; vertical-align: -0.28em; }
+
+/* ==================================================================
+   UI QA SWEEP (1.8.0)
+   ==================================================================
+   The owner: "Check alignment of all menus" and "Identify any areas which
+   feel unfinished". Every screen and tab photographed at four sizes in both
+   themes (scripts/uiqa.mjs); these are the layout faults the pictures showed,
+   kept together here rather than threaded through the file. */
+
+/* The room before the team talk: "Happy to be in the matchday squad" is
+   longer than the column, the chip would not wrap, and the table ran under
+   the card's right edge with every long mood cut off mid-word. The chip
+   wraps inside its own pill now and the table fits the phone. */
+.mood-table .mood-chip { white-space: normal; line-height: 1.3; }
+
+/* The team sheet is four tables (forwards, backs, two halves of the bench)
+   sharing one row renderer. Auto layout shared each table's slack out across
+   every column, so the stars sat 8px further right under the backs than under
+   the forwards. Fixed layout takes the pinned widths at their word and gives
+   the name column what is left, in all four. */
+.dtable.xvsheet { table-layout: fixed; }
+.dtable.xvsheet td.name { max-width: none; }
+
+/* The handbook's search box sat flush against both edges of the glass while
+   everything under it kept the 14px gutter. */
+.preset-row.hb-search { padding: 0 14px; }
+
+/* A title longer than the row beside the back arrow ("The Manager's
+   Handbook") used to drop the whole title block onto a line of its own,
+   leaving the arrow alone on the first. The block now takes the room beside
+   the arrow and only the date moves under the title when both will not fit. */
+@media (orientation: portrait) {
+  .mast-text { flex: 1 1 0; flex-wrap: wrap; row-gap: 0; }
+}
+/* In landscape and on a tablet the row's space-between floated the title into
+   the middle of the gap between the back arrow and the controls, a different
+   place on every screen depending on the title's length. It sits beside the
+   arrow, as it does in portrait. */
+@media (orientation: landscape) {
+  .masthead-row > .mast-text { flex: 1 1 auto; min-width: 0; }
+}
+
+/* Challenge cards on the first wizard step already sit in a padded grid, and
+   took the card's own 28px off again, so they stopped short of the league
+   list's right edge above them. */
+button.card.challenge-card { width: 100%; }
+
+/* A link dressed as a button reads as a button: E-mail sat underlined between
+   Copy and Save file, and About's two boxes were underlined text in a frame. */
+a.btn { text-decoration: none; }
+/* and its label sits where a <button>'s does: centred in the box, not riding
+   3px high at the top of it beside a stretched neighbour */
+.btn-row a.btn { display: inline-flex; align-items: center; justify-content: center; }
+
+/* The ideas box on Report a Bug put its heading 14px further in than the text
+   under it; inside a card the card's padding is the gutter. */
+.bug-ideas > .section-title { padding-left: 0; padding-right: 0; padding-top: 2px; }
+
+/* Settings titles are sentence case; the language label is shared with the
+   title screen, where it is capitals. */
+.set-title-case { text-transform: lowercase; }
+.set-title-case::first-letter { text-transform: uppercase; }
+
+/* Day theme: a forward's position badge was --surface-3, which in daylight is
+   the same white as the row under it, so LK and HK lost their box while FH
+   and WG kept theirs. And the grey form band carried white figures on a light
+   grey. Both keep their night look. */
+.app:not(.night) .pos-badge:not(.back) { background: var(--surface-2); }
+.app:not(.night) .form-pill.mid { color: var(--text-primary); }
+
+/* Day theme, the same fault at larger scale: --surface-3 is white in daylight,
+   which is right for a control on the grey canvas and invisible on a white
+   card. The Save buttons on Game Status, Export Career, the depth chart's
+   names and the Copy button on Report a Bug all showed as bare text. A
+   hairline gives them back their edge; night is untouched. */
+.app:not(.night) .btn:not(.gold):not(.ghost):not(.danger),
+.app:not(.night) .depth-man,
+.app:not(.night) .record-card .rating-dot,
+.app:not(.night) .fix-no { box-shadow: inset 0 0 0 1px var(--border-strong); }
+
+/* The development list's Add / Remove: 29px of box on a 52px row, which
+   geosweep failed at every phone size. The box keeps its size; the reach
+   grows into the row's own padding, the way the Medical Centre's row
+   buttons do. */
+.btn.dev-act { position: relative; }
+.btn.dev-act::after { content: ''; position: absolute; inset: -8px -4px; }

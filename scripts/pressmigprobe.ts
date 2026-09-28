@@ -64,6 +64,23 @@ for (const [k, v] of Object.entries(press)) {
 for (const m of missed.slice(0, 8)) say(`  ${m}`)
 ok(missed.length === 0, `${round} templates round-trip to their own key${missed.length ? ` - ${missed.length} did not` : ''}`)
 
+// ---- 2b. lines saved in the old quote marks -------------------------------
+// The dictionary's quotes were reset (game/quotes.ts): answers lost the outer
+// pair the screen now adds, and straight quotes were curled. Lines saved in
+// the old marks still have to find their key.
+say('\n--- 2b. a line saved in the old quote marks still finds its key')
+const OLD_MARKS: [string, string][] = [
+  ["'I am going nowhere'", 'press.courtStay'],
+  ["'The board's targets are fair'", 'press.stanceBoard'],
+  ["'Judge us in May - aim high' (+£400k war chest)", 'press.stanceHigh'],
+  ['"Right." One word, and the door does not slam, which is somehow worse. Keep an eye on his training reports.', 'press.loanStayR2'],
+  ["Antoine Dupont hasn't started in 3 weeks. His agent says he's 'exploring options'. Are you?", 'press.benchQ1'],
+]
+for (const [line, k] of OLD_MARKS) {
+  const back = recover(line)
+  ok(back?.k === k, `${line.slice(0, 48)}... -> ${back?.k ?? '(nothing)'}`)
+}
+
 // ---- 3. an old item renders in French after migration ---------------------
 say('\n--- 3. an old item reads as French once migrated')
 const old: PressItem = {

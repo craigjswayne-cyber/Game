@@ -88,7 +88,7 @@ export function signMedicalJoker(state: GameState, injuredId: number, jokerId: n
   p.joker = hurt.id
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
-    subject: `🩺 Medical joker: ${p.name}`,
+    subject: `Medical joker: ${p.name}`,
     body: `${p.name} (${p.pos}, ${p.age}) joins on a short-term deal to cover for ${hurt.name}. The wage of ${fmtWage(wage)} sits outside the salary cap during the cover, and the deal ends when ${hurt.name} is fit again or at the end of the season.`,
     k: 'news.jokerSigned',
     v: { name: p.name, pos: p.pos, age: p.age, hurt: hurt.name, wage: fmtWage(wage) },
@@ -115,7 +115,7 @@ function releaseJoker(state: GameState, p: Player, why: 'fit' | 'gone' | 'season
   if (club.id !== state.userClubId) return
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
-    subject: `🩺 ${p.name}'s cover ends`,
+    subject: `${p.name}'s cover ends`,
     // the stored English matches the en dictionary; readers get t(k, v)
     body: why === 'fit'
       ? `${covered?.name ?? ''} is fit again, so ${p.name}'s short-term deal as a medical joker is over. ${p.name} leaves with the club's thanks and is now a free agent.`

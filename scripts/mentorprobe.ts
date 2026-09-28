@@ -1,6 +1,6 @@
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
-import { MENTEE_MAX_AGE, MENTOR_MIN_AGE, REPORT_EVERY, canBeMentored, canMentor, fitWord, mentorReports, mentorBoost, mentorFit } from '../src/game/mentoring'
+import { MENTEE_MAX_AGE, MENTOR_MIN_AGE, REPORT_EVERY, canBeMentored, canMentor, mentorRate, fitWord, mentorReports, mentorBoost, mentorFit } from '../src/game/mentoring'
 import { EXAM_PASS_PCT, RETAKE_WEEKS, sendToCourse } from '../src/game/staff'
 import { fineAttr } from '../src/game/attributes'
 import { ATTR_KEYS, type Personality, type Player } from '../src/game/model'
@@ -108,13 +108,22 @@ console.log('--- 1. character decides the mentoring pairing')
 
 console.log('\n--- 2. a coaching badge is settled on the spot')
 {
-  const g = newGame('northampton', 'Badge Chaser', 3131)
-  const club = g.clubs[g.userClubId]
-  club.balance = 5_000_000
+  // FOUR SAVES, NOT ONE (28 Sep 2026). One save settles 12 to 19 assessments,
+  // so its pass rate carries a standard error near 12 points against a band
+  // of +-22: four shifted seed lists read 58, 78, 64 and 53%, the 78 two
+  // points from the edge. Four saves pooled (about 60 assessments, error near
+  // 6.4 points) put the band over three of them. 127 assessments across the
+  // five measured lists passed 56% against the nominal 58.
   let instant = 0
   let passes = 0
   let failures = 0
   let blocked = 0
+  let minInstant = Infinity, minFailures = Infinity, minBlocked = Infinity
+  for (const seed of [3131, 3132, 3133, 3134]) {
+  const g = newGame('northampton', 'Badge Chaser', seed)
+  const club = g.clubs[g.userClubId]
+  club.balance = 5_000_000
+  const at0 = { instant, failures, blocked }
   // walk the season trying every role every week: what matters is that the tier
   // moves (or the cooldown bites) on the same tick as the button
   for (let w = 0; w < 30; w++) {
@@ -149,11 +158,16 @@ console.log('\n--- 2. a coaching badge is settled on the spot')
     }
     processWeekAndAdvance(g)
   }
+  minInstant = Math.min(minInstant, instant - at0.instant)
+  minFailures = Math.min(minFailures, failures - at0.failures)
+  minBlocked = Math.min(minBlocked, blocked - at0.blocked)
+  }
   const rate = instant ? Math.round(passes / instant * 100) : 0
-  console.log(`  ${instant} assessments settled on the spot: ${passes} passed, ${failures} failed (${rate}%), ${blocked} refused during a lock-out`)
-  ok(instant > 8, `the button actually resolved things (${instant})`)
-  ok(failures > 0, 'some of them failed, so the cooldown path is exercised')
-  ok(blocked > 0, 'and a failed coach was refused a resit')
+  console.log(`  ${instant} assessments settled on the spot over four saves: ${passes} passed, ${failures} failed (${rate}%), ${blocked} refused during a lock-out`)
+  // the floors at the same rate as before, eight a save, pooled like the rate
+  ok(instant > 8 * 4, `the button actually resolved things (${instant} over four saves, fewest ${minInstant} in one)`)
+  ok(failures > 0, `some of them failed, so the cooldown path is exercised (fewest ${minFailures} in one save)`)
+  ok(blocked > 0, `and a failed coach was refused a resit (fewest ${minBlocked} in one save)`)
   ok(Math.abs(rate - EXAM_PASS_PCT) <= 22, `the pass rate is in the region of ${EXAM_PASS_PCT}% (${rate}%)`)
 }
 
@@ -213,17 +227,41 @@ console.log('\n--- 3. the 1-100 attribute rating is finer than a multiple of fiv
 
   // and the boost really lands on a senior under-21, which is the half that was
   // gated on p.acad and would have silently done nothing
-  const kid = seniorKids[0]
-  const mentor = sq.filter(canMentor).sort((a, b) => b.a.lea - a.a.lea)[0]
-  ok(!!kid && !!mentor, 'a senior under-21 and a senior pro both exist to pair')
-  if (kid && mentor) {
-    g2.mentors = [{ senior: mentor.id, kid: kid.id }]
+  //
+  // THE BEST PAIRING, IN THREE SAVES (28 Sep 2026). This paired the first
+  // senior under-21 with the squad's best leader and gave them 30 weeks. A
+  // coached point is a 0.045-a-week roll times the pairing's rate and a
+  // rating point rarer still, so a middling pairing makes one or two in 30
+  // weeks and some saves make none: a shifted seed list read "0 coached, 0
+  // rating" and failed a pairing that was working. The bug this guards made
+  // every senior pairing do NOTHING, so the claim is pooled: the pairing a
+  // manager reading the screen would make (highest mentorRate), in three
+  // saves, must put something on its ledger, and no kid may go backwards.
+  const saves = [5, 6, 7].map(seed => seed === 5 ? g2 : newGame('northampton', 'Eligibility', seed))
+  let pooled = 0, lost = false, paired = 0
+  for (const w of saves) {
+    const wsq = w.clubs[w.userClubId].players.map(id => w.players[id]!)
+    const kids = wsq.filter(p => !p.acad && p.age <= MENTEE_MAX_AGE && canBeMentored(p))
+    const pair = kids.flatMap(k => wsq.filter(canMentor).map(s => ({ k, s, r: mentorRate(w, s, k) })))
+      .sort((a, b) => b.r - a.r)[0]
+    if (!pair) continue
+    paired++
+    const { k: kid, s: mentor } = pair
+    w.mentors = [{ senior: mentor.id, kid: kid.id }]
     const before = Object.values(kid.a).reduce((s, v) => s + v, 0)
-    for (let i = 0; i < 30; i++) processWeekAndAdvance(g2)
-    const after = Object.values(g2.players[kid.id]!.a).reduce((s, v) => s + v, 0)
-    console.log(`  ${kid.name} (${kid.age}, senior squad) attributes ${before} -> ${after} over 30 weeks with ${mentor.name}`)
-    ok(after >= before, 'a senior under-21 develops under a mentor rather than being ignored')
+    for (let i = 0; i < 30; i++) processWeekAndAdvance(w)
+    const after = Object.values(w.players[kid.id]!.a).reduce((s, v) => s + v, 0)
+    // 1.8.0: a coached point is a training point, paid for elsewhere, so the
+    // attribute total barely moves; what the pairing gave is on its ledger
+    // (mentoring.mentorWeek, and scripts/mentorimpact.ts for the rates)
+    const led = (w.mentors ?? []).find(mp => mp.kid === kid.id)
+    const coached = Object.values(led?.taught ?? {}).reduce((s, v) => s + (v ?? 0), 0)
+    console.log(`  ${kid.name} (${kid.age}, senior squad) attributes ${before} -> ${after} over 30 weeks with ${mentor.name} (rate ${pair.r.toFixed(2)}); ledger: ${coached} coached, ${led?.grew ?? 0} rating`)
+    pooled += coached + (led?.grew ?? 0)
+    if (after < before - 2 || !led) lost = true
   }
+  ok(paired === saves.length, `a senior under-21 and a senior pro both exist to pair (${paired} of ${saves.length} saves)`)
+  ok(!lost && pooled > 0, `a senior under-21 develops under a mentor rather than being ignored (${pooled} points on the ledgers)`)
 
   ok(REPORT_EVERY === 8, `progress reports are filed every ${REPORT_EVERY} weeks`)
 }

@@ -123,8 +123,8 @@ async function sweep(label, { night, systemScheme }) {
     await page.goto('http://localhost:4199/')
     await page.waitForSelector('text=RUGBY', { timeout: 15000 })
     await page.click('text=New Career')
-    await page.waitForSelector('text=English Premier Division')
-    await page.click('text=English Premier Division')
+    await page.waitForSelector('[data-league="prem"]')
+    await page.click('[data-league="prem"]')
     await page.waitForSelector('.club-tile')
     await page.click('.tile >> text=Northampton')
     await page.waitForSelector('text=Star Player')
@@ -146,9 +146,17 @@ async function sweep(label, { night, systemScheme }) {
     // Every screen in the game that holds a field, reached the way a player
     // reaches it. The leadership card is the one in the report, so it goes
     // first, and it is on the Selection page.
-    for (const [where, menu, item] of [
+    //
+    // The leadership card no longer holds a field: 0f30962 swapped its six
+    // native selects for buttons that open a ranked sheet, so it is measured
+    // for the record and expected to report none. The game-time ledger is a
+    // tab across on the same screen, and in week one it lists only the men who
+    // "need a word" (nobody yet), so the probe opens the tab and shows everyone
+    // before it measures. Visiting Team twice used to measure the Selection
+    // pane both times and never reach the ledger's status selects at all.
+    for (const [where, menu, item, ...then] of [
       ['the leadership card and selection', 'Hub', 'Team'],
-      ['the game-time ledger', 'Hub', 'Team'],
+      ['the game-time ledger', 'Hub', 'Team', '.tab-bar >> text=Game Time', '.preset-chip >> text=Needs a word'],
       ['the mentoring picker', 'Hub', 'Training & Staff'],
       ['the medical search', 'Hub', 'Medical Centre'],
       ['the transfer filters', 'Hub', 'Transfer Centre'],
@@ -158,6 +166,7 @@ async function sweep(label, { night, systemScheme }) {
       await page.waitForSelector('.submenu-item', { timeout: 8000 })
       await page.click(`.submenu-item >> text=${item}`)
       await page.waitForTimeout(600)
+      for (const sel of then) { await page.click(sel); await page.waitForTimeout(300) }
       report(where, await measure())
     }
 

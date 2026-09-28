@@ -72,20 +72,33 @@ console.log('\n--- the numbers answer to the pack, not to nothing\n')
   ok(as >= 0.7 && as < hs, `the beaten pack still keeps most of its own ball (${Math.round(as * 100)}%)`)
 }
 {
-  // the side without the ball does the tackling
-  const l = matchStats(dress({
-    home: side(ctx.home, { poss: 800 }),
-    away: side(ctx.away, { poss: 200 }),
-  }))
-  ok(l.tackles[1] > l.tackles[0],
-    `the side chasing the game makes more tackles (${l.tackles[1]} v ${l.tackles[0]})`)
-  ok(l.possession[0] === 80, `and possession reads what the match recorded (${l.possession[0]}%)`)
+  // THE SIDE WITHOUT THE BALL DOES THE TACKLING. Tackles are counted from the
+  // play since 1.8.0 (countTackles), so dressing up the possession of one
+  // match cannot move them; this asks real matches instead. Not every one -
+  // a side can dominate the ball and still be made to tackle all afternoon -
+  // but most.
+  let chasing = 0, n = 0
+  for (let i = 0; i < 24; i++) {
+    const gi = newGame('leicester', 'Stats Probe', 91000 + i)
+    const fi = gi.fixtures.find(f => f.week >= 4 && gi.clubs[f.homeId] && gi.clubs[f.awayId])!
+    const ci = beginMatch(gi, fi, mulberry32(5000 + i), true)
+    playHalf(gi, ci); playHalf(gi, ci)
+    const si = matchStats(ci)
+    if (Math.abs(si.possession[0] - si.possession[1]) < 6) continue
+    n++
+    const less = si.possession[0] < si.possession[1] ? 0 : 1
+    if (si.tackles[less] > si.tackles[1 - less]) chasing++
+  }
+  ok(n >= 10 && chasing / n >= 0.7, `the side with less of the ball makes more tackles in most matches (${chasing} of ${n})`)
 }
+
 
 console.log('\n--- live, it only ever climbs\n')
 {
   // walk the clock the way the screen does and watch every figure
-  const KEYS = ['scrumsWon', 'scrumsLost', 'lineoutsWon', 'lineoutsLost', 'tackles'] as const
+  // (tackles are counted by the engine since 1.8.0, not worked out from the
+  // clock, so they are walked on a real match below instead)
+  const KEYS = ['scrumsWon', 'scrumsLost', 'lineoutsWon', 'lineoutsLost'] as const
   let prev = matchStats(dress({ lastMin: 0 }))
   let climbed = true
   let fellAt = ''
@@ -99,6 +112,46 @@ console.log('\n--- live, it only ever climbs\n')
   ok(climbed, `no figure ever falls as the match runs${climbed ? '' : ` (${fellAt})`}`)
   const atKO = matchStats(dress({ lastMin: 0 }))
   ok(KEYS.every(k => atKO[k][0] === 0 && atKO[k][1] === 0), 'and the sheet starts empty at kick-off')
+
+  // TACKLES ARE COUNTED (1.8.0, countTackles): none before a ball is played,
+  // never fewer as the match runs, and the sheet's figure is the sum of every
+  // man's own count
+  const g2 = newGame('northampton', 'Stats', 4242)
+  const fx2 = g2.fixtures.find(f => f.week === g2.week && (f.homeId === g2.userClubId || f.awayId === g2.userClubId))!
+  const live = beginMatch(g2, fx2, mulberry32(4242), true)
+  const t0 = matchStats(live).tackles
+  playHalf(g2, live)
+  const t1 = matchStats(live).tackles
+  playHalf(g2, live)
+  const t2 = matchStats(live).tackles
+  ok(t0[0] === 0 && t0[1] === 0, `no tackles before kick-off (${t0.join('-')})`)
+  ok(t1[0] <= t2[0] && t1[1] <= t2[1] && t1[0] > 0 && t1[1] > 0, `tackles only climb: ${t1.join('-')} at half-time, ${t2.join('-')} at full-time`)
+  const sum = (m?: Map<number, number>) => [...(m ?? new Map()).values()].reduce((a, b) => a + b, 0)
+  ok(sum(live.home.tackles) === t2[0] && sum(live.away.tackles) === t2[1], 'and the sheet is the sum of every player\'s own count')
+}
+
+console.log('\n--- kicks at goal: counted, and they add up\n')
+{
+  // every point that is not a try is a kick that went over: 2 for a
+  // conversion, 3 for a penalty or a drop goal. So the made count is bounded
+  // by the score, and the success rate lands where the kicking model is
+  // calibrated (about 72% of tries converted, higher for penalties).
+  let made = 0, taken = 0, bad = 0
+  for (let i = 0; i < 24; i++) {
+    const gi = newGame('leicester', 'Stats Probe', 93000 + i)
+    const fi = gi.fixtures.find(f => f.week >= 4 && gi.clubs[f.homeId] && gi.clubs[f.awayId])!
+    const ci = beginMatch(gi, fi, mulberry32(6000 + i), i % 2 === 0)
+    playHalf(gi, ci); playHalf(gi, ci)
+    const si = matchStats(ci)
+    for (const [side, [m, t]] of [[ci.home, si.goalKicks[0]], [ci.away, si.goalKicks[1]]] as const) {
+      made += m; taken += t
+      const kickPts = side.score - 5 * side.tries
+      if (m > t || kickPts < 2 * m || kickPts > 3 * m || t < side.tries) bad++
+    }
+  }
+  ok(bad === 0, `every side's kicks made fit its score, and every try got its conversion attempt (${bad} that did not)`)
+  const rate = made / taken
+  ok(rate >= 0.6 && rate <= 0.85, `kicks at goal go over ${Math.round(rate * 100)}% of the time (${made} of ${taken})`)
 }
 
 console.log(fails ? `\nSTATS PROBE FAILED (${fails})` : '\nSTATS PROBE PASSED: the sheet answers to the match it came from')

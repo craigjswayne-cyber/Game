@@ -9,6 +9,7 @@ import { NAT_SQUAD_FLOOR, natCallUp, natDrop, natEligible, natWindow, weeksToSqu
 import { ClubLink, PosBadge, SectionTitle } from '../components'
 import FullFitness from '../FullFitness'
 import { ord, posName, t } from '../../game/i18n'
+import { Glyph } from '../glyphs'
 
 const FWD = ['LP', 'HK', 'TP', 'LK', 'FL', 'N8']
 
@@ -39,7 +40,7 @@ export default function Country() {
     // stepped down (or sacked) with the screen open - nothing to run here
     return (
       <div className="card">
-        <h3 style={{ fontSize: 15 }}>{t('legacy.coNoJob')}</h3>
+        <h3 style={{ fontSize: 16 }}>{t('legacy.coNoJob')}</h3>
         <div className="meta">{t('legacy.coNoJobBody')}</div>
       </div>
     )
@@ -122,7 +123,7 @@ export default function Country() {
   return (
     <>
       <div className="card" style={{ borderLeft: '4px solid var(--text-positive)' }}>
-        <h3 style={{ fontSize: 17 }}>{flagOf(natId)} {nationName(natId)}</h3>
+        <h3 style={{ fontSize: 18 }}>{flagOf(natId)} {nationName(natId)}</h3>
         <div className="meta" style={{ marginTop: 2 }}>
           {t('legacy.coRankLine', {
             rank: rank > 0 ? t('legacy.coWorldNo', { n: rank }) : t('legacy.coUnranked'),
@@ -156,9 +157,9 @@ export default function Country() {
         <SectionTitle sub={t('legacy.coAppointmentsSub')}>{t('legacy.coAppointments')}</SectionTitle>
         {club && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0' }}>
-            <span style={{ fontSize: 20 }}>🏟️</span>
+            <span className="row-ico" style={{ fontSize: 20 }}><Glyph name="stadium" /></span>
             <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 700, fontSize: 13.5 }}>{club.name}</div>
+              <div style={{ fontWeight: 700, fontSize: 14 }}>{club.name}</div>
               <div className="meta">{t('legacy.coDirectorBoard', { n: Math.round(club.boardConfidence) })}</div>
             </div>
             {confirmClub
@@ -167,9 +168,9 @@ export default function Country() {
           </div>
         )}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0' }}>
-          <span style={{ fontSize: 20 }}>{flagOf(natId) || '🌍'}</span>
+          <span style={{ fontSize: 20 }}>{flagOf(natId)}</span>
           <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, fontSize: 13.5 }}>{nationName(natId)}</div>
+            <div style={{ fontWeight: 700, fontSize: 14 }}>{nationName(natId)}</div>
             <div className="meta">{t('legacy.coNatCoach')}{conf != null ? t('legacy.coNatUnion', { n: conf }) : ''}</div>
           </div>
           {confirmNat
@@ -317,7 +318,7 @@ export default function Country() {
           <tr><td className="meta">{t('legacy.coNoTests')}</td></tr>
         )}
       </tbody></table></div>
-      <div className="meta" style={{ padding: '4px 16px', fontSize: 11.5 }}>
+      <div className="meta" style={{ padding: '4px 16px', fontSize: 12 }}>
         {t('legacy.coFullTables')}
       </div>
       <div className="spacer" />

@@ -87,7 +87,7 @@ try {
   ok(await slotUp(), 'the banner is up while the match is running')
 
   // ---- making subs ----
-  const squad = page.locator('.speed-controls >> text=Squad')
+  const squad = page.locator('.speed-controls [data-ctl=squad]')
   if (await squad.count()) {
     await squad.first().click()
     await page.waitForTimeout(400)
@@ -105,7 +105,7 @@ try {
   }
 
   // ---- half time ----
-  await page.click('.speed-controls >> text=Skip')
+  await page.click('.speed-controls [data-ctl=skip]')
   await page.waitForSelector('text=Start Second Half', { timeout: 25000 })
   await page.waitForTimeout(400)
   ok(!(await slotUp()), 'no banner at half time')
@@ -115,7 +115,7 @@ try {
   ok(await slotUp(), 'up again for the second half')
 
   // ---- the hour break ----
-  await page.click('.speed-controls >> text=Skip')
+  await page.click('.speed-controls [data-ctl=skip]')
   await page.waitForSelector('text=Play the Final Quarter', { timeout: 25000 })
   await page.waitForTimeout(400)
   ok(!(await slotUp()), 'no banner at the hour break')
@@ -124,7 +124,7 @@ try {
   await page.waitForTimeout(500)
 
   // ---- full time ----
-  await page.click('.speed-controls >> text=Skip')
+  await page.click('.speed-controls [data-ctl=skip]')
   await page.waitForSelector('text=Continue to Results', { timeout: 25000 })
   await page.waitForTimeout(400)
   ok(!(await slotUp()), 'and none at full time')

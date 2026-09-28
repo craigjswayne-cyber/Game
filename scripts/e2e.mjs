@@ -91,15 +91,15 @@ async function playMatch(speech = 'Calm the nerves') {
     await page.click('text=▸ Take the Field')
   } catch { /* no modal - straight to the tunnel */ }
   await page.waitForSelector('.scoreboard', { timeout: 15000 })
-  await page.click('.speed-controls >> text=Skip')
+  await page.click('.speed-controls [data-ctl=skip]')
   await page.waitForSelector('text=Start Second Half', { timeout: 20000 })
   await page.click('text=▸ Start Second Half')
   await page.waitForTimeout(300)
-  await page.click('.speed-controls >> text=Skip')
+  await page.click('.speed-controls [data-ctl=skip]')
   await page.waitForSelector('text=Play the Final Quarter', { timeout: 20000 })
   await page.click('text=▸ Play the Final Quarter')
   await page.waitForTimeout(300)
-  await page.click('.speed-controls >> text=Skip')
+  await page.click('.speed-controls [data-ctl=skip]')
   await page.waitForSelector('text=Continue to Results', { timeout: 20000 })
 }
 
@@ -230,8 +230,8 @@ try {
   await shot('06b-club-menu')
   await page.click('.submenu-item >> text=Team Report')
   await page.waitForSelector('text=Where We Stand')
-  await page.click('.tab-bar >> text=Squad Depth')
-  await page.waitForSelector('text=Positional Depth')
+  // (squad depth is the Squad screen's; the report no longer repeats it)
+  await page.waitForSelector('text=Age Profile')
   await shot('06c-team-report')
 
   // Club submenu -> Medical Centre
@@ -270,7 +270,7 @@ try {
   await page.click('.bottom-nav button[title="Manager"]')
   await page.click('.submenu-item >> text=Save / Load Game')
   await page.waitForSelector('text=Save Slots')
-  await page.click('.card >> text=💾 Save >> nth=0')
+  await page.click('button.slot-act >> text=/^Save$/ >> nth=0')
   await page.waitForSelector('text=Career saved')
   await shot('07d-saves')
 

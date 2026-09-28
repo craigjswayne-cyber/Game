@@ -6,6 +6,7 @@ import { FormPill, Nat, PosBadge, SectionTitle, Stars, TwoStep, RewardedButton }
 import { flagOf, nationName } from '../../game/nations'
 import { fineAttr, playerWage } from '../../game/attributes'
 import { attrRange, fuzzedCa, knowledge, persKnown, reportStage } from '../../game/scout'
+import { benchNote, temperRead } from '../../game/temperament'
 import { canAgencyFile } from '../../game/rewarded'
 import { rewardedAvailable } from '../../game/monetise'
 import { LOAN_BUY_MIN_WEEKS, loanBuy, loanBuyOffer, loanOut, loanRecall } from '../../game/loans'
@@ -13,7 +14,8 @@ import { releaseBlock, releaseCost, releasePlayer } from '../../game/release'
 import { MARQUEE_SLOTS } from '../../game/cap'
 import { answerRequest, canAnswerRequest, canChat, chatBudget, praisePlayer, warnPlayer } from '../../game/chats'
 import { mulberry32 } from '../../game/rng'
-import { attrBand, attrBandIndex, attrName, persName, posName, t, traitInfo, traitName } from '../../game/i18n'
+import { attrBand, attrBandIndex, attrName, persName, posName, t, traitInfo, traitName, localeTag } from '../../game/i18n'
+import { Glyph } from '../glyphs'
 
 export default function PlayerScreen({ playerId }: { playerId: number }) {
   const game = useStore(s => s.game)!
@@ -133,6 +135,25 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         <div className="meta" style={{ fontSize: 13, lineHeight: 1.5 }}>{verdictLine(game, p, mine)}</div>
       </div>
 
+      {/* ---- HIS NERVE, AND HIS MINUTES (1.8.0, E7 + E8) ----
+          The hidden consistency and big-match traits in plain words, as sure
+          as the club's knowledge of him (game/temperament.ts): nothing for
+          another club's man until a detailed report, hedged until the full
+          file; your own after some matches for you or a good analyst. And the
+          growth cost of sitting out, which the game charged and never said. */}
+      {(() => {
+        const tr = temperRead(game, p)
+        const bn = benchNote(game, p)
+        if (!tr.lines.length && !bn) return null
+        return (
+          <div className="card temper-card">
+            <div className="fact-label">{t(mine ? 'player.readStaff' : 'player.readScouts')}</div>
+            {tr.lines.map(l => <div key={l.k} className="meta">{t(l.k, l.v)}</div>)}
+            {bn && <div className="meta bench-note">{t(bn.k, bn.v)}</div>}
+          </div>
+        )
+      })()}
+
       {/* ---- THE RECORD (owner, v1.2.7) ----
           One form pill and one last rating could not answer the question a
           manager actually asks - "is he declining or did he have a bad week" -
@@ -168,7 +189,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
               <>
                 <div className="fact-label" style={{ marginTop: (p.ratings?.length ?? 0) > 0 ? 8 : 0 }}>{t('player.injuryRecord')}</div>
                 <div className="meta">{t('player.injuryTally', { n: log.length })}, {t('player.injuryWeeksOut', { n: weeks })} · <b>{t(read)}</b></div>
-                <div className="meta muted" style={{ fontSize: 11.5 }}>
+                <div className="meta muted" style={{ fontSize: 12 }}>
                   {log.slice(-3).reverse().map((e, i) => (
                     <span key={i}>{i > 0 ? ' · ' : ''}{injuryDesc({ desc: e.dk, dk: e.dk })} ({t('player.injWeeks', { n: e.weeks })})</span>
                   ))}
@@ -183,14 +204,14 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         <span className="chip" title={t('player.overallTitle')}>
           {t('player.overall')} <b style={{ fontSize: 13 }}>{Math.round(fuzzedCa(game, p))}</b><span className="muted">/100</span></span>
         <span className="chip" title={t('player.characterTitle')}>{t('player.character')} <b>{persKnown(game, p) ? persName(p.pers) : t('player.unknown')}</b>{!persKnown(game, p) && <span className="muted" title={t('player.characterUnknownTitle')}> ?</span>}</span>
-        {(p.caps ?? 0) > 0 && <span className="chip">🌍 <b>{p.caps}</b> {t('player.caps')}</span>}
-        {p.trait && reportStage(game, p) >= 2 && <span className="chip" title={traitInfo(p.trait)} style={{ color: 'var(--info)', fontWeight: 700 }}>✨ {traitName(p.trait)}</span>}
+        {(p.caps ?? 0) > 0 && <span className="chip"><Glyph name="nations" /> <b>{p.caps}</b> {t('player.caps')}</span>}
+        {p.trait && reportStage(game, p) >= 2 && <span className="chip" title={traitInfo(p.trait)} style={{ color: 'var(--info)', fontWeight: 700 }}><Glyph name="trait" /> {traitName(p.trait)}</span>}
         {!mine && <span className="chip" style={know < 55 ? { color: 'var(--gold)' } : undefined}>
           {t('player.scouted')} <b>{Math.round(know)}%</b></span>}
       </div>
       {!mine && (
-        <div className="meta" style={{ padding: '2px 16px 4px', fontSize: 11.5 }}>
-          🔍 {t(`scoutStage.${reportStage(game, p)}`)}
+        <div className="meta" style={{ padding: '2px 16px 4px', fontSize: 12 }}>
+          <Glyph name="agency" /> {t(`scoutStage.${reportStage(game, p)}`)}
         </div>
       )}
       <div className="chips">
@@ -311,20 +332,20 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             {p.ca > (p.ca0 ?? p.ca) ? '▲' : '▼'} {Math.abs(p.ca - (p.ca0 ?? p.ca))}
           </b></span>
         )}
-        {p.age <= 21 && p.pa >= 86 && <span className="chip" style={{ borderColor: 'var(--gold)' }}>🌟 <b>{t('player.wonderkid')}</b></span>}
+        {p.age <= 21 && p.pa >= 86 && <span className="chip" style={{ borderColor: 'var(--gold)' }}><Glyph name="star" /> <b>{t('player.wonderkid')}</b></span>}
         {(p.poty ?? 0) > 0 && (
           <span className="chip" style={{ borderColor: 'var(--gold)' }}>
-            🏅 <b>{t('player.worldPoty')}{(p.poty ?? 0) > 1 ? ` ×${p.poty}` : ''}</b>
+            <Glyph name="award" /> <b>{t('player.worldPoty')}{(p.poty ?? 0) > 1 ? ` ×${p.poty}` : ''}</b>
           </span>
         )}
         {p.retiring && !p.farewell && (
           <span className="chip" style={{ borderColor: 'var(--danger)' }} title={t('player.retiringTitle')}>
-            🎤 <b>{t('player.retiringSummer')}</b>
+            <Glyph name="press" /> <b>{t('player.retiringSummer')}</b>
           </span>
         )}
         {(game.pledges ?? []).some(pl => pl.playerId === p.id) && !(game.preContracts ?? []).some(x => x.playerId === p.id) && (
           <span className="chip" style={{ borderColor: 'var(--gold)' }} title={t('player.promiseTitle')}>
-            🤝 <b>{t('player.promiseMade')}</b>
+            <Glyph name="handshake" /> <b>{t('player.promiseMade')}</b>
           </span>
         )}
         {(() => {
@@ -334,7 +355,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           const incoming = pc.toClubId === game.userClubId
           return (
             <span className="chip" style={{ borderColor: incoming ? 'var(--gold)' : 'var(--danger)' }}>
-              🖊 <b>{t('player.preContract', { club: to?.short ?? '?' })}</b>
+              <Glyph name="pen" /> <b>{t('player.preContract', { club: to?.short ?? '?' })}</b>
             </span>
           )
         })()}
@@ -391,7 +412,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
 
       {termsFee != null && (
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-          <h3 style={{ fontSize: 15 }}>{t('player.personalTerms', { fee: fmtMoney(termsFee) })}</h3>
+          <h3 style={{ fontSize: 16 }}>{t('player.personalTerms', { fee: fmtMoney(termsFee) })}</h3>
           <div className="meta" style={{ margin: '4px 0' }}>{t('player.campOpensAt')}<b>{fmtWage(personalTermsDemand(game, p))}{t('common.perWeek')}</b>{t('player.campOpensRest')}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0' }}>
             <span className="fact-label" style={{ width: 84 }}>{t('player.wagePerWeek')}</span>
@@ -580,7 +601,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
               {talkOutcome ? (
                 <>
                   <div className="sheet-casualty" style={{ borderLeftColor: talkSigned ? 'var(--text-positive)' : 'var(--text-negative)' }}>
-                    {talkSigned ? '🖊 ' : '💬 '}{talkOutcome}
+                    <Glyph name={talkSigned ? 'pen' : 'talk'} /> {talkOutcome}
                   </div>
                   {talkSigned
                     ? <div className="meta">{t('player.heIsOn', { wage: fmtWage(p.wage), year: String(2026 + p.contractEnds) })}</div>
@@ -611,7 +632,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                       const r = offerRenewalAt(game, p.id, wageOffer)
                       setMsg(r.msg); setTalkOutcome(r.msg); setTalkSigned(r.ok)
                       setWageCounter(r.counter ?? null); touch()
-                    }}>{t('player.offerWage', { amount: wageOffer.toLocaleString() })}</button>
+                    }}>{t('player.offerWage', { amount: wageOffer.toLocaleString(localeTag()) })}</button>
                     <button className="btn ghost" onClick={() => { setNegotiating(false); setWageCounter(null) }}>{t('player.walkAwayCaps')}</button>
                   </div>
                 </>
@@ -659,7 +680,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                   title={block ? t(`player.release${block[0].toUpperCase()}${block.slice(1)}`, { name: p.name, n: 24 }) : undefined}
                   label={t('player.release', { cost: fmtMoney(cost) })} confirm={t('player.releaseConfirm', { cost: fmtMoney(cost) })}
                   onConfirm={() => { const r = releasePlayer(game, p.id); setMsg(t(r.k, r.v)); touch() }} />
-                {block && <div className="meta muted" style={{ fontSize: 11.5, marginTop: 3 }}>{t(`player.release${block[0].toUpperCase()}${block.slice(1)}`, { name: p.name, n: 24 })}</div>}
+                {block && <div className="meta muted" style={{ fontSize: 12, marginTop: 3 }}>{t(`player.release${block[0].toUpperCase()}${block.slice(1)}`, { name: p.name, n: 24 })}</div>}
               </div>
             )
           })()}
@@ -745,7 +766,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             </>
             : (
               <div className="card">
-                <h3 style={{ fontSize: 15 }}>{t('player.yourOffer', { club: club.short })}</h3>
+                <h3 style={{ fontSize: 16 }}>{t('player.yourOffer', { club: club.short })}</h3>
                 <div className="meta">{t('player.askAndBudget', { ask: fmtMoney(ask), budget: fmtMoney(game.clubs[game.userClubId].budget) })}</div>
                 {floorPrice(game, p) < ask - 50_000 && (
                   <div className="meta muted">{t('player.asLowAs', { floor: fmtMoney(floorPrice(game, p)) })}</div>
@@ -840,5 +861,16 @@ function verdictLine(game: GameState, p: Player, mine: boolean): string {
   } else if (p.transferListed) {
     bits.push(t('player.vListed'))
   }
-  return bits.join(' ')
+  // Every bit is a sentence of its own, and some open on a lower-case word
+  // spliced in from elsewhere: the French opening is "{pos} de {age} ans",
+  // and the position is lower-cased for the middle of a sentence. The capital
+  // goes on here, once, rather than in six templates. Afrikaans starts a
+  // sentence on 'n with the word after it capitalised ("'n Stut").
+  return bits.map(sentenceStart).join(' ')
+}
+
+function sentenceStart(s: string): string {
+  const up = (c: string) => c.toLocaleUpperCase(localeTag())
+  if (s.startsWith("'n ") && s.length > 3) return "'n " + up(s.charAt(3)) + s.slice(4)
+  return s ? up(s.charAt(0)) + s.slice(1) : s
 }

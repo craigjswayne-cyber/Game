@@ -142,7 +142,13 @@ export function refreshVacancies(state: GameState, rng: Rng) {
     return keep
   })
 
-  if (state.vacancies.length >= 3 || rng() > (state.unemployed ? 0.55 : 0.22)) return
+  if (state.vacancies.length >= 3) return
+  // A MANAGER OUT OF WORK NEVER FINDS THE JOB CENTRE EMPTY (1.8.0). Vacancies
+  // last five weeks and a new one opened 55% of weeks, so a run of misses left
+  // nothing to apply for at all (chaosprobe caught it fifteen weeks after a
+  // sack). The same one draw either way, so the stream does not shift.
+  const roll = rng()
+  if (roll > (state.unemployed ? 0.55 : 0.22) && !(state.unemployed && !state.vacancies.length)) return
 
   // struggling sides sack managers: weight by league position from the bottom
   const candidates: { clubId: string; w: number }[] = []
@@ -213,7 +219,7 @@ export function refreshVacancies(state: GameState, rng: Rng) {
         state.courtedBy = suitor.id
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
-          subject: `🤝 ${suitor.short} are watching you`,
+          subject: `${suitor.short} are watching you`,
           body: `The back pages have put your name at the top of ${poss(suitor.name)} shortlist for their empty dugout, and for once the back pages are right - their people have made discreet contact. A bigger club, a bigger budget, somebody else's project. Apply from the Job Centre if your head is turned; say nothing and the story dies by Friday. Your chairman has read the papers too, and he is watching how long you take to deny it.`,
           k: 'news.courted', v: { short: suitor.short, poss: poss(suitor.name) },
         })
@@ -341,6 +347,7 @@ function takeJob(state: GameState, clubId: string): string {
     state.facilityAskCooldown = 0 // a new board hears you out fresh
     state.boardAsks = undefined // and holds none of the old board's grudges
     state.fundsAskedSeason = undefined // the funds ask resets with the desk
+    state.dealEndedSeason = undefined // and a new commercial department may end a deal of its own
     // a new club, a new backroom: the department here is what it is
     state.staffSalt = (state.staffSalt ?? 0) + 1
     inheritStaff(state)
@@ -349,6 +356,7 @@ function takeJob(state: GameState, clubId: string): string {
     state.commission = null // the old club's scout finishes his brief for them
     state.scoutFinds = null
     state.tenureStart = state.season // the clock on your era starts today
+    state.boardFloorWeeks = 0 // and the old board's patience does not follow you
     for (const id of club.players) {
       const p = state.players[id]
       if (p) p.sc = 100
@@ -362,7 +370,7 @@ function takeJob(state: GameState, clubId: string): string {
       state.vowedAt = 0
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'gossip', read: false,
-        subject: `🗞 'I am going nowhere' - a quote that aged badly`,
+        subject: `'I am going nowhere' - a quote that aged badly`,
         body: `Every paper runs the same clip: ${state.managerName}, weeks ago, hand on heart, going nowhere. The move is done and nobody can undo it, but your new board noted how cheaply the last promise was sold, and the away end has a new song ready for your return.`,
         k: 'news.brokeVow', v: { manager: state.managerName },
       })

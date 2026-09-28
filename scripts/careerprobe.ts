@@ -170,10 +170,21 @@ say('\n--- 5. a loan is negotiated, not collected (v1.2.8)')
   const v1 = loanTerms(g, a.id, 'half', 0.5), v2 = loanTerms(g, a.id, 'half', 0.5)
   ok(v1.ok === v2.ok && v1.k === v2.k, 'the parent gives the same answer to the same offer in the same week')
   // more of the wage and a longer loan carry more often, across the whole market
-  const rate = (len: 'short' | 'half' | 'season', share: number) =>
-    targets.filter(p => loanTerms(g, p.id, len, share).ok).length / targets.length
+  //
+  // FOUR MARKETS, NOT ONE (28 Sep 2026). One world offers twelve targets, so
+  // "mostly refused" was judged on twelve answers: shifted seed lists read the
+  // mean offer accepted by 0, 4, 1 and 2 of 12, the 4 (33%) one answer short
+  // of the 40% line. The same question is asked of four worlds' markets (48
+  // or so answers, a standard error near 5 points); the lines are unchanged.
+  const markets = [g, ...[9006, 9007, 9008].map(s => newGame('doncaster', 'Probe', s))]
+  const rate = (len: 'short' | 'half' | 'season', share: number) => {
+    let yes = 0, n = 0
+    for (const w of markets) for (const p of loanTargets(w)) { n++; if (loanTerms(w, p.id, len, share).ok) yes++ }
+    return yes / Math.max(1, n)
+  }
   const mean = rate('short', 0.25), generous = rate('season', 1)
-  ok(generous > mean, `a season at full wages is accepted more often than three months at a quarter (${(generous * 100).toFixed(0)}% v ${(mean * 100).toFixed(0)}%)`)
+  const asked = markets.reduce((s, w) => s + loanTargets(w).length, 0)
+  ok(generous > mean, `a season at full wages is accepted more often than three months at a quarter (${(generous * 100).toFixed(0)}% v ${(mean * 100).toFixed(0)}% of ${asked} targets in four markets)`)
   ok(generous >= 0.6, 'and the generous offer nearly always lands')
   ok(mean <= 0.4, 'while the mean one is mostly refused')
   // a refusal names a lever that would have carried it

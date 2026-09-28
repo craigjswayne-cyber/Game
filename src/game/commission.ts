@@ -73,7 +73,7 @@ export function commissionScout(state: GameState, pos: Pos | 'any', months: Sear
   const where = state.commission.leagueId ? state.comps[state.commission.leagueId]?.short ?? '' : ''
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false, tag: 'scout',
-    subject: `🔭 ${man.name} sent out on a ${months}-month brief`,
+    subject: `${man.name} sent out on a ${months}-month brief`,
     body: `${fmtMoney(fee)} of expenses, a hire car and a brief: ${pos === 'any' ? 'anyone who can play' : POS_NAMES[pos].toLowerCase()}, in ${where}. ${man.name} (${BADGE[tier].toLowerCase()} badge) files his report in ${SEARCH_WEEKS[months]} weeks. A longer trip sees more rugby and less of it in the rain.`,
     k: 'news.briefSent',
     v: {
@@ -138,7 +138,7 @@ export function scoutPostcard(state: GameState) {
   const weeksLeft = c.done - abs
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false, tag: 'scout',
-    subject: `🔭 Word from ${man.name}: ${p.name}`,
+    subject: `Word from ${man.name}: ${p.name}`,
     body: `${weeksIn} weeks into the brief. "${keen
       ? `Watched ${p.name} twice now and I would put my name to him. ${p.age}, ${POS_NAMES[p.pos].toLowerCase()} at ${club?.name ?? 'a club abroad'}, and he does the things you cannot teach.`
       : `${p.name} is worth a mention. ${p.age}, ${POS_NAMES[p.pos].toLowerCase()} at ${club?.name ?? 'a club abroad'}. Not the answer on his own, but I would not rule him out.`}`
@@ -208,7 +208,7 @@ export function resolveCommission(state: GameState) {
   }, good > 0)
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false, tag: 'scout',
-    subject: `🔭 ${man?.name ?? 'The chief scout'} files his report: ${finds.length} names`,
+    subject: `${man?.name ?? 'The chief scout'} files his report: ${finds.length} names`,
     body: `${c.months} months, ${finds.length} names, ${good} of them he would sign tomorrow. Top of the list: ${best.name}, ${best.age}, ${POS_NAMES[best.pos].toLowerCase()} at ${state.clubs[best.clubId ?? '']?.name ?? 'a club abroad'} - ${tIn('en', note.k, note)} The full report is in the Transfer Centre, and every man on it is now properly known to your recruitment staff.`,
     k: 'news.scoutReport',
     v: {

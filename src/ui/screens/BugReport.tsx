@@ -143,9 +143,9 @@ export default function BugReport() {
           nothing is attached to it - a suggestion does not need a save file, a
           user agent or a crash ring, and saying so is the difference between
           a feedback box and a data collection box. */}
-      <div className="card">
+      <div className="card bug-ideas">
         <SectionTitle sub={t('legacy.bgIdeasSub')}>{t('legacy.bgIdeasTitle')}</SectionTitle>
-        <div className="muted" style={{ fontSize: 12.5, marginBottom: 8 }}>{t('legacy.bgIdeasBlurb')}</div>
+        <div className="muted" style={{ fontSize: 13, marginBottom: 8 }}>{t('legacy.bgIdeasBlurb')}</div>
         <label className="bug-label" htmlFor="idea-notes">{t('legacy.bgIdeaLabel')}</label>
         <textarea
           id="idea-notes"

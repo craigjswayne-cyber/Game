@@ -1,0 +1,1205 @@
+{
+  "generatedFrom": "src/game/newgame.ts LEAGUE_DEFS and src/game/nations.ts NAT_TIERS",
+  "men": [
+    {
+      "id": "prem",
+      "name": "English Premier Division",
+      "clubs": [
+        {
+          "id": "bath",
+          "role": "Bath RFC",
+          "name": "Bath RFC",
+          "colour": "#003c71"
+        },
+        {
+          "id": "bristol",
+          "role": "Bristol RFC",
+          "name": "Bristol RFC",
+          "colour": "#0a2240"
+        },
+        {
+          "id": "exeter",
+          "role": "Exeter RFC",
+          "name": "Exeter RFC",
+          "colour": "#000000"
+        },
+        {
+          "id": "gloucester",
+          "role": "Gloucester RFC",
+          "name": "Gloucester RFC",
+          "colour": "#8b0d32"
+        },
+        {
+          "id": "leicester",
+          "role": "Leicester RFC",
+          "name": "Leicester RFC",
+          "colour": "#00563f"
+        },
+        {
+          "id": "newcastle",
+          "role": "Newcastle RFC",
+          "name": "Newcastle RFC",
+          "colour": "#0a1f44"
+        },
+        {
+          "id": "northampton",
+          "role": "Northampton RFC",
+          "name": "Northampton RFC",
+          "colour": "#000000"
+        },
+        {
+          "id": "harlequins",
+          "role": "Quins Rugby",
+          "name": "Quins Rugby",
+          "colour": "#006747"
+        },
+        {
+          "id": "sale",
+          "role": "Sale RFC",
+          "name": "Sale RFC",
+          "colour": "#001a4d"
+        },
+        {
+          "id": "saracens",
+          "role": "Sarries RFC",
+          "name": "Sarries RFC",
+          "colour": "#000000"
+        }
+      ]
+    },
+    {
+      "id": "top14",
+      "name": "French Elite 14",
+      "clubs": [
+        {
+          "id": "stade_francais",
+          "role": "AS Paris",
+          "name": "AS Paris",
+          "colour": "#e75480"
+        },
+        {
+          "id": "toulon",
+          "role": "AS Toulon",
+          "name": "AS Toulon",
+          "colour": "#e30613"
+        },
+        {
+          "id": "bayonne",
+          "role": "RC Bayonne",
+          "name": "RC Bayonne",
+          "colour": "#63b3e4"
+        },
+        {
+          "id": "bordeaux",
+          "role": "RC Bordeaux",
+          "name": "RC Bordeaux",
+          "colour": "#7d1128"
+        },
+        {
+          "id": "castres",
+          "role": "RC Castres",
+          "name": "RC Castres",
+          "colour": "#005baa"
+        },
+        {
+          "id": "clermont",
+          "role": "RC Clermont",
+          "name": "RC Clermont",
+          "colour": "#ffd100"
+        },
+        {
+          "id": "la_rochelle",
+          "role": "RC La Rochelle",
+          "name": "RC La Rochelle",
+          "colour": "#ffcc00"
+        },
+        {
+          "id": "lyon",
+          "role": "RC Lyon",
+          "name": "RC Lyon",
+          "colour": "#d40000"
+        },
+        {
+          "id": "montpellier",
+          "role": "RC Montpellier",
+          "name": "RC Montpellier",
+          "colour": "#003d7c"
+        },
+        {
+          "id": "racing92",
+          "role": "RC Nanterre",
+          "name": "RC Nanterre",
+          "colour": "#8ed8f8"
+        },
+        {
+          "id": "pau",
+          "role": "RC Pau",
+          "name": "RC Pau",
+          "colour": "#00854d"
+        },
+        {
+          "id": "perpignan",
+          "role": "RC Perpignan",
+          "name": "RC Perpignan",
+          "colour": "#c8102e"
+        },
+        {
+          "id": "toulouse",
+          "role": "RC Toulouse",
+          "name": "RC Toulouse",
+          "colour": "#d10a11"
+        },
+        {
+          "id": "vannes",
+          "role": "US Vannes",
+          "name": "US Vannes",
+          "colour": "#12295c"
+        }
+      ]
+    },
+    {
+      "id": "urc",
+      "name": "United Provinces Championship",
+      "clubs": [
+        {
+          "id": "stormers",
+          "role": "Cape Town RFC",
+          "name": "Cape Town RFC",
+          "colour": "#0d2240"
+        },
+        {
+          "id": "cardiff",
+          "role": "Cardiff RFC",
+          "name": "Cardiff RFC",
+          "colour": "#0072ce"
+        },
+        {
+          "id": "connacht",
+          "role": "Connacht RFC",
+          "name": "Connacht RFC",
+          "colour": "#00843d"
+        },
+        {
+          "id": "sharks",
+          "role": "Durban RFC",
+          "name": "Durban RFC",
+          "colour": "#000000"
+        },
+        {
+          "id": "edinburgh",
+          "role": "Edinburgh RFC",
+          "name": "Edinburgh RFC",
+          "colour": "#000000"
+        },
+        {
+          "id": "glasgow",
+          "role": "Glasgow RFC",
+          "name": "Glasgow RFC",
+          "colour": "#0a2240"
+        },
+        {
+          "id": "lions",
+          "role": "Johannesburg RFC",
+          "name": "Johannesburg RFC",
+          "colour": "#e4022d"
+        },
+        {
+          "id": "leinster",
+          "role": "Leinster RFC",
+          "name": "Leinster RFC",
+          "colour": "#0055a5"
+        },
+        {
+          "id": "scarlets",
+          "role": "Llanelli RFC",
+          "name": "Llanelli RFC",
+          "colour": "#a8072f"
+        },
+        {
+          "id": "munster",
+          "role": "Munster RFC",
+          "name": "Munster RFC",
+          "colour": "#c8102e"
+        },
+        {
+          "id": "dragons",
+          "role": "Newport RFC",
+          "name": "Newport RFC",
+          "colour": "#e21836"
+        },
+        {
+          "id": "zebre",
+          "role": "Parma RFC",
+          "name": "Parma RFC",
+          "colour": "#000000"
+        },
+        {
+          "id": "bulls",
+          "role": "Pretoria RFC",
+          "name": "Pretoria RFC",
+          "colour": "#5eb6e4"
+        },
+        {
+          "id": "ospreys",
+          "role": "Swansea RFC",
+          "name": "Swansea RFC",
+          "colour": "#000000"
+        },
+        {
+          "id": "benetton",
+          "role": "Treviso RFC",
+          "name": "Treviso RFC",
+          "colour": "#007a3d"
+        },
+        {
+          "id": "ulster",
+          "role": "Ulster RFC",
+          "name": "Ulster RFC",
+          "colour": "#ffffff"
+        }
+      ]
+    },
+    {
+      "id": "srp",
+      "name": "Pacific Championship",
+      "clubs": [
+        {
+          "id": "blues",
+          "role": "Auckland RFC",
+          "name": "Auckland RFC",
+          "colour": "#003087"
+        },
+        {
+          "id": "brumbies",
+          "role": "Canberra RFC",
+          "name": "Canberra RFC",
+          "colour": "#0f204b"
+        },
+        {
+          "id": "crusaders",
+          "role": "Canterbury RFC",
+          "name": "Canterbury RFC",
+          "colour": "#ce181e"
+        },
+        {
+          "id": "drua",
+          "role": "Fiji RFC",
+          "name": "Fiji RFC",
+          "colour": "#00b2a9"
+        },
+        {
+          "id": "waratahs",
+          "role": "New South Wales RFC",
+          "name": "New South Wales RFC",
+          "colour": "#009fdf"
+        },
+        {
+          "id": "highlanders",
+          "role": "Otago RFC",
+          "name": "Otago RFC",
+          "colour": "#0a2240"
+        },
+        {
+          "id": "moana",
+          "role": "Pacific RFC",
+          "name": "Pacific RFC",
+          "colour": "#00b2a9"
+        },
+        {
+          "id": "force",
+          "role": "Perth RFC",
+          "name": "Perth RFC",
+          "colour": "#1d428a"
+        },
+        {
+          "id": "reds",
+          "role": "Queensland RFC",
+          "name": "Queensland RFC",
+          "colour": "#76232f"
+        },
+        {
+          "id": "chiefs",
+          "role": "Waikato RFC",
+          "name": "Waikato RFC",
+          "colour": "#d71920"
+        },
+        {
+          "id": "hurricanes",
+          "role": "Wellington RFC",
+          "name": "Wellington RFC",
+          "colour": "#ffd100"
+        }
+      ]
+    },
+    {
+      "id": "champ",
+      "name": "English Championship",
+      "clubs": [
+        {
+          "id": "bedford",
+          "role": "Bedford RFC",
+          "name": "Bedford RFC",
+          "colour": "#1e5aa8"
+        },
+        {
+          "id": "caldy",
+          "role": "Caldy RFC",
+          "name": "Caldy RFC",
+          "colour": "#123c6b"
+        },
+        {
+          "id": "cambridge",
+          "role": "Cambridge RFC",
+          "name": "Cambridge RFC",
+          "colour": "#7a1027"
+        },
+        {
+          "id": "chinnor",
+          "role": "Chinnor RFC",
+          "name": "Chinnor RFC",
+          "colour": "#0e0e0e"
+        },
+        {
+          "id": "pirates",
+          "role": "Cornwall RFC",
+          "name": "Cornwall RFC",
+          "colour": "#111111"
+        },
+        {
+          "id": "coventry",
+          "role": "Coventry RFC",
+          "name": "Coventry RFC",
+          "colour": "#1b2f9e"
+        },
+        {
+          "id": "doncaster",
+          "role": "Doncaster RFC",
+          "name": "Doncaster RFC",
+          "colour": "#1a3a5c"
+        },
+        {
+          "id": "ealing",
+          "role": "Ealing RFC",
+          "name": "Ealing RFC",
+          "colour": "#0a5c36"
+        },
+        {
+          "id": "hartpury",
+          "role": "Hartpury RFC",
+          "name": "Hartpury RFC",
+          "colour": "#7a0c2e"
+        },
+        {
+          "id": "lscottish",
+          "role": "London Caledonians RFC",
+          "name": "London Caledonians RFC",
+          "colour": "#12295c"
+        },
+        {
+          "id": "nottingham",
+          "role": "Nottingham RFC",
+          "name": "Nottingham RFC",
+          "colour": "#0a6b4f"
+        },
+        {
+          "id": "richmond",
+          "role": "Richmond RFC",
+          "name": "Richmond RFC",
+          "colour": "#c9a227"
+        }
+      ]
+    },
+    {
+      "id": "prod2",
+      "name": "French Elite 2",
+      "clubs": [
+        {
+          "id": "agen",
+          "role": "RC Agen",
+          "name": "RC Agen",
+          "colour": "#1a3a75"
+        },
+        {
+          "id": "beziers",
+          "role": "RC Béziers",
+          "name": "RC Béziers",
+          "colour": "#c02f3a"
+        },
+        {
+          "id": "biarritz",
+          "role": "RC Biarritz",
+          "name": "RC Biarritz",
+          "colour": "#c02f3a"
+        },
+        {
+          "id": "brive",
+          "role": "RC Brive",
+          "name": "RC Brive",
+          "colour": "#111111"
+        },
+        {
+          "id": "carcassonne",
+          "role": "RC Carcassonne",
+          "name": "RC Carcassonne",
+          "colour": "#c9a227"
+        },
+        {
+          "id": "colomiers",
+          "role": "RC Colomiers",
+          "name": "RC Colomiers",
+          "colour": "#1e5aa8"
+        },
+        {
+          "id": "dax",
+          "role": "RC Dax",
+          "name": "RC Dax",
+          "colour": "#c02f3a"
+        },
+        {
+          "id": "grenoble",
+          "role": "RC Grenoble",
+          "name": "RC Grenoble",
+          "colour": "#1a3a75"
+        },
+        {
+          "id": "montdemarsan",
+          "role": "RC Mont-de-Marsan",
+          "name": "RC Mont-de-Marsan",
+          "colour": "#c9a227"
+        },
+        {
+          "id": "montauban",
+          "role": "RC Montauban",
+          "name": "RC Montauban",
+          "colour": "#007749"
+        },
+        {
+          "id": "nevers",
+          "role": "RC Nevers",
+          "name": "RC Nevers",
+          "colour": "#1a3a5c"
+        },
+        {
+          "id": "oyonnax",
+          "role": "RC Oyonnax",
+          "name": "RC Oyonnax",
+          "colour": "#c02f3a"
+        },
+        {
+          "id": "provence",
+          "role": "RC Provence",
+          "name": "RC Provence",
+          "colour": "#0e0e0e"
+        },
+        {
+          "id": "valence",
+          "role": "RC Valence",
+          "name": "RC Valence",
+          "colour": "#7a0c2e"
+        }
+      ]
+    },
+    {
+      "id": "jl1",
+      "name": "Japan Division One",
+      "clubs": [
+        {
+          "id": "bravelupus",
+          "role": "Fuchu RFC",
+          "name": "Fuchu RFC",
+          "colour": "#c0392f"
+        },
+        {
+          "id": "spears",
+          "role": "Funabashi RFC",
+          "name": "Funabashi RFC",
+          "colour": "#c02f3a"
+        },
+        {
+          "id": "steelers",
+          "role": "Kobe RFC",
+          "name": "Kobe RFC",
+          "colour": "#7a0c2e"
+        },
+        {
+          "id": "verblitz",
+          "role": "Mikawa RFC",
+          "name": "Mikawa RFC",
+          "colour": "#a31207"
+        },
+        {
+          "id": "dynaboars",
+          "role": "Sagamihara RFC",
+          "name": "Sagamihara RFC",
+          "colour": "#7a1027"
+        },
+        {
+          "id": "wildknights",
+          "role": "Saitama RFC",
+          "name": "Saitama RFC",
+          "colour": "#123a7a"
+        },
+        {
+          "id": "blackrams",
+          "role": "Setagaya RFC",
+          "name": "Setagaya RFC",
+          "colour": "#0e0e0e"
+        },
+        {
+          "id": "bluerevs",
+          "role": "Shizuoka RFC",
+          "name": "Shizuoka RFC",
+          "colour": "#1e5aa8"
+        },
+        {
+          "id": "hondaheat",
+          "role": "Suzuka RFC",
+          "name": "Suzuka RFC",
+          "colour": "#c0392f"
+        },
+        {
+          "id": "sungoliath",
+          "role": "Tokyo RFC",
+          "name": "Tokyo RFC",
+          "colour": "#f2c200"
+        },
+        {
+          "id": "drocks",
+          "role": "Urayasu RFC",
+          "name": "Urayasu RFC",
+          "colour": "#12295c"
+        },
+        {
+          "id": "canon",
+          "role": "Yokohama RFC",
+          "name": "Yokohama RFC",
+          "colour": "#c0392f"
+        }
+      ]
+    },
+    {
+      "id": "natl1",
+      "name": "English National One",
+      "clubs": [
+        {
+          "id": "moseley",
+          "role": "Birmingham RFC",
+          "name": "Birmingham RFC",
+          "colour": "#c02f3a"
+        },
+        {
+          "id": "stortford",
+          "role": "Bishop's Stortford RFC",
+          "name": "Bishop's Stortford RFC",
+          "colour": "#12295c"
+        },
+        {
+          "id": "blackheath",
+          "role": "Blackheath RFC",
+          "name": "Blackheath RFC",
+          "colour": "#c02f3a"
+        },
+        {
+          "id": "cinderford",
+          "role": "Cinderford RFC",
+          "name": "Cinderford RFC",
+          "colour": "#0a5c36"
+        },
+        {
+          "id": "darlington",
+          "role": "Darlington RFC",
+          "name": "Darlington RFC",
+          "colour": "#12295c"
+        },
+        {
+          "id": "esher",
+          "role": "Esher RFC",
+          "name": "Esher RFC",
+          "colour": "#7a0c2e"
+        },
+        {
+          "id": "leedstykes",
+          "role": "Leeds RFC",
+          "name": "Leeds RFC",
+          "colour": "#1e5aa8"
+        },
+        {
+          "id": "plymouth",
+          "role": "Plymouth RFC",
+          "name": "Plymouth RFC",
+          "colour": "#0a3b2e"
+        },
+        {
+          "id": "rams",
+          "role": "Reading RFC",
+          "name": "Reading RFC",
+          "colour": "#0e0e0e"
+        },
+        {
+          "id": "rosslyn",
+          "role": "Roehampton RFC",
+          "name": "Roehampton RFC",
+          "colour": "#c02f3a"
+        },
+        {
+          "id": "salefc",
+          "role": "Sale FC",
+          "name": "Sale FC",
+          "colour": "#12295c"
+        },
+        {
+          "id": "sedgley",
+          "role": "Sedgley Park RFC",
+          "name": "Sedgley Park RFC",
+          "colour": "#0a5c36"
+        }
+      ]
+    },
+    {
+      "id": "mrc",
+      "name": "Major Rugby Competition",
+      "clubs": [
+        {
+          "id": "california",
+          "role": "California RFC",
+          "name": "California RFC",
+          "colour": "#b3202a"
+        },
+        {
+          "id": "charlotte",
+          "role": "Charlotte RFC",
+          "name": "Charlotte RFC",
+          "colour": "#1e5aa8"
+        },
+        {
+          "id": "chicago",
+          "role": "Chicago RFC",
+          "name": "Chicago RFC",
+          "colour": "#1f6b3a"
+        },
+        {
+          "id": "newengland",
+          "role": "New England RFC",
+          "name": "New England RFC",
+          "colour": "#c02f3a"
+        },
+        {
+          "id": "seattle",
+          "role": "Seattle RFC",
+          "name": "Seattle RFC",
+          "colour": "#0e0e0e"
+        },
+        {
+          "id": "washington",
+          "role": "Washington RFC",
+          "name": "Washington RFC",
+          "colour": "#12295c"
+        }
+      ]
+    }
+  ],
+  "women": [
+    {
+      "id": "w:pwr",
+      "name": "English Women's Premier Division",
+      "clubs": [
+        {
+          "id": "w:bristol",
+          "role": "Bristol RFC Women",
+          "name": "Bristol RFC",
+          "colour": "#0a2240"
+        },
+        {
+          "id": "w:trailfinders",
+          "role": "Ealing RFC Women",
+          "name": "Ealing RFC",
+          "colour": "#0e5a3a"
+        },
+        {
+          "id": "w:exeter",
+          "role": "Exeter RFC Women",
+          "name": "Exeter RFC",
+          "colour": "#000000"
+        },
+        {
+          "id": "w:glosharty",
+          "role": "Gloucester RFC Women",
+          "name": "Gloucester RFC",
+          "colour": "#8b0d32"
+        },
+        {
+          "id": "w:leicester",
+          "role": "Leicester RFC Women",
+          "name": "Leicester RFC",
+          "colour": "#00563f"
+        },
+        {
+          "id": "w:loughborough",
+          "role": "Loughborough RFC Women",
+          "name": "Loughborough RFC",
+          "colour": "#3b1d6e"
+        },
+        {
+          "id": "w:quins",
+          "role": "Quins Rugby Women",
+          "name": "Quins Rugby",
+          "colour": "#006747"
+        },
+        {
+          "id": "w:sale",
+          "role": "Sale RFC Women",
+          "name": "Sale RFC",
+          "colour": "#001a4d"
+        },
+        {
+          "id": "w:saracens",
+          "role": "Sarries RFC Women",
+          "name": "Sarries RFC",
+          "colour": "#000000"
+        }
+      ]
+    },
+    {
+      "id": "w:pac",
+      "name": "Women's Pacific Championship",
+      "clubs": [
+        {
+          "id": "w:blues",
+          "role": "Auckland RFC Women",
+          "name": "Auckland RFC",
+          "colour": "#0b1864"
+        },
+        {
+          "id": "w:brumbies",
+          "role": "Canberra RFC Women",
+          "name": "Canberra RFC",
+          "colour": "#002b54"
+        },
+        {
+          "id": "w:matatu",
+          "role": "Canterbury RFC Women",
+          "name": "Canterbury RFC",
+          "colour": "#c8102e"
+        },
+        {
+          "id": "w:drua",
+          "role": "Fiji RFC Women",
+          "name": "Fiji RFC",
+          "colour": "#0a14be"
+        },
+        {
+          "id": "w:waratahs",
+          "role": "New South Wales RFC Women",
+          "name": "New South Wales RFC",
+          "colour": "#0085ca"
+        },
+        {
+          "id": "w:force",
+          "role": "Perth RFC Women",
+          "name": "Perth RFC",
+          "colour": "#054992"
+        },
+        {
+          "id": "w:reds",
+          "role": "Queensland RFC Women",
+          "name": "Queensland RFC",
+          "colour": "#98022c"
+        },
+        {
+          "id": "w:chiefs",
+          "role": "Waikato RFC Women",
+          "name": "Waikato RFC",
+          "colour": "#0e0e0e"
+        },
+        {
+          "id": "w:hurricanes",
+          "role": "Wellington RFC Women",
+          "name": "Wellington RFC",
+          "colour": "#f8d000"
+        }
+      ]
+    },
+    {
+      "id": "w:e1",
+      "name": "French Women's Division 1",
+      "clubs": [
+        {
+          "id": "w:toulon",
+          "role": "AS Toulon Women",
+          "name": "AS Toulon",
+          "colour": "#c8102e"
+        },
+        {
+          "id": "w:blagnac",
+          "role": "RC Blagnac Women",
+          "name": "RC Blagnac",
+          "colour": "#c8102e"
+        },
+        {
+          "id": "w:bobigny",
+          "role": "RC Bobigny Women",
+          "name": "RC Bobigny",
+          "colour": "#c8102e"
+        },
+        {
+          "id": "w:bordeaux",
+          "role": "RC Bordeaux Women",
+          "name": "RC Bordeaux",
+          "colour": "#6b2231"
+        },
+        {
+          "id": "w:grenoble",
+          "role": "RC Grenoble Women",
+          "name": "RC Grenoble",
+          "colour": "#0a2240"
+        },
+        {
+          "id": "w:larochelle",
+          "role": "RC La Rochelle Women",
+          "name": "RC La Rochelle",
+          "colour": "#0e0e0e"
+        },
+        {
+          "id": "w:lyon",
+          "role": "RC Lyon Women",
+          "name": "RC Lyon",
+          "colour": "#c8102e"
+        },
+        {
+          "id": "w:montpellier",
+          "role": "RC Montpellier Women",
+          "name": "RC Montpellier",
+          "colour": "#0a2240"
+        },
+        {
+          "id": "w:romagnat",
+          "role": "RC Romagnat Women",
+          "name": "RC Romagnat",
+          "colour": "#f2e500"
+        },
+        {
+          "id": "w:toulouse",
+          "role": "RC Toulouse Women",
+          "name": "RC Toulouse",
+          "colour": "#c8102e"
+        }
+      ]
+    },
+    {
+      "id": "w:celt",
+      "name": "Celtic Provinces Cup",
+      "clubs": [
+        {
+          "id": "w:wolfhounds",
+          "role": "Belfast RFC Women",
+          "name": "Belfast RFC",
+          "colour": "#ffffff"
+        },
+        {
+          "id": "w:clovers",
+          "role": "Dublin RFC Women",
+          "name": "Dublin RFC",
+          "colour": "#005daa"
+        },
+        {
+          "id": "w:edinburgh",
+          "role": "Edinburgh RFC Women",
+          "name": "Edinburgh RFC",
+          "colour": "#1b2a4a"
+        },
+        {
+          "id": "w:glasgow",
+          "role": "Glasgow RFC Women",
+          "name": "Glasgow RFC",
+          "colour": "#000000"
+        },
+        {
+          "id": "w:brython",
+          "role": "North Wales RFC Women",
+          "name": "North Wales RFC",
+          "colour": "#c8102e"
+        },
+        {
+          "id": "w:gwalia",
+          "role": "South Wales RFC Women",
+          "name": "South Wales RFC",
+          "colour": "#1b4b9b"
+        }
+      ]
+    },
+    {
+      "id": "w:champ",
+      "name": "English Women's Championship",
+      "clubs": [
+        {
+          "id": "w:barnsley",
+          "role": "Barnsley RFC Women",
+          "name": "Barnsley RFC",
+          "colour": "#172447"
+        },
+        {
+          "id": "w:bathw",
+          "role": "Bath RFC Women",
+          "name": "Bath RFC",
+          "colour": "#003c71"
+        },
+        {
+          "id": "w:beckenham",
+          "role": "Beckenham RFC Women",
+          "name": "Beckenham RFC",
+          "colour": "#1b4f9c"
+        },
+        {
+          "id": "w:blaydon",
+          "role": "Blaydon RFC Women",
+          "name": "Blaydon RFC",
+          "colour": "#c41e24"
+        },
+        {
+          "id": "w:buckingham",
+          "role": "Buckingham RFC Women",
+          "name": "Buckingham RFC",
+          "colour": "#007a33"
+        },
+        {
+          "id": "w:buryse",
+          "role": "Bury St Edmunds RFC Women",
+          "name": "Bury St Edmunds RFC",
+          "colour": "#14663b"
+        },
+        {
+          "id": "w:cheltenham",
+          "role": "Cheltenham RFC Women",
+          "name": "Cheltenham RFC",
+          "colour": "#c8102e"
+        },
+        {
+          "id": "w:trojans",
+          "role": "Eastleigh RFC Women",
+          "name": "Eastleigh RFC",
+          "colour": "#0c1f45"
+        },
+        {
+          "id": "w:exeteruni",
+          "role": "Exeter University RFC Women",
+          "name": "Exeter University RFC",
+          "colour": "#00693c"
+        },
+        {
+          "id": "w:harrogate",
+          "role": "Harrogate RFC Women",
+          "name": "Harrogate RFC",
+          "colour": "#0e0e0e"
+        },
+        {
+          "id": "w:ivybridge",
+          "role": "Ivybridge RFC Women",
+          "name": "Ivybridge RFC",
+          "colour": "#14452f"
+        },
+        {
+          "id": "w:kenilworth",
+          "role": "Kenilworth RFC Women",
+          "name": "Kenilworth RFC",
+          "colour": "#1f5ecb"
+        },
+        {
+          "id": "w:lichfield",
+          "role": "Lichfield RFC Women",
+          "name": "Lichfield RFC",
+          "colour": "#2f6b57"
+        },
+        {
+          "id": "w:londonirish",
+          "role": "London Hibernians RFC Women",
+          "name": "London Hibernians RFC",
+          "colour": "#006238"
+        },
+        {
+          "id": "w:loughtown",
+          "role": "Loughborough Town RFC Women",
+          "name": "Loughborough Town RFC",
+          "colour": "#4b2e83"
+        },
+        {
+          "id": "w:nbristol",
+          "role": "North Bristol RFC Women",
+          "name": "North Bristol RFC",
+          "colour": "#1051a5"
+        },
+        {
+          "id": "w:novocast",
+          "role": "Novocastrians RFC Women",
+          "name": "Novocastrians RFC",
+          "colour": "#a6192e"
+        },
+        {
+          "id": "w:richmondw",
+          "role": "Richmond RFC Women",
+          "name": "Richmond RFC",
+          "colour": "#cfb53b"
+        },
+        {
+          "id": "w:oldalbanian",
+          "role": "St Albans RFC Women",
+          "name": "St Albans RFC",
+          "colour": "#7a1f2b"
+        },
+        {
+          "id": "w:thurrock",
+          "role": "Thurrock RFC Women",
+          "name": "Thurrock RFC",
+          "colour": "#0e0e0e"
+        }
+      ]
+    },
+    {
+      "id": "w:e2",
+      "name": "French Women's Division 2",
+      "clubs": [
+        {
+          "id": "w:sfparis",
+          "role": "AS Paris Women",
+          "name": "AS Paris",
+          "colour": "#0a2240"
+        },
+        {
+          "id": "w:bayonne",
+          "role": "RC Bayonne Women",
+          "name": "RC Bayonne",
+          "colour": "#0a2240"
+        },
+        {
+          "id": "w:brive",
+          "role": "RC Brive Women",
+          "name": "RC Brive",
+          "colour": "#0e0e0e"
+        },
+        {
+          "id": "w:rcfrance",
+          "role": "RC Colombes Women",
+          "name": "RC Colombes",
+          "colour": "#87ceeb"
+        },
+        {
+          "id": "w:colomiers",
+          "role": "RC Colomiers Women",
+          "name": "RC Colomiers",
+          "colour": "#4b2e83"
+        },
+        {
+          "id": "w:nancy",
+          "role": "RC Nancy Women",
+          "name": "RC Nancy",
+          "colour": "#c8102e"
+        },
+        {
+          "id": "w:lons",
+          "role": "RC Pau Women",
+          "name": "RC Pau",
+          "colour": "#0a5c36"
+        },
+        {
+          "id": "w:rennes",
+          "role": "RC Rennes Women",
+          "name": "RC Rennes",
+          "colour": "#c8102e"
+        },
+        {
+          "id": "w:rouen",
+          "role": "RC Rouen Women",
+          "name": "RC Rouen",
+          "colour": "#0a2240"
+        },
+        {
+          "id": "w:villeneuve",
+          "role": "RC Villeneuve Women",
+          "name": "RC Villeneuve",
+          "colour": "#c8102e"
+        }
+      ]
+    }
+  ],
+  "nations": [
+    {
+      "id": "RSA",
+      "name": "South Africa",
+      "role": "South Africa (national team)"
+    },
+    {
+      "id": "NZL",
+      "name": "New Zealand",
+      "role": "New Zealand (national team)"
+    },
+    {
+      "id": "FRA",
+      "name": "France",
+      "role": "France (national team)"
+    },
+    {
+      "id": "IRE",
+      "name": "Ireland",
+      "role": "Ireland (national team)"
+    },
+    {
+      "id": "ENG",
+      "name": "England",
+      "role": "England (national team)"
+    },
+    {
+      "id": "ARG",
+      "name": "Argentina",
+      "role": "Argentina (national team)"
+    },
+    {
+      "id": "SCO",
+      "name": "Scotland",
+      "role": "Scotland (national team)"
+    },
+    {
+      "id": "AUS",
+      "name": "Australia",
+      "role": "Australia (national team)"
+    },
+    {
+      "id": "FIJ",
+      "name": "Fiji",
+      "role": "Fiji (national team)"
+    },
+    {
+      "id": "ITA",
+      "name": "Italy",
+      "role": "Italy (national team)"
+    },
+    {
+      "id": "WAL",
+      "name": "Wales",
+      "role": "Wales (national team)"
+    },
+    {
+      "id": "JPN",
+      "name": "Japan",
+      "role": "Japan (national team)"
+    },
+    {
+      "id": "SAM",
+      "name": "Samoa",
+      "role": "Samoa (national team)"
+    },
+    {
+      "id": "TGA",
+      "name": "Tonga",
+      "role": "Tonga (national team)"
+    },
+    {
+      "id": "USA",
+      "name": "United States",
+      "role": "United States (national team)"
+    },
+    {
+      "id": "CAN",
+      "name": "Canada",
+      "role": "Canada (national team)"
+    }
+  ]
+}

@@ -18,7 +18,7 @@
 import { newGame } from '../src/game/newgame'
 import { simMatch } from '../src/game/matchEngine'
 import { processWeekAndAdvance } from '../src/game/season'
-import { loanTargets, loanIn } from '../src/game/loans'
+import { loanTargets, loanIn, loanTerms } from '../src/game/loans'
 import { mulberry32 } from '../src/game/rng'
 import type { GameState } from '../src/game/model'
 
@@ -40,13 +40,20 @@ const freshBothSquads = (g: GameState, homeId: string, awayId: string) => {
 // ---- 1 + 3: sin-bin honesty and the late-game arc, from the same matches ----
 {
   let binViolations = 0
-  let tries = 0, lateTries = 0
-  for (const seed of [7, 88, 999]) {
+  let tries = 0, lateTries = 0, matches = 0
+  // FIFTEEN WORLDS, NOT THREE (28 Sep 2026). 150 matches is about 950 tries,
+  // so the late share carries a standard error of 1.4 points, and it sits
+  // about one point over its floor of 26%: four shifted seed lists read
+  // 27.6, 28.3, 26.8 and 25.8% (FAIL). 750 matches (about 4,800 tries) bring
+  // the error to 0.65 points (27.9% measured, three of them clear); the
+  // floor is where it was.
+  for (const seed of [7, 88, 999, 1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13]) {
     const g = newGame('leicester', 'Audit', seed)
     const fxs = g.fixtures.filter(f => f.compId === 'prem').slice(0, 50)
     fxs.forEach((fx, i) => {
       freshBothSquads(g, fx.homeId, fx.awayId)
       simMatch(g, fx, mulberry32(seed * 31 + i), true)
+      matches++
       const binned: { pid: number; from: number; teamId: string }[] = []
       for (const e of fx.events ?? []) {
         if (e.type === 'YC' && e.playerId != null) binned.push({ pid: e.playerId, from: e.min, teamId: e.teamId })
@@ -73,7 +80,7 @@ const freshBothSquads = (g: GameState, homeId: string, awayId: string) => {
       }
     })
   }
-  ok(binViolations === 0, `nobody scores from inside the sin bin (${binViolations} violations in 150 matches)`)
+  ok(binViolations === 0, `nobody scores from inside the sin bin (${binViolations} violations in ${matches} matches)`)
   const lateShare = (100 * lateTries) / Math.max(1, tries)
   ok(lateShare > 26, `the last quarter opens up: ${lateShare.toFixed(1)}% of ${tries} tries came after the hour (flat play is ~23.7%, want > 26%)`)
 }
@@ -102,7 +109,11 @@ const freshBothSquads = (g: GameState, homeId: string, awayId: string) => {
 {
   const penGoalsConcededPerGame = (aggression: number) => {
     let pens = 0, games = 0
-    for (const seed of [11, 222, 3333]) {
+    // six worlds, not three (28 Sep 2026): at 54 games an arm the counts
+    // are about 70 and 110 penalties, the ratio's log error is 0.15 and the
+    // measured 1.54-1.80x sat only two of them over 1.15x; 108 games an arm
+    // puts it over three
+    for (const seed of [11, 222, 3333, 44, 555, 6666]) {
       const g = newGame('northampton', 'Audit', seed)
       Object.assign(g.clubs['northampton'].tactic, { aggression })
       const fxs = g.fixtures
@@ -126,17 +137,25 @@ const freshBothSquads = (g: GameState, homeId: string, awayId: string) => {
 
 // ---- 5: a loan-in is charged at half wage -----------------------------------
 {
+  // THE FIRST MAN WHO WILL COME, NOT THE FIRST ON THE LIST (28 Sep 2026).
+  // Loans are negotiated since 1.2.8, and this took loanTargets()[0] and never
+  // checked the answer: on three of four shifted seed lists the parent said
+  // no, nobody arrived, both worlds were identical and the probe read "saved
+  // 0/wk" as a ledger bug. The claim is about the ledger, so the subject is
+  // made eligible: the first target whose club accepts a season at half
+  // wage, and the loan is confirmed before anything is compared.
   const mk = () => {
     const g = newGame('northampton', 'Audit', 55)
-    const t = loanTargets(g)[0]
+    const t = loanTargets(g).find(p => loanTerms(g, p.id, 'season', 0.5).ok)
     if (!t) return null
-    loanIn(g, t.id)
+    loanIn(g, t.id, 'season', 0.5)
+    if (g.players[t.id].loanFrom == null) return null
     return { g, pid: t.id }
   }
   const a = mk()
   const b = mk()
   if (!a || !b) {
-    ok(false, 'loan market offered nobody to test with')
+    ok(false, 'loan market offered nobody who would come, or the loan did not land')
   } else {
     // identical worlds, identical rng path - the only difference is whether
     // the ledger sees him as a loan, so the week's balances differ by

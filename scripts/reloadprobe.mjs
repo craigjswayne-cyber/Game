@@ -56,10 +56,10 @@ const snapshot = () => page.evaluate(() => {
     // changed which players AI clubs were carrying, and so which men got hurt.
     hurt: body.includes('Name his replacement before play restarts'),
     interval: /Start Second Half|Play the Final Quarter/.test(body),
-    // IS IT PAUSED? The first control is Play/Pause and it carries a play glyph
-    // only when the match is stopped. Read rather than assumed, because pressing
+    // IS IT PAUSED? The first control is Play/Pause and it says so in
+    // data-playing. Read rather than assumed, because pressing
     // it while the match is running would pause the thing this probe is driving.
-    paused: (document.querySelector('.speed-controls .btn')?.textContent ?? '').includes('\u25B6'),
+    paused: document.querySelector('.speed-controls [data-ctl=play]')?.getAttribute('data-playing') === 'false',
     finished: !!document.querySelector('.ft-stamp') || body.includes('Continue to Results'),
   }
 })

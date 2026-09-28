@@ -74,7 +74,9 @@ export const emptyStats = (): SeasonStats => ({
   yc: 0, rc: 0, ratingSum: 0, motm: 0, mins: 0, mSum: 0, mApps: 0,
 })
 
-/** 1,300+ minutes (~17 full games) is the red zone: tired bodies break. */
+/** 1,300+ minutes (about sixteen full eighty-minute games) is the red zone:
+ *  tired bodies break. Counted from the minutes each man was actually on the
+ *  pitch (matchEngine finalizeMatch), not a flat figure per appearance. */
 export const inRedZone = (p: { stats: { mins: number } }) => p.stats.mins >= 1300
 
 /** Partnership chemistry: lineup slot pairs whose familiarity matters -
@@ -239,7 +241,7 @@ export function addGrudge(state: GameState, a: string, b: string, rk: string, rv
     const opp = a === state.userClubId ? b : a
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
-      subject: `🔥 Bad blood with ${state.clubs[opp].short}`,
+      subject: `Bad blood with ${state.clubs[opp].short}`,
       body: `There is genuine needle between the clubs now - ${reason}. The next meeting will be spicy: expect cards, a hostile crowd and a match where the form book means nothing.`,
       k: 'news.badBlood', v: { short: state.clubs[opp].short, reason_k: rk, ...(rv ?? {}) },
     })
@@ -337,6 +339,10 @@ export interface Player {
   exClub?: string | null
   /** appearances made at that former club before 2025 */
   exApps?: number
+  /** TRAINING'S OWED CHANGE (1.8.0, ageing.ts trainPoint): the part of a
+   *  trained point not yet paid for by a point elsewhere, in rating units.
+   *  Carried so the books balance exactly over a season. */
+  tdebt?: number
   /** the user's scouting knowledge of this player, 0-100 */
   sc: number
   /** away on a season loan */
@@ -584,6 +590,13 @@ export interface Club {
   /** how many head coaches this club has been through, so the next man's ideas
    *  are drawn afresh rather than inherited */
   coachGen?: number
+  /** THE PLAN FOR YOU (1.8.0, E9, oppcoach.ts setUpForUser): set the week
+   *  this club plays the manager, when it respects him, and undone the week
+   *  after. `base` is the club's own dials to put back, `ph` the philosophy
+   *  they belong to (a new coach in the meantime keeps his own), `r` how much
+   *  respect, `unit` the weakness it goes after. Absent on most weeks and on
+   *  every save written before it. */
+  vsUser?: { ph: string; base: Pick<Tactic, 'style' | 'tempo' | 'kicking' | 'aggression' | 'defLine' | 'defWidth' | 'kickStyle' | 'ruckContest'>; r: number; unit?: string }
   /** set-piece routines: how well drilled, and how well known */
   playbook?: Playbook
   /** bricks and mortar: levels 0-5 per facility, set from the club's standing */
@@ -766,6 +779,11 @@ export interface MatchEvent {
   min: number
   type: 'TRY' | 'CON' | 'PEN' | 'DG' | 'YC' | 'RC' | 'INJ' | 'SUB' | 'HT' | 'FT' | 'KO' | 'BRK'
   teamId: string
+  /** where the engine had the ball when the line was called, 0 at the home
+   *  side's own line and 100 at the away side's (1.7.4): the pitch draws the
+   *  play there instead of guessing it from momentum. Absent on events written
+   *  by an older build. */
+  fld?: number
   playerId?: number
   playerName?: string
   /** The line as it was CALLED, in English, always - and not display text.
@@ -935,6 +953,14 @@ export interface PressOption {
    *  good, mixed or bad fit - rather than by the fixed morale above. Absent on
    *  every item saved before 1.7.3, which keep answering as they always did. */
   tb?: string
+  /** THE PRESS BAROMETER (1.8.0, pressmood.ts). Morale for the WHOLE squad,
+   *  on the same scale as `morale` - the room hears how you talk about them
+   *  as a group. A few tenths at most. */
+  squad?: number
+  /** how the answer moves the press's own sentiment, on its -100..100 scale */
+  press?: number
+  /** talking a winning run up: the press turn on the squad a win sooner */
+  hype?: number
 }
 
 /** A subject a player can raise behind the office door. The office keeps a
@@ -983,6 +1009,28 @@ export interface PressItem {
   fit?: 'good' | 'mixed' | 'bad'
   /** set on discipline conversations: the incident this one resolves */
   incidentId?: number
+  /** what the answer did, recorded when it is given (pressmood.applyMoodAnswer)
+   *  so the coverage card can say it in words: squad morale, the terraces,
+   *  the press, the board, the man named, and whether the run was talked up.
+   *  Absent on everything answered before 1.8.0. */
+  fx?: { squad?: number; fans?: number; press?: number; board?: number; player?: number; hype?: boolean }
+}
+
+/** The press barometer (1.8.0, pressmood.ts): how the pack feel about the
+ *  manager, read off his results and moved by his answers. */
+export interface PressMood {
+  /** -100 hostile .. +100 adoring; 0 is neutral */
+  v: number
+  /** the absolute week results have been read through */
+  at: number
+  /** the club it was measured at - a new job starts level */
+  club: string
+  /** the season it was last settled in - the summer halves it */
+  s: number
+  /** a long winning run: the press are trying to unsettle the squad */
+  stir?: boolean
+  /** times the manager has talked this run up (brings `stir` a win closer) */
+  hype?: number
 }
 
 export interface TransferOffer {
@@ -1006,25 +1054,26 @@ export interface TransferOffer {
   raises?: number
 }
 
-/** Club infrastructure, levels 0-5 - bricks and mortar that outlast any squad. */
+/** Club infrastructure, levels 0-5 - bricks and mortar that outlast any squad.
+ *  `icon` is a glyphs.tsx name, not an emoji (owner, 27 Sep 2026). */
 export type FacilityId = 'gym' | 'kicking' | 'paddock' | 'briefing' | 'academy' | 'pitch' | 'recovery' | 'shop' | 'hospitality'
 export const MAX_FACILITY = 5
 export const FACILITY_INFO: Record<FacilityId, { name: string; icon: string; desc: string; base: number }> = {
-  pitch: { name: 'facilities.pitch', icon: '🏉', desc: 'facilities.pitchDesc', base: 260_000 },
-  gym: { name: 'facilities.gym', icon: '🏋️', desc: 'facilities.gymDesc', base: 350_000 },
-  recovery: { name: 'facilities.recovery', icon: '🧊', desc: 'facilities.recoveryDesc', base: 420_000 },
-  paddock: { name: 'facilities.paddock', icon: '🌱', desc: 'facilities.paddockDesc', base: 400_000 },
-  kicking: { name: 'facilities.kicking', icon: '🥅', desc: 'facilities.kickingDesc', base: 300_000 },
-  briefing: { name: 'facilities.briefing', icon: '📽️', desc: 'facilities.briefingDesc', base: 380_000 },
-  academy: { name: 'facilities.academy', icon: '🎓', desc: 'facilities.academyDesc', base: 500_000 },
-  shop: { name: 'facilities.shop', icon: '🛍️', desc: 'facilities.shopDesc', base: 240_000 },
+  pitch: { name: 'facilities.pitch', icon: 'pitch', desc: 'facilities.pitchDesc', base: 260_000 },
+  gym: { name: 'facilities.gym', icon: 'gym', desc: 'facilities.gymDesc', base: 350_000 },
+  recovery: { name: 'facilities.recovery', icon: 'recovery', desc: 'facilities.recoveryDesc', base: 420_000 },
+  paddock: { name: 'facilities.paddock', icon: 'paddock', desc: 'facilities.paddockDesc', base: 400_000 },
+  kicking: { name: 'facilities.kicking', icon: 'kicking', desc: 'facilities.kickingDesc', base: 300_000 },
+  briefing: { name: 'facilities.briefing', icon: 'briefing', desc: 'facilities.briefingDesc', base: 380_000 },
+  academy: { name: 'facilities.academy', icon: 'academy', desc: 'facilities.academyDesc', base: 500_000 },
+  shop: { name: 'facilities.shop', icon: 'store', desc: 'facilities.shopDesc', base: 240_000 },
   // F31: ground development past the turnstile. Capacity expansion already
   // exists (requestExpansion) and adds SEATS; this adds what each seat is
   // worth. Boxes, a members' lounge, a decent kitchen: the same crowd spends
   // more. Built as a facility rather than a new system because the estate
   // already handles levels, costs, board requests and weekly upkeep, and a
   // second parallel mechanism for buildings would be the same thing twice.
-  hospitality: { name: 'Hospitality & Boxes', icon: '🥂', desc: 'Corporate boxes and lounges: every home crowd is worth more at the gate.', base: 460_000 },
+  hospitality: { name: 'Hospitality & Boxes', icon: 'hospitality', desc: 'Corporate boxes and lounges: every home crowd is worth more at the gate.', base: 460_000 },
 }
 export const facilityCost = (info: { base: number }, level: number) => info.base * (level + 1)
 
@@ -1520,9 +1569,18 @@ export interface GameState {
   /** bumped on every appointment so the candidate market refreshes */
   staffSalt?: number
   mgr: ManagerStats
-  /** the three commercial slots and what is signed in them (F30). Absent on a
-   *  save written before the department existed; seedDeals fills it. */
-  deals?: Partial<Record<'shirt' | 'naming' | 'kit', import('./commercial').Deal>>
+  /** the commercial slots and what is signed in them (F30; the sleeve joined
+   *  in 1.8.0). Absent on a save written before the department existed;
+   *  seedDeals fills it. */
+  deals?: Partial<Record<import('./commercial').SlotId, import('./commercial').Deal>>
+  /** sponsor negotiations in progress this season, one per slot, and the
+   *  sponsors who walked out of one (1.8.0, sponsortalks.ts). Optional: a save
+   *  from before the negotiating table simply has no talks open. */
+  talks?: import('./sponsortalks').TalksState
+  /** this season's accounts and last season's, for the balance sheet (1.8.0,
+   *  books.ts). Optional: an older save opens its books the first week it plays. */
+  books?: import('./books').SeasonBooks
+  booksPrev?: import('./books').SeasonBooks
   /** what the dressing room makes of you, 0-100. Optional so old saves load. */
   mgrTrust?: number
   /** the manager's backstory, chosen at career creation (18B) */
@@ -1624,6 +1682,9 @@ export interface GameState {
   /** running press-conference tone: heavy praise breeds swagger, constant
    *  criticism breeds fragility. Decays weekly toward neutral. */
   pressTone?: number
+  /** the press barometer (1.8.0). Absent on older saves, which read as
+   *  neutral until the first weekly settle folds the season's results in. */
+  pressMood?: PressMood
   /** the board owes you one (objectives delivered) - spend it on a request */
   boardOwed?: boolean
   /** the season the ground was last extended - one stand a season */
@@ -1711,7 +1772,10 @@ export interface GameState {
   /** per-slot count of commercial deals ended early (v1.1.5): part of the
    *  offer hash, so each early exit deals three genuinely new offers - the
    *  gamble - while revisiting the screen still rerolls nothing */
-  dealReroll?: Partial<Record<'shirt' | 'naming' | 'kit', number>>
+  dealReroll?: Partial<Record<import('./commercial').SlotId, number>>
+  /** per-slot season a deal was last ended early (1.8.0): one early exit a
+   *  slot a season, so the gamble cannot be shopped round until it pays */
+  dealEndedSeason?: Partial<Record<import('./commercial').SlotId, number>>
   /** a trophy moment waiting to be celebrated full-screen */
   /** THE FULL-SCREEN MOMENT. Promotion, a title, an unbeaten season, a
    *  challenge finished - the rarest things the game has to show, and every
@@ -1723,6 +1787,8 @@ export interface GameState {
   celebration?: {
     headline: string
     sub: string
+    /** a glyphs.tsx name ('trophy', 'promoted'...); a save from before the
+     *  icon pass holds an emoji here, which draws nothing */
     icon: string
     hk?: string
     hv?: Record<string, string | number>
@@ -1768,8 +1834,13 @@ export interface GameState {
    *  pers0 is the kid's personality when the pairing was made, so graduation
    *  can tell "he BECAME his mentor" from "they always matched" - a
    *  Professional teaching a Professional is the second-best pairing in the
-   *  game and must not end at birth. Absent on pairs made before it existed. */
-  mentors?: { senior: number; kid: number; pers0?: Personality }[]
+   *  game and must not end at birth. Absent on pairs made before it existed.
+   *  since/ca0/taught/grew (1.8.0) are the pairing's ledger, so the Team
+   *  Report can show what the kid has actually taken from it: the week it
+   *  began, his rating then, the coached points by attribute, and the rating
+   *  points the pairing itself added (mentoring.mentorWeek). All absent on
+   *  older saves, which read as "nothing recorded yet". */
+  mentors?: { senior: number; kid: number; pers0?: Personality; since?: number; ca0?: number; taught?: Partial<Record<keyof Attrs, number>>; grew?: number }[]
   /** banked objectives already celebrated in the news this season, so hitting
    *  one makes the inbox exactly once (user: "get achievements into the news").
    *  Reset with the objectives themselves at rollover. */
@@ -2037,6 +2108,9 @@ export interface GameState {
   natHistory?: { nat: string; m: number; w: number; d: number; l: number }[]
   /** season index when the user took charge of the current club */
   tenureStart?: number
+  /** weeks in a row the board has sat at its floor (confidence 3 or under);
+   *  a sacking on results needs three (season.ts) */
+  boardFloorWeeks?: number
   /** club ids where the user has earned legend status - once, forever */
   legendOf?: string[]
   /** The manager's own age. A career has a length (career.ts): the clock is
@@ -2373,8 +2447,16 @@ export function closeNatTenure(state: GameState) {
  *    since v1.1.6 the offer itself arrives immediately instead. */
 export const LEGACY_NEWS_KEYS = ['news.dressingDown', 'news.pinnacle'] as const
 
-export const newsBody = (n: NewsItem): string => (n.k ? t(n.k, n.v) : n.body)
-export const newsSubject = (n: NewsItem): string => (n.k ? t(n.k + 'Subj', n.v) : n.subject)
+/** A story filed before the icon pass (owner, 27 Sep 2026: "use icons instead
+ *  of emojis") still has an emoji at the front of its English in an old save;
+ *  the reader loses it with the space after it. Flags (regional-indicator
+ *  pairs, and the black flag England, Scotland and Wales build on) stay, and
+ *  so do the typographic ★ ☆ ✓ ✕ ✗. */
+const OLD_EMOJI = /(?!\u{1F3F4}[\u{E0020}-\u{E007F}])[\u{1F000}-\u{1F1E5}\u{1F200}-\u{1FFFF}\u{2600}-\u{2604}\u{2607}-\u{2712}\u{2714}\u{2716}\u{2718}-\u{27BF}\u{2B50}\u{2B55}\u{23E9}-\u{23F3}]\u{FE0F}? ?/gu
+const noEmoji = (s: string): string => s.replace(OLD_EMOJI, '')
+
+export const newsBody = (n: NewsItem): string => (n.k ? t(n.k, n.v) : noEmoji(n.body))
+export const newsSubject = (n: NewsItem): string => (n.k ? t(n.k + 'Subj', n.v) : noEmoji(n.subject))
 
 /** What is wrong with him, in the reader's language - or in the English it was
  *  recorded in, on a save written before injuries carried a key. */

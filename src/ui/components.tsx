@@ -4,11 +4,51 @@ import { flagOf } from '../game/nations'
 import { kitCycle, kitHoops, kitPattern, kitQuarters, kitSleeves, kitTrim, type KitPattern } from '../game/kits'
 import { hasHoopRow } from '../game/kits'
 import { t } from '../game/i18n'
+import { Glyph } from './glyphs'
 import { showRewarded, type RewardedPlace } from '../game/monetise'
 // the store, for ClubLink's one job: opening a club. store.ts imports nothing
 // from ui/, so this direction is the only one and there is no cycle.
 import { useStore } from '../store'
 
+
+/**
+ * ---- FWDS & BCKS, THE STUDIO (1.8.0) ----
+ *
+ * The company behind the game, from the owner's artwork: a black rounded
+ * square with a white keyline, FWDS over BCKS with an ampersand between two
+ * rules. Drawn in markup rather than shipped as an image so it is sharp at
+ * every size and weighs nothing. The label is for screen readers; the letters
+ * themselves are decoration.
+ */
+export function StudioMark({ size = 44 }: { size?: number }) {
+  return (
+    <span className="studio-mark" role="img" aria-label="FWDS & BCKS" style={{ '--sm': `${size}px` } as CSSProperties}>
+      <b aria-hidden>FWDS</b>
+      <i aria-hidden><span />&amp;<span /></i>
+      <b aria-hidden>BCKS</b>
+    </span>
+  )
+}
+
+/**
+ * ---- AN ON/OFF SWITCH (1.8.0) ----
+ *
+ * Owner, with FM26's match settings on screen: "I like the toggle on/off
+ * option". A real switch rather than a button whose label flips, so the state
+ * reads at a glance and the tap target is the whole row. role="switch" with
+ * aria-checked is what a screen reader expects of one.
+ */
+export function Toggle({ on, onChange, label, sub }: { on: boolean; onChange: (v: boolean) => void; label: ReactNode; sub?: ReactNode }) {
+  return (
+    <button type="button" role="switch" aria-checked={on} className={`toggle-row${on ? ' on' : ''}`} onClick={() => onChange(!on)}>
+      <span className="toggle-text">
+        <span className="toggle-label">{label}</span>
+        {sub && <span className="toggle-sub">{sub}</span>}
+      </span>
+      <span className="toggle" aria-hidden><i /></span>
+    </button>
+  )
+}
 
 /**
  * ---- THE PHASE RUGBY BALL ----
@@ -148,7 +188,10 @@ export function PosBadge({ pos }: { pos: string }) {
 
 export function FormPill({ v }: { v: number }) {
   const bg = v >= 7.5 ? 'var(--text-positive)' : v >= 6 ? 'var(--primary-pressed)' : v >= 4.5 ? 'var(--border-strong)' : 'var(--text-negative)'
-  return <span className="form-pill" style={{ background: bg }}>{v.toFixed(1)}</span>
+  // the grey band is marked so the day theme can ink it dark: white on its
+  // light grey was under 2:1 (UI QA, 1.8.0)
+  const mid = v < 6 && v >= 4.5
+  return <span className={`form-pill${mid ? ' mid' : ''}`} style={{ background: bg }}>{v.toFixed(1)}</span>
 }
 
 export function Nat({ code }: { code: string }) {
@@ -229,7 +272,7 @@ export function ClubStars({ rep, size = 12 }: { rep: number; size?: number }) {
 }
 
 export function availabilityTag(p: Player, week: number): { txt: string; color: string } | null {
-  if (p.injury) return { txt: t('common.injTag', { n: Math.max(0, p.injury.until - week) }), color: 'var(--text-negative)' }
+  if (p.injury) return { txt: t('common.injTag', { n: Math.max(1, p.injury.until - week) }), color: 'var(--text-negative)' }
   if (p.bans > 0) return { txt: t('common.banTag', { n: p.bans }), color: 'var(--text-negative)' }
   if (p.natSquad) return { txt: t('common.intlTag'), color: 'var(--gold)' }
   if ((p.rust ?? 0) > 0) return { txt: t('medical.rusty', { n: p.rust ?? 0 }), color: 'var(--gold)' }
@@ -237,11 +280,19 @@ export function availabilityTag(p: Player, week: number): { txt: string; color: 
   return null
 }
 
+/** A small icon beside a name that carries meaning (injured, on the list,
+ *  the scout's focus): the job an emoji used to do, drawn as a glyph at the
+ *  text's own size in a token colour (owner, 27 Sep 2026: "icons instead of
+ *  emojis"). The title is the word for a reader who cannot see the icon. */
+export function Mark({ name, color, title }: { name: string; color?: string; title?: string }) {
+  return <span className="mark" style={color ? { color } : undefined} title={title} aria-label={title}><Glyph name={name} /></span>
+}
+
 export function AvailTag({ p, g }: { p: Player; g: GameState }) {
   // `tag`, not `t`: t() is the translator
   const tag = availabilityTag(p, g.week)
   if (!tag) return null
-  return <span style={{ color: tag.color, fontWeight: 700, fontSize: 10.5 }}>{tag.txt}</span>
+  return <span style={{ color: tag.color, fontWeight: 700, fontSize: 11 }}>{tag.txt}</span>
 }
 
 export function attrClass(v: number): string {

@@ -284,16 +284,30 @@ console.log('\n--- 9. a Test weekend is one card, and the names on it are still 
   // reports, and a red probe that had found no fault in the thing it tests.
   // So the job is held open on purpose. The claim is the SHAPE of the reports,
   // not the manager's luck.
+  //
+  // COLLECTED AS THEY ARRIVE (28 Sep 2026). This read g9.news after 130 weeks,
+  // but the log is trimmed to NEWS_KEEP (250), so only the last few months of
+  // camp reports were ever judged, and whether a round-up happened to survive
+  // the trim was down to how chatty the rest of the world was that season:
+  // the same trap memoprobe fell into. Picked up by id each week, every report
+  // of the three seasons is counted.
+  const camp: typeof g9.news = []
+  const campIds = new Set<number>()
   for (let w = 0; w < 130; w++) {
     if (!g9.unemployed) {
       const club = g9.clubs[g9.userClubId]
       if (club) club.boardConfidence = Math.max(club.boardConfidence, 55)
     }
     processWeekAndAdvance(g9)
+    for (const n of g9.news) {
+      if ((n.k === 'news.caps' || n.k === 'news.capsMore' || n.k === 'news.campRound') && !campIds.has(n.id)) {
+        campIds.add(n.id); camp.push(n)
+      }
+    }
   }
   ok(!g9.unemployed, 'the manager held his job for the three seasons under test')
-  const singles = g9.news.filter(n => n.k === 'news.caps' || n.k === 'news.capsMore')
-  const rounds = g9.news.filter(n => n.k === 'news.campRound')
+  const singles = camp.filter(n => n.k === 'news.caps' || n.k === 'news.capsMore')
+  const rounds = camp.filter(n => n.k === 'news.campRound')
   ok(singles.length > 0 && rounds.length > 0,
     `both shapes occur over three seasons (${singles.length} single, ${rounds.length} round-ups)`)
   ok(singles.every(n => (n.playerIds?.length ?? 0) > 0),

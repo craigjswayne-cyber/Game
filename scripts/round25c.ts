@@ -77,7 +77,7 @@ console.log('\nobjectives, ageing, and two full seasons watched:\n')
   while (g.season === start && guard++ < 60) {
     keepJob(g); processWeekAndAdvance(g)
     for (const n of g.news) {
-      if (n.subject.startsWith('✅ Board objective met')) {
+      if (n.subject.startsWith('Board objective met')) {
         achieved.set(n.subject + '|' + n.id, 1)
       }
     }

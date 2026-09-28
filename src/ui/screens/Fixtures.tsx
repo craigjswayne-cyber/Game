@@ -6,7 +6,7 @@ import { MIDWEEK_OFF, fixtureDate, weekDate, type Fixture, type MatchEvent } fro
 import { ClubLink, CrestT, Jersey, SectionTitle } from '../components'
 import LeagueTable from '../LeagueTable'
 import { stageShort } from './Home'
-import { t } from '../../game/i18n'
+import { t, compLabel } from '../../game/i18n'
 import { arrangeMidweekFriendly, friendlyDate, friendlySuggestions, friendlyWeeks } from '../../game/season'
 
 export default function Fixtures() {
@@ -59,7 +59,7 @@ export default function Fixtures() {
         onClick={() => setComp('ALL')}>{t(page === 'table' ? 'fixtures.myLeague' : 'fixtures.allComps')}</button>
       {comps.map(cid => (
         <button key={cid} className="preset-chip" style={comp === cid ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
-          onClick={() => setComp(cid)}>{game.comps[cid]?.short ?? (cid === 'fr' ? t('common.friendly') : cid)}</button>
+          onClick={() => setComp(cid)}>{compLabel(game.comps[cid]?.short) ?? (cid === 'fr' ? t('common.friendly') : cid)}</button>
       ))}
       {/* Played and To Come are gone at the user's request. The list is in date
           order with the next match highlighted, so where you are in the season
@@ -81,7 +81,7 @@ export default function Fixtures() {
             : tableComp?.table.some(r => r.p > 0)
               ? t('fixtures.roundsPlayed', { n: Math.max(...tableComp.table.map(r => r.p)) })
               : t('fixtures.noGamesYet')}>
-            {tableComp?.name ?? t('fixtures.leagueTable')}
+            {compLabel(tableComp?.name) ?? t('fixtures.leagueTable')}
           </SectionTitle>
           {chips}
           {tableComp && tableId
@@ -95,8 +95,8 @@ export default function Fixtures() {
         <>
       {weekend.length > 0 && (
         <div className="card" style={{ padding: '10px 0' }}>
-          <h3 style={{ textAlign: 'center', fontFamily: 'var(--cond)', letterSpacing: 3, fontSize: 15 }}>{t('fixtures.thisWeekend')}</h3>
-          <div className="meta" style={{ textAlign: 'center', marginBottom: 4 }}>{weekDate(game.season, game.week)} · {game.comps[leagueId!]?.short}</div>
+          <h3 style={{ textAlign: 'center', fontFamily: 'var(--cond)', letterSpacing: 3, fontSize: 16 }}>{t('fixtures.thisWeekend')}</h3>
+          <div className="meta" style={{ textAlign: 'center', marginBottom: 4 }}>{weekDate(game.season, game.week)} · {compLabel(game.comps[leagueId!]?.short)}</div>
           {weekend.map(f => (
             /* YOUR game is marked by tinting the row and bolding YOUR name, and the V
                stays in the middle like every other row (user: "highlight the team
@@ -135,7 +135,7 @@ export default function Fixtures() {
                     {f.played && f.events?.length ? <span className="muted" style={{ fontSize: 10 }}>▸</span> : null}
                   </span>
                 </td>
-                <td className="muted" style={{ whiteSpace: 'nowrap' }}>{game.comps[f.compId]?.short ?? (f.compId === 'fr' ? t('common.friendly') : f.compId)}{f.stage ? ` ${stageShort(f.stage)}` : ''}</td>
+                <td className="muted" style={{ whiteSpace: 'nowrap' }}>{compLabel(game.comps[f.compId]?.short) ?? (f.compId === 'fr' ? t('common.friendly') : f.compId)}{f.stage ? ` ${stageShort(f.stage)}` : ''}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{res(f)}</td>
               </tr>
             )
@@ -185,7 +185,7 @@ export default function Fixtures() {
                         </span>
                       </td>
                       <td className="muted" style={{ whiteSpace: 'nowrap', fontSize: 11 }}>
-                        {game.comps[game.clubs[id]?.leagueId ?? '']?.short ?? ''}
+                        {compLabel(game.comps[game.clubs[id]?.leagueId ?? '']?.short) ?? ''}
                       </td>
                       <td>
                         {/* a real tap target: geosweep holds every button to 44px

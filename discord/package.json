@@ -1,0 +1,20 @@
+{
+  "name": "phase-rugby-discord",
+  "private": true,
+  "version": "1.0.0",
+  "description": "The PHASE: Rugby Manager community server: club tags, language roles and bug reports.",
+  "type": "module",
+  "engines": {
+    "node": ">=20.6"
+  },
+  "scripts": {
+    "start": "node --env-file=.env src/index.js",
+    "register": "node --env-file=.env src/register.js",
+    "invite": "node --env-file=.env src/invite.js",
+    "teams": "cd .. && npx vite-node discord/tools/export-teams.ts",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.27.0"
+  }
+}

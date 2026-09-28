@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useStore } from '../../store'
 import { teamShort } from '../../game/matchEngine'
 import { fixtureDate } from '../../game/model'
-import { CrestT, PosBadge, SectionTitle, Stars } from '../components'
+import { CrestT, Mark, PosBadge, SectionTitle, Stars } from '../components'
 import { acadLeagueName, acadStandings, academySquad, academyStrength, academyXV, ensureAcademyLeague, ACADEMY_SIZE } from '../../game/academy'
 import { ord, t } from '../../game/i18n'
 
@@ -71,7 +71,7 @@ export default function Academy() {
               {[...squad].sort((a, b) => b.ca + b.pa / 2 - (a.ca + a.pa / 2)).map(p => (
                 <tr key={p.id} onClick={() => go('player', p.id)} style={{ cursor: 'pointer' }}>
                   <td><PosBadge pos={p.pos} /></td>
-                  <td className="name">{p.name}{p.injury ? ' 🩹' : ''}</td>
+                  <td className="name">{p.name}{p.injury && <> <Mark name="medical" color="var(--danger)" title={t('selection.injured')} /></>}</td>
                   <td className="num muted">{p.age}</td>
                   <td><Stars ca={p.ca} /></td>
                   <td className="num">{(p.stats.acadApps ?? 0) + p.stats.apps}</td>
@@ -88,8 +88,11 @@ export default function Academy() {
       {tab === 'table' && l && (
         <>
           <SectionTitle sub={l.champion ? t('fixtures.champions', { club: teamShort(game, l.champion) }) : t('report.acPlayedOf', { played: l.fixtures.filter(f => f.played).length, total: l.fixtures.length })}>{acadLeagueName(game, l)}</SectionTitle>
-          <div className="tblwrap"><table className="dtable">
-            <thead><tr><th>{t('tables.colRank')}</th><th>{t('tables.colTeam')}</th><th className="num">{t('tables.colP')}</th><th className="num">{t('common.w')}</th>
+          {/* the rank sits under its "#" and the names get room (owner, 27
+              Sep 2026: "the numbers are out of alignment") */}
+          <div className="tblwrap"><table className="dtable a-table">
+            <colgroup><col width="30" /><col /><col width="28" /><col width="28" /><col width="28" /><col width="28" /><col width="40" /><col width="32" /><col width="36" /></colgroup>
+            <thead><tr><th className="center">{t('tables.colRank')}</th><th>{t('tables.colTeam')}</th><th className="num">{t('tables.colP')}</th><th className="num">{t('common.w')}</th>
               <th className="num">{t('common.d')}</th><th className="num">{t('common.l')}</th><th className="num">{t('tables.colDiff')}</th>
               <th className="num">{t('tables.colBP')}</th><th className="num">{t('squad.colPts')}</th></tr></thead>
             <tbody>
@@ -97,7 +100,7 @@ export default function Academy() {
                 <tr key={r.teamId} className={r.teamId === me ? 'me' : ''}
                   onClick={() => game.clubs[r.teamId] && go('club', r.teamId)}
                   style={{ cursor: 'pointer' }}>
-                  <td className="num muted">{i + 1}</td>
+                  <td className="center muted">{i + 1}</td>
                   <td className="name"><CrestT g={game} teamId={r.teamId} size={15} />{teamShort(game, r.teamId)}</td>
                   <td className="num">{r.p}</td>
                   <td className="num">{r.w}</td>
@@ -134,8 +137,9 @@ export default function Academy() {
                   <tr key={`${f.round}-${f.homeId}`}>
                     <td className="muted" style={{ whiteSpace: 'nowrap' }}>{fixtureDate(game.season, f.week, f.round, -1)}</td>
                     <td className="name">
-                      <span className="muted" style={{ width: 12, display: 'inline-block', textAlign: 'center' }}>{t(home ? 'fixtures.atHomeMark' : 'fixtures.awayMark')}</span>
-                      <CrestT g={game} teamId={opp} size={15} />{teamShort(game, opp)}{t('report.acAwayTag')}
+                      <span className="muted" style={{ width: 14, marginRight: 6, display: 'inline-block', textAlign: 'center' }}>{t(home ? 'fixtures.atHomeMark' : 'fixtures.awayMark')}</span>
+                      {/* no badges here (owner: they sat out of line) */}
+                      {teamShort(game, opp)}{t('report.acAwayTag')}
                     </td>
                     <td className={!f.played ? 'muted' : us > them ? 'result-w' : us < them ? 'result-l' : 'result-d'}>
                       {f.played ? `${t(us > them ? 'common.w' : us < them ? 'common.l' : 'common.d')} ${us}-${them}` : t(home ? 'common.h' : 'common.a')}

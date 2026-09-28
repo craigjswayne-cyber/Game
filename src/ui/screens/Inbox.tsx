@@ -5,6 +5,8 @@ import { newsBody, newsSubject, weekDate, type NewsItem } from '../../game/model
 import { RECALL_DAYS, daysLeft, inInbox, markRead } from '../../game/days'
 import { t } from '../../game/i18n'
 import { answerRequest, canAnswerRequest } from '../../game/chats'
+import { ContextCard, ResponseNeeded } from '../ContextCard'
+import { newsGlyph } from '../glyphs'
 
 /** The inbox: one message at a time, with a recall window.
  *
@@ -26,10 +28,6 @@ import { answerRequest, canAnswerRequest } from '../../game/chats'
  *  ages out; days.inInbox is the one predicate that decides, and the store's
  *  queue and step arrows read the same one. */
 
-const TYPE_ICON: Record<string, string> = {
-  result: '🏉', transfer: '💰', injury: '🩹', intl: '🌍', board: '🏛️',
-  award: '🏅', contract: '✍️', general: '📰', youth: '🎓', gossip: '🗞️',
-}
 
 /** Everyone this story is about, as tappable chips.
  *
@@ -115,7 +113,7 @@ export function InboxList({ compact }: { compact?: boolean }) {
       {news.slice(0, compact ? 12 : 30).map(n => (
         <button key={n.id} className={`news-item${n.read ? '' : ' unread'}`}
           onClick={() => { markRead(game, n); touch() }}>
-          <div className="when">{TYPE_ICON[n.type] ?? '📰'} {weekDate(n.season, n.week)}</div>
+          <div className="when">{newsGlyph(n.type)} {weekDate(n.season, n.week)}</div>
           <div className="subj">{newsSubject(n)}</div>
           <div className="body">{newsBody(n)}</div>
         </button>
@@ -189,13 +187,31 @@ export default function Inbox() {
         <button className="btn ghost tiny" disabled={i <= 0}
           title={t('inbox.newerMessage')} aria-label={t('inbox.newerMessage')}
           onClick={() => inboxStep(1)}>▶</button>
+        <ResponseNeeded />
         {unread > 0
           ? <button className="btn gold tiny" onClick={() => openInbox()}>{t('inbox.nextUnread', { n: unread })}</button>
           : <button className="btn ghost tiny" onClick={() => clearRead()}>{t('inbox.clearRead')}</button>}
       </div>
 
+      <div className="inbox-panes">
+      {/* THE LIST BESIDE THE LETTER, ON A TABLET ONLY (1.8.0). A phone reads
+          one story and its arrows (the owner cut the table of contents in
+          19D); a tablet has the width for the mail client everyone knows, so
+          the twenty stories the arrows walk sit down the left and a tap opens
+          one. Hidden by CSS everywhere but .app.tablet. */}
+      <nav className="inbox-list" aria-label={t('inbox.listLabel')}>
+        {window20.map(x => (
+          <button key={x.id} className={`inbox-li${x.id === n.id ? ' on' : ''}${x.read ? '' : ' unread'}`}
+            aria-current={x.id === n.id}
+            onClick={() => { markRead(game, x); useStore.setState(s => ({ inboxId: x.id, tick: s.tick + 1 })) }}>
+            <span className="when">{newsGlyph(x.type)} {weekDate(x.season, x.week)}</span>
+            <span className="subj">{newsSubject(x)}</span>
+          </button>
+        ))}
+      </nav>
+      <div className="news-split">
       <article className="reader">
-        <div className="when">{TYPE_ICON[n.type] ?? '📰'} {weekDate(n.season, n.week)}{shelf}</div>
+        <div className="when">{newsGlyph(n.type)} {weekDate(n.season, n.week)}{shelf}</div>
         <h2>{newsSubject(n)}</h2>
         {/* Real paragraphs, no spacer divs. A blank line in the source used to
             render an empty 6px div, so the spacing between paragraphs depended on
@@ -211,6 +227,10 @@ export default function Inbox() {
         <RequestAnswer n={n} />
         <PeopleChips n={n} />
       </article>
+      {/* the reader carries its own gutter; the card needs the page's */}
+      <div className="ctx-gutter"><ContextCard n={n} /></div>
+      </div>
+      </div>
 
       {/* The "Also In The Inbox" table of contents lived here for one round
           (the 10D one-at-a-time reader made a heavy morning invisible), and

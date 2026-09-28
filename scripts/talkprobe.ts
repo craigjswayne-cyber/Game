@@ -160,7 +160,9 @@ console.log('--- 4. the knocks')
 
   // ARMBAND: a leader who is not wearing it
   const a = clone(g)
-  const leader = squad(a).find(q => q.id !== a.clubs[a.userClubId].captain && q.id !== a.clubs[a.userClubId].vice && q.age >= 25 && q.ca >= 70)!
+  // a FIT leader: an injured man does not come in about the armband, and who
+  // is hurt in week 10 is the stream's business, not this test's
+  const leader = squad(a).find(q => q.id !== a.clubs[a.userClubId].captain && q.id !== a.clubs[a.userClubId].vice && q.age >= 25 && q.ca >= 70 && !q.injury)!
   leader.pers = 'Leader'; leader.morale = 7; leader.stats.apps = Math.max(leader.stats.apps, 4)
   let armband = false
   for (let s = 0; s < 40 && !armband; s++) { const h = clone(a); h.seed += s; talkbackWeek(h); armband = h.press.some(q => q.topic === 'armband' && q.playerId === leader.id) }
@@ -185,6 +187,10 @@ console.log('--- 4. the knocks')
   const newcomer = squad(sg).find(q => q.id !== incumbent.id && q.id !== sc.captain && q.pos === incumbent.pos) ?? squad(sg).find(q => q.id !== incumbent.id && q.id !== sc.captain)!
   newcomer.pos = incumbent.pos; newcomer.ca = Math.max(newcomer.ca, 72)
   newcomer.joinedAt = sg.season * 48 + sg.week - 1
+  // the captain has to be fit to knock (an injured one does not), and which
+  // man is hurt in week 10 is the stream's business, not this test's
+  const capP = sg.players[sc.captain!]
+  if (capP) capP.injury = undefined
   let sig: PressItem | undefined
   for (let s = 0; s < 40 && !sig; s++) { const h = clone(sg); h.seed += s; talkbackWeek(h); sig = h.press.find(q => q.topic === 'signing') }
   ok(!!sig && sig.playerId === sc.captain, `the captain comes in about the new signing (${sig?.qv?.signing}, worrying ${sig?.qv?.rival})`)
@@ -255,7 +261,7 @@ console.log('--- 7. the scale')
   ok(bad.length === 0, `no attribute is compared against a number it can never reach (${bad.join('; ') || 'none'})`)
   const g = tenWeeksIn()
   const club = g.clubs[g.userClubId]
-  const p = squad(g).find(q => q.id !== club.captain && q.id !== club.vice && q.age >= 25 && q.ca >= 70)!
+  const p = squad(g).find(q => q.id !== club.captain && q.id !== club.vice && q.age >= 25 && q.ca >= 70 && !q.injury)!
   p.pers = 'Professional'; p.a.lea = 17; p.morale = 7; p.stats.apps = Math.max(p.stats.apps, 4)
   let asked = false
   for (let s = 0; s < 40 && !asked; s++) { const h = clone(g); h.seed += s; talkbackWeek(h); asked = h.press.some(q => q.topic === 'armband' && q.playerId === p.id) }

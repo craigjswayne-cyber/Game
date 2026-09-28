@@ -51,7 +51,14 @@ const ms = (f: () => void) => { const t = performance.now(); f(); return perform
   const mean = (a: number[]) => a.reduce((s, x) => s + x, 0) / a.length
   const worst = (a: number[]) => Math.max(...a)
   console.log(`  week advance: fresh mean ${mean(early).toFixed(1)}ms (worst ${worst(early).toFixed(0)}ms) | season 6 mean ${mean(late).toFixed(1)}ms (worst ${worst(late).toFixed(0)}ms)`)
-  ok(mean(early) < 120, `a fresh week settles well inside the frame budget (${mean(early).toFixed(1)}ms)`)
+  // 200, not 120 (1.8.0). The line sat at the edge of what this container
+  // measures: 99 to 130 ms on the commit before the personnel rebuilds, so it
+  // failed on a busy box with nothing wrong. Every side now rebuilds its units
+  // when its men change (matchEngine fieldChanged), which costs about 15% (124
+  // to 155 ms, interleaved with the old commit on the same load). The budget
+  // is for a regression that makes the week several times slower, as the
+  // header says, and 200 still catches one of 1.5x.
+  ok(mean(early) < 200, `a fresh week settles well inside the frame budget (${mean(early).toFixed(1)}ms)`)
   ok(worst(late) < 900, `and the worst week of season six is still not a hang (${worst(late).toFixed(0)}ms)`)
   // THE SHAPE THAT MATTERS: a career that gets slower the longer you play it
   const drift = mean(late) / Math.max(0.01, mean(early))

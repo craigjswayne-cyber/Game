@@ -29,7 +29,7 @@ export function specialistConsult(state: GameState, pid: number): string {
     p.injury.until = Math.max(state.week + 1, p.injury.until - cut)
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
-      subject: `🩺 Specialist verdict: ${p.name} ahead of schedule`,
+      subject: `Specialist verdict: ${p.name} ahead of schedule`,
       body: `The consultant found a better rehab route for ${p.name}'s ${p.injury.desc}. He should be back ${cut} week${cut > 1 ? 's' : ''} earlier than feared.`,
       k: 'news.specialist', v: { player: p.name, injury_k: p.injury.dk ?? 'common.nothing', n: cut },
       playerId: p.id,

@@ -79,7 +79,7 @@ try {
   ok(await club.count() === 1, 'five donations put the supporters club on the profile')
   const text = await club.innerText()
   say(`  "${text.replace(/\n/g, ' | ')}"`)
-  ok(text.includes('👑'), 'it wears the crown the owner asked for')
+  ok(await club.locator('.row-ico svg.glyph').count() === 1, 'it wears the crown the owner asked for (a drawn crown now, not an emoji)')
   ok(/PHASE Supporters Club/i.test(text), 'it is named')
   ok(/\b5 donations\b/.test(text), 'it counts them, and pluralises')
   ok(/Thank you/i.test(text), 'and it says thank you')

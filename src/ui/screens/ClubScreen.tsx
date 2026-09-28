@@ -7,10 +7,11 @@ import { squadValue, starPlayerIds } from '../../game/analysis'
 import { activeFeuds, reconcileChance, reconcileFeud } from '../../game/gossip'
 import { mulberry32 } from '../../game/rng'
 import { dialLine, philosophyOf } from '../../game/philosophy'
-import { t } from '../../game/i18n'
+import { t, localeTag, compLabel } from '../../game/i18n'
 import { boardRequests } from '../../game/boardroom'
 import { askTheBoard } from '../../game/season'
 import { archetypeOf } from '../../game/oppcoach'
+import { Glyph } from '../glyphs'
 
 export default function ClubScreen({ clubId }: { clubId: string }) {
   const game = useStore(s => s.game)!
@@ -51,8 +52,8 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           <h3 style={{ fontSize: 20, flex: 1 }}>{club.name}</h3>
           <Jersey club={club} size={52} />
         </div>
-        <div className="meta">{t('club.cityLine', { city: club.city, country: nationName(club.country), league: league?.name ?? '' })}</div>
-        <div className="meta">{t('club.stadiumLine', { stadium: club.stadium, capacity: club.capacity.toLocaleString() })}</div>
+        <div className="meta">{t('club.cityLine', { city: club.city, country: nationName(club.country), league: compLabel(league?.name) ?? '' })}</div>
+        <div className="meta">{t('club.stadiumLine', { stadium: club.stadium, capacity: club.capacity.toLocaleString(localeTag()) })}</div>
         <div className="meta">{t('club.headCoach', { name: club.id === game.userClubId ? game.managerName : club.coach ?? t('club.vacant') })}</div>
         {/* F23: how this dugout wants the game played. Yours is not listed here
             because yours is the four sliders on the tactics screen. */}
@@ -61,7 +62,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           if (!ph || club.id === game.userClubId) return null
           return (
             <div className="meta">
-              📋 {t(ph.name)} <span className="muted">({dialLine(club.tactic)})</span>
+              <Glyph name="tactics" /> {t(ph.name)} <span className="muted">({dialLine(club.tactic)})</span>
             </div>
           )
         })()}
@@ -74,7 +75,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
             : arch === 'reactive' ? 'club.archTinkererDesc' : 'club.archBelieverDesc')
           return (
             <div className="meta">
-              🧠 <b>{t(arch === 'analyst' ? 'club.archAnalyst' : arch === 'reactive' ? 'club.archTinkerer' : 'club.archBeliever')}</b>: {word}
+              <Glyph name="trait" /> <b>{t(arch === 'analyst' ? 'club.archAnalyst' : arch === 'reactive' ? 'club.archTinkerer' : 'club.archBeliever')}</b>: {word}
             </div>
           )
         })()}
@@ -88,7 +89,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
               <div className="fact-label">{t('club.honoursBoard')}</div>
               {Object.entries(byComp).map(([compId, years]) => (
                 <div key={compId} className="meta">
-                  {game.comps[compId]?.name ?? compId} × {years.length} <span className="muted">({years.map(y => `${y}-${String((y + 1) % 100).padStart(2, '0')}`).join(', ')})</span>
+                  {compLabel(game.comps[compId]?.name) ?? compId} × {years.length} <span className="muted">({years.map(y => `${y}-${String((y + 1) % 100).padStart(2, '0')}`).join(', ')})</span>
                 </div>
               ))}
             </div>
@@ -138,10 +139,10 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
             <SectionTitle sub={t(club.id === game.userClubId ? 'club.yourEra' : 'club.recordBook')}>{t('club.storySoFar')}</SectionTitle>
             <div className="card">
               <div className="meta" style={{ padding: '2px 0' }}>
-                {t('club.storyStadium', { stadium: club.stadium, city: club.city, capacity: club.capacity.toLocaleString() })}
+                {t('club.storyStadium', { stadium: club.stadium, city: club.city, capacity: club.capacity.toLocaleString(localeTag()) })}
               </div>
               <div className="meta" style={{ padding: '2px 0' }}>
-                {t('club.storyLeague', { league: league?.name ?? t('club.noLeague'), rep: club.rep })}
+                {t('club.storyLeague', { league: compLabel(league?.name) ?? t('club.noLeague'), rep: club.rep })}
               </div>
               {capped > 0 && (
                 <div className="meta" style={{ padding: '2px 0' }}>
@@ -199,7 +200,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           <SectionTitle>{t('club.honoursEra')}</SectionTitle>
           <div className="chips">
             {honours.map((h, i) => (
-              <span key={i} className="chip">🏆 {game.comps[h.compId]?.name ?? h.compId} {2025 + h.season}-{String((2026 + h.season) % 100).padStart(2, '0')}</span>
+              <span key={i} className="chip"><Glyph name="trophy" /> {compLabel(game.comps[h.compId]?.name) ?? h.compId} {2025 + h.season}-{String((2026 + h.season) % 100).padStart(2, '0')}</span>
             ))}
           </div>
         </>
@@ -215,13 +216,30 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
         const asks = boardRequests(game)
         return (
           <>
+            {/* THE BOARD, ALL IN ONE PLACE (owner, 27 Sep 2026: "the board
+                should be in club information on the hub menu"). Its confidence
+                in you used to sit on Finances, a screen away from the doors
+                you knock on. */}
+            <SectionTitle sub={`${Math.round(club.boardConfidence)}%`}>{t('finances.boardConfidence')}</SectionTitle>
+            <div style={{ margin: '8px 14px', height: 10, background: 'var(--border-strong)', borderRadius: 5 }}>
+              <div style={{
+                width: `${club.boardConfidence}%`, height: '100%', borderRadius: 5,
+                background: club.boardConfidence > 60 ? 'var(--primary)' : club.boardConfidence > 30 ? 'var(--gold-fill)' : 'var(--danger)',
+              }} />
+            </div>
+            <div className="muted" style={{ padding: '4px 14px 10px' }}>
+              {t(club.boardConfidence > 75 ? 'finances.boardDelighted'
+                : club.boardConfidence > 50 ? 'finances.boardSatisfied'
+                : club.boardConfidence > 30 ? 'finances.boardExpectsBetter'
+                : 'finances.boardImpatient')}
+            </div>
             <SectionTitle sub={t('board.roomSub')}>{t('board.room')}</SectionTitle>
             <div style={{ padding: '0 14px' }}>
               {asks.map(a => (
                 <div key={a.id} className="card" style={{ margin: '0 0 6px', padding: '8px 10px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
                     <div style={{ minWidth: 0 }}>
-                      <h3 style={{ fontSize: 13.5, margin: 0 }}>{t(`board.ask_${a.id}`)}</h3>
+                      <h3 style={{ fontSize: 14, margin: 0 }}>{t(`board.ask_${a.id}`)}</h3>
                       <div className="meta" style={{ fontSize: 11 }}>{t(`board.askDesc_${a.id}`)}</div>
                       {/* THE CASE IS NOT SHOWN UNTIL YOU HAVE ASKED (owner,
                           v1.7.0: "the yellow text 'asking on very little'
@@ -250,14 +268,14 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
                         83x28. geosweep caught it at all four phone
                         geometries. A tap target is a number, not a look. */}
                     {a.possible && (
-                      <button className="btn gold" style={{ padding: '5px 10px', fontSize: 11.5, minHeight: 44, flexShrink: 0 }}
+                      <button className="btn gold" style={{ padding: '5px 10px', fontSize: 12, minHeight: 44, flexShrink: 0 }}
                         onClick={() => { setBoardMsg({ id: a.id, text: askTheBoard(game, a.id) }); touch() }}>
                         {t('board.knock')}
                       </button>
                     )}
                   </div>
                   {boardMsg?.id === a.id && (
-                    <div className="meta" style={{ fontSize: 11.5, fontWeight: 600, marginTop: 4, paddingTop: 4, borderTop: '1px solid var(--border)' }}>
+                    <div className="meta" style={{ fontSize: 12, fontWeight: 600, marginTop: 4, paddingTop: 4, borderTop: '1px solid var(--border)' }}>
                       {boardMsg.text}
                     </div>
                   )}
@@ -312,7 +330,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
                   </b>
                 </div>
               ))}
-              {!rows.length && <div className="muted" style={{ fontSize: 12.5 }}>{t('club.nobodyAgitating')}</div>}
+              {!rows.length && <div className="muted" style={{ fontSize: 13 }}>{t('club.nobodyAgitating')}</div>}
             </div>
           </>
         )
@@ -335,7 +353,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
               )}
               {gate && (
                 <div className="meta" style={{ padding: '3px 0' }}>
-                  {t('club.recordGate')} <b>{gate.att.toLocaleString()}</b>{t('club.vsClub', { club: game.clubs[gate.oppId]?.short ?? gate.oppId })}
+                  {t('club.recordGate')} <b>{gate.att.toLocaleString(localeTag())}</b>{t('club.vsClub', { club: game.clubs[gate.oppId]?.short ?? gate.oppId })}
                   {' '}<span className="muted">({2025 + gate.season}-{String((gate.season + 26) % 100).padStart(2, '0')})</span>
                 </div>
               )}
@@ -428,13 +446,13 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
                 const opp = g.a === club.id ? g.b : g.a
                 return (
                   <div key={`f${i}`} className="meta" style={{ padding: '3px 0' }}>
-                    🔥 <b>{game.clubs[opp]?.short ?? opp}</b> - {grudgeReason(g)} <span className="muted">{t('club.feudRuns', { years: `${2025 + g.until}-${String((g.until + 26) % 100).padStart(2, '0')}` })}</span>
+                    <Glyph name="derby" /> <b>{game.clubs[opp]?.short ?? opp}</b> - {grudgeReason(g)} <span className="muted">{t('club.feudRuns', { years: `${2025 + g.until}-${String((g.until + 26) % 100).padStart(2, '0')}` })}</span>
                   </div>
                 )
               })}
               {duos.map((d, i) => (
                 <div key={`d${i}`} className="meta" style={{ padding: '3px 0' }}>
-                  🤝 <b>{surname(d.a.name)} & {surname(d.b.name)}</b> - {t('club.duoLine', { n: d.g, tier: chemTier(d.g) })}
+                  <Glyph name="handshake" /> <b>{surname(d.a.name)} & {surname(d.b.name)}</b> - {t('club.duoLine', { n: d.g, tier: chemTier(d.g) })}
                 </div>
               ))}
             </div>
@@ -463,7 +481,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           {shown.map(p => (
             <tr key={p.id} onClick={() => go('player', p.id)}>
               <td><PosBadge pos={p.pos} /></td>
-              <td className="name">{p.name}{starPlayerIds(game, club.id).has(p.id) ? ' ⭐' : ''}</td>
+              <td className="name">{p.name}{starPlayerIds(game, club.id).has(p.id) ? <> <Glyph name="star" /></> : ''}</td>
               <td className="num">{p.age}</td>
               <td><Nat code={p.nat} /></td>
               <td><Stars ca={p.ca} /></td>

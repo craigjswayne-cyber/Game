@@ -62,6 +62,17 @@ const UNIT_LOWER: Record<UnitKey, string> = {
   scrum: 'coachfix.unitScrumLower', lineout: 'coachfix.unitLineoutLower', breakdown: 'coachfix.unitBreakdownLower',
 }
 
+/** A pack's strength across the ticks played so far, not just the last one.
+ *  An AI side's units now follow its replacements (matchEngine fieldChanged),
+ *  so reading them at full time judged the scrum on the eight who finished
+ *  it: a side that shoved for an hour and then emptied a thin bench read as
+ *  beaten. A match not yet started, or begun by an older build, falls back to
+ *  the units as they stand. */
+function overMatch(side: SideCtx, key: UnitKey): number {
+  const a = side.setAcc
+  return a && a.n > 0 ? a[key] / a.n : side.units[key]
+}
+
 /** The three set-piece contests, as percentages.
  *
  *  The per-fixture wobble is a hash of the fixture id, so the same edge reads
@@ -70,7 +81,7 @@ export function unitBattles(ctx: LiveCtx, mine: SideCtx, opp: SideCtx): UnitBatt
   const keys: [UnitKey, number][] = [['scrum', 1], ['lineout', 2], ['breakdown', 3]]
   return keys.map(([key, salt]) => {
     const jit = ((((ctx.fx.id * 2654435761) >>> 0) + salt * 977) % 9) - 4
-    const pct = Math.max(22, Math.min(78, Math.round(50 + (mine.units[key] - opp.units[key]) * 5.5 + jit)))
+    const pct = Math.max(22, Math.min(78, Math.round(50 + (overMatch(mine, key) - overMatch(opp, key)) * 5.5 + jit)))
     const verdict = pct >= 57 ? 'dominated' : pct >= 52 ? 'edged' : pct > 48 ? 'even'
       : pct > 43 ? 'shaded' : 'bullied'
     return { key, label: UNIT_LABEL[key], pct, verdict }

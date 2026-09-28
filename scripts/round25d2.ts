@@ -83,15 +83,29 @@ const ids = Object.values(g.players).map(p => p.id)
       id: 424242, compId: 'prem', round: 0, week: g.week, homeId: strong.id, awayId: weak.id,
       played: false, homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0, stage,
     }
-    const ctx = beginMatch(structuredClone(g), fx, mulberry32(7), false)
+    // THE SQUEEZE ALONE (28 Sep 2026). A final also wakes the Big-Game Player
+    // trait (+0.8% attack a man, up to three, matchEngine), and on three of
+    // four shifted seed lists the world's strongest side had one: its attack
+    // moved x0.9778 in the final where the squeeze is x0.97, and "zero-sum"
+    // failed on a different mechanism. The claim is about the squeeze, so the
+    // trait is taken off both squads for this comparison.
+    const h = structuredClone(g)
+    for (const c of [strong.id, weak.id]) for (const id of h.clubs[c].players) {
+      const p = h.players[id]
+      if (p?.trait === 'Big-Game Player') p.trait = undefined
+    }
+    const ctx = beginMatch(h, fx, mulberry32(7), false)
     return { fav: ctx.home.mods.attack, dog: ctx.away.mods.attack }
   }
   const final = play('F')
   const league = play(undefined)
   ok(final.fav < league.fav, `the favourite carries the weight in a final (attack mod ${final.fav.toFixed(3)} < ${league.fav.toFixed(3)})`)
   ok(final.dog > league.dog, `the underdog plays with freedom (${final.dog.toFixed(3)} > ${league.dog.toFixed(3)})`)
-  const squeeze = league.fav / final.fav
-  ok(Math.abs(final.dog / league.dog - squeeze) < 0.001, 'and the squeeze is zero-sum: one side gives exactly what the other gets')
+  // x(1 - s) for one and x(1 + s) for the other: the two ratios sum to two.
+  // (The old form compared 1 + s with 1 / (1 - s), which differ by s squared,
+  // 0.0009 at the 3% cap - inside its 0.001 tolerance by a hair.)
+  const give = final.fav / league.fav, get = final.dog / league.dog
+  ok(Math.abs(give + get - 2) < 1e-9, `and the squeeze is zero-sum: one side gives exactly what the other gets (x${give.toFixed(4)}, x${get.toFixed(4)})`)
 }
 
 console.log(fails ? `\n${fails} FAILURES` : '\nROUND 25D-2 PROBE PASSED')
