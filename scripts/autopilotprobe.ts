@@ -63,7 +63,15 @@ const ok = (c: boolean, what: string) => {
 // eighteen fresh worlds read 9.4 and 10.9 on the same two commits. Nine
 // worlds still carried enough world-to-world swing to cross the threshold on
 // a change that moved the true figure by a point or two.
-const SEEDS = [9, 777, 101, 55, 2024, 4242, 31337, 8080, 2468, 11, 23, 37, 41, 59, 67, 73, 89, 97]
+// FIFTY-FOUR, NOT EIGHTEEN (1.8.0, the two-layer engine). The title count
+// read 3/18 on the new engine; at 54 worlds it read 3/54 - the same three
+// seasons and none in the other 36 - while the engaged manager's edge GREW
+// (best side worth 10.9 a season against 9.1, 8 titles against 3). Eighteen
+// could not tell one lucky autopilot season from a strategy. The title line
+// below now reads a RATE: the old two in eighteen, about 11%, scaled.
+const SEEDS = [9, 777, 101, 55, 2024, 4242, 31337, 8080, 2468, 11, 23, 37, 41, 59, 67, 73, 89, 97,
+  103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181,
+  191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281, 283, 293]
 type Mode = 'sleepwalk' | 'optimise' | 'sabotage'
 
 function pick(state: GameState, mode: Mode): (number | null)[] | null {
@@ -162,7 +170,7 @@ const optTitles = rows.optimise.filter(r => r.champion).length
 // So the count is read WITH that check rather than instead of it: up to two
 // fluke titles in nine seasons is what "fluke, not strategy" looks like on
 // nine samples; three would not be.
-ok(sleepTitles.length <= 2,
+ok(sleepTitles.length <= Math.round(2 * SEEDS.length / 18),
   `Continue lifting a trophy stays a fluke, not a strategy (${sleepTitles.length}/${SEEDS.length} titles)`)
 // ONE TITLE OF SLACK (1.5.1). This read optTitles >= sleepTitles and sat, like
 // its two retired ancestors, one seed from the line. Law 3.35 arrived - a
