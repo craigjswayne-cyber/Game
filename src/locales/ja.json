@@ -837,7 +837,6 @@
   "planDesc_finish": "ラスト20分の脚を残し、控えには強く当たれと指示。",
   "planTitle": "対応プラン",
   "planSub": "どのプランも既存の設定を変えるだけ。後で変更すればプランは外れる。",
-  "usePlan": "このプランを採用",
   "planOn": "プラン設定済み",
   "lvPrep": "準備：{prep}",
   "lvDial": "{dial} {v}",

@@ -871,7 +871,6 @@
     "planDesc_finish": "Des jambes pour les vingt dernières minutes, et un banc chargé de frapper fort.",
     "planTitle": "Plan de réponse",
     "planSub": "Chaque plan ne règle que des commandes que vous avez déjà. Modifiez-les ensuite et le plan tombe.",
-    "usePlan": "Adopter ce plan",
     "planOn": "Plan en place",
     "lvPrep": "Préparation : {prep}",
     "lvDial": "{dial} {v}",
