@@ -13,6 +13,7 @@
 import type { GameState, Player } from './model'
 import {absWeek, SEASON_WEEKS, logDecision } from './model'
 import { t, tIn } from './i18n'
+import { remember } from './memory'
 
 const CAP_PER_WEEK = 2
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v))
@@ -143,6 +144,7 @@ function teammates(state: GameState, p: Player): Player[] {
 export function answerRequest(state: GameState, p: Player, accept: boolean): string {
   if (!canAnswerRequest(state, p)) return t('reply.requestAlreadyAnswered')
   p.reqAns = absWeek(state.season, state.week)
+  remember(state, { kind: accept ? 'request-granted' : 'request-refused', playerId: p.id, clubId: p.clubId ?? undefined, payload: { name: p.name } })
   const room = teammates(state, p)
   // a senior man the squad follows, rather than anyone with a high number
   // attributes run 1-20: this read 70, which no man can reach, so only a

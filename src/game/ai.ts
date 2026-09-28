@@ -12,6 +12,7 @@ import { interestPremium, transferInterest } from './interest'
 import { playerValue, playerWage } from './attributes'
 import { clamp, mulberry32, pick, type Rng } from './rng'
 import { book } from './books'
+import { rememberDeparture } from './memory'
 
 // ------------------------------------------------------------------
 // Transfer market
@@ -207,6 +208,7 @@ export function executeTransfer(state: GameState, p: Player, toClubId: string, f
   // used to be discovered at `to.players.push` - after the seller had lost the
   // player and banked the fee. Refuse before anything moves.
   if (!to || to === from) return
+  if (from) rememberDeparture(state, p, 'sold', from.id, to.id, fee) // memory.ts: only ever the user's club
   // read before the move clears it: the terraces judge a departure partly on
   // whether the club had said out loud that he was for sale (terraces.ts)
   const wasListed = !!p.transferListed

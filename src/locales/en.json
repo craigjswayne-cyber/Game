@@ -7735,6 +7735,41 @@
   "hlKeySub": "The pitch shows tries, and the kicks and attacks late in a close match.",
   "hlExtendedSub": "The pitch shows tries, kicks at goal and breaks into the 22."
  },
+ "mem": {
+  "howReleased": "You released {player} in {season}.",
+  "howSold": "You sold {player} to {buyer} for {fee} in {season}.",
+  "howLetGo": "You let {player} leave {old} in {season}.",
+  "tryVsSubj": "Former player {player} scores against you",
+  "tryVs": "{how_k} Today {player} came back in {club} colours and crossed for a try against you. The away end made sure you heard about it.",
+  "motmVsSubj": "Point proved: {player}",
+  "motmVs": "{how_k} Today {player} was named player of the match for {club}, against you. Nobody in the press box needed the connection spelled out.",
+  "captainVsSubj": "{player} handed the {club} captaincy",
+  "captainVs": "{how_k} {club} have now made {player} their captain, and they are in your league. You will see that armband across the halfway line before long.",
+  "signedRivalSubj": "{player} resurfaces at {club}",
+  "signedRival": "{how_k} {player} has now signed for {club}, who are in your league. Expect to see that name on an opposition team sheet.",
+  "soldCapSubj": "Capped after leaving you: {player}",
+  "soldCap": "{how_k} Since then {player} has won a first Test cap ({nat_k}) while playing club rugby at {club}. Somebody saw something you did not.",
+  "soldPotySubj": "{player} is the best in the world",
+  "soldPoty": "{how_k} {player} has now been named World Player of the Year. Your decision will be mentioned in every profile written this summer.",
+  "soldTotySubj": "{player} in the Team of the Year",
+  "soldToty": "{how_k} {player} has now been named in the Team of the Year, wearing the {club} shirt. The panel did not ask what you were thinking. The supporters might.",
+  "acadRegularSubj": "{player}: from debutant to regular",
+  "acadRegular": {
+   "one": "You gave {player} a first-team debut in {season}. This season {player} started {n} match for {now}. The academy staff still have the team sheet from that first day.",
+   "other": "You gave {player} a first-team debut in {season}. This season {player} started {n} matches for {now}. The academy staff still have the team sheet from that first day."
+  },
+  "acadIntlSubj": "{player} capped. Remember the debut?",
+  "acadIntl": "You gave {player} a first-team debut at {club} in {season}. Now {player} has pulled on the national jersey ({nat_k}). Whatever else is said about your time in charge, that one is yours.",
+  "knockAgainSubj": "{player} breaks down again",
+  "knockAgain": {
+   "one": "In week {w} of {season} you sent {player} out to play through a knock the physio wanted rested. {player} is injured again now, out for {n} week. The medical staff have not said they told you so. They have not needed to.",
+   "other": "In week {w} of {season} you sent {player} out to play through a knock the physio wanted rested. {player} is injured again now, out for {n} weeks. The medical staff have not said they told you so. They have not needed to."
+  },
+  "grudgeSubj": "{player} has not forgotten",
+  "grudge": "{player} has not forgotten the promise you broke in {season}. Left out again, {player} has gone quiet in training, and the senior players have noticed how it is being handled.",
+  "agentsSubj": "Agents talk: your word on the market",
+  "agents": "Word travels between agents. The story doing the rounds this window is the promise you broke to {player} at {club}, and anyone weighing up a move to you wants more money up front before taking you at your word."
+ },
  "hl": {
   "try": "TRY!",
   "review": "TMO CHECK",

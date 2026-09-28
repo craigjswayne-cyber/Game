@@ -2180,6 +2180,9 @@ export interface GameState {
   /** the A League: the academy sides of the user's league, with their own
    *  fixtures and table. Kept outside state.comps deliberately - see academy.ts */
   academy?: import('./academy').AcadLeague
+  /** the manager's memory: decisions with a subject, read back later as
+   *  stories (memory.ts). Absent on older saves; migrate gives an empty log. */
+  memory?: import('./memory').MemoryLog
 }
 
 /** Managerial reputation earned from results and silverware, 30-95. */

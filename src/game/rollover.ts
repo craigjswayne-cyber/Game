@@ -30,6 +30,7 @@ import { mentorBoost } from './mentoring'
 import { endSeasonJokers } from './joker'
 import { staffChem } from './staff'
 import { tIn, type Vars } from './i18n'
+import { rememberDeparture } from './memory'
 
 const ordinal = (n: number) =>
   n <= 0 ? '-' : `${n}${n % 10 === 1 && n !== 11 ? 'st' : n % 10 === 2 && n !== 12 ? 'nd' : n % 10 === 3 && n !== 13 ? 'rd' : 'th'}`
@@ -425,6 +426,7 @@ export function agePlayers(state: GameState, rng: Rng) {
         const c = state.clubs[p.clubId]
         if (c) c.players = c.players.filter(id => id !== p.id)
         p.acad = false
+        rememberDeparture(state, p, 'let-go', state.userClubId) // memory.ts
         p.clubId = null
         released.push(p)
       } else if (p.age === 20) {
@@ -674,6 +676,7 @@ function handleContracts(state: GameState, rng: Rng) {
     const to = state.clubs[pc.toClubId]
     if (!p || !to || p.clubId === pc.toClubId) continue
     const from = p.clubId ? state.clubs[p.clubId] : null
+    if (from) rememberDeparture(state, p, 'let-go', from.id, to.id) // memory.ts: only the user's club
     if (from) {
       from.players = from.players.filter(id => id !== p.id)
       from.tactic.lineup = from.tactic.lineup.map(id => (id === p.id ? null : id))
@@ -766,7 +769,7 @@ function handleContracts(state: GameState, rng: Rng) {
         continue
       }
       club.players = club.players.filter(id => id !== p.id)
-      if (p.clubId === state.userClubId) freed.push(p)
+      if (p.clubId === state.userClubId) { freed.push(p); rememberDeparture(state, p, 'let-go', state.userClubId) }
       p.clubId = null
       p.transferListed = false
     }

@@ -51,6 +51,7 @@ import { refreshVacancies, sackManager } from './jobs'
 import { playAcademyWeek } from './academy'
 import { canBeMentored, mentorGraduations, mentorReports, mentorWeek } from './mentoring'
 import { t, tIn, type Vars } from './i18n'
+import { memoryAfterMatch, memoryWeek, rememberPromise } from './memory'
 
 export function weekRng(state: GameState): Rng {
   return mulberry32(state.seed ^ (state.season * 131 + state.week * 7919))
@@ -1583,6 +1584,7 @@ function matchReport(state: GameState, fx: Fixture) {
 export function afterClubMatch(state: GameState, fx: Fixture) {
   const club = state.clubs[state.userClubId]
   if (!club || fx.compId === 'fr') return
+  memoryAfterMatch(state, fx) // a man you let go comes back to hurt you (memory.ts)
   const isHome = fx.homeId === club.id
   const oppId = isHome ? fx.awayId : fx.homeId
   const opp = state.clubs[oppId]
@@ -2579,6 +2581,7 @@ export function processWeekAndAdvance(state: GameState) {
         : pl.kind === 'minutes' ? gap >= 1
         : p.contractEnds > state.season
       const sulky = p.pers === 'Ambitious' || p.pers === 'Mercenary' || p.pers === 'Temperamental'
+      rememberPromise(state, p, kept, pl.kind) // memory.ts: the squad keeps the receipts, and so does the world
       if (kept) {
         p.morale = clamp(p.morale + 1.1, 1, 10)
         state.news.push({
@@ -4121,6 +4124,7 @@ export function processWeekAndAdvance(state: GameState) {
     if (state.pressTone) state.pressTone = Math.abs(state.pressTone * 0.8) < 0.5 ? 0 : state.pressTone * 0.8
   }
   generateGossip(state, rng)
+  memoryWeek(state) // the world reads your old decisions back (memory.ts), no rng
   // WHERE THE SUPPORT'S ANGER HAS GOT TO, and what it costs (terraces.ts).
   // Before this, fan mood moved the gate, the shop and the atmosphere and
   // could not by itself cost anybody a job; a sustained campaign presses the

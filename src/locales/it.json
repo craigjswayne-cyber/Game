@@ -7658,6 +7658,43 @@
   "hlKeySub": "Il campo mostra le mete, e i calci e gli attacchi nel finale di una partita equilibrata.",
   "hlExtendedSub": "Il campo mostra mete, calci piazzati e ingressi nei 22."
  },
+ "mem": {
+  "howReleased": "Hai svincolato {player} nella stagione {season}.",
+  "howSold": "Hai ceduto {player} a {buyer} per {fee} nella stagione {season}.",
+  "howLetGo": "Hai lasciato andare {player} via da {old} nella stagione {season}.",
+  "tryVsSubj": "{player} segna contro la sua ex squadra",
+  "tryVs": "{how_k} Oggi, con la maglia di {club}, {player} ti ha segnato una meta. Il settore ospiti si è assicurato che la sentissi.",
+  "motmVsSubj": "{player} si prende la rivincita",
+  "motmVs": "{how_k} Oggi {player} ha ricevuto il premio di migliore in campo con {club}, contro di te. In tribuna stampa nessuno ha avuto bisogno di spiegazioni.",
+  "captainVsSubj": "{club} affida la fascia a {player}",
+  "captainVs": "{how_k} {club} ha affidato la fascia a {player}, e gioca nel tuo campionato. Vedrai quella fascia dall'altra parte della linea di metà campo prima di quanto pensi.",
+  "signedRivalSubj": "{player} firma con {club}",
+  "signedRival": "{how_k} {player} ha appena firmato con {club}, che gioca nel tuo campionato. Aspettati di rivedere quel nome in una formazione avversaria.",
+  "soldCapSubj": "{player} debutta in nazionale",
+  "soldCap": "{how_k} Da allora {player} ha disputato il primo test internazionale ({nat_k}), vestendo a livello di club la maglia di {club}. Qualcuno ha visto ciò che tu non avevi visto.",
+  "soldPotySubj": "{player}, giocatore mondiale dell'anno",
+  "soldPotySubj_f": "{player}, giocatrice mondiale dell'anno",
+  "soldPoty": "{how_k} {player} è appena stato nominato Giocatore mondiale dell'anno. La tua decisione verrà ricordata in ogni ritratto scritto quest'estate.",
+  "soldPoty_f": "{how_k} {player} è appena stata nominata Giocatrice mondiale dell'anno. La tua decisione verrà ricordata in ogni ritratto scritto quest'estate.",
+  "soldTotySubj": "{player} nella Squadra dell'Anno",
+  "soldToty": "{how_k} {player} è ora nella Squadra dell'Anno, con la maglia di {club}. La giuria non ti ha chiesto a cosa stessi pensando. I tifosi potrebbero farlo.",
+  "acadRegularSubj": "{player}: dall'esordio al posto fisso",
+  "acadRegular": {
+   "one": "Hai fatto esordire {player} in prima squadra nella stagione {season}. Quest'anno {player} ha giocato da titolare {n} partita con {now}. Lo staff del settore giovanile conserva ancora la distinta di quel primo giorno.",
+   "other": "Hai fatto esordire {player} in prima squadra nella stagione {season}. Quest'anno {player} ha giocato da titolare {n} partite con {now}. Lo staff del settore giovanile conserva ancora la distinta di quel primo giorno."
+  },
+  "acadIntlSubj": "{player} in nazionale. Ricordi l'esordio?",
+  "acadIntl": "Hai fatto esordire {player} in prima squadra con {club} nella stagione {season}. Ora {player} veste la maglia della nazionale ({nat_k}). Qualunque cosa si dica della tua gestione, questo merito è tuo.",
+  "knockAgainSubj": "{player} si ferma di nuovo",
+  "knockAgain": {
+   "one": "Nella settimana {w} della stagione {season} hai mandato in campo {player} con un colpo che il fisioterapista voleva curare a riposo. {player} è di nuovo ai box, fuori per {n} settimana. Lo staff medico non ha detto «te l'avevamo detto». Non ce n'è stato bisogno.",
+   "other": "Nella settimana {w} della stagione {season} hai mandato in campo {player} con un colpo che il fisioterapista voleva curare a riposo. {player} è di nuovo ai box, fuori per {n} settimane. Lo staff medico non ha detto «te l'avevamo detto». Non ce n'è stato bisogno."
+  },
+  "grudgeSubj": "{player} non ha dimenticato",
+  "grudge": "{player} non ha dimenticato la promessa che hai infranto nella stagione {season}. Di nuovo fuori dalla squadra, {player} in allenamento non dice più una parola, e il gruppo storico dello spogliatoio ha notato come viene gestita la cosa.",
+  "agentsSubj": "Gli agenti parlano della tua parola",
+  "agents": "Tra agenti tutto si sa. La storia che gira in questa finestra di mercato è la promessa infranta con {player} ai tempi di {club}, e chi valuta un trasferimento da te chiede più soldi in anticipo prima di fidarsi della tua parola."
+ },
  "hl": {
   "try": "META!",
   "review": "CONTROLLO TMO",
