@@ -2103,6 +2103,9 @@ export interface GameState {
   natHistory?: { nat: string; m: number; w: number; d: number; l: number }[]
   /** season index when the user took charge of the current club */
   tenureStart?: number
+  /** weeks in a row the board has sat at its floor (confidence 3 or under);
+   *  a sacking on results needs three (season.ts) */
+  boardFloorWeeks?: number
   /** club ids where the user has earned legend status - once, forever */
   legendOf?: string[]
   /** The manager's own age. A career has a length (career.ts): the clock is
