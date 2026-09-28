@@ -746,9 +746,12 @@
   --hl-ball: #f4ead2;
   --hl-ball-edge: #6b5a3a;
   --hl-miss: #ffb3a8;
-  /* the referee on the highlight pitch (a square, so no kit is mistaken for him;
-     HighlightClip swaps to pink, cyan or white when a kit is close to this) */
-  --hl-ref: #f2d14b;
+  /* the referee on the highlight pitch (owner, 1.8.0): pink, orange when a
+     kit is pink, cyan when the kits are pink and orange (HighlightClip,
+     refereeColour) */
+  --hl-ref-pink: #ec4f9c;
+  --hl-ref-orange: #f28a1e;
+  --hl-ref-cyan: #22c8dc;
   /* the set-piece and bench diagrams (1.8.0, Tactics: owner "I want them to be
      more visual"). They stand on the highlight pitch's grass above, so the
      chalk, the two sides and the call are depictions too and read the same in

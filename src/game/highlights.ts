@@ -55,8 +55,12 @@ export function isHighlight(events: MatchEvent[], i: number, homeId: string): bo
   // ...and a side getting into the opposition 22 (the line before was not)
   if (e.fld != null && e.teamId) {
     const up = (f: number) => e.teamId === homeId ? f : 100 - f
-    const prev = events[i - 1]
-    if (up(e.fld) >= 78 && !(prev?.fld != null && prev.teamId === e.teamId && up(prev.fld) >= 78)) return true
+    // this side's own last line, not simply the line before: with both sides
+    // called every tick (1.8.0) the two alternate, and every alternation read
+    // as a fresh entry into the 22
+    let prev: MatchEvent | undefined
+    for (let k = i - 1; k >= Math.max(0, i - 12) && !prev; k--) if (events[k].teamId === e.teamId && events[k].fld != null) prev = events[k]
+    if (up(e.fld) >= 78 && !(prev?.fld != null && up(prev.fld) >= 78)) return true
   }
   return false
 }
