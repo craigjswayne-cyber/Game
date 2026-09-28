@@ -159,7 +159,7 @@ try {
     ok(pol.status() === 200, 'the privacy policy is served with the app (200)')
     const text = await page.locator('body').innerText()
     ok(/collects nothing about you/i.test(text), 'and says what the game actually does')
-    ok(/phaserugbymanager@gmail\.com/.test(text), 'with a contact address on it')
+    ok(/info@fwdsandbcks\.com/.test(text), 'with a contact address on it')
     ok(/not affiliated with, endorsed by/i.test(text), 'and the names position stated in full')
     await page.close()
   }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../../store'
 import { SectionTitle } from '../components'
-import { DEV_CONTACT } from '../../game/bugreport'
+import { DEV_CONTACT, PUBLISHER, PUBLISHER_ADDRESS } from '../../game/bugreport'
 import { COMMUNITY_URL } from '../../game/community'
 import { adBridgePresent, adBridgeWhy, billingBridgePresent, tillHealth, tillOpen } from '../../game/monetise'
 import { nativePlatform } from '../../game/shell'
@@ -143,6 +143,11 @@ export default function About() {
         <div className="fact-label">{t('about.contactLabel')}</div>
         <div className="meta">{t('about.contactBody')}</div>
         <a className="btn ghost block" style={{ marginTop: 8 }} href={`mailto:${DEV_CONTACT}`}>{DEV_CONTACT}</a>
+        {/* the company's own name and address are not translated: they are
+            what is on the register, in every language */}
+        <div className="meta muted" style={{ marginTop: 10 }}>
+          {t('about.publishedBy')} <b>{PUBLISHER}</b>, {PUBLISHER_ADDRESS}
+        </div>
       </div>
 
       <div className="muted" style={{ padding: '4px 16px 0', fontSize: 12 }}>{t('about.thanks')}</div>
