@@ -38,8 +38,21 @@ const STYLE_KEYS: [ClipStyle, string][] = [['maul', 'comm.tryMaulRumbles'], ['in
   ['grubber', 'comm.try8'], ['crossfield', 'comm.try2'], ['charge', 'comm.tryCharge1'], ['overlap', 'comm.try6'], ['phases', 'comm.try1'], ['phases', 'comm.try18']]
 let late = 0
 const paced: [number, number][] = []
+const slowerQuick: string[] = []
 let real = 0
-for (let seed = 1; seed <= 12 && real < 400; seed++) {
+// PLAYED UNTIL THE FLOOR IS MET (28 Sep 2026), not a fixed twelve matches.
+// Attack clips come about one a match, and on a shifted seed list twelve
+// matches gave 6 against the floor of 10 ("enough of each kind"), so the
+// floor measured the stream rather than the clips. Matches are added, up to
+// forty, until every kind clears its floor; the first twelve are the same
+// twelve as before.
+const kinds = () => ({
+  try: specs.filter(s => s.kind === 'try').length,
+  kick: specs.filter(s => s.kind === 'kick').length,
+  attack: specs.filter(s => s.kind === 'attack').length,
+})
+const enough = () => { const k = kinds(); return k.try >= 20 && k.kick >= 20 && k.attack >= 10 }
+for (let seed = 1; seed <= 40 && (seed <= 12 || !enough()); seed++) {
   const g = newGame('leicester', 'HL Probe', 5000 + seed)
   const fx = g.fixtures.find(f => f.week >= 2 + seed % 5 && g.clubs[f.homeId] && g.clubs[f.awayId])!
   const ctx = beginMatch(g, fx, mulberry32(700 + seed), true)
@@ -58,17 +71,30 @@ for (let seed = 1; seed <= 12 && real < 400; seed++) {
       const slow = buildClip(ev, i, kind, fx.homeId, () => undefined, colours, labels, () => 'Name', h => h === (ev[i].teamId === fx.homeId) ? 1 : 20)
       specs.push({ spec: fast, kind }, { spec: slow, kind })
       paced.push([clipLength(fast), clipLength(slow)])
+      if (clipLength(fast) > clipLength(slow) + 1e-6) slowerQuick.push(`${fast.style} (${ev[i].k}) ${clipLength(fast).toFixed(2)} s v ${clipLength(slow).toFixed(2)} s`)
     }
-    if (kind === 'try' && seed <= 6) for (const [, k] of STYLE_KEYS) {
+    if (kind === 'try') for (const [, k] of STYLE_KEYS) {
       const copy: MatchEvent[] = ev.slice(0, i + 1).map((x, j) => j === i ? { ...x, k } : x)
-      specs.push({ spec: buildClip(copy, i, kind, fx.homeId, () => undefined, colours, labels, () => 'Name'), kind })
+      if (seed <= 6) specs.push({ spec: buildClip(copy, i, kind, fx.homeId, () => undefined, colours, labels, () => 'Name'), kind })
+      // AND EVERY STYLE AT BOTH PACES, IN EVERY MATCH (28 Sep 2026). Pace was
+      // only checked on the tries four matches happened to produce in their
+      // own style, 21 to 37 of them, so a style-specific fault was caught only
+      // when the stream dealt that style: on shifted seed lists a crossfield
+      // try (comm.try2) ran 0.07 to 0.11 s LONGER with the quickest finisher
+      // than the slowest in 0 to 2 of 330-450 replays. Every try of every
+      // match is now replayed in every style at both paces (clip length only,
+      // so it costs little), and the check covers the whole shape of it.
+      const fastS = buildClip(copy, i, kind, fx.homeId, () => undefined, colours, labels, () => 'Name', h => h === (ev[i].teamId === fx.homeId) ? 20 : 1)
+      const slowS = buildClip(copy, i, kind, fx.homeId, () => undefined, colours, labels, () => 'Name', h => h === (ev[i].teamId === fx.homeId) ? 1 : 20)
+      paced.push([clipLength(fastS), clipLength(slowS)])
+      if (clipLength(fastS) > clipLength(slowS) + 1e-6) slowerQuick.push(`${fastS.style} (${k}) ${clipLength(fastS).toFixed(2)} s v ${clipLength(slowS).toFixed(2)} s`)
     }
   }
 }
 const count = (k: ClipKind) => specs.filter(s => s.kind === k).length
 console.log(`${real} clips from real matches and ${specs.length - real} replayed in every try style: ${count('try')} try, ${count('notry')} no try, ${count('kick')} kick, ${count('attack')} attack\n`)
 ok(paced.length >= 5 && paced.every(([f, sl]) => f <= sl + 1e-6) && paced.some(([f, sl]) => sl - f > 0.1),
-  `a quick finisher gets there sooner than a slow one (${paced.length} tries, up to ${Math.max(0, ...paced.map(([f, sl]) => sl - f)).toFixed(2)} s sooner)`)
+  `a quick finisher gets there sooner than a slow one (${paced.length} tries, up to ${Math.max(0, ...paced.map(([f, sl]) => sl - f)).toFixed(2)} s sooner)${slowerQuick.length ? ` - slower with the quick man: ${slowerQuick.slice(0, 3).join('; ')}` : ''}`)
 ok(count('try') >= 20 && count('kick') >= 20 && count('attack') >= 10, 'enough of each kind to mean something')
 
 console.log('\n--- smooth: nothing moves faster than it could\n')
@@ -180,7 +206,13 @@ for (const { spec } of specs) {
 }
 ok(through === 0, `nobody is run through on the way to the line${through ? ` (${through} frames, first ${worstGap})` : ''}`)
 ok(tries.some(s => clipTimeline(s.spec).contact.length > 0) && missed > 0, 'men go for him and miss, and go to ground')
-ok(specs.filter(s => s.kind !== 'kick').every(({ spec }) => { const f = frameAt(spec, clipTimeline(spec).land); return Math.hypot(f.ref.x - f.ball.x, f.ref.y - f.ball.y) < 30 }), 'the referee is on the pitch and near the ball')
+// (named when it fails: on one shifted seed list a crossfield try left him
+// 30.1 m from the ball as it landed, the only clip of about 700 past 30)
+const farRef = specs.filter(s => s.kind !== 'kick').map(({ spec }) => {
+  const f = frameAt(spec, clipTimeline(spec).land)
+  return { spec, d: Math.hypot(f.ref.x - f.ball.x, f.ref.y - f.ball.y) }
+}).filter(x => x.d >= 30)
+ok(farRef.length === 0, `the referee is on the pitch and near the ball${farRef.length ? ` - ${farRef.slice(0, 3).map(x => `${x.spec.kind}/${x.spec.style} line ${x.spec.endLine} at ${x.d.toFixed(1)} m`).join('; ')}` : ''}`)
 
 console.log('\n--- kicks and attacks\n')
 const kicks = specs.filter(s => s.kind === 'kick').map(s => s.spec)
