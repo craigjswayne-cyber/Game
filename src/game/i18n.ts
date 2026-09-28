@@ -287,6 +287,24 @@ function fill(text: string, vars?: Vars, lang: Lang = current): string {
       const club = String(vars.short)
       return lang === 'fr' ? `de ${club}` : lang === 'af' ? `${club} se` : club
     }
+    // A LIST OF COMPETITIONS, marked by _cl: a JSON array of English names,
+    // each put into the reader's language and joined the way that language
+    // lists things ("the Premiership and the Cup", "la Premiership et la
+    // Coupe"). A save written before a line used it carries the English
+    // string under the bare name, so that is read when the _cl one is absent.
+    if (name.endsWith('_cl')) {
+      const raw = vars[name] ?? vars[name.slice(0, -3)]
+      if (raw == null) return whole
+      try {
+        const names = JSON.parse(String(raw)) as string[]
+        if (!Array.isArray(names)) return String(raw)
+        const labels = names.map(n => compLabel(n, lang) ?? n)
+        if (labels.length < 2) return labels[0] ?? ''
+        const sep = (lookup(DICTS[lang], 'common.listSep') ?? ', ') as string
+        const and = (lookup(DICTS[lang], 'common.listAnd') ?? lookup(DICTS.en, 'common.listAnd') ?? ' and ') as string
+        return labels.slice(0, -1).join(sep) + and + labels[labels.length - 1]
+      } catch { return String(raw) }
+    }
     const v = vars[name]
     if (v == null) return whole
     // A VARIABLE THAT IS ITSELF A KEY, marked by a _k suffix on its name.

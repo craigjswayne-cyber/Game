@@ -247,7 +247,9 @@ export function generatePress(state: GameState, rng: Rng) {
         {
           k: voice(23, double ? ['press.silverDoubleQ1', 'press.silverDoubleQ2']
             : ['press.silverOneQ1', 'press.silverOneQ2']),
-          v: { what, n: names.length },
+          // what_cl puts each name in the reader's language; what stays for
+          // the English saved beside it
+          v: { what, what_cl: JSON.stringify(names), n: names.length },
         },
         undefined, [
           opt({ morale: 0.5, board: 0.4, lk: 'press.silverGroup', rk: 'press.silverGroupR' }),
