@@ -1290,7 +1290,12 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
       // default when the read is sound, or the whole analyst chain is
       // decoration again. Re-measured at 0.045: +36.9 points a season, ahead
       // in 10 of 12 paired seasons.
-      const homework = 0.045 * prepF
+      // 0.07 from 1.8.0: the same collapse again, in two steps. E5-E9 took
+      // the edge from +78.7 points a season to +27.3, and kicks from hand,
+      // charge-downs and the two-layer contest took it to -14.0 and then
+      // -0.3 (following sound reads was worth nothing against a fitness
+      // week). At 0.07: +44.4, ahead in 14 of 24 paired seasons.
+      const homework = 0.07 * prepF
       if (read.unit === 'defence') side.units.attack *= 1 + homework
       else if (read.unit === 'attack') side.units.defence *= 1 + homework
       else side.units[read.unit] *= 1 + homework
