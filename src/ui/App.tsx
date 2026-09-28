@@ -260,7 +260,9 @@ function Overlays() {
  *  1000px) on top of whatever the manager picked, and the .tablet class lets
  *  the layout use the width. "A tablet" is a touch-first screen at least 700px
  *  on BOTH sides: a phone on its side is under 500 tall, and a desktop browser
- *  has a fine pointer, so neither moves. */
+ *  has a fine pointer, so neither moves. Upright, the pointer is not asked
+ *  (1.8.1, see TABLET_Q): a portrait screen that wide is a tablet whatever it
+ *  points with. */
 function useTextScale(tablet: boolean) {
   const scale = useStore(s => s.textScale)
   const [big, setBig] = useState(bigTablet)
@@ -499,12 +501,13 @@ export default function App() {
   // The Country button's badge is the one thing on that screen that is a JOB
   // this week: an open camp with places still to fill. A window that is open
   // and already full is not a red dot, it is a screen worth visiting.
-  const campToDo = (() => {
-    if (!game.natTeam) return 0
-    const w = natWindow(game)
-    if (!w) return 0
-    return Math.max(0, w.size - (game.natSquads[game.natTeam]?.length ?? 0))
-  })()
+  //
+  // 1.8.1: the badge counts what the HOLD counts. It used to count up to the
+  // window's full size (32 for a tour) while Continue waits only until the
+  // floor of 23 is named, so a manager with 23 named saw "9" on the button
+  // and a week that moved anyway. The red dot now means the week is waiting
+  // on this desk, which is what every other badge on the bar means.
+  const campToDo = natSquadHold(game)?.n ?? 0
   // GATED ON THE FIRST MATCH, NOT ON A WEEK COUNT.
   //
   // This was `week <= 3`, and the user was still being told "before your first
@@ -530,8 +533,15 @@ export default function App() {
 
   // Home wears the club's own name, which is never translated; every other
   // screen wears its title from the dictionary.
-  const mastheadTitle = cur.screen === 'home'
+  //
+  // Somebody else's club wears ITS name (1.8.1, UI sweep): the page for
+  // Leicester said "Club" across the top, which read as your own club's page
+  // with the wrong squad in it. Your own club keeps the dictionary title.
+  const otherClub = cur.screen === 'club' && typeof cur.param === 'string' && cur.param !== game.userClubId
+    ? game.clubs[cur.param] : undefined
+  const mastheadTitle = cur.screen === 'home' || (cur.screen === 'supporter' && !tillOpen())
     ? (game.unemployed ? t('titles.unemployed') : club.name)
+    : otherClub ? otherClub.name
     : TITLES.includes(cur.screen) ? t(`titles.${cur.screen}`)
     // the Academy was the one screen off the Hub with a blank masthead (UI QA,
     // 1.8.0): it borrows the menu's own word rather than a new key per language
@@ -559,7 +569,10 @@ export default function App() {
       case 'settings': return <Settings />
       case 'bug': return <BugReport />
       case 'about': return <About />
-      case 'supporter': return <Supporter />
+      // no till, no store: a bookmark or a late bridge used to land here on a
+      // page that rendered nothing under its title (Supporter returns null
+      // without a till), so it is Home instead, the same as an unknown screen
+      case 'supporter': return tillOpen() ? <Supporter /> : <Home />
       case 'jobs': return <Jobs />
       case 'wire': return <Wire />
       case 'medical': return <Medical />
@@ -756,7 +769,12 @@ export default function App() {
               // three holds, one label. Press and squad apply on every step;
               // mail only on the way out of the week.
               const owed = natSquadHold(game)
-              const desk = pressBlock(game)
+              // A BID OUTRANKS THEM ALL, because continueWeek checks it first
+              // (1.8.1): the button said Continue and then opened Offers,
+              // which is the silent refusal this label exists to prevent
+              const bids = game.unemployed ? 0 : offersOpen
+              const desk = (bids ? { kind: 'offers' as const, n: bids, label: bids === 1 ? t('dayroom.deskOffers') : t('dayroom.deskOffersN', { n: bids }) } : null)
+                ?? pressBlock(game)
                 ?? (owed ? { kind: 'squad' as const, n: owed.n, label: t('dayroom.deskSquad', { n: owed.n }) } : null)
                 ?? (deskGates(step) ? deskBlock(game) : null)
               return (

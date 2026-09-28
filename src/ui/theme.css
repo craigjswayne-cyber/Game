@@ -4677,6 +4677,12 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .inbox-list { display: none; }
 .inbox-panes { display: block; }
 .app.tablet { max-width: none; box-shadow: none; }
+/* NO BARS UPRIGHT (1.8.1). The 560px cap exists for a desktop browser on its
+   side, where a phone-shaped column is easier to read than a line of text a
+   metre long. Upright it only ever made bars: a small 600px tablet kept a
+   strip of dark canvas down each edge that the tablet rule (700px and up)
+   never reached. The widest phone is 430px, so this changes no phone. */
+@media (orientation: portrait) { .app { max-width: none; } }
 @media (orientation: portrait) {
   .app.tablet .content > .card, .app.tablet .content > .chips { max-width: none; }
 

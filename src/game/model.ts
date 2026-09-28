@@ -1045,9 +1045,12 @@ export interface TransferOffer {
   status: 'pending' | 'accepted' | 'rejected'
   /** He has already been asked for more once.
    *
-   *  Haggling raises the fee 18% on a 55% roll and leaves the bid pending, so an
-   *  unlimited counter is a money printer: keep demanding until the dice land.
-   *  One round of haggling per offer, then you answer it. */
+   *  Haggling (ai.ts counterIncomingOffer) raises the fee by
+   *  clamp(1.26 - 0.16 x fee/value, 1.06, 1.22), capped at 1.4 x his value and
+   *  the bidder's budget, on a 55% roll, and leaves the bid pending; otherwise
+   *  the bidder walks, and a bid that cannot rise comes back as best and final.
+   *  An unlimited counter would be a money printer (keep demanding until the
+   *  dice land), so it is one round of haggling per offer, then you answer. */
   countered?: boolean
   /** How many times a rival has topped this bid (18C). A war runs three
    *  raises at most, then whoever holds the ball has to hear an answer. */
@@ -1695,6 +1698,9 @@ export interface GameState {
   analyst?: import('./analyst').AnalystRead | null
   /** how often following his read has paid off */
   analystRecord?: { right: number; wrong: number }
+  /** the Matchday game plan already applied to this fixture, and how many of
+   *  its reads, so the button cannot stack the same nudges twice (1.8.1) */
+  planApplied?: { fx: number; n: number }
   /** the chief scout is away on a commissioned brief */
   commission?: import('./commission').Commission | null
   /** the report he filed when he got back */
