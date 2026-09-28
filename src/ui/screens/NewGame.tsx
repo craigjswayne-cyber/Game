@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useStore } from '../../store'
 import { CHALLENGES, LEAGUE_DEFS, mediaVerdict, challengesFor } from '../../game/newgame'
 import { dreamsFor, dreamTitle, type DreamContext } from '../../game/dream'
@@ -9,6 +9,8 @@ import { playerValue } from '../../game/attributes'
 import { fmtMoney, seasonLabel } from '../../game/model'
 import { t, localeTag, compLabel } from '../../game/i18n'
 import { Glyph } from '../glyphs'
+import { listSaves, type SaveMeta } from '../../game/save'
+import { SLOTS as SAVE_SLOTS, slotName } from './Saves'
 
 // Guided setup: STEP x OF 4, breadcrumbs, tile grids,
 // a club detail panel, and a persistent bottom action bar.
@@ -41,6 +43,18 @@ export default function NewGame() {
   const [styleId, setStyleId] = useState('balanced')
   const [challengeId, setChallengeId] = useState<string | null>(null)
   const [dreamId, setDreamId] = useState<string | null>(null)
+  /* A NEW CAREER NEVER LANDS ON AN OLD ONE (1.8.0). start() wrote to whichever
+   * slot was last loaded or saved, so starting afresh from the menu silently
+   * replaced the career you had been playing. It now takes that slot only if
+   * it is empty, then the first empty one, and when all four are full it asks
+   * which to replace rather than choosing for you. */
+  const activeSlot = useStore(s => s.saveSlot)
+  const [saves, setSaves] = useState<SaveMeta[] | null>(null)
+  const [pickSlot, setPickSlot] = useState<string | null>(null)
+  useEffect(() => { void listSaves().then(setSaves).catch(() => setSaves([])) }, [])
+  const usedSlots = new Set((saves ?? []).map(sv => sv.slot))
+  const freeSlot = !usedSlots.has(activeSlot) ? activeSlot : SAVE_SLOTS.find(sl => !usedSlots.has(sl)) ?? null
+  const targetSlot = saves == null ? null : freeSlot ?? pickSlot
   // the Manager's License (v1.1.0): offered here and only here, and only to
   // an owner - the receipt is bought on the Supporter page, the choice is made
   // per career, and it is never offered again once the career exists
@@ -76,7 +90,7 @@ export default function NewGame() {
     setStep(2)
   }
 
-  const canNext = step === 0 ? leagueIdx != null : step === 1 ? clubId != null : step === 2 ? name.trim().length > 0 : true
+  const canNext = step === 0 ? leagueIdx != null : step === 1 ? clubId != null : step === 2 ? name.trim().length > 0 : targetSlot != null
 
   /* A GREYED BUTTON HAS TO SAY WHAT IT WANTS.
    *
@@ -91,11 +105,13 @@ export default function NewGame() {
   const needed = canNext ? null
     : step === 0 ? t('wizard.needCompetition')
     : step === 1 ? t('wizard.needClub')
-    : t('wizard.needName')
+    : step === 2 ? t('wizard.needName')
+    : t('wizard.needSlot')
 
   const next = () => {
     if (step < 3) { setStep(step + 1); return }
-    if (!club) return
+    if (!club || !targetSlot) return
+    useStore.getState().setSlot(targetSlot)
     // The origin tiles (18B's "Your Story") were cut at the user's request:
     // "this feature isnt too much of interest". Every career takes the
     // engine's default coach background.
@@ -330,6 +346,25 @@ export default function NewGame() {
         {step === 3 && club && league && (
           <>
             <div className="wizard-hint">{t('wizard.allSet')}</div>
+            {saves != null && (freeSlot ? (
+              <div className="meta muted" style={{ margin: '0 0 8px' }}>{t('wizard.savesTo', { slot: slotName(freeSlot) })}</div>
+            ) : (
+              <div className="card">
+                <label className="fact-label">{t('wizard.slotsFull')}</label>
+                <div className="meta" style={{ marginBottom: 6 }}>{t('wizard.slotsFullBlurb')}</div>
+                <div className="speech-grid" style={{ padding: 0 }}>
+                  {SAVE_SLOTS.map(sl => {
+                    const sv = saves.find(x => x.slot === sl)
+                    return (
+                      <button key={sl} className={`speech-tile${pickSlot === sl ? ' sel' : ''}`} onClick={() => setPickSlot(sl)}>
+                        <b>{slotName(sl)}</b>
+                        {sv && <span className="d">{sv.managerName} · {sv.club} · {seasonLabel(sv.season)}</span>}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
             <div className="card detail-panel">
               <div className="club-banner" style={{ background: club.colors[0], color: 'var(--prop-ink)' }}>
                 <Crest club={club} size={22} mr={8} />{club.name}
