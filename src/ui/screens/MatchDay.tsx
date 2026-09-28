@@ -13,7 +13,7 @@ import { BriefIcon } from '../tacticsArt'
 import { assistantFixtureThisWeek, isKnockoutTie, userMatchThisWeek, weekRng } from '../../game/season'
 import { effAt } from '../../game/attributes'
 import { PRESETS, SLIDER_INFO, sliderReadout, type SliderKey } from '../../game/tactics'
-import { ord, posName, t, localeTag } from '../../game/i18n'
+import { ord, posName, t, localeTag, compLabel } from '../../game/i18n'
 import { subjectVar } from '../../game/gender'
 import { coachFixes, gradeFixes, gradeLine, unitBattles, type FixTag } from '../../game/coachfix'
 import { CrestT, Jersey, PosBadge, SectionTitle, Stars, RewardedButton, Toggle } from '../components'
@@ -590,7 +590,7 @@ function Preview({ fxId }: { fxId: number }) {
           <button className="back-btn" onClick={back}>‹</button>
           <div style={{ flex: 1 }}>
             <h1>{t('matchday.mdTitle')}</h1>
-            <div className="date">{comp?.name ?? (fx.compId === 'fr' ? t('matchday.clubFriendly') : '')}{fx.stage ? ` · ${stageName(fx.stage)}` : ''} · {fixtureDate(game.season, fx.week, fx.id, fx.midweek ? MIDWEEK_OFF : undefined)}</div>
+            <div className="date">{compLabel(comp?.name) ?? (fx.compId === 'fr' ? t('matchday.clubFriendly') : '')}{fx.stage ? ` · ${stageName(fx.stage)}` : ''} · {fixtureDate(game.season, fx.week, fx.id, fx.midweek ? MIDWEEK_OFF : undefined)}</div>
           </div>
           <button className="continue-btn" onClick={tryKickOff}>{t('matchday.kickOff')}</button>
         </div>
@@ -742,7 +742,7 @@ function Preview({ fxId }: { fxId: number }) {
                 <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
                   <div className="fact-label">{t('matchday.finalTitle')}</div>
                   <div className="meta">
-                    {t('matchday.finalBody', { comp: game.comps[fx.compId]?.name ?? t('matchday.finalTrophy') })}
+                    {t('matchday.finalBody', { comp: compLabel(game.comps[fx.compId]?.name) ?? t('matchday.finalTrophy') })}
                   </div>
                 </div>
               )}
@@ -986,7 +986,7 @@ function Preview({ fxId }: { fxId: number }) {
                     {meetings.map(m => (
                       <div key={m.id} className="meta">
                         {teamShort(game, m.homeId)} {m.homeScore} – {m.awayScore} {teamShort(game, m.awayId)}
-                        {' '}<span className="muted">({game.comps[m.compId]?.short})</span>
+                        {' '}<span className="muted">({compLabel(game.comps[m.compId]?.short)})</span>
                       </div>
                     ))}
                   </div>
@@ -1248,7 +1248,7 @@ function NationPreview({ fxId }: { fxId: number }) {
           <button className="back-btn" onClick={back}>‹</button>
           <div style={{ flex: 1 }}>
             <h1>{t('matchday.testMatch', { nat: nationName(nat) })}</h1>
-            <div className="date">{comp?.name ?? (fx.compId === 'fr' ? t('matchday.clubFriendly') : '')}{fx.stage ? ` · ${stageName(fx.stage)}` : ''} · {fixtureDate(game.season, fx.week, fx.id, fx.midweek ? MIDWEEK_OFF : undefined)}</div>
+            <div className="date">{compLabel(comp?.name) ?? (fx.compId === 'fr' ? t('matchday.clubFriendly') : '')}{fx.stage ? ` · ${stageName(fx.stage)}` : ''} · {fixtureDate(game.season, fx.week, fx.id, fx.midweek ? MIDWEEK_OFF : undefined)}</div>
           </div>
         </div>
       </header>
@@ -1756,7 +1756,7 @@ function Live() {
               separator anyway: "57' ·  · 💨 Wind", with a hole where the name
               would be. The dot belongs to the thing after it. */}
           {done ? t('matchday.fullTime') : atHalfTime ? t('matchday.halfTime') : atBreak ? t('matchday.breakSixty') : `${Math.min(80, min)}'`}
-          {game.comps[fixture.compId]?.short ? ` · ${game.comps[fixture.compId]?.short}${fixture.stage ? ` ${stageName(fixture.stage)}` : ''}` : ''}
+          {compLabel(game.comps[fixture.compId]?.short) ? ` · ${compLabel(game.comps[fixture.compId]?.short)}${fixture.stage ? ` ${stageName(fixture.stage)}` : ''}` : ''}
           {fixture.weather && fixture.weather !== 'Dry' ? <> · <Glyph name={WEATHER_ICON[fixture.weather]} /> {weatherWord(fixture.weather)}</> : ''}
           {fixture.att ? <> · <Glyph name="crowd" /> {fixture.att.toLocaleString(localeTag())}</> : ''}
           {/* say so, or a ticker that skips the quiet minutes looks broken (F5) */}

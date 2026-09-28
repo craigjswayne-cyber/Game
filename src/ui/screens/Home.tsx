@@ -17,7 +17,7 @@ import { inInbox } from '../../game/days'
 import { fmtMoney, fmtWage, formGuide, grudgeBetween, grudgeReason, newsSubject, weekDate } from '../../game/model'
 import { OBJECTIVE_DEFS } from '../../game/objectives'
 import { natRankOrder } from '../../game/natrank'
-import { ord, t } from '../../game/i18n'
+import { ord, t, compLabel } from '../../game/i18n'
 import { AdSlot } from '../AdSlot'
 import { tillOpen } from '../../game/monetise'
 import { userWageBudget } from '../../game/grants'
@@ -128,7 +128,7 @@ export default function Home() {
         return (
           <div className="card" onClick={() => go('nations')}
             style={{ background: 'var(--surface-2)', color: 'var(--text-primary)', cursor: 'pointer' }}>
-            <div className="fact-label" style={{ color: 'var(--gold)' }}>{t('home.snLabel', { comp: (game.comps[snId]?.name ?? t('home.theChampionship')).toUpperCase() })}</div>
+            <div className="fact-label" style={{ color: 'var(--gold)' }}>{t('home.snLabel', { comp: (compLabel(game.comps[snId]?.name) ?? t('home.theChampionship')).toUpperCase() })}</div>
             {thisWk.map(f => (
               <div key={f.id} style={{ fontSize: 13, marginTop: 3 }}>
                 {flagOf(f.homeId)} {nationName(f.homeId)} {f.played ? <b>{f.homeScore}–{f.awayScore}</b> : t('common.v')} {nationName(f.awayId)} {flagOf(f.awayId)}
@@ -184,7 +184,7 @@ export default function Home() {
           borderLeft: `4px solid ${assistants ? 'var(--border-strong)' : game.clubs[fx.homeId === club.id ? fx.awayId : fx.homeId]?.colors[0] ?? 'var(--gold)'}`,
         }}>
           <div className="meta" style={{ textTransform: 'uppercase', letterSpacing: 1, fontSize: 11 }}>
-            {t(assistants ? 'home.assistantMatch' : 'home.nextMatch')} · {comp?.name ?? (fx.compId === 'fr' ? t('common.clubFriendly') : '')}{fx.stage ? ` · ${stageName(fx.stage)}` : ''}
+            {t(assistants ? 'home.assistantMatch' : 'home.nextMatch')} · {compLabel(comp?.name) ?? (fx.compId === 'fr' ? t('common.clubFriendly') : '')}{fx.stage ? ` · ${stageName(fx.stage)}` : ''}
           </div>
           {/* a class, not an inline font-size: inline wins over any media query,
               so portrait could not shrink this and "Northampton v La Rochelle"
@@ -451,7 +451,7 @@ export default function Home() {
         <button className="hub-widget" onClick={() => go('tables')}>
           <label>{t('home.wLeague')}</label>
           <b>{pos > 0 ? ord(pos) : '-'}</b>
-          <span>{game.comps[club.leagueId]?.short}</span>
+          <span>{compLabel(game.comps[club.leagueId]?.short)}</span>
         </button>
         <button className="hub-widget" onClick={() => go('fixtures')}>
           <label>{t('home.wForm')}</label>
