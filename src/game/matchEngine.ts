@@ -5,7 +5,8 @@ import { ROLE_FX, rolesForSlot } from './roles'
 import { zoneAt, zonePlan } from './tactics'
 import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, addGrudge, chemKey, demandCeiling, facLevel, fmtMoney, formGuide, grudgeBetween, inRedZone, oldBoyApps, trustFactor, unbeatenRun } from './model'
 import { standing } from './authority'
-import { analystShift, archetypeOf, loudestDial, repetitionFatigue } from './oppcoach'
+import { analystShift, archetypeOf, loudestDial, repetitionFatigue, respectLayers } from './oppcoach'
+import { resolveContest, type Contest } from './contest'
 import { updateNatRank } from './natrank'
 import { bigMatchTemper, consistency, effAt } from './attributes'
 import { nationName, nationNameIn, nationVars } from './nations'
@@ -2278,6 +2279,11 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
   // every calibrated harness and every fresh world.
   for (const side of [home, away]) {
     if (side.isUser || !ctx.isUser) continue
+    // A BIG NAME IS RESPECTED (E9, oppcoach.setUpForUser): a coach who has
+    // set up to spoil the manager's game also works harder at it, a little
+    // more effort in defence and at the breakdown, for this match only
+    const rl = respectLayers(state, side.teamId)
+    if (rl) for (const [u, m] of Object.entries(rl)) layer(side, u as keyof SideMods, m)
     const shift = analystShift(state, side.teamId)
     if (!shift) continue
     for (const [u, m] of Object.entries(shift.layers)) layer(side, u as keyof SideMods, m)
@@ -2565,7 +2571,7 @@ function backTowards(ctx: LiveCtx, side: SideCtx, m: number) {
  * carries that made it - the highlight clip plays those lines as its build-up
  * (HighlightClip.buildClip), and at most the last three of them.
  */
-function describePlay(state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideCtx) {
+function describePlay(state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideCtx, contest?: Contest | null) {
   if (!ctx.detail) return
   const up = upOf(ctx, side)
   const team = teamShort(state, side.teamId), oppT = teamShort(state, opp.teamId)
@@ -2581,11 +2587,13 @@ function describePlay(state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideCt
   // the carry, where the ball is: forwards close in, backs in space
   if (ctx.crng() < 0.45) {
     const bank = up < 22 ? PBP_DEEP : up > 78 ? PBP_RED : PBP_MID
-    const p = up > 78
+    // the man the contest put into contact, when there was one
+    const real = contest && side.onPitch.has(contest.carrier) ? state.players[contest.carrier] : null
+    const p = real ?? (up > 78
       ? sayWho(state, ctx, side, [0, 1, 2, 3, 4, 5, 6, 7, 11], [1, 2, 1, 2, 2, 2, 2, 3, 1])
       : up < 22
         ? sayWho(state, ctx, side, [8, 9, 14, 10, 13, 11], [2, 3, 3, 1, 1, 1])
-        : sayWho(state, ctx, side, [3, 5, 6, 7, 9, 10, 11, 12, 13, 14], [1, 1, 1, 2, 2, 1, 2, 2, 1, 1])
+        : sayWho(state, ctx, side, [3, 5, 6, 7, 9, 10, 11, 12, 13, 14], [1, 1, 1, 2, 2, 1, 2, 2, 1, 1]))
     if (p) colour(state, ctx, side, said(ctx, bank), { team, opp: oppT, player: p.name }, p.id)
   }
   // the breakdown, or the count of phases
@@ -2605,12 +2613,14 @@ function describePlay(state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideCt
 /** The side without the ball, when the tick came to nothing for the side
  *  that had it: a line about the defence. A man named for a hit is one the
  *  tackle count already has making hits (TACKLE_LINES rule). */
-function describeDefence(state: GameState, ctx: LiveCtx, def: SideCtx, att: SideCtx) {
+function describeDefence(state: GameState, ctx: LiveCtx, def: SideCtx, att: SideCtx, contest?: Contest | null) {
   if (!ctx.detail || ctx.crng() >= 0.25) return
   const team = teamShort(state, def.teamId), oppT = teamShort(state, att.teamId)
   const hitters = onField(state, def).filter(q => (def.tackles?.get(q.id) ?? 0) > 0)
   if (hitters.length && ctx.crng() < 0.45) {
-    const p = hitters[Math.floor(ctx.crng() * hitters.length)]
+    // the man who won this tick's collision, if the tackle count has him
+    const won = contest && contest.dominance < 0.5 ? hitters.find(q => q.id === contest.tackler) : undefined
+    const p = won ?? hitters[Math.floor(ctx.crng() * hitters.length)]
     colour(state, ctx, def, said(ctx, DEF_HIT), { team, opp: oppT, player: p.name }, p.id)
   } else {
     colour(state, ctx, def, said(ctx, DEF_SET), { team, opp: oppT })
@@ -3603,8 +3613,14 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
   describeState(state, ctx, tick)
 
   for (const [side, opp, adv] of [[home, away, ctx.hfa], [away, home, 1]] as [SideCtx, SideCtx, number][]) {
+    // THE SECOND LAYER (E12, contest.ts): this tick's phase is a contest
+    // between men - a carrier into a tackler, a jackal at the ruck - drawn
+    // from the main dice (four draws, always, watched or not) and centred
+    // on the world's average collision, so it decides who wins the carries
+    // the units have earned without moving the season's scoring
+    const contest = resolveContest(side, opp, state.players, rng)
     // the rugby this side plays in the tick, before what it comes to
-    describePlay(state, ctx, side, opp)
+    describePlay(state, ctx, side, opp, contest)
     const scores0 = side.score + opp.score
     const numF = 1 - 0.07 * ([...side.yellowUntil.values()].filter(u => u > min).length + side.sent + side.short)
     const oppNumF = 1 - 0.07 * ([...opp.yellowUntil.values()].filter(u => u > min).length + opp.sent + opp.short)
@@ -3655,12 +3671,12 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     // more of them, bounded, and reciprocal between the two packs so the
     // world's count of penalties does not move.
     const scrumEdge = Math.pow(clamp(side.units.scrum / Math.max(1, opp.units.scrum), 0.8, 1.25), 0.8)
-    const penWindow = opp.penRisk * (side === home ? ap : hp).penF * Math.pow(up / 50, PEN_LEAN) * scrumEdge
+    const penWindow = opp.penRisk * (side === home ? ap : hp).penF * Math.pow(up / 50, PEN_LEAN) * scrumEdge * (contest?.penF ?? 1)
     let ratio = ((att * adv * numF * terr) / Math.max(1, def * oppNumF))
     if (derby) ratio = Math.pow(ratio, 0.72) // form book out the window
     else if (ctx.grudge) ratio = Math.pow(ratio, 0.85) // needle levels the contest
     side.poss += ratio
-    let pTry = clamp(TRY_BASE * Math.pow(ratio, 2.6) * plan.tryF, 0.01, 0.42)
+    let pTry = clamp(TRY_BASE * Math.pow(ratio, 2.6) * plan.tryF * (contest?.tryF ?? 1), 0.01, 0.42)
     // THE LAST QUARTER OPENS UP (audit 16D). Measured before this existed:
     // tries were dead flat across the 80 (11.6-14.0% per ten-minute bucket)
     // because both sides drain together and the mutual exhaustion cancels in
@@ -3831,7 +3847,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     // the kicks from hand this side puts in, and any that are charged down
     kicksFromHand(state, ctx, side, opp, min, tick)
     // and when nothing came of the tick, a word for the side that stopped it
-    if (side.score + opp.score === scores0) describeDefence(state, ctx, opp, side)
+    if (side.score + opp.score === scores0) describeDefence(state, ctx, opp, side, contest)
 
     // atmosphere lines for the live ticker
     if (detail && ctx.crng() < 0.3) {
