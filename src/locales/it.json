@@ -864,7 +864,6 @@
   "planDesc_finish": "Gambe per gli ultimi venti minuti e una panchina con l'ordine di colpire forte.",
   "planTitle": "Piano di risposta",
   "planSub": "Ogni piano imposta solo comandi che hai già. Se li cambi dopo, il piano decade.",
-  "usePlan": "Usa questo piano",
   "planOn": "Piano impostato",
   "lvPrep": "Preparazione: {prep}",
   "lvDial": "{dial} {v}",

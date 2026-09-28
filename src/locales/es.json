@@ -863,7 +863,6 @@
   "planDesc_finish": "Piernas para los últimos veinte minutos y un banquillo con orden de golpear fuerte.",
   "planTitle": "Plan de respuesta",
   "planSub": "Cada plan solo ajusta controles que ya tienes. Cámbialos después y el plan decae.",
-  "usePlan": "Usar este plan",
   "planOn": "Plan activado",
   "lvPrep": "Preparación: {prep}",
   "lvDial": "{dial} {v}",
