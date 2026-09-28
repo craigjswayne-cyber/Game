@@ -4,7 +4,7 @@ import { analystArmed } from '../../game/rewarded'
 import { rewardedAvailable } from '../../game/monetise'
 import { AdSlot } from '../AdSlot'
 import {
-  matchStats, teamShort, teamUnits, rosterOf, assistantJudgement, autoSelect, availablePlayers,
+  matchStats, goalKicker, teamShort, teamUnits, rosterOf, assistantJudgement, autoSelect, availablePlayers,
   refFor, refNotes, homeCrowdLean, frontRowCover, repairSheet, rollWeather, sideEnergy, MAX_SUBS, type LiveCtx, type SideCtx,
 } from '../../game/matchEngine'
 import { MIDWEEK_OFF, BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, chemKey, clubCode, chemTier, eventText, injuryDesc, fixtureDate, fixtureDayOff, grudgeBetween, inRedZone, oldBoyApps, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
@@ -2197,7 +2197,8 @@ function DecisionPanel() {
   const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
   const opp = mine === ctx.home ? ctx.away : ctx.home
   const diff = mine.score - opp.score
-  const kicker = mine.units.kickerId != null ? game.players[mine.units.kickerId] : null
+  // whoever will actually take it: the first choice may be in the bin
+  const kicker = goalKicker(game, mine)
 
   const options = [
     {
