@@ -74,10 +74,15 @@ were loosened; each now reads a bigger sample:
      about 7.5, so a big club had to win four in five to stand still. A win
      now earns at least 55% of what the same defeat costs;
    - a sacking needs the floor for three weeks running, not one reading;
-   - a manager's first season at a club: no results sacking before week 32
-     (final warnings still go out).
-   Result (autopilotprobe): engaged Bath 0 of 12 sacked (was 2); a Bath
-   manager who only presses Continue is still sacked in 4 of 12.
+   - a manager's first season at a club has a honeymoon with no results
+     sacking (final warnings still go out). Its length follows the club's
+     standing, as the owner asked ("it should be harder as the fans expect
+     results"): until week 32 at reputation 50 or below, week 21 at 70,
+     week 16 at 80 and week 12 at 88 or above.
+   Result (autopilotprobe, 36 seasons each): engaged Bath sacked 4 of 36,
+   every one of them 8th to 10th after week 28, a title favourite having a
+   genuinely bad year; a Bath manager who only presses Continue is sacked
+   in 17 of 36; a minnow's never.
 2. **Tired sides.** From minute 68, an emptied side now scores 4.17
    against 4.71 rested and concedes 3.31 against 2.81 (the old audit
    compared different matches, which is why it read the other way). A
@@ -100,7 +105,27 @@ were loosened; each now reads a bigger sample:
    empty "You:".
 6. **Finances Season balance chart** rebuilt: zero line, gridlines, week
    marks, start and end values, red below zero, tap a week to read it.
-7. **Board decisions** stay on Finances > The Board for the whole season.
+7. **Board decisions** stay on Finances > The Board for the whole season,
+   and Continue takes you there when one is waiting (it used to open an
+   empty Press Room).
+
+## Owner round, afternoon of 28 Sep: bugs found writing the manual
+
+The technical manual was written from the code, and its authors listed
+what looked wrong. The owner chose six to fix before release:
+
+1. **Pressing the board after a written warning sacks you.** Not a bug: it
+   is the owner's own rule from 1.1.4, and the warning says so. Kept as is.
+2. **Sponsor shopping.** Ending a deal early cost nothing and rerolled the
+   offers on wider bands, so signing and ending again let a manager shop a
+   slot for the top of its band. Now one early exit per slot per season,
+   with a line on the card saying so (dealprobe).
+3. to 5. **Match engine** (AI sides after substitutions, a departed goal
+   kicker, starts and minutes): see below.
+6. **A new career overwrote the save you were playing.** The wizard now
+   uses an empty slot and says which; with all four full it asks which
+   career to replace, and Start Career waits for the answer (new browser
+   probe slotprobe).
 
 ## Still open
 
