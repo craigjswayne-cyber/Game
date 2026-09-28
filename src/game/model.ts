@@ -437,6 +437,10 @@ export interface Player {
   poty?: number
   /** in the academy squad - hidden from first-team auto-selection until promoted */
   acad?: boolean
+  /** The season he joined an academy, as an intake scholar (1.8.1). The summer
+   *  decision reads it: a first-year is signed or released at the end of his
+   *  first season. Absent on anybody who arrived before it was stamped. */
+  acadJoined?: number
   /** Sent down from the first team by hand (v1.1.18). An academy flag for
    *  selection purposes ONLY: he still counts against the salary cap (cap.ts
    *  - otherwise demotion is a cap dodge) and the season-end academy sweep
@@ -925,10 +929,19 @@ export interface PressOption {
    *  the same question a week after his boss agreed to it. */
   loan?: boolean
   /** the summer sponsorship decision (25C): choosing an option SIGNS the deal
-   *  there and then, via commercial.offersFor - which is deterministic on
-   *  (seed, season, slot), so the offer named on the button is the offer
-   *  signed. kind 'keep' stays with the department's stopgap. */
-  deal?: { slot: string; kind: 'long' | 'short' | 'clause' | 'keep' }
+   *  there and then. `offer` is the offer the button named, stored when the
+   *  question was built (1.8.1): offersFor is deterministic on the slot's
+   *  reroll counter and the club's reputation as well as the season, and
+   *  either can move between asking and answering. Old saves have no offer
+   *  and fall back to asking offersFor again. kind 'keep' stays with the
+   *  department's stopgap. */
+  deal?: { slot: string; kind: 'long' | 'short' | 'clause' | 'keep'; offer?: import('./commercial').Offer }
+  /** the summer academy decision (1.8.1, acadcall.ts): keep a first-year
+   *  scholar on a development contract ('sign'), give a lad at the age gate
+   *  his first professional contract ('promote'), or let him go ('release').
+   *  `acadWage` is the weekly figure the button quoted, paid as quoted. */
+  acad?: 'sign' | 'promote' | 'release'
+  acadWage?: number
   /** the season-expectations decision (25C): choosing sets
    *  state.stance for the year, which scales how hard the boardroom needle
    *  swings on every result - see boardReaction. */
@@ -1658,9 +1671,13 @@ export interface GameState {
    *  or 45 means a save from before the season grew to 48 weeks, and save.ts
    *  rebases it once, on load, to WEEK_BASIS. */
   basis?: number
-  /** What the club has booked into the empty summer weeks, keyed by week. One
-   *  event a week, because it is one ground. */
+  /** What the club has booked into the empty summer weeks, keyed by
+   *  "season:week" (week alone before 1.8.1). One event a week, because it is
+   *  one ground. */
   closeBook?: Record<string, string>
+  /** The season the board last put the insolvency warning in writing. Once a
+   *  season, and read from here rather than searched for in the inbox. */
+  insolvWarned?: number
   /** Which season each once-a-year talking point last fired in. */
   points?: Record<string, number>
   /** The week a rival coach briefed the press about your side. The next match
@@ -2072,7 +2089,10 @@ export interface GameState {
   intakeClass?: { name: string; pos: Pos; age: number; q: number; pa: number; gk: boolean; wonder: boolean }[] | null
   /** signed pre-contracts: out-of-contract players who move on a free at
    *  the end of the season - binding once agreed */
-  preContracts?: { playerId: number; toClubId: string; week: number }[]
+  /** `wage` is the weekly figure agreed at the table (the manager's own
+   *  pre-contracts), paid from the day he arrives. Absent on the AI's and on
+   *  saves from before 1.8.1. */
+  preContracts?: { playerId: number; toClubId: string; week: number; wage?: number }[]
   /** a takeover in motion (the moneyMen storyline): rumour -> exclusivity ->
    *  completion or collapse */
   takeover?: { clubId: string; week: number; stage: number } | null
@@ -2594,11 +2614,17 @@ export const BENCH_SLOTS: { shirt: number; pos: Pos[] }[] = [
 
 /** The board's stated aim for the season, from club stature. */
 /** `text` is an i18n key: screens t() it, the board's letters tIn('en', …) it. */
-export function boardObjective(rep: number): { text: string; pos: number } {
+/** The board's main aim, and the finish that meets it. `teams` is the size of
+ *  the club's league. "Clear of the bottom two" is a place in a table, and it
+ *  was written as 12, which is only true of a fourteen-club league: in a league
+ *  of twelve, twelfth IS the bottom and still "met" the survival aim, and in a
+ *  league of ten it could not be missed at all (1.8.1). Callers without a table
+ *  get fourteen, which is the figure it always was. */
+export function boardObjective(rep: number, teams = 14): { text: string; pos: number } {
   if (rep >= 87) return { text: 'objectives.boardTitle', pos: 1 }
   if (rep >= 80) return { text: 'objectives.boardPlayoffs', pos: 6 }
   if (rep >= 72) return { text: 'objectives.boardTopHalf', pos: 7 }
-  return { text: 'objectives.boardSurvive', pos: 12 }
+  return { text: 'objectives.boardSurvive', pos: Math.max(1, Math.round(teams) - 2) }
 }
 
 /**

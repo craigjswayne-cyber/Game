@@ -293,10 +293,14 @@ export const ACADEMY_MAX = 900
  * teenagers on first-team money that nothing would ever notice. Idempotent, so
  * calling it again costs nothing.
  */
-export function repriceAcademies(players: { acad?: boolean; wage: number; ca: number; age: number }[]): number {
+export function repriceAcademies(players: { acad?: boolean; demoted?: boolean; wage: number; ca: number; age: number }[]): number {
   let moved = 0
   for (const p of players) {
-    if (!p.acad) continue
+    // a hand-demoted senior keeps the contract he signed (PlayerScreen says so,
+    // and capBill still counts it). Repricing him to scholarship money made
+    // demotion a wage cut: send a star down in week 48, bring him back up in
+    // August, and he played on for academy pay.
+    if (!p.acad || p.demoted) continue
     const want = playerWage(p.ca, p.age, true)
     if (p.wage !== want) { p.wage = want; moved++ }
   }

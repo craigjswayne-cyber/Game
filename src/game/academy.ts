@@ -33,7 +33,8 @@ import type { Club, GameState, Player, Pos, TableRow } from './model'
 import { genderOf, subjectVar } from './gender'
 import { t, type Vars } from './i18n'
 import { clamp, mulberry32, type Rng } from './rng'
-import { facLevel, XV_SLOTS } from './model'
+import { facLevel, SEASON_WEEKS, XV_SLOTS } from './model'
+import { settleAcadCalls } from './acadcall'
 // A League fixtures share the senior league's match weeks: in the real game the A
 // side plays the Friday before the first team's Saturday. Imported rather than
 // redeclared so the two calendars can never drift apart.
@@ -143,6 +144,9 @@ export function topUpAcademy(state: GameState, club: Club, rng: Rng, seedBase = 
       p.pa = Math.max(p.ca, Math.min(p.pa, acadCeiling(club, rng)))
       p.youth = true
       p.acad = true
+      // the season he joins: at the rollover (week 48) that is the season about
+      // to start, and the summer decision reads it (acadcall.ts)
+      p.acadJoined = state.week >= SEASON_WEEKS ? state.season + 1 : state.season
       state.players[p.id] = p
       club.players.push(p.id)
       made++
@@ -546,6 +550,9 @@ const ordinal = (n: number) =>
 /** The champion, once the card is done. Called at rollover before the rebuild so
  *  the season's A League winner makes the news the way a senior title would. */
 export function closeAcademySeason(state: GameState) {
+  // the summer decisions first: the manager's are withdrawn if somehow still
+  // open, and the AI's first-years are decided (acadcall.ts)
+  settleAcadCalls(state)
   const l = state.academy
   if (!l || l.fixtures.some(f => !f.played)) return
   const order = acadStandings(l)

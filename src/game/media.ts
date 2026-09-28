@@ -2,7 +2,8 @@ import type { GameState, OfficeTopic, Player, PressItem, PressOption } from './m
 import { subjectVar } from './gender'
 import {absWeek, SEASON_WEEKS, fmtMoney, formGuide, logDecision, poss, weeksBetween100, stamp100 } from './model'
 import { loanOut } from './loans'
-import { offersFor, signOffer, type SlotId } from './commercial'
+import { academyCalls, acadCallLive, resolveAcadCall } from './acadcall'
+import { dropSlotQuestion, offersFor, signOffer, slotSignable, type SlotId } from './commercial'
 import { derbyName, isDerby } from './rivalries'
 import { nationByCode, nationNameIn, nationVars } from './nations'
 import { applyResponse } from './authority'
@@ -135,9 +136,23 @@ export function campCost(budget: number): number {
 export function tourFee(budget: number): number {
   return roundMoney(Math.min(600_000, Math.max(8_000, budget * 0.15)))
 }
+/**
+ * The war chest an aim-high promise releases: an eighth of the budget, capped.
+ *
+ * It was floored at £100,000, a figure set for Premiership budgets, so a
+ * National League side on £62,000 was handed more than its whole budget and
+ * then faced a clawback of £175,000 (1.8.1). The camp and the objective bonus
+ * were scaled to the club long ago; this now is too. Above about £830,000 of
+ * budget the figure is exactly what it was.
+ */
+export function warChest(budget: number): number {
+  const raw = budget * 0.12
+  if (raw >= 100_000) return Math.min(400_000, Math.max(100_000, Math.round(raw / 50_000) * 50_000))
+  return roundMoney(Math.max(5_000, raw))
+}
 /** To the nearest thousand under a hundred grand, the nearest twenty-five
  *  thousand over it: nobody quotes a sponsor's tour at £417,300. */
-function roundMoney(v: number): number {
+export function roundMoney(v: number): number {
   return v < 100_000 ? Math.round(v / 1_000) * 1_000 : Math.round(v / 25_000) * 25_000
 }
 
@@ -146,6 +161,9 @@ export function generatePress(state: GameState, rng: Rng) {
   // the barometer reads the week's results first, so whatever is asked below
   // is asked by the press the manager is actually facing (pressmood.ts)
   const mood = settlePressMood(state)
+  // the summer academy decisions go on the desk whatever the room is doing:
+  // they are the academy director's, not the press's (acadcall.ts)
+  academyCalls(state)
   const club = state.clubs[state.userClubId]
   const squad = club.players.map(id => state.players[id]).filter(Boolean)
   // a board decision waiting on Finances is not a journalist at the door
@@ -197,7 +215,7 @@ export function generatePress(state: GameState, rng: Rng) {
     // board will be nervous about their budget"). Released the moment the
     // manager aims high; the rollover claws it back with interest if the side
     // finishes no better than the pundits said - see rebuildSeason.
-    const fund = Math.min(400_000, Math.max(100_000, Math.round((club.budget * 0.12) / 50_000) * 50_000))
+    const fund = warChest(club.budget)
     const round1 = (x: number) => Math.round(x * 10) / 10
     const item = mk(state,
       { k: voice(21, ['press.stanceQ1', 'press.stanceQ2']), v: { pred_k, pred_o: pred ?? 0 } },
@@ -982,6 +1000,7 @@ export function generatePress(state: GameState, rng: Rng) {
   // post-match reaction: the result you just walked off the pitch with
   const justPlayed = state.fixtures.find(f =>
     f.played && f.week === state.week && (f.homeId === club.id || f.awayId === club.id))
+  let reacted = false
   if (justPlayed && rng() < 0.6) {
     const us = justPlayed.homeId === club.id ? justPlayed.homeScore : justPlayed.awayScore
     const them = justPlayed.homeId === club.id ? justPlayed.awayScore : justPlayed.homeScore
@@ -1023,7 +1042,17 @@ export function generatePress(state: GameState, rng: Rng) {
           opt({ morale: 0.3, board: 0, lk: 'press.derbyLostReturn', rk: 'press.derbyLostReturnR' }),
         ], rng)
     }
-    if (reaction && state.press.filter(p => !p.answered).length < 2) state.press.push(reaction)
+    // ONE NEW QUESTION A WEEK, COUNTED THE WAY THE SPAM GATE COUNTS (1.8.1).
+    // This gate counted the boardroom's decisions as press questions and the
+    // spam gate did not, and a reaction that landed did not stop the week's
+    // candidate from landing after it: two questions in one week, from a room
+    // that is meant to ask one. The same count now, and the reaction is the
+    // week's question when it comes (the candidate below still draws, so the
+    // stream is unchanged).
+    if (reaction && state.press.filter(p => !p.answered && !isBoardroom(p)).length < 2) {
+      state.press.push(reaction)
+      reacted = true
+    }
   }
 
   // 11. THE HOMESICK SIGNING (v1.5.4). Two of the three questions the press
@@ -1072,11 +1101,11 @@ export function generatePress(state: GameState, rng: Rng) {
 
   if (candidates.length && rng() < 0.75) {
     const chosen = candidates[Math.floor(rng() * candidates.length)]
-    state.press.push(chosen)
+    if (!reacted) state.press.push(chosen)
     // the office writes its memo when the man knocks, so that whatever the
     // manager says - or does not say - he is not back next week with the
     // same speech
-    if (chosen.topic && chosen.playerId != null) rememberAsk(state, chosen.playerId, chosen.topic)
+    if (!reacted && chosen.topic && chosen.playerId != null) rememberAsk(state, chosen.playerId, chosen.topic)
     // keep press list bounded
     if (state.press.length > 40) state.press = state.press.slice(-40)
   }
@@ -1159,6 +1188,19 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
   if (!item || item.answered) return
   const opt = item.options[optionIndex]
   if (!opt) return
+  // a sponsorship question whose slot was filled since it was asked is moot:
+  // withdrawn, not answered with a signature that cannot happen (commercial.ts
+  // dropSlotQuestion says why)
+  if (opt.deal && opt.deal.kind !== 'keep' && !slotSignable(state, opt.deal.slot as SlotId)) {
+    dropSlotQuestion(state, opt.deal.slot as SlotId)
+    return
+  }
+  // and an academy decision about a lad who has since left or been promoted
+  // by hand is withdrawn the same way
+  if (opt.acad && !acadCallLive(state, item)) {
+    state.press = state.press.filter(q => q.id !== item.id)
+    return
+  }
   item.answered = true
   item.answerLabel = opt.label
   item.alk = opt.lk; item.alv = opt.lv
@@ -1217,6 +1259,8 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
       }
     }
   }
+  // the summer academy decision is carried out as it was quoted (acadcall.ts)
+  if (opt.acad) resolveAcadCall(state, item, opt)
   // "Agree - a loan makes sense" now agrees to a loan. It used to be a mood
   // adjustment and a note telling the manager to go and do it himself, which is
   // how a prospect came back the following week asking for the thing his boss
@@ -1309,14 +1353,14 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
       })
     }
   }
-  // the summer sponsorship decision (25C): the option IS the signature.
-  // offersFor is deterministic on (seed, season, slot), so the deal named on
-  // the button is exactly the deal that lands; 'keep' leaves the stopgap the
-  // department already took, which signOffer would let you replace any time.
+  // the summer sponsorship decision (25C): the option IS the signature, and
+  // what is signed is the offer the button named, stored with it (1.8.1);
+  // 'keep' leaves the stopgap the department already took, which signOffer
+  // would let you replace any time.
   if (opt.deal && opt.deal.kind !== 'keep') {
-    const offers = offersFor(state, opt.deal.slot as SlotId)
     const idx = { long: 0, short: 1, clause: 2 }[opt.deal.kind]
-    if (idx != null && offers[idx]) signOffer(state, offers[idx])
+    const offer = opt.deal.offer ?? (idx != null ? offersFor(state, opt.deal.slot as SlotId)[idx] : undefined)
+    if (offer) signOffer(state, offer)
   }
   // the expectations decision: the stance stands for the season and
   // boardReaction reads it on every result

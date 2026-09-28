@@ -46,7 +46,8 @@ import { drillWeek } from './playbook'
 import { settleJokers } from './joker'
 import { settleKnocks } from './knock'
 import { askBoard, type BoardAsk } from './boardroom'
-import { expireLoans, loanTargets } from './loans'
+import { expireLoans, loanOutBoost, loanTargets } from './loans'
+import { FOCUS_MAX_AGE, focusIds } from './development'
 import { refreshVacancies, sackManager } from './jobs'
 import { playAcademyWeek } from './academy'
 import { canBeMentored, mentorGraduations, mentorReports, mentorWeek } from './mentoring'
@@ -104,9 +105,15 @@ export function requestFacility(state: GameState, fid: FacilityId): string {
   // one builders' slot, and the new stand is in it
   if (state.stadiumBuild) return t('facilities.facStandBusy', { stadium: club.stadium })
   const abs = state.season * 100 + state.week
+  // A BOARDROOM GRANT IS ALREADY A YES (1.8.1). The chairman agreed to fund
+  // this building, so collecting it is not a request: it is not pressing
+  // inside a refusal, and it is not refused for want of reserves the club
+  // will not spend. It used to face the full test below, balance included,
+  // and a club too poor to pay the share it was being excused was told no.
+  const granted = (state.boardGrant ?? []).indexOf(fid)
   // inside a denial the polite refusal is gone: asking again is pressing the
   // board, and pressing the board has a price (pressBoard above)
-  if ((state.facilityAskCooldown ?? 0) > abs) return pressBoard(state, 'capital')
+  if (granted < 0 && (state.facilityAskCooldown ?? 0) > abs) return pressBoard(state, 'capital')
   const cost = facilityCost(info, lvl)
   /**
    * The board underwrites capital projects when it believes in you. That is what
@@ -129,8 +136,8 @@ export function requestFacility(state: GameState, fid: FacilityId): string {
     : club.boardConfidence >= 70 ? 0.55
     : club.boardConfidence >= 58 ? 0.3
     : 0
-  const clubShare = Math.round(cost * (1 - backing))
-  const approve = club.boardConfidence >= 45 && club.balance >= clubShare * 1.25
+  const clubShare = granted >= 0 ? 0 : Math.round(cost * (1 - backing))
+  const approve = granted >= 0 || (club.boardConfidence >= 45 && club.balance >= clubShare * 1.25)
   if (!approve) {
     state.facilityAskCooldown = addWeeks100(abs, 8)
     ;(state.boardAsks ??= {}).capital = { deniedAt: abs, strikes: 0 }
@@ -155,7 +162,6 @@ export function requestFacility(state: GameState, fid: FacilityId): string {
    * ask on this page and the ask in the boardroom: here you are asking to be
    * allowed to spend, there you are asking somebody else to.
    */
-  const granted = (state.boardGrant ?? []).indexOf(fid)
   if (granted >= 0) {
     state.boardGrant!.splice(granted, 1)
   } else {
@@ -1469,8 +1475,12 @@ function weeklyFinance(state: GameState, rng: Rng) {
   // dont benefit the club"), and it is the right rule for the idle-week friendly
   // and the testimonial too: nobody pays league prices to watch the academy, and
   // a testimonial's takings belong to the player rather than the club.
+  //
+  // Nor a final at a neutral ground (1.8.1). The user is its nominal home side
+  // and was paid £30 a head on the whole showpiece crowd, 80,000 people through
+  // somebody else's turnstiles - the reason the gate record already skips it.
   const home = state.fixtures.find(f =>
-    f.week === state.week && f.played && f.homeId === club.id && f.att && f.compId !== 'fr')
+    f.week === state.week && f.played && f.homeId === club.id && f.att && f.compId !== 'fr' && !f.venue)
   // F31: boxes and lounges mean the same crowd is worth more. 4% a level, so a
   // maxed block lifts a £30 head to £36. operatingCost documents why this one
   // facility carries an extra weekly bill.
@@ -1739,9 +1749,10 @@ function mgrMilestones(state: GameState, won: boolean) {
   }
 }
 
-/** The week a new manager's first-season grace ends (no results sacking
- *  before it): 32 at a club of reputation 50 or less, 12 at 88 or more, a
- *  straight line between. */
+/** The week a new manager's first-season grace ends: the first week a
+ *  results sacking can happen, so the grace covers the weeks BEFORE it (the
+ *  sack check reads `week < honeymoonEnd`). 32 at a club of reputation 50 or
+ *  less, 12 at 88 or more, a straight line between. */
 export function honeymoonEnd(rep: number): number {
   const t = Math.max(0, Math.min(1, (rep - 50) / 38))
   return Math.round(32 - 20 * t)
@@ -2269,7 +2280,7 @@ function boardReadsTheTable(state: GameState, lean = 1) {
   const posNow = leaguePos(comp.table, club.id)
   if (posNow <= 0) return
   const tableLen = comp.table.length
-  const objPos = Math.min(boardObjective(club.rep).pos, tableLen)
+  const objPos = Math.min(boardObjective(club.rep, tableLen).pos, tableLen)
   const devFrac = (posNow - objPos) / Math.max(1, tableLen - 1)
   const patience = boardPatience(club.rep)
   const floor = clamp(30 - patience * 14, 2, 26)
@@ -2520,8 +2531,11 @@ export function processWeekAndAdvance(state: GameState) {
 
   // the morning after deadline day: the window is shut, here is the rundown
   if ((state.week === 8 || state.week === 28) && !state.unemployed) {
+    // read by the story's key and its variables, not its English (1.8.1): the
+    // subject and body are stored in English for the engine, and a round-up
+    // that parsed them broke the day anybody reworded a transfer story
     const deals = state.news.filter(n => n.type === 'transfer' && n.season === state.season &&
-      n.week === state.week - 1 && n.subject.includes(' joins ') && n.playerId != null)
+      n.week === state.week - 1 && (n.k === 'news.transferDone' || n.k === 'news.transferDoneFree') && n.playerId != null)
     if (deals.length >= 2) {
       const TIMES = ['08:10', '09:45', '11:30', '13:05', '14:40', '16:15', '18:00', '19:35', '21:10', '22:55']
       const rows: { k: string; [x: string]: string | number }[] = []
@@ -2529,10 +2543,8 @@ export function processWeekAndAdvance(state: GameState) {
         const p = state.players[n.playerId!]
         const to = p?.clubId ? state.clubs[p.clubId] : null
         if (!p || !to) return
-        // read back out of the STORED ENGLISH body, which is why that body is
-        // never translated in place - see model.ts NewsItem
-        const fee = n.body.match(/for a fee of (.+?)\. The /)?.[1] ?? null
-        const mine = to.id === state.userClubId || n.body.includes(`from ${state.clubs[state.userClubId].name}`)
+        const fee = n.k === 'news.transferDone' && n.v?.fee != null ? String(n.v.fee) : null
+        const mine = to.id === state.userClubId || n.v?.from === state.clubs[state.userClubId].name
         rows.push({
           k: 'news.ddDeal', time: TIMES[i], player: p.name, pos: p.pos, to: to.short,
           fee: fee ?? '', fee_k: fee ? 'news.ddFeeKnown' : 'news.ddFeeUndisclosed',
@@ -2803,7 +2815,7 @@ export function processWeekAndAdvance(state: GameState) {
         const apps = 2 + Math.floor(lrng() * 3)
         const tries = BACKS.includes(p.pos) ? Math.floor(lrng() * 3) : lrng() < 0.25 ? 1 : 0
         const maxed = p.ca >= p.pa
-        const boost = 2 + Math.floor(mulberry32(state.seed + p.id)() * 3)
+        const boost = loanOutBoost(state, p)
         const verdictKey = maxed ? 'news.loanLevel'
           : boost >= 4 ? 'news.loanStar'
           : boost === 3 ? 'news.loanGrowing'
@@ -3842,10 +3854,13 @@ export function processWeekAndAdvance(state: GameState) {
   // as a repeat rather than as a clock running down. A season is SEASON_WEEKS
   // long and ends at the last of them, so the owner's calendar lands on:
   //
-  //   week 19  six months out    (26 weeks)
-  //   week 32  three months out  (13 weeks)
-  //   week 41  a month out       (4 weeks)
-  //   week 43  a fortnight out   (2 weeks)
+  //   week 22  six months out    (26 weeks)
+  //   week 35  three months out  (13 weeks)
+  //   week 44  a month out       (4 weeks)
+  //   week 46  a fortnight out   (2 weeks)
+  //
+  // (Those were 19, 32, 41 and 43 while the season was 45 weeks long; the
+  // table below counts back from SEASON_WEEKS, so it moved with it.)
   //
   // One story, four dates, and it says how long is left each time, which is
   // the whole point of a reminder.
@@ -4201,11 +4216,12 @@ If you go, your assistant takes your national side for the duration. Nobody prep
   if (!state.unemployed) aiPreContractPoach(state, rng)
   refreshVacancies(state, rng)
 
-  // individual development focus: extra growth for up to 3 youngsters
+  // individual development focus: extra growth for up to FOCUS_SLOTS
+  // youngsters, the list development.ts keeps (five from 1.8.1)
   if (!state.unemployed) {
-    for (const id of state.devFocus.slice(0, 3)) {
+    for (const id of focusIds(state)) {
       const p = state.players[id]
-      if (!p || p.clubId !== state.userClubId || p.age > 26) continue
+      if (!p || p.clubId !== state.userClubId || p.age > FOCUS_MAX_AGE) continue
       const boost = 0.1 + state.staff.assistant * 0.04
       if (p.ca < p.pa && rng() < boost) {
         p.ca += 1
@@ -4219,7 +4235,7 @@ If you go, your assistant takes your national side for the duration. Nobody prep
     }
   }
 
-  // how the mentoring pairs are getting on, every sixth week - after the
+  // how the mentoring pairs are getting on, every eighth week - after the
   // graduation sweep, so a finished pairing gets its send-off rather than one
   // more progress note about a course that is over
   if (!state.unemployed) {

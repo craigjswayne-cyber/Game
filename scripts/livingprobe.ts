@@ -74,10 +74,18 @@ ok(typeof L.clubIntent === 'function' && typeof L.advanceHunt === 'function',
   // NEWS_KEEP cap, so an early-season "admire" was trimmed away before the
   // count at the end could see it
   const huntIds = new Set<number>()
+  // THE BID IS STILL ON THE DESK when the week it lands is over (1.8.1). It
+  // used to land in week 28, the week the window slams shut and every open
+  // bid is voided in the same settle, so the manager never saw it.
+  let bidLive: boolean | null = null
   let guard = 0
   while (g.week < SEASON_WEEKS && guard++ < SEASON_WEEKS + 4) {
+    const before = g.hunt?.stage ?? 0
     processWeekAndAdvance(g)
     const st = g.hunt?.stage ?? 0
+    if (st === 3 && before !== 3) {
+      bidLive = g.offers.some(o => o.forUser && o.playerId === g.hunt!.playerId && o.status === 'pending')
+    }
     if (st && !seen.includes(st)) seen.push(st)
     for (const n of g.news) if (/admire|not deny|bid/i.test(n.subject)) huntIds.add(n.id)
   }
@@ -85,6 +93,7 @@ ok(typeof L.clubIntent === 'function' && typeof L.advanceHunt === 'function',
     ok(seen.every((v, i) => v === i + 1), `the hunt escalates in order without skipping (${seen.join(' -> ')})`)
     const stories = huntIds.size
     ok(stories >= seen.length, `and the manager is told at every stage (${stories} stories)`)
+    if (bidLive != null) ok(bidLive, 'the formal bid is still pending on the desk after the week it lands')
   } else {
     ok(true, 'no hunt opened on this seed, which is allowed - it is gated, not guaranteed')
   }

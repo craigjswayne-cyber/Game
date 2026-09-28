@@ -81,6 +81,14 @@ console.log('\n--- 4. the option at the end of the trial')
 const target = listed[0]
 const before = loanBuyOffer(g, target.id)
 ok(before === null, 'no buy option on a player who is not here on loan')
+// a loan is measured against the cap and the wage budget (1.8.1); this section
+// is about the trial, so the club is given the room to take him
+const room = (w: typeof g) => {
+  const u = w.clubs[w.userClubId]
+  w.caps![u.leagueId] = 100_000_000
+  u.wageBudget = 100_000_000
+}
+room(g)
 loanIn(g, target.id, 'season', 1)
 const onArrival = loanBuyOffer(g, target.id)
 ok(onArrival !== null && !onArrival.ok, 'and none on the day he walks in - a trial is weeks of rugby')
@@ -96,6 +104,7 @@ for (let s = 0; s < 60; s++) {
   const w = newGame('bath', 'Test', 900 + s)
   const t0 = loanTargets(w)[0]
   if (!t0) continue
+  room(w)
   loanIn(w, t0.id, 'season', 1)
   for (let i = 0; i < LOAN_BUY_MIN_WEEKS + 1; i++) processWeekAndAdvance(w)
   const o = loanBuyOffer(w, t0.id)
