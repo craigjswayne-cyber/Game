@@ -200,6 +200,10 @@ if (process.env.SUBLINE_JSON) {
 ok(measured.over.length === 0, `every line under a section title fits on one line, in both languages, at all ${SCALES.length} text sizes`)
 
 await browser.close()
+// and the server is stopped separately, because done() exits without touching
+// it: every run left a vite preview holding port 4247, so the next run could not
+// bind it
+server.stop()
 say(fails === 0
   ? '\nSUBLINE PASSED: one line under a title, everywhere, in six languages'
   : `\nSUBLINE FAILED: ${fails}`)

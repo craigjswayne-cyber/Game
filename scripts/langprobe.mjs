@@ -191,8 +191,11 @@ try {
 
   await page.click('.action-bar >> text=Confirmer')
   // the placeholder is translated too, so a French probe cannot use the
-  // English selector every other harness uses
-  await page.fill('input[placeholder="ex. : A. Martin"]', 'Le Gaffer')
+  // English selector every other harness uses. It is matched on the name
+  // rather than the whole string because French typography puts a
+  // non-breaking space before the colon ("ex. : A. Martin"), which an
+  // exact attribute selector typed with an ordinary space never finds.
+  await page.getByPlaceholder(/A\. Martin/).fill('Le Gaffer')
   // the coaching philosophies come from game/tactics.ts, so this is French now
   // too - every other harness picks the same tile by its English name
   await page.click('.speech-tile >> text=Domination des avants')

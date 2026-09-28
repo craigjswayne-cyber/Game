@@ -32,6 +32,9 @@ export default function Tactics() {
   /** what the last one-tap plan set, so a control whose sliders are three
    *  screenfuls away still answers the tap that pressed it */
   const [planMsg, setPlanMsg] = useState<string | null>(null)
+  /** the eight brief rows open on a tap: the drawn 23 above already says what
+   *  each replacement has been told, so the controls are for changing it */
+  const [briefsOpen, setBriefsOpen] = useState(false)
 
   const club = game.clubs[game.userClubId]
   // `tac`, not `t`: t() is the translator (src/game/i18n.ts)
@@ -440,6 +443,17 @@ export default function Tactics() {
         </div>
         <BenchClock neutral={splitFor(club) === '5-3'} />
         <SectionTitle sub={t('tacticsScreen.finisherBriefsSub')}>{t('tacticsScreen.finisherBriefs')}</SectionTitle>
+        {/* Folded until asked for (1.8.0). When the drawn 23 arrived it put
+            every replacement and his brief at the top of this tab, and the
+            eight rows below then listed the same eight men a second time: the
+            page went from under three screenfuls to nearly four on a landscape
+            phone (scrollaudit). The drawing is the reading; this is the
+            changing, and a full-width row keeps the 44px tap floor. */}
+        <button className="btn ghost block" aria-expanded={briefsOpen} data-briefs-toggle
+          onClick={() => setBriefsOpen(v => !v)}>
+          {t(briefsOpen ? 'tacticsScreen.closeBriefs' : 'tacticsScreen.changeBriefs')}
+        </button>
+        {briefsOpen && <>
         <div className="brief-list">
           {seats.map((seat, i) => {
             const pid = tac.lineup[15 + i]
@@ -479,6 +493,7 @@ export default function Tactics() {
             </div>
           ))}
         </div>
+        </>}
         <div className="spacer" />
       </>}
 
