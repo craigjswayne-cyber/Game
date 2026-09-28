@@ -28,7 +28,13 @@ import { billingReason, lookupReason } from './monetise'
  * change if the destination moves - and it is published in the client of a
  * public build, so it should be an address that can stand being seen.
  */
-export const DEV_CONTACT = 'phaserugbymanager@gmail.com'
+export const DEV_CONTACT = 'info@fwdsandbcks.com'
+
+/** Who publishes the game (28 Sep 2026): the company, never a person. The
+ *  About screen and the privacy policy both carry it; a store listing asks
+ *  for the same name and address. */
+export const PUBLISHER = 'FWDS & BCKS LTD'
+export const PUBLISHER_ADDRESS = '71-75 Shelton Street, London, WC2H 9JQ, United Kingdom'
 
 /** How many crashes to keep. A ring, because a broken screen in a render loop
  *  can throw a hundred times a second and the first one is the interesting one. */

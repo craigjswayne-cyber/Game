@@ -80,7 +80,15 @@ ok(/property="og:image" content="https:\/\/phaserugbymanager\.com\//.test(html),
 // ---- 3. the routes off it ----
 ok(!/href="[^"]*play\//.test(html), 'it offers NO link to a browser build, because there is not one to link to')
 ok(/href="\.\/privacy\.html"/.test(html), 'it links to the privacy policy, which reviewers and players both look for')
-ok(/mailto:phaserugbymanager@gmail\.com/.test(html), 'and carries the contact address from the store listing')
+ok(/mailto:info@fwdsandbcks\.com/.test(html), 'and carries the contact address from the store listing')
+// the publisher is the company, by its registered name (1.8.0)
+ok(/Published by FWDS &amp; BCKS LTD/.test(html), 'it names the publisher')
+// and the version it advertises is the one that ships, so the page cannot
+// quietly go on selling last season's game
+{
+  const version = JSON.parse(readFileSync('package.json', 'utf8')).version
+  ok(html.includes(`version ${version}`), `the footer's version is package.json's (${version})`)
+}
 
 // ---- 4. the store buttons ----
 //
