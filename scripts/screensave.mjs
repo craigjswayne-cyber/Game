@@ -19,6 +19,14 @@
 //     import, the same as on load
 //   the title screen's Load Career list asks before it deletes a career
 //
+// and the four the owner added for 1.8.1:
+//
+//   the Discord link is off the title screen, at the foot of Home and on the
+//     manager's menu under Main Menu, a plain link opened in a new tab
+//   the pre-match choice no longer promises "every minute"
+//   the goal kickers are two rows that open a sheet, like the leadership card
+//   the About page's contact mail opens with the game's name as its subject
+//
 // Run: npm run build && node scripts/screensave.mjs
 import { chromium } from 'playwright-core'
 import { done, startPreview } from './lib/preview.mjs'
@@ -66,6 +74,54 @@ try {
   const errors = []
   page.on('pageerror', e => errors.push(String(e).slice(0, 200)))
   await career(page)
+
+  say('\n--- the Discord link, in the game rather than on the title')
+  {
+    const home = page.locator('.content a.home-community')
+    ok(await home.count() === 1, 'the foot of Home carries the Discord link')
+    ok(await home.getAttribute('href') === 'https://discord.gg/3KKfDVsMb' && await home.getAttribute('target') === '_blank'
+      && /noopener/.test(await home.getAttribute('rel') ?? ''), 'a plain link to the invite, opened in a new tab')
+    ok(await home.locator('svg').count() === 1 && /Join the community on Discord/.test(await home.innerText()), 'with an icon and the words, no emoji')
+    await page.click('.bottom-nav button[data-group="manager"]')
+    await page.waitForSelector('.submenu')
+    const rows = await page.locator('.submenu .submenu-item').evaluateAll(els => els.map(e => ({ tag: e.tagName, text: e.textContent.trim(), href: e.getAttribute('href') })))
+    const i = rows.findIndex(r => /Discord/.test(r.text))
+    ok(i > 0 && rows[i].tag === 'A' && rows[i].href === 'https://discord.gg/3KKfDVsMb', `the manager's menu has it as a link (${rows[i]?.tag} ${rows[i]?.href})`)
+    ok(i > 0 && /Main Menu/.test(rows[i - 1].text), `directly under ${rows[i - 1]?.text}`)
+    await page.mouse.click(400, 450)
+    await page.waitForTimeout(200)
+  }
+
+  say('\n--- the goal kickers open a sheet')
+  {
+    await go(page, 'tactics')
+    await page.waitForTimeout(300)
+    await page.locator('.tab-bar button', { hasText: 'Set Piece' }).click()
+    await page.waitForTimeout(300)
+    const btns = page.locator('button.kick-btn')
+    ok(await btns.count() === 2, `two kicker rows (${await btns.count()})`)
+    ok(await page.locator('.card:has(button.kick-btn) select').count() === 0, 'and no dropdowns left in the card')
+    await btns.nth(1).click()
+    await page.waitForSelector('.lead-sheet', { timeout: 3000 })
+    const second = await page.locator('.lead-sheet tbody tr').nth(1)
+    const name = (await second.locator('td.name').textContent()).trim()
+    const before = await stats(page)
+    await second.click()
+    await page.waitForTimeout(250)
+    ok(await page.locator('.lead-sheet').count() === 0, 'a tap on a name closes the sheet')
+    ok((await btns.nth(1).innerText()).includes(name), `and the second kicker row now names ${name}`)
+    ok((await stats(page)).marks > before.marks, 'and the choice is marked for saving')
+    await page.evaluate(() => window.rugbyStore.getState().home())
+  }
+
+  say('\n--- the About contact mail has a subject')
+  {
+    await go(page, 'about')
+    await page.waitForTimeout(300)
+    const mails = await page.locator('.content a[href^="mailto:"]').evaluateAll(els => els.map(e => e.getAttribute('href')))
+    ok(mails.length > 0 && mails.every(h => h === 'mailto:info@fwdsandbcks.com?subject=PHASE%3A%20Rugby%20Manager'), `About's mail link opens with "PHASE: Rugby Manager" (${mails.join(' ')})`)
+    await page.evaluate(() => window.rugbyStore.getState().home())
+  }
 
   say('\n--- touch() marks the save')
   await go(page, 'training')
@@ -197,6 +253,11 @@ try {
   say('\n--- nothing written mid-match')
   await page.click('text=Kick Off ▸')
   await page.locator('.talk-modal').waitFor({ timeout: 5000 })
+  {
+    const modal = await page.locator('.talk-modal').innerText()
+    ok(!/every minute|ruck by ruck/i.test(modal) && /Full commentary/.test(modal),
+      'the pre-match choice says "Full commentary" and promises no minute-by-minute watching')
+  }
   await page.click('.talk-modal .speech-tile >> nth=0')
   try { await page.locator('text=▸ Take the Field').waitFor({ timeout: 2500 }); await page.click('text=▸ Take the Field') } catch { /* clean sheet */ }
   await page.waitForSelector('.scoreboard', { timeout: 20000 })
@@ -212,6 +273,7 @@ try {
   say('\n--- the title screen asks before deleting')
   await page.evaluate(() => window.rugbyStore.getState().toTitle())
   await page.waitForSelector('text=Load Career', { timeout: 10000 })
+  ok(await page.locator('.title-screen a[href*="discord"]').count() === 0, 'the title screen no longer carries the Discord link')
   await page.click('text=Load Career')
   await page.waitForTimeout(300)
   const cross = page.locator('.title-screen .btn.danger').first()

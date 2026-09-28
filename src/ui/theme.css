@@ -4694,7 +4694,11 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
   }
   .app.tablet .card-grid > .card { margin: 0; width: auto; }
   .app.tablet .card-grid.one { grid-template-columns: minmax(0, 1fr); }
-  .app.tablet .dash-row { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+  /* 180px, not 150 (1.8.1): on the 768px iPad four panels a row left the
+     fixtures panel 150px wide and "La Rochelle" lost a letter (devicematrix,
+     once an upright tablet counted as one whatever it points with). Three a
+     row there, four from the 1024px iPad up. */
+  .app.tablet .dash-row { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
 
 }
 /* THE INBOX, A MAIL CLIENT, in either orientation: the list down the left,
@@ -4722,8 +4726,15 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .inbox-li.on { background: var(--row-selected-bg); border-left-color: var(--primary); color: var(--text-primary); }
 /* THE TEAM SHEET READS ACROSS on a tablet as it does in landscape: forwards
    left, backs right, instead of one list with a canyon between each name and
-   its stars. Same minmax(0, 1fr) reasoning as the landscape rule. */
-@media (orientation: portrait) {
+   its stars. Same minmax(0, 1fr) reasoning as the landscape rule.
+   FROM 800PX, NOT FROM 700 (1.8.1). The smallest upright iPad is 768px under
+   a 1.15 zoom, which leaves each half about 320px: the shirt, position,
+   stars, form and fitness columns are already sized to their content
+   (.xv-fixed), so the name had 103px and "Ollie Sleightholme" lost his last
+   letters (devicematrix, once a fine-pointer tablet counted as one). There
+   the sheet stays one list, which at 668px has room for every name; from
+   800px (every other iPad and the Android tablets) it reads across. */
+@media (orientation: portrait) and (min-width: 800px) {
   .app.tablet .xv-split {
     display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 0 14px; align-items: start; padding-right: 8px;
@@ -5070,3 +5081,14 @@ a.btn { text-decoration: none; }
    buttons do. */
 .btn.dev-act { position: relative; }
 .btn.dev-act::after { content: ''; position: absolute; inset: -8px -4px; }
+
+/* THE COMMUNITY LINK (1.8.1): a link in the manager's menu and at the foot of
+   Home. A menu row that is an <a> must not pick up a link's underline or its
+   visited colour, and the Home one sits its speech-bubble icon beside the
+   words, centred, the way a button's label does. */
+a.submenu-item { text-decoration: none; box-sizing: border-box; }
+a.btn.home-community {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  box-sizing: border-box; color: var(--text-primary); border-color: var(--border-strong);
+}
+.home-community svg { width: 18px; height: 18px; flex: none; }
