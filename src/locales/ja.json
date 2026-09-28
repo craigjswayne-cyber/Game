@@ -258,6 +258,8 @@
    "one": "{n}件の質問が回答待ち。答え方ひとつで士気が動く。",
    "other": "{n}件の質問が回答待ち。答え方ひとつで士気が動く。"
   },
+  "boardWord": "取締役会が決定を待っている",
+  "boardSub": {"one": "資金または目標に関する決定が{n}件。財務で確認。", "other": "資金または目標に関する決定が{n}件。財務で確認。"},
   "blankWeekend": "試合のない週末",
   "blankSub": "今週は公式戦なし。親善試合を組めばキレと連係を蓄えられる。ただし消化試合での負傷は、痛みが倍になる。",
   "friendlyChip": "{club}（評判{rep}）",
@@ -1725,6 +1727,8 @@
   "tabCommercial": "商業",
   "tabCapSquad": "キャップ&編成",
   "tabBoard": "取締役会",
+  "boardDecisions": "取締役会への決定事項",
+  "boardDecided": "決定済み。",
   "wageBill": "給与総額",
   "wageBudget": "給与予算",
   "cashInBank": "銀行預金",

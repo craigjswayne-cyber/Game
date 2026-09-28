@@ -23,6 +23,7 @@ import { tillOpen } from '../../game/monetise'
 import { userWageBudget } from '../../game/grants'
 import { natWindow, weeksToSquad } from '../../game/country'
 import { Glyph, newsGlyph } from '../glyphs'
+import { isBoardroom } from '../../game/media'
 
 
 export default function Home() {
@@ -71,7 +72,8 @@ export default function Home() {
   // played another international game").
   const assistantFx = assistantFixtureThisWeek(game)
   const assistants = !!assistantFx && !!fx && assistantFx.id === fx.id
-  const pressOpen = game.press.filter(p => !p.answered).length
+  const pressOpen = game.press.filter(p => !p.answered && !isBoardroom(p)).length
+  const boardOpen = game.press.filter(p => !p.answered && isBoardroom(p)).length
 
   // hub widgets: form pips, league position, money. The pips sort by week
   // inside formGuide - see its comment for the W W W W W screenshot this
@@ -405,6 +407,13 @@ export default function Home() {
           onClick={() => go('seasonreview')}>
           <h3>{t('home.annualOut')}</h3>
           <div className="meta">{t('home.annualSub')}</div>
+        </button>
+      )}
+      {boardOpen > 0 && (
+        <button className="card" style={{ borderLeft: '4px solid var(--gold)' }}
+          onClick={() => go('finances')}>
+          <h3>{t('home.boardWord')}</h3>
+          <div className="meta">{t('home.boardSub', { n: boardOpen })}</div>
         </button>
       )}
       {pressOpen > 0 && (

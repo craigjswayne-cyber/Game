@@ -22,6 +22,15 @@ export const PRESS_KEEP_WEEKS = 2
 
 /** Not an outlet at all: player conversations behind a closed door. */
 export const OFFICE_OUTLET = "The Manager's Office"
+/** BOARDROOM, NOT PRESS ROOM (owner, 28 Sep 2026: "anything that is financial
+ *  related like this and goal setting should be in [the board room section of
+ *  finances] not the press"). The pre-season camp, the season's expectations
+ *  and the sponsor slot deals are still PressItems underneath, so they answer
+ *  through the same path and the same saves load, but they are asked and
+ *  answered on Finances > The Board, and the press room never shows them. */
+export function isBoardroom(p: { options: { camp?: unknown; stance?: unknown; deal?: unknown }[] }): boolean {
+  return p.options.some(o => o.camp != null || o.stance != null || o.deal != null)
+}
 
 /**
  * How long the office remembers a conversation.

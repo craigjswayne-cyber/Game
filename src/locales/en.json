@@ -257,6 +257,8 @@
    "one": "{n} question awaiting your reply - your answers move morale.",
    "other": "{n} questions awaiting your reply - your answers move morale."
   },
+  "boardWord": "The board needs a decision",
+  "boardSub": {"one": "{n} decision on money or targets, in Finances.", "other": "{n} decisions on money or targets, in Finances."},
   "blankWeekend": "Blank Weekend",
   "blankSub": "No fixture this week. A friendly banks sharpness and combinations for the squad - but injuries in a meaningless game sting twice as much.",
   "friendlyChip": "{club} (rep {rep})",
@@ -1788,6 +1790,8 @@
   "tabCommercial": "Commercial",
   "tabCapSquad": "Cap & Squad",
   "tabBoard": "The Board",
+  "boardDecisions": "Decisions for the board",
+  "boardDecided": "Decided.",
   "wageBill": "Wage bill",
   "wageBudget": "Wage budget",
   "cashInBank": "Cash in the bank",

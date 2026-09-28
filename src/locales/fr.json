@@ -263,6 +263,8 @@
       "one": "{n} question attend votre réponse - vos réponses jouent sur le moral.",
       "other": "{n} questions attendent votre réponse - vos réponses jouent sur le moral."
     },
+    "boardWord": "Le conseil attend une décision",
+    "boardSub": {"one": "{n} décision sur l’argent ou les objectifs, dans Finances.", "other": "{n} décisions sur l’argent ou les objectifs, dans Finances."},
     "blankWeekend": "Week-end sans match",
     "blankSub": "Pas de match cette semaine. Un amical fait gagner du rythme et des automatismes - mais une blessure dans un match pour rien fait deux fois plus mal.",
     "friendlyChip": "{club} (rép. {rep})",
@@ -1824,6 +1826,8 @@
     "tabCommercial": "Commercial",
     "tabCapSquad": "Plafond et effectif",
     "tabBoard": "Le conseil",
+    "boardDecisions": "Décisions pour le conseil",
+    "boardDecided": "Décidé.",
     "wageBill": "Masse salariale",
     "wageBudget": "Budget salarial",
     "cashInBank": "Trésorerie en banque",
