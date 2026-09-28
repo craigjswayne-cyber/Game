@@ -330,7 +330,10 @@ function moneyMen(state: GameState, rng: Rng) {
   wire(state, 'news.wTakeoverCircle', { short: club.short, club: club.name })
 }
 
-/** Rumours live where deals live: the windows (weeks 1-4, 22-25). */
+/** Rumours live where deals live: the opening window (weeks 1-7) and the run
+ *  into and out of the mid-season deadline (weeks 25-28, the deadline itself
+ *  being 26 and 27 - see windowOpen in ai.ts). The talk starts a week before
+ *  the deals and dies a week after them, which is how talk behaves. */
 function windowOpen(state: GameState): boolean {
   return state.week <= 7 || (state.week >= 25 && state.week <= 28)
 }
