@@ -72,6 +72,7 @@ const seeds = [2024, 8181, 55555]
 for (const seed of seeds) {
   const g: GameState = newGame('northampton', 'Awards Probe', seed)
   const win = new Map<number, { sum: number; apps: number }>()
+  const inLeague = new Set<number>()
   for (let s = 0; s < seasons; s++) {
     // walk a whole season a week at a time, reading the news each week
     const startSeason = g.season
@@ -95,6 +96,18 @@ for (const seed of seeds) {
       // the wrong man - four "games", two of them pre-season friendlies.
       const appsBefore = new Map<number, number>()
       for (const p of Object.values(g.players)) appsBefore.set(p.id, p.stats.apps)
+      // WHO WAS IN THE LEAGUE THIS WEEK, taken before the week settles (28 Sep
+      // 2026). The pool was read off the league clubs' rosters AFTER the week,
+      // so a man who played his month for a league club and then moved on
+      // (the week's transfers and releases settle in the same call) had left
+      // the pool by the time the award named him: on a shifted seed list the
+      // probe accused the ceremony of crowning "a man not in the eligible pool
+      // at all". Membership is now kept for the whole window.
+      {
+        const lg = g.clubs[g.userClubId]?.leagueId
+        const cmp = lg ? g.comps[lg] : null
+        if (cmp?.type === 'league') for (const r of cmp.table) for (const id of g.clubs[r.teamId]?.players ?? []) inLeague.add(id)
+      }
       processWeekAndAdvance(g)
       const fresh = g.news.filter(n => n.id >= beforeId)
       const named = potmWinners(fresh)
@@ -116,8 +129,8 @@ for (const seed of seeds) {
       const leagueNow = g.clubs[g.userClubId]?.leagueId
       const compNow = leagueNow ? g.comps[leagueNow] : null
       const winFrom = wk - (AWARD_EVERY - 1)
-      const pool = (compNow?.type === 'league' ? compNow.table : []).flatMap(r =>
-        (g.clubs[r.teamId]?.players ?? []).map(id => g.players[id]))
+      const nowIds = (compNow?.type === 'league' ? compNow.table : []).flatMap(r => g.clubs[r.teamId]?.players ?? [])
+      const pool = [...new Set([...nowIds, ...inLeague])].map(id => g.players[id])
         .filter((p): p is Player => !!p && !p.acad && (p.lastWk ?? -9) >= winFrom)
         .map(p => { const e = win.get(p.id); return { id: p.id, name: p.name, avg: e && e.apps ? e.sum / e.apps : 0, apps: e?.apps ?? 0 } })
         .filter(x => x.apps >= 2)
@@ -156,7 +169,7 @@ for (const seed of seeds) {
         if (fresh.some(n => /^Manager of the Month: (?!not awarded)/m.test(n.body ?? ''))) withMgr++
         if (named.length) withPlayer++
       }
-      if (wk % AWARD_EVERY === 0) win.clear()
+      if (wk % AWARD_EVERY === 0) { win.clear(); inLeague.clear() }
       // AND AT THE SEASON BOUNDARY. The game wipes every player's stats at
       // rollover (rollover.ts, p.stats = emptyStats()), so its season-2 week-6
       // window is weeks 1-6 and nothing else. This ledger's last in-season
@@ -166,7 +179,7 @@ for (const seed of seeds) {
       // numbers. Two seeds' worth of stream shuffle (19C) put such a man on
       // top of the probe's polluted table and the probe accused a correct
       // ceremony. The game was right; the ledger now resets when it does.
-      if (g.season !== startSeason) win.clear()
+      if (g.season !== startSeason) { win.clear(); inLeague.clear() }
       // and the orphan case: the two awards must not depend on each other.
       // The probe's own window ledger (pool, built before the counters were
       // cleared) applies the game's exact eligibility - two window
