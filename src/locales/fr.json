@@ -2497,7 +2497,11 @@
     "requestAnswerSub": "Répondez dans un sens ou dans l'autre, ou laissez la feuille de match parler.",
     "requestGrant": "Le laisser partir",
     "requestGrant_f": "La laisser partir",
-    "requestRefuse": "Refuser"
+    "requestRefuse": "Refuser",
+    "bondsLabel": "Le vestiaire",
+    "bondsVoice": "Une des voix qui comptent dans le vestiaire",
+    "bondsClose": "Proche de : {names}",
+    "bondsClash": "En froid avec : {names}"
   },
   "challenges": {
     "sapiac": "Sauvez Sapiac",
@@ -5782,7 +5786,15 @@
     "boardYes_facilities": "Le conseil financera le prochain chantier. Allez le demander sur la page Infrastructures : la facture est pour eux.",
     "boardYes_facilitiesSubj": "Le conseil paiera le prochain chantier",
     "boardYes_staff": "Le conseil a mis de l'argent de côté pour le staff. Ce n'est pas dans le budget transferts et cela ne peut pas y aller : cela paie les entraîneurs, les formations qui les diplôment, et les huit semaines qu'il faut pour en remercier un. Dépensez-le tant que la bonne volonté dure, car les conseils ont la mémoire courte sur ce genre de choses.",
-    "boardYes_staffSubj": "L'enveloppe du staff augmente"
+    "boardYes_staffSubj": "L'enveloppe du staff augmente",
+    "bondRiftSubj": "{aLast} et {bLast} ne se parlent plus",
+    "bondRift": "Le vestiaire l'a remarqué : {a} et {b} ne s'adressent plus la parole. {cause_k} Les entraînements sont glaciaux et le reste du groupe choisit son camp. Vous pouvez réunir les deux protagonistes depuis l'écran Club, ou laisser parler les résultats.",
+    "bondMateGoneSubj": "{player} encaisse mal le départ de {mateLast}",
+    "bondMateGone": "{player} et {mate} étaient proches, et cela se voit depuis le départ de {mate}. Moins de mots à l'entraînement, et plus personne sur le parking une fois la séance finie. Un mot au bureau ne serait pas de trop.",
+    "bondCliqueSubj": "Un clan se forme dans le vestiaire",
+    "bondClique": "À la cantine, il y a désormais une table pour {group_k}, et personne d'autre ne s'y assoit. Ce groupe estime que la feuille de match a ses favoris, et qu'il n'en fait pas partie : {names_l} et les autres. Leur total de titularisations cette saison : {n}. Faites de la place à ce groupe, ou parlez-lui, avant que cela ne s'installe.",
+    "bondCliqueEndsSubj": "Les tables de la cantine se mélangent de nouveau",
+    "bondCliqueEnds": "La table pour {group_k} s'est dispersée. Les feuilles de match ont été plus généreuses ces derniers temps, et le vestiaire ne fait de nouveau plus qu'un."
   },
   "comm": {
     "oppCoachNamed": "{coach} a fait ses devoirs : {team} s'est organisé exprès pour contrer {pattern_k}. Changez de registre, ou tenez-vous-en au plan.",
@@ -7706,7 +7718,21 @@
     "positionTrainBad": "{player} lève les yeux au ciel. « Encore de l'entraînement. Génial. »",
     "positionNoGood": "{player} prend ça bien. « Très bien. Je continue de bosser au poste de {from_k}. »",
     "positionNoMixed": "La déception se lit sur le visage de {player}. « D'accord. Ça valait le coup de demander. »",
-    "positionNoBad": "{player} se hérisse. « Alors mon poste, c'est {from_k}, et je ne joue pas. Ça ne peut pas durer. »"
+    "positionNoBad": "{player} se hérisse. « Alors mon poste, c'est {from_k}, et je ne joue pas. Ça ne peut pas durer. »",
+    "mateQ1": "{player} attend devant le bureau avant l'entraînement. « {mate} et moi, on en a traversé des choses ici, coach. J'ai appris le transfert sur mon téléphone. »",
+    "mateQ2": "{player} vous rattrape sur le parking. « Laisser partir {mate} ? Le groupe se demande ce que ça dit du reste d'entre nous. »",
+    "mateSorry": "C'était une décision difficile. Je sais à quel point vous étiez proches",
+    "mateNeed": "J'ai besoin que tu prennes le relais et que tu combles ce vide",
+    "mateMove": "Les joueurs vont et viennent. C'est le métier",
+    "mateSorryGood": "{player} hoche lentement la tête. « Merci de le dire. Ça compte plus que vous ne le pensez. »",
+    "mateSorryMixed": "{player} hausse les épaules. « Une décision difficile. D'accord. Je m'y remets. »",
+    "mateSorryBad": "{player} n'y croit pas. « Si c'était si difficile, vous auriez décroché votre téléphone. »",
+    "mateNeedGood": "{player} se redresse. « Alors je le ferai. Il faut bien que quelqu'un tienne ce groupe. »",
+    "mateNeedMixed": "{player} acquiesce à moitié. « D'accord. Mais n'en faites pas une habitude. »",
+    "mateNeedBad": "{player} rit sans sourire. « Prendre le relais ? Vous venez de montrer à tout le monde ce que ça rapporte. »",
+    "mateMoveGood": "{player} esquisse un sourire. « C'est de bonne guerre. C'est un métier. J'aurais fait pareil. »",
+    "mateMoveMixed": "{player} fixe le sol. « Sans doute. » La porte se referme doucement.",
+    "mateMoveBad": "{player} sort sans un mot de plus. Dans l'après-midi, la moitié de l'effectif sait ce que vous avez dit."
   },
   "mood": {
     "room": "Le vestiaire",
@@ -7893,5 +7919,17 @@
   "hemispheric": "Hémisphérique",
   "summerTests": "Tests d'été",
   "southernFour": "Quatre du Sud"
- }
+ },
+  "bonds": {
+    "gHome": "les anciens du centre de formation",
+    "gHome_f": "les anciennes du centre de formation",
+    "gVets": "les joueurs d'expérience",
+    "gVets_f": "les joueuses d'expérience",
+    "gYoung": "les jeunes",
+    "gNat": "le contingent {nation_k}",
+    "causeShirt": "Tout est parti d'un maillot, et il n'y en a qu'un pour deux.",
+    "causeArmband": "Tout a commencé le jour où le brassard a changé de bras.",
+    "causeOld": "Personne ne sait vraiment quand cela a commencé.",
+    "name": "{name}"
+  }
 }

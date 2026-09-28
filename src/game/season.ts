@@ -50,6 +50,7 @@ import { expireLoans, loanTargets } from './loans'
 import { refreshVacancies, sackManager } from './jobs'
 import { playAcademyWeek } from './academy'
 import { canBeMentored, mentorGraduations, mentorReports, mentorWeek } from './mentoring'
+import { bondsWeek } from './bonds'
 import { t, tIn, type Vars } from './i18n'
 
 export function weekRng(state: GameState): Rng {
@@ -4225,6 +4226,8 @@ If you go, your assistant takes your national side for the duration. Nobody prep
   if (!state.unemployed) {
     mentorGraduations(state)
     mentorReports(state)
+    // the dressing room's friendships, rivalries and cliques (bonds.ts)
+    bondsWeek(state)
   }
 
   // ---- OBJECTIVES LAND IN THE NEWS ----

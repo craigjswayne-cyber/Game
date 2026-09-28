@@ -14,6 +14,7 @@ import { applyStadiumName, seedDeals } from './commercial'
 import { seedStaffPeople } from './staff'
 import { ensureAcademyLeague, topUpAcademy } from './academy'
 import { migratePress } from './pressmigrate'
+import { migrateBonds } from './bonds'
 
 // NOT renamed with the game. This string is the key every existing save lives
 // under, so changing it to 'fab-rugby' would not rename anything - it would point
@@ -677,6 +678,7 @@ export function migrate(s: GameState): GameState {
   s.records ??= {}
   s.mentors = list(s.mentors) as typeof s.mentors
   s.chem ??= {}
+  s.bonds = migrateBonds(s.bonds)
   s.grudges = list(s.grudges) as typeof s.grudges
   s.review ??= null
   s.fanMood ??= 60

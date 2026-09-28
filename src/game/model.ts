@@ -966,7 +966,7 @@ export interface PressOption {
 /** A subject a player can raise behind the office door. The office keeps a
  *  memo of who asked what and when, so the same man does not knock again
  *  about the same thing seven days after you answered him. */
-export type OfficeTopic = 'plans' | 'loan' | 'deal' | 'dropped' | 'signing' | 'armband' | 'position'
+export type OfficeTopic = 'plans' | 'loan' | 'deal' | 'dropped' | 'signing' | 'armband' | 'position' | 'mate'
 
 /** A promise made to a player in the office. The squad keeps the receipts:
  *  at the due week it is settled as kept or broken, with consequences. */
@@ -2019,6 +2019,8 @@ export interface GameState {
   /** games played together by key partnerships (front row, locks, halfbacks,
    *  centres) - familiarity sharpens the relevant unit. Key: chemKey(a, b) */
   chem?: Record<string, number>
+  /** the dressing room's friendships and rifts (bonds.ts), user club only */
+  bonds?: import('./bonds').BondState
   /** dynamic bad blood between clubs: cup eliminations, poached stars,
    *  ill-tempered matches. Expires after `until` season. */
   /** `reason` is the English the grudge was recorded in and is what an old save

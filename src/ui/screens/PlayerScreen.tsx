@@ -7,6 +7,7 @@ import { flagOf, nationName } from '../../game/nations'
 import { fineAttr, playerWage } from '../../game/attributes'
 import { attrRange, fuzzedCa, knowledge, persKnown, reportStage } from '../../game/scout'
 import { benchNote, temperRead } from '../../game/temperament'
+import { bondsLine } from '../../game/bonds'
 import { canAgencyFile } from '../../game/rewarded'
 import { rewardedAvailable } from '../../game/monetise'
 import { LOAN_BUY_MIN_WEEKS, loanBuy, loanBuyOffer, loanOut, loanRecall } from '../../game/loans'
@@ -150,6 +151,21 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             <div className="fact-label">{t(mine ? 'player.readStaff' : 'player.readScouts')}</div>
             {tr.lines.map(l => <div key={l.k} className="meta">{t(l.k, l.v)}</div>)}
             {bn && <div className="meta bench-note">{t(bn.k, bn.v)}</div>}
+          </div>
+        )
+      })()}
+
+      {/* ---- WHO HE IS CLOSE TO (bonds.ts): one line, no new screen ---- */}
+      {(() => {
+        const b = bondsLine(game, p)
+        if (!b) return null
+        const names = (ps: Player[]) => ps.map(x => x.name).join(t('common.listSep'))
+        return (
+          <div className="card bonds-card">
+            <div className="fact-label">{t('player.bondsLabel')}</div>
+            {b.voice && <div className="meta">{t('player.bondsVoice')}</div>}
+            {b.close.length > 0 && <div className="meta">{t('player.bondsClose', { names: names(b.close) })}</div>}
+            {b.clash.length > 0 && <div className="meta">{t('player.bondsClash', { names: names(b.clash) })}</div>}
           </div>
         )
       })()}

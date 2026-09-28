@@ -2457,7 +2457,11 @@
   "requestAnswerSub": "Antwoord dit een of ander kant toe, of los dit en laat die spanlys praat.",
   "requestGrant": "Laat hom gaan",
   "requestRefuse": "Weier dit",
-  "requestGrant_f": "Laat haar gaan"
+  "requestGrant_f": "Laat haar gaan",
+  "bondsLabel": "Die kleedkamer",
+  "bondsVoice": "Een van die senior stemme in die kleedkamer",
+  "bondsClose": "Na aan: {names}",
+  "bondsClash": "Bots met: {names}"
  },
  "challenges": {
   "sapiac": "Sauvez Sapiac",
@@ -5699,7 +5703,15 @@
   "boardYes_facilities": "Die direksie sal die volgende bouwerk self betaal. Gaan na Klubinfrastruktuur en vra daarvoor; die rekening is hulle s'n, nie joune nie.",
   "boardYes_facilitiesSubj": "Die direksie betaal die volgende bouwerk",
   "boardYes_staff": "Die direksie het geld vir die agterkamer opsygesit. Dit is nie in die oordragbegroting nie en kan nie daarheen geskuif word nie: dit betaal vir afrigters, vir die kursusse wat hulle kwalifiseer, en vir die agt weke wat dit neem om van een ontslae te raak. Bestee dit terwyl die goedgesindheid hou, want direksies het kort geheues oor hierdie soort ding.",
-  "boardYes_staffSubj": "Die agterkamerbegroting gaan op"
+  "boardYes_staffSubj": "Die agterkamerbegroting gaan op",
+  "bondRiftSubj": "{aLast} en {bLast} praat nie met mekaar nie",
+  "bondRift": "Die kleedkamer het dit opgemerk: {a} en {b} het opgehou om met mekaar te praat. {cause_k} Die oefening is ysig en die res van die groep kies kant. Jy kan die twee op die Klub-skerm in een kamer kry, of die uitslae laat praat.",
+  "bondMateGoneSubj": "{player} vat {mateLast} se vertrek swaar",
+  "bondMateGone": "{player} en {mate} was na aan mekaar, en dit wys noudat {mate} weg is. Stiller by die oefening, eerste by die deur uit daarna. 'n Woordjie in die kantoor sal nie skade doen nie.",
+  "bondCliqueSubj": "'n Kliek vorm in die kleedkamer",
+  "bondClique": "In die kantien is daar nou 'n tafel vir {group_k}, en niemand anders sit daar nie. Die groep voel die spanlys het gunstelinge en hulle is nie daarby nie: {names_l} en die res. Hul totaal van beginbeurte vandeesseisoen: {n}. Maak plek vir die groep, of praat met hulle, voordat dit verhard.",
+  "bondCliqueEndsSubj": "Die kantientafels meng weer",
+  "bondCliqueEnds": "Die tafel vir {group_k} het opgebreek. Die spanlyste was die afgelope tyd vriendeliker, en die kleedkamer is weer een kamer."
  },
  "comm": {
   "oppCoachNamed": "{coach} het sy huiswerk gedoen: {team} is spesifiek opgestel vir {pattern_k}. Verander die prentjie, of hou by die plan.",
@@ -7652,7 +7664,21 @@
   "positionTrainBad": "{player} rol die oë. “Nog oefening. Pragtig.”",
   "positionNoGood": "{player} vat dit goed. “Nou goed. Ek werk verder as {from_k}.”",
   "positionNoMixed": "{player} is teleurgesteld. “Okay. Was die moeite werd om te vra.”",
-  "positionNoBad": "{player} se nekhare rys. “Dan is ek 'n {from_k} wat nie speel nie. Dit kan nie so aangaan nie.”"
+  "positionNoBad": "{player} se nekhare rys. “Dan is ek 'n {from_k} wat nie speel nie. Dit kan nie so aangaan nie.”",
+  "mateQ1": "{player} wag voor die oefening by die kantoordeur. “{mate} en ek het baie saam deurgemaak hier, baas. Ek het op my foon van die skuif gelees.”",
+  "mateQ2": "{player} vang jou by die parkeerterrein. “Laat jy {mate} gaan? Die groep wonder wat dit sê oor die res van ons.”",
+  "mateSorry": "Dit was 'n moeilike besluit. Ek weet hoe na julle aan mekaar was",
+  "mateNeed": "Ek het jou nodig om nou op te staan en daardie gat te vul",
+  "mateMove": "Spelers kom en gaan. Dit is die besigheid",
+  "mateSorryGood": "{player} knik stadig. “Dankie dat jy dit sê. Dit tel meer as wat jy dink.”",
+  "mateSorryMixed": "{player} trek die skouers op. “'n Moeilike besluit. Reg. Ek gaan aan.”",
+  "mateSorryBad": "{player} glo dit nie. “As dit so moeilik was, sou jy die foon opgetel het.”",
+  "mateNeedGood": "{player} trek regop. “Dan sal ek dit doen. Iemand moet hierdie groep bymekaarhou.”",
+  "mateNeedMixed": "{player} knik half. “Goed. Maar moenie 'n gewoonte daarvan maak nie.”",
+  "mateNeedBad": "{player} lag sonder om te glimlag. “Opstaan? Jy het pas vir almal gewys wat dit jou in die sak bring.”",
+  "mateMoveGood": "{player} glimlag amper. “Regverdig. Dis 'n werk. Ek sou dieselfde gedoen het.”",
+  "mateMoveMixed": "{player} kyk na die vloer. “Seker maar.” Die deur gaan saggies toe.",
+  "mateMoveBad": "{player} stap uit. Teen die middag weet die halwe groep wat jy gesê het."
  },
  "mood": {
   "room": "Die kleedkamer",
@@ -7839,5 +7865,15 @@
   "hemispheric": "Halfrond",
   "summerTests": "Somertoetse",
   "southernFour": "Suidelike Vier"
+ },
+ "bonds": {
+  "gHome": "die akademie-produkte",
+  "gVets": "die senior spelers",
+  "gYoung": "die jong spelers",
+  "gNat": "die {nation_k}-groep",
+  "causeShirt": "Dit het oor een trui begin, en daar is net een vir die twee van hulle.",
+  "causeArmband": "Dit het begin die dag toe die kapteinsband van hande verwissel het.",
+  "causeOld": "Niemand kan presies sê wanneer dit begin het nie.",
+  "name": "{name}"
  }
 }

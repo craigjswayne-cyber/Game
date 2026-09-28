@@ -2463,7 +2463,11 @@
   "requestAnswerSub": "Rispondi in un senso o nell'altro, oppure lasciala e lascia parlare la distinta.",
   "requestGrant": "Lasciarlo andare",
   "requestRefuse": "Rifiutare",
-  "requestGrant_f": "Lasciarla andare"
+  "requestGrant_f": "Lasciarla andare",
+  "bondsLabel": "Lo spogliatoio",
+  "bondsVoice": "Una delle voci che contano nello spogliatoio",
+  "bondsClose": "Amicizia con: {names}",
+  "bondsClash": "Attriti con: {names}"
  },
  "challenges": {
   "sapiac": "Sauvez Sapiac",
@@ -5683,7 +5687,15 @@
   "boardYes_facilities": "Il consiglio finanzierà il prossimo cantiere. Vai su Infrastrutture del Club e chiedilo: il conto è loro, non tuo.",
   "boardYes_facilitiesSubj": "Il consiglio pagherà il prossimo cantiere",
   "boardYes_staff": "Il consiglio ha messo da parte dei soldi per lo staff. Non sono nel budget trasferimenti e non possono finirci: pagano gli allenatori, i corsi che li abilitano e le otto settimane che servono per mandarne via uno. Spendili finché dura la buona volontà, perché i consigli hanno la memoria corta su queste cose.",
-  "boardYes_staffSubj": "Il fondo per lo staff sale"
+  "boardYes_staffSubj": "Il fondo per lo staff sale",
+  "bondRiftSubj": "{aLast} e {bLast} non si parlano",
+  "bondRift": "Lo spogliatoio se n'è accorto: {a} e {b} hanno smesso di rivolgersi la parola. {cause_k} Gli allenamenti sono gelidi e il resto della rosa si sta schierando. Puoi mettere la coppia nella stessa stanza dalla schermata Club, oppure lasciar parlare i risultati.",
+  "bondMateGoneSubj": "{player} accusa l'addio di {mateLast}",
+  "bondMateGone": "Tra {player} e {mate} c'era un legame stretto, e si vede ora che {mate} non c'è più. Poche parole in allenamento, fretta di andare via dopo. Una chiacchierata in ufficio non guasterebbe.",
+  "bondCliqueSubj": "Nello spogliatoio si forma un clan",
+  "bondClique": "In mensa ora c'è un tavolo per {group_k}, e nessun altro ci si siede. Il gruppo sente che la formazione ha i suoi preferiti e di non farne parte: {names_l} e compagnia. Totale delle loro partite da titolare in stagione: {n}. Fai spazio a quel gruppo, o parlaci, prima che la cosa si consolidi.",
+  "bondCliqueEndsSubj": "I tavoli della mensa tornano a mescolarsi",
+  "bondCliqueEnds": "Il tavolo per {group_k} si è sciolto. Le formazioni sono state più generose di recente, e lo spogliatoio è tornato a essere uno solo."
  },
  "comm": {
   "oppCoachNamed": "{coach} ha fatto i compiti a casa: {team} si è schierata apposta contro {pattern_k}. Cambia copione, o insisti con il tuo piano.",
@@ -7535,7 +7547,21 @@
   "positionTrainBad": "{player} alza gli occhi al cielo. «Altro allenamento. Magnifico.»",
   "positionNoGood": "{player} la prende bene. «Va bene. Continuerò a lavorare da {from_k}.»",
   "positionNoMixed": "{player} non nasconde la delusione. «Va bene. Valeva la pena chiedere.»",
-  "positionNoBad": "{player} si irrigidisce. «Allora resto {from_k} e il campo non lo vedo mai. Così non può andare avanti.»"
+  "positionNoBad": "{player} si irrigidisce. «Allora resto {from_k} e il campo non lo vedo mai. Così non può andare avanti.»",
+  "mateQ1": "{player} ti aspetta fuori dall'ufficio prima dell'allenamento. «{mate} e io qui ne abbiamo passate tante, Coach. Ho saputo della cessione dal telefono.»",
+  "mateQ2": "{player} ti raggiunge al parcheggio. «Lasciar andare {mate}? Lo spogliatoio si chiede cosa dica questo del resto della rosa.»",
+  "mateSorry": "È stata una decisione difficile. So quanto contava quel rapporto",
+  "mateNeed": "Ho bisogno che tu faccia un passo avanti e colmi quel vuoto",
+  "mateMove": "In questo mestiere si va e si viene. Funziona così",
+  "mateSorryGood": "{player} annuisce piano. «Grazie per averlo detto. Conta più di quanto pensi.»",
+  "mateSorryMixed": "{player} alza le spalle. «Decisione difficile. Va bene. Mi rimetto al lavoro.»",
+  "mateSorryBad": "{player} non ci crede. «Se fosse stata così difficile, avresti alzato il telefono.»",
+  "mateNeedGood": "{player} si raddrizza. «Allora lo farò. Qualcuno deve pur tenere insieme questo gruppo.»",
+  "mateNeedMixed": "{player} annuisce a metà. «D'accordo. Ma che non diventi un'abitudine.»",
+  "mateNeedBad": "{player} ride senza sorridere. «Un passo avanti? Hai appena mostrato a tutti cosa si ottiene a farlo.»",
+  "mateMoveGood": "{player} quasi sorride. «Giusto. È un lavoro. Avrei fatto lo stesso.»",
+  "mateMoveMixed": "{player} guarda il pavimento. «Suppongo di sì.» La porta si chiude piano.",
+  "mateMoveBad": "{player} esce senza aggiungere altro. Nel pomeriggio mezza rosa sa cosa hai detto."
  },
  "mood": {
   "room": "Lo spogliatoio",
@@ -7722,5 +7748,17 @@
   "hemispheric": "Emisferico",
   "summerTests": "Test d'estate",
   "southernFour": "Quattro del Sud"
+ },
+ "bonds": {
+  "gHome": "i prodotti del vivaio",
+  "gVets": "i veterani",
+  "gVets_f": "le veterane",
+  "gYoung": "i più giovani",
+  "gYoung_f": "le più giovani",
+  "gNat": "il contingente {nation_k}",
+  "causeShirt": "Tutto è nato da una maglia, e ce n'è una sola per due.",
+  "causeArmband": "Tutto è cominciato il giorno in cui la fascia è passata di mano.",
+  "causeOld": "Nessuno sa dire di preciso quando sia cominciata.",
+  "name": "{name}"
  }
 }
