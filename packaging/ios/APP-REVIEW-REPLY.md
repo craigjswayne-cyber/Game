@@ -80,7 +80,7 @@ no authentication service, no third-party payment processor, no analytics SDK,
 no advertising SDK and no AI service. The app makes no network requests of its
 own; all content is bundled and all game state is stored on the device. The
 "Report a bug" and contact buttons open the device's Mail app to
-phaserugbymanager@gmail.com; nothing is sent automatically.
+info@fwdsandbcks.com; nothing is sent automatically.
 
 **5. Regional differences.** None. The app functions identically in every
 region. It ships in English, French, Spanish, Italian and Japanese, chosen by

@@ -19,7 +19,9 @@ the first thing a reviewer sees.
 | Package / bundle id | `com.phaserugbymanager.app` |
 | Category | Games → Sports (Play), Games → Sports / Simulation (App Store) |
 | Price | free, with in-app purchases (decided 27 Aug: the free edition, not paid up front - see `docs/monetisation.md`) |
-| Contact e-mail | phaserugbymanager@gmail.com |
+| Contact e-mail | info@fwdsandbcks.com |
+| Developer / publisher | FWDS & BCKS LTD |
+| Registered address | 71-75 Shelton Street, London, WC2H 9JQ, United Kingdom |
 | Privacy policy URL | `https://phaserugbymanager.com/privacy.html` (ships in `public/`) |
 | Support URL | the same page, which carries the contact address |
 | Content rating | 3+ / Everyone (see the questionnaire below) |
