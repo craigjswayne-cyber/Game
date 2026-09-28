@@ -315,9 +315,9 @@ export function memoryWeek(state: GameState): void {
       continue
     }
     // an international since you let him go
-    if (!paid(e, 'cap') && Number(e.payload?.caps ?? 0) === 0 && (p.caps ?? 0) > 0) {
+    if (club && !paid(e, 'cap') && Number(e.payload?.caps ?? 0) === 0 && (p.caps ?? 0) > 0) {
       markPaid(e, 'cap')
-      tell(state, 'mem.soldCap', { ...howVars(state, e), club: club?.name ?? '', nat_k: `nation.${p.nat}` }, p.id)
+      tell(state, 'mem.soldCap', { ...howVars(state, e), club: club.name, nat_k: `nation.${p.nat}` }, p.id)
       continue
     }
     // the world's best, after you sold him
