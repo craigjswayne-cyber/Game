@@ -156,12 +156,20 @@ export const isForward = (pos: Pos) => FORWARDS.has(pos)
  *  Five of the eight seats are open, so the split you picked is an intention and
  *  the men in the shirts are the fact. The engine has to read the fact or naming
  *  a six-two and then filling it with backs would collect the six-two's set-piece
- *  reward for a bench that cannot deliver it. */
-export function actualSplit(state: GameState, club: Club | undefined): BenchSplit {
-  if (!club) return DEFAULT_SPLIT
+ *  reward for a bench that cannot deliver it.
+ *
+ *  The engine passes the 23 that actually took the field (1.8.1). The stored
+ *  sheet is not it: an AI club keeps the sheet it was given at world creation
+ *  or in the summer, picked with no split (five-three seats), while it plays a
+ *  23 re-picked every week for its own split, so a six-two or four-four AI
+ *  bench never got its closing-quarter shape; and the manager's sheet can be
+ *  repaired on the day. The Tactics screen, with no match, reads the sheet. */
+export function actualSplit(state: GameState, club: Club | undefined,
+  lineup: readonly (number | null)[] | undefined = club?.tactic.lineup): BenchSplit {
+  if (!club || !lineup) return DEFAULT_SPLIT
   let fw = 0, named = 0
   for (let i = 15; i < 23; i++) {
-    const id = club.tactic.lineup[i]
+    const id = lineup[i]
     const p = id != null ? state.players[id] : null
     if (!p) continue
     named++

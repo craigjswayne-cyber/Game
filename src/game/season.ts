@@ -56,6 +56,16 @@ export function weekRng(state: GameState): Rng {
   return mulberry32(state.seed ^ (state.season * 131 + state.week * 7919))
 }
 
+/** THE MANAGER'S OWN MATCH HAS DICE OF ITS OWN (1.8.1). It was played on
+ *  weekRng, and so is the week's fixture loop, which on most weeks draws
+ *  nothing before its first match: that match started from the same state,
+ *  so the first AI fixture of the week had the manager's weather and his
+ *  match's dice (measured: 41 weeks in 44). A salt on the same week seed
+ *  keeps it deterministic per week, so the forecast still predicts the day. */
+export function matchRng(state: GameState): Rng {
+  return mulberry32((state.seed ^ (state.season * 131 + state.week * 7919)) ^ 0x6d2b79f5)
+}
+
 /** The manager is back at a door the board just closed (v1.1.4, owner's
  *  brief: "if they ask again after being denied - warning, respect halved;
  *  if they continue to push - fired"). Two doors share the ledger key

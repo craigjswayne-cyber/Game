@@ -42,11 +42,26 @@ const UNIT_PREP: Record<AnalystRead['unit'], MatchPrep> = {
   kicking: 'attack',
 }
 
+/** THE UNIT OF OURS THAT GOES AFTER THEIR SOFT SPOT (1.8.1). Their defence is
+ *  beaten by our attack and their attack by our defence; a scrum or a lineout
+ *  is beaten by ours. A loose kicking game is punished by counter-attack, which
+ *  is why he recommends an attacking week for it, so the homework lands on the
+ *  attack too: the unit that benefits is the one the recommended week trains. */
+export const EXPLOITED_BY: Record<AnalystRead['unit'], AnalystRead['unit']> = {
+  scrum: 'scrum',
+  lineout: 'lineout',
+  defence: 'attack',
+  attack: 'defence',
+  kicking: 'attack',
+}
+
 /** How good his homework is: the analysis suite, the assistant, and knowing them. */
 export function analystSkill(state: GameState): number {
   const club = state.clubs[state.userClubId]
   const suite = club?.facilities?.briefing ?? 0
   const assistant = state.staff.assistant ?? 0
+  // (The cap is a guard: a level-5 suite and a level-3 assistant reach 0.75,
+  // so today it never binds.)
   // Capped at 0.78, not 0.92. Measured over 20 seasons the analyst was right
   // 221 times against 50 wrong - 82% - which with a maxed briefing suite made
   // following him close to free. The feature exists to create a judgement
@@ -97,8 +112,12 @@ export function analystRead(state: GameState, oppId: string): AnalystRead | null
   ]
   const avg = scores.reduce((s, [, v]) => s + v, 0) / scores.length
   const sorted = [...scores].sort((a, b) => a[1] / avg - b[1] / avg)
-  // a correct read names the genuine weakness; a wrong one names their strength
-  const unit = right ? sorted[0][0] : sorted[sorted.length - 1][0]
+  // a correct read names the genuine weakness; a wrong one names something
+  // else. It used to name their STRENGTH every time, which the unit numbers
+  // on the preview give away, so a careful manager could tell a wrong read
+  // from a right one without trusting his analyst at all. Which of the other
+  // four is on the same hash, so the read still costs no shared rng.
+  const unit = right ? sorted[0][0] : sorted[1 + (h % (sorted.length - 1))][0]
   const confidence = 0.45 + (h % 55) / 100
 
   // a name to hang it on: the man in that area of their side

@@ -172,7 +172,11 @@ export function talkingPoints(state: GameState): void {
   // play, and the team you meet next has read it. It is a small edge and it is
   // a real one; see prepLeak in matchEngine.
   if (!already(state, 'leak') && w === weekFor(state, 'leak', 10, 38)) {
-    state.leaked = state.week
+    // THE NEXT MATCH, NOT THIS ONE (1.8.1). This runs after the week's
+    // fixtures and before the week turns over, so stamping this week meant
+    // prepLeaked, asked at the next kick-off, never matched: the story was
+    // told and the side that had read it never existed.
+    state.leaked = state.week + 1
     push(state, 'leak', 'point.leak', { club: club.name })
     return
   }

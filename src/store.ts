@@ -80,7 +80,7 @@ import type { GameState, MatchEvent, Fixture, MgrOrigin } from './game/model'
 import { closeNatTenure, logDecision } from './game/model'
 import { newGame } from './game/newgame'
 import { genderOf, type Gender } from './game/gender'
-import { isKnockoutTie, processWeekAndAdvance, resolveKnockoutDraw, userFixtureThisWeek, userMatchThisWeek, weekRng } from './game/season'
+import { isKnockoutTie, matchRng, processWeekAndAdvance, resolveKnockoutDraw, userFixtureThisWeek, userMatchThisWeek, weekRng } from './game/season'
 import { resultsParam } from './game/schedule'
 import {
   applyPreTalk, applyTacticsChange, applyTeamTalk, beginMatch, makeSubstitution, swapInjuryCover, swapShirts, undoSubstitution,
@@ -1004,7 +1004,7 @@ export const useStore = create<Store>((set, get) => ({
     const forfeit = forfeitSide(g, fx)
     if (forfeit) settleForfeit(g, fx, forfeit)
     else {
-      const ctx = beginMatch(g, fx, weekRng(g), true, userTeamId)
+      const ctx = beginMatch(g, fx, matchRng(g), true, userTeamId)
       // the assistant has the match, so the assistant makes the changes
       ctx.assistantSubs = true
       if (preTalk) applyPreTalk(g, ctx, preTalk)
@@ -1075,11 +1075,11 @@ export const useStore = create<Store>((set, get) => ({
       return
     }
     const pre = JSON.parse(JSON.stringify(g)) as GameState
-    const ctx = beginMatch(g, fx, weekRng(g), true, userTeamId)
+    const ctx = beginMatch(g, fx, matchRng(g), true, userTeamId)
     let preTalkMsg: string | null = null
     if (preTalk) preTalkMsg = applyPreTalk(g, ctx, preTalk)
     const rec: MatchResume = {
-      v: 1, pre, fxId: fx.id, userSideId: userTeamId, preTalk: preTalk ?? null,
+      v: 1, pre, stream: 'match', fxId: fx.id, userSideId: userTeamId, preTalk: preTalk ?? null,
       mode: mode ?? 'full', tick: 0, cursor: 0, cmds: [],
       season: g.season, week: g.week, savedAt: Date.now(),
       seed: g.seed, saveName: g.saveName,
