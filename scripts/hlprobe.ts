@@ -37,6 +37,7 @@ const specs: { spec: ClipSpec; kind: ClipKind }[] = []
 const STYLE_KEYS: [ClipStyle, string][] = [['maul', 'comm.tryMaulRumbles'], ['intercept', 'comm.try13'], ['chip', 'comm.try14'],
   ['grubber', 'comm.try8'], ['crossfield', 'comm.try2'], ['charge', 'comm.tryCharge1'], ['overlap', 'comm.try6'], ['phases', 'comm.try1'], ['phases', 'comm.try18']]
 let late = 0
+const paced: [number, number][] = []
 let real = 0
 for (let seed = 1; seed <= 12 && real < 400; seed++) {
   const g = newGame('leicester', 'HL Probe', 5000 + seed)
@@ -50,6 +51,14 @@ for (let seed = 1; seed <= 12 && real < 400; seed++) {
     const spec = buildClip(ev, i, kind, fx.homeId, () => undefined, colours, labels, () => 'Name')
     specs.push({ spec, kind }); real++
     if (momentAt(ev, i, fx.homeId, 'key') && !momentAt(ev, i, fx.homeId, 'key')?.match(/try/) && lateAndClose(ev, i)) late++
+    // REAL PACE (E10): the same try with the quickest men and the slowest,
+    // both ways round, so the speed limits below cover the extremes
+    if (kind === 'try' && seed <= 4) {
+      const fast = buildClip(ev, i, kind, fx.homeId, () => undefined, colours, labels, () => 'Name', h => h === (ev[i].teamId === fx.homeId) ? 20 : 1)
+      const slow = buildClip(ev, i, kind, fx.homeId, () => undefined, colours, labels, () => 'Name', h => h === (ev[i].teamId === fx.homeId) ? 1 : 20)
+      specs.push({ spec: fast, kind }, { spec: slow, kind })
+      paced.push([clipLength(fast), clipLength(slow)])
+    }
     if (kind === 'try' && seed <= 6) for (const [, k] of STYLE_KEYS) {
       const copy: MatchEvent[] = ev.slice(0, i + 1).map((x, j) => j === i ? { ...x, k } : x)
       specs.push({ spec: buildClip(copy, i, kind, fx.homeId, () => undefined, colours, labels, () => 'Name'), kind })
@@ -58,6 +67,8 @@ for (let seed = 1; seed <= 12 && real < 400; seed++) {
 }
 const count = (k: ClipKind) => specs.filter(s => s.kind === k).length
 console.log(`${real} clips from real matches and ${specs.length - real} replayed in every try style: ${count('try')} try, ${count('notry')} no try, ${count('kick')} kick, ${count('attack')} attack\n`)
+ok(paced.length >= 5 && paced.every(([f, sl]) => f <= sl + 1e-6) && paced.some(([f, sl]) => sl - f > 0.1),
+  `a quick finisher gets there sooner than a slow one (${paced.length} tries, up to ${Math.max(0, ...paced.map(([f, sl]) => sl - f)).toFixed(2)} s sooner)`)
 ok(count('try') >= 20 && count('kick') >= 20 && count('attack') >= 10, 'enough of each kind to mean something')
 
 console.log('\n--- smooth: nothing moves faster than it could\n')

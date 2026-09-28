@@ -459,12 +459,23 @@ const EXPECTED: string[] = [
   // (detailprobe 120/120). bandcheck, pooled over four seeds:
   //   pts 50.7 -> 51.0   tries 6.48 -> 6.52   home 51.7% -> 51.3%
   //   draws 2.1% -> 1.7%   blowouts 8.1% -> 8.4% (every band holds)
-  'saracens 18-47 bath',
-  'exeter 43-18 gloucester',
-  'sale 6-38 bristol',
-  'harlequins 51-12 leicester',
-  'newcastle 13-39 northampton',
-  'exeter 21-46 saracens',
+  // REBASELINED for the two-layer engine (1.8.0, E12). Under every tick,
+  // each side's phase is now a contest between men (src/game/contest.ts):
+  // a carrier, a tackler and a jackal, whose collision tilts the try and
+  // penalty chances by a factor that averages exactly 1 across the world
+  // (contestprobe). It draws four numbers per side per tick, always, so all
+  // six moved. Same commit: the AI respect layers (E9) are read at kick-off,
+  // the home edge 1.06 -> 1.07 and TRY_BASE 0.0843 -> 0.0815, because the
+  // contest's extra variance thinned home advantage below its band. bandcheck,
+  // pooled over four seeds, against the numbers just above:
+  //   pts 51.0 -> 50.5   tries 6.52 -> 6.40   home 51.3% -> 51.9%
+  //   draws 1.7% -> 1.4%   blowouts 8.4% -> 8.4% (every band holds)
+  'saracens 17-33 bath',
+  'exeter 13-31 gloucester',
+  'sale 24-29 bristol',
+  'harlequins 37-9 leicester',
+  'newcastle 13-30 northampton',
+  'exeter 10-42 saracens',
 ]
 // v1.8.1 moved three of them once more, and this time WITHOUT spending a new
 // draw: the training pitch now scales every side's breakdown and handling off

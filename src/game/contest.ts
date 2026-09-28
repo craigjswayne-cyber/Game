@@ -139,8 +139,8 @@ export function resolveContest(att: ContestSide, def: ContestSide, players: Reco
   // (the try tilt is deliberately small: it decides WHO wins the carries a
   // side's units already earned, not whether a weak side becomes a strong one)
   // divided by their world means (contestprobe), so each averages exactly 1
-  const tryF = Math.exp(0.9 * (d - 0.5)) / 1.0195
-  const penF = Math.exp(0.6 * (d - 0.5)) / 1.0086
+  const tryF = Math.exp(0.5 * (d - 0.5)) / 1.0060
+  const penF = Math.exp(0.35 * (d - 0.5)) / 1.0029
   const turnover = Math.max(0, Math.min(0.2, 0.05 * (1.5 - d) * (0.6 + jackalThreat) * (1.3 - 0.6 * cleanout)))
   const metres = Math.max(-3, 1.5 * (0.6 + 4 * d) + (r4 - 0.5) * 3)
   return { carrier: c.id, tackler: tk.id, jackal: jackalId, dominance: d, metres, tryF, penF, turnover }
