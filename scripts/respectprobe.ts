@@ -35,7 +35,9 @@ import { readFileSync } from 'node:fs'
 let fails = 0
 const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
-const K = Number(process.argv[2] ?? 8)
+// 24, not 8: at 8 the margin check sat inside its own noise (0.39 against
+// 1.02 on the same code at 24, 27-28 Sep 2026)
+const K = Number(process.argv[2] ?? 24)
 const WEEKS = Number(process.argv[3] ?? 34)
 const WORLDS: [string, number][] = [['northampton', 9], ['leicester', 777]]
 
