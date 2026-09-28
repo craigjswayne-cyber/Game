@@ -5986,7 +5986,7 @@
   "conWide": "The conversion drifts wide.",
   "tryPackDrive": "TRY! The pack drives over the line!",
   "tryMaulRumbles": "TRY! The maul rumbles over and {player} grounds it!",
-  "tryCareerMilestone": "Career try number {n} for {player}! Both sets of supporters know a milestone when they see one, the applause takes a while to die down.",
+  "tryCareerMilestone": "Career try number {n} for {player}! Both sets of supporters know a milestone when they see one: the applause takes a while to die down.",
   "trySeasonCount": "That's try number {n} of the season for {player} - some campaign he's having.",
   "tryAtTestimonial": "Of all the people. {player} scores at his own testimonial and the ground refuses to sit down. Write the script yourself. You could not do better.",
   "tryNoCelebration": "No celebration from {player} against his old club - hands raised in apology, but the damage is done.",
