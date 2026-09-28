@@ -7,7 +7,7 @@ import { attrRange, fuzzedCa, knowledge } from '../../game/scout'
 import { commissionScout, searchFee, type SearchMonths } from '../../game/commission'
 import { badgeLabel } from '../../game/staff'
 import { ClubLink, FormPill, Mark, Nat, PosBadge, SectionTitle, Stars, TwoStep } from '../components'
-import { attrName, posName, t } from '../../game/i18n'
+import { attrName, posName, t, compLabel } from '../../game/i18n'
 import { userWageBudget } from '../../game/grants'
 import { transferInterest } from '../../game/interest'
 import { Glyph } from '../glyphs'
@@ -249,7 +249,7 @@ export default function Transfers() {
           {scoutLeagues(game).map(c => (
             <button key={c.id} className="chip" onClick={() => { game.scoutFocus = game.scoutFocus === c.id ? null : c.id; touch() }}
               style={game.scoutFocus === c.id ? { borderColor: 'var(--gold)', color: 'var(--info)', fontWeight: 700 } : undefined}>
-              {game.scoutFocus === c.id && <><Glyph name="scout" /> </>}{c.short}
+              {game.scoutFocus === c.id && <><Glyph name="scout" /> </>}{compLabel(c.short)}
             </button>
           ))}
         </div>
@@ -414,7 +414,7 @@ export default function Transfers() {
                     agents on the transfer centre") */}
                 <option value="FA">{t('transfers.freeAgents')}</option>
                 {Object.values(game.comps).filter(c => c.type === 'league').map(c => (
-                  <option key={c.id} value={c.id}>{c.short}</option>
+                  <option key={c.id} value={c.id}>{compLabel(c.short)}</option>
                 ))}
               </select>
               <label>{t('transfers.filterValue')}</label>
@@ -589,7 +589,7 @@ function ScoutCommission() {
             {t('transfers.briefLine', {
               months: out.months,
               pos: out.pos !== 'any' ? t('transfers.briefForPos', { pos: posName(out.pos).toLowerCase() }) : t('transfers.briefForAnyone'),
-              league: out.leagueId ? t('transfers.briefInLeague', { league: game.comps[out.leagueId]?.short ?? t('transfers.focusLeague') }) : '',
+              league: out.leagueId ? t('transfers.briefInLeague', { league: compLabel(game.comps[out.leagueId]?.short) ?? t('transfers.focusLeague') }) : '',
             })}
             {t(weeksLeft === 1 ? 'transfers.reportsBackOne' : 'transfers.reportsBack', { n: weeksLeft })}
           </div>
@@ -600,7 +600,7 @@ function ScoutCommission() {
               {t('transfers.longerTrip', {
                 g: game.staffPeople?.scout?.g ?? 'm',
                 where: game.scoutFocus
-                  ? t('transfers.watchesLeague', { league: game.comps[game.scoutFocus]?.short ?? t('transfers.focusLeague') })
+                  ? t('transfers.watchesLeague', { league: compLabel(game.comps[game.scoutFocus]?.short) ?? t('transfers.focusLeague') })
                   : t('transfers.watchesWorld'),
               })}
             </div>

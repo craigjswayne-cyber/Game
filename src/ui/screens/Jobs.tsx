@@ -4,7 +4,7 @@ import { fmtMoney, mgrReputation } from '../../game/model'
 import { jobChance, sackCooloff } from '../../game/jobs'
 import { squadValue } from '../../game/analysis'
 import { Crest, SectionTitle } from '../components'
-import { t } from '../../game/i18n'
+import { t, compLabel } from '../../game/i18n'
 
 /** The reply slot for a tap whose card is no longer in the pile. Falling back
  *  above the list is right (the card it belongs on is gone) but the thumb that
@@ -67,7 +67,7 @@ export default function Jobs() {
           <div style={{ flex: 1, minWidth: 0 }}>
             <h3 style={{ fontSize: 16 }}>{club.name}</h3>
             <div className="meta">
-              {t('world.jbClubMeta', { league: game.comps[club.leagueId]?.short ?? '', rep: club.rep, squad: fmtMoney(squadValue(game, club.id)), budget: fmtMoney(club.budget) })}
+              {t('world.jbClubMeta', { league: compLabel(game.comps[club.leagueId]?.short) ?? '', rep: club.rep, squad: fmtMoney(squadValue(game, club.id)), budget: fmtMoney(club.budget) })}
             </div>
           </div>
           {cold === 0 && (
