@@ -116,12 +116,21 @@ ok(Array.isArray(D.DREAMS) && D.DREAMS.length >= 5, `there are dreams to choose 
   g.mgr.trophies.push({ compId: 'cc', season: 1, clubId: uid })
   ok(at('europe').done, 'europe: a Champions Cup makes it done')
 
+  // A league title is the league's trophy (1.8.1): in a play-off league that is
+  // the final, so first in the table alone no longer counts. Each season here
+  // tops the table AND lifts the trophy, the way a title is actually won.
+  const title = (season: number) => {
+    g.mgr.finishes.push({ season, leagueId: 'prem', pos: 1, clubId: uid })
+    g.mgr.trophies.push({ compId: 'prem', season, clubId: uid })
+  }
   g.mgr.finishes.push({ season: 1, leagueId: 'prem', pos: 1, clubId: uid })
+  ok(!at('double').done, 'double: topping the table without the final is not the league')
+  g.mgr.trophies.push({ compId: 'prem', season: 1, clubId: uid })
   ok(at('double').done, 'double: a league title alongside it completes the double')
 
-  g.mgr.finishes.push({ season: 2, leagueId: 'prem', pos: 1, clubId: uid })
+  title(2)
   ok(!at('dynasty').done, 'dynasty: two in a row is not three')
-  g.mgr.finishes.push({ season: 3, leagueId: 'prem', pos: 1, clubId: uid })
+  title(3)
   ok(at('dynasty').done, 'dynasty: three consecutive titles is')
   // and a broken run does not count as a dynasty
   const g2 = newGame('northampton', 'Dreamer', 42)
