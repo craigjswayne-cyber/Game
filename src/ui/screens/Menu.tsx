@@ -5,7 +5,6 @@ import { seasonLabel } from '../../game/model'
 import { LANGS, t } from '../../game/i18n'
 import { BrandMark, StudioMark } from '../components'
 import { dismiss, dismissed, isAndroidShell } from '../../game/shell'
-import { COMMUNITY_URL } from '../../game/community'
 
 export default function Menu() {
   const go = useStore(s => s.go)
@@ -81,12 +80,9 @@ export default function Menu() {
             {t('menu.loadCareer')}
           </button>
         )}
-        {/* THE COMMUNITY (1.8.1): the PHASE Discord, for bugs in any language,
-            ideas and rugby talk. A link, opened outside the game. */}
-        <a className="btn ghost" href={COMMUNITY_URL} target="_blank" rel="noopener noreferrer"
-          style={{ color: 'var(--text-primary)', borderColor: 'var(--border-strong)', fontSize: 14 }}>
-          {t('menu.community')}
-        </a>
+        {/* The Discord link lived here for a day and moved into the game
+            (owner, 1.8.1): the foot of Home and the manager's menu, where a
+            player in a career will actually see it. */}
         {/* FIRST RUN OF THE NEW PLAY APP (v1.2.9): a player who backed up in
             the old one needs to find Import before they start a fresh career
             and lose heart. Only in the Android shell, only with nothing saved,

@@ -55,6 +55,7 @@ import Academy from './screens/Academy'
 import Tutorial from './Tutorial'
 import { Intro } from './Intro'
 import { bigTablet, useTablet } from './tablet'
+import { COMMUNITY_URL } from '../game/community'
 
 /* The masthead title for every screen that is not Home (Home shows the club).
  *
@@ -399,6 +400,9 @@ interface MenuItem {
   badge?: number
   /** opens something in place instead of navigating (How to play) */
   action?: () => void
+  /** leaves the game for an address instead (the Discord): drawn as a link,
+   *  not a button, so an in-app browser follows it (game/community.ts) */
+  href?: string
 }
 
 /**
@@ -678,6 +682,10 @@ export default function App() {
         // longer the way back to the title screen - and without a deliberate
         // route there, starting a second career would be impossible.
         { ico: <Glyph name="exit" />, label: t('groups.mainMenu'), screen: 'menu', action: () => useStore.getState().toTitle() },
+        // THE COMMUNITY, under the way out (owner, 1.8.1: off the title
+        // screen, onto the manager's own list and the foot of Home). `screen`
+        // is only its key here; the href is what it does.
+        { ico: <Glyph name="gossip" />, label: t('menu.community'), screen: 'about', href: COMMUNITY_URL },
       ],
     },
     world: {
@@ -844,7 +852,13 @@ export default function App() {
             {menu === 'hub' && firstWeeks && (
               <div className="submenu-note">{t('groups.firstJobs')}</div>
             )}
-            {MENUS[menu].items.map(it => (
+            {MENUS[menu].items.map(it => it.href ? (
+              <a key={it.label} className="submenu-item" href={it.href} target="_blank" rel="noopener noreferrer"
+                onClick={() => setMenu(null)}>
+                <span className="mico">{it.ico}</span>
+                <span style={{ flex: 1, textAlign: 'left' }}>{it.label}</span>
+              </a>
+            ) : (
               <button key={it.label} className="submenu-item"
                 onClick={() => { setMenu(null); if (it.action) it.action(); else go(it.screen) }}>
                 <span className="mico">{it.ico}</span>
