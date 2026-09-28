@@ -14,7 +14,7 @@ import { releaseBlock, releaseCost, releasePlayer } from '../../game/release'
 import { MARQUEE_SLOTS } from '../../game/cap'
 import { answerRequest, canAnswerRequest, canChat, chatBudget, praisePlayer, warnPlayer } from '../../game/chats'
 import { mulberry32 } from '../../game/rng'
-import { attrBand, attrBandIndex, attrName, persName, posName, t, traitInfo, traitName } from '../../game/i18n'
+import { attrBand, attrBandIndex, attrName, persName, posName, t, traitInfo, traitName, localeTag } from '../../game/i18n'
 import { Glyph } from '../glyphs'
 
 export default function PlayerScreen({ playerId }: { playerId: number }) {
@@ -632,7 +632,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                       const r = offerRenewalAt(game, p.id, wageOffer)
                       setMsg(r.msg); setTalkOutcome(r.msg); setTalkSigned(r.ok)
                       setWageCounter(r.counter ?? null); touch()
-                    }}>{t('player.offerWage', { amount: wageOffer.toLocaleString() })}</button>
+                    }}>{t('player.offerWage', { amount: wageOffer.toLocaleString(localeTag()) })}</button>
                     <button className="btn ghost" onClick={() => { setNegotiating(false); setWageCounter(null) }}>{t('player.walkAwayCaps')}</button>
                   </div>
                 </>

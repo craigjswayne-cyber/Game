@@ -2447,7 +2447,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .lead-btn .lead-tag svg { width: 18px; height: 18px; vertical-align: middle; }
 .lead-btn .lead-who { flex: 1; min-width: 0; text-align: right; font-weight: 600; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lead-btn .lead-chev svg { width: 16px; height: 16px; color: var(--text-muted); vertical-align: middle; }
-.lead-sheet .lead-list { max-height: min(56vh, 460px); overflow-y: auto; margin: 0 -2px 10px; }
+.lead-sheet .lead-list { max-height: min(56vh, 460px); max-height: min(56dvh, 460px); overflow-y: auto; margin: 0 -2px 10px; }
 .lead-sheet tr { cursor: pointer; }
 .lead-sheet tr.sel td { background: color-mix(in srgb, var(--gold) 14%, transparent); }
 .lead-sheet .lead-bar { width: 34%; }
@@ -4917,3 +4917,89 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .gt-mood { white-space: nowrap; font-size: 12px; }
 .gt-mood .status-dot { width: 9px; height: 9px; vertical-align: 0; }
 .preset-chip .glyph { font-size: 1.3em; vertical-align: -0.28em; }
+
+/* ==================================================================
+   UI QA SWEEP (1.8.0)
+   ==================================================================
+   The owner: "Check alignment of all menus" and "Identify any areas which
+   feel unfinished". Every screen and tab photographed at four sizes in both
+   themes (scripts/uiqa.mjs); these are the layout faults the pictures showed,
+   kept together here rather than threaded through the file. */
+
+/* The room before the team talk: "Happy to be in the matchday squad" is
+   longer than the column, the chip would not wrap, and the table ran under
+   the card's right edge with every long mood cut off mid-word. The chip
+   wraps inside its own pill now and the table fits the phone. */
+.mood-table .mood-chip { white-space: normal; line-height: 1.3; }
+
+/* The team sheet is four tables (forwards, backs, two halves of the bench)
+   sharing one row renderer. Auto layout shared each table's slack out across
+   every column, so the stars sat 8px further right under the backs than under
+   the forwards. Fixed layout takes the pinned widths at their word and gives
+   the name column what is left, in all four. */
+.dtable.xvsheet { table-layout: fixed; }
+.dtable.xvsheet td.name { max-width: none; }
+
+/* The handbook's search box sat flush against both edges of the glass while
+   everything under it kept the 14px gutter. */
+.preset-row.hb-search { padding: 0 14px; }
+
+/* A title longer than the row beside the back arrow ("The Manager's
+   Handbook") used to drop the whole title block onto a line of its own,
+   leaving the arrow alone on the first. The block now takes the room beside
+   the arrow and only the date moves under the title when both will not fit. */
+@media (orientation: portrait) {
+  .mast-text { flex: 1 1 0; flex-wrap: wrap; row-gap: 0; }
+}
+/* In landscape and on a tablet the row's space-between floated the title into
+   the middle of the gap between the back arrow and the controls, a different
+   place on every screen depending on the title's length. It sits beside the
+   arrow, as it does in portrait. */
+@media (orientation: landscape) {
+  .masthead-row > .mast-text { flex: 1 1 auto; min-width: 0; }
+}
+
+/* Challenge cards on the first wizard step already sit in a padded grid, and
+   took the card's own 28px off again, so they stopped short of the league
+   list's right edge above them. */
+button.card.challenge-card { width: 100%; }
+
+/* A link dressed as a button reads as a button: E-mail sat underlined between
+   Copy and Save file, and About's two boxes were underlined text in a frame. */
+a.btn { text-decoration: none; }
+/* and its label sits where a <button>'s does: centred in the box, not riding
+   3px high at the top of it beside a stretched neighbour */
+.btn-row a.btn { display: inline-flex; align-items: center; justify-content: center; }
+
+/* The ideas box on Report a Bug put its heading 14px further in than the text
+   under it; inside a card the card's padding is the gutter. */
+.bug-ideas > .section-title { padding-left: 0; padding-right: 0; padding-top: 2px; }
+
+/* Settings titles are sentence case; the language label is shared with the
+   title screen, where it is capitals. */
+.set-title-case { text-transform: lowercase; }
+.set-title-case::first-letter { text-transform: uppercase; }
+
+/* Day theme: a forward's position badge was --surface-3, which in daylight is
+   the same white as the row under it, so LK and HK lost their box while FH
+   and WG kept theirs. And the grey form band carried white figures on a light
+   grey. Both keep their night look. */
+.app:not(.night) .pos-badge:not(.back) { background: var(--surface-2); }
+.app:not(.night) .form-pill.mid { color: var(--text-primary); }
+
+/* Day theme, the same fault at larger scale: --surface-3 is white in daylight,
+   which is right for a control on the grey canvas and invisible on a white
+   card. The Save buttons on Game Status, Export Career, the depth chart's
+   names and the Copy button on Report a Bug all showed as bare text. A
+   hairline gives them back their edge; night is untouched. */
+.app:not(.night) .btn:not(.gold):not(.ghost):not(.danger),
+.app:not(.night) .depth-man,
+.app:not(.night) .record-card .rating-dot,
+.app:not(.night) .fix-no { box-shadow: inset 0 0 0 1px var(--border-strong); }
+
+/* The development list's Add / Remove: 29px of box on a 52px row, which
+   geosweep failed at every phone size. The box keeps its size; the reach
+   grows into the row's own padding, the way the Medical Centre's row
+   buttons do. */
+.btn.dev-act { position: relative; }
+.btn.dev-act::after { content: ''; position: absolute; inset: -8px -4px; }

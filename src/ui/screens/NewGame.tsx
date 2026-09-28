@@ -7,7 +7,7 @@ import type { RawClub } from '../../data/types'
 import { ClubStars, Crest, Jersey } from '../components'
 import { playerValue } from '../../game/attributes'
 import { fmtMoney, seasonLabel } from '../../game/model'
-import { t } from '../../game/i18n'
+import { t, localeTag } from '../../game/i18n'
 import { Glyph } from '../glyphs'
 
 // Guided setup: STEP x OF 4, breadcrumbs, tile grids,
@@ -275,7 +275,7 @@ export default function NewGame() {
                   <div><label>{t('wizard.reputation')}</label><ClubStars rep={club.rep} /></div>
                   <div><label>{t('wizard.finances')}</label><span style={{ color: finances(club.budget)[1], fontWeight: 700 }}>{t(finances(club.budget)[0])}</span></div>
                   <div><label>{t('wizard.starPlayer')}</label><span>{starPlayer?.name}</span></div>
-                  <div><label>{t('wizard.stadium')}</label><span>{club.stadium} · {club.capacity.toLocaleString()}</span></div>
+                  <div><label>{t('wizard.stadium')}</label><span>{club.stadium} · {club.capacity.toLocaleString(localeTag())}</span></div>
                   <div><label>{t('wizard.mediaVerdict')}</label><span>{mediaVerdict(club, league ?? defs.find(d => d.clubs.some(c => c.id === club.id))!)}</span></div>
                   <div><label>{t('wizard.transferBudget')}</label><span>{fmtMoney(club.budget)}</span></div>
                   <div><label>{t('wizard.squadValue')}</label><span>{fmtMoney(club.players.reduce((s, p) => s + playerValue(p.q, p.age, p.q), 0))}</span></div>

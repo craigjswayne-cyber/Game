@@ -25,7 +25,10 @@ export default function History() {
           {t('week.noTrophiesYet')}
         </div>
       )}
-      <div className="tblwrap"><table className="dtable">
+      {/* no header over no rows (UI QA, 1.8.0): a bare SEASON / COMPETITION /
+          CHAMPIONS strip under "no trophies yet" read as a table that failed
+          to load, not as a roll that has not started */}
+      {rows.length > 0 && <div className="tblwrap"><table className="dtable">
         <thead><tr><th>{t('profile.colSeason')}</th><th>{t('week.colCompetition')}</th><th>{t('week.colChampions')}</th></tr></thead>
         <tbody>
           {rows.map((h, i) => (
@@ -36,7 +39,7 @@ export default function History() {
             </tr>
           ))}
         </tbody>
-      </table></div>
+      </table></div>}
       <div className="spacer" />
     </>
   )

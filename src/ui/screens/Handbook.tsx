@@ -35,7 +35,7 @@ export default function Handbook() {
           </button>
         ))}
       </div>
-      <div className="preset-row">
+      <div className="preset-row hb-search">
         <input className="inline-input" placeholder={t('handbook.searchPlaceholder')} value={query}
           onChange={e => { setQuery(e.target.value); setOpen(null) }} />
       </div>

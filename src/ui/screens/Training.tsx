@@ -79,7 +79,7 @@ export default function Training() {
               <td className="name">{p.name}</td>
               <td className="num" style={{ color: p.cond < 70 ? 'var(--text-negative)' : undefined }}>{Math.round(p.cond)}%</td>
               <td className="num">{Math.round(p.sharp)}%</td>
-              <td className="muted">{p.injury ? t('training.statusInjured', { desc: injuryDesc(p.injury), n: Math.max(0, p.injury.until - game.week) })
+              <td className="muted">{p.injury ? t('training.statusInjured', { desc: injuryDesc(p.injury), n: Math.max(1, p.injury.until - game.week) })
                 : p.natSquad ? t('training.statusIntl') : p.bans > 0 ? t('training.statusBanned', { n: p.bans }) : t('training.statusAvailable')}</td>
             </tr>
           ))}
@@ -176,7 +176,9 @@ function StaffPanel() {
           </div>
         )
       })()}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(330px, 1fr))', gap: 6 }}>
+      {/* the page's 12px gutter, like the staff-room card above it: the cards
+          ran edge to edge of the glass (UI QA, 1.8.0) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(330px, 100%), 1fr))', gap: 6, padding: '0 12px' }}>
         {roles.map(role => {
           const info = STAFF_INFO[role]
           const p = game.staffPeople?.[role]
