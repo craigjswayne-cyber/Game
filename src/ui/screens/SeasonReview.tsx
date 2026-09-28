@@ -1,7 +1,7 @@
 import { useStore } from '../../store'
 import { fmtMoney, seasonLabel } from '../../game/model'
 import { Crest, SectionTitle } from '../components'
-import { ord, t } from '../../game/i18n'
+import { ord, t, compLabel } from '../../game/i18n'
 import { Glyph } from '../glyphs'
 
 /** The annual: last season on one page - the league, the cups, the
@@ -114,7 +114,7 @@ export default function SeasonReview() {
           </>
         )}
 
-        <SectionTitle sub={r.league.name}>{t('legacy.srTheLeague')}</SectionTitle>
+        <SectionTitle sub={compLabel(r.league.name)}>{t('legacy.srTheLeague')}</SectionTitle>
         <div className="card">
           {row(t('legacy.srFinished'), r.league.pos > 0 ? ord(r.league.pos) : '-', true)}
           {r.league.predicted ? row(t('legacy.srPunditsSaid'), ord(r.league.predicted)) : null}

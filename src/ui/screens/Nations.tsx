@@ -5,7 +5,7 @@ import { flagOf, nationName } from '../../game/nations'
 import { ClubLink, SectionTitle } from '../components'
 import { answerIsles, islesCoach, islesEligible } from '../../game/isles'
 import { weekDate } from '../../game/model'
-import { t } from '../../game/i18n'
+import { t, compLabel } from '../../game/i18n'
 
 export default function Nations() {
   const game = useStore(s => s.game)!
@@ -37,7 +37,7 @@ export default function Nations() {
         const took = game.isles?.answer === 'yes'
         return (
           <div className="card" style={{ borderLeft: '4px solid var(--primary)' }}>
-            <SectionTitle sub={game.comps['lions']?.name}>{t('isles.title')}</SectionTitle>
+            <SectionTitle sub={compLabel(game.comps['lions']?.name)}>{t('isles.title')}</SectionTitle>
             <div className="meta" style={{ padding: '0 10px 8px' }}>
               {open ? t('isles.whyYes') : took ? t('isles.took') : t('isles.passed')}
             </div>
@@ -55,7 +55,7 @@ export default function Nations() {
           just a missing feature */}
       {!game.isles && game.comps['lions'] && !islesCoach(game) && (
         <div className="card">
-          <SectionTitle sub={game.comps['lions']?.name}>{t('isles.title')}</SectionTitle>
+          <SectionTitle sub={compLabel(game.comps['lions']?.name)}>{t('isles.title')}</SectionTitle>
           <div className="muted" style={{ padding: '0 10px 10px', fontSize: 12 }}>{t(islesEligible(game).why)}</div>
         </div>
       )}

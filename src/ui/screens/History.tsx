@@ -2,7 +2,7 @@ import { useStore } from '../../store'
 import { teamShort } from '../../game/matchEngine'
 import { seasonLabel } from '../../game/model'
 import { SectionTitle } from '../components'
-import { t } from '../../game/i18n'
+import { t, compLabel } from '../../game/i18n'
 
 // ephemeral competitions (rebuilt only in their years) vanish from the live
 // registry between editions, so the roll needs its own memory of their names
@@ -34,7 +34,7 @@ export default function History() {
           {rows.map((h, i) => (
             <tr key={i}>
               <td>{seasonLabel(h.season)}</td>
-              <td>{game.comps[h.compId]?.name ?? (GONE_BUT_NOT_FORGOTTEN[h.compId] ? t(GONE_BUT_NOT_FORGOTTEN[h.compId]) : h.compId)}</td>
+              <td>{compLabel(game.comps[h.compId]?.name) ?? (GONE_BUT_NOT_FORGOTTEN[h.compId] ? t(GONE_BUT_NOT_FORGOTTEN[h.compId]) : h.compId)}</td>
               <td className="name">{teamShort(game, h.champion)}</td>
             </tr>
           ))}

@@ -1,7 +1,7 @@
 import { useStore } from '../../store'
 import { seasonLabel } from '../../game/model'
 import { SectionTitle } from '../components'
-import { t } from '../../game/i18n'
+import { t, compLabel } from '../../game/i18n'
 import { Glyph } from '../glyphs'
 
 /**
@@ -51,7 +51,7 @@ export default function Annual() {
           <div className="card" style={{ padding: '6px 12px' }}>
             {honours.map((h, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, padding: '4px 0', borderTop: i ? '1px solid var(--border)' : undefined }}>
-                <span className="meta">{game.comps[h.compId]?.name ?? h.compId.toUpperCase()}</span>
+                <span className="meta">{compLabel(game.comps[h.compId]?.name) ?? h.compId.toUpperCase()}</span>
                 <b style={{ fontSize: 13, color: (game.clubs[h.champion]?.id ?? h.champion) === game.userClubId ? 'var(--info)' : undefined }}>
                   {game.clubs[h.champion]?.name ?? h.champion}
                 </b>

@@ -6,7 +6,7 @@ import { CHALLENGES } from '../../game/newgame'
 import { flagOf, nationName } from '../../game/nations'
 import { SectionTitle } from '../components'
 import { supportCount } from '../../game/monetise'
-import { t } from '../../game/i18n'
+import { t, compLabel } from '../../game/i18n'
 import { Glyph } from '../glyphs'
 
 /** Coaching badge tiers, earned through reputation. */
@@ -365,7 +365,7 @@ export default function Profile() {
             {m.trophies.map((t, i) => (
               <tr key={i}>
                 <td style={{ color: 'var(--gold)' }}><Glyph name="trophy" /></td>
-                <td className="name">{game.comps[t.compId]?.name ?? t.compId}</td>
+                <td className="name">{compLabel(game.comps[t.compId]?.name) ?? t.compId}</td>
                 <td className="num">{seasonLabel(t.season)}</td>
               </tr>
             ))}
@@ -382,7 +382,7 @@ export default function Profile() {
               {[...m.finishes].reverse().map((f, i) => (
                 <tr key={i}>
                   <td>{seasonLabel(f.season)}</td>
-                  <td className="name">{game.comps[f.leagueId]?.name ?? f.leagueId}</td>
+                  <td className="name">{compLabel(game.comps[f.leagueId]?.name) ?? f.leagueId}</td>
                   <td className="num" style={{ fontWeight: 700 }}>{f.pos}</td>
                 </tr>
               ))}

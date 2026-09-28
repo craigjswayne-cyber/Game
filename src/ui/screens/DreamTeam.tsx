@@ -3,7 +3,7 @@ import { useStore } from '../../store'
 import { XV_SLOTS, type Player } from '../../game/model'
 import { teamShort } from '../../game/matchEngine'
 import { ClubLink, Jersey, SectionTitle } from '../components'
-import { t } from '../../game/i18n'
+import { t, compLabel } from '../../game/i18n'
 
 /** Magazine-style Dream Team of the round + season leaderboards -
  *  straight off the rugby magazine's socials. */
@@ -79,12 +79,12 @@ export default function DreamTeam() {
     <>
       <div className="tab-bar">
         {leagues.map(l => (
-          <button key={l.id} className={l.id === leagueId ? 'active' : ''} onClick={() => setLeagueId(l.id)}>{l.short}</button>
+          <button key={l.id} className={l.id === leagueId ? 'active' : ''} onClick={() => setLeagueId(l.id)}>{compLabel(l.short)}</button>
         ))}
       </div>
       <div className="dt-board">
         <div className="dt-head">
-          <span className="dt-league">{comp?.name?.toUpperCase()}</span>
+          <span className="dt-league">{compLabel(comp?.name)?.toLocaleUpperCase()}</span>
           <span className="dt-title">{t('world.dtTitle')}</span>
           <span className="dt-sub">{lastWeek ? t('world.dtGameweek', { n: lastWeek }) : t('world.dtNoRugby')}</span>
         </div>
