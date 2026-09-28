@@ -143,6 +143,10 @@ const CANNOT_BE_ONE: Record<string, string> = {
   'news.tenure': 'the wins and defeats of an era five seasons long',
   'news.aTitleMine': 'winning an A League takes more than one win',
   'dream.europeWonTimes': 'the caller picks this only when n is above one',
+  'world.prBaroWhyStir': 'pressmood.ts: stir needs a winning run of stirAt(), never below three',
+  'world.prBaroWhyLosses': 'pressmood.ts: picked only when run.n >= 2',
+  'world.prBaroWhyWins': 'pressmood.ts: picked only when run.n >= 2',
+  'press.baroSmugQ1': 'media.ts: asked only in the stir room, which needs three or more wins in a row',
 }
 
 const hasSingularSibling = (path: string): boolean => {
