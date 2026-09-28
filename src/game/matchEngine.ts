@@ -5,6 +5,7 @@ import { ROLE_FX, rolesForSlot } from './roles'
 import { zoneAt, zonePlan } from './tactics'
 import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, addGrudge, chemKey, demandCeiling, facLevel, fmtMoney, formGuide, grudgeBetween, inRedZone, oldBoyApps, trustFactor, unbeatenRun } from './model'
 import { standing } from './authority'
+import { bondCohesion } from './bonds'
 import { analystShift, archetypeOf, loudestDial, repetitionFatigue, respectLayers } from './oppcoach'
 import { resolveContest, type Contest } from './contest'
 import { updateNatRank } from './natrank'
@@ -1064,6 +1065,10 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
       const mF = 1 + (avgMor - 6.5) * 0.009 // roughly ±3% at the extremes
       side.units.attack *= mF
       side.units.defence *= mF
+      // close friends side by side, or two men not speaking (bonds.ts): ±0.6% at most
+      const bF = bondCohesion(state, club.id, shirts)
+      side.units.attack *= bF
+      side.units.defence *= bF
     }
   }
   if (club) {
