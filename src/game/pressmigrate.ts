@@ -22,6 +22,8 @@ import type { Vars } from './i18n'
 type Pattern = { k: string; names: string[]; rx: RegExp; literal: number }
 
 let INDEX: Pattern[] | null = null
+/** any one quote mark or apostrophe, straight or curly */
+const Q = `["“”‘’'«»]`
 
 /** Every press.* entry as a pattern that can be matched backwards. Plural
  *  entries contribute both forms; the key is the same either way.
@@ -38,10 +40,18 @@ function index(): Pattern[] {
     const literal = text.replace(/\{\w+\}/g, '').trim()
     if (!literal) return
     const names: string[] = []
+    // QUOTE MARKS ARE NOT EVIDENCE. The dictionary's quotes were reset to one
+    // rule (game/quotes.ts): straight quotes curled, and the outer quotes on
+    // the manager's own answers dropped, because the screen adds them. A line
+    // saved before that still carries the old marks, so any quote mark matches
+    // any other, and an answer may still wear the pair it was saved in -
+    // round the whole line, or round the words before a (+£400k) note.
     const rx = text
       .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      .replace(/["“”‘’'«»]/g, Q)
+      .replace(/ \\\(/g, `${Q}? \\(`)
       .replace(/\\\{(\w+)\\\}/g, (_m, n: string) => { names.push(n); return '([\\s\\S]*?)' })
-    out.push({ k, names, rx: new RegExp(`^${rx}$`), literal: literal.length })
+    out.push({ k, names, rx: new RegExp(`^${Q}?${rx}${Q}?$`), literal: literal.length })
   }
   const press = (EN as Record<string, unknown>).press as Record<string, unknown>
   for (const [k, v] of Object.entries(press ?? {})) {

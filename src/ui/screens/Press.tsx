@@ -3,13 +3,26 @@ import { SectionTitle } from '../components'
 import {absWeek, SEASON_WEEKS, pressAnswer, pressLabel, pressQuestion, pressReaction, weekDate } from '../../game/model'
 import { OFFICE_OUTLET, PRESS_KEEP_WEEKS, isBoardroom } from '../../game/media'
 import { bandOf, currentMood, effectLines, moodRoom, pressWhy, type Baro } from '../../game/pressmood'
-import type { GameState } from '../../game/model'
+import type { GameState, PressItem } from '../../game/model'
 import { t } from '../../game/i18n'
+import { prose, speech } from '../../game/quotes'
 
 /* THE QUESTIONS AND THE ANSWERS STAY AS THEY WERE ASKED. A press item is written
    into the save the week it is put to you, and the reaction is filed beside the
    answer you gave - a career's paperwork keeps the language it was written in
    (docs/i18n.md). Everything the screen says around them follows the reader. */
+
+/** The coverage line under a question: what you said, then how it landed.
+ *  An item can reach the list with no answer on it (an old save, a question
+ *  settled without a button being pressed), and "You: “” -" is a bug on the
+ *  page, so an empty answer says so in words instead. */
+function youSaid(item: PressItem): string {
+  const answer = speech(pressAnswer(item))
+  const reaction = prose(pressReaction(item))
+  if (!answer) return reaction ? `${t('world.prNoAnswer')} ${reaction}` : t('world.prNoAnswer')
+  // no reaction filed: the line ends on the answer, not on a dangling dash
+  return t('world.prYouSaid', { answer, reaction }).replace(/\s+-\s*$/, '')
+}
 
 export default function Press() {
   const game = useStore(s => s.game)!
@@ -40,7 +53,7 @@ export default function Press() {
           <div className="press-outlet">
             {item.outlet === OFFICE_OUTLET ? t('world.prOffice') : t('world.prAsks', { outlet: item.outlet })}
           </div>
-          <div className="press-q">“{pressQuestion(item)}”</div>
+          <div className="press-q">{prose(pressQuestion(item))}</div>
           {item.playerId != null && game.players[item.playerId] && (
             <button className="muted" style={{ padding: '0 14px 8px', fontWeight: 600, color: 'var(--info)' }}
               onClick={() => go('player', item.playerId!)}>
@@ -51,7 +64,7 @@ export default function Press() {
             {item.options.map((o, i) => (
               <button key={i} className="btn ghost" style={{ textAlign: 'left' }}
                 onClick={() => answer(item.id, i)}>
-                “{pressLabel(o)}”
+                {speech(pressLabel(o))}
               </button>
             ))}
           </div>
@@ -64,8 +77,8 @@ export default function Press() {
           {past.map(item => (
             <div key={item.id} className="news-item open">
               <div className="when">{item.outlet === OFFICE_OUTLET ? t('world.prPrivate') : item.outlet} · {weekDate(item.season, item.week)}</div>
-              <div className="subj" style={{ fontWeight: 400 }}>“{pressQuestion(item)}”</div>
-              <div className="body">{t('world.prYouSaid', { answer: pressAnswer(item), reaction: pressReaction(item) })}</div>
+              <div className="subj" style={{ fontWeight: 400 }}>{prose(pressQuestion(item))}</div>
+              <div className="body">{youSaid(item)}</div>
               {/* what the answer did, in words (pressmood.effectLines) */}
               {item.fx && (
                 <div className="press-fx">
