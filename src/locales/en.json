@@ -3895,7 +3895,9 @@
   "agentPublicSubj": "{player}'s agent goes public",
   "agentPublic": "Two months of silence from the club, so the agent has taken it to the papers: \"{player} is one of the best-performing players in the league and the club knows our position.\" Rival clubs will have noticed. Sort a new deal on his player page - or brace for bids.",
   "becomesMentorSubj": "{last} is turning into his mentor",
+  "mentorStartSubj": "{mentor} takes {last} under his wing",
   "becomesMentor": "The coaches have noticed it in the little things - the extras after training, the way he talks in the huddle. {player} is starting to carry himself like {mentor}.",
+  "mentorStart": "The old pro and the academy kid: {mentor} will mentor {player} for the season. Extras after training, lifts to the ground, the lot. This is how clubs pass themselves on.",
   "aheadOfScheduleSubj": "{player} ahead of schedule",
   "aheadOfSchedule": "Good news from the treatment table: {player} ({injury_k}) has smashed his rehab targets and is available again this week, earlier than anyone dared hope.",
   "backInTrainingSubj": {

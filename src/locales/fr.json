@@ -4017,7 +4017,9 @@
     "agentPublicSubj": "L'agent de {player} sort dans la presse",
     "agentPublic": "Deux mois de silence du club, alors l'agent a porté l'affaire dans les journaux : « {player} est l'un des joueurs les plus performants du championnat et le club connaît notre position. » Les clubs rivaux l'auront remarqué. Réglez un nouveau contrat sur sa fiche - ou préparez-vous aux offres.",
     "becomesMentorSubj": "{last} devient son mentor",
+    "mentorStartSubj": "{mentor} prend {last} sous son aile",
     "becomesMentor": "Les entraîneurs l'ont remarqué dans les détails - les extras après l'entraînement, sa façon de parler dans la mêlée d'avant-match. {player} commence à se comporter comme {mentor}.",
+    "mentorStart": "Le vieux briscard et le gamin du centre de formation : {mentor} va encadrer {player} toute la saison. Séances en plus après l’entraînement, trajets jusqu’au stade, tout y passe. C’est ainsi qu’un club se transmet.",
     "aheadOfScheduleSubj": "{player} en avance sur les délais",
     "aheadOfSchedule": "Bonne nouvelle de la table de soins : {player} ({injury_k}) a pulvérisé ses objectifs de rééducation et est de nouveau disponible cette semaine, plus tôt que personne n'osait l'espérer.",
     "backInTrainingSubj": {

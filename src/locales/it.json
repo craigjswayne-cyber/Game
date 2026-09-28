@@ -3972,7 +3972,9 @@
   "agentPublicSubj": "L'agente di {player} esce allo scoperto",
   "agentPublic": "Due mesi di silenzio dal club, così l'agente è andato sui giornali: «{player} è tra i giocatori più in forma del campionato e il club conosce la nostra posizione.» I club rivali avranno preso nota. Sistema il rinnovo dalla sua pagina giocatore - o preparati alle offerte.",
   "becomesMentorSubj": "{last} sta diventando il suo mentore",
+  "mentorStartSubj": "{mentor} prende {last} sotto la sua ala",
   "becomesMentor": "Gli allenatori l'hanno notato nelle piccole cose - il lavoro extra dopo l'allenamento, il modo in cui parla nel capannello. {player} inizia a portarsi come {mentor}.",
+  "mentorStart": "Il veterano e il ragazzo del vivaio: {mentor} farà da mentore a {player} per tutta la stagione. Extra dopo l’allenamento, passaggi allo stadio, tutto quanto. È così che i club si tramandano.",
   "aheadOfScheduleSubj": "{player} in anticipo sulla tabella",
   "aheadOfSchedule": "Buone notizie dal lettino: {player} ({injury_k}) ha polverizzato gli obiettivi della riabilitazione ed è di nuovo disponibile questa settimana, prima di quanto chiunque osasse sperare.",
   "backInTrainingSubj": {

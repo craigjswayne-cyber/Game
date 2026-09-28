@@ -496,7 +496,7 @@ export default function Finances() {
                     <div className="fact-label" style={{ marginTop: 8 }}>{t('finances.talkOnTable')}</div>
                     <div className="ledger-row">
                       <span className="lg-what">{t('finances.talkGuaranteed')}</span>
-                      <span className="lg-amt">{fmtMoney(terms.weekly)}{t('common.perWeek')} · {years(talk.years)}</span>
+                      <span className="lg-amt">{fmtWage(terms.weekly)}{t('common.perWeek')} · {years(talk.years)}</span>
                     </div>
                     {terms.perf && <>
                       <div className="ledger-row">

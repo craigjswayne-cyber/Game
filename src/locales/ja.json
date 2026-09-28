@@ -3745,7 +3745,9 @@
   "agentPublicSubj": "{player}の代理人、公然と口を開く",
   "agentPublic": "クラブが2か月沈黙を続けたので、代理人はメディアに持ち込んだ。「{player}はリーグ屈指のパフォーマンスを見せている。クラブはこちらの立場を分かっているはずだ」。ライバルクラブは聞き逃していない。選手ページで新契約をまとめるか。オファーの嵐に備えるか。",
   "becomesMentorSubj": "{last}、メンターの背中に近づく",
+  "mentorStartSubj": "{mentor}が{last}の面倒を見ることに",
   "becomesMentor": "コーチ陣は細部の変化に気づいている。練習後の自主練、ハドルでの話しぶり。{player}は{mentor}のような立ち居振る舞いを見せ始めた。",
+  "mentorStart": "ベテランとアカデミーの若手。{mentor}が今シーズン、{player}の指導役を務める。練習後の居残り、スタジアムへの送り迎え、何から何まで。クラブはこうして受け継がれていく。",
   "aheadOfScheduleSubj": "{player}、回復前倒し",
   "aheadOfSchedule": "治療室から朗報だ。{player}（{injury_k}）がリハビリ目標を軽々と越え、今週から復帰可能になった。誰の予想よりも早い。",
   "backInTrainingSubj": {
