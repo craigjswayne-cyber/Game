@@ -34,6 +34,11 @@ import { legendsAfterMatch, legendsFacing, legendsYearEnd } from './legends'
 import { rivalHeat, rivalryOf, rivalsManagerMoved, rivalsYearEnd, rivalWeight, rivalWhy } from './grudges'
 import { t, type Vars } from './i18n'
 
+/** A switch for scripts/historyprobe.ts ONLY: with it on, every hook is a
+ *  no-op, so the probe can play the same world with and without this book
+ *  and prove the AI's results never noticed. Nothing in the game sets it. */
+export const HIST_OFF = { on: false }
+
 // ---------------------------------------------------------------- tenures ---
 
 /** The job the manager holds now, opened on first touch for a save from
@@ -87,6 +92,7 @@ export function formerTenure(state: GameState, clubId: string): Tenure | null {
  * resignation already.
  */
 export function historyTakeJob(state: GameState, oldClubId: string): void {
+  if (HIST_OFF.on) return
   const h = book(state)
   const clubId = state.userClubId
   const left = h.tenures.find(x => x.clubId === oldClubId && x.to == null)
@@ -108,6 +114,7 @@ export function historyTakeJob(state: GameState, oldClubId: string): void {
 
 /** jobs.ts resignJob and sackManager, while the desk is still his. */
 export function historyLeaveJob(state: GameState, exit: 'sacked' | 'walked'): void {
+  if (HIST_OFF.on) return
   closeTenure(state, openTenure(state), exit)
 }
 
@@ -115,7 +122,7 @@ export function historyLeaveJob(state: GameState, exit: 'sacked' | 'walked'): vo
 
 /** season.ts afterClubMatch: the tenure's ledger, the legends and the records. */
 export function historyAfterMatch(state: GameState, fx: Fixture): void {
-  if (fx.compId === 'fr' || state.unemployed) return
+  if (HIST_OFF.on || fx.compId === 'fr' || state.unemployed) return
   const uid = state.userClubId
   if (fx.homeId !== uid && fx.awayId !== uid) return
   const cur = openTenure(state)
@@ -142,7 +149,7 @@ export function historyAfterMatch(state: GameState, fx: Fixture): void {
  * story per subject per season, so a league double-header does not repeat it.
  */
 export function historyPreview(state: GameState): void {
-  if (state.unemployed) return
+  if (HIST_OFF.on || state.unemployed) return
   const uid = state.userClubId
   const fx = state.fixtures.find(f => f.week === state.week && !f.played && (f.homeId === uid || f.awayId === uid))
   if (!fx || fx.compId === 'fr') return
@@ -178,7 +185,7 @@ export function historyPreview(state: GameState): void {
  * a derby's own weighting, which the caller keeps for derbies.
  */
 export function historyWeight(state: GameState, fx: Fixture): number {
-  if (state.unemployed) return 1
+  if (HIST_OFF.on || state.unemployed) return 1
   const uid = state.userClubId
   const oppId = fx.homeId === uid ? fx.awayId : fx.homeId
   let f = rivalWeight(state, uid, oppId)
@@ -193,7 +200,7 @@ export function historyWeight(state: GameState, fx: Fixture): number {
 /** stakes.ts: the billing lines history can offer for this fixture. */
 export function historyStakes(state: GameState, fx: Fixture): { text: string; weight: number }[] {
   const out: { text: string; weight: number }[] = []
-  if (state.unemployed) return out
+  if (HIST_OFF.on || state.unemployed) return out
   const uid = state.userClubId
   const oppId = fx.homeId === uid ? fx.awayId : fx.homeId
   const opp = state.clubs[oppId]
@@ -216,6 +223,7 @@ export function historyStakes(state: GameState, fx: Fixture): { text: string; we
  * annals line is written.
  */
 export function historyYearEnd(state: GameState): void {
+  if (HIST_OFF.on) return
   const h = book(state)
   rivalsYearEnd(state)
   legendsYearEnd(state)

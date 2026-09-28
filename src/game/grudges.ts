@@ -12,12 +12,14 @@
  * So this keeps a heat for every pair of clubs history has touched:
  *
  *   A FINAL is the loudest thing two clubs can share (+3), a semi half that, a
- *   quarter a little. A knockout settled by a kick or less adds a point on top:
- *   the ones that ended in an argument.
+ *   quarter a little. A knockout settled by a kick or less adds half a point on
+ *   top: the ones that ended in an argument. Even a close final (3.5) is not
+ *   yet a rivalry on its own; a second meeting that matters makes it one.
  *   A TITLE DECIDED between two clubs, in a league with no final to do it, +3.
  *   LIVE BAD BLOOD at the summer (a poached star, a match that boiled over)
- *   +2, because a grudge that lasted to the end of the season has become part
- *   of the story.
+ *   +1.5, because a grudge that lasted to the end of the season has become
+ *   part of the story. Not for a pair that met in a knockout this season:
+ *   the exit strikes its own grudge, and that meeting is counted already.
  *   THE MANAGER leaving one club directly for another, +4, the moment it
  *   happens. That one is yours.
  *
@@ -108,13 +110,15 @@ export function rivalsYearEnd(state: GameState): void {
 
   // the knockouts, every competition, every club
   const STAGE: Record<string, number> = { F: 3, SF: 1.5, QF: 0.75 }
+  const met = new Set<string>()
   for (const f of state.fixtures) {
     const base = f.stage ? STAGE[f.stage] : 0
     if (!base || !f.played || !state.clubs[f.homeId] || !state.clubs[f.awayId]) continue
     const comp = state.comps[f.compId]
     const close = Math.abs(f.homeScore - f.awayScore) <= 3
     const k = f.stage === 'F' ? 'hist.whyFinal' : f.stage === 'SF' ? 'hist.whySemi' : 'hist.whyQuarter'
-    stoke(state, f.homeId, f.awayId, base + (close ? 1 : 0),
+    met.add(pairOf(f.homeId, f.awayId).join('|'))
+    stoke(state, f.homeId, f.awayId, base + (close ? 0.5 : 0),
       { k: close ? `${k}Close` : k, v: { comp: comp?.short ?? '', season: lbl } })
   }
 
@@ -129,9 +133,11 @@ export function rivalsYearEnd(state: GameState): void {
   }
 
   // bad blood that lasted the season
+  // (a knockout exit strikes a grudge of its own in season.ts, so a pair that
+  // met in a knockout this summer has been counted once already)
   for (const g of state.grudges ?? []) {
-    if (g.until < state.season) continue
-    stoke(state, g.a, g.b, 2, { k: 'hist.whyBadBlood', v: { season: lbl } })
+    if (g.until < state.season || met.has(pairOf(g.a, g.b).join('|'))) continue
+    stoke(state, g.a, g.b, 1.5, { k: 'hist.whyBadBlood', v: { season: lbl } })
   }
 
   // and the ones that have faded
