@@ -4290,6 +4290,10 @@ If you go, your assistant takes your national side for the duration. Nobody prep
       q.answered = true
       q.answerLabel = 'No comment'
       q.reaction = 'The moment passed. The outlet ran the piece without you, and next week brings new questions.'
+      // keyed, so the coverage list reads it in the reader's language rather
+      // than the English it was filed in
+      q.alk = 'press.noComment'
+      q.rk = 'press.missedR'
       // Silence is not free. Ignoring the desk used to cost exactly nothing,
       // which made never opening the Press screen strictly optimal - the worst
       // live answer docks board confidence, but letting every question rot
