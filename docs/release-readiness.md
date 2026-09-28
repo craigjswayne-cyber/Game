@@ -655,3 +655,52 @@ store-or-web decision, and approving the merge into `main`, which is what
 deploys. Items 1-4 of the store sign-off above (domain, Play account and
 keystore, iOS wrapper, the listing read-through) are unchanged and still the
 owner's.
+
+## Addendum, 2026-09-28: 1.8.0 final (Play version code 41)
+
+The candidate above was not the build that ships. 1.8.0 was merged into
+`main` as PR #16 (merge commit 4462c20) and the Discord link follows it as a
+second PR. What changed since the candidate, and the evidence, all on the
+final code.
+
+### What changed since the candidate
+
+* **The two-layer engine** (player contests under the team ticks), and the
+  owner's balance round: tired sides concede more, the empty-tank floor is
+  0.55 so the bench pays, the own-22 long exit pushes 4 not 8.
+* **Every side's strength follows who is on the pitch** (AI substitutions,
+  injury cover, HIA stand-ins, cards), the goal kicker is always a man on the
+  field, and starts and minutes are credited to the right players.
+* **A fairer board**: a win is worth at least 55% of the same defeat, a
+  sacking needs three weeks at the floor, and a first-season honeymoon whose
+  length follows the club's standing.
+* **Board decisions on Finances**, one early sponsor exit per slot per season,
+  and a new career that never overwrites a save.
+* **The language review finished** in all six languages; competition names
+  translated.
+* **The PHASE Discord** linked from the menu, About and the bug report. A link
+  the player taps, opened outside the game; nothing is sent, and netprobe
+  allows that one address in one file.
+
+### The evidence
+
+| Check | Result |
+|---|---|
+| Full suite, `all` mode (engine, browser and soaks) on the merged 1.8.0 | SUITE PASSED, 283 of 283 |
+| GitHub gate on the PR head (four engine shards) | green, each shard 10 to 18 minutes |
+| bandcheck, 4,068 games | 49.5 points, 6.30 tries, 52.4% home, 1.6% draws, 8.1% blowouts: every band inside |
+| subvalueprobe | four fresh men +1.09 points over none, the whole bench +0.91 (2,400 matches); +0.96 and +0.58 on the probe's own 1,200, against a bar of +0.5 |
+| optionsprobe | every option within 4 points; the long exit about +2 |
+| creditprobe | 541 of 541 AI substitutions reach the units; starts and minutes exact |
+| slotprobe (browser) | a new career takes an empty slot, or asks which to replace |
+| Discord link, after it was added | netprobe, textlint, langparity, i18nprobe, readslike, keyprobe, emojiprobe, bugprobe; strangerpath, e2e, tapsize, overlapaudit, subline, langprobe, contrastprobe, slotprobe, ipprobe: all pass |
+| Store art | regenerated on the final build: Play and App Store, English and French |
+
+### Still open, and not a blocker
+
+* The live stats can show a try with no 22 visit (a try from outside the 22
+  is not counted as an entry), so points per 22 visit reads 0.0 beside a
+  score. A display fault only; for 1.8.1.
+* Items the owner does in the consoles: the move to the organisation's Play
+  account and its signing certificate, the signed upload, the playtest and
+  the screenshot sign-off.

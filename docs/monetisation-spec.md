@@ -26,7 +26,7 @@ These are constraints the spec builds on, not aspirations:
   suite on any fetch/XHR/beacon/SDK). All billing and all ads live in the
   **native wrapper** behind `BillingBridge` / `AdBridge`
   (`src/game/monetise.ts`) — the game asks the shell, the shell talks to the
-  store. The web build at craigjswayne-cyber.github.io stays free, complete,
+  store. The web build at phaserugbymanager.com stays free, complete,
   and till-less (`storeprobe` asserts exactly this).
 * **Purchases never touch the rng stream.** Every effect below is
   deterministic. `fingerprint` must stay green with the store code in place.

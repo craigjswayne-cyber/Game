@@ -148,7 +148,35 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
-### What's new (500 max) - v1.8.0, Play version code 41 (1.7.4 and the planned 1.8.1 folded in)
+### What's new (500 max) - v1.8.0, Play version code 41: FINAL
+
+Rewritten 28 Sep 2026 for the build that ships. The draft below it was written
+on 27 Sep and misses the two-layer engine, the fairer board, the bench, the
+language review, the save slots and the Discord link. Use this one.
+
+```
+<en-GB>
+A new match engine: every carry, tackle and breakdown is a contest between the players involved. Commentary with live stats, and the pitch for tries and big moments. Tired sides concede more, so the bench matters. A fairer board, with a first season to find your feet. Tablet and iPad layouts, a new bottom bar, and every screen reviewed in all six languages. A new career never overwrites a save. Join the PHASE Discord from the menu to report bugs and talk rugby.
+</en-GB>
+<fr-FR>
+Un nouveau moteur de match : chaque charge, plaquage et ruck devient un duel entre les joueurs concernés. Commentaire et statistiques en direct, et le terrain pour les essais et les grands moments. Une équipe fatiguée encaisse davantage : le banc compte. Un conseil plus juste, avec une première saison pour faire vos preuves. Tablette et iPad, nouvelle barre du bas, écrans revus dans les six langues. Une nouvelle carrière n'écrase plus une sauvegarde. Rejoignez le Discord PHASE depuis le menu.
+</fr-FR>
+<es-ES>
+Nuevo motor de partido: cada carga, placaje y ruck es un duelo entre los jugadores implicados. Narración con estadísticas en directo, y el campo para los ensayos y los momentos clave. Un equipo cansado encaja más: el banquillo importa. Una directiva más justa, con una primera temporada para asentarse. Tableta e iPad, nueva barra inferior y todas las pantallas revisadas en los seis idiomas. Una carrera nueva ya no borra una partida guardada. Únete al Discord de PHASE desde el menú.
+</es-ES>
+<it-IT>
+Nuovo motore di gioco: ogni carica, placcaggio e ruck è un duello tra i giocatori coinvolti. Cronaca con statistiche in diretta, e il campo per mete e momenti chiave. Una squadra stanca subisce di più: la panchina conta. Una dirigenza più giusta, con una prima stagione per ambientarsi. Tablet e iPad, nuova barra in basso e ogni schermata rivista in tutte e sei le lingue. Una nuova carriera non sovrascrive più un salvataggio. Unisciti al Discord di PHASE dal menu.
+</it-IT>
+<ja-JP>
+新しい試合エンジン：キャリー、タックル、ブレイクダウンのひとつひとつが、関わる選手同士の勝負に。実況とライブスタッツで進み、トライや重要場面ではピッチが登場。疲れたチームは失点が増え、控えの起用が勝負を分ける。理事会はより公平に、就任1年目には猶予期間も。タブレットとiPadに対応、新しい下部バー、全画面を6言語で見直し。新しいキャリアがセーブを上書きすることはもうない。メニューからPHASEのDiscordに参加しよう。
+</ja-JP>
+<af>
+'n Nuwe wedstrydenjin: elke hardloop met die bal, duikslag en loskrum is 'n stryd tussen die spelers wat betrokke is. Kommentaar met regstreekse statistiek, en die veld vir drieë en groot oomblikke. 'n Moeë span laat meer punte deur: die bank tel. 'n Regverdiger direksie, met 'n eerste seisoen om jou voete te vind. Tablet en iPad, 'n nuwe onderste balk, en elke skerm in al ses tale nagegaan. 'n Nuwe loopbaan skryf nooit 'n gestoorde spel oor nie. Sluit by die PHASE-Discord aan via die kieslys.
+</af>
+```
+*(en-GB 465, fr-FR 497, es-ES 485, it-IT 467, ja-JP 213, af 498: all inside Play's 500.)*
+
+### What's new (500 max) - v1.8.0, Play version code 41 (1.7.4 and the planned 1.8.1 folded in): SUPERSEDED DRAFT, see above
 
 Rewritten 27 Sep 2026: the first draft advertised the always-on gliding
 pitch, its overlays and condition rings, all of which were replaced before
