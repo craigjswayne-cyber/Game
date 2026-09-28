@@ -151,7 +151,12 @@ for (const [k, v] of Object.entries(byComp).sort((a, b) => b[1].sum / b[1].n - a
   // flip the comparison by luck alone (the August 2026 squad verification
   // did exactly that). Tripling the sample halves the noise; the assertion
   // itself is unchanged.
-  for (const seed of [12345, 777, 4242, 31337, 2468, 97531, 8080, 555, 424242]) {
+  // And 36, not nine (28 Sep 2026): the two-layer engine's contest moved the
+  // stream again and the nine-world gap read +0.8, -0.5 and +2.8 points on
+  // three near-identical engines. Four times the worlds halves the noise
+  // again; it still runs in about a minute.
+  const SEEDS9 = [12345, 777, 4242, 31337, 2468, 97531, 8080, 555, 424242]
+  for (const seed of [...SEEDS9, ...SEEDS9.map(s => s * 3 + 1), ...SEEDS9.map(s => s * 7 + 2), ...SEEDS9.map(s => s * 11 + 3)]) {
     const g = newGame('northampton', 'Venue Probe', seed)
     const league = g.fixtures.filter(f =>
       g.comps[f.compId]?.type === 'league' && g.clubs[f.homeId] && g.clubs[f.awayId] &&
@@ -189,7 +194,7 @@ for (const [k, v] of Object.entries(byComp).sort((a, b) => b[1].sum / b[1].n - a
   const easiest = band(easyRows)
   const hardest = band(hardRows)
   const all = band(rows)
-  console.log(`\n${rows.length} league fixtures simmed over 9 worlds:`)
+  console.log(`\n${rows.length} league fixtures simmed over 36 worlds:`)
   console.log(`  easiest quarter of each league (mean raw ${easiest.mr.toFixed(3)}): home win ${easiest.w.toFixed(1)}%`)
   console.log(`  hardest quarter of each league (mean raw ${hardest.mr.toFixed(3)}): home win ${hardest.w.toFixed(1)}%`)
   console.log(`  all fixtures: home win ${all.w.toFixed(1)}%, draws ${all.d.toFixed(1)}%`)

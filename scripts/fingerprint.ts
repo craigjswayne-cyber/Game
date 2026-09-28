@@ -465,17 +465,23 @@ const EXPECTED: string[] = [
   // penalty chances by a factor that averages exactly 1 across the world
   // (contestprobe). It draws four numbers per side per tick, always, so all
   // six moved. Same commit: the AI respect layers (E9) are read at kick-off,
-  // the home edge 1.06 -> 1.07 and TRY_BASE 0.0843 -> 0.0815, because the
+  // the home edge 1.06 -> 1.07 (since undone, below) and TRY_BASE 0.0843 -> 0.0815, because the
   // contest's extra variance thinned home advantage below its band. bandcheck,
   // pooled over four seeds, against the numbers just above:
   //   pts 51.0 -> 50.5   tries 6.52 -> 6.40   home 51.3% -> 51.9%
   //   draws 1.7% -> 1.4%   blowouts 8.4% -> 8.4% (every band holds)
-  'saracens 17-33 bath',
-  'exeter 13-31 gloucester',
-  'sale 24-29 bristol',
-  'harlequins 37-9 leicester',
+  // AND AGAIN, same night: the home edge now also leans on the contest (the
+  // home side's carries x hfa, the away side's / hfa), because the home-blind
+  // contest had thinned the travel effect (venueprobe, 36 worlds: the hardest
+  // trips' gap over the easiest 1.8 -> 0.5 points; now 1.2). With the edge
+  // carried there, hfa is back to 1.06. bandcheck: 50.6 pts, 6.45 tries,
+  // 52.1% home, 1.6% draws, 8.0% blowouts. Five of six moved.
+  'saracens 14-33 bath',
+  'exeter 20-3 gloucester',
+  'sale 39-25 bristol',
+  'harlequins 31-18 leicester',
   'newcastle 13-30 northampton',
-  'exeter 10-42 saracens',
+  'exeter 16-34 saracens',
 ]
 // v1.8.1 moved three of them once more, and this time WITHOUT spending a new
 // draw: the training pitch now scales every side's breakdown and handling off
