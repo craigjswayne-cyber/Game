@@ -229,8 +229,19 @@ export interface ZonePlan {
 export const ZONE_PLANS: Record<ZoneId, ZonePlan[]> = {
   // YOUR OWN 22: the exit. Every side has to get out, and how you get out is
   // the oldest trade in the game - distance against possession.
+  //
+  // THE LONG EXIT PUSHES 4, NOT 8, and the ground is the only side of its
+  // trade that can carry the price. Its cost, the possession it gives away,
+  // is a try chance cut while play is in your own 22, which is exactly where
+  // a side almost never scores: ablated over 240 matches, setting tryF back
+  // to 1 moved the long exit by +0.2 points and setting terr to 0 by -3.8.
+  // At 8 it read about +4.0 points a match on every sample drawn (3.7 to 4.4
+  // on reshuffled seeds, before and after the 1.8.0 engine round alike),
+  // sitting on optionsprobe's meta line so that the verdict was the dice's.
+  // At 4 it reads +1.7 over 480 matches: still the plan that wins the most
+  // ground (advprobe), no longer the one every career ends up on.
   own22: [
-    { id: 'long', name: 'tactics.z22Long', desc: 'tactics.z22LongDesc', tryF: 0.85, penF: 0.90, terr: 8 },
+    { id: 'long', name: 'tactics.z22Long', desc: 'tactics.z22LongDesc', tryF: 0.85, penF: 0.90, terr: 4 },
     { id: 'box', name: 'tactics.z22Box', desc: 'tactics.z22BoxDesc', tryF: 1, penF: 1, terr: 0 },
     { id: 'play', name: 'tactics.z22Play', desc: 'tactics.z22PlayDesc', tryF: 1.20, penF: 1.16, terr: -6 },
   ],
