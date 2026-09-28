@@ -143,10 +143,14 @@ for (let i = 0; i < WORLDS; i++) {
   const snapC = structuredClone(clubIds.map(c => g.clubs[c]))
   const snapP = structuredClone(pids.map(id => g.players[id]))
   const snapChem = structuredClone(g.chem)
+  const snapMisc = { news: g.news.slice(), nextId: g.nextId, grudges: structuredClone(g.grudges) }
   const play = (line: number | undefined, seed: number) => {
     clubIds.forEach((c, j) => { g.clubs[c] = structuredClone(snapC[j]) })
     pids.forEach((id, j) => { g.players[id] = structuredClone(snapP[j]) })
-    g.chem = structuredClone(snapChem)     // a match builds chemistry, and reads it
+    g.chem = structuredClone(snapChem)
+    // a match also files news, takes ids and can start a grudge the next
+    // one reads, so those go back too
+    g.news = snapMisc.news.slice(); g.nextId = snapMisc.nextId; g.grudges = structuredClone(snapMisc.grudges)     // a match builds chemistry, and reads it
     if (line != null) g.clubs[g.userClubId].tactic.defLine = line
     const fx = { ...fx0, played: false, homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0 }
     simMatch(g, fx, mulberry32(seed), false)
@@ -158,7 +162,7 @@ for (let i = 0; i < WORLDS; i++) {
     sumBase += m[0]; sumAggro += m[1]; diffs.push(m[1] - m[0])
     // the pairing is only as good as the restore: the same stream from the
     // same kick-off has to replay the same match
-    if (k === 0) { replays++; if (play(undefined, seed) === m[0]) replayed++ }
+    if (k === 0) { replays++; play(100, seed + 1); if (play(undefined, seed) === m[0]) replayed++ }
   }
 }
 ok(replayed === replays, `a restored kick-off replays the same match on the same stream (${replayed}/${replays})`)
