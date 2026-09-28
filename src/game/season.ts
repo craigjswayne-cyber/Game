@@ -4,6 +4,7 @@ import { W, genderOf, mayTakeMaternityLeave, MATERNITY_WEEKS, subjectVar } from 
 // FRIENDLY_DAY below is the Wednesday index this hands to dayDate
 import { dayDate, type DayIndex } from './days'
 import { islesCoach, isleTour, offerIsles } from './isles'
+import { telling, tellingsOf } from './tellings'
 import { aiCloseSeason } from './closeseason'
 import { talkingPoints } from './talkingpoints'
 import { aiFireSale, aiWeeklyFinance } from './aiecon'
@@ -1362,16 +1363,17 @@ function weeklyTraining(state: GameState, rng: Rng) {
   }
   if (returned.length) {
     const one = returned.length === 1
-    const line = (p: Player) => `${p.name} (${p.pos}), rusty for ${p.rust} week${(p.rust ?? 1) > 1 ? 's' : ''}`
+    // sixteen of these a season, so it is told three ways in turn (tellings.ts)
+    const k = telling(state, 'news.backInTraining')
+    const v = {
+      n: returned.length, who: one ? returned[0].name : String(returned.length),
+      men_l: JSON.stringify(returned.map(pl => ({ k: 'news.rustyMan', name: pl.name, pos: pl.pos, n: pl.rust ?? 1 }))),
+    }
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
-      subject: one ? `${returned[0].name} back in training` : `${returned.length} back in training`,
-      body: `${one ? 'Available for selection again' : 'Available for selection again'}: ${returned.map(line).join(', ')}. Pick a rusty man now and he could break down again; ease him back and he will be right.`,
-      k: 'news.backInTraining',
-      v: {
-        n: returned.length, who: one ? returned[0].name : String(returned.length),
-        men_l: JSON.stringify(returned.map(pl => ({ k: 'news.rustyMan', name: pl.name, pos: pl.pos, n: pl.rust ?? 1 }))),
-      },
+      subject: tIn('en', `${k}Subj`, v),
+      body: tIn('en', k, v),
+      k, v,
       playerId: returned[0].id,
     })
   }
@@ -1651,6 +1653,8 @@ export function afterClubMatch(state: GameState, fx: Fixture) {
   }
 }
 
+const MILESTONE_KEYS = tellingsOf('news.milestone')
+
 function milestones(state: GameState, rng: Rng) {
   const club = state.clubs[state.userClubId]
   for (const id of club.players) {
@@ -1666,15 +1670,17 @@ function milestones(state: GameState, rng: Rng) {
     if ([250, 500, 1000, 1500].includes(totPts)) hits.push({ k: 'news.milePts', n: totPts })
     for (const h of hits) {
       const v = { player: p.name, what_k: h.k, n: h.n }
-      const body = tIn('en', 'news.milestone', v)
       // a player parked exactly on a number (no tries this week) must not
-      // be saluted again - one presentation per milestone
-      if (state.news.some(n => n.body === body)) continue
+      // be saluted again - one presentation per milestone. Matched on the
+      // man and the mark rather than on the wording, which now varies
+      if (state.news.some(n => n.k != null && MILESTONE_KEYS.includes(n.k) && n.playerId === p.id &&
+        n.v?.what_k === h.k && n.v?.n === h.n)) continue
+      const k = telling(state, 'news.milestone')
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
-        subject: `Milestone: ${p.name}`,
-        body,
-        k: 'news.milestone', v,
+        subject: tIn('en', `${k}Subj`, v),
+        body: tIn('en', k, v),
+        k, v,
         playerId: p.id,
       })
     }
@@ -1687,16 +1693,88 @@ function leagueRoundUp(state: GameState) {
     f.compId === leagueId && f.week === state.week && f.played &&
     f.homeId !== state.userClubId && f.awayId !== state.userClubId)
   if (!round.length) return
-  const rows = round.map(f => ({
+  const rows: Record<string, string | number>[] = round.map(f => ({
     k: 'news.roundRow', home: teamShort(state, f.homeId), hs: f.homeScore,
     as: f.awayScore, away: teamShort(state, f.awayId),
   }))
+  rows.push(...formLines(state, leagueId, round))
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
     subject: `${state.comps[leagueId]?.short} round-up`,
-    body: rows.map(r => tIn('en', r.k, r)).join('\n'),
+    body: rows.map(r => tIn('en', String(r.k), r)).join('\n'),
     k: 'news.roundUp',
     v: { comp: state.comps[leagueId]?.short ?? '', rows_ll: JSON.stringify(rows) },
+  })
+  tryRace(state, leagueId, round)
+}
+
+/**
+ * THE FORM LINE UNDER THE SCORES (1.8.1, "feels too samey"). The round-up was a
+ * list of scorelines and nothing else, seventeen times a season. The table
+ * already knows which of those clubs cannot stop winning and which cannot
+ * start, so the round-up says so: the longest winning run and the longest run
+ * without a win among the clubs that played this round, each only on the
+ * weeks it reaches a new mark (four wins, six, eight...; five without, seven,
+ * nine...) so one club's run is not the same line every Monday. A line on an
+ * existing story, not a new story: more to read, not more to open.
+ */
+function formLines(state: GameState, leagueId: string, round: Fixture[]): Record<string, string | number>[] {
+  const played = state.fixtures
+    .filter(f => f.compId === leagueId && f.played)
+    .sort((a, b) => b.week - a.week || b.id - a.id)
+  const runOf = (clubId: string, won: boolean): number => {
+    let n = 0
+    for (const f of played) {
+      if (f.homeId !== clubId && f.awayId !== clubId) continue
+      const us = f.homeId === clubId ? f.homeScore : f.awayScore
+      const them = f.homeId === clubId ? f.awayScore : f.homeScore
+      if ((us > them) !== won) break
+      n++
+    }
+    return n
+  }
+  const clubs = round.flatMap(f => [f.homeId, f.awayId])
+  const best = (won: boolean, marks: (n: number) => boolean) => clubs
+    .map(id => ({ id, n: runOf(id, won) }))
+    .filter(x => marks(x.n))
+    .sort((a, b) => b.n - a.n)[0]
+  const out: Record<string, string | number>[] = []
+  const hot = best(true, n => n >= 4 && n % 2 === 0)
+  if (hot) out.push({ k: 'news.ruHot', club: teamShort(state, hot.id), n: hot.n })
+  const cold = best(false, n => n >= 5 && n % 2 === 1)
+  if (cold) out.push({ k: 'news.ruCold', club: teamShort(state, cold.id), n: cold.n })
+  return out
+}
+
+/**
+ * THE TRY RACE, twice a season (1.8.1). A third of the way through the league
+ * and two thirds of the way, the leading try scorer among the players at this
+ * league's clubs and the man chasing him, from the season's own scoring. Filed
+ * only when there is a race to speak of: three tries at least, and a second
+ * name to chase.
+ */
+function tryRace(state: GameState, leagueId: string, round: Fixture[]) {
+  const comp = state.comps[leagueId]
+  if (!comp) return
+  const total = new Set(state.fixtures.filter(f => f.compId === leagueId && !f.stage).map(f => f.round)).size
+  const at = round[0]?.round ?? -1
+  if (total < 6 || (at !== Math.floor(total / 3) && at !== Math.floor((2 * total) / 3))) return
+  const teams = new Set(comp.teamIds)
+  const scorers = Object.values(state.players)
+    .filter(p => p.clubId && teams.has(p.clubId) && p.stats.tries > 0)
+    .sort((a, b) => b.stats.tries - a.stats.tries || b.stats.points - a.stats.points || a.id - b.id)
+  const [first, second] = scorers
+  if (!first || !second || first.stats.tries < 3) return
+  const v = {
+    comp: comp.short, player: first.name, club: teamShort(state, first.clubId!), n: first.stats.tries,
+    second: second.name, club2: teamShort(state, second.clubId!), m: second.stats.tries,
+  }
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+    subject: tIn('en', 'news.tryRaceSubj', v),
+    body: tIn('en', 'news.tryRace', v),
+    k: 'news.tryRace', v,
+    playerId: first.id,
   })
 }
 
@@ -2479,11 +2557,12 @@ export function processWeekAndAdvance(state: GameState) {
       }))
       const men = reports.reduce((n, r) => n + r.lines.length, 0)
       const v = { n: men, tests: reports.length, blocks_ll: JSON.stringify(blocks) }
+      const k = telling(state, 'news.campRound')
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
-        subject: tIn('en', 'news.campRoundSubj', v),
-        body: tIn('en', 'news.campRound', v),
-        k: 'news.campRound', v,
+        subject: tIn('en', `${k}Subj`, v),
+        body: tIn('en', k, v),
+        k, v,
       })
     }
   }

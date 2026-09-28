@@ -11,6 +11,7 @@
 // Everything here is a pure derivation or a deterministic gate (mulberry32 on
 // ids and weeks, never the shared match rng). No new number is hidden: the
 // Profile screen prints the standing, and every consequence says its name.
+import { telling } from './tellings'
 import type { GameState, Player, PressOption } from './model'
 import {absWeek, mgrReputation, squadTrust, SEASON_WEEKS } from './model'
 import { clamp, mulberry32 } from './rng'
@@ -162,7 +163,7 @@ export function disciplineWeek(state: GameState) {
         room_k: 'titles.press',
       }
       const key = senior
-        ? (names.length >= 2 ? 'news.deputationNamed' : 'news.deputationNamedOne')
+        ? (names.length >= 2 ? telling(state, 'news.deputationNamed') : 'news.deputationNamedOne')
         : (names.length >= 2 ? 'news.deputation' : 'news.deputationOne')
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,

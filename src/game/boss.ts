@@ -19,6 +19,7 @@
 // So: one identified rival per season, and a voice that moves with the table.
 import { subjectVar } from './gender'
 import { tIn, type Vars } from './i18n'
+import { nextTelling } from './tellings'
 import { poss, type Club, type GameState } from './model'
 
 /** Who is in the other dugout, or null for a club between coaches. */
@@ -58,8 +59,15 @@ export function rivalBoss(state: GameState): { club: Club; boss: string } | null
  * word, in one season. A rival who says one sentence forever is a sign on a wall,
  * not a person.
  */
-const voice = (state: GameState, salt: number, opts: string[]) =>
-  opts[(state.season * 7 + state.week * 3 + salt) % opts.length]
+//
+// A rotation since 1.8.1 (tellings.ts). The arithmetic it replaced multiplied the
+// week by three and only speaks on weeks that are multiples of five, so a pool of
+// three headlines landed on the same one all season. Everything he has said this
+// season counts as "already said", headlines included, because a headline rides
+// inside the story's variables rather than as its key.
+const BOSS_BEATS = ['news.bossTight', 'news.bossNotLookingDown', 'news.bossPressure',
+  'news.bossSize1', 'news.bossSize2', 'news.bossSize3', 'news.bossSize4']
+const voice = (state: GameState, salt: number, opts: string[]) => nextTelling(state, opts, salt, BOSS_BEATS)
 
 /**
  * The rival's voice for this week, or null on a quiet week.
