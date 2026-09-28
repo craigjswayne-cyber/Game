@@ -227,6 +227,7 @@ function statureRun(clubId: string, seed: number, mode: Mode) {
   let minConf = 100
   let sacked = false
   let sackWeek: number | null = null
+  let sackPos: number | null = null
   while (g.week < SEASON_WEEKS && guard++ < SEASON_WEEKS + 5) {
     if (mode !== 'sleepwalk' && !g.unemployed) {
       const lu = pick(g, mode)
@@ -252,9 +253,13 @@ function statureRun(clubId: string, seed: number, mode: Mode) {
     // less. Read the reading, then break.
     const c = g.clubs[clubId]
     if (c) minConf = Math.min(minConf, c.boardConfidence)
-    if (g.unemployed) { sacked = true; sackWeek = g.week; break }
+    if (g.unemployed) {
+      sacked = true; sackWeek = g.week
+      sackPos = sortTable(g.comps['prem'].table).findIndex(r => r.teamId === clubId) + 1
+      break
+    }
   }
-  return { minConf: Math.round(minConf), sacked, sackWeek }
+  return { minConf: Math.round(minConf), sacked, sackWeek, sackPos }
 }
 
 const giantSleep = STATURE_SEEDS.map(s => statureRun('bath', s, 'sleepwalk'))
@@ -267,7 +272,8 @@ const worstMin = (rows: { minConf: number }[]) => Math.min(...rows.map(r => r.mi
 console.log(`\nboard patience by stature (${STATURE_SEEDS.length} seeds each):`)
 console.log(`  bath rep88   sleepwalk  mean min-confidence ${meanMin(giantSleep).toFixed(1)}, ${giantSleep.filter(r => r.sacked).length}/${STATURE_SEEDS.length} sacked`
   + (giantSleep.some(r => r.sacked) ? ` (${giantSleep.filter(r => r.sacked).map(r => `wk${r.sackWeek}`).join(', ')})` : ''))
-console.log(`  bath rep88   optimise   mean min-confidence ${meanMin(giantOpt).toFixed(1)}, ${giantOpt.filter(r => r.sacked).length}/${STATURE_SEEDS.length} sacked`)
+console.log(`  bath rep88   optimise   mean min-confidence ${meanMin(giantOpt).toFixed(1)}, ${giantOpt.filter(r => r.sacked).length}/${STATURE_SEEDS.length} sacked`
+  + (giantOpt.some(r => r.sacked) ? ` (${giantOpt.filter(r => r.sacked).map(r => `wk${r.sackWeek} ${r.sackPos}th`).join(', ')})` : ''))
 console.log(`  esher rep38  sleepwalk  mean min-confidence ${meanMin(minnowSleep).toFixed(1)}, ${minnowSleep.filter(r => r.sacked).length}/${STATURE_SEEDS.length} sacked`)
 
 // A COUNT OF CRISIS SEASONS, NOT A MEAN (1.6.4).
