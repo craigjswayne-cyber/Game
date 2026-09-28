@@ -41,17 +41,33 @@ function seasons(club: 'northampton' | 'esher', n: number): number[] {
 
 console.log('--- 1. the year is uneven, and it is meant to be\n')
 {
-  const big = seasons('northampton', 60)
-  const median = big[30]
+  // 120 seasons, not 60 (28 Sep 2026): the median of 60 read -377k, -308k,
+  // -314k and -661k on four shifted seed lists, a standard error near 160k
+  // against 900k of room from a centre of about -400k; at 120 it is near 110k
+  const big = seasons('northampton', 120)
+  const median = big[60]
   ok(big[0] < -500_000, `a bad year of buildings really hurts (worst ${k(big[0])})`)
-  ok(big[59] > 500_000, `and a good year of events really helps (best ${k(big[59])})`)
+  ok(big[119] > 500_000, `and a good year of events really helps (best ${k(big[119])})`)
   ok(Math.abs(median) < 900_000,
     `while the middle of it is close to a wash - this is variance, not a tax (median ${k(median)})`)
-  const g = newGame('northampton', 'Upkeep', 4)
-  const rng = mulberry32(11)
-  let hits = 0
-  for (let w = 3; w <= 44; w++) { g.week = w; if (upkeepWeek(g, rng)) hits++ }
-  ok(hits >= 3 && hits <= 14, `about one every five weeks, not an accountant's inbox (${hits} in a season)`)
+  // FORTY SEASONS, NOT ONE (28 Sep 2026). One season's count is a draw from
+  // 3 to 16 (200 seasons: mean 8.3, 3 in 2.5% of them, over 14 in 1%), and
+  // four shifted seed lists read 8, 3, 12 and 11 against a band of 3 to 14,
+  // the second on the floor. The claim is a rate - about one in five weeks -
+  // so the mean of forty seasons is held to the band, and single seasons
+  // outside it are allowed at the rate they happen (two in forty).
+  const hitsBy: number[] = []
+  for (let t = 0; t < 40; t++) {
+    const g = newGame('northampton', 'Upkeep', 4 + t * 101)
+    const rng = mulberry32(11 + t * 7919)
+    let hits = 0
+    for (let w = 3; w <= 44; w++) { g.week = w; if (upkeepWeek(g, rng)) hits++ }
+    hitsBy.push(hits)
+  }
+  const meanHits = hitsBy.reduce((a, b) => a + b, 0) / hitsBy.length
+  const outside = hitsBy.filter(h => h < 3 || h > 14).length
+  ok(meanHits >= 3 && meanHits <= 14 && outside <= 2,
+    `about one every five weeks, not an accountant's inbox (${meanHits.toFixed(1)} a season over 40, ${outside} seasons outside 3-14)`)
 }
 
 console.log('\n--- 2. and it is written down, in the club\'s own words\n')
