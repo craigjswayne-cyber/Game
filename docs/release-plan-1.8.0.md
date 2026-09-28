@@ -182,10 +182,10 @@ Done by the lead:
 - Icons instead of emoji: menus, news, and every locale string outside the
   features below (national flags stay: they are flags).
 
-In progress (parallel work, merged when each is checked):
+Also done, by the parallel workers (each merged after its probes passed):
 - Engine: missed drop goals; charge-downs (1 in 40 kicks from hand, 1 in
   80 kicks a try to the chargers, otherwise lineout, scrum or a loose ball
-  at random); commentary from about 48 lines a match to 100-150.
+  at random); commentary from about 48 lines a match to about 121.
 - Highlights: no caption; referee a pink circle (orange if a side wears
   pink, cyan if both); players 20% bigger; the full-back kept in play.
 - Finances as a balance sheet (cash in the bank, transfer budget, wage
@@ -195,6 +195,27 @@ In progress (parallel work, merged when each is checked):
 - Set Piece and Bench & Prep made visual.
 - Development plans open to every eligible player; mentoring moved into
   the Team Report and redesigned.
+- UI QA sweep: 21 layout fixes over every screen at seven sizes and themes
+  (league table ranks, team sheet stars, long titles, day-theme contrast,
+  numbers and dates in the game's language, 44 px taps on Training).
+
+### Owner's night of 27-28 Sep: the rest of 1.8.1 brought into 1.8.0
+
+- **E12, the two-layer engine.** Under every team tick a contest between
+  men (src/game/contest.ts): a carrier, a tackler and a jackal, with mental
+  attributes gating technical ones. It tilts the try and penalty chances by
+  a factor that averages exactly 1 across the world (contestprobe), so it
+  decides WHO wins the carries, not how many tries a season holds. The
+  commentary names the men who actually won the collision.
+- **E9, AI respect** is now read by the engine at kick-off (respectprobe).
+- **E10, real pace in highlight clips.** Runners and cover run at their
+  own pace (0.92x at pace 1 to 1.12x at 20, unchanged for an average man).
+- **E11 (rewatching highlights) scrapped** by the owner.
+- **Balance (owner: "very attacking heavy").** To keep home advantage in its
+  band once the contest's variance was added, the home edge went 1.06 to
+  1.07; the try base 0.0930 to 0.0843 (charge-downs) and then to 0.0815.
+  bandcheck, 4,068 games: 50.5 points (was 50.7 before this round), 6.40
+  tries (6.48), 51.9% home wins, 1.4% draws, 8.4% blowouts.
 
 Owner to do: update the signing certificate for the change of ownership
 before the store release.
@@ -210,11 +231,11 @@ before the store release.
   exist (attributes.ts, read by teamUnits since round 25D-2); they are never
   shown by design. What is left for 1.8.1 is whether scouting hints at them.
 - The ticker's Highlights mode is renamed (done: Big moments).
-- Still open: the store question below, and whether the two-layer engine
-  (E12) is in 1.8.1 or a later release.
+- The two-layer engine (E12) is in 1.8.0 (owner, 27 Sep: "do the two
+  layer match engine tonight before the QA").
 
 ## 5. Decisions still needed
 
-1. Store release with 1.8.0, or web only first?
-2. E12 (two-layer engine) in 1.8.1, or its own release?
+1. Store listing, playtest, screenshot sign-off and the signing
+   certificate: the owner, the morning of 28 Sep.
 
