@@ -1276,7 +1276,11 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
   // club is the user's club whoever is pressing the buttons.
   //
   // Deterministic: reputation only, no draw from the shared stream.
-  if (side.teamId !== state.userClubId) {
+  //
+  // And a club the manager has been sacked by is not his any more: userClubId
+  // still names it while he is out of work, and it played with neither his
+  // staff nor anybody else's, a few per cent weaker than every other side.
+  if (side.teamId !== state.userClubId || state.unemployed) {
     const rep = state.clubs[side.teamId]?.rep ?? 60
     // 0 at rep 40, 1 at rep 90, so the tilt is gentle and bounded at both ends
     const tilt = clamp((rep - 40) / 50, 0, 1)

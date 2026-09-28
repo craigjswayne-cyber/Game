@@ -3,7 +3,7 @@ import type { Competition, FacilityId, Fixture, GameState, Player, Pos, TableRow
 import { W, genderOf, mayTakeMaternityLeave, MATERNITY_WEEKS, subjectVar } from './gender'
 // FRIENDLY_DAY below is the Wednesday index this hands to dayDate
 import { dayDate, type DayIndex } from './days'
-import { islesCoach, offerIsles } from './isles'
+import { islesCoach, isleTour, offerIsles } from './isles'
 import { aiCloseSeason } from './closeseason'
 import { talkingPoints } from './talkingpoints'
 import { aiFireSale, aiWeeklyFinance } from './aiecon'
@@ -881,7 +881,7 @@ function manageInternationals(state: GameState, rng: Rng) {
       }
       if (lionsCalls.length) {
         // the honour of a career deserves better than the generic list
-        const tour = state.comps['lions']?.name ?? 'the Isles tour'
+        const tour = isleTour(state)?.name ?? 'the Isles tour'
         const names = lionsCalls.map(p => `${p.name}${(p.lions ?? 0) > 1 ? ` (tour number ${p.lions})` : ''}`).join(', ')
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
@@ -947,7 +947,7 @@ function manageInternationals(state: GameState, rng: Rng) {
       }
       if (lionsHome.length) {
         // a tour changes a player: he comes home a bigger presence
-        const comp = state.comps['lions']
+        const comp = isleTour(state)
         const seriesWon = comp?.champion === 'LIO'
         for (const p of lionsHome) {
           p.morale = clamp(p.morale + 0.6, 1, 10)
@@ -2865,7 +2865,10 @@ export function processWeekAndAdvance(state: GameState) {
       }
     }
     if (sn && state.week === lastWk) {
-      const fx = state.fixtures.filter(f => f.compId === 'sn')
+      // the championship's own id, not the men's: a women's world plays w:sn,
+      // and filtering on 'sn' found no fixtures there, so its Slam and its
+      // Spoon went unannounced while the eve-of story above ran every year
+      const fx = state.fixtures.filter(f => f.compId === sn.id)
       if (fx.length && fx.every(f => f.played)) {
         const rows = sortTable(sn.table)
         const top = rows[0]
@@ -3432,7 +3435,10 @@ export function processWeekAndAdvance(state: GameState) {
       const us = userFx.homeId === mySide ? userFx.homeScore : userFx.awayScore
       const them = userFx.homeId === mySide ? userFx.awayScore : userFx.homeScore
       state.mgr.m += 1
-      if (us > them) state.mgr.w += 1
+      // a Test win carries a full weight in the weighted record too: it counted
+      // as a game and never as a weighted win, so once `ww` existed every Test
+      // won pulled the win rate in mgrReputation DOWN
+      if (us > them) { state.mgr.ww = (state.mgr.ww ?? state.mgr.w) + 1; state.mgr.w += 1 }
       else if (us === them) state.mgr.d += 1
       else state.mgr.l += 1
       // the tenure's own ledger, shown on the country desk - the record books
@@ -3650,8 +3656,11 @@ export function processWeekAndAdvance(state: GameState) {
           hi: Math.max(final.homeScore, final.awayScore), lo: Math.min(final.homeScore, final.awayScore),
         },
       })
-      if (comp.champion === state.userClubId || (state.natTeam != null && comp.champion === state.natTeam)) {
-        const mine = comp.champion === state.userClubId
+      // his club's cup only while it IS his club: userClubId still names the one
+      // that sacked him, and a successor's trophy was going on his record
+      const clubWon = !state.unemployed && comp.champion === state.userClubId
+      if (clubWon || (state.natTeam != null && comp.champion === state.natTeam)) {
+        const mine = clubWon
         const hk = mine ? 'cel.champions' : 'cel.championsOf'
         const hv: Vars = mine
           ? { short: teamShort(state, state.userClubId).toUpperCase() }
@@ -3664,13 +3673,26 @@ export function processWeekAndAdvance(state: GameState) {
           hk, hv, sk: 'cel.championsSub', sv,
         }
         state.mgr.trophies.push({ compId: comp.id, season: state.season, clubId: state.userClubId })
-        state.news.push({
-          id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
-          subject: `CHAMPIONS! The ${comp.name} is yours`,
-          body: `Scenes of pure joy as ${state.clubs[state.userClubId].name} lift the ${comp.name}. The city will talk about this night for years - and the board have noted exactly who delivered it.`,
-          k: 'news.youWonCup', v: { comp: comp.name, club: state.clubs[state.userClubId].name },
-        })
-        state.clubs[state.userClubId].boardConfidence = clamp(state.clubs[state.userClubId].boardConfidence + 20, 0, 100)
+        if (mine) {
+          state.news.push({
+            id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
+            subject: `CHAMPIONS! The ${comp.name} is yours`,
+            body: `Scenes of pure joy as ${state.clubs[state.userClubId].name} lift the ${comp.name}. The city will talk about this night for years - and the board have noted exactly who delivered it.`,
+            k: 'news.youWonCup', v: { comp: comp.name, club: state.clubs[state.userClubId].name },
+          })
+          state.clubs[state.userClubId].boardConfidence = clamp(state.clubs[state.userClubId].boardConfidence + 20, 0, 100)
+        } else {
+          // a knockout his NATION won (a World Championship final): the same
+          // letter the round-robin Tests send below. It used to fall into the
+          // club's, which had his club lifting the World Championship and gave
+          // its board the credit.
+          state.news.push({
+            id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
+            subject: `CHAMPIONS! You've won the ${comp.name} with ${comp.champion}`,
+            body: `A nation celebrates. Your name goes into the record books as the coach who delivered the ${comp.name}.`,
+            k: 'news.youWonIntl', v: { comp: comp.name, nat: comp.champion },
+          })
+        }
       }
     }
     // pure round-robin comps (6N, TRC, National 1): champion = table top when all played
@@ -3679,7 +3701,7 @@ export function processWeekAndAdvance(state: GameState) {
       if (all.length && all.every(f => f.played)) {
         comp.champion = sortTable(comp.table)[0].teamId
         state.history.push({ season: state.season, compId: comp.id, champion: comp.champion })
-        if (comp.type === 'league' && comp.champion === state.userClubId) {
+        if (comp.type === 'league' && comp.champion === state.userClubId && !state.unemployed) {
           state.mgr.trophies.push({ compId: comp.id, season: state.season, clubId: state.userClubId })
           const hv2 = { short: teamShort(state, state.userClubId).toUpperCase() }
           const sv2 = { comp: comp.name, season: seasonLabel(state.season), manager: state.managerName }
@@ -3697,7 +3719,7 @@ export function processWeekAndAdvance(state: GameState) {
           })
           state.clubs[state.userClubId].boardConfidence = clamp(state.clubs[state.userClubId].boardConfidence + 20, 0, 100)
         }
-        const lionsWin = comp.id === 'lions' && comp.champion === 'LIO' &&
+        const lionsWin = comp.id === isleTour(state)?.id && comp.champion === 'LIO' &&
           state.natTeam != null && ['ENG', 'IRE', 'SCO', 'WAL'].includes(state.natTeam)
         if ((state.natTeam != null && comp.champion === state.natTeam) || lionsWin) {
           state.mgr.trophies.push({ compId: comp.id, season: state.season, clubId: state.userClubId })
@@ -3840,12 +3862,15 @@ export function processWeekAndAdvance(state: GameState) {
   // There were two warnings, at weeks 20 and 31, both saying the same thing in
   // the same words - so the first one was easy to file away and the second read
   // as a repeat rather than as a clock running down. A season is SEASON_WEEKS
-  // long and ends at the last of them, so the owner's calendar lands on:
+  // long (48) and ends at the last of them, so the owner's calendar lands on:
   //
-  //   week 19  six months out    (26 weeks)
-  //   week 32  three months out  (13 weeks)
-  //   week 41  a month out       (4 weeks)
-  //   week 43  a fortnight out   (2 weeks)
+  //   week 22  six months out    (26 weeks)
+  //   week 35  three months out  (13 weeks)
+  //   week 44  a month out       (4 weeks)
+  //   week 46  a fortnight out   (2 weeks)
+  //
+  // The last two fall in the close season, after the finals, which is right:
+  // the deals run to the end of the season, not to the end of the rugby.
   //
   // One story, four dates, and it says how long is left each time, which is
   // the whole point of a reminder.
@@ -3959,7 +3984,7 @@ export function processWeekAndAdvance(state: GameState) {
   if (!state.unemployed) {
     weeklyFinance(state, rng)
     weeklyScouting(state)
-    // the run-in: from week 28, gaps and rivals become the story
+    // the run-in: from week 31, gaps and rivals become the story
     if (state.week >= 31 && !state.unemployed) {
       const club = state.clubs[state.userClubId]
       const comp = state.comps[club.leagueId]
@@ -4171,12 +4196,12 @@ export function processWeekAndAdvance(state: GameState) {
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
       subject: `An invitation from the four unions`,
-      body: `The four unions have written to you jointly. They want you to take the British & Irish Isles XV to ${state.comps['lions']?.name?.replace(/^.*Tour of /, '') ?? 'the southern hemisphere'} this summer: seven provincial games and a three-Test series, one squad drawn from four countries who spend every February trying to beat each other.
+      body: `The four unions have written to you jointly. They want you to take the British & Irish Isles XV to ${isleTour(state)?.name?.replace(/^.*Tour of /, '') ?? 'the southern hemisphere'} this summer: seven provincial games and a three-Test series, one squad drawn from four countries who spend every February trying to beat each other.
 
 There is no shortlist and no interview. They have chosen, and they are asking.
 
 If you go, your assistant takes your national side for the duration. Nobody prepares a Test series eleven thousand miles from home and runs his own country in the same summer.`,
-      k: 'news.islesOffer', v: { host: state.comps['lions']?.name?.replace(/^.*Tour of /, '') ?? '' },
+      k: 'news.islesOffer', v: { host: isleTour(state)?.name?.replace(/^.*Tour of /, '') ?? '' },
     })
   }
 
@@ -4367,8 +4392,10 @@ If you go, your assistant takes your national side for the duration. Nobody prep
  * auto-pick the owner asked us to stop doing.
  */
 function fillShortNatSquad(state: GameState) {
+  // not gated on employment: a coach between club jobs still has a country,
+  // and its camp opens empty for him like anyone's (see natSquadHold)
   const nat = state.natTeam
-  if (!nat || state.unemployed) return
+  if (!nat) return
   const playing = state.fixtures.some(f =>
     !f.played && f.week === state.week && (f.homeId === nat || f.awayId === nat))
   if (!playing) return

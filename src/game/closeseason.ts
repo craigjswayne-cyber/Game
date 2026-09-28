@@ -214,7 +214,10 @@ export function aiCloseSeason(state: GameState): void {
   if (!isCloseSeason(state.week)) return
   for (const club of Object.values(state.clubs)) {
     if (club.id === state.userClubId) continue
-    const r = mulberry32(state.seed + club.id.length * 31 + state.week * 7 + state.season * 101)()
+    // keyed on the whole id through the same hash the manager's diary uses: it
+    // was seeded on the id's LENGTH, so every club with a name of the same
+    // length had the same summer, week after week
+    const r = roll(state, 'ai:' + club.id)
     // a modest, believable summer: the bigger the ground the better the diary
     club.balance += Math.round((6_000 + club.capacity * 0.35) * (0.6 + r * 0.8))
   }

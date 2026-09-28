@@ -16,6 +16,8 @@ import { applyPinnacle } from '../src/game/grants'
 import { pickableNations, testNationsIn, NAT_TIERS } from '../src/game/nations'
 import { processWeekAndAdvance } from '../src/game/season'
 import type { GameState } from '../src/game/model'
+import { sackManager } from '../src/game/jobs'
+import { natSquadHold, natWindow, NAT_SQUAD_FLOOR } from '../src/game/country'
 
 let fails = 0
 const ok = (c: boolean, what: string) => {
@@ -71,6 +73,32 @@ for (const [label, g] of worlds) {
   for (let i = 0; i < 44; i++) processWeekAndAdvance(g)
   const played = g.fixtures.filter(f => (f.homeId === nat || f.awayId === nat) && f.played)
   ok(played.length > 0, `${label}: and ${played.length} of them actually played inside a season`)
+}
+
+// ---- AND A COACH BETWEEN CLUB JOBS STILL COACHES HIS COUNTRY (1.8.1) ----
+//
+// A sacking does not end a national tenure, and the Profile offers "clear the
+// desk and go all-in on country". The camp still opened empty for him, but
+// the hold and the Test-week top-up both skipped an unemployed manager, so
+// nobody named the squad: ENG lost 40-0, 5-69 and 3-74 with no players named.
+{
+  const g = newGame('bath', 'Test', 4242)
+  applyPinnacle(g, 'ENG')
+  const nat = g.natTeam!
+  sackManager(g, 'news.sacked')
+  ok(g.unemployed && g.natTeam === nat, `out of a club job and still ${nat} coach`)
+  let tests = 0, short = 0, held = false
+  for (let i = 0; i < 44; i++) {
+    if (natWindow(g) && (g.natSquads[nat] ?? []).length < NAT_SQUAD_FLOOR && natSquadHold(g)) held = true
+    const testNow = g.fixtures.some(f => !f.played && f.week === g.week && (f.homeId === nat || f.awayId === nat))
+    processWeekAndAdvance(g)
+    if (testNow) {
+      tests++
+      if ((g.natSquads[nat] ?? []).length < NAT_SQUAD_FLOOR) short++
+    }
+  }
+  ok(held, 'the empty camp holds Continue for him, as it does for a coach in work')
+  ok(tests > 0 && short === 0, `every one of his ${tests} Test weeks had a squad of ${NAT_SQUAD_FLOOR} or more (${short} short)`)
 }
 
 console.log('')

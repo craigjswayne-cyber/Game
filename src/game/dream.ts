@@ -30,7 +30,7 @@
 import { LEAGUE_TIER } from './model'
 import type { GameState } from './model'
 import { t, tIn, type Vars } from './i18n'
-import { genderOf, genderOfId, isWomensId, type Gender } from './gender'
+import { W, genderOf, genderOfId, isWomensId, type Gender } from './gender'
 
 /**
  * THE CONTINENTAL COMPETITION HAS A DIFFERENT NAME IN EACH WORLD, AND THE
@@ -121,6 +121,27 @@ const won = (state: GameState, compId: string, clubId?: string) =>
   state.mgr.trophies.filter(t =>
     t.compId === compId && (clubId == null || t.clubId == null || t.clubId === clubId)).length
 
+/**
+ * Where a league sits, for the dreams. LEAGUE_TIER carries only the men's
+ * pyramid, and the dreams read an unknown league as a top flight, so the
+ * women's Championship and Division 2 were offered "do the double with {club}"
+ * for a club that can never enter the continental cup: the women's leagues are
+ * ringfenced, so it cannot go up, and the double has to be won with this club.
+ */
+const W_SECOND_TIER = [W + 'champ', W + 'e2']
+const W_LEAGUES = [W + 'pwr', W + 'pac', W + 'e1', W + 'celt', ...W_SECOND_TIER]
+const dreamTier = (leagueId: string): number => LEAGUE_TIER[leagueId] ?? (W_SECOND_TIER.includes(leagueId) ? 2 : 1)
+
+/** The seasons the manager won a league title, at one club or anywhere. A
+ *  league title is the league's trophy: in a play-off league that is the
+ *  final, not first place in the table, so a side that topped the table and
+ *  lost the final has not won the league. */
+const leagueTitleSeasons = (state: GameState, clubId?: string): number[] =>
+  [...new Set(state.mgr.trophies
+    .filter(t => (LEAGUE_TIER[t.compId] != null || W_LEAGUES.includes(t.compId)) &&
+      (clubId == null || t.clubId == null || t.clubId === clubId))
+    .map(t => t.season))].sort((a, b) => a - b)
+
 /** Seasons the dream club has spent in a top-flight league under this manager. */
 const topFlightSeasons = (state: GameState): number => {
   const club = dreamClub(state)
@@ -134,6 +155,8 @@ export const DREAMS: DreamDef[] = [
     titleVars: ctx => ({ club: ctx.clubName }),
     blurbK: 'dream.topflightBlurb',
     // only a club that is not already there can dream of getting there
+    // Not offered in the women's world: its leagues are ringfenced (RELEGATES,
+    // model.ts), so a club below the top flight has no road up to dream of.
     applies: ctx => (LEAGUE_TIER[ctx.leagueId] ?? 1) > 1,
     progress: state => {
       const seasons = topFlightSeasons(state)
@@ -178,10 +201,10 @@ export const DREAMS: DreamDef[] = [
     titleVars: ctx => ({ club: ctx.clubName, cup_k: cupKey(genderOfId(ctx.clubId)) }),
     blurbK: 'dream.doubleBlurb',
     needs: ['cc'],
-    applies: ctx => (LEAGUE_TIER[ctx.leagueId] ?? 1) === 1,
+    applies: ctx => dreamTier(ctx.leagueId) === 1,
     progress: state => {
       const club = dreamClub(state)
-      const league = state.mgr.finishes.some(f => f.pos === 1 && (f.clubId == null || f.clubId === club)) ? 1 : 0
+      const league = leagueTitleSeasons(state, club).length > 0 ? 1 : 0
       const euro = won(state, 'cc', club) > 0 ? 1 : 0
       const have = league + euro
       return {
@@ -205,7 +228,7 @@ export const DREAMS: DreamDef[] = [
     applies: () => true,
     progress: state => {
       // the longest run of consecutive title-winning seasons on the record
-      const titles = state.mgr.finishes.filter(f => f.pos === 1).map(f => f.season).sort((a, b) => a - b)
+      const titles = leagueTitleSeasons(state)
       let best = 0, run = 0, prev: number | null = null
       for (const s of titles) {
         run = prev != null && s === prev + 1 ? run + 1 : 1

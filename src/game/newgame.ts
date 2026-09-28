@@ -188,8 +188,8 @@ const W_LEAGUE_DEFS: () => LeagueDef[] = () => [
   { id: W + 'pwr', name: "English Women's Premier Division", short: 'Premier', double: true, playoffTeams: 4, clubs: W_PWR },
   { id: W + 'pac', name: "Women's Pacific Championship", short: 'Pacific', double: true, playoffTeams: 4, clubs: W_PAC },
   { id: W + 'e1', name: "French Women's Division 1", short: 'Division 1', double: true, playoffTeams: 6, clubs: W_E1 },
-  // Six clubs, so a double round robin is ten rounds and the season would be
-  // over by Christmas. Played three times, as the real one is.
+  // Six clubs in a double round robin: ten rounds, home and away, then a
+  // two-club final.
   { id: W + 'celt', name: 'Celtic Provinces Cup', short: 'Celtic', double: true, playoffTeams: 2, clubs: W_CELT },
   // Championship North 1 and South 1 as one table, at the owner's request.
   // Twenty clubs play each other once: nineteen rounds fits the season where a

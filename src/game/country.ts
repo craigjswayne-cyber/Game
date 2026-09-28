@@ -130,8 +130,13 @@ export function weeksToSquad(state: GameState): number | null {
  * this codebase has now fixed twice.
  */
 export function natSquadHold(state: GameState): { n: number } | null {
+  // No unemployed test. A manager out of a club job can still hold a Test job
+  // (the Profile offers "clear the desk and go all-in on country", and a sacking
+  // does not end a national tenure), and the camp still opens empty for him in
+  // manageInternationals. With the hold switched off for him, nothing named his
+  // squad and his country played its Tests with nobody in the camp at all.
   const nat = state.natTeam
-  if (!nat || state.unemployed) return null
+  if (!nat) return null
   if (!natWindow(state)) return null
   const named = (state.natSquads[nat] ?? []).length
   const short = NAT_SQUAD_FLOOR - named

@@ -2394,7 +2394,6 @@ export const leagueTier = (leagueId?: string | null): number => LEAGUE_TIER[leag
  */
 export const poss = (name: string) => name.endsWith('s') ? `${name}'` : `${name}'s`
 
-/** Convert (season, week) to a display date. Season 0 week 1 = Sat 6 Sep 2025. */
 /** Close the current national tenure: the Test record moves to the profile's
  *  permanent history and the live fields clear. Called by BOTH doors out -
  *  stepping down and the union's annual-review sack - so neither can lose

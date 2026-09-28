@@ -31,7 +31,8 @@
 import type { GameState } from './model'
 import { mgrReputation } from './model'
 import { isLionsSeason, isWomensTourSeason } from './schedule'
-import { genderOf } from './gender'
+import { genderOf, W } from './gender'
+import type { Competition } from './model'
 
 /** The four unions the touring side draws from. */
 export const HOME_UNIONS = ['ENG', 'IRE', 'SCO', 'WAL'] as const
@@ -59,6 +60,13 @@ export interface IslesState {
  *  of the world the save is in, not of the men's calendar. */
 export function isTourSeason(state: GameState): boolean {
   return genderOf(state) === 'w' ? isWomensTourSeason(state.season) : isLionsSeason(state.season)
+}
+
+/** This world's Isles tour, whichever world it is. The men's is 'lions' and
+ *  the women's 'w:lions'; code that read comps['lions'] alone never saw the
+ *  women's tour, so a series won there was neither credited nor called one. */
+export function isleTour(state: GameState): Competition | undefined {
+  return state.comps[genderOf(state) === 'w' ? W + 'lions' : 'lions']
 }
 
 export function islesEligible(state: GameState): { ok: boolean; why: string } {
