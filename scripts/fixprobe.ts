@@ -51,6 +51,12 @@ const club = g.clubs[g.userClubId]
 // Do the admin once, like a real manager, and judge the variety that remains.
 club.tactic.roles = Array.from({ length: 15 }, (_, i) => rolesForSlot(i)[0]?.id ?? null)
 club.tactic.kickers = club.players.slice(0, 2)
+// AND THE BENCH SPLIT (28 Sep 2026), the third piece of admin coachfix nags
+// about (score 6, "The bench split is on automatic"). Left unset it topped
+// the list in 5, 8, 7 and 5 of 14 matches on four shifted seed lists against
+// a dominance line of 9: an admin nag deciding a variety test, the same
+// wobble the roles and kickers above were set to remove.
+club.tactic.bench = '5-3'
 
 // Play the user's league fixtures out for real, tick by tick, so the numbers the
 // verdict reads are the numbers a live match produces.
