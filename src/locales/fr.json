@@ -7829,6 +7829,43 @@
     "hlKeySub": "Le terrain montre les essais, et les coups de pied et les attaques en fin de match serré.",
     "hlExtendedSub": "Le terrain montre les essais, les coups de pied au but et les percées dans les 22."
   },
+  "mem": {
+    "howReleased": "Vous avez libéré {player} en {season}.",
+    "howSold": "Vous avez vendu {player} à {buyer} pour {fee} en {season}.",
+    "howLetGo": "Vous avez laissé {player} quitter {old} en {season}.",
+    "tryVsSubj": "{player} marque contre son ancien club",
+    "tryVs": "{how_k} Aujourd'hui, sous les couleurs de {club}, {player} a marqué un essai contre vous. Le parcage visiteur a veillé à ce que vous l'entendiez bien.",
+    "motmVsSubj": "{player} règle ses comptes",
+    "motmVs": "{how_k} Aujourd'hui, {player} a reçu la distinction du match avec {club}, contre vous. En tribune de presse, personne n'a eu besoin qu'on lui fasse un dessin.",
+    "captainVsSubj": "{club} confie le brassard à {player}",
+    "captainVs": "{how_k} {club} a désormais confié le brassard à {player}, et ce club joue dans votre championnat. Vous croiserez ce brassard de l'autre côté de la ligne médiane avant longtemps.",
+    "signedRivalSubj": "{player} refait surface à {club}",
+    "signedRival": "{how_k} {player} vient de s'engager avec {club}, qui évolue dans votre championnat. Attendez-vous à retrouver ce nom sur une feuille de match adverse.",
+    "soldCapSubj": "{player} découvre le niveau international",
+    "soldCap": "{how_k} Depuis, {player} a disputé un premier test international ({nat_k}), tout en jouant en club à {club}. Quelqu'un a vu ce que vous n'aviez pas vu.",
+    "soldPotySubj": "{player}, meilleur joueur du monde",
+    "soldPotySubj_f": "{player}, meilleure joueuse du monde",
+    "soldPoty": "{how_k} {player} vient de recevoir le titre de joueur mondial de l'année. Votre décision sera rappelée dans chaque portrait publié cet été.",
+    "soldPoty_f": "{how_k} {player} vient de recevoir le titre de joueuse mondiale de l'année. Votre décision sera rappelée dans chaque portrait publié cet été.",
+    "soldTotySubj": "{player} dans l'équipe de l'année",
+    "soldToty": "{how_k} {player} figure désormais dans l'équipe de l'année, sous le maillot de {club}. Le jury ne vous a pas demandé ce qui vous était passé par la tête. Les supporters, eux, pourraient bien le faire.",
+    "acadRegularSubj": "{player}, de la découverte à la titularisation",
+    "acadRegular": {
+      "one": "Vous avez offert à {player} ses débuts en équipe première en {season}. Cette saison, {player} a été titulaire lors de {n} match avec {now}. Le staff de la formation a gardé la feuille de match de ce premier jour.",
+      "other": "Vous avez offert à {player} ses débuts en équipe première en {season}. Cette saison, {player} a été titulaire lors de {n} matchs avec {now}. Le staff de la formation a gardé la feuille de match de ce premier jour."
+    },
+    "acadIntlSubj": "{player} en sélection. Vous vous souvenez des débuts ?",
+    "acadIntl": "Vous avez offert à {player} ses débuts en équipe première à {club} en {season}. Aujourd'hui, {player} porte le maillot de sa sélection ({nat_k}). Quoi qu'on dise de votre passage, celui-là, c'est le vôtre.",
+    "knockAgainSubj": "{player} rechute",
+    "knockAgain": {
+      "one": "En semaine {w} de la saison {season}, vous avez envoyé {player} jouer avec un pépin que le kiné voulait soigner au repos. {player} est de nouveau à l'infirmerie, pour {n} semaine. Le staff médical n'a pas dit « on vous l'avait bien dit ». Il n'en a pas eu besoin.",
+      "other": "En semaine {w} de la saison {season}, vous avez envoyé {player} jouer avec un pépin que le kiné voulait soigner au repos. {player} est de nouveau à l'infirmerie, pour {n} semaines. Le staff médical n'a pas dit « on vous l'avait bien dit ». Il n'en a pas eu besoin."
+    },
+    "grudgeSubj": "{player} n'a pas oublié",
+    "grudge": "{player} n'a pas oublié la promesse que vous avez rompue en {season}. De nouveau hors du groupe, {player} ne dit plus un mot à l'entraînement, et les cadres du vestiaire ont remarqué la façon dont c'est géré.",
+    "agentsSubj": "Les agents parlent de votre parole",
+    "agents": "Tout se sait entre agents. L'histoire qui circule pendant ce mercato, c'est la promesse que vous avez rompue envers {player} à {club}, et quiconque envisage de vous rejoindre réclame davantage d'argent d'avance avant de vous croire sur parole."
+  },
   "hl": {
     "try": "ESSAI !",
     "review": "ARBITRAGE VIDÉO",

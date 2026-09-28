@@ -7620,6 +7620,43 @@
   "hlKeySub": "El campo muestra los ensayos, y las patadas y los ataques al final de un partido igualado.",
   "hlExtendedSub": "El campo muestra ensayos, patadas a palos y entradas en el 22."
  },
+ "mem": {
+  "howReleased": "Liberaste a {player} en {season}.",
+  "howSold": "Vendiste a {player} a {buyer} por {fee} en {season}.",
+  "howLetGo": "Dejaste que {player} se marchara de {old} en {season}.",
+  "tryVsSubj": "{player} marca contra su antiguo club",
+  "tryVs": "{how_k} Hoy, con la camiseta de {club}, {player} te ha marcado un ensayo. La grada visitante se aseguró de que lo oyeras.",
+  "motmVsSubj": "{player} ajusta cuentas",
+  "motmVs": "{how_k} Hoy, {player} se llevó el galardón del partido con {club}, contra ti. En la tribuna de prensa nadie necesitó que le explicaran la relación.",
+  "captainVsSubj": "{club} entrega la capitanía a {player}",
+  "captainVs": "{how_k} {club} ha entregado la capitanía a {player}, y juega en tu liga. Verás ese brazalete al otro lado de la línea de medio campo antes de lo que crees.",
+  "signedRivalSubj": "{player} reaparece en {club}",
+  "signedRival": "{how_k} {player} acaba de firmar por {club}, que juega en tu liga. Prepárate para ver ese nombre en una alineación rival.",
+  "soldCapSubj": "{player} da el salto internacional",
+  "soldCap": "{how_k} Desde entonces, {player} ha disputado su primer test internacional ({nat_k}) mientras juega en {club}. Alguien vio lo que tú no viste.",
+  "soldPotySubj": "{player}, mejor jugador del mundo",
+  "soldPotySubj_f": "{player}, mejor jugadora del mundo",
+  "soldPoty": "{how_k} {player} acaba de ser elegido Mejor Jugador del Mundo. Tu decisión aparecerá en cada perfil que se escriba este verano.",
+  "soldPoty_f": "{how_k} {player} acaba de ser elegida Mejor Jugadora del Mundo. Tu decisión aparecerá en cada perfil que se escriba este verano.",
+  "soldTotySubj": "{player}, en el Equipo del Año",
+  "soldToty": "{how_k} {player} figura ahora en el Equipo del Año, con la camiseta de {club}. El jurado no te preguntó en qué estabas pensando. La afición quizá sí lo haga.",
+  "acadRegularSubj": "{player}: del debut a la titularidad",
+  "acadRegular": {
+   "one": "Le diste a {player} el debut en el primer equipo en {season}. Esta temporada, {player} fue titular en {n} partido con {now}. El cuerpo técnico de la cantera aún guarda la alineación de aquel primer día.",
+   "other": "Le diste a {player} el debut en el primer equipo en {season}. Esta temporada, {player} fue titular en {n} partidos con {now}. El cuerpo técnico de la cantera aún guarda la alineación de aquel primer día."
+  },
+  "acadIntlSubj": "{player}, internacional. ¿Recuerdas el debut?",
+  "acadIntl": "Le diste a {player} el debut en el primer equipo de {club} en {season}. Ahora {player} ya viste la camiseta de su selección ({nat_k}). Se diga lo que se diga de tu etapa, eso es mérito tuyo.",
+  "knockAgainSubj": "{player} recae",
+  "knockAgain": {
+   "one": "En la semana {w} de {season} mandaste a {player} a jugar con un golpe que el fisio quería tratar con reposo. {player} vuelve a estar en la enfermería, con {n} semana de baja. Los médicos no han dicho «te lo dijimos». No les ha hecho falta.",
+   "other": "En la semana {w} de {season} mandaste a {player} a jugar con un golpe que el fisio quería tratar con reposo. {player} vuelve a estar en la enfermería, con {n} semanas de baja. Los médicos no han dicho «te lo dijimos». No les ha hecho falta."
+  },
+  "grudgeSubj": "{player} no ha olvidado",
+  "grudge": "{player} no ha olvidado la promesa que rompiste en {season}. Otra vez fuera del equipo, {player} ya no dice ni una palabra en los entrenamientos, y el núcleo duro del vestuario se ha dado cuenta de cómo se está gestionando.",
+  "agentsSubj": "Los agentes hablan de tu palabra",
+  "agents": "Entre agentes todo se sabe. La historia que circula en este mercado es la promesa que le rompiste a {player} en {club}, y quien se plantea fichar por ti pide más dinero por adelantado antes de fiarse de tu palabra."
+ },
  "hl": {
   "try": "¡ENSAYO!",
   "review": "REVISIÓN TMO",

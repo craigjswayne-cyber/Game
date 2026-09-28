@@ -7775,6 +7775,41 @@
   "hlKeySub": "Die veld wys drieë, en die skoppe en aanvalle laat in 'n kop-aan-kop-wedstryd.",
   "hlExtendedSub": "Die veld wys drieë, doelskoppe en deurbrake in die 22."
  },
+ "mem": {
+  "howReleased": "Jy het {player} in {season} vrygestel.",
+  "howSold": "Jy het {player} in {season} vir {fee} aan {buyer} verkoop.",
+  "howLetGo": "Jy het {player} in {season} by {old} laat loop.",
+  "tryVsSubj": "{player} druk teen die ou klub",
+  "tryVs": "{how_k} Vandag, in die kleure van {club}, het {player} 'n drie teen jou gedruk. Die besoekers se pawiljoen het gesorg dat jy dit hoor.",
+  "motmVsSubj": "{player} maak 'n punt",
+  "motmVs": "{how_k} Vandag is {player} as die speler van die wedstryd vir {club} aangewys, teen jou. Niemand in die persbank het nodig gehad dat die verband uitgespel word nie.",
+  "captainVsSubj": "{club} gee die kapteinsband aan {player}",
+  "captainVs": "{how_k} {club} het {player} nou as kaptein aangestel, en hulle speel in jou liga. Jy sal daardie kapteinsband binnekort oorkant die middellyn sien.",
+  "signedRivalSubj": "{player} duik op by {club}",
+  "signedRival": "{how_k} {player} het nou by {club} geteken, wat in jou liga speel. Verwag om daardie naam op 'n opponent se spanlys te sien.",
+  "soldCapSubj": "{player} word 'n internasionale speler",
+  "soldCap": "{how_k} Sedertdien het {player} 'n eerste toetspet verwerf ({nat_k}) en speel klubrugby by {club}. Iemand het iets raakgesien wat jy nie gesien het nie.",
+  "soldPotySubj": "{player} is die wêreld se beste",
+  "soldPoty": "{how_k} {player} is pas as Wêreldspeler van die Jaar aangewys. Jou besluit sal in elke profiel genoem word wat hierdie somer geskryf word.",
+  "soldTotySubj": "{player} in die Span van die Jaar",
+  "soldToty": "{how_k} {player} is nou in die Span van die Jaar opgeneem, in die trui van {club}. Die paneel het nie gevra wat jy gedink het nie. Die ondersteuners dalk wel.",
+  "acadRegularSubj": "{player}: van debutant tot vaste keuse",
+  "acadRegular": {
+   "one": "Jy het {player} in {season} 'n eerstespan-debuut gegee. Hierdie seisoen het {player} {n} wedstryd vir {now} begin. Die akademiepersoneel het steeds die spanlys van daardie eerste dag.",
+   "other": "Jy het {player} in {season} 'n eerstespan-debuut gegee. Hierdie seisoen het {player} {n} wedstryde vir {now} begin. Die akademiepersoneel het steeds die spanlys van daardie eerste dag."
+  },
+  "acadIntlSubj": "{player} gekies. Onthou jy die debuut?",
+  "acadIntl": "Jy het {player} in {season} 'n eerstespan-debuut by {club} gegee. Nou dra {player} die nasionale trui ({nat_k}). Wat ook al oor jou tyd gesê word, hierdie een is joune.",
+  "knockAgainSubj": "{player} breek weer in",
+  "knockAgain": {
+   "one": "In week {w} van {season} het jy {player} gestuur om deur 'n stamp te speel wat die fisio wou laat rus. {player} is nou weer beseer en {n} week uit. Die mediese span het nie gesê hulle het jou gewaarsku nie. Hulle hoef nie.",
+   "other": "In week {w} van {season} het jy {player} gestuur om deur 'n stamp te speel wat die fisio wou laat rus. {player} is nou weer beseer en {n} weke uit. Die mediese span het nie gesê hulle het jou gewaarsku nie. Hulle hoef nie."
+  },
+  "grudgeSubj": "{player} het nie vergeet nie",
+  "grudge": "{player} het nie die belofte vergeet wat jy in {season} verbreek het nie. Weer uit die span gelaat, is {player} stil by oefening, en die senior spelers het opgemerk hoe dit hanteer word.",
+  "agentsSubj": "Agente praat: jou woord op die mark",
+  "agents": "Nuus versprei tussen agente. Die storie wat hierdie venster die rondte doen, is die belofte wat jy by {club} aan {player} verbreek het, en wie ook al oorweeg om na jou toe te kom, wil vooraf meer geld hê voordat jy op jou woord geneem word."
+ },
  "hl": {
   "try": "DRIE!",
   "review": "TMO-KONTROLE",

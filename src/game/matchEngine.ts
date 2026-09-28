@@ -23,6 +23,7 @@ import {
   SPLIT_BY_ID, actualSplit, briefForSeat, isForward, seatsFor, splitFor,
   type BenchSplit,
 } from './bench'
+import { rememberDebut } from './memory'
 
 /**
  * How many replacements a side may make in a match.
@@ -5247,6 +5248,7 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
   // simply played out of his skin gets his moment in print
   for (const { p, r, kind } of debutants) {
     if (p.clubId !== state.userClubId) continue
+    if (kind === 'academy') rememberDebut(state, p) // memory.ts: you gave him his debut
     const scored = ctx.events.some(e => e.type === 'TRY' && e.playerId === p.id)
     const isMotm = p.id === motmId
     if (!scored && !isMotm && r < 7.8) continue

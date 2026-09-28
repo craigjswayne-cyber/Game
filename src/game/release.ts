@@ -11,6 +11,7 @@
 // The one guard that matters is the squad floor. A club is never cut below a
 // fieldable size, the same rule the AI's own release paths keep.
 import { SEASON_WEEKS, fmtMoney, type GameState } from './model'
+import { rememberDeparture } from './memory'
 
 /** The senior bodies a club is never cut below by a release. */
 export const RELEASE_FLOOR = 24
@@ -64,6 +65,7 @@ export function releasePlayer(state: GameState, playerId: number): { ok: boolean
   p.transferListed = false
   // a released man settles for less, the same 30% the AI's releases take
   p.wage = Math.round(p.wage * 0.7)
+  rememberDeparture(state, p, 'released', club.id) // the world remembers (memory.ts)
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
     subject: `${p.name} released by ${club.name}`,
