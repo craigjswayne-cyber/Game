@@ -481,10 +481,15 @@ const EXPECTED: string[] = [
   // defence concedes up to 80% more (was 50%) and a tired attack scores up to
   // 30% less. No new draw; two of six moved on the new thresholds. bandcheck:
   // 49.4 pts, 6.29 tries, 52.5% home, 1.5% draws, 8.1% blowouts.
+  // And the bench matters (owner: "subs should be important"): from the 56th
+  // minute an empty tank keeps 60% of a side's strength, not 78%, so fresh
+  // replacements pay (subvalueprobe: four changes +1.27 points over none).
+  // One of six moved (harlequins-leicester). bandcheck: 49.7 pts, 6.30 tries,
+  // 51.8% home, 1.5% draws, 8.6% blowouts.
   'saracens 14-27 bath',
   'exeter 20-3 gloucester',
   'sale 39-25 bristol',
-  'harlequins 31-18 leicester',
+  'harlequins 38-8 leicester',
   'newcastle 13-30 northampton',
   'exeter 19-39 saracens',
 ]
