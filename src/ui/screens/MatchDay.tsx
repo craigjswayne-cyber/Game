@@ -16,6 +16,7 @@ import { PRESETS, SLIDER_INFO, sliderReadout, type SliderKey } from '../../game/
 import { ord, posName, t, localeTag, compLabel } from '../../game/i18n'
 import { subjectVar } from '../../game/gender'
 import { coachFixes, gradeFixes, gradeLine, unitBattles, type FixTag } from '../../game/coachfix'
+import { MatchFindings } from '../OppReport'
 import { CrestT, Jersey, PosBadge, SectionTitle, Stars, RewardedButton, Toggle } from '../components'
 import { stageName } from './Home'
 import { groundSound, matchSfx, soundOn, toggleSound } from '../audio'
@@ -2139,6 +2140,7 @@ function Live() {
             <div className="review-grid">
               <div>
                 <MatchVerdict />
+                <MatchFindings />
                 <Highlights />
               </div>
               <div>
