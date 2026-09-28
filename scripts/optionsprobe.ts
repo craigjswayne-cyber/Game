@@ -18,6 +18,14 @@
 //     Instant Result plays them), no option moves the average margin by more
 //     than 4 points a match. If one did, every career would end up there.
 //     The full outcome table is printed for anyone tuning.
+//     HOW SURE THAT LINE IS. The margins are paired, but a plan that moves the
+//     line changes every draw after it, so pairing buys less than it looks:
+//     a zone plan's margin has a standard error of about 1.5 points on these
+//     120 matches (sd of the paired difference about 16), 0.9 on 240. The line
+//     is a verdict on the plan, not on the draw, so read one past it against
+//     that before retuning: the long exit read +4.37 here and +3.7 to +4.2 on
+//     reshuffled seeds (28 Sep 2026), which was a plan sitting ON the line
+//     rather than a new fault. It was brought in (tactics.ts, own22 'long').
 //
 // And the matchups the Tactics text promises: a wide defence is worth more
 // against a wide attack than a forward one, and a narrow defence the reverse.
