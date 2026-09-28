@@ -7,6 +7,7 @@ import { squadValue, starPlayerIds } from '../../game/analysis'
 import { activeFeuds, reconcileChance, reconcileFeud } from '../../game/gossip'
 import { mulberry32 } from '../../game/rng'
 import { dialLine, philosophyOf } from '../../game/philosophy'
+import { identityOf } from '../../game/identity'
 import { t, localeTag, compLabel } from '../../game/i18n'
 import { boardRequests } from '../../game/boardroom'
 import { askTheBoard } from '../../game/season'
@@ -55,6 +56,15 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
         <div className="meta">{t('club.cityLine', { city: club.city, country: nationName(club.country), league: compLabel(league?.name) ?? '' })}</div>
         <div className="meta">{t('club.stadiumLine', { stadium: club.stadium, capacity: club.capacity.toLocaleString(localeTag()) })}</div>
         <div className="meta">{t('club.headCoach', { name: club.id === game.userClubId ? game.managerName : club.coach ?? t('club.vacant') })}</div>
+        {/* what the club is becoming, read from how it is run (identity.ts) */}
+        {club.id === game.userClubId && !game.unemployed && (() => {
+          const ls = identityOf(game).labels
+          return (
+            <div className="meta">
+              {t('identity.line')} <b>{ls.length ? ls.map(l => t(`identity.label.${l}`)).join(' · ') : t('identity.none')}</b>
+            </div>
+          )
+        })()}
         {/* F23: how this dugout wants the game played. Yours is not listed here
             because yours is the four sliders on the tactics screen. */}
         {(() => {
