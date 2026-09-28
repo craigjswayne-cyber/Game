@@ -128,6 +128,20 @@ const out: Record<Arm, Run[]> = { sleepwalk: [], sheet: [], stack: [] }
 for (const seed of SEEDS) {
   for (const arm of ['sleepwalk', 'sheet', 'stack'] as Arm[]) out[arm].push(career(seed, arm))
 }
+// TEN SEEDS FOR THE SHEET TRIPWIRE, THREE FOR THE REST (28 Sep 2026). The
+// sheet's edge over sleepwalking is about 8 points a season, and at three
+// seeds the mean of it read 13.7, 5.1, 10.1 and 3.0 on four shifted seed
+// lists: a standard error near 5, so "sheet beats sleepwalk" stood under two
+// of them - the same swing autopilotprobe measured (4.0 to 17.3) before it
+// went to 54 worlds. Paired per seed, ten careers put the margin over three
+// standard errors. The stack arm, whose tripwire has a margin of 30-odd
+// points, stays on the original three.
+const EXTRA_SEEDS = [23, 58, 311, 4242, 1234, 606, 88]
+const pairSheet = out.sheet.map(r => r.pts), pairSleep = out.sleepwalk.map(r => r.pts)
+for (const seed of EXTRA_SEEDS) {
+  pairSleep.push(career(seed, 'sleepwalk').pts)
+  pairSheet.push(career(seed, 'sheet').pts)
+}
 const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length
 const M = (a: Arm, k: keyof Run) => mean(out[a].map(r => r[k] as number))
 
@@ -147,8 +161,11 @@ console.log(`for reference, champions to wooden spoon is ${spread.toFixed(1)} pt
 console.log(`so an attentive manager moves ${(100 * total / Math.max(1, spread)).toFixed(0)}% of the league's whole quality range`)
 
 // ---- the tripwires ----
-ok(M('sheet', 'pts') > M('sleepwalk', 'pts'),
-  `picking your side beats not picking it (${M('sheet', 'pts').toFixed(1)} vs ${M('sleepwalk', 'pts').toFixed(1)})`)
+const edges = pairSheet.map((v, i) => v - pairSleep[i])
+const edge = mean(edges)
+const edgeSe = Math.sqrt(edges.reduce((a, d) => a + (d - edge) ** 2, 0) / (edges.length - 1) / edges.length)
+ok(edge > 0,
+  `picking your side beats not picking it over ${edges.length} paired careers (${mean(pairSheet).toFixed(1)} vs ${mean(pairSleep).toFixed(1)}, edge ${edge.toFixed(1)}, se ${edgeSe.toFixed(1)})`)
 ok(total < spread,
   `the toolbox is worth less than the league's whole quality range (${total.toFixed(1)} vs ${spread.toFixed(1)} pts)`)
 ok(out.sleepwalk.reduce((s, r) => s + r.titles, 0) <= SEEDS.length,

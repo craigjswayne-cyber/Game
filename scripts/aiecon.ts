@@ -62,7 +62,18 @@ const WAS_PER_SEASON = 0.23e6
 const MEAN_WAS = 0.465e6
 /** Worlds the rate and solvency checks pool over; the first is also the one
  *  every other check below reads. */
-const RATE_SEEDS = [4242, 11, 99, 2025, 31337, 7, 23, 404]
+/*  TWENTY-FOUR WORLDS, NOT EIGHT (28 Sep 2026). One world's median rate has
+ *  a standard deviation of 0.13M (sixteen fresh worlds: 0.05M to 0.50M,
+ *  mean 0.18M), so eight pooled carry a standard error near 0.046M against a
+ *  floor (0.4 x 0.23M = 0.092M) only 0.09M below the true centre: under two
+ *  standard errors. Three shifted seed lists read 0.17M, 0.08M (FAIL) and
+ *  0.25M with nothing changed. Twenty-four worlds bring the error to 0.027M
+ *  and the floor to over three of them; the mean-club check (sd 0.053M a
+ *  world, band +-15%) was already over three at eight and is simply
+ *  tighter. The reference and the band are unchanged. This costs about
+ *  fifty seconds a world, so the probe belongs with the long runs. */
+const RATE_SEEDS = [4242, 11, 99, 2025, 31337, 7, 23, 404,
+  1, 2, 3, 4, 5, 6, 8, 9, 10, 12, 13, 14, 15, 16, 17, 18]
 
 const med = (xs: number[]) => {
   const s = [...xs].sort((a, b) => a - b)

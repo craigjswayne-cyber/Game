@@ -111,18 +111,31 @@ console.log('--- the forecast is the rate the week rolls')
 console.log('--- coached points do not inflate the kid')
 {
   const k = kids[0], s = seniors.sort((a, b) => mentorRate(g, b, k) - mentorRate(g, a, k))[0]
-  const h = structuredClone(g)
-  h.mentors = [{ senior: s.id, kid: k.id, taught: {}, grew: 0 }]
-  const kid = h.players[k.id]!
-  // attrLevel reads the attributes only, so a rating point the pairing adds
-  // does not move it: any change here is the coaching's
-  const lv0 = attrLevel(kid)
+  // TEN SEASONS OF THE SAME PAIRING, NOT ONE (28 Sep 2026). A season is 44
+  // rolls at 0.045 x the pairing's rate, about two coached points, so one
+  // season came up empty often enough to fail "the season coached him" on
+  // one of four shifted seed lists (0 points: {} ). The claim is that the
+  // pairing coaches and does not print, so ten independent seasons are run
+  // from the same start: coaching must land across them, and no single
+  // season may move his level.
+  let taughtAll = 0, worstMove = 0, kidName = '', lv0 = 0, lastTaught = ''
+  for (let r = 0; r < 10; r++) {
+    const h = structuredClone(g)
+    h.mentors = [{ senior: s.id, kid: k.id, taught: {}, grew: 0 }]
+    const kid = h.players[k.id]!
+    // attrLevel reads the attributes only, so a rating point the pairing adds
+    // does not move it: any change here is the coaching's
+    lv0 = attrLevel(kid)
+    const rng = mulberry32(5 + r * 7919)
+    for (let w = 0; w < 44; w++) mentorWeek(h, kid, rng)
+    taughtAll += Object.values(h.mentors[0].taught ?? {}).reduce((x, v) => x + (v ?? 0), 0)
+    worstMove = Math.max(worstMove, Math.abs(attrLevel(kid) - lv0))
+    kidName = kid.name; lastTaught = JSON.stringify(h.mentors[0].taught)
+  }
+  console.log(`  ${kidName} with ${s.name}: ${taughtAll} coached points over ten seasons (the last ${lastTaught}), level ${f2(lv0)}, moved at most ${f2(worstMove)} in any one`)
+  ok(taughtAll > 0, `the seasons coached him (${f2(taughtAll / 10)} points a season)`)
+  ok(worstMove < 1.5, 'and his level barely moved in any of them: coaching directs, it does not print')
   const rng = mulberry32(5)
-  for (let w = 0; w < 44; w++) mentorWeek(h, kid, rng)
-  const taught = Object.values(h.mentors[0].taught ?? {}).reduce((x, v) => x + (v ?? 0), 0)
-  console.log(`  ${kid.name} with ${s.name}: ${taught} coached points in a season (${JSON.stringify(h.mentors[0].taught)}), level ${f2(lv0)} -> ${f2(attrLevel(kid))}`)
-  ok(taught > 0, 'the season coached him')
-  ok(Math.abs(attrLevel(kid) - lv0) < 1.5, 'and his level barely moved: coaching directs, it does not print')
   // at his ceiling there is no rating to gain
   const h2 = structuredClone(g)
   h2.mentors = [{ senior: s.id, kid: k.id, taught: {}, grew: 0 }]
