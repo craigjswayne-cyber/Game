@@ -90,7 +90,7 @@ export const FIT: Record<string, Record<string, Record<Personality, Fit>>> = {
   mate: {
     sorry: row(G, G, M, M, G, M),
     need: row(G, M, G, M, B, G),
-    move: row(G, B, M, G, B, M),
+    move: row(M, B, M, G, B, M),
   },
 }
 
