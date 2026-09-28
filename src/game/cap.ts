@@ -353,7 +353,7 @@ export function rosterWarnings(state: GameState, clubId: string): string[] {
     for (let i = 1; i < row.cells.length; i++) {
       const cell = row.cells[i]
       if (cell.count >= cell.need) continue
-      out.push(t('finances.rosterWarn', { unit: t(row.label), count: cell.count, year: 2026 + seasons[i], need: cell.need }))
+      out.push(t('finances.rosterWarn', { unit: t(row.label), count: cell.count, year: String(2026 + seasons[i]), need: cell.need }))
       break // one warning per unit, at the first summer it bites
     }
   }

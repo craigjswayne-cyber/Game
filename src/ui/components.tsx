@@ -188,7 +188,10 @@ export function PosBadge({ pos }: { pos: string }) {
 
 export function FormPill({ v }: { v: number }) {
   const bg = v >= 7.5 ? 'var(--text-positive)' : v >= 6 ? 'var(--primary-pressed)' : v >= 4.5 ? 'var(--border-strong)' : 'var(--text-negative)'
-  return <span className="form-pill" style={{ background: bg }}>{v.toFixed(1)}</span>
+  // the grey band is marked so the day theme can ink it dark: white on its
+  // light grey was under 2:1 (UI QA, 1.8.0)
+  const mid = v < 6 && v >= 4.5
+  return <span className={`form-pill${mid ? ' mid' : ''}`} style={{ background: bg }}>{v.toFixed(1)}</span>
 }
 
 export function Nat({ code }: { code: string }) {
@@ -269,7 +272,7 @@ export function ClubStars({ rep, size = 12 }: { rep: number; size?: number }) {
 }
 
 export function availabilityTag(p: Player, week: number): { txt: string; color: string } | null {
-  if (p.injury) return { txt: t('common.injTag', { n: Math.max(0, p.injury.until - week) }), color: 'var(--text-negative)' }
+  if (p.injury) return { txt: t('common.injTag', { n: Math.max(1, p.injury.until - week) }), color: 'var(--text-negative)' }
   if (p.bans > 0) return { txt: t('common.banTag', { n: p.bans }), color: 'var(--text-negative)' }
   if (p.natSquad) return { txt: t('common.intlTag'), color: 'var(--gold)' }
   if ((p.rust ?? 0) > 0) return { txt: t('medical.rusty', { n: p.rust ?? 0 }), color: 'var(--gold)' }

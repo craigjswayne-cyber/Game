@@ -1,7 +1,7 @@
 import { CAMPUS_PLOTS, PLOT_OVERSIZE, type CampusId } from '../game/campusPlots'
 import { FACILITY_INFO, MAX_FACILITY, groundLevel, type Club, type GameState } from '../game/model'
 import { Glyph } from './glyphs'
-import { t } from '../game/i18n'
+import { t, localeTag } from '../game/i18n'
 
 /** Where the art lives. `base` rather than a bare '/' because vite is built
  *  with base './' - the game is served from a path on some hosts and from the
@@ -136,7 +136,7 @@ export default function CampusMap({ game, onPick }: {
                 <Glyph name={building ? 'build' : iconOf(p.fid)} />
                 <span style={{ letterSpacing: 0.2 }}>
                   {!building ? `${lvl}/${MAX_FACILITY}`
-                    : p.fid === 'stadium' ? `+${stand!.seats.toLocaleString()}`
+                    : p.fid === 'stadium' ? `+${stand!.seats.toLocaleString(localeTag())}`
                     : `L${build!.level}`}
                 </span>
               </span>

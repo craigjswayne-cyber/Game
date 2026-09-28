@@ -7,7 +7,7 @@ import { squadValue, starPlayerIds } from '../../game/analysis'
 import { activeFeuds, reconcileChance, reconcileFeud } from '../../game/gossip'
 import { mulberry32 } from '../../game/rng'
 import { dialLine, philosophyOf } from '../../game/philosophy'
-import { t } from '../../game/i18n'
+import { t, localeTag } from '../../game/i18n'
 import { boardRequests } from '../../game/boardroom'
 import { askTheBoard } from '../../game/season'
 import { archetypeOf } from '../../game/oppcoach'
@@ -53,7 +53,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           <Jersey club={club} size={52} />
         </div>
         <div className="meta">{t('club.cityLine', { city: club.city, country: nationName(club.country), league: league?.name ?? '' })}</div>
-        <div className="meta">{t('club.stadiumLine', { stadium: club.stadium, capacity: club.capacity.toLocaleString() })}</div>
+        <div className="meta">{t('club.stadiumLine', { stadium: club.stadium, capacity: club.capacity.toLocaleString(localeTag()) })}</div>
         <div className="meta">{t('club.headCoach', { name: club.id === game.userClubId ? game.managerName : club.coach ?? t('club.vacant') })}</div>
         {/* F23: how this dugout wants the game played. Yours is not listed here
             because yours is the four sliders on the tactics screen. */}
@@ -139,7 +139,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
             <SectionTitle sub={t(club.id === game.userClubId ? 'club.yourEra' : 'club.recordBook')}>{t('club.storySoFar')}</SectionTitle>
             <div className="card">
               <div className="meta" style={{ padding: '2px 0' }}>
-                {t('club.storyStadium', { stadium: club.stadium, city: club.city, capacity: club.capacity.toLocaleString() })}
+                {t('club.storyStadium', { stadium: club.stadium, city: club.city, capacity: club.capacity.toLocaleString(localeTag()) })}
               </div>
               <div className="meta" style={{ padding: '2px 0' }}>
                 {t('club.storyLeague', { league: league?.name ?? t('club.noLeague'), rep: club.rep })}
@@ -353,7 +353,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
               )}
               {gate && (
                 <div className="meta" style={{ padding: '3px 0' }}>
-                  {t('club.recordGate')} <b>{gate.att.toLocaleString()}</b>{t('club.vsClub', { club: game.clubs[gate.oppId]?.short ?? gate.oppId })}
+                  {t('club.recordGate')} <b>{gate.att.toLocaleString(localeTag())}</b>{t('club.vsClub', { club: game.clubs[gate.oppId]?.short ?? gate.oppId })}
                   {' '}<span className="muted">({2025 + gate.season}-{String((gate.season + 26) % 100).padStart(2, '0')})</span>
                 </div>
               )}

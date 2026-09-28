@@ -152,7 +152,9 @@ export default function Settings() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span className="row-ico" style={{ fontSize: 20 }}><Glyph name="nations" /></span>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontWeight: 700, fontSize: 14 }}>{t('menu.language')}</div>
+            {/* the title screen's label is capitals; here it sits among
+                sentence-case titles, so it is put into their case (UI QA) */}
+            <div className="set-title-case" style={{ fontWeight: 700, fontSize: 14 }}>{t('menu.language')}</div>
             <div className="meta" style={{ marginTop: 1 }}>{t('settings.langLine')}</div>
           </div>
         </div>
@@ -210,7 +212,7 @@ export default function Settings() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span className="row-ico" style={{ fontSize: 20 }}><Glyph name="text" /></span>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="muted" style={{ fontWeight: 700, fontSize: 14 }}>{t('settings.textSize')}</div>
+            <div className="ts-label" style={{ fontWeight: 700, fontSize: 14 }}>{t('settings.textSize')}</div>
             <div className="meta" style={{ marginTop: 1 }}>{t('settings.textSizeLine')}</div>
           </div>
         </div>

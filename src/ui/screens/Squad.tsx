@@ -219,7 +219,9 @@ export default function Squad() {
           the scrollport again and the heading sticks under the controls where
           it belongs. */}
       {view !== 'selection' && view !== 'depth' && <div className="tblwrap fitwrap"><table className="dtable zebra fit">
-        {view === 'general' && <colgroup><col /><col width="36" /><col width="32" /><col width="28" /><col width="26" /><col width="44" /><col width="56" /></colgroup>}
+        {/* Mor 34 and Value 64 (UI QA, 1.8.0): at 26 the MOR heading was cut
+            to "MO", and a value carrying its trend arrow ran off the glass */}
+        {view === 'general' && <colgroup><col /><col width="36" /><col width="32" /><col width="28" /><col width="34" /><col width="42" /><col width="64" /></colgroup>}
         {view === 'stats' && <colgroup><col /><col width="34" /><col width="30" /><col width="38" /><col width="32" /><col width="32" /><col width="44" /></colgroup>}
         {view === 'gametime' && <colgroup><col /><col width="104" /><col width="30" /><col width="32" /><col width="82" /></colgroup>}
         {view === 'contracts' && <colgroup><col /><col width="36" /><col width="30" /><col width="56" /><col width="44" /><col width="46" /></colgroup>}
