@@ -77,6 +77,10 @@ console.log(`${files.length} shipped files swept\n`)
  */
 const ALLOWED: [string, RegExp][] = [
   ['src/game/playbilling.ts', /https:\/\/play\.google\.com\/billing/g],
+  // AND THE COMMUNITY INVITE (1.8.1). A link the player taps, opened outside
+  // the game; nothing is sent with it and nothing fetches it. Exact code only:
+  // another invite, another host or this one in another file still fails.
+  ['src/game/community.ts', /https:\/\/discord\.gg\/3KKfDVsMb/g],
 ]
 
 const strip = (src: string, file: string) => {
@@ -84,7 +88,7 @@ const strip = (src: string, file: string) => {
     // comments are prose, and this file's own prose names every banned API
     .replace(/\/\*[\s\S]*?\*\//g, '')
     .replace(/(^|[^:])\/\/.*$/gm, '$1')
-  for (const [f, re] of ALLOWED) if (file === f) out = out.replace(re, 'ALLOWED-PAYMENT-METHOD-ID')
+  for (const [f, re] of ALLOWED) if (file === f) out = out.replace(re, 'ALLOWED-IDENTIFIER')
   return out
 }
 

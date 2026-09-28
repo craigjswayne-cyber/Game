@@ -59,8 +59,7 @@ THE WORLD
   Japan, with second tiers, a continental cup, playoffs and promotion underneath
   them.
 • Bonus points, knockout draws made in front of you, and an international window
-  that takes your best players at the worst moment - and hands an academy kid
-  his chance.
+  that takes your best players at the worst moment.
 • Rival clubs run their own books, sign their own players and sack their own
   managers. The table you climb is one others are climbing too.
 
@@ -74,8 +73,6 @@ THE WEEK
 • A board with an opinion about you, a press pack that quotes you, sponsors to
   keep sweet, facilities to build, and a town that keeps the score of a derby
   longer than the table does.
-• Run out of money and it bites: wage bills, debt, a board that stops asking
-  nicely.
 
 THE SQUAD
 • Every player has form you can read - his last ten ratings - an injury history,
@@ -106,8 +103,8 @@ NEW TO RUGBY?
   6-2 bench buys you - it is in there.
 
 BUILT FOR A PHONE
-• Portrait, one-handed, designed for it rather than shrunk into it. Four skins,
-  day and night, and a text-size setting.
+• Portrait and one-handed, with four skins, day and night, and a text-size
+  setting.
 • Completely offline: no account, no login, no cloud, and nothing about your
   career leaves your device. The adverts are the only part that uses the
   network.
@@ -117,6 +114,10 @@ BUILT FOR A PHONE
 • Four career slots, saved after every week, with export and import so a backup
   is yours to keep.
 • English, French, Spanish, Italian, Japanese and Afrikaans.
+
+THE COMMUNITY
+• Report a problem in any of the six languages, share ideas and talk rugby
+  with other managers on the PHASE Discord: discord.gg/3KKfDVsMb
 
 PHASE: Rugby Manager is an unofficial, independent game. Club names are real;
 competitions, grounds and sponsors are renamed or invented. Player names are
@@ -147,7 +148,35 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
-### What's new (500 max) - v1.8.0, Play version code 41 (1.7.4 and the planned 1.8.1 folded in)
+### What's new (500 max) - v1.8.0, Play version code 41: FINAL
+
+Rewritten 28 Sep 2026 for the build that ships. The draft below it was written
+on 27 Sep and misses the two-layer engine, the fairer board, the bench, the
+language review, the save slots and the Discord link. Use this one.
+
+```
+<en-GB>
+A new match engine: every carry, tackle and breakdown is a contest between the players involved. Commentary with live stats, and the pitch for tries and big moments. Tired sides concede more, so the bench matters. A fairer board, with a first season to find your feet. Tablet and iPad layouts, a new bottom bar, and every screen reviewed in all six languages. A new career never overwrites a save. Join the PHASE Discord from the menu to report bugs and talk rugby.
+</en-GB>
+<fr-FR>
+Un nouveau moteur de match : chaque charge, plaquage et ruck devient un duel entre les joueurs concernés. Commentaire et statistiques en direct, et le terrain pour les essais et les grands moments. Une équipe fatiguée encaisse davantage : le banc compte. Un conseil plus juste, avec une première saison pour faire vos preuves. Tablette et iPad, nouvelle barre du bas, écrans revus dans les six langues. Une nouvelle carrière n'écrase plus une sauvegarde. Rejoignez le Discord PHASE depuis le menu.
+</fr-FR>
+<es-ES>
+Nuevo motor de partido: cada carga, placaje y ruck es un duelo entre los jugadores implicados. Narración con estadísticas en directo, y el campo para los ensayos y los momentos clave. Un equipo cansado encaja más: el banquillo importa. Una directiva más justa, con una primera temporada para asentarse. Tableta e iPad, nueva barra inferior y todas las pantallas revisadas en los seis idiomas. Una carrera nueva ya no borra una partida guardada. Únete al Discord de PHASE desde el menú.
+</es-ES>
+<it-IT>
+Nuovo motore di gioco: ogni carica, placcaggio e ruck è un duello tra i giocatori coinvolti. Cronaca con statistiche in diretta, e il campo per mete e momenti chiave. Una squadra stanca subisce di più: la panchina conta. Una dirigenza più giusta, con una prima stagione per ambientarsi. Tablet e iPad, nuova barra in basso e ogni schermata rivista in tutte e sei le lingue. Una nuova carriera non sovrascrive più un salvataggio. Unisciti al Discord di PHASE dal menu.
+</it-IT>
+<ja-JP>
+新しい試合エンジン：キャリー、タックル、ブレイクダウンのひとつひとつが、関わる選手同士の勝負に。実況とライブスタッツで進み、トライや重要場面ではピッチが登場。疲れたチームは失点が増え、控えの起用が勝負を分ける。理事会はより公平に、就任1年目には猶予期間も。タブレットとiPadに対応、新しい下部バー、全画面を6言語で見直し。新しいキャリアがセーブを上書きすることはもうない。メニューからPHASEのDiscordに参加しよう。
+</ja-JP>
+<af>
+'n Nuwe wedstrydenjin: elke hardloop met die bal, duikslag en loskrum is 'n stryd tussen die spelers wat betrokke is. Kommentaar met regstreekse statistiek, en die veld vir drieë en groot oomblikke. 'n Moeë span laat meer punte deur: die bank tel. 'n Regverdiger direksie, met 'n eerste seisoen om jou voete te vind. Tablet en iPad, 'n nuwe onderste balk, en elke skerm in al ses tale nagegaan. 'n Nuwe loopbaan skryf nooit 'n gestoorde spel oor nie. Sluit by die PHASE-Discord aan via die kieslys.
+</af>
+```
+*(en-GB 465, fr-FR 497, es-ES 485, it-IT 467, ja-JP 213, af 498: all inside Play's 500.)*
+
+### What's new (500 max) - v1.8.0, Play version code 41 (1.7.4 and the planned 1.8.1 folded in): SUPERSEDED DRAFT, see above
 
 Rewritten 27 Sep 2026: the first draft advertised the always-on gliding
 pitch, its overlays and condition rings, all of which were replaced before
@@ -1231,6 +1260,11 @@ CONÇU POUR UN TÉLÉPHONE
   garder vos propres sauvegardes.
 • En français et en anglais, avec un réglage de taille de texte.
 
+LA COMMUNAUTÉ
+• Signalez un problème dans n'importe quelle langue, partagez vos idées et
+  parlez rugby avec d'autres entraîneurs sur le Discord PHASE :
+  discord.gg/3KKfDVsMb
+
 PHASE: Rugby Manager est un jeu indépendant et non officiel. Les clubs,
 compétitions, stades et sponsors sont fictifs. Les noms de joueurs sont réels,
 utilisés pour identifier des personnes dans une base de données sportive et rien
@@ -1514,11 +1548,10 @@ PHASE: Rugby Manager is a management simulation in the tradition of the great te
 TWO GAMES, ONE APP
 • The men's game: nine leagues and 107 clubs across England, France, the United Provinces, the Pacific, Japan and the United States, top flight down to National One.
 • The women's game, built the same way rather than bolted on: six leagues and 64 clubs across England, France, the Pacific and the Celtic provinces, with its own continental cup, Test calendar, squads and career challenges.
-• Choose at New Game. Every screen, every system and every season works in both.
 
 THE WORLD
 • Full seasons with bonus points, knockout cups drawn in front of you, continental competition, playoffs, promotion and relegation.
-• An international calendar that takes your best players away at the worst possible moment, and a national job to chase once your name is made.
+• An international calendar that takes your best players away at the worst moment, and a national job to chase once your name is made.
 • Season after season, for as long as you last. Players age, decline and retire, and the academy players you brought through take their shirts.
 
 THE WEEK
@@ -1537,7 +1570,6 @@ THE MATCH
 
 THE RECORD
 • Every player carries their last ten ratings and every injury of their career, so you can tell a slump from a bad week.
-• A depth chart that shows where you are one injury from trouble.
 • A manager profile with badges, a trophy cabinet, a Hall of Fame and a Roll of Honour that outlive any one club.
 
 BUILT FOR A PHONE
@@ -1546,11 +1578,14 @@ BUILT FOR A PHONE
 • Four career slots, autosave after every week, and export and import so a backup is yours to keep.
 • English, French, Spanish, Italian, Japanese and Afrikaans.
 
+THE COMMUNITY
+• Report a problem in any of the six languages, share ideas and talk rugby with other managers on the PHASE Discord: discord.gg/3KKfDVsMb
+
 PHASE: Rugby Manager is an unofficial, independent game. Club names are real; competitions, grounds and sponsors are renamed or invented. Player names are real, used to identify people in a sporting database and for nothing else; the game is not affiliated with, endorsed by or licensed by any player, club, league or governing body, and contains no official badges, kits or logos.
 
 Optional in-app purchases support development and add conveniences. Nothing in the game is behind a paywall.
 ```
-*(3967)*
+*(3986, counted as characters including line breaks; the Discord section added for 1.8.1)*
 
 ### Keywords (100 max, comma-separated, no spaces after commas)
 

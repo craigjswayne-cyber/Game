@@ -102,7 +102,17 @@ async function walk(page, dir) {
       await page.waitForTimeout(700)
     }
     await page.waitForSelector('.live-wrap', { timeout: 15000 })
-    await page.waitForTimeout(3500)   // let some rugby happen behind the pitch view
+    // a match worth showing: the half-hour or the first points, whichever
+    // comes first (a 7th-minute 0-0 with empty stats was the old shot),
+    // and never more than thirty seconds of waiting
+    for (let i = 0; i < 60; i++) {
+      const board = (await page.locator('.scoreboard').textContent().catch(() => '')) ?? ''
+      const min = Number(board.match(/(\d+)['’]/)?.[1] ?? 0)
+      const scored = /[1-9]\d*\s*[-–]\s*\d+|\d+\s*[-–]\s*[1-9]/.test(board)
+      if (min >= 30 || (scored && min >= 12)) break
+      await page.waitForTimeout(500)
+    }
+    await page.waitForTimeout(600)
     await shot('6-match')
     // to full time, for the verdict
     for (let i = 0; i < 30 && !(await page.locator('.ft-stamp').count()); i++) {
