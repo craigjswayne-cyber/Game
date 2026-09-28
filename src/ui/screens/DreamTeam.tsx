@@ -57,7 +57,10 @@ export default function DreamTeam() {
     )
   }
 
-  const lb = (title: string, rows: Player[], val: (p: Player) => string) => (
+  // A board with nobody on it is left out (UI QA, 1.8.0): two rounds into a
+  // league nobody has the three appearances these need, and three headings
+  // stacked over nothing read as a page that had failed to load.
+  const lb = (title: string, rows: Player[], val: (p: Player) => string) => rows.length === 0 ? null : (
     <>
       <SectionTitle>{title}</SectionTitle>
       <div className="tblwrap"><table className="dtable"><tbody>
@@ -117,9 +120,11 @@ function OnesToWatch({ leagueId }: { leagueId: string }) {
       <div className="tblwrap"><table className="dtable"><tbody>
         {kids.map(p => (
           <tr key={p.id} onClick={() => go('player', p.id)}>
-            <td className="num">{p.age}</td>
+            {/* the age rides with the position, as on the mentoring list: a
+                bare number in the first column, under three ranked boards,
+                read as a fourth ranking (UI QA, 1.8.0) */}
             <td className="name">{p.name}
-              <span className="muted"> ({p.pos} · {p.clubId ? <ClubLink g={game} clubId={p.clubId}>{teamShort(game, p.clubId)}</ClubLink> : t('world.dtFreeAgent')})</span>
+              <span className="muted"> ({p.pos} · {p.age} · {p.clubId ? <ClubLink g={game} clubId={p.clubId}>{teamShort(game, p.clubId)}</ClubLink> : t('world.dtFreeAgent')})</span>
             </td>
             <td className="num muted">{p.nat}</td>
           </tr>

@@ -530,7 +530,10 @@ export default function App() {
   // screen wears its title from the dictionary.
   const mastheadTitle = cur.screen === 'home'
     ? (game.unemployed ? t('titles.unemployed') : club.name)
-    : TITLES.includes(cur.screen) ? t(`titles.${cur.screen}`) : ''
+    : TITLES.includes(cur.screen) ? t(`titles.${cur.screen}`)
+    // the Academy was the one screen off the Hub with a blank masthead (UI QA,
+    // 1.8.0): it borrows the menu's own word rather than a new key per language
+    : cur.screen === 'academy' ? t('groups.academy') : ''
 
   const screen = () => {
     switch (cur.screen) {

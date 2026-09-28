@@ -75,7 +75,7 @@ export default function WeekResults({ param }: { param: string }) {
               <col style={{ width: '15%' }} /><col style={{ width: '13%' }} />
             </colgroup>
             <thead>
-              <tr><th>{t('tables.colRank')}</th><th>{t('tables.colTeam')}</th><th className="num">{t('tables.colP')}</th><th className="num">{t('common.w')}</th>
+              <tr><th className="num">{t('tables.colRank')}</th><th>{t('tables.colTeam')}</th><th className="num">{t('tables.colP')}</th><th className="num">{t('common.w')}</th>
                 <th className="num">{t('tables.colDiff')}</th><th className="num">{t('squad.colPts')}</th></tr>
             </thead>
             <tbody>

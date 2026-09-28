@@ -35,9 +35,11 @@ export default function LeagueTable({ compId, compact }: { compId: string; compa
           right edge, and the sideways scroll it fell into is a scroll nothing
           else on the phone has. A colgroup plus .fit makes the table exactly
           as wide as the screen, the name column ellipsises, and the pred chip
-          moves to the legend line below where it costs no width. */}
+          moves to the legend line below where it costs no width.
+          The rank column is 32, not 26: after its 8px and 9px of padding, 26
+          left room for one digit, and "10" to "16" ran into the crest. */}
       <div className="tblwrap fitwrap"><table className="dtable ltable fit">
-        <colgroup><col width="26" /><col /><col width="24" /><col width="24" /><col width="24" /><col width="24" /><col width="42" /><col width="26" /><col width="34" /></colgroup>
+        <colgroup><col width="32" /><col /><col width="24" /><col width="24" /><col width="24" /><col width="24" /><col width="42" /><col width="26" /><col width="34" /></colgroup>
         <thead>
           <tr><th>{t('tables.colRank')}</th><th>{t('tables.colTeam')}</th><th className="num">{t('tables.colP')}</th><th className="num">{t('common.w')}</th>
             <th className="num">{t('common.d')}</th><th className="num">{t('common.l')}</th><th className="num">{t('tables.colDiff')}</th>

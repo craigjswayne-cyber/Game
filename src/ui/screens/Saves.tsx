@@ -3,7 +3,7 @@ import { useStore } from '../../store'
 import { deleteSave, listSaves, loadGame, migrate, saveGame, type SaveMeta } from '../../game/save'
 import { seasonLabel, weekDate, type GameState } from '../../game/model'
 import { SectionTitle } from '../components'
-import { t } from '../../game/i18n'
+import { t, localeTag } from '../../game/i18n'
 
 const SLOTS = ['slot1', 'slot2', 'slot3', 'slot4']
 /* keys, not words - t()d wherever a slot is named */
@@ -149,7 +149,7 @@ export default function Saves() {
                 {meta ? (
                   <div className="meta">
                     {meta.managerName} - {meta.club}<br />
-                    {t('world.svSavedAt', { season: seasonLabel(meta.season), date: weekDate(meta.season, meta.week), when: new Date(meta.savedAt).toLocaleString() })}
+                    {t('world.svSavedAt', { season: seasonLabel(meta.season), date: weekDate(meta.season, meta.week), when: new Date(meta.savedAt).toLocaleString(localeTag()) })}
                   </div>
                 ) : (
                   <div className="meta">{t('world.svEmpty')}</div>

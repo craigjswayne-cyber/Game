@@ -13,7 +13,7 @@ import { BriefIcon } from '../tacticsArt'
 import { assistantFixtureThisWeek, isKnockoutTie, userMatchThisWeek, weekRng } from '../../game/season'
 import { effAt } from '../../game/attributes'
 import { PRESETS, SLIDER_INFO, sliderReadout, type SliderKey } from '../../game/tactics'
-import { ord, posName, t } from '../../game/i18n'
+import { ord, posName, t, localeTag } from '../../game/i18n'
 import { subjectVar } from '../../game/gender'
 import { coachFixes, gradeFixes, gradeLine, unitBattles, type FixTag } from '../../game/coachfix'
 import { CrestT, Jersey, PosBadge, SectionTitle, Stars, RewardedButton, Toggle } from '../components'
@@ -1086,13 +1086,13 @@ function Preview({ fxId }: { fxId: number }) {
         {/* forwards left, backs right, exactly as the Tactics team sheet does it.
             The same information was laid out two different ways one screen apart. */}
         <div className="xv-split">
-          <table className="dtable codefirst"><tbody>{XV_SLOTS.slice(0, 8).map((_, i) => renderSlot(i))}</tbody></table>
-          <table className="dtable codefirst"><tbody>{XV_SLOTS.slice(8).map((_, i) => renderSlot(8 + i))}</tbody></table>
+          <table className="dtable codefirst xvsheet"><tbody>{XV_SLOTS.slice(0, 8).map((_, i) => renderSlot(i))}</tbody></table>
+          <table className="dtable codefirst xvsheet"><tbody>{XV_SLOTS.slice(8).map((_, i) => renderSlot(8 + i))}</tbody></table>
         </div>
         <SectionTitle sub={t(SPLIT_BY_ID[splitFor(club)]?.name ?? '').toLowerCase()}>{t('selection.replacements')}</SectionTitle>
         <div className="xv-split">
-          <table className="dtable codefirst"><tbody>{seats.slice(0, 4).map((_, i) => renderSlot(15 + i))}</tbody></table>
-          <table className="dtable codefirst"><tbody>{seats.slice(4).map((_, i) => renderSlot(19 + i))}</tbody></table>
+          <table className="dtable codefirst xvsheet"><tbody>{seats.slice(0, 4).map((_, i) => renderSlot(15 + i))}</tbody></table>
+          <table className="dtable codefirst xvsheet"><tbody>{seats.slice(4).map((_, i) => renderSlot(19 + i))}</tbody></table>
         </div>
         </>}
 
@@ -1757,7 +1757,7 @@ function Live() {
           {done ? t('matchday.fullTime') : atHalfTime ? t('matchday.halfTime') : atBreak ? t('matchday.breakSixty') : `${Math.min(80, min)}'`}
           {game.comps[fixture.compId]?.short ? ` · ${game.comps[fixture.compId]?.short}${fixture.stage ? ` ${stageName(fixture.stage)}` : ''}` : ''}
           {fixture.weather && fixture.weather !== 'Dry' ? <> · <Glyph name={WEATHER_ICON[fixture.weather]} /> {weatherWord(fixture.weather)}</> : ''}
-          {fixture.att ? <> · <Glyph name="crowd" /> {fixture.att.toLocaleString()}</> : ''}
+          {fixture.att ? <> · <Glyph name="crowd" /> {fixture.att.toLocaleString(localeTag())}</> : ''}
           {/* say so, or a ticker that skips the quiet minutes looks broken (F5) */}
           {live.mode === 'highlights' && !done ? t('matchday.highlightsTag') : ''}
         </div>
