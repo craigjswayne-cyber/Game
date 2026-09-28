@@ -120,8 +120,24 @@ what looked wrong. The owner chose six to fix before release:
    offers on wider bands, so signing and ending again let a manager shop a
    slot for the top of its band. Now one early exit per slot per season,
    with a line on the card saying so (dealprobe).
-3. to 5. **Match engine** (AI sides after substitutions, a departed goal
-   kicker, starts and minutes): see below.
+3. **AI sides after substitutions.** Only the manager's own changes used to
+   rebuild a side's strength, so an AI replacement, injury cover or HIA
+   stand-in never reached its scrum or defence. Every change of personnel,
+   on either side, now rebuilds it from a clean base, which also stops a
+   Test side stacking its coaching goal-kicking bonus once per change. An
+   AI change for tired legs is now like for like.
+4. **A departed goal kicker kept kicking.** The kicker is now whoever is on
+   the pitch: the first choice, then the manager's next named kicker, then
+   the best boot out there. A binned first choice takes the tee back when
+   he returns.
+5. **Starts and minutes.** A replacement was credited with the start and 75
+   minutes. Now the XV at kick-off get the starts and every man his real
+   minutes; time in the sin bin does not count, since it feeds workload.
+   New creditprobe holds all three.
+   Balance: AI subs now cost quality, so the manager's bench fell to +0.43
+   points; the empty-tank floor moved 0.6 to 0.55 and it reads +0.91 (four
+   fresh men +1.09). bandcheck: 49.1 pts, 6.24 tries, 52.7% home, 1.6%
+   draws, 8.8% blowouts.
 6. **A new career overwrote the save you were playing.** The wizard now
    uses an empty slot and says which; with all four full it asks which
    career to replace, and Start Career waits for the answer (new browser
