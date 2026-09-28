@@ -27,6 +27,7 @@
 // £0.85M a season over ten seasons). What changes is the SPREAD: a club with a
 // bloated bill and a small ground now bleeds, and a club that fills a big stadium
 // banks it. scripts/aiecon.ts holds both the median and the spread.
+import { MARQUEE_SLOTS } from './cap'
 import {LEDGER_WEEKS, weeklyCentral, groundUpkeep, groundTrade, type Club, type GameState, type Player } from './model'
 
 /** Same £30 a head the manager's club takes, because it is the same ticket. */
@@ -36,8 +37,9 @@ const GATE_PER_HEAD = 30
  * Weekly cost of having a stadium, per seat, whether anybody sits in it.
  *
  * The manager's club pays this through operatingCost, which reads real facility
- * levels. AI clubs have no facility state at all, so their estate is implied by
- * the ground: a 20,000-seat club is running a 20,000-seat operation.
+ * levels. AI clubs carry facility levels too (training growth reads them), but
+ * their running costs are not built from them: the estate is implied by the
+ * ground, so a 20,000-seat club is running a 20,000-seat operation.
  */
 // the shared constant: see model.ts, where the user's ledger reads it too
 
@@ -221,7 +223,9 @@ export function aiWeeklyFinance(state: GameState): void {
  * cutting costs in a hurry takes the saving and not the fee.
  */
 export function shedWages(state: GameState, club: Club): Player | null {
-  const marquee = new Set((club.marquee ?? []).slice(0, 3))
+  // MARQUEE_SLOTS, the number the signing rule and the cap both use: this read
+  // 3 and capBill read 2, three answers to one question
+  const marquee = new Set((club.marquee ?? []).slice(0, MARQUEE_SLOTS))
   if (club.players.length <= FLOOR_SQUAD) return null
   const seniors = club.players
     .map(id => state.players[id])

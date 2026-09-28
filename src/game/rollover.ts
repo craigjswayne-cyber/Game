@@ -17,7 +17,9 @@ import { SLOTS, expireDeals, offersFor } from './commercial'
 import { settleSponsorBonuses } from './sponsortalks'
 import { book, closeBooks } from './books'
 import { OFFICE_OUTLET } from './media'
-import { autoSelect } from './matchEngine'
+import { autoSelect, repairSheet } from './matchEngine'
+import { splitFor } from './bench'
+import { isleTour } from './isles'
 import { ensureCaptains } from './analysis'
 import { dreamState } from './dream'
 import { objectiveBonus, objectiveById, pickObjectives } from './objectives'
@@ -703,7 +705,7 @@ function handleContracts(state: GameState, rng: Rng) {
   if (freeMoves.length) {
     const one = freeMoves.length === 1
     const line = (m: typeof freeMoves[0]) =>
-      `${m.p.name} (${m.p.pos}, ${m.p.age}) to ${m.to.name} on ${fmtMoney(m.p.wage)}/week until ${2026 + m.p.contractEnds}${m.from ? `, leaving ${m.from.short} watching a ${fmtMoney(m.p.value)} asset walk out the door` : ''}`
+      `${m.p.name} (${m.p.pos}, ${m.p.age}) to ${m.to.name} on ${fmtMoney(m.p.wage)}/week until ${BASE_YEAR + m.p.contractEnds}${m.from ? `, leaving ${m.from.short} watching a ${fmtMoney(m.p.value)} asset walk out the door` : ''}`
     // the three biggest moves in full, the rest counted: a six-deal summer at
     // 130 characters a deal blew straight through the 800-character inbox
     // ceiling (19A) the first time the world dealt one - caught by
@@ -722,7 +724,7 @@ function handleContracts(state: GameState, rng: Rng) {
         men_l: JSON.stringify(shown.map(m => ({
           k: m.from ? 'news.freeManFrom' : 'news.freeMan',
           name: m.p.name, pos: m.p.pos, age: m.p.age, to: m.to.name,
-          wage: fmtMoney(m.p.wage), until: 2026 + m.p.contractEnds,
+          wage: fmtMoney(m.p.wage), until: BASE_YEAR + m.p.contractEnds,
           from: m.from?.short ?? '', value: fmtMoney(m.p.value),
         }))),
         rest_k: rest > 0 ? 'news.freeRest' : 'common.nothing', rest,
@@ -1101,7 +1103,7 @@ export function rebuildSeason(state: GameState) {
       .map(id => state.players[id])
       .filter((p): p is Player => !!p && p.clubId === state.userClubId)
     if (lionsHome.length) {
-      const comp = state.comps['lions']
+      const comp = isleTour(state)
       const seriesWon = comp?.champion === 'LIO'
       for (const p of lionsHome) {
         p.morale = clamp(p.morale + 0.6, 1, 10)
@@ -1553,6 +1555,12 @@ export function rebuildSeason(state: GameState) {
     // season actually held (25D: minutes-gated growth)
     p.lastStarts = p.stats.starts
     p.stats = emptyStats()
+    // the last week he played is a week of LAST season, and the week counter
+    // restarts at 1: a man who played the final read as having played "this
+    // week or last" for the whole of the next season, so the weekly morale
+    // drift paid him for games he was not getting and never noticed he was
+    // frozen out (season.ts, the conditional drift)
+    p.lastWk = undefined
     p.avail = 0
     p.form = 6
     // The summer lifts a man one notch - a break does that - but it no longer
@@ -1813,6 +1821,10 @@ export function rebuildSeason(state: GameState) {
   // the season's books close on the balance as it stands, and the next
   // season's open on the same figure the first time money moves (books.ts)
   closeBooks(state)
+  // the close-season diary is keyed by week number alone, so last summer's
+  // bookings would read as this summer's: weeks 46 to 48 were "already
+  // booked" for the rest of the career after the first July
+  state.closeBook = {}
   state.season += 1
   // F30: a deal whose term ran out with the old season is gone, and the manager
   // is told, because an empty commercial slot pays nothing and that has to be a
@@ -1823,7 +1835,18 @@ export function rebuildSeason(state: GameState) {
   state.finHist = []
   state.fixtures = []
   state.offers = []
-  state.vacancies = []
+  // OPEN JOBS CARRY OVER THE SUMMER, their clock rebased onto the new season.
+  // They used to be wiped here, and a club's new coach is only ever appointed
+  // when its vacancy EXPIRES (jobs.ts refreshVacancies), so every club with a
+  // job open at the end of May went coachless for the rest of the career. With
+  // the week counted back by a season, a vacancy that was already old expires
+  // in week 1 and the club appoints; one opened in the close season stays on
+  // the Job Centre for the weeks it has left, and an offer made against it can
+  // still be answered. The union's offer keeps the same clock for the same
+  // reason: its three-week shelf life compares weeks, and without the rebase a
+  // letter from week 46 never met the test again.
+  state.vacancies = state.vacancies.map(v => ({ ...v, week: v.week - SEASON_WEEKS }))
+  if (state.natOffer) state.natOffer = { ...state.natOffer, week: state.natOffer.week - SEASON_WEEKS }
   state.devFocus = state.devFocus.filter(id => state.players[id]?.clubId === state.userClubId)
   state.press = state.press.filter(p => !p.answered).slice(-5)
 
@@ -2033,12 +2056,26 @@ export function rebuildSeason(state: GameState) {
     const frac = finishFrac.get(club.id)
     const target = frac == null ? 75 : 86 - frac * 54
     club.boardConfidence = clamp(club.boardConfidence * 0.55 + target * 0.45, 0, 100)
+    // THE MANAGER'S OWN SHEET SURVIVES THE SUMMER. It used to be re-picked here
+    // for every club, his included, and marked as the game's, so a side he had
+    // chosen with care came back in August as the auto-pick's. Only the men who
+    // have actually gone (sold, released, retired, loan over) lose their shirts;
+    // the gaps are filled the way a match-day repair fills them and the rest of
+    // the twenty-three stands exactly as he wrote it.
+    const mine = club.id === state.userClubId && !state.unemployed && club.tactic.userPicked === true
+    const kept = mine
+      ? club.tactic.lineup.map(id => id != null && state.players[id]?.clubId === club.id && !state.players[id].loanFrom ? id : null)
+      : []
+    if (kept.some(id => id != null)) {
+      club.tactic.lineup = keepSheet(state, club, kept)
+      continue
+    }
     const pool = club.players.map(id => state.players[id]).filter(Boolean)
     club.tactic.lineup = autoSelect(state, pool)
     // The sheet this line just wrote is the game's, not the manager's, so the
-    // engine's tidy-up may look at it again. userPicked survives a season
-    // otherwise, and a team sheet from last summer - men sold, men signed, men
-    // retired - is exactly the case the tidy-up was built for.
+    // engine's tidy-up may look at it again. A sheet the game picked for him
+    // last season is re-picked like anyone's; only one he wrote himself is
+    // carried over, above.
     club.tactic.userPicked = false
   }
 
@@ -2171,7 +2208,10 @@ export function rebuildSeason(state: GameState) {
  *  invinciblesCheck is exported below. */
 export function challengeCheck(state: GameState) {
   const ch = state.challenge
-  if (!ch) return
+  // a challenge is completed by the manager, not by his old club: userClubId
+  // still names the club that sacked him, so without this a man out of work
+  // could collect the badge for what his successor did there
+  if (!ch || state.unemployed) return
   const uid = state.userClubId
   const prev = state.season - 1 // the season just completed
   const wonEver = (compId: string) => state.history.some(h => h.champion === uid && h.compId === compId)
@@ -2265,4 +2305,17 @@ export function invinciblesCheck(state: GameState) {
     hk: 'cel.invincibles',
     sk: 'cel.invinciblesSub', sv: { club: club.name, manager: state.managerName },
   }
+}
+
+/**
+ * The manager's sheet with its empty shirts filled. repairSheet does the
+ * filling (from the men he did not name, so nobody he picked is displaced), but
+ * it also leaves out anyone who cannot play today, and in the summer that is a
+ * man carrying a knock into pre-season. His shirt is held for him, as it is on
+ * match day, so he is put back where the manager had him.
+ */
+function keepSheet(state: GameState, club: Club, kept: (number | null)[]): (number | null)[] {
+  const filled = repairSheet(state, club, kept, splitFor(club))
+  const named = new Set(kept.filter((x): x is number => x != null))
+  return filled.map((id, i) => kept[i] ?? (id != null && named.has(id) ? null : id))
 }

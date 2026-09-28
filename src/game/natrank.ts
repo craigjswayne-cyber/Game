@@ -55,14 +55,26 @@ export function updateNatRank(state: GameState, fx: Fixture) {
   const r = (state.natRank ??= {})
   r[fx.homeId] ??= seedOf(fx.homeId, genderOf(state))
   r[fx.awayId] ??= seedOf(fx.awayId, genderOf(state))
-  const d = Math.max(-10, Math.min(10, r[fx.homeId] + 3 - r[fx.awayId])) // +3: home soil
+  // +3 for home soil, except at a World Championship: the whole tournament is
+  // played in one host country, so the "home" side of the fixture list is a
+  // name on a draw sheet, and World Rugby takes the allowance off there too
+  const soil = fx.compId === 'wc' ? 0 : 3
+  const d = Math.max(-10, Math.min(10, r[fx.homeId] + soil - r[fx.awayId]))
   let pts: number
   if (fx.homeScore > fx.awayScore) pts = 1 - d / 10
   else if (fx.homeScore < fx.awayScore) pts = -(1 + d / 10)
   else pts = -d / 10
   let k = Math.abs(fx.homeScore - fx.awayScore) > 15 ? 1.5 : 1
   if (fx.stage) k *= fx.compId === 'wc' ? 2 : 1.5
-  const delta = Math.round(pts * k * 100) / 100
+  // An exchange: what one side gains the other loses. The 40 to 100 bounds
+  // used to be applied to each side AFTER the exchange, so a side at the
+  // ceiling took nothing while its opponent still lost the full amount, and
+  // points left the system. The exchange itself is capped now, at whatever
+  // the side nearer its bound can take.
+  const raw = Math.round(pts * k * 100) / 100
+  const delta = raw > 0
+    ? Math.max(0, Math.min(raw, 100 - r[fx.homeId], r[fx.awayId] - 40))
+    : Math.min(0, Math.max(raw, 40 - r[fx.homeId], r[fx.awayId] - 100))
   r[fx.homeId] = clamp(Math.round((r[fx.homeId] + delta) * 100) / 100, 40, 100)
   r[fx.awayId] = clamp(Math.round((r[fx.awayId] - delta) * 100) / 100, 40, 100)
 }

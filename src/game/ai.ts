@@ -295,8 +295,9 @@ export function aiTransfers(state: GameState, rng: Rng) {
   const clubs = Object.values(state.clubs)
 
   // squad-building intent. Real moves are concentrated in the windows:
-  // early season (weeks 1-4) and the mid-season deadline (23-24) are
-  // busy; the rest of the season is a trickle - rumours do the talking.
+  // the summer window to its deadline in week 7, and the mid-season
+  // deadline weeks 26 and 27, are busy; the rest of the season is a
+  // trickle - rumours do the talking.
   const deadline = state.week === 7 || state.week === 26 || state.week === 27
   const window = state.week <= 7 || deadline
   for (let k = 0; k < (deadline ? 5 : 2); k++) {
@@ -768,7 +769,7 @@ export function squadFull(state: GameState, club: { players: number[] }): boolea
 
 /** The wage bill that counts against the cap - marquee men sit outside it. */
 export function capBill(state: GameState, club: { players: number[]; marquee?: number[] }): number {
-  const marquee = new Set((club.marquee ?? []).slice(0, 2))
+  const marquee = new Set((club.marquee ?? []).slice(0, MARQUEE_SLOTS))
   return club.players.reduce((s, id) => {
     if (marquee.has(id)) return s
     const p = state.players[id]

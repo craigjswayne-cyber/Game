@@ -6,7 +6,7 @@ import { genderOf, staffGender } from './gender'
 import { absWeek, fmtMoney, mgrReputation, poss, weeksBetween100, stamp100 } from './model'
 import { sortTable } from './schedule'
 import { autoSelect } from './matchEngine'
-import { clamp, mulberry32, type Rng } from './rng'
+import { clamp, hashString, mulberry32, type Rng } from './rng'
 import { nationByCode, regenName } from './nations'
 import { inheritStaff } from './staff'
 import { newCoachPhilosophy, seedPhilosophies } from './philosophy'
@@ -132,7 +132,10 @@ export function refreshVacancies(state: GameState, rng: Rng) {
         k: 'news.jobWithdrawn', v: { club: c.name },
       })
     }
-    if (!keep && state.clubs[v.clubId] && v.clubId !== state.userClubId) {
+    // the club he is out of work from appoints like any other: userClubId
+    // still names it, and the old test left it without a coach until he
+    // found another job
+    if (!keep && state.clubs[v.clubId] && (v.clubId !== state.userClubId || state.unemployed)) {
       state.clubs[v.clubId].coachGender = staffGender(rng, genderOf(state))
       state.clubs[v.clubId].coach = regenName(rng, state.clubs[v.clubId].country, undefined, state.clubs[v.clubId].coachGender)
       // F23: the new man brings his own idea of how to play, which is why a club
@@ -244,7 +247,11 @@ export function applyForJob(state: GameState, clubId: string): string {
   const cold = sackCooloff(state, clubId)
   if (cold > 0) return t('world.jbSacked', { club: club.name, n: cold, weeks_k: cold === 1 ? 'count.weekOne' : 'count.weekMany' })
   v.applied = true
-  const rng = mulberry32(state.seed ^ (state.week * 31 + club.rep))
+  // the club's own id and the season are in the seed: it was week and rep
+  // alone, so two jobs at clubs of equal standing, applied for in the same
+  // week, shared one roll - both yes or both no - and so did the same week of
+  // every season
+  const rng = mulberry32((state.seed ^ (state.season * 4099 + state.week * 31 + club.rep) ^ hashString(clubId)) >>> 0)
   if (rng() < jobChance(state, clubId)) {
     // AN OFFER, NOT AN APPOINTMENT (owner, v1.5.4: "if you apply for the job
     // you should have the option to accept or reject the offer rather than

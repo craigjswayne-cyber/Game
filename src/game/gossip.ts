@@ -330,7 +330,7 @@ function moneyMen(state: GameState, rng: Rng) {
   wire(state, 'news.wTakeoverCircle', { short: club.short, club: club.name })
 }
 
-/** Rumours live where deals live: the windows (weeks 1-4, 22-25). */
+/** Rumours live where deals live: the windows (weeks 1-7, 25-28). */
 function windowOpen(state: GameState): boolean {
   return state.week <= 7 || (state.week >= 25 && state.week <= 28)
 }

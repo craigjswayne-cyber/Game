@@ -33,6 +33,25 @@ const PAIRS: [string, string, string][] = [
   ['blues', 'moana', 'The Auckland Derby'],
   ['reds', 'waratahs', 'The Border Battle'],
   ['brumbies', 'waratahs', 'The Capital Clash'],
+  // THE WOMEN'S GAME HAS DERBIES TOO. Its clubs carry the w: prefix, and this
+  // list only held men's ids, so no women's match was ever a derby: no derby
+  // week, no derby premium, no derby nerves, no boardroom swing. The pairs are
+  // the ones the women's world actually holds, under the names the men's
+  // fixtures use where the two cities are the same.
+  ['w:saracens', 'w:quins', 'The London Derby'],
+  ['w:trailfinders', 'w:quins', 'The West London Derby'],
+  ['w:bristol', 'w:glosharty', 'The West Country Derby'],
+  ['w:leicester', 'w:loughborough', 'The East Midlands Derby'],
+  ['w:toulouse', 'w:blagnac', 'The Toulouse Derby'],
+  ['w:montpellier', 'w:toulon', 'The Mediterranean Derby'],
+  ['w:wolfhounds', 'w:clovers', 'The Irish Derby'],
+  ['w:glasgow', 'w:edinburgh', 'The Scottish Derby'],
+  ['w:gwalia', 'w:brython', 'The Welsh Derby'],
+  ['w:blues', 'w:chiefs', 'The North Island Derby'],
+  ['w:reds', 'w:waratahs', 'The Border Battle'],
+  ['w:brumbies', 'w:waratahs', 'The Capital Clash'],
+  ['w:sfparis', 'w:rcfrance', 'The Paris Derby'],
+  ['w:bathw', 'w:nbristol', 'The West Country Clash'],
 ]
 
 const KEY = (a: string, b: string) => (a < b ? `${a}|${b}` : `${b}|${a}`)
