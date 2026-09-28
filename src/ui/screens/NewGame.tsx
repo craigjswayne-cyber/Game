@@ -219,7 +219,7 @@ export default function NewGame() {
             <div className="wizard-hint" style={{ marginTop: 10 }}>{t('wizard.pickCompetition')}</div>
             <div style={{ padding: '0 14px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 6 }}>
               {defs.map((d, i) => (
-                <button key={d.id} className={`club-pick${leagueIdx === i ? ' sel' : ''}`} style={{ margin: 0 }}
+                <button key={d.id} data-league={d.id} className={`club-pick${leagueIdx === i ? ' sel' : ''}`} style={{ margin: 0 }}
                   onClick={() => { setLeagueIdx(i); setClubId(null); setStep(1) }}>
                   <span style={{ fontSize: 16, color: 'var(--gold)' }}><Glyph name="trophy" /></span>
                   <span className="cname">{compLabel(d.name)}</span>
