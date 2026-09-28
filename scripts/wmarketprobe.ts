@@ -47,8 +47,18 @@ function seasonBids(club: string, gender: Gender, seed: number): number {
 // from 1 to 20, so three worlds could read 5 on a commit whose next six read
 // 50 (and the commit before it 45 on the same six). The men's side stays at
 // three: it is the yardstick, and it is steady at 11-18 a season.
-const SEEDS = [7, 99, 1234]
-const W_SEEDS = [7, 99, 1234, 21, 42, 314, 555, 808, 1717]
+//
+// 36 AND 18 NOW (28 Sep 2026). Nine women's seasons against three men's put
+// the "a third of the men's market" line one or two standard errors from its
+// floor: four shifted seed lists read 6.3 v 4.7, 6.4 v 5.3, 7.1 v 4.3 and
+// 6.6 v 5.3 bids a season, with one season running anywhere from 1 to 13
+// (sd about 3.1 women's, 3.8 men's). The true margin is about 1.6 bids, so
+// it needs a standard error near 0.6 to stand three clear of noise: 36
+// women's seasons and 18 men's give 0.60. The same lists, extended.
+const SEEDS = [7, 99, 1234, 21, 42, 314, 555, 808, 1717, 2, 3, 5, 11, 13, 17, 19, 23, 29]
+const W_SEEDS = [7, 99, 1234, 21, 42, 314, 555, 808, 1717,
+  2, 3, 5, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67,
+  71, 73, 79, 83, 89, 97, 101, 103, 107]
 const wClub = LEAGUE_DEFS('w')[0].clubs[0].id
 const mBids = SEEDS.map(s => seasonBids('northampton', 'm', s))
 const wBids = W_SEEDS.map(s => seasonBids(wClub, 'w', s))
@@ -57,7 +67,8 @@ const mean = (a: number[]) => a.reduce((x, y) => x + y, 0) / a.length
 console.log(`\n  men's bids per season   ${mBids.join(', ')}`)
 console.log(`  women's bids per season ${wBids.join(', ')}\n`)
 
-ok(wBids.filter(n => n > 0).length >= W_SEEDS.length - 1,
+// the same rate as before, one bidless season in nine, not one in thirty-six
+ok(wBids.filter(n => n > 0).length >= W_SEEDS.length - Math.floor(W_SEEDS.length / 9),
   `women's seasons receive bids - the Inbox answer has something to answer (${wBids.filter(n => n > 0).length} of ${W_SEEDS.length})`)
 ok(mean(wBids) >= 3,
   `women's seasons produce a market rather than an accident (${mean(wBids).toFixed(1)} bids a season)`)

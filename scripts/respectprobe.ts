@@ -39,14 +39,28 @@ const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  
 // 1.02 on the same code at 24, 27-28 Sep 2026)
 const K = Number(process.argv[2] ?? 24)
 const WEEKS = Number(process.argv[3] ?? 34)
-const WORLDS: [string, number][] = [['northampton', 9], ['leicester', 777]]
+// SIX WORLDS, NOT TWO (28 Sep 2026). The high-standing cost is a property of
+// each world's fixture list as much as of the plan: per world it read 6.4,
+// 2.8, 1.0 and 1.2pp of wins across shifted seed lists, and the pooled two
+// read 5.4, 1.0 (FAIL against the 1.5 floor) and 2.6. Six worlds pool three
+// times the fixtures; the restore-in-place above pays for them (two worlds
+// took 205 s re-parsing JSON, six take about three minutes). Floors unchanged.
+//
+// AND WHAT SIX WORLDS SAY (28 Sep 2026): four seed lists read 3.7, 1.1, 2.1
+// and 2.0pp of wins and 1.50, 1.10, 1.31 and 1.12 points of margin. The
+// margin half of the claim (0.5) stands well clear every time; the win-rate
+// half (1.5pp) does not, because the effect itself is about 2pp, not the
+// 4.1 measured on the first two worlds, and a list's standard error is near
+// 1. That is a finding about the engine, not the sample, and the floor is
+// left where it was for the lead to decide.
+const WORLDS: [string, number][] = [['northampton', 9], ['leicester', 777], ['bath', 31], ['sale', 4242], ['exeter', 99], ['northampton', 2025]]
 
-interface Tally { games: number; planned: number; winOn: number; winOff: number; marginOn: number; marginOff: number; respect: number; leaks: number }
+interface Tally { games: number; planned: number; winOn: number; winOff: number; marginOn: number; marginOff: number; respect: number; leaks: number; replays: number; replayed: number }
 
 function run(club: string, seed: number, licensed: boolean): Tally {
   const g: GameState = newGame(club, 'Respect', seed)
   g.licensed = licensed
-  const t: Tally = { games: 0, planned: 0, winOn: 0, winOff: 0, marginOn: 0, marginOff: 0, respect: 0, leaks: 0 }
+  const t: Tally = { games: 0, planned: 0, winOn: 0, winOff: 0, marginOn: 0, marginOff: 0, respect: 0, leaks: 0, replays: 0, replayed: 0 }
   // the first week's plan is written as week 1 turns in a real career; here
   // the world is built at week 1, so write it the way the turn would
   processWeekAndAdvance(g)
@@ -57,17 +71,46 @@ function run(club: string, seed: number, licensed: boolean): Tally {
       t.games++
       t.respect += respectFor(g, oppId)
       if (g.clubs[oppId]?.vsUser) t.planned++
-      const snap = JSON.stringify(g)
+      // RESTORED IN PLACE, NOT RE-PARSED (28 Sep 2026): a JSON copy of the
+      // world per sim was about 40 ms of the 50 each took. The two clubs, their
+      // men and the chemistry ledger are all a match reads or writes that the
+      // next could feel, so they are put back before every sim, and once more
+      // before the real season goes on.
+      // (and every club carrying a plan: restoreOpposition clears them all,
+      // which on a copy was harmless and on the live world is not)
+      const clubIds = [...new Set([fx.homeId, fx.awayId, ...Object.values(g.clubs).filter(c => c.vsUser).map(c => c.id)])]
+      const pids = [fx.homeId, fx.awayId].flatMap(c => g.clubs[c]?.players ?? [])
+      const snapC = structuredClone(clubIds.map(c => g.clubs[c]))
+      const snapP = structuredClone(pids.map(id => g.players[id]))
+      const snapChem = structuredClone(g.chem)
+      const snapMisc = { news: g.news.slice(), nextId: g.nextId, grudges: structuredClone(g.grudges) }
+      const restore = () => {
+        clubIds.forEach((c, j) => { g.clubs[c] = structuredClone(snapC[j]) })
+        pids.forEach((id, j) => { g.players[id] = structuredClone(snapP[j]) })
+        g.chem = structuredClone(snapChem)
+        // a match also files news, takes ids and can start a grudge the next
+        // one reads, so those go back too
+        g.news = snapMisc.news.slice(); g.nextId = snapMisc.nextId; g.grudges = structuredClone(snapMisc.grudges)
+      }
+      const sim = (on: boolean, k: number) => {
+        restore()
+        if (!on) restoreOpposition(g)
+        const f = { ...fx, played: false, homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0 }
+        simMatch(g, f, mulberry32((fx.id * 7919 + k * 104729 + seed) >>> 0), false)
+        return f.homeId === g.userClubId ? f.homeScore - f.awayScore : f.awayScore - f.homeScore
+      }
       for (const on of [true, false]) {
         for (let k = 0; k < K; k++) {
-          const c: GameState = JSON.parse(snap)
-          if (!on) restoreOpposition(c)
-          const f = c.fixtures.find(x => x.id === fx.id)!
-          simMatch(c, f, mulberry32((fx.id * 7919 + k * 104729 + seed) >>> 0), false)
-          const mine = f.homeId === c.userClubId ? f.homeScore - f.awayScore : f.awayScore - f.homeScore
+          const mine = sim(on, k)
           if (on) { t.winOn += mine > 0 ? 1 : 0; t.marginOn += mine } else { t.winOff += mine > 0 ? 1 : 0; t.marginOff += mine }
         }
       }
+      t.replays++
+      // with a different match in between, so anything a sim leaves behind
+      // that the restore misses would show
+      const first = sim(true, 0); sim(false, 1)
+      if (first === sim(true, 0)) t.replayed++
+      restore()
     }
     if (fx) simMatch(g, fx, weekRng(g), false)
     for (const pi of g.press.filter(p => !p.answered)) answerPress(g, pi.id, 0)
@@ -87,6 +130,8 @@ function run(club: string, seed: number, licensed: boolean): Tally {
 
 const pct = (a: number, n: number) => `${(100 * a / Math.max(1, n)).toFixed(1)}%`
 let lowOn = 0, lowOff = 0, lowN = 0, hiOn = 0, hiOff = 0, hiN = 0, hiMOn = 0, hiMOff = 0, hiPlanned = 0, hiGames = 0, lowPlanned = 0, leaks = 0
+let replays = 0, replayed = 0
+const perWorld: number[] = []
 for (const [club, seed] of WORLDS) {
   for (const licensed of [false, true]) {
     const t = run(club, seed, licensed)
@@ -94,13 +139,15 @@ for (const [club, seed] of WORLDS) {
     console.log(`  ${club}/${seed} ${licensed ? 'HIGH (licensed, 95)' : 'LOW  (new name, 22)'}: ${t.games} league matches, plan set in ${t.planned}, mean respect ${(t.respect / Math.max(1, t.games)).toFixed(2)}`)
     console.log(`      win rate with the plan ${pct(t.winOn, n)} (margin ${(t.marginOn / n).toFixed(1)}), without ${pct(t.winOff, n)} (margin ${(t.marginOff / n).toFixed(1)})  [${n} sims each]`)
     leaks += t.leaks
-    if (licensed) { hiOn += t.winOn; hiOff += t.winOff; hiMOn += t.marginOn; hiMOff += t.marginOff; hiN += n; hiPlanned += t.planned; hiGames += t.games }
+    replays += t.replays; replayed += t.replayed
+    if (licensed) { hiOn += t.winOn; hiOff += t.winOff; hiMOn += t.marginOn; hiMOff += t.marginOff; hiN += n; hiPlanned += t.planned; hiGames += t.games; perWorld.push((t.winOff - t.winOn) / n * 100) }
     else { lowOn += t.winOn; lowOff += t.winOff; lowN += n; lowPlanned += t.planned }
   }
 }
 const dHi = (hiOff - hiOn) / hiN * 100, dLow = (lowOff - lowOn) / lowN * 100
 console.log(`\n  POOLED  low standing: ${pct(lowOn, lowN)} with, ${pct(lowOff, lowN)} without (${dLow.toFixed(1)}pp)`)
-console.log(`          high standing: ${pct(hiOn, hiN)} with, ${pct(hiOff, hiN)} without (${dHi.toFixed(1)}pp)\n`)
+console.log(`          high standing: ${pct(hiOn, hiN)} with, ${pct(hiOff, hiN)} without (${dHi.toFixed(1)}pp; by world ${perWorld.map(x => x.toFixed(1)).join(', ')})\n`)
+ok(replayed === replays, `a restored kick-off replays the same match on the same stream (${replayed}/${replays})`)
 ok(lowPlanned === 0, `a new name at a mid-table club is not respected: no plan set in ${lowPlanned} matches (respect below ${RESPECT_MIN})`)
 ok(hiPlanned >= hiGames * 0.5, `a proven name is: a plan against him in ${hiPlanned} of ${hiGames} league matches`)
 ok(Math.abs(dLow) < 0.05, `low standing: win rate untouched (${dLow.toFixed(1)}pp)`)

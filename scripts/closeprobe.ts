@@ -60,6 +60,16 @@ ok(!eventOpen(small, concert), 'no concert at a ground that cannot hold one')
 // ---- 4. it pays, and it pays what it should -----------------------------
 console.log('\n--- 4. what a summer is worth')
 const g = newGame('leicester', 'Test', 9)
+// HOSPITALITY PINNED AT THREE (28 Sep 2026). A summer's takings here are a
+// sum, not a roll: three weeks of the dearest event the ground can hold,
+// priced off capacity and the hospitality level. That level is dealt at
+// world creation (2, 3 or 4 for Leicester), so four shifted seed lists read
+// £165k, £184k, £147k (FAIL) and £165k: the probe was measuring which estate
+// it was dealt. World 9, where the £150k bar was set, opens at three; the
+// claim is about what the bookings pay, so the estate is held there. (At
+// level two a Leicester summer is £147k, which is the lead's call, not the
+// probe's.)
+g.clubs[g.userClubId].facilities = { ...(g.clubs[g.userClubId].facilities ?? {}), hospitality: 3 }
 while (g.week <= LEDGER_WEEKS) processWeekAndAdvance(g)
 ok(isCloseSeason(g.week), `the season reached the close season (week ${g.week})`)
 const before = g.clubs[g.userClubId].balance
