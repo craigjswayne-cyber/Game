@@ -60,7 +60,7 @@ let it install the extra components it asks for.
 ### 3. Get the game onto the Mac
 
 ```sh
-git clone https://github.com/craigjswayne-cyber/Game.git
+git clone <the repository's URL: GitHub, the green Code button, HTTPS>
 cd Game
 npm install
 ```
