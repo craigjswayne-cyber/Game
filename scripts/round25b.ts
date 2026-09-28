@@ -150,10 +150,14 @@ console.log('\none full season, watched:\n')
   // meeting is gone from g.news by the summer (1.6.3 fixed the probe, not
   // the meeting - it was always filed and always tagged)
   const meetingsSeen = new Map<number, { tag?: string }>()
+  const intlSeen = new Map<number, (typeof g.news)[number]>()
   let guard = 0
   while (g.season === start && guard++ < 60) {
     processWeekAndAdvance(g)
     for (const n of g.news) if (n.subject.includes('Recruitment meeting')) meetingsSeen.set(n.id, { tag: n.tag })
+    // international reports too, for the same reason: the autumn window is
+    // long gone from a 250-story log by the time the season ends
+    for (const n of g.news) if (n.subject.includes('how your men got on')) intlSeen.set(n.id, n)
     if (g.season !== start) break
     // the Champions Cup quarters, the moment they exist
     if (!qfChecked) {
@@ -178,7 +182,7 @@ console.log('\none full season, watched:\n')
   ok(qfChecked, 'the Champions Cup quarter-finals were drawn')
   ok(qfClash === null, `no quarter-final is a pool rematch${qfClash ? ` (${qfClash})` : ''}`)
 
-  const intl = g.news.filter(n => n.subject.includes('how your men got on'))
+  const intl = [...intlSeen.values()]
   ok(intl.length > 0, `international weeks reported on your players (${intl.length} reports)`)
   for (const n of intl.slice(0, 2)) {
     ok(n.body.includes('**'), 'names are marked for bold in the reader')

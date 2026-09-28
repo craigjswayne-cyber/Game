@@ -76,10 +76,17 @@ console.log('--- 1. once fired, the old club leaves the inbox')
   const squadThen = old.players
     .map(id => g.players[id]).filter((p): p is Player => !!p).map(p => p.name)
   sackManager(g, 'news.sacked')
-  const mark = g.news.length
-  for (let i = 0; i < 25 && g.unemployed; i++) processWeekAndAdvance(g)
+  // BY ID, NOT BY LENGTH (28 Sep 2026): ten weeks in plus twenty-five out is
+  // about 270 stories, past the NEWS_KEEP cap of 250, so slice(mark) on the
+  // trimmed log skipped the first two dozen stories after the sacking - the
+  // very ones most likely to name the club that did it.
+  const before = new Set(g.news.map(n => n.id))
+  const filed: typeof g.news = []
+  for (let i = 0; i < 25 && g.unemployed; i++) {
+    processWeekAndAdvance(g)
+    for (const n of g.news) if (!before.has(n.id)) { before.add(n.id); filed.push(n) }
+  }
 
-  const filed = g.news.slice(mark)
   const leaks = filed.filter(n => {
     if (ALLOWED.has(n.k ?? '')) return false
     const text = `${n.subject} ${n.body}`

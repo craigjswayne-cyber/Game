@@ -105,9 +105,15 @@ const claimed = (n: NewsItem): number | null => {
 
 // ---- every number in the prose is a whole number ---------------------------
 {
+  // every memo of the forty weeks, picked up as it arrives: the news trim
+  // leaves only the last five or so to read back at the end
   const g = newGame('northampton', 'Memo', 5)
-  for (let w = 0; w < 40; w++) processWeekAndAdvance(g)
-  const memos = memosOf(g)
+  const seenIds = new Set<number>()
+  const memos: NewsItem[] = []
+  for (let w = 0; w < 40; w++) {
+    processWeekAndAdvance(g)
+    for (const n of memosOf(g)) if (!seenIds.has(n.id)) { seenIds.add(n.id); memos.push(n) }
+  }
   // a decimal anywhere in a memo body: /100 ratings, money is formatted elsewhere
   const floats = memos.flatMap(m => (m.body.match(/\d+\.\d+\/100/g) ?? []))
   ok(memos.length > 0, `the board wrote something to read (${memos.length} memos)`)
@@ -119,18 +125,29 @@ const claimed = (n: NewsItem): number | null => {
 // Within a save, not across seeds: the complaint was reading the same sentence in
 // consecutive letters. Two saves are allowed to agree.
 {
+  // COLLECTED AS THEY ARRIVE, NOT READ BACK AT THE END (28 Sep 2026). This read
+  // memosOf(g) after sixty weeks, but the news log is trimmed to NEWS_KEEP, so
+  // what survived was only the last few memos of each save: 19 to 20 verdicts
+  // across five saves against a floor of 20, flipping on any change to how
+  // much news a season writes. The floor was measuring the trim, not the
+  // memos. Picked up by id week by week (the walk above does the same), every
+  // memo the board wrote is counted - about ten a save - and "consecutive"
+  // means consecutive letters, including the ones the trim would have eaten.
   let repeats: string | null = null
   let counted = 0
   for (const seed of [3, 7, 11, 19, 23]) {
     const g = newGame('northampton', 'Memo', seed)
+    const seenIds = new Set<number>()
+    const memos: NewsItem[] = []
     for (let w = 0; w < 60; w++) {
       // same reason as the walk above: a sleepwalking manager is sacked before
       // sixty weeks are out now that the rest of the world has coaches, and a
       // sacked manager gets no more board memos to count
       if (!g.unemployed) g.clubs[g.userClubId].boardConfidence = Math.max(g.clubs[g.userClubId].boardConfidence, 55)
       processWeekAndAdvance(g)
+      for (const n of memosOf(g)) if (!seenIds.has(n.id)) { seenIds.add(n.id); memos.push(n) }
     }
-    const lines = memosOf(g).map(m => m.body.split('\n').filter(Boolean).slice(-1)[0])
+    const lines = memos.map(m => m.body.split('\n').filter(Boolean).slice(-1)[0])
     counted += lines.length
     for (let i = 1; i < lines.length; i++) {
       if (lines[i] === lines[i - 1] && !repeats) {
