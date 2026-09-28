@@ -3699,7 +3699,7 @@
   "unitLineoutLower": "lineout",
   "unitScrumLower": "scrum",
   "wonHead": "Nothing broke, so the work is making it repeatable.",
-  "wonHow": "Leave the dials alone and pick the same shape again. The strongest unit was the {unit} - build next week around it."
+  "wonHow": "Leave the Tactics dials alone and pick the same Selection again. The strongest unit was the {unit} - build next week around it."
  },
  "stakes": {
   "aFinal": "A final. Everything a season is for, in eighty minutes.",
@@ -4091,7 +4091,7 @@
   "grWanderingFanSubj": "A new voice in the {short} end",
   "grWanderingFan": "A young {other} supporter wandered into the {short} end at half-time, was adopted by the choir and went home knowing every song. The family report that the singing has not stopped since. The choir has asked about availability for next season.",
   "chTale9Subj": "CLUBHOUSE: one answer fits all at quiz night",
-  "chTale9": "{prop} has been banned from the team quiz for answering every question with \"scrummaging\". It was the right answer twice, which the quizmaster says is exactly the problem.",
+  "chTale9": "{prop} has been banned from the team quiz for answering every question with \"scrummaging\". It was the right answer twice. The quizmaster says that is exactly the problem.",
   "chTale10Subj": "CLUBHOUSE: the great sandwich inquiry",
   "chTale10": "Someone has been eating the kit man's sandwiches from the fridge. A notice has gone up, the physio has been appointed to investigate, and three props have produced alibis nobody asked for. The sandwiches are now labelled in capital letters.",
   "chTale11Subj": "CLUBHOUSE: dawn sprints with company",

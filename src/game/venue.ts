@@ -42,8 +42,13 @@ import { climateOf, distanceKm, tzShift, venueOf, warmth, type Venue } from './g
  *  the transcontinental trips. Wiring the guess in would have set the mean edge
  *  to 0.9978 and quietly taken home advantage down everywhere, which is the
  *  seventh time this class of error has been caught. Centring on the MEAN rather
- *  than the median is what makes the swings cancel. */
-export const RAW_MEAN = 0.0793
+ *  than the median is what makes the swings cancel.
+ *
+ *  0.0793 to 0.0828 in 1.8.0: the world had moved on since it was
+ *  measured, and three reshuffled worlds averaged 0.0823, 0.0823 and 0.0839,
+ *  putting the mean edge at 1.0002 against venueprobe's tolerance of 0.0002.
+ *  The effect on any one match is under two hundredths of a per cent. */
+export const RAW_MEAN = 0.0828
 
 /** How far the home edge is allowed to swing either side of its old flat value.
  *  0.05 puts the highveld near 8.9 per cent and a local derby near 5.6, against
