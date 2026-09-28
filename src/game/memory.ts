@@ -263,7 +263,12 @@ export function memoryAfterMatch(state: GameState, fx: Fixture): void {
   for (const { e, p } of departures(state)) {
     if (p.clubId !== oppId || state.season - e.season > 6) continue
     const motm = fx.motm === p.id
-    const scored = tries.has(p.id)
+    // A match the manager watched keeps its events; one simmed around him does
+    // not, so there the try is read off his season tally against the count
+    // memoryWeek wrote down last week (he played this week, and it went up).
+    const pl = e.payload ?? {}
+    const scored = fx.events?.length ? tries.has(p.id)
+      : p.lastWk === state.week && pl.ss === state.season && Number.isFinite(pl.st) && p.stats.tries > Number(pl.st)
     if (!motm && !scored) continue
     const tag = motm ? 'motm' : 'try'
     if (paid(e, 'motm') || paid(e, tag)) continue
@@ -390,6 +395,9 @@ export function memoryWeek(state: GameState): void {
       tell(state, 'mem.agents', { player: String(e.payload?.name ?? ''), club: state.clubs[e.clubId ?? '']?.name ?? user.name })
     }
   }
+
+  // the tally the next match is read against (memoryAfterMatch)
+  for (const { e, p } of departures(state)) if (e.payload) { e.payload.st = p.stats.tries; e.payload.ss = state.season }
 
   if (log.entries.length > MEMORY_CAP) pruneMemory(state)
 }

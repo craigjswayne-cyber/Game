@@ -237,6 +237,8 @@ const leagueRival = (g: GameState) => {
   const SEASONS = 4
   const g = newGame('northampton', 'Career', 185)
   let maxLen = 0
+  // the inbox is trimmed as the career goes, so the stories are collected as they land
+  const seen = new Map<number, GameState['news'][number]>()
   for (let s = 0; s < SEASONS; s++) {
     for (let w = 0; w < SEASON_WEEKS; w++) {
       // week two of every season: release two decent seniors and sell one to a
@@ -258,6 +260,7 @@ const leagueRival = (g: GameState) => {
       if (!g.unemployed) g.clubs[g.userClubId].boardConfidence = Math.max(g.clubs[g.userClubId].boardConfidence, 55)
       processWeekAndAdvance(g)
       maxLen = Math.max(maxLen, g.memory?.entries.length ?? 0)
+      for (const n of memNews(g)) seen.set(n.id, n)
     }
   }
   const log = g.memory!
@@ -266,7 +269,7 @@ const leagueRival = (g: GameState) => {
   ok(log.entries.length > 0 && kinds.has('released') && kinds.has('sold'), 'a career fills the log')
   ok(kinds.has('let-go'), 'contracts run down and unpromoted academy boys are remembered too')
   ok(maxLen <= 160, `and it never passed the cap (peak ${maxLen})`)
-  const stories = memNews(g)
+  const stories = [...seen.values()]
   const byKey: Record<string, number> = {}
   for (const n of stories) byKey[n.k!] = (byKey[n.k!] ?? 0) + 1
   console.log(`  memory stories: ${stories.length} (${Object.entries(byKey).map(([k, v]) => `${k.slice(4)} ${v}`).join(', ')})`)
