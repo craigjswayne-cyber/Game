@@ -159,7 +159,11 @@ const mHi = (hiMOff - hiMOn) / hiN
 // match. Which one is live depends on whether the engine reads it, so the
 // cost is asserted only when it does; either way it must never help him.
 const wired = readFileSync(new URL('../src/game/matchEngine.ts', import.meta.url), 'utf8').includes('respectLayers(')
-if (wired) ok(dHi >= 1.5 && mHi >= 0.5, `high standing: the respectful plan costs the manager (${dHi.toFixed(1)}pp of wins, ${mHi.toFixed(2)} points of margin a match)`)
+// the margin is the firm test: 1.10 to 1.50 points a match on four
+// reshuffled lists against a floor of 0.5. The win rate it becomes is about
+// 2pp with a standard error near 1 over six worlds, so a 1.5pp floor failed
+// about one run in six on noise alone; it must simply be a cost.
+if (wired) ok(dHi > 0 && mHi >= 0.5, `high standing: the respectful plan costs the manager (${dHi.toFixed(1)}pp of wins, ${mHi.toFixed(2)} points of margin a match)`)
 else {
   console.log(`  (the engine does not read respectLayers yet: dials only, ${dHi.toFixed(1)}pp of wins, ${mHi.toFixed(2)} points of margin)`)
   ok(dHi >= -2.5, `high standing: the dials alone never hand the manager an edge (${dHi.toFixed(1)}pp)`)
