@@ -2718,6 +2718,8 @@
     "deskSquad": "Nommez encore {n} ▸",
     "deskPress": "Salle de presse",
     "deskPressN": "Salle de presse ({n})",
+    "deskBoard": "Le conseil",
+    "deskBoardN": "Le conseil ({n})",
     "deskRead": "Lire ({n})",
     "drawCup": "coupe",
     "drawTies": {

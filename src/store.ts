@@ -836,9 +836,12 @@ export const useStore = create<Store>((set, get) => ({
     {
       const press = pressBlock(g)
       if (press) {
-        const onPress = get().nav[get().nav.length - 1]?.screen === 'press'
-        if (!onPress) {
-          set(s => ({ nav: [...s.nav, { screen: 'press' as const }], tick: s.tick + 1 }))
+        // a board decision is answered on Finances > The Board, which opens on
+        // that tab while one is waiting
+        const where = press.kind === 'board' ? 'finances' as const : 'press' as const
+        const onIt = get().nav[get().nav.length - 1]?.screen === where
+        if (!onIt) {
+          set(s => ({ nav: [...s.nav, { screen: where }], tick: s.tick + 1 }))
         }
         return
       }

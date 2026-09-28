@@ -2662,6 +2662,8 @@
   "deskSquad": "Benoem nog {n} ▸",
   "deskPress": "Perskamer",
   "deskPressN": "Perskamer ({n})",
+  "deskBoard": "Die direksie",
+  "deskBoardN": "Die direksie ({n})",
   "deskRead": "Lees ({n})",
   "drawCup": "beker",
   "drawTies": {

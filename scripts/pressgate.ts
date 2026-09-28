@@ -1,3 +1,4 @@
+import { isBoardroom } from '../src/game/media'
 /**
  * ---- THE PRESS IS ANSWERED, NOT WALKED PAST ----
  *
@@ -64,7 +65,10 @@ console.log('\n--- 1. an open question holds the week, on any day\n')
 
   const held = pressBlock(g)
   ok(held != null, 'and the week is held')
-  ok(held?.kind === 'press', `by the press, named as such (${held?.label ?? 'no label'})`)
+  // a board decision (the camp, the season's pitch, a sponsor deal) holds the
+  // week as 'board' and sends Continue to Finances; anything else is 'press'
+  const want = open.some(p => !isBoardroom(p)) ? 'press' : 'board'
+  ok(held?.kind === want, `by the ${want === 'press' ? 'press' : 'board'}, named as such (${held?.label ?? 'no label'})`)
 
   // THE DAY DOES NOT MATTER. This is the half that was missing: the old hold
   // only looked on the way out of the week, so Wednesday walked free.
