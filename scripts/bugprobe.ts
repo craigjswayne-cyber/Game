@@ -9,7 +9,7 @@
 // [attached]." That is a promise in the product, so it is a test here.
 import { newGame } from '../src/game/newgame'
 import {
-  DEV_CONTACT, MAILTO_LIMIT, buildReport, crashCount, mailtoUrl, noteScreen, recordCrash, reportFilename,
+  CONTACT_MAILTO, DEV_CONTACT, MAILTO_LIMIT, buildReport, crashCount, mailtoUrl, noteScreen, recordCrash, reportFilename,
 } from '../src/game/bugreport'
 
 let fails = 0
@@ -68,6 +68,10 @@ const base = { state: g, nav: NAV, screen: SCREEN, when: '2026-08-23 12:00' }
   // the address is the whole point of the mail route: a typo here sends every
   // report the game ever produces to nobody, silently
   ok(mailtoUrl(short).startsWith(`mailto:${DEV_CONTACT}?`), `addressed to ${DEV_CONTACT}`)
+  // the About page's plain contact link opens with the game's name (1.8.1),
+  // and the report and idea subjects still start with it
+  ok(CONTACT_MAILTO === `mailto:${DEV_CONTACT}?subject=PHASE%3A%20Rugby%20Manager`, `the contact link carries the subject (${CONTACT_MAILTO})`)
+  ok(decodeURIComponent(mailtoUrl(short).split('subject=')[1].split('&')[0]).startsWith('PHASE: Rugby Manager - '), 'and the bug report subject starts with the game\'s name')
 
   const long = buildReport({ ...base, notes: 'x'.repeat(4000) })
   const trimmed = decodeURIComponent(mailtoUrl(long).split('body=')[1])

@@ -203,7 +203,7 @@ export default function Inbox() {
         {window20.map(x => (
           <button key={x.id} className={`inbox-li${x.id === n.id ? ' on' : ''}${x.read ? '' : ' unread'}`}
             aria-current={x.id === n.id}
-            onClick={() => { markRead(game, x); useStore.setState(s => ({ inboxId: x.id, tick: s.tick + 1 })) }}>
+            onClick={() => { markRead(game, x); useStore.setState(s => ({ inboxId: x.id, tick: s.tick + 1 })); void useStore.getState().persist() }}>
             <span className="when">{newsGlyph(x.type)} {weekDate(x.season, x.week)}</span>
             <span className="subj">{newsSubject(x)}</span>
           </button>
