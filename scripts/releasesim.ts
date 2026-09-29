@@ -225,7 +225,24 @@ ok(last.news < 6000, `the news feed does not grow without bound (${last.news} it
   // 90+ went 20 -> 66 over ten seasons where it had gone 20 -> 206, 85+ went
   // 92 -> 215 where it had gone to 515, and the Premiership-to-National One
   // gap held 18 of its 34 points where it had kept 6
-  ok(lastRow.ca90 <= Math.max(90, first.ca90 * 3),
+  /*  RE-REFERENCED in 1.8.1 (29 Sep 2026). The floor of 90 was drawn in
+   *  1.6.3 from a TEN-season run (20 -> 66) and has been read at fifteen ever
+   *  since, on this one seed. Sixteen fresh worlds on 1.8.0 as shipped
+   *  (b3bd529; seeds 20260822 and 1-15) finish season 15 with 84.9 men rated
+   *  90+ (sd 11.4 a world, 66 to 105), and four of the sixteen are over 90:
+   *  1.8.0 on this very seed read exactly 90. So the line was a coin toss
+   *  that any change to the sim stream could flip, and during the 1.8.1
+   *  merges it flipped both ways (70 at 6667eb3, 95 at 59124f1, 70 at the
+   *  release tip) while the pooled world did not move: 82.0, 90.4, 84.6 and
+   *  84.3 on eight to ten worlds at the four merges, every one within two
+   *  standard errors of 1.8.0's 84.9. Nothing in 1.8.1 inflates the stars.
+   *  The floor is now 110, about 2.2 sd over the 1.8.0 world: it still
+   *  catches the 1.6.2 failure (20 -> 206) many times over. The 85+ line
+   *  below is unchanged: 2.21x on 1.8.0 (sd 0.16) and 2.23x at the release
+   *  tip (sd 0.14), with no world over 2.5x at either; at the middle merges
+   *  two worlds in sixteen went over, one of them this seed at 59124f1 (305
+   *  against 302), which is the same noise at about two sd. */
+  ok(lastRow.ca90 <= Math.max(110, first.ca90 * 3),
     `players rated 90+ stay in band (season 1: ${first.ca90}, season ${SEASONS}: ${lastRow.ca90})`)
   ok(lastRow.ca85 <= Math.max(260, first.ca85 * 2.5),
     `players rated 85+ stay in band (season 1: ${first.ca85}, season ${SEASONS}: ${lastRow.ca85})`)
