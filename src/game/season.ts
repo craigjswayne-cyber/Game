@@ -43,6 +43,7 @@ import { gameTimeReview, settleGameTime } from './gametime'
 import { rebuildSeason, rollIntakeClass } from './rollover'
 import { setUpForUser } from './oppcoach'
 import { drillWeek } from './playbook'
+import { drillMovesWeek } from './moves'
 import { settleJokers } from './joker'
 import { settleKnocks } from './knock'
 import { askBoard, type BoardAsk } from './boardroom'
@@ -2350,6 +2351,9 @@ export function processWeekAndAdvance(state: GameState) {
   // shelved rusts - which is what stops a club from owning ten world-class moves.
   for (const club of Object.values(state.clubs)) {
     drillWeek(state, club, club.id === state.userClubId && state.matchPrep === 'setpiece')
+    // and the attacking moves, on the same rules (moves.ts): an Attack week
+    // and the attack coach are what sharpen them
+    drillMovesWeek(state, club, club.id === state.userClubId && state.matchPrep === 'attack')
   }
 
   // internationals squad management happens before matches

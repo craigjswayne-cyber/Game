@@ -657,6 +657,14 @@ export interface Tactic {
   lineoutCall?: string
   scrumCall?: string
 
+  // ---- the attacking moves (1.8.1, moves.ts) --------------------------------
+  /** The strike move run off our lineout and off our scrum, and the shape we
+   *  play in open phases. Absent is no call: exactly the engine before moves
+   *  existed. Drilled in the same Playbook as the set-piece routines. */
+  moveLineout?: string
+  moveScrum?: string
+  moveShape?: string
+
   // ---- the bench economy (F4) ---------------------------------------------
   /** How the eight replacements are split between forwards and backs. Unset
    *  lets the club's tactical conviction decide, which is how AI sides end up
