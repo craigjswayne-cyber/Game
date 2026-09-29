@@ -208,7 +208,23 @@ ok(rows.slice(2).every(r => r.retiredish > 0 && r.newU23 > 0),
   // DEPTH, not sign: administration clears the debt, so a club it has just
   // saved still reads as "in the red" at two weeks of wages. What must not run
   // away is the number in real distress.
-  ok(last.deep <= Object.keys(g.clubs).length * 0.3,
+  /*  RE-REFERENCED in 1.8.1 (29 Sep 2026): 0.3 -> 0.4. Eight worlds (this
+   *  seed and 1-7) finish season 15 with 26.0 clubs in deep distress on
+   *  1.8.0 (sd 3.8; 30 at worst, against a line of 32) and 31.5 at the 1.8.1
+   *  tip (sd 4.0; 23 to 36), so half the tip's worlds failed a line 1.8.0
+   *  cleared. Two 1.8.1 fixes moved it, each measured by undoing it alone at
+   *  the tip (seasons 10-15, tip 32.8): shedWages now stops at thirty
+   *  SENIORS, as its comment always said (it counted the 27-man academy, so
+   *  the floor sat at three), 30.3 without it; and the sold-out test for a
+   *  bigger ground no longer counts friendlies, so AI boards build the
+   *  stands they had been owed, 30.2 without it. Both are the rules working
+   *  as written. What did not move is the share in the red (46.3 clubs at
+   *  season 15 on the tip, 46.0 on 1.8.0), and the count is a plateau from
+   *  season 9, not a slide (seasons 10-15 average 32.8, worst single season
+   *  39): a club that cannot shed below a fieldable squad sits nearer the
+   *  twenty-week floor until administration clears it, which the check
+   *  below requires to happen. 0.4 is 43 clubs, about 2.8 sd over the tip. */
+  ok(last.deep <= Object.keys(g.clubs).length * 0.4,
     `distress is contained (${last.deep} clubs more than ten weeks under)`)
   ok(rows.slice(6).some(r => r.admin > 0),
     `and clubs that cannot pay actually go under (${rows.reduce((x, r) => x + r.admin, 0)} administrations over the run)`)
