@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { planSlots, useStore } from '../../store'
 import { XV_SLOTS, type Player } from '../../game/model'
-import { DEF_SLIDER_INFO, DEF_SYSTEMS, PRESETS, SLIDER_INFO, ZONE_PLANS, defSliderReadout, defSystemOf, sliderReadout, zonePlan, type ZoneId, BRK_SLIDER_INFO, brkSliderReadout } from '../../game/tactics'
+import { DEF_SLIDER_INFO, PRESETS, SLIDER_INFO, ZONE_PLANS, defSliderReadout, sliderReadout, zonePlan, type ZoneId, BRK_SLIDER_INFO, brkSliderReadout } from '../../game/tactics'
 import { ROLE_BY_ID, rolesForSlot } from '../../game/roles'
 import { Jersey, PosBadge, SectionTitle } from '../components'
 import { analystClaim, analystForm, analystRead, prepLabel, unitLabel } from '../../game/analyst'
@@ -18,6 +18,8 @@ import { Glyph } from '../glyphs'
 import { IcoChevron } from '../icons'
 import { OppReportCard } from '../OppReport'
 import MovesSection from '../MovesSection'
+import StylesSection from '../StylesSection'
+import { atkName, defName, stylesOf } from '../../game/styles'
 
 /** The Tactics screen: HOW the side plays. Roles on a pitch, the set-piece
  *  playbook, the bench shape, the week's preparation and the game plan.
@@ -54,11 +56,25 @@ const readSpSub = (): SpSub => {
   } catch { return 'calls' }
 }
 
+/** THE GAME PLAN TAB, IN TWO (1.8.2, styles): the attack and defence styles
+ *  by name and drawn, and the dials that fine-tune them. The same segmented
+ *  track as the Set Piece tab, remembered for the session the same way. */
+type PlanSub = 'styles' | 'tune'
+const PLAN_SUB_KEY = 'rm-plan-sub'
+const readPlanSub = (): PlanSub => {
+  try { return sessionStorage.getItem(PLAN_SUB_KEY) === 'tune' ? 'tune' : 'styles' } catch { return 'styles' }
+}
+
 export default function Tactics() {
   const game = useStore(s => s.game)!
   const touch = useStore(s => s.touch)
   const [ttab, setTtab] = useState<'tactics' | 'setp' | 'bench' | 'prep' | 'plan'>('tactics')
   const [spSub, setSpSubState] = useState<SpSub>(readSpSub)
+  const [planSub, setPlanSubState] = useState<PlanSub>(readPlanSub)
+  const setPlanSub = (v: PlanSub) => {
+    setPlanSubState(v)
+    try { sessionStorage.setItem(PLAN_SUB_KEY, v) } catch { /* the choice lasts this visit only */ }
+  }
   const setSpSub = (v: SpSub) => {
     setSpSubState(v)
     try { sessionStorage.setItem(SP_SUB_KEY, v) } catch { /* the choice lasts this visit only */ }
@@ -689,7 +705,25 @@ export default function Tactics() {
         </div>
       </>}
 
-      {ttab === 'plan' && <>
+      {ttab === 'plan' && <div className="game-pick sp-sub" role="tablist" aria-label={t('tacticsScreen.tabPlan')}>
+        {([['styles', 'styles.viewStyles'], ['tune', 'styles.viewTune']] as const).map(([id, label]) => (
+          <button key={id} role="tab" aria-selected={planSub === id} className={planSub === id ? 'sel' : ''}
+            data-plan-sub={id} onClick={() => setPlanSub(id)}>{t(label)}</button>
+        ))}
+      </div>}
+
+      {ttab === 'plan' && planSub === 'styles' && <>
+        <StylesSection game={game} club={club} touch={touch} />
+        <div className="spacer" />
+      </>}
+
+      {ttab === 'plan' && planSub === 'tune' && <>
+        {(() => {
+          const sty = stylesOf(game, club)!
+          return <div className="card" style={{ marginTop: 4 }} data-tune-note>
+            <div className="meta">{t('styles.tuneNote', { atk: t(atkName(sty.atk)), def: t(defName(sty.def)) })}</div>
+          </div>
+        })()}
         <div className="card" style={{ marginTop: 4, borderLeft: '4px solid var(--gold)' }}>
           <div className="meta">{assistantAdvice(game)}</div>
         </div>
@@ -786,29 +820,11 @@ export default function Tactics() {
         })}
         </div>
         <SectionTitle sub={t('tacticsScreen.withoutTheBallSub')}>{t('tacticsScreen.withoutTheBall')}</SectionTitle>
-        {/* THE SYSTEM, BY NAME (v1.7.0). A coach picks a defence by its name
-            and then tunes it, so the names come first and the two dials below
-            stay exactly as they were - tapping one just sets them. The
-            readout names whichever system they sit nearest, so dragging a
-            slider re-labels the row rather than leaving it stale. */}
-        {(() => {
-          const cur = defSystemOf(tac.defLine ?? 50, tac.defWidth ?? 50)
-          return (
-            <div className="zone-row" style={{ padding: '0 14px 2px' }}>
-              <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
-                {DEF_SYSTEMS.map(sys => (
-                  <button key={sys.id} className="preset-chip" title={t(sys.desc)}
-                    style={{ flex: '1 1 auto', ...(cur.id === sys.id
-                      ? { background: 'var(--primary)', color: 'var(--on-primary)' } : {}) }}
-                    onClick={() => { tac.defLine = sys.line; tac.defWidth = sys.width; touch() }}>
-                    {t(sys.name)}
-                  </button>
-                ))}
-              </div>
-              <div className="meta" style={{ fontSize: 11, marginTop: 4 }}>{t(cur.desc)}</div>
-            </div>
-          )
-        })()}
+        {/* THE SYSTEM, BY NAME (v1.7.0) became the defence STYLES (1.8.2):
+            a defence is picked by name on the Styles view, drawn, and these
+            two dials fine-tune it, so the row of five system names that sat
+            here would have been a second, different set of names for the
+            same choice. */}
         <div className="dial-grid">{DEF_SLIDER_INFO.map(defSlider)}</div>
         {/* THE BREAKDOWN, BOTH WAYS (1.7.3). Attack and defence dials, but one
             row: each sat alone at the foot of its own section and took the tab
