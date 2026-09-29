@@ -1546,6 +1546,9 @@
   "tacticsScreen": {
     "tabRoles": "Rôles",
     "tabSetPiece": "Conquête",
+    "spSubCalls": "Touche et mêlée",
+    "spSubMoves": "Combinaisons",
+    "spSubKicking": "Jeu au pied",
     "tabBench": "Banc",
     "tabPrep": "Prépa",
     "tabPlan": "Plan de jeu",

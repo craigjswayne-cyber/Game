@@ -1531,6 +1531,9 @@
  "tacticsScreen": {
   "tabRoles": "Roles",
   "tabSetPiece": "Estáticas",
+  "spSubCalls": "Touch y melé",
+  "spSubMoves": "Jugadas",
+  "spSubKicking": "Juego al pie",
   "tabBench": "Banquillo",
   "tabPrep": "Prep.",
   "tabPlan": "Plan de juego",

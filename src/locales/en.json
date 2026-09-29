@@ -1514,6 +1514,9 @@
  "tacticsScreen": {
   "tabRoles": "Roles",
   "tabSetPiece": "Set Piece",
+  "spSubCalls": "Lineout & Scrum",
+  "spSubMoves": "Moves",
+  "spSubKicking": "Kicking",
   "tabBench": "Bench",
   "tabPrep": "Prep",
   "tabPlan": "Game Plan",
