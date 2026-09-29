@@ -17,6 +17,7 @@ import { BenchClock, BriefIcon, ExitDiagram, KickStyleDiagram, LineoutDiagram, P
 import { Glyph } from '../glyphs'
 import { IcoChevron } from '../icons'
 import { OppReportCard } from '../OppReport'
+import MovesSection from '../MovesSection'
 
 /** The Tactics screen: HOW the side plays. Roles on a pitch, the set-piece
  *  playbook, the bench shape, the week's preparation and the game plan.
@@ -264,6 +265,9 @@ export default function Tactics() {
             </div>
           </div>
         ))}
+
+        {/* the attacking moves off that platform (1.8.1, game/moves.ts) */}
+        <MovesSection game={game} club={club} touch={touch} />
 
         <SectionTitle>{t('tacticsScreen.goalKickers')}</SectionTitle>
         {/* THE KICKERS READ LIKE THE LEADERSHIP CARD (owner, 1.8.1: "make the
