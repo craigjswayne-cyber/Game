@@ -3159,7 +3159,7 @@
  },
  "hist": {
   "rivalBornSubj": "Nace una rivalidad: {club}",
-  "rivalBorn": "Los partidos contra {club} ya no son uno más, no después de {why_k}. La afición lo ha notado, la directiva también, y el próximo se anunciará como lo que es.",
+  "rivalBorn": "Los partidos contra {club} han cambiado desde {why_k}. La afición lo ha notado, la directiva también, y el próximo se anunciará como una rivalidad.",
   "rivalFadesSubj": "Se apaga el fuego: {club}",
   "rivalFades": "La rivalidad con {club}, viva desde {since}, se ha enfriado. Los partidos ya no importan como antes, y la grada ha encontrado otros clubes a los que detestar.",
   "rivalRenewedSubj": "{club}, otra vez",
