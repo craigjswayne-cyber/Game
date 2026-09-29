@@ -10,7 +10,7 @@ import { attrRange, knowledge } from '../src/game/scout'
 import { remember } from '../src/game/memory'
 import { personalTermsDemand } from '../src/game/ai'
 import {
-  agentStable, agentTone, confidenceOf, fitScore, fitWord, posBaselines, reportEstimate, rivalTalk,
+  agentStable, agentTone, confidenceOf, confidencePct, fitScore, fitWord, posBaselines, reportEstimate, rivalTalk,
   scoutReport, sideDemands, talkTruth, trueNotes, type Note,
 } from '../src/game/recruit'
 import { ATTR_KEYS, type GameState, type Player } from '../src/game/model'
@@ -107,6 +107,40 @@ for (const c of ['high', 'medium', 'low']) {
 }
 if (byConf.high && byConf.medium) ok(byConf.high.err / byConf.high.n < byConf.medium.err / byConf.medium.n, 'high confidence is no more accurate than medium')
 if (byConf.medium && byConf.low) ok(byConf.medium.err / byConf.medium.n < byConf.low.err / byConf.low.n, 'medium confidence is no more accurate than low')
+
+// ---- 2b. the confidence figure is a promise: stated vs measured ----------
+// "Scout confidence n%" says n% of his attributes are read exactly right.
+console.log('\nscout  know  stated  measured  (share of attributes read exactly right)')
+const everyone = pool(g)
+for (const lvl of [0, 1, 2, 3]) {
+  const keep = g.staff.scout
+  g.staff.scout = lvl
+  for (const k of [20, 40, 60, 80, 95]) {
+    let hit = 0, n = 0, stated = 0
+    for (const p of everyone) {
+      const sc0 = p.sc
+      p.sc = k
+      stated = confidencePct(g, p)
+      for (const key of ATTR_KEYS) { n++; if (Math.round(reportEstimate(g, p, key)) === p.a[key]) hit++ }
+      p.sc = sc0
+    }
+    const measured = 100 * hit / n
+    console.log(`${String(lvl).padStart(5)}  ${String(k).padStart(4)}  ${String(stated).padStart(5)}%  ${measured.toFixed(1).padStart(7)}%`)
+    ok(Math.abs(stated - measured) <= 6, `scout ${lvl} at knowledge ${k} claims ${stated}% but reads ${measured.toFixed(1)}% exactly`)
+  }
+  g.staff.scout = keep
+}
+// and the "still unknown" line shrinks as the file fills in
+{
+  const kid = everyone.find(p => p.age <= 21)!, vet = everyone.find(p => p.age >= 30 && ['WG', 'FB', 'CE'].includes(p.pos))!
+  const sc0 = kid.sc, sv0 = vet.sc
+  const u = (p: Player, k: number) => { p.sc = k; return scoutReport(g, p).unknown }
+  const trail = [20, 40, 60, 95].map(k => u(kid, k).length)
+  console.log(`still unknown for a teenager at 20/40/60/95 knowledge: ${trail.join(' / ')} items; a veteran back at 60: ${u(vet, 60).join(', ')}`)
+  ok(trail.every((x, i) => i === 0 || x <= trail[i - 1]) && trail[3] === 0, 'the unknowns do not clear as the file fills in')
+  ok(u(vet, 60).includes('paceFade') && !u(vet, 95).includes('paceFade'), 'a veteran back\'s pace is not flagged as a question until the full file')
+  kid.sc = sc0; vet.sc = sv0
+}
 
 // ---- 3. tactical fit leans the way the side does --------------------------
 const user = g.clubs[g.userClubId]
