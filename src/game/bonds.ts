@@ -131,6 +131,15 @@ function shift(bs: BondState, a: number, b: number, delta: number, create = true
   return s
 }
 
+/** Move the ledger between two men from outside the weekly pass (room.ts: a
+ *  vice-captain who backed the manager over a dropped team-mate). A no-op
+ *  until the ledger exists, and never creates a pair below the noise floor. */
+export function nudgeBond(state: GameState, a: number, b: number, delta: number): number {
+  const bs = state.bonds
+  if (!bs || bs.club !== state.userClubId) return 0
+  return shift(bs, a, b, delta)
+}
+
 function seniors(state: GameState, club: Club): Player[] {
   return club.players.map(id => state.players[id]).filter((p): p is Player => !!p && !p.acad)
 }

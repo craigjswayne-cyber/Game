@@ -56,6 +56,9 @@ export type MemoryKind =
   | 'bonds-seeded' | 'mate-left' | 'armband-passed' | 'senior-dropped' | 'clique-formed' | 'clique-ended'
   // the club's identity (identity.ts): a label earned or lost
   | 'identity-formed' | 'identity-faded'
+  // the office's risk-and-reward calls (room.ts, acadcall.ts)
+  | 'room-stood' | 'room-reversed' | 'renew-early' | 'renew-waited' | 'rested'
+  | 'acad-kept' | 'acad-loaned' | 'acad-let-go'
 
 export interface MemoryEntry {
   id: number
