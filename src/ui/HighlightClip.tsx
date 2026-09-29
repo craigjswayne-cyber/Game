@@ -403,6 +403,40 @@ const DEF: [number, number][] = [
   [2.4, -2], [2.2, 0.5], [2.4, 3], [2.8, -6], [2.8, 6], [3, -10], [3, 10], [3.4, -14],
   [3.6, 3], [3.8, 14], [8, -26], [4, 19], [4.2, 24], [8, 28], [22, 0],
 ]
+/**
+ * THE CHASE AFTER A BREAK (1.8.2; owner on 1.8.1: "defensively when a player
+ * breaks through, the defenders run away from the ball at the moment in the
+ * animation"). 1.8.1 sent all but the nearest two defenders behind the ball
+ * jogging back to their own line and five metres out of his lane: on a
+ * phone that read as the defence running away from the ball (about a third
+ * of their frames on a break had them moving away from it, for up to five
+ * seconds at a time). Now everybody goes after the ball:
+ *
+ *   behind him, the nearest `hunters` chase flat out and the rest scramble
+ *     after him, each running at where he WILL be (`lead` seconds on), not
+ *     where he is, so they take angles rather than a tail-chase;
+ *   ahead of him the cover comes across to cut off his line to the corner:
+ *     the furthest point on his route that a man can reach no sooner than
+ *     `margin` after him, so the angle is a real one and he gets there just
+ *     too late (the clip is of a try; a man who would get there first is one
+ *     of the men who dive at him and miss);
+ *   and nobody's line is ever more than `maxTurn` (radians) off the line to
+ *     the ball, so however a lead point falls nobody is seen running away.
+ *
+ * Wrong-footed men ahead of him take `react` seconds to stop and turn.
+ *
+ * ONE SET OF NUMBERS FOR NOW. The tactics' defence styles (drift, blitz,
+ * pendulum, man-to-man, choke) are meant to bring their own here, with their
+ * own line shape in DEF: a blitz reacts quicker and chases harder, a drift
+ * leads the cover further to the corner, a choke sends more hunters.
+ */
+interface Chase {
+  react: number; hunters: number; huntV: number; coverV: number; scrambleV: number
+  lead: number; coverLead: number; margin: number; heels: number; maxTurn: number
+  /** a chaser behind the ball runs at this share of the carrier's speed */
+  outpace: number
+}
+const CHASE: Chase = { react: 0.3, hunters: 2, huntV: 9, coverV: 9, scrambleV: 7, lead: 1.0, coverLead: 3, margin: 0.35, heels: 3.2, maxTurn: 1.2, outpace: 0.93 }
 const TACKLERS = [1, 0, 2, 5, 4, 3, 6, 7]
 const FORWARD_CARRIERS = [8, 4, 6, 1, 5, 7]
 
@@ -475,6 +509,8 @@ function backAcross(i: number, across: number, y: number) {
  */
 const FPS = 60, DT = 1 / FPS
 const V_PLAYER = 11, A_PLAYER = 16
+/** a defensive line shifting across with the ball (m/s) */
+const V_SHIFT = 7.5
 /** REAL PACE (E10): a man's top speed from his pace, from 0.92x at 1 to
  *  1.12x at 20, and exactly as before for an average man (10.5). The slow
  *  end is gentler: a slow man is run down by the cover, not filmed in slow
@@ -499,12 +535,16 @@ class Body {
     const dx = tx - this.x, dy = ty - this.y, dist = Math.hypot(dx, dy)
     const want = Math.min(vmax, dist * k)
     const dvx = (dist > 1e-6 ? dx / dist * want : 0) - this.vx, dvy = (dist > 1e-6 ? dy / dist * want : 0) - this.vy
+    const v0 = Math.hypot(this.vx, this.vy)
     let ax = dvx * 8, ay = dvy * 8
     const a = Math.hypot(ax, ay)
     if (a > amax) { ax *= amax / a; ay *= amax / a }
     this.vx += ax * DT; this.vy += ay * DT
+    // over his top speed (the cap has just come down: a chaser held to the
+    // pace of a man slowing into his dive): he eases off, he does not stop
+    // dead in a frame
     const v = Math.hypot(this.vx, this.vy)
-    if (v > vmax) { this.vx *= vmax / v; this.vy *= vmax / v }
+    if (v > vmax) { const to = Math.max(vmax, Math.min(v, v0 - amax * DT)); this.vx *= to / v; this.vy *= to / v }
     // never over the touchline or the dead-ball line, however hard the turn
     this.x = clamp(this.x + this.vx * DT, -PAD + 1.4, 100 + PAD - 1.4)
     this.y = clamp(this.y + this.vy * DT, 0.4, 69.6)
@@ -696,6 +736,73 @@ function bake(c: ClipSpec): Baked {
    *  attack is going, which is towards that line): he stops, turns and
    *  heads home, and steer's acceleration cap makes it a turn, not a snap. */
   const homeward = <Q extends Pt>(b: Body, q: Q, dir: number): Q => ((q.x - b.x) * dir < 0 ? { ...q, x: b.x } : q)
+  /** THE CHASE (1.8.2, CHASE above): where defender `b` runs to get the man
+   *  with the ball, given his `route` (where the ball will be tau seconds
+   *  from now), the defender's pace `v` and how far ahead he may lead him.
+   *  Behind the ball that is a lead point on the carrier's line; ahead of it,
+   *  the cover's angle to the furthest point he still reaches just after
+   *  him; at his heels, a stride and a half behind him rather than through
+   *  him. The line is then turned towards the ball as far as it must be. */
+  const chaseTo = (b: Body, i: number, route: (tau: number) => Pt, v: number, lead: number, ch: Chase = CHASE): Pt => {
+    const now = route(0)
+    const ahead = (b.x - now.x) * d > 0.3
+    let aim: Pt | null = null
+    for (let tau = 0; tau <= lead + 1e-6; tau += 0.1) {
+      const q = route(tau), T = Math.hypot(q.x - b.x, q.y - b.y) / v
+      // there after him, and without crossing his path in front of him on
+      // the way (a cover man who aimed at the carrier himself ran into him)
+      let clear = T >= tau + ch.margin
+      for (let s = 0.25; clear && s < 0.9; s += 0.25) {
+        const c = route(s * T)
+        if (Math.hypot(b.x + (q.x - b.x) * s - c.x, b.y + (q.y - b.y) * s - c.y) < 2.4) clear = false
+      }
+      if (clear) aim = q
+      else if (aim) break
+    }
+    if (!aim && ahead) {
+      // he is coming straight at him: set, and let him go by, a step off
+      // his line if he stands on it (a man meant to be in his path is one
+      // of the men who dive at him and miss)
+      let near: Pt = now, nd = Infinity
+      for (let tau = 0; tau <= 1.5; tau += 0.1) { const q = route(tau), dd = Math.hypot(q.x - b.x, q.y - b.y); if (dd < nd) { nd = dd; near = q } }
+      const step = nd < 2.8 ? (2.8 - nd) / Math.max(nd, 0.3) : 0
+      aim = { x: b.x + (b.x - near.x) * step, y: b.y + (b.y - near.y) * step }
+    }
+    if (!aim) {
+      const nx = route(0.15), hx = nx.x - now.x, hy = nx.y - now.y, hl = Math.hypot(hx, hy)
+      const ux = hl > 0.05 ? hx / hl : d, uy = hl > 0.05 ? hy / hl : 0
+      const off = i % 2 ? 1.1 : -1.1
+      aim = { x: now.x - ux * ch.heels - uy * off, y: now.y - uy * ch.heels + ux * off }
+    }
+    // never more than maxTurn off the line to the ball
+    const ax = aim.x - b.x, ay = aim.y - b.y, bx = ball.x - b.x, by = ball.y - b.y
+    if (Math.hypot(ax, ay) > 1e-6 && Math.hypot(bx, by) > 1e-6) {
+      const ang = Math.atan2(ax * by - ay * bx, ax * bx + ay * by)
+      if (Math.abs(ang) > ch.maxTurn) {
+        const r = ang - Math.sign(ang) * ch.maxTurn, co = Math.cos(r), si = Math.sin(r)
+        aim = { x: b.x + ax * co - ay * si, y: b.y + ax * si + ay * co }
+      }
+    }
+    // (and not into his own in-goal while the play is up-field)
+    return { x: fieldX(ownLine(aim.x, ball, d)), y: fieldY(aim.y) }
+  }
+  /** where the ball will be, sampled once a frame for all fifteen of them
+   *  (tenths of a second, 3.5 s ahead) rather than walked along its curve
+   *  fifteen times over */
+  const sampled = (route: (tau: number) => Pt): ((tau: number) => Pt) => {
+    const S = Array.from({ length: 36 }, (_, k) => route(k * 0.1))
+    return tau => {
+      const f = clamp(tau / 0.1, 0, 35), i = Math.min(34, Math.floor(f)), k = f - i
+      return { x: lerp(S[i].x, S[i + 1].x, k), y: lerp(S[i].y, S[i + 1].y, k) }
+    }
+  }
+  /** OUTPACED (1.8.2): a man chasing from behind runs 7% slower than the
+   *  man with the ball, so the gap grows slowly and he never catches a try
+   *  scorer (a chaser at his own top speed ran a slow prop down and through) */
+  const outpaced = (route: (tau: number) => Pt) => {
+    const a = route(0), b = route(0.05)
+    return CHASE.outpace * Math.max(Math.hypot(b.x - a.x, b.y - a.y) / 0.05, 4)
+  }
   /** the ball is down: the verdict now, or after the TMO's look */
   const grounded = (t: number) => {
     land = t
@@ -865,6 +972,7 @@ function bake(c: ClipSpec): Baked {
         carrier = who
       }
       // before the catch: they attack, we defend; after it: we run, they chase
+      const route = caught ? sampled(tau => bezAlong(go, path, c.finish, runK(t - caught + tau, T, 0.5))) : () => ball
       for (let i = 0; i < 15; i++) {
         if (!caught) {
           const a = i === who ? { x: lerp(att[i].x, def[target].x, 0.4), y: lerp(att[i].y, def[target].y, 0.4) } : shapeDef(i, ball, -d)
@@ -872,7 +980,7 @@ function bake(c: ClipSpec): Baked {
           att[i].steer(a.x, a.y, V_PLAYER, A_PLAYER)
           if (i === passer && carrier === 15 + passer) { def[i].touch = true; def[i].hold(fieldX(def[i].x - d * 5 * DT), def[i].y); ball.x = def[i].x; ball.y = def[i].y; continue }
           const q = i === target ? { x: fieldX(def[passer].x + d * 3.5), y: fieldY(def[passer].y + (def[passer].y < 35 ? 8 : -8)) } : shapeAtt(i, ball, -d)
-          def[i].steer(q.x, q.y, V_PLAYER, A_PLAYER)
+          def[i].steer(q.x, q.y, i === target ? V_PLAYER : V_SHIFT, A_PLAYER)
         } else {
           // the interceptor is carried above; only his own shirt is skipped
           // here (a `continue` for the whole index used to freeze the
@@ -886,14 +994,16 @@ function bake(c: ClipSpec): Baked {
           if (b && !b.dove && near < 2.4) b.dove = t
           if (b && b.dove && t - b.dove < 0.3) { def[i].touch = true; def[i].steer(ball.x - d * 1.2, ball.y, V_PLAYER, A_PLAYER); continue }
           if (b && b.dove && !def[i].down && t - b.dove < 0.35) def[i].down = 1.1
-          // ahead of him they are wrong-footed; once he is past they chase
+          // ahead of him they are wrong-footed for a moment, then the cover
+          // comes across; behind him the nearest two hunt him and the rest
+          // scramble after him (1.8.2, CHASE: they used to drift back to
+          // their line, and the rest jog home, which read as running away)
           const ahead = (def[i].x - att[who].x) * d > 0.3
-          // (the rest turn for their own line rather than to a spot behind
-          // him, which a man he had just passed reached by running up-field)
-          const q = ahead ? { x: def[i].x + d * 0.4, y: def[i].y, vmax: 2.5 }
-            : homeward(def[i], hunt.has(i) ? trail(att[who], i + 3, d, 8.8)
-              : { x: fieldX(def[i].x + d * 8), y: def[i].y, vmax: 5.5 }, d)
-          def[i].steer(q.x, q.y, q.vmax, A_PLAYER)
+          const pk = paceK(c.defPace?.[i])
+          if (ahead && t - caught < CHASE.react) { def[i].steer(def[i].x, def[i].y, 3, A_PLAYER); continue }
+          const v = Math.min(V_CAP, (ahead ? CHASE.coverV : hunt.has(i) ? CHASE.huntV : CHASE.scrambleV) * pk, ahead ? Infinity : outpaced(route))
+          const q = chaseTo(def[i], i, route, v, ahead ? CHASE.coverLead : CHASE.lead)
+          def[i].steer(q.x, q.y, v, A_PLAYER)
         }
       }
     })
@@ -926,6 +1036,13 @@ function bake(c: ClipSpec): Baked {
     let follow = new Set<number>(), chase = new Set<number>()
     const nearest = (bs: Body[], p: Pt, skip: number, n: number) => new Set(bs.map((q, i) => ({ i, dd: Math.hypot(q.x - p.x, q.y - p.y) }))
       .filter(r => r.i !== skip).sort((x, y) => x.dd - y.dd).slice(0, n).map(r => r.i))
+    /** where the charged-down ball is at time tt: on the boot, then
+     *  bouncing back over their line to where the charger falls on it */
+    const looseAt = (tt: number): Pt => {
+      if (tt < KICK + HIT) return { x: block.x, y: block.y }
+      const k = clamp((tt - KICK - HIT) / T, 0, 1), e = 1 - (1 - k) * (1 - k)
+      return { x: lerp(block.x, spot.x, e), y: lerp(block.y, spot.y, e) }
+    }
     return record(endAfter, (t) => {
       if (t >= KICK && !follow.size) { follow = nearest(att, block, chargerI, 3); chase = nearest(def, block, kicker, 3) }
       if (t < PASS) { carrier = -1 }
@@ -952,6 +1069,7 @@ function bake(c: ClipSpec): Baked {
         if (!land) { grounded(KICK + HIT + T); run = [KICK, land] }
         if (t >= land) { carrier = chargerI; ball.lift = 0 }
       }
+      const loose = sampled(tau => looseAt(t + tau))
       for (let i = 0; i < 15; i++) {
         if (i === chargerI) {
           att[i].touch = true
@@ -981,13 +1099,13 @@ function bake(c: ClipSpec): Baked {
         } else {
           // the kicking side turns and chases from the field side, never from
           // behind its own dead-ball line (they all stood in-goal before)
-          const q: Pt & { vmax?: number } = t < KICK ? shapeAtt(i, start, -d)
-            // the nearest chase the loose ball, but from where they stand:
-            // sent to a spot behind the charger, a man between him and the
-            // line ran up-field and round him (1.8.1, homeward)
-            : chase.has(i) ? homeward(def[i], { x: fieldX(ball.x - d * (1.5 + (i % 3))), y: fieldY(ball.y + ((i % 3) - 1) * 2), vmax: 7.5 }, d)
-            : { x: fieldX(ownLine(def[i].x + d * 2, ball, d)), y: def[i].y, vmax: 3.5 }
-          def[i].steer(q.x, q.y, q.vmax ?? V_PLAYER, A_PLAYER)
+          // after the block every one of them goes after the loose ball, the
+          // nearest three hardest, each to where it will be (1.8.2, CHASE;
+          // the rest used to drift back to their line at a walk)
+          if (t < KICK) { const q = shapeAtt(i, start, -d); def[i].steer(q.x, q.y, V_PLAYER, A_PLAYER); continue }
+          const v = chase.has(i) ? 7.5 : CHASE.scrambleV * 0.85
+          const q = chaseTo(def[i], i, loose, v, 1.5)
+          def[i].steer(q.x, q.y, v, A_PLAYER)
         }
       }
     })
@@ -1202,7 +1320,10 @@ function bake(c: ClipSpec): Baked {
         frozen = def.map(b => ({ x: fieldX(b.x + b.vx * 0.3), y: fieldY(b.y + b.vy * 0.3) }))
         // the nearest two chase him; four all converging read as a swarm
         hunters = new Set(def.map((b, i) => ({ i, dd: Math.hypot(b.x - ph.from!.x, b.y - ph.from!.y) })).sort((a, b) => a.dd - b.dd).slice(0, 2).map(r => r.i))
-        ph.ctrl = gapLine(ph.from, ph.to)
+        // (off a crossfield kick he is over from the catch: straight in,
+        // where a line bent round the men chasing the kick made the quick
+        // wing's run the longer one)
+        ph.ctrl = c.style === 'crossfield' ? { x: (ph.from.x + ph.to.x) / 2, y: (ph.from.y + ph.to.y) / 2 } : gapLine(ph.from, ph.to)
         const skip = (i: number) => (i === 14 && ph.end === 'held') || missers.some(m => m.i === i)
         const nearest = (i: number) => {
           let bs = 0.5, bd = Infinity
@@ -1250,7 +1371,6 @@ function bake(c: ClipSpec): Baked {
     const kickNext = phases.slice(p).find(x => x.k === 'kick') as Extract<Phase, { k: 'kick' }> | undefined
     const ruckAt = ph.k === 'ruck' || ph.k === 'dig' ? ph.q : ph.k === 'run' && ph.end === 'ruck' ? ph.to : null
     const finishing = ph.k === 'run' && (ph.end === 'score' || ph.end === 'held')
-    const finishK = finishing ? runK(k, ph.dur, ph.ta!) : ph.k === 'done' || (ph.k === 'kick' && c.style !== 'chip') ? 1 : 0
     carrier = -1
 
     for (let i = 0; i < 15; i++) {
@@ -1341,10 +1461,22 @@ function bake(c: ClipSpec): Baked {
       } else att[ph.who - 1].hold(ball.x - d * 0.4, ball.y)
     }
 
+    // where the ball will be tau seconds from now, for the chase (1.8.2):
+    // the finisher on his line, or a kick in the air
+    const route: ((tau: number) => Pt) | null = finishing
+      ? sampled(tau => { const r = ph as Extract<Phase, { k: 'run' }>; return bezAlong(r.from!, r.ctrl!, r.to, runK(k + tau, r.dur, r.ta!)) })
+      : ph.k === 'kick'
+        ? sampled(tau => {
+          const kk = clamp((k + tau) / ph.dur, 0, 1), e = ph.low ? 1 - (1 - kk) * (1 - kk) : smooth(kk)
+          return { x: lerp(ph.from!.x, ph.to.x, e), y: lerp(ph.from!.y, ph.to.y, e) }
+        })
+        : null
     for (let i = 0; i < 15; i++) {
       if (carrier === 15 + i) continue
       let tgt = shapeDef(i, ball, d)
-      let vmax = V_PLAYER
+      // a defensive line shifts at a hard run, not a sprint (at a sprint the
+      // far side of it crossed the field at 11 m/s with every pass)
+      let vmax = V_SHIFT
       // a move: their set-piece shape until the ball is out, the pack after
       // it at a jog, and the man who bites on the decoy (1.8.1)
       if (script) {
@@ -1365,28 +1497,28 @@ function bake(c: ClipSpec): Baked {
       // so a man he had just passed kept running up-field to reach it. Now
       // the nearest two chase him down, the rest turn and jog back into
       // shape, and none of them is sent up-field (homeward).
-      if (finishing && frozen.length) {
+      //
+      // AND NOW THEY CHASE THE BALL (1.8.2, CHASE and chaseTo): that jog
+      // home read as running away from it. Behind him the nearest two hunt
+      // him and the rest scramble after him; ahead of him, after a moment
+      // wrong-footed, the cover comes across to cut off his line.
+      if (finishing && frozen.length && route) {
         const ahead = (def[i].x - ball.x) * d > 0.3
-        const hunt = hunters.has(i)
-        tgt = ahead ? { x: frozen[i].x + d * 0.6, y: frozen[i].y }
-          : hunt ? { x: ball.x - d * (3.5 + (i % 2) * 1.5), y: ball.y + ((i % 3) - 1) * 1.5 }
-          // the rest jog home and out of his lane, so the man he has just
-          // passed is not run through a second time as he bends his line
-          : { x: def[i].x + d * 6, y: fieldY(def[i].y + (def[i].y >= ball.y ? 5 : -5)) }
-        if (!ahead) tgt = homeward(def[i], tgt, d)
-        vmax = ahead ? 3 : hunt ? Math.min(V_CAP, 9 * paceK(c.defPace?.[i])) : 5.5
-      } else if (ph.k === 'kick' && c.style === 'chip') {
-        tgt = { x: ownLine(def[i].x + d * 0.6, ball, d), y: def[i].y }; vmax = 4
-      } else if (finishK > 0 && c.kind !== 'attack') {
-        const chase = { x: ball.x - d * (2 + (i % 5)), y: ball.y + ((i % 3) - 1) * 3 }
-        tgt = { x: lerp(tgt.x, chase.x, finishK * 0.8), y: lerp(tgt.y, chase.y, finishK * 0.8) }
-        // a kick through them (a grubber) is the same break: behind the
-        // ball, the nearest two chase it and the rest turn for their own
-        // line and out of the chasers' lane, never away from it
-        if ((def[i].x - ball.x) * d <= 0.3) {
-          if (ph.k === 'kick' && kickHunters.size && !kickHunters.has(i)) tgt = { x: def[i].x + d * 6, y: fieldY(def[i].y + (def[i].y >= ball.y ? 5 : -5)) }
-          tgt = homeward(def[i], tgt, d)
+        const pk = paceK(c.defPace?.[i])
+        if (ahead && k < CHASE.react) { tgt = frozen[i]; vmax = 3 }
+        else {
+          const v = Math.min(V_CAP, (ahead ? CHASE.coverV : hunters.has(i) ? CHASE.huntV : CHASE.scrambleV) * pk, ahead ? Infinity : outpaced(route))
+          tgt = chaseTo(def[i], i, route, v, ahead ? CHASE.coverLead : CHASE.lead); vmax = v
         }
+      } else if (route && ph.k === 'kick') {
+        // a kick through them (a grubber, a chip, a crossfield) is the same
+        // break: they chase where it will come down, the nearest two hardest
+        const v = Math.min(V_CAP, (kickHunters.has(i) ? CHASE.huntV : CHASE.scrambleV) * paceK(c.defPace?.[i]))
+        tgt = chaseTo(def[i], i, route, v, CHASE.coverLead); vmax = v
+      } else if (ph.k === 'done' && c.kind !== 'attack') {
+        // and once it is down they close on it at a jog, to a few metres off
+        const ux = def[i].x - ball.x, uy = def[i].y - ball.y, ul = Math.hypot(ux, uy) || 1, ring = 4 + (i % 4)
+        tgt = ul > ring ? { x: ball.x + ux / ul * ring, y: ball.y + uy / ul * ring } : { x: def[i].x, y: def[i].y }; vmax = 5
       }
       // the men he beats: at his line as he gets there, a dive, and the floor
       const m = finishing ? missers.find(x => x.i === i) : undefined
@@ -1406,9 +1538,19 @@ function bake(c: ClipSpec): Baked {
       if (ph.k === 'run' && ph.end === 'ruck' && ph.tackler === i && k > ph.dur - 1.1) { tgt = { x: ph.to.x + d * 0.8, y: ph.to.y }; def[i].touch = true }
       if (ph.k === 'ruck' && ph.tackler === i) { tgt = { x: ph.q.x + d * 0.8, y: ph.q.y }; def[i].touch = true }
       // the full-back's last-gasp tackle, and the openside over the ball after it
+      // (he comes up to meet him: to the first point of his line he can
+      // reach in time, not back to the spot where they will meet)
       if (c.kind === 'attack' && i === 14 && (finishing || ph.k === 'done')) {
-        tgt = finishing ? { x: ph.to.x + d * 0.8, y: ph.to.y } : { x: ball.x + d * 0.8, y: ball.y }
-        def[i].touch = true; vmax = Math.min(V_CAP, 12 * paceK(c.defPace?.[i]))
+        vmax = Math.min(V_CAP, 9.5 * paceK(c.defPace?.[i]))
+        tgt = { x: ball.x + d * 0.8, y: ball.y }
+        if (finishing && route) {
+          for (let tau = 0; tau <= 3.4; tau += 0.1) {
+            const q = route(tau)
+            if (Math.hypot(q.x + d * 0.8 - def[i].x, q.y - def[i].y) / vmax <= tau + 0.1) { tgt = { x: q.x + d * 0.8, y: q.y }; break }
+            tgt = { x: ph.to.x + d * 0.8, y: ph.to.y }
+          }
+        }
+        def[i].touch = true
       }
       if (c.kind === 'attack' && i === thiefI && ph.k === 'done' && c.ending === 'turnover') { tgt = { x: ball.x + d * 0.6, y: ball.y + 0.5 }; def[i].touch = true }
       def[i].steer(fieldX(tgt.x), fieldY(tgt.y), vmax, A_PLAYER)
