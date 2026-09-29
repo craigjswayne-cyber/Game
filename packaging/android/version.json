@@ -73,10 +73,11 @@
     "FREE AND NOT YET VERIFIED: check the highest accepted code on the Console",
     "first. Codes only have to rise, so 40 is right whichever of 38 and 39 went up.",
     "41 IS 1.8.0 (1.7.4 and the planned 1.8.1 folded in, never uploaded; the name stays PHASE: Rugby Manager): the two-layer match engine (player contests under the team), commentary with live stats and the pitch for tries and big moments, a fairer board with a first-season honeymoon, tired sides that concede more and a bench that pays, tablet and iPad layouts, opening titles, the six-language review, a new career that never overwrites a save, and the PHASE Discord linked from the menu, About and the bug report. 41 IS ASSUMED FREE AND NOT YET VERIFIED: check the highest accepted code on the Console first.",
+    "42 IS 1.8.1 (the planned 1.9 folded in): the manager remembered (decisions that come back as stories, former players met), a club identity that emerges from how it is run, dressing-room bonds and rifts, the opposition report with a match plan and post-match findings, career history that acts (rivalries that grow, legends, annals, returning to an old club), a drilled library of attacking moves, transfer windows enforced, a yearly academy sign-or-release decision, development focus for five, and the tester-note fixes. 42 IS ASSUMED FREE AND NOT YET VERIFIED: codes only have to rise, so 42 is right whether or not 41 was uploaded, but check the highest accepted code on the Console first.",
     "versionName comes from the root package.json.",
     "billingLibrary is the Play Billing Library version PhaseBilling.java is",
     "written against. Play refuses anything below 8.0.0 (learned 4 Sep 2026)."
   ],
-  "versionCode": 41,
+  "versionCode": 42,
   "billingLibrary": "8.0.0"
 }
