@@ -666,6 +666,14 @@ export interface Tactic {
   moveScrum?: string
   moveShape?: string
 
+  // ---- the attack and defence styles (1.8.2, styles.ts) ---------------------
+  /** The side's overall game with the ball and without it, by style id. A
+   *  style is a preset over the dials above plus a small effect of its own;
+   *  absent (an old save) is read off the dials as the nearest style, and
+   *  the save migration writes that in. AI clubs' come from their coach. */
+  atkStyle?: 'direct' | 'pods' | 'width' | 'kick' | 'offload'
+  defStyle?: 'drift' | 'blitz' | 'pendulum' | 'man' | 'choke'
+
   // ---- the bench economy (F4) ---------------------------------------------
   /** How the eight replacements are split between forwards and backs. Unset
    *  lets the club's tactical conviction decide, which is how AI sides end up
