@@ -342,7 +342,10 @@ export default function Tactics() {
               ['counter', 'tacticsScreen.exitCounter'],
               ['fifty22', 'tacticsScreen.exitFifty22'],
             ] as const).map(([id, label]) => {
-              const on = (tac.exit ?? 'long') === id
+              // unset is no exit plan at all, which is what the engine plays:
+              // it used to light up Long, and tapping the lit tile then
+              // switched on an effect the screen had claimed was already on
+              const on = tac.exit === id
               return (
                 <button key={id} className={`speech-tile sp-card${on ? ' sel' : ''}`} aria-pressed={on} data-opt={`exit-${id}`}
                   onClick={() => { tac.exit = id; touch() }}>
@@ -352,20 +355,21 @@ export default function Tactics() {
               )
             })}
           </div>
-          <div className="meta" style={{ marginTop: 6 }}>
-            {t(({
-              box: 'tacticsScreen.exitBoxDesc',
-              long: 'tacticsScreen.exitLongDesc',
-              counter: 'tacticsScreen.exitCounterDesc',
-              fifty22: 'tacticsScreen.exitFifty22Desc',
-            })[tac.exit ?? 'long'])}
-          </div>
+          {tac.exit && (
+            <div className="meta" style={{ marginTop: 6 }}>
+              {t(({
+                box: 'tacticsScreen.exitBoxDesc',
+                long: 'tacticsScreen.exitLongDesc',
+                counter: 'tacticsScreen.exitCounterDesc',
+                fifty22: 'tacticsScreen.exitFifty22Desc',
+              })[tac.exit])}
+            </div>
+          )}
         </div>
 
         {/* KICKING STYLE (1.7.3): what kind of kick, where the Game Plan's
             kicking dial says how many. Unset is Balanced, on the screen and in
-            the engine alike (the exit row above shows 'long' for unset while
-            the engine applies nothing - this one does not repeat that). */}
+            the engine alike, as unset is no plan on the exit row above. */}
         <SectionTitle>{t('tacticsScreen.kickStyle')}</SectionTitle>
         <div className="card">
           <div className="sp-grid">

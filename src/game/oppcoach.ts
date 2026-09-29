@@ -52,9 +52,12 @@ export function archetypeWeights(rep: number): { stubborn: number; analyst: numb
   return { stubborn: lerp(0.85, 0.08), analyst: lerp(0.10, 0.46), reactive: lerp(0.05, 0.46) }
 }
 
-/** Which kind of coach lives in this dugout. Hash of the club id: stable for
- *  the life of a save, different across clubs, no rng consumed. `rep` weights
- *  the odds (archetypeWeights) - pass the club's actual reputation; callers
+/** Which kind of coach lives in this dugout. Hash of the club id: different
+ *  across clubs, no rng consumed, and stable while the club's standing holds.
+ *  Not for the whole save: `rep` weights the odds (archetypeWeights), so a
+ *  club that climbs or falls far enough can find a different kind of coach in
+ *  its dugout, which is what a club that has changed does. Pass the club's
+ *  actual reputation; callers
  *  with no club record (a Test dugout) fall back to a strong-club default,
  *  because international rugby is the pinnacle and should be read sharply. */
 export function archetypeOf(clubId: string, rep = 78): Archetype {
