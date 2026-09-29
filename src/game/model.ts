@@ -2227,6 +2227,9 @@ export interface GameState {
   /** the manager's memory: decisions with a subject, read back later as
    *  stories (memory.ts). Absent on older saves; migrate gives an empty log. */
   memory?: import('./memory').MemoryLog
+  /** the fraction cursor for stories filed without spending nextId
+   *  (heldnews.ts): the base id it counts from and how many it has used */
+  heldIds?: { b: number; n: number }
 }
 
 /** Managerial reputation earned from results and silverware, 30-95. */
