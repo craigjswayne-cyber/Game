@@ -32,6 +32,7 @@ import type { Fixture, GameState } from './model'
 import { sortTable } from './schedule'
 import { dreamState } from './dream'
 import { isDerby } from './rivalries'
+import { historyStakes } from './history'
 
 export interface Stake {
   text: string
@@ -149,6 +150,8 @@ export function matchStakes(state: GameState, fx: Fixture): string | null {
   // the grudge's own reason is written into the save when the grudge is struck,
   // so it stays in the language it was filed in and the sentence carries it
   if (grudge) out.push({ text: t('stakes.badBlood', { reason: grudge.reason }), weight: 78 })
+  // an earned rivalry, or a club you used to manage (history.ts)
+  out.push(...historyStakes(state, fx))
   const h2h = headToHead(state, oppId)
   if (h2h.streak >= 3) out.push({ text: t('stakes.beatenRun', { club: oppName, n: h2h.streak }), weight: 76 })
 

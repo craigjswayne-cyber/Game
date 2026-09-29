@@ -12,6 +12,7 @@ import { inheritStaff } from './staff'
 import { newCoachPhilosophy, seedPhilosophies } from './philosophy'
 import { t, tIn } from './i18n'
 import { telling } from './tellings'
+import { historyLeaveJob, historyTakeJob } from './history'
 
 /**
  * ---- THE THREE MONTHS AFTER THEY SACK YOU ----
@@ -356,6 +357,7 @@ function takeJob(state: GameState, clubId: string): string {
     }
     state.userClubId = clubId
     state.unemployed = false
+    historyTakeJob(state, oldClubId) // the old club remembers how you left (history.ts)
     club.coach = undefined
     // F23: the previous coach's standing instruction is not yours, so it comes
     // off the club the moment you walk in and the dials on your tactics screen
@@ -451,6 +453,7 @@ export function eraSummary(state: GameState): string {
 
 export function resignJob(state: GameState) {
   const club = state.clubs[state.userClubId]
+  historyLeaveJob(state, 'walked')
   state.unemployed = true
   // bids for the old club's players die with the job - they were addressed to
   // the manager of that club, and answering one from a new desk sold Alex
@@ -475,6 +478,7 @@ export function resignJob(state: GameState) {
  *  club/manager/era. */
 export function sackManager(state: GameState, k: string, extraV: Record<string, string | number> = {}) {
   const club = state.clubs[state.userClubId]
+  historyLeaveJob(state, 'sacked')
   state.unemployed = true
   // and the board remembers for three months (SACK_COOLOFF). Written here
   // rather than at either call site, for the same reason the rest of the
