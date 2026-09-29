@@ -16,6 +16,7 @@ import { MARQUEE_SLOTS, marqueeOpen, toggleMarquee } from '../../game/cap'
 import { answerRequest, canAnswerRequest, canChat, chatBudget, praisePlayer, warnPlayer } from '../../game/chats'
 import { attrBand, attrBandIndex, attrName, persName, posName, t, traitInfo, traitName, localeTag } from '../../game/i18n'
 import { Glyph } from '../glyphs'
+import ScoutReportCard from '../ScoutReport'
 
 export default function PlayerScreen({ playerId }: { playerId: number }) {
   const game = useStore(s => s.game)!
@@ -229,6 +230,8 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           <Glyph name="agency" /> {t(`scoutStage.${reportStage(game, p)}`)}
         </div>
       )}
+      {/* what the staff believe (recruit.ts): strengths, fit, agent, rival talk */}
+      {!mine && <ScoutReportCard game={game} p={p} />}
       <div className="chips">
         <span className="chip" title={t('player.valueTitle')}>{t('player.value')} <b>{fmtMoney(seenValue(game, p))}</b>{!mine && know < 95 && <span className="muted"> ?</span>}</span>
         {/* the ceiling as the scouts read it (1.8.2): a band that narrows as
