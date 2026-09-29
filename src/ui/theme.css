@@ -3308,6 +3308,9 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   font-size: 14px; line-height: 1.5; font-style: italic; color: var(--text-secondary);
 }
 .wire-body .news-fact, .wire-body .news-list li, .wire-body .news-quotes blockquote { font-size: 14px; }
+/* the address never breaks across two lines on a phone (owner, 1.8.2) */
+.bug-mail { white-space: nowrap; }
+.news-go { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; margin: 10px 0 0; padding: 0 14px; font-size: 13px; }
 
 /* ---- people named in a story (feedback 10F) -----------------------------
    A story already knows who it is about; it just never offered them. */

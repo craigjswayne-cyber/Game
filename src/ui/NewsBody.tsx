@@ -1,5 +1,8 @@
 import type { ReactNode } from 'react'
 import { paragraphs } from './components'
+import { useStore, type Screen } from '../store'
+import { t } from '../game/i18n'
+import type { NewsItem } from '../game/model'
 
 /**
  * ---- A STORY THAT CARRIES DATA READS AS DATA (1.8.2) ----
@@ -105,5 +108,39 @@ export function NewsBody({ body }: { body: string }) {
         )
       })}
     </>
+  )
+}
+
+/**
+ * ---- WHERE A STORY'S BUSINESS IS DONE, AS A TAP (1.8.2) ----
+ *
+ * Owner: "no tips in news". The stories used to end on a sentence pointing at
+ * a screen ("Respond from the Transfers screen", "Answer it on your Manager
+ * Profile"). The sentence is gone; a story that asks for something done
+ * elsewhere carries one quiet link there instead, named by the screen's own
+ * title so it reads as a place, not an instruction.
+ */
+const NEWS_GO: Record<string, [Screen, string?]> = {
+  bidIn: ['offers'], bidDeadline: ['offers'], biddingWar: ['offers'],
+  natOffer: ['profile'], natAppointed: ['profile'],
+  natSquad: ['country'],
+  crisisCover: ['transfers'],
+  mentFailing: ['report', 'mentoring'], mentorSpread: ['report', 'mentoring'],
+  dreamRefocus: ['legacy'],
+  armband: ['tactics'],
+  inheritedStaff: ['training'], inheritedStaffVacant: ['training'],
+  backItUp: ['saves'],
+  jobOffered: ['jobs'],
+}
+
+export function NewsGo({ n }: { n: NewsItem }) {
+  const go = useStore(s => s.go)
+  const base = (n.k ?? '').replace(/^news\./, '').replace(/_[fw]$/, '')
+  const to = NEWS_GO[base]
+  if (!to) return null
+  return (
+    <button className="btn ghost news-go" onClick={() => go(to[0], to[1])}>
+      {t(`titles.${to[0]}`)} <span aria-hidden>›</span>
+    </button>
   )
 }

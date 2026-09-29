@@ -415,8 +415,8 @@ export function aiTransfers(state: GameState, rng: Rng) {
       id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
       subject: deadline ? `Deadline-day bid: ${p.name}` : `Bid received: ${p.name}`,
       body: deadline
-        ? `${bidder.name} have come in late for ${p.name} - ${fmtMoney(fee)}, and the panic premium is baked in. The window shuts within days: respond from the Transfers screen or the offer dies with it.`
-        : `${bidder.name} have tabled a bid of ${fmtMoney(fee)} for ${p.name}. Respond via the Transfers screen - the offer will not stay open for long.`,
+        ? `${bidder.name} have come in late for ${p.name} - ${fmtMoney(fee)}, and the panic premium is baked in. The window shuts within days, and the offer dies with it.`
+        : `${bidder.name} have tabled a bid of ${fmtMoney(fee)} for ${p.name}. The offer will not stay open for long.`,
       k: deadline ? 'news.bidDeadline' : 'news.bidIn',
       v: { player: p.name, bidder: bidder.name, fee: fmtMoney(fee) },
       playerId: p.id,

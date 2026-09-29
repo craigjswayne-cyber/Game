@@ -899,12 +899,8 @@ function manageInternationals(state: GameState, rng: Rng) {
             },
             body: [
               `The federation has published your ${travelling.length}-man squad for the window. ${newCaps ? `${newCaps} uncapped name${newCaps > 1 ? 's' : ''} in the room.` : 'A fully capped group.'}`,
-              '',
-              `FORWARDS: ${fwd.map(line).join('; ')}`,
-              '',
-              `BACKS: ${bks.map(line).join('; ')}`,
-              '',
-              'Shape the squad and pick your Test XV from the Club & Country screen before each match.',
+              `Forwards | ${fwd.map(line).join('; ')}`,
+              `Backs | ${bks.map(line).join('; ')}`,
             ].join('\n'),
           })
         }
@@ -1151,7 +1147,7 @@ function weeklyTraining(state: GameState, rng: Rng) {
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'contract', read: false,
         subject: `${p.name} wants improved terms`,
-        body: `${p.name}'s agent has been on the phone: his client is playing the house down (avg ${(p.stats.ratingSum / Math.max(1, p.stats.apps)).toFixed(2)}) on ${fmtMoney(p.wage)}/week, and the market rate is well north of that. He has ${p.contractEnds - state.season} year${p.contractEnds - state.season > 1 ? 's' : ''} left, but leave it unresolved and his head will drop - and other clubs will smell it. Offer a new deal from his player page.`,
+        body: `${p.name}'s agent has been on the phone: his client is playing the house down (avg ${(p.stats.ratingSum / Math.max(1, p.stats.apps)).toFixed(2)}) on ${fmtMoney(p.wage)}/week, and the market rate is well north of that. He has ${p.contractEnds - state.season} year${p.contractEnds - state.season > 1 ? 's' : ''} left, but leave it unresolved and his head will drop - and other clubs will smell it.`,
         k: 'news.wantsTerms',
         v: {
           player: p.name, avg: (p.stats.ratingSum / Math.max(1, p.stats.apps)).toFixed(2),
@@ -1343,7 +1339,7 @@ function weeklyTraining(state: GameState, rng: Rng) {
           state.news.push({
             id: state.nextId++, week: state.week, season: state.season, type: 'contract', read: false,
             subject: `${p.name}'s agent goes public`,
-            body: `Two months of silence from the club, so the agent has taken it to the papers: "${p.name} is one of the best-performing players in the league and the club knows our position." Rival clubs will have noticed. Sort a new deal on his player page - or brace for bids.`,
+            body: `Two months of silence from the club, so the agent has taken it to the papers: "${p.name} is one of the best-performing players in the league and the club knows our position." Rival clubs will have noticed. Sort a new deal, or brace for bids.`,
             k: 'news.agentPublic',
             v: { player: p.name },
             playerId: p.id,
@@ -2822,7 +2818,7 @@ export function processWeekAndAdvance(state: GameState) {
         body: [
           `The physio's board makes grim reading at ${tIn('en', grp.label)}: ${fit.length} fit of ${all.length} on the books.${down.length ? ` Out: ${down.join(', ')}.` : ''}`,
           cover.length
-            ? `The assistant has three calls he could make tonight - loan cover available: ${cover.map(p => `${p.name} (${p.pos}, ${p.age}, ${state.clubs[p.clubId!]?.short})`).join(', ')}. Transfers screen, Loans tab.`
+            ? `The assistant has three calls he could make tonight - loan cover available: ${cover.map(p => `${p.name} (${p.pos}, ${p.age}, ${state.clubs[p.clubId!]?.short})`).join(', ')}.`
             : `The loan market has nothing suitable this week. Youth, patience, or a positional reshuffle - your call.`,
         ].join('\n'),
         k: cover.length ? 'news.crisisCover' : 'news.crisis',
@@ -4020,8 +4016,8 @@ export function processWeekAndAdvance(state: GameState) {
         id: state.nextId++, week: state.week, season: state.season, type: 'contract', read: false,
         subject: `${expiring.length} contract${expiring.length > 1 ? 's' : ''} expiring`,
         body: `${tIn('en', rung[1])} until these deals end: ${named.map(p => `${p.name} (${p.pos}, ${p.age})`).join(', ')}`
-          + `${expiring.length > named.length ? ` and ${expiring.length - named.length} more - full list on Team ▸ Contracts` : ''}.`
-          + ` Offer new terms from their profiles, or they are free to talk to anyone.`,
+          + `${expiring.length > named.length ? ` and ${expiring.length - named.length} more` : ''}.`
+          + ` Without new terms, they are free to talk to anyone.`,
         k: expiring.length > named.length ? 'news.expiringMore' : 'news.expiring',
         v: {
           n: expiring.length, more: expiring.length - named.length,
@@ -4058,7 +4054,7 @@ export function processWeekAndAdvance(state: GameState) {
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
       subject: `${nat} want you as national head coach`,
-      body: `The union has been watching your work and wants you to take the national side alongside your club job - Test windows, championship campaigns, maybe a World Championship. Accept or decline from your Manager Profile. The offer won't stay open long.`,
+      body: `The union has been watching your work and wants you to take the national side alongside your club job - Test windows, championship campaigns, maybe a World Championship. The offer won't stay open long.`,
       k: 'news.natOffer', v: { nat },
     })
   }
@@ -4073,7 +4069,7 @@ export function processWeekAndAdvance(state: GameState) {
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
           subject: `${nat} want you as national head coach`,
-          body: `The union has been watching your work and wants you to take the national side alongside your club job - Test windows, championship campaigns, maybe a World Championship. Accept or decline from your Manager Profile. The offer won't stay open long.`,
+          body: `The union has been watching your work and wants you to take the national side alongside your club job - Test windows, championship campaigns, maybe a World Championship. The offer won't stay open long.`,
           k: 'news.natOffer', v: { nat },
         })
       }
