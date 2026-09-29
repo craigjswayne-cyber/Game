@@ -301,7 +301,7 @@ export function flushMemoryNews(state: GameState): void {
     // a thousand stories on one base is not a week that happens; if it ever
     // did, the story takes a whole id like anything else rather than collide
     const id = log.fs < 1000 ? base + log.fs / 1000 : state.nextId++
-    state.news.push({ ...n, id })
+    state.news.push({ ...n, id, k: n.k, v: n.v })
   }
   log.queue = []
   if (state.news.length > NEWS_CAP) state.news = state.news.slice(-NEWS_CAP)
