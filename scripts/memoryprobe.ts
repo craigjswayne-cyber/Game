@@ -11,7 +11,8 @@
  *   3. THE DECISIONS ARE RECORDED where they happen: a release, a sale, a knock
  *      played through, a transfer request answered, a staff sacking.
  *   4. EVERY PAYOFF FIRES, and names the right man and the right decision: a
- *      released man captains a rival, a sold man scores against you, an academy
+ *      released man captains a rival, a sold man scores against you or just
+ *      lines up against you (the strongest story told, once), an academy
  *      debutant is capped, a broken promise is remembered and agents price it.
  *   5. IN A REAL CAREER, left to run for several seasons with the manager letting
  *      men go, at least one memory story fires on its own, and every one names a
@@ -189,6 +190,42 @@ const leagueRival = (g: GameState) => {
   g.week = 21
   memoryAfterMatch(g, { ...fx, id: 999_002, week: 21 })
   ok(memNews(g, 'mem.tryVs').length === 1, 'the same man scoring again is not a second story')
+  ok(memNews(g, 'mem.metVs').length === 0, 'and having scored, he is never merely "met" afterwards')
+
+  // b2. a notable man simply turning out against you, the first time only
+  const quiet = { ...fx, events: undefined, motm: undefined }
+  const squadNow = seniors(g, me).sort((a, b) => b.ca - a.ca)
+  const star = squadNow[1], nobody = squadNow[squadNow.length - 1]
+  executeTransfer(g, star, rival.id, 1_500_000)
+  executeTransfer(g, nobody, rival.id, 100_000)
+  const starE = recall(g, { kind: 'sold', playerId: star.id })[0]
+  const nobodyE = recall(g, { kind: 'sold', playerId: nobody.id })[0]
+  ok(starE.payload?.nb === 1 && nobodyE.payload?.nb == null, `${star.name} is notable when he goes, the squad's lowest-rated man is not`)
+  g.week = 23
+  nobody.lastWk = g.week
+  memoryAfterMatch(g, { ...quiet, id: 999_003, week: 23 })
+  ok(memNews(g, 'mem.metVs').length === 0, 'a man nobody would notice facing you is not news')
+  g.week = 24
+  star.lastWk = g.week; nobody.lastWk = g.week
+  memoryAfterMatch(g, { ...quiet, id: 999_004, week: 24 })
+  const metStory = memNews(g, 'mem.metVs')[0]
+  ok(!!metStory && metStory.playerId === star.id && metStory.v?.how_k === 'mem.howSold' && metStory.body.includes(star.name) && metStory.body.includes(rival.name),
+    `${star.name} lining up against you is told, with how he left: "${metStory?.body.slice(0, 100)}..."`)
+  ok(!/\{|\}/.test(tIn('fr', metStory!.k!, metStory!.v)) && tIn('fr', metStory!.k!, metStory!.v).includes('vendu'), 'and in French')
+  g.week = 25
+  star.lastWk = g.week
+  memoryAfterMatch(g, { ...quiet, id: 999_005, week: 25 })
+  ok(memNews(g, 'mem.metVs').length === 1, 'the second meeting is not a second story')
+  // the strongest wins: a notable man who also takes the award is the award story
+  const both = squadNow[2]
+  executeTransfer(g, both, rival.id, 1_000_000)
+  g.week = 26
+  both.lastWk = g.week
+  const before26 = memNews(g).length
+  memoryAfterMatch(g, { ...quiet, id: 999_006, week: 26, motm: both.id })
+  const told26 = memNews(g).slice(before26)
+  ok(told26.length === 1 && told26[0].k === 'mem.motmVs' && told26[0].playerId === both.id,
+    'a match that offers the award and a meeting tells the award, once')
 
   // c. the academy debut you gave, and the cap that follows
   g.week = 22
@@ -307,16 +344,22 @@ const leagueRival = (g: GameState) => {
   const total = per.reduce((x, y) => x + y, 0)
   // THE FLOOR. The design is rare on purpose: one memory story a week at most,
   // STORIES_PER_SEASON a season, each payoff once per man. These careers use
-  // only the market half of it (releases, a sale, contracts run down). Measured
-  // on these five seeds at 626a531: 0, 2, 1, 1, 3 stories - 7 in 15 seasons,
-  // about one every two seasons, all of them a former man scoring or taking the
-  // match award against you. Per career that is roughly Poisson with a mean
-  // near 1.4, so a single career comes up empty one time in four; pooled, the
-  // chance of the five together falling under 3 is about 3 in 100. So: at least
-  // 3 across the pool and a story in at least 2 of the 5 careers. Low enough
-  // that an unrelated change to the world cannot trip it, high enough that a
-  // broken payoff path (the tally, the follow, the pacing) cannot hide.
-  const FLOOR = 3
+  // only the market half of it (releases, a sale, contracts run down).
+  //
+  // Measured on these five seeds. At 626a531, before the former-player-met
+  // payoff: 0, 2, 1, 1, 3 - 7 in 15 seasons, one story every two seasons, while
+  // a man you had let go faced you 2.2 times a season unremarked. Too rare to
+  // be felt. With the meeting told (the first time a notable man lines up
+  // against you): 3, 3, 3, 3, 5 - 17 in 15 seasons, 1.13 a season (met 10,
+  // award 4, try 3).
+  //
+  // Per career that is roughly Poisson with a mean near 3.4. Pooled, the five
+  // fall under 9 about 3 times in 100, and one career comes up empty about 3
+  // times in 100, two about once. So: at least 9 across the pool, and a story
+  // in at least 4 of the 5 careers. Low enough that an unrelated change to the
+  // world cannot trip it, high enough that a broken payoff path (the tally,
+  // the follow, the meeting, the pacing) cannot hide.
+  const FLOOR = 9
   const careerSeasons = SEEDS.length * SEASONS
   console.log(`  ${SEEDS.length} careers x ${SEASONS} seasons in ${((Date.now() - t0) / 1000).toFixed(0)}s`)
   console.log(`  memory stories per career: ${per.join(', ')} - ${total} in ${careerSeasons} seasons (${(total / careerSeasons).toFixed(2)} a season)`)
@@ -324,7 +367,7 @@ const leagueRival = (g: GameState) => {
   console.log(`  a man you let go played against you ${met} times (${(met / careerSeasons).toFixed(1)} a season)`)
   ok(true, 'every career filled the log, stayed under the cap, and every story named a man it remembers, with no hole or key showing')
   ok(total >= FLOOR, `the market decisions alone come back as stories: ${total} across ${careerSeasons} seasons (floor ${FLOOR})`)
-  ok(per.filter(n => n > 0).length >= 2, `and in more than one career, not one lucky one (${per.filter(n => n > 0).length} of ${SEEDS.length})`)
+  ok(per.filter(n => n > 0).length >= 4, `and in nearly every career, not one lucky one (${per.filter(n => n > 0).length} of ${SEEDS.length})`)
 }
 
 // ---- 6. it moves no match ----

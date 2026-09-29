@@ -8255,6 +8255,8 @@
     "tryVs": "{how_k} Aujourd'hui, sous les couleurs de {club}, {player} a marqué un essai contre vous. Le parcage visiteur a veillé à ce que vous l'entendiez bien.",
     "motmVsSubj": "{player} règle ses comptes",
     "motmVs": "{how_k} Aujourd'hui, {player} a reçu la distinction du match avec {club}, contre vous. En tribune de presse, personne n'a eu besoin qu'on lui fasse un dessin.",
+    "metVsSubj": "{player} retrouve son ancien club",
+    "metVs": "{how_k} Aujourd'hui, {player} a joué contre vous sous les couleurs de {club}. Des poignées de main au coup de sifflet final, et quelques longs regards vers votre banc.",
     "captainVsSubj": "{club} confie le brassard à {player}",
     "captainVs": "{how_k} {club} a désormais confié le brassard à {player}, et ce club joue dans votre championnat. Vous croiserez ce brassard de l'autre côté de la ligne médiane avant longtemps.",
     "signedRivalSubj": "{player} refait surface à {club}",

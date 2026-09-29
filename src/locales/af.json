@@ -8192,6 +8192,8 @@
   "tryVs": "{how_k} Vandag, in die kleure van {club}, het {player} 'n drie teen jou gedruk. Die besoekers se pawiljoen het gesorg dat jy dit hoor.",
   "motmVsSubj": "{player} maak 'n punt",
   "motmVs": "{how_k} Vandag is {player} as die speler van die wedstryd vir {club} aangewys, teen jou. Niemand in die persbank het nodig gehad dat die verband uitgespel word nie.",
+  "metVsSubj": "{player} ontmoet die ou klub",
+  "metVs": "{how_k} Vandag het {player} in die kleure van {club} teen jou gespeel. Daar was handdrukke by die eindfluitjie, en een of twee lang kyke na jou bank.",
   "captainVsSubj": "{club} gee die kapteinsband aan {player}",
   "captainVs": "{how_k} {club} het {player} nou as kaptein aangestel, en hulle speel in jou liga. Jy sal daardie kapteinsband binnekort oorkant die middellyn sien.",
   "signedRivalSubj": "{player} duik op by {club}",

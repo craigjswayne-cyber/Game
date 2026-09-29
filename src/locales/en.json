@@ -8152,6 +8152,8 @@
   "tryVs": "{how_k} Today {player} came back in {club} colours and crossed for a try against you. The away end made sure you heard about it.",
   "motmVsSubj": "Point proved: {player}",
   "motmVs": "{how_k} Today {player} was named player of the match for {club}, against you. Nobody in the press box needed the connection spelled out.",
+  "metVsSubj": "{player} meets the old club",
+  "metVs": "{how_k} Today {player} lined up against you in {club} colours. There were handshakes at the final whistle, and one or two long looks towards your dugout.",
   "captainVsSubj": "{player} handed the {club} captaincy",
   "captainVs": "{how_k} {club} have now made {player} their captain, and they are in your league. You will see that armband across the halfway line before long.",
   "signedRivalSubj": "{player} resurfaces at {club}",

@@ -8040,6 +8040,8 @@
   "tryVs": "{how_k} Hoy, con la camiseta de {club}, {player} te ha marcado un ensayo. La grada visitante se aseguró de que lo oyeras.",
   "motmVsSubj": "{player} ajusta cuentas",
   "motmVs": "{how_k} Hoy, {player} se llevó el galardón del partido con {club}, contra ti. En la tribuna de prensa nadie necesitó que le explicaran la relación.",
+  "metVsSubj": "{player} se reencuentra con su antiguo club",
+  "metVs": "{how_k} Hoy {player} jugó contra ti con la camiseta de {club}. Hubo apretones de manos al pitido final, y alguna mirada larga hacia tu banquillo.",
   "captainVsSubj": "{club} entrega la capitanía a {player}",
   "captainVs": "{how_k} {club} ha entregado la capitanía a {player}, y juega en tu liga. Verás ese brazalete al otro lado de la línea de medio campo antes de lo que crees.",
   "signedRivalSubj": "{player} reaparece en {club}",
