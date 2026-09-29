@@ -7,6 +7,7 @@ import { careerVerdict, clockLine, mayRetire, retire } from '../../game/career'
 import { nemesis, protegeLine } from '../../game/records'
 import { CHALLENGES } from '../../game/newgame'
 import { horizon, horizonPct } from '../../game/legacy'
+import { annalsFor } from '../../game/history'
 import { ord, t, compLabel } from '../../game/i18n'
 import { Glyph } from '../glyphs'
 
@@ -270,6 +271,10 @@ export default function Legacy() {
                         <div key={j} style={{ color: 'var(--gold)', fontSize: 11, fontWeight: 700 }}>
                           <Glyph name="trophy" /> {compLabel(game.comps[t.compId]?.name) ?? t.compId}
                         </div>
+                      ))}
+                      {/* the annals: the season's story in a line or three (history.ts) */}
+                      {annalsFor(game, f.season, f.clubId).map((line, j) => (
+                        <div key={`a${j}`} className="muted" style={{ fontSize: 11, fontWeight: 400, whiteSpace: 'normal' }}>{line}</div>
                       ))}
                     </td>
                     <td className="num" style={{ fontWeight: 700, color: f.pos === 1 ? 'var(--gold)' : undefined }}>
