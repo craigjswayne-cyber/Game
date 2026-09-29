@@ -84,6 +84,14 @@ ok(/mailto:info@fwdsandbcks\.com/.test(html), 'and carries the contact address f
 // the publisher is the company, by its registered name (1.8.0)
 ok(/A game by <a href="https:\/\/www\.fwdsandbcks\.com\/">FWDS &amp; BCKS LTD<\/a>/.test(html), 'it names the publisher and links to the studio site')
 ok(/href="https:\/\/discord\.gg\/3KKfDVsMb"/.test(html), 'and to the PHASE Discord')
+// app-ads.txt at the site root (1.8.0): AdMob checks the developer website on
+// the store listing for it, and serves fewer, cheaper adverts to an app whose
+// site does not vouch for its publisher id
+{
+  const adsTxt = existsSync('landing/app-ads.txt') ? readFileSync('landing/app-ads.txt', 'utf8') : ''
+  const pub = JSON.parse(readFileSync('packaging/shell/ads.json', 'utf8')).android.appId.match(/pub-\d+/)?.[0] ?? '?'
+  ok(adsTxt.includes(`google.com, ${pub}, DIRECT, f08c47fec0942fa0`), `app-ads.txt vouches for the AdMob publisher the shells are built with (${pub})`)
+}
 // and the version it advertises is the one that ships, so the page cannot
 // quietly go on selling last season's game
 {
