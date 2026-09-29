@@ -70,6 +70,7 @@ jobs:
           test -f site/privacy.html
           test -f site/CNAME
           test -f site/google59479af58f8cd344.html
+          test -f site/app-ads.txt
           grep -q 'Rugby Manager' site/index.html
           # the game must NOT be here. A stray index at any depth below the root
           # would be a playable build nobody meant to publish.
