@@ -285,6 +285,9 @@ const leagueRival = (g: GameState) => {
   const per: number[] = []
   const byKey: Record<string, number> = {}
   let met = 0
+  // the kinds whose payoffs tell a story about a man, each written with his name
+  const TELLING = new Set(['released', 'sold', 'let-go', 'academy-debut', 'rushed-back', 'promise-broken'])
+  const unnamed: string[] = []
   for (const seed of SEEDS) {
     const g = newGame('northampton', 'Career', seed)
     let maxLen = 0
@@ -312,7 +315,21 @@ const leagueRival = (g: GameState) => {
         const wk = g.week
         processWeekAndAdvance(g)
         maxLen = Math.max(maxLen, g.memory?.entries.length ?? 0)
-        for (const n of memNews(g)) seen.set(n.id, n)
+        // CHECKED AS IT IS TOLD, against the log as it stands that week: the
+        // story must name a man through an entry of a kind that tells stories,
+        // under the name that entry wrote down, and that entry must have spent
+        // a payoff. (Checked at the end, a later prune could hide the entry, and
+        // the first entry found for a man can belong to another module - the
+        // bonds work records cliques in the same log - which is exactly how
+        // seed 187 came to fail: the story was right, the lookup was not.)
+        for (const n of memNews(g)) {
+          if (seen.has(n.id)) continue
+          seen.set(n.id, n)
+          if (n.playerId == null) continue
+          const ok1 = (g.memory?.entries ?? []).some(e => e.playerId === n.playerId && TELLING.has(e.kind) &&
+            e.payload?.name === n.v?.player && (e.paid?.length ?? 0) > 0)
+          if (!ok1) unnamed.push(`seed ${seed} s${n.season}w${n.week} ${n.k} ${n.v?.player}`)
+        }
         // how often a man you let go actually played against you: the
         // opportunities the match payoffs have to work with
         const uf = g.fixtures.find(f => f.played && f.week === wk && f.compId !== 'fr' && (f.homeId === g.userClubId || f.awayId === g.userClubId))
@@ -333,10 +350,6 @@ const leagueRival = (g: GameState) => {
     const tag = `seed ${seed}`
     if (!(log.entries.length > 0 && kinds.has('released') && kinds.has('sold') && kinds.has('let-go'))) ok(false, `${tag}: a career fills the log with releases, sales and men let go`)
     if (maxLen > MEMORY_CAP) ok(false, `${tag}: the log passed the cap (peak ${maxLen})`)
-    const remembered = new Set(log.entries.map(e => e.playerId).filter(x => x != null))
-    const named = stories.filter(n => n.playerId != null)
-    if (!named.every(n => remembered.has(n.playerId!) && (n.v?.player === g.players[n.playerId!]?.name || n.v?.player === log.entries.find(e => e.playerId === n.playerId)?.payload?.name)))
-      ok(false, `${tag}: a story names a man the log does not remember`)
     if (!stories.every(n => !/\{|\}/.test(n.body) && !n.body.includes('mem.'))) ok(false, `${tag}: a story leaks a hole or a key`)
     const perSeason = Math.max(0, ...Array.from({ length: SEASONS + 1 }, (_, s) => stories.filter(n => n.season === s).length))
     if (perSeason > 9) ok(false, `${tag}: a season carried ${perSeason} memory stories`)
@@ -365,7 +378,8 @@ const leagueRival = (g: GameState) => {
   console.log(`  memory stories per career: ${per.join(', ')} - ${total} in ${careerSeasons} seasons (${(total / careerSeasons).toFixed(2)} a season)`)
   console.log(`  by kind: ${Object.entries(byKey).map(([k, v]) => `${k.slice(4)} ${v}`).join(', ') || 'none'}`)
   console.log(`  a man you let go played against you ${met} times (${(met / careerSeasons).toFixed(1)} a season)`)
-  ok(true, 'every career filled the log, stayed under the cap, and every story named a man it remembers, with no hole or key showing')
+  ok(unnamed.length === 0, `every story named, as it was told, a man the log remembered under that name${unnamed.length ? ` - ${unnamed.slice(0, 3).join('; ')}` : ''}`)
+  ok(true, 'every career filled the log, stayed under the cap, and no story showed a hole or a key')
   ok(total >= FLOOR, `the market decisions alone come back as stories: ${total} across ${careerSeasons} seasons (floor ${FLOOR})`)
   ok(per.filter(n => n > 0).length >= 4, `and in nearly every career, not one lucky one (${per.filter(n => n > 0).length} of ${SEEDS.length})`)
 }
