@@ -110,8 +110,9 @@ export const MATCHUP: Record<AtkStyle, Record<DefStyle, number>> = {
   offload: { drift: -1, blitz: 0, pendulum: 0, man: 1, choke: 0 },
 }
 
-/** what one step of the matchup is worth on the try chance (0.045 = 4.5%) */
-export const MATCH_K = 0.045
+/** what one step of the matchup is worth on the try chance (0.04 = 4%): measured
+ *  on the pitch (styleprobe) at a little under a point of margin a match */
+export const MATCH_K = 0.04
 
 export interface StyleFx {
   /** multiplier on the attack's try chance: the line breaks it makes (an
@@ -134,19 +135,19 @@ export interface StyleFx {
 }
 
 export const ATK_FX: Record<AtkStyle, StyleFx> = {
-  direct: { tryF: 0.95, penF: 1.08, turn: 0.75, ground: 0.4, terr: 0, drain: 1.0 },
-  pods: { tryF: 1.0, penF: 1.03, turn: 0.9, ground: 0.2, terr: 0, drain: 1.01 },
+  direct: { tryF: 0.95, penF: 1.05, turn: 0.75, ground: 0.4, terr: 0, drain: 1.0 },
+  pods: { tryF: 1.02, penF: 1.03, turn: 0.9, ground: 0.2, terr: 0, drain: 1.01 },
   width: { tryF: 1.06, penF: 0.95, turn: 1.15, ground: 0, terr: 0, drain: 1.02 },
   kick: { tryF: 0.93, penF: 0.98, turn: 0.85, ground: 0, terr: 0.5, drain: 0.98 },
-  offload: { tryF: 1.07, penF: 0.97, turn: 1.35, ground: 0, terr: 0, drain: 1.05 },
+  offload: { tryF: 1.08, penF: 0.97, turn: 1.35, ground: 0, terr: 0, drain: 1.05 },
 }
 
 export const DEF_FX: Record<DefStyle, StyleFx> = {
-  drift: { tryF: 1.0, penF: 0.94, turn: 0.95, ground: 0, terr: 1, drain: 1.0 },
+  drift: { tryF: 1.015, penF: 0.94, turn: 0.95, ground: 0, terr: 1, drain: 1.0 },
   blitz: { tryF: 0.96, penF: 1.08, turn: 1.1, ground: 0, terr: 1.2, drain: 1.04 },
   pendulum: { tryF: 1.04, penF: 0.98, turn: 0.95, ground: 0, terr: 0.4, drain: 0.99 },
-  man: { tryF: 1.0, penF: 1.0, turn: 1.0, ground: 0, terr: 1, drain: 1.01 },
-  choke: { tryF: 1.0, penF: 1.02, turn: 1.35, ground: 0, terr: 1, drain: 1.01 },
+  man: { tryF: 0.985, penF: 1.0, turn: 1.0, ground: 0, terr: 1, drain: 1.01 },
+  choke: { tryF: 0.99, penF: 1.02, turn: 1.35, ground: 0, terr: 1, drain: 1.01 },
 }
 
 /** how many kicks from hand each attack puts in, on the engine's rate

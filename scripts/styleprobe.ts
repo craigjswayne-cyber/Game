@@ -28,7 +28,7 @@ import { readFileSync } from 'node:fs'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { newGame } from '../src/game/newgame'
-import { beginMatch, playHalf, type SideCtx } from '../src/game/matchEngine'
+import { beginMatch, playHalf, resolveDecision, stepTick, type SideCtx } from '../src/game/matchEngine'
 import { migrate } from '../src/game/save'
 import { mulberry32 } from '../src/game/rng'
 import type { Attrs, Fixture, GameState } from '../src/game/model'
@@ -85,8 +85,9 @@ console.log('\n--- 2. presets and old saves\n')
   const m = migrate(old)
   const mt = m.clubs[m.userClubId].tactic
   ok(mt.atkStyle === 'kick' && mt.defStyle === 'drift', `an old save is named the nearest styles (${mt.atkStyle}, ${mt.defStyle})`)
-  const { atkStyle: _a, defStyle: _d, ...rest } = mt
-  ok(JSON.stringify(rest) === JSON.stringify(JSON.parse(before)), 'and its dials are left where they were')
+  const dials = ['style', 'tempo', 'kicking', 'aggression', 'defLine', 'defWidth', 'ruckContest', 'ruckCommit', 'kickStyle'] as const
+  const was = JSON.parse(before)
+  ok(dials.every(k => mt[k] === was[k]), 'and its dials are left where they were')
   migrateStyles(m)
   ok(mt.atkStyle === 'kick' && mt.defStyle === 'drift', 'the migration is idempotent')
 }
@@ -192,9 +193,16 @@ function play(ua: AtkStyle, od: DefStyle, ud: DefStyle = 'pendulum', oa: AtkStyl
     ctx.assistantSubs = true
     let fieldSum = 0, ticks = 0
     const homeMe = ctx.home.teamId === me
-    // the field position, read from the user's side, half by half
-    playHalf(h, ctx); fieldSum += homeMe ? ctx.field : 100 - ctx.field; ticks++
-    playHalf(h, ctx); fieldSum += homeMe ? ctx.field : 100 - ctx.field; ticks++
+    // played tick by tick, as playSegment plays it, so the field position
+    // can be read from the user's side after every tick
+    for (;;) {
+      ctx.awaiting = null
+      if (ctx.decision) resolveDecision(h, ctx, 'posts')
+      const r = stepTick(h, ctx)
+      if (ctx.decision) resolveDecision(h, ctx, 'posts')
+      fieldSum += homeMe ? ctx.field : 100 - ctx.field; ticks++
+      if (r === 'FT') break
+    }
     const mine: SideCtx = homeMe ? ctx.home : ctx.away
     const theirs: SideCtx = homeMe ? ctx.away : ctx.home
     c.margin += mine.score - theirs.score
@@ -217,22 +225,38 @@ for (const a of ATK_STYLES) { cells[a] = {}; for (const d of DEF_STYLES) cells[a
   console.log(`  margin by cell over ${pool.length} matches (user attack by row into the opposition's defence), [table step]`)
   console.log('            ' + DEF_STYLES.map(d => d.padStart(12)).join(''))
   for (const a of ATK_STYLES) console.log(`  ${a.padEnd(10)}` + DEF_STYLES.map(d => `${fmt(M(a, d)).padStart(8)}[${MATCHUP[a][d] >= 0 ? '+' : ''}${MATCHUP[a][d]}]`).join(''))
-  // the interaction: each cell less its row and its column
+  // THE MATCHUP, READ OFF THE TRY CHANCES. The margin of 60 matches carries
+  // about two points of noise a cell, twice what one step of the table is
+  // worth, so the matchup is read where the engine makes it: the expected
+  // tries (the sum of the try chance over the match), which has none of the
+  // dice of who actually scored. Each cell less its row and its column, in
+  // per cent of the attack's own average.
+  const X = (a: AtkStyle, d: DefStyle) => cells[a][d].xFor
+  const xg = mean(ATK_STYLES.flatMap(a => DEF_STYLES.map(d => X(a, d))))
+  const xr = Object.fromEntries(ATK_STYLES.map(a => [a, mean(DEF_STYLES.map(d => X(a, d)))]))
+  const xc = Object.fromEntries(DEF_STYLES.map(d => [d, mean(ATK_STYLES.map(a => X(a, d)))]))
+  const inter = (a: AtkStyle, d: DefStyle) => (X(a, d) - xr[a] - xc[d] + xg) / xr[a] * 100
   const xs: number[] = [], ys: number[] = []
-  for (const a of ATK_STYLES) for (const d of DEF_STYLES) { xs.push(MATCHUP[a][d]); ys.push(M(a, d) - rowM[a] - colM[d] + grand) }
+  for (const a of ATK_STYLES) for (const d of DEF_STYLES) { xs.push(MATCHUP[a][d]); ys.push(inter(a, d)) }
   const mx = mean(xs), my = mean(ys)
   const cov = mean(xs.map((x, i) => (x - mx) * (ys[i] - my)))
   const r = cov / Math.sqrt(mean(xs.map(x => (x - mx) ** 2)) * mean(ys.map(y => (y - my) ** 2)))
   const slope = cov / mean(xs.map(x => (x - mx) ** 2))
-  ok(r > 0.6 && slope > 0.6, `the measured matchup follows the table (r ${r.toFixed(2)}, ${slope.toFixed(2)} points a match a step)`)
+  console.log('  the matchup in expected tries, each cell less its row and column (% of the attack\'s average)')
+  for (const a of ATK_STYLES) console.log(`  ${a.padEnd(10)}` + DEF_STYLES.map(d => `${fmt(inter(a, d)).padStart(8)}[${MATCHUP[a][d] >= 0 ? '+' : ''}${MATCHUP[a][d]}]`).join(''))
+  ok(r > 0.8 && slope > 2, `the measured matchup follows the table (r ${r.toFixed(2)}, ${slope.toFixed(1)}% of a side's try chances a step)`)
+  ok(ATK_STYLES.every(a => {
+    const up = DEF_STYLES.filter(d => MATCHUP[a][d] > 0), down = DEF_STYLES.filter(d => MATCHUP[a][d] < 0)
+    return mean(up.map(d => inter(a, d))) > mean(down.map(d => inter(a, d)))
+  }), 'every attack does better against the defences the table says it beats than against the ones it says beat it')
   const spreadA = Math.max(...Object.values(rowM)) - Math.min(...Object.values(rowM))
   const spreadD = Math.max(...Object.values(colM)) - Math.min(...Object.values(colM))
-  console.log(`  attack means: ${ATK_STYLES.map(a => `${a} ${fmt(rowM[a] - grand)}`).join('  ')}`)
+  console.log(`  attack means (margin): ${ATK_STYLES.map(a => `${a} ${fmt(rowM[a] - grand)}`).join('  ')}`)
   console.log(`  defence means (the user's margin into it; lower is the stronger defence): ${DEF_STYLES.map(d => `${d} ${fmt(colM[d] - grand)}`).join('  ')}`)
+  // the margin of a row is five cells of 60, so about 0.9 of a point of noise:
+  // the limit is the optionsprobe's, a style is not a meta at 4 points a match
   ok(spreadA <= 4, `no attack dominates: the best and worst against the whole mix are ${spreadA.toFixed(2)} points a match apart (limit 4)`)
   ok(spreadD <= 4, `no defence dominates: ${spreadD.toFixed(2)} points a match apart (limit 4)`)
-  ok(ATK_STYLES.every(a => DEF_STYLES.some(d => M(a, d) - grand > 0) && DEF_STYLES.some(d => M(a, d) - grand < 0)),
-    'every attack has a defence it does better than average against, and one it does worse against')
 
   // each style's own currency
   const avg = (f: (c: Cell) => number, a?: AtkStyle, d?: DefStyle) => mean(ATK_STYLES.filter(x => !a || x === a)

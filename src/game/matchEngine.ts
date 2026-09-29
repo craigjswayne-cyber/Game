@@ -15,7 +15,7 @@ import { derbyName, isDerby } from './rivalries'
 import { EXPLOITED_BY, analystEdge, settleAnalyst } from './analyst'
 import { t, tIn } from './i18n'
 import { venueEffect } from './venue'
-import { clamp, gauss, mulberry32, wpick, type Rng } from './rng'
+import { clamp, gauss, hashString, mulberry32, wpick, type Rng } from './rng'
 import { KNOCK_ENERGY } from './knock'
 import { DEFAULT_LINEOUT, DEFAULT_SCRUM, ROUTINE_BY_ID, playbookOf, routineEffect } from './playbook'
 import { MOVE_BY_ID, MOVE_MAKER, callFor, callsOf, launchOf, moveEdge, moveFit, moveHash, moveMatchup, moveTempoF, sayKey, type Launch } from './moves'
@@ -1809,6 +1809,8 @@ const DROP_MISS = ['comm.dropMiss1', 'comm.dropMiss2', 'comm.dropMiss3', 'comm.d
  *  what happens next, at any point in the game. */
 export interface LiveCtx {
   fx: Fixture
+  /** the salt of the styles' turnover hash (styleSalt), set on first use */
+  stySalt?: number
   home: SideCtx
   away: SideCtx
   rng: Rng
@@ -2856,6 +2858,12 @@ function describeStyle(state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideC
   const n = 1 + Math.floor(ctx.crng() * 2)
   if (st.m > 0) colour(state, ctx, side, `styles.cAtk_${side.sty.atk}${n}`, v)
   else colour(state, ctx, opp, `styles.cDef_${opp.sty.def}${n}`, { ...v, team: v.opp, opp: v.team })
+}
+
+/** the per-match salt of the style's turnover hash: the world, the season,
+ *  the fixture and who is playing it, cached on the match */
+function styleSalt(state: GameState, ctx: LiveCtx): number {
+  return (ctx.stySalt ??= hashString(`${state.seed}|${state.season}|${ctx.fx.id}|${ctx.fx.homeId}|${ctx.fx.awayId}`))
 }
 
 /** A turnover the style made, named for the defence that made it: watched only. */
@@ -4274,11 +4282,14 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     // THE STYLE, WHEN THE TICK CAME TO NOTHING (1.8.2): a direct side still
     // won a little of the gain line, and any side can be turned over - an
     // offload that goes to ground, a flat pass picked off, a carrier held up
-    // in the choke tackle. On a hash of the fixture and the tick, never a
-    // draw, as the moves' ground is (above).
+    // in the choke tackle. On a hash, never a draw, as the moves' ground is
+    // (above): of the world, the fixture and the two sides as well as the
+    // tick, because a fixture's id alone repeats from world to world (every
+    // new career's first fixture is the same number) and the same ticks
+    // would be turned over in all of them.
     if (r >= pTry + penWindow && side.score + opp.score === scores0 && side.sty && opp.sty) {
       if (st.ground) backTowards(ctx, side, -st.ground)
-      if (moveHash(ctx.fx.id, tick, side === home ? 3 : 4, 0x57) < st.turnP) {
+      if (moveHash(styleSalt(state, ctx), tick, side === home ? 3 : 4, 0x57) < st.turnP) {
         backTowards(ctx, side, TURN_M)
         opp.styTurnWon = (opp.styTurnWon ?? 0) + 1
         describeTurnover(state, ctx, side, opp, st)
