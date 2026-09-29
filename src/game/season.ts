@@ -53,7 +53,7 @@ import { historyAfterMatch, historyPreview, historyWeight } from './history'
 import { playAcademyWeek } from './academy'
 import { canBeMentored, mentorGraduations, mentorReports, mentorWeek } from './mentoring'
 import { t, tIn, type Vars } from './i18n'
-import { memoryAfterMatch, memoryWeek, rememberPromise } from './memory'
+import { flushMemoryNews, memoryAfterMatch, memoryWeek, rememberPromise } from './memory'
 
 export function weekRng(state: GameState): Rng {
   return mulberry32(state.seed ^ (state.season * 131 + state.week * 7919))
@@ -4387,6 +4387,7 @@ If you go, your assistant takes your national side for the duration. Nobody prep
   setUpForUser(state, userFixtureThisWeek(state))
   // and the week's history: a former club, a legend on the other side (history.ts)
   historyPreview(state)
+  flushMemoryNews(state) // memory.ts stories held through the settle take their ids now
 
   // (derby build-up now lives in the pre-advance block above, with the
   // all-time ledger - the old duplicate beat here was removed)

@@ -32,7 +32,7 @@ import { sackStaff, appointStaff, staffCandidates } from '../src/game/staff'
 import { SEASON_WEEKS, seasonLabel, type GameState, type Player } from '../src/game/model'
 import {
   MEMORY_CAP, agentWariness, memoryAfterMatch, memoryWeek, migrateMemory, recall, remember,
-  rememberDebut, rememberPromise,
+  noteMemory, rememberDebut, rememberPromise,
 } from '../src/game/memory'
 import { ensureLang, tIn } from '../src/game/i18n'
 
@@ -46,7 +46,10 @@ const ok = (c: boolean, what: string) => {
 
 const seniors = (g: GameState, clubId: string) =>
   g.clubs[clubId].players.map(id => g.players[id]).filter((p): p is Player => !!p && !p.acad)
-const memNews = (g: GameState, k?: string) => g.news.filter(n => n.k?.startsWith('mem.') && (!k || n.k === k))
+// stories are held until the settle ends (memory.ts tell), so a hook called
+// directly here has filed into the queue, not the inbox yet
+const memNews = (g: GameState, k?: string) => [...g.news, ...(g.memory?.queue ?? []).map(n => ({ ...n, id: -1 }))]
+  .filter(n => n.k?.startsWith('mem.') && (!k || n.k === k))
 const leagueRival = (g: GameState) => {
   const me = g.clubs[g.userClubId]
   return Object.values(g.clubs).find(c => c.id !== me.id && c.leagueId === me.leagueId)!
@@ -284,24 +287,63 @@ const leagueRival = (g: GameState) => {
 }
 
 // ---- 6. it moves no match ----
+// News, players and fixtures share state.nextId, and a fixture's dice are
+// seeded from its id: a story filed mid-settle would shift a cup tie drawn
+// later in the same settle onto other dice. Memory holds its stories until the
+// settle is over (memory.ts tell/flushMemoryNews). Held to it here week by
+// week, over a season and a bit: every fixture's id and every score, with a
+// full memory log and with none.
 {
+  const WEEKS = SEASON_WEEKS + 6
   const play = (full: boolean) => {
     const g = newGame('leicester', 'Rng', 186)
     if (full) {
-      // departures of men at other clubs, a promise broken, a debut: payoffs
-      // with every chance to fire during the season
+      // departures of men now at other clubs: the follow-him, rival-signing,
+      // captaincy, cap and match payoffs all have a chance to fire
       const others = Object.values(g.players).filter(p => p.clubId && p.clubId !== g.userClubId && !p.acad).slice(0, 120)
       for (const p of others) remember(g, { kind: 'released', playerId: p.id, clubId: g.userClubId, payload: { name: p.name, from: g.userClubId, caps: 0 }, sal: 2 })
-      const mine = seniors(g, g.userClubId)
-      rememberPromise(g, mine[3], false, 'plans')
     }
-    for (let w = 0; w < 30; w++) processWeekAndAdvance(g)
-    return { scores: g.fixtures.filter(f => f.played).map(f => `${f.homeId}${f.homeScore}-${f.awayScore}${f.awayId}`).join('|'), g }
+    const weeks: string[] = []
+    let queued = 0
+    for (let w = 0; w < WEEKS; w++) {
+      if (!g.unemployed) g.clubs[g.userClubId].boardConfidence = Math.max(g.clubs[g.userClubId].boardConfidence, 55)
+      processWeekAndAdvance(g)
+      queued += g.memory?.queue?.length ?? 0
+      weeks.push(g.fixtures.map(f => `${f.id}:${f.homeId}${f.played ? `${f.homeScore}-${f.awayScore}` : '_'}${f.awayId}`).join('|'))
+    }
+    return { weeks, g, queued }
   }
   const a = play(false)
   const b = play(true)
-  ok(memNews(b.g).length >= 1, `the full memory told ${memNews(b.g).length} stories in thirty weeks`)
-  ok(a.scores.length > 1000 && a.scores === b.scores, 'and every match finished with the same score as it did without them')
+  const told = (b.g.memory?.entries ?? []).filter(e => e.paid?.length).length
+  ok(told >= 1, `the full memory told stories about ${told} of its subjects in ${WEEKS} weeks`)
+  ok(b.queued === 0, 'and none was ever left waiting for an id between weeks')
+  const ids = b.g.news.map(n => n.id)
+  ok(new Set(ids).size === ids.length && b.g.news.some(n => n.k?.startsWith('mem.') && !Number.isInteger(n.id)),
+    'the stories took ids between the others without spending the counter, and no two share one')
+  const healed = migrate(JSON.parse(JSON.stringify(b.g)) as GameState)
+  ok(Number.isInteger(healed.nextId) && healed.nextId === b.g.nextId, `a save and load leaves the counter whole (${healed.nextId})`)
+  const firstDiff = a.weeks.findIndex((w, i) => w !== b.weeks[i])
+  if (firstDiff >= 0) {
+    const x = a.weeks[firstDiff].split('|'), y = b.weeks[firstDiff].split('|')
+    const d = x.map((t, i) => [t, y[i]]).filter(([t, u]) => t !== u)
+    console.log(`        ${x.length} vs ${y.length} fixtures, ${d.length} differ, first: ${d.slice(0, 4).map(([t, u]) => `${t} / ${u}`).join('  ')}`)
+  }
+  ok(a.weeks.length === WEEKS && a.weeks[0].length > 1000 && firstDiff === -1,
+    firstDiff === -1 ? `every fixture id and every score identical, week by week, for ${WEEKS} weeks`
+      : `fixtures first differ after week ${firstDiff + 1}`)
+}
+
+// ---- 7. the other modules' notes land in the log ----
+{
+  const g = newGame('northampton', 'Notes', 187)
+  const a = noteMemory(g, { kind: 'plan_followed', clubId: 'bath', payload: { plan: 'kick', followed: true, junk: { x: 1 } } })
+  ok(!!a && a.kind === 'plan-followed' && a.payload?.followed === 1 && !('junk' in (a.payload ?? {})), 'a followed plan is remembered, payload kept to what a save holds')
+  ok(noteMemory(g, { kind: 'plan_ignored', clubId: 'bath' })?.kind === 'plan-ignored', 'an ignored plan too')
+  ok(noteMemory(g, { kind: 'rivalry-born', clubId: 'bath' })?.kind === 'rivalry-formed', 'a rivalry formed')
+  ok(noteMemory(g, { kind: 'left-sacked', clubId: 'northampton' })?.sal === 3 && noteMemory(g, { kind: 'took-job', clubId: 'bath' })?.kind === 'took-job',
+    'the jobs a manager takes and leaves')
+  ok(noteMemory(g, { kind: 'nonsense' }) === null && recall(g).length === 5, 'and an unknown kind is left out')
 }
 
 console.log(fails === 0
