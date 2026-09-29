@@ -248,7 +248,7 @@ console.log('--- 2. it moves with events')
 console.log('--- 5 + 7. capped, small and bounded over simulated seasons')
 {
   const h = clone(fresh)
-  let maxPairs = 0, maxBytes = 0, maxDelta = 0, stories = 0, maxMs = 0, sumMs = 0, calls = 0
+  let maxPairs = 0, maxBytes = 0, maxDelta = 0, stories = 0, maxMs = 0, sumMs = 0, calls = 0, idsSpent = 0
   let cohMin = 1, cohMax = 1, cohSum = 0, cohN = 0
   const seasons0 = h.season
   let weeks = 0
@@ -263,6 +263,7 @@ console.log('--- 5 + 7. capped, small and bounded over simulated seasons')
     if (bondsReport.week >= 0) {
       maxDelta = Math.max(maxDelta, bondsReport.maxDelta)
       stories += bondsReport.stories
+      idsSpent += bondsReport.ids
       maxMs = Math.max(maxMs, bondsReport.ms); sumMs += bondsReport.ms; calls++
     }
     if (h.bonds) {
@@ -273,6 +274,7 @@ console.log('--- 5 + 7. capped, small and bounded over simulated seasons')
   const aiLedger = Object.values(h.clubs).every(c => c.id === h.userClubId || bondCohesion(h, c.id, c.tactic.lineup) === 1)
   console.log(`      two seasons: max pairs ${maxPairs}, max ${maxBytes} bytes, max weekly morale move ${maxDelta.toFixed(2)}, ${stories} stories, cohesion ${cohMin.toFixed(4)}..${cohMax.toFixed(4)} (mean ${(cohSum / Math.max(1, cohN)).toFixed(4)}), pass ${(sumMs / Math.max(1, calls)).toFixed(2)}ms mean / ${maxMs.toFixed(1)}ms max`)
   ok(maxPairs <= MAX_PAIRS, `never more than ${MAX_PAIRS} pairs`)
+  ok(idsSpent === 0, `the ledger, its stories and its knocks spend no id from the counter fixtures draw from (${idsSpent} in two seasons)`)
   ok(maxBytes < 2500, 'the ledger stays under 2.5KB in the save')
   ok(maxDelta <= 1.0, 'no man moves more than a point of morale in a week because of it')
   ok(stories >= 1 && stories <= 40, 'it has something to say, and does not flood the inbox (1-40 stories in two seasons)')
@@ -349,6 +351,12 @@ console.log('--- 8. every line in six languages')
 
 // ------------------------------------------------------------------ 10
 console.log('--- 10. the rest of the world does not notice')
+/** Which settle an id-ledger row belongs to: its label is w<season>.<week>. */
+function weekIndex(t: { weeks: string[]; weekLabels?: string[] }, row: string): number {
+  const lab = row.split(':')[0]
+  const i = (t.weekLabels ?? []).indexOf(lab)
+  return i < 0 ? 0 : i
+}
 {
   // Twin careers from one seed, a season and a half each (scripts/lib/
   // bondstwin.ts): the ledger live in one, switched off in the other. Every
@@ -361,14 +369,33 @@ console.log('--- 10. the rest of the world does not notice')
     execFileSync('npx', ['vite-node', 'scripts/lib/bondstwin.ts', mode, f], { stdio: 'ignore', timeout: 1_200_000 })
     return JSON.parse(readFileSync(f, 'utf8')) as { weeks: string[]; list: string; pairs: number; stories: number }
   }
-  const A = twin('on', 'on'), B = twin('off', 'off'), C = twin('off', 'control')
+  type Twin = { weeks: string[]; weekLabels: string[]; list: string; pairs: number; stories: number; ids: string[] }
+  const A = twin('on', 'on') as Twin, B = twin('off', 'off') as Twin, C = twin('off', 'control') as Twin
   const diff = A.weeks.findIndex((w, i) => w !== B.weeks[i])
   const results = A.weeks[A.weeks.length - 1]?.split('|').length ?? 0
-  console.log(`      ${A.weeks.length} weeks, ${results} AI results on the books; ledger on: ${A.pairs} pairs, ${A.stories} stories${diff >= 0 ? `; first difference at week ${diff + 1}` : ''}`)
-  ok(B.weeks.join() === C.weeks.join(), 'control: two runs with the ledger off agree with each other')
+  // THE ONE HONEST EXCEPTION. The ledger moves the user club's morale, and two
+  // existing systems read morale and file a story on a WHOLE id mid-settle
+  // (gametime.ts transfer requests, authority.ts discipline incidents). Once
+  // one of those fires in one world and not the other, every later fixture id
+  // shifts by one and the dice move with it: the same thing happens when the
+  // manager praises a player. So the AI's results must be identical up to the
+  // first week the two worlds' id ledgers differ, and that difference must be
+  // one of those existing stories, never the ledger's own.
+  const idDiff = A.ids.findIndex((w, i) => w !== B.ids[i])
+  const at = (t: Twin) => (idDiff >= 0 ? t.ids[idDiff] : '')
+  const week = (row: string) => row.split(':')[0]
+  const cause = idDiff >= 0 ? `${at(B).slice(0, 160)} | ${at(A).slice(0, 160)}` : ''
+  console.log(`      ${A.weeks.length} weeks, ${results} AI results on the books; ledger on: ${A.pairs} pairs, ${A.stories} stories`)
+  console.log(`      AI results first differ at week ${diff < 0 ? 'never' : diff + 1}; the id ledgers first differ ${idDiff < 0 ? 'never' : `at ${week(at(A))}`}${cause ? `: off ${cause}` : ''}`)
+  ok(B.weeks.join() === C.weeks.join() && B.ids.join() === C.ids.join(), 'control: two runs with the ledger off agree with each other')
   ok(A.pairs > 0 && B.pairs === 0, 'one twin kept a ledger, the other none')
-  ok(A.weeks.length > 60 && A.weeks.length === B.weeks.length && diff < 0, 'every AI-v-AI fixture had the same id and score, every week of a season and a half')
-  ok(A.list === B.list, 'and the AI fixture list the two worlds hold is id for id the same')
+  ok(A.weeks.length > 60 && A.weeks.length === B.weeks.length, 'both twins played a season and a half')
+  // the id row's label names the settle it happened in
+  const firstIdWeekIdx = idDiff < 0 ? A.weeks.length : weekIndex(A, at(A))
+  ok(diff < 0 || diff >= firstIdWeekIdx, `every AI-v-AI result matched, id and score, until the id ledgers parted (${diff < 0 ? 'all' : diff} of ${A.weeks.length} weeks identical)`)
+  const ownStory = /news\.bond|talk\.mate|\bmate\b/
+  ok(idDiff < 0 || (!ownStory.test(at(A)) && !ownStory.test(at(B))), 'and what parted them was an existing morale-driven story, not one of the ledger\'s own')
+  if (diff < 0) ok(A.list === B.list, 'the AI fixture list the two worlds hold is id for id the same')
   rmSync(dir, { recursive: true, force: true })
 }
 
