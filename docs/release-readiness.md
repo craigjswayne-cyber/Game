@@ -739,8 +739,9 @@ report is `docs/qa-report-1.8.1.md`.
 
 ### The evidence
 
-The full suite is still running at the time of writing; its result goes into
-`docs/qa-report-1.8.1.md` and here. Already measured on the balance branch:
+Final: default suite 282 passed, 0 failed; every long probe passes; GitHub's
+engine shards are green (`docs/qa-report-1.8.1.md`). Measured on the balance
+branch:
 bandcheck about 49.6 points, 6.3 tries, 53.2% home, 1.8% draws, 8.8%
 blowouts, every band inside. Two releasesim lines and the aiecon references
 were re-referenced on measurement, each explained in the QA report; the
