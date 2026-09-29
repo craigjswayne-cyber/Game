@@ -1,6 +1,7 @@
 import type { Pos } from '../data/types'
 import { mulberry32 } from './rng'
 import { t, tIn, type Vars } from './i18n'
+import type { LiveStamp } from './resume'
 
 export type { Pos }
 
@@ -2101,6 +2102,11 @@ export interface GameState {
    *  the assistant takes it. A phone career is 40 matches a season and not all
    *  of them deserve ninety taps. */
   viewPref?: Record<string, 'full' | 'highlights' | 'instant'>
+  /** A match in progress, inside a save written while it was being played
+   *  (game/resume.ts stampedSave, 1.8.2). The rest of the save is the state
+   *  from before kick-off; opening it resumes the match rather than offering it
+   *  again. Absent on every save written outside a live match. */
+  liveRec?: LiveStamp
   /** open promises made to players in the office, settled at their due week */
   pledges?: Pledge[]
   /** who has raised what behind the office door, and when. A conversation the

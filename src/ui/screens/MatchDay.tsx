@@ -1857,6 +1857,25 @@ function Live() {
         )}
       </div>
 
+      {/* THE MATCH IS STILL GOING (1.8.2, tester note 1.4). A reload, a closed
+          app or a reopened save brings a kicked-off match back here, paused,
+          rather than offering it again. One honest line and one way on: there
+          is no button to throw it away, because throwing it away was how a
+          losing match used to be played again. */}
+      {live.resumed && (
+        <div className="card resume-note" role="status">
+          <div className="meta">
+            {t(done ? 'matchday.stillOver' : 'matchday.stillGoing', {
+              opp: teamShort(game, ctx.userSideId === fixture.homeId ? fixture.awayId : fixture.homeId),
+            })}
+          </div>
+          <button className="btn gold block" style={{ marginTop: 8 }} data-ctl="resume-live"
+            onClick={() => useStore.getState().ackResume()}>
+            {t('matchday.resume')}
+          </button>
+        </div>
+      )}
+
       {/* NOT WHILE THE TIE IS STILL LEVEL. The stamp reads the score off the
           event under the cursor, and in a knockout the engine's own full time
           lands BEFORE sudden death has been played - so a tie stamped DRAWN at

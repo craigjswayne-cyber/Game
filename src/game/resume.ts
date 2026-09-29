@@ -40,6 +40,27 @@
  * is what scripts/resumeprobe.ts is for: it plays matches with scripted
  * interventions, cuts them off at several different points, resumes, and compares
  * the whole event stream against the match that was never interrupted.
+ *
+ * ---- A MATCH KICKED OFF IS A MATCH TO FINISH (1.8.2) ----
+ *
+ * Tester note 1.4: losing, closing the game and opening it again threw the
+ * match away, because opening a career from the title cleared this record, and
+ * a record at 0' was not offered at all. So a result could be rerolled. The
+ * owner's decision was that it must not be. Now:
+ *
+ *   the record is offered from the moment play is pressed (resumeFits);
+ *   every way into a career looks for it (store.setGame, store.resume), in its
+ *     own slot, in any other slot the same career was copied or imported into,
+ *     and inside the save itself (stampedSave: what Game Status writes to a
+ *     slot or a file mid-match);
+ *   there is no way to discard it: it goes only when the finished career has
+ *     been written (store.dropResume);
+ *   and Kick Off and the assistant refuse while a match is live or being found.
+ *
+ * The dice were never the problem: matchRng is a function of the career and
+ * the week, so the same calls always give the same match. scripts/noscumprobe.ts
+ * reopens a match through the real load path at every point a player might
+ * pull the plug and holds the result to the match played straight through.
  */
 import type { Fixture, GameState } from './model'
 import {
@@ -98,7 +119,13 @@ export interface MatchResume {
    *  1.6.3, which therefore never fit and are cleared. */
   seed?: number
   saveName?: string
+  /** the other side's name, for the title screen's "your match against X is
+   *  still going" line, which has no career loaded to look it up in (1.8.2) */
+  opp?: string
 }
+
+/** A record without its pre-match state: what a save carries inside itself. */
+export type LiveStamp = Omit<MatchResume, 'pre'>
 
 /** The shape of a live match, rebuilt. */
 export interface Resumed {
@@ -171,6 +198,11 @@ export function replayMatch(state: GameState, rec: MatchResume): Resumed | null 
   const target = Math.max(0, Math.min(20, Math.floor(rec.tick)))
   let guard = 0
   while (ctx.tick < target && ctx.seg < 3 && guard++ < 40) {
+    // PLAY WENT ON, SO THE INTERVAL WAS LEFT. The manager pressed Start Second
+    // Half (store.startSecondHalf clears this) before the tick that follows a
+    // break; the replay has to do the same or a match resumed at 48' comes
+    // back showing the half-time panel over the second half (1.8.2).
+    if (ctx.awaiting) ctx.awaiting = null
     stepTick(state, ctx)
     applyUpTo(ctx.tick)
   }
@@ -183,6 +215,52 @@ export function resumeFits(rec: MatchResume | null | undefined, state: GameState
   if (rec.seed !== state.seed || rec.saveName !== state.saveName) return false
   if (rec.season !== state.season || rec.week !== state.week) return false
   const fx = state.fixtures.find(f => f.id === rec.fxId)
-  // if the fixture has since been played, the match finished without this record
-  return !!fx && !fx.played && rec.tick > 0
+  // if the fixture has since been played, the match finished without this record.
+  //
+  // FROM THE MOMENT PLAY IS PRESSED (1.8.2). This used to ask for tick > 0, so a
+  // match reloaded before its first simulated minute was thrown away and could
+  // be kicked off again with a different team talk, a different view or the
+  // assistant in charge. A record exists because the manager kicked off; that is
+  // the point after which the match is his to finish, not to restart.
+  return !!fx && !fx.played && typeof rec.tick === 'number' && rec.tick >= 0
+}
+
+/** The same career, whatever else has happened to it since. */
+export function sameCareer(rec: { seed?: number; saveName?: string } | null | undefined, state: GameState): boolean {
+  return !!rec && rec.seed === state.seed && rec.saveName === state.saveName
+}
+
+/** How far a record has got, for choosing the furthest of several copies of
+ *  the same match (one per slot it was saved into, and one inside a save). */
+export function recordReach(rec: Pick<MatchResume, 'cmds' | 'tick' | 'cursor'>): number {
+  return (rec.cmds?.length ?? 0) * 1e6 + (rec.tick ?? 0) * 1e3 + Math.min(999, rec.cursor ?? 0)
+}
+
+/**
+ * ---- A SAVE WRITTEN MID-MATCH CARRIES THE MATCH (1.8.2) ----
+ *
+ * The game in memory during a match is neither the pre-match save nor the
+ * finished one: the engine has already written tries, cards and injuries onto
+ * the players. The Game Status screen's save-to-slot, Export and Share used to
+ * write it as it stood, and the copy reopened as an unplayed fixture on a squad
+ * already carrying half a match of injuries, to be kicked off again from zero.
+ *
+ * What they write instead is the pre-match save with the match stamped inside
+ * it: the fixture, the talk, the view and every call the manager has made so
+ * far. Opened anywhere, on this device or another, the stamp is replayed and
+ * the match carries on from the same minute with the same result.
+ */
+export function stampedSave(rec: MatchResume): GameState {
+  const { pre, ...small } = rec
+  return { ...pre, liveRec: JSON.parse(JSON.stringify(small)) as LiveStamp }
+}
+
+/** The record a stamped save carries, with the save itself as its pre-match
+ *  state, or null if it carries none. */
+export function stampedRecord(state: GameState): MatchResume | null {
+  const stamp = state.liveRec
+  if (!stamp || typeof stamp !== 'object' || stamp.v !== 1) return null
+  const pre = JSON.parse(JSON.stringify(state)) as GameState
+  delete pre.liveRec
+  return { ...stamp, pre }
 }
