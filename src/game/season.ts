@@ -35,7 +35,7 @@ import { disciplineWeek } from './authority'
 import { updateAgency } from './agency'
 import { OBJECTIVE_DEFS } from './objectives'
 import { derbyName, isDerby, rivalsOf } from './rivalries'
-import { NAT_DEPTH, NAT_SQUAD_FLOOR, NAT_SQUAD_SIZE, NAT_TIERS, pickableNations, homeBased, nationByCode, nationNameIn, nationVars, regenName, worldNames } from './nations'
+import { NAT_DEPTH, NAT_SQUAD_FLOOR, NAT_SQUAD_SIZE, NAT_TIERS, pickableNations, homeBased, clubQuotaLeft, conflictedClub, federationPick, releaseClubDuty, nationByCode, nationNameIn, nationVars, regenName, worldNames } from './nations'
 import { isMyClub, logDecision } from './model'
 import { resolveCourses, staffWageBill } from './staff'
 import { resolveCommission, scoutPostcard } from './commission'
@@ -846,6 +846,11 @@ function manageInternationals(state: GameState, rng: Rng) {
         // arrives, so a Test is never played with twelve men.
         if (nat === state.natTeam) {
           state.natSquads[nat] = []
+          state.natSent = []
+          // ...except for his own club's men the federation would take, when he
+          // runs a club as well: they are released to camp as they would be to
+          // any AI federation, so leaving them home is not his to decide (9.10)
+          releaseClubDuty(state, nat, w.size)
           // THE SUMMONS, not an announcement. The federation is waiting on him
           // rather than handing him a team sheet, and it says so in the inbox
           // as well as holding Continue - one of those is a reminder and the
@@ -966,6 +971,7 @@ function manageInternationals(state: GameState, rng: Rng) {
           }
         }
         delete state.natSquads[nat]
+        if (nat === state.natTeam) delete state.natSent
       }
       if (lionsHome.length) {
         // a tour changes a player: he comes home a bigger presence
@@ -4525,14 +4531,26 @@ function fillShortNatSquad(state: GameState) {
   const playing = state.fixtures.some(f =>
     !f.played && f.week === state.week && (f.homeId === nat || f.awayId === nat))
   if (!playing) return
+  // a club coach's due men go to camp before the Test whatever he named (9.10)
+  const size = activeWindows(state).find(w =>
+    w.nations.includes(nat) && state.week >= w.start && state.week <= w.end)?.size ?? NAT_SQUAD_SIZE
+  if (state.natSquads[nat]) releaseClubDuty(state, nat, size)
   const named = state.natSquads[nat] ?? []
   if (named.length >= NAT_SQUAD_FLOOR) return
   const inCamp = new Set(named)
-  const spare = Object.values(state.players)
+  const candidates = Object.values(state.players)
     .filter(p => !inCamp.has(p.id) && (nat === 'LIO' ? HOME4_NAT.includes(p.nat) : p.nat === nat) &&
       p.clubId && homeBased(state, p, nat) && !p.injury && !p.natSquad)
     .sort((a, b) => b.ca - a.ca)
-    .slice(0, NAT_SQUAD_FLOOR - named.length)
+  // the top-up obeys the same club quota the coach does (9.10), or naming a
+  // short squad would let the federation's top-up do the raiding for him
+  const fed = conflictedClub(state) ? federationPick(state, nat, size) : []
+  const spare: Player[] = []
+  for (const p of candidates) {
+    if (spare.length >= NAT_SQUAD_FLOOR - named.length) break
+    if (clubQuotaLeft(state, nat, size, [...named, ...spare.map(q => q.id)], p.clubId!, fed) <= 0) continue
+    spare.push(p)
+  }
   if (!spare.length) return
   for (const p of spare) {
     named.push(p.id)

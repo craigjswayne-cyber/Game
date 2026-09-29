@@ -631,6 +631,8 @@ export function migrate(s: GameState): GameState {
     s.estateClubs = s.estateMaxed && maxedHere ? [s.userClubId] : []
   }
   s.natLineup ??= null
+  // 9.10's sent-home list: absent before it existed, and a damaged one is just dropped
+  if (s.natSent != null && !Array.isArray(s.natSent)) delete s.natSent
   s.objectives ??= ['youth', 'derby']
   s.finHist = list(s.finHist) as typeof s.finHist
   s.boardOwed ??= false
