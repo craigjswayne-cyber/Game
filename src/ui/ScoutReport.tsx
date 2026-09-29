@@ -19,8 +19,10 @@ export default function ScoutReportCard({ game, p }: { game: GameState; p: Playe
     [t('recruit.concerns'), r.concerns.length ? r.concerns.map(n => noteWord(n, 'c')).join(' · ')
       : <span className="muted">{t(r.stage === 0 ? 'recruit.notSeen' : 'recruit.nothing')}</span>],
     [t('recruit.personality'), r.pers ? <b>{persName(r.pers)}</b> : <span className="muted">{t('recruit.persPending')}</span>],
-    [t('recruit.level'), <b>{band(r.level)}</b>],
-    [t('recruit.ceiling'), r.ceiling ? <b>{band(r.ceiling)}</b> : <span className="muted">{t('recruit.noRead')}</span>],
+    [t('recruit.level'), <>
+      <b>{band(r.level)}</b>{' · '}{t('recruit.ceiling')}{' '}
+      {r.ceiling ? <b>{band(r.ceiling)}</b> : <span className="muted">?</span>}
+    </>],
     [t('recruit.upside'), <>
       {r.upside ? <b>{t(`recruit.up_${r.upside}`)}</b> : <span className="muted">?</span>}
       {' · '}{t('recruit.risk')}{' '}
@@ -35,10 +37,12 @@ export default function ScoutReportCard({ game, p }: { game: GameState; p: Playe
   return (
     <div className="card scout-report">
       <div className="fact-label">{t('recruit.title')}</div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(84px, max-content) 1fr', gap: '3px 10px', fontSize: 13, marginTop: 4 }}>
+      {/* two columns of rows where the screen is wide enough (a landscape
+          phone), one on a portrait phone: the card stays one glance tall */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '3px 16px', fontSize: 13, marginTop: 4 }}>
         {rows.map(([label, value], i) => (
-          <div key={i} style={{ display: 'contents' }}>
-            <span className="muted">{label}</span>
+          <div key={i} style={{ display: 'flex', gap: 10, minWidth: 0 }}>
+            <span className="muted" style={{ flex: '0 0 96px' }}>{label}</span>
             <span style={{ minWidth: 0, overflowWrap: 'anywhere' }}>{value}</span>
           </div>
         ))}
