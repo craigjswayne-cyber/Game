@@ -220,6 +220,13 @@ export default function Country() {
               {t('legacy.coWindowOpen')}
             </div>
           )}
+          {/* two jobs, no favours (9.10): the rule the call-up buttons now
+              obey, said before a refusal has to say it */}
+          {club && (
+            <div className="meta" style={{ padding: '0 16px 4px' }}>
+              {t('legacy.coConflict', { club: club.short })}
+            </div>
+          )}
           {/* THE SHAPE OF THE SQUAD, BEFORE THE NAMES.
               A coach picking a party of 32 is not reading a list, he is
               counting shirts - two hookers is a crisis and four is a waste,

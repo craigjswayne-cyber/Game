@@ -32,7 +32,7 @@ import { newGame } from '../src/game/newgame'
 import { activeWindows, natFixtureThisWeek, processWeekAndAdvance, userMatchThisWeek } from '../src/game/season'
 import { natCallUp, natDrop, natEligible, natWindow, weeksToSquad, NAT_SQUAD_FLOOR } from '../src/game/country'
 import { NAT_TIERS } from '../src/game/nations'
-import { NAT_SQUAD_SIZE, homeBased } from '../src/game/nations'
+import { NAT_SQUAD_SIZE, homeBased, sharesClubComp } from '../src/game/nations'
 import { answerPress, generatePress } from '../src/game/media'
 import { mulberry32 } from '../src/game/rng'
 import type { Fixture, GameState } from '../src/game/model'
@@ -68,7 +68,11 @@ const squad = g.natSquads['SCO']!
 // The federation used to hand him a finished list; the sheet is blank now and
 // the week is held until he fills it. Everything below this line tests the
 // tools he fills it WITH, so the probe does what he does: it names a squad.
-ok(squad.length === 0, `a window opened and the coach's sheet is blank (${squad.length} named, wk${g.week})`)
+// ...but for one thing (9.10): he runs Northampton as well, so the Saints men
+// the federation itself would pick are released to camp as they would be to
+// any AI federation. Nobody else is on the sheet.
+ok(squad.every(id => g.players[id]?.clubId === g.userClubId),
+  `a window opened and the coach's sheet is blank but for his own club's due men (${squad.length} named, wk${g.week})`)
 const w = natWindow(g)!
 ok(!!w, 'natWindow reports the window open')
 {
@@ -135,7 +139,9 @@ ok(wholePool.some(p => p.ca < 68 || p.age <= 21),
   'young and low-rated names are on the list, not behind a floor')
 // a loanee is the coach's call
 ok(natDrop(g, squad[squad.length - 1]) == null, 'made room for the loanee')
-const loanee = wholePool.filter(p => !p.natSquad)[0]
+// (from a club Northampton never meet: at a club they do, the two-jobs quota
+// of 9.10 is what decides, and natjobprobe tests that)
+const loanee = wholePool.filter(p => !p.natSquad && !!p.clubId && !sharesClubComp(g, g.userClubId, p.clubId))[0]
 loanee.onLoan = true
 ok(natCallUp(g, loanee.id) == null, `a player out on loan can still be picked (${loanee.name})`)
 // so is a man with no club
