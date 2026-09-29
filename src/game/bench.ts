@@ -268,6 +268,28 @@ export const BRIEF_BY_ID: Record<string, BriefDef> =
 
 export const DEFAULT_BRIEF: Brief = 'orders'
 
+/** THE BENCH COMES WITH JOBS (1.8.1, owner: "make it so the bench have a few
+ *  different options selected from default to show people they have
+ *  different roles, so not just same job"). What a new career's clubs start
+ *  with, seat by seat, read off the position the seat is for: the front row
+ *  goes on to do the set-piece job it was picked for, the locks and back row
+ *  to carry, the half-backs to manage the game, a centre to shore up the
+ *  midfield, and the back three for fresh legs. Written into the manager's
+ *  tactic at world creation only (newGame), so a save that already has its
+ *  bench keeps it, and a seat left unset still follows the shirt
+ *  (briefForSeat). */
+const BRIEF_BY_POS: Record<Pos, Brief> = {
+  HK: 'orders', LP: 'orders', TP: 'orders',
+  LK: 'impact', FL: 'impact', N8: 'impact',
+  SH: 'manage', FH: 'manage',
+  CE: 'shore',
+  WG: 'impact', FB: 'impact',
+}
+
+export function defaultBriefs(split: BenchSplit): Brief[] {
+  return seatsFor(split).map(seat => BRIEF_BY_POS[seat.pos[0]] ?? DEFAULT_BRIEF)
+}
+
 /** The brief for a bench seat. Unset seats simply follow the shirt. */
 export function briefForSeat(club: Club | undefined, seat: number): Brief {
   const b = club?.tactic.briefs?.[seat]
