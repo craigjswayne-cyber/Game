@@ -40,7 +40,9 @@ const ok = (c: boolean, what: string) => {
   console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
   if (!c) fails++
 }
-const newsK = (g: GameState, k: string) => g.news.filter(n => n.k === k)
+// the book holds its stories until the week settle ends (histbook.ts file), so
+// a hook called directly here has filed into the queue, not the inbox yet
+const newsK = (g: GameState, k: string) => [...g.news, ...(g.hist?.queue ?? [])].filter(n => n.k === k)
 const season = (g: GameState) => { for (let i = 0; i < SEASON_WEEKS; i++) processWeekAndAdvance(g) }
 
 // ---- 1. rivalries form and cool ----

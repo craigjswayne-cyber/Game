@@ -87,6 +87,8 @@ export interface HistBook {
   said: Record<string, number>
   /** clubs whose legends and records have been read in quietly */
   seeded: string[]
+  /** stories waiting for an id (see file()). Empty between weeks. */
+  queue?: Omit<import('./model').NewsItem, 'id'>[]
 }
 
 export const CAPS = { rivals: 60, annals: 40, linesPerSeason: 3, legends: 40, tenures: 30, moments: 24 } as const
@@ -118,8 +120,15 @@ export function file(
   state: GameState, k: string, v: Vars,
   opts: { type?: 'general' | 'award' | 'gossip' | 'board'; playerId?: number; week?: number; season?: number } = {},
 ): void {
-  state.news.push({
-    id: state.nextId++,
+  // HELD, NOT FILED. News, players and fixtures share one id counter, and the
+  // match engine seeds a fixture's dice from its id. A story filed in the
+  // middle of the week settle (after the manager's match, or at the year
+  // end) would push every cup tie drawn later in that same settle onto a
+  // different id, and so onto different dice: the book would change AI
+  // results without reading or writing anything they use. So the book's
+  // stories wait in `queue` and take their ids in flushNews(), once the
+  // week's fixtures exist. Same week and season stamps, same reader.
+  ;(book(state).queue ??= []).push({
     week: opts.week ?? state.week,
     season: opts.season ?? state.season,
     type: opts.type ?? 'general',
@@ -128,6 +137,21 @@ export function file(
     body: tIn('en', k, v),
     k, v, playerId: opts.playerId,
   })
+}
+
+/** The news log's ceiling (season.ts NEWS_KEEP, not imported: season.ts
+ *  imports this book). */
+const NEWS_CAP = 250
+
+/** File the held stories. Called at the end of the week settle (after the
+ *  advance, when no more fixtures are drawn this tick) and by the job hooks,
+ *  which run outside it and should be read at once. */
+export function flushNews(state: GameState): void {
+  const q = state.hist?.queue
+  if (!q?.length) return
+  for (const n of q) state.news.push({ ...n, id: state.nextId++, k: n.k, v: n.v })
+  state.hist!.queue = []
+  if (state.news.length > NEWS_CAP) state.news = state.news.slice(-NEWS_CAP)
 }
 
 /** A candidate for this season's annals line. Kept to the heaviest few. */
