@@ -162,6 +162,14 @@ export const TURN_M = 6
 /** what a fully fitting (or fully unsuited) XV adds to (or takes off) its
  *  style's effect on the try chance */
 export const FIT_K = 0.07
+/** THE WORLD STAYS WHERE IT WAS CALIBRATED. Across a world where every club
+ *  plays a style, the effects above average a shade over neutral (the wide
+ *  and offload games make more breaks than the kicking and direct games give
+ *  up, and a side's fit is on average a little positive), which took the
+ *  world from 49.4 points and 6.28 tries a game to 50.2 and 6.35 (bandcheck).
+ *  Every styled tick's try chance is scaled back by this, so the styles move
+ *  who scores and not how much the world does. A Test side is untouched. */
+export const TRY_NORM = 0.985
 
 // ---------------------------------------------------------------- the fit
 
@@ -356,7 +364,7 @@ export function styleTick(att: SideStyle | undefined, def: SideStyle | undefined
   if (!att || !def) return { m: 0, tryF: 1, penF: 1, turnP: TURN_BASE, ground: 0 }
   const a = ATK_FX[att.atk], d = DEF_FX[def.def]
   const m = MATCHUP[att.atk][def.def]
-  let tryF = a.tryF * d.tryF * (1 + MATCH_K * m) * (1 + FIT_K * att.atkFit) * (1 - FIT_K * def.defFit)
+  let tryF = TRY_NORM * a.tryF * d.tryF * (1 + MATCH_K * m) * (1 + FIT_K * att.atkFit) * (1 - FIT_K * def.defFit)
   if (def.def === 'choke') {
     const pack = clamp(Math.log(Math.max(1, units.attSet) / Math.max(1, units.defSet)) * 4, -1, 1)
     tryF *= 1 + 0.06 * pack
