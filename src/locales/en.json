@@ -1821,6 +1821,8 @@
   "reasonSteady": "Steady enough: extras after training, and the odd word that lands.",
   "mentoringMovedSub": "now on the Team Report",
   "mentoringLink": "pair senior pros with young players ›",
+  "mentorShort": "Pair a player of {kidAge} or under with a senior pro of {minAge} or over. It works slowly, over months.",
+  "mentorHow": "How it works",
   "mentorRule": "Young players: {kidAge} or under and below their potential. Mentors: senior-squad players of {minAge} or over, with up to {kids} young players each. {cap} pairings at once: four, or five with a Centre of Excellence at level 3 or better.",
   "mentorEffect": "What a pairing gives: coached points in what the mentor does better, paid for from the young player's least needed attributes like all training, and extra rating points while below potential, about one a season for an average pairing. Character and leadership decide most of it; the same position helps, the same unit a little, and experience a little more. Slowly the young player may take on the mentor's character.",
   "pairsNow": "Current pairings",

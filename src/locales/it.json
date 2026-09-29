@@ -1843,6 +1843,8 @@
   "reasonSteady": "Abbastanza solido: supplementari dopo l'allenamento, e ogni tanto la parola giusta.",
   "mentoringMovedSub": "ora nel Rapporto squadra",
   "mentoringLink": "affianca i veterani ai giovani ›",
+  "mentorShort": "Affianca un giocatore di {kidAge} anni o meno a un veterano di {minAge} anni o più. Funziona lentamente, nel giro di mesi.",
+  "mentorHow": "Come funziona",
   "mentorRule": "Giovani: {kidAge} anni o meno e sotto il loro potenziale. Mentori: giocatori della prima squadra di {minAge} anni o più, con al massimo {kids} giovani ciascuno. {cap} coppie alla volta: quattro, o cinque con un Centro d'Eccellenza di livello 3 o superiore.",
   "mentorRule_f": "Giovani: {kidAge} anni o meno e sotto il loro potenziale. Mentori: giocatrici della prima squadra di {minAge} anni o più, con al massimo {kids} giovani ciascuna. {cap} coppie alla volta: quattro, o cinque con un Centro d'Eccellenza di livello 3 o superiore.",
   "mentorEffect": "Cosa dà una coppia: punti allenati in ciò che il mentore fa meglio, pagati con gli attributi meno utili del giovane come ogni allenamento, e punti di valutazione in più finché è sotto il suo potenziale, circa uno a stagione per una coppia media. Carattere e leadership decidono quasi tutto; lo stesso ruolo aiuta, lo stesso reparto un po', e l'esperienza un po' di più. Piano piano il giovane può prendere il carattere del mentore.",

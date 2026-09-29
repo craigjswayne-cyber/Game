@@ -1819,6 +1819,8 @@
   "reasonSteady": "Bestendig genoeg: ekstra werk ná oefening, en so nou en dan 'n woord wat tref.",
   "mentoringMovedSub": "nou op die Spanverslag",
   "mentoringLink": "paar senior spelers met jong spelers ›",
+  "mentorShort": "Koppel 'n speler van {kidAge} of jonger aan 'n senior speler van {minAge} of ouer. Dit werk stadig, oor maande.",
+  "mentorHow": "Hoe dit werk",
   "mentorRule": "Jong spelers: {kidAge} of jonger en onder hul potensiaal. Mentors: senior spelers van {minAge} of ouer, met tot {kids} jong spelers elk. {cap} pare op 'n slag: vier, of vyf met 'n Sentrum van Uitnemendheid op vlak 3 of beter.",
   "mentorEffect": "Wat 'n paring gee: afgerigte punte in wat die mentor beter doen, betaal uit die jong speler se minste nodige eienskappe soos alle oefening, en ekstra graderingspunte solank die speler onder sy potensiaal is, omtrent een 'n seisoen vir 'n gemiddelde paring. Karakter en leierskap bepaal die meeste daarvan; dieselfde posisie help, dieselfde eenheid 'n bietjie, en ondervinding nog 'n bietjie. Stadigaan kan die jong speler die mentor se karakter oorneem.",
   "mentorEffect_f": "Wat 'n paring gee: afgerigte punte in wat die mentor beter doen, betaal uit die jong speler se minste nodige eienskappe soos alle oefening, en ekstra graderingspunte solank die speler onder haar potensiaal is, omtrent een 'n seisoen vir 'n gemiddelde paring. Karakter en leierskap bepaal die meeste daarvan; dieselfde posisie help, dieselfde eenheid 'n bietjie, en ondervinding nog 'n bietjie. Stadigaan kan die jong speler die mentor se karakter oorneem.",
