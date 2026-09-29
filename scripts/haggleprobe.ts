@@ -20,7 +20,9 @@ let fails = 0
 const bad = (m: string) => { fails++; console.error('FAIL: ' + m) }
 
 const g = newGame('northampton', 'Haggle Probe', 12345)
-for (let i = 0; i < 20; i++) processWeekAndAdvance(g)
+// into deadline week: a fee bid outside the transfer window is refused before
+// any haggling starts (1.8.1), and this probe is about the haggling
+for (let i = 0; i < 25; i++) processWeekAndAdvance(g)
 const user = g.clubs[g.userClubId]
 user.budget = 400_000_000        // take money out of the equation
 

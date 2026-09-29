@@ -62,7 +62,13 @@ export default function Finances() {
   const fundsDenied = game.boardAsks?.funds != null &&
     Math.floor(game.boardAsks.funds.deniedAt / 100) === game.season
   const asked = game.fundsAskedSeason === game.season && !fundsDenied
-  const wages = club.players.reduce((s, id) => s + (game.players[id]?.wage ?? 0), 0)
+  // what the weekly settle actually charges: a borrowed man at the share struck
+  // for him (weeklyFinance, season.ts), not his whole wage, or the preview and
+  // the wage bill disagree with the balance by the parent's half (1.8.1)
+  const wages = club.players.reduce((s, id) => {
+    const p = game.players[id]
+    return s + (!p ? 0 : p.loanFrom ? Math.round(p.wage * (p.loanShare ?? 0.5)) : p.wage)
+  }, 0)
   const topEarners = club.players.map(id => game.players[id]).filter(Boolean)
     .sort((a, b) => b.wage - a.wage).slice(0, 10)
 
@@ -256,7 +262,9 @@ export default function Finances() {
           Every line below is read from the same functions the weekly
           settlement uses - see weeklyFinance in season.ts - so the bottom line
           here is the number that will hit the balance on Continue, not an
-          estimate of it. */}
+          estimate of it, less the one line nobody can know in advance: a home
+          week's gate, which depends on the crowd on the day. The total says
+          so in words ("before gate receipts"). */}
       <SectionTitle sub={t('finances.weeklyLedgerSub')}>{t('finances.weeklyLedger')}</SectionTitle>
       <div className="card bs">
         {(() => {

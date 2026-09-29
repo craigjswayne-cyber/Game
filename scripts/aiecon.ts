@@ -57,9 +57,48 @@ const SEASONS = 10
  *  two apart. The rate now pools eight worlds against the twelve-world
  *  post-MRC median (0.23M), and the mean, which is steady, is held tightly
  *  below (MEAN_WAS). */
-const WAS_PER_SEASON = 0.23e6
-/** the mean AI club's gain a season, eight worlds, 1.7.3 */
-const MEAN_WAS = 0.465e6
+/*  RE-REFERENCED in 1.8.1 (29 Sep 2026), both numbers, on the twenty-four
+ *  RATE_SEEDS worlds at every merge of the release (xeprobe, the loop below
+ *  run per world; + is one standard error):
+ *
+ *                                    median club      mean club
+ *    1.8.0 as shipped (b3bd529)      0.104 +0.031     0.451 +0.013   (17)
+ *    career fixes (753668f)          0.258 +0.067     0.500 +0.033   (6)
+ *    + club-players etc (2ab2190)    0.096 +0.034     0.394 +0.016   (15)
+ *    before the engine (7ce09f4)     0.094 +0.029     0.399 +0.014   (24)
+ *    after the engine (6667eb3)      0.105 +0.027     0.389 +0.013   (24)
+ *    release tip (1925439)           0.081 +0.032     0.386 +0.015   (24)
+ *
+ *  THE MATCH ENGINE MERGE MOVED NOTHING: paired on the same 24 worlds,
+ *  +0.011 +0.042 on the median and -0.009 +0.021 on the mean. The failures
+ *  reported against it were one pooled draw landing either side of a floor
+ *  (0.092M) the median had been sitting on since 1.8.0 (0.104M).
+ *
+ *  THE MEAN MOVED ONCE, at the club-players merge (-0.057 +0.018 paired on
+ *  15 worlds), and the largest single piece is the stadium fix in
+ *  rollover.ts: the sold-out test for a bigger ground stopped counting
+ *  friendlies, so AI boards that fill their grounds now vote the seats they
+ *  had been owed. Undoing only that line at the tip gives the mean back
+ *  +0.025 +0.016 and the median +0.054 +0.031 (15 paired worlds), and the
+ *  world builds 459 seats a club over the decade against 177 without it (six
+ *  worlds), at about 1,700 a seat: some 0.05M a club a season moved from the
+ *  bank into the stands, which is money spent, not money lost. The senior
+ *  floor on shedWages (-0.021 +0.022, 8 worlds) and the AI's academy
+ *  decision (-0.002 +0.021, 8 worlds) are not it. The rest is within noise.
+ *
+ *  So the references are the release tip's, and the median is held to an
+ *  absolute band, not a ratio: at 0.08M a 0.4x floor is 0.03M, under two
+ *  standard errors of a 24-world pool (sd 0.158M a world, error 0.032M),
+ *  which is the coin the old floor had become. Plus or minus 0.10M is three
+ *  of them, and it still catches the median club sliding into loss. */
+const WAS_PER_SEASON = 0.08e6
+/** how far the pooled median may sit from WAS_PER_SEASON: about three
+ *  standard errors of 24 worlds */
+const MEDIAN_BAND = 0.10e6
+/** the mean AI club's gain a season: 0.386M over the 24 RATE_SEEDS worlds
+ *  at the 1.8.1 release tip (sd 0.076M a world); it was 0.465M on eight
+ *  worlds at 1.7.3 */
+const MEAN_WAS = 0.39e6
 /** Worlds the rate and solvency checks pool over; the first is also the one
  *  every other check below reads. */
 /*  TWENTY-FOUR WORLDS, NOT EIGHT (28 Sep 2026). One world's median rate has
@@ -79,7 +118,12 @@ const med = (xs: number[]) => {
   const s = [...xs].sort((a, b) => a - b)
   return s.length ? s[Math.floor(s.length / 2)] : 0
 }
-const ai = (g: GameState) => Object.values(g.clubs).filter(c => c.id !== g.userClubId)
+// every club the AI runs: the manager's club only while he manages it. A
+// headless manager is sacked on nearly every seed inside ten seasons, and from
+// 1.8.1 his old club is coached, appointed and run by its board like any other
+// (it had played with no coaching and frozen books), so it belongs in the sample:
+// left out, the prize money it now wins read as money the AI world had lost
+const ai = (g: GameState) => Object.values(g.clubs).filter(c => c.id !== g.userClubId || g.unemployed)
 
 const g = newGame('northampton', 'AI Econ', RATE_SEEDS[0])
 const start = med(ai(g).map(c => c.balance))
@@ -132,7 +176,7 @@ console.log(`  the manager       ${(g.clubs[g.userClubId].balance / 1e6).toFixed
 // MEAN NEUTRALITY. Wide, because the prize-money spine dominates and a world is
 // chaotic over ten seasons; the point is that it is the same ORDER as before,
 // not that it matches to the pound. Pooled, because one seed is not a measure.
-ok(pooledRate > WAS_PER_SEASON * 0.4 && pooledRate < WAS_PER_SEASON * 2,
+ok(Math.abs(pooledRate - WAS_PER_SEASON) < MEDIAN_BAND,
   `the median club still gains money at about the rate it used to (${(pooledRate / 1e6).toFixed(2)}M a season)`)
 const meanRate = mean(meanRates)
 ok(Math.abs(meanRate - MEAN_WAS) < MEAN_WAS * 0.15,

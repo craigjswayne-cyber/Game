@@ -3,7 +3,7 @@ import { useStore } from '../store'
 import { XV_SLOTS, type MatchEvent, type Player } from '../game/model'
 import { persName, t } from '../game/i18n'
 import { persKnown } from '../game/scout'
-import type { LiveCtx, SideCtx } from '../game/matchEngine'
+import { visitsTo22, type LiveCtx, type SideCtx } from '../game/matchEngine'
 import { moodOf } from './MoodTable'
 
 /**
@@ -191,21 +191,9 @@ export function Zones({ ctx, shown }: { ctx: LiveCtx; shown: MatchEvent[] }) {
  *  first line inside the opposition 22 after a line outside it. */
 export function Visits({ ctx, shown }: { ctx: LiveCtx; shown: MatchEvent[] }) {
   const game = useStore(s => s.game)!
+  // the engine's count, the same one the live stats read (visitsTo22)
   const tally = (home: boolean) => {
-    let visits = 0, inside = false, pts = 0, lastScore = 0
-    for (const e of shown) {
-      if (e.fld == null) continue
-      const up = home ? e.fld : 100 - e.fld
-      const score = home ? e.homeScore : e.awayScore
-      // a try from long range crosses the 22 on the way to the line: that
-      // is a visit, or the panel read "0 visits, 5 points from the 22"
-      const scoredTry = e.type === 'TRY' && score > lastScore
-      const now = up >= 78 || scoredTry
-      if (now && !inside) visits++
-      inside = now
-      if (score > lastScore && (inside || e.type === 'TRY' || e.type === 'CON')) pts += score - lastScore
-      lastScore = score
-    }
+    const { visits, pts } = visitsTo22(shown, ctx.home.teamId, home)
     return { visits, pts, per: visits ? (pts / visits).toFixed(1) : '-' }
   }
   const h = tally(true), a = tally(false)

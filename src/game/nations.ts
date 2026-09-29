@@ -355,3 +355,113 @@ export function homeBased(state: GameState, p: Player, nat: string): boolean {
   const club = p.clubId ? state.clubs[p.clubId] : null
   return !!club && club.country === nat
 }
+
+// ---- ONE MAN, TWO JOBS, NO FAVOURS (owner decision, tester note 9.10) ----
+//
+// A manager may hold a Test job alongside a club job, and the owner's ruling is
+// that the club side gets NO advantage from the national one. The squad was
+// the lever: a man in a camp is unavailable to his club (availablePlayers), so a
+// coach who picked freely could call up a league rival's best players, leave
+// his own club's men of that nation at home, and weaken the rival for the window
+// at no cost. He could also cap his own fringe men to lift their value.
+//
+// The fix measures him against the one selector who has no club to favour: the
+// federation itself. federationPick is the list manageInternationals names for
+// an AI nation (the best home-based, fit, unloaned men by ability), and while
+// he holds both jobs:
+//   - from any club that shares a club competition with his own, his camp may
+//     hold no more men than the federation would take from it (he may pick a
+//     different man from that club, never MORE of them);
+//   - his own club's men on the federation's list go to camp and stay there,
+//     so his club gives up exactly what an AI federation would ask of it.
+// Clubs his side never meets are untouched, and a coach with no club job picks
+// with no limit at all: the rule exists only where the conflict does.
+
+const HOME4_Q = ['ENG', 'IRE', 'SCO', 'WAL']
+
+/** Does this man's passport qualify him for this nation (the Lions draw on the
+ *  four home unions)? */
+export function natQualifies(p: Player, nat: string): boolean {
+  return nat === 'LIO' ? HOME4_Q.includes(p.nat) : p.nat === nat
+}
+
+/** The squad an AI federation would name for this nation right now: the best
+ *  `size` qualified, home-based, fit, unloaned club players by ability. Ties
+ *  break on id, the order Object.values already walks, so this is the same
+ *  list the season engine's stable sort produces. */
+export function federationPick(state: GameState, nat: string, size: number): Player[] {
+  return Object.values(state.players)
+    .filter(p => natQualifies(p, nat) && !!p.clubId && homeBased(state, p, nat) && !p.injury && !p.onLoan)
+    .sort((a, b) => b.ca - a.ca || a.id - b.id)
+    .slice(0, size)
+}
+
+/** The federation's list for this window: the snapshot taken when the window
+ *  opened (state.natFed), because an AI federation picks once and then lives
+ *  with it. A man who is hurt or healed mid-window does not move the quota or
+ *  the club's duty. Falls back to a live federationPick when no snapshot
+ *  exists (a save from before 9.10, or a coach appointed mid-window). */
+export function federationList(state: GameState, nat: string, size: number): Player[] {
+  const snap = state.natFed
+  if (snap && snap.nat === nat) return snap.ids.map(id => state.players[id]).filter((p): p is Player => !!p)
+  return federationPick(state, nat, size)
+}
+
+/** The club a national selection could serve: the user's club while he holds a
+ *  Test job AND a club job, otherwise null. */
+export function conflictedClub(state: GameState): string | null {
+  if (!state.natTeam || state.unemployed) return null
+  return state.clubs[state.userClubId] ? state.userClubId : null
+}
+
+/** Does `other` meet `mine` in any club competition this season? These are
+ *  the clubs a national selection could weaken to the user's club's gain. */
+export function sharesClubComp(state: GameState, mine: string, other: string): boolean {
+  if (mine === other) return true
+  const a = state.clubs[mine], b = state.clubs[other]
+  if (!a || !b) return false
+  if (a.leagueId && a.leagueId === b.leagueId) return true
+  return Object.values(state.comps).some(c =>
+    !c.isNational && c.teamIds.includes(mine) && c.teamIds.includes(other))
+}
+
+/** How many more of `clubId`'s men this camp may take: Infinity when no
+ *  conflict applies to that club. `fedList` lets a caller asking about many
+ *  men compute the federation's list once. */
+export function clubQuotaLeft(state: GameState, nat: string, size: number, squad: number[], clubId: string,
+  fedList?: Player[]): number {
+  const mine = conflictedClub(state)
+  if (!mine || !sharesClubComp(state, mine, clubId)) return Infinity
+  const fed = (fedList ?? federationList(state, nat, size)).filter(p => p.clubId === clubId).length
+  const inCamp = squad.filter(id => state.players[id]?.clubId === clubId).length
+  return Math.max(0, fed - inCamp)
+}
+
+/** The user's own club's men the federation would take and who are not yet in
+ *  camp: the ones his club must release, exactly as it would to an AI
+ *  federation. Empty when he holds only one job. */
+export function clubDutyOwed(state: GameState, nat: string, size: number, squad: number[]): Player[] {
+  const mine = conflictedClub(state)
+  if (!mine) return []
+  const inCamp = new Set(squad)
+  return federationList(state, nat, size).filter(p => p.clubId === mine && !inCamp.has(p.id) && !p.natSquad && !p.injury)
+}
+
+/** Release the user's club's due men into his camp (see above). Called once,
+ *  when the window opens, which is when an AI federation names its squad, so
+ *  a coach cannot shelter them by simply never naming them. Returns how many
+ *  went in. */
+export function releaseClubDuty(state: GameState, nat: string, size: number): number {
+  const squad = state.natSquads[nat]
+  if (!squad) return 0
+  let n = 0
+  for (const p of clubDutyOwed(state, nat, size, squad)) {
+    if (squad.length >= size) break
+    squad.push(p.id)
+    p.natSquad = true
+    p.morale = Math.max(1, Math.min(10, p.morale + 0.5)) // the proudest phone call in rugby
+    n++
+  }
+  if (n && state.natLineup?.team === nat) state.natLineup = null
+  return n
+}

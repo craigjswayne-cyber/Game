@@ -201,8 +201,12 @@ try {
     for (const row of ['Support the game', 'Full Fitness', 'Become an International Coach', 'Max Upgrade Facilities', 'Remove the salary cap', 'Board funding']) {
       ok(till.includes(row), `the ${row} row is on the shelf`)
     }
-    ok(!/Pro Manager/i.test(till),
-      'and NO Remove-all-ads row, because this build ships no ads to remove')
+    // PRO MANAGER STAYS BUYABLE WITHOUT AN AD PROVIDER (1.8.1). It also
+    // unlocks the skins, which are locked wherever the till is open, so a
+    // shell with billing and no ads must still sell it - but it must not
+    // promise to remove adverts this build never shows.
+    ok(/Pro Manager/i.test(till), 'Pro Manager is on the shelf, because it unlocks the skins Settings sends you here for')
+    ok(!/No adverts, ever/i.test(till), 'and it promises no ad removal in a build that ships no ads')
     ok(!/what it does not do/i.test(till), 'the essays are gone - each product is one line')
 
     // buy Support the game from its row. v1.1.12: this is a TIP JAR now
@@ -218,6 +222,10 @@ try {
     await page.waitForTimeout(600)
     ok(await page.locator('.card', { hasText: 'Support the game' }).innerText().then(x => /2/.test(x)),
       'and a second coin goes in, counted')
+    await page.locator('.card', { hasText: 'Pro Manager' }).locator('.btn.gold').click()
+    await page.waitForTimeout(600)
+    ok(await page.locator('.card', { hasText: 'Pro Manager' }).innerText().then(t => /Yours/.test(t)),
+      'and Pro Manager can actually be bought there without an ad provider')
     ok(errs.length === 0, `no console errors${errs.length ? ': ' + errs[0] : ''}`)
     await page.close()
   }

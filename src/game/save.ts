@@ -14,6 +14,10 @@ import { applyStadiumName, seedDeals } from './commercial'
 import { seedStaffPeople } from './staff'
 import { ensureAcademyLeague, topUpAcademy } from './academy'
 import { migratePress } from './pressmigrate'
+import { migrateBonds } from './bonds'
+import { migrateMemory } from './memory'
+import { migrateTacLoop } from './oppreport'
+import { migrateHistory } from './history'
 
 // NOT renamed with the game. This string is the key every existing save lives
 // under, so changing it to 'fab-rugby' would not rename anything - it would point
@@ -52,6 +56,7 @@ function memoryDb(): IDBDatabase {
         put(v: unknown, k: IDBValidKey) { rows.set(k, structuredClone(v)); return request(k) },
         get(k: IDBValidKey) { return request(rows.has(k) ? structuredClone(rows.get(k)) : undefined) },
         getAll() { return request([...rows.values()].map(v => structuredClone(v))) },
+        getAllKeys() { return request([...rows.keys()]) },
         delete(k: IDBValidKey) { rows.delete(k); return request(undefined) },
       }
       const tx = { error: null, oncomplete: null as null | (() => void), onerror: null, objectStore: () => store }
@@ -182,6 +187,44 @@ export async function getResume<T>(slot: string): Promise<T | null> {
       resolve({ ...small, pre } as T)
     }
     tx.onerror = () => { db.close(); resolve(null) }
+  })
+}
+
+/**
+ * ---- EVERY MATCH IN PROGRESS, WHICHEVER SLOT HOLDS IT (1.8.2) ----
+ *
+ * The short half of every live-match record on this device, without the 7MB
+ * pre-match state, so a career opened from a different slot (an import, a copy
+ * saved to another slot) can still find the match its own copy kicked off.
+ * That is the save-scumming door the owner closed: export before kick-off, lose,
+ * import the export, and the match used to start again from nothing.
+ */
+export async function peekResumes<T>(): Promise<{ slot: string; rec: T; hasPre: boolean }[]> {
+  const db = await openDb()
+  return new Promise((resolve) => {
+    const tx = db.transaction(STORE, 'readonly')
+    const store = tx.objectStore(STORE)
+    const keysReq = store.getAllKeys()
+    const out: { slot: string; rec: T; hasPre: boolean }[] = []
+    const keys = new Set<string>()
+    keysReq.onsuccess = () => {
+      for (const k of keysReq.result ?? []) if (typeof k === 'string') keys.add(k)
+      for (const k of keys) {
+        if (!k.endsWith('::live')) continue
+        const slot = k.slice(0, -'::live'.length)
+        const req = store.get(k)
+        req.onsuccess = () => {
+          const small = req.result as (Record<string, unknown> & { pre?: unknown }) | undefined
+          if (!small || typeof small !== 'object') return
+          // a record written before 1.6.3 carries its state inline; leave it
+          // out of what is returned, the caller asks for it by slot
+          const { pre, ...rest } = small
+          out.push({ slot, rec: rest as T, hasPre: !!pre || keys.has(preKey(slot)) })
+        }
+      }
+    }
+    tx.oncomplete = () => { db.close(); resolve(out) }
+    tx.onerror = () => { db.close(); resolve(out) }
   })
 }
 
@@ -478,7 +521,9 @@ export function migrate(s: GameState): GameState {
   )
   s.nextId = Math.max(
     typeof s.nextId === 'number' && Number.isFinite(s.nextId) ? Math.round(s.nextId) : 0,
-    highestId + 1,
+    // floored: a memory story's id is a fraction above the id before it
+    // (memory.ts flushMemoryNews) and must never become the counter
+    Math.floor(highestId) + 1,
     1,
   )
   // and any story still lacking an id gets one now, so nothing shares
@@ -625,6 +670,9 @@ export function migrate(s: GameState): GameState {
     s.estateClubs = s.estateMaxed && maxedHere ? [s.userClubId] : []
   }
   s.natLineup ??= null
+  // 9.10's sent-home list: absent before it existed, and a damaged one is just dropped
+  if (s.natSent != null && !Array.isArray(s.natSent)) delete s.natSent
+  if (s.natFed != null && (typeof s.natFed !== 'object' || typeof s.natFed.nat !== 'string' || !Array.isArray(s.natFed.ids))) delete s.natFed
   s.objectives ??= ['youth', 'derby']
   s.finHist = list(s.finHist) as typeof s.finHist
   s.boardOwed ??= false
@@ -677,6 +725,7 @@ export function migrate(s: GameState): GameState {
   s.records ??= {}
   s.mentors = list(s.mentors) as typeof s.mentors
   s.chem ??= {}
+  s.bonds = migrateBonds(s.bonds)
   s.grudges = list(s.grudges) as typeof s.grudges
   s.review ??= null
   s.fanMood ??= 60
@@ -697,6 +746,7 @@ export function migrate(s: GameState): GameState {
   s.tenureStart ??= s.season
   s.legendOf = list(s.legendOf) as typeof s.legendOf
   s.vsBook ??= {}
+  migrateHistory(s) // the club's memory (history.ts): made whole, never invented
   s.gateRecord ??= null
   s.potyRoll = list(s.potyRoll) as typeof s.potyRoll
   s.retiredNames = list(s.retiredNames) as typeof s.retiredNames
@@ -705,6 +755,7 @@ export function migrate(s: GameState): GameState {
   s.courtedBy ??= null
   s.vowedAt ??= 0
   s.agency ??= { seniors: [], kids: [], best: {} }
+  migrateMemory(s) // the manager's memory (memory.ts): an old save starts with an empty log
   for (const c of Object.values(s.clubs)) { c.captain ??= null; c.vice ??= null; c.legends = list(c.legends) as typeof c.legends; c.marquee = list(c.marquee) as typeof c.marquee; c.tactic.roles = list(c.tactic.roles) as typeof c.tactic.roles; if (c.id !== s.userClubId) c.coach ??= 'The Head Coach' }
   /**
    * WHO THE STAFF ARE, on a save written before the game asked.
@@ -919,6 +970,9 @@ export function migrate(s: GameState): GameState {
       if (v) f.venue = v
     }
   }
+
+  // the tactical loop's findings: healed and capped (#181)
+  migrateTacLoop(s)
 
   ensureCaptains(s, true)
   return s

@@ -57,8 +57,10 @@ export function clubIntent(state: GameState, club: Club): Intent {
   const meanAge = squad.length ? squad.reduce((s, p) => s + p.age, 0) / squad.length : 27
   const rich = wages > 0 && club.balance > 30 * wages
 
-  // last season's finish against what a club of this stature expects
-  const last = state.history?.filter(h => h.champion === club.id).length ?? 0
+  // last season's silverware against what a club of this stature expects. It
+  // counted every title the club had ever won, so one good year made a former
+  // champion eligible to go all in for the rest of the career.
+  const last = state.history?.filter(h => h.champion === club.id && h.season === state.season - 1).length ?? 0
   const r = mulberry32((hashString(club.id) ^ (state.season * 2654435761)) >>> 0)()
 
   if (rich && (club.rep >= 78 || last > 0) && r < 0.62) return 'allin'
@@ -96,7 +98,16 @@ export interface Hunt {
   season: number
 }
 
-const STAGE_WEEK: Record<Exclude<HuntStage, 0>, number> = { 1: 6, 2: 16, 3: 28 }
+/** The bid lands on the mid-season deadline (1.8.1). It was week 28, which is
+ *  the week the window slams shut and aiTransfers voids every pending bid on
+ *  the manager's desk, and it runs after the hunt in the same settle: the
+ *  season's one story arrived and died in a single tick, and the manager never
+ *  saw the offer he had been told for months was coming. Week 26 puts it on
+ *  the desk with the deadline still to come. */
+const STAGE_WEEK: Record<Exclude<HuntStage, 0>, number> = { 1: 6, 2: 16, 3: 26 }
+/** The weeks the window shuts and every open bid for his players is voided
+ *  (aiTransfers). A hunt running late never files its bid into one of them. */
+const SLAM_WEEKS = [8, 28]
 
 /**
  * Open a hunt for this season if one is due, then move it along.
@@ -142,6 +153,7 @@ export function advanceHunt(state: GameState): void {
 
   const nextStage = (h.stage + 1) as Exclude<HuntStage, 0>
   if (nextStage > 3 || state.week < STAGE_WEEK[nextStage]) return
+  if (nextStage === 3 && SLAM_WEEKS.includes(state.week)) return
   h.stage = nextStage
 
   if (nextStage === 1) {

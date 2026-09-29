@@ -33,6 +33,7 @@
  *
  * Run: npx tsx scripts/exileprobe.ts
  */
+import { storyOf } from '../src/game/tellings'
 import { newGame } from '../src/game/newgame'
 import { applyForJob, jobChance, sackCooloff, sackManager, SACK_COOLOFF } from '../src/game/jobs'
 import { processWeekAndAdvance, userFixtureThisWeek, weekRng } from '../src/game/season'
@@ -88,7 +89,7 @@ console.log('--- 1. once fired, the old club leaves the inbox')
   }
 
   const leaks = filed.filter(n => {
-    if (ALLOWED.has(n.k ?? '')) return false
+    if (ALLOWED.has(storyOf(n.k ?? ''))) return false
     const text = `${n.subject} ${n.body}`
     return text.includes(oldName) || text.includes(oldShort) || text.includes(oldStadium)
       || squadThen.some(name => text.includes(name))

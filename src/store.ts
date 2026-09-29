@@ -47,7 +47,15 @@ export const FREE_SKIN: Skin = 'default'
  *
  *  Every Pro perk asks this one function, so there is one answer to keep
  *  right rather than one per perk. */
-export function proLocked(): boolean { return tillOpen() && !hasSupporter() }
+/*
+ *  AND ONLY WHERE PRO MANAGER IS ON THE SHELF (1.8.1). The Store shows the
+ *  Pro Manager row only when an advert bridge exists, because selling the
+ *  absence of adverts in a build that has none is the dishonesty v1.1.3 took
+ *  out (storeprobe holds it). A build with a till and no adverts therefore
+ *  locked the skins behind a product it would never offer, and "Get the other
+ *  three" opened a Store with nothing on it that unlocked them. No product,
+ *  no lock: the same reasoning as the website above. */
+export function proLocked(): boolean { return tillOpen() && adBridgePresent() && !hasSupporter() }
 
 export function skinLocked(s: Skin): boolean { return s !== FREE_SKIN && proLocked() }
 
@@ -72,7 +80,7 @@ export function planSlots(): number { return proLocked() ? FREE_PLANS : PRO_PLAN
 /** What the app actually wears, as opposed to what was chosen. */
 export function effectiveSkin(chosen: Skin): Skin { return skinLocked(chosen) ? FREE_SKIN : chosen }
 import { getLang, initLang, onLangChange, setLang as applyLang, setManagerGender, setWorld, t, type Lang } from './game/i18n'
-import { hasSupporter, tillOpen } from './game/monetise'
+import { adBridgePresent, hasSupporter, tillOpen } from './game/monetise'
 import { applyCharter, applyEstate, applyHeal, applyInjection, applyPinnacle, type InjectTier } from './game/grants'
 import { agencyFile, armAnalyst, physioFavour, townCollection } from './game/rewarded'
 import { dreamState, dreamsFor } from './game/dream'
@@ -80,18 +88,22 @@ import type { GameState, MatchEvent, Fixture, MgrOrigin } from './game/model'
 import { closeNatTenure, logDecision } from './game/model'
 import { newGame } from './game/newgame'
 import { genderOf, type Gender } from './game/gender'
-import { isKnockoutTie, processWeekAndAdvance, resolveKnockoutDraw, userFixtureThisWeek, userMatchThisWeek, weekRng } from './game/season'
+import { isKnockoutTie, matchRng, processWeekAndAdvance, resolveKnockoutDraw, userFixtureThisWeek, userMatchThisWeek, weekRng } from './game/season'
 import { resultsParam } from './game/schedule'
 import {
   applyPreTalk, applyTacticsChange, applyTeamTalk, beginMatch, makeSubstitution, swapInjuryCover, swapShirts, undoSubstitution,
-  playHalf, resolveDecision, stepTick, teamShort, type LiveCtx, forfeitSide, settleForfeit } from './game/matchEngine'
+  playHalf, resolveDecision, stepTick, teamName, teamShort, type LiveCtx, forfeitSide, settleForfeit } from './game/matchEngine'
 import { applyForJob, resignJob, answerJobOffer } from './game/jobs'
 import { answerPress } from './game/media'
 import { deskBlock, deskGates, firstStepOfWeek, inInbox, markRead, matchDayIndex, nextStep, pressBlock } from './game/days'
 import { natSquadHold } from './game/country'
-import { clearResume, getResume, loadGame, migrate, putResume, saveGame } from './game/save'
-import { replayMatch, resumeFits, type MatchCmdBody, type MatchResume } from './game/resume'
+import { clearResume, getResume, loadGame, migrate, peekResumes, putResume, saveGame } from './game/save'
+import {
+  recordReach, replayMatch, resumeFits, sameCareer, stampedRecord, stampedSave,
+  type LiveStamp, type MatchCmdBody, type MatchResume,
+} from './game/resume'
 import { isHighlight } from './game/highlights'
+import { fileFindings } from './game/matchfindings'
 
 /**
  * How close together two Continue taps have to be before the second is treated as
@@ -117,7 +129,10 @@ export const TAP_GUARD_MS = 220
 export type Screen =
   | 'menu' | 'newgame' | 'home' | 'inbox' | 'squad' | 'player' | 'tactics' | 'fixtures'
   | 'tables' | 'transfers' | 'training' | 'finances' | 'club' | 'matchday'
-  | 'press' | 'comp' | 'history' | 'nations' | 'legacy' | 'jobs'
+  // 'comp' was here too, with no case in App.tsx: a route to Home under
+  // another name. Removed in 1.8.1; an old bookmark naming it still lands on
+  // Home, through the same default every unknown screen takes.
+  | 'press' | 'history' | 'nations' | 'legacy' | 'jobs'
   // 'feed' was The Rugby Wire, a second news browser over the same array. Merged
   // into 'inbox'; 'wire' stays as the between-weeks bulletin reader, not a screen
   // you navigate to.
@@ -155,8 +170,15 @@ interface Store {
      *  was still in the game; it was, and Skip had been taking every call at
      *  the posts without a word. Silence is what made it look missing. */
     skipTook?: number
+    /** Brought back by a reload or a reopened save rather than played on
+     *  from kick-off (1.8.2): the screen says so, once, above the match. */
+    resumed?: boolean
   } | null
   saveSlot: string
+  /** True while a career that has just been opened is being checked for a
+   *  match in progress (1.8.2). Nothing may kick off, or turn the week, until
+   *  that answer is in: the match already under way is the one to finish. */
+  resuming: boolean
   /** the record that lets a live match survive a reload (game/resume.ts) */
   matchRec: MatchResume | null
   /** unread stories queued for the full-screen Wire flow after Continue */
@@ -295,6 +317,12 @@ interface Store {
   dropResume: () => void
   /** rebuild a match that was in progress when the page went away */
   resumeLiveMatch: () => Promise<boolean>
+  /** The manager has seen the "still going" line and pressed Resume. */
+  ackResume: () => void
+  /** The career as it should be written to a slot or a file right now. Mid-
+   *  match that is the pre-match save with the match stamped inside it, never
+   *  the half-played state (game/resume.ts stampedSave, 1.8.2). */
+  saveCopy: () => GameState | null
   startSecondHalf: () => void
   applyJob: (clubId: string) => string
   /** Yes or no to the club that has offered you the job. */
@@ -462,6 +490,7 @@ export const useStore = create<Store>((set, get) => ({
   nav: [{ screen: 'menu' }],
   liveMatch: null,
   matchRec: null,
+  resuming: false,
   wireQueue: [],
   saveSlot: 'slot1',
   inboxId: null,
@@ -555,14 +584,19 @@ export const useStore = create<Store>((set, get) => ({
     if (!g || g.fixHw?.fxId === fxId) return
     g.fixHw = { fxId, season: g.season, week: g.week, tags }
     // no touch(): nothing on screen reads this until the next full time, and a
-    // re-render from inside a full-time effect would loop
+    // re-render from inside a full-time effect would loop. The mark alone
+    // redraws nothing, and the watermark is saved state like any other.
+    void get().persist()
   },
 
   /** The news reader's recall window: everything unread, plus what you have read
    *  in the last five days. Gossip is in this list too now that the wire and the
    *  news are one screen, cleared stories are filed, and days.inInbox is the one
    *  place that decides. */
-  openInbox: () => set(s => {
+  // markRead and the cleared flag are career state (the desk gate and the
+  // unread count read them), so each of these marks the save as well as
+  // redrawing. They did not, and a story read before a reload came back unread.
+  openInbox: () => { set(s => {
     const g = s.game
     if (!g) return {}
     const live = g.news.filter(n => inInbox(g, n))
@@ -585,9 +619,9 @@ export const useStore = create<Store>((set, get) => ({
       nav: onInbox ? s.nav : [...s.nav, { screen: 'inbox' as const }],
       tick: s.tick + 1,
     }
-  }),
+  }); void get().persist() },
 
-  inboxStep: (dir) => set(s => {
+  inboxStep: (dir) => { set(s => {
     const g = s.game
     if (!g) return {}
     const live = g.news.filter(n => inInbox(g, n)).sort((a, b) => b.id - a.id).slice(0, 20)
@@ -597,9 +631,9 @@ export const useStore = create<Store>((set, get) => ({
     const j = Math.max(0, Math.min(live.length - 1, (i < 0 ? 0 : i) + (dir === -1 ? 1 : -1)))
     markRead(g, live[j])
     return { inboxId: live[j].id, tick: s.tick + 1 }
-  }),
+  }); void get().persist() },
 
-  clearRead: () => set(s => {
+  clearRead: () => { set(s => {
     const g = s.game
     if (!g) return {}
     // gossip clears like everything else now that the wire and the news are one
@@ -607,7 +641,7 @@ export const useStore = create<Store>((set, get) => ({
     for (const n of g.news) if (n.read) n.cleared = true
     const left = g.news.filter(n => inInbox(g, n))
     return { inboxId: left.length ? left.sort((a, b) => b.id - a.id)[0].id : null, tick: s.tick + 1 }
-  }),
+  }); void get().persist() },
 
   newGender: 'm',
   setNewGender: (g) => set({ newGender: g }),
@@ -627,12 +661,14 @@ export const useStore = create<Store>((set, get) => ({
     let firstRun = false
     try { firstRun = localStorage.getItem('rm-tut') !== '1' } catch { /* private mode */ }
     noteWhere(get().saveSlot, [{ screen: 'home' }])
-    // A NEW CAREER OWES NOTHING TO THE LAST ONE'S MATCH (1.6.3). The live-match
-    // record of whatever career last used this slot was left in place, and
-    // resumeFits could match it against this career the week it reached the
-    // same fixture id (scripts/qa/crossrec.ts): a refresh then restored the
-    // old manager's pre-match state and the autosave wrote it over this save.
-    void clearResume(get().saveSlot).catch(() => {})
+    // A NEW CAREER OWES NOTHING TO THE LAST ONE'S MATCH (1.6.3), and since
+    // 1.6.3 resumeFits asks for the career's own seed and name, so the record
+    // of whatever career last used this slot can never be matched against
+    // this one (scripts/qa/crossrec.ts). It is NOT cleared here any more
+    // (1.8.2): that record is the only thing holding the old career's match
+    // in progress, and clearing it was a way to discard a losing match -
+    // start a career over the slot, then import a backup of the old one.
+    // The next kick-off in this slot writes over it.
     set({ game: g, nav: [{ screen: 'home' }], tick: get().tick + 1, tut: firstRun, matchRec: null, liveMatch: null })
     // a brand-new career goes to disk at once: there is nothing yet to lose, and
     // losing it is the one save failure a player would not understand
@@ -660,12 +696,24 @@ export const useStore = create<Store>((set, get) => ({
     const where = keepPlace ? readWhere() : null
     const nav = where && where.slot === slot ? where.nav : [{ screen: 'home' as const }]
     noteWhere(slot, nav)
-    // loading from the title never replays a match, so the record of one is
-    // stale the moment a career is opened this way (1.6.3, see start())
-    void clearResume(slot).catch(() => {})
-    set({ game: g, saveSlot: slot, nav, tick: get().tick + 1, matchRec: null, liveMatch: null })
+    // A MATCH KICKED OFF IS A MATCH TO FINISH (1.8.2, tester note 1.4). This
+    // used to clear the live-match record, on the reasoning that loading from
+    // the title never replays a match. That reasoning was the exploit: losing,
+    // closing the game and pressing Continue threw the match away and offered
+    // it again. Opening a career now looks for the match first, in this slot,
+    // in any other slot the career was copied to, and inside the save itself.
+    set({ game: g, saveSlot: slot, nav, tick: get().tick + 1, matchRec: null, liveMatch: null, resuming: true })
+    void get().resumeLiveMatch().catch(() => false).finally(() => {
+      if (get().game === g || get().liveMatch) set({ resuming: false })
+    })
   },
-  setSlot: (slot) => set({ saveSlot: slot }),
+  setSlot: (slot) => {
+    // A MATCH SAVED INTO ANOTHER SLOT GOES WITH IT. The short record follows
+    // saveSlot from here on, so the new slot needs the pre-match half too.
+    const rec = get().matchRec
+    if (rec && get().liveMatch && slot !== get().saveSlot) void putResume(slot, rec, true).catch(() => {})
+    set({ saveSlot: slot })
+  },
 
   go: (screen, param) => set(s => { const nav = [...s.nav, { screen, param }]; noteWhere(s.saveSlot, nav); noteScreen(screen, param); return { nav } }),
   back: () => set(s => {
@@ -688,28 +736,85 @@ export const useStore = create<Store>((set, get) => ({
    */
   resumeLiveMatch: async () => {
     const slot = get().saveSlot
-    const rec = await getResume<MatchResume>(slot).catch(() => null)
     const g = get().game
-    if (!rec || !g || !resumeFits(rec, g)) {
-      if (rec) void clearResume(slot).catch(() => {})
-      return false
+    if (!g) return false
+    // EVERY COPY OF THIS MATCH, WHEREVER IT IS (1.8.2). The record in this slot;
+    // a record in any other slot the same career was saved into or imported
+    // from; and the stamp inside the save itself, which is how a file exported
+    // mid-match carries its match to another slot or another device.
+    const peeks = await peekResumes<LiveStamp>().catch(() => [])
+    if (get().game !== g) return false
+    type Cand = { rec: LiveStamp; from: string | null; hasPre: boolean }
+    const cands: Cand[] = []
+    for (const p of peeks) {
+      if (resumeFits(p.rec as MatchResume, g)) cands.push({ rec: p.rec, from: p.slot, hasPre: p.hasPre })
+      // this career's own record for a match that has since been finished and
+      // written: nothing left to hold. Another career's record is left alone,
+      // unless it predates 1.6.3 and carries no career stamp, which can never
+      // fit anything again.
+      else if (p.slot === slot && (sameCareer(p.rec, g) || p.rec.seed == null)) void clearResume(slot).catch(() => {})
     }
-    const pre = migrate(rec.pre)
-    const out = replayMatch(pre, rec)
-    if (!out) { void clearResume(slot).catch(() => {}); return false }
-    set(s => ({
-      game: pre,
-      matchRec: rec,
-      liveMatch: {
-        ctx: out.ctx, fixture: out.fixture, events: out.ctx.events,
-        cursor: Math.max(0, Math.min(rec.cursor, out.ctx.events.length)),
-        playing: false, speed: 1, mode: rec.mode,
-        done: out.ctx.seg === 3, talkMsg: out.talkMsg, preTalkMsg: out.preTalkMsg,
-      },
-      nav: [{ screen: 'matchday' as const }],
-      tick: s.tick + 1,
-    }))
-    return true
+    const stamped = stampedRecord(g)
+    if (stamped && resumeFits(stamped, g)) cands.push({ rec: stamped, from: null, hasPre: true })
+    delete g.liveRec
+    if (!cands.length) return false
+    // the copy that got furthest; this slot's own record wins a tie
+    cands.sort((a, b) => recordReach(b.rec) - recordReach(a.rec)
+      || Number(b.from === slot) - Number(a.from === slot))
+    for (const c of cands) {
+      let rec: MatchResume | null = c.from === null ? c.rec as MatchResume
+        : c.hasPre ? await getResume<MatchResume>(c.from).catch(() => null) : null
+      if (get().game !== g) return false
+      // THE CALLS SURVIVED AND THE PRE-MATCH STATE DID NOT. Settle from the
+      // career that was opened, which is the career as it stood before kick-off
+      // (the career slot is never written mid-match), on the same dice and the
+      // same recorded calls. Never a fresh match.
+      if (!rec) rec = { ...(c.rec as LiveStamp), pre: JSON.parse(JSON.stringify(g)) as GameState }
+      if (!resumeFits(rec, g)) continue
+      const base = migrate(rec.pre)
+      delete base.liveRec
+      // kept untouched for a later copy to another slot or a file; the replay
+      // below mutates `base`, exactly as the match mutated the career
+      const clean = JSON.parse(JSON.stringify(base)) as GameState
+      const out = replayMatch(base, rec)
+      if (!out) continue
+      // a tie that had gone to full time was settled at the whistle
+      if (out.ctx.seg === 3 && !out.ctx.decision) settleKnockout(base, out.ctx)
+      const own: MatchResume = { ...rec, pre: clean }
+      if (c.from !== slot) void putResume(slot, own, true).catch(() => {})
+      set(s => ({
+        game: base,
+        matchRec: own,
+        liveMatch: {
+          ctx: out.ctx, fixture: out.fixture, events: out.ctx.events,
+          cursor: Math.max(0, Math.min(own.cursor, out.ctx.events.length)),
+          playing: false, speed: 1, mode: own.mode,
+          done: out.ctx.seg === 3, talkMsg: out.talkMsg, preTalkMsg: out.preTalkMsg,
+          resumed: true,
+        },
+        nav: [{ screen: 'matchday' as const }],
+        tick: s.tick + 1,
+      }))
+      return true
+    }
+    return false
+  },
+
+  ackResume: () => {
+    const lm = get().liveMatch
+    if (!lm) return
+    const c = lm.ctx
+    const canPlay = lm.cursor < c.events.length || (!c.awaiting && !c.decision && c.seg < 3)
+    set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch, resumed: false, playing: canPlay }, tick: s.tick + 1 } : {})
+  },
+
+  saveCopy: () => {
+    const { game, liveMatch, matchRec } = get()
+    if (!game) return null
+    if (liveMatch && matchRec) {
+      return stampedSave({ ...matchRec, tick: liveMatch.ctx.tick, cursor: liveMatch.cursor })
+    }
+    return game
   },
 
   toTitle: () => {
@@ -732,14 +837,28 @@ export const useStore = create<Store>((set, get) => ({
     if (!where) return false
     const g = await loadGame(where.slot).catch(() => null)
     if (!g) return false
-    set({ game: g, saveSlot: where.slot, nav: where.nav, tick: get().tick + 1 })
+    set({ game: g, saveSlot: where.slot, nav: where.nav, tick: get().tick + 1, resuming: true })
     // AND THE MATCH HE WAS WATCHING. A refresh mid-match used to drop the manager
     // back into the week with the game gone; the record written at kick-off lets it
     // be played back to the same minute (game/resume.ts).
     await get().resumeLiveMatch().catch(() => false)
+    if (get().game === g || get().liveMatch) set({ resuming: false })
     return true
   },
-  touch: () => set(s => ({ tick: s.tick + 1 })),
+  /** Re-render after a screen changed the career in place, AND mark it for
+   *  saving (1.8.1). touch() used to be only the first half. Some forty screen
+   *  actions (a tactic dial, a staff hire, a transfer reply, a retirement, the
+   *  Annual's button) mutate the game and then call touch() to redraw, and
+   *  none of them marked the save dirty, so pagehide's flush found nothing to
+   *  write and a phone that killed the app before the next Continue lost the
+   *  action. Every touch() in the tree follows a mutation, so the mark belongs
+   *  here, once, rather than beside each of them where the next screen would
+   *  forget it. It is the soft mark: a dial being dragged calls this on every
+   *  step, and one write after the hand stops is the right cost for that. */
+  touch: () => {
+    set(s => ({ tick: s.tick + 1 }))
+    if (get().game) saveQueue.mark(true)
+  },
 
   /** CM-style Continue: play user's match if there is one, else process the week. */
   continueWeek: () => {
@@ -749,6 +868,8 @@ export const useStore = create<Store>((set, get) => ({
     // readable forever - the record, the cabinet and the verdict are the whole
     // point of an ending - but the clock has stopped.
     if (g.retired) return
+    // a match may be on its way back from disk (setGame): that match comes first
+    if (get().resuming) return
     /**
      * ONE TAP IS ONE WEEK.
      *
@@ -931,6 +1052,9 @@ export const useStore = create<Store>((set, get) => ({
       const md = matchDayIndex(g)
       if (md != null) g.day = md
       set(s => ({ nav: [...s.nav, { screen: 'matchday' }], tick: s.tick + 1 }))
+      // the day moved, so a reload should come back to the match day rather
+      // than the day before it
+      void get().persist()
       return
     }
     if (step.kind === 'day') {
@@ -981,6 +1105,8 @@ export const useStore = create<Store>((set, get) => ({
   instantResult: (preTalk) => {
     const g = get().game
     if (!g) return
+    // a match already kicked off is finished, never started again (1.8.2)
+    if (get().resuming || get().liveMatch) return
     if (!onMatchDay(get)) return
     // the Annual gate, same as kickOff: the assistant cannot start a season
     // the manager has not
@@ -1004,12 +1130,14 @@ export const useStore = create<Store>((set, get) => ({
     const forfeit = forfeitSide(g, fx)
     if (forfeit) settleForfeit(g, fx, forfeit)
     else {
-      const ctx = beginMatch(g, fx, weekRng(g), true, userTeamId)
+      const ctx = beginMatch(g, fx, matchRng(g), true, userTeamId)
       // the assistant has the match, so the assistant makes the changes
       ctx.assistantSubs = true
       if (preTalk) applyPreTalk(g, ctx, preTalk)
       playHalf(g, ctx)
       playHalf(g, ctx)
+      // the tactical loop's findings, before the week turns (#181)
+      fileFindings(g, ctx)
     }
     const resultsKey = resultsParam(fx.compId, g.week)
     // Exactly what finishMatch does, and for the same reason. This used to set
@@ -1022,14 +1150,15 @@ export const useStore = create<Store>((set, get) => ({
     // ways round; the round-up still comes first, with Monday under it.
     g.newsFrom = g.nextId
     processWeekAndAdvance(g)
-    get().dropResume()
     set(s => ({ liveMatch: null, tick: s.tick + 1 }))
+    get().dropResume()
     landOnNextWeek(g, set, get, [{ screen: 'results', param: resultsKey }])
   },
 
   kickOff: (preTalk, mode) => {
     const g = get().game
     if (!g) return
+    if (get().resuming || get().liveMatch) return
     if (!onMatchDay(get)) return
     // THE ANNUAL GATE HOLDS HERE TOO (user: "i haven't pressed new season yet
     // but its restarted in the background"). Continue was gated, but a match
@@ -1069,20 +1198,21 @@ export const useStore = create<Store>((set, get) => ({
       const resultsKey = resultsParam(fx.compId, g.week)
       g.newsFrom = g.nextId
       processWeekAndAdvance(g)
-      get().dropResume()
       set(s => ({ liveMatch: null, tick: s.tick + 1 }))
+      get().dropResume()
       landOnNextWeek(g, set, get, [{ screen: 'results', param: resultsKey }])
       return
     }
     const pre = JSON.parse(JSON.stringify(g)) as GameState
-    const ctx = beginMatch(g, fx, weekRng(g), true, userTeamId)
+    const ctx = beginMatch(g, fx, matchRng(g), true, userTeamId)
     let preTalkMsg: string | null = null
     if (preTalk) preTalkMsg = applyPreTalk(g, ctx, preTalk)
     const rec: MatchResume = {
-      v: 1, pre, fxId: fx.id, userSideId: userTeamId, preTalk: preTalk ?? null,
+      v: 1, pre, stream: 'match', fxId: fx.id, userSideId: userTeamId, preTalk: preTalk ?? null,
       mode: mode ?? 'full', tick: 0, cursor: 0, cmds: [],
       season: g.season, week: g.week, savedAt: Date.now(),
       seed: g.seed, saveName: g.saveName,
+      opp: teamName(g, fx.homeId === userTeamId ? fx.awayId : fx.homeId),
     }
     set(s => ({
       liveMatch: {
@@ -1123,11 +1253,29 @@ export const useStore = create<Store>((set, get) => ({
     void putResume(saveSlot, rec).catch(() => {})
   },
 
-  /** The match is over, or abandoned: the record must not outlive it. */
+  /** The match is over: the record must not outlive it, and must not die
+   *  before it either.
+   *
+   *  ONLY ONCE THE FINISHED CAREER IS ON DISK (1.8.2). This used to clear the
+   *  record at once and leave the career itself to the save queue's idle timer,
+   *  so for 600ms after Continue the disk held the pre-match save and no match
+   *  in progress: close the game in that window and the match came back
+   *  unplayed, to be kicked off again. Now the career is written first and the
+   *  record goes only when that write has landed. A failed write keeps the
+   *  record, and the next open replays the same match to the same whistle. */
   dropResume: () => {
     const slot = get().saveSlot
     set({ matchRec: null })
-    void clearResume(slot).catch(() => {})
+    if (!get().game) { void clearResume(slot).catch(() => {}); return }
+    void (async () => {
+      // after whatever set() the caller makes next, since the queue will not
+      // write while a live match is in the store
+      await Promise.resolve()
+      await saveQueue.flush()
+      const s = get()
+      if (s.liveMatch || s.saveFail || s.saveSlot !== slot) return
+      await clearResume(slot)
+    })().catch(() => {})
   },
 
   /** One heartbeat of the live match: reveal the next event, or simulate
@@ -1354,10 +1502,12 @@ export const useStore = create<Store>((set, get) => ({
     const live = get().liveMatch
     if (!g) return
     const resultsKey = live ? resultsParam(live.fixture.compId, g.week) : null
+    // the tactical loop's findings, before the week turns (#181)
+    if (live) fileFindings(g, live.ctx)
     g.newsFrom = g.nextId
     processWeekAndAdvance(g)
-    get().dropResume()
     set(s => ({ liveMatch: null, tick: s.tick + 1 }))
+    get().dropResume()
     // The full-time round-up still comes first - that is the moment you want
     // straight after your own final whistle - and Monday's bulletin sits under
     // it, so backing out of the round-up puts you at the start of the new week
@@ -1636,9 +1786,22 @@ const saveQueue = (() => {
   let inFlight: Promise<void> | null = null
   let dirty = false
 
-  const write = async (): Promise<void> => {
-    const { game, saveSlot } = useStore.getState()
-    if (!game) return
+  /** False when the write was held back and the save is still dirty. */
+  const write = async (): Promise<boolean> => {
+    const { game, saveSlot, liveMatch, matchRec } = useStore.getState()
+    if (!game) return true
+    // NEVER A HALF-PLAYED MATCH (1.8.1). From the first tick the engine writes
+    // tries, cards and injuries onto the players (game/resume.ts), so the game
+    // object mid-match is neither the pre-match save nor the finished one. The
+    // resume record holds the match; the career slot waits for finishMatch,
+    // whose own mark writes it. This only ever mattered by accident (a mark
+    // made just before Kick Off whose timer fired after it), but touch() now
+    // marks, and the live tactic dials call touch().
+    //
+    // AND NOT WHEN THE MATCH HAS ONLY LEFT THE SCREEN (1.8.2). The crash
+    // screen's way out clears liveMatch and leaves the half-played career in
+    // memory; the record (matchRec) is what says a match is still owed.
+    if (liveMatch || matchRec) return false
     dirty = false
     try {
       saveStats.writes++
@@ -1654,21 +1817,30 @@ const saveQueue = (() => {
       saveStats.failures++
       useStore.setState(s => ({ saveFail: s.saveFail + 1, saveFailMsg: msg, tick: s.tick + 1 }))
     }
+    return true
   }
 
   /** One writer. A second caller joins the write in flight rather than racing it. */
   const run = async (): Promise<void> => {
     if (inFlight) { dirty = true; await inFlight; if (dirty) await run(); return }
-    inFlight = write()
+    let wrote = true
+    const w = write()
+    inFlight = w.then(r => { wrote = r })
     try { await inFlight } finally { inFlight = null }
-    if (dirty) await run()
+    // held back for a live match: stay dirty and let the next mark bring it
+    // round, rather than spinning here until full time
+    if (wrote && dirty) await run()
   }
 
   return {
-    mark() {
+    /** soft: restart the idle timer rather than keep the first one, so a
+     *  stream of marks (a slider dragged through twenty steps) is one write
+     *  after the last of them, not one write in the middle of the drag */
+    mark(soft = false) {
       saveStats.marks++
       dirty = true
-      if (timer) return
+      if (timer && !soft) return
+      if (timer) clearTimeout(timer)
       timer = setTimeout(() => { timer = null; void run() }, SAVE_IDLE_MS)
     },
     async flush() {

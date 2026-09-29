@@ -14,8 +14,10 @@
  *   until now the game forgot him the moment the fee cleared.
  *
  *   THE NEMESIS. Not this week's rival - the club that has your number across
- *   the whole career, chosen by the record rather than by reputation, so it is
- *   earned by what actually happened to you.
+ *   this tenure, chosen by the record rather than by reputation, so it is
+ *   earned by what actually happened to you. It reads vsBook, which a new job
+ *   wipes (jobs.ts takeJob), so it is the nemesis of the club you manage now;
+ *   the record book below is the one that spans the whole career.
  *
  * TWO OF THE THREE ARE PURE LENSES over state that already exists (vsBook for
  * the nemesis, the homegrown flag for the proteges), which is why this wave

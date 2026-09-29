@@ -343,7 +343,18 @@ ok(giantSleep.filter(r => r.sacked).length >= 1,
 }
 ok(minnowSleep.filter(r => r.sacked).length === 0,
   `a minnow's sleepwalk manager always survives the season - patience protects (${minnowSleep.filter(r => r.sacked).length}/${STATURE_SEEDS.length})`)
-ok(worstMin(minnowSleep) >= 35,
+// 25, NOT 35 (1.8.1). The minnow's survival aim was written as twelfth,
+// which in Esher's twelve-club league IS the bottom: the aim could not be
+// missed, so the board's three table reviews pulled a bottom-placed Esher
+// toward 70 as if it were on target. boardObjective now reads the league's
+// size (clear of the bottom two is tenth of twelve), and a sleepwalking
+// Esher that finishes in the bottom two is, correctly, below its aim. On
+// the 36 seeds, undoing only that line: worst 37 against 31, mean 53.2
+// against 49.3 (+3.9 +-0.5 paired). 1.8.0 bottomed at 36 with the aim that
+// could not be missed. The property is the same one - patience keeps a
+// minnow's absent manager in his job (0 of 36 sacked, above) and out of
+// crisis (under CRISIS in 0 of 36) - so the line sits five clear of crisis.
+ok(worstMin(minnowSleep) >= CRISIS + 5,
   `and its board never gets anywhere near crisis range (worst seed bottomed at ${worstMin(minnowSleep)})`)
 
 console.log(fails ? `\n${fails} FAILURES` : '\nAUTOPILOT PROBE PASSED: the team sheet is wired to the pitch, and Continue does not win titles')

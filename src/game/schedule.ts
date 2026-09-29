@@ -407,9 +407,11 @@ function buildWorldCup(rng: Rng, state: GameState, women = false) {
   state.comps['wc'] = comp
 }
 
-/** Tour years: 2029, 2033, ... (every 4th season, offset from the World
- *  Championship, which puts the tour exactly two years off a World Cup - the
- *  real cycle, and what the owner asked for: "2 away from a world cup").
+/** Tour seasons: 2029-30, 2033-34, ... (every 4th season, offset from the
+ *  World Championship, which puts the tour two seasons off a World Cup - what
+ *  the owner asked for: "2 away from a world cup"). The tour closes its season,
+ *  so the calendar prints it in the June and July at the end of it: the
+ *  2029-30 tour is played in 2030, a year after the real cycle's 2029.
  *
  *  The FUNCTION and the competition id still say "lions" because both are
  *  written into every save ever made and neither is ever shown to a player. The
@@ -833,10 +835,18 @@ function buildWomensTour(state: GameState) {
   // women's world. Canada has no club league in this game, so a Canadian tour
   // leans on the wider pool - which is honest: a real tour there would play
   // provincial and invitational sides that no database carries either.
+  //
+  // The wider pool leaves out the four unions' own clubs and is taken by
+  // reputation, the way the men's tour takes it. It used to be the first clubs
+  // in storage order, which is the English Premier Division: a touring side of
+  // English, Irish, Scottish and Welsh players crossed the Atlantic to play
+  // seven English clubs.
+  const home = ['ENG', 'IRE', 'SCO', 'WAL']
   const provincial = [
     ...Object.values(state.clubs).filter(c => c.country === host),
-    ...Object.values(state.clubs).filter(c => c.country !== host),
-  ].slice(0, TOUR_PROVINCIAL)
+    ...Object.values(state.clubs).filter(c => c.country !== host && !home.includes(c.country)),
+  ].sort((a, b) => (a.country === host ? -1 : 1) - (b.country === host ? -1 : 1) || b.rep - a.rep)
+    .slice(0, TOUR_PROVINCIAL)
   const comp: Competition = {
     id: W + 'lions', name: `Women's British & Irish Isles Tour of ${hostName}`,
     short: 'Isles Tour', type: 'intl',

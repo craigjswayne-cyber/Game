@@ -180,6 +180,26 @@ l.leaked = l.week
 ok(prepLeaked(l), 'a leak this week is live')
 l.week += 1
 ok(!prepLeaked(l), 'and it is spent by the following week - it is one match, not a curse')
+// AND THROUGH THE REAL WEEK (1.8.1). The story is told after the week's
+// fixtures, so it has to be live at the NEXT kick-off. It was stamped with the
+// week it was told in, which had already been played, and the penalty in
+// beginMatch never fired in any career.
+{
+  // one story a week at most (talkingPoints), so a season can lose its leak
+  // to another story: the first of a few Bath careers that tells it
+  let toldIn = -1, liveNext = false
+  for (const seed of [5, 3, 11, 17, 23]) {
+    const r = newGame('bath', 'Test', seed)
+    for (let i = 0; i < SEASON_WEEKS && toldIn < 0; i++) {
+      const before = r.news.length
+      processWeekAndAdvance(r)
+      if (r.news.slice(before).some(n => n.k === 'point.leak')) { toldIn = i; liveNext = prepLeaked(r) }
+    }
+    if (toldIn >= 0) break
+  }
+  ok(toldIn >= 0, 'the leak story is told in a season')
+  ok(liveNext, 'and the match after it is played against a side that has read it')
+}
 
 // ---- 7. and the internationals come home hurt ---------------------------
 console.log('\n--- 7. international duty, which was already in the game')

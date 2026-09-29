@@ -3,7 +3,8 @@ import type { Competition, FacilityId, Fixture, GameState, Player, Pos, TableRow
 import { W, genderOf, mayTakeMaternityLeave, MATERNITY_WEEKS, subjectVar } from './gender'
 // FRIENDLY_DAY below is the Wednesday index this hands to dayDate
 import { dayDate, type DayIndex } from './days'
-import { islesCoach, offerIsles } from './isles'
+import { islesCoach, isleTour, offerIsles } from './isles'
+import { telling, tellingsOf } from './tellings'
 import { aiCloseSeason } from './closeseason'
 import { talkingPoints } from './talkingpoints'
 import { aiFireSale, aiWeeklyFinance } from './aiecon'
@@ -29,11 +30,12 @@ import { generateGossip } from './gossip'
 import { benchDrag, buildPlayer, playerValue, playerWage, peekPid, resetIds } from './attributes'
 import { recruitmentMeeting, scoutOpponent, weeklyScouting } from './scout'
 import { recordTendency } from './tendency'
+import { flushIdentityNews, stepIdentity } from './identity'
 import { disciplineWeek } from './authority'
 import { updateAgency } from './agency'
 import { OBJECTIVE_DEFS } from './objectives'
 import { derbyName, isDerby, rivalsOf } from './rivalries'
-import { NAT_DEPTH, NAT_SQUAD_FLOOR, NAT_SQUAD_SIZE, NAT_TIERS, pickableNations, homeBased, nationByCode, nationNameIn, nationVars, regenName, worldNames } from './nations'
+import { NAT_DEPTH, NAT_SQUAD_FLOOR, NAT_SQUAD_SIZE, NAT_TIERS, pickableNations, homeBased, clubQuotaLeft, conflictedClub, federationList, federationPick, releaseClubDuty, nationByCode, nationNameIn, nationVars, regenName, worldNames } from './nations'
 import { isMyClub, logDecision } from './model'
 import { resolveCourses, staffWageBill } from './staff'
 import { resolveCommission, scoutPostcard } from './commission'
@@ -43,17 +45,32 @@ import { gameTimeReview, settleGameTime } from './gametime'
 import { rebuildSeason, rollIntakeClass } from './rollover'
 import { setUpForUser } from './oppcoach'
 import { drillWeek } from './playbook'
+import { drillMovesWeek } from './moves'
 import { settleJokers } from './joker'
 import { settleKnocks } from './knock'
 import { askBoard, type BoardAsk } from './boardroom'
-import { expireLoans, loanTargets } from './loans'
+import { expireLoans, loanOutBoost, loanTargets } from './loans'
+import { FOCUS_MAX_AGE, focusIds } from './development'
 import { refreshVacancies, sackManager } from './jobs'
+import { historyAfterMatch, historyPreview, historyWeight } from './history'
 import { playAcademyWeek } from './academy'
 import { canBeMentored, mentorGraduations, mentorReports, mentorWeek } from './mentoring'
+import { bondsWeek, flushBondNews } from './bonds'
 import { t, tIn, type Vars } from './i18n'
+import { flushMemoryNews, memoryAfterMatch, memoryWeek, rememberPromise } from './memory'
 
 export function weekRng(state: GameState): Rng {
   return mulberry32(state.seed ^ (state.season * 131 + state.week * 7919))
+}
+
+/** THE MANAGER'S OWN MATCH HAS DICE OF ITS OWN (1.8.1). It was played on
+ *  weekRng, and so is the week's fixture loop, which on most weeks draws
+ *  nothing before its first match: that match started from the same state,
+ *  so the first AI fixture of the week had the manager's weather and his
+ *  match's dice (measured: 41 weeks in 44). A salt on the same week seed
+ *  keeps it deterministic per week, so the forecast still predicts the day. */
+export function matchRng(state: GameState): Rng {
+  return mulberry32((state.seed ^ (state.season * 131 + state.week * 7919)) ^ 0x6d2b79f5)
 }
 
 /** The manager is back at a door the board just closed (v1.1.4, owner's
@@ -104,9 +121,15 @@ export function requestFacility(state: GameState, fid: FacilityId): string {
   // one builders' slot, and the new stand is in it
   if (state.stadiumBuild) return t('facilities.facStandBusy', { stadium: club.stadium })
   const abs = state.season * 100 + state.week
+  // A BOARDROOM GRANT IS ALREADY A YES (1.8.1). The chairman agreed to fund
+  // this building, so collecting it is not a request: it is not pressing
+  // inside a refusal, and it is not refused for want of reserves the club
+  // will not spend. It used to face the full test below, balance included,
+  // and a club too poor to pay the share it was being excused was told no.
+  const granted = (state.boardGrant ?? []).indexOf(fid)
   // inside a denial the polite refusal is gone: asking again is pressing the
   // board, and pressing the board has a price (pressBoard above)
-  if ((state.facilityAskCooldown ?? 0) > abs) return pressBoard(state, 'capital')
+  if (granted < 0 && (state.facilityAskCooldown ?? 0) > abs) return pressBoard(state, 'capital')
   const cost = facilityCost(info, lvl)
   /**
    * The board underwrites capital projects when it believes in you. That is what
@@ -129,8 +152,8 @@ export function requestFacility(state: GameState, fid: FacilityId): string {
     : club.boardConfidence >= 70 ? 0.55
     : club.boardConfidence >= 58 ? 0.3
     : 0
-  const clubShare = Math.round(cost * (1 - backing))
-  const approve = club.boardConfidence >= 45 && club.balance >= clubShare * 1.25
+  const clubShare = granted >= 0 ? 0 : Math.round(cost * (1 - backing))
+  const approve = granted >= 0 || (club.boardConfidence >= 45 && club.balance >= clubShare * 1.25)
   if (!approve) {
     state.facilityAskCooldown = addWeeks100(abs, 8)
     ;(state.boardAsks ??= {}).capital = { deniedAt: abs, strikes: 0 }
@@ -155,7 +178,6 @@ export function requestFacility(state: GameState, fid: FacilityId): string {
    * ask on this page and the ask in the boardroom: here you are asking to be
    * allowed to spend, there you are asking somebody else to.
    */
-  const granted = (state.boardGrant ?? []).indexOf(fid)
   if (granted >= 0) {
     state.boardGrant!.splice(granted, 1)
   } else {
@@ -824,6 +846,14 @@ function manageInternationals(state: GameState, rng: Rng) {
         // arrives, so a Test is never played with twelve men.
         if (nat === state.natTeam) {
           state.natSquads[nat] = []
+          state.natSent = []
+          // the federation's own list, taken once as an AI federation takes it:
+          // the yardstick the two-jobs rule measures him against all window
+          state.natFed = { nat, ids: federationPick(state, nat, w.size).map(p => p.id) }
+          // ...except for his own club's men the federation would take, when he
+          // runs a club as well: they are released to camp as they would be to
+          // any AI federation, so leaving them home is not his to decide (9.10)
+          releaseClubDuty(state, nat, w.size)
           // THE SUMMONS, not an announcement. The federation is waiting on him
           // rather than handing him a team sheet, and it says so in the inbox
           // as well as holding Continue - one of those is a reminder and the
@@ -881,7 +911,7 @@ function manageInternationals(state: GameState, rng: Rng) {
       }
       if (lionsCalls.length) {
         // the honour of a career deserves better than the generic list
-        const tour = state.comps['lions']?.name ?? 'the Isles tour'
+        const tour = isleTour(state)?.name ?? 'the Isles tour'
         const names = lionsCalls.map(p => `${p.name}${(p.lions ?? 0) > 1 ? ` (tour number ${p.lions})` : ''}`).join(', ')
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
@@ -944,10 +974,11 @@ function manageInternationals(state: GameState, rng: Rng) {
           }
         }
         delete state.natSquads[nat]
+        if (nat === state.natTeam) { delete state.natSent; delete state.natFed }
       }
       if (lionsHome.length) {
         // a tour changes a player: he comes home a bigger presence
-        const comp = state.comps['lions']
+        const comp = isleTour(state)
         const seriesWon = comp?.champion === 'LIO'
         for (const p of lionsHome) {
           p.morale = clamp(p.morale + 0.6, 1, 10)
@@ -1362,16 +1393,17 @@ function weeklyTraining(state: GameState, rng: Rng) {
   }
   if (returned.length) {
     const one = returned.length === 1
-    const line = (p: Player) => `${p.name} (${p.pos}), rusty for ${p.rust} week${(p.rust ?? 1) > 1 ? 's' : ''}`
+    // sixteen of these a season, so it is told three ways in turn (tellings.ts)
+    const k = telling(state, 'news.backInTraining')
+    const v = {
+      n: returned.length, who: one ? returned[0].name : String(returned.length),
+      men_l: JSON.stringify(returned.map(pl => ({ k: 'news.rustyMan', name: pl.name, pos: pl.pos, n: pl.rust ?? 1 }))),
+    }
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
-      subject: one ? `${returned[0].name} back in training` : `${returned.length} back in training`,
-      body: `${one ? 'Available for selection again' : 'Available for selection again'}: ${returned.map(line).join(', ')}. Pick a rusty man now and he could break down again; ease him back and he will be right.`,
-      k: 'news.backInTraining',
-      v: {
-        n: returned.length, who: one ? returned[0].name : String(returned.length),
-        men_l: JSON.stringify(returned.map(pl => ({ k: 'news.rustyMan', name: pl.name, pos: pl.pos, n: pl.rust ?? 1 }))),
-      },
+      subject: tIn('en', `${k}Subj`, v),
+      body: tIn('en', k, v),
+      k, v,
       playerId: returned[0].id,
     })
   }
@@ -1469,8 +1501,12 @@ function weeklyFinance(state: GameState, rng: Rng) {
   // dont benefit the club"), and it is the right rule for the idle-week friendly
   // and the testimonial too: nobody pays league prices to watch the academy, and
   // a testimonial's takings belong to the player rather than the club.
+  //
+  // Nor a final at a neutral ground (1.8.1). The user is its nominal home side
+  // and was paid £30 a head on the whole showpiece crowd, 80,000 people through
+  // somebody else's turnstiles - the reason the gate record already skips it.
   const home = state.fixtures.find(f =>
-    f.week === state.week && f.played && f.homeId === club.id && f.att && f.compId !== 'fr')
+    f.week === state.week && f.played && f.homeId === club.id && f.att && f.compId !== 'fr' && !f.venue)
   // F31: boxes and lounges mean the same crowd is worth more. 4% a level, so a
   // maxed block lifts a £30 head to £36. operatingCost documents why this one
   // facility carries an extra weekly bill.
@@ -1583,6 +1619,8 @@ function matchReport(state: GameState, fx: Fixture) {
 export function afterClubMatch(state: GameState, fx: Fixture) {
   const club = state.clubs[state.userClubId]
   if (!club || fx.compId === 'fr') return
+  memoryAfterMatch(state, fx) // a man you let go comes back to hurt you (memory.ts)
+  historyAfterMatch(state, fx) // the club's memory: tenure, legends, records (history.ts)
   const isHome = fx.homeId === club.id
   const oppId = isHome ? fx.awayId : fx.homeId
   const opp = state.clubs[oppId]
@@ -1651,6 +1689,8 @@ export function afterClubMatch(state: GameState, fx: Fixture) {
   }
 }
 
+const MILESTONE_KEYS = tellingsOf('news.milestone')
+
 function milestones(state: GameState, rng: Rng) {
   const club = state.clubs[state.userClubId]
   for (const id of club.players) {
@@ -1666,15 +1706,17 @@ function milestones(state: GameState, rng: Rng) {
     if ([250, 500, 1000, 1500].includes(totPts)) hits.push({ k: 'news.milePts', n: totPts })
     for (const h of hits) {
       const v = { player: p.name, what_k: h.k, n: h.n }
-      const body = tIn('en', 'news.milestone', v)
       // a player parked exactly on a number (no tries this week) must not
-      // be saluted again - one presentation per milestone
-      if (state.news.some(n => n.body === body)) continue
+      // be saluted again - one presentation per milestone. Matched on the
+      // man and the mark rather than on the wording, which now varies
+      if (state.news.some(n => n.k != null && MILESTONE_KEYS.includes(n.k) && n.playerId === p.id &&
+        n.v?.what_k === h.k && n.v?.n === h.n)) continue
+      const k = telling(state, 'news.milestone')
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
-        subject: `Milestone: ${p.name}`,
-        body,
-        k: 'news.milestone', v,
+        subject: tIn('en', `${k}Subj`, v),
+        body: tIn('en', k, v),
+        k, v,
         playerId: p.id,
       })
     }
@@ -1687,16 +1729,88 @@ function leagueRoundUp(state: GameState) {
     f.compId === leagueId && f.week === state.week && f.played &&
     f.homeId !== state.userClubId && f.awayId !== state.userClubId)
   if (!round.length) return
-  const rows = round.map(f => ({
+  const rows: Record<string, string | number>[] = round.map(f => ({
     k: 'news.roundRow', home: teamShort(state, f.homeId), hs: f.homeScore,
     as: f.awayScore, away: teamShort(state, f.awayId),
   }))
+  rows.push(...formLines(state, leagueId, round))
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
     subject: `${state.comps[leagueId]?.short} round-up`,
-    body: rows.map(r => tIn('en', r.k, r)).join('\n'),
+    body: rows.map(r => tIn('en', String(r.k), r)).join('\n'),
     k: 'news.roundUp',
     v: { comp: state.comps[leagueId]?.short ?? '', rows_ll: JSON.stringify(rows) },
+  })
+  tryRace(state, leagueId, round)
+}
+
+/**
+ * THE FORM LINE UNDER THE SCORES (1.8.1, "feels too samey"). The round-up was a
+ * list of scorelines and nothing else, seventeen times a season. The table
+ * already knows which of those clubs cannot stop winning and which cannot
+ * start, so the round-up says so: the longest winning run and the longest run
+ * without a win among the clubs that played this round, each only on the
+ * weeks it reaches a new mark (four wins, six, eight...; five without, seven,
+ * nine...) so one club's run is not the same line every Monday. A line on an
+ * existing story, not a new story: more to read, not more to open.
+ */
+function formLines(state: GameState, leagueId: string, round: Fixture[]): Record<string, string | number>[] {
+  const played = state.fixtures
+    .filter(f => f.compId === leagueId && f.played)
+    .sort((a, b) => b.week - a.week || b.id - a.id)
+  const runOf = (clubId: string, won: boolean): number => {
+    let n = 0
+    for (const f of played) {
+      if (f.homeId !== clubId && f.awayId !== clubId) continue
+      const us = f.homeId === clubId ? f.homeScore : f.awayScore
+      const them = f.homeId === clubId ? f.awayScore : f.homeScore
+      if ((us > them) !== won) break
+      n++
+    }
+    return n
+  }
+  const clubs = round.flatMap(f => [f.homeId, f.awayId])
+  const best = (won: boolean, marks: (n: number) => boolean) => clubs
+    .map(id => ({ id, n: runOf(id, won) }))
+    .filter(x => marks(x.n))
+    .sort((a, b) => b.n - a.n)[0]
+  const out: Record<string, string | number>[] = []
+  const hot = best(true, n => n >= 4 && n % 2 === 0)
+  if (hot) out.push({ k: 'news.ruHot', club: teamShort(state, hot.id), n: hot.n })
+  const cold = best(false, n => n >= 5 && n % 2 === 1)
+  if (cold) out.push({ k: 'news.ruCold', club: teamShort(state, cold.id), n: cold.n })
+  return out
+}
+
+/**
+ * THE TRY RACE, twice a season (1.8.1). A third of the way through the league
+ * and two thirds of the way, the leading try scorer among the players at this
+ * league's clubs and the man chasing him, from the season's own scoring. Filed
+ * only when there is a race to speak of: three tries at least, and a second
+ * name to chase.
+ */
+function tryRace(state: GameState, leagueId: string, round: Fixture[]) {
+  const comp = state.comps[leagueId]
+  if (!comp) return
+  const total = new Set(state.fixtures.filter(f => f.compId === leagueId && !f.stage).map(f => f.round)).size
+  const at = round[0]?.round ?? -1
+  if (total < 6 || (at !== Math.floor(total / 3) && at !== Math.floor((2 * total) / 3))) return
+  const teams = new Set(comp.teamIds)
+  const scorers = Object.values(state.players)
+    .filter(p => p.clubId && teams.has(p.clubId) && p.stats.tries > 0)
+    .sort((a, b) => b.stats.tries - a.stats.tries || b.stats.points - a.stats.points || a.id - b.id)
+  const [first, second] = scorers
+  if (!first || !second || first.stats.tries < 3) return
+  const v = {
+    comp: comp.short, player: first.name, club: teamShort(state, first.clubId!), n: first.stats.tries,
+    second: second.name, club2: teamShort(state, second.clubId!), m: second.stats.tries,
+  }
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+    subject: tIn('en', 'news.tryRaceSubj', v),
+    body: tIn('en', 'news.tryRace', v),
+    k: 'news.tryRace', v,
+    playerId: first.id,
   })
 }
 
@@ -1739,9 +1853,10 @@ function mgrMilestones(state: GameState, won: boolean) {
   }
 }
 
-/** The week a new manager's first-season grace ends (no results sacking
- *  before it): 32 at a club of reputation 50 or less, 12 at 88 or more, a
- *  straight line between. */
+/** The week a new manager's first-season grace ends: the first week a
+ *  results sacking can happen, so the grace covers the weeks BEFORE it (the
+ *  sack check reads `week < honeymoonEnd`). 32 at a club of reputation 50 or
+ *  less, 12 at 88 or more, a straight line between. */
 export function honeymoonEnd(rep: number): number {
   const t = Math.max(0, Math.min(1, (rep - 50) / 38))
   return Math.round(32 - 20 * t)
@@ -1754,7 +1869,9 @@ function boardReaction(state: GameState, fx: Fixture, delegated = false) {
   const them = isHome ? fx.awayScore : fx.homeScore
   const oppRep = state.clubs[isHome ? fx.awayId : fx.homeId]?.rep ?? 70
   const diff = (oppRep - club.rep) / 25
-  const derbyF = fx.derby ? 1.8 : 1 // derbies echo in the boardroom
+  // derbies echo in the boardroom; an earned rivalry or a return to a club
+  // that remembers you echoes a little (history.ts, never above 1.3)
+  const derbyF = fx.derby ? 1.8 : historyWeight(state, fx)
   // a new owner watches every result like it is a referendum on you
   const ownerF = state.newOwnerUntil != null && state.week <= state.newOwnerUntil ? 1.4 : 1
   // The opponent's standing scales the swing: beating a better side is worth more,
@@ -1918,7 +2035,7 @@ function boardReaction(state: GameState, fx: Fixture, delegated = false) {
 
   // the terraces have longer memories and shorter fuses than the board
   const before = state.fanMood ?? 60
-  const heat = fx.derby || grudgeBetween(state, fx.homeId, fx.awayId) ? 1.7 : 1
+  const heat = fx.derby || grudgeBetween(state, fx.homeId, fx.awayId) ? 1.7 : historyWeight(state, fx)
   let mood = before + (us > them ? 4 * heat : us < them ? -(5 * heat + (isHome ? 1.5 : 0)) : -1)
   mood += (55 - mood) * 0.03 // everything fades toward "fine"
   state.fanMood = clamp(mood, 5, 98)
@@ -2269,7 +2386,7 @@ function boardReadsTheTable(state: GameState, lean = 1) {
   const posNow = leaguePos(comp.table, club.id)
   if (posNow <= 0) return
   const tableLen = comp.table.length
-  const objPos = Math.min(boardObjective(club.rep).pos, tableLen)
+  const objPos = Math.min(boardObjective(club.rep, tableLen).pos, tableLen)
   const devFrac = (posNow - objPos) / Math.max(1, tableLen - 1)
   const patience = boardPatience(club.rep)
   const floor = clamp(30 - patience * 14, 2, 26)
@@ -2325,6 +2442,9 @@ export function processWeekAndAdvance(state: GameState) {
   // shelved rusts - which is what stops a club from owning ten world-class moves.
   for (const club of Object.values(state.clubs)) {
     drillWeek(state, club, club.id === state.userClubId && state.matchPrep === 'setpiece')
+    // and the attacking moves, on the same rules (moves.ts): an Attack week
+    // and the attack coach are what sharpen them
+    drillMovesWeek(state, club, club.id === state.userClubId && state.matchPrep === 'attack')
   }
 
   // internationals squad management happens before matches
@@ -2479,11 +2599,12 @@ export function processWeekAndAdvance(state: GameState) {
       }))
       const men = reports.reduce((n, r) => n + r.lines.length, 0)
       const v = { n: men, tests: reports.length, blocks_ll: JSON.stringify(blocks) }
+      const k = telling(state, 'news.campRound')
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
-        subject: tIn('en', 'news.campRoundSubj', v),
-        body: tIn('en', 'news.campRound', v),
-        k: 'news.campRound', v,
+        subject: tIn('en', `${k}Subj`, v),
+        body: tIn('en', k, v),
+        k, v,
       })
     }
   }
@@ -2520,8 +2641,11 @@ export function processWeekAndAdvance(state: GameState) {
 
   // the morning after deadline day: the window is shut, here is the rundown
   if ((state.week === 8 || state.week === 28) && !state.unemployed) {
+    // read by the story's key and its variables, not its English (1.8.1): the
+    // subject and body are stored in English for the engine, and a round-up
+    // that parsed them broke the day anybody reworded a transfer story
     const deals = state.news.filter(n => n.type === 'transfer' && n.season === state.season &&
-      n.week === state.week - 1 && n.subject.includes(' joins ') && n.playerId != null)
+      n.week === state.week - 1 && (n.k === 'news.transferDone' || n.k === 'news.transferDoneFree') && n.playerId != null)
     if (deals.length >= 2) {
       const TIMES = ['08:10', '09:45', '11:30', '13:05', '14:40', '16:15', '18:00', '19:35', '21:10', '22:55']
       const rows: { k: string; [x: string]: string | number }[] = []
@@ -2529,10 +2653,8 @@ export function processWeekAndAdvance(state: GameState) {
         const p = state.players[n.playerId!]
         const to = p?.clubId ? state.clubs[p.clubId] : null
         if (!p || !to) return
-        // read back out of the STORED ENGLISH body, which is why that body is
-        // never translated in place - see model.ts NewsItem
-        const fee = n.body.match(/for a fee of (.+?)\. The /)?.[1] ?? null
-        const mine = to.id === state.userClubId || n.body.includes(`from ${state.clubs[state.userClubId].name}`)
+        const fee = n.k === 'news.transferDone' && n.v?.fee != null ? String(n.v.fee) : null
+        const mine = to.id === state.userClubId || n.v?.from === state.clubs[state.userClubId].name
         rows.push({
           k: 'news.ddDeal', time: TIMES[i], player: p.name, pos: p.pos, to: to.short,
           fee: fee ?? '', fee_k: fee ? 'news.ddFeeKnown' : 'news.ddFeeUndisclosed',
@@ -2579,6 +2701,7 @@ export function processWeekAndAdvance(state: GameState) {
         : pl.kind === 'minutes' ? gap >= 1
         : p.contractEnds > state.season
       const sulky = p.pers === 'Ambitious' || p.pers === 'Mercenary' || p.pers === 'Temperamental'
+      rememberPromise(state, p, kept, pl.kind) // memory.ts: the squad keeps the receipts, and so does the world
       if (kept) {
         p.morale = clamp(p.morale + 1.1, 1, 10)
         state.news.push({
@@ -2803,7 +2926,7 @@ export function processWeekAndAdvance(state: GameState) {
         const apps = 2 + Math.floor(lrng() * 3)
         const tries = BACKS.includes(p.pos) ? Math.floor(lrng() * 3) : lrng() < 0.25 ? 1 : 0
         const maxed = p.ca >= p.pa
-        const boost = 2 + Math.floor(mulberry32(state.seed + p.id)() * 3)
+        const boost = loanOutBoost(state, p)
         const verdictKey = maxed ? 'news.loanLevel'
           : boost >= 4 ? 'news.loanStar'
           : boost === 3 ? 'news.loanGrowing'
@@ -2865,7 +2988,10 @@ export function processWeekAndAdvance(state: GameState) {
       }
     }
     if (sn && state.week === lastWk) {
-      const fx = state.fixtures.filter(f => f.compId === 'sn')
+      // the championship's own id, not the men's: a women's world plays w:sn,
+      // and filtering on 'sn' found no fixtures there, so its Slam and its
+      // Spoon went unannounced while the eve-of story above ran every year
+      const fx = state.fixtures.filter(f => f.compId === sn.id)
       if (fx.length && fx.every(f => f.played)) {
         const rows = sortTable(sn.table)
         const top = rows[0]
@@ -3426,13 +3552,17 @@ export function processWeekAndAdvance(state: GameState) {
       // the analysts' tape: this week's dials go in the tendency window, and
       // the repetition streaks tick (pillar 2) - a habit is now a fact
       recordTendency(state)
+      stepIdentity(state) // the club's identity drifts toward how it is run (identity.ts)
     } else {
       // Test match: national duty counts on the manager's record
       const mySide = userFx.homeId === state.natTeam || userFx.homeId === 'LIO' ? userFx.homeId : userFx.awayId
       const us = userFx.homeId === mySide ? userFx.homeScore : userFx.awayScore
       const them = userFx.homeId === mySide ? userFx.awayScore : userFx.homeScore
       state.mgr.m += 1
-      if (us > them) state.mgr.w += 1
+      // a Test win carries a full weight in the weighted record too: it counted
+      // as a game and never as a weighted win, so once `ww` existed every Test
+      // won pulled the win rate in mgrReputation DOWN
+      if (us > them) { state.mgr.ww = (state.mgr.ww ?? state.mgr.w) + 1; state.mgr.w += 1 }
       else if (us === them) state.mgr.d += 1
       else state.mgr.l += 1
       // the tenure's own ledger, shown on the country desk - the record books
@@ -3650,8 +3780,11 @@ export function processWeekAndAdvance(state: GameState) {
           hi: Math.max(final.homeScore, final.awayScore), lo: Math.min(final.homeScore, final.awayScore),
         },
       })
-      if (comp.champion === state.userClubId || (state.natTeam != null && comp.champion === state.natTeam)) {
-        const mine = comp.champion === state.userClubId
+      // his club's cup only while it IS his club: userClubId still names the one
+      // that sacked him, and a successor's trophy was going on his record
+      const clubWon = !state.unemployed && comp.champion === state.userClubId
+      if (clubWon || (state.natTeam != null && comp.champion === state.natTeam)) {
+        const mine = clubWon
         const hk = mine ? 'cel.champions' : 'cel.championsOf'
         const hv: Vars = mine
           ? { short: teamShort(state, state.userClubId).toUpperCase() }
@@ -3664,13 +3797,26 @@ export function processWeekAndAdvance(state: GameState) {
           hk, hv, sk: 'cel.championsSub', sv,
         }
         state.mgr.trophies.push({ compId: comp.id, season: state.season, clubId: state.userClubId })
-        state.news.push({
-          id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
-          subject: `CHAMPIONS! The ${comp.name} is yours`,
-          body: `Scenes of pure joy as ${state.clubs[state.userClubId].name} lift the ${comp.name}. The city will talk about this night for years - and the board have noted exactly who delivered it.`,
-          k: 'news.youWonCup', v: { comp: comp.name, club: state.clubs[state.userClubId].name },
-        })
-        state.clubs[state.userClubId].boardConfidence = clamp(state.clubs[state.userClubId].boardConfidence + 20, 0, 100)
+        if (mine) {
+          state.news.push({
+            id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
+            subject: `CHAMPIONS! The ${comp.name} is yours`,
+            body: `Scenes of pure joy as ${state.clubs[state.userClubId].name} lift the ${comp.name}. The city will talk about this night for years - and the board have noted exactly who delivered it.`,
+            k: 'news.youWonCup', v: { comp: comp.name, club: state.clubs[state.userClubId].name },
+          })
+          state.clubs[state.userClubId].boardConfidence = clamp(state.clubs[state.userClubId].boardConfidence + 20, 0, 100)
+        } else {
+          // a knockout his NATION won (a World Championship final): the same
+          // letter the round-robin Tests send below. It used to fall into the
+          // club's, which had his club lifting the World Championship and gave
+          // its board the credit.
+          state.news.push({
+            id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
+            subject: `CHAMPIONS! You've won the ${comp.name} with ${comp.champion}`,
+            body: `A nation celebrates. Your name goes into the record books as the coach who delivered the ${comp.name}.`,
+            k: 'news.youWonIntl', v: { comp: comp.name, nat: comp.champion },
+          })
+        }
       }
     }
     // pure round-robin comps (6N, TRC, National 1): champion = table top when all played
@@ -3679,7 +3825,7 @@ export function processWeekAndAdvance(state: GameState) {
       if (all.length && all.every(f => f.played)) {
         comp.champion = sortTable(comp.table)[0].teamId
         state.history.push({ season: state.season, compId: comp.id, champion: comp.champion })
-        if (comp.type === 'league' && comp.champion === state.userClubId) {
+        if (comp.type === 'league' && comp.champion === state.userClubId && !state.unemployed) {
           state.mgr.trophies.push({ compId: comp.id, season: state.season, clubId: state.userClubId })
           const hv2 = { short: teamShort(state, state.userClubId).toUpperCase() }
           const sv2 = { comp: comp.name, season: seasonLabel(state.season), manager: state.managerName }
@@ -3697,7 +3843,7 @@ export function processWeekAndAdvance(state: GameState) {
           })
           state.clubs[state.userClubId].boardConfidence = clamp(state.clubs[state.userClubId].boardConfidence + 20, 0, 100)
         }
-        const lionsWin = comp.id === 'lions' && comp.champion === 'LIO' &&
+        const lionsWin = comp.id === isleTour(state)?.id && comp.champion === 'LIO' &&
           state.natTeam != null && ['ENG', 'IRE', 'SCO', 'WAL'].includes(state.natTeam)
         if ((state.natTeam != null && comp.champion === state.natTeam) || lionsWin) {
           state.mgr.trophies.push({ compId: comp.id, season: state.season, clubId: state.userClubId })
@@ -3840,12 +3986,17 @@ export function processWeekAndAdvance(state: GameState) {
   // There were two warnings, at weeks 20 and 31, both saying the same thing in
   // the same words - so the first one was easy to file away and the second read
   // as a repeat rather than as a clock running down. A season is SEASON_WEEKS
-  // long and ends at the last of them, so the owner's calendar lands on:
+  // long (48) and ends at the last of them, so the owner's calendar lands on:
   //
-  //   week 19  six months out    (26 weeks)
-  //   week 32  three months out  (13 weeks)
-  //   week 41  a month out       (4 weeks)
-  //   week 43  a fortnight out   (2 weeks)
+  //   week 22  six months out    (26 weeks)
+  //   week 35  three months out  (13 weeks)
+  //   week 44  a month out       (4 weeks)
+  //   week 46  a fortnight out   (2 weeks)
+  //
+  // The last two fall in the close season, after the finals, which is right:
+  // the deals run to the end of the season, not to the end of the rugby.
+  // (Those were 19, 32, 41 and 43 while the season was 45 weeks long; the
+  // table below counts back from SEASON_WEEKS, so it moved with it.)
   //
   // One story, four dates, and it says how long is left each time, which is
   // the whole point of a reminder.
@@ -3959,7 +4110,7 @@ export function processWeekAndAdvance(state: GameState) {
   if (!state.unemployed) {
     weeklyFinance(state, rng)
     weeklyScouting(state)
-    // the run-in: from week 28, gaps and rivals become the story
+    // the run-in: from week 31, gaps and rivals become the story
     if (state.week >= 31 && !state.unemployed) {
       const club = state.clubs[state.userClubId]
       const comp = state.comps[club.leagueId]
@@ -4121,6 +4272,7 @@ export function processWeekAndAdvance(state: GameState) {
     if (state.pressTone) state.pressTone = Math.abs(state.pressTone * 0.8) < 0.5 ? 0 : state.pressTone * 0.8
   }
   generateGossip(state, rng)
+  memoryWeek(state) // the world reads your old decisions back (memory.ts), no rng
   // WHERE THE SUPPORT'S ANGER HAS GOT TO, and what it costs (terraces.ts).
   // Before this, fan mood moved the gate, the shop and the atmosphere and
   // could not by itself cost anybody a job; a sustained campaign presses the
@@ -4171,12 +4323,12 @@ export function processWeekAndAdvance(state: GameState) {
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
       subject: `An invitation from the four unions`,
-      body: `The four unions have written to you jointly. They want you to take the British & Irish Isles XV to ${state.comps['lions']?.name?.replace(/^.*Tour of /, '') ?? 'the southern hemisphere'} this summer: seven provincial games and a three-Test series, one squad drawn from four countries who spend every February trying to beat each other.
+      body: `The four unions have written to you jointly. They want you to take the British & Irish Isles XV to ${isleTour(state)?.name?.replace(/^.*Tour of /, '') ?? 'the southern hemisphere'} this summer: seven provincial games and a three-Test series, one squad drawn from four countries who spend every February trying to beat each other.
 
 There is no shortlist and no interview. They have chosen, and they are asking.
 
 If you go, your assistant takes your national side for the duration. Nobody prepares a Test series eleven thousand miles from home and runs his own country in the same summer.`,
-      k: 'news.islesOffer', v: { host: state.comps['lions']?.name?.replace(/^.*Tour of /, '') ?? '' },
+      k: 'news.islesOffer', v: { host: isleTour(state)?.name?.replace(/^.*Tour of /, '') ?? '' },
     })
   }
 
@@ -4201,11 +4353,12 @@ If you go, your assistant takes your national side for the duration. Nobody prep
   if (!state.unemployed) aiPreContractPoach(state, rng)
   refreshVacancies(state, rng)
 
-  // individual development focus: extra growth for up to 3 youngsters
+  // individual development focus: extra growth for up to FOCUS_SLOTS
+  // youngsters, the list development.ts keeps (five from 1.8.1)
   if (!state.unemployed) {
-    for (const id of state.devFocus.slice(0, 3)) {
+    for (const id of focusIds(state)) {
       const p = state.players[id]
-      if (!p || p.clubId !== state.userClubId || p.age > 26) continue
+      if (!p || p.clubId !== state.userClubId || p.age > FOCUS_MAX_AGE) continue
       const boost = 0.1 + state.staff.assistant * 0.04
       if (p.ca < p.pa && rng() < boost) {
         p.ca += 1
@@ -4219,12 +4372,14 @@ If you go, your assistant takes your national side for the duration. Nobody prep
     }
   }
 
-  // how the mentoring pairs are getting on, every sixth week - after the
+  // how the mentoring pairs are getting on, every eighth week - after the
   // graduation sweep, so a finished pairing gets its send-off rather than one
   // more progress note about a course that is over
   if (!state.unemployed) {
     mentorGraduations(state)
     mentorReports(state)
+    // the dressing room's friendships, rivalries and cliques (bonds.ts)
+    bondsWeek(state)
   }
 
   // ---- OBJECTIVES LAND IN THE NEWS ----
@@ -4317,8 +4472,23 @@ If you go, your assistant takes your national side for the duration. Nobody prep
       // manager and a support that has stopped hearing from its club. Sized
       // below the worst live answer (board -0.2 on the option scale = 1.0
       // confidence) so answering badly still beats not answering at all.
+      //
+      // AND IN PROPORTION TO THE BOARD'S PATIENCE (1.8.1). This was the one
+      // board term that ignored stature (boardPatience scales every result
+      // and every table review), and in 1.8.1 it began to fire far more for
+      // an absent manager: the one-question-a-week gate stopped counting the
+      // office's own standing decisions as press, so the press kept asking
+      // all season where two stale memos had silenced it from the first
+      // month (Esher, seed 151: two expired questions a season became a
+      // dozen, and the board that bottomed at 50 bottomed at 15). A small
+      // club's board takes an empty chair as it takes a defeat, at its own
+      // patience: a little under half the price at the weakest club in the
+      // game, the full 0.8 from the middle of the pool up, never more, so a
+      // bad answer still beats no answer. autopilotprobe, 36 seeds, Esher
+      // sleepwalking: mean lowest confidence 45.9 before, 49.3 with this
+      // (1.8.0: 48.6).
       const uc = state.clubs[state.userClubId]
-      if (uc) uc.boardConfidence = clamp(uc.boardConfidence - 0.8, 0, 100)
+      if (uc) uc.boardConfidence = clamp(uc.boardConfidence - 0.8 * Math.min(1, boardPatience(uc.rep) / 1.3), 0, 100)
       state.fanMood = clamp((state.fanMood ?? 60) - 0.4, 10, 95)
     }
   }
@@ -4351,6 +4521,11 @@ If you go, your assistant takes your national side for the duration. Nobody prep
   // takes its plan off (E9, oppcoach.ts setUpForUser): after the advance, so
   // it is the fixture the manager is about to prepare for
   setUpForUser(state, userFixtureThisWeek(state))
+  // and the week's history: a former club, a legend on the other side (history.ts)
+  historyPreview(state)
+  flushMemoryNews(state) // memory.ts stories held through the settle take their ids now
+  flushBondNews(state) // and the dressing room's (bonds.ts)
+  flushIdentityNews(state) // and identity.ts's, the same way (heldnews.ts)
 
   // (derby build-up now lives in the pre-advance block above, with the
   // all-time ledger - the old duplicate beat here was removed)
@@ -4367,19 +4542,34 @@ If you go, your assistant takes your national side for the duration. Nobody prep
  * auto-pick the owner asked us to stop doing.
  */
 function fillShortNatSquad(state: GameState) {
+  // not gated on employment: a coach between club jobs still has a country,
+  // and its camp opens empty for him like anyone's (see natSquadHold)
   const nat = state.natTeam
-  if (!nat || state.unemployed) return
+  if (!nat) return
   const playing = state.fixtures.some(f =>
     !f.played && f.week === state.week && (f.homeId === nat || f.awayId === nat))
   if (!playing) return
+  // (a club coach's due men went to camp when the window opened, 9.10. They
+  // are not topped up again here: an AI federation picks once, at the start,
+  // and a man who comes off the treatment table mid-window stays with his club)
+  const size = activeWindows(state).find(w =>
+    w.nations.includes(nat) && state.week >= w.start && state.week <= w.end)?.size ?? NAT_SQUAD_SIZE
   const named = state.natSquads[nat] ?? []
   if (named.length >= NAT_SQUAD_FLOOR) return
   const inCamp = new Set(named)
-  const spare = Object.values(state.players)
+  const candidates = Object.values(state.players)
     .filter(p => !inCamp.has(p.id) && (nat === 'LIO' ? HOME4_NAT.includes(p.nat) : p.nat === nat) &&
       p.clubId && homeBased(state, p, nat) && !p.injury && !p.natSquad)
     .sort((a, b) => b.ca - a.ca)
-    .slice(0, NAT_SQUAD_FLOOR - named.length)
+  // the top-up obeys the same club quota the coach does (9.10), or naming a
+  // short squad would let the federation's top-up do the raiding for him
+  const fed = conflictedClub(state) ? federationList(state, nat, size) : []
+  const spare: Player[] = []
+  for (const p of candidates) {
+    if (spare.length >= NAT_SQUAD_FLOOR - named.length) break
+    if (clubQuotaLeft(state, nat, size, [...named, ...spare.map(q => q.id)], p.clubId!, fed) <= 0) continue
+    spare.push(p)
+  }
   if (!spare.length) return
   for (const p of spare) {
     named.push(p.id)

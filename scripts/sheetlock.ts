@@ -15,7 +15,7 @@
 // SAVED sheet still reads exactly as the manager wrote it - while the LIVE
 // sheet visibly changed, so a pass can never be vacuous.
 import { newGame } from '../src/game/newgame'
-import { beginMatch, makeSubstitution, stepTick } from '../src/game/matchEngine'
+import { beginMatch, makeSubstitution, resolveDecision, stepTick } from '../src/game/matchEngine'
 import { weekRng } from '../src/game/season'
 
 let fails = 0
@@ -51,7 +51,12 @@ for (let slot = 0; slot < 15 && made < 3; slot++) {
 ok(made >= 2, `made ${made} tactical substitutions (needs at least 2 to mean anything)`)
 
 guard = 0
-while (ctx.seg !== 3 && guard++ < 400) { ctx.awaiting = null; stepTick(g, ctx) }
+// a penalty call at the whistle holds full time until it is answered (the
+// engine waits for the kick), so the probe answers every call it is asked
+while (ctx.seg !== 3 && guard++ < 400) {
+  if (ctx.decision) { resolveDecision(g, ctx, 'posts'); continue }
+  ctx.awaiting = null; stepTick(g, ctx)
+}
 ok(ctx.seg === 3, 'the match ran to full time')
 
 // the live sheet shows the afternoon...

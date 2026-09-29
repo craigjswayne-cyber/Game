@@ -1,16 +1,18 @@
 // The managerial merry-go-round: vacancies, applications, resignations.
 // The job market - wait for the right job, or take what's available.
 
-import type { GameState } from './model'
-import { genderOf, staffGender } from './gender'
+import type { Club, GameState } from './model'
+import { genderOf, staffGender, subjectVar } from './gender'
 import { absWeek, fmtMoney, mgrReputation, poss, weeksBetween100, stamp100 } from './model'
-import { sortTable } from './schedule'
+import { leaguePos, sortTable } from './schedule'
 import { autoSelect } from './matchEngine'
-import { clamp, mulberry32, type Rng } from './rng'
+import { clamp, hashString, mulberry32, type Rng } from './rng'
 import { nationByCode, regenName } from './nations'
 import { inheritStaff } from './staff'
 import { newCoachPhilosophy, seedPhilosophies } from './philosophy'
 import { t, tIn } from './i18n'
+import { telling } from './tellings'
+import { historyLeaveJob, historyTakeJob } from './history'
 
 /**
  * ---- THE THREE MONTHS AFTER THEY SACK YOU ----
@@ -132,12 +134,16 @@ export function refreshVacancies(state: GameState, rng: Rng) {
         k: 'news.jobWithdrawn', v: { club: c.name },
       })
     }
-    if (!keep && state.clubs[v.clubId] && v.clubId !== state.userClubId) {
+    // the club he is out of work from appoints like any other: userClubId
+    // still names it, and the old test left it without a coach until he
+    // found another job
+    if (!keep && state.clubs[v.clubId] && (v.clubId !== state.userClubId || state.unemployed)) {
       state.clubs[v.clubId].coachGender = staffGender(rng, genderOf(state))
       state.clubs[v.clubId].coach = regenName(rng, state.clubs[v.clubId].country, undefined, state.clubs[v.clubId].coachGender)
       // F23: the new man brings his own idea of how to play, which is why a club
       // you have had the measure of for three seasons can start kicking at you.
       newCoachPhilosophy(state, state.clubs[v.clubId])
+      coachAppointed(state, state.clubs[v.clubId])
     }
     return keep
   })
@@ -177,13 +183,15 @@ export function refreshVacancies(state: GameState, rng: Rng) {
       const coachK = club.coach ? 'news.coachNamed' : 'news.theirHeadCoach'
       club.coach = undefined
       const pos = sortTable(state.comps[club.leagueId]?.table ?? []).findIndex(x => x.teamId === c.clubId) + 1
-      const ord = pos <= 0 ? 'poor' : `${pos}${pos % 10 === 1 && pos !== 11 ? 'st' : pos % 10 === 2 && pos !== 12 ? 'nd' : pos % 10 === 3 && pos !== 13 ? 'rd' : 'th'}-placed`
+      // eleven sackings a season across the world, so the story is told three
+      // ways in turn (tellings.ts); the no-table version keeps its one wording
+      const k = pos <= 0 ? 'news.coachOutPoor' : telling(state, 'news.coachOut')
+      const v = { short: club.short, club: club.name, coach: exCoach, coach_k: coachK, pos_o: pos }
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
-        subject: `${club.short} part company with ${exCoach}`,
-        body: `${club.name} are searching for a new Director of Rugby after a ${ord} run of form. The position is open.`,
-        k: pos <= 0 ? 'news.coachOutPoor' : 'news.coachOut',
-        v: { short: club.short, club: club.name, coach: exCoach, coach_k: coachK, pos_o: pos },
+        subject: tIn('en', `${k}Subj`, v),
+        body: tIn('en', k, v),
+        k, v,
       })
       break
     }
@@ -228,6 +236,29 @@ export function refreshVacancies(state: GameState, rng: Rng) {
   }
 }
 
+/**
+ * THE OTHER HALF OF THE SACKING STORY (1.8.1). The inbox reported every club
+ * that parted company with its coach and never said who came in, so a rival's
+ * season read as a door that opened and nobody walked through. Only for the
+ * manager's own league, where he will meet the new man, and only once a table
+ * exists to say what he is taking on: a summer appointment is filed quietly.
+ * Reads the appointment that has just happened; draws nothing.
+ */
+function coachAppointed(state: GameState, club: Club) {
+  if (state.unemployed || !club.coach) return
+  const league = state.clubs[state.userClubId]?.leagueId
+  if (!league || club.leagueId !== league) return
+  const pos = leaguePos(state.comps[league]?.table, club.id)
+  if (pos <= 0) return
+  const v = { short: club.short, club: club.name, coach: club.coach, pos_o: pos, ...subjectVar(club.coachGender) }
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+    subject: tIn('en', 'news.coachInSubj', v),
+    body: tIn('en', 'news.coachIn', v),
+    k: 'news.coachIn', v,
+  })
+}
+
 /** Apply for a vacancy. Returns the outcome message. */
 export function applyForJob(state: GameState, clubId: string): string {
   const v = state.vacancies.find(x => x.clubId === clubId)
@@ -244,7 +275,11 @@ export function applyForJob(state: GameState, clubId: string): string {
   const cold = sackCooloff(state, clubId)
   if (cold > 0) return t('world.jbSacked', { club: club.name, n: cold, weeks_k: cold === 1 ? 'count.weekOne' : 'count.weekMany' })
   v.applied = true
-  const rng = mulberry32(state.seed ^ (state.week * 31 + club.rep))
+  // the club's own id and the season are in the seed: it was week and rep
+  // alone, so two jobs at clubs of equal standing, applied for in the same
+  // week, shared one roll - both yes or both no - and so did the same week of
+  // every season
+  const rng = mulberry32((state.seed ^ (state.season * 4099 + state.week * 31 + club.rep) ^ hashString(clubId)) >>> 0)
   if (rng() < jobChance(state, clubId)) {
     // AN OFFER, NOT AN APPOINTMENT (owner, v1.5.4: "if you apply for the job
     // you should have the option to accept or reject the offer rather than
@@ -322,6 +357,7 @@ function takeJob(state: GameState, clubId: string): string {
     }
     state.userClubId = clubId
     state.unemployed = false
+    historyTakeJob(state, oldClubId) // the old club remembers how you left (history.ts)
     club.coach = undefined
     // F23: the previous coach's standing instruction is not yours, so it comes
     // off the club the moment you walk in and the dials on your tactics screen
@@ -417,6 +453,7 @@ export function eraSummary(state: GameState): string {
 
 export function resignJob(state: GameState) {
   const club = state.clubs[state.userClubId]
+  historyLeaveJob(state, 'walked')
   state.unemployed = true
   // bids for the old club's players die with the job - they were addressed to
   // the manager of that club, and answering one from a new desk sold Alex
@@ -441,6 +478,7 @@ export function resignJob(state: GameState) {
  *  club/manager/era. */
 export function sackManager(state: GameState, k: string, extraV: Record<string, string | number> = {}) {
   const club = state.clubs[state.userClubId]
+  historyLeaveJob(state, 'sacked')
   state.unemployed = true
   // and the board remembers for three months (SACK_COOLOFF). Written here
   // rather than at either call site, for the same reason the rest of the

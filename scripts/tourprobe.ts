@@ -12,7 +12,7 @@
  * and loses three Tests has lost.
  */
 import { newGame } from '../src/game/newgame'
-import { assistantNatFixture, natFixtureThisWeek } from '../src/game/season'
+import { assistantNatFixture, natFixtureThisWeek, processWeekAndAdvance } from '../src/game/season'
 import { buildInternationals, buildWomensInternationals, isLionsSeason, isWomensTourSeason, TOUR_PROVINCIAL, TEST_NAMES, TOUR_WEEKS } from '../src/game/schedule'
 import { LEAGUE_DEFS } from '../src/game/newgame'
 import { W } from '../src/game/gender'
@@ -102,6 +102,52 @@ const wHost = wg.comps[W + 'lions'].teamIds.find(x => x !== 'LIO')
 ok(['NZL', 'CAN', 'FRA'].includes(wHost ?? ''),
   `and it goes where it was sent - NZ, Canada or France (${wHost})`)
 ok(!wg.comps['lions'], 'the men\'s tour does not exist in a women\'s world')
+
+// CANADA HAS NO CLUBS, SO WHO DO THE TOURISTS PLAY? (1.8.1) The wider pool was
+// taken in storage order, which is the English Premier Division: a side of
+// English, Irish, Scottish and Welsh players crossed the Atlantic to play
+// seven English clubs. It is taken by reputation now, without the four unions.
+{
+  const cg = newGame(wClub, 'Test', 31, undefined, 'coach', 'w')
+  cg.season = [...Array(40).keys()].find(s2 => isWomensTourSeason(s2) &&
+    ['NZL', 'CAN', 'FRA'][Math.floor((BASE_YEAR + s2 - 2031) / 4) % 3] === 'CAN')!
+  buildWomensInternationals(mulberry32(cg.seed), cg)
+  ok(cg.comps[W + 'lions']?.teamIds.includes('CAN'), `a Canadian tour in ${BASE_YEAR + cg.season}`)
+  const opp = cg.fixtures.filter(f => f.compId === W + 'lions' && f.tourMatch).map(f => cg.clubs[f.homeId])
+  const home4 = opp.filter(c => ['ENG', 'IRE', 'SCO', 'WAL'].includes(c?.country ?? ''))
+  ok(opp.length === TOUR_PROVINCIAL && home4.length === 0,
+    `its provincial games are against nobody from the four unions (${opp.map(c => c?.short).join(', ')})`)
+}
+
+// A WOMEN'S SERIES WIN IS A SERIES WIN (1.8.1). The trophy credit tested
+// comp.id === 'lions' and the homecoming read comps['lions'], so a women's
+// w:lions series won was neither credited to a home-union coach nor called a
+// series win when the players came home. The Tests are settled by hand here so
+// the result is certain; the season's own code does everything else.
+{
+  const sw = newGame(wClub, 'Test', 31, undefined, 'coach', 'w')
+  sw.season = wg.season
+  buildWomensInternationals(mulberry32(sw.seed), sw)
+  sw.natTeam = 'ENG'
+  const series = sw.comps[W + 'lions']
+  const last = TOUR_WEEKS[TOUR_WEEKS.length - 1]
+  for (const f of sw.fixtures) if (f.week < last) f.played = true
+  for (const f of sw.fixtures.filter(f => f.compId === W + 'lions')) {
+    f.played = true
+    f.homeScore = f.homeId === 'LIO' ? 30 : 10
+    f.awayScore = f.homeId === 'LIO' ? 10 : 30
+  }
+  for (const r of series.table) Object.assign(r, r.teamId === 'LIO' ? { p: 3, w: 3, pts: 12 } : { p: 3, l: 3, pts: 0 })
+  const tourist = sw.clubs[sw.userClubId].players.find(id => sw.players[id] && !sw.players[id].acad)!
+  sw.natSquads['LIO'] = [tourist]
+  sw.week = last
+  const before = sw.news.length
+  processWeekAndAdvance(sw)
+  const fresh = sw.news.slice(before)
+  ok(series.champion === 'LIO', 'the tourists take the series 3-0')
+  ok(sw.mgr.trophies.some(t => t.compId === W + 'lions'), 'and the England coach is credited with it')
+  ok(fresh.some(n => n.k === 'news.lionsHomeWon'), 'and his player comes home a series winner')
+}
 
 // ---- 6. the country still plays, and somebody else runs it ---------------
 console.log('\n--- 6. the assistant takes the country')

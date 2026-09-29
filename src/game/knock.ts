@@ -23,6 +23,7 @@
 import type { GameState, Player } from './model'
 import { mulberry32 } from './rng'
 import { tIn } from './i18n'
+import { remember } from './memory'
 
 /** Injuries that are never played through, whatever is left on them. */
 export const HEAD_INJURIES = new Set(['injury.concussion', 'injury.hiaFail'])
@@ -73,6 +74,7 @@ export function playThrough(state: GameState, playerId: number): { ok: boolean; 
   }
   p.injury = null
   p.specialist = false
+  remember(state, { kind: 'rushed-back', playerId: p.id, payload: { name: p.name, early }, sal: early >= 2 ? 2 : 1 })
   return { ok: true, k: 'medical.knockOn', v: { name: p.name, pct: Math.round(flareChance(early) * 100) } }
 }
 

@@ -27,11 +27,12 @@
 //      squad of generated stand-ins.
 //   7. Leaving the job moves the Test record to the profile's permanent
 //      history instead of the bin.
+import { storyOf } from '../src/game/tellings'
 import { newGame } from '../src/game/newgame'
 import { activeWindows, natFixtureThisWeek, processWeekAndAdvance, userMatchThisWeek } from '../src/game/season'
 import { natCallUp, natDrop, natEligible, natWindow, weeksToSquad, NAT_SQUAD_FLOOR } from '../src/game/country'
 import { NAT_TIERS } from '../src/game/nations'
-import { NAT_SQUAD_SIZE, homeBased } from '../src/game/nations'
+import { NAT_SQUAD_SIZE, homeBased, sharesClubComp } from '../src/game/nations'
 import { answerPress, generatePress } from '../src/game/media'
 import { mulberry32 } from '../src/game/rng'
 import type { Fixture, GameState } from '../src/game/model'
@@ -67,13 +68,19 @@ const squad = g.natSquads['SCO']!
 // The federation used to hand him a finished list; the sheet is blank now and
 // the week is held until he fills it. Everything below this line tests the
 // tools he fills it WITH, so the probe does what he does: it names a squad.
-ok(squad.length === 0, `a window opened and the coach's sheet is blank (${squad.length} named, wk${g.week})`)
+// ...but for one thing (9.10): he runs Northampton as well, so the Saints men
+// the federation itself would pick are released to camp as they would be to
+// any AI federation. Nobody else is on the sheet.
+ok(squad.every(id => g.players[id]?.clubId === g.userClubId),
+  `a window opened and the coach's sheet is blank but for his own club's due men (${squad.length} named, wk${g.week})`)
 const w = natWindow(g)!
 ok(!!w, 'natWindow reports the window open')
 {
   const before = natEligible(g).length
   ok(before >= w.size, `and there is a full pool to pick from (${before} callable)`)
-  for (const p of natEligible(g).slice(0, w.size)) natCallUp(g, p.id)
+  // best first, as the desk offers them; a name the two-jobs quota refuses
+  // (9.10, he runs Northampton too) is skipped for the next man
+  for (const p of natEligible(g)) { if (squad.length >= w.size) break; natCallUp(g, p.id) }
   ok(squad.length === w.size, `the coach names his ${w.size} (${squad.length})`)
 }
 
@@ -105,12 +112,14 @@ ok(squad.includes(backIn.id) && backIn.natSquad === true, 'he is in the room wit
 ok(g.natLineup == null, 'the old Test XV is voided - match day repicks from the real room')
 
 // ---- 1c. the cap holds, and the unfit are refused ----
-while (squad.length < w.size) {
-  const next = natEligible(g)[0]
-  if (!next || natCallUp(g, next.id) != null) break
+for (const next of natEligible(g)) {
+  if (squad.length >= w.size) break
+  natCallUp(g, next.id) // a quota refusal (9.10) just moves on to the next man
 }
 ok(squad.length === w.size, `filled back to the federation cap of ${w.size}`)
-const over = natEligible(g)[0]
+// asked of a man the two-jobs quota (9.10) has nothing to say about, so it is
+// the squad cap and nothing else that refuses him
+const over = natEligible(g).find(p => !p.clubId || !sharesClubComp(g, g.userClubId, p.clubId))
 const capMsg = over ? natCallUp(g, over.id) : 'no eligible player left'
 ok(capMsg != null && capMsg.includes(String(w.size)), `the cap is enforced and named ("${capMsg}")`)
 const crock = Object.values(g.players).find(p => p.nat === 'SCO' && p.clubId && p.injury && !p.natSquad)
@@ -134,7 +143,9 @@ ok(wholePool.some(p => p.ca < 68 || p.age <= 21),
   'young and low-rated names are on the list, not behind a floor')
 // a loanee is the coach's call
 ok(natDrop(g, squad[squad.length - 1]) == null, 'made room for the loanee')
-const loanee = wholePool.filter(p => !p.natSquad)[0]
+// (from a club Northampton never meet: at a club they do, the two-jobs quota
+// of 9.10 is what decides, and natjobprobe tests that)
+const loanee = wholePool.filter(p => !p.natSquad && !!p.clubId && !sharesClubComp(g, g.userClubId, p.clubId))[0]
 loanee.onLoan = true
 ok(natCallUp(g, loanee.id) == null, `a player out on loan can still be picked (${loanee.name})`)
 // so is a man with no club
@@ -300,14 +311,14 @@ console.log('\n--- 9. a Test weekend is one card, and the names on it are still 
     }
     processWeekAndAdvance(g9)
     for (const n of g9.news) {
-      if ((n.k === 'news.caps' || n.k === 'news.capsMore' || n.k === 'news.campRound') && !campIds.has(n.id)) {
+      if ((n.k === 'news.caps' || n.k === 'news.capsMore' || storyOf(n.k ?? '') === 'news.campRound') && !campIds.has(n.id)) {
         campIds.add(n.id); camp.push(n)
       }
     }
   }
   ok(!g9.unemployed, 'the manager held his job for the three seasons under test')
   const singles = camp.filter(n => n.k === 'news.caps' || n.k === 'news.capsMore')
-  const rounds = camp.filter(n => n.k === 'news.campRound')
+  const rounds = camp.filter(n => storyOf(n.k ?? '') === 'news.campRound')
   ok(singles.length > 0 && rounds.length > 0,
     `both shapes occur over three seasons (${singles.length} single, ${rounds.length} round-ups)`)
   ok(singles.every(n => (n.playerIds?.length ?? 0) > 0),

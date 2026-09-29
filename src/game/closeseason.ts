@@ -31,7 +31,7 @@
  * be free.
  */
 import type { GameState } from './model'
-import { LEDGER_WEEKS, SEASON_WEEKS, facLevel, fmtMoney } from './model'
+import { LEDGER_WEEKS, SEASON_WEEKS, facLevel, fmtMoney, isMyClub } from './model'
 import { mulberry32 } from './rng'
 import { t, tIn } from './i18n'
 
@@ -166,9 +166,14 @@ export function eventOpen(state: GameState, ev: CloseEvent): boolean {
   return facLevel(state, 'hospitality') >= ev.needsHosp && club.capacity >= ev.needsSeats
 }
 
+/** The diary's key for this week. It was the week number alone, and nothing
+ *  ever cleared the diary, so after the first summer weeks 46 to 48 read as
+ *  booked for the rest of the career (1.8.1). */
+const bookKey = (state: GameState) => `${state.season}:${state.week}`
+
 /** Already booked something this week? One event a week - it is one ground. */
 export function bookedThisWeek(state: GameState): string | null {
-  return state.closeBook?.[String(state.week)] ?? null
+  return state.closeBook?.[bookKey(state)] ?? null
 }
 
 export function bookEvent(state: GameState, id: string): string {
@@ -184,7 +189,12 @@ export function bookEvent(state: GameState, id: string): string {
   const bill = eventMishap(state, ev)
   const net = Math.max(0, fee - bill)
   club.balance += net
-  ;(state.closeBook ??= {})[String(state.week)] = ev.id
+  // this summer's diary only: earlier summers (and the old week-only keys)
+  // are dropped as the page is written, so the record never grows
+  const diary: Record<string, string> = {}
+  for (const [k, id] of Object.entries(state.closeBook ?? {})) if (k.startsWith(`${state.season}:`)) diary[k] = id
+  diary[bookKey(state)] = ev.id
+  state.closeBook = diary
   const v = { event_k: `close.${ev.id}`, fee: fmtMoney(net), club: club.name }
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
@@ -213,8 +223,12 @@ export function bookEvent(state: GameState, id: string): string {
 export function aiCloseSeason(state: GameState): void {
   if (!isCloseSeason(state.week)) return
   for (const club of Object.values(state.clubs)) {
-    if (club.id === state.userClubId) continue
-    const r = mulberry32(state.seed + club.id.length * 31 + state.week * 7 + state.season * 101)()
+    // a sacked manager's old club books its own summer, as it runs its own books
+    if (isMyClub(state, club.id)) continue
+    // keyed on the whole id through the same hash the manager's diary uses: it
+    // was seeded on the id's LENGTH, so every club with a name of the same
+    // length had the same summer, week after week
+    const r = roll(state, 'ai:' + club.id)
     // a modest, believable summer: the bigger the ground the better the diary
     club.balance += Math.round((6_000 + club.capacity * 0.35) * (0.6 + r * 0.8))
   }

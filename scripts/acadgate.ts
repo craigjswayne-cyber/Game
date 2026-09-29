@@ -29,6 +29,9 @@
 // reachable through the browser harnesses.
 import { newGame, LEAGUE_DEFS } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
+import { ACAD_CALL_WEEK, acadAdvice, acadCall, settleAcadCalls } from '../src/game/acadcall'
+import { answerPress, OFFICE_OUTLET } from '../src/game/media'
+import { pressBlock } from '../src/game/days'
 import { SEASON_WEEKS } from '../src/game/model'
 import type { GameState, Player } from '../src/game/model'
 
@@ -148,6 +151,96 @@ const graduated = Object.values(g.players).filter(p =>
 const onScholarMoney = graduated.filter(p => p.wage < 1000)
 ok(onScholarMoney.length === 0,
    `no graduate is still on academy money${onScholarMoney.length ? ` (${onScholarMoney.length})` : ''}`)
+
+// ---- THE SUMMER DECISION (1.8.1) ------------------------------------------------
+//
+// Owner: "a yearly academy intake with a decision at the end of each season to
+// sign or drop for those who join." Every summer the academy director brings
+// each first-year scholar and each lad at the age gate to the office, the week
+// is held until each is answered, and the answer does what its button says.
+{
+  const h = newGame(LEAGUE_DEFS('m')[0].clubs[0].id, 'Academy', 5151)
+  const hc = h.clubs[h.userClubId]
+  const calls = () => h.press.filter(q => !q.answered && q.options.some(o => o.acad))
+  /** play to the week the questions are asked, keeping the board sweet */
+  const toCallWeek = () => {
+    let guard = 0
+    while (!(h.week === ACAD_CALL_WEEK + 1) && guard++ < SEASON_WEEKS * 2) {
+      hc.boardConfidence = Math.max(60, hc.boardConfidence)
+      for (const q of h.press) if (!q.answered && !q.options.some(o => o.acad)) q.answered = true
+      processWeekAndAdvance(h)
+    }
+  }
+  const readAll = () => { for (const n of h.news) { n.read = true; n.cleared = true } }
+
+  for (let summer = 1; summer <= 2; summer++) {
+    // a lad at the gate, planted, so the second kind of call is always asked
+    const gateLad = hc.players.map(id => h.players[id]).find(p => p && p.acad && !p.demoted && p.age < 20)!
+    gateLad.age = 20
+    toCallWeek()
+    readAll()
+    // the week's other questions are not what is being tested
+    for (const q of h.press) if (!q.answered && !q.options.some(o => o.acad)) q.answered = true
+    const owed = hc.players.map(id => h.players[id]).filter(p => acadCall(h, p))
+    const asked = calls()
+    ok(asked.length > 0 && asked.length === owed.length,
+      `summer ${summer}: every scholar owed a decision is asked (${asked.length} of ${owed.length})`)
+    const firsts = owed.filter(p => acadCall(h, p) === 'first')
+    if (summer === 2) ok(firsts.length > 0, `and the first-years who joined this season are among them (${firsts.length})`)
+    ok(asked.every(q => q.outlet === OFFICE_OUTLET && q.options.length === 2 && q.qv?.adv_k),
+      'each is an office question with two answers and the director\'s advice')
+    ok(pressBlock(h)?.kind === 'press', 'and the week is held until they are answered')
+
+    // promote the gate lad, at the wage the button quoted
+    const gq = asked.find(q => q.playerId === gateLad.id)!
+    const gi = gq.options.findIndex(o => o.acad === 'promote')
+    const quoted = gq.options[gi].acadWage!
+    answerPress(h, gq.id, gi)
+    ok(!gateLad.acad && gateLad.clubId === h.userClubId && gateLad.wage === quoted,
+      `a promoted lad is a first-team player on the quoted ${quoted}/wk (${gateLad.wage})`)
+    // release one, sign the rest
+    const rest = calls()
+    const goes = rest[0]
+    const goner = goes ? h.players[goes.playerId!] : undefined
+    if (goes) answerPress(h, goes.id, goes.options.findIndex(o => o.acad === 'release'))
+    ok(!goner || (goner.clubId == null && !hc.players.includes(goner.id)), 'a released scholar leaves the club')
+    const signed: number[] = []
+    for (const q of calls()) {
+      const i = q.options.findIndex(o => o.acad !== 'release')
+      signed.push(q.playerId!)
+      answerPress(h, q.id, i)
+    }
+    ok(signed.every(id => h.players[id]?.clubId === h.userClubId), 'every signed scholar is still here')
+    ok(signed.every(id => (h.players[id]?.contractEnds ?? 0) >= h.season + 3), 'on a deal that runs past the gate')
+    ok(calls().length === 0 && pressBlock(h)?.kind !== 'press', 'and once all are answered the week can turn')
+    // THE AI DECIDES ITS OWN FIRST-YEARS AT THE ROLLOVER (settleAcadCalls), on
+    // the director's advice as it reads at that instant. The advice is measured
+    // against the club's squad, which moves week to week and again inside the
+    // final tick, so advice read at any other moment is a different question:
+    // checked from the call week, the probe failed on any world where one
+    // borderline lad's club signed or sold somebody before the summer. So the
+    // decision is taken on a copy of the save, advice and decision on the SAME
+    // state, and the real career goes on through its summer untouched.
+    let guard = 0
+    const season = h.season
+    const copy = JSON.parse(JSON.stringify(h)) as GameState
+    const aiFirst = Object.values(copy.players).filter(p => p.acad && p.clubId && p.clubId !== copy.userClubId && p.acadJoined === copy.season)
+    const aiDrop = aiFirst.filter(p => !acadAdvice(copy, p)).map(p => p.id)
+    settleAcadCalls(copy)
+    while (h.season === season && guard++ < 10) processWeekAndAdvance(h)
+    ok(gateLad.clubId === h.userClubId && !gateLad.acad, 'the promoted lad is still here after the summer sweep')
+    // (the academies a new world starts with were never an intake, so the
+    // first summer has no first-years anywhere; the second has a full year's)
+    if (summer === 2) ok(aiFirst.length > 0, `AI academies had first-years to decide (${aiFirst.length}, ${aiDrop.length} advised away)`)
+    ok(aiDrop.every(id => copy.players[id]?.clubId == null || !copy.players[id]?.acad),
+      `the AI released the ${aiDrop.length} its director advised it to`)
+    ok(hc.players.map(id => h.players[id]).some(p => p && p.acad && p.acadJoined === h.season),
+      'and a new intake has joined, stamped with the season it joined')
+    const noIntake = Object.values(h.clubs).filter(c =>
+      !c.players.some(id => h.players[id]?.acad && h.players[id]?.acadJoined === h.season))
+    ok(noIntake.length === 0, `every club in the world took an intake this summer${noIntake.length ? ` (missing: ${noIntake.map(c => c.id).join(', ')})` : ''}`)
+  }
+}
 
 console.log(fails
   ? `\nACADEMY GATE FAILED (${fails})`

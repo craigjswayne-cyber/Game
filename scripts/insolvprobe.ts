@@ -80,9 +80,17 @@ const wagesOf = (g: ReturnType<typeof newGame>, id: string) =>
   // is beyond anything one season can earn back.
   g.clubs[uid].balance = -45 * wagesOf(g, uid)
   // run to the rollover so the penalty is stamped onto a real new-season table
+  // KEPT IN WORK. A 45-week hole gets a manager sacked, and since 1.8.1 a
+  // sacked manager's old club is run by its board and books its own season
+  // through aiecon, whose floor lifts it out of danger (measured: -45 weeks to
+  // -8.5 by the rollover). The claim is about a club with the manager in it.
   let guard = 0
-  while (guard++ < SEASON_WEEKS + 6 && g.season === 0) processWeekAndAdvance(g)
+  while (guard++ < SEASON_WEEKS + 6 && g.season === 0) {
+    g.clubs[uid].boardConfidence = Math.max(g.clubs[uid].boardConfidence, 55)
+    processWeekAndAdvance(g)
+  }
   ok(g.season === 1, `the season rolled (now ${g.season})`)
+  ok(!g.unemployed, 'the manager is still at the club')
   const admin = g.clubs[uid].admin
   ok(!!admin && admin.season === g.season, 'the manager\'s own club is not exempt')
   ok(adminPenalty(g.clubs[uid], g.season) === ADMIN_PENALTY, 'and the penalty is live this season')

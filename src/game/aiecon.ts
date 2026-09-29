@@ -27,7 +27,9 @@
 // £0.85M a season over ten seasons). What changes is the SPREAD: a club with a
 // bloated bill and a small ground now bleeds, and a club that fills a big stadium
 // banks it. scripts/aiecon.ts holds both the median and the spread.
-import {LEDGER_WEEKS, weeklyCentral, groundUpkeep, groundTrade, type Club, type GameState, type Player } from './model'
+import { seniorsOf } from './ai'
+import { MARQUEE_SLOTS } from './cap'
+import {isMyClub, LEDGER_WEEKS, weeklyCentral, groundUpkeep, groundTrade, type Club, type GameState, type Player } from './model'
 
 /** Same £30 a head the manager's club takes, because it is the same ticket. */
 const GATE_PER_HEAD = 30
@@ -36,8 +38,9 @@ const GATE_PER_HEAD = 30
  * Weekly cost of having a stadium, per seat, whether anybody sits in it.
  *
  * The manager's club pays this through operatingCost, which reads real facility
- * levels. AI clubs have no facility state at all, so their estate is implied by
- * the ground: a 20,000-seat club is running a 20,000-seat operation.
+ * levels. AI clubs carry facility levels too (training growth reads them), but
+ * their running costs are not built from them: the estate is implied by the
+ * ground, so a 20,000-seat club is running a 20,000-seat operation.
  */
 // the shared constant: see model.ts, where the user's ledger reads it too
 
@@ -201,7 +204,10 @@ export function aiWeeklyFinance(state: GameState): void {
   if (state.week > LEDGER_WEEKS) return
   const index = moneyIndex(state)
   for (const club of Object.values(state.clubs)) {
-    if (club.id === state.userClubId) continue
+    // isMyClub, not userClubId: a club whose manager has been sacked is run by
+    // its board like any other. The old test left its books frozen - no wages
+    // out, no gate in - for as long as he was out of work (1.8.1)
+    if (isMyClub(state, club.id)) continue
     const week = aiWeek(state, club, index)
     club.balance += week.net
     if (week.wages > 0 && club.balance < -DEBT_WEEKS * week.wages) {
@@ -221,8 +227,13 @@ export function aiWeeklyFinance(state: GameState): void {
  * cutting costs in a hurry takes the saving and not the fee.
  */
 export function shedWages(state: GameState, club: Club): Player | null {
-  const marquee = new Set((club.marquee ?? []).slice(0, 3))
-  if (club.players.length <= FLOOR_SQUAD) return null
+  // the two marquee men the cap recognises, not three
+  const marquee = new Set((club.marquee ?? []).slice(0, MARQUEE_SLOTS))
+  // The floor is a SENIOR squad. `club.players.length` counted the 27-man
+  // academy, so the floor sat at three seniors and never held. trimToCap had
+  // the same fault and was fixed for it (CAP-01, 1.6.5); this is that fix,
+  // brought to the other door that releases men for money (1.8.1).
+  if (seniorsOf(state, club) <= FLOOR_SQUAD) return null
   const seniors = club.players
     .map(id => state.players[id])
     .filter((p): p is Player => !!p && !p.acad && !p.youth && !marquee.has(p.id) && !p.loanFrom)
@@ -262,7 +273,7 @@ export function shedWages(state: GameState, club: Club): Player | null {
 export function aiBoardsReinvest(state: GameState): void {
   const index = moneyIndex(state)
   for (const club of Object.values(state.clubs)) {
-    if (club.id === state.userClubId) continue
+    if (isMyClub(state, club.id)) continue
     const wages = aiWeek(state, club, index).wages
     const keep = wages * SURPLUS_WEEKS
     if (wages <= 0 || club.balance <= keep) continue
@@ -289,7 +300,7 @@ export function aiBoardsReinvest(state: GameState): void {
 export function aiFireSale(state: GameState): number {
   let listed = 0
   for (const club of Object.values(state.clubs)) {
-    if (club.id === state.userClubId || club.balance > FIRE_SALE) continue
+    if (isMyClub(state, club.id) || club.balance > FIRE_SALE) continue
     const squad = club.players
       .map(id => state.players[id])
       .filter((p): p is Player => !!p && !p.youth && !p.acad)
