@@ -234,56 +234,97 @@ const leagueRival = (g: GameState) => {
   ok(perSeason <= 8, `the season's memory stories stay rationed (${perSeason})`)
 }
 
-// ---- 5. a real career: let men go, and see what comes back ----
+// ---- 5. real careers: let men go, and see what comes back ----
+// Pooled over several seeds, because one career is a coin flip: whether a
+// released man is signed by a rival, scores against you or wins a cap is the
+// world's business, not the seed's. Headless careers make only the market
+// decisions below - nobody gives an academy debut or answers the press, so the
+// debut and promise payoffs (held in section 4) almost never fire here - and a
+// match nobody watched keeps no events, so tries are read off the tally.
 {
   const t0 = Date.now()
-  const SEASONS = 4
-  const g = newGame('northampton', 'Career', 185)
-  let maxLen = 0
-  // the inbox is trimmed as the career goes, so the stories are collected as they land
-  const seen = new Map<number, GameState['news'][number]>()
-  for (let s = 0; s < SEASONS; s++) {
-    for (let w = 0; w < SEASON_WEEKS; w++) {
-      // week two of every season: release two decent seniors and sell one to a
-      // league rival, the decisions a real manager makes every summer
-      if (g.week === 2) {
-        const rivals = Object.values(g.clubs).filter(c => c.id !== g.userClubId && c.leagueId === g.clubs[g.userClubId].leagueId)
-        const squad = seniors(g, g.userClubId).sort((a, b) => b.ca - a.ca)
-        let cut = 0
-        for (const p of squad.slice(6)) {
-          if (cut >= 2) break
-          if (!releaseBlock(g, p.id) && releasePlayer(g, p.id).ok) cut++
-        }
-        const sale = squad[4]
-        if (sale && sale.clubId === g.userClubId) executeTransfer(g, sale, rivals[s % rivals.length].id, Math.max(100_000, sale.value))
-      }
-      // the job is kept, so the career is the manager's all the way through
-      // (the trick round25c.ts and deepsave.ts use: a sacked manager makes no
-      // decisions and the log would be testing employment, not memory)
-      if (!g.unemployed) g.clubs[g.userClubId].boardConfidence = Math.max(g.clubs[g.userClubId].boardConfidence, 55)
-      processWeekAndAdvance(g)
-      maxLen = Math.max(maxLen, g.memory?.entries.length ?? 0)
-      for (const n of memNews(g)) seen.set(n.id, n)
-    }
-  }
-  const log = g.memory!
-  const kinds = new Set(log.entries.map(e => e.kind))
-  console.log(`  ${SEASONS} seasons in ${((Date.now() - t0) / 1000).toFixed(0)}s: ${log.entries.length} entries (${[...kinds].join(', ')})`)
-  ok(log.entries.length > 0 && kinds.has('released') && kinds.has('sold'), 'a career fills the log')
-  ok(kinds.has('let-go'), 'contracts run down and unpromoted academy boys are remembered too')
-  ok(maxLen <= 160, `and it never passed the cap (peak ${maxLen})`)
-  const stories = [...seen.values()]
+  const SEEDS = [185, 186, 187, 188, 189]
+  const SEASONS = 3
+  const per: number[] = []
   const byKey: Record<string, number> = {}
-  for (const n of stories) byKey[n.k!] = (byKey[n.k!] ?? 0) + 1
-  console.log(`  memory stories: ${stories.length} (${Object.entries(byKey).map(([k, v]) => `${k.slice(4)} ${v}`).join(', ')})`)
-  ok(stories.length >= 1, 'at least one memory story fired on its own')
-  const remembered = new Set(log.entries.map(e => e.playerId).filter(x => x != null))
-  const named = stories.filter(n => n.playerId != null)
-  ok(named.every(n => remembered.has(n.playerId!) && (n.v?.player === g.players[n.playerId!]?.name || n.v?.player === log.entries.find(e => e.playerId === n.playerId)?.payload?.name)),
-    'every story names a man the log remembers, by his own name')
-  ok(stories.every(n => !/\{|\}/.test(n.body) && !n.body.includes('mem.')), 'no story leaks a hole or a key')
-  const perSeason = Math.max(0, ...Array.from({ length: SEASONS + 1 }, (_, s) => stories.filter(n => n.season === s).length))
-  ok(perSeason <= 9, `and no season carries more than a handful (${perSeason})`)
+  let met = 0
+  for (const seed of SEEDS) {
+    const g = newGame('northampton', 'Career', seed)
+    let maxLen = 0
+    // the inbox is trimmed as the career goes, so the stories are collected as they land
+    const seen = new Map<number, GameState['news'][number]>()
+    for (let s = 0; s < SEASONS; s++) {
+      for (let w = 0; w < SEASON_WEEKS; w++) {
+        // week two of every season: release two decent seniors and sell one to a
+        // league rival, the decisions a real manager makes every summer
+        if (g.week === 2) {
+          const rivals = Object.values(g.clubs).filter(c => c.id !== g.userClubId && c.leagueId === g.clubs[g.userClubId].leagueId)
+          const squad = seniors(g, g.userClubId).sort((a, b) => b.ca - a.ca)
+          let cut = 0
+          for (const p of squad.slice(6)) {
+            if (cut >= 2) break
+            if (!releaseBlock(g, p.id) && releasePlayer(g, p.id).ok) cut++
+          }
+          const sale = squad[4]
+          if (sale && sale.clubId === g.userClubId) executeTransfer(g, sale, rivals[s % rivals.length].id, Math.max(100_000, sale.value))
+        }
+        // the job is kept, so the career is the manager's all the way through
+        // (the trick round25c.ts and deepsave.ts use: a sacked manager makes no
+        // decisions and the log would be testing employment, not memory)
+        if (!g.unemployed) g.clubs[g.userClubId].boardConfidence = Math.max(g.clubs[g.userClubId].boardConfidence, 55)
+        const wk = g.week
+        processWeekAndAdvance(g)
+        maxLen = Math.max(maxLen, g.memory?.entries.length ?? 0)
+        for (const n of memNews(g)) seen.set(n.id, n)
+        // how often a man you let go actually played against you: the
+        // opportunities the match payoffs have to work with
+        const uf = g.fixtures.find(f => f.played && f.week === wk && f.compId !== 'fr' && (f.homeId === g.userClubId || f.awayId === g.userClubId))
+        if (uf) {
+          const opp = uf.homeId === g.userClubId ? uf.awayId : uf.homeId
+          met += recall(g, { kind: ['released', 'sold', 'let-go'] }).filter(e => {
+            const p = g.players[e.playerId ?? -1]
+            return !!p && p.clubId === opp && p.lastWk === wk
+          }).length
+        }
+      }
+    }
+    const log = g.memory!
+    const kinds = new Set(log.entries.map(e => e.kind))
+    const stories = [...seen.values()]
+    per.push(stories.length)
+    for (const n of stories) byKey[n.k!] = (byKey[n.k!] ?? 0) + 1
+    const tag = `seed ${seed}`
+    if (!(log.entries.length > 0 && kinds.has('released') && kinds.has('sold') && kinds.has('let-go'))) ok(false, `${tag}: a career fills the log with releases, sales and men let go`)
+    if (maxLen > MEMORY_CAP) ok(false, `${tag}: the log passed the cap (peak ${maxLen})`)
+    const remembered = new Set(log.entries.map(e => e.playerId).filter(x => x != null))
+    const named = stories.filter(n => n.playerId != null)
+    if (!named.every(n => remembered.has(n.playerId!) && (n.v?.player === g.players[n.playerId!]?.name || n.v?.player === log.entries.find(e => e.playerId === n.playerId)?.payload?.name)))
+      ok(false, `${tag}: a story names a man the log does not remember`)
+    if (!stories.every(n => !/\{|\}/.test(n.body) && !n.body.includes('mem.'))) ok(false, `${tag}: a story leaks a hole or a key`)
+    const perSeason = Math.max(0, ...Array.from({ length: SEASONS + 1 }, (_, s) => stories.filter(n => n.season === s).length))
+    if (perSeason > 9) ok(false, `${tag}: a season carried ${perSeason} memory stories`)
+  }
+  const total = per.reduce((x, y) => x + y, 0)
+  // THE FLOOR. The design is rare on purpose: one memory story a week at most,
+  // STORIES_PER_SEASON a season, each payoff once per man. These careers use
+  // only the market half of it (releases, a sale, contracts run down). Measured
+  // on these five seeds at 626a531: 0, 2, 1, 1, 3 stories - 7 in 15 seasons,
+  // about one every two seasons, all of them a former man scoring or taking the
+  // match award against you. Per career that is roughly Poisson with a mean
+  // near 1.4, so a single career comes up empty one time in four; pooled, the
+  // chance of the five together falling under 3 is about 3 in 100. So: at least
+  // 3 across the pool and a story in at least 2 of the 5 careers. Low enough
+  // that an unrelated change to the world cannot trip it, high enough that a
+  // broken payoff path (the tally, the follow, the pacing) cannot hide.
+  const FLOOR = 3
+  const careerSeasons = SEEDS.length * SEASONS
+  console.log(`  ${SEEDS.length} careers x ${SEASONS} seasons in ${((Date.now() - t0) / 1000).toFixed(0)}s`)
+  console.log(`  memory stories per career: ${per.join(', ')} - ${total} in ${careerSeasons} seasons (${(total / careerSeasons).toFixed(2)} a season)`)
+  console.log(`  by kind: ${Object.entries(byKey).map(([k, v]) => `${k.slice(4)} ${v}`).join(', ') || 'none'}`)
+  console.log(`  a man you let go played against you ${met} times (${(met / careerSeasons).toFixed(1)} a season)`)
+  ok(true, 'every career filled the log, stayed under the cap, and every story named a man it remembers, with no hole or key showing')
+  ok(total >= FLOOR, `the market decisions alone come back as stories: ${total} across ${careerSeasons} seasons (floor ${FLOOR})`)
+  ok(per.filter(n => n > 0).length >= 2, `and in more than one career, not one lucky one (${per.filter(n => n > 0).length} of ${SEEDS.length})`)
 }
 
 // ---- 6. it moves no match ----
