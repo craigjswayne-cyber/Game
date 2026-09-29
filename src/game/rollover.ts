@@ -1617,6 +1617,7 @@ export function rebuildSeason(state: GameState) {
     p.ca0 = p.ca
   }
   state.natSquads = {}
+  delete state.natSent
   state.natLineup = null
 
   agePlayers(state, rng)

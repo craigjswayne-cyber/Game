@@ -2204,6 +2204,11 @@ export interface GameState {
   fixHw?: { fxId: number; season: number; week: number; tags: string[] }
   /** the user's hand-picked Test 23 for the current window */
   natLineup?: { team: string; lineup: (number | null)[] } | null
+  /** men the national coach sent home from camp this window. A recall gives
+   *  back the sting of being dropped rather than a fresh +0.5 of pride, so
+   *  call-up and drop cannot be cycled to grind another club's player's
+   *  morale down (9.10). Absent in older saves, cleared with the window. */
+  natSent?: number[]
   /** World Player of the Year roll of honour, oldest first - the sport's
    *  history book, one line per season */
   potyRoll?: { season: number; playerId: number; name: string; clubName: string }[]
