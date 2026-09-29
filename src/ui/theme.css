@@ -3102,26 +3102,28 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 
 /* ---- the attack and defence styles (1.8.2, ui/StylesSection.tsx) --------
-   Five drawn tiles a side, two to a row on a phone held upright and five
-   across once there is room, and one card of words under them for the style
-   that is picked, so the page is two pickers and two short cards rather
-   than ten paragraphs. On a short landscape screen the picture goes beside
-   its name, as the set-piece calls do there. */
-.routine-grid.st-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
-.st-tile { align-items: stretch; gap: 5px; padding: 7px; }
-.st-body { display: flex; flex-direction: column; }
+   Five drawn tiles a side, three to a row on a phone held upright and five
+   across once there is room, each a picture and a name; then one card for
+   the style that is picked, its picture large beside the words. On a short
+   landscape screen the tiles are already big enough to read, so the card
+   drops its copy of the picture and gives the words the whole width: the
+   Game Plan tab has to stay inside three screenfuls there (scrollaudit). */
+.routine-grid.st-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.st-tile { align-items: stretch; gap: 4px; padding: 5px; }
+.st-tile b { font-size: 12px; line-height: 1.2; text-align: center; }
+.st-body { display: grid; grid-template-columns: minmax(0, 42%) minmax(0, 1fr); gap: 9px; align-items: start; }
 .st-body .sp-txt { gap: 4px; }
 .st-body b { font-size: 13.5px; color: var(--text-primary); }
+.st-body .st-tag { font-size: 11.5px; font-weight: 700; color: var(--text-secondary); }
 .st-body .d { font-size: 11.5px; color: var(--text-muted); line-height: 1.4; }
 .st-body .mv-warn { color: var(--text-negative); font-weight: 600; }
 @media (min-width: 700px) {
-  .routine-grid.st-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .routine-grid.st-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+  .st-body { grid-template-columns: minmax(0, 240px) minmax(0, 1fr); }
 }
 @media (orientation: landscape) and (min-width: 640px) and (max-height: 560px) {
-  .routine-grid.st-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .st-tile { flex-direction: row; align-items: center; gap: 8px; }
-  .st-tile .dg { flex: 0 0 48%; width: 48%; }
-  .st-tile .sp-txt { flex: 1 1 0; }
+  .st-body { grid-template-columns: minmax(0, 1fr); }
+  .st-body > .dg { display: none; }
 }
 
 /* ---- the attacking moves (1.8.1, ui/MovesSection.tsx) -------------------

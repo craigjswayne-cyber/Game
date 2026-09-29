@@ -54,23 +54,21 @@ export default function StylesSection({ game, club, touch }: { game: GameState; 
   const moves = STYLE_MOVES[atk].map(id => MOVE_BY_ID[id]).filter(Boolean).map(m => t(m.name))
 
   return <>
-    <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-      <div className="meta">{t('styles.presetNote')}</div>
-    </div>
-
     <SectionTitle sub={t('styles.atkSub')}>{t('styles.atkHeading')}</SectionTitle>
     <div className="routine-grid st-grid" role="radiogroup" aria-label={t('styles.atkHeading')}>
       {ATK_STYLES.map(id => (
         <button key={id} className={`speech-tile st-tile${atk === id ? ' sel' : ''}`} role="radio" aria-checked={atk === id}
           data-style={id} onClick={() => { applyAtkStyle(tac, id); touch() }}>
           <StyleDiagram id={id} />
-          <span className="sp-txt"><b>{t(atkName(id))}</b><span className="d">{t(`styles.atk_${id}Tag`)}</span></span>
+          <b>{t(atkName(id))}</b>
         </button>
       ))}
     </div>
     <div className="card st-body" data-style-card={atk}>
+      <StyleDiagram id={atk} />
       <div className="sp-txt">
         <b>{t(atkName(atk))}</b>
+        <span className="st-tag">{t(`styles.atk_${atk}Tag`)}</span>
         <span className="d">{t(`styles.atk_${atk}Desc`)}</span>
         <span className="d">
           {t('styles.beats', { list: ab.beats.map(d => t(defName(d))).join(', ') })}
@@ -90,13 +88,15 @@ export default function StylesSection({ game, club, touch }: { game: GameState; 
         <button key={id} className={`speech-tile st-tile${def === id ? ' sel' : ''}`} role="radio" aria-checked={def === id}
           data-style={id} onClick={() => { applyDefStyle(tac, id); touch() }}>
           <StyleDiagram id={id} />
-          <span className="sp-txt"><b>{t(defName(id))}</b><span className="d">{t(`styles.def_${id}Tag`)}</span></span>
+          <b>{t(defName(id))}</b>
         </button>
       ))}
     </div>
     <div className="card st-body" data-style-card={def}>
+      <StyleDiagram id={def} />
       <div className="sp-txt">
         <b>{t(defName(def))}</b>
+        <span className="st-tag">{t(`styles.def_${def}Tag`)}</span>
         <span className="d">{t(`styles.def_${def}Desc`)}</span>
         <span className="d">
           {t('styles.beats', { list: db.beats.map(a => t(atkName(a))).join(', ') })}
@@ -109,5 +109,6 @@ export default function StylesSection({ game, club, touch }: { game: GameState; 
         {theirs && vsLine(-MATCHUP[theirs.atk][def], t(atkName(theirs.atk)))}
       </div>
     </div>
+    <div className="meta" style={{ padding: '2px 16px 0' }}>{t('styles.presetNote')}</div>
   </>
 }
