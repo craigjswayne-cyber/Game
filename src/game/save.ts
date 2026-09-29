@@ -567,6 +567,37 @@ export function migrate(s: GameState): GameState {
     }
     // a club that is not in the file means free agency, not a ghost employer
     if (p.clubId != null && !s.clubs[p.clubId]) p.clubId = null
+    // THE DEVELOPMENT PROJECT'S TWO FIELDS (1.8.2, devproject.ts). Both absent
+    // on every older save, which is the right answer: a ceiling that has not
+    // moved and a timeline that starts this summer. Damaged, they are dropped
+    // or trimmed rather than trusted.
+    if (p.pa0 != null) {
+      if (typeof p.pa0 === 'number' && Number.isFinite(p.pa0)) p.pa0 = int(p.pa0, 1, 100, p.pa)
+      else delete p.pa0
+    }
+    if (p.tl != null) {
+      p.tl = Array.isArray(p.tl)
+        ? p.tl.filter(r => Array.isArray(r) && r.length === 3 && r.every(x => typeof x === 'number' && Number.isFinite(x)))
+          .map(r => [Math.round(r[0]), int(r[1], 1, 100, 50), Math.max(0, Math.round(r[2])) & 255] as [number, number, number])
+          .slice(-12)
+        : undefined
+      if (!p.tl?.length) delete p.tl
+    }
+  }
+  // the personal plans' second programme and tally (1.8.2): a plan entry that
+  // is not an object, or a second programme that is not a programme (or is the
+  // first one again), is healed; the plan itself is kept
+  if (s.plans != null) {
+    const FOCI = ['scrum', 'lineout', 'attack', 'defence', 'fitness', 'kicking', 'balanced']
+    s.plans = Array.isArray(s.plans)
+      ? s.plans.filter(x => x && typeof x === 'object' && typeof x.id === 'number' && FOCI.includes(x.plan as string))
+        .map(x => {
+          const y = { ...x }
+          if (y.plan2 != null && (!FOCI.includes(y.plan2 as string) || y.plan2 === y.plan || y.plan2 === 'balanced')) delete y.plan2
+          if (y.pts != null && !(typeof y.pts === 'number' && Number.isFinite(y.pts) && y.pts >= 0)) delete y.pts
+          return y
+        })
+      : []
   }
   for (const c of Object.values(s.clubs)) {
     if (!c || typeof c !== 'object') continue

@@ -356,6 +356,14 @@ export interface Player {
   loanSince?: number
   /** ability at the start of the season, for development arrows */
   ca0?: number
+  /** POTENTIAL THAT MOVES (1.8.2, devproject.ts): the ceiling he started
+   *  with, written the first time a season review moves it, so the drift is
+   *  bounded either side of it. Absent means it has never moved. */
+  pa0?: number
+  /** HIS DEVELOPMENT TIMELINE (1.8.2, devproject.ts seasonReview): one row a
+   *  season while he is the manager's, [season, rating at its end, moment
+   *  flags (devproject TL)], the last twelve. Absent for everybody else. */
+  tl?: [number, number, number][]
   /** starts made LAST season, stashed before the summer stats wipe so the
    *  development roll can ask how much rugby the year actually held (25D:
    *  a 20-year-old parked on the bench stops growing) */
@@ -1671,8 +1679,12 @@ export interface GameState {
    *  programmes, the assistant's level setting the handful (2 + level).
    *  Newest assignment wins a full book, same idiom as devFocus. A planned
    *  man trains his programme INSTEAD of the squad session that week, so a
-   *  plan is a choice rather than a stack. */
-  plans?: { id: number; plan: TrainingFocus }[]
+   *  plan is a choice rather than a stack.
+   *  A DEVELOPMENT PLAN (1.8.2): an optional second programme (plan2) splits
+   *  the week, seven parts the first to three the second, so it widens a
+   *  man's work rather than adding to it; pts counts the points the
+   *  programme has landed since it was set, for the Training screen. */
+  plans?: { id: number; plan: TrainingFocus; plan2?: TrainingFocus; pts?: number }[]
   /** The office chat budget (20D): absolute week stamp and how many of the
    *  week's two manager-initiated conversations are spent. A manager who
    *  praises everybody praises nobody. */
