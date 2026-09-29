@@ -2666,7 +2666,11 @@
   "requestAnswerSub": "Answer it either way, or leave it and let the team sheet do the talking.",
   "requestGrant": "Let him go",
   "requestRefuse": "Turn it down",
-  "requestGrant_f": "Let her go"
+  "requestGrant_f": "Let her go",
+  "bondsLabel": "The dressing room",
+  "bondsVoice": "One of the senior voices in the dressing room",
+  "bondsClose": "Close to: {names}",
+  "bondsClash": "Clashes with: {names}"
  },
  "challenges": {
   "sapiac": "Sauvez Sapiac",
@@ -6002,7 +6006,15 @@
   "boardYes_facilities": "The board will fund the next build itself. Go to Club Infrastructure and ask for it; the bill is theirs, not yours.",
   "boardYes_facilitiesSubj": "The board will pay for the next build",
   "boardYes_staff": "The board has ring-fenced money for the backroom. It is not in the transfer budget and it cannot be moved there: it pays for coaches, for the courses that badge them, and for the eight weeks it takes to move one on. Spend it while the goodwill lasts, because boards have short memories about this sort of thing.",
-  "boardYes_staffSubj": "The backroom budget goes up"
+  "boardYes_staffSubj": "The backroom budget goes up",
+  "bondRiftSubj": "{aLast} and {bLast} are not speaking",
+  "bondRift": "The dressing room has noticed that {a} and {b} have stopped talking to each other. {cause_k} Training has been frosty and the rest of the squad are picking sides. You can get the pair in a room from the Club screen, or let the results do the talking.",
+  "bondMateGoneSubj": "{player} takes the loss of {mateLast} hard",
+  "bondMateGone": "{player} and {mate} were close, and it shows now that {mate} has gone. Fewer words at training, first out of the door afterwards. A word in the office would not go amiss.",
+  "bondCliqueSubj": "A clique forms in the dressing room",
+  "bondClique": "In the canteen there is now a table for {group_k}, and nobody else sits at it. The group feel the team sheet has favourites and they are not among them: {names_l} and the rest. Their tally of starts this season: {n}. Make room for that group, or talk to them, before it hardens.",
+  "bondCliqueEndsSubj": "The canteen tables mix again",
+  "bondCliqueEnds": "The table for {group_k} has broken up. The team sheets have been kinder to them lately, and the dressing room is one room again."
  },
  "comm": {
   "oppCoachNamed": "{coach} has done his homework: {team} are set up specifically for {pattern_k}. Change the picture, or play through the plan.",
@@ -7995,7 +8007,21 @@
   "positionTrainBad": "{player} rolls their eyes. “More training. Brilliant.”",
   "positionNoGood": "{player} takes it well. “Fair enough. I'll keep working at {from_k}.”",
   "positionNoMixed": "{player} is disappointed. “Okay. Worth asking.”",
-  "positionNoBad": "{player} bristles. “Then I'm a {from_k} who doesn't play. That can't go on.”"
+  "positionNoBad": "{player} bristles. “Then I'm a {from_k} who doesn't play. That can't go on.”",
+  "mateQ1": "{player} is at the office door before training. “{mate} and I came through a lot together here, boss. I read about the move on my phone.”",
+  "mateQ2": "{player} catches you in the car park. “Letting {mate} go? The squad are asking what that says about the rest of us.”",
+  "mateSorry": "It was a hard call. I know how close the two of you were",
+  "mateNeed": "I need you to step up and fill that gap now",
+  "mateMove": "Players come and go. That is the business",
+  "mateSorryGood": "{player} nods slowly. “Thanks for saying it. That matters more than you'd think.”",
+  "mateSorryMixed": "{player} shrugs. “A hard call. Right. I'll get on with it.”",
+  "mateSorryBad": "{player} isn't having it. “If it was that hard, you'd have picked up the phone.”",
+  "mateNeedGood": "{player} straightens up. “Then I'll do it. Somebody has to keep this group together.”",
+  "mateNeedMixed": "{player} half nods. “Fine. But don't make a habit of it.”",
+  "mateNeedBad": "{player} laughs without smiling. “Step up? You've just shown everyone what stepping up gets you.”",
+  "mateMoveGood": "{player} almost smiles. “Fair enough. It's a job. I'd have done the same.”",
+  "mateMoveMixed": "{player} looks at the floor. “I suppose it is.” The door closes quietly.",
+  "mateMoveBad": "{player} walks out. By the afternoon half the squad has heard what you said."
  },
  "mood": {
   "room": "The room",
@@ -8217,5 +8243,15 @@
   "hemispheric": "Hemispheric",
   "summerTests": "Summer Tests",
   "southernFour": "Southern Four"
+ },
+ "bonds": {
+  "gHome": "the academy graduates",
+  "gVets": "the senior pros",
+  "gYoung": "the young players",
+  "gNat": "the {nation_k} contingent",
+  "causeShirt": "It started over one shirt, and there is only one for the two of them.",
+  "causeArmband": "It started the day the armband changed hands.",
+  "causeOld": "Nobody can say quite when it started.",
+  "name": "{name}"
  }
 }

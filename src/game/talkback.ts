@@ -86,6 +86,12 @@ export const FIT: Record<string, Record<string, Record<Personality, Fit>>> = {
     train: row(G, G, M, M, B, M),
     no: row(M, M, B, B, B, M),
   },
+  // a close friend, the week his mate was sold or released (bonds.ts)
+  mate: {
+    sorry: row(G, G, M, M, G, M),
+    need: row(G, M, G, M, B, G),
+    move: row(M, B, M, G, B, M),
+  },
 }
 
 /** What a fit does to the man himself, before the Temperamental swing that

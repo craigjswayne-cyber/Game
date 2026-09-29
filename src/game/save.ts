@@ -14,6 +14,7 @@ import { applyStadiumName, seedDeals } from './commercial'
 import { seedStaffPeople } from './staff'
 import { ensureAcademyLeague, topUpAcademy } from './academy'
 import { migratePress } from './pressmigrate'
+import { migrateBonds } from './bonds'
 import { migrateMemory } from './memory'
 import { migrateTacLoop } from './oppreport'
 import { migrateHistory } from './history'
@@ -682,6 +683,7 @@ export function migrate(s: GameState): GameState {
   s.records ??= {}
   s.mentors = list(s.mentors) as typeof s.mentors
   s.chem ??= {}
+  s.bonds = migrateBonds(s.bonds)
   s.grudges = list(s.grudges) as typeof s.grudges
   s.review ??= null
   s.fanMood ??= 60
