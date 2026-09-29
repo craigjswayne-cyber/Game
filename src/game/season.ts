@@ -29,7 +29,7 @@ import { generateGossip } from './gossip'
 import { benchDrag, buildPlayer, playerValue, playerWage, peekPid, resetIds } from './attributes'
 import { recruitmentMeeting, scoutOpponent, weeklyScouting } from './scout'
 import { recordTendency } from './tendency'
-import { stepIdentity } from './identity'
+import { flushIdentityNews, stepIdentity } from './identity'
 import { disciplineWeek } from './authority'
 import { updateAgency } from './agency'
 import { OBJECTIVE_DEFS } from './objectives'
@@ -4394,6 +4394,7 @@ If you go, your assistant takes your national side for the duration. Nobody prep
   // and the week's history: a former club, a legend on the other side (history.ts)
   historyPreview(state)
   flushMemoryNews(state) // memory.ts stories held through the settle take their ids now
+  flushIdentityNews(state) // and identity.ts's, the same way (heldnews.ts)
 
   // (derby build-up now lives in the pre-advance block above, with the
   // all-time ledger - the old duplicate beat here was removed)
