@@ -26,10 +26,11 @@ import { simMatch } from '../src/game/matchEngine'
 import { answerPress, OFFICE_OUTLET } from '../src/game/media'
 import { migrate } from '../src/game/save'
 import { activeFeuds } from '../src/game/gossip'
+import { flushMemoryNews } from '../src/game/memory'
 import { FIT } from '../src/game/talkback'
 import { ensureLang, tIn, type Lang } from '../src/game/i18n'
 import {
-  CLOSE, MAX_PAIRS, RIFT, bondCohesion, bondOf, bondsLine, bondsReport, bondsWeek,
+  CLOSE, MAX_PAIRS, RIFT, bondCohesion, bondOf, bondsLine, bondsReport, bondsSwitch, bondsWeek,
   groupsOf, migrateBonds, seedBonds, seniorVoices, type BondState,
 } from '../src/game/bonds'
 import type { GameState, Player } from '../src/game/model'
@@ -49,6 +50,8 @@ function week(g: GameState) {
 
 const LANGS: Lang[] = ['en', 'fr', 'es', 'it', 'ja', 'af']
 for (const l of LANGS) await ensureLang(l)
+/** One weekly pass and the end-of-settle flush that files its held stories. */
+function pass(g: GameState) { bondsWeek(g); flushMemoryNews(g) }
 const raw = (s: string) => /\{\w+\}|\b(news|bonds|talk|player)\.[a-zA-Z]/.test(s)
 
 // ------------------------------------------------------------------ 1
@@ -98,7 +101,7 @@ console.log('--- 2. it moves with events')
     const was = A.morale
     const before = bondOf(h, A.id, B.id)
     h.bonds!.xv = [...xv]; h.bonds!.xv[slot] = A.id
-    bondsWeek(h)
+    pass(h)
     ok(bondOf(h, A.id, B.id) < before, `${A.name} lost the ${B.pos} shirt to ${B.name}: the pair cools (${before} -> ${bondOf(h, A.id, B.id)})`)
     ok(A.morale < was && was - A.morale <= 0.5, `a temperamental man sulks, a little (${was.toFixed(2)} -> ${A.morale.toFixed(2)})`)
     const h2 = clone(h)
@@ -106,7 +109,7 @@ console.log('--- 2. it moves with events')
     A2.pers = 'Professional'
     const was2 = A2.morale
     h2.bonds!.xv = [...xv]; h2.bonds!.xv[slot] = A.id
-    bondsWeek(h2)
+    pass(h2)
     ok(A2.morale >= was2 - 0.1, `a professional pushes harder instead (${was2.toFixed(2)} -> ${A2.morale.toFixed(2)})`)
   } else ok(false, 'found a man to drop')
 }
@@ -129,10 +132,12 @@ console.log('--- 2. it moves with events')
   to.players.push(M.id)
   M.clubId = to.id
   h.press = h.press.map(q => ({ ...q, answered: true }))
-  const newsN = h.news.length, pressN = h.press.length
-  bondsWeek(h)
+  const newsN = h.news.length, pressN = h.press.length, nextSale = h.nextId
+  pass(h)
   ok(F.morale < 7 && 7 - F.morale <= 0.9, `a loyal friend takes the sale hard, within bounds (7 -> ${F.morale.toFixed(2)})`)
   ok(!h.bonds!.pairs.some(p => p.includes(M.id)), 'the departed man leaves the ledger')
+  ok(h.memory!.entries.some(e => e.kind === 'mate-left' && e.playerId === F.id), 'the career memory remembers who took it hard')
+  ok(h.nextId === nextSale, 'the sale\'s story and knock take no id from the fixtures\' counter')
   const knock = h.press.slice(pressN).find(q => q.topic === 'mate')
   const story = h.news.slice(newsN).find(n => n.k === 'news.bondMateGone')
   ok(!!knock || !!story, `the dressing room says so: ${knock ? 'a knock at the office' : 'an inbox story'}`)
@@ -156,7 +161,7 @@ console.log('--- 2. it moves with events')
   const nu = squad(h).find(p => p.id !== old.id && !p.onLoan)!
   c.captain = nu.id
   const before = bondOf(h, old.id, nu.id)
-  bondsWeek(h)
+  pass(h)
   ok(bondOf(h, old.id, nu.id) < before, `a leader who loses the armband cools on his successor (${before} -> ${bondOf(h, old.id, nu.id)})`)
   ok(h.bonds!.cap === nu.id, 'and the ledger remembers the new captain')
 }
@@ -169,18 +174,23 @@ console.log('--- 2. it moves with events')
   h.bonds!.pairs.push([Math.min(a.id, b.id), Math.max(a.id, b.id), -55, 0])
   ;(h as GameState & { feuds?: unknown[] }).feuds = []
   const n = h.news.length
-  bondsWeek(h)
+  const nextBefore = h.nextId
+  pass(h)
   const s = h.news.slice(n).find(x => x.k === 'news.bondRift')
   ok(!!s, 'a new rift files one Wire story')
-  ok(activeFeuds(h).some(f => (f.a === a.id && f.b === b.id) || (f.a === b.id && f.b === a.id)), 'and appears on the Club screen as a rift to broker')
+  ok(!!s && s.id !== Math.floor(s.id) && h.nextId === nextBefore, 'on a fractional id, without advancing the counter the fixtures draw from')
+  ok(activeFeuds(h).length === 0, 'and opens no gossip feud (those settle on the shared weekly stream)')
+  ok(h.memory!.entries.some(e => e.kind === 'rift' && e.playerId === a.id), 'the career memory remembers the rift')
   if (s) for (const l of LANGS) ok(!raw(tIn(l, s.k!, s.v)) && !raw(tIn(l, s.k! + 'Subj', s.v)), `the rift reads in ${l}`)
   const n2 = h.news.length
-  bondsWeek(h)
+  pass(h)
   ok(!h.news.slice(n2).some(x => x.k === 'news.bondRift'), 'and is not announced twice')
-  // peace brokered: the feud ends and the rift heals to a coolness
+  // a Wire feud between the pair, then peace brokered: the rift heals to a coolness
+  ;(h as GameState & { feuds?: unknown[] }).feuds = [{ a: a.id, b: b.id, week: h.week }]
+  pass(h)
   ;(h as GameState & { feuds?: unknown[] }).feuds = []
-  bondsWeek(h)
-  ok(bondOf(h, a.id, b.id) > RIFT, `a feud that ends heals the rift (${bondOf(h, a.id, b.id)})`)
+  pass(h)
+  ok(bondOf(h, a.id, b.id) > RIFT, `a Wire feud that ends heals the rift (${bondOf(h, a.id, b.id)})`)
 }
 
 // e) a clique: the senior pros shut out of the team sheets
@@ -198,19 +208,19 @@ console.log('--- 2. it moves with events')
   while (h.week % 6 !== 0) h.week++
   h.bonds!.cl = []
   const n = h.news.length
-  bondsWeek(h)
+  pass(h)
   const s = h.news.slice(n).find(x => x.k === 'news.bondClique')
   ok(!!s && h.bonds!.cl.some(x => x.g === 'vets'), 'a group shut out of the team sheets closes ranks, and the Wire says so')
   if (s) for (const l of LANGS) ok(!raw(tIn(l, s.k!, s.v)), `the clique reads in ${l}`)
   const was = vets.map(p => p.morale)
   h.week++
-  bondsWeek(h)
+  pass(h)
   ok(vets.every((p, i) => p.morale <= was[i] && was[i] - p.morale <= 0.2), 'the clique sours its members, gently')
   // play them and it breaks up
   for (const p of vets) { p.stats.apps = 8 }
   while (h.week % 6 !== 0) h.week++
   const n2 = h.news.length
-  bondsWeek(h)
+  pass(h)
   ok(!h.bonds!.cl.some(x => x.g === 'vets'), 'minutes given, the clique dissolves')
   const e = h.news.slice(n2).find(x => x.k === 'news.bondCliqueEnds')
   ok(!!e, 'and that is a story too')
@@ -332,6 +342,46 @@ console.log('--- 8. every line in six languages')
     ok(!raw(tIn(l, 'news.bondClique', { group_k: 'bonds.gNat', nation_k: 'nation.TGA', names_l: '[]', n: 3 })), `a national clique reads in ${l}`)
     ok(['player.bondsLabel', 'player.bondsVoice'].every(k => !raw(tIn(l, k))) && !raw(tIn(l, 'player.bondsClose', { names: 'X' })) && !raw(tIn(l, 'player.bondsClash', { names: 'Y' })), `the profile lines read in ${l}`)
   }
+}
+
+// ------------------------------------------------------------------ 10
+console.log('--- 10. the rest of the world does not notice')
+{
+  // twin careers from one save, a season and a half each: one with the
+  // ledger live, one with it switched off. Every AI-v-AI fixture must carry
+  // the same id and the same score, week by week.
+  const on = clone(fresh), off = clone(fresh)
+  const key = (x: GameState) => x.fixtures
+    .filter(f => f.played && f.week === x.week && f.homeId !== x.userClubId && f.awayId !== x.userClubId)
+    .map(f => `${f.id}:${f.homeId}${f.homeScore}-${f.awayScore}${f.awayId}`).sort().join('|')
+  let weeks = 0, same = 0, compared = 0, firstDiff = ''
+  const s0 = on.season
+  while (on.season < s0 + 1 || on.week < 20) {
+    if (weeks++ > 120) break
+    bondsSwitch.on = true
+    const fa = userFixtureThisWeek(on); if (fa) simMatch(on, fa, weekRng(on), false)
+    const ka = key(on)
+    bondsSwitch.on = false
+    const fb = userFixtureThisWeek(off); if (fb) simMatch(off, fb, weekRng(off), false)
+    const kb = key(off)
+    compared++
+    if (ka === kb) same++; else if (!firstDiff) firstDiff = `season ${on.season} week ${on.week}`
+    bondsSwitch.on = true; processWeekAndAdvance(on); for (const q of on.press) if (!q.answered && q.options.length) answerPress(on, q.id, 0)
+    bondsSwitch.on = false; processWeekAndAdvance(off); for (const q of off.press) if (!q.answered && q.options.length) answerPress(off, q.id, 0)
+  }
+  bondsSwitch.on = true
+  const aiIds = (x: GameState) => x.fixtures.filter(f => f.homeId !== x.userClubId && f.awayId !== x.userClubId).map(f => f.id).sort((a, b) => a - b).join(',')
+  console.log(`      ${compared} weeks compared, ${same} identical${firstDiff ? `, first difference ${firstDiff}` : ''}; ledger on: ${on.bonds?.pairs.length ?? 0} pairs`)
+  ok(!!on.bonds && !off.bonds, 'one twin kept a ledger, the other none')
+  ok(compared > 50 && same === compared, 'every AI-v-AI fixture played had the same id and score, every week')
+  const userRes = (x: GameState) => x.fixtures.filter(f => f.played && (f.homeId === x.userClubId || f.awayId === x.userClubId)).map(f => `${f.id}:${f.homeScore}-${f.awayScore}`).join(',')
+  const A = aiIds(on).split(','), B = aiIds(off).split(',')
+  const i = A.findIndex((x, k) => x !== B[k])
+  if (i >= 0) {
+    const fa = on.fixtures.find(f => String(f.id) === A[i]), fb = off.fixtures.find(f => String(f.id) === B[i])
+    console.log(`      lists differ at ${i}/${A.length}: ${JSON.stringify([fa?.id, fa?.compId, fa?.week, fa?.homeId, fa?.awayId])} vs ${JSON.stringify([fb?.id, fb?.compId, fb?.week, fb?.homeId, fb?.awayId])}; user results ${userRes(on) === userRes(off) ? 'same' : 'differ'}`)
+  }
+  ok(aiIds(on) === aiIds(off), 'and the fixture list the two worlds hold now is id for id the same')
 }
 
 console.log(fails ? `BONDS PROBE FAILED (${fails})` : 'BONDS PROBE PASSED: seeded quietly, moved by events, capped, bounded, migrated and in six languages')
