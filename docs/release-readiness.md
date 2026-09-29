@@ -704,3 +704,55 @@ final code.
 * Items the owner does in the consoles: the move to the organisation's Play
   account and its signing certificate, the signed upload, the playtest and
   the screenshot sign-off.
+
+## Addendum, 2026-09-29: 1.8.1 (Play version code 42)
+
+1.8.1 is built on the merged 1.8.0 and folds in what was planned as 1.9.
+**Version code 42 is assumed free and not yet verified**: codes only have to
+rise, so 42 is right whether or not 41 was uploaded, but check the highest
+accepted code on the Play Console before the bundle is built
+(`packaging/android/version.json`). The publisher is FWDS & BCKS LTD. The full
+report is `docs/qa-report-1.8.1.md`.
+
+### What changed
+
+* **The world remembers the manager's decisions.** Releases, sales, promises
+  kept or broken, knocks played through and academy debuts come back as Wire
+  stories when a former player scores against you, is capped, or breaks down;
+  agents price in broken promises (4% a promise in a year, capped at 12%).
+  No rng is drawn and the id counter is never spent.
+* **A club identity that emerges** from the dials, recruitment, academy and
+  books, with small effects on interest, intake, sponsors, supporters and the
+  board.
+* **Dressing-room bonds**: friendships, rifts, senior voices and cliques.
+* **The opposition report, match plan and post-match findings.** A plan sets
+  only levers the manager could set by hand, so it adds no engine modifier.
+* **Career history that acts**: rivalries that grow, legends, records that
+  talk, annals, and returning to a former club.
+* **Ten drilled attacking moves**, fitted to the players and the opposition's
+  defence, in the commentary and the highlight clips.
+* **Squad, career and screen fixes**: transfer windows enforced, loans within
+  the cap and budget, a yearly academy decision, every try counted as a 22
+  visit (the 1.8.0 display fault, closed), tablet portrait filling the screen,
+  the Discord link moved to Home and the manager menu, delete-save
+  confirmation.
+
+### The evidence
+
+The full suite is still running at the time of writing; its result goes into
+`docs/qa-report-1.8.1.md` and here. Already measured on the balance branch:
+bandcheck about 49.6 points, 6.3 tries, 53.2% home, 1.8% draws, 8.8%
+blowouts, every band inside. Two releasesim lines and the aiecon references
+were re-referenced on measurement, each explained in the QA report; the
+fingerprint was rebaselined twice for intended changes to the match stream.
+
+### What still needs the owner
+
+* Confirm version code 42 on the Play Console, then the signed upload.
+* The playtest, the store screenshots' sign-off and the "What's new" read
+  through (code 42, six languages, `docs/store-listing.md`).
+* Three calls: whether reopening a match to replay it should be prevented;
+  whether a national coach may raid his club's rivals; and the Set Piece tab's
+  length on a phone.
+* Unchanged from 1.8.0: the organisation's Play account and its signing
+  certificate.
