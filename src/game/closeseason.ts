@@ -31,7 +31,7 @@
  * be free.
  */
 import type { GameState } from './model'
-import { LEDGER_WEEKS, SEASON_WEEKS, facLevel, fmtMoney } from './model'
+import { LEDGER_WEEKS, SEASON_WEEKS, facLevel, fmtMoney, isMyClub } from './model'
 import { mulberry32 } from './rng'
 import { t, tIn } from './i18n'
 
@@ -223,7 +223,8 @@ export function bookEvent(state: GameState, id: string): string {
 export function aiCloseSeason(state: GameState): void {
   if (!isCloseSeason(state.week)) return
   for (const club of Object.values(state.clubs)) {
-    if (club.id === state.userClubId) continue
+    // a sacked manager's old club books its own summer, as it runs its own books
+    if (isMyClub(state, club.id)) continue
     // keyed on the whole id through the same hash the manager's diary uses: it
     // was seeded on the id's LENGTH, so every club with a name of the same
     // length had the same summer, week after week

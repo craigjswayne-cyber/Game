@@ -79,7 +79,12 @@ const med = (xs: number[]) => {
   const s = [...xs].sort((a, b) => a - b)
   return s.length ? s[Math.floor(s.length / 2)] : 0
 }
-const ai = (g: GameState) => Object.values(g.clubs).filter(c => c.id !== g.userClubId)
+// every club the AI runs: the manager's club only while he manages it. A
+// headless manager is sacked on nearly every seed inside ten seasons, and from
+// 1.8.1 his old club is coached, appointed and run by its board like any other
+// (it had played with no coaching and frozen books), so it belongs in the sample:
+// left out, the prize money it now wins read as money the AI world had lost
+const ai = (g: GameState) => Object.values(g.clubs).filter(c => c.id !== g.userClubId || g.unemployed)
 
 const g = newGame('northampton', 'AI Econ', RATE_SEEDS[0])
 const start = med(ai(g).map(c => c.balance))

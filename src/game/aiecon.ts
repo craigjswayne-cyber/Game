@@ -29,7 +29,7 @@
 // banks it. scripts/aiecon.ts holds both the median and the spread.
 import { seniorsOf } from './ai'
 import { MARQUEE_SLOTS } from './cap'
-import {LEDGER_WEEKS, weeklyCentral, groundUpkeep, groundTrade, type Club, type GameState, type Player } from './model'
+import {isMyClub, LEDGER_WEEKS, weeklyCentral, groundUpkeep, groundTrade, type Club, type GameState, type Player } from './model'
 
 /** Same £30 a head the manager's club takes, because it is the same ticket. */
 const GATE_PER_HEAD = 30
@@ -204,7 +204,10 @@ export function aiWeeklyFinance(state: GameState): void {
   if (state.week > LEDGER_WEEKS) return
   const index = moneyIndex(state)
   for (const club of Object.values(state.clubs)) {
-    if (club.id === state.userClubId) continue
+    // isMyClub, not userClubId: a club whose manager has been sacked is run by
+    // its board like any other. The old test left its books frozen - no wages
+    // out, no gate in - for as long as he was out of work (1.8.1)
+    if (isMyClub(state, club.id)) continue
     const week = aiWeek(state, club, index)
     club.balance += week.net
     if (week.wages > 0 && club.balance < -DEBT_WEEKS * week.wages) {
@@ -270,7 +273,7 @@ export function shedWages(state: GameState, club: Club): Player | null {
 export function aiBoardsReinvest(state: GameState): void {
   const index = moneyIndex(state)
   for (const club of Object.values(state.clubs)) {
-    if (club.id === state.userClubId) continue
+    if (isMyClub(state, club.id)) continue
     const wages = aiWeek(state, club, index).wages
     const keep = wages * SURPLUS_WEEKS
     if (wages <= 0 || club.balance <= keep) continue
@@ -297,7 +300,7 @@ export function aiBoardsReinvest(state: GameState): void {
 export function aiFireSale(state: GameState): number {
   let listed = 0
   for (const club of Object.values(state.clubs)) {
-    if (club.id === state.userClubId || club.balance > FIRE_SALE) continue
+    if (isMyClub(state, club.id) || club.balance > FIRE_SALE) continue
     const squad = club.players
       .map(id => state.players[id])
       .filter((p): p is Player => !!p && !p.youth && !p.acad)

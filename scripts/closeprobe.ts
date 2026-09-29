@@ -152,7 +152,13 @@ console.log('\n--- 4b. the slate and what goes wrong')
 // ---- 5. and everyone else has a summer too ------------------------------
 console.log('\n--- 5. the rest of the world is not idle')
 const w = newGame('leicester', 'Test', 21)
-while (w.week <= LEDGER_WEEKS) processWeekAndAdvance(w)
+// kept in work: a sacked manager's old club is run by its board and books its
+// own summer (1.8.1), so the claim below is about a manager with a club
+while (w.week <= LEDGER_WEEKS) {
+  w.clubs[w.userClubId].boardConfidence = Math.max(w.clubs[w.userClubId].boardConfidence, 55)
+  processWeekAndAdvance(w)
+}
+ok(!w.unemployed, 'the manager is still in his job for the summer')
 // MEASURED ON THE MECHANISM, NOT THROUGH A WHOLE WEEK. A settle also pays
 // transfer fees, fines and the rich-club correction, so a club can bank its
 // summer takings and still end the week down - which says nothing about whether
