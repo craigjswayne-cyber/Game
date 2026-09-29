@@ -3064,6 +3064,30 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   .routine-grid.sp-scrum { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 
+/* ---- the attacking moves (1.8.1, ui/MovesSection.tsx) -------------------
+   One card for the three calls: which call on the top row, the options under
+   it, and the picture beside the facts (two columns on a phone, the picture
+   the narrower), so the section is one short card, not eighteen tiles on a
+   tab that was already the longest on the screen. */
+.mv-card { display: flex; flex-direction: column; gap: 7px; }
+.mv-calls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.mv-callchip {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 1px;
+  border-radius: 10px; min-height: 44px; text-align: left; min-width: 0;
+}
+.mv-callchip b { font-size: 11px; line-height: 1.2; }
+.mv-callchip span { font-size: 10px; opacity: .85; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.mv-chips { margin-top: 0; }
+.mv-chips .preset-chip { min-height: 36px; }
+.mv-pct { font-size: 10px; opacity: .8; font-weight: 600; }
+.mv-body { display: grid; grid-template-columns: minmax(0, 42%) minmax(0, 1fr); gap: 9px; align-items: start; }
+.mv-body .d { font-size: 11px; color: var(--text-muted); line-height: 1.35; }
+.mv-body b { font-size: 13px; color: var(--text-primary); }
+.mv-body .mv-warn { color: var(--text-negative); font-weight: 600; }
+@media (min-width: 700px) {
+  .mv-body { grid-template-columns: minmax(0, 220px) minmax(0, 1fr); }
+}
+
 /* the 23: the fifteen in a team-sheet shape on the grass, the eight on a bench */
 .b23 { margin: 6px 14px; display: grid; gap: 8px; }
 @media (min-width: 700px) {
