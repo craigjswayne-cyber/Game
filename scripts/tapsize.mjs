@@ -168,10 +168,17 @@ try {
   await page.click('.submenu-item >> text=Tactics')
   await page.waitForSelector('.tab-bar')
   await check('Tactics')
-  // and its Set Piece tab, where the attacking moves' chips live (1.8.1)
+  // and its Set Piece tab, where the attacking moves' chips live (1.8.1).
+  // Three views since 1.8.2 (the segmented control, [data-sp-sub]), so each
+  // is opened and measured: the control's own buttons, the calls, the moves'
+  // chips, and the kicking tiles and goal-kicker rows
   await page.click('.tab-bar >> text=Set Piece')
-  await page.waitForSelector('.mv-card')
-  await check('Tactics: Set Piece')
+  await page.waitForSelector('[data-sp-sub]')
+  for (const [v, sel] of [['calls', '.sp-call'], ['moves', '.mv-card'], ['kicking', '.kick-btn']]) {
+    await page.click(`[data-sp-sub="${v}"]`)
+    await page.waitForSelector(sel)
+    await check(`Tactics: Set Piece ${v}`)
+  }
 
   await page.click('.bottom-nav button[title="Hub"]')
   await page.click('.submenu-item >> text=Finances')

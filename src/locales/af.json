@@ -1511,6 +1511,9 @@
  "tacticsScreen": {
   "tabRoles": "Rolle",
   "tabSetPiece": "Vaste spel",
+  "spSubCalls": "Lynstaan & Skrum",
+  "spSubMoves": "Bewegings",
+  "spSubKicking": "Skopwerk",
   "tabBench": "Bank",
   "tabPrep": "Voorbereiding",
   "tabPlan": "Spelplan",

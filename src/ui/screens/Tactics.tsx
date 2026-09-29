@@ -27,10 +27,42 @@ import MovesSection from '../MovesSection'
  *  sheet is the Team screen's opening tab now (screens/Selection.tsx), and
  *  this screen dropped both the Selection tab and the "& Tactics" half of its
  *  old name. */
+
+/** THE SET PIECE TAB, IN THREE (owner, 1.8.2: split it up). With the
+ *  attacking moves card added in 1.8.1 the tab ran to four and a half
+ *  screenfuls on a portrait phone and nearly seven in landscape: the lineout
+ *  and scrum calls, the moves, and everything a boot decides, one under the
+ *  other. It is now three views behind a segmented control, the same track
+ *  the new-career screen uses to pick a game (.game-pick in theme.css), so
+ *  it reads as a view of this tab rather than a second row of tabs. */
+type SpSub = 'calls' | 'moves' | 'kicking'
+const SP_SUBS: [SpSub, string][] = [
+  ['calls', 'tacticsScreen.spSubCalls'],
+  ['moves', 'tacticsScreen.spSubMoves'],
+  ['kicking', 'tacticsScreen.spSubKicking'],
+]
+/** Which view was open is kept for the session (sessionStorage, as the store
+ *  keeps its own "same session" mark), so going to the Team screen to change
+ *  the fly-half and opening Set Piece again lands on the kicking view you left, and a
+ *  fresh launch opens on the calls. The try/catch is the store's too: a
+ *  sandboxed frame can refuse storage outright. */
+const SP_SUB_KEY = 'rm-sp-sub'
+const readSpSub = (): SpSub => {
+  try {
+    const v = sessionStorage.getItem(SP_SUB_KEY)
+    return v === 'moves' || v === 'kicking' ? v : 'calls'
+  } catch { return 'calls' }
+}
+
 export default function Tactics() {
   const game = useStore(s => s.game)!
   const touch = useStore(s => s.touch)
   const [ttab, setTtab] = useState<'tactics' | 'setp' | 'bench' | 'prep' | 'plan'>('tactics')
+  const [spSub, setSpSubState] = useState<SpSub>(readSpSub)
+  const setSpSub = (v: SpSub) => {
+    setSpSubState(v)
+    try { sessionStorage.setItem(SP_SUB_KEY, v) } catch { /* the choice lasts this visit only */ }
+  }
   const [roleSlot, setRoleSlot] = useState<number | null>(null)
   const [kickSlot, setKickSlot] = useState<number | null>(null)
   /** what the last one-tap plan set, so a control whose sliders are three
@@ -219,7 +251,14 @@ export default function Tactics() {
         </div>
       </>}
 
-      {ttab === 'setp' && <>
+      {ttab === 'setp' && <div className="game-pick sp-sub" role="tablist" aria-label={t('tacticsScreen.tabSetPiece')}>
+        {SP_SUBS.map(([id, label]) => (
+          <button key={id} role="tab" aria-selected={spSub === id} className={spSub === id ? 'sel' : ''}
+            data-sp-sub={id} onClick={() => setSpSub(id)}>{t(label)}</button>
+        ))}
+      </div>}
+
+      {ttab === 'setp' && spSub === 'calls' && <>
         {/* ---- four questions, in the order a coach asks them ----
             This page had six blocks, two long explainer paragraphs and a stat
             line on every tile reading "62% drilled · called 4x this season ·
@@ -265,10 +304,16 @@ export default function Tactics() {
             </div>
           </div>
         ))}
+        <div className="spacer" />
+      </>}
 
-        {/* the attacking moves off that platform (1.8.1, game/moves.ts) */}
+      {/* the attacking moves off that platform (1.8.1, game/moves.ts) */}
+      {ttab === 'setp' && spSub === 'moves' && <>
         <MovesSection game={game} club={club} touch={touch} />
+        <div className="spacer" />
+      </>}
 
+      {ttab === 'setp' && spSub === 'kicking' && <>
         <SectionTitle>{t('tacticsScreen.goalKickers')}</SectionTitle>
         {/* THE KICKERS READ LIKE THE LEADERSHIP CARD (owner, 1.8.1: "make the
             goal kickers section tidier"). Two native selects of forty names
