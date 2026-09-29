@@ -51,10 +51,14 @@ export function openEra(state: GameState): CurEra | null {
   if (a.cur && a.cur.c === club.id) return a.cur
   const st = standing(state, club.id)
   const prof = jobProfile(state, club.id)
+  // a job already under way when the arc first looks (an older save) starts
+  // from the record the club's history book has kept for it (history.ts)
+  const ten = state.hist?.tenures?.find(x => x.clubId === club.id && x.to == null)
+  const w = ten?.w ?? 0, d = ten?.d ?? 0, l = ten?.l ?? 0
   a.cur = {
     c: club.id, f: state.tenureStart ?? state.season,
     tier0: leagueTier(club.leagueId), pos0: st.pos, n0: st.n, lg0: club.leagueId, bal0: club.balance,
-    m: 0, w: 0, d: 0, l: 0, top: {}, grads: [],
+    m: w + d + l, w, d, l, top: {}, grads: [],
     prof,
     trouble: prof === 'troubled' || (st.n > 0 && st.pos > 0 && st.pos >= Math.ceil(st.n * 2 / 3)),
   }
@@ -63,6 +67,7 @@ export function openEra(state: GameState): CurEra | null {
 
 /** season.ts afterClubMatch: the job's record, best win and worst defeat. */
 export function eraAfterMatch(state: GameState, fx: Fixture): void {
+  const had = state.arc?.cur?.c === state.userClubId
   const cur = openEra(state)
   if (!cur) return
   const uid = cur.c
@@ -70,8 +75,12 @@ export function eraAfterMatch(state: GameState, fx: Fixture): void {
   const us = fx.homeId === uid ? fx.homeScore : fx.awayScore
   const them = fx.homeId === uid ? fx.awayScore : fx.homeScore
   const o = fx.homeId === uid ? fx.awayId : fx.homeId
-  cur.m++
-  if (us > them) cur.w++; else if (us < them) cur.l++; else cur.d++
+  // opened just now from the history book's tenure, which has this match on it already
+  const seeded = !had && !!state.hist?.tenures?.some(x => x.clubId === uid && x.to == null)
+  if (!seeded) {
+    cur.m++
+    if (us > them) cur.w++; else if (us < them) cur.l++; else cur.d++
+  }
   if (us > them && (!cur.gw || us - them > cur.gw.us - cur.gw.them)) cur.gw = { o, us, them, s: state.season }
   if (us < them && (!cur.wd || them - us > cur.wd.them - cur.wd.us)) cur.wd = { o, us, them, s: state.season }
 }
@@ -148,7 +157,7 @@ function storyOf(state: GameState, cur: CurEra, tr: string[]): { k: string; v: V
   const club = state.clubs[cur.c]
   const n = state.season - cur.f + 1
   const lgNow = club?.leagueId ?? cur.lg0
-  const name = (id: string) => state.comps[id]?.short ?? state.comps[id]?.name ?? id
+  const name = (id: string) => state.comps[id]?.name ?? state.comps[id]?.short ?? id
   const v: Vars = {
     club: club?.short ?? cur.c, n, seasons_k: n === 1 ? 'count.seasonOne' : 'count.seasonMany',
     from_o: cur.pos0 || 1, league: name(cur.lg0), comp: name(lgNow), m: cur.m,
@@ -162,7 +171,11 @@ function storyOf(state: GameState, cur: CurEra, tr: string[]): { k: string; v: V
   if (tr.length) return { k: 'arc.storyCups', v: { ...v, cups: tr.length, cups_k: tr.length === 1 ? 'count.trophyOne' : 'count.trophyMany' } }
   if (tierNow > cur.tier0) return { k: 'arc.storyDown', v }
   const rows = (state.arc?.conduct ?? []).filter(r => r.c === cur.c && r.s >= cur.f && r.pos > 0)
-  const best = rows.length ? Math.min(...rows.map(r => r.pos)) : 0
+  // and where the club stands today, when a season is under way
+  const table = state.comps[lgNow]?.table ?? []
+  const now = table.some(r => r.p > 0) ? leaguePos(table, cur.c) : 0
+  const finishes = [...rows.map(r => r.pos), ...(now > 0 ? [now] : [])]
+  const best = finishes.length ? Math.min(...finishes) : 0
   if (best > 0 && cur.pos0 > 0 && best <= cur.pos0 - 3) return { k: 'arc.storyRose', v: { ...v, to_o: best } }
   return { k: 'arc.storyHeld', v: { ...v, to_o: best || cur.pos0 || 1 } }
 }
