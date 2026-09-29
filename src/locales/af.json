@@ -3143,7 +3143,7 @@
  },
  "hist": {
   "rivalBornSubj": "'n Wedywering is gebore: {club}",
-  "rivalBorn": "Wedstryde teen {club} is nie meer net nog 'n wedstryd nie, nie ná {why_k} nie. Die ondersteuners het dit agtergekom, die raad ook, en die volgende een sal aangekondig word as wat dit is.",
+  "rivalBorn": "Wedstryde teen {club} het verander sedert {why_k}. Die ondersteuners het dit agtergekom, die raad ook, en die volgende een sal as 'n wedywering aangekondig word.",
   "rivalFadesSubj": "Die hitte is uit: {club}",
   "rivalFades": "Die wedywering met {club}, lewendig sedert {since}, het afgekoel. Die wedstryde maak nie meer so saak soos vroeër nie, en die pawiljoen het ander klubs gevind om nie van te hou nie.",
   "rivalRenewedSubj": "Weer {club}",
