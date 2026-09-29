@@ -127,9 +127,34 @@ console.log('--- the world mean: three seasons against the old curve')
   const ps = Object.values(g.players).filter(p => p.clubId)
   const all = mean(ps.map(p => p.ca)), u23 = mean(ps.filter(p => p.age <= 23).map(p => p.ca))
   const hi18 = ps.reduce((s, p) => s + Object.values(p.a).filter(v => v >= 18).length, 0)
-  console.log(`  S3: mean rating ${all.toFixed(2)} (old curve 59.32), under-23s ${u23.toFixed(2)} (57.18), attributes of 18+ ${hi18} (265)`)
-  ok(Math.abs(all - 59.32) <= 0.5, 'the world mean holds')
-  ok(Math.abs(u23 - 57.18) <= 0.5, 'the under-23 mean holds')
+  /*  RE-REFERENCED in 1.8.1 (30 Sep 2026): the summer academy decision.
+   *  AI clubs now release the first-year scholars their academy director
+   *  would not keep (acadcall.ts settleAcadCalls, owner: "a yearly academy
+   *  intake with a decision at the end of each season to sign or drop"),
+   *  and the refill brings in raw 17-year-olds where a year-older scholar
+   *  used to stay. That is a change of WHO is in the academies, not of how
+   *  anybody grows: sixteen worlds (this seed and 1-15), three seasons, per
+   *  build, mean + standard error:
+   *
+   *                              all men        under-23s     academy     u23 seniors
+   *    1.8.0 (b3bd529)           59.06 +0.03    56.98 +0.02   52.91       63.92
+   *    298184b (the decision)    58.95 +0.04    56.61 +0.03   52.32       63.85
+   *    the same, AI keeps all    59.12 +0.04    56.96 +0.04   52.88       63.85
+   *    release tip (76639f6)     58.96 +0.03    56.61 +0.01   52.35       63.83
+   *
+   *  Undoing only the AI's release puts the under-23 mean back exactly
+   *  (+0.35 +0.03 paired) while the senior under-23s never moved; the
+   *  academies hold about 45 fewer scholars across the world (3,040 against
+   *  3,081), the released men being free agents. Nothing else in 1.8.1
+   *  touched it: the other merges read -0.06 +0.05 and 0.00, and the
+   *  assistant's bench -0.04. So the references move by the measured
+   *  shift, from the old curve's 59.32 and 57.18 on this seed: the world
+   *  mean by -0.10 and the under-23s by -0.37, with the same +-0.5 band
+   *  (a world's sd is 0.11 and 0.09, so the band is still about five). */
+  const ALL_REF = 59.32 - 0.10, U23_REF = 57.18 - 0.37
+  console.log(`  S3: mean rating ${all.toFixed(2)} (old curve 59.32, now ${ALL_REF.toFixed(2)}), under-23s ${u23.toFixed(2)} (57.18, now ${U23_REF.toFixed(2)}), attributes of 18+ ${hi18} (265)`)
+  ok(Math.abs(all - ALL_REF) <= 0.5, 'the world mean holds')
+  ok(Math.abs(u23 - U23_REF) <= 0.5, 'the under-23 mean holds')
   ok(hi18 < 265 && hi18 > 100, 'an 18 is rarer, and still exists')
 }
 
