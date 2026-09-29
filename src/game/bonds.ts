@@ -71,7 +71,7 @@ export const RIFT = -40
 /** What the last weekly pass did, for the probes (never saved): the largest
  *  total morale move it made to any one man, the stories it filed, and how
  *  long it took. */
-export const bondsReport = { week: -1, maxDelta: 0, stories: 0, ms: 0 }
+export const bondsReport = { week: -1, maxDelta: 0, stories: 0, ms: 0, ids: 0 }
 
 /** A hook for the career memory log (memory.ts, not on this branch). */
 export interface BondNote { kind: string; playerId: number; clubId?: string; payload?: Record<string, unknown> }
@@ -264,7 +264,9 @@ export function flushBondNews(state: GameState): void {
   const q = state.bonds?.held
   if (!q?.length) return
   state.bonds!.held = []
+  const id0 = state.nextId
   fileHeldNews(state, q)
+  bondsReport.ids += state.nextId - id0
 }
 
 /** THE KNOCK: "you sold my mate", settled by talkback.ts like the other four. */
@@ -322,7 +324,9 @@ export function bondsWeek(state: GameState): void {
   bondsReport.maxDelta = 0
   bondsReport.stories = 0
   moved.clear()
+  const id0 = state.nextId
   weekly(state)
+  bondsReport.ids = state.nextId - id0
   for (const d of moved.values()) bondsReport.maxDelta = Math.max(bondsReport.maxDelta, Math.abs(d))
   bondsReport.ms = typeof performance !== 'undefined' ? performance.now() - t0 : 0
 }

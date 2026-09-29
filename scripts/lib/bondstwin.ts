@@ -22,6 +22,9 @@ bondsSwitch.on = on
 const g = newGame('leicester', 'Bonds Twin', 181)
 const ai = (x: GameState) => x.fixtures.filter(f => f.homeId !== x.userClubId && f.awayId !== x.userClubId)
 const weeks: string[] = []
+const weekLabels: string[] = []
+const ids: string[] = []
+let last = g.nextId
 const s0 = g.season
 let n = 0
 while ((g.season < s0 + 1 || g.week < 20) && n++ < 120) {
@@ -29,11 +32,16 @@ while ((g.season < s0 + 1 || g.week < 20) && n++ < 120) {
   if (fx) simMatch(g, fx, weekRng(g), false)
   processWeekAndAdvance(g)
   for (const q of g.press) if (!q.answered && q.options.length) answerPress(g, q.id, 0)
+  if (g.nextId !== last) ids.push(`w${g.season}.${g.week}:+${g.nextId - last} ${g.news.filter(x => x.id >= last && Number.isInteger(x.id)).map(x => x.k).join(',')} ${g.press.filter(x => x.id >= last && Number.isInteger(x.id)).map(x => x.topic ?? x.qk).join(',')}`)
+  last = g.nextId
+  weekLabels.push(`w${g.season}.${g.week}`)
   weeks.push(ai(g).filter(f => f.played).map(f => `${f.id}:${f.homeScore}-${f.awayScore}`).sort().join('|'))
 }
 writeFileSync(out, JSON.stringify({
   weeks,
   list: ai(g).map(f => f.id).sort((a, b) => a - b).join(','),
   pairs: g.bonds?.pairs.length ?? 0,
+  ids,
+  weekLabels,
   stories: g.news.filter(x => x.k?.startsWith('news.bond')).length,
 }))
