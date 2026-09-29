@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { MatchEvent } from '../game/model'
 import { kitGap } from './kit'
+import { MOVE_BY_ID, moveOfKey } from '../game/moves'
 
 /**
  * ---- THE HIGHLIGHT, NOT THE WHOLE MATCH (1.8.0) ----
@@ -61,7 +62,7 @@ import { kitGap } from './kit'
 
 export type ClipKind = 'try' | 'review' | 'notry' | 'kick' | 'attack'
 /** How the moment is played out, read off the engine's own commentary. */
-export type ClipStyle = 'phases' | 'overlap' | 'maul' | 'intercept' | 'chip' | 'grubber' | 'crossfield' | 'charge'
+export type ClipStyle = 'phases' | 'overlap' | 'maul' | 'intercept' | 'chip' | 'grubber' | 'crossfield' | 'charge' | 'move'
 
 export interface ClipSpec {
   kind: ClipKind
@@ -93,6 +94,11 @@ export interface ClipSpec {
    *  away from the cover and a slow prop is run down. Absent, everyone is 11. */
   attPace?: (number | undefined)[]
   defPace?: (number | undefined)[]
+  /** THE CALLED MOVE THAT MADE IT (1.8.1, game/moves.ts), read off the try
+   *  line's move_k: a strike move is played from its set piece (style
+   *  'move'), and a phase-play shape puts the forwards in its pods */
+  move?: string
+  launch?: 'lineout' | 'scrum' | 'open'
 }
 
 export interface ClipLabels {
@@ -255,6 +261,37 @@ export function buildClip(events: MatchEvent[], m: number, kind: ClipKind, homeI
     if (!b || STOP.has(b.type) || (b.teamId && b.teamId !== e.teamId)) break
     from.unshift(k)
   }
+  // THE CALLED MOVE THAT MADE IT (1.8.1, game/moves.ts): the try line
+  // carries the move in move_k and says in its key what it came off
+  const mvId = kind === 'try' && /^comm\.(moveTry(Lo|Sc)|shapeTry)/.test(e.k ?? '') ? moveOfKey(e.v?.move_k) : null
+  const launch: ClipSpec['launch'] = !mvId ? undefined
+    : e.k?.startsWith('comm.moveTryLo') ? 'lineout' : e.k?.startsWith('comm.moveTrySc') ? 'scrum' : 'open'
+  if (mvId && launch && launch !== 'open' && MOVE_BY_ID[mvId]) {
+    // A STRIKE MOVE is played from the set piece it was called off, thirty
+    // metres or so out (less when the TMO's look is to come as well): a
+    // lineout on the touchline, a scrum in midfield, and a blindside wrap's
+    // scrum near a touchline so there is a blind side to wrap round
+    const lo = launch === 'lineout', blind = mvId === 'mv_blind'
+    const u0 = (review >= 0 ? 71 : 66) + 4 * hash(m * 3)
+    const top = hash(m * 7) < 0.5
+    const y0 = lo ? (top ? 5 : 65) : blind ? (top ? 18 : 52) : 22 + 26 * hash(m * 7)
+    const open = y0 < 35 ? 1 : -1
+    const fy = blind ? (y0 < 35 ? 6 : 64) : Math.max(6, Math.min(64, y0 + open * (18 + 8 * hash(m * 11))))
+    const steps = Math.max(2, from.length)
+    const beats: ClipSpec['beats'] = Array.from({ length: steps }, (_, i) => ({
+      x: toX(u0 + i * 0.5), y: y0, line: from[i] ?? -1, carrier: lo ? 2 : 8,
+    }))
+    return {
+      kind, style: 'move', move: mvId, launch, attackHome, beats,
+      finish: { x: toX(103), y: fy, carrier: shirtOf(e.playerId) ?? 13 },
+      endLine: m,
+      reviewLine: review >= 0 ? review : undefined,
+      reviewLabel: labels.review,
+      misses: hash(m * 17) < 0.4 ? 1 : 0,
+      label: labels.try, sub: nameOf(e.playerId), att, def,
+      attPace: paces(attackHome), defPace: paces(!attackHome),
+    }
+  }
   const style: ClipStyle = kind === 'attack' ? (hash(m * 5) < 0.5 ? 'overlap' : 'phases') : styleOf(events, m, from[0] ?? m)
   const kicked = style === 'chip' || style === 'grubber' || style === 'crossfield'
   const endU = kind === 'attack' ? Math.max(80, Math.min(94, up(e.fld ?? 82))) : 103
@@ -317,6 +354,8 @@ export function buildClip(events: MatchEvent[], m: number, kind: ClipKind, homeI
     sub: kind === 'attack' ? undefined : nameOf(e.playerId),
     att, def,
     attPace: paces(attackHome), defPace: paces(!attackHome),
+    // a phase-play shape: the build-up is played in its pods
+    ...(mvId && launch === 'open' ? { move: mvId, launch } : {}),
   }
 }
 
@@ -366,6 +405,52 @@ const DEF: [number, number][] = [
 ]
 const TACKLERS = [1, 0, 2, 5, 4, 3, 6, 7]
 const FORWARD_CARRIERS = [8, 4, 6, 1, 5, 7]
+
+// ---- THE CALLED MOVES, DRAWN (1.8.1, game/moves.ts) ----
+//
+// A PHASE-PLAY SHAPE puts the forwards in its pods for the whole build-up:
+// [metres behind the ball, metres across towards the open side] by shirt
+// index (0 = No. 1). Anybody not listed stands in the default shape.
+const PODS: Record<string, Record<number, [number, number]>> = {
+  // a forward on each edge, a pod of three either side of the ruck
+  mv_1331: { 0: [2.2, -9], 1: [3.4, -10.5], 2: [2.2, -12], 3: [2.2, 9], 4: [3.4, 10.5], 7: [2.2, 12], 5: [3, -24], 6: [3, 24] },
+  // two on each edge, four in the middle
+  mv_242: { 5: [3, -22], 1: [3.4, -25], 6: [3, 22], 7: [3.4, 25], 0: [2.2, -7], 3: [3.2, -4], 4: [3.2, 4], 2: [2.2, 7] },
+  // a flat pod of three in front, the 10 behind it for the back door
+  mv_backdoor: { 3: [1.2, 5], 4: [1.2, 7.5], 7: [1.2, 10], 9: [6, 8] },
+}
+/** a bound scrum, our side: [metres behind the mark, metres across] by shirt index */
+const SCRUM_FORM: [number, number][] = [[0.6, -1.2], [0.6, 0], [0.6, 1.2], [1.5, -0.6], [1.5, 0.6], [1.3, -1.9], [1.3, 1.9], [2.4, 0]]
+/** the backline off a set piece, from the 9: [behind him, across towards the
+ *  move] for shirts 10..15 (11 is the blind wing) */
+const BACK_FORM: [number, number][] = [[4.5, 6], [6, -8], [6.5, 12], [8.5, 18], [11, 25], [14, 11]]
+/**
+ * A STRIKE MOVE as the passes and runs it is made of, after the ball has
+ * come to the 9 (`prelude`; the blindside wrap starts with the 8 picking up).
+ * Each step: who takes the next pass, where he stands for it relative to the
+ * man passing ([metres ahead, metres across towards the move]; a negative
+ * across is back against the grain, the switch and the inside ball), and the
+ * line he runs with it. The step whose man scores ends in his finishing run;
+ * otherwise the last man gives it to the scorer. `decoy` is the man who runs
+ * a hard line at the defence as the given step's pass goes, and does not get
+ * the ball.
+ */
+interface MoveScript {
+  prelude?: false
+  steps: { who: number; lead: [number, number]; run: [number, number] }[]
+  decoy?: { shirt: number; step: number }
+}
+const MOVE_SCRIPT: Record<string, MoveScript> = {
+  mv_crash: { steps: [{ who: 10, lead: [-3, 5], run: [2, 1] }, { who: 12, lead: [-1.2, 3.5], run: [5, 0] }] },
+  mv_switch: { steps: [{ who: 10, lead: [-3, 5], run: [2.5, 6] }, { who: 13, lead: [-1.5, -2.5], run: [4, -1.5] }] },
+  mv_loop: { steps: [{ who: 10, lead: [-3, 5], run: [2, 1] }, { who: 12, lead: [-1.5, 5], run: [4, 1.5] }, { who: 10, lead: [-1.8, 3.5], run: [3, 2] }] },
+  mv_decoy: { steps: [{ who: 10, lead: [-3, 5], run: [1.5, 1] }, { who: 13, lead: [-4, 9], run: [3, 1.5] }], decoy: { shirt: 12, step: 0 } },
+  mv_blind: { prelude: false, steps: [{ who: 8, lead: [-0.4, 0.4], run: [1.5, 1] }, { who: 9, lead: [-1, 2], run: [2, 2] }, { who: 11, lead: [-2, 4], run: [3, 2] }] },
+  mv_inside: { steps: [{ who: 10, lead: [-3, 5], run: [2.5, 6] }, { who: 12, lead: [-2, -2], run: [4, -1] }] },
+  mv_strike13: { steps: [{ who: 10, lead: [-3, 5], run: [1.5, 1] }, { who: 12, lead: [0, 4.5], run: [1, 0.5] }, { who: 13, lead: [-1, 3], run: [5, -1] }] },
+}
+/** every strike move has its script, and every shape its pods (movesprobe) */
+export const CLIP_MOVES = [...Object.keys(MOVE_SCRIPT), ...Object.keys(PODS)]
 
 function openSide(y: number) { return clamp((35 - y) / 12, -1, 1) }
 /** how far across a back stands: all to the open side near a touchline, and
@@ -456,8 +541,9 @@ type RunEnd = 'ruck' | 'feed' | 'score' | 'held'
 type Phase =
   | { k: 'ruck'; q: Pt; dur: number; tackled?: number; tackler?: number }
   | { k: 'dig'; q: Pt; dur: number }
-  | { k: 'pass'; who: number; dur: number; from?: Pt }
-  | { k: 'run'; to: Pt; who: number; line: number; end: RunEnd; dur: number; ta?: number; from?: Pt; ctrl?: Pt; tackler: number }
+  | { k: 'pass'; who: number; dur: number; from?: Pt; lead?: [number, number]; decoy?: boolean }
+  | { k: 'run'; to: Pt; who: number; line: number; end: RunEnd; dur: number; ta?: number; from?: Pt; ctrl?: Pt; tackler: number; across?: number }
+  | { k: 'set'; q: Pt; dur: number }
   | { k: 'kick'; who: number; chaser: number; to: Pt; loft: number; low: boolean; dur: number; from?: Pt }
   | { k: 'done'; who: number; dur: number }
 
@@ -483,7 +569,15 @@ function bake(c: ClipSpec): Baked {
     const room = (line - b.x) * dir < 8 ? 2.5 : 0
     return dir > 0 ? Math.min(x, line + room) : Math.max(x, line - room)
   }
+  // a phase-play shape's pods (1.8.1): the forwards stand in them, not in
+  // the default shape, for the whole of the build-up
+  const pods = c.launch === 'open' && c.move ? PODS[c.move] : undefined
   const shapeAtt = (i: number, b: Pt, dir: number): Pt => {
+    const pd = pods?.[i]
+    if (pd) {
+      const s = openSide(b.y) >= 0 ? 1 : -1
+      return { x: fieldX(ownLine(b.x - dir * pd[0], b, -dir)), y: fieldY(b.y + pd[1] * s) }
+    }
     const [back, across, open] = ATT[i]
     // the side with the ball stays out of its own in-goal too (a clearance
     // from their 22 stood their full-back five metres behind his line)
@@ -902,14 +996,29 @@ function bake(c: ClipSpec): Baked {
   // =========================================================== phases
   const pts = c.beats
   const phases: Phase[] = []
-  phases.push({ k: 'ruck', q: pts[0], dur: 0.5 })
-  if (pts[0].line >= 0) reveals.push({ t: 0.1, line: pts[0].line })
+  // A STRIKE MOVE (1.8.1) starts at the set piece it was called off: the
+  // lineout thrown and caught, or the ball at the No. 8's feet, with the
+  // build-up lines read out over it, and the move is then played as a
+  // chain of passes and runs (MOVE_SCRIPT) into the finish
+  const script = c.style === 'move' && c.move ? MOVE_SCRIPT[c.move] : undefined
+  const lo = c.launch === 'lineout'
+  const SET = lo ? 1.6 : 1.3
+  if (script) {
+    phases.push({ k: 'set', q: pts[0], dur: SET })
+    readOut(0.1, 0.45)
+  } else {
+    phases.push({ k: 'ruck', q: pts[0], dur: 0.5 })
+    if (pts[0].line >= 0) reveals.push({ t: 0.1, line: pts[0].line })
+  }
   let prev = -1
-  for (let j = 1; j < pts.length; j++) {
+  for (let j = script ? pts.length : 1; j < pts.length; j++) {
     const b = pts[j], q = pts[j - 1]
     let who = b.carrier
     // the man who has just been tackled is on the floor: the next carry is somebody else's
     if (who === prev) who = FORWARD_CARRIERS.find(s => s !== prev && s !== 9)!
+    // in a shape the carry comes off a pod beside the ruck, not from a man
+    // stationed out on the edge twenty metres away (1.8.1)
+    if (pods?.[who - 1] && Math.abs(pods[who - 1][1]) > 13) who = FORWARD_CARRIERS.find(s => s !== prev && Math.abs(pods[s - 1]?.[1] ?? 99) <= 13) ?? who
     const tackler = TACKLERS[j % TACKLERS.length]
     phases.push({ k: 'dig', q, dur: 0.35 })
     phases.push({ k: 'pass', who, dur: 0 })
@@ -922,12 +1031,72 @@ function bake(c: ClipSpec): Baked {
   const scorer = c.finish.carrier
   const endKind: RunEnd = c.kind === 'attack' ? 'held' : 'score'
   const side = Math.sign(c.finish.y - last.y) || (last.y < 35 ? 1 : -1)
-  phases.push({ k: 'dig', q: last, dur: 0.35 })
+  if (!script) phases.push({ k: 'dig', q: last, dur: 0.35 })
   const feed = (who: number, len = 2.2) => {
     phases.push({ k: 'pass', who, dur: 0 })
     phases.push({ k: 'run', to: { x: 0, y: 0 }, who, line: -1, end: 'feed', dur: 0.45, tackler: -1, ctrl: { x: len * 0.85, y: 0 } })
   }
-  if (c.style === 'overlap') {
+  // the set piece's shape, which everybody holds until the ball is out
+  const setAtt: Pt[] = [], setDef: Pt[] = []
+  // the decoy runner, the defender who bites on him, and when he goes
+  let decoyT = -1, biteI = -1
+  if (script) {
+    const S = pts[0]
+    const x0 = S.x
+    // the backs line up on the side the move goes to; a blindside wrap is
+    // run the other way, so its backline stands open and only the blind
+    // wing is out on the short side
+    const bs = c.move === 'mv_blind' ? -side : side
+    if (lo) {
+      const touchY = S.y < 35 ? 0 : 70, s = touchY === 0 ? 1 : -1
+      for (let j = 0, k = 0; j < 8; j++) {
+        if (j === 1) continue
+        const yy = touchY + s * (5 + k++ * 1.2)
+        setAtt[j] = { x: x0 - d * 0.6, y: yy }; setDef[j] = { x: x0 + d * 0.6, y: yy }
+      }
+      setAtt[1] = { x: x0, y: touchY + s * 0.8 }; setDef[1] = { x: fieldX(x0 + d * 2), y: touchY + s * 1.6 }
+      setAtt[8] = { x: fieldX(x0 - d * 2), y: touchY + s * 15 }
+      setDef[8] = { x: fieldX(x0 + d * 1.5), y: touchY + s * 14 }
+    } else {
+      SCRUM_FORM.forEach(([bk, ac], j) => {
+        setAtt[j] = { x: x0 - d * bk, y: fieldY(S.y + ac) }
+        setDef[j] = { x: x0 + d * bk, y: fieldY(S.y + ac) }
+      })
+      setAtt[8] = { x: fieldX(x0 - d * 2.4), y: fieldY(S.y + bs * 1.6) }
+      setDef[8] = { x: fieldX(x0 + d * 2.4), y: fieldY(S.y + bs * 1.6) }
+    }
+    const n9 = setAtt[8]
+    BACK_FORM.forEach(([bk, ac], j) => {
+      const i = 9 + j
+      setAtt[i] = { x: fieldX(n9.x - d * bk), y: fieldY(n9.y + bs * ac) }
+      // their backs stand opposite ours, back on the offside line
+      setDef[i] = i === 14 ? { x: fieldX(ownLine(x0 + d * 22, S, d)), y: fieldY(35 + (S.y - 35) * 0.4) }
+        : { x: fieldX(ownLine(x0 + d * (lo ? 10 : 5.5), S, d)), y: fieldY(n9.y + bs * ac) }
+    })
+    for (let i = 0; i < 15; i++) {
+      att[i].x = setAtt[i].x; att[i].y = setAtt[i].y
+      def[i].x = setDef[i].x; def[i].y = setDef[i].y
+    }
+    // the ball where the set piece has it: the hooker's hands, or the 8's feet
+    if (lo) { ball.x = setAtt[1].x; ball.y = setAtt[1].y } else { ball.x = fieldX(S.x - d * 2.9); ball.y = S.y }
+    // the ball comes out: to the 9 (not for the wrap, where the 8 picks up)
+    const passTo = (who: number, lead?: [number, number], decoy?: boolean) => phases.push({ k: 'pass', who, dur: 0, lead, decoy })
+    const runOn = (who: number, a: number, cc: number) =>
+      phases.push({ k: 'run', to: { x: 0, y: 0 }, who, line: -1, end: 'feed', dur: 0.45, tackler: -1, ctrl: { x: a, y: 0 }, across: cc })
+    const finish = () => phases.push({ k: 'run', to: c.finish, who: scorer, line: -1, end: endKind, dur: 0, tackler: 14 })
+    let done = false
+    if (script.prelude !== false) {
+      passTo(9)
+      if (scorer === 9) { finish(); done = true } else runOn(9, 0.8, 0.4)
+    }
+    const lastMine = script.steps.map(st => st.who).lastIndexOf(scorer)
+    for (let j = 0; j < script.steps.length && !done; j++) {
+      const st = script.steps[j]
+      passTo(st.who, st.lead, script.decoy?.step === j)
+      if (j === lastMine) { finish(); done = true } else runOn(st.who, st.run[0], st.run[1])
+    }
+    if (!done) { passTo(scorer, [-2, 5]); finish() }
+  } else if (c.style === 'overlap') {
     // three passes along the line: 9 to the first receiver, two more, and the
     // last man is outside his marker
     for (const s of [10, 12, 13, 15, 11, 14].filter(s => s !== scorer).slice(0, 2)) feed(s)
@@ -951,6 +1120,8 @@ function bake(c: ClipSpec): Baked {
     phases.push({ k: 'kick', who: kicker, chaser: scorer, to: spot, loft: 8, low: false, dur: 0 })
     phases.push({ k: 'run', to: { x: c.finish.x, y: fieldY(c.finish.y - side * 2) }, who: scorer, line: -1, end: 'score', dur: 0, tackler: 14 })
   } else {
+    // the back door: out the back of the pod to the 10 first (1.8.1)
+    if (c.move === 'mv_backdoor' && scorer !== 10) feed(10, 2)
     phases.push({ k: 'pass', who: scorer, dur: 0 })
     phases.push({ k: 'run', to: c.finish, who: scorer, line: -1, end: endKind, dur: 0, tackler: 14 })
   }
@@ -958,6 +1129,8 @@ function bake(c: ClipSpec): Baked {
 
   // where a receiver should be standing for a pass from a ruck at q
   const receiveSpot = (q: Pt, who: number): Pt => {
+    // in a phase-play shape a forward takes it where his pod stands
+    if (pods?.[who - 1]) return shapeAtt(who - 1, q, d)
     const [back, across, open] = ATT[who - 1]
     const s = openSide(q.y)
     const a = clamp(open ? across * s : across, -14, 14)
@@ -992,15 +1165,27 @@ function bake(c: ClipSpec): Baked {
     if (ph.k === 'pass') {
       ph.from = { x: ball.x, y: ball.y }
       const r = att[ph.who - 1]
-      ph.dur = clamp(Math.hypot(r.x - ball.x, r.y - ball.y) / 17, 0.3, 0.95)
+      // (a called move's long pass, off the back of the pod to a wing, is
+      // given the air time it needs rather than a ball faster than a pass)
+      ph.dur = clamp(Math.hypot(r.x - ball.x, r.y - ball.y) / 17, 0.3, c.move ? 1.2 : 0.95)
+      // the decoy goes as this pass does, and the defender nearest him bites
+      if (ph.decoy && script?.decoy) {
+        decoyT = t
+        const dm = att[script.decoy.shirt - 1]
+        let bd = Infinity
+        def.forEach((b, i) => { if (i === 14) return; const dd = Math.hypot(b.x - dm.x, b.y - dm.y); if (dd < bd) { bd = dd; biteI = i } })
+      }
     } else if (ph.k === 'run') {
       const r = att[ph.who - 1]
       ph.from = { x: r.x + d * 0.4, y: r.y }
       if (ph.end === 'feed') {
-        // a few strides onto the ball, drifting towards the space
-        ph.to = { x: fieldX(ph.from.x + d * ph.ctrl!.x), y: fieldY(ph.from.y + side * 1.2) }
+        // a few strides onto the ball, drifting towards the space (a move's
+        // runner runs the line it asks for: across, or back against the grain)
+        const a = ph.ctrl!.x, cc = ph.across ?? 1.2
+        ph.to = { x: fieldX(ph.from.x + d * a), y: fieldY(ph.from.y + side * cc) }
         ph.ctrl = { x: (ph.from.x + ph.to.x) / 2, y: (ph.from.y + ph.to.y) / 2 }
         ph.ta = 0.2
+        if (ph.across != null) ph.dur = Math.max(0.45, Math.hypot(a, cc) / 7.5 + ph.ta)
         return
       }
       const scoring = ph.end === 'score' || ph.end === 'held'
@@ -1025,10 +1210,16 @@ function bake(c: ClipSpec): Baked {
           return { s: bs, dist: bd }
         }
         const ranked = def.map((_, i) => ({ i, ...nearest(i) })).filter(r => !skip(r.i) && (frozen[r.i].x - ph.from!.x) * d > 0).sort((a, b) => a.dist - b.dist)
-        for (const r of ranked) if (r.dist < 2.6 && missers.length < 3) missers.push({ i: r.i, s: r.s, dove: 0 })
+        // (up to four of them: a fourth man standing in his line was left
+        // out at three and the finisher ran straight through him, found
+        // when the moves (1.8.1) moved the stream onto such a try)
+        for (const r of ranked) if (r.dist < 2.6 && missers.length < 4) missers.push({ i: r.i, s: r.s, dove: 0 })
         for (const r of ranked) if (missers.length < Math.min(3, Math.max(missers.length, c.misses)) && !missers.some(m => m.i === r.i) && r.dist < 9) missers.push({ i: r.i, s: clamp(r.s, 0.25, 0.85), dove: 0 })
         contact.push(...missers.map(m => m.i))
         if (ph.end === 'held') contact.push(14)
+        // the man who bit on the decoy is in the play too: the ball went
+        // past him, and the finisher runs by the man he went for (1.8.1)
+        if (biteI >= 0 && !contact.includes(biteI)) contact.push(biteI)
       } else ph.ctrl = { x: (ph.from.x + ph.to.x) / 2, y: (ph.from.y + ph.to.y) / 2 }
       const dist = bezLen(ph.from, ph.ctrl, ph.to)
       const pace = (ph.who >= 9 ? 9.5 : 7.5) * paceK(c.attPace?.[ph.who - 1])
@@ -1080,14 +1271,43 @@ function bake(c: ClipSpec): Baked {
       if (shirt === 9 && ruckAt && !(next?.who === 9)) tgt = { x: ruckAt.x - d * 1, y: ruckAt.y + 0.6 }
       if (ph.k === 'ruck' && ph.tackled === shirt) { tgt = { x: ph.q.x - d * 0.6, y: ph.q.y }; att[i].touch = true }
       if (ph.k === 'ruck' && shirt === 9) att[i].touch = true
+      // A MOVE (1.8.1): the set piece's shape until the ball is out, then the
+      // next receiver on the line the move asks for, the pack following at a
+      // jog, and the decoy running hard at them without the ball
+      let vm = V_PLAYER
+      if (script) {
+        if (ph.k === 'set') { tgt = setAtt[i]; if (i < 8) att[i].touch = true }
+        else {
+          if (next && next.who === shirt && next.lead && !(ph.k === 'pass' && ph.who === shirt)) {
+            tgt = { x: fieldX(ball.x + d * next.lead[0]), y: fieldY(ball.y + side * next.lead[1]) }
+          } else if (i < 8 && !(ph.k === 'pass' && ph.who === shirt)) vm = 6.5
+          if (script.decoy && shirt === script.decoy.shirt && decoyT >= 0 && t - decoyT < 1.3) {
+            tgt = { x: fieldX(att[i].x + d * 6), y: att[i].y }; vm = 9.5
+          }
+        }
+      }
       const snapped = (ph.k === 'run' && ph.who === shirt) || (ph.k === 'done' && ph.who === shirt) || (ph.k === 'kick' && ph.who === shirt && k < 0.05)
       if (snapped) { if (!(ph.k === 'done' && heldAt >= 0)) carrier = i; continue }
-      att[i].steer(tgt.x, tgt.y, V_PLAYER, A_PLAYER)
+      att[i].steer(tgt.x, tgt.y, vm, A_PLAYER)
     }
 
     // the ball, and the man carrying it
     if (ph.k === 'ruck' || ph.k === 'dig') { ball.x = ph.q.x; ball.y = ph.q.y; ball.lift = 0 }
-    else if (ph.k === 'pass') {
+    else if (ph.k === 'set') {
+      if (lo) {
+        // the throw: the hooker on the touchline to the jumper (No. 4)
+        const THROW = 0.45, CATCH = 1.05
+        if (k < THROW) { ball.x = att[1].x; ball.y = att[1].y; ball.lift = 0.3; carrier = 1 }
+        else if (k < CATCH) {
+          const kk = smooth((k - THROW) / (CATCH - THROW))
+          ball.x = lerp(setAtt[1].x, att[3].x, kk); ball.y = lerp(setAtt[1].y, att[3].y, kk)
+          ball.lift = Math.sin(Math.PI * kk) * 3.5 + kk * 1.2
+        } else { ball.x = att[3].x; ball.y = att[3].y; ball.lift = lerp(1.2, 0.5, clamp((k - CATCH) / 0.5, 0, 1)); carrier = 3 }
+      } else {
+        // the ball at the No. 8's feet, at the back of the scrum
+        ball.x = fieldX(ph.q.x - d * 2.9); ball.y = ph.q.y; ball.lift = 0
+      }
+    } else if (ph.k === 'pass') {
       const r = att[ph.who - 1], kk = smooth(k / ph.dur)
       ball.x = lerp(ph.from!.x, r.x + d * 0.4, kk); ball.y = lerp(ph.from!.y, r.y, kk)
       ball.lift = Math.sin(Math.PI * kk) * (0.6 + ph.dur)
@@ -1125,6 +1345,17 @@ function bake(c: ClipSpec): Baked {
       if (carrier === 15 + i) continue
       let tgt = shapeDef(i, ball, d)
       let vmax = V_PLAYER
+      // a move: their set-piece shape until the ball is out, the pack after
+      // it at a jog, and the man who bites on the decoy (1.8.1)
+      if (script) {
+        if (ph.k === 'set') { tgt = setDef[i]; if (i < 8) def[i].touch = true }
+        else if (i < 8) vmax = 6.5
+        if (i === biteI && decoyT >= 0 && t - decoyT < 1.2 && !finishing) {
+          const dm = att[script.decoy!.shirt - 1]
+          tgt = { x: fieldX(dm.x + d * 0.9), y: dm.y }; vmax = V_PLAYER
+          if (Math.hypot(dm.x - def[i].x, dm.y - def[i].y) < 1.6) { def[i].touch = true; dm.touch = true }
+        }
+      }
       // on his run: ahead of him, the line holds where it was; once he is
       // past, it turns for its own line.
       //

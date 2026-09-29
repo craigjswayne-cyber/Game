@@ -504,7 +504,7 @@ const EXPECTED: string[] = [
   // (harlequins-leicester). bandcheck: 49.1 pts, 6.24 tries, 52.7% home,
   // 1.6% draws, 8.8% blowouts.
   'saracens 14-27 bath',
-  'exeter 20-3 gloucester',
+  'exeter 3-30 gloucester',
   'sale 39-25 bristol',
   'harlequins 31-27 leicester',
   'newcastle 13-30 northampton',
@@ -529,6 +529,18 @@ const EXPECTED: string[] = [
 // its own estate, so the same rolls are compared against different thresholds.
 // The home-surface term came out of the match injury roll in the same change,
 // which is one draw whose threshold no longer moves at all.
+// 1.8.1, THE ATTACKING MOVES (owner request #99, game/moves.ts): ONE of six
+// moved, exeter-gloucester (was 20-3), and WITHOUT a new draw. Every AI club
+// now calls a strike move off its lineout and its scrum and a phase-play
+// shape, from its coach's philosophy, and a called move tilts the try chance
+// and the penalty window in the ticks it runs in and moves the line after
+// one that came to nothing: the same rolls against different thresholds.
+// Which tick is launched from which set piece is a hash of the fixture, not a
+// draw, and a try the move made takes the try-line pool's draw before naming
+// the move, so a side with no calls plays exactly as before (movesprobe).
+// bandcheck, pooled over four seeds, before and after:
+//   pts 49.4 -> 49.6   tries 6.26 -> 6.30   home 53.2% -> 53.2%
+//   draws 1.6% -> 1.8%   blowouts 8.0% -> 8.8% (every band holds)
 
 if (EXPECTED[0] === '@@EXPECTED@@') {
   console.log('BASELINE (paste into EXPECTED):')

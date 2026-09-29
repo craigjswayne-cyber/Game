@@ -17,6 +17,7 @@ import { beginMatch, playHalf } from '../src/game/matchEngine'
 import { mulberry32 } from '../src/game/rng'
 import { buildClip, momentAt, lateAndClose, frameAt, clipLength, clipTimeline, refereeColour, type ClipSpec, type ClipKind, type ClipStyle } from '../src/ui/HighlightClip'
 import type { MatchEvent } from '../src/game/model'
+import { MOVES } from '../src/game/moves'
 
 let fails = 0
 // A QUICK FINISHER MAY TAKE A SLIGHTLY LONGER LINE (1.8.0). The pairs below
@@ -99,6 +100,15 @@ for (let seed = 1; seed <= 40 && (seed <= 12 || !enough()); seed++) {
       const slowS = buildClip(copy, i, kind, fx.homeId, () => undefined, colours, labels, () => 'Name', h => h === (ev[i].teamId === fx.homeId) ? 1 : 20)
       paced.push([clipLength(fastS), clipLength(slowS)])
       if (clipLength(fastS) > clipLength(slowS) + PACE_SLACK) slowerQuick.push(`${fastS.style} (${k}) ${clipLength(fastS).toFixed(2)} s v ${clipLength(slowS).toFixed(2)} s`)
+    }
+    // AND AS EVERY CALLED MOVE (1.8.1, game/moves.ts): the same try replayed
+    // as each strike move off each set piece it is run from, and as each
+    // phase-play shape, so every check below holds a move clip to the same
+    // standard as the rest (scripts/movesprobe.ts checks what they draw)
+    if (kind === 'try' && seed <= 4) for (const mv of MOVES) for (const from of mv.from) {
+      const k = from === 'lineout' ? 'comm.moveTryLo1' : from === 'scrum' ? 'comm.moveTrySc1' : 'comm.shapeTry1'
+      const copy: MatchEvent[] = ev.slice(0, i + 1).map((x, j) => j === i ? { ...x, k, v: { ...(x.v ?? {}), move_k: mv.say } } : x)
+      specs.push({ spec: buildClip(copy, i, kind, fx.homeId, () => undefined, colours, labels, () => 'Name'), kind })
     }
   }
 }
