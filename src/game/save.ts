@@ -56,6 +56,7 @@ function memoryDb(): IDBDatabase {
         put(v: unknown, k: IDBValidKey) { rows.set(k, structuredClone(v)); return request(k) },
         get(k: IDBValidKey) { return request(rows.has(k) ? structuredClone(rows.get(k)) : undefined) },
         getAll() { return request([...rows.values()].map(v => structuredClone(v))) },
+        getAllKeys() { return request([...rows.keys()]) },
         delete(k: IDBValidKey) { rows.delete(k); return request(undefined) },
       }
       const tx = { error: null, oncomplete: null as null | (() => void), onerror: null, objectStore: () => store }
@@ -186,6 +187,44 @@ export async function getResume<T>(slot: string): Promise<T | null> {
       resolve({ ...small, pre } as T)
     }
     tx.onerror = () => { db.close(); resolve(null) }
+  })
+}
+
+/**
+ * ---- EVERY MATCH IN PROGRESS, WHICHEVER SLOT HOLDS IT (1.8.2) ----
+ *
+ * The short half of every live-match record on this device, without the 7MB
+ * pre-match state, so a career opened from a different slot (an import, a copy
+ * saved to another slot) can still find the match its own copy kicked off.
+ * That is the save-scumming door the owner closed: export before kick-off, lose,
+ * import the export, and the match used to start again from nothing.
+ */
+export async function peekResumes<T>(): Promise<{ slot: string; rec: T; hasPre: boolean }[]> {
+  const db = await openDb()
+  return new Promise((resolve) => {
+    const tx = db.transaction(STORE, 'readonly')
+    const store = tx.objectStore(STORE)
+    const keysReq = store.getAllKeys()
+    const out: { slot: string; rec: T; hasPre: boolean }[] = []
+    const keys = new Set<string>()
+    keysReq.onsuccess = () => {
+      for (const k of keysReq.result ?? []) if (typeof k === 'string') keys.add(k)
+      for (const k of keys) {
+        if (!k.endsWith('::live')) continue
+        const slot = k.slice(0, -'::live'.length)
+        const req = store.get(k)
+        req.onsuccess = () => {
+          const small = req.result as (Record<string, unknown> & { pre?: unknown }) | undefined
+          if (!small || typeof small !== 'object') return
+          // a record written before 1.6.3 carries its state inline; leave it
+          // out of what is returned, the caller asks for it by slot
+          const { pre, ...rest } = small
+          out.push({ slot, rec: rest as T, hasPre: !!pre || keys.has(preKey(slot)) })
+        }
+      }
+    }
+    tx.oncomplete = () => { db.close(); resolve(out) }
+    tx.onerror = () => { db.close(); resolve(out) }
   })
 }
 

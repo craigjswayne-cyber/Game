@@ -1911,6 +1911,13 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   overflow-wrap: break-word;
 }
 
+/* A match brought back by a reload or a reopened save (1.8.2): one line and
+   Resume, under the scoreboard, until it is pressed. */
+.resume-note {
+  margin: 8px 12px 4px;
+  border-left: 4px solid var(--gold);
+}
+
 .tense-band {
   margin: 4px 12px 2px;
   padding: 3px 8px;

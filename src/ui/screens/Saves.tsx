@@ -25,9 +25,15 @@ export default function Saves() {
   // the one save in the game that does not go through the store's persist(), so
   // it needs the same treatment: an await with no catch showed neither a
   // success message nor a failure, and looked exactly like nothing happened
+  // MID-MATCH, THE COPY CARRIES THE MATCH (1.8.2). What goes to a slot or a
+  // file is the pre-match save with the match in progress stamped inside it,
+  // so opening the copy resumes that match rather than offering it again on a
+  // squad already carrying half of it (store.saveCopy, game/resume.ts).
+  const copy = () => useStore.getState().saveCopy() ?? game
+
   const doSave = async (slot: string) => {
     try {
-      await saveGame(slot, game)
+      await saveGame(slot, copy())
     } catch (e) {
       const why = e instanceof Error ? e.message : String(e)
       useStore.getState().noteSaveFail(why)
@@ -61,7 +67,7 @@ export default function Saves() {
   }
 
   const doExport = () => {
-    const blob = new Blob([JSON.stringify(game)], { type: 'application/json' })
+    const blob = new Blob([JSON.stringify(copy())], { type: 'application/json' })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
     a.download = saveName()
@@ -94,7 +100,7 @@ export default function Saves() {
   const doShare = async () => {
     try {
       await navigator.share({
-        files: [new File([JSON.stringify(game)], saveName(), { type: 'application/json' })],
+        files: [new File([JSON.stringify(copy())], saveName(), { type: 'application/json' })],
         title: saveName(),
       })
       setMsg(t('world.svShared'))
