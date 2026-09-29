@@ -185,21 +185,31 @@ export function ScrumDiagram({ call }: { call: string }) {
 // ---------------------------------------------------------------------------
 
 function Pitch({ children }: { children: ReactNode }) {
+  // 1.12 units a metre along, 72 units for the 70 metres across; the same
+  // lines the highlight pitch draws (HighlightClip drawField): the 5 m, 22,
+  // 10 m and halfway lines, the 5 m and 15 m dashes, and posts 5.6 m apart
   return (
     <Frame>
       <rect x={0} y={4} width={W} height={72} style={chalk(0.9)} />
       {[4, 116].map(x => <line key={x} x1={x} y1={4} x2={x} y2={76} style={chalk(1.1)} />)}
       {[28.6, 91.4].map(x => <line key={x} x1={x} y1={4} x2={x} y2={76} style={chalk(0.8)} />)}
       <line x1={60} y1={4} x2={60} y2={76} style={chalk(1)} />
-      {[4, 116].map(x => <g key={x}>
-        <line x1={x} y1={36.5} x2={x} y2={43.5} style={{ stroke: 'var(--dg-chalk)', strokeWidth: 2 }} />
-        <circle cx={x} cy={36.5} r={1.1} style={st('var(--dg-chalk)')} />
-        <circle cx={x} cy={43.5} r={1.1} style={st('var(--dg-chalk)')} />
-      </g>)}
+      {[48.8, 71.2, 9.6, 110.4].map(x => <line key={x} x1={x} y1={4} x2={x} y2={76} style={soft(0.6)} />)}
+      {TOUCH_DASHES.map(y => <line key={y} x1={4} y1={y} x2={116} y2={y} style={soft(0.5)} />)}
+      {[4, 116].map(x => <Posts key={x} x={x} />)}
       {children}
     </Frame>
   )
 }
+
+/** The 5 m and 15 m lines in from each touchline, on the 72-unit width. */
+const TOUCH_DASHES = [9.1, 19.4, 60.6, 70.9]
+/** Posts seen from above: 5.6 m apart, centred on the 35 m line. */
+const Posts = ({ x }: { x: number }) => <g>
+  <line x1={x} y1={37.1} x2={x} y2={42.9} style={{ stroke: 'var(--dg-chalk)', strokeWidth: 2 }} />
+  <circle cx={x} cy={37.1} r={1.1} style={st('var(--dg-chalk)')} />
+  <circle cx={x} cy={42.9} r={1.1} style={st('var(--dg-chalk)')} />
+</g>
 
 export function ExitDiagram({ id }: { id: string }) {
   return (
@@ -263,19 +273,27 @@ export function KickStyleDiagram({ id }: { id: string }) {
 
 /** Their half only, halfway on the left and their line on the right: a
  *  penalty is a decision made in their territory, so the picture spends its
- *  width there rather than on eighty metres nobody is kicking across. */
+ *  width there rather than on eighty metres nobody is kicking across.
+ *
+ *  TO SCALE (1.8.1, owner: "the pitch markings on the kickable penalties are
+ *  wrong"). The lines were placed by eye: the "15 m" lines sat eleven metres
+ *  in, there were no 5 m lines, the posts were ten metres apart, and the
+ *  frame's own edge drew a line beyond halfway. Now 2 units a metre along
+ *  (halfway at 4, the 10 m line at 24, the 22 at 60, the 5 m line at 94, the
+ *  try line at 104, a 6 m in-goal to the dead-ball line at 116) and the same
+ *  72 units across as the full pitch. */
 function HalfPitch({ children }: { children: ReactNode }) {
   return (
     <Frame>
-      <rect x={0} y={4} width={W} height={72} style={chalk(0.9)} />
+      {[4, 76].map(y => <line key={y} x1={0} y1={y} x2={116} y2={y} style={chalk(0.9)} />)}
+      <line x1={116} y1={4} x2={116} y2={76} style={chalk(0.9)} />
       <line x1={4} y1={4} x2={4} y2={76} style={chalk(1.1)} />
-      <line x1={25.6} y1={4} x2={25.6} y2={76} style={soft()} />
-      <line x1={64.5} y1={4} x2={64.5} y2={76} style={chalk(0.8)} />
-      <line x1={112} y1={4} x2={112} y2={76} style={chalk(1.1)} />
-      {[15, 65].map(y => <line key={y} x1={4} y1={y} x2={112} y2={y} style={soft(0.6)} />)}
-      <line x1={112} y1={35} x2={112} y2={45} style={{ stroke: 'var(--dg-chalk)', strokeWidth: 2.4 }} />
-      <circle cx={112} cy={35} r={1.5} style={st('var(--dg-chalk)')} />
-      <circle cx={112} cy={45} r={1.5} style={st('var(--dg-chalk)')} />
+      <line x1={24} y1={4} x2={24} y2={76} style={soft()} />
+      <line x1={60} y1={4} x2={60} y2={76} style={chalk(0.8)} />
+      <line x1={94} y1={4} x2={94} y2={76} style={soft(0.6)} />
+      <line x1={104} y1={4} x2={104} y2={76} style={chalk(1.1)} />
+      {TOUCH_DASHES.map(y => <line key={y} x1={4} y1={y} x2={104} y2={y} style={soft(0.5)} />)}
+      <Posts x={104} />
       {children}
     </Frame>
   )
@@ -289,18 +307,19 @@ export function PenaltyDiagram({ id }: { id: string }) {
     <HalfPitch>
       <Us x={mx} y={my} />
       {(id === 'posts' || ask) && <>
-        <Move x1={mx + 3} y1={my + 1} x2={110} y2={40} bend={-6} dash faint={ask} />
+        <Move x1={mx + 3} y1={my + 1} x2={103} y2={40} bend={-6} dash faint={ask} />
       </>}
       {(id === 'corner' || ask) && <>
-        <Move x1={mx + 2} y1={my - 2.5} x2={96} y2={5} bend={5} dash faint={ask} />
-        <Out x={96.5} y={4} />
+        {/* to touch five metres out, where the lineout is thrown */}
+        <Move x1={mx + 2} y1={my - 2.5} x2={94} y2={5} bend={5} dash faint={ask} />
+        <Out x={94.5} y={4} />
         {!ask && <>
-          <Us x={96} y={12} /><Us x={96} y={17} /><Us x={92} y={14.5} /><Us x={92} y={9.5} />
-          <Move x1={99.5} y1={14} x2={111} y2={14} w={2.6} head={3.6} />
+          <Us x={94} y={12} /><Us x={94} y={17} /><Us x={90} y={14.5} /><Us x={90} y={9.5} />
+          <Move x1={97.5} y1={14} x2={109} y2={14} w={2.6} head={3.6} />
         </>}
       </>}
       {(id === 'tap' || ask) && <>
-        <Move x1={mx + 3} y1={my + 3} x2={110} y2={my + 16} bend={3} w={1.8} faint={ask} />
+        <Move x1={mx + 3} y1={my + 3} x2={107} y2={my + 16} bend={3} w={1.8} faint={ask} />
         {!ask && <><Us x={52} y={38} /><Us x={50} y={24} /><Us x={48} y={44} /></>}
       </>}
     </HalfPitch>

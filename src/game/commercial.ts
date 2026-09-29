@@ -297,6 +297,8 @@ export function endDealEarly(state: GameState, slot: SlotId): string {
   delete state.deals![slot]
   remember(state, { kind: 'sponsor-ended', clubId: club.id, payload: { slot, name: live.sponsor ?? '' } })
   ;(state.dealReroll ??= {})[slot] = (state.dealReroll?.[slot] ?? 0) + 1
+  // the market the summer question described has just been replaced
+  dropSlotQuestion(state, slot)
   ;(state.dealEndedSeason ??= {})[slot] = state.season
   // the gates keep the club's own name until somebody new pays for them
   if (slot === 'naming' && club.stadiumBase) club.stadium = club.stadiumBase
@@ -336,7 +338,10 @@ export function clauseActive(state: GameState, clause: ClauseId): boolean {
       // a trophy in the last two seasons of the record book
       return (state.mgr?.trophies ?? []).some(t => (state.season - (t.season ?? -99)) <= 1)
     case 'crowds': {
-      const home = state.fixtures.filter(f => f.played && f.homeId === club.id && f.att)
+      // league and cup gates: a friendly draws 38% interest by design and
+      // would drag a sold-out season under the line (the same filter every
+      // other crowd aggregate uses)
+      const home = state.fixtures.filter(f => f.played && f.homeId === club.id && f.att && f.compId !== 'fr')
       if (home.length < 3) return false
       const avg = home.reduce((s, f) => s + (f.att ?? 0), 0) / home.length
       return avg / Math.max(1, club.capacity) >= 0.9
@@ -392,6 +397,26 @@ export function applyStadiumName(state: GameState, sponsor: string) {
     ? club.stadium.slice(club.stadium.indexOf(' at ') + 4)
     : club.stadium
   club.stadium = `${sponsor} Stadium at ${club.stadiumBase}`
+}
+
+/**
+ * Take the summer sponsorship question for this slot off the desk (1.8.1).
+ *
+ * The question names three offers, and the slot can move under it before it
+ * is answered: a deal agreed at the negotiating table fills it, and ending the
+ * caretaker early rerolls the market it described. Answering it afterwards
+ * signed a different sponsor at a different fee than the button showed, or
+ * signed nothing at all while the item read as answered. A question whose
+ * premise has gone is withdrawn rather than answered wrongly.
+ */
+export function dropSlotQuestion(state: GameState, slot: SlotId) {
+  state.press = state.press.filter(p => p.answered || !p.options.some(o => o.deal?.slot === slot))
+}
+
+/** Is this slot free to sign into: empty, lapsed, or held by a caretaker? */
+export function slotSignable(state: GameState, slot: SlotId): boolean {
+  const live = state.deals?.[slot]
+  return !live || live.until < state.season || !!live.auto
 }
 
 /** Sign an offer. Replaces whatever was in that slot. */

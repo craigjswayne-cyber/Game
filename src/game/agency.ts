@@ -4,21 +4,43 @@
 import type { GameState, Player } from './model'
 import { natRankOrder } from './natrank'
 import { nationNameIn, nationVars } from './nations'
+import { hashString, mulberry32 } from './rng'
+
+/**
+ * THE AGENCY'S OPINION, NOT THE TRUTH (1.8.1).
+ *
+ * Both lists sorted on the true ratings, which the rest of the game keeps
+ * behind the scouting fog: the wonderkid list in particular was a free,
+ * exact ranking of the hidden ceiling of every teenager in the world, better
+ * than any report the manager could pay for. An agency is a scouting firm
+ * like any other. It reads current ability closely (a senior plays in public
+ * every week) and a teenager's ceiling loosely, and its judgement of a man is
+ * fixed for the season so the arrows move with the rugby rather than with a
+ * reroll. Deterministic, and it draws on nothing shared.
+ */
+export function agencyView(state: GameState, p: Player, kind: 'ca' | 'pa'): number {
+  const r = mulberry32(hashString(`agency|${kind}|${p.id}|${state.season}`))()
+  return (kind === 'ca' ? p.ca : p.pa) + (r * 2 - 1) * (kind === 'ca' ? 2 : 5)
+}
 
 /** Current world top 20 seniors by ability (the argument-settling list). */
 export function agencySeniors(state: GameState): Player[] {
   return Object.values(state.players)
     .filter(p => p.clubId && state.clubs[p.clubId] && p.age >= 22)
-    .sort((a, b) => b.ca - a.ca || b.value - a.value)
+    .map(p => ({ p, v: agencyView(state, p, 'ca') }))
+    .sort((a, b) => b.v - a.v || b.p.value - a.p.value)
     .slice(0, 20)
+    .map(x => x.p)
 }
 
 /** Current world top 20 wonderkids (21 and under) by ceiling. */
 export function agencyKids(state: GameState): Player[] {
   return Object.values(state.players)
     .filter(p => p.clubId && state.clubs[p.clubId] && p.age <= 21)
-    .sort((a, b) => b.pa - a.pa || b.ca - a.ca)
+    .map(p => ({ p, v: agencyView(state, p, 'pa') }))
+    .sort((a, b) => b.v - a.v || b.p.ca - a.p.ca)
     .slice(0, 20)
+    .map(x => x.p)
 }
 
 /** Monthly snapshot: remember last month's order and each man's best-ever rank. */

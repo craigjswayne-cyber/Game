@@ -5,7 +5,6 @@ import { seasonLabel } from '../../game/model'
 import { LANGS, t } from '../../game/i18n'
 import { BrandMark, StudioMark } from '../components'
 import { dismiss, dismissed, isAndroidShell } from '../../game/shell'
-import { COMMUNITY_URL } from '../../game/community'
 
 export default function Menu() {
   const go = useStore(s => s.go)
@@ -15,6 +14,7 @@ export default function Menu() {
   const setLang = useStore(s => s.setLang)
   const [saves, setSaves] = useState<SaveMeta[]>([])
   const [showLoad, setShowLoad] = useState(false)
+  const [confirmDel, setConfirmDel] = useState<string | null>(null)
 
   useEffect(() => { void listSaves().then(setSaves) }, [])
 
@@ -80,12 +80,9 @@ export default function Menu() {
             {t('menu.loadCareer')}
           </button>
         )}
-        {/* THE COMMUNITY (1.8.1): the PHASE Discord, for bugs in any language,
-            ideas and rugby talk. A link, opened outside the game. */}
-        <a className="btn ghost" href={COMMUNITY_URL} target="_blank" rel="noopener noreferrer"
-          style={{ color: 'var(--text-primary)', borderColor: 'var(--border-strong)', fontSize: 14 }}>
-          {t('menu.community')}
-        </a>
+        {/* The Discord link lived here for a day and moved into the game
+            (owner, 1.8.1): the foot of Home and the manager's menu, where a
+            player in a career will actually see it. */}
         {/* FIRST RUN OF THE NEW PLAY APP (v1.2.9): a player who backed up in
             the old one needs to find Import before they start a fresh career
             and lose heart. Only in the Android shell, only with nothing saved,
@@ -106,8 +103,15 @@ export default function Menu() {
               {s.managerName} - {s.club}
               <div style={{ fontSize: 11, opacity: .8 }}>{t('menu.savedAt', { season: seasonLabel(s.season), week: s.week })}</div>
             </button>
-            <button className="btn danger" style={{ padding: '0 12px' }}
-              onClick={() => void deleteSave(s.slot).then(() => listSaves().then(setSaves))}>✕</button>
+            {/* TWO TAPS TO DELETE A CAREER (1.8.1), as on Game Status. One tap
+                on a cross beside the Load button threw a whole career away,
+                and on a phone that cross is a thumb's width from the career
+                you meant to open. The first tap arms it and says so. */}
+            {confirmDel === s.slot
+              ? <button className="btn danger" style={{ padding: '0 12px' }}
+                  onClick={() => { setConfirmDel(null); void deleteSave(s.slot).then(() => listSaves().then(setSaves)) }}>{t('world.svSure')}</button>
+              : <button className="btn danger" style={{ padding: '0 12px' }} aria-label={t('world.svDelete')} title={t('world.svDelete')}
+                  onClick={() => setConfirmDel(s.slot)}>✕</button>}
           </div>
         ))}
       </div>

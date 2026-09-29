@@ -1,12 +1,14 @@
 // The loan-in market: borrow tomorrow's stars from the big clubs' benches.
 
 import type { GameState, Player } from './model'
-import {absWeek, SEASON_WEEKS, leagueTier } from './model'
+import { absWeek, SEASON_WEEKS, fmtWage, leagueTier } from './model'
 import { autoSelect } from './matchEngine'
 import { t, tIn } from './i18n'
 import { clamp, mulberry32 } from './rng'
 import { isDerby } from './rivalries'
-import { askingPrice, executeTransfer } from './ai'
+import { askingPrice, capBill, capBreak, capWage, embargoed, executeTransfer, squadFull, windowOpen } from './ai'
+import { userWageBudget } from './grants'
+import { playerWage } from './attributes'
 
 /** Young talent parked on big-club benches, available for a season's loan. */
 export function loanTargets(state: GameState): Player[] {
@@ -170,8 +172,20 @@ export function loanIn(state: GameState, playerId: number, length: LoanLength = 
   if (!p || !p.clubId || p.clubId === user.id) return t('reply.unavailable')
   const parent = state.clubs[p.clubId]
   if (!parent) return t('reply.unavailable')
-  const seniors = user.players.filter(id => state.players[id] && !state.players[id].acad).length
-  if (seniors >= 46) return t('reply.seniorSquadFull')
+  // the same count every signing reads, demoted seniors included (ai.ts)
+  if (squadFull(state, user)) return t('reply.seniorSquadFull')
+  // A LOAN IS A SIGNING AS FAR AS THE RULES ARE CONCERNED (1.8.1). It walked
+  // past the embargo, the salary cap and the wage budget, all three, so a club
+  // barred from the market or pressed against the cap could borrow its way
+  // round both. It is measured at the share the club will actually pay, which
+  // is what the weekly ledger charges and what the cap bill now counts.
+  if (embargoed(state, user.id)) return t('reply.embargoSign')
+  const paid = Math.round(p.wage * share)
+  const capMsg = capBreak(state, user.id, paid, 0, 'none')
+  if (capMsg) return capMsg
+  if (capBill(state, user) + paid > userWageBudget(state, user)) {
+    return t('reply.wagesBreakBudget', { wage: fmtWage(paid) })
+  }
   const verdict = loanTerms(state, playerId, length, share)
   if (!verdict.ok) {
     return t(verdict.k, {
@@ -295,6 +309,30 @@ export function loanOut(state: GameState, playerId: number): { ok: boolean; msg:
 }
 
 /**
+ * What a season out on loan is worth at the summer (1.8.1).
+ *
+ * The rollover paid a full 2 to 4 points to any man still away, however long
+ * he had been gone: sent out in week 44, he came back four weeks later with
+ * the whole season's education. It was also seeded on the player alone, so a
+ * lad sent out three summers running drew the identical number every time.
+ *
+ * Now it is keyed on the season, and it pays for time served on the same
+ * scale the recall uses: most of a season (30 weeks and more) earns the full
+ * bump, half of one (18 weeks, the recall's own mark) earns a point, and a
+ * few weeks earn the rugby and nothing else. A loan from before the start was
+ * stamped counts as a full season, which is what it was sold as.
+ */
+export const LOAN_FULL_WEEKS = 30
+export function loanOutBoost(state: GameState, p: Player): number {
+  return 2 + Math.floor(mulberry32(state.seed + p.id + state.season * 7919)() * 3)
+}
+export function loanOutSummerGain(state: GameState, p: Player): number {
+  const served = p.loanSince == null ? SEASON_WEEKS : absWeek(state.season, SEASON_WEEKS) - p.loanSince
+  if (served >= LOAN_FULL_WEEKS) return loanOutBoost(state, p)
+  return served >= 18 ? 1 : 0
+}
+
+/**
  * Bring a loaned-out player home early (16B, user: "they should also be able
  * to be recalled at any point").
  *
@@ -414,8 +452,19 @@ export function loanBuyOffer(state: GameState, playerId: number): LoanBuy | null
   const served = (absWeek(state.season, state.week)) - p.joinedAt
   if (served < LOAN_BUY_MIN_WEEKS) return { fee, willing, ok: false, k: 'reply.loanBuyTooSoon' }
   if (!willing) return { fee, willing, ok: false, k: 'reply.loanBuyCrucial' }
+  // a purchase is a permanent transfer, so it waits for the window like any
+  // other, and answers to the embargo like any other (1.8.1)
+  if (!windowOpen(state.week)) return { fee, willing, ok: false, k: 'reply.loanBuyWindow' }
+  if (embargoed(state, user.id)) return { fee, willing, ok: false, k: 'reply.embargoSign' }
   // and only once they have said yes does the money become the question
   if (user.budget < fee) return { fee, willing, ok: false, k: 'reply.loanBuyNoFunds' }
+  // Bought outright he costs his whole wage, at least the scale (executeTransfer
+  // lifts it), where on loan the bill carried only this club's share. The
+  // difference has to fit under the cap and the wage budget, as a signing would.
+  const full = Math.max(p.wage, playerWage(p.ca, p.age))
+  const now = capWage(state, user, p)
+  if (capBreak(state, user.id, full, now)) return { fee, willing, ok: false, k: 'reply.loanBuyCap' }
+  if (capBill(state, user) - now + full > userWageBudget(state, user)) return { fee, willing, ok: false, k: 'reply.loanBuyWages' }
   return { fee, willing, ok: true, k: 'reply.loanBuyAgreed' }
 }
 

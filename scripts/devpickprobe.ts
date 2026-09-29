@@ -47,19 +47,24 @@ console.log('--- development focus')
   ok(!!pick, `there is a qualifying man the old screen hid (${pick?.name}, ${pick?.age})`)
   g.devFocus = []
   ok(setFocus(g, pick.id, true), 'he can be picked')
-  ok(focusIds(g).includes(pick.id), 'and the weekly roll reads him (devFocus.slice(0, 3))')
+  ok(focusIds(g).includes(pick.id), 'and the weekly roll reads him (focusIds, the list season.ts rolls)')
 
-  const others = eligible.filter(p => p.id !== pick.id).slice(0, 3)
-  ok(setFocus(g, others[0].id, true) && setFocus(g, others[1].id, true), 'two more fill the three places')
-  ok(!setFocus(g, others[2].id, true), `a fourth is refused while all ${FOCUS_SLOTS} places are taken`)
-  ok(focusIds(g).includes(pick.id) && g.devFocus.length === 3, 'and nobody was dropped to make room (the old tap evicted the oldest)')
+  // FIVE PLACES (owner, 1.8.1). The book fills at five and refuses a sixth.
+  ok(FOCUS_SLOTS === 5, `the book has five places (${FOCUS_SLOTS})`)
+  const others = eligible.filter(p => p.id !== pick.id).slice(0, FOCUS_SLOTS)
+  const fill = others.slice(0, FOCUS_SLOTS - 1)
+  ok(fill.every(p => setFocus(g, p.id, true)), `${fill.length} more fill the ${FOCUS_SLOTS} places`)
+  const spare = others[FOCUS_SLOTS - 1]
+  ok(!setFocus(g, spare.id, true), `a sixth is refused while all ${FOCUS_SLOTS} places are taken`)
+  ok(focusIds(g).includes(pick.id) && g.devFocus.length === FOCUS_SLOTS && focusIds(g).length === FOCUS_SLOTS,
+    'and nobody was dropped to make room (the old tap evicted the oldest)')
 
   // a focused man turns 27: his place comes back
   const old = g.players[others[0].id]!
   const age0 = old.age
   old.age = FOCUS_MAX_AGE + 1
   ok(focusBlock(old) === 'training.whyFocusAge', 'a focused man who turns 27 no longer qualifies, and says why')
-  ok(setFocus(g, others[2].id, true), 'so a new man can take the place he was holding')
+  ok(setFocus(g, spare.id, true), 'so a new man can take the place he was holding')
   ok(!g.devFocus.includes(old.id), 'and the man who no longer qualifies is cleared out of it')
   old.age = age0
   ok(setFocus(g, pick.id, false) && !g.devFocus.includes(pick.id), 'removing a man frees his place')

@@ -506,10 +506,24 @@ const EXPECTED: string[] = [
   'saracens 14-27 bath',
   'exeter 20-3 gloucester',
   'sale 39-25 bristol',
-  'harlequins 38-8 leicester',
+  'harlequins 31-27 leicester',
   'newcastle 13-30 northampton',
   'exeter 10-42 saracens',
 ]
+// 1.8.1, the match engine and preparation round: ONE of six moved, and it is
+// the LEICESTER fixture again, because leicester is this world's user club and
+// a week nobody watches is now played the way a watched one is. The assistant
+// makes the changes (simMatch sets assistantSubs), a standing 'ask' holds the
+// kick to the end of the tick as a watched match does, and the testimonial
+// and old-boy marks no longer depend on the commentary. Same commit: the
+// analyst's read pays once, on the unit that goes after the soft spot; the
+// leaked-prep penalty is live; the ruck term takes the referee at kick-off;
+// the bench shape is read off the 23 that played; a failed maul concedes the
+// penalty it says it does; safe routines no longer gain from misfiring. AI
+// fixtures on the shared stream: untouched (five of six held). bandcheck,
+// pooled over four seeds, before and after:
+//   pts 49.5 -> 49.2   tries 6.30 -> 6.27   home 52.4% -> 52.9%
+//   draws 1.6% -> 2.0%   blowouts 8.1% -> 8.4% (every band holds)
 // v1.8.1 moved three of them once more, and this time WITHOUT spending a new
 // draw: the training pitch now scales every side's breakdown and handling off
 // its own estate, so the same rolls are compared against different thresholds.

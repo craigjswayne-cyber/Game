@@ -106,6 +106,10 @@ export function disciplineWeek(state: GameState) {
   for (const inc of list) {
     if (inc.state === 'flagged' && now - (absWeek(inc.season, inc.week)) >= 2) {
       applyResponse(state, inc, 'ignore', true)
+      // and its question comes off the desk with it (1.8.1). It stayed there,
+      // an office item that never expires, and answering it afterwards only
+      // said the moment had passed: a decision offered after it was made.
+      state.press = state.press.filter(q => q.answered || q.incidentId !== inc.id)
     }
   }
 

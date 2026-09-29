@@ -1,4 +1,4 @@
-import { capBill } from './ai'
+import { capBill, windowOpen } from './ai'
 import { userCap } from './grants'
 import { fmtMoney, fmtWage, type Club, type GameState } from './model'
 import { t } from './i18n'
@@ -172,24 +172,33 @@ export function capPosition(state: GameState, clubId: string): CapPosition {
   }
 }
 
-/** Is this club barred from the market for a cap breach? */
-export function underEmbargo(state: GameState, clubId: string): boolean {
-  return capPosition(state, clubId).embargo > 0
+/**
+ * ---- THE MARQUEE LIST IS LODGED IN THE WINDOW (1.8.1) ----
+ *
+ * Naming a marquee man was free and instant, any week of the year, and the
+ * summer audit reads the list as it stands in week 48. So the two slots could
+ * sit on anybody all season and be moved onto the two biggest earners the
+ * week before the auditors arrived, which is the whole cap dodged with two
+ * taps. A club lodges its designations with the league while the transfer
+ * window is open, the same weeks it registers its signings, and the list
+ * stands until the window opens again. Naming a man at the negotiating table
+ * is inside the window by construction, so that door is unchanged.
+ */
+export function marqueeOpen(state: GameState): boolean {
+  return windowOpen(state.week)
 }
 
-/**
- * Would adding this weekly wage put the club over its cap?
- *
- * Returns null when it is fine, or the sentence to show the manager when it is
- * not. The wage of a man already on the books can be passed as `replacing` so a
- * renewal is measured as the change it really is rather than as a second salary.
- */
-export function capRefusal(state: GameState, clubId: string, wage: number, replacing = 0): string | null {
-  const pos = capPosition(state, clubId)
-  if (pos.cap == null) return null
-  const after = pos.bill - replacing + wage
-  if (after <= pos.cap) return null
-  return t('reply.capRefusal', { over: fmtMoney(after - pos.cap), cap: fmtMoney(pos.cap), n: MARQUEE_SLOTS })
+/** Name him, or take the designation away. False when the list is locked or
+ *  both slots are taken. */
+export function toggleMarquee(state: GameState, playerId: number): boolean {
+  const club = state.clubs[state.userClubId]
+  const p = state.players[playerId]
+  if (!club || !p || p.clubId !== club.id || !marqueeOpen(state)) return false
+  const list = club.marquee ?? []
+  if (list.includes(playerId)) { club.marquee = list.filter(id => id !== playerId); return true }
+  if (list.length >= MARQUEE_SLOTS || p.acad) return false
+  club.marquee = [...list, playerId]
+  return true
 }
 
 /**
@@ -220,9 +229,10 @@ function trimToCap(state: GameState, club: Club) {
     const seniors = club.players
       .map(id => state.players[id])
       // the men the bill counts (capBill, ai.ts): not the academy, not the two
-      // marquees, not a borrowed man - and not a man out on loan either, who
-      // is off the bill already, so releasing him lowered nothing and spent
-      // one of the summer's three releases on it (CAP-LOAN-01, 1.6.5)
+      // marquees, and not a borrowed man, who goes home rather than being
+      // released. A man out on loan IS on the bill (his club still pays him in
+      // full), but he is somebody else's first-team player until the summer,
+      // so he is not the one a club lets go to get under the line (CAP-LOAN-01)
       .filter(p => p && !(p.acad && !p.demoted) && !marquee.has(p.id) && !p.loanFrom && !p.onLoan)
       .sort((a, b) => b.wage - a.wage)
     // the floor is a fieldable SENIOR squad. `club.players.length <= 30` counted
@@ -304,12 +314,16 @@ export function capWord(pos: CapPosition): string {
  * This is the answer as a grid - positions down, seasons across, one number in
  * each cell - so a hole two years out is visible before it becomes a crisis.
  */
-export const ROSTER_GROUPS: { label: string; pos: string[] }[] = [
-  { label: 'finances.unitFrontRow', pos: ['LP', 'HK', 'TP'] },
-  { label: 'finances.unitBackFive', pos: ['LK', 'FL', 'N8'] },
-  { label: 'finances.unitHalves', pos: ['SH', 'FH'] },
-  { label: 'finances.unitMidfield', pos: ['CE'] },
-  { label: 'finances.unitBackThree', pos: ['WG', 'FB'] },
+/** Each unit with the bodies it needs to field a matchday squad without a
+ *  shoehorn. The need lives on the row itself: it was a second table keyed on
+ *  the English names ('Front row') and looked up by the translation key, so
+ *  no lookup ever matched and every unit fell back to 4 (1.8.1). */
+export const ROSTER_GROUPS: { label: string; pos: string[]; need: number }[] = [
+  { label: 'finances.unitFrontRow', pos: ['LP', 'HK', 'TP'], need: 6 },
+  { label: 'finances.unitBackFive', pos: ['LK', 'FL', 'N8'], need: 8 },
+  { label: 'finances.unitHalves', pos: ['SH', 'FH'], need: 4 },
+  { label: 'finances.unitMidfield', pos: ['CE'], need: 3 },
+  { label: 'finances.unitBackThree', pos: ['WG', 'FB'], need: 5 },
 ]
 
 export interface RosterCell {
@@ -317,11 +331,6 @@ export interface RosterCell {
   count: number
   /** the thinnest a unit should ever be, for colouring */
   need: number
-}
-
-/** How many bodies each group needs to field a matchday squad without a shoehorn. */
-const GROUP_NEED: Record<string, number> = {
-  'Front row': 6, 'Back five': 8, 'Halves': 4, 'Midfield': 3, 'Back three': 5,
 }
 
 /**
@@ -335,7 +344,7 @@ export function rosterGrid(state: GameState, clubId: string): { seasons: number[
   const seasons = [0, 1, 2, 3].map(n => state.season + n)
   const squad = (club?.players ?? []).map(id => state.players[id]).filter(Boolean)
   const rows = ROSTER_GROUPS.map(g => {
-    const need = GROUP_NEED[g.label] ?? 4
+    const need = g.need
     const cells = seasons.map(season => ({
       need,
       count: squad.filter(p => g.pos.includes(p.pos) && p.contractEnds >= season).length,

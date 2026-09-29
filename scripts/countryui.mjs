@@ -99,19 +99,19 @@ try {
 
   if (staged.windowed) {
     // the shaping controls are wired to the engine
-    ok(await page.locator('text=/Test Squad · 26\\/26/').count() > 0, 'the squad counts 26 of 26')
+    ok(await page.locator('text=/Test Squad · 26\\/32/').count() > 0, 'the squad counts 26 of the 32 a camp holds (NAT_SQUAD_SIZE)')
     const dropBtn = page.locator('button', { hasText: 'Drop' }).first()
     ok(await dropBtn.count() > 0, 'the squad rows carry Drop buttons')
     await dropBtn.click()
     await page.waitForTimeout(300)
-    ok(await page.locator('text=/Test Squad · 25\\/26/').count() > 0, 'a drop leaves 25 in camp')
+    ok(await page.locator('text=/Test Squad · 25\\/32/').count() > 0, 'a drop leaves 25 in camp')
     const sq = await page.evaluate(() => window.rugbyStore.getState().game.natSquads['SCO'].length)
     ok(sq === 25, `and the engine agrees (${sq})`)
     const callBtn = page.locator('button', { hasText: 'Call up' }).first()
     ok(await callBtn.count() > 0, 'the next men in carry Call up buttons')
     await callBtn.click()
     await page.waitForTimeout(300)
-    ok(await page.locator('text=/Test Squad · 26\\/26/').count() > 0, 'the call-up refills the room')
+    ok(await page.locator('text=/Test Squad · 26\\/32/').count() > 0, 'the call-up refills the room')
   } else {
     say('  --  window staging unavailable this world: shaping buttons untested this run')
   }
