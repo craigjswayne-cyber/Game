@@ -705,13 +705,13 @@ final code.
   account and its signing certificate, the signed upload, the playtest and
   the screenshot sign-off.
 
-## Addendum, 2026-09-29: 1.8.1 (Play version code 42)
+## Addendum, 2026-09-29: 1.8.1 (Play version code 40)
 
 1.8.1 is built on the merged 1.8.0 and folds in what was planned as 1.9.
-**Version code 42 is assumed free and not yet verified**: codes only have to
-rise, so 42 is right whether or not 41 was uploaded, but check the highest
-accepted code on the Play Console before the bundle is built
-(`packaging/android/version.json`). The publisher is FWDS & BCKS LTD. The full
+**Version code 40.** The Play Console's highest accepted code was 36 on
+29 Sep 2026 (owner), so 37 to 41 were never spent; 40 leaves a margin
+(`packaging/android/version.json`). 1.8.0 was never uploaded and ships inside
+1.8.1. The publisher is FWDS & BCKS LTD. The full
 report is `docs/qa-report-1.8.1.md`.
 
 ### What changed
@@ -748,9 +748,9 @@ fingerprint was rebaselined twice for intended changes to the match stream.
 
 ### What still needs the owner
 
-* Confirm version code 42 on the Play Console, then the signed upload.
+* The signed upload on version code 40 (the Console's highest was 36).
 * The playtest, the store screenshots' sign-off and the "What's new" read
-  through (code 42, six languages, `docs/store-listing.md`).
+  through (code 40, six languages, `docs/store-listing.md`).
 * Three calls: whether reopening a match to replay it should be prevented;
   whether a national coach may raid his club's rivals; and the Set Piece tab's
   length on a phone.
