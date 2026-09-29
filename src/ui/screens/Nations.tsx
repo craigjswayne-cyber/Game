@@ -1,11 +1,54 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
 import { sortTable } from '../../game/schedule'
-import { flagOf, nationName } from '../../game/nations'
+import { flagOf, nationByCode, nationName } from '../../game/nations'
+import { natRankOrder } from '../../game/natrank'
+import { MoveCell, sinceLine } from './Agency'
+import type { GameState } from '../../game/model'
 import { ClubLink, SectionTitle } from '../components'
 import { answerIsles, islesCoach, islesEligible } from '../../game/isles'
 import { weekDate } from '../../game/model'
 import { t, compLabel } from '../../game/i18n'
+
+/** THE TEST RANKINGS, WITH THE REST OF INTERNATIONAL RUGBY (owner, 1.8.2).
+ *  They sat as a third tab on the Scouting Agency, between two lists of club
+ *  players; a nation's standing belongs beside its tournaments. */
+function TestRankings({ game }: { game: GameState }) {
+  const order = natRankOrder(game)
+  const prevOrder = game.natRankPrev ?? []
+  return (
+    <>
+      <SectionTitle sub={t('world.agTestSub')}>{t('world.agTestTitle')}</SectionTitle>
+      <div className="tblwrap"><table className="dtable natranks">
+        <thead><tr><th>{t('tables.colRank')}</th><th></th><th>{t('world.natColNation')}</th><th className="num">{t('squad.colPts')}</th></tr></thead>
+        <tbody>
+          {order.map((code, i) => {
+            const n = nationByCode(code)
+            const prevIdx = prevOrder.indexOf(code)
+            const mine = game.natTeam === code
+            return (
+              <tr key={code} style={mine ? { background: 'color-mix(in srgb, var(--gold) 14%, transparent)' } : undefined}>
+                <td className="num" style={{ fontWeight: 700 }}>{i + 1}</td>
+                {/* a nation missing from the last table is not a new
+                    entry, only one the table had not ranked yet */}
+                <MoveCell from={prevIdx < 0 ? i : prevIdx} to={i} compared={prevOrder.length > 0} />
+                <td className="name" style={mine ? { fontWeight: 800 } : undefined}>
+                  {n?.flag ?? ''} {nationName(code)}{mine ? t('world.agYou') : ''}
+                </td>
+                {/* the gap to the screen's edge is .natranks' last-child
+                    rule in theme.css, so the heading moves with the figures */}
+                <td className="num">{(game.natRank?.[code] ?? 0).toFixed(2)}</td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table></div>
+      <div className="meta" style={{ padding: '4px 16px', fontSize: 12 }}>
+        {sinceLine(game)}{t('world.agNatFoot')}
+      </div>
+    </>
+  )
+}
 
 export default function Nations() {
   const game = useStore(s => s.game)!
@@ -15,7 +58,7 @@ export default function Nations() {
     ['aut', 'world.natAut'], ['tour', 'world.natTour'], ['lions', 'world.natLions'],
   ] as const).filter(([id]) => game.comps[id])
   const touch = useStore(s => s.touch)
-  const [compId, setCompId] = useState<string>(tabs[0]?.[0] ?? 'sn')
+  const [compId, setCompId] = useState<string>(tabs[0]?.[0] ?? 'rank')
   const comp = game.comps[compId]
 
   const myNat = game.natTeam
@@ -83,7 +126,9 @@ export default function Nations() {
         {tabs.map(([id, name]) => (
           <button key={id} className={id === compId ? 'active' : ''} onClick={() => setCompId(id)}>{t(name)}</button>
         ))}
+        <button className={compId === 'rank' ? 'active' : ''} onClick={() => setCompId('rank')}>{t('world.agTestNations')}</button>
       </div>
+      {compId === 'rank' && <TestRankings game={game} />}
       {comp && comp.table.length > 0 && (
         <>
           <SectionTitle sub={comp.champion ? t('fixtures.champions', { club: nationName(comp.champion) }) : undefined}>{comp.name}</SectionTitle>
@@ -104,6 +149,7 @@ export default function Nations() {
           </table></div>
         </>
       )}
+      {compId !== 'rank' && <>
       <SectionTitle>{t('world.natResults')}</SectionTitle>
       <div className="tblwrap"><table className="dtable"><tbody>
         {game.fixtures.filter(f => f.compId === compId).sort((a, b) => a.week - b.week).map(f => (
@@ -114,6 +160,7 @@ export default function Nations() {
           </tr>
         ))}
       </tbody></table></div>
+      </>}
       <div className="spacer" />
     </>
   )

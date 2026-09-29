@@ -4491,6 +4491,8 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .mood-fold { margin: 6px 0 2px; }
 .mood-fold > summary { cursor: pointer; font-weight: 700; font-size: 13px; padding: 6px 0; color: var(--info); }
 .mood-fold .mood-wrap { padding: 0 0 6px; }
+.mentor-intro { margin: 0 14px 8px; }
+.mentor-how { margin: 2px 0 0; }
 
 /* ---- the story and what it is about, side by side (1.8.0, ContextCard.tsx) ----
  * One column on a phone held upright (the card follows the story); two once

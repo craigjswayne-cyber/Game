@@ -1834,6 +1834,8 @@
   "mentoringMovedSub": "ahora en el Informe del equipo",
   "mentoringLink": "empareja veteranos con jóvenes ›",
   "mentoringLink_f": "empareja veteranas con jóvenes ›",
+  "mentorShort": "Empareja a un jugador de {kidAge} años o menos con un veterano de {minAge} años o más. Funciona despacio, con los meses.",
+  "mentorHow": "Cómo funciona",
   "mentorRule": "Jóvenes: {kidAge} años o menos y por debajo de su potencial. Mentores: jugadores de la primera plantilla de {minAge} años o más, con hasta {kids} jóvenes cada uno. {cap} parejas a la vez: cuatro, o cinco con un Centro de Excelencia de nivel 3 o superior.",
   "mentorRule_f": "Jóvenes: {kidAge} años o menos y por debajo de su potencial. Mentoras: jugadoras de la primera plantilla de {minAge} años o más, con hasta {kids} jóvenes cada una. {cap} parejas a la vez: cuatro, o cinco con un Centro de Excelencia de nivel 3 o superior.",
   "mentorEffect": "Lo que da una pareja: puntos trabajados en lo que el mentor hace mejor, pagados con los atributos menos necesarios del joven como todo entrenamiento, y puntos de valoración extra mientras esté por debajo de su potencial, más o menos uno por temporada en una pareja media. El carácter y el liderazgo deciden casi todo; la misma posición ayuda, la misma unidad un poco, y la experiencia algo más. Poco a poco, el joven puede adoptar el carácter de su mentor.",

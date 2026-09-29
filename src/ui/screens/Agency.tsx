@@ -3,8 +3,6 @@ import { useStore } from '../../store'
 import { clubCode, fmtMoney } from '../../game/model'
 import type { GameState } from '../../game/model'
 import { agencyKids, agencySeniors } from '../../game/agency'
-import { natRankOrder } from '../../game/natrank'
-import { nationByCode, nationName } from '../../game/nations'
 import { ClubLink, CrestT, Nat, PosBadge, SectionTitle } from '../components'
 import { t } from '../../game/i18n'
 
@@ -15,7 +13,7 @@ import { t } from '../../game/i18n'
  *  behind the arrows only republishes every four (season.ts). Saying "since
  *  last month" while showing today's order is how the two ended up reading as
  *  out of sync, so the screen now names the week it is comparing against. */
-function sinceLine(game: GameState): string {
+export function sinceLine(game: GameState): string {
   const at = game.agency?.at
   if (!at) return t('world.agFirstList')
   const same = at.season === game.season
@@ -31,7 +29,7 @@ function sinceLine(game: GameState): string {
  *  goes straight to the ones that changed. With no earlier list to compare
  *  against (a first list) nothing is marked at all, rather than every row
  *  claiming to be a new entry. */
-function MoveCell({ from, to, compared }: { from: number; to: number; compared: boolean }) {
+export function MoveCell({ from, to, compared }: { from: number; to: number; compared: boolean }) {
   let mark: React.ReactNode = null
   if (compared && from < 0) mark = <span style={{ color: 'var(--info)' }}>★</span>
   else if (compared && from > to) mark = <span style={{ color: 'var(--text-positive)' }}>▲{from - to}</span>
@@ -42,61 +40,16 @@ function MoveCell({ from, to, compared }: { from: number; to: number; compared: 
 export default function Agency() {
   const game = useStore(s => s.game)!
   const go = useStore(s => s.go)
-  const [tab, setTab] = useState<'seniors' | 'kids' | 'nations'>('seniors')
+  const [tab, setTab] = useState<'seniors' | 'kids'>('seniors')
 
   const list = tab === 'seniors' ? agencySeniors(game) : agencyKids(game)
   const prev = tab === 'seniors' ? (game.agency?.seniors ?? []) : (game.agency?.kids ?? [])
-
-  if (tab === 'nations') {
-    const order = natRankOrder(game)
-    const prevOrder = game.natRankPrev ?? []
-    return (
-      <>
-        <div className="tab-bar">
-          <button onClick={() => setTab('seniors')}>{t('world.agWorldRankings')}</button>
-          <button onClick={() => setTab('kids')}>{t('world.agWonderkids')}</button>
-          <button className="active">{t('world.agTestNations')}</button>
-        </div>
-        <SectionTitle sub={t('world.agTestSub')}>{t('world.agTestTitle')}</SectionTitle>
-        <div className="tblwrap"><table className="dtable natranks">
-          <thead><tr><th>{t('tables.colRank')}</th><th></th><th>{t('world.natColNation')}</th><th className="num">{t('squad.colPts')}</th></tr></thead>
-          <tbody>
-            {order.map((code, i) => {
-              const n = nationByCode(code)
-              const prevIdx = prevOrder.indexOf(code)
-              const mine = game.natTeam === code
-              return (
-                <tr key={code} style={mine ? { background: 'color-mix(in srgb, var(--gold) 14%, transparent)' } : undefined}>
-                  <td className="num" style={{ fontWeight: 700 }}>{i + 1}</td>
-                  {/* a nation missing from the last table is not a new
-                      entry, only one the table had not ranked yet */}
-                  <MoveCell from={prevIdx < 0 ? i : prevIdx} to={i} compared={prevOrder.length > 0} />
-                  <td className="name" style={mine ? { fontWeight: 800 } : undefined}>
-                    {n?.flag ?? ''} {nationName(code)}{mine ? t('world.agYou') : ''}
-                  </td>
-                  {/* the gap to the screen's edge is .natranks' last-child
-                      rule in theme.css, so the heading moves with the figures
-                      instead of drifting away from them */}
-                  <td className="num">{(game.natRank?.[code] ?? 0).toFixed(2)}</td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table></div>
-        <div className="meta" style={{ padding: '4px 16px', fontSize: 12 }}>
-          {sinceLine(game)}{t('world.agNatFoot')}
-        </div>
-        <div className="spacer" />
-      </>
-    )
-  }
 
   return (
     <>
       <div className="tab-bar">
         <button className={tab === 'seniors' ? 'active' : ''} onClick={() => setTab('seniors')}>{t('world.agWorldRankings')}</button>
         <button className={tab === 'kids' ? 'active' : ''} onClick={() => setTab('kids')}>{t('world.agWonderkids')}</button>
-        <button onClick={() => setTab('nations')}>{t('world.agTestNations')}</button>
       </div>
       <SectionTitle sub={t(tab === 'seniors' ? 'world.agSeniorSub' : 'world.agKidSub')}>
         {t(tab === 'seniors' ? 'world.agSeniorTitle' : 'world.agKidTitle')}

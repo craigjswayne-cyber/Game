@@ -1853,6 +1853,8 @@
     "mentoringMovedSub": "désormais dans le Rapport d'équipe",
     "mentoringLink": "associer des cadres à de jeunes joueurs ›",
     "mentoringLink_f": "associer des cadres à de jeunes joueuses ›",
+    "mentorShort": "Associez un jeune de {kidAge} ans ou moins à un cadre de {minAge} ans ou plus. Les effets viennent lentement, au fil des mois.",
+    "mentorHow": "Comment ça marche",
     "mentorRule": "Jeunes : {kidAge} ans ou moins et sous leur potentiel. Mentors : joueurs de l'effectif senior de {minAge} ans ou plus, avec jusqu'à {kids} jeunes chacun. {cap} duos à la fois : quatre, ou cinq avec un Centre d'excellence de niveau 3 ou plus.",
     "mentorRule_f": "Jeunes : {kidAge} ans ou moins et sous leur potentiel. Mentores : joueuses de l'effectif senior de {minAge} ans ou plus, avec jusqu'à {kids} jeunes chacune. {cap} duos à la fois : quatre, ou cinq avec un Centre d'excellence de niveau 3 ou plus.",
     "mentorEffect": "Ce qu'apporte un duo : des points travaillés là où le mentor est meilleur, payés sur les attributs les moins utiles du jeune comme tout entraînement, et des points de note en plus tant qu'il reste sous son potentiel, environ un par saison pour un duo moyen. Le caractère et le leadership décident de l'essentiel ; le même poste aide, la même unité un peu, et l'expérience un peu plus. Peu à peu, le jeune peut adopter le caractère de son mentor.",
