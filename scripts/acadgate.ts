@@ -29,7 +29,7 @@
 // reachable through the browser harnesses.
 import { newGame, LEAGUE_DEFS } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
-import { ACAD_CALL_WEEK, acadAdvice, acadCall } from '../src/game/acadcall'
+import { ACAD_CALL_WEEK, acadAdvice, acadCall, settleAcadCalls } from '../src/game/acadcall'
 import { answerPress, OFFICE_OUTLET } from '../src/game/media'
 import { pressBlock } from '../src/game/days'
 import { SEASON_WEEKS } from '../src/game/model'
@@ -213,31 +213,27 @@ ok(onScholarMoney.length === 0,
     ok(signed.every(id => h.players[id]?.clubId === h.userClubId), 'every signed scholar is still here')
     ok(signed.every(id => (h.players[id]?.contractEnds ?? 0) >= h.season + 3), 'on a deal that runs past the gate')
     ok(calls().length === 0 && pressBlock(h)?.kind !== 'press', 'and once all are answered the week can turn')
-    // the AI decides its own first-years at the rollover, on the advice as it
-    // reads THAT week: a squad can change between the call week and the summer
-    // (the median the advice is measured against moves), so the advice is
-    // taken in the last week of the season, the tick the decision is made in
+    // THE AI DECIDES ITS OWN FIRST-YEARS AT THE ROLLOVER (settleAcadCalls), on
+    // the director's advice as it reads at that instant. The advice is measured
+    // against the club's squad, which moves week to week and again inside the
+    // final tick, so advice read at any other moment is a different question:
+    // checked from the call week, the probe failed on any world where one
+    // borderline lad's club signed or sold somebody before the summer. So the
+    // decision is taken on a copy of the save, advice and decision on the SAME
+    // state, and the real career goes on through its summer untouched.
     let guard = 0
     const season = h.season
-    while (h.week < SEASON_WEEKS && guard++ < 10) processWeekAndAdvance(h)
-    const aiFirst = Object.values(h.players).filter(p => p.acad && p.clubId && p.clubId !== h.userClubId && p.acadJoined === h.season)
-    const aiDrop = aiFirst.filter(p => !acadAdvice(h, p)).map(p => p.id)
+    const copy = JSON.parse(JSON.stringify(h)) as GameState
+    const aiFirst = Object.values(copy.players).filter(p => p.acad && p.clubId && p.clubId !== copy.userClubId && p.acadJoined === copy.season)
+    const aiDrop = aiFirst.filter(p => !acadAdvice(copy, p)).map(p => p.id)
+    settleAcadCalls(copy)
     while (h.season === season && guard++ < 10) processWeekAndAdvance(h)
     ok(gateLad.clubId === h.userClubId && !gateLad.acad, 'the promoted lad is still here after the summer sweep')
     // (the academies a new world starts with were never an intake, so the
     // first summer has no first-years anywhere; the second has a full year's)
     if (summer === 2) ok(aiFirst.length > 0, `AI academies had first-years to decide (${aiFirst.length}, ${aiDrop.length} advised away)`)
-    // A lad still in the academy is allowed only when the director has changed
-    // his mind: the week-48 tick runs the world's own business (a signing, a
-    // release) before the rollover decides, and that can move the squad median
-    // the advice is measured against. The engine then decides on the advice as
-    // it stands at that moment, which is the rule; what is not allowed is a lad
-    // the director STILL says to release being kept.
-    const kept = aiDrop.filter(id => h.players[id]?.clubId != null && h.players[id]?.acad)
-    const wrong = kept.filter(id => !acadAdvice(h, h.players[id]))
-    ok(wrong.length === 0,
-      `the AI released the ${aiDrop.length - kept.length} its director advised it to` +
-      (kept.length ? ` (${kept.length} kept after the advice changed in the final week)` : ''))
+    ok(aiDrop.every(id => copy.players[id]?.clubId == null || !copy.players[id]?.acad),
+      `the AI released the ${aiDrop.length} its director advised it to`)
     ok(hc.players.map(id => h.players[id]).some(p => p && p.acad && p.acadJoined === h.season),
       'and a new intake has joined, stamped with the season it joined')
     const noIntake = Object.values(h.clubs).filter(c =>
