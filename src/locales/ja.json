@@ -7736,6 +7736,8 @@
   "tryVs": "{how_k}今日、{club}のジャージを着た{player}が君のチームからトライを奪った。アウェー席は、それが君の耳に届くよう念を押した。",
   "motmVsSubj": "{player}、意地を見せる",
   "motmVs": "{how_k}今日、{player}は君のチームとの試合で{club}のプレーヤー・オブ・ザ・マッチに選ばれた。記者席の誰もが、その因縁を説明されるまでもなく分かっていた。",
+  "metVsSubj": "{player}、古巣と対戦",
+  "metVs": "{how_k}今日、{player}は{club}のジャージを着て君のチームと対戦した。試合終了の笛のあとには握手が交わされ、君のベンチへ長い視線が何度か向けられた。",
   "captainVsSubj": "{club}、{player}を主将に指名",
   "captainVs": "{how_k}{club}は{player}を主将に据えた。同じリーグのクラブだ。あのキャプテンマークをハーフウェーラインの向こうに見る日は遠くない。",
   "signedRivalSubj": "{player}、{club}で再出発",

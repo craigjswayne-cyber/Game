@@ -217,7 +217,23 @@ export function rememberDeparture(
   if (to) { payload.to = to; payload.buyer = to }
   if (fee && fee > 0) payload.fee = fee
   if (p.homegrown || p.youth || p.acad) payload.acad = 1
+  if (notableDeparture(state, p, from)) payload.nb = 1
   remember(state, { kind, playerId: p.id, clubId: from, payload, sal: departureSal(p) })
+}
+
+/**
+ * A man whose return the dressing room would notice: ten or more games in your
+ * shirt, rated at or above the median of the seniors he leaves behind, or a
+ * graduate of your own academy. Read at the moment he goes, because a week
+ * later he is somebody else's and the squad he was measured against has moved.
+ */
+function notableDeparture(state: GameState, p: Player, from: string): boolean {
+  if (p.homegrown) return true
+  const apps = p.career.filter(c => c.clubId === from).reduce((n, c) => n + c.apps, 0) + (p.clubId === from ? p.stats.apps : 0)
+  if (apps >= 10) return true
+  const cas = (state.clubs[from]?.players ?? [])
+    .map(id => state.players[id]).filter(x => x && x.id !== p.id && !x.acad).map(x => x.ca).sort((a, b) => a - b)
+  return cas.length > 0 && p.ca >= cas[Math.floor(cas.length / 2)]
 }
 
 /** An academy lad's first senior rugby, in your side. */
@@ -310,7 +326,8 @@ function departures(state: GameState): { e: MemoryEntry; p: Player }[] {
 
 /**
  * After one of your matches: did somebody you let go come back and hurt you?
- * A try, or the match award. One story per match, the award outranking the try.
+ * The match award, a try, or - for a man worth noticing - simply lining up
+ * against you the first time. One story per match, the strongest.
  */
 export function memoryAfterMatch(state: GameState, fx: Fixture): void {
   if (!state.memory?.entries.length || state.unemployed) return
@@ -320,23 +337,40 @@ export function memoryAfterMatch(state: GameState, fx: Fixture): void {
   const opp = state.clubs[oppId]
   if (!opp || !canTell(state)) return
   const tries = new Set((fx.events ?? []).filter(ev => ev.type === 'TRY' && ev.teamId === oppId && ev.playerId != null).map(ev => ev.playerId!))
+  // ONE STORY A MATCH, THE STRONGEST. The award outranks a try, and a try
+  // outranks simply turning out against you; whichever is told, the weaker
+  // ones for that man are spent with it, so he is never "met" after he scored.
+  let best: { e: MemoryEntry; p: Player; rank: number } | null = null
   for (const { e, p } of departures(state)) {
     if (p.clubId !== oppId || state.season - e.season > 6) continue
+    const pl = e.payload ?? {}
     const motm = fx.motm === p.id
     // A match the manager watched keeps its events; one simmed around him does
     // not, so there the try is read off his season tally against the count
     // memoryWeek wrote down last week (he played this week, and it went up).
-    const pl = e.payload ?? {}
     const scored = fx.events?.length ? tries.has(p.id)
       : p.lastWk === state.week && pl.ss === state.season && Number.isFinite(pl.st) && p.stats.tries > Number(pl.st)
-    if (!motm && !scored) continue
-    const tag = motm ? 'motm' : 'try'
-    if (paid(e, 'motm') || paid(e, tag)) continue
-    markPaid(e, tag)
-    tell(state, motm ? 'mem.motmVs' : 'mem.tryVs', { ...howVars(state, e), club: opp.name }, p.id)
-    return
+    // he played: on the events when there are some, on his last outing when not
+    const played = fx.events?.length
+      ? fx.events.some(ev => ev.playerId === p.id) || p.lastWk === state.week
+      : p.lastWk === state.week
+    const rank = motm && !paid(e, 'motm') ? 3
+      : scored && !paid(e, 'motm') && !paid(e, 'try') ? 2
+      : played && !paid(e, 'met') && !paid(e, 'try') && !paid(e, 'motm') && notable(e) ? 1
+      : 0
+    if (rank > (best?.rank ?? 0)) best = { e, p, rank }
   }
+  if (!best) return
+  const { e, p, rank } = best
+  const tag = rank === 3 ? 'motm' : rank === 2 ? 'try' : 'met'
+  markPaid(e, tag)
+  if (tag !== 'met' && !paid(e, 'met')) markPaid(e, 'met')
+  tell(state, rank === 3 ? 'mem.motmVs' : rank === 2 ? 'mem.tryVs' : 'mem.metVs', { ...howVars(state, e), club: opp.name }, p.id)
 }
+
+/** Worth a story just for turning out against you (see notableDeparture); a
+ *  departure recorded before the mark existed falls back on its salience. */
+const notable = (e: MemoryEntry) => e.payload?.nb === 1 || (e.payload?.nb == null && e.sal >= 2)
 
 /**
  * The weekly read-back, after the Wire. Each payoff once per subject, one story
