@@ -328,6 +328,52 @@ console.log('\n--- 7. the final week of an injury: rest, or bring him back early
   }
 }
 
+console.log('\n--- 7b. a signing in his position: the starter wants assurances\n')
+{
+  const g = newGame('gloucester', 'Assurances', 606)
+  while (g.week < 6) { for (const q of g.press) if (!q.answered) q.answered = true; processWeekAndAdvance(g) }
+  for (const q of g.press) if (!q.answered) q.answered = true
+  const club = g.clubs[g.userClubId]
+  const s = g.players[club.tactic.lineup[9]!]
+  s.stats.starts = Math.max(5, s.stats.starts)
+  s.joinedAt = undefined
+  const n = seniorsOf(g).find(p => p.id !== s.id && !club.tactic.lineup.slice(0, 15).includes(p.id))!
+  n.pos = s.pos
+  n.ca = Math.max(n.ca, 70)
+  n.joinedAt = g.season * 48 + g.week
+  roomTidy(g)
+  roomWeek(g)
+  const item = roomItems(g, 'role')[0]
+  ok(!!item && item.playerId === s.id, `a signing in his position brings the starter to the office (${s.name}, after ${n.name})`)
+  if (item) {
+    ok(item.options.map(o => o.room).join() === 'promise,refuse,listen', 'three answers: promise the role, refuse, or listen to offers')
+    ok(item.question.includes(n.name) && /may ask to leave/.test(item.question) && /listen to offers/.test(item.question),
+      'the question names the signing and says what each answer risks')
+    const P = clone(g), R = clone(g), L = clone(g)
+    const nm = n.morale
+    answerPress(P, item.id, 0)
+    ok((P.pledges ?? []).some(pl => pl.playerId === s.id && pl.kind === 'plans'), 'promised: the pledge ledger holds it, like every office promise')
+    ok(P.players[n.id].morale < nm, 'and the new signing notices')
+    ok(recall(P, { kind: 'role-promised', playerId: s.id }).length === 1, 'the promise is remembered')
+    // and broken, it has history: out for six weeks, no appearances
+    P.players[s.id].injury = { desc: 'calf strain', dk: 'injury.calf', until: P.week + 12, weeks: 12 }
+    for (let i = 0; i < 8; i++) { for (const q of P.press) if (!q.answered) q.answered = true; processWeekAndAdvance(P) }
+    ok(recall(P, { kind: 'promise-broken', playerId: s.id }).length === 1, 'kept out, the promise is settled as broken, with the role promise on the record before it')
+    R.players[s.id].pers = 'Ambitious'
+    R.players[s.id].morale = 5.5
+    const t0 = R.mgrTrust ?? 30
+    answerPress(R, item.id, 1)
+    const rs = R.players[s.id]
+    ok(rs.morale < 5.5 && (R.mgrTrust ?? 30) < t0, 'refused: his morale and the room\'s trust drop')
+    ok((rs.wantsOut ?? 0) > 0 && R.news.some(nw => nw.k === 'room.roleRequest' && nw.playerId === s.id),
+      'and an ambitious man puts in a transfer request the existing machinery answers')
+    ok(recall(R, { kind: 'role-refused', playerId: s.id }).length === 1, 'the refusal is remembered')
+    answerPress(L, item.id, 2)
+    ok(L.players[s.id].transferListed === true && recall(L, { kind: 'role-listed', playerId: s.id }).length === 1,
+      'listen to offers: he goes on the transfer list, and it is remembered')
+  }
+}
+
 console.log('\n--- 8. the academy decision: keep, loan, or release\n')
 {
   const g = newGame('leicester', 'Academy', 5151)

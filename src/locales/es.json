@@ -8243,6 +8243,19 @@
   "cultureLed_f": "En la ciudad deportiva de {club} dicen que el equipo se decide en un solo despacho y no se discute en ningún otro sitio. Todo empezó con la decisión sobre {player}. Las veteranas han dejado de pelear por sus puestos; una o dos han dejado de hablar con el entrenador.",
   "culturePlayersSubj_f": "Las veteranas tienen el oído del entrenador",
   "culturePlayers_f": "En {club} las veteranas han aprendido que una palabra al oído adecuado puede cambiar una alineación, y lo aprendieron con {player}. El vestuario está más contento. También pide más.",
-  "injEarlyR_f": "{player} está vendada y disponible esta semana. El fisio ha tomado nota de que fue decisión tuya."
+  "injEarlyR_f": "{player} está vendada y disponible esta semana. El fisio ha tomado nota de que fue decisión tuya.",
+  "roleQ": "{player} se ha enterado del fichaje de {signing}, y el agente de {player} quiere saber en qué queda la camiseta. Prometer la titularidad, y {signing} lo notará; negarse, y {player} podría pedir salir; o dejar claro que escucharás ofertas.",
+  "rolePromise": "Prometer a {player} la titularidad",
+  "roleRefuse": "Negarse: nadie tiene la camiseta garantizada",
+  "roleListen": "Decir al agente que escucharás ofertas",
+  "rolePromiseR": "{player} sale del despacho con tu palabra. {signing} también se ha enterado, y no ha venido a sentarse en el banquillo.",
+  "roleRefuseR": "{player} se lo toma mal, y el agente dice que la conversación no ha terminado.",
+  "roleRefuseLeaveR": "{player} se lo toma mal, y por la tarde hay una petición de traspaso sobre tu mesa.",
+  "roleListenR": "{player} pasa a la lista de transferibles. El agente ya está haciendo llamadas.",
+  "roleRequestSubj": "{player} pide salir",
+  "roleRequest": "A {player} se le negaron garantías sobre la titularidad tras el fichaje de {signing}, y ha presentado una petición de traspaso. Alinear a {player} aún podría cambiarlo; dejar la petición sin respuesta le dice a todos los agentes de la liga que la puerta está abierta.",
+  "decRolePromise": "Prometió a {player} la titularidad tras un fichaje en la misma posición.",
+  "decRoleRefuse": "Negó a {player} garantías sobre la titularidad.",
+  "decRoleListen": "Puso a {player} en la lista de transferibles tras un fichaje en la misma posición."
  }
 }

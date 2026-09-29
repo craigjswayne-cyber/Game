@@ -8453,6 +8453,21 @@
     "reverseRPlayers_f": "{player} sera titulaire au prochain match. Les cadres n'en attendaient pas moins, et certaines se demandent déjà ce qu'elles pourraient changer d'autre. {dep_k}",
     "cultureLed_f": "Au centre d'entraînement de {club}, on dit que l'équipe se décide dans un seul bureau et ne se discute nulle part ailleurs. Tout a commencé avec la décision sur {player}. Les cadres ont cessé de plaider pour leur place ; une ou deux ont cessé de parler au manager.",
     "culturePlayers_f": "À {club}, les cadres ont appris qu'un mot glissé à la bonne oreille peut changer une feuille de match, et elles l'ont appris avec {player}. Le vestiaire s'en porte mieux. Il en demande aussi davantage.",
-    "injEarlyR_f": "{player} est strappée et disponible cette semaine. Le kiné a bien noté que c'était votre décision."
+    "injEarlyR_f": "{player} est strappée et disponible cette semaine. Le kiné a bien noté que c'était votre décision.",
+    "roleQ": "{player} a appris la signature de {signing}, et l'agent de {player} veut savoir ce qu'il en est du maillot. Promettre la place de titulaire, et {signing} le remarquera ; refuser, et {player} pourrait demander à partir ; ou faire savoir que vous écouterez les offres.",
+    "rolePromise": "Promettre à {player} la place de titulaire",
+    "roleRefuse": "Refuser : personne n'a de maillot garanti",
+    "roleListen": "Dire à l'agent que vous écouterez les offres",
+    "rolePromiseR": "{player} quitte le bureau avec votre parole. {signing} l'a appris aussi, et n'est pas venu pour s'asseoir sur le banc.",
+    "roleRefuseR": "{player} le prend mal, et l'agent assure que la discussion n'est pas terminée.",
+    "roleRefuseLeaveR": "{player} le prend mal, et dans l'après-midi une demande de transfert arrive sur votre bureau.",
+    "roleListenR": "{player} est placé sur la liste des transferts. L'agent passe déjà des coups de fil.",
+    "roleRequestSubj": "{player} demande à partir",
+    "roleRequest": "{player} s'est vu refuser des garanties sur la place de titulaire après la signature de {signing}, et a déposé une demande de transfert. Titulariser {player} pourrait encore tout changer ; laisser la demande sans réponse dit à tous les agents du championnat que la porte est ouverte.",
+    "decRolePromise": "Promis à {player} la place de titulaire après une signature au même poste.",
+    "decRoleRefuse": "Refusé à {player} des garanties sur la place de titulaire.",
+    "decRoleListen": "Placé {player} sur la liste des transferts après une signature au même poste.",
+    "rolePromiseR_f": "{player} quitte le bureau avec votre parole. {signing} l'a appris aussi, et n'est pas venue pour s'asseoir sur le banc.",
+    "roleListenR_f": "{player} est placée sur la liste des transferts. L'agent passe déjà des coups de fil."
   }
 }

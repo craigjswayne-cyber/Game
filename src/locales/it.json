@@ -8288,6 +8288,20 @@
   "cultureLed_f": "A {club} si dice che la formazione si decide in un solo ufficio e non si discute altrove. Tutto è cominciato con la scelta su {player}. Le senatrici hanno smesso di battersi per il posto; una o due hanno smesso di parlare con l'allenatore.",
   "culturePlayersSubj_f": "Le senatrici hanno l'orecchio dell'allenatore",
   "culturePlayers_f": "A {club} le senatrici hanno imparato che una parola all'orecchio giusto può cambiare una formazione, e l'hanno imparato con {player}. Lo spogliatoio è più sereno. E chiede di più.",
-  "injEarlyR_f": "{player} è fasciata e disponibile questa settimana. Il fisioterapista ha annotato che la scelta è stata tua."
+  "injEarlyR_f": "{player} è fasciata e disponibile questa settimana. Il fisioterapista ha annotato che la scelta è stata tua.",
+  "roleQ": "{player} ha saputo dell'acquisto di {signing}, e l'agente di {player} vuole sapere cosa ne sarà della maglia. Prometti il posto da titolare, e {signing} se ne accorgerà; rifiuta, e {player} potrebbe chiedere di andarsene; oppure fai sapere che ascolterai le offerte.",
+  "rolePromise": "Promettere a {player} il posto da titolare",
+  "roleRefuse": "Rifiutare: nessuno ha la maglia garantita",
+  "roleListen": "Dire all'agente che ascolterai le offerte",
+  "rolePromiseR": "{player} esce dall'ufficio con la tua parola. Anche {signing} lo ha saputo, e non è venuto qui per sedersi in panchina.",
+  "roleRefuseR": "{player} la prende male, e l'agente dice che il discorso non è chiuso.",
+  "roleRefuseLeaveR": "{player} la prende male, e nel pomeriggio sulla tua scrivania c'è una richiesta di cessione.",
+  "roleListenR": "{player} finisce sulla lista dei cedibili. L'agente sta già facendo telefonate.",
+  "roleRequestSubj": "{player} chiede di andarsene",
+  "roleRequest": "A {player} sono state negate garanzie sul posto da titolare dopo l'acquisto di {signing}, e ha presentato una richiesta di cessione. Schierare {player} potrebbe ancora cambiare le cose; lasciare la richiesta senza risposta dice a ogni agente del campionato che la porta è aperta.",
+  "decRolePromise": "Promesso a {player} il posto da titolare dopo un acquisto nello stesso ruolo.",
+  "decRoleRefuse": "Negate a {player} garanzie sul posto da titolare.",
+  "decRoleListen": "Messo {player} sulla lista dei cedibili dopo un acquisto nello stesso ruolo.",
+  "rolePromiseR_f": "{player} esce dall'ufficio con la tua parola. Anche {signing} lo ha saputo, e non è venuta qui per sedersi in panchina."
  }
 }

@@ -59,6 +59,7 @@ export type MemoryKind =
   // the office's risk-and-reward calls (room.ts, acadcall.ts)
   | 'room-stood' | 'room-reversed' | 'renew-early' | 'renew-waited' | 'rested'
   | 'acad-kept' | 'acad-loaned' | 'acad-let-go'
+  | 'role-promised' | 'role-refused' | 'role-listed'
 
 export interface MemoryEntry {
   id: number

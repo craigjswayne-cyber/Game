@@ -953,8 +953,10 @@ export interface PressOption {
   acadWage?: number
   /** a dressing-room decision (1.8.2, room.ts): stand by a selection or
    *  reverse it, renew a contract now or wait, rest a man or bring him back a
-   *  week early. room.ts carries it out; the numbers above stay at zero. */
-  room?: 'stand' | 'reverse' | 'renew' | 'wait' | 'rest' | 'early'
+   *  week early, answer a starter who wants assurances after a signing in
+   *  his position. room.ts carries it out; the numbers above stay at zero
+   *  (the promise itself rides on `pledge`). */
+  room?: 'stand' | 'reverse' | 'renew' | 'wait' | 'rest' | 'early' | 'promise' | 'refuse' | 'listen'
   /** the weekly wage the renew-now button quoted, paid as quoted */
   roomWage?: number
   /** the season-expectations decision (25C): choosing sets
