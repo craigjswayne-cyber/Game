@@ -11,6 +11,7 @@
 // Everything here is a pure derivation or a deterministic gate (mulberry32 on
 // ids and weeks, never the shared match rng). No new number is hidden: the
 // Profile screen prints the standing, and every consequence says its name.
+import { telling } from './tellings'
 import type { GameState, Player, PressOption } from './model'
 import {absWeek, mgrReputation, squadTrust, SEASON_WEEKS } from './model'
 import { clamp, mulberry32 } from './rng'
@@ -106,6 +107,10 @@ export function disciplineWeek(state: GameState) {
   for (const inc of list) {
     if (inc.state === 'flagged' && now - (absWeek(inc.season, inc.week)) >= 2) {
       applyResponse(state, inc, 'ignore', true)
+      // and its question comes off the desk with it (1.8.1). It stayed there,
+      // an office item that never expires, and answering it afterwards only
+      // said the moment had passed: a decision offered after it was made.
+      state.press = state.press.filter(q => q.answered || q.incidentId !== inc.id)
     }
   }
 
@@ -162,7 +167,7 @@ export function disciplineWeek(state: GameState) {
         room_k: 'titles.press',
       }
       const key = senior
-        ? (names.length >= 2 ? 'news.deputationNamed' : 'news.deputationNamedOne')
+        ? (names.length >= 2 ? telling(state, 'news.deputationNamed') : 'news.deputationNamedOne')
         : (names.length >= 2 ? 'news.deputation' : 'news.deputationOne')
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,

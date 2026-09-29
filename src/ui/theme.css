@@ -1911,6 +1911,13 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   overflow-wrap: break-word;
 }
 
+/* A match brought back by a reload or a reopened save (1.8.2): one line and
+   Resume, under the scoreboard, until it is pressed. */
+.resume-note {
+  margin: 8px 12px 4px;
+  border-left: 4px solid var(--gold);
+}
+
 .tense-band {
   margin: 4px 12px 2px;
   padding: 3px 8px;
@@ -3062,6 +3069,60 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
      auto-fill grid left the last two lineouts alone on their own line */
   .routine-grid.sp-lineout { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .routine-grid.sp-scrum { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+/* THE SET PIECE TAB, IN THREE (1.8.2, screens/Tactics.tsx). The lineout and
+   scrum calls, the attacking moves and the kicking each get a view, picked on
+   the new-career screen's segmented track (.game-pick above) rather than a
+   second .tab-bar: two rows of underlined caps read as two levels of the same
+   thing, and every probe that walks the screen's tabs by position would have
+   counted the three views as tabs. Same card margins, so the track lines up
+   with the cards under it; same 820px cap as a card on a wide screen. */
+.game-pick.sp-sub { margin: 9px 12px 2px; }
+.game-pick.sp-sub button { font-size: 12.5px; }
+@media (orientation: landscape) and (min-width: 640px) { .content > .sp-sub { max-width: 820px; } }
+.app.tablet .content > .sp-sub { max-width: none; }
+/* A landscape phone is 390px tall, and at 844 wide a three-across lineout
+   tile's picture was 172px of it on its own: split in three, the calls view
+   still came to 2.9 screenfuls there and the kicking view to 3.2. Holding the
+   picture's height down only left it floating in a wide empty tile, so on a
+   short landscape screen the picture moves BESIDE the words instead, the way
+   the attacking moves card already lays out its own: a tile loses the height
+   of its picture and the words use the width the picture left over. A tablet
+   and every portrait phone draw them exactly as before. */
+@media (orientation: landscape) and (min-width: 640px) and (max-height: 560px) {
+  .sp-call, .sp-card { flex-direction: row; align-items: center; gap: 8px; }
+  .sp-call .dg { flex: 0 0 44%; width: 44%; }
+  .sp-call .sp-txt { flex: 1 1 0; }
+  /* four scrum tiles in a row left each picture 80px wide beside a column of
+     words two short words across: two by two, they are the lineout's width */
+  .routine-grid.sp-scrum { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sp-card .dg { flex: 0 0 56%; width: 56%; }
+  .sp-card b { flex: 1 1 0; min-width: 0; text-align: left; }
+}
+
+/* ---- the attacking moves (1.8.1, ui/MovesSection.tsx) -------------------
+   One card for the three calls: which call on the top row, the options under
+   it, and the picture beside the facts (two columns on a phone, the picture
+   the narrower), so the section is one short card, not eighteen tiles on a
+   tab that was already the longest on the screen. */
+.mv-card { display: flex; flex-direction: column; gap: 7px; }
+.mv-calls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.mv-callchip {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 1px;
+  border-radius: 10px; min-height: 44px; text-align: left; min-width: 0;
+}
+.mv-callchip b { font-size: 11px; line-height: 1.2; }
+.mv-callchip span { font-size: 10px; opacity: .85; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.mv-chips { margin-top: 0; }
+.mv-chips .preset-chip { min-height: 36px; }
+.mv-pct { font-size: 10px; opacity: .8; font-weight: 600; }
+.mv-body { display: grid; grid-template-columns: minmax(0, 42%) minmax(0, 1fr); gap: 9px; align-items: start; }
+.mv-body .d { font-size: 11px; color: var(--text-muted); line-height: 1.35; }
+.mv-body b { font-size: 13px; color: var(--text-primary); }
+.mv-body .mv-warn { color: var(--text-negative); font-weight: 600; }
+@media (min-width: 700px) {
+  .mv-body { grid-template-columns: minmax(0, 220px) minmax(0, 1fr); }
 }
 
 /* the 23: the fifteen in a team-sheet shape on the grass, the eight on a bench */
@@ -4677,6 +4738,12 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .inbox-list { display: none; }
 .inbox-panes { display: block; }
 .app.tablet { max-width: none; box-shadow: none; }
+/* NO BARS UPRIGHT (1.8.1). The 560px cap exists for a desktop browser on its
+   side, where a phone-shaped column is easier to read than a line of text a
+   metre long. Upright it only ever made bars: a small 600px tablet kept a
+   strip of dark canvas down each edge that the tablet rule (700px and up)
+   never reached. The widest phone is 430px, so this changes no phone. */
+@media (orientation: portrait) { .app { max-width: none; } }
 @media (orientation: portrait) {
   .app.tablet .content > .card, .app.tablet .content > .chips { max-width: none; }
 
@@ -4688,7 +4755,11 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
   }
   .app.tablet .card-grid > .card { margin: 0; width: auto; }
   .app.tablet .card-grid.one { grid-template-columns: minmax(0, 1fr); }
-  .app.tablet .dash-row { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+  /* 180px, not 150 (1.8.1): on the 768px iPad four panels a row left the
+     fixtures panel 150px wide and "La Rochelle" lost a letter (devicematrix,
+     once an upright tablet counted as one whatever it points with). Three a
+     row there, four from the 1024px iPad up. */
+  .app.tablet .dash-row { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
 
 }
 /* THE INBOX, A MAIL CLIENT, in either orientation: the list down the left,
@@ -4716,8 +4787,15 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .inbox-li.on { background: var(--row-selected-bg); border-left-color: var(--primary); color: var(--text-primary); }
 /* THE TEAM SHEET READS ACROSS on a tablet as it does in landscape: forwards
    left, backs right, instead of one list with a canyon between each name and
-   its stars. Same minmax(0, 1fr) reasoning as the landscape rule. */
-@media (orientation: portrait) {
+   its stars. Same minmax(0, 1fr) reasoning as the landscape rule.
+   FROM 800PX, NOT FROM 700 (1.8.1). The smallest upright iPad is 768px under
+   a 1.15 zoom, which leaves each half about 320px: the shirt, position,
+   stars, form and fitness columns are already sized to their content
+   (.xv-fixed), so the name had 103px and "Ollie Sleightholme" lost his last
+   letters (devicematrix, once a fine-pointer tablet counted as one). There
+   the sheet stays one list, which at 668px has room for every name; from
+   800px (every other iPad and the Android tablets) it reads across. */
+@media (orientation: portrait) and (min-width: 800px) {
   .app.tablet .xv-split {
     display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 0 14px; align-items: start; padding-right: 8px;
@@ -5064,3 +5142,14 @@ a.btn { text-decoration: none; }
    buttons do. */
 .btn.dev-act { position: relative; }
 .btn.dev-act::after { content: ''; position: absolute; inset: -8px -4px; }
+
+/* THE COMMUNITY LINK (1.8.1): a link in the manager's menu and at the foot of
+   Home. A menu row that is an <a> must not pick up a link's underline or its
+   visited colour, and the Home one sits its speech-bubble icon beside the
+   words, centred, the way a button's label does. */
+a.submenu-item { text-decoration: none; box-sizing: border-box; }
+a.btn.home-community {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  box-sizing: border-box; color: var(--text-primary); border-color: var(--border-strong);
+}
+.home-community svg { width: 18px; height: 18px; flex: none; }

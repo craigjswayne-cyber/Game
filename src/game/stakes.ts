@@ -31,6 +31,8 @@ import { WIN_MARKS } from './season'
 import type { Fixture, GameState } from './model'
 import { sortTable } from './schedule'
 import { dreamState } from './dream'
+import { isDerby } from './rivalries'
+import { historyStakes } from './history'
 
 export interface Stake {
   text: string
@@ -142,10 +144,14 @@ export function matchStakes(state: GameState, fx: Fixture): string | null {
 
   // ---- the grudge, the derby, the bogey side ----
   const grudge = grudgeBetween(state, uid, oppId)
-  if (fx.derby) out.push({ text: t('stakes.derbyDay', { club: oppName }), weight: 80 })
+  // isDerby, not fx.derby alone: the flag is written at kick-off (beginMatch),
+  // so a derby still to come read as an ordinary fixture here
+  if (fx.derby || isDerby(fx.homeId, fx.awayId)) out.push({ text: t('stakes.derbyDay', { club: oppName }), weight: 80 })
   // the grudge's own reason is written into the save when the grudge is struck,
   // so it stays in the language it was filed in and the sentence carries it
   if (grudge) out.push({ text: t('stakes.badBlood', { reason: grudge.reason }), weight: 78 })
+  // an earned rivalry, or a club you used to manage (history.ts)
+  out.push(...historyStakes(state, fx))
   const h2h = headToHead(state, oppId)
   if (h2h.streak >= 3) out.push({ text: t('stakes.beatenRun', { club: oppName, n: h2h.streak }), weight: 76 })
 
@@ -206,7 +212,7 @@ export function seasonTentpoles(state: GameState): Tentpole[] {
   const out: Tentpole[] = []
   for (const fx of state.fixtures) {
     if (fx.homeId !== uid && fx.awayId !== uid) continue
-    if (fx.derby) out.push({ week: fx.week, icon: 'derby', label: t('stakes.tpDerby', { club: state.clubs[fx.homeId === uid ? fx.awayId : fx.homeId]?.short ?? '' }) })
+    if (fx.derby || isDerby(fx.homeId, fx.awayId)) out.push({ week: fx.week, icon: 'derby', label: t('stakes.tpDerby', { club: state.clubs[fx.homeId === uid ? fx.awayId : fx.homeId]?.short ?? '' }) })
     if (fx.stage === 'F') out.push({ week: fx.week, icon: 'trophy', label: t('stakes.tpFinal') })
     else if (fx.stage === 'SF') out.push({ week: fx.week, icon: 'trophy', label: t('stakes.tpSemi') })
   }

@@ -26,6 +26,8 @@
  * buy you somebody, it just cannot buy you everybody.
  */
 import type { GameState, Player } from './model'
+import { identityInterestLift } from './identity'
+import { agentWariness } from './memory'
 
 /** keen - his club would take the call and so would he.
  *  listening - he will discuss terms; the money has to be right.
@@ -46,7 +48,8 @@ export function transferInterest(state: GameState, p: Player): Interest {
   if (!seller) return 'keen'
   const gap = seller.rep - user.rep
   if (gap <= 0) return 'keen'             // you are the bigger club: he is flattered
-  if (gap <= INTEREST_GAP) return 'listening'
+  // a man whose game fits the club's identity takes the call from further down (identity.ts)
+  if (gap <= INTEREST_GAP + identityInterestLift(state, p)) return 'listening'
   // Past the gap, three things still open the door - and each is a real reason
   // rather than a random roll, so the filter can be trusted from one week to
   // the next.
@@ -60,10 +63,13 @@ export function transferInterest(state: GameState, p: Player): Interest {
  *  gap is the one who names a number, because that is the whole of why he is
  *  coming; everyone else who is willing is willing for rugby reasons. */
 export function interestPremium(state: GameState, p: Player): number {
+  // AGENTS TALK (memory.ts): a manager who has broken his word lately pays a
+  // little more for anybody's signature, because the agent prices the risk in
+  const wary = agentWariness(state)
   const user = state.clubs[state.userClubId]
   const seller = p.clubId ? state.clubs[p.clubId] : null
-  if (!user || !seller) return 1
+  if (!user || !seller) return wary
   const gap = seller.rep - user.rep
-  if (gap <= INTEREST_GAP) return 1
-  return p.pers === 'Mercenary' ? 1.6 : 1.25
+  if (gap <= INTEREST_GAP + identityInterestLift(state, p)) return wary
+  return (p.pers === 'Mercenary' ? 1.6 : 1.25) * wary
 }

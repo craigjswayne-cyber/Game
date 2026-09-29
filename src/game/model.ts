@@ -1,6 +1,7 @@
 import type { Pos } from '../data/types'
 import { mulberry32 } from './rng'
 import { t, tIn, type Vars } from './i18n'
+import type { LiveStamp } from './resume'
 
 export type { Pos }
 
@@ -437,6 +438,10 @@ export interface Player {
   poty?: number
   /** in the academy squad - hidden from first-team auto-selection until promoted */
   acad?: boolean
+  /** The season he joined an academy, as an intake scholar (1.8.1). The summer
+   *  decision reads it: a first-year is signed or released at the end of his
+   *  first season. Absent on anybody who arrived before it was stamped. */
+  acadJoined?: number
   /** Sent down from the first team by hand (v1.1.18). An academy flag for
    *  selection purposes ONLY: he still counts against the salary cap (cap.ts
    *  - otherwise demotion is a cap dodge) and the season-end academy sweep
@@ -652,6 +657,14 @@ export interface Tactic {
   /** the lineout and scrum routines you are drilling and calling */
   lineoutCall?: string
   scrumCall?: string
+
+  // ---- the attacking moves (1.8.1, moves.ts) --------------------------------
+  /** The strike move run off our lineout and off our scrum, and the shape we
+   *  play in open phases. Absent is no call: exactly the engine before moves
+   *  existed. Drilled in the same Playbook as the set-piece routines. */
+  moveLineout?: string
+  moveScrum?: string
+  moveShape?: string
 
   // ---- the bench economy (F4) ---------------------------------------------
   /** How the eight replacements are split between forwards and backs. Unset
@@ -925,10 +938,19 @@ export interface PressOption {
    *  the same question a week after his boss agreed to it. */
   loan?: boolean
   /** the summer sponsorship decision (25C): choosing an option SIGNS the deal
-   *  there and then, via commercial.offersFor - which is deterministic on
-   *  (seed, season, slot), so the offer named on the button is the offer
-   *  signed. kind 'keep' stays with the department's stopgap. */
-  deal?: { slot: string; kind: 'long' | 'short' | 'clause' | 'keep' }
+   *  there and then. `offer` is the offer the button named, stored when the
+   *  question was built (1.8.1): offersFor is deterministic on the slot's
+   *  reroll counter and the club's reputation as well as the season, and
+   *  either can move between asking and answering. Old saves have no offer
+   *  and fall back to asking offersFor again. kind 'keep' stays with the
+   *  department's stopgap. */
+  deal?: { slot: string; kind: 'long' | 'short' | 'clause' | 'keep'; offer?: import('./commercial').Offer }
+  /** the summer academy decision (1.8.1, acadcall.ts): keep a first-year
+   *  scholar on a development contract ('sign'), give a lad at the age gate
+   *  his first professional contract ('promote'), or let him go ('release').
+   *  `acadWage` is the weekly figure the button quoted, paid as quoted. */
+  acad?: 'sign' | 'promote' | 'release'
+  acadWage?: number
   /** the season-expectations decision (25C): choosing sets
    *  state.stance for the year, which scales how hard the boardroom needle
    *  swings on every result - see boardReaction. */
@@ -966,7 +988,7 @@ export interface PressOption {
 /** A subject a player can raise behind the office door. The office keeps a
  *  memo of who asked what and when, so the same man does not knock again
  *  about the same thing seven days after you answered him. */
-export type OfficeTopic = 'plans' | 'loan' | 'deal' | 'dropped' | 'signing' | 'armband' | 'position'
+export type OfficeTopic = 'plans' | 'loan' | 'deal' | 'dropped' | 'signing' | 'armband' | 'position' | 'mate'
 
 /** A promise made to a player in the office. The squad keeps the receipts:
  *  at the due week it is settled as kept or broken, with consequences. */
@@ -1045,9 +1067,12 @@ export interface TransferOffer {
   status: 'pending' | 'accepted' | 'rejected'
   /** He has already been asked for more once.
    *
-   *  Haggling raises the fee 18% on a 55% roll and leaves the bid pending, so an
-   *  unlimited counter is a money printer: keep demanding until the dice land.
-   *  One round of haggling per offer, then you answer it. */
+   *  Haggling (ai.ts counterIncomingOffer) raises the fee by
+   *  clamp(1.26 - 0.16 x fee/value, 1.06, 1.22), capped at 1.4 x his value and
+   *  the bidder's budget, on a 55% roll, and leaves the bid pending; otherwise
+   *  the bidder walks, and a bid that cannot rise comes back as best and final.
+   *  An unlimited counter would be a money printer (keep demanding until the
+   *  dice land), so it is one round of haggling per offer, then you answer. */
   countered?: boolean
   /** How many times a rival has topped this bid (18C). A war runs three
    *  raises at most, then whoever holds the ball has to hear an answer. */
@@ -1658,9 +1683,13 @@ export interface GameState {
    *  or 45 means a save from before the season grew to 48 weeks, and save.ts
    *  rebases it once, on load, to WEEK_BASIS. */
   basis?: number
-  /** What the club has booked into the empty summer weeks, keyed by week. One
-   *  event a week, because it is one ground. */
+  /** What the club has booked into the empty summer weeks, keyed by
+   *  "season:week" (week alone before 1.8.1). One event a week, because it is
+   *  one ground. */
   closeBook?: Record<string, string>
+  /** The season the board last put the insolvency warning in writing. Once a
+   *  season, and read from here rather than searched for in the inbox. */
+  insolvWarned?: number
   /** Which season each once-a-year talking point last fired in. */
   points?: Record<string, number>
   /** The week a rival coach briefed the press about your side. The next match
@@ -1695,6 +1724,12 @@ export interface GameState {
   analyst?: import('./analyst').AnalystRead | null
   /** how often following his read has paid off */
   analystRecord?: { right: number; wrong: number }
+  /** the Matchday game plan already applied to this fixture, and how many of
+   *  its reads, so the button cannot stack the same nudges twice (1.8.1) */
+  planApplied?: { fx: number; n: number }
+  /** the tactical loop (#181): this week's chosen plan and the last few
+   *  post-match findings, capped (oppreport.ts) */
+  tacLoop?: import('./oppreport').TacLoop
   /** the chief scout is away on a commissioned brief */
   commission?: import('./commission').Commission | null
   /** the report he filed when he got back */
@@ -2006,6 +2041,9 @@ export interface GameState {
   /** per-dial run length of consecutive user matches played at an extreme
    *  (pillar 2's repetition fatigue) - written at settle, read at kick-off */
   dialStreak?: Record<string, number>
+  /** the user's club identity, smoothed over seasons (identity.ts). Absent on
+   *  an older save, which is seeded from its current state on first read. */
+  identity?: import('./identity').ClubIdentity | null
   /** absolute week the availability counter last ticked (see settleGameTime),
    *  so a double-called settle cannot count one match twice */
   availWeek?: number
@@ -2019,6 +2057,8 @@ export interface GameState {
   /** games played together by key partnerships (front row, locks, halfbacks,
    *  centres) - familiarity sharpens the relevant unit. Key: chemKey(a, b) */
   chem?: Record<string, number>
+  /** the dressing room's friendships and rifts (bonds.ts), user club only */
+  bonds?: import('./bonds').BondState
   /** dynamic bad blood between clubs: cup eliminations, poached stars,
    *  ill-tempered matches. Expires after `until` season. */
   /** `reason` is the English the grudge was recorded in and is what an old save
@@ -2062,6 +2102,11 @@ export interface GameState {
    *  the assistant takes it. A phone career is 40 matches a season and not all
    *  of them deserve ninety taps. */
   viewPref?: Record<string, 'full' | 'highlights' | 'instant'>
+  /** A match in progress, inside a save written while it was being played
+   *  (game/resume.ts stampedSave, 1.8.2). The rest of the save is the state
+   *  from before kick-off; opening it resumes the match rather than offering it
+   *  again. Absent on every save written outside a live match. */
+  liveRec?: LiveStamp
   /** open promises made to players in the office, settled at their due week */
   pledges?: Pledge[]
   /** who has raised what behind the office door, and when. A conversation the
@@ -2072,7 +2117,10 @@ export interface GameState {
   intakeClass?: { name: string; pos: Pos; age: number; q: number; pa: number; gk: boolean; wonder: boolean }[] | null
   /** signed pre-contracts: out-of-contract players who move on a free at
    *  the end of the season - binding once agreed */
-  preContracts?: { playerId: number; toClubId: string; week: number }[]
+  /** `wage` is the weekly figure agreed at the table (the manager's own
+   *  pre-contracts), paid from the day he arrives. Absent on the AI's and on
+   *  saves from before 1.8.1. */
+  preContracts?: { playerId: number; toClubId: string; week: number; wage?: number }[]
   /** a takeover in motion (the moneyMen storyline): rumour -> exclusivity ->
    *  completion or collapse */
   takeover?: { clubId: string; week: number; stage: number } | null
@@ -2090,6 +2138,10 @@ export interface GameState {
   /** the annals: every season review of the career, oldest first - the
    *  manager's chronicle, carried across clubs */
   annals?: SeasonReview[]
+  /** the club's memory that acts (histbook.ts): emergent rivalries, the
+   *  season story lines, legends and their records, former clubs. Created on
+   *  first touch; absent on older saves until then. */
+  hist?: import('./histbook').HistBook
   /** injury-crisis alerts already raised: position group -> week fired,
    *  so the assistant nags once a month, not once a week */
   crisisAt?: Record<string, number>
@@ -2158,6 +2210,15 @@ export interface GameState {
   fixHw?: { fxId: number; season: number; week: number; tags: string[] }
   /** the user's hand-picked Test 23 for the current window */
   natLineup?: { team: string; lineup: (number | null)[] } | null
+  /** men the national coach sent home from camp this window. A recall gives
+   *  back the sting of being dropped rather than a fresh +0.5 of pride, so
+   *  call-up and drop cannot be cycled to grind another club's player's
+   *  morale down (9.10). Absent in older saves, cleared with the window. */
+  natSent?: number[]
+  /** the federation's own list for the user's nation, snapshotted when the
+   *  window opened: the yardstick for the two-jobs rule (9.10). Absent in
+   *  older saves and between windows. */
+  natFed?: { nat: string; ids: number[] }
   /** World Player of the Year roll of honour, oldest first - the sport's
    *  history book, one line per season */
   potyRoll?: { season: number; playerId: number; name: string; clubName: string }[]
@@ -2180,6 +2241,12 @@ export interface GameState {
   /** the A League: the academy sides of the user's league, with their own
    *  fixtures and table. Kept outside state.comps deliberately - see academy.ts */
   academy?: import('./academy').AcadLeague
+  /** the manager's memory: decisions with a subject, read back later as
+   *  stories (memory.ts). Absent on older saves; migrate gives an empty log. */
+  memory?: import('./memory').MemoryLog
+  /** the fraction cursor for stories filed without spending nextId
+   *  (heldnews.ts): the base id it counts from and how many it has used */
+  heldIds?: { b: number; n: number }
 }
 
 /** Managerial reputation earned from results and silverware, 30-95. */
@@ -2394,7 +2461,6 @@ export const leagueTier = (leagueId?: string | null): number => LEAGUE_TIER[leag
  */
 export const poss = (name: string) => name.endsWith('s') ? `${name}'` : `${name}'s`
 
-/** Convert (season, week) to a display date. Season 0 week 1 = Sat 6 Sep 2025. */
 /** Close the current national tenure: the Test record moves to the profile's
  *  permanent history and the live fields clear. Called by BOTH doors out -
  *  stepping down and the union's annual-review sack - so neither can lose
@@ -2594,11 +2660,17 @@ export const BENCH_SLOTS: { shirt: number; pos: Pos[] }[] = [
 
 /** The board's stated aim for the season, from club stature. */
 /** `text` is an i18n key: screens t() it, the board's letters tIn('en', …) it. */
-export function boardObjective(rep: number): { text: string; pos: number } {
+/** The board's main aim, and the finish that meets it. `teams` is the size of
+ *  the club's league. "Clear of the bottom two" is a place in a table, and it
+ *  was written as 12, which is only true of a fourteen-club league: in a league
+ *  of twelve, twelfth IS the bottom and still "met" the survival aim, and in a
+ *  league of ten it could not be missed at all (1.8.1). Callers without a table
+ *  get fourteen, which is the figure it always was. */
+export function boardObjective(rep: number, teams = 14): { text: string; pos: number } {
   if (rep >= 87) return { text: 'objectives.boardTitle', pos: 1 }
   if (rep >= 80) return { text: 'objectives.boardPlayoffs', pos: 6 }
   if (rep >= 72) return { text: 'objectives.boardTopHalf', pos: 7 }
-  return { text: 'objectives.boardSurvive', pos: 12 }
+  return { text: 'objectives.boardSurvive', pos: Math.max(1, Math.round(teams) - 2) }
 }
 
 /**

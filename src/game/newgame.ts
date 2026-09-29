@@ -28,6 +28,7 @@ import { buildPlayer, playerValue, resetIds , repriceAcademies, peekPid } from '
 import { regenName } from './nations'
 import { inheritStaff } from './staff'
 import { seedPhilosophies } from './philosophy'
+import { defaultBriefs, splitFor } from './bench'
 import { seedDeals } from './commercial'
 import { clamp } from './rng'
 import { assistantJudgement, autoSelect } from './matchEngine'
@@ -188,8 +189,8 @@ const W_LEAGUE_DEFS: () => LeagueDef[] = () => [
   { id: W + 'pwr', name: "English Women's Premier Division", short: 'Premier', double: true, playoffTeams: 4, clubs: W_PWR },
   { id: W + 'pac', name: "Women's Pacific Championship", short: 'Pacific', double: true, playoffTeams: 4, clubs: W_PAC },
   { id: W + 'e1', name: "French Women's Division 1", short: 'Division 1', double: true, playoffTeams: 6, clubs: W_E1 },
-  // Six clubs, so a double round robin is ten rounds and the season would be
-  // over by Christmas. Played three times, as the real one is.
+  // Six clubs in a double round robin: ten rounds, home and away, then a
+  // two-club final.
   { id: W + 'celt', name: 'Celtic Provinces Cup', short: 'Celtic', double: true, playoffTeams: 2, clubs: W_CELT },
   // Championship North 1 and South 1 as one table, at the owner's request.
   // Twenty clubs play each other once: nineteen rounds fits the season where a
@@ -359,6 +360,11 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
       }
       // bricks and mortar sized to the club's standing, before you arrive
       club.facilities = initFacilities(club, seed)
+      // and the manager's bench already knows what each seat is for
+      // (bench.ts). His club only: every AI bench on these briefs measured
+      // +1.1 points a game and home wins down 1.3 points on bandcheck, and
+      // nobody reads an AI bench's jobs on a screen
+      if (club.id === userClubId) club.tactic.briefs = defaultBriefs(splitFor(club))
       const squad = [...rc.players]
       // men who really play here but are listed elsewhere in the files
       for (const rp of relocate.get(rc.id) ?? []) {

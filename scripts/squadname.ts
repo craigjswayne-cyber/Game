@@ -25,6 +25,7 @@ import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { natCallUp, natEligible, natSquadHold, natWindow, NAT_SQUAD_FLOOR } from '../src/game/country'
 import type { GameState } from '../src/game/model'
+import { federationList } from '../src/game/nations'
 
 let fails = 0
 const ok = (c: boolean, what: string) => {
@@ -42,12 +43,26 @@ function toCamp(seed: number): GameState {
   return g
 }
 
+/** The men the camp opens with and nobody else (9.10): he also runs
+ *  Northampton, so the Saints players on the federation's own list (the one it
+ *  named when the window opened) are released to camp, as they would be to
+ *  any AI federation. Nothing he chose. `onlyDue` is true when the sheet is
+ *  exactly those men and there is at least one of them. */
+function dueOnly(g: GameState): { named: number; due: number; onlyDue: boolean } {
+  const sheet = g.natSquads['ENG'] ?? []
+  const w = natWindow(g)
+  const due = new Set(federationList(g, 'ENG', w?.size ?? 32)
+    .filter(p => p.clubId === g.userClubId).map(p => p.id))
+  return { named: sheet.length, due: due.size, onlyDue: sheet.length > 0 && sheet.length === due.size && sheet.every(id => due.has(id)) }
+}
+
 console.log('\n--- 1. his camp opens blank; the rest of the world picks as it always did\n')
 {
   const g = toCamp(71)
   ok(!!natWindow(g), `a camp is open (wk${g.week})`)
-  ok((g.natSquads['ENG'] ?? []).length === 0,
-    `and his own sheet is blank (${(g.natSquads['ENG'] ?? []).length} named)`)
+  const d = dueOnly(g)
+  ok(d.onlyDue && d.named < NAT_SQUAD_FLOOR,
+    `and his own sheet is blank but for his club's ${d.due} due men (${d.named} named, all of them due)`)
 
   // THE REST OF THE WORLD IS NOT HIS JOB. Thirty federations naming squads is
   // world simulation; if this stopped too, every other nation would field
@@ -63,7 +78,9 @@ console.log('\n--- 2. the week is held until he names one\n')
   const g = toCamp(72)
   const held = natSquadHold(g)
   ok(held != null, `the week is held (${held?.n ?? 0} still to name)`)
-  ok(held?.n === NAT_SQUAD_FLOOR, `and it asks for a legal squad (${held?.n} of ${NAT_SQUAD_FLOOR})`)
+  const d = dueOnly(g)
+  ok(d.onlyDue && held?.n === NAT_SQUAD_FLOOR - d.named,
+    `and it asks for the rest of a legal squad (${held?.n} more on top of ${d.named} due, floor ${NAT_SQUAD_FLOOR})`)
 
   // A HOLD THAT CANNOT BE CLEARED IS A BRICKED SAVE, which is the lesson the
   // press hold cost. There has to be a pool to name from.
@@ -75,6 +92,7 @@ console.log('\n--- 2. the week is held until he names one\n')
 console.log('\n--- 3. naming clears it, and the desk recommends in a sane order\n')
 {
   const g = toCamp(73)
+  const due73 = dueOnly(g).named
   // the same order the desk sorts by: ability, lifted by form
   const recommend = (p: { ca: number; form: number }) => p.ca + (p.form - 5) * 2.2
   const ranked = [...natEligible(g)].sort((a, b) => recommend(b) - recommend(a))
@@ -86,15 +104,16 @@ console.log('\n--- 3. naming clears it, and the desk recommends in a sane order\
   const meanAll = ranked.reduce((s, p) => s + p.ca, 0) / ranked.length
   ok(meanTop > meanAll, `and the men it recommends are the better ones (${meanTop.toFixed(1)} v ${meanAll.toFixed(1)} overall)`)
 
-  let calls = 0
+  let calls = 0, tries = 0
   for (const p of ranked) {
     if (!natSquadHold(g)) break
-    natCallUp(g, p.id)
-    calls++
-    if (calls > 60) break
+    // a call the two-jobs quota refuses (9.10) names nobody, so it is not
+    // counted: the claim is about how many NAMES clear the hold
+    if (natCallUp(g, p.id) == null) calls++
+    if (++tries > 200) break
   }
   ok(natSquadHold(g) == null, `naming a squad clears the hold (${calls} call-ups)`)
-  ok(calls <= NAT_SQUAD_FLOOR, `in no more calls than the floor asks for (${calls})`)
+  ok(calls <= NAT_SQUAD_FLOOR - due73, `in no more calls than the floor asks for beyond the ${due73} due men (${calls})`)
 }
 
 console.log('\n--- 4. and a Test is never played with an empty squad\n')
@@ -103,7 +122,9 @@ console.log('\n--- 4. and a Test is never played with an empty squad\n')
   // a coach appointed after the camp opened - the hold cannot cover those, so
   // the assistant fills a short sheet when kick-off arrives.
   const g = toCamp(74)
-  ok((g.natSquads['ENG'] ?? []).length === 0, 'the coach names nobody at all')
+  const d = dueOnly(g)
+  ok(d.onlyDue && d.named < NAT_SQUAD_FLOOR,
+    `the coach names nobody beyond the ${d.named} due men, so the sheet is short of the floor`)
   let guard = 0
   while (guard++ < 40) {
     const test = g.fixtures.some(f => !f.played && f.week === g.week &&

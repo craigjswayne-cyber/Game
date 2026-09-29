@@ -37,6 +37,7 @@
  * its stories by KEY like the rest of the game, and touches nothing the match
  * engine reads mid-match.
  */
+import { telling } from './tellings'
 import type { GameState, Player } from './model'
 import { clamp } from './rng'
 import { tIn } from './i18n'
@@ -213,14 +214,16 @@ export function terraceWeek(state: GameState) {
   if (stage > seen) {
     state.fanCampaign = stage
     const boss = state.managerName
-    if (stage === 1) terrace(state, 'news.fanRumble', { club: club.short, boss }, 'gossip')
+    // the rumble and the forgiveness come round several times a season as the
+    // mood swings, so each is told three ways in turn (tellings.ts)
+    if (stage === 1) terrace(state, telling(state, 'news.fanRumble'), { club: club.short, boss }, 'gossip')
     if (stage === 2) terrace(state, 'news.fanBanners', { club: club.short, boss, stadium: club.stadium }, 'board')
     if (stage === 3) terrace(state, 'news.fanPlane', { club: club.short, boss, stadium: club.stadium }, 'board')
   } else if (stage === 0 && seen > 0) {
     // the mood has turned: say so, because a campaign that just stops without
     // a word is the game forgetting what it told you
     state.fanCampaign = 0
-    terrace(state, 'news.fanForgiven', { club: club.short, boss: state.managerName }, 'gossip')
+    terrace(state, telling(state, 'news.fanForgiven'), { club: club.short, boss: state.managerName }, 'gossip')
   }
 
   // THE BOARD READS THE SAME PHONE-INS - DOWN TO A POINT, AND NO FURTHER.

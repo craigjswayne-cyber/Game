@@ -26,6 +26,7 @@
  * tells you what it currently is. A memo that also moved the numbers it describes
  * would double-count every result.
  */
+import { telling } from './tellings'
 import { AWARD_EVERY, monthRun } from './awards'
 import { tIn, type Vars } from './i18n'
 import { billOf, capPosition } from './cap'
@@ -270,7 +271,10 @@ export function boardMemo(state: GameState): void {
       '',
       verdict,
     ].join('\n'),
-    k: 'news.boardMemo',
+    // six a season, and the opening line is the one that reads the same every
+    // time: told three ways in turn (tellings.ts). The English body above is
+    // the stored fallback; the reader sees the key.
+    k: telling(state, 'news.boardMemo'),
     v: {
       short: club.short, conf, weeks,
       rows_ll: JSON.stringify(memoRows), verdict_k: verdictKey,

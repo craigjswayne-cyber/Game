@@ -156,12 +156,20 @@ export const isForward = (pos: Pos) => FORWARDS.has(pos)
  *  Five of the eight seats are open, so the split you picked is an intention and
  *  the men in the shirts are the fact. The engine has to read the fact or naming
  *  a six-two and then filling it with backs would collect the six-two's set-piece
- *  reward for a bench that cannot deliver it. */
-export function actualSplit(state: GameState, club: Club | undefined): BenchSplit {
-  if (!club) return DEFAULT_SPLIT
+ *  reward for a bench that cannot deliver it.
+ *
+ *  The engine passes the 23 that actually took the field (1.8.1). The stored
+ *  sheet is not it: an AI club keeps the sheet it was given at world creation
+ *  or in the summer, picked with no split (five-three seats), while it plays a
+ *  23 re-picked every week for its own split, so a six-two or four-four AI
+ *  bench never got its closing-quarter shape; and the manager's sheet can be
+ *  repaired on the day. The Tactics screen, with no match, reads the sheet. */
+export function actualSplit(state: GameState, club: Club | undefined,
+  lineup: readonly (number | null)[] | undefined = club?.tactic.lineup): BenchSplit {
+  if (!club || !lineup) return DEFAULT_SPLIT
   let fw = 0, named = 0
   for (let i = 15; i < 23; i++) {
-    const id = club.tactic.lineup[i]
+    const id = lineup[i]
     const p = id != null ? state.players[id] : null
     if (!p) continue
     named++
@@ -259,6 +267,28 @@ export const BRIEF_BY_ID: Record<string, BriefDef> =
   Object.fromEntries(BRIEFS.map(b => [b.id, b]))
 
 export const DEFAULT_BRIEF: Brief = 'orders'
+
+/** THE BENCH COMES WITH JOBS (1.8.1, owner: "make it so the bench have a few
+ *  different options selected from default to show people they have
+ *  different roles, so not just same job"). What a new career's clubs start
+ *  with, seat by seat, read off the position the seat is for: the front row
+ *  goes on to do the set-piece job it was picked for, the locks and back row
+ *  to carry, the half-backs to manage the game, a centre to shore up the
+ *  midfield, and the back three for fresh legs. Written into the manager's
+ *  tactic at world creation only (newGame), so a save that already has its
+ *  bench keeps it, and a seat left unset still follows the shirt
+ *  (briefForSeat). */
+const BRIEF_BY_POS: Record<Pos, Brief> = {
+  HK: 'orders', LP: 'orders', TP: 'orders',
+  LK: 'impact', FL: 'impact', N8: 'impact',
+  SH: 'manage', FH: 'manage',
+  CE: 'shore',
+  WG: 'impact', FB: 'impact',
+}
+
+export function defaultBriefs(split: BenchSplit): Brief[] {
+  return seatsFor(split).map(seat => BRIEF_BY_POS[seat.pos[0]] ?? DEFAULT_BRIEF)
+}
 
 /** The brief for a bench seat. Unset seats simply follow the shirt. */
 export function briefForSeat(club: Club | undefined, seat: number): Brief {

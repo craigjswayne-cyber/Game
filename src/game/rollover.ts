@@ -1,5 +1,6 @@
 import type { Club, GameState, Player, Pos } from './model'
-import { returnLoanIn } from './loans'
+import { loanOutSummerGain, returnLoanIn } from './loans'
+import { preContractWage } from './ai'
 import { runTeamOfTheYear } from './yearend'
 import { aiBoardsReinvest } from './aiecon'
 import { activePlan, applyAdminPenalties } from './season'
@@ -16,12 +17,15 @@ import { genderOf, W } from './gender'
 import { SLOTS, expireDeals, offersFor } from './commercial'
 import { settleSponsorBonuses } from './sponsortalks'
 import { book, closeBooks } from './books'
-import { OFFICE_OUTLET } from './media'
-import { autoSelect } from './matchEngine'
+import { identityIntakeBonus, identitySeasonEnd } from './identity'
+import { OFFICE_OUTLET, roundMoney } from './media'
+import { autoSelect, repairSheet } from './matchEngine'
+import { splitFor } from './bench'
+import { isleTour } from './isles'
 import { ensureCaptains } from './analysis'
 import { dreamState } from './dream'
 import { objectiveBonus, objectiveById, pickObjectives } from './objectives'
-import { deriveAttrs, isLateBloomer, nextPid, playerValue, playerWage, benchDrag, repriceAcademies } from './attributes'
+import { deriveAttrs, deriveTrait, isLateBloomer, nextPid, playerValue, playerWage, benchDrag, repriceAcademies } from './attributes'
 import { nationByCode, regenName, worldNames } from './nations'
 import { clamp, mulberry32, pick, type Rng } from './rng'
 import { resetFamiliarity } from './playbook'
@@ -30,6 +34,8 @@ import { mentorBoost } from './mentoring'
 import { endSeasonJokers } from './joker'
 import { staffChem } from './staff'
 import { tIn, type Vars } from './i18n'
+import { rememberDeparture } from './memory'
+import { historyYearEnd } from './history'
 
 const ordinal = (n: number) =>
   n <= 0 ? '-' : `${n}${n % 10 === 1 && n !== 11 ? 'st' : n % 10 === 2 && n !== 12 ? 'nd' : n % 10 === 3 && n !== 13 ? 'rd' : 'th'}`
@@ -425,6 +431,7 @@ export function agePlayers(state: GameState, rng: Rng) {
         const c = state.clubs[p.clubId]
         if (c) c.players = c.players.filter(id => id !== p.id)
         p.acad = false
+        rememberDeparture(state, p, 'let-go', state.userClubId) // memory.ts
         p.clubId = null
         released.push(p)
       } else if (p.age === 20) {
@@ -674,6 +681,7 @@ function handleContracts(state: GameState, rng: Rng) {
     const to = state.clubs[pc.toClubId]
     if (!p || !to || p.clubId === pc.toClubId) continue
     const from = p.clubId ? state.clubs[p.clubId] : null
+    if (from) rememberDeparture(state, p, 'let-go', from.id, to.id) // memory.ts: only the user's club
     if (from) {
       from.players = from.players.filter(id => id !== p.id)
       from.tactic.lineup = from.tactic.lineup.map(id => (id === p.id ? null : id))
@@ -690,6 +698,12 @@ function handleContracts(state: GameState, rng: Rng) {
     // the end of the old season and ages correctly into the new one.
     p.joinedAt = absWeek(state.season, state.week)
     p.contractEnds = state.season + 1 + (p.age < 30 ? 2 : 1)
+    // AND ON THE TERMS HE SIGNED FOR. agreePreContract quoted a wage, checked
+    // the budget against it and printed it in the news, and then nothing ever
+    // paid it: he arrived on his old club's wage, and the arrival story
+    // printed that instead. A save from before the figure was stored reads the
+    // same quote again rather than leaving him on the old number.
+    if (to.id === state.userClubId) p.wage = pc.wage ?? preContractWage(p)
     p.morale = clamp(p.morale + 1, 1, 10)
     p.transferListed = false
     p.debutPending = 'signing'
@@ -703,7 +717,7 @@ function handleContracts(state: GameState, rng: Rng) {
   if (freeMoves.length) {
     const one = freeMoves.length === 1
     const line = (m: typeof freeMoves[0]) =>
-      `${m.p.name} (${m.p.pos}, ${m.p.age}) to ${m.to.name} on ${fmtMoney(m.p.wage)}/week until ${2026 + m.p.contractEnds}${m.from ? `, leaving ${m.from.short} watching a ${fmtMoney(m.p.value)} asset walk out the door` : ''}`
+      `${m.p.name} (${m.p.pos}, ${m.p.age}) to ${m.to.name} on ${fmtMoney(m.p.wage)}/week until ${BASE_YEAR + m.p.contractEnds}${m.from ? `, leaving ${m.from.short} watching a ${fmtMoney(m.p.value)} asset walk out the door` : ''}`
     // the three biggest moves in full, the rest counted: a six-deal summer at
     // 130 characters a deal blew straight through the 800-character inbox
     // ceiling (19A) the first time the world dealt one - caught by
@@ -722,7 +736,7 @@ function handleContracts(state: GameState, rng: Rng) {
         men_l: JSON.stringify(shown.map(m => ({
           k: m.from ? 'news.freeManFrom' : 'news.freeMan',
           name: m.p.name, pos: m.p.pos, age: m.p.age, to: m.to.name,
-          wage: fmtMoney(m.p.wage), until: 2026 + m.p.contractEnds,
+          wage: fmtMoney(m.p.wage), until: BASE_YEAR + m.p.contractEnds,
           from: m.from?.short ?? '', value: fmtMoney(m.p.value),
         }))),
         rest_k: rest > 0 ? 'news.freeRest' : 'common.nothing', rest,
@@ -766,7 +780,7 @@ function handleContracts(state: GameState, rng: Rng) {
         continue
       }
       club.players = club.players.filter(id => id !== p.id)
-      if (p.clubId === state.userClubId) freed.push(p)
+      if (p.clubId === state.userClubId) { freed.push(p); rememberDeparture(state, p, 'let-go', state.userClubId) }
       p.clubId = null
       p.transferListed = false
     }
@@ -812,7 +826,7 @@ export function rollIntakeClass(state: GameState, rng: Rng): NonNullable<GameSta
   const out: NonNullable<GameState['intakeClass']> = []
   for (let i = 0; i < n; i++) {
     const pos = pick(rng, YOUTH_POS)
-    const q = 38 + Math.floor(rng() * 22) + Math.floor(club.rep / 12) + Math.round(coe * 1.2) + natTalentBonus(club.country)
+    const q = 38 + Math.floor(rng() * 22) + Math.floor(club.rep / 12) + Math.round(coe * 1.2) + natTalentBonus(club.country) + identityIntakeBonus(state)
     // A wonderkid every couple of seasons rather than every four (user: "there
     // should be more wonderkids in academy's"). The balance holds because the
     // flag is only a CEILING: whether he ever reaches it is now down to the
@@ -857,6 +871,8 @@ function youthIntake(state: GameState, rng: Rng) {
         value: 0, stats: emptyStats(), career: [], transferListed: false, youth: true, acad: true,
         pers: assignPersonality(rng, a),
         sc: 100,
+        // 1.8.1: the season he joins, for the summer sign-or-release decision
+        acadJoined: state.season + 1,
       }
       p.value = playerValue(p.ca, p.age, p.pa, p.pos, undefined, undefined, p.caps)
       state.players[p.id] = p
@@ -926,6 +942,8 @@ function youthIntake(state: GameState, rng: Rng) {
         value: 0, stats: emptyStats(), career: [], transferListed: false, youth: true, acad: true,
         pers: assignPersonality(rng, a),
         sc: 15,
+        // 1.8.1: the season he joins, for the summer sign-or-release decision
+        acadJoined: state.season + 1,
       }
       p.value = playerValue(p.ca, p.age, p.pa, p.pos, undefined, undefined, p.caps)
       state.players[p.id] = p
@@ -1101,7 +1119,7 @@ export function rebuildSeason(state: GameState) {
       .map(id => state.players[id])
       .filter((p): p is Player => !!p && p.clubId === state.userClubId)
     if (lionsHome.length) {
-      const comp = state.comps['lions']
+      const comp = isleTour(state)
       const seriesWon = comp?.champion === 'LIO'
       for (const p of lionsHome) {
         p.morale = clamp(p.morale + 0.6, 1, 10)
@@ -1377,7 +1395,7 @@ export function rebuildSeason(state: GameState) {
     if (comp) {
       const pos = sortTable(comp.table).findIndex(r => r.teamId === club.id) + 1
       state.mgr.finishes.push({ season: state.season, leagueId: club.leagueId, pos, clubId: club.id })
-      const obj = boardObjective(club.rep)
+      const obj = boardObjective(club.rep, comp.table.length)
       const wonLeague = comp.champion === club.id
       userFinishPos = pos
       userWonLeague = wonLeague
@@ -1493,7 +1511,11 @@ export function rebuildSeason(state: GameState) {
 
   // bums on seats: clubs that keep selling out build bigger stands
   for (const club of Object.values(state.clubs)) {
-    const home = state.fixtures.filter(f => f.played && f.homeId === club.id && f.att)
+    // league and cup gates only, the rule expansionPlan states for every such
+    // aggregate: a friendly is priced at 38% interest, and counting it read a
+    // sold-out season as under nine-tenths full, so the following never grew
+    // for a club that played friendlies (1.8.1)
+    const home = state.fixtures.filter(f => f.played && f.homeId === club.id && f.att && f.compId !== 'fr')
     // THE SAME LADDER THE MANAGER CLIMBS (v1.6.8). A stage-five stadium is
     // the top of the estate for every club in the world, not only for the one
     // the user happens to be sitting at, or the map would be drawing a rule
@@ -1543,6 +1565,7 @@ export function rebuildSeason(state: GameState) {
     }
   }
 
+  identitySeasonEnd(state) // the identity's expectations, met or missed (identity.ts)
   // archive player season -> career
   for (const p of Object.values(state.players)) {
     if (p.stats.apps > 0 && p.clubId) {
@@ -1553,6 +1576,11 @@ export function rebuildSeason(state: GameState) {
     // season actually held (25D: minutes-gated growth)
     p.lastStarts = p.stats.starts
     p.stats = emptyStats()
+    // the last week he played belongs to the season being wiped with these
+    // stats. Kept, a man who played in week 40 read as having "played last
+    // week" until week 41 of the next season: the weekly morale drift never
+    // saw him as frozen out, and the press never asked why he was benched.
+    p.lastWk = undefined
     p.avail = 0
     p.form = 6
     // The summer lifts a man one notch - a break does that - but it no longer
@@ -1574,7 +1602,8 @@ export function rebuildSeason(state: GameState) {
       // back from a season of first-team rugby elsewhere
       p.onLoan = false
       p.loanClub = undefined
-      if (p.ca < p.pa) p.ca = clamp(p.ca + 2 + Math.floor(mulberry32(state.seed + p.id)() * 3), 1, p.pa)
+      if (p.ca < p.pa) p.ca = clamp(p.ca + loanOutSummerGain(state, p), 1, p.pa)
+      p.loanSince = undefined
       if (p.clubId === state.userClubId) {
         state.news.push({
           id: state.nextId++, week: 1, season: state.season + 1, type: 'youth', read: false,
@@ -1588,6 +1617,8 @@ export function rebuildSeason(state: GameState) {
     p.ca0 = p.ca
   }
   state.natSquads = {}
+  delete state.natSent
+  delete state.natFed
   state.natLineup = null
 
   agePlayers(state, rng)
@@ -1627,6 +1658,15 @@ export function rebuildSeason(state: GameState) {
       p.clubId = null
       p.transferListed = false
     }
+  }
+
+  // EVERY MAN BORN THIS SUMMER GETS HIS SIGNATURE. buildPlayer derives a trait
+  // and the summer's own makers (intake, heirs, replenishment) did not, so a
+  // regen went a season without one - until a save and reload, where migrate
+  // derived it from his attributes. A reload changing the simulation is a bug
+  // whichever side of it is right; this is the same derivation, done here.
+  for (const p of Object.values(state.players)) {
+    if (p.trait === undefined) p.trait = deriveTrait(p)
   }
 
   // keep the free-agent pool from growing without bound over long careers
@@ -1813,6 +1853,8 @@ export function rebuildSeason(state: GameState) {
   // the season's books close on the balance as it stands, and the next
   // season's open on the same figure the first time money moves (books.ts)
   closeBooks(state)
+  // the club's memory closes the year: rivalries, legends, the annals line (history.ts)
+  historyYearEnd(state)
   state.season += 1
   // F30: a deal whose term ran out with the old season is gone, and the manager
   // is told, because an empty commercial slot pays nothing and that has to be a
@@ -1823,7 +1865,18 @@ export function rebuildSeason(state: GameState) {
   state.finHist = []
   state.fixtures = []
   state.offers = []
-  state.vacancies = []
+  // OPEN JOBS CARRY OVER THE SUMMER, their clock rebased onto the new season.
+  // They used to be wiped here, and a club's new coach is only ever appointed
+  // when its vacancy EXPIRES (jobs.ts refreshVacancies), so every club with a
+  // job open at the end of May went coachless for the rest of the career. With
+  // the week counted back by a season, a vacancy that was already old expires
+  // in week 1 and the club appoints; one opened in the close season stays on
+  // the Job Centre for the weeks it has left, and an offer made against it can
+  // still be answered. The union's offer keeps the same clock for the same
+  // reason: its three-week shelf life compares weeks, and without the rebase a
+  // letter from week 46 never met the test again.
+  state.vacancies = state.vacancies.map(v => ({ ...v, week: v.week - SEASON_WEEKS }))
+  if (state.natOffer) state.natOffer = { ...state.natOffer, week: state.natOffer.week - SEASON_WEEKS }
   state.devFocus = state.devFocus.filter(id => state.players[id]?.clubId === state.userClubId)
   state.press = state.press.filter(p => !p.answered).slice(-5)
 
@@ -1849,7 +1902,7 @@ export function rebuildSeason(state: GameState) {
       // press room a career actually produces.
       const qv = { slot_k: slot.name, weekly: fmtMoney(d.weekly) }
       const sponsorOpt = (o: typeof lng, kind: 'long' | 'short' | 'clause', lk: string, rk: string) => ({
-        morale: 0, board: 0, deal: { slot: slot.id, kind },
+        morale: 0, board: 0, deal: { slot: slot.id, kind, offer: o },
         lk, lv: { sponsor: o.sponsor, weekly: fmtMoney(o.weekly), n: o.years },
         rk, rv: { n: o.years },
         label: tIn('en', lk, { sponsor: o.sponsor, weekly: fmtMoney(o.weekly), n: o.years }),
@@ -2033,12 +2086,26 @@ export function rebuildSeason(state: GameState) {
     const frac = finishFrac.get(club.id)
     const target = frac == null ? 75 : 86 - frac * 54
     club.boardConfidence = clamp(club.boardConfidence * 0.55 + target * 0.45, 0, 100)
+    // THE MANAGER'S OWN SHEET SURVIVES THE SUMMER. It used to be re-picked here
+    // for every club, his included, and marked as the game's, so a side he had
+    // chosen with care came back in August as the auto-pick's. Only the men who
+    // have actually gone (sold, released, retired, loan over) lose their shirts;
+    // the gaps are filled the way a match-day repair fills them and the rest of
+    // the twenty-three stands exactly as he wrote it.
+    const mine = club.id === state.userClubId && !state.unemployed && club.tactic.userPicked === true
+    const kept = mine
+      ? club.tactic.lineup.map(id => id != null && state.players[id]?.clubId === club.id && !state.players[id].loanFrom ? id : null)
+      : []
+    if (kept.some(id => id != null)) {
+      club.tactic.lineup = keepSheet(state, club, kept)
+      continue
+    }
     const pool = club.players.map(id => state.players[id]).filter(Boolean)
     club.tactic.lineup = autoSelect(state, pool)
     // The sheet this line just wrote is the game's, not the manager's, so the
-    // engine's tidy-up may look at it again. userPicked survives a season
-    // otherwise, and a team sheet from last summer - men sold, men signed, men
-    // retired - is exactly the case the tidy-up was built for.
+    // engine's tidy-up may look at it again. A sheet the game picked for him
+    // last season is re-picked like anyone's; only one he wrote himself is
+    // carried over, above.
     club.tactic.userPicked = false
   }
 
@@ -2073,8 +2140,15 @@ export function rebuildSeason(state: GameState) {
         // with the advance and always aiming high is a bet, not a salary. At
         // 2x the high road taxed a career 100k a season; at 1.2x it paid 173k
         // a season - both free lunches, one in each direction.
-        const claw = Math.round((state.stanceFund * 1.75) / 50_000) * 50_000
-        club.budget = Math.max(200_000, club.budget - claw)
+        // Rounded the way the chest was, and floored in proportion (1.8.1): a
+        // flat £200,000 floor and fifty-thousand rounding were Premiership
+        // figures, so a small club's claw rounded to nothing while the floor
+        // lifted its budget above where it stood before the claw.
+        // (a chest of £100,000 and up claws back exactly as it always did)
+        const claw = state.stanceFund >= 100_000
+          ? Math.round((state.stanceFund * 1.75) / 50_000) * 50_000
+          : roundMoney(state.stanceFund * 1.75)
+        club.budget = Math.max(Math.min(200_000, Math.round(club.budget * 0.25)), club.budget - claw)
         state.news.push({
           id: state.nextId++, week: 1, season: state.season, type: 'board', read: false,
           subject: `The board recalls the war chest`,
@@ -2171,7 +2245,10 @@ export function rebuildSeason(state: GameState) {
  *  invinciblesCheck is exported below. */
 export function challengeCheck(state: GameState) {
   const ch = state.challenge
-  if (!ch) return
+  // a challenge is completed by the manager, not by his old club: userClubId
+  // still names the club that sacked him, so without this a man out of work
+  // could collect the badge for what his successor did there
+  if (!ch || state.unemployed) return
   const uid = state.userClubId
   const prev = state.season - 1 // the season just completed
   const wonEver = (compId: string) => state.history.some(h => h.champion === uid && h.compId === compId)
@@ -2265,4 +2342,17 @@ export function invinciblesCheck(state: GameState) {
     hk: 'cel.invincibles',
     sk: 'cel.invinciblesSub', sv: { club: club.name, manager: state.managerName },
   }
+}
+
+/**
+ * The manager's sheet with its empty shirts filled. repairSheet does the
+ * filling (from the men he did not name, so nobody he picked is displaced), but
+ * it also leaves out anyone who cannot play today, and in the summer that is a
+ * man carrying a knock into pre-season. His shirt is held for him, as it is on
+ * match day, so he is put back where the manager had him.
+ */
+function keepSheet(state: GameState, club: Club, kept: (number | null)[]): (number | null)[] {
+  const filled = repairSheet(state, club, kept, splitFor(club))
+  const named = new Set(kept.filter((x): x is number => x != null))
+  return filled.map((id, i) => kept[i] ?? (id != null && named.has(id) ? null : id))
 }

@@ -7,13 +7,13 @@ import { flagOf, nationName } from '../../game/nations'
 import { fineAttr, playerWage } from '../../game/attributes'
 import { attrRange, fuzzedCa, knowledge, persKnown, reportStage } from '../../game/scout'
 import { benchNote, temperRead } from '../../game/temperament'
+import { bondsLine } from '../../game/bonds'
 import { canAgencyFile } from '../../game/rewarded'
 import { rewardedAvailable } from '../../game/monetise'
-import { LOAN_BUY_MIN_WEEKS, loanBuy, loanBuyOffer, loanOut, loanRecall } from '../../game/loans'
+import { LOAN_BUY_MIN_WEEKS, loanBuy, loanBuyOffer, loanOut, loanOutBoost, loanRecall } from '../../game/loans'
 import { releaseBlock, releaseCost, releasePlayer } from '../../game/release'
-import { MARQUEE_SLOTS } from '../../game/cap'
+import { MARQUEE_SLOTS, marqueeOpen, toggleMarquee } from '../../game/cap'
 import { answerRequest, canAnswerRequest, canChat, chatBudget, praisePlayer, warnPlayer } from '../../game/chats'
-import { mulberry32 } from '../../game/rng'
 import { attrBand, attrBandIndex, attrName, persName, posName, t, traitInfo, traitName, localeTag } from '../../game/i18n'
 import { Glyph } from '../glyphs'
 
@@ -150,6 +150,21 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             <div className="fact-label">{t(mine ? 'player.readStaff' : 'player.readScouts')}</div>
             {tr.lines.map(l => <div key={l.k} className="meta">{t(l.k, l.v)}</div>)}
             {bn && <div className="meta bench-note">{t(bn.k, bn.v)}</div>}
+          </div>
+        )
+      })()}
+
+      {/* ---- WHO HE IS CLOSE TO (bonds.ts): one line, no new screen ---- */}
+      {(() => {
+        const b = bondsLine(game, p)
+        if (!b) return null
+        const names = (ps: Player[]) => ps.map(x => x.name).join(t('common.listSep'))
+        return (
+          <div className="card bonds-card">
+            <div className="fact-label">{t('player.bondsLabel')}</div>
+            {b.voice && <div className="meta">{t('player.bondsVoice')}</div>}
+            {b.close.length > 0 && <div className="meta">{t('player.bondsClose', { names: names(b.close) })}</div>}
+            {b.clash.length > 0 && <div className="meta">{t('player.bondsClash', { names: names(b.clash) })}</div>}
           </div>
         )
       })()}
@@ -494,7 +509,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           recalled at any point"). The verdict mirrors the loan-watch postcard's
           own deterministic roll, so the page and the letters agree. */}
       {mine && p.onLoan && (() => {
-        const boost = 2 + Math.floor(mulberry32(game.seed + p.id)() * 3)
+        const boost = loanOutBoost(game, p)
         const verdict = t(p.ca >= p.pa ? 'player.loanHisLevel'
           : boost >= 4 ? 'player.loanFirstName'
           : boost === 3 ? 'player.loanGrowing'
@@ -570,9 +585,12 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         const marquee = club.marquee ?? []
         const isMarquee = marquee.includes(p.id)
         if (!isMarquee && marquee.length >= 2) return null
+        // the list is lodged in the window (cap.ts marqueeOpen): outside it the
+        // page says why rather than offering a button that cannot work
+        if (!marqueeOpen(game)) return <div className="meta muted" style={{ marginTop: 6 }}>{t('player.marqueeLocked')}</div>
         return (
           <button className={`btn ${isMarquee ? '' : 'ghost'} block`} onClick={() => {
-            club.marquee = isMarquee ? marquee.filter(id => id !== p.id) : [...marquee, p.id]
+            if (!toggleMarquee(game, p.id)) return
             setMsg(isMarquee
               ? t('player.marqueeLost', { name: p.name })
               : t(2 - marquee.length - 1 === 1 ? 'player.marqueeGivenOne' : 'player.marqueeGiven', { name: p.name, n: 2 - marquee.length - 1 }))
