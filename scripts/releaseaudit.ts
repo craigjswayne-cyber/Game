@@ -17,8 +17,8 @@ import { beginMatch, stepTick, playSegment, resolveDecision, applyTacticsChange,
 import type { LiveCtx } from '../src/game/matchEngine'
 import { processWeekAndAdvance } from '../src/game/season'
 import { mulberry32 } from '../src/game/rng'
-import { capPosition, capRefusal, auditCaps, refreshCaps } from '../src/game/cap'
-import { offerRenewalAt, renewalDemand } from '../src/game/ai'
+import { capPosition, auditCaps, refreshCaps } from '../src/game/cap'
+import { capBreak, offerRenewalAt, renewalDemand } from '../src/game/ai'
 import { applyHeal, applyEstate, applyPinnacle, applyInjection, injectionsLeft, healReady } from '../src/game/grants'
 import { buyConsumable, buyOwnable, adsAllowed, showRewarded, creditCount, SELLABLE_SKUS, HEAL_SKU, SUPPORTER_SKU, INJECT_SKUS } from '../src/game/monetise'
 import { canPhysioFavour, physioFavour, canAgencyFile, agencyFile, armAnalyst, analystArmed, canTownCollection, townCollection } from '../src/game/rewarded'
@@ -397,8 +397,8 @@ section('2.2 squad: promotion, position cover, renegotiation, and the cap by one
   const pos0 = capPosition(u, user.id)
   if (pos0.cap == null) { ok(false, 'the user\'s division has no cap to test') } else {
     const room = pos0.headroom
-    ok(capRefusal(u, user.id, room) === null, `a wage that lands exactly on the cap (headroom ${room}) is accepted`)
-    const r1 = capRefusal(u, user.id, room + 1)
+    ok(capBreak(u, user.id, room) === null, `a wage that lands exactly on the cap (headroom ${room}) is accepted`)
+    const r1 = capBreak(u, user.id, room + 1)
     ok(r1 !== null, `one pound over is refused: "${r1?.slice(0, 100)}"`)
     // now finish the season one pound over and let the auditors in
     const payer = user.players.map(id => u.players[id]).filter(p => !p.acad && !(user.marquee ?? []).includes(p.id))[0]
