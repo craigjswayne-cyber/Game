@@ -5105,6 +5105,15 @@
     "devReviewSubj": "Bilan de progression de l'été",
     "devReview": "Le staff a terminé son bilan estival des jeunes joueurs, et a changé d'avis sur certains d'entre eux.\n{rows_ll}\nLe détail figure sur la fiche de chaque joueur.",
     "devReview_f": "Le staff a terminé son bilan estival des jeunes joueuses, et a changé d'avis sur certaines d'entre elles.\n{rows_ll}\nLe détail figure sur la fiche de chaque joueuse.",
+    "intakePicksSubj": "Les choix du directeur du centre de formation",
+    "intakePicks": "Parmi la nouvelle promotion, le directeur du centre de formation distingue :\n{rows_ll}",
+    "intakePick": "{name} ({pos}, {age}), plafond projeté {range}. {q_k} {s_k}",
+    "devBreakthroughSubj": "{player} franchit un cap à l'entraînement",
+    "devBreakthrough": "Les entraîneurs signalent que {player} a franchi un cap à l'entraînement : le travail des dernières semaines paie.",
+    "devStalledSubj": "{player} : la progression est au point mort",
+    "devStalled": "Les entraîneurs signalent que la progression de {player} est au point mort cette saison.",
+    "devStalledMinsSubj": "{player} : la progression est au point mort",
+    "devStalledMins": "Les entraîneurs signalent que la progression de {player} est au point mort. Il faut du temps de jeu.",
     "releasedOneSubj": "Le contrat de formation de {who} expire - il s'en va",
     "releasedOne": "Aucun contrat professionnel n'a été proposé, alors à 21 ans la route du centre de formation s'arrête : {men_l} part libre. L'entraîneur du centre vide son casier et repart avec la promotion suivante.",
     "releasedManySubj": "{n} contrats de formation expirent - ils s'en vont",
@@ -8467,7 +8476,24 @@
     "tlUp": "Ambitions relevées",
     "tlDown": "Ambitions revues à la baisse",
     "tlPlan": "Programme individuel",
-    "reviewUp": "{name} : les progrès laissent entrevoir un potentiel plus élevé que prévu.",
-    "reviewDown": "{name} : la progression est au point mort, et le staff a revu ses ambitions à la baisse."
+    "reviewUp": "{name} : projection revue, de {from} à {to}. Les progrès laissent entrevoir un potentiel plus élevé que prévu.",
+    "reviewDown": "{name} : projection revue, de {from} à {to}. Le staff a revu ses ambitions à la baisse.",
+    "intakeQuick": {
+      "defence": "Des instincts défensifs remarquables.",
+      "attack": "De très bonnes mains et un sens inné de la passe.",
+      "physical": "Physiquement en avance pour son âge.",
+      "setpiece": "Un talent naturel en phases statiques.",
+      "kicking": "Un jeu au pied très prometteur.",
+      "reading": "Lit le jeu remarquablement bien."
+    },
+    "intakeQuickNone": "Un profil complet.",
+    "intakeSlow": {
+      "defence": "Le travail défensif demandera beaucoup d'entraînement.",
+      "attack": "La prise de balle demande beaucoup de travail.",
+      "physical": "Un gros développement physique reste à faire.",
+      "setpiece": "Les détails des phases statiques demandent beaucoup de travail.",
+      "kicking": "Le jeu au pied demande beaucoup de travail.",
+      "reading": "Doit apprendre à lire le jeu."
+    }
   }
 }

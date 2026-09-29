@@ -11,7 +11,8 @@ import {absWeek, BASE_YEAR, boardObjective, boardPatience, closeNatTenure, deman
 import { assignPersonality, EARLY_FADE, LATE_PEAK } from './attributes'
 import { ageAttributes, gapGrowth } from './ageing'
 import { COE_MEAN, learning, markSights, seasonReview, tempoF, TL } from './devproject'
-import { scoutPa } from './scout'
+import { paRange, scoutPa } from './scout'
+import { intakePicks } from './devnews'
 import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildWomensContinentalCup, buildLeague, schedulePreseason, sortTable } from './schedule'
 import { punditPredictions } from './gossip'
 import { CHALLENGES, LEAGUE_DEFS } from './newgame'
@@ -905,6 +906,7 @@ function youthIntake(state: GameState, rng: Rng) {
         })
       }
     })
+    const intake = userClub.players.slice(-spec.length).map(id => state.players[id]).filter((x): x is Player => !!x)
     const best = Math.max(0, ...spec.map(s => s.pa))
     const grade = best >= 96 ? 'A' : best >= 90 ? 'B' : best >= 82 ? 'C' : best >= 74 ? 'D' : 'E'
     state.news.push({
@@ -922,6 +924,7 @@ function youthIntake(state: GameState, rng: Rng) {
       k: 'news.intakeDay',
       v: { grade, rows_ll: JSON.stringify(reportRows), verdict_k: `news.intakeDay${grade}` },
     })
+    intakePicks(state, intake)
     state.intakeClass = null
   }
 
@@ -1585,8 +1588,13 @@ export function rebuildSeason(state: GameState) {
   // estimate is read before and after the summer, so the row can say whether
   // they raised or lowered their sights.
   const sightsBefore = new Map<number, number>()
+  const bandBefore = new Map<number, string>()
+  const bandText = (r: [number, number] | null) => (r ? (r[0] === r[1] ? `${r[0]}` : `${r[0]}-${r[1]}`) : '')
   for (const p of Object.values(state.players)) {
-    if (p.clubId === state.userClubId && p.age <= 23) sightsBefore.set(p.id, scoutPa(state, p))
+    if (p.clubId === state.userClubId && p.age <= 23) {
+      sightsBefore.set(p.id, scoutPa(state, p))
+      bandBefore.set(p.id, bandText(paRange(state, p)))
+    }
     seasonReview(state, p, p.clubId === state.userClubId && !!activePlan(state, p.id))
     if (p.stats.apps > 0 && p.clubId) {
       p.career.push({ season: state.season, clubId: p.clubId, apps: p.stats.apps, tries: p.stats.tries, points: p.stats.points })
@@ -1642,14 +1650,18 @@ export function rebuildSeason(state: GameState) {
   state.natLineup = null
 
   agePlayers(state, rng)
-  const moved: { k: string; name: string }[] = []
+  const moved: { k: string; name: string; from: string; to: string }[] = []
   for (const [id, before] of sightsBefore) {
     const p = state.players[id]
     if (!p || p.clubId !== state.userClubId) continue
     markSights(p, Math.round(before), Math.round(scoutPa(state, p)))
     const f = p.tl?.[p.tl.length - 1]?.[2] ?? 0
-    if (f & TL.up) moved.push({ k: 'dev.reviewUp', name: p.name })
-    else if (f & TL.down) moved.push({ k: 'dev.reviewDown', name: p.name })
+    // PROJECTION REVISED: the band as it read before the summer and after it,
+    // both through the fog (scout.ts paRange), never the number behind them
+    const from = bandBefore.get(id) ?? '', to = bandText(paRange(state, p))
+    if (!from || !to || from === to) continue
+    if (f & TL.up) moved.push({ k: 'dev.reviewUp', name: p.name, from, to })
+    else if (f & TL.down) moved.push({ k: 'dev.reviewDown', name: p.name, from, to })
   }
   // the staff's summer review in one letter, only when they changed their minds
   if (moved.length && !state.unemployed) {

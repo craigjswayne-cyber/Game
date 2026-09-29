@@ -4964,6 +4964,15 @@
   "lastYearMan": "{name} ({age}, {pos})",
   "devReviewSubj": "Summer development review",
   "devReview": "The coaching staff have finished their summer review of the young players, and they have changed their minds about some of them.\n{rows_ll}\nThe full picture is on each player's page.",
+  "intakePicksSubj": "The academy director's picks",
+  "intakePicks": "Of the new intake, the academy director singles out:\n{rows_ll}",
+  "intakePick": "{name} ({pos}, {age}), projected ceiling {range}. {q_k} {s_k}",
+  "devBreakthroughSubj": "{player} makes a breakthrough in training",
+  "devBreakthrough": "The coaches report that {player} has made a breakthrough in training: the work of the last few weeks is showing.",
+  "devStalledSubj": "{player}: development has stalled",
+  "devStalled": "The coaches report that {player}'s development has stalled this season.",
+  "devStalledMinsSubj": "{player}: development has stalled",
+  "devStalledMins": "The coaches report that {player}'s development has stalled. Needs minutes.",
   "releasedOneSubj": "{who}'s development deal expires - he leaves",
   "releasedOne": "No professional terms were offered, so at 21 the academy road ends: {men_l} leaves as a free agent. The academy coach clears his locker and starts again with the next intake.",
   "releasedManySubj": "{n} academy deals expire - they leave",
@@ -8359,7 +8368,24 @@
   "tlUp": "Sights raised",
   "tlDown": "Sights lowered",
   "tlPlan": "On a programme",
-  "reviewUp": "{name}: progress suggests higher upside than first thought.",
-  "reviewDown": "{name}: development has stalled, and the staff have lowered their sights."
+  "reviewUp": "{name}: projection revised, {from} to {to}. Progress suggests higher upside than first thought.",
+  "reviewDown": "{name}: projection revised, {from} to {to}. The staff have lowered their sights.",
+  "intakeQuick": {
+   "defence": "Outstanding defensive instincts.",
+   "attack": "Lovely hands and a natural passer.",
+   "physical": "Physically advanced for the age.",
+   "setpiece": "A natural at the set piece.",
+   "kicking": "A gifted kicker of the ball.",
+   "reading": "Reads the game unusually well."
+  },
+  "intakeQuickNone": "A rounded prospect.",
+  "intakeSlow": {
+   "defence": "Defensive work needs a lot of coaching.",
+   "attack": "The handling needs significant work.",
+   "physical": "Needs significant physical development.",
+   "setpiece": "The set-piece detail needs significant work.",
+   "kicking": "The kicking needs significant work.",
+   "reading": "Needs to learn to read the game."
+  }
  }
 }

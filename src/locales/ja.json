@@ -4814,6 +4814,15 @@
   "lastYearMan": "{name}（{age}、{pos}）",
   "devReviewSubj": "夏の成長レビュー",
   "devReview": "コーチ陣が若手の夏のレビューを終え、何人かについて見立てを改めた。\n{rows_ll}\n詳しくは各選手のページで。",
+  "intakePicksSubj": "アカデミーディレクターの注目株",
+  "intakePicks": "新入生のうち、アカデミーディレクターが挙げるのは次のとおり。\n{rows_ll}",
+  "intakePick": "{name}（{pos}、{age}歳）、予測ポテンシャル{range}。{q_k}{s_k}",
+  "devBreakthroughSubj": "{player}、練習で一皮むける",
+  "devBreakthrough": "コーチ陣によると、{player}が練習で一皮むけた。ここ数週間の取り組みが実を結んでいる。",
+  "devStalledSubj": "{player}、成長が停滞",
+  "devStalled": "コーチ陣によると、{player}の今季の成長は止まっている。",
+  "devStalledMinsSubj": "{player}、成長が停滞",
+  "devStalledMins": "コーチ陣によると、{player}の成長は止まっている。出場時間が必要だ。",
   "releasedOneSubj": "{who}の育成契約が満了：退団へ",
   "releasedOne": "プロ契約は提示されず、21歳でアカデミーの道は終わる。{men_l}はフリーエージェントとして去る。アカデミーコーチはロッカーを片付け、次の新入生とやり直しだ。",
   "releasedManySubj": "育成契約{n}件が満了：退団へ",
@@ -7943,7 +7952,24 @@
   "tlUp": "評価上方修正",
   "tlDown": "評価下方修正",
   "tlPlan": "個別プログラム",
-  "reviewUp": "{name}：成長ぶりから、当初の見立てより伸びしろがありそうだ。",
-  "reviewDown": "{name}：成長が止まり、スタッフは見立てを下方修正した。"
+  "reviewUp": "{name}：予測を修正（{from}から{to}へ）。成長ぶりから、当初の見立てより伸びしろがありそうだ。",
+  "reviewDown": "{name}：予測を修正（{from}から{to}へ）。スタッフは見立てを下方修正した。",
+  "intakeQuick": {
+   "defence": "守備の嗅覚が抜群。",
+   "attack": "ハンドリングが柔らかく、生まれながらのパサー。",
+   "physical": "年齢の割にフィジカルが完成している。",
+   "setpiece": "セットプレーの天性の素質がある。",
+   "kicking": "キックの才能に恵まれている。",
+   "reading": "試合を読む力が際立っている。"
+  },
+  "intakeQuickNone": "バランスの取れた有望株。",
+  "intakeSlow": {
+   "defence": "守備はかなりの指導が必要。",
+   "attack": "ハンドリングには大きな課題がある。",
+   "physical": "フィジカル面の大きな成長が必要。",
+   "setpiece": "セットプレーの細部には大きな課題がある。",
+   "kicking": "キックには大きな課題がある。",
+   "reading": "試合の読み方を学ぶ必要がある。"
+  }
  }
 }

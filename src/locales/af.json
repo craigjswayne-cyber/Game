@@ -4973,6 +4973,15 @@
   "lastYearMan": "{name} ({age}, {pos})",
   "devReviewSubj": "Somer-ontwikkelingsoorsig",
   "devReview": "Die afrigtingspersoneel het hul someroorsig van die jong spelers afgehandel, en hulle het van mening verander oor sommige van hulle.\n{rows_ll}\nDie volle prentjie is op elke speler se bladsy.",
+  "intakePicksSubj": "Die akademiedirekteur se keuses",
+  "intakePicks": "Uit die nuwe inname sonder die akademiedirekteur die volgende uit:\n{rows_ll}",
+  "intakePick": "{name} ({pos}, {age}), geskatte plafon {range}. {q_k} {s_k}",
+  "devBreakthroughSubj": "{player} maak 'n deurbraak in die oefeninge",
+  "devBreakthrough": "Die afrigters meld dat {player} 'n deurbraak in die oefeninge gemaak het: die werk van die afgelope paar weke begin wys.",
+  "devStalledSubj": "{player}: ontwikkeling het tot stilstand gekom",
+  "devStalled": "Die afrigters meld dat {player} se ontwikkeling hierdie seisoen tot stilstand gekom het.",
+  "devStalledMinsSubj": "{player}: ontwikkeling het tot stilstand gekom",
+  "devStalledMins": "Die afrigters meld dat {player} se ontwikkeling tot stilstand gekom het. Speeltyd is nodig.",
   "releasedOneSubj": "{who} se ontwikkelingskontrak verval - hy vertrek",
   "releasedOne": "Geen professionele terme is aangebied nie, so op 21 kom die akademiepad tot 'n einde: {men_l} vertrek as 'n vry agent. Die akademie-afrigter maak sy kluisie skoon en begin weer met die volgende inname.",
   "releasedManySubj": "{n} akademiekontrakte verval - hulle vertrek",
@@ -8399,7 +8408,24 @@
   "tlUp": "Verwagtinge verhoog",
   "tlDown": "Verwagtinge verlaag",
   "tlPlan": "Op 'n program",
-  "reviewUp": "{name}: die vordering dui op meer potensiaal as wat eers gedink is.",
-  "reviewDown": "{name}: die ontwikkeling het tot stilstand gekom, en die personeel het hul verwagtinge verlaag."
+  "reviewUp": "{name}: projeksie hersien, {from} na {to}. Die vordering dui op meer potensiaal as wat eers gedink is.",
+  "reviewDown": "{name}: projeksie hersien, {from} na {to}. Die personeel het hul verwagtinge verlaag.",
+  "intakeQuick": {
+   "defence": "Uitstaande verdedigingsinstink.",
+   "attack": "Pragtige hande en 'n natuurlike aangeër.",
+   "physical": "Fisiek gevorderd vir die ouderdom.",
+   "setpiece": "'n Natuurtalent in die vaste stukke.",
+   "kicking": "'n Begaafde skopper van die bal.",
+   "reading": "Lees die spel buitengewoon goed."
+  },
+  "intakeQuickNone": "'n Afgeronde vooruitsig.",
+  "intakeSlow": {
+   "defence": "Die verdedigingswerk het baie afrigting nodig.",
+   "attack": "Die hantering het beduidende werk nodig.",
+   "physical": "Het beduidende fisieke ontwikkeling nodig.",
+   "setpiece": "Die vaste-stuk-besonderhede het beduidende werk nodig.",
+   "kicking": "Die skopwerk het beduidende werk nodig.",
+   "reading": "Moet leer om die spel te lees."
+  }
  }
 }

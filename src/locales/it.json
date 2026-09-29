@@ -5069,6 +5069,15 @@
   "devReviewSubj": "Bilancio estivo della crescita",
   "devReview": "Lo staff ha concluso il bilancio estivo dei giovani e ha cambiato idea su alcuni di loro.\n{rows_ll}\nIl dettaglio è nella scheda di ogni giocatore.",
   "devReview_f": "Lo staff ha concluso il bilancio estivo delle giovani e ha cambiato idea su alcune di loro.\n{rows_ll}\nIl dettaglio è nella scheda di ogni giocatrice.",
+  "intakePicksSubj": "Le scelte del direttore dell'accademia",
+  "intakePicks": "Tra i nuovi arrivati, il direttore dell'accademia segnala:\n{rows_ll}",
+  "intakePick": "{name} ({pos}, {age}), potenziale stimato {range}. {q_k} {s_k}",
+  "devBreakthroughSubj": "{player} fa un salto di qualità in allenamento",
+  "devBreakthrough": "I tecnici riferiscono che {player} ha fatto un salto di qualità in allenamento: il lavoro delle ultime settimane si vede.",
+  "devStalledSubj": "{player}: la crescita si è fermata",
+  "devStalled": "I tecnici riferiscono che la crescita di {player} si è fermata in questa stagione.",
+  "devStalledMinsSubj": "{player}: la crescita si è fermata",
+  "devStalledMins": "I tecnici riferiscono che la crescita di {player} si è fermata. Servono minuti.",
   "releasedOneSubj": "Scade il contratto di formazione di {who} - se ne va",
   "releasedOne": "Nessuna proposta da professionista, quindi a 21 anni la strada dell'Academy finisce: {men_l} parte da svincolato. Il tecnico dell'Academy svuota il suo armadietto e riparte con la prossima leva.",
   "releasedManySubj": "Scadono {n} contratti di formazione - se ne vanno",
@@ -8298,7 +8307,24 @@
   "tlUp": "Aspettative alzate",
   "tlDown": "Aspettative ridotte",
   "tlPlan": "Programma individuale",
-  "reviewUp": "{name}: i progressi lasciano intravedere più margine di quanto si pensasse.",
-  "reviewDown": "{name}: la crescita si è fermata e lo staff ha ridimensionato le aspettative."
+  "reviewUp": "{name}: proiezione rivista, da {from} a {to}. I progressi lasciano intravedere più margine di quanto si pensasse.",
+  "reviewDown": "{name}: proiezione rivista, da {from} a {to}. Lo staff ha ridimensionato le aspettative.",
+  "intakeQuick": {
+   "defence": "Istinti difensivi eccezionali.",
+   "attack": "Ottime mani e un passaggio naturale.",
+   "physical": "Fisicamente avanti per l'età.",
+   "setpiece": "Un talento naturale nelle fasi statiche.",
+   "kicking": "Un talento nel gioco al piede.",
+   "reading": "Legge il gioco insolitamente bene."
+  },
+  "intakeQuickNone": "Un profilo completo.",
+  "intakeSlow": {
+   "defence": "Il lavoro difensivo richiederà molto allenamento.",
+   "attack": "Il trattamento di palla richiede molto lavoro.",
+   "physical": "Serve un importante sviluppo fisico.",
+   "setpiece": "I dettagli delle fasi statiche richiedono molto lavoro.",
+   "kicking": "Il gioco al piede richiede molto lavoro.",
+   "reading": "Deve imparare a leggere il gioco."
+  }
  }
 }
