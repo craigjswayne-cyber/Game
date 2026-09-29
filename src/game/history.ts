@@ -29,7 +29,7 @@
 import type { Fixture, GameState } from './model'
 import { leagueTier, seasonLabel } from './model'
 import { sortTable } from './schedule'
-import { book, CAPS, file, moment, note, once, type Line, type Tenure } from './histbook'
+import { book, CAPS, file, flushNews, moment, note, once, type Line, type Tenure } from './histbook'
 import { legendsAfterMatch, legendsFacing, legendsYearEnd } from './legends'
 import { rivalHeat, rivalryOf, rivalsManagerMoved, rivalsYearEnd, rivalWeight, rivalWhy } from './grudges'
 import { t, type Vars } from './i18n'
@@ -110,12 +110,14 @@ export function historyTakeJob(state: GameState, oldClubId: string): void {
   moment(state, clubId, back ? 45 : 35, back ? 'hist.anReturned' : 'hist.anArrived', {
     club: state.clubs[clubId]?.short ?? '',
   })
+  flushNews(state) // a job move is read now, not next week
 }
 
 /** jobs.ts resignJob and sackManager, while the desk is still his. */
 export function historyLeaveJob(state: GameState, exit: 'sacked' | 'walked'): void {
   if (HIST_OFF.on) return
   closeTenure(state, openTenure(state), exit)
+  flushNews(state)
 }
 
 // ---------------------------------------------------------------- matches ---
@@ -149,7 +151,14 @@ export function historyAfterMatch(state: GameState, fx: Fixture): void {
  * story per subject per season, so a league double-header does not repeat it.
  */
 export function historyPreview(state: GameState): void {
-  if (HIST_OFF.on || state.unemployed) return
+  if (HIST_OFF.on) return
+  previewLines(state)
+  // the week's fixtures are all drawn now: the held stories take their ids
+  flushNews(state)
+}
+
+function previewLines(state: GameState): void {
+  if (state.unemployed) return
   const uid = state.userClubId
   const fx = state.fixtures.find(f => f.week === state.week && !f.played && (f.homeId === uid || f.awayId === uid))
   if (!fx || fx.compId === 'fr') return

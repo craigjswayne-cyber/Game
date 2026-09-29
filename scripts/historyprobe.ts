@@ -40,7 +40,9 @@ const ok = (c: boolean, what: string) => {
   console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
   if (!c) fails++
 }
-const newsK = (g: GameState, k: string) => g.news.filter(n => n.k === k)
+// the book holds its stories until the week settle ends (histbook.ts file), so
+// a hook called directly here has filed into the queue, not the inbox yet
+const newsK = (g: GameState, k: string) => [...g.news, ...(g.hist?.queue ?? [])].filter(n => n.k === k)
 const season = (g: GameState) => { for (let i = 0; i < SEASON_WEEKS; i++) processWeekAndAdvance(g) }
 /** A season with the board kept on side. The annals are written for a
  *  manager in work, and a headless one sits near the sack on most seeds: a
@@ -195,38 +197,41 @@ const seasonInWork = (g: GameState) => {
 
 // ---- 7. the AI never noticed ----
 {
-  // THE SHARED ID COUNTER, AND WHY THE TWO WORLDS WALK IN STEP. News, players
-  // and fixtures take their ids from one counter (state.nextId), and the match
-  // engine seeds its commentary and kicking streams from the fixture id. So ANY
-  // new story - this book's or anybody's - shifts the id of every cup tie drawn
-  // after it, and those ties then play from a different stream. That coupling
-  // belongs to the counter, not to this book. So the two worlds are played week
-  // by week and the book-less one is handed the same counter after each week:
-  // with the ids equal, every AI result must be equal, which proves the book
-  // itself (its rivalries, its weights, its lines) never reached an AI match.
+  // THE SHARED ID COUNTER. News, players and fixtures take their ids from one
+  // counter (state.nextId), and the match engine seeds its commentary and
+  // kicking streams from the fixture id, so a story that took an id would shift
+  // every tie drawn after it onto another stream. The book's stories take ids
+  // that do not spend the counter (heldnews.ts), so the two worlds are played
+  // untouched - no counter handed across - and compared week by week: every
+  // fixture's id and every score, the user's own matches included, must match.
   // (One world after the other, not interleaved: the name registry and the
   // player-id counter are module state, and two live worlds would share them.)
   const WEEKS = SEASON_WEEKS + 12
+  const sig = (g: GameState) => g.fixtures
+    .map(f => `${f.id}:${f.compId}:${f.homeId}${f.played ? `${f.homeScore}-${f.awayScore}` : '_'}${f.awayId}`).join('|')
   const on = newGame('bath', 'Twin', 185)
-  const ids: number[] = []
-  for (let i = 0; i < WEEKS; i++) { processWeekAndAdvance(on); ids.push(on.nextId) }
+  const weeksOn: string[] = [], idsOn: number[] = []
+  for (let i = 0; i < WEEKS; i++) { processWeekAndAdvance(on); weeksOn.push(sig(on)); idsOn.push(on.nextId) }
   HIST_OFF.on = true
   const off = newGame('bath', 'Twin', 185)
-  let drift = 0
-  for (let i = 0; i < WEEKS; i++) {
-    processWeekAndAdvance(off)
-    drift = Math.max(drift, ids[i] - off.nextId)
-    off.nextId = Math.max(off.nextId, ids[i])
-  }
+  const weeksOff: string[] = [], idsOff: number[] = []
+  for (let i = 0; i < WEEKS; i++) { processWeekAndAdvance(off); weeksOff.push(sig(off)); idsOff.push(off.nextId) }
   HIST_OFF.on = false
-  console.log(`        the book's stories moved the shared id counter by at most ${drift} a week`)
-  const ai = (g: GameState) => g.fixtures
-    .filter(f => f.played && f.homeId !== g.userClubId && f.awayId !== g.userClubId)
-    .map(f => `${f.compId}:${f.homeId}${f.homeScore}-${f.awayScore}${f.awayId}`)
-  const a = ai(on), b = ai(off)
-  const same = a.length === b.length && a.every((x, i) => x === b[i])
-  let diff = 0; for (let i = 0; i < Math.min(a.length, b.length); i++) if (a[i] !== b[i]) diff++
-  ok(same, `AI-vs-AI results into season two are identical with the book on and off (${a.length} matches, ${diff} differ)`)
+  const told = on.news.filter(n => n.k?.startsWith('hist.')).length
+  const drift = Math.max(...idsOn.map((x, i) => Math.abs(x - idsOff[i])))
+  ok(told > 0, `the book told ${told} stories still in the inbox`)
+  ok(drift === 0, `and moved the shared id counter by ${drift} in ${WEEKS} weeks`)
+  const firstDiff = weeksOn.findIndex((w, i) => w !== weeksOff[i])
+  if (firstDiff >= 0) {
+    const x = weeksOn[firstDiff].split('|'), y = weeksOff[firstDiff].split('|')
+    const d = x.map((t, i) => [t, y[i]]).filter(([t, u]) => t !== u)
+    console.log(`        week ${firstDiff + 1}: ${d.length} fixtures differ, first: ${d.slice(0, 3).map(([t, u]) => `${t} / ${u}`).join('  ')}`)
+  }
+  ok(firstDiff === -1, firstDiff === -1
+    ? `every fixture id and every score identical with the book on and off, week by week, for ${WEEKS} weeks`
+    : `fixtures first differ after week ${firstDiff + 1}`)
+  const ids = on.news.map(n => n.id)
+  ok(new Set(ids).size === ids.length, 'and no two stories share an id')
   ok(!!on.hist && !off.hist, 'and the switch really did switch it')
 }
 
