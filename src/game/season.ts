@@ -53,7 +53,7 @@ import { refreshVacancies, sackManager } from './jobs'
 import { historyAfterMatch, historyPreview, historyWeight } from './history'
 import { playAcademyWeek } from './academy'
 import { canBeMentored, mentorGraduations, mentorReports, mentorWeek } from './mentoring'
-import { bondsWeek } from './bonds'
+import { bondsWeek, flushBondNews } from './bonds'
 import { t, tIn, type Vars } from './i18n'
 import { flushMemoryNews, memoryAfterMatch, memoryWeek, rememberPromise } from './memory'
 
@@ -4395,6 +4395,7 @@ If you go, your assistant takes your national side for the duration. Nobody prep
   // and the week's history: a former club, a legend on the other side (history.ts)
   historyPreview(state)
   flushMemoryNews(state) // memory.ts stories held through the settle take their ids now
+  flushBondNews(state) // and the dressing room's (bonds.ts)
 
   // (derby build-up now lives in the pre-advance block above, with the
   // all-time ledger - the old duplicate beat here was removed)

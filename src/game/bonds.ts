@@ -36,7 +36,8 @@ import { clamp, mulberry32 } from './rng'
 import { tIn, type Vars } from './i18n'
 import { OFFICE_OUTLET, askedRecently, isBoardroom, rememberAsk } from './media'
 import { activeFeuds } from './gossip'
-import { memoryLog, remember, type MemoryKind } from './memory'
+import { remember, type MemoryKind } from './memory'
+import { fileHeldNews, type HeldStory } from './heldnews'
 
 /** [a, b, strength, flags] with a < b. flags: 1 = rift announced, 2 = bond noted. */
 export type Pair = [number, number, number, number]
@@ -57,6 +58,8 @@ export interface BondState {
   fe: string[]
   /** absolute week of the last story this file filed (one a week at most) */
   said?: number
+  /** stories held through the settle, filed by flushBondNews (heldnews.ts) */
+  held?: HeldStory[]
 }
 
 /** The cap on stored pairs. 48 four-number tuples is well under a kilobyte. */
@@ -245,14 +248,23 @@ function file(state: GameState, bs: BondState, k: string, v: Vars, type: 'gossip
   bondsReport.stories++
   // HELD, NOT FILED: news, players and fixtures share state.nextId and a
   // fixture's dice are seeded from its id, so a story that took an id here,
-  // mid-settle, would move AI results. The memory log's queue holds it and
-  // flushMemoryNews() files it at the end of the settle on a fractional id
-  // that never advances the counter (memory.ts).
-  ;(memoryLog(state).queue ??= []).push({
+  // mid-settle, would move AI results. It waits in the ledger and
+  // flushBondNews() files it at the end of the settle on a fractional id
+  // that never advances the counter (heldnews.ts).
+  ;(bs.held ??= []).push({
     week: state.week, season: state.season, type, read: false,
     subject: tIn('en', `${k}Subj`, v), body: tIn('en', k, v), k, v: v as Record<string, string | number>,
     playerId, playerIds,
   })
+}
+
+/** File the stories held through the week settle. season.ts calls it after
+ *  the advance, next to the memory and history-book flushes. */
+export function flushBondNews(state: GameState): void {
+  const q = state.bonds?.held
+  if (!q?.length) return
+  state.bonds!.held = []
+  fileHeldNews(state, q)
 }
 
 /** THE KNOCK: "you sold my mate", settled by talkback.ts like the other four. */
@@ -301,7 +313,7 @@ const MISS: Record<Player['pers'], number> = {
  * the week that has just been played; draws nothing from the shared stream.
  */
 /** A switch for the probes' twin-career comparison (bondsprobe 10). */
-export const bondsSwitch = { on: true }
+export const bondsSwitch = { on: true, cohesion: true }
 
 export function bondsWeek(state: GameState): void {
   if (!bondsSwitch.on) return
@@ -585,7 +597,7 @@ function cliqueCheck(state: GameState, bs: BondState, club: Club) {
  */
 export function bondCohesion(state: GameState, clubId: string, lineup: (number | null)[]): number {
   const bs = state.bonds
-  if (!bs || bs.club !== clubId || !bs.pairs.length) return 1
+  if (!bondsSwitch.cohesion || !bs || bs.club !== clubId || !bs.pairs.length) return 1
   const xv = new Set(lineup.slice(0, 15).filter((x): x is number => x != null))
   let n = 0
   for (const pr of bs.pairs) {
@@ -635,5 +647,6 @@ export function migrateBonds(raw: unknown): BondState | undefined {
     cl: (Array.isArray(r.cl) ? r.cl : []).filter(c => c && typeof c.g === 'string' && num(c.at)).slice(0, 2),
     fe: (Array.isArray(r.fe) ? r.fe : []).filter((k): k is string => typeof k === 'string').slice(0, 8),
     said: num(r.said) ? r.said : undefined,
+    held: Array.isArray(r.held) ? r.held.filter(n => !!n && typeof n === 'object' && typeof n.k === 'string').slice(0, 8) : undefined,
   }
 }

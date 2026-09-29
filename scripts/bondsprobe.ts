@@ -20,17 +20,20 @@
  *
  * Run: npx vite-node scripts/bondsprobe.ts
  */
+import { execFileSync } from 'node:child_process'
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance, userFixtureThisWeek, weekRng } from '../src/game/season'
 import { simMatch } from '../src/game/matchEngine'
 import { answerPress, OFFICE_OUTLET } from '../src/game/media'
 import { migrate } from '../src/game/save'
 import { activeFeuds } from '../src/game/gossip'
-import { flushMemoryNews } from '../src/game/memory'
 import { FIT } from '../src/game/talkback'
 import { ensureLang, tIn, type Lang } from '../src/game/i18n'
 import {
-  CLOSE, MAX_PAIRS, RIFT, bondCohesion, bondOf, bondsLine, bondsReport, bondsSwitch, bondsWeek,
+  CLOSE, MAX_PAIRS, RIFT, bondCohesion, bondOf, bondsLine, bondsReport, bondsWeek, flushBondNews,
   groupsOf, migrateBonds, seedBonds, seniorVoices, type BondState,
 } from '../src/game/bonds'
 import type { GameState, Player } from '../src/game/model'
@@ -51,7 +54,7 @@ function week(g: GameState) {
 const LANGS: Lang[] = ['en', 'fr', 'es', 'it', 'ja', 'af']
 for (const l of LANGS) await ensureLang(l)
 /** One weekly pass and the end-of-settle flush that files its held stories. */
-function pass(g: GameState) { bondsWeek(g); flushMemoryNews(g) }
+function pass(g: GameState) { bondsWeek(g); flushBondNews(g) }
 const raw = (s: string) => /\{\w+\}|\b(news|bonds|talk|player)\.[a-zA-Z]/.test(s)
 
 // ------------------------------------------------------------------ 1
@@ -347,41 +350,26 @@ console.log('--- 8. every line in six languages')
 // ------------------------------------------------------------------ 10
 console.log('--- 10. the rest of the world does not notice')
 {
-  // twin careers from one save, a season and a half each: one with the
-  // ledger live, one with it switched off. Every AI-v-AI fixture must carry
-  // the same id and the same score, week by week.
-  const on = clone(fresh), off = clone(fresh)
-  const key = (x: GameState) => x.fixtures
-    .filter(f => f.played && f.week === x.week && f.homeId !== x.userClubId && f.awayId !== x.userClubId)
-    .map(f => `${f.id}:${f.homeId}${f.homeScore}-${f.awayScore}${f.awayId}`).sort().join('|')
-  let weeks = 0, same = 0, compared = 0, firstDiff = ''
-  const s0 = on.season
-  while (on.season < s0 + 1 || on.week < 20) {
-    if (weeks++ > 120) break
-    bondsSwitch.on = true
-    const fa = userFixtureThisWeek(on); if (fa) simMatch(on, fa, weekRng(on), false)
-    const ka = key(on)
-    bondsSwitch.on = false
-    const fb = userFixtureThisWeek(off); if (fb) simMatch(off, fb, weekRng(off), false)
-    const kb = key(off)
-    compared++
-    if (ka === kb) same++; else if (!firstDiff) firstDiff = `season ${on.season} week ${on.week}`
-    bondsSwitch.on = true; processWeekAndAdvance(on); for (const q of on.press) if (!q.answered && q.options.length) answerPress(on, q.id, 0)
-    bondsSwitch.on = false; processWeekAndAdvance(off); for (const q of off.press) if (!q.answered && q.options.length) answerPress(off, q.id, 0)
+  // Twin careers from one seed, a season and a half each (scripts/lib/
+  // bondstwin.ts): the ledger live in one, switched off in the other. Every
+  // AI-v-AI fixture must carry the same id and the same score, week by week.
+  // Each twin is its own process: two careers in one process drift apart even
+  // with the ledger off in both, which a third run shows (the control).
+  const dir = mkdtempSync(join(tmpdir(), 'bondstwin-'))
+  const twin = (mode: string, tag: string) => {
+    const f = join(dir, `${tag}.json`)
+    execFileSync('npx', ['vite-node', 'scripts/lib/bondstwin.ts', mode, f], { stdio: 'ignore', timeout: 1_200_000 })
+    return JSON.parse(readFileSync(f, 'utf8')) as { weeks: string[]; list: string; pairs: number; stories: number }
   }
-  bondsSwitch.on = true
-  const aiIds = (x: GameState) => x.fixtures.filter(f => f.homeId !== x.userClubId && f.awayId !== x.userClubId).map(f => f.id).sort((a, b) => a - b).join(',')
-  console.log(`      ${compared} weeks compared, ${same} identical${firstDiff ? `, first difference ${firstDiff}` : ''}; ledger on: ${on.bonds?.pairs.length ?? 0} pairs`)
-  ok(!!on.bonds && !off.bonds, 'one twin kept a ledger, the other none')
-  ok(compared > 50 && same === compared, 'every AI-v-AI fixture played had the same id and score, every week')
-  const userRes = (x: GameState) => x.fixtures.filter(f => f.played && (f.homeId === x.userClubId || f.awayId === x.userClubId)).map(f => `${f.id}:${f.homeScore}-${f.awayScore}`).join(',')
-  const A = aiIds(on).split(','), B = aiIds(off).split(',')
-  const i = A.findIndex((x, k) => x !== B[k])
-  if (i >= 0) {
-    const fa = on.fixtures.find(f => String(f.id) === A[i]), fb = off.fixtures.find(f => String(f.id) === B[i])
-    console.log(`      lists differ at ${i}/${A.length}: ${JSON.stringify([fa?.id, fa?.compId, fa?.week, fa?.homeId, fa?.awayId])} vs ${JSON.stringify([fb?.id, fb?.compId, fb?.week, fb?.homeId, fb?.awayId])}; user results ${userRes(on) === userRes(off) ? 'same' : 'differ'}`)
-  }
-  ok(aiIds(on) === aiIds(off), 'and the fixture list the two worlds hold now is id for id the same')
+  const A = twin('on', 'on'), B = twin('off', 'off'), C = twin('off', 'control')
+  const diff = A.weeks.findIndex((w, i) => w !== B.weeks[i])
+  const results = A.weeks[A.weeks.length - 1]?.split('|').length ?? 0
+  console.log(`      ${A.weeks.length} weeks, ${results} AI results on the books; ledger on: ${A.pairs} pairs, ${A.stories} stories${diff >= 0 ? `; first difference at week ${diff + 1}` : ''}`)
+  ok(B.weeks.join() === C.weeks.join(), 'control: two runs with the ledger off agree with each other')
+  ok(A.pairs > 0 && B.pairs === 0, 'one twin kept a ledger, the other none')
+  ok(A.weeks.length > 60 && A.weeks.length === B.weeks.length && diff < 0, 'every AI-v-AI fixture had the same id and score, every week of a season and a half')
+  ok(A.list === B.list, 'and the AI fixture list the two worlds hold is id for id the same')
+  rmSync(dir, { recursive: true, force: true })
 }
 
 console.log(fails ? `BONDS PROBE FAILED (${fails})` : 'BONDS PROBE PASSED: seeded quietly, moved by events, capped, bounded, migrated and in six languages')
