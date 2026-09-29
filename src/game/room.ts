@@ -21,6 +21,10 @@
 //   THE RETURN  A regular with one week left on an injury that can be played
 //               through (knock.ts): rest him, or bring him back now, short of a
 //               full tank and at risk of it going again.
+//   THE ROLE    A signing in an established starter's position: he wants
+//               assurances. Promise the role (a pledge the ledger settles, and
+//               the new man notices), refuse (he may ask to leave), or listen
+//               to offers.
 //   ACADEMY     The summer decision (acadcall.ts) gains a third answer: keep
 //               him and send him out on loan for the season, minutes elsewhere
 //               and out of your hands. The loan starts in the first week of
@@ -66,7 +70,7 @@ export interface RoomState {
    *  season they go in */
   ln: { p: number; s: number }[]
   /** what has been asked this season: 's:pid' split, 'r:pid' renewal,
-   *  'i:pid:until' injury */
+   *  'i:pid:until' injury, 'a:pid' assurances after a signing */
   asked: string[]
   /** absolute week of the last split, and of the last renewal question */
   sp?: number
@@ -108,10 +112,11 @@ function isRoom(q: PressItem): boolean {
 }
 
 /** The kind of room question an item is. */
-export function roomKind(q: PressItem): 'split' | 'renew' | 'injury' | null {
+export function roomKind(q: PressItem): 'split' | 'renew' | 'injury' | 'role' | null {
   const o = q.options.find(x => x.room != null)?.room
   if (!o) return null
-  return o === 'stand' || o === 'reverse' ? 'split' : o === 'renew' || o === 'wait' ? 'renew' : 'injury'
+  return o === 'stand' || o === 'reverse' ? 'split' : o === 'renew' || o === 'wait' ? 'renew'
+    : o === 'promise' || o === 'refuse' || o === 'listen' ? 'role' : 'injury'
 }
 
 function option(room: NonNullable<PressOption['room']>, lk: string, lv: Vars, extra: Partial<PressOption> = {}): PressOption {
@@ -299,6 +304,86 @@ function resolveSplit(state: GameState, item: PressItem, opt: PressOption, D: Pl
   remember(state, { kind: 'room-reversed', playerId: D.id, clubId: club.id, payload: { name: D.name, db: backs ? 1 : 0 }, sal: 2 })
   logDecision(state, 'room.decReverse', { player: D.name }, false)
   return { rk: bandKey('room.reverseR', lean), rv }
+}
+
+// ------------------------------------------------------------------ the role
+
+/**
+ * A SIGNING IN HIS POSITION (owner, 1.8.2). An established starter, or his
+ * agent, wants assurances the week a new man arrives for his shirt. Three
+ * answers, each through machinery that already exists: promise him the role
+ * (a 'plans' pledge, settled kept or broken by the pledge ledger in
+ * season.ts, and the new man notices), refuse (his morale and the room's
+ * trust drop, and a man of the wrong temperament puts in the transfer request
+ * gametime.ts and chats.ts already answer), or listen to offers (the transfer
+ * list). Asked once a season per man.
+ */
+function roleQuestion(state: GameState, club: Club): boolean {
+  // a promise needs weeks left in the season to be kept or broken in
+  if (state.week > 38) return false
+  const r = roomOf(state)
+  const now = nowOf(state)
+  const fresh = club.players.map(id => state.players[id])
+    .filter((n): n is Player => !!n && !n.acad && !n.loanFrom && n.joinedAt != null && now - n.joinedAt >= 0 && now - n.joinedAt <= 2 && n.ca >= 68)
+    .sort((a, b) => b.ca - a.ca || a.id - b.id)
+  const xv = new Set((state.bonds?.club === club.id ? state.bonds.xv : club.tactic.lineup.slice(0, 15)).filter((x): x is number => x != null))
+  for (const n of fresh) {
+    const s = club.players.map(id => state.players[id])
+      .filter((q): q is Player => !!q && q.id !== n.id && !q.acad && !q.onLoan && !q.retiring && q.pos === n.pos &&
+        (q.joinedAt == null || now - q.joinedAt > 2) && (q.stats.starts >= 3 || q.status === 'key' || xv.has(q.id)) &&
+        !(state.preContracts ?? []).some(pc => pc.playerId === q.id) && !r.asked.includes(`a:${q.id}`))
+      .sort((a, b) => b.stats.starts - a.stats.starts || b.ca - a.ca || a.id - b.id)[0]
+    if (!s) continue
+    r.asked.push(`a:${s.id}`)
+    const v: Vars = { player: s.name, signing: n.name, sid: n.id }
+    ask(state, s, 'room.roleQ', v, [
+      option('promise', 'room.rolePromise', { player: s.name }, { pledge: 'plans' }),
+      option('refuse', 'room.roleRefuse', {}),
+      option('listen', 'room.roleListen', {}),
+    ])
+    return true
+  }
+  return false
+}
+
+function resolveRole(state: GameState, item: PressItem, opt: PressOption, p: Player): { rk: string; rv: Vars } {
+  const club = state.clubs[state.userClubId]
+  const n = typeof item.qv?.sid === 'number' ? state.players[item.qv.sid as number] : undefined
+  const rv: Vars = { player: p.name, signing: n?.name ?? String(item.qv?.signing ?? '') }
+  const payload = { name: p.name, signing: String(rv.signing) }
+  if (opt.room === 'promise') {
+    // the pledge itself is recorded by answerPress (opt.pledge = 'plans'), and
+    // settled kept or broken by the ledger that settles every office promise
+    mood(p, 0.6)
+    if (n && n.clubId === club.id) {
+      mood(n, -0.3)
+      nudgeBond(state, p.id, n.id, -10)
+    }
+    remember(state, { kind: 'role-promised', playerId: p.id, clubId: club.id, payload, sal: 2 })
+    logDecision(state, 'room.decRolePromise', { player: p.name }, true)
+    return { rk: 'room.rolePromiseR', rv }
+  }
+  if (opt.room === 'refuse') {
+    mood(p, p.pers === 'Professional' || p.pers === 'Leader' ? -0.5 : -0.8)
+    trust(state, -1)
+    remember(state, { kind: 'role-refused', playerId: p.id, clubId: club.id, payload, sal: 2 })
+    logDecision(state, 'room.decRoleRefuse', { player: p.name }, false)
+    // the wrong temperament, and a mood already low, puts it in writing
+    const walks = (p.pers === 'Ambitious' || p.pers === 'Mercenary' || p.pers === 'Temperamental') && p.morale <= 5.5 &&
+      !(p.wantsOut ?? 0) && !p.transferListed && p.age <= 33
+    if (walks) {
+      p.wantsOut = state.week
+      p.reqAns = 0
+      hold(state, 'room.roleRequest', rv, p.id)
+      return { rk: 'room.roleRefuseLeaveR', rv }
+    }
+    return { rk: 'room.roleRefuseR', rv }
+  }
+  p.transferListed = true
+  mood(p, -0.4)
+  remember(state, { kind: 'role-listed', playerId: p.id, clubId: club.id, payload, sal: 2 })
+  logDecision(state, 'room.decRoleListen', { player: p.name }, false)
+  return { rk: 'room.roleListenR', rv }
 }
 
 // ------------------------------------------------------------------ renewal
@@ -502,6 +587,7 @@ export function roomWeek(state: GameState): void {
   // one question a week at most, and none while one is still on the desk
   if (state.press.some(q => !q.answered && isRoom(q))) return
   if (splitQuestion(state, club)) return
+  if (roleQuestion(state, club)) return
   if (injuryQuestion(state, club)) return
   renewQuestion(state, club)
 }
@@ -515,6 +601,7 @@ export function roomLive(state: GameState, item: PressItem, opt: PressOption): b
     return p.renewedSeason !== state.season && !(state.preContracts ?? []).some(pc => pc.playerId === p.id)
   }
   if (kind === 'injury') return opt.room === 'rest' ? !!p.injury : inFinalWeek(state, p)
+  if (kind === 'role') return !(state.preContracts ?? []).some(pc => pc.playerId === p.id) && !(opt.room === 'listen' && p.transferListed)
   return true
 }
 
@@ -525,6 +612,7 @@ export function resolveRoom(state: GameState, item: PressItem, opt: PressOption)
   const kind = roomKind(item)
   const out = kind === 'split' ? resolveSplit(state, item, opt, p)
     : kind === 'renew' ? resolveRenew(state, item, opt, p)
+    : kind === 'role' ? resolveRole(state, item, opt, p)
     : resolveInjury(state, opt, p)
   item.rk = out.rk
   item.rv = out.rv

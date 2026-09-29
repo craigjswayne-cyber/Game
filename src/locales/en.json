@@ -8332,6 +8332,19 @@
   "acadLoan": "Offer a development contract and a season on loan: minutes elsewhere, out of your hands ({wage}/wk)",
   "acadLoanR": "Done. {player} signs on and goes out on loan when the new season starts.",
   "acadLoanPro": "Offer a first professional contract and a season on loan: minutes elsewhere, out of your hands ({wage}/wk)",
-  "acadLoanProR": "Done. {player} signs a professional contract and goes out on loan when the new season starts."
+  "acadLoanProR": "Done. {player} signs a professional contract and goes out on loan when the new season starts.",
+  "roleQ": "{player} has heard about the signing of {signing}, and the agent of {player} wants to know where that leaves the shirt. Promise the starting role and {signing} will notice; refuse, and {player} may ask to leave; or let it be known you would listen to offers.",
+  "rolePromise": "Promise {player} the starting role",
+  "roleRefuse": "Refuse: nobody is promised a shirt",
+  "roleListen": "Tell the agent you will listen to offers",
+  "rolePromiseR": "{player} leaves the office with your word. {signing} has heard about it too, and did not come here to sit on the bench.",
+  "roleRefuseR": "{player} takes it badly, and the agent says the conversation is not over.",
+  "roleRefuseLeaveR": "{player} takes it badly, and by the afternoon a transfer request is on your desk.",
+  "roleListenR": "{player} goes on the transfer list. The agent is already making calls.",
+  "roleRequestSubj": "{player} asks to leave",
+  "roleRequest": "{player} was refused assurances over the starting role after the signing of {signing}, and has put in a transfer request. Picking {player} may yet change that; leaving the request unanswered tells every agent in the league the door is open.",
+  "decRolePromise": "Promised {player} the starting role after a signing in the same position.",
+  "decRoleRefuse": "Refused {player} assurances over the starting role.",
+  "decRoleListen": "Put {player} on the transfer list after a signing in the same position."
  }
 }

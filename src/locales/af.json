@@ -8372,6 +8372,19 @@
   "acadLoan": "Bied 'n ontwikkelingskontrak en 'n seisoen op lening aan: speeltyd elders, buite jou beheer ({wage}/wk)",
   "acadLoanR": "Klaar. {player} teken en gaan op lening wanneer die nuwe seisoen begin.",
   "acadLoanPro": "Bied 'n eerste professionele kontrak en 'n seisoen op lening aan: speeltyd elders, buite jou beheer ({wage}/wk)",
-  "acadLoanProR": "Klaar. {player} teken 'n professionele kontrak en gaan op lening wanneer die nuwe seisoen begin."
+  "acadLoanProR": "Klaar. {player} teken 'n professionele kontrak en gaan op lening wanneer die nuwe seisoen begin.",
+  "roleQ": "{player} het van die ondertekening van {signing} gehoor, en die agent van {player} wil weet waar dit die trui laat. Belowe die beginplek en {signing} sal dit agterkom; weier, en {player} kan vra om te vertrek; of laat weet jy sal na aanbiedinge luister.",
+  "rolePromise": "Belowe {player} die beginplek",
+  "roleRefuse": "Weier: niemand word 'n trui belowe nie",
+  "roleListen": "Sê vir die agent jy sal na aanbiedinge luister",
+  "rolePromiseR": "{player} verlaat die kantoor met jou woord. {signing} het ook daarvan gehoor, en het nie hierheen gekom om op die bank te sit nie.",
+  "roleRefuseR": "{player} vat dit sleg, en die agent sê die gesprek is nie verby nie.",
+  "roleRefuseLeaveR": "{player} vat dit sleg, en teen die middag lê 'n oordragversoek op jou lessenaar.",
+  "roleListenR": "{player} gaan op die oordraglys. Die agent maak reeds oproepe.",
+  "roleRequestSubj": "{player} vra om te vertrek",
+  "roleRequest": "{player} is waarborge oor die beginplek geweier ná die ondertekening van {signing}, en het 'n oordragversoek ingedien. Om {player} te kies kan dit nog verander; om die versoek onbeantwoord te laat, sê vir elke agent in die liga die deur staan oop.",
+  "decRolePromise": "{player} die beginplek belowe ná 'n ondertekening in dieselfde posisie.",
+  "decRoleRefuse": "{player} waarborge oor die beginplek geweier.",
+  "decRoleListen": "{player} op die oordraglys geplaas ná 'n ondertekening in dieselfde posisie."
  }
 }
