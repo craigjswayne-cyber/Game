@@ -2119,6 +2119,10 @@ export interface GameState {
   /** the annals: every season review of the career, oldest first - the
    *  manager's chronicle, carried across clubs */
   annals?: SeasonReview[]
+  /** the club's memory that acts (histbook.ts): emergent rivalries, the
+   *  season story lines, legends and their records, former clubs. Created on
+   *  first touch; absent on older saves until then. */
+  hist?: import('./histbook').HistBook
   /** injury-crisis alerts already raised: position group -> week fired,
    *  so the assistant nags once a month, not once a week */
   crisisAt?: Record<string, number>
