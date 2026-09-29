@@ -3065,12 +3065,18 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 
 /* ---- the attacking moves (1.8.1, ui/MovesSection.tsx) -------------------
-   One card per call: the chips pick it, the picture and the facts under them
-   say what it is. Picture beside the words on a phone (two columns, the
-   picture the narrower), so three calls are three short cards, not eighteen
-   tiles. */
-.mv-card { display: flex; flex-direction: column; gap: 6px; }
-.mv-head { font-size: 13px; color: var(--text-primary); }
+   One card for the three calls: which call on the top row, the options under
+   it, and the picture beside the facts (two columns on a phone, the picture
+   the narrower), so the section is one short card, not eighteen tiles on a
+   tab that was already the longest on the screen. */
+.mv-card { display: flex; flex-direction: column; gap: 7px; }
+.mv-calls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.mv-callchip {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 1px;
+  border-radius: 10px; min-height: 44px; text-align: left; min-width: 0;
+}
+.mv-callchip b { font-size: 11px; line-height: 1.2; }
+.mv-callchip span { font-size: 10px; opacity: .85; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
 .mv-chips { margin-top: 0; }
 .mv-chips .preset-chip { min-height: 36px; }
 .mv-pct { font-size: 10px; opacity: .8; font-weight: 600; }
