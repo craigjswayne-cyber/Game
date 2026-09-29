@@ -294,48 +294,86 @@ for (const { spec, kind } of specs) {
 ok(!behind, `nobody defends from in-goal while the play is upfield${behind ? ` (${behind})` : ''}`)
 ok(deepest <= 4.5, `and nobody stands more than a few metres behind his own line (deepest ${deepest.toFixed(1)} m)`)
 
-console.log('\n--- the cover after a line break (1.8.1)\n')
-// Owner: "once a line break happens the defending players keep running
-// forward, this isn't natural". From the finisher's run on, a defender he has
-// gone past turns and chases back towards his own line. He is given a moment
-// to stop and turn (GRACE: from a full sprint, deceleration takes about half a
-// second), and after it nobody behind the ball may still be heading up-field.
-// And the chase belongs to the nearest one or two: the rest recover to shape
-// rather than all converging on him. SLACK is the separation push (nobody
-// stands inside anybody), which can move a man at up to a walk (0.72 m/s).
+console.log('\n--- the chase after a break (1.8.2)\n')
+// Owner on 1.8.1: "when a player breaks through the defenders run away from
+// the ball". The 1.8.1 rule here (a man who has been passed turns for his own
+// line, and only the nearest two chase) was that very picture: the rest
+// jogged home. Now, from the finisher's run on:
+//   AWAY: after a short turn window (TURN: off the start of the run, off
+//     being passed or coming across his path, off getting up from a dive),
+//     nobody's velocity points
+//     away from the ball;
+//   GAINING OR OUTPACED: a man behind the man with the ball closes on him,
+//     or loses ground only by being slower (his own speed along the line to
+//     the ball is at least a third of his pace), never by running somewhere
+//     else (a kick in the air is chased to where it will come down);
+//   COVER: the men ahead of him come across to cut off his line: each of
+//     them gets nearer the line he runs than he started, or onto it;
+//   SMOOTH: nobody changes velocity faster than a man can (ACC, measured
+//     over tenth-of-a-second windows: a player steers at up to 16 m/s2, and
+//     the separation push below can add up to a walk's worth in a frame).
+// SLACK is the separation push (nobody stands inside anybody): up to a walk.
 {
-  const GRACE = 0.6, SLACK = 0.8
-  let bad = '', checked = 0, crowd = 0, runs = 0
+  const TURN = 0.6, SLACK = 0.8, ACC = 35, W = 0.1
+  let away = '', lagging = '', jerky = '', checked = 0, runs = 0, cover = 0, converged = 0, worstAcc = 0
   for (const { spec, kind } of specs) {
     if (kind !== 'try' && kind !== 'notry' && kind !== 'attack') continue
     const tl = clipTimeline(spec)
     if (!tl.run) continue
     runs++
     const d = spec.attackHome ? 1 : -1
-    const passedAt: number[] = Array(15).fill(-1)
-    let maxNear = 0
-    for (let t = tl.run[0]; t <= tl.run[1]; t += 1 / 30) {
-      const f = frameAt(spec, t), g = frameAt(spec, t + 1 / 30)
-      let near = 0
+    const t0 = tl.run[0], t1 = tl.run[1]
+    const changed: number[] = Array(15).fill(t0)
+    const wasAhead: boolean[] = []
+    const upAt: number[] = Array(15).fill(-1)
+    // cover: the men ahead of the ball as he starts, within reach across
+    const f0 = frameAt(spec, t0 + 0.3)
+    const across0 = f0.def.map(p => Math.abs(p.y - f0.ball.y))
+    const coverI = f0.def.map((p, i) => ((p.x - f0.ball.x) * d > 3 && across0[i] > 3 && across0[i] < 25 && !tl.contact.includes(i)) ? i : -1).filter(i => i >= 0)
+    for (let t = t0; t <= t1 - W * 2; t += 1 / 30) {
+      const f = frameAt(spec, t), g = frameAt(spec, t + W), h = frameAt(spec, t + 2 * W)
       for (let i = 0; i < 15; i++) {
-        const behind = (f.def[i].x - f.ball.x) * d < -1
-        if (behind && passedAt[i] < 0) passedAt[i] = t
-        if (!behind) passedAt[i] = -1
-        // (a man he has only just gone past is still near him: that is the
-        // break, not a chase, so it counts from a second after; and the men
-        // who went for him on his line, tl.contact, are the tackle)
-        if (behind && t - passedAt[i] > 1 && !f.down[15 + i] && !tl.contact.includes(i) && Math.hypot(f.def[i].x - f.ball.x, f.def[i].y - f.ball.y) < 5) near++
-        if (passedAt[i] < 0 || t - passedAt[i] < GRACE || f.down[15 + i] || g.down[15 + i]) continue
+        const ahead = (f.def[i].x - f.ball.x) * d > 0.3
+        if (wasAhead[i] !== undefined && wasAhead[i] !== ahead) changed[i] = t
+        // (and a man who has just come across his path turns off it too)
+        if (Math.hypot(f.ball.x - f.def[i].x, f.ball.y - f.def[i].y) < 4) changed[i] = t
+        wasAhead[i] = ahead
+        if (f.down[15 + i] || g.down[15 + i] || h.down[15 + i]) { upAt[i] = t + W * 2; continue }
+        if (f.carrying[15 + i] > 0.5) continue
+        const r = Math.hypot(f.ball.x - f.def[i].x, f.ball.y - f.def[i].y)
+        // the men who go for him on his line are the tackle, not the chase,
+        // until they have been down and got up again
+        if (r < 3 || (tl.contact.includes(i) && upAt[i] < 0)) continue
+        const vx = (g.def[i].x - f.def[i].x) / W, vy = (g.def[i].y - f.def[i].y) / W
+        const wx = (h.def[i].x - g.def[i].x) / W, wy = (h.def[i].y - g.def[i].y) / W
+        const acc = Math.hypot(wx - vx, wy - vy) / W
+        if (acc > worstAcc) worstAcc = acc
+        if (acc > ACC && !jerky) jerky = `${kind}/${spec.style} line ${spec.endLine} def ${i + 1} t=${t.toFixed(2)} ${acc.toFixed(0)} m/s2`
+        if (t - changed[i] < TURN || t - t0 < TURN || (upAt[i] >= 0 && t - upAt[i] < TURN)) continue
         checked++
-        const vAlong = (g.def[i].x - f.def[i].x) * 30 * d
-        if (vAlong < -SLACK && !bad) bad = `${kind}/${spec.style} line ${spec.endLine} def ${i + 1} t=${t.toFixed(2)} heading up-field at ${(-vAlong).toFixed(1)} m/s, ${(t - passedAt[i]).toFixed(1)} s after he was passed`
+        const ux = (f.ball.x - f.def[i].x) / r, uy = (f.ball.y - f.def[i].y) / r
+        const vr = vx * ux + vy * uy, sp = Math.hypot(vx, vy)
+        if (vr < -SLACK && !away) away = `${kind}/${spec.style} line ${spec.endLine} def ${i + 1} t=${t.toFixed(2)} ${(-vr).toFixed(1)} m/s away from the ball ${r.toFixed(0)} m off`
+        if (!ahead && sp > 2 && vr < sp / 3 - SLACK && f.carrying.some(x => x > 0.5) && !lagging) lagging = `${kind}/${spec.style} line ${spec.endLine} def ${i + 1} t=${t.toFixed(2)} runs ${sp.toFixed(1)} m/s but closes at ${vr.toFixed(1)}`
       }
-      maxNear = Math.max(maxNear, near)
     }
-    if (maxNear > 2) crowd++
+    // (nearer his line than he started, or on it: his line is the ball's
+    // path from the break to the grounding)
+    const path: { x: number; y: number }[] = []
+    for (let t = t0; t <= t1; t += 0.1) path.push(frameAt(spec, t).ball)
+    const off = (p: { x: number; y: number }) => Math.min(...path.map(q => Math.hypot(p.x - q.x, p.y - q.y)))
+    for (const i of coverI) {
+      cover++
+      const start = off(f0.def[i])
+      let best = start
+      for (let t = t0 + 0.3; t <= t1; t += 0.1) { const f = frameAt(spec, t); if (!f.down[15 + i]) best = Math.min(best, off(f.def[i])) }
+      if (best < start - 1 || best < 3) converged++
+    }
   }
-  ok(runs >= 20 && checked > 1000 && !bad, `a defender who has been passed turns for his own line (${runs} breaks, ${checked} frames checked)${bad ? `: ${bad}` : ''}`)
-  ok(crowd <= runs * 0.03, `and only the nearest one or two chase him down (${crowd} of ${runs} breaks had more than two within five metres behind the ball)`)
+  ok(runs >= 20 && checked > 1000 && !away, `nobody runs away from the ball after a short turn (${runs} breaks, ${checked} frames checked)${away ? `: ${away}` : ''}`)
+  ok(!lagging, `a man behind the ball closes on it, or loses ground only by being slower${lagging ? `: ${lagging}` : ''}`)
+  ok(cover > 50 && converged >= cover * 0.9, `the cover comes across to cut off his line (${converged} of ${cover} cover men closed the gap across)`)
+  ok(!jerky, `and they get there smoothly (worst ${worstAcc.toFixed(0)} m/s2, limit ${ACC})${jerky ? `: ${jerky}` : ''}`)
 }
 
 console.log('\n--- the referee\n')
