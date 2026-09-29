@@ -1701,6 +1701,9 @@ export interface GameState {
   /** the Matchday game plan already applied to this fixture, and how many of
    *  its reads, so the button cannot stack the same nudges twice (1.8.1) */
   planApplied?: { fx: number; n: number }
+  /** the tactical loop (#181): this week's chosen plan and the last few
+   *  post-match findings, capped (oppreport.ts) */
+  tacLoop?: import('./oppreport').TacLoop
   /** the chief scout is away on a commissioned brief */
   commission?: import('./commission').Commission | null
   /** the report he filed when he got back */

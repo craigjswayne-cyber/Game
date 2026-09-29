@@ -14,6 +14,7 @@ import { applyStadiumName, seedDeals } from './commercial'
 import { seedStaffPeople } from './staff'
 import { ensureAcademyLeague, topUpAcademy } from './academy'
 import { migratePress } from './pressmigrate'
+import { migrateTacLoop } from './oppreport'
 
 // NOT renamed with the game. This string is the key every existing save lives
 // under, so changing it to 'fab-rugby' would not rename anything - it would point
@@ -919,6 +920,9 @@ export function migrate(s: GameState): GameState {
       if (v) f.venue = v
     }
   }
+
+  // the tactical loop's findings: healed and capped (#181)
+  migrateTacLoop(s)
 
   ensureCaptains(s, true)
   return s

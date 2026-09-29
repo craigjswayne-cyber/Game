@@ -100,6 +100,7 @@ import { natSquadHold } from './game/country'
 import { clearResume, getResume, loadGame, migrate, putResume, saveGame } from './game/save'
 import { replayMatch, resumeFits, type MatchCmdBody, type MatchResume } from './game/resume'
 import { isHighlight } from './game/highlights'
+import { fileFindings } from './game/matchfindings'
 
 /**
  * How close together two Continue taps have to be before the second is treated as
@@ -1042,6 +1043,8 @@ export const useStore = create<Store>((set, get) => ({
       if (preTalk) applyPreTalk(g, ctx, preTalk)
       playHalf(g, ctx)
       playHalf(g, ctx)
+      // the tactical loop's findings, before the week turns (#181)
+      fileFindings(g, ctx)
     }
     const resultsKey = resultsParam(fx.compId, g.week)
     // Exactly what finishMatch does, and for the same reason. This used to set
@@ -1386,6 +1389,8 @@ export const useStore = create<Store>((set, get) => ({
     const live = get().liveMatch
     if (!g) return
     const resultsKey = live ? resultsParam(live.fixture.compId, g.week) : null
+    // the tactical loop's findings, before the week turns (#181)
+    if (live) fileFindings(g, live.ctx)
     g.newsFrom = g.nextId
     processWeekAndAdvance(g)
     get().dropResume()
