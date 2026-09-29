@@ -21,7 +21,7 @@ import { planCap } from './season'
  * The rules themselves are unchanged and written down here once, so the
  * Training screen and the probes read the same thing:
  *   development focus: 26 or under (season.ts reads the same age) and still
- *     below his potential, three places, as the weekly roll has always had;
+ *     below his potential, FOCUS_SLOTS places (three until 1.8.1, five now);
  *   personal plans: any senior-squad player (academy scholars have the
  *     academy coach's programme), as many as planCap: two, plus the
  *     assistant's badge, plus one for a manager from the coaching route.
@@ -29,7 +29,13 @@ import { planCap } from './season'
  */
 
 export const FOCUS_MAX_AGE = 26
-export const FOCUS_SLOTS = 3
+/** FIVE PLACES (owner, 1.8.1: "increase the development focus to cover 5
+ *  players"). It was three. Each place is the same as it was: a focused man
+ *  has an extra weekly chance of a rating point, 10% plus 4% for each level of
+ *  the assistant's badge (about five to ten points over a full season, never
+ *  past his potential), so two more places are two more youngsters developing
+ *  faster, not three who develop faster still. */
+export const FOCUS_SLOTS = 5
 
 /** Why a man cannot carry a development focus, as a locale key, or null. */
 export function focusBlock(p: Player): string | null {
@@ -46,8 +52,8 @@ export function planBlock(p: Player): string | null {
 
 const mine = (state: GameState, id: number) => state.players[id]?.clubId === state.userClubId
 
-/** The focus list as it counts: men still at the club, first three (the
- *  weekly roll reads devFocus.slice(0, 3)). */
+/** The focus list as it counts: men still at the club, the first FOCUS_SLOTS
+ *  (the weekly roll in season.ts reads this list). */
 export function focusIds(state: GameState): number[] {
   return state.devFocus.filter(id => mine(state, id)).slice(0, FOCUS_SLOTS)
 }
