@@ -396,6 +396,17 @@ export function federationPick(state: GameState, nat: string, size: number): Pla
     .slice(0, size)
 }
 
+/** The federation's list for this window: the snapshot taken when the window
+ *  opened (state.natFed), because an AI federation picks once and then lives
+ *  with it. A man who is hurt or healed mid-window does not move the quota or
+ *  the club's duty. Falls back to a live federationPick when no snapshot
+ *  exists (a save from before 9.10, or a coach appointed mid-window). */
+export function federationList(state: GameState, nat: string, size: number): Player[] {
+  const snap = state.natFed
+  if (snap && snap.nat === nat) return snap.ids.map(id => state.players[id]).filter((p): p is Player => !!p)
+  return federationPick(state, nat, size)
+}
+
 /** The club a national selection could serve: the user's club while he holds a
  *  Test job AND a club job, otherwise null. */
 export function conflictedClub(state: GameState): string | null {
@@ -421,7 +432,7 @@ export function clubQuotaLeft(state: GameState, nat: string, size: number, squad
   fedList?: Player[]): number {
   const mine = conflictedClub(state)
   if (!mine || !sharesClubComp(state, mine, clubId)) return Infinity
-  const fed = (fedList ?? federationPick(state, nat, size)).filter(p => p.clubId === clubId).length
+  const fed = (fedList ?? federationList(state, nat, size)).filter(p => p.clubId === clubId).length
   const inCamp = squad.filter(id => state.players[id]?.clubId === clubId).length
   return Math.max(0, fed - inCamp)
 }
@@ -433,12 +444,13 @@ export function clubDutyOwed(state: GameState, nat: string, size: number, squad:
   const mine = conflictedClub(state)
   if (!mine) return []
   const inCamp = new Set(squad)
-  return federationPick(state, nat, size).filter(p => p.clubId === mine && !inCamp.has(p.id) && !p.natSquad)
+  return federationList(state, nat, size).filter(p => p.clubId === mine && !inCamp.has(p.id) && !p.natSquad && !p.injury)
 }
 
-/** Release the user's club's due men into his camp (see above). Called when the
- *  window opens and again before a Test, so a coach cannot shelter them by
- *  simply never naming them. Returns how many went in. */
+/** Release the user's club's due men into his camp (see above). Called once,
+ *  when the window opens, which is when an AI federation names its squad, so
+ *  a coach cannot shelter them by simply never naming them. Returns how many
+ *  went in. */
 export function releaseClubDuty(state: GameState, nat: string, size: number): number {
   const squad = state.natSquads[nat]
   if (!squad) return 0

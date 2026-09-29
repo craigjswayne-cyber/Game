@@ -18,7 +18,7 @@ import { processWeekAndAdvance } from '../src/game/season'
 import type { GameState } from '../src/game/model'
 import { sackManager } from '../src/game/jobs'
 import { natCallUp, natDrop, natSquadHold, natWindow, NAT_SQUAD_FLOOR, NAT_SQUAD_SIZE } from '../src/game/country'
-import { federationPick, natQualifies, sharesClubComp } from '../src/game/nations'
+import { federationList, federationPick, natQualifies, sharesClubComp } from '../src/game/nations'
 import { knowledge } from '../src/game/scout'
 import { simMatch } from '../src/game/matchEngine'
 import { mulberry32 } from '../src/game/rng'
@@ -124,7 +124,8 @@ for (const [label, g] of worlds) {
   ok(!!w, `an England window opens (week ${g.week})`)
   const nat = 'ENG', size = w!.size
   const squad = () => g.natSquads[nat] ?? []
-  const fed = federationPick(g, nat, size)
+  // the federation's list as it named it when the window opened
+  const fed = federationList(g, nat, size)
   const mine = g.userClubId
   const ownFed = fed.filter(p => p.clubId === mine)
   // 1. his own club's picks are released as they would be to an AI federation
@@ -202,7 +203,7 @@ for (const [label, g] of worlds) {
     processWeekAndAdvance(g2)
   }
   // top-up runs inside the Test week's processing; read the camp as it stands after
-  const f2 = federationPick(g2, nat, NAT_SQUAD_SIZE)
+  const f2 = federationList(g2, nat, NAT_SQUAD_SIZE)
   processWeekAndAdvance(g2)
   const s2 = [...(g2.natSquads[nat] ?? [])]
   const over = [...new Set(s2.map(id => g2.players[id]?.clubId).filter(Boolean) as string[])]

@@ -2215,6 +2215,10 @@ export interface GameState {
    *  call-up and drop cannot be cycled to grind another club's player's
    *  morale down (9.10). Absent in older saves, cleared with the window. */
   natSent?: number[]
+  /** the federation's own list for the user's nation, snapshotted when the
+   *  window opened: the yardstick for the two-jobs rule (9.10). Absent in
+   *  older saves and between windows. */
+  natFed?: { nat: string; ids: number[] }
   /** World Player of the Year roll of honour, oldest first - the sport's
    *  history book, one line per season */
   potyRoll?: { season: number; playerId: number; name: string; clubName: string }[]
