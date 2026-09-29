@@ -32,6 +32,7 @@ try {
     await page.click('.submenu-item >> text=Tactics')
     await page.waitForSelector('.tab-bar')
     await page.click('.tab-bar >> text=Set Piece')
+    await page.click('[data-sp-sub="moves"]')
     await page.waitForSelector('.mv-card')
     await page.click('.mv-card [data-move="mv_loop"]')
     await page.waitForTimeout(300)

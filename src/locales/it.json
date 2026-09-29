@@ -1535,6 +1535,9 @@
  "tacticsScreen": {
   "tabRoles": "Ruoli",
   "tabSetPiece": "Fasi statiche",
+  "spSubCalls": "Touche e mischia",
+  "spSubMoves": "Schemi",
+  "spSubKicking": "Gioco al piede",
   "tabBench": "Panchina",
   "tabPrep": "Prep",
   "tabPlan": "Piano gara",

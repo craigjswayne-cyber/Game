@@ -16,6 +16,10 @@ import { MoveDiagram } from './tacticsArt'
  * under it make the call, and the picture and the facts beside it say what
  * the move needs, what it beats, how well drilled it is, whether the men in
  * the XV suit it and what this week's opposition defence does to it.
+ *
+ * Since 1.8.2 the card is the Set Piece tab's Moves view on its own (the tab
+ * is three views now, screens/Tactics.tsx), so it no longer has to share a
+ * scroll with the lineout calls above it and the kicking below.
  */
 
 const TRAIT_KEY: Record<DefTrait, string> = {

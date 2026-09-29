@@ -97,6 +97,9 @@ try {
     await go(page, 'tactics')
     await page.waitForTimeout(300)
     await page.locator('.tab-bar button', { hasText: 'Set Piece' }).click()
+    // the kickers are on the Set Piece tab's kicking view since 1.8.2
+    await page.waitForSelector('[data-sp-sub="kicking"]')
+    await page.click('[data-sp-sub="kicking"]')
     await page.waitForTimeout(300)
     const btns = page.locator('button.kick-btn')
     ok(await btns.count() === 2, `two kicker rows (${await btns.count()})`)
