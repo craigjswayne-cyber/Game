@@ -16,6 +16,7 @@ import { PRESETS, SLIDER_INFO, sliderReadout, type SliderKey } from '../../game/
 import { ord, posName, t, localeTag, compLabel } from '../../game/i18n'
 import { subjectVar } from '../../game/gender'
 import { coachFixes, gradeFixes, gradeLine, unitBattles, type FixTag } from '../../game/coachfix'
+import { MatchFindings } from '../OppReport'
 import { CrestT, Jersey, PosBadge, SectionTitle, Stars, RewardedButton, Toggle } from '../components'
 import { stageName } from './Home'
 import { groundSound, matchSfx, soundOn, toggleSound } from '../audio'
@@ -132,7 +133,6 @@ function Preview({ fxId }: { fxId: number }) {
   const [pickSlot, setPickSlot] = useState<number | null>(null)
   const [sel, setSel] = useState<number | null>(null)
   const [confirm, setConfirm] = useState(false)
-  const [planApplied, setPlanApplied] = useState(false)
   const [spotMsg, setSpotMsg] = useState<string | null>(null)
   const rewardAnalyst = useStore(st => st.rewardAnalyst)
   const [ptab, setPtab] = useState<'brief' | 'team' | 'talk'>('team')
@@ -409,13 +409,21 @@ function Preview({ fxId }: { fxId: number }) {
   // a watched spot, marked in the ledger, gone with the week.
   const fullRead = analystArmed(game)
   const gamePlan = fullRead ? allPlans : allPlans.slice(0, 3)
+  // APPLIED ONCE PER READ, AND THE SAVE REMEMBERS (1.8.1). The guard was a
+  // component flag, so leaving Matchday and coming back re-armed the button
+  // and each press added the same nudges again, up to the 5 to 95 clamp. The
+  // fixture and how many reads were applied now live on the save: coming back
+  // finds it done, and an analyst's all-nighter bought afterwards applies only
+  // the reads he added, not the assistant's three a second time.
+  const appliedN = game.planApplied?.fx === fx.id ? game.planApplied.n : 0
+  const planApplied = appliedN >= gamePlan.length
   const applyPlan = () => {
-    for (const p of gamePlan) {
+    for (const p of gamePlan.slice(appliedN)) {
       for (const [k, dv] of Object.entries(p.d) as [SliderKey, number][]) {
         tac[k] = Math.max(5, Math.min(95, tac[k] + dv))
       }
     }
-    setPlanApplied(true)
+    game.planApplied = { fx: fx.id, n: gamePlan.length }
     touch()
   }
 
@@ -2139,6 +2147,7 @@ function Live() {
             <div className="review-grid">
               <div>
                 <MatchVerdict />
+                <MatchFindings />
                 <Highlights />
               </div>
               <div>

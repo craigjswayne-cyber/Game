@@ -2,7 +2,8 @@
  * ---- THE COMMUNITY SERVER ----
  *
  * The PHASE Discord: bug reports in any of the six languages, ideas, and rugby
- * talk. The game links to it from the menu, the bug report screen and About.
+ * talk. The game links to it from the foot of Home, the manager's menu, the
+ * bug report screen and About (the title screen gave it up in 1.8.1).
  *
  * A LINK, NOT A CONNECTION. Nothing in the game talks to Discord. The address
  * is opened only when the player taps it, in their own browser or the Discord

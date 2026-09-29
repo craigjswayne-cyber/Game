@@ -81,6 +81,13 @@ ok(/property="og:image" content="https:\/\/phaserugbymanager\.com\//.test(html),
 ok(!/href="[^"]*play\//.test(html), 'it offers NO link to a browser build, because there is not one to link to')
 ok(/href="\.\/privacy\.html"/.test(html), 'it links to the privacy policy, which reviewers and players both look for')
 ok(/mailto:info@fwdsandbcks\.com/.test(html), 'and carries the contact address from the store listing')
+// every mail to the studio opens with the game's name as its subject (1.8.1)
+{
+  const mails = (src: string) => [...src.matchAll(/href="(mailto:[^"]*)"/g)].map(m => m[1])
+  const want = 'mailto:info@fwdsandbcks.com?subject=PHASE%3A%20Rugby%20Manager'
+  const all = [...mails(html), ...mails(readFileSync('public/privacy.html', 'utf8'))]
+  ok(all.length >= 3 && all.every(m => m === want), `every contact link, here and in privacy.html, has the subject (${all.length}: ${[...new Set(all)].join(' ')})`)
+}
 // the publisher is the company, by its registered name (1.8.0)
 ok(/A game by <a href="https:\/\/www\.fwdsandbcks\.com\/">FWDS &amp; BCKS LTD<\/a>/.test(html), 'it names the publisher and links to the studio site')
 ok(/href="https:\/\/discord\.gg\/3KKfDVsMb"/.test(html), 'and to the PHASE Discord')

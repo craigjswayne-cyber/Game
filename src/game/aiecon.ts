@@ -27,6 +27,7 @@
 // £0.85M a season over ten seasons). What changes is the SPREAD: a club with a
 // bloated bill and a small ground now bleeds, and a club that fills a big stadium
 // banks it. scripts/aiecon.ts holds both the median and the spread.
+import { seniorsOf } from './ai'
 import { MARQUEE_SLOTS } from './cap'
 import {LEDGER_WEEKS, weeklyCentral, groundUpkeep, groundTrade, type Club, type GameState, type Player } from './model'
 
@@ -223,10 +224,13 @@ export function aiWeeklyFinance(state: GameState): void {
  * cutting costs in a hurry takes the saving and not the fee.
  */
 export function shedWages(state: GameState, club: Club): Player | null {
-  // MARQUEE_SLOTS, the number the signing rule and the cap both use: this read
-  // 3 and capBill read 2, three answers to one question
+  // the two marquee men the cap recognises, not three
   const marquee = new Set((club.marquee ?? []).slice(0, MARQUEE_SLOTS))
-  if (club.players.length <= FLOOR_SQUAD) return null
+  // The floor is a SENIOR squad. `club.players.length` counted the 27-man
+  // academy, so the floor sat at three seniors and never held. trimToCap had
+  // the same fault and was fixed for it (CAP-01, 1.6.5); this is that fix,
+  // brought to the other door that releases men for money (1.8.1).
+  if (seniorsOf(state, club) <= FLOOR_SQUAD) return null
   const seniors = club.players
     .map(id => state.players[id])
     .filter((p): p is Player => !!p && !p.acad && !p.youth && !marquee.has(p.id) && !p.loanFrom)

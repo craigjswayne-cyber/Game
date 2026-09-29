@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../../store'
 import { SectionTitle } from '../components'
-import { DEV_CONTACT, PUBLISHER, PUBLISHER_ADDRESS } from '../../game/bugreport'
+import { CONTACT_MAILTO, DEV_CONTACT, PUBLISHER, PUBLISHER_ADDRESS } from '../../game/bugreport'
 import { COMMUNITY_URL } from '../../game/community'
 import { adBridgePresent, adBridgeWhy, billingBridgePresent, tillHealth, tillOpen } from '../../game/monetise'
 import { nativePlatform } from '../../game/shell'
@@ -142,7 +142,7 @@ export default function About() {
       <div className="card">
         <div className="fact-label">{t('about.contactLabel')}</div>
         <div className="meta">{t('about.contactBody')}</div>
-        <a className="btn ghost block" style={{ marginTop: 8 }} href={`mailto:${DEV_CONTACT}`}>{DEV_CONTACT}</a>
+        <a className="btn ghost block" style={{ marginTop: 8 }} href={CONTACT_MAILTO}>{DEV_CONTACT}</a>
         {/* the company's own name and address are not translated: they are
             what is on the register, in every language */}
         <div className="meta muted" style={{ marginTop: 10 }}>
