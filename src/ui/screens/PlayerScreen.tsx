@@ -5,7 +5,7 @@ import { agreeFee, agreePreContract, askingPrice, floorPrice, sellerWillingness,
 import { FormPill, Nat, PosBadge, SectionTitle, Stars, TwoStep, RewardedButton } from '../components'
 import { flagOf, nationName } from '../../game/nations'
 import { fineAttr, playerWage } from '../../game/attributes'
-import { attrRange, fuzzedCa, knowledge, persKnown, reportStage } from '../../game/scout'
+import { attrRange, fuzzedCa, knowledge, paRange, persKnown, reportStage, seenValue, wonderkidKnown } from '../../game/scout'
 import { benchNote, temperRead } from '../../game/temperament'
 import { bondsLine } from '../../game/bonds'
 import { canAgencyFile } from '../../game/rewarded'
@@ -230,7 +230,13 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         </div>
       )}
       <div className="chips">
-        <span className="chip" title={t('player.valueTitle')}>{t('player.value')} <b>{fmtMoney(p.value)}</b></span>
+        <span className="chip" title={t('player.valueTitle')}>{t('player.value')} <b>{fmtMoney(seenValue(game, p))}</b>{!mine && know < 95 && <span className="muted"> ?</span>}</span>
+        {/* the ceiling as the scouts read it (1.8.2): a band that narrows as
+            they watch him, nothing at all before they have */}
+        {!mine && p.age <= 23 && (() => {
+          const r = paRange(game, p)
+          return <span className="chip" title={t('player.ceilingTitle')}>{t('player.ceiling')} <b>{r ? (r[0] === r[1] ? r[0] : `${r[0]}-${r[1]}`) : '?'}</b></span>
+        })()}
         <span className="chip" title={t('player.wageTitle')}>{t('player.wage')} <b>{fmtWage(p.wage)}{t('common.perWeek')}</b></span>
         <span className="chip" title={t('player.contractToTitle')}>{t('player.contractTo')} <b>{2026 + p.contractEnds}</b></span>
         {(p.wantsDeal ?? 0) > 0 && <span className="chip" style={{ borderColor: 'var(--gold)', color: 'var(--gold)', fontWeight: 700 }}>
@@ -342,12 +348,12 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         {(p.lions ?? 0) > 0 && <span className="chip">{t('player.lions')}{(p.lions ?? 0) > 1 ? <b> ×{p.lions}</b> : null}</span>}
         {(p.wcWins ?? 0) > 0 && <span className="chip">{t('player.wcWinner')}{(p.wcWins ?? 0) > 1 ? <b> ×{p.wcWins}</b> : null}</span>}
         {p.lastR != null && <span className="chip">{t('player.lastMatch')} <b>{Math.min(10, Math.max(1, p.lastR)).toFixed(1)}</b></span>}
-        {(p.ca - (p.ca0 ?? p.ca)) !== 0 && (
+        {(p.ca - (p.ca0 ?? p.ca)) !== 0 && (mine || reportStage(game, p) >= 2) && (
           <span className="chip">{t('player.development')} <b style={{ color: p.ca > (p.ca0 ?? p.ca) ? 'var(--text-positive)' : 'var(--text-negative)' }}>
             {p.ca > (p.ca0 ?? p.ca) ? '▲' : '▼'} {Math.abs(p.ca - (p.ca0 ?? p.ca))}
           </b></span>
         )}
-        {p.age <= 21 && p.pa >= 86 && <span className="chip" style={{ borderColor: 'var(--gold)' }}><Glyph name="star" /> <b>{t('player.wonderkid')}</b></span>}
+        {wonderkidKnown(game, p) && <span className="chip" style={{ borderColor: 'var(--gold)' }}><Glyph name="star" /> <b>{t('player.wonderkid')}</b></span>}
         {(p.poty ?? 0) > 0 && (
           <span className="chip" style={{ borderColor: 'var(--gold)' }}>
             <Glyph name="award" /> <b>{t('player.worldPoty')}{(p.poty ?? 0) > 1 ? ` ×${p.poty}` : ''}</b>

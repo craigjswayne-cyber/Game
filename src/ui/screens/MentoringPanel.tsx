@@ -4,7 +4,7 @@ import { ATTR_KEYS, absWeek, type Attrs, type Player } from '../../game/model'
 import { fineAttr } from '../../game/attributes'
 import {
   MENTEE_MAX_AGE, MENTOR_MAX_KIDS, MENTOR_MIN_AGE, canBeMentored, canMentor, fitReason, fitWord,
-  mentorCap, mentorFit, mentorForecast, pairBlock, startMentoring, type PosLink,
+  STAGE_KEY, mentorCap, mentorFit, mentorForecast, pairBlock, startMentoring, type PosLink,
 } from '../../game/mentoring'
 import { SectionTitle } from '../components'
 import { attrName, t } from '../../game/i18n'
@@ -73,7 +73,7 @@ export default function MentoringPanel() {
           <div className="meta" style={{ fontSize: 12 }}>
             {t('training.mentorRule', { kidAge: MENTEE_MAX_AGE, minAge: MENTOR_MIN_AGE, kids: MENTOR_MAX_KIDS, cap })}
           </div>
-          <div className="meta" style={{ fontSize: 12, marginTop: 4 }}>{t('training.mentorEffect')}</div>
+          <div className="meta" style={{ fontSize: 12, marginTop: 4 }}>{t('training.mentorEffect')} {t('training.mentorRamp')}</div>
         </details>
       </div>
 
@@ -119,6 +119,7 @@ export default function MentoringPanel() {
                 <>
                   <div className="meta" style={{ fontSize: 12 }}>
                     {weeks === 0 ? t('training.pairedNew') : t('training.pairedWeeks', { n: weeks })}{' · '}
+                    <b data-stage={f.stage}>{t(STAGE_KEY[f.stage])}</b>{' · '}
                     {t('training.ratingSince', { from: mp.ca0 ?? k.ca, to: k.ca, n: mp.grew ?? 0 })}
                   </div>
                   <div className="meta" style={{ fontSize: 12 }}>

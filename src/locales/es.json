@@ -1721,6 +1721,12 @@
   "sacked": "{name} ha dejado el club. {cost} por rescindir su contrato."
  },
  "training": {
+  "stageEarly": "Primeros días",
+  "stageGrowing": "Creciendo",
+  "stageFlourishing": "Floreciendo",
+  "stageSettled": "Asentado",
+  "stageStalled": "No hay química",
+  "mentorRamp": "Una pareja nueva aporta poco al principio y crece a medida que los dos se conocen; si no hay química, se estanca.",
   "tabTraining": "Entrenamiento",
   "tabStaff": "Staff",
   "tabCondition": "Físico",
@@ -2378,6 +2384,8 @@
   "3": "Expediente completo: números, carácter y temperamento verificados."
  },
  "player": {
+  "ceiling": "Techo",
+  "ceilingTitle": "Su potencial según tus ojeadores. El margen se estrecha a medida que lo siguen; un signo de interrogación significa que aún no lo han evaluado.",
   "gone": "El jugador ya no está en el mundo del juego (retirado o sin equipo).",
   "tabProfile": "Perfil",
   "tabAttributes": "Atributos",
@@ -3055,6 +3063,7 @@
   "mon11": "Dic"
  },
  "world": {
+  "dtLeadHow": "Las pistas son rumores. Añade a tu lista los nombres probables del mercado, centra la red de ojeadores en la liga o envía al jefe de ojeadores, y se irán aclarando.",
   "agFirstList": "Clasificación actual - la primera lista se publica en breve",
   "agFoot": " · tus jugadores destacados · toca un nombre para ojearlo",
   "agKidSub": "los techos que los ojeadores comentan en voz baja - 21 años o menos",
@@ -3073,7 +3082,7 @@
   "dtFreeAgent": "AGENTE LIBRE",
   "dtGameweek": "JORNADA {n}",
   "dtNoRugby": "AÚN NO HAY RUGBY JUGADO",
-  "dtOnesSub": "techos sub-21, agentes libres incluidos",
+  "dtOnesSub": "Sub-21 evaluados por tus ojeadores, y pistas",
   "dtOnesToWatch": "Nombres a seguir",
   "dtRatings": "Ranking de notas de la temporada",
   "dtTitle": "EQUIPO DE ENSUEÑO",
@@ -4151,6 +4160,12 @@
   "unofficialBody_f": "PHASE: Rugby Manager no está afiliado, avalado ni licenciado por ninguna jugadora, club, liga u organismo. Los nombres de los clubes son reales; las competiciones, los estadios y los patrocinadores están renombrados o inventados. Los nombres de las jugadoras son reales, usados para identificar a personas en una base de datos deportiva y para nada más, y no se incluye ningún escudo, camiseta ni logotipo oficial."
  },
  "news": {
+  "mentEarlySubj": "Primeros días para {last} y {seniorLast}",
+  "mentEarly": "{kid} y {senior} todavía se están conociendo, así que no esperes mucho aún. Una pareja tarda semanas en asentarse.",
+  "mentGrowingSubj": "{last} progresa junto a {seniorLast}",
+  "mentGrowing": "{kid} y {senior} han empezado a entenderse, y el trabajo extra después del entrenamiento rinde un poco más cada semana.",
+  "watchNamed": "{name} | {age} · {pos} · {club}",
+  "watchLead": "Una pista: {pos_k}, {age} años ({league})",
   "maternitySubj": "{player} está embarazada",
   "maternity": {
    "one": "{player} ha comunicado al club su embarazo y comienza su baja por maternidad. Su contrato queda congelado durante ese tiempo y conserva su plaza en la plantilla a su regreso. El cuerpo médico calcula aproximadamente {n} semana hasta volver a entrenar con normalidad.",
@@ -4198,8 +4213,8 @@
   "depthThin": "justos en {thin}",
   "depthFull": "todas las posiciones cubiertas",
   "watchListSubj": "Las perlas de los ojeadores",
-  "watchList": "Los talentos de cantera con un techo especial, según la lista de pretemporada de los ojeadores.\n{list_ll}\nTambién hay prodigios sin equipo en el mercado de agentes libres.",
-  "watchRow": "{name} | {age} · {pos} · {club}",
+  "watchList": "Las notas de pretemporada de los ojeadores sobre el talento de cantera.\n{list_ll}\nUn nombre es un jugador al que han visto. Una pista es un rumor hasta que se investiga.",
+  "watchLeadRow": "Pista | {pos_k}, {age} años, {league}",
   "facDeclinedSubj": "La junta dice no: {name_k}",
   "facDeclined": "Tu petición de {name_k} de nivel {lvl} fue escuchada, valorada y rechazada: {why_k}. La puerta se reabre en un par de meses; mejores resultados y cuentas más sanas la reabren antes.",
   "facNoResults": "los resultados no se han ganado un proyecto así",

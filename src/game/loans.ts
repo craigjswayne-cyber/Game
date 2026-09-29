@@ -9,6 +9,7 @@ import { isDerby } from './rivalries'
 import { askingPrice, capBill, capBreak, capWage, embargoed, executeTransfer, squadFull, windowOpen } from './ai'
 import { userWageBudget } from './grants'
 import { playerWage } from './attributes'
+import { scoutPa } from './scout'
 
 /** Young talent parked on big-club benches, available for a season's loan. */
 export function loanTargets(state: GameState): Player[] {
@@ -37,7 +38,10 @@ export function loanTargets(state: GameState): Player[] {
       // he's behind the queue at home: not in the parent's best XV
       return !parent.tactic.lineup.slice(0, 15).includes(p.id)
     })
-    .sort((a, b) => b.pa - a.pa)
+    // ranked on the scouts' reading of the ceiling, not the ceiling itself
+    // (1.8.2, scout.scoutPa): the shop window is the manager's list, and a
+    // sort on the truth made it a free wonderkid ranking
+    .sort((a, b) => scoutPa(state, b) - scoutPa(state, a) || a.id - b.id)
     // "the odd few" is a count, not just a filter: the potential sort ranks
     // any surviving top-flight kid above every Championship name, so without
     // a cap the list was still eleven wonderkids and one honest borrow. Two

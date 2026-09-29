@@ -19,13 +19,17 @@
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import {
-  COACHED_PER_WEEK, GROWTH_PER_WEEK, POS_RATE, canBeMentored, canMentor, mentorBoost, mentorFit,
-  mentorForecast, mentorRate, mentorTeaches, mentorWeek, pairBlock, posLink, startMentoring,
+  COACHED_PER_WEEK, GROWTH_PER_WEEK, POS_RATE, bondPace, canBeMentored, canMentor, mentorBoost, mentorFit,
+  mentorForecast, mentorRamp, mentorRate, mentorStage, mentorTeaches, mentorWeek, pairBlock, pairChem, posLink, startMentoring,
 } from '../src/game/mentoring'
+import { absWeek } from '../src/game/model'
 import { attrWeight } from '../src/game/attributes'
 import { attrLevel } from '../src/game/ageing'
 import { mulberry32 } from '../src/game/rng'
 import type { GameState, Player } from '../src/game/model'
+
+/** a `since` that makes the pairing forty weeks old this week */
+const SETTLED = (h: GameState) => absWeek(h.season, h.week) - 39
 
 let fails = 0
 const ok = (c: boolean, what: string) => {
@@ -69,9 +73,11 @@ console.log('--- the forecast is the rate the week rolls')
 {
   // measure mentorWeek over many weeks on a copy, putting the kid back each week
   // so the ceiling and the position cap never stop it
+  // A SETTLED PAIR (1.8.2): forty weeks in, so the relationship's ramp is
+  // what the screen quotes for it; the ramp itself is measured below
   const measure = (s: Player, k: Player, weeks = 6000) => {
     const h = structuredClone(g)
-    h.mentors = [{ senior: s.id, kid: k.id, taught: {}, grew: 0 }]
+    h.mentors = [{ senior: s.id, kid: k.id, taught: {}, grew: 0, since: SETTLED(h) }]
     const kid = h.players[k.id]!
     const a0 = { ...kid.a }, ca0 = kid.ca, pers0 = kid.pers
     const rng = mulberry32(k.id * 31 + s.id)
@@ -92,15 +98,19 @@ console.log('--- the forecast is the rate the week rolls')
   for (const [label, x] of [['best', best], ['middle', mid], ['worst', worst]] as const) {
     const m = measure(x.s, x.k)
     const fc = mentorForecast(g, x.s, x.k)
-    const expG = GROWTH_PER_WEEK * x.r, expC = COACHED_PER_WEEK * x.r
+    const rr = x.r * mentorRamp(x.s, x.k, 40)
+    const expG = GROWTH_PER_WEEK * rr, expC = COACHED_PER_WEEK * rr
     console.log(`  ${label}: ${x.s.name} (${x.s.pos}, ${x.s.pers}) with ${x.k.name} (${x.k.pos}, ${x.k.pers}): fit ${mentorFit(x.s, x.k)}, ${posLink(x.s, x.k)}, rate ${f2(x.r)}`)
     console.log(`    a week: rating ${m.grew.toFixed(4)} (expected ${expG.toFixed(4)}), coached ${m.coached.toFixed(4)} (expected ${expC.toFixed(4)}); a season, as the screen quotes it: ${f2(fc.rating)} rating, ${f2(fc.coached)} coached`)
     ok(Math.abs(m.grew - expG) < expG * 0.25 + 0.002, `${label}: the rating roll lands at the rate the screen quotes`)
     ok(Math.abs(m.coached - expC) < expC * 0.25 + 0.003, `${label}: so does the coached roll`)
   }
   ok(best.r > worst.r * 2.5, `choosing well matters: best ${f2(best.r)}x against worst ${f2(worst.r)}x`)
-  const avgRating = GROWTH_PER_WEEK * 44
-  ok(avgRating > 0.7 && avgRating < 1.2, `an average pairing is worth about one rating point a season (${f2(avgRating)})`)
+  // an average pairing, established: its second season of the ramp
+  let ramp2 = 0
+  for (let w = 53; w <= 96; w++) ramp2 += mentorRamp(mid.s, mid.k, w)
+  const avgRating = GROWTH_PER_WEEK * ramp2
+  ok(avgRating > 0.7 && avgRating < 1.2, `an average established pairing is worth about one rating point a season (${f2(avgRating)} at rate 1.0)`)
 
   // OLD vs NEW, the same average pairing
   const oldPrinted = 0.045 * 44
@@ -121,7 +131,7 @@ console.log('--- coached points do not inflate the kid')
   let taughtAll = 0, worstMove = 0, kidName = '', lv0 = 0, lastTaught = ''
   for (let r = 0; r < 10; r++) {
     const h = structuredClone(g)
-    h.mentors = [{ senior: s.id, kid: k.id, taught: {}, grew: 0 }]
+    h.mentors = [{ senior: s.id, kid: k.id, taught: {}, grew: 0, since: SETTLED(h) }]
     const kid = h.players[k.id]!
     // attrLevel reads the attributes only, so a rating point the pairing adds
     // does not move it: any change here is the coaching's
@@ -143,6 +153,57 @@ console.log('--- coached points do not inflate the kid')
   capped.pa = capped.ca
   for (let w = 0; w < 44; w++) mentorWeek(h2, capped, rng)
   ok((h2.mentors[0].grew ?? 0) === 0 && capped.ca === k.ca, 'and a kid at his ceiling gains no rating from it')
+}
+
+console.log('--- a pairing grows: it is not switched on (1.8.2)')
+{
+  // Owner: "Mentoring should grow or flourish over time, not be an instant
+  // success." Every possible pairing at six clubs, read on the ramp.
+  const rows: { s: Player; k: Player; r: number; c: number }[] = []
+  for (const [club, seed] of [['leicester', 1], ['northampton', 2], ['bath', 3], ['saracens', 4], ['exeter', 5], ['gloucester', 6]] as const) {
+    const w = newGame(club, 'Ramp', seed)
+    const wsq = w.clubs[w.userClubId].players.map(id => w.players[id]).filter((p): p is Player => !!p)
+    for (const s of wsq.filter(canMentor)) for (const k of wsq.filter(canBeMentored)) rows.push({ s, k, r: mentorRate(w, s, k), c: pairChem(s, k) })
+  }
+  const mean = (a: number[]) => a.reduce((x, y) => x + y, 0) / a.length
+  const span = (x: { s: Player; k: Player }, a: number, b: number) => { let t = 0; for (let w = a; w <= b; w++) t += mentorRamp(x.s, x.k, w); return t }
+  const byChem = [...rows].sort((a, b) => b.c - a.c)
+  const best = byChem[0], avg = byChem[Math.floor(byChem.length / 2)], worst = byChem[byChem.length - 1]
+  const WEEKS = [1, 2, 4, 8, 12, 16, 24, 32, 44, 80]
+  for (const [lab, x] of [['best', best], ['average', avg], ['worst', worst]] as const) {
+    console.log(`  ${lab} (chemistry ${f2(x.c)}, pace ${bondPace(x.c).toFixed(1)} weeks): ` + WEEKS.map(w => `w${w} ${f2(mentorRamp(x.s, x.k, w))}`).join(', '))
+  }
+  ok(mentorRamp(avg.s, avg.k, 1) < 0.15, `week one of an average pairing is small (${f2(mentorRamp(avg.s, avg.k, 1))} of the old flat rate)`)
+  ok(WEEKS.every((w, i) => i === 0 || mentorRamp(avg.s, avg.k, w) > mentorRamp(avg.s, avg.k, WEEKS[i - 1])), 'and it grows week on week')
+  ok(mentorRamp(best.s, best.k, 24) > 1.1 && mentorStage(best.s, best.k, 24) === 'flourishing',
+    `a good pair flourishes: ${f2(mentorRamp(best.s, best.k, 24))} by week 24, stage ${mentorStage(best.s, best.k, 24)}`)
+  ok(mentorRamp(worst.s, worst.k, 80) < 0.65 && mentorStage(worst.s, worst.k, 24) === 'stalled',
+    `a poor pair stalls: ${f2(mentorRamp(worst.s, worst.k, 80))} even at week 80, stage ${mentorStage(worst.s, worst.k, 24)}`)
+  ok(mentorStage(best.s, best.k, 2) === 'early' && mentorStage(worst.s, worst.k, 2) === 'early', 'every pairing is early days at first')
+  ok(mentorStage(avg.s, avg.k, 8) === 'growing', `an average pair is growing at week 8 (${mentorStage(avg.s, avg.k, 8)})`)
+  // the effect a week actually takes (rate x ramp) for the three, at week 1 and settled
+  const eff = (x: typeof best, w: number) => x.r * mentorRamp(x.s, x.k, w)
+  ok(eff(best, 44) > eff(worst, 44) * 4,
+    `choosing well matters: once settled the best pair runs at ${f2(eff(best, 44))}x the old average and the worst at ${f2(eff(worst, 44))}x`)
+  // SEASON TOTALS, the balance
+  const old = mean(rows.map(x => GROWTH_PER_WEEK * x.r * 44))
+  const first = mean(rows.map(x => GROWTH_PER_WEEK * x.r * span(x, 1, 44)))
+  const second = mean(rows.map(x => GROWTH_PER_WEEK * x.r * span(x, 53, 96)))
+  console.log(`  season rating points, mean over ${rows.length} real pairings: OLD flat ${f2(old)}, NEW first season ${f2(first)}, NEW established (second) season ${f2(second)}`)
+  ok(Math.abs(second - old) / old < 0.1, `an established pairing is worth what a pairing was (${f2(second)} against ${f2(old)})`)
+  ok(first < old * 0.9 && first > old * 0.6, `a first season is worth less: the front-loaded weeks are gone (${f2(first)})`)
+  const st: Record<string, number> = {}
+  for (const x of rows) { const k = mentorStage(x.s, x.k, 30); st[k] = (st[k] ?? 0) + 1 }
+  console.log(`  stage at week 30 across them: ${JSON.stringify(st)}`)
+  ok((st.flourishing ?? 0) > 0 && (st.stalled ?? 0) > 0 && (st.settled ?? 0) > (st.stalled ?? 0), 'some flourish, some stall, most settle')
+  // the screen quotes the ramp: a new pairing is quoted less than the same one settled
+  const w0 = newGame('leicester', 'Ramp', 1)
+  const wsq0 = w0.clubs[w0.userClubId].players.map(id => w0.players[id]).filter((p): p is Player => !!p)
+  const k0 = wsq0.filter(p => canBeMentored(p) && p.ca < p.pa - 6)[0], s0 = wsq0.filter(canMentor).sort((a, b) => mentorRate(w0, b, k0) - mentorRate(w0, a, k0))[0]
+  const fNew = mentorForecast(w0, s0, k0)
+  w0.mentors = [{ senior: s0.id, kid: k0.id, taught: {}, grew: 0, since: SETTLED(w0) }]
+  const fOld = mentorForecast(w0, s0, k0)
+  ok(fNew.rating < fOld.rating && fNew.stage === 'early', `the screen quotes a new pairing ${f2(fNew.rating)} for its first season and the same pair settled ${f2(fOld.rating)} (${fOld.stage})`)
 }
 
 console.log('--- the ledger, over real weeks')
