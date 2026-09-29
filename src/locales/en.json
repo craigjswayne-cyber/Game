@@ -5148,11 +5148,11 @@
   "badgeFailAutoSubj": "{name} falls short of his {badge_k} badge",
   "badgeFailAuto": "The examiners want more from {name} on the assessed session. He took it well, asked for the feedback in writing and pinned it above his desk. He can sit it again in four weeks.",
   "inheritedStaffSubj": "The backroom staff you have inherited",
-  "inheritedStaff": "{filled} of the eight coaching posts are filled.\n{men_ll}",
+  "inheritedStaff": "{filled} of 8 coaching posts are filled.\n{men_ll}",
   "inheritedStaffVacantSubj": "The backroom staff you have inherited",
   "inheritedStaffVacant": {
-   "one": "{filled} of the eight coaching posts are filled.\n{men_ll}\nVacant | {jobs_l}",
-   "other": "{filled} of the eight coaching posts are filled.\n{men_ll}\nVacant | {jobs_l}"
+   "one": "{filled} of 8 coaching posts are filled.\n{men_ll}\nVacant | {jobs_l}",
+   "other": "{filled} of 8 coaching posts are filled.\n{men_ll}\nVacant | {jobs_l}"
   },
   "inheritedMan": "{role_k} | {name}",
   "inheritedRole": "{role_k}",

@@ -129,7 +129,7 @@ export default function BugReport() {
 
       <div className="card">
         <div className="bug-label">{t('legacy.bgSendIt')}</div>
-        <div className="btn-row">
+        <div className="btn-row bug-send">
           {canShare && <button className="btn gold" onClick={() => { void doShare() }}>{t('legacy.bgShare')}</button>}
           <a className="btn" href={mailtoUrl(report)}>{t('legacy.bgEmail')}</a>
           <button className="btn" onClick={() => { void doCopy() }}>{t('legacy.bgCopy')}</button>
@@ -168,7 +168,7 @@ export default function BugReport() {
           rows={4}
           placeholder={t('legacy.bgIdeaPlaceholder')}
         />
-        <div className="btn-row" style={{ marginTop: 8 }}>
+        <div className="btn-row bug-send" style={{ marginTop: 8 }}>
           {canShare && (
             <button className="btn gold" onClick={() => { void doShareIdea() }}>{t('legacy.bgShare')}</button>
           )}

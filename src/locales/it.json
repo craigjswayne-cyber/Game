@@ -5258,11 +5258,11 @@
   "badgeFailAutoSubj": "{name} manca il patentino {badge_k}",
   "badgeFailAuto": "Gli esaminatori vogliono di più da {name} nella seduta valutata. L'ha presa bene, ha chiesto il feedback per iscritto e l'ha appeso sopra la scrivania. Potrà riprovarci tra quattro settimane.",
   "inheritedStaffSubj": "Lo staff tecnico che hai ereditato",
-  "inheritedStaff": "{filled} degli otto ruoli tecnici sono coperti.\n{men_ll}",
+  "inheritedStaff": "{filled} degli 8 ruoli tecnici sono coperti.\n{men_ll}",
   "inheritedStaffVacantSubj": "Lo staff tecnico che hai ereditato",
   "inheritedStaffVacant": {
-   "one": "{filled} degli otto ruoli tecnici sono coperti.\n{men_ll}\nVacante | {jobs_l}",
-   "other": "{filled} degli otto ruoli tecnici sono coperti.\n{men_ll}\nVacanti | {jobs_l}"
+   "one": "{filled} degli 8 ruoli tecnici sono coperti.\n{men_ll}\nVacante | {jobs_l}",
+   "other": "{filled} degli 8 ruoli tecnici sono coperti.\n{men_ll}\nVacanti | {jobs_l}"
   },
   "inheritedMan": "{role_k} | {name}",
   "inheritedRole": "{role_k}",

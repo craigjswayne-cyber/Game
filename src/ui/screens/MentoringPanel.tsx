@@ -137,7 +137,8 @@ export default function MentoringPanel() {
           </div>
         )
       })}
-      {pairs.length === 0 && !kid && <div className="card meta" style={{ padding: '8px 10px', fontSize: 12 }}>{t('training.mentorEmpty')}</div>}
+      {/* the empty-state paragraph that sat here went with the Who qualifies
+          box (1.8.2): the line above already says what a pairing is */}
 
       <SectionTitle sub={free > 0 ? undefined : t('training.placesNone', { cap })}>{t('training.newPairing')}</SectionTitle>
       {free === 0 ? (

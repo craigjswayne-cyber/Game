@@ -5294,11 +5294,11 @@
     "badgeFailAutoSubj": "{name} échoue à son badge {badge_k}",
     "badgeFailAuto": "Les examinateurs en veulent davantage de {name} sur la séance évaluée. Il l'a bien pris, a demandé le retour par écrit et l'a punaisé au-dessus de son bureau. Il pourra le repasser dans quatre semaines.",
     "inheritedStaffSubj": "Le staff dont vous héritez",
-    "inheritedStaff": "{filled} des huit postes du staff sont pourvus.\n{men_ll}",
+    "inheritedStaff": "{filled} des 8 postes du staff sont pourvus.\n{men_ll}",
     "inheritedStaffVacantSubj": "Le staff dont vous héritez",
     "inheritedStaffVacant": {
-      "one": "{filled} des huit postes du staff sont pourvus.\n{men_ll}\nPoste vacant | {jobs_l}",
-      "other": "{filled} des huit postes du staff sont pourvus.\n{men_ll}\nPostes vacants | {jobs_l}"
+      "one": "{filled} des 8 postes du staff sont pourvus.\n{men_ll}\nPoste vacant | {jobs_l}",
+      "other": "{filled} des 8 postes du staff sont pourvus.\n{men_ll}\nPostes vacants | {jobs_l}"
     },
     "inheritedMan": "{role_k} | {name}",
     "inheritedRole": "{role_k}",

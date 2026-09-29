@@ -5226,11 +5226,11 @@
   "badgeFailAutoSubj": "{name} se queda corto en su titulación {badge_k}",
   "badgeFailAuto": "Los examinadores quieren más de {name} en la sesión evaluada. Se lo tomó bien, pidió el informe por escrito y lo colgó encima de su mesa. Podrá presentarse de nuevo dentro de cuatro semanas.",
   "inheritedStaffSubj": "El cuerpo técnico que heredas",
-  "inheritedStaff": "{filled} de los ocho puestos técnicos están cubiertos.\n{men_ll}",
+  "inheritedStaff": "{filled} de los 8 puestos técnicos están cubiertos.\n{men_ll}",
   "inheritedStaffVacantSubj": "El cuerpo técnico que heredas",
   "inheritedStaffVacant": {
-   "one": "{filled} de los ocho puestos técnicos están cubiertos.\n{men_ll}\nVacante | {jobs_l}",
-   "other": "{filled} de los ocho puestos técnicos están cubiertos.\n{men_ll}\nVacantes | {jobs_l}"
+   "one": "{filled} de los 8 puestos técnicos están cubiertos.\n{men_ll}\nVacante | {jobs_l}",
+   "other": "{filled} de los 8 puestos técnicos están cubiertos.\n{men_ll}\nVacantes | {jobs_l}"
   },
   "inheritedMan": "{role_k} | {name}",
   "inheritedRole": "{role_k}",
