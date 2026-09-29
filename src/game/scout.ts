@@ -132,8 +132,9 @@ export function searchKey(state: GameState, p: Player, key: 'ca' | 'value'): num
 }
 
 /**
- * World > Team of the Season > Ones to Watch. Named: under-21s in the league
- * (and free agents) the scouts have properly read, best reading first, plus the
+ * World > Team of the Season > Ones to Watch. Named: under-21s at clubs in
+ * the league (never free agents: owner, 1.8.2, a ranking list is no shop
+ * window for the unattached) the scouts have properly read, best reading first, plus the
  * club's own. Leads: up to three the scouts have only heard about, at clubs in
  * the league, never free agents, and never named: a position, an age and the
  * league, to be followed up. The whisper behind a lead is the ceiling with a
@@ -142,7 +143,7 @@ export function searchKey(state: GameState, p: Player, key: 'ca' | 'value'): num
  */
 export function onesToWatch(state: GameState, leagueId: string): { named: Player[]; leads: Player[] } {
   const pool = Object.values(state.players).filter(p =>
-    p.age <= 21 && !p.retiring && (p.clubId == null || state.clubs[p.clubId]?.leagueId === leagueId))
+    p.age <= 21 && !p.retiring && p.clubId != null && state.clubs[p.clubId]?.leagueId === leagueId)
   const read = (p: Player) => p.clubId === state.userClubId || knowledge(state, p) >= WATCH_KNOW
   const named = pool.filter(read)
     .sort((a, b) => scoutPa(state, b) - scoutPa(state, a) || a.id - b.id)

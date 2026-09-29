@@ -80,6 +80,7 @@ for (const [club, seed] of [['leicester', 11], ['northampton', 5], ['exeter', 7]
   const league = g.clubs[g.userClubId].leagueId
   const o = onesToWatch(g, league)
   ok(o.named.every(p => !unread(g, p)), `${club}: ${o.named.length} named, every one read (knowledge ${WATCH_KNOW}+) or our own`)
+  ok(o.named.every(p => p.clubId != null), `${club}: no free agent on the Ones to Watch list, scouted or not`)
   ok(o.leads.length <= 3 && o.leads.every(p => p.clubId != null && unread(g, p)),
     `${club}: ${o.leads.length} leads, none a free agent and none already read`)
   ok(o.leads.every(p => !tIn('en', 'news.watchLead', leadRow(g, p)).includes(p.name.split(' ').slice(-1)[0])),
