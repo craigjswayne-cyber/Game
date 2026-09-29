@@ -7,7 +7,7 @@ import { activePlan, applyAdminPenalties } from './season'
 import { settleInsolvency } from './insolvency'
 import { ageManager } from './career'
 import { rivalVerdict } from './boss'
-import {absWeek, BASE_YEAR, boardObjective, boardPatience, closeNatTenure, demandCeiling, MAX_FOLLOWING, GROUND_TIERS, groundLevel, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, RELEGATES, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId, worldCupSeasonFor } from './model'
+import {absWeek, BASE_YEAR, boardPatience, closeNatTenure, demandCeiling, MAX_FOLLOWING, GROUND_TIERS, groundLevel, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, RELEGATES, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId, worldCupSeasonFor } from './model'
 import { assignPersonality, EARLY_FADE, LATE_PEAK } from './attributes'
 import { ageAttributes, gapGrowth } from './ageing'
 import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildWomensContinentalCup, buildLeague, schedulePreseason, sortTable } from './schedule'
@@ -36,6 +36,8 @@ import { staffChem } from './staff'
 import { tIn, type Vars } from './i18n'
 import { rememberDeparture } from './memory'
 import { historyYearEnd } from './history'
+import { arcYearEnd } from './arc'
+import { demandedFinish } from './chairman'
 
 const ordinal = (n: number) =>
   n <= 0 ? '-' : `${n}${n % 10 === 1 && n !== 11 ? 'st' : n % 10 === 2 && n !== 12 ? 'nd' : n % 10 === 3 && n !== 13 ? 'rd' : 'th'}`
@@ -1397,7 +1399,7 @@ export function rebuildSeason(state: GameState) {
     if (comp) {
       const pos = sortTable(comp.table).findIndex(r => r.teamId === club.id) + 1
       state.mgr.finishes.push({ season: state.season, leagueId: club.leagueId, pos, clubId: club.id })
-      const obj = boardObjective(club.rep, comp.table.length)
+      const obj = demandedFinish(state, club.id, comp.table.length)
       const wonLeague = comp.champion === club.id
       userFinishPos = pos
       userWonLeague = wonLeague
@@ -1567,6 +1569,7 @@ export function rebuildSeason(state: GameState) {
     }
   }
 
+  arcYearEnd(state) // the career arc's summer: conduct, the chairman's verdict, eras, rivals (arc.ts)
   identitySeasonEnd(state) // the identity's expectations, met or missed (identity.ts)
   // archive player season -> career
   for (const p of Object.values(state.players)) {
