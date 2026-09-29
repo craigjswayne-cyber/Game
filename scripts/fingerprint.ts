@@ -504,25 +504,27 @@ const EXPECTED: string[] = [
   // (harlequins-leicester). bandcheck: 49.1 pts, 6.24 tries, 52.7% home,
   // 1.6% draws, 8.8% blowouts.
   // 1.8.2, THE ATTACK AND DEFENCE STYLES (owner request, game/styles.ts):
-  // FOUR of six moved, and WITHOUT a new draw on the stream. Every club now
-  // plays one of five attacks and one of five defences (the AI's from its
-  // coach's philosophy, the manager's picked on the Tactics screen), and in
-  // every tick the two sides' styles scale the try chance and the penalty
-  // window, a tick that comes to nothing can end in a turnover or a metre of
-  // gain line, and a kicking game walks the line upfield: the same rolls
-  // against different thresholds, and the turnover on a hash of the world, the
-  // fixture and the tick. A side with no style (a Test side) plays exactly as
-  // before. The world's try chance is normalised (styles.TRY_NORM) so the
-  // styles move who scores, not how much. bandcheck, pooled over four seeds,
-  // before and after:
-  //   pts 49.4 -> 49.8   tries 6.28 -> 6.33   home 51.5% -> 52.6%
-  //   draws 2.0% -> 1.7%   blowouts 9.0% -> 9.8% (every band holds)
+  // FOUR of six moved (all four of them AI fixtures; the user club held),
+  // and WITHOUT a new draw on the stream. Every club now plays one of five
+  // attacks and one of five defences (the AI's from its coach's philosophy,
+  // the manager's picked on the Tactics screen), and in every tick the two
+  // sides' styles scale the try chance and the penalty window, a tick that
+  // comes to nothing can end in a turnover or a metre of gain line, and a
+  // kicking game walks the line upfield: the same rolls against different
+  // thresholds, the turnover on a hash of the world, the fixture and the
+  // tick. A side with no style (a Test side) plays exactly as before. The
+  // world's try chance is normalised (styles.TRY_NORM) and the fit to a style
+  // is read against the side's own profile (styleFitRel), so the styles move
+  // who scores, not how much, and do not pay a strong side twice. bandcheck,
+  // pooled over four seeds, before and after:
+  //   pts 49.4 -> 49.6   tries 6.28 -> 6.30   home 51.5% -> 51.8%
+  //   draws 2.0% -> 1.8%   blowouts 9.0% -> 8.5% (every band holds)
   'saracens 17-37 bath',
-  'exeter 3-30 gloucester',
+  'exeter 17-3 gloucester',
   'sale 39-25 bristol',
-  'harlequins 51-13 leicester',
-  'newcastle 30-43 northampton',
-  'exeter 19-46 saracens',
+  'harlequins 31-27 leicester',
+  'newcastle 27-69 northampton',
+  'exeter 18-36 saracens',
 ]
 // 1.8.1, the match engine and preparation round: ONE of six moved, and it is
 // the LEICESTER fixture again, because leicester is this world's user club and

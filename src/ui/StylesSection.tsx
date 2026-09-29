@@ -1,7 +1,7 @@
 import type { Attrs, Club, GameState } from '../game/model'
 import {
   ATK_STYLES, DEF_STYLES, MATCHUP, STYLE_MOVES, STYLE_NEEDS, applyAtkStyle, applyDefStyle, atkBeats, atkName, defBeats, defName,
-  styleFit, stylesOf, type AtkStyle, type DefStyle,
+  styleFitRel, stylesOf, type AtkStyle, type DefStyle,
 } from '../game/styles'
 import { MOVE_BY_ID } from '../game/moves'
 import { userFixtureThisWeek } from '../game/season'
@@ -38,8 +38,8 @@ export default function StylesSection({ game, club, touch }: { game: GameState; 
     attrs: n.attrs.map(a => t(`attrs.${a}`)).join(', '),
   })).join(' · ')
   const fitLine = (fit: number) => (
-    <span className={`d${fit < -0.15 ? ' mv-warn' : ''}`}>
-      {t(fit > 0.15 ? 'styles.fitGood' : fit < -0.15 ? 'styles.fitPoor' : 'styles.fitOk')}
+    <span className={`d${fit < -0.1 ? ' mv-warn' : ''}`} data-style-fit={fit.toFixed(2)}>
+      {t(fit > 0.1 ? 'styles.fitGood' : fit < -0.1 ? 'styles.fitPoor' : 'styles.fitOk')}
     </span>
   )
   const vsLine = (m: number, style: string) => opp && (
@@ -50,7 +50,7 @@ export default function StylesSection({ game, club, touch }: { game: GameState; 
 
   const atk = mine.atk, def = mine.def
   const ab = atkBeats(atk), db = defBeats(def)
-  const atkFit = styleFit(atk, at), defFit = styleFit(def, at)
+  const atkFit = styleFitRel(atk, at), defFit = styleFitRel(def, at)
   const moves = STYLE_MOVES[atk].map(id => MOVE_BY_ID[id]).filter(Boolean).map(m => t(m.name))
 
   return <>

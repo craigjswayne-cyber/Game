@@ -26,7 +26,7 @@ import {
   type BenchSplit,
 } from './bench'
 import { rememberDebut } from './memory'
-import { ATK_KICKS, atkSay, defSay, moveAffinity, styleDrain, styleFit, styleTerr, styleTick, stylesOf, TURN_M, type SideStyle } from './styles'
+import { ATK_KICKS, atkSay, defSay, moveAffinity, styleDrain, styleFitRel, styleTerr, styleTick, stylesOf, TURN_M, type SideStyle } from './styles'
 
 /**
  * How many replacements a side may make in a match.
@@ -1199,7 +1199,7 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
         const p = pid != null ? state.players[pid] : undefined
         return p ? p.a[a] : null
       }
-      side.sty = { ...sty, atkFit: styleFit(sty.atk, at), defFit: styleFit(sty.def, at) }
+      side.sty = { ...sty, atkFit: styleFitRel(sty.atk, at), defFit: styleFitRel(sty.def, at) }
       side.tempoF *= styleDrain(sty)
     }
 

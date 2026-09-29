@@ -37,8 +37,10 @@
 //
 //   FIT. A style is only as good as the men asked to play it (STYLE_NEEDS),
 //   read off the shirts on the pitch against the world's average man in each
-//   shirt, the way moves.ts reads a move's fit. Width needs pace out wide and
-//   passing at 10 and 12; choke needs strong, upright tacklers in the pack.
+//   shirt, the way moves.ts reads a move's fit, and then against the side's
+//   own profile (styleFitRel), so it says which style suits THIS XV rather
+//   than how good the XV is. Width needs pace out wide and passing at 10 and
+//   12; choke needs strong, upright tacklers in the pack.
 //
 //   THE MOVES (moves.ts) are the plays you CALL inside the style: a style is
 //   the side's overall game, a move is one play. The two meet in the fit: a
@@ -73,9 +75,9 @@ export type DefPreset = Required<Pick<Tactic, 'defLine' | 'defWidth' | 'ruckCont
 export const ATK_PRESET: Record<AtkStyle, AtkPreset> = {
   direct: { style: 22, tempo: 46, kicking: 50, ruckCommit: 62, kickStyle: 'territory' },
   pods: { style: 45, tempo: 50, kicking: 45, ruckCommit: 55, kickStyle: 'balanced' },
-  width: { style: 84, tempo: 64, kicking: 36, ruckCommit: 38, kickStyle: 'attack' },
+  width: { style: 84, tempo: 60, kicking: 36, ruckCommit: 38, kickStyle: 'attack' },
   kick: { style: 40, tempo: 40, kicking: 84, ruckCommit: 52, kickStyle: 'contest' },
-  offload: { style: 70, tempo: 74, kicking: 28, ruckCommit: 40, kickStyle: 'attack' },
+  offload: { style: 70, tempo: 66, kicking: 28, ruckCommit: 40, kickStyle: 'attack' },
 }
 
 export const DEF_PRESET: Record<DefStyle, DefPreset> = {
@@ -136,10 +138,10 @@ export interface StyleFx {
 
 export const ATK_FX: Record<AtkStyle, StyleFx> = {
   direct: { tryF: 0.95, penF: 1.05, turn: 0.75, ground: 0.4, terr: 0, drain: 1.0 },
-  pods: { tryF: 1.02, penF: 1.03, turn: 0.9, ground: 0.2, terr: 0, drain: 1.01 },
+  pods: { tryF: 1.0, penF: 1.03, turn: 0.9, ground: 0.2, terr: 0, drain: 1.01 },
   width: { tryF: 1.08, penF: 0.95, turn: 1.1, ground: 0, terr: 0, drain: 1.02 },
   kick: { tryF: 0.93, penF: 0.98, turn: 0.85, ground: 0, terr: 0.5, drain: 0.98 },
-  offload: { tryF: 1.1, penF: 0.97, turn: 1.28, ground: 0, terr: 0, drain: 1.05 },
+  offload: { tryF: 1.1, penF: 0.97, turn: 1.28, ground: 0, terr: 0, drain: 1.03 },
 }
 
 export const DEF_FX: Record<DefStyle, StyleFx> = {
@@ -160,8 +162,11 @@ export const ATK_KICKS: Record<AtkStyle, number> = { direct: 1, pods: 1, width: 
 export const TURN_BASE = 0.07
 export const TURN_M = 6
 /** what a fully fitting (or fully unsuited) XV adds to (or takes off) its
- *  style's effect on the try chance */
-export const FIT_K = 0.07
+ *  style's effect on the try chance. The relative fit (styleFitRel) has a
+ *  spread of about 0.14 across the world's first XVs (0.23 either way at the
+ *  5th and 95th percentiles), so a side playing to its strengths finds about
+ *  3% more try chances than one playing against them, and the extremes 5% */
+export const FIT_K = 0.2
 /** THE WORLD STAYS WHERE IT WAS CALIBRATED. Across a world where every club
  *  plays a style, the effects above average a shade over neutral (the wide
  *  and offload games make more breaks than the kicking and direct games give
@@ -221,9 +226,26 @@ export function styleFit(id: AtkStyle | DefStyle, at: (shirt: number, a: keyof A
   return n ? clamp(sum / n, -1, 1) : 0
 }
 
+/**
+ * THE FIT THAT COUNTS: how much better this XV suits one style than it suits
+ * the ten on average. The raw fit above reads the men against the world's
+ * average man, so a side of internationals "fits" every style and a side of
+ * journeymen none, and paying for that would pay a strong side twice for
+ * being strong (it widened the gaps: fewer draws, more blowouts). Relative to
+ * the side's own profile, a strong side with a slow back three still fits the
+ * wide game worse than its other options, which is the question a coach is
+ * asking. This is what the engine plays and the Tactics screen shows.
+ */
+export function styleFitRel(id: AtkStyle | DefStyle, at: (shirt: number, a: keyof Attrs) => number | null): number {
+  const all = [...ATK_STYLES, ...DEF_STYLES]
+  const raw = Object.fromEntries(all.map(s => [s, styleFit(s, at)])) as Record<string, number>
+  const mean = all.reduce((t, s) => t + raw[s], 0) / all.length
+  return clamp(raw[id] - mean, -1, 1)
+}
+
 /** a club's fit for a style, off its team sheet as it stands */
 export function clubStyleFit(state: GameState, club: Club, id: AtkStyle | DefStyle, lineup = club.tactic.lineup): number {
-  return styleFit(id, (shirt, a) => {
+  return styleFitRel(id, (shirt, a) => {
     const pid = lineup[shirt - 1]
     const p = pid != null ? state.players[pid] : undefined
     return p ? p.a[a] : null

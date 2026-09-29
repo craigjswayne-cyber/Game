@@ -11,8 +11,9 @@
 //      style) is named the nearest style with its dials left alone.
 //   3. THE WORLD. AI clubs play the styles their coach's philosophy leans to,
 //      and across a world every style is played.
-//   4. THE FIT. A side with the men a style asks for fits it; one without
-//      does not; an average XV sits near zero.
+//   4. THE FIT. A side with the men a style asks for fits it better than its
+//      other options; one without, worse; and a side good at everything is
+//      not paid twice for it (the fit is relative to its own profile).
 //   5. THE WORDS AND THE PICTURES. Every style is named, tagged, explained and
 //      said in six languages, and drawn, each picture its own.
 //   6. ON THE PITCH. Common random numbers: the same fixtures and dice, only
@@ -34,7 +35,7 @@ import { mulberry32 } from '../src/game/rng'
 import type { Attrs, Fixture, GameState } from '../src/game/model'
 import {
   ATK_PRESET, ATK_STYLES, DEF_PRESET, DEF_STYLES, MATCHUP, PH_STYLES, STYLE_MOVES, STYLE_NEEDS,
-  applyAtkStyle, applyDefStyle, atkStyleOfDials, defStyleOfDials, matchStyles, migrateStyles, styleFit, styleTick, stylesOf,
+  applyAtkStyle, applyDefStyle, atkStyleOfDials, defStyleOfDials, matchStyles, migrateStyles, styleFit, styleFitRel, styleTick, stylesOf,
   type AtkStyle, type DefStyle,
 } from '../src/game/styles'
 import { MOVE_BY_ID } from '../src/game/moves'
@@ -122,17 +123,19 @@ console.log('\n--- 4. the fit\n')
   const at = (bump: number) => (s: number, a: keyof Attrs) => 11 + bump + (s > 8 ? 1 : 2) + (a === 'str' ? 1 : 0)
   const all = [...ATK_STYLES, ...DEF_STYLES]
   ok(all.every(id => styleFit(id, at(8)) === 1) && all.every(id => styleFit(id, at(-10)) === -1),
-    'a side far above the average man in the named shirts fits fully, far below not at all')
-  ok(all.every(id => styleFit(id, () => null) === -1), 'empty shirts read as unsuited')
+    'raw: a side far above the average man in the named shirts fits fully, far below not at all')
+  ok(all.every(id => Math.abs(styleFitRel(id, at(8))) < 1e-9) && all.every(id => Math.abs(styleFitRel(id, at(-10))) < 1e-9),
+    'but the fit the game plays is relative to the side: a side good (or bad) at everything suits no style more than another')
   const g = newGame('leicester', 'Style Probe', 4242)
-  const fits = all.map(id => mean(Object.values(g.clubs).map(c => {
+  const rel = Object.values(g.clubs).flatMap(c => all.map(id => {
     const lu = c.tactic.lineup
-    return styleFit(id, (s, a) => { const p = lu[s - 1] != null ? g.players[lu[s - 1]!] : undefined; return p ? p.a[a] : null })
-  })))
-  ok(fits.every(f => Math.abs(f) < 0.25), `the world's average XV sits near zero on every style (${fits.map(f => f.toFixed(2)).join(' ')})`)
+    return styleFitRel(id, (s, a) => { const p = lu[s - 1] != null ? g.players[lu[s - 1]!] : undefined; return p ? p.a[a] : null })
+  }))
+  const sd = Math.sqrt(mean(rel.map(v => v * v)))
+  ok(Math.abs(mean(rel)) < 1e-9 && sd > 0.08 && sd < 0.3, `the world's sides differ in what suits them (spread ${sd.toFixed(3)} about zero)`)
   // a wide game asks for pace out wide: slow the back three, and it fits worse
   const c = g.clubs[g.userClubId]
-  const read = (id: AtkStyle | DefStyle) => styleFit(id, (s, a) => { const p = c.tactic.lineup[s - 1] != null ? g.players[c.tactic.lineup[s - 1]!] : undefined; return p ? p.a[a] : null })
+  const read = (id: AtkStyle | DefStyle) => styleFitRel(id, (s, a) => { const p = c.tactic.lineup[s - 1] != null ? g.players[c.tactic.lineup[s - 1]!] : undefined; return p ? p.a[a] : null })
   const w0 = read('width'), ch0 = read('choke')
   for (const s of [11, 13, 14, 15]) { const p = g.players[c.tactic.lineup[s - 1]!]; if (p) p.a.pac = Math.max(1, p.a.pac - 6) }
   for (const s of [4, 5, 6, 7, 8]) { const p = g.players[c.tactic.lineup[s - 1]!]; if (p) p.a.str = Math.min(20, p.a.str + 5) }
