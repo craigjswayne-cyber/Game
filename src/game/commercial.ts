@@ -36,6 +36,7 @@
 // engaging with the system, and it is bounded - see MAX_UPLIFT.
 import { fmtMoney, logDecision, type GameState } from './model'
 import { t, tIn } from './i18n'
+import { remember } from './memory'
 
 export type SlotId = 'shirt' | 'sleeve' | 'naming' | 'kit'
 
@@ -294,6 +295,7 @@ export function endDealEarly(state: GameState, slot: SlotId): string {
   if (state.dealEndedSeason?.[slot] === state.season) return t('finances.endedThisSeason')
   const info = SLOT_BY_ID[slot]
   delete state.deals![slot]
+  remember(state, { kind: 'sponsor-ended', clubId: club.id, payload: { slot, name: live.sponsor ?? '' } })
   ;(state.dealReroll ??= {})[slot] = (state.dealReroll?.[slot] ?? 0) + 1
   // the market the summer question described has just been replaced
   dropSlotQuestion(state, slot)

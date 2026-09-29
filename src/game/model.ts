@@ -657,6 +657,14 @@ export interface Tactic {
   lineoutCall?: string
   scrumCall?: string
 
+  // ---- the attacking moves (1.8.1, moves.ts) --------------------------------
+  /** The strike move run off our lineout and off our scrum, and the shape we
+   *  play in open phases. Absent is no call: exactly the engine before moves
+   *  existed. Drilled in the same Playbook as the set-piece routines. */
+  moveLineout?: string
+  moveScrum?: string
+  moveShape?: string
+
   // ---- the bench economy (F4) ---------------------------------------------
   /** How the eight replacements are split between forwards and backs. Unset
    *  lets the club's tactical conviction decide, which is how AI sides end up
@@ -2213,6 +2221,12 @@ export interface GameState {
   /** the A League: the academy sides of the user's league, with their own
    *  fixtures and table. Kept outside state.comps deliberately - see academy.ts */
   academy?: import('./academy').AcadLeague
+  /** the manager's memory: decisions with a subject, read back later as
+   *  stories (memory.ts). Absent on older saves; migrate gives an empty log. */
+  memory?: import('./memory').MemoryLog
+  /** the fraction cursor for stories filed without spending nextId
+   *  (heldnews.ts): the base id it counts from and how many it has used */
+  heldIds?: { b: number; n: number }
 }
 
 /** Managerial reputation earned from results and silverware, 30-95. */

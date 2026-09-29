@@ -168,6 +168,10 @@ try {
   await page.click('.submenu-item >> text=Tactics')
   await page.waitForSelector('.tab-bar')
   await check('Tactics')
+  // and its Set Piece tab, where the attacking moves' chips live (1.8.1)
+  await page.click('.tab-bar >> text=Set Piece')
+  await page.waitForSelector('.mv-card')
+  await check('Tactics: Set Piece')
 
   await page.click('.bottom-nav button[title="Hub"]')
   await page.click('.submenu-item >> text=Finances')

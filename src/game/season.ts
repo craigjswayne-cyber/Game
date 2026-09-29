@@ -44,6 +44,7 @@ import { gameTimeReview, settleGameTime } from './gametime'
 import { rebuildSeason, rollIntakeClass } from './rollover'
 import { setUpForUser } from './oppcoach'
 import { drillWeek } from './playbook'
+import { drillMovesWeek } from './moves'
 import { settleJokers } from './joker'
 import { settleKnocks } from './knock'
 import { askBoard, type BoardAsk } from './boardroom'
@@ -54,6 +55,7 @@ import { historyAfterMatch, historyPreview, historyWeight } from './history'
 import { playAcademyWeek } from './academy'
 import { canBeMentored, mentorGraduations, mentorReports, mentorWeek } from './mentoring'
 import { t, tIn, type Vars } from './i18n'
+import { flushMemoryNews, memoryAfterMatch, memoryWeek, rememberPromise } from './memory'
 
 export function weekRng(state: GameState): Rng {
   return mulberry32(state.seed ^ (state.season * 131 + state.week * 7919))
@@ -1606,6 +1608,7 @@ function matchReport(state: GameState, fx: Fixture) {
 export function afterClubMatch(state: GameState, fx: Fixture) {
   const club = state.clubs[state.userClubId]
   if (!club || fx.compId === 'fr') return
+  memoryAfterMatch(state, fx) // a man you let go comes back to hurt you (memory.ts)
   historyAfterMatch(state, fx) // the club's memory: tenure, legends, records (history.ts)
   const isHome = fx.homeId === club.id
   const oppId = isHome ? fx.awayId : fx.homeId
@@ -2428,6 +2431,9 @@ export function processWeekAndAdvance(state: GameState) {
   // shelved rusts - which is what stops a club from owning ten world-class moves.
   for (const club of Object.values(state.clubs)) {
     drillWeek(state, club, club.id === state.userClubId && state.matchPrep === 'setpiece')
+    // and the attacking moves, on the same rules (moves.ts): an Attack week
+    // and the attack coach are what sharpen them
+    drillMovesWeek(state, club, club.id === state.userClubId && state.matchPrep === 'attack')
   }
 
   // internationals squad management happens before matches
@@ -2684,6 +2690,7 @@ export function processWeekAndAdvance(state: GameState) {
         : pl.kind === 'minutes' ? gap >= 1
         : p.contractEnds > state.season
       const sulky = p.pers === 'Ambitious' || p.pers === 'Mercenary' || p.pers === 'Temperamental'
+      rememberPromise(state, p, kept, pl.kind) // memory.ts: the squad keeps the receipts, and so does the world
       if (kept) {
         p.morale = clamp(p.morale + 1.1, 1, 10)
         state.news.push({
@@ -4253,6 +4260,7 @@ export function processWeekAndAdvance(state: GameState) {
     if (state.pressTone) state.pressTone = Math.abs(state.pressTone * 0.8) < 0.5 ? 0 : state.pressTone * 0.8
   }
   generateGossip(state, rng)
+  memoryWeek(state) // the world reads your old decisions back (memory.ts), no rng
   // WHERE THE SUPPORT'S ANGER HAS GOT TO, and what it costs (terraces.ts).
   // Before this, fan mood moved the gate, the shop and the atmosphere and
   // could not by itself cost anybody a job; a sustained campaign presses the
@@ -4486,6 +4494,7 @@ If you go, your assistant takes your national side for the duration. Nobody prep
   setUpForUser(state, userFixtureThisWeek(state))
   // and the week's history: a former club, a legend on the other side (history.ts)
   historyPreview(state)
+  flushMemoryNews(state) // memory.ts stories held through the settle take their ids now
 
   // (derby build-up now lives in the pre-advance block above, with the
   // all-time ledger - the old duplicate beat here was removed)

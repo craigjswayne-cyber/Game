@@ -24,6 +24,8 @@
 import type { GameState } from './model'
 import type { Vars } from './i18n'
 import { tIn } from './i18n'
+import { noteMemory } from './memory'
+import { fileHeldNews } from './heldnews'
 
 /** A sentence kept as a key and its values, so it reads in any language. */
 export interface Line { k: string; v?: Vars }
@@ -87,6 +89,8 @@ export interface HistBook {
   said: Record<string, number>
   /** clubs whose legends and records have been read in quietly */
   seeded: string[]
+  /** stories waiting for an id (see file()). Empty between weeks. */
+  queue?: Omit<import('./model').NewsItem, 'id'>[]
 }
 
 export const CAPS = { rivals: 60, annals: 40, linesPerSeason: 3, legends: 40, tenures: 30, moments: 24 } as const
@@ -118,8 +122,15 @@ export function file(
   state: GameState, k: string, v: Vars,
   opts: { type?: 'general' | 'award' | 'gossip' | 'board'; playerId?: number; week?: number; season?: number } = {},
 ): void {
-  state.news.push({
-    id: state.nextId++,
+  // HELD, NOT FILED. News, players and fixtures share one id counter, and the
+  // match engine seeds a fixture's dice from its id. A story filed in the
+  // middle of the week settle (after the manager's match, or at the year
+  // end) would push every cup tie drawn later in that same settle onto a
+  // different id, and so onto different dice: the book would change AI
+  // results without reading or writing anything they use. So the book's
+  // stories wait in `queue` and take their ids in flushNews(), once the
+  // week's fixtures exist. Same week and season stamps, same reader.
+  ;(book(state).queue ??= []).push({
     week: opts.week ?? state.week,
     season: opts.season ?? state.season,
     type: opts.type ?? 'general',
@@ -128,6 +139,18 @@ export function file(
     body: tIn('en', k, v),
     k, v, playerId: opts.playerId,
   })
+}
+
+/** File the held stories. Called at the end of the week settle (after the
+ *  advance, when no more fixtures are drawn this tick) and by the job hooks,
+ *  which run outside it and should be read at once. */
+export function flushNews(state: GameState): void {
+  const q = state.hist?.queue
+  if (!q?.length) return
+  // ids that do not spend state.nextId (heldnews.ts): a story taken at the
+  // end of this week would otherwise move every fixture drawn next week
+  fileHeldNews(state, q)
+  state.hist!.queue = []
 }
 
 /** A candidate for this season's annals line. Kept to the heaviest few. */
@@ -142,13 +165,12 @@ export function moment(state: GameState, clubId: string, w: number, k: string, v
 
 /**
  * The consequence log's door. The memory module (memory.ts) records the
- * manager's decisions and what they led to; this book does not import it, so
- * the two can land in either order. Every place a decision of the manager's
- * becomes history calls this, and it does nothing until the two are joined.
+ * manager's decisions and what they led to; every place a decision of the
+ * manager's becomes history calls this, and noteMemory translates the kind
+ * (a rivalry formed, a job taken, a tenure closed sacked, walked or moved).
  */
-// TODO(memory): route to memory.ts record() once it lands
-export function note(_state: GameState, _entry: { kind: string; clubId?: string; pid?: number; v?: Vars }): void {
-  /* intentionally empty */
+export function note(state: GameState, entry: { kind: string; clubId?: string; pid?: number; v?: Vars }): void {
+  noteMemory(state, { kind: entry.kind, clubId: entry.clubId, playerId: entry.pid, payload: entry.v })
 }
 
 /** A stable small number from a string, for choices that must not use an rng. */

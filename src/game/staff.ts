@@ -6,6 +6,7 @@ import { genderOf, staffGender, subjectVar, type Gender } from './gender'
 import { t, tIn, type Vars } from './i18n'
 import { mulberry32 } from './rng'
 import { regenName } from './nations'
+import { remember } from './memory'
 
 export type StaffRole = keyof StaffLevels
 
@@ -269,6 +270,7 @@ export function sackStaff(state: GameState, role: StaffRole): string {
   }
   const info = STAFF_INFO[role]
   payBackroom(state, cost)
+  remember(state, { kind: 'staff-sacked', clubId: state.userClubId, payload: { name: p.name, role } })
   state.staff[role] = 0
   state.staffSalt = (state.staffSalt ?? 0) + 1
   const people = { ...(state.staffPeople ?? {}) } as Record<string, StaffPerson | undefined>
@@ -294,6 +296,7 @@ export function appointStaff(state: GameState, role: StaffRole, idx: number): st
   const info = STAFF_INFO[role]
   const outgoing = state.staffPeople?.[role]
   payBackroom(state, c.fee)
+  remember(state, { kind: 'staff-hired', clubId: state.userClubId, payload: { name: c.name, role } })
   state.staff[role] = c.tier
   state.staffSalt = (state.staffSalt ?? 0) + 1
   state.staffPeople = {

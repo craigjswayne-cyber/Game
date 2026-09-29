@@ -17,12 +17,14 @@ import { venueEffect } from './venue'
 import { clamp, gauss, mulberry32, wpick, type Rng } from './rng'
 import { KNOCK_ENERGY } from './knock'
 import { DEFAULT_LINEOUT, DEFAULT_SCRUM, ROUTINE_BY_ID, playbookOf, routineEffect } from './playbook'
+import { MOVE_BY_ID, MOVE_MAKER, callFor, callsOf, launchOf, moveEdge, moveFit, moveHash, moveMatchup, moveTempoF, sayKey, type Launch } from './moves'
 import {
 
 
   SPLIT_BY_ID, actualSplit, briefForSeat, isForward, seatsFor, splitFor,
   type BenchSplit,
 } from './bench'
+import { rememberDebut } from './memory'
 
 /**
  * How many replacements a side may make in a match.
@@ -960,6 +962,11 @@ export interface SideCtx {
    * bleeds away when nothing comes of it.
    */
   pressure: number
+  /** THE TRIES THIS SIDE'S RUGBY WAS WORTH (1.8.1): the sum of its try
+   *  chance over the ticks, before the dice. Read by scripts/movesprobe.ts,
+   *  which needs a measure of what a call did that the one roll a tick does
+   *  not drown; nothing in the game reads it. */
+  xTry?: number
   pens: number // penalty goals kicked
   /** penalties conceded - repeated infringements bring the bin into play */
   consPens: number
@@ -1164,6 +1171,9 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
       if (r.attack) side.units.attack *= 1 + (r.attack - 1) * Math.max(0, e.q)
       if (r.tempo) side.tempoF *= r.tempo < 1 ? 1 + (r.tempo - 1) * Math.max(0, e.q) : r.tempo
     }
+    // the attacking moves' legs (moves.ts), on the routine's rule; exactly 1
+    // for a club with no calls
+    side.tempoF *= moveTempoF(state, club)
 
     // The kicking game (F3). A designated kicker is a decision; the automatic
     // pick of whoever has the best attribute is not.
@@ -1873,6 +1883,11 @@ export interface LiveCtx {
   grudge?: string | null
   /** per-tick home possession share, for the last-10-minutes graphic */
   momoHist?: number[]
+  /** THE CALLED MOVE THAT MADE THIS TRY (1.8.1, moves.ts), set by simTick
+   *  just before scoreTry and cleared straight after: scoreTry names the move
+   *  in the try line instead of the pool's line, after the pool's draw has
+   *  been taken, so the dice are the same either way. */
+  moveTry?: { id: string; launch: Launch; maker: number | null } | null
 }
 
 /**
@@ -2135,6 +2150,11 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     const pb = playbookOf(c)
     for (const call of [c.tactic.lineoutCall ?? DEFAULT_LINEOUT, c.tactic.scrumCall ?? DEFAULT_SCRUM]) {
       pb.used[call] = (pb.used[call] ?? 0) + 1
+    }
+    // and the attacking moves, on the same tape (moves.ts)
+    const mc = callsOf(state, c)
+    for (const call of new Set([mc.lineout, mc.scrum, mc.shape])) {
+      if (call) pb.used[call] = (pb.used[call] ?? 0) + 1
     }
   }
   // the analyst's read: if the manager prepared for the weakness he named and
@@ -2709,6 +2729,91 @@ function describePlay(state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideCt
   }
 }
 
+// ---- THE CALLED MOVES, IN THE MATCH (1.8.1, moves.ts) ----------------------
+
+interface MoveInPlay {
+  id: string
+  launch: Launch
+  /** the share it moves this tick's try chance by, signed */
+  gain: number
+  risk: number
+  /** the man it is run through, if he is on the pitch */
+  maker: Player | null
+}
+
+/** The move this side runs in this tick, or null: what the tick was launched
+ *  from (a hash, no draw), the call for it, and what it is worth with these
+ *  men against this defence. */
+function moveInPlay(state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideCtx, tick: number): MoveInPlay | null {
+  const club = state.clubs[side.teamId]
+  if (!club) return null
+  const calls = callsOf(state, club)
+  if (!calls.lineout && !calls.scrum && !calls.shape) return null
+  const launch = launchOf(ctx.fx.id, tick, side === ctx.home)
+  const id = callFor(calls, launch)
+  const m = id ? MOVE_BY_ID[id] : undefined
+  if (!m) return null
+  const fit = moveFit(m, (s, a) => inShirt(state, side, s - 1)?.a[a] ?? null)
+  const match = moveMatchup(m, state.clubs[opp.teamId]?.tactic)
+  const e = moveEdge(state, club, m.id, fit, match)
+  return { id: m.id, launch, gain: e.gain, risk: m.risk, maker: inShirt(state, side, (MOVE_MAKER[m.id] ?? 10) - 1) }
+}
+
+/** Whether the try this tick scored is the move's, for its line and its
+ *  clip: a strike move that came off usually is (it launched the tick), a
+ *  shape now and then. Deterministic, so it never draws. */
+function moveTryOf(state: GameState, ctx: LiveCtx, side: SideCtx, mv: MoveInPlay | null, tick: number): LiveCtx['moveTry'] {
+  if (!mv || mv.gain <= 0) return null
+  const h = moveHash(ctx.fx.id, tick, side === ctx.home ? 1 : 2)
+  if (h >= (mv.launch === 'open' ? 0.3 : 0.6)) return null
+  return { id: mv.id, launch: mv.launch, maker: mv.maker?.id ?? null }
+}
+
+const MOVE_CALL_LO = ['comm.moveCallLo1', 'comm.moveCallLo2', 'comm.moveCallLo3']
+const MOVE_CALL_SC = ['comm.moveCallSc1', 'comm.moveCallSc2', 'comm.moveCallSc3']
+const MOVE_SHAPE = ['comm.moveShape1', 'comm.moveShape2', 'comm.moveShape3']
+const MOVE_MISFIRE = ['comm.moveMisfire1', 'comm.moveMisfire2', 'comm.moveMisfire3', 'comm.moveMisfire4']
+const MOVE_GAIN = ['comm.moveGain1', 'comm.moveGain2', 'comm.moveGain3']
+const SHAPE_MISFIRE = ['comm.shapeMisfire1', 'comm.shapeMisfire2']
+
+/** The call, as it is made: watched only, on the commentary's dice. */
+function describeMoveCall(state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideCtx, mv: MoveInPlay) {
+  if (!ctx.detail) return
+  const strike = mv.launch !== 'open'
+  if (ctx.crng() >= (strike ? 0.4 : 0.1)) return
+  const bank = mv.launch === 'lineout' ? MOVE_CALL_LO : mv.launch === 'scrum' ? MOVE_CALL_SC : MOVE_SHAPE
+  colour(state, ctx, side, said(ctx, bank),
+    { team: teamShort(state, side.teamId), opp: teamShort(state, opp.teamId), move_k: sayKey(mv.id) })
+}
+
+/** A move that did not end in a score: the misfire named, and now and then
+ *  the one that won the gain line. Watched only. */
+function describeMoveOutcome(state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideCtx, mv: MoveInPlay) {
+  if (!ctx.detail) return
+  const v = { team: teamShort(state, side.teamId), opp: teamShort(state, opp.teamId), move_k: sayKey(mv.id) }
+  if (mv.gain < 0 && ctx.crng() < 0.5) {
+    if (mv.launch === 'open') colour(state, ctx, side, said(ctx, SHAPE_MISFIRE), v)
+    else if (mv.maker) colour(state, ctx, side, said(ctx, MOVE_MISFIRE), { ...v, player: mv.maker.name }, mv.maker.id)
+  } else if (mv.gain > 0.02 && mv.launch !== 'open' && mv.maker && ctx.crng() < 0.3) {
+    colour(state, ctx, side, said(ctx, MOVE_GAIN), { ...v, player: mv.maker.name }, mv.maker.id)
+  }
+}
+
+/** The try line for a try the called move made: who ran it, who scored, and
+ *  from where. The key says the launch, so the clip can draw the set piece. */
+function moveTryLine(state: GameState, mt: NonNullable<LiveCtx['moveTry']>, scorer: Player, min: number): { k: string; v: Record<string, string | number> } {
+  const maker = mt.maker != null ? state.players[mt.maker] : undefined
+  const bank = MOVE_TRY[mt.launch]
+  const move_k = sayKey(mt.id)
+  if (!maker || maker.id === scorer.id) return { k: bank.self, v: { player: scorer.name, move_k } }
+  return { k: bank.lines[(min + scorer.id) % bank.lines.length], v: { player: scorer.name, maker: maker.name, move_k } }
+}
+const MOVE_TRY: Record<Launch, { self: string; lines: string[] }> = {
+  lineout: { self: 'comm.moveTryLoSelf', lines: ['comm.moveTryLo1', 'comm.moveTryLo2', 'comm.moveTryLo3'] },
+  scrum: { self: 'comm.moveTryScSelf', lines: ['comm.moveTrySc1', 'comm.moveTrySc2', 'comm.moveTrySc3'] },
+  open: { self: 'comm.shapeTrySelf', lines: ['comm.shapeTry1', 'comm.shapeTry2', 'comm.shapeTry3'] },
+}
+
 /** The side without the ball, when the tick came to nothing for the side
  *  that had it: a line about the defence. A man named for a hit is one the
  *  tackle count already has making hits (TACKLE_LINES rule). */
@@ -3026,7 +3131,11 @@ function scoreTry(
   if (line) pushLine(state, ctx, min, 'TRY', side, line, lineV, scorer?.id)
   else if (scorer) {
     tryKey = tryPool[Math.floor(rng() * tryPool.length)]
-    pushLine(state, ctx, min, 'TRY', side, tryKey, { player: scorer.name }, scorer.id)
+    // the called move that made it names itself (moves.ts); the pool's draw
+    // above is taken either way, so naming it moves nothing
+    const mt = ctx.moveTry ? moveTryLine(state, ctx.moveTry, scorer, min) : null
+    if (mt) tryKey = mt.k
+    pushLine(state, ctx, min, 'TRY', side, tryKey, mt ? mt.v : { player: scorer.name }, scorer.id)
   }
   else pushLine(state, ctx, min, 'TRY', side, 'comm.tryPackDrive')
   const cTries = scorer ? scorer.career.reduce((s, c) => s + c.tries, 0) + scorer.stats.tries + (scorer.hist?.tries ?? 0) : 0
@@ -3809,6 +3918,13 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     const contest = resolveContest(side, opp, state.players, rng, side === home ? ctx.hfa : 1 / ctx.hfa)
     // the rugby this side plays in the tick, before what it comes to
     describePlay(state, ctx, side, opp, contest)
+    // THE CALLED MOVE (1.8.1, moves.ts): what this tick was launched from,
+    // and the move called for it. Null for a side with no call there, which
+    // leaves every number below exactly as it was.
+    const mv = moveInPlay(state, ctx, side, opp, tick)
+    if (mv) describeMoveCall(state, ctx, side, opp, mv)
+    const mvTry = mv ? 1 + mv.gain : 1
+    const mvPen = mv ? 1 + mv.gain * 0.5 : 1
     const scores0 = side.score + opp.score
     const numF = 1 - 0.07 * ([...side.yellowUntil.values()].filter(u => u > min).length + side.sent + side.short)
     const oppNumF = 1 - 0.07 * ([...opp.yellowUntil.values()].filter(u => u > min).length + opp.sent + opp.short)
@@ -3861,12 +3977,12 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     // more of them, bounded, and reciprocal between the two packs so the
     // world's count of penalties does not move.
     const scrumEdge = Math.pow(clamp(side.units.scrum / Math.max(1, opp.units.scrum), 0.8, 1.25), 0.8)
-    const penWindow = opp.penRisk * (side === home ? ap : hp).penF * Math.pow(up / 50, PEN_LEAN) * scrumEdge * (contest?.penF ?? 1)
+    const penWindow = opp.penRisk * (side === home ? ap : hp).penF * Math.pow(up / 50, PEN_LEAN) * scrumEdge * (contest?.penF ?? 1) * mvPen
     let ratio = ((att * adv * numF * terr) / Math.max(1, def * oppNumF))
     if (derby) ratio = Math.pow(ratio, 0.72) // form book out the window
     else if (ctx.grudge) ratio = Math.pow(ratio, 0.85) // needle levels the contest
     side.poss += ratio
-    let pTry = clamp(TRY_BASE * Math.pow(ratio, 2.6) * plan.tryF * (contest?.tryF ?? 1), 0.01, 0.42)
+    let pTry = clamp(TRY_BASE * Math.pow(ratio, 2.6) * plan.tryF * (contest?.tryF ?? 1) * mvTry, 0.01, 0.42)
     // THE LAST QUARTER OPENS UP (audit 16D). Measured before this existed:
     // tries were dead flat across the 80 (11.6-14.0% per ten-minute bucket)
     // because both sides drain together and the mutual exhaustion cancels in
@@ -3927,6 +4043,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
      * of pressure that comes to nothing bleeds away over the next few ticks,
      * the way it does when you are watching.
      */
+    side.xTry = (side.xTry ?? 0) + pTry
     const floor = clamp(pTry * 190, 4, 62)
     side.pressure = clamp(side.pressure * 0.72 + floor * 0.28, 0, 100)
 
@@ -3934,7 +4051,9 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     if (r < pTry) {
       side.pressure = clamp(side.pressure + 42, 0, 100)
       opp.pressure = clamp(opp.pressure * 0.55, 0, 100)
+      ctx.moveTry = moveTryOf(state, ctx, side, mv, tick)
       scoreTry(state, ctx, side, min)
+      ctx.moveTry = null
     } else if (r < pTry + penWindow) {
       // a penalty won is a side on the front foot, whatever it does with it
       side.pressure = clamp(side.pressure + 17, 0, 100)
@@ -4025,6 +4144,15 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       }
     } else if (r < pTry + penWindow + dropChance(ctx, side, opp, up, tick)) {
       dropGoalAttempt(state, ctx, side, min, up)
+    }
+
+    // A MOVE THAT CAME TO NOTHING STILL MOVED THE BALL (moves.ts): one that
+    // came off won the gain line and the ground with it; one that misfired
+    // was caught behind it, and a risky one gives away more. No draw.
+    if (mv && r >= pTry + penWindow && side.score + opp.score === scores0) {
+      const m = mv.gain >= 0 ? mv.gain * 20 : mv.gain * 40 * mv.risk
+      backTowards(ctx, side, -m)
+      describeMoveOutcome(state, ctx, side, opp, mv)
     }
 
     // the kicks from hand this side puts in, and any that are charged down
@@ -5351,6 +5479,7 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
   // simply played out of his skin gets his moment in print
   for (const { p, r, kind } of debutants) {
     if (p.clubId !== state.userClubId) continue
+    if (kind === 'academy') rememberDebut(state, p) // memory.ts: you gave him his debut
     const scored = ctx.events.some(e => e.type === 'TRY' && e.playerId === p.id)
     const isMotm = p.id === motmId
     if (!scored && !isMotm && r < 7.8) continue
