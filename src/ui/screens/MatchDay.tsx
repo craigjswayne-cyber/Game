@@ -12,6 +12,7 @@ import { BRIEF_BY_ID, SPLIT_BY_ID, benchSeats, briefForSeat, splitFor } from '..
 import { BriefIcon } from '../tacticsArt'
 import { assistantFixtureThisWeek, isKnockoutTie, matchRng, userMatchThisWeek } from '../../game/season'
 import { effAt } from '../../game/attributes'
+import { fuzzedCa } from '../../game/scout'
 import { PRESETS, SLIDER_INFO, sliderReadout, type SliderKey } from '../../game/tactics'
 import { ord, posName, t, localeTag, compLabel } from '../../game/i18n'
 import { subjectVar } from '../../game/gender'
@@ -723,7 +724,7 @@ function Preview({ fxId }: { fxId: number }) {
           const danger = oppLineup.slice(0, 15)
             .map(id => id != null ? game.players[id] : null)
             .filter(Boolean)
-            .sort((a, b) => b!.ca - a!.ca)[0]
+            .sort((a, b) => fuzzedCa(game, b!) - fuzzedCa(game, a!))[0]
           const oppClub = game.clubs[opp]
           const meetings = game.fixtures.filter(f => f.played &&
             ((f.homeId === opp && f.awayId === game.userClubId) || (f.homeId === game.userClubId && f.awayId === opp)))

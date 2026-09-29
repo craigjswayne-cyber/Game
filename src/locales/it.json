@@ -1731,6 +1731,12 @@
   "courseGoldLong_w": "{name} ha già il brevetto oro. Non è rimasto nulla da sostenere."
  },
  "training": {
+  "stageEarly": "Primi giorni",
+  "stageGrowing": "In crescita",
+  "stageFlourishing": "In piena fioritura",
+  "stageSettled": "Consolidato",
+  "stageStalled": "Non scatta la scintilla",
+  "mentorRamp": "Una nuova coppia rende poco all'inizio e cresce man mano che i due si conoscono; se non scatta la scintilla, si ferma.",
   "tabTraining": "Allenamento",
   "tabStaff": "Staff",
   "tabCondition": "Condizione",
@@ -2386,6 +2392,8 @@
   "3": "Dossier completo: numeri, carattere e temperamento tutti verificati."
  },
  "player": {
+  "ceiling": "Potenziale",
+  "ceilingTitle": "Il suo potenziale secondo i tuoi osservatori. La forbice si stringe man mano che lo seguono; un punto interrogativo vuol dire che non lo hanno ancora valutato.",
   "gone": "Il giocatore non è più nel mondo di gioco (ritirato o svincolato).",
   "tabProfile": "Profilo",
   "tabAttributes": "Attributi",
@@ -3066,6 +3074,7 @@
   "mon11": "Dic"
  },
  "world": {
+  "dtLeadHow": "Le piste sono voci. Metti in lista i nomi probabili sul mercato, concentra la rete di osservatori sul campionato o manda in missione il capo degli osservatori, e prenderanno forma.",
   "agFirstList": "Classifica attuale - la prima lista esce a breve",
   "agFoot": " · i tuoi giocatori evidenziati · tocca un nome per visionarlo",
   "agKidSub": "i talenti che gli osservatori si sussurrano - 21 anni o meno",
@@ -3084,7 +3093,7 @@
   "dtFreeAgent": "SVINCOLATO",
   "dtGameweek": "GIORNATA {n}",
   "dtNoRugby": "ANCORA NESSUNA PARTITA GIOCATA",
-  "dtOnesSub": "talenti U21, svincolati compresi",
+  "dtOnesSub": "U21 valutati dai tuoi osservatori, e qualche pista",
   "dtOnesToWatch": "Da tenere d'occhio",
   "dtRatings": "Classifica voti stagionali",
   "dtTitle": "DREAM TEAM",
@@ -4174,6 +4183,12 @@
   "unofficialBody_f": "PHASE: Rugby Manager non è affiliato, approvato o autorizzato da alcuna giocatrice, club, lega o federazione. I nomi dei club sono reali; competizioni, stadi e sponsor sono rinominati o inventati. I nomi delle giocatrici sono reali, usati per identificare persone in un database sportivo e per nulla altro, e non è incluso alcuno stemma, maglia o logo ufficiale."
  },
  "news": {
+  "mentEarlySubj": "Primi giorni per {last} e {seniorLast}",
+  "mentEarly": "{kid} e {senior} si stanno ancora conoscendo, quindi per ora non aspettarti molto. Una coppia ha bisogno di settimane per rodarsi.",
+  "mentGrowingSubj": "{last} sta crescendo accanto a {seniorLast}",
+  "mentGrowing": "Tra {kid} e {senior} è scattato qualcosa, e il lavoro extra dopo l'allenamento rende un po' di più ogni settimana.",
+  "watchNamed": "{name} ({age} anni, {pos}, {club})",
+  "watchLead": "Una pista: {pos_k}, {age} anni ({league})",
   "maternitySubj": "{player} è in attesa",
   "maternity": {
    "one": "{player} ha comunicato al club la gravidanza e inizia il congedo di maternità. Il contratto resta congelato per tutta la durata e il posto in rosa le è garantito al rientro. Lo staff medico prevede circa {n} settimana prima del ritorno agli allenamenti completi.",
@@ -4221,7 +4236,7 @@
   "depthThin": "Coperta corta a {thin}: un infortunio lì e qualcuno gioca fuori ruolo.",
   "depthFull": "Ogni ruolo ha il suo ricambio.",
   "watchListSubj": "Gli osservati speciali degli scout",
-  "watchList": "La lista pre-stagionale dei talenti dell'academy con un potenziale davvero speciale: {list}.\n\nSul mercato degli svincolati girano anche prodigi senza contratto: vince il primo club che si muove. Tocca un nome qui sotto, oppure vai su Mondo ▸ Squadra della Stagione ▸ Osservati Speciali.",
+  "watchList": "Gli appunti pre-stagionali degli osservatori sui talenti delle academy:\n{list_ll}\n\nUn nome è un giocatore che hanno visto. Una pista resta una voce finché non la verifichi: lista, rete concentrata sul campionato o missione del capo degli osservatori.",
   "facDeclinedSubj": "La dirigenza dice no: {name_k}",
   "facDeclined": "La tua richiesta di portare {name_k} al livello {lvl} è stata ascoltata, valutata e respinta - {why_k}. La porta si riapre tra un paio di mesi; risultati migliori e conti più sani la riaprono prima.",
   "facNoResults": "i risultati non si sono ancora guadagnati un progetto del genere",

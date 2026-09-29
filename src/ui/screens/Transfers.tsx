@@ -3,7 +3,7 @@ import { useStore } from '../../store'
 import { clubCode, fmtMoney, fmtWage, newsBody, newsSubject, POS_ORDER, seasonLabel, weekDate, type Attrs, type Pos, weeksBetween100 } from '../../game/model'
 import { counterIncomingOffer, renewalDemand, respondToOffer, windowOpen } from '../../game/ai'
 import { LOAN_LENGTHS, LOAN_SHARES, loanApproachable, loanIn, loanTargets, type LoanLength } from '../../game/loans'
-import { attrRange, fuzzedCa, knowledge } from '../../game/scout'
+import { attrRange, fuzzedCa, knowledge, searchKey, seenValue } from '../../game/scout'
 import { commissionScout, searchFee, type SearchMonths } from '../../game/commission'
 import { badgeLabel } from '../../game/staff'
 import { ClubLink, FormPill, Mark, Nat, PosBadge, SectionTitle, Stars, TwoStep } from '../components'
@@ -109,7 +109,9 @@ export default function Transfers() {
     if (deal === 'loan') list = list.filter(p => listedLoans.has(p.id) || (q.length >= 3 && loanApproachable(game, p)))
     if (pos !== 'ALL') list = list.filter(p => p.pos === pos || p.alt.includes(pos))
     if (q) list = list.filter(p => p.name.toLowerCase().includes(q) || (p.clubId ? game.clubs[p.clubId]?.short.toLowerCase().includes(q) : false))
-    if (maxVal > 0) list = list.filter(p => p.value <= maxVal)
+    // value and ability are read through the scouts (1.8.2): a filter or sort
+    // on the true figures ranked hidden ceilings for free
+    if (maxVal > 0) list = list.filter(p => seenValue(game, p) <= maxVal)
     if (maxAge > 0) list = list.filter(p => p.age <= maxAge)
     if (league === 'FA') list = list.filter(p => !p.clubId)
     else if (league !== 'ALL') list = list.filter(p => p.clubId && game.clubs[p.clubId]?.leagueId === league)
@@ -122,11 +124,11 @@ export default function Transfers() {
     const dir = mdesc ? -1 : 1
     list.sort((a, b) => {
       switch (msort) {
-        case 'value': return (b.value - a.value) * dir
+        case 'value': return (searchKey(game, b, 'value') - searchKey(game, a, 'value')) * dir
         case 'age': return (a.age - b.age) * dir
         case 'name': return a.name.localeCompare(b.name) * dir
         case 'form': return (b.form - a.form) * dir
-        default: return (b.ca - a.ca) * dir
+        default: return (searchKey(game, b, 'ca') - searchKey(game, a, 'ca')) * dir
       }
     })
     return list.slice(0, 120)
@@ -536,7 +538,7 @@ export default function Transfers() {
               <td className="muted">{p.clubId ? clubCode(game.clubs[p.clubId]?.short ?? '') : t('transfers.freeAgent')}</td>
               <td><Stars ca={fuzzedCa(game, p)} />{knowledge(game, p) < 95 && <span className="muted">?</span>}</td>
               <td className="num"><FormPill v={p.form} /></td>
-              <td className="num">{fmtMoney(p.value)}</td>
+              <td className="num">{fmtMoney(seenValue(game, p))}</td>
             </tr>
           ))}
         </tbody>

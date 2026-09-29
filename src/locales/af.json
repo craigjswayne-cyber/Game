@@ -1708,6 +1708,12 @@
   "sacked_w": "{name} het die klub verlaat. {cost} om haar kontrak te beëindig."
  },
  "training": {
+  "stageEarly": "Vroeë dae",
+  "stageGrowing": "Groei",
+  "stageFlourishing": "Floreer",
+  "stageSettled": "Gevestig",
+  "stageStalled": "Klik nie",
+  "mentorRamp": "'n Nuwe paar lewer eers min op en groei soos die twee mekaar leer ken; een wat nie klik nie, steek vas.",
   "tabTraining": "Oefening",
   "tabStaff": "Personeel",
   "tabCondition": "Kondisie",
@@ -2359,6 +2365,8 @@
   "3": "Volle lêer: syfers, karakter en temperament almal bevestig."
  },
  "player": {
+  "ceiling": "Plafon",
+  "ceilingTitle": "Sy potensiaal soos jou talentsoekers dit lees. Die band word nouer soos hulle hom dophou; 'n vraagteken beteken hulle het hom nog nie gelees nie.",
   "gone": "Speler is nie meer in die spelwêreld nie (afgetree of vrygestel).",
   "tabProfile": "Profiel",
   "tabAttributes": "Eienskappe",
@@ -3045,6 +3053,7 @@
   "mon11": "Des"
  },
  "world": {
+  "dtLeadHow": "Leidrade is gerugte. Sit waarskynlike name op jou kortlys in die mark, rig die talentnetwerk op die liga of stuur die hooftalentsoeker uit, en hulle kom in fokus.",
   "agFirstList": "Huidige stand - die eerste lys verskyn binnekort",
   "agFoot": " · jou spelers uitgelig · tik op 'n naam om hom te verken",
   "agKidSub": "die plafonne waaroor talentsoekers fluister - 21 en jonger",
@@ -3063,7 +3072,7 @@
   "dtFreeAgent": "VRYE AGENT",
   "dtGameweek": "SPEELWEEK {n}",
   "dtNoRugby": "NOG GEEN RUGBY GESPEEL NIE",
-  "dtOnesSub": "O21-plafonne, vrye agente ingesluit",
+  "dtOnesSub": "O21's wat jou talentsoekers gelees het, en leidrade",
   "dtOnesToWatch": "Om dop te hou",
   "dtRatings": "Seisoenpunte-ranglys",
   "dtTitle": "DROOMSPAN",
@@ -4101,6 +4110,12 @@
   "bridgeProducts": "Produkte waarvoor die winkel 'n prys gegee het: {live} van {asked}"
  },
  "news": {
+  "mentEarlySubj": "Vroeë dae vir {last} en {seniorLast}",
+  "mentEarly": "{kid} en {senior} leer mekaar nog ken, so moenie nou al veel verwag nie. 'n Paar vat weke om te vestig.",
+  "mentGrowingSubj": "{last} kom aan onder {seniorLast}",
+  "mentGrowing": "{kid} en {senior} het begin klik, en die ekstra werk ná oefening betaal elke week 'n bietjie meer.",
+  "watchNamed": "{name} ({age}, {pos}, {club})",
+  "watchLead": "'n Leidraad: {pos_k}, {age} jaar oud ({league})",
   "maternitySubj": "{player} verwag",
   "maternity": {
    "one": "{player} het die klub vertel sy is swanger en sal kraamverlof begin. Haar kontrak word vir dié tydperk gevries en haar plek in die spangroep is hare wanneer sy terugkeer. Die mediese personeel verwag sy sal binne ongeveer {n} week weer ten volle oefen.",
@@ -4147,7 +4162,7 @@
   "depthThin": "Kort op {thin} - een besering daar en iemand speel buite posisie.",
   "depthFull": "Elke posisie het dekking.",
   "watchListSubj": "Talentsoekers se spelers om dop te hou",
-  "watchList": "Die voorseisoenlys van akademietalente met werklik uitsonderlike potensiaal: {list}.\n\nOnverbonde wonderkinders swerf ook rond op die vryagent-mark - die eerste klub wat beweeg, wen. Tik 'n naam hieronder, of gaan na Wêreld ▸ Span van die Seisoen ▸ Om Dop te Hou.",
+  "watchList": "Die talentsoekers se voorseisoen-notas oor akademietalent:\n{list_ll}\n\n'n Naam is 'n speler wat hulle dopgehou het. 'n Leidraad is 'n gerug totdat jy dit ondersoek: kortlys, rig die netwerk op die liga of stuur die hooftalentsoeker uit.",
   "facDeclinedSubj": "Direksie sê nee: {name_k}",
   "facDeclined": "Jou versoek vir 'n vlak {lvl} {name_k} is aangehoor, oorweeg en afgekeur - {why_k}. Die deur maak oor 'n paar maande weer oop; beter resultate en 'n gesonder bankbalans maak dit vinniger oop.",
   "facNoResults": "resultate het nog nie 'n projek van hierdie aard verdien nie",
