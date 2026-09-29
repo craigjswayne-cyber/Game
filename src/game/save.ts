@@ -14,6 +14,7 @@ import { applyStadiumName, seedDeals } from './commercial'
 import { seedStaffPeople } from './staff'
 import { ensureAcademyLeague, topUpAcademy } from './academy'
 import { migratePress } from './pressmigrate'
+import { migrateStyles } from './styles'
 import { migrateBonds } from './bonds'
 import { migrateMemory } from './memory'
 import { migrateTacLoop } from './oppreport'
@@ -973,6 +974,11 @@ export function migrate(s: GameState): GameState {
 
   // the tactical loop's findings: healed and capped (#181)
   migrateTacLoop(s)
+
+  // THE STYLES (1.8.2): a save from before them has dials and no style, so
+  // the manager's side is named the nearest attack and defence to its dials,
+  // and the dials are left exactly where he put them
+  migrateStyles(s)
 
   ensureCaptains(s, true)
   return s

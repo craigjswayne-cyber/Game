@@ -89,22 +89,25 @@ export const DEF_PRESET: Record<DefStyle, DefPreset> = {
 /**
  * The matchup, attack by row against defence by column, in steps of one.
  * Every row and every column sums to zero (styleprobe checks it), and every
- * attack has a defence it beats and one that beats it, so there is no answer
- * that is right against everyone.
+ * attack has a defence it beats and one that beats it, and every defence the
+ * same, so there is no answer that is right against everyone. The reasons
+ * are the coaching study's "what beats it" for each shape (drift, blitz,
+ * pendulum and man-to-man from worked examples; choke from the standard
+ * coaching pattern).
  *
  *            drift blitz pendulum man choke
- *   direct     +2   -1     +1     0   -2   a drift gives up the gain line; the choke tackle feeds on carries
- *   pods       +1   -1     +1    -2   +1   man-to-man reads a structure; a strong pack drives through the choke
- *   width      -2   -1      0    +1   +2   the drift and the blitz shut the outside down; a narrow choke cannot get there
+ *   direct     +2   -2     +1     0   -1   carries inside a slide win the gain line; the rush hits the carrier behind it; the choke holds him up
+ *   pods       +1   +1     +1    -2   -1   the pop off the pod beats the rush; man-to-man reads a structure; the choke feeds on one-out carriers
+ *   width      -2   -1      0    +1   +2   the drift and the blitz shut the outside down; loops and decoys pull markers; a narrow choke leaves the edges thin
  *   kick        0   +2     -2     0    0   the blitz leaves space in behind; the pendulum is there for it
- *   offload    -1   +1      0    +1   -1   offloads beat line speed and a man-to-man matchup; the choke holds the ball up
+ *   offload    -1    0      0    +1    0   a patient drift commits nobody to the tackle; broken play beats a man-for-man matchup
  */
 export const MATCHUP: Record<AtkStyle, Record<DefStyle, number>> = {
-  direct: { drift: 2, blitz: -1, pendulum: 1, man: 0, choke: -2 },
-  pods: { drift: 1, blitz: -1, pendulum: 1, man: -2, choke: 1 },
+  direct: { drift: 2, blitz: -2, pendulum: 1, man: 0, choke: -1 },
+  pods: { drift: 1, blitz: 1, pendulum: 1, man: -2, choke: -1 },
   width: { drift: -2, blitz: -1, pendulum: 0, man: 1, choke: 2 },
   kick: { drift: 0, blitz: 2, pendulum: -2, man: 0, choke: 0 },
-  offload: { drift: -1, blitz: 1, pendulum: 0, man: 1, choke: -1 },
+  offload: { drift: -1, blitz: 0, pendulum: 0, man: 1, choke: 0 },
 }
 
 /** what one step of the matchup is worth on the try chance (0.045 = 4.5%) */
@@ -390,6 +393,49 @@ export function atkBeats(id: AtkStyle): { beats: DefStyle[]; weak: DefStyle[] } 
 }
 export function defBeats(id: DefStyle): { beats: AtkStyle[]; weak: AtkStyle[] } {
   return { beats: ATK_STYLES.filter(a => MATCHUP[a][id] < 0), weak: ATK_STYLES.filter(a => MATCHUP[a][id] > 0) }
+}
+
+// ---------------------------------------------------------------- the shapes
+
+/**
+ * THE SHAPE OF EACH STYLE, for anything that draws a side playing it (the
+ * highlight clip; the Tactics screen draws its own whiteboard versions in
+ * ui/tacticsArt.tsx). Numbers in metres and seconds, taken from the coaching
+ * study's keyframes: nothing here feeds back into the engine. A picture is
+ * free to ignore any field it has no use for.
+ *
+ * ATTACK
+ *   width       how far across the field the ball typically travels in a phase
+ *   depth       how deep the first receivers stand behind the ruck
+ *   passes      passes before contact in a typical phase
+ *   pods        forwards grouped across the field, touch to touch (1-3-3-1)
+ *   kick        the phase ends in a kick: hang time and distance of a box kick
+ *   offload     the share of tackles the ball comes out of
+ * DEFENCE
+ *   lineSpeed   m/s the line comes up at
+ *   slide       m/s the line slides outwards as the ball goes wide (the drift)
+ *   deep        men standing back in the field (the full-back is one)
+ *   track       each defender follows his own man rather than a channel
+ *   tacklers    men into each tackle (the choke brings two, and keeps it up)
+ *   upright     the tackle is made high, the carrier kept on his feet
+ */
+export interface AtkShape { width: number; depth: number; passes: number; pods?: number[]; kick?: { hang: number; dist: number }; offload: number }
+export interface DefShape { lineSpeed: number; slide: number; deep: number; track: boolean; tacklers: number; upright: boolean }
+
+export const ATK_SHAPE: Record<AtkStyle, AtkShape> = {
+  direct: { width: 10, depth: 3.5, passes: 1, offload: 0.05 },
+  pods: { width: 35, depth: 3, passes: 2, pods: [1, 3, 3, 1], offload: 0.12 },
+  width: { width: 60, depth: 5.5, passes: 4, offload: 0.1 },
+  kick: { width: 20, depth: 4, passes: 1, kick: { hang: 4.3, dist: 38 }, offload: 0.05 },
+  offload: { width: 30, depth: 2.5, passes: 2, offload: 0.45 },
+}
+
+export const DEF_SHAPE: Record<DefStyle, DefShape> = {
+  drift: { lineSpeed: 2.5, slide: 3, deep: 1, track: false, tacklers: 1, upright: false },
+  blitz: { lineSpeed: 5.5, slide: 0, deep: 1, track: false, tacklers: 1, upright: false },
+  pendulum: { lineSpeed: 3, slide: 1, deep: 2, track: false, tacklers: 1, upright: false },
+  man: { lineSpeed: 3.5, slide: 0, deep: 1, track: true, tacklers: 1, upright: false },
+  choke: { lineSpeed: 4, slide: 0.5, deep: 1, track: false, tacklers: 2, upright: true },
 }
 
 /**
