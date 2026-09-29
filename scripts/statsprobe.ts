@@ -15,7 +15,7 @@
 //
 // Run: npx tsx scripts/statsprobe.ts
 import { newGame } from '../src/game/newgame'
-import { beginMatch, playHalf, matchStats } from '../src/game/matchEngine'
+import { beginMatch, playHalf, matchStats, visitsTo22 } from '../src/game/matchEngine'
 import { mulberry32 } from '../src/game/rng'
 import type { LiveCtx } from '../src/game/matchEngine'
 
@@ -152,6 +152,42 @@ console.log('\n--- kicks at goal: counted, and they add up\n')
   ok(bad === 0, `every side's kicks made fit its score, and every try got its conversion attempt (${bad} that did not)`)
   const rate = made / taken
   ok(rate >= 0.6 && rate <= 0.85, `kicks at goal go over ${Math.round(rate * 100)}% of the time (${made} of ${taken})`)
+}
+
+console.log('\n--- a try is a visit to the 22 (1.8.1)\n')
+{
+  // THE STORE SCREENSHOT: a try on the live stats beside 0 visits to the 22,
+  // so points per visit read 0.0 next to a score. scoreTry moves the ball
+  // back for the restart before the try line is written, so a try from a long
+  // break was stamped outside the 22. Walked a line at a time, the way the
+  // ticker reveals them: at no point may a side that has scored a try read 0
+  // visits or 0 points from them, nor more visits than lines it had.
+  let checked = 0, bad = 0, first = '', over = 0
+  for (let i = 0; i < 60; i++) {
+    const gi = newGame('leicester', 'Stats Probe', 97000 + i)
+    const fi = gi.fixtures.find(f => f.week >= 4 && gi.clubs[f.homeId] && gi.clubs[f.awayId])!
+    const ci = beginMatch(gi, fi, mulberry32(7000 + i), true)
+    playHalf(gi, ci); playHalf(gi, ci)
+    const ev = ci.events
+    for (const home of [true, false]) {
+      const id = home ? ci.home.teamId : ci.away.teamId
+      let tries = 0
+      for (let n = 1; n <= ev.length; n++) {
+        const e = ev[n - 1]
+        if (e.type === 'TRY' && e.teamId === id) tries++
+        if (!tries) continue
+        checked++
+        const v = visitsTo22(ev.slice(0, n), ci.home.teamId, home)
+        if (!v.visits || !v.pts || v.pts / v.visits <= 0) { bad++; first ||= `seed ${i}, line ${n}, ${tries} tries, ${v.visits} visits, ${v.pts} pts` }
+      }
+      // and nothing is counted twice: the points from the 22 are never more
+      // than the side scored
+      const full = visitsTo22(ev, ci.home.teamId, home)
+      if (full.pts > (home ? ci.home.score : ci.away.score)) over++
+    }
+  }
+  ok(checked > 500 && bad === 0, `points per 22 visit is never 0 beside a try (${checked} ticker positions, ${bad} that were${first ? `: ${first}` : ''})`)
+  ok(over === 0, `and the points from the 22 never exceed the score (${over} sides that did)`)
 }
 
 console.log(fails ? `\nSTATS PROBE FAILED (${fails})` : '\nSTATS PROBE PASSED: the sheet answers to the match it came from')
