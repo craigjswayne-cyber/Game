@@ -55,9 +55,16 @@ export interface RivalTalk {
   read: TalkRead
 }
 
+/** What the scouts say they cannot tell yet. */
+export type Unknown = 'character' | 'conditions' | 'paceFade' | 'durability' | 'ceiling' | 'fit'
+
 export interface ScoutReport {
   stage: ReportStage
   confidence: Confidence
+  /** share of his attributes the report has exactly right (confidencePct) */
+  confPct: number
+  /** the "still unknown" line */
+  unknown: Unknown[]
   strengths: Note[]
   concerns: Note[]
   /** null until the full file */
@@ -83,6 +90,19 @@ const rand = (s: string) => mulberry32(hashString(s))()
  *  margin, so the word is honest by construction and measured in the probe. */
 export function confidenceOf(k: number): Confidence {
   return k >= 75 ? 'high' : k >= 45 ? 'medium' : 'low'
+}
+
+/**
+ * THE SCOUT'S CONFIDENCE AS A PERCENTAGE, and it is a promise: the share of
+ * this man's attributes the report has exactly right. Measured, not guessed:
+ * at each margin the estimate's spread (reportEstimate) lands on the true
+ * value this often, for the weakest and the best chief scout, and the probe
+ * holds the stated figure to the measured one within a few points.
+ */
+const CONF_PCT: Record<number, [number, number]> = { 0: [100, 100], 1: [50, 66], 2: [25, 33], 3: [17, 22], 4: [13, 17] }
+export function confidencePct(state: GameState, p: Player): number {
+  const [lo, hi] = CONF_PCT[margin(knowledge(state, p))]
+  return Math.round(lo + (hi - lo) * clamp(state.staff?.scout ?? 0, 0, 3) / 3)
 }
 
 // ---------------------------------------------------------------------------
@@ -217,6 +237,17 @@ export function sideDemands(state: GameState, clubId = state.userClubId): Record
 /** The fit score: how far his profile, shape rather than quality, leans the
  *  way the side does. Deviations from the position's mean have his own mean
  *  deviation taken out, so a better player is not a better fit by default. */
+/** Our way of playing in two words, attack and defence, for the fit line.
+ *  The same switch as sideDemands: when the styles land, name the styles. */
+export function sideStyleKeys(state: GameState, clubId = state.userClubId): [string, string] {
+  const tac = state.clubs[clubId]?.tactic
+  const st = tac?.style ?? 50, dl = tac?.defLine ?? 50
+  return [
+    st >= 62 ? 'philosophy.dialWide' : st <= 38 ? 'philosophy.dialTight' : 'philosophy.dialEven',
+    dl >= 62 ? 'philosophy.dialBlitzingLine' : dl <= 38 ? 'philosophy.dialPassiveLine' : 'philosophy.dialMeasuredLine',
+  ]
+}
+
 export function fitScore(pos: Pos, vals: Record<Key, number>, base: Record<Key, number>, dem: ReturnType<typeof sideDemands>): number {
   const tilt = isForward(pos) ? dem.fwd : dem.back
   const keys = ATTR_KEYS.filter(k => relevant(pos, k))
@@ -423,8 +454,17 @@ export function scoutReport(state: GameState, p: Player): ScoutReport {
   if (pers === 'Temperamental') rs += 1
   const risk: Risk = rs >= 3 ? 'high' : rs >= 2 ? 'medium' : 'low'
   const fit = stage >= 1 && base ? fitWord(fitScore(p.pos, est, base, sideDemands(state))) : null
+  // STILL UNKNOWN: what the file cannot answer yet, said plainly rather than
+  // left as a blank. Each clears at the stage that would answer it.
+  const unknown: Unknown[] = []
+  if (!pers) unknown.push('character')
+  if (stage < 2) unknown.push('conditions')
+  if (stage < 3 && p.age >= 29 && attrWeight(p.pos, 'pac') >= 0.5) unknown.push('paceFade')
+  if (stage < 2 && !(p.injLog?.length) && !notes.concerns.includes('durability')) unknown.push('durability')
+  if (!ceiling) unknown.push('ceiling')
+  if (!fit) unknown.push('fit')
   return {
-    stage, confidence, strengths: notes.strengths, concerns: notes.concerns, pers, level, ceiling, upside, risk,
+    stage, confidence, confPct: confidencePct(state, p), unknown, strengths: notes.strengths, concerns: notes.concerns, pers, level, ceiling, upside, risk,
     fit, agent: agentTone(state, p), talk: rivalTalk(state, p),
   }
 }
