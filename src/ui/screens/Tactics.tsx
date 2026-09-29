@@ -15,6 +15,8 @@ import { t } from '../../game/i18n'
 import { subjectVar } from '../../game/gender'
 import { BenchClock, BriefIcon, ExitDiagram, KickStyleDiagram, LineoutDiagram, PREP_ICON, PenaltyDiagram, ScrumDiagram, SplitPips, TheTwentyThree } from '../tacticsArt'
 import { Glyph } from '../glyphs'
+import { IcoChevron } from '../icons'
+import { OppReportCard } from '../OppReport'
 
 /** The Tactics screen: HOW the side plays. Roles on a pitch, the set-piece
  *  playbook, the bench shape, the week's preparation and the game plan.
@@ -29,6 +31,7 @@ export default function Tactics() {
   const touch = useStore(s => s.touch)
   const [ttab, setTtab] = useState<'tactics' | 'setp' | 'bench' | 'prep' | 'plan'>('tactics')
   const [roleSlot, setRoleSlot] = useState<number | null>(null)
+  const [kickSlot, setKickSlot] = useState<number | null>(null)
   /** what the last one-tap plan set, so a control whose sliders are three
    *  screenfuls away still answers the tap that pressed it */
   const [planMsg, setPlanMsg] = useState<string | null>(null)
@@ -263,40 +266,72 @@ export default function Tactics() {
         ))}
 
         <SectionTitle>{t('tacticsScreen.goalKickers')}</SectionTitle>
+        {/* THE KICKERS READ LIKE THE LEADERSHIP CARD (owner, 1.8.1: "make the
+            goal kickers section tidier"). Two native selects of forty names
+            each, every option a sentence ("Name (FH) - goal kicking 17"), were
+            the last stack of dropdowns on the page. Each job is now a row that
+            says who holds it, and a tap opens the same sheet the captaincy
+            uses, the squad in goal-kicking order with a bar to read it by.
+            THE WHOLE SQUAD, not the fifteen (owner, v1.1.18: "you should be
+            able to pick anyone in the whole squad to be a back up kicker").
+            Naming a man who is not on the pitch is safe: the engine only
+            honours a named kicker it finds on the field and uninjured
+            (matchEngine: the named-kicker check requires onPitch), so
+            otherwise the assistant's best-boot pick stands, same as a blank
+            slot that day. */}
         <div className="card">
           {[0, 1].map(slot => {
             const cur = (tac.kickers ?? [])[slot] ?? null
-            // THE WHOLE SQUAD, not the fifteen (owner, v1.1.18: "you should be
-            // able to pick anyone in the whole squad to be a back up kicker").
-            // Naming a man who is not on the pitch is safe: the engine only
-            // honours a named kicker it finds on the field and uninjured
-            // (matchEngine: the named-kicker check requires onPitch), so
-            // otherwise the assistant's best-boot pick stands, same as a
-            // blank slot that day.
-            const club = game.clubs[game.userClubId]
-            const xv = club.players.map(id => game.players[id])
-              .filter((p): p is Player => !!p && !p.onLoan)
+            const p = cur != null ? game.players[cur] : undefined
             return (
-              <div key={slot} className="lead-row">
+              <button key={slot} className="lead-row lead-btn kick-btn" onClick={() => setKickSlot(slot)} aria-haspopup="dialog">
+                <span className="lead-tag">{slot + 1}</span>
                 <span className="fact-label">{t(slot === 0 ? 'tacticsScreen.first' : 'tacticsScreen.second')}</span>
-                <select className="inline-input" value={cur ?? ''}
-                  onChange={ev => {
-                    const v = ev.target.value === '' ? null : Number(ev.target.value)
-                    const ks = [...(tac.kickers ?? [null, null])]
-                    ks[slot] = v
-                    tac.kickers = ks
-                    touch()
-                  }}>
-                  <option value="">{t('tacticsScreen.assistantPicks')}</option>
-                  {[...xv].sort((a, b) => b.a.goa - a.a.goa).map(p => (
-                    <option key={p.id} value={p.id}>{t('tacticsScreen.kickerOption', { name: p.name, pos: p.pos, goa: p.a.goa })}</option>
-                  ))}
-                </select>
-              </div>
+                <span className="lead-who">
+                  {p ? <>{p.name} <span className="muted">{p.pos} · {p.a.goa}</span></> : <span className="muted">{t('tacticsScreen.assistantPicks')}</span>}
+                </span>
+                <span className="lead-chev"><IcoChevron /></span>
+              </button>
             )
           })}
           <div className="meta" style={{ marginTop: 5 }}>{t('tacticsScreen.kickerNote')}</div>
         </div>
+        {kickSlot != null && (() => {
+          const setKicker = (v: number | null) => {
+            const ks = [...(tac.kickers ?? [null, null])]
+            ks[kickSlot] = v
+            tac.kickers = ks
+            setKickSlot(null)
+            touch()
+          }
+          const club = game.clubs[game.userClubId]
+          const squad = club.players.map(id => game.players[id])
+            .filter((p): p is Player => !!p && !p.onLoan)
+            .sort((a, b) => b.a.goa - a.a.goa)
+          const cur = (tac.kickers ?? [])[kickSlot] ?? null
+          const title = t(kickSlot === 0 ? 'tacticsScreen.first' : 'tacticsScreen.second')
+          return (
+            <div className="modal-veil" onClick={() => setKickSlot(null)}>
+              <div className="modal lead-sheet" role="dialog" aria-label={title} onClick={e => e.stopPropagation()}>
+                <div className="grab" />
+                <SectionTitle sub={t('tacticsScreen.kickerSheetSub')}>{t('tacticsScreen.goalKickers')}: {title}</SectionTitle>
+                <div className="lead-list">
+                  <table className="dtable"><tbody>
+                    {squad.map(p => (
+                      <tr key={p.id} className={p.id === cur ? 'sel' : undefined} onClick={() => setKicker(p.id)}>
+                        <td><PosBadge pos={p.pos} /></td>
+                        <td className="name">{p.name}</td>
+                        <td className="lead-bar"><span style={{ width: `${p.a.goa * 5}%` }} /></td>
+                        <td className="num"><b>{p.a.goa}</b></td>
+                      </tr>
+                    ))}
+                  </tbody></table>
+                </div>
+                <button className="btn ghost block" onClick={() => setKicker(null)}>{t('tacticsScreen.assistantPicks')}</button>
+              </div>
+            </div>
+          )
+        })()}
 
         <SectionTitle>{t('tacticsScreen.exiting')}</SectionTitle>
         <div className="card">
@@ -307,7 +342,10 @@ export default function Tactics() {
               ['counter', 'tacticsScreen.exitCounter'],
               ['fifty22', 'tacticsScreen.exitFifty22'],
             ] as const).map(([id, label]) => {
-              const on = (tac.exit ?? 'long') === id
+              // unset is no exit plan at all, which is what the engine plays:
+              // it used to light up Long, and tapping the lit tile then
+              // switched on an effect the screen had claimed was already on
+              const on = tac.exit === id
               return (
                 <button key={id} className={`speech-tile sp-card${on ? ' sel' : ''}`} aria-pressed={on} data-opt={`exit-${id}`}
                   onClick={() => { tac.exit = id; touch() }}>
@@ -317,20 +355,21 @@ export default function Tactics() {
               )
             })}
           </div>
-          <div className="meta" style={{ marginTop: 6 }}>
-            {t(({
-              box: 'tacticsScreen.exitBoxDesc',
-              long: 'tacticsScreen.exitLongDesc',
-              counter: 'tacticsScreen.exitCounterDesc',
-              fifty22: 'tacticsScreen.exitFifty22Desc',
-            })[tac.exit ?? 'long'])}
-          </div>
+          {tac.exit && (
+            <div className="meta" style={{ marginTop: 6 }}>
+              {t(({
+                box: 'tacticsScreen.exitBoxDesc',
+                long: 'tacticsScreen.exitLongDesc',
+                counter: 'tacticsScreen.exitCounterDesc',
+                fifty22: 'tacticsScreen.exitFifty22Desc',
+              })[tac.exit])}
+            </div>
+          )}
         </div>
 
         {/* KICKING STYLE (1.7.3): what kind of kick, where the Game Plan's
             kicking dial says how many. Unset is Balanced, on the screen and in
-            the engine alike (the exit row above shows 'long' for unset while
-            the engine applies nothing - this one does not repeat that). */}
+            the engine alike, as unset is no plan on the exit row above. */}
         <SectionTitle>{t('tacticsScreen.kickStyle')}</SectionTitle>
         <div className="card">
           <div className="sp-grid">
@@ -499,6 +538,8 @@ export default function Tactics() {
 
       {ttab === 'prep' && <>
         <AnalystCard />
+        {/* the opposition report and the response plan (#181) */}
+        <OppReportCard />
         {/* the opposition's standing instruction and the assistant's counter to it
             moved here from the game plan tab (1.6.5): reading them IS match
             preparation, and the plan tab was three screenfuls deep with it */}
