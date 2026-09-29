@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../../store'
-import { listSaves, loadGame, deleteSave, type SaveMeta } from '../../game/save'
+import { listSaves, loadGame, deleteSave, peekResumes, type SaveMeta } from '../../game/save'
+import type { LiveStamp } from '../../game/resume'
 import { seasonLabel } from '../../game/model'
 import { LANGS, t } from '../../game/i18n'
 import { BrandMark, StudioMark } from '../components'
@@ -17,6 +18,13 @@ export default function Menu() {
   const [confirmDel, setConfirmDel] = useState<string | null>(null)
 
   useEffect(() => { void listSaves().then(setSaves) }, [])
+  // THE MATCH STILL GOING (1.8.2). A career left mid-match reopens into that
+  // match, so the tile says so before it is pressed rather than surprising
+  // anybody. Read from the live-match records, never from the career itself.
+  const [live, setLive] = useState<{ slot: string; rec: LiveStamp }[]>([])
+  useEffect(() => { void peekResumes<LiveStamp>().then(setLive).catch(() => {}) }, [])
+  const liveFor = (m: SaveMeta) => live.find(l => l.slot === m.slot
+    && l.rec.season === m.season && l.rec.week === m.week && !!l.rec.opp)?.rec.opp
 
   const load = async (slot: string, keepPlace = false) => {
     const g = await loadGame(slot)
@@ -54,6 +62,7 @@ export default function Menu() {
                   anything, so the line ellipsises rather than wrapping */}
               <div className="ct-line">{t('menu.continue', { manager: newest.managerName, club: newest.club })}</div>
               <div className="ct-sub">{t('menu.savedAt', { season: seasonLabel(newest.season), week: newest.week })}</div>
+              {liveFor(newest) && <div className="ct-sub">{t('menu.matchLive', { opp: liveFor(newest)! })}</div>}
             </button>
           )
         })()}
@@ -102,6 +111,7 @@ export default function Menu() {
             <button className="btn" style={{ flex: 1, background: 'var(--surface-3)' }} onClick={() => void load(s.slot)}>
               {s.managerName} - {s.club}
               <div style={{ fontSize: 11, opacity: .8 }}>{t('menu.savedAt', { season: seasonLabel(s.season), week: s.week })}</div>
+              {liveFor(s) && <div style={{ fontSize: 11, opacity: .8 }}>{t('menu.matchLive', { opp: liveFor(s)! })}</div>}
             </button>
             {/* TWO TAPS TO DELETE A CAREER (1.8.1), as on Game Status. One tap
                 on a cross beside the Load button threw a whole career away,
