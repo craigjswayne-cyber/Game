@@ -2306,7 +2306,7 @@
   "tabAttributes": "能力",
   "tabCareer": "キャリア",
   "alsoPlays": "（{pos}も可）",
-  "natLine": "{flag} {country} · {age}歳",
+  "natLine": "{country} · {age}歳",
   "international": " · 代表選手",
   "academyGrad": " · アカデミー出身",
   "estimated": "推定値。確定には視察を",

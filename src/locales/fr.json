@@ -2415,7 +2415,7 @@
     "tabAttributes": "Attributs",
     "tabCareer": "Carrière",
     "alsoPlays": " (aussi {pos})",
-    "natLine": "{flag} {country} · {age} ans",
+    "natLine": "{country} · {age} ans",
     "international": " · International",
     "international_f": " · Internationale",
     "academyGrad": " · Formé au club",

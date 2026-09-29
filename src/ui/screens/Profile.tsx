@@ -3,7 +3,8 @@ import { useStore } from '../../store'
 import { decisionText, mgrReputation, seasonLabel, squadTrust, trustFactor, trustWord, type GameState, type Player } from '../../game/model'
 import { standing, standingWord } from '../../game/authority'
 import { CHALLENGES } from '../../game/newgame'
-import { flagOf, nationName } from '../../game/nations'
+import { nationName } from '../../game/nations'
+import { Flag } from '../flags'
 import { SectionTitle } from '../components'
 import { supportCount } from '../../game/monetise'
 import { t, compLabel } from '../../game/i18n'
@@ -216,7 +217,7 @@ export default function Profile() {
         <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span className="row-ico"><Glyph name="nations" /></span>
           <div style={{ flex: 1 }}>
-            <h3 style={{ fontSize: 14 }}>{flagOf(game.natTeam)} {t('profile.natHeadCoach', { nat: nationName(game.natTeam) })}</h3>
+            <h3 style={{ fontSize: 14 }}><Flag code={game.natTeam} /> {t('profile.natHeadCoach', { nat: nationName(game.natTeam) })}</h3>
             <div className="meta">
               {t('profile.testWeeksYours')}
               {game.natConfidence != null && (
@@ -237,12 +238,12 @@ export default function Profile() {
           <h3 style={{ fontSize: 16 }}>{t('profile.intlRecord')}</h3>
           {(game.natHistory ?? []).map((ten, i) => (
             <div key={i} className="meta" style={{ padding: '3px 0' }}>
-              {flagOf(ten.nat)} <b>{nationName(ten.nat)}</b> · {t(ten.m === 1 ? 'profile.testLineOne' : 'profile.testLine', { m: ten.m, w: ten.w, d: ten.d, l: ten.l })}
+              <Flag code={ten.nat} /> <b>{nationName(ten.nat)}</b> · {t(ten.m === 1 ? 'profile.testLineOne' : 'profile.testLine', { m: ten.m, w: ten.w, d: ten.d, l: ten.l })}
             </div>
           ))}
           {game.natTeam && game.natRecord && (
             <div className="meta" style={{ padding: '3px 0' }}>
-              {flagOf(game.natTeam)} <b>{nationName(game.natTeam)}</b> · {t(game.natRecord.m === 1 ? 'profile.testLineOne' : 'profile.testLine', { m: game.natRecord.m, w: game.natRecord.w, d: game.natRecord.d, l: game.natRecord.l })} <span className="muted">{t('profile.current')}</span>
+              <Flag code={game.natTeam} /> <b>{nationName(game.natTeam)}</b> · {t(game.natRecord.m === 1 ? 'profile.testLineOne' : 'profile.testLine', { m: game.natRecord.m, w: game.natRecord.w, d: game.natRecord.d, l: game.natRecord.l })} <span className="muted">{t('profile.current')}</span>
             </div>
           )}
         </div>

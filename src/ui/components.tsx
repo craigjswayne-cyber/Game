@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { clubCode, type GameState, type Player } from '../game/model'
-import { flagOf } from '../game/nations'
+import { Flag } from './flags'
 import { kitCycle, kitHoops, kitPattern, kitQuarters, kitSleeves, kitTrim, type KitPattern } from '../game/kits'
 import { hasHoopRow } from '../game/kits'
 import { t } from '../game/i18n'
@@ -195,7 +195,7 @@ export function FormPill({ v }: { v: number }) {
 }
 
 export function Nat({ code }: { code: string }) {
-  return <span title={code}>{flagOf(code)}</span>
+  return <Flag code={code} />
 }
 
 /** Star display for overall ability, CM-style (out of 5). */
@@ -613,7 +613,7 @@ export function Jersey({ club, size = 44 }: { club: CrestClub; size?: number }) 
 /** Crest by team id - clubs get shields, nations fall back to flags. */
 export function CrestT({ g, teamId, size = 16 }: { g: GameState; teamId: string; size?: number }) {
   const c = g.clubs[teamId]
-  if (!c) return <span style={{ marginRight: 5 }}>{flagOf(teamId)}</span>
+  if (!c) return <span style={{ marginRight: 5 }}><Flag code={teamId} size={Math.round(size * 0.7)} /></span>
   return <Crest club={c} size={size} />
 }
 
