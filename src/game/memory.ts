@@ -52,6 +52,8 @@ export type MemoryKind =
   | 'rift' | 'bond' | 'plan-followed' | 'plan-ignored' | 'former-player-met'
   // the club's history book (histbook.ts note): rivalries and the manager's jobs
   | 'rivalry-formed' | 'took-job' | 'left-sacked' | 'left-walked' | 'left-moved'
+  // the club's identity (identity.ts): a label earned or lost
+  | 'identity-formed' | 'identity-faded'
 
 export interface MemoryEntry {
   id: number

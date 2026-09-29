@@ -30,6 +30,7 @@ import { generateGossip } from './gossip'
 import { benchDrag, buildPlayer, playerValue, playerWage, peekPid, resetIds } from './attributes'
 import { recruitmentMeeting, scoutOpponent, weeklyScouting } from './scout'
 import { recordTendency } from './tendency'
+import { flushIdentityNews, stepIdentity } from './identity'
 import { disciplineWeek } from './authority'
 import { updateAgency } from './agency'
 import { OBJECTIVE_DEFS } from './objectives'
@@ -3541,6 +3542,7 @@ export function processWeekAndAdvance(state: GameState) {
       // the analysts' tape: this week's dials go in the tendency window, and
       // the repetition streaks tick (pillar 2) - a habit is now a fact
       recordTendency(state)
+      stepIdentity(state) // the club's identity drifts toward how it is run (identity.ts)
     } else {
       // Test match: national duty counts on the manager's record
       const mySide = userFx.homeId === state.natTeam || userFx.homeId === 'LIO' ? userFx.homeId : userFx.awayId
@@ -4495,6 +4497,7 @@ If you go, your assistant takes your national side for the duration. Nobody prep
   // and the week's history: a former club, a legend on the other side (history.ts)
   historyPreview(state)
   flushMemoryNews(state) // memory.ts stories held through the settle take their ids now
+  flushIdentityNews(state) // and identity.ts's, the same way (heldnews.ts)
 
   // (derby build-up now lives in the pre-advance block above, with the
   // all-time ledger - the old duplicate beat here was removed)
