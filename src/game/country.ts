@@ -11,7 +11,7 @@
 import type { GameState, Player } from './model'
 import { clamp } from './rng'
 import { activeWindows } from './season'
-import { NAT_SQUAD_FLOOR, NAT_SQUAD_SIZE, clubQuotaLeft, conflictedClub, federationPick, homeBased } from './nations'
+import { NAT_SQUAD_FLOOR, NAT_SQUAD_SIZE, clubQuotaLeft, conflictedClub, federationList, homeBased } from './nations'
 import { t } from './i18n'
 
 const HOME4 = ['ENG', 'IRE', 'SCO', 'WAL']
@@ -76,7 +76,7 @@ export function natCallUp(state: GameState, playerId: number): string | null {
   // men from a club his side meets than the federation itself would take
   if (p.clubId && clubQuotaLeft(state, nat, w.size, squad, p.clubId) <= 0) {
     const club = state.clubs[p.clubId]?.short ?? ''
-    const n = federationPick(state, nat, w.size).filter(q => q.clubId === p.clubId).length
+    const n = federationList(state, nat, w.size).filter(q => q.clubId === p.clubId).length
     return p.clubId === conflictedClub(state)
       ? t('reply.ownClubQuota', { player: p.name, club, n })
       : t('reply.rivalQuota', { player: p.name, club, n })
@@ -111,7 +111,7 @@ export function natDrop(state: GameState, playerId: number): string | null {
   // runs that club, or leaving them home would be the favour 9.10 rules out
   const mine = conflictedClub(state)
   if (p && mine && p.clubId === mine && !p.injury &&
-      federationPick(state, nat, w.size).some(q => q.id === playerId)) {
+      federationList(state, nat, w.size).some(q => q.id === playerId)) {
     return t('reply.ownClubKept', { player: p.name, club: state.clubs[mine]?.short ?? '' })
   }
   if (squad.length <= NAT_SQUAD_FLOOR) return t('reply.squadFloor', { n: NAT_SQUAD_FLOOR })
