@@ -160,7 +160,7 @@ sentence in every language: the world remembers your decisions.
 
 ```
 <en-GB>
-The world remembers your decisions. Release a player and he may come back to score against you; break a promise and his agent asks for more. Your club grows an identity from how you run it, and the dressing room has its friendships and rifts. An opposition report and match plan before kick-off, findings after. Rivalries grow from finals, legends and records talk, and you can return to an old club. Ten drilled attacking moves, transfer windows, a yearly academy decision and many fixes.
+The world remembers your decisions. Release a player and they may come back to score against you; break a promise and their agent asks for more. Your club grows an identity from how you run it, and the dressing room has its friendships and rifts. An opposition report and match plan before kick-off, findings after. Rivalries grow from finals, legends and records talk, and you can return to an old club. Ten drilled attacking moves, transfer windows, a yearly academy decision and many fixes.
 </en-GB>
 <fr-FR>
 Le monde se souvient de vos décisions. Libérez un joueur, il pourrait marquer contre vous ; rompez une promesse et son agent demandera plus. Votre gestion forge l'identité du club, et le vestiaire a ses amitiés et ses brouilles. Rapport adverse et plan de match avant le coup d'envoi, bilan après. Les finales créent des rivalités, légendes et records parlent, et vous pouvez revenir dans un ancien club. Dix combinaisons d'attaque, mercato encadré, choix annuel pour les jeunes et des correctifs.
@@ -178,7 +178,7 @@ Il mondo ricorda le tue decisioni. Svincola un giocatore e potrebbe segnarti con
 Die wêreld onthou jou besluite. Laat 'n speler gaan en hy druk dalk teen jou; breek 'n belofte en sy agent vra meer. Jou klub kry 'n identiteit uit hoe jy dit bestuur, en die kleedkamer het vriendskappe en twiste. 'n Teenstandersverslag en 'n wedstrydplan voor die afskop, bevindinge daarna. Uit eindstryde groei wedywering, legendes en rekords praat, en jy kan na 'n ou klub terugkeer. Tien ingeoefende aanvalsbewegings, oordragvensters, 'n jaarlikse akademiebesluit en baie regstellings.
 </af>
 ```
-*(en-GB 489, fr-FR 497, es-ES 490, it-IT 488, ja-JP 209, af 489: all inside Play's 500.)*
+*(en-GB 493, fr-FR 497, es-ES 490, it-IT 488, ja-JP 209, af 489: all inside Play's 500.)*
 
 ### What's new (500 max) - v1.8.0, Play version code 41: FINAL
 
