@@ -542,7 +542,7 @@ export default function Tactics() {
 
       {ttab === 'prep' && <>
         <AnalystCard />
-        {/* the opposition report and the response plan (#181) */}
+        {/* the opposition report and the response plan (1.8.1 tactical loop) */}
         <OppReportCard />
         {/* the opposition's standing instruction and the assistant's counter to it
             moved here from the game plan tab (1.6.5): reading them IS match
