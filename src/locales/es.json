@@ -2665,7 +2665,11 @@
   "requestAnswerSub": "Respóndela en un sentido u otro, o déjala y que hable la alineación.",
   "requestGrant": "Dejarle salir",
   "requestRefuse": "Rechazarla",
-  "requestGrant_f": "Dejarla salir"
+  "requestGrant_f": "Dejarla salir",
+  "bondsLabel": "El vestuario",
+  "bondsVoice": "Una de las voces con peso en el vestuario",
+  "bondsClose": "Amistad con: {names}",
+  "bondsClash": "Choca con: {names}"
  },
  "challenges": {
   "sapiac": "Sauvez Sapiac",
@@ -5990,7 +5994,15 @@
   "boardYes_facilities": "La junta financiará la siguiente obra. Ve a Infraestructura del Club y pídela: la factura es suya, no tuya.",
   "boardYes_facilitiesSubj": "La junta pagará la próxima obra",
   "boardYes_staff": "La directiva ha reservado dinero para el cuerpo técnico. No está en el presupuesto de fichajes y no puede pasar ahí: paga entrenadores, los cursos que los titulan y las ocho semanas que cuesta despedir a uno. Gástalo mientras dure la buena voluntad, porque las directivas tienen la memoria corta para estas cosas.",
-  "boardYes_staffSubj": "Sube el fondo del cuerpo técnico"
+  "boardYes_staffSubj": "Sube el fondo del cuerpo técnico",
+  "bondRiftSubj": "{aLast} y {bLast} no se hablan",
+  "bondRift": "El vestuario se ha dado cuenta: {a} y {b} han dejado de dirigirse la palabra. {cause_k} Los entrenamientos son gélidos y el resto de la plantilla está tomando partido. Puedes reunir a la pareja desde la pantalla Club, o dejar que hablen los resultados.",
+  "bondMateGoneSubj": "A {player} le duele la salida de {mateLast}",
+  "bondMateGone": "{player} y {mate} tenían una relación muy estrecha, y se nota ahora que {mate} ya no está. Menos palabras en el entrenamiento, prisa por irse después. Una charla en el despacho no vendría mal.",
+  "bondCliqueSubj": "Se forma un clan en el vestuario",
+  "bondClique": "En el comedor ya hay una mesa para {group_k}, y nadie más se sienta en ella. El grupo siente que la alineación tiene favoritos y que no está entre ellos: {names_l} y compañía. Su total de titularidades esta temporada: {n}. Dale sitio a ese grupo, o habla con él, antes de que se enquiste.",
+  "bondCliqueEndsSubj": "Las mesas del comedor vuelven a mezclarse",
+  "bondCliqueEnds": "La mesa para {group_k} se ha disuelto. Las alineaciones han sido más generosas últimamente y el vestuario vuelve a ser uno solo."
  },
  "comm": {
   "oppCoachNamed": "{coach} ha hecho los deberes: {team} salen preparados específicamente para frenar {pattern_k}. Cambia el guion o mantente fiel al plan.",
@@ -7883,7 +7895,21 @@
   "positionTrainBad": "{player} pone los ojos en blanco. «Más entrenamiento. Genial.»",
   "positionNoGood": "{player} se lo toma bien. «Me parece justo. Seguiré trabajando de {from_k}.»",
   "positionNoMixed": "{player} no oculta la decepción. «Vale. Había que preguntar.»",
-  "positionNoBad": "{player} se revuelve. «Entonces soy {from_k} y no juego. Esto no puede seguir así.»"
+  "positionNoBad": "{player} se revuelve. «Entonces soy {from_k} y no juego. Esto no puede seguir así.»",
+  "mateQ1": "{player} te espera en la puerta del despacho antes del entrenamiento. «{mate} y yo lo hemos compartido todo aquí, míster. Me enteré del traspaso por el móvil.»",
+  "mateQ2": "{player} te alcanza en el aparcamiento. «¿Dejar ir a {mate}? El vestuario se pregunta qué dice eso del resto de la plantilla.»",
+  "mateSorry": "Fue una decisión difícil. Sé lo mucho que os unía",
+  "mateNeed": "Necesito que des un paso al frente y llenes ese hueco",
+  "mateMove": "Los jugadores vienen y van. Así es este negocio",
+  "mateSorryGood": "{player} asiente despacio. «Gracias por decirlo. Importa más de lo que cree.»",
+  "mateSorryMixed": "{player} se encoge de hombros. «Una decisión difícil. Vale. Seguiré a lo mío.»",
+  "mateSorryBad": "{player} no se lo cree. «Si hubiera sido tan difícil, habría cogido el teléfono.»",
+  "mateNeedGood": "{player} se yergue. «Entonces lo haré. Alguien tiene que mantener unido a este grupo.»",
+  "mateNeedMixed": "{player} asiente a medias. «Vale. Pero que no se convierta en costumbre.»",
+  "mateNeedBad": "{player} se ríe sin sonreír. «¿Dar un paso al frente? Acaba de enseñar a todos lo que se gana con eso.»",
+  "mateMoveGood": "{player} casi sonríe. «Es justo. Es un trabajo. Yo habría hecho lo mismo.»",
+  "mateMoveMixed": "{player} mira al suelo. «Supongo que sí.» La puerta se cierra sin ruido.",
+  "mateMoveBad": "{player} se marcha sin más. Por la tarde, media plantilla sabe lo que has dicho."
  },
  "mood": {
   "room": "El vestuario",
@@ -8107,5 +8133,18 @@
   "hemispheric": "Hemisférico",
   "summerTests": "Tests de verano",
   "southernFour": "Cuatro del Sur"
+ },
+ "bonds": {
+  "gHome": "los canteranos",
+  "gHome_f": "las canteranas",
+  "gVets": "los veteranos",
+  "gVets_f": "las veteranas",
+  "gYoung": "los jóvenes",
+  "gYoung_f": "las jóvenes",
+  "gNat": "el contingente de {nation_k}",
+  "causeShirt": "Todo empezó por una camiseta, y solo hay una para dos.",
+  "causeArmband": "Todo empezó el día en que el brazalete cambió de manos.",
+  "causeOld": "Nadie sabe muy bien cuándo empezó.",
+  "name": "{name}"
  }
 }

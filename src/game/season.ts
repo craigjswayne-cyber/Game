@@ -55,6 +55,7 @@ import { refreshVacancies, sackManager } from './jobs'
 import { historyAfterMatch, historyPreview, historyWeight } from './history'
 import { playAcademyWeek } from './academy'
 import { canBeMentored, mentorGraduations, mentorReports, mentorWeek } from './mentoring'
+import { bondsWeek, flushBondNews } from './bonds'
 import { t, tIn, type Vars } from './i18n'
 import { flushMemoryNews, memoryAfterMatch, memoryWeek, rememberPromise } from './memory'
 
@@ -4368,6 +4369,8 @@ If you go, your assistant takes your national side for the duration. Nobody prep
   if (!state.unemployed) {
     mentorGraduations(state)
     mentorReports(state)
+    // the dressing room's friendships, rivalries and cliques (bonds.ts)
+    bondsWeek(state)
   }
 
   // ---- OBJECTIVES LAND IN THE NEWS ----
@@ -4497,6 +4500,7 @@ If you go, your assistant takes your national side for the duration. Nobody prep
   // and the week's history: a former club, a legend on the other side (history.ts)
   historyPreview(state)
   flushMemoryNews(state) // memory.ts stories held through the settle take their ids now
+  flushBondNews(state) // and the dressing room's (bonds.ts)
   flushIdentityNews(state) // and identity.ts's, the same way (heldnews.ts)
 
   // (derby build-up now lives in the pre-advance block above, with the
