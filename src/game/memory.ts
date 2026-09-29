@@ -32,6 +32,7 @@ import type { Fixture, GameState, Player } from './model'
 import { absWeek, fmtMoney, seasonLabel, SEASON_WEEKS } from './model'
 import { clamp } from './rng'
 import { tIn, type Vars } from './i18n'
+import { fileHeldNews } from './heldnews'
 
 /** What the manager did, by name. Add a literal to add a kind. */
 export type MemoryKind =
@@ -75,9 +76,6 @@ export interface MemoryLog {
   /** stories told this season, and which season that count is for */
   told?: number
   toldS?: number
-  /** the id base of the last flush and how many fractions it has used */
-  fb?: number
-  fs?: number
   /** stories waiting for an id (see tell()). Empty between weeks. */
   queue?: Omit<import('./model').NewsItem, 'id'>[]
 }
@@ -271,40 +269,14 @@ function tell(state: GameState, k: string, v: Vars, playerId?: number): void {
   })
 }
 
-/** The news log's ceiling (season.ts NEWS_KEEP; season.ts imports this file). */
-const NEWS_CAP = 250
-
-/**
- * File the held stories. season.ts calls it at the very end of the week settle,
- * after the advance, when no more fixtures are drawn this tick.
- *
- * AND WITHOUT SPENDING state.nextId. Holding a story to the end of the settle
- * is not enough on its own: an id taken now is an id the next cup draw does not
- * get, so every tie drawn weeks later sits one number higher and rolls other
- * dice (memoryprobe caught it: the knockout ties of week 33 moved from 1001800
- * to 1001807 with ten stories told). So a memory story takes a fraction above
- * the last id minted: base + 0.001, base + 0.002. It still sorts after
- * everything filed before it and before everything filed after (days.ts reads
- * `id >= newsFrom`), it is unique while fewer than a thousand stories are told
- * on the same base, and the counter the fixtures draw from never moves.
- * save.ts floors the highest id when it repairs nextId, so a fraction can never
- * leak into it.
- */
+/** File the held stories: season.ts calls it at the very end of the week
+ *  settle, after the advance. The ids do not spend state.nextId (heldnews.ts),
+ *  so no fixture drawn later, this week or any other, moves onto other dice. */
 export function flushMemoryNews(state: GameState): void {
   const log = state.memory
-  const q = log?.queue
-  if (!log || !q?.length) return
-  const base = state.nextId - 1
-  if (log.fb !== base) { log.fb = base; log.fs = 0 }
-  for (const n of q) {
-    log.fs = (log.fs ?? 0) + 1
-    // a thousand stories on one base is not a week that happens; if it ever
-    // did, the story takes a whole id like anything else rather than collide
-    const id = log.fs < 1000 ? base + log.fs / 1000 : state.nextId++
-    state.news.push({ ...n, id, k: n.k, v: n.v })
-  }
+  if (!log?.queue?.length) return
+  fileHeldNews(state, log.queue)
   log.queue = []
-  if (state.news.length > NEWS_CAP) state.news = state.news.slice(-NEWS_CAP)
 }
 
 /** "You sold him to X in 2027 for £2M." The sentence the payoffs lead with. */
