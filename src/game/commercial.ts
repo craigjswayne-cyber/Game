@@ -36,6 +36,7 @@
 // engaging with the system, and it is bounded - see MAX_UPLIFT.
 import { fmtMoney, logDecision, type GameState } from './model'
 import { t, tIn } from './i18n'
+import { identitySponsorFit } from './identity'
 import { remember } from './memory'
 
 export type SlotId = 'shirt' | 'sleeve' | 'naming' | 'kit'
@@ -272,7 +273,9 @@ export function offersFor(state: GameState, slot: SlotId): Offer[] {
       weekly: Math.round(mkt * vs), clause, vsMarket: vs,
     })
   }
-  return out
+  // a club whose identity sells gets a little over the odds (identity.ts)
+  const fit = identitySponsorFit(state)
+  return fit === 1 ? out : out.map(o => ({ ...o, weekly: Math.round(o.weekly * fit), vsMarket: o.vsMarket * fit }))
 }
 
 /**
