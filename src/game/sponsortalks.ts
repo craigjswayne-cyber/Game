@@ -38,7 +38,7 @@
 import { LEDGER_WEEKS, fmtMoney, logDecision, type GameState } from './model'
 import { t, tIn, type Vars } from './i18n'
 import {
-  CLAUSES, SLOT_BY_ID, applyStadiumName, hash, marketRate, offersFor,
+  CLAUSES, SLOT_BY_ID, applyStadiumName, dropSlotQuestion, hash, marketRate, offersFor,
   type ClauseId, type Deal, type SlotId,
 } from './commercial'
 import { book } from './books'
@@ -353,6 +353,8 @@ export function acceptTalk(state: GameState, slot: SlotId): string {
   }
   if (terms.perf) deal.perf = terms.perf
   ;(state.deals ??= {})[slot] = deal
+  // the summer question about this slot is answered by the handshake
+  dropSlotQuestion(state, slot)
   delete talks.open[slot]
   if (slot === 'naming') applyStadiumName(state, talk.sponsor)
   const info = SLOT_BY_ID[slot]

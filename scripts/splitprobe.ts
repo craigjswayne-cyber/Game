@@ -22,7 +22,7 @@
 //   roughly a wash. If it were an upgrade, every save would end up at 100.
 import { newGame } from '../src/game/newgame'
 import { weekRng } from '../src/game/season'
-import { beginMatch, simMatch } from '../src/game/matchEngine'
+import { beginMatch, simMatch, recomputeSideUnits } from '../src/game/matchEngine'
 import { mulberry32 } from '../src/game/rng'
 import type { GameState } from '../src/game/model'
 
@@ -171,6 +171,28 @@ const blitzDrift = diffs.reduce((a, b) => a + b, 0) / n
 const se = Math.sqrt(diffs.reduce((a, b) => a + (b - blitzDrift) ** 2, 0) / (n - 1) / n)
 console.log(`  mean margin over ${n} paired matches: dial untouched ${(sumBase / n).toFixed(2)}, full blitz ${(sumAggro / n).toFixed(2)} (drift se ${se.toFixed(2)})`)
 ok(Math.abs(blitzDrift) < 2.5, `the blitz is not a free upgrade (drift ${blitzDrift.toFixed(2)} pts, band 2.5, ${(2.5 / se).toFixed(1)} se)`)
+
+// ---- the whistle is priced the same before and after a change (1.8.1) -----
+// The referee and the home crowd are swapped into penRisk at kick-off, and a
+// recompute (any substitution or dial touch) builds it from scratch. The ruck
+// contest's term used to miss the kick-off swap, so a manager going hard at
+// the ruck conceded at one rate until his first change and another after it.
+{
+  let worst = 0
+  for (const seed of [3, 19, 41, 77]) {
+    for (const rc of [0, 100]) {
+      const g = newGame('northampton', 'Split', seed)
+      g.clubs[g.userClubId].tactic.ruckContest = rc
+      g.clubs[g.userClubId].tactic.aggression = 90
+      const ctx = beginMatch(g, userFixture(g), weekRng(g), false)
+      const s = mySide(g, ctx)
+      const before = s.penRisk
+      recomputeSideUnits(g, ctx, s)
+      worst = Math.max(worst, Math.abs(s.penRisk / before - 1))
+    }
+  }
+  ok(worst < 1e-9, `the penalty rate at kick-off is the one a recompute builds (worst drift ${(worst * 100).toFixed(4)}%)`)
+}
 
 console.log(fails ? `\nSPLIT PROBE FAILED (${fails})` : '\nSPLIT PROBE PASSED: the without-ball dials are a priced trade')
 process.exit(fails ? 1 : 0)

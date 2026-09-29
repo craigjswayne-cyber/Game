@@ -25,7 +25,7 @@
  * Run: npx vite-node scripts/rankprobe.ts
  */
 import { newGame } from '../src/game/newgame'
-import { agencyKids, agencySeniors, updateAgency } from '../src/game/agency'
+import { agencyKids, agencySeniors, agencyView, updateAgency } from '../src/game/agency'
 import { natRankOrder } from '../src/game/natrank'
 import { processWeekAndAdvance } from '../src/game/season'
 
@@ -42,10 +42,16 @@ const g = newGame('leicester', 'Ranker', 8811)
   const sen = agencySeniors(g)
   const kids = agencyKids(g)
   const desc = (xs: number[]) => xs.every((v, i) => i === 0 || xs[i - 1] >= v)
-  ok(sen.length > 0 && desc(sen.map(p => p.ca)),
-    `senior rankings run by current ability, best first (${sen.length} men, top ${sen[0]?.ca})`)
-  ok(kids.length > 0 && desc(kids.map(p => p.pa)),
-    `wonderkids run by ceiling, best first (${kids.length} kids)`)
+  // by the agency's reading of ability and ceiling (agencyView), which is
+  // close to the truth and never exactly it (1.8.1)
+  ok(sen.length > 0 && desc(sen.map(p => agencyView(g, p, 'ca'))),
+    `senior rankings run by the agency's reading of current ability, best first (${sen.length} men, top ${sen[0]?.ca})`)
+  ok(kids.length > 0 && desc(kids.map(p => agencyView(g, p, 'pa'))),
+    `wonderkids run by the agency's reading of ceiling, best first (${kids.length} kids)`)
+  ok(!desc(kids.map(p => p.pa)),
+    'and the wonderkid list is not an exact ranking of the hidden ceiling')
+  ok([...sen, ...kids].every(p => Math.abs(agencyView(g, p, 'ca') - p.ca) <= 2 && Math.abs(agencyView(g, p, 'pa') - p.pa) <= 5),
+    'while every reading stays within the agency\'s margin of the truth')
   ok(kids.every(p => p.age <= 21) && sen.every(p => p.age >= 22),
     'and neither list borrows the other\'s players')
   const order = natRankOrder(g)

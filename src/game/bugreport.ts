@@ -228,6 +228,16 @@ export function reportFilename(state?: GameState | null): string {
  *  the whole thing, and the screen says so. */
 export const MAILTO_LIMIT = 1800
 
+/** EVERY MAIL TO THE STUDIO OPENS WITH A SUBJECT (owner, 1.8.1): the name of
+ *  the game, so a message from the About page lands in an inbox that also
+ *  takes the studio's other post already saying what it is about. The bug
+ *  report and the idea keep their longer subjects, which start the same way.
+ *  public/privacy.html and landing/index.html write the same address and
+ *  subject by hand, because they are static pages; landingprobe and bugprobe
+ *  hold all three to it. */
+export const CONTACT_SUBJECT = 'PHASE: Rugby Manager'
+export const CONTACT_MAILTO = `mailto:${DEV_CONTACT}?subject=${encodeURIComponent(CONTACT_SUBJECT)}`
+
 export function mailtoUrl(report: string, subject = 'PHASE: Rugby Manager - bug report'): string {
   const body = report.length > MAILTO_LIMIT
     ? report.slice(0, MAILTO_LIMIT) + '\n\n[trimmed for e-mail - use Copy or Save for the full report]'

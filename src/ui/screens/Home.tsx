@@ -24,6 +24,7 @@ import { userWageBudget } from '../../game/grants'
 import { natWindow, weeksToSquad } from '../../game/country'
 import { Glyph, newsGlyph } from '../glyphs'
 import { isBoardroom } from '../../game/media'
+import { COMMUNITY_URL } from '../../game/community'
 
 
 export default function Home() {
@@ -601,6 +602,16 @@ export default function Home() {
           provider, which the web build never does (game/monetise.ts). Here
           rather than higher up because the foot of the dashboard is the one
           place on this screen nobody is mid-decision. */}
+      {/* THE COMMUNITY, AT THE FOOT OF HOME (owner, 1.8.1). It sat on the
+          title screen, where it is the last thing a player about to start a
+          career wants and where nobody playing one ever goes back. Here it is
+          found by anyone who scrolls the dashboard, and it is below the week's
+          business so it never pushes a job down the page. A plain link opened
+          outside the game (game/community.ts); the manager's menu carries it
+          too. */}
+      <a className="btn ghost block home-community" href={COMMUNITY_URL} target="_blank" rel="noopener noreferrer">
+        <Glyph name="gossip" /> {t('menu.community')}
+      </a>
       <AdSlot place="home-foot" />
       <div className="spacer" />
     </>

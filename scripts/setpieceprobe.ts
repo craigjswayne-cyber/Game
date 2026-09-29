@@ -59,6 +59,32 @@ console.log(`  drive maul at 95% drilled: ${hot.mult.toFixed(3)}`)
 ok(hot.mult > 1.05, 'a well-drilled drive maul is a real weapon')
 ok(hot.mult > cold.mult, 'drilling is what makes the difference')
 
+// ---- and that holds for the safe calls too (1.8.1) -------------------------
+// A routine worth a little less than the orthodox one (peak under 1) used to
+// turn an undrilled misfire into a GAIN: the undrilled front ball beat the
+// drilled one. Undrilled is never better than drilled, and never a profit.
+for (const id of ['lo_front', 'lo_top', 'sc_channel1']) {
+  const save = pb.drilled[id]
+  pb.drilled[id] = 10
+  const raw = routineEffect(club, id).mult
+  pb.drilled[id] = 95
+  const sharp = routineEffect(club, id).mult
+  pb.drilled[id] = save
+  ok(raw <= 1 && raw <= sharp + 1e-9, `an undrilled ${id} is no better than a drilled one (${raw.toFixed(3)} v ${sharp.toFixed(3)})`)
+}
+
+// ---- calling what the pack knows never costs it (1.8.1) -------------------
+{
+  const w = newGame('northampton', 'SetPiece', 5)
+  const c = w.clubs[w.userClubId]
+  w.staff.scrumCoach = 0
+  const p2 = playbookOf(c)
+  p2.drilled[DEFAULT_LINEOUT] = 81 // a rep-90 default, above the no-coach ceiling of 72
+  c.tactic.lineoutCall = DEFAULT_LINEOUT
+  drillWeek(w, c, false)
+  ok(p2.drilled[DEFAULT_LINEOUT] >= 81, `calling a routine drilled above the ceiling holds it (81 -> ${p2.drilled[DEFAULT_LINEOUT].toFixed(0)})`)
+}
+
 // ---- drilling raises what you call and rusts what you shelve -------------
 club.tactic.lineoutCall = 'lo_dummy'
 club.tactic.scrumCall = 'sc_shove'
