@@ -54,6 +54,8 @@ export type MemoryKind =
   | 'rivalry-formed' | 'took-job' | 'left-sacked' | 'left-walked' | 'left-moved'
   // the dressing room's ledger (bonds.ts)
   | 'bonds-seeded' | 'mate-left' | 'armband-passed' | 'senior-dropped' | 'clique-formed' | 'clique-ended'
+  // the club's identity (identity.ts): a label earned or lost
+  | 'identity-formed' | 'identity-faded'
 
 export interface MemoryEntry {
   id: number
