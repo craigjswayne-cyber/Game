@@ -33,10 +33,27 @@ export function agencySeniors(state: GameState): Player[] {
     .map(x => x.p)
 }
 
-/** Current world top 20 wonderkids (21 and under) by ceiling. */
+/**
+ * A teenager the agency could have seen: one who has played senior rugby
+ * somewhere, this season, in his career here or before it, or for his country.
+ *
+ * ONLY THE PUBLIC ONES (1.8.2). The list ranked every under-21 in the world,
+ * so the best-hidden academy prodigy was on it the day the game began: a free
+ * shortcut past the scouting the owner wants to be the only way in ("it
+ * shouldn't be easy to see the best youngsters"). A firm that ranks from the
+ * stands can rank only the men who have been on the pitch; the boy nobody has
+ * watched yet is the club's own scouts' job to find (scout.ts).
+ */
+export function agencyCanSee(p: Player): boolean {
+  return (p.stats?.apps ?? 0) > 0 || (p.caps ?? 0) > 0 || (p.hist?.apps ?? 0) > 0 ||
+    (p.career ?? []).some(r => r.apps > 0)
+}
+
+/** Current world top 20 wonderkids (21 and under) by ceiling, of those the
+ *  agency has seen play senior rugby. */
 export function agencyKids(state: GameState): Player[] {
   return Object.values(state.players)
-    .filter(p => p.clubId && state.clubs[p.clubId] && p.age <= 21)
+    .filter(p => p.clubId && state.clubs[p.clubId] && p.age <= 21 && agencyCanSee(p))
     .map(p => ({ p, v: agencyView(state, p, 'pa') }))
     .sort((a, b) => b.v - a.v || b.p.ca - a.p.ca)
     .slice(0, 20)

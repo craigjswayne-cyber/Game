@@ -3,6 +3,7 @@ import { useStore } from '../../store'
 import { clubCode, fmtMoney } from '../../game/model'
 import type { GameState } from '../../game/model'
 import { agencyKids, agencySeniors } from '../../game/agency'
+import { seenValue } from '../../game/scout'
 import { natRankOrder } from '../../game/natrank'
 import { nationByCode, nationName } from '../../game/nations'
 import { ClubLink, CrestT, Nat, PosBadge, SectionTitle } from '../components'
@@ -126,7 +127,7 @@ export default function Agency() {
                     clubCode is the same code the crest beside it draws and the
                     touchline paints, so the badge and the text agree. */}
                 <td className="muted"><CrestT g={game} teamId={p.clubId!} size={15} /><ClubLink g={game} clubId={p.clubId}>{clubCode(game.clubs[p.clubId!]?.short ?? '')}</ClubLink></td>
-                <td className="num">{fmtMoney(p.value)}</td>
+                <td className="num">{fmtMoney(seenValue(game, p))}</td>
               </tr>
             )
           })}
