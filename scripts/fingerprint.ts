@@ -517,8 +517,8 @@ const EXPECTED: string[] = [
   // is read against the side's own profile (styleFitRel), so the styles move
   // who scores, not how much, and do not pay a strong side twice. bandcheck,
   // pooled over four seeds, before and after:
-  //   pts 49.4 -> 49.6   tries 6.28 -> 6.30   home 51.5% -> 51.8%
-  //   draws 2.0% -> 1.8%   blowouts 9.0% -> 8.5% (every band holds)
+  //   pts 49.4 -> 49.9   tries 6.28 -> 6.34   home 51.5% -> 51.8%
+  //   draws 2.0% -> 1.8%   blowouts 9.0% -> 9.0% (every band holds)
   'saracens 17-37 bath',
   'exeter 17-3 gloucester',
   'sale 39-25 bristol',
