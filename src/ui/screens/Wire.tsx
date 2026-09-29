@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useStore } from '../../store'
 import { PeopleChips, RequestAnswer } from './Inbox'
 import { ContextCard, ResponseNeeded } from '../ContextCard'
-import { paragraphs } from '../components'
+import { NewsBody } from '../NewsBody'
 import { newsBody, newsSubject, weekDate } from '../../game/model'
 import { markRead } from '../../game/days'
 import { t } from '../../game/i18n'
@@ -63,7 +63,7 @@ export default function Wire() {
             odd gaps in it. Real paragraphs get real air between them, and a blank
             line in the source no longer produces an empty one on screen. */}
         <div className="wire-body">
-          {paragraphs(newsBody(n)).map((para, i) => <p key={i}>{para}</p>)}
+          <NewsBody body={newsBody(n)} />
         </div>
         {/* the same chip row the inbox reader uses, so a name looks tappable in
             the same way wherever the story is being read (10F) */}

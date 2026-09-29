@@ -501,11 +501,12 @@ export function inheritStaff(state: GameState, quiet = false) {
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
     subject: 'The backroom staff you have inherited',
-    body: `${filled.length} of the eight coaching posts are filled: ${filled.map(k => `${state.staffPeople?.[k]?.name} (${tIn('en', STAFF_INFO[k].name).toLowerCase()})`).join(', ')}.${vacant.length ? ` The ${vacant.map(k => tIn('en', STAFF_INFO[k].name).toLowerCase()).join(' and ')} job${vacant.length > 1 ? 's are' : ' is'} vacant.` : ''} Badges and hiring are on the Coaching page.`,
+    body: `${filled.length} of the eight coaching posts are filled: ${filled.map(k => `${state.staffPeople?.[k]?.name} (${tIn('en', STAFF_INFO[k].name).toLowerCase()})`).join(', ')}.${vacant.length ? ` The ${vacant.map(k => tIn('en', STAFF_INFO[k].name).toLowerCase()).join(' and ')} job${vacant.length > 1 ? 's are' : ' is'} vacant.` : ''}`,
     k: vacant.length ? 'news.inheritedStaffVacant' : 'news.inheritedStaff',
     v: {
       n: vacant.length, filled: filled.length,
-      men_l: JSON.stringify(filled.map(k => ({
+      // one man to a line: the story sets them as rows (NewsBody)
+      men_ll: JSON.stringify(filled.map(k => ({
         k: 'news.inheritedMan', name: state.staffPeople?.[k]?.name ?? '', role_k: STAFF_INFO[k].name,
       }))),
       jobs_l: JSON.stringify(vacant.map(k => ({ k: 'news.inheritedRole', role_k: STAFF_INFO[k].name }))),

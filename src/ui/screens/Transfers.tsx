@@ -11,6 +11,7 @@ import { attrName, posName, t, compLabel } from '../../game/i18n'
 import { userWageBudget } from '../../game/grants'
 import { transferInterest } from '../../game/interest'
 import { Glyph } from '../glyphs'
+import { plainNews } from '../NewsBody'
 
 /** The classic search screen's views (1.8.0): which columns the table shows. */
 type SearchView = 'general' | 'contract' | 'physical' | 'setpiece' | 'handling' | 'mind'
@@ -691,7 +692,7 @@ function ScoutReports() {
             <div className="meta" style={{ fontSize: 11 }}>{weekDate(n.season, n.week)}</div>
             <div style={{ fontWeight: 700, fontSize: 13, lineHeight: 1.3 }}>{newsSubject(n)}</div>
             {openId === n.id && (
-              <div className="meta" style={{ whiteSpace: 'pre-line', fontSize: 12, marginTop: 3 }}>{newsBody(n)}</div>
+              <div className="meta" style={{ whiteSpace: 'pre-line', fontSize: 12, marginTop: 3 }}>{plainNews(newsBody(n))}</div>
             )}
           </div>
         ))}
