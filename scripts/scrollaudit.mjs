@@ -68,6 +68,11 @@ try {
     await page.click(`.tab-bar >> text=${tab}`)
     await measure(`tactics: ${label}`)
   }
+  // THE GAME PLAN TAB, IN TWO (1.8.2): the styles view opens and is measured
+  // above; the dials behind Fine Tune are a page of their own
+  await page.click('[data-plan-sub="tune"]')
+  await measure('tactics: game plan fine tune')
+  await page.click('[data-plan-sub="styles"]')
   // THE SET PIECE TAB was never measured here, and grew to 6.8 screenfuls in
   // landscape (4.5 portrait) once the attacking moves joined it in 1.8.1
   // before anyone counted. 1.8.2 split it into three views behind a segmented
