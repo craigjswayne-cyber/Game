@@ -8225,6 +8225,24 @@
   "acadLoan": "Ofrecer un contrato de formación y una temporada cedido: minutos en otro sitio, fuera de tu control ({wage}/sem.)",
   "acadLoanR": "Hecho. {player} firma y saldrá cedido al empezar la nueva temporada.",
   "acadLoanPro": "Ofrecer un primer contrato profesional y una temporada cedido: minutos en otro sitio, fuera de tu control ({wage}/sem.)",
-  "acadLoanProR": "Hecho. {player} firma un contrato profesional y saldrá cedido al empezar la nueva temporada."
+  "acadLoanProR": "Hecho. {player} firma un contrato profesional y saldrá cedido al empezar la nueva temporada.",
+  "splitQ_f": "{player} se ha quedado fuera de tu equipo y el vestuario se ha dividido. Las veteranas están descontentas; las más jóvenes se mantienen al margen. {dep_k}",
+  "splitCapQ_f": "Has dejado fuera a tu capitana, {player}, y el vestuario se ha dividido. Las veteranas están descontentas; las más jóvenes se mantienen al margen. {dep_k}",
+  "depBacksVice_f": "{deputy}, la vicecapitana, les ha dicho que la decisión te correspondía a ti.",
+  "depAgainstVice_f": "{deputy}, la vicecapitana, se ha puesto del lado de las veteranas.",
+  "depBacksCap_f": "{deputy}, la capitana, les ha dicho que la decisión te correspondía a ti.",
+  "depAgainstCap_f": "{deputy}, la capitana, se ha puesto del lado de las veteranas.",
+  "depNone_f": "Ninguna veterana ha intervenido para calmar las cosas.",
+  "standR_f": "Te has mantenido firme. {player} no está contenta, y las veteranas tampoco, pero el vestuario sabe quién elige el equipo. {dep_k}",
+  "standRLed_f": "Te has mantenido firme, como este vestuario ya espera. Las veteranas refunfuñan, más bajo que antes. {dep_k}",
+  "standRPlayers_f": "Te has mantenido firme, y este vestuario no está acostumbrado a oír un no. Las veteranas están furiosas, y {player} más que nadie. {dep_k}",
+  "leftDeputy_f": "{deputy} te había respaldado delante de las jugadoras y ahora queda en evidencia.",
+  "deputyWon_f": "{deputy} ha conseguido lo que pedían las veteranas.",
+  "reverseR_f": "{player} será titular en el próximo partido. Las veteranas lo ven como una victoria; quien perdió la camiseta lo lleva mal. {dep_k}",
+  "reverseRPlayers_f": "{player} será titular en el próximo partido. Las veteranas no esperaban menos, y algunas ya se preguntan qué más pueden cambiar. {dep_k}",
+  "cultureLed_f": "En la ciudad deportiva de {club} dicen que el equipo se decide en un solo despacho y no se discute en ningún otro sitio. Todo empezó con la decisión sobre {player}. Las veteranas han dejado de pelear por sus puestos; una o dos han dejado de hablar con el entrenador.",
+  "culturePlayersSubj_f": "Las veteranas tienen el oído del entrenador",
+  "culturePlayers_f": "En {club} las veteranas han aprendido que una palabra al oído adecuado puede cambiar una alineación, y lo aprendieron con {player}. El vestuario está más contento. También pide más.",
+  "injEarlyR_f": "{player} está vendada y disponible esta semana. El fisio ha tomado nota de que fue decisión tuya."
  }
 }
