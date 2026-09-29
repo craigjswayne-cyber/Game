@@ -1,5 +1,5 @@
 import { TwoStep } from '../components'
-import { NewsBody, plainNews } from '../NewsBody'
+import { NewsBody, NewsGo, plainNews } from '../NewsBody'
 import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../../store'
 import { newsBody, newsSubject, weekDate, type NewsItem } from '../../game/model'
@@ -224,6 +224,7 @@ export default function Inbox() {
         <NewsBody body={newsBody(n)} />
         <RequestAnswer n={n} />
         <PeopleChips n={n} />
+        <NewsGo n={n} />
       </article>
       {/* the reader carries its own gutter; the card needs the page's */}
       <div className="ctx-gutter"><ContextCard n={n} /></div>

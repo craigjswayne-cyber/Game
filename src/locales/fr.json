@@ -11,7 +11,7 @@
     "disclaimer": "Non officiel et indépendant. Sans lien avec aucun club, ligue ou joueur.",
     "language": "LANGUE",
     "loadCareer": "Charger une carrière",
-    "community": "Rejoindre la communauté sur Discord",
+    "community": "Rejoignez-nous sur Discord",
     "newCareer": "Nouvelle carrière",
     "savedAt": "{season}, semaine {week}",
     "matchLive": "Match en cours contre {opp}",
@@ -4306,7 +4306,7 @@
     "natFilled": "Le coup d'envoi approchait et le groupe était incomplet : votre adjoint a ajouté {n} joueurs pour faire le nombre. Ils sont retenus au mérite, pas selon votre jugement - au prochain rassemblement, nommez-le vous-même.",
     "natName": "Le rassemblement est ouvert et la feuille est vierge. {nationCap_k} doit nommer un groupe avant le premier test - au moins {n} - et le bureau des sélections présente tous les disponibles, les choix du staff en tête. Celui-là est le vôtre : personne ne le fera à votre place.",
     "natSquadSubj": "Votre sélection {nation_k} est annoncée",
-    "natSquad": "La fédération a publié votre groupe de {n} joueurs pour la fenêtre. {caps_k}\n\nAVANTS : {fwd}\n\nARRIÈRES : {bks}\n\nComposez le groupe et choisissez votre XV de départ depuis l'écran Club et sélection avant chaque match.",
+    "natSquad": "La fédération a publié votre groupe de {n} joueurs pour la fenêtre. {caps_k}\nAvants | {fwd}\nArrières | {bks}",
     "natSquadNew": {
       "one": "{newCaps} joueur sans sélection dans le groupe.",
       "other": "{newCaps} joueurs sans sélection dans le groupe."
@@ -4342,11 +4342,11 @@
     "mentorLost_f": "{mentor} parti, {kid} s'entraîne de nouveau seule. L'entraîneur du centre de formation gardera un œil sur elle, mais ce n'est pas pareil.",
     "wantsTermsSubj": "{player} veut de meilleures conditions",
     "wantsTerms": {
-      "one": "L'agent de {player} a appelé : son client crève l'écran (moyenne {avg}) pour {wage}/semaine, et le prix du marché est bien au-dessus. Il lui reste {n} an de contrat, mais laissez traîner et il baissera la tête - et les autres clubs le sentiront. Proposez un nouveau contrat depuis sa fiche.",
-      "other": "L'agent de {player} a appelé : son client crève l'écran (moyenne {avg}) pour {wage}/semaine, et le prix du marché est bien au-dessus. Il lui reste {n} ans de contrat, mais laissez traîner et il baissera la tête - et les autres clubs le sentiront. Proposez un nouveau contrat depuis sa fiche."
+      "one": "L'agent de {player} a appelé : son client crève l'écran (moyenne {avg}) pour {wage}/semaine, et le prix du marché est bien au-dessus. Il lui reste {n} an de contrat, mais laissez traîner et il baissera la tête - et les autres clubs le sentiront.",
+      "other": "L'agent de {player} a appelé : son client crève l'écran (moyenne {avg}) pour {wage}/semaine, et le prix du marché est bien au-dessus. Il lui reste {n} ans de contrat, mais laissez traîner et il baissera la tête - et les autres clubs le sentiront."
     },
     "agentPublicSubj": "L'agent de {player} sort dans la presse",
-    "agentPublic": "Deux mois de silence du club, alors l'agent a porté l'affaire dans les journaux : « {player} est l'un des joueurs les plus performants du championnat et le club connaît notre position. » Les clubs rivaux l'auront remarqué. Réglez un nouveau contrat sur sa fiche - ou préparez-vous aux offres.",
+    "agentPublic": "Deux mois de silence du club, alors l'agent a porté l'affaire dans les journaux : « {player} est l'un des joueurs les plus performants du championnat et le club connaît notre position. » Les clubs rivaux l'auront remarqué. Réglez un nouveau contrat, ou préparez-vous aux offres.",
     "becomesMentorSubj": "{last} devient son mentor",
     "mentorStartSubj": "{mentor} prend {last} sous son aile",
     "becomesMentor": "Les entraîneurs l'ont remarqué dans les détails - les extras après l'entraînement, sa façon de parler dans la mêlée d'avant-match. {player} commence à se comporter comme {mentor}.",
@@ -4740,7 +4740,7 @@
     "crisisSubj": "Crise de blessures : {unit_k}",
     "crisis": "Le tableau du kiné fait peine à voir en {unit_k} : {fit} valides sur {all} sous contrat.{out_k}\nLe marché des prêts n'a rien de convenable cette semaine. Les jeunes, la patience, ou un réaménagement des postes - à vous de voir.",
     "crisisCoverSubj": "Crise de blessures : {unit_k}",
-    "crisisCover": "Le tableau du kiné fait peine à voir en {unit_k} : {fit} valides sur {all} sous contrat.{out_k}\nL'adjoint a trois coups de fil à passer ce soir - doublures disponibles en prêt : {cover}. Écran Transferts, onglet Prêts.",
+    "crisisCover": "Le tableau du kiné fait peine à voir en {unit_k} : {fit} valides sur {all} sous contrat.{out_k}\nL'adjoint a trois coups de fil à passer ce soir - doublures disponibles en prêt : {cover}.",
     "crisisOut": " Absents : {outList_l}.",
     "crisisInjured": "{name} (retour sem. {wk})",
     "crisisBanned": "{name} (suspendu)",
@@ -4755,12 +4755,12 @@
       "one": "{n} contrat expire",
       "other": "{n} contrats expirent"
     },
-    "expiring": "En fin de contrat cet été : {men_l}. Proposez de nouveaux contrats depuis leur fiche ou ils partiront libres.",
+    "expiring": "En fin de contrat cet été : {men_l}. Sans nouveau contrat, ils partiront libres.",
     "expiringMoreSubj": {
       "one": "{n} contrat expire",
       "other": "{n} contrats expirent"
     },
-    "expiringMore": "{when_k} avant la fin de ces contrats : {men_l} et {more} de plus - liste complète dans Équipe ▸ Contrats. Proposez de nouvelles conditions depuis leur fiche, sinon ils sont libres de discuter avec qui ils veulent.",
+    "expiringMore": "{when_k} avant la fin de ces contrats : {men_l} et {more} de plus. Sans nouvelles conditions, ils sont libres de discuter avec qui ils veulent.",
     "cxSix": "six mois",
     "cxThree": "trois mois",
     "cxOne": "un mois",
@@ -4768,10 +4768,10 @@
     "expiringMan": "{name} ({pos}, {age} ans)",
     "natOfferSubj": "{nat} vous veut comme sélectionneur",
     "natAppointedSubj": "Nomination : sélectionneur du {nat_k}",
-    "natAppointed": "C'est officiel : vous êtes le sélectionneur du {nat_k}. Fenêtres internationales, campagnes de championnat, et chaque trophée va dans votre vitrine ; votre adjoint prend le club quand votre pays joue. Reste à trancher : continuez-vous au club ? Répondez sur votre Profil de manager.",
+    "natAppointed": "C'est officiel : vous êtes le sélectionneur du {nat_k}. Fenêtres internationales, campagnes de championnat, et chaque trophée va dans votre vitrine ; votre adjoint prend le club quand votre pays joue. Reste à trancher : continuez-vous au club ?",
     "natAppointedOnlySubj": "Nomination : sélectionneur du {nat_k}",
     "natAppointedOnly": "C'est officiel. Vous êtes le sélectionneur du {nat_k}. Fenêtres internationales, campagnes de championnat, et chaque trophée remporté rejoint VOTRE armoire - et sans club sur le bureau, le pays a votre semaine entière.",
-    "natOffer": "La fédération suit votre travail et souhaite vous confier la sélection nationale en parallèle de votre poste en club - fenêtres internationales, campagnes de championnat, peut-être un Championnat du monde. Acceptez ou refusez depuis votre profil d'entraîneur. L'offre ne restera pas ouverte longtemps.",
+    "natOffer": "La fédération suit votre travail et souhaite vous confier la sélection nationale en parallèle de votre poste en club - fenêtres internationales, campagnes de championnat, peut-être un Championnat du monde. L'offre ne restera pas ouverte longtemps.",
     "wcHomeASubj": {
       "one": "Un champion du monde dans la maison",
       "other": "Des champions du monde dans la maison"
@@ -5084,9 +5084,9 @@
     "recTriesSubj": "RECORD BATTU : le plus d'essais sur une saison de {comp}",
     "recTries": "{name} franchit la ligne {n} fois - dépassant les {oldN} de {old} ({season}). Les ailiers du monde entier prennent note.",
     "lastYearOneSubj": "Dernière année de formation pour {who}",
-    "lastYearOne": "Les contrats de formation expirent à 21 ans, et cette saison est la dernière pour {men_l}. Promouvez-le en contrat professionnel depuis sa fiche avant l'été prochain, sinon le contrat expire et il part pour rien.",
+    "lastYearOne": "Les contrats de formation expirent à 21 ans, et cette saison est la dernière pour {men_l}. Promouvez-le en contrat professionnel avant l'été prochain, sinon le contrat expire et il part pour rien.",
     "lastYearManySubj": "Dernière année de formation pour {n} de vos espoirs",
-    "lastYearMany": "Les contrats de formation expirent à 21 ans, et cette saison est la dernière pour {men_l}. Promouvez chacun d'eux en contrat professionnel depuis leur fiche avant l'été prochain, sinon les contrats expirent et ils partent pour rien.",
+    "lastYearMany": "Les contrats de formation expirent à 21 ans, et cette saison est la dernière pour {men_l}. Promouvez chacun d'eux en contrat professionnel avant l'été prochain, sinon les contrats expirent et ils partent pour rien.",
     "lastYearMan": "{name} ({age} ans, {pos})",
     "releasedOneSubj": "Le contrat de formation de {who} expire - il s'en va",
     "releasedOne": "Aucun contrat professionnel n'a été proposé, alors à 21 ans la route du centre de formation s'arrête : {men_l} part libre. L'entraîneur du centre vide son casier et repart avec la promotion suivante.",
@@ -5227,17 +5227,17 @@
     "invincibles": "{n} matchs officiels. Zéro défaite. Quoi que ce club fasse d'autre un jour, cette saison vit désormais hors des livres de records, à l'endroit où ce sport range ses légendes. On donnera le nom de cette équipe à d'autres. {manager} a bâti l'équipe que personne ne pouvait battre.",
     "theLionsTour": "la tournée des Îles",
     "backItUpSubj": "{season} est dans les livres : faites une sauvegarde",
-    "backItUp": "Une saison entière, et elle ne vit que dans ce navigateur. L'État du jeu propose un bouton Exporter la carrière qui écrit le tout dans un fichier. Une pression, et la carrière survit à tout ce que fera le navigateur. À faire à chaque intersaison.",
+    "backItUp": "Une saison entière, et elle ne vit que dans ce navigateur. Une carrière exportée dans un fichier survit à tout ce que fera le navigateur. À faire à chaque intersaison.",
     "preVoidSubj": "Pré-contrat annulé : {player}",
     "preVoid": "{player} a été vendu avant l'expiration de son contrat, et ce transfert annule le pré-contrat qu'il avait signé avec vous. Votre recrue estivale s'envole. Les juristes disent qu'il n'y a rien à faire.",
     "transferDoneSubj": "{player} rejoint {to}",
     "transferDone": "{to} a finalisé la signature de {player} en provenance de {from} pour un montant de {fee}. Le joueur de {age} ans s'est mis d'accord sur {wage}/semaine jusqu'en {until}.",
     "bidInSubj": "Offre reçue : {player}",
-    "bidIn": "{bidder} a déposé une offre de {fee} pour {player}. Répondez depuis le Centre des transferts. L'offre ne restera pas ouverte longtemps.",
+    "bidIn": "{bidder} a déposé une offre de {fee} pour {player}. L'offre ne restera pas ouverte longtemps.",
     "bidDeadlineSubj": "Offre du dernier jour : {player}",
-    "bidDeadline": "{bidder} arrive tardivement sur {player} - {fee}, prime de panique comprise. Le mercato ferme dans quelques jours : répondez depuis le Centre des transferts ou l'offre disparaîtra avec lui.",
+    "bidDeadline": "{bidder} arrive tardivement sur {player} - {fee}, prime de panique comprise. Le mercato ferme dans quelques jours, et l'offre disparaîtra avec lui.",
     "biddingWarSubj": "Enchères : {short} surenchérit pour {player}",
-    "biddingWar": "{rival} a coiffé {ousted} au poteau : l'offre sur votre bureau pour {player} affiche désormais {fee}{tail_k}. Répondez depuis le Centre des transferts.",
+    "biddingWar": "{rival} a coiffé {ousted} au poteau : l'offre sur votre bureau pour {player} affiche désormais {fee}{tail_k}.",
     "bidDone": ", et le marché a fini d'enchérir - répondez",
     "bidMore": ". Gardez votre sang-froid et le prix peut encore monter ; attendez trop et le mercato fera ce que font les mercatos",
     "offersLapseSubj": {
@@ -5343,7 +5343,7 @@
     "ledgerMan": "{name} ({status_k}) : {actual} des {expected} matchs promis.",
     "ledgerWatch": "{worst} est celui à surveiller - encore un mois comme ça et son agent décroche son téléphone.",
     "ledgerWatch_f": "{worst} est celle à surveiller - encore un mois comme ça et son agent décroche son téléphone.",
-    "ledgerCalm": "Personne n'a encore croisé les bras. Corrigez par la composition, ou par une conversation honnête dans Équipe ▸ Temps de jeu.",
+    "ledgerCalm": "Personne n'a encore croisé les bras. La composition, ou une conversation honnête, peut encore tout arranger.",
     "mentGraduatesSubj": "{kid} sort de l'aile de {seniorLast}",
     "mentGraduates": "Le binôme a fait son temps. {why_k} {senior} lui a serré la main après l'entraînement et la place de tuteur est libre pour le suivant.",
     "mentAdopted": "Il se comporte comme {senior} désormais, ce qui était tout l'objectif.",
@@ -5352,7 +5352,7 @@
     "mentThrivingSubj": "{last} s'épanouit sous la houlette de {seniorLast}",
     "mentThriving": "{fit_k}. {reason_k} L'entraîneur du centre de formation dit que {kid} s'est mis à faire les tâches ingrates sans qu'on le lui demande, et c'est précisément ce qui ne s'enseigne pas. Il progresse plus vite pour ça.",
     "mentFailingSubj": "Le binôme {seniorLast} - {last} ne prend pas",
-    "mentFailing": "{fit_k}. {reason_k} {kid} n'en retire quasiment rien. Rien ne s'est mal passé entre eux ; cela ne fonctionne simplement pas. Mettez fin au binôme dans l'onglet Tutorat du Rapport d'équipe et associez-le à quelqu'un d'autre - il y a un bouton Terminer sur la ligne, et la saison est assez longue pour qu'un nouveau départ paie.",
+    "mentFailing": "{fit_k}. {reason_k} {kid} n'en retire quasiment rien. Rien ne s'est mal passé entre eux ; cela ne fonctionne simplement pas, et la saison est assez longue pour qu'un nouveau départ paie.",
     "specialistSubj": "Verdict du spécialiste : {player} en avance sur le calendrier",
     "specialist": {
       "one": "Le consultant a trouvé une meilleure voie de rééducation pour {player} : {injury_k}. Il devrait revenir {n} semaine plus tôt que craint.",
@@ -5368,7 +5368,7 @@
     "slExpiring": "est en fin de contrat cet été. {short} ne l'a pas prolongé - un transfert libre en préparation.",
     "slForm": "est dans la forme de sa vie ({form}). Son prix grimpe chaque semaine.",
     "armbandSubj": "Le brassard passe à {player}",
-    "armband": "Le capitanat était vacant et le vestiaire s'est tourné vers son cadre : {player} ({age} ans, {pos}){how_k}. C'est le choix naturel sur le leadership et les années de service. Si vous voyez les choses autrement, confiez-le à quelqu'un d'autre depuis l'écran Tactique.",
+    "armband": "Le capitanat était vacant et le vestiaire s'est tourné vers son cadre : {player} ({age} ans, {pos}){how_k}. C'est le choix naturel sur le leadership et les années de service.",
     "armbandVice": ", le vice-capitaine, prend du galon",
     "armbandTakes": " reçoit le brassard",
     "badBloodSubj": "Tensions avec {short}",
@@ -5399,12 +5399,12 @@
     "briefSent": "{fee} de frais, une voiture de location et une mission : {brief_k} {where_k}. {scout} (badge {badge_k}) rendra son rapport dans {n} semaines. Un voyage plus long, c'est plus de rugby et moins de pluie.",
     "postcardSubj": "Des nouvelles de {scout} : {player}",
     "postcard": {
-      "one": "{weeksIn} semaines de mission. « {verdict_k} Je continue à chercher - encore environ {n} semaine avant de tout rédiger. »\n\nIl est correctement scouté désormais, sa fiche montre ce qu'il est vraiment plutôt qu'une fourchette.",
-      "other": "{weeksIn} semaines de mission. « {verdict_k} Je continue à chercher - encore environ {n} semaines avant de tout rédiger. »\n\nIl est correctement scouté désormais, sa fiche montre ce qu'il est vraiment plutôt qu'une fourchette."
+      "one": "{weeksIn} semaines de mission. « {verdict_k} Je continue à chercher - encore environ {n} semaine avant de tout rédiger. »\n\nIl est correctement scouté désormais : une vraie mesure, plus une fourchette.",
+      "other": "{weeksIn} semaines de mission. « {verdict_k} Je continue à chercher - encore environ {n} semaines avant de tout rédiger. »\n\nIl est correctement scouté désormais : une vraie mesure, plus une fourchette."
     },
     "postcard_f": {
-      "one": "{weeksIn} semaines de mission. « {verdict_k} Je continue à chercher - encore environ {n} semaine avant de tout rédiger. »\n\nElle est correctement scoutée désormais, sa fiche montre ce qu'elle est vraiment plutôt qu'une fourchette.",
-      "other": "{weeksIn} semaines de mission. « {verdict_k} Je continue à chercher - encore environ {n} semaines avant de tout rédiger. »\n\nElle est correctement scoutée désormais, sa fiche montre ce qu'elle est vraiment plutôt qu'une fourchette."
+      "one": "{weeksIn} semaines de mission. « {verdict_k} Je continue à chercher - encore environ {n} semaine avant de tout rédiger. »\n\nElle est correctement scoutée désormais : une vraie mesure, plus une fourchette.",
+      "other": "{weeksIn} semaines de mission. « {verdict_k} Je continue à chercher - encore environ {n} semaines avant de tout rédiger. »\n\nElle est correctement scoutée désormais : une vraie mesure, plus une fourchette."
     },
     "postcardKeen": "J'ai vu {player} deux fois maintenant et je mettrais mon nom sur lui. {age} ans, {pos_k} {at_k}, et il fait les choses qui ne s'enseignent pas.",
     "postcardMaybe": "{player} mérite d'être mentionné. {age} ans, {pos_k} {at_k}. Pas la réponse à lui seul, mais je ne l'écarterais pas.",
@@ -5591,9 +5591,9 @@
     "debutMotm": " Les sponsors lui ont remis le trophée du match avant qu'il ait retenu le prénom de tout le monde.",
     "debutMotm_f": " Les sponsors lui ont remis le trophée du match avant qu'elle ait retenu le prénom de tout le monde.",
     "mentorSpreadSubj": "{last} commence à s'éparpiller",
-    "mentorSpread": "{name} a deux jeunes sous son aile et il l'a fait remarquer après l'entraînement - poliment, mais il l'a fait remarquer. Les à-côtés sont désormais partagés, si bien que chaque gamin progresse à environ trois quarts de vitesse. Confiez-en un à un autre cadre dans l'onglet Tutorat du Rapport d'équipe, ou acceptez le rythme plus lent.",
+    "mentorSpread": "{name} a deux jeunes sous son aile et il l'a fait remarquer après l'entraînement - poliment, mais il l'a fait remarquer. Les à-côtés sont désormais partagés, si bien que chaque gamin progresse à environ trois quarts de vitesse. Confiez-en un à un autre cadre, ou acceptez le rythme plus lent.",
     "scoutMeetingSubj": "Réunion de recrutement : {names_k} au tableau",
-    "scoutMeeting": "{rows_ll}\n\nTouchez un nom pour ouvrir sa fiche et faire l'offre. Le mercato n'attend pas.",
+    "scoutMeeting": "{rows_ll}\n\nLe mercato n'attend pas.",
     "scoutOneName": "un nom",
     "scoutTwoNames": "deux noms",
     "scoutThreeNames": "trois noms",
@@ -5744,7 +5744,7 @@
     "sackedPushedSubj": "LICENCIÉ : {club} se sépare de {manager}",
     "sackedPushed": "Averti par écrit, et de retour à la porte du conseil dans le mois quand même. Le conseil a décidé que le club avait besoin d'un entraîneur capable d'entendre un non. {era} Votre réputation vous suit. Et l'histoire de cette fin aussi.",
     "dreamRefocusSubj": "Le rêve est réalisé",
-    "dreamRefocus": "Vous vous étiez promis de {dream_k}, et c'est fait. Un entraîneur a besoin d'une raison : quand vous serez prêt, nommez un nouveau rêve depuis l'écran Héritage. Celui que vous avez réalisé reste au palmarès pour toujours.",
+    "dreamRefocus": "Vous vous étiez promis de {dream_k}, et c'est fait. Un entraîneur a besoin d'une raison : quand vous serez prêt, nommez un nouveau rêve. Celui que vous avez réalisé reste au palmarès pour toujours.",
     "sponsorEndedSubj": "{sponsor} libéré avant terme",
     "sponsorEnded": "{short} et {sponsor} se séparent avant la fin du contrat {slot_k}, à la demande du club. L'argent s'arrête immédiatement - et trois nouveaux prétendants se sont déjà manifestés pour la place vacante. Leurs conditions leur appartiennent : certains marchés récompensent un club de retour sur le marché, d'autres lui font payer l'interruption.",
     "fanSoldStarSubj": "« Où est l'ambition ? » - {player} vendu",
@@ -5893,7 +5893,7 @@
     "srPredExact": "Les experts vous voyaient {pred_o}, et {act_o} vous êtes. Lu comme dans un livre.",
     "srPredMiss": "Les experts vous voyaient {pred_o} et vous finissez {act_o}. Les radios vont être féroces.",
     "jobOfferedSubj": "{short} vous veulent",
-    "jobOffered": "{club} ont formulé une offre officielle. Le bureau, l'effectif et un budget transferts de {budget} sont à vous si vous les voulez, et {stadium} aimerait une réponse.\n\nC'est au Centre d'emploi que vous la donnez. Rien ne bouge avant.",
+    "jobOffered": "{club} ont formulé une offre officielle. Le bureau, l'effectif et un budget transferts de {budget} sont à vous si vous les voulez, et {stadium} aimerait une réponse.",
     "jobDeclinedSubj": "{short} regardent ailleurs",
     "jobDeclined": "{manager} a refusé {club}. Le conseil le remercie de son temps et passe au nom suivant sur sa liste, comme cela se fait toujours.",
     "jobWithdrawnSubj": "{short} nomment quelqu'un d'autre",
@@ -5901,7 +5901,7 @@
     "squadRead_f": "« Les chiffres, avant toute chose. »\nEffectif pro | {n}\nÂge moyen | {age}, {age_k}\nNiveau moyen | {ca}/100\nPoint fort | {lean_k}\nMeilleures sur le papier | {best}\nDoublures | {depth_k}\nObjectif du conseil | {aim_k}\nBudget | {budget}\nMasse salariale | {wages} par semaine",
     "watchListSubj_f": "Les joueuses à suivre selon les recruteurs",
     "natFilled_f": "Le coup d'envoi approchait et le groupe était incomplet : votre adjoint a ajouté {n} joueuses pour faire le nombre. Elles sont retenues au mérite, pas selon votre jugement - au prochain rassemblement, nommez-le vous-même.",
-    "natSquad_f": "La fédération a publié votre groupe de {n} joueuses pour la fenêtre. {caps_k}\n\nAVANTS : {fwd}\n\nARRIÈRES : {bks}\n\nComposez le groupe et choisissez votre XV de départ depuis l'écran Club et sélection avant chaque match.",
+    "natSquad_f": "La fédération a publié votre groupe de {n} joueuses pour la fenêtre. {caps_k}\nAvants | {fwd}\nArrières | {bks}",
     "natSquadNew_f": {
       "one": "{newCaps} joueuse sans sélection dans le groupe.",
       "other": "{newCaps} joueuses sans sélection dans le groupe."
@@ -5910,10 +5910,10 @@
     "callUps_f": "Les joueuses suivantes ont été convoquées et seront indisponibles pendant la fenêtre internationale : {names}.",
     "lionsHome_f": "De retour aux couleurs du club après {tour} : {names}. Victoire ou défaite, une tournée change une joueuse - {come_k} avec une présence plus forte dans ce vestiaire. Le staff médical conseille tout de même la prudence : un été de tournée vide le réservoir comme rien d'autre.",
     "wantsTerms_f": {
-      "one": "L'agent de {player} a appelé : sa cliente crève l'écran (moyenne {avg}) pour {wage}/semaine, et le prix du marché est bien au-dessus. Elle lui reste {n} an de contrat, mais laissez traîner et elle baissera la tête - et les autres clubs le sentiront. Proposez un nouveau contrat depuis sa fiche.",
-      "other": "L'agent de {player} a appelé : sa cliente crève l'écran (moyenne {avg}) pour {wage}/semaine, et le prix du marché est bien au-dessus. Elle lui reste {n} ans de contrat, mais laissez traîner et elle baissera la tête - et les autres clubs le sentiront. Proposez un nouveau contrat depuis sa fiche."
+      "one": "L'agent de {player} a appelé : sa cliente crève l'écran (moyenne {avg}) pour {wage}/semaine, et le prix du marché est bien au-dessus. Elle lui reste {n} an de contrat, mais laissez traîner et elle baissera la tête - et les autres clubs le sentiront.",
+      "other": "L'agent de {player} a appelé : sa cliente crève l'écran (moyenne {avg}) pour {wage}/semaine, et le prix du marché est bien au-dessus. Elle lui reste {n} ans de contrat, mais laissez traîner et elle baissera la tête - et les autres clubs le sentiront."
     },
-    "agentPublic_f": "Deux mois de silence du club, alors l'agent a porté l'affaire dans les journaux : « {player} est l'une des joueuses les plus performantes du championnat et le club connaît notre position. » Les clubs rivaux l'auront remarqué. Réglez un nouveau contrat sur sa fiche - ou préparez-vous aux offres.",
+    "agentPublic_f": "Deux mois de silence du club, alors l'agent a porté l'affaire dans les journaux : « {player} est l'une des joueuses les plus performantes du championnat et le club connaît notre position. » Les clubs rivaux l'auront remarqué. Réglez un nouveau contrat, ou préparez-vous aux offres.",
     "backInTraining_f": "De nouveau disponibles pour la sélection : {men_l}. Alignez une femme encore rouillée maintenant et elle peut rechuter ; réintégrez-la en douceur et elle sera bonne.",
     "wPeaceBrokered_f": "L'entraîneur les a réunies dans une pièce et a fermé la porte. Les deux femmes en sont sorties et se sont entraînées. Personne ne prétend qu'elles sont amies, mais le groupe peut poursuivre sa semaine.",
     "wPeace2_f": "Quoi qu'il ait été dit entre {a} et {b}, cela a marché : les deux femmes ont fait les mêmes exercices toute la semaine et partagé un banc au déjeuner. Le groupe a discrètement soufflé.",
@@ -5956,8 +5956,8 @@
     "brokePlans_f": "Vous aviez dit à {player} qu'elle entrait dans vos plans il y a {n} semaines. Elle n'a quasiment pas vu le terrain depuis. La conversation a fuité dans le groupe, et son agent explique déjà que « la parole de l'entraîneur ne vaut rien dans ce club ».",
     "brokeMinutes_f": "{player} s'était vue promettre du temps de jeu et n'en a eu aucun. Elle s'est entraînée avec le casque sur les oreilles toute la semaine, et l'entraîneur du centre de formation a cessé de vous défendre à la cantine.",
     "brokeDeal_f": "{player} attend toujours le contrat que vous lui aviez quasiment promis. Elle a écarté d'autres offres sur votre parole - elle se sent maintenant menée en bateau, et les cadres du groupe observent la fin de cette histoire.",
-    "expiring_f": "En fin de contrat cet été : {men_l}. Proposez de nouveaux contrats depuis leur fiche ou elles partiront libres.",
-    "expiringMore_f": "{when_k} avant la fin de ces contrats : {men_l} et {more} de plus - liste complète dans Équipe ▸ Contrats. Proposez de nouvelles conditions depuis leur fiche, sinon elles sont libres de discuter avec qui elles veulent.",
+    "expiring_f": "En fin de contrat cet été : {men_l}. Sans nouveau contrat, elles partiront libres.",
+    "expiringMore_f": "{when_k} avant la fin de ces contrats : {men_l} et {more} de plus. Sans nouvelles conditions, elles sont libres de discuter avec qui elles veulent.",
     "wcHomeA_f": {
       "one": "{nationCap_k} est championne du monde, et {names} faisait partie du groupe qui l'a fait. Le maillot part sous cadre ; l'aura revient à l'entraînement avec elle. Quoi qu'il arrive dans le reste de sa carrière, personne ne pourra lui enlever ça.",
       "other": "{nationCap_k} est championne du monde, et {names} faisaient partie du groupe qui l'a fait. Les maillots partent sous cadre ; l'aura revient à l'entraînement avec eux. Quoi qu'il arrive dans le reste de leur carrière, personne ne pourra leur enlever ça."
@@ -5987,8 +5987,8 @@
     "potySubj_f": "Joueuse mondiale de l'année : {player}",
     "poty_f": "Le rugby mondial désigne sa meilleure joueuse. La liste :\n{rows_ll}\n{tail_k}",
     "potyYours_f": "Elle est À VOUS. Tout le rugby vient de regarder votre joueuse recevoir son plus grand prix - savourez, car le marché va tourner autour d'elle dès demain.",
-    "lastYearOne_f": "Les contrats de formation expirent à 21 ans, et cette saison est la dernière pour {men_l}. Promouvez-la en contrat professionnel depuis sa fiche avant l'été prochain, sinon le contrat expire et elle part pour rien.",
-    "lastYearMany_f": "Les contrats de formation expirent à 21 ans, et cette saison est la dernière pour {men_l}. Promouvez chacune d'elles en contrat professionnel depuis leur fiche avant l'été prochain, sinon les contrats expirent et elles partent pour rien.",
+    "lastYearOne_f": "Les contrats de formation expirent à 21 ans, et cette saison est la dernière pour {men_l}. Promouvez-la en contrat professionnel avant l'été prochain, sinon le contrat expire et elle part pour rien.",
+    "lastYearMany_f": "Les contrats de formation expirent à 21 ans, et cette saison est la dernière pour {men_l}. Promouvez chacune d'elles en contrat professionnel avant l'été prochain, sinon les contrats expirent et elles partent pour rien.",
     "releasedOneSubj_f": "Le contrat de formation de {who} expire - elle s'en va",
     "academyBuzz_f": "{heir}, {pos} de {age} ans, a rejoint le centre de formation - et les entraîneurs murmurent qu'elle a tout ce que {player} avait à cet âge. À manier avec précaution.",
     "shirtUp_f": "La tournée d'adieu est terminée. {player} termine avec {apps} matchs pour le club, et ce matin son maillot a été accroché au-dessus du tunnel, là où chaque jeune joueuse passera dessous.",
@@ -6016,7 +6016,7 @@
     "mentAdopted_f": "Elle se comporte comme {senior} désormais, ce qui était tout l'objectif.",
     "mentCeiling_f": "Les entraîneurs s'accordent : il ne reste rien au programme. Elle est la joueuse qu'elle allait devenir.",
     "mentThriving_f": "{fit_k}. {reason_k} L'entraîneur du centre de formation dit que {kid} s'est mise à faire les tâches ingrates sans qu'on le lui demande, et c'est précisément ce qui ne s'enseigne pas. Elle progresse plus vite pour ça.",
-    "mentFailing_f": "{fit_k}. {reason_k} {kid} n'en retire quasiment rien. Rien ne s'est mal passé entre elles ; cela ne fonctionne simplement pas. Mettez fin au binôme dans l'onglet Tutorat du Rapport d'équipe et associez-la à quelqu'un d'autre - il y a un bouton Terminer sur la ligne, et la saison est assez longue pour qu'un nouveau départ paie.",
+    "mentFailing_f": "{fit_k}. {reason_k} {kid} n'en retire quasiment rien. Rien ne s'est mal passé entre elles ; cela ne fonctionne simplement pas, et la saison est assez longue pour qu'un nouveau départ paie.",
     "specialist_f": {
       "one": "Le consultant a trouvé une meilleure voie de rééducation pour {player} : {injury_k}. Elle devrait revenir {n} semaine plus tôt que craint.",
       "other": "Le consultant a trouvé une meilleure voie de rééducation pour {player} : {injury_k}. Elle devrait revenir {n} semaines plus tôt que craint."
@@ -6036,7 +6036,7 @@
       "other": "La commission de discipline a suspendue {player} pour {n} matchs après son carton rouge. Elle sera indisponible jusqu'à ce que la sanction soit purgée."
     },
     "debutSigning_f": "Première apparition officielle sous le maillot pour {player} ({pos}), et elle en a profité.{scored_k}{motm_k} Noté {rating} par la tribune de presse. Les supporters auront un chant pour elle d'ici mardi.",
-    "mentorSpread_f": "{name} a deux jeunes sous son aile et elle l'a fait remarquer après l'entraînement - poliment, mais elle l'a fait remarquer. Les à-côtés se partagent en deux, si bien que chaque gamine progresse à environ trois quarts de vitesse. Confiez-en une à une autre cadre dans l'onglet Tutorat du Rapport d'équipe, ou acceptez le rythme plus lent.",
+    "mentorSpread_f": "{name} a deux jeunes sous son aile et elle l'a fait remarquer après l'entraînement - poliment, mais elle l'a fait remarquer. Les à-côtés se partagent en deux, si bien que chaque gamine progresse à environ trois quarts de vitesse. Confiez-en une à une autre cadre, ou acceptez le rythme plus lent.",
     "trPushA_f": "Elle frappe à la porte : {name} s'entraîne comme une femme qui veut le maillot.",
     "trKidB_f": "{name} s'est entraînée avec les pros jeudi et elle n'a pas dépareillé.",
     "mrMotm_f": "Joueuse du match : {motm} ({rating})",
@@ -6139,7 +6139,7 @@
     "boardYes_staff": "Le conseil a mis de l'argent de côté pour le staff. Ce n'est pas dans le budget transferts et cela ne peut pas y aller : cela paie les entraîneurs, les formations qui les diplôment, et les huit semaines qu'il faut pour en remercier un. Dépensez-le tant que la bonne volonté dure, car les conseils ont la mémoire courte sur ce genre de choses.",
     "boardYes_staffSubj": "L'enveloppe du staff augmente",
     "bondRiftSubj": "{aLast} et {bLast} ne se parlent plus",
-    "bondRift": "Le vestiaire l'a remarqué : {a} et {b} ne s'adressent plus la parole. {cause_k} Les entraînements sont glaciaux et le reste du groupe choisit son camp. Vous pouvez réunir les deux protagonistes depuis l'écran Club, ou laisser parler les résultats.",
+    "bondRift": "Le vestiaire l'a remarqué : {a} et {b} ne s'adressent plus la parole. {cause_k} Les entraînements sont glaciaux et le reste du groupe choisit son camp. Réunissez les deux protagonistes, ou laissez parler les résultats.",
     "bondMateGoneSubj": "{player} encaisse mal le départ de {mateLast}",
     "bondMateGone": "{player} et {mate} étaient proches, et cela se voit depuis le départ de {mate}. Moins de mots à l'entraînement, et plus personne sur le parking une fois la séance finie. Un mot au bureau ne serait pas de trop.",
     "bondCliqueSubj": "Un clan se forme dans le vestiaire",

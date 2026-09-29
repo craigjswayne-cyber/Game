@@ -458,7 +458,7 @@ export function agePlayers(state: GameState, rng: Rng) {
       subject: lastYear.length === 1
         ? `${lastYear[0].name}'s last academy year`
         : `Last academy year for ${lastYear.length} of your prospects`,
-      body: `Development deals run out at 21, and this season is the last one for ${lastYear.map(p => `${p.name} (${p.age}, ${p.pos})`).join(', ')}. Promote ${lastYear.length === 1 ? 'him' : 'each of them'} to a professional contract from ${lastYear.length === 1 ? 'his' : 'their'} player page before next summer, or the deal expires and ${lastYear.length === 1 ? 'he walks' : 'they walk'} for nothing.`,
+      body: `Development deals run out at 21, and this season is the last one for ${lastYear.map(p => `${p.name} (${p.age}, ${p.pos})`).join(', ')}. Promote ${lastYear.length === 1 ? 'him' : 'each of them'} to a professional contract before next summer, or the deal expires and ${lastYear.length === 1 ? 'he walks' : 'they walk'} for nothing.`,
       k: lastYear.length === 1 ? 'news.lastYearOne' : 'news.lastYearMany',
       v: {
         n: lastYear.length, who: lastYear[0].name,
@@ -2227,10 +2227,8 @@ export function rebuildSeason(state: GameState) {
   state.news.push({
     id: state.nextId++, week: 1, season: state.season, type: 'general', read: false,
     subject: `${seasonLabel(state.season - 1)} is in the books: back it up`,
-    body: `A whole season done, and every minute of it lives in this browser's storage and nowhere else. `
-      + `Game Status has an Export Career button that writes the lot to a single file: keep it somewhere you trust `
-      + `and you can put this career back on this phone, or carry it to another one, whatever the browser does in the meantime. `
-      + `Takes one tap. Worth doing at every rollover.`,
+    body: `A whole season done, and it lives in this browser and nowhere else. `
+      + `An exported career file survives whatever the browser does. Worth one every rollover.`,
     k: 'news.backItUp', v: { season: seasonLabel(state.season - 1) },
   })
 

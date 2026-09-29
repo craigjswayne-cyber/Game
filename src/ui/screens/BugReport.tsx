@@ -5,7 +5,7 @@ import {
   DEV_CONTACT, buildReport, crashCount, mailtoUrl, reportFilename,
 } from '../../game/bugreport'
 import { t } from '../../game/i18n'
-import { COMMUNITY_URL } from '../../game/community'
+import { BUG_CHANNEL_URL, COMMUNITY_URL } from '../../game/community'
 
 /**
  * Report a Bug. Under the Handbook in the menu, because it is the other half of
@@ -133,7 +133,7 @@ export default function BugReport() {
           {canShare && <button className="btn gold" onClick={() => { void doShare() }}>{t('legacy.bgShare')}</button>}
           <a className="btn" href={mailtoUrl(report)}>{t('legacy.bgEmail')}</a>
           <button className="btn" onClick={() => { void doCopy() }}>{t('legacy.bgCopy')}</button>
-          <a className="btn" href={COMMUNITY_URL} target="_blank" rel="noopener noreferrer"
+          <a className="btn" href={BUG_CHANNEL_URL} target="_blank" rel="noopener noreferrer"
             onClick={() => copyFor(report, 'legacy.bgDiscordDone', setMsg)}>
             {t('legacy.bgDiscord')}
           </a>
@@ -142,7 +142,7 @@ export default function BugReport() {
         {msg && <div className="bug-msg">{msg}</div>}
         <div className="muted" style={{ fontSize: 12, marginTop: 10 }}>
           <b>{t('legacy.bgScreenshotB')}</b>{t('legacy.bgScreenshot')}
-          {t('legacy.bgMailGoesTo')}<b>{DEV_CONTACT}</b>{t('legacy.bgMailRest')}
+          {t('legacy.bgMailGoesTo')}<b className="bug-mail">{DEV_CONTACT}</b>{t('legacy.bgMailRest')}
         </div>
       </div>
 
@@ -187,7 +187,7 @@ export default function BugReport() {
         </div>
         {ideaMsg && <div className="bug-msg">{ideaMsg}</div>}
         <div className="muted" style={{ fontSize: 12, marginTop: 10 }}>
-          {t('legacy.bgIdeaGoesTo')}<b>{DEV_CONTACT}</b>{t('legacy.bgIdeaRest')}
+          {t('legacy.bgIdeaGoesTo')}<b className="bug-mail">{DEV_CONTACT}</b>{t('legacy.bgIdeaRest')}
         </div>
       </div>
 
