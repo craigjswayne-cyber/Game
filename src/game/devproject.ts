@@ -449,7 +449,8 @@ export function driverLines(state: GameState, p: Player): DevLine[] {
   if (d.position < 0) rows.push({ k: 'dev.wrongPos', w: -d.position })
   if (heavyLoad(p)) rows.push({ k: 'dev.heavyLoad', w: 0.19 })
   else if (d.minutes > 0.05) rows.push({ k: 'dev.minutesGood', w: d.minutes })
-  else if (d.minutes < -0.03) rows.push({ k: 'dev.minutesNone', w: -d.minutes })
+  // below the centring alone: the benched term itself, not a quiet week one
+  else if (d.minutes < -0.06) rows.push({ k: 'dev.minutesNone', w: -d.minutes })
   if (c >= 0.45) rows.push({ k: 'dev.confHigh', w: d.conf })
   else if (c <= -0.45) rows.push({ k: 'dev.confLow', w: -d.conf })
   // the style fit is only said once the staff know what he learns quickly
