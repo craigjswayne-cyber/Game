@@ -114,6 +114,19 @@ function seniors(state: GameState, club: Club): Player[] {
   return club.players.map(id => state.players[id]).filter((p): p is Player => !!p && !p.acad)
 }
 
+/** The world's middle pack tilt, read once a season: it walks the whole
+ *  world's squads, and the identity steps every club match. */
+const medianMemo = new WeakMap<GameState, { season: number; m: number }>()
+function tiltMedian(state: GameState): number {
+  const hit = medianMemo.get(state)
+  if (hit && hit.season === state.season) return hit.m
+  const gaps = Object.values(state.clubs).filter(c => c.players.length).map(c => packTilt(state, c, 0)).sort((a, b) => a - b)
+  const mid = gaps.length >> 1
+  const m = !gaps.length ? 0 : gaps.length % 2 ? gaps[mid] : (gaps[mid - 1] + gaps[mid]) / 2
+  medianMemo.set(state, { season: state.season, m })
+  return m
+}
+
 /** The raw read of the club as it stands today, before any smoothing. Pure. */
 export function rawIdentity(state: GameState, seeding = false): Record<Axis, number> {
   const club = user(state)
@@ -121,7 +134,7 @@ export function rawIdentity(state: GameState, seeding = false): Record<Axis, num
   const d = dials(state, club, seeding)
 
   const play = (d.style - 50) * 0.8 + (d.tempo - 50) * 0.5 - (d.kicking - 50)
-  const pack = packTilt(state, club) * 40 + (d.aggression - 50) * 0.5 - (d.style - 50) * 0.5
+  const pack = packTilt(state, club, tiltMedian(state)) * 40 + (d.aggression - 50) * 0.5 - (d.style - 50) * 0.5
 
   const sq = seniors(state, club)
   let tot = 0, hg = 0, young = 0, wages = 0
