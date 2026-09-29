@@ -26,10 +26,10 @@ import { transferInterest, INTEREST_GAP } from '../src/game/interest'
 import { offersFor } from '../src/game/commercial'
 import {
   ALPHA, AXES, BIG_FEE, IDENTITY_GAP, INTAKE_BONUS, SPONSOR_MAX,
-  identityFit, identityOf, identitySeasonEnd, rawIdentity, type ClubIdentity, type IdLabel,
+  flushIdentityNews, identityFit, identityOf, identitySeasonEnd, rawIdentity, type ClubIdentity, type IdLabel,
 } from '../src/game/identity'
 import { mulberry32 } from '../src/game/rng'
-import { flushMemoryNews, recall } from '../src/game/memory'
+import { recall } from '../src/game/memory'
 import { tIn } from '../src/game/i18n'
 import type { GameState, Player } from '../src/game/model'
 
@@ -218,7 +218,7 @@ function withLabels(seed: number, labels: IdLabel[], clubId = 'bath'): GameState
   ok(g.fanMood === 57, `the terraces object: fan mood 60 -> ${g.fanMood}`)
   ok(own.morale === 6, `and the homegrown man feels it: morale 7 -> ${own.morale}`)
   const idBefore = g.nextId
-  flushMemoryNews(g)
+  flushIdentityNews(g)
   ok(g.nextId === idBefore, 'the story is held and filed on a fractional id: the shared counter does not move')
   const n = g.news.filter(x => x.k === 'identity.fansObject')
   ok(n.length === 1 && !Number.isInteger(n[0].id) && n[0].body.includes(own.name), 'and the Wire names him')
@@ -244,7 +244,7 @@ function withLabels(seed: number, labels: IdLabel[], clubId = 'bath'): GameState
   g.books = { season: g.season, clubId: club.id, fromWeek: 1, opening: club.balance + 5_000_000, lines: {} }
   for (const p of seniors(g)) { p.homegrown = false }
   identitySeasonEnd(g)
-  flushMemoryNews(g)
+  flushIdentityNews(g)
   ok(g.fanMood === 58, `an academy club that played none of its own: fans 60 -> ${g.fanMood}`)
   const db = club.boardConfidence - b0
   ok(db >= -3 && db < 0, `and the board, which also expected prudence, marks it down a little (${db})`)

@@ -50,7 +50,8 @@ import { clamp } from './rng'
 import { tIn, type Vars } from './i18n'
 import { isForward } from './bench'
 import { packTilt } from './philosophy'
-import { memoryLog, remember } from './memory'
+import { remember } from './memory'
+import { fileHeldNews, type HeldStory } from './heldnews'
 
 export type Axis = 'play' | 'pack' | 'recruit' | 'purse'
 export const AXES: Axis[] = ['play', 'pack', 'recruit', 'purse']
@@ -77,6 +78,9 @@ export interface ClubIdentity {
   /** absolute week of the last supporters' objection, so one window does not
    *  file five of them */
   objAt?: number
+  /** Wire stories waiting for an id: filed by flushIdentityNews at the end of
+   *  the settle (heldnews.ts). Empty between weeks. */
+  held?: HeldStory[]
 }
 
 /** Share of the gap to the raw read closed per settled club match. */
@@ -197,12 +201,13 @@ export const hasLabel = (state: GameState, l: IdLabel): boolean =>
 /**
  * HELD, NOT FILED. News, players and fixtures share state.nextId and a
  * fixture's dice are seeded from its id, so a story that took an id mid-settle
- * would move every later draw and change AI results. Identity's stories wait in
- * memory.ts's queue and take a fractional id in flushMemoryNews() at the end of
- * the settle, which never advances the counter.
+ * would move every later draw and change AI results. Identity's stories wait on
+ * the identity and take a fractional id in flushIdentityNews() at the end of
+ * the settle (heldnews.ts), which never advances the counter.
  */
 function wire(state: GameState, k: string, v: Vars, type: 'gossip' | 'board' = 'gossip', playerId?: number, summer = false) {
-  ;(memoryLog(state).queue ??= []).push({
+  const id = state.identity && state.identity.clubId === state.userClubId ? state.identity : (state.identity = identityOf(state))
+  ;(id.held ??= []).push({
     week: summer ? 1 : state.week,
     season: summer ? state.season + 1 : state.season,
     type, read: false,
@@ -240,6 +245,16 @@ export function stepIdentity(state: GameState) {
     remember(state, { kind: 'identity-formed', clubId: club.id, payload: { label: gained[0] }, sal: 2 })
   }
   state.identity = { ...cur, v, labels }
+}
+
+/** File the held identity stories. season.ts calls it at the end of the week
+ *  settle, beside the memory and history flushes. */
+export function flushIdentityNews(state: GameState) {
+  const id = state.identity
+  if (!id) return
+  const q = Array.isArray(id.held) ? id.held.filter(n => !!n && typeof n === 'object' && typeof n.k === 'string') : []
+  id.held = []
+  fileHeldNews(state, q)
 }
 
 // ---------------------------------------------------------------- effects
