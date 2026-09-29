@@ -28,6 +28,7 @@ import { buildPlayer, playerValue, resetIds , repriceAcademies, peekPid } from '
 import { regenName } from './nations'
 import { inheritStaff } from './staff'
 import { seedPhilosophies } from './philosophy'
+import { defaultBriefs, splitFor } from './bench'
 import { seedDeals } from './commercial'
 import { clamp } from './rng'
 import { assistantJudgement, autoSelect } from './matchEngine'
@@ -359,6 +360,11 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
       }
       // bricks and mortar sized to the club's standing, before you arrive
       club.facilities = initFacilities(club, seed)
+      // and the manager's bench already knows what each seat is for
+      // (bench.ts). His club only: every AI bench on these briefs measured
+      // +1.1 points a game and home wins down 1.3 points on bandcheck, and
+      // nobody reads an AI bench's jobs on a screen
+      if (club.id === userClubId) club.tactic.briefs = defaultBriefs(splitFor(club))
       const squad = [...rc.players]
       // men who really play here but are listed elsewhere in the files
       for (const rp of relocate.get(rc.id) ?? []) {

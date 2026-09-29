@@ -13,6 +13,7 @@ import { playerValue, playerWage } from './attributes'
 import { clamp, mulberry32, pick, type Rng } from './rng'
 import { book } from './books'
 import { identitySigning } from './identity'
+import { rememberDeparture } from './memory'
 
 // ------------------------------------------------------------------
 // Transfer market
@@ -60,14 +61,16 @@ function capOf(state: GameState, clubId: string): number | null {
 }
 
 /** Would this weekly wage break the cap? The sentence to show, or null. */
-function capBreak(state: GameState, clubId: string, wage: number, replacing = 0, marqueeOpen = true): string | null {
+export function capBreak(state: GameState, clubId: string, wage: number, replacing = 0, marqueeOpen: boolean | 'none' = true): string | null {
   const cap = capOf(state, clubId)
   if (cap == null) return null
   const club = state.clubs[clubId]
   const after = capBill(state, club) - replacing + wage
   if (after <= cap) return null
-  // only point at the marquee door when it is actually open
-  return t(marqueeOpen ? 'reply.overCap' : 'reply.overCapNoMarquee', { over: fmtMoney(after - cap), cap: fmtMoney(cap) })
+  // only point at the marquee door when it is actually open, and not at all
+  // for a deal that cannot use one (a loan: the man is not the club's to name)
+  const k = marqueeOpen === 'none' ? 'reply.overCapPlain' : marqueeOpen ? 'reply.overCap' : 'reply.overCapNoMarquee'
+  return t(k, { over: fmtMoney(after - cap), cap: fmtMoney(cap) })
 }
 
 /** Is the club barred from signing anybody for a cap breach? */
@@ -76,13 +79,40 @@ export function embargoed(state: GameState, clubId: string): boolean {
   return typeof until === 'number' && state.season <= until
 }
 
+/**
+ * THE TRANSFER WINDOW, ONE RULE FOR EVERYBODY (1.8.1).
+ *
+ * The world already kept it: the AI does its buying in weeks 1 to 7 and on the
+ * mid-season deadline (26 and 27), and every bid on the manager's desk dies
+ * when it slams shut in weeks 8 and 28. The chip on the Transfer Centre said
+ * so, and the Wednesday desk told him "the window is shut, so nothing moves
+ * until it reopens". Then nothing stopped him buying in week 15, which made
+ * the window a rule for everybody except the one club that reads it.
+ *
+ * Permanent signings for a fee are what it governs, as it is in the real
+ * game. A clubless man can be signed whenever (there is no registration to
+ * transfer), a development loan is a different door, and a pre-contract is an
+ * agreement for the summer rather than a move today.
+ */
+export function windowOpen(week: number): boolean {
+  return week <= 7 || week === 26 || week === 27
+}
+
+/** The refusal a shut window gives, naming when it opens again. */
+export function windowShut(week: number): string {
+  return week < 26 ? t('reply.windowShut', { n: 26 }) : t('reply.windowShutSummer')
+}
+
 /** Asking price for a player from his current club's perspective. */
 export function askingPrice(state: GameState, p: Player): number {
   const club = p.clubId ? state.clubs[p.clubId] : null
   if (!club) return 0
   let f = 1.15
   if (p.transferListed) f = 0.8
-  const squadCa = club.players.map(id => state.players[id]?.ca ?? 0).sort((a, b) => b - a)
+  // ranked against the SENIOR squad: the key-man test asks whether he is one of
+  // the eight a club builds its side on, and a scholar is never that man
+  const squadCa = club.players.map(id => state.players[id]).filter(q => q && !q.acad)
+    .map(q => q.ca).sort((a, b) => b - a)
   const isKey = p.ca >= (squadCa[7] ?? 70) // top-8 player at the club
   if (isKey && !p.transferListed) f = 1.7
   if (p.morale <= 3.5) f *= 0.85
@@ -208,6 +238,7 @@ export function executeTransfer(state: GameState, p: Player, toClubId: string, f
   // used to be discovered at `to.players.push` - after the seller had lost the
   // player and banked the fee. Refuse before anything moves.
   if (!to || to === from) return
+  if (from) rememberDeparture(state, p, 'sold', from.id, to.id, fee) // memory.ts: only ever the user's club
   // read before the move clears it: the terraces judge a departure partly on
   // whether the club had said out loud that he was for sale (terraces.ts)
   const wasListed = !!p.transferListed
@@ -297,14 +328,16 @@ export function aiTransfers(state: GameState, rng: Rng) {
   const clubs = Object.values(state.clubs)
 
   // squad-building intent. Real moves are concentrated in the windows:
-  // early season (weeks 1-4) and the mid-season deadline (23-24) are
+  // early season (weeks 1-7) and the mid-season deadline (26-27) are
   // busy; the rest of the season is a trickle - rumours do the talking.
   const deadline = state.week === 7 || state.week === 26 || state.week === 27
-  const window = state.week <= 7 || deadline
+  const window = windowOpen(state.week)
   for (let k = 0; k < (deadline ? 5 : 2); k++) {
     if (rng() > (deadline ? 0.6 : window ? 0.35 : 0.1)) continue
     const buyer = pick(rng, clubs)
-    if (buyer.id === state.userClubId || buyer.budget < 800_000) continue
+    // an embargo is the league's sanction on every club it lands on, not only
+    // the manager's: an AI club serving one used to go on buying regardless
+    if (buyer.id === state.userClubId || buyer.budget < 800_000 || embargoed(state, buyer.id)) continue
     // find thinnest position by count of quality bodies
     const byPos: Record<string, number> = {}
     for (const id of buyer.players) {
@@ -336,7 +369,7 @@ export function aiTransfers(state: GameState, rng: Rng) {
   for (let k = 0; k < 2; k++) {
     if (rng() > (window ? 0.35 : 0.12)) continue
     const buyer = pick(rng, clubs)
-    if (buyer.id === state.userClubId || buyer.budget < 200_000) continue
+    if (buyer.id === state.userClubId || buyer.budget < 200_000 || embargoed(state, buyer.id)) continue
     const targets = Object.values(state.players).filter(p =>
       p.clubId && p.clubId !== buyer.id && p.clubId !== state.userClubId &&
       !p.loanFrom && !p.retiring && (p.transferListed || p.morale < 4 || p.contractEnds <= state.season) &&
@@ -473,6 +506,7 @@ export function agreeFee(state: GameState, playerId: number, fee: number): { ok:
   const user = state.clubs[state.userClubId]
   if (!p || !p.clubId) return { ok: false, msg: t('reply.playerUnavailable') }
   if (p.clubId === user.id) return { ok: false, msg: t('reply.alreadyYours') }
+  if (!windowOpen(state.week)) return { ok: false, msg: windowShut(state.week) }
   if (fee > user.budget) return { ok: false, msg: t('reply.bidOverBudget') }
   const ask = askingPrice(state, p)
   const seller = state.clubs[p.clubId]
@@ -567,6 +601,9 @@ export function signOnTerms(state: GameState, playerId: number, fee: number, wag
   const p = state.players[playerId]
   const user = state.clubs[state.userClubId]
   if (!p || !p.clubId) return { ok: false, msg: t('reply.playerUnavailable') }
+  // stage 2 is its own call, so it asks the window again for the same reason
+  // it asks the ink-wet gate again below
+  if (!windowOpen(state.week)) return { ok: false, msg: windowShut(state.week) }
   const seller = state.clubs[p.clubId]
   // THE INK IS STILL WET, CHECKED AGAIN (owner, v1.1.3: "if a club signs a
   // player and the player tries to buy for their club the bid should be
@@ -616,6 +653,10 @@ export function signOnTerms(state: GameState, playerId: number, fee: number, wag
   executeTransfer(state, p, user.id, fee)
   p.wage = wage
   user.balance -= signOn
+  // the bonus is transfer money: the check above was `fee + signOn <= budget`,
+  // and only the fee came off it, so a large bonus was paid from the bank
+  // while the budget carried on as if it had never been spent
+  user.budget = Math.max(0, user.budget - signOn)
   book(state, 'buys', -signOn)
   if (asMarquee && marqueeSlots > 0) user.marquee = [...(user.marquee ?? []), p.id]
   if (promiseMinutes) {
@@ -764,28 +805,46 @@ export function respondToOffer(state: GameState, offerId: number, accept: boolea
  *  user could sign free agents to 73 while the world was culled at 46. */
 export const SQUAD_LIMIT = 46
 export function squadFull(state: GameState, club: { players: number[] }): boolean {
-  const seniors = club.players.reduce((n, id) => n + (state.players[id] && !state.players[id].acad ? 1 : 0), 0)
-  return seniors >= SQUAD_LIMIT
+  return seniorsOf(state, club) >= SQUAD_LIMIT
+}
+
+/** The men who count against the 46. A hand-demoted senior is one of them: the
+ *  demotion moves him to the academy LIST, the same way it leaves him on the
+ *  cap bill, or the button is a way round the limit. */
+export function seniorsOf(state: GameState, club: { players: number[] }): number {
+  return club.players.reduce((n, id) => {
+    const p = state.players[id]
+    return n + (p && (!p.acad || p.demoted) ? 1 : 0)
+  }, 0)
+}
+
+/** What one man costs against the cap, or 0 where he sits outside it. The
+ *  single reading capBill sums and every "replacing" figure must match. */
+export function capWage(state: GameState, club: { marquee?: number[] }, p: Player | undefined): number {
+  if (!p) return 0
+  if ((club.marquee ?? []).slice(0, 2).includes(p.id)) return 0
+  // Academy men sit outside the senior cap, as they do in the real game: a
+  // club is not punished for developing its own. It also matters mechanically
+  // now the academy is 27 strong rather than four - counting them would have
+  // put every club in the world over the cap overnight.
+  // a hand-demoted senior still counts (v1.1.18): demotion moves a man to
+  // the academy LIST, not out of the wage bill - or the button is a cap dodge
+  if (p.acad && !p.demoted) return 0
+  // a medical joker's wage is outside the cap while he covers (joker.ts):
+  // the club still pays him, the cap just does not count him
+  if (p.joker != null) return 0
+  // A BORROWED MAN COUNTS AT WHAT THE CLUB PAYS HIM (1.8.1). The weekly
+  // ledger charges a loan-in at his share of the wage (season.ts), and the
+  // cap counted all of it, so the share the parent carried was on nobody's
+  // books but this club's. A man out on loan is still paid in full from here
+  // and still counts in full.
+  if (p.loanFrom) return Math.round(p.wage * (p.loanShare ?? 0.5))
+  return p.wage
 }
 
 /** The wage bill that counts against the cap - marquee men sit outside it. */
 export function capBill(state: GameState, club: { players: number[]; marquee?: number[] }): number {
-  const marquee = new Set((club.marquee ?? []).slice(0, 2))
-  return club.players.reduce((s, id) => {
-    if (marquee.has(id)) return s
-    const p = state.players[id]
-    // Academy men sit outside the senior cap, as they do in the real game: a
-    // club is not punished for developing its own. It also matters mechanically
-    // now the academy is 27 strong rather than four - counting them would have
-    // put every club in the world over the cap overnight.
-    // a hand-demoted senior still counts (v1.1.18): demotion moves a man to
-    // the academy LIST, not out of the wage bill - or the button is a cap dodge
-    if (!p || (p.acad && !p.demoted)) return s
-    // a medical joker's wage is outside the cap while he covers (joker.ts):
-    // the club still pays him, the cap just does not count him
-    if (p.joker != null) return s
-    return s + p.wage
-  }, 0)
+  return club.players.reduce((s, id) => s + capWage(state, club, state.players[id]), 0)
 }
 
 /** Agree a pre-contract with an out-of-contract player at another club:
@@ -807,7 +866,21 @@ export function agreePreContract(state: GameState, playerId: number): { ok: bool
   if (state.preContracts.filter(pc => pc.toClubId === user.id).length >= 3) {
     return { ok: false, msg: t('reply.preContractThree') }
   }
-  const wage = Math.round((playerWage(p.ca, p.age) * 1.1) / 50) * 50 // free-agent premium
+  const wage = preContractWage(p)
+  // THE SAME DOORS A SIGNING PASSES (1.8.1). A pre-contract is a signing with
+  // the date moved, and it skipped the salary cap and the 46-man limit. The
+  // squad it is measured against is next season's: the men whose deals run on,
+  // plus every pre-contract already agreed. The cap has no such forecast, so
+  // it reads today's bill, the same one the wage-budget check below reads.
+  const staying = user.players.filter(id => {
+    const q = state.players[id]
+    return q && (!q.acad || q.demoted) && q.contractEnds > state.season
+  }).length
+  const arriving = state.preContracts.filter(pc => pc.toClubId === user.id).length
+  if (staying + arriving >= SQUAD_LIMIT) return { ok: false, msg: t('reply.squadFull') }
+  // (no marquee door to point at: he is not the club's to name until he arrives)
+  const capMsg = capBreak(state, user.id, wage, 0, 'none')
+  if (capMsg) return { ok: false, msg: capMsg }
   if (capBill(state, user) + wage > userWageBudget(state, user)) {
     return { ok: false, msg: t('reply.termsBreakBudget', { wage: fmtWage(wage) }) }
   }
@@ -815,7 +888,7 @@ export function agreePreContract(state: GameState, playerId: number): { ok: bool
   if (seller && user.rep < seller.rep - 12 && p.morale > 5) {
     return { ok: false, msg: t('reply.biggerStage', { name: p.name }) }
   }
-  state.preContracts.push({ playerId: p.id, toClubId: user.id, week: state.week })
+  state.preContracts.push({ playerId: p.id, toClubId: user.id, week: state.week, wage })
   p.morale = clamp(p.morale + 0.5, 1, 10)
   if (seller && p.ca >= 80) addGrudge(state, seller.id, user.id, 'news.grudgePreContract', { player: p.name })
   state.news.push({
@@ -831,6 +904,13 @@ export function agreePreContract(state: GameState, playerId: number): { ok: bool
     playerId: p.id,
   })
   return { ok: true, msg: t('reply.joinsFreeSummer', { name: p.name, wage: fmtWage(wage) }) }
+}
+
+/** The weekly terms a pre-contract is agreed at: the scale plus the premium a
+ *  man takes for walking out on a free. Quoted at the table and paid on
+ *  arrival (rollover.ts handleContracts), so both read this one figure. */
+export function preContractWage(p: Player): number {
+  return Math.round((playerWage(p.ca, p.age) * 1.1) / 50) * 50
 }
 
 /** From week 25, rivals circle the user's own expiring players: neglect a
@@ -864,7 +944,10 @@ export function aiPreContractPoach(state: GameState, rng: Rng) {
 
 export function renewalDemand(p: Player): number {
   const persF = p.pers === 'Mercenary' ? 1.35 : p.pers === 'Loyal' ? 0.9 : p.pers === 'Ambitious' ? 1.15 : 1
-  const scale = Math.round((playerWage(p.ca, p.age) * 1.1 * persF) / 50) * 50
+  // an academy player renews on the academy scale: the professional one was
+  // quoted, signed, and then cut back by repriceAcademies at the next summer,
+  // so the deal the manager agreed was not the deal the lad got
+  const scale = Math.round((playerWage(p.ca, p.age, !!p.acad && !p.demoted) * 1.1 * persF) / 50) * 50
   // NO AGENT OPENS BY ASKING FOR LESS. The figure above is what the wage scale
   // says a man of his ability and age is worth, and for a loyal young player on
   // an early big contract, or anyone whose ability has slipped, it can land under
@@ -896,12 +979,17 @@ export function offerRenewalAt(state: GameState, playerId: number, offer: number
   if ((state.preContracts ?? []).some(pc => pc.playerId === p.id)) {
     return { ok: false, msg: t('reply.preContractElsewhere', { name: p.name }) }
   }
-  const capMsgR = (user.marquee ?? []).includes(p.id) ? null : capBreak(state, user.id, offer, p.wage)
+  // Both checks measure the renewal as the change it makes to the bill, so the
+  // man's current wage comes off only where the bill actually holds it. An
+  // academy player's never did (capBill leaves the academy out), and taking
+  // his wage off anyway undercounted every academy renewal by exactly that.
+  const onBill = capWage(state, user, p)
+  const outsideBill = onBill === 0
+  const capMsgR = (user.marquee ?? []).includes(p.id) ? null : capBreak(state, user.id, outsideBill ? 0 : offer, onBill)
   if (capMsgR) return { ok: false, msg: capMsgR }
   const demand = renewalDemand(p)
-  const marqueed = (user.marquee ?? []).includes(p.id)
   const squadWages = capBill(state, user)
-  if (!marqueed && squadWages - ((user.marquee ?? []).includes(p.id) ? 0 : p.wage) + offer > userWageBudget(state, user)) {
+  if (!outsideBill && squadWages - onBill + offer > userWageBudget(state, user)) {
     return { ok: false, msg: t('reply.termsExceedBudget') }
   }
   if (p.pers === 'Ambitious' && p.ca >= 84 && user.rep < 82 && p.morale < 8) {

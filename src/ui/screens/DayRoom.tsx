@@ -1,4 +1,5 @@
 import { useStore } from '../../store'
+import { windowOpen } from '../../game/ai'
 import { fmtMoney, newsSubject, unbeatenRun } from '../../game/model'
 import { teamShort } from '../../game/matchEngine'
 import {
@@ -262,7 +263,7 @@ function WednesdayBlocks() {
   const go = useStore(s => s.go)
   const club = game.clubs[game.userClubId]
   const offers = game.offers.filter(o => o.status === 'pending' && o.forUser).length
-  const open = game.week <= 7 || game.week === 26 || game.week === 27
+  const open = windowOpen(game.week)
   const expiring = club
     ? club.players.map(id => game.players[id]).filter(p => p && (p.contractEnds <= game.season || (p.wantsDeal ?? 0) > 0)).length
     : 0

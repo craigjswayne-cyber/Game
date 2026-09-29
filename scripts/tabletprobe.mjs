@@ -12,6 +12,13 @@
 //   the inbox shows the message list beside the letter, and a tap opens one
 //   a phone and a desktop browser are left exactly as they were
 //
+// 1.8.1, the owner's headline: an upright tablet still showed "a phone-width
+// column with dark bars either side" whenever it did not report a coarse
+// pointer (a trackpad case, a stylus, a browser emulating the size). Upright
+// the pointer is no longer asked, so the portrait sizes run a second time with
+// no touch at all, and a 600px seven-inch tablet (under the 700px tablet line)
+// must still fill its glass with the plain phone layout.
+//
 // Screenshots go to shots/tablet-*.png.
 // Run: npm run build && node scripts/tabletprobe.mjs
 import { chromium } from 'playwright-core'
@@ -60,14 +67,21 @@ const overflow = page => page.evaluate(() => {
 const TABLETS = [
   { name: 'ipad-mini', w: 768, h: 1024 },
   { name: 'ipad-air', w: 820, h: 1180 },
+  { name: 'ipad-pro-11', w: 834, h: 1194 },
   { name: 'galaxy-tab', w: 800, h: 1280 },
   { name: 'ipad-pro', w: 1024, h: 1366 },
   // an iPad on its side (1.8.0, iPad builds): the deck goes beside the pitch
   { name: 'ipad-pro-land', w: 1366, h: 1024 },
+  // upright with a trackpad or a stylus: a fine pointer, still a tablet
+  { name: 'ipad-mini-trackpad', w: 768, h: 1024, fine: true },
+  { name: 'ipad-air-trackpad', w: 820, h: 1180, fine: true },
+  { name: 'galaxy-tab-stylus', w: 800, h: 1280, fine: true },
 ]
 try {
   for (const d of TABLETS) {
-    const page = await browser.newPage({ viewport: { width: d.w, height: d.h }, hasTouch: true, isMobile: true, deviceScaleFactor: 1 })
+    const page = await browser.newPage(d.fine
+      ? { viewport: { width: d.w, height: d.h }, deviceScaleFactor: 1 }
+      : { viewport: { width: d.w, height: d.h }, hasTouch: true, isMobile: true, deviceScaleFactor: 1 })
     console.log(`\n--- ${d.name} ${d.w}x${d.h}`)
     await career(page)
     const shell = await page.evaluate(() => ({
@@ -113,6 +127,24 @@ try {
       ok((await overflow(page)).length === 0, `${tag}: nothing past the right edge ${JSON.stringify(await overflow(page))}`)
       await page.screenshot({ path: `shots/tablet-${d.name}-${tag}.png` })
     }
+    // the screens with the widest content upright: a table, a long list and a
+    // letter must reach both edges of the glass, not sit in a phone column
+    if (d.h > d.w) {
+      for (const scr of ['tables', 'fixtures', 'finances', 'saves', 'settings', 'nations']) {
+        await page.evaluate(s => window.rugbyStore.getState().go(s), scr)
+        await page.waitForTimeout(250)
+        const span = await page.evaluate(() => {
+          const c = document.querySelector('.content')?.getBoundingClientRect()
+          let widest = 0
+          for (const el of document.querySelectorAll('.content .card, .content table, .content .tabs')) widest = Math.max(widest, el.getBoundingClientRect().width)
+          return { content: Math.round(c?.width ?? 0), widest: Math.round(widest) }
+        })
+        ok(Math.abs(span.content - d.w) <= 2 && span.widest >= d.w * 0.85,
+          `${scr}: uses the width upright (content ${span.content}, widest block ${span.widest} of ${d.w})`)
+        ok((await overflow(page)).length === 0, `${scr}: nothing past the right edge ${JSON.stringify(await overflow(page))}`)
+      }
+      await page.screenshot({ path: `shots/tablet-${d.name}-nations.png` })
+    }
     if (d.name === 'ipad-air' || d.name === 'ipad-pro' || d.name === 'ipad-pro-land') {
       // the match itself: the pitch takes the width, and nothing hangs off it
       await page.click('.bottom-nav button[title="Home"]').catch(() => {})
@@ -147,8 +179,19 @@ try {
     await page.close()
   }
 
+  // a seven-inch tablet upright, 600px across: under the tablet line, so the
+  // phone layout and no zoom, but no bars down the sides either
+  {
+    const page = await browser.newPage({ viewport: { width: 600, height: 960 }, hasTouch: true, isMobile: true })
+    await page.goto('http://localhost:4249/')
+    await page.waitForSelector('text=RUGBY', { timeout: 15000 })
+    const s = await page.evaluate(() => ({ tablet: document.querySelector('.app')?.classList.contains('tablet'), zoom: parseFloat(document.documentElement.style.zoom) || 1, w: Math.round(document.querySelector('.app').getBoundingClientRect().width) }))
+    ok(!s.tablet && s.zoom === 1 && s.w >= 598, `small tablet 600x960: the phone layout, filling the glass (tablet ${s.tablet}, zoom ${s.zoom}, ${s.w}px)`)
+    await page.close()
+  }
   for (const [name, opts] of [
     ['phone 412 touch', { viewport: { width: 412, height: 915 }, hasTouch: true, isMobile: true }],
+    ['phone 430 no touch', { viewport: { width: 430, height: 932 } }],
     ['phone on its side 915x412 touch', { viewport: { width: 915, height: 412 }, hasTouch: true, isMobile: true }],
     ['desktop 1280x800 mouse', { viewport: { width: 1280, height: 800 } }],
   ]) {

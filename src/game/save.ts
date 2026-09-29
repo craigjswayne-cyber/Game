@@ -14,6 +14,9 @@ import { applyStadiumName, seedDeals } from './commercial'
 import { seedStaffPeople } from './staff'
 import { ensureAcademyLeague, topUpAcademy } from './academy'
 import { migratePress } from './pressmigrate'
+import { migrateMemory } from './memory'
+import { migrateTacLoop } from './oppreport'
+import { migrateHistory } from './history'
 
 // NOT renamed with the game. This string is the key every existing save lives
 // under, so changing it to 'fab-rugby' would not rename anything - it would point
@@ -478,7 +481,9 @@ export function migrate(s: GameState): GameState {
   )
   s.nextId = Math.max(
     typeof s.nextId === 'number' && Number.isFinite(s.nextId) ? Math.round(s.nextId) : 0,
-    highestId + 1,
+    // floored: a memory story's id is a fraction above the id before it
+    // (memory.ts flushMemoryNews) and must never become the counter
+    Math.floor(highestId) + 1,
     1,
   )
   // and any story still lacking an id gets one now, so nothing shares
@@ -697,6 +702,7 @@ export function migrate(s: GameState): GameState {
   s.tenureStart ??= s.season
   s.legendOf = list(s.legendOf) as typeof s.legendOf
   s.vsBook ??= {}
+  migrateHistory(s) // the club's memory (history.ts): made whole, never invented
   s.gateRecord ??= null
   s.potyRoll = list(s.potyRoll) as typeof s.potyRoll
   s.retiredNames = list(s.retiredNames) as typeof s.retiredNames
@@ -705,6 +711,7 @@ export function migrate(s: GameState): GameState {
   s.courtedBy ??= null
   s.vowedAt ??= 0
   s.agency ??= { seniors: [], kids: [], best: {} }
+  migrateMemory(s) // the manager's memory (memory.ts): an old save starts with an empty log
   for (const c of Object.values(s.clubs)) { c.captain ??= null; c.vice ??= null; c.legends = list(c.legends) as typeof c.legends; c.marquee = list(c.marquee) as typeof c.marquee; c.tactic.roles = list(c.tactic.roles) as typeof c.tactic.roles; if (c.id !== s.userClubId) c.coach ??= 'The Head Coach' }
   /**
    * WHO THE STAFF ARE, on a save written before the game asked.
@@ -919,6 +926,9 @@ export function migrate(s: GameState): GameState {
       if (v) f.venue = v
     }
   }
+
+  // the tactical loop's findings: healed and capped (#181)
+  migrateTacLoop(s)
 
   ensureCaptains(s, true)
   return s

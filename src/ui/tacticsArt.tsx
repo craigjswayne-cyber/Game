@@ -185,21 +185,31 @@ export function ScrumDiagram({ call }: { call: string }) {
 // ---------------------------------------------------------------------------
 
 function Pitch({ children }: { children: ReactNode }) {
+  // 1.12 units a metre along, 72 units for the 70 metres across; the same
+  // lines the highlight pitch draws (HighlightClip drawField): the 5 m, 22,
+  // 10 m and halfway lines, the 5 m and 15 m dashes, and posts 5.6 m apart
   return (
     <Frame>
       <rect x={0} y={4} width={W} height={72} style={chalk(0.9)} />
       {[4, 116].map(x => <line key={x} x1={x} y1={4} x2={x} y2={76} style={chalk(1.1)} />)}
       {[28.6, 91.4].map(x => <line key={x} x1={x} y1={4} x2={x} y2={76} style={chalk(0.8)} />)}
       <line x1={60} y1={4} x2={60} y2={76} style={chalk(1)} />
-      {[4, 116].map(x => <g key={x}>
-        <line x1={x} y1={36.5} x2={x} y2={43.5} style={{ stroke: 'var(--dg-chalk)', strokeWidth: 2 }} />
-        <circle cx={x} cy={36.5} r={1.1} style={st('var(--dg-chalk)')} />
-        <circle cx={x} cy={43.5} r={1.1} style={st('var(--dg-chalk)')} />
-      </g>)}
+      {[48.8, 71.2, 9.6, 110.4].map(x => <line key={x} x1={x} y1={4} x2={x} y2={76} style={soft(0.6)} />)}
+      {TOUCH_DASHES.map(y => <line key={y} x1={4} y1={y} x2={116} y2={y} style={soft(0.5)} />)}
+      {[4, 116].map(x => <Posts key={x} x={x} />)}
       {children}
     </Frame>
   )
 }
+
+/** The 5 m and 15 m lines in from each touchline, on the 72-unit width. */
+const TOUCH_DASHES = [9.1, 19.4, 60.6, 70.9]
+/** Posts seen from above: 5.6 m apart, centred on the 35 m line. */
+const Posts = ({ x }: { x: number }) => <g>
+  <line x1={x} y1={37.1} x2={x} y2={42.9} style={{ stroke: 'var(--dg-chalk)', strokeWidth: 2 }} />
+  <circle cx={x} cy={37.1} r={1.1} style={st('var(--dg-chalk)')} />
+  <circle cx={x} cy={42.9} r={1.1} style={st('var(--dg-chalk)')} />
+</g>
 
 export function ExitDiagram({ id }: { id: string }) {
   return (
@@ -263,19 +273,27 @@ export function KickStyleDiagram({ id }: { id: string }) {
 
 /** Their half only, halfway on the left and their line on the right: a
  *  penalty is a decision made in their territory, so the picture spends its
- *  width there rather than on eighty metres nobody is kicking across. */
+ *  width there rather than on eighty metres nobody is kicking across.
+ *
+ *  TO SCALE (1.8.1, owner: "the pitch markings on the kickable penalties are
+ *  wrong"). The lines were placed by eye: the "15 m" lines sat eleven metres
+ *  in, there were no 5 m lines, the posts were ten metres apart, and the
+ *  frame's own edge drew a line beyond halfway. Now 2 units a metre along
+ *  (halfway at 4, the 10 m line at 24, the 22 at 60, the 5 m line at 94, the
+ *  try line at 104, a 6 m in-goal to the dead-ball line at 116) and the same
+ *  72 units across as the full pitch. */
 function HalfPitch({ children }: { children: ReactNode }) {
   return (
     <Frame>
-      <rect x={0} y={4} width={W} height={72} style={chalk(0.9)} />
+      {[4, 76].map(y => <line key={y} x1={0} y1={y} x2={116} y2={y} style={chalk(0.9)} />)}
+      <line x1={116} y1={4} x2={116} y2={76} style={chalk(0.9)} />
       <line x1={4} y1={4} x2={4} y2={76} style={chalk(1.1)} />
-      <line x1={25.6} y1={4} x2={25.6} y2={76} style={soft()} />
-      <line x1={64.5} y1={4} x2={64.5} y2={76} style={chalk(0.8)} />
-      <line x1={112} y1={4} x2={112} y2={76} style={chalk(1.1)} />
-      {[15, 65].map(y => <line key={y} x1={4} y1={y} x2={112} y2={y} style={soft(0.6)} />)}
-      <line x1={112} y1={35} x2={112} y2={45} style={{ stroke: 'var(--dg-chalk)', strokeWidth: 2.4 }} />
-      <circle cx={112} cy={35} r={1.5} style={st('var(--dg-chalk)')} />
-      <circle cx={112} cy={45} r={1.5} style={st('var(--dg-chalk)')} />
+      <line x1={24} y1={4} x2={24} y2={76} style={soft()} />
+      <line x1={60} y1={4} x2={60} y2={76} style={chalk(0.8)} />
+      <line x1={94} y1={4} x2={94} y2={76} style={soft(0.6)} />
+      <line x1={104} y1={4} x2={104} y2={76} style={chalk(1.1)} />
+      {TOUCH_DASHES.map(y => <line key={y} x1={4} y1={y} x2={104} y2={y} style={soft(0.5)} />)}
+      <Posts x={104} />
       {children}
     </Frame>
   )
@@ -289,18 +307,19 @@ export function PenaltyDiagram({ id }: { id: string }) {
     <HalfPitch>
       <Us x={mx} y={my} />
       {(id === 'posts' || ask) && <>
-        <Move x1={mx + 3} y1={my + 1} x2={110} y2={40} bend={-6} dash faint={ask} />
+        <Move x1={mx + 3} y1={my + 1} x2={103} y2={40} bend={-6} dash faint={ask} />
       </>}
       {(id === 'corner' || ask) && <>
-        <Move x1={mx + 2} y1={my - 2.5} x2={96} y2={5} bend={5} dash faint={ask} />
-        <Out x={96.5} y={4} />
+        {/* to touch five metres out, where the lineout is thrown */}
+        <Move x1={mx + 2} y1={my - 2.5} x2={94} y2={5} bend={5} dash faint={ask} />
+        <Out x={94.5} y={4} />
         {!ask && <>
-          <Us x={96} y={12} /><Us x={96} y={17} /><Us x={92} y={14.5} /><Us x={92} y={9.5} />
-          <Move x1={99.5} y1={14} x2={111} y2={14} w={2.6} head={3.6} />
+          <Us x={94} y={12} /><Us x={94} y={17} /><Us x={90} y={14.5} /><Us x={90} y={9.5} />
+          <Move x1={97.5} y1={14} x2={109} y2={14} w={2.6} head={3.6} />
         </>}
       </>}
       {(id === 'tap' || ask) && <>
-        <Move x1={mx + 3} y1={my + 3} x2={110} y2={my + 16} bend={3} w={1.8} faint={ask} />
+        <Move x1={mx + 3} y1={my + 3} x2={107} y2={my + 16} bend={3} w={1.8} faint={ask} />
         {!ask && <><Us x={52} y={38} /><Us x={50} y={24} /><Us x={48} y={44} /></>}
       </>}
     </HalfPitch>
@@ -416,4 +435,155 @@ export function SplitPips({ seats, label }: { seats: { pos: string[] }[]; label:
       {seats.map((s, i) => <i key={i} className={['LP', 'HK', 'TP', 'LK', 'FL', 'N8'].includes(s.pos[0]) ? 'fw' : ''} />)}
     </span>
   )
+}
+
+// ---------------------------------------------------------------------------
+// THE ATTACKING MOVES (1.8.1, game/moves.ts), drawn the way a coach draws a
+// move on the whiteboard: the set piece it comes off at the top left, the
+// backline in its channels, their line waiting on the right, and the lines
+// the men run in yellow. A solid line is a run, a dashed one the ball, a
+// faint line a decoy; the ring is the man the move is built to put through.
+// ---------------------------------------------------------------------------
+
+/** our backline off a set piece: 9, 10, 12, 13, 15, 14 */
+const BK: Record<string, [number, number]> = { n9: [34, 30], n10: [28, 39], n12: [23, 48], n13: [18, 57], n15: [10, 63], n14: [14, 71] }
+const THEIR_LINE: [number, number][] = [[68, 32], [68, 42], [68, 52], [68, 62], [70, 71], [92, 56]]
+const RUN: CSSProperties = { fill: 'none', stroke: 'var(--dg-move)', strokeWidth: 1.6, strokeLinecap: 'round' }
+
+function SetPiece({ kind, top = 0 }: { kind: 'lineout' | 'scrum'; top?: number }) {
+  const touch = <>
+    <rect x={0} y={0} width={W} height={4} style={st('var(--dg-shade)')} />
+    <line x1={0} y1={4} x2={W} y2={4} style={chalk(1.1)} />
+  </>
+  if (kind === 'lineout') return <>
+    {touch}
+    {[8, 13, 18, 23].map(y => <Us key={y} x={43} y={y} r={2.6} />)}
+    {[8, 13, 18, 23].map(y => <Them key={y} x={49} y={y} r={2.6} />)}
+  </>
+  return <>
+    {top > 0 && touch}
+    {[[42, 13], [42, 19], [42, 25], [37, 16], [37, 22], [32, 19]].map(([x, y], i) => <Us key={i} x={x} y={y + top} r={2.6} />)}
+    {[[48, 13], [48, 19], [48, 25], [53, 16], [53, 22], [58, 19]].map(([x, y], i) => <Them key={i} x={x} y={y + top} r={2.6} />)}
+  </>
+}
+
+function Backs() {
+  return <>{Object.entries(BK).map(([k, [x, y]]) => <Us key={k} x={x} y={y} r={2.8} />)}</>
+}
+
+/** A pod of forwards: the men, and a soft ring round them. */
+function Pod({ x, y, n, across }: { x: number; y: number; n: number; across?: boolean }) {
+  const pts = Array.from({ length: n }, (_, i) => {
+    const o = (i - (n - 1) / 2) * 5.2
+    return across ? [x + o, y] : [x + (n === 3 && i === 1 ? -2.4 : 0), y + o]
+  })
+  const long = 3.5 + n * 2.6
+  return <>
+    <ellipse cx={x} cy={y} rx={across ? long : 5.4} ry={across ? 5.4 : long} style={soft(0.7)} />
+    {pts.map(([px, py], i) => <Us key={i} x={px} y={py} r={2.6} />)}
+  </>
+}
+
+/** The ruck a phase is played off, with our 9 at it. */
+const Ruck = ({ x, y }: { x: number; y: number }) => <>
+  <circle cx={x} cy={y} r={3.6} style={soft(0.8)} />
+  <Us x={x - 4} y={y} r={2.8} /><Ball x={x} y={y} />
+</>
+
+/** Every move the library has a picture for; a probe holds the two lists together. */
+export const MOVE_DIAGRAMS = ['mv_1331', 'mv_242', 'mv_backdoor', 'mv_crash', 'mv_switch', 'mv_loop', 'mv_decoy', 'mv_blind', 'mv_inside', 'mv_strike13']
+
+export function MoveDiagram({ id }: { id: string }) {
+  const [x9, y9] = BK.n9, [x10, y10] = BK.n10, [x12, y12] = BK.n12, [x13, y13] = BK.n13
+  const theirs = THEIR_LINE.map(([x, y], i) => <Them key={i} x={x} y={y} r={2.8} />)
+  switch (id) {
+    case 'mv_crash':
+      return <Frame><SetPiece kind="lineout" /><Backs />{theirs}
+        <Move x1={x9 - 2} y1={y9 + 2} x2={x10 + 2} y2={y10 - 2} dash w={1.1} head={2.4} />
+        <Move x1={x10 - 1} y1={y10 + 3} x2={x12 + 2} y2={y12 - 2} dash w={1.1} head={2.4} />
+        <Key x={x12} y={y12} />
+        <Move x1={x12 + 3} y1={y12} x2={64} y2={y12 - 3} w={2.6} head={4} />
+      </Frame>
+    case 'mv_switch':
+      return <Frame><SetPiece kind="scrum" /><Backs />{theirs}
+        <Move x1={x10 + 2} y1={y10 + 2} x2={38} y2={58} bend={4} w={1.5} />
+        <Move x1={x13 + 3} y1={y13 - 1} x2={66} y2={44} bend={-10} w={1.8} />
+        <Move x1={37} y1={57} x2={40} y2={53} dash w={1.1} head={2.2} />
+        <Key x={x13} y={y13} />
+      </Frame>
+    case 'mv_loop':
+      return <Frame><SetPiece kind="lineout" /><Backs />{theirs}
+        <Move x1={x10 - 1} y1={y10 + 3} x2={x12 + 2} y2={y12 - 2} dash w={1.1} head={2.4} />
+        {/* the 10 loops round the back of the 12 and comes again outside him */}
+        <path d={`M${x10 - 2} ${y10 + 1} C ${x10 - 12} ${y10 + 8}, ${x12 - 10} ${y12 + 14}, ${x12 + 6} ${y12 + 12}`} style={RUN} />
+        <Move x1={x12 + 1} y1={y12 + 3} x2={x12 + 5} y2={y12 + 10} dash w={1.1} head={2.2} />
+        <Move x1={x12 + 7} y1={y12 + 12} x2={64} y2={68} bend={-4} w={1.8} />
+        <Key x={x10} y={y10} />
+      </Frame>
+    case 'mv_decoy':
+      return <Frame><SetPiece kind="lineout" /><Backs />{theirs}
+        <Key x={x12} y={y12} dashed />
+        <Move x1={x12 + 3} y1={y12} x2={60} y2={y12 - 4} w={1.4} faint />
+        <Move x1={x10 - 2} y1={y10 + 3} x2={x13 + 1} y2={y13 - 3} bend={6} dash w={1.1} head={2.4} />
+        <Move x1={x13 + 3} y1={y13} x2={66} y2={66} bend={-4} w={1.8} />
+        <Key x={x13} y={y13} />
+      </Frame>
+    case 'mv_blind':
+      // the scrum near the touchline: the blind side is the short side above it
+      return <Frame><SetPiece kind="scrum" top={7} />
+        <Us x={30} y={38} r={2.8} /><Us x={24} y={46} r={2.8} /><Us x={20} y={55} r={2.8} /><Us x={24} y={12} r={2.8} />
+        <Them x={64} y={10} r={2.8} /><Them x={68} y={40} r={2.8} /><Them x={68} y={52} r={2.8} />
+        <Move x1={31} y1={26} x2={36} y2={14} bend={-3} w={1.5} />
+        <Move x1={36} y1={12} x2={29} y2={11} dash w={1.1} head={2.2} />
+        <Move x1={25} y1={9} x2={70} y2={7} bend={-7} w={1.8} />
+        <Key x={24} y={12} />
+      </Frame>
+    case 'mv_inside':
+      return <Frame><SetPiece kind="scrum" /><Backs />{theirs}
+        <Move x1={x10 + 2} y1={y10 + 1} x2={44} y2={56} bend={3} w={1.5} />
+        <Move x1={x12 + 3} y1={y12 + 2} x2={64} y2={40} bend={10} w={1.8} />
+        <Move x1={43} y1={54} x2={45} y2={47} dash w={1.1} head={2.2} />
+        <Key x={x12} y={y12} />
+      </Frame>
+    case 'mv_strike13':
+      return <Frame><SetPiece kind="lineout" /><Backs />{theirs}
+        <Move x1={x10 - 1} y1={y10 + 3} x2={x12 + 2} y2={y12 - 2} dash w={1.1} head={2.4} />
+        <Move x1={x12 + 1} y1={y12 + 3} x2={x13 + 8} y2={y13 - 3} dash w={1.1} head={2.2} />
+        <Move x1={x13 + 3} y1={y13} x2={68} y2={47} bend={-2} w={2} head={3.6} />
+        <Key x={x13} y={y13} />
+      </Frame>
+    case 'mv_1331':
+      // open play off a ruck in midfield: a forward on each edge and a pod of three either side
+      return <Frame><Ruck x={42} y={40} />
+        <Us x={34} y={6} r={2.6} /><Pod x={32} y={24} n={3} /><Pod x={32} y={56} n={3} /><Us x={34} y={74} r={2.6} />
+        {[[64, 12], [62, 26], [60, 40], [62, 54], [64, 68]].map(([x, y], i) => <Them key={i} x={x} y={y} r={2.8} />)}
+        <Move x1={38} y1={37} x2={33} y2={30} dash w={1.1} head={2.2} />
+        <Move x1={36} y1={24} x2={56} y2={24} w={2.2} head={3.6} />
+        <Move x1={36} y1={56} x2={56} y2={56} w={1.4} faint />
+      </Frame>
+    case 'mv_242':
+      return <Frame><Ruck x={42} y={40} />
+        <Pod x={34} y={10} n={2} /><Pod x={32} y={30} n={2} /><Pod x={32} y={50} n={2} /><Pod x={34} y={70} n={2} />
+        <Us x={22} y={40} r={2.6} />
+        {[[64, 12], [62, 28], [60, 40], [62, 52], [66, 68]].map(([x, y], i) => <Them key={i} x={x} y={y} r={2.8} />)}
+        <Move x1={36} y1={42} x2={25} y2={41} dash w={1.1} head={2.2} />
+        <Move x1={22} y1={43} x2={31} y2={64} bend={4} dash w={1.1} head={2.2} />
+        <Move x1={38} y1={70} x2={62} y2={68} w={2} head={3.4} />
+        <Key x={34} y={70} r={6} />
+      </Frame>
+    case 'mv_backdoor':
+      return <Frame><Ruck x={42} y={30} />
+        <Pod x={44} y={48} n={3} across />
+        <Us x={30} y={50} r={2.8} /><Us x={22} y={60} r={2.8} /><Us x={16} y={70} r={2.8} />
+        {[[64, 20], [60, 34], [60, 46], [60, 58], [64, 70]].map(([x, y], i) => <Them key={i} x={x} y={y} r={2.8} />)}
+        <Move x1={39} y1={33} x2={43} y2={43} dash w={1} head={2} faint />
+        <Move x1={36} y1={32} x2={31} y2={46} dash w={1.1} head={2.2} />
+        <Move x1={30} y1={53} x2={23} y2={58} dash w={1.1} head={2.2} />
+        <Move x1={25} y1={61} x2={62} y2={66} bend={-2} w={1.8} />
+        <Key x={30} y={50} />
+      </Frame>
+    default:
+      // no call: the shape stood up, nothing drawn on it
+      return <Frame><SetPiece kind="lineout" /><Backs />{theirs}</Frame>
+  }
 }

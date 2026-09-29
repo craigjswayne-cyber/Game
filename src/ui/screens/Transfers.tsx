@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '../../store'
 import { clubCode, fmtMoney, fmtWage, newsBody, newsSubject, POS_ORDER, seasonLabel, weekDate, type Attrs, type Pos, weeksBetween100 } from '../../game/model'
-import { counterIncomingOffer, renewalDemand, respondToOffer } from '../../game/ai'
+import { counterIncomingOffer, renewalDemand, respondToOffer, windowOpen } from '../../game/ai'
 import { LOAN_LENGTHS, LOAN_SHARES, loanApproachable, loanIn, loanTargets, type LoanLength } from '../../game/loans'
 import { attrRange, fuzzedCa, knowledge } from '../../game/scout'
 import { commissionScout, searchFee, type SearchMonths } from '../../game/commission'
@@ -151,7 +151,7 @@ export default function Transfers() {
         <span className="chip">{t('transfers.budget')} <b>{fmtMoney(user.budget)}</b></span>
         <span className="chip">{t('transfers.wageRoom')} <b>{Number.isFinite(userWageBudget(game, user)) ? `${fmtWage(Math.max(0, userWageBudget(game, user) - user.players.reduce((s, id) => s + (game.players[id]?.wage ?? 0), 0)))}${t('common.perWeek')}` : t('finances.noLimit')}</b></span>
         <span className="chip" style={{
-          color: (game.week <= 7 || game.week === 26 || game.week === 27) ? 'var(--text-positive)' : 'var(--text-muted)',
+          color: windowOpen(game.week) ? 'var(--text-positive)' : 'var(--text-muted)',
           fontWeight: 700,
         }}>
           {t(game.week <= 7 ? 'transfers.windowOpen'

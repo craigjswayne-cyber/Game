@@ -1,5 +1,6 @@
 // Scouting knowledge: attributes of unscouted players show as ranges.
 import { userWageBudget } from './grants'
+import { askingPrice } from './ai'
 // Knowledge grows by shortlisting, playing against them, and via the
 // chief scout. Your own squad is always fully known.
 
@@ -194,7 +195,10 @@ export function recruitmentMeeting(state: GameState): void {
     const cand = Object.values(state.players)
       .filter(p => p.clubId && p.clubId !== club.id && !p.acad && p.pos === need.pos &&
         p.age <= 31 && !p.retiring && !picks.some(x => x.p.id === p.id))
-      .map(p => ({ p, fee: Math.round(p.value * 1.15) }))
+      // the fee his club would actually ask (askingPrice): `value * 1.15`
+      // quoted a key man at two thirds of the real price, so the memo
+      // recommended signings the budget could not in fact reach (1.8.1)
+      .map(p => ({ p, fee: askingPrice(state, p) }))
       // nine tenths of the budget, not all of it: the meeting runs BEFORE the
       // week's value refresh (weeklyTraining), so a man picked at 100.0% of
       // the budget can drift over it by the time the memo is read - which is
