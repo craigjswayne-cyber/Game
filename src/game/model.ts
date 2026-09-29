@@ -2247,6 +2247,12 @@ export interface GameState {
   /** the fraction cursor for stories filed without spending nextId
    *  (heldnews.ts): the base id it counts from and how many it has used */
   heldIds?: { b: number; n: number }
+  /** the career arc (arcbook.ts): rival coaches, what the manager is known
+   *  for, the story of each era. Created on first touch; absent on older saves. */
+  arc?: import('./arcbook').CareerArc
+  /** the one to three ambitions named at the start (ambitions.ts). The first
+   *  is also `dream`. Absent on saves from before: the dream stands alone. */
+  ambitions?: import('./arcbook').Ambition[]
 }
 
 /** Managerial reputation earned from results and silverware, 30-95. */
