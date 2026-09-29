@@ -284,6 +284,50 @@ for (const { spec, kind } of specs) {
 ok(!behind, `nobody defends from in-goal while the play is upfield${behind ? ` (${behind})` : ''}`)
 ok(deepest <= 4.5, `and nobody stands more than a few metres behind his own line (deepest ${deepest.toFixed(1)} m)`)
 
+console.log('\n--- the cover after a line break (1.8.1)\n')
+// Owner: "once a line break happens the defending players keep running
+// forward, this isn't natural". From the finisher's run on, a defender he has
+// gone past turns and chases back towards his own line. He is given a moment
+// to stop and turn (GRACE: from a full sprint, deceleration takes about half a
+// second), and after it nobody behind the ball may still be heading up-field.
+// And the chase belongs to the nearest one or two: the rest recover to shape
+// rather than all converging on him. SLACK is the separation push (nobody
+// stands inside anybody), which can move a man at up to a walk (0.72 m/s).
+{
+  const GRACE = 0.6, SLACK = 0.8
+  let bad = '', checked = 0, crowd = 0, runs = 0
+  for (const { spec, kind } of specs) {
+    if (kind !== 'try' && kind !== 'notry' && kind !== 'attack') continue
+    const tl = clipTimeline(spec)
+    if (!tl.run) continue
+    runs++
+    const d = spec.attackHome ? 1 : -1
+    const passedAt: number[] = Array(15).fill(-1)
+    let maxNear = 0
+    for (let t = tl.run[0]; t <= tl.run[1]; t += 1 / 30) {
+      const f = frameAt(spec, t), g = frameAt(spec, t + 1 / 30)
+      let near = 0
+      for (let i = 0; i < 15; i++) {
+        const behind = (f.def[i].x - f.ball.x) * d < -1
+        if (behind && passedAt[i] < 0) passedAt[i] = t
+        if (!behind) passedAt[i] = -1
+        // (a man he has only just gone past is still near him: that is the
+        // break, not a chase, so it counts from a second after; and the men
+        // who went for him on his line, tl.contact, are the tackle)
+        if (behind && t - passedAt[i] > 1 && !f.down[15 + i] && !tl.contact.includes(i) && Math.hypot(f.def[i].x - f.ball.x, f.def[i].y - f.ball.y) < 5) near++
+        if (passedAt[i] < 0 || t - passedAt[i] < GRACE || f.down[15 + i] || g.down[15 + i]) continue
+        checked++
+        const vAlong = (g.def[i].x - f.def[i].x) * 30 * d
+        if (vAlong < -SLACK && !bad) bad = `${kind}/${spec.style} line ${spec.endLine} def ${i + 1} t=${t.toFixed(2)} heading up-field at ${(-vAlong).toFixed(1)} m/s, ${(t - passedAt[i]).toFixed(1)} s after he was passed`
+      }
+      maxNear = Math.max(maxNear, near)
+    }
+    if (maxNear > 2) crowd++
+  }
+  ok(runs >= 20 && checked > 1000 && !bad, `a defender who has been passed turns for his own line (${runs} breaks, ${checked} frames checked)${bad ? `: ${bad}` : ''}`)
+  ok(crowd <= runs * 0.03, `and only the nearest one or two chase him down (${crowd} of ${runs} breaks had more than two within five metres behind the ball)`)
+}
+
 console.log('\n--- the referee\n')
 // pink; orange when a side wears pink; cyan when the kits are pink and
 // orange; and never a colour either side is wearing

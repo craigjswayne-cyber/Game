@@ -4,13 +4,13 @@ import { analystArmed } from '../../game/rewarded'
 import { rewardedAvailable } from '../../game/monetise'
 import { AdSlot } from '../AdSlot'
 import {
-  matchStats, goalKicker, teamShort, teamUnits, rosterOf, assistantJudgement, autoSelect, availablePlayers,
+  matchStats, visitsTo22, goalKicker, teamShort, teamUnits, rosterOf, assistantJudgement, autoSelect, availablePlayers,
   refFor, refNotes, homeCrowdLean, frontRowCover, repairSheet, rollWeather, sideEnergy, MAX_SUBS, type LiveCtx, type SideCtx,
 } from '../../game/matchEngine'
 import { MIDWEEK_OFF, BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, chemKey, clubCode, chemTier, eventText, injuryDesc, fixtureDate, fixtureDayOff, grudgeBetween, inRedZone, oldBoyApps, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
 import { BRIEF_BY_ID, SPLIT_BY_ID, benchSeats, briefForSeat, splitFor } from '../../game/bench'
 import { BriefIcon } from '../tacticsArt'
-import { assistantFixtureThisWeek, isKnockoutTie, userMatchThisWeek, weekRng } from '../../game/season'
+import { assistantFixtureThisWeek, isKnockoutTie, matchRng, userMatchThisWeek } from '../../game/season'
 import { effAt } from '../../game/attributes'
 import { PRESETS, SLIDER_INFO, sliderReadout, type SliderKey } from '../../game/tactics'
 import { ord, posName, t, localeTag, compLabel } from '../../game/i18n'
@@ -352,7 +352,7 @@ function Preview({ fxId }: { fxId: number }) {
   }
 
   // the assistant reads the matchup and proposes a game plan in plain English
-  const forecast = rollWeather(game.week, weekRng(game))
+  const forecast = rollWeather(game.week, matchRng(game))
   const matchRef = refFor(fx.id)
   const oppCond = (() => {
     const xv = oppLineup.slice(0, 15).map(id => id != null ? game.players[id] : null).filter(Boolean)
@@ -627,7 +627,7 @@ function Preview({ fxId }: { fxId: number }) {
               forecast is a fact; the derby is the reason you are nervous.
               Separate lines, and the derby carries its own mark. */}
           <div className="meta" style={{ marginTop: 3 }}>
-            <Glyph name={WEATHER_ICON[rollWeather(game.week, weekRng(game))]} /> {t('matchday.forecast', { weather: weatherWord(rollWeather(game.week, weekRng(game))) })}
+            <Glyph name={WEATHER_ICON[rollWeather(game.week, matchRng(game))]} /> {t('matchday.forecast', { weather: weatherWord(rollWeather(game.week, matchRng(game))) })}
           </div>
           {derbyName(fx.homeId, fx.awayId) && (
             <div className="meta derby-line" style={{ marginTop: 4 }}>
@@ -1777,7 +1777,10 @@ function Live() {
           const live = win.length > 0
           const share = live ? win.reduce((s, x) => s + x, 0) / win.length : 0.5
           const ref = refFor(fixture.id)
-          const binAt = ref.style === 'strict' ? 4 : ref.style === 'lenient' ? 7 : 5
+          // the engine bins at the referee's patience, not at a figure read
+          // off his style label: two "fair" referees wait for six, and the
+          // warning went gold one penalty early for them
+          const binAt = ref.patience
           // THE -fill FORMS, because these numbers sit on the hero gradient.
           // The sc-score comment above tells this exact story: --gold goes
           // deep brown in day mode and measured 1:1 up here - the sin-bin
@@ -2295,8 +2298,11 @@ function MatchVerdict() {
   const fresh = !!hw && hw.fxId !== live.fixture.id && hw.season === game.season && game.week - hw.week <= 4
   // "using the bench" is a job you DO, so it is graded on evidence rather than
   // on the complaint staying quiet - ctx.subsUsed is the only honest witness.
+  // Two changes, not one (1.8.1): the bench advice itself speaks below two
+  // and asks for "the two or three", so a single change had the homework
+  // marked done on a match where the advice would have been given again.
   const grade = fresh && hw
-    ? gradeFixes(hw.tags as FixTag[], fixes.map(f => f.tag), { fitness: live.ctx.subsUsed > 0 })
+    ? gradeFixes(hw.tags as FixTag[], fixes.map(f => f.tag), { fitness: live.ctx.subsUsed >= 2 })
     : { fixed: [], missed: [] }
   const verdictOnLast = gradeLine(grade.fixed, grade.missed)
 
@@ -2454,28 +2460,12 @@ function ScoreCard({ label, story = false }: { label: string; story?: boolean })
 // VISITS TO THE 22, and what each side came away with (1.8.0). Owner-led
 // research: the "we were robbed" feeling comes from stats that show
 // dominance without showing why it failed. Nine visits and ten points is
-// the reason a side lost, and now it is on the screen. Points are the
-// side's score moving on a line inside the 22, or on the line straight
-// after one (the conversion is stamped where it was taken).
+// the reason a side lost, and now it is on the screen. The count itself is
+// the engine's (visitsTo22), shared with the Visits panel so the two can
+// never disagree.
 function visitStats(shown: MatchEvent[], homeId: string, home: boolean): [number, number] {
-  let n = 0, pts = 0, inside = false, prev = 0
-  for (const e of shown) {
-    // where the line puts the ball first: a try from a long break enters
-    // the 22 on the very line that scores it
-    const was = inside
-    if (e.fld != null && e.teamId) {
-      const up = home ? e.fld : 100 - e.fld
-      const now = ((e.teamId === homeId) === home) && up >= 78
-      if (now && !inside) n++
-      inside = now
-    }
-    const score = home ? e.homeScore : e.awayScore
-    if (score != null) {
-      if (score > prev && (inside || was)) pts += score - prev
-      prev = score
-    }
-  }
-  return [n, pts]
+  const v = visitsTo22(shown, homeId, home)
+  return [v.visits, v.pts]
 }
 
 const perVisit = (p: number, v: number) => v ? Math.round((p / v) * 10) / 10 : 0
