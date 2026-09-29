@@ -539,6 +539,8 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   const chosen = new Set<number>()
   const watchList: string[] = []
   const watchIds: number[] = []
+  // one row per talent, set a line each in the story (news.watchRow)
+  const watchRows: Record<string, string | number>[] = []
   for (let i = 0; i < 9 && academyKids.length; i++) {
     const k = academyKids[Math.floor(rng() * academyKids.length)]
     if (chosen.has(k.id)) continue
@@ -549,6 +551,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     k.value = playerValue(k.ca, k.age, k.pa, k.pos, undefined, undefined, k.caps)
     if (watchList.length < 5) {
       watchList.push(`${k.name} (${k.age}, ${k.pos} - ${state.clubs[k.clubId!]?.short})`)
+      watchRows.push({ k: 'news.watchRow', name: k.name, age: k.age, pos: k.pos, club: state.clubs[k.clubId!]?.short ?? '' })
       watchIds.push(k.id)
     }
   }
@@ -587,9 +590,9 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   state.nextId++
   const scoutCircular = watchList.length ? {
     subject: `The scouts' ones to watch`,
-    body: `The pre-season list of academy talents with genuinely special ceilings: ${watchList.join('; ')}.\n\nUnattached prodigies are also drifting around the free-agent market - first club to move wins. Tap a name below, or see World ▸ Team of the Season ▸ Ones to Watch.`,
+    body: `The pre-season list of academy talents with special ceilings: ${watchList.join('; ')}. Unattached prodigies are on the free-agent market too.`,
     k: 'news.watchList',
-    v: { list: watchList.join('; ') },
+    v: { list: watchList.join('; '), list_ll: JSON.stringify(watchRows) },
     playerIds: watchIds,
   } : null
 
