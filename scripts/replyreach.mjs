@@ -106,10 +106,16 @@ try {
       .sort((a, b) => b.rep - a.rep) // the screen's own order
   })
   /** Force the next application at this club to land in [lo, hi). */
-  const rigSeed = (rep, lo, hi) => page.evaluate(([rep, lo, hi]) => {
+  // jobs.ts seeds the application on the season, week, rep AND the club's id
+  // (1.8.1: two equal clubs in one week no longer share a roll), so the rig
+  // mirrors all four
+  const rigSeed = (rep, lo, hi, clubId) => page.evaluate(([rep, lo, hi, clubId]) => {
     const g = window.rugbyStore.getState().game
+    let h = 2166136261 // rng.ts hashString
+    for (let i = 0; i < clubId.length; i++) { h ^= clubId.charCodeAt(i); h = Math.imul(h, 16777619) }
+    h = h >>> 0
     const roll = (seed) => { // mulberry32's first output, as jobs.ts draws it
-      let a = ((seed ^ (g.week * 31 + rep)) >>> 0)
+      let a = ((seed ^ (g.season * 4099 + g.week * 31 + rep) ^ h) >>> 0)
       a = (a + 0x6d2b79f5) | 0
       let t = Math.imul(a ^ (a >>> 15), 1 | a)
       t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
@@ -120,11 +126,11 @@ try {
       if (r >= lo && r < hi) { g.seed = s; return s }
     }
     return null
-  }, [rep, lo, hi])
+  }, [rep, lo, hi, clubId])
 
   // ---- refusal on the LAST card: the reply lands in that card, by the thumb ----
   let cards = await readCards()
-  ok(await rigSeed(cards[cards.length - 1].rep, 0.96, 1) != null,
+  ok(await rigSeed(cards[cards.length - 1].rep, 0.96, 1, cards[cards.length - 1].clubId) != null,
     'a seed exists on which the last club says no')
   const last = applyBtns.nth(n - 1)
   await last.scrollIntoViewIfNeeded()
@@ -159,7 +165,7 @@ try {
   // must bring the screen to itself rather than sit 900px above the thumb ----
   cards = await readCards() // the refused club is applied now, so it has left this list
   const hireClub = cards[cards.length - 1]
-  ok(await rigSeed(hireClub.rep, 0, 0.05) != null,
+  ok(await rigSeed(hireClub.rep, 0, 0.05, hireClub.clubId) != null,
     'a seed exists on which the bottom club says yes')
   const hireBtn = applyBtns.nth(n - 2) // the screen sorts by rep, so bottom-most un-applied
   await hireBtn.scrollIntoViewIfNeeded()
