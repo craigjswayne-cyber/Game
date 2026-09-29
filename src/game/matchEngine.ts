@@ -3500,14 +3500,43 @@ export function checkFrontRow(state: GameState, ctx: LiveCtx, side: SideCtx, min
   }
 }
 
+/**
+ * THE ASSISTANT'S BENCH IS AS GOOD AS THE ASSISTANT (1.8.1, autopilotprobe).
+ *
+ * When the manager hands the touchline over (an instant result, or a week he
+ * simply lets the game settle), his assistant makes the changes. A week
+ * settled without him used to make none at all, and since 1.8.1 simMatch
+ * hands it to the assistant as the instant result always did - who then made
+ * them exactly as an AI head coach does, the full four on the hour and every
+ * rolling change for a spent man, whoever was on the staff. Measured on
+ * autopilotprobe's 54 worlds, that line was worth 14 points a season to a
+ * Northampton that never opened a screen (34.1 without it, 48.6 with it) and
+ * seven titles in 54: pressing Continue had become a strategy.
+ *
+ * So the bench, like the team sheet (assistantJudgement), is as good as the
+ * man he hired to run it. Up to level one he makes two changes on the hour
+ * and nothing else; level two makes three and reads a tank running dry the
+ * way a head coach does; level three is a head coach. A manager who makes his
+ * own changes has the whole bench whatever his staff. Measured on the same 54
+ * worlds (Northampton has a level-two assistant): 44.2 points a season, 3
+ * titles, against the engaged manager's 52.3 and 12. Deterministic: no draw.
+ */
+export function assistantBench(state: GameState): { bulk: number; rolling: boolean } {
+  const lvl = Math.min(3, Math.max(0, state.staff?.assistant ?? 0))
+  return { bulk: [2, 2, 3, 4][lvl], rolling: lvl >= 2 }
+}
+
 function aiAutoSubs(state: GameState, ctx: LiveCtx, side: SideCtx, min: number) {
   // the user manages their own bench (except forced injury subs elsewhere),
   // unless they handed the match to the assistant
   if (side.isUser && !ctx.assistantSubs) return
   if (ctx.tick < 11) return
   const bulk = ctx.tick === 15 // the classic bench emptying, 61-64'
+  // his assistant runs it at the assistant's level (assistantBench)
+  const asst = side.isUser ? assistantBench(state) : null
+  if (asst && !bulk && !asst.rolling) return
   let made = 0
-  for (let slot = 0; slot < 15 && made < (bulk ? 4 : 1); slot++) {
+  for (let slot = 0; slot < 15 && made < (bulk ? (asst?.bulk ?? 4) : 1); slot++) {
     const outId = side.lineup[slot]
     if (outId == null || !side.onPitch.has(outId)) continue
     const e = side.energy.get(outId) ?? 70
