@@ -4469,8 +4469,23 @@ If you go, your assistant takes your national side for the duration. Nobody prep
       // manager and a support that has stopped hearing from its club. Sized
       // below the worst live answer (board -0.2 on the option scale = 1.0
       // confidence) so answering badly still beats not answering at all.
+      //
+      // AND IN PROPORTION TO THE BOARD'S PATIENCE (1.8.1). This was the one
+      // board term that ignored stature (boardPatience scales every result
+      // and every table review), and in 1.8.1 it began to fire far more for
+      // an absent manager: the one-question-a-week gate stopped counting the
+      // office's own standing decisions as press, so the press kept asking
+      // all season where two stale memos had silenced it from the first
+      // month (Esher, seed 151: two expired questions a season became a
+      // dozen, and the board that bottomed at 50 bottomed at 15). A small
+      // club's board takes an empty chair as it takes a defeat, at its own
+      // patience: a little under half the price at the weakest club in the
+      // game, the full 0.8 from the middle of the pool up, never more, so a
+      // bad answer still beats no answer. autopilotprobe, 36 seeds, Esher
+      // sleepwalking: mean lowest confidence 45.9 before, 49.3 with this
+      // (1.8.0: 48.6).
       const uc = state.clubs[state.userClubId]
-      if (uc) uc.boardConfidence = clamp(uc.boardConfidence - 0.8, 0, 100)
+      if (uc) uc.boardConfidence = clamp(uc.boardConfidence - 0.8 * Math.min(1, boardPatience(uc.rep) / 1.3), 0, 100)
       state.fanMood = clamp((state.fanMood ?? 60) - 0.4, 10, 95)
     }
   }
