@@ -30,7 +30,7 @@ import { nationByCode, regenName, worldNames } from './nations'
 import { clamp, mulberry32, pick, type Rng } from './rng'
 import { resetFamiliarity } from './playbook'
 import { closeAcademySeason, ensureAcademyLeague, topUpAcademy, acadCeiling } from './academy'
-import { mentorBoost } from './mentoring'
+import { mentorBond, mentorBoost, pairWeeks } from './mentoring'
 import { endSeasonJokers } from './joker'
 import { staffChem } from './staff'
 import { tIn, type Vars } from './i18n'
@@ -327,7 +327,9 @@ export function devFactor(state: GameState, p: Player): number {
   if (p.clubId === state.userClubId) {
     const pair = (state.mentors ?? []).find(mp => mp.kid === p.id)
     const senior = pair ? state.players[pair.senior] : null
-    if (senior) f += 0.06 * mentorBoost(senior, p)
+    // the summer term grows with the relationship too (1.8.2): a pairing
+    // made in May has not had time to be worth its full six per cent
+    if (senior && pair) f += 0.06 * mentorBoost(senior, p) * mentorBond(senior, p, pairWeeks(state, pair))
     f += (state.staff?.assistant ?? 0) * 0.03
     // the weather in the staff room (25D-3): a coaching team that clicks
     // teaches better than the sum of its badges, one that feuds teaches

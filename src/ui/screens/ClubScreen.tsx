@@ -6,6 +6,7 @@ import { nationName } from '../../game/nations'
 import { squadValue, starPlayerIds } from '../../game/analysis'
 import { activeFeuds, reconcileChance, reconcileFeud } from '../../game/gossip'
 import { mulberry32 } from '../../game/rng'
+import { fuzzedCa, knowledge, seenValue } from '../../game/scout'
 import { dialLine, philosophyOf } from '../../game/philosophy'
 import { identityOf } from '../../game/identity'
 import { t, localeTag, compLabel } from '../../game/i18n'
@@ -33,7 +34,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
   if (!club) return null
   const league = game.comps[club.leagueId]
   const players = club.players.map(id => game.players[id]).filter(Boolean)
-    .sort((a, b) => POS_ORDER.indexOf(a.pos) - POS_ORDER.indexOf(b.pos) || b.ca - a.ca)
+    .sort((a, b) => POS_ORDER.indexOf(a.pos) - POS_ORDER.indexOf(b.pos) || fuzzedCa(game, b) - fuzzedCa(game, a))
   const honours = game.history.filter(h => h.champion === clubId)
 
   return (
@@ -494,9 +495,11 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
               <td className="name">{p.name}{starPlayerIds(game, club.id).has(p.id) ? <> <Glyph name="star" /></> : ''}</td>
               <td className="num">{p.age}</td>
               <td><Nat code={p.nat} /></td>
-              <td><Stars ca={p.ca} /></td>
+              {/* another club's squad is read through the scouts (1.8.2): the
+                  academy tab here was a free list of true ratings and prices */}
+              <td><Stars ca={fuzzedCa(game, p)} />{knowledge(game, p) < 95 && <span className="muted">?</span>}</td>
               <td><FormPill v={p.form} /></td>
-              <td className="num">{fmtMoney(p.value)}</td>
+              <td className="num">{fmtMoney(seenValue(game, p))}</td>
             </tr>
           ))}
         </tbody>
