@@ -135,7 +135,13 @@ if (recRight + recWrong !== n) bad(`record counted ${recRight + recWrong} of ${n
   // reshuffled club strengths and the season-count comparison sat exactly on
   // its threshold (6 of 12) - a coin-flip verdict at that sample size. The
   // assertions are unchanged; the sample is just big enough to mean something.
-  for (let seed = 1; seed <= 24; seed++) {
+  // Forty-eight from 1.8.1, for the same reason again. The manager's bench now
+  // starts with a job per seat (bench.defaultBriefs), which reshuffles every
+  // season in both arms alike, and seeds 1-24 read -9.5 (12 of 24) where the
+  // same code with the old bench read +42.4 (16 of 24); seeds 25-48 read
+  // +26.5 and +21.4 either way. Nothing had moved but the panel: at 24
+  // seasons the count is still close to a coin flip, so the sample doubles.
+  for (let seed = 1; seed <= 48; seed++) {
     const margin: Record<string, number> = {}
     for (const follow of ['follow', 'ignore']) {
       const w = newGame('leicester', 'Edge', seed * 31)

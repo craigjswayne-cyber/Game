@@ -25,7 +25,7 @@ import {
   applyPreTalk, applyTacticsChange, applyTeamTalk, beginMatch, makeSubstitution,
   resolveDecision, stepTick, type LiveCtx,
 } from '../src/game/matchEngine'
-import { weekRng } from '../src/game/season'
+import { matchRng } from '../src/game/season'
 import { replayMatch, type MatchCmd, type MatchResume } from '../src/game/resume'
 import type { GameState } from '../src/game/model'
 
@@ -64,7 +64,8 @@ function playWithMeddling(seed: number, stopAt: number): { sig: string; rec: Mat
 
   const pre = JSON.parse(JSON.stringify(g)) as GameState
   const cmds: MatchCmd[] = []
-  const ctx = beginMatch(g, fx, weekRng(g), true, g.userClubId)
+  // the manager's match is on its own dice (matchRng, 1.8.1), as in the store
+  const ctx = beginMatch(g, fx, matchRng(g), true, g.userClubId)
   const preTalk = 'fire' as const
   applyPreTalk(g, ctx, preTalk)
 
@@ -110,7 +111,7 @@ function playWithMeddling(seed: number, stopAt: number): { sig: string; rec: Mat
   }
 
   const rec: MatchResume = {
-    v: 1, pre, fxId: fx.id, userSideId: g.userClubId, preTalk,
+    v: 1, pre, stream: 'match', fxId: fx.id, userSideId: g.userClubId, preTalk,
     mode: 'full', tick: ctx.tick, cursor: ctx.events.length, cmds,
     season: pre.season, week: pre.week, savedAt: 0,
   }

@@ -21,7 +21,7 @@ import es from '../src/locales/es.json'
 import it from '../src/locales/it.json'
 import ja from '../src/locales/ja.json'
 import af from '../src/locales/af.json'
-import { LANGS, tIn, type Lang, SIBLING, baseKey } from '../src/game/i18n'
+import { LANGS, ensureLang, tIn, type Lang, SIBLING, baseKey } from '../src/game/i18n'
 
 let fails = 0
 const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
@@ -250,6 +250,23 @@ for (const { code, label } of LANGS) {
   ]
   for (const [k, want] of PINNED) {
     ok(tIn('en', k) === want, `en.${k} is still "${want}" (browser harnesses select on it)`)
+  }
+}
+
+// ONE PLURAL RULE ON BOTH PATHS (1.8.1, manual section 1 tester note 6). A
+// { one, other } entry drawn at the top level and the same entry drawn as a
+// _k fragment inside another string took different forms in Japanese: t()
+// picked `one` at n = 1, render() never did. news.terracesSubj is "{head_k}"
+// in every language, so it draws its fragment through render().
+{
+  // the dictionaries are lazy chunks: load them, or this measures the fallback
+  for (const lang of ['ja', 'fr'] as Lang[]) ok(await ensureLang(lang), `${lang} dictionary loads`)
+  for (const lang of ['ja', 'en', 'fr'] as Lang[]) {
+    for (const n of [0, 1, 2]) {
+      const top = tIn(lang, 'dayroom.drawTies', { n })
+      const frag = tIn(lang, 'news.terracesSubj', { head_k: 'dayroom.drawTies', n })
+      ok(top === frag, `${lang} n=${n}: a plural reads the same at the top level and as a fragment ("${top}")`)
+    }
   }
 }
 
