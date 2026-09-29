@@ -1477,6 +1477,9 @@
  "tacticsScreen": {
   "tabRoles": "役割",
   "tabSetPiece": "セットプレー",
+  "spSubCalls": "ラインアウト・スクラム",
+  "spSubMoves": "サインプレー",
+  "spSubKicking": "キック",
   "tabBench": "ベンチ",
   "tabPrep": "準備",
   "tabPlan": "ゲームプラン",

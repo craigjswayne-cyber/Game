@@ -68,6 +68,23 @@ try {
     await page.click(`.tab-bar >> text=${tab}`)
     await measure(`tactics: ${label}`)
   }
+  // THE SET PIECE TAB was never measured here, and grew to 6.8 screenfuls in
+  // landscape (4.5 portrait) once the attacking moves joined it in 1.8.1
+  // before anyone counted. 1.8.2 split it into three views behind a segmented
+  // control ([data-sp-sub] in screens/Tactics.tsx); each view is a fixed page
+  // and is held to the same limit as every other, in landscape here and on a
+  // portrait phone as well, since the tab is laid out differently in each.
+  // The portrait rows are added at the end of the walk (setPieceViews below)
+  // so the landscape session is not resized under the screens after it.
+  await page.click('.tab-bar >> text=Set Piece')
+  await page.waitForSelector('[data-sp-sub]')
+  const spViews = await page.$$eval('[data-sp-sub]', bs => bs.map(b => b.dataset.spSub))
+  if (spViews.length !== 3) console.error(`SCROLL AUDIT: expected three set piece views, found ${spViews.length}`)
+  for (const v of spViews) {
+    await page.click(`[data-sp-sub="${v}"]`)
+    await measure(`tactics: set piece ${v}`)
+  }
+  await page.click(`[data-sp-sub="${spViews[0]}"]`)
 
   const clubItems = [
     ['Team Report', 'team report'],
@@ -124,6 +141,17 @@ try {
     await page.click('.bottom-nav button[title="World"]')
     await page.click(`.submenu-item >> text=${item}`)
     await measure(label)
+  }
+
+  // the set piece views again, on a portrait phone (portraitqa's 412x915)
+  await page.setViewportSize({ width: 412, height: 915 })
+  await page.evaluate(() => window.rugbyStore.getState().go('tactics'))
+  await page.waitForSelector('.tab-bar')
+  await page.click('.tab-bar >> text=Set Piece')
+  await page.waitForSelector('[data-sp-sub]')
+  for (const v of await page.$$eval('[data-sp-sub]', bs => bs.map(b => b.dataset.spSub))) {
+    await page.click(`[data-sp-sub="${v}"]`)
+    await measure(`tactics: set piece ${v} (portrait)`)
   }
 } catch (e) {
   console.error('SCROLL AUDIT stopped early:', e.message)
@@ -196,7 +224,12 @@ try {
   // adding a row to it.
   const deep = over.filter(r => r.screens >= 3)
   for (const r of deep) console.log(`FAIL: ${r.name} is ${r.screens.toFixed(2)} screenfuls deep`)
+  // and the set piece views must actually have been measured, both ways up:
+  // a renamed tab or view would otherwise pass by measuring nothing
+  const spRows = ['calls', 'moves', 'kicking'].flatMap(v => [`tactics: set piece ${v}`, `tactics: set piece ${v} (portrait)`])
+  const missing = spRows.filter(n => !rows.some(r => r.name === n))
+  for (const n of missing) console.log(`FAIL: ${n} was not measured`)
   await browser.close()
   server.stop()
-  process.exit(deep.length ? 1 : 0)
+  process.exit(deep.length || missing.length ? 1 : 0)
 }

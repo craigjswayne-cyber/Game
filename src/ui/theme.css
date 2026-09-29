@@ -3064,6 +3064,36 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   .routine-grid.sp-scrum { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 
+/* THE SET PIECE TAB, IN THREE (1.8.2, screens/Tactics.tsx). The lineout and
+   scrum calls, the attacking moves and the kicking each get a view, picked on
+   the new-career screen's segmented track (.game-pick above) rather than a
+   second .tab-bar: two rows of underlined caps read as two levels of the same
+   thing, and every probe that walks the screen's tabs by position would have
+   counted the three views as tabs. Same card margins, so the track lines up
+   with the cards under it; same 820px cap as a card on a wide screen. */
+.game-pick.sp-sub { margin: 9px 12px 2px; }
+.game-pick.sp-sub button { font-size: 12.5px; }
+@media (orientation: landscape) and (min-width: 640px) { .content > .sp-sub { max-width: 820px; } }
+.app.tablet .content > .sp-sub { max-width: none; }
+/* A landscape phone is 390px tall, and at 844 wide a three-across lineout
+   tile's picture was 172px of it on its own: split in three, the calls view
+   still came to 2.9 screenfuls there and the kicking view to 3.2. Holding the
+   picture's height down only left it floating in a wide empty tile, so on a
+   short landscape screen the picture moves BESIDE the words instead, the way
+   the attacking moves card already lays out its own: a tile loses the height
+   of its picture and the words use the width the picture left over. A tablet
+   and every portrait phone draw them exactly as before. */
+@media (orientation: landscape) and (min-width: 640px) and (max-height: 560px) {
+  .sp-call, .sp-card { flex-direction: row; align-items: center; gap: 8px; }
+  .sp-call .dg { flex: 0 0 44%; width: 44%; }
+  .sp-call .sp-txt { flex: 1 1 0; }
+  /* four scrum tiles in a row left each picture 80px wide beside a column of
+     words two short words across: two by two, they are the lineout's width */
+  .routine-grid.sp-scrum { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sp-card .dg { flex: 0 0 56%; width: 56%; }
+  .sp-card b { flex: 1 1 0; min-width: 0; text-align: left; }
+}
+
 /* ---- the attacking moves (1.8.1, ui/MovesSection.tsx) -------------------
    One card for the three calls: which call on the top row, the options under
    it, and the picture beside the facts (two columns on a phone, the picture

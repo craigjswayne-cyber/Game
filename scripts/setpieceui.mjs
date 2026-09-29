@@ -10,14 +10,14 @@
 //     style, penalty call, bench split, bench brief and preparation focus is
 //     tapped, and the club's tactic (or game.matchPrep) must then hold that
 //     id, the tapped control must say so (.sel / .on and aria-pressed), and
-//     no other control in its group may. The goal-kicker select is set too.
+//     no other control in its group may. A goal kicker is named off the sheet.
 //   AND IS SAVED. The last choices are written with persistNow(), the page is
 //     reloaded, and the career that comes back must carry them.
 //   THE PICTURES ARE THERE. Every call and option button holds an inline SVG
 //     diagram with real content, the 23 shows fifteen shirts and eight seats,
 //     each seat shows its brief as an icon, and no emoji is left in the
 //     briefs.
-//   IT FITS. At 412 and 360 wide and in tablet mode: no sideways scroll, no
+//   IT FITS. At 412 and 360 wide, on its side at 844x390 and in tablet mode: no sideways scroll, no
 //     label clipped inside its own box, no two names on the 23 overlapping,
 //     and no console errors anywhere along the way.
 //
@@ -81,15 +81,32 @@ async function fits(page, label, sel) {
 
 const TEXT = '.sp-txt b, .sp-txt .d, .sp-card b, .prep-card b, .prep-card .d, .b23-sname, .b23-brief, .brief-key-row span, .bclock .meta, .split-grid .d, .split-grid b'
 
+/** One of the Set Piece tab's three views (1.8.2): the segmented control
+ *  under the tab bar, [data-sp-sub] = calls | moves | kicking. */
+const view = async (page, v) => {
+  await page.click(`[data-sp-sub="${v}"]`)
+  await page.waitForTimeout(150)
+  return page.$eval(`[data-sp-sub="${v}"]`, b => b.classList.contains('sel') && b.getAttribute('aria-selected') === 'true')
+}
+const diagrams = (page, sel) => page.$$eval(sel, bs => bs.map(b => {
+  const s = b.querySelector('svg.dg')
+  return s ? s.querySelectorAll('circle, path, line, rect, ellipse, polygon').length : 0
+}))
+
 async function setPiece(page, label, full) {
   await tab(page, 1)
+  // THE TAB IN THREE: three views, one shown at a time, each picked alone
+  const subs = await page.$$eval('[data-sp-sub]', bs => bs.map(b => b.dataset.spSub))
+  ok(subs.join() === 'calls,moves,kicking', `${label}: the set piece tab has its three views (${subs.join(' / ')})`)
+  const tap = await page.evaluate(() => [...document.querySelectorAll('[data-sp-sub]')].map(b => Math.round(b.getBoundingClientRect().height)))
+  ok(tap.every(h => h >= 44), `${label}: every view button is a full tap target (${tap.join(', ')}px)`)
+
+  ok(await view(page, 'calls'), `${label}: the calls view is picked`)
   const calls = await page.$$eval('.sp-call', bs => bs.map(b => b.dataset.call))
   ok(calls.length === 10, `${label}: ten set-piece calls drawn (${calls.length})`)
-  const dg = await page.$$eval('.sp-call, .sp-card', bs => bs.map(b => {
-    const s = b.querySelector('svg.dg')
-    return s ? s.querySelectorAll('circle, path, line, rect, ellipse, polygon').length : 0
-  }))
-  ok(dg.length === 22 && dg.every(n => n >= 10), `${label}: every call and option carries a diagram (${dg.length} buttons, fewest shapes ${Math.min(...dg)})`)
+  ok(await page.locator('.sp-card, .mv-card, .kick-btn').count() === 0, `${label}: and nothing from the other two views on it`)
+  const dgc = await diagrams(page, '.sp-call')
+  ok(dgc.length === 10 && dgc.every(n => n >= 10), `${label}: every call carries a diagram (${dgc.length} buttons, fewest shapes ${Math.min(...dgc)})`)
   if (full) {
     for (const id of calls) {
       await page.click(`.sp-call[data-call="${id}"]`)
@@ -100,6 +117,20 @@ async function setPiece(page, label, full) {
       const saved = kind === 'lo_' ? t.lineoutCall : t.scrumCall
       ok(saved === id && on && others === 1, `${label}: ${id} is the call (${saved}), and the only one shown picked`)
     }
+  }
+  await fits(page, `${label} set piece calls`, TEXT)
+
+  ok(await view(page, 'moves'), `${label}: the moves view is picked`)
+  ok(await page.locator('.mv-card').count() === 1 && await page.locator('.sp-call, .sp-card').count() === 0,
+    `${label}: the moves view is the attacking moves card on its own`)
+  await fits(page, `${label} set piece moves`, TEXT)
+
+  ok(await view(page, 'kicking'), `${label}: the kicking view is picked`)
+  const dgk = await diagrams(page, '.sp-card')
+  ok(dgk.length === 12 && dgk.every(n => n >= 10), `${label}: every kicking option carries a diagram (${dgk.length} buttons, fewest shapes ${Math.min(...dgk)})`)
+  ok(await page.locator('button.kick-btn').count() === 2 && await page.locator('.sp-call, .mv-card').count() === 0,
+    `${label}: the two goal kickers are on the kicking view, and no calls or moves`)
+  if (full) {
     const groups = { exit: ['box', 'long', 'counter', 'fifty22'], kick: ['territory', 'contest', 'attack', 'balanced'], pen: ['ask', 'posts', 'corner', 'tap'] }
     const field = { exit: 'exit', kick: 'kickStyle', pen: 'penaltyCall' }
     for (const [g, ids] of Object.entries(groups)) {
@@ -111,13 +142,29 @@ async function setPiece(page, label, full) {
         ok(t[field[g]] === id && on && n === 1, `${label}: ${field[g]} = ${id} (${t[field[g]]}), shown picked alone`)
       }
     }
-    // the goal kicker: the second name on the list becomes the first kicker
-    const sel = page.locator('.lead-row select').first()
-    const v = await sel.locator('option').nth(2).getAttribute('value')
-    await sel.selectOption(v)
-    ok(((await tac(page)).kickers ?? [])[0] === Number(v), `${label}: the first goal kicker is set (${v})`)
+    // the goal kicker: a row opens the squad sheet (1.8.1 replaced the two
+    // selects this used to set, which had left the probe waiting on a
+    // select that no longer exists), and the second name on the sheet
+    // becomes the first kicker
+    await page.locator('button.kick-btn').first().click()
+    await page.waitForSelector('.lead-sheet')
+    const row = page.locator('.lead-sheet tbody tr').nth(1)
+    const nm = (await row.locator('td.name').textContent()).trim()
+    await row.click()
+    await page.waitForTimeout(200)
+    const k0 = ((await tac(page)).kickers ?? [])[0]
+    const kName = await page.evaluate(id => window.rugbyStore.getState().game.players[id]?.name, k0)
+    ok(k0 != null && kName === nm && await page.locator('.lead-sheet').count() === 0, `${label}: the first goal kicker is set (${kName})`)
   }
-  await fits(page, `${label} set piece`, TEXT)
+  await fits(page, `${label} set piece kicking`, TEXT)
+
+  // REMEMBERED FOR THE SESSION: leave the tab on kicking, go to another
+  // screen and back, and the Set Piece tab opens on kicking again
+  await page.evaluate(() => window.rugbyStore.getState().go('squad'))
+  await page.waitForTimeout(200)
+  await tab(page, 1)
+  ok(await page.$eval('[data-sp-sub="kicking"]', b => b.classList.contains('sel')), `${label}: the kicking view is still the one open after leaving the screen`)
+  await view(page, 'calls')
 }
 
 async function bench(page, label, full) {
@@ -211,6 +258,11 @@ const shoot = async (page, name) => {
   }
   await page.evaluate(() => { window.__sc.scrollTop = 0 })
 }
+/** the Set Piece tab is three views since 1.8.2: a set of shots for each */
+const shootSp = async (page, name) => {
+  for (const v of ['calls', 'moves', 'kicking']) { await view(page, v); await shoot(page, `${name}-${v}`) }
+  await view(page, 'calls')
+}
 
 const errors = []
 const watch = (page, label) => {
@@ -224,7 +276,7 @@ try {
   const page = await ctx.newPage()
   watch(page, 'phone')
   await career(page)
-  await setPiece(page, '412', true); await shoot(page, 'setpiece-412')
+  await setPiece(page, '412', true); await shootSp(page, 'setpiece-412')
   await bench(page, '412', true); await shoot(page, 'bench-412')
   await prep(page, '412', true); await shoot(page, 'prep-412')
 
@@ -250,9 +302,14 @@ try {
 
   // ---- phone, 360 wide ----
   await page.setViewportSize({ width: 360, height: 800 })
-  await setPiece(page, '360', false); await shoot(page, 'setpiece-360')
+  await setPiece(page, '360', false); await shootSp(page, 'setpiece-360')
   await bench(page, '360', false); await shoot(page, 'bench-360')
   await prep(page, '360', false); await shoot(page, 'prep-360')
+
+  // ---- phone on its side, 844 x 390: the calls and options lay their
+  // pictures beside their words here (theme.css), so the fit is checked too
+  await page.setViewportSize({ width: 844, height: 390 })
+  await setPiece(page, 'landscape', false); await shootSp(page, 'setpiece-landscape')
   await ctx.close()
 
   // ---- tablet: a touch screen, so the .tablet layout is live ----
@@ -261,7 +318,7 @@ try {
   watch(tp, 'tablet')
   await career(tp)
   ok(await tp.evaluate(() => document.querySelector('.app')?.classList.contains('tablet')), 'tablet: the tablet layout is on')
-  await setPiece(tp, 'tablet', true); await shoot(tp, 'setpiece-tablet')
+  await setPiece(tp, 'tablet', true); await shootSp(tp, 'setpiece-tablet')
   await bench(tp, 'tablet', false); await shoot(tp, 'bench-tablet')
   await prep(tp, 'tablet', false); await shoot(tp, 'prep-tablet')
   await tctx.close()
