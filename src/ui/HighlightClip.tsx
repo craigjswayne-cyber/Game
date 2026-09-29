@@ -1165,7 +1165,9 @@ function bake(c: ClipSpec): Baked {
     if (ph.k === 'pass') {
       ph.from = { x: ball.x, y: ball.y }
       const r = att[ph.who - 1]
-      ph.dur = clamp(Math.hypot(r.x - ball.x, r.y - ball.y) / 17, 0.3, 0.95)
+      // (a called move's long pass, off the back of the pod to a wing, is
+      // given the air time it needs rather than a ball faster than a pass)
+      ph.dur = clamp(Math.hypot(r.x - ball.x, r.y - ball.y) / 17, 0.3, c.move ? 1.2 : 0.95)
       // the decoy goes as this pass does, and the defender nearest him bites
       if (ph.decoy && script?.decoy) {
         decoyT = t
@@ -1208,9 +1210,10 @@ function bake(c: ClipSpec): Baked {
           return { s: bs, dist: bd }
         }
         const ranked = def.map((_, i) => ({ i, ...nearest(i) })).filter(r => !skip(r.i) && (frozen[r.i].x - ph.from!.x) * d > 0).sort((a, b) => a.dist - b.dist)
-        // (a move off a set piece has their pack still coming across: one
-        // more of them may be in his way, and goes for him too)
-        for (const r of ranked) if (r.dist < 2.6 && missers.length < (script ? 4 : 3)) missers.push({ i: r.i, s: r.s, dove: 0 })
+        // (up to four of them: a fourth man standing in his line was left
+        // out at three and the finisher ran straight through him, found
+        // when the moves (1.8.1) moved the stream onto such a try)
+        for (const r of ranked) if (r.dist < 2.6 && missers.length < 4) missers.push({ i: r.i, s: r.s, dove: 0 })
         for (const r of ranked) if (missers.length < Math.min(3, Math.max(missers.length, c.misses)) && !missers.some(m => m.i === r.i) && r.dist < 9) missers.push({ i: r.i, s: clamp(r.s, 0.25, 0.85), dove: 0 })
         contact.push(...missers.map(m => m.i))
         if (ph.end === 'held') contact.push(14)
