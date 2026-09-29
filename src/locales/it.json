@@ -2399,7 +2399,7 @@
   "tabAttributes": "Attributi",
   "tabCareer": "Carriera",
   "alsoPlays": " (anche {pos})",
-  "natLine": "{flag} {country} · {age} anni",
+  "natLine": "{country} · {age} anni",
   "international": " · Nazionale",
   "academyGrad": " · Cresciuto nel vivaio",
   "academyGrad_f": " · Cresciuta nel vivaio",
