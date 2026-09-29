@@ -95,7 +95,7 @@ const OPTIONAL_FIELDS = [
   'shortlist', 'staff', 'mgr', 'vacancies', 'devFocus', 'natTeam', 'natOffer',
   'natLineup', 'objectives', 'finHist', 'boardOwed', 'news', 'press', 'offers',
   'mentors', 'pledges', 'preContracts', 'history', 'comps', 'fixtures',
-  'natSquads', 'natRank', 'commission', 'tryOfSeason', 'day', 'newsFrom',
+  'natSquads', 'natRank', 'commission', 'tryOfSeason', 'day', 'newsFrom', 'natSent',
 ].filter(f => f !== 'comps')
 console.log('--- fields an older save simply does not have')
 for (const f of OPTIONAL_FIELDS) {

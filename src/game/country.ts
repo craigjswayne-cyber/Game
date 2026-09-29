@@ -11,7 +11,7 @@
 import type { GameState, Player } from './model'
 import { clamp } from './rng'
 import { activeWindows } from './season'
-import { NAT_SQUAD_FLOOR, NAT_SQUAD_SIZE, homeBased } from './nations'
+import { NAT_SQUAD_FLOOR, NAT_SQUAD_SIZE, clubQuotaLeft, conflictedClub, federationPick, homeBased } from './nations'
 import { t } from './i18n'
 
 const HOME4 = ['ENG', 'IRE', 'SCO', 'WAL']
@@ -72,9 +72,25 @@ export function natCallUp(state: GameState, playerId: number): string | null {
   if (!homeBased(state, p, nat)) return t('reply.notHomeBased', { player: p.name, nat })
   if (p.injury) return t('reply.injuredNotPassed', { player: p.name })
   if (squad.length >= w.size) return t('reply.squadCapped', { n: w.size })
+  // ONE MAN, TWO JOBS (9.10, nations.ts): while he also runs a club, no more
+  // men from a club his side meets than the federation itself would take
+  if (p.clubId && clubQuotaLeft(state, nat, w.size, squad, p.clubId) <= 0) {
+    const club = state.clubs[p.clubId]?.short ?? ''
+    const n = federationPick(state, nat, w.size).filter(q => q.clubId === p.clubId).length
+    return p.clubId === conflictedClub(state)
+      ? t('reply.ownClubQuota', { player: p.name, club, n })
+      : t('reply.rivalQuota', { player: p.name, club, n })
+  }
   squad.push(playerId)
   p.natSquad = true
-  p.morale = clamp(p.morale + 0.5, 1, 10) // the proudest phone call in rugby
+  // a man recalled after being sent home this window gets the sting back, not
+  // a second dose of pride: call-and-drop is not a lever on anyone's morale
+  const sent = state.natSent ?? []
+  const back = sent.indexOf(playerId)
+  if (back >= 0) {
+    sent.splice(back, 1)
+    p.morale = clamp(p.morale + 0.7, 1, 10)
+  } else p.morale = clamp(p.morale + 0.5, 1, 10) // the proudest phone call in rugby
   // the 23 is picked from the squad - a changed squad voids the old teamsheet
   if (state.natLineup?.team === nat) state.natLineup = null
   return null
@@ -90,12 +106,20 @@ export function natDrop(state: GameState, playerId: number): string | null {
   if (!w || !squad) return t('reply.noWindow')
   const idx = squad.indexOf(playerId)
   if (idx < 0) return t('reply.notInSquad')
-  if (squad.length <= NAT_SQUAD_FLOOR) return t('reply.squadFloor', { n: NAT_SQUAD_FLOOR })
   const p = state.players[playerId]
+  // his own club's men on the federation's list stay in camp while he also
+  // runs that club, or leaving them home would be the favour 9.10 rules out
+  const mine = conflictedClub(state)
+  if (p && mine && p.clubId === mine && !p.injury &&
+      federationPick(state, nat, w.size).some(q => q.id === playerId)) {
+    return t('reply.ownClubKept', { player: p.name, club: state.clubs[mine]?.short ?? '' })
+  }
+  if (squad.length <= NAT_SQUAD_FLOOR) return t('reply.squadFloor', { n: NAT_SQUAD_FLOOR })
   squad.splice(idx, 1)
   if (p) {
     p.natSquad = false
     p.morale = clamp(p.morale - 0.7, 1, 10) // being sent home from camp stings
+    ;(state.natSent ??= []).push(playerId)
   }
   if (state.natLineup?.team === nat) state.natLineup = null
   return null
