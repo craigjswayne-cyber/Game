@@ -23,7 +23,7 @@
 // Every consequence is small and bounded and goes through machinery that is
 // already there: morale (and through it the game-time ledger's transfer
 // requests), the office (a "you sold my mate" knock settled by talkback.ts),
-// the Wire and the Club screen's rifts card (gossip.ts feuds), and a tiny,
+// the Wire (gossip.ts feuds are read, never opened), and a tiny,
 // symmetric cohesion term in the engine.
 //
 // DETERMINISM. Nothing here draws from the shared weekly stream: every gate is
@@ -35,7 +35,8 @@ import { absWeek } from './model'
 import { clamp, mulberry32 } from './rng'
 import { tIn, type Vars } from './i18n'
 import { OFFICE_OUTLET, askedRecently, isBoardroom, rememberAsk } from './media'
-import { activeFeuds, type Feud } from './gossip'
+import { activeFeuds } from './gossip'
+import { memoryLog, remember, type MemoryKind } from './memory'
 
 /** [a, b, strength, flags] with a < b. flags: 1 = rift announced, 2 = bond noted. */
 export type Pair = [number, number, number, number]
@@ -71,8 +72,29 @@ export const bondsReport = { week: -1, maxDelta: 0, stories: 0, ms: 0 }
 
 /** A hook for the career memory log (memory.ts, not on this branch). */
 export interface BondNote { kind: string; playerId: number; clubId?: string; payload?: Record<string, unknown> }
-function note(_state: GameState, _ev: BondNote): void {
-  // TODO(memory): remember()
+/** Each ledger event, as the career memory log (memory.ts) names it, and how
+ *  much it matters there. A lost shirt is only remembered for a senior voice:
+ *  the ordinary weekly rotation would crowd the capped log out. */
+const MEMORY: Record<string, [MemoryKind, number]> = {
+  'bonds.seeded': ['bonds-seeded', 1],
+  'bonds.friendLeft': ['mate-left', 2],
+  'bonds.armband': ['armband-passed', 2],
+  'bonds.shirtLost': ['senior-dropped', 2],
+  'bonds.bondFormed': ['bond', 1],
+  'bonds.riftFormed': ['rift', 2],
+  'bonds.cliqueForms': ['clique-formed', 2],
+  'bonds.cliqueEnds': ['clique-ended', 1],
+}
+function note(state: GameState, ev: BondNote): void {
+  const m = MEMORY[ev.kind]
+  if (!m) return
+  let payload: Record<string, string | number> | undefined
+  for (const [k, v] of Object.entries(ev.payload ?? {})) {
+    const val = typeof v === 'number' && Number.isFinite(v) ? v : typeof v === 'string' ? v
+      : Array.isArray(v) ? v.join(',') : null
+    if (val != null) (payload ??= {})[k] = val
+  }
+  remember(state, { kind: m[0], playerId: ev.playerId >= 0 ? ev.playerId : undefined, clubId: ev.clubId, payload, sal: m[1] })
 }
 
 // ------------------------------------------------------------------ basics
@@ -221,8 +243,13 @@ function canSpeak(state: GameState, bs: BondState): boolean {
 function file(state: GameState, bs: BondState, k: string, v: Vars, type: 'gossip' | 'general', playerId?: number, playerIds?: number[]) {
   bs.said = absWeek(state.season, state.week)
   bondsReport.stories++
-  state.news.push({
-    id: state.nextId++, week: state.week, season: state.season, type, read: false,
+  // HELD, NOT FILED: news, players and fixtures share state.nextId and a
+  // fixture's dice are seeded from its id, so a story that took an id here,
+  // mid-settle, would move AI results. The memory log's queue holds it and
+  // flushMemoryNews() files it at the end of the settle on a fractional id
+  // that never advances the counter (memory.ts).
+  ;(memoryLog(state).queue ??= []).push({
+    week: state.week, season: state.season, type, read: false,
     subject: tIn('en', `${k}Subj`, v), body: tIn('en', k, v), k, v: v as Record<string, string | number>,
     playerId, playerIds,
   })
@@ -244,8 +271,15 @@ function mateKnock(state: GameState, p: Player, mate: Player): boolean {
     }
   }
   const qk = h(state.seed, p.id, mate.id, absWeek(state.season, state.week)) < 0.5 ? 'talk.mateQ1' : 'talk.mateQ2'
+  // a fractional id for the same reason as the stories: the office item must
+  // not advance the counter the fixtures draw from. It sits above every id
+  // minted so far and below the next; press ids only need to be unique
+  // among press items.
+  const base = state.nextId - 1
+  let id = base + 0.5
+  while (state.press.some(q => q.id === id)) id += 0.001
   const item: PressItem = {
-    id: state.nextId++, week: state.week, season: state.season,
+    id, week: state.week, season: state.season,
     outlet: OFFICE_OUTLET, question: tIn('en', qk, v), qk, qv: v,
     playerId: p.id, options: [opt('sorry'), opt('need'), opt('move')], answered: false, topic: 'mate',
   }
@@ -266,7 +300,11 @@ const MISS: Record<Player['pers'], number> = {
  * The weekly pass, user club only. Called once a week from season.ts. Reads
  * the week that has just been played; draws nothing from the shared stream.
  */
+/** A switch for the probes' twin-career comparison (bondsprobe 10). */
+export const bondsSwitch = { on: true }
+
 export function bondsWeek(state: GameState): void {
+  if (!bondsSwitch.on) return
   const t0 = typeof performance !== 'undefined' ? performance.now() : 0
   bondsReport.week = absWeek(state.season, state.week)
   bondsReport.maxDelta = 0
@@ -406,7 +444,7 @@ function weekly(state: GameState): void {
             if (f && f.id !== B.id) nudge(f, -0.1)
           }
         }
-        note(state, { kind: 'bonds.shirtLost', playerId: A.id, clubId: club.id, payload: { to: B.id, slot: i } })
+        if (voiceIds.has(A.id)) note(state, { kind: 'bonds.shirtLost', playerId: A.id, clubId: club.id, payload: { to: B.id, slot: i } })
       }
     }
     for (const pr of bs.pairs) {
@@ -474,10 +512,9 @@ function weekly(state: GameState): void {
         : (club.captain === a.id || club.captain === b.id) ? 'bonds.causeArmband' : 'bonds.causeOld'
       file(state, bs, 'news.bondRift',
         { a: a.name, b: b.name, aLast: last(a.name), bLast: last(b.name), cause_k: cause }, 'gossip', a.id, [a.id, b.id])
-      // the Club screen's rifts card: something the manager can do about it
-      const fs = (state as GameState & { feuds?: Feud[] })
-      fs.feuds ??= []
-      if (fs.feuds.length === 0) { fs.feuds.push({ a: a.id, b: b.id, week: state.week }); bs.fe.push(keyOf(a.id, b.id)) }
+      // NOT a gossip feud: gossip.ts settles its feuds on the shared weekly
+      // stream, so opening one here would change the draws the AI market
+      // makes after it. The rift lives in this ledger (and on the profile).
       note(state, { kind: 'bonds.riftFormed', playerId: a.id, clubId: club.id, payload: { with: b.id, s: pr[2] } })
     }
   }
