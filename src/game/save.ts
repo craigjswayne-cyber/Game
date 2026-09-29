@@ -481,7 +481,9 @@ export function migrate(s: GameState): GameState {
   )
   s.nextId = Math.max(
     typeof s.nextId === 'number' && Number.isFinite(s.nextId) ? Math.round(s.nextId) : 0,
-    highestId + 1,
+    // floored: a memory story's id is a fraction above the id before it
+    // (memory.ts flushMemoryNews) and must never become the counter
+    Math.floor(highestId) + 1,
     1,
   )
   // and any story still lacking an id gets one now, so nothing shares

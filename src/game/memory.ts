@@ -48,7 +48,9 @@ export type MemoryKind =
   | 'staff-hired'
   | 'sponsor-ended'     // a commercial deal ended early (commercial.ts)
   | 'dropped-for-signing'
-  | 'rift' | 'bond' | 'plan-followed' | 'former-player-met'
+  | 'rift' | 'bond' | 'plan-followed' | 'plan-ignored' | 'former-player-met'
+  // the club's history book (histbook.ts note): rivalries and the manager's jobs
+  | 'rivalry-formed' | 'took-job' | 'left-sacked' | 'left-walked' | 'left-moved'
 
 export interface MemoryEntry {
   id: number
@@ -73,6 +75,11 @@ export interface MemoryLog {
   /** stories told this season, and which season that count is for */
   told?: number
   toldS?: number
+  /** the id base of the last flush and how many fractions it has used */
+  fb?: number
+  fs?: number
+  /** stories waiting for an id (see tell()). Empty between weeks. */
+  queue?: Omit<import('./model').NewsItem, 'id'>[]
 }
 
 /** Enough for several seasons of decisions; an entry is ~120 bytes in a save. */
@@ -99,6 +106,35 @@ export function remember(
   log.entries.push(entry)
   if (log.entries.length > MEMORY_CAP) pruneMemory(state)
   return entry
+}
+
+/** Kinds other modules name in their own spelling, and what each is here. */
+const ALIAS: Record<string, MemoryKind> = {
+  plan_followed: 'plan-followed', plan_ignored: 'plan-ignored', 'rivalry-born': 'rivalry-formed',
+}
+/** How much each of the looser kinds matters. */
+const NOTE_SAL: Partial<Record<MemoryKind, number>> = {
+  'plan-followed': 1, 'plan-ignored': 1, 'rivalry-formed': 2, 'took-job': 3, 'left-sacked': 3, 'left-walked': 3, 'left-moved': 3,
+}
+
+/**
+ * The door for modules that note things in their own words (matchfindings.ts,
+ * histbook.ts): the kind is translated, the payload kept to what a save can
+ * hold (numbers and strings; a flag becomes 1 or 0), and anything that is not
+ * a known kind is left out rather than written as junk.
+ */
+export function noteMemory(
+  state: GameState,
+  e: { kind: string; clubId?: string; playerId?: number; payload?: Record<string, unknown> },
+): MemoryEntry | null {
+  const kind = (ALIAS[e.kind] ?? e.kind) as MemoryKind
+  if (!(kind in NOTE_SAL)) return null
+  let payload: Record<string, string | number> | undefined
+  for (const [k, v] of Object.entries(e.payload ?? {})) {
+    const val = typeof v === 'boolean' ? (v ? 1 : 0) : typeof v === 'number' && Number.isFinite(v) ? v : typeof v === 'string' ? v : null
+    if (val != null) (payload ??= {})[k] = val
+  }
+  return remember(state, { kind, clubId: e.clubId, playerId: e.playerId, payload, sal: NOTE_SAL[kind] })
 }
 
 /** Everything remembered that matches, oldest first. */
@@ -148,6 +184,9 @@ export function migrateMemory(s: GameState): void {
     e.sal = Number.isFinite(e.sal) ? clamp(e.sal, 1, 3) : 1
     if (e.paid != null && !Array.isArray(e.paid)) e.paid = []
   }
+  // a held story is filed at the next settle's end; a damaged queue is dropped
+  if (log.queue != null && !Array.isArray(log.queue)) log.queue = []
+  if (log.queue) log.queue = log.queue.filter(n => !!n && typeof n === 'object' && typeof n.k === 'string')
   const top = log.entries.reduce((n, e) => Math.max(n, e.id), 0)
   log.next = Number.isFinite(log.next) && log.next > top ? log.next : top + 1
   if (log.entries.length > MEMORY_CAP) pruneMemory(s)
@@ -213,14 +252,59 @@ function canTell(state: GameState, allowance = 0): boolean {
   return log.last !== absWeek(state.season, state.week) || allowance > 0
 }
 
+/**
+ * HELD, NOT FILED. News, players and fixtures share state.nextId, and the match
+ * engine seeds a fixture's dice from its id. A story filed mid-settle (after the
+ * manager's match, or in the weekly read-back) would push every tie drawn later
+ * in the same settle onto another id and so onto other dice: memory would move
+ * AI results without reading anything they use. So stories wait in the log's
+ * queue, stamped with the week they belong to, and take their ids in
+ * flushMemoryNews() once the settle is over (the same rule histbook.ts keeps).
+ */
 function tell(state: GameState, k: string, v: Vars, playerId?: number): void {
   const log = memoryLog(state)
   log.last = absWeek(state.season, state.week)
   log.told = (log.told ?? 0) + 1
-  state.news.push({
-    id: state.nextId++, week: state.week, season: state.season, type: 'gossip', read: false,
+  ;(log.queue ??= []).push({
+    week: state.week, season: state.season, type: 'gossip', read: false,
     subject: tIn('en', `${k}Subj`, v), body: tIn('en', k, v), k, v, playerId,
   })
+}
+
+/** The news log's ceiling (season.ts NEWS_KEEP; season.ts imports this file). */
+const NEWS_CAP = 250
+
+/**
+ * File the held stories. season.ts calls it at the very end of the week settle,
+ * after the advance, when no more fixtures are drawn this tick.
+ *
+ * AND WITHOUT SPENDING state.nextId. Holding a story to the end of the settle
+ * is not enough on its own: an id taken now is an id the next cup draw does not
+ * get, so every tie drawn weeks later sits one number higher and rolls other
+ * dice (memoryprobe caught it: the knockout ties of week 33 moved from 1001800
+ * to 1001807 with ten stories told). So a memory story takes a fraction above
+ * the last id minted: base + 0.001, base + 0.002. It still sorts after
+ * everything filed before it and before everything filed after (days.ts reads
+ * `id >= newsFrom`), it is unique while fewer than a thousand stories are told
+ * on the same base, and the counter the fixtures draw from never moves.
+ * save.ts floors the highest id when it repairs nextId, so a fraction can never
+ * leak into it.
+ */
+export function flushMemoryNews(state: GameState): void {
+  const log = state.memory
+  const q = log?.queue
+  if (!log || !q?.length) return
+  const base = state.nextId - 1
+  if (log.fb !== base) { log.fb = base; log.fs = 0 }
+  for (const n of q) {
+    log.fs = (log.fs ?? 0) + 1
+    // a thousand stories on one base is not a week that happens; if it ever
+    // did, the story takes a whole id like anything else rather than collide
+    const id = log.fs < 1000 ? base + log.fs / 1000 : state.nextId++
+    state.news.push({ ...n, id })
+  }
+  log.queue = []
+  if (state.news.length > NEWS_CAP) state.news = state.news.slice(-NEWS_CAP)
 }
 
 /** "You sold him to X in 2027 for £2M." The sentence the payoffs lead with. */

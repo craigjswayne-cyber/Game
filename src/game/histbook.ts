@@ -24,6 +24,7 @@
 import type { GameState } from './model'
 import type { Vars } from './i18n'
 import { tIn } from './i18n'
+import { noteMemory } from './memory'
 
 /** A sentence kept as a key and its values, so it reads in any language. */
 export interface Line { k: string; v?: Vars }
@@ -166,13 +167,12 @@ export function moment(state: GameState, clubId: string, w: number, k: string, v
 
 /**
  * The consequence log's door. The memory module (memory.ts) records the
- * manager's decisions and what they led to; this book does not import it, so
- * the two can land in either order. Every place a decision of the manager's
- * becomes history calls this, and it does nothing until the two are joined.
+ * manager's decisions and what they led to; every place a decision of the
+ * manager's becomes history calls this, and noteMemory translates the kind
+ * (a rivalry formed, a job taken, a tenure closed sacked, walked or moved).
  */
-// TODO(memory): route to memory.ts record() once it lands
-export function note(_state: GameState, _entry: { kind: string; clubId?: string; pid?: number; v?: Vars }): void {
-  /* intentionally empty */
+export function note(state: GameState, entry: { kind: string; clubId?: string; pid?: number; v?: Vars }): void {
+  noteMemory(state, { kind: entry.kind, clubId: entry.clubId, playerId: entry.pid, payload: entry.v })
 }
 
 /** A stable small number from a string, for choices that must not use an rng. */

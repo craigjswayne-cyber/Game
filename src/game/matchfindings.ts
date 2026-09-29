@@ -19,18 +19,16 @@ import type { GameState } from './model'
 import { matchStats, type LiveCtx, type SideCtx } from './matchEngine'
 import { unitBattles } from './coachfix'
 import { t } from './i18n'
+import { noteMemory } from './memory'
 import {
   currentPlan, keepFindings, planFollowed,
   type Finding, type FindingsRecord, type PlanVerdict, type ReportLine,
 } from './oppreport'
 
-/**
- * The memory log is being built on another branch. Until it lands, the loop
- * says what it would remember here and nothing more.
- */
-// TODO(memory): remember()
-function note(_state: GameState, _e: { kind: string; clubId?: string; payload?: Record<string, unknown> }): void {
-  // no-op until memory.ts is wired in
+/** Whether the manager's plan was followed goes into the manager's memory
+ *  (memory.ts), as 'plan-followed' or 'plan-ignored'. */
+function note(state: GameState, e: { kind: string; clubId?: string; payload?: Record<string, unknown> }): void {
+  noteMemory(state, e)
 }
 
 function pointsAfter(ctx: LiveCtx, teamId: string, min: number): number {
