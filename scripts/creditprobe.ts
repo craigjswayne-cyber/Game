@@ -82,14 +82,19 @@ console.log('--- an AI side\'s replacement reaches its units, and the credit is 
     // no user side at all: both are the AI's to run
     const ctx = beginMatch(g, fx, mulberry32(7100 + i), false, null)
     const before = new Map([ctx.home, ctx.away].map(s => [s, snap(s.lineup.filter((x): x is number => x != null))]))
-    const subs: { side: SideCtx; outId: number; inId: number; at: number }[] = []
+    const subs: { side: SideCtx; outId: number; inId: number; at: number; tick: number }[] = []
     const offOther = new Set<number>()
+    /** the tick a starter was first seen off the pitch (not in the bin) */
+    const offFrom = new Map<number, number>()
     while (ctx.seg !== 3) {
       const pre = [ctx.home, ctx.away].map(s => ({ s, u: unitsOf(s), xv: s.lineup.slice(0, 15), on: new Set(s.onPitch) }))
       tick(g, ctx)
       // off the pitch for any reason but a card (an HIA, say) at a tick's end
       for (const s of [ctx.home, ctx.away]) {
-        for (const id of s.starters ?? []) if (!s.onPitch.has(id) && !s.binned.has(id)) offOther.add(id)
+        for (const id of s.starters ?? []) if (!s.onPitch.has(id) && !s.binned.has(id)) {
+          offOther.add(id)
+          if (!offFrom.has(id)) offFrom.set(id, ctx.tick)
+        }
       }
       for (const { s, u, xv, on } of pre) {
         // a replacement from the bench, straight into a starter's shirt
@@ -99,7 +104,7 @@ console.log('--- an AI side\'s replacement reaches its units, and the credit is 
           if (!s.benchIds.has(inId)) continue
           const at = s.onAt?.get(inId)
           if (at == null) continue
-          subs.push({ side: s, outId, inId, at })
+          subs.push({ side: s, outId, inId, at, tick: ctx.tick })
           // an HIA stand-in whose man failed the assessment was already in
           // the units (he had been playing in that shirt): nothing to change
           if (on.has(inId)) continue
@@ -129,9 +134,13 @@ console.log('--- an AI side\'s replacement reaches its units, and the credit is 
         binLoss.push((80 - (g.players[id].stats.mins - before.get(side)!.get(id)!.mins)) / Math.max(1, cards))
       }
     }
-    for (const { side, outId, inId, at } of subs) {
-      // only clean cases: neither man carded, and the starter never came back
+    for (const { side, outId, inId, at, tick } of subs) {
+      // only clean cases: neither man carded, the starter never came back,
+      // and he was on the pitch until the change was made. A man who had
+      // already gone off (hurt at 49, covered from elsewhere in the side, and
+      // his shirt filled from the bench at 62) is honestly credited 49
       if (side.yellowUntil.has(outId) || side.yellowUntil.has(inId)) continue
+      if ((offFrom.get(outId) ?? Infinity) < tick) continue
       if (side.onPitch.has(outId) || !side.starters?.has(outId)) continue
       const b = before.get(side)!
       const so = g.players[outId].stats, si = g.players[inId].stats
