@@ -16,6 +16,7 @@ import { subjectVar } from '../../game/gender'
 import { BenchClock, BriefIcon, ExitDiagram, KickStyleDiagram, LineoutDiagram, PREP_ICON, PenaltyDiagram, ScrumDiagram, SplitPips, TheTwentyThree } from '../tacticsArt'
 import { Glyph } from '../glyphs'
 import { IcoChevron } from '../icons'
+import { OppReportCard } from '../OppReport'
 
 /** The Tactics screen: HOW the side plays. Roles on a pitch, the set-piece
  *  playbook, the bench shape, the week's preparation and the game plan.
@@ -533,6 +534,8 @@ export default function Tactics() {
 
       {ttab === 'prep' && <>
         <AnalystCard />
+        {/* the opposition report and the response plan (#181) */}
+        <OppReportCard />
         {/* the opposition's standing instruction and the assistant's counter to it
             moved here from the game plan tab (1.6.5): reading them IS match
             preparation, and the plan tab was three screenfuls deep with it */}
