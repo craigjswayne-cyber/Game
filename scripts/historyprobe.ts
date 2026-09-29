@@ -42,6 +42,17 @@ const ok = (c: boolean, what: string) => {
 }
 const newsK = (g: GameState, k: string) => g.news.filter(n => n.k === k)
 const season = (g: GameState) => { for (let i = 0; i < SEASON_WEEKS; i++) processWeekAndAdvance(g) }
+/** A season with the board kept on side. The annals are written for a
+ *  manager in work, and a headless one sits near the sack on most seeds: a
+ *  change to the world stream elsewhere (1.8.1) had him sacked in the second
+ *  season on this one, which is a fact about the seed rather than the book. */
+const seasonInWork = (g: GameState) => {
+  for (let i = 0; i < SEASON_WEEKS; i++) {
+    const c = g.clubs[g.userClubId]
+    if (!g.unemployed && c) c.boardConfidence = Math.max(c.boardConfidence, 55)
+    processWeekAndAdvance(g)
+  }
+}
 
 // ---- 1. rivalries form and cool ----
 {
@@ -147,7 +158,7 @@ const season = (g: GameState) => { for (let i = 0; i < SEASON_WEEKS; i++) proces
   let hookMs = 0
   const t0 = performance.now()
   for (let s = 0; s < 4; s++) {
-    season(g)
+    seasonInWork(g)
     // time the hooks on their own, on the state as it now stands
     const a = performance.now(); historyPreview(g); hookMs += performance.now() - a
     if (s === 1) {
