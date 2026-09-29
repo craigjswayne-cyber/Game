@@ -78,7 +78,9 @@ ok(!!w, 'natWindow reports the window open')
 {
   const before = natEligible(g).length
   ok(before >= w.size, `and there is a full pool to pick from (${before} callable)`)
-  for (const p of natEligible(g).slice(0, w.size)) natCallUp(g, p.id)
+  // best first, as the desk offers them; a name the two-jobs quota refuses
+  // (9.10, he runs Northampton too) is skipped for the next man
+  for (const p of natEligible(g)) { if (squad.length >= w.size) break; natCallUp(g, p.id) }
   ok(squad.length === w.size, `the coach names his ${w.size} (${squad.length})`)
 }
 
@@ -110,12 +112,14 @@ ok(squad.includes(backIn.id) && backIn.natSquad === true, 'he is in the room wit
 ok(g.natLineup == null, 'the old Test XV is voided - match day repicks from the real room')
 
 // ---- 1c. the cap holds, and the unfit are refused ----
-while (squad.length < w.size) {
-  const next = natEligible(g)[0]
-  if (!next || natCallUp(g, next.id) != null) break
+for (const next of natEligible(g)) {
+  if (squad.length >= w.size) break
+  natCallUp(g, next.id) // a quota refusal (9.10) just moves on to the next man
 }
 ok(squad.length === w.size, `filled back to the federation cap of ${w.size}`)
-const over = natEligible(g)[0]
+// asked of a man the two-jobs quota (9.10) has nothing to say about, so it is
+// the squad cap and nothing else that refuses him
+const over = natEligible(g).find(p => !p.clubId || !sharesClubComp(g, g.userClubId, p.clubId))
 const capMsg = over ? natCallUp(g, over.id) : 'no eligible player left'
 ok(capMsg != null && capMsg.includes(String(w.size)), `the cap is enforced and named ("${capMsg}")`)
 const crock = Object.values(g.players).find(p => p.nat === 'SCO' && p.clubId && p.injury && !p.natSquad)
