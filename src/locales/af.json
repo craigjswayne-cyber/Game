@@ -5158,11 +5158,11 @@
   "badgeFailAutoSubj": "{name} haal nie sy {badge_k}-kenteken nie",
   "badgeFailAuto": "Die eksaminatore wil meer van {name} in die beoordeelde sessie sien. Hy het dit goed opgeneem, gevra vir die terugvoer op skrif en dit bo sy lessenaar vasgepen. Hy kan dit oor vier weke weer aflê.",
   "inheritedStaffSubj": "Die agtergrondpersoneel wat jy geërf het",
-  "inheritedStaff": "{filled} van die agt afrigtingsposte is gevul.\n{men_ll}",
+  "inheritedStaff": "{filled} van die 8 afrigtingsposte is gevul.\n{men_ll}",
   "inheritedStaffVacantSubj": "Die agtergrondpersoneel wat jy geërf het",
   "inheritedStaffVacant": {
-   "one": "{filled} van die agt afrigtingsposte is gevul.\n{men_ll}\nVakant | {jobs_l}",
-   "other": "{filled} van die agt afrigtingsposte is gevul.\n{men_ll}\nVakant | {jobs_l}"
+   "one": "{filled} van die 8 afrigtingsposte is gevul.\n{men_ll}\nVakant | {jobs_l}",
+   "other": "{filled} van die 8 afrigtingsposte is gevul.\n{men_ll}\nVakant | {jobs_l}"
   },
   "inheritedMan": "{role_k} | {name}",
   "inheritedRole": "{role_k}",
