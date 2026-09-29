@@ -1740,6 +1740,12 @@
     "courseResitsLongOne_w": "{name} ne peut pas encore le repasser - elle a échoué récemment et la prochaine session est dans {n} semaine."
   },
   "training": {
+    "stageEarly": "Premiers pas",
+    "stageGrowing": "Ça prend",
+    "stageFlourishing": "En plein essor",
+    "stageSettled": "Bien installé",
+    "stageStalled": "Le courant ne passe pas",
+    "mentorRamp": "Une nouvelle paire apporte peu au début et progresse à mesure que les deux apprennent à se connaître ; si le courant ne passe pas, elle plafonne.",
     "tabTraining": "Entraînement",
     "tabStaff": "Staff",
     "tabCondition": "Condition",
@@ -2401,6 +2407,8 @@
     "3": "Dossier complet : chiffres, caractère et tempérament tous vérifiés."
   },
   "player": {
+    "ceiling": "Plafond",
+    "ceilingTitle": "Son potentiel tel que vos recruteurs le lisent. La fourchette se resserre à mesure qu'ils le suivent ; un point d'interrogation signifie qu'ils ne l'ont pas encore évalué.",
     "gone": "Ce joueur n'est plus dans le monde du jeu (retraité ou libéré).",
     "tabProfile": "Fiche",
     "tabAttributes": "Attributs",
@@ -3109,6 +3117,7 @@
     "mon11": "déc."
   },
   "world": {
+    "dtLeadHow": "Les pistes sont des rumeurs. Ajoutez les noms probables à votre liste de suivi sur le marché, concentrez le réseau de recrutement sur le championnat ou envoyez le chef recruteur en mission, et elles se préciseront.",
     "agFirstList": "Classement actuel - la première liste paraît bientôt",
     "agFoot": " · vos joueurs sont surlignés · touchez un nom pour l'observer",
     "agKidSub": "les potentiels dont les recruteurs parlent tout bas - 21 ans et moins",
@@ -3127,7 +3136,7 @@
     "dtFreeAgent": "AGENT LIBRE",
     "dtGameweek": "JOURNÉE {n}",
     "dtNoRugby": "AUCUN MATCH JOUÉ",
-    "dtOnesSub": "potentiels U21, agents libres compris",
+    "dtOnesSub": "U21 évalués par vos recruteurs, et des pistes",
     "dtOnesToWatch": "À surveiller",
     "dtRatings": "Classement des notes de la saison",
     "dtTitle": "ÉQUIPE TYPE",
@@ -4218,6 +4227,12 @@
     "unofficialBody_f": "PHASE : Rugby Manager n'est ni affilié, ni approuvé, ni sous licence d'une joueuse, d'un club, d'une ligue ou d'une fédération. Les noms de clubs sont réels ; les compétitions, les stades et les sponsors sont renommés ou inventés. Les noms des joueuses sont réels, utilisés pour identifier des personnes dans une base de données sportive et pour rien d'autre, et aucun écusson, maillot ou logo officiel n'est inclus."
   },
   "news": {
+    "mentEarlySubj": "Premiers pas pour {last} et {seniorLast}",
+    "mentEarly": "{kid} et {senior} apprennent encore à se connaître, n'en attendez donc pas grand-chose pour l'instant. Une paire met des semaines à se roder.",
+    "mentGrowingSubj": "{last} progresse aux côtés de {seniorLast}",
+    "mentGrowing": "Le courant commence à passer entre {kid} et {senior}, et le travail en plus après l'entraînement rapporte un peu plus chaque semaine.",
+    "watchNamed": "{name} ({age} ans, {pos}, {club})",
+    "watchLead": "Une piste : {pos_k}, {age} ans ({league})",
     "maternitySubj": "{player} attend un enfant",
     "maternity": {
       "one": "{player} a informé le club de sa grossesse et débute son congé maternité. Son contrat est gelé pendant toute la durée et sa place dans l'effectif lui reste acquise à son retour. Le staff médical prévoit environ {n} semaine avant un retour à l'entraînement complet.",
@@ -4264,7 +4279,7 @@
     "depthThin": "Juste à {thin} - une blessure là et quelqu'un joue hors de son poste.",
     "depthFull": "Chaque poste a une doublure.",
     "watchListSubj": "Les joueurs à suivre selon les recruteurs",
-    "watchList": "La liste de présaison des talents du centre de formation aux plafonds vraiment exceptionnels : {list}.\n\nDes prodiges sans club circulent aussi sur le marché des agents libres - le premier club à bouger l'emporte. Touchez un nom ci-dessous, ou voyez Monde ▸ Équipe de la saison ▸ À suivre.",
+    "watchList": "Les notes de présaison des recruteurs sur les talents des centres de formation :\n{list_ll}\n\nUn nom, c'est un joueur qu'ils ont vu jouer. Une piste reste une rumeur tant que vous ne l'avez pas vérifiée : liste de suivi, réseau concentré sur le championnat ou mission du chef recruteur.",
     "facDeclinedSubj": "Le conseil refuse : {name_k}",
     "facDeclined": "Votre demande d'un niveau {lvl} pour {name_k} a été entendue, examinée et refusée - {why_k}. La porte se rouvre dans deux mois ; de meilleurs résultats et des comptes plus sains la rouvrent plus vite.",
     "facNoResults": "les résultats n'ont pas mérité un projet pareil",

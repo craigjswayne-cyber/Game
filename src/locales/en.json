@@ -1710,6 +1710,12 @@
   "sacked_w": "{name} has left the club. {cost} to end her contract."
  },
  "training": {
+  "stageEarly": "Early days",
+  "stageGrowing": "Growing",
+  "stageFlourishing": "Flourishing",
+  "stageSettled": "Settled",
+  "stageStalled": "Not clicking",
+  "mentorRamp": "A new pairing gives little at first and grows as the two get to know each other; one that does not click stalls.",
   "tabTraining": "Training",
   "tabStaff": "Staff",
   "tabCondition": "Condition",
@@ -2360,6 +2366,8 @@
   "3": "Full file: numbers, character and temperament all verified."
  },
  "player": {
+  "ceiling": "Ceiling",
+  "ceilingTitle": "His potential as your scouts read it. The band narrows as they watch him; a question mark means they have not read it yet.",
   "gone": "Player no longer in the game world (retired or released).",
   "tabProfile": "Profile",
   "tabAttributes": "Attributes",
@@ -3041,6 +3049,7 @@
   "mon11": "Dec"
  },
  "world": {
+  "dtLeadHow": "Leads are rumours. Shortlist likely names in the market, focus the scouting network on the league or brief the chief scout, and they come into focus.",
   "agFirstList": "Current standings - the first list publishes shortly",
   "agFoot": " · your players highlighted · tap a name to scout him",
   "agKidSub": "the ceilings scouts whisper about - 21 and under",
@@ -3059,7 +3068,7 @@
   "dtFreeAgent": "FREE AGENT",
   "dtGameweek": "GAMEWEEK {n}",
   "dtNoRugby": "NO RUGBY PLAYED YET",
-  "dtOnesSub": "U21 ceilings, free agents included",
+  "dtOnesSub": "U21s your scouts have read, and leads",
   "dtOnesToWatch": "Ones to Watch",
   "dtRatings": "Season Ratings Leaderboard",
   "dtTitle": "DREAM TEAM",
@@ -4093,6 +4102,12 @@
   "bridgeProducts": "Products priced by the store: {live} of {asked}"
  },
  "news": {
+  "mentEarlySubj": "Early days for {last} and {seniorLast}",
+  "mentEarly": "{kid} and {senior} are still getting to know each other, so expect little from it yet. A pairing takes weeks to bed in.",
+  "mentGrowingSubj": "{last} is coming on under {seniorLast}",
+  "mentGrowing": "{kid} and {senior} have started to click, and the extras after training are paying a little more each week.",
+  "watchNamed": "{name} ({age}, {pos}, {club})",
+  "watchLead": "A lead: {pos_k}, aged {age} ({league})",
   "maternitySubj": "{player} is expecting",
   "maternity": {
    "one": "{player} has told the club she is pregnant and will begin maternity leave. Her contract is frozen for the duration and her place in the squad is kept for her return. The medical team expect roughly {n} week before she is back in full training.",
@@ -4139,7 +4154,7 @@
   "depthThin": "Short at {thin} - one injury there and someone plays out of position.",
   "depthFull": "Every position has cover.",
   "watchListSubj": "The scouts' ones to watch",
-  "watchList": "The pre-season list of academy talents with genuinely special ceilings: {list}.\n\nUnattached prodigies are also drifting around the free-agent market - first club to move wins. Tap a name below, or see World ▸ Team of the Season ▸ Ones to Watch.",
+  "watchList": "The scouts' pre-season notes on academy talent:\n{list_ll}\n\nA name is a player they have watched. A lead is a rumour until you scout it: shortlist, focus the network on the league or brief the chief scout.",
   "facDeclinedSubj": "Board says no: {name_k}",
   "facDeclined": "Your request for a level {lvl} {name_k} was heard, considered and declined - {why_k}. The door reopens in a couple of months; better results and a healthier balance reopen it faster.",
   "facNoResults": "results have not earned a project like this",

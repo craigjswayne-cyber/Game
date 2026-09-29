@@ -23,7 +23,7 @@ import { W_CELT } from '../data/leagues/w_celt'
 import { W_E2 } from '../data/leagues/w_e2'
 import { W_CHAMP } from '../data/leagues/w_champ'
 import { W, type Gender, staffGender } from './gender'
-import type { Club, GameState, MgrOrigin, NewsItem, Pos } from './model'
+import type { Club, GameState, MgrOrigin, NewsItem, Player, Pos } from './model'
 import { buildPlayer, playerValue, resetIds , repriceAcademies, peekPid } from './attributes'
 import { regenName } from './nations'
 import { inheritStaff } from './staff'
@@ -35,7 +35,7 @@ import { assistantJudgement, autoSelect } from './matchEngine'
 import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildLeague, schedulePreseason, buildWomensContinentalCup } from './schedule'
 import { punditPredictions } from './gossip'
 import { WEEK_BASIS, CHEM_SLOTS, RELEGATES, boardObjective, chemKey, fmtMoney, initFacilities, isWorldCupSeason, worldCupSeasonFor } from './model'
-import { seedKnowledge } from './scout'
+import { WATCH_KNOW, knowledge, leadRow, seedKnowledge } from './scout'
 import { ensureCaptains } from './analysis'
 import { CLUB_CAPTAINS, sameName } from '../data/captains'
 import { pickObjectives } from './objectives'
@@ -537,7 +537,6 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   // the world, plus unattached prodigies from the wider rugby nations
   const academyKids = Object.values(state.players).filter(p => p.youth && p.age <= 19)
   const chosen = new Set<number>()
-  const watchList: string[] = []
   const watchIds: number[] = []
   for (let i = 0; i < 9 && academyKids.length; i++) {
     const k = academyKids[Math.floor(rng() * academyKids.length)]
@@ -547,10 +546,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     k.pa = clamp(88 + Math.floor(rng() * 12), k.ca + 15, 99)
     k.q0 = k.ca
     k.value = playerValue(k.ca, k.age, k.pa, k.pos, undefined, undefined, k.caps)
-    if (watchList.length < 5) {
-      watchList.push(`${k.name} (${k.age}, ${k.pos} - ${state.clubs[k.clubId!]?.short})`)
-      watchIds.push(k.id)
-    }
+    if (watchIds.length < 5) watchIds.push(k.id)
   }
   const GEM_NATS = ['FIJ', 'GEO', 'TGA', 'SAM', 'USA', 'URU', 'ESP', 'POR']
   const GEM_POS: Pos[] = ['WG', 'FL', 'CE', 'LK', 'FH', 'N8', 'SH', 'FB']
@@ -585,13 +581,6 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   // in an inbox that reads oldest first. One unused id in a counter that only
   // ever goes up costs nothing.
   state.nextId++
-  const scoutCircular = watchList.length ? {
-    subject: `The scouts' ones to watch`,
-    body: `The pre-season list of academy talents with genuinely special ceilings: ${watchList.join('; ')}.\n\nUnattached prodigies are also drifting around the free-agent market - first club to move wins. Tap a name below, or see World ▸ Team of the Season ▸ Ones to Watch.`,
-    k: 'news.watchList',
-    v: { list: watchList.join('; ') },
-    playerIds: watchIds,
-  } : null
 
   // competitions (same defs as above so a challenge swap carries through)
   for (const def of defs) {
@@ -774,8 +763,26 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   inheritStaff(state)
 
   // and only then the circulars
-  if (scoutCircular) {
-    state.news.push({ id: state.nextId++, week: 1, season: 0, type: 'youth', read: false, ...scoutCircular })
+  // THE CIRCULAR NAMES ONLY WHO THE SCOUTS HAVE WATCHED (1.8.2). It used to
+  // name five generational talents with their clubs on day one, which made
+  // the best teenagers in the world a free gift. Filed after seedKnowledge,
+  // so it can ask: a man the scouts have properly read (scout.WATCH_KNOW) is
+  // named; anyone else is a lead, a position, an age and a league, to be
+  // followed up. The free-agent prodigies are not mentioned at all.
+  if (watchIds.length) {
+    const rows = watchIds.map(id => state.players[id]).filter((p): p is Player => !!p).map(p =>
+      p.clubId === state.userClubId || knowledge(state, p) >= WATCH_KNOW
+        ? { k: 'news.watchNamed', name: p.name, age: p.age, pos: p.pos, club: state.clubs[p.clubId ?? '']?.short ?? '' }
+        : leadRow(state, p))
+    const named = watchIds.filter(id => { const p = state.players[id]; return p && (p.clubId === state.userClubId || knowledge(state, p) >= WATCH_KNOW) })
+    const v = { list_ll: JSON.stringify(rows) }
+    state.news.push({
+      id: state.nextId++, week: 1, season: 0, type: 'youth', read: false,
+      subject: tIn('en', 'news.watchListSubj'),
+      body: tIn('en', 'news.watchList', v),
+      k: 'news.watchList', v,
+      playerIds: named,
+    })
   }
 
   punditPredictions(state, rng)

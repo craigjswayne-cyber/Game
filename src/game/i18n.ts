@@ -317,7 +317,10 @@ function fill(text: string, vars?: Vars, lang: Lang = current): string {
         return labels.slice(0, -1).join(sep) + and + labels[labels.length - 1]
       } catch { return String(raw) }
     }
-    const v = vars[name]
+    // a list that was a plain string on older saves (the scouts' circular
+    // carried `list` before 1.8.2 made it `list_ll`) reads the bare name; the
+    // list branch below hands a non-JSON string back as it is
+    const v = vars[name] ?? (name.endsWith('_ll') ? vars[name.slice(0, -3)] : undefined)
     if (v == null) return whole
     // A VARIABLE THAT IS ITSELF A KEY, marked by a _k suffix on its name.
     //

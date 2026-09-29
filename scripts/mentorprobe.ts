@@ -3,7 +3,7 @@ import { processWeekAndAdvance } from '../src/game/season'
 import { MENTEE_MAX_AGE, MENTOR_MIN_AGE, REPORT_EVERY, canBeMentored, canMentor, mentorRate, fitWord, mentorReports, mentorBoost, mentorFit } from '../src/game/mentoring'
 import { EXAM_PASS_PCT, RETAKE_WEEKS, sendToCourse } from '../src/game/staff'
 import { fineAttr } from '../src/game/attributes'
-import { ATTR_KEYS, type Personality, type Player } from '../src/game/model'
+import { ATTR_KEYS, absWeek, type Personality, type Player } from '../src/game/model'
 
 /**
  * Three systems from this round have to be shown to work rather than asserted:
@@ -276,8 +276,10 @@ console.log('\n--- 3. the 1-100 attribute rating is finer than a multiple of fiv
     // force the worst case so the "not taking" branch fires
     mentor.pers = 'Temperamental'
     kid.pers = 'Temperamental'
-    g3.mentors = [{ senior: mentor.id, kid: kid.id }]
-    g3.week = REPORT_EVERY
+    // 1.8.2: every pairing is early days for its first six weeks, so the
+    // "not taking" verdict comes once the two have had time together
+    g3.week = REPORT_EVERY * 2
+    g3.mentors = [{ senior: mentor.id, kid: kid.id, since: absWeek(g3.season, g3.week) - 10 }]
     mentorReports(g3)
     const note = g3.news.find(n => n.subject.includes('is not taking'))
     ok(!!note, 'a failing pairing files a report')
