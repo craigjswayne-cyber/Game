@@ -25,6 +25,7 @@ import type { GameState } from './model'
 import type { Vars } from './i18n'
 import { tIn } from './i18n'
 import { noteMemory } from './memory'
+import { fileHeldNews } from './heldnews'
 
 /** A sentence kept as a key and its values, so it reads in any language. */
 export interface Line { k: string; v?: Vars }
@@ -140,19 +141,16 @@ export function file(
   })
 }
 
-/** The news log's ceiling (season.ts NEWS_KEEP, not imported: season.ts
- *  imports this book). */
-const NEWS_CAP = 250
-
 /** File the held stories. Called at the end of the week settle (after the
  *  advance, when no more fixtures are drawn this tick) and by the job hooks,
  *  which run outside it and should be read at once. */
 export function flushNews(state: GameState): void {
   const q = state.hist?.queue
   if (!q?.length) return
-  for (const n of q) state.news.push({ ...n, id: state.nextId++, k: n.k, v: n.v })
+  // ids that do not spend state.nextId (heldnews.ts): a story taken at the
+  // end of this week would otherwise move every fixture drawn next week
+  fileHeldNews(state, q)
   state.hist!.queue = []
-  if (state.news.length > NEWS_CAP) state.news = state.news.slice(-NEWS_CAP)
 }
 
 /** A candidate for this season's annals line. Kept to the heaviest few. */
