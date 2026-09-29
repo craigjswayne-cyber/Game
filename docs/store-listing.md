@@ -150,7 +150,7 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
-### What's new (500 max) - v1.8.1, Play version code 42
+### What's new (500 max) - v1.8.1, Play version code 40
 
 Written 29 Sep 2026. 1.8.1 folds in what was planned as 1.9: the manager's
 decisions remembered and told back on the Wire, a club identity, dressing-room

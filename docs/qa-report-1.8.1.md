@@ -1,6 +1,6 @@
 # QA report: 1.8.1, 29 Sep 2026
 
-Branch `claude/rugby-game-animation-ideas-qusfd5`. Play version code 42.
+Branch `claude/rugby-game-animation-ideas-qusfd5`. Play version code 40.
 1.8.1 folds in what was planned as 1.9. The headline: the world remembers
 your decisions.
 
@@ -143,6 +143,6 @@ Every band is inside.
 
 - Check the highest accepted version code on the Play Console before the
   upload (42 is assumed free).
-- Store listing ("What's new" for code 42 in six languages is in
+- Store listing ("What's new" for code 40 in six languages is in
   `docs/store-listing.md`), playtest and screenshot sign-off.
 - The decisions under "Known issues and owner decisions" above.
