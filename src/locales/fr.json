@@ -8439,6 +8439,20 @@
     "acadLoan": "Proposer un contrat de formation et une saison en prêt : du temps de jeu ailleurs, hors de votre contrôle ({wage}/sem.)",
     "acadLoanR": "C'est fait. {player} signe et partira en prêt au début de la nouvelle saison.",
     "acadLoanPro": "Proposer un premier contrat professionnel et une saison en prêt : du temps de jeu ailleurs, hors de votre contrôle ({wage}/sem.)",
-    "acadLoanProR": "C'est fait. {player} signe un contrat professionnel et partira en prêt au début de la nouvelle saison."
+    "acadLoanProR": "C'est fait. {player} signe un contrat professionnel et partira en prêt au début de la nouvelle saison.",
+    "splitQ_f": "{player} a été écartée de votre équipe, et le vestiaire s'est divisé. Les cadres sont mécontentes ; les plus jeunes restent en dehors. {dep_k}",
+    "splitCapQ_f": "Vous avez écarté votre capitaine, {player}, et le vestiaire s'est divisé. Les cadres sont mécontentes ; les plus jeunes restent en dehors. {dep_k}",
+    "depBacksVice_f": "{deputy}, la vice-capitaine, leur a dit que c'était à vous de trancher.",
+    "depAgainstVice_f": "{deputy}, la vice-capitaine, s'est rangée du côté des cadres.",
+    "depBacksCap_f": "{deputy}, la capitaine, leur a dit que c'était à vous de trancher.",
+    "depAgainstCap_f": "{deputy}, la capitaine, s'est rangée du côté des cadres.",
+    "standR_f": "Vous avez tenu bon. {player} n'est pas contente, les cadres non plus, mais le vestiaire sait qui compose l'équipe. {dep_k}",
+    "standRPlayers_f": "Vous avez tenu bon, et ce vestiaire n'a pas l'habitude qu'on lui dise non. Les cadres sont furieuses, et {player} plus que toute autre. {dep_k}",
+    "leftDeputy_f": "{deputy} vous avait soutenu devant les joueuses et se retrouve désavouée.",
+    "reverseR_f": "{player} sera titulaire au prochain match. Les cadres y voient une victoire ; celle qui a perdu le maillot le vit mal. {dep_k}",
+    "reverseRPlayers_f": "{player} sera titulaire au prochain match. Les cadres n'en attendaient pas moins, et certaines se demandent déjà ce qu'elles pourraient changer d'autre. {dep_k}",
+    "cultureLed_f": "Au centre d'entraînement de {club}, on dit que l'équipe se décide dans un seul bureau et ne se discute nulle part ailleurs. Tout a commencé avec la décision sur {player}. Les cadres ont cessé de plaider pour leur place ; une ou deux ont cessé de parler au manager.",
+    "culturePlayers_f": "À {club}, les cadres ont appris qu'un mot glissé à la bonne oreille peut changer une feuille de match, et elles l'ont appris avec {player}. Le vestiaire s'en porte mieux. Il en demande aussi davantage.",
+    "injEarlyR_f": "{player} est strappée et disponible cette semaine. Le kiné a bien noté que c'était votre décision."
   }
 }

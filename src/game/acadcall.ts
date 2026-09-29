@@ -111,7 +111,7 @@ export function academyCalls(state: GameState): number {
       const lk = act === 'release' ? 'press.acadRelease' : act === 'promote' ? 'press.acadPromote'
         : act === 'loan' ? (call === 'gate' ? 'room.acadLoanPro' : 'room.acadLoan') : 'press.acadSign'
       const lv: Vars = act === 'release' ? {} : { wage: fmtMoney(wage) }
-      const rk = `${lk}R`
+      const rk = act === 'loan' ? (call === 'gate' ? 'room.acadLoanProR' : 'room.acadLoanR') : `${lk}R`
       const rv: Vars = { player: p.name }
       return {
         morale: 0, board: 0, acad: act, acadWage: act === 'release' ? undefined : wage,

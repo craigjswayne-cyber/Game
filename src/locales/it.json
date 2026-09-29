@@ -8270,6 +8270,24 @@
   "acadLoan": "Offrire un contratto di formazione e una stagione in prestito: minuti altrove, fuori dal tuo controllo ({wage}/sett.)",
   "acadLoanR": "Fatto. {player} firma e andrà in prestito all'inizio della nuova stagione.",
   "acadLoanPro": "Offrire un primo contratto da professionista e una stagione in prestito: minuti altrove, fuori dal tuo controllo ({wage}/sett.)",
-  "acadLoanProR": "Fatto. {player} firma un contratto da professionista e andrà in prestito all'inizio della nuova stagione."
+  "acadLoanProR": "Fatto. {player} firma un contratto da professionista e andrà in prestito all'inizio della nuova stagione.",
+  "splitQ_f": "{player} è rimasta fuori dalla tua squadra e lo spogliatoio si è diviso. Le senatrici sono scontente; le più giovani restano in disparte. {dep_k}",
+  "splitCapQ_f": "Hai lasciato fuori la tua capitana, {player}, e lo spogliatoio si è diviso. Le senatrici sono scontente; le più giovani restano in disparte. {dep_k}",
+  "depBacksVice_f": "{deputy}, la vicecapitana, ha detto loro che la decisione spettava a te.",
+  "depAgainstVice_f": "{deputy}, la vicecapitana, si è schierata con le senatrici.",
+  "depBacksCap_f": "{deputy}, la capitana, ha detto loro che la decisione spettava a te.",
+  "depAgainstCap_f": "{deputy}, la capitana, si è schierata con le senatrici.",
+  "depNone_f": "Nessuna senatrice è intervenuta per calmare le acque.",
+  "standR_f": "Hai tenuto il punto. {player} non è contenta, e nemmeno le senatrici, ma lo spogliatoio sa chi sceglie la squadra. {dep_k}",
+  "standRLed_f": "Hai tenuto il punto, come ormai questo spogliatoio si aspetta. Le senatrici brontolano, più piano di una volta. {dep_k}",
+  "standRPlayers_f": "Hai tenuto il punto, e questo spogliatoio non è abituato a sentirsi dire di no. Le senatrici sono furiose, e {player} più di tutte. {dep_k}",
+  "leftDeputy_f": "{deputy} ti aveva sostenuto davanti alle giocatrici e ora si ritrova sconfessata.",
+  "deputyWon_f": "{deputy} ha ottenuto ciò che chiedevano le senatrici.",
+  "reverseR_f": "{player} partirà titolare nella prossima partita. Le senatrici la vedono come una vittoria; chi ha perso la maglia la prende male. {dep_k}",
+  "reverseRPlayers_f": "{player} partirà titolare nella prossima partita. Le senatrici non si aspettavano di meno, e qualcuna si chiede già cos'altro può cambiare. {dep_k}",
+  "cultureLed_f": "A {club} si dice che la formazione si decide in un solo ufficio e non si discute altrove. Tutto è cominciato con la scelta su {player}. Le senatrici hanno smesso di battersi per il posto; una o due hanno smesso di parlare con l'allenatore.",
+  "culturePlayersSubj_f": "Le senatrici hanno l'orecchio dell'allenatore",
+  "culturePlayers_f": "A {club} le senatrici hanno imparato che una parola all'orecchio giusto può cambiare una formazione, e l'hanno imparato con {player}. Lo spogliatoio è più sereno. E chiede di più.",
+  "injEarlyR_f": "{player} è fasciata e disponibile questa settimana. Il fisioterapista ha annotato che la scelta è stata tua."
  }
 }
