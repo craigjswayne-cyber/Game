@@ -69,14 +69,25 @@ your decisions.
 
 ## Suite results
 
-**Suite results: to be filled after the final run.** The full suite is
-still running on this branch at the time of writing.
+Final results, 29 Sep 2026, on the release head (the last engine and probe
+fixes landed after the local run started; every probe they touch was re-run
+on the final head and passed).
 
 | Check | Result |
 |---|---|
-| Full suite, `all` mode (engine, browser and soaks) | _to be filled after the final run_ |
-| GitHub gate on the PR head | _to be filled after the final run_ |
-| bandcheck | _to be filled after the final run_ (the figures below are from the balance branch) |
+| Default suite, local (engine and browser) | **282 passed, 0 failed** |
+| Long probes (releasesim, aiecon, stackprobe, dialweight, optionsprobe, autopilotprobe, soakhealth, soakui, stresstest, deepsave, e2edeep) | **all pass** (autopilotprobe after the assistant-bench and press-silence fixes) |
+| Re-run on the final head | squadname, natjobprobe (also with PROBE_QUICK), countryprobe, gapprobe, memoryprobe, countryui, skinui, e2e: **all pass** |
+| GitHub gate on the PR head | engine probes, four shards: **green** (browser harnesses run on main by the repo's CI rule) |
+| simtest | 49.7 points, 6.3 tries, 53% home wins, 1.7% draws |
+
+Late fixes found by the final runs, all in this PR: the national coach's
+federation list is now fixed when the window opens (it drifted as players
+got fit or hurt), the assistant's bench scales with his level (pressing
+Continue had become a title strategy), press-desk silence is priced by board
+patience, and four probes were brought up to date with the new rules
+(squadname, memoryprobe, gapprobe, insolvprobe) with the reasons recorded in
+each.
 
 ## Balance
 
