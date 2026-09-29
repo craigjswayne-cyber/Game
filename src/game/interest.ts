@@ -27,6 +27,7 @@
  */
 import type { GameState, Player } from './model'
 import { identityInterestLift } from './identity'
+import { agentWariness } from './memory'
 
 /** keen - his club would take the call and so would he.
  *  listening - he will discuss terms; the money has to be right.
@@ -62,10 +63,13 @@ export function transferInterest(state: GameState, p: Player): Interest {
  *  gap is the one who names a number, because that is the whole of why he is
  *  coming; everyone else who is willing is willing for rugby reasons. */
 export function interestPremium(state: GameState, p: Player): number {
+  // AGENTS TALK (memory.ts): a manager who has broken his word lately pays a
+  // little more for anybody's signature, because the agent prices the risk in
+  const wary = agentWariness(state)
   const user = state.clubs[state.userClubId]
   const seller = p.clubId ? state.clubs[p.clubId] : null
-  if (!user || !seller) return 1
+  if (!user || !seller) return wary
   const gap = seller.rep - user.rep
-  if (gap <= INTEREST_GAP + identityInterestLift(state, p)) return 1
-  return p.pers === 'Mercenary' ? 1.6 : 1.25
+  if (gap <= INTEREST_GAP + identityInterestLift(state, p)) return wary
+  return (p.pers === 'Mercenary' ? 1.6 : 1.25) * wary
 }

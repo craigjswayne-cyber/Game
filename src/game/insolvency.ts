@@ -125,7 +125,14 @@ export function insolvencyWarning(state: GameState): void {
   const club = state.clubs[state.userClubId]
   if (!club || club.admin) return
   if (insolvencyRisk(state, club) === 'none') return
-  if (state.news.some(n => n.season === state.season && n.subject.includes('cannot go on like this'))) return
+  // ONCE A SEASON, REMEMBERED ON THE STATE (1.8.1). This searched the inbox
+  // for the English subject line, and the inbox keeps 250 stories: once the
+  // warning had scrolled past the trim, the board issued it again in the same
+  // season, word for word. The key check stays for saves from before the
+  // stamp, whose warning may still be in the inbox.
+  if (state.insolvWarned === state.season) return
+  if (state.news.some(n => n.season === state.season && n.k === 'news.insolvencyWarning')) return
+  state.insolvWarned = state.season
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
     subject: 'The board: we cannot go on like this',

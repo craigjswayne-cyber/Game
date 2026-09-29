@@ -22,6 +22,23 @@ function sinceLine(game: GameState): string {
   return t(same ? 'world.agSinceThis' : 'world.agSinceLast', { week: at.week })
 }
 
+/** THE MOVEMENT CELL SAYS HOW FAR, OR NOTHING (1.8.1, UI sweep: "the
+ *  movement column is mostly a lone dot"). Values and ratings move slowly, the
+ *  snapshot only republishes every four weeks, so most rows hold their place
+ *  and the column was a stripe of grey dots that said nothing, while the few
+ *  rows that did move said only which way. A mover now shows how many places
+ *  it climbed or fell, and a row that held still is left blank, so the eye
+ *  goes straight to the ones that changed. With no earlier list to compare
+ *  against (a first list) nothing is marked at all, rather than every row
+ *  claiming to be a new entry. */
+function MoveCell({ from, to, compared }: { from: number; to: number; compared: boolean }) {
+  let mark: React.ReactNode = null
+  if (compared && from < 0) mark = <span style={{ color: 'var(--info)' }}>★</span>
+  else if (compared && from > to) mark = <span style={{ color: 'var(--text-positive)' }}>▲{from - to}</span>
+  else if (compared && from >= 0 && from < to) mark = <span style={{ color: 'var(--text-negative)' }}>▼{to - from}</span>
+  return <td className="rk-move" style={{ fontSize: 11, whiteSpace: 'nowrap' }}>{mark}</td>
+}
+
 export default function Agency() {
   const game = useStore(s => s.game)!
   const go = useStore(s => s.go)
@@ -47,16 +64,13 @@ export default function Agency() {
             {order.map((code, i) => {
               const n = nationByCode(code)
               const prevIdx = prevOrder.indexOf(code)
-              const move = prevIdx < 0 ? 'flat' : prevIdx > i ? 'up' : prevIdx < i ? 'down' : 'flat'
               const mine = game.natTeam === code
               return (
                 <tr key={code} style={mine ? { background: 'color-mix(in srgb, var(--gold) 14%, transparent)' } : undefined}>
                   <td className="num" style={{ fontWeight: 700 }}>{i + 1}</td>
-                  <td style={{ width: 18, fontSize: 11 }}>
-                    {move === 'up' ? <span style={{ color: 'var(--text-positive)' }}>▲</span>
-                      : move === 'down' ? <span style={{ color: 'var(--text-negative)' }}>▼</span>
-                      : <span className="muted">·</span>}
-                  </td>
+                  {/* a nation missing from the last table is not a new
+                      entry, only one the table had not ranked yet */}
+                  <MoveCell from={prevIdx < 0 ? i : prevIdx} to={i} compared={prevOrder.length > 0} />
                   <td className="name" style={mine ? { fontWeight: 800 } : undefined}>
                     {n?.flag ?? ''} {nationName(code)}{mine ? t('world.agYou') : ''}
                   </td>
@@ -95,18 +109,12 @@ export default function Agency() {
         <tbody>
           {list.map((p, i) => {
             const prevIdx = prev.indexOf(p.id)
-            const move = prevIdx < 0 ? 'new' : prevIdx > i ? 'up' : prevIdx < i ? 'down' : 'flat'
             const mine = p.clubId === game.userClubId
             return (
               <tr key={p.id} onClick={() => go('player', p.id)}
                 style={mine ? { background: 'color-mix(in srgb, var(--gold) 14%, transparent)' } : undefined}>
                 <td className="num" style={{ fontWeight: 700 }}>{i + 1}</td>
-                <td style={{ width: 18, fontSize: 11 }}>
-                  {move === 'up' ? <span style={{ color: 'var(--text-positive)' }}>▲</span>
-                    : move === 'down' ? <span style={{ color: 'var(--text-negative)' }}>▼</span>
-                    : move === 'new' ? <span style={{ color: 'var(--info)' }}>★</span>
-                    : <span className="muted">·</span>}
-                </td>
+                <MoveCell from={prevIdx} to={i} compared={prev.length > 0} />
                 <td className="name" style={mine ? { fontWeight: 800 } : undefined}>
                   {p.name}{tab === 'kids' ? ` (${p.age})` : ''}
                 </td>

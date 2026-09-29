@@ -50,6 +50,7 @@ import { clamp } from './rng'
 import { tIn, type Vars } from './i18n'
 import { isForward } from './bench'
 import { packTilt } from './philosophy'
+import { memoryLog, remember } from './memory'
 
 export type Axis = 'play' | 'pack' | 'recruit' | 'purse'
 export const AXES: Axis[] = ['play', 'pack', 'recruit', 'purse']
@@ -193,9 +194,15 @@ const seedMemo = new WeakMap<GameState, { key: string; id: ClubIdentity }>()
 export const hasLabel = (state: GameState, l: IdLabel): boolean =>
   !state.unemployed && identityOf(state).labels.includes(l)
 
+/**
+ * HELD, NOT FILED. News, players and fixtures share state.nextId and a
+ * fixture's dice are seeded from its id, so a story that took an id mid-settle
+ * would move every later draw and change AI results. Identity's stories wait in
+ * memory.ts's queue and take a fractional id in flushMemoryNews() at the end of
+ * the settle, which never advances the counter.
+ */
 function wire(state: GameState, k: string, v: Vars, type: 'gossip' | 'board' = 'gossip', playerId?: number, summer = false) {
-  state.news.push({
-    id: state.nextId++,
+  ;(memoryLog(state).queue ??= []).push({
     week: summer ? 1 : state.week,
     season: summer ? state.season + 1 : state.season,
     type, read: false,
@@ -226,9 +233,11 @@ export function stepIdentity(state: GameState) {
   if (lost.length) {
     labels = labels.filter(l => l !== lost[0])
     wire(state, 'identity.fades', { club: club.short, label_k: `identity.label.${lost[0]}` })
+    remember(state, { kind: 'identity-faded', clubId: club.id, payload: { label: lost[0] }, sal: 2 })
   } else if (gained.length) {
     labels = [...labels, gained[0]]
     wire(state, `identity.forms.${gained[0]}`, { club: club.short })
+    remember(state, { kind: 'identity-formed', clubId: club.id, payload: { label: gained[0] }, sal: 2 })
   }
   state.identity = { ...cur, v, labels }
 }

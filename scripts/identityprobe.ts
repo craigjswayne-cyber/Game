@@ -29,6 +29,7 @@ import {
   identityFit, identityOf, identitySeasonEnd, rawIdentity, type ClubIdentity, type IdLabel,
 } from '../src/game/identity'
 import { mulberry32 } from '../src/game/rng'
+import { flushMemoryNews, recall } from '../src/game/memory'
 import { tIn } from '../src/game/i18n'
 import type { GameState, Player } from '../src/game/model'
 
@@ -130,6 +131,8 @@ ok(A.id.v.recruit - B.id.v.recruit >= 40, `the academy side reads academy-first 
 ok(A.id.labels.includes('academy'), `the academy side is called an Academy club (${A.id.labels})`)
 ok(B.id.labels.includes('spenders'), `the buyers are called Big spenders (${B.id.labels})`)
 ok(!A.id.labels.includes('spenders') && !B.id.labels.includes('academy'), 'and neither wears the other\'s label')
+const mem = recall(A.g, { kind: ['identity-formed', 'identity-faded'] })
+ok(mem.some(e => e.kind === 'identity-formed' && e.payload?.label === 'academy'), `and the memory log holds it (${mem.map(e => `${e.kind}:${e.payload?.label}`).join(' ')})`)
 ok(A.formed.includes('academy') && B.formed.includes('spenders'), `the Wire wrote each identity up as it formed (${A.formed} / ${B.formed})`)
 ok(/academy club/.test(A.subject) && !A.subject.includes('{'), `and the story reads (${A.subject})`)
 ok(!A.g.unemployed && !B.g.unemployed, 'both managers kept their jobs, so the reads are of clubs being run')
@@ -214,8 +217,11 @@ function withLabels(seed: number, labels: IdLabel[], clubId = 'bath'): GameState
   executeTransfer(g, target, club.id, 1_500_000)
   ok(g.fanMood === 57, `the terraces object: fan mood 60 -> ${g.fanMood}`)
   ok(own.morale === 6, `and the homegrown man feels it: morale 7 -> ${own.morale}`)
+  const idBefore = g.nextId
+  flushMemoryNews(g)
+  ok(g.nextId === idBefore, 'the story is held and filed on a fractional id: the shared counter does not move')
   const n = g.news.filter(x => x.k === 'identity.fansObject')
-  ok(n.length === 1 && n[0].body.includes(own.name), 'and the Wire names him')
+  ok(n.length === 1 && !Number.isInteger(n[0].id) && n[0].body.includes(own.name), 'and the Wire names him')
   const second = Object.values(g.players).find(p => p.pos === 'FH' && p.clubId && p.clubId !== club.id && !p.acad)!
   executeTransfer(g, second, club.id, 1_500_000)
   ok(g.fanMood === 57, 'a second big fee in the same window is not a second story')
@@ -238,6 +244,7 @@ function withLabels(seed: number, labels: IdLabel[], clubId = 'bath'): GameState
   g.books = { season: g.season, clubId: club.id, fromWeek: 1, opening: club.balance + 5_000_000, lines: {} }
   for (const p of seniors(g)) { p.homegrown = false }
   identitySeasonEnd(g)
+  flushMemoryNews(g)
   ok(g.fanMood === 58, `an academy club that played none of its own: fans 60 -> ${g.fanMood}`)
   const db = club.boardConfidence - b0
   ok(db >= -3 && db < 0, `and the board, which also expected prudence, marks it down a little (${db})`)
@@ -258,6 +265,32 @@ say('\n--- 4. AI-vs-AI results are untouched')
   const loud = scores({ clubId: 'leicester', v: { play: 100, pack: -100, recruit: 100, purse: -100 }, labels: ['running', 'flair', 'academy', 'stretched'] })
   say(`  ${none}`)
   ok(none === loud, 'six AI fixtures score identically with no identity and with the loudest one')
+
+  // and a whole season through the real settle, week by week: the stories an
+  // identity files take no ids, so every fixture keeps its id and its dice
+  const season = (id: ClubIdentity | null) => {
+    const g = newGame('leicester', 'Fingerprint', 424242)
+    g.identity = id
+    const weeks: string[] = []
+    let stories = 0
+    for (let w = 0; w < 37; w++) {
+      const wk = g.week
+      processWeekAndAdvance(g)
+      stories += g.news.filter(n => n.k?.startsWith('identity.') && n.week === wk && n.season === g.season).length
+      const played = g.fixtures.filter(f => f.week === wk && f.played && f.homeId !== g.userClubId && f.awayId !== g.userClubId)
+      weeks.push(played.map(f => `${f.id}:${f.homeScore}-${f.awayScore}`).join(','))
+    }
+    return { weeks, stories, labels: identityOf(g).labels }
+  }
+  const plain = season(null)
+  // labels held on a neutral read: each fades in turn, one Wire story and one
+  // memory entry per club match, filed in the middle of the settle
+  const loudS = season({ clubId: 'leicester', v: { play: 0, pack: 0, recruit: 0, purse: 0 }, labels: ['running', 'flair', 'academy', 'stretched'] })
+  const firstDiff = plain.weeks.findIndex((w, i) => w !== loudS.weeks[i])
+  const n = plain.weeks.reduce((t, w) => t + (w ? w.split(',').length : 0), 0)
+  say(`  ${n} AI fixtures over ${plain.weeks.length} weeks; identity stories filed: ${plain.stories} plain, ${loudS.stories} loud (labels ${loudS.labels})`)
+  ok(n > 300 && firstDiff === -1, `every AI fixture id and score is identical week by week, extreme identity against none${firstDiff >= 0 ? ` (first difference in week ${firstDiff + 1})` : ''}`)
+  ok(loudS.stories >= 3, `and the check had identity stories in it to catch (${loudS.stories})`)
 }
 
 // ---- 5. an old save ------------------------------------------------------

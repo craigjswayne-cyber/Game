@@ -259,16 +259,28 @@ export type Vars = Record<string, string | number>
  *  whole point - a fragment inside a list gets the same plural rules as a
  *  sentence, and "1 semaine" against "2 semaines" is exactly the case that
  *  showed the list path had quietly skipped them. */
+/** Each language's own line between one and many, in ONE place (1.8.1). t()
+ *  carried a second copy that knew only French and English, so Japanese took
+ *  the singular at n = 1 at the top level and never inside a list fragment:
+ *  the same entry could read two ways depending on which path drew it.
+ *
+ *  Japanese has no grammatical plural, but its dictionary carries eighteen
+ *  hand-written `one` forms that say something the `other` cannot ("1週間の
+ *  安静、次戦は欠場" rather than "about {n} weeks"). The top level, which
+ *  draws nearly every string, has always shown them at n = 1, so that is the
+ *  rule both paths now keep: French counts 0 as singular, everyone else
+ *  splits at exactly one. */
+function isOne(lang: Lang, n: number): boolean {
+  return lang === 'fr' ? Math.abs(n) < 2 : n === 1
+}
+
 function render(entry: unknown, vars: Vars | undefined, lang: Lang): string | null {
   if (typeof entry === 'string') return fill(entry, vars, lang)
   if (entry && typeof entry === 'object' && 'other' in (entry as object)) {
     const forms = entry as { one?: string; other: string }
     const n = Number(vars?.n ?? 0)
-    // Each language's own line between one and many. French counts zero as
-    // singular (CLDR: 0 < n < 2), Japanese draws no line at all - a dictionary
-    // may still carry {one, other} for shape parity, but 'other' always wins.
-    const singular = lang === 'ja' ? false : lang === 'fr' ? Math.abs(n) < 2 : n === 1
-    return fill(singular && forms.one ? forms.one : forms.other, vars, lang)
+    // each language's own line between one and many: see isOne
+    return fill(isOne(lang, n) && forms.one ? forms.one : forms.other, vars, lang)
   }
   return null
 }
@@ -322,9 +334,11 @@ function fill(text: string, vars?: Vars, lang: Lang = current): string {
     // through lookupForWorld like the story itself, so a women's career gets
     // the `_f` sibling of "Player of the Month" and not just of the headline.
     if (name.endsWith('_k') && typeof v === 'string') {
-      const frag = lookupForWorld(DICTS[lang], v, subjectOf(vars)) ?? lookupForWorld(DICTS.en, v, subjectOf(vars))
-      // a competition's English name travels in comp_k on some stories
-      return render(frag, vars, lang) ?? compLabel(v, lang)
+      const own = lookupForWorld(DICTS[lang], v, subjectOf(vars))
+      const frag = own ?? lookupForWorld(DICTS.en, v, subjectOf(vars))
+      // a competition's English name travels in comp_k on some stories; an
+      // English fallback takes the English plural line, as it does in t()
+      return render(frag, vars, own === undefined ? 'en' : lang) ?? compLabel(v, lang)
     }
     // A LIST OF TRANSLATED FRAGMENTS, marked by a _l suffix.
     //
@@ -443,7 +457,11 @@ export const missing = new Set<string>()
 export function t(key: string, vars?: Vars): string {
   const subject = subjectOf(vars)
   let entry = lookupForWorld(DICTS[current] ?? DICTS.en!, key, subject)
+  // the plural line follows the dictionary the words came from: an English
+  // fallback inside a Japanese game still says "1 week", not "1 weeks"
+  let from: Lang = DICTS[current] ? current : 'en'
   if (entry === undefined && current !== 'en') {
+    from = 'en'
     if (!missing.has(key)) {
       missing.add(key)
       if (import.meta.env?.DEV) console.warn(`[i18n] ${current} is missing "${key}", falling back to English`)
@@ -457,14 +475,12 @@ export function t(key: string, vars?: Vars): string {
     if (import.meta.env?.DEV) console.error(`[i18n] no such key "${key}"`)
     return key
   }
-  // plural: { one, other }. English and French both split at n === 1, but
-  // French keeps the singular for 0 as well ("0 blessure"), which is exactly
-  // the sort of thing a positional shortcut gets wrong.
+  // plural: { one, other }. English splits at n === 1, and French keeps the
+  // singular for 0 as well ("0 blessure"): isOne.
   if (typeof entry === 'object' && entry !== null && 'other' in (entry as object)) {
     const forms = entry as { one?: string; other: string }
     const n = Number(vars?.n ?? 0)
-    const singular = current === 'fr' ? Math.abs(n) < 2 : n === 1
-    return fill(singular && forms.one ? forms.one : forms.other, vars)
+    return fill(isOne(from, n) && forms.one ? forms.one : forms.other, vars)
   }
   if (typeof entry !== 'string') return key
   return fill(entry, vars)

@@ -393,9 +393,18 @@ export default function Supporter() {
   const shelf: { key: string; done: boolean; node: React.ReactNode }[] = []
   const row = (key: string, done: boolean, node: React.ReactNode) => shelf.push({ key, done, node })
 
-  if (adsExist || ownsAds) {
+  // PRO MANAGER IS ALWAYS ON THE SHELF WHERE THE TILL IS OPEN (1.8.1). It was
+  // shown only where an ad provider existed, on the honest reasoning that a
+  // build with no adverts has none to remove. But Pro Manager also unlocks
+  // the three skins, and proLocked() (store.ts) locks those wherever the till
+  // is open, ads or not. On a shell with billing and no ad bridge the skins
+  // were locked, Settings sent the player here to unlock them, and there was
+  // no row to buy: a purchase the game asked for and would not sell. The
+  // honesty is kept in the line instead, which only promises the adverts
+  // where there are adverts to take away.
+  {
     row('ads', ownsAds,
-      <Row hero icon="star" title={t('store.removeAds')} line={t('store.removeAdsLine')} msg={msgs[SUPPORTER_SKU]}
+      <Row hero icon="star" title={t('store.removeAds')} line={t(adsExist ? 'store.removeAdsLine' : 'store.removeAdsLineSkins')} msg={msgs[SUPPORTER_SKU]}
         right={ownsAds ? <OwnedChip /> : <BuyBtn sku={SUPPORTER_SKU} busy={isBusy(SUPPORTER_SKU)} onBuy={() => void buyNC(SUPPORTER_SKU)} />} />)
   }
 
