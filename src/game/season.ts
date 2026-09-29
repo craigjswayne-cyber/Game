@@ -52,6 +52,7 @@ import { askBoard, type BoardAsk } from './boardroom'
 import { expireLoans, loanOutBoost, loanTargets } from './loans'
 import { FOCUS_MAX_AGE, focusIds } from './development'
 import { confidence, devHash, heavyLoad, planAffinity, weekGrowth } from './devproject'
+import { devNewsWeek } from './devnews'
 import { refreshVacancies, sackManager } from './jobs'
 import { historyAfterMatch, historyPreview, historyWeight } from './history'
 import { playAcademyWeek } from './academy'
@@ -4416,6 +4417,8 @@ If you go, your assistant takes your national side for the duration. Nobody prep
   if (!state.unemployed) {
     mentorGraduations(state)
     mentorReports(state)
+    // the development staff's word on a breakthrough or a stall (devnews.ts)
+    devNewsWeek(state)
     // the dressing room's friendships, rivalries and cliques (bonds.ts)
     bondsWeek(state)
   }

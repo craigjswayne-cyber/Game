@@ -5037,6 +5037,15 @@
   "devReviewSubj": "Balance de progresión del verano",
   "devReview": "El cuerpo técnico ha terminado su balance veraniego de los jugadores jóvenes y ha cambiado de opinión sobre algunos de ellos.\n{rows_ll}\nEl detalle está en la ficha de cada jugador.",
   "devReview_f": "El cuerpo técnico ha terminado su balance veraniego de las jugadoras jóvenes y ha cambiado de opinión sobre algunas de ellas.\n{rows_ll}\nEl detalle está en la ficha de cada jugadora.",
+  "intakePicksSubj": "Las elecciones del director de la cantera",
+  "intakePicks": "De la nueva promoción, el director de la cantera destaca:\n{rows_ll}",
+  "intakePick": "{name} ({pos}, {age}), techo proyectado {range}. {q_k} {s_k}",
+  "devBreakthroughSubj": "{player} da un salto en los entrenamientos",
+  "devBreakthrough": "Los entrenadores informan de que {player} ha dado un salto en los entrenamientos: el trabajo de las últimas semanas se nota.",
+  "devStalledSubj": "{player}: la progresión se ha estancado",
+  "devStalled": "Los entrenadores informan de que la progresión de {player} se ha estancado esta temporada.",
+  "devStalledMinsSubj": "{player}: la progresión se ha estancado",
+  "devStalledMins": "Los entrenadores informan de que la progresión de {player} se ha estancado. Necesita minutos.",
   "releasedOneSubj": "El contrato de formación de {who} expira: se va",
   "releasedOne": "No hubo oferta profesional, así que a los 21 el camino de la academia se acaba: {men_l} se marcha como agente libre. El entrenador de la academia vacía su taquilla y empieza de nuevo con la siguiente hornada.",
   "releasedManySubj": "Expiran {n} contratos de formación: se van",
@@ -8253,7 +8262,24 @@
   "tlUp": "Expectativas al alza",
   "tlDown": "Expectativas a la baja",
   "tlPlan": "Con programa",
-  "reviewUp": "{name}: el progreso apunta a más recorrido del que se pensaba.",
-  "reviewDown": "{name}: la progresión se ha estancado y el cuerpo técnico ha rebajado sus expectativas."
+  "reviewUp": "{name}: proyección revisada, de {from} a {to}. El progreso apunta a más recorrido del que se pensaba.",
+  "reviewDown": "{name}: proyección revisada, de {from} a {to}. El cuerpo técnico ha rebajado sus expectativas.",
+  "intakeQuick": {
+   "defence": "Un instinto defensivo excepcional.",
+   "attack": "Muy buenas manos y un pase natural.",
+   "physical": "Un físico adelantado para su edad.",
+   "setpiece": "Un talento natural en las fases estáticas.",
+   "kicking": "Un gran talento con el pie.",
+   "reading": "Lee el juego excepcionalmente bien."
+  },
+  "intakeQuickNone": "Un perfil completo.",
+  "intakeSlow": {
+   "defence": "El trabajo defensivo necesitará mucho entrenamiento.",
+   "attack": "El manejo de balón necesita mucho trabajo.",
+   "physical": "Necesita un desarrollo físico importante.",
+   "setpiece": "Los detalles de las fases estáticas necesitan mucho trabajo.",
+   "kicking": "El juego al pie necesita mucho trabajo.",
+   "reading": "Tiene que aprender a leer el juego."
+  }
  }
 }

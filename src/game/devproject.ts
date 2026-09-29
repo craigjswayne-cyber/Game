@@ -45,7 +45,7 @@
 // scripts/devprojectprobe.ts, growthprobe, gapprobe and releasesim hold it.
 
 import type { Attrs, Club, GameState, Player, Pos, TrainingFocus } from './model'
-import { absWeek, SEASON_WEEKS, XV_SLOTS } from './model'
+import { absWeek, XV_SLOTS } from './model'
 import { attrWeight, benchDrag, isLateBloomer } from './attributes'
 import { clamp, mulberry32 } from './rng'
 
@@ -341,9 +341,11 @@ export function seasonReview(state: GameState, p: Player, planned = false): Revi
     up += u(7) < 0.03 ? 1 : 0
     down += u(8) < 0.07 ? 1 : 0
     // the top is hard in this direction too (the elite damping in agePlayers):
-    // a ceiling of 88 rises half as often, one of 92 not at all
-    if (up && p.pa >= 92) up = 0
-    else if (up && p.pa >= 88 && u(9) < 0.5) up -= 1
+    // a ceiling of 85 rises half as often, one of 90 not at all, so drift
+    // widens the middle of the world and leaves its stars as rare as they were
+    // (releasesim's 85+ and 90+ bands)
+    if (up && p.pa >= 90) up = 0
+    else if (up && p.pa >= 85 && u(9) < 0.5) up -= 1
     d = clamp(up - down, -2, 2)
     if (d) {
       const pa0 = p.pa0 ?? p.pa
@@ -383,12 +385,15 @@ export function markSights(p: Player, before: number | null, after: number | nul
 // What the staff know, and say
 // ------------------------------------------------------------------
 
-/** Weeks the coaches have had him: since he joined, or since the world began
- *  for a man who was always here; plus a week for every match for the club. */
+/** Weeks the coaches have had him: since he joined, or since the career
+ *  began for a man who was already here (a new manager's first season is
+ *  when the staff's read of the squad he inherited is written, so it is
+ *  learned over that season rather than handed over on day one); plus a
+ *  week for every match for the club. */
 export function staffWeeks(state: GameState, p: Player): number {
   if (p.clubId !== state.userClubId) return 0
   const now = absWeek(state.season, state.week)
-  const since = p.joinedAt != null ? now - p.joinedAt : now - absWeek(0, 1) + SEASON_WEEKS
+  const since = p.joinedAt != null ? now - p.joinedAt : now - absWeek(0, 1)
   return Math.max(0, since) + p.stats.apps
 }
 

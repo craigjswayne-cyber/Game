@@ -41,6 +41,7 @@ import { ageAttributes, attrLevel } from '../src/game/ageing'
 import { paRange, scoutPa, youthPaMargin } from '../src/game/scout'
 import { mulberry32 } from '../src/game/rng'
 import { tIn } from '../src/game/i18n'
+import { devNewsWeek } from '../src/game/devnews'
 import { absWeek, SEASON_WEEKS, XV_SLOTS, type GameState, type Player } from '../src/game/model'
 import {
   confidence, devDrive, devPhase, driveParts, driverLines, EARLY_RATE, GROUP_ATTRS, heavyLoad, learning,
@@ -246,6 +247,26 @@ console.log('--- 3. ceilings drift within bounds')
   ok(ps.filter(x => x.clubId && x.clubId !== w.userClubId && x.tl).every(x => x.career.some(c => c.clubId === w.userClubId)), 'no AI man carries a timeline he never earned at the club')
   const review = w.news.find(n => n.k === 'news.devReview')
   console.log(`  the summer review letter: ${review ? tIn('en', 'news.devReview', review.v).split('\n').length - 2 + ' lines' : 'none this summer'}`)
+  if (review) {
+    const rows = JSON.parse(String(review.v?.rows_ll)) as { name: string; from: string; to: string }[]
+    console.log(`  e.g. ${tIn('en', 'news.devReview', review.v).split('\n')[1]}`)
+    ok(rows.every(r => r.from !== r.to && /^\d+(-\d+)?$/.test(r.from) && /^\d+(-\d+)?$/.test(r.to)), 'a revised projection reads band to band')
+  }
+  // the owner's addition: the staff's word in the inbox, and the intake picks
+  const bt = w.news.filter(n => n.k === 'news.devBreakthrough').length
+  const st = w.news.filter(n => n.k === 'news.devStalled' || n.k === 'news.devStalledMins').length
+  const picks = w.news.find(n => n.k === 'news.intakePicks')
+  console.log(`  two seasons of the inbox: ${bt} breakthroughs, ${st} stalls${picks ? `; intake picks:\n    ${tIn('en', 'news.intakePicks', picks.v).split('\n').slice(1).join('\n    ')}` : ''}`)
+  ok(bt + st > 0, 'breakthroughs and stalls reach the inbox')
+  ok(!!picks, 'the academy director names his picks on intake day')
+  if (picks) {
+    const rows = JSON.parse(String(picks.v?.rows_ll)) as { name: string; range: string }[]
+    const truth = rows.map(r => Object.values(w.players).find(x => x.name === r.name)?.pa)
+    ok(rows.length >= 1 && rows.length <= 3 && rows.every((r, i) => {
+      const m = /^(\d+)-(\d+)$/.exec(r.range)
+      return !!m && Number(m[1]) < Number(m[2]) && truth[i] != null
+    }), 'up to three, each with a range from the fog, never a single number')
+  }
 }
 
 console.log('--- 4. estimates update, and never expose the truth')
@@ -285,6 +306,23 @@ console.log('--- 4. estimates update, and never expose the truth')
   }
   ok(texts.length > 0 && texts.every(s => !/\d/.test(s)), `the staff speak in words: ${texts.length} lines in six languages, no digit in any`)
   ok(texts.every(s => !s.includes('dev.')), 'and every line resolves')
+}
+
+console.log('--- 4b. the staff\'s inbox draws nothing from the world')
+{
+  const h = clone(g)
+  h.week = 20
+  const kid = Object.values(h.players).find(p => mine(p) && !p.acad && p.age <= 21 && p.pa - p.ca >= 8)!
+  kid.ca0 = kid.ca; kid.stats = { ...kid.stats, starts: 0 }
+  const before = JSON.stringify(h.players)
+  const n0 = h.news.length
+  devNewsWeek(h)
+  ok(JSON.stringify(h.players) === before, 'the weekly word changes nobody')
+  const item = h.news.slice(n0).find(n => n.playerId === kid.id) ?? h.news.slice(n0)[0]
+  ok(!!item && (item.k === 'news.devStalledMins' || item.k === 'news.devStalled'), `a stalled youngster gets a line at week 20 (${item ? tIn('en', item.k!, item.v) : 'none'})`)
+  const n1 = h.news.length
+  devNewsWeek(h)
+  ok(h.news.length === n1 || h.news.slice(n1).every(n => n.playerId !== item?.playerId), 'and only once a season')
 }
 
 console.log('--- 5. saves')
