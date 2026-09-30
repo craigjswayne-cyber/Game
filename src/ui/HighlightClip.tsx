@@ -789,6 +789,8 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
         const dist = Math.sqrt(dx * dx + dy * dy)
         if (dist >= ROOM || dist < 1e-6) continue
         const ux = dx / dist * (ROOM - dist) / 2, uy = dy / dist * (ROOM - dist) / 2
+        // (the referee gets out of the players' way, never the other way round)
+        if (q === ref) { mx[b] += 2 * ux; my[b] += 2 * uy; continue }
         mx[a] -= ux; my[a] -= uy; mx[b] += ux; my[b] += uy
       }
     }
@@ -1154,7 +1156,13 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
           const pk = paceK(c.defPace?.[i])
           if (ahead && t - caught < CHASE.react) { def[i].steer(def[i].x, def[i].y, 3, A_PLAYER); continue }
           const v = Math.min(V_CAP, (ahead ? CHASE.coverV : hunt.has(i) ? CHASE.huntV : CHASE.scrambleV) * pk, ahead ? Infinity : outpaced(route))
-          const q = chaseTo(def[i], i, route, v, ahead ? CHASE.coverLead : CHASE.lead)
+          let q = chaseTo(def[i], i, route, v, ahead ? CHASE.coverLead : CHASE.lead)
+          // (across, never back, as the cover in a break: see below)
+          if (ahead) {
+            const bx = ball.x - def[i].x, by = ball.y - def[i].y, bl = Math.hypot(bx, by) || 1
+            const rad = ((q.x - def[i].x) * bx + (q.y - def[i].y) * by) / bl
+            if (rad < 0) q = { x: q.x - bx / bl * rad, y: q.y - by / bl * rad }
+          }
           def[i].steer(q.x, q.y, v, A_PLAYER)
         }
       }
@@ -1880,6 +1888,14 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
         else {
           const v = Math.min(V_CAP, (ahead ? CH.coverV : hunters.has(i) ? CH.huntV : CH.scrambleV) * pk, ahead ? Infinity : outpaced(route))
           tgt = chaseTo(def[i], i, route, v, ahead ? CH.coverLead : CH.lead, CH); vmax = v
+          // (a cover man ahead of him comes across, never back: the part of
+          // his line that would take him away from the ball is dropped, so a
+          // man standing near the carrier's path shuffles across, not away)
+          if (ahead) {
+            const bx = ball.x - def[i].x, by = ball.y - def[i].y, bl = Math.hypot(bx, by) || 1
+            const rad = ((tgt.x - def[i].x) * bx + (tgt.y - def[i].y) * by) / bl
+            if (rad < 0) tgt = { x: tgt.x - bx / bl * rad, y: tgt.y - by / bl * rad }
+          }
           // (a man who is not one of the tacklers does not run into him as he
           // slows for the line: he stays a stride off)
           const ox = def[i].x - ball.x, oy = def[i].y - ball.y, od = Math.hypot(ox, oy)

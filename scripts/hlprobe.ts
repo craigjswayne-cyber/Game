@@ -364,7 +364,10 @@ console.log('\n--- the chase after a break (1.8.2)\n')
         checked++
         const ux = (f.ball.x - f.def[i].x) / r, uy = (f.ball.y - f.def[i].y) / r
         const vr = vx * ux + vy * uy, sp = Math.hypot(vx, vy)
-        if (vr < -SLACK && !away) away = `${kind}/${spec.style}${spec.move ? '/' + spec.move + '/' + spec.launch : ''} line ${spec.endLine} def ${i + 1} t=${t.toFixed(2)} ${(-vr).toFixed(1)} m/s away from the ball ${r.toFixed(0)} m off`
+        if (vr < -SLACK && !away) {
+          away = `${kind}/${spec.style}${spec.move ? '/' + spec.move + '/' + spec.launch : ''} line ${spec.endLine} def ${i + 1} t=${t.toFixed(2)} ${(-vr).toFixed(1)} m/s away from the ball ${r.toFixed(0)} m off`
+          if (process.env.HLDIAG) (globalThis as { __away?: unknown }).__away = { spec, i, t }
+        }
         if (!ahead && sp > 2 && vr < sp / 3 - SLACK && f.carrying.some(x => x > 0.5) && !lagging) lagging = `${kind}/${spec.style} line ${spec.endLine} def ${i + 1} t=${t.toFixed(2)} runs ${sp.toFixed(1)} m/s but closes at ${vr.toFixed(1)}`
       }
     }
@@ -382,6 +385,8 @@ console.log('\n--- the chase after a break (1.8.2)\n')
     }
   }
   ok(runs >= 20 && checked > 1000 && !away, `nobody runs away from the ball after a short turn (${runs} breaks, ${checked} frames checked)${away ? `: ${away}` : ''}`)
+  { const aw = (globalThis as { __away?: { spec: ClipSpec; i: number; t: number } }).__away
+    if (aw) for (let t = aw.t - 1.5; t < aw.t + 0.6; t += 0.1) { const f = frameAt(aw.spec, t); console.log('AWAY', t.toFixed(1), 'def', f.def[aw.i].x.toFixed(1), f.def[aw.i].y.toFixed(1), 'ball', f.ball.x.toFixed(1), f.ball.y.toFixed(1), 'carrier', f.carrying.findIndex(c => c > 0.5), 'home', aw.spec.attackHome, 'near', [...f.att.map((p, j) => ['a' + (j + 1), p] as const), ...f.def.map((p, j) => ['d' + (j + 1), p] as const)].filter(([, p]) => Math.hypot(p.x - f.def[aw.i].x, p.y - f.def[aw.i].y) < 2.5).map(([n, p]) => n + '@' + p.x.toFixed(1) + ',' + p.y.toFixed(1)).join(' ')) } }
   ok(!lagging, `a man behind the ball closes on it, or loses ground only by being slower${lagging ? `: ${lagging}` : ''}`)
   ok(cover > 50 && converged >= cover * 0.9, `the cover comes across to cut off his line (${converged} of ${cover} cover men closed the gap across)`)
   ok(!jerky, `and they get there smoothly (worst ${worstAcc.toFixed(0)} m/s2, limit ${ACC})${jerky ? `: ${jerky}` : ''}`)
