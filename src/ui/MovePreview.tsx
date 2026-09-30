@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { MOVE_BY_ID } from '../game/moves'
-import { TRACKS, trackAt, type K, type PassKind } from './clipPlays'
+import { FLIGHT, TRACKS, trackAt, type K } from './clipPlays'
 import { MoveDiagram } from './tacticsArt'
 
 /**
@@ -22,8 +22,6 @@ import { MoveDiagram } from './tacticsArt'
 
 type Pt = [number, number]
 
-/** seconds a pass is in the air, by kind */
-const FLIGHT: Record<PassKind, number> = { pop: 0.25, pass: 0.4, miss: 0.55 }
 /** how long the finisher runs on after the break, and the holds either side */
 const RUN_FOR = 1.3
 const LEAD = 0.5
@@ -38,10 +36,13 @@ interface Plan {
   T: number
   view: [number, number, number, number]
   trails: { role: string; d: string }[]
+  /** every pass as the loop draws it: who to whom, and where the ball
+   *  leaves the passer's hands and reaches the catcher's (x up the field) */
+  passes: { from: string; to: string; t0: number; t1: number; p0: Pt; p1: Pt }[]
 }
 
 /** everything the loop needs, worked out once per move: no draws, no clock */
-function planFor(id: string): Plan | null {
+export function planFor(id: string): Plan | null {
   const tr = TRACKS[id]?.[0]
   const mv = MOVE_BY_ID[id]
   if (!tr || !mv) return null
@@ -135,7 +136,15 @@ function planFor(id: string): Plan | null {
     return { role: r, d: `M${pts.join(' L')}` }
   })
 
-  return { roles, at, ball, them, finisher, T, view, trails }
+  const passes: Plan['passes'] = []
+  let had = first
+  for (const [rel, to, kind] of events) {
+    const t1 = rel + FLIGHT[kind ?? 'pass']
+    passes.push({ from: had, to, t0: rel, t1, p0: at(had, rel), p1: at(to, t1) })
+    had = to
+  }
+
+  return { roles, at, ball, them, finisher, T, view, trails, passes }
 }
 
 const reducedMotion = () =>

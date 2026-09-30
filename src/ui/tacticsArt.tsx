@@ -58,8 +58,11 @@ const Ball = ({ x, y }: { x: number; y: number }) =>
 /** A move: a curve from one point to another with its own arrowhead (drawn,
  *  not a <marker>, so twenty diagrams on a page share no ids). `bend` pushes
  *  the curve's middle sideways; `dash` for a kick in the air or a ball thrown. */
-function Move({ x1, y1, x2, y2, bend = 0, dash, w = 1.6, head = 3.2, faint }: {
+function Move({ x1, y1, x2, y2, bend = 0, dash, w = 1.6, head = 3.2, faint, ball }: {
   x1: number; y1: number; x2: number; y2: number; bend?: number; dash?: boolean; w?: number; head?: number; faint?: boolean
+  /** the ball's own journey, not a man's run: a pass by hand (which must go
+   *  backwards, passprobe holds every one to it), a kick or a throw-in */
+  ball?: 'pass' | 'kick' | 'throw'
 }) {
   const mx = (x1 + x2) / 2, my = (y1 + y2) / 2
   const len = Math.hypot(x2 - x1, y2 - y1) || 1
@@ -70,7 +73,7 @@ function Move({ x1, y1, x2, y2, bend = 0, dash, w = 1.6, head = 3.2, faint }: {
   const p = (da: number) => `${x2 - head * Math.cos(a + da)},${y2 - head * Math.sin(a + da)}`
   const style: CSSProperties = { fill: 'none', stroke: 'var(--dg-move)', strokeWidth: w, strokeLinecap: 'round', strokeDasharray: dash ? '2.4 2' : undefined }
   return (
-    <g opacity={faint ? 0.55 : 1}>
+    <g opacity={faint ? 0.55 : 1} data-ball={ball} data-line={ball ? `${x1} ${y1} ${x2} ${y2}` : undefined} data-dash={dash ? '' : undefined}>
       <path d={`M${x1} ${y1} Q${cx} ${cy} ${x2} ${y2}`} style={style} />
       <polygon points={`${x2},${y2} ${p(0.45)} ${p(-0.45)}`} style={st('var(--dg-move)')} />
     </g>
@@ -120,18 +123,18 @@ export function LineoutDiagram({ call }: { call: string }) {
       {/* the dummy: a jump at the front that the ball never goes to */}
       {call === 'lo_dummy' && <Key x={52} y={30} r={6} dashed />}
       <Key x={52} y={jy} r={6} />
-      <Move x1={57} y1={8} x2={55} y2={jy - 4} bend={-4} dash w={1.2} />
+      <Move x1={57} y1={8} x2={55} y2={jy - 4} bend={-4} dash ball="throw" w={1.2} />
       {(call === 'lo_front' || call === 'lo_middle') &&
-        <Move x1={48} y1={jy + 3} x2={39.5} y2={nine[1] - 2.5} bend={-2} w={1.5} />}
+        <Move x1={48} y1={jy + 3} x2={39.5} y2={nine[1] - 2.5} bend={-2} w={1.5} ball="pass" />}
       {(call === 'lo_back' || call === 'lo_dummy') && <>
-        <Move x1={48} y1={jy + 2} x2={39.5} y2={nine[1] - 1} w={1.5} />
-        <Move x1={33} y1={nine[1] + 2} x2={23} y2={70} w={1.5} />
+        <Move x1={48} y1={jy + 2} x2={39.5} y2={nine[1] - 1} w={1.5} ball="pass" />
+        <Move x1={33} y1={nine[1] + 2} x2={23} y2={70} w={1.5} ball="pass" />
       </>}
       {call === 'lo_top' && <>
         {/* straight down off the top, and away to the backs in two passes */}
-        <Move x1={48} y1={jy + 2} x2={39.5} y2={nine[1] - 2} w={1.5} />
-        <Move x1={33} y1={nine[1] + 2} x2={23} y2={69.5} w={1.5} />
-        <Move x1={17} y1={73.5} x2={11} y2={75.5} w={1.5} head={2.4} />
+        <Move x1={48} y1={jy + 2} x2={39.5} y2={nine[1] - 2} w={1.5} ball="pass" />
+        <Move x1={33} y1={nine[1] + 2} x2={23} y2={69.5} w={1.5} ball="pass" />
+        <Move x1={17} y1={73.5} x2={11} y2={75.5} w={1.5} head={2.4} ball="pass" />
       </>}
       {maul && <Move x1={58} y1={38} x2={96} y2={38} w={4} head={5.5} />}
       <Ball x={52} y={jy - 7.5} />
@@ -156,12 +159,12 @@ export function ScrumDiagram({ call }: { call: string }) {
       <Us x={50} y={12} r={R} />
       <Us x={26} y={9} r={R} />
       {call === 'sc_channel1' && <>
-        <Move x1={57} y1={36} x2={51} y2={17} bend={-3} w={1.5} />
-        <Move x1={46} y1={11.5} x2={30.5} y2={9} w={1.5} />
+        <Move x1={57} y1={36} x2={51} y2={17} bend={-3} w={1.5} ball="pass" />
+        <Move x1={46} y1={11.5} x2={30.5} y2={9} w={1.5} ball="pass" />
         <Ball x={57} y={40} />
       </>}
       {call === 'sc_hold' && <>
-        <Move x1={58} y1={40} x2={43} y2={40} dash w={1.2} />
+        <Move x1={58} y1={40} x2={43} y2={40} dash ball="pass" w={1.2} />
         <Ball x={41} y={40} />
         <Key x={41} y={40} r={5} />
       </>}
@@ -216,14 +219,14 @@ export function ExitDiagram({ id }: { id: string }) {
     <Pitch>
       {id === 'box' && <>
         <Us x={15} y={60} />
-        <Move x1={16} y1={58} x2={45} y2={66} bend={-14} dash />
+        <Move x1={16} y1={58} x2={45} y2={66} bend={-14} dash ball="kick" />
         <Land x={46} y={66.5} />
         <Us x={30} y={70} /><Them x={50} y={62} />
         <Move x1={31.5} y1={70.5} x2={41} y2={69.5} w={1} head={2} />
       </>}
       {id === 'long' && <>
         <Us x={18} y={44} />
-        <Move x1={20} y1={43} x2={74} y2={6} bend={-10} dash />
+        <Move x1={20} y1={43} x2={74} y2={6} bend={-10} dash ball="kick" />
         <Out x={75} y={4} />
       </>}
       {id === 'counter' && <>
@@ -235,9 +238,9 @@ export function ExitDiagram({ id }: { id: string }) {
       </>}
       {id === 'fifty22' && <>
         <Us x={22} y={40} />
-        <Move x1={24} y1={39} x2={96} y2={62} bend={-12} dash />
+        <Move x1={24} y1={39} x2={96} y2={62} bend={-12} dash ball="kick" />
         <circle cx={96} cy={62} r={1.4} style={st('var(--dg-move)')} />
-        <Move x1={96.5} y1={63} x2={101} y2={74} w={1.1} />
+        <Move x1={96.5} y1={63} x2={101} y2={74} w={1.1} ball="kick" />
         <Out x={101.5} y={76} />
       </>}
     </Pitch>
@@ -250,11 +253,11 @@ export function KickStyleDiagram({ id }: { id: string }) {
     <Pitch>
       <Us x={58} y={42} />
       {(id === 'territory' || all) && <>
-        <Move x1={60} y1={41} x2={100} y2={75} bend={8} dash faint={all} />
+        <Move x1={60} y1={41} x2={100} y2={75} bend={8} dash ball="kick" faint={all} />
         <Out x={100.5} y={76} />
       </>}
       {(id === 'contest' || all) && <>
-        <Move x1={60} y1={40} x2={82} y2={30} bend={-10} dash faint={all} />
+        <Move x1={60} y1={40} x2={82} y2={30} bend={-10} dash ball="kick" faint={all} />
         <Land x={83} y={29.5} />
         {!all && <><Us x={74} y={24} /><Them x={87} y={27} /></>}
       </>}
@@ -262,7 +265,7 @@ export function KickStyleDiagram({ id }: { id: string }) {
         {/* a grubber skids along the ground; a cross-kick finds the wing */}
         <path d="M61 44 q3 -2.5 6 0 q3 -2.5 6 0 q3 -2.5 6 0" style={{ fill: 'none', stroke: 'var(--dg-move)', strokeWidth: 1.2, strokeLinecap: 'round' }} opacity={all ? 0.55 : 1} />
         {!all && <>
-          <Move x1={60} y1={39} x2={106} y2={11} bend={-8} dash />
+          <Move x1={60} y1={39} x2={106} y2={11} bend={-8} dash ball="kick" />
           <Us x={108} y={10} />
           <Them x={70} y={36} /><Them x={78} y={48} />
         </>}
@@ -307,11 +310,11 @@ export function PenaltyDiagram({ id }: { id: string }) {
     <HalfPitch>
       <Us x={mx} y={my} />
       {(id === 'posts' || ask) && <>
-        <Move x1={mx + 3} y1={my + 1} x2={103} y2={40} bend={-6} dash faint={ask} />
+        <Move x1={mx + 3} y1={my + 1} x2={103} y2={40} bend={-6} dash ball="kick" faint={ask} />
       </>}
       {(id === 'corner' || ask) && <>
         {/* to touch five metres out, where the lineout is thrown */}
-        <Move x1={mx + 2} y1={my - 2.5} x2={94} y2={5} bend={5} dash faint={ask} />
+        <Move x1={mx + 2} y1={my - 2.5} x2={94} y2={5} bend={5} dash ball="kick" faint={ask} />
         <Out x={94.5} y={4} />
         {!ask && <>
           <Us x={94} y={12} /><Us x={94} y={17} /><Us x={90} y={14.5} /><Us x={90} y={9.5} />
@@ -500,8 +503,8 @@ export function MoveDiagram({ id }: { id: string }) {
   switch (id) {
     case 'mv_crash':
       return <Frame><SetPiece kind="lineout" /><Backs />{theirs}
-        <Move x1={x9 - 2} y1={y9 + 2} x2={x10 + 2} y2={y10 - 2} dash w={1.1} head={2.4} />
-        <Move x1={x10 - 1} y1={y10 + 3} x2={x12 + 2} y2={y12 - 2} dash w={1.1} head={2.4} />
+        <Move x1={x9 - 2} y1={y9 + 2} x2={x10 + 2} y2={y10 - 2} dash ball="pass" w={1.1} head={2.4} />
+        <Move x1={x10 - 1} y1={y10 + 3} x2={x12 + 2} y2={y12 - 2} dash ball="pass" w={1.1} head={2.4} />
         <Key x={x12} y={y12} />
         <Move x1={x12 + 3} y1={y12} x2={64} y2={y12 - 3} w={2.6} head={4} />
       </Frame>
@@ -509,23 +512,23 @@ export function MoveDiagram({ id }: { id: string }) {
       return <Frame><SetPiece kind="scrum" /><Backs />{theirs}
         <Move x1={x10 + 2} y1={y10 + 2} x2={38} y2={58} bend={4} w={1.5} />
         <Move x1={x13 + 3} y1={y13 - 1} x2={66} y2={44} bend={-10} w={1.8} />
-        <Move x1={37} y1={57} x2={40} y2={53} dash w={1.1} head={2.2} />
+        <Move x1={38} y1={56} x2={36.8} y2={49.5} dash ball="pass" w={1.1} head={2.2} />
         <Key x={x13} y={y13} />
       </Frame>
     case 'mv_loop':
       return <Frame><SetPiece kind="lineout" /><Backs />{theirs}
-        <Move x1={x10 - 1} y1={y10 + 3} x2={x12 + 2} y2={y12 - 2} dash w={1.1} head={2.4} />
+        <Move x1={x10 - 1} y1={y10 + 3} x2={x12 + 2} y2={y12 - 2} dash ball="pass" w={1.1} head={2.4} />
         {/* the 10 loops round the back of the 12 and comes again outside him */}
-        <path d={`M${x10 - 2} ${y10 + 1} C ${x10 - 12} ${y10 + 8}, ${x12 - 10} ${y12 + 14}, ${x12 + 6} ${y12 + 12}`} style={RUN} />
-        <Move x1={x12 + 1} y1={y12 + 3} x2={x12 + 5} y2={y12 + 10} dash w={1.1} head={2.2} />
-        <Move x1={x12 + 7} y1={y12 + 12} x2={64} y2={68} bend={-4} w={1.8} />
+        <path d={`M${x10 - 2} ${y10 + 1} C ${x10 - 12} ${y10 + 8}, ${x12 - 11} ${y12 + 16}, ${x12 + 1} ${y12 + 13}`} style={RUN} />
+        <Move x1={x12 + 2} y1={y12 + 3} x2={x12 + 1} y2={y12 + 10} dash ball="pass" w={1.1} head={2.2} />
+        <Move x1={x12 + 3} y1={y12 + 13} x2={64} y2={68} bend={-4} w={1.8} />
         <Key x={x10} y={y10} />
       </Frame>
     case 'mv_decoy':
       return <Frame><SetPiece kind="lineout" /><Backs />{theirs}
         <Key x={x12} y={y12} dashed />
         <Move x1={x12 + 3} y1={y12} x2={60} y2={y12 - 4} w={1.4} faint />
-        <Move x1={x10 - 2} y1={y10 + 3} x2={x13 + 1} y2={y13 - 3} bend={6} dash w={1.1} head={2.4} />
+        <Move x1={x10 - 2} y1={y10 + 3} x2={x13 + 1} y2={y13 - 3} bend={6} dash ball="pass" w={1.1} head={2.4} />
         <Move x1={x13 + 3} y1={y13} x2={66} y2={66} bend={-4} w={1.8} />
         <Key x={x13} y={y13} />
       </Frame>
@@ -535,7 +538,7 @@ export function MoveDiagram({ id }: { id: string }) {
         <Us x={30} y={38} r={2.8} /><Us x={24} y={46} r={2.8} /><Us x={20} y={55} r={2.8} /><Us x={24} y={12} r={2.8} />
         <Them x={64} y={10} r={2.8} /><Them x={68} y={40} r={2.8} /><Them x={68} y={52} r={2.8} />
         <Move x1={31} y1={26} x2={36} y2={14} bend={-3} w={1.5} />
-        <Move x1={36} y1={12} x2={29} y2={11} dash w={1.1} head={2.2} />
+        <Move x1={36} y1={12} x2={29} y2={11} dash ball="pass" w={1.1} head={2.2} />
         <Move x1={25} y1={9} x2={70} y2={7} bend={-7} w={1.8} />
         <Key x={24} y={12} />
       </Frame>
@@ -543,13 +546,13 @@ export function MoveDiagram({ id }: { id: string }) {
       return <Frame><SetPiece kind="scrum" /><Backs />{theirs}
         <Move x1={x10 + 2} y1={y10 + 1} x2={44} y2={56} bend={3} w={1.5} />
         <Move x1={x12 + 3} y1={y12 + 2} x2={64} y2={40} bend={10} w={1.8} />
-        <Move x1={43} y1={54} x2={45} y2={47} dash w={1.1} head={2.2} />
+        <Move x1={44} y1={54} x2={42} y2={50.5} dash ball="pass" w={1.1} head={2.2} />
         <Key x={x12} y={y12} />
       </Frame>
     case 'mv_strike13':
       return <Frame><SetPiece kind="lineout" /><Backs />{theirs}
-        <Move x1={x10 - 1} y1={y10 + 3} x2={x12 + 2} y2={y12 - 2} dash w={1.1} head={2.4} />
-        <Move x1={x12 + 1} y1={y12 + 3} x2={x13 + 8} y2={y13 - 3} dash w={1.1} head={2.2} />
+        <Move x1={x10 - 1} y1={y10 + 3} x2={x12 + 2} y2={y12 - 2} dash ball="pass" w={1.1} head={2.4} />
+        <Move x1={x12 + 1} y1={y12 + 3} x2={x13 + 5} y2={y13 - 2} dash ball="pass" w={1.1} head={2.2} />
         <Move x1={x13 + 3} y1={y13} x2={68} y2={47} bend={-2} w={2} head={3.6} />
         <Key x={x13} y={y13} />
       </Frame>
@@ -558,7 +561,7 @@ export function MoveDiagram({ id }: { id: string }) {
       return <Frame><Ruck x={42} y={40} />
         <Us x={34} y={6} r={2.6} /><Pod x={32} y={24} n={3} /><Pod x={32} y={56} n={3} /><Us x={34} y={74} r={2.6} />
         {[[64, 12], [62, 26], [60, 40], [62, 54], [64, 68]].map(([x, y], i) => <Them key={i} x={x} y={y} r={2.8} />)}
-        <Move x1={38} y1={37} x2={33} y2={30} dash w={1.1} head={2.2} />
+        <Move x1={38} y1={37} x2={33} y2={30} dash ball="pass" w={1.1} head={2.2} />
         <Move x1={36} y1={24} x2={56} y2={24} w={2.2} head={3.6} />
         <Move x1={36} y1={56} x2={56} y2={56} w={1.4} faint />
       </Frame>
@@ -567,19 +570,20 @@ export function MoveDiagram({ id }: { id: string }) {
         <Pod x={34} y={10} n={2} /><Pod x={32} y={30} n={2} /><Pod x={32} y={50} n={2} /><Pod x={34} y={70} n={2} />
         <Us x={22} y={40} r={2.6} />
         {[[64, 12], [62, 28], [60, 40], [62, 52], [66, 68]].map(([x, y], i) => <Them key={i} x={x} y={y} r={2.8} />)}
-        <Move x1={36} y1={42} x2={25} y2={41} dash w={1.1} head={2.2} />
-        <Move x1={22} y1={43} x2={31} y2={64} bend={4} dash w={1.1} head={2.2} />
-        <Move x1={38} y1={70} x2={62} y2={68} w={2} head={3.4} />
-        <Key x={34} y={70} r={6} />
+        <Move x1={36} y1={42} x2={25} y2={41} dash ball="pass" w={1.1} head={2.2} />
+        <Us x={15} y={63} r={2.6} />
+        <Move x1={21} y1={43} x2={17} y2={59.5} bend={2} dash ball="pass" w={1.1} head={2.2} />
+        <Move x1={18} y1={65} x2={62} y2={68} bend={-3} w={2} head={3.4} />
+        <Key x={15} y={63} />
       </Frame>
     case 'mv_backdoor':
       return <Frame><Ruck x={42} y={30} />
-        <Pod x={44} y={48} n={3} across />
+        <Pod x={41} y={48} n={3} across />
         <Us x={30} y={50} r={2.8} /><Us x={22} y={60} r={2.8} /><Us x={16} y={70} r={2.8} />
         {[[64, 20], [60, 34], [60, 46], [60, 58], [64, 70]].map(([x, y], i) => <Them key={i} x={x} y={y} r={2.8} />)}
-        <Move x1={39} y1={33} x2={43} y2={43} dash w={1} head={2} faint />
-        <Move x1={36} y1={32} x2={31} y2={46} dash w={1.1} head={2.2} />
-        <Move x1={30} y1={53} x2={23} y2={58} dash w={1.1} head={2.2} />
+        <Move x1={39} y1={33} x2={38.5} y2={43} dash ball="pass" w={1} head={2} faint />
+        <Move x1={36} y1={32} x2={31} y2={46} dash ball="pass" w={1.1} head={2.2} />
+        <Move x1={30} y1={53} x2={23} y2={58} dash ball="pass" w={1.1} head={2.2} />
         <Move x1={25} y1={61} x2={62} y2={66} bend={-2} w={1.8} />
         <Key x={30} y={50} />
       </Frame>
@@ -588,21 +592,22 @@ export function MoveDiagram({ id }: { id: string }) {
       // the blind wing (top left, off his touchline) comes in behind a flat
       // 10 and hits the seam between their first two backs; the 12 a decoy
       return <Frame><SetPiece kind="scrum" /><Backs />{theirs}<Us x={20} y={8} r={2.8} />
-        <Move x1={x9 - 2} y1={y9 + 2} x2={x10 + 2} y2={y10 - 2} dash w={1.1} head={2.4} />
+        <Move x1={x9 - 2} y1={y9 + 2} x2={x10 + 2} y2={y10 - 2} dash ball="pass" w={1.1} head={2.4} />
         <Move x1={x12 + 3} y1={y12} x2={56} y2={y12 + 2} w={1.4} faint />
-        <path d={`M22 10 C 16 24, 26 36, 40 37`} style={RUN} />
-        <Move x1={x10 + 2} y1={y10} x2={38} y2={38} dash w={1.1} head={2.2} />
-        <Move x1={41} y1={37} x2={65} y2={37} w={2} head={3.6} />
+        <path d={`M22 10 C 16 24, 22 34, 36 36`} style={RUN} />
+        <Move x1={x10 + 3} y1={y10 + 1} x2={40} y2={41} w={1.4} />
+        <Move x1={40} y1={38.5} x2={37.5} y2={36} dash ball="pass" w={1.1} head={2.2} />
+        <Move x1={39} y1={35} x2={65} y2={35} w={2} head={3.6} />
         <Key x={20} y={8} />
       </Frame>
     case 'mv_width':
       // hands along the line, and the full-back into it from depth outside the 13
       return <Frame><SetPiece kind="scrum" /><Backs />{theirs}
-        <Move x1={x10 - 1} y1={y10 + 3} x2={x12 + 2} y2={y12 - 2} dash w={1.1} head={2.2} />
-        <Move x1={x12 - 1} y1={y12 + 3} x2={x13 + 2} y2={y13 - 2} dash w={1.1} head={2.2} />
-        <path d={`M${BK.n15[0] + 2} ${BK.n15[1] - 2} C 20 60, 26 62, 34 64`} style={RUN} />
-        <Move x1={x13 + 2} y1={y13 + 2} x2={32} y2={62} dash w={1.1} head={2.2} />
-        <Move x1={36} y1={65} x2={64} y2={75} bend={-3} w={1.8} />
+        <Move x1={x10 - 1} y1={y10 + 3} x2={x12 + 2} y2={y12 - 2} dash ball="pass" w={1.1} head={2.2} />
+        <Move x1={x12 - 1} y1={y12 + 3} x2={x13 + 2} y2={y13 - 2} dash ball="pass" w={1.1} head={2.2} />
+        <path d={`M${BK.n15[0] + 2} ${BK.n15[1] + 1} C 13 64, 15 65, 17 65.5`} style={RUN} />
+        <Move x1={x13 + 2} y1={y13 + 2} x2={17.5} y2={63} dash ball="pass" w={1.1} head={2.2} />
+        <Move x1={20} y1={66} x2={64} y2={75} bend={-3} w={1.8} />
         <Key x={BK.n15[0]} y={BK.n15[1]} />
       </Frame>
     case 'mv_peel':
@@ -611,10 +616,10 @@ export function MoveDiagram({ id }: { id: string }) {
       return <Frame><SetPiece kind="lineout" /><Backs />{theirs}
         <ellipse cx={46} cy={15} rx={7.5} ry={11} style={soft(0.8)} />
         <Us x={37} y={5} r={2.6} /><Us x={22} y={16} r={2.8} />
-        <path d={`M37 8 C 34 20, 40 26, 48 28`} style={RUN} />
-        <Move x1={24} y1={18} x2={52} y2={30} bend={-5} w={1.5} />
-        <Move x1={47} y1={27} x2={51} y2={29} dash w={1.1} head={2.2} />
-        <Move x1={54} y1={31} x2={66} y2={25} w={2} head={3.6} />
+        <path d={`M37 8 C 34 20, 42 26, 52 27`} style={RUN} />
+        <Move x1={24} y1={18} x2={46} y2={32} bend={-5} w={1.5} />
+        <Move x1={51} y1={29} x2={47.5} y2={31} dash ball="pass" w={1.1} head={2.2} />
+        <Move x1={49} y1={33} x2={66} y2={27} w={2} head={3.6} />
         <Key x={22} y={16} />
       </Frame>
     case 'mv_maulswitch':
@@ -627,8 +632,8 @@ export function MoveDiagram({ id }: { id: string }) {
         <Pod x={43} y={12} n={3} /><Pod x={43} y={30} n={3} />
         {[[50, 26], [50, 31], [50, 36], [55, 31], [50, 11]].map(([x, y], i) => <Them key={i} x={x} y={y} r={2.6} />)}
         <Us x={38} y={2} r={2.4} />
-        <Move x1={40} y1={4} x2={42} y2={26} bend={-4} dash w={1} head={2} faint />
-        <Move x1={40} y1={4} x2={42} y2={9} dash w={1.1} head={2.2} />
+        <Move x1={40} y1={4} x2={42} y2={26} bend={-4} dash ball="throw" w={1} head={2} faint />
+        <Move x1={40} y1={4} x2={42} y2={9} dash ball="throw" w={1.1} head={2.2} />
         <Move x1={45} y1={27} x2={48} y2={16} w={1.4} faint />
         <Move x1={49} y1={11} x2={100} y2={10} w={2.8} head={4.2} />
         <Key x={43} y={12} r={8} />
@@ -638,44 +643,44 @@ export function MoveDiagram({ id }: { id: string }) {
       // the other and the runner comes round the corner of it
       return <Frame>
         <line x1={104} y1={0} x2={104} y2={H} style={chalk(1)} />
-        <Us x={78} y={42} r={2.8} /><Ball x={81} y={42} />
+        <Us x={84} y={42} r={2.8} /><Ball x={87} y={42} />
         <Pod x={86} y={52} n={3} /><Pod x={84} y={26} n={3} />
         {[[98, 12], [98, 22], [98, 32], [98, 42], [98, 52], [98, 62]].map(([x, y], i) => <Them key={i} x={x} y={y} r={2.8} />)}
         <Move x1={89} y1={52} x2={94} y2={52} w={1.4} faint />
-        <Move x1={79} y1={39} x2={82} y2={31} dash w={1.1} head={2.2} />
+        <Move x1={85} y1={39} x2={84.5} y2={34} dash ball="pass" w={1.1} head={2.2} />
         <Us x={76} y={52} r={2.6} />
-        <path d={`M76 49 C 68 38, 70 16, 86 13`} style={RUN} />
-        <Move x1={86} y1={23} x2={87} y2={15} dash w={1} head={2} />
-        <Move x1={88} y1={13} x2={102} y2={10} w={2} head={3.4} />
+        <path d={`M76 49 C 68 38, 70 16, 83 13`} style={RUN} />
+        <Move x1={85} y1={19} x2={84} y2={15.5} dash ball="pass" w={1} head={2} />
+        <Move x1={85} y1={12.5} x2={102} y2={10} w={2} head={3.4} />
         <Key x={76} y={52} />
       </Frame>
     case 'mv_crashswing':
       // the crash ball into midfield and the ruck, then the ball swung back
       // along the line to the far edge
       return <Frame><SetPiece kind="lineout" /><Backs />{theirs}
-        <Move x1={x10 - 1} y1={y10 + 3} x2={x12 + 2} y2={y12 - 2} dash w={1.1} head={2.4} />
+        <Move x1={x10 - 1} y1={y10 + 3} x2={x12 + 2} y2={y12 - 2} dash ball="pass" w={1.1} head={2.4} />
         <Move x1={x12 + 3} y1={y12} x2={46} y2={46} w={2.6} head={4} />
         <circle cx={50} cy={46} r={4} style={soft(0.8)} />
-        <Move x1={47} y1={50} x2={31} y2={60} bend={3} dash w={1.1} head={2.2} />
-        <Move x1={29} y1={62} x2={25} y2={69} dash w={1.1} head={2.2} />
+        <Move x1={47} y1={50} x2={31} y2={60} bend={3} dash ball="pass" w={1.1} head={2.2} />
+        <Move x1={29} y1={62} x2={25} y2={69} dash ball="pass" w={1.1} head={2.2} />
         <Move x1={27} y1={72} x2={64} y2={76} bend={-2} w={1.8} />
         <Key x={x12} y={y12} />
       </Frame>
     case 'mv_loop9':
       // the 10 straight at the fringe, the 9 round the back of him for the tip
       return <Frame><SetPiece kind="scrum" /><Backs />{theirs}
-        <Move x1={x9 - 2} y1={y9 + 2} x2={x10 + 2} y2={y10 - 2} dash w={1.1} head={2.4} />
+        <Move x1={x9 - 2} y1={y9 + 2} x2={x10 + 2} y2={y10 - 2} dash ball="pass" w={1.1} head={2.4} />
         <Move x1={x10 + 2} y1={y10} x2={50} y2={36} w={1.6} />
-        <path d={`M${x9} ${y9 + 2} C ${x9 - 6} ${y9 + 16}, ${x10 + 10} ${y10 + 10}, 52 44`} style={RUN} />
-        <Move x1={49} y1={37} x2={52} y2={42} dash w={1.1} head={2.2} />
-        <Move x1={54} y1={45} x2={66} y2={47} w={2} head={3.6} />
+        <path d={`M${x9} ${y9 + 2} C ${x9 - 6} ${y9 + 16}, ${x10 + 8} ${y10 + 10}, 47 44`} style={RUN} />
+        <Move x1={50} y1={38.5} x2={48.5} y2={42} dash ball="pass" w={1.1} head={2.2} />
+        <Move x1={49.5} y1={45} x2={66} y2={47} w={2} head={3.6} />
         <Key x={x9} y={y9} />
       </Frame>
     case 'mv_crosskick':
       // a flat line, and the 10's kick across to the far wing running onto it
       return <Frame><SetPiece kind="lineout" /><Backs />{theirs}
-        <Move x1={x9 - 2} y1={y9 + 2} x2={x10 + 2} y2={y10 - 2} dash w={1.1} head={2.4} />
-        <Move x1={x10 + 2} y1={y10 + 2} x2={84} y2={72} bend={-16} dash w={1.2} head={2.6} />
+        <Move x1={x9 - 2} y1={y9 + 2} x2={x10 + 2} y2={y10 - 2} dash ball="pass" w={1.1} head={2.4} />
+        <Move x1={x10 + 2} y1={y10 + 2} x2={84} y2={72} bend={-16} dash ball="kick" w={1.2} head={2.6} />
         <Land x={84} y={72} />
         <Move x1={BK.n14[0] + 3} y1={BK.n14[1]} x2={80} y2={74} bend={-2} w={1.8} />
         <Key x={BK.n14[0]} y={BK.n14[1]} />
@@ -683,8 +688,8 @@ export function MoveDiagram({ id }: { id: string }) {
     case 'mv_grubber':
       // along the ground through the gap a rushing line leaves, the centres after it
       return <Frame><SetPiece kind="scrum" /><Backs />{theirs}
-        <Move x1={x9 - 2} y1={y9 + 2} x2={x10 + 2} y2={y10 - 2} dash w={1.1} head={2.4} />
-        <Move x1={x10 + 2} y1={y10 + 1} x2={82} y2={47} dash w={1.1} head={2.2} />
+        <Move x1={x9 - 2} y1={y9 + 2} x2={x10 + 2} y2={y10 - 2} dash ball="pass" w={1.1} head={2.4} />
+        <Move x1={x10 + 2} y1={y10 + 1} x2={82} y2={47} dash ball="kick" w={1.1} head={2.2} />
         <Land x={82} y={47} />
         <Move x1={x12 + 3} y1={y12} x2={79} y2={46} bend={4} w={1.6} />
         <Move x1={x13 + 3} y1={y13} x2={80} y2={51} bend={3} w={1.4} faint />
@@ -727,7 +732,7 @@ export function StyleDiagram({ id }: { id: string }) {
         {[[64, 12], [62, 24], [60, 34], [60, 46], [62, 56], [64, 68]].map(([x, y], i) => <Them key={i} x={x} y={y} r={2.8} />)}
         <Us x={30} y={32} r={2.8} /><Us x={28} y={47} r={2.8} /><Us x={24} y={40} r={2.6} />
         <Us x={16} y={58} r={2.4} /><Us x={10} y={68} r={2.4} />
-        <Move x1={36} y1={38} x2={32} y2={34} dash w={1} head={2} />
+        <Move x1={36} y1={38} x2={32} y2={34} dash ball="pass" w={1} head={2} />
         <Move x1={33} y1={32} x2={56} y2={33} w={2.8} head={4.2} />
         <Move x1={31} y1={47} x2={56} y2={46} w={2.2} head={3.6} faint />
         <Key x={30} y={32} />
@@ -738,9 +743,9 @@ export function StyleDiagram({ id }: { id: string }) {
         <Us x={38} y={9} r={2.6} /><Pod x={34} y={24} n={3} /><Pod x={34} y={56} n={3} /><Us x={38} y={71} r={2.6} />
         <Us x={24} y={34} r={2.6} /><Us x={20} y={48} r={2.6} /><Us x={10} y={40} r={2.4} />
         {[[66, 12], [64, 26], [62, 40], [64, 54], [66, 68]].map(([x, y], i) => <Them key={i} x={x} y={y} r={2.8} />)}
-        <Move x1={40} y1={37} x2={37} y2={29} dash w={1.1} head={2.2} />
+        <Move x1={40} y1={37} x2={37} y2={29} dash ball="pass" w={1.1} head={2.2} />
         <Move x1={38} y1={24} x2={57} y2={24} w={2.2} head={3.6} />
-        <Move x1={31} y1={27} x2={26} y2={33} dash w={1} head={2} faint />
+        <Move x1={31} y1={27} x2={26} y2={33} dash ball="pass" w={1} head={2} faint />
         <Move x1={27} y1={36} x2={54} y2={48} bend={-3} w={1.4} faint />
         <Key x={34} y={24} r={8} />
       </Field>
@@ -749,19 +754,19 @@ export function StyleDiagram({ id }: { id: string }) {
       return <Field><Ruck x={40} y={12} />
         <Us x={50} y={22} r={2.6} /><Us x={50} y={30} r={2.6} /><Us x={50} y={38} r={2.6} />
         {[22, 30, 38].map(y => <Move key={y} x1={53} y1={y} x2={58} y2={y} w={1.1} head={2.2} faint />)}
-        <Us x={34} y={23} r={2.6} /><Us x={32} y={44} r={2.6} /><Us x={38} y={56} r={2.6} /><Us x={46} y={70} r={2.6} />
+        <Us x={35} y={23} r={2.6} /><Us x={33} y={43} r={2.6} /><Us x={31} y={56} r={2.6} /><Us x={29} y={69} r={2.6} />
         {[[64, 14], [63, 24], [62, 33], [64, 44], [70, 60]].map(([x, y], i) => <Them key={i} x={x} y={y} r={2.8} />)}
-        <Move x1={36} y1={14} x2={34} y2={19} dash w={1} head={2} />
-        <Move x1={33} y1={26} x2={32} y2={40} bend={4} dash w={1.1} head={2.2} />
-        <Move x1={33} y1={47} x2={36} y2={52} dash w={1.1} head={2.2} />
-        <Move x1={40} y1={59} x2={44} y2={66} dash w={1.1} head={2.2} />
-        <Move x1={49} y1={71} x2={96} y2={70} w={2.2} head={3.8} />
-        <Key x={46} y={70} />
+        <Move x1={36} y1={14} x2={34} y2={19} dash ball="pass" w={1} head={2} />
+        <Move x1={34} y1={26} x2={33} y2={39.5} bend={4} dash ball="pass" w={1.1} head={2.2} />
+        <Move x1={32} y1={46} x2={31} y2={52.5} dash ball="pass" w={1.1} head={2.2} />
+        <Move x1={30} y1={59} x2={29} y2={65.5} dash ball="pass" w={1.1} head={2.2} />
+        <Move x1={32} y1={70} x2={96} y2={70} w={2.2} head={3.8} />
+        <Key x={29} y={69} />
       </Field>
     case 'kick':
       // the box kick off a ruck by the touchline, two chasers under it and a flat chase line
       return <Field><Ruck x={32} y={64} />
-        <Move x1={28} y1={61} x2={78} y2={56} bend={-16} dash w={1.3} />
+        <Move x1={28} y1={61} x2={78} y2={56} bend={-16} dash ball="kick" w={1.3} />
         <Land x={79} y={56} />
         <Us x={36} y={72} r={2.6} /><Us x={36} y={52} r={2.6} />
         <Move x1={39} y1={72} x2={72} y2={61} bend={3} w={1.8} head={3.2} />
@@ -777,7 +782,7 @@ export function StyleDiagram({ id }: { id: string }) {
         <Us x={56} y={40} /><Them x={62} y={39} />
         <path d="M58 33 l1.5 3 M62 32 l-0.5 3 M65 35 l-2 2" style={{ stroke: 'var(--dg-chalk)', strokeWidth: 0.9, strokeLinecap: 'round' }} />
         <Us x={50} y={33} r={2.6} /><Us x={52} y={48} r={2.6} /><Us x={44} y={41} r={2.6} />
-        <Move x1={57} y1={43} x2={60} y2={49} dash w={1.1} head={2.2} />
+        <Move x1={56.5} y1={43.5} x2={55} y2={47} dash ball="pass" w={1.1} head={2.2} />
         <Move x1={55} y1={49} x2={96} y2={54} bend={-3} w={2.2} head={3.8} />
         <Move x1={45} y1={44} x2={74} y2={62} bend={4} w={1.3} faint />
         <Them x={68} y={22} r={2.8} /><Them x={74} y={70} r={2.8} /><Them x={90} y={38} r={2.8} />
@@ -809,7 +814,7 @@ export function StyleDiagram({ id }: { id: string }) {
         {[[70, 8], [68, 22], [68, 32], [68, 42], [68, 52]].map(([x, y], i) => <Us key={i} x={x} y={y} r={2.8} />)}
         <polyline points="70,8 34,24 42,60" style={soft(0.8)} />
         <Us x={34} y={24} /><Us x={42} y={60} />
-        <Move x1={94} y1={26} x2={38} y2={30} bend={14} dash w={1.2} />
+        <Move x1={94} y1={26} x2={38} y2={30} bend={14} dash ball="kick" w={1.2} />
         <Land x={37} y={30} />
         <Move x1={43} y1={57} x2={40} y2={40} bend={-4} w={1.2} faint />
         <Key x={34} y={24} />

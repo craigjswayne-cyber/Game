@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { MatchEvent } from '../game/model'
 import { kitGap } from './kit'
 import { MOVE_BY_ID, moveOfKey } from '../game/moves'
-import { TRACKS, atkStyleOf, defStyleOf, defenceShape, trackAt, tracksFor, type AtkStyle, type DefStyle, type K, type StyleDials, type Track, type TrackFrom } from './clipPlays'
+import { HOLD, TRACKS, atkStyleOf, flightFor, defStyleOf, defenceShape, trackAt, tracksFor, type AtkStyle, type DefStyle, type K, type StyleDials, type Track, type TrackFrom } from './clipPlays'
 
 /**
  * ---- THE HIGHLIGHT, NOT THE WHOLE MATCH (1.8.0) ----
@@ -411,6 +411,9 @@ export interface Timeline {
   bite?: { def: number; on: number; t: number; strike: number; hit: number; caught: number }
   /** a move with no bite: when the strike runner reached their line */
   hit?: number; hitDef?: number
+  /** when the ball is kicked (a kick is not a pass: passprobe holds every
+   *  ball that goes from hand to hand to going backwards, and a kick is let go) */
+  kicks: number[]
 }
 
 const smooth = (t: number) => t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t)
@@ -587,6 +590,8 @@ const paceK = (pac: number | undefined) => pac == null ? 1
   : pac < 10.5 ? 1 - 0.08 * clamp((10.5 - pac) / 9.5, 0, 1) : 1 + 0.12 * clamp((pac - 10.5) / 9.5, 0, 1)
 /** hlprobe's ceiling is 13 m/s: nobody sprints past it, however quick */
 const V_CAP = 12.8
+/** how far behind the point a pass was let go its catcher takes it, at least (m) */
+const CATCH_BEHIND = 0.3
 /** how close two players stand before they are eased apart (m) */
 const ROOM = 1.3
 
@@ -668,6 +673,7 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
   const fieldY = (y: number) => clamp(y, 1, 69)
   const reveals: { t: number; line: number }[] = []
   const contact: number[] = []
+  const kicks: number[] = []
   // THE DEFENCE'S SYSTEM (1.8.2): its shape, its line speed, its chase
   const DS = defenceShape(c.defStyle)
   const CH: Chase = { ...CHASE, react: DS.react, huntV: DS.huntV, coverV: DS.coverV, coverLead: DS.coverLead }
@@ -860,7 +866,7 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
       if (t > endAt() + 0.5 || f > FPS * 40 || halt) break
     }
     return {
-      tl: { reveals, land, banner, end, run, contact }, n: nFrames,
+      tl: { reveals, land, banner, end, run, contact, kicks }, n: nFrames,
       ball: Float32Array.from(rec.ball), att: Float32Array.from(rec.att), def: Float32Array.from(rec.def), ref: Float32Array.from(rec.ref),
       carry: Float32Array.from(rec.carry), down: Float32Array.from(rec.down), aloft: Float32Array.from(rec.aloft),
     }
@@ -967,6 +973,7 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
     const posts = { x: c.attackHome ? 100 : 0, y: 35 + (c.kickGood ? 0 : (c.finish.y < 35 ? -1 : 1) * 5.2) }
     const flight = Math.max(1.5, Math.hypot(posts.x - c.finish.x, posts.y - c.finish.y) / 24)
     land = 0.9 + flight; banner = land - 0.1; end = land + 1.7
+    kicks.push(0.9)
     const kicker = c.finish.carrier - 1
     att[kicker].x = c.finish.x - d * 1.2; att[kicker].y = c.finish.y
     carrier = kicker
@@ -1084,7 +1091,10 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
         ball.x = lerp(start.x, r.x, k); ball.y = lerp(start.y, r.y, k); ball.lift = Math.sin(Math.PI * k) * 0.8
         if (k >= 1) {
           carrier = 15 + passer
-          if (t > SET + p1 + 0.45) {
+          // (it goes once the man reading it is into the lane between their
+          // 10 and 12, level with the 10 or past him: then the ball he takes
+          // is still going backwards, as their 10 threw it)
+          if (t > SET + p1 + 0.45 && ((att[who].x - def[passer].x) * d > 0.9 || t > SET + p1 + 1.3)) {
             t2 = t; from = { x: ball.x, y: ball.y }
             p2 = clamp(Math.hypot(att[who].x - ball.x, att[who].y - ball.y) / 18, 0.4, 1.0)
           }
@@ -1129,7 +1139,12 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
       const route = caught ? sampled(tau => bezAlong(go, path, c.finish, runK(t - caught + tau, T, 0.5))) : () => ball
       for (let i = 0; i < 15; i++) {
         if (!caught) {
-          const a = i === who ? { x: lerp(att[i].x, def[target].x, 0.4), y: lerp(att[i].y, def[target].y, 0.4) } : shapeDef(i, ball, -d)
+          // the man who reads it shoots out of the line at their 12, and once
+          // their 10 has it, into the lane the pass must go down, behind him
+          const lane = carrier === 15 + passer || p2 > 0
+          const a = i !== who ? shapeDef(i, ball, -d)
+            : lane ? { x: fieldX(lerp(def[passer].x, def[target].x, 0.6) + d * 1.5), y: lerp(def[passer].y, def[target].y, 0.6) }
+            : { x: lerp(att[i].x, def[target].x, 0.4), y: lerp(att[i].y, def[target].y, 0.4) }
           if (i === who) att[i].touch = true
           att[i].steer(a.x, a.y, V_PLAYER, A_PLAYER)
           if (i === passer && carrier === 15 + passer) { def[i].touch = true; def[i].hold(fieldX(def[i].x - d * 5 * DT), def[i].y); ball.x = def[i].x; ball.y = def[i].y; continue }
@@ -1184,6 +1199,7 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
     const side = Math.sign(att[chargerI].y - ball.y) || 1
     const setUp = { x: fieldX(U(96)), y: fieldY(ball.y + side * 5) }
     const PASS = 0.5, KICK = 1.4, HIT = 0.1, T = 1.15
+    kicks.push(KICK)
     const spot = { x: fieldX(U(102.2)), y: fieldY(ball.y + (ball.y < 35 ? 3 : -3)) }
     let from: Pt = { ...ball }, block: Pt = { ...ball }
     // the build-up read out over the ruck, and the charge-down line itself
@@ -1302,6 +1318,12 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
     // in a shape the carry comes off a pod beside the ruck, not from a man
     // stationed out on the edge twenty metres away (1.8.1)
     if (pods?.[who - 1] && Math.abs(pods[who - 1][1]) > 13) who = FORWARD_CARRIERS.find(s => s !== prev && Math.abs(pods[s - 1]?.[1] ?? 99) <= 13) ?? who
+    // and never a man the move off the last ruck needs on his feet: tackled
+    // there, he was still getting up (held in a choke tackle) when the ball
+    // came to him, in front of the man who passed it
+    const inMove = (s: number) => c.launch === 'open' && !!tr?.runs[String(s)]
+    const near = (s: number) => !pods?.[s - 1] || Math.abs(pods[s - 1][1]) <= 13
+    if (j === pts.length - 1 && inMove(who)) who = FORWARD_CARRIERS.find(s => s !== prev && !inMove(s) && near(s)) ?? who
     const tackler = TACKLERS[j % TACKLERS.length]
     phases.push({ k: 'dig', q, dur: 0.35 })
     phases.push({ k: 'pass', who, dur: 0 })
@@ -1615,6 +1637,7 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
       if (ph.line >= 0) reveals.push({ t, line: ph.line })
       if (scoring) { land = t + ph.dur; run = [t, land] }
     } else if (ph.k === 'kick') {
+      kicks.push(t)
       ph.from = { x: ball.x, y: ball.y }
       kickHunters = new Set(def.map((b, i) => ({ i, dd: Math.hypot(b.x - ph.to.x, b.y - ph.to.y) })).sort((a, b) => a.dd - b.dd).slice(0, 2).map(r => r.i))
       const dist = Math.hypot(ph.to.x - ball.x, ph.to.y - ball.y)
@@ -1650,12 +1673,12 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
       const nb = tr!.ball[nextPass]
       // (a man holds it a moment before he moves it on: never a catch and a
       // pass in one frame)
-      if (!flight && nb && kt >= nb[0] && kt >= caughtAt + 0.15) {
+      if (!flight && nb && kt >= nb[0] && kt >= caughtAt + HOLD) {
         const to = roleOf(nb[1]) - 1, from = { x: ball.x, y: ball.y }
         const r = att[to], dist = Math.hypot(r.x + r.vx * 0.3 - from.x, r.y + r.vy * 0.3 - from.y)
         const kind = nb[2] ?? 'pass'
         // (never faster on average than a hard pass, 22 m/s)
-        const dur = Math.max(dist / 22, kind === 'pop' ? clamp(dist / 13, 0.2, 0.35) : kind === 'miss' ? clamp(dist / 18, 0.5, 0.85) : clamp(dist / 16, 0.3, 0.55))
+        const dur = flightFor(kind, dist)
         flight = { from, to, t0: kt, dur, lift: kind === 'pop' ? 0.5 : kind === 'miss' ? 1.8 : 0.9 }
         nextPass++
       }
@@ -1734,9 +1757,55 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
           // the 9 follows his pass
           tgt = { x: fieldX(ball.x - d * 5), y: fieldY(lerp(att[i].y, ball.y, 0.5)) }; vm = 6
         } else if (shirt !== holder + 1) { tgt = trackIdle(i); vm = i < 8 ? (kt < 0.6 && setKind === 'scrum' ? 1 : 4.5) : 5 }
+        // (a man with the ball and no line of his own, the 9 at the base,
+        // stands where he is with it: steered at his place in the shape, which
+        // is behind the ball, he backed away with it until he passed)
+        else { tgt = { x: att[i].x, y: att[i].y }; vm = 2 }
         if (i < 8 && setKind === 'scrum' && kt < 0.4 && !runsBy[shirt]) att[i].touch = true
-        // the scorer, if he is not on the move's line, works up in support
-        if (shirt === scorer && !runsBy[shirt] && shirt !== holder + 1) { const w = att[strikeS - 1]; tgt = { x: fieldX(w.x - d * 4), y: fieldY(w.y + side * 4) }; vm = sprint(att, i, c.attPace) }
+        // the scorer, if he is not on the move's line (or his part in it is
+        // done, and he is not the man it is built to put through), works up
+        // in support
+        const partDone = runsBy[shirt] && shirt !== strikeS && !tr!.ball.slice(nextPass).some(b => roleOf(b[1]) === shirt)
+        if (shirt === scorer && (!runsBy[shirt] || partDone) && shirt !== holder + 1 && !(flight && flight.to === i)) { const w = att[strikeS - 1]; tgt = { x: fieldX(w.x - d * 4), y: fieldY(w.y + side * 4) }; vm = sprint(att, i, c.attPace) }
+      }
+      // AFTER THE MOVE its men carry on to the end of their lines (a decoy
+      // runs his through), rather than turning round into the shape behind a
+      // ball taken deep: the man the defence bit on ran back away from him
+      if (useTrack && p > trackIdx && runsBy[shirt] && shirt !== scorer && shirt !== strikeS && next?.who !== shirt && !(ph.k === 'kick' && ph.chaser === shirt)) {
+        const q = posAt(shirt, kt)
+        if (q) { tgt = q; vm = 5 }
+      }
+      // A PASS IS CAUGHT BEHIND WHERE IT WAS LET GO (owner: "all passes
+      // should go backwards"). The man it is coming to holds his depth: while
+      // he waits for it he stays as far behind the ball as its flight will
+      // carry him, and while it is in the air he runs on no further than
+      // CATCH_BEHIND short of where it left the passer's hands. (A track is
+      // written to the law already, clipPlays; this is for the man the
+      // clip's legs have carried a stride up on his line, or a pass let go
+      // late; and for a man in support who has got in front of the ball,
+      // who comes back behind it to take it, as he would have to).
+      {
+        let from: Pt | null = null, lead = 0
+        if (ph.k === 'track' && flight?.to === i) from = flight.from
+        else if (ph.k === 'pass' && ph.who === shirt) from = ph.from!
+        else {
+          // (in a move, anybody it has still to come to keeps behind it, and
+          // the man it goes to next as far behind as the pass will carry him)
+          const nb = ph.k === 'track' && !flight ? tr!.ball[nextPass] : undefined
+          const later = ph.k === 'track' && holder !== i && tr!.ball.slice(nextPass).some(b => roleOf(b[1]) === shirt)
+          const waits = nb ? roleOf(nb[1]) === shirt && holder >= 0 && holder !== i
+            : ph.k !== 'track' && next?.who === shirt && (ph.k === 'run' || ph.k === 'ruck' || ph.k === 'dig') && !(ph.k === 'run' && ph.who === shirt)
+          if (waits) { from = { x: ball.x, y: ball.y }; lead = Math.max(0, att[i].vx * d) * 0.45 }
+          else if (later) from = { x: ball.x, y: ball.y }
+        }
+        if (from) {
+          const lim = from.x - d * (CATCH_BEHIND + 0.4 + lead)
+          if ((tgt.x - lim) * d > 0) {
+            // (and a man in front of it gets back behind it at a run)
+            if ((att[i].x - lim) * d > 0) vm = Math.max(vm, sprint(att, i, c.attPace))
+            tgt = { x: lim, y: tgt.y }
+          }
+        }
       }
       const snapped = (ph.k === 'run' && ph.who === shirt) || (ph.k === 'done' && ph.who === shirt) || (ph.k === 'kick' && ph.who === shirt && k < 0.05)
       if (snapped) { if (!(ph.k === 'done' && heldAt >= 0)) carrier = i; continue }
@@ -1764,8 +1833,10 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
           const kk = smooth((k - THROW) / (CATCH - THROW))
           ball.x = lerp(setAtt[1].x, jp.x, kk); ball.y = lerp(setAtt[1].y, jp.y, kk)
           ball.lift = Math.sin(Math.PI * kk) * 3.5 + kk * 2.2
-        } else if (k < DOWN) { ball.x = jp.x; ball.y = jp.y; ball.lift = 2.2; carrier = 3 }
-        else {
+        } else if (k < DOWN || tr?.first === '4') {
+          // (a maul called off it: the jumper keeps it and they bind on him)
+          ball.x = jp.x; ball.y = jp.y; ball.lift = k < DOWN ? 2.2 : lerp(2.2, 1.2, smooth((k - DOWN) / (SET - DOWN))); carrier = 3
+        } else {
           const kk = smooth((k - DOWN) / (SET - DOWN))
           ball.x = lerp(jp.x, n9.x + d * 0.4, kk); ball.y = lerp(jp.y, n9.y, kk); ball.lift = lerp(2.2, 0.4, kk)
           if (kk >= 1) carrier = 8
@@ -1884,6 +1955,9 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
         const ahead = (def[i].x - ball.x) * d > 0.3
         const pk = paceK(c.defPace?.[i])
         if ((i === biteI || i === biteIn) && t < biteT + 0.45) { /* still going in on the decoy */ }
+        // (the man who will bite is held by the decoy until he does: he stays
+        // on him, rather than turning to chase a runner who took it deep)
+        else if (i === opts?.biteDef && t < biteT && biteOnS > 0) { const on = att[biteOnS - 1]; tgt = { x: lerp(def[i].x, on.x + d * 2, 0.5), y: lerp(def[i].y, on.y, 0.5) }; vmax = 4 }
         else if (ahead && k < CH.react) { tgt = frozen[i]; vmax = 3 }
         else {
           const v = Math.min(V_CAP, (ahead ? CH.coverV : hunters.has(i) ? CH.huntV : CH.scrambleV) * pk, ahead ? Infinity : outpaced(route))
@@ -1923,7 +1997,7 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
         if (ul < 1.6) { def[i].touch = true; on.touch = true }
       }
       // the men he beats: at his line as he gets there, a dive, and the floor
-      const biting = (i === biteI || i === biteIn) && t < biteT + 0.45
+      const biting = ((i === biteI || i === biteIn) && t < biteT + 0.45) || (i === opts?.biteDef && t < biteT && biteOnS > 0)
       const m = finishing && !biting ? missers.find(x => x.i === i) : undefined
       if (m && finishing) {
         const at = bez(ph.from!, ph.ctrl!, ph.to, m.s)
@@ -1965,7 +2039,7 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
   banner = c.reviewLine != null ? land + 2.0 : c.ending === 'turnover' ? land + 0.7 : land + 0.05
   if (c.reviewLine != null) reveals.push({ t: land, line: c.reviewLine })
   baked.tl = {
-    reveals, land, banner, end, run, contact,
+    reveals, land, banner, end, run, contact, kicks,
     ...(setKind ? { set: { kind: setKind, out: SET } } : {}),
     ...(biteI >= 0 ? { bite: { def: biteI, on: biteOnS - 1, t: biteT, strike: strikeS - 1, hit: biteHit, caught: strikeCaught } } : {}),
     ...(useTrack && biteI < 0 && biteHit > 0 ? { hit: biteHit, hitDef } : {}),

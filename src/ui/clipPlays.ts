@@ -162,7 +162,119 @@ function spec(set: TrackFrom, [ox, oy, sgn, t0]: [number, number, number, number
   return { set, runs: out, ...rest, ball: rest.ball.map(([t, w, k]) => [t - t0, w, k]) }
 }
 
-export const TRACKS: Record<string, Track[]> = {
+// ---- EVERY PASS GOES BACKWARDS (owner: "The biggest rule of rugby is all
+// passes should go backwards; if it goes forward it's a forward pass and a
+// scrum to the opposition").
+//
+// The study's keyframes put a receiver where the coaching diagram has him,
+// which is often level with the passer or a stride up on him; and he is
+// running, so by the time the ball gets to him he is in front of where it
+// left the passer's hands. Drawn from above that is a forward pass. So every
+// track is run through `backwards` below before anything plays it: for each
+// pass in turn, the receiver's line is taken deeper until, however long the
+// ball is in the air (the preview's flight or a clip's, whichever is
+// longer), he catches it PASS_MARGIN behind the point it was let go. A man
+// who has not had the ball yet simply stands and runs that much deeper, as a
+// real backline does; a man coming round for it again (the loop, the 9 on
+// the tip-on) drops back after his first pass and comes again from depth.
+// Nothing about the shape changes but the depth, and only as much as the
+// law needs. passprobe holds every pass in every track, preview and clip to it.
+
+/** how far behind the release the catch is, at least (m): enough to read
+ *  as backwards on a phone, and to cover a clip's runner a little off his line */
+export const PASS_MARGIN = 0.5
+/** how long a man holds it before he moves it on, in a clip (s) */
+export const HOLD = 0.15
+/** seconds a pass is in the air in the Playbook preview, by kind */
+export const FLIGHT: Record<PassKind, number> = { pop: 0.25, pass: 0.4, miss: 0.55 }
+/** and in a highlight clip, off the distance: never faster on average than a
+ *  hard pass (22 m/s), and each kind held to its own range */
+export function flightFor(kind: PassKind, dist: number): number {
+  const cl = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v))
+  return Math.max(dist / 22, kind === 'pop' ? cl(dist / 13, 0.2, 0.35) : kind === 'miss' ? cl(dist / 18, 0.5, 0.85) : cl(dist / 16, 0.3, 0.55))
+}
+
+/** A man's line taken `by` metres deeper where it has to be: from `from`
+ *  (the moment he last let the ball go, or the start) he eases back, is that
+ *  much deeper from `at` (the pass to him) until `until` (the latest it can
+ *  reach him), and then runs onto it, making the ground back up over the
+ *  next second or so. The easing is written in as keyframes a fifth of a
+ *  second apart, so the curve through them is the line he now runs. */
+function deepen(ks: K[], by: number, from: number, at: number, until: number): K[] {
+  const ease = (u: number) => u <= 0 ? 0 : u >= 1 ? 1 : u * u * (3 - 2 * u)
+  // (a man who has not had it stands deeper from the start; a man who has
+  // drops back after his pass)
+  const a0 = from < 0 ? -Infinity : from
+  const back = Math.max(0.6, by / 4)
+  const off = (t: number) => t < at ? (a0 === -Infinity ? 1 : ease((t - a0) / (at - a0))) : t <= until ? 1 : 1 - ease((t - until) / back)
+  const t0 = ks[0][0], t1 = ks[ks.length - 1][0]
+  const times = new Set(ks.map(k => k[0]))
+  const want: number[] = []
+  if (a0 > -Infinity) for (let t = a0; t < at; t += 0.2) want.push(t)
+  want.push(at, until)
+  for (let t = until + 0.2; t < until + back; t += 0.2) want.push(t)
+  want.push(until + back)
+  let out = ks.slice()
+  for (const t of want) {
+    if (t <= t0 || [...times].some(s => Math.abs(s - t) < 0.06)) continue
+    // (past the end of his line he stands where it ends, and now makes up
+    // the ground from there)
+    const [x, y] = trackAt(ks, t)
+    out.push([t, x, y]); times.add(t)
+  }
+  out = out.sort((p, q) => p[0] - q[0])
+  void t1
+  return out.map(([t, x, y]) => [t, x - by * off(t), y])
+}
+
+/** THE LAW, applied to one track (see above) */
+function lawful(tr: Track): Track {
+  // (a 9 with no line of his own passes from the base: in a clip the ball
+  // leaves his hands up to three metres behind the mark at a set piece, at
+  // the back of the scrum, and just behind the ruck in open play)
+  const nine = tr.set === 'ruck' ? -0.6 : -3
+  const line = (r: string): K[] => tr.runs[r] ?? [[0, r === '9' ? nine : 0, 0]]
+  const written = [...tr.ball].sort((a, b) => a[0] - b[0])
+  for (let round = 0; round < 12; round++) {
+    let moved = false, had = tr.first ?? '9', ready = -Infinity
+    // THE BACKLINE STAYS STAGGERED: a man taken deeper takes the men
+    // outside him with him, so none stands flatter than the man inside him
+    // (by more than a metre) as the ball comes out
+    const three = ['10', '12', '13'].filter(r => tr.runs[r]).sort((a, b) => Math.abs(tr.runs[a][0][2]) - Math.abs(tr.runs[b][0][2]))
+    for (let j = 1; j < three.length; j++) {
+      const over = tr.runs[three[j]][0][1] - (tr.runs[three[j - 1]][0][1] + 1)
+      if (over > 1e-3) { tr.runs[three[j]] = tr.runs[three[j]].map(([t, x, y]) => [t, x - over, y]); moved = true }
+    }
+    const released: Record<string, number> = {}
+    tr.ball = written.map(([rel, to, kind]) => {
+      // ON TIME IN A CLIP TOO: a man cannot pass it on before it has reached
+      // him and he has held it a moment (a clip's pass is in the air for as
+      // long as its length needs, often longer than the study allows), so a
+      // pass is put back until he can; a pass let go late in a clip was let
+      // go from wherever his line had taken him by then
+      const at = Math.max(rel, ready)
+      const k = kind ?? 'pass'
+      const [x0, y0] = trackAt(line(had), at)
+      const [xr, yr] = trackAt(line(to), at + 0.3)
+      const dist = Math.hypot(xr - x0, yr - y0)
+      // (every flight it could have: the preview's, and a clip's, off a
+      // length a quarter as long again for a runner a little off his line)
+      const hi = Math.max(FLIGHT[k], flightFor(k, dist * 1.25)) + 0.05
+      let over = -Infinity
+      for (let u = 0.2; u <= hi + 1e-9; u += 0.02) over = Math.max(over, trackAt(line(to), at + u)[0] - (x0 - PASS_MARGIN))
+      if (over > 1e-3 && tr.runs[to]) { tr.runs[to] = deepen(tr.runs[to], over + 0.05, released[to] ?? -1, at, at + hi); moved = true }
+      released[had] = at
+      had = to
+      ready = at + Math.max(FLIGHT[k], flightFor(k, dist * 1.1)) + HOLD
+      return [at, to, kind] as [number, string, PassKind?]
+    })
+    if (!moved) break
+  }
+  return tr
+}
+const backwards = (all: Record<string, Track[]>) => { for (const trs of Object.values(all)) trs.forEach(lawful); return all }
+
+export const TRACKS: Record<string, Track[]> = backwards({
   // THE LOOP, as the study's signature scrum move: 10 to 12, 10 round the
   // back of him and out again, the blind wing inserted, the full-back, and
   // the far wing on the touchline. The 13 holds his man with a straight line.
@@ -297,7 +409,7 @@ export const TRACKS: Record<string, Track[]> = {
     W: [[0, 48, 12], [3, 52, 13], [4.5, 60, 14]],
     '12': [[0, 47, 38], [2, 51, 37], [3.2, 55, 36]],
   }, {
-    ball: [[0.9, '10'], [1.85, '4', 'pop'], [2.3, '10', 'pop'], [3.3, '15']],
+    ball: [[0.9, '10'], [1.85, '4', 'pop'], [2.3, '10', 'pop'], [3.1, '15']],
     strike: '15', decoys: ['5'], bite: '10', late: '15', finish: 42,
   })],
 
@@ -365,7 +477,9 @@ export const TRACKS: Record<string, Track[]> = {
     '10': [[0, 81.5, 17], [2, 83, 18], [3.2, 84.5, 18.5]], '12': [[0, 81, 24], [2, 82.5, 25], [3.2, 84, 25.5]],
     '13': [[0, 80.5, 31], [2, 82, 32], [3.2, 83.5, 32.5]], '15': [[0, 76, 30], [2, 78, 29], [3.2, 80, 28]],
     W: [[0, 80, 45], [2, 82, 45], [3.2, 83.5, 45]], FW: [[0, 82, 4], [2, 83, 4.5], [3.2, 84, 5]],
-  }, { ball: [[1.05, '4', 'pop'], [4.2, '2', 'pop']], strike: '2', decoys: ['6', '5'], finish: -3 })],
+    // (the jumper keeps it and the maul forms round him: the ball never goes
+    // down to the 9, who stood behind the maul and popped it forward into it)
+  }, { first: '4', ball: [[4.2, '2', 'pop']], strike: '2', decoys: ['6', '5'], finish: -3 })],
   // CRASH THEN SWING: phase one, the 12 on a flat crash line into the
   // 10-12 channel and down; phase two, the 9 picks it
   // off the quick ruck and the ball goes along the line to the open edge,
@@ -414,7 +528,7 @@ export const TRACKS: Record<string, Track[]> = {
     W: [[0, 42, 60], [2, 46, 60]],
     FW: [[0, 44, 8], [2, 46, 10]],
   }, { ball: [[1.0, '10']], strike: '10', chase: '12', decoys: ['13'], finish: 14 })],
-}
+})
 
 /** the tracks a clip may play */
 export function tracksFor(move: string): Track[] | undefined {
