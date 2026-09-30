@@ -2354,12 +2354,17 @@ export function trustFactor(state: GameState): number {
 }
 
 export function trustWord(v: number): string {
-  return t(v >= 85 ? 'profile.trustWall'
+  return t(trustKey(v))
+}
+
+/** The key behind trustWord, for a screen that renders later (game/desk.ts). */
+export function trustKey(v: number): string {
+  return v >= 85 ? 'profile.trustWall'
     : v >= 68 ? 'profile.trustWithYou'
     : v >= 50 ? 'profile.trustWarming'
     : v >= 32 ? 'profile.trustUndecided'
     : v >= 16 ? 'profile.trustUnconvinced'
-    : 'profile.trustDisbelief')
+    : 'profile.trustDisbelief'
 }
 
 /** World Championship years: 2027, 2031, ... (in-game season index) */
