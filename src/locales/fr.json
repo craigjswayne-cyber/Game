@@ -806,9 +806,9 @@
     "tapeUnread": "Leurs analystes ont repéré {move_k} sur {pct} % de vos ballons de première main. S'ils s'organiseront contre, le rapport ne peut pas le dire."
   },
   "moves": {
-    "mv_1331": "Pods 1-3-3-1",
+    "mv_1331": "Charges sur la largeur",
     "mv_1331Desc": "Un pod de trois avants de chaque côté du ruck et un avant sur chaque extérieur. Des charges sur toute la largeur.",
-    "mv_242": "Système 2-4-2",
+    "mv_242": "Coureurs aux extérieurs",
     "mv_242Desc": "Quatre avants au milieu du terrain et deux troisièmes-lignes sur chaque extérieur, lancés sur les trois-quarts.",
     "mv_backdoor": "Pods et passe dans le dos",
     "mv_backdoorDesc": "Trois avants en pod devant le 9, avec le 10 caché derrière eux pour la passe dans le dos.",
@@ -845,8 +845,8 @@
     "mv_grubber": "Coup de pied rasant",
     "mv_grubberDesc": "Face à une ligne qui monte vite, le 10 glisse un coup de pied rasant entre deux défenseurs pour que les centres suivent.",
     "say": {
-      "mv_1331": "le système 1-3-3-1",
-      "mv_242": "le système 2-4-2",
+      "mv_1331": "les charges sur la largeur",
+      "mv_242": "les coureurs aux extérieurs",
       "mv_backdoor": "les pods avec la passe dans le dos",
       "mv_crash": "le crash-ball",
       "mv_switch": "la croisée",
@@ -869,7 +869,7 @@
     "headingSub": "les combinaisons que vous annoncez",
     "offLineout": "Combinaison principale",
     "offScrum": "Combinaison secondaire",
-    "shape": "Système de base",
+    "shape": "Annonce en jeu courant",
     "none": "Aucune annonce",
     "needPart": "{shirts} : {attrs}",
     "misfire": "Pas assez travaillée : elle ratera",

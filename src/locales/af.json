@@ -783,9 +783,9 @@
   "tapeUnread": "Hul ontleders het {move_k} op {pct}% van jou eerstefase-balle. Of hulle daarvoor gaan opstel, kan die verslag nie sê nie."
  },
  "moves": {
-  "mv_1331": "1-3-3-1-pods",
+  "mv_1331": "Breë drae",
   "mv_1331Desc": "'n Pod van drie voorspelers aan elke kant van die losskrum en een voorspeler op elke rand. Stormlope oor die hele breedte.",
-  "mv_242": "2-4-2-vorm",
+  "mv_242": "Randlopers",
   "mv_242Desc": "Vier voorspelers in die middel en twee losvoorspelers op elke rand wat op die agterspelers afstorm.",
   "mv_backdoor": "Pods met 'n agterdeur",
   "mv_backdoorDesc": "Drie voorspelers as 'n pod langs die 9, met die 10 agter hulle weggesteek vir die aangee agter hul rug.",
@@ -822,8 +822,8 @@
   "mv_grubber": "Rolskop deur",
   "mv_grubberDesc": "Teen 'n lyn wat vinnig opkom, rol die 10 dit tussen twee verdedigers deur vir die senters om te jaag.",
   "say": {
-   "mv_1331": "die 1-3-3-1-pods",
-   "mv_242": "die 2-4-2-vorm",
+   "mv_1331": "die breë drae",
+   "mv_242": "die randlopers",
    "mv_backdoor": "die pods met die agterdeur",
    "mv_crash": "die stamploop van die 12",
    "mv_switch": "die kruisloop",
@@ -846,7 +846,7 @@
   "headingSub": "bewegings wat jy roep en inoefen",
   "offLineout": "Hoofbeweging",
   "offScrum": "Tweede beweging",
-  "shape": "Basiese vorm",
+  "shape": "Oopspel-roep",
   "none": "Geen roep",
   "needPart": "{shirts}: {attrs}",
   "misfire": "Nie ingeoefen nie: dit sal misluk",
