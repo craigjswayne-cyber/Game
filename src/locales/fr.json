@@ -8093,7 +8093,14 @@
     "owedHeld": "Déjà payé. La livraison n'est pas encore passée, donc rien ne vous a été facturé une seconde fois : le jeu continue en arrière-plan. Revenez dans une minute.",
     "asking": "Demande à la boutique…",
     "townBody_f": "L'association des supporters fera passer le seau pour un club en vraie difficulté : regardez un spot et la collecte arrive en banque. Elle paie les salaires et la lumière, jamais les joueuses.",
-    "physioCut": "Faveur -{n}sem"
+    "physioCut": "Faveur -{n}sem",
+    "watchInside": "Le tuyau de l'agent (regarder un spot)",
+    "insideDone": "Le tuyau de l'agent sur {name} est arrivé : la ligne sur l'intérêt des rivaux se lit désormais comme dans le dossier complet.",
+    "watchOpinion": "Deuxième avis (regarder un spot)",
+    "opinionDone": "Un deuxième avis sur {name} est arrivé : l'estimation du plafond par le staff se resserre d'un cran jusqu'à la fin de la saison.",
+    "watchTapeRoom": "Nuit en salle vidéo (regarder un spot)",
+    "watchTeamNight": "Maintenir le choix, et le sponsor offre une soirée d'équipe (regarder un spot)",
+    "teamNightDone": "La soirée d'équipe offerte par le sponsor a adouci le coup pour les cadres du vestiaire."
   },
   "store": {
     "title": "Boutique",

@@ -1478,7 +1478,7 @@ never enters the web bundle, and netprobe goes on enforcing that.
 | Is all of the user data collected by your app encrypted in transit? | Yes (ad provider transport) |
 | Do you provide a way for users to request that their data is deleted? | Per the ad provider's mechanism, linked from the privacy policy |
 | Third-party SDKs | the rewarded-ads provider, in the Android wrapper only |
-| Ads | **Contains ads** (two optional banner slots; rewarded ads at four player-initiated placements; Remove Ads disables the banners permanently) |
+| Ads | **Contains ads** (two optional banner slots; rewarded ads at eight player-initiated placements; Remove Ads disables the banners permanently) |
 
 ## Play Content rating (IARC questionnaire)
 
