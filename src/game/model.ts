@@ -452,6 +452,12 @@ export interface Player {
    *  at promotion and never cleared, because it is a fact about where he learned
    *  the game, not about where he plays now (dream.ts reads it). */
   homegrown?: boolean
+  /** the club whose academy he graduated from, and the season (records.ts
+   *  proteges): homegrown alone is set for every club's graduates, so "the men
+   *  you made" needs to know whose they were. Absent on graduates from before
+   *  1.8.2 until save.ts reads them in from his first career row. */
+  gradClub?: string
+  gradS?: number
   /** club matches this season this man was actually AVAILABLE for - not away
    *  with his country, suspended, injured, on loan, or unsigned. Tracked
    *  forward by settleGameTime; the game-time ledger bills the manager a

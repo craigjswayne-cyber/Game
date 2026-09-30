@@ -172,6 +172,8 @@ export function resolveAcadCall(state: GameState, item: PressItem, opt: PressOpt
       p.acad = false
       p.demoted = false
       p.homegrown = true
+      p.gradClub ??= club.id
+      p.gradS ??= state.season
       p.wage = opt.acadWage ?? playerWage(p.ca, p.age)
     } else {
       p.wage = opt.acadWage ?? playerWage(p.ca, p.age, true)
@@ -186,6 +188,8 @@ export function resolveAcadCall(state: GameState, item: PressItem, opt: PressOpt
     p.acad = false
     p.demoted = false
     p.homegrown = true
+    p.gradClub ??= club.id
+    p.gradS ??= state.season
     p.wage = opt.acadWage ?? playerWage(p.ca, p.age)
     p.morale = Math.min(10, p.morale + 0.5)
     logDecision(state, 'dec.acadPromoted', { player: p.name }, true)

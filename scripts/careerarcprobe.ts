@@ -46,6 +46,7 @@ import { boardSummer, chairAskTilt, chairMemoRow, chairSwing, chairWish, chairma
 import { ambitionsOf, ambitionsWeek, setAmbitions } from '../src/game/ambitions'
 import { buildEra, eraYearEnd, openEra } from '../src/game/erastory'
 import { identityInterestLift } from '../src/game/identity'
+import { proteges } from '../src/game/records'
 
 let fails = 0
 const ok = (c: boolean, what: string) => {
@@ -129,6 +130,11 @@ const keepBoard = (g: GameState) => {
   ok(a.conduct.length === 3, `a conduct row a season (${a.conduct.length})`)
   ok(JSON.stringify(a).length < 40_000, `and the arc stays small (${JSON.stringify(a).length} bytes after three seasons)`)
   ok(!(a.queue ?? []).length, 'no story left waiting at the end of a week')
+  // the men you made are yours: every club's graduates carry homegrown
+  const worldHg = Object.values(g.players).filter(p => p.homegrown && p.clubId && p.clubId !== g.userClubId && p.stats.apps > 0).length
+  const mine = proteges(g)
+  ok(mine.every(p => p.gradClub === g.userClubId) && mine.length < Math.max(1, worldHg),
+    `the Legacy graduates line counts only this manager's academy (${mine.length} of ${worldHg} homegrown men elsewhere)`)
 }
 
 // ---- 2. traits follow behaviour ----
