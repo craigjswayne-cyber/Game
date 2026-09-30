@@ -16,6 +16,7 @@
 // four seasons later. The first version of this probe counted survivors at the
 // end, found one reminder for four rollovers, and read as a game bug. Anything
 // checking a rare story over a long career has to collect as it goes.
+import { readFileSync } from 'node:fs'
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { BASE_YEAR, SEASON_WEEKS, type NewsItem } from '../src/game/model'
@@ -49,9 +50,17 @@ for (const seed of [4242, 90210]) {
   ok(nudges.length === seasonsReached,
     `one reminder per rollover and no more (${nudges.length} for ${seasonsReached})`)
   ok([...perSeason.values()].every(c => c === 1), 'never twice in the same season')
-  ok(nudges.every(n => /Export Career/.test(n.body)),
-    'each one names the button, so it can be acted on without a hunt')
-  ok(nudges.every(n => /Game Status/.test(n.body)), 'and the screen it lives on')
+  // NO TIPS IN NEWS (1.8.2, owner, d241765): a story no longer ends on a
+  // sentence pointing at a screen ("Game Status has an Export Career
+  // button..."); one whose business is done elsewhere carries a tap to that
+  // screen instead (NewsBody.tsx NEWS_GO). So the reminder says what to do,
+  // and the tap under it is the way there, onto the screen with the button.
+  ok(nudges.every(n => /export/i.test(n.body) && n.k === 'news.backItUp'),
+    'each one says what to do: export the career to a file')
+  const newsBody = readFileSync('src/ui/NewsBody.tsx', 'utf8')
+  const saves = readFileSync('src/ui/screens/Saves.tsx', 'utf8')
+  ok(/backItUp: \['saves'\]/.test(newsBody) && /onClick=\{doExport\}>\{t\('world\.svExport'\)\}/.test(saves),
+    'and it carries a tap to the Save / Load screen, where the Export Career button is')
   // it must not be a gossip item: those never reach the inbox
   ok(nudges.every(n => n.type !== 'gossip'), 'filed where the manager will actually see it')
   // and the season it names is the one just finished, not the one starting.
@@ -66,5 +75,5 @@ for (const seed of [4242, 90210]) {
     'the headline names the season that just finished')
 }
 
-console.log(fails ? `\nBACKUP PROBE FAILED (${fails})` : '\nBACKUP PROBE PASSED: once a season, and it says which button')
+console.log(fails ? `\nBACKUP PROBE FAILED (${fails})` : '\nBACKUP PROBE PASSED: once a season, and it goes to the button')
 process.exit(fails ? 1 : 0)
