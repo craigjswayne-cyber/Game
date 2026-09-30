@@ -3,7 +3,8 @@ import { preloadAllArt, preloadCampus } from './artPreload'
 import { effectiveSkin, useStore, type Screen } from '../store'
 import { celebrationHeadline, celebrationSub, seasonLabel } from '../game/model'
 import { t } from '../game/i18n'
-import { dayLine, deskBlock, deskGates, inInbox, nextStep, pressBlock } from '../game/days'
+import { dayLine, inInbox, nextStep } from '../game/days'
+import { continueHold } from '../game/desk'
 import { natSquadHold } from '../game/country'
 import { TOUR_WEEKS } from '../game/schedule'
 import { islesCoach } from '../game/isles'
@@ -771,20 +772,11 @@ export default function App() {
               // game - the failure this session has now fixed four times in
               // other shapes.
               const step = nextStep(game)
-              // press holds on EVERY step now (v1.1.17), so the label has to
-              // read it on every step too - a button that says Continue and
-              // then refuses is the illegible gate all over again
-              // three holds, one label. Press and squad apply on every step;
-              // mail only on the way out of the week.
-              const owed = natSquadHold(game)
-              // A BID OUTRANKS THEM ALL, because continueWeek checks it first
-              // (1.8.1): the button said Continue and then opened Offers,
-              // which is the silent refusal this label exists to prevent
-              const bids = game.unemployed ? 0 : offersOpen
-              const desk = (bids ? { kind: 'offers' as const, n: bids, label: bids === 1 ? t('dayroom.deskOffers') : t('dayroom.deskOffersN', { n: bids }) } : null)
-                ?? pressBlock(game)
-                ?? (owed ? { kind: 'squad' as const, n: owed.n, label: t('dayroom.deskSquad', { n: owed.n }) } : null)
-                ?? (deskGates(step) ? deskBlock(game) : null)
+              // press holds on EVERY step now (v1.1.17), and a bid outranks
+              // them all because continueWeek checks it first (1.8.1): the
+              // order and the labels live in game/desk.ts continueHold, which
+              // the desk's own Continue reads too
+              const desk = continueHold(game)
               return (
                 <button className="continue-btn" onClick={continueWeek}
                   title={desk ? t('common.deskWaits') : undefined}>

@@ -1,44 +1,36 @@
-import { useEffect, useState } from 'react'
 import { genderOf } from '../../game/gender'
 import { useStore } from '../../store'
 import { dismiss, dismissed, isOldPlayApp } from '../../game/shell'
-import { snIdFor, snWeeksFor, SIX_NATIONS_WEEKS } from '../../game/schedule'
-import { nationByCode, nationName, flagOf } from '../../game/nations'
+import { snIdFor, snWeeksFor } from '../../game/schedule'
+import { nationByCode, nationName } from '../../game/nations'
+import { Flag } from '../flags'
 import { leaguePos, sortTable } from '../../game/schedule'
 import { arrangeFriendly, assistantFixtureThisWeek, userFixtureThisWeek } from '../../game/season'
 import { teamShort } from '../../game/matchEngine'
 import { derbyName, rivalsOf } from '../../game/rivalries'
+import { OBJECTIVE_DEFS } from '../../game/objectives'
 import { dreamNote, dreamPct, dreamState, dreamTitle } from '../../game/dream'
 import { matchStakes, seasonTentpoles } from '../../game/stakes'
 import { huntLine } from '../../game/living'
 import { CrestT, SectionTitle } from '../components'
 import { InboxList } from './Inbox'
-import { inInbox } from '../../game/days'
-import { fmtMoney, fmtWage, formGuide, grudgeBetween, grudgeReason, newsSubject, weekDate } from '../../game/model'
-import { OBJECTIVE_DEFS } from '../../game/objectives'
+import { formGuide, grudgeBetween, grudgeReason, weekDate, type Fixture, type GameState } from '../../game/model'
 import { natRankOrder } from '../../game/natrank'
 import { ord, t, compLabel } from '../../game/i18n'
 import { AdSlot } from '../AdSlot'
 import { tillOpen } from '../../game/monetise'
-import { userWageBudget } from '../../game/grants'
 import { natWindow, weeksToSquad } from '../../game/country'
-import { Glyph, newsGlyph } from '../glyphs'
-import { isBoardroom } from '../../game/media'
+import { Glyph } from '../glyphs'
 import { COMMUNITY_URL } from '../../game/community'
+import { buildDesk, deskText } from '../../game/desk'
+import { DeskCard } from '../Desk'
 
 
 export default function Home() {
   const game = useStore(s => s.game)!
-  // The same predicate the reader uses, for the same reason the rail's badge was
-  // fixed in 14B: a cue that counts a different set from the screen it opens sends
-  // you to a blank page. This one excluded gossip and ignored the five-day window,
-  // so it did both at once.
-  //
-  // Oldest first, because that is the one a tap opens: store.openInbox serves the
-  // queue front to back, so sorting newest-first here would put a different
-  // headline under the count from the story the cue leads to.
-  const unreadItems = game.news.filter(n => inInbox(game, n) && !n.read).sort((a, b) => a.id - b.id)
-  const unread = unreadItems.length
+  // The unread count and its headline moved into the desk's decisions
+  // (game/desk.ts), which counts with the reader's own predicate (inInbox) and
+  // serves the queue through openInbox, oldest first, as the old cue did.
   const touch = useStore(s => s.touch)
   const go = useStore(s => s.go)
   // ---- Home no longer eats a story on the way past ----
@@ -73,19 +65,15 @@ export default function Home() {
   // played another international game").
   const assistantFx = assistantFixtureThisWeek(game)
   const assistants = !!assistantFx && !!fx && assistantFx.id === fx.id
-  const pressOpen = game.press.filter(p => !p.answered && !isBoardroom(p)).length
-  const boardOpen = game.press.filter(p => !p.answered && isBoardroom(p)).length
 
-  // hub widgets: form pips, league position, money. The pips sort by week
+  // hub widgets: form pips, the board and the fans. The pips sort by week
   // inside formGuide - see its comment for the W W W W W screenshot this
-  // array-order slice put on the Home screen.
+  // array-order slice put on the Home screen. League position and money are
+  // the desk's season and finance rows now.
   const recent = formGuide(game, club.id)
-  const leagueOrder = sortTable(game.comps[club.leagueId]?.table ?? [])
-  // 0 until a league game is played, so the widget's dash actually shows
-  const pos = leaguePos(game.comps[club.leagueId]?.table, club.id)
-  const finState = club.balance >= 3_000_000 ? ['wizard.rich', 'var(--text-positive)']
-    : club.balance >= 500_000 ? ['wizard.secure', 'var(--text-positive)']
-    : club.balance >= 0 ? ['wizard.okay', 'var(--border-strong)'] : ['home.inTheRed', 'var(--text-negative)']
+
+  const desk = buildDesk(game)
+  const hook = weekHook(game, fx)
 
   if (game.unemployed) {
     return (
@@ -117,6 +105,52 @@ export default function Home() {
           <b>{t('home.hintBold')}</b> {t('home.hintRest')}
         </div>
       )}
+      {/* THE DESK (1.8.2, game/desk.ts): what holds the week first, then the
+          match, then one line each on the rest of the club, then Continue. */}
+      <DeskCard desk={desk} match={fx ? (
+        <div className="desk-match" onClick={() => go(assistants ? 'country' : 'squad')} style={{
+          borderLeftColor: assistants ? 'var(--border-strong)' : game.clubs[fx.homeId === club.id ? fx.awayId : fx.homeId]?.colors[0] ?? 'var(--gold)',
+        }}>
+          <div className="desk-mhead">
+            <div className="meta" style={{ textTransform: 'uppercase', letterSpacing: 1, fontSize: 11 }}>
+              {t(assistants ? 'home.assistantMatch' : 'home.nextMatch')} · {compLabel(comp?.name) ?? (fx.compId === 'fr' ? t('common.clubFriendly') : '')}{fx.stage ? ` · ${stageName(fx.stage)}` : ''}
+            </div>
+            {/* the run the club is on, which had a card of its own with the hook */}
+            {hook.streak && <span className="chip" style={{ fontWeight: 700, color: hook.winless ? 'var(--text-negative)' : undefined }}>{hook.streak}</span>}
+          </div>
+          {/* a class, not an inline font-size: inline wins over any media query,
+              so portrait could not shrink this and "Northampton v La Rochelle"
+              lost 20px off the end of the opponent's name at 412px */}
+          <h3 className="fx-line">
+            <CrestT g={game} teamId={fx.homeId} size={20} />{teamShort(game, fx.homeId)} {t('common.v')} <CrestT g={game} teamId={fx.awayId} size={20} />{teamShort(game, fx.awayId)}
+          </h3>
+          <div className="meta">
+            {fx.venue?.name ?? game.clubs[fx.homeId]?.stadium ?? t('common.neutralVenue')} · {weekDate(game.season, fx.week)}
+            {fx.venue ? t('home.atNeutral') : fx.homeId === club.id ? t('home.atHome') : t('home.atAway')}
+          </div>
+          {/* why this week matters, which had that card too */}
+          {hook.hook && <div className="desk-hook"><b>{hook.hook}</b></div>}
+          {/* WHAT THIS MATCH MEANS. The engine has always known - the table
+              maths, the boardroom, the grudge, the man one try short of fifty -
+              and never said it at the one moment it lands. One line, the loudest
+              true thing, and nothing at all when there is nothing to say. */}
+          {isThisWeek && (() => {
+            const bill = matchStakes(game, fx)
+            return bill ? (
+              <div className="desk-stakes">{bill}</div>
+            ) : null
+          })()}
+          {/* the analyst's one line on them, this week only (oppreport.ts) */}
+          {desk.match?.analyst && (
+            <div className="meta desk-analyst">{deskText(desk.match.analyst)}</div>
+          )}
+          {(assistants || !isThisWeek) && (
+            <div className="muted" style={{ marginTop: 6 }}>
+              {assistants ? t('home.assistantTakesIt') : t('home.noMatchWeek')}
+            </div>
+          )}
+        </div>
+      ) : null} />
       <div className="card-grid">
       {/* The Championship panel, in whichever game this career is in: the id and
           the window both differ between the two, and naming the men's flat meant
@@ -132,7 +166,7 @@ export default function Home() {
             <div className="fact-label" style={{ color: 'var(--gold)' }}>{t('home.snLabel', { comp: (compLabel(game.comps[snId]?.name) ?? t('home.theChampionship')).toUpperCase() })}</div>
             {thisWk.map(f => (
               <div key={f.id} style={{ fontSize: 13, marginTop: 3 }}>
-                {flagOf(f.homeId)} {nationName(f.homeId)} {f.played ? <b>{f.homeScore}–{f.awayScore}</b> : t('common.v')} {nationName(f.awayId)} {flagOf(f.awayId)}
+                <Flag code={f.homeId} /> {nationName(f.homeId)} {f.played ? <b>{f.homeScore}–{f.awayScore}</b> : t('common.v')} {nationName(f.awayId)} <Flag code={f.awayId} />
               </div>
             ))}
             {rows.length > 0 && rows[0].p > 0 && (
@@ -144,35 +178,6 @@ export default function Home() {
           </div>
         )
       })()) })()}
-      {(() => {
-        // the hook: why THIS week matters - the reason to press Continue
-        const grudge = fx ? grudgeBetween(game, fx.homeId, fx.awayId) : null
-        const derby = fx ? derbyName(fx.homeId, fx.awayId) : null
-        const hook = derby ? t('home.derbyWeek', { derby: derby.toUpperCase() })
-          : grudge ? t('home.grudge', { reason: grudgeReason(grudge) })
-          : fx?.stage ? t('home.knockout', { stage: stageName(fx.stage) })
-          : game.week === 7 || game.week === 27 ? t('home.deadlineWeek')
-          : null
-        // streak framing: the cheapest dopamine in sport
-        const res = game.fixtures.filter(f => f.played && (f.homeId === club.id || f.awayId === club.id) && f.compId !== 'fr')
-          .sort((a, b) => b.week - a.week)
-        let unbeaten = 0, winless = 0
-        for (const f of res) {
-          const us = f.homeId === club.id ? f.homeScore : f.awayScore
-          const them = f.homeId === club.id ? f.awayScore : f.homeScore
-          if (us >= them && winless === 0) unbeaten++
-          else if (us <= them && unbeaten === 0) winless++
-          else break
-        }
-        const streak = unbeaten >= 3 ? t('home.unbeaten', { n: unbeaten }) : winless >= 3 ? t('home.winless', { n: winless }) : null
-        if (!hook && !streak) return null
-        return (
-          <div className="card" style={{ borderLeft: `4px solid ${winless >= 3 ? 'var(--text-negative)' : 'var(--gold)'}`, display: 'flex', gap: 10, alignItems: 'center' }}>
-            {hook && <b style={{ fontSize: 13 }}>{hook}</b>}
-            {streak && <span className="chip" style={{ marginLeft: 'auto', fontWeight: 700 }}>{streak}</span>}
-          </div>
-        )
-      })()}
       {/* THE CARD SAYS "TAP TO SET YOUR TEAM", SO IT OPENS THE TEAM SHEET.
           It opened Tactics - the roles pitch, which is HOW the side plays, not
           WHO plays - so the one instruction on the home screen sent you to the
@@ -180,39 +185,6 @@ export default function Home() {
           the home page it takes you to the roles page, it should take you to
           the selection page"). 'squad' is the team sheet the submenu's Team
           entry opens. */}
-      {fx && (
-        <div className="card" onClick={() => go(assistants ? 'country' : 'squad')} style={{
-          borderLeft: `4px solid ${assistants ? 'var(--border-strong)' : game.clubs[fx.homeId === club.id ? fx.awayId : fx.homeId]?.colors[0] ?? 'var(--gold)'}`,
-        }}>
-          <div className="meta" style={{ textTransform: 'uppercase', letterSpacing: 1, fontSize: 11 }}>
-            {t(assistants ? 'home.assistantMatch' : 'home.nextMatch')} · {compLabel(comp?.name) ?? (fx.compId === 'fr' ? t('common.clubFriendly') : '')}{fx.stage ? ` · ${stageName(fx.stage)}` : ''}
-          </div>
-          {/* a class, not an inline font-size: inline wins over any media query,
-              so portrait could not shrink this and "Northampton v La Rochelle"
-              lost 20px off the end of the opponent's name at 412px */}
-          <h3 className="fx-line">
-            <CrestT g={game} teamId={fx.homeId} size={20} />{teamShort(game, fx.homeId)} {t('common.v')} <CrestT g={game} teamId={fx.awayId} size={20} />{teamShort(game, fx.awayId)}
-          </h3>
-          <div className="meta">
-            {fx.venue?.name ?? game.clubs[fx.homeId]?.stadium ?? t('common.neutralVenue')} · {weekDate(game.season, fx.week)}
-            {fx.venue ? t('home.atNeutral') : fx.homeId === club.id ? t('home.atHome') : t('home.atAway')}
-          </div>
-          {/* WHAT THIS MATCH MEANS. The engine has always known - the table
-              maths, the boardroom, the grudge, the man one try short of fifty -
-              and never said it at the one moment it lands. One line, the loudest
-              true thing, and nothing at all when there is nothing to say. */}
-          {isThisWeek && (() => {
-            const bill = matchStakes(game, fx)
-            return bill ? (
-              <div style={{ marginTop: 7, paddingTop: 7, borderTop: '1px solid var(--border)',
-                            fontWeight: 600, color: 'var(--gold)' }}>{bill}</div>
-            ) : null
-          })()}
-          <div className="muted" style={{ marginTop: 6 }}>
-            {assistants ? t('home.assistantTakesIt') : isThisWeek ? t('home.tapSetTeam') : t('home.noMatchWeek')}
-          </div>
-        </div>
-      )}
       {/* THE COUNTRY DESK (user: "the game doesnt feel like it currently
           nails the international element. its meant to be the pinnacle but is
           hidden away"). A Test job lives on Home beside the club: the next
@@ -234,7 +206,7 @@ export default function Home() {
             {next ? (
               <>
                 <h3 className="fx-line">
-                  {flagOf(next.homeId)} {nationName(next.homeId)} {t('common.v')} {flagOf(next.awayId)} {nationName(next.awayId)}
+                  <Flag code={next.homeId} size={17} /> {nationName(next.homeId)} {t('common.v')} <Flag code={next.awayId} size={17} /> {nationName(next.awayId)}
                 </h3>
                 <div className="muted" style={{ marginTop: 6 }}>
                   {testWeek ? t('home.testWeek') : t('home.nextTest', { date: weekDate(game.season, next.week) })}
@@ -320,12 +292,16 @@ export default function Home() {
         return (
           <button className="card" style={{ borderLeft: `4px solid ${d.progress.done ? 'var(--primary)' : 'var(--gold)'}` }}
             onClick={() => go('legacy')}>
-            <div className="fact-label">{t(d.progress.done ? 'home.dreamDone' : 'home.dream')}</div>
+            {/* the label and the note share a line, so the desk above it
+                costs the page nothing (1.8.2) */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline' }}>
+              <span className="fact-label">{t(d.progress.done ? 'home.dreamDone' : 'home.dream')}</span>
+              <span className="meta">{dreamNote(d.progress)}</span>
+            </div>
             <div style={{ fontWeight: 700, fontSize: 14, marginTop: 2 }}>{dreamTitle(d.def, d.ctx)}</div>
-            <div style={{ height: 6, background: 'var(--border-strong)', borderRadius: 3, overflow: 'hidden', margin: '7px 0 4px' }}>
+            <div style={{ height: 6, background: 'var(--border-strong)', borderRadius: 3, overflow: 'hidden', margin: '6px 0 2px' }}>
               <div className="grow-x" style={{ width: `${pct}%`, height: '100%', background: d.progress.done ? 'var(--primary)' : 'var(--gold-fill)' }} />
             </div>
-            <div className="meta">{dreamNote(d.progress)}</div>
           </button>
         )
       })()}
@@ -352,7 +328,10 @@ export default function Home() {
       {(() => {
         // `tp`, not `t`: the i18n t() is in scope here now, and shadowing it
         // inside the map is how a screen ends up rendering "[object Object]"
-        const soon = seasonTentpoles(game).filter(tp => tp.week >= game.week).slice(0, 3)
+        // one line per label, at its nearest week: three league meetings with the
+        // same derby rival read "Derby: Leicester" three times over otherwise
+        const soon = seasonTentpoles(game).filter(tp => tp.week >= game.week)
+          .filter((tp, i, all) => all.findIndex(o => o.label === tp.label) === i).slice(0, 3)
         if (!soon.length) return null
         return (
           <button className="card" onClick={() => go('fixtures')}>
@@ -370,23 +349,17 @@ export default function Home() {
           </button>
         )
       })()}
-      {/* the objectives, the annual and the press call used to sit in a second
-          grid below the dashboard, where they got a whole row to themselves.
-          In the same grid as the next match they share its row instead. */}
+      {/* THE SEASON OBJECTIVES stay on Home (owner, 1.8.2), one card, and the
+          desk does not count them a second time. */}
       {(() => {
         const objs = (game.objectives ?? []).map(id => OBJECTIVE_DEFS.find(o => o.id === id)).filter(Boolean)
         if (!objs.length) return null
         return (
           <button className="card" onClick={() => go('finances')}>
-            {/* A TICK MEANS DONE, AND DONE HAS TO MEAN DONE.
-                Reported from a new Bedford save: "one of the season objectives
-                had been completed without a game being played." It had. The brief
-                was to finish the season in the black, the club opens with £240k in
-                the bank, so met() was true in week 1 and the screen said so.
-                An objective that is banked once achieved (six starts given, a
-                derby won) is ticked the moment it happens, because it cannot be
-                lost. One that is merely TRUE TODAY reads as on course until the
-                season is actually over - see ObjectiveDef.banked. */}
+            {/* A TICK MEANS DONE, AND DONE HAS TO MEAN DONE. An objective that
+                is banked once achieved (six starts given, a derby won) is ticked
+                the moment it happens; one that is merely true today reads as on
+                course until the season is over - see ObjectiveDef.banked. */}
             <div className="fact-label">{t('home.objectives', { met: objs.filter(o => o!.met(game)).length, total: objs.length })}</div>
             <div className="meta" style={{ display: 'flex', flexWrap: 'wrap', gap: '2px 14px' }}>
               {objs.map(o => {
@@ -410,19 +383,11 @@ export default function Home() {
           <div className="meta">{t('home.annualSub')}</div>
         </button>
       )}
-      {boardOpen > 0 && (
-        <button className="card" style={{ borderLeft: '4px solid var(--gold)' }}
-          onClick={() => go('finances')}>
-          <h3>{t('home.boardWord')}</h3>
-          <div className="meta">{t('home.boardSub', { n: boardOpen })}</div>
-        </button>
-      )}
-      {pressOpen > 0 && (
-        <button className="card" style={{ borderLeft: '4px solid var(--gold)' }}
-          onClick={() => go('press')}>
-          <h3>{t('home.pressWord')}</h3>
-          <div className="meta">{t('home.pressSub', { n: pressOpen })}</div>
-        </button>
+      {!fx && (hook.hook || hook.streak) && (
+        <div className="card" style={{ borderLeft: `4px solid ${hook.winless ? 'var(--text-negative)' : 'var(--gold)'}`, display: 'flex', gap: 10, alignItems: 'center' }}>
+          {hook.hook && <b style={{ fontSize: 13 }}>{hook.hook}</b>}
+          {hook.streak && <span className="chip" style={{ marginLeft: 'auto', fontWeight: 700 }}>{hook.streak}</span>}
+        </div>
       )}
       {!fx && !game.unemployed && (() => {
         const idle = Object.values(game.clubs)
@@ -448,13 +413,8 @@ export default function Home() {
         )
       })()}
       </div>
-      <div className="hub-row">
-        <button className="hub-widget" onClick={() => go('tables')}>
-          <label>{t('home.wLeague')}</label>
-          <b>{pos > 0 ? ord(pos) : '-'}</b>
-          <span>{compLabel(game.comps[club.leagueId]?.short)}</span>
-        </button>
-        <button className="hub-widget" onClick={() => go('fixtures')}>
+      <div className="hub-row three">
+        <button className="hub-widget" data-w="form" onClick={() => go('fixtures')}>
           <label>{t('home.wForm')}</label>
           <b style={{ display: 'flex', gap: 3, justifyContent: 'center' }}>
             {recent.length === 0 ? <span style={{ fontSize: 12, fontWeight: 400 }}>{t('home.noGames')}</span> : recent.map((r, i) => (
@@ -465,14 +425,14 @@ export default function Home() {
           </b>
           <span>{recent.length ? t('home.lastMatches', { n: recent.length }) : t('home.seasonAheadShort')}</span>
         </button>
-        <button className="hub-widget" onClick={() => go('report')}>
+        <button className="hub-widget" data-w="board" onClick={() => go('report')}>
           <label>{t('home.wBoard')}</label>
           {/* rule 4: a key number renders in text-primary - colour belongs on
               the delta beside it, never on the figure itself */}
           <b>{Math.round(club.boardConfidence)}%</b>
           <span>{t('home.confidence')}</span>
         </button>
-        <button className="hub-widget" onClick={() => go('club', club.id)}>
+        <button className="hub-widget" data-w="fans" onClick={() => go('club', club.id)}>
           <label>{t('home.wFans')}</label>
           {(() => {
             const m = game.fanMood ?? 60
@@ -498,7 +458,6 @@ export default function Home() {
           .sort((a, b) => b.week - a.week).slice(0, 2).reverse()
         const coming = game.fixtures.filter(f => !f.played && mine(f)).sort((a, b) => a.week - b.week).slice(0, 3)
         const out = club.players.map(id => game.players[id]).filter(p => p?.injury)
-        const wageRoom = userWageBudget(game, club) - club.players.reduce((s, id) => s + (game.players[id]?.wage ?? 0), 0)
         const resStr = (f: typeof played[0]) => {
           const us = f.homeId === club.id ? f.homeScore : f.awayScore
           const them = f.homeId === club.id ? f.awayScore : f.homeScore
@@ -533,13 +492,9 @@ export default function Home() {
                 </div>
               ))}
             </button>
-            <button className="dash-panel" onClick={() => go('finances')}>
-              <div className="dash-head">{t('home.dashFinances')}</div>
-              <div className="dash-line"><span>{t('home.state')}</span><b style={{ color: finState[1] }}>{t(finState[0])}</b></div>
-              <div className="dash-line"><span>{t('home.balance')}</span><b>{fmtMoney(club.balance)}</b></div>
-              <div className="dash-line"><span>{t('home.transferBudget')}</span><b>{fmtMoney(club.budget)}</b></div>
-              <div className="dash-line"><span>{t('home.wageRoom')}</span><b>{fmtWage(Math.max(0, wageRoom))}{t('common.perWeek')}</b></div>
-            </button>
+            {/* medical and the rival share the second column, so three panels
+                make two columns at phone width rather than leaving one alone */}
+            <div className="dash-stack">
             <button className="dash-panel" onClick={() => go('medical')}>
               <div className="dash-head">{t('home.dashMedical')}</div>
               {out.length === 0 && <div className="dash-line"><span className="muted">{t('home.cleanBill')}</span></div>}
@@ -579,6 +534,7 @@ export default function Home() {
                 </button>
               )
             })()}
+            </div>
           </div>
         )
       })()}
@@ -592,12 +548,6 @@ export default function Home() {
           them (user: "it often says 9 messages in inbox, click on it and nothing
           shows up"). openInbox is what the rail's mail icon does: oldest unread,
           served and marked. */}
-      {unread > 0 && (
-        <button className="card inbox-cue" onClick={() => useStore.getState().openInbox()}>
-          <h3>{t('home.unread', { n: unread })}</h3>
-          <div className="meta">{unreadItems[0] ? newsSubject(unreadItems[0]) : ''}</div>
-        </button>
-      )}
       {/* Renders nothing at all unless a packaged shell has attached an ad
           provider, which the web build never does (game/monetise.ts). Here
           rather than higher up because the foot of the dashboard is the one
@@ -640,4 +590,31 @@ export function stageName(s: string): string {
 export function stageShort(s: string): string {
   const key = { QF: 'common.stageQFShort', SF: 'common.stageSFShort', F: 'common.stageFShort', BAR: 'common.stageBARShort' }[s]
   return key ? t(key) : s
+}
+
+/** Why THIS week matters, and the run the club is on: the line that used to
+ *  be a card of its own above the fixture and now rides inside it. */
+function weekHook(game: GameState, fx: Fixture | undefined): { hook: string | null; streak: string | null; winless: boolean } {
+  const club = game.clubs[game.userClubId]
+  const grudge = fx ? grudgeBetween(game, fx.homeId, fx.awayId) : null
+  const derby = fx ? derbyName(fx.homeId, fx.awayId) : null
+  const hook = derby ? t('home.derbyWeek', { derby: derby.toUpperCase() })
+    : grudge ? t('home.grudge', { reason: grudgeReason(grudge) })
+    : fx?.stage ? t('home.knockout', { stage: stageName(fx.stage) })
+    : game.week === 7 || game.week === 27 ? t('home.deadlineWeek')
+    : null
+  if (!club) return { hook, streak: null, winless: false }
+  // streak framing: the cheapest dopamine in sport
+  const res = game.fixtures.filter(f => f.played && (f.homeId === club.id || f.awayId === club.id) && f.compId !== 'fr')
+    .sort((a, b) => b.week - a.week)
+  let unbeaten = 0, winless = 0
+  for (const f of res) {
+    const us = f.homeId === club.id ? f.homeScore : f.awayScore
+    const them = f.homeId === club.id ? f.awayScore : f.homeScore
+    if (us >= them && winless === 0) unbeaten++
+    else if (us <= them && unbeaten === 0) winless++
+    else break
+  }
+  const streak = unbeaten >= 3 ? t('home.unbeaten', { n: unbeaten }) : winless >= 3 ? t('home.winless', { n: winless }) : null
+  return { hook, streak, winless: winless >= 3 }
 }

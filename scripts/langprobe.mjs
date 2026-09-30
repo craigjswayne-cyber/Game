@@ -214,7 +214,11 @@ try {
   // "confidence" becomes "confiance"; either can push a panel out of its row.
   const hub = await page.locator('.hub-widget label').allInnerTexts()
   say(`  hub widgets in French: ${hub.join(' | ')}`)
-  ok(hub.some(h => h.toLowerCase().includes('championnat')), 'the hub widgets are French')
+  ok(hub.some(h => h.toLowerCase().includes('forme')), 'the hub widgets are French')
+  // the desk's rows (1.8.2): the league position is the season row now
+  const desk = await page.locator('.desk-row .dr-l').allInnerTexts()
+  say(`  desk rows in French: ${desk.join(' | ')}`)
+  ok(desk.some(h => h.toLowerCase().includes('saison')), 'the desk rows are French')
 
   const dashHeads = await page.locator('.dash-head').allInnerTexts()
   say(`  dash panels in French: ${dashHeads.join(' | ')}`)
@@ -224,7 +228,7 @@ try {
   const homeOverflow = await page.evaluate(() => {
     const w = document.documentElement.clientWidth
     const bad = []
-    for (const el of document.querySelectorAll('.hub-widget span, .hub-widget label, .dash-head, .dash-line span, .dash-line b')) {
+    for (const el of document.querySelectorAll('.hub-widget span, .hub-widget label, .dash-head, .dash-line span, .dash-line b, .desk-row .dr-l, .desk-row .dr-t, .desk-sub')) {
       const r = el.getBoundingClientRect()
       if (r.width === 0) continue
       // clipped by its own box, or hanging off the screen

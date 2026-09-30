@@ -10,10 +10,11 @@
 //
 // What counts: pictographic emoji (U+1F000 and up) and the U+2600-U+27BF
 // symbols that phones draw as colour emoji (warning sign, star, lightning,
-// scales, sun, moon...). What does not:
-//   - national flags (regional-indicator pairs, and the black flag with tag
-//     characters that England, Scotland and Wales use): they are flags, not
-//     decoration, and the Nat component shows them next to a nation's name;
+// scales, sun, moon...), and national flags too (regional-indicator pairs,
+// and the black flag with tag characters England, Scotland and Wales used):
+// they were the last emoji left, and since 1.8.2 every flag is drawn by
+// src/ui/flags.tsx, so a flag emoji in the source is a regression like any
+// other. What does not count:
 //   - the typographic marks the UI uses as type: ★ ☆ in the Stars rating,
 //     ✓ ticks, ✕ ✗ crosses (plus ▲ ▼ ● ○ · ½ →, which sit outside the range);
 //   - comments: only string literals, template text and JSX text are read, so
@@ -33,26 +34,17 @@ const ROOT = join(__dirname, '..')
 const TEMP_FILES = new Set<string>()
 const TEMP_NAMESPACES = new Set<string>()
 
-// Not temporary: the nations table's flag fields. A flag is a flag, and two
-// entries have no national flag to show - the touring Lions (a red disc) and
-// flagOf's fallback for a code it does not know - so in nations.ts a string
-// that is one pictograph and nothing else is read as a flag field. Anything
-// longer in that file is still checked.
-const FLAG_FILE = 'src/game/nations.ts'
-const isLoneGlyph = (s: string) => [...s.replace(/\u{FE0F}/gu, '')].length === 1
-
 /** typographic marks inside U+2600-U+27BF that render as text, not emoji */
 const TYPOGRAPHIC = new Set(['★', '☆', '✓', '✕', '✗'])
-const FLAGS = /[\u{1F1E6}-\u{1F1FF}]{2}|\u{1F3F4}[\u{E0020}-\u{E007F}]+/gu
 // plus the handful outside that block that phones also draw in colour (star,
 // hourglass, watch, the big circle and squares, the play/fast-forward family),
 // and anything at all followed by U+FE0F, the 'draw me as emoji' selector
 const PICTO = /[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{2B50}\u{2B55}\u{2B1B}\u{2B1C}\u{231A}\u{231B}\u{23E9}-\u{23F3}\u{23F8}-\u{23FA}\u{2934}\u{2935}\u{3030}\u{303D}\u{3297}\u{3299}]|.\u{FE0F}|\u{20E3}/gu
 
-/** the emoji in a string, flags and typographic marks aside */
+/** the emoji in a string, typographic marks aside */
 function emojiIn(s: string): string[] {
   const out: string[] = []
-  for (const m of s.replace(FLAGS, '').matchAll(PICTO)) if (!TYPOGRAPHIC.has(m[0])) out.push(m[0])
+  for (const m of s.matchAll(PICTO)) if (!TYPOGRAPHIC.has(m[0])) out.push(m[0])
   return out
 }
 
@@ -77,7 +69,7 @@ for (const path of walk(join(ROOT, 'src'))) {
   const visit = (n: ts.Node) => {
     if (ts.isStringLiteral(n) || ts.isNoSubstitutionTemplateLiteral(n) || ts.isTemplateHead(n) || ts.isTemplateMiddle(n) || ts.isTemplateTail(n) || ts.isJsxText(n)) {
       const hit = emojiIn(n.text)
-      if (hit.length && !(rel === FLAG_FILE && isLoneGlyph(n.text))) {
+      if (hit.length) {
         const line = sf.getLineAndCharacterOfPosition(n.getStart()).line + 1
         offenders.push(`${rel}:${line}  ${hit.join(' ')}  ${JSON.stringify(n.text.trim().slice(0, 70))}`)
       }
@@ -107,7 +99,9 @@ for (const f of readdirSync(locDir).filter(f => f.endsWith('.json'))) {
 }
 
 // ---- the checker itself: a flag passes, an emoji does not ----
-ok(emojiIn('🇫🇷 France 🏴\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F} England ★★☆ ✓').length === 0, 'flags and typographic marks are not flagged')
+ok(emojiIn('France · England ★★☆ ✓ ✕').length === 0, 'typographic marks are not flagged')
+ok(emojiIn('\u{1F1EB}\u{1F1F7} France').length >= 1 && emojiIn('\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F} England').length >= 1 && emojiIn('\u{1F534}').length === 1,
+  'a flag emoji is: regional-indicator pairs, the tagged black flag and the old red-disc Lions')
 ok(emojiIn('\u26A0\uFE0F Warning').length >= 1 && emojiIn('\u{1F3C6} Champions').length === 1 && emojiIn('\u26A1').length === 1 && emojiIn('\u2B50').length === 1 && emojiIn('\u25B6\uFE0F').length === 1,
   'a warning sign, a trophy, a lightning bolt, a star emoji and an emoji play button are')
 
