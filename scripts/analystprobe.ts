@@ -172,7 +172,19 @@ if (recRight + recWrong !== n) bad(`record counted ${recRight + recWrong} of ${n
   console.log(`season margin, following sound reads minus ignoring them: mean ${mean.toFixed(1)} ` +
     `over ${seasons.length} seasons, ahead in ${better} of them`)
   if (mean <= 0) bad(`following sound reads is worth ${mean.toFixed(1)} points a season - the read does nothing`)
-  if (better <= seasons.length / 2) bad(`following sound reads won only ${better} of ${seasons.length} seasons`)
+  // THE COUNT IS A SIGN TEST, AND AT 48 IT IS A COIN (1.8.2 QA). The two arms
+  // play one prep apart and then diverge for a whole season, so a season's
+  // difference swings by about 125 points either way while following sound
+  // reads is worth about +21: a real edge on the mean, a median of +13, and
+  // only a little over half the seasons ahead. On the release head after
+  // af22186 seeds 1-48 read +21.5, ahead in 24 of 48 (this check failed on
+  // exactly half), and seeds 49-144 read +21.5 +/- 12.7, ahead in 50 of 96:
+  // 74 of 144 over both. With the true share near 51%, "more than half of 48"
+  // fails about as often as it passes, and a read worth nothing would pass it
+  // as often too. The mean above is the claim; the count only guards against
+  // a read that costs seasons: fewer than 35% ahead (under 17 of 48) is about
+  // one run in a hundred at the share 144 seasons measured.
+  if (better < seasons.length * 0.35) bad(`following sound reads won only ${better} of ${seasons.length} seasons`)
 }
 
 if (fails) { console.error(`ANALYST PROBE: ${fails} failures`); process.exit(1) }
