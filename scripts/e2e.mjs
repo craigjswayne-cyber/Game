@@ -221,23 +221,26 @@ try {
   await page.click('.tab-bar >> text=Prep')
   await page.waitForSelector('text=Match Preparation')
 
-  // THE COUNTER PLAN SPENDS ITSELF (owner, v1.1.15: "again when pressing set
-  // the counter plan it actions but doesnt become unclickable"). It sets four
-  // dials; press it twice and the second press is a no-op that looks like a
-  // decision. So: press it, and the button must go dead and say so.
+  // THE COUNTER PLAN SAYS IT IS SET (owner, v1.1.15: "again when pressing set
+  // the counter plan it actions but doesnt become unclickable"). Since 1.8.3
+  // (owner: "Prep page - simplify") the counter is one of the response plan
+  // chips rather than a button of its own: a tap must put its dials on the
+  // club, mark that chip and only that chip, and say in one line what it set.
   {
-    const btn = page.locator('button', { hasText: 'Set the counter plan' })
-    ok(await btn.count() > 0, 'the opposition read offers a counter plan to set')
-    if (await btn.count()) {
-      ok(await btn.first().isEnabled(), 'and it is live before it is pressed')
-      await btn.first().click()
+    const chip = page.locator('[data-plan="counter"]')
+    ok(await chip.count() > 0, 'the prep page offers the counter plan as a chip')
+    if (await chip.count()) {
+      await chip.first().click()
       await page.waitForTimeout(250)
-      const spent = page.locator('button', { hasText: 'Counter plan set' })
-      ok(await spent.count() > 0, 'pressing it changes the button to say the plan is set')
-      ok(await spent.first().isDisabled(), 'and the button is dead - it cannot be pressed twice')
-      ok(await page.locator('button', { hasText: 'Set the counter plan' }).count() === 0,
-        'the live label is gone, not sitting beside the spent one')
+      const on = await page.$$eval('[data-plan][aria-checked="true"]', bs => bs.map(b => b.dataset.plan))
+      ok(on.join() === 'counter', `pressing it marks that plan and no other (${on.join(', ')})`)
+      ok(await page.locator('[data-plan-on="counter"]').count() === 1, 'and one line says what it set')
     }
+    // the reading sits behind the one info button, closed until asked for
+    ok(await page.locator('.opp-report').count() === 0, 'the opposition report is folded away by default')
+    await page.click('[data-prep-info]')
+    await page.waitForSelector('.opp-report')
+    ok(true, 'the info button opens the opposition report')
   }
 
   // Club submenu -> Team Report

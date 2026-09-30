@@ -3332,6 +3332,39 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .prep-ico svg { width: 20px; height: 20px; }
 .prep-card.sel .prep-ico { background: var(--pick); color: var(--pick-ink); }
+/* 1.8.3, owner: "just a few options to select". The cards lost their sums
+   and became chips: icon and name on one row, the sums in one line under
+   the grid (.prep-line) for the chosen focus only. */
+.prep-grid .prep-card { flex-direction: row; align-items: center; gap: 8px; padding: 7px 10px; position: relative; min-width: 0; }
+.prep-grid .prep-card b { min-width: 0; overflow-wrap: anywhere; hyphens: auto; line-height: 1.2; }
+.prep-grid .prep-card .prep-ico { flex: 0 0 auto; width: 28px; height: 28px; }
+.prep-grid .prep-card .prep-ico svg { width: 17px; height: 17px; }
+.prep-tag {
+  position: absolute; top: -7px; right: 8px;
+  font-size: 9px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase;
+  padding: 1px 6px; border-radius: 8px;
+  background: var(--gold-fill, var(--gold)); color: var(--on-gold);
+}
+@media (min-width: 700px) {
+  .prep-grid .prep-card { flex-direction: column; align-items: flex-start; }
+}
+.prep-line { margin: 8px 16px 0; font-size: 12px; }
+.prep-plans { padding: 0 14px; }
+.prep-plans .preset-row { margin-top: 0; }
+.prep-plans .prep-line { margin: 6px 2px 0; }
+.prep-info {
+  width: 26px; height: 26px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1.5px solid var(--border-strong); background: var(--surface-1); color: var(--text-secondary);
+  font-family: var(--sans); font-weight: 700; font-style: italic; font-size: 14px; line-height: 1;
+}
+.prep-info.on { background: var(--pick); color: var(--pick-ink); border-color: var(--pick); }
+.prep-detail { margin-top: 10px; }
+/* the Game Plan's pointer to the Playbook (1.8.3): one line and a chip */
+.plan-xref { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 2px 14px 4px; }
+.plan-xref .meta { font-size: 12px; min-width: 0; }
+.plan-xref .preset-chip { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 2px; }
+.plan-xref svg { width: 12px; height: 12px; }
 
 /* ---- the game-time ledger's status picker (F18) --------------------------
    .inline-input is a form control built for a card: 11px padding and a 6px

@@ -72,7 +72,7 @@ export default function MovesSection({ game, club, touch }: { game: GameState; c
   }
 
   return <>
-    <SectionTitle>{t('moves.heading')}</SectionTitle>
+    <SectionTitle sub={t('moves.headingSub')}>{t('moves.heading')}</SectionTitle>
     <div className="card mv-card" data-replacing={replacing ? '1' : undefined}>
       <div className="mv-calls">
         {SLOTS.map(s => {
