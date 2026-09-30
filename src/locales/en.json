@@ -522,16 +522,15 @@
  },
  "medical": {
   "headPhysio": "Head Physio",
-  "physioNamed": "{name} ({badge} badge)",
+  "physioNamed": "Physio {name}",
   "physioVacant": " · post vacant - injuries run their full course (Training → Backroom Staff)",
-  "physioShorter": " · injuries roughly {pct}% shorter",
+  "physioShorter": " · injuries about {pct}% shorter",
   "findPlayer": "Find a player…",
   "nothingOnHim": "Nothing on him",
   "quietRoom": "A quiet treatment room",
   "nothingOnHimSub": "No player matching that search is injured, suspended, rusty or short of a gallop.",
   "quietRoomSub": "Nobody injured, suspended, rusty or running on empty. Enjoy it - it never lasts.",
   "treatmentRoom": "Treatment Room",
-  "treatmentSub": "Ruled out",
   "redZone": "Red Zone - season load",
   "redZoneSub": "1,300+ minutes this season",
   "minsThisSeason": "{mins}′ this season",
@@ -566,7 +565,7 @@
   "jokerSigned": "{name} signs as a medical joker to cover {hurt}, on {wage}.",
   "jokerNotOpen": "A medical joker can't be signed for this player now.",
   "jokerClose": "Close",
-  "knockBtn": "Play through it · {pct}% risk",
+  "knockBtn": "Play through · {pct}% risk",
   "knockOn": "{name} is cleared to play on the knock. Every match played risks a flare-up ({pct}% a game).",
   "knockRested": "{name} is back in the treatment room after all.",
   "knockNotOpen": "That can't be played through now.",
@@ -574,8 +573,8 @@
   "knockSub": "Can play, with a risk of flare-up",
   "knockRow": "Fit in {n} wk · {pct}% flare-up risk a match",
   "knockRest": "Rest instead",
-  "knockHead": "Head injury: never played through",
-  "specialistCut": "Specialist -{n}w · {fee}"
+  "knockHead": "Head injury: must rest",
+  "specialistCut": "Specialist · {fee} (-{n}w)"
  },
  "inbox": {
   "freeAgent": " · free agent",
