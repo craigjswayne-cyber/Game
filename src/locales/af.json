@@ -521,7 +521,7 @@
  },
  "medical": {
   "headPhysio": "Hooffisio",
-  "physioNamed": "{name} ({badge}-kenteken)",
+  "physioNamed": "Fisio {name}",
   "physioVacant": " · pos vakant - beserings duur hul volle tyd (Oefening → Agtergrondpersoneel)",
   "physioShorter": " · beserings sowat {pct}% korter",
   "findPlayer": "Soek 'n speler…",
@@ -530,7 +530,6 @@
   "nothingOnHimSub": "Geen speler wat by daardie soektog pas, is beseer, geskors, roesterig of kort aan speeltyd nie.",
   "quietRoomSub": "Niemand beseer, geskors, roesterig of leeg getap nie. Geniet dit - dit hou nooit.",
   "treatmentRoom": "Behandelingskamer",
-  "treatmentSub": "Buite aksie",
   "redZone": "Rooi Sone - seisoenlading",
   "redZoneSub": "1 300+ minute hierdie seisoen",
   "minsThisSeason": "{mins}′ hierdie seisoen",
@@ -572,8 +571,8 @@
   "knockSub": "Kiesbaar, met 'n risiko dat dit opvlam",
   "knockRow": "Fiks oor {n} w. · {pct}% opvlamrisiko per wedstryd",
   "knockRest": "Laat rus",
-  "knockHead": "Kopbesering: nooit deurgespeel nie",
-  "specialistCut": "Spesialis -{n}w · {fee}"
+  "knockHead": "Kopbesering: moet rus",
+  "specialistCut": "Spesialis · {fee} (-{n}w)"
  },
  "inbox": {
   "freeAgent": " · vrye agent",

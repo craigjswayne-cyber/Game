@@ -533,7 +533,7 @@
  },
  "medical": {
   "headPhysio": "Jefe de fisios",
-  "physioNamed": "{name} (nivel {badge})",
+  "physioNamed": "Fisio {name}",
   "physioVacant": " · puesto vacante: las lesiones siguen su curso completo (Entrenamiento → Cuerpo técnico)",
   "physioShorter": " · lesiones alrededor de un {pct}% más cortas",
   "findPlayer": "Buscar jugador…",
@@ -543,7 +543,6 @@
   "nothingOnHimSub": "Ningún jugador de esa búsqueda está lesionado, sancionado, oxidado ni falto de rodaje.",
   "quietRoomSub": "Nadie lesionado, sancionado, oxidado ni con el depósito vacío. Disfrútalo: nunca dura.",
   "treatmentRoom": "Sala de tratamiento",
-  "treatmentSub": "De baja",
   "redZone": "Zona roja - carga de la temporada",
   "redZoneSub": "Más de 1300 minutos esta temporada",
   "minsThisSeason": "{mins}′ esta temporada",
@@ -590,8 +589,8 @@
   "knockSub": "Disponible, con riesgo de recaída",
   "knockRow": "Alta en {n} sem. · {pct}% de riesgo de recaída por partido",
   "knockRest": "Dar descanso",
-  "knockHead": "Lesión en la cabeza: nunca se juega con ella",
-  "specialistCut": "Especialista -{n}sem · {fee}"
+  "knockHead": "Lesión en la cabeza: reposo obligatorio",
+  "specialistCut": "Especialista · {fee} (-{n}sem)"
  },
  "inbox": {
   "freeAgent": " · agente libre",

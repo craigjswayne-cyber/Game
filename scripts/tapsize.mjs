@@ -206,8 +206,8 @@ try {
     }
     S.touch(); S.go('medical')
   })
-  await page.waitForSelector('text=Play through it')
-  await page.locator('button', { hasText: 'Play through it' }).last().click()
+  await page.waitForSelector('text=Play through')
+  await page.locator('button', { hasText: 'Play through' }).last().click()
   await check('Medical: treatment room and a knock carried')
   await page.locator('button', { hasText: 'Sign a medical joker' }).first().click()
   await page.waitForSelector('.modal')
