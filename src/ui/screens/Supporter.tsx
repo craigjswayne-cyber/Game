@@ -9,7 +9,7 @@ import {
 } from '../../game/monetise'
 import { INJECT_TIERS, estateBuiltHere, healReady, injectionCash, injectionsLeft, type InjectTier } from '../../game/grants'
 import { fmtMoney, fmtWage } from '../../game/model'
-import { NAT_TIERS, pickableNations, flagOf, nationName } from '../../game/nations'
+import { NAT_TIERS, pickableNations, nationName } from '../../game/nations'
 import { t } from '../../game/i18n'
 import { endingText } from '../purchase'
 import { Glyph } from '../glyphs'
@@ -455,7 +455,7 @@ export default function Supporter() {
           <div className="btn-row" style={{ alignItems: 'stretch' }}>
             <select value={natPick} onChange={e => setNatPick(e.target.value)} style={{ flex: 1, minWidth: 0 }}>
               {natOptions.map(([code]) => (
-                <option key={code} value={code}>{flagOf(code)} {nationName(code)}</option>
+                <option key={code} value={code}>{nationName(code)}</option>
               ))}
             </select>
             <button className="btn gold" style={{ flexShrink: 0 }}

@@ -1919,6 +1919,10 @@ export interface GameState {
    *  finish no better than the pundits said and next season's budget gives it
    *  back with interest. Cleared with the stance each summer. */
   stanceFund?: number
+  /** SEASON PRIORITIES (1.8.2, seasonplan.ts): the manager's ranking of the
+   *  club's competitions and his rotation intent. Read by the assistant's
+   *  team sheet and the board. Unset is exactly the old game. */
+  seasonPlan?: import('./seasonplan').SeasonPlan
   /** ---- v1.1.0: what the owner paid for (grants.ts, monetise.ts) ----
    *  Nothing below is ever set by the game itself - scripts/grantprobe.ts
    *  holds that a fresh career carries none of it. */
