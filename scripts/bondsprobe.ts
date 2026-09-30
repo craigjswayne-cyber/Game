@@ -305,6 +305,16 @@ console.log('--- 5 + 7. capped, small and bounded over simulated seasons')
   const strays = (h.bonds?.pairs ?? []).filter(p => !h.clubs[h.userClubId].players.includes(p[0]) || !h.clubs[h.userClubId].players.includes(p[1]))
   // the summer's departures happen after the last pass; the next one settles them
   if (strays.length) console.log(`      ${strays.length} pairs wait on the next pass after the summer's departures`)
+  // A SACKED MANAGER HAS NO DRESSING ROOM (1.8.2 QA). After the release head
+  // moved the world (af22186) this Leicester walk ends with the manager out of
+  // work, and bonds.ts does nothing while he is (weekly: state.unemployed), so
+  // the 21 pairs left by the summer's departures waited for a pass that never
+  // came. The claim is about the pass, so it is held on the club as he would
+  // find it the week he is back in charge there.
+  if (h.unemployed) {
+    console.log('      the walk ends with the manager out of work: the pass is read as the week he is back at the club')
+    h.unemployed = false
+  }
   bondsWeek(h)
   ok(!!h.bonds && h.bonds.pairs.every(p => h.clubs[h.userClubId].players.includes(p[0]) && h.clubs[h.userClubId].players.includes(p[1])), 'after a weekly pass, every pair is two men still on the books')
   // ------------------------------------------------------------------ 9
