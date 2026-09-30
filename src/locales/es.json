@@ -459,6 +459,9 @@
   "planTitle": "Prioridades de la temporada",
   "planSub": "Ordenadas para el cuerpo técnico y la directiva",
   "planMoveUp": "Subir",
+  "planFold": "Prioridades de la temporada: primero {comp}, {rot}",
+  "planFoldNone": "Prioridades de la temporada: sin fijar",
+  "planFoldRest": "{n} descansan en este partido",
   "rotStrongest": "El mejor XV",
   "rotStrongestDesc": "Los titulares juegan siempre que estén en condiciones, en todas las competiciones.",
   "rotStrongestDesc_f": "Las titulares juegan siempre que estén en condiciones, en todas las competiciones.",
@@ -8339,6 +8342,8 @@
  },
  "dev": {
   "cardLabel": "Progresión",
+  "showCard": "Ver su progresión",
+  "hideCard": "Ocultar su progresión",
   "ceilingStaff": "Techo, estimación del cuerpo técnico",
   "ceilingStaffTitle": "Lo que los entrenadores creen que es el techo. Es una estimación hasta los 23 años más o menos, y puede moverse: el progreso, los minutos y la confianza lo cambian.",
   "outlookUp": "El progreso apunta a más recorrido del que se pensaba.",

@@ -468,6 +468,9 @@
     "planTitle": "Priorités de la saison",
     "planSub": "Classées pour le staff et le conseil d'administration",
     "planMoveUp": "Monter",
+    "planFold": "Priorités de la saison : {comp} d'abord, {rot}",
+    "planFoldNone": "Priorités de la saison : aucune",
+    "planFoldRest": "{n} au repos pour ce match",
     "rotStrongest": "Meilleur XV",
     "rotStrongestDesc": "Les titulaires jouent dès qu'ils sont assez frais, dans toutes les compétitions.",
     "rotStrongestDesc_f": "Les titulaires jouent dès qu'elles sont assez fraîches, dans toutes les compétitions.",
@@ -8552,6 +8555,8 @@
   },
   "dev": {
     "cardLabel": "Progression",
+    "showCard": "Voir sa progression",
+    "hideCard": "Masquer sa progression",
     "ceilingStaff": "Plafond, estimation du staff",
     "ceilingStaffTitle": "Ce que les entraîneurs pensent du plafond. C'est une estimation jusqu'à 23 ans environ, et elle peut bouger : les progrès, le temps de jeu et la confiance la font évoluer.",
     "outlookUp": "Les progrès laissent entrevoir un potentiel plus élevé que prévu.",

@@ -444,6 +444,9 @@
   "planTitle": "シーズンの優先順位",
   "planSub": "アシスタントと理事会のための順位",
   "planMoveUp": "上へ",
+  "planFold": "シーズンの優先順位：{comp}を最優先、{rot}",
+  "planFoldNone": "シーズンの優先順位：未設定",
+  "planFoldRest": "この試合で{n}人を休ませる",
   "rotStrongest": "ベストの布陣",
   "rotStrongestDesc": "主力は体力が十分なら、どの大会でも先発する。",
   "rotBalanced": "バランス",
@@ -8022,6 +8025,8 @@
  },
  "dev": {
   "cardLabel": "成長",
+  "showCard": "成長の見通しを表示",
+  "hideCard": "成長の見通しを隠す",
   "ceilingStaff": "ポテンシャル（スタッフの見立て）",
   "ceilingStaffTitle": "コーチ陣が見込むポテンシャル。23歳前後までは推定にすぎず、成長ぶりや出場時間、自信によって変わる。",
   "outlookUp": "成長ぶりから、当初の見立てより伸びしろがありそうだ。",

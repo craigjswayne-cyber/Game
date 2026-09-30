@@ -460,6 +460,9 @@
   "planTitle": "Priorità della stagione",
   "planSub": "In ordine per lo staff e la dirigenza",
   "planMoveUp": "Sposta su",
+  "planFold": "Priorità della stagione: prima {comp}, {rot}",
+  "planFoldNone": "Priorità della stagione: non impostate",
+  "planFoldRest": "{n} a riposo in questa partita",
   "rotStrongest": "XV migliore",
   "rotStrongestDesc": "I titolari giocano quando sono abbastanza freschi, in ogni competizione.",
   "rotStrongestDesc_f": "Le titolari giocano quando sono abbastanza fresche, in ogni competizione.",
@@ -8384,6 +8387,8 @@
  },
  "dev": {
   "cardLabel": "Crescita",
+  "showCard": "Mostra la sua crescita",
+  "hideCard": "Nascondi la sua crescita",
   "ceilingStaff": "Potenziale, stima dello staff",
   "ceilingStaffTitle": "Quello che i tecnici credono sia il potenziale massimo. È una stima fino ai 23 anni circa, e può muoversi: progressi, minuti e fiducia la cambiano.",
   "outlookUp": "I progressi lasciano intravedere più margine di quanto si pensasse.",
