@@ -4360,6 +4360,18 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .respect-line { margin-top: 6px; padding-left: 8px; border-left: 3px solid var(--gold); }
 .temper-card .bench-note { margin-top: 6px; padding-left: 8px; border-left: 3px solid var(--gold); }
 
+/* development as a project (1.8.2): the staff's read, and the timeline */
+.dev-card { border-left: 4px solid var(--info); }
+.dev-card .meta { font-size: 13px; line-height: 1.45; margin-top: 2px; }
+.dev-timeline { padding: 4px 12px; }
+.dev-timeline .tl-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-top: 1px solid var(--border); min-width: 0; }
+.dev-timeline .tl-row:first-child { border-top: 0; }
+.dev-timeline .tl-season { flex: 0 0 60px; font-size: 12px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.dev-timeline .tl-rating { flex: 0 0 26px; text-align: right; font-variant-numeric: tabular-nums; }
+.dev-timeline .tl-moments { display: flex; flex-wrap: wrap; gap: 4px; flex: 1 1 auto; min-width: 0; }
+.dev-timeline .tl-chip { padding: 2px 7px; }
+.dev-timeline .tl-now .tl-season { color: var(--text-primary); font-weight: 700; }
+
 .plan-slots { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 16px 0; }
 .plan-slot { display: inline-flex; gap: 2px; align-items: stretch; }
 .plan-slot .plan-over { padding-left: 8px; padding-right: 8px; min-width: 32px; }

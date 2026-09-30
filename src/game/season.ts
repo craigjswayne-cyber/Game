@@ -51,6 +51,8 @@ import { settleKnocks } from './knock'
 import { askBoard, type BoardAsk } from './boardroom'
 import { expireLoans, loanOutBoost, loanTargets } from './loans'
 import { FOCUS_MAX_AGE, focusIds } from './development'
+import { confidence, devHash, heavyLoad, planAffinity, weekGrowth } from './devproject'
+import { devNewsWeek, previewRead } from './devnews'
 import { refreshVacancies, sackManager } from './jobs'
 import { historyAfterMatch, historyPreview, historyWeight } from './history'
 import { arcAfterMatch, arcWeek } from './arc'
@@ -1042,7 +1044,12 @@ export function planCap(state: GameState): number {
 /** The plan a man is actually on, cap enforced at read time: newest
  *  assignments win a full book, same idiom as devFocus. */
 export function activePlan(state: GameState, playerId: number): TrainingFocus | null {
-  return (state.plans ?? []).slice(-planCap(state)).find(x => x.id === playerId)?.plan ?? null
+  return activeEntry(state, playerId)?.plan ?? null
+}
+
+/** The whole plan entry, secondary programme and tally included (1.8.2). */
+export function activeEntry(state: GameState, playerId: number): NonNullable<GameState['plans']>[number] | null {
+  return (state.plans ?? []).slice(-planCap(state)).find(x => x.id === playerId) ?? null
 }
 
 /** One week of a personal training programme (18A, from the Rugby Manager
@@ -1051,19 +1058,37 @@ export function activePlan(state: GameState, playerId: number): TrainingFocus | 
  *  the plan is a choice, not a stack: the specialist coach and the paddock
  *  set the ceiling, and older men absorb less of it. Returns true on a bump. */
 export function rollPlan(state: GameState, p: Player, rng: Rng): boolean {
-  const plan = activePlan(state, p.id)
-  if (!plan) return false
-  const coach = FOCUS_COACH[plan]
-  const coachLvl = coach ? (state.staff[coach] ?? 0) : 0
-  const ageF = p.age <= 23 ? 1.3 : p.age <= 28 ? 1 : 0.6
-  // 0.011 a week at the base, was 0.055: a season on a plan was 26 attribute
-  // points (12 rating points' worth) against two to four of natural growth.
-  // Now a gold coach and a real paddock buy four to six points a season, each
-  // paid for elsewhere the same week (ageing.ts trainPoint)
-  if (rng() >= 0.011 * (1 + coachLvl * 0.5 + facLevel(state, 'paddock') * 0.2) * ageF) return false
-  let moved = false
+  const entry = activeEntry(state, p.id)
+  const plan = entry?.plan
+  if (!entry || !plan) return false
+  const rate = (focus: TrainingFocus) => {
+    const coach = FOCUS_COACH[focus]
+    const coachLvl = coach ? (state.staff[coach] ?? 0) : 0
+    const ageF = p.age <= 23 ? 1.3 : p.age <= 28 ? 1 : 0.6
+    // 0.011 a week at the base, was 0.055: a season on a plan was 26 attribute
+    // points (12 rating points' worth) against two to four of natural growth.
+    // Now a gold coach and a real paddock buy four to six points a season, each
+    // paid for elsewhere the same week (ageing.ts trainPoint).
+    // THE DEVELOPMENT PLAN (1.8.2, devproject.ts): a programme on what he
+    // learns quickly lands more often and one on what he is slow at less,
+    // and the week itself is uneven: minutes, confidence, the right shirt,
+    // the side's style, and the month's spell (weekGrowth, mean one)
+    return 0.011 * (1 + coachLvl * 0.5 + facLevel(state, 'paddock') * 0.2) * ageF
+      * planAffinity(state.seed, p, focus) * weekGrowth(state, p)
+  }
+  // a second programme splits the week, seven parts to three: wider, not more
+  const plan2 = entry.plan2 && entry.plan2 !== plan && entry.plan2 !== 'balanced' ? entry.plan2 : null
   const abs = absWeek(state.season, state.week)
-  for (const k of FOCUS_ATTRS[plan]) moved = trainPoint(p, k, FOCUS_ATTRS[plan], attrRoll(state.seed, p.id, abs, k)) || moved
+  let moved = false
+  // the primary's draw is the one rng draw this always spent, so the stream
+  // is unchanged; the secondary's is by hash
+  if (rng() < rate(plan) * (plan2 ? 0.7 : 1)) {
+    for (const k of FOCUS_ATTRS[plan]) moved = trainPoint(p, k, FOCUS_ATTRS[plan], attrRoll(state.seed, p.id, abs, k)) || moved
+  }
+  if (plan2 && devHash(state.seed, p.id, 40, abs) < rate(plan2) * 0.3) {
+    for (const k of FOCUS_ATTRS[plan2]) moved = trainPoint(p, k, FOCUS_ATTRS[plan2], attrRoll(state.seed, p.id, abs + 7, k)) || moved
+  }
+  if (moved) entry.pts = (entry.pts ?? 0) + 1
   return moved
 }
 
@@ -1235,6 +1260,10 @@ function weeklyTraining(state: GameState, rng: Rng) {
        */
       if (!p.injury && !p.maternity && p.bans === 0) {
         const rustF = (p.rust ?? 0) > 0 ? 2.6 : 1
+        // TOO MUCH RUGBY TOO YOUNG (1.8.2, devproject.heavyLoad): minutes grow
+        // a young senior, and a young body starting nearly every week breaks
+        // more often on the training ground
+        const loadF = heavyLoad(p) ? 1.35 : 1
         const tiredF = p.cond < 55 ? 1.7 : 1
         const ageF = p.age >= 32 ? 1.3 : 1
         // THE SURFACE YOU TRAIN ON (v1.8.1). This term used to sit in the
@@ -1243,7 +1272,7 @@ function weeklyTraining(state: GameState, rng: Rng) {
         // facility is where the squad WORKS, so a rutted one is what turns
         // an ankle on a Tuesday. Every club's own, not just the manager's.
         const surf = 1 - (club.facilities?.pitch ?? 0) * 0.05
-        if (rng() < 0.0026 * rustF * tiredF * ageF * surf) {
+        if (rng() < 0.0026 * rustF * tiredF * ageF * surf * loadF) {
           let [dk, weeks] = pickTrainingInjury(rng, genderOf(state))
           if (isUser) {
             // the same care that shortens a match lay-off shortens this one
@@ -1299,7 +1328,16 @@ function weeklyTraining(state: GameState, rng: Rng) {
       const growBoost = (isUser ? 1 + state.staff.assistant * 0.25 : 1) * surfBoost
       const eliteF = p.ca >= 94 ? 0.15 : p.ca >= 88 ? 0.5 : 1
       // and the gap to his potential is the pace (E5, ageing.ts gapGrowth)
-      if (p.age <= 24 && p.ca < p.pa && rng() < 0.06 * growBoost * eliteF * gapGrowth(p.ca, p.pa)) p.ca += 1
+      // ...and the week itself (1.8.2, devproject.ts weekGrowth): his minutes,
+      // confidence, shirt, the side's style, the Centre of Excellence, his
+      // tempo and the month's spell, bounded and centred on the world's mean.
+      // Every club's youngsters, the same rules. The short-circuit keeps the
+      // rng draw exactly where it was.
+      if (p.age <= 24 && p.ca < p.pa && rng() < 0.06 * growBoost * eliteF * gapGrowth(p.ca, p.pa) * weekGrowth(state, p)) p.ca += 1
+      // CONFIDENCE FEEDS FORM, a little (1.8.2): a man flying carries it into
+      // the next week, one in a hole carries that. Read off his last three
+      // ratings (devproject.confidence), mean zero across the world
+      if (p.lastWk != null) p.form = clamp(p.form + 0.04 * confidence(state, p), 1, 10)
       // a man on a personal plan works his own programme this week (18A);
       // everyone else takes the squad session
       if (isUser && activePlan(state, p.id)) {
@@ -3274,9 +3312,12 @@ export function processWeekAndAdvance(state: GameState) {
     const cls = rollIntakeClass(state, rng)
     if (cls.length) {
       state.intakeClass = cls
-      const best = Math.max(...cls.map(c => c.pa))
+      // the coach's READ of the class (1.8.2): a teenager's ceiling is an
+      // estimate, so the preview grades what he believes, not the number
+      const read = (c: { name: string; pa: number }) => previewRead(state.seed, c.name, c.pa)
+      const best = Math.max(...cls.map(read))
       const grade = best >= 96 ? 'A' : best >= 90 ? 'B' : best >= 82 ? 'C' : best >= 74 ? 'D' : 'E'
-      const star = cls.reduce((a, b) => (b.pa > a.pa ? b : a))
+      const star = cls.reduce((a, b) => (read(b) > read(a) ? b : a))
       const GROUP: Record<string, string> = {
         LP: 'news.unitFront', HK: 'news.unitFront', TP: 'news.unitFront', LK: 'news.unitSecond',
         FL: 'news.unitBack', N8: 'news.unitBack', SH: 'news.unitHalf', FH: 'news.unitHalf',
@@ -4365,7 +4406,8 @@ If you go, your assistant takes your national side for the duration. Nobody prep
     for (const id of focusIds(state)) {
       const p = state.players[id]
       if (!p || p.clubId !== state.userClubId || p.age > FOCUS_MAX_AGE) continue
-      const boost = 0.1 + state.staff.assistant * 0.04
+      // the week's drivers and spell (devproject.weekGrowth, 1.8.2)
+      const boost = (0.1 + state.staff.assistant * 0.04) * weekGrowth(state, p)
       if (p.ca < p.pa && rng() < boost) {
         p.ca += 1
         if (rng() < 0.6) {
@@ -4384,6 +4426,8 @@ If you go, your assistant takes your national side for the duration. Nobody prep
   if (!state.unemployed) {
     mentorGraduations(state)
     mentorReports(state)
+    // the development staff's word on a breakthrough or a stall (devnews.ts)
+    devNewsWeek(state)
     // the office's hard calls and the room's culture (room.ts): before the
     // bonds pass, whose last XV it reads to see who was left out
     roomWeek(state)

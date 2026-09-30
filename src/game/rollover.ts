@@ -10,6 +10,9 @@ import { rivalVerdict } from './boss'
 import {absWeek, BASE_YEAR, boardPatience, closeNatTenure, demandCeiling, MAX_FOLLOWING, GROUND_TIERS, groundLevel, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, RELEGATES, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId, worldCupSeasonFor } from './model'
 import { assignPersonality, EARLY_FADE, LATE_PEAK } from './attributes'
 import { ageAttributes, gapGrowth } from './ageing'
+import { COE_MEAN, learning, markSights, seasonReview, tempoF, TL } from './devproject'
+import { paRange, scoutPa } from './scout'
+import { intakePicks } from './devnews'
 import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildWomensContinentalCup, buildLeague, schedulePreseason, sortTable } from './schedule'
 import { punditPredictions } from './gossip'
 import { CHALLENGES, LEAGUE_DEFS } from './newgame'
@@ -306,6 +309,12 @@ export function devFactor(state: GameState, p: Player): number {
   // out and waste roll), and two seeds drifted -0.02 the same way until the
   // constant put it back.
   let f = 1 + (fac - 1.9) * (p.acad ? 0.14 : 0.07) + (p.acad ? 0.004 : 0) - 0.009
+  // THE CENTRE OF EXCELLENCE KEEPS WORKING AFTER PROMOTION (1.8.2). It used to
+  // count for academy men only, so the day a lad was promoted at 19 the
+  // building that made him stopped mattering. Under-21 seniors still train
+  // with its staff: half the academy slope, centred on the world's mean level
+  // (devproject COE_MEAN) so the world grows exactly as it did.
+  if (club && !p.acad && p.age <= 21) f += ((club.facilities?.academy ?? 0) - COE_MEAN) * 0.07
   if (p.pers === 'Professional' || p.pers === 'Leader') f += 0.10
   else if (p.pers === 'Mercenary' || p.pers === 'Temperamental') f -= 0.12
   // MINUTES MATTER (25D, from the FM blueprint: "a 20-year-old sitting on
@@ -359,7 +368,9 @@ export function agePlayers(state: GameState, rng: Rng) {
     // ...and the gap to his potential sets the pace (ageing.ts gapGrowth, E5):
     // read once, before any of this summer's growth, so a big gap is a fast
     // summer and a man a point off his ceiling barely moves
-    const dev = devFactor(state, p) * gapGrowth(p.ca, p.pa)
+    // and his tempo (1.8.2, devproject.ts): an early developer's growth comes
+    // before 21, a late bloomer's after
+    const dev = devFactor(state, p) * gapGrowth(p.ca, p.pa) * tempoF(learning(state.seed, p).tempo, p.age)
     const scaled = (b: number) => { const r = b * dev; const n = Math.floor(r); return n + (rng() < r - n ? 1 : 0) }
     // the late bloomer's clock runs slow (25D): his fast lane reaches 25 and
     // growth stays alive to 29 - the hidden flag is a pure function of
@@ -860,6 +871,7 @@ function youthIntake(state: GameState, rng: Rng) {
     const spec = state.intakeClass?.length ? state.intakeClass : rollIntakeClass(state, rng)
     const report: string[] = []
     const reportRows: { k: string; [x: string]: string | number }[] = []
+    const seenPa: number[] = []
     spec.forEach((s, i) => {
       const raw = { name: s.name, pos: s.pos, age: s.age, nat: userClub.country, q: s.q, gk: s.gk }
       const a = deriveAttrs(raw, state.seed + state.season * 977 + i)
@@ -883,10 +895,15 @@ function youthIntake(state: GameState, rng: Rng) {
       p.value = playerValue(p.ca, p.age, p.pa, p.pos, undefined, undefined, p.caps)
       state.players[p.id] = p
       userClub.players.push(p.id)
-      report.push(`${'★'.repeat(paStars(s.pa))}${'☆'.repeat(5 - paStars(s.pa))} ${p.name} - ${p.pos}, ${p.age}`)
+      // THE STARS ARE THE COACHES' READ (1.8.2): a seventeen-year-old's
+      // ceiling is an estimate (scout.ts paRange), so the report card grades
+      // the estimate, never the number behind it
+      const seen = paStars(Math.round(scoutPa(state, p)))
+      seenPa.push(scoutPa(state, p))
+      report.push(`${'★'.repeat(seen)}${'☆'.repeat(5 - seen)} ${p.name} - ${p.pos}, ${p.age}`)
       reportRows.push({
         k: 'news.intakeRow',
-        stars: `${'★'.repeat(paStars(s.pa))}${'☆'.repeat(5 - paStars(s.pa))}`,
+        stars: `${'★'.repeat(seen)}${'☆'.repeat(5 - seen)}`,
         name: p.name, pos: p.pos, age: p.age,
       })
       if (s.wonder) {
@@ -899,7 +916,8 @@ function youthIntake(state: GameState, rng: Rng) {
         })
       }
     })
-    const best = Math.max(0, ...spec.map(s => s.pa))
+    const intake = userClub.players.slice(-spec.length).map(id => state.players[id]).filter((x): x is Player => !!x)
+    const best = Math.max(0, ...seenPa)
     const grade = best >= 96 ? 'A' : best >= 90 ? 'B' : best >= 82 ? 'C' : best >= 74 ? 'D' : 'E'
     state.news.push({
       id: state.nextId++, week: 1, season: state.season + 1, type: 'youth', read: false,
@@ -916,6 +934,7 @@ function youthIntake(state: GameState, rng: Rng) {
       k: 'news.intakeDay',
       v: { grade, rows_ll: JSON.stringify(reportRows), verdict_k: `news.intakeDay${grade}` },
     })
+    intakePicks(state, intake)
     state.intakeClass = null
   }
 
@@ -1574,7 +1593,20 @@ export function rebuildSeason(state: GameState) {
   arcYearEnd(state) // the career arc's summer: conduct, the chairman's verdict, eras, rivals (arc.ts)
   identitySeasonEnd(state) // the identity's expectations, met or missed (identity.ts)
   // archive player season -> career
+  // THE SEASON REVIEW (1.8.2, devproject.ts): before the season's numbers are
+  // wiped, every young man's ceiling can move on what the season held, and the
+  // manager's own get a row on their development timeline. The staff's
+  // estimate is read before and after the summer, so the row can say whether
+  // they raised or lowered their sights.
+  const sightsBefore = new Map<number, number>()
+  const bandBefore = new Map<number, string>()
+  const bandText = (r: [number, number] | null) => (r ? (r[0] === r[1] ? `${r[0]}` : `${r[0]}-${r[1]}`) : '')
   for (const p of Object.values(state.players)) {
+    if (p.clubId === state.userClubId && p.age <= 23) {
+      sightsBefore.set(p.id, scoutPa(state, p))
+      bandBefore.set(p.id, bandText(paRange(state, p)))
+    }
+    seasonReview(state, p, p.clubId === state.userClubId && !!activePlan(state, p.id))
     if (p.stats.apps > 0 && p.clubId) {
       p.career.push({ season: state.season, clubId: p.clubId, apps: p.stats.apps, tries: p.stats.tries, points: p.stats.points })
       if (p.career.length > 20) p.career = p.career.slice(-20)
@@ -1629,6 +1661,29 @@ export function rebuildSeason(state: GameState) {
   state.natLineup = null
 
   agePlayers(state, rng)
+  const moved: { k: string; name: string; from: string; to: string }[] = []
+  for (const [id, before] of sightsBefore) {
+    const p = state.players[id]
+    if (!p || p.clubId !== state.userClubId) continue
+    markSights(p, Math.round(before), Math.round(scoutPa(state, p)))
+    const f = p.tl?.[p.tl.length - 1]?.[2] ?? 0
+    // PROJECTION REVISED: the band as it read before the summer and after it,
+    // both through the fog (scout.ts paRange), never the number behind them
+    const from = bandBefore.get(id) ?? '', to = bandText(paRange(state, p))
+    if (!from || !to || from === to) continue
+    if (f & TL.up) moved.push({ k: 'dev.reviewUp', name: p.name, from, to })
+    else if (f & TL.down) moved.push({ k: 'dev.reviewDown', name: p.name, from, to })
+  }
+  // the staff's summer review in one letter, only when they changed their minds
+  if (moved.length && !state.unemployed) {
+    const v = { rows_ll: JSON.stringify(moved.slice(0, 8)) }
+    state.news.push({
+      id: state.nextId++, week: 1, season: state.season + 1, type: 'youth', read: false,
+      subject: tIn('en', 'news.devReviewSubj', v),
+      body: tIn('en', 'news.devReview', v),
+      k: 'news.devReview', v,
+    })
+  }
   handleContracts(state, rng)
   youthIntake(state, rng)
   replenishSquads(state, rng)
