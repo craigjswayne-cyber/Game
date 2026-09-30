@@ -106,7 +106,21 @@ export function youthPaMargin(state: GameState, p: Player): number {
   if (p.clubId !== state.userClubId) return base
   const club = state.clubs[state.userClubId]
   const sight = ((state.staff?.assistant ?? 0) >= 3 ? 1 : 0) + ((club?.facilities?.academy ?? 0) >= 3 ? 1 : 0)
-  return Math.max(1, base - sight)
+  return Math.max(1, base - sight - (secondOpinion(state, p) ? 1 : 0))
+}
+
+/**
+ * A SECOND OPINION (1.8.2, rewarded.ts): a watched spot buys the development
+ * staff the look they would otherwise take a season or a better setup to
+ * reach, which is one more point of sight on this man's ceiling, this season.
+ * It sits under the same floor of one as the assistant and the Centre of
+ * Excellence, so a young man's ceiling is never read as a number early. Your
+ * own players only; it changes what the club reads of him (the band, and the
+ * middle of it the club's own lists sort on), never the man or any AI club.
+ */
+export function secondOpinion(state: GameState, p: Player): boolean {
+  const o = state.rewarded?.opinion
+  return p.clubId === state.userClubId && !!o && typeof o === 'object' && o[p.id] === state.season
 }
 
 /** The scouts' band on his ceiling, or null when they have not read it. */

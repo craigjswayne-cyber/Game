@@ -82,7 +82,10 @@ export function effectiveSkin(chosen: Skin): Skin { return skinLocked(chosen) ? 
 import { getLang, initLang, onLangChange, setLang as applyLang, setManagerGender, setWorld, t, type Lang } from './game/i18n'
 import { adBridgePresent, hasSupporter, tillOpen } from './game/monetise'
 import { applyCharter, applyEstate, applyHeal, applyInjection, applyPinnacle, type InjectTier } from './game/grants'
-import { agencyFile, armAnalyst, physioFavour, townCollection } from './game/rewarded'
+import {
+  agencyFile, armAnalyst, insideWordFavour, physioFavour, secondOpinionFavour, tapeRoomFavour,
+  teamNightFavour, townCollection,
+} from './game/rewarded'
 import { dreamState, dreamsFor } from './game/dream'
 import type { GameState, MatchEvent, Fixture, MgrOrigin } from './game/model'
 import { closeNatTenure, logDecision } from './game/model'
@@ -280,6 +283,11 @@ interface Store {
   rewardAgency: (pid: number) => boolean
   rewardAnalyst: () => void
   rewardTown: () => number | null
+  /** The 1.8.2 favours, on the same terms: only after a completed view. */
+  rewardInside: (pid: number) => boolean
+  rewardOpinion: (pid: number) => boolean
+  rewardTapeRoom: (oppId: string) => boolean
+  rewardTeamNight: (pressId: number) => boolean
   toggleShortlist: (playerId: number) => void
   /** Put a loaded save in play. keepPlace is Continue: resume the bookmarked
    *  screen instead of Home. */
@@ -1624,6 +1632,38 @@ export const useStore = create<Store>((set, get) => ({
     const amt = townCollection(g)
     if (amt != null) { set(s => ({ tick: s.tick + 1 })); void get().persist() }
     return amt
+  },
+
+  rewardInside: (pid) => {
+    const g = get().game
+    if (!g) return false
+    const done = insideWordFavour(g, pid)
+    if (done) { set(s => ({ tick: s.tick + 1 })); void get().persist() }
+    return done
+  },
+
+  rewardOpinion: (pid) => {
+    const g = get().game
+    if (!g) return false
+    const done = secondOpinionFavour(g, pid)
+    if (done) { set(s => ({ tick: s.tick + 1 })); void get().persist() }
+    return done
+  },
+
+  rewardTapeRoom: (oppId) => {
+    const g = get().game
+    if (!g) return false
+    const done = tapeRoomFavour(g, oppId)
+    if (done) { set(s => ({ tick: s.tick + 1 })); void get().persist() }
+    return done
+  },
+
+  rewardTeamNight: (pressId) => {
+    const g = get().game
+    if (!g) return false
+    const done = teamNightFavour(g, pressId)
+    if (done) { set(s => ({ tick: s.tick + 1 })); void get().persist() }
+    return done
   },
 
   answerJobOffer: (accept) => {
