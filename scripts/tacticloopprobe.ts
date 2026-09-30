@@ -278,7 +278,23 @@ console.log('\n5. balance: paired matches, same fixture, same dice')
 const arms = { base: [] as number[], prep: [] as number[], exploit: [] as number[], soundGain: [] as number[], overPrep: [] as number[] }
 const otherGain = new Map<string, number[]>()
 let winsBase = 0, winsPlan = 0
-for (const [club, seed] of [['leicester', 51], ['northampton', 52], ['bath', 53]] as const) {
+// TWELVE WORLDS, NOT THREE (1.8.2 QA). Three worlds gave about thirty sound
+// reads, and one match's margin moves by about 19 points either way, so the
+// sound-read mean carried a standard error of about 3.4 points against an
+// effect of four or five: a coin that came down wrong roughly one time in
+// eight. It did on 43edba4 (-1.64 over 28) and on the playbook head (-0.80
+// over 30) while the effect itself had grown. Measured over 120 worlds
+// (worlds 51 to 170, the same three clubs in turn, the same dice as here):
+// before the depth merge (8a93ecb) a sound read's plan was worth +3.98 +/- 0.57
+// over 1074 fixtures, with 7 of 40 three-world blocks at or below zero; on the
+// 1.8.2 head (b1b03f8) +5.51 +/- 0.57 over 1089, 5 of 40 blocks at or below
+// zero, and the first block, which was this probe, -0.80. A wrong read's plan
+// is worth +0.93 +/- 0.80 there, so the reads the probe calls sound are the
+// ones that pay. Twelve worlds give about 110 sound reads, a standard error
+// near 1.8, and the claim is then about three of those clear of zero (on the
+// head these twelve read +3.75 over 114).
+const WORLDS = Array.from({ length: 12 }, (_, i) => [(['leicester', 'northampton', 'bath'] as const)[i % 3], 51 + i] as const)
+for (const [club, seed] of WORLDS) {
   const w = newGame(club, 'Balance', seed)
   setUp(w, 5, 3)
   let played = 0
