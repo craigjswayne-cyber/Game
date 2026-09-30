@@ -19,7 +19,7 @@ import { AWARD_EVERY, managerOfMonth, runLine, runVars } from './awards'
 import { boardMemo } from './boardmemo'
 import { terraceWeek } from './terraces'
 import { upkeepWeek } from './upkeep'
-import {absWeek, addGrudge, boardObjective, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, buildWeeks, finalVenue, fixtureDayOff, fmtMoney, leagueTier, LEDGER_WEEKS, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, RELEGATES, SEASON_WEEKS, seasonLabel, squadTrust, stamp100, GROUND_TIERS, groundLevel, groundBuildWeeks, unbeatenRun, weeklyCentral, mgrWinWeight, addWeeks100 } from './model'
+import {absWeek, addGrudge, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, buildWeeks, finalVenue, fixtureDayOff, fmtMoney, leagueTier, LEDGER_WEEKS, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, RELEGATES, SEASON_WEEKS, seasonLabel, squadTrust, stamp100, GROUND_TIERS, groundLevel, groundBuildWeeks, unbeatenRun, weeklyCentral, mgrWinWeight, addWeeks100 } from './model'
 import { simMatch, autoSelect, pickTrainingInjury, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { BARRAGE_WEEK, windowSpan } from './calendar'
 import { emptyRow, leaguePos, sortTable, snIdFor, snWeeksFor, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS, W_AUTUMN_WEEKS, W_SIX_NATIONS_WEEKS, W_PAC4_WEEKS, W_SUMMER_TEST_WEEKS } from './schedule'
@@ -53,6 +53,8 @@ import { expireLoans, loanOutBoost, loanTargets } from './loans'
 import { FOCUS_MAX_AGE, focusIds } from './development'
 import { refreshVacancies, sackManager } from './jobs'
 import { historyAfterMatch, historyPreview, historyWeight } from './history'
+import { arcAfterMatch, arcWeek } from './arc'
+import { chairSwing, demandedFinish } from './chairman'
 import { playAcademyWeek } from './academy'
 import { canBeMentored, mentorGraduations, mentorReports, mentorWeek } from './mentoring'
 import { bondsWeek, flushBondNews } from './bonds'
@@ -1617,6 +1619,7 @@ export function afterClubMatch(state: GameState, fx: Fixture) {
   if (!club || fx.compId === 'fr') return
   memoryAfterMatch(state, fx) // a man you let go comes back to hurt you (memory.ts)
   historyAfterMatch(state, fx) // the club's memory: tenure, legends, records (history.ts)
+  arcAfterMatch(state, fx) // the career arc: the coach opposite, the era's book (arc.ts), no rng
   const isHome = fx.homeId === club.id
   const oppId = isHome ? fx.awayId : fx.homeId
   const opp = state.clubs[oppId]
@@ -1914,7 +1917,10 @@ function boardReaction(state: GameState, fx: Fixture, delegated = false) {
   // the existing diff-term asymmetry intact: diff already makes an upset WIN
   // worth little to a giant and an upset LOSS cost it dearly; patienceF just
   // turns the whole boardroom's volume up or down around that.
-  const patienceF = boardPatience(club.rep)
+  // and THE MAN IN THE CHAIR (chairman.ts): a stability chairman is a shade
+  // calmer about a result, an ambitious one a shade louder, and a newcomer's
+  // board is in a hurry. Hidden, and a tenth either way at most.
+  const patienceF = boardPatience(club.rep) * chairSwing(state)
   if (us > them) club.boardConfidence = clamp(club.boardConfidence + mag * derbyF * ownerF * stanceF * patienceF, 0, 100)
   else if (us < them) club.boardConfidence = clamp(club.boardConfidence - mag * derbyF * ownerF * stanceF * patienceF, 0, 100)
 
@@ -2382,7 +2388,8 @@ function boardReadsTheTable(state: GameState, lean = 1) {
   const posNow = leaguePos(comp.table, club.id)
   if (posNow <= 0) return
   const tableLen = comp.table.length
-  const objPos = Math.min(boardObjective(club.rep, tableLen).pos, tableLen)
+  // the aim for the kind of job this is (chairman.ts), not stature alone
+  const objPos = Math.min(demandedFinish(state, club.id, tableLen).pos, tableLen)
   const devFrac = (posNow - objPos) / Math.max(1, tableLen - 1)
   const patience = boardPatience(club.rep)
   const floor = clamp(30 - patience * 14, 2, 26)
@@ -4522,6 +4529,7 @@ If you go, your assistant takes your national side for the duration. Nobody prep
   flushMemoryNews(state) // memory.ts stories held through the settle take their ids now
   flushBondNews(state) // and the dressing room's (bonds.ts)
   flushIdentityNews(state) // and identity.ts's, the same way (heldnews.ts)
+  arcWeek(state) // the career arc: rival coaches, ambitions, and its held stories (arc.ts)
 
   // (derby build-up now lives in the pre-advance block above, with the
   // all-time ledger - the old duplicate beat here was removed)
