@@ -1481,7 +1481,9 @@ function NationPreview({ fxId }: { fxId: number }) {
  */
 const SPEEDS = [
   { label: 'matchday.spdSlow', ms: 1600, name: 'matchday.spdSlowName' },
-  { label: 'matchday.spdNormal', ms: 800, name: 'matchday.spdNormalName' },
+  // 640, not 800 (owner, round 2: normal "a bit" quicker, "so it's not crazy
+  // fast"). A fifth off the beat; Slow and Fast keep their absolute pace.
+  { label: 'matchday.spdNormal', ms: 640, name: 'matchday.spdNormalName' },
   { label: 'matchday.spdFast', ms: 400, name: 'matchday.spdFastName' },
 ]
 
@@ -1505,7 +1507,7 @@ function Live() {
   // fast and slow optional"). It opened on Slow, the anchor the ladder above
   // was measured from, which meant every first match of every career ran at
   // 1,600ms a line before anybody found the ⚙. Normal is the 800ms middle
-  // rung - followable without stopping - and both neighbours are one tap away.
+  // rung (640ms since round 2) and both neighbours are one tap away.
   const [speedIdx, setSpeedIdx] = useState(1)
   const [sound, setSound] = useState(soundOn())
   const [drawer, setDrawer] = useState(false)
@@ -1626,7 +1628,7 @@ function Live() {
   // A SCRUM, A LINEOUT OR A CARD GETS A LITTLE LONGER (owner, 26 Sep 2026:
   // "the scrum pushes, the jumper is lifted", "a sin-binned player walks off").
   // The push, the lift and the walk to the touchline need about 1.2s to read;
-  // at Normal a beat is 800ms. Slow is already long enough and is left alone,
+  // at Normal a beat is 640ms. Slow is already long enough and is left alone,
   // Fast is left alone, and so is a rout's pace, since this is no longer than
   // the Slow beat the manager could have chosen anyway.
   const momentHold = !tmoHold && playing && speedIdx < 2 && last
@@ -1999,7 +2001,7 @@ function Live() {
           {/* the touchline at a glance (1.8.0): replacements left and how you
               are kicking, the two things a manager changes mid-match */}
           <div className="match-status">
-            <span>⇄ {t('mstatus.subs', { left: MAX_SUBS - ctx.subsUsed, max: MAX_SUBS })}</span>
+            <span>⇄ {t('mstatus.subs', { left: usableChanges(game, ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away, ctx.subsUsed), max: MAX_SUBS })}</span>
             <span>{t(KICK_STYLE_LABEL[game.clubs[ctx.userSideId ?? '']?.tactic.kickStyle ?? 'balanced'] ?? 'tacticsScreen.kickBalanced')}</span>
           </div>
           {last && (
@@ -2017,7 +2019,7 @@ function Live() {
           happens"). A tablet keeps its stats beside the feed below. */}
       {!panelActive && clip && (
         <HighlightClip key={clip.at} spec={clip.spec} paused={!playing}
-          speed={[1.25, 1, 0.8][speedIdx] ?? 1}
+          speed={[1.25, 0.82, 0.8][speedIdx] ?? 1}
           onReveal={revealTo}
           onDone={() => setClip(null)} />
       )}
@@ -2835,7 +2837,7 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
       {/* One button into the match-day squad, where several changes can be made
           in one visit. This used to be two dropdowns and a Make button: one sub
           per trip, no shirt numbers, no sight of who was carrying a knock. */}
-      <div className="fact-label" style={{ marginTop: 12 }}>{t('matchday.replacementsLeft', { left: MAX_SUBS - ctx.subsUsed, max: MAX_SUBS })}</div>
+      <div className="fact-label" style={{ marginTop: 12 }}>{t('matchday.replacementsLeft', { left: usableChanges(game, mine, ctx.subsUsed), max: MAX_SUBS })}</div>
       <button className="btn ghost block" style={{ marginTop: 6 }} disabled={ctx.subsUsed >= MAX_SUBS}
         onClick={() => setSquadOpen(true)}>
         {t(ctx.subsUsed >= MAX_SUBS ? 'matchday.allChangesUsed' : 'matchday.makeReplacements')}
@@ -2847,6 +2849,16 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
       </button>
     </div>
   )
+}
+
+/** Replacements the user can still make: the law's count, capped by the fit men
+ *  left on the bench. The engine keeps its own count; this is what we show. */
+function usableChanges(game: { players: Record<number, Player> }, side: SideCtx, subsUsed: number): number {
+  const fit = side.lineup.slice(15).filter(id => {
+    const p = id != null ? game.players[id] : null
+    return !!p && !p.injury && !side.onPitch.has(p.id) && !side.ratings.has(p.id)
+  }).length
+  return Math.max(0, Math.min(MAX_SUBS - subsUsed, fit))
 }
 
 /** The match-day squad, mid-match: the XV on the left, the bench on the right,
@@ -2896,7 +2908,8 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
 
   const ctx = live.ctx
   const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
-  const left = MAX_SUBS - ctx.subsUsed
+  // the law allows MAX_SUBS; the bench may hold fewer fit men than that
+  const lawLeft = MAX_SUBS - ctx.subsUsed
 
   // The XV in shirt order, because that is how a team sheet reads and how the
   // man you are looking for is found.
@@ -2908,6 +2921,10 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
   const bench = mine.lineup.slice(15)
     .map(id => (id != null ? game.players[id] : null))
     .filter((p): p is Player => !!p && !p.injury && !mine.onPitch.has(p.id) && !mine.ratings.has(p.id))
+  // CHANGES YOU CAN ACTUALLY MAKE (owner, round 2): the header said "6 changes
+  // left" with four fit men on the bench after injuries. The number shown and the
+  // number allowed are both the smaller of the law's count and the usable bench.
+  const left = Math.min(lawLeft, bench.length)
 
   const off = offId != null ? game.players[offId] : null
   // Natural cover first, same as the engine's own bench discipline, so the
@@ -2980,7 +2997,7 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
               const canFree = freeLeft && p.id === freeCoverId
               return (
                 <button key={p.id} className={`sheet-row ${offId === p.id ? 'armed' : ''}`}
-                  disabled={!on || (left <= 0 && !canFree)}
+                  disabled={!on || (lawLeft <= 0 && !canFree)}
                   onClick={() => {
                     // Re-tapping the man the assistant sent on means "he stays".
                     // That is a decision, so it settles a forced stop - and it has

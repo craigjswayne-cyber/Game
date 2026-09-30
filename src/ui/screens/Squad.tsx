@@ -61,14 +61,6 @@ export default function Squad() {
   const [desc, setDesc] = useState(false)
   const [group, setGroup] = useState<'all' | 'aca'>('all')
   const [avail, setAvail] = useState<'any' | 'fit' | 'out'>('any')
-  /** Game Time opens on the men who are out of line rather than on all 42.
-   *
-   *  The page's job is "who is unhappy about minutes", and the answer is
-   *  usually three or four names. Listing the whole squad buried them four
-   *  screenfuls deep (user: "game time feels more packed then other pages in
-   *  squad. make it clearer and all on one page - not scroll"), so the default
-   *  view is the shortlist and Everyone is one tap away. */
-  const [gtAll, setGtAll] = useState(false)
 
   const club = game.clubs[game.userClubId]
   const stars = useMemo(() => starPlayerIds(game, club.id), [game, club.id, game.week])
@@ -85,12 +77,6 @@ export default function Squad() {
     const out = (p: Player) => !!p.injury || p.bans > 0 || !!p.natSquad || !!p.onLoan
     if (avail === 'fit') ps = ps.filter(p => !out(p))
     if (avail === 'out') ps = ps.filter(out)
-    if (view === 'gametime' && !gtAll) {
-      ps = ps.filter(p => {
-        const row = ledgerRow(game, club, p, played)
-        return row.gap <= -2 || row.mood === 'restless' || row.mood === 'unhappy'
-      })
-    }
     const dir = desc ? -1 : 1
     const posIdx = (p: Player) => POS_ORDER.indexOf(p.pos)
     const avr = (p: Player) => (p.stats.apps ? p.stats.ratingSum / p.stats.apps : 0)
@@ -114,7 +100,7 @@ export default function Squad() {
       }
     })
     return ps
-  }, [club.players, game.players, sort, desc, game.week, club.tactic.lineup, group, avail, view, gtAll, game, club, played])
+  }, [club.players, game.players, sort, desc, game.week, club.tactic.lineup, group, avail, view, game, club, played])
 
   const Th = ({ k, children, right }: { k: SortKey; children: React.ReactNode; right?: boolean }) => (
     <th className={`th-sort${sort === k ? ' active' : ''}${right ? ' num' : ''}`}
@@ -148,7 +134,8 @@ export default function Squad() {
             itself - the pane from screens/Selection.tsx - and the old
             overview table is gone: everything it showed lives on the pane or
             on General Info. */}
-        {(['selection', 'depth', 'general', 'stats', 'gametime', 'contracts'] as View[]).map(v => (
+        {/* General Info before Depth (owner, round 2) */}
+        {(['selection', 'general', 'depth', 'stats', 'gametime', 'contracts'] as View[]).map(v => (
           <button key={v} className={view === v ? 'active' : ''} onClick={() => setView(v)}>
             {t(v === 'selection' ? 'squad.tabSelection' : v === 'depth' ? 'squad.tabDepth' : v === 'general' ? 'squad.tabGeneral'
               : v === 'stats' ? 'squad.tabStats' : v === 'gametime' ? 'squad.tabGameTime' : 'squad.tabContracts')}
@@ -191,10 +178,8 @@ export default function Squad() {
             style={avail === k ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
             onClick={() => setAvail(k)}>{label.includes('.') ? t(label) : <Glyph name={label} />}</button>
         ))}
-        {view === 'gametime' && (
-          <button className="preset-chip" style={gtAll ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
-            onClick={() => setGtAll(!gtAll)}>{t(gtAll ? 'squad.everyoneShown' : 'squad.needsAWord')}</button>
-        )}
+        {/* The "Needs a word" shortlist chip is gone (owner, round 2): the ledger
+            lists the whole squad and the Mood column says who is unhappy. */}
       </div>}
       </StickyControls>
 
@@ -223,7 +208,11 @@ export default function Squad() {
             to "MO", and a value carrying its trend arrow ran off the glass */}
         {view === 'general' && <colgroup><col /><col width="36" /><col width="32" /><col width="28" /><col width="34" /><col width="42" /><col width="64" /></colgroup>}
         {view === 'stats' && <colgroup><col /><col width="34" /><col width="30" /><col width="38" /><col width="32" /><col width="32" /><col width="44" /></colgroup>}
-        {view === 'gametime' && <colgroup><col /><col width="104" /><col width="30" /><col width="32" /><col width="82" /></colgroup>}
+        {/* Share, not pixels, for the two wide columns (owner, round 2: "NAM HE
+            WAS TOLD"). 248px of fixed columns left the name 52px once the page
+            was zoomed or the phone was narrow, and the headings ran into each
+            other. Now the name keeps about a third of whatever width there is. */}
+        {view === 'gametime' && <colgroup><col /><col style={{ width: '29%' }} /><col width="30" /><col width="34" /><col style={{ width: '21%' }} /></colgroup>}
         {view === 'contracts' && <colgroup><col /><col width="36" /><col width="30" /><col width="56" /><col width="44" /><col width="46" /></colgroup>}
         <thead>
           {view === 'general' && (
@@ -238,7 +227,7 @@ export default function Squad() {
             </tr>
           )}
           {view === 'gametime' && (
-            <tr>
+            <tr className="gt-head">
               <Th k="name">{t('squad.colName')}</Th>
               <th>{t('squad.colToldHim')}</th>
               <Th k="apps" right>{t('squad.colAp')}</Th>
@@ -274,7 +263,7 @@ export default function Squad() {
         <tbody>
           {players.length === 0 && (
             <tr><td colSpan={8} className="muted" style={{ padding: 12, whiteSpace: 'normal' }}>
-              {t(view === 'gametime' && !gtAll ? 'squad.emptyGameTime' : 'squad.emptyFiltered')}
+              {t('squad.emptyFiltered')}
             </td></tr>
           )}
           {players.map(p => {
@@ -386,8 +375,8 @@ export default function Squad() {
 
 /**
  * THE DEPTH CHART (owner, v1.2.7: "nothing shows at a glance that you are one
- * hooker deep before a cup run"). One row per position, everyone who can play
- * it - his own position or a listed alternative - best first, with the men who
+ * hooker deep before a cup run"). One row per position, the men whose own
+ * position it is, best first, with the men who
  * cannot play this week greyed and the reason on them. A position with fewer
  * than two fit bodies is flagged; the front row is flagged under three, because
  * the laws want a specialist replacement for each of them.
@@ -400,10 +389,16 @@ function DepthPane() {
   return (
     <div className="depth-chart">
       {POS_ORDER.map(pos => {
-        const men = pool.filter(p => p.pos === pos || p.alt.includes(pos)).sort((a, b) => b.ca - a.ca)
+        // SPECIALISTS ONLY (owner, round 2: remove the italic names). The men
+        // who cover from another position were listed here in italics; they
+        // are gone and the count reads the men shown. The warning still counts
+        // them, because a hooker who covers loosehead is real front-row cover
+        // and the chart should not cry wolf over a position that is covered.
+        const men = pool.filter(p => p.pos === pos).sort((a, b) => b.ca - a.ca)
         const fit = men.filter(p => !why(p)).length
+        const canPlay = pool.filter(p => (p.pos === pos || p.alt.includes(pos)) && !why(p)).length
         const need = pos === 'LP' || pos === 'HK' || pos === 'TP' ? 3 : 2
-        const thin = fit < need
+        const thin = canPlay < need
         return (
           <div key={pos} className={`depth-row${thin ? ' thin' : ''}`}>
             <div className="depth-pos">
@@ -415,8 +410,8 @@ function DepthPane() {
               {men.map(p => {
                 const out = why(p)
                 return (
-                  <button key={p.id} className={`depth-man${out ? ' out' : ''}${p.pos !== pos ? ' cover' : ''}`}
-                    title={out ?? (p.pos !== pos ? t('squad.depthCovers', { pos: posName(p.pos) }) : undefined)}
+                  <button key={p.id} className={`depth-man${out ? ' out' : ''}`}
+                    title={out ?? undefined}
                     onClick={() => useStore.getState().go('player', p.id)}>
                     <span className="depth-name">{p.name}</span>
                     <span className="depth-ca">{p.ca}</span>
