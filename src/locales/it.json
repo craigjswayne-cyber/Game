@@ -215,6 +215,67 @@
   "nothing": "",
   "confirmSell": "Conferma la vendita"
  },
+ "desk": {
+  "title": "Oggi",
+  "decide": "In attesa di una tua decisione",
+  "clear": "Nulla ti aspetta",
+  "dAnnual": "Il bilancio della stagione ti aspetta",
+  "dOffer": "{club} offre {fee} per {player}",
+  "dPress": "{outlet} aspetta una risposta",
+  "d_office": "{player} bussa alla tua porta",
+  "d_officeNone": "Qualcuno bussa alla tua porta",
+  "d_split": "Spogliatoio: {player}",
+  "d_renew": "Contratto: {player}",
+  "d_role": "Garanzie: {player}",
+  "d_injury": "Scelta medica: {player}",
+  "d_acad": "Settore giovanile: {player}",
+  "dBoard": {
+   "one": "Il consiglio: una decisione",
+   "other": "Il consiglio: {n} decisioni"
+  },
+  "dSquad": {
+   "one": "Manca {n} nome per la rosa",
+   "other": "Mancano {n} nomi per la rosa"
+  },
+  "dMail": {
+   "one": "{n} notizia da leggere",
+   "other": "{n} notizie da leggere"
+  },
+  "dev": "Crescita",
+  "devBreak": "{player}: salto di qualità",
+  "devStall": "{player}: fermo",
+  "devFlying": "{player}: un mese d'oro",
+  "money": "{bal}",
+  "moneyAdmin": "Rischio amministrazione controllata",
+  "moneyWagesFull": "Monte ingaggi al completo",
+  "moneyRoom": "Margine ingaggi {room}",
+  "tactics": "{atk} · {def}",
+  "priority": "Priorità: {comp} · {rot}",
+  "room": "Spogliatoio",
+  "roomFine": "{word}",
+  "roomLow": {
+   "one": "{word} · {n} con il morale basso",
+   "other": "{word} · {n} con il morale basso"
+  },
+  "seasonAim": "Obiettivo: {aim}",
+  "season": "Stagione",
+  "seasonPos": "{pos} · {pts} pt",
+  "seasonOn": "in linea con l'obiettivo",
+  "seasonShort": {
+   "one": "a {n} posto dall'obiettivo",
+   "other": "a {n} posti dall'obiettivo"
+  },
+  "objectives": "obiettivi {met}/{total}",
+  "thread": "In sospeso",
+  "tFormer": "{player}, un tempo tuo, gioca per {club}",
+  "tRival": "{coach} sull'altra panchina: {w}-{d}-{l}",
+  "tPromise_plans": "Hai promesso a {player} un futuro qui",
+  "tPromise_minutes": "Hai promesso minuti a {player}",
+  "tPromise_deal": "Hai promesso un nuovo contratto a {player}",
+  "tRushed": "{player} ha giocato con un acciacco",
+  "tProjUp": "Lo staff alza le aspettative su {player}",
+  "tProjDown": "Lo staff abbassa le aspettative su {player}"
+ },
  "home": {
   "jobCentre": "Il Centro per l'impiego",
   "betweenJobs": {
@@ -239,7 +300,6 @@
   "atHome": " · In casa",
   "atAway": " · In trasferta",
   "atNeutral": " · Campo neutro",
-  "tapSetTeam": "Tocca per schierare la squadra, poi premi Continua per giocare.",
   "noMatchWeek": "Nessuna partita questa settimana - Continua porta al turno successivo.",
   "headCoach": "CT",
   "worldNo": " · n. {rank} al mondo",
@@ -257,21 +317,11 @@
    "one": " fra {n} sett.",
    "other": " fra {n} sett."
   },
-  "objectives": "Obiettivi stagionali · {met}/{total} in linea",
-  "onCourse": " (in linea)",
   "annualOut": "È uscito l'Almanacco",
   "annualSub": "La scorsa stagione in una pagina: campionato, coppe, stelle e conti. Tocca per leggere.",
-  "pressWord": "La stampa ti cerca",
-  "pressSub": {
-   "one": "{n} domanda attende risposta - le tue parole muovono il morale.",
-   "other": "{n} domande attendono risposta - le tue parole muovono il morale."
-  },
-  "boardWord": "Il consiglio aspetta una decisione",
-  "boardSub": {"one": "{n} decisione su soldi o obiettivi, in Finanze.", "other": "{n} decisioni su soldi o obiettivi, in Finanze."},
   "blankWeekend": "Weekend libero",
   "blankSub": "Nessun impegno questa settimana. Un'amichevole dà ritmo e intesa alla rosa - ma un infortunio in una gara che non conta brucia il doppio.",
   "friendlyChip": "{club} (rep {rep})",
-  "wLeague": "Campionato",
   "wForm": "Forma",
   "wBoard": "Società",
   "wFans": "Tifosi",
@@ -291,17 +341,9 @@
   "dashFinances": "Finanze",
   "dashMedical": "Centro medico",
   "rivalWatch": "Occhio alle rivali",
-  "state": "Stato",
-  "balance": "Saldo",
-  "transferBudget": "Budget mercato",
-  "wageRoom": "Margine ingaggi",
   "inTheRed": "In rosso",
   "cleanBill": "Infermeria vuota",
   "andMore": "+{n} altri",
-  "unread": {
-   "one": "{n} messaggio da leggere",
-   "other": "{n} messaggi da leggere"
-  },
   "assistantMatch": "La partita del vice",
   "assistantTakesIt": "Sabato sei con la tua nazionale - questa la guida il tuo vice, poi ti fa rapporto.",
   "squadIn": {

@@ -216,6 +216,67 @@
     "nothing": "",
     "confirmSell": "Confirmer la vente"
   },
+  "desk": {
+    "title": "Aujourd'hui",
+    "decide": "À décider",
+    "clear": "Rien ne vous attend",
+    "dAnnual": "Le bilan de la saison vous attend",
+    "dOffer": "{club} offre {fee} pour {player}",
+    "dPress": "{outlet} attend une réponse",
+    "d_office": "{player} frappe à votre porte",
+    "d_officeNone": "On frappe à votre porte",
+    "d_split": "Vestiaire : {player}",
+    "d_renew": "Contrat : {player}",
+    "d_role": "Garanties : {player}",
+    "d_injury": "Décision médicale : {player}",
+    "d_acad": "Centre de formation : {player}",
+    "dBoard": {
+      "one": "Le conseil : une décision",
+      "other": "Le conseil : {n} décisions"
+    },
+    "dSquad": {
+      "one": "Encore {n} nom pour le groupe",
+      "other": "Encore {n} noms pour le groupe"
+    },
+    "dMail": {
+      "one": "{n} article à lire",
+      "other": "{n} articles à lire"
+    },
+    "dev": "Progression",
+    "devBreak": "{player} : un cap franchi",
+    "devStall": "{player} : au point mort",
+    "devFlying": "{player} : un mois en or",
+    "money": "{bal}",
+    "moneyAdmin": "Menace de redressement",
+    "moneyWagesFull": "Masse salariale pleine",
+    "moneyRoom": "Marge salariale {room}",
+    "tactics": "{atk} · {def}",
+    "priority": "Priorité : {comp} · {rot}",
+    "room": "Vestiaire",
+    "roomFine": "{word}",
+    "roomLow": {
+      "one": "{word} · {n} au moral bas",
+      "other": "{word} · {n} au moral bas"
+    },
+    "seasonAim": "Objectif : {aim}",
+    "season": "Saison",
+    "seasonPos": "{pos} · {pts} pts",
+    "seasonOn": "dans l'objectif",
+    "seasonShort": {
+      "one": "à {n} place de l'objectif",
+      "other": "à {n} places de l'objectif"
+    },
+    "objectives": "objectifs {met}/{total}",
+    "thread": "En suspens",
+    "tFormer": "{player}, passé par chez vous, joue pour {club}",
+    "tRival": "{coach} sur l'autre banc : {w}-{d}-{l}",
+    "tPromise_plans": "Vous avez promis un avenir ici à {player}",
+    "tPromise_minutes": "Vous avez promis du temps de jeu à {player}",
+    "tPromise_deal": "Vous avez promis un nouveau contrat à {player}",
+    "tRushed": "{player} a joué malgré un pépin",
+    "tProjUp": "Le staff voit plus haut pour {player}",
+    "tProjDown": "Le staff revoit {player} à la baisse"
+  },
   "home": {
     "jobCentre": "La bourse aux postes",
     "betweenJobs": {
@@ -240,7 +301,6 @@
     "atHome": " · Domicile",
     "atAway": " · Extérieur",
     "atNeutral": " · Terrain neutre",
-    "tapSetTeam": "Touchez pour composer votre équipe, puis appuyez sur Continuer pour jouer.",
     "noMatchWeek": "Pas de match cette semaine - Continuer passe à la journée suivante.",
     "assistantMatch": "Match de l'adjoint",
     "assistantTakesIt": "Vous êtes avec votre pays ce samedi - votre adjoint s'occupe de celui-ci et vous fait son rapport.",
@@ -260,21 +320,11 @@
       "one": " dans {n} sem.",
       "other": " dans {n} sem."
     },
-    "objectives": "Objectifs de la saison · {met}/{total} en bonne voie",
-    "onCourse": " (en bonne voie)",
     "annualOut": "L'annuaire est sorti",
     "annualSub": "La saison passée sur une page - le championnat, les coupes, les vedettes et l'argent. Touchez pour lire.",
-    "pressWord": "La presse veut vous parler",
-    "pressSub": {
-      "one": "{n} question attend votre réponse - vos réponses jouent sur le moral.",
-      "other": "{n} questions attendent votre réponse - vos réponses jouent sur le moral."
-    },
-    "boardWord": "Le conseil attend une décision",
-    "boardSub": {"one": "{n} décision sur l’argent ou les objectifs, dans Finances.", "other": "{n} décisions sur l’argent ou les objectifs, dans Finances."},
     "blankWeekend": "Week-end sans match",
     "blankSub": "Pas de match cette semaine. Un amical fait gagner du rythme et des automatismes - mais une blessure dans un match pour rien fait deux fois plus mal.",
     "friendlyChip": "{club} (rép. {rep})",
-    "wLeague": "Championnat",
     "wForm": "Forme",
     "wBoard": "Conseil",
     "wFans": "Public",
@@ -294,17 +344,9 @@
     "dashFinances": "Finances",
     "dashMedical": "Infirmerie",
     "rivalWatch": "Le rival",
-    "state": "Situation",
-    "balance": "Solde",
-    "transferBudget": "Budget transferts",
-    "wageRoom": "Marge salariale",
     "inTheRed": "Dans le rouge",
     "cleanBill": "Aucun blessé",
     "andMore": "+{n} de plus",
-    "unread": {
-      "one": "{n} message non lu",
-      "other": "{n} messages non lus"
-    },
     "squadIn": {
       "one": "Sélection annoncée dans {n} jour.",
       "other": "Sélection annoncée dans {n} jours."

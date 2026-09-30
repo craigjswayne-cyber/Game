@@ -216,6 +216,67 @@
   "nothing": "",
   "confirmSell": "Confirmar venta"
  },
+ "desk": {
+  "title": "Hoy",
+  "decide": "Pendiente de tu decisión",
+  "clear": "Nada te espera",
+  "dAnnual": "El balance de la temporada te espera",
+  "dOffer": "{club} ofrece {fee} por {player}",
+  "dPress": "{outlet} espera una respuesta",
+  "d_office": "{player} llama a tu puerta",
+  "d_officeNone": "Alguien llama a tu puerta",
+  "d_split": "Vestuario: {player}",
+  "d_renew": "Contrato: {player}",
+  "d_role": "Garantías: {player}",
+  "d_injury": "Decisión médica: {player}",
+  "d_acad": "Cantera: {player}",
+  "dBoard": {
+   "one": "La junta: una decisión",
+   "other": "La junta: {n} decisiones"
+  },
+  "dSquad": {
+   "one": "Faltan {n} nombre para la convocatoria",
+   "other": "Faltan {n} nombres para la convocatoria"
+  },
+  "dMail": {
+   "one": "{n} noticia por leer",
+   "other": "{n} noticias por leer"
+  },
+  "dev": "Progresión",
+  "devBreak": "{player}: ha dado el salto",
+  "devStall": "{player}: estancado",
+  "devFlying": "{player}: un mes estelar",
+  "money": "{bal}",
+  "moneyAdmin": "Aviso de administración concursal",
+  "moneyWagesFull": "Presupuesto salarial agotado",
+  "moneyRoom": "Margen salarial {room}",
+  "tactics": "{atk} · {def}",
+  "priority": "Prioridad: {comp} · {rot}",
+  "room": "Vestuario",
+  "roomFine": "{word}",
+  "roomLow": {
+   "one": "{word} · {n} con la moral baja",
+   "other": "{word} · {n} con la moral baja"
+  },
+  "seasonAim": "Objetivo: {aim}",
+  "season": "Temporada",
+  "seasonPos": "{pos} · {pts} pts",
+  "seasonOn": "en línea con el objetivo",
+  "seasonShort": {
+   "one": "a {n} puesto del objetivo",
+   "other": "a {n} puestos del objetivo"
+  },
+  "objectives": "objetivos {met}/{total}",
+  "thread": "Pendiente",
+  "tFormer": "{player}, que fue tuyo, juega con {club}",
+  "tRival": "{coach} en el otro banquillo: {w}-{d}-{l}",
+  "tPromise_plans": "Prometiste a {player} un futuro aquí",
+  "tPromise_minutes": "Prometiste minutos a {player}",
+  "tPromise_deal": "Prometiste un contrato nuevo a {player}",
+  "tRushed": "{player} jugó tocado",
+  "tProjUp": "El cuerpo técnico eleva sus expectativas con {player}",
+  "tProjDown": "El cuerpo técnico rebaja sus expectativas con {player}"
+ },
  "home": {
   "jobCentre": "La oficina de empleo",
   "betweenJobs": {
@@ -240,7 +301,6 @@
   "atHome": " · En casa",
   "atAway": " · Fuera",
   "atNeutral": " · Campo neutral",
-  "tapSetTeam": "Toca para hacer tu alineación y luego pulsa Continuar para jugar.",
   "noMatchWeek": "No hay partido esta semana: Continuar avanza a la siguiente jornada.",
   "headCoach": "Seleccionador",
   "worldNo": " · n.º {rank} del mundo",
@@ -258,21 +318,11 @@
    "one": " en {n} sem",
    "other": " en {n} sem"
   },
-  "objectives": "Objetivos de la temporada · {met}/{total} en buen camino",
-  "onCourse": " (por buen camino)",
   "annualOut": "Ha salido el Anuario",
   "annualSub": "La temporada pasada en una página: la liga, las copas, las estrellas y el dinero. Toca para leer.",
-  "pressWord": "La prensa quiere unas palabras",
-  "pressSub": {
-   "one": "{n} pregunta espera tu respuesta: tus palabras mueven la moral.",
-   "other": "{n} preguntas esperan tu respuesta: tus palabras mueven la moral."
-  },
-  "boardWord": "La junta necesita una decisión",
-  "boardSub": {"one": "{n} decisión sobre dinero u objetivos, en Finanzas.", "other": "{n} decisiones sobre dinero u objetivos, en Finanzas."},
   "blankWeekend": "Fin de semana libre",
   "blankSub": "No hay partido esta semana. Un amistoso da ritmo y rodaje a la plantilla, pero una lesión en un partido intrascendente duele el doble.",
   "friendlyChip": "{club} (rep. {rep})",
-  "wLeague": "Liga",
   "wForm": "Forma",
   "wBoard": "Directiva",
   "wFans": "Afición",
@@ -292,17 +342,9 @@
   "dashFinances": "Finanzas",
   "dashMedical": "Enfermería",
   "rivalWatch": "Ojo al rival",
-  "state": "Estado",
-  "balance": "Saldo",
-  "transferBudget": "Presupuesto de fichajes",
-  "wageRoom": "Margen salarial",
   "inTheRed": "En números rojos",
   "cleanBill": "Parte médico limpio",
   "andMore": "+{n} más",
-  "unread": {
-   "one": "{n} mensaje sin leer",
-   "other": "{n} mensajes sin leer"
-  },
   "assistantMatch": "Partido del asistente",
   "assistantTakesIt": "Este sábado estás con tu selección: tu asistente se encarga de este y luego te informa.",
   "squadIn": {
