@@ -212,6 +212,67 @@
   "nothing": "",
   "confirmSell": "Bevestig verkoop"
  },
+ "desk": {
+  "title": "Vandag",
+  "decide": "Wag op jou besluit",
+  "clear": "Niks wag op jou nie",
+  "dAnnual": "Die seisoensoorsig wag",
+  "dOffer": "{club} bied {fee} vir {player}",
+  "dPress": "{outlet} wil 'n antwoord hê",
+  "d_office": "{player} klop aan jou deur",
+  "d_officeNone": "Iemand klop aan jou deur",
+  "d_split": "Kleedkamer: {player}",
+  "d_renew": "Kontrak: {player}",
+  "d_role": "Versekering: {player}",
+  "d_injury": "Mediese besluit: {player}",
+  "d_acad": "Akademie: {player}",
+  "dBoard": {
+   "one": "Die direksie: een besluit",
+   "other": "Die direksie: {n} besluite"
+  },
+  "dSquad": {
+   "one": "Noem nog {n} vir die groep",
+   "other": "Noem nog {n} vir die groep"
+  },
+  "dMail": {
+   "one": "{n} berig om te lees",
+   "other": "{n} berigte om te lees"
+  },
+  "dev": "Ontwikkeling",
+  "devBreak": "{player}: 'n deurbraak",
+  "devStall": "{player}: tot stilstand",
+  "devFlying": "{player}: 'n uitstekende maand",
+  "money": "{bal}",
+  "moneyAdmin": "Waarskuwing oor bewindstelling",
+  "moneyWagesFull": "Salarisbegroting vol",
+  "moneyRoom": "Salarisruimte {room}",
+  "tactics": "{atk} · {def}",
+  "priority": "Voorrang: {comp} · {rot}",
+  "room": "Kleedkamer",
+  "roomFine": "{word}",
+  "roomLow": {
+   "one": "{word} · {n} met lae moraal",
+   "other": "{word} · {n} met lae moraal"
+  },
+  "seasonAim": "Doelwit: {aim}",
+  "season": "Seisoen",
+  "seasonPos": "{pos} · {pts} pte",
+  "seasonOn": "op koers vir die doelwit",
+  "seasonShort": {
+   "one": "{n} plek van die doelwit af",
+   "other": "{n} plekke van die doelwit af"
+  },
+  "objectives": "doelwitte {met}/{total}",
+  "thread": "Nog oop",
+  "tFormer": "{player}, eens joune, speel vir {club}",
+  "tRival": "{coach} in die ander dugout: {w}-{d}-{l}",
+  "tPromise_plans": "Jy het {player} 'n toekoms hier belowe",
+  "tPromise_minutes": "Jy het {player} speeltyd belowe",
+  "tPromise_deal": "Jy het {player} 'n nuwe kontrak belowe",
+  "tRushed": "{player} het met 'n besering gespeel",
+  "tProjUp": "Die afrigters mik hoër vir {player}",
+  "tProjDown": "Die afrigters mik laer vir {player}"
+ },
  "home": {
   "jobCentre": "Die Werksentrum",
   "betweenJobs": {
@@ -236,7 +297,6 @@
   "atHome": " · Tuis",
   "atAway": " · Weg",
   "atNeutral": " · Neutrale veld",
-  "tapSetTeam": "Tik om jou span te kies, druk dan Gaan voort om te speel.",
   "noMatchWeek": "Geen wedstryd hierdie week nie - Gaan voort skuif aan na die volgende ronde.",
   "headCoach": "Hoofafrigter",
   "worldNo": " · wêreld nr. {rank}",
@@ -254,21 +314,11 @@
    "one": " oor {n} wk",
    "other": " oor {n} wke"
   },
-  "objectives": "Seisoendoelwitte · {met}/{total} op koers",
-  "onCourse": " (op koers)",
   "annualOut": "Die Jaarboek is uit",
   "annualSub": "Verlede seisoen op een bladsy - die liga, die bekers, die sterre en die geld. Tik om te lees.",
-  "pressWord": "Die pers wil 'n woord hê",
-  "pressSub": {
-   "one": "{n} vraag wag op jou antwoord - jou antwoorde skuif die moreel.",
-   "other": "{n} vrae wag op jou antwoord - jou antwoorde skuif die moreel."
-  },
-  "boardWord": "Die direksie wag op 'n besluit",
-  "boardSub": {"one": "{n} besluit oor geld of teikens, in Finansies.", "other": "{n} besluite oor geld of teikens, in Finansies."},
   "blankWeekend": "Oop naweek",
   "blankSub": "Geen wedstryd hierdie week nie. 'n Vriendskaplike wedstryd bou skerpte en kombinasies vir die spangroep - maar beserings in 'n betekenislose wedstryd steek dubbel so seer.",
   "friendlyChip": "{club} (rep {rep})",
-  "wLeague": "Liga",
   "wForm": "Vorm",
   "wBoard": "Direksie",
   "wFans": "Ondersteuners",
@@ -288,17 +338,9 @@
   "dashFinances": "Finansies",
   "dashMedical": "Mediese Sentrum",
   "rivalWatch": "Oog op die Mededingers",
-  "state": "Stand",
-  "balance": "Balans",
-  "transferBudget": "Oordragbegroting",
-  "wageRoom": "Salarisruimte",
   "inTheRed": "In die rooi",
   "cleanBill": "Almal gesond en fiks",
   "andMore": "+{n} meer",
-  "unread": {
-   "one": "{n} ongeleesde boodskap",
-   "other": "{n} ongeleesde boodskappe"
-  },
   "assistantMatch": "Assistent se wedstryd",
   "assistantTakesIt": "Jy is hierdie Saterdag by jou land - jou assistent neem hierdie wedstryd waar en doen daarna verslag.",
   "squadIn": {

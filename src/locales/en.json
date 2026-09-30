@@ -212,6 +212,67 @@
   "nothing": "",
   "confirmSell": "Confirm sale"
  },
+ "desk": {
+  "title": "Today",
+  "decide": "Needs your decision",
+  "clear": "Nothing waiting on you",
+  "dAnnual": "The season review is waiting",
+  "dOffer": "{club} bid {fee} for {player}",
+  "dPress": "{outlet} want an answer",
+  "d_office": "{player} is at your door",
+  "d_officeNone": "Someone is at your door",
+  "d_split": "Dressing room: {player}",
+  "d_renew": "Contract: {player}",
+  "d_role": "Assurances: {player}",
+  "d_injury": "Fitness call: {player}",
+  "d_acad": "Academy call: {player}",
+  "dBoard": {
+   "one": "The board: one decision",
+   "other": "The board: {n} decisions"
+  },
+  "dSquad": {
+   "one": "Name {n} more for the squad",
+   "other": "Name {n} more for the squad"
+  },
+  "dMail": {
+   "one": "{n} story to read",
+   "other": "{n} stories to read"
+  },
+  "dev": "Development",
+  "devBreak": "{player}: a breakthrough",
+  "devStall": "{player}: stalled",
+  "devFlying": "{player}: a flying month",
+  "money": "{bal}",
+  "moneyAdmin": "Administration warning",
+  "moneyWagesFull": "Wage budget full",
+  "moneyRoom": "Wage room {room}",
+  "tactics": "{atk} · {def}",
+  "priority": "Priority: {comp} · {rot}",
+  "room": "Dressing room",
+  "roomFine": "{word}",
+  "roomLow": {
+   "one": "{word} · {n} low on morale",
+   "other": "{word} · {n} low on morale"
+  },
+  "seasonAim": "Aim: {aim}",
+  "season": "Season",
+  "seasonPos": "{pos} · {pts} pts",
+  "seasonOn": "on course for the aim",
+  "seasonShort": {
+   "one": "{n} place off the aim",
+   "other": "{n} places off the aim"
+  },
+  "objectives": "objectives {met}/{total}",
+  "thread": "Still to be answered",
+  "tFormer": "{player}, once yours, lines up for {club}",
+  "tRival": "{coach} in the other dugout: {w}-{d}-{l}",
+  "tPromise_plans": "You told {player} there is a future here",
+  "tPromise_minutes": "You promised {player} minutes",
+  "tPromise_deal": "You promised {player} a new deal",
+  "tRushed": "{player} played through a knock",
+  "tProjUp": "The staff raised their sights for {player}",
+  "tProjDown": "The staff lowered their sights for {player}"
+ },
  "home": {
   "jobCentre": "The Job Centre",
   "betweenJobs": {
@@ -236,7 +297,6 @@
   "atHome": " · Home",
   "atAway": " · Away",
   "atNeutral": " · Neutral ground",
-  "tapSetTeam": "Tap to set your team, then press Continue to play.",
   "noMatchWeek": "No match this week - Continue advances to the next round.",
   "headCoach": "Head coach",
   "worldNo": " · world No. {rank}",
@@ -254,21 +314,11 @@
    "one": " in {n} wk",
    "other": " in {n} wks"
   },
-  "objectives": "Season Objectives · {met}/{total} on track",
-  "onCourse": " (on course)",
   "annualOut": "The Annual is out",
   "annualSub": "Last season on one page - the league, the cups, the stars and the money. Tap to read.",
-  "pressWord": "The press want a word",
-  "pressSub": {
-   "one": "{n} question awaiting your reply - your answers move morale.",
-   "other": "{n} questions awaiting your reply - your answers move morale."
-  },
-  "boardWord": "The board needs a decision",
-  "boardSub": {"one": "{n} decision on money or targets, in Finances.", "other": "{n} decisions on money or targets, in Finances."},
   "blankWeekend": "Blank Weekend",
   "blankSub": "No fixture this week. A friendly banks sharpness and combinations for the squad - but injuries in a meaningless game sting twice as much.",
   "friendlyChip": "{club} (rep {rep})",
-  "wLeague": "League",
   "wForm": "Form",
   "wBoard": "Board",
   "wFans": "Fans",
@@ -288,17 +338,9 @@
   "dashFinances": "Finances",
   "dashMedical": "Medical Centre",
   "rivalWatch": "Rival Watch",
-  "state": "State",
-  "balance": "Balance",
-  "transferBudget": "Transfer budget",
-  "wageRoom": "Wage room",
   "inTheRed": "In the red",
   "cleanBill": "A clean bill of health",
   "andMore": "+{n} more",
-  "unread": {
-   "one": "{n} unread message",
-   "other": "{n} unread messages"
-  },
   "assistantMatch": "Assistant's match",
   "assistantTakesIt": "You are with your country this Saturday - your assistant takes this one and reports back.",
   "squadIn": {
