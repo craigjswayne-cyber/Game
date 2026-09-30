@@ -24,6 +24,8 @@ export interface StyleDials {
   defLine?: number; defWidth?: number
   style?: number; tempo?: number; kicking?: number; ruckCommit?: number
   defStyle?: string; atkStyle?: string
+  /** a pod game's shape (styles.ts PodShape): '1331', '242' or 'nine' */
+  podShape?: string
 }
 
 // Where each style sits on the dials: the presets of game/styles.ts, read

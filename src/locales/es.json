@@ -1512,7 +1512,6 @@
   "theFix": "La solución",
   "theTrip": "El viaje",
   "theTwoFixes": "Las dos soluciones",
-  "theWhistle": "El silbato",
   "them": "ellos",
   "theyShort": "ellos",
   "tickerStops": "Lo que detiene el teletipo",
@@ -1591,7 +1590,31 @@
   "st22": "Entradas en los 22",
   "stPerVisit": "Puntos por entrada en los 22",
   "stGoalKicks": "Patadas a palos",
-  "liveStats": "Estadísticas en directo"
+  "liveStats": "Estadísticas en directo",
+  "wxDamp": "Húmedo",
+  "theConditions": "Las condiciones",
+  "wxFxDry": "Balón seco y apoyos firmes: un día para el juego a la mano.",
+  "wxFxDamp": "Balón resbaladizo: espera algún avant más, y el pie y el juego de choque ganan peso.",
+  "wxFxRain": "Balón mojado: más errores de manejo, sobre todo para los equipos que abren el juego. Un día para el pie, el maul y el placaje que sostiene al portador en pie.",
+  "wxFxWind": "El viento se llevará las patadas largas y los tiros a palos: juega a la mano cuando lo tengas en contra.",
+  "wxFxSnow": "Nieve en el campo: el balón será una pastilla de jabón, y gana el juego cerrado.",
+  "surf_grass": "Césped natural",
+  "surf_hybrid": "Césped híbrido",
+  "surf_artificial": "Césped artificial",
+  "surfFx_grass": "Una superficie natural: más blanda bajo los tacos, y más lenta cuando llueve.",
+  "surfFx_hybrid": "Césped cosido con fibra: firme y fiable, haga el tiempo que haga.",
+  "surfFx_artificial": "Duro y rápido bajo los tacos: drena bien, cada choque cuesta un poco más, y el local conoce su bote.",
+  "htWord": "La palabra del ayudante",
+  "htPensBin": "Ya van {n} golpes de castigo y {ref} lleva la cuenta: uno más en el ruck y alguien se va diez minutos.",
+  "htRefTight": "El ruck se está arbitrando estricto: menos gente en el ruck, y las manos fuera del balón.",
+  "htRefLoose": "{ref} deja jugar en el suelo: pon a alguien sobre el balón y podemos recuperarlo.",
+  "htWetHands": "El balón es una pastilla de jabón y no dejamos de perderlo: juega cerrado y patea a las esquinas.",
+  "htWetTight": "Está mojado: un pase de más es un balón perdido. Avanza con el balón, y usa el pie.",
+  "htWind": "El viento se lleva las patadas largas: busca la touch corta y juega a la mano contra el viento.",
+  "htUncontested": "Ahora las melés son simuladas: la melé ya no cuenta, así que juega desde el lateral.",
+  "htScrumBad": "Su melé domina: saca el balón rápido en las fases estáticas.",
+  "htScrumGood": "Nuestra melé gana: patea a las esquinas y atácalos delante.",
+  "htDefWorks": "La defensa no para de recuperar el balón: mantén la línea donde está."
  },
  "tacticsScreen": {
   "tabRoles": "Roles",
@@ -2836,7 +2859,15 @@
   "bondsLabel": "El vestuario",
   "bondsVoice": "Una de las voces con peso en el vestuario",
   "bondsClose": "Amistad con: {names}",
-  "bondsClash": "Choca con: {names}"
+  "bondsClash": "Choca con: {names}",
+  "hintThrow": "La delantera le mira en cada lanzamiento.",
+  "hintThrow_f": "La delantera la mira en cada lanzamiento.",
+  "hintTee": "Quiere la patada cuando el partido está en juego, y se nota.",
+  "hintHold": "Casi nunca se le cae el balón.",
+  "hintHeavy": "Cuanto más pesado el campo, mejor juega.",
+  "hintWhistle": "Los árbitros le pitan en el suelo más que a la mayoría.",
+  "hintWhistle_f": "Los árbitros la pitan en el suelo más que a la mayoría.",
+  "hintLine": "Puede quedar fuera de sitio cuando la defensa se estira."
  },
  "challenges": {
   "sapiac": "Sauvez Sapiac",
@@ -6646,7 +6677,15 @@
   "uncontestedShort_f": "Y le cuesta a {team} una segunda jugadora: según la regla 3.20, un equipo que pasa a melé simulada por una tarjeta debe retirar a otra jugadora. {player} se marcha.",
   "frontRowReturns_f": "El banquillo está agotado, así que {player} vuelve a entrar: un primera línea sustituido puede regresar por un lesionada, y la melé sigue siendo disputada.",
   "advPlaying": "El brazo sigue en alto: ventaja para {team}, y el silbato no llega...",
-  "advOver": "Ventaja para {team}, jugada hasta el final, y el árbitro la da por terminada. Tres puntos perdidos."
+  "advOver": "Ventaja para {team}, jugada hasta el final, y el árbitro la da por terminada. Tres puntos perdidos.",
+  "koDamp": " Un césped grasiento tras la lluvia de la mañana.",
+  "uncontestedNoRep": "Y según la regla 3, el jugador cuya salida lo ha provocado no puede ser sustituido: {team} retiran a {player} y siguen con catorce.",
+  "uncontestedNoRep_f": "Y según la regla 3, la jugadora cuya salida lo ha provocado no puede ser sustituida: {team} retiran a {player} y siguen con catorce.",
+  "uncontestedBin": "Y según la regla 3, {team} pierden un segundo jugador mientras {lost} cumple sus diez minutos: {player} también sale, y los dos volverán juntos.",
+  "uncontestedBin_f": "Y según la regla 3, {team} pierden una segunda jugadora mientras {lost} cumple sus diez minutos: {player} también sale, y las dos volverán juntas.",
+  "specProp": "{player} empuja de pilier para {team} sin formación para ello: la melé va a crujir.",
+  "specHook": "{player} está de talonador en {team} y nunca ha lanzado un lateral: la touch lo va a notar.",
+  "specNine": "{player} está de medio melé en {team}, y se nota: la salida de balón es lenta."
  },
  "injury": {
   "ribs": "contusión en las costillas",
@@ -8804,6 +8843,13 @@
   "edgeAtk_even": "Tu ataque ({mine}) contra su defensa ({theirs}): un emparejamiento igualado.",
   "edgeDef_good": "Su ataque ({theirs}) contra tu defensa ({mine}): el emparejamiento te favorece.",
   "edgeDef_bad": "Su ataque ({theirs}) contra tu defensa ({mine}): el emparejamiento les favorece.",
-  "edgeDef_even": "Su ataque ({theirs}) contra tu defensa ({mine}): un emparejamiento igualado."
+  "edgeDef_even": "Su ataque ({theirs}) contra tu defensa ({mine}): un emparejamiento igualado.",
+  "podHeading": "Forma de los pods",
+  "pod_1331": "Pods 1-3-3-1",
+  "pod_242": "Pods 2-4-2",
+  "pod_nine": "Alrededor del 9",
+  "pod_1331Desc": "Un delantero en cada banda y dos pods de tres en el centro: el juego de pods equilibrado.",
+  "pod_242Desc": "Dos delanteros en cada banda y cuatro en el centro: el balón llega antes a lo ancho, más rupturas por fuera y algo menos de avance.",
+  "pod_nineDesc": "Portadores de uno en uno alrededor del medio melé: balón rápido tras cargas cortas, el mayor avance y los menos errores, pero menos rupturas."
  }
 }
