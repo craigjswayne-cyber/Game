@@ -7,6 +7,10 @@ import { SectionTitle } from './components'
 const ROT_KEY: Record<RotIntent, string> = {
   strongest: 'selection.rotStrongest', balanced: 'selection.rotBalanced', protect: 'selection.rotProtect',
 }
+// written out, not built: i18nprobe can only check keys it can read
+const ROT_DESC: Record<RotIntent, string> = {
+  strongest: 'selection.rotStrongestDesc', balanced: 'selection.rotBalancedDesc', protect: 'selection.rotProtectDesc',
+}
 
 /**
  * SEASON PRIORITIES (1.8.2, game/seasonplan.ts). A card on the Selection pane,
@@ -54,7 +58,7 @@ export default function SeasonPlanCard() {
               onClick={() => { setSeasonPlan(game, order, r); touch() }}>{t(ROT_KEY[r])}</button>
           ))}
         </div>
-        <div className="meta" style={{ marginTop: 6 }}>{t(`${ROT_KEY[rot]}Desc`)}</div>
+        <div className="meta" style={{ marginTop: 6 }}>{t(ROT_DESC[rot])}</div>
         {status && <div className="meta muted" style={{ marginTop: 4 }}>{t(status)}</div>}
         {resting.length > 0 && (
           <div className="meta" style={{ marginTop: 4 }}>

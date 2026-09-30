@@ -81,12 +81,12 @@ export function traitHints(state: GameState, p: Player): string[] {
   const level = readLevel(state, p)
   if (level !== 'vague' && level !== 'full') return []
   const tr = formTraits(state.seed, p.id)
-  const v = level === 'vague' ? 'V' : ''
+  const v = level === 'vague'
   const out: string[] = []
-  if (tr.slow) out.push(`player.hintSlow${v}`)
-  if (tr.iron) out.push(`player.hintIron${v}`)
-  if (tr.brit) out.push(`player.hintBrit${v}`)
-  if (tr.conf) out.push(`player.hintConf${v}`)
+  if (tr.slow) out.push(v ? 'player.hintSlowV' : 'player.hintSlow')
+  if (tr.iron) out.push(v ? 'player.hintIronV' : 'player.hintIron')
+  if (tr.brit) out.push(v ? 'player.hintBritV' : 'player.hintBrit')
+  if (tr.conf) out.push(v ? 'player.hintConfV' : 'player.hintConf')
   return out
 }
 
