@@ -545,6 +545,8 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           if (!returning) {
             // promoted by hand is still a graduate of your academy
             p.homegrown = true
+            p.gradClub ??= game.userClubId
+            p.gradS ??= game.season
             // a first-team player is paid like one: the rollover graduation path
             // has always re-priced the development deal, and this button did not,
             // which made hand-promotion a free-labour loophole (audit 16D).

@@ -255,6 +255,31 @@ export function openingBudget(raw: number, leagueId: string): number {
   return leagueId.startsWith(W) ? Math.round(raw * W_OPENING_MONEY) : raw
 }
 
+/**
+ * THE AIM THE WIZARD SHOWS, before a world exists (arc, 1.8.2). The board's
+ * aim depends on the kind of job (chairman.ts demandedFinish), and the kind of
+ * job reads budgets, grounds and facilities across the world. So the wizard
+ * builds those same numbers, on the same seed the career will be started with,
+ * and asks the same question the game will ask on day one. No rng is drawn.
+ */
+export function wizardAim(defs: LeagueDef[], clubId: string, seed: number): string {
+  const clubs: Record<string, Club> = {}
+  for (const def of defs) {
+    for (const rc of def.clubs) {
+      const budget = openingBudget(rc.budget, def.id)
+      const club = {
+        id: rc.id, rep: rc.rep, leagueId: def.id, capacity: rc.capacity, capacity0: rc.capacity,
+        budget, balance: Math.round(budget * 0.6), players: rc.players.length ? [0] : [],
+      } as unknown as Club
+      club.facilities = initFacilities(club, seed)
+      clubs[rc.id] = club
+    }
+  }
+  const def = defs.find(d => d.clubs.some(c => c.id === clubId))
+  const state = { seed, season: 0, week: 1, userClubId: clubId, clubs, history: [], comps: {}, mgr: { trophies: [], finishes: [] } } as unknown as GameState
+  return demandedFinish(state, clubId, def?.clubs.length ?? 14).text
+}
+
 export function newGame(userClubId: string, managerName: string, seed: number, challengeId?: string, origin: MgrOrigin = 'coach', gender: Gender = 'm', mgrGender: Gender = 'm'): GameState {
   const rng = mulberry32(seed)
   resetIds(1)
