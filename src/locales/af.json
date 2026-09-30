@@ -1473,7 +1473,6 @@
   "theFix": "Die regstelling",
   "theTrip": "Die reis",
   "theTwoFixes": "Die twee regstellings",
-  "theWhistle": "Die fluitjie",
   "them": "hulle",
   "theyShort": "hulle",
   "tickerStops": "Waarvoor die tikker stop",
@@ -1567,7 +1566,31 @@
   "st22": "Besoeke aan die 22",
   "stPerVisit": "Punte per besoek aan die 22",
   "stGoalKicks": "Skoppe na die pale",
-  "liveStats": "Regstreekse statistiek"
+  "liveStats": "Regstreekse statistiek",
+  "wxDamp": "Klam",
+  "theConditions": "Die toestande",
+  "wxFxDry": "'n Droë bal en vaste voetstappe: 'n dag vir die hanteerspel.",
+  "wxFxDamp": "'n Glibberige bal: verwag 'n paar meer aanslae, en die skop en die drywer tel meer.",
+  "wxFxRain": "'n Nat bal: meer hanteerfoute, veral vir die spanne wat dit rondgooi. 'n Dag vir die skop, die losgemaal en die duikslag wat die draer regop hou.",
+  "wxFxWind": "Die wind sal die lang skoppe en die doelskoppe vat: hou dit in die hand wanneer jy teen die wind speel.",
+  "wxFxSnow": "Sneeu op die veld: die bal sal 'n stuk seep wees, en noue rugby wen.",
+  "surf_grass": "Grasveld",
+  "surf_hybrid": "Hibriede veld",
+  "surf_artificial": "Kunsgrasveld",
+  "surfFx_grass": "'n Natuurlike oppervlak: sagter onder die voet, en stadiger as dit reën.",
+  "surfFx_hybrid": "Gras met vesel vasgewerk: eg en ferm, maak nie saak wat die weer doen nie.",
+  "surfFx_artificial": "Hard en vinnig onder die voet: dit dreineer goed, elke botsing kos effens meer, en die tuisspan ken sy hop.",
+  "htWord": "Die assistent se woord",
+  "htPensBin": "Reeds {n} strafskoppe en {ref} hou tel: nog een by die losskrum en iemand sit tien minute.",
+  "htRefTight": "Die afbreekpunt word streng geskeidsregter: minder manne in die losskrum, en hande weg van die bal.",
+  "htRefLoose": "{ref} laat die afbreekpunt gaan: kry iemand oor die bal en ons kan dit terugwen.",
+  "htWetHands": "Die bal is soos seep daar buite en ons verloor dit aanhoudend: hou dit nou en skop vir die hoeke.",
+  "htWetTight": "Dit is nat: een aangee te veel is 'n omset. Dra dit, en gebruik die skop.",
+  "htWind": "Die wind vat die lang skoppe: vind kort die kantlyn en hou dit in die hand teen die wind.",
+  "htUncontested": "Die skrums is nou onbestrede: die skrum tel nie meer nie, so speel van die lynstaan af.",
+  "htScrumBad": "Hulle skrum is bo: kry die bal vinnig in en uit by die vaste stel.",
+  "htScrumGood": "Ons skrum wen: skop vir die hoeke en vat hulle voor aan.",
+  "htDefWorks": "Die verdediging wen die bal aanhoudend terug: hou die lyn waar dit is."
  },
  "tacticsScreen": {
   "tabRoles": "Rolle",
@@ -2841,7 +2864,16 @@
   "bondsLabel": "Die kleedkamer",
   "bondsVoice": "Een van die senior stemme in die kleedkamer",
   "bondsClose": "Na aan: {names}",
-  "bondsClash": "Bots met: {names}"
+  "bondsClash": "Bots met: {names}",
+  "hintThrow": "Die pak kyk na hom by elke ingooi.",
+  "hintThrow_f": "Die pak kyk na haar by elke ingooi.",
+  "hintTee": "Wil die skop hê wanneer die wedstryd op die spel is, en dit wys.",
+  "hintHold": "Laat die bal amper nooit val nie.",
+  "hintHeavy": "Hoe swaarder die veld, hoe beter speel hy.",
+  "hintHeavy_f": "Hoe swaarder die veld, hoe beter speel sy.",
+  "hintWhistle": "Skeidsregters vind hom meer as die meeste by die afbreekpunt.",
+  "hintWhistle_f": "Skeidsregters vind haar meer as die meeste by die afbreekpunt.",
+  "hintLine": "Kan uit posisie betrap word wanneer die verdediging gerek word."
  },
  "challenges": {
   "sapiac": "Sauvez Sapiac",
@@ -6719,7 +6751,13 @@
   "oppCoachNamed_w": "{coach} het haar huiswerk gedoen: {team} is spesifiek opgestel vir {pattern_k}. Verander die prentjie, of hou by die plan.",
   "oppCoach_w": "Die opposisie-afrigter het haar huiswerk gedoen: {team} is spesifiek opgestel vir {pattern_k}. Verander die prentjie, of hou by die plan.",
   "advPlaying": "Die arm bly uit - voordeel {team}, en die fluitjie kom nooit...",
-  "advOver": "Voordeel {team}, tot die einde gespeel, en die skeidsregter wuif dit weg. Drie punte daarmee heen."
+  "advOver": "Voordeel {team}, tot die einde gespeel, en die skeidsregter wuif dit weg. Drie punte daarmee heen.",
+  "koDamp": " 'n Glibberige oppervlak na die oggend se reën.",
+  "uncontestedNoRep": "En onder Wet 3 kan die speler wie se vertrek dit veroorsaak het nie vervang word nie: {team} haal {player} af en speel met veertien voort.",
+  "uncontestedBin": "En onder Wet 3 verloor {team} nog 'n speler terwyl {lost} die tien minute uitsit: {player} gaan ook af, en die twee kom saam terug.",
+  "specProp": "{player} sak by stut in vir {team} sonder die opleiding daarvoor: die skrum gaan kraak.",
+  "specHook": "{player} is by haker vir {team} en het nog nooit ingegooi nie: die lynstaan gaan ly.",
+  "specNine": "{player} is by skrumskakel vir {team}, en dit wys: die aangee van die basis is stadig."
  },
  "injury": {
   "ribs": "gekneusde ribbes",
@@ -8934,6 +8972,13 @@
   "edgeAtk_even": "Jou aanval ({mine}) teen hul verdediging ({theirs}): 'n gelyke opstelling.",
   "edgeDef_good": "Hul aanval ({theirs}) teen jou verdediging ({mine}): die opstelling bevoordeel jou.",
   "edgeDef_bad": "Hul aanval ({theirs}) teen jou verdediging ({mine}): die opstelling bevoordeel hulle.",
-  "edgeDef_even": "Hul aanval ({theirs}) teen jou verdediging ({mine}): 'n gelyke opstelling."
+  "edgeDef_even": "Hul aanval ({theirs}) teen jou verdediging ({mine}): 'n gelyke opstelling.",
+  "podHeading": "Groepvorm",
+  "pod_1331": "Groepe 1-3-3-1",
+  "pod_242": "Groepe 2-4-2",
+  "pod_nine": "Rondom die 9",
+  "pod_1331Desc": "'n Voorspeler op elke kant en twee groepe van drie in die middel: die gebalanseerde groepspel.",
+  "pod_242Desc": "Twee voorspelers op elke kant en vier in die middel: die bal gaan gouer wyd, meer deurbrake buite en effens minder voorwaartse momentum.",
+  "pod_nineDesc": "Enkel lopers rondom die skrumskakel: vinnige bal van kort drae, die meeste voordeellyn en die minste foute, maar minder deurbrake."
  }
 }

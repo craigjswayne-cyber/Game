@@ -105,6 +105,8 @@ export interface ClipSpec {
    *  the standard line and plain phase play */
   defStyle?: DefStyle
   atkStyle?: AtkStyle
+  /** the pod shape of a pod game ('1331', '242', 'nine'), off the tactic */
+  podShape?: string
 }
 
 export interface ClipLabels {
@@ -242,6 +244,8 @@ export function buildClip(events: MatchEvent[], m: number, kind: ClipKind, homeI
   const styles = {
     defStyle: defStyleOf(tacticOf?.(e.teamId !== homeId)),
     atkStyle: atkStyleOf(tacticOf?.(e.teamId === homeId)),
+    // the pod shape inside a pod game (1.8.2 depth), off the same tactic
+    podShape: tacticOf?.(e.teamId === homeId)?.podShape,
   }
   const attackHome = e.teamId === homeId
   const paces = (home: boolean) => paceOf ? Array.from({ length: 15 }, (_, i) => paceOf(home, i + 1)) : undefined
@@ -681,7 +685,8 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
   // the attack's pods: its style's (1-3-3-1 for pods, 2-4-2 for width, one-out
   // runners for direct), with a called shape's own on top
   const stylePods = c.kind !== 'kick' && (c.style === 'phases' || c.style === 'overlap') && c.atkStyle
-    ? (c.atkStyle === 'pods' ? PODS.mv_1331 : c.atkStyle === 'width' ? PODS.mv_242 : STYLE_PODS[c.atkStyle]) : undefined
+    ? (c.atkStyle === 'pods' ? (c.podShape === '242' ? PODS.mv_242 : c.podShape === 'nine' ? STYLE_PODS.direct : PODS.mv_1331)
+      : c.atkStyle === 'width' ? PODS.mv_242 : STYLE_PODS[c.atkStyle]) : undefined
   const movePods = c.launch === 'open' && c.move && PODS[c.move] ? PODS[c.move] : undefined
   const pods = movePods || stylePods ? { ...(stylePods ?? (movePods && c.move !== 'mv_1331' && c.move !== 'mv_242' ? PODS.mv_1331 : {})), ...movePods } : undefined
   const shapeAtt = (i: number, b: Pt, dir: number): Pt => {

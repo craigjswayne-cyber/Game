@@ -47,11 +47,9 @@ function kickoff(set: Partial<Tactic>, opp: Partial<Tactic> = {}, weather?: 'Rai
   const neutral = { kickStyle: undefined, ruckCommit: undefined, ruckContest: undefined }
   Object.assign(g.clubs[g.userClubId].tactic, neutral, set)
   Object.assign(g.clubs[oppId].tactic, neutral, opp)
-  // the day is drawn from the match rng; pick a rng that draws the one asked for
-  let ctx = beginMatch(g, fx, mulberry32(1), false)
-  for (let s = 2; weather && s < 400 && (weather === 'Rain' ? ctx.weather !== 'Rain' : ctx.weather === 'Rain' || ctx.weather === 'Snow'); s++) {
-    ctx = beginMatch(g, fx, mulberry32(s), false)
-  }
+  // the day is the fixture's (conditions.ts); a probe that asks for one sets it
+  if (weather) fx.weather = weather === 'Rain' ? 'Rain' : 'Dry'
+  const ctx = beginMatch(g, fx, mulberry32(1), false)
   return { g, ctx, me: mine(g, ctx), them: theirs(g, ctx) }
 }
 
