@@ -226,14 +226,26 @@ console.log('--- 3. ceilings drift within bounds')
   // two real seasons of a world
   const w = newGame('leicester', 'Drift', 777)
   const start = new Map(Object.values(w.players).map(x => [x.id, x.pa]))
+  // EVERY STORY FILED, NOT THE ONES STILL IN THE INBOX AT THE END (1.8.2 QA).
+  // state.news keeps 250 (season.ts NEWS_KEEP) and two seasons file about
+  // 850, and since 014dad2 the development notes already seen or filed are
+  // the first to go when it is full (devnews.ts trimDevFirst), by design. So
+  // a count of survivors measured the churn of the rest of the world, not
+  // the staff: seed 777 filed 22 breakthroughs, a stall and two intake-pick
+  // letters on 8a93ecb with one of each kept, and 14, 1 and 1 on bd685eb
+  // (a different world after the depth merge) with none kept. The same lesson
+  // as backupprobe and historyprobe: collect as it goes.
+  const filed = new Map<number, (typeof w.news)[number]>()
   for (let s = 0; s < 2; s++) {
     const t = w.season + 1; let guard = 0
     while (w.season < t && guard++ < SEASON_WEEKS + 5) {
       const fx = userFixtureThisWeek(w); if (fx) simMatch(w, fx, weekRng(w), true)
       for (const pi of w.press.filter(x => !x.answered)) answerPress(w, pi.id, 0)
       processWeekAndAdvance(w)
+      for (const n of w.news) if (!filed.has(n.id)) filed.set(n.id, n)
     }
   }
+  const told = [...filed.values()]
   const ps = Object.values(w.players)
   const moved = ps.filter(x => x.pa0 != null)
   const bad = ps.filter(x => x.pa0 != null && (Math.abs(x.pa - x.pa0) > PA_DRIFT_MAX || x.pa > 99 || x.pa < x.ca))
@@ -245,7 +257,7 @@ console.log('--- 3. ceilings drift within bounds')
   ok(tl.length > 0 && tl.every(x => x.tl!.length <= TL_MAX && x.tl!.every(row => row.length === 3)), `the timeline is written (${tl.length} men) and compact`)
   ok(tl.every(x => x.career.some(c => c.clubId === w.userClubId) || x.clubId === w.userClubId || x.tl!.length <= 2), 'and only for men who have been the manager\'s')
   ok(ps.filter(x => x.clubId && x.clubId !== w.userClubId && x.tl).every(x => x.career.some(c => c.clubId === w.userClubId)), 'no AI man carries a timeline he never earned at the club')
-  const review = w.news.find(n => n.k === 'news.devReview')
+  const review = told.find(n => n.k === 'news.devReview')
   console.log(`  the summer review letter: ${review ? tIn('en', 'news.devReview', review.v).split('\n').length - 2 + ' lines' : 'none this summer'}`)
   if (review) {
     const rows = JSON.parse(String(review.v?.rows_ll)) as { name: string; from: string; to: string }[]
@@ -253,9 +265,9 @@ console.log('--- 3. ceilings drift within bounds')
     ok(rows.every(r => r.from !== r.to && /^\d+(-\d+)?$/.test(r.from) && /^\d+(-\d+)?$/.test(r.to)), 'a revised projection reads band to band')
   }
   // the owner's addition: the staff's word in the inbox, and the intake picks
-  const bt = w.news.filter(n => n.k === 'news.devBreakthrough').length
-  const st = w.news.filter(n => n.k === 'news.devStalled' || n.k === 'news.devStalledMins').length
-  const picks = w.news.find(n => n.k === 'news.intakePicks')
+  const bt = told.filter(n => n.k === 'news.devBreakthrough').length
+  const st = told.filter(n => n.k === 'news.devStalled' || n.k === 'news.devStalledMins').length
+  const picks = told.find(n => n.k === 'news.intakePicks')
   console.log(`  two seasons of the inbox: ${bt} breakthroughs, ${st} stalls${picks ? `; intake picks:\n    ${tIn('en', 'news.intakePicks', picks.v).split('\n').slice(1).join('\n    ')}` : ''}`)
   ok(bt + st > 0, 'breakthroughs and stalls reach the inbox')
   ok(!!picks, 'the academy director names his picks on intake day')
