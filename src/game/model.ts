@@ -679,6 +679,16 @@ export interface Tactic {
   moveLineout?: string
   moveScrum?: string
   moveShape?: string
+  /** THE PLAYBOOK (1.8.2, armsrace.ts), the manager's only: the primary and
+   *  the secondary strike off first-phase ball, the primary's share of the
+   *  ball both can run off (50-90, two in three unset), and the red-zone
+   *  play for the opposition 22. moveShape above is the base shape. An old
+   *  save's lineout and scrum calls become the primary and the secondary
+   *  (save migration), and moveLineout/moveScrum are then left unset. */
+  moveMain?: string
+  moveAlt?: string
+  moveMix?: number
+  moveRed?: string
 
   // ---- the attack and defence styles (1.8.2, styles.ts) ---------------------
   /** The side's overall game with the ball and without it, by style id. A
@@ -724,6 +734,14 @@ export interface Playbook {
   drilled: Record<string, number>
   /** routine id -> times called this season, which is how analysts learn you */
   used: Record<string, number>
+  /** THE ARMS RACE (1.8.2, armsrace.ts), the manager's club only. reps: the
+   *  matches each attacking call has been in the playbook for (the side's own
+   *  familiarity with it); faced: the first-phase possessions each strike has
+   *  been run on, fading match by match (what the opposition's analysts have
+   *  on tape); tallied: the last fixture counted, so a replay counts once. */
+  reps?: Record<string, number>
+  faced?: Record<string, number>
+  tallied?: string
 }
 
 export type CompType = 'league' | 'cup' | 'intl'
