@@ -7,7 +7,7 @@ import { activePlan, applyAdminPenalties } from './season'
 import { settleInsolvency } from './insolvency'
 import { ageManager } from './career'
 import { rivalVerdict } from './boss'
-import {absWeek, BASE_YEAR, boardObjective, boardPatience, closeNatTenure, demandCeiling, MAX_FOLLOWING, GROUND_TIERS, groundLevel, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, RELEGATES, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId, worldCupSeasonFor } from './model'
+import {absWeek, BASE_YEAR, boardPatience, closeNatTenure, demandCeiling, MAX_FOLLOWING, GROUND_TIERS, groundLevel, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, RELEGATES, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId, worldCupSeasonFor } from './model'
 import { assignPersonality, EARLY_FADE, LATE_PEAK } from './attributes'
 import { ageAttributes, gapGrowth } from './ageing'
 import { COE_MEAN, learning, markSights, seasonReview, tempoF, TL } from './devproject'
@@ -39,6 +39,8 @@ import { staffChem } from './staff'
 import { tIn, type Vars } from './i18n'
 import { rememberDeparture } from './memory'
 import { historyYearEnd } from './history'
+import { arcYearEnd } from './arc'
+import { demandedFinish } from './chairman'
 
 const ordinal = (n: number) =>
   n <= 0 ? '-' : `${n}${n % 10 === 1 && n !== 11 ? 'st' : n % 10 === 2 && n !== 12 ? 'nd' : n % 10 === 3 && n !== 13 ? 'rd' : 'th'}`
@@ -471,7 +473,7 @@ export function agePlayers(state: GameState, rng: Rng) {
       subject: lastYear.length === 1
         ? `${lastYear[0].name}'s last academy year`
         : `Last academy year for ${lastYear.length} of your prospects`,
-      body: `Development deals run out at 21, and this season is the last one for ${lastYear.map(p => `${p.name} (${p.age}, ${p.pos})`).join(', ')}. Promote ${lastYear.length === 1 ? 'him' : 'each of them'} to a professional contract from ${lastYear.length === 1 ? 'his' : 'their'} player page before next summer, or the deal expires and ${lastYear.length === 1 ? 'he walks' : 'they walk'} for nothing.`,
+      body: `Development deals run out at 21, and this season is the last one for ${lastYear.map(p => `${p.name} (${p.age}, ${p.pos})`).join(', ')}. Promote ${lastYear.length === 1 ? 'him' : 'each of them'} to a professional contract before next summer, or the deal expires and ${lastYear.length === 1 ? 'he walks' : 'they walk'} for nothing.`,
       k: lastYear.length === 1 ? 'news.lastYearOne' : 'news.lastYearMany',
       v: {
         n: lastYear.length, who: lastYear[0].name,
@@ -867,6 +869,7 @@ function youthIntake(state: GameState, rng: Rng) {
     const spec = state.intakeClass?.length ? state.intakeClass : rollIntakeClass(state, rng)
     const report: string[] = []
     const reportRows: { k: string; [x: string]: string | number }[] = []
+    const seenPa: number[] = []
     spec.forEach((s, i) => {
       const raw = { name: s.name, pos: s.pos, age: s.age, nat: userClub.country, q: s.q, gk: s.gk }
       const a = deriveAttrs(raw, state.seed + state.season * 977 + i)
@@ -890,10 +893,15 @@ function youthIntake(state: GameState, rng: Rng) {
       p.value = playerValue(p.ca, p.age, p.pa, p.pos, undefined, undefined, p.caps)
       state.players[p.id] = p
       userClub.players.push(p.id)
-      report.push(`${'★'.repeat(paStars(s.pa))}${'☆'.repeat(5 - paStars(s.pa))} ${p.name} - ${p.pos}, ${p.age}`)
+      // THE STARS ARE THE COACHES' READ (1.8.2): a seventeen-year-old's
+      // ceiling is an estimate (scout.ts paRange), so the report card grades
+      // the estimate, never the number behind it
+      const seen = paStars(Math.round(scoutPa(state, p)))
+      seenPa.push(scoutPa(state, p))
+      report.push(`${'★'.repeat(seen)}${'☆'.repeat(5 - seen)} ${p.name} - ${p.pos}, ${p.age}`)
       reportRows.push({
         k: 'news.intakeRow',
-        stars: `${'★'.repeat(paStars(s.pa))}${'☆'.repeat(5 - paStars(s.pa))}`,
+        stars: `${'★'.repeat(seen)}${'☆'.repeat(5 - seen)}`,
         name: p.name, pos: p.pos, age: p.age,
       })
       if (s.wonder) {
@@ -907,7 +915,7 @@ function youthIntake(state: GameState, rng: Rng) {
       }
     })
     const intake = userClub.players.slice(-spec.length).map(id => state.players[id]).filter((x): x is Player => !!x)
-    const best = Math.max(0, ...spec.map(s => s.pa))
+    const best = Math.max(0, ...seenPa)
     const grade = best >= 96 ? 'A' : best >= 90 ? 'B' : best >= 82 ? 'C' : best >= 74 ? 'D' : 'E'
     state.news.push({
       id: state.nextId++, week: 1, season: state.season + 1, type: 'youth', read: false,
@@ -1410,7 +1418,7 @@ export function rebuildSeason(state: GameState) {
     if (comp) {
       const pos = sortTable(comp.table).findIndex(r => r.teamId === club.id) + 1
       state.mgr.finishes.push({ season: state.season, leagueId: club.leagueId, pos, clubId: club.id })
-      const obj = boardObjective(club.rep, comp.table.length)
+      const obj = demandedFinish(state, club.id, comp.table.length)
       const wonLeague = comp.champion === club.id
       userFinishPos = pos
       userWonLeague = wonLeague
@@ -1580,6 +1588,7 @@ export function rebuildSeason(state: GameState) {
     }
   }
 
+  arcYearEnd(state) // the career arc's summer: conduct, the chairman's verdict, eras, rivals (arc.ts)
   identitySeasonEnd(state) // the identity's expectations, met or missed (identity.ts)
   // archive player season -> career
   // THE SEASON REVIEW (1.8.2, devproject.ts): before the season's numbers are
@@ -2278,10 +2287,8 @@ export function rebuildSeason(state: GameState) {
   state.news.push({
     id: state.nextId++, week: 1, season: state.season, type: 'general', read: false,
     subject: `${seasonLabel(state.season - 1)} is in the books: back it up`,
-    body: `A whole season done, and every minute of it lives in this browser's storage and nowhere else. `
-      + `Game Status has an Export Career button that writes the lot to a single file: keep it somewhere you trust `
-      + `and you can put this career back on this phone, or carry it to another one, whatever the browser does in the meantime. `
-      + `Takes one tap. Worth doing at every rollover.`,
+    body: `A whole season done, and it lives in this browser and nowhere else. `
+      + `An exported career file survives whatever the browser does. Worth one every rollover.`,
     k: 'news.backItUp', v: { season: seasonLabel(state.season - 1) },
   })
 

@@ -32,6 +32,7 @@ import { tIn, type Vars } from './i18n'
 import { billOf, capPosition } from './cap'
 import { fmtMoney, fmtWage, squadTrust, type GameState } from './model'
 import { leaguePos } from './schedule'
+import { chairMemoRow } from './chairman'
 
 /** Three weeks off the awards beat, so the two never share an inbox. */
 export const MEMO_OFFSET = 3
@@ -250,6 +251,9 @@ export function boardMemo(state: GameState): void {
     bal: fmtMoney(club.balance), budget: fmtMoney(club.budget),
     bill: fmtMoney(bill), cap: fmtMoney(cap.cap ?? 0), room: fmtMoney(cap.headroom ?? 0),
   })
+  // the chairman's own line: what he asked about first (chairman.ts)
+  const chair = chairMemoRow(state)
+  if (chair) memoRows.push(chair)
 
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,

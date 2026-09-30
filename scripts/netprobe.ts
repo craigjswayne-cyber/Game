@@ -81,6 +81,9 @@ const ALLOWED: [string, RegExp][] = [
   // the game; nothing is sent with it and nothing fetches it. Exact code only:
   // another invite, another host or this one in another file still fails.
   ['src/game/community.ts', /https:\/\/discord\.gg\/3KKfDVsMb/g],
+  // and the bug-reports channel invite (1.8.2), the same kind of link, the
+  // same file, only the bug screen's Post on Discord button opens it
+  ['src/game/community.ts', /https:\/\/discord\.gg\/TWmWQxu38z/g],
 ]
 
 const strip = (src: string, file: string) => {

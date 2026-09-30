@@ -315,7 +315,7 @@ export function gameTimeReview(state: GameState): void {
       '',
       worst.mood === 'unhappy'
         ? `${worst.p.name} is the one to watch - another month of this and his agent starts dialling.`
-        : `Nobody has downed tools yet. Fix it with selection, or an honest word on Team ▸ Game Time.`,
+        : `Nobody has downed tools yet. Selection, or an honest word, can still fix it.`,
     ].join('\n'),
     k: rows.length > 3 ? 'news.ledgerMore' : 'news.ledger',
     v: {

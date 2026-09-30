@@ -62,12 +62,19 @@ export default function MentoringPanel() {
       <SectionTitle sub={free > 0 ? t('training.placesFree', { n: free, cap }) : t('training.placesNone', { cap })}>
         {t('training.mentoring')}
       </SectionTitle>
-      <div className="card" style={{ padding: '8px 10px', borderLeft: '4px solid var(--gold)' }}>
-        <div className="fact-label">{t('training.whoQualifies')}</div>
-        <div className="meta" style={{ fontSize: 12 }}>
-          {t('training.mentorRule', { kidAge: MENTEE_MAX_AGE, minAge: MENTOR_MIN_AGE, kids: MENTOR_MAX_KIDS, cap })}
+      {/* TWO LINES, THE REST ON REQUEST (owner, 1.8.2: "too much text"). The
+          full rules sit behind How it works for whoever wants them. */}
+      <div className="mentor-intro">
+        <div className="meta" style={{ fontSize: 12.5 }}>
+          {t('training.mentorShort', { kidAge: MENTEE_MAX_AGE, minAge: MENTOR_MIN_AGE })}
         </div>
-        <div className="meta" style={{ fontSize: 12, marginTop: 4 }}>{t('training.mentorEffect')} {t('training.mentorRamp')}</div>
+        <details className="mood-fold mentor-how">
+          <summary>{t('training.mentorHow')}</summary>
+          <div className="meta" style={{ fontSize: 12 }}>
+            {t('training.mentorRule', { kidAge: MENTEE_MAX_AGE, minAge: MENTOR_MIN_AGE, kids: MENTOR_MAX_KIDS, cap })}
+          </div>
+          <div className="meta" style={{ fontSize: 12, marginTop: 4 }}>{t('training.mentorEffect')} {t('training.mentorRamp')}</div>
+        </details>
       </div>
 
       {pairs.length > 0 && <SectionTitle>{t('training.pairsNow')}</SectionTitle>}
@@ -131,7 +138,8 @@ export default function MentoringPanel() {
           </div>
         )
       })}
-      {pairs.length === 0 && !kid && <div className="card meta" style={{ padding: '8px 10px', fontSize: 12 }}>{t('training.mentorEmpty')}</div>}
+      {/* the empty-state paragraph that sat here went with the Who qualifies
+          box (1.8.2): the line above already says what a pairing is */}
 
       <SectionTitle sub={free > 0 ? undefined : t('training.placesNone', { cap })}>{t('training.newPairing')}</SectionTitle>
       {free === 0 ? (

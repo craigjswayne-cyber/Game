@@ -19,7 +19,7 @@ import { AWARD_EVERY, managerOfMonth, runLine, runVars } from './awards'
 import { boardMemo } from './boardmemo'
 import { terraceWeek } from './terraces'
 import { upkeepWeek } from './upkeep'
-import {absWeek, addGrudge, boardObjective, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, buildWeeks, finalVenue, fixtureDayOff, fmtMoney, leagueTier, LEDGER_WEEKS, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, RELEGATES, SEASON_WEEKS, seasonLabel, squadTrust, stamp100, GROUND_TIERS, groundLevel, groundBuildWeeks, unbeatenRun, weeklyCentral, mgrWinWeight, addWeeks100 } from './model'
+import {absWeek, addGrudge, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, buildWeeks, finalVenue, fixtureDayOff, fmtMoney, leagueTier, LEDGER_WEEKS, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, RELEGATES, SEASON_WEEKS, seasonLabel, squadTrust, stamp100, GROUND_TIERS, groundLevel, groundBuildWeeks, unbeatenRun, weeklyCentral, mgrWinWeight, addWeeks100 } from './model'
 import { simMatch, autoSelect, pickTrainingInjury, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { BARRAGE_WEEK, windowSpan } from './calendar'
 import { emptyRow, leaguePos, sortTable, snIdFor, snWeeksFor, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS, W_AUTUMN_WEEKS, W_SIX_NATIONS_WEEKS, W_PAC4_WEEKS, W_SUMMER_TEST_WEEKS } from './schedule'
@@ -52,12 +52,15 @@ import { askBoard, type BoardAsk } from './boardroom'
 import { expireLoans, loanOutBoost, loanTargets } from './loans'
 import { FOCUS_MAX_AGE, focusIds } from './development'
 import { confidence, devHash, heavyLoad, planAffinity, weekGrowth } from './devproject'
-import { devNewsWeek } from './devnews'
+import { devNewsWeek, previewRead } from './devnews'
 import { refreshVacancies, sackManager } from './jobs'
 import { historyAfterMatch, historyPreview, historyWeight } from './history'
+import { arcAfterMatch, arcWeek } from './arc'
+import { chairSwing, demandedFinish } from './chairman'
 import { playAcademyWeek } from './academy'
 import { canBeMentored, mentorGraduations, mentorReports, mentorWeek } from './mentoring'
 import { bondsWeek, flushBondNews } from './bonds'
+import { roomTidy, roomWeek } from './room'
 import { t, tIn, type Vars } from './i18n'
 import { flushMemoryNews, memoryAfterMatch, memoryWeek, rememberPromise } from './memory'
 
@@ -901,12 +904,8 @@ function manageInternationals(state: GameState, rng: Rng) {
             },
             body: [
               `The federation has published your ${travelling.length}-man squad for the window. ${newCaps ? `${newCaps} uncapped name${newCaps > 1 ? 's' : ''} in the room.` : 'A fully capped group.'}`,
-              '',
-              `FORWARDS: ${fwd.map(line).join('; ')}`,
-              '',
-              `BACKS: ${bks.map(line).join('; ')}`,
-              '',
-              'Shape the squad and pick your Test XV from the Club & Country screen before each match.',
+              `Forwards | ${fwd.map(line).join('; ')}`,
+              `Backs | ${bks.map(line).join('; ')}`,
             ].join('\n'),
           })
         }
@@ -1176,7 +1175,7 @@ function weeklyTraining(state: GameState, rng: Rng) {
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'contract', read: false,
         subject: `${p.name} wants improved terms`,
-        body: `${p.name}'s agent has been on the phone: his client is playing the house down (avg ${(p.stats.ratingSum / Math.max(1, p.stats.apps)).toFixed(2)}) on ${fmtMoney(p.wage)}/week, and the market rate is well north of that. He has ${p.contractEnds - state.season} year${p.contractEnds - state.season > 1 ? 's' : ''} left, but leave it unresolved and his head will drop - and other clubs will smell it. Offer a new deal from his player page.`,
+        body: `${p.name}'s agent has been on the phone: his client is playing the house down (avg ${(p.stats.ratingSum / Math.max(1, p.stats.apps)).toFixed(2)}) on ${fmtMoney(p.wage)}/week, and the market rate is well north of that. He has ${p.contractEnds - state.season} year${p.contractEnds - state.season > 1 ? 's' : ''} left, but leave it unresolved and his head will drop - and other clubs will smell it.`,
         k: 'news.wantsTerms',
         v: {
           player: p.name, avg: (p.stats.ratingSum / Math.max(1, p.stats.apps)).toFixed(2),
@@ -1381,7 +1380,7 @@ function weeklyTraining(state: GameState, rng: Rng) {
           state.news.push({
             id: state.nextId++, week: state.week, season: state.season, type: 'contract', read: false,
             subject: `${p.name}'s agent goes public`,
-            body: `Two months of silence from the club, so the agent has taken it to the papers: "${p.name} is one of the best-performing players in the league and the club knows our position." Rival clubs will have noticed. Sort a new deal on his player page - or brace for bids.`,
+            body: `Two months of silence from the club, so the agent has taken it to the papers: "${p.name} is one of the best-performing players in the league and the club knows our position." Rival clubs will have noticed. Sort a new deal, or brace for bids.`,
             k: 'news.agentPublic',
             v: { player: p.name },
             playerId: p.id,
@@ -1659,6 +1658,7 @@ export function afterClubMatch(state: GameState, fx: Fixture) {
   if (!club || fx.compId === 'fr') return
   memoryAfterMatch(state, fx) // a man you let go comes back to hurt you (memory.ts)
   historyAfterMatch(state, fx) // the club's memory: tenure, legends, records (history.ts)
+  arcAfterMatch(state, fx) // the career arc: the coach opposite, the era's book (arc.ts), no rng
   const isHome = fx.homeId === club.id
   const oppId = isHome ? fx.awayId : fx.homeId
   const opp = state.clubs[oppId]
@@ -1956,7 +1956,10 @@ function boardReaction(state: GameState, fx: Fixture, delegated = false) {
   // the existing diff-term asymmetry intact: diff already makes an upset WIN
   // worth little to a giant and an upset LOSS cost it dearly; patienceF just
   // turns the whole boardroom's volume up or down around that.
-  const patienceF = boardPatience(club.rep)
+  // and THE MAN IN THE CHAIR (chairman.ts): a stability chairman is a shade
+  // calmer about a result, an ambitious one a shade louder, and a newcomer's
+  // board is in a hurry. Hidden, and a tenth either way at most.
+  const patienceF = boardPatience(club.rep) * chairSwing(state)
   if (us > them) club.boardConfidence = clamp(club.boardConfidence + mag * derbyF * ownerF * stanceF * patienceF, 0, 100)
   else if (us < them) club.boardConfidence = clamp(club.boardConfidence - mag * derbyF * ownerF * stanceF * patienceF, 0, 100)
 
@@ -2424,7 +2427,8 @@ function boardReadsTheTable(state: GameState, lean = 1) {
   const posNow = leaguePos(comp.table, club.id)
   if (posNow <= 0) return
   const tableLen = comp.table.length
-  const objPos = Math.min(boardObjective(club.rep, tableLen).pos, tableLen)
+  // the aim for the kind of job this is (chairman.ts), not stature alone
+  const objPos = Math.min(demandedFinish(state, club.id, tableLen).pos, tableLen)
   const devFrac = (posNow - objPos) / Math.max(1, tableLen - 1)
   const patience = boardPatience(club.rep)
   const floor = clamp(30 - patience * 14, 2, 26)
@@ -2860,7 +2864,7 @@ export function processWeekAndAdvance(state: GameState) {
         body: [
           `The physio's board makes grim reading at ${tIn('en', grp.label)}: ${fit.length} fit of ${all.length} on the books.${down.length ? ` Out: ${down.join(', ')}.` : ''}`,
           cover.length
-            ? `The assistant has three calls he could make tonight - loan cover available: ${cover.map(p => `${p.name} (${p.pos}, ${p.age}, ${state.clubs[p.clubId!]?.short})`).join(', ')}. Transfers screen, Loans tab.`
+            ? `The assistant has three calls he could make tonight - loan cover available: ${cover.map(p => `${p.name} (${p.pos}, ${p.age}, ${state.clubs[p.clubId!]?.short})`).join(', ')}.`
             : `The loan market has nothing suitable this week. Youth, patience, or a positional reshuffle - your call.`,
         ].join('\n'),
         k: cover.length ? 'news.crisisCover' : 'news.crisis',
@@ -3308,9 +3312,12 @@ export function processWeekAndAdvance(state: GameState) {
     const cls = rollIntakeClass(state, rng)
     if (cls.length) {
       state.intakeClass = cls
-      const best = Math.max(...cls.map(c => c.pa))
+      // the coach's READ of the class (1.8.2): a teenager's ceiling is an
+      // estimate, so the preview grades what he believes, not the number
+      const read = (c: { name: string; pa: number }) => previewRead(state.seed, c.name, c.pa)
+      const best = Math.max(...cls.map(read))
       const grade = best >= 96 ? 'A' : best >= 90 ? 'B' : best >= 82 ? 'C' : best >= 74 ? 'D' : 'E'
-      const star = cls.reduce((a, b) => (b.pa > a.pa ? b : a))
+      const star = cls.reduce((a, b) => (read(b) > read(a) ? b : a))
       const GROUP: Record<string, string> = {
         LP: 'news.unitFront', HK: 'news.unitFront', TP: 'news.unitFront', LK: 'news.unitSecond',
         FL: 'news.unitBack', N8: 'news.unitBack', SH: 'news.unitHalf', FH: 'news.unitHalf',
@@ -4058,8 +4065,8 @@ export function processWeekAndAdvance(state: GameState) {
         id: state.nextId++, week: state.week, season: state.season, type: 'contract', read: false,
         subject: `${expiring.length} contract${expiring.length > 1 ? 's' : ''} expiring`,
         body: `${tIn('en', rung[1])} until these deals end: ${named.map(p => `${p.name} (${p.pos}, ${p.age})`).join(', ')}`
-          + `${expiring.length > named.length ? ` and ${expiring.length - named.length} more - full list on Team ▸ Contracts` : ''}.`
-          + ` Offer new terms from their profiles, or they are free to talk to anyone.`,
+          + `${expiring.length > named.length ? ` and ${expiring.length - named.length} more` : ''}.`
+          + ` Without new terms, they are free to talk to anyone.`,
         k: expiring.length > named.length ? 'news.expiringMore' : 'news.expiring',
         v: {
           n: expiring.length, more: expiring.length - named.length,
@@ -4096,7 +4103,7 @@ export function processWeekAndAdvance(state: GameState) {
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
       subject: `${nat} want you as national head coach`,
-      body: `The union has been watching your work and wants you to take the national side alongside your club job - Test windows, championship campaigns, maybe a World Championship. Accept or decline from your Manager Profile. The offer won't stay open long.`,
+      body: `The union has been watching your work and wants you to take the national side alongside your club job - Test windows, championship campaigns, maybe a World Championship. The offer won't stay open long.`,
       k: 'news.natOffer', v: { nat },
     })
   }
@@ -4111,7 +4118,7 @@ export function processWeekAndAdvance(state: GameState) {
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
           subject: `${nat} want you as national head coach`,
-          body: `The union has been watching your work and wants you to take the national side alongside your club job - Test windows, championship campaigns, maybe a World Championship. Accept or decline from your Manager Profile. The offer won't stay open long.`,
+          body: `The union has been watching your work and wants you to take the national side alongside your club job - Test windows, championship campaigns, maybe a World Championship. The offer won't stay open long.`,
           k: 'news.natOffer', v: { nat },
         })
       }
@@ -4299,6 +4306,8 @@ export function processWeekAndAdvance(state: GameState) {
         })
       }
     }
+    // a dressing-room question left from last week is gone (room.ts)
+    roomTidy(state)
     generatePress(state, rng)
     // the dressing room's own ledger (pillar 1): incidents surface, unanswered
     // ones fester, and the senior players knock when the room has had enough
@@ -4419,6 +4428,9 @@ If you go, your assistant takes your national side for the duration. Nobody prep
     mentorReports(state)
     // the development staff's word on a breakthrough or a stall (devnews.ts)
     devNewsWeek(state)
+    // the office's hard calls and the room's culture (room.ts): before the
+    // bonds pass, whose last XV it reads to see who was left out
+    roomWeek(state)
     // the dressing room's friendships, rivalries and cliques (bonds.ts)
     bondsWeek(state)
   }
@@ -4567,6 +4579,7 @@ If you go, your assistant takes your national side for the duration. Nobody prep
   flushMemoryNews(state) // memory.ts stories held through the settle take their ids now
   flushBondNews(state) // and the dressing room's (bonds.ts)
   flushIdentityNews(state) // and identity.ts's, the same way (heldnews.ts)
+  arcWeek(state) // the career arc: rival coaches, ambitions, and its held stories (arc.ts)
 
   // (derby build-up now lives in the pre-advance block above, with the
   // all-time ledger - the old duplicate beat here was removed)

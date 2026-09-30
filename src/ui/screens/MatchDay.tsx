@@ -1668,7 +1668,9 @@ function Live() {
       { try: t('hl.try'), review: t('hl.review'), notry: t('hl.notry'), good: t('hl.good'), wide: t('hl.wide'),
         turnover: t('hl.turnover'), saved: t('hl.saved') },
       pid => (pid != null ? game.players[pid]?.name : undefined),
-      (home, shirt) => { const id = (home ? ctx.home : ctx.away).lineup[shirt - 1]; return id != null ? game.players[id]?.a.pac : undefined })
+      (home, shirt) => { const id = (home ? ctx.home : ctx.away).lineup[shirt - 1]; return id != null ? game.players[id]?.a.pac : undefined },
+      // how each side attacks and defends, for the clip's shapes (1.8.2)
+      home => game.clubs[home ? fixture.homeId : fixture.awayId]?.tactic)
     // the clip starts with its build-up, so the commentary never jumps: the
     // ticker reads on until it reaches the first line of it (in Key Moments,
     // which skips lines anyway, it is brought straight there)

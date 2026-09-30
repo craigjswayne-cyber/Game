@@ -3278,6 +3278,43 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .reader p { font-size: 14px; line-height: 1.6; margin: 0 0 10px; color: var(--text-primary); }
 .reader p:last-of-type { margin-bottom: 2px; }
 
+/* ---- a story that carries data (NewsBody, 1.8.2) --------------------------
+   Owner: "news stories are messy and hard to read". Facts as rows, lists as
+   lists, voices as quotes; the reader and the Wire share all three. */
+.news-facts {
+  margin: 0 0 10px; padding: 0;
+  border-top: 1px solid var(--border);
+}
+.news-fact {
+  display: flex; gap: 12px; align-items: baseline;
+  padding: 6px 0; border-bottom: 1px solid var(--border);
+  font-size: 14px; line-height: 1.4;
+}
+.news-fact dt {
+  flex: 0 0 38%; max-width: 150px; margin: 0;
+  color: var(--text-muted); font-size: 12.5px; font-weight: 600;
+}
+.news-fact dd { flex: 1 1 auto; min-width: 0; margin: 0; color: var(--text-primary); overflow-wrap: anywhere; }
+.news-fact dd::first-letter, .news-fact dt::first-letter { text-transform: uppercase; }
+.news-list { margin: 0 0 10px; padding: 0; list-style: none; border-top: 1px solid var(--border); }
+.news-list li {
+  padding: 6px 0; border-bottom: 1px solid var(--border);
+  font-size: 14px; line-height: 1.4; color: var(--text-primary);
+}
+.news-quotes { margin: 0 0 10px; }
+.news-quotes blockquote {
+  margin: 0 0 6px; padding: 2px 0 2px 10px;
+  border-left: 3px solid var(--gold);
+  font-size: 14px; line-height: 1.5; font-style: italic; color: var(--text-secondary);
+}
+.wire-body .news-fact, .wire-body .news-list li, .wire-body .news-quotes blockquote { font-size: 14px; }
+/* the address never breaks across two lines on a phone (owner, 1.8.2) */
+.bug-mail { white-space: nowrap; }
+/* and no button label breaks mid-word ("E-/mail" at 360px): the row wraps instead */
+.bug-send { flex-wrap: wrap; }
+.bug-send .btn { flex: 1 1 auto; white-space: nowrap; }
+.news-go { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; margin: 10px 0 0; padding: 0 14px; font-size: 13px; }
+
 /* ---- people named in a story (feedback 10F) -----------------------------
    A story already knows who it is about; it just never offered them. */
 /* The people named in a story, as one row (user: "all clickable names with
@@ -4469,6 +4506,8 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .mood-fold { margin: 6px 0 2px; }
 .mood-fold > summary { cursor: pointer; font-weight: 700; font-size: 13px; padding: 6px 0; color: var(--info); }
 .mood-fold .mood-wrap { padding: 0 0 6px; }
+.mentor-intro { margin: 0 14px 8px; }
+.mentor-how { margin: 2px 0 0; }
 
 /* ---- the story and what it is about, side by side (1.8.0, ContextCard.tsx) ----
  * One column on a phone held upright (the card follows the story); two once

@@ -30,6 +30,7 @@
  */
 import type { GameState, Player } from './model'
 import { t } from './i18n'
+import { eraSigning } from './erastory'
 
 export interface RecordBook {
   biggestWin?: { oppId: string; us: number; them: number; season: number }
@@ -79,6 +80,7 @@ export function offerSigning(state: GameState, playerId: number, fee: number): v
   if (!r.recordSigning || fee > r.recordSigning.fee) {
     r.recordSigning = { playerId, fee, season: state.season }
   }
+  eraSigning(state, playerId, fee) // and this job's own book (erastory.ts)
 }
 
 /**

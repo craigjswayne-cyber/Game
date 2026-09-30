@@ -16,6 +16,15 @@ import { absWeek } from './model'
 import { devPhase, learning } from './devproject'
 import { paRange, scoutPa } from './scout'
 import { tIn } from './i18n'
+import { clamp, hashString, mulberry32 } from './rng'
+
+/** The academy coach's read of a ceiling in next summer's class, before the
+ *  lad is a player at all: the truth with a fixed error of up to five either
+ *  way, per name, so the week-30 preview grades a belief like everything else. */
+export function previewRead(seed: number, name: string, pa: number): number {
+  const u = mulberry32((seed ^ hashString(`preview|${name}`)) >>> 0)()
+  return clamp(Math.round(pa + (u * 2 - 1) * 5), 1, 99)
+}
 
 const band = (r: [number, number] | null) => (r ? (r[0] === r[1] ? `${r[0]}` : `${r[0]}-${r[1]}`) : '?')
 

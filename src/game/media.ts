@@ -3,6 +3,8 @@ import { subjectVar } from './gender'
 import {absWeek, SEASON_WEEKS, fmtMoney, formGuide, logDecision, poss, weeksBetween100, stamp100 } from './model'
 import { loanOut } from './loans'
 import { academyCalls, acadCallLive, resolveAcadCall } from './acadcall'
+import { resolveRoom, roomLive } from './room'
+import { remember } from './memory'
 import { dropSlotQuestion, offersFor, signOffer, slotSignable, type SlotId } from './commercial'
 import { derbyName, isDerby } from './rivalries'
 import { nationByCode, nationNameIn, nationVars } from './nations'
@@ -1201,6 +1203,11 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
     state.press = state.press.filter(q => q.id !== item.id)
     return
   }
+  // and a dressing-room call about a man it can no longer act on (room.ts)
+  if (opt.room && !roomLive(state, item, opt)) {
+    state.press = state.press.filter(q => q.id !== item.id)
+    return
+  }
   item.answered = true
   item.answerLabel = opt.label
   item.alk = opt.lk; item.alv = opt.lv
@@ -1261,6 +1268,8 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
   }
   // the summer academy decision is carried out as it was quoted (acadcall.ts)
   if (opt.acad) resolveAcadCall(state, item, opt)
+  // the office's risk-and-reward calls: the split, renewal, the early return
+  if (opt.room) resolveRoom(state, item, opt)
   // "Agree - a loan makes sense" now agrees to a loan. It used to be a mood
   // adjustment and a note telling the manager to go and do it himself, which is
   // how a prospect came back the following week asking for the thing his boss
@@ -1274,6 +1283,7 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
       item.reaction = tIn('en', item.rk, item.rv)
     } else {
       logDecision(state, 'dec.agreedLoan', { player: state.players[item.playerId]?.name ?? '' }, true)
+      remember(state, { kind: 'acad-loaned', playerId: item.playerId, clubId: state.userClubId, payload: { name: state.players[item.playerId]?.name ?? '' }, sal: 1 })
     }
   }
   // TALK-BACK (1.7.3): an office answer with a tag is settled by who he is,
