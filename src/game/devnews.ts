@@ -94,3 +94,21 @@ export function devNewsWeek(state: GameState) {
     return
   }
 }
+
+/** The development staff's inbox items (this file and rollover's review). */
+export const DEV_NEWS_KEYS = new Set(['news.intakePicks', 'news.devReview', 'news.devBreakthrough', 'news.devStalled', 'news.devStalledMins'])
+
+/**
+ * Over the inbox's ceiling, the development notes the manager has already
+ * seen (or the secretary has filed) are the first to go, oldest first, so the
+ * staff's weekly word never evicts a rarer story. Only as many as the excess;
+ * the ordinary oldest-first trim does the rest.
+ */
+export function trimDevFirst(state: GameState, keep: number) {
+  let over = state.news.length - keep
+  if (over <= 0) return
+  state.news = state.news.filter(n => {
+    if (over > 0 && DEV_NEWS_KEYS.has(n.k ?? '') && (n.read || n.cleared)) { over--; return false }
+    return true
+  })
+}
