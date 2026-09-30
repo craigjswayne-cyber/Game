@@ -82,7 +82,7 @@ export default function MovesSection({ game, club, touch }: { game: GameState; c
   const lo = tac.lineoutCall ?? DEFAULT_LINEOUT, sc = tac.scrumCall ?? DEFAULT_SCRUM
 
   return <>
-    <SectionTitle>{t('moves.heading')}</SectionTitle>
+    <SectionTitle sub={t('moves.headingSub')}>{t('moves.heading')}</SectionTitle>
     <div className="card mv-card" data-moves={which}>
       <div className="meta">{t('moves.rule')}</div>
       <div className="mv-calls">

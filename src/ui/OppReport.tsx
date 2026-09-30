@@ -5,7 +5,8 @@
  *
  * No new screen: both halves fold into cards the manager already reads. Both
  * are compact at phone width - the report shows four lines and folds the rest
- * away, and the plans are the same tile the prep focus uses.
+ * away. Since 1.8.3 the plans are a row of chips on the Prep tab and the
+ * report sits behind that tab's info button.
  */
 import { useState } from 'react'
 import { useStore } from '../store'
@@ -39,10 +40,49 @@ function planDesc(o: PlanOption): string {
   return t(`oppreport.planDesc_${o.id}`, { unit })
 }
 
-/** The report and the plan, for the Prep tab. Renders nothing without a match. */
-export function OppReportCard() {
+/** Who the Prep tab is preparing for this week, or null without a match. */
+export function usePrepOpponent(): string | null {
+  const game = useStore(s => s.game)!
+  const fx = userMatchThisWeek(game)
+  const oppId = fx ? opponentIn(game, fx) : null
+  return oppId ? teamShort(game, oppId) : null
+}
+
+/** THE RESPONSE PLANS, AS CHIPS (owner, 1.8.3: "Prep page - simplify, too
+ *  much text, just a few options to select"). The name of each plan and
+ *  nothing else; the one the club is carrying says what it set, in one line.
+ *  What each is for is in the report behind the Prep tab's info button. */
+export function ResponsePlans() {
   const game = useStore(s => s.game)!
   const touch = useStore(s => s.touch)
+  const fx = userMatchThisWeek(game)
+  const oppId = fx ? opponentIn(game, fx) : null
+  if (!fx || !oppId || !isClubFixture(game, fx)) return null
+  const opts = planOptions(game, fx)
+  if (!opts.length) return null
+  const on = opts.find(o => isCurrent(game, oppId, o))
+  return (
+    <div className="prep-plans">
+      <div className="preset-row" role="radiogroup" aria-label={t('oppreport.planTitle')}>
+        {opts.map(o => {
+          const sel = o === on
+          return (
+            <button key={o.id} className={`preset-chip${sel ? ' on' : ''}`} role="radio" aria-checked={sel} data-plan={o.id}
+              onClick={() => { if (!sel) { applyPlan(game, fx, o); touch() } }}>
+              {t(`oppreport.plan_${o.id}`)}
+            </button>
+          )
+        })}
+      </div>
+      {on && <div className="meta prep-line" data-plan-on={on.id}>{leverLine(on.levers)}</div>}
+    </div>
+  )
+}
+
+/** The opposition report, for the Prep tab's info panel. Renders nothing
+ *  without a match. */
+export function OppReportCard() {
+  const game = useStore(s => s.game)!
   const rewardTapeRoom = useStore(s => s.rewardTapeRoom)
   const [more, setMore] = useState(false)
   const [note, setNote] = useState<string | null>(null)
@@ -91,24 +131,16 @@ export function OppReportCard() {
         </button>
       )}
       {!club && <div className="meta" style={{ marginTop: 6, fontSize: 12 }}>{t('oppreport.testNote')}</div>}
+      {/* what the plan chips on the page do, said once, here (1.8.3) */}
       {opts.length > 0 && (
         <>
           <div className="fact-label" style={{ marginTop: 8 }}>{t('oppreport.planTitle')}</div>
+          {opts.map(o => (
+            <div key={o.id} className="meta" style={{ fontSize: 12, padding: '2px 0' }}>
+              <b>{t(`oppreport.plan_${o.id}`)}.</b> {planDesc(o)}
+            </div>
+          ))}
           <div className="meta muted" style={{ fontSize: 11 }}>{t('oppreport.planSub')}</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 6, marginTop: 6 }}>
-            {opts.map(o => {
-              const on = isCurrent(game, oppId, o)
-              return (
-                <button key={o.id} className={`speech-tile${on ? ' sel' : ''}`} aria-pressed={on} data-plan={o.id}
-                  style={{ textAlign: 'left' }}
-                  onClick={() => { if (!on) { applyPlan(game, fx, o); touch() } }}>
-                  <b>{t(`oppreport.plan_${o.id}`)}{on ? ` · ${t('oppreport.planOn')}` : ''}</b>
-                  <span className="d">{planDesc(o)}</span>
-                  <span className="d" style={{ opacity: 0.85 }}>{leverLine(o.levers)}</span>
-                </button>
-              )
-            })}
-          </div>
         </>
       )}
     </div>
