@@ -2019,7 +2019,7 @@ function Live() {
           happens"). A tablet keeps its stats beside the feed below. */}
       {!panelActive && clip && (
         <HighlightClip key={clip.at} spec={clip.spec} paused={!playing}
-          speed={[1.25, 0.82, 0.8][speedIdx] ?? 1}
+          speed={[1.25, 0.9, 0.8][speedIdx] ?? 1}
           onReveal={revealTo}
           onDone={() => setClip(null)} />
       )}
