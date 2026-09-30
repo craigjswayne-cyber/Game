@@ -129,8 +129,6 @@ async function walk(width, night) {
   await check('squad-gametime', async () => {
     await page.click('.tab-bar >> text=Game Time')
     await page.waitForTimeout(200)
-    const all = page.locator('.preset-chip', { hasText: 'Needs a word' })
-    if (await all.count()) await all.click()
   })
   await check('transfers', () => go('transfers'))
   await check('transfers-contract', () => page.locator('select:has(option[value="contract"])').selectOption('contract'))

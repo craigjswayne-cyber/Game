@@ -4503,7 +4503,6 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
   border-radius: 8px; background: var(--surface-3); color: var(--text-primary); font-size: 12px;
 }
 .depth-man .depth-ca { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--gold); }
-.depth-man.cover .depth-name { font-style: italic; }
 .depth-man.out { opacity: .55; }
 .depth-man .depth-why { font-size: 11px; color: var(--text-negative); font-weight: 700; }
 .depth-warn { margin-top: 6px; color: var(--text-negative); font-weight: 600; }
@@ -5218,7 +5217,12 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .celebrate-ico .glyph, .sack-ico .glyph { vertical-align: 0; }
 .mark { display: inline-flex; font-size: 1em; }
 .hub-widget .mood-dot { width: 14px; height: 14px; }
-.gt-mood { white-space: nowrap; font-size: 12px; }
+.gt-mood { white-space: nowrap; font-size: 12px; overflow: hidden; text-overflow: ellipsis; }
+/* the game-time headings wrap inside their own column rather than painting
+   across the next one (owner, round 2: "NAM HE WAS TOLD"), and the status
+   select is as wide as its column, never wider */
+.dtable.fit .gt-head th { white-space: normal; overflow: hidden; overflow-wrap: anywhere; line-height: 1.15; vertical-align: bottom; }
+.dtable.fit .gt-sel { width: 100%; max-width: 100%; text-overflow: ellipsis; }
 .gt-mood .status-dot { width: 9px; height: 9px; vertical-align: 0; }
 .preset-chip .glyph { font-size: 1.3em; vertical-align: -0.28em; }
 
@@ -5318,3 +5322,23 @@ a.btn.home-community {
   box-sizing: border-box; color: var(--text-primary); border-color: var(--border-strong);
 }
 .home-community svg { width: 18px; height: 18px; flex: none; }
+
+/* ================= SQUARE LEFT BARS (owner, round 2) =================
+   The owner likes the bar on the desk's next-match block: flat, flush with the
+   box's edge, square at both ends. Every other coloured left bar sat on a box
+   with rounded corners, so the border bent round them into a curved bar (the
+   Dream card on Home, the news chips, the staff and medical banners). One rule
+   squares the LEFT corners of every box that carries a bar, the same way
+   .desk-match does, whether the bar comes from a class here or from an inline
+   style on a screen; the right-hand corners keep their radius. A class whose
+   bar is transparent until it is switched on (.depth-row, .inbox-li) is only
+   squared while the bar shows. */
+[style*="border-left"],
+.tick-event, .store-card, .challenge-card, .wire-card.unread, .desk-match,
+.resume-note, .now-line, .sheet-casualty, .inbox-cue, .news-quotes blockquote,
+.who-chip, .first-hint, .talk-said, .day-draw, .draw-verdict, .fix-grade,
+.respect-line, .temper-card .bench-note, .dev-card, .depth-row.thin,
+.inbox-li.on, .feed-line {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
