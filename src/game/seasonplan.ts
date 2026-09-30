@@ -39,6 +39,7 @@ import type { Fixture, GameState, Player, Pos } from './model'
 import { XV_SLOTS } from './model'
 import { assistantJudgement, autoSelect, availablePlayers } from './matchEngine'
 import { splitFor } from './bench'
+import { effAt } from './attributes'
 import { statusOf } from './gametime'
 
 export type RotIntent = 'strongest' | 'balanced' | 'protect'
@@ -111,18 +112,43 @@ export function setSeasonPlan(state: GameState, order: string[], rot: RotIntent)
   applyPlanSheet(state)
 }
 
-// Rest a first-choice man when his condition, after the week's recovery, is
-// below this. Rows are tiers, columns are strongest / balanced / protect.
-const REST_BELOW: Record<Tier, [number, number, number]> = {
-  high: [0, 55, 65],
-  mid: [55, 72, 82],
-  low: [65, 88, 95],
+// WHO SITS OUT (1.8.2, remeasured after the styles merge). The first cut
+// rested on condition thresholds, tight in the top competition and loose in
+// the bottom one, and over 28 paired seasons the side that ranked the league
+// LAST won 6.8 more league points than the side that ranked it first: tired
+// legs cost a match far more than a man's ability is worth, so the loose
+// thresholds were the better way to run the league and the top competition got
+// the worse of it. Two rules now, one for each half of the bargain:
+//
+//   THE BEST SIDE ON THE DAY, everywhere. A man sits out when the best fresh
+//   natural behind him scores better for this match on the legs each will
+//   have by the weekend. The weighing leans on condition much harder than
+//   autoSelect's (COND_W), because the engine does: a tired man starts on less
+//   petrol as well as playing below his numbers. Lower down the order the
+//   assistant takes a slightly weaker side for fresher legs (REST_MARGIN).
+//
+//   SPARING THE BEST, below the top. In a lower-ranked competition the best
+//   men in the side (the key men first, under "Protect key men") sit out even
+//   fresh, PREEMPT of them, so they reach the competition that matters with
+//   the week's legs in them. That is the real cost: a weaker side, on purpose.
+//
+// Rows are tiers, columns are strongest / balanced / protect.
+const COND_W = 0.6
+const REST_MARGIN: Record<Tier, [number, number, number]> = {
+  high: [-0.04, 0, 0],
+  mid: [0, 0.02, 0.03],
+  low: [0.02, 0.04, 0.05],
 }
-// and never more than this many of the first-choice XV in one week
+const PREEMPT: Record<Tier, [number, number, number]> = {
+  high: [0, 0, 0],
+  mid: [0, 1, 2],
+  low: [0, 3, 5],
+}
+// and never more than this many of the XV in one week
 const REST_MAX: Record<Tier, [number, number, number]> = {
-  high: [0, 3, 4],
-  mid: [3, 5, 7],
-  low: [4, 8, 10],
+  high: [4, 6, 6],
+  mid: [5, 7, 8],
+  low: [6, 9, 11],
 }
 /** the weekly recovery the sheet is picked ahead of (season.ts, base rate) */
 const WEEK_REC = 22
@@ -141,12 +167,13 @@ function standing(state: GameState): (number | null)[] | null {
 }
 
 /**
- * The men the assistant would rest for this fixture. Chosen from the XV of
- * his standing side (or, before he has one, the honest first-choice XV), most
- * tired first (key men first under "Protect key men"), and never so many at
- * one position that a shirt falls to a man out of position: that sheet would
- * be judged stale on the way to the pitch and the rest undone (matchEngine
- * lineupFor).
+ * The men the assistant would rest for this fixture, out of the XV of his
+ * standing side (or, before he has one, the honest first-choice XV). Each is
+ * weighed against the best fresh natural for his shirt, the one who would
+ * take it, and never so many at one position that a shirt falls to a man out
+ * of position: that sheet would be judged stale on the way to the pitch and
+ * the rest undone (matchEngine lineupFor). Below the top competition some of
+ * the best men are spared outright (PREEMPT).
  */
 export function restList(state: GameState, fx: Fixture | undefined): Player[] {
   const plan = state.seasonPlan
@@ -158,22 +185,43 @@ export function restList(state: GameState, fx: Fixture | undefined): Player[] {
   const pool = availablePlayers(state, club.players, false).filter(p => !p.acad)
   if (pool.length < 26) return []
   const inPool = new Set(pool.map(p => p.id))
-  const first = (standing(state) ?? autoSelect(state, pool, splitFor(club))).slice(0, 15)
-    .filter((id): id is number => id != null && inPool.has(id)).map(id => state.players[id])
+  const xv = (standing(state) ?? autoSelect(state, pool, splitFor(club))).slice(0, 15)
+  const inXv = new Set(xv.filter((id): id is number => id != null))
   const proj = (p: Player) => Math.min(100, p.cond + WEEK_REC)
+  // the day's worth, on the legs he will have by the weekend
+  const score = (p: Player, pos: Pos) => effAt(p, pos) * (1 - COND_W + COND_W * (proj(p) / 100)) * (0.85 + 0.03 * p.form)
   const key = (p: Player) => plan.rot === 'protect' && statusOf(state, club, p) === 'key'
-  const below = REST_BELOW[tier][col]
-  const cands = first.filter(p => {
-    if (key(p) && tier !== 'high') return tier === 'low' || proj(p) < below + 10
-    return proj(p) < below
-  }).sort((a, b) => (key(b) ? 1 : 0) - (key(a) ? 1 : 0) || proj(a) - proj(b) || a.id - b.id)
+  const margin = REST_MARGIN[tier][col]
+  // the men to spare in a lower-ranked competition: key men first under
+  // "Protect key men", then the best in the side
+  const spare = new Set(xv.filter((id): id is number => id != null && inPool.has(id)).map(id => state.players[id])
+    .sort((a, b) => (key(b) ? 1 : 0) - (key(a) ? 1 : 0) || b.ca - a.ca || a.id - b.id)
+    .slice(0, PREEMPT[tier][col]).map(p => p.id))
+  const cands: { p: Player; gain: number; cover: Player }[] = []
+  const taken = new Set<number>()
+  xv.forEach((id, i) => {
+    if (id == null || !inPool.has(id)) return
+    const p = state.players[id]
+    const pos = XV_SLOTS[i].pos
+    let cover: Player | null = null
+    for (const c of pool) {
+      if (c.pos !== pos || inXv.has(c.id)) continue
+      if (!cover || score(c, pos) > score(cover, pos)) cover = c
+    }
+    if (!cover) return
+    const gain = score(cover, pos) * (1 + margin + (spare.has(p.id) ? 1 : 0)) - score(p, pos)
+    if (gain > 0) cands.push({ p, gain, cover })
+  })
+  cands.sort((a, b) => b.gain - a.gain || a.p.id - b.p.id)
   const rested: Player[] = []
   const left = new Map<Pos, number>()
   for (const p of pool) left.set(p.pos, (left.get(p.pos) ?? 0) + 1)
-  for (const p of cands) {
+  for (const { p, cover } of cands) {
     if (rested.length >= REST_MAX[tier][col]) break
+    if (taken.has(cover.id)) continue
     if ((left.get(p.pos) ?? 0) - 1 < needAt(p.pos)) continue
     left.set(p.pos, (left.get(p.pos) ?? 0) - 1)
+    taken.add(cover.id)
     rested.push(p)
   }
   return rested

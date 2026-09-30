@@ -5,12 +5,13 @@ import { rewardedAvailable } from '../../game/monetise'
 import { AdSlot } from '../AdSlot'
 import {
   matchStats, visitsTo22, goalKicker, teamShort, teamUnits, rosterOf, assistantJudgement, autoSelect, availablePlayers,
-  refFor, refNotes, homeCrowdLean, frontRowCover, repairSheet, rollWeather, sideEnergy, MAX_SUBS, type LiveCtx, type SideCtx,
+  refFor, refNotes, homeCrowdLean, frontRowCover, repairSheet, sideEnergy, MAX_SUBS, type LiveCtx, type SideCtx,
 } from '../../game/matchEngine'
 import { MIDWEEK_OFF, BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, chemKey, clubCode, chemTier, eventText, injuryDesc, fixtureDate, fixtureDayOff, grudgeBetween, inRedZone, oldBoyApps, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
 import { BRIEF_BY_ID, SPLIT_BY_ID, benchSeats, briefForSeat, splitFor } from '../../game/bench'
 import { BriefIcon } from '../tacticsArt'
-import { assistantFixtureThisWeek, isKnockoutTie, matchRng, userMatchThisWeek } from '../../game/season'
+import { assistantFixtureThisWeek, isKnockoutTie, userMatchThisWeek } from '../../game/season'
+import { halfTimeHints, matchConditions, surfKey, surfaceNote, surfaceOf, wxEffectKey } from '../../game/conditions'
 import { effAt } from '../../game/attributes'
 import { fuzzedCa } from '../../game/scout'
 import { PRESETS, SLIDER_INFO, sliderReadout, type SliderKey } from '../../game/tactics'
@@ -37,7 +38,7 @@ import { kitColours, luma, pageSpares } from '../kit'
 import { IcoFastForward, IcoPause, IcoPeople, IcoPlay } from '../icons'
 import { Glyph } from '../glyphs'
 
-const WEATHER_ICON: Record<string, string> = { Dry: 'sun', Rain: 'rain', Wind: 'wind', Snow: 'snow' }
+const WEATHER_ICON: Record<string, string> = { Dry: 'sun', Damp: 'rain', Rain: 'rain', Wind: 'wind', Snow: 'snow' }
 
 /** The forecast in words. The VALUE stays English everywhere it is stored or
  *  compared - the engine reads fixture.weather - and only the label moves. */
@@ -353,7 +354,9 @@ function Preview({ fxId }: { fxId: number }) {
   }
 
   // the assistant reads the matchup and proposes a game plan in plain English
-  const forecast = rollWeather(game.week, matchRng(game))
+  // THE DAY ITSELF (conditions.ts): the fixture's conditions by a hash of
+  // where and when it is played, so the forecast is what the match will get
+  const forecast = matchConditions(game, fx)
   const matchRef = refFor(fx.id)
   const oppCond = (() => {
     const xv = oppLineup.slice(0, 15).map(id => id != null ? game.players[id] : null).filter(Boolean)
@@ -628,7 +631,7 @@ function Preview({ fxId }: { fxId: number }) {
               forecast is a fact; the derby is the reason you are nervous.
               Separate lines, and the derby carries its own mark. */}
           <div className="meta" style={{ marginTop: 3 }}>
-            <Glyph name={WEATHER_ICON[rollWeather(game.week, matchRng(game))]} /> {t('matchday.forecast', { weather: weatherWord(rollWeather(game.week, matchRng(game))) })}
+            <Glyph name={WEATHER_ICON[forecast]} /> {t('matchday.forecast', { weather: weatherWord(forecast) })}
           </div>
           {derbyName(fx.homeId, fx.awayId) && (
             <div className="meta derby-line" style={{ marginTop: 4 }}>
@@ -881,14 +884,19 @@ function Preview({ fxId }: { fxId: number }) {
                 const notes = refNotes(ref)
                 // the ground's, not the referee's (matchEngine.homeCrowdLean)
                 if (homeCrowdLean(game, fx) >= 0.03) notes.push(t('matchday.refCrowd', { team: teamShort(game, fx.homeId) }))
+                // THE CONDITIONS (1.8.2 depth): the man with the whistle, the
+                // sky and the ground, on one card, each read off the fixture
+                const surface = surfaceOf(game, fx)
                 return (
-                  <div className="card">
-                    <div className="fact-label">{t('matchday.theWhistle')}</div>
-                    <div className="meta" style={{ marginBottom: notes.length ? 4 : 0 }}>
+                  <div className="card" data-conditions={`${forecast}/${surface}`}>
+                    <div className="fact-label">{t('matchday.theConditions')}</div>
+                    <div className="meta" style={{ marginBottom: 4 }}>
                       <b>{ref.name}</b>{t('matchday.refAppointed')}
                     </div>
                     {notes.map((n, i) => <div key={i} className="meta">· {n}</div>)}
                     {notes.length === 0 && <div className="meta">{t('matchday.refNothing')}</div>}
+                    <div className="meta">· <Glyph name={WEATHER_ICON[forecast]} /> <b>{weatherWord(forecast)}.</b> {t(wxEffectKey(forecast))}</div>
+                    <div className="meta">· <b>{t(surfKey(surface))}.</b> {t(surfaceNote(surface))}</div>
                   </div>
                 )
               })()}
@@ -1675,7 +1683,7 @@ function Live() {
       home => {
         const sd = home ? ctx.home : ctx.away
         const tac = game.clubs[sd.teamId]?.tactic
-        return sd.sty ? { ...tac, atkStyle: sd.sty.atk, defStyle: sd.sty.def } : tac
+        return sd.sty ? { ...tac, atkStyle: sd.sty.atk, defStyle: sd.sty.def, podShape: sd.sty.pod } : tac
       })
     // the clip starts with its build-up, so the commentary never jumps: the
     // ticker reads on until it reaches the first line of it (in Key Moments,
@@ -2115,6 +2123,7 @@ function Live() {
         {(atHalfTime || atBreak) && (
           <ScoreCard label={t(atBreak ? 'matchday.breakSixty' : 'matchday.halfTime')} story />
         )}
+        {atHalfTime && <HalfTimeWord />}
         {(atHalfTime || atBreak) && (
           <TouchlinePanel
             title={t(atBreak ? 'matchday.breakTitle' : 'matchday.halfTimeTitle')}
@@ -2224,6 +2233,30 @@ function Live() {
           slot, before any provider is asked. */}
       {!done && !atHalfTime && !atBreak && !atDecision
         && !sheet && !drawer && !settings && !injury && <AdSlot place="match-foot" />}
+    </div>
+  )
+}
+
+/** THE ASSISTANT'S WORD AT HALF TIME (1.8.2 depth): one or two plain lines
+ *  read off what the first forty did against the referee and the day
+ *  (conditions.ts halfTimeHints). Nothing drawn; silent when there is
+ *  nothing worth saying. */
+function HalfTimeWord() {
+  const game = useStore(s => s.game)!
+  const live = useStore(s => s.liveMatch)!
+  const ctx = live.ctx
+  const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
+  const opp = mine === ctx.home ? ctx.away : ctx.home
+  const read = (s: SideCtx) => ({
+    consPens: s.consPens, turnLost: s.styTurnLost ?? 0, turnWon: s.styTurnWon ?? 0,
+    scrum: s.setAcc && s.setAcc.n ? s.setAcc.scrum / s.setAcc.n : 0, score: s.score,
+  })
+  const lines = halfTimeHints(refFor(ctx.fx.id), ctx.weather, read(mine), read(opp), !!ctx.uncontested)
+  if (!lines.length || !game) return null
+  return (
+    <div className="card" style={{ margin: '8px 14px' }} data-halftime-word={lines.length}>
+      <div className="fact-label">{t('matchday.htWord')}</div>
+      {lines.map(l => <div key={l.k} className="meta">{t(l.k, l.v)}</div>)}
     </div>
   )
 }

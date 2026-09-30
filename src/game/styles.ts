@@ -323,7 +323,105 @@ export const PH_STYLES: Record<string, { atk: [AtkStyle, AtkStyle]; def: [DefSty
   structure: { atk: ['pods', 'kick'], def: ['man', 'pendulum'] },
 }
 
-export interface Styles { atk: AtkStyle; def: DefStyle }
+// ---------------------------------------------------------------- the pods
+
+/**
+ * THE POD SHAPE (1.8.2 depth, owner: "a pod-shape choice inside the Pods
+ * style"). A pod game is not one game: where the eight forwards stand
+ * decides what it is for. Three shapes, picked on the Pods card:
+ *
+ *   1331  a forward on each edge, two pods of three in the middle: the
+ *         balanced game, and the Pods style exactly as it always was
+ *   242   two on each edge, four in the middle: the ball goes wider sooner,
+ *         more line breaks out wide, a little less go-forward and a little
+ *         more risk in the pass
+ *   nine  one-out runners round the scrum-half: quick ball off short
+ *         carries, the most gain line and the fewest handling errors, and the
+ *         fewest breaks; it costs a little more in legs (the recycle is fast)
+ *
+ * Each only shifts the Pods style's own effect (ATK_FX.pods) a little: the
+ * shape is the second decision, not a new style. Absent (an old save, or a
+ * side playing anything but pods) is 1331, which is the Pods style as it was.
+ */
+export type PodShape = '1331' | '242' | 'nine'
+export const POD_SHAPES: PodShape[] = ['1331', '242', 'nine']
+export const isPodShape = (v: unknown): v is PodShape => typeof v === 'string' && (POD_SHAPES as string[]).includes(v)
+
+/** multipliers on the Pods style's try chance, penalty window, turnovers and
+ *  drain, and metres added to its ground (all 1 and 0 for the 1-3-3-1) */
+export const POD_FX: Record<PodShape, { tryF: number; penF: number; turn: number; ground: number; drain: number }> = {
+  '1331': { tryF: 1, penF: 1, turn: 1, ground: 0, drain: 1 },
+  '242': { tryF: 1.04, penF: 0.98, turn: 1.06, ground: -0.08, drain: 1.005 },
+  nine: { tryF: 0.97, penF: 1.03, turn: 0.86, ground: 0.12, drain: 1.01 },
+}
+/** the forwards across the field, touch to touch, for anything that draws it */
+export const POD_GROUPS: Record<PodShape, number[]> = { '1331': [1, 3, 3, 1], '242': [2, 4, 2], nine: [3, 2, 3] }
+
+/** An attacking style's effect with its pod shape folded in. */
+export function atkFx(atk: AtkStyle, pod?: PodShape): StyleFx {
+  const a = ATK_FX[atk]
+  if (atk !== 'pods' || !pod || pod === '1331') return a
+  const p = POD_FX[pod]
+  return { ...a, tryF: a.tryF * p.tryF, penF: a.penF * p.penF, turn: a.turn * p.turn, ground: a.ground + p.ground, drain: a.drain * p.drain }
+}
+
+/** Pick a pod shape: it names the Pods style too, since a shape is a pod game. */
+export function applyPodShape(tac: Tactic, pod: PodShape) {
+  if (tac.atkStyle !== 'pods') applyAtkStyle(tac, 'pods')
+  tac.podShape = pod
+}
+
+export const podName = (id: PodShape) => `styles.pod_${id}`
+export const podDesc = (id: PodShape) => `styles.pod_${id}Desc`
+
+// ---------------------------------------------------------------- the leagues
+
+/**
+ * EACH LEAGUE PLAYS ITS OWN RUGBY (1.8.2 depth, owner: "distinct AI flavour
+ * by country/league"). A coach's philosophy still decides the two attacks and
+ * the two defences he chooses between (PH_STYLES), so nothing here takes a
+ * club off its coach's game; what the league changes is which of the two he
+ * reaches for, the way a coach adapts to the rugby around him:
+ *
+ *   French (Elite 14, Elite 2, both women's divisions): forward power and
+ *     the offload; the choke tackle and man-for-man defence
+ *   English (Premier, Championship, National One, the women's two): the
+ *     kicking game and structured pods; the blitz
+ *   Southern Hemisphere (the Pacific, both): width and the offload; the
+ *     drift and the pendulum
+ *   Celtic (the United Provinces, the Celtic Cup): pods and the kick; the
+ *     blitz and man-to-man
+ *   Japan: tempo and width; line speed
+ *   the MRC: carrying and width; man-to-man
+ *
+ * A weight on each style (1 is no lean); a coach picks between his two with
+ * odds in proportion to their weights, by the same hash as before. Every
+ * style keeps a weight above zero everywhere, and each is favoured somewhere,
+ * so every style is still played (styleprobe and depthprobe count them).
+ */
+type Lean = { atk?: Partial<Record<AtkStyle, number>>; def?: Partial<Record<DefStyle, number>> }
+const FRENCH: Lean = { atk: { direct: 2.2, offload: 2, width: 0.6, kick: 0.6 }, def: { choke: 2.2, man: 1.5, drift: 0.7, blitz: 0.7 } }
+const ENGLISH: Lean = { atk: { kick: 2.4, pods: 1.6, offload: 0.55, width: 0.7 }, def: { blitz: 2.2, pendulum: 1.2, drift: 0.7, choke: 0.8 } }
+const SOUTHERN: Lean = { atk: { width: 2.4, offload: 1.7, direct: 0.55, kick: 0.6 }, def: { drift: 2, pendulum: 1.5, choke: 0.55, man: 0.8 } }
+const CELTIC: Lean = { atk: { pods: 2, kick: 1.5, offload: 0.7 }, def: { blitz: 1.6, man: 1.6, drift: 0.8 } }
+export const LEAGUE_LEAN: Record<string, Lean> = {
+  top14: FRENCH, prod2: FRENCH, e1: FRENCH, e2: FRENCH,
+  prem: ENGLISH, champ: ENGLISH, natl1: ENGLISH, pwr: ENGLISH,
+  srp: SOUTHERN, pac: SOUTHERN,
+  urc: CELTIC, celt: CELTIC,
+  jl1: { atk: { width: 2, offload: 1.6, direct: 0.6, kick: 0.7 }, def: { blitz: 2.2, choke: 0.6 } },
+  mrc: { atk: { direct: 1.8, width: 1.5, kick: 0.7 }, def: { man: 1.8, pendulum: 0.8 } },
+}
+/** a league's lean, the women's leagues ('w:pwr') read as their own culture */
+export const leanOf = (leagueId: string | undefined): Lean => LEAGUE_LEAN[(leagueId ?? '').replace(/^w:/, '')] ?? {}
+
+/** which of two by a hash fraction u (0..1), in proportion to the weights */
+function leanPick<T extends string>(pair: [T, T], w: Partial<Record<T, number>> | undefined, u: number): T {
+  const a = w?.[pair[0]] ?? 1, b = w?.[pair[1]] ?? 1
+  return u * (a + b) < a ? pair[0] : pair[1]
+}
+
+export interface Styles { atk: AtkStyle; def: DefStyle; pod?: PodShape }
 
 /**
  * The styles a club plays. The manager's are his, on the tactic (or read off
@@ -336,14 +434,26 @@ export function stylesOf(state: GameState, club: Club | undefined): Styles | nul
   if (!club) return null
   const tac = club.tactic
   if (club.id === state.userClubId || !club.philosophy || !PH_STYLES[club.philosophy]) {
+    const atk = isAtkStyle(tac.atkStyle) ? tac.atkStyle : atkStyleOfDials(tac)
     return {
-      atk: isAtkStyle(tac.atkStyle) ? tac.atkStyle : atkStyleOfDials(tac),
+      atk,
       def: isDefStyle(tac.defStyle) ? tac.defStyle : defStyleOfDials(tac),
+      ...(atk === 'pods' ? { pod: isPodShape(tac.podShape) ? tac.podShape : '1331' as PodShape } : {}),
     }
   }
   const ph = PH_STYLES[club.philosophy]
   const h = hashString(`${state.seed}|${club.id}|${club.coachGen ?? 0}|sty`)
-  return { atk: ph.atk[h & 1], def: ph.def[(h >>> 1) & 1] }
+  // the league's lean (LEAGUE_LEAN) weights the coach's two options; with no
+  // lean it is the plain coin of the hash, as it always was. Two independent
+  // fractions of the one hash, so the attack does not decide the defence.
+  const lean = leanOf(club.leagueId)
+  const u1 = (h & 0xffff) / 0x10000, u2 = (h >>> 16) / 0x10000
+  const atk = leanPick(ph.atk, lean.atk, u1)
+  return {
+    atk, def: leanPick(ph.def, lean.def, u2),
+    // an AI pod side's shape, by a hash of its own, a third each
+    ...(atk === 'pods' ? { pod: POD_SHAPES[hashString(`${state.seed}|${club.id}|${club.coachGen ?? 0}|pod`) % 3] } : {}),
+  }
 }
 
 /** Pick an attacking style: the style and its levers. */
@@ -393,9 +503,9 @@ export interface StyleTick {
  * 0 ground, the base turnover rate) when either side has no style: a Test side.
  */
 export function styleTick(att: SideStyle | undefined, def: SideStyle | undefined,
-  units: { attSet: number; defSet: number; attack: number; defence: number }): StyleTick {
+  units: { attSet: number; defSet: number; attack: number; defence: number }, wx?: StyleWx): StyleTick {
   if (!att || !def) return { m: 0, tryF: 1, penF: 1, turnP: TURN_BASE, ground: 0 }
-  const a = ATK_FX[att.atk], d = DEF_FX[def.def]
+  const a = atkFx(att.atk, att.pod), d = DEF_FX[def.def]
   const m = MATCHUP[att.atk][def.def]
   let tryF = TRY_NORM * a.tryF * d.tryF * (1 + MATCH_K * m) * (1 + FIT_K * att.atkFit) * (1 - FIT_K * def.defFit)
   if (def.def === 'choke') {
@@ -406,17 +516,59 @@ export function styleTick(att: SideStyle | undefined, def: SideStyle | undefined
     tryF *= 1 + 0.05 * edge
   }
   const penF = a.penF * d.penF
-  const turnP = clamp(TURN_BASE * a.turn * d.turn * (1 - 0.15 * m), 0, 0.3)
+  let turn = a.turn * d.turn
+  // THE CONDITIONS (conditions.ts): a wet ball is dropped, and dropped most
+  // by the sides that throw it about; the direct and kicking games and the
+  // choke tackle are the wet-weather rugby. Exactly 1 on a dry day.
+  if (wx && wx.wet > 0) {
+    const handle = att.atk === 'pods' && att.pod === 'nine' ? 0.7 : WET_HANDLE[att.atk]
+    turn *= 1 + WET_TURN * wx.wet * handle
+    if (def.def === 'choke') turn *= 1 + 0.1 * wx.wet
+    tryF *= 1 + wx.wet * WET_TRY[att.atk] - (def.def === 'choke' ? 0.03 * wx.wet : 0)
+  }
+  if (wx?.windy && att.atk === 'kick') tryF *= 0.97
+  const turnP = clamp(TURN_BASE * turn * (1 - 0.15 * m), 0, 0.3)
   return { m, tryF, penF, turnP, ground: a.ground }
 }
 
+/** The day as the styles read it (conditions.ts wetness): 0 dry, 0.5 damp,
+ *  1 wet, 1.2 snow; and whether the wind is up. */
+export interface StyleWx { wet: number; windy: boolean }
+/** how much more often a wet ball is turned over, at full wetness, for an
+ *  attack that handles an average amount (x WET_HANDLE for each style) */
+export const WET_TURN = 0.4
+export const WET_HANDLE: Record<AtkStyle, number> = { direct: 0.55, pods: 0.9, width: 1.25, kick: 0.6, offload: 1.6 }
+/** what the wet does to each attack's try chance, at full wetness: the
+ *  carrying and kicking games suit it, the handling games do not. Averages
+ *  close to zero over the five, so the wet moves who scores more than how much */
+export const WET_TRY: Record<AtkStyle, number> = { direct: 0.04, pods: 0, width: -0.04, kick: 0.04, offload: -0.05 }
+/** the share of a kicking game's territory the wind leaves it: a long kick
+ *  into a gale comes back, and one with it runs dead */
+export const WIND_TERR = 0.6
+
 /** How hard a side's kicking game pushes the line this tick: its attack's
- *  territory, let through or shut down by the other side's defence. */
-export const styleTerr = (att: SideStyle | undefined, def: SideStyle | undefined): number =>
-  att && def ? ATK_FX[att.atk].terr * DEF_FX[def.def].terr : 0
+ *  territory, let through or shut down by the other side's defence, and cut
+ *  back when the wind is up. */
+export const styleTerr = (att: SideStyle | undefined, def: SideStyle | undefined, windy = false): number =>
+  att && def ? ATK_FX[att.atk].terr * DEF_FX[def.def].terr * (windy ? WIND_TERR : 1) : 0
+
+/**
+ * CONTACT, AND WHO GETS HURT (1.8.2 depth). A carrying game puts its men
+ * into collisions all afternoon, a rush defence hits the men it meets hard,
+ * and a choke tackle is two men and a maul; a wide or kicking game spends
+ * less of its day in contact. Read as each side's share of the match's
+ * injury roll (conditions.ts injuryF), centred so the world's count of
+ * injuries barely moves: the styles shift who is hurt, not how many.
+ */
+/** the knocks a side's own carrying costs it */
+export const ATK_CONTACT: Record<AtkStyle, number> = { direct: 1.12, pods: 1.04, width: 0.92, kick: 0.95, offload: 1.0 }
+/** the knocks a defence hands out to the side it tackles */
+export const DEF_HITS: Record<DefStyle, number> = { drift: 0.93, blitz: 1.1, pendulum: 0.95, man: 1.0, choke: 1.06 }
+/** the knocks a defence costs its own tacklers */
+export const DEF_OWN: Record<DefStyle, number> = { drift: 0.97, blitz: 1.04, pendulum: 0.97, man: 1.0, choke: 1.05 }
 
 /** the legs a side's two styles cost, on its energy drain */
-export const styleDrain = (s: Styles | null): number => (s ? ATK_FX[s.atk].drain * DEF_FX[s.def].drain : 1)
+export const styleDrain = (s: Styles | null): number => (s ? atkFx(s.atk, s.pod).drain * DEF_FX[s.def].drain : 1)
 
 // ---------------------------------------------------------------- the words
 

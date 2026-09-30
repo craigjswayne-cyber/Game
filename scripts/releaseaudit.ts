@@ -59,7 +59,7 @@ function beginWith(g: GameState, fx: Fixture, want: Weather, seed: number, detai
   heal(g, fx.homeId, fx.awayId)
   for (let i = 0; i < 400; i++) {
     const rng = mulberry32((seed + i * 7919) >>> 0)
-    const f = { ...fx } as Fixture
+    const f = { ...fx, weather: want } as Fixture
     const ctx = beginMatch(g, f, rng, detail)
     if (ctx.weather === want) return ctx
   }
