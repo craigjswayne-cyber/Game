@@ -17,6 +17,7 @@ import {absWeek, mgrReputation, squadTrust, SEASON_WEEKS } from './model'
 import { clamp, mulberry32 } from './rng'
 import { t, tIn, type Vars } from './i18n'
 import { OFFICE_OUTLET } from './media'
+import { authorityEdge, resentment } from './culture'
 
 
 /** The squad's collective standing, on the same 0-100 ruler as the manager's
@@ -131,7 +132,8 @@ export function disciplineWeek(state: GameState) {
       // not how often the squad misbehaves - punishing the rookie twice over
       // would be the same thumb on the scale twice
       const roll = mulberry32((state.seed * 31 + p.id * 13 + now * 7) >>> 0)()
-      if (roll >= (sulky ? 0.10 : 0.06)) continue
+      // a manager-led room resents more (culture.ts); exactly 1 at a neutral club
+      if (roll >= (sulky ? 0.10 : 0.06) * resentment(state)) continue
       raiseIncident(state, p, sulky ? 'training' : 'rating')
       break
     }
@@ -257,7 +259,8 @@ export function applyResponse(state: GameState, inc: Incident, response: 'fine' 
   }
 
   // the fine: deterministic on the incident id, biased by standing
-  const lands = mulberry32((state.seed + inc.id * 977) >>> 0)() > a.bite
+  // the club's culture (culture.ts) eases or hardens it: 0 at a neutral club
+  const lands = mulberry32((state.seed + inc.id * 977) >>> 0)() > Math.max(0, Math.min(1, a.bite - authorityEdge(state)))
   if (lands) {
     inc.state = 'handled'
     p.morale = clamp(p.morale - 0.2, 1, 10)
