@@ -62,6 +62,15 @@ export function canPlayThrough(state: GameState, p: Player): boolean {
   return left >= 1 && left <= KNOCK_MAX_WEEKS
 }
 
+/** THE FINAL WEEK (1.8.2, room.ts). Any injury that can be played through at
+ *  all, a muscle or a joint as much as a knock, with one week of the lay-off
+ *  left: the point at which the physio brings the choice to the office rather
+ *  than waiting for the manager to find it on the Medical screen. Early is
+ *  then one week, the smallest risk flareChance knows. */
+export function inFinalWeek(state: GameState, p: Player): boolean {
+  return canPlayThrough(state, p) && weeksLeft(state, p) === 1
+}
+
 /** Strap it and play him. The injury becomes a knock he carries. */
 export function playThrough(state: GameState, playerId: number): { ok: boolean; k: string; v: Record<string, string | number> } {
   const p = state.players[playerId]
