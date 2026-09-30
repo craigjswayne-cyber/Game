@@ -263,7 +263,6 @@
    "one": "目標まであと{n}つ",
    "other": "目標まであと{n}つ"
   },
-  "objectives": "目標{met}/{total}",
   "thread": "答えの出ていないこと",
   "tFormer": "かつての選手{player}が{club}で出場する",
   "tRival": "相手ベンチに{coach}：{w}勝{d}分{l}敗",
@@ -310,6 +309,8 @@
   "dreamDone": "夢、ここに実現",
   "circling": "熱視線",
   "seasonAhead": "シーズンの展望",
+  "objectives": "シーズン目標・{met}/{total}が順調",
+  "onCourse": "（順調）",
   "tentpoleThisWeek": "・今週",
   "tentpoleIn": {
    "one": "・あと{n}週",

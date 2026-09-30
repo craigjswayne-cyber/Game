@@ -262,7 +262,6 @@
    "one": "{n} plek van die doelwit af",
    "other": "{n} plekke van die doelwit af"
   },
-  "objectives": "doelwitte {met}/{total}",
   "thread": "Nog oop",
   "tFormer": "{player}, eens joune, speel vir {club}",
   "tRival": "{coach} in die ander dugout: {w}-{d}-{l}",
@@ -309,6 +308,8 @@
   "dreamDone": "DIE DROOM, VERWESENLIK",
   "circling": "Op die loer",
   "seasonAhead": "Die Komende Seisoen",
+  "objectives": "Seisoendoelwitte · {met}/{total} op koers",
+  "onCourse": " (op koers)",
   "tentpoleThisWeek": " hierdie week",
   "tentpoleIn": {
    "one": " oor {n} wk",
