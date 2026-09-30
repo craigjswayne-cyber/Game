@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useStore } from '../../store'
-import { CHALLENGES, LEAGUE_DEFS, mediaVerdict, challengesFor } from '../../game/newgame'
+import { CHALLENGES, LEAGUE_DEFS, mediaVerdict, challengesFor, wizardAim } from '../../game/newgame'
 import { dreamsFor, dreamTitle, type DreamContext } from '../../game/dream'
 import { MAX_AMBITIONS, setAmbitions } from '../../game/ambitions'
 import { COACHING_STYLES } from '../../game/tactics'
@@ -36,6 +36,8 @@ export default function NewGame() {
   const newGender = useStore(s => s.newGender)
   const setNewGender = useStore(s => s.setNewGender)
   const defs = useMemo(() => LEAGUE_DEFS(newGender), [newGender])
+  // the career's seed, drawn once here so the aim shown is the aim set (wizardAim)
+  const [seed] = useState(() => (Math.random() * 2 ** 31) | 0)
   const challenges = useMemo(() => challengesFor(newGender), [newGender])
   const [step, setStep] = useState(0)
   const [leagueIdx, setLeagueIdx] = useState<number | null>(null)
@@ -126,7 +128,7 @@ export default function NewGame() {
     // engine's default coach background.
     // The pronoun is not asked here any more (v1.5.3): Settings owns it, and
     // start() takes the device's last answer when nothing is passed.
-    start(club.id, name.trim(), challengeId ?? undefined)
+    start(club.id, name.trim(), challengeId ?? undefined, undefined, undefined, undefined, seed)
     // coaching philosophy shapes your starting game plan
     const g = useStore.getState().game
     const chosen = COACHING_STYLES.find(s => s.id === styleId)
@@ -384,7 +386,7 @@ export default function NewGame() {
                 <div><label>{t('wizard.philosophyShort')}</label><span>{t(COACHING_STYLES.find(s => s.id === styleId)?.name ?? '')}</span></div>
                 <div><label>{t('wizard.season')}</label><span>{seasonLabel(0)}</span></div>
                 {challenge && <div><label>{t('wizard.challenge')}</label><span>{t(challenge.title)}</span></div>}
-                <div><label>{t('wizard.objective')}</label><span>{t(club.rep >= 87 ? 'wizard.objTitle' : club.rep >= 80 ? 'wizard.objPlayoffs' : club.rep >= 72 ? 'wizard.objTopHalf' : 'wizard.objSurvive')}</span></div>
+                <div><label>{t('wizard.objective')}</label><span>{(() => { const s = t(wizardAim(defs, club.id, seed)); return s.charAt(0).toLocaleUpperCase(localeTag()) + s.slice(1) })()}</span></div>
               </div>
             </div>
             <div className="card">
