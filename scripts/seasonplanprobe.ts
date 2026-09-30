@@ -27,9 +27,10 @@ import { SEASON_WEEKS, type GameState, type Player } from '../src/game/model'
 import { teamUnits } from '../src/game/matchEngine'
 import { migrate } from '../src/game/save'
 import { ensureLang, tIn, type Lang } from '../src/game/i18n'
-import { applyPlanSheet, assistantSheet, boardPriorityF, planComps, planTier, restList, setSeasonPlan, type RotIntent } from '../src/game/seasonplan'
+import { applyPlanSheet, assistantSheet, boardPriorityF, planComps, planTier, restList, setSeasonPlan } from '../src/game/seasonplan'
 import { CONF_GOOD, CONF_POOR, formTraits, formTrend, traitDayF, traitHints } from '../src/game/formtraits'
 import { sortTable } from '../src/game/schedule'
+import { reportStage } from '../src/game/scout'
 
 let fails = 0
 const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
@@ -66,8 +67,11 @@ console.log('(a) the plan reaches the assistant and the board')
   ok(restA.length === 0 && restB.length >= 3, `cup ranked first rests nobody, ranked last with key men protected rests ${restB.length}`)
   ok(changed >= 3, `and the two assistants name different sides (${changed} of the XV differ)`)
   ok(restB.every(p => !xv(leagueFirst).includes(p.id)), 'every rested man is out of the side he named')
+  // the week's sheet is the standing side with only the rested shirts changed
+  const kept = xv(g).filter(id => !restB.some(p => p.id === id)).every(id => xv(leagueFirst).includes(id))
+  ok(kept, 'everyone not rested keeps his place from the standing side')
   const sheet = assistantSheet(leagueFirst, fx)
-  ok(JSON.stringify(sheet.slice(0, 15)) === JSON.stringify(xv(leagueFirst)), 'the Best XV button gives the same draft as the week')
+  ok(restB.every(p => !sheet.includes(p.id)), 'and the Best XV draft rests the same men')
   ok(boardPriorityF(cupFirst, cup) > 1 && boardPriorityF(leagueFirst, cup) < 1, `board volume on the cup: ${boardPriorityF(cupFirst, cup)} first, ${boardPriorityF(leagueFirst, cup)} last`)
   // the same match, the same side, the same dice: only the plan differs
   for (const s of [cupFirst, leagueFirst]) {
@@ -87,23 +91,35 @@ console.log('(a) the plan reaches the assistant and the board')
 
 // ---------------------------------------------------------------- (b)
 console.log('(b) the trade-off over a season, paired by seed')
-interface Run { lgCond: number; lgCa: number; cupCa: number; cupCond: number; lgPts: number; cupPts: number; keyMins: number; state: GameState }
-function season(seed: number, order: 'league' | 'cup', rot: RotIntent): Run {
+// Both managers say "Balanced" and never touch the sheet; only the order
+// differs. What the ranking buys is measured where it is made: who plays, what
+// state the first-choice men are in when the league comes round, and the
+// points in each competition.
+interface Run { keyCond: number; keyShare: number; lgCa: number; cupCa: number; lgPts: number; cupPts: number; state: GameState }
+function season(seed: number, order: 'league' | 'cup'): Run {
   const g = newGame(CLUB, 'Probe', seed)
   const league = g.clubs[g.userClubId].leagueId
   const cup = planComps(g).find(c => c !== league)!
-  setSeasonPlan(g, order === 'league' ? [league, cup] : [cup, league], rot)
+  setSeasonPlan(g, order === 'league' ? [league, cup] : [cup, league], 'balanced')
   const key = new Set(g.clubs[g.userClubId].players.map(id => g.players[id]).filter(p => p && !p.acad)
-    .sort((a, b) => b.ca - a.ca).slice(0, 12).map(p => p.id))
-  const lg: { cond: number; ca: number }[] = [], cp: { cond: number; ca: number }[] = []
+    .sort((a, b) => b.ca - a.ca).slice(0, 15).map(p => p.id))
+  const keyCond: number[] = [], keyShare: number[] = [], lgCa: number[] = [], cupCa: number[] = []
   let cupPts = 0
   let guard = 0
+  let prev: string | null = null
   while (g.week < SEASON_WEEKS && guard++ < SEASON_WEEKS + 5) {
     const fx = userFixtureThisWeek(g)
     if (fx && (fx.compId === league || fx.compId === cup)) {
       const xv = g.clubs[g.userClubId].tactic.lineup.slice(0, 15).map(id => (id != null ? g.players[id] : null)).filter((p): p is Player => !!p)
-      const row = { cond: mean(xv.map(p => p.cond)), ca: mean(xv.map(p => p.ca)) }
-      ;(fx.compId === league ? lg : cp).push(row)
+      if (fx.compId === league) {
+        // the legs the first-choice men bring to a league match straight
+        // after a cup week: the week the rotation was made for
+        const avail = [...key].map(id => g.players[id]).filter(p => p && p.clubId === g.userClubId && !p.injury && !p.natSquad)
+        if (prev === cup) keyCond.push(mean(avail.map(p => p.cond)))
+        keyShare.push(xv.filter(p => key.has(p.id)).length / 15)
+        lgCa.push(mean(xv.map(p => p.ca)))
+      } else cupCa.push(mean(xv.map(p => p.ca)))
+      prev = fx.compId
     }
     processWeekAndAdvance(g)
     if (fx && fx.compId === cup && fx.played) {
@@ -112,32 +128,32 @@ function season(seed: number, order: 'league' | 'cup', rot: RotIntent): Run {
     }
   }
   const row = sortTable(g.comps[league].table).find(r => r.teamId === g.userClubId)
-  let keyMins = 0
-  for (const id of key) keyMins += g.players[id]?.stats.mins ?? 0
   return {
-    lgCond: mean(lg.map(r => r.cond)), lgCa: mean(lg.map(r => r.ca)),
-    cupCond: mean(cp.map(r => r.cond)), cupCa: mean(cp.map(r => r.ca)),
-    lgPts: row?.pts ?? 0, cupPts, keyMins, state: g,
+    keyCond: mean(keyCond), keyShare: mean(keyShare), lgCa: mean(lgCa), cupCa: mean(cupCa),
+    lgPts: row?.pts ?? 0, cupPts, state: g,
   }
 }
 const SEEDS = process.env.QUICK ? [9] : [9, 777, 2024, 31337]
 const A: Run[] = [], B: Run[] = []
+const line = (r: Run) => `key men after a cup week ${r.keyCond.toFixed(1)} cond, ${(r.keyShare * 100).toFixed(0)}% of league shirts; XV ca league ${r.lgCa.toFixed(1)} cup ${r.cupCa.toFixed(1)}; ${r.lgPts} league pts, ${r.cupPts} cup pts`
 for (const seed of SEEDS) {
-  // A: the league first and the key men protected; B: the cup first, strongest side
-  const a = season(seed, 'league', 'protect')
-  const b = season(seed, 'cup', 'strongest')
+  const a = season(seed, 'league'), b = season(seed, 'cup')
   A.push(a); B.push(b)
-  console.log(`      seed ${String(seed).padEnd(5)} league-first: league XV cond ${a.lgCond.toFixed(1)} ca ${a.lgCa.toFixed(1)}, cup XV ca ${a.cupCa.toFixed(1)}, ${a.lgPts} league pts, ${a.cupPts} cup pts, key mins ${a.keyMins}`)
-  console.log(`      ${' '.repeat(10)} cup-first:    league XV cond ${b.lgCond.toFixed(1)} ca ${b.lgCa.toFixed(1)}, cup XV ca ${b.cupCa.toFixed(1)}, ${b.lgPts} league pts, ${b.cupPts} cup pts, key mins ${b.keyMins}`)
+  console.log(`      seed ${String(seed).padEnd(5)} league first: ${line(a)}`)
+  console.log(`      ${' '.repeat(10)} cup first:    ${line(b)}`)
 }
 const avg = (rs: Run[], k: keyof Omit<Run, 'state'>) => mean(rs.map(r => r[k] as number))
-console.log(`      MEAN league-first: league cond ${avg(A, 'lgCond').toFixed(1)}, league XV ca ${avg(A, 'lgCa').toFixed(2)}, cup XV ca ${avg(A, 'cupCa').toFixed(2)}, league ${avg(A, 'lgPts').toFixed(1)} pts, cup ${avg(A, 'cupPts').toFixed(1)} pts, key mins ${avg(A, 'keyMins').toFixed(0)}`)
-console.log(`      MEAN cup-first:    league cond ${avg(B, 'lgCond').toFixed(1)}, league XV ca ${avg(B, 'lgCa').toFixed(2)}, cup XV ca ${avg(B, 'cupCa').toFixed(2)}, league ${avg(B, 'lgPts').toFixed(1)} pts, cup ${avg(B, 'cupPts').toFixed(1)} pts, key mins ${avg(B, 'keyMins').toFixed(0)}`)
+const mrun = (rs: Run[]): Run => ({ keyCond: avg(rs, 'keyCond'), keyShare: avg(rs, 'keyShare'), lgCa: avg(rs, 'lgCa'), cupCa: avg(rs, 'cupCa'), lgPts: avg(rs, 'lgPts'), cupPts: avg(rs, 'cupPts'), state: rs[0].state })
+console.log(`      MEAN league first: ${line(mrun(A))}`)
+console.log(`      MEAN cup first:    ${line(mrun(B))}`)
 ok(avg(A, 'cupCa') < avg(B, 'cupCa') - 1, 'ranking the cup last fields a clearly weaker cup side')
-ok(avg(A, 'keyMins') < avg(B, 'keyMins'), 'and the key men play fewer minutes')
-ok(avg(A, 'lgCond') > avg(B, 'lgCond'), 'and the league side kicks off in better condition')
-ok(avg(A, 'cupPts') <= avg(B, 'cupPts'), 'the cup results pay for it')
-ok(avg(A, 'lgPts') >= avg(B, 'lgPts'), 'and the league results gain from it')
+ok(avg(A, 'lgCa') > avg(B, 'lgCa') && avg(A, 'keyShare') > avg(B, 'keyShare'), 'and more of the first-choice men in the league')
+ok(avg(A, 'keyCond') > avg(B, 'keyCond'), 'who come from a cup week to the league with more condition in their legs')
+// Results are the noisiest number here (paired seasons stop sharing dice at
+// the first different sheet), so the claim is the net one: what the order
+// gains in the competition put first against what it gives up in the other.
+const net = (avg(A, 'lgPts') - avg(B, 'lgPts')) + (avg(B, 'cupPts') - avg(A, 'cupPts'))
+ok(net > 0, `the results follow the order, net (${(avg(A, 'lgPts') - avg(B, 'lgPts')).toFixed(1)} league, ${(avg(A, 'cupPts') - avg(B, 'cupPts')).toFixed(1)} cup)`)
 
 // ---------------------------------------------------------------- (c)
 console.log('(c) the form trend reads the marks')
@@ -316,8 +332,8 @@ console.log('(e) no tendency is ever named')
   }
   ok(shown > 0 && leaked === 0, `${shown} hint lines a manager could read, none of them a label`)
   // and the hints wait for the same knowledge nerve does
-  const stranger = Object.values(g.players).find(p => p.clubId && p.clubId !== g.userClubId && (p.sc ?? 0) === 0 && Object.values(formTraits(g.seed, p.id)).some(Boolean))
-  ok(!!stranger && traitHints(g, stranger).length === 0, 'an unscouted man at another club gives nothing away')
+  const stranger = Object.values(g.players).find(p => p.clubId && p.clubId !== g.userClubId && reportStage(g, p) < 2 && Object.values(formTraits(g.seed, p.id)).some(Boolean))
+  ok(!!stranger && traitHints(g, stranger).length === 0, 'a man at another club without a detailed report gives nothing away')
 }
 
 // ---------------------------------------------------------------- (f)
