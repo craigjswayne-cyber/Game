@@ -213,6 +213,67 @@
   "nothing": "",
   "confirmSell": "売却を確定"
  },
+ "desk": {
+  "title": "今日",
+  "decide": "判断待ち",
+  "clear": "待っている案件はない",
+  "dAnnual": "シーズン総括が待っている",
+  "dOffer": "{club}が{player}に{fee}を提示",
+  "dPress": "{outlet}が回答を求めている",
+  "d_office": "{player}が監督室を訪ねてきた",
+  "d_officeNone": "誰かが監督室を訪ねてきた",
+  "d_split": "ロッカールーム：{player}",
+  "d_renew": "契約：{player}",
+  "d_role": "起用の保証：{player}",
+  "d_injury": "メディカル判断：{player}",
+  "d_acad": "アカデミー判断：{player}",
+  "dBoard": {
+   "one": "取締役会：決定{n}件",
+   "other": "取締役会：決定{n}件"
+  },
+  "dSquad": {
+   "one": "代表メンバーをあと{n}人",
+   "other": "代表メンバーをあと{n}人"
+  },
+  "dMail": {
+   "one": "未読記事{n}件",
+   "other": "未読記事{n}件"
+  },
+  "dev": "育成",
+  "devBreak": "{player}：一皮むけた",
+  "devStall": "{player}：伸び悩み",
+  "devFlying": "{player}：絶好調の月",
+  "money": "{bal}",
+  "moneyAdmin": "経営破綻の警告",
+  "moneyWagesFull": "給与予算は満杯",
+  "moneyRoom": "給与余力 {room}",
+  "tactics": "{atk}・{def}",
+  "priority": "優先：{comp}・{rot}",
+  "room": "ロッカールーム",
+  "roomFine": "{word}",
+  "roomLow": {
+   "one": "{word}・士気低下{n}人",
+   "other": "{word}・士気低下{n}人"
+  },
+  "seasonAim": "目標：{aim}",
+  "season": "シーズン",
+  "seasonPos": "{pos}・勝点{pts}",
+  "seasonOn": "目標どおり",
+  "seasonShort": {
+   "one": "目標まであと{n}つ",
+   "other": "目標まであと{n}つ"
+  },
+  "objectives": "目標{met}/{total}",
+  "thread": "答えの出ていないこと",
+  "tFormer": "かつての選手{player}が{club}で出場する",
+  "tRival": "相手ベンチに{coach}：{w}勝{d}分{l}敗",
+  "tPromise_plans": "{player}にここでの将来を約束した",
+  "tPromise_minutes": "{player}に出場時間を約束した",
+  "tPromise_deal": "{player}に新契約を約束した",
+  "tRushed": "{player}は痛みを抱えてプレーした",
+  "tProjUp": "スタッフが{player}の見立てを上方修正した",
+  "tProjDown": "スタッフが{player}の見立てを下方修正した"
+ },
  "home": {
   "jobCentre": "求人センター",
   "betweenJobs": {
@@ -237,7 +298,6 @@
   "atHome": "・ホーム",
   "atAway": "・アウェイ",
   "atNeutral": "・中立地",
-  "tapSetTeam": "タップしてメンバーを決め、「続ける」で試合へ。",
   "noMatchWeek": "今週は試合なし。「続ける」で次の節へ進む。",
   "headCoach": "ヘッドコーチ",
   "worldNo": "・世界ランク{rank}位",
@@ -255,21 +315,11 @@
    "one": "・あと{n}週",
    "other": "・あと{n}週"
   },
-  "objectives": "シーズン目標・{met}/{total}が順調",
-  "onCourse": "（順調）",
   "annualOut": "イヤーブックが出た",
   "annualSub": "昨シーズンを1ページに。リーグ、カップ、スター、そしてカネ。タップして読む。",
-  "pressWord": "記者団が話を聞きたがっている",
-  "pressSub": {
-   "one": "{n}件の質問が回答待ち。答え方ひとつで士気が動く。",
-   "other": "{n}件の質問が回答待ち。答え方ひとつで士気が動く。"
-  },
-  "boardWord": "取締役会が決定を待っている",
-  "boardSub": {"one": "資金または目標に関する決定が{n}件。財務で確認。", "other": "資金または目標に関する決定が{n}件。財務で確認。"},
   "blankWeekend": "試合のない週末",
   "blankSub": "今週は公式戦なし。親善試合を組めばキレと連係を蓄えられる。ただし消化試合での負傷は、痛みが倍になる。",
   "friendlyChip": "{club}（評判{rep}）",
-  "wLeague": "リーグ",
   "wForm": "調子",
   "wBoard": "取締役会",
   "wFans": "ファン",
@@ -289,17 +339,9 @@
   "dashFinances": "財政",
   "dashMedical": "メディカルセンター",
   "rivalWatch": "ライバル監視",
-  "state": "状態",
-  "balance": "残高",
-  "transferBudget": "移籍予算",
-  "wageRoom": "給与余力",
   "inTheRed": "赤字",
   "cleanBill": "けが人ゼロ、全員異常なし",
   "andMore": "ほか{n}件",
-  "unread": {
-   "one": "未読{n}件",
-   "other": "未読{n}件"
-  },
   "assistantMatch": "アシスタントの試合",
   "assistantTakesIt": "今週の土曜、君は代表に帯同する。この一戦はアシスタントが指揮し、あとで報告してくれる。",
   "squadIn": {
