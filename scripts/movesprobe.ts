@@ -312,9 +312,11 @@ console.log('\n--- 5. in the clips\n')
     // move needs: 1.8.2 puts its short side on his side of the scrum)
     mv_blind: [8, 9, 14], mv_inside: [9, 10, 12, 14], mv_strike13: [9, 10, 12, 13, 14],
     // (1.8.2, the new families: the kicks are the 10's and then the chaser's;
-    // the maul's ball stays in the maul, from the jumper to the hooker)
+    // the maul's ball stays in the maul, from the jumper to the hooker: the
+    // hooker throws, and it never goes down to the 9, whose pop back up into
+    // the maul was a forward pass)
     mv_wingin: [9, 10, 14], mv_width: [9, 10, 12, 13, 15, 14], mv_tap: [9, 4, 10, 13, 14], mv_peel: [9, 2, 14],
-    mv_maulswitch: [9, 4, 2], mv_crashswing: [9, 10, 12, 9, 10, 13, 15, 14], mv_loop9: [9, 10, 9, 14],
+    mv_maulswitch: [2, 4, 2], mv_crashswing: [9, 10, 12, 9, 10, 13, 15, 14], mv_loop9: [9, 10, 9, 14],
     mv_crosskick: [9, 10, 14], mv_grubber: [9, 10, 14],
   }
   let played = 0
