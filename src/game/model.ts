@@ -2043,7 +2043,8 @@ export interface GameState {
   /** rewarded-favour ledgers (rewarded.ts): counts timestamped in absolute
    *  game-weeks so an instant-result marathon cannot farm them. The wrapper's
    *  bridge holds the per-real-day cap; this holds the per-save one. Cleared
-   *  whole at rollover - everything in it is weekly or seasonal. */
+   *  at rollover, since everything in it is weekly or seasonal, except the
+   *  team night's stamp, whose four-week cap runs across the summer. */
   rewarded?: {
     /** physio favours used this game-week: [absWeek, count] */
     medical?: [number, number]
@@ -2057,6 +2058,19 @@ export interface GameState {
     town?: [number, number]
     /** collections this season (three, then the town has given enough) */
     townSeason?: number
+    /** 1.8.2, the agent's inside word: words bought this game-week, [absWeek, count] */
+    inside?: [number, number]
+    /** player id -> the absolute week his current six-week spell of talk
+     *  began, once the inside word has resolved it for that spell */
+    insideSeen?: Record<number, number>
+    /** 1.8.2, a second opinion: player id -> the season it was taken in */
+    opinion?: Record<number, number>
+    /** 1.8.2, tape room night: [absWeek, opponent id] of the match it is for */
+    tape?: [number, string]
+    /** 1.8.2, the sponsor's team night: [absWeek, press id of the split it
+     *  softened]. The one entry that survives rollover (rollover.ts), because
+     *  its cap is four game-weeks and a season boundary must not reset it. */
+    teamNight?: [number, number]
   }
   /** absolute week (season * SEASON_WEEKS + week) the LAW WATCH wind-up last
    *  aired. The freshness gate used to scan state.news for the last airing,

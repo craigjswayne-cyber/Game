@@ -14,9 +14,14 @@
  * plays; nothing here runs unless the provider confirmed a completed view.
  */
 import {absWeek, SEASON_WEEKS, fmtMoney, type GameState } from './model'
-import { bumpKnowledge } from './scout'
+import { bumpKnowledge, reportStage, secondOpinion, youthPaMargin } from './scout'
 import { clamp } from './rng'
 import { t, tIn } from './i18n'
+import { insideWord, rivalTalk, talkSpell } from './recruit'
+import { reportAccuracy, tapeRoom } from './oppreport'
+import { tapeLine } from './armsrace'
+import { roomKind, roomLive, teamNightOn } from './room'
+import { answerPress } from './media'
 
 const abs = (state: GameState) => absWeek(state.season, state.week)
 const ledger = (state: GameState) => (state.rewarded ??= {})
@@ -124,4 +129,91 @@ export function townCollection(state: GameState): number | null {
     k: 'news.townCollection', v,
   })
   return amt
+}
+
+/*
+ * ---- THE 1.8.2 FAVOURS ----
+ *
+ * Four more, on the same terms as the four above (docs/monetisation-spec.md
+ * §2): the player asks, the spot replaces a wait or a fee the fiction already
+ * prices, nothing draws on the shared rng, nothing reaches an AI club, and a
+ * manager who never watches one reads every screen complete. Each ledger is
+ * stamped in absolute game-weeks.
+ */
+
+/** ---- the agent's inside word: the rumour, read as the full file reads it ---- */
+export function canInsideWord(state: GameState, pid: number): boolean {
+  const p = state.players[pid]
+  if (!p || !p.clubId || p.clubId === state.userClubId) return false
+  // the full file already hears it this way; so does a man already resolved
+  if (reportStage(state, p) >= 3 || insideWord(state, p)) return false
+  if (!rivalTalk(state, p)) return false // no line on the report, nothing to ask about
+  return weekCount(state.rewarded?.inside, abs(state)) < 2
+}
+
+export function insideWordFavour(state: GameState, pid: number): boolean {
+  if (!canInsideWord(state, pid)) return false
+  const l = ledger(state)
+  l.inside = [abs(state), weekCount(l.inside, abs(state)) + 1]
+  ;(l.insideSeen ??= {})[pid] = talkSpell(state)
+  return true
+}
+
+/** ---- a second opinion: one more step of sight on a youngster's ceiling ---- */
+export function canSecondOpinion(state: GameState, pid: number): boolean {
+  const p = state.players[pid]
+  if (!p || p.clubId !== state.userClubId || p.age > 23) return false
+  if (secondOpinion(state, p)) return false // once per player per season
+  // one step narrower must still be a band: never the number, unless the
+  // staff would already read it as one (from 24, and then there is no band)
+  return youthPaMargin(state, p) > 1
+}
+
+export function secondOpinionFavour(state: GameState, pid: number): boolean {
+  if (!canSecondOpinion(state, pid)) return false
+  const l = ledger(state)
+  ;(l.opinion ??= {})[pid] = state.season
+  return true
+}
+
+/** ---- tape room night: this week's line on our calls, read by a top setup ---- */
+export function canTapeRoom(state: GameState, oppId: string): boolean {
+  if (!state.clubs[oppId] || oppId === state.userClubId || tapeRoom(state, oppId)) return false
+  // only while the report cannot say: once it reads the coach there is nothing to buy
+  // (the line itself, not the whole report: building the report files the
+  // analyst's read of the week, and asking whether to offer a spot must not)
+  return tapeLine(state, oppId, reportAccuracy(state, oppId))?.k === 'armsrace.tapeUnread'
+}
+
+export function tapeRoomFavour(state: GameState, oppId: string): boolean {
+  if (!canTapeRoom(state, oppId)) return false
+  ledger(state).tape = [abs(state), oppId] // one match: it goes with the week
+  return true
+}
+
+/** ---- the sponsor's team night: standing by a selection call, half the sting ---- */
+export const TEAM_NIGHT_WEEKS = 4
+
+export function canTeamNight(state: GameState, pressId: number): boolean {
+  const q = state.press.find(x => x.id === pressId)
+  if (!q || q.answered || roomKind(q) !== 'split' || teamNightOn(state, pressId)) return false
+  const stand = q.options.find(o => o.room === 'stand')
+  if (!stand || !roomLive(state, q, stand)) return false
+  const tn = state.rewarded?.teamNight
+  return !Array.isArray(tn) || abs(state) - tn[0] >= TEAM_NIGHT_WEEKS
+}
+
+/** Stamp the ledger and answer the question with "stand by it", the one
+ *  answer the team night is for. Returns false, changing nothing, when the
+ *  ledger refuses. */
+export function teamNightFavour(state: GameState, pressId: number): boolean {
+  if (!canTeamNight(state, pressId)) return false
+  const q = state.press.find(x => x.id === pressId)!
+  const l = ledger(state)
+  const before = l.teamNight
+  l.teamNight = [abs(state), pressId]
+  answerPress(state, pressId, q.options.findIndex(o => o.room === 'stand'))
+  if (q.answered) return true
+  l.teamNight = before // the question was withdrawn instead: nothing was spent
+  return false
 }

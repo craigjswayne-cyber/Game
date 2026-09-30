@@ -1,5 +1,9 @@
+import { useState } from 'react'
 import { useStore } from '../../store'
-import { SectionTitle } from '../components'
+import { RewardedButton, SectionTitle } from '../components'
+import { rewardedAvailable } from '../../game/monetise'
+import { canTeamNight } from '../../game/rewarded'
+import { teamNightOn } from '../../game/room'
 import {absWeek, SEASON_WEEKS, pressAnswer, pressLabel, pressQuestion, pressReaction, weekDate } from '../../game/model'
 import { OFFICE_OUTLET, PRESS_KEEP_WEEKS, isBoardroom } from '../../game/media'
 import { bandOf, currentMood, effectLines, moodRoom, pressWhy, type Baro } from '../../game/pressmood'
@@ -28,6 +32,8 @@ export default function Press() {
   const game = useStore(s => s.game)!
   const answer = useStore(s => s.answerPressOption)
   const go = useStore(s => s.go)
+  const rewardTeamNight = useStore(s => s.rewardTeamNight)
+  const [spotNote, setSpotNote] = useState<{ id: number; text: string } | null>(null)
 
   // the camp, the season's pitch and the sponsor deals are the board's
   // business and are answered on Finances (media.isBoardroom)
@@ -67,6 +73,17 @@ export default function Press() {
                 {speech(pressLabel(o))}
               </button>
             ))}
+            {/* THE SPONSOR'S TEAM NIGHT (1.8.2, rewarded.ts): stand by the
+                call with half the sting for the senior men. Only on a split,
+                only where a provider exists, once in four game-weeks */}
+            {rewardedAvailable('teamnight') && canTeamNight(game, item.id) && (
+              <RewardedButton place="teamnight" className="btn ghost" style={{ textAlign: 'left' }} label={t('till.watchTeamNight')}
+                onDone={out => {
+                  if (out === 'completed') { if (!rewardTeamNight(item.id)) setSpotNote({ id: item.id, text: t('till.favourGone') }) }
+                  else setSpotNote({ id: item.id, text: t(out === 'skipped' ? 'till.spotSkipped' : 'till.spotUnavailable') })
+                }} />
+            )}
+            {spotNote?.id === item.id && <div className="meta muted" style={{ fontSize: 12 }}>{spotNote.text}</div>}
           </div>
           <hr style={{ border: 'none', borderTop: '2px solid var(--border-strong)', margin: '0 14px' }} />
         </div>
@@ -79,6 +96,7 @@ export default function Press() {
               <div className="when">{item.outlet === OFFICE_OUTLET ? t('world.prPrivate') : item.outlet} · {weekDate(item.season, item.week)}</div>
               <div className="subj" style={{ fontWeight: 400 }}>{prose(pressQuestion(item))}</div>
               <div className="body">{youSaid(item)}</div>
+              {teamNightOn(game, item.id) && <div className="meta muted" style={{ fontSize: 12 }}>{t('till.teamNightDone')}</div>}
               {/* what the answer did, in words (pressmood.effectLines) */}
               {item.fx && (
                 <div className="press-fx">

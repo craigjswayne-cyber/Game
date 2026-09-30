@@ -8036,7 +8036,14 @@
    "one": "Die ontleder het nog een lesing - haar deurnagsessie vir 'n advertensie",
    "other": "Die ontleder het nog {n} lesings - haar deurnagsessie vir 'n advertensie"
   },
-  "physioCut": "Guns -{n}w"
+  "physioCut": "Guns -{n}w",
+  "watchInside": "Die agent se binnewoord (kyk 'n advertensie)",
+  "insideDone": "Die agent se binnewoord oor {name} is in: die lyn oor mededingende belangstelling lees nou soos die volle lêer dit sou lees.",
+  "watchOpinion": "Tweede mening (kyk 'n advertensie)",
+  "opinionDone": "'n Tweede mening oor {name} is in: die afrigtingspan se skatting van die plafon is een stap nouer vir die res van die seisoen.",
+  "watchTapeRoom": "Nag in die videokamer (kyk 'n advertensie)",
+  "watchTeamNight": "Staan by die besluit, en die borg trakteer die groep op 'n spanaand (kyk 'n advertensie)",
+  "teamNightDone": "Die borg se spanaand het die angel vir die senior spelers deels uitgehaal."
  },
  "store": {
   "title": "Winkel",
