@@ -76,6 +76,8 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
   const wageOffer = Math.max(0, Math.round(Number(wageText) || 0))
   const [wageCounter, setWageCounter] = useState<number | null>(null)
   const [compare, setCompare] = useState(false)
+  // another club's man: his development card is folded (1.8.2 trim, see below)
+  const [devOpen, setDevOpen] = useState(false)
   // three pages instead of one long scroll (user: fewer scrolls, more pages)
   const [ptab, setPtab] = useState<'profile' | 'attrs' | 'career'>('profile')
 
@@ -177,7 +179,10 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           season is going against it, what they have learned about how he
           learns, what is helping or holding him back this month, and his
           programme. Never a hidden number. Another club's man gets only
-          what a full scouting file says. */}
+          what a full scouting file says, and gets it folded: the card is
+          mostly about your own players, and with the scout report above it
+          his page ran past three screenfuls on a landscape phone
+          (scrollaudit). A full-width row keeps the 44px tap floor. */}
       {(() => {
         const band = mine && p.age <= 23 ? paRange(game, p) : null
         const out = outlookLine(game, p, band)
@@ -187,7 +192,16 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         const focused = mine && focusIds(game).includes(p.id)
         if (!band && !out && !learn.length && !drv.length && !entry && !focused) return null
         const focusName = (f: TrainingFocus) => t(`training.focus${f[0].toUpperCase()}${f.slice(1)}`)
+        const toggle = !mine && (
+          <button className="btn ghost block" aria-expanded={devOpen} data-dev-toggle
+            onClick={() => setDevOpen(v => !v)}>
+            {t(devOpen ? 'dev.hideCard' : 'dev.showCard')}
+          </button>
+        )
+        if (!mine && !devOpen) return toggle
         return (
+          <>
+          {toggle}
           <div className="card dev-card">
             <div className="fact-label">{t('dev.cardLabel')}</div>
             {band && (
@@ -208,6 +222,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             )}
             {focused && <div className="meta">{t('dev.onFocus')}</div>}
           </div>
+          </>
         )
       })()}
 
