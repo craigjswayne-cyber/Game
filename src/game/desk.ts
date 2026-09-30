@@ -75,6 +75,9 @@ export interface DeskDecision {
   go: DeskGo
   /** the press item behind it, for the ones the desk can answer in place */
   pressId?: number
+  /** the mail line's headline: the oldest unread story, the one a tap serves
+   *  (store.openInbox reads the queue front to back) */
+  newsId?: number
 }
 
 export interface DeskRow {
@@ -182,7 +185,10 @@ export function deskDecisions(state: GameState): DeskDecision[] {
   const sq = natSquadHold(state)
   if (sq) out.push({ kind: 'squad', go: { screen: 'country' }, line: { k: 'desk.dSquad', v: { n: sq.n } } })
   const unread = unreadCount(state)
-  if (unread) out.push({ kind: 'mail', go: { screen: 'inbox', inbox: true }, line: { k: 'desk.dMail', v: { n: unread } } })
+  if (unread) {
+    const first = state.news.filter(n => !n.read && !n.cleared && inInbox(state, n)).sort((a, b) => a.id - b.id)[0]
+    out.push({ kind: 'mail', go: { screen: 'inbox', inbox: true }, line: { k: 'desk.dMail', v: { n: unread } }, newsId: first?.id })
+  }
   return out
 }
 

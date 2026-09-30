@@ -1607,7 +1607,10 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   border-top: 1px solid var(--border);
 }
 .desk-link > span:first-child, .desk-link > b { flex: 1; min-width: 0; }
-.desk-link.muted { color: var(--text-secondary); }
+.desk-headline {
+  display: block; font-size: 12px; color: var(--text-muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
 .chev { display: inline-flex; width: 16px; height: 16px; color: var(--text-muted); flex-shrink: 0; }
 .chev svg { width: 16px; height: 16px; }
 .desk-q { border-top: 1px solid var(--border); }
@@ -1629,6 +1632,12 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .desk-stakes { margin-top: 4px; font-weight: 600; color: var(--gold); font-size: 13px; }
 .desk-analyst { margin-top: 3px; color: var(--text-primary) !important; font-weight: 600 !important; }
 .desk-rows { margin-bottom: -4px; }
+@media (min-width: 640px) {
+  .desk-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 0 16px; align-items: start; }
+  .desk-body .desk-match { margin-right: 0; border-right: 1px solid var(--border); border-radius: 0 6px 6px 0; }
+  .desk-body .desk-rows { margin-bottom: 0; }
+  .desk-body .desk-rows .desk-row:first-child { border-top: none; }
+}
 .desk-row {
   display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px;
   text-align: left; color: var(--text-primary); font-size: 13px; line-height: 1.3;
