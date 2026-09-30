@@ -5184,21 +5184,51 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .speed-controls .ctl-ico { display: inline-flex; align-items: center; justify-content: center; }
 .speed-controls .ctl-ico svg { width: 22px; height: 22px; }
 
-/* THE TREATMENT ROOM (owner, 27 Sep 2026: "tidy up the treatment room"): the
-   line under the name, the buttons stacked to the right at one width */
-.med-row td { vertical-align: middle; }
-.med-row td:first-child { width: 1%; }
-.med-row .med-info { display: flex; flex-direction: column; gap: 2px; margin-top: 3px; font-size: 12px; font-weight: 700; white-space: normal; color: var(--text-muted); }
-.med-row .med-info .neg { color: var(--text-negative); }
-.med-row .med-info .gold { color: var(--gold); }
-.med-row .med-act { text-align: right; width: 1%; }
-.med-row .med-act:empty { display: none; }
-/* smaller buttons with more room between them (owner, 27 Sep 2026): 32px
-   of box and 6px of reach either side is still 44 to tap, and 14px apart the
-   reaches of neighbours never meet */
-.med-row .med-act .rowact { display: flex; width: 100%; min-width: 118px; justify-content: center; white-space: nowrap; margin: 0; min-height: 32px; padding: 4px 10px; font-size: 11px; }
-.med-row .med-act .rowact::after { inset: -7px 0; }
-.med-row .med-act .rowact + .rowact { margin-top: 14px; }
+/* THE TREATMENT ROOM, ROUND TWO (owner: "treatment room looks super messy").
+   One card a man: position, name and a return pill on the first line; the
+   complaint on the second, one line and plain; the buttons on a third, side
+   by side at one width, only when there are any. No right-hand column, so no
+   divider stopping half way and nothing floating out of line. */
+.card.bar-sq { border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.med-staff {
+  border-left: 4px solid var(--gold); border-top-left-radius: 0; border-bottom-left-radius: 0;
+  padding: 8px 12px; font-size: 12px; font-weight: 500; color: var(--text-secondary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.med-staff b { color: var(--text-primary); font-weight: 700; }
+.med-staff.wrap { white-space: normal; }
+.med-search { padding: 4px 12px 0; }
+.med-search .inline-input { margin: 0; padding: 8px 10px; font-size: 13px; }
+.med-card { margin: 6px 12px; padding: 10px 12px; cursor: pointer; }
+.med-head { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.med-name { flex: 1 1 auto; min-width: 0; font-weight: 700; font-size: 14px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.med-pill {
+  flex-shrink: 0; padding: 2px 8px; border-radius: 999px;
+  font-size: 11px; font-weight: 700; letter-spacing: .3px; line-height: 16px;
+  border: 1px solid currentColor;
+}
+.med-pill.short { color: var(--text-positive); background: color-mix(in srgb, var(--text-positive) 12%, transparent); }
+.med-pill.mid { color: var(--gold); background: color-mix(in srgb, var(--gold-fill) 14%, transparent); }
+.med-pill.long { color: var(--text-negative); background: color-mix(in srgb, var(--text-negative) 12%, transparent); }
+.med-info {
+  display: block; margin-top: 5px; font-size: 13px; font-weight: 500; color: var(--text-secondary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.med-info::first-letter { text-transform: uppercase; }
+.med-info .neg { color: var(--text-negative); font-weight: 600; }
+.med-info .gold, .med-extra .gold { color: var(--gold); font-weight: 600; }
+.med-extra { margin-top: 3px; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.med-note { margin-top: 6px; font-size: 12px; font-weight: 500; color: var(--text-muted); }
+.med-msg { margin-top: 6px; font-size: 11px; font-weight: 600; color: var(--text-secondary); white-space: normal; }
+/* 32px of box and 7px of reach above and below is still 44 to tap, and a
+   14px gap between wrapped lines keeps the reaches of neighbours apart */
+.med-acts { display: flex; flex-wrap: wrap; gap: 14px 8px; margin-top: 10px; }
+.med-acts .rowact {
+  flex: 1 1 0; min-width: 130px; margin: 0; min-height: 32px; padding: 4px 8px;
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  white-space: normal; line-height: 1.2; font-size: 11px;
+}
+.med-acts .rowact::after { inset: -7px 0; }
 
 /* the contract traffic light on the squad table */
 .status-dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; vertical-align: middle; box-shadow: 0 0 0 2px color-mix(in srgb, var(--surface-1) 70%, transparent); }

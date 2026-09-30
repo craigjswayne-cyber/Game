@@ -538,7 +538,7 @@
   },
   "medical": {
     "headPhysio": "Kiné en chef",
-    "physioNamed": "{name} (diplôme {badge})",
+    "physioNamed": "Kiné {name}",
     "physioVacant": " · poste vacant - les blessures vont à leur terme (Entraînement → Staff)",
     "physioShorter": " · blessures raccourcies d'environ {pct} %",
     "findPlayer": "Chercher un joueur…",
@@ -548,7 +548,6 @@
     "quietRoomSub": "Personne de blessé, suspendu, rouillé ou à bout de souffle. Profitez-en - ça ne dure jamais.",
     "quietRoomSub_f": "Aucune blessée, suspendue, rouillée ou à bout de souffle. Profitez-en - ça ne dure jamais.",
     "treatmentRoom": "Salle de soins",
-    "treatmentSub": "Indisponibles",
     "redZone": "Zone rouge - charge de la saison",
     "redZoneSub": "1 300 minutes et plus cette saison",
     "minsThisSeason": "{mins}′ cette saison",
@@ -592,8 +591,8 @@
     "knockSub": "Sélectionnable, avec un risque de rechute",
     "knockRow": "Retour prévu dans {n} sem. · risque de rechute {pct} % par match",
     "knockRest": "Mettre au repos",
-    "knockHead": "Blessure à la tête : jamais de jeu malgré tout",
-    "specialistCut": "Spécialiste -{n}sem · {fee}"
+    "knockHead": "Blessure à la tête : repos obligatoire",
+    "specialistCut": "Spécialiste · {fee} (-{n}sem)"
   },
   "inbox": {
     "freeAgent": " · agent libre",
