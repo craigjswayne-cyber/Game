@@ -64,7 +64,7 @@ console.log('(a) the plan reaches the assistant and the board')
   const xv = (s: GameState) => s.clubs[s.userClubId].tactic.lineup.slice(0, 15)
   const changed = xv(cupFirst).filter(id => !xv(leagueFirst).includes(id)).length
   ok(planTier(cupFirst, cup) === 'high' && planTier(leagueFirst, cup) === 'low', 'the tiers follow the order')
-  ok(restA.length === 0 && restB.length >= 3, `cup ranked first rests nobody, ranked last with key men protected rests ${restB.length}`)
+  ok(restA.length < restB.length && restB.length >= 3, `cup ranked first with the strongest side rests ${restA.length}, ranked last with key men protected rests ${restB.length}`)
   ok(changed >= 3, `and the two assistants name different sides (${changed} of the XV differ)`)
   ok(restB.every(p => !xv(leagueFirst).includes(p.id)), 'every rested man is out of the side he named')
   // the week's sheet is the standing side with only the rested shirts changed
@@ -134,7 +134,8 @@ function season(seed: number, order: 'league' | 'cup'): Run {
     lgPts: row?.pts ?? 0, cupPts, state: g,
   }
 }
-const SEEDS = process.env.QUICK ? [9] : [9, 777, 2024, 31337]
+// EIGHT SEEDS, NOT FOUR (1.8.2, after the styles merge): see the results line
+const SEEDS = process.env.QUICK ? [9] : [9, 777, 2024, 31337, 11, 23, 37, 41]
 const A: Run[] = [], B: Run[] = []
 const line = (r: Run) => `key men after a cup week ${r.keyCond.toFixed(1)} cond, ${(r.keyShare * 100).toFixed(0)}% of league shirts; XV ca league ${r.lgCa.toFixed(1)} cup ${r.cupCa.toFixed(1)}; ${r.lgPts} league pts, ${r.cupPts} cup pts`
 for (const seed of SEEDS) {
@@ -153,6 +154,13 @@ ok(avg(A, 'keyCond') > avg(B, 'keyCond'), 'who come from a cup week to the leagu
 // Results are the noisiest number here (paired seasons stop sharing dice at
 // the first different sheet), so the claim is the net one: what the order
 // gains in the competition put first against what it gives up in the other.
+// HOW BIG AND HOW NOISY, measured with styles in over 56 pairs (Northampton
+// 24 seeds, Bath 16, Leicester 16): league +11.1 points and cup +2.4 for the
+// competition ranked first, net +12.4 a pair with a spread of 15.2. Eight
+// pairs put the mean's standard error near 5.4, so a line at zero sits more
+// than two errors under the measured effect. At four pairs, before styles
+// and the rest rule it forced (seasonplan.ts, WHO SITS OUT), this read +5.3
+// on one commit and -5.5 on the next.
 const net = (avg(A, 'lgPts') - avg(B, 'lgPts')) + (avg(B, 'cupPts') - avg(A, 'cupPts'))
 ok(net > 0, `the results follow the order, net (${(avg(A, 'lgPts') - avg(B, 'lgPts')).toFixed(1)} league, ${(avg(A, 'cupPts') - avg(B, 'cupPts')).toFixed(1)} cup)`)
 
