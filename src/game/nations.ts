@@ -6,37 +6,36 @@ import type { GameState, Player } from './model'
 export interface Nation {
   code: string
   name: string
-  flag: string
   rep: number // 1-100
   sixNations?: boolean
   trc?: boolean // Southern Championship
 }
 
 export const NATIONS: Nation[] = [
-  { code: 'RSA', name: 'South Africa', flag: '🇿🇦', rep: 96, trc: true },
-  { code: 'NZL', name: 'New Zealand', flag: '🇳🇿', rep: 94, trc: true },
-  { code: 'IRE', name: 'Ireland', flag: '🇮🇪', rep: 92, sixNations: true },
-  { code: 'FRA', name: 'France', flag: '🇫🇷', rep: 92, sixNations: true },
-  { code: 'ENG', name: 'England', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', rep: 89, sixNations: true },
-  { code: 'ARG', name: 'Argentina', flag: '🇦🇷', rep: 85, trc: true },
-  { code: 'SCO', name: 'Scotland', flag: '🏴󠁧󠁢󠁳󠁣󠁴󠁿', rep: 83, sixNations: true },
-  { code: 'AUS', name: 'Australia', flag: '🇦🇺', rep: 83, trc: true },
-  { code: 'FIJ', name: 'Fiji', flag: '🇫🇯', rep: 78 },
-  { code: 'ITA', name: 'Italy', flag: '🇮🇹', rep: 76, sixNations: true },
-  { code: 'WAL', name: 'Wales', flag: '🏴󠁧󠁢󠁷󠁬󠁳󠁿', rep: 74, sixNations: true },
-  { code: 'GEO', name: 'Georgia', flag: '🇬🇪', rep: 70 },
-  { code: 'JPN', name: 'Japan', flag: '🇯🇵', rep: 70 },
-  { code: 'SAM', name: 'Samoa', flag: '🇼🇸', rep: 67 },
-  { code: 'TGA', name: 'Tonga', flag: '🇹🇴', rep: 64 },
-  { code: 'USA', name: 'United States', flag: '🇺🇸', rep: 60 },
-  { code: 'CAN', name: 'Canada', flag: '🇨🇦', rep: 52 },
-  { code: 'URU', name: 'Uruguay', flag: '🇺🇾', rep: 60 },
-  { code: 'POR', name: 'Portugal', flag: '🇵🇹', rep: 62 },
-  { code: 'ESP', name: 'Spain', flag: '🇪🇸', rep: 57 },
-  { code: 'ROU', name: 'Romania', flag: '🇷🇴', rep: 55 },
-  { code: 'NAM', name: 'Namibia', flag: '🇳🇦', rep: 52 },
-  { code: 'CHL', name: 'Chile', flag: '🇨🇱', rep: 54 },
-  { code: 'LIO', name: 'British & Irish Isles XV', flag: '🔴', rep: 93 },
+  { code: 'RSA', name: 'South Africa', rep: 96, trc: true },
+  { code: 'NZL', name: 'New Zealand', rep: 94, trc: true },
+  { code: 'IRE', name: 'Ireland', rep: 92, sixNations: true },
+  { code: 'FRA', name: 'France', rep: 92, sixNations: true },
+  { code: 'ENG', name: 'England', rep: 89, sixNations: true },
+  { code: 'ARG', name: 'Argentina', rep: 85, trc: true },
+  { code: 'SCO', name: 'Scotland', rep: 83, sixNations: true },
+  { code: 'AUS', name: 'Australia', rep: 83, trc: true },
+  { code: 'FIJ', name: 'Fiji', rep: 78 },
+  { code: 'ITA', name: 'Italy', rep: 76, sixNations: true },
+  { code: 'WAL', name: 'Wales', rep: 74, sixNations: true },
+  { code: 'GEO', name: 'Georgia', rep: 70 },
+  { code: 'JPN', name: 'Japan', rep: 70 },
+  { code: 'SAM', name: 'Samoa', rep: 67 },
+  { code: 'TGA', name: 'Tonga', rep: 64 },
+  { code: 'USA', name: 'United States', rep: 60 },
+  { code: 'CAN', name: 'Canada', rep: 52 },
+  { code: 'URU', name: 'Uruguay', rep: 60 },
+  { code: 'POR', name: 'Portugal', rep: 62 },
+  { code: 'ESP', name: 'Spain', rep: 57 },
+  { code: 'ROU', name: 'Romania', rep: 55 },
+  { code: 'NAM', name: 'Namibia', rep: 52 },
+  { code: 'CHL', name: 'Chile', rep: 54 },
+  { code: 'LIO', name: 'British & Irish Isles XV', rep: 93 },
 ]
 
 export const nationByCode = (c: string) => NATIONS.find(n => n.code === c)
@@ -124,7 +123,6 @@ export const nationVars = (c: string) => ({
   nation: nationName(c),
   nation_k: `nation.${c}`, nationThe_k: `nationThe.${c}`, nationCap_k: `nationCap.${c}`,
 })
-export const flagOf = (c: string) => nationByCode(c)?.flag ?? '🏉'
 
 /** Regen name pools per country: first names, then surnames.
  *

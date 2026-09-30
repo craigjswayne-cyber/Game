@@ -1022,6 +1022,18 @@ export function migrate(s: GameState): GameState {
   // the tactical loop's findings: healed and capped (#181)
   migrateTacLoop(s)
 
+  // THE SEASON PLAN (1.8.2, seasonplan.ts). Absent on every older save, which
+  // is the no-plan game and needs nothing. A damaged one is dropped rather than
+  // half-read: an order that is not a list of ids, or an intent the game does
+  // not know, would rest men for reasons nobody chose.
+  if (s.seasonPlan != null) {
+    const sp = s.seasonPlan as Partial<NonNullable<GameState['seasonPlan']>>
+    const okOrder = Array.isArray(sp.order) && sp.order.every(x => typeof x === 'string')
+    const okRot = sp.rot === 'strongest' || sp.rot === 'balanced' || sp.rot === 'protect'
+    if (!okOrder || !okRot) delete s.seasonPlan
+    else if (typeof sp.season !== 'number') s.seasonPlan = { order: sp.order!, rot: sp.rot!, season: s.season }
+  }
+
   ensureCaptains(s, true)
   return s
 }

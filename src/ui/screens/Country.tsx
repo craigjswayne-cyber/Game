@@ -1,7 +1,8 @@
 import { Fragment, useState } from 'react'
 import { useStore } from '../../store'
 import { POS_ORDER, weekDate, type Pos } from '../../game/model'
-import { flagOf, nationByCode, nationName } from '../../game/nations'
+import { nationByCode, nationName } from '../../game/nations'
+import { Flag } from '../flags'
 import { natRankOrder } from '../../game/natrank'
 import { natFixtureThisWeek } from '../../game/season'
 import { NAT_SQUAD_SIZE } from '../../game/nations'
@@ -123,7 +124,7 @@ export default function Country() {
   return (
     <>
       <div className="card" style={{ borderLeft: '4px solid var(--text-positive)' }}>
-        <h3 style={{ fontSize: 18 }}>{flagOf(natId)} {nationName(natId)}</h3>
+        <h3 style={{ fontSize: 18 }}><Flag code={natId} /> {nationName(natId)}</h3>
         <div className="meta" style={{ marginTop: 2 }}>
           {t('legacy.coRankLine', {
             rank: rank > 0 ? t('legacy.coWorldNo', { n: rank }) : t('legacy.coUnranked'),
@@ -168,7 +169,7 @@ export default function Country() {
           </div>
         )}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0' }}>
-          <span style={{ fontSize: 20 }}>{flagOf(natId)}</span>
+          <Flag code={natId} size={16} />
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 700, fontSize: 14 }}>{nationName(natId)}</div>
             <div className="meta">{t('legacy.coNatCoach')}{conf != null ? t('legacy.coNatUnion', { n: conf }) : ''}</div>
@@ -304,7 +305,7 @@ export default function Country() {
         {upcoming.map(f => (
           <tr key={f.id}>
             <td className="muted">{weekDate(game.season, f.week).slice(0, -5)}</td>
-            <td className="name">{flagOf(f.homeId)} {nationName(f.homeId)} {t('common.v')} {nationName(f.awayId)} {flagOf(f.awayId)}</td>
+            <td className="name"><Flag code={f.homeId} /> {nationName(f.homeId)} {t('common.v')} {nationName(f.awayId)} <Flag code={f.awayId} /></td>
             <td className="num muted">-</td>
           </tr>
         ))}
@@ -314,7 +315,7 @@ export default function Country() {
           return (
             <tr key={f.id}>
               <td className="muted">{weekDate(game.season, f.week).slice(0, -5)}</td>
-              <td className="name">{flagOf(f.homeId)} {nationName(f.homeId)} {t('common.v')} {nationName(f.awayId)} {flagOf(f.awayId)}</td>
+              <td className="name"><Flag code={f.homeId} /> {nationName(f.homeId)} {t('common.v')} {nationName(f.awayId)} <Flag code={f.awayId} /></td>
               <td className="num" style={{ fontWeight: 700, color: us > them ? 'var(--text-positive)' : us < them ? 'var(--text-negative)' : undefined }}>
                 {f.homeScore}-{f.awayScore}
               </td>

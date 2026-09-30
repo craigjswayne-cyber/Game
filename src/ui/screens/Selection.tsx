@@ -1,10 +1,14 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
 import { XV_SLOTS, type Player, type Pos } from '../../game/model'
-import { assistantJudgement, autoSelect, availablePlayers } from '../../game/matchEngine'
+import { availablePlayers } from '../../game/matchEngine'
+import { assistantSheet } from '../../game/seasonplan'
+import { userFixtureThisWeek } from '../../game/season'
+import { formTrend } from '../../game/formtraits'
+import SeasonPlanCard from '../SeasonPlanCard'
 import { effAt } from '../../game/attributes'
 import { AvailTag, FormPill, PosBadge, SectionTitle, Stars } from '../components'
-import { benchSeats, splitFor } from '../../game/bench'
+import { benchSeats } from '../../game/bench'
 import { t } from '../../game/i18n'
 import { IcoAttack, IcoChevron, IcoHandshake, IcoPack, IcoShield } from '../icons'
 
@@ -125,7 +129,7 @@ export default function SelectionPane() {
           {p && club.captain === p.id && <b style={{ color: 'var(--gold)' }}> (C)</b>}
           {p && <> <AvailTag p={p} g={game} /></>}</td>
         <td>{p && <Stars ca={effAt(p, pos)} />}</td>
-        <td>{p && <FormPill v={p.form} />}</td>
+        <td>{p && <FormPill v={p.form} trend={formTrend(p)} />}</td>
         <td className="num">{p ? `${Math.round(p.cond)}%` : ''}</td>
       </tr>
     )
@@ -220,7 +224,7 @@ export default function SelectionPane() {
                     <td><PosBadge pos={p.pos} /></td>
                     <td className="name">{p.name}{tac.lineup.includes(p.id) ? t('selection.selected') : ''}</td>
                     <td><Stars ca={effAt(p, pos)} /></td>
-                    <td><FormPill v={p.form} /></td>
+                    <td><FormPill v={p.form} trend={formTrend(p)} /></td>
                     <td className="num">{Math.round(p.cond)}%</td>
                   </tr>
                 ))}
@@ -254,8 +258,9 @@ export default function SelectionPane() {
              his shirts by hand and the corrections are yours; hire a better
              assistant and his drafts sharpen. */
           <button className="btn gold tiny" onClick={() => {
-            const pool = availablePlayers(game, club.players)
-            club.tactic.lineup = autoSelect(game, pool, splitFor(club), assistantJudgement(game))
+            // and his draft follows the season plan (seasonplan.ts): with no
+            // plan it is exactly the old assistant's pick
+            club.tactic.lineup = assistantSheet(game, userFixtureThisWeek(game))
             // he asked for this side, so it is his: the engine must not
             // second-guess a sheet the manager put there on purpose
             claim()
@@ -282,7 +287,9 @@ export default function SelectionPane() {
           goes away, because the sheet is his from then on */}
       {!tac.userPicked && (
         <div className="muted" style={{ padding: '4px 2px 0' }}>
-          {t('selection.untouched', { g: game.staffPeople?.assistant?.g ?? 'm' })}
+          {/* with a season plan he does update it, every week (seasonplan.ts) */}
+          {game.seasonPlan ? t('selection.untouchedPlan')
+            : t('selection.untouched', { g: game.staffPeople?.assistant?.g ?? 'm' })}
         </div>
       )}
       {/* the bench and the armband sit side by side in landscape: stacked,
@@ -345,6 +352,7 @@ export default function SelectionPane() {
       </div>
       </div>
       </div>
+      <SeasonPlanCard />
       {picker()}
       {roleSheetEl()}
     </>

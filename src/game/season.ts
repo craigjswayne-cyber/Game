@@ -34,6 +34,8 @@ import { flushIdentityNews, stepIdentity } from './identity'
 import { disciplineWeek } from './authority'
 import { updateAgency } from './agency'
 import { OBJECTIVE_DEFS } from './objectives'
+import { applyPlanSheet, boardPriorityF } from './seasonplan'
+import { IRON_REC, brittleF, formTraits } from './formtraits'
 import { derbyName, isDerby, rivalsOf } from './rivalries'
 import { NAT_DEPTH, NAT_SQUAD_FLOOR, NAT_SQUAD_SIZE, NAT_TIERS, pickableNations, homeBased, clubQuotaLeft, conflictedClub, federationList, federationPick, releaseClubDuty, nationByCode, nationNameIn, nationVars, regenName, worldNames } from './nations'
 import { isMyClub, logDecision } from './model'
@@ -1201,7 +1203,10 @@ function weeklyTraining(state: GameState, rng: Rng) {
       if (!p) continue
       // recovery - rusty players take longer to freshen up
       const gym = isUser ? facLevel(state, 'gym') * 0.9 : 0
-      p.cond = clamp(p.cond + Math.round((((p.rust ?? 0) > 0 ? 16 : 22) + gym) * (isUser ? turnF : 1)), 20, 100)
+      // an iron constitution (formtraits.ts) gets more back, and a short
+      // turnaround does not cut into it
+      const iron = formTraits(state.seed, p.id).iron
+      p.cond = clamp(p.cond + Math.round((((p.rust ?? 0) > 0 ? 16 : 22) + gym + (iron ? IRON_REC : 0)) * (isUser ? (iron ? Math.max(1, turnF) : turnF) : 1)), 20, 100)
       p.sharp = clamp(p.sharp - 4, 0, 100)
       if ((p.rust ?? 0) > 0) p.rust = (p.rust ?? 1) - 1
       // ---- MATERNITY LEAVE: the grant, and the road back ----
@@ -1264,7 +1269,7 @@ function weeklyTraining(state: GameState, rng: Rng) {
         // a young senior, and a young body starting nearly every week breaks
         // more often on the training ground
         const loadF = heavyLoad(p) ? 1.35 : 1
-        const tiredF = p.cond < 55 ? 1.7 : 1
+        const tiredF = (p.cond < 55 ? 1.7 : 1) * brittleF(state.seed, p, p.cond < 55)
         const ageF = p.age >= 32 ? 1.3 : 1
         // THE SURFACE YOU TRAIN ON (v1.8.1). This term used to sit in the
         // match engine, shaving the user's injury roll at home off the old
@@ -1960,8 +1965,11 @@ function boardReaction(state: GameState, fx: Fixture, delegated = false) {
   // calmer about a result, an ambitious one a shade louder, and a newcomer's
   // board is in a hurry. Hidden, and a tenth either way at most.
   const patienceF = boardPatience(club.rep) * chairSwing(state)
-  if (us > them) club.boardConfidence = clamp(club.boardConfidence + mag * derbyF * ownerF * stanceF * patienceF, 0, 100)
-  else if (us < them) club.boardConfidence = clamp(club.boardConfidence - mag * derbyF * ownerF * stanceF * patienceF, 0, 100)
+  // THE SEASON PLAN (1.8.2, seasonplan.ts): the competition the manager put
+  // first is watched harder, the one he put last more gently. 1 with no plan.
+  const prioF = boardPriorityF(state, fx.compId)
+  if (us > them) club.boardConfidence = clamp(club.boardConfidence + mag * derbyF * ownerF * stanceF * patienceF * prioF, 0, 100)
+  else if (us < them) club.boardConfidence = clamp(club.boardConfidence - mag * derbyF * ownerF * stanceF * patienceF * prioF, 0, 100)
 
   // The dressing room keeps its own book, and it is slower to move than the
   // board's. Belief is earned a win at a time and it does not arrive in one
@@ -4579,6 +4587,9 @@ If you go, your assistant takes your national side for the duration. Nobody prep
   // takes its plan off (E9, oppcoach.ts setUpForUser): after the advance, so
   // it is the fixture the manager is about to prepare for
   setUpForUser(state, userFixtureThisWeek(state))
+  // and the assistant names this week's side to the season plan, if there is
+  // one and the sheet is his (seasonplan.ts)
+  applyPlanSheet(state)
   // and the week's history: a former club, a legend on the other side (history.ts)
   historyPreview(state)
   flushMemoryNews(state) // memory.ts stories held through the settle take their ids now

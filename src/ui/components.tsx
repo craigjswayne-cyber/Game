@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { clubCode, type GameState, type Player } from '../game/model'
-import { flagOf } from '../game/nations'
+import { Flag } from './flags'
 import { kitCycle, kitHoops, kitPattern, kitQuarters, kitSleeves, kitTrim, type KitPattern } from '../game/kits'
 import { hasHoopRow } from '../game/kits'
 import { t } from '../game/i18n'
@@ -186,16 +186,31 @@ export function PosBadge({ pos }: { pos: string }) {
   return <span className={`pos-badge${FORWARD.has(pos) ? '' : ' back'}`}>{pos}</span>
 }
 
-export function FormPill({ v }: { v: number }) {
+/** THE FORM TREND (1.8.2, game/formtraits.ts formTrend): rising, steady or
+ *  falling over his last ten marks, drawn inside the pill in its own ink as a
+ *  small arrow or a level bar. No trend (under four marks) draws nothing. */
+export function FormPill({ v, trend }: { v: number; trend?: 'up' | 'flat' | 'down' | null }) {
   const bg = v >= 7.5 ? 'var(--text-positive)' : v >= 6 ? 'var(--primary-pressed)' : v >= 4.5 ? 'var(--border-strong)' : 'var(--text-negative)'
   // the grey band is marked so the day theme can ink it dark: white on its
   // light grey was under 2:1 (UI QA, 1.8.0)
   const mid = v < 6 && v >= 4.5
-  return <span className={`form-pill${mid ? ' mid' : ''}`} style={{ background: bg }}>{v.toFixed(1)}</span>
+  const label = trend ? t(trend === 'up' ? 'common.formRising' : trend === 'down' ? 'common.formFalling' : 'common.formSteady') : undefined
+  return (
+    <span className={`form-pill${mid ? ' mid' : ''}`} style={{ background: bg }} title={label} aria-label={label ? `${v.toFixed(1)}, ${label}` : undefined}>
+      {v.toFixed(1)}
+      {trend && (
+        <svg viewBox="0 0 8 10" width="7" height="9" aria-hidden style={{ marginLeft: 2, verticalAlign: 0 }}>
+          {trend === 'up' && <path d="M4 1L7.5 6H5v3H3V6H.5z" fill="currentColor" />}
+          {trend === 'down' && <path d="M4 9L7.5 4H5V1H3v3H.5z" fill="currentColor" />}
+          {trend === 'flat' && <rect x="0.5" y="4" width="7" height="2" rx="1" fill="currentColor" />}
+        </svg>
+      )}
+    </span>
+  )
 }
 
 export function Nat({ code }: { code: string }) {
-  return <span title={code}>{flagOf(code)}</span>
+  return <Flag code={code} />
 }
 
 /** Star display for overall ability, CM-style (out of 5). */
@@ -613,7 +628,7 @@ export function Jersey({ club, size = 44 }: { club: CrestClub; size?: number }) 
 /** Crest by team id - clubs get shields, nations fall back to flags. */
 export function CrestT({ g, teamId, size = 16 }: { g: GameState; teamId: string; size?: number }) {
   const c = g.clubs[teamId]
-  if (!c) return <span style={{ marginRight: 5 }}>{flagOf(teamId)}</span>
+  if (!c) return <span style={{ marginRight: 5 }}><Flag code={teamId} size={Math.round(size * 0.7)} /></span>
   return <Crest club={c} size={size} />
 }
 

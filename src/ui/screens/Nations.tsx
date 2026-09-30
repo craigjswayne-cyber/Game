@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
 import { sortTable } from '../../game/schedule'
-import { flagOf, nationByCode, nationName } from '../../game/nations'
+import { nationByCode, nationName } from '../../game/nations'
+import { Flag } from '../flags'
 import { natRankOrder } from '../../game/natrank'
 import { MoveCell, sinceLine } from './Agency'
 import type { GameState } from '../../game/model'
@@ -33,7 +34,7 @@ function TestRankings({ game }: { game: GameState }) {
                     entry, only one the table had not ranked yet */}
                 <MoveCell from={prevIdx < 0 ? i : prevIdx} to={i} compared={prevOrder.length > 0} />
                 <td className="name" style={mine ? { fontWeight: 800 } : undefined}>
-                  {n?.flag ?? ''} {nationName(code)}{mine ? t('world.agYou') : ''}
+                  <Flag code={code} /> {nationName(code)}{mine ? t('world.agYou') : ''}
                 </td>
                 {/* the gap to the screen's edge is .natranks' last-child
                     rule in theme.css, so the heading moves with the figures */}
@@ -138,7 +139,7 @@ export default function Nations() {
               {sortTable(comp.table).map((r, i) => (
                 <tr key={r.teamId}>
                   <td className="num muted">{i + 1}</td>
-                  <td className="name">{flagOf(r.teamId)} {nationName(r.teamId)}</td>
+                  <td className="name"><Flag code={r.teamId} /> {nationName(r.teamId)}</td>
                   <td className="num">{r.p}</td>
                   <td className="num">{r.w}</td>
                   <td className="num">{r.pf - r.pa}</td>
@@ -155,7 +156,7 @@ export default function Nations() {
         {game.fixtures.filter(f => f.compId === compId).sort((a, b) => a.week - b.week).map(f => (
           <tr key={f.id}>
             <td className="muted">{weekDate(game.season, f.week).slice(0, -5)}</td>
-            <td className="name">{flagOf(f.homeId)} {nationName(f.homeId)} {t('common.v')} {nationName(f.awayId)} {flagOf(f.awayId)}</td>
+            <td className="name"><Flag code={f.homeId} /> {nationName(f.homeId)} {t('common.v')} {nationName(f.awayId)} <Flag code={f.awayId} /></td>
             <td className="num">{f.played ? `${f.homeScore}-${f.awayScore}` : '-'}</td>
           </tr>
         ))}
