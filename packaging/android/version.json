@@ -74,10 +74,11 @@
     "first. Codes only have to rise, so 40 is right whichever of 38 and 39 went up.",
     "41 IS 1.8.0 (1.7.4 and the planned 1.8.1 folded in, never uploaded; the name stays PHASE: Rugby Manager): the two-layer match engine (player contests under the team), commentary with live stats and the pitch for tries and big moments, a fairer board with a first-season honeymoon, tired sides that concede more and a bench that pays, tablet and iPad layouts, opening titles, the six-language review, a new career that never overwrites a save, and the PHASE Discord linked from the menu, About and the bug report. 41 IS ASSUMED FREE AND NOT YET VERIFIED: check the highest accepted code on the Console first.",
     "40 IS 1.8.1 (the planned 1.9 folded in): the manager remembered (decisions that come back as stories, former players met), a club identity that emerges from how it is run, dressing-room bonds and rifts, the opposition report with a match plan and post-match findings, career history that acts (rivalries that grow, legends, annals, returning to an old club), a drilled library of attacking moves, transfer windows enforced, a yearly academy sign-or-release decision, development focus for five, and the tester-note fixes. THE CONSOLE'S HIGHEST ACCEPTED CODE WAS 36 on 29 Sep 2026 (owner, from the Play Console): 37 to 41 above were written up but never accepted by Play, so none of them is spent. 40 was chosen over 37 to leave a margin (owner's call). 1.8.0 was never uploaded; it ships inside 1.8.1.",
+    "41 IS 1.8.2: styles (five attack, five defence), the manager's desk, recruitment detective work, the career arc (rival coaches, reputation, chairmen, ambitions, eras), the dressing room, development projects, season priorities, tactical depth (weather, conditions, specialist positions, pod shapes), the playbook arms race and a calibrated analyst, nine new moves, rebuilt highlight clips, drawn flags and four more rewarded favours. Codes only have to rise: 41 is right whether or not 40 (1.8.1) was uploaded. Check the Console's highest accepted code before building.",
     "versionName comes from the root package.json.",
     "billingLibrary is the Play Billing Library version PhaseBilling.java is",
     "written against. Play refuses anything below 8.0.0 (learned 4 Sep 2026)."
   ],
-  "versionCode": 40,
+  "versionCode": 41,
   "billingLibrary": "8.0.0"
 }
