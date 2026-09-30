@@ -81,8 +81,12 @@ export function RequestAnswer({ n }: { n: NewsItem }) {
 export function PeopleChips({ n }: { n: NewsItem }) {
   const game = useStore(s => s.game)!
   const go = useStore(s => s.go)
-  const ids = [...new Set([...(n.playerIds ?? []), ...(n.playerId != null ? [n.playerId] : [])])]
-    .filter(id => game.players[id])
+  // ONE TAP PER MAN (owner, round 2): the ContextCard beside the story already
+  // carries n.playerId with his crest, so a chip for him here was the same
+  // player twice. The chips only name the others the story mentions.
+  const carded = n.playerId != null && game.players[n.playerId] ? n.playerId : null
+  const ids = [...new Set(n.playerIds ?? [])]
+    .filter(id => game.players[id] && id !== carded)
   if (!ids.length) return null
   return (
     <div className="who-row">
