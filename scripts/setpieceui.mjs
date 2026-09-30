@@ -93,6 +93,53 @@ const diagrams = (page, sel) => page.$$eval(sel, bs => bs.map(b => {
   return s ? s.querySelectorAll('circle, path, line, rect, ellipse, polygon').length : 0
 }))
 
+/** THE PLAYBOOK'S ONE FLOW (1.8.2, owner: "preview and then the slots are
+ *  filled"): tap a move and it plays on a loop; "Add to playbook" fills the
+ *  first empty slot it can go in; with those full, the slots it can go in
+ *  light up and a tap replaces; a move in the playbook offers Remove. */
+async function playbook(page, label) {
+  await page.evaluate(() => {
+    const S = window.rugbyStore.getState(), g = S.game, t = g.clubs[g.userClubId].tactic
+    t.moveShape = t.moveMain = t.moveAlt = t.moveRed = undefined
+    S.touch()
+  })
+  await view(page, 'calls'); await view(page, 'moves')
+  ok(await page.locator('.mv-preview').count() === 0 && await page.locator('.mv-card .mv-hint').count() === 1,
+    `${label}: nothing is previewed until a move is tapped`)
+  await page.click('.mv-card [data-move="mv_loop"]')
+  const svg = page.locator('.mv-preview[data-pick="mv_loop"] svg.mv-anim')
+  ok(await svg.count() === 1, `${label}: tapping a move shows its animated preview`)
+  const t0 = await svg.getAttribute('data-t'); await page.waitForTimeout(700)
+  const t1 = await svg.getAttribute('data-t')
+  ok(t0 !== t1, `${label}: the preview is playing (t ${t0} then ${t1})`)
+  const add = async (id) => { await page.click(`.mv-card [data-move="${id}"]`); await page.click('.mv-card [data-act="add"]') }
+  await add('mv_loop'); await add('mv_switch'); await add('mv_crash'); await add('mv_1331')
+  let tc = await tac(page)
+  ok(tc.moveMain === 'mv_loop' && tc.moveAlt === 'mv_switch' && tc.moveRed === 'mv_crash' && tc.moveShape === 'mv_1331',
+    `${label}: Add fills the next empty slot each time (${tc.moveShape} / ${tc.moveMain} / ${tc.moveAlt} / ${tc.moveRed})`)
+  ok(await page.locator('.mv-callchip[data-call="main"]').getAttribute('data-filled') === 'mv_loop', `${label}: the slot shows what it holds`)
+  await page.click('.mv-card [data-move="mv_decoy"]'); await page.click('.mv-card [data-act="add"]')
+  const lit = await page.$$eval('.mv-callchip.pick', bs => bs.map(b => b.dataset.call).join())
+  ok(lit === 'main,alt,red' && await page.locator('.mv-card[data-replacing="1"]').count() === 1,
+    `${label}: with the slots full, the ones it can go in light up (${lit})`)
+  await page.click('.mv-callchip[data-call="alt"]')
+  tc = await tac(page)
+  ok(tc.moveAlt === 'mv_decoy' && tc.moveMain === 'mv_loop' && await page.locator('.mv-callchip.pick').count() === 0,
+    `${label}: a tap on a lit slot replaces it (${tc.moveAlt})`)
+  await page.click('.mv-card [data-act="remove"]')
+  tc = await tac(page)
+  ok(tc.moveAlt === undefined && await page.locator('.mv-card [data-act="add"]').count() === 1,
+    `${label}: Remove empties its slot and the button offers Add again`)
+  // a phone asking for less motion gets the still whiteboard diagram
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.waitForTimeout(150)
+  ok(await page.locator('.mv-preview svg.mv-anim').count() === 0 && await page.locator('.mv-preview svg.dg').count() === 1,
+    `${label}: under reduced motion the preview is the static diagram`)
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await page.waitForTimeout(150)
+  ok(await page.locator('.mv-preview svg.mv-anim').count() === 1, `${label}: and it plays again when motion is back`)
+}
+
 async function setPiece(page, label, full) {
   await tab(page, 1)
   // THE TAB IN THREE: three views, one shown at a time, each picked alone
@@ -123,6 +170,10 @@ async function setPiece(page, label, full) {
   ok(await view(page, 'moves'), `${label}: the moves view is picked`)
   ok(await page.locator('.mv-card').count() === 1 && await page.locator('.sp-call, .sp-card').count() === 0,
     `${label}: the moves view is the attacking moves card on its own`)
+  if (full) await playbook(page, label)
+  // a move picked, so its preview and its line are measured too
+  await page.click('.mv-card [data-move="mv_loop"]')
+  await page.waitForSelector('.mv-preview[data-pick="mv_loop"] svg.dg')
   await fits(page, `${label} set piece moves`, TEXT)
 
   ok(await view(page, 'kicking'), `${label}: the kicking view is picked`)
