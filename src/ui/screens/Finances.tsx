@@ -1,6 +1,6 @@
 import { useEffect, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import { useStore } from '../../store'
-import { boardObjective, facLevel, fmtMoney, fmtWage, operatingCost, pressAnswer, pressLabel, pressQuestion, pressReaction, weeklyCentral } from '../../game/model'
+import { facLevel, fmtMoney, fmtWage, operatingCost, pressAnswer, pressLabel, pressQuestion, pressReaction, weeklyCentral } from '../../game/model'
 import type { GameState } from '../../game/model'
 import {
   CHARTER_SKU, buyOwnable, hasEntitlement,
@@ -9,6 +9,7 @@ import {
 import { canTownCollection } from '../../game/rewarded'
 import { staffWageBill } from '../../game/staff'
 import { OBJECTIVE_DEFS, objectiveBonus } from '../../game/objectives'
+import { demandedFinish } from '../../game/chairman'
 import { MARQUEE_SLOTS, capPosition, capWord, rosterGrid, rosterWarnings } from '../../game/cap'
 import { SectionTitle, RewardedButton } from '../components'
 import { IcoClock, IcoOpen, IcoTick } from '../icons'
@@ -690,7 +691,7 @@ export default function Finances() {
       </button>
       <SectionTitle>{t('finances.seasonObjectives')}</SectionTitle>
       <div className="card" style={{ marginTop: 6 }}>
-        <h3 style={{ fontSize: 16 }}>{t('finances.boardExpects', { objective: t(boardObjective(club.rep).text) })}</h3>
+        <h3 style={{ fontSize: 16 }}>{t('finances.boardExpects', { objective: t(demandedFinish(game, club.id, game.comps[club.leagueId]?.table.length ?? 14).text) })}</h3>
         <div className="meta">{t('finances.fallShort')}</div>
         {(game.objectives ?? []).map(id => {
           const def = OBJECTIVE_DEFS.find(o => o.id === id)

@@ -18,6 +18,7 @@ import { migrateBonds } from './bonds'
 import { migrateMemory } from './memory'
 import { migrateTacLoop } from './oppreport'
 import { migrateHistory } from './history'
+import { migrateArc } from './arcbook'
 
 // NOT renamed with the game. This string is the key every existing save lives
 // under, so changing it to 'fab-rugby' would not rename anything - it would point
@@ -756,6 +757,9 @@ export function migrate(s: GameState): GameState {
   s.vowedAt ??= 0
   s.agency ??= { seniors: [], kids: [], best: {} }
   migrateMemory(s) // the manager's memory (memory.ts): an old save starts with an empty log
+  migrateArc(s) // the career arc (arcbook.ts): made whole, never invented
+  if (s.ambitions != null && !Array.isArray(s.ambitions)) delete s.ambitions
+  if (s.ambitions) s.ambitions = s.ambitions.filter(a => !!a && typeof a.id === 'string' && typeof a.clubId === 'string').slice(0, 5)
   for (const c of Object.values(s.clubs)) { c.captain ??= null; c.vice ??= null; c.legends = list(c.legends) as typeof c.legends; c.marquee = list(c.marquee) as typeof c.marquee; c.tactic.roles = list(c.tactic.roles) as typeof c.tactic.roles; if (c.id !== s.userClubId) c.coach ??= 'The Head Coach' }
   /**
    * WHO THE STAFF ARE, on a save written before the game asked.
