@@ -3211,16 +3211,13 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   .st-body > .dg { display: none; }
 }
 
-/* ---- the attacking moves (1.8.1, ui/MovesSection.tsx) -------------------
-   One card for the three calls: which call on the top row, the options under
-   it, and the picture beside the facts (two columns on a phone, the picture
-   the narrower), so the section is one short card, not eighteen tiles on a
-   tab that was already the longest on the screen. */
-.mv-card { display: flex; flex-direction: column; gap: 7px; }
+/* ---- the playbook (1.8.1 moves, 1.8.2 playbook, ui/MovesSection.tsx) -----
+   One card, one flow (owner, 1.8.2: "preview and then the slots are filled"):
+   the four slots compact at the top, the picked move playing on a loop under
+   them with one line and one button, and the moves as chips below. */
+.mv-card { display: flex; flex-direction: column; gap: 8px; }
 .mv-calls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
-/* (1.8.2, the playbook: four calls, two by two on a phone and in a row beyond) */
 @media (min-width: 480px) { .mv-calls { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-.mv-style { font-size: 10px; opacity: .7; }
 .mv-mixlabel { font-size: 11px; }
 .mv-callchip {
   display: flex; flex-direction: column; align-items: flex-start; gap: 1px;
@@ -3228,16 +3225,22 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .mv-callchip b { font-size: 11px; line-height: 1.2; }
 .mv-callchip span { font-size: 10px; opacity: .85; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.mv-callchip .mv-fam { opacity: .7; }
+.mv-callchip:disabled { opacity: .55; }
+/* a slot the picked move can replace: lit, so the tap is obvious */
+.mv-callchip.pick { box-shadow: inset 0 0 0 2px var(--gold); }
 .mv-chips { margin-top: 0; }
 .mv-chips .preset-chip { min-height: 36px; }
-.mv-pct { font-size: 10px; opacity: .8; font-weight: 600; }
-.mv-body { display: grid; grid-template-columns: minmax(0, 42%) minmax(0, 1fr); gap: 9px; align-items: start; }
-.mv-body .d { font-size: 11px; color: var(--text-muted); line-height: 1.35; }
-.mv-body b { font-size: 13px; color: var(--text-primary); }
-.mv-body .mv-warn { color: var(--text-negative); font-weight: 600; }
-@media (min-width: 700px) {
-  .mv-body { grid-template-columns: minmax(0, 220px) minmax(0, 1fr); }
-}
+/* a move already in the playbook */
+.mv-chips .preset-chip.mv-in { box-shadow: inset 0 0 0 1.5px var(--gold); }
+.mv-preview { display: flex; flex-direction: column; gap: 7px; }
+.mv-preview .dg { max-height: 210px; }
+.mv-anim { aspect-ratio: 16 / 9; }
+.mv-preview .sp-txt { display: flex; flex-direction: column; gap: 3px; }
+.mv-preview .d { font-size: 11.5px; color: var(--text-muted); line-height: 1.35; }
+.mv-preview b { font-size: 13px; color: var(--text-primary); }
+.mv-preview .mv-warn { color: var(--text-negative); font-weight: 600; }
+.mv-hint { font-size: 11.5px; }
 
 /* the 23: the fifteen in a team-sheet shape on the grass, the eight on a bench */
 .b23 { margin: 6px 14px; display: grid; gap: 8px; }
