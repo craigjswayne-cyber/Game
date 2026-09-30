@@ -1,3 +1,4 @@
+import { brittleF, traitDayF } from './formtraits'
 import type { Club, Fixture, GameState, MatchEvent, Player, Pos, Tactic, Weather } from './model'
 import { genderOf, type Gender, subjectVar } from './gender'
 import { prepLeaked } from './talkingpoints'
@@ -283,8 +284,11 @@ export function teamUnits(state: GameState, lineup: (number | null)[], day?: { f
     let f = dayCache.get(p.id)
     if (f == null) {
       const u = mulberry32((state.seed ^ Math.imul(day.fxId, 2654435761) ^ Math.imul(p.id, 40503)) >>> 0)()
-      f = 1 + consistency(state.seed, p.id) * (u - 0.5) * 2
-        + (day.big ? bigMatchTemper(state.seed, p.id) * 0.015 : 0)
+      f = (1 + consistency(state.seed, p.id) * (u - 0.5) * 2
+        + (day.big ? bigMatchTemper(state.seed, p.id) * 0.015 : 0))
+        // the hidden form tendencies (formtraits.ts): a slow starter back from
+        // a lay-off, a confidence player after two marks the same way
+        * traitDayF(state.seed, p)
       dayCache.set(p.id, f)
     }
     return f
@@ -4279,7 +4283,9 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           const rustF = (p.rust ?? 0) > 0 ? 3.4 : 1
           const tiredF = (side.energy.get(p.id) ?? 70) < 25 ? 1.8 : 1
           const loadF = inRedZone(p) ? 1.5 : 1 // 1,300+ season minutes
-          return rustF * tiredF * loadF
+          // a brittle man tired or rushed back is likelier to be the one
+          // (formtraits.ts): it chooses who, the roll above decides how often
+          return rustF * tiredF * loadF * brittleF(state.seed, p, tiredF > 1)
         })
         const p = wpick(rng, ps, w)
         const [dk, lo, hi] = pickInjury(rng, genderOf(state))

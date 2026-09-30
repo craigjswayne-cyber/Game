@@ -14,6 +14,7 @@ import { boardRequests } from '../../game/boardroom'
 import { chairWish } from '../../game/chairman'
 import { askTheBoard } from '../../game/season'
 import { archetypeOf } from '../../game/oppcoach'
+import { formTrend } from '../../game/formtraits'
 import { Glyph } from '../glyphs'
 
 export default function ClubScreen({ clubId }: { clubId: string }) {
@@ -506,7 +507,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
               {/* another club's squad is read through the scouts (1.8.2): the
                   academy tab here was a free list of true ratings and prices */}
               <td><Stars ca={fuzzedCa(game, p)} />{knowledge(game, p) < 95 && <span className="muted">?</span>}</td>
-              <td><FormPill v={p.form} /></td>
+              <td><FormPill v={p.form} trend={formTrend(p)} /></td>
               <td className="num">{fmtMoney(seenValue(game, p))}</td>
             </tr>
           ))}
