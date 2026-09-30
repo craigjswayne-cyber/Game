@@ -249,9 +249,10 @@ console.log('\nCHAOS 5: everything zeroed - morale, condition, form, confidence\
   // pack (matchEngine.ts) the zeroed squad's form profile shifted, selection
   // shifted with it, and the sack moved from inside twelve weeks to week 15 -
   // measured, not guessed. The board still does its job; the window was
-  // measuring the calendar.
-  const weeks = advance(g, 20, 'all-zeroes world')
-  ok(weeks === 20, `twenty weeks simulate on a fully zeroed club (${weeks}/20)`)
+  // measuring the calendar. And FORTY-FOUR, NOT TWENTY (1.8.2): the hidden
+  // form tendencies moved it again, to week 32 (see CHAOS 6 for the spread).
+  const weeks = advance(g, 44, 'all-zeroes world')
+  ok(weeks === 44, `forty-four weeks simulate on a fully zeroed club (${weeks}/44)`)
   ok(g.unemployed, 'and a board at zero does what a board at zero should: the sack arrives')
   saveHolds(g, 'all zeroes')
 }
@@ -263,7 +264,13 @@ console.log('\nCHAOS 6: the sack-speed run, and life after the sack\n')
   g.clubs[g.userClubId].boardConfidence = 3.1
   // lose the room too, so nothing props the number up
   let sackedAt: number | null = null
-  for (let i = 0; i < 20 && !g.unemployed; i++) {
+  // FORTY-FOUR WEEKS, NOT TWENTY (1.8.2), for the reason CHAOS 5 gives: the
+  // property is that the trigger is pulled, not by which Saturday. The hidden
+  // form tendencies re-rolled every result, and this seed's side won often
+  // enough to sit at 3.1 until week 41. Across eight seeds the sack came at a
+  // mean of week 19 after the change and 24 before it (17 to 33), so twenty
+  // was always inside the spread.
+  for (let i = 0; i < 44 && !g.unemployed; i++) {
     g.clubs[g.userClubId].boardConfidence = Math.min(g.clubs[g.userClubId].boardConfidence, 3.1)
     if (!guard('sack-speed run', () => processWeekAndAdvance(g))) break
     if (g.unemployed && sackedAt == null) sackedAt = g.week
