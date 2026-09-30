@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useStore } from '../../store'
-import { CHALLENGES, LEAGUE_DEFS, mediaVerdict, challengesFor } from '../../game/newgame'
+import { CHALLENGES, LEAGUE_DEFS, mediaVerdict, challengesFor, wizardAim } from '../../game/newgame'
 import { dreamsFor, dreamTitle, type DreamContext } from '../../game/dream'
+import { MAX_AMBITIONS, setAmbitions } from '../../game/ambitions'
 import { COACHING_STYLES } from '../../game/tactics'
 import type { RawClub } from '../../data/types'
 import { ClubStars, Crest, Jersey } from '../components'
@@ -35,6 +36,8 @@ export default function NewGame() {
   const newGender = useStore(s => s.newGender)
   const setNewGender = useStore(s => s.setNewGender)
   const defs = useMemo(() => LEAGUE_DEFS(newGender), [newGender])
+  // the career's seed, drawn once here so the aim shown is the aim set (wizardAim)
+  const [seed] = useState(() => (Math.random() * 2 ** 31) | 0)
   const challenges = useMemo(() => challengesFor(newGender), [newGender])
   const [step, setStep] = useState(0)
   const [leagueIdx, setLeagueIdx] = useState<number | null>(null)
@@ -42,7 +45,7 @@ export default function NewGame() {
   const [name, setName] = useState('')
   const [styleId, setStyleId] = useState('balanced')
   const [challengeId, setChallengeId] = useState<string | null>(null)
-  const [dreamId, setDreamId] = useState<string | null>(null)
+  const [picked, setPicked] = useState<string[] | null>(null)
   /* A NEW CAREER NEVER LANDS ON AN OLD ONE (1.8.0). start() wrote to whichever
    * slot was last loaded or saved, so starting afresh from the menu silently
    * replaced the career you had been playing. It now takes that slot only if
@@ -79,7 +82,15 @@ export default function NewGame() {
      reach, and a career with no ambition at all is the hole this closes. The
      default is club-appropriate (a Championship side is offered promotion
      first) and the tiles sit right under it, so changing it is one tap. */
-  const dream = dreamId ?? dreams[0]?.id ?? null
+  /* UP TO THREE (ambitions.ts): the first named is the dream this career is
+     for, and one or two more may sit beside it. A tap adds an ambition, a tap
+     on a chosen one takes it off, and the last one cannot be taken off. */
+  const chosen = (picked ?? []).filter(id => dreams.some(d => d.id === id))
+  const ambitions = chosen.length ? chosen : dreams[0] ? [dreams[0].id] : []
+  const toggleDream = (id: string) => {
+    if (ambitions.includes(id)) { if (ambitions.length > 1) setPicked(ambitions.filter(x => x !== id)); return }
+    setPicked(ambitions.length >= MAX_AMBITIONS ? [...ambitions.slice(0, MAX_AMBITIONS - 1), id] : [...ambitions, id])
+  }
 
   const pickChallenge = (id: string) => {
     const ch = CHALLENGES.find(c => c.id === id)!
@@ -117,7 +128,7 @@ export default function NewGame() {
     // engine's default coach background.
     // The pronoun is not asked here any more (v1.5.3): Settings owns it, and
     // start() takes the device's last answer when nothing is passed.
-    start(club.id, name.trim(), challengeId ?? undefined)
+    start(club.id, name.trim(), challengeId ?? undefined, undefined, undefined, undefined, seed)
     // coaching philosophy shapes your starting game plan
     const g = useStore.getState().game
     const chosen = COACHING_STYLES.find(s => s.id === styleId)
@@ -126,7 +137,7 @@ export default function NewGame() {
     }
     // the ambition is stamped on the save the moment the career begins, and
     // never moves again: it is what this save is FOR
-    if (g && dream) g.dream = { id: dream, clubId: g.userClubId, season: g.season }
+    if (g && ambitions.length) setAmbitions(g, ambitions)
   }
   const prev = () => {
     if (step === 0) { back(); return }
@@ -375,19 +386,19 @@ export default function NewGame() {
                 <div><label>{t('wizard.philosophyShort')}</label><span>{t(COACHING_STYLES.find(s => s.id === styleId)?.name ?? '')}</span></div>
                 <div><label>{t('wizard.season')}</label><span>{seasonLabel(0)}</span></div>
                 {challenge && <div><label>{t('wizard.challenge')}</label><span>{t(challenge.title)}</span></div>}
-                <div><label>{t('wizard.objective')}</label><span>{t(club.rep >= 87 ? 'wizard.objTitle' : club.rep >= 80 ? 'wizard.objPlayoffs' : club.rep >= 72 ? 'wizard.objTopHalf' : 'wizard.objSurvive')}</span></div>
+                <div><label>{t('wizard.objective')}</label><span>{(() => { const s = t(wizardAim(defs, club.id, seed)); return s.charAt(0).toLocaleUpperCase(localeTag()) + s.slice(1) })()}</span></div>
               </div>
             </div>
             <div className="card">
               <label className="fact-label">{t('wizard.yourDream')}</label>
               <div className="meta" style={{ marginBottom: 2 }}>
-                {t('wizard.dreamBlurb')}
+                {t('wizard.dreamBlurb')} {t('arc.pickUpTo')}
               </div>
               <div className="speech-grid" style={{ padding: '6px 0 0' }}>
                 {dreams.map(d => (
-                  <button key={d.id} className={`speech-tile${dream === d.id ? ' sel' : ''}`}
-                    onClick={() => setDreamId(d.id)}>
-                    <b>{dreamTitle(d, dreamCtx!)}</b>
+                  <button key={d.id} className={`speech-tile${ambitions.includes(d.id) ? ' sel' : ''}`}
+                    onClick={() => toggleDream(d.id)}>
+                    <b>{ambitions.includes(d.id) ? `${ambitions.indexOf(d.id) + 1}. ` : ''}{dreamTitle(d, dreamCtx!)}</b>
                     <span className="d">{t(d.blurbK, d.titleVars?.(dreamCtx!))}</span>
                   </button>
                 ))}

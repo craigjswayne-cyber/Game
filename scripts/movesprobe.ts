@@ -304,7 +304,9 @@ console.log('\n--- 5. in the clips\n')
   const subseq = (xs: number[], want: number[]) => { let j = 0; for (const x of xs) if (x === want[j]) j++; return j === want.length }
   const WANT: Record<string, number[]> = {
     mv_crash: [9, 10, 12, 14], mv_switch: [9, 10, 13, 14], mv_loop: [9, 10, 12, 10, 14], mv_decoy: [9, 10, 13, 14],
-    mv_blind: [8, 9, 11, 14], mv_inside: [9, 10, 12, 14], mv_strike13: [9, 10, 12, 13, 14],
+    // (the wrap goes to the blind wing, and the wrap's wing is the 14 the
+    // move needs: 1.8.2 puts its short side on his side of the scrum)
+    mv_blind: [8, 9, 14], mv_inside: [9, 10, 12, 14], mv_strike13: [9, 10, 12, 13, 14],
   }
   let played = 0
   const wrong: string[] = []
@@ -313,7 +315,10 @@ console.log('\n--- 5. in the clips\n')
     played++
     const seq = carriers(s)
     const f0 = frameAt(s, 0.2)
-    const setOk = from === 'lineout' ? (f0.ball.y < 8 || f0.ball.y > 62) && f0.carrying[1] > 0.5 : f0.carrying.slice(0, 15).every(x => x < 0.5)
+    // (a lineout: the hooker on the touchline with it; a scrum (1.8.2): the
+    // 9 with it at the mouth of the scrum, about to feed)
+    const setOk = from === 'lineout' ? (f0.ball.y < 8 || f0.ball.y > 62) && f0.carrying[1] > 0.5
+      : f0.carrying[8] > 0.5 && f0.carrying.filter(x => x > 0.5).length === 1 && Math.hypot(f0.att[8].x - s.beats[0].x, f0.att[8].y - s.beats[0].y) < 3.5
     if (s.style !== 'move' || !setOk || !subseq(seq, WANT[m.id])) wrong.push(`${m.id}/${from}: ${s.style} set ${setOk} ${seq.join('-')}`)
     if (m.id === 'mv_decoy' && seq.includes(12)) wrong.push('the decoy got the ball')
   }

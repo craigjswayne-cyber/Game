@@ -28,6 +28,7 @@ import { absWeek, logDecision, type GameState, type Personality, type Player, ty
 import { clamp, mulberry32 } from './rng'
 import { tIn } from './i18n'
 import { OFFICE_OUTLET, askedRecently, isBoardroom, rememberAsk } from './media'
+import { demands } from './culture'
 
 export type Fit = 'good' | 'mixed' | 'bad'
 
@@ -327,7 +328,8 @@ export function talkbackWeek(state: GameState) {
   }
 
   // about one week in three with somebody at the door, when there is somebody
-  if (!cands.length || rng() >= 0.35) return
+  // a player-led room (culture.ts) knocks more often; 1 at a neutral club
+  if (!cands.length || rng() >= 0.35 * demands(state)) return
   const chosen = cands[Math.floor(rng() * cands.length)]()
   state.press.push(chosen)
   rememberAsk(state, chosen.playerId!, chosen.topic!)
