@@ -327,7 +327,10 @@ export default function Home() {
       {(() => {
         // `tp`, not `t`: the i18n t() is in scope here now, and shadowing it
         // inside the map is how a screen ends up rendering "[object Object]"
-        const soon = seasonTentpoles(game).filter(tp => tp.week >= game.week).slice(0, 3)
+        // one line per label, at its nearest week: three league meetings with the
+        // same derby rival read "Derby: Leicester" three times over otherwise
+        const soon = seasonTentpoles(game).filter(tp => tp.week >= game.week)
+          .filter((tp, i, all) => all.findIndex(o => o.label === tp.label) === i).slice(0, 3)
         if (!soon.length) return null
         return (
           <button className="card" onClick={() => go('fixtures')}>
