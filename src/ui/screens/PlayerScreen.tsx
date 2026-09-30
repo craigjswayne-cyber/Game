@@ -7,6 +7,7 @@ import { flagOf, nationName } from '../../game/nations'
 import { fineAttr, playerWage } from '../../game/attributes'
 import { attrRange, fuzzedCa, knowledge, paRange, persKnown, reportStage, seenValue, wonderkidKnown } from '../../game/scout'
 import { benchNote, temperRead } from '../../game/temperament'
+import { formTrend, traitHints } from '../../game/formtraits'
 import { bondsLine } from '../../game/bonds'
 import { canAgencyFile } from '../../game/rewarded'
 import { rewardedAvailable } from '../../game/monetise'
@@ -119,7 +120,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           </div>
           <div style={{ textAlign: 'right' }}>
             <Stars ca={fuzzedCa(game, p)} />{know < 95 && <span className="muted" title={t('player.estimated')}> ?</span>}
-            <div style={{ marginTop: 4 }}><FormPill v={p.form} /></div>
+            <div style={{ marginTop: 4 }}><FormPill v={p.form} trend={formTrend(p)} /></div>
           </div>
         </div>
       </div>
@@ -144,11 +145,15 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
       {(() => {
         const tr = temperRead(game, p)
         const bn = benchNote(game, p)
-        if (!tr.lines.length && !bn) return null
+        // the hidden form tendencies, in plain words at the same thresholds
+        // (formtraits.ts): never a name for them
+        const hints = traitHints(game, p)
+        if (!tr.lines.length && !bn && !hints.length) return null
         return (
           <div className="card temper-card">
             <div className="fact-label">{t(mine ? 'player.readStaff' : 'player.readScouts')}</div>
             {tr.lines.map(l => <div key={l.k} className="meta">{t(l.k, l.v)}</div>)}
+            {hints.map(k => <div key={k} className="meta">{t(k)}</div>)}
             {bn && <div className="meta bench-note">{t(bn.k, bn.v)}</div>}
           </div>
         )

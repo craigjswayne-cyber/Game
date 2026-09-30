@@ -25,6 +25,7 @@ import { isleTour } from './isles'
 import { ensureCaptains } from './analysis'
 import { dreamState } from './dream'
 import { objectiveBonus, objectiveById, pickObjectives } from './objectives'
+import { boardPriorityF } from './seasonplan'
 import { deriveAttrs, deriveTrait, isLateBloomer, nextPid, playerValue, playerWage, benchDrag, repriceAcademies } from './attributes'
 import { nationByCode, regenName, worldNames } from './nations'
 import { clamp, mulberry32, pick, type Rng } from './rng'
@@ -1413,7 +1414,10 @@ export function rebuildSeason(state: GameState) {
       // the old flat +12 (rep 38: +16), and a demanding target barely cleared
       // buys a giant noticeably less (rep 93: +7) - it was only ever the floor.
       const patienceF = boardPatience(club.rep)
-      const delta = wonLeague ? 25 : met ? Math.round(12 * (1.65 - patienceF * 0.65)) : -Math.round(14 * patienceF)
+      // and louder or quieter as the manager ranked the league in his season
+      // plan (seasonplan.ts); exactly 1 with no plan
+      const prioF = boardPriorityF(state, club.leagueId)
+      const delta = Math.round((wonLeague ? 25 : met ? Math.round(12 * (1.65 - patienceF * 0.65)) : -Math.round(14 * patienceF)) * prioF)
       club.boardConfidence = clamp(club.boardConfidence + delta, 5, 100)
       // THE DREAM'S MAY VERDICT. Stamped here rather than where state.review is
       // built, because the review is assembled BEFORE this season's finish and
@@ -1464,7 +1468,9 @@ export function rebuildSeason(state: GameState) {
         const def = objectiveById(id)
         if (!def || !def.applies(state)) continue
         const ok = def.met(state)
-        club.boardConfidence = clamp(club.boardConfidence + (ok ? 5 : -4), 5, 100)
+        // the continental brief is weighed as the plan ranked that cup
+        const objF = id === 'cup' ? boardPriorityF(state, 'cc') : 1
+        club.boardConfidence = clamp(club.boardConfidence + (ok ? 5 : -4) * objF, 5, 100)
         // what it is worth to THIS club, not a flat figure that is four per
         // cent of one budget and six times another (objectives.objectiveBonus)
         const bonus = objectiveBonus(club.budget)
