@@ -7995,7 +7995,14 @@
    "one": "The analyst has one more read - her all-nighter for a spot",
    "other": "The analyst has {n} more reads - her all-nighter for a spot"
   },
-  "physioCut": "Favour -{n}w"
+  "physioCut": "Favour -{n}w",
+  "watchInside": "Inside word (watch a spot)",
+  "insideDone": "The agent's inside word on {name} is in: the rival-interest line now reads as the full file would read it.",
+  "watchOpinion": "Second opinion (watch a spot)",
+  "opinionDone": "A second opinion on {name} is in: the staff's estimate of the ceiling is a step narrower for the rest of the season.",
+  "watchTapeRoom": "Tape room night (watch a spot)",
+  "watchTeamNight": "Stand by it, and the sponsor stands the squad a team night (watch a spot)",
+  "teamNightDone": "The sponsor's team night took some of the sting out of it for the senior players."
  },
  "store": {
   "title": "Store",

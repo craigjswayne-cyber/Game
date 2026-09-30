@@ -7927,7 +7927,15 @@
   "owedHeld": "Già pagato. Non è ancora stato consegnato, quindi non ti è stato addebitato di nuovo: il gioco continua a provarci in background. Torna fra un minuto.",
   "asking": "Chiedo allo store…",
   "townBody_f": "Per un club davvero nei guai, il trust dei tifosi fa girare il cappello: guarda uno spot e la colletta arriva in banca. Paga stipendi e bollette, mai le giocatrici.",
-  "physioCut": "Favore -{n}set"
+  "physioCut": "Favore -{n}set",
+  "watchInside": "La soffiata del procuratore (guarda uno spot)",
+  "insideDone": "La soffiata del procuratore su {name} è arrivata: la riga sull'interesse dei rivali ora si legge come nel dossier completo.",
+  "watchOpinion": "Secondo parere (guarda uno spot)",
+  "opinionDone": "Il secondo parere su {name} è arrivato: la stima del tetto dello staff si restringe di un passo fino a fine stagione.",
+  "watchTapeRoom": "Notte in sala video (guarda uno spot)",
+  "watchTeamNight": "Confermare la scelta, e lo sponsor offre una serata di squadra (guarda uno spot)",
+  "teamNightDone": "La serata di squadra offerta dallo sponsor ha attenuato il colpo per i senatori dello spogliatoio.",
+  "teamNightDone_f": "La serata di squadra offerta dallo sponsor ha attenuato il colpo per le senatrici dello spogliatoio."
  },
  "store": {
   "title": "Store",

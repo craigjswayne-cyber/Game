@@ -30,7 +30,7 @@
  * hashes, and draws nothing from the shared rng: the fingerprint holds.
  */
 import type { Attrs, GameState, Personality, Player, Pos } from './model'
-import { ATTR_KEYS } from './model'
+import { ATTR_KEYS, absWeek } from './model'
 import { attrWeight } from './attributes'
 import { isForward } from './bench'
 import { aiShoppingTarget, askingPrice, embargoed } from './ai'
@@ -376,6 +376,21 @@ export function realSuitor(state: GameState, p: Player): string | null {
 /** Six-week spells: agent talk comes and goes on this clock. */
 const phaseOf = (week: number) => Math.floor(week / 6)
 
+/** The knowledge at which the report is the full file (scout.reportStage 3). */
+export const FULL_FILE = 90
+
+/** The absolute week this six-week spell of talk began: the inside word is
+ *  stamped with it, so it lasts exactly as long as the talk it resolved. */
+export function talkSpell(state: GameState): number {
+  return absWeek(state.season, phaseOf(state.week) * 6)
+}
+
+/** Has the inside word been bought on this man for this spell of talk? */
+export function insideWord(state: GameState, p: Player): boolean {
+  const seen = state.rewarded?.insideSeen
+  return !!seen && typeof seen === 'object' && seen[p.id] === talkSpell(state)
+}
+
 /**
  * Agent talk: a club "keen" on him that is not, put about to lift the price.
  * Keyed on the man, the season and the six-week spell, so it lasts a while
@@ -415,7 +430,11 @@ export function talkTruth(state: GameState, p: Player): { clubId: string; genuin
  * rarely fooled.
  */
 export function rivalTalk(state: GameState, p: Player): RivalTalk | null {
-  const k = knowledge(state, p)
+  // THE AGENT'S INSIDE WORD (1.8.2, rewarded.ts): for this spell of talk the
+  // line reads as the chief scout would read it at the full file, which is
+  // what his knowledge would otherwise take weeks to reach. Only the line
+  // moves: the rumour itself, and the premium it costs, are the same.
+  const k = insideWord(state, p) ? Math.max(FULL_FILE, knowledge(state, p)) : knowledge(state, p)
   if (k < 35 && !state.shortlist.includes(p.id)) return null
   const truth = talkTruth(state, p)
   if (!truth) return null

@@ -7884,7 +7884,15 @@
   "owedHeld": "Ya está pagado. Aún no se ha entregado, así que no se te ha vuelto a cobrar: el juego sigue intentándolo en segundo plano. Vuelve en un minuto.",
   "asking": "Consultando la tienda…",
   "townBody_f": "La peña de socios pasará la gorra por un club en apuros de verdad: ve un anuncio y la colecta entra en el banco. Paga sueldos y luz, nunca jugadoras.",
-  "physioCut": "Favor -{n}sem"
+  "physioCut": "Favor -{n}sem",
+  "watchInside": "El soplo del agente (ver un anuncio)",
+  "insideDone": "Ya está el soplo del agente sobre {name}: la línea de interés rival se lee ahora como en el informe completo.",
+  "watchOpinion": "Segunda opinión (ver un anuncio)",
+  "opinionDone": "Ya está la segunda opinión sobre {name}: la estimación del techo del cuerpo técnico se estrecha un paso hasta final de temporada.",
+  "watchTapeRoom": "Noche en la sala de vídeo (ver un anuncio)",
+  "watchTeamNight": "Mantener la decisión, y el patrocinador invita a una cena de equipo (ver un anuncio)",
+  "teamNightDone": "La cena de equipo del patrocinador suavizó el golpe para los veteranos del vestuario.",
+  "teamNightDone_f": "La cena de equipo del patrocinador suavizó el golpe para las veteranas del vestuario."
  },
  "store": {
   "title": "Tienda",
