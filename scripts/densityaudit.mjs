@@ -159,6 +159,11 @@ try {
     await page.click(`.tab-bar >> text=${tab}`)
     await measure(`tactics: ${label}`)
   }
+  // THE GAME PLAN TAB, IN TWO (1.8.2): the styles view opens and is measured
+  // above; the dials behind Fine Tune are a page of their own
+  await page.click('[data-plan-sub="tune"]')
+  await measure('tactics: game plan fine tune')
+  await page.click('[data-plan-sub="styles"]')
 
   for (const [item, label] of [
     ['Team Report', 'team report'], ['Medical Centre', 'medical centre'],

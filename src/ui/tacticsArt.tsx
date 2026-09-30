@@ -587,3 +587,149 @@ export function MoveDiagram({ id }: { id: string }) {
       return <Frame><SetPiece kind="lineout" /><Backs />{theirs}</Frame>
   }
 }
+
+// ---------------------------------------------------------------------------
+// THE ATTACK AND DEFENCE STYLES, DRAWN (1.8.2, game/styles.ts). The whole
+// side's shape rather than one play: touch to touch, the gain line where it
+// helps. With the ball we attack to the RIGHT as everywhere else; without
+// it, their attack (dark) comes from the right and our line (white) faces
+// it, so line speed is a white arrow going right and a drift one going down
+// the line. The shapes follow the coaching study's keyframes, drawn once.
+// ---------------------------------------------------------------------------
+
+/** touch to touch: both touchlines, and a soft gain line at `gain` */
+function Field({ gain, children }: { gain?: number; children?: ReactNode }) {
+  return (
+    <Frame>
+      {[4, 76].map(y => <line key={y} x1={0} y1={y} x2={W} y2={y} style={chalk(0.9)} />)}
+      {gain != null && <line x1={gain} y1={4} x2={gain} y2={76} style={soft(0.7)} />}
+      {children}
+    </Frame>
+  )
+}
+
+/** Every style the game has a picture for; styleprobe holds these to styles.ts. */
+export const STYLE_DIAGRAMS = ['direct', 'pods', 'width', 'kick', 'offload', 'drift', 'blitz', 'pendulum', 'man', 'choke']
+
+export function StyleDiagram({ id }: { id: string }) {
+  switch (id) {
+    case 'direct':
+      // one-out carriers off the ruck, hard and flat at a shoulder; the backs deep and quiet
+      return <Field gain={44}><Ruck x={40} y={40} />
+        {[[64, 12], [62, 24], [60, 34], [60, 46], [62, 56], [64, 68]].map(([x, y], i) => <Them key={i} x={x} y={y} r={2.8} />)}
+        <Us x={30} y={32} r={2.8} /><Us x={28} y={47} r={2.8} /><Us x={24} y={40} r={2.6} />
+        <Us x={16} y={58} r={2.4} /><Us x={10} y={68} r={2.4} />
+        <Move x1={36} y1={38} x2={32} y2={34} dash w={1} head={2} />
+        <Move x1={33} y1={32} x2={56} y2={33} w={2.8} head={4.2} />
+        <Move x1={31} y1={47} x2={56} y2={46} w={2.2} head={3.6} faint />
+        <Key x={30} y={32} />
+      </Field>
+    case 'pods':
+      // 1-3-3-1: a forward on each edge, a pod of three either side, the backs behind them
+      return <Field><Ruck x={44} y={40} />
+        <Us x={38} y={9} r={2.6} /><Pod x={34} y={24} n={3} /><Pod x={34} y={56} n={3} /><Us x={38} y={71} r={2.6} />
+        <Us x={24} y={34} r={2.6} /><Us x={20} y={48} r={2.6} /><Us x={10} y={40} r={2.4} />
+        {[[66, 12], [64, 26], [62, 40], [64, 54], [66, 68]].map(([x, y], i) => <Them key={i} x={x} y={y} r={2.8} />)}
+        <Move x1={40} y1={37} x2={37} y2={29} dash w={1.1} head={2.2} />
+        <Move x1={38} y1={24} x2={57} y2={24} w={2.2} head={3.6} />
+        <Move x1={31} y1={27} x2={26} y2={33} dash w={1} head={2} faint />
+        <Move x1={27} y1={36} x2={54} y2={48} bend={-3} w={1.4} faint />
+        <Key x={34} y={24} r={8} />
+      </Field>
+    case 'width':
+      // a flat screen of runners, and the ball swept behind them to the far edge
+      return <Field><Ruck x={40} y={12} />
+        <Us x={50} y={22} r={2.6} /><Us x={50} y={30} r={2.6} /><Us x={50} y={38} r={2.6} />
+        {[22, 30, 38].map(y => <Move key={y} x1={53} y1={y} x2={58} y2={y} w={1.1} head={2.2} faint />)}
+        <Us x={34} y={23} r={2.6} /><Us x={32} y={44} r={2.6} /><Us x={38} y={56} r={2.6} /><Us x={46} y={70} r={2.6} />
+        {[[64, 14], [63, 24], [62, 33], [64, 44], [70, 60]].map(([x, y], i) => <Them key={i} x={x} y={y} r={2.8} />)}
+        <Move x1={36} y1={14} x2={34} y2={19} dash w={1} head={2} />
+        <Move x1={33} y1={26} x2={32} y2={40} bend={4} dash w={1.1} head={2.2} />
+        <Move x1={33} y1={47} x2={36} y2={52} dash w={1.1} head={2.2} />
+        <Move x1={40} y1={59} x2={44} y2={66} dash w={1.1} head={2.2} />
+        <Move x1={49} y1={71} x2={96} y2={70} w={2.2} head={3.8} />
+        <Key x={46} y={70} />
+      </Field>
+    case 'kick':
+      // the box kick off a ruck by the touchline, two chasers under it and a flat chase line
+      return <Field><Ruck x={32} y={64} />
+        <Move x1={28} y1={61} x2={78} y2={56} bend={-16} dash w={1.3} />
+        <Land x={79} y={56} />
+        <Us x={36} y={72} r={2.6} /><Us x={36} y={52} r={2.6} />
+        <Move x1={39} y1={72} x2={72} y2={61} bend={3} w={1.8} head={3.2} />
+        <Move x1={39} y1={51} x2={71} y2={53} w={1.6} head={3} faint />
+        {[18, 29, 40].map(y => <g key={y}><Us x={40} y={y} r={2.5} /><Move x1={43} y1={y} x2={50} y2={y} w={1} head={2} faint /></g>)}
+        <Them x={83} y={58} /><Them x={100} y={36} r={2.8} /><Them x={96} y={16} r={2.8} />
+        <Key x={36} y={72} />
+      </Field>
+    case 'offload':
+      // the carrier draws the tackle and the ball comes out of it to a runner on his shoulder
+      return <Field>
+        <Move x1={30} y1={40} x2={52} y2={40} w={1.4} faint />
+        <Us x={56} y={40} /><Them x={62} y={39} />
+        <path d="M58 33 l1.5 3 M62 32 l-0.5 3 M65 35 l-2 2" style={{ stroke: 'var(--dg-chalk)', strokeWidth: 0.9, strokeLinecap: 'round' }} />
+        <Us x={50} y={33} r={2.6} /><Us x={52} y={48} r={2.6} /><Us x={44} y={41} r={2.6} />
+        <Move x1={57} y1={43} x2={60} y2={49} dash w={1.1} head={2.2} />
+        <Move x1={55} y1={49} x2={96} y2={54} bend={-3} w={2.2} head={3.8} />
+        <Move x1={45} y1={44} x2={74} y2={62} bend={4} w={1.3} faint />
+        <Them x={68} y={22} r={2.8} /><Them x={74} y={70} r={2.8} /><Them x={90} y={38} r={2.8} />
+        <Key x={56} y={40} />
+      </Field>
+    case 'drift':
+      // up, then out: the whole line slides one man over and the touchline makes the last tackle
+      return <Field><Them x={84} y={12} r={2.6} /><Ball x={82} y={12} />
+        {[[90, 24], [94, 35], [98, 46], [102, 57], [104, 68]].map(([x, y], i) => <Them key={i} x={x} y={y} r={2.8} />)}
+        {[[70, 14], [68, 24], [68, 35], [68, 46], [68, 57], [66, 68]].map(([x, y], i) => <Us key={i} x={x} y={y} r={2.8} />)}
+        {[[68, 24], [68, 35], [68, 46], [68, 57]].map(([x, y]) => <Move key={y} x1={x + 2} y1={y + 2} x2={x + 6} y2={y + 9} w={1.4} head={2.6} />)}
+        <Move x1={68} y1={70} x2={78} y2={73} w={1.8} head={3} />
+        <Out x={88} y={76} />
+        <Key x={104} y={68} dashed />
+      </Field>
+    case 'blitz':
+      // a flat line off the mark together, into their carriers behind their own gain line
+      return <Field gain={84}><Them x={86} y={40} r={2.6} /><Ball x={84} y={40} />
+        {[[94, 24], [96, 34], [96, 48], [98, 58], [100, 68]].map(([x, y], i) => <Them key={i} x={x} y={y} r={2.8} />)}
+        <polyline points="60,14 60,24 60,34 60,48 60,58 60,68" style={soft(0.7)} />
+        {[14, 24, 34, 48, 58, 68].map(y => <g key={y}><Us x={60} y={y} r={2.8} /><Move x1={63} y1={y} x2={80} y2={y} w={1.6} head={3} /></g>)}
+        <Key x={96} y={34} />
+      </Field>
+    case 'pendulum':
+      // the ball-side wing up in the line, the full-back deep behind him and the far wing
+      // deep in the middle: a V that swings across as the ball does
+      return <Field><Them x={86} y={16} r={2.6} /><Ball x={84} y={16} />
+        {[[94, 28], [98, 40], [102, 54]].map(([x, y], i) => <Them key={i} x={x} y={y} r={2.8} />)}
+        {[[70, 8], [68, 22], [68, 32], [68, 42], [68, 52]].map(([x, y], i) => <Us key={i} x={x} y={y} r={2.8} />)}
+        <polyline points="70,8 34,24 42,60" style={soft(0.8)} />
+        <Us x={34} y={24} /><Us x={42} y={60} />
+        <Move x1={94} y1={26} x2={38} y2={30} bend={14} dash w={1.2} />
+        <Land x={37} y={30} />
+        <Move x1={43} y1={57} x2={40} y2={40} bend={-4} w={1.2} faint />
+        <Key x={34} y={24} />
+      </Field>
+    case 'man':
+      // one defender for each attacker, square in front of him, wherever he runs
+      return <Field>
+        {[20, 32, 44, 56, 68].map((y, i) => <g key={y}>
+          <Them x={94 + i * 2} y={y} r={2.8} /><Us x={66} y={y} r={2.8} />
+          <line x1={69} y1={y} x2={91 + i * 2} y2={y} style={soft(0.6)} />
+          <Move x1={69} y1={y} x2={78} y2={y} w={1.5} head={2.8} />
+        </g>)}
+        <Key x={98} y={44} />
+      </Field>
+    case 'choke':
+      // two tacklers high on the carrier, holding him up and driving him back: the maul, then the scrum
+      return <Field>
+        {[[62, 14], [62, 24], [62, 58], [62, 68]].map(([x, y], i) => <g key={i} opacity={0.6}><Us x={x} y={y} r={2.6} /></g>)}
+        <ellipse cx={69} cy={40} rx={10} ry={9} style={soft(0.8)} />
+        <Them x={72} y={40} /><Ball x={72} y={35} />
+        <Us x={66} y={36} /><Us x={66} y={44} />
+        <Move x1={58} y1={36} x2={64} y2={36} w={1.2} head={2.2} />
+        <Move x1={58} y1={44} x2={64} y2={44} w={1.2} head={2.2} />
+        <Move x1={76} y1={40} x2={88} y2={40} w={2.2} head={3.6} />
+        <Them x={82} y={30} r={2.6} /><Them x={84} y={52} r={2.6} />
+        <Key x={72} y={40} r={6} />
+      </Field>
+    default:
+      return <Field />
+  }
+}

@@ -37,6 +37,7 @@ import { aiShoppingTarget, askingPrice, embargoed } from './ai'
 import { recall } from './memory'
 import { attrRange, fuzzedCa, knowledge, margin, paRange, persKnown, reportStage, type ReportStage } from './scout'
 import { clamp, hashString, mulberry32 } from './rng'
+import { atkName, defName, stylesOf, type AtkStyle, type DefStyle } from './styles'
 
 type Key = keyof Attrs
 export type Confidence = 'high' | 'medium' | 'low'
@@ -207,17 +208,36 @@ function publicRecord(state: GameState, p: Player): { durability: boolean; disci
  * zero: positive where your way of playing leans on it harder than a neutral
  * side would, negative where it leans on it less.
  *
- * THE ONE PLACE TO SWITCH. Today this reads the tactic dials (the attack four,
- * the defensive pair and the breakdown pair). When the attack and defence
- * styles land, replace the body with a table per style and nothing else in
- * this file has to change: fitFrom and the report only ever see the tilt.
+ * Two parts since the styles landed (1.8.2, game/styles.ts). The STYLES the
+ * side plays, with the ball and without it, each ask for their own men
+ * (STYLE_TILT: the wide game pace and passing out wide, the choke tackle
+ * strong upright tacklers in the pack); and the dials that fine-tune them
+ * lean it further, as they always did. Picking a style sets its dials too,
+ * so the two agree unless the manager has tuned against his own style.
+ * fitFrom and the report only ever see the tilt.
  */
+type Tilt = { fwd: Partial<Record<Key, number>>; back: Partial<Record<Key, number>> }
+const STYLE_TILT: Record<AtkStyle | DefStyle, Tilt> = {
+  direct: { fwd: { str: 0.8, han: 0.3, scr: 0.3, ruc: 0.3 }, back: { str: 0.6, han: 0.3, vis: -0.2 } },
+  pods: { fwd: { han: 0.3, ruc: 0.3, wor: 0.2 }, back: { dec: 0.2 } },
+  width: { fwd: { pac: 0.3, han: 0.4, sta: 0.3 }, back: { pac: 0.7, pas: 0.5, vis: 0.3 } },
+  kick: { fwd: { lin: 0.3, wor: 0.3 }, back: { kic: 0.8, pos: 0.4, pac: 0.2 } },
+  offload: { fwd: { han: 0.6, agi: 0.4, sta: 0.4 }, back: { han: 0.5, agi: 0.4, sta: 0.3 } },
+  drift: { fwd: { sta: 0.3 }, back: { pos: 0.5, tac: 0.3, pac: 0.3 } },
+  blitz: { fwd: { pac: 0.3, sta: 0.4, wor: 0.3 }, back: { pac: 0.4, dec: 0.3, sta: 0.3 } },
+  pendulum: { fwd: {}, back: { pos: 0.2 } },
+  man: { fwd: { tac: 0.3, agi: 0.2 }, back: { tac: 0.4, agi: 0.3 } },
+  choke: { fwd: { str: 0.6, tac: 0.5, ruc: 0.2 }, back: { tac: 0.3, str: 0.2 } },
+}
+/** how hard the styles lean against the dials' own tilt */
+const STYLE_TILT_W = 0.6
+
 export function sideDemands(state: GameState, clubId = state.userClubId): Record<'fwd' | 'back', Partial<Record<Key, number>>> {
   const tac = state.clubs[clubId]?.tactic
   const d = (v: number | undefined) => ((v ?? 50) - 50) / 50
   const s = d(tac?.style), te = d(tac?.tempo), k = d(tac?.kicking), a = d(tac?.aggression)
   const dl = d(tac?.defLine), dw = d(tac?.defWidth), rc = d(tac?.ruckCommit), rx = d(tac?.ruckContest)
-  return {
+  const out: Tilt = {
     fwd: {
       han: 0.8 * s, pas: 0.5 * s, pac: 0.5 * s + 0.3 * te, agi: 0.3 * s,
       scr: -0.7 * s + 0.2 * a, str: -0.5 * s + 0.5 * a + 0.4 * rc, lin: -0.3 * s + 0.2 * k,
@@ -232,22 +252,25 @@ export function sideDemands(state: GameState, clubId = state.userClubId): Record
       tac: 0.4 * a + 0.4 * dl, agg: 0.3 * a, wor: 0.3 * te,
     },
   }
+  const sty = stylesOf(state, state.clubs[clubId])
+  if (sty) for (const id of [sty.atk, sty.def]) for (const half of ['fwd', 'back'] as const) {
+    for (const [key, v] of Object.entries(STYLE_TILT[id][half]) as [Key, number][]) {
+      out[half][key] = (out[half][key] ?? 0) + STYLE_TILT_W * v
+    }
+  }
+  return out
+}
+
+/** Our way of playing in two words, attack and defence, for the fit line:
+ *  the styles by name (1.8.2). */
+export function sideStyleKeys(state: GameState, clubId = state.userClubId): [string, string] {
+  const sty = stylesOf(state, state.clubs[clubId]) ?? { atk: 'pods', def: 'pendulum' }
+  return [atkName(sty.atk), defName(sty.def)]
 }
 
 /** The fit score: how far his profile, shape rather than quality, leans the
  *  way the side does. Deviations from the position's mean have his own mean
  *  deviation taken out, so a better player is not a better fit by default. */
-/** Our way of playing in two words, attack and defence, for the fit line.
- *  The same switch as sideDemands: when the styles land, name the styles. */
-export function sideStyleKeys(state: GameState, clubId = state.userClubId): [string, string] {
-  const tac = state.clubs[clubId]?.tactic
-  const st = tac?.style ?? 50, dl = tac?.defLine ?? 50
-  return [
-    st >= 62 ? 'philosophy.dialWide' : st <= 38 ? 'philosophy.dialTight' : 'philosophy.dialEven',
-    dl >= 62 ? 'philosophy.dialBlitzingLine' : dl <= 38 ? 'philosophy.dialPassiveLine' : 'philosophy.dialMeasuredLine',
-  ]
-}
-
 export function fitScore(pos: Pos, vals: Record<Key, number>, base: Record<Key, number>, dem: ReturnType<typeof sideDemands>): number {
   const tilt = isForward(pos) ? dem.fwd : dem.back
   const keys = ATTR_KEYS.filter(k => relevant(pos, k))

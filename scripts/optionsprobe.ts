@@ -37,6 +37,7 @@ import { refillBench } from '../src/game/bench'
 import { playbookOf } from '../src/game/playbook'
 import { mulberry32 } from '../src/game/rng'
 import { DEF_SYSTEMS, PRESETS, zonePlan } from '../src/game/tactics'
+import { ATK_PRESET, ATK_STYLES, DEF_PRESET, DEF_STYLES } from '../src/game/styles'
 import type { Fixture, GameState, Tactic } from '../src/game/model'
 
 let fails = 0
@@ -156,6 +157,13 @@ const aggDown = delta('aggression low (10)', down('aggression'))
 ok(aggUp.cardsFor > 0 && aggDown.cardsFor < aggUp.cardsFor, 'aggression: more cards turned up, fewer turned down')
 void styleUp
 void tempoUp
+
+console.log('\n--- the attack and defence styles (1.8.2)')
+// a style is its levers plus an effect of its own (styles.ts), so each is
+// played as a tap on its tile plays it: the preset and the style's name,
+// against the standard side's pod structure and pendulum cover
+for (const a of ATK_STYLES.filter(a => a !== 'pods')) delta(`attack style ${a}`, { ...ATK_PRESET[a], atkStyle: a })
+for (const d of DEF_STYLES.filter(d => d !== 'pendulum')) delta(`defence style ${d}`, { ...DEF_PRESET[d], defStyle: d })
 
 console.log('\n--- the presets')
 for (const p of PRESETS.filter(p => p.id !== 'balanced')) delta(`preset ${p.id}`, { ...p.values })

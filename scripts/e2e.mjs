@@ -199,7 +199,23 @@ try {
   await page.waitForSelector('.form-pitch')
   await shot('06-tactics')
   await page.click('.tab-bar >> text=Game Plan')
+  // THE GAME PLAN OPENS ON THE STYLES (1.8.2): five attacks and five
+  // defences, drawn. Picking one must stick, and the dials it set must be on
+  // the Fine Tune view, which is where Quick Game Plans now live.
+  await page.waitForSelector('[data-plan-sub="styles"]')
+  await page.click('[data-style="width"]')
+  await page.click('[data-style="blitz"]')
+  {
+    const picked = await page.$$eval('.st-tile[aria-checked="true"]', bs => bs.map(b => b.dataset.style))
+    ok(picked.includes('width') && picked.includes('blitz'), `the attack and defence styles are picked on a tap (${picked.join(', ')})`)
+    const card = await page.$$eval('[data-style-card]', cs => cs.map(c => c.dataset.styleCard))
+    ok(card.join() === 'width,blitz', `each picker explains the style it has picked (${card.join(', ')})`)
+  }
+  await page.click('[data-plan-sub="tune"]')
   await page.waitForSelector('text=Quick Game Plans')
+  await shot('06b-game-plan-tune')
+  await page.click('[data-plan-sub="styles"]')
+  await shot('06c-game-plan-styles')
   // the opposition read and its counter plan live on the Prep tab since 1.6.5
   // (the game plan tab was three screenfuls deep with them)
   await page.click('.tab-bar >> text=Prep')

@@ -42,6 +42,7 @@ import { COUNTER, philosophyOf } from './philosophy'
 import { DEFAULT_LINEOUT, DEFAULT_SCRUM, playbookOf, routineEffect } from './playbook'
 import { benchSeats } from './bench'
 import { clamp, hashString } from './rng'
+import { MATCHUP, atkName, defName, stylesOf } from './styles'
 
 export type Unit = AnalystRead['unit']
 
@@ -217,6 +218,19 @@ function styleLines(state: GameState, club: Club, acc: number): ReportLine[] {
   const ph = philosophyOf(club)
   if (ph && acc >= 0.35) out.push({ cat: 'style', k: 'oppreport.philosophy', v: { name_k: ph.name }, ok: true })
   else out.push({ cat: 'style', k: 'oppreport.styleUnclear' })
+  // THE STYLES (1.8.2): how they attack and how they defend, by name, which
+  // the tape shows at any accuracy; and how each meets ours, off the matchup
+  // table, so the report says in words what the Styles view draws
+  const theirs = stylesOf(state, club)
+  const ours = stylesOf(state, state.clubs[state.userClubId])
+  if (theirs) {
+    out.push({ cat: 'style', k: 'styles.oppStyles', v: { atk_k: atkName(theirs.atk), def_k: defName(theirs.def) }, ok: true })
+    if (ours) {
+      const edge = (m: number) => (m > 0 ? 'good' : m < 0 ? 'bad' : 'even')
+      out.push({ cat: 'style', k: `styles.edgeAtk_${edge(MATCHUP[ours.atk][theirs.def])}`, v: { mine_k: atkName(ours.atk), theirs_k: defName(theirs.def) }, ok: true })
+      out.push({ cat: 'style', k: `styles.edgeDef_${edge(-MATCHUP[theirs.atk][ours.def])}`, v: { mine_k: defName(ours.def), theirs_k: atkName(theirs.atk) }, ok: true })
+    }
+  }
   // the dials as the tape shows them: a hashed error that shrinks with accuracy
   const err = (1 - acc) * 34
   const half = Math.max(3, Math.round((1 - acc) * 20))

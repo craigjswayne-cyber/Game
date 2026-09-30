@@ -54,7 +54,7 @@ import { rankedComps, type RotIntent } from './seasonplan'
 import { recall } from './memory'
 import { rivalCoach } from './rivalcoach'
 import { demandedFinish } from './chairman'
-import { defSystemOf, PRESETS } from './tactics'
+import { atkName, defName, stylesOf } from './styles'
 import type { Club } from './model'
 
 /** A sentence as a key and its values. A value under a name ending `_k` is
@@ -283,19 +283,11 @@ function moneyRow(state: GameState): DeskRow | null {
 
 // ---------------------------------------------------------------- tactics
 
-/** How the side plays, as two names the Tactics screen already uses: the
- *  nearest one-tap plan to the with-ball dials, and the defensive system the
- *  without-ball dials describe. */
-function deskTactics(_state: GameState, club: Club): { atk: string; def: string } {
-  const tac = club.tactic
-  let atk = PRESETS[PRESETS.length - 1]
-  let best = Infinity
-  for (const pr of PRESETS) {
-    const v = pr.values
-    const d = (v.style - tac.style) ** 2 + (v.tempo - tac.tempo) ** 2 + (v.kicking - tac.kicking) ** 2 + (v.aggression - tac.aggression) ** 2
-    if (d < best) { best = d; atk = pr }
-  }
-  return { atk: atk.name, def: defSystemOf(tac.defLine ?? 50, tac.defWidth ?? 50).name }
+/** How the side plays: the attacking and defensive styles the Tactics
+ *  screen names (styles.ts; read off the dials on a save that has none). */
+function deskTactics(state: GameState, club: Club): { atk: string; def: string } {
+  const s = stylesOf(state, club)!
+  return { atk: atkName(s.atk), def: defName(s.def) }
 }
 
 const ROT_KEY: Record<RotIntent, string> = {

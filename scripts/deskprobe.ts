@@ -286,7 +286,7 @@ const SAMPLE: { k: string; v?: Record<string, string | number> }[] = [
   ...[1, 3].flatMap(n => [{ k: 'desk.dBoard', v: { n } }, { k: 'desk.dSquad', v: { n } }, { k: 'desk.dMail', v: { n } }, { k: 'desk.roomLow', v: { word_k: 'profile.trustWarming', n } }, { k: 'desk.seasonShort', v: { n } }]),
   { k: 'desk.devBreak', v: { player: 'A' } }, { k: 'desk.devStall', v: { player: 'A' } }, { k: 'desk.devFlying', v: { player: 'A' } },
   { k: 'desk.money', v: { bal_m: -250000 } }, { k: 'desk.moneyAdmin' }, { k: 'desk.moneyWagesFull' }, { k: 'desk.moneyRoom', v: { room_w: 37400 } }, { k: 'home.inTheRed' },
-  { k: 'desk.tactics', v: { atk_k: 'tactics.presetAllout', def_k: 'tactics.defDrift' } },
+  { k: 'desk.tactics', v: { atk_k: 'styles.atk_width', def_k: 'styles.def_blitz' } },
   { k: 'desk.priority', v: { comp: 'English Premier Division', rot_k: 'selection.rotProtect' } },
   { k: 'desk.roomFine', v: { word_k: 'profile.trustWall' } },
   { k: 'desk.seasonAim', v: { aim_k: 'arc.aimTop4' } }, { k: 'desk.seasonPos', v: { pos_o: 3, pts: 21 } }, { k: 'desk.seasonOn' },

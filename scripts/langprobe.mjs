@@ -425,6 +425,15 @@ try {
 
   // the sliders and the opposition read, from game/tactics.ts and philosophy.ts
   await page.locator('.tab-bar button', { hasText: 'Plan de jeu' }).click()
+  // the styles view first (1.8.2): drawn, named and explained in French
+  await page.waitForSelector('[data-plan-sub="styles"]')
+  {
+    const styleText = await page.locator('.content').innerText()
+    const eng = ['Attack Style', 'Defence Style', 'Kick and Chase', 'Choke Tackle', 'Strong against', 'Your XV']
+      .filter(w => styleText.includes(w))
+    ok(eng.length === 0, `the attack and defence styles are French${eng.length ? ': ' + eng.join(', ') : ''}`)
+  }
+  await page.click('[data-plan-sub="tune"]')
   await page.waitForSelector('.slider-row')
   const sliderText = await page.locator('.slider-row').first().innerText()
   say(`  first dial: "${sliderText.replace(/\s+/g, ' ').trim().slice(0, 90)}"`)
