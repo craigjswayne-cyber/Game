@@ -510,7 +510,7 @@
  },
  "medical": {
   "headPhysio": "チーフフィジオ",
-  "physioNamed": "{name}（{badge}バッジ）",
+  "physioNamed": "フィジオ {name}",
   "physioVacant": "・ポスト空席。負傷は自然回復に任せるのみ（トレーニング → バックルームスタッフ）",
   "physioShorter": "・負傷期間およそ{pct}%短縮",
   "findPlayer": "選手を検索…",
@@ -519,7 +519,6 @@
   "nothingOnHimSub": "その検索に該当する選手で、負傷・出停・試合勘不足・ガス欠の者はいない。",
   "quietRoomSub": "負傷も出停もなし、試合勘不足もガス欠もなし。今のうちに味わっておこう。長くは続かないものだ。",
   "treatmentRoom": "治療室",
-  "treatmentSub": "離脱中",
   "redZone": "レッドゾーン。シーズン負荷",
   "redZoneSub": "今季1,300分超",
   "minsThisSeason": "今季{mins}分",
@@ -559,8 +558,8 @@
   "knockSub": "出場可能だが悪化のリスクあり",
   "knockRow": "{n}週間で完治予定・1試合あたり再発リスク{pct}%",
   "knockRest": "休ませる",
-  "knockHead": "頭部の負傷：押しての出場は不可",
-  "specialistCut": "専門医 -{n}週・{fee}"
+  "knockHead": "頭部の負傷：安静が必要",
+  "specialistCut": "専門医・{fee}（-{n}週）"
  },
  "inbox": {
   "freeAgent": "・フリーエージェント",

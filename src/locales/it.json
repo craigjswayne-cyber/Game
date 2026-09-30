@@ -535,7 +535,7 @@
  },
  "medical": {
   "headPhysio": "Fisioterapista capo",
-  "physioNamed": "{name} (patentino {badge})",
+  "physioNamed": "Fisioterapista {name}",
   "physioVacant": " · posto vacante - gli infortuni fanno tutto il loro corso (Allenamento → Staff tecnico)",
   "physioShorter": " · infortuni più corti di circa il {pct}%",
   "findPlayer": "Cerca un giocatore…",
@@ -544,7 +544,6 @@
   "nothingOnHimSub": "Nessun giocatore con quel nome è infortunato, squalificato, arrugginito o a corto di benzina.",
   "quietRoomSub": "Nessuno infortunato, squalificato, arrugginito o in riserva. Goditela - non dura mai.",
   "treatmentRoom": "Infermeria",
-  "treatmentSub": "Fuori",
   "redZone": "Zona rossa - carico stagionale",
   "redZoneSub": "Oltre 1.300 minuti in stagione",
   "minsThisSeason": "{mins}′ in stagione",
@@ -590,8 +589,8 @@
   "knockSub": "Selezionabile, con rischio di ricaduta",
   "knockRow": "Rientro previsto tra {n} sett. · rischio ricaduta {pct}% a partita",
   "knockRest": "Metti a riposo",
-  "knockHead": "Infortunio alla testa: non si gioca mai",
-  "specialistCut": "Specialista -{n}sett. · {fee}"
+  "knockHead": "Infortunio alla testa: riposo obbligatorio",
+  "specialistCut": "Specialista · {fee} (-{n}sett.)"
  },
  "inbox": {
   "freeAgent": " · svincolato",
