@@ -58,6 +58,7 @@ import { chairSwing, demandedFinish } from './chairman'
 import { playAcademyWeek } from './academy'
 import { canBeMentored, mentorGraduations, mentorReports, mentorWeek } from './mentoring'
 import { bondsWeek, flushBondNews } from './bonds'
+import { roomTidy, roomWeek } from './room'
 import { t, tIn, type Vars } from './i18n'
 import { flushMemoryNews, memoryAfterMatch, memoryWeek, rememberPromise } from './memory'
 
@@ -4264,6 +4265,8 @@ export function processWeekAndAdvance(state: GameState) {
         })
       }
     }
+    // a dressing-room question left from last week is gone (room.ts)
+    roomTidy(state)
     generatePress(state, rng)
     // the dressing room's own ledger (pillar 1): incidents surface, unanswered
     // ones fester, and the senior players knock when the room has had enough
@@ -4381,6 +4384,9 @@ If you go, your assistant takes your national side for the duration. Nobody prep
   if (!state.unemployed) {
     mentorGraduations(state)
     mentorReports(state)
+    // the office's hard calls and the room's culture (room.ts): before the
+    // bonds pass, whose last XV it reads to see who was left out
+    roomWeek(state)
     // the dressing room's friendships, rivalries and cliques (bonds.ts)
     bondsWeek(state)
   }
