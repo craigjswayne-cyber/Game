@@ -2449,7 +2449,7 @@
   "tabAttributes": "Attributes",
   "tabCareer": "Career",
   "alsoPlays": " (also {pos})",
-  "natLine": "{flag} {country} · {age} yrs",
+  "natLine": "{country} · {age} yrs",
   "international": " · International",
   "academyGrad": " · Academy graduate",
   "estimated": "Estimated - scout him for certainty",

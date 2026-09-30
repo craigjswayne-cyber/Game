@@ -2448,7 +2448,7 @@
   "tabAttributes": "Eienskappe",
   "tabCareer": "Loopbaan",
   "alsoPlays": " (ook {pos})",
-  "natLine": "{flag} {country} · {age} jr",
+  "natLine": "{country} · {age} jr",
   "international": " · Internasionaal",
   "academyGrad": " · Akademieproduk",
   "estimated": "Geskat - verken hom vir sekerheid",

@@ -3,7 +3,8 @@ import { genderOf } from '../../game/gender'
 import { useStore } from '../../store'
 import { dismiss, dismissed, isOldPlayApp } from '../../game/shell'
 import { snIdFor, snWeeksFor, SIX_NATIONS_WEEKS } from '../../game/schedule'
-import { nationByCode, nationName, flagOf } from '../../game/nations'
+import { nationByCode, nationName } from '../../game/nations'
+import { Flag } from '../flags'
 import { leaguePos, sortTable } from '../../game/schedule'
 import { arrangeFriendly, assistantFixtureThisWeek, userFixtureThisWeek } from '../../game/season'
 import { teamShort } from '../../game/matchEngine'
@@ -132,7 +133,7 @@ export default function Home() {
             <div className="fact-label" style={{ color: 'var(--gold)' }}>{t('home.snLabel', { comp: (compLabel(game.comps[snId]?.name) ?? t('home.theChampionship')).toUpperCase() })}</div>
             {thisWk.map(f => (
               <div key={f.id} style={{ fontSize: 13, marginTop: 3 }}>
-                {flagOf(f.homeId)} {nationName(f.homeId)} {f.played ? <b>{f.homeScore}–{f.awayScore}</b> : t('common.v')} {nationName(f.awayId)} {flagOf(f.awayId)}
+                <Flag code={f.homeId} /> {nationName(f.homeId)} {f.played ? <b>{f.homeScore}–{f.awayScore}</b> : t('common.v')} {nationName(f.awayId)} <Flag code={f.awayId} />
               </div>
             ))}
             {rows.length > 0 && rows[0].p > 0 && (
@@ -234,7 +235,7 @@ export default function Home() {
             {next ? (
               <>
                 <h3 className="fx-line">
-                  {flagOf(next.homeId)} {nationName(next.homeId)} {t('common.v')} {flagOf(next.awayId)} {nationName(next.awayId)}
+                  <Flag code={next.homeId} size={17} /> {nationName(next.homeId)} {t('common.v')} <Flag code={next.awayId} size={17} /> {nationName(next.awayId)}
                 </h3>
                 <div className="muted" style={{ marginTop: 6 }}>
                   {testWeek ? t('home.testWeek') : t('home.nextTest', { date: weekDate(game.season, next.week) })}
