@@ -28,7 +28,7 @@ import {
   type BenchSplit,
 } from './bench'
 import { rememberDebut } from './memory'
-import { ATK_KICKS, atkSay, defSay, moveAffinity, styleDrain, styleFitRel, styleTerr, styleTick, stylesOf, TURN_M, type SideStyle } from './styles'
+import { ATK_KICKS, atkSay, defSay, moveAffinity, styleDrain, styleFitRel, styleTerr, styleTick, stylesOf, TURN_BASE, TURN_M, type SideStyle } from './styles'
 import { ART_HOME, clubSurface, goalPenaltyOf, injuryF, matchConditions, styleWx, surfaceOf, wetness, type Surface } from './conditions'
 import { HABITS, HABITS_OFF, clutchKick, habitFx } from './habits'
 
@@ -1063,6 +1063,14 @@ export interface SideCtx {
   /** its backs' sure hands (habits.ts): a multiplier on the chance a tick
    *  that comes to nothing is turned over, 1 for an average side */
   handsF?: number
+  /** this tick's handling error against the world's (styleTick turnP over
+   *  TURN_BASE): the forward pass in a try's build-up reads it (scoreTry) */
+  fwdF?: number
+  /** the tries this side has gone over for, stood or not, which keys the
+   *  forward-pass hash; and how many the TMO ruled out or let stand for one */
+  tryCalls?: number
+  fwdRuledOut?: number
+  fwdStood?: number
   /** a man taken off under Law 3 while a front-rower sits a yellow, back on
    *  when the binned man returns (checkFrontRow) */
   lawOut?: { id: number; binned: number } | null
@@ -2059,6 +2067,12 @@ const DEPICTS: Record<string, NonNullable<MatchEvent['fx']>> = {
   'comm.tmoNoTry2': 'NOTRY',
   'comm.tmoNoTry3': 'NOTRY',
   'comm.tmoNoTry4': 'NOTRY',
+  'comm.tmoReviewFwd1': 'TMO',      // a forward pass in the build-up (scoreTry)
+  'comm.tmoReviewFwd2': 'TMO',
+  'comm.tmoNoTryFwd1': 'NOTRY',
+  'comm.tmoNoTryFwd2': 'NOTRY',
+  'comm.tmoFwdScrum1': 'SCRUM',     // and the scrum the defenders get for it
+  'comm.tmoFwdScrum2': 'SCRUM',
 }
 
 /**
@@ -3220,6 +3234,14 @@ function dropGoalAttempt(state: GameState, ctx: LiveCtx, side: SideCtx, min: num
  *  fingerprint.ts records what that did to the scoring). */
 export const TMO_REVIEW = 0.16
 export const TMO_OVERTURN = 0.33
+/** A handled try with a forward pass in its build-up, for a side that handles
+ *  as the world does (x side.fwdF), and the share of those the TMO rules out
+ *  (owner: 90%; the other 10% stand as tight calls). See scoreTry. An
+ *  object so scripts/fwdpassprobe.ts can switch it off and show that nothing
+ *  else in a match moves; nothing in the game writes to it. */
+export const FWD_PASS = { rate: 0.03, ruledOut: 0.9 }
+/** how far back up the field the scrum is, where the pass was thrown */
+const FWD_SCRUM_BACK = 8
 
 /** Score a try (+ conversion attempt) for a side - shared by open play and set-piece strikes. */
 /** `line`/`lineV` let a set-piece strike supply its own wording - a maul that
@@ -3255,7 +3277,55 @@ function scoreTry(
   // question the referee asks is wording, and wording never moves the stream.
   // The question and the verdict agree - a try chalked off for a knock-on was
   // being checked for a knock-on.
-  if (review && rng() < TMO_REVIEW) {
+  //
+  // ---- THE FORWARD PASS IN THE BUILD-UP (owner, 30 Sep 2026: "There should
+  // still be forward passes in the game, but IF a try happens then the TMO
+  // should get involved with 90% ruled off. The other 10% should be left in
+  // for debate and tight calls.") ----
+  //
+  // A handled try (not a maul, a pack drive, a red-zone play or a
+  // charge-down fallen on) carries a forward pass in its build-up at
+  // FWD_PASS.rate, scaled by the attacking side's handling error this tick:
+  // the same turnover chance the styles, the wet ball and sure hands already
+  // set (styleTick turnP over TURN_BASE, side.fwdF). The TMO always looks at
+  // one, and FWD_PASS.ruledOut of them are chalked off; the rest stand as the
+  // tight calls the replays will argue over.
+  //
+  // NO DRAW ON THE SHARED STREAM. Both decisions are a hash of the world, the
+  // fixture, the side, the minute and how many tries this side has gone over
+  // for (moveHash off styleSalt, as the style turnovers are). The ordinary
+  // review's first draw is still taken for every reviewable try, and its
+  // second is taken whenever it would have been, so a forward-pass try that
+  // stands spends exactly the draws it always did (the one exception: a try
+  // the ordinary review would have chalked off for something else now
+  // stands). A try ruled out moves what follows (no conversion is kicked),
+  // which is the point.
+  const tryIdx = side.tryCalls = (side.tryCalls ?? 0) + 1
+  const handled = review && !!scorer && !forceScorer && !mvTry?.red && line == null
+  const fwdPass = handled
+    && moveHash(styleSalt(state, ctx), min, side === ctx.home ? 1 : 2, tryIdx, 0x46574450) < FWD_PASS.rate * (side.fwdF ?? 1)
+  const upstairs = review && rng() < TMO_REVIEW
+  let fwdStands = false
+  if (fwdPass) {
+    if (upstairs) rng() // the ordinary review's verdict draw, taken and set aside
+    const q = 1 + ((min + (scorer?.id ?? 0)) % 2)
+    const team = { team: teamShort(state, side.teamId) }
+    const oppSide = side === ctx.home ? ctx.away : ctx.home
+    pushLine(state, ctx, min, 'SUB', side, `comm.tmoReviewFwd${q}`, team, scorer?.id)
+    if (moveHash(styleSalt(state, ctx), min, side === ctx.home ? 1 : 2, tryIdx, 0x52554c45) < FWD_PASS.ruledOut) {
+      // No points, no conversion, no credit. The scrum goes to the defending
+      // side where the pass was thrown, a few metres back up the field, and
+      // the attack's momentum goes with it.
+      side.fwdRuledOut = (side.fwdRuledOut ?? 0) + 1
+      pushLine(state, ctx, min, 'SUB', side, `comm.tmoNoTryFwd${q}`, team, scorer?.id)
+      backTowards(ctx, side, FWD_SCRUM_BACK)
+      side.pressure = clamp(side.pressure * 0.6, 0, 100)
+      pushLine(state, ctx, min, 'SUB', oppSide, `comm.tmoFwdScrum${q}`, { team: teamShort(state, oppSide.teamId) })
+      return
+    }
+    side.fwdStood = (side.fwdStood ?? 0) + 1
+    fwdStands = true
+  } else if (upstairs) {
     const q = 1 + ((min + (scorer?.id ?? 0)) % 4)
     // the lines name the side, not the man: no pronoun to get wrong, and a
     // pack drive has no single scorer to name
@@ -3314,7 +3384,12 @@ function scoreTry(
     // above is taken either way, so naming it moves nothing
     const mt = ctx.moveTry ? moveTryLine(state, ctx.moveTry, scorer, min) : null
     if (mt) tryKey = mt.k
+    // a try that came through a forward pass came through hands: a maul line
+    // drawn for it is swapped after the draw, so the stream is untouched
+    else if (fwdStands && DEPICTS[tryKey] === 'MAUL') tryKey = 'comm.try2'
     pushLine(state, ctx, min, 'TRY', side, tryKey, mt ? mt.v : { player: scorer.name }, scorer.id)
+    // and the debate that follows a tight call
+    if (fwdStands) pushLine(state, ctx, min, 'SUB', side, `comm.tmoFwdStands${1 + ((min + scorer.id) % 2)}`, { team: teamShort(state, side.teamId) }, scorer.id)
   }
   else pushLine(state, ctx, min, 'TRY', side, 'comm.tryPackDrive')
   const cTries = scorer ? scorer.career.reduce((s, c) => s + c.tries, 0) + scorer.stats.tries + (scorer.hist?.tries ?? 0) : 0
@@ -4178,6 +4253,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     }, styleWx(ctx.weather, ctx.surface))
     // sure hands in the backs (habits.ts) hold on to more of it
     st.turnP *= side.handsF ?? 1
+    side.fwdF = clamp(st.turnP / TURN_BASE, 0.5, 2)
     describeStyle(state, ctx, side, opp, st)
     const scores0 = side.score + opp.score
     const numF = 1 - 0.07 * ([...side.yellowUntil.values()].filter(u => u > min).length + side.sent + side.short)

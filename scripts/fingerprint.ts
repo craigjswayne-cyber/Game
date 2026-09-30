@@ -580,6 +580,18 @@ const EXPECTED: string[] = [
 // bandcheck, pooled over four seeds, before and after:
 //   pts 49.4 -> 49.6   tries 6.26 -> 6.30   home 53.2% -> 53.2%
 //   draws 1.6% -> 1.8%   blowouts 8.0% -> 8.8% (every band holds)
+// NOT rebaselined for the forward pass in the build-up (owner, 30 Sep 2026:
+// "IF a try happens then the TMO should get involved with 90% ruled off"),
+// and worth writing down why. Whether a try carries a forward pass, and
+// whether the TMO rules it out, is a hash of the world, the fixture, the side,
+// the minute and the try's number (matchEngine.scoreTry), never a draw, so
+// only a match with a forward-pass try that is ruled out can move, and none of
+// these six has one. scripts/fwdpassprobe.ts proves the rest: with the forward
+// pass switched off, every match takes the same draws. It does lower the
+// scoring, as a rule that takes tries away must. bandcheck, pooled over four
+// seeds, before and after (FWD_PASS.rate 0.03, 0.2 reviews a match):
+//   pts 49.8 -> 48.7   tries 6.32 -> 6.16   home 52.4% -> 53.3%
+//   draws 1.4% -> 1.7%   blowouts 8.6% -> 7.9% (every band holds)
 
 if (EXPECTED[0] === '@@EXPECTED@@') {
   console.log('BASELINE (paste into EXPECTED):')
