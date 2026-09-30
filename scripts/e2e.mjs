@@ -379,10 +379,11 @@ try {
   // navigate bare and land on whatever old story the reader last held.
   await page.click('.bottom-nav button[title="Home"]')
   await page.waitForTimeout(300)
-  const cue = page.locator('.inbox-cue')
+  // the cue is the desk's mail line now (1.8.2, game/desk.ts): "5 stories to read"
+  const cue = page.locator('.desk-link[data-kind="mail"]')
   if (await cue.count()) {
     const cueText = await cue.innerText()
-    const promised = parseInt(/(\d+) unread/i.exec(cueText)?.[1] ?? '0', 10)
+    const promised = parseInt(/(\d+)/.exec(cueText)?.[1] ?? '0', 10)
     await cue.click()
     try {
       await page.waitForSelector('.reader', { timeout: 10000 })

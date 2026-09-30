@@ -1927,6 +1927,10 @@ export interface GameState {
    *  finish no better than the pundits said and next season's budget gives it
    *  back with interest. Cleared with the stance each summer. */
   stanceFund?: number
+  /** SEASON PRIORITIES (1.8.2, seasonplan.ts): the manager's ranking of the
+   *  club's competitions and his rotation intent. Read by the assistant's
+   *  team sheet and the board. Unset is exactly the old game. */
+  seasonPlan?: import('./seasonplan').SeasonPlan
   /** ---- v1.1.0: what the owner paid for (grants.ts, monetise.ts) ----
    *  Nothing below is ever set by the game itself - scripts/grantprobe.ts
    *  holds that a fresh career carries none of it. */
@@ -2358,12 +2362,17 @@ export function trustFactor(state: GameState): number {
 }
 
 export function trustWord(v: number): string {
-  return t(v >= 85 ? 'profile.trustWall'
+  return t(trustKey(v))
+}
+
+/** The key behind trustWord, for a screen that renders later (game/desk.ts). */
+export function trustKey(v: number): string {
+  return v >= 85 ? 'profile.trustWall'
     : v >= 68 ? 'profile.trustWithYou'
     : v >= 50 ? 'profile.trustWarming'
     : v >= 32 ? 'profile.trustUndecided'
     : v >= 16 ? 'profile.trustUnconvinced'
-    : 'profile.trustDisbelief')
+    : 'profile.trustDisbelief'
 }
 
 /** World Championship years: 2027, 2031, ... (in-game season index) */
