@@ -8545,7 +8545,7 @@
   "eraEnd": "{story_k} Gewen {w}, gelykop {d}, verloor {l}, trofeë {cups}, van {from} tot {to}. Die hele era word in Bestuurder se Nalatenskap bewaar.",
   "eraFiveSubj": "{cn}: die verhaal tot dusver",
   "eraFive": "{story_k} Gewen {w}, gelykop {d}, verloor {l}, trofeë {cups}, van {from} tot {to}.",
-  "storyShort": "Jou tyd by {club} het {m} wedstryde geduur.",
+  "storyShort": "Jou tyd by {club} het {m} {matches_k} geduur.",
   "storyEurope": "Jy het {club} van {from_o} in {league} na wenners van {cup_k} geneem in {n} {seasons_k}.",
   "storyTitle": "Jy het {club} van {from_o} in {league} na die {comp}-titel geneem in {n} {seasons_k}.",
   "storyUp": "Jy het {club} van {league} na {comp} geneem in {n} {seasons_k}.",

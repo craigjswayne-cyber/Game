@@ -8398,7 +8398,7 @@
   "eraEnd": "{story_k} Ganados {w}, empatados {d}, perdidos {l}, títulos {cups}, de {from} a {to}. Toda la época queda en Legado del entrenador.",
   "eraFiveSubj": "{cn}: la historia hasta ahora",
   "eraFive": "{story_k} Ganados {w}, empatados {d}, perdidos {l}, títulos {cups}, de {from} a {to}.",
-  "storyShort": "Tu etapa en {club} duró {m} partidos.",
+  "storyShort": "Tu etapa en {club} duró {m} {matches_k}.",
   "storyEurope": "Llevaste a {club} del puesto {from_o} en {league} a ganar {cup_k} en {n} {seasons_k}.",
   "storyTitle": "Llevaste a {club} del puesto {from_o} en {league} al título de {comp} en {n} {seasons_k}.",
   "storyUp": "Llevaste a {club} de {league} a {comp} en {n} {seasons_k}.",

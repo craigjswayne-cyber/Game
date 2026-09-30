@@ -8089,7 +8089,7 @@
   "eraEnd": "{story_k}{w}勝{d}分{l}敗、タイトル{cups}、{from}から{to}まで。時代の全体は「監督の足跡」に残る。",
   "eraFiveSubj": "{cn}：ここまでの物語",
   "eraFive": "{story_k}{w}勝{d}分{l}敗、タイトル{cups}、{from}から{to}まで。",
-  "storyShort": "{club}での在任は{m}試合だった。",
+  "storyShort": "{club}での在任は{m}{matches_k}だった。",
   "storyEurope": "あなたは{club}を{league}の{from_o}から{n}{seasons_k}で{cup_k}の覇者に導いた。",
   "storyTitle": "あなたは{club}を{league}の{from_o}から{n}{seasons_k}で{comp}の王者に導いた。",
   "storyUp": "あなたは{club}を{league}から{n}{seasons_k}で{comp}へ導いた。",
