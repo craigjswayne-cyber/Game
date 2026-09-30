@@ -557,6 +557,9 @@ function backAcross(across: number, y: number, lean: number) {
  * late frame is the right picture a little later, and hlprobe can measure it.
  */
 const FPS = 60, DT = 1 / FPS
+/** frames kept: every other step (1.8.2: half the bake's writing and half its
+ *  memory; read back blended, a thirtieth of a second apart is still smooth) */
+const KEEP = 2, REC_FPS = FPS / KEEP
 const V_PLAYER = 11, A_PLAYER = 16
 /** a defensive line shifting across with the ball (m/s) */
 const V_SHIFT = 7.5
@@ -708,9 +711,15 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
     }
     const [ahead, across] = DEF[i]
     // most of them to the side the play goes, the line narrowed to fit
-    const ls = dir === d ? lean : -lean
+    // (towards the touchline the men near the ruck keep their spacing and
+    // the backs outside them close up; with no room at all that side, the
+    // line stands the other way)
+    let ls = dir === d ? lean : -lean
+    if ((ls > 0 ? 70 - b.y : b.y) < 13) ls = -ls
     const roomOn = ls > 0 ? 70 - b.y : b.y, roomOff = 70 - roomOn
-    const a = across * DS.width * (across > 0 ? Math.min(1, (roomOn - 2) / 28) : Math.min(1, (roomOff - 2) / 16))
+    const w = across * DS.width
+    const a = w > 10 ? 10 + (w - 10) * clamp((roomOn - 12) / 18, 0.15, 1)
+      : w < -6 ? -6 + (w + 6) * clamp((roomOff - 8) / 10, 0.15, 1) : w
     return { x: fieldX(ownLine(b.x + dir * Math.max(1.2, ahead + DS.depth), b, dir)), y: fieldY(b.y + ls * a) }
   }
 
@@ -811,7 +820,7 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
       step(t)
       separate()
       const r = refSpot(); ref.steer(r.x, r.y, 8.5, 10)
-      snap(t)
+      if (f % KEEP === 0) snap(t)
       frameNo = f
       if (t > endAt() + 0.5 || f > FPS * 40 || halt) break
     }
@@ -1441,7 +1450,7 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
   // ---- the track as it is played: who has the ball, the pass in the air,
   // the next pass, and the bite
   let holder = -1, flight: { from: Pt; to: number; t0: number; dur: number; lift: number } | null = null, nextPass = 0, caughtAt = -9
-  let trackT0 = 0, trackX0: number[] = [], trackBy0 = 0
+  let trackT0 = 0, trackX0: number[] = [], trackY0: number[] = [], trackBy0 = 0
   const biteFrom: Record<number, { x: number; y: number; ux: number; uy: number }> = {}
   /** the man who bites on the decoy: his marker, or the nearest to him */
   const biterOf = () => {
@@ -1467,6 +1476,7 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
       trackT0 = t
       holder = roleOf(tr!.first ?? '9') - 1
       trackX0 = def.map(b => b.x)
+      trackY0 = def.map(b => b.y)
       trackBy0 = ball.y
       // in open play the defence marks up on the move's men as it forms
       if (!setKind) {
@@ -1781,7 +1791,7 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
         if (m >= 0) {
           const man = att[m]
           const slideY = DS.slide * Math.max(0, (ball.y - trackBy0) * side)
-          const y = DS.mark === 'man' ? man.y - side * 0.3 : (trackX0.length ? (setDef[i]?.y ?? def[i].y) : def[i].y) + side * slideY
+          const y = DS.mark === 'man' ? man.y - side * 0.3 : (setDef[i]?.y ?? trackY0[i] ?? def[i].y) + side * slideY
           // (aimed a little ahead of where the line is, so it keeps up)
           let x = (trackX0[i] ?? def[i].x) - d * adv(kt + 0.45)
           if ((x - man.x) * d < 1.6) x = man.x + d * 1.6
@@ -1813,6 +1823,10 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
         else {
           const v = Math.min(V_CAP, (ahead ? CH.coverV : hunters.has(i) ? CH.huntV : CH.scrambleV) * pk, ahead ? Infinity : outpaced(route))
           tgt = chaseTo(def[i], i, route, v, ahead ? CH.coverLead : CH.lead, CH); vmax = v
+          // (a man who is not one of the tacklers does not run into him as he
+          // slows for the line: he stays a stride off)
+          const ox = def[i].x - ball.x, oy = def[i].y - ball.y, od = Math.hypot(ox, oy)
+          if (od < 2.2 && !contact.includes(i)) { tgt = { x: ball.x + ox / (od || 1) * 2.2, y: ball.y + oy / (od || 1) * 2.2 }; vmax = Math.min(vmax, 6) }
         }
       } else if (route && ph.k === 'kick') {
         // a kick through them (a grubber, a chip, a crossfield) is the same
@@ -1902,7 +1916,7 @@ const bakeOf = (c: ClipSpec) => {
       // from where the gap was hit this time)
       for (let k = 0; k < 2; k++) {
         const bt = b.tl.bite
-        if (!bt || bt.hit <= 0 || Math.abs(bt.hit - bt.t - BITE_LEAD) <= 0.07) break
+        if (!bt || bt.hit <= 0 || Math.abs(bt.hit - bt.t - BITE_LEAD) <= 0.06) break
         b = bake(c, { biteAt: bt.hit - BITE_LEAD, biteDef })
       }
     }
@@ -1926,7 +1940,7 @@ export function clipLength(c: ClipSpec): number { return bakeOf(c).tl.end }
  */
 export function frameAt(spec: ClipSpec, t: number): { ball: Pt; lift: number; att: Pt[]; def: Pt[]; ref: Pt; carrying: number[]; down: number[]; aloft: number[] } {
   const b = bakeOf(spec)
-  const f = clamp(t * FPS, 0, b.n - 1), i = Math.floor(f), j = Math.min(b.n - 1, i + 1), k = f - i
+  const f = clamp(t * REC_FPS, 0, b.n - 1), i = Math.floor(f), j = Math.min(b.n - 1, i + 1), k = f - i
   const at = (a: Float32Array, w: number, o: number) => lerp(a[i * w + o], a[j * w + o], k)
   const pts = (a: Float32Array) => Array.from({ length: 15 }, (_, s) => ({ x: at(a, 30, s * 2), y: at(a, 30, s * 2 + 1) }))
   const near = k < 0.5 ? i : j
