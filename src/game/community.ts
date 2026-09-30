@@ -20,3 +20,15 @@
  * follows a link the player tapped.
  */
 export const COMMUNITY_URL = 'https://discord.gg/3KKfDVsMb'
+
+/**
+ * ---- THE BUG-REPORTS CHANNEL (1.8.2) ----
+ *
+ * Owner: "Post on Discord" on the bug screen must land in the bug-reports
+ * channel, not the server's front door. This is a channel invite, so it opens
+ * straight into that channel. Only the bug report's button uses it; the menu's
+ * "Join us on Discord", Home, About and the ideas box keep COMMUNITY_URL.
+ * Same rules as above: a link the player taps, nothing sent by the game
+ * (scripts/netprobe.ts allows this address in this file too).
+ */
+export const BUG_CHANNEL_URL = 'https://discord.gg/TWmWQxu38z'

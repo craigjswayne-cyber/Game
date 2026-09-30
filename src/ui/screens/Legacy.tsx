@@ -10,6 +10,10 @@ import { horizon, horizonPct } from '../../game/legacy'
 import { annalsFor } from '../../game/history'
 import { ord, t, compLabel } from '../../game/i18n'
 import { Glyph } from '../glyphs'
+import { clubRepute } from '../../game/repute'
+import { coachRows } from '../../game/rivalcoach'
+import { buildEra } from '../../game/erastory'
+import type { Era } from '../../game/arcbook'
 
 export default function Legacy() {
   const game = useStore(s => s.game)!
@@ -28,6 +32,11 @@ export default function Legacy() {
         <div style={{ display: 'flex', justifyContent: 'center' }}><Crest club={club} size={44} mr={0} /></div>
         <h3 style={{ fontSize: 22, marginTop: 6 }}>{game.managerName}</h3>
         <div className="meta">{t('legacy.lgDirectorOf', { club: club.name })}</div>
+        {/* THE CLUB'S NAME FOR ITSELF (repute.ts): an identity held for years */}
+        {(() => {
+          const l = clubRepute(game)
+          return l ? <div className="meta club-repute" style={{ marginTop: 3, fontStyle: 'italic' }}>{t('arc.knownAs', { label_k: `arc.repute.${l}` })}</div> : null
+        })()}
         {challenge && <div className="meta" style={{ color: 'var(--gold)', fontWeight: 700, marginTop: 3 }}>{t('legacy.lgChallenge', { title: t(challenge.title) })}</div>}
         {/* the save's stamps (v1.1.0): visible, not shaming - a licensed start
             and a Charter save both still count, and the badge says how the
@@ -215,6 +224,62 @@ export default function Legacy() {
               )}
               {prot && <div className="meta" style={{ marginTop: 6 }}><Glyph name="academy" /> {prot}</div>}
             </div>
+          </>
+        )
+      })()}
+
+      {/* ACROSS THE DUGOUT (rivalcoach.ts): the coaches you have met most, as
+          people, and the one who has become your rival */}
+      {(() => {
+        const rows = coachRows(game)
+        if (!rows.length) return null
+        return (
+          <>
+            <SectionTitle sub={t('arc.coachesSub')}>{t('arc.coachesTitle')}</SectionTitle>
+            <div className="card coach-rows" style={{ padding: '6px 10px' }}>
+              {rows.map(({ c, rival, club: at, idea }, i) => (
+                <div key={c.id} className="dash-line" style={{ borderTop: i ? '1px solid var(--border)' : undefined, padding: '4px 0' }}>
+                  <span className="dl-t" style={{ minWidth: 0 }}>
+                    <b style={rival ? { color: 'var(--danger)' } : undefined}>{c.n}</b>
+                    {rival && <span className="muted"> · {t('arc.rivalTag')}</span>}
+                    <div className="muted" style={{ fontSize: 11 }}>{[at || t('arc.outOfWork'), idea].filter(Boolean).join(' · ')}</div>
+                  </span>
+                  <b>{t('arc.wdl', { w: c.w, d: c.d, l: c.l })}</b>
+                </div>
+              ))}
+            </div>
+          </>
+        )
+      })()}
+
+      {/* THE STORY OF EACH ERA (erastory.ts): told when a job ends and every
+          fifth season, newest first, with this one so far at the top */}
+      {(() => {
+        const now = game.arc?.cur && game.arc.cur.c === game.userClubId && !game.unemployed ? buildEra(game, '5') : null
+        const past = [...(game.arc?.eras ?? [])].reverse().filter(e => !(now && e.c === now.c && e.f === now.f))
+        const list: { e: Era; live: boolean }[] = [...(now && now.m > 0 ? [{ e: now, live: true }] : []), ...past.map(e => ({ e, live: false }))]
+        if (!list.length) return null
+        const opp = (id: string) => game.clubs[id]?.short ?? id
+        return (
+          <>
+            <SectionTitle sub={t('arc.erasSub')}>{t('arc.erasTitle')}</SectionTitle>
+            {list.slice(0, 6).map(({ e, live }, i) => (
+              <div key={`${e.c}${e.f}${e.t}${i}`} className="card era-card">
+                <div className="fact-label">
+                  {e.cn} · {seasonLabel(e.f)}{e.t !== e.f ? ` - ${seasonLabel(e.t)}` : ''}{live ? ` · ${t('arc.eraSoFar')}` : ''}
+                </div>
+                <div style={{ fontWeight: 700, fontSize: 14, margin: '3px 0 6px' }}>{t(e.sk, e.sv)}</div>
+                <div className="dash-line"><span className="dl-t">{t('arc.eraRecord')}</span><b>{t('arc.wdl', { w: e.w, d: e.d, l: e.l })}</b></div>
+                <div className="dash-line"><span className="dl-t">{t('arc.eraTrophies')}</span><b>{e.tr.length}</b></div>
+                {e.intl > 0 && <div className="dash-line"><span className="dl-t">{t('arc.eraIntl')}</span><b>{e.intl}</b></div>}
+                {e.rs && <div className="dash-line"><span className="dl-t">{t('legacy.lgRecordSigning')}</span><b>{fmtMoney(e.rs.fee)}</b><span className="muted">{e.rs.n}</span></div>}
+                {e.gp && <div className="dash-line"><span className="dl-t">{t('arc.eraPlayer')}</span><b>{e.gp.n}</b></div>}
+                {e.gw && <div className="dash-line"><span className="dl-t">{t('legacy.lgBiggestWin')}</span><b>{e.gw.us}-{e.gw.them}</b><span className="muted">{t('legacy.lgVs', { club: opp(e.gw.o) })}</span></div>}
+                {e.wd && <div className="dash-line"><span className="dl-t">{t('legacy.lgHeaviestDefeat')}</span><b>{e.wd.us}-{e.wd.them}</b><span className="muted">{t('legacy.lgVs', { club: opp(e.wd.o) })}</span></div>}
+                {e.rv && <div className="dash-line"><span className="dl-t">{t('arc.eraRival')}</span><b>{e.rv}</b></div>}
+                {e.id && <div className="dash-line"><span className="dl-t">{t('arc.eraIdentity')}</span><b>{t(`arc.repute.${e.id}`)}</b></div>}
+              </div>
+            ))}
           </>
         )
       })()}

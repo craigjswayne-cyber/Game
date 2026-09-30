@@ -212,6 +212,19 @@ try {
   await page.locator('button', { hasText: 'Sign a medical joker' }).first().click()
   await page.waitForSelector('.modal')
   await check('Medical: the joker picker')
+
+  // a man at another club, with the scout report on his page (1.8.2), and the
+  // shortlist he lands on, which marks rival talk beside a name
+  await page.keyboard.press('Escape').catch(() => {})
+  await page.evaluate(() => {
+    const S = window.rugbyStore.getState(); const g = S.game
+    const p = Object.values(g.players).find(q => q.clubId && q.clubId !== g.userClubId && !q.acad && q.ca >= 65)
+    p.sc = 95
+    if (!g.shortlist.includes(p.id)) g.shortlist.push(p.id)
+    S.touch(); S.go('player', p.id)
+  })
+  await page.waitForSelector('.scout-report')
+  await check('Player at another club: the scout report')
 } catch (e) {
   say('PROBE THREW: ' + (e?.message ?? e))
   fails++

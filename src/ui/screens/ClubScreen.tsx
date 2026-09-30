@@ -6,10 +6,12 @@ import { nationName } from '../../game/nations'
 import { squadValue, starPlayerIds } from '../../game/analysis'
 import { activeFeuds, reconcileChance, reconcileFeud } from '../../game/gossip'
 import { mulberry32 } from '../../game/rng'
+import { fuzzedCa, knowledge, seenValue } from '../../game/scout'
 import { dialLine, philosophyOf } from '../../game/philosophy'
 import { identityOf } from '../../game/identity'
 import { t, localeTag, compLabel } from '../../game/i18n'
 import { boardRequests } from '../../game/boardroom'
+import { chairWish } from '../../game/chairman'
 import { askTheBoard } from '../../game/season'
 import { archetypeOf } from '../../game/oppcoach'
 import { Glyph } from '../glyphs'
@@ -33,7 +35,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
   if (!club) return null
   const league = game.comps[club.leagueId]
   const players = club.players.map(id => game.players[id]).filter(Boolean)
-    .sort((a, b) => POS_ORDER.indexOf(a.pos) - POS_ORDER.indexOf(b.pos) || b.ca - a.ca)
+    .sort((a, b) => POS_ORDER.indexOf(a.pos) - POS_ORDER.indexOf(b.pos) || fuzzedCa(game, b) - fuzzedCa(game, a))
   const honours = game.history.filter(h => h.champion === clubId)
 
   return (
@@ -243,6 +245,13 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
                 : club.boardConfidence > 30 ? 'finances.boardExpectsBetter'
                 : 'finances.boardImpatient')}
             </div>
+            {/* THE CHAIRMAN'S WISH (chairman.ts): the one thing the man in the
+                chair wants this season, judged in May. What kind of man he is
+                is never said; what he asks for says it. */}
+            {(() => {
+              const wish = chairWish(game)
+              return wish ? <div className="meta" style={{ padding: '0 14px 10px' }}>{t('arc.chairWish', { wish_k: `arc.wish.${wish}` })}</div> : null
+            })()}
             <SectionTitle sub={t('board.roomSub')}>{t('board.room')}</SectionTitle>
             <div style={{ padding: '0 14px' }}>
               {asks.map(a => (
@@ -494,9 +503,11 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
               <td className="name">{p.name}{starPlayerIds(game, club.id).has(p.id) ? <> <Glyph name="star" /></> : ''}</td>
               <td className="num">{p.age}</td>
               <td><Nat code={p.nat} /></td>
-              <td><Stars ca={p.ca} /></td>
+              {/* another club's squad is read through the scouts (1.8.2): the
+                  academy tab here was a free list of true ratings and prices */}
+              <td><Stars ca={fuzzedCa(game, p)} />{knowledge(game, p) < 95 && <span className="muted">?</span>}</td>
               <td><FormPill v={p.form} /></td>
-              <td className="num">{fmtMoney(p.value)}</td>
+              <td className="num">{fmtMoney(seenValue(game, p))}</td>
             </tr>
           ))}
         </tbody>

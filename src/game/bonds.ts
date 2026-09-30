@@ -32,6 +32,7 @@
 // are untouched. User club only, like the game-time ledger.
 import type { Club, GameState, Player, PressItem, PressOption } from './model'
 import { absWeek } from './model'
+import { mentorStage, pairWeeks } from './mentoring'
 import { clamp, mulberry32 } from './rng'
 import { tIn, type Vars } from './i18n'
 import { OFFICE_OUTLET, askedRecently, isBoardroom, rememberAsk } from './media'
@@ -128,6 +129,15 @@ function shift(bs: BondState, a: number, b: number, delta: number, create = true
   const s = r1(clamp(delta, -100, 100))
   bs.pairs.push([x, y, s, 0])
   return s
+}
+
+/** Move the ledger between two men from outside the weekly pass (room.ts: a
+ *  vice-captain who backed the manager over a dropped team-mate). A no-op
+ *  until the ledger exists, and never creates a pair below the noise floor. */
+export function nudgeBond(state: GameState, a: number, b: number, delta: number): number {
+  const bs = state.bonds
+  if (!bs || bs.club !== state.userClubId) return 0
+  return shift(bs, a, b, delta)
 }
 
 function seniors(state: GameState, club: Club): Player[] {
@@ -482,8 +492,14 @@ function weekly(state: GameState): void {
   // ---- 6. a mentor pairing is a friendship in the making
   for (const mp of state.mentors ?? []) {
     if (!at(mp.senior) || !at(mp.kid)) continue
+    // and it grows as the pairing does (mentoring.mentorStage, 1.8.2): a
+    // flourishing pair becomes close friends, one that is not clicking
+    // barely moves past acquaintance
+    const s = state.players[mp.senior], k = state.players[mp.kid]
+    const stage = s && k ? mentorStage(s, k, pairWeeks(state, mp)) : 'settled'
+    const feed = stage === 'flourishing' ? 0.8 : stage === 'stalled' ? 0.1 : stage === 'early' ? 0.2 : 0.4
     if (!find(bs, mp.senior, mp.kid)) shift(bs, mp.senior, mp.kid, 25)
-    else shift(bs, mp.senior, mp.kid, 0.4)
+    else shift(bs, mp.senior, mp.kid, feed)
   }
 
   // ---- 7. what is not fed fades

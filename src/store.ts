@@ -251,7 +251,7 @@ interface Store {
    *  continueWeek and TAP_GUARD_MS. */
   lastAdvanceAt: number
 
-  start: (clubId: string, managerName: string, challengeId?: string, origin?: MgrOrigin, gender?: Gender, mgrGender?: Gender) => void
+  start: (clubId: string, managerName: string, challengeId?: string, origin?: MgrOrigin, gender?: Gender, mgrGender?: Gender, seed?: number) => void
   /** Which game the NEXT new career is in, chosen on the menu before the wizard
    *  opens. Not part of a save - the save carries its own gender - just the
    *  answer to "which game" travelling from the menu to the first screen of the
@@ -646,8 +646,9 @@ export const useStore = create<Store>((set, get) => ({
   newGender: 'm',
   setNewGender: (g) => set({ newGender: g }),
 
-  start: (clubId, managerName, challengeId, origin, gender, mgrGender) => {
-    const seed = (Math.random() * 2 ** 31) | 0
+  start: (clubId, managerName, challengeId, origin, gender, mgrGender, seedIn) => {
+    // the wizard may name the seed, so the aim it showed is the aim the board sets
+    const seed = seedIn ?? ((Math.random() * 2 ** 31) | 0)
     const g = newGame(clubId, managerName, seed, challengeId, origin, gender ?? get().newGender, mgrGender ?? readMgrGender())
     // the Manager's License, chosen at creation and never after: the wizard
     // only offers the toggle to an owner, and this re-checks the receipt so

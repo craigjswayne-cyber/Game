@@ -83,7 +83,7 @@ try {
     ok(await home.count() === 1, 'the foot of Home carries the Discord link')
     ok(await home.getAttribute('href') === 'https://discord.gg/3KKfDVsMb' && await home.getAttribute('target') === '_blank'
       && /noopener/.test(await home.getAttribute('rel') ?? ''), 'a plain link to the invite, opened in a new tab')
-    ok(await home.locator('svg').count() === 1 && /Join the community on Discord/.test(await home.innerText()), 'with an icon and the words, no emoji')
+    ok(await home.locator('svg').count() === 1 && /Join us on Discord/.test(await home.innerText()), 'with an icon and the words, no emoji')
     await page.click('.bottom-nav button[data-group="manager"]')
     await page.waitForSelector('.submenu')
     const rows = await page.locator('.submenu .submenu-item').evaluateAll(els => els.map(e => ({ tag: e.tagName, text: e.textContent.trim(), href: e.getAttribute('href') })))

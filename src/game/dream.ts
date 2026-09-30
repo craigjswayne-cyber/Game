@@ -103,7 +103,8 @@ export interface DreamDef {
   needs?: readonly string[]
   /** offered only where it means something */
   applies: (ctx: DreamContext) => boolean
-  progress: (state: GameState) => DreamProgress
+  /** `clubId` is the club the ambition was named about; absent, the dream's */
+  progress: (state: GameState, clubId?: string) => DreamProgress
 }
 
 /** The ambition in the reader's language. */
@@ -114,7 +115,7 @@ export const dreamTitleLower = (def: DreamDef, ctx: DreamContext): string => t(d
 export const dreamNote = (p: { noteK: string; noteV?: Vars }): string => t(p.noteK, p.noteV)
 
 /** The club the dream was declared about, which is not always where you work now. */
-const dreamClub = (state: GameState): string => state.dream?.clubId ?? state.userClubId
+const dreamClub = (state: GameState, clubId?: string): string => clubId ?? state.dream?.clubId ?? state.userClubId
 
 /** Trophies of one competition, optionally at one club. */
 const won = (state: GameState, compId: string, clubId?: string) =>
@@ -143,8 +144,8 @@ const leagueTitleSeasons = (state: GameState, clubId?: string): number[] =>
     .map(t => t.season))].sort((a, b) => a - b)
 
 /** Seasons the dream club has spent in a top-flight league under this manager. */
-const topFlightSeasons = (state: GameState): number => {
-  const club = dreamClub(state)
+const topFlightSeasons = (state: GameState, clubId?: string): number => {
+  const club = dreamClub(state, clubId)
   return state.mgr.finishes.filter(f => LEAGUE_TIER[f.leagueId] === 1 && (f.clubId == null || f.clubId === club)).length
 }
 
@@ -158,9 +159,9 @@ export const DREAMS: DreamDef[] = [
     // Not offered in the women's world: its leagues are ringfenced (RELEGATES,
     // model.ts), so a club below the top flight has no road up to dream of.
     applies: ctx => (LEAGUE_TIER[ctx.leagueId] ?? 1) > 1,
-    progress: state => {
-      const seasons = topFlightSeasons(state)
-      const club = state.clubs[dreamClub(state)]
+    progress: (state, clubId) => {
+      const seasons = topFlightSeasons(state, clubId)
+      const club = state.clubs[dreamClub(state, clubId)]
       const upNow = club && LEAGUE_TIER[club.leagueId] === 1
       return {
         at: Math.min(2, seasons),
@@ -202,8 +203,8 @@ export const DREAMS: DreamDef[] = [
     blurbK: 'dream.doubleBlurb',
     needs: ['cc'],
     applies: ctx => dreamTier(ctx.leagueId) === 1,
-    progress: state => {
-      const club = dreamClub(state)
+    progress: (state, clubId) => {
+      const club = dreamClub(state, clubId)
       const league = leagueTitleSeasons(state, club).length > 0 ? 1 : 0
       const euro = won(state, 'cc', club) > 0 ? 1 : 0
       const have = league + euro
@@ -301,6 +302,105 @@ export const DREAMS: DreamDef[] = [
         noteK: n === 0 ? 'dream.immortalEmpty' : 'dream.immortalCount',
         noteV: { n },
         done: n >= 15,
+      }
+    },
+  },
+  // ---- the career ambitions (arc, 1.8.2): offered beside the dreams above,
+  // and a manager may name up to three at the start (ambitions.ts) ----
+  {
+    id: 'league',
+    titleK: 'arc.dream.league', titleLowerK: 'arc.dream.leagueLower',
+    blurbK: 'arc.dream.leagueBlurb',
+    applies: () => true,
+    progress: state => {
+      const n = leagueTitleSeasons(state).length
+      return { at: Math.min(1, n), goal: 1, noteK: n ? 'arc.dream.leagueDone' : 'arc.dream.leagueNotYet', done: n > 0 }
+    },
+  },
+  {
+    id: 'bottom',
+    titleK: 'arc.dream.bottom', titleLowerK: 'arc.dream.bottomLower',
+    titleVars: ctx => ({ club: ctx.clubName }),
+    blurbK: 'arc.dream.bottomBlurb',
+    // a club with somewhere to climb from; the women's leagues are ringfenced
+    applies: ctx => (LEAGUE_TIER[ctx.leagueId] ?? 1) > 1,
+    progress: (state, clubId) => {
+      const club = dreamClub(state, clubId)
+      const rows = (state.arc?.conduct ?? []).filter(r => r.c === club)
+      const now = LEAGUE_TIER[state.clubs[club]?.leagueId ?? ''] ?? 1
+      const start = Math.max(now, ...rows.map(r => r.tier))
+      const ups = Math.max(0, start - now)
+      const settled = rows.some(r => r.tier === 1 && r.pos > 0 && r.n > 0 && r.pos <= r.n / 2) ? 1 : 0
+      const goal = Math.max(1, start - 1) + 1
+      const at = Math.min(goal, ups + settled)
+      return {
+        at, goal,
+        noteK: at >= goal ? 'arc.dream.bottomDone' : now === 1 ? 'arc.dream.bottomTopFlight' : ups > 0 ? 'arc.dream.bottomClimbing' : 'arc.dream.bottomStart',
+        noteV: { n: ups },
+        done: at >= goal,
+      }
+    },
+  },
+  {
+    id: 'legend',
+    titleK: 'arc.dream.legend', titleLowerK: 'arc.dream.legendLower',
+    titleVars: ctx => ({ club: ctx.clubName }),
+    blurbK: 'arc.dream.legendBlurb',
+    applies: () => true,
+    progress: (state, clubId) => {
+      const club = dreamClub(state, clubId)
+      const seasons = (state.arc?.conduct ?? []).filter(r => r.c === club).length
+      const cups = state.mgr.trophies.filter(x => x.clubId === club).length
+      const done = (state.legendOf ?? []).includes(club)
+      return {
+        at: done ? 11 : Math.min(8, seasons) + Math.min(3, cups), goal: 11,
+        noteK: done ? 'arc.dream.legendDone' : 'arc.dream.legendSome',
+        noteV: { n: seasons, cups },
+        done,
+      }
+    },
+  },
+  {
+    id: 'fallen',
+    titleK: 'arc.dream.fallen', titleLowerK: 'arc.dream.fallenLower',
+    blurbK: 'arc.dream.fallenBlurb',
+    applies: () => true,
+    progress: state => {
+      // every job taken at a fallen giant, finished or not (chairman.ts profiles)
+      const a = state.arc
+      const jobs: { c: string; f: number }[] = []
+      if (a?.cur?.prof === 'fallen') jobs.push({ c: a.cur.c, f: a.cur.f })
+      for (const e of a?.eras ?? []) if (e.pf === 'fallen' && !jobs.some(j => j.c === e.c && j.f === e.f)) jobs.push({ c: e.c, f: e.f })
+      let best = 0
+      for (const j of jobs) {
+        const rows = (a?.conduct ?? []).filter(r => r.c === j.c && r.s >= j.f && r.tier === 1 && r.pos > 0)
+        let at = 1
+        if (rows.some(r => r.n > 0 && r.pos <= r.n / 2)) at = 2
+        if (rows.some(r => r.pos <= 4)) at = 3
+        if (state.mgr.trophies.some(x => x.clubId === j.c && x.season >= j.f)) at = 4
+        best = Math.max(best, at)
+      }
+      return {
+        at: best, goal: 4,
+        noteK: ['arc.dream.fallenNone', 'arc.dream.fallenTaken', 'arc.dream.fallenTopHalf', 'arc.dream.fallenTopFour', 'arc.dream.fallenDone'][best],
+        done: best >= 4,
+      }
+    },
+  },
+  {
+    id: 'intl',
+    titleK: 'arc.dream.intl', titleLowerK: 'arc.dream.intlLower',
+    blurbK: 'arc.dream.intlBlurb',
+    applies: () => true,
+    progress: state => {
+      const tests = (state.natHistory ?? []).reduce((s, x) => s + x.m, 0) + (state.natTeam ? state.natRecord?.m ?? 0 : 0)
+      const had = !!state.natTeam || (state.natHistory?.length ?? 0) > 0
+      const at = (had ? 1 : 0) + Math.min(10, tests)
+      return {
+        at, goal: 11,
+        noteK: at >= 11 ? 'arc.dream.intlDone' : had ? 'arc.dream.intlSome' : 'arc.dream.intlNone',
+        noteV: { n: tests },
+        done: at >= 11,
       }
     },
   },
