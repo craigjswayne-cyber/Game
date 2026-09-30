@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { MENTEE_MAX_AGE, MENTOR_MIN_AGE, REPORT_EVERY, canBeMentored, canMentor, mentorRate, fitWord, mentorReports, mentorBoost, mentorFit } from '../src/game/mentoring'
@@ -283,8 +284,13 @@ console.log('\n--- 3. the 1-100 attribute rating is finer than a multiple of fiv
     mentorReports(g3)
     const note = g3.news.find(n => n.subject.includes('is not taking'))
     ok(!!note, 'a failing pairing files a report')
-    ok(!!note && /End button/.test(note.body),
-      'and the report names the End button rather than leaving the manager stuck')
+    // 1.8.2, owner: no tips in news. The story no longer says where the End
+    // button is; the reader carries a link to the Mentoring tab instead
+    // (NewsBody's NEWS_GO), so the manager is still not left stuck.
+    const goMap = readFileSync('src/ui/NewsBody.tsx', 'utf8')
+    ok(!!note && note.k === 'news.mentFailing' && !/End button|Mentoring tab/.test(note.body)
+      && /mentFailing: \['report', 'mentoring'\]/.test(goMap),
+      'and the report links to the Mentoring tab rather than leaving the manager stuck')
   } else {
     ok(false, 'could not build a failing pairing to test')
   }

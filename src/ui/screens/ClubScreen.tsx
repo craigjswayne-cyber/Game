@@ -11,6 +11,7 @@ import { dialLine, philosophyOf } from '../../game/philosophy'
 import { identityOf } from '../../game/identity'
 import { t, localeTag, compLabel } from '../../game/i18n'
 import { boardRequests } from '../../game/boardroom'
+import { chairWish } from '../../game/chairman'
 import { askTheBoard } from '../../game/season'
 import { archetypeOf } from '../../game/oppcoach'
 import { Glyph } from '../glyphs'
@@ -244,6 +245,13 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
                 : club.boardConfidence > 30 ? 'finances.boardExpectsBetter'
                 : 'finances.boardImpatient')}
             </div>
+            {/* THE CHAIRMAN'S WISH (chairman.ts): the one thing the man in the
+                chair wants this season, judged in May. What kind of man he is
+                is never said; what he asks for says it. */}
+            {(() => {
+              const wish = chairWish(game)
+              return wish ? <div className="meta" style={{ padding: '0 14px 10px' }}>{t('arc.chairWish', { wish_k: `arc.wish.${wish}` })}</div> : null
+            })()}
             <SectionTitle sub={t('board.roomSub')}>{t('board.room')}</SectionTitle>
             <div style={{ padding: '0 14px' }}>
               {asks.map(a => (

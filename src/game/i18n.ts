@@ -317,10 +317,13 @@ function fill(text: string, vars?: Vars, lang: Lang = current): string {
         return labels.slice(0, -1).join(sep) + and + labels[labels.length - 1]
       } catch { return String(raw) }
     }
-    // a list that was a plain string on older saves (the scouts' circular
-    // carried `list` before 1.8.2 made it `list_ll`) reads the bare name; the
-    // list branch below hands a non-JSON string back as it is
-    const v = vars[name] ?? (name.endsWith('_ll') ? vars[name.slice(0, -3)] : undefined)
+    // A ROW LIST A SAVE FILED UNDER AN OLDER NAME (1.8.2). The backroom and
+    // scouting stories now set their lists one to a line ({men_ll}, {list_ll});
+    // a story filed before carries the same list as men_l, or as a plain
+    // string under the bare name, and reads it rather than printing a hole.
+    const v = vars[name] ?? (name.endsWith('_ll')
+      ? (vars[name.slice(0, -1)] != null ? vars[name.slice(0, -1)] : vars[name.slice(0, -3)])
+      : undefined)
     if (v == null) return whole
     // A VARIABLE THAT IS ITSELF A KEY, marked by a _k suffix on its name.
     //

@@ -35,6 +35,8 @@ import { LEDGER_WEEKS, fmtMoney, logDecision } from './model'
 import { playerWage } from './attributes'
 import { tIn, type Vars } from './i18n'
 import { OFFICE_OUTLET } from './media'
+import { planAcademyLoan } from './room'
+import { remember, rememberDeparture } from './memory'
 
 /** Asked in the settle of the last ledger week: on the desk from week 46. */
 export const ACAD_CALL_WEEK = LEDGER_WEEKS
@@ -105,10 +107,11 @@ export function academyCalls(state: GameState): number {
       adv_k: !keep ? 'press.acadAdviceRelease' : call === 'gate' ? 'press.acadAdvicePromote' : 'press.acadAdviceSign',
     }
     const yes = call === 'gate' ? 'promote' as const : 'sign' as const
-    const option = (act: 'sign' | 'promote' | 'release'): PressOption => {
-      const lk = act === 'release' ? 'press.acadRelease' : act === 'promote' ? 'press.acadPromote' : 'press.acadSign'
+    const option = (act: 'sign' | 'promote' | 'release' | 'loan'): PressOption => {
+      const lk = act === 'release' ? 'press.acadRelease' : act === 'promote' ? 'press.acadPromote'
+        : act === 'loan' ? (call === 'gate' ? 'room.acadLoanPro' : 'room.acadLoan') : 'press.acadSign'
       const lv: Vars = act === 'release' ? {} : { wage: fmtMoney(wage) }
-      const rk = `${lk}R`
+      const rk = act === 'loan' ? (call === 'gate' ? 'room.acadLoanProR' : 'room.acadLoanR') : `${lk}R`
       const rv: Vars = { player: p.name }
       return {
         morale: 0, board: 0, acad: act, acadWage: act === 'release' ? undefined : wage,
@@ -118,7 +121,9 @@ export function academyCalls(state: GameState): number {
     state.press.push({
       id: state.nextId++, week: state.week, season: state.season, outlet: OFFICE_OUTLET,
       question: tIn('en', qk, qv), qk, qv, playerId: p.id,
-      options: [option(yes), option('release')],
+      // THREE ANSWERS (1.8.2, room.ts): keep him here, keep him and send him
+      // out for a season of rugby elsewhere, or let him go
+      options: [option(yes), option('loan'), option('release')],
       answered: false,
     })
     n++
@@ -149,6 +154,9 @@ export function resolveAcadCall(state: GameState, item: PressItem, opt: PressOpt
   const club = state.clubs[state.userClubId]
   if (!p || !club || !opt.acad) return
   if (opt.acad === 'release') {
+    // a lad let go is a lad the world can remind you of (memory.ts)
+    rememberDeparture(state, p, 'released', club.id)
+    remember(state, { kind: 'acad-let-go', playerId: p.id, clubId: club.id, payload: { name: p.name }, sal: 1 })
     releaseScholar(state, club, p)
     logDecision(state, 'dec.acadReleased', { player: p.name }, false)
     return
@@ -157,6 +165,22 @@ export function resolveAcadCall(state: GameState, item: PressItem, opt: PressOpt
   // first-year, and a proper first contract for a lad who signs at 20
   p.contractEnds = Math.max(p.contractEnds, state.season + 3)
   p.morale = Math.min(10, p.morale + 0.5)
+  if (opt.acad === 'loan') {
+    // kept, on the deal his call is owed, and out for next season: a gate lad
+    // on his first professional wage, a first-year on the academy scale
+    if (acadCall(state, p) === 'gate') {
+      p.acad = false
+      p.demoted = false
+      p.homegrown = true
+      p.wage = opt.acadWage ?? playerWage(p.ca, p.age)
+    } else {
+      p.wage = opt.acadWage ?? playerWage(p.ca, p.age, true)
+    }
+    planAcademyLoan(state, p)
+    logDecision(state, 'room.decAcadLoan', { player: p.name }, true)
+    return
+  }
+  remember(state, { kind: 'acad-kept', playerId: p.id, clubId: club.id, payload: { name: p.name }, sal: 1 })
   if (opt.acad === 'promote') {
     // the same promotion the Promote button on his page makes
     p.acad = false

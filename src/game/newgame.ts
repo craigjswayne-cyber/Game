@@ -34,7 +34,7 @@ import { clamp } from './rng'
 import { assistantJudgement, autoSelect } from './matchEngine'
 import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildLeague, schedulePreseason, buildWomensContinentalCup } from './schedule'
 import { punditPredictions } from './gossip'
-import { WEEK_BASIS, CHEM_SLOTS, RELEGATES, boardObjective, chemKey, fmtMoney, initFacilities, isWorldCupSeason, worldCupSeasonFor } from './model'
+import { WEEK_BASIS, CHEM_SLOTS, RELEGATES, chemKey, fmtMoney, initFacilities, isWorldCupSeason, worldCupSeasonFor } from './model'
 import { WATCH_KNOW, knowledge, leadRow, seedKnowledge } from './scout'
 import { ensureCaptains } from './analysis'
 import { CLUB_CAPTAINS, sameName } from '../data/captains'
@@ -42,6 +42,7 @@ import { pickObjectives } from './objectives'
 import { hashString, mulberry32 } from './rng'
 import { ACAD_SHAPE, ACADEMY_SIZE, acadQuality, ensureAcademyLeague } from './academy'
 import { t, tIn } from './i18n'
+import { demandedFinish } from './chairman'
 
 export interface Challenge {
   id: string
@@ -773,9 +774,13 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     const rows = watchIds.map(id => state.players[id]).filter((p): p is Player => !!p).map(p =>
       p.clubId === state.userClubId || knowledge(state, p) >= WATCH_KNOW
         ? { k: 'news.watchNamed', name: p.name, age: p.age, pos: p.pos, club: state.clubs[p.clubId ?? '']?.short ?? '' }
-        : leadRow(state, p))
+        // the same lead, set as a row in the story (news.watchLeadRow)
+        : { ...leadRow(state, p), k: 'news.watchLeadRow' })
     const named = watchIds.filter(id => { const p = state.players[id]; return p && (p.clubId === state.userClubId || knowledge(state, p) >= WATCH_KNOW) })
-    const v = { list_ll: JSON.stringify(rows) }
+    // two leads can read alike (same position, age and league): one row says it
+    const seen = new Set<string>()
+    const uniq = rows.filter(r => { const key = JSON.stringify(r); if (seen.has(key)) return false; seen.add(key); return true })
+    const v = { list_ll: JSON.stringify(uniq) }
     state.news.push({
       id: state.nextId++, week: 1, season: 0, type: 'youth', read: false,
       subject: tIn('en', 'news.watchListSubj'),
@@ -967,7 +972,7 @@ function squadAssessment(state: GameState): NewsItem {
       + (thin.length
         ? `Short at ${thin.join(', ')} - one injury there and someone plays out of position.\n`
         : `Every position has cover.\n`)
-      + `Board expects you to ${tIn('en', boardObjective(uc.rep).text)}. Budget ${fmtMoney(uc.budget)}, wages ${fmtMoney(squad.reduce((s, p) => s + p.wage, 0))} a week.\n\n`
+      + `Board expects you to ${tIn('en', demandedFinish(state, uc.id, state.comps[uc.leagueId]?.table.length ?? 14).text)}. Budget ${fmtMoney(uc.budget)}, wages ${fmtMoney(squad.reduce((s, p) => s + p.wage, 0))} a week.\n\n`
       + `I will have a read on the first opponent by Friday."`,
     k: 'news.squadRead',
     v: {
@@ -975,7 +980,7 @@ function squadAssessment(state: GameState): NewsItem {
       best: bestList,
       depth_k: thin.length ? 'news.depthThin' : 'news.depthFull',
       thin: thin.join(', '),
-      aim_k: boardObjective(uc.rep).text,
+      aim_k: demandedFinish(state, uc.id, state.comps[uc.leagueId]?.table.length ?? 14).text,
       budget: fmtMoney(uc.budget), wages: fmtMoney(wages),
     },
   }

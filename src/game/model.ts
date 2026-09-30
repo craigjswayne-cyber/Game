@@ -957,8 +957,16 @@ export interface PressOption {
    *  scholar on a development contract ('sign'), give a lad at the age gate
    *  his first professional contract ('promote'), or let him go ('release').
    *  `acadWage` is the weekly figure the button quoted, paid as quoted. */
-  acad?: 'sign' | 'promote' | 'release'
+  acad?: 'sign' | 'promote' | 'release' | 'loan'
   acadWage?: number
+  /** a dressing-room decision (1.8.2, room.ts): stand by a selection or
+   *  reverse it, renew a contract now or wait, rest a man or bring him back a
+   *  week early, answer a starter who wants assurances after a signing in
+   *  his position. room.ts carries it out; the numbers above stay at zero
+   *  (the promise itself rides on `pledge`). */
+  room?: 'stand' | 'reverse' | 'renew' | 'wait' | 'rest' | 'early' | 'promise' | 'refuse' | 'listen'
+  /** the weekly wage the renew-now button quoted, paid as quoted */
+  roomWage?: number
   /** the season-expectations decision (25C): choosing sets
    *  state.stance for the year, which scales how hard the boardroom needle
    *  swings on every result - see boardReaction. */
@@ -2071,6 +2079,8 @@ export interface GameState {
   chem?: Record<string, number>
   /** the dressing room's friendships and rifts (bonds.ts), user club only */
   bonds?: import('./bonds').BondState
+  /** the dressing room's decisions and the club's hidden culture (room.ts) */
+  room?: import('./room').RoomState
   /** dynamic bad blood between clubs: cup eliminations, poached stars,
    *  ill-tempered matches. Expires after `until` season. */
   /** `reason` is the English the grudge was recorded in and is what an old save
@@ -2259,6 +2269,12 @@ export interface GameState {
   /** the fraction cursor for stories filed without spending nextId
    *  (heldnews.ts): the base id it counts from and how many it has used */
   heldIds?: { b: number; n: number }
+  /** the career arc (arcbook.ts): rival coaches, what the manager is known
+   *  for, the story of each era. Created on first touch; absent on older saves. */
+  arc?: import('./arcbook').CareerArc
+  /** the one to three ambitions named at the start (ambitions.ts). The first
+   *  is also `dream`. Absent on saves from before: the dream stands alone. */
+  ambitions?: import('./arcbook').Ambition[]
 }
 
 /** Managerial reputation earned from results and silverware, 30-95. */

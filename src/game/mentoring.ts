@@ -591,8 +591,7 @@ export function mentorReports(state: GameState) {
         id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: false,
         subject: `The ${s.name.split(' ').slice(-1)[0]} and ${last} pairing is not taking`,
         body: `${tIn('en', fitKey(fit))}. ${fitReasonEn(s, k)} ${k.name} is getting very little out of it. `
-          + `Nothing has gone wrong between them; it simply is not working. `
-          + `End the pairing on the Mentoring tab of the Team Report and put him with somebody else - there is an End button on the row, and the season is long enough for a fresh start to pay.`,
+          + `Nothing has gone wrong between them; it simply is not working, and the season is long enough for a fresh start to pay.`,
         k: 'news.mentFailing',
         v: {
           last, seniorLast: s.name.split(' ').slice(-1)[0], kid: k.name,

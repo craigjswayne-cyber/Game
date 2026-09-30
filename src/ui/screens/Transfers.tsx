@@ -10,7 +10,9 @@ import { ClubLink, FormPill, Mark, Nat, PosBadge, SectionTitle, Stars, TwoStep }
 import { attrName, posName, t, compLabel } from '../../game/i18n'
 import { userWageBudget } from '../../game/grants'
 import { transferInterest } from '../../game/interest'
+import { rivalTalk } from '../../game/recruit'
 import { Glyph } from '../glyphs'
+import { plainNews } from '../NewsBody'
 
 /** The classic search screen's views (1.8.0): which columns the table shows. */
 type SearchView = 'general' | 'contract' | 'physical' | 'setpiece' | 'handling' | 'mind'
@@ -298,7 +300,7 @@ export default function Transfers() {
             {game.shortlist.map(id => game.players[id]).filter(Boolean).map(p => (
               <tr key={p.id} onClick={() => go('player', p.id)}>
                 <td><PosBadge pos={p.pos} /></td>
-                <td className="name">{p.name}</td>
+                <td className="name">{p.name}{rivalTalk(game, p) && <span style={{ color: 'var(--gold)' }} title={t('recruit.talkMark')} aria-label={t('recruit.talkMark')}> <Glyph name="talk" /></span>}</td>
                 {/* the club column was the widest thing in this table and ran
                     64px off the side of a 412px phone. Three letters, the same
                     code the crest draws (owner, v1.1.17). Search still matches
@@ -693,7 +695,7 @@ function ScoutReports() {
             <div className="meta" style={{ fontSize: 11 }}>{weekDate(n.season, n.week)}</div>
             <div style={{ fontWeight: 700, fontSize: 13, lineHeight: 1.3 }}>{newsSubject(n)}</div>
             {openId === n.id && (
-              <div className="meta" style={{ whiteSpace: 'pre-line', fontSize: 12, marginTop: 3 }}>{newsBody(n)}</div>
+              <div className="meta" style={{ whiteSpace: 'pre-line', fontSize: 12, marginTop: 3 }}>{plainNews(newsBody(n))}</div>
             )}
           </div>
         ))}

@@ -26,6 +26,7 @@ const TL_KEYS: [number, string][] = [
   [TL.stall, 'dev.tlStall'], [TL.injury, 'dev.tlInjury'], [TL.plan, 'dev.tlPlan'],
   [TL.up, 'dev.tlUp'], [TL.down, 'dev.tlDown'],
 ]
+import ScoutReportCard from '../ScoutReport'
 
 export default function PlayerScreen({ playerId }: { playerId: number }) {
   const game = useStore(s => s.game)!
@@ -279,6 +280,8 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           <Glyph name="agency" /> {t(`scoutStage.${reportStage(game, p)}`)}
         </div>
       )}
+      {/* what the staff believe (recruit.ts): strengths, fit, agent, rival talk */}
+      {!mine && <ScoutReportCard game={game} p={p} />}
       <div className="chips">
         <span className="chip" title={t('player.valueTitle')}>{t('player.value')} <b>{fmtMoney(seenValue(game, p))}</b>{!mine && know < 95 && <span className="muted"> ?</span>}</span>
         {/* the ceiling as the scouts read it (1.8.2): a band that narrows as
