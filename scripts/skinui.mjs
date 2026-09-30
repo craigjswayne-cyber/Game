@@ -56,6 +56,9 @@ const openTactics = async (page) => {
   await page.waitForSelector('.tab-bar')
   // the saved plans live on the Plan tab, not the one the screen opens on
   await page.locator('.tab-bar button', { hasText: 'Plan' }).click()
+  // and on its Tune view (1.8.2): the Plan tab opens on the drawn styles
+  // now, with the dials, the quick plans and the saved slots one tap along
+  await page.click('[data-plan-sub="tune"]')
   await page.waitForSelector('.plan-slots')
 }
 
