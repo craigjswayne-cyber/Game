@@ -90,6 +90,67 @@ export function rollIsRight(seed: number, abs: number, oppId: string, skill: num
 }
 
 /**
+ * ---- HOW SURE HE IS, AND WHY IT MEANS SOMETHING (1.8.2, owner brief B) ----
+ *
+ * Until 1.8.2 the analyst's confidence was a number off the same hash as his
+ * verdict and unrelated to it: "I would stake my job on this" was right
+ * exactly as often as "it is a hunch". Now both come from one place:
+ *
+ *   THE ODDS. A soft spot that stands out (their weakest unit well below the
+ *   next) is easy to read and one that barely does is not, so the chance his
+ *   read is sound is his skill moved up or down by how plainly the weakness
+ *   shows: CLARITY is the gap between their weakest and next-weakest unit,
+ *   against their average, over six per cent reading as plain as it gets
+ *   (measured over 428 first XVs: median 2.8%, 90th percentile 5.9%). Across
+ *   the world it averages out to his skill, so his record is what it was.
+ *
+ *   HIS SENSE OF THEM. His confidence is his own estimate of those odds,
+ *   blurred by how good he is: a bare club's analyst guesses at how sure to
+ *   be (twenty-odd points of blur either way), a full suite with a gold
+ *   assistant knows within five. So "confident" means what it says, and the
+ *   suite and the assistant raise both how often he is right and how well he
+ *   knows when he is.
+ *
+ * Deterministic: two hashes of (seed, week, opponent), no shared rng.
+ */
+const CLARITY_GAP = 0.06
+const CLARITY_K = 0.36
+const CLARITY_MEAN = 0.5
+
+export interface ReadOdds {
+  /** the units weakest first, by strength against their average */
+  sorted: [AnalystRead['unit'], number][]
+  clarity: number
+  /** the chance his read is sound */
+  p: number
+  right: boolean
+  /** his estimate of p, 0.3..0.97 */
+  confidence: number
+}
+
+export function readOdds(state: GameState, oppId: string, units: Record<AnalystRead['unit'], number>, abs: number): ReadOdds {
+  const scores: [AnalystRead['unit'], number][] = [
+    ['scrum', units.scrum], ['lineout', units.lineout],
+    ['defence', units.defence], ['attack', units.attack], ['kicking', units.kicking],
+  ]
+  const avg = scores.reduce((s, [, v]) => s + v, 0) / scores.length || 1
+  const sorted = scores.map(([u, v]) => [u, v / avg] as [AnalystRead['unit'], number]).sort((a, b) => a[1] - b[1])
+  const clarity = Math.max(0, Math.min(1, (sorted[1][1] - sorted[0][1]) / CLARITY_GAP))
+  const skill = analystSkill(state)
+  const p = Math.max(0.08, Math.min(0.95, skill + CLARITY_K * (clarity - CLARITY_MEAN)))
+  const right = rollIsRight(state.seed, abs, oppId, p)
+  // his blur: 0.3 of skill is a bare club, 0.78 the best there is
+  const sNorm = Math.max(0, Math.min(1, (skill - 0.3) / 0.48))
+  const blur = 0.05 + 0.25 * (1 - sNorm)
+  const u = hash(state.seed ^ 0x5bd1e995, abs, oppId) / 1000
+  const confidence = Math.max(0.3, Math.min(0.97, p + (u * 2 - 1) * blur))
+  return { sorted, clarity, p, right, confidence }
+}
+
+/** the band a confidence reads as, the same three words everywhere */
+export const sureBand = (c: number): 'high' | 'mid' | 'low' => (c >= 0.85 ? 'high' : c >= 0.7 ? 'mid' : 'low')
+
+/**
  * File (or fetch) this week's read. Deterministic per (seed, week, opponent):
  * revisiting the screen never rerolls it, and it costs no shared rng.
  */
@@ -102,23 +163,15 @@ export function analystRead(state: GameState, oppId: string): AnalystRead | null
   const units = teamUnits(state, lineupFor(state, oppId))
   const xv = lineupFor(state, oppId).slice(0, 15).map(id => id != null ? state.players[id] : null)
   const h = hash(state.seed, abs, oppId)
-  const skill = analystSkill(state)
-  const right = rollIsRight(state.seed, abs, oppId, skill)
-
-  // the true soft spot, by unit strength relative to the rest of their game
-  const scores: [AnalystRead['unit'], number][] = [
-    ['scrum', units.scrum], ['lineout', units.lineout],
-    ['defence', units.defence], ['attack', units.attack], ['kicking', units.kicking],
-  ]
-  const avg = scores.reduce((s, [, v]) => s + v, 0) / scores.length
-  const sorted = [...scores].sort((a, b) => a[1] / avg - b[1] / avg)
+  // the true soft spot, by unit strength relative to the rest of their game,
+  // and the odds he reads it, and how sure he is (readOdds)
+  const { sorted, right, confidence } = readOdds(state, oppId, units, abs)
   // a correct read names the genuine weakness; a wrong one names something
   // else. It used to name their STRENGTH every time, which the unit numbers
   // on the preview give away, so a careful manager could tell a wrong read
   // from a right one without trusting his analyst at all. Which of the other
   // four is on the same hash, so the read still costs no shared rng.
   const unit = right ? sorted[0][0] : sorted[1 + (h % (sorted.length - 1))][0]
-  const confidence = 0.45 + (h % 55) / 100
 
   // a name to hang it on: the man in that area of their side
   const slotFor: Record<AnalystRead['unit'], number[]> = {

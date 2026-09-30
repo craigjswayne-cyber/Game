@@ -147,6 +147,9 @@ export interface Track {
   bite?: string
   late?: string
   finish: number
+  /** a kick move (1.8.2): the man chasing the kick, who scores when the
+   *  commentary names nobody (the strike is then the kicker) */
+  chase?: string
 }
 
 /** a track written in the study's coordinates (a 100 x 70 pitch, attack to
@@ -297,45 +300,125 @@ export const TRACKS: Record<string, Track[]> = {
     ball: [[0.9, '10'], [1.85, '4', 'pop'], [2.3, '10', 'pop'], [3.3, '15']],
     strike: '15', decoys: ['5'], bite: '10', late: '15', finish: 42,
   })],
-}
 
-/**
- * THE NEXT FAMILIES, READY BUT OFF (1.8.2). The study proposes moves the
- * library does not have yet (the blind wing brought in-field, the full-back
- * insert to the far edge, the tap-penalty switch); their tracks are here for
- * the task that adds them to moves.ts, and are played only if this is on.
- */
-export const PREVIEW_MOVES = false
-export const PREVIEW_TRACKS: Record<string, Track[]> = {
+  // ---- THE NEW FAMILIES (1.8.2), from the same study ------------------------
+  // THE BLIND WING IN: the wing on the short side of the scrum comes across
+  // behind a flat 10 and hits the seam between their 10 and 12 at pace, the
+  // 12 running the decoy line that holds his man.
   mv_wingin: [spec('scrum', [50, 15, 1, 0.6], {
-    '10': [[0, 44, 22], [1.0, 46, 23], [2.0, 49, 25], [2.5, 50, 28]],
-    FW: [[0, 40, 10], [1.0, 43, 15], [2.0, 47, 22], [2.5, 51, 26], [3.5, 62, 27]],
-    '12': [[0, 43, 30], [1.0, 45, 31], [2.0, 48, 32], [3, 51, 33]],
-    '13': [[0, 42, 38], [1.0, 45, 39], [2.0, 48, 40], [3, 51, 41]],
-    '15': [[0, 38, 40], [2, 44, 40], [3.5, 58, 36]],
+    '10': [[0, 44, 22], [1.0, 45, 22.6], [1.6, 46.8, 23.6], [2.1, 48.4, 24.8], [2.6, 49.6, 26.4]],
+    FW: [[0, 41, 14], [1.0, 42, 16], [1.6, 44, 19.5], [2.2, 46.4, 22.8], [2.5, 48, 24.2], [3.0, 53, 25.5], [3.6, 59, 26.5]],
+    '12': [[0, 43, 30], [1.0, 44.8, 30.4], [1.8, 47.6, 31.4], [2.4, 50.2, 32.2], [3, 52.5, 33]],
+    '13': [[0, 42, 38], [1.0, 44.5, 38.6], [2.0, 47.5, 39.6], [3, 50.5, 40.5]],
+    '15': [[0, 38, 42], [2, 43.5, 40], [3.2, 50, 36], [3.8, 55, 34]],
     W: [[0, 42, 60], [2, 46, 60], [3, 50, 60]],
-  }, { ball: [[1.0, '10'], [2.3, 'FW', 'pop']], strike: 'FW', decoys: ['12'], bite: '12', late: 'FW', finish: 15 })],
+  }, { ball: [[1.0, '10'], [2.25, 'FW', 'pop']], strike: 'FW', decoys: ['12'], bite: '12', late: 'FW', finish: 15 })],
+  // THE FULL-BACK INTO THE LINE: draw-and-give passes along a flat line, the
+  // 15 arriving from depth outside the 13 at full pace, and the ball on to
+  // the wing on the far touch.
   mv_width: [spec('scrum', [50, 15, 1, 0.6], {
-    '10': [[0, 44, 22], [1.0, 45, 23], [1.6, 46.5, 26]],
-    '12': [[0, 43, 29], [1.4, 45, 30], [2.0, 47, 31]],
-    '15': [[0, 36, 30], [1.4, 41, 34], [2.2, 46, 38], [2.8, 50, 42]],
-    '13': [[0, 42, 40], [2, 46, 42], [3, 50, 45]],
+    '10': [[0, 44, 22], [1.0, 45, 23], [1.6, 46.5, 26], [2.2, 47.5, 28]],
+    '12': [[0, 43, 29], [1.4, 45, 30], [2.0, 47, 31], [2.6, 48.5, 32]],
+    '13': [[0, 42, 37], [1.6, 45, 38], [2.2, 47.4, 39], [2.8, 49.5, 40.5], [3.4, 51.5, 42]],
+    '15': [[0, 36, 32], [1.4, 40.5, 35], [2.2, 45, 39.5], [2.8, 49.5, 44], [3.3, 53, 47]],
     W: [[0, 42, 62], [2, 46, 62], [3.2, 52, 63], [3.8, 56, 64]],
     FW: [[0, 44, 8], [2, 46, 12]],
-  }, { ball: [[1.0, '10'], [1.5, '12'], [2.3, '15'], [3.2, 'W', 'miss']], strike: 'W', decoys: ['13'], bite: '13', late: '15', finish: 49 })],
+  }, { ball: [[1.0, '10'], [1.55, '12'], [2.2, '13', 'pop'], [2.75, '15'], [3.35, 'W', 'miss']], strike: 'W', decoys: ['13'], bite: '13', late: '15', finish: 49 })],
+  // THE TAP PENALTY SWITCH, ten metres out: the 9 taps, the pod in front of
+  // him shapes to drive (a decoy), the ball goes to the other pod and round
+  // the corner of it along the line to the wing.
   mv_tap: [spec('tap', [90, 35, 1, 0.3], {
     '9': [[0, 90, 35], [0.6, 90.5, 35], [1.0, 91, 35.5]],
     '1': [[0, 91.5, 30], [0.8, 93, 30], [1.4, 95, 30.5]], '2': [[0, 91.5, 32], [0.8, 93, 32], [1.4, 95, 32]], '3': [[0, 91.5, 34], [0.8, 93, 34], [1.4, 95, 33.5]],
     '4': [[0, 90, 40], [0.8, 91, 40], [1.3, 92, 40.5]], '5': [[0, 90, 42], [0.8, 91, 42], [1.3, 92.5, 42.5]], '8': [[0, 89.5, 44], [1.0, 91, 44.5], [1.6, 93, 45]],
     '10': [[0, 86, 44], [1.0, 88, 45], [1.6, 90.5, 47]],
-    '13': [[0, 84, 52], [1.4, 88, 53], [2.0, 91.5, 54]],
+    '12': [[0, 85, 48], [1.4, 88, 49], [2.0, 90.5, 50]],
+    '13': [[0, 84, 53.5], [1.4, 88, 54.5], [2.0, 91.5, 55.5]],
     W: [[0, 84, 62], [2.0, 90, 63], [2.6, 94, 64]],
-  }, { first: '9', ball: [[0.8, '4', 'pop'], [1.2, '10'], [1.9, '13'], [2.5, 'W']], strike: 'W', decoys: ['1', '2', '3'], bite: '4', finish: 29 })],
+  }, { first: '9', ball: [[0.8, '4', 'pop'], [1.2, '10'], [1.9, '13'], [2.5, 'W']], strike: 'W', decoys: ['1', '2', '3'], finish: 29 })],
+  // THE LINEOUT PEEL: the maul sets at the tail, the hooker comes round the
+  // back of it from his throw and takes it off the 9, runs across, and the
+  // blind wing cuts back on his shoulder in the seam off the maul.
+  mv_peel: [spec('lineout', [70, 10, 1, 0], {
+    '2': [[0, 70.5, 1], [0.5, 68.6, 3.4], [1.0, 67.2, 7.8], [1.35, 67.6, 11], [1.8, 69, 13.8], [2.4, 70.8, 16.4], [2.9, 72.2, 18.4]],
+    FW: [[0, 62, 12], [0.8, 63, 12.4], [1.5, 65.4, 13.6], [2.1, 68.2, 15.2], [2.55, 70.8, 16], [3.1, 75, 16.2], [3.7, 80, 16]],
+    '10': [[0, 64, 22], [1.5, 66, 23], [2.6, 68.5, 24.5], [3.4, 71, 26]],
+    '12': [[0, 63, 29], [1.5, 65, 30], [2.6, 67.5, 31], [3.4, 70, 32]],
+    '13': [[0, 62, 36], [2, 65.5, 37], [3.4, 69, 38]],
+    '15': [[0, 57, 32], [2, 61, 30], [3.4, 66, 27]],
+    W: [[0, 61, 55], [2, 64, 55], [3.4, 67, 55]],
+  }, { ball: [[1.3, '2', 'pop'], [2.45, 'FW']], strike: 'FW', decoys: ['10'], bite: '2', late: 'FW', finish: 7 })],
+  // THE MAUL SWITCH, seven metres out: the lineout stands in two pods; the
+  // throw goes to the front one while they compete at the back, the back pod
+  // runs round to bind on, and the maul drives up the touchline with the
+  // hooker at the back of it to ground it.
+  mv_maulswitch: [spec('lineout', [93, 10, 1, 0], {
+    '2': [[0, 93, 0.8], [0.5, 91.8, 3], [1.0, 91.3, 6.6], [1.6, 92.4, 7.8], [2.6, 94.4, 7.9], [3.6, 96.6, 7.8], [4.5, 98.6, 7.6]],
+    '1': [[0, 92.5, 5.8], [1.2, 93.1, 6.3], [2.2, 94.4, 6.6], [3.2, 96.4, 6.8], [4.4, 99.2, 6.8]],
+    '4': [[0, 92.5, 7], [1.2, 93.6, 7.4], [2.2, 94.8, 7.6], [3.2, 96.8, 7.6], [4.4, 99.6, 7.6]],
+    '3': [[0, 92.5, 8.2], [1.2, 93.2, 8.5], [2.2, 94.4, 8.6], [3.2, 96.4, 8.6], [4.4, 99.2, 8.6]],
+    '6': [[0, 92.5, 11.2], [0.5, 92.5, 11.2], [1.3, 92.9, 9.9], [2.2, 94, 9.7], [3.2, 95.9, 9.6], [4.4, 98.7, 9.6]],
+    '5': [[0, 92.5, 12.4], [0.6, 92.4, 12.3], [1.4, 92.6, 10.8], [2.3, 93.6, 10.6], [3.2, 95.4, 10.4], [4.4, 98.2, 10.4]],
+    '8': [[0, 92.5, 13.6], [0.7, 92.3, 13.4], [1.5, 92.4, 11.8], [2.4, 93.3, 11.4], [3.2, 95, 11.2], [4.4, 97.8, 11.2]],
+    '7': [[0, 92.5, 14.8], [0.8, 92.2, 14.4], [1.6, 92.2, 12.6], [2.5, 93, 12.2], [3.2, 94.6, 12], [4.4, 97.4, 12]],
+    // (the backs ten metres back, spread as the threat that holds theirs)
+    '10': [[0, 81.5, 17], [2, 83, 18], [3.2, 84.5, 18.5]], '12': [[0, 81, 24], [2, 82.5, 25], [3.2, 84, 25.5]],
+    '13': [[0, 80.5, 31], [2, 82, 32], [3.2, 83.5, 32.5]], '15': [[0, 76, 30], [2, 78, 29], [3.2, 80, 28]],
+    W: [[0, 80, 45], [2, 82, 45], [3.2, 83.5, 45]], FW: [[0, 82, 4], [2, 83, 4.5], [3.2, 84, 5]],
+  }, { ball: [[1.05, '4', 'pop'], [4.2, '2', 'pop']], strike: '2', decoys: ['6', '5'], finish: -3 })],
+  // CRASH THEN SWING: phase one, the 12 on a flat crash line into the
+  // 10-12 channel and down; phase two, the 9 picks it
+  // off the quick ruck and the ball goes along the line to the open edge,
+  // the blind wing having tracked across behind it all to take the last pass.
+  mv_crashswing: [spec('lineout', [50, 58, -1, 0], {
+    '9': [[0, 48, 58], [0.6, 48.5, 57], [1.6, 50.5, 50.5], [2.2, 51.4, 48], [2.6, 51, 47.6], [3.2, 51.5, 46]],
+    '10': [[0, 44, 52], [0.4, 44.5, 51.5], [0.9, 46, 50], [1.6, 46, 46], [2.4, 47, 41.5], [2.9, 48.5, 39.5], [3.4, 50, 38]],
+    '12': [[0, 43, 46], [0.5, 44, 46], [0.9, 46, 46], [1.3, 49, 46], [1.6, 51.4, 46], [2.8, 52, 46]],
+    FW: [[0, 45, 55], [0.8, 46, 53], [1.4, 47.5, 48], [2.2, 47, 40], [3.2, 47.5, 30], [4.0, 48.5, 25.5], [4.6, 49.8, 22.8], [5.1, 52, 20], [5.6, 56, 17.5], [6.2, 61, 15.5]],
+    '13': [[0, 42, 36], [1.6, 44, 35], [2.8, 46, 33], [3.4, 49, 32], [3.9, 51.5, 31]],
+    '15': [[0, 38, 30], [2.0, 41, 29], [3.4, 44, 27], [4.0, 48, 25], [4.5, 51.5, 23.5]],
+    W: [[0, 42, 10], [3, 45, 11], [4.5, 49, 11], [5.5, 53, 11]],
+  }, {
+    ball: [[0.4, '10'], [0.95, '12', 'pop'], [2.5, '9', 'pop'], [2.95, '10'], [3.5, '13'], [4.0, '15'], [4.6, 'FW']],
+    strike: 'FW', decoys: ['13'], bite: '15', late: 'FW', finish: 43,
+  })],
+  // THE LOOP BY THE 9: the 10 takes it and runs straight at the fringe with
+  // the 13 on a decoy line outside, and the 9, who followed his pass round
+  // the back, takes the tip outside the 10 where the fringe defender should be.
+  mv_loop9: [spec('scrum', [50, 15, 1, 0], {
+    '9': [[0, 48, 15], [0.4, 47.8, 16.5], [0.9, 46.6, 19.5], [1.3, 47, 22.5], [1.7, 48.4, 24.6], [2.1, 51, 27], [2.6, 55, 29.5], [3.0, 58, 32]],
+    '10': [[0, 44, 22], [0.4, 44.5, 22], [0.9, 46.5, 22.5], [1.4, 48.5, 23], [1.8, 49.8, 23.2], [2.2, 50.5, 23.5]],
+    '13': [[0, 42, 38], [1.0, 45, 38], [1.8, 48.5, 37.5], [2.6, 51, 37]],
+    '12': [[0, 43, 30], [1.2, 46, 30], [2.2, 49, 30.5], [3.0, 51.5, 31]],
+    W: [[0, 42, 60], [1.6, 45, 56], [2.6, 50, 48], [3.2, 54, 42], [3.8, 58, 39]],
+    '15': [[0, 38, 45], [2, 43, 44], [3.2, 48, 43]],
+    FW: [[0, 44, 8], [2, 46, 10], [3, 48, 12]],
+  }, { ball: [[0.4, '10'], [1.75, '9', 'pop']], strike: '9', decoys: ['13'], bite: '10', late: '9', finish: 26 })],
+  // THE CROSS-FIELD KICK: a flat line off the lineout draws them up, and the
+  // 10 puts it across to the far wing, who has stayed wide and runs onto it.
+  mv_crosskick: [spec('lineout', [70, 15, 1, 0], {
+    '10': [[0, 64, 21], [0.5, 64.5, 21.5], [0.9, 65.5, 22.5], [1.3, 66.5, 23.5]],
+    '12': [[0, 63.5, 28], [1, 66, 29], [2, 69, 30]],
+    '13': [[0, 63, 35], [1, 65.5, 36], [2, 68, 37]],
+    '15': [[0, 60, 40], [1.5, 63, 44]],
+    W: [[0, 62, 62], [1, 65, 62], [2, 69, 62.5]],
+    FW: [[0, 64, 8], [1.5, 66, 9]],
+  }, { ball: [[0.35, '10']], strike: '10', chase: 'W', decoys: ['12'], finish: 48 })],
+  // THE GRUBBER THROUGH: the 10 flat, their line rushing him, and the ball
+  // rolled through the gap between their 10 and 12 for the centres to chase.
+  mv_grubber: [spec('scrum', [50, 15, 1, 0.6], {
+    '10': [[0, 44, 22], [1.0, 44.6, 22.2], [1.4, 45.8, 22.8], [1.8, 47, 23.4]],
+    '12': [[0, 43, 29], [1.4, 45.5, 29], [2.0, 49, 28.5], [2.6, 53, 28]],
+    '13': [[0, 42, 37], [1.4, 44.5, 36.5], [2.0, 48, 35], [2.6, 52, 33]],
+    '15': [[0, 38, 42], [2, 42, 40]],
+    W: [[0, 42, 60], [2, 46, 60]],
+    FW: [[0, 44, 8], [2, 46, 10]],
+  }, { ball: [[1.0, '10']], strike: '10', chase: '12', decoys: ['13'], finish: 14 })],
 }
 
-/** the tracks a clip may play: the library's, and the next families' when on */
+/** the tracks a clip may play */
 export function tracksFor(move: string): Track[] | undefined {
-  return TRACKS[move] ?? (PREVIEW_MOVES ? PREVIEW_TRACKS[move] : undefined)
+  return TRACKS[move]
 }
 
 /** a man's line at time t: through his keyframes on a smooth curve

@@ -491,7 +491,8 @@ const Ruck = ({ x, y }: { x: number; y: number }) => <>
 </>
 
 /** Every move the library has a picture for; a probe holds the two lists together. */
-export const MOVE_DIAGRAMS = ['mv_1331', 'mv_242', 'mv_backdoor', 'mv_crash', 'mv_switch', 'mv_loop', 'mv_decoy', 'mv_blind', 'mv_inside', 'mv_strike13']
+export const MOVE_DIAGRAMS = ['mv_1331', 'mv_242', 'mv_backdoor', 'mv_crash', 'mv_switch', 'mv_loop', 'mv_decoy', 'mv_blind', 'mv_inside', 'mv_strike13',
+  'mv_wingin', 'mv_width', 'mv_peel', 'mv_maulswitch', 'mv_tap', 'mv_crashswing', 'mv_loop9', 'mv_crosskick', 'mv_grubber']
 
 export function MoveDiagram({ id }: { id: string }) {
   const [x9, y9] = BK.n9, [x10, y10] = BK.n10, [x12, y12] = BK.n12, [x13, y13] = BK.n13
@@ -581,6 +582,113 @@ export function MoveDiagram({ id }: { id: string }) {
         <Move x1={30} y1={53} x2={23} y2={58} dash w={1.1} head={2.2} />
         <Move x1={25} y1={61} x2={62} y2={66} bend={-2} w={1.8} />
         <Key x={30} y={50} />
+      </Frame>
+    // ---- the 1.8.2 families
+    case 'mv_wingin':
+      // the blind wing (top left, off his touchline) comes in behind a flat
+      // 10 and hits the seam between their first two backs; the 12 a decoy
+      return <Frame><SetPiece kind="scrum" /><Backs />{theirs}<Us x={20} y={8} r={2.8} />
+        <Move x1={x9 - 2} y1={y9 + 2} x2={x10 + 2} y2={y10 - 2} dash w={1.1} head={2.4} />
+        <Move x1={x12 + 3} y1={y12} x2={56} y2={y12 + 2} w={1.4} faint />
+        <path d={`M22 10 C 16 24, 26 36, 40 37`} style={RUN} />
+        <Move x1={x10 + 2} y1={y10} x2={38} y2={38} dash w={1.1} head={2.2} />
+        <Move x1={41} y1={37} x2={65} y2={37} w={2} head={3.6} />
+        <Key x={20} y={8} />
+      </Frame>
+    case 'mv_width':
+      // hands along the line, and the full-back into it from depth outside the 13
+      return <Frame><SetPiece kind="scrum" /><Backs />{theirs}
+        <Move x1={x10 - 1} y1={y10 + 3} x2={x12 + 2} y2={y12 - 2} dash w={1.1} head={2.2} />
+        <Move x1={x12 - 1} y1={y12 + 3} x2={x13 + 2} y2={y13 - 2} dash w={1.1} head={2.2} />
+        <path d={`M${BK.n15[0] + 2} ${BK.n15[1] - 2} C 20 60, 26 62, 34 64`} style={RUN} />
+        <Move x1={x13 + 2} y1={y13 + 2} x2={32} y2={62} dash w={1.1} head={2.2} />
+        <Move x1={36} y1={65} x2={64} y2={75} bend={-3} w={1.8} />
+        <Key x={BK.n15[0]} y={BK.n15[1]} />
+      </Frame>
+    case 'mv_peel':
+      // the maul sets, the hooker comes round the back of it and runs across,
+      // and the blind wing cuts in on his shoulder in the seam off the maul
+      return <Frame><SetPiece kind="lineout" /><Backs />{theirs}
+        <ellipse cx={46} cy={15} rx={7.5} ry={11} style={soft(0.8)} />
+        <Us x={37} y={5} r={2.6} /><Us x={22} y={16} r={2.8} />
+        <path d={`M37 8 C 34 20, 40 26, 48 28`} style={RUN} />
+        <Move x1={24} y1={18} x2={52} y2={30} bend={-5} w={1.5} />
+        <Move x1={47} y1={27} x2={51} y2={29} dash w={1.1} head={2.2} />
+        <Move x1={54} y1={31} x2={66} y2={25} w={2} head={3.6} />
+        <Key x={22} y={16} />
+      </Frame>
+    case 'mv_maulswitch':
+      // two pods at the lineout five metres out: the throw goes to the one
+      // they are not competing at, and the maul drives up the touchline
+      return <Frame>
+        <rect x={0} y={0} width={W} height={4} style={st('var(--dg-shade)')} />
+        <line x1={0} y1={4} x2={W} y2={4} style={chalk(1.1)} />
+        <line x1={104} y1={4} x2={104} y2={H} style={chalk(1)} />
+        <Pod x={43} y={12} n={3} /><Pod x={43} y={30} n={3} />
+        {[[50, 26], [50, 31], [50, 36], [55, 31], [50, 11]].map(([x, y], i) => <Them key={i} x={x} y={y} r={2.6} />)}
+        <Us x={38} y={2} r={2.4} />
+        <Move x1={40} y1={4} x2={42} y2={26} bend={-4} dash w={1} head={2} faint />
+        <Move x1={40} y1={4} x2={42} y2={9} dash w={1.1} head={2.2} />
+        <Move x1={45} y1={27} x2={48} y2={16} w={1.4} faint />
+        <Move x1={49} y1={11} x2={100} y2={10} w={2.8} head={4.2} />
+        <Key x={43} y={12} r={8} />
+      </Frame>
+    case 'mv_tap':
+      // the 9 taps near their line; one pod shapes to drive, the ball goes to
+      // the other and the runner comes round the corner of it
+      return <Frame>
+        <line x1={104} y1={0} x2={104} y2={H} style={chalk(1)} />
+        <Us x={78} y={42} r={2.8} /><Ball x={81} y={42} />
+        <Pod x={86} y={52} n={3} /><Pod x={84} y={26} n={3} />
+        {[[98, 12], [98, 22], [98, 32], [98, 42], [98, 52], [98, 62]].map(([x, y], i) => <Them key={i} x={x} y={y} r={2.8} />)}
+        <Move x1={89} y1={52} x2={94} y2={52} w={1.4} faint />
+        <Move x1={79} y1={39} x2={82} y2={31} dash w={1.1} head={2.2} />
+        <Us x={76} y={52} r={2.6} />
+        <path d={`M76 49 C 68 38, 70 16, 86 13`} style={RUN} />
+        <Move x1={86} y1={23} x2={87} y2={15} dash w={1} head={2} />
+        <Move x1={88} y1={13} x2={102} y2={10} w={2} head={3.4} />
+        <Key x={76} y={52} />
+      </Frame>
+    case 'mv_crashswing':
+      // the crash ball into midfield and the ruck, then the ball swung back
+      // along the line to the far edge
+      return <Frame><SetPiece kind="lineout" /><Backs />{theirs}
+        <Move x1={x10 - 1} y1={y10 + 3} x2={x12 + 2} y2={y12 - 2} dash w={1.1} head={2.4} />
+        <Move x1={x12 + 3} y1={y12} x2={46} y2={46} w={2.6} head={4} />
+        <circle cx={50} cy={46} r={4} style={soft(0.8)} />
+        <Move x1={47} y1={50} x2={31} y2={60} bend={3} dash w={1.1} head={2.2} />
+        <Move x1={29} y1={62} x2={25} y2={69} dash w={1.1} head={2.2} />
+        <Move x1={27} y1={72} x2={64} y2={76} bend={-2} w={1.8} />
+        <Key x={x12} y={y12} />
+      </Frame>
+    case 'mv_loop9':
+      // the 10 straight at the fringe, the 9 round the back of him for the tip
+      return <Frame><SetPiece kind="scrum" /><Backs />{theirs}
+        <Move x1={x9 - 2} y1={y9 + 2} x2={x10 + 2} y2={y10 - 2} dash w={1.1} head={2.4} />
+        <Move x1={x10 + 2} y1={y10} x2={50} y2={36} w={1.6} />
+        <path d={`M${x9} ${y9 + 2} C ${x9 - 6} ${y9 + 16}, ${x10 + 10} ${y10 + 10}, 52 44`} style={RUN} />
+        <Move x1={49} y1={37} x2={52} y2={42} dash w={1.1} head={2.2} />
+        <Move x1={54} y1={45} x2={66} y2={47} w={2} head={3.6} />
+        <Key x={x9} y={y9} />
+      </Frame>
+    case 'mv_crosskick':
+      // a flat line, and the 10's kick across to the far wing running onto it
+      return <Frame><SetPiece kind="lineout" /><Backs />{theirs}
+        <Move x1={x9 - 2} y1={y9 + 2} x2={x10 + 2} y2={y10 - 2} dash w={1.1} head={2.4} />
+        <Move x1={x10 + 2} y1={y10 + 2} x2={84} y2={72} bend={-16} dash w={1.2} head={2.6} />
+        <Land x={84} y={72} />
+        <Move x1={BK.n14[0] + 3} y1={BK.n14[1]} x2={80} y2={74} bend={-2} w={1.8} />
+        <Key x={BK.n14[0]} y={BK.n14[1]} />
+      </Frame>
+    case 'mv_grubber':
+      // along the ground through the gap a rushing line leaves, the centres after it
+      return <Frame><SetPiece kind="scrum" /><Backs />{theirs}
+        <Move x1={x9 - 2} y1={y9 + 2} x2={x10 + 2} y2={y10 - 2} dash w={1.1} head={2.4} />
+        <Move x1={x10 + 2} y1={y10 + 1} x2={82} y2={47} dash w={1.1} head={2.2} />
+        <Land x={82} y={47} />
+        <Move x1={x12 + 3} y1={y12} x2={79} y2={46} bend={4} w={1.6} />
+        <Move x1={x13 + 3} y1={y13} x2={80} y2={51} bend={3} w={1.4} faint />
+        <Key x={x12} y={y12} />
       </Frame>
     default:
       // no call: the shape stood up, nothing drawn on it
