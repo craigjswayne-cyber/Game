@@ -169,8 +169,11 @@ export const TURN_M = 6
  *  style's effect on the try chance. The relative fit (styleFitRel) has a
  *  spread of about 0.14 across the world's first XVs (0.23 either way at the
  *  5th and 95th percentiles), so a side playing to its strengths finds about
- *  3% more try chances than one playing against them, and the extremes 5% */
-export const FIT_K = 0.2
+ *  2% more try chances than one playing against them, and the extremes 3%.
+ *  At 0.2 the home side's edge thinned in single worlds (bandcheck's
+ *  toulouse/777 fell from 55% home wins to 50%): the fit is a second draw on
+ *  who is better, on top of the players, and it must stay the smaller one */
+export const FIT_K = 0.12
 /** THE WORLD STAYS WHERE IT WAS CALIBRATED. Across a world where every club
  *  plays a style, the effects above need not average exactly neutral (the
  *  AI plays the kicking game a little more often than the others, and it
