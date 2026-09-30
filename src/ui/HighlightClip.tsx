@@ -711,14 +711,15 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
     }
     const [ahead, across] = DEF[i]
     // most of them to the side the play goes, the line narrowed to fit
-    // (towards the touchline the men near the ruck keep their spacing and
-    // the backs outside them close up; with no room at all that side, the
-    // line stands the other way)
+    // (towards the touchline the line keeps its spacing; with no room at
+    // all that side, it stands the other way)
     let ls = dir === d ? lean : -lean
     if ((ls > 0 ? 70 - b.y : b.y) < 13) ls = -ls
     const roomOn = ls > 0 ? 70 - b.y : b.y, roomOff = 70 - roomOn
     const w = across * DS.width
-    const a = w > 10 ? 10 + (w - 10) * clamp((roomOn - 12) / 18, 0.15, 1)
+    // (a back with no room outside the man inside him stands on the other
+    // side of the ruck instead, rather than squeezing the line up)
+    const a = w > roomOn - 4 ? -Math.min(roomOff - 3, 6 + (w - 10) * 0.9)
       : w < -6 ? -6 + (w + 6) * clamp((roomOff - 8) / 10, 0.15, 1) : w
     return { x: fieldX(ownLine(b.x + dir * Math.max(1.2, ahead + DS.depth), b, dir)), y: fieldY(b.y + ls * a) }
   }
