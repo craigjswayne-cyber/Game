@@ -55,6 +55,7 @@ import { recall } from './memory'
 import { rivalCoach } from './rivalcoach'
 import { demandedFinish } from './chairman'
 import { atkName, defName, stylesOf } from './styles'
+import { deskQuestion } from './armsrace'
 import type { Club } from './model'
 
 /** A sentence as a key and its values. A value under a name ending `_k` is
@@ -372,6 +373,15 @@ function threadRow(state: GameState): DeskRow | null {
       return {
         id: 'thread', label: 'desk.thread', go: { screen: 'club', param: opp },
         lines: [{ k: 'desk.tRival', v: { coach: rc.n, w: rc.w, d: rc.d, l: rc.l } }],
+      }
+    }
+    // THE ARMS RACE (1.8.2, armsrace.ts): they are set for the call he has
+    // run most. Keep running it, or hide it?
+    const q = deskQuestion(state, opp)
+    if (q) {
+      return {
+        id: 'thread', label: 'desk.thread', go: { screen: 'tactics' },
+        lines: [{ k: 'desk.tPlaybook', v: { move_k: q.move_k, pct: q.pct, club: state.clubs[opp].short } }],
       }
     }
   }

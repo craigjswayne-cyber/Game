@@ -50,7 +50,7 @@ const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / Math.max(1, xs.le
 
 // ------------------------------------------------------------------ 1
 console.log('--- 1. the library\n')
-ok(MOVES.length >= 8 && MOVES.length <= 12, `${MOVES.length} moves (8 to 12)`)
+ok(MOVES.length >= 8 && MOVES.length <= 20, `${MOVES.length} moves (8 to 20; 1.8.2 added the study's new families)`)
 const shapes = MOVES.filter(m => m.group === 'shape'), strikes = MOVES.filter(m => m.group === 'strike')
 ok(shapes.length >= 3 && strikes.length >= 6, `${shapes.length} phase-play shapes and ${strikes.length} strike moves`)
 ok(strikes.some(m => m.from.includes('lineout')) && strikes.some(m => m.from.includes('scrum')) && shapes.every(m => m.from.join() === 'open'),
@@ -73,7 +73,7 @@ const get = (l: string, k: string) => k.split('.').reduce((o: any, p) => o?.[p],
 const moveKeys = MOVES.flatMap(m => [m.name, m.desc, m.say])
 ok(LANGS.every(l => moveKeys.every(k => typeof get(l, k) === 'string' && get(l, k).length > 1)), 'every move is named, explained and said in all six languages')
 ok(LANGS.filter(l => l !== 'en').every(l => MOVES.every(m => get(l, m.desc) !== get('en', m.desc))), 'and the explanations are translated, not copied')
-const commKeys = ['moveCallLo1', 'moveCallSc1', 'moveShape1', 'moveMisfire1', 'moveGain1', 'shapeMisfire1', 'moveTryLo1', 'moveTryLoSelf', 'moveTrySc1', 'moveTryScSelf', 'shapeTry1', 'shapeTrySelf']
+const commKeys = ['moveCallLo1', 'moveCallSc1', 'moveShape1', 'moveMisfire1', 'moveGain1', 'shapeMisfire1', 'moveTryLo1', 'moveTryLoSelf', 'moveTrySc1', 'moveTryScSelf', 'shapeTry1', 'shapeTrySelf', 'moveCallTap1', 'moveTryTap1', 'moveTryTapSelf']
 ok(LANGS.every(l => commKeys.every(k => typeof get(l, `comm.${k}`) === 'string' && get(l, `comm.${k}`).includes('{move_k}'))), 'the move commentary is in every language and names the move')
 
 // ------------------------------------------------------------------ 2
@@ -82,7 +82,7 @@ console.log('\n--- 2. drilled like a set-piece call\n')
   const g = newGame('leicester', 'Moves Probe', 4242)
   const me = g.clubs[g.userClubId]
   g.staff.attack = 1; g.staff.scrumCoach = 1
-  me.tactic.moveLineout = 'mv_loop'
+  me.tactic.moveMain = 'mv_loop'
   const start = drilledOf(g, me, 'mv_loop')
   const shelved0 = drilledOf(g, me, 'mv_switch')
   const path = [start]
@@ -158,9 +158,13 @@ const shape = (g: GameState, me: Club, id: string, v: number) => {
 }
 const call = (me: Club, id: string | null, drilled = 95) => {
   const m = id ? MOVE_BY_ID[id] : null
-  me.tactic.moveLineout = m?.from.includes('lineout') ? m.id : undefined
-  me.tactic.moveScrum = m?.from.includes('scrum') ? m.id : undefined
+  // (1.8.2: the playbook's slots, and the side run in with the move to the
+  // AI's own familiarity, so the move is worth here what it was in 1.8.1)
+  me.tactic.moveMain = m && m.group === 'strike' && !m.red ? m.id : undefined
+  me.tactic.moveAlt = undefined
+  me.tactic.moveRed = m?.red ? m.id : undefined
   me.tactic.moveShape = m?.from.includes('open') ? m.id : undefined
+  if (m) playbookOf(me).reps = { [m.id]: 15 }
   if (m) { playbookOf(me).drilled[m.id] = drilled; playbookOf(me).used[m.id] = 0 }
 }
 const defence = (opp: Club, line: number, width: number) => { opp.tactic.defLine = line; opp.tactic.defWidth = width }
@@ -294,8 +298,8 @@ console.log('\n--- 5. in the clips\n')
   const r = play(3, () => {}, true)
   const tryAt = r.events.map((e, i) => e.type === 'TRY' ? i : -1).filter(i => i >= 0).slice(0, 4)
   const homeId = FXS[3 % FXS.length].homeId
-  const clip = (i: number, id: string, from: 'lineout' | 'scrum' | 'open', scorer = 14): ClipSpec => {
-    const k = from === 'lineout' ? 'comm.moveTryLo1' : from === 'scrum' ? 'comm.moveTrySc1' : 'comm.shapeTry1'
+  const clip = (i: number, id: string, from: 'lineout' | 'scrum' | 'open' | 'tap', scorer = 14): ClipSpec => {
+    const k = from === 'lineout' ? 'comm.moveTryLo1' : from === 'scrum' ? 'comm.moveTrySc1' : from === 'tap' ? 'comm.moveTryTap1' : 'comm.shapeTry1'
     const ev = r.events.slice(0, i + 1).map((x, j) => j === i ? { ...x, k, v: { ...(x.v ?? {}), move_k: MOVE_BY_ID[id].say } } : x)
     return buildClip(ev, i, 'try', homeId, () => scorer, colours, labels, () => 'Name')
   }
@@ -307,11 +311,16 @@ console.log('\n--- 5. in the clips\n')
     // (the wrap goes to the blind wing, and the wrap's wing is the 14 the
     // move needs: 1.8.2 puts its short side on his side of the scrum)
     mv_blind: [8, 9, 14], mv_inside: [9, 10, 12, 14], mv_strike13: [9, 10, 12, 13, 14],
+    // (1.8.2, the new families: the kicks are the 10's and then the chaser's;
+    // the maul's ball stays in the maul, from the jumper to the hooker)
+    mv_wingin: [9, 10, 14], mv_width: [9, 10, 12, 13, 15, 14], mv_tap: [9, 4, 10, 13, 14], mv_peel: [9, 2, 14],
+    mv_maulswitch: [9, 4, 2], mv_crashswing: [9, 10, 12, 9, 10, 13, 15, 14], mv_loop9: [9, 10, 9, 14],
+    mv_crosskick: [9, 10, 14], mv_grubber: [9, 10, 14],
   }
   let played = 0
   const wrong: string[] = []
   for (const i of tryAt) for (const m of strikes) for (const from of m.from) {
-    const s = clip(i, m.id, from as 'lineout' | 'scrum')
+    const s = clip(i, m.id, from as 'lineout' | 'scrum' | 'tap')
     played++
     const seq = carriers(s)
     const f0 = frameAt(s, 0.2)
@@ -403,7 +412,7 @@ console.log('\n--- 6. old saves\n')
   // a club from before moves: no calls on the tactic, no moves in the playbook
   const g = structuredClone(BASE)
   const me = g.clubs[ME]
-  delete me.tactic.moveLineout; delete me.tactic.moveScrum; delete me.tactic.moveShape
+  delete me.tactic.moveMain; delete me.tactic.moveAlt; delete me.tactic.moveRed; delete me.tactic.moveShape
   for (const k of Object.keys(playbookOf(me).drilled)) if (k.startsWith('mv_')) delete playbookOf(me).drilled[k]
   ok(Object.values(callsOf(g, me)).every(v => v == null) && drilledOf(g, me, 'mv_loop') > 0, 'no calls on an old save, and its moves start from scratch')
   let threw = false

@@ -19,7 +19,8 @@ import { venueEffect } from './venue'
 import { clamp, gauss, hashString, mulberry32, wpick, type Rng } from './rng'
 import { KNOCK_ENERGY } from './knock'
 import { DEFAULT_LINEOUT, DEFAULT_SCRUM, ROUTINE_BY_ID, playbookOf, routineEffect } from './playbook'
-import { MOVE_BY_ID, MOVE_MAKER, callFor, callsOf, launchOf, moveEdge, moveFit, moveHash, moveMatchup, moveTempoF, sayKey, type Launch } from './moves'
+import { MOVE_BY_ID, MOVE_MAKER, RED_ZONE, anyCall, calledIds, callForTick, callsOf, launchOf, mixHash, moveEdge, moveFit, moveHash, moveMatchup, moveTempoF, sayKey, type Launch } from './moves'
+import { adaptMap, tallyCalls } from './armsrace'
 import {
 
 
@@ -1871,6 +1872,9 @@ export interface LiveCtx {
   fx: Fixture
   /** the salt of the styles' turnover hash (styleSalt), set on first use */
   stySalt?: number
+  /** how far the manager's opponent is set for each of his calls (1.8.2,
+   *  armsrace.ts), taken at kick-off; absent in a match he is not in */
+  callAdapt?: Record<string, number>
   home: SideCtx
   away: SideCtx
   rng: Rng
@@ -2240,6 +2244,14 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     layer(home, 'scrum', homeF)
     layer(away, 'scrum', awayF)
   }
+  // THE ARMS RACE (1.8.2, armsrace.ts): how far this opponent is set for each
+  // of the manager's calls, off the tape as it stood BEFORE this match, and
+  // then this match's reps and first-phase strikes on the tape
+  let callAdapt: Record<string, number> | undefined
+  if (fx.homeId === state.userClubId || fx.awayId === state.userClubId) {
+    callAdapt = adaptMap(state, fx.homeId === state.userClubId ? fx.awayId : fx.homeId)
+    tallyCalls(state, fx)
+  }
   // The analysts were watching. Calling the same move every week is how it stops
   // working, so the tally is kept here, once per match, for both clubs.
   for (const id of [fx.homeId, fx.awayId]) {
@@ -2250,10 +2262,7 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
       pb.used[call] = (pb.used[call] ?? 0) + 1
     }
     // and the attacking moves, on the same tape (moves.ts)
-    const mc = callsOf(state, c)
-    for (const call of new Set([mc.lineout, mc.scrum, mc.shape])) {
-      if (call) pb.used[call] = (pb.used[call] ?? 0) + 1
-    }
+    for (const call of calledIds(callsOf(state, c))) pb.used[call] = (pb.used[call] ?? 0) + 1
   }
   // the analyst's read: if the manager prepared for the weakness he named and
   // the read was sound, the soft spot gives a little more on the day. This is
@@ -2489,6 +2498,7 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     userSideId: fx.homeId === userTeamId ? fx.homeId : fx.awayId === userTeamId ? fx.awayId : null,
     tick: 0, seg: 0, awaiting: null, field: 50, motmId: null, talkUsed: false, subsUsed: 0,
     preTalk: null, decision: null, momo: 0, grudge: grudge?.reason ?? null,
+    callAdapt,
   }
   ctx.kickSeed = Math.floor(rng() * 4294967296) >>> 0
   ctx.chemToday = chemToday
@@ -2861,17 +2871,20 @@ function moveInPlay(state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideCtx,
   const club = state.clubs[side.teamId]
   if (!club) return null
   const calls = callsOf(state, club)
-  if (!calls.lineout && !calls.scrum && !calls.shape) return null
-  const launch = launchOf(ctx.fx.id, tick, side === ctx.home)
-  const id = callFor(calls, launch)
-  const m = id ? MOVE_BY_ID[id] : undefined
-  if (!m) return null
+  if (!anyCall(calls)) return null
+  const home = side === ctx.home
+  // in the opposition 22 the red-zone play has the ball when it can run
+  const call = callForTick(calls, launchOf(ctx.fx.id, tick, home), mixHash(ctx.fx.id, tick, home), upOf(ctx, side) >= RED_ZONE)
+  const m = call ? MOVE_BY_ID[call.id] : undefined
+  if (!m || !call) return null
   // a move that belongs to the side's style is run better (styles.ts)
   const fit = clamp(moveFit(m, (s, a) => inShirt(state, side, s - 1)?.a[a] ?? null)
     + moveAffinity(side.sty?.atk, m.id, m.group === 'shape'), -1, 1)
   const match = moveMatchup(m, state.clubs[opp.teamId]?.tactic)
-  const e = moveEdge(state, club, m.id, fit, match)
-  return { id: m.id, launch, gain: e.gain, risk: m.risk, maker: inShirt(state, side, (MOVE_MAKER[m.id] ?? 10) - 1) }
+  // the manager's opponent set for his most-run calls (armsrace.ts)
+  const adapt = club.id === state.userClubId ? (ctx.callAdapt?.[m.id] ?? 0) : 0
+  const e = moveEdge(state, club, m.id, fit, match, adapt)
+  return { id: m.id, launch: call.launch, gain: e.gain, risk: m.risk, maker: inShirt(state, side, (MOVE_MAKER[m.id] ?? 10) - 1) }
 }
 
 /** Whether the try this tick scored is the move's, for its line and its
@@ -2886,6 +2899,7 @@ function moveTryOf(state: GameState, ctx: LiveCtx, side: SideCtx, mv: MoveInPlay
 
 const MOVE_CALL_LO = ['comm.moveCallLo1', 'comm.moveCallLo2', 'comm.moveCallLo3']
 const MOVE_CALL_SC = ['comm.moveCallSc1', 'comm.moveCallSc2', 'comm.moveCallSc3']
+const MOVE_CALL_TAP = ['comm.moveCallTap1', 'comm.moveCallTap2']
 const MOVE_SHAPE = ['comm.moveShape1', 'comm.moveShape2', 'comm.moveShape3']
 const MOVE_MISFIRE = ['comm.moveMisfire1', 'comm.moveMisfire2', 'comm.moveMisfire3', 'comm.moveMisfire4']
 const MOVE_GAIN = ['comm.moveGain1', 'comm.moveGain2', 'comm.moveGain3']
@@ -2896,7 +2910,7 @@ function describeMoveCall(state: GameState, ctx: LiveCtx, side: SideCtx, opp: Si
   if (!ctx.detail) return
   const strike = mv.launch !== 'open'
   if (ctx.crng() >= (strike ? 0.4 : 0.1)) return
-  const bank = mv.launch === 'lineout' ? MOVE_CALL_LO : mv.launch === 'scrum' ? MOVE_CALL_SC : MOVE_SHAPE
+  const bank = mv.launch === 'lineout' ? MOVE_CALL_LO : mv.launch === 'scrum' ? MOVE_CALL_SC : mv.launch === 'tap' ? MOVE_CALL_TAP : MOVE_SHAPE
   colour(state, ctx, side, said(ctx, bank),
     { team: teamShort(state, side.teamId), opp: teamShort(state, opp.teamId), move_k: sayKey(mv.id) })
 }
@@ -2965,6 +2979,7 @@ function moveTryLine(state: GameState, mt: NonNullable<LiveCtx['moveTry']>, scor
 const MOVE_TRY: Record<Launch, { self: string; lines: string[] }> = {
   lineout: { self: 'comm.moveTryLoSelf', lines: ['comm.moveTryLo1', 'comm.moveTryLo2', 'comm.moveTryLo3'] },
   scrum: { self: 'comm.moveTryScSelf', lines: ['comm.moveTrySc1', 'comm.moveTrySc2', 'comm.moveTrySc3'] },
+  tap: { self: 'comm.moveTryTapSelf', lines: ['comm.moveTryTap1', 'comm.moveTryTap2', 'comm.moveTryTap3'] },
   open: { self: 'comm.shapeTrySelf', lines: ['comm.shapeTry1', 'comm.shapeTry2', 'comm.shapeTry3'] },
 }
 
@@ -3217,7 +3232,15 @@ function scoreTry(
   review = true,
 ) {
   const { rng, goalPenalty } = ctx
-  const scorer = forceScorer ?? tryScorer(state, side, rng)
+  let scorer = forceScorer ?? tryScorer(state, side, rng)
+  // a maul that goes over is grounded by the man at the back of it, the
+  // hooker who runs it (1.8.2, the maul switch): the draw above is taken
+  // either way, so only the name on the try moves
+  const mvTry = !forceScorer && ctx.moveTry ? MOVE_BY_ID[ctx.moveTry.id] : undefined
+  if (mvTry?.red && mvTry.from.includes('lineout') && ctx.moveTry?.maker != null) {
+    const mk = state.players[ctx.moveTry.maker]
+    if (mk && side.onPitch.has(mk.id)) scorer = mk
+  }
   // ---- THE TMO (owner, 25 Sep 2026: "we need to be able to overturn a try
   // if the tmo finds it ... there is randomness to whether its a try or not").
   //
