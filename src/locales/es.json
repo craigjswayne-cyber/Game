@@ -2466,7 +2466,7 @@
   "tabAttributes": "Atributos",
   "tabCareer": "Trayectoria",
   "alsoPlays": " (también {pos})",
-  "natLine": "{flag} {country} · {age} años",
+  "natLine": "{country} · {age} años",
   "international": " · Internacional",
   "academyGrad": " · Canterano",
   "academyGrad_f": " · Canterana",

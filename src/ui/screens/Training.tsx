@@ -3,7 +3,7 @@ import { useStore } from '../../store'
 import { STAFF_INFO, fmtMoney, fmtWage, injuryDesc, type TrainingFocus, weeksBetween100 } from '../../game/model'
 import { BADGE_COL, EXAM_PASS_PCT, badgeLabel, traitLabel, appointBlock, appointStaff, backroomFund, courseBlock, courseFee, sackCost, sackStaff, sendToCourse, staffCandidates, staffChemPairs, staffInterest, type StaffRole } from '../../game/staff'
 import DevelopmentPanel from './DevelopmentPanel'
-import { flagOf } from '../../game/nations'
+import { Flag } from '../flags'
 import { SectionTitle, TwoStep } from '../components'
 import { t } from '../../game/i18n'
 import { Glyph } from '../glyphs'
@@ -196,7 +196,7 @@ function StaffPanel() {
                   {p ? (
                     <>
                       <h3 style={{ fontSize: 14, margin: 0 }}>
-                        {flagOf(p.nat)} {p.name} <b style={{ color: BADGE_COL[p.tier], fontSize: 12 }}>{badgeLabel(p.tier).toUpperCase()}</b>
+                        <Flag code={p.nat} /> {p.name} <b style={{ color: BADGE_COL[p.tier], fontSize: 12 }}>{badgeLabel(p.tier).toUpperCase()}</b>
                       </h3>
                       <div className="meta" style={{ fontSize: 11 }}>
                         {t('training.staffLine', { age: p.age, trait: traitLabel(p.trait), wage: fmtWage(p.wage) })}
@@ -262,7 +262,7 @@ function StaffPanel() {
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, borderTop: '1px solid var(--border)', paddingTop: 5, marginTop: 5 }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 13, fontWeight: 700 }}>
-                        {flagOf(c.nat)} {c.name} <span style={{ color: BADGE_COL[c.tier], fontSize: 11 }}>{badgeLabel(c.tier).toUpperCase()}</span>
+                        <Flag code={c.nat} /> {c.name} <span style={{ color: BADGE_COL[c.tier], fontSize: 11 }}>{badgeLabel(c.tier).toUpperCase()}</span>
                       </div>
                       <div className="meta" style={{ fontSize: 11 }}>
                         {t('training.candLine', { age: c.age, trait: traitLabel(c.trait), wage: fmtWage(c.wage), fee: fmtMoney(c.fee) })}
