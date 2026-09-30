@@ -448,6 +448,8 @@ export function agePlayers(state: GameState, rng: Rng) {
       // he is a graduate of this club's academy for the rest of his career,
       // wherever he ends up playing it (dream.ts counts them)
       p.homegrown = true
+      p.gradClub ??= p.clubId ?? undefined
+      p.gradS ??= state.season
       // HE SIGNS HIS FIRST PROFESSIONAL CONTRACT. He was on a development deal
       // (see playerWage), and graduating without re-pricing him would leave a
       // senior squad man on academy money for the rest of his career.

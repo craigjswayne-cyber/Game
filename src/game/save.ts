@@ -760,6 +760,17 @@ export function migrate(s: GameState): GameState {
   s.agency ??= { seniors: [], kids: [], best: {} }
   migrateMemory(s) // the manager's memory (memory.ts): an old save starts with an empty log
   migrateArc(s) // the career arc (arcbook.ts): made whole, never invented
+  // a graduate from before 1.8.2 learns which academy made him: his first
+  // career row is the club he first played senior rugby for (a loan in his
+  // first season would name the loan club; there is nothing better to read),
+  // and a graduate yet to play is still where he graduated, or on loan from it
+  for (const p of Object.values(s.players)) {
+    if (!p?.homegrown || p.gradClub) continue
+    const first = Array.isArray(p.career) ? p.career[0] : undefined
+    const at = first?.clubId ?? p.loanFrom ?? p.clubId
+    if (at) p.gradClub = at
+    if (first && Number.isFinite(first.season)) p.gradS = first.season
+  }
   if (s.ambitions != null && !Array.isArray(s.ambitions)) delete s.ambitions
   if (s.ambitions) s.ambitions = s.ambitions.filter(a => !!a && typeof a.id === 'string' && typeof a.clubId === 'string').slice(0, 5)
   for (const c of Object.values(s.clubs)) { c.captain ??= null; c.vice ??= null; c.legends = list(c.legends) as typeof c.legends; c.marquee = list(c.marquee) as typeof c.marquee; c.tactic.roles = list(c.tactic.roles) as typeof c.tactic.roles; if (c.id !== s.userClubId) c.coach ??= 'The Head Coach' }
