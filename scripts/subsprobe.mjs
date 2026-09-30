@@ -310,7 +310,10 @@ try {
   // and the user asked for that ("all 8 subs should be able to be used"). Asserting
   // the rule rather than the digit means the next change to the cap does not need a
   // probe edit, only a passing one.
-  ok(before === MAX_SUBS, `the whole bench is available at half-time (${before} of ${MAX_SUBS})`)
+  // 1.8.2 (owner: "it says 6 changes left but due to injury there are only 4
+  // on my bench"): the count is the law's or the fit bench, whichever is less
+  const canUse = Math.min(MAX_SUBS, benchBefore)
+  ok(before === canUse, `every usable change is offered at half-time (${before}, wanted ${canUse}: ${benchBefore} on the bench, ${MAX_SUBS} by law)`)
 
   // FIVE changes without leaving the sheet, not two.
   //
@@ -502,8 +505,8 @@ try {
   await page.waitForTimeout(250)
   ok(await page.locator('.squad-sheet').count() === 0, 'the sheet closes')
   ok((await page.locator('text=Replacements').first().textContent() ?? '')
-    .includes(`${MAX_SUBS - CHANGES} of ${MAX_SUBS}`),
-    `the panel agrees ${MAX_SUBS - CHANGES} are left after ${CHANGES} changes`)
+    .includes(`${Math.min(MAX_SUBS, benchBefore) - CHANGES} of ${MAX_SUBS}`),
+    `the panel agrees ${Math.min(MAX_SUBS, benchBefore) - CHANGES} are left after ${CHANGES} changes`)
 
   // still at half-time: the control row must say what it will do, and do it
   const playCap = (await page.locator('.speed-controls .btn').first().getAttribute('aria-label') ?? '').trim()
