@@ -517,8 +517,8 @@ const EXPECTED: string[] = [
   // is read against the side's own profile (styleFitRel), so the styles move
   // who scores, not how much, and do not pay a strong side twice. bandcheck,
   // pooled over four seeds, before and after:
-  //   pts 49.4 -> 49.9   tries 6.28 -> 6.34   home 51.5% -> 51.6%
-  //   draws 2.0% -> 1.6%   blowouts 9.0% -> 9.4% (every band holds)
+  //   pts 49.4 -> 49.9   tries 6.28 -> 6.33   home 51.5% -> 51.4%
+  //   draws 2.0% -> 1.6%   blowouts 9.0% -> 9.0% (every band holds)
   // Home advantage read 51.2% to 53.5% over nine runs while the styles were
   // tuned (per-seed spread 2 to 6 points), against 51.5% before them.
   'saracens 17-37 bath',
