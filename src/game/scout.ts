@@ -3,7 +3,8 @@ import { userWageBudget } from './grants'
 import { askingPrice } from './ai'
 import { playerValue } from './attributes'
 // Knowledge grows by shortlisting, playing against them, and via the
-// chief scout. Your own squad is always fully known.
+// chief scout. Your own squad is always fully known, bar a young man's ceiling
+// (youthPaMargin below: nobody can read what he will become as a number).
 
 import type { Attrs, GameState, Player, Pos } from './model'
 import { tIn } from './i18n'
@@ -87,10 +88,32 @@ export function paMargin(k: number): number {
   return -1
 }
 
+/**
+ * ---- A YOUNG MAN'S CEILING IS AN ESTIMATE, WHOEVER WATCHES HIM (1.8.2) ----
+ *
+ * Knowledge reads what a man IS. What he will become is still being decided
+ * (devproject.ts: the ceiling moves with his seasons until his early twenties),
+ * so no file, not even your own staff's on your own academy, reads it as a
+ * number while he is young. The floor on the margin runs from seven points at
+ * 18 to two at 23, and the club's own development staff see further: a
+ * level-3 assistant and a level-3 Centre of Excellence take a point each off
+ * it for the club's own men (never under one before 24). From 24 the full
+ * file is the number again, as it always was.
+ */
+export function youthPaMargin(state: GameState, p: Player): number {
+  if (p.age >= 24) return 0
+  const base = p.age <= 18 ? 7 : p.age <= 20 ? 5 : p.age <= 22 ? 4 : 2
+  if (p.clubId !== state.userClubId) return base
+  const club = state.clubs[state.userClubId]
+  const sight = ((state.staff?.assistant ?? 0) >= 3 ? 1 : 0) + ((club?.facilities?.academy ?? 0) >= 3 ? 1 : 0)
+  return Math.max(1, base - sight)
+}
+
 /** The scouts' band on his ceiling, or null when they have not read it. */
 export function paRange(state: GameState, p: Player): [number, number] | null {
-  const m = paMargin(knowledge(state, p))
-  if (m < 0) return null
+  const km = paMargin(knowledge(state, p))
+  if (km < 0) return null
+  const m = Math.max(km, youthPaMargin(state, p))
   if (m === 0) return [p.pa, p.pa]
   const c = clamp(p.pa + skew(p, 98, m), 1, 99)
   const floor = Math.round(fuzzedCa(state, p))
@@ -119,10 +142,11 @@ export function seenValue(state: GameState, p: Player): number {
     p.clubId ? p.contractEnds - state.season : undefined, p.caps)
 }
 
-/** The Wonderkid chip: the truth at your own club, a proper report elsewhere. */
+/** The Wonderkid chip: the staff's estimate at your own club (1.8.2: an
+ *  estimate there too, devproject.ts), a proper report elsewhere. */
 export function wonderkidKnown(state: GameState, p: Player): boolean {
   if (p.age > 21) return false
-  if (p.clubId === state.userClubId) return p.pa >= 86
+  if (p.clubId === state.userClubId) return scoutPa(state, p) >= 86
   return knowledge(state, p) >= WATCH_KNOW && scoutPa(state, p) >= 86
 }
 

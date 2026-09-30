@@ -19,7 +19,7 @@
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import {
-  WATCH_KNOW, knowledge, onesToWatch, paRange, scoutPa, searchKey, seenValue, wonderkidKnown, leadRow,
+  WATCH_KNOW, knowledge, onesToWatch, paRange, scoutPa, searchKey, seenValue, wonderkidKnown, leadRow, youthPaMargin,
 } from '../src/game/scout'
 import { loanTargets } from '../src/game/loans'
 import { agencyCanSee, agencyKids } from '../src/game/agency'
@@ -138,8 +138,16 @@ console.log('--- 4. scouting reveals the ceiling over time')
   ok(r != null && r[0] <= p.pa && p.pa <= r[1], 'the band he ends on holds his true ceiling')
   ok(named && wonderkidKnown(g, p) === (p.age <= 21 && scoutPa(g, p) >= 86), 'once read he can be named and chipped on the reading')
   p.sc = 100
+  // RE-REFERENCED in 1.8.2 (devproject.ts, "potential that moves"): a young
+  // man's ceiling now drifts with his seasons until his early twenties, so a
+  // full file on a teenager is a narrow band that holds the truth, not the
+  // number (scout.ts youthPaMargin). From 24 a full file reads it exactly.
   const fr = paRange(g, p)
-  ok(!!fr && fr[0] === p.pa && fr[1] === p.pa, 'a full file reads the number itself')
+  ok(!!fr && fr[0] <= p.pa && p.pa <= fr[1] && fr[1] - fr[0] <= 2 * youthPaMargin(g, p),
+    `a full file on a ${p.age}-year-old is a narrow band that holds the truth (${fr?.[0]}-${fr?.[1]})`)
+  const grown = { ...p, age: 24 }
+  const gr = paRange(g, grown)
+  ok(!!gr && gr[0] === grown.pa && gr[1] === grown.pa, 'and on a 24-year-old it reads the number itself')
 }
 
 console.log('--- 5. a pure lens')

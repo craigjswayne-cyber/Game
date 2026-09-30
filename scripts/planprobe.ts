@@ -38,7 +38,17 @@ const rate = (p: Player, seed: number, weeks = 4000) => {
   // on nothing
   const room = { ...p.a }
   for (const k of Object.keys(room) as (keyof Player['a'])[]) room[k] = Math.min(room[k], 6)
-  for (let i = 0; i < weeks; i++) { Object.assign(p.a, room); p.tdebt = 0; if (rollPlan(g, p, rng)) hits++ }
+  // ACROSS THE CALENDAR (1.8.2): a programme's week is uneven now, a flat
+  // month or a flying one by a hash of the man and the four-week block
+  // (devproject.ts devPhase), so a rate measured on one frozen week is one
+  // spell, not the programme. Walk the weeks and seasons instead; the spells
+  // average one, and the levers below are measured as they always were.
+  const wk = g.week, sn = g.season
+  for (let i = 0; i < weeks; i++) {
+    g.week = 1 + (i % 48); g.season = sn + Math.floor(i / 48)
+    Object.assign(p.a, room); p.tdebt = 0; if (rollPlan(g, p, rng)) hits++
+  }
+  g.week = wk; g.season = sn
   Object.assign(p.a, before) // put the attributes back
   p.tdebt = 0
   return hits / weeks
