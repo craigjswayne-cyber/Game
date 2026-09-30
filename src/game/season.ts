@@ -54,7 +54,7 @@ import { askBoard, type BoardAsk } from './boardroom'
 import { expireLoans, loanOutBoost, loanTargets } from './loans'
 import { FOCUS_MAX_AGE, focusIds } from './development'
 import { confidence, devHash, heavyLoad, planAffinity, weekGrowth } from './devproject'
-import { devNewsWeek, previewRead } from './devnews'
+import { devNewsWeek, previewRead, trimDevFirst } from './devnews'
 import { refreshVacancies, sackManager } from './jobs'
 import { historyAfterMatch, historyPreview, historyWeight } from './history'
 import { arcAfterMatch, arcWeek } from './arc'
@@ -4576,6 +4576,11 @@ If you go, your assistant takes your national side for the duration. Nobody prep
   // trim news LAST, so the 250 ceiling holds at the end of every tick - it used
   // to sit above the advance, which let the season rollover file its honours,
   // retirements and expiries on top of a list that had already been cut
+  // (1.8.2) and the development staff's notes, once filed, go before anything
+  // else does: a breakthrough or a revised projection is written to be read
+  // that week, and must not push a rarer story (the club's history book, a
+  // record, a farewell) off the end of the inbox (devnews.ts trimDevFirst)
+  trimDevFirst(state, NEWS_KEEP)
   if (state.news.length > NEWS_KEEP) state.news = state.news.slice(-NEWS_KEEP)
 
   // the new week's opponent decides how it sets up for you, and last week's
