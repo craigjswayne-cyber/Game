@@ -34,6 +34,7 @@
  * analyst's read, which is right about as often as analystSkill says.
  */
 import type { Club, GameState, MatchPrep, Tactic, Fixture } from './model'
+import { absWeek as gameWeek } from './model'
 import { analystRead, analystSkill, readOdds, sureBand, type AnalystRead } from './analyst'
 import { tapeLine } from './armsrace'
 import { lineupFor, teamUnits } from './matchEngine'
@@ -162,9 +163,10 @@ export const isClubFixture = (state: GameState, fx: Fixture) =>
   fx.homeId === state.userClubId || fx.awayId === state.userClubId
 
 /** How much of the truth the report can see, 0..1. */
-export function reportAccuracy(state: GameState, oppId: string): number {
-  // analystSkill runs 0.3 (bare club) to 0.78 (a full suite and a gold assistant)
-  const skill = clamp((analystSkill(state) - 0.3) / 0.48, 0, 1)
+export function reportAccuracy(state: GameState, oppId: string, topSetup = false): number {
+  // analystSkill runs 0.3 (bare club) to 0.78 (a full suite and a gold assistant);
+  // topSetup reads it at the top of that range (tape room night, below)
+  const skill = topSetup ? 1 : clamp((analystSkill(state) - 0.3) / 0.48, 0, 1)
   const xv = lineupFor(state, oppId).slice(0, 15)
     .map(id => (id != null ? state.players[id] : null)).filter(Boolean)
   const know = xv.length ? xv.reduce((s, p) => s + knowledge(state, p!), 0) / xv.length / 100 : 0.2
@@ -188,6 +190,12 @@ export function softSpot(state: GameState, oppId: string): OppReport['soft'] {
   // the same odds and the same sense of them as the analyst's own read
   const o = readOdds(state, oppId, teamUnits(state, lu), absWeek(state))
   return { unit: o.right ? o.sorted[0][0] : o.sorted[o.sorted.length - 1][0], right: o.right, confidence: o.confidence }
+}
+
+/** Is tape room night on for this week's match against this side? */
+export function tapeRoom(state: GameState, oppId: string): boolean {
+  const tp = state.rewarded?.tape
+  return Array.isArray(tp) && tp[0] === gameWeek(state.season, state.week) && tp[1] === oppId
 }
 
 /** The last findings the save holds against this side. */
@@ -360,8 +368,13 @@ export function buildReport(state: GameState, oppId: string): OppReport {
   if (club) lines.push(...coachLines(state, club, acc))
   // THE ARMS RACE (1.8.2): what their analysts have on OUR calls, and whether
   // this coach sets up for it (armsrace.ts); our own count, so always true
-  const tape = club ? tapeLine(state, oppId, acc) : null
-  if (tape) lines.push({ cat: 'calls', ...tape, ok: true })
+  //
+  // TAPE ROOM NIGHT (1.8.2, rewarded.ts): a watched spot keeps the analysts in
+  // with the tape, and this one line is read as a top analysis setup would read
+  // it, for this match. Nothing else on the report moves.
+  const night = !!club && tapeRoom(state, oppId)
+  const tape = club ? tapeLine(state, oppId, night ? Math.max(acc, reportAccuracy(state, oppId, true)) : acc) : null
+  if (tape) lines.push({ cat: 'calls', ...tape, ok: true, ...(night ? { conf: 'high' as const } : {}) })
   if (soft) {
     lines.push({
       cat: 'soft', k: 'oppreport.soft',

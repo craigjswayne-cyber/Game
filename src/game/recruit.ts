@@ -30,7 +30,7 @@
  * hashes, and draws nothing from the shared rng: the fingerprint holds.
  */
 import type { Attrs, GameState, Personality, Player, Pos } from './model'
-import { ATTR_KEYS } from './model'
+import { ATTR_KEYS, absWeek } from './model'
 import { attrWeight } from './attributes'
 import { isForward } from './bench'
 import { aiShoppingTarget, askingPrice, embargoed } from './ai'
@@ -78,6 +78,8 @@ export interface ScoutReport {
   fit: Fit | null
   agent: AgentTone
   talk: RivalTalk | null
+  /** his mood, where the club could know it (unsettledRead); null when settled or unseen */
+  unsettled: Unsettled | null
 }
 
 const rand = (s: string) => mulberry32(hashString(s))()
@@ -374,6 +376,21 @@ export function realSuitor(state: GameState, p: Player): string | null {
 /** Six-week spells: agent talk comes and goes on this clock. */
 const phaseOf = (week: number) => Math.floor(week / 6)
 
+/** The knowledge at which the report is the full file (scout.reportStage 3). */
+export const FULL_FILE = 90
+
+/** The absolute week this six-week spell of talk began: the inside word is
+ *  stamped with it, so it lasts exactly as long as the talk it resolved. */
+export function talkSpell(state: GameState): number {
+  return absWeek(state.season, phaseOf(state.week) * 6)
+}
+
+/** Has the inside word been bought on this man for this spell of talk? */
+export function insideWord(state: GameState, p: Player): boolean {
+  const seen = state.rewarded?.insideSeen
+  return !!seen && typeof seen === 'object' && seen[p.id] === talkSpell(state)
+}
+
 /**
  * Agent talk: a club "keen" on him that is not, put about to lift the price.
  * Keyed on the man, the season and the six-week spell, so it lasts a while
@@ -413,7 +430,11 @@ export function talkTruth(state: GameState, p: Player): { clubId: string; genuin
  * rarely fooled.
  */
 export function rivalTalk(state: GameState, p: Player): RivalTalk | null {
-  const k = knowledge(state, p)
+  // THE AGENT'S INSIDE WORD (1.8.2, rewarded.ts): for this spell of talk the
+  // line reads as the chief scout would read it at the full file, which is
+  // what his knowledge would otherwise take weeks to reach. Only the line
+  // moves: the rumour itself, and the premium it costs, are the same.
+  const k = insideWord(state, p) ? Math.max(FULL_FILE, knowledge(state, p)) : knowledge(state, p)
   if (k < 35 && !state.shortlist.includes(p.id)) return null
   const truth = talkTruth(state, p)
   if (!truth) return null
@@ -431,9 +452,59 @@ export function rivalTalk(state: GameState, p: Player): RivalTalk | null {
 /** Talk costs you either way: a camp that can point at another club opens
  *  higher. Genuine or not, the premium holds while the talk does, which is
  *  the judgement: pay it now, or wait for agent talk to fade and risk the
- *  real thing taking him. */
+ *  real thing taking him.
+ *
+ *  BUT NOT FOR A MAN WHO WANTS OUT. Owner: "if they are unhappy they should
+ *  be cheaper". The genuine talk around an unsettled man is mostly BECAUSE he
+ *  is unsettled (realSuitor counts him gettable), so the premium used to land
+ *  hardest on exactly the men whose hand is weakest. An unhappy camp has no
+ *  bluff to run: once he is unsettled the premium goes, and his own discount
+ *  (unsettledTerms) takes him under the happy man's price. */
 export function talkPremium(state: GameState, p: Player): number {
+  if (unsettledLevel(p) > 0) return 1
   return talkTruth(state, p) ? 1.06 : 1
+}
+
+// ---------------------------------------------------------------------------
+// an unsettled man is cheaper
+// ---------------------------------------------------------------------------
+
+/** How low his mood is, 0 when content. Starts at 4.5 (a quarter) and is full
+ *  at 3, which is where the old flat 15% off the asking price sat. */
+const moraleLevel = (p: Player): number => p.morale <= 4.5 ? clamp((5 - p.morale) / 2, 0.25, 1) : 0
+const askedLevel = (p: Player): number => (p.wantsOut ?? 0) > 0 ? 1 : 0
+
+/** How unsettled he is, 0 to 1, from reads the game already keeps: a formal
+ *  transfer request (1), a place on the list (0.6), or low morale (up to 1).
+ *  The worst of them counts; they are one grievance seen three ways. Pure
+ *  arithmetic on the player, no draws. */
+export function unsettledLevel(p: Player): number {
+  return Math.max(askedLevel(p), p.transferListed ? 0.6 : 0, moraleLevel(p))
+}
+
+/** His club's asking fee: up to 15% off for a man who has asked to leave or
+ *  whose mood has gone. The listing is left out on purpose: askingPrice
+ *  already prices a listed man at the club's own markdown (0.8 against 1.15),
+ *  and counting it twice would halve a listed player overnight. */
+export function unsettledFee(p: Player): number {
+  return 1 - 0.15 * Math.max(askedLevel(p), moraleLevel(p))
+}
+
+/** His own terms: up to 7% off for a man who wants out, 4% for a listed one,
+ *  less for a merely low mood. A man who wants a move asks for less to get it. */
+export function unsettledTerms(p: Player): number {
+  return 1 - 0.07 * unsettledLevel(p)
+}
+
+/** What the report can say about his mood, and only what the club could know:
+ *  a listing or a request is public at any stage, a low mood only once the
+ *  scouts have a proper report and have talked to people around him. */
+export type Unsettled = 'asked' | 'listed' | 'unhappy'
+export function unsettledRead(stage: ReportStage, p: Player): Unsettled | null {
+  if (askedLevel(p)) return 'asked'
+  if (p.transferListed) return 'listed'
+  if (stage >= 2 && moraleLevel(p) > 0) return 'unhappy'
+  return null
 }
 
 // ---------------------------------------------------------------------------
@@ -488,7 +559,7 @@ export function scoutReport(state: GameState, p: Player): ScoutReport {
   if (!fit) unknown.push('fit')
   return {
     stage, confidence, confPct: confidencePct(state, p), unknown, strengths: notes.strengths, concerns: notes.concerns, pers, level, ceiling, upside, risk,
-    fit, agent: agentTone(state, p), talk: rivalTalk(state, p),
+    fit, agent: agentTone(state, p), talk: rivalTalk(state, p), unsettled: unsettledRead(stage, p),
   }
 }
 

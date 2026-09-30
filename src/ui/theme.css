@@ -2465,6 +2465,13 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .btn.tiny::after {
   content: ''; position: absolute; inset: -13px -3px;
 }
+/* A rewarded spot offered on a line of text (1.8.2: the inside word, the
+   second opinion, tape room night). It sits in the line it answers rather than
+   in a block of its own, so its box is no taller than the text around it and
+   the page is not one pixel deeper for it (scrollaudit); the ::after carries
+   the tap out to 46px as it does for every tiny button (tapsize). */
+.btn.tiny.spot { padding: 0 8px; line-height: 15px; }
+.btn.tiny.spot::after { inset: -15px -3px; }
 /* A control that sits in a table row (the Medical Centre's specialist, favour,
    knock and joker buttons). Tapped on a phone like any other button, so it is
    36px of box and 5px of reach either side: 46px, clear of the 44 floor.

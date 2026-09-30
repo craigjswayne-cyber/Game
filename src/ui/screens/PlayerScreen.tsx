@@ -11,7 +11,7 @@ import { benchNote, temperRead } from '../../game/temperament'
 import { formTrend, traitHints } from '../../game/formtraits'
 import { habitHint } from '../../game/habits'
 import { bondsLine } from '../../game/bonds'
-import { canAgencyFile } from '../../game/rewarded'
+import { canAgencyFile, canSecondOpinion } from '../../game/rewarded'
 import { rewardedAvailable } from '../../game/monetise'
 import { LOAN_BUY_MIN_WEEKS, loanBuy, loanBuyOffer, loanOut, loanOutBoost, loanRecall } from '../../game/loans'
 import { releaseBlock, releaseCost, releasePlayer } from '../../game/release'
@@ -93,6 +93,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
   const shortlisted = game.shortlist.includes(p.id)
   const toggleShortlist = useStore(s => s.toggleShortlist)
   const rewardAgency = useStore(s => s.rewardAgency)
+  const rewardOpinion = useStore(s => s.rewardOpinion)
 
   const groups: [string, (keyof Attrs)[]][] = [
     ['player.grpSetPiece', ['scr', 'lin', 'ruc', 'tac', 'str', 'agg']],
@@ -212,6 +213,15 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             {band && (
               <div className="meta" title={t('dev.ceilingStaffTitle')}>
                 {t('dev.ceilingStaff')} <b>{band[0] === band[1] ? band[0] : `${band[0]}-${band[1]}`}</b>
+                {/* A SECOND OPINION (1.8.2, rewarded.ts): one step narrower, on
+                    this line rather than a block of its own, once a season */}
+                {rewardedAvailable('opinion') && canSecondOpinion(game, p.id) && (
+                  <>{' '}<RewardedButton place="opinion" className="btn ghost tiny spot" style={{ marginLeft: 2, verticalAlign: 'baseline' }} label={t('till.watchOpinion')}
+                    onDone={out => {
+                      if (out === 'completed') setMsg(t(rewardOpinion(p.id) ? 'till.opinionDone' : 'till.favourGone', { name: p.name }))
+                      else setMsg(t(out === 'skipped' ? 'till.spotSkipped' : 'till.spotUnavailable'))
+                    }} /></>
+                )}
               </div>
             )}
             {out && <div className="meta"><b>{t(out.k, out.v)}</b></div>}
@@ -249,7 +259,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
       {/* ---- THE RECORD (owner, v1.2.7) ----
           One form pill and one last rating could not answer the question a
           manager actually asks - "is he declining or did he have a bad week" -
-          and one current injury could not tell a fragile man from an unlucky
+          and one current injury could not tell an injury-hit man from an unlucky
           one. The last ten ratings, oldest first, and every injury this career. */}
       {((p.ratings?.length ?? 0) > 0 || (p.injLog?.length ?? 0) > 0) && (
         <div className="card record-card">
@@ -276,7 +286,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             const weeks = log.reduce((s, e) => s + e.weeks, 0)
             const seasons = Math.max(1, game.season - log[0].s + 1)
             const perSeason = weeks / seasons
-            const read = perSeason >= 10 ? 'player.injFragile' : perSeason >= 5 ? 'player.injWatch' : 'player.injSound'
+            const read = perSeason >= 10 ? 'player.injHeavy' : perSeason >= 5 ? 'player.injWatch' : 'player.injSound'
             return (
               <>
                 <div className="fact-label" style={{ marginTop: (p.ratings?.length ?? 0) > 0 ? 8 : 0 }}>{t('player.injuryRecord')}</div>
@@ -307,7 +317,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         </div>
       )}
       {/* what the staff believe (recruit.ts): strengths, fit, agent, rival talk */}
-      {!mine && <ScoutReportCard game={game} p={p} />}
+      {!mine && <ScoutReportCard game={game} p={p} onMsg={setMsg} />}
       <div className="chips">
         <span className="chip" title={t('player.valueTitle')}>{t('player.value')} <b>{fmtMoney(seenValue(game, p))}</b>{!mine && know < 95 && <span className="muted"> ?</span>}</span>
         {/* the ceiling as the scouts read it (1.8.2): a band that narrows as

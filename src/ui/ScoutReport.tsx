@@ -5,11 +5,16 @@
 import type { GameState, Player } from '../game/model'
 import { scoutReport, sideStyleKeys, type Note } from '../game/recruit'
 import { persName, t } from '../game/i18n'
+import { rewardedAvailable } from '../game/monetise'
+import { canInsideWord } from '../game/rewarded'
+import { useStore } from '../store'
+import { RewardedButton } from './components'
 
 const band = (r: [number, number]) => (r[0] === r[1] ? String(r[0]) : `${r[0]}-${r[1]}`)
 const noteWord = (n: Note, kind: 's' | 'c') => t(`recruit.${kind}_${n}`)
 
-export default function ScoutReportCard({ game, p }: { game: GameState; p: Player }) {
+export default function ScoutReportCard({ game, p, onMsg }: { game: GameState; p: Player; onMsg?: (s: string) => void }) {
+  const rewardInside = useStore(s => s.rewardInside)
   const r = scoutReport(game, p)
   const club = r.talk ? game.clubs[r.talk.clubId] : null
   const tone = (c: string) => ({ color: `var(--${c})`, fontWeight: 700 })
@@ -34,8 +39,24 @@ export default function ScoutReportCard({ game, p }: { game: GameState; p: Playe
     <b style={r.fit === 'excellent' ? tone('text-positive') : r.fit === 'doubtful' ? tone('text-negative') : undefined}>{t(`recruit.fit_${r.fit}`)}</b>
     <span className="muted"> ({style})</span>
   </>])
-  rows.push([t('recruit.agent'), <b style={r.agent === 'cool' ? tone('text-negative') : r.agent === 'warm' ? tone('text-positive') : undefined}>{t(`recruit.agent_${r.agent}`)}</b>])
-  if (r.talk && club) rows.push([t('recruit.rival'), <span style={{ color: 'var(--gold)' }}>{t(`recruit.talk_${r.talk.read}`, { club: club.short })}</span>])
+  rows.push([t('recruit.agent'), <>
+    <b style={r.agent === 'cool' ? tone('text-negative') : r.agent === 'warm' ? tone('text-positive') : undefined}>{t(`recruit.agent_${r.agent}`)}</b>
+    {/* his mood, where the club could know it: an unsettled man comes cheaper (recruit.ts unsettledFee) */}
+    {r.unsettled && <>{' · '}<span style={{ color: 'var(--gold)' }}>{t(`recruit.mood_${r.unsettled}`)}</span></>}
+  </>])
+  // THE AGENT'S INSIDE WORD (1.8.2, rewarded.ts): on the same line, never a
+  // block of its own, and only where a provider exists and the ledger allows
+  if (r.talk && club) rows.push([t('recruit.rival'), <>
+    <span style={{ color: 'var(--gold)' }}>{t(`recruit.talk_${r.talk.read}`, { club: club.short })}</span>
+    {rewardedAvailable('inside') && canInsideWord(game, p.id) && (
+      <>{' '}<RewardedButton place="inside" className="btn ghost tiny spot" style={{ marginLeft: 2, verticalAlign: 'baseline' }} label={t('till.watchInside')}
+        onDone={out => {
+          const msg = out === 'completed' ? t(rewardInside(p.id) ? 'till.insideDone' : 'till.favourGone', { name: p.name })
+            : t(out === 'skipped' ? 'till.spotSkipped' : 'till.spotUnavailable')
+          onMsg?.(msg)
+        }} /></>
+    )}
+  </>])
   return (
     <div className="card scout-report">
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>

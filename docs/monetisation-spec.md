@@ -228,9 +228,11 @@ the shelf moved.
 
 ## 2. Rewarded video placements
 
-All four are **player-driven, 30s, opt-in**, rendered as club fiction, and
-each maps onto a mechanic the game already has — the ad replaces the *fee*,
-never invents a new power.
+All eight are **player-driven, 30s, opt-in**, rendered as club fiction, and
+each maps onto a mechanic the game already has: the ad replaces a *fee* or a
+*wait*, never invents a new power. The first four shipped in v1.1.0; the last
+four are the owner's 1.8.2 decision (no new in-app purchases, no interstitials,
+no new banners).
 
 | Placement | Surface | Fiction | Effect | Cost it replaces |
 |-----------|---------|---------|--------|------------------|
@@ -238,6 +240,10 @@ never invents a new power.
 | **The agency's file** | Player profile / Shortlist, on a scouted target | "The agency shares its file" | `bumpKnowledge(+30)` on that player — potential range narrows or resolves, exactly as paid scouting does | Weeks of scout attention |
 | **Analyst's extra session** | Matchday, pre-kick-off card (only when a readable weakness exists) | "The analyst pulls an all-nighter" | The assistant's game-plan brief upgraded to the analyst's full read for this match (`analystEdge` quality bump) | Analyst staff level |
 | **The town's collection** | Finances, only while `club.rep < 60` **and** balance < 8 weeks of wages | "The supporters' trust passes the bucket" | +2% of opening budget, min £25k, max £75k | Nothing — it is the lower-tier lifeline |
+| **The agent's inside word** (1.8.2) | Scouted player's page, on the scout report's rival-interest line (only while the line shows and the report is short of the full file) | "The agent's inside word" | That one line (`recruit.rivalTalk`) reads as the chief scout reads it at the full file (knowledge 90), for this six-week spell of talk. His knowledge, the rest of the report and the talk premium are untouched | Weeks of scout attention on that man |
+| **A second opinion** (1.8.2) | Your own youngster's development card, on the "Ceiling, staff estimate" line (only while the band is wider than one point either side) | "A second opinion" | His ceiling band one step narrower (`scout.youthPaMargin` one less, the step a level-3 assistant or Centre of Excellence gives), for the rest of the season; the floor of one holds, so never the number | A season more with the staff, or a better staff |
+| **Tape room night** (1.8.2) | Tactics, Prep: the opposition report's line on your own calls (only while it says the report cannot tell) | "The analysts stay in with the tape" | This match's line on whether they set up for your most-run call is read at a top setup's accuracy and marked confident (`armsrace.tapeLine`); the opposition coach's actual adaptation is unchanged | Analyst staff level |
+| **The sponsor's team night** (1.8.2) | Press room: the dressing-room split question, as a third answer beside "stand by it" and "reverse it" | "The sponsor stands the squad a team night" | Answers "stand by it", with the senior camp's morale hit halved (`room.TEAM_NIGHT`); the man left out, trust and the culture move exactly as standing by it would | The club paying for the night itself |
 
 **Implementation surface:** one `AdBridge.showRewarded(placement) →
 'completed' | 'skipped' | 'unavailable'` call. In the web build and any build
@@ -250,8 +256,10 @@ read as complete without them (same rule `storeprobe` applies to the till).
 
 ### 3.1 Caps and cooldowns (rewarded)
 
-* **Per real day (bridge-enforced, device-clock-proof):** 5 rewarded views
-  total, across all placements.
+* **Per real day (bridge-enforced, device-clock-proof):** 10 rewarded views
+  total, across all placements (`REWARDED_CAP` in
+  `packaging/shell/ads-bridge.js`; raised from 6 on 6 Sep, and this line had
+  never followed it).
 * **Per game concept (save-enforced, timestamped in game-weeks so instant-
   result marathons can't farm):**
   * Physio's favour: once per injury (`p.specialist` flag already enforces),
@@ -260,6 +268,17 @@ read as complete without them (same rule `storeprobe` applies to the till).
   * Analyst's session: once per matchday.
   * Town's collection: once per game-week, max 3 per season, hard-stops the
     moment `rep ≥ 60`.
+  * Agent's inside word (1.8.2): max 2 per game-week, once per man per
+    six-week spell of talk.
+  * Second opinion (1.8.2): once per player per season.
+  * Tape room night (1.8.2): once per match (stamped with the game-week and
+    the opponent; it goes with the week).
+  * Team night (1.8.2): once per 4 game-weeks, counted in absolute weeks; its
+    stamp is the one rewarded entry that survives rollover, so a summer cannot
+    reset it.
+* Nothing in any of them draws on the shared rng or reaches an AI club;
+  `scripts/rewarded182probe.ts` holds the four 1.8.2 placements to that, and
+  `scripts/rewardedprobe.ts` the four before them.
 * Both ledgers are checked; the stricter one wins.
 
 ### 3.2 Purchase sanity rails (consumables)

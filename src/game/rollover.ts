@@ -2269,7 +2269,11 @@ export function rebuildSeason(state: GameState) {
   }
   state.injectedThisSeason = undefined
   state.releasedThisSeason = undefined
-  state.rewarded = undefined
+  // the rewarded ledger is weekly or seasonal and goes with the season, all but
+  // the team night's stamp: its cap is four game-weeks, counted in absolute
+  // weeks, and a summer in between must not reset it (rewarded.ts)
+  const night = state.rewarded?.teamNight
+  state.rewarded = Array.isArray(night) ? { teamNight: night } : undefined
   // and the new opening budget is snapshotted AFTER the war-chest clawback
   // above, so a board injection is priced on what the season really opens with
   for (const club of Object.values(state.clubs)) club.budgetAtOpen = club.budget

@@ -240,6 +240,16 @@ function splitQuestion(state: GameState, club: Club): boolean {
   return true
 }
 
+/** What is left of the senior men's hit when the sponsor has stood the squad
+ *  a team night (1.8.2, rewarded.ts). The existing effect, made smaller. */
+export const TEAM_NIGHT = 0.5
+
+/** Was the team night bought for this split? */
+export function teamNightOn(state: GameState, pressId: number): boolean {
+  const tn = state.rewarded?.teamNight
+  return Array.isArray(tn) && tn[1] === pressId
+}
+
 function campOf(state: GameState, item: PressItem): Player[] {
   const ids = String(item.qv?.camp ?? '').split(',').filter(Boolean).map(Number)
   return ids.map(id => state.players[id]).filter((m): m is Player => !!m && m.clubId === state.userClubId)
@@ -262,8 +272,9 @@ function resolveSplit(state: GameState, item: PressItem, opt: PressOption, D: Pl
     : (backs ? 'room.leftDeputy' : 'room.deputyWon')
   const rv: Vars = { player: D.name, deputy: dep?.name ?? '', dep_k }
   if (opt.room === 'stand') {
-    // a room not used to hearing no takes it harder
-    const hit = (backs ? 0.1 : 0.2) * (1 + Math.max(0, -lean) * 0.5)
+    // a room not used to hearing no takes it harder; a sponsor's team night
+    // (rewarded.ts) takes half the sting out of it for the senior men
+    const hit = (backs ? 0.1 : 0.2) * (1 + Math.max(0, -lean) * 0.5) * (teamNightOn(state, item.id) ? TEAM_NIGHT : 1)
     for (const m of camp) mood(m, -hit)
     mood(D, D.pers === 'Professional' || D.pers === 'Leader' ? -0.1
       : D.pers === 'Temperamental' || D.pers === 'Ambitious' || D.pers === 'Mercenary' ? -0.4 : -0.25)

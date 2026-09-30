@@ -14,7 +14,7 @@ import { clamp, mulberry32, pick, type Rng } from './rng'
 import { book } from './books'
 import { identitySigning } from './identity'
 import { rememberDeparture } from './memory'
-import { agentTermsLift, talkPremium } from './recruit'
+import { agentTermsLift, talkPremium, unsettledFee, unsettledTerms } from './recruit'
 
 // ------------------------------------------------------------------
 // Transfer market
@@ -104,6 +104,16 @@ export function windowShut(week: number): string {
   return week < 26 ? t('reply.windowShut', { n: 26 }) : t('reply.windowShutSummer')
 }
 
+/** What an AI club bids for one of the user's men. A listed man or one who
+ *  has asked to leave comes in near value; anybody else at a premium, drawn,
+ *  less the same graded slice for a low mood that askingPrice takes
+ *  (recruit.ts unsettledFee). The draw is only taken on that last branch, as
+ *  it always was, so the shared rng sequence is unchanged. */
+export function aiBidFee(p: Player, rng: () => number, deadline: boolean): number {
+  const f = p.transferListed ? 0.95 : (p.wantsOut ?? 0) > 0 ? 1.05 : (1.2 + rng() * 0.4) * unsettledFee(p)
+  return Math.round((p.value * f * (deadline ? 1.15 : 1)) / 10_000) * 10_000
+}
+
 /** Asking price for a player from his current club's perspective. */
 export function askingPrice(state: GameState, p: Player): number {
   const club = p.clubId ? state.clubs[p.clubId] : null
@@ -116,7 +126,10 @@ export function askingPrice(state: GameState, p: Player): number {
     .map(q => q.ca).sort((a, b) => b - a)
   const isKey = p.ca >= (squadCa[7] ?? 70) // top-8 player at the club
   if (isKey && !p.transferListed) f = 1.7
-  if (p.morale <= 3.5) f *= 0.85
+  // an unsettled man is cheaper (recruit.ts unsettledFee): up to 15% off for
+  // one who has asked to leave or whose mood has gone, graded rather than the
+  // old single step at morale 3.5
+  f *= unsettledFee(p)
   return Math.round((p.value * f) / 10_000) * 10_000
 }
 
@@ -423,8 +436,10 @@ export function aiTransfers(state: GameState, rng: Rng) {
     if (!bidders.length) continue
     const bidder = pick(rng, bidders)
     // a transfer request costs the seller the premium: the buyer knows the
-    // player wants it, so the bid comes in near value rather than over it
-    const fee = Math.round((p.value * (p.transferListed ? 0.95 : (p.wantsOut ?? 0) > 0 ? 1.05 : 1.2 + rng() * 0.4) * (deadline ? 1.15 : 1)) / 10_000) * 10_000
+    // player wants it, so the bid comes in near value rather than over it. A
+    // low mood alone takes the same graded slice off as the asking price does
+    // (unsettledFee); the rng draw is unchanged
+    const fee = aiBidFee(p, rng, deadline)
     state.offers.push({
       id: state.nextId++, playerId: p.id, fromClubId: bidder.id, toClubId: user.id,
       fee, week: state.week, forUser: true, status: 'pending',
@@ -515,8 +530,9 @@ export function personalTermsDemand(state: GameState, p: Player): number {
   const step = seller && user.rep < seller.rep ? 1.2 : 1
   // THE SCOUTING REPORT'S TWO CONSEQUENCES (recruit.ts): a camp with another
   // club to point at opens higher, genuine or not, and his agent's memory of
-  // your dealings with their clients moves the number both ways
-  return Math.round(playerWage(p.ca, p.age) * step * interestPremium(state, p) * talkPremium(state, p) * agentTermsLift(state, p))
+  // your dealings with their clients moves the number both ways. An unsettled
+  // man drops the premium and asks for less (recruit.ts unsettledTerms)
+  return Math.round(playerWage(p.ca, p.age) * step * interestPremium(state, p) * talkPremium(state, p) * agentTermsLift(state, p) * unsettledTerms(p))
 }
 
 /** Stage 1 of the 8D bid flow: agree the FEE only - nothing is signed
