@@ -274,22 +274,17 @@ console.log('(e) no tendency is ever named')
   const BANNED: RegExp[] = [
     /slow[\s-]?starter/i, /iron[\s-]?man/i, /confidence player/i, /\bbrittle\b/i,
     /fr[aá]gil/i, /\bbroos\b/i, /ysterman/i, /homme de fer/i, /hombre de hierro/i, /uomo di ferro/i,
-    /スロースターター/, /鉄人/, /ガラスの/,
+    /スロースターター/, /鉄人/, /ガラスの/, /脆/,
     // and the internal names, should one ever leak through as text
     /formTraits|traitDayF|brittleF|hint(Slow|Iron|Brit|Conf)/,
   ]
-  // THE ONE KNOWN EXCEPTION, AND WHY IT IS ONE. The player screen has read a
-  // man's injury RECORD for a long time (PlayerScreen: ten or more injuries a
-  // season reads 'Fragile'), and the handbook and a few flavour lines use the
-  // word in its everyday sense. Those predate the tendencies and read facts on
-  // the record, not the hidden draw; they are frozen here so that no new string
-  // can join them.
-  const KNOWN = new Set([
-    'player.injFragile', 'handbook.a33', 'handbook.a6', 'news.upSeats', 'news.wGround2', 'reply.assistantThinnest',
-    // the recruitment brief's durability criterion (1.8.2), which reads the
-    // injury record; only the French label uses the word
-    'recruit.c_durability',
-  ])
+  // NO EXCEPTIONS (owner, 1.8.2). The player screen used to read a man's
+  // injury RECORD as 'Fragile', and the handbook and a few flavour lines used
+  // the word in its everyday sense; they were allow-listed here. The owner
+  // ruled that the word could still be read as the hidden form trait, so the
+  // record now says what it is ('Long injury record' and its translations)
+  // and the word is banned on every screen in every language, with no list.
+  const KNOWN = new Set<string>()
   const hits: string[] = []
   const leaves = (d: Record<string, unknown>, pre = ''): string[] => Object.entries(d).flatMap(([k, v]) => {
     if (!pre && k === '_meta') return []

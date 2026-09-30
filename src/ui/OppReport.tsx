@@ -18,6 +18,9 @@ import {
   type FindingCat, type PlanLevers, type PlanOption,
 } from '../game/oppreport'
 import { buildFindings, lineText } from '../game/matchfindings'
+import { rewardedAvailable } from '../game/monetise'
+import { canTapeRoom } from '../game/rewarded'
+import { RewardedButton } from './components'
 
 function leverLine(L: PlanLevers): string {
   const parts: string[] = []
@@ -40,7 +43,9 @@ function planDesc(o: PlanOption): string {
 export function OppReportCard() {
   const game = useStore(s => s.game)!
   const touch = useStore(s => s.touch)
+  const rewardTapeRoom = useStore(s => s.rewardTapeRoom)
   const [more, setMore] = useState(false)
+  const [note, setNote] = useState<string | null>(null)
   const fx = userMatchThisWeek(game)
   if (!fx) return null
   const oppId = opponentIn(game, fx)
@@ -67,6 +72,16 @@ export function OppReportCard() {
             {lineText(l)}
             {/* how sure he is of it (1.8.2): the soft spot says so in its own words */}
             {l.conf && l.cat !== 'soft' && <span className="muted" style={{ fontSize: 11 }}> ({t(`oppreport.sure${l.conf === 'high' ? 'High' : l.conf === 'mid' ? 'Mid' : 'Low'}`)})</span>}
+            {/* TAPE ROOM NIGHT (1.8.2, rewarded.ts): on the line it answers,
+                only while the report cannot say, once a match */}
+            {l.cat === 'calls' && l.k === 'armsrace.tapeUnread' && club && rewardedAvailable('taperoom') && canTapeRoom(game, oppId) && (
+              <>{' '}<RewardedButton place="taperoom" className="btn ghost tiny spot" style={{ marginLeft: 2, verticalAlign: 'baseline' }} label={t('till.watchTapeRoom')}
+                onDone={out => {
+                  if (out === 'completed') setNote(rewardTapeRoom(oppId) ? null : t('till.favourGone'))
+                  else setNote(t(out === 'skipped' ? 'till.spotSkipped' : 'till.spotUnavailable'))
+                }} /></>
+            )}
+            {l.cat === 'calls' && note && <div className="muted" style={{ fontSize: 11 }}>{note}</div>}
           </div>
         ))}
       </div>

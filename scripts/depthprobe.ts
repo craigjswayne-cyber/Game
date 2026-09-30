@@ -480,7 +480,8 @@ console.log('\n--- 6. contact and the ground\n')
   }
   console.log(`  ${n / 2} fixtures: pitches ${Object.entries(surf).map(([k, v]) => `${k} ${pct(v / (n / 2))}`).join(', ')}; mean share of the injury roll ${(sum / n).toFixed(4)} (INJ_NORM ${INJ_NORM})`)
   ok(Math.abs(sum / n - 1) < 0.01, 'the world\'s injury roll is where it was, within 1%')
-  ok(SURFACES.every(s => (surf[s] ?? 0) > 0) && clubSurface({ id: 'saracens', leagueId: 'prem' }) === 'artificial', 'all three surfaces are played on, the known artificial grounds among them')
+  ok(SURFACES.every(s => (surf[s] ?? 0) > 0) && clubSurface({ id: 'saracens', leagueId: 'prem' }) === 'artificial' &&
+    clubSurface({ id: 'gloucester', leagueId: 'prem' }) === 'artificial', 'all three surfaces are played on, Saracens and Kingsholm among the artificial grounds')
   const sd = (atk: AtkStyle, def: DefStyle): SideStyle => ({ atk, def, atkFit: 0, defFit: 0 })
   const hard = injuryF(sd('direct', 'choke'), sd('pods', 'blitz'), 'artificial'), soft = injuryF(sd('width', 'drift'), sd('pods', 'drift'), 'grass')
   ok(hard > 1.2 && soft < 0.9, `a carrying side against a rush defence on an artificial pitch takes ${hard.toFixed(2)}x its share; a wide side against a drift on grass ${soft.toFixed(2)}x`)
