@@ -68,7 +68,8 @@ console.log('(a) the plan reaches the assistant and the board')
   ok(changed >= 3, `and the two assistants name different sides (${changed} of the XV differ)`)
   ok(restB.every(p => !xv(leagueFirst).includes(p.id)), 'every rested man is out of the side he named')
   // the week's sheet is the standing side with only the rested shirts changed
-  const kept = xv(g).filter(id => !restB.some(p => p.id === id)).every(id => xv(leagueFirst).includes(id))
+  const fit = (id: number | null) => { const p = id != null ? leagueFirst.players[id] : null; return !!p && !p.injury && p.bans === 0 && !p.natSquad }
+  const kept = xv(g).filter(id => fit(id) && !restB.some(p => p.id === id)).every(id => xv(leagueFirst).includes(id))
   ok(kept, 'everyone not rested keeps his place from the standing side')
   const sheet = assistantSheet(leagueFirst, fx)
   ok(restB.every(p => !sheet.includes(p.id)), 'and the Best XV draft rests the same men')
@@ -277,6 +278,9 @@ console.log('(e) no tendency is ever named')
   // can join them.
   const KNOWN = new Set([
     'player.injFragile', 'handbook.a33', 'handbook.a6', 'news.upSeats', 'news.wGround2', 'reply.assistantThinnest',
+    // the recruitment brief's durability criterion (1.8.2), which reads the
+    // injury record; only the French label uses the word
+    'recruit.c_durability',
   ])
   const hits: string[] = []
   const leaves = (d: Record<string, unknown>, pre = ''): string[] => Object.entries(d).flatMap(([k, v]) => {
