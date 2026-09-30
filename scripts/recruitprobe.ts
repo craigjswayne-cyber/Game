@@ -8,10 +8,10 @@ import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { attrRange, knowledge } from '../src/game/scout'
 import { remember } from '../src/game/memory'
-import { personalTermsDemand } from '../src/game/ai'
+import { aiBidFee, askingPrice, personalTermsDemand } from '../src/game/ai'
 import {
   agentStable, agentTone, confidenceOf, confidencePct, fitScore, fitWord, posBaselines, reportEstimate, rivalTalk,
-  scoutReport, sideDemands, talkTruth, trueNotes, type Note,
+  scoutReport, sideDemands, talkPremium, talkTruth, trueNotes, unsettledLevel, type Note,
 } from '../src/game/recruit'
 import { ATTR_KEYS, type GameState, type Player } from '../src/game/model'
 
@@ -287,6 +287,68 @@ for (const f of dedup.values()) {
 console.log(`moved clubs by the end: genuine interest ${pct(gMoved / Math.max(1, gN))} of ${gN}; agent talk ${pct(fMoved / Math.max(1, fN))} of ${fN}`)
 ok(gN > 20 && fN > 20, 'too little talk to judge')
 ok(gMoved / gN > fMoved / fN + 0.05, 'genuine interest is no more likely than agent talk to end in a move')
+
+// ---- an unsettled man is cheaper (owner, 1.8.2) --------------------------
+// "if they are unhappy they should be cheaper". Each man is priced content,
+// then with a low mood, a lower one, on the list and having asked to leave,
+// and put back as he was. The fee is his club's asking price (what the AI
+// market also pays between AI clubs, ai.ts aiTransfers); the terms are what
+// his camp opens at for you.
+{
+  type Mood = { morale: number; transferListed: boolean; wantsOut: number }
+  const MOODS: [string, Partial<Mood>][] = [
+    ['content', { morale: 7 }], ['morale 4', { morale: 4 }], ['morale 3', { morale: 3 }],
+    ['listed', { morale: 7, transferListed: true }], ['asked to leave', { morale: 7, wantsOut: 5 }],
+  ]
+  const men = pool(g).filter(p => p.ca >= 60 && !p.onLoan && !p.loanFrom && !p.retiring).slice(0, 400)
+  const fee: Record<string, number> = {}, terms: Record<string, number> = {}
+  let talkHappy = 0, premiumHeld = 0, talkUnhappy = 0, underBaseline = 0
+  for (const p of men) {
+    const was: Mood = { morale: p.morale, transferListed: !!p.transferListed, wantsOut: p.wantsOut ?? 0 }
+    const set = (m: Partial<Mood>) => Object.assign(p, { morale: 7, transferListed: false, wantsOut: 0 }, m)
+    set({ morale: 7 })
+    const f0 = askingPrice(g, p), t0 = personalTermsDemand(g, p)
+    const talk = !!talkTruth(g, p)
+    if (talk) { talkHappy++; if (talkPremium(g, p) === 1.06) premiumHeld++ }
+    for (const [name, m] of MOODS) {
+      set(m)
+      fee[name] = (fee[name] ?? 0) + askingPrice(g, p) / Math.max(1, f0)
+      terms[name] = (terms[name] ?? 0) + personalTermsDemand(g, p) / Math.max(1, t0)
+      // unhappiness outweighs the talk: with the rumour still about him, an
+      // unsettled man asks for less than the same man content with none
+      if (talk && name !== 'content') { talkUnhappy++; if (personalTermsDemand(g, p) < t0 / 1.06) underBaseline++ }
+    }
+    Object.assign(p, was)
+  }
+  console.log(`\nunsettled pricing over ${men.length} men (mean against the same man content):`)
+  console.log('mood             fee     terms')
+  for (const [name] of MOODS) console.log(`${name.padEnd(15)}  ${(fee[name] / men.length).toFixed(3)}   ${(terms[name] / men.length).toFixed(3)}`)
+  const F = (k: string) => fee[k] / men.length, T = (k: string) => terms[k] / men.length
+  ok(F('morale 4') < 0.95 && F('morale 3') < F('morale 4'), 'a low mood does not take a graded slice off the asking fee')
+  ok(F('asked to leave') <= 0.87 && F('asked to leave') >= 0.83, 'a man who has asked to leave is not about 15% cheaper')
+  ok(F('listed') < 0.8, 'a listed man is no cheaper than a content one')
+  ok(T('asked to leave') < 0.95 && T('morale 4') < 1 && T('listed') < 1, 'an unsettled man does not ask for less')
+  ok(T('morale 4') > T('asked to leave'), 'a merely low mood takes as much off the terms as a transfer request')
+  console.log(`talk: ${talkHappy} content men with talk, premium held on ${premiumHeld}; unsettled with talk under the no-talk price ${underBaseline} of ${talkUnhappy}`)
+  ok(talkHappy > 10 && premiumHeld === talkHappy, 'the talk premium no longer applies to a content man with talk')
+  ok(talkUnhappy > 0 && underBaseline === talkUnhappy, 'the talk premium outweighs an unsettled man\'s discount')
+  // the AI prices the same way: its bid for one of your men, same draw, content
+  // against a low mood, and an unsettled man's premium gone from the talk
+  const mine = g.clubs[g.userClubId].players.map(id => g.players[id]).filter(p => p && !p.loanFrom)
+  let bidLower = 0, bidN = 0
+  for (const p of mine) {
+    const was = { morale: p.morale, transferListed: p.transferListed, wantsOut: p.wantsOut }
+    Object.assign(p, { transferListed: false, wantsOut: 0, morale: 7 })
+    const a = aiBidFee(p, () => 0.5, false)
+    p.morale = 3.5
+    const b = aiBidFee(p, () => 0.5, false)
+    bidN++; if (b < a) bidLower++
+    ok(unsettledLevel(p) > 0 && talkPremium(g, p) === 1, 'an unsettled man still carries the talk premium')
+    Object.assign(p, was)
+  }
+  console.log(`AI bids for your men: lower for a low mood on ${bidLower} of ${bidN}`)
+  ok(bidN > 10 && bidLower === bidN, 'an AI bid for an unhappy man is not lower')
+}
 
 console.log(fails ? `\nRECRUIT PROBE FAILED (${fails})` : '\nRECRUIT PROBE PASSED')
 process.exit(fails ? 1 : 0)
