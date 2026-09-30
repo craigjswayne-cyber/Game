@@ -55,7 +55,15 @@ for (const [seed, cause] of [[11, 'red'], [12, 'yellow'], [13, 'injury']] as con
     ok(ctx.home.onPitch.size === 13, `thirteen left on the pitch (${ctx.home.onPitch.size})`)
     ok(!ctx.uncontestedUndo, 'no way back after a red')
   }
-  if (cause === 'injury') ok(ctx.home.short === 0 && !has(ctx, 'comm.uncontestedShort'), 'an injury costs nobody else')
+  // LAW 3 AS THE DEPTH MERGE READS IT (1.8.2, f4122f5, matchEngine.ts THE LAW
+  // AS IMPLEMENTED): the front-rower whose injury caused uncontested scrums
+  // cannot be replaced, so whoever came on for him goes back off and the side
+  // plays with fourteen. This check was written when an injury cost nobody
+  // else; it now holds the new rule, and its own line in the ticker.
+  if (cause === 'injury') {
+    ok(ctx.home.short === 1 && has(ctx, 'comm.uncontestedNoRep') && !has(ctx, 'comm.uncontestedShort'),
+      'Law 3: the injured front-rower cannot be replaced, so the side goes on a man short, and the ticker says why')
+  }
   if (cause === 'yellow') {
     ok(!!ctx.uncontestedUndo, 'a sin-bin keeps the levelling to undo')
     ctx.home.yellowUntil.set(hooker.id, 0)
