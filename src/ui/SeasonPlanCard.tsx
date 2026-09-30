@@ -39,12 +39,12 @@ export default function SeasonPlanCard() {
       <SectionTitle sub={t('selection.planSub')}>{t('selection.planTitle')}</SectionTitle>
       <div className="card">
         {order.map((id, i) => (
-          <div key={id} style={{ display: 'flex', alignItems: 'center', gap: 8, minHeight: 36 }}>
+          <div key={id} style={{ display: 'flex', alignItems: 'center', gap: 8, minHeight: 44 }}>
             <b style={{ width: 18, textAlign: 'right' }}>{i + 1}</b>
             <span style={{ flex: 1 }}>{compLabel(game.comps[id]?.name ?? id)}</span>
             {i > 0 && (
               <button className="btn ghost tiny" aria-label={t('selection.planMoveUp')} title={t('selection.planMoveUp')}
-                onClick={() => moveUp(i)}>
+                style={{ minWidth: 44, minHeight: 44 }} onClick={() => moveUp(i)}>
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.4"
                   strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M6 15l6-6 6 6" /></svg>
               </button>
