@@ -504,8 +504,8 @@ const EXPECTED: string[] = [
   // (harlequins-leicester). bandcheck: 49.1 pts, 6.24 tries, 52.7% home,
   // 1.6% draws, 8.8% blowouts.
   // 1.8.2, THE ATTACK AND DEFENCE STYLES (owner request, game/styles.ts):
-  // FIVE of six moved, and WITHOUT a new draw on the stream (sale-bristol
-  // held). Every club now plays one of five
+  // FOUR of six moved, and WITHOUT a new draw on the stream (sale-bristol
+  // and newcastle-northampton held). Every club now plays one of five
   // attacks and one of five defences (the AI's from its coach's philosophy,
   // the manager's picked on the Tactics screen), and in every tick the two
   // sides' styles scale the try chance and the penalty window, a tick that
@@ -517,15 +517,15 @@ const EXPECTED: string[] = [
   // is read against the side's own profile (styleFitRel), so the styles move
   // who scores, not how much, and do not pay a strong side twice. bandcheck,
   // pooled over four seeds, before and after:
-  //   pts 49.4 -> 49.8   tries 6.28 -> 6.34   home 51.5% -> 51.2%
-  //   draws 2.0% -> 1.7%   blowouts 9.0% -> 8.7% (every band holds)
+  //   pts 49.4 -> 49.9   tries 6.28 -> 6.34   home 51.5% -> 51.6%
+  //   draws 2.0% -> 1.6%   blowouts 9.0% -> 9.4% (every band holds)
   // Home advantage read 51.2% to 53.5% over nine runs while the styles were
   // tuned (per-seed spread 2 to 6 points), against 51.5% before them.
   'saracens 17-37 bath',
   'exeter 17-3 gloucester',
   'sale 39-25 bristol',
   'harlequins 51-13 leicester',
-  'newcastle 30-8 northampton',
+  'newcastle 27-69 northampton',
   'exeter 18-36 saracens',
 ]
 // 1.8.1, the match engine and preparation round: ONE of six moved, and it is

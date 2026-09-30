@@ -140,8 +140,8 @@ export const ATK_FX: Record<AtkStyle, StyleFx> = {
   direct: { tryF: 0.95, penF: 1.05, turn: 0.75, ground: 0.15, terr: 0, drain: 1.0 },
   pods: { tryF: 1.0, penF: 1.0, turn: 0.95, ground: 0.2, terr: 0, drain: 1.01 },
   width: { tryF: 1.08, penF: 0.95, turn: 1.1, ground: 0, terr: 0, drain: 1.02 },
-  kick: { tryF: 0.88, penF: 0.98, turn: 0.85, ground: 0, terr: 1.3, drain: 0.98 },
-  offload: { tryF: 1.13, penF: 0.97, turn: 1.28, ground: 0, terr: 0, drain: 1.03 },
+  kick: { tryF: 0.88, penF: 0.98, turn: 0.85, ground: 0, terr: 1.0, drain: 0.98 },
+  offload: { tryF: 1.15, penF: 0.97, turn: 1.2, ground: 0, terr: 0, drain: 1.03 },
 }
 
 export const DEF_FX: Record<DefStyle, StyleFx> = {
