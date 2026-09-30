@@ -34,7 +34,11 @@ export default function ScoutReportCard({ game, p }: { game: GameState; p: Playe
     <b style={r.fit === 'excellent' ? tone('text-positive') : r.fit === 'doubtful' ? tone('text-negative') : undefined}>{t(`recruit.fit_${r.fit}`)}</b>
     <span className="muted"> ({style})</span>
   </>])
-  rows.push([t('recruit.agent'), <b style={r.agent === 'cool' ? tone('text-negative') : r.agent === 'warm' ? tone('text-positive') : undefined}>{t(`recruit.agent_${r.agent}`)}</b>])
+  rows.push([t('recruit.agent'), <>
+    <b style={r.agent === 'cool' ? tone('text-negative') : r.agent === 'warm' ? tone('text-positive') : undefined}>{t(`recruit.agent_${r.agent}`)}</b>
+    {/* his mood, where the club could know it: an unsettled man comes cheaper (recruit.ts unsettledFee) */}
+    {r.unsettled && <>{' · '}<span style={{ color: 'var(--gold)' }}>{t(`recruit.mood_${r.unsettled}`)}</span></>}
+  </>])
   if (r.talk && club) rows.push([t('recruit.rival'), <span style={{ color: 'var(--gold)' }}>{t(`recruit.talk_${r.talk.read}`, { club: club.short })}</span>])
   return (
     <div className="card scout-report">

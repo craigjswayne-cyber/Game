@@ -249,7 +249,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
       {/* ---- THE RECORD (owner, v1.2.7) ----
           One form pill and one last rating could not answer the question a
           manager actually asks - "is he declining or did he have a bad week" -
-          and one current injury could not tell a fragile man from an unlucky
+          and one current injury could not tell an injury-hit man from an unlucky
           one. The last ten ratings, oldest first, and every injury this career. */}
       {((p.ratings?.length ?? 0) > 0 || (p.injLog?.length ?? 0) > 0) && (
         <div className="card record-card">
@@ -276,7 +276,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             const weeks = log.reduce((s, e) => s + e.weeks, 0)
             const seasons = Math.max(1, game.season - log[0].s + 1)
             const perSeason = weeks / seasons
-            const read = perSeason >= 10 ? 'player.injFragile' : perSeason >= 5 ? 'player.injWatch' : 'player.injSound'
+            const read = perSeason >= 10 ? 'player.injHeavy' : perSeason >= 5 ? 'player.injWatch' : 'player.injSound'
             return (
               <>
                 <div className="fact-label" style={{ marginTop: (p.ratings?.length ?? 0) > 0 ? 8 : 0 }}>{t('player.injuryRecord')}</div>
