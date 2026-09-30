@@ -3239,7 +3239,7 @@ export const TMO_OVERTURN = 0.33
  *  (owner: 90%; the other 10% stand as tight calls). See scoreTry. An
  *  object so scripts/fwdpassprobe.ts can switch it off and show that nothing
  *  else in a match moves; nothing in the game writes to it. */
-export const FWD_PASS = { rate: 0.03, ruledOut: 0.9 }
+export const FWD_PASS = { rate: 0.02, ruledOut: 0.9 }
 /** how far back up the field the scrum is, where the pass was thrown */
 const FWD_SCRUM_BACK = 8
 
