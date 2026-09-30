@@ -1598,7 +1598,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .app.tablet .dash-stack { display: contents; }
 .desk-n {
   display: inline-block; min-width: 20px; padding: 0 6px; border-radius: 10px;
-  background: var(--gold-fill, var(--gold)); color: var(--on-gold, var(--prop-ink, #111));
+  background: var(--gold-fill, var(--gold)); color: var(--on-gold);
   font-size: 12px; line-height: 20px; text-align: center;
 }
 .desk-link {
