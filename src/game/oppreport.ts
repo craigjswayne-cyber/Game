@@ -34,9 +34,10 @@
  * analyst's read, which is right about as often as analystSkill says.
  */
 import type { Club, GameState, MatchPrep, Tactic, Fixture } from './model'
-import { analystRead, analystSkill, rollIsRight, type AnalystRead } from './analyst'
+import { analystRead, analystSkill, readOdds, sureBand, type AnalystRead } from './analyst'
+import { tapeLine } from './armsrace'
 import { lineupFor, teamUnits } from './matchEngine'
-import { fuzzedCa, knowledge } from './scout'
+import { fuzzedCa, knowledge, margin } from './scout'
 import { analystShift, archetypeOf } from './oppcoach'
 import { COUNTER, philosophyOf } from './philosophy'
 import { DEFAULT_LINEOUT, DEFAULT_SCRUM, playbookOf, routineEffect } from './playbook'
@@ -111,7 +112,7 @@ export const FINDINGS_CAP = 6
 // The report
 // ---------------------------------------------------------------------------
 
-export type ReportCat = 'style' | 'form' | 'setpiece' | 'players' | 'coach' | 'soft' | 'history'
+export type ReportCat = 'style' | 'form' | 'setpiece' | 'players' | 'coach' | 'soft' | 'history' | 'calls'
 
 export interface ReportLine {
   cat: ReportCat
@@ -120,6 +121,10 @@ export interface ReportLine {
   v?: Record<string, string | number>
   /** HIDDEN: whether this line is true. Never shown; the probe measures it. */
   ok?: boolean
+  /** how sure the analyst is of it (1.8.2): his own estimate of the odds
+   *  it is true, in the three words of his soft-spot read. Only on the lines
+   *  that can be wrong; the probe holds the words to the hit rate. */
+  conf?: 'high' | 'mid' | 'low'
 }
 
 export interface OppReport {
@@ -180,14 +185,9 @@ export function softSpot(state: GameState, oppId: string): OppReport['soft'] {
   }
   const lu = lineupFor(state, oppId)
   if (lu.slice(0, 15).filter(id => id != null).length < 15) return null
-  const u = teamUnits(state, lu)
-  const scores: [Unit, number][] = [
-    ['scrum', u.scrum], ['lineout', u.lineout], ['defence', u.defence], ['attack', u.attack], ['kicking', u.kicking],
-  ]
-  const avg = scores.reduce((s, [, v]) => s + v, 0) / scores.length
-  scores.sort((a, b) => a[1] / avg - b[1] / avg)
-  const right = rollIsRight(state.seed, absWeek(state), oppId, analystSkill(state))
-  return { unit: right ? scores[0][0] : scores[scores.length - 1][0], right, confidence: 0.45 + (h(state, oppId, 'conf') % 55) / 100 }
+  // the same odds and the same sense of them as the analyst's own read
+  const o = readOdds(state, oppId, teamUnits(state, lu), absWeek(state))
+  return { unit: o.right ? o.sorted[0][0] : o.sorted[o.sorted.length - 1][0], right: o.right, confidence: o.confidence }
 }
 
 /** The last findings the save holds against this side. */
@@ -244,11 +244,18 @@ function styleLines(state: GameState, club: Club, acc: number): ReportLine[] {
     .slice(0, 2)
   for (const x of seen) {
     const hi = x.read > 50
+    // HOW SURE (1.8.2): he knows how far off his tape can be (err), so a read
+    // well past the line with a small error is a near certainty and one just
+    // over it with a big error is a coin: the odds the truth is past 56 (or
+    // under 44) with the error spread evenly either side of what he saw
+    const past = hi ? x.read - 56 : 44 - x.read
+    const p = err > 0 ? clamp((past / err + 1) / 2, 0, 1) : past >= 0 ? 1 : 0
     out.push({
       cat: 'style', k: `oppreport.dial_${x.d}_${hi ? 'hi' : 'lo'}`,
       v: { lo: clamp(x.read - half, 0, 100), hi: clamp(x.read + half, 0, 100) },
       // true when the habit really leans the way the tape says it does
       ok: hi ? x.truth >= 56 : x.truth <= 44,
+      conf: sureBand(p),
     })
   }
   return out
@@ -281,12 +288,20 @@ function keyMenLine(state: GameState, oppId: string): ReportLine | null {
   const xv = lineupFor(state, oppId).slice(0, 15)
     .map(id => (id != null ? state.players[id] : null)).filter(Boolean)
   if (!xv.length) return null
-  const byRead = [...xv].sort((a, b) => fuzzedCa(state, b!) - fuzzedCa(state, a!)).slice(0, 3)
+  const ranked = [...xv].sort((a, b) => fuzzedCa(state, b!) - fuzzedCa(state, a!))
+  const byRead = ranked.slice(0, 3)
   const best = [...xv].sort((a, b) => b!.ca - a!.ca)[0]
+  // HOW SURE (1.8.2): the scouts' error on these men (scout.ts margin, three
+  // rating points a step) against the room between the third man he names
+  // and the fourth he does not: known men far apart are a certainty
+  const noise = xv.reduce((s, p) => s + margin(knowledge(state, p!)) * 3, 0) / xv.length
+  const room = ranked.length > 3 ? fuzzedCa(state, ranked[2]!) - fuzzedCa(state, ranked[3]!) : 99
+  const p = noise <= 0 ? 1 : clamp(0.62 + room / (4 * noise) - noise / 40, 0, 1)
   return {
     cat: 'players', k: 'oppreport.keyMen',
     v: { names: byRead.map(p => `${p!.name} (${p!.pos})`).join(', ') },
     ok: byRead.includes(best),
+    conf: sureBand(p),
   }
 }
 
@@ -343,11 +358,15 @@ export function buildReport(state: GameState, oppId: string): OppReport {
   if (men) lines.push(men)
   if (club) lines.push(...setPieceLines(club, acc))
   if (club) lines.push(...coachLines(state, club, acc))
+  // THE ARMS RACE (1.8.2): what their analysts have on OUR calls, and whether
+  // this coach sets up for it (armsrace.ts); our own count, so always true
+  const tape = club ? tapeLine(state, oppId, acc) : null
+  if (tape) lines.push({ cat: 'calls', ...tape, ok: true })
   if (soft) {
     lines.push({
       cat: 'soft', k: 'oppreport.soft',
       v: { unit_k: `oppreport.u_${soft.unit}`, sure_k: soft.confidence >= 0.85 ? 'oppreport.sureHigh' : soft.confidence >= 0.7 ? 'oppreport.sureMid' : 'oppreport.sureLow' },
-      ok: soft.right,
+      ok: soft.right, conf: sureBand(soft.confidence),
     })
   }
   lines.push(...historyLines(last))

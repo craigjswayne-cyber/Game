@@ -275,35 +275,41 @@ export function buildClip(events: MatchEvent[], m: number, kind: ClipKind, homeI
   }
   // THE CALLED MOVE THAT MADE IT (1.8.1, game/moves.ts): the try line
   // carries the move in move_k and says in its key what it came off
-  const mvId = kind === 'try' && /^comm\.(moveTry(Lo|Sc)|shapeTry)/.test(e.k ?? '') ? moveOfKey(e.v?.move_k) : null
+  const mvId = kind === 'try' && /^comm\.(moveTry(Lo|Sc|Tap)|shapeTry)/.test(e.k ?? '') ? moveOfKey(e.v?.move_k) : null
   const launch: ClipSpec['launch'] = !mvId ? undefined
-    : e.k?.startsWith('comm.moveTryLo') ? 'lineout' : e.k?.startsWith('comm.moveTrySc') ? 'scrum' : 'open'
+    : e.k?.startsWith('comm.moveTryLo') ? 'lineout' : e.k?.startsWith('comm.moveTrySc') ? 'scrum'
+    : e.k?.startsWith('comm.moveTryTap') ? 'tap' : 'open'
   if (mvId && launch && launch !== 'open' && MOVE_BY_ID[mvId]) {
     // A STRIKE MOVE is played from the set piece it was called off, thirty
     // metres or so out (less when the TMO's look is to come as well): a
     // lineout on the touchline, a scrum in midfield, and a blindside wrap's
     // scrum near a touchline so there is a blind side to wrap round
-    const lo = launch === 'lineout', blind = mvId === 'mv_blind'
-    const u0 = (review >= 0 ? 71 : 66) + 4 * hash(m * 3)
+    const lo = launch === 'lineout', tap = launch === 'tap', blind = mvId === 'mv_blind'
+    // (1.8.2) a red-zone play is run where it is called, in their 22: the
+    // maul twelve metres out (their backs ten back of it still in the field), the tap ten
+    const red = !!MOVE_BY_ID[mvId].red
+    const u0 = red ? (tap ? 89 : 87) + 1.5 * hash(m * 3) : (review >= 0 ? 71 : 66) + 4 * hash(m * 3)
     const top = hash(m * 7) < 0.5
     // (1.8.2) where the move is drawn from, as the study's moves are: a
     // lineout on the touchline; a scrum on the fifteen-metre line with the
     // width on its open side; the wrap's scrum with the short side on the
-    // right, where its wing (the 14) is
-    const y0 = lo ? (top ? 5 : 65) : blind ? (attackHome ? 52 : 18) : (top ? 15 : 55)
+    // right, where its wing (the 14) is; a tap in front of the posts
+    const y0 = lo ? (top ? 5 : 65) : tap ? (top ? 32 : 38) : blind ? (attackHome ? 52 : 18) : (top ? 15 : 55)
     const side = blind ? (y0 < 35 ? -1 : 1) : (y0 < 35 ? 1 : -1)
     const tr = tracksFor(mvId)?.[0]
-    const tf = tr ? trackFrame(tr, lo ? 'lineout' : 'scrum', { x: 0, y: y0 }, side) : null
+    const tf = tr ? trackFrame(tr, lo ? 'lineout' : tap ? 'tap' : 'scrum', { x: 0, y: y0 }, side) : null
     const fy = tr && tf ? Math.max(4, Math.min(66, tf.base.y + side * tr.finish * tf.scP))
       : blind ? (y0 < 35 ? 6 : 64) : Math.max(6, Math.min(64, y0 + side * (18 + 8 * hash(m * 11))))
     const steps = Math.max(2, from.length)
+    const roleShirt = (r: string) => r === 'W' ? (side * (attackHome ? 1 : -1) > 0 ? 14 : 11)
+      : r === 'FW' ? (side * (attackHome ? 1 : -1) > 0 ? 11 : 14) : Number(r)
     const beats: ClipSpec['beats'] = Array.from({ length: steps }, (_, i) => ({
-      x: toX(u0 + i * 0.5), y: y0, line: from[i] ?? -1, carrier: lo ? 2 : 8,
+      x: toX(u0 + i * 0.5), y: y0, line: from[i] ?? -1, carrier: lo ? 2 : tap ? 9 : 8,
     }))
     return {
       kind, style: 'move', move: mvId, launch, attackHome, beats,
-      // (nobody named: the move's own strike runner)
-      finish: { x: toX(103), y: fy, carrier: shirtOf(e.playerId) ?? (tr ? (tr.strike === 'W' ? (side * (attackHome ? 1 : -1) > 0 ? 14 : 11) : tr.strike === 'FW' ? (side * (attackHome ? 1 : -1) > 0 ? 11 : 14) : Number(tr.strike)) : 13) },
+      // (nobody named: the move's own strike runner, or the man chasing its kick)
+      finish: { x: toX(103), y: fy, carrier: shirtOf(e.playerId) ?? (tr ? roleShirt(tr.chase ?? tr.strike) : 13) },
       endLine: m,
       reviewLine: review >= 0 ? review : undefined,
       reviewLabel: labels.review,
@@ -1261,6 +1267,9 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
   // the move's own lines, passes, decoys and bite (a 'track'), into the
   // finish.
   const tr = c.move ? tracksFor(c.move)?.[0] : undefined
+  /** a kick move (1.8.2): the track, then the kick, then the chase */
+  const moveKick = c.style === 'move' && tr && c.move ? MOVE_BY_ID[c.move]?.kick : undefined
+  const crossKick = c.style === 'crossfield' || moveKick === 'cross'
   const setKind: TrackFrom | null = c.style === 'move' && tr ? (c.launch === 'lineout' ? 'lineout' : c.launch === 'tap' ? 'tap' : 'scrum') : null
   const lo = setKind === 'lineout'
   const SET = setKind === 'lineout' ? 1.85 : setKind === 'tap' ? 0.55 : 1.7
@@ -1329,7 +1338,20 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
   if (useTrack) {
     if (!setKind) phases.push({ k: 'dig', q: last, dur: 0.3 })
     phases.push({ k: 'track', dur: 99 })
-    if (strikeS === scorer) finishRun(scorer)
+    if (moveKick) {
+      // THE KICKS (1.8.2): the track ends with the ball in the kicker's
+      // hands; the cross-field kick hangs for the far wing running onto it,
+      // the grubber rolls through the gap for the chaser to fall on
+      if (moveKick === 'cross') {
+        phases.push({ k: 'kick', who: strikeS, chaser: scorer, to: { x: fieldX(U(95)), y: fieldY(c.finish.y) }, loft: 8, low: false, dur: 0 })
+        phases.push({ k: 'run', to: { x: c.finish.x, y: fieldY(c.finish.y - side * 2) }, who: scorer, line: -1, end: 'score', dur: 0, tackler: 14 })
+      } else {
+        // (seventeen metres through, where the chaser picks it up at pace)
+        const spot = { x: fieldX(U(Math.min(96, uOf(pts[0].x) + 17))), y: fieldY(c.finish.y) }
+        phases.push({ k: 'kick', who: strikeS, chaser: scorer, to: spot, loft: 0.35, low: true, dur: 0 })
+        phases.push({ k: 'run', to: c.finish, who: scorer, line: -1, end: 'score', dur: 0, tackler: 14 })
+      }
+    } else if (strikeS === scorer) finishRun(scorer)
     else {
       // the break, and the scorer in support takes the last pass
       phases.push({ k: 'run', to: { x: 0, y: 0 }, who: strikeS, line: -1, end: 'feed', dur: 0.45, tackler: -1, ctrl: { x: 7, y: 0 }, across: 0.6 })
@@ -1414,7 +1436,14 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
       for (let j = 0; j < 9; j++) setAtt[j] = posAt(j + 1, 0) ?? { x: fieldX(x0 - d * (2 + (j % 3))), y: fieldY(S.y + (j - 4) * 2.2) }
       for (let j = 0; j < 9; j++) setDef[j] = { x: fieldX(x0 + d * 10), y: fieldY(S.y + (j - 4) * 3) }
     }
-    for (const s of [1, 2, 3, 4, 5, 6, 7, 8, 9]) { const p = setKind !== 'tap' && s !== 9 ? posAt(s, 0) : null; if (p) setAtt[s - 1] = p }
+    // (a forward's own line starts him only off the set piece it was written
+    // for, and never the hooker at a lineout, who throws from the touchline:
+    // off another set piece he is bound in until the ball is out, 1.8.2)
+    for (const s of [1, 2, 3, 4, 5, 6, 7, 8, 9]) {
+      const own = tr!.set === setKind && !(setKind === 'lineout' && s === 2)
+      const p = setKind !== 'tap' && s !== 9 && own ? posAt(s, 0) : null
+      if (p) setAtt[s - 1] = p
+    }
     for (const s of backs) setAtt[s - 1] = trackStart(s) ?? setAtt[s - 1] ?? TP(-8, 10)
     // the defending backs: behind their hindmost foot at a scrum, ten
     // metres back at a lineout or a tap, each opposite his man
@@ -1433,7 +1462,8 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
       att[i].x = setAtt[i].x; att[i].y = setAtt[i].y
       def[i].x = setDef[i].x; def[i].y = setDef[i].y
     }
-    if (setKind === 'lineout') { ball.x = setAtt[1].x; ball.y = setAtt[1].y } else { ball.x = setAtt[8].x; ball.y = setAtt[8].y }
+    // (at a tap it is in the 9's hands, a hand's width in front of him, as the set phase holds it)
+    if (setKind === 'lineout') { ball.x = setAtt[1].x; ball.y = setAtt[1].y } else { ball.x = setAtt[8].x + (setKind === 'tap' ? d * 0.4 : 0); ball.y = setAtt[8].y }
   }
 
   // where a receiver should be standing for a pass from a ruck at q
@@ -1544,7 +1574,7 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
         // (off a crossfield kick he is over from the catch: straight in,
         // where a line bent round the men chasing the kick made the quick
         // wing's run the longer one)
-        ph.ctrl = c.style === 'crossfield' ? { x: (ph.from.x + ph.to.x) / 2, y: (ph.from.y + ph.to.y) / 2 } : gapLine(ph.from, ph.to)
+        ph.ctrl = crossKick ? { x: (ph.from.x + ph.to.x) / 2, y: (ph.from.y + ph.to.y) / 2 } : gapLine(ph.from, ph.to)
         const skip = (i: number) => (i === 14 && ph.end === 'held') || missers.some(m => m.i === i)
         const nearest = (i: number) => {
           let bs = 0.5, bd = Infinity
@@ -1652,8 +1682,8 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
       if (ph.k === 'pass' && ph.who === shirt) { const r = att[i]; tgt = { x: r.x + d * 2, y: r.y }; vm = V_PLAYER }
       // the chaser of a kick: out wide for a crossfield, then onto the ball
       if (kickNext && kickNext.chaser === shirt && ph.k !== 'kick' && !(ph.k === 'run' && ph.who === shirt)) {
-        tgt = c.style === 'crossfield' ? { x: fieldX(kickNext.to.x - d * 10), y: kickNext.to.y } : tgt
-        if (c.style === 'crossfield') vm = V_PLAYER
+        tgt = crossKick ? { x: fieldX(kickNext.to.x - d * 10), y: kickNext.to.y } : tgt
+        if (crossKick) vm = V_PLAYER
       }
       if (ph.k === 'kick' && ph.chaser === shirt) {
         const kk = clamp(k / ph.dur, 0, 1)

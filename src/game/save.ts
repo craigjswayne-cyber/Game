@@ -15,6 +15,7 @@ import { seedStaffPeople } from './staff'
 import { ensureAcademyLeague, topUpAcademy } from './academy'
 import { migratePress } from './pressmigrate'
 import { migrateStyles } from './styles'
+import { migratePlaybook } from './armsrace'
 import { migrateBonds } from './bonds'
 import { migrateRoom } from './room'
 import { migrateMemory } from './memory'
@@ -1027,6 +1028,10 @@ export function migrate(s: GameState): GameState {
   // the manager's side is named the nearest attack and defence to its dials,
   // and the dials are left exactly where he put them
   migrateStyles(s)
+
+  // THE PLAYBOOK (1.8.2, armsrace.ts): the lineout and scrum calls become the
+  // primary and the secondary strike, and the arms race's tallies are healed
+  migratePlaybook(s)
 
   // THE SEASON PLAN (1.8.2, seasonplan.ts). Absent on every older save, which
   // is the no-plan game and needs nothing. A damaged one is dropped rather than

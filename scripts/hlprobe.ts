@@ -108,7 +108,7 @@ for (let seed = 1; seed <= 40 && (seed <= 12 || !enough()); seed++) {
     // phase-play shape, so every check below holds a move clip to the same
     // standard as the rest (scripts/movesprobe.ts checks what they draw)
     if (kind === 'try' && seed <= 4) for (const mv of MOVES) for (const from of mv.from) {
-      const k = from === 'lineout' ? 'comm.moveTryLo1' : from === 'scrum' ? 'comm.moveTrySc1' : 'comm.shapeTry1'
+      const k = from === 'lineout' ? 'comm.moveTryLo1' : from === 'scrum' ? 'comm.moveTrySc1' : from === 'tap' ? 'comm.moveTryTap1' : 'comm.shapeTry1'
       const copy: MatchEvent[] = ev.slice(0, i + 1).map((x, j) => j === i ? { ...x, k, v: { ...(x.v ?? {}), move_k: mv.say } } : x)
       // (against each defensive system in turn, and each attacking style, 1.8.2)
       const n = specs.length
@@ -364,7 +364,7 @@ console.log('\n--- the chase after a break (1.8.2)\n')
         checked++
         const ux = (f.ball.x - f.def[i].x) / r, uy = (f.ball.y - f.def[i].y) / r
         const vr = vx * ux + vy * uy, sp = Math.hypot(vx, vy)
-        if (vr < -SLACK && !away) away = `${kind}/${spec.style} line ${spec.endLine} def ${i + 1} t=${t.toFixed(2)} ${(-vr).toFixed(1)} m/s away from the ball ${r.toFixed(0)} m off`
+        if (vr < -SLACK && !away) away = `${kind}/${spec.style}${spec.move ? '/' + spec.move + '/' + spec.launch : ''} line ${spec.endLine} def ${i + 1} t=${t.toFixed(2)} ${(-vr).toFixed(1)} m/s away from the ball ${r.toFixed(0)} m off`
         if (!ahead && sp > 2 && vr < sp / 3 - SLACK && f.carrying.some(x => x > 0.5) && !lagging) lagging = `${kind}/${spec.style} line ${spec.endLine} def ${i + 1} t=${t.toFixed(2)} runs ${sp.toFixed(1)} m/s but closes at ${vr.toFixed(1)}`
       }
     }
@@ -395,7 +395,7 @@ console.log('\n--- set pieces, backlines and moves (1.8.2)\n')
 {
   const moves = specs.filter(s => s.spec.style === 'move' && clipTimeline(s.spec).set).map(s => s.spec)
   const bad: Record<string, string> = {}
-  const flag = (k: string, s: ClipSpec, why: string) => { bad[k] ??= `${s.move}/${s.launch} line ${s.endLine}: ${why}` }
+  const flag = (k: string, s: ClipSpec, why: string) => { if (process.env.HLDIAG) console.log('DIAG', k, s.move, s.launch, why); bad[k] ??= `${s.move}/${s.launch} line ${s.endLine}: ${why}` }
   let scrums = 0, lineouts = 0, bites = 0, paced = 0, pacedOk = 0
   for (const s of moves) {
     const tl = clipTimeline(s), d = s.attackHome ? 1 : -1, mark = s.beats[0]
@@ -467,6 +467,7 @@ console.log('\n--- set pieces, backlines and moves (1.8.2)\n')
       for (let t = bt.caught - 1.0; t < bt.caught - 0.2; t += 0.1) before = Math.min(before, sp(t))
       for (let t = bt.caught; t < Math.min(tl.land - 0.3, bt.caught + 2); t += 0.1) after = Math.max(after, sp(t))
       if (after >= before + 2 && after > 7.5) pacedOk++
+      else if (process.env.HLDIAG) console.log('DIAG pace', s.move, s.launch, before.toFixed(1), after.toFixed(1))
     }
   }
   ok(scrums >= 10 && lineouts >= 10, `move clips from both set pieces (${scrums} scrums, ${lineouts} lineouts)`)

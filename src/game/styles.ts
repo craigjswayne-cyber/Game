@@ -264,11 +264,15 @@ export function clubStyleFit(state: GameState, club: Club, id: AtkStyle | DefSty
 /** The called moves that belong to each attacking style: a side that plays
  *  that way all afternoon runs them better (moves.ts fit, +MOVE_AFFINITY). */
 export const STYLE_MOVES: Record<AtkStyle, string[]> = {
-  direct: ['mv_crash', 'mv_1331'],
-  pods: ['mv_1331', 'mv_242', 'mv_backdoor'],
-  width: ['mv_loop', 'mv_switch', 'mv_strike13', 'mv_242'],
-  kick: [],
-  offload: ['mv_backdoor', 'mv_decoy', 'mv_inside'],
+  // (1.8.2, the new families: the maul and the crash-and-swing are a direct
+  // side's, the tap and the 9's loop a pod side's, the full-back and the
+  // blind wing in the line a wide side's, the kicks a kicking side's, and
+  // the peel's pop off the maul an offloading side's)
+  direct: ['mv_crash', 'mv_1331', 'mv_crashswing', 'mv_maulswitch'],
+  pods: ['mv_1331', 'mv_242', 'mv_backdoor', 'mv_loop9', 'mv_tap'],
+  width: ['mv_loop', 'mv_switch', 'mv_strike13', 'mv_242', 'mv_width', 'mv_wingin'],
+  kick: ['mv_crosskick', 'mv_grubber'],
+  offload: ['mv_backdoor', 'mv_decoy', 'mv_inside', 'mv_peel'],
 }
 export const MOVE_AFFINITY = 0.2
 /** what the style does to a called move's fit: plus for a move that belongs

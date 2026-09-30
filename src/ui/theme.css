@@ -3210,7 +3210,11 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    the narrower), so the section is one short card, not eighteen tiles on a
    tab that was already the longest on the screen. */
 .mv-card { display: flex; flex-direction: column; gap: 7px; }
-.mv-calls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.mv-calls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+/* (1.8.2, the playbook: four calls, two by two on a phone and in a row beyond) */
+@media (min-width: 480px) { .mv-calls { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.mv-style { font-size: 10px; opacity: .7; }
+.mv-mixlabel { font-size: 11px; }
 .mv-callchip {
   display: flex; flex-direction: column; align-items: flex-start; gap: 1px;
   border-radius: 10px; min-height: 44px; text-align: left; min-width: 0;

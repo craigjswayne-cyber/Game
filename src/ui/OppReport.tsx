@@ -50,7 +50,8 @@ export function OppReportCard() {
   // the analyst's card above already says the soft spot for a club fixture
   const lines = rep.lines.filter(l => !(club && l.cat === 'soft'))
   // what matters most first: the last meeting, then the rest in report order
-  const ordered = [...lines.filter(l => l.cat === 'history'), ...lines.filter(l => l.cat !== 'history')]
+  // (1.8.2: then what their analysts have on our own calls, the arms race)
+  const ordered = [...lines.filter(l => l.cat === 'history'), ...lines.filter(l => l.cat === 'calls'), ...lines.filter(l => l.cat !== 'history' && l.cat !== 'calls')]
   const shown = more ? ordered : ordered.slice(0, 4)
   const opts = club ? planOptions(game, fx) : []
   return (
@@ -62,7 +63,11 @@ export function OppReportCard() {
       <div className="meta muted" style={{ fontSize: 11 }}>{t(`oppreport.bandHint_${rep.band}`)}</div>
       <div style={{ marginTop: 4 }}>
         {shown.map((l, i) => (
-          <div key={i} className="meta" data-cat={l.cat} style={{ fontSize: 12, padding: '2px 0' }}>{lineText(l)}</div>
+          <div key={i} className="meta" data-cat={l.cat} data-conf={l.conf} style={{ fontSize: 12, padding: '2px 0' }}>
+            {lineText(l)}
+            {/* how sure he is of it (1.8.2): the soft spot says so in its own words */}
+            {l.conf && l.cat !== 'soft' && <span className="muted" style={{ fontSize: 11 }}> ({t(`oppreport.sure${l.conf === 'high' ? 'High' : l.conf === 'mid' ? 'Mid' : 'Low'}`)})</span>}
+          </div>
         ))}
       </div>
       {ordered.length > 4 && (
