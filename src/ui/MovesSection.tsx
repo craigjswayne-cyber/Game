@@ -5,6 +5,7 @@ import { userFixtureThisWeek } from '../game/season'
 import { t } from '../game/i18n'
 import { SectionTitle } from './components'
 import { MoveDiagram } from './tacticsArt'
+import { moveAffinity, stylesOf } from '../game/styles'
 
 /**
  * THE ATTACKING MOVES, on the Set Piece tab (1.8.1, game/moves.ts).
@@ -57,7 +58,9 @@ export default function MovesSection({ game, club, touch }: { game: GameState; c
   const [launch, , key] = CALLS.find(c => c[0] === which) ?? CALLS[0]
   const cur = current(launch, key)
   const m = cur ? MOVE_BY_ID[cur] : null
-  const fit = m ? moveFit(m, at) : 0
+  // the attack style's say in it (1.8.2): a move that belongs to the side's
+  // overall game is run better, exactly as the engine reads it (moveInPlay)
+  const fit = m ? Math.max(-1, Math.min(1, moveFit(m, at) + moveAffinity(stylesOf(game, club)?.atk, m.id, m.group === 'shape'))) : 0
   const match = m && opp ? moveMatchup(m, opp.tactic) : 0
   const e = m ? moveEdge(game, club, m.id, fit, match) : null
   const drilledPct = (id: string) => Math.round(moveEdge(game, club, id, 0, 0).drilled)

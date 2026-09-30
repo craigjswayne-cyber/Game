@@ -14,10 +14,9 @@
 
 // ------------------------------------------------------------ the styles
 
-/** The five defensive systems and five attacking styles of 1.8.2 (the same
- *  ids as game/styles.ts on the styles branch). */
-export type DefStyle = 'drift' | 'blitz' | 'pendulum' | 'man' | 'choke'
-export type AtkStyle = 'direct' | 'pods' | 'width' | 'kick' | 'offload'
+/** The five defensive systems and five attacking styles of 1.8.2 (game/styles.ts). */
+import { ATK_PRESET, DEF_PRESET, type AtkStyle, type DefStyle } from '../game/styles'
+export type { AtkStyle, DefStyle }
 
 /** what a side's tactic says about it: the dials (tactics.ts), and the
  *  named style once the tactic carries one */
@@ -27,14 +26,11 @@ export interface StyleDials {
   defStyle?: string; atkStyle?: string
 }
 
-// Where each style sits on the dials: the presets of game/styles.ts, so a
-// side whose dials were set by picking a style reads back as that style.
-const DEF_AT: Record<DefStyle, [number, number]> = {
-  drift: [28, 80], blitz: [88, 62], pendulum: [45, 50], man: [62, 38], choke: [58, 30],
-}
-const ATK_AT: Record<AtkStyle, [number, number, number]> = {
-  direct: [22, 46, 50], pods: [45, 50, 45], width: [84, 64, 36], kick: [40, 40, 84], offload: [70, 74, 28],
-}
+// Where each style sits on the dials: the presets of game/styles.ts, read
+// from there, so a side whose dials were set by picking a style reads back
+// as that style.
+const DEF_AT = Object.fromEntries(Object.entries(DEF_PRESET).map(([k, p]) => [k, [p.defLine, p.defWidth]])) as Record<DefStyle, [number, number]>
+const ATK_AT = Object.fromEntries(Object.entries(ATK_PRESET).map(([k, p]) => [k, [p.style, p.tempo, p.kicking]])) as Record<AtkStyle, [number, number, number]>
 const DEF_STYLES = Object.keys(DEF_AT) as DefStyle[]
 const ATK_STYLES = Object.keys(ATK_AT) as AtkStyle[]
 

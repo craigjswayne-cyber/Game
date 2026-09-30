@@ -16,7 +16,7 @@ import { derbyName, isDerby } from './rivalries'
 import { EXPLOITED_BY, analystEdge, settleAnalyst } from './analyst'
 import { t, tIn } from './i18n'
 import { venueEffect } from './venue'
-import { clamp, gauss, mulberry32, wpick, type Rng } from './rng'
+import { clamp, gauss, hashString, mulberry32, wpick, type Rng } from './rng'
 import { KNOCK_ENERGY } from './knock'
 import { DEFAULT_LINEOUT, DEFAULT_SCRUM, ROUTINE_BY_ID, playbookOf, routineEffect } from './playbook'
 import { MOVE_BY_ID, MOVE_MAKER, callFor, callsOf, launchOf, moveEdge, moveFit, moveHash, moveMatchup, moveTempoF, sayKey, type Launch } from './moves'
@@ -27,6 +27,7 @@ import {
   type BenchSplit,
 } from './bench'
 import { rememberDebut } from './memory'
+import { ATK_KICKS, atkSay, defSay, moveAffinity, styleDrain, styleFitRel, styleTerr, styleTick, stylesOf, TURN_M, type SideStyle } from './styles'
 
 /**
  * How many replacements a side may make in a match.
@@ -1028,6 +1029,14 @@ export interface SideCtx {
   played?: Map<number, number>
   /** the personnel the units were last built from (see fieldChanged) */
   unitsKey?: number | string
+  /** THE STYLES THIS SIDE PLAYS (1.8.2, styles.ts) and how well the men on
+   *  the pitch suit them, set with the units (applyModifiers), so a change of
+   *  personnel or of style re-reads it. Absent for a side with no club (a
+   *  Test side), which the style arithmetic reads as neutral. */
+  sty?: SideStyle
+  /** turnovers this side's defence won through its style, and how many of
+   *  its own ticks it lost the ball in (styleprobe reads both) */
+  styTurnWon?: number
   /** the three set-piece units summed over the ticks played, and how many.
    *  The coach's verdict reads the match's average from these: now that a
    *  side's units follow its replacements, the full-time figure is the pack
@@ -1183,6 +1192,20 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
     // the attacking moves' legs (moves.ts), on the routine's rule; exactly 1
     // for a club with no calls
     side.tempoF *= moveTempoF(state, club)
+
+    // THE STYLES (1.8.2, styles.ts): what this side plays with and without
+    // the ball, how well the men in the shirts suit it, and the legs it
+    // costs. Read here so a substitution or a change of style re-reads it.
+    const sty = stylesOf(state, club)
+    if (sty) {
+      const at = (shirt: number, a: keyof Player['a']) => {
+        const pid = shirts[shirt - 1]
+        const p = pid != null ? state.players[pid] : undefined
+        return p ? p.a[a] : null
+      }
+      side.sty = { ...sty, atkFit: styleFitRel(sty.atk, at), defFit: styleFitRel(sty.def, at) }
+      side.tempoF *= styleDrain(sty)
+    }
 
     // The kicking game (F3). A designated kicker is a decision; the automatic
     // pick of whoever has the best attribute is not.
@@ -1790,6 +1813,8 @@ const DROP_MISS = ['comm.dropMiss1', 'comm.dropMiss2', 'comm.dropMiss3', 'comm.d
  *  what happens next, at any point in the game. */
 export interface LiveCtx {
   fx: Fixture
+  /** the salt of the styles' turnover hash (styleSalt), set on first use */
+  stySalt?: number
   home: SideCtx
   away: SideCtx
   rng: Rng
@@ -2421,17 +2446,24 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
       pattern_k: `comm.pattern${shift.pattern[0].toUpperCase()}${shift.pattern.slice(1)}`,
     })
   }
+  // THE STYLES ON THE KICK-OFF LINE (1.8.2): hA/hD the home side's attack
+  // and defence, aA/aD the away side's, so anything that has only the events
+  // (the highlight clip, styles.matchStyles) knows how both sides played
+  const koSty: Record<string, string> = {}
+  if (home.sty) { koSty.hA = home.sty.atk; koSty.hD = home.sty.def }
+  if (away.sty) { koSty.aA = away.sty.atk; koSty.aD = away.sty.def }
   if (fx.venue) {
     pushLine(state, ctx, 0, 'KO', home, fx.att ? 'comm.koFinalDayGate' : 'comm.koFinalDay',
-      { venue: fx.venue.name, city: fx.venue.city, att: fx.att ?? 0 })
+      { venue: fx.venue.name, city: fx.venue.city, att: fx.att ?? 0, ...koSty })
   } else if (derby) {
     pushLine(state, ctx, 0, 'KO', home, fx.att ? 'comm.koDerbyGate' : 'comm.koDerby',
-      { derby: derbyName(fx.homeId, fx.awayId) ?? '', att: fx.att ?? 0 })
+      { derby: derbyName(fx.homeId, fx.awayId) ?? '', att: fx.att ?? 0, ...koSty })
   } else if (grudge) {
-    pushLine(state, ctx, 0, 'KO', home, 'comm.koGrudge', { reason_k: grudge.rk ?? 'common.nothing', ...(grudge.rv ?? {}) })
+    pushLine(state, ctx, 0, 'KO', home, 'comm.koGrudge', { reason_k: grudge.rk ?? 'common.nothing', ...(grudge.rv ?? {}), ...koSty })
   } else {
     pushLine(state, ctx, 0, 'KO', home, 'comm.koPlain', {
       wx_k: weather === 'Rain' ? 'comm.koRain' : weather === 'Wind' ? 'comm.koWind' : weather === 'Snow' ? 'comm.koSnow' : 'common.nothing',
+      ...koSty,
     })
   }
   if (uncontested) {
@@ -2762,7 +2794,9 @@ function moveInPlay(state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideCtx,
   const id = callFor(calls, launch)
   const m = id ? MOVE_BY_ID[id] : undefined
   if (!m) return null
-  const fit = moveFit(m, (s, a) => inShirt(state, side, s - 1)?.a[a] ?? null)
+  // a move that belongs to the side's style is run better (styles.ts)
+  const fit = clamp(moveFit(m, (s, a) => inShirt(state, side, s - 1)?.a[a] ?? null)
+    + moveAffinity(side.sty?.atk, m.id, m.group === 'shape'), -1, 1)
   const match = moveMatchup(m, state.clubs[opp.teamId]?.tactic)
   const e = moveEdge(state, club, m.id, fit, match)
   return { id: m.id, launch, gain: e.gain, risk: m.risk, maker: inShirt(state, side, (MOVE_MAKER[m.id] ?? 10) - 1) }
@@ -2806,6 +2840,45 @@ function describeMoveOutcome(state: GameState, ctx: LiveCtx, side: SideCtx, opp:
   } else if (mv.gain > 0.02 && mv.launch !== 'open' && mv.maker && ctx.crng() < 0.3) {
     colour(state, ctx, side, said(ctx, MOVE_GAIN), { ...v, player: mv.maker.name }, mv.maker.id)
   }
+}
+
+// ---- THE STYLES, IN WORDS (1.8.2, styles.ts) -----------------------------
+
+/**
+ * A line when a style TELLS: the attack's style finding the defence it
+ * beats ("the width is stretching the drift"), or the defence's style
+ * shutting down the attack it is built for ("the blitz catches them behind
+ * the gain line"). Watched only and on the commentary's dice, so a silent
+ * match is the same match. Every line carries both styles' ids (sa, sd) for
+ * the highlight clip.
+ */
+function describeStyle(state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideCtx, st: { m: number }) {
+  if (!ctx.detail || !side.sty || !opp.sty || st.m === 0) return
+  if (ctx.crng() >= 0.05 * Math.abs(st.m)) return
+  const v = {
+    team: teamShort(state, side.teamId), opp: teamShort(state, opp.teamId),
+    atk_k: atkSay(side.sty.atk), def_k: defSay(opp.sty.def), sa: side.sty.atk, sd: opp.sty.def,
+  }
+  const n = 1 + Math.floor(ctx.crng() * 2)
+  if (st.m > 0) colour(state, ctx, side, `styles.cAtk_${side.sty.atk}${n}`, v)
+  else colour(state, ctx, opp, `styles.cDef_${opp.sty.def}${n}`, { ...v, team: v.opp, opp: v.team })
+}
+
+/** the per-match salt of the style's turnover hash: the world, the season,
+ *  the fixture and who is playing it, cached on the match */
+function styleSalt(state: GameState, ctx: LiveCtx): number {
+  return (ctx.stySalt ??= hashString(`${state.seed}|${state.season}|${ctx.fx.id}|${ctx.fx.homeId}|${ctx.fx.awayId}`))
+}
+
+/** A turnover the style made, named for the defence that made it: watched only. */
+function describeTurnover(state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideCtx, _st: { m: number }) {
+  if (!ctx.detail || !side.sty || !opp.sty || ctx.crng() >= 0.35) return
+  const p = sayWho(state, ctx, opp, [3, 4, 5, 6, 7, 11, 12], [2, 2, 3, 3, 2, 1, 1])
+  if (!p) return
+  colour(state, ctx, opp, `styles.cTurn_${opp.sty.def}`, {
+    team: teamShort(state, opp.teamId), opp: teamShort(state, side.teamId), player: p.name,
+    atk_k: atkSay(side.sty.atk), def_k: defSay(opp.sty.def), sa: side.sty.atk, sd: opp.sty.def,
+  }, p.id)
 }
 
 /** The try line for a try the called move made: who ran it, who scored, and
@@ -2926,6 +2999,8 @@ function kicksFromHand(state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideC
   let rate = up < 22 ? 1.0 : up < 50 ? 0.9 : up < 78 ? 0.8 : 0.7
   rate *= 0.75 + (tac?.kicking ?? 50) / 200
   rate *= tac?.kickStyle === 'territory' ? 1.15 : tac?.kickStyle === 'attack' ? 0.9 : 1
+  // and the style (1.8.2): the box kick and chase kicks the most
+  if (side.sty) rate *= ATK_KICKS[side.sty.atk]
   // and the plan for where the ball is: a side kicking its exits long, or
   // playing for territory, puts in more of the kicks that can be charged, and
   // a side running it out of its own 22 fewer. Without this the kicking plans
@@ -3760,6 +3835,10 @@ const PEN_LEAN = 1.7
  *  and own-half penalty changes had shrunk the gap between plans (advprobe:
  *  long vs play 0.5, drive vs spread 0.2); at 2 the gaps are 1.3 and 0.6 */
 const ZONE_PULL = 2
+/** how hard a style's kicking game moves the line (1.8.2, styles.ts): the
+ *  push is a constant a tick, and the line's decay multiplies a constant by
+ *  about 28, so this is small on purpose (see ZonePlan.terr) */
+const STYLE_PULL = 1
 
 /** The cost of a thin bench: a man in the wrong half of the team.
  *
@@ -3935,7 +4014,10 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
   }
   // what each side sets out to do, read from where it is standing NOW
   const kickEdge = Math.log(home.units.kicking / Math.max(1, away.units.kicking))
-  const push = kickEdge * 7 + (rng() - 0.5) * 86 + (planOf(home).terr - planOf(away).terr) * ZONE_PULL
+  // and the styles' kicking games (1.8.2): a box-kick-and-chase side walks
+  // the line up the pitch, as far as the other side's defence lets it
+  const styPush = (styleTerr(home.sty, away.sty) - styleTerr(away.sty, home.sty)) * STYLE_PULL
+  const push = kickEdge * 7 + (rng() - 0.5) * 86 + (planOf(home).terr - planOf(away).terr) * ZONE_PULL + styPush
   ctx.field = clamp(ctx.field * 0.965 + 50 * 0.035 + push, 4, 96)
   // AND READ AGAIN AFTER THE LINE HAS MOVED. The push above is what a side
   // does FROM where it was; the scoring roll below happens WHERE IT ENDED UP,
@@ -3963,6 +4045,14 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     if (mv) describeMoveCall(state, ctx, side, opp, mv)
     const mvTry = mv ? 1 + mv.gain : 1
     const mvPen = mv ? 1 + mv.gain * 0.5 : 1
+    // THE STYLES (1.8.2, styles.ts): this side's attack into their defence,
+    // the line breaks it makes, the gain line it wins and the turnovers it
+    // risks. Exactly neutral for a side without a club. No draw.
+    const st = styleTick(side.sty, opp.sty, {
+      attSet: side.units.scrum + side.units.lineout, defSet: opp.units.scrum + opp.units.lineout,
+      attack: side.units.attack, defence: opp.units.defence,
+    })
+    describeStyle(state, ctx, side, opp, st)
     const scores0 = side.score + opp.score
     const numF = 1 - 0.07 * ([...side.yellowUntil.values()].filter(u => u > min).length + side.sent + side.short)
     const oppNumF = 1 - 0.07 * ([...opp.yellowUntil.values()].filter(u => u > min).length + opp.sent + opp.short)
@@ -4015,12 +4105,12 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     // more of them, bounded, and reciprocal between the two packs so the
     // world's count of penalties does not move.
     const scrumEdge = Math.pow(clamp(side.units.scrum / Math.max(1, opp.units.scrum), 0.8, 1.25), 0.8)
-    const penWindow = opp.penRisk * (side === home ? ap : hp).penF * Math.pow(up / 50, PEN_LEAN) * scrumEdge * (contest?.penF ?? 1) * mvPen
+    const penWindow = opp.penRisk * (side === home ? ap : hp).penF * Math.pow(up / 50, PEN_LEAN) * scrumEdge * (contest?.penF ?? 1) * mvPen * st.penF
     let ratio = ((att * adv * numF * terr) / Math.max(1, def * oppNumF))
     if (derby) ratio = Math.pow(ratio, 0.72) // form book out the window
     else if (ctx.grudge) ratio = Math.pow(ratio, 0.85) // needle levels the contest
     side.poss += ratio
-    let pTry = clamp(TRY_BASE * Math.pow(ratio, 2.6) * plan.tryF * (contest?.tryF ?? 1) * mvTry, 0.01, 0.42)
+    let pTry = clamp(TRY_BASE * Math.pow(ratio, 2.6) * plan.tryF * (contest?.tryF ?? 1) * mvTry * st.tryF, 0.01, 0.42)
     // THE LAST QUARTER OPENS UP (audit 16D). Measured before this existed:
     // tries were dead flat across the 80 (11.6-14.0% per ten-minute bucket)
     // because both sides drain together and the mutual exhaustion cancels in
@@ -4191,6 +4281,23 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       const m = mv.gain >= 0 ? mv.gain * 20 : mv.gain * 40 * mv.risk
       backTowards(ctx, side, -m)
       describeMoveOutcome(state, ctx, side, opp, mv)
+    }
+
+    // THE STYLE, WHEN THE TICK CAME TO NOTHING (1.8.2): a direct side still
+    // won a little of the gain line, and any side can be turned over - an
+    // offload that goes to ground, a flat pass picked off, a carrier held up
+    // in the choke tackle. On a hash, never a draw, as the moves' ground is
+    // (above): of the world, the fixture and the two sides as well as the
+    // tick, because a fixture's id alone repeats from world to world (every
+    // new career's first fixture is the same number) and the same ticks
+    // would be turned over in all of them.
+    if (r >= pTry + penWindow && side.score + opp.score === scores0 && side.sty && opp.sty) {
+      if (st.ground) backTowards(ctx, side, -st.ground)
+      if (moveHash(styleSalt(state, ctx), tick, side === home ? 3 : 4, 0x57) < st.turnP) {
+        backTowards(ctx, side, TURN_M)
+        opp.styTurnWon = (opp.styTurnWon ?? 0) + 1
+        describeTurnover(state, ctx, side, opp, st)
+      }
     }
 
     // the kicks from hand this side puts in, and any that are charged down

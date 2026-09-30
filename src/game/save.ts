@@ -14,6 +14,7 @@ import { applyStadiumName, seedDeals } from './commercial'
 import { seedStaffPeople } from './staff'
 import { ensureAcademyLeague, topUpAcademy } from './academy'
 import { migratePress } from './pressmigrate'
+import { migrateStyles } from './styles'
 import { migrateBonds } from './bonds'
 import { migrateRoom } from './room'
 import { migrateMemory } from './memory'
@@ -1021,6 +1022,11 @@ export function migrate(s: GameState): GameState {
 
   // the tactical loop's findings: healed and capped (#181)
   migrateTacLoop(s)
+
+  // THE STYLES (1.8.2): a save from before them has dials and no style, so
+  // the manager's side is named the nearest attack and defence to its dials,
+  // and the dials are left exactly where he put them
+  migrateStyles(s)
 
   // THE SEASON PLAN (1.8.2, seasonplan.ts). Absent on every older save, which
   // is the no-plan game and needs nothing. A damaged one is dropped rather than

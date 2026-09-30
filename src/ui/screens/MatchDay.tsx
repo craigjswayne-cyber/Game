@@ -1669,8 +1669,14 @@ function Live() {
         turnover: t('hl.turnover'), saved: t('hl.saved') },
       pid => (pid != null ? game.players[pid]?.name : undefined),
       (home, shirt) => { const id = (home ? ctx.home : ctx.away).lineup[shirt - 1]; return id != null ? game.players[id]?.a.pac : undefined },
-      // how each side attacks and defends, for the clip's shapes (1.8.2)
-      home => game.clubs[home ? fixture.homeId : fixture.awayId]?.tactic)
+      // how each side attacks and defends, for the clip's shapes (1.8.2): the
+      // styles the engine is playing this match (SideCtx.sty, an AI club's
+      // from its coach's philosophy), over the club's dials
+      home => {
+        const sd = home ? ctx.home : ctx.away
+        const tac = game.clubs[sd.teamId]?.tactic
+        return sd.sty ? { ...tac, atkStyle: sd.sty.atk, defStyle: sd.sty.def } : tac
+      })
     // the clip starts with its build-up, so the commentary never jumps: the
     // ticker reads on until it reaches the first line of it (in Key Moments,
     // which skips lines anyway, it is brought straight there)

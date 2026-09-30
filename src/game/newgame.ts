@@ -1,4 +1,5 @@
 import type { RawClub, RawPlayer } from '../data/types'
+import { migrateStyles } from './styles'
 import { refreshCaps } from './cap'
 import { GONE, verifiedClub } from '../data/verified'
 import { extraPlayers } from '../data/additions'
@@ -730,6 +731,10 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
       mine.tactic.lineup = autoSelect(state, pool, undefined, assistantJudgement(state))
     }
   }
+
+  // the manager's side starts on the styles nearest its dials (1.8.2), named
+  // so the Tactics screen shows them picked and a save carries them
+  migrateStyles(state)
 
   // a new manager starts with the benefit of the doubt from the terraces -
   // and the local hero (18B) starts with more than that at HIS club: the
