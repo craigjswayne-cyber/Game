@@ -8,7 +8,26 @@ const server = await startPreview('4177', 2500)
 
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 844, height: 390 } })
-await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
+// ONE WORLD, EVERY RUN (1.8.2 QA). The career the wizard starts took its seed
+// from Math.random, so each run measured a different world, and a page whose
+// depth is its content measured a different man: the scouted player at another
+// club read 2.85 to 3.22 screenfuls across ten worlds (his temperament card
+// runs one to three lines, his strengths one or two), against a limit of 3.0,
+// so the audit's verdict on that page was a coin. Math.random is seeded here
+// (mulberry32, seed 1) so the wizard starts the same world and the audit
+// measures the same pages every time; a change to a page now moves its number
+// and nothing else does.
+await page.addInitScript(() => {
+  localStorage.setItem('rm-night', '1')
+  let a = 1
+  Math.random = () => {
+    a = (a + 0x6D2B79F5) >>> 0
+    let t = a
+    t = Math.imul(t ^ (t >>> 15), t | 1)
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+})
 
 const rows = []
 
