@@ -3,6 +3,7 @@ import { addWeeks100, fmtMoney, logDecision, MAX_FACILITY, FACILITY_INFO,
   stamp100, weeksBetween100, type FacilityId } from './model'
 import { clamp } from './rng'
 import { t, tIn } from './i18n'
+import { chairAskTilt } from './chairman'
 
 /**
  * ---- THE BOARDROOM DOOR (owner, v1.8.3) ----
@@ -166,6 +167,9 @@ export function boardRequests(state: GameState): AskState[] {
       if (state.staffAskedSeason === state.season) { possible = false; blocked = t('board.blockStaffSeason') }
     }
 
+    // the man in the chair leans one way or another on each ask (chairman.ts):
+    // never shown, felt only in how often the door opens
+    if (possible) odds = clamp(odds + chairAskTilt(state, id), 0, 0.95)
     if (possible && cooling) {
       // the door is shut but knocking is allowed, and the button says so
       odds = 0

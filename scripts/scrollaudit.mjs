@@ -60,6 +60,19 @@ try {
   await measure('player: attributes')
   await page.click('.back-btn')
 
+  // A MAN AT ANOTHER CLUB (1.8.2): the scout report card sits on his profile
+  // with the fee talks under it, so his page is the one the report can deepen.
+  // Fully scouted, so every row of the report is filled in.
+  await page.evaluate(() => {
+    const S = window.rugbyStore.getState(); const g = S.game
+    const p = Object.values(g.players).find(q => q.clubId && q.clubId !== g.userClubId && !q.acad && q.age <= 22 && q.ca >= 65)
+    p.sc = 95
+    if (!g.shortlist.includes(p.id)) g.shortlist.push(p.id)
+    S.touch(); S.go('player', p.id)
+  })
+  await page.waitForSelector('.scout-report')
+  await measure('player: scouted, another club')
+
   await page.click('.bottom-nav button[title="Hub"]')
   await page.click('.submenu-item >> text=Tactics')
   await page.waitForSelector('.tab-bar')

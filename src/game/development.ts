@@ -91,7 +91,25 @@ export function setPlan(state: GameState, id: number, plan: TrainingFocus | null
   const p = state.players[id]
   if (!p || planBlock(p)) return false
   if (!had && cur.length >= planCap(state)) return false
-  // changing the programme keeps his place in the queue
-  state.plans = had ? cur.map(x => (x.id === id ? { id, plan } : x)) : [...cur, { id, plan }]
+  // changing the programme keeps his place in the queue, and his second
+  // programme unless it is now the same as the first
+  state.plans = had
+    ? cur.map(x => (x.id === id ? { ...x, plan, plan2: x.plan2 === plan ? undefined : x.plan2, pts: x.plan === plan ? x.pts : 0 } : x))
+    : [...cur, { id, plan }]
+  return true
+}
+
+/**
+ * THE SECOND PROGRAMME (1.8.2, a development plan with a primary and a
+ * secondary focus). Only for a man already on a plan, never the same as his
+ * first, and it takes no place in the book: it splits his week (season.ts
+ * rollPlan, seven parts to three) rather than adding one. null clears it.
+ */
+export function setPlan2(state: GameState, id: number, plan2: TrainingFocus | null): boolean {
+  const cur = (state.plans ?? []).filter(x => mine(state, x.id))
+  const e = cur.find(x => x.id === id)
+  if (!e) return false
+  if (plan2 != null && (plan2 === e.plan || plan2 === 'balanced')) return false
+  state.plans = cur.map(x => (x.id === id ? { ...x, plan2: plan2 ?? undefined } : x))
   return true
 }

@@ -34,7 +34,7 @@ import { clamp } from './rng'
 import { assistantJudgement, autoSelect } from './matchEngine'
 import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildLeague, schedulePreseason, buildWomensContinentalCup } from './schedule'
 import { punditPredictions } from './gossip'
-import { WEEK_BASIS, CHEM_SLOTS, RELEGATES, boardObjective, chemKey, fmtMoney, initFacilities, isWorldCupSeason, worldCupSeasonFor } from './model'
+import { WEEK_BASIS, CHEM_SLOTS, RELEGATES, chemKey, fmtMoney, initFacilities, isWorldCupSeason, worldCupSeasonFor } from './model'
 import { WATCH_KNOW, knowledge, leadRow, seedKnowledge } from './scout'
 import { ensureCaptains } from './analysis'
 import { CLUB_CAPTAINS, sameName } from '../data/captains'
@@ -42,6 +42,7 @@ import { pickObjectives } from './objectives'
 import { hashString, mulberry32 } from './rng'
 import { ACAD_SHAPE, ACADEMY_SIZE, acadQuality, ensureAcademyLeague } from './academy'
 import { t, tIn } from './i18n'
+import { demandedFinish } from './chairman'
 
 export interface Challenge {
   id: string
@@ -252,6 +253,31 @@ const M_LEAGUE_DEFS: () => LeagueDef[] = () => [
 export const W_OPENING_MONEY = 9
 export function openingBudget(raw: number, leagueId: string): number {
   return leagueId.startsWith(W) ? Math.round(raw * W_OPENING_MONEY) : raw
+}
+
+/**
+ * THE AIM THE WIZARD SHOWS, before a world exists (arc, 1.8.2). The board's
+ * aim depends on the kind of job (chairman.ts demandedFinish), and the kind of
+ * job reads budgets, grounds and facilities across the world. So the wizard
+ * builds those same numbers, on the same seed the career will be started with,
+ * and asks the same question the game will ask on day one. No rng is drawn.
+ */
+export function wizardAim(defs: LeagueDef[], clubId: string, seed: number): string {
+  const clubs: Record<string, Club> = {}
+  for (const def of defs) {
+    for (const rc of def.clubs) {
+      const budget = openingBudget(rc.budget, def.id)
+      const club = {
+        id: rc.id, rep: rc.rep, leagueId: def.id, capacity: rc.capacity, capacity0: rc.capacity,
+        budget, balance: Math.round(budget * 0.6), players: rc.players.length ? [0] : [],
+      } as unknown as Club
+      club.facilities = initFacilities(club, seed)
+      clubs[rc.id] = club
+    }
+  }
+  const def = defs.find(d => d.clubs.some(c => c.id === clubId))
+  const state = { seed, season: 0, week: 1, userClubId: clubId, clubs, history: [], comps: {}, mgr: { trophies: [], finishes: [] } } as unknown as GameState
+  return demandedFinish(state, clubId, def?.clubs.length ?? 14).text
 }
 
 export function newGame(userClubId: string, managerName: string, seed: number, challengeId?: string, origin: MgrOrigin = 'coach', gender: Gender = 'm', mgrGender: Gender = 'm'): GameState {
@@ -971,7 +997,7 @@ function squadAssessment(state: GameState): NewsItem {
       + (thin.length
         ? `Short at ${thin.join(', ')} - one injury there and someone plays out of position.\n`
         : `Every position has cover.\n`)
-      + `Board expects you to ${tIn('en', boardObjective(uc.rep).text)}. Budget ${fmtMoney(uc.budget)}, wages ${fmtMoney(squad.reduce((s, p) => s + p.wage, 0))} a week.\n\n`
+      + `Board expects you to ${tIn('en', demandedFinish(state, uc.id, state.comps[uc.leagueId]?.table.length ?? 14).text)}. Budget ${fmtMoney(uc.budget)}, wages ${fmtMoney(squad.reduce((s, p) => s + p.wage, 0))} a week.\n\n`
       + `I will have a read on the first opponent by Friday."`,
     k: 'news.squadRead',
     v: {
@@ -979,7 +1005,7 @@ function squadAssessment(state: GameState): NewsItem {
       best: bestList,
       depth_k: thin.length ? 'news.depthThin' : 'news.depthFull',
       thin: thin.join(', '),
-      aim_k: boardObjective(uc.rep).text,
+      aim_k: demandedFinish(state, uc.id, state.comps[uc.leagueId]?.table.length ?? 14).text,
       budget: fmtMoney(uc.budget), wages: fmtMoney(wages),
     },
   }

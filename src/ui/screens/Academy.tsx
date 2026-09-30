@@ -5,6 +5,7 @@ import { fixtureDate } from '../../game/model'
 import { CrestT, Mark, PosBadge, SectionTitle, Stars } from '../components'
 import { acadLeagueName, acadStandings, academySquad, academyStrength, academyXV, ensureAcademyLeague, ACADEMY_SIZE } from '../../game/academy'
 import { ord, t } from '../../game/i18n'
+import { scoutPa } from '../../game/scout'
 
 /** The academy section: the squad, the A League table, and the fixtures.
  *
@@ -68,7 +69,7 @@ export default function Academy() {
             <thead><tr><th>{t('squad.colPos')}</th><th>{t('squad.colName')}</th><th className="num">{t('report.acColAge')}</th><th>{t('transfers.colAbility')}</th>
               <th className="num">{t('report.acColApps')}</th><th className="num">{t('report.acColForm')}</th><th /></tr></thead>
             <tbody>
-              {[...squad].sort((a, b) => b.ca + b.pa / 2 - (a.ca + a.pa / 2)).map(p => (
+              {[...squad].sort((a, b) => b.ca + scoutPa(game, b) / 2 - (a.ca + scoutPa(game, a) / 2)).map(p => (
                 <tr key={p.id} onClick={() => go('player', p.id)} style={{ cursor: 'pointer' }}>
                   <td><PosBadge pos={p.pos} /></td>
                   <td className="name">{p.name}{p.injury && <> <Mark name="medical" color="var(--danger)" title={t('selection.injured')} /></>}</td>

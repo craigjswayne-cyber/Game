@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
 import type { Player, TrainingFocus } from '../../game/model'
-import { planCap, activePlan } from '../../game/season'
+import { planCap, activePlan, activeEntry } from '../../game/season'
 import { isForward } from '../../game/bench'
-import { FOCUS_MAX_AGE, FOCUS_SLOTS, focusBlock, focusIds, planBlock, planIds, setFocus, setPlan } from '../../game/development'
+import { FOCUS_MAX_AGE, FOCUS_SLOTS, focusBlock, focusIds, planBlock, planIds, setFocus, setPlan, setPlan2 } from '../../game/development'
+import { monthKey } from '../../game/devproject'
+import { scoutPa } from '../../game/scout'
 import { SectionTitle } from '../components'
 import { IcoSearch } from '../icons'
 import { t } from '../../game/i18n'
@@ -58,7 +60,9 @@ export default function DevelopmentPanel() {
   const needle = q.trim().toLowerCase()
   const match = (p: Player) => (!needle || p.name.toLowerCase().includes(needle))
     && (unit === 'all' || (unit === 'fwd') === isForward(p.pos))
-  const room = (p: Player) => p.pa - p.ca
+  // the room the STAFF see (1.8.2: a young man's ceiling is their estimate,
+  // scout.ts paRange), not the hidden number
+  const room = (p: Player) => Math.max(0, Math.round(scoutPa(game, p)) - p.ca)
   const order = (a: Player, b: Player) => view === 'focus' ? room(b) - room(a) : b.ca - a.ca
   const chosen = squad.filter(p => isOn(p)).sort(order)
   const eligible = squad.filter(p => !isOn(p) && !block(p)).sort(order)
@@ -147,6 +151,29 @@ export default function DevelopmentPanel() {
                   </select>
                 )}
               </div>
+              {/* THE DEVELOPMENT PLAN (1.8.2): how the month is going for a man
+                  on a programme or a focus place, and a second programme that
+                  splits his week (devproject.ts, season.ts rollPlan) */}
+              {on && (
+                <div className="meta" style={{ fontSize: 12, marginTop: 3 }}>
+                  {view === 'plans' && (activeEntry(game, p.id)?.pts ?? 0) > 0 && <>{t('dev.planOne', { plan: t(KINDS.find(k => k.id === cur)?.name ?? 'training.planNone'), n: activeEntry(game, p.id)?.pts ?? 0 })} </>}
+                  {t(monthKey(game, p))}
+                </div>
+              )}
+              {on && view === 'plans' && cur && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                  <span className="meta muted" style={{ flex: 1, minWidth: 0, fontSize: 11.5 }}>{t('dev.plan2Hint')}</span>
+                  <select className="inline-input" style={{ margin: 0, width: 128, flexShrink: 0, fontSize: 12, padding: '6px 6px' }}
+                    value={activeEntry(game, p.id)?.plan2 ?? ''}
+                    aria-label={t('dev.plan2For', { name: p.name })}
+                    onChange={e => {
+                      setPlan2(game, p.id, (e.target.value || null) as TrainingFocus | null); save()
+                    }}>
+                    <option value="">{t('dev.plan2None')}</option>
+                    {KINDS.filter(k => k.id !== cur).map(k => <option key={k.id} value={k.id}>{t(k.name)}</option>)}
+                  </select>
+                </div>
+              )}
               {said === p.id && full && (
                 <div className="meta" style={{ fontSize: 12, fontWeight: 700, color: 'var(--danger)', marginTop: 3 }}>
                   {t('training.bookFull', { cap })}

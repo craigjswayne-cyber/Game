@@ -262,25 +262,39 @@ export function flushIdentityNews(state: GameState) {
 /** Which of the club's labels this player's profile answers to, if any. */
 export function identityFit(state: GameState, p: Player): IdLabel | null {
   if (state.unemployed || !user(state)) return null
-  const a = p.a
-  for (const l of identityOf(state).labels) {
-    switch (l) {
-      case 'academy': if (p.age <= 21) return l; break
-      case 'running':
-      case 'flair': if (!isForward(p.pos) && (a.pac + a.agi + a.han) / 3 >= 13.5) return l; break
-      case 'kicking': if (['SH', 'FH', 'FB'].includes(p.pos) && (a.kic + a.goa) / 2 >= 13.5) return l; break
-      case 'pack': if (isForward(p.pos) && (a.scr + a.str + a.ruc) / 3 >= 13.5) return l; break
-      case 'spenders': if (p.pers === 'Mercenary' || p.pers === 'Ambitious') return l; break
-      case 'prudent': if (p.pers === 'Loyal' || p.pers === 'Professional') return l; break
-      default: break
-    }
-  }
+  for (const l of identityOf(state).labels) if (fitsLabel(p, l)) return l
   return null
+}
+
+/** Does this player's profile answer to this label? */
+function fitsLabel(p: Player, l: IdLabel): boolean {
+  const a = p.a
+  switch (l) {
+    case 'academy': return p.age <= 21
+    case 'running':
+    case 'flair': return !isForward(p.pos) && (a.pac + a.agi + a.han) / 3 >= 13.5
+    case 'kicking': return ['SH', 'FH', 'FB'].includes(p.pos) && (a.kic + a.goa) / 2 >= 13.5
+    case 'pack': return isForward(p.pos) && (a.scr + a.str + a.ruc) / 3 >= 13.5
+    case 'spenders': return p.pers === 'Mercenary' || p.pers === 'Ambitious'
+    case 'prudent': return p.pers === 'Loyal' || p.pers === 'Professional'
+    default: return false
+  }
+}
+
+/** A label the club has held long enough to be KNOWN for it (repute.ts):
+ *  read straight off the arc, so this file does not import its reader. */
+export const REPUTE_GAP = 2
+function reputeLabel(state: GameState): IdLabel | null {
+  const r = state.arc?.repute
+  return !state.unemployed && r && r.c === state.userClubId ? (r.l as IdLabel) : null
 }
 
 /** Reputation points of extra reach for a player who fits (interest.ts). */
 export function identityInterestLift(state: GameState, p: Player): number {
-  return identityFit(state, p) ? IDENTITY_GAP : 0
+  // and a little more when the club's reputation says the same thing: a label
+  // held for years is a name, and players have heard it (small, user side only)
+  const rep = reputeLabel(state)
+  return (identityFit(state, p) ? IDENTITY_GAP : 0) + (rep && fitsLabel(p, rep) ? REPUTE_GAP : 0)
 }
 
 /** Quality points added to the user's academy intake (rollIntakeClass). */
