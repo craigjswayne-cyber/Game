@@ -804,9 +804,9 @@
   "tapeUnread": "Sus analistas tienen {move_k} en el {pct}% de tu balón de primera fase. Si se prepararán contra ella, el informe no lo puede decir."
  },
  "moves": {
-  "mv_1331": "Pods 1-3-3-1",
+  "mv_1331": "Cargas a lo ancho",
   "mv_1331Desc": "Un pod de tres delanteros a cada lado del ruck y un delantero en cada extremo. Cargas en todo el ancho del campo.",
-  "mv_242": "Sistema 2-4-2",
+  "mv_242": "Corredores en los bordes",
   "mv_242Desc": "Cuatro delanteros en el centro del campo y dos terceras líneas en cada extremo, atacando a los tres cuartos.",
   "mv_backdoor": "Pods con pase por detrás",
   "mv_backdoorDesc": "Tres delanteros en pod junto al 9, con el 10 escondido detrás de ellos para el pase por la espalda.",
@@ -843,8 +843,8 @@
   "mv_grubber": "Patada rasa",
   "mv_grubberDesc": "Contra una línea que sube rápido, el 10 mete una patada rasa entre dos defensores para que la persigan los centros.",
   "say": {
-   "mv_1331": "el sistema 1-3-3-1",
-   "mv_242": "el sistema 2-4-2",
+   "mv_1331": "las cargas a lo ancho",
+   "mv_242": "los corredores en los bordes",
    "mv_backdoor": "los pods con pase por detrás",
    "mv_crash": "la carga del 12",
    "mv_switch": "el cruce",
@@ -867,7 +867,7 @@
   "headingSub": "jugadas ensayadas que tú cantas",
   "offLineout": "Jugada principal",
   "offScrum": "Jugada secundaria",
-  "shape": "Estructura base",
+  "shape": "Jugada de juego abierto",
   "none": "Sin llamada",
   "needPart": "{shirts}: {attrs}",
   "misfire": "Sin entrenar: saldrá mal",
