@@ -523,13 +523,32 @@ const EXPECTED: string[] = [
   // branch merged in at the end reads 49.4 / 6.30 / 52.3% / 1.7% / 8.5%)
   // Home advantage read 51.2% to 53.5% over nine runs while the styles were
   // tuned (per-seed spread 2 to 6 points), against 51.5% before them.
-  'saracens 17-37 bath',
-  'exeter 17-3 gloucester',
-  'sale 39-25 bristol',
-  'harlequins 51-13 leicester',
-  'newcastle 30-8 northampton',
+  'saracens 31-27 bath',
+  'exeter 24-42 gloucester',
+  'sale 31-28 bristol',
+  'harlequins 44-27 leicester',
+  'newcastle 27-31 northampton',
   'exeter 18-36 saracens',
 ]
+// REBASELINED for 1.8.2 depth (claude/182-depth), FIVE of six moved, and
+// WITHOUT a new draw on the shared stream: the match still takes the one draw
+// the old weather roll took (and throws it away), so every dice lands where it
+// did and only the thresholds they are compared against move. Why they move:
+//   - the day is now the fixture's (conditions.ts), by a hash of where and
+//     when it is played, so most fixtures get a different sky from before,
+//     and a damp day exists where it did not
+//   - a wet ball is turned over more, most for the handling styles, and wind
+//     cuts a kicking game's territory (styles.ts WET_TURN, WIND_TERR)
+//   - AI clubs pick between their coach's two styles with their league's lean
+//     (LEAGUE_LEAN), and a pod side plays a pod shape (POD_FX)
+//   - the injury roll's threshold carries the contact styles and the pitch
+//     (injuryF, centred on the world), and an artificial pitch gives its home
+//     side a small edge (ART_HOME)
+//   - six secret habits (habits.ts), each centred on the world's average side
+//   - a non-specialist in a specialist shirt, and Law 3's man off, where they occur
+// bandcheck, pooled over four seeds, before and after:
+//   pts 49.5 -> 49.9   tries 6.29 -> 6.36   home 53.0% -> 53.1%
+//   draws 1.4% -> 1.8%   blowouts 9.1% -> 8.8% (every band holds)
 // 1.8.1, the match engine and preparation round: ONE of six moved, and it is
 // the LEICESTER fixture again, because leicester is this world's user club and
 // a week nobody watches is now played the way a watched one is. The assistant
