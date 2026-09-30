@@ -159,7 +159,11 @@ export const ATK_KICKS: Record<AtkStyle, number> = { direct: 1, pods: 1, width: 
 
 /** the base chance a tick that comes to nothing ends in a turnover, and the
  *  metres it costs the side that lost the ball */
-export const TURN_BASE = 0.07
+// 0.06 rather than 0.07: every turnover is a tick lost and six metres given,
+// the same to both sides, so it is noise on the result; at 0.07 the home
+// win rate of single worlds sat a point lower (bandcheck's toulouse/777 read
+// 49.8% in movesprobe's tripwire), at 0.06 the pooled bands are unmoved
+export const TURN_BASE = 0.06
 export const TURN_M = 6
 /** what a fully fitting (or fully unsuited) XV adds to (or takes off) its
  *  style's effect on the try chance. The relative fit (styleFitRel) has a
