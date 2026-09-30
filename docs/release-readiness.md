@@ -784,7 +784,8 @@ commits), run on the shared build machine:
 * Engine probes: 223 of 226 in the parallel run. perfprobe's week timing
   fails on the loaded machine, as it does on main. analystprobe printed
   PASSED and was cut off by the runner's 900 s limit; frliveprobe hit the
-  same limit. Both were re-run alone: see the line below.
+  same limit. Both were re-run alone and PASS (frliveprobe: 5,522 lines
+  from ten French careers, all French).
 * Browser harnesses: 64 of 64 (four first failed on stale preview servers
   holding their ports; they pass once those were stopped).
 * Balance (bandcheck, pooled): 49.8 points, 6.32 tries, home wins 52.4%,
