@@ -39,8 +39,9 @@ export type Surface = 'grass' | 'hybrid' | 'artificial'
 export const SURFACES: Surface[] = ['grass', 'hybrid', 'artificial']
 
 /** Grounds with an artificial pitch, on the public record (the women's side
- *  of a club plays at the same ground). */
-const ARTIFICIAL = new Set(['saracens', 'newcastle', 'cardiff', 'glasgow', 'edinburgh', 'racing92'])
+ *  of a club plays at the same ground). Gloucester's Kingsholm joined the
+ *  list at the owner's word (1.8.2). */
+const ARTIFICIAL = new Set(['saracens', 'newcastle', 'cardiff', 'glasgow', 'edinburgh', 'racing92', 'gloucester'])
 /** the top of the game, where most grounds are hybrid */
 const TOP_TIER = new Set(['prem', 'top14', 'urc', 'srp', 'jl1', 'w:pwr', 'w:e1', 'w:pac', 'w:celt'])
 
