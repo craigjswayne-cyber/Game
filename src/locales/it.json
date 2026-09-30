@@ -265,7 +265,6 @@
    "one": "a {n} posto dall'obiettivo",
    "other": "a {n} posti dall'obiettivo"
   },
-  "objectives": "obiettivi {met}/{total}",
   "thread": "In sospeso",
   "tFormer": "{player}, un tempo tuo, gioca per {club}",
   "tRival": "{coach} sull'altra panchina: {w}-{d}-{l}",
@@ -312,6 +311,8 @@
   "dreamDone": "IL SOGNO, REALIZZATO",
   "circling": "In agguato",
   "seasonAhead": "La stagione che verrà",
+  "objectives": "Obiettivi stagionali · {met}/{total} in linea",
+  "onCourse": " (in linea)",
   "tentpoleThisWeek": " questa settimana",
   "tentpoleIn": {
    "one": " fra {n} sett.",

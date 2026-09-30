@@ -262,7 +262,6 @@
    "one": "{n} place off the aim",
    "other": "{n} places off the aim"
   },
-  "objectives": "objectives {met}/{total}",
   "thread": "Still to be answered",
   "tFormer": "{player}, once yours, lines up for {club}",
   "tRival": "{coach} in the other dugout: {w}-{d}-{l}",
@@ -309,6 +308,8 @@
   "dreamDone": "THE DREAM, REALISED",
   "circling": "Circling",
   "seasonAhead": "The Season Ahead",
+  "objectives": "Season Objectives · {met}/{total} on track",
+  "onCourse": " (on course)",
   "tentpoleThisWeek": " this week",
   "tentpoleIn": {
    "one": " in {n} wk",

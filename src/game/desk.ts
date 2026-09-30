@@ -54,7 +54,6 @@ import { rankedComps, type RotIntent } from './seasonplan'
 import { recall } from './memory'
 import { rivalCoach } from './rivalcoach'
 import { demandedFinish } from './chairman'
-import { objectiveById, type ObjectiveDef } from './objectives'
 import { defSystemOf, PRESETS } from './tactics'
 import type { Club } from './model'
 
@@ -340,11 +339,7 @@ function seasonRow(state: GameState): DeskRow | null {
   const n = comp.table.length || 14
   const aim = demandedFinish(state, club.id, n)
   const pos = leaguePos(comp.table, club.id)
-  // the board's side objectives, counted the way the Finances board card
-  // lists them (the list itself lives there, beside the aim)
-  const objs = (state.objectives ?? []).map(objectiveById).filter((o): o is ObjectiveDef => !!o && o.applies(state))
-  const obj: DeskLine[] = objs.length ? [{ k: 'desk.objectives', v: { met: objs.filter(o => o.met(state)).length, total: objs.length } }] : []
-  if (!pos) return { id: 'season', label: 'desk.season', go: { screen: 'tables' }, lines: [{ k: 'desk.seasonAim', v: { aim_k: aim.text } }, ...obj] }
+  if (!pos) return { id: 'season', label: 'desk.season', go: { screen: 'tables' }, lines: [{ k: 'desk.seasonAim', v: { aim_k: aim.text } }] }
   const row = sortTable(comp.table).find(r => r.teamId === club.id)
   const gap = pos - aim.pos
   return {
@@ -352,7 +347,6 @@ function seasonRow(state: GameState): DeskRow | null {
     lines: [
       { k: 'desk.seasonPos', v: { pos_o: pos, pts: row?.pts ?? 0 } },
       gap <= 0 ? { k: 'desk.seasonOn' } : { k: 'desk.seasonShort', v: { n: gap } },
-      ...obj,
     ],
   }
 }

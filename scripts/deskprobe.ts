@@ -290,7 +290,6 @@ const SAMPLE: { k: string; v?: Record<string, string | number> }[] = [
   { k: 'desk.priority', v: { comp: 'English Premier Division', rot_k: 'selection.rotProtect' } },
   { k: 'desk.roomFine', v: { word_k: 'profile.trustWall' } },
   { k: 'desk.seasonAim', v: { aim_k: 'arc.aimTop4' } }, { k: 'desk.seasonPos', v: { pos_o: 3, pts: 21 } }, { k: 'desk.seasonOn' },
-  { k: 'desk.objectives', v: { met: 1, total: 3 } },
   { k: 'desk.tFormer', v: { player: 'A', club: 'Bath' } }, { k: 'desk.tRival', v: { coach: 'C', w: 2, d: 0, l: 3 } },
   { k: 'desk.tPromise_plans', v: { player: 'A' } }, { k: 'desk.tPromise_minutes', v: { player: 'A' } }, { k: 'desk.tPromise_deal', v: { player: 'A' } },
   { k: 'desk.tRushed', v: { player: 'A' } }, { k: 'desk.tProjUp', v: { player: 'A' } }, { k: 'desk.tProjDown', v: { player: 'A' } },

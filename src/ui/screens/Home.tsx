@@ -8,6 +8,7 @@ import { leaguePos, sortTable } from '../../game/schedule'
 import { arrangeFriendly, assistantFixtureThisWeek, userFixtureThisWeek } from '../../game/season'
 import { teamShort } from '../../game/matchEngine'
 import { derbyName, rivalsOf } from '../../game/rivalries'
+import { OBJECTIVE_DEFS } from '../../game/objectives'
 import { dreamNote, dreamPct, dreamState, dreamTitle } from '../../game/dream'
 import { matchStakes, seasonTentpoles } from '../../game/stakes'
 import { huntLine } from '../../game/living'
@@ -348,9 +349,33 @@ export default function Home() {
           </button>
         )
       })()}
-      {/* THE SEASON OBJECTIVES are a count on the desk's season row now
-          (1.8.2): the list, with its ticks and what each is worth, is the
-          board card on Finances, beside the aim it sits under. */}
+      {/* THE SEASON OBJECTIVES stay on Home (owner, 1.8.2), one card, and the
+          desk does not count them a second time. */}
+      {(() => {
+        const objs = (game.objectives ?? []).map(id => OBJECTIVE_DEFS.find(o => o.id === id)).filter(Boolean)
+        if (!objs.length) return null
+        return (
+          <button className="card" onClick={() => go('finances')}>
+            {/* A TICK MEANS DONE, AND DONE HAS TO MEAN DONE. An objective that
+                is banked once achieved (six starts given, a derby won) is ticked
+                the moment it happens; one that is merely true today reads as on
+                course until the season is over - see ObjectiveDef.banked. */}
+            <div className="fact-label">{t('home.objectives', { met: objs.filter(o => o!.met(game)).length, total: objs.length })}</div>
+            <div className="meta" style={{ display: 'flex', flexWrap: 'wrap', gap: '2px 14px' }}>
+              {objs.map(o => {
+                const met = o!.met(game)
+                const done = met && o!.banked
+                return (
+                  <span key={o!.id} style={{ color: done ? 'var(--text-positive)' : met ? 'var(--info)' : 'var(--text-secondary)' }}>
+                    {done ? '✓' : met ? '◍' : '○'} {t(o!.textKey(game))}
+                    {met && !o!.banked ? t('home.onCourse') : ''}
+                  </span>
+                )
+              })}
+            </div>
+          </button>
+        )
+      })()}
       {game.review && game.review.season === game.season - 1 && game.week <= 6 && (
         <button className="card" style={{ borderLeft: '4px solid var(--gold)' }}
           onClick={() => go('seasonreview')}>

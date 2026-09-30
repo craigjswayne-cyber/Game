@@ -266,7 +266,6 @@
    "one": "a {n} puesto del objetivo",
    "other": "a {n} puestos del objetivo"
   },
-  "objectives": "objetivos {met}/{total}",
   "thread": "Pendiente",
   "tFormer": "{player}, que fue tuyo, juega con {club}",
   "tRival": "{coach} en el otro banquillo: {w}-{d}-{l}",
@@ -313,6 +312,8 @@
   "dreamDone": "EL SUEÑO, CUMPLIDO",
   "circling": "Te rondan",
   "seasonAhead": "La temporada por delante",
+  "objectives": "Objetivos de la temporada · {met}/{total} en buen camino",
+  "onCourse": " (por buen camino)",
   "tentpoleThisWeek": " esta semana",
   "tentpoleIn": {
    "one": " en {n} sem",

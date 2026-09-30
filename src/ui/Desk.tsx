@@ -13,7 +13,6 @@ import { t } from '../game/i18n'
 import { deskText, type Desk, type DeskDecision, type DeskGo, type DeskRow } from '../game/desk'
 import { newsSubject, pressLabel, pressQuestion } from '../game/model'
 import { prose, speech } from '../game/quotes'
-import { StudioMark } from './components'
 import { IcoChevron } from './icons'
 
 function useGo() {
@@ -95,7 +94,6 @@ export function DeskCard({ desk, match }: { desk: Desk; match: ReactNode }) {
               <span>{t('desk.decide')}</span>
               {list.length ? <b className="desk-n">{list.length}</b> : null}
             </div>
-            <StudioMark size={26} />
           </div>
           {list.length === 0 && <div className="meta muted desk-clear">{t('desk.clear')}</div>}
           {shown.map((d, i) => <Decision key={`${d.kind}-${d.pressId ?? i}`} d={d} open={i === open} />)}
