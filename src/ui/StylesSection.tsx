@@ -86,7 +86,11 @@ export default function StylesSection({ game, club, touch }: { game: GameState; 
         style's effect a little each way, and the clip draws the shape */}
     {atk === 'pods' && (
       <div className="card" data-pod-shape={mine.pod ?? '1331'}>
-        <div className="preset-row" role="radiogroup" aria-label={t('styles.podHeading')}>
+        {/* named on screen (1.8.3): the chips alone read like the Playbook's
+            base shapes, which are a separate call. On the chip row, not
+            over it, so the tab stays under three screenfuls (scrollaudit) */}
+        <div className="preset-row" role="radiogroup" aria-label={t('styles.podHeading')} style={{ alignItems: 'center', marginTop: 0 }}>
+          <span className="fact-label" style={{ marginRight: 2 }}>{t('styles.podHeading')}</span>
           {POD_SHAPES.map(id => (
             <button key={id} className={`preset-chip${(mine.pod ?? '1331') === id ? ' on' : ''}`} role="radio"
               aria-checked={(mine.pod ?? '1331') === id} data-pod={id} onClick={() => { applyPodShape(tac, id); touch() }}>
@@ -125,6 +129,8 @@ export default function StylesSection({ game, club, touch }: { game: GameState; 
         {theirs && vsLine(-MATCHUP[theirs.atk][def], t(atkName(theirs.atk)))}
       </div>
     </div>
-    <div className="meta" style={{ padding: '2px 16px 0' }}>{t('styles.presetNote')}</div>
+    {/* the note that sat here ("Picking a style sets the dials under Fine
+        Tune") went in 1.8.3: Fine Tune opens by saying the same, and the
+        Playbook pointer took its line at the top of the view */}
   </>
 }
