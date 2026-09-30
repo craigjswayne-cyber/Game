@@ -9,6 +9,7 @@ import { fineAttr, playerWage } from '../../game/attributes'
 import { attrRange, fuzzedCa, knowledge, paRange, persKnown, reportStage, seenValue, wonderkidKnown } from '../../game/scout'
 import { benchNote, temperRead } from '../../game/temperament'
 import { formTrend, traitHints } from '../../game/formtraits'
+import { habitHint } from '../../game/habits'
 import { bondsLine } from '../../game/bonds'
 import { canAgencyFile } from '../../game/rewarded'
 import { rewardedAvailable } from '../../game/monetise'
@@ -162,6 +163,10 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         // the hidden form tendencies, in plain words at the same thresholds
         // (formtraits.ts): never a name for them
         const hints = traitHints(game, p)
+        // and at most one plain line about a secret habit (habits.ts), for
+        // his own staff only once they know him fully: never a name for it
+        const habit = habitHint(game, p)
+        if (habit) hints.push(habit)
         if (!tr.lines.length && !bn && !hints.length) return null
         return (
           <div className="card temper-card">

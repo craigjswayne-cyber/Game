@@ -1,7 +1,7 @@
 import type { Attrs, Club, GameState } from '../game/model'
 import {
-  ATK_STYLES, DEF_STYLES, MATCHUP, STYLE_MOVES, STYLE_NEEDS, applyAtkStyle, applyDefStyle, atkBeats, atkName, defBeats, defName,
-  styleFitRel, stylesOf, type AtkStyle, type DefStyle,
+  ATK_STYLES, DEF_STYLES, MATCHUP, POD_SHAPES, STYLE_MOVES, STYLE_NEEDS, applyAtkStyle, applyDefStyle, applyPodShape, atkBeats, atkName, defBeats, defName,
+  podDesc, podName, styleFitRel, stylesOf, type AtkStyle, type DefStyle,
 } from '../game/styles'
 import { MOVE_BY_ID } from '../game/moves'
 import { userFixtureThisWeek } from '../game/season'
@@ -81,6 +81,22 @@ export default function StylesSection({ game, club, touch }: { game: GameState; 
         <span className="d">{moves.length ? t('styles.movesFit', { moves: moves.join(', ') }) : t('styles.movesKick')}</span>
       </div>
     </div>
+    {/* THE POD SHAPE (1.8.2 depth): the second decision inside a pod game,
+        where the eight forwards stand; styles.ts POD_FX shifts the Pods
+        style's effect a little each way, and the clip draws the shape */}
+    {atk === 'pods' && (
+      <div className="card" data-pod-shape={mine.pod ?? '1331'}>
+        <div className="preset-row" role="radiogroup" aria-label={t('styles.podHeading')}>
+          {POD_SHAPES.map(id => (
+            <button key={id} className={`preset-chip${(mine.pod ?? '1331') === id ? ' on' : ''}`} role="radio"
+              aria-checked={(mine.pod ?? '1331') === id} data-pod={id} onClick={() => { applyPodShape(tac, id); touch() }}>
+              {t(podName(id))}
+            </button>
+          ))}
+        </div>
+        <div className="meta">{t(podDesc(mine.pod ?? '1331'))}</div>
+      </div>
+    )}
 
     <SectionTitle sub={t('styles.defSub')}>{t('styles.defHeading')}</SectionTitle>
     <div className="routine-grid st-grid" role="radiogroup" aria-label={t('styles.defHeading')}>

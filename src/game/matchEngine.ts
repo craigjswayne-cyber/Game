@@ -29,6 +29,8 @@ import {
 } from './bench'
 import { rememberDebut } from './memory'
 import { ATK_KICKS, atkSay, defSay, moveAffinity, styleDrain, styleFitRel, styleTerr, styleTick, stylesOf, TURN_M, type SideStyle } from './styles'
+import { ART_HOME, clubSurface, goalPenaltyOf, injuryF, matchConditions, styleWx, surfaceOf, wetness, type Surface } from './conditions'
+import { HABITS, HABITS_OFF, clutchKick, habitFx } from './habits'
 
 /**
  * How many replacements a side may make in a match.
@@ -44,21 +46,6 @@ import { ATK_KICKS, atkSay, defSay, moveAffinity, styleDrain, styleFitRel, style
  * and simtest is the check on what it does to the game.
  */
 export const MAX_SUBS = 8
-
-/** Seasonal weather: wetter and colder through the winter weeks. */
-export function rollWeather(week: number, rng: Rng): Weather {
-  const winter = week >= 13 && week <= 29
-  const r = rng()
-  if (winter) {
-    if (r < 0.04) return 'Snow'
-    if (r < 0.38) return 'Rain'
-    if (r < 0.52) return 'Wind'
-    return 'Dry'
-  }
-  if (r < 0.16) return 'Rain'
-  if (r < 0.28) return 'Wind'
-  return 'Dry'
-}
 
 // ------------------------------------------------------------------
 // Selection
@@ -358,6 +345,18 @@ export function teamUnits(state: GameState, lineup: (number | null)[], day?: { f
   attack *= Math.min(atkT, 1.05)
   breakdown *= Math.min(brkT, 1.06)
   scrum *= Math.min(scrT, 1.04)
+  // THE SPECIALIST SHIRTS (1.8.2 depth). A prop, a hooker and a scrum-half
+  // are trades, not positions: a man who has never packed down cannot hold
+  // up a scrum, a hooker who has never thrown in cannot hit a jumper, and a
+  // nine who has never passed off the base slows every ruck. So the platform
+  // pays heavily for a non-specialist in those shirts, on top of what his own
+  // attributes already cost it (specialistGaps says which).
+  const gaps = specialistGaps(xv)
+  for (const g of gaps) {
+    if (g === 0 || g === 2) scrum *= SPEC_PROP
+    else if (g === 1) { scrum *= SPEC_HOOK_SCRUM; lineout *= SPEC_HOOK_LINEOUT }
+    else if (g === 8) { attack *= SPEC_NINE_ATT; kicking *= SPEC_NINE_KICK }
+  }
   // best goal kicker on the pitch
   let kickerId: number | null = null
   let goal = 5
@@ -366,6 +365,26 @@ export function teamUnits(state: GameState, lineup: (number | null)[], day?: { f
   }
   const overall = scrum * 0.16 + lineout * 0.12 + breakdown * 0.18 + attack * 0.24 + defence * 0.22 + kicking * 0.08
   return { scrum, lineout, breakdown, attack, defence, kicking, goal, overall, kickerId }
+}
+
+/** the platform's price for a non-specialist in each specialist shirt */
+export const SPEC_PROP = 0.84
+export const SPEC_HOOK_SCRUM = 0.92
+export const SPEC_HOOK_LINEOUT = 0.8
+export const SPEC_NINE_ATT = 0.94
+export const SPEC_NINE_KICK = 0.94
+/** The specialist shirts a man is filling without the trade: 0 and 2 (the
+ *  props: any trained prop will do on either side), 1 (hooker) and 8 (scrum-
+ *  half). An empty shirt is not counted here; it is already a weak man. */
+export function specialistGaps(xv: (Player | null | undefined)[]): number[] {
+  const out: number[] = []
+  const can = (p: Player, ps: Pos[]) => ps.includes(p.pos) || p.alt.some(a => ps.includes(a))
+  const need: [number, Pos[]][] = [[0, ['LP', 'TP']], [1, ['HK']], [2, ['LP', 'TP']], [8, ['SH']]]
+  for (const [i, ps] of need) {
+    const p = xv[i]
+    if (p && !can(p, ps)) out.push(i)
+  }
+  return out
 }
 
 // ------------------------------------------------------------------
@@ -1038,11 +1057,43 @@ export interface SideCtx {
   /** turnovers this side's defence won through its style, and how many of
    *  its own ticks it lost the ball in (styleprobe reads both) */
   styTurnWon?: number
+  /** the ball this side lost in its own ticks that came to nothing (the
+   *  half-time read counts it) */
+  styTurnLost?: number
+  /** its backs' sure hands (habits.ts): a multiplier on the chance a tick
+   *  that comes to nothing is turned over, 1 for an average side */
+  handsF?: number
+  /** a man taken off under Law 3 while a front-rower sits a yellow, back on
+   *  when the binned man returns (checkFrontRow) */
+  lawOut?: { id: number; binned: number } | null
+  /** the men already named in the commentary as out of a specialist shirt */
+  specSaid?: Set<number>
   /** the three set-piece units summed over the ticks played, and how many.
    *  The coach's verdict reads the match's average from these: now that a
    *  side's units follow its replacements, the full-time figure is the pack
    *  that finished the game, not the one that contested most of it. */
   setAcc?: { scrum: number; lineout: number; breakdown: number; n: number }
+}
+
+/** WHAT THE SKY DOES TO THE UNITS (conditions.ts), one place for kick-off and
+ *  every rebuild: wet weather is forward weather, a damp day a third of it,
+ *  wind takes a little off the kicking game; and the men who relish a heavy
+ *  pitch (habits.ts) find a little more when it is wet. */
+function weatherUnits(state: GameState, side: SideCtx, weather: Weather | null) {
+  if (!weather) return
+  if (weather === 'Rain' || weather === 'Snow') {
+    side.units.attack *= weather === 'Snow' ? 0.86 : 0.90
+    side.units.breakdown *= 1.04
+  } else if (weather === 'Damp') {
+    side.units.attack *= 0.965
+    side.units.breakdown *= 1.013
+  }
+  if (weather === 'Wind') side.units.kicking *= 0.92
+  const wet = wetness(weather)
+  if (wet > 0) {
+    const shirts = fieldLineup(side).slice(0, 15).map(id => (id != null && side.onPitch.has(id) ? state.players[id] ?? null : null))
+    side.units.attack *= habitFx(state.seed, shirts, wet).mudAtk
+  }
 }
 
 /** Tactic + weather + coaching modifiers, applied to freshly computed units. */
@@ -1423,11 +1474,16 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
       side.units[EXPLOITED_BY[read.unit]] *= 1 + homework
     }
   }
-  if (weather === 'Rain' || weather === 'Snow') {
-    side.units.attack *= weather === 'Snow' ? 0.86 : 0.90
-    side.units.breakdown *= 1.04 // wet weather is forward weather
+  weatherUnits(state, side, weather)
+  // THE MEN'S HABITS (habits.ts): secret, centred on the world, read off the
+  // men actually out there, so a sub or a card re-reads them
+  {
+    const hx = HABITS.on ? habitFx(state.seed, shirts.map(id => (present(id) ? state.players[id] ?? null : null)), 0) : HABITS_OFF
+    side.units.lineout *= hx.lineout
+    side.penRisk *= hx.pen
+    side.units.defence *= hx.defence
+    side.handsF = hx.hands
   }
-  if (weather === 'Wind') side.units.kicking *= 0.92
   // Anything the match itself layered on goes back on last. Without this, a
   // substitution in the 68th minute silently erased the bench plan that had
   // just been applied at the 64th, because recomputeSideUnits starts over.
@@ -1846,6 +1902,9 @@ export interface LiveCtx {
   chemToday?: Set<string>
   detail: boolean
   weather: Weather
+  /** the pitch it is played on (conditions.ts): absent on a match begun by
+   *  an older build, read as hybrid */
+  surface?: Surface
   derby: boolean
   goalPenalty: number
   hfa: number
@@ -1965,6 +2024,8 @@ const DEPICTS: Record<string, NonNullable<MatchEvent['fx']>> = {
   'comm.uncontested': 'SCRUM',      // the referee orders uncontested scrums
   'comm.uncontestedNow': 'SCRUM',   // the last trained front-rower goes off
   'comm.uncontestedShort': 'SCRUM', // Law 3.20: a second man leaves with him
+  'comm.uncontestedNoRep': 'SCRUM', // Law 3: the injured front-rower cannot be replaced
+  'comm.uncontestedBin': 'SCRUM',   // Law 3: a second man sits the ten minutes out with him
   'comm.contestedAgain': 'SCRUM',   // the binned front-rower returns
   'comm.frontRowReturns': 'SCRUM',  // Law 3.35: a replaced front-rower comes back
   'comm.flav9': 'LINEOUT',          // steals the lineout against the throw
@@ -2085,17 +2146,20 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
   const big = !!fx.stage || derby
   const home = mkSide(state, fx.homeId, userTeamId, fx.id, big)
   const away = mkSide(state, fx.awayId, userTeamId, fx.id, big)
-  const weather = rollWeather(state.week, rng)
+  // THE CONDITIONS (conditions.ts) are the fixture's, by a hash of where and
+  // when it is played. The draw the old weather roll took is still taken, and
+  // thrown away, so every dice after it in the match is where it always was.
+  // A fixture that already carries its day keeps it (a probe that asks for a
+  // wet day sets one; the game itself never sets it before kick-off).
+  rng()
+  const weather = fx.weather ?? matchConditions(state, fx)
+  const surface: Surface = surfaceOf(state, fx)
   fx.weather = weather
   fx.derby = derby
   let goalPenalty = 0
   const ref = refFor(fx.id)
   for (const side of [home, away]) {
-    if (weather === 'Rain' || weather === 'Snow') {
-      side.units.attack *= weather === 'Snow' ? 0.86 : 0.90
-      side.units.breakdown *= 1.04
-    }
-    if (weather === 'Wind') side.units.kicking *= 0.92
+    weatherUnits(state, side, weather)
     if (derby) side.cardRisk *= 1.35
     // ---- SOMEBODY TOLD THEM HOW YOU PLAY ----
     // A rival coach briefed a journalist about your side this week
@@ -2333,9 +2397,7 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     }
   }
 
-  if (weather === 'Rain') goalPenalty = 0.09
-  if (weather === 'Wind') goalPenalty = 0.09
-  if (weather === 'Snow') goalPenalty = 0.1
+  goalPenalty = goalPenaltyOf(weather)
 
   // Attendance breathes with success: winning sides pack the ground,
   // struggling ones see gaps - and no two gates are ever identical.
@@ -2420,9 +2482,15 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
   // the winner of the first semi-final, and Twickenham does not sing for him.
   // Exactly 1.0 - a deterministic gate, no rng consulted, so only finals move.
   if (fx.venue) hfa = 1
+  // THE PLASTIC PITCH (1.8.2 depth, conditions.ts). A side that plays every
+  // home match on an artificial surface knows its pace and its bounce, and a
+  // visitor raised on grass does not: a small edge to the home side there,
+  // about what the clubs that play on one have measured for themselves.
+  // Nothing on grass or hybrid, nothing between two artificial grounds.
+  else if (surface === 'artificial' && state.clubs[fx.awayId] && clubSurface(state.clubs[fx.awayId]) !== 'artificial') hfa *= ART_HOME
 
   const ctx: LiveCtx = {
-    fx, home, away, rng, detail, weather, derby, goalPenalty,
+    fx, home, away, rng, detail, weather, surface, derby, goalPenalty,
     crng: mulberry32(((Math.imul(fx.id | 0, 2654435761) ^ Math.imul(state.season | 0, 40503) ^ 0x5eed) >>> 0) || 1),
     hfa,
     events: [], lastMin: 0,
@@ -2472,10 +2540,12 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     pushLine(state, ctx, 0, 'KO', home, 'comm.koGrudge', { reason_k: grudge.rk ?? 'common.nothing', ...(grudge.rv ?? {}), ...koSty })
   } else {
     pushLine(state, ctx, 0, 'KO', home, 'comm.koPlain', {
-      wx_k: weather === 'Rain' ? 'comm.koRain' : weather === 'Wind' ? 'comm.koWind' : weather === 'Snow' ? 'comm.koSnow' : 'common.nothing',
+      wx_k: weather === 'Rain' ? 'comm.koRain' : weather === 'Wind' ? 'comm.koWind' : weather === 'Snow' ? 'comm.koSnow' : weather === 'Damp' ? 'comm.koDamp' : 'common.nothing',
       ...koSty,
     })
   }
+  noteSpecialists(state, ctx, home)
+  noteSpecialists(state, ctx, away)
   if (uncontested) {
     ctx.uncontested = true
     const short = !homeFR.legal
@@ -2650,7 +2720,9 @@ function noteKick(ctx: LiveCtx, side: SideCtx, made: boolean) {
 function takePenaltyShot(state: GameState, ctx: LiveCtx, side: SideCtx, min: number) {
   const { rng, detail, goalPenalty } = ctx
   const kicker = goalKicker(state, side)
-  const pPen = kickChance(state, kicker, 0.53, 54, ctx.goalPenalty ?? 0, side)
+  const other = side === ctx.home ? ctx.away : ctx.home
+  // the kicker's nerve with the match on the line (habits.ts): a threshold, never a draw
+  const pPen = clamp(kickChance(state, kicker, 0.53, 54, ctx.goalPenalty ?? 0, side) + clutchKick(state.seed, kicker, min, side.score - other.score), 0.3, 0.92)
   const penOver = rng() < pPen
   noteKick(ctx, side, penOver)
   if (penOver) {
@@ -3275,7 +3347,8 @@ function scoreTry(
     side.ratings.set(scorer.id, (side.ratings.get(scorer.id) ?? 6) + 0.2)
   }
   const kicker = goalKicker(state, side)
-  const pCon = kickChance(state, kicker, 0.495, 54, goalPenalty, side)
+  const pCon = clamp(kickChance(state, kicker, 0.495, 54, goalPenalty, side)
+    + clutchKick(state.seed, kicker, min, side.score - (side === ctx.home ? ctx.away : ctx.home).score), 0.3, 0.92)
   const conOver = rng() < pCon
   noteKick(ctx, side, conOver)
   if (conOver) {
@@ -3567,17 +3640,36 @@ function returningFrontRower(state: GameState, side: SideCtx): Player | null {
   return best
 }
 
-/** A front-rower has just gone off. If nobody trained is left to take his
- *  place the referee orders uncontested scrums from here (Law 3): both packs
- *  are levelled the way kick-off levels them, so the side with the better
- *  scrum pays for the other's shortage. A RED CARD costs more than an
- *  injury: under Law 3.20 the side must also send a second player off, so the
- *  uncontested scrum is never something a sending-off can buy cheaply. A
- *  yellow costs no second man here (a simplification of the law, which asks
- *  for one for the ten minutes); it keeps the levelling factors so the scrum
- *  is contested again when the binned man returns and the cover is back
- *  (simTick, the bin block). */
-export function checkFrontRow(state: GameState, ctx: LiveCtx, side: SideCtx, min: number, lost: Player, cause: 'red' | 'yellow' | 'injury') {
+/**
+ * A front-rower has just gone off. If nobody trained is left to take his
+ * place the referee orders uncontested scrums from here: both packs are
+ * levelled the way kick-off levels them, so the side with the better scrum
+ * pays for the other's shortage.
+ *
+ * THE LAW AS IMPLEMENTED (World Rugby Law 3, uncontested scrums, and the
+ * law application guidelines on it, 2017 and 2020). When uncontested scrums
+ * are ordered because of a sending-off, a temporary suspension or an injury,
+ * the player whose departure caused them cannot be replaced, so the team that
+ * caused them plays a man fewer than it otherwise would:
+ *
+ *   injury   the injured front-rower is not replaced: whoever came on for
+ *            him goes back off (or, with nobody on, the side's least-used man
+ *            in the loose), and the side plays with fourteen
+ *   red      the side is already a man down for the card, and loses a second
+ *            man as well, so it plays with thirteen for the rest of the match
+ *   yellow   a second man leaves with him for the ten minutes (thirteen), and
+ *            both return together when the bin ends (simTick, the bin block),
+ *            which is also when the scrum is contested again if the cover is back
+ *   hia      a temporary replacement for a head injury assessment that becomes
+ *            permanent is treated as the guidelines treat a blood replacement
+ *            that becomes permanent: the side does not lose a player
+ *
+ * The man taken off is the least valuable non-front-rower still out there,
+ * the one a coach would choose. The guidelines' exception for an injury
+ * caused by foul play is not modelled: nothing in the engine injures a man by
+ * foul play, so no injury qualifies for it.
+ */
+export function checkFrontRow(state: GameState, ctx: LiveCtx, side: SideCtx, min: number, lost: Player, cause: 'red' | 'yellow' | 'injury' | 'hia', replaced = true) {
   if (ctx.uncontested || !isFrontRower(lost)) return
   if (liveFrontRowCover(state, side)) return
   const { home, away } = ctx
@@ -3589,17 +3681,19 @@ export function checkFrontRow(state: GameState, ctx: LiveCtx, side: SideCtx, min
   ctx.uncontested = true
   ctx.uncontestedUndo = cause === 'yellow' ? { home: homeF, away: awayF } : null
   pushLine(state, ctx, min, 'SUB', side, 'comm.uncontestedNow', { team: teamShort(state, side.teamId), player: lost.name }, lost.id)
-  if (cause === 'red') {
-    // the second man off: the least valuable non-front-rower still out there
-    const rest = [...side.onPitch].map(id => state.players[id]).filter((p): p is Player => !!p && !isFrontRower(p))
-    if (!rest.length) return
-    let nom = rest[0]
-    for (const p of rest) if ((side.ratings.get(p.id) ?? 6) < (side.ratings.get(nom.id) ?? 6)) nom = p
-    side.onPitch.delete(nom.id)
-    side.short += 1
-    fieldChanged(state, ctx, side, min)
-    pushLine(state, ctx, min, 'SUB', side, 'comm.uncontestedShort', { team: teamShort(state, side.teamId), player: nom.name }, nom.id)
-  }
+  // an injured man nobody came on for has already left the side a man short
+  if (cause === 'hia' || (cause === 'injury' && !replaced)) return
+  // the man off: the least valuable non-front-rower still out there
+  const rest = [...side.onPitch].map(id => state.players[id]).filter((p): p is Player => !!p && !isFrontRower(p))
+  if (!rest.length) return
+  let nom = rest[0]
+  for (const p of rest) if ((side.ratings.get(p.id) ?? 6) < (side.ratings.get(nom.id) ?? 6)) nom = p
+  side.onPitch.delete(nom.id)
+  side.short += 1
+  if (cause === 'yellow') side.lawOut = { id: nom.id, binned: lost.id }
+  fieldChanged(state, ctx, side, min)
+  pushLine(state, ctx, min, 'SUB', side, cause === 'injury' ? 'comm.uncontestedNoRep' : cause === 'yellow' ? 'comm.uncontestedBin' : 'comm.uncontestedShort',
+    { team: teamShort(state, side.teamId), player: nom.name, lost: lost.name }, nom.id)
 }
 
 /**
@@ -3906,6 +4000,12 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       s.binned.delete(id)
       const p = state.players[id]
       if (p && !p.injury && s.lineup.slice(0, 15).includes(id)) s.onPitch.add(id)
+      // Law 3: the man who went off with a binned front-rower comes back with him
+      if (s.lawOut && s.lawOut.binned === id) {
+        const o = state.players[s.lawOut.id]
+        if (o && !o.injury && s.lineup.slice(0, 15).includes(o.id)) { s.onPitch.add(o.id); s.short = Math.max(0, s.short - 1) }
+        s.lawOut = null
+      }
     }
     /**
      * HE SERVED HIS TEN AND DID NOT COME BACK.
@@ -4039,7 +4139,8 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
   const kickEdge = Math.log(home.units.kicking / Math.max(1, away.units.kicking))
   // and the styles' kicking games (1.8.2): a box-kick-and-chase side walks
   // the line up the pitch, as far as the other side's defence lets it
-  const styPush = (styleTerr(home.sty, away.sty) - styleTerr(away.sty, home.sty)) * STYLE_PULL
+  const windy = ctx.weather === 'Wind'
+  const styPush = (styleTerr(home.sty, away.sty, windy) - styleTerr(away.sty, home.sty, windy)) * STYLE_PULL
   const push = kickEdge * 7 + (rng() - 0.5) * 86 + (planOf(home).terr - planOf(away).terr) * ZONE_PULL + styPush
   ctx.field = clamp(ctx.field * 0.965 + 50 * 0.035 + push, 4, 96)
   // AND READ AGAIN AFTER THE LINE HAS MOVED. The push above is what a side
@@ -4074,7 +4175,9 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     const st = styleTick(side.sty, opp.sty, {
       attSet: side.units.scrum + side.units.lineout, defSet: opp.units.scrum + opp.units.lineout,
       attack: side.units.attack, defence: opp.units.defence,
-    })
+    }, styleWx(ctx.weather, ctx.surface))
+    // sure hands in the backs (habits.ts) hold on to more of it
+    st.turnP *= side.handsF ?? 1
     describeStyle(state, ctx, side, opp, st)
     const scores0 = side.score + opp.score
     const numF = 1 - 0.07 * ([...side.yellowUntil.values()].filter(u => u > min).length + side.sent + side.short)
@@ -4319,6 +4422,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       if (moveHash(styleSalt(state, ctx), tick, side === home ? 3 : 4, 0x57) < st.turnP) {
         backTowards(ctx, side, TURN_M)
         opp.styTurnWon = (opp.styTurnWon ?? 0) + 1
+        side.styTurnLost = (side.styTurnLost ?? 0) + 1
         describeTurnover(state, ctx, side, opp, st)
       }
     }
@@ -4405,7 +4509,11 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     // cannot keep anybody on their feet on a Saturday. What it does keep
     // people on their feet through is TRAINING, and that is where the term
     // has moved to (season.ts, the Tuesday session).
-    if (rng() < 0.036) {
+    // CONTACT AND THE GROUND (conditions.ts injuryF): the carrying game and
+    // the rush defence that meets it, on a hard pitch, take a bigger share of
+    // the roll; centred on the world, so it shifts who is hurt more than how
+    // many. The draw is the same draw; only what it is compared with moves.
+    if (rng() < 0.036 * injuryF(side.sty, opp.sty, ctx.surface ?? 'hybrid')) {
       const ids = [...side.onPitch]
       const ps = ids.map(id => state.players[id]).filter(p => p && !p.injury)
       if (ps.length) {
@@ -4477,7 +4585,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
             // without, and not a card in anybody's record.
             side.short += 1
           }
-          checkFrontRow(state, ctx, side, min, p, 'injury')
+          checkFrontRow(state, ctx, side, min, p, 'injury', !!sub)
           fieldChanged(state, ctx, side, min)
         }
       }
@@ -4503,7 +4611,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           const bSlot = side.lineup.indexOf(subId)
           if (slot >= 0 && slot < 15) { side.lineup[slot] = subId; if (bSlot >= 0) side.lineup[bSlot] = pid }
           pushLine(state, ctx, min, 'INJ', side, 'comm.hiaFailed', { player: p.name, sub: sub.name }, pid)
-          checkFrontRow(state, ctx, side, min, p, 'injury')
+          checkFrontRow(state, ctx, side, min, p, 'hia')
         } else if (side.onPitch.has(subId)) {
           side.onPitch.delete(subId)
           side.onPitch.add(pid)
@@ -5187,7 +5295,23 @@ function fieldChanged(state: GameState, ctx: LiveCtx, side: SideCtx, min: number
     since.delete(id)
   }
   for (const id of side.onPitch) if (!since.has(id)) since.set(id, at)
-  if (side.unitsKey !== personnelKey(side)) recomputeSideUnits(state, ctx, side)
+  if (side.unitsKey !== personnelKey(side)) { recomputeSideUnits(state, ctx, side); noteSpecialists(state, ctx, side) }
+}
+
+/** A man in a specialist shirt without the trade (specialistGaps) gets one
+ *  line, the first time he is out there in it. Colour only: never drawn,
+ *  never moves the clock. */
+const SPEC_LINE: Record<number, string> = { 0: 'comm.specProp', 1: 'comm.specHook', 2: 'comm.specProp', 8: 'comm.specNine' }
+function noteSpecialists(state: GameState, ctx: LiveCtx, side: SideCtx) {
+  if (!ctx.detail) return
+  const xv = fieldLineup(side).slice(0, 15).map(id => (id != null && side.onPitch.has(id) ? state.players[id] : null))
+  for (const i of specialistGaps(xv)) {
+    const p = xv[i]!
+    const said = (side.specSaid ??= new Set())
+    if (said.has(p.id)) continue
+    said.add(p.id)
+    colour(state, ctx, side, SPEC_LINE[i], { player: p.name, team: teamShort(state, side.teamId) }, p.id)
+  }
 }
 
 /** A man's minutes in this match so far: the stints he has finished and the

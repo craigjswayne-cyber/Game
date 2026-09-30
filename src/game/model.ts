@@ -282,7 +282,7 @@ export interface Injury {
 export type Personality =
   | 'Professional' | 'Loyal' | 'Ambitious' | 'Mercenary' | 'Temperamental' | 'Leader'
 
-export type Weather = 'Dry' | 'Rain' | 'Wind' | 'Snow'
+export type Weather = 'Dry' | 'Damp' | 'Rain' | 'Wind' | 'Snow'
 
 export interface Player {
   id: number
@@ -696,6 +696,10 @@ export interface Tactic {
    *  absent (an old save) is read off the dials as the nearest style, and
    *  the save migration writes that in. AI clubs' come from their coach. */
   atkStyle?: 'direct' | 'pods' | 'width' | 'kick' | 'offload'
+  /** Where the forwards stand in a pod game (styles.ts PodShape): 1-3-3-1,
+   *  2-4-2 or one-out round the nine. Read only while atkStyle is 'pods';
+   *  absent is the 1-3-3-1, the Pods style as it always was. */
+  podShape?: '1331' | '242' | 'nine'
   defStyle?: 'drift' | 'blitz' | 'pendulum' | 'man' | 'choke'
 
   // ---- the bench economy (F4) ---------------------------------------------

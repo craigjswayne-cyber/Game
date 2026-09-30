@@ -1520,7 +1520,6 @@
   "theFix": "The Fix",
   "theTrip": "The Trip",
   "theTwoFixes": "The Two Fixes",
-  "theWhistle": "The Whistle",
   "them": "them",
   "theyShort": "they",
   "tickerStops": "What the ticker stops for",
@@ -1616,7 +1615,31 @@
   "st22": "22 visits",
   "stPerVisit": "Points per 22 visit",
   "stGoalKicks": "Kicks at goal",
-  "liveStats": "Live stats"
+  "liveStats": "Live stats",
+  "wxDamp": "Damp",
+  "theConditions": "The Conditions",
+  "wxFxDry": "A dry ball and a firm footing: a day for the handling game.",
+  "wxFxDamp": "A greasy ball: expect a few more knock-ons, and the boot and the carry come into it.",
+  "wxFxRain": "A wet ball: more handling errors, most of all for the sides that throw it about. A day for the boot, the maul and the tackle that holds the carrier up.",
+  "wxFxWind": "The wind will take the long kicks and the kicks at goal: keep it in hand when you are playing into it.",
+  "wxFxSnow": "Snow on the ground: the ball will be a bar of soap, and tight rugby wins.",
+  "surf_grass": "Grass pitch",
+  "surf_hybrid": "Hybrid pitch",
+  "surf_artificial": "Artificial pitch",
+  "surfFx_grass": "A natural surface: softer underfoot, and slower when it rains.",
+  "surfFx_hybrid": "Grass stitched with fibre: true and firm, whatever the weather.",
+  "surfFx_artificial": "Hard and fast underfoot: it drains well, every collision costs a little more, and the home side knows its bounce.",
+  "htWord": "The Assistant's Word",
+  "htPensBin": "{n} penalties already and {ref} is counting: one more at the ruck and somebody sits ten minutes.",
+  "htRefTight": "The breakdown is being refereed tight: fewer bodies in the ruck, and hands off the ball.",
+  "htRefLoose": "{ref} is letting the breakdown go: get a body over the ball and we can win it back.",
+  "htWetHands": "The ball is like soap out there and we keep putting it down: keep it tight and kick for the corners.",
+  "htWetTight": "It is wet: one pass too many is a turnover. Carry it, and use the boot.",
+  "htWind": "The wind is taking the long kicks: find touch short and keep it in hand into it.",
+  "htUncontested": "The scrums are uncontested now: the set piece is out of it, so play off the lineout.",
+  "htScrumBad": "Their scrum is on top: get the ball in and out quickly at the set piece.",
+  "htScrumGood": "Our scrum is winning: kick for the corners and take them on up front.",
+  "htDefWorks": "The defence keeps winning the ball back: hold the line where it is."
  },
  "tacticsScreen": {
   "tabRoles": "Roles",
@@ -2881,7 +2904,16 @@
   "bondsLabel": "The dressing room",
   "bondsVoice": "One of the senior voices in the dressing room",
   "bondsClose": "Close to: {names}",
-  "bondsClash": "Clashes with: {names}"
+  "bondsClash": "Clashes with: {names}",
+  "hintThrow": "The pack looks to him at every throw.",
+  "hintThrow_f": "The pack looks to her at every throw.",
+  "hintTee": "Wants the kick when the match is on the line, and it shows.",
+  "hintHold": "Very rarely puts the ball down.",
+  "hintHeavy": "The heavier the pitch, the better he plays.",
+  "hintHeavy_f": "The heavier the pitch, the better she plays.",
+  "hintWhistle": "Referees find him at the breakdown more often than most.",
+  "hintWhistle_f": "Referees find her at the breakdown more often than most.",
+  "hintLine": "Can be caught out of position when the defence is stretched."
  },
  "challenges": {
   "sapiac": "Sauvez Sapiac",
@@ -6735,7 +6767,13 @@
   "oppCoachNamed_w": "{coach} has done her homework: {team} are set up specifically for {pattern_k}. Change the picture, or play through the plan.",
   "oppCoach_w": "The opposition coach has done her homework: {team} are set up specifically for {pattern_k}. Change the picture, or play through the plan.",
   "advPlaying": "The arm stays out - advantage {team}, and the whistle never comes...",
-  "advOver": "Advantage {team}, played to the end of it, and the referee waves it away. Three points gone."
+  "advOver": "Advantage {team}, played to the end of it, and the referee waves it away. Three points gone.",
+  "koDamp": " A greasy surface after the morning's rain.",
+  "uncontestedNoRep": "And under Law 3 the player whose departure caused it cannot be replaced: {team} take {player} off and play on with fourteen.",
+  "uncontestedBin": "And under Law 3 {team} lose a second player while {lost} sits out the ten minutes: {player} goes off too, and the two come back together.",
+  "specProp": "{player} packs down at prop for {team} without the training for it: the scrum will creak.",
+  "specHook": "{player} is at hooker for {team} and has never thrown in: the lineout will suffer.",
+  "specNine": "{player} is at scrum-half for {team}, and it shows: the service from the base is slow."
  },
  "injury": {
   "ribs": "bruised ribs",
@@ -8944,6 +8982,13 @@
   "edgeAtk_even": "Your {mine} attack into their {theirs} defence: an even matchup.",
   "edgeDef_good": "Their {theirs} attack into your {mine} defence: the matchup favours you.",
   "edgeDef_bad": "Their {theirs} attack into your {mine} defence: the matchup favours them.",
-  "edgeDef_even": "Their {theirs} attack into your {mine} defence: an even matchup."
+  "edgeDef_even": "Their {theirs} attack into your {mine} defence: an even matchup.",
+  "podHeading": "Pod shape",
+  "pod_1331": "1-3-3-1",
+  "pod_242": "2-4-2",
+  "pod_nine": "Round the 9",
+  "pod_1331Desc": "A forward on each edge and two pods of three in the middle: the balanced pod game.",
+  "pod_242Desc": "Two forwards on each edge and four in the middle: the ball goes wider sooner, with more breaks out wide and a little less go-forward.",
+  "pod_nineDesc": "One-out runners round the scrum-half: quick ball off short carries, the most gain line and the fewest errors, but fewer breaks."
  }
 }
