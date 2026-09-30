@@ -187,8 +187,10 @@ ok(onScholarMoney.length === 0,
       `summer ${summer}: every scholar owed a decision is asked (${asked.length} of ${owed.length})`)
     const firsts = owed.filter(p => acadCall(h, p) === 'first')
     if (summer === 2) ok(firsts.length > 0, `and the first-years who joined this season are among them (${firsts.length})`)
-    ok(asked.every(q => q.outlet === OFFICE_OUTLET && q.options.length === 2 && q.qv?.adv_k),
-      'each is an office question with two answers and the director\'s advice')
+    // three answers since 1.8.2 (room.ts): keep him, keep him and loan him
+    // out for next season, or release him
+    ok(asked.every(q => q.outlet === OFFICE_OUTLET && q.options.length === 3 && q.options.some(o => o.acad === 'loan') && q.qv?.adv_k),
+      'each is an office question with three answers (keep, loan, release) and the director\'s advice')
     ok(pressBlock(h)?.kind === 'press', 'and the week is held until they are answered')
 
     // promote the gate lad, at the wage the button quoted
