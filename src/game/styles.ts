@@ -137,10 +137,10 @@ export interface StyleFx {
 }
 
 export const ATK_FX: Record<AtkStyle, StyleFx> = {
-  direct: { tryF: 0.95, penF: 1.05, turn: 0.75, ground: 0.4, terr: 0, drain: 1.0 },
+  direct: { tryF: 0.95, penF: 1.05, turn: 0.75, ground: 0.15, terr: 0, drain: 1.0 },
   pods: { tryF: 1.0, penF: 1.0, turn: 0.95, ground: 0.2, terr: 0, drain: 1.01 },
   width: { tryF: 1.08, penF: 0.95, turn: 1.1, ground: 0, terr: 0, drain: 1.02 },
-  kick: { tryF: 0.93, penF: 0.98, turn: 0.85, ground: 0, terr: 0.5, drain: 0.98 },
+  kick: { tryF: 0.88, penF: 0.98, turn: 0.85, ground: 0, terr: 1.3, drain: 0.98 },
   offload: { tryF: 1.13, penF: 0.97, turn: 1.28, ground: 0, terr: 0, drain: 1.03 },
 }
 
@@ -168,13 +168,13 @@ export const TURN_M = 6
  *  3% more try chances than one playing against them, and the extremes 5% */
 export const FIT_K = 0.2
 /** THE WORLD STAYS WHERE IT WAS CALIBRATED. Across a world where every club
- *  plays a style, the effects above average a shade over neutral (the wide
- *  and offload games make more breaks than the kicking and direct games give
- *  up, and a side's fit is on average a little positive), which took the
- *  world from 49.4 points and 6.28 tries a game to 50.2 and 6.35 (bandcheck).
- *  Every styled tick's try chance is scaled back by this, so the styles move
- *  who scores and not how much the world does. A Test side is untouched. */
-export const TRY_NORM = 0.985
+ *  plays a style, the effects above need not average exactly neutral (the
+ *  AI plays the kicking game a little more often than the others, and it
+ *  makes fewer breaks and wins its ground instead). Every styled tick's try
+ *  chance is scaled by this so the world scores what it did before styles
+ *  existed (bandcheck: 49.4 points and 6.28 tries a game): the styles move
+ *  who scores, not how much. A Test side is untouched. */
+export const TRY_NORM = 0.995
 
 // ---------------------------------------------------------------- the fit
 
