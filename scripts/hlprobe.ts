@@ -39,6 +39,8 @@ const FPS = 60
 const PLAYER_MAX = 13
 const BALL_MAX = 40        // a long pass or a kick in flight
 
+const DEF_S = ['drift', 'blitz', 'pendulum', 'man', 'choke']
+const ATK_S = ['direct', 'pods', 'width', 'kick', 'offload']
 const labels = { try: 'TRY', review: 'TMO', notry: 'NO TRY', good: 'GOOD', wide: 'WIDE', turnover: 'TURNOVER', saved: 'TRY SAVER' }
 const colours = { home: ['#c00', '#fff'] as [string, string], away: ['#00c', '#fff'] as [string, string] }
 
@@ -108,7 +110,16 @@ for (let seed = 1; seed <= 40 && (seed <= 12 || !enough()); seed++) {
     if (kind === 'try' && seed <= 4) for (const mv of MOVES) for (const from of mv.from) {
       const k = from === 'lineout' ? 'comm.moveTryLo1' : from === 'scrum' ? 'comm.moveTrySc1' : 'comm.shapeTry1'
       const copy: MatchEvent[] = ev.slice(0, i + 1).map((x, j) => j === i ? { ...x, k, v: { ...(x.v ?? {}), move_k: mv.say } } : x)
-      specs.push({ spec: buildClip(copy, i, kind, fx.homeId, () => undefined, colours, labels, () => 'Name'), kind })
+      // (against each defensive system in turn, and each attacking style, 1.8.2)
+      const n = specs.length
+      const dials = (home: boolean) => home === (ev[i].teamId === fx.homeId) ? { atkStyle: ATK_S[n % 5] } : { defStyle: DEF_S[(n + seed) % 5] }
+      specs.push({ spec: buildClip(copy, i, kind, fx.homeId, () => undefined, colours, labels, () => 'Name', undefined, dials), kind })
+    }
+    // and the plain tries too, under each system and style
+    if (kind === 'try' && seed <= 6) {
+      const n = specs.length
+      specs.push({ spec: buildClip(ev, i, kind, fx.homeId, () => undefined, colours, labels, () => 'Name', undefined,
+        home => home === (ev[i].teamId === fx.homeId) ? { atkStyle: ATK_S[n % 5] } : { defStyle: DEF_S[n % 5] }), kind })
     }
   }
 }
@@ -374,6 +385,108 @@ console.log('\n--- the chase after a break (1.8.2)\n')
   ok(!lagging, `a man behind the ball closes on it, or loses ground only by being slower${lagging ? `: ${lagging}` : ''}`)
   ok(cover > 50 && converged >= cover * 0.9, `the cover comes across to cut off his line (${converged} of ${cover} cover men closed the gap across)`)
   ok(!jerky, `and they get there smoothly (worst ${worstAcc.toFixed(0)} m/s2, limit ${ACC})${jerky ? `: ${jerky}` : ''}`)
+}
+
+console.log('\n--- set pieces, backlines and moves (1.8.2)\n')
+// Owner: the highlight must feel like a real game. A called move is played
+// from a set piece drawn as one, held still before the ball moves; the
+// backline stands staggered, in depth; the defence bites on the decoy just
+// before the gap is hit; and the strike runner changes pace onto the ball.
+{
+  const moves = specs.filter(s => s.spec.style === 'move' && clipTimeline(s.spec).set).map(s => s.spec)
+  const bad: Record<string, string> = {}
+  const flag = (k: string, s: ClipSpec, why: string) => { bad[k] ??= `${s.move}/${s.launch} line ${s.endLine}: ${why}` }
+  let scrums = 0, lineouts = 0, bites = 0, paced = 0, pacedOk = 0
+  for (const s of moves) {
+    const tl = clipTimeline(s), d = s.attackHome ? 1 : -1, mark = s.beats[0]
+    const set = tl.set!
+    // held still: the ball does not move for the first half second
+    const b0 = frameAt(s, 0).ball, b5 = frameAt(s, 0.5).ball
+    if (Math.hypot(b0.x - b5.x, b0.y - b5.y) > 0.3) flag('hold', s, 'the ball moved in the first half second')
+    const f = frameAt(s, 0.3)
+    const ahead = (p: { x: number }) => (p.x - mark.x) * d
+    if (set.kind === 'scrum') {
+      scrums++
+      for (const [pack, sign] of [[f.att.slice(0, 8), -1], [f.def.slice(0, 8), 1]] as const) {
+        // three in the front row, four behind them, one at the back
+        const depth = pack.map(p => ahead(p) * sign).sort((a, b) => a - b)
+        const rows = [depth.filter(x => x > 0 && x <= 1.1).length, depth.filter(x => x > 1.1 && x <= 2.1).length, depth.filter(x => x > 2.1 && x < 3.4).length]
+        if (rows.join() !== '3,4,1') flag('scrum', s, `a pack is not 3-4-1 (${rows.join('-')})`)
+        if (pack.some(p => Math.abs(p.y - mark.y) > 3)) flag('scrum', s, 'a man is off the side of the scrum')
+      }
+      if (f.carrying[8] < 0.5 || Math.hypot(f.att[8].x - mark.x, f.att[8].y - mark.y) > 3.5) flag('scrum', s, 'the 9 is not at the mouth with the ball')
+      if (f.att.slice(9).some(p => ahead(p) > -3.5)) flag('backs', s, 'an attacking back stands within 3.5 m of the scrum')
+      if (f.def.slice(9, 14).some(p => ahead(p) < 7)) flag('backs', s, 'a defending back is offside at the scrum')
+    } else if (set.kind === 'lineout') {
+      lineouts++
+      const touch = mark.y < 35 ? 0 : 70, inFrom = (p: { y: number }) => Math.abs(p.y - touch)
+      const line = (ps: typeof f.att) => [0, 2, 3, 4, 5, 6, 7].map(i => ps[i])
+      for (const [ps, sign] of [[line(f.att), -1], [line(f.def), 1]] as const) {
+        if (ps.some(p => inFrom(p) < 4.5 || inFrom(p) > 15.5)) flag('lineout', s, 'a forward is outside the five and fifteen metre lines')
+        if (ps.some(p => ahead(p) * sign < 0.2 || ahead(p) * sign > 1.2)) flag('lineout', s, 'the lines are not a metre apart')
+      }
+      if (inFrom(f.att[1]) > 1.5 || f.carrying[1] < 0.5) flag('lineout', s, 'the hooker is not on the touchline with the ball')
+      let lifted = false
+      for (let t = 0.7; t < set.out; t += 0.05) if (frameAt(s, t).aloft[3] > 0.5) lifted = true
+      if (!lifted) flag('lineout', s, 'the jumper is never lifted')
+      if (f.att.slice(9).some(p => ahead(p) > -9.5) || f.def.slice(9).some(p => ahead(p) < 9.5)) flag('backs', s, 'a back is inside ten metres of the lineout')
+    }
+    // the backline as the ball comes out: 10, 12 and 13 staggered, each no
+    // flatter than the man inside him, five to twelve metres apart
+    const fo = frameAt(s, set.out)
+    const base = fo.att[8]
+    const three = [9, 11, 12].map(i => fo.att[i]).sort((a, b) => Math.hypot(a.x - base.x, a.y - base.y) - Math.hypot(b.x - base.x, b.y - base.y))
+    for (let j = 1; j < 3; j++) {
+      const gap = Math.abs(three[j].y - three[j - 1].y), flatter = ahead(three[j]) - ahead(three[j - 1])
+      if (gap < 3.5 || gap > 13) flag('depth', s, `backs ${gap.toFixed(1)} m apart`)
+      if (flatter > 1.5) flag('depth', s, `a back ${flatter.toFixed(1)} m flatter than the man inside him`)
+    }
+    // the bite: the man on the decoy steps in on him, 0.3 to 0.5 s before
+    // the strike runner hits the gap (measured here off the frames)
+    const bt = tl.bite
+    if (bt) {
+      bites++
+      let hit = -1, stepped = false
+      // (the gap is where their line stood as he took the ball)
+      const lineX = frameAt(s, bt.caught).def[bt.def].x
+      for (let t = bt.caught; t < tl.land && hit < 0; t += 1 / 60) { const g = frameAt(s, t); if ((g.att[bt.strike].x - lineX) * d > 0) hit = t }
+      // (towards where the decoy was as he went: he commits to him)
+      const g0 = frameAt(s, bt.t)
+      const ux = g0.att[bt.on].x - g0.def[bt.def].x, uy = g0.att[bt.on].y - g0.def[bt.def].y, ul = Math.hypot(ux, uy) || 1
+      for (let t = bt.t; t < bt.t + 0.35; t += 1 / 30) {
+        const g = frameAt(s, t), h = frameAt(s, t + 1 / 30)
+        // (stepping in on him, or already on him)
+        if (((h.def[bt.def].x - g.def[bt.def].x) * ux + (h.def[bt.def].y - g.def[bt.def].y) * uy) / ul * 30 > 1.5 || ul < 2) stepped = true
+      }
+      if (hit < 0 || hit - bt.t < 0.3 || hit - bt.t > 0.55) flag('bite', s, `the bite came ${(hit - bt.t).toFixed(2)} s before the gap was hit`)
+      if (!stepped) flag('bite', s, 'the man on the decoy did not step in on him')
+      // one change of pace: onto the ball at a jog, away from it flat out
+      const sp = (t: number) => { const g = frameAt(s, t), h = frameAt(s, t + 0.1); return Math.hypot(h.att[bt.strike].x - g.att[bt.strike].x, h.att[bt.strike].y - g.att[bt.strike].y) / 0.1 }
+      paced++
+      let before = Infinity, after = 0
+      for (let t = bt.caught - 1.0; t < bt.caught - 0.2; t += 0.1) before = Math.min(before, sp(t))
+      for (let t = bt.caught; t < Math.min(tl.land - 0.3, bt.caught + 2); t += 0.1) after = Math.max(after, sp(t))
+      if (after >= before + 2 && after > 7.5) pacedOk++
+    }
+  }
+  ok(scrums >= 10 && lineouts >= 10, `move clips from both set pieces (${scrums} scrums, ${lineouts} lineouts)`)
+  ok(!bad.hold, `the set piece is held still for half a second before the ball moves${bad.hold ? `: ${bad.hold}` : ''}`)
+  ok(!bad.scrum, `a scrum is two packs bound 3-4-1, the 9 feeding${bad.scrum ? `: ${bad.scrum}` : ''}`)
+  ok(!bad.lineout, `a lineout is two lines a metre apart between the 5 and 15, the hooker throwing, the jumper lifted${bad.lineout ? `: ${bad.lineout}` : ''}`)
+  ok(!bad.backs, `the backs stand where the law puts them (behind the scrum, ten metres back at a lineout)${bad.backs ? `: ${bad.backs}` : ''}`)
+  ok(!bad.depth, `the backline is staggered, each man no flatter than the man inside him, 3.5 to 13 m apart${bad.depth ? `: ${bad.depth}` : ''}`)
+  ok(bites >= 20 && !bad.bite, `the defence bites on the decoy 0.3 to 0.5 s before the gap is hit (${bites} moves)${bad.bite ? `: ${bad.bite}` : ''}`)
+  ok(paced > 0 && pacedOk >= paced * 0.9, `the strike runner comes onto the ball slower than he leaves it (${pacedOk} of ${paced})`)
+  // THE DEFENCE BY ITS SYSTEM: the same move against a blitz and a drift
+  const one = moves.find(s => s.launch === 'scrum')!
+  const upBy = (st: 'blitz' | 'drift') => {
+    const s = { ...one, defStyle: st }
+    const tl = clipTimeline(s), d = s.attackHome ? 1 : -1
+    const a = frameAt(s, tl.set!.out), b = frameAt(s, tl.set!.out + 1.2)
+    return [9, 11, 12].reduce((m, i) => m + (a.def[i].x - b.def[i].x) * d, 0) / 3
+  }
+  const blitz = upBy('blitz'), drift = upBy('drift')
+  ok(blitz > drift + 2, `a blitz comes up faster than a drift (${blitz.toFixed(1)} m against ${drift.toFixed(1)} m in 1.2 s)`)
 }
 
 console.log('\n--- the referee\n')
