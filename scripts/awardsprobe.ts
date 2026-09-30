@@ -19,7 +19,7 @@
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { SEASON_WEEKS } from '../src/game/model'
-import { teamOfTheYear, awardWindfall } from '../src/game/yearend'
+import { teamOfTheYear, awardWindfall, runTeamOfTheYear } from '../src/game/yearend'
 
 let fails = 0
 const ok = (c: boolean, what: string) => {
@@ -93,7 +93,28 @@ ok(awardWindfall(70, 1, false) > 0, 'a club with one of them gets paid')
 ok(awardWindfall(70, 2, false) > awardWindfall(70, 1, false), 'two are worth more than one')
 ok(awardWindfall(70, 1, true) > awardWindfall(70, 1, false), 'and the player of the year is worth more than a team-mate')
 ok(awardWindfall(90, 1, false) > awardWindfall(50, 1, false), 'a bigger club sells more shirts off the same name')
-ok(paydays === 0 || paid === paydays, `every payday actually reached the budget (${paid}/${paydays})`)
+// THE PAYDAY, MEASURED ON ITS OWN (1.8.2 QA). This compared the club's budget
+// either side of the whole rollover week the award lands in, so it read the
+// week's net: after the release head moved the world (af22186) the one payday
+// in seed 24601's four seasons fell in a week whose wages and summer costs
+// outweighed it (0/1), with the award paid all the same. So the week's figure
+// is reported, and the claim is held where it is made: the club of a man in
+// the fifteen runs the awards night and its budget rises by exactly the
+// windfall the letter names.
+console.log(`  in the four-season walk the budget rose over ${paid} of ${paydays} payday weeks (the whole week's net, for the record)`)
+{
+  const k = JSON.parse(JSON.stringify(h)) as typeof h
+  const star = teamOfTheYear(k)[0]
+  k.userClubId = star.clubId!
+  const club = k.clubs[k.userClubId]
+  const mine = teamOfTheYear(k).filter(p => p.clubId === club.id).length
+  const before = club.budget
+  runTeamOfTheYear(k, null)
+  const letter = k.news.find(n => n.k === 'news.totyMine')
+  const want = awardWindfall(club.rep, mine, false)
+  ok(!!letter && want > 0 && club.budget - before === want && letter.v?.money === want,
+    `every payday reaches the budget: ${mine} named, the letter says ${letter?.v?.money}, the budget moves ${club.budget - before}`)
+}
 
 console.log('')
 if (fails === 0) console.log('AWARDS PROBE PASSED: one awards night, a real fifteen, and it pays')

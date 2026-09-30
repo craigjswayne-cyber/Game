@@ -292,7 +292,9 @@ let winsBase = 0, winsPlan = 0
 // is worth +0.93 +/- 0.80 there, so the reads the probe calls sound are the
 // ones that pay. Twelve worlds give about 110 sound reads, a standard error
 // near 1.8, and the claim is then about three of those clear of zero (on the
-// head these twelve read +3.75 over 114).
+// head these twelve read +3.75 over 114; after the rewarded-favours merge,
+// af22186, which moves the world, +2.83 over 114, with 60 worlds reading
+// +5.42 +/- 0.86 over 545).
 const WORLDS = Array.from({ length: 12 }, (_, i) => [(['leicester', 'northampton', 'bath'] as const)[i % 3], 51 + i] as const)
 for (const [club, seed] of WORLDS) {
   const w = newGame(club, 'Balance', seed)
