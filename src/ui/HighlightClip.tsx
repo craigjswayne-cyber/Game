@@ -792,6 +792,26 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
     }
   }
 
+  /** NO MAN OVERRUNS HIS OWN LINE (1.8.2). ownLine keeps a defender's TARGET
+   *  in the field, but a man running back hard carries on past it on his
+   *  momentum (a full-back 1.6 m in-goal with the ball 12 m out). So his body
+   *  is held too: while the ball is more than eight metres out he stops at
+   *  the line, and the allowance opens smoothly to ownLine's two and a half
+   *  metres as the ball comes within eight. A kick's chase is left alone:
+   *  there the ball is going in-goal and so are the men after it. */
+  const holdLine = () => {
+    if (c.kind === 'kick') return
+    const line = d > 0 ? 100 : 0
+    const out = (line - ball.x) * d
+    if (out <= 8) return
+    const room = Math.max(0, 2.5 - (out - 8) * 0.625)
+    for (const p of def) {
+      if ((p.x - line) * d <= room) continue
+      p.x = line + d * room
+      if (p.vx * d > 0) p.vx = 0
+    }
+  }
+
   // ---- write it down, 60 frames a second
   const rec = { ball: [] as number[], att: [] as number[], def: [] as number[], ref: [] as number[], carry: [] as number[], down: [] as number[], aloft: [] as number[] }
   let nFrames = 0, frameNo = 0
@@ -820,6 +840,7 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
       for (let i = 0; i < 15; i++) { att[i].touch = false; att[i].aloft = 0; def[i].touch = false; def[i].aloft = 0 }
       step(t)
       separate()
+      holdLine()
       const r = refSpot(); ref.steer(r.x, r.y, 8.5, 10)
       if (f % KEEP === 0) snap(t)
       frameNo = f
