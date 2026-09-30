@@ -757,3 +757,42 @@ fingerprint was rebaselined twice for intended changes to the match stream.
   length on a phone.
 * Unchanged from 1.8.0: the organisation's Play account and its signing
   certificate.
+
+## Addendum, 2026-09-30: 1.8.2 (Play version code 41)
+
+Branch `claude/rugby-game-animation-ideas-qusfd5`. Codes only have to rise:
+41 is right whether or not 40 (1.8.1) was uploaded. Check the Console's
+highest accepted code before building.
+
+### What changed
+
+The full list is in `docs/qa-report-1.8.2.md`. In short: five attack and
+five defence styles; the manager's desk on Home; recruitment detective work;
+the career arc (rival coaches, reputation, job profiles, chairmen, ambitions,
+eras); the dressing room; development projects; season priorities, form and
+hidden form traits; tactical depth (weather, conditions, specialist
+positions, hidden traits, surfaces, league flavour); the playbook arms race
+and a calibrated analyst; nine new moves; rebuilt highlight clips; drawn
+flags; four more optional rewarded favours; the owner's calls of 30 Sep.
+
+### The evidence
+
+Final pass on the merged head (50186aa plus the version, store and report
+commits), run on the shared build machine:
+
+* tsc clean; `npm run build` clean (the usual chunk-size warning only).
+* Engine probes: 223 of 226 in the parallel run. perfprobe's week timing
+  fails on the loaded machine, as it does on main. analystprobe printed
+  PASSED and was cut off by the runner's 900 s limit; frliveprobe hit the
+  same limit. Both were re-run alone: see the line below.
+* Browser harnesses: 64 of 64 (four first failed on stale preview servers
+  holding their ports; they pass once those were stopped).
+* Balance (bandcheck, pooled): 49.8 points, 6.32 tries, home wins 52.4%,
+  draws 1.4%, all inside their bands.
+
+### What still needs the owner
+
+* Approval to open the pull request and merge to main.
+* Law 3 points to check by hand (listed in the QA report).
+* Play Console Data safety wording (eight rewarded placements), the in-game
+  privacy handbook line, and the daily rewarded cap of 10.
