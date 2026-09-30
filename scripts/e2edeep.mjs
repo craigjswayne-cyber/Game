@@ -85,8 +85,7 @@ try {
 
   // world: test rankings with movement, roll of honour, hall of fame
   await page.click('.bottom-nav button[title="World"]')
-  await page.click('.submenu-item >> text=Scouting Agency')
-  await page.waitForSelector('text=Senior Rankings: World', { timeout: 10000 })
+  await page.click('.submenu-item >> text=International Rugby')
   await page.click('.tab-bar >> text=Test Nations')
   await page.waitForSelector('text=Test Rankings: World', { timeout: 10000 })
   await shotScrolled('deep-04-nations')

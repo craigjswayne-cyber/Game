@@ -356,6 +356,14 @@ export interface Player {
   loanSince?: number
   /** ability at the start of the season, for development arrows */
   ca0?: number
+  /** POTENTIAL THAT MOVES (1.8.2, devproject.ts): the ceiling he started
+   *  with, written the first time a season review moves it, so the drift is
+   *  bounded either side of it. Absent means it has never moved. */
+  pa0?: number
+  /** HIS DEVELOPMENT TIMELINE (1.8.2, devproject.ts seasonReview): one row a
+   *  season while he is the manager's, [season, rating at its end, moment
+   *  flags (devproject TL)], the last twelve. Absent for everybody else. */
+  tl?: [number, number, number][]
   /** starts made LAST season, stashed before the summer stats wipe so the
    *  development roll can ask how much rugby the year actually held (25D:
    *  a 20-year-old parked on the bench stops growing) */
@@ -452,6 +460,12 @@ export interface Player {
    *  at promotion and never cleared, because it is a fact about where he learned
    *  the game, not about where he plays now (dream.ts reads it). */
   homegrown?: boolean
+  /** the club whose academy he graduated from, and the season (records.ts
+   *  proteges): homegrown alone is set for every club's graduates, so "the men
+   *  you made" needs to know whose they were. Absent on graduates from before
+   *  1.8.2 until save.ts reads them in from his first career row. */
+  gradClub?: string
+  gradS?: number
   /** club matches this season this man was actually AVAILABLE for - not away
    *  with his country, suspended, injured, on loan, or unsigned. Tracked
    *  forward by settleGameTime; the game-time ledger bills the manager a
@@ -957,8 +971,16 @@ export interface PressOption {
    *  scholar on a development contract ('sign'), give a lad at the age gate
    *  his first professional contract ('promote'), or let him go ('release').
    *  `acadWage` is the weekly figure the button quoted, paid as quoted. */
-  acad?: 'sign' | 'promote' | 'release'
+  acad?: 'sign' | 'promote' | 'release' | 'loan'
   acadWage?: number
+  /** a dressing-room decision (1.8.2, room.ts): stand by a selection or
+   *  reverse it, renew a contract now or wait, rest a man or bring him back a
+   *  week early, answer a starter who wants assurances after a signing in
+   *  his position. room.ts carries it out; the numbers above stay at zero
+   *  (the promise itself rides on `pledge`). */
+  room?: 'stand' | 'reverse' | 'renew' | 'wait' | 'rest' | 'early' | 'promise' | 'refuse' | 'listen'
+  /** the weekly wage the renew-now button quoted, paid as quoted */
+  roomWage?: number
   /** the season-expectations decision (25C): choosing sets
    *  state.stance for the year, which scales how hard the boardroom needle
    *  swings on every result - see boardReaction. */
@@ -1679,8 +1701,12 @@ export interface GameState {
    *  programmes, the assistant's level setting the handful (2 + level).
    *  Newest assignment wins a full book, same idiom as devFocus. A planned
    *  man trains his programme INSTEAD of the squad session that week, so a
-   *  plan is a choice rather than a stack. */
-  plans?: { id: number; plan: TrainingFocus }[]
+   *  plan is a choice rather than a stack.
+   *  A DEVELOPMENT PLAN (1.8.2): an optional second programme (plan2) splits
+   *  the week, seven parts the first to three the second, so it widens a
+   *  man's work rather than adding to it; pts counts the points the
+   *  programme has landed since it was set, for the Training screen. */
+  plans?: { id: number; plan: TrainingFocus; plan2?: TrainingFocus; pts?: number }[]
   /** The office chat budget (20D): absolute week stamp and how many of the
    *  week's two manager-initiated conversations are spent. A manager who
    *  praises everybody praises nobody. */
@@ -2067,6 +2093,8 @@ export interface GameState {
   chem?: Record<string, number>
   /** the dressing room's friendships and rifts (bonds.ts), user club only */
   bonds?: import('./bonds').BondState
+  /** the dressing room's decisions and the club's hidden culture (room.ts) */
+  room?: import('./room').RoomState
   /** dynamic bad blood between clubs: cup eliminations, poached stars,
    *  ill-tempered matches. Expires after `until` season. */
   /** `reason` is the English the grudge was recorded in and is what an old save
@@ -2255,6 +2283,12 @@ export interface GameState {
   /** the fraction cursor for stories filed without spending nextId
    *  (heldnews.ts): the base id it counts from and how many it has used */
   heldIds?: { b: number; n: number }
+  /** the career arc (arcbook.ts): rival coaches, what the manager is known
+   *  for, the story of each era. Created on first touch; absent on older saves. */
+  arc?: import('./arcbook').CareerArc
+  /** the one to three ambitions named at the start (ambitions.ts). The first
+   *  is also `dream`. Absent on saves from before: the dream stands alone. */
+  ambitions?: import('./arcbook').Ambition[]
 }
 
 /** Managerial reputation earned from results and silverware, 30-95. */

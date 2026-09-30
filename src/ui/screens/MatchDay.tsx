@@ -12,6 +12,7 @@ import { BRIEF_BY_ID, SPLIT_BY_ID, benchSeats, briefForSeat, splitFor } from '..
 import { BriefIcon } from '../tacticsArt'
 import { assistantFixtureThisWeek, isKnockoutTie, matchRng, userMatchThisWeek } from '../../game/season'
 import { effAt } from '../../game/attributes'
+import { fuzzedCa } from '../../game/scout'
 import { PRESETS, SLIDER_INFO, sliderReadout, type SliderKey } from '../../game/tactics'
 import { ord, posName, t, localeTag, compLabel } from '../../game/i18n'
 import { subjectVar } from '../../game/gender'
@@ -723,7 +724,7 @@ function Preview({ fxId }: { fxId: number }) {
           const danger = oppLineup.slice(0, 15)
             .map(id => id != null ? game.players[id] : null)
             .filter(Boolean)
-            .sort((a, b) => b!.ca - a!.ca)[0]
+            .sort((a, b) => fuzzedCa(game, b!) - fuzzedCa(game, a!))[0]
           const oppClub = game.clubs[opp]
           const meetings = game.fixtures.filter(f => f.played &&
             ((f.homeId === opp && f.awayId === game.userClubId) || (f.homeId === game.userClubId && f.awayId === opp)))
@@ -813,7 +814,7 @@ function Preview({ fxId }: { fxId: number }) {
                 const bowing = oppLineup
                   .map(id => id != null ? game.players[id] : null)
                   .filter((p): p is Player => !!p && !!p.retiring && (p.ca >= 72 || (p.caps ?? 0) >= 25))
-                  .sort((a, b) => b.ca - a.ca)[0]
+                  .sort((a, b) => fuzzedCa(game, b) - fuzzedCa(game, a))[0]
                 if (!bowing) return null
                 const home = fx.homeId === game.userClubId
                 return (
@@ -1667,7 +1668,15 @@ function Live() {
       { try: t('hl.try'), review: t('hl.review'), notry: t('hl.notry'), good: t('hl.good'), wide: t('hl.wide'),
         turnover: t('hl.turnover'), saved: t('hl.saved') },
       pid => (pid != null ? game.players[pid]?.name : undefined),
-      (home, shirt) => { const id = (home ? ctx.home : ctx.away).lineup[shirt - 1]; return id != null ? game.players[id]?.a.pac : undefined })
+      (home, shirt) => { const id = (home ? ctx.home : ctx.away).lineup[shirt - 1]; return id != null ? game.players[id]?.a.pac : undefined },
+      // how each side attacks and defends, for the clip's shapes (1.8.2): the
+      // styles the engine is playing this match (SideCtx.sty, an AI club's
+      // from its coach's philosophy), over the club's dials
+      home => {
+        const sd = home ? ctx.home : ctx.away
+        const tac = game.clubs[sd.teamId]?.tactic
+        return sd.sty ? { ...tac, atkStyle: sd.sty.atk, defStyle: sd.sty.def } : tac
+      })
     // the clip starts with its build-up, so the commentary never jumps: the
     // ticker reads on until it reaches the first line of it (in Key Moments,
     // which skips lines anyway, it is brought straight there)

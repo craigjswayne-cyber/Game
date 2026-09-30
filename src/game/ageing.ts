@@ -36,6 +36,7 @@ import type { Pos } from '../data/types'
 import type { Attrs, GameState, Player } from './model'
 import { attrWeight } from './attributes'
 import { clamp, mulberry32 } from './rng'
+import { learnTilt } from './devproject'
 
 type K = keyof Attrs
 const PHYSICAL: K[] = ['pac', 'agi', 'sta', 'str']
@@ -229,6 +230,11 @@ export function ageAttributes(state: GameState, p: Player, caBefore: number) {
     if (k === 'lea') v = (p.age >= 25 ? 1 / 3 : 0) + dCa * slope(p.pos, k)
     d[k] = v
   }
+  // HOW HE LEARNS (1.8.2, devproject.ts learnTilt): while he is still growing
+  // the summer leans towards what he picks up quickly and away from what he
+  // is slow at, zero-sum on the rating, so the man changes shape and not level
+  const tilt = learnTilt(state.seed, p)
+  for (const k of KEYS) if (tilt[k]) d[k] = d[k]! + tilt[k]!
   // THE LAST POINTS ARE THE HARDEST, IN THE SUMMER TOO (E6). A rise on an
   // attribute already high lands at attrOdds, and what does not land is not
   // lost: it goes, rating point for rating point, to his attributes still

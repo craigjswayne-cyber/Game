@@ -4,6 +4,7 @@ import { XV_SLOTS, type Player } from '../../game/model'
 import { teamShort } from '../../game/matchEngine'
 import { ClubLink, Jersey, SectionTitle } from '../components'
 import { t, compLabel } from '../../game/i18n'
+import { leadRow, onesToWatch } from '../../game/scout'
 
 /** Magazine-style Dream Team of the round + season leaderboards -
  *  straight off the rugby magazine's socials. */
@@ -105,15 +106,14 @@ export default function DreamTeam() {
   )
 }
 
-/** The scouts' wonderkid list: U21 ceilings worth tracking (and signing). */
+/** The scouts' wonderkid list: the U21s they have actually read, on their
+ *  reading, and a few leads they have only heard about (scout.onesToWatch,
+ *  1.8.2: it used to rank the true ceilings, free agents included). */
 function OnesToWatch({ leagueId }: { leagueId: string }) {
   const game = useStore(s => s.game)!
   const go = useStore(s => s.go)
-  const kids = Object.values(game.players)
-    .filter(p => p.age <= 21 && (p.clubId == null || game.clubs[p.clubId]?.leagueId === leagueId))
-    .sort((a, b) => b.pa - a.pa)
-    .slice(0, 8)
-  if (!kids.length) return null
+  const { named: kids, leads } = onesToWatch(game, leagueId)
+  if (!kids.length && !leads.length) return null
   return (
     <>
       <SectionTitle sub={t('world.dtOnesSub')}>{t('world.dtOnesToWatch')}</SectionTitle>
@@ -129,7 +129,14 @@ function OnesToWatch({ leagueId }: { leagueId: string }) {
             <td className="num muted">{p.nat}</td>
           </tr>
         ))}
+        {leads.map(p => (
+          <tr key={`lead${p.id}`} data-lead="1">
+            <td className="name muted">{t('news.watchLead', leadRow(game, p))}</td>
+            <td />
+          </tr>
+        ))}
       </tbody></table></div>
+      {leads.length > 0 && <div className="meta" style={{ fontSize: 12, padding: '4px 16px' }}>{t('world.dtLeadHow')}</div>}
     </>
   )
 }
