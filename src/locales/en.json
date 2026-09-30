@@ -8505,7 +8505,7 @@
   "eraEnd": "{story_k} Won {w}, drawn {d}, lost {l}, trophies {cups}, from {from} to {to}. The whole era is kept in Manager Legacy.",
   "eraFiveSubj": "{cn}: the story so far",
   "eraFive": "{story_k} Won {w}, drawn {d}, lost {l}, trophies {cups}, from {from} to {to}.",
-  "storyShort": "Your spell at {club} lasted {m} matches.",
+  "storyShort": "Your spell at {club} lasted {m} {matches_k}.",
   "storyEurope": "You took {club} from {from_o} in {league} to winners of {cup_k} in {n} {seasons_k}.",
   "storyTitle": "You took {club} from {from_o} in {league} to the {comp} title in {n} {seasons_k}.",
   "storyUp": "You took {club} from {league} to {comp} in {n} {seasons_k}.",

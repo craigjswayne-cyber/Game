@@ -161,6 +161,7 @@ function storyOf(state: GameState, cur: CurEra, tr: string[]): { k: string; v: V
   const v: Vars = {
     club: club?.short ?? cur.c, n, seasons_k: n === 1 ? 'count.seasonOne' : 'count.seasonMany',
     from_o: cur.pos0 || 1, league: name(cur.lg0), comp: name(lgNow), m: cur.m,
+    matches_k: cur.m === 1 ? 'count.matchOne' : 'count.matchMany',
   }
   if (cur.m < 12 && n <= 1) return { k: 'arc.storyShort', v }
   if (tr.includes('cc')) return { k: 'arc.storyEurope', v: { ...v, cup_k: genderOf(state) === 'w' ? 'dream.cupWomen' : 'dream.cupMen' } }

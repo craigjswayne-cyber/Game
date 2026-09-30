@@ -8442,7 +8442,7 @@
   "eraEnd": "{story_k} Vinte {w}, pareggiate {d}, perse {l}, trofei {cups}, dal {from} al {to}. L'intera epoca resta in Eredità del manager.",
   "eraFiveSubj": "{cn}: la storia finora",
   "eraFive": "{story_k} Vinte {w}, pareggiate {d}, perse {l}, trofei {cups}, dal {from} al {to}.",
-  "storyShort": "La tua esperienza a {club} è durata {m} partite.",
+  "storyShort": "La tua esperienza a {club} è durata {m} {matches_k}.",
   "storyEurope": "Hai portato {club} dal {from_o} posto in {league} alla vittoria in {cup_k} in {n} {seasons_k}.",
   "storyTitle": "Hai portato {club} dal {from_o} posto in {league} al titolo di {comp} in {n} {seasons_k}.",
   "storyUp": "Hai portato {club} da {league} a {comp} in {n} {seasons_k}.",
