@@ -790,7 +790,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .press-q {
   font-family: var(--sans);
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 400;
 
   color: var(--text-primary);
   padding: 4px 16px 12px;
