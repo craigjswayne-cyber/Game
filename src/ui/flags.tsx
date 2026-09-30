@@ -62,11 +62,14 @@ const DRAW: Record<string, () => ReactNode> = {
     {[[18, 3.2, 1.3], [15.6, 7, 1.2], [20.6, 6.4, 1.1], [18, 12.4, 1.4]].map(([x, y, r], i) => <g key={i}><Star x={x} y={y} r={r + 0.45} /><Star x={x} y={y} r={r} fill="#C8102E" /></g>)}
   </>,
   // Ireland plays as one island under the IRFU's own flag, not the
-  // tricolour. A plain green field quartered by a thin white cross, for the
-  // four provinces, stands for that without borrowing either state's flag.
+  // tricolour. A white shamrock on green (owner's call, 1.8.2) stands for the
+  // side without borrowing either state's flag.
   IRE: () => <>
     <rect width={W} height={H} fill="#169B62" />
-    <path d="M12 0V16M0 8H24" stroke="#fff" strokeWidth="1.4" />
+    <path d="M12 8.6Q12.4 11.6 14.2 13.8" fill="none" stroke="#fff" strokeWidth="1.2" strokeLinecap="round" />
+    <circle cx="12" cy="4.7" r="2.5" fill="#fff" />
+    <circle cx="9.6" cy="8.5" r="2.5" fill="#fff" />
+    <circle cx="14.4" cy="8.5" r="2.5" fill="#fff" />
   </>,
   FRA: () => <>{vStripes(['#002395', '#fff', '#ED2939'])}</>,
   ENG: () => <>
