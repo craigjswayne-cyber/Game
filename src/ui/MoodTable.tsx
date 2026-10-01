@@ -1,6 +1,7 @@
 import type { GameState, Player } from '../game/model'
 import { persName, t } from '../game/i18n'
 import { persKnown } from '../game/scout'
+import { baseState, roomMood, type TalkSetting } from '../game/teamtalk'
 
 /**
  * ---- HOW THE ROOM FEELS, BEFORE YOU SPEAK TO IT (1.8.0) ----
@@ -28,13 +29,21 @@ export function moodOf(p: Player, starting: boolean): Mood {
   return { k: 'mood.lowConfidence', tone: 'low' }
 }
 
-export function MoodTable({ game, lineup }: { game: GameState; lineup: (number | null)[] }) {
+/**
+ * With `room` set (the fixture's setting, teamtalk.ts) the mood is read
+ * against the game in front of them, so a buoyant favourite reads "thinks
+ * this one is already won" and a frightened underdog "nervous": exactly the
+ * state the talk will be heard from, and the read the manager has to judge.
+ */
+export function MoodTable({ game, lineup, room }: { game: GameState; lineup: (number | null)[]; room?: { s: TalkSetting; fxId: number } }) {
   const rows = lineup.slice(0, 23)
     .map((id, i) => ({ id, i, p: id != null ? game.players[id] : undefined }))
     .filter((r): r is { id: number; i: number; p: Player } => r.id != null && !!r.p)
   if (!rows.length) return null
+  const read = (p: Player, starting: boolean): Mood =>
+    room ? roomMood(baseState(game, p, room.s, room.fxId), p) : moodOf(p, starting)
   const counts = { good: 0, ok: 0, low: 0 }
-  for (const r of rows) counts[moodOf(r.p, r.i < 15).tone]++
+  for (const r of rows) counts[read(r.p, r.i < 15).tone]++
   return (
     <div className="mood-wrap">
       <div className="mood-sum">
@@ -45,7 +54,7 @@ export function MoodTable({ game, lineup }: { game: GameState; lineup: (number |
           <thead><tr><th>#</th><th>{t('mood.name')}</th><th>{t('mood.personality')}</th><th>{t('mood.mood')}</th></tr></thead>
           <tbody>
             {rows.map(({ id, i, p }) => {
-              const m = moodOf(p, i < 15)
+              const m = read(p, i < 15)
               return (
                 <tr key={id} className={i >= 15 ? 'bench' : ''}>
                   <td className="num">{i + 1}</td>
