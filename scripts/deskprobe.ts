@@ -38,7 +38,8 @@ import { inInbox } from '../src/game/days'
 import { opponentIn } from '../src/game/oppreport'
 import { remember } from '../src/game/memory'
 import { ensureLang, missing, setLang, t, type Lang } from '../src/game/i18n'
-import type { GameState, Player } from '../src/game/model'
+import { pressLabel, pressQuestion, type GameState, type Player } from '../src/game/model'
+import { optionParts } from '../src/game/quotes'
 
 let fails = 0
 const ok = (c: boolean, what: string) => { if (!c) { console.log(`FAIL  ${what}`); fails++ } }
@@ -240,7 +241,7 @@ for (const c of CASES) {
         for (const r of render(desk)) {
           rendered++
           ok(r.text.length > 0, `${lang} ${c.club} wk${wk} ${r.id}: renders`)
-          ok(!/\{\w+\}/.test(r.text), `${lang} ${c.club} wk${wk} ${r.id}: no placeholder left in "${r.text}"`)
+          ok(!/\{[^{}\s]*\}/.test(r.text), `${lang} ${c.club} wk${wk} ${r.id}: no placeholder left in "${r.text}"`)
           ok(!/\b(desk|home|oppreport|profile|selection|tactics|groups|arc|objectives)\.[a-zA-Z_]/.test(r.text), `${lang} ${c.club} wk${wk} ${r.id}: no key on screen in "${r.text}"`)
           ok(!/\u2014/.test(r.text), `${lang} ${r.id}: no em dash`)
           for (const lab of LABEL_SET) {
@@ -270,6 +271,14 @@ for (const c of CASES) {
           const stripped = names.reduce((s, n) => s.split(n).join(''), r.text)
           for (const lab of LABEL_SET) ok(!stripped.includes(lab), `${lang} ${c.club} wk${wk} ${r.id}: label "${lab}" in "${r.text}"`)
         }
+        // the questions the desk answers in place, and every press and board
+        // question waiting, as the press room shows them: no {var} unresolved
+        for (const q of stateCase.press.filter(p => !p.answered)) {
+          for (const text of [pressQuestion(q), ...q.options.map(o => pressLabel(o)), ...q.options.map(o => optionParts(pressLabel(o)).detail ?? '')]) {
+            rendered++
+            ok(!/\{[^{}\s]*\}/.test(text), `${lang} ${c.club} wk${wk} press ${q.qk ?? q.outlet}: no placeholder left in "${text}"`)
+          }
+        }
         ok(missing.size === 0, `${lang} ${c.club} wk${wk}: nothing fell back or went missing (${[...missing].slice(0, 4)})`)
       }
       setLang('en')
@@ -294,13 +303,16 @@ const SAMPLE: { k: string; v?: Record<string, string | number> }[] = [
   { k: 'desk.tPromise_plans', v: { player: 'A' } }, { k: 'desk.tPromise_minutes', v: { player: 'A' } }, { k: 'desk.tPromise_deal', v: { player: 'A' } },
   { k: 'desk.tRushed', v: { player: 'A' } }, { k: 'desk.tProjUp', v: { player: 'A' } }, { k: 'desk.tProjDown', v: { player: 'A' } },
   { k: 'oppreport.soft', v: { unit_k: 'oppreport.u_scrum', sure_k: 'oppreport.sureLow' } },
+  // the arms race's thread (armsrace.ts deskQuestion): {move_k} is a key
+  // the line names in full, and once printed raw on Home
+  { k: 'desk.tPlaybook', v: { move_k: 'moves.say.mv_backdoor', pct: 70, club: 'Agen' } },
 ]
 for (const lang of LANGS) {
   setLang(lang)
   missing.clear()
   for (const s of SAMPLE) {
     const text = deskText(s)
-    ok(text !== s.k && !/\{\w+\}/.test(text), `${lang} ${s.k}: "${text}"`)
+    ok(text !== s.k && !/\{[^{}\s]*\}/.test(text), `${lang} ${s.k}: "${text}"`)
     if (lang === 'fr' && /:/.test(text)) ok(/\u00a0:/.test(text), `fr ${s.k}: the colon has its non-breaking space ("${text}")`)
   }
   for (const k of ['desk.title', 'desk.decide', 'desk.clear', 'desk.dev', 'desk.room', 'desk.season', 'desk.thread', 'home.dashFinances', 'groups.tactics', 'home.nextMatch']) {

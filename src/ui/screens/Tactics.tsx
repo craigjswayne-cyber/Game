@@ -13,7 +13,7 @@ import { ROUTINES, DEFAULT_LINEOUT, DEFAULT_SCRUM, routineEffect } from '../../g
 import { BRIEFS, SPLITS, actualSplit, benchFrontRow, benchSeats, briefForSeat, refillBench, splitFor, type BenchSplit, type Brief } from '../../game/bench'
 import { t } from '../../game/i18n'
 import { subjectVar } from '../../game/gender'
-import { BenchClock, BriefIcon, ExitDiagram, KickStyleDiagram, LineoutDiagram, PREP_ICON, PenaltyDiagram, ScrumDiagram, SplitPips, TheTwentyThree } from '../tacticsArt'
+import { BenchClock, BriefIcon, ExitDiagram, KickStyleDiagram, LineoutDiagram, PREP_ICON, PenaltyDiagram, ScrumDiagram, SplitPips, TheReplacements } from '../tacticsArt'
 import { Glyph } from '../glyphs'
 import { IcoChevron } from '../icons'
 import { OppReportCard, ResponsePlans, usePrepOpponent } from '../OppReport'
@@ -523,11 +523,6 @@ export default function Tactics() {
             </div>
           )
         })()}
-        {/* THE 23, DRAWN (1.8.0, owner: "more visual"): the fifteen in their
-            shape and the eight on the bench with what each has been told,
-            before the controls that change them */}
-        <SectionTitle sub={t('tacticsScreen.b23Sub')}>{t('tacticsScreen.the23')}</SectionTitle>
-        <TheTwentyThree game={game} club={club} />
         <SectionTitle sub={t('tacticsScreen.the23Sub')}>{t('tacticsScreen.benchSplit')}</SectionTitle>
         <div className="routine-grid split-grid">
           {SPLITS.map(sp => {
@@ -550,6 +545,12 @@ export default function Tactics() {
           })}
         </div>
         <BenchClock neutral={splitFor(club) === '5-3'} />
+        {/* THE BENCH PAGE, IN ITS ORDER (owner, round 5: "bench splits and
+            then replacements listed and then finisher briefs"). The fifteen
+            drawn on grass that used to open the tab are gone; the eight men
+            the split seats, with what each has been told, follow it. */}
+        <SectionTitle>{t('tacticsScreen.b23Bench')}</SectionTitle>
+        <TheReplacements game={game} club={club} />
         <SectionTitle sub={t('tacticsScreen.finisherBriefsSub')}>{t('tacticsScreen.finisherBriefs')}</SectionTitle>
         {/* Folded until asked for (1.8.0). When the drawn 23 arrived it put
             every replacement and his brief at the top of this tab, and the

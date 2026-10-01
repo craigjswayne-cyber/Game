@@ -242,26 +242,22 @@ async function setPiece(page, label, full) {
 async function bench(page, label, full) {
   await tab(page, 2)
   const b23 = await page.evaluate(() => {
-    const names = [...document.querySelectorAll('.b23-name')].map(n => n.getBoundingClientRect())
-    let overlaps = 0
-    for (let i = 0; i < names.length; i++) for (let j = i + 1; j < names.length; j++) {
-      const a = names[i], b = names[j]
-      if (a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1) overlaps++
-    }
-    const pitch = document.querySelector('.b23-pitch')?.getBoundingClientRect()
-    const outside = names.filter(r => pitch && (r.left < pitch.left - 1 || r.right > pitch.right + 1 || r.bottom > pitch.bottom + 1)).length
+    // the page reads in the owner's order (round 5): the split, the eight
+    // replacements, then the finisher briefs; the fifteen on grass are gone
+    const y = sel => document.querySelector(sel)?.getBoundingClientRect().top ?? -1
     return {
-      men: document.querySelectorAll('.b23-man .b23-kit svg').length,
+      pitch: document.querySelectorAll('.b23-pitch, .b23-man').length,
       seats: document.querySelectorAll('.b23-seat').length,
       icons: document.querySelectorAll('.b23-seat .brief-ico svg').length,
-      overlaps, outside,
+      order: [y('.split-grid'), y('.b23-seats'), y('[data-briefs-toggle]')],
       emoji: /\p{Extended_Pictographic}/u.test(document.querySelector('.content, main, body').innerText),
       pips: [...document.querySelectorAll('.split-grid .split-pips')].map(p => p.querySelectorAll('i.fw').length),
     }
   })
-  ok(b23.men === 15 && b23.seats === 8, `${label}: the 23 drawn, ${b23.men} shirts in the fifteen and ${b23.seats} seats on the bench`)
+  ok(b23.pitch === 0 && b23.seats === 8, `${label}: no starting fifteen drawn (${b23.pitch}), ${b23.seats} seats on the bench`)
   ok(b23.icons === 8, `${label}: every bench seat shows its brief as an icon (${b23.icons})`)
-  ok(b23.overlaps === 0 && b23.outside === 0, `${label}: no two names on the 23 overlap (${b23.overlaps}), none off the grass (${b23.outside})`)
+  ok(b23.order.every(v => v >= 0) && b23.order[0] < b23.order[1] && b23.order[1] < b23.order[2],
+    `${label}: split, then replacements, then finisher briefs (${b23.order.map(Math.round).join(' < ')})`)
   ok(b23.pips.join() === '5,6,4', `${label}: the splits drawn as forwards on the bench (${b23.pips.join(' / ')})`)
   ok(!b23.emoji, `${label}: no emoji left on the bench page`)
   // the eight brief rows are folded behind a toggle since the drawn 23 took
