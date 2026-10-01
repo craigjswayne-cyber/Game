@@ -12,6 +12,7 @@ import { seedNatRank } from './natrank'
 import { seedPhilosophies } from './philosophy'
 import { applyStadiumName, seedDeals } from './commercial'
 import { seedStaffPeople } from './staff'
+import { migrateRift } from './staffrift'
 import { ensureAcademyLeague, topUpAcademy } from './academy'
 import { migratePress } from './pressmigrate'
 import { migrateStyles } from './styles'
@@ -756,6 +757,9 @@ export function migrate(s: GameState): GameState {
   s.facilityAskCooldown ??= 0
   // the backroom staff became people: give every level already paid for a face
   seedStaffPeople(s)
+  // a falling-out between two coaches (staffrift.ts): an older save has none
+  s.staffRift = migrateRift(s.staffRift)
+  if (s.staffRiftNext != null && !Number.isFinite(s.staffRiftNext)) delete s.staffRiftNext
   s.celebration ??= null
   s.records ??= {}
   s.mentors = list(s.mentors) as typeof s.mentors

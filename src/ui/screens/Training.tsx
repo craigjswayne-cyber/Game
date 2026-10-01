@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
 import { STAFF_INFO, fmtMoney, fmtWage, injuryDesc, type TrainingFocus, weeksBetween100 } from '../../game/model'
-import { BADGE_COL, EXAM_PASS_PCT, badgeLabel, traitLabel, appointBlock, appointStaff, backroomFund, courseBlock, courseFee, sackCost, sackStaff, sendToCourse, staffCandidates, staffChemPairs, staffInterest, type StaffRole } from '../../game/staff'
+import { BADGE_COL, EXAM_PASS_PCT, badgeLabel, traitLabel, appointBlock, appointStaff, backroomFund, courseBlock, courseFee, sackCost, sackStaff, sendToCourse, staffCandidates, staffInterest, type StaffRole } from '../../game/staff'
 import DevelopmentPanel from './DevelopmentPanel'
 import { Flag } from '../flags'
 import { SectionTitle, TwoStep } from '../components'
@@ -22,9 +22,8 @@ const FOCUSES: { id: TrainingFocus; name: string; desc: string }[] = [
 export default function Training() {
   const game = useStore(s => s.game)!
   const touch = useStore(s => s.touch)
-  const go = useStore(s => s.go)
   const club = game.clubs[game.userClubId]
-  const [ttab, setTtab] = useState<'training' | 'staff' | 'club' | 'cond'>('training')
+  const [ttab, setTtab] = useState<'training' | 'staff' | 'cond'>('training')
   const players = club.players.map(id => game.players[id]).filter(Boolean)
     .sort((a, b) => a.cond - b.cond)
 
@@ -34,7 +33,6 @@ export default function Training() {
         <button className={ttab === 'training' ? 'active' : ''} onClick={() => setTtab('training')}>{t('training.tabTraining')}</button>
         <button className={ttab === 'staff' ? 'active' : ''} onClick={() => setTtab('staff')}>{t('training.tabStaff')}</button>
         <button className={ttab === 'cond' ? 'active' : ''} onClick={() => setTtab('cond')}>{t('training.tabCondition')}</button>
-        <button className={ttab === 'club' ? 'active' : ''} onClick={() => setTtab('club')}>{t('training.tabClub')}</button>
       </div>
       {ttab === 'training' && <>
       <SectionTitle sub={t('training.weeklyFocusSub')}>{t('training.weeklyFocus')}</SectionTitle>
@@ -53,22 +51,6 @@ export default function Training() {
       <DevelopmentPanel />
       </>}
       {ttab === 'staff' && <StaffPanel />}
-      {ttab === 'club' && <>
-      {/* MENTORING LIVES ON THE TEAM REPORT NOW (owner, 1.8.0: "Club/Mentoring
-          should be moved into team report"). The row stays here as a
-          signpost, because this is where a manager has learned to look. */}
-      <SectionTitle sub={t('training.mentoringMovedSub')}>{t('training.mentoring')}</SectionTitle>
-      <button className="club-pick" data-go-mentoring onClick={() => go('report', 'mentoring')}>
-        <span className="cname">{t('titles.report')}</span>
-        <span className="muted">{t('training.mentoringLink')}</span>
-      </button>
-      <SectionTitle sub={t('training.infrastructureSub')}>{t('training.infrastructure')}</SectionTitle>
-      <button className="club-pick" onClick={() => go('infra')}>
-        <span style={{ fontSize: 16 }}><Glyph name="build" /></span>
-        <span className="cname">{t('titles.infra')}</span>
-        <span className="muted">{t('training.infraLink')}</span>
-      </button>
-      </>}
       {ttab === 'cond' && <>
       <SectionTitle sub={t('training.conditionReportSub')}>{t('training.conditionReport')}</SectionTitle>
       <div className="tblwrap"><table className="dtable">
@@ -126,58 +108,8 @@ function StaffPanel() {
           <div style={{ fontWeight: 700, color: 'var(--gold)' }}>{fmtMoney(backroomFund(game))}</div>
         </div>
       )}
-      {/* the weather in the room (25D-3): who feeds off whom and who cannot
-          stand whom. Without this the chemistry is invisible three seasons
-          after the hire-day letter, and the manager has no way to know why
-          his kids are or are not coming on */}
-      {(() => {
-        const pairs = staffChemPairs(game)
-        if (!pairs.length) return null
-        const net = pairs.reduce((s, r) => s + (r.kind === 'click' ? 1 : -1), 0)
-        return (
-          <div className="card" style={{ padding: '7px 10px', marginBottom: 6, borderLeft: `4px solid ${net > 0 ? 'var(--text-positive)' : net < 0 ? 'var(--text-negative)' : 'var(--gold)'}` }}>
-            <div className="fact-label">{t('training.staffRoom')}</div>
-            <div className="meta" style={{ fontSize: 12, marginBottom: 3 }}>
-              {t(net > 0 ? 'training.roomPulling' : net < 0 ? 'training.roomDisagrees' : 'training.roomCancels')}
-            </div>
-            {/* ONE OF EACH, NOT EIGHT OF THREE (owner, v1.1.13: "the staff
-                disagreements are a too repetitive- simplify").
-                Eight staff make up to twenty-eight pairs and every pair drew
-                its line from the same small bank, so the card listed "the
-                laptop and the caps disagree about everything" twice, "the
-                video sessions are killing the mood" twice and "the dressing
-                room has never hummed like this" twice, one after another. That
-                is not eight facts, it is two facts typed out eight times.
-                The room's SHAPE is the headline above; below it, the best
-                click and the worst clash get named, and the rest is a count.
-                Nothing is hidden - staffChem still counts every pair, and the
-                count says how many there are. */}
-            {(() => {
-              const clicks = pairs.filter(r => r.kind === 'click')
-              const clashes = pairs.filter(r => r.kind === 'clash')
-              const shown = [clicks[0], clashes[0]].filter(Boolean)
-              const rest = pairs.length - shown.length
-              return (
-                <>
-                  {shown.map((r, i) => (
-                    <div key={i} className="meta" style={{ fontSize: 11, padding: '1px 0' }}>
-                      <b style={{ color: r.kind === 'click' ? 'var(--text-positive)' : 'var(--text-negative)' }}>{r.kind === 'click' ? '✓' : '✗'}</b>{' '}
-                      {t('training.chemPair', { a: r.a, b: r.b, note: t(r.note) })}
-                    </div>
-                  ))}
-                  {rest > 0 && (
-                    <div className="meta muted" style={{ fontSize: 11, padding: '1px 0' }}>
-                      {t('training.chemRest', { n: rest, clicks: clicks.length, clashes: clashes.length })}
-                    </div>
-                  )}
-                </>
-              )
-            })()}
-          </div>
-        )
-      })()}
-      {/* the page's 12px gutter, like the staff-room card above it: the cards
-          ran edge to edge of the glass (UI QA, 1.8.0) */}
+      {/* the page's 12px gutter: the cards ran edge to edge of the glass
+          (UI QA, 1.8.0) */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(330px, 100%), 1fr))', gap: 6, padding: '0 12px' }}>
         {roles.map(role => {
           const info = STAFF_INFO[role]

@@ -129,13 +129,13 @@ try {
   ok(acadRow > 0, `the men who do not qualify can be shown, each with why (${acadRow} academy rows)`)
   await noSideScroll('personal plans')
 
-  // ---- mentoring: the signpost, the Team Report, the pairing ----
-  await page.locator('.tab-bar button', { hasText: 'Club' }).first().click()
-  await page.waitForSelector('[data-go-mentoring]')
-  await page.screenshot({ path: `${SHOTS}/training-club-412.png` })
-  await page.click('[data-go-mentoring]')
+  // ---- mentoring: the Team Report, the pairing ----
+  // The Training screen's Club tab (a signpost to mentoring and the estate)
+  // is gone (owner, round 4: "isn't needed"); mentoring lives on the Team Report.
+  ok(await page.locator('.tab-bar button', { hasText: /^Club$/ }).count() === 0, 'the Training screen has no Club tab')
+  await G(() => window.rugbyStore.getState().go('report', 'mentoring'))
   await page.waitForSelector('[data-kid]')
-  ok(await G(() => window.rugbyStore.getState().nav.at(-1)?.screen) === 'report', 'the signpost opens the Team Report')
+  ok(await G(() => window.rugbyStore.getState().nav.at(-1)?.screen) === 'report', 'mentoring opens on the Team Report')
   ok(await page.locator('.tab-bar button.active', { hasText: 'Mentoring' }).count() === 1, 'on its Mentoring tab')
   await page.screenshot({ path: `${SHOTS}/mentoring-empty-412.png`, fullPage: true })
   const kid = await page.locator('[data-kid]').first().getAttribute('data-kid')
