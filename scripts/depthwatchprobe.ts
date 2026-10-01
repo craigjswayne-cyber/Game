@@ -26,6 +26,16 @@ const club = g.clubs[g.userClubId]
 const men = (pos: Pos): Player[] => club.players.map(id => g.players[id]).filter(p => p && !p.acad && p.pos === pos)
 // a clean slate: everybody fit, so only what the probe does makes anything thin
 for (const id of club.players) { const p = g.players[id]; if (p) { p.injury = null as never; p.bans = 0; p.natSquad = undefined as never; p.onLoan = undefined as never } }
+// owner, round 7: nothing before the first match. Thin at week 1 with no game
+// played says nothing; one played fixture and the watch is on.
+{
+  const lk = men('LK'); for (const p of lk.slice(1)) p.injury = { type: 'Hamstring', until: g.week + 20 } as never
+  const n0 = g.news.length; depthWatch(g)
+  ok(g.news.length === n0, 'no depth message before the first match is played')
+  for (const p of lk) p.injury = null as never
+  const fx = g.fixtures.find(f => f.homeId === club.id || f.awayId === club.id)!
+  fx.played = true; fx.week = Math.min(fx.week, g.week)
+}
 depthWatch(g)
 const base = g.news.length
 const told = () => g.news.slice(base).filter(n => n.k === 'news.depthShort' || n.k === 'news.depthShortNone')
@@ -120,5 +130,22 @@ ok(!en.squad.depthThin && !en.squad.depthThinFront, 'and its warning lines are g
 const squad = readFileSync('src/ui/screens/Squad.tsx', 'utf8')
 ok(!/DepthPane|'depth'/.test(squad) && /DepthPane/.test(readFileSync('src/ui/screens/TeamReport.tsx', 'utf8')), 'the chart is on the Team Report, not the Team tabs')
 
+// owner, round 7: the back row is one unit. Two flankers out with a fit
+// number 8 and a fit flanker left is not a message about either position.
+{
+  const fl = men('FL'), n8 = men('N8')
+  for (const p of [...fl, ...n8]) p.injury = null as never
+  week()
+  const n0 = told().length
+  for (const p of fl.slice(1)) p.injury = { type: 'Hamstring', until: g.week + 20 } as never
+  week()
+  const fresh = told().slice(n0)
+  const fit = fitAt(g, 'FL') + fitAt(g, 'N8')
+  ok(!fresh.some(n => (n.v as { pos_k?: string })?.pos_k === 'pos.FL' || (n.v as { pos_k?: string })?.pos_k === 'pos.N8'),
+    'flanker and number 8 are never reported on their own')
+  ok(fit >= 3 ? fresh.length === 0 : fresh.some(n => (n.v as { pos_k?: string })?.pos_k === 'pos.backRow'),
+    `the back row is counted as one (${fit} fit across FL and N8)`)
+  for (const p of fl) p.injury = null as never
+}
 console.log(fails ? `\nDEPTH WATCH FAILED (${fails})` : '\nDEPTH WATCH PASSED: one word per spell, and the chart is just a chart')
 process.exit(fails ? 1 : 0)
