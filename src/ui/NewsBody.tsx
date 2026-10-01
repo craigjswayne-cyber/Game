@@ -131,6 +131,8 @@ const NEWS_GO: Record<string, [Screen, string?]> = {
   inheritedStaff: ['training'], inheritedStaffVacant: ['training'],
   backItUp: ['saves'],
   jobOffered: ['jobs'],
+  // the assistant's thin-position word opens the chart it is about (round 4)
+  depthShort: ['report', 'depth'], depthShortNone: ['report', 'depth'],
 }
 
 export function NewsGo({ n }: { n: NewsItem }) {
