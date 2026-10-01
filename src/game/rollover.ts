@@ -36,7 +36,7 @@ import { resetFamiliarity } from './playbook'
 import { closeAcademySeason, ensureAcademyLeague, topUpAcademy, acadCeiling } from './academy'
 import { mentorBond, mentorBoost, pairWeeks } from './mentoring'
 import { endSeasonJokers } from './joker'
-import { staffChem } from './staff'
+import { RIFT_DEV, riftDrag } from './staffrift'
 import { tIn, type Vars } from './i18n'
 import { rememberDeparture } from './memory'
 import { historyYearEnd } from './history'
@@ -343,11 +343,9 @@ export function devFactor(state: GameState, p: Player): number {
     // made in May has not had time to be worth its full six per cent
     if (senior && pair) f += 0.06 * mentorBoost(senior, p) * mentorBond(senior, p, pairWeeks(state, pair))
     f += (state.staff?.assistant ?? 0) * 0.03
-    // the weather in the staff room (25D-3): a coaching team that clicks
-    // teaches better than the sum of its badges, one that feuds teaches
-    // worse. Deterministic, small, and entirely the manager's own doing -
-    // he hired them
-    f += clamp(staffChem(state) * 0.01, -0.03, 0.03)
+    // two coaches at odds (staffrift.ts): a summer under a feuding staff
+    // room teaches a little less. Coaches who get on cost nothing.
+    f -= RIFT_DEV * riftDrag(state)
   }
   return clamp(f, p.acad ? 0.6 : 0.65, p.acad ? 1.65 : 1.4)
 }
