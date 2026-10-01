@@ -8368,15 +8368,15 @@
     "name": "Nom",
     "personality": "Personnalité",
     "mood": "Humeur",
-    "believes": "Croit en la victoire de l'équipe",
-    "lookingForward": "Attend le match avec impatience",
+    "believes": "Croit à la victoire",
+    "lookingForward": "Attend le match",
     "eager": "A hâte de jouer",
-    "happySquad": "Savoure sa place dans le groupe du jour",
-    "balanced": "A des attentes mesurées",
-    "nervous": "A le trac avant le match",
-    "tooComfortable": "Pense que c'est déjà gagné",
+    "happySquad": "Savoure sa sélection",
+    "balanced": "Attentes mesurées",
+    "nervous": "A le trac",
+    "tooComfortable": "Pense que c'est gagné",
     "lowConfidence": "Manque de confiance",
-    "leggy": "Sent la semaine dans les jambes"
+    "leggy": "Jambes lourdes"
   },
   "ctx": {
     "responseNeeded": {

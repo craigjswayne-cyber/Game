@@ -8265,15 +8265,15 @@
   "name": "Name",
   "personality": "Personality",
   "mood": "Mood",
-  "believes": "Believes the team will come out on top",
-  "lookingForward": "Looking forward to the match",
+  "believes": "Believes we'll win",
+  "lookingForward": "Looking forward",
   "eager": "Eager to play",
-  "happySquad": "Happy to be in the matchday squad",
-  "balanced": "Has balanced expectations",
-  "nervous": "Nervous about the game",
-  "tooComfortable": "Thinks this one is already won",
+  "happySquad": "Happy to be picked",
+  "balanced": "Balanced",
+  "nervous": "Nervous",
+  "tooComfortable": "Thinks it's won",
   "lowConfidence": "Low on confidence",
-  "leggy": "Feeling the week in the legs"
+  "leggy": "Heavy legs"
  },
  "ctx": {
   "responseNeeded": {
