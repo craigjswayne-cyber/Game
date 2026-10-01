@@ -40,6 +40,7 @@ import { derbyName, isDerby, rivalsOf } from './rivalries'
 import { NAT_DEPTH, NAT_SQUAD_FLOOR, NAT_SQUAD_SIZE, NAT_TIERS, pickableNations, homeBased, clubQuotaLeft, conflictedClub, federationList, federationPick, releaseClubDuty, nationByCode, nationNameIn, nationVars, regenName, worldNames } from './nations'
 import { isMyClub, logDecision } from './model'
 import { resolveCourses, staffWageBill } from './staff'
+import { RIFT_MORALE, RIFT_TRAINING, riftDrag, staffRiftWeek } from './staffrift'
 import { resolveCommission, scoutPostcard } from './commission'
 import { clamp, mulberry32, shuffled, type Rng } from './rng'
 import { attrOdds, attrRoll, gapGrowth, trainPoint } from './ageing'
@@ -1193,6 +1194,8 @@ function weeklyTraining(state: GameState, rng: Rng) {
   // "back in training" letters in one midwinter inbox told the manager the same
   // thing three times over, and he still had to open each one to learn who.
   const returned: Player[] = []
+  // two coaches at odds this week (staffrift.ts): 1 or 0, the manager's club only
+  const rift = riftDrag(state)
   for (const club of Object.values(state.clubs)) {
     // NOT state.userClubId directly: that still names the club after a
     // sacking, and this flag is what decides whose gym, physio, coaching staff
@@ -1331,7 +1334,7 @@ function weeklyTraining(state: GameState, rng: Rng) {
       // real cost rather than an absent bonus, and read off every club's own
       // estate rather than only the manager's.
       const surfBoost = 0.88 + (club.facilities?.pitch ?? 0) * 0.048
-      const growBoost = (isUser ? 1 + state.staff.assistant * 0.25 : 1) * surfBoost
+      const growBoost = (isUser ? (1 + state.staff.assistant * 0.25) * (1 - RIFT_TRAINING * rift) : 1) * surfBoost
       const eliteF = p.ca >= 94 ? 0.15 : p.ca >= 88 ? 0.5 : 1
       // and the gap to his potential is the pace (E5, ageing.ts gapGrowth)
       // ...and the week itself (1.8.2, devproject.ts weekGrowth): his minutes,
@@ -1353,7 +1356,7 @@ function weeklyTraining(state: GameState, rng: Rng) {
         const coachLvl = coach ? (state.staff[coach] ?? 0) : 0
         // 0.008, was 0.03, for the same reason as rollPlan's rate: the whole
         // squad took ten attribute points a season from the session
-        if (rng() < 0.008 * (1 + state.staff.assistant * 0.5 + coachLvl * 0.45 + facLevel(state, 'paddock') * 0.2)) {
+        if (rng() < 0.008 * (1 - RIFT_TRAINING * rift) * (1 + state.staff.assistant * 0.5 + coachLvl * 0.45 + facLevel(state, 'paddock') * 0.2)) {
           const abs = absWeek(state.season, state.week)
           for (const k of focusMap[state.training]) trainPoint(p, k, focusMap[state.training], attrRoll(state.seed, p.id, abs, k))
         }
@@ -1372,7 +1375,8 @@ function weeklyTraining(state: GameState, rng: Rng) {
       //     rather than a fortnight of being ignored.
       if (isUser) {
         const played = (p.lastWk ?? -9) >= state.week - 1
-        const target = played || p.injury || p.natSquad ? 6.5 : 5.5
+        // two coaches at odds take the edge off the whole room (staffrift.ts)
+        const target = (played || p.injury || p.natSquad ? 6.5 : 5.5) - RIFT_MORALE * rift
         p.morale += (target - p.morale) * (p.morale < target ? 0.035 : 0.06)
         const frozen = !played && (p.lastWk ?? -9) < state.week - 3 && !p.injury && !p.acad && !p.natSquad && p.stats.apps + 3 < state.week
         if (played) p.morale = clamp(p.morale + 0.1, 1, 10)
@@ -2787,6 +2791,8 @@ export function processWeekAndAdvance(state: GameState) {
 
   // the examiners report back on any coach sitting his next badge
   resolveCourses(state)
+  // two coaches at odds: the odd story, and the end of it (staffrift.ts)
+  staffRiftWeek(state)
 
   // the chief scout comes home and files his report
   resolveCommission(state)
