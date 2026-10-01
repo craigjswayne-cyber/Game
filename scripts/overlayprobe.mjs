@@ -58,6 +58,10 @@ const ok = (c, what) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (
 try {
   await page.waitForTimeout(1500)
   await clear()
+  // the team-talk reactions sit on the stage for the opening minutes (1.8.2):
+  // the live stats are behind them, a tap on "Got it" away
+  const react = page.locator('.talk-react .btn.ghost.tiny')
+  if (await react.count()) { await react.first().click(); await page.waitForTimeout(200) }
   const rows = await page.evaluate(() => [...document.querySelectorAll('.live-stats .ls-row .ls-label')].map(e => e.textContent))
   ok(rows.length === 10 && rows.includes('Territory') && rows.includes('Kicks at goal') && rows.includes('Points per 22 visit'), `between highlights the stage is the live stats (${rows.join(', ')})`)
   ok(await page.evaluate(() => !document.querySelector('.pitch')), 'and there is no always-on pitch')
