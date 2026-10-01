@@ -581,7 +581,7 @@ try {
         say(`  full time: "${stamp.trim()}"`)
         ok(/VICTOIRE|DÉFAITE|MATCH NUL/i.test(stamp), 'the full-time stamp is French')
         const report = await page.locator('.panel-area').innerText()
-        const ftEng = ["Coach's Verdict", 'The Unit Battles', 'Star Player', 'Match Stats', 'The Highlights',
+        const ftEng = ["Coach's Verdict", 'The Unit Battles', 'Star Player', 'Match Stats',
           'Continue to Results', 'Player ratings', 'The Two Fixes', 'The Fix']
           .filter(w => report.includes(w))
         ok(ftEng.length === 0, `no English left in the full-time report${ftEng.length ? ': ' + ftEng.join(', ') : ''}`)

@@ -64,7 +64,7 @@
  */
 import type { Fixture, GameState } from './model'
 import {
-  applyPreTalk, applyTacticsChange, applyTeamTalk, beginMatch, makeSubstitution, playSegment,
+  openDressingRoom, applyTacticsChange, applyTeamTalk, beginMatch, makeSubstitution, playSegment,
   resolveDecision, stepTick, swapInjuryCover, swapShirts, teamShort, undoSubstitution, type LiveCtx,
 } from './matchEngine'
 import { matchRng, weekRng } from './season'
@@ -148,7 +148,7 @@ export function replayMatch(state: GameState, rec: MatchResume): Resumed | null 
 
   // a record written before 1.8.1 was played on the week's dice (matchRng)
   const ctx = beginMatch(state, fx, rec.stream === 'match' ? matchRng(state) : weekRng(state), true, rec.userSideId)
-  const preTalkMsg = rec.preTalk ? applyPreTalk(state, ctx, rec.preTalk) : null
+  const preTalkMsg = openDressingRoom(state, ctx, rec.preTalk)
   let talkMsg: string | null = null
 
   // Commands are applied at the tick they were made on, in the order they were

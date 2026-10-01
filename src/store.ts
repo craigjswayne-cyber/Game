@@ -94,7 +94,7 @@ import { genderOf, type Gender } from './game/gender'
 import { isKnockoutTie, matchRng, processWeekAndAdvance, resolveKnockoutDraw, userFixtureThisWeek, userMatchThisWeek, weekRng } from './game/season'
 import { resultsParam } from './game/schedule'
 import {
-  applyPreTalk, applyTacticsChange, applyTeamTalk, beginMatch, makeSubstitution, swapInjuryCover, swapShirts, undoSubstitution,
+  openDressingRoom, applyTacticsChange, applyTeamTalk, beginMatch, makeSubstitution, swapInjuryCover, swapShirts, undoSubstitution,
   playHalf, resolveDecision, stepTick, teamName, teamShort, type LiveCtx, forfeitSide, settleForfeit } from './game/matchEngine'
 import { applyForJob, resignJob, answerJobOffer } from './game/jobs'
 import { answerPress } from './game/media'
@@ -1160,7 +1160,7 @@ export const useStore = create<Store>((set, get) => ({
       const ctx = beginMatch(g, fx, matchRng(g), true, userTeamId)
       // the assistant has the match, so the assistant makes the changes
       ctx.assistantSubs = true
-      if (preTalk) applyPreTalk(g, ctx, preTalk)
+      openDressingRoom(g, ctx, preTalk)
       playHalf(g, ctx)
       playHalf(g, ctx)
       // the tactical loop's findings, before the week turns (#181)
@@ -1232,8 +1232,8 @@ export const useStore = create<Store>((set, get) => ({
     }
     const pre = JSON.parse(JSON.stringify(g)) as GameState
     const ctx = beginMatch(g, fx, matchRng(g), true, userTeamId)
-    let preTalkMsg: string | null = null
-    if (preTalk) preTalkMsg = applyPreTalk(g, ctx, preTalk)
+    // spoken or not, the room is opened once (teamtalk.ts, SAYING NOTHING)
+    const preTalkMsg = openDressingRoom(g, ctx, preTalk)
     const rec: MatchResume = {
       v: 1, pre, stream: 'match', fxId: fx.id, userSideId: userTeamId, preTalk: preTalk ?? null,
       mode: mode ?? 'full', tick: 0, cursor: 0, cmds: [],
