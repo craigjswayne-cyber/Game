@@ -93,10 +93,13 @@ const diagrams = (page, sel) => page.$$eval(sel, bs => bs.map(b => {
   return s ? s.querySelectorAll('circle, path, line, rect, ellipse, polygon').length : 0
 }))
 
-/** THE PLAYBOOK'S ONE FLOW (1.8.2, owner: "preview and then the slots are
- *  filled"): tap a move and it plays on a loop; "Add to playbook" fills the
- *  first empty slot it can go in; with those full, the slots it can go in
- *  light up and a tap replaces; a move in the playbook offers Remove. */
+/** THE PLAYBOOK: PREVIEW, THEN PICK THE SLOT (owner: "You should be able to
+ *  select which of the moves goes where, like the main menu save option"):
+ *  tap a move and it plays on a loop; "Add to playbook" opens the four slots
+ *  as rows, each saying what it holds, the ones the move cannot go in greyed;
+ *  a tap on a row puts the move there, replacing what was; Cancel closes the
+ *  rows; a move in the playbook offers Remove. No "it will misfire" line:
+ *  familiarity is learnt in the matches (owner). */
 async function playbook(page, label) {
   await page.evaluate(() => {
     const S = window.rugbyStore.getState(), g = S.game, t = g.clubs[g.userClubId].tactic
@@ -112,20 +115,38 @@ async function playbook(page, label) {
   const t0 = await svg.getAttribute('data-t'); await page.waitForTimeout(700)
   const t1 = await svg.getAttribute('data-t')
   ok(t0 !== t1, `${label}: the preview is playing (t ${t0} then ${t1})`)
-  const add = async (id) => { await page.click(`.mv-card [data-move="${id}"]`); await page.click('.mv-card [data-act="add"]') }
-  await add('mv_loop'); await add('mv_switch'); await add('mv_crash'); await add('mv_1331')
+  ok(await page.locator('.mv-preview .mv-warn').count() === 0, `${label}: no undrilled warning on the preview`)
+  ok(await page.locator('.mv-slots').count() === 0, `${label}: the slot picker is shut until Add is tapped`)
+  await page.click('.mv-card [data-act="add"]')
+  const open = await page.$$eval('.mv-slots .mv-slot', bs => bs.map(b => `${b.dataset.slot}${b.disabled ? '-' : '+'}`).join())
+  ok(open === 'shape-,main+,alt+,red+', `${label}: Add opens all four slots, the one a strike cannot go in greyed (${open})`)
+  await page.click('.mv-slots [data-slot="red"]')
   let tc = await tac(page)
-  ok(tc.moveMain === 'mv_loop' && tc.moveAlt === 'mv_switch' && tc.moveRed === 'mv_crash' && tc.moveShape === 'mv_1331',
-    `${label}: Add fills the next empty slot each time (${tc.moveShape} / ${tc.moveMain} / ${tc.moveAlt} / ${tc.moveRed})`)
-  ok(await page.locator('.mv-callchip[data-call="main"]').getAttribute('data-filled') === 'mv_loop', `${label}: the slot shows what it holds`)
-  await page.click('.mv-card [data-move="mv_decoy"]'); await page.click('.mv-card [data-act="add"]')
-  const lit = await page.$$eval('.mv-callchip.pick', bs => bs.map(b => b.dataset.call).join())
-  ok(lit === 'main,alt,red' && await page.locator('.mv-card[data-replacing="1"]').count() === 1,
-    `${label}: with the slots full, the ones it can go in light up (${lit})`)
-  await page.click('.mv-callchip[data-call="alt"]')
+  ok(tc.moveRed === 'mv_loop' && !tc.moveMain && await page.locator('.mv-slots').count() === 0
+    && await page.locator('.mv-card [data-act="remove"]').count() === 1,
+    `${label}: a tap on a slot puts it there, not in the first free one (${tc.moveRed}), and shuts the picker`)
+  const put = async (id, slot) => {
+    await page.click(`.mv-card [data-move="${id}"]`); await page.click('.mv-card [data-act="add"]')
+    await page.click(`.mv-slots [data-slot="${slot}"]`)
+  }
+  await page.click('.mv-card [data-move="mv_1331"]'); await page.click('.mv-card [data-act="add"]')
+  const shp = await page.$$eval('.mv-slots .mv-slot:not(:disabled)', bs => bs.map(b => b.dataset.slot).join())
+  ok(shp === 'shape', `${label}: an open-play shape can go in the open-play slot only (${shp})`)
+  await page.click('.mv-slots [data-slot="shape"]')
+  await put('mv_switch', 'alt'); await put('mv_crash', 'main')
   tc = await tac(page)
-  ok(tc.moveAlt === 'mv_decoy' && tc.moveMain === 'mv_loop' && await page.locator('.mv-callchip.pick').count() === 0,
-    `${label}: a tap on a lit slot replaces it (${tc.moveAlt})`)
+  ok(tc.moveMain === 'mv_crash' && tc.moveAlt === 'mv_switch' && tc.moveRed === 'mv_loop' && tc.moveShape === 'mv_1331',
+    `${label}: each move went where it was put (${tc.moveShape} / ${tc.moveMain} / ${tc.moveAlt} / ${tc.moveRed})`)
+  ok(await page.locator('.mv-callchip[data-call="main"]').getAttribute('data-filled') === 'mv_crash', `${label}: the slot shows what it holds`)
+  await page.click('.mv-card [data-move="mv_decoy"]'); await page.click('.mv-card [data-act="add"]')
+  const held = await page.$$eval('.mv-slots .mv-slot', bs => bs.map(b => b.dataset.filled).join())
+  ok(held === 'mv_1331,mv_crash,mv_switch,mv_loop', `${label}: each row in the picker says what is in that slot now (${held})`)
+  await page.click('.mv-card [data-act="cancel"]')
+  ok(await page.locator('.mv-slots').count() === 0 && await page.locator('.mv-card [data-act="add"]').count() === 1,
+    `${label}: Cancel shuts the picker and changes nothing`)
+  await page.click('.mv-card [data-act="add"]'); await page.click('.mv-slots [data-slot="alt"]')
+  tc = await tac(page)
+  ok(tc.moveAlt === 'mv_decoy' && tc.moveMain === 'mv_crash', `${label}: a tap on a full slot replaces it (${tc.moveAlt})`)
   await page.click('.mv-card [data-act="remove"]')
   tc = await tac(page)
   ok(tc.moveAlt === undefined && await page.locator('.mv-card [data-act="add"]').count() === 1,

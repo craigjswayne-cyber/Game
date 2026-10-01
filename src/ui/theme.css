@@ -3227,8 +3227,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .mv-callchip span { font-size: 10px; opacity: .85; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
 .mv-callchip .mv-fam { opacity: .7; }
 .mv-callchip:disabled { opacity: .55; }
-/* a slot the picked move can replace: lit, so the tap is obvious */
-.mv-callchip.pick { box-shadow: inset 0 0 0 2px var(--gold); }
 .mv-chips { margin-top: 0; }
 .mv-chips .preset-chip { min-height: 36px; }
 /* a move already in the playbook */
@@ -3239,8 +3237,17 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .mv-preview .sp-txt { display: flex; flex-direction: column; gap: 3px; }
 .mv-preview .d { font-size: 11.5px; color: var(--text-muted); line-height: 1.35; }
 .mv-preview b { font-size: 13px; color: var(--text-primary); }
-.mv-preview .mv-warn { color: var(--text-negative); font-weight: 600; }
 .mv-hint { font-size: 11.5px; }
+/* the slot picker: one row a slot in the main menu's save-row look, the
+   slot's name and what it holds now; one the move cannot go in is greyed */
+.mv-slots { display: flex; flex-direction: column; gap: 6px; }
+.mv-slots .mv-slot {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  min-height: 44px; padding: 6px 12px; background: var(--surface-3); text-align: left;
+}
+.mv-slots .mv-slot b { font-size: 12.5px; flex: none; }
+.mv-slots .mv-slot span { font-size: 11px; opacity: .8; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mv-slots .mv-slot:disabled { opacity: .4; }
 
 /* the 23: the fifteen in a team-sheet shape on the grass, the eight on a bench */
 .b23 { margin: 6px 14px; display: grid; gap: 8px; }

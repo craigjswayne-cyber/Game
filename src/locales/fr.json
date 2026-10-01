@@ -872,7 +872,6 @@
     "shape": "Annonce en jeu courant",
     "none": "Aucune annonce",
     "needPart": "{shirts} : {attrs}",
-    "misfire": "Pas assez travaillée : elle ratera",
     "slotRed": "Dans les 22",
     "mixLabel": "Combinaison principale sur {pct} % des ballons que les deux peuvent jouer",
     "mixLean": "Appuyé 80/20",
@@ -881,7 +880,7 @@
     "fam": "Automatismes : {pct} %",
     "add": "Ajouter au plan de jeu",
     "remove": "Retirer du plan de jeu",
-    "replaceHint": "Plan de jeu complet : touchez une case en surbrillance pour la remplacer.",
+    "slotHint": "Touchez une case pour l'y placer.",
     "tapHint": "Touchez une combinaison pour la voir jouée."
   },
   "bench": {

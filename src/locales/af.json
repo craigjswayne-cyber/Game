@@ -849,7 +849,6 @@
   "shape": "Oopspel-roep",
   "none": "Geen roep",
   "needPart": "{shirts}: {attrs}",
-  "misfire": "Nie ingeoefen nie: dit sal misluk",
   "slotRed": "In hul 22",
   "mixLabel": "Hoofbeweging op {pct}% van die balle wat albei kan speel",
   "mixLean": "Swaar 80/20",
@@ -858,7 +857,7 @@
   "fam": "Vertroudheid {pct}%",
   "add": "Voeg by die spelboek",
   "remove": "Haal uit die spelboek",
-  "replaceHint": "Die spelboek is vol: tik op 'n verligte gleuf om dit te vervang.",
+  "slotHint": "Tik op 'n gleuf om dit daar te sit.",
   "tapHint": "Tik op 'n beweging om dit te sien speel."
  },
  "bench": {
