@@ -157,9 +157,9 @@ try {
   await page.waitForSelector('text=the eighty minutes and the hour before it')
   await measure('handbook')
 
-  // the press room and the job centre belong to the manager, not to the team
-  // sheet: he is the one in front of the cameras and the one being courted
-  for (const [item, label] of [['Press Room', 'press room'], ['Job Centre', 'job centre']]) {
+  // the press room belongs to the manager, not to the team sheet: he is the
+  // one in front of the cameras. The job centre is a World item (round 4).
+  for (const [item, label] of [['Press Room', 'press room']]) {
     await page.click('.bottom-nav button[title="Manager"]')
     await page.click(`.submenu-item >> text=${item}`)
     await measure(label)
@@ -168,6 +168,7 @@ try {
   // 'The Rugby Wire' was here: merged into the News screen, which the rail
   // reaches directly, so the World group no longer carries a news item.
   const worldItems = [
+    ['Job Centre', 'job centre'],
     ['Team of the Week', 'team of the week'],
     ['Scouting Agency', 'scouting agency'],
     ['Competitions', 'competitions'],

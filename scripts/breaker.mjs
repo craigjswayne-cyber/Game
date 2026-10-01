@@ -311,8 +311,10 @@ try {
     ['Hub', ['Tactics', 'Team', 'Team Report', 'Training & Staff', 'Medical Centre',
       'Fixtures & Results', 'Finances', 'Transfer Centre', 'Academy',
       'Club Infrastructure', 'Club Information']],
-    ['Manager', ['Manager Profile', 'Press Room', 'Job Centre', 'Manager Legacy',
+    ['Manager', ['Manager Profile', 'Press Room', 'Manager Legacy',
       "The Manager's Handbook", 'Save / Load Game']],
+    // the Job Centre is a World item since round 4
+    ['World', ['Job Centre']],
   ]
   for (const size of [{ width: 412, height: 732 }, { width: 844, height: 390 }]) {
     await page.setViewportSize(size)
