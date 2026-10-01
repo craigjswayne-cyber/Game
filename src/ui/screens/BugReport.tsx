@@ -1,9 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '../../store'
 import { SectionTitle } from '../components'
-import {
-  DEV_CONTACT, buildReport, crashCount, mailtoUrl, reportFilename,
-} from '../../game/bugreport'
+import { buildReport, mailtoUrl, reportFilename } from '../../game/bugreport'
 import { t } from '../../game/i18n'
 import { BUG_CHANNEL_URL, COMMUNITY_URL } from '../../game/community'
 
@@ -12,11 +10,25 @@ import { BUG_CHANNEL_URL, COMMUNITY_URL } from '../../game/community'
  * the same question: the Handbook is how the game explains itself, this is how
  * it listens.
  *
- * THE PLAYER SEES THE WHOLE REPORT BEFORE IT MOVES. Nothing is collected
- * silently and nothing is uploaded - see game/bugreport.ts for why the game has
- * no network call at all. The four routes out are ordered by how likely each is
- * to work on a phone: the share sheet first (it is the only one that can carry
- * a screenshot alongside the text), then mail, then clipboard, then a file.
+ * Nothing is collected silently and nothing is uploaded - see
+ * game/bugreport.ts for why the game has no network call at all. The routes
+ * out are ordered by how likely each is to work on a phone: the share sheet
+ * first (it is the only one that can carry a screenshot alongside the text),
+ * then mail, then clipboard, then Discord, then a file.
+ *
+ * A TITLE, THE FIELDS AND THE BUTTONS (owner, round 4: "too much text"). The
+ * paragraphs about what is attached, where the mail goes and how to add a
+ * screenshot are gone, and so is the full-report toggle; what each route
+ * sends is exactly what it sent before.
+ *
+ * NO SECOND .content BOX. This page used to wrap itself in
+ * <div className="content"> inside the app's own <main className="content">.
+ * The inner box was a scroll container of its own (overflow-y auto,
+ * overscroll-behavior contain) that never had anything to scroll, so on a
+ * phone a finger dragged on it went nowhere and the send buttons stayed below
+ * the fold (owner, round 4: "does not scroll on a phone"). A wheel still
+ * worked, which is why nobody at a desk saw it. scripts/tidyshots.mjs drags it
+ * by touch at 390x844 and 360x640.
  */
 export default function BugReport() {
   const game = useStore(s => s.game)
@@ -26,10 +38,10 @@ export default function BugReport() {
   const [idea, setIdea] = useState('')
   const [ideaMsg, setIdeaMsg] = useState<string | null>(null)
   const [msg, setMsg] = useState<string | null>(null)
+  // only ever set when the clipboard refuses: the report is then shown so it
+  // can be selected by hand
   const [showFull, setShowFull] = useState(false)
 
-  // rebuilt as they type, because the preview below is the report - if the two
-  // could differ, the promise that they see what they send would be a lie
   const report = useMemo(
     () => buildReport({ state: game, notes, saveFail: { count: saveFail, message: saveFailMsg } }),
     [game, notes, saveFail, saveFailMsg])
@@ -105,11 +117,9 @@ export default function BugReport() {
     }
   }
 
-  const errs = crashCount()
-
   return (
-    <div className="content">
-      <SectionTitle sub={t('legacy.bgSub')}>{t('legacy.bgTitle')}</SectionTitle>
+    <>
+      <SectionTitle>{t('legacy.bgTitle')}</SectionTitle>
 
       <div className="card">
         <label className="bug-label" htmlFor="bug-notes">{t('legacy.bgWhatWrong')}</label>
@@ -121,15 +131,7 @@ export default function BugReport() {
           rows={6}
           placeholder={t('legacy.bgPlaceholder')}
         />
-        <div className="muted" style={{ fontSize: 12, marginTop: 8 }}>
-          {t('legacy.bgAttached')}
-          {errs > 0 && t(errs === 1 ? 'legacy.bgErrAttached' : 'legacy.bgErrsAttached', { n: errs })}
-        </div>
-      </div>
-
-      <div className="card">
-        <div className="bug-label">{t('legacy.bgSendIt')}</div>
-        <div className="btn-row bug-send">
+        <div className="btn-row bug-send" style={{ marginTop: 8 }}>
           {canShare && <button className="btn gold" onClick={() => { void doShare() }}>{t('legacy.bgShare')}</button>}
           <a className="btn" href={mailtoUrl(report)}>{t('legacy.bgEmail')}</a>
           <button className="btn" onClick={() => { void doCopy() }}>{t('legacy.bgCopy')}</button>
@@ -140,10 +142,7 @@ export default function BugReport() {
           <button className="btn ghost" onClick={doDownload}>{t('legacy.bgSaveFile')}</button>
         </div>
         {msg && <div className="bug-msg">{msg}</div>}
-        <div className="muted" style={{ fontSize: 12, marginTop: 10 }}>
-          <b>{t('legacy.bgScreenshotB')}</b>{t('legacy.bgScreenshot')}
-          {t('legacy.bgMailGoesTo')}<b className="bug-mail">{DEV_CONTACT}</b>{t('legacy.bgMailRest')}
-        </div>
+        {showFull && <pre className="bug-preview">{report}</pre>}
       </div>
 
       {/* IDEAS, NOT ONLY FAULTS (owner, v1.1.12: "could we add
@@ -157,8 +156,7 @@ export default function BugReport() {
           user agent or a crash ring, and saying so is the difference between
           a feedback box and a data collection box. */}
       <div className="card bug-ideas">
-        <SectionTitle sub={t('legacy.bgIdeasSub')}>{t('legacy.bgIdeasTitle')}</SectionTitle>
-        <div className="muted" style={{ fontSize: 13, marginBottom: 8 }}>{t('legacy.bgIdeasBlurb')}</div>
+        <SectionTitle>{t('legacy.bgIdeasTitle')}</SectionTitle>
         <label className="bug-label" htmlFor="idea-notes">{t('legacy.bgIdeaLabel')}</label>
         <textarea
           id="idea-notes"
@@ -186,17 +184,8 @@ export default function BugReport() {
           </a>
         </div>
         {ideaMsg && <div className="bug-msg">{ideaMsg}</div>}
-        <div className="muted" style={{ fontSize: 12, marginTop: 10 }}>
-          {t('legacy.bgIdeaGoesTo')}<b className="bug-mail">{DEV_CONTACT}</b>{t('legacy.bgIdeaRest')}
-        </div>
       </div>
-
-      <div className="card">
-        <button className="btn ghost block" onClick={() => setShowFull(v => !v)}>
-          {t(showFull ? 'legacy.bgHideFull' : 'legacy.bgShowFull')}
-        </button>
-        {showFull && <pre className="bug-preview">{report}</pre>}
-      </div>
-    </div>
+      <div className="spacer" />
+    </>
   )
 }

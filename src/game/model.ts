@@ -2221,6 +2221,9 @@ export interface GameState {
   /** injury-crisis alerts already raised: position group -> week fired,
    *  so the assistant nags once a month, not once a week */
   crisisAt?: Record<string, number>
+  /** the positions the assistant has already called thin at this club, for
+   *  as long as each stays thin (depthwatch.ts): one message per spell */
+  depthShort?: { club: string; pos: Pos[] }
   /** world rugby rankings: rating points per nation, exchanged Test by Test */
   natRank?: Record<string, number>
   /** the union's confidence in you as national coach, 0-100 - null when

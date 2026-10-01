@@ -105,7 +105,9 @@ const base = { state: g, nav: NAV, screen: SCREEN, when: '2026-08-23 12:00' }
   const app = src('src/ui/App.tsx'), home = src('src/ui/screens/Home.tsx')
   ok(/label: t\('menu\.community'\)[^\n]*href: COMMUNITY_URL/.test(app), 'the manager menu\'s Join us on Discord keeps the community invite')
   ok(/href=\{COMMUNITY_URL\}/.test(home) && !/BUG_CHANNEL_URL/.test(app + home), 'and so does Home, with the bug channel nowhere near either')
-  ok(/className="bug-mail"/.test(bug) && /\.bug-mail\s*\{\s*white-space:\s*nowrap/.test(src('src/ui/theme.css')), 'the e-mail address never breaks across two lines')
+  // round 4: a title, the fields and the buttons, and no second scroll box
+  ok(!/<(div|main) className="content/.test(bug.replace(/\/\*[\s\S]*?\*\//g, '')), 'the page is not nested in a second .content box (it would not scroll by touch)')
+  ok(!/DEV_CONTACT|bgSendIt|bgAttached|bgShowFull/.test(bug), 'and the explainers are gone: no address line, attachment note or preview toggle')
 }
 
 console.log(fails ? `BUG PROBE FAILED (${fails})` : 'BUG PROBE PASSED: the report is actionable, and no wider than it says')
