@@ -1,7 +1,7 @@
 // The board's secondary season objectives - FM-style side quests with
 // real consequences at the end-of-season review.
 
-import type { GameState } from './model'
+import type { GameState, Player } from './model'
 import { isDerby } from './rivalries'
 
 export interface ObjectiveDef {
@@ -31,17 +31,32 @@ export interface ObjectiveDef {
   banked: boolean
 }
 
+/** Did he come through this club's academy? (the 'youth' brief) */
+export function isClubAcademyPlayer(s: GameState, p: Player): boolean {
+  if (p.clubId !== s.userClubId) return false
+  if (p.acad && !p.demoted) return true
+  return !!p.homegrown && (p.gradClub ?? s.userClubId) === s.userClubId
+}
+
+/** Starts this season by the club's academy players on its books. */
+export function academyStarts(s: GameState): number {
+  return s.clubs[s.userClubId].players
+    .map(id => s.players[id])
+    .filter((p): p is Player => !!p && isClubAcademyPlayer(s, p))
+    .reduce((sum, p) => sum + p.stats.starts, 0)
+}
+
 export const OBJECTIVE_DEFS: ObjectiveDef[] = [
   {
     id: 'youth',
     textKey: () => 'objectives.youth',
-    met: s => {
-      const starts = s.clubs[s.userClubId].players
-        .map(id => s.players[id])
-        .filter(p => p && p.age <= 21)
-        .reduce((sum, p) => sum + p!.stats.starts, 0)
-      return starts >= 6
-    },
+    // ACADEMY PLAYERS, NOT AN AGE (owner, round 6). The brief counted any
+    // man of 21 or under, so a bought 20-year-old ticked it for a club whose
+    // academy never produced a soul. Now it is starts by men who came through
+    // THIS club's academy: a graduate (homegrown, and the academy he left was
+    // ours; a graduate from before gradClub was stamped is taken as ours) or
+    // a scholar still in it. A man sent down by hand is not a scholar.
+    met: s => academyStarts(s) >= 6,
     applies: () => true,
     // cumulative starts: once six are given they cannot be taken back
     banked: true,

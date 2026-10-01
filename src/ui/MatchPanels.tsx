@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../store'
 import { XV_SLOTS, type MatchEvent, type Player } from '../game/model'
-import { persName, t } from '../game/i18n'
-import { persKnown } from '../game/scout'
+import { t } from '../game/i18n'
 import { visitsTo22, type LiveCtx, type SideCtx } from '../game/matchEngine'
 import { moodOf } from './MoodTable'
 
@@ -87,17 +86,19 @@ function Lineups({ ctx }: { ctx: LiveCtx }) {
 function Room({ ctx }: { ctx: LiveCtx }) {
   const game = useStore(s => s.game)!
   const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
+  // once a talk has been given, the mood is how he took the latest one
+  const heard = new Map((ctx.htReads ?? ctx.preReads ?? []).map(r => [r.pid, r]))
   return (
     <table className="dtable mp-table">
-      <thead><tr><th /><th>{t('mood.name')}</th><th>{t('mood.personality')}</th><th>{t('mood.mood')}</th><th>{t('mpanel.cond')}</th><th>{t('mpanel.rating')}</th></tr></thead>
+      <thead><tr><th /><th>{t('mood.name')}</th><th>{t('mood.mood')}</th><th>{t('mpanel.cond')}</th><th>{t('mpanel.rating')}</th></tr></thead>
       <tbody>
         {xv(mine, game).map(({ slot, p }) => {
-          const m = moodOf(p, true)
+          const r = heard.get(p.id)
+          const m = r ? { k: r.k, tone: r.tone } : moodOf(p, true)
           return (
             <tr key={p.id}>
               <td className="num">{XV_SLOTS[slot].shirt}</td>
               <td className="nm">{p.name}</td>
-              <td className="muted">{persKnown(game, p) ? persName(p.pers) : '?'}</td>
               <td><span className={`mood-chip ${m.tone}`}>{t(m.k)}</span></td>
               <td className="num">{cond(mine, p.id)}</td>
               <td className="num">{rating(mine, p.id)}</td>

@@ -13,8 +13,9 @@
 //   the free places are printed, and a full book says so on the row;
 //   the Training screen's Club tab signposts mentoring to the Team Report,
 //     which opens on its Mentoring tab; a young player is chosen, every
-//     eligible mentor is listed with fit, position, leadership, caps, what he
-//     teaches and what it is worth, and a tap makes the pairing;
+//     eligible mentor is listed with position, leadership, caps and what he
+//     teaches (never the fit or a forecast: round 4 made a pairing a gamble
+//     for its first month), and a tap makes the pairing;
 //   all three survive a reload (the picks used to reach the disk only with the
 //     next week's autosave);
 //   nothing spills sideways at 412 or 360 wide.
@@ -39,6 +40,8 @@ page.on('pageerror', e => errors.push(String(e)))
 let fails = 0
 const ok = (c, what) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 const G = fn => page.evaluate(fn)
+// development focus places: FOCUS_SLOTS in src/game/development.ts (was 3)
+const CAP = 5
 const noSideScroll = async label => {
   const w = await G(() => ({ doc: document.documentElement.scrollWidth, vw: window.innerWidth }))
   ok(w.doc <= w.vw + 1, `${label}: no sideways scroll (${w.doc} in ${w.vw})`)
@@ -72,7 +75,7 @@ try {
   const rows0 = await page.locator('[data-dev-row]').count()
   console.log(`  ${pick.eligible} qualify for focus; ${rows0} rows listed; picking ${pick.name}, outside the old ten`)
   ok(rows0 >= pick.eligible && rows0 > 10, `every qualifying man is listed, not ten (${rows0})`)
-  ok(await page.locator('.section-title', { hasText: '3 of 3 places free' }).count() > 0, 'the title says how many places are free')
+  ok(await page.locator('.section-title', { hasText: `${CAP} of ${CAP} places free` }).count() > 0, 'the title says how many places are free')
   await page.screenshot({ path: `${SHOTS}/focus-412.png` })
   await page.fill('input[aria-label="Search by name"]', pick.name.split(' ').slice(-1)[0])
   await page.waitForTimeout(150)
@@ -80,21 +83,20 @@ try {
   await page.locator(`[data-dev-row="${pick.id}"] button`).click()
   await page.waitForTimeout(200)
   ok(await G(() => window.rugbyStore.getState().game.devFocus.slice()) .then(ids => ids.includes(pick.id)), `${pick.name} is on development focus`)
-  ok(await page.locator('.section-title', { hasText: '2 of 3 places free' }).count() > 0, 'and the free places count down')
+  ok(await page.locator('.section-title', { hasText: `${CAP - 1} of ${CAP} places free` }).count() > 0, 'and the free places count down')
   await page.fill('input[aria-label="Search by name"]', '')
   // fill the book, then try a fourth: refused on the row, nobody dropped
-  const more = await G(() => {
+  const more = await page.evaluate(cap => {
     const g = window.rugbyStore.getState().game
     const sq = g.clubs[g.userClubId].players.map(id => g.players[id]).filter(Boolean)
-    return sq.filter(p => p.age <= 26 && p.ca < p.pa && !g.devFocus.includes(p.id)).slice(0, 3).map(p => p.id)
-  })
-  await page.locator(`[data-dev-row="${more[0]}"] button`).click()
-  await page.locator(`[data-dev-row="${more[1]}"] button`).click()
-  await page.locator(`[data-dev-row="${more[2]}"] button`).click()
+    return sq.filter(p => p.age <= 26 && p.ca < p.pa && !g.devFocus.includes(p.id)).slice(0, cap).map(p => p.id)
+  }, CAP)
+  for (const id of more) await page.locator(`[data-dev-row="${id}"] button`).click()
   await page.waitForTimeout(150)
+  const extra = more[CAP - 1]
   const focusNow = await G(() => window.rugbyStore.getState().game.devFocus.slice())
-  ok(focusNow.length === 3 && focusNow.includes(pick.id) && !focusNow.includes(more[2]), 'a fourth pick is refused and the first man keeps his place')
-  ok(await page.locator(`[data-dev-row="${more[2]}"]`, { hasText: 'All 3 places are taken' }).count() === 1, 'and the refusal is printed on the row that was tapped')
+  ok(focusNow.length === CAP && focusNow.includes(pick.id) && !focusNow.includes(extra), 'a pick past the last place is refused and the first man keeps his place')
+  ok(await page.locator(`[data-dev-row="${extra}"]`, { hasText: `All ${CAP} places are taken` }).count() === 1, 'and the refusal is printed on the row that was tapped')
   await page.screenshot({ path: `${SHOTS}/focus-full-412.png` })
   await page.locator('[data-dev-row]').first().evaluate(el => el.scrollIntoView({ block: 'center' }))
   await page.screenshot({ path: `${SHOTS}/focus-chosen-412.png` })
@@ -127,13 +129,13 @@ try {
   ok(acadRow > 0, `the men who do not qualify can be shown, each with why (${acadRow} academy rows)`)
   await noSideScroll('personal plans')
 
-  // ---- mentoring: the signpost, the Team Report, the pairing ----
-  await page.locator('.tab-bar button', { hasText: 'Club' }).first().click()
-  await page.waitForSelector('[data-go-mentoring]')
-  await page.screenshot({ path: `${SHOTS}/training-club-412.png` })
-  await page.click('[data-go-mentoring]')
+  // ---- mentoring: the Team Report, the pairing ----
+  // The Training screen's Club tab (a signpost to mentoring and the estate)
+  // is gone (owner, round 4: "isn't needed"); mentoring lives on the Team Report.
+  ok(await page.locator('.tab-bar button', { hasText: /^Club$/ }).count() === 0, 'the Training screen has no Club tab')
+  await G(() => window.rugbyStore.getState().go('report', 'mentoring'))
   await page.waitForSelector('[data-kid]')
-  ok(await G(() => window.rugbyStore.getState().nav.at(-1)?.screen) === 'report', 'the signpost opens the Team Report')
+  ok(await G(() => window.rugbyStore.getState().nav.at(-1)?.screen) === 'report', 'mentoring opens on the Team Report')
   ok(await page.locator('.tab-bar button.active', { hasText: 'Mentoring' }).count() === 1, 'on its Mentoring tab')
   await page.screenshot({ path: `${SHOTS}/mentoring-empty-412.png`, fullPage: true })
   const kid = await page.locator('[data-kid]').first().getAttribute('data-kid')
@@ -148,7 +150,9 @@ try {
   const firstCard = await page.locator('[data-mentor]').first().innerText()
   ok(/Leadership \d+/.test(firstCard) && /caps/.test(firstCard) && /(Same position|Same unit|Different unit)/.test(firstCard),
     'each mentor shows his leadership, caps and position link')
-  ok(/Expected over a season: about [\d.]+ rating and [\d.]+ coached points/.test(firstCard), 'and the expected impact, in plain words')
+  // A GAMBLE (owner, round 4): no fit, no reason, no forecast at pairing time
+  ok(!/Inseparable|Working well|Coming along|Polite, no more|Not taking|A waste of|Expected over a season/.test(await page.locator('[data-mentor]').allInnerTexts().then(x => x.join(' '))),
+    'and nothing about how the pairing would go')
   await page.screenshot({ path: `${SHOTS}/mentoring-pick-412.png` })
   const mentor = await page.locator('[data-mentor]').first().getAttribute('data-mentor')
   await page.locator(`[data-mentor="${mentor}"] button`).click()
@@ -156,6 +160,7 @@ try {
   const pairs = await G(() => (window.rugbyStore.getState().game.mentors ?? []).map(m => ({ ...m })))
   ok(pairs.length === 1 && String(pairs[0].kid) === kid && String(pairs[0].senior) === mentor && pairs[0].since != null,
     'the pairing is made from the Team Report, with its ledger open')
+  ok(/Too early to tell/.test(await page.locator('[data-pair]').first().innerText()), 'and its card says only that it is too early to tell')
   await page.screenshot({ path: `${SHOTS}/mentoring-paired-412.png`, fullPage: true })
   await noSideScroll('mentoring')
 

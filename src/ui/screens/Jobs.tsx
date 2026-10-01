@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../../store'
 import { fmtMoney, mgrReputation } from '../../game/model'
-import { jobChance, sackCooloff } from '../../game/jobs'
+import { jobChance, offerCite, sackCooloff } from '../../game/jobs'
+import { jobProfile } from '../../game/chairman'
 import { squadValue } from '../../game/analysis'
 import { Crest, SectionTitle } from '../components'
 import { t, compLabel } from '../../game/i18n'
@@ -69,6 +70,8 @@ export default function Jobs() {
             <div className="meta">
               {t('world.jbClubMeta', { league: compLabel(game.comps[club.leagueId]?.short) ?? '', rep: club.rep, squad: fmtMoney(squadValue(game, club.id)), budget: fmtMoney(club.budget) })}
             </div>
+            {/* WHAT KIND OF JOB (chairman.ts): read from the club, one line */}
+            <div className="meta job-profile" style={{ fontStyle: 'italic' }}>{t(`arc.profile.${jobProfile(game, club.id)}`)}</div>
           </div>
           {cold === 0 && (
             <button className="btn gold" disabled={!!v.applied}
@@ -140,6 +143,11 @@ export default function Jobs() {
             <div style={{ flex: 1, minWidth: 0 }}>
               <h3 style={{ fontSize: 16 }}>{t('world.jbOfferHead', { club: offer.name })}</h3>
               <div className="meta">{t('world.jbOfferBody', { club: offer.short, stadium: offer.stadium, budget: fmtMoney(offer.budget) })}</div>
+              <div className="meta" style={{ fontStyle: 'italic' }}>{t(`arc.profile.${jobProfile(game, offer.id)}`)}</div>
+              {(() => {
+                const cite = offerCite(game)
+                return cite ? <div className="meta">{t('arc.offerHeard', { cite_k: cite.k, n: cite.v?.n ?? 0 })}</div> : null
+              })()}
             </div>
           </div>
           <div className="btn-row" style={{ margin: '10px 0 0' }}>

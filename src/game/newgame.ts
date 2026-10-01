@@ -1,4 +1,5 @@
 import type { RawClub, RawPlayer } from '../data/types'
+import { migrateStyles } from './styles'
 import { refreshCaps } from './cap'
 import { GONE, verifiedClub } from '../data/verified'
 import { extraPlayers } from '../data/additions'
@@ -23,7 +24,7 @@ import { W_CELT } from '../data/leagues/w_celt'
 import { W_E2 } from '../data/leagues/w_e2'
 import { W_CHAMP } from '../data/leagues/w_champ'
 import { W, type Gender, staffGender } from './gender'
-import type { Club, GameState, MgrOrigin, NewsItem, Pos } from './model'
+import type { Club, GameState, MgrOrigin, NewsItem, Player, Pos } from './model'
 import { buildPlayer, playerValue, resetIds , repriceAcademies, peekPid } from './attributes'
 import { regenName } from './nations'
 import { inheritStaff } from './staff'
@@ -34,7 +35,7 @@ import { clamp } from './rng'
 import { assistantJudgement, autoSelect } from './matchEngine'
 import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildLeague, schedulePreseason, buildWomensContinentalCup } from './schedule'
 import { punditPredictions } from './gossip'
-import { WEEK_BASIS, CHEM_SLOTS, RELEGATES, boardObjective, chemKey, fmtMoney, initFacilities, isWorldCupSeason, worldCupSeasonFor } from './model'
+import { WEEK_BASIS, CHEM_SLOTS, RELEGATES, chemKey, fmtMoney, initFacilities, isWorldCupSeason, worldCupSeasonFor } from './model'
 import { seedKnowledge } from './scout'
 import { ensureCaptains } from './analysis'
 import { CLUB_CAPTAINS, sameName } from '../data/captains'
@@ -42,6 +43,7 @@ import { pickObjectives } from './objectives'
 import { hashString, mulberry32 } from './rng'
 import { ACAD_SHAPE, ACADEMY_SIZE, acadQuality, ensureAcademyLeague } from './academy'
 import { t, tIn } from './i18n'
+import { demandedFinish } from './chairman'
 
 export interface Challenge {
   id: string
@@ -252,6 +254,31 @@ const M_LEAGUE_DEFS: () => LeagueDef[] = () => [
 export const W_OPENING_MONEY = 9
 export function openingBudget(raw: number, leagueId: string): number {
   return leagueId.startsWith(W) ? Math.round(raw * W_OPENING_MONEY) : raw
+}
+
+/**
+ * THE AIM THE WIZARD SHOWS, before a world exists (arc, 1.8.2). The board's
+ * aim depends on the kind of job (chairman.ts demandedFinish), and the kind of
+ * job reads budgets, grounds and facilities across the world. So the wizard
+ * builds those same numbers, on the same seed the career will be started with,
+ * and asks the same question the game will ask on day one. No rng is drawn.
+ */
+export function wizardAim(defs: LeagueDef[], clubId: string, seed: number): string {
+  const clubs: Record<string, Club> = {}
+  for (const def of defs) {
+    for (const rc of def.clubs) {
+      const budget = openingBudget(rc.budget, def.id)
+      const club = {
+        id: rc.id, rep: rc.rep, leagueId: def.id, capacity: rc.capacity, capacity0: rc.capacity,
+        budget, balance: Math.round(budget * 0.6), players: rc.players.length ? [0] : [],
+      } as unknown as Club
+      club.facilities = initFacilities(club, seed)
+      clubs[rc.id] = club
+    }
+  }
+  const def = defs.find(d => d.clubs.some(c => c.id === clubId))
+  const state = { seed, season: 0, week: 1, userClubId: clubId, clubs, history: [], comps: {}, mgr: { trophies: [], finishes: [] } } as unknown as GameState
+  return demandedFinish(state, clubId, def?.clubs.length ?? 14).text
 }
 
 export function newGame(userClubId: string, managerName: string, seed: number, challengeId?: string, origin: MgrOrigin = 'coach', gender: Gender = 'm', mgrGender: Gender = 'm'): GameState {
@@ -537,7 +564,6 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   // the world, plus unattached prodigies from the wider rugby nations
   const academyKids = Object.values(state.players).filter(p => p.youth && p.age <= 19)
   const chosen = new Set<number>()
-  const watchList: string[] = []
   const watchIds: number[] = []
   for (let i = 0; i < 9 && academyKids.length; i++) {
     const k = academyKids[Math.floor(rng() * academyKids.length)]
@@ -547,10 +573,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     k.pa = clamp(88 + Math.floor(rng() * 12), k.ca + 15, 99)
     k.q0 = k.ca
     k.value = playerValue(k.ca, k.age, k.pa, k.pos, undefined, undefined, k.caps)
-    if (watchList.length < 5) {
-      watchList.push(`${k.name} (${k.age}, ${k.pos} - ${state.clubs[k.clubId!]?.short})`)
-      watchIds.push(k.id)
-    }
+    if (watchIds.length < 5) watchIds.push(k.id)
   }
   const GEM_NATS = ['FIJ', 'GEO', 'TGA', 'SAM', 'USA', 'URU', 'ESP', 'POR']
   const GEM_POS: Pos[] = ['WG', 'FL', 'CE', 'LK', 'FH', 'N8', 'SH', 'FB']
@@ -585,13 +608,6 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   // in an inbox that reads oldest first. One unused id in a counter that only
   // ever goes up costs nothing.
   state.nextId++
-  const scoutCircular = watchList.length ? {
-    subject: `The scouts' ones to watch`,
-    body: `The pre-season list of academy talents with genuinely special ceilings: ${watchList.join('; ')}.\n\nUnattached prodigies are also drifting around the free-agent market - first club to move wins. Tap a name below, or see World ▸ Team of the Season ▸ Ones to Watch.`,
-    k: 'news.watchList',
-    v: { list: watchList.join('; ') },
-    playerIds: watchIds,
-  } : null
 
   // competitions (same defs as above so a challenge swap carries through)
   for (const def of defs) {
@@ -716,6 +732,10 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     }
   }
 
+  // the manager's side starts on the styles nearest its dials (1.8.2), named
+  // so the Tactics screen shows them picked and a save carries them
+  migrateStyles(state)
+
   // a new manager starts with the benefit of the doubt from the terraces -
   // and the local hero (18B) starts with more than that at HIS club: the
   // board gave the job to one of their own and the town approves. The warmth
@@ -774,8 +794,29 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   inheritStaff(state)
 
   // and only then the circulars
-  if (scoutCircular) {
-    state.news.push({ id: state.nextId++, week: 1, season: 0, type: 'youth', read: false, ...scoutCircular })
+  // THE CIRCULAR NAMES THEM, THE SCOUTS STILL HAVE TO READ THEM (owner,
+  // round 6: "you should be able to see the names, but their profile info
+  // will need to be properly scouted"). 1.8.2 named only the men the scouts
+  // had properly read and set everyone else as an anonymous lead; now every
+  // row is a name, an age, a position and a club, each one tappable, and
+  // that is all the circular gives away. Knowledge is not touched: his page
+  // shows what the scouts know of him (scout.ts knowledge, the ranges and
+  // the staged report), so an unscouted name is still a name on a team sheet
+  // until somebody goes and watches him. The free-agent prodigies are not
+  // mentioned at all.
+  if (watchIds.length) {
+    const men = watchIds.map(id => state.players[id]).filter((p): p is Player => !!p)
+    const rows = men.map(p =>
+      ({ k: 'news.watchNamed', name: p.name, age: p.age, pos: p.pos, club: state.clubs[p.clubId ?? '']?.short ?? '' }))
+    const named = men.map(p => p.id)
+    const v = { list_ll: JSON.stringify(rows) }
+    state.news.push({
+      id: state.nextId++, week: 1, season: 0, type: 'youth', read: false,
+      subject: tIn('en', 'news.watchListSubj'),
+      body: tIn('en', 'news.watchList', v),
+      k: 'news.watchList', v,
+      playerIds: named,
+    })
   }
 
   punditPredictions(state, rng)
@@ -960,7 +1001,7 @@ function squadAssessment(state: GameState): NewsItem {
       + (thin.length
         ? `Short at ${thin.join(', ')} - one injury there and someone plays out of position.\n`
         : `Every position has cover.\n`)
-      + `Board expects you to ${tIn('en', boardObjective(uc.rep).text)}. Budget ${fmtMoney(uc.budget)}, wages ${fmtMoney(squad.reduce((s, p) => s + p.wage, 0))} a week.\n\n`
+      + `Board expects you to ${tIn('en', demandedFinish(state, uc.id, state.comps[uc.leagueId]?.table.length ?? 14).text)}. Budget ${fmtMoney(uc.budget)}, wages ${fmtMoney(squad.reduce((s, p) => s + p.wage, 0))} a week.\n\n`
       + `I will have a read on the first opponent by Friday."`,
     k: 'news.squadRead',
     v: {
@@ -968,7 +1009,7 @@ function squadAssessment(state: GameState): NewsItem {
       best: bestList,
       depth_k: thin.length ? 'news.depthThin' : 'news.depthFull',
       thin: thin.join(', '),
-      aim_k: boardObjective(uc.rep).text,
+      aim_k: demandedFinish(state, uc.id, state.comps[uc.leagueId]?.table.length ?? 14).text,
       budget: fmtMoney(uc.budget), wages: fmtMoney(wages),
     },
   }

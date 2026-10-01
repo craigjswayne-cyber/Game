@@ -199,29 +199,59 @@ try {
   await page.waitForSelector('.form-pitch')
   await shot('06-tactics')
   await page.click('.tab-bar >> text=Game Plan')
+  // THE GAME PLAN OPENS ON THE STYLES (1.8.2): five attacks and five
+  // defences, drawn. Picking one must stick, and the dials it set must be on
+  // the Fine Tune view, which is where Quick Game Plans now live.
+  await page.waitForSelector('[data-plan-sub="styles"]')
+  await page.click('[data-style="width"]')
+  await page.click('[data-style="blitz"]')
+  {
+    const picked = await page.$$eval('.st-tile[aria-checked="true"]', bs => bs.map(b => b.dataset.style))
+    ok(picked.includes('width') && picked.includes('blitz'), `the attack and defence styles are picked on a tap (${picked.join(', ')})`)
+    const card = await page.$$eval('[data-style-card]', cs => cs.map(c => c.dataset.styleCard))
+    ok(card.join() === 'width,blitz', `each picker explains the style it has picked (${card.join(', ')})`)
+  }
+  await page.click('[data-plan-sub="tune"]')
   await page.waitForSelector('text=Quick Game Plans')
+  await shot('06b-game-plan-tune')
+  await page.click('[data-plan-sub="styles"]')
+  await shot('06c-game-plan-styles')
   // the opposition read and its counter plan live on the Prep tab since 1.6.5
   // (the game plan tab was three screenfuls deep with them)
   await page.click('.tab-bar >> text=Prep')
   await page.waitForSelector('text=Match Preparation')
 
-  // THE COUNTER PLAN SPENDS ITSELF (owner, v1.1.15: "again when pressing set
-  // the counter plan it actions but doesnt become unclickable"). It sets four
-  // dials; press it twice and the second press is a no-op that looks like a
-  // decision. So: press it, and the button must go dead and say so.
+  // THE COUNTER PLAN SAYS IT IS SET (owner, v1.1.15: "again when pressing set
+  // the counter plan it actions but doesnt become unclickable"). Since 1.8.3
+  // (owner: "Prep page - simplify") the counter is one of the response plan
+  // chips rather than a button of its own: a tap must put its dials on the
+  // club, mark that chip and only that chip, and say in one line what it set.
   {
-    const btn = page.locator('button', { hasText: 'Set the counter plan' })
-    ok(await btn.count() > 0, 'the opposition read offers a counter plan to set')
-    if (await btn.count()) {
-      ok(await btn.first().isEnabled(), 'and it is live before it is pressed')
-      await btn.first().click()
+    const chip = page.locator('[data-plan="counter"]')
+    ok(await chip.count() > 0, 'the prep page offers the counter plan as a chip')
+    if (await chip.count()) {
+      await chip.first().click()
       await page.waitForTimeout(250)
-      const spent = page.locator('button', { hasText: 'Counter plan set' })
-      ok(await spent.count() > 0, 'pressing it changes the button to say the plan is set')
-      ok(await spent.first().isDisabled(), 'and the button is dead - it cannot be pressed twice')
-      ok(await page.locator('button', { hasText: 'Set the counter plan' }).count() === 0,
-        'the live label is gone, not sitting beside the spent one')
+      const on = await page.$$eval('[data-plan][aria-checked="true"]', bs => bs.map(b => b.dataset.plan))
+      ok(on.join() === 'counter', `pressing it marks that plan and no other (${on.join(', ')})`)
+      ok(await page.locator('[data-plan-on="counter"]').count() === 1, 'and one line says what it set')
     }
+    // STACKED, WITH A FIFTH (round 6, owner: "make these options stacked and
+    // throw in an additional option"): one full-width option a plan, one
+    // under the next, each its name and a grey line; starve them of ball
+    // always among them
+    const boxes = await page.$$eval('.plan-stack [data-plan]', bs => bs.map(b => {
+      const r = b.getBoundingClientRect(), p = b.parentElement.getBoundingClientRect()
+      return { id: b.dataset.plan, x: r.left, y: r.top, h: r.height, w: r.width, pw: p.width, sub: !!b.querySelector('.opt-detail')?.textContent?.trim() }
+    }))
+    ok(boxes.length >= 3 && boxes.some(b => b.id === 'starve'), `the plans include starve them of ball (${boxes.map(b => b.id).join(', ')})`)
+    ok(boxes.every((b, i) => Math.abs(b.w - b.pw) < 2 && Math.abs(b.x - boxes[0].x) < 1 && (i === 0 || b.y >= boxes[i - 1].y + boxes[i - 1].h - 1)) && boxes.every(b => b.sub),
+      'stacked: each full width, one under the next, with its grey line')
+    // the reading sits behind the one info button, closed until asked for
+    ok(await page.locator('.opp-report').count() === 0, 'the opposition report is folded away by default')
+    await page.click('[data-prep-info]')
+    await page.waitForSelector('.opp-report')
+    ok(true, 'the info button opens the opposition report')
   }
 
   // Club submenu -> Team Report
@@ -363,10 +393,11 @@ try {
   // navigate bare and land on whatever old story the reader last held.
   await page.click('.bottom-nav button[title="Home"]')
   await page.waitForTimeout(300)
-  const cue = page.locator('.inbox-cue')
+  // the cue is the desk's mail line now (1.8.2, game/desk.ts): "5 stories to read"
+  const cue = page.locator('.desk-link[data-kind="mail"]')
   if (await cue.count()) {
     const cueText = await cue.innerText()
-    const promised = parseInt(/(\d+) unread/i.exec(cueText)?.[1] ?? '0', 10)
+    const promised = parseInt(/(\d+)/.exec(cueText)?.[1] ?? '0', 10)
     await cue.click()
     try {
       await page.waitForSelector('.reader', { timeout: 10000 })
@@ -409,6 +440,9 @@ try {
   await page.click('.tab-bar >> text=Wonderkids')
   await page.waitForSelector('text=Wonderkid Watch: World')
   await shot('12c-agency')
+  // the Test rankings live with International Rugby now (1.8.2)
+  await page.click('.bottom-nav button[title="World"]')
+  await page.click('.submenu-item >> text=International Rugby')
   await page.click('.tab-bar >> text=Test Nations')
   await page.waitForSelector('text=Test Rankings: World')
   await shot('12d-nations')

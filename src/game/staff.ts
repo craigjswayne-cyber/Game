@@ -3,10 +3,11 @@
 // coaching course with a real chance of failing it.
 import { STAFF_INFO, fmtMoney, fmtWage, logDecision, type GameState, type StaffLevels, type StaffPerson, addWeeks100, weeksBetween100 } from './model'
 import { genderOf, staffGender, subjectVar, type Gender } from './gender'
-import { t, tIn, type Vars } from './i18n'
+import { t, tIn } from './i18n'
 import { mulberry32 } from './rng'
 import { regenName } from './nations'
 import { remember } from './memory'
+import { settleRift } from './staffrift'
 
 export type StaffRole = keyof StaffLevels
 
@@ -49,70 +50,17 @@ const TRAITS = [
 ]
 
 /** A stored trait, shown in the reader's language. The stored value stays
- *  English because it is the key relation() matches on and it is inside every
- *  save already. */
+ *  English because it is inside every save already. */
 export const traitLabel = (trait: string) =>
   t(`staff.trait${trait.replace(/[^A-Za-z]+(.)/g, (_, c) => c.toUpperCase()).replace(/^./, c => c.toUpperCase())}`)
 
 const NATS = ['ENG', 'WAL', 'IRE', 'SCO', 'FRA', 'NZL', 'AUS', 'RSA', 'ARG', 'ITA', 'FIJ']
 
-/**
- * STAFF CHEMISTRY (25D-3, the Motorsport Manager idea the user picked out:
- * staff whose philosophies click or clash). Coaching is a room of strong
- * opinions, and some combinations feed each other while some fight:
- *
- *   CLICK: the numbers men sharpen each other, the people men make a dressing
- *   room hum, the forwards men build one programme instead of two, and kids
- *   listen harder to a man with caps when a youth specialist points them at
- *   him.
- *
- *   CLASH: GPS vests against hill runs, laptops against been-there-done-that,
- *   and a hype man against death-by-video-session.
- *
- * The score is a small, DETERMINISTIC development effect at the user's club
- * (devFactor reads it, like the assistant and the mentors) and a line of
- * colour on hire day. No rng anywhere: the same staff room always has the
- * same weather.
- */
-const CLICKS: [string, string, string][] = [
-  ['Analyst at heart', 'Detail merchant', 'staff.clickNumbers'],
-  ['Man-manager', 'Motivator', 'staff.clickRoom'],
-  ['Set-piece obsessive', 'Old-school hard yards', 'staff.clickScrum'],
-  ['Youth whisperer', 'Ex-international', 'staff.clickCaps'],
-]
-const CLASHES: [string, string, string][] = [
-  ['Old-school hard yards', 'Sports scientist', 'staff.clashGps'],
-  ['Analyst at heart', 'Ex-international', 'staff.clashLaptop'],
-  ['Detail merchant', 'Motivator', 'staff.clashVideo'],
-]
-
-function relation(a: string, b: string): { kind: 'click' | 'clash'; note: string } | null {
-  for (const [x, y, note] of CLICKS) if ((a === x && b === y) || (a === y && b === x)) return { kind: 'click', note }
-  for (const [x, y, note] of CLASHES) if ((a === x && b === y) || (a === y && b === x)) return { kind: 'clash', note }
-  return null
-}
-
-/** Every click and clash in the user's staff room, named. The Coaching page
- *  reads this: without it the system is invisible the moment the hire-day
- *  letter scrolls out of the inbox, and a manager three seasons in has no
- *  way to know why his kids are coming on. */
-export function staffChemPairs(state: GameState): { a: string; b: string; kind: 'click' | 'clash'; note: string }[] {
-  const people = Object.values(state.staffPeople ?? {}).filter((p): p is StaffPerson => !!p)
-  const out: { a: string; b: string; kind: 'click' | 'clash'; note: string }[] = []
-  for (let i = 0; i < people.length; i++) {
-    for (let j = i + 1; j < people.length; j++) {
-      const r = relation(people[i].trait, people[j].trait)
-      if (r) out.push({ a: people[i].name, b: people[j].name, kind: r.kind, note: r.note })
-    }
-  }
-  return out
-}
-
-/** Net chemistry of the user's staff room: +1 per click, -1 per clash,
- *  counted over every pair of appointed coaches. */
-export function staffChem(state: GameState): number {
-  return staffChemPairs(state).reduce((s, r) => s + (r.kind === 'click' ? 1 : -1), 0)
-}
+// The staff chemistry that lived here (25D-3: trait pairs that clicked or
+// clashed, scored on the Coaching page and named in the hire-day letter) is
+// gone (owner, round 4): coaches get on, and the odd falling-out between two
+// of them is a secret the news hints at (staffrift.ts). The click and clash
+// lines stay in the locales because old saves' appointment letters quote them.
 
 function roleHash(role: string): number {
   let h = 2166136261
@@ -283,6 +231,7 @@ export function sackStaff(state: GameState, role: StaffRole): string {
     k: 'news.staffSacked',
     v: { ...subjectVar(p.g), name: p.name, club: club.name, role_k: info.name, cost: fmt(cost) },
   })
+  settleRift(state)
   return t('staff.sacked', { ...subjectVar(p.g), name: p.name, cost: fmt(cost) })
 }
 
@@ -306,34 +255,21 @@ export function appointStaff(state: GameState, role: StaffRole, idx: number): st
       trait: c.trait, since: state.season, course: null,
     } as StaffPerson,
   }
-  // hire-day chemistry beat: does the new man click or clash with anyone
-  // already in the room? One line each, and the manager learns the pairs
-  // the way MSM taught them - by reading the news, not a tooltip
-  const chemLines: string[] = []
-  const chemRows: Vars[] = []
-  for (const [otherRole, other] of Object.entries(state.staffPeople)) {
-    if (otherRole === role || !other) continue
-    const r = relation(c.trait, other.trait)
-    if (!r) continue
-    chemLines.push(r.kind === 'click'
-      ? `The staff room approves: he and ${other.name} click - ${tIn('en', r.note)}.`
-      : `One cloud on the horizon: he and ${other.name} see the game very differently - ${tIn('en', r.note)}.`)
-    chemRows.push({ k: r.kind === 'click' ? 'news.staffClick' : 'news.staffClash', other: other.name, note_k: r.note, ...subjectVar(c.g) })
-  }
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
     subject: `${c.name} appointed ${tIn('en', info.name)}`,
-    body: `${club.name} have their man: ${c.name}, ${c.age}, a ${BADGE[c.tier].toLowerCase()}-badge ${tIn('en', info.name).toLowerCase()} known as a ${c.trait.toLowerCase()}. ${fmt(c.fee)} compensation, ${fmtWage(c.wage)} a week.${outgoing ? ` ${outgoing.name} leaves with the club's thanks.` : ''}${chemLines.length ? ` ${chemLines.join(' ')}` : ''}`,
+    body: `${club.name} have their man: ${c.name}, ${c.age}, a ${BADGE[c.tier].toLowerCase()}-badge ${tIn('en', info.name).toLowerCase()}. ${fmt(c.fee)} compensation, ${fmtWage(c.wage)} a week.${outgoing ? ` ${outgoing.name} leaves with the club's thanks.` : ''}`,
     k: 'news.staffHired',
     v: {
       ...subjectVar(c.g), name: c.name, age: c.age, club: club.name, role_k: info.name,
       badge_k: `staff.badge${c.tier}`, trait_k: `traits.${c.trait}`,
       fee: fmt(c.fee), wage: fmtWage(c.wage),
       out_k: outgoing ? 'news.staffOut' : 'common.nothing', out: outgoing?.name ?? '',
-      chem_k: chemRows.length ? 'news.staffChem' : 'common.nothing',
-      rows_l: JSON.stringify(chemRows),
+      chem_k: 'common.nothing',
     },
   })
+  // replacing one of two coaches at odds clears the air (staffrift.ts)
+  settleRift(state)
   logDecision(state, 'dec.appointedStaff', { name: c.name, role_k: info.name, badge_k: `staff.badge${c.tier}`, fee: fmt(c.fee), wage: fmtWage(c.wage), out_k: outgoing ? 'dec.andHeLeft' : 'common.nothing', out: outgoing?.name ?? '' }, true)
   return t('reply.staffAppointed', { name: c.name, role_k: info.name, fee: fmt(c.fee) })
 }
@@ -501,11 +437,12 @@ export function inheritStaff(state: GameState, quiet = false) {
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
     subject: 'The backroom staff you have inherited',
-    body: `${filled.length} of the eight coaching posts are filled: ${filled.map(k => `${state.staffPeople?.[k]?.name} (${tIn('en', STAFF_INFO[k].name).toLowerCase()})`).join(', ')}.${vacant.length ? ` The ${vacant.map(k => tIn('en', STAFF_INFO[k].name).toLowerCase()).join(' and ')} job${vacant.length > 1 ? 's are' : ' is'} vacant.` : ''} Badges and hiring are on the Coaching page.`,
+    body: `${filled.length} of 8 coaching posts are filled: ${filled.map(k => `${state.staffPeople?.[k]?.name} (${tIn('en', STAFF_INFO[k].name).toLowerCase()})`).join(', ')}.${vacant.length ? ` The ${vacant.map(k => tIn('en', STAFF_INFO[k].name).toLowerCase()).join(' and ')} job${vacant.length > 1 ? 's are' : ' is'} vacant.` : ''}`,
     k: vacant.length ? 'news.inheritedStaffVacant' : 'news.inheritedStaff',
     v: {
       n: vacant.length, filled: filled.length,
-      men_l: JSON.stringify(filled.map(k => ({
+      // one man to a line: the story sets them as rows (NewsBody)
+      men_ll: JSON.stringify(filled.map(k => ({
         k: 'news.inheritedMan', name: state.staffPeople?.[k]?.name ?? '', role_k: STAFF_INFO[k].name,
       }))),
       jobs_l: JSON.stringify(vacant.map(k => ({ k: 'news.inheritedRole', role_k: STAFF_INFO[k].name }))),

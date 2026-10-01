@@ -3,7 +3,8 @@ import { preloadAllArt, preloadCampus } from './artPreload'
 import { effectiveSkin, useStore, type Screen } from '../store'
 import { celebrationHeadline, celebrationSub, seasonLabel } from '../game/model'
 import { t } from '../game/i18n'
-import { dayLine, deskBlock, deskGates, inInbox, nextStep, pressBlock } from '../game/days'
+import { dayLine, inInbox, nextStep } from '../game/days'
+import { continueHold } from '../game/desk'
 import { natSquadHold } from '../game/country'
 import { TOUR_WEEKS } from '../game/schedule'
 import { islesCoach } from '../game/isles'
@@ -660,10 +661,6 @@ export default function App() {
         // the manager is the one in front of the cameras, so the press room
         // belongs to him rather than to the team sheet
         { ico: <Glyph name="press" />, label: t('groups.press'), screen: 'press', badge: pressOpen },
-        // Only the jobs he has not answered. It used to be vacancies.length, so
-        // the red dot appeared because somebody somewhere got sacked and nothing
-        // he could do would clear it (see GameState.vacancies).
-        { ico: <Glyph name="jobs" />, label: t('groups.jobs'), screen: 'jobs', badge: game.vacancies.filter(v => !v.passed && !v.applied).length },
         { ico: <Glyph name="legacy" />, label: t('groups.legacy'), screen: 'legacy' },
         { ico: <Glyph name="handbook" />, label: t('groups.handbook'), screen: 'handbook' },
         // Settings sits ABOVE Report a Bug (owner, v1.2.1): the page you
@@ -692,6 +689,13 @@ export default function App() {
       title: t('groups.world'),
       items: [
         { ico: <Glyph name="competitions" />, label: t('groups.competitions'), screen: 'tables' },
+        // JOBS IS ITS OWN WORLD ITEM (owner, round 4). It was a tab on the
+        // Competitions row and an item on the manager's menu; the vacancies
+        // are other clubs' jobs, so they live with the rest of the world.
+        // Only the jobs he has not answered. It used to be vacancies.length, so
+        // the red dot appeared because somebody somewhere got sacked and nothing
+        // he could do would clear it (see GameState.vacancies).
+        { ico: <Glyph name="jobs" />, label: t('groups.jobs'), screen: 'jobs', badge: openJobs },
         // the pinnacle gets a door of its own while you hold a Test job
         ...(game.natTeam ? [{ ico: <Glyph name="country" />, label: t('groups.country'), screen: 'country' as const }] : []),
         { ico: <Glyph name="nations" />, label: t('groups.nations'), screen: 'nations' },
@@ -771,20 +775,11 @@ export default function App() {
               // game - the failure this session has now fixed four times in
               // other shapes.
               const step = nextStep(game)
-              // press holds on EVERY step now (v1.1.17), so the label has to
-              // read it on every step too - a button that says Continue and
-              // then refuses is the illegible gate all over again
-              // three holds, one label. Press and squad apply on every step;
-              // mail only on the way out of the week.
-              const owed = natSquadHold(game)
-              // A BID OUTRANKS THEM ALL, because continueWeek checks it first
-              // (1.8.1): the button said Continue and then opened Offers,
-              // which is the silent refusal this label exists to prevent
-              const bids = game.unemployed ? 0 : offersOpen
-              const desk = (bids ? { kind: 'offers' as const, n: bids, label: bids === 1 ? t('dayroom.deskOffers') : t('dayroom.deskOffersN', { n: bids }) } : null)
-                ?? pressBlock(game)
-                ?? (owed ? { kind: 'squad' as const, n: owed.n, label: t('dayroom.deskSquad', { n: owed.n }) } : null)
-                ?? (deskGates(step) ? deskBlock(game) : null)
+              // press holds on EVERY step now (v1.1.17), and a bid outranks
+              // them all because continueWeek checks it first (1.8.1): the
+              // order and the labels live in game/desk.ts continueHold, which
+              // the desk's own Continue reads too
+              const desk = continueHold(game)
               return (
                 <button className="continue-btn" onClick={continueWeek}
                   title={desk ? t('common.deskWaits') : undefined}>
@@ -829,9 +824,10 @@ export default function App() {
                 somebody somewhere had been sacked, and nothing he could do would
                 clear it: the same bug the Job Centre item already fixed for itself,
                 still living in the group badge above it. Reported as "says there is
-                a notification but doesn't show anything". */}
-            {groupBtn('manager', <IcoPress />, t('nav.manager'), pressOpen + openJobs)}
-            {groupBtn('world', <IcoTrophy />, t('nav.world'))}
+                a notification but doesn't show anything". The count rides on
+                World now, where the Jobs item lives (round 4). */}
+            {groupBtn('manager', <IcoPress />, t('nav.manager'), pressOpen)}
+            {groupBtn('world', <IcoTrophy />, t('nav.world'), openJobs)}
           </>
         )}
       </nav>

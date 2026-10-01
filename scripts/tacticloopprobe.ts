@@ -72,8 +72,8 @@ ok(r1t.every(s => !rawKey(s)) && r1t.every(s => !s.includes('—')), 'every line
 const cats = new Set(r1.lines.map(l => l.cat))
 ok(['form', 'style', 'players', 'setpiece', 'coach', 'soft'].every(c => cats.has(c as ReportLine['cat'])),
   `it covers form, style, key men, set piece, the dugout and the soft spot (${[...cats].join(', ')})`)
-ok(planOptions(g, leagueFx).length >= 2 && planOptions(g, leagueFx).length <= 3,
-  `two or three plans for a league match (${planOptions(g, leagueFx).map(o => o.id).join(', ')})`)
+ok(planOptions(g, leagueFx).length >= 3 && planOptions(g, leagueFx).length <= 5,
+  `three to five plans for a league match, stacked on the Prep tab since round 6 (${planOptions(g, leagueFx).map(o => o.id).join(', ')})`)
 
 // a cup tie against a side from another league, and a friendly
 const other = Object.values(g.clubs).find(c => c.leagueId !== me.leagueId && c.id !== me.id)!
@@ -146,7 +146,7 @@ ok(eLo.held > eHi.held, 'a vague report holds back what it cannot see')
 // ---- 3. plans map onto real levers -----------------------------------------
 console.log('\n3. plans are existing levers')
 const PREPS = new Set(['attack', 'defence', 'setpiece', 'fitness', 'recovery'])
-const DIALS = new Set(['style', 'tempo', 'kicking', 'aggression', 'defLine'])
+const DIALS = new Set(['style', 'tempo', 'kicking', 'aggression', 'defLine', 'ruckCommit'])
 const gp = clone(hi)
 let checked = 0, bad = 0
 for (const c of Object.values(gp.clubs)) {
@@ -278,7 +278,25 @@ console.log('\n5. balance: paired matches, same fixture, same dice')
 const arms = { base: [] as number[], prep: [] as number[], exploit: [] as number[], soundGain: [] as number[], overPrep: [] as number[] }
 const otherGain = new Map<string, number[]>()
 let winsBase = 0, winsPlan = 0
-for (const [club, seed] of [['leicester', 51], ['northampton', 52], ['bath', 53]] as const) {
+// TWELVE WORLDS, NOT THREE (1.8.2 QA). Three worlds gave about thirty sound
+// reads, and one match's margin moves by about 19 points either way, so the
+// sound-read mean carried a standard error of about 3.4 points against an
+// effect of four or five: a coin that came down wrong roughly one time in
+// eight. It did on 43edba4 (-1.64 over 28) and on the playbook head (-0.80
+// over 30) while the effect itself had grown. Measured over 120 worlds
+// (worlds 51 to 170, the same three clubs in turn, the same dice as here):
+// before the depth merge (8a93ecb) a sound read's plan was worth +3.98 +/- 0.57
+// over 1074 fixtures, with 7 of 40 three-world blocks at or below zero; on the
+// 1.8.2 head (b1b03f8) +5.51 +/- 0.57 over 1089, 5 of 40 blocks at or below
+// zero, and the first block, which was this probe, -0.80. A wrong read's plan
+// is worth +0.93 +/- 0.80 there, so the reads the probe calls sound are the
+// ones that pay. Twelve worlds give about 110 sound reads, a standard error
+// near 1.8, and the claim is then about three of those clear of zero (on the
+// head these twelve read +3.75 over 114; after the rewarded-favours merge,
+// af22186, which moves the world, +2.83 over 114, with 60 worlds reading
+// +5.42 +/- 0.86 over 545).
+const WORLDS = Array.from({ length: 12 }, (_, i) => [(['leicester', 'northampton', 'bath'] as const)[i % 3], 51 + i] as const)
+for (const [club, seed] of WORLDS) {
   const w = newGame(club, 'Balance', seed)
   setUp(w, 5, 3)
   let played = 0

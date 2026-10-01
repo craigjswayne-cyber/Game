@@ -1,21 +1,35 @@
 import { useRef, useState } from 'react'
 import { useStore } from '../../store'
-import { ATTR_KEYS, SEASON_WEEKS, fmtMoney, fmtWage, injuryDesc, type Attrs, type GameState, type Player } from '../../game/model'
+import { ATTR_KEYS, SEASON_WEEKS, fmtMoney, fmtWage, injuryDesc, type Attrs, type GameState, type Player, type TrainingFocus } from '../../game/model'
 import { agreeFee, agreePreContract, askingPrice, floorPrice, sellerWillingness, offerRenewalAt, personalTermsDemand, renewalDemand, signFreeAgent, signOnTerms } from '../../game/ai'
 import { FormPill, Nat, PosBadge, SectionTitle, Stars, TwoStep, RewardedButton } from '../components'
-import { flagOf, nationName } from '../../game/nations'
+import { nationName } from '../../game/nations'
+import { Flag } from '../flags'
 import { fineAttr, playerWage } from '../../game/attributes'
-import { attrRange, fuzzedCa, knowledge, persKnown, reportStage } from '../../game/scout'
+import { attrRange, fuzzedCa, knowledge, paRange, reportStage, seenValue, wonderkidKnown } from '../../game/scout'
 import { benchNote, temperRead } from '../../game/temperament'
+import { formTrend, traitHints } from '../../game/formtraits'
+import { habitHint } from '../../game/habits'
 import { bondsLine } from '../../game/bonds'
-import { canAgencyFile } from '../../game/rewarded'
+import { canAgencyFile, canSecondOpinion } from '../../game/rewarded'
 import { rewardedAvailable } from '../../game/monetise'
 import { LOAN_BUY_MIN_WEEKS, loanBuy, loanBuyOffer, loanOut, loanOutBoost, loanRecall } from '../../game/loans'
 import { releaseBlock, releaseCost, releasePlayer } from '../../game/release'
 import { MARQUEE_SLOTS, marqueeOpen, toggleMarquee } from '../../game/cap'
 import { answerRequest, canAnswerRequest, canChat, chatBudget, praisePlayer, warnPlayer } from '../../game/chats'
-import { attrBand, attrBandIndex, attrName, persName, posName, t, traitInfo, traitName, localeTag } from '../../game/i18n'
+import { attrBand, attrBandIndex, attrName, posName, t, localeTag } from '../../game/i18n'
 import { Glyph } from '../glyphs'
+import { driverLines, learningLines, monthKey, outlookLine, TL } from '../../game/devproject'
+import { activeEntry } from '../../game/season'
+import { focusIds } from '../../game/development'
+
+/** The timeline's moment chips, in the order they read (devproject TL). */
+const TL_KEYS: [number, string][] = [
+  [TL.joined, 'dev.tlJoined'], [TL.debut, 'dev.tlDebut'], [TL.breakthrough, 'dev.tlBreakthrough'],
+  [TL.stall, 'dev.tlStall'], [TL.injury, 'dev.tlInjury'], [TL.plan, 'dev.tlPlan'],
+  [TL.up, 'dev.tlUp'], [TL.down, 'dev.tlDown'],
+]
+import ScoutReportCard from '../ScoutReport'
 
 export default function PlayerScreen({ playerId }: { playerId: number }) {
   const game = useStore(s => s.game)!
@@ -63,6 +77,8 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
   const wageOffer = Math.max(0, Math.round(Number(wageText) || 0))
   const [wageCounter, setWageCounter] = useState<number | null>(null)
   const [compare, setCompare] = useState(false)
+  // another club's man: his development card is folded (1.8.2 trim, see below)
+  const [devOpen, setDevOpen] = useState(false)
   // three pages instead of one long scroll (user: fewer scrolls, more pages)
   const [ptab, setPtab] = useState<'profile' | 'attrs' | 'career'>('profile')
 
@@ -77,6 +93,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
   const shortlisted = game.shortlist.includes(p.id)
   const toggleShortlist = useStore(s => s.toggleShortlist)
   const rewardAgency = useStore(s => s.rewardAgency)
+  const rewardOpinion = useStore(s => s.rewardOpinion)
 
   const groups: [string, (keyof Attrs)[]][] = [
     ['player.grpSetPiece', ['scr', 'lin', 'ruc', 'tac', 'str', 'agg']],
@@ -107,7 +124,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
               {p.alt.length > 0 && <span className="muted">{t('player.alsoPlays', { pos: p.alt.join(', ') })}</span>}
             </div>
             <div className="meta" style={{ marginTop: 3 }}>
-              {t('player.natLine', { flag: flagOf(p.nat), country: nationName(p.nat), age: p.age })}
+              <Flag code={p.nat} /> {t('player.natLine', { country: nationName(p.nat), age: p.age })}
               {p.intl ? t('player.international') : ''}{p.youth ? t('player.academyGrad') : ''}
             </div>
             {club && (
@@ -119,7 +136,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           </div>
           <div style={{ textAlign: 'right' }}>
             <Stars ca={fuzzedCa(game, p)} />{know < 95 && <span className="muted" title={t('player.estimated')}> ?</span>}
-            <div style={{ marginTop: 4 }}><FormPill v={p.form} /></div>
+            <div style={{ marginTop: 4 }}><FormPill v={p.form} trend={formTrend(p)} /></div>
           </div>
         </div>
       </div>
@@ -144,13 +161,83 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
       {(() => {
         const tr = temperRead(game, p)
         const bn = benchNote(game, p)
-        if (!tr.lines.length && !bn) return null
+        // the hidden form tendencies, in plain words at the same thresholds
+        // (formtraits.ts): never a name for them
+        const hints = traitHints(game, p)
+        // and at most one plain line about a secret habit (habits.ts), for
+        // his own staff only once they know him fully: never a name for it
+        const habit = habitHint(game, p)
+        if (habit) hints.push(habit)
+        if (!tr.lines.length && !bn && !hints.length) return null
         return (
           <div className="card temper-card">
             <div className="fact-label">{t(mine ? 'player.readStaff' : 'player.readScouts')}</div>
             {tr.lines.map(l => <div key={l.k} className="meta">{t(l.k, l.v)}</div>)}
+            {hints.map(k => <div key={k} className="meta">{t(k)}</div>)}
             {bn && <div className="meta bench-note">{t(bn.k, bn.v)}</div>}
           </div>
+        )
+      })()}
+
+      {/* ---- DEVELOPMENT AS A PROJECT (1.8.2, devproject.ts) ----
+          What the staff believe about how he is developing, in plain words:
+          their estimate of his ceiling (a band until about 23), how the
+          season is going against it, what they have learned about how he
+          learns, what is helping or holding him back this month, and his
+          programme. Never a hidden number. Another club's man gets only
+          what a full scouting file says, and gets it folded: the card is
+          mostly about your own players, and with the scout report above it
+          his page ran past three screenfuls on a landscape phone
+          (scrollaudit). A full-width row keeps the 44px tap floor. */}
+      {(() => {
+        const band = mine && p.age <= 23 ? paRange(game, p) : null
+        const out = outlookLine(game, p, band)
+        const learn = learningLines(game, p, !mine && reportStage(game, p) >= 3)
+        const drv = driverLines(game, p)
+        const entry = mine ? activeEntry(game, p.id) : null
+        const focused = mine && focusIds(game).includes(p.id)
+        if (!band && !out && !learn.length && !drv.length && !entry && !focused) return null
+        const focusName = (f: TrainingFocus) => t(`training.focus${f[0].toUpperCase()}${f.slice(1)}`)
+        const toggle = !mine && (
+          <button className="btn ghost block" aria-expanded={devOpen} data-dev-toggle
+            onClick={() => setDevOpen(v => !v)}>
+            {t(devOpen ? 'dev.hideCard' : 'dev.showCard')}
+          </button>
+        )
+        if (!mine && !devOpen) return toggle
+        return (
+          <>
+          {toggle}
+          <div className="card dev-card">
+            <div className="fact-label">{t('dev.cardLabel')}</div>
+            {band && (
+              <div className="meta" title={t('dev.ceilingStaffTitle')}>
+                {t('dev.ceilingStaff')} <b>{band[0] === band[1] ? band[0] : `${band[0]}-${band[1]}`}</b>
+                {/* A SECOND OPINION (1.8.2, rewarded.ts): one step narrower, on
+                    this line rather than a block of its own, once a season */}
+                {rewardedAvailable('opinion') && canSecondOpinion(game, p.id) && (
+                  <>{' '}<RewardedButton place="opinion" className="btn ghost tiny spot" style={{ marginLeft: 2, verticalAlign: 'baseline' }} label={t('till.watchOpinion')}
+                    onDone={out => {
+                      if (out === 'completed') setMsg(t(rewardOpinion(p.id) ? 'till.opinionDone' : 'till.favourGone', { name: p.name }))
+                      else setMsg(t(out === 'skipped' ? 'till.spotSkipped' : 'till.spotUnavailable'))
+                    }} /></>
+                )}
+              </div>
+            )}
+            {out && <div className="meta"><b>{t(out.k, out.v)}</b></div>}
+            {learn.map(l => <div key={l.k} className="meta">{t(l.k, l.v)}</div>)}
+            {drv.map(l => <div key={l.k} className="meta muted">{t(l.k, l.v)}</div>)}
+            {entry && (
+              <div className="meta" style={{ marginTop: 3 }}>
+                {entry.plan2
+                  ? t('dev.planTwo', { plan: focusName(entry.plan), plan2: focusName(entry.plan2), n: entry.pts ?? 0 })
+                  : t('dev.planOne', { plan: focusName(entry.plan), n: entry.pts ?? 0 })}
+                {' '}{t(monthKey(game, p))}
+              </div>
+            )}
+            {focused && <div className="meta">{t('dev.onFocus')}</div>}
+          </div>
+          </>
         )
       })()}
 
@@ -172,7 +259,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
       {/* ---- THE RECORD (owner, v1.2.7) ----
           One form pill and one last rating could not answer the question a
           manager actually asks - "is he declining or did he have a bad week" -
-          and one current injury could not tell a fragile man from an unlucky
+          and one current injury could not tell an injury-hit man from an unlucky
           one. The last ten ratings, oldest first, and every injury this career. */}
       {((p.ratings?.length ?? 0) > 0 || (p.injLog?.length ?? 0) > 0) && (
         <div className="card record-card">
@@ -199,7 +286,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             const weeks = log.reduce((s, e) => s + e.weeks, 0)
             const seasons = Math.max(1, game.season - log[0].s + 1)
             const perSeason = weeks / seasons
-            const read = perSeason >= 10 ? 'player.injFragile' : perSeason >= 5 ? 'player.injWatch' : 'player.injSound'
+            const read = perSeason >= 10 ? 'player.injHeavy' : perSeason >= 5 ? 'player.injWatch' : 'player.injSound'
             return (
               <>
                 <div className="fact-label" style={{ marginTop: (p.ratings?.length ?? 0) > 0 ? 8 : 0 }}>{t('player.injuryRecord')}</div>
@@ -218,9 +305,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
       <div className="chips">
         <span className="chip" title={t('player.overallTitle')}>
           {t('player.overall')} <b style={{ fontSize: 13 }}>{Math.round(fuzzedCa(game, p))}</b><span className="muted">/100</span></span>
-        <span className="chip" title={t('player.characterTitle')}>{t('player.character')} <b>{persKnown(game, p) ? persName(p.pers) : t('player.unknown')}</b>{!persKnown(game, p) && <span className="muted" title={t('player.characterUnknownTitle')}> ?</span>}</span>
         {(p.caps ?? 0) > 0 && <span className="chip"><Glyph name="nations" /> <b>{p.caps}</b> {t('player.caps')}</span>}
-        {p.trait && reportStage(game, p) >= 2 && <span className="chip" title={traitInfo(p.trait)} style={{ color: 'var(--info)', fontWeight: 700 }}><Glyph name="trait" /> {traitName(p.trait)}</span>}
         {!mine && <span className="chip" style={know < 55 ? { color: 'var(--gold)' } : undefined}>
           {t('player.scouted')} <b>{Math.round(know)}%</b></span>}
       </div>
@@ -229,8 +314,16 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           <Glyph name="agency" /> {t(`scoutStage.${reportStage(game, p)}`)}
         </div>
       )}
+      {/* what the staff believe (recruit.ts): strengths, fit, agent, rival talk */}
+      {!mine && <ScoutReportCard game={game} p={p} onMsg={setMsg} />}
       <div className="chips">
-        <span className="chip" title={t('player.valueTitle')}>{t('player.value')} <b>{fmtMoney(p.value)}</b></span>
+        <span className="chip" title={t('player.valueTitle')}>{t('player.value')} <b>{fmtMoney(seenValue(game, p))}</b>{!mine && know < 95 && <span className="muted"> ?</span>}</span>
+        {/* the ceiling as the scouts read it (1.8.2): a band that narrows as
+            they watch him, nothing at all before they have */}
+        {!mine && p.age <= 23 && (() => {
+          const r = paRange(game, p)
+          return <span className="chip" title={t('player.ceilingTitle')}>{t('player.ceiling')} <b>{r ? (r[0] === r[1] ? r[0] : `${r[0]}-${r[1]}`) : '?'}</b></span>
+        })()}
         <span className="chip" title={t('player.wageTitle')}>{t('player.wage')} <b>{fmtWage(p.wage)}{t('common.perWeek')}</b></span>
         <span className="chip" title={t('player.contractToTitle')}>{t('player.contractTo')} <b>{2026 + p.contractEnds}</b></span>
         {(p.wantsDeal ?? 0) > 0 && <span className="chip" style={{ borderColor: 'var(--gold)', color: 'var(--gold)', fontWeight: 700 }}>
@@ -342,12 +435,12 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         {(p.lions ?? 0) > 0 && <span className="chip">{t('player.lions')}{(p.lions ?? 0) > 1 ? <b> ×{p.lions}</b> : null}</span>}
         {(p.wcWins ?? 0) > 0 && <span className="chip">{t('player.wcWinner')}{(p.wcWins ?? 0) > 1 ? <b> ×{p.wcWins}</b> : null}</span>}
         {p.lastR != null && <span className="chip">{t('player.lastMatch')} <b>{Math.min(10, Math.max(1, p.lastR)).toFixed(1)}</b></span>}
-        {(p.ca - (p.ca0 ?? p.ca)) !== 0 && (
+        {(p.ca - (p.ca0 ?? p.ca)) !== 0 && (mine || reportStage(game, p) >= 2) && (
           <span className="chip">{t('player.development')} <b style={{ color: p.ca > (p.ca0 ?? p.ca) ? 'var(--text-positive)' : 'var(--text-negative)' }}>
             {p.ca > (p.ca0 ?? p.ca) ? '▲' : '▼'} {Math.abs(p.ca - (p.ca0 ?? p.ca))}
           </b></span>
         )}
-        {p.age <= 21 && p.pa >= 86 && <span className="chip" style={{ borderColor: 'var(--gold)' }}><Glyph name="star" /> <b>{t('player.wonderkid')}</b></span>}
+        {wonderkidKnown(game, p) && <span className="chip" style={{ borderColor: 'var(--gold)' }}><Glyph name="star" /> <b>{t('player.wonderkid')}</b></span>}
         {(p.poty ?? 0) > 0 && (
           <span className="chip" style={{ borderColor: 'var(--gold)' }}>
             <Glyph name="award" /> <b>{t('player.worldPoty')}{(p.poty ?? 0) > 1 ? ` ×${p.poty}` : ''}</b>
@@ -377,6 +470,32 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
       </div>
 
       </>}
+      {/* ---- THE DEVELOPMENT TIMELINE (1.8.2, devproject.ts seasonReview) ----
+          Season by season while he has been the manager's: his rating at the
+          end of it and the moments that shaped it. Written compactly on the
+          player at each season's end; the current season is the last row. */}
+      {ptab === 'career' && (mine || (p.tl?.length ?? 0) > 0) && (
+        <>
+          <SectionTitle sub={t('dev.tlSub')}>{t('dev.timeline')}</SectionTitle>
+          <div className="card dev-timeline">
+            {(p.tl ?? []).map(([s, r, f]) => (
+              <div key={s} className="tl-row">
+                <span className="tl-season">{2025 + s}-{String((2026 + s) % 100).padStart(2, '0')}</span>
+                <b className="tl-rating">{r}</b>
+                <span className="tl-moments">{TL_KEYS.filter(([bit]) => f & bit).map(([, k]) => <span key={k} className="chip tl-chip">{t(k)}</span>)}</span>
+              </div>
+            ))}
+            {mine && (
+              <div className="tl-row tl-now">
+                <span className="tl-season">{t('dev.tlNow')}</span>
+                <b className="tl-rating">{p.ca}</b>
+                <span className="tl-moments" />
+              </div>
+            )}
+            {!(p.tl?.length) && <div className="meta muted" style={{ fontSize: 12 }}>{t('dev.tlEmpty')}</div>}
+          </div>
+        </>
+      )}
       {ptab === 'career' && (p.career.length > 0 || (p.hist?.apps ?? 0) > 0) && (
         <>
           <SectionTitle>{t('player.career')}</SectionTitle>
@@ -536,6 +655,8 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           if (!returning) {
             // promoted by hand is still a graduate of your academy
             p.homegrown = true
+            p.gradClub ??= game.userClubId
+            p.gradS ??= game.season
             // a first-team player is paid like one: the rollover graduation path
             // has always re-priced the development deal, and this button did not,
             // which made hand-promotion a free-labour loophole (audit 16D).

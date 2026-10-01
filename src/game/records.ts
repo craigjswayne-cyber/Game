@@ -30,6 +30,7 @@
  */
 import type { GameState, Player } from './model'
 import { t } from './i18n'
+import { eraSigning } from './erastory'
 
 export interface RecordBook {
   biggestWin?: { oppId: string; us: number; them: number; season: number }
@@ -79,6 +80,7 @@ export function offerSigning(state: GameState, playerId: number, fee: number): v
   if (!r.recordSigning || fee > r.recordSigning.fee) {
     r.recordSigning = { playerId, fee, season: state.season }
   }
+  eraSigning(state, playerId, fee) // and this job's own book (erastory.ts)
 }
 
 /**
@@ -88,8 +90,19 @@ export function offerSigning(state: GameState, playerId: number, fee: number): v
  * so this is simply everyone carrying it who has moved on and is still playing.
  */
 export function proteges(state: GameState): Player[] {
+  // ONLY THE ONES HE MADE (1.8.2). homegrown is set for every club's academy
+  // graduates (rollover.ts), so this counted the whole world's - "1,706 of your
+  // graduates are playing elsewhere". A protege graduated from a club while the
+  // manager was in charge of it: gradClub and gradS say where and when, and the
+  // history book's tenures say where he was. A graduate from before gradS was
+  // recorded counts if his club is one the manager has held.
+  const jobs = [
+    ...(state.hist?.tenures ?? []).map(x => ({ c: x.clubId, f: x.from, t: x.to ?? state.season })),
+    ...(state.unemployed ? [] : [{ c: state.userClubId, f: state.tenureStart ?? 0, t: state.season }]),
+  ]
+  const made = (p: Player) => !!p.gradClub && jobs.some(j => j.c === p.gradClub && (p.gradS == null || (p.gradS >= j.f && p.gradS <= j.t)))
   return Object.values(state.players)
-    .filter(p => p.homegrown && p.clubId && p.clubId !== state.userClubId && p.stats.apps > 0)
+    .filter(p => p.homegrown && p.clubId && p.clubId !== state.userClubId && p.stats.apps > 0 && made(p))
     .sort((a, b) => b.ca - a.ca)
 }
 

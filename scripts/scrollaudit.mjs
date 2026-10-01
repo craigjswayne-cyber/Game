@@ -8,7 +8,26 @@ const server = await startPreview('4177', 2500)
 
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 844, height: 390 } })
-await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
+// ONE WORLD, EVERY RUN (1.8.2 QA). The career the wizard starts took its seed
+// from Math.random, so each run measured a different world, and a page whose
+// depth is its content measured a different man: the scouted player at another
+// club read 2.85 to 3.22 screenfuls across ten worlds (his temperament card
+// runs one to three lines, his strengths one or two), against a limit of 3.0,
+// so the audit's verdict on that page was a coin. Math.random is seeded here
+// (mulberry32, seed 1) so the wizard starts the same world and the audit
+// measures the same pages every time; a change to a page now moves its number
+// and nothing else does.
+await page.addInitScript(() => {
+  localStorage.setItem('rm-night', '1')
+  let a = 1
+  Math.random = () => {
+    a = (a + 0x6D2B79F5) >>> 0
+    let t = a
+    t = Math.imul(t ^ (t >>> 15), t | 1)
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+})
 
 const rows = []
 
@@ -60,6 +79,19 @@ try {
   await measure('player: attributes')
   await page.click('.back-btn')
 
+  // A MAN AT ANOTHER CLUB (1.8.2): the scout report card sits on his profile
+  // with the fee talks under it, so his page is the one the report can deepen.
+  // Fully scouted, so every row of the report is filled in.
+  await page.evaluate(() => {
+    const S = window.rugbyStore.getState(); const g = S.game
+    const p = Object.values(g.players).find(q => q.clubId && q.clubId !== g.userClubId && !q.acad && q.age <= 22 && q.ca >= 65)
+    p.sc = 95
+    if (!g.shortlist.includes(p.id)) g.shortlist.push(p.id)
+    S.touch(); S.go('player', p.id)
+  })
+  await page.waitForSelector('.scout-report')
+  await measure('player: scouted, another club')
+
   await page.click('.bottom-nav button[title="Hub"]')
   await page.click('.submenu-item >> text=Tactics')
   await page.waitForSelector('.tab-bar')
@@ -68,6 +100,11 @@ try {
     await page.click(`.tab-bar >> text=${tab}`)
     await measure(`tactics: ${label}`)
   }
+  // THE GAME PLAN TAB, IN TWO (1.8.2): the styles view opens and is measured
+  // above; the dials behind Fine Tune are a page of their own
+  await page.click('[data-plan-sub="tune"]')
+  await measure('tactics: game plan fine tune')
+  await page.click('[data-plan-sub="styles"]')
   // THE SET PIECE TAB was never measured here, and grew to 6.8 screenfuls in
   // landscape (4.5 portrait) once the attacking moves joined it in 1.8.1
   // before anyone counted. 1.8.2 split it into three views behind a segmented
@@ -120,9 +157,9 @@ try {
   await page.waitForSelector('text=the eighty minutes and the hour before it')
   await measure('handbook')
 
-  // the press room and the job centre belong to the manager, not to the team
-  // sheet: he is the one in front of the cameras and the one being courted
-  for (const [item, label] of [['Press Room', 'press room'], ['Job Centre', 'job centre']]) {
+  // the press room belongs to the manager, not to the team sheet: he is the
+  // one in front of the cameras. The job centre is a World item (round 4).
+  for (const [item, label] of [['Press Room', 'press room']]) {
     await page.click('.bottom-nav button[title="Manager"]')
     await page.click(`.submenu-item >> text=${item}`)
     await measure(label)
@@ -131,6 +168,7 @@ try {
   // 'The Rugby Wire' was here: merged into the News screen, which the rail
   // reaches directly, so the World group no longer carries a news item.
   const worldItems = [
+    ['Job Centre', 'job centre'],
     ['Team of the Week', 'team of the week'],
     ['Scouting Agency', 'scouting agency'],
     ['Competitions', 'competitions'],

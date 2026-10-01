@@ -7,7 +7,9 @@
 //
 // The screen tells the player: "Your squad, your saves and your name are not
 // [attached]." That is a promise in the product, so it is a test here.
+import { readFileSync } from 'node:fs'
 import { newGame } from '../src/game/newgame'
+import { BUG_CHANNEL_URL, COMMUNITY_URL } from '../src/game/community'
 import {
   CONTACT_MAILTO, DEV_CONTACT, MAILTO_LIMIT, buildReport, crashCount, mailtoUrl, noteScreen, recordCrash, reportFilename,
 } from '../src/game/bugreport'
@@ -87,6 +89,25 @@ const base = { state: g, nav: NAV, screen: SCREEN, when: '2026-08-23 12:00' }
   const r = buildReport({ state: null, notes: 'it would not start', nav: NAV, screen: SCREEN, when: '2026-08-23 12:00' })
   ok(r.includes('no career loaded'), 'a report with no career still builds')
   ok(r.includes('it would not start'), 'and still carries what the player typed')
+}
+
+// ---- where "Post on Discord" goes (1.8.2) ----------------------------------
+// Owner: the bug report's Discord button opens the bug-reports channel; the
+// menu's "Join us on Discord" (and Home, About, the ideas box) keep the
+// server's own invite.
+{
+  const src = (f: string) => readFileSync(f, 'utf8')
+  const bug = src('src/ui/screens/BugReport.tsx')
+  ok(/^https:\/\/discord\.gg\/\w+$/.test(BUG_CHANNEL_URL), `the bug channel is a Discord invite (${BUG_CHANNEL_URL})`)
+  ok(BUG_CHANNEL_URL !== COMMUNITY_URL, 'and not the server\'s front door')
+  const bugPost = bug.match(/href=\{(\w+)\}[^\n]*\n[^\n]*legacy\.bgDiscordDone/)
+  ok(bugPost?.[1] === 'BUG_CHANNEL_URL', `the bug report's Post on Discord opens it (${bugPost?.[1]})`)
+  const app = src('src/ui/App.tsx'), home = src('src/ui/screens/Home.tsx')
+  ok(/label: t\('menu\.community'\)[^\n]*href: COMMUNITY_URL/.test(app), 'the manager menu\'s Join us on Discord keeps the community invite')
+  ok(/href=\{COMMUNITY_URL\}/.test(home) && !/BUG_CHANNEL_URL/.test(app + home), 'and so does Home, with the bug channel nowhere near either')
+  // round 4: a title, the fields and the buttons, and no second scroll box
+  ok(!/<(div|main) className="content/.test(bug.replace(/\/\*[\s\S]*?\*\//g, '')), 'the page is not nested in a second .content box (it would not scroll by touch)')
+  ok(!/DEV_CONTACT|bgSendIt|bgAttached|bgShowFull/.test(bug), 'and the explainers are gone: no address line, attachment note or preview toggle')
 }
 
 console.log(fails ? `BUG PROBE FAILED (${fails})` : 'BUG PROBE PASSED: the report is actionable, and no wider than it says')

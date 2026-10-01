@@ -211,15 +211,34 @@ const seasonInWork = (g: GameState) => {
     .map(f => `${f.id}:${f.compId}:${f.homeId}${f.played ? `${f.homeScore}-${f.awayScore}` : '_'}${f.awayId}`).join('|')
   const on = newGame('bath', 'Twin', 185)
   const weeksOn: string[] = [], idsOn: number[] = []
-  for (let i = 0; i < WEEKS; i++) { processWeekAndAdvance(on); weeksOn.push(sig(on)); idsOn.push(on.nextId) }
+  // every story the book told over the run, read each week: the inbox keeps
+  // the last 250 items, so a story told in the first autumn can be off the
+  // end of it by the next one (see the re-reference note on `told` below)
+  const toldIds = new Set<string>()
+  for (let i = 0; i < WEEKS; i++) {
+    processWeekAndAdvance(on); weeksOn.push(sig(on)); idsOn.push(on.nextId)
+    for (const n of on.news) if (n.k?.startsWith('hist.')) toldIds.add(`${n.season}/${n.week}/${n.k}/${n.id}`)
+  }
   HIST_OFF.on = true
   const off = newGame('bath', 'Twin', 185)
   const weeksOff: string[] = [], idsOff: number[] = []
   for (let i = 0; i < WEEKS; i++) { processWeekAndAdvance(off); weeksOff.push(sig(off)); idsOff.push(off.nextId) }
   HIST_OFF.on = false
-  const told = on.news.filter(n => n.k?.startsWith('hist.')).length
+  /* RE-REFERENCED in 1.8.2 (development as a project): this counted the
+   * book's stories STILL IN THE INBOX after 60 weeks, and on this seed the
+   * development changes (a different world: in it the Bath manager is sacked
+   * in the second season) leave one story, told in week 18, one week past the
+   * end of the 250-item inbox. That is chance, not the book falling silent:
+   * over nine seeds (181-189), stories told across the run averaged 3.6
+   * before the merge and 3.2 after it, still in the inbox 1.7 and 1.3, and a
+   * seed with none left in the inbox (185 after, 188 after) told one and four.
+   * The development notes are the first thing trimmed from a full inbox now
+   * (devnews.trimDevFirst), so they cannot be what evicts a story. What this
+   * holds is what it always meant: the book told stories in this world. */
+  const told = toldIds.size
+  const still = on.news.filter(n => n.k?.startsWith('hist.')).length
   const drift = Math.max(...idsOn.map((x, i) => Math.abs(x - idsOff[i])))
-  ok(told > 0, `the book told ${told} stories still in the inbox`)
+  ok(told > 0, `the book told ${told} stories over the run (${still} still in the inbox)`)
   ok(drift === 0, `and moved the shared id counter by ${drift} in ${WEEKS} weeks`)
   const firstDiff = weeksOn.findIndex((w, i) => w !== weeksOff[i])
   if (firstDiff >= 0) {

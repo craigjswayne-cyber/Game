@@ -1035,11 +1035,15 @@ export function adsAllowed(place: string): boolean {
   return !hasSupporter() && !!adBridge() && (AD_PLACES as readonly string[]).includes(place)
 }
 
-/** The four rewarded placements (docs/monetisation-spec.md §2), each mapping
- *  onto a mechanic the game already has - the spot replaces the FEE, never
- *  invents a power. Their per-day cap lives in the bridge; their per-save
- *  ledgers live beside the mechanics they touch. */
-export const REWARDED_PLACES = ['medical', 'scouting', 'matchday', 'collection'] as const
+/** The rewarded placements (docs/monetisation-spec.md §2), each mapping onto
+ *  a mechanic the game already has - the spot replaces a FEE or a WAIT, never
+ *  invents a power. Four since 1.1.0, four more in 1.8.2 (the agent's inside
+ *  word, a second opinion, tape room night, the sponsor's team night). Their
+ *  per-day cap lives in the bridge; their per-save ledgers live in rewarded.ts. */
+export const REWARDED_PLACES = [
+  'medical', 'scouting', 'matchday', 'collection',
+  'inside', 'opinion', 'taperoom', 'teamnight',
+] as const
 export type RewardedPlace = typeof REWARDED_PLACES[number]
 
 /** May this rewarded button render at all? Purely "is there a provider":

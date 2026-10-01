@@ -282,7 +282,7 @@ export interface Injury {
 export type Personality =
   | 'Professional' | 'Loyal' | 'Ambitious' | 'Mercenary' | 'Temperamental' | 'Leader'
 
-export type Weather = 'Dry' | 'Rain' | 'Wind' | 'Snow'
+export type Weather = 'Dry' | 'Damp' | 'Rain' | 'Wind' | 'Snow'
 
 export interface Player {
   id: number
@@ -356,6 +356,14 @@ export interface Player {
   loanSince?: number
   /** ability at the start of the season, for development arrows */
   ca0?: number
+  /** POTENTIAL THAT MOVES (1.8.2, devproject.ts): the ceiling he started
+   *  with, written the first time a season review moves it, so the drift is
+   *  bounded either side of it. Absent means it has never moved. */
+  pa0?: number
+  /** HIS DEVELOPMENT TIMELINE (1.8.2, devproject.ts seasonReview): one row a
+   *  season while he is the manager's, [season, rating at its end, moment
+   *  flags (devproject TL)], the last twelve. Absent for everybody else. */
+  tl?: [number, number, number][]
   /** starts made LAST season, stashed before the summer stats wipe so the
    *  development roll can ask how much rugby the year actually held (25D:
    *  a 20-year-old parked on the bench stops growing) */
@@ -452,6 +460,12 @@ export interface Player {
    *  at promotion and never cleared, because it is a fact about where he learned
    *  the game, not about where he plays now (dream.ts reads it). */
   homegrown?: boolean
+  /** the club whose academy he graduated from, and the season (records.ts
+   *  proteges): homegrown alone is set for every club's graduates, so "the men
+   *  you made" needs to know whose they were. Absent on graduates from before
+   *  1.8.2 until save.ts reads them in from his first career row. */
+  gradClub?: string
+  gradS?: number
   /** club matches this season this man was actually AVAILABLE for - not away
    *  with his country, suspended, injured, on loan, or unsigned. Tracked
    *  forward by settleGameTime; the game-time ledger bills the manager a
@@ -665,6 +679,32 @@ export interface Tactic {
   moveLineout?: string
   moveScrum?: string
   moveShape?: string
+  /** THE PLAYBOOK (1.8.2, armsrace.ts), the manager's only: the primary and
+   *  the secondary strike off first-phase ball, the primary's share of the
+   *  ball both can run off (50-90, two in three unset), and the red-zone
+   *  play for the opposition 22. moveShape above is the base shape. An old
+   *  save's lineout and scrum calls become the primary and the secondary
+   *  (save migration), and moveLineout/moveScrum are then left unset. */
+  moveMain?: string
+  moveAlt?: string
+  moveMix?: number
+  moveRed?: string
+  /** THE PENALTY SLOT (round 6): the tap penalty play the side runs when it
+   *  takes a quick tap. Whether it taps is penaltyCall's (above). An old
+   *  save's tap play in the red-zone slot moves here (save migration). */
+  movePen?: string
+
+  // ---- the attack and defence styles (1.8.2, styles.ts) ---------------------
+  /** The side's overall game with the ball and without it, by style id. A
+   *  style is a preset over the dials above plus a small effect of its own;
+   *  absent (an old save) is read off the dials as the nearest style, and
+   *  the save migration writes that in. AI clubs' come from their coach. */
+  atkStyle?: 'direct' | 'pods' | 'width' | 'kick' | 'offload'
+  /** Where the forwards stand in a pod game (styles.ts PodShape): 1-3-3-1,
+   *  2-4-2 or one-out round the nine. Read only while atkStyle is 'pods';
+   *  absent is the 1-3-3-1, the Pods style as it always was. */
+  podShape?: '1331' | '242' | 'nine'
+  defStyle?: 'drift' | 'blitz' | 'pendulum' | 'man' | 'choke'
 
   // ---- the bench economy (F4) ---------------------------------------------
   /** How the eight replacements are split between forwards and backs. Unset
@@ -702,6 +742,14 @@ export interface Playbook {
   drilled: Record<string, number>
   /** routine id -> times called this season, which is how analysts learn you */
   used: Record<string, number>
+  /** THE ARMS RACE (1.8.2, armsrace.ts), the manager's club only. reps: the
+   *  matches each attacking call has been in the playbook for (the side's own
+   *  familiarity with it); faced: the first-phase possessions each strike has
+   *  been run on, fading match by match (what the opposition's analysts have
+   *  on tape); tallied: the last fixture counted, so a replay counts once. */
+  reps?: Record<string, number>
+  faced?: Record<string, number>
+  tallied?: string
 }
 
 export type CompType = 'league' | 'cup' | 'intl'
@@ -949,8 +997,16 @@ export interface PressOption {
    *  scholar on a development contract ('sign'), give a lad at the age gate
    *  his first professional contract ('promote'), or let him go ('release').
    *  `acadWage` is the weekly figure the button quoted, paid as quoted. */
-  acad?: 'sign' | 'promote' | 'release'
+  acad?: 'sign' | 'promote' | 'release' | 'loan'
   acadWage?: number
+  /** a dressing-room decision (1.8.2, room.ts): stand by a selection or
+   *  reverse it, renew a contract now or wait, rest a man or bring him back a
+   *  week early, answer a starter who wants assurances after a signing in
+   *  his position. room.ts carries it out; the numbers above stay at zero
+   *  (the promise itself rides on `pledge`). */
+  room?: 'stand' | 'reverse' | 'renew' | 'wait' | 'rest' | 'early' | 'promise' | 'refuse' | 'listen'
+  /** the weekly wage the renew-now button quoted, paid as quoted */
+  roomWage?: number
   /** the season-expectations decision (25C): choosing sets
    *  state.stance for the year, which scales how hard the boardroom needle
    *  swings on every result - see boardReaction. */
@@ -1593,6 +1649,11 @@ export interface GameState {
   staffPeople?: Partial<Record<keyof StaffLevels, StaffPerson>>
   /** bumped on every appointment so the candidate market refreshes */
   staffSalt?: number
+  /** two coaches at the manager's club who have fallen out (staffrift.ts).
+   *  Secret: only the news ever names it. Absent or null when they all get on. */
+  staffRift?: import('./staffrift').StaffRift | null
+  /** absWeek before which no new falling-out can start (staffrift.ts) */
+  staffRiftNext?: number
   mgr: ManagerStats
   /** the commercial slots and what is signed in them (F30; the sleeve joined
    *  in 1.8.0). Absent on a save written before the department existed;
@@ -1671,8 +1732,12 @@ export interface GameState {
    *  programmes, the assistant's level setting the handful (2 + level).
    *  Newest assignment wins a full book, same idiom as devFocus. A planned
    *  man trains his programme INSTEAD of the squad session that week, so a
-   *  plan is a choice rather than a stack. */
-  plans?: { id: number; plan: TrainingFocus }[]
+   *  plan is a choice rather than a stack.
+   *  A DEVELOPMENT PLAN (1.8.2): an optional second programme (plan2) splits
+   *  the week, seven parts the first to three the second, so it widens a
+   *  man's work rather than adding to it; pts counts the points the
+   *  programme has landed since it was set, for the Training screen. */
+  plans?: { id: number; plan: TrainingFocus; plan2?: TrainingFocus; pts?: number }[]
   /** The office chat budget (20D): absolute week stamp and how many of the
    *  week's two manager-initiated conversations are spent. A manager who
    *  praises everybody praises nobody. */
@@ -1893,6 +1958,10 @@ export interface GameState {
    *  finish no better than the pundits said and next season's budget gives it
    *  back with interest. Cleared with the stance each summer. */
   stanceFund?: number
+  /** SEASON PRIORITIES (1.8.2, seasonplan.ts): the manager's ranking of the
+   *  club's competitions and his rotation intent. Read by the assistant's
+   *  team sheet and the board. Unset is exactly the old game. */
+  seasonPlan?: import('./seasonplan').SeasonPlan
   /** ---- v1.1.0: what the owner paid for (grants.ts, monetise.ts) ----
    *  Nothing below is ever set by the game itself - scripts/grantprobe.ts
    *  holds that a fresh career carries none of it. */
@@ -1983,7 +2052,8 @@ export interface GameState {
   /** rewarded-favour ledgers (rewarded.ts): counts timestamped in absolute
    *  game-weeks so an instant-result marathon cannot farm them. The wrapper's
    *  bridge holds the per-real-day cap; this holds the per-save one. Cleared
-   *  whole at rollover - everything in it is weekly or seasonal. */
+   *  at rollover, since everything in it is weekly or seasonal, except the
+   *  team night's stamp, whose four-week cap runs across the summer. */
   rewarded?: {
     /** physio favours used this game-week: [absWeek, count] */
     medical?: [number, number]
@@ -1997,6 +2067,19 @@ export interface GameState {
     town?: [number, number]
     /** collections this season (three, then the town has given enough) */
     townSeason?: number
+    /** 1.8.2, the agent's inside word: words bought this game-week, [absWeek, count] */
+    inside?: [number, number]
+    /** player id -> the absolute week his current six-week spell of talk
+     *  began, once the inside word has resolved it for that spell */
+    insideSeen?: Record<number, number>
+    /** 1.8.2, a second opinion: player id -> the season it was taken in */
+    opinion?: Record<number, number>
+    /** 1.8.2, tape room night: [absWeek, opponent id] of the match it is for */
+    tape?: [number, string]
+    /** 1.8.2, the sponsor's team night: [absWeek, press id of the split it
+     *  softened]. The one entry that survives rollover (rollover.ts), because
+     *  its cap is four game-weeks and a season boundary must not reset it. */
+    teamNight?: [number, number]
   }
   /** absolute week (season * SEASON_WEEKS + week) the LAW WATCH wind-up last
    *  aired. The freshness gate used to scan state.news for the last airing,
@@ -2059,6 +2142,8 @@ export interface GameState {
   chem?: Record<string, number>
   /** the dressing room's friendships and rifts (bonds.ts), user club only */
   bonds?: import('./bonds').BondState
+  /** the dressing room's decisions and the club's hidden culture (room.ts) */
+  room?: import('./room').RoomState
   /** dynamic bad blood between clubs: cup eliminations, poached stars,
    *  ill-tempered matches. Expires after `until` season. */
   /** `reason` is the English the grudge was recorded in and is what an old save
@@ -2102,6 +2187,10 @@ export interface GameState {
    *  the assistant takes it. A phone career is 40 matches a season and not all
    *  of them deserve ninety taps. */
   viewPref?: Record<string, 'full' | 'highlights' | 'instant'>
+  /** The manager's last few pre-match dressing rooms, oldest first: 'T' he
+   *  spoke, 'N' he said nothing (teamtalk.ts silenceWeight). Saying nothing
+   *  once costs nothing; making a habit of it drains the room. */
+  preTalkLog?: string
   /** A match in progress, inside a save written while it was being played
    *  (game/resume.ts stampedSave, 1.8.2). The rest of the save is the state
    *  from before kick-off; opening it resumes the match rather than offering it
@@ -2145,6 +2234,9 @@ export interface GameState {
   /** injury-crisis alerts already raised: position group -> week fired,
    *  so the assistant nags once a month, not once a week */
   crisisAt?: Record<string, number>
+  /** the positions the assistant has already called thin at this club, for
+   *  as long as each stays thin (depthwatch.ts): one message per spell */
+  depthShort?: { club: string; pos: Pos[] }
   /** world rugby rankings: rating points per nation, exchanged Test by Test */
   natRank?: Record<string, number>
   /** the union's confidence in you as national coach, 0-100 - null when
@@ -2247,6 +2339,12 @@ export interface GameState {
   /** the fraction cursor for stories filed without spending nextId
    *  (heldnews.ts): the base id it counts from and how many it has used */
   heldIds?: { b: number; n: number }
+  /** the career arc (arcbook.ts): rival coaches, what the manager is known
+   *  for, the story of each era. Created on first touch; absent on older saves. */
+  arc?: import('./arcbook').CareerArc
+  /** the one to three ambitions named at the start (ambitions.ts). The first
+   *  is also `dream`. Absent on saves from before: the dream stands alone. */
+  ambitions?: import('./arcbook').Ambition[]
 }
 
 /** Managerial reputation earned from results and silverware, 30-95. */
@@ -2316,12 +2414,17 @@ export function trustFactor(state: GameState): number {
 }
 
 export function trustWord(v: number): string {
-  return t(v >= 85 ? 'profile.trustWall'
+  return t(trustKey(v))
+}
+
+/** The key behind trustWord, for a screen that renders later (game/desk.ts). */
+export function trustKey(v: number): string {
+  return v >= 85 ? 'profile.trustWall'
     : v >= 68 ? 'profile.trustWithYou'
     : v >= 50 ? 'profile.trustWarming'
     : v >= 32 ? 'profile.trustUndecided'
     : v >= 16 ? 'profile.trustUnconvinced'
-    : 'profile.trustDisbelief')
+    : 'profile.trustDisbelief'
 }
 
 /** World Championship years: 2027, 2031, ... (in-game season index) */
@@ -2510,8 +2613,17 @@ export function closeNatTenure(state: GameState) {
  *    economy retired in v1.1.4.
  *  - 'news.pinnacle' (+Subj): the "your name goes to the federations"
  *    letter from when the International Stage took two weeks to answer;
- *    since v1.1.6 the offer itself arrives immediately instead. */
-export const LEGACY_NEWS_KEYS = ['news.dressingDown', 'news.pinnacle'] as const
+ *    since v1.1.6 the offer itself arrives immediately instead.
+ *  - 'news.staffChem', 'news.staffClick', 'news.staffClash' and the
+ *    staff.click and staff.clash notes they quote: the hire-day line on how a
+ *    new coach got on with the room, retired when staff chemistry became a
+ *    secret falling-out the news only hints at (staffrift.ts, round 4). */
+export const LEGACY_NEWS_KEYS = [
+  'news.dressingDown', 'news.pinnacle',
+  'news.staffChem', 'news.staffClick', 'news.staffClash',
+  'staff.clickNumbers', 'staff.clickRoom', 'staff.clickScrum', 'staff.clickCaps',
+  'staff.clashGps', 'staff.clashLaptop', 'staff.clashVideo',
+] as const
 
 /** A story filed before the icon pass (owner, 27 Sep 2026: "use icons instead
  *  of emojis") still has an emoji at the front of its English in an old save;

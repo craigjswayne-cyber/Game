@@ -4,14 +4,16 @@ import { analystArmed } from '../../game/rewarded'
 import { rewardedAvailable } from '../../game/monetise'
 import { AdSlot } from '../AdSlot'
 import {
-  matchStats, visitsTo22, goalKicker, teamShort, teamUnits, rosterOf, assistantJudgement, autoSelect, availablePlayers,
-  refFor, refNotes, homeCrowdLean, frontRowCover, repairSheet, rollWeather, sideEnergy, MAX_SUBS, type LiveCtx, type SideCtx,
+  matchStats, visitsTo22, goalKicker, teamShort, teamUnits, paperOverall, rosterOf, assistantJudgement, autoSelect, availablePlayers,
+  refFor, refNotes, homeCrowdLean, frontRowCover, repairSheet, sideEnergy, MAX_SUBS, isFrontRower, needsFrontRower, type LiveCtx, type SideCtx,
 } from '../../game/matchEngine'
 import { MIDWEEK_OFF, BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, chemKey, clubCode, chemTier, eventText, injuryDesc, fixtureDate, fixtureDayOff, grudgeBetween, inRedZone, oldBoyApps, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
 import { BRIEF_BY_ID, SPLIT_BY_ID, benchSeats, briefForSeat, splitFor } from '../../game/bench'
 import { BriefIcon } from '../tacticsArt'
-import { assistantFixtureThisWeek, isKnockoutTie, matchRng, userMatchThisWeek } from '../../game/season'
+import { assistantFixtureThisWeek, isKnockoutTie, userMatchThisWeek } from '../../game/season'
+import { halfTimeHints, matchConditions, surfKey, surfaceNote, surfaceOf, wxEffectKey } from '../../game/conditions'
 import { effAt } from '../../game/attributes'
+import { fuzzedCa } from '../../game/scout'
 import { PRESETS, SLIDER_INFO, sliderReadout, type SliderKey } from '../../game/tactics'
 import { ord, posName, t, localeTag, compLabel } from '../../game/i18n'
 import { subjectVar } from '../../game/gender'
@@ -21,6 +23,9 @@ import { CrestT, Jersey, PosBadge, SectionTitle, Stars, RewardedButton, Toggle }
 import { stageName } from './Home'
 import { groundSound, matchSfx, soundOn, toggleSound } from '../audio'
 import { MoodTable } from '../MoodTable'
+import { TalkReactions } from '../TalkReactions'
+import { talkSetting, type HtTone, type PreTone } from '../../game/teamtalk'
+import { isDerby } from '../../game/rivalries'
 import { MatchPanels, Visits, Zones } from '../MatchPanels'
 import { useTablet } from '../tablet'
 import { readMatchPrefs, writeMatchPrefs, type MatchPrefs } from '../matchPrefs'
@@ -36,11 +41,88 @@ import { kitColours, luma, pageSpares } from '../kit'
 import { IcoFastForward, IcoPause, IcoPeople, IcoPlay } from '../icons'
 import { Glyph } from '../glyphs'
 
-const WEATHER_ICON: Record<string, string> = { Dry: 'sun', Rain: 'rain', Wind: 'wind', Snow: 'snow' }
+const WEATHER_ICON: Record<string, string> = { Dry: 'sun', Damp: 'rain', Rain: 'rain', Wind: 'wind', Snow: 'snow' }
 
 /** The forecast in words. The VALUE stays English everywhere it is stored or
  *  compared - the engine reads fixture.weather - and only the label moves. */
 const weatherWord = (w: string): string => t(`matchday.wx${w}`)
+
+/** How many lines the phone's commentary feed keeps in the DOM: the current
+ *  one and enough older ones to fill the fixed box under its top fade. */
+const FEED_ROWS = 5
+/** The glide: about a third of the Normal beat (640ms), so a line has landed
+ *  and been read for most of its beat before the next one moves it. */
+const GLIDE_MS = 220
+
+/** Motion is on for people (main.tsx sets data-motion) and off when the OS
+ *  asks for less of it. */
+function glideOn(): boolean {
+  try {
+    return document.documentElement.dataset.motion === 'on'
+      && !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  } catch { return false }
+}
+
+/** The list's vertical offset from its transform, mid-glide included. */
+function liveTy(el: HTMLElement): number {
+  const m = getComputedStyle(el).transform
+  if (!m || m === 'none') return 0
+  const v = m.match(/matrix(3d)?\(([^)]+)\)/)
+  if (!v) return 0
+  const n = v[2].split(',').map(Number)
+  return (v[1] ? n[13] : n[5]) || 0
+}
+
+/**
+ * THE GLIDE (round 5). A FLIP on the commentary list: when lines are added,
+ * every row that was already there is drawn where it WAS and then eased to
+ * where it now is, so the stack slides by the new line's height instead of
+ * jumping. Transform only (motionprobe's rule), one property on one element,
+ * and it starts from wherever a glide still in flight has got to, so lines
+ * arriving faster than the glide (Fast, a highlight's build-up) never snap.
+ *
+ * Rows carry data-k, the event's index in the match: stable for the life of
+ * the line, so React keeps the same node and its colour can transition as it
+ * goes from current to old.
+ */
+function useFeedGlide(listRef: React.RefObject<HTMLDivElement>, count: number) {
+  const where = useRef<Map<string, number> | null>(null)
+  useLayoutEffect(() => {
+    const list = listRef.current
+    const feed = list?.parentElement
+    if (!list || !feed) { where.current = null; return }
+    // every row's resting place in the feed box: where it is drawn, less
+    // whatever a glide still in flight is adding
+    const ty = liveTy(list)
+    const top = feed.getBoundingClientRect().top
+    const now = new Map<string, number>()
+    for (const el of Array.from(list.children) as HTMLElement[]) {
+      const k = el.dataset.k
+      if (k != null) now.set(k, el.getBoundingClientRect().top - top - ty)
+    }
+    const before = where.current
+    where.current = now
+    if (!before || !glideOn()) return
+    let dy: number | null = null
+    for (const [k, y] of now) {
+      const was = before.get(k)
+      if (was != null) { dy = was - y; break }
+    }
+    // a burst bigger than the box (Key Moments, a skip) is not a glide: the
+    // rows are new, and they simply arrive
+    if (dy == null || Math.abs(dy + ty) > feed.clientHeight * 1.5) {
+      list.style.transition = 'none'
+      list.style.transform = ''
+      return
+    }
+    if (Math.abs(dy) < 0.5) return
+    list.style.transition = 'none'
+    list.style.transform = `translateY(${dy + ty}px)`
+    void list.offsetHeight
+    list.style.transition = `transform ${GLIDE_MS}ms cubic-bezier(.25, .1, .25, 1)`
+    list.style.transform = ''
+  }, [count])
+}
 
 export default function MatchDay() {
   const game = useStore(s => s.game)!
@@ -77,12 +159,14 @@ export default function MatchDay() {
 
 // the tables hold KEYS, the tiles call t() - the speech id is what reaches the
 // engine and the save, so only the words on the tile change with the language
+// Four tones, one emotion each (owner, round 6), and "say nothing" under them:
+// settle them, believe in them, demand of them, set them alight.
 const SPEECHES = [
   { id: 'calm', icon: 'calm', name: 'matchday.spCalm', desc: 'matchday.spCalmD' },
-  { id: 'fire', icon: 'derby', name: 'matchday.spFire', desc: 'matchday.spFireD' },
-  { id: 'underdog', icon: 'wolf', name: 'matchday.spUnderdog', desc: 'matchday.spUnderdogD' },
+  { id: 'faith', icon: 'heart', name: 'matchday.spFaith', desc: 'matchday.spFaithD' },
   { id: 'expect', icon: 'crown', name: 'matchday.spExpect', desc: 'matchday.spExpectD' },
-] as const
+  { id: 'fire', icon: 'derby', name: 'matchday.spFire', desc: 'matchday.spFireD' },
+] as const satisfies readonly { id: PreTone; icon: string; name: string; desc: string }[]
 type SpeechId = typeof SPEECHES[number]['id']
 
 /** Three ways to spend a match (F5).
@@ -164,6 +248,13 @@ function Preview({ fxId }: { fxId: number }) {
   }, [game, opp])
   const oppUnits = teamUnits(game, oppLineup)
   const myUnits = teamUnits(game, tac.lineup)
+  // the room as the talk will find it (teamtalk.ts): the same paper strengths
+  // the engine reads at kick-off, so the moods are the ones that answer
+  const room = {
+    s: talkSetting(paperOverall(game, game.userClubId, tac.lineup), paperOverall(game, opp, oppLineup),
+      isHome, !!fx.stage || isDerby(fx.homeId, fx.awayId)),
+    fxId: fx.id,
+  }
 
   // the bench seats are whatever the split says they are (F4)
   const seats = benchSeats(club)
@@ -352,7 +443,9 @@ function Preview({ fxId }: { fxId: number }) {
   }
 
   // the assistant reads the matchup and proposes a game plan in plain English
-  const forecast = rollWeather(game.week, matchRng(game))
+  // THE DAY ITSELF (conditions.ts): the fixture's conditions by a hash of
+  // where and when it is played, so the forecast is what the match will get
+  const forecast = matchConditions(game, fx)
   const matchRef = refFor(fx.id)
   const oppCond = (() => {
     const xv = oppLineup.slice(0, 15).map(id => id != null ? game.players[id] : null).filter(Boolean)
@@ -627,7 +720,7 @@ function Preview({ fxId }: { fxId: number }) {
               forecast is a fact; the derby is the reason you are nervous.
               Separate lines, and the derby carries its own mark. */}
           <div className="meta" style={{ marginTop: 3 }}>
-            <Glyph name={WEATHER_ICON[rollWeather(game.week, matchRng(game))]} /> {t('matchday.forecast', { weather: weatherWord(rollWeather(game.week, matchRng(game))) })}
+            <Glyph name={WEATHER_ICON[forecast]} /> {t('matchday.forecast', { weather: weatherWord(forecast) })}
           </div>
           {derbyName(fx.homeId, fx.awayId) && (
             <div className="meta derby-line" style={{ marginTop: 4 }}>
@@ -723,7 +816,7 @@ function Preview({ fxId }: { fxId: number }) {
           const danger = oppLineup.slice(0, 15)
             .map(id => id != null ? game.players[id] : null)
             .filter(Boolean)
-            .sort((a, b) => b!.ca - a!.ca)[0]
+            .sort((a, b) => fuzzedCa(game, b!) - fuzzedCa(game, a!))[0]
           const oppClub = game.clubs[opp]
           const meetings = game.fixtures.filter(f => f.played &&
             ((f.homeId === opp && f.awayId === game.userClubId) || (f.homeId === game.userClubId && f.awayId === opp)))
@@ -813,7 +906,7 @@ function Preview({ fxId }: { fxId: number }) {
                 const bowing = oppLineup
                   .map(id => id != null ? game.players[id] : null)
                   .filter((p): p is Player => !!p && !!p.retiring && (p.ca >= 72 || (p.caps ?? 0) >= 25))
-                  .sort((a, b) => b.ca - a.ca)[0]
+                  .sort((a, b) => fuzzedCa(game, b) - fuzzedCa(game, a))[0]
                 if (!bowing) return null
                 const home = fx.homeId === game.userClubId
                 return (
@@ -880,14 +973,19 @@ function Preview({ fxId }: { fxId: number }) {
                 const notes = refNotes(ref)
                 // the ground's, not the referee's (matchEngine.homeCrowdLean)
                 if (homeCrowdLean(game, fx) >= 0.03) notes.push(t('matchday.refCrowd', { team: teamShort(game, fx.homeId) }))
+                // THE CONDITIONS (1.8.2 depth): the man with the whistle, the
+                // sky and the ground, on one card, each read off the fixture
+                const surface = surfaceOf(game, fx)
                 return (
-                  <div className="card">
-                    <div className="fact-label">{t('matchday.theWhistle')}</div>
-                    <div className="meta" style={{ marginBottom: notes.length ? 4 : 0 }}>
+                  <div className="card" data-conditions={`${forecast}/${surface}`}>
+                    <div className="fact-label">{t('matchday.theConditions')}</div>
+                    <div className="meta" style={{ marginBottom: 4 }}>
                       <b>{ref.name}</b>{t('matchday.refAppointed')}
                     </div>
                     {notes.map((n, i) => <div key={i} className="meta">· {n}</div>)}
                     {notes.length === 0 && <div className="meta">{t('matchday.refNothing')}</div>}
+                    <div className="meta">· <Glyph name={WEATHER_ICON[forecast]} /> <b>{weatherWord(forecast)}.</b> {t(wxEffectKey(forecast))}</div>
+                    <div className="meta">· <b>{t(surfKey(surface))}.</b> {t(surfaceNote(surface))}</div>
                   </div>
                 )
               })()}
@@ -1106,7 +1204,7 @@ function Preview({ fxId }: { fxId: number }) {
 
         {ptab === 'talk' && <>
         <SectionTitle sub={t('mood.roomSub')}>{t('mood.room')}</SectionTitle>
-        <MoodTable game={game} lineup={tac.lineup} />
+        <MoodTable game={game} lineup={tac.lineup} room={room} />
         <SectionTitle sub={t('matchday.dressingRoomSub')}>{t('matchday.dressingRoom')}</SectionTitle>
         <div className="speech-grid">
           {SPEECHES.map(s => (
@@ -1153,7 +1251,7 @@ function Preview({ fxId }: { fxId: number }) {
               {/* the room before you speak to it (1.8.0) */}
               <details className="mood-fold">
                 <summary>{t('mood.room')}</summary>
-                <MoodTable game={game} lineup={tac.lineup} />
+                <MoodTable game={game} lineup={tac.lineup} room={room} />
               </details>
               <div className="speech-grid" style={{ marginTop: 6 }}>
                 {SPEECHES.map(sp => (
@@ -1472,7 +1570,9 @@ function NationPreview({ fxId }: { fxId: number }) {
  */
 const SPEEDS = [
   { label: 'matchday.spdSlow', ms: 1600, name: 'matchday.spdSlowName' },
-  { label: 'matchday.spdNormal', ms: 800, name: 'matchday.spdNormalName' },
+  // 640, not 800 (owner, round 2: normal "a bit" quicker, "so it's not crazy
+  // fast"). A fifth off the beat; Slow and Fast keep their absolute pace.
+  { label: 'matchday.spdNormal', ms: 640, name: 'matchday.spdNormalName' },
   { label: 'matchday.spdFast', ms: 400, name: 'matchday.spdFastName' },
 ]
 
@@ -1496,21 +1596,26 @@ function Live() {
   // fast and slow optional"). It opened on Slow, the anchor the ladder above
   // was measured from, which meant every first match of every career ran at
   // 1,600ms a line before anybody found the ⚙. Normal is the 800ms middle
-  // rung - followable without stopping - and both neighbours are one tap away.
+  // rung (640ms since round 2) and both neighbours are one tap away.
   const [speedIdx, setSpeedIdx] = useState(1)
   const [sound, setSound] = useState(soundOn())
   const [drawer, setDrawer] = useState(false)
   const [settings, setSettings] = useState(false)
   const [showLog, setShowLog] = useState(false)
   const [showRatings, setShowRatings] = useState(false)
-  const [injury, setInjury] = useState<{ hurt: string; desc: string; weeks: number; coverId: number | null } | null>(null)
+  const [injury, setInjury] = useState<{ hurt: string; hurtId: number; desc: string; weeks: number; coverId: number | null } | null>(null)
   /** the match-day squad, opened from the Squad button in the control row */
   const [sheet, setSheet] = useState(false)
   const [mpanels, setMpanels] = useState(false)
+  /** the pre-match talk's reactions, shown on the stage for the opening
+   *  minutes until the manager waves them away (teamtalk.ts) */
+  const [preSeen, setPreSeen] = useState(false)
   const tablet = useTablet()
   const [prefs, setPrefs] = useState(readMatchPrefs)
   const setPref = (p: Partial<MatchPrefs>) => setPrefs(o => { const n = { ...o, ...p }; writeMatchPrefs(n); return n })
   const tickerRef = useRef<HTMLDivElement>(null)
+  const feedRef = useRef<HTMLDivElement>(null)
+  const tabRef = useRef<HTMLDivElement>(null)
 
   const { events, cursor, playing, fixture, ctx } = live
   const shown = events.slice(0, cursor)
@@ -1520,6 +1625,8 @@ function Live() {
   const atBreak = caughtUp && ctx.awaiting === 'BRK'
   const atDecision = caughtUp && !!ctx.decision && ctx.seg < 3
   const done = caughtUp && ctx.seg === 3
+  // how the room took the pre-match talk, for the opening twenty minutes
+  const showPreReact = !preSeen && !!ctx.preReads?.length && (last?.min ?? 0) < 20 && !done
 
   // coming back from another app can strand the heartbeat - kick it awake
   useEffect(() => {
@@ -1558,13 +1665,19 @@ function Live() {
     // nagging; but a man who cannot continue is a man off the pitch, and who
     // replaces him is the manager's call every single time.
     if (!hurt?.injury) return
-    // whoever the assistant sent on: the SUB the engine pushed alongside it
-    const coverEv = events.slice(cursor - 1, cursor + 3).find(x => x.type === 'SUB' && x.teamId === e.teamId && x.playerId != null)
+    // WHOEVER THE ASSISTANT SENT ON, AS THE ENGINE SAYS (owner, round 6). This
+    // used to be "the next SUB line with a player in it", and most commentary
+    // lines are typed SUB: a failed head assessment, or an injury with nobody
+    // left to send on, armed whichever man the next line of play happened to
+    // name - sometimes an opponent - and with the bench empty that sheet could
+    // not be answered at all. The engine writes the stoppage down (lastInj).
+    const side = ctx.home.teamId === e.teamId ? ctx.home : ctx.away
+    const li = side.lastInj && side.lastInj.hurtId === hurt.id ? side.lastInj : null
     injSeen.current = cursor
     matchCursor(cursor, false)
     setDrawer(false)
     setSettings(false)
-    setInjury({ hurt: hurt.name, desc: injuryDesc(hurt.injury), weeks, coverId: coverEv?.playerId ?? null })
+    setInjury({ hurt: hurt.name, hurtId: hurt.id, desc: injuryDesc(hurt.injury), weeks, coverId: li?.coverId ?? null })
   }, [cursor])
 
   useEffect(() => {
@@ -1617,7 +1730,7 @@ function Live() {
   // A SCRUM, A LINEOUT OR A CARD GETS A LITTLE LONGER (owner, 26 Sep 2026:
   // "the scrum pushes, the jumper is lifted", "a sin-binned player walks off").
   // The push, the lift and the walk to the touchline need about 1.2s to read;
-  // at Normal a beat is 800ms. Slow is already long enough and is left alone,
+  // at Normal a beat is 640ms. Slow is already long enough and is left alone,
   // Fast is left alone, and so is a rout's pace, since this is no longer than
   // the Slow beat the manager could have chosen anyway.
   const momentHold = !tmoHold && playing && speedIdx < 2 && last
@@ -1636,6 +1749,9 @@ function Live() {
   // Automated browsers time the ticker, so they get no clips unless a probe
   // asks for them with ?hl=1.
   const [clip, setClip] = useState<{ spec: ClipSpec; at: number } | null>(null)
+  // the first highlight is the match moving on: the talk's reactions have had
+  // their moment, and the stage goes back to the live stats after the clip
+  useEffect(() => { if (clip) setPreSeen(true) }, [clip])
   const played = useRef(new Set<number>())
   const highlightsOn = (() => {
     try { return /[?&]hl=1\b/.test(location.search) || !navigator.webdriver } catch { return true }
@@ -1667,7 +1783,15 @@ function Live() {
       { try: t('hl.try'), review: t('hl.review'), notry: t('hl.notry'), good: t('hl.good'), wide: t('hl.wide'),
         turnover: t('hl.turnover'), saved: t('hl.saved') },
       pid => (pid != null ? game.players[pid]?.name : undefined),
-      (home, shirt) => { const id = (home ? ctx.home : ctx.away).lineup[shirt - 1]; return id != null ? game.players[id]?.a.pac : undefined })
+      (home, shirt) => { const id = (home ? ctx.home : ctx.away).lineup[shirt - 1]; return id != null ? game.players[id]?.a.pac : undefined },
+      // how each side attacks and defends, for the clip's shapes (1.8.2): the
+      // styles the engine is playing this match (SideCtx.sty, an AI club's
+      // from its coach's philosophy), over the club's dials
+      home => {
+        const sd = home ? ctx.home : ctx.away
+        const tac = game.clubs[sd.teamId]?.tactic
+        return sd.sty ? { ...tac, atkStyle: sd.sty.atk, defStyle: sd.sty.def, podShape: sd.sty.pod } : tac
+      })
     // the clip starts with its build-up, so the commentary never jumps: the
     // ticker reads on until it reaches the first line of it (in Key Moments,
     // which skips lines anyway, it is brought straight there)
@@ -1735,7 +1859,17 @@ function Live() {
       ...(plain ? { borderLeftColor: edge ?? fill } : {}),
     }
   }
+  /** An old line lets go of the fill and keeps its side as the stripe, the
+   *  way FM's feed keeps a team colour beside a line it has moved past. */
+  const oldStyle = (e: MatchEvent): React.CSSProperties | undefined => {
+    if (!e.teamId || cls(e)) return undefined
+    return { borderLeftColor: (e.teamId === fixture.awayId ? kits.away : kits.home)[0] }
+  }
   const panelActive = done || atHalfTime || atBreak || atDecision || (drawer && paused)
+  // the phone's feed: the last few lines, by their index in the match
+  const feedRows = shown.slice(-FEED_ROWS).map((e, j) => ({ e, i: Math.max(0, shown.length - FEED_ROWS) + j }))
+  useFeedGlide(feedRef, panelActive ? -1 : shown.length)
+  useFeedGlide(tabRef, panelActive || !tablet ? -1 : shown.length)
 
   // THE GROUND (idea 7): the crowd under the match, at a level that follows it
   // (matchAtmos.crowdLevel), quiet whenever the match is not being played -
@@ -1982,16 +2116,27 @@ function Live() {
           {/* the touchline at a glance (1.8.0): replacements left and how you
               are kicking, the two things a manager changes mid-match */}
           <div className="match-status">
-            <span>⇄ {t('mstatus.subs', { left: MAX_SUBS - ctx.subsUsed, max: MAX_SUBS })}</span>
+            <span>⇄ {t('mstatus.subs', { left: usableChanges(game, ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away, ctx.subsUsed), max: MAX_SUBS })}</span>
             <span>{t(KICK_STYLE_LABEL[game.clubs[ctx.userSideId ?? '']?.tactic.kickStyle ?? 'balanced'] ?? 'tacticsScreen.kickBalanced')}</span>
           </div>
-          {last && (
-            <div key={cursor} className={`now-line ${cls(last)}${last.teamId ? ' kit' : ''}`}
-              style={lineStyle(last)}>
-              <span className="min">{Math.min(80, last.min)}'</span>
-              <span className="txt">{eventText(last)}</span>
+          {/* THE FEED (round 5): a fixed box, newest line at the foot, the
+              stack gliding up as each one arrives (useFeedGlide). The
+              current line keeps the now-line class the probes read. */}
+          <div className="comm-feed" aria-live="off">
+            <div className="comm-list" ref={feedRef}>
+              {feedRows.map(({ e, i }) => {
+                const age = shown.length - 1 - i
+                return (
+                  <div key={i} data-k={i}
+                    className={`comm-line ${cls(e)}${e.teamId ? ' kit' : ''}${age === 0 ? ` cur now-line fresh` : ` old a${Math.min(3, age)}`}`}
+                    style={age === 0 ? lineStyle(e) : oldStyle(e)}>
+                    <span className="min">{Math.min(80, e.min)}'</span>
+                    <span className="txt">{eventText(e)}</span>
+                  </div>
+                )
+              })}
             </div>
-          )}
+          </div>
         </div>
       )}
 
@@ -2000,11 +2145,15 @@ function Live() {
           happens"). A tablet keeps its stats beside the feed below. */}
       {!panelActive && clip && (
         <HighlightClip key={clip.at} spec={clip.spec} paused={!playing}
-          speed={[1.25, 1, 0.8][speedIdx] ?? 1}
+          speed={[1.25, 0.9, 0.8][speedIdx] ?? 1}
           onReveal={revealTo}
           onDone={() => setClip(null)} />
       )}
-      {!panelActive && !clip && !tablet && <LiveStats shown={shown} />}
+      {!panelActive && !clip && showPreReact && (
+        <TalkReactions game={game} reads={ctx.preReads!} lineup={ctx.home.teamId === ctx.userSideId ? ctx.home.lineup : ctx.away.lineup}
+          msg={live.preTalkMsg} onClose={() => setPreSeen(true)} />
+      )}
+      {!panelActive && !clip && !tablet && !showPreReact && <LiveStats shown={shown} />}
 
       {/* THE TABLET DECK (1.8.0). A phone reads the match a line at a time;
           a tablet has half a screen under the pitch that used to be empty, so
@@ -2014,13 +2163,17 @@ function Live() {
       {tablet && !panelActive && (
         <div className="tab-deck">
           <div className="tab-feed" aria-live="off">
-            {shown.slice(-12).reverse().map((e, k) => (
-              <div key={shown.length - k} className={`feed-line ${cls(e)}${e.teamId ? ' kit' : ''}${k === 0 ? ' newest' : ''}`}
-                style={lineStyle(e)}>
-                <span className="min">{Math.min(80, e.min)}'</span>
-                <span className="txt">{eventText(e)}</span>
-              </div>
-            ))}
+            {/* newest first, so a new line pushes the rest DOWN: the same
+                glide as the phone's feed, the other way up (round 5) */}
+            <div className="tab-list" ref={tabRef}>
+              {shown.slice(-12).reverse().map((e, k) => (
+                <div key={shown.length - k} data-k={shown.length - k} className={`feed-line ${cls(e)}${e.teamId ? ' kit' : ''}${k === 0 ? ' newest' : ''}`}
+                  style={lineStyle(e)}>
+                  <span className="min">{Math.min(80, e.min)}'</span>
+                  <span className="txt">{eventText(e)}</span>
+                </div>
+              ))}
+            </div>
           </div>
           <div className="tab-stats">
             <LiveStats shown={shown} />
@@ -2040,7 +2193,8 @@ function Live() {
           title={t('matchday.injOff', { player: injury.hurt })}
           hurtName={injury.hurt}
           hurtDesc={t('matchday.injDesc', { desc: injury.desc, n: injury.weeks })}
-          note={t('matchday.injNote')}
+          hurtId={injury.hurtId}
+          note={injury.coverId != null ? t('matchday.injNote') : undefined}
           freeCoverId={injury.coverId ?? undefined}
           /* forced: the physio is on, the clock is stopped, and the only way back
              to the match is through naming somebody */
@@ -2106,6 +2260,7 @@ function Live() {
         {(atHalfTime || atBreak) && (
           <ScoreCard label={t(atBreak ? 'matchday.breakSixty' : 'matchday.halfTime')} story />
         )}
+        {atHalfTime && <HalfTimeWord />}
         {(atHalfTime || atBreak) && (
           <TouchlinePanel
             title={t(atBreak ? 'matchday.breakTitle' : 'matchday.halfTimeTitle')}
@@ -2170,7 +2325,6 @@ function Live() {
               <div>
                 <MatchVerdict />
                 <MatchFindings />
-                <Highlights />
               </div>
               <div>
                 <StatsPanel />
@@ -2215,6 +2369,30 @@ function Live() {
           slot, before any provider is asked. */}
       {!done && !atHalfTime && !atBreak && !atDecision
         && !sheet && !drawer && !settings && !injury && <AdSlot place="match-foot" />}
+    </div>
+  )
+}
+
+/** THE ASSISTANT'S WORD AT HALF TIME (1.8.2 depth): one or two plain lines
+ *  read off what the first forty did against the referee and the day
+ *  (conditions.ts halfTimeHints). Nothing drawn; silent when there is
+ *  nothing worth saying. */
+function HalfTimeWord() {
+  const game = useStore(s => s.game)!
+  const live = useStore(s => s.liveMatch)!
+  const ctx = live.ctx
+  const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
+  const opp = mine === ctx.home ? ctx.away : ctx.home
+  const read = (s: SideCtx) => ({
+    consPens: s.consPens, turnLost: s.styTurnLost ?? 0, turnWon: s.styTurnWon ?? 0,
+    scrum: s.setAcc && s.setAcc.n ? s.setAcc.scrum / s.setAcc.n : 0, score: s.score,
+  })
+  const lines = halfTimeHints(refFor(ctx.fx.id), ctx.weather, read(mine), read(opp), !!ctx.uncontested)
+  if (!lines.length || !game) return null
+  return (
+    <div className="card" style={{ margin: '8px 14px' }} data-halftime-word={lines.length}>
+      <div className="fact-label">{t('matchday.htWord')}</div>
+      {lines.map(l => <div key={l.k} className="meta">{t(l.k, l.v)}</div>)}
     </div>
   )
 }
@@ -2391,28 +2569,6 @@ function MatchVerdict() {
           </div>
         )
       })}
-    </div>
-  )
-}
-
-function Highlights() {
-  const live = useStore(s => s.liveMatch)!
-  const weight = (e: MatchEvent) =>
-    e.type === 'RC' ? 90 : e.type === 'TRY' ? 80 + e.min / 10 : e.type === 'DG' ? 55 : e.type === 'YC' ? 30 : 0
-  const picks = [...live.ctx.events]
-    .filter(e => weight(e) > 0)
-    .sort((a, b) => weight(b) - weight(a))
-    .slice(0, 3)
-    .sort((a, b) => a.min - b.min)
-  if (!picks.length) return null
-  return (
-    <div className="card" style={{ margin: '12px 0', borderLeft: '4px solid var(--gold)' }}>
-      <h3 style={{ fontSize: 14 }}>{t('matchday.highlightsTitle')}</h3>
-      {picks.map((e, i) => (
-        <div key={i} className="meta" style={{ padding: '3px 0' }}>
-          <b style={{ fontFamily: 'var(--cond)' }}>{e.min}'</b> - {eventText(e)}
-        </div>
-      ))}
     </div>
   )
 }
@@ -2723,12 +2879,16 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
     }
   }
 
-  const talks = [
-    ['fire', 'matchday.talkFire'],
+  // six tones, in the order a manager reaches for them: the steadying ones,
+  // the lifting ones, the stakes-raising ones (teamtalk.ts reads each man)
+  const talks: readonly (readonly [HtTone, string])[] = [
     ['calm', 'matchday.talkCalm'],
-    ['demand', 'matchday.talkDemand'],
+    ['faith', 'matchday.talkFaith'],
     ['praise', 'matchday.talkPraise'],
-  ] as const
+    ['fire', 'matchday.talkFire'],
+    ['demand', 'matchday.talkDemand'],
+    ['criticise', 'matchday.talkCriticise'],
+  ]
 
   const applyPreset = (values: { style: number; tempo: number; kicking: number; aggression: number }) => {
     club.tactic.style = values.style
@@ -2761,6 +2921,8 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
             ))}
           </div>
         </>
+      ) : ctx.htReads?.length ? (
+        <TalkReactions game={game} reads={ctx.htReads} lineup={mine.lineup} msg={live.talkMsg} />
       ) : live.talkMsg && (
         <div className="meta" style={{ margin: '6px 0' }}>{live.talkMsg}</div>
       ))}
@@ -2793,7 +2955,7 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
       {/* One button into the match-day squad, where several changes can be made
           in one visit. This used to be two dropdowns and a Make button: one sub
           per trip, no shirt numbers, no sight of who was carrying a knock. */}
-      <div className="fact-label" style={{ marginTop: 12 }}>{t('matchday.replacementsLeft', { left: MAX_SUBS - ctx.subsUsed, max: MAX_SUBS })}</div>
+      <div className="fact-label" style={{ marginTop: 12 }}>{t('matchday.replacementsLeft', { left: usableChanges(game, mine, ctx.subsUsed), max: MAX_SUBS })}</div>
       <button className="btn ghost block" style={{ marginTop: 6 }} disabled={ctx.subsUsed >= MAX_SUBS}
         onClick={() => setSquadOpen(true)}>
         {t(ctx.subsUsed >= MAX_SUBS ? 'matchday.allChangesUsed' : 'matchday.makeReplacements')}
@@ -2805,6 +2967,16 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
       </button>
     </div>
   )
+}
+
+/** Replacements the user can still make: the law's count, capped by the fit men
+ *  left on the bench. The engine keeps its own count; this is what we show. */
+function usableChanges(game: { players: Record<number, Player> }, side: SideCtx, subsUsed: number): number {
+  const fit = side.lineup.slice(15).filter(id => {
+    const p = id != null ? game.players[id] : null
+    return !!p && !p.injury && !side.onPitch.has(p.id) && !side.ratings.has(p.id)
+  }).length
+  return Math.max(0, Math.min(MAX_SUBS - subsUsed, fit))
 }
 
 /** The match-day squad, mid-match: the XV on the left, the bench on the right,
@@ -2819,7 +2991,7 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
  *  `forcedOffId` is the injury flow (feedback 9-3): when a man goes down badly
  *  the sheet opens with him already armed, so the only decision left is who
  *  comes on. */
-export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDesc, mustDecide, onTactics }: {
+export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDesc, hurtId, mustDecide, onTactics }: {
   onClose: () => void
   /** The man the assistant sent on to cover an injury. Swapping him is free. */
   freeCoverId?: number
@@ -2829,6 +3001,8 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
    *  heading scrolls out of reach on a phone once the bench is in view. */
   hurtName?: string
   hurtDesc?: string
+  /** the injured man's id, so the sheet can say what his shirt needs */
+  hurtId?: number
   /** A forced stop: the sheet cannot be dismissed until a change is made. Used
    *  for injuries, where somebody has to come on and the choice is the
    *  manager's, not the assistant's. */
@@ -2839,8 +3013,18 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
   const game = useStore(s => s.game)!
   const live = useStore(s => s.liveMatch)!
   const { halfTimeSub, injuryCover, undoSub, swapPositions } = useStore.getState()
-  const [offId, setOffId] = useState<number | null>(freeCoverId ?? null)
-  const [freeLeft, setFreeLeft] = useState(freeCoverId != null)
+  // THE FREE OVERRIDE ONLY EXISTS WHILE THE ASSISTANT'S MAN IS OUT THERE TO BE
+  // TAPPED. If he is not (nobody could go on, or the law took him straight back
+  // off), there is nothing to override and nothing to wait for: the side plays
+  // on with what it has, and the sheet can always be closed (owner, round 6:
+  // "I can't continue in the game").
+  const live0 = live.ctx.home.teamId === live.ctx.userSideId ? live.ctx.home : live.ctx.away
+  const coverOn = freeCoverId != null && live0.onPitch.has(freeCoverId) && live0.lineup.slice(0, 15).includes(freeCoverId)
+  const [offId, setOffId] = useState<number | null>(coverOn ? freeCoverId! : null)
+  const [freeLeft, setFreeLeft] = useState(coverOn)
+  /** a decision has been made: a change, a swap, or keeping the assistant's man.
+   *  A refused tap is not one, so it does not open the door. */
+  const [decided, setDecided] = useState(false)
   const [log, setLog] = useState<string[]>([])
   // COUNT THE CHANGES, do not count the lines about them. The Done button used to
   // read log.length, and log is a display list capped with .slice(0, 4) - so a
@@ -2854,7 +3038,8 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
 
   const ctx = live.ctx
   const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
-  const left = MAX_SUBS - ctx.subsUsed
+  // the law allows MAX_SUBS; the bench may hold fewer fit men than that
+  const lawLeft = MAX_SUBS - ctx.subsUsed
 
   // The XV in shirt order, because that is how a team sheet reads and how the
   // man you are looking for is found.
@@ -2866,30 +3051,50 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
   const bench = mine.lineup.slice(15)
     .map(id => (id != null ? game.players[id] : null))
     .filter((p): p is Player => !!p && !p.injury && !mine.onPitch.has(p.id) && !mine.ratings.has(p.id))
+  // CHANGES YOU CAN ACTUALLY MAKE (owner, round 2): the header said "6 changes
+  // left" with four fit men on the bench after injuries. The number shown and the
+  // number allowed are both the smaller of the law's count and the usable bench.
+  const left = Math.min(lawLeft, bench.length)
 
   const off = offId != null ? game.players[offId] : null
+  // THE SHIRT, NOT THE MAN WEARING IT. With the assistant's cover armed, the
+  // shirt being filled is the injured man's: a back sent on for a flanker is
+  // wearing 6, and the bench should be read for 6, not for wherever the back
+  // usually plays.
+  const offSlot = offId != null ? mine.lineup.indexOf(offId) : -1
+  const shirtPos: Pos | null = off ? (offSlot >= 0 && offSlot < 15 ? XV_SLOTS[offSlot].pos : off.pos) : null
   // Natural cover first, same as the engine's own bench discipline, so the
-  // like-for-like choice is the one at the top of the list.
-  const covers = (p: Player) => !!off && (p.pos === off.pos || p.alt.includes(off.pos))
+  // like-for-like choice is the one at the top of the list. Everybody else is
+  // still a choice: any fit man can take any shirt but the front row's.
+  const covers = (p: Player) => !!shirtPos && (p.pos === shirtPos || p.alt.includes(shirtPos))
   const benchSorted = [...bench].sort((a, b) => Number(covers(b)) - Number(covers(a)) || b.ca - a.ca)
 
   // Swapping the injury cover is free and does not burn one of them, so it
   // routes through injuryCover rather than a normal substitution.
   const isFreeSwap = freeLeft && offId != null && offId === freeCoverId
+  // shirts 1 to 3 want a trained front-rower while there is one (needsFrontRower);
+  // when there is none, anybody may go on and the scrums go uncontested
+  const frShirt = offSlot >= 0 && offSlot <= 2
+  const frOnly = off ? needsFrontRower(game, mine, off.id, isFreeSwap ? off.id : undefined) : false
+  const blocked = (p: Player) => frOnly && !isFrontRower(p)
+  const hurtP = hurtId != null ? game.players[hurtId] : null
   const doSub = (inP: Player) => {
-    if (offId == null) return
+    if (offId == null || blocked(inP)) return
     const msg = isFreeSwap ? injuryCover(offId, inP.id) : halfTimeSub(offId, inP.id)
+    // the engine has the last word: a refused change changes nothing here either
+    if (!mine.onPitch.has(inP.id)) { setLog(l => [msg, ...l].slice(0, MAX_SUBS)); return }
     if (isFreeSwap) setFreeLeft(false)
     // the display list holds the whole bench now rather than four of it, because a
     // log that quietly drops entries is what made the count wrong in the first place
     setLog(l => [msg, ...l].slice(0, MAX_SUBS))
     setMade(n => n + 1)
+    setDecided(true)
     setOffId(null)
   }
 
   // a forced stop is satisfied by any change, including keeping the assistant's
   // man - tapping him again is a decision, it is just the same decision
-  const settled = !mustDecide || log.length > 0 || !freeLeft
+  const settled = !mustDecide || decided || !freeLeft
   return (
     <div className="modal-veil" onClick={() => { if (settled) onClose() }}>
       <div className="modal squad-sheet" onClick={e => e.stopPropagation()}>
@@ -2918,9 +3123,13 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
               <Glyph name="medical" /> <b>{hurtName}</b>{t('matchday.casualty')}{hurtDesc ? t('matchday.casualtyDesc', { desc: hurtDesc }) : ''}
             </div>
           )}
+          {hurtP && ctx.uncontested && (
+            <div className="meta sheet-hint" style={{ fontWeight: 700 }}>{t('matchday.injUncontested')}</div>
+          )}
           <div className="meta sheet-hint">
             {note ? <>{note}{' '}</> : null}
-            {isFreeSwap && off ? t('matchday.hintFree', { player: off.name })
+            {hurtP && !coverOn && bench.length === 0 ? t('matchday.injNoCover')
+              : isFreeSwap && off ? t('matchday.hintFree', { player: off.name })
               : off ? t('matchday.hintArmed', { player: off.name })
               : left <= 0 ? t('matchday.hintNoneLeft')
               : t('matchday.hintTap')}
@@ -2938,7 +3147,7 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
               const canFree = freeLeft && p.id === freeCoverId
               return (
                 <button key={p.id} className={`sheet-row ${offId === p.id ? 'armed' : ''}`}
-                  disabled={!on || (left <= 0 && !canFree)}
+                  disabled={!on || (lawLeft <= 0 && !canFree)}
                   onClick={() => {
                     // Re-tapping the man the assistant sent on means "he stays".
                     // That is a decision, so it settles a forced stop - and it has
@@ -2946,6 +3155,7 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
                     // and so never appears in the bench column.
                     if (canFree && offId === p.id) {
                       setFreeLeft(false)
+                      setDecided(true)
                       // no setMade here on purpose: keeping the assistant's man is a
                       // decision, which settles the forced stop, but it is not a change
                       setLog(l => [t('matchday.keepsShirt', { player: p.name }), ...l].slice(0, MAX_SUBS))
@@ -2957,6 +3167,7 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
                     if (offId != null && offId !== p.id && !isFreeSwap && mine.onPitch.has(offId) && on) {
                       const msg = swapPositions(offId, p.id)
                       setLog(l => [msg, ...l].slice(0, MAX_SUBS))
+                      setDecided(true)
                       setOffId(null)
                       return
                     }
@@ -2994,7 +3205,12 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
             })}
           </div>
           <div className="sheet-col">
-            <div className="fact-label">{off ? t('matchday.benchCover', { pos: posName(off.pos) }) : t('matchday.bench')}</div>
+            <div className="fact-label">{shirtPos ? t('matchday.benchCover', { pos: posName(shirtPos) }) : t('matchday.bench')}</div>
+            {/* the front row is the one shirt with a rule on it, said where the
+                choice is made rather than discovered as a refusal */}
+            {off && frShirt && benchSorted.length > 0 && (frOnly || !ctx.uncontested) && (
+              <div className="meta sheet-frnote">{t(frOnly ? 'matchday.frOnlyNote' : 'matchday.frNoneNote')}</div>
+            )}
             {benchSorted.length === 0 && <div className="meta">{t('matchday.benchEmpty')}</div>}
             {benchSorted.map(p => {
               // what he was told before kick-off, so the choice is informed (F4)
@@ -3002,7 +3218,7 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
               const brief = seat != null ? briefForSeat(game.clubs[mine.teamId], seat) : 'orders'
               return (
                 <button key={p.id} className={`sheet-row ${off && covers(p) ? 'cover' : ''}`}
-                  disabled={!off || (left <= 0 && !isFreeSwap)}
+                  disabled={!off || (left <= 0 && !isFreeSwap) || blocked(p)}
                   onClick={() => doSub(p)}>
                   <span className="sh-num">{p.pos}</span>
                   <span className="sh-name">{p.name}</span>

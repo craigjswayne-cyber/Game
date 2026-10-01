@@ -56,6 +56,9 @@ const openTactics = async (page) => {
   await page.waitForSelector('.tab-bar')
   // the saved plans live on the Plan tab, not the one the screen opens on
   await page.locator('.tab-bar button', { hasText: 'Plan' }).click()
+  // and on its Tune view (1.8.2): the Plan tab opens on the drawn styles
+  // now, with the dials, the quick plans and the saved slots one tap along
+  await page.click('[data-plan-sub="tune"]')
   await page.waitForSelector('.plan-slots')
 }
 
@@ -156,6 +159,13 @@ try {
   await page.waitForTimeout(600)
   const after = await page.locator('.app').first().getAttribute('class')
   ok((after ?? '').includes('skin-stealth'), 'the chosen skin is still on after a reload')
+  // a reload lands on Home since 1.8.2 (owner): walk back to Settings
+  if (await page.locator('.skin-card').count() === 0) {
+    await page.locator('.bottom-nav button[data-group]').nth(1).click()
+    await page.waitForSelector('.submenu')
+    await page.locator('.submenu-item', { hasText: 'Settings' }).click()
+    await page.waitForSelector('.skin-card')
+  }
 
   // ---- 4. THE FLOODLIGHT WORKS ON EVERY SKIN ----
   //

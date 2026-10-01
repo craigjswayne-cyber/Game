@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { planSlots, useStore } from '../../store'
 import { XV_SLOTS, type Player } from '../../game/model'
-import { DEF_SLIDER_INFO, DEF_SYSTEMS, PRESETS, SLIDER_INFO, ZONE_PLANS, defSliderReadout, defSystemOf, sliderReadout, zonePlan, type ZoneId, BRK_SLIDER_INFO, brkSliderReadout } from '../../game/tactics'
+import { DEF_SLIDER_INFO, PRESETS, SLIDER_INFO, ZONE_PLANS, defSliderReadout, sliderReadout, zonePlan, type ZoneId, BRK_SLIDER_INFO, brkSliderReadout } from '../../game/tactics'
 import { ROLE_BY_ID, rolesForSlot } from '../../game/roles'
 import { Jersey, PosBadge, SectionTitle } from '../components'
 import { analystClaim, analystForm, analystRead, prepLabel, unitLabel } from '../../game/analyst'
@@ -13,11 +13,13 @@ import { ROUTINES, DEFAULT_LINEOUT, DEFAULT_SCRUM, routineEffect } from '../../g
 import { BRIEFS, SPLITS, actualSplit, benchFrontRow, benchSeats, briefForSeat, refillBench, splitFor, type BenchSplit, type Brief } from '../../game/bench'
 import { t } from '../../game/i18n'
 import { subjectVar } from '../../game/gender'
-import { BenchClock, BriefIcon, ExitDiagram, KickStyleDiagram, LineoutDiagram, PREP_ICON, PenaltyDiagram, ScrumDiagram, SplitPips, TheTwentyThree } from '../tacticsArt'
+import { BenchClock, BriefIcon, ExitDiagram, KickStyleDiagram, LineoutDiagram, PREP_ICON, PenaltyDiagram, ScrumDiagram, SplitPips, TheReplacements } from '../tacticsArt'
 import { Glyph } from '../glyphs'
 import { IcoChevron } from '../icons'
-import { OppReportCard } from '../OppReport'
+import { OppReportCard, ResponsePlans, usePrepOpponent } from '../OppReport'
 import MovesSection from '../MovesSection'
+import StylesSection from '../StylesSection'
+import { atkName, defName, stylesOf } from '../../game/styles'
 
 /** The Tactics screen: HOW the side plays. Roles on a pitch, the set-piece
  *  playbook, the bench shape, the week's preparation and the game plan.
@@ -54,11 +56,25 @@ const readSpSub = (): SpSub => {
   } catch { return 'calls' }
 }
 
+/** THE GAME PLAN TAB, IN TWO (1.8.2, styles): the attack and defence styles
+ *  by name and drawn, and the dials that fine-tune them. The same segmented
+ *  track as the Set Piece tab, remembered for the session the same way. */
+type PlanSub = 'styles' | 'tune'
+const PLAN_SUB_KEY = 'rm-plan-sub'
+const readPlanSub = (): PlanSub => {
+  try { return sessionStorage.getItem(PLAN_SUB_KEY) === 'tune' ? 'tune' : 'styles' } catch { return 'styles' }
+}
+
 export default function Tactics() {
   const game = useStore(s => s.game)!
   const touch = useStore(s => s.touch)
   const [ttab, setTtab] = useState<'tactics' | 'setp' | 'bench' | 'prep' | 'plan'>('tactics')
   const [spSub, setSpSubState] = useState<SpSub>(readSpSub)
+  const [planSub, setPlanSubState] = useState<PlanSub>(readPlanSub)
+  const setPlanSub = (v: PlanSub) => {
+    setPlanSubState(v)
+    try { sessionStorage.setItem(PLAN_SUB_KEY, v) } catch { /* the choice lasts this visit only */ }
+  }
   const setSpSub = (v: SpSub) => {
     setSpSubState(v)
     try { sessionStorage.setItem(SP_SUB_KEY, v) } catch { /* the choice lasts this visit only */ }
@@ -71,6 +87,10 @@ export default function Tactics() {
   /** the eight brief rows open on a tap: the drawn 23 above already says what
    *  each replacement has been told, so the controls are for changing it */
   const [briefsOpen, setBriefsOpen] = useState(false)
+  /** the Prep tab's reading (the analyst, the report, their style) opens on
+   *  the info button; the choices sit above it */
+  const [prepInfo, setPrepInfo] = useState(false)
+  const prepOpp = usePrepOpponent()
 
   const club = game.clubs[game.userClubId]
   // `tac`, not `t`: t() is the translator (src/game/i18n.ts)
@@ -503,11 +523,6 @@ export default function Tactics() {
             </div>
           )
         })()}
-        {/* THE 23, DRAWN (1.8.0, owner: "more visual"): the fifteen in their
-            shape and the eight on the bench with what each has been told,
-            before the controls that change them */}
-        <SectionTitle sub={t('tacticsScreen.b23Sub')}>{t('tacticsScreen.the23')}</SectionTitle>
-        <TheTwentyThree game={game} club={club} />
         <SectionTitle sub={t('tacticsScreen.the23Sub')}>{t('tacticsScreen.benchSplit')}</SectionTitle>
         <div className="routine-grid split-grid">
           {SPLITS.map(sp => {
@@ -530,6 +545,12 @@ export default function Tactics() {
           })}
         </div>
         <BenchClock neutral={splitFor(club) === '5-3'} />
+        {/* THE BENCH PAGE, IN ITS ORDER (owner, round 5: "bench splits and
+            then replacements listed and then finisher briefs"). The fifteen
+            drawn on grass that used to open the tab are gone; the eight men
+            the split seats, with what each has been told, follow it. */}
+        <SectionTitle>{t('tacticsScreen.b23Bench')}</SectionTitle>
+        <TheReplacements game={game} club={club} />
         <SectionTitle sub={t('tacticsScreen.finisherBriefsSub')}>{t('tacticsScreen.finisherBriefs')}</SectionTitle>
         {/* Folded until asked for (1.8.0). When the drawn 23 arrived it put
             every replacement and his brief at the top of this tab, and the
@@ -586,110 +607,103 @@ export default function Tactics() {
       </>}
 
       {ttab === 'prep' && <>
-        <AnalystCard />
-        {/* the opposition report and the response plan (1.8.1 tactical loop) */}
-        <OppReportCard />
-        {/* the opposition's standing instruction and the assistant's counter to it
-            moved here from the game plan tab (1.6.5): reading them IS match
-            preparation, and the plan tab was three screenfuls deep with it */}
-        {/* F23: the opposition dugout has a standing instruction now, so the game
-            plan tab is the place to answer it. Reading how they play is free;
-            what to do about it is the assistant's job, and it is advice rather
-            than an answer - he cannot see whether you have the pack to back it. */}
+        {/* A FEW OPTIONS TO SELECT (owner, 1.8.3: "Prep page - simplify, too
+            much text, just a few options to select"). The tab was the
+            analyst's paragraph, the opposition report, the response plans as
+            three-line tiles, the opposition's style and a counter-plan button,
+            then five cards with their sums on them: three screenfuls before
+            the one choice every week asks for. Now it is two rows of chips.
+
+            THE WEEK'S FOCUS: five chips, one name each, and one line for what
+            the chosen one buys and costs. The analyst's pick wears a tag, so
+            following him is the same tap as any other (it was a second button
+            setting the same game.matchPrep). A second tap still clears it.
+
+            THE PLAN FOR THIS OPPONENT: the response plans by name. The
+            "Set the counter plan" button that sat under their style is gone:
+            it set the same four dials as the Counter their style plan, which
+            also sets a focus, so it was one choice offered twice.
+
+            Everything the manager reads rather than picks (the analyst's
+            read and record, the report, their style, what each plan is for)
+            is behind the one info button, closed by default. */}
         {(() => {
           const fx = userFixtureThisWeek(game)
-          if (!fx) return null
-          const oppId = fx.homeId === game.userClubId ? fx.awayId : fx.homeId
-          const opp = game.clubs[oppId]
-          const ph = philosophyOf(opp)
-          const ctr = counterTo(opp?.philosophy)
-          // the club is already playing the counter plan when every dial it
-          // sets is the dial the club is carrying
-          const counterSet = !!ctr && (Object.keys(ctr.dials) as (keyof typeof ctr.dials)[])
-            .every(k => tac[k] === ctr.dials[k])
-          if (!ph || !ctr) return null
-          return (
-            <>
-              <SectionTitle sub={t('tacticsScreen.theyPlay', { club: opp.short, style: t(ph.name).toLowerCase() })}>{t('tacticsScreen.answeringThem')}</SectionTitle>
-              <div className="card">
-                <div className="meta"><b>{t(ph.name)}.</b> {t(ph.blurb)}</div>
-                <div className="meta muted">{dialLine(opp.tactic)}</div>
-                <div className="meta" style={{ marginTop: 6 }}>
-                  <b>{t('tacticsScreen.assistant')}</b> {t(ctr.line)}
-                </div>
-                {/* IT ALWAYS WORKED. IT NEVER SAID SO (owner, v1.1.13: "set
-                    the counter plan doesnt do anything when you press it on
-                    tactics").
-                    The tap writes four dials onto the club's tactic - measured
-                    50/50/50/50 before, 38/30/64/44 after - and then the screen
-                    sat there, because the sliders it moved are three screenfuls
-                    further down the same tab. A control whose whole effect is
-                    off-screen and silent is a control that does nothing, which
-                    is the failure this codebase has now fixed in four other
-                    costumes. So it answers: the dials it just set, in the same
-                    words the opposition's own read is written in. */}
-                {/* AND IT STAYS PRESSED (owner, v1.1.15: "again when pressing
-                    set the counter plan it actions but doesnt become
-                    unclickable"). Read off the dials rather than remembered in
-                    a flag: the plan IS the four numbers, so the button is spent
-                    exactly while the club is carrying them. Move a slider, or
-                    draw a side who wants a different answer, and it comes back
-                    on its own - which a one-shot flag would not do. */}
-                <button className="btn gold block tiny" style={{ marginTop: 6 }}
-                  disabled={counterSet}
-                  onClick={() => { Object.assign(tac, ctr.dials); setPlanMsg(dialLine(tac)); touch() }}>
-                  {counterSet ? t('tacticsScreen.counterPlanSet') : t('tacticsScreen.setCounterPlan')}
-                </button>
-                {planMsg && (
-                  <div className="meta sheet-log" style={{ marginTop: 6, borderLeft: '3px solid var(--gold)', paddingLeft: 8 }}>
-                    {t('tacticsScreen.planSet', { dials: planMsg })}
-                  </div>
-                )}
-              </div>
-            </>
-          )
+          const oppId = fx ? (fx.homeId === game.userClubId ? fx.awayId : fx.homeId) : null
+          const read = oppId ? analystRead(game, oppId) : null
+          return <>
+            <SectionTitle>{t('tacticsScreen.matchPrep')}</SectionTitle>
+            <div className="prep-grid" role="radiogroup" aria-label={t('tacticsScreen.matchPrep')}>
+              {(['attack', 'defence', 'setpiece', 'fitness', 'recovery'] as const).map(k => {
+                const on = game.matchPrep === k
+                const I = PREP_ICON[k]
+                return (
+                  <button key={k} className={`speech-tile prep-card${on ? ' sel' : ''}`} role="radio" aria-checked={on} aria-pressed={on} data-prep={k}
+                    onClick={() => { game.matchPrep = game.matchPrep === k ? undefined : k; touch() }}>
+                    <span className="prep-ico"><I /></span>
+                    <b>{prepLabel(k)}</b>
+                    {read?.prep === k && <span className="prep-tag" data-analyst-pick>{t('tacticsScreen.prepAnalystPick')}</span>}
+                  </button>
+                )
+              })}
+            </div>
+            <div className="meta prep-line" data-prep-line>
+              {t(game.matchPrep ? {
+                attack: 'tacticsScreen.prepAttackLong',
+                defence: 'tacticsScreen.prepDefenceLong',
+                setpiece: 'tacticsScreen.prepSetpieceLong',
+                fitness: 'tacticsScreen.prepFitnessLong',
+                recovery: 'tacticsScreen.prepRecoveryLong',
+              }[game.matchPrep] : 'tacticsScreen.prepNone')}
+            </div>
+          </>
         })()}
-        <SectionTitle sub={t('tacticsScreen.matchPrepSub')}>{t('tacticsScreen.matchPrep')}</SectionTitle>
-        {/* FIVE CARDS, NOT FIVE CHIPS (1.8.0, owner: "more visual"). The
-            chips kept their effect in a tooltip a phone cannot show, and the
-            chosen one differed from the rest only by a shade of grey. Each
-            focus is now a card with its own icon and what it buys and costs
-            written on it; the chosen one wears the same ring as every other
-            pick in the game. Tapping it again still clears the week. */}
-        <div className="prep-grid">
-          {([
-            ['attack', 'analyst.prepAttack', 'tacticsScreen.prepAttackShort'],
-            ['defence', 'analyst.prepDefence', 'tacticsScreen.prepDefenceShort'],
-            ['setpiece', 'analyst.prepSetpiece', 'tacticsScreen.prepSetpieceShort'],
-            ['fitness', 'analyst.prepFitness', 'tacticsScreen.prepFitnessShort'],
-            ['recovery', 'analyst.prepRecovery', 'tacticsScreen.prepRecoveryShort'],
-          ] as const).map(([k, label, desc]) => {
-            const on = game.matchPrep === k
-            const I = PREP_ICON[k]
-            return (
-              <button key={k} className={`speech-tile prep-card${on ? ' sel' : ''}`} aria-pressed={on} data-prep={k}
-                onClick={() => { game.matchPrep = game.matchPrep === k ? undefined : k; touch() }}>
-                <span className="prep-ico"><I /></span>
-                <b>{t(label)}</b>
-                <span className="d">{t(desc)}</span>
-              </button>
-            )
-          })}
-        </div>
-        <div className="card" style={{ marginTop: 10 }}>
-          <div className="meta">
-            {t(game.matchPrep ? {
-              attack: 'tacticsScreen.prepAttackLong',
-              defence: 'tacticsScreen.prepDefenceLong',
-              setpiece: 'tacticsScreen.prepSetpieceLong',
-              fitness: 'tacticsScreen.prepFitnessLong',
-              recovery: 'tacticsScreen.prepRecoveryLong',
-            }[game.matchPrep] : 'tacticsScreen.prepNone')}
-          </div>
-        </div>
+        {prepOpp && <>
+          <SectionTitle right={
+            <button className={`prep-info${prepInfo ? ' on' : ''}`} data-prep-info aria-expanded={prepInfo}
+              aria-label={t('tacticsScreen.prepInfo')} title={t('tacticsScreen.prepInfo')}
+              onClick={() => setPrepInfo(!prepInfo)}>i</button>
+          }>{t('tacticsScreen.prepVs', { club: prepOpp })}</SectionTitle>
+          <ResponsePlans />
+          {prepInfo && <div className="prep-detail">
+            <AnalystCard />
+            <OppReportCard />
+            <TheirStyle />
+          </div>}
+        </>}
       </>}
 
-      {ttab === 'plan' && <>
+      {ttab === 'plan' && <div className="game-pick sp-sub" role="tablist" aria-label={t('tacticsScreen.tabPlan')}>
+        {([['styles', 'styles.viewStyles'], ['tune', 'styles.viewTune']] as const).map(([id, label]) => (
+          <button key={id} role="tab" aria-selected={planSub === id} className={planSub === id ? 'sel' : ''}
+            data-plan-sub={id} onClick={() => setPlanSub(id)}>{t(label)}</button>
+        ))}
+      </div>}
+
+      {ttab === 'plan' && planSub === 'styles' && <>
+        {/* TWO KINDS OF ATTACK, ONE LINE APART (owner, 1.8.3: "why am I
+            selecting attack on playbook page and then again on this page").
+            They are different levers: the style here is how the side plays
+            every phase (its dials), the Playbook's calls are named moves run
+            off particular ball. So the view is named for what it is, and the
+            other half is one tap away rather than explained at length. */}
+        <div className="plan-xref" data-plan-xref>
+          <span className="meta">{t('styles.movesElsewhere')}</span>
+          <button className="preset-chip" data-to-playbook onClick={() => { setSpSub('moves'); setTtab('setp') }}>
+            {t('styles.openPlaybook')} <IcoChevron />
+          </button>
+        </div>
+        <StylesSection game={game} club={club} touch={touch} />
+        <div className="spacer" />
+      </>}
+
+      {ttab === 'plan' && planSub === 'tune' && <>
+        {(() => {
+          const sty = stylesOf(game, club)!
+          return <div className="card" style={{ marginTop: 4 }} data-tune-note>
+            <div className="meta">{t('styles.tuneNote', { atk: t(atkName(sty.atk)), def: t(defName(sty.def)) })}</div>
+          </div>
+        })()}
         <div className="card" style={{ marginTop: 4, borderLeft: '4px solid var(--gold)' }}>
           <div className="meta">{assistantAdvice(game)}</div>
         </div>
@@ -786,29 +800,11 @@ export default function Tactics() {
         })}
         </div>
         <SectionTitle sub={t('tacticsScreen.withoutTheBallSub')}>{t('tacticsScreen.withoutTheBall')}</SectionTitle>
-        {/* THE SYSTEM, BY NAME (v1.7.0). A coach picks a defence by its name
-            and then tunes it, so the names come first and the two dials below
-            stay exactly as they were - tapping one just sets them. The
-            readout names whichever system they sit nearest, so dragging a
-            slider re-labels the row rather than leaving it stale. */}
-        {(() => {
-          const cur = defSystemOf(tac.defLine ?? 50, tac.defWidth ?? 50)
-          return (
-            <div className="zone-row" style={{ padding: '0 14px 2px' }}>
-              <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
-                {DEF_SYSTEMS.map(sys => (
-                  <button key={sys.id} className="preset-chip" title={t(sys.desc)}
-                    style={{ flex: '1 1 auto', ...(cur.id === sys.id
-                      ? { background: 'var(--primary)', color: 'var(--on-primary)' } : {}) }}
-                    onClick={() => { tac.defLine = sys.line; tac.defWidth = sys.width; touch() }}>
-                    {t(sys.name)}
-                  </button>
-                ))}
-              </div>
-              <div className="meta" style={{ fontSize: 11, marginTop: 4 }}>{t(cur.desc)}</div>
-            </div>
-          )
-        })()}
+        {/* THE SYSTEM, BY NAME (v1.7.0) became the defence STYLES (1.8.2):
+            a defence is picked by name on the Styles view, drawn, and these
+            two dials fine-tune it, so the row of five system names that sat
+            here would have been a second, different set of names for the
+            same choice. */}
         <div className="dial-grid">{DEF_SLIDER_INFO.map(defSlider)}</div>
         {/* THE BREAKDOWN, BOTH WAYS (1.7.3). Attack and defence dials, but one
             row: each sat alone at the foot of its own section and took the tab
@@ -828,10 +824,12 @@ export default function Tactics() {
  * spot and the week's work to exploit it. Follow him and a sound read is worth
  * a few percent on the day; he is right most of the time, not every time, and
  * his record is on the card so you can judge him yourself.
+ *
+ * Reading only since 1.8.3: following him is tapping the focus chip that
+ * wears his tag, on the Prep tab above the info panel this card sits in.
  */
 function AnalystCard() {
   const game = useStore(s => s.game)!
-  const touch = useStore(s => s.touch)
   const fx = userFixtureThisWeek(game)
   if (!fx) {
     return (
@@ -845,7 +843,6 @@ function AnalystCard() {
   const opp = game.clubs[oppId]
   const read = analystRead(game, oppId)
   if (!read || !opp) return null
-  const followed = game.matchPrep === read.prep
   return (
     <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -855,15 +852,30 @@ function AnalystCard() {
       <div className="meta" style={{ marginTop: 2 }}>
         <b style={{ color: 'var(--gold)' }}>{unitLabel(read.unit)}.</b> {analystClaim(read)}
       </div>
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 6, flexWrap: 'wrap' }}>
-        <button className="btn gold" style={{ padding: '5px 10px', fontSize: 12 }}
-          disabled={followed}
-          onClick={() => { game.matchPrep = read.prep; touch() }}>
-          {followed ? t('analyst.preparing', { prep: prepLabel(read.prep) }) : t('analyst.workOnIt', { prep: prepLabel(read.prep) })}
-        </button>
-        <span className="meta" style={{ fontSize: 11 }}>
-          {t(followed ? 'analyst.weekIsHis' : 'analyst.ignoreHim', subjectVar(game.analystGender))}
-        </span>
+    </div>
+  )
+}
+
+/**
+ * The opposition's standing instruction and the assistant's answer to it (F23,
+ * moved to Prep in 1.6.5). Reading only since 1.8.3: the answer is set with
+ * the Counter their style plan chip, which carries the same four dials.
+ */
+function TheirStyle() {
+  const game = useStore(s => s.game)!
+  const fx = userFixtureThisWeek(game)
+  if (!fx) return null
+  const opp = game.clubs[fx.homeId === game.userClubId ? fx.awayId : fx.homeId]
+  const ph = philosophyOf(opp)
+  const ctr = counterTo(opp?.philosophy)
+  if (!ph || !ctr) return null
+  return (
+    <div className="card">
+      <div className="fact-label">{t('tacticsScreen.theyPlay', { club: opp.short, style: t(ph.name).toLowerCase() })}</div>
+      <div className="meta">{t(ph.blurb)}</div>
+      <div className="meta muted">{dialLine(opp.tactic)}</div>
+      <div className="meta" style={{ marginTop: 6 }}>
+        <b>{t('tacticsScreen.assistant')}</b> {t(ctr.line)}
       </div>
     </div>
   )

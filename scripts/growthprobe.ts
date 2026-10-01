@@ -17,7 +17,7 @@
 //   growth, inside seed noise.
 import { newGame } from '../src/game/newgame'
 import { devFactor } from '../src/game/rollover'
-import type { Player } from '../src/game/model'
+import { absWeek, type Player } from '../src/game/model'
 
 let fails = 0
 const ok = (c: boolean, what: string) => {
@@ -57,9 +57,14 @@ const g = newGame('northampton', 'Growth', 9)
   const senior = Object.values(g.players).find(p => p.clubId === g.userClubId && p.pers === 'Leader' && p.age >= 27)
     ?? Object.values(g.players).find(p => p.clubId === g.userClubId && p.age >= 27)!
   const before = devFactor(g, kid)
-  g.mentors = [...(g.mentors ?? []), { kid: kid.id, senior: senior.id }]
+  // 1.8.2: the summer term grows with the relationship (mentoring.mentorBond),
+  // so a pairing made this week adds nothing yet and one a season old counts
+  g.mentors = [...(g.mentors ?? []), { kid: kid.id, senior: senior.id, since: absWeek(g.season, g.week) }]
+  const fresh = devFactor(g, kid)
+  g.mentors = g.mentors.map(mp => mp.kid === kid.id ? { ...mp, since: absWeek(g.season, g.week) - 30 } : mp)
   const after = devFactor(g, kid)
   ok(after > before, `mentoring counts: paired ${after.toFixed(3)} > alone ${before.toFixed(3)}`)
+  ok(fresh < after && fresh - before < (after - before) * 0.2, `but it grows: a new pairing ${fresh.toFixed(3)}, thirty weeks on ${after.toFixed(3)}`)
   g.mentors = g.mentors.filter(mp => mp.kid !== kid.id)
 
   // clamps: nothing escapes the band however the inputs stack

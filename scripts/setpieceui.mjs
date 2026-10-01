@@ -93,6 +93,114 @@ const diagrams = (page, sel) => page.$$eval(sel, bs => bs.map(b => {
   return s ? s.querySelectorAll('circle, path, line, rect, ellipse, polygon').length : 0
 }))
 
+/** THE PLAYBOOK: PREVIEW, THEN PICK THE SLOT (owner: "You should be able to
+ *  select which of the moves goes where, like the main menu save option"):
+ *  tap a move and it plays on a loop; "Add to playbook" opens the four slots
+ *  as rows, each saying what it holds, the ones the move cannot go in greyed;
+ *  a tap on a row puts the move there, replacing what was; Cancel closes the
+ *  rows; a move in the playbook offers Remove. No "it will misfire" line:
+ *  familiarity is learnt in the matches (owner). */
+async function playbook(page, label) {
+  await page.evaluate(() => {
+    const S = window.rugbyStore.getState(), g = S.game, t = g.clubs[g.userClubId].tactic
+    t.moveShape = t.moveMain = t.moveAlt = t.moveRed = t.movePen = undefined
+    S.touch()
+  })
+  await view(page, 'calls'); await view(page, 'moves')
+  ok(await page.locator('.mv-preview').count() === 0 && await page.locator('.mv-card .mv-hint').count() === 1,
+    `${label}: nothing is previewed until a move is tapped`)
+  // EVERY SLOT TAKES A TAP (round 6, owner: "I can't tap Open-Play Call"):
+  // the slots were disabled while empty. Five of them now, none disabled; an
+  // empty one shows the moves that fit it, and the one picked goes straight in
+  const calls = await page.$$eval('.mv-callchip', bs => bs.map(b => `${b.dataset.call}${b.disabled ? '-' : '+'}`).join())
+  ok(calls === 'shape+,main+,alt+,red+,pen+', `${label}: five slots, every one tappable while empty (${calls})`)
+  await page.click('.mv-callchip[data-call="shape"]')
+  const shapeList = await page.$$eval('.mv-chips:not(.mv-mix) [data-move]', bs => bs.map(b => b.dataset.move).join())
+  ok(await page.locator('.mv-callchip[data-call="shape"][aria-pressed="true"]').count() === 1
+    && await page.locator('.mv-want[data-want="shape"]').count() === 1 && shapeList === 'mv_1331,mv_242,mv_backdoor',
+    `${label}: tapping the empty Open-Play Call shows the moves that fit it (${shapeList})`)
+  if (process.env.OWNER_SHOTS) await page.screenshot({ path: `${process.env.OWNER_SHOTS}/${label}-openplay-slot-tapped.png` })
+  await page.click('.mv-card [data-move="mv_242"]')
+  ok(await page.locator('.mv-preview[data-pick="mv_242"]').count() === 1 && await page.locator('.mv-card [data-act="put"][data-slot="shape"]').count() === 1,
+    `${label}: a move picked from there previews, with one button to put it in that slot`)
+  await page.click('.mv-card [data-act="put"]')
+  let tc0 = await tac(page)
+  ok(tc0.moveShape === 'mv_242' && await page.locator('.mv-want').count() === 0
+    && await page.locator('.mv-callchip[data-call="shape"]').getAttribute('data-filled') === 'mv_242',
+    `${label}: and one tap puts it there (${tc0.moveShape}), the list back to every move`)
+  await page.click('.mv-card [data-move="mv_loop"]')
+  await page.click('.mv-callchip[data-call="shape"]')
+  ok(await page.locator('.mv-preview[data-pick="mv_242"]').count() === 1, `${label}: a filled slot, tapped, previews what it holds`)
+  // THE PENALTY SLOT (round 6): the tap plays, and only them
+  await page.click('.mv-callchip[data-call="pen"]')
+  const penList = await page.$$eval('.mv-chips:not(.mv-mix) [data-move]', bs => bs.map(b => b.dataset.move).join())
+  ok(penList === 'mv_tap,mv_tapspread,mv_tapgo', `${label}: the empty Penalty slot shows the three tap plays (${penList})`)
+  await page.click('.mv-card [data-move="mv_tapspread"]')
+  ok(await page.locator('.mv-preview[data-pick="mv_tapspread"] svg.mv-anim').count() === 1, `${label}: the tap play previews on its loop`)
+  await page.click('.mv-card [data-act="put"]')
+  tc0 = await tac(page)
+  ok(tc0.movePen === 'mv_tapspread' && !tc0.moveRed, `${label}: and goes in the penalty slot (${tc0.movePen})`)
+  await page.click('.mv-callchip[data-call="pen"]')
+  if (process.env.OWNER_SHOTS) await page.screenshot({ path: `${process.env.OWNER_SHOTS}/${label}-penalty-slot.png` })
+  await page.click('.mv-card [data-act="remove"]')
+  await page.click('.mv-card [data-move="mv_242"]'); await page.click('.mv-card [data-act="remove"]')
+  tc0 = await tac(page)
+  ok(!tc0.movePen && !tc0.moveShape, `${label}: and Remove empties them again`)
+  await page.click('.mv-callchip[data-call="main"]'); await page.click('.mv-card [data-act="all"]')
+  ok(await page.locator('.mv-want').count() === 0 && await page.locator('.mv-chips:not(.mv-mix) [data-move]').count() === 21,
+    `${label}: Show all puts every move back`)
+  await page.click('.mv-card [data-move="mv_loop"]')
+  const svg = page.locator('.mv-preview[data-pick="mv_loop"] svg.mv-anim')
+  ok(await svg.count() === 1, `${label}: tapping a move shows its animated preview`)
+  const t0 = await svg.getAttribute('data-t'); await page.waitForTimeout(700)
+  const t1 = await svg.getAttribute('data-t')
+  ok(t0 !== t1, `${label}: the preview is playing (t ${t0} then ${t1})`)
+  ok(await page.locator('.mv-preview .mv-warn').count() === 0, `${label}: no undrilled warning on the preview`)
+  ok(await page.locator('.mv-slots').count() === 0, `${label}: the slot picker is shut until Add is tapped`)
+  await page.click('.mv-card [data-act="add"]')
+  const open = await page.$$eval('.mv-slots .mv-slot', bs => bs.map(b => `${b.dataset.slot}${b.disabled ? '-' : '+'}`).join())
+  ok(open === 'shape-,main+,alt+,red+,pen-', `${label}: Add opens all five slots, the ones a strike cannot go in greyed (${open})`)
+  await page.click('.mv-slots [data-slot="red"]')
+  let tc = await tac(page)
+  ok(tc.moveRed === 'mv_loop' && !tc.moveMain && await page.locator('.mv-slots').count() === 0
+    && await page.locator('.mv-card [data-act="remove"]').count() === 1,
+    `${label}: a tap on a slot puts it there, not in the first free one (${tc.moveRed}), and shuts the picker`)
+  const put = async (id, slot) => {
+    await page.click(`.mv-card [data-move="${id}"]`); await page.click('.mv-card [data-act="add"]')
+    await page.click(`.mv-slots [data-slot="${slot}"]`)
+  }
+  await page.click('.mv-card [data-move="mv_1331"]'); await page.click('.mv-card [data-act="add"]')
+  const shp = await page.$$eval('.mv-slots .mv-slot:not(:disabled)', bs => bs.map(b => b.dataset.slot).join())
+  ok(shp === 'shape', `${label}: an open-play shape can go in the open-play slot only (${shp})`)
+  await page.click('.mv-slots [data-slot="shape"]')
+  await put('mv_switch', 'alt'); await put('mv_crash', 'main')
+  tc = await tac(page)
+  ok(tc.moveMain === 'mv_crash' && tc.moveAlt === 'mv_switch' && tc.moveRed === 'mv_loop' && tc.moveShape === 'mv_1331',
+    `${label}: each move went where it was put (${tc.moveShape} / ${tc.moveMain} / ${tc.moveAlt} / ${tc.moveRed})`)
+  ok(await page.locator('.mv-callchip[data-call="main"]').getAttribute('data-filled') === 'mv_crash', `${label}: the slot shows what it holds`)
+  await page.click('.mv-card [data-move="mv_decoy"]'); await page.click('.mv-card [data-act="add"]')
+  const held = await page.$$eval('.mv-slots .mv-slot', bs => bs.map(b => b.dataset.filled).join())
+  ok(held === 'mv_1331,mv_crash,mv_switch,mv_loop,', `${label}: each row in the picker says what is in that slot now (${held})`)
+  await page.click('.mv-card [data-act="cancel"]')
+  ok(await page.locator('.mv-slots').count() === 0 && await page.locator('.mv-card [data-act="add"]').count() === 1,
+    `${label}: Cancel shuts the picker and changes nothing`)
+  await page.click('.mv-card [data-act="add"]'); await page.click('.mv-slots [data-slot="alt"]')
+  tc = await tac(page)
+  ok(tc.moveAlt === 'mv_decoy' && tc.moveMain === 'mv_crash', `${label}: a tap on a full slot replaces it (${tc.moveAlt})`)
+  await page.click('.mv-card [data-act="remove"]')
+  tc = await tac(page)
+  ok(tc.moveAlt === undefined && await page.locator('.mv-card [data-act="add"]').count() === 1,
+    `${label}: Remove empties its slot and the button offers Add again`)
+  // a phone asking for less motion gets the still whiteboard diagram
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.waitForTimeout(150)
+  ok(await page.locator('.mv-preview svg.mv-anim').count() === 0 && await page.locator('.mv-preview svg.dg').count() === 1,
+    `${label}: under reduced motion the preview is the static diagram`)
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await page.waitForTimeout(150)
+  ok(await page.locator('.mv-preview svg.mv-anim').count() === 1, `${label}: and it plays again when motion is back`)
+}
+
 async function setPiece(page, label, full) {
   await tab(page, 1)
   // THE TAB IN THREE: three views, one shown at a time, each picked alone
@@ -123,6 +231,10 @@ async function setPiece(page, label, full) {
   ok(await view(page, 'moves'), `${label}: the moves view is picked`)
   ok(await page.locator('.mv-card').count() === 1 && await page.locator('.sp-call, .sp-card').count() === 0,
     `${label}: the moves view is the attacking moves card on its own`)
+  if (full) await playbook(page, label)
+  // a move picked, so its preview and its line are measured too
+  await page.click('.mv-card [data-move="mv_loop"]')
+  await page.waitForSelector('.mv-preview[data-pick="mv_loop"] svg.dg')
   await fits(page, `${label} set piece moves`, TEXT)
 
   ok(await view(page, 'kicking'), `${label}: the kicking view is picked`)
@@ -170,26 +282,22 @@ async function setPiece(page, label, full) {
 async function bench(page, label, full) {
   await tab(page, 2)
   const b23 = await page.evaluate(() => {
-    const names = [...document.querySelectorAll('.b23-name')].map(n => n.getBoundingClientRect())
-    let overlaps = 0
-    for (let i = 0; i < names.length; i++) for (let j = i + 1; j < names.length; j++) {
-      const a = names[i], b = names[j]
-      if (a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1) overlaps++
-    }
-    const pitch = document.querySelector('.b23-pitch')?.getBoundingClientRect()
-    const outside = names.filter(r => pitch && (r.left < pitch.left - 1 || r.right > pitch.right + 1 || r.bottom > pitch.bottom + 1)).length
+    // the page reads in the owner's order (round 5): the split, the eight
+    // replacements, then the finisher briefs; the fifteen on grass are gone
+    const y = sel => document.querySelector(sel)?.getBoundingClientRect().top ?? -1
     return {
-      men: document.querySelectorAll('.b23-man .b23-kit svg').length,
+      pitch: document.querySelectorAll('.b23-pitch, .b23-man').length,
       seats: document.querySelectorAll('.b23-seat').length,
       icons: document.querySelectorAll('.b23-seat .brief-ico svg').length,
-      overlaps, outside,
+      order: [y('.split-grid'), y('.b23-seats'), y('[data-briefs-toggle]')],
       emoji: /\p{Extended_Pictographic}/u.test(document.querySelector('.content, main, body').innerText),
       pips: [...document.querySelectorAll('.split-grid .split-pips')].map(p => p.querySelectorAll('i.fw').length),
     }
   })
-  ok(b23.men === 15 && b23.seats === 8, `${label}: the 23 drawn, ${b23.men} shirts in the fifteen and ${b23.seats} seats on the bench`)
+  ok(b23.pitch === 0 && b23.seats === 8, `${label}: no starting fifteen drawn (${b23.pitch}), ${b23.seats} seats on the bench`)
   ok(b23.icons === 8, `${label}: every bench seat shows its brief as an icon (${b23.icons})`)
-  ok(b23.overlaps === 0 && b23.outside === 0, `${label}: no two names on the 23 overlap (${b23.overlaps}), none off the grass (${b23.outside})`)
+  ok(b23.order.every(v => v >= 0) && b23.order[0] < b23.order[1] && b23.order[1] < b23.order[2],
+    `${label}: split, then replacements, then finisher briefs (${b23.order.map(Math.round).join(' < ')})`)
   ok(b23.pips.join() === '5,6,4', `${label}: the splits drawn as forwards on the bench (${b23.pips.join(' / ')})`)
   ok(!b23.emoji, `${label}: no emoji left on the bench page`)
   // the eight brief rows are folded behind a toggle since the drawn 23 took

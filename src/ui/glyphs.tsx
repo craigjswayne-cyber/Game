@@ -113,6 +113,13 @@ const PATHS: Record<string, ReactNode> = {
   moon: <><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z" /></>,
   text: <><path d="M3 19L8 6l5 13M4.8 14.5h6.4M14.5 19l3.25-8.5L21 19M15.6 16.2h4.3" /></>,
   sound: <><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" /><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" /></>,
+  // the supporters' mood (owner, round 6: "fans mood should be a face"),
+  // five drawn faces from furious to delighted, never an emoji
+  faceAngry: <><circle cx="12" cy="12" r="9" /><path d="M7.2 8.2l3.3 1.6M16.8 8.2l-3.3 1.6M8.5 17c1.9-2 5.1-2 7 0" /><circle cx="9.2" cy="11.6" r="1.1" fill="currentColor" stroke="none" /><circle cx="14.8" cy="11.6" r="1.1" fill="currentColor" stroke="none" /></>,
+  faceSad: <><circle cx="12" cy="12" r="9" /><path d="M8.5 16.6c1.9-1.6 5.1-1.6 7 0" /><circle cx="9.2" cy="10" r="1.1" fill="currentColor" stroke="none" /><circle cx="14.8" cy="10" r="1.1" fill="currentColor" stroke="none" /></>,
+  faceNeutral: <><circle cx="12" cy="12" r="9" /><path d="M8.8 15.4h6.4" /><circle cx="9.2" cy="10" r="1.1" fill="currentColor" stroke="none" /><circle cx="14.8" cy="10" r="1.1" fill="currentColor" stroke="none" /></>,
+  faceHappy: <><circle cx="12" cy="12" r="9" /><path d="M8.3 14.2c2 2.3 5.4 2.3 7.4 0" /><circle cx="9.2" cy="10" r="1.1" fill="currentColor" stroke="none" /><circle cx="14.8" cy="10" r="1.1" fill="currentColor" stroke="none" /></>,
+  faceDelighted: <><circle cx="12" cy="12" r="9" /><path d="M7.6 10.4c.7-1.2 2.4-1.2 3.1 0M13.3 10.4c.7-1.2 2.4-1.2 3.1 0" /><path d="M7.8 13.3h8.4a4.2 4.2 0 0 1-8.4 0z" fill="currentColor" /></>,
   // the match plans (tactics.ts PRESETS)
   attack: <><path d="M5 6l6 6-6 6M13 6l6 6-6 6" /></>,
   wall: <><rect x="3" y="5" width="18" height="14" rx="1" /><path d="M3 9.7h18M3 14.3h18M9 5v4.7M15 5v4.7M6 9.7v4.6M12 9.7v4.6M18 9.7v4.6M9 14.3V19M15 14.3V19" /></>,
@@ -127,3 +134,28 @@ export function Glyph({ name }: { name: string }) {
 
 /** the icon for a news item's type */
 export const newsGlyph = (type: string) => <Glyph name={type in PATHS ? type : 'general'} />
+
+/**
+ * THE SUPPORTERS' MOOD, AS A FACE (owner, round 6: "fans mood should be a face
+ * - angry, sad, neutral, happy, delighted"). Five bands of game.fanMood, the
+ * same thresholds as the words beside it (Home, Club): 80 delighted, 62 happy,
+ * 45 neutral, 30 sad, below that angry. Drawn in the theme's own tones, so it
+ * reads in both themes, and labelled for a screen reader.
+ */
+export type FanFaceLevel = 'angry' | 'sad' | 'neutral' | 'happy' | 'delighted'
+export const fanFaceLevel = (m: number): FanFaceLevel =>
+  m >= 80 ? 'delighted' : m >= 62 ? 'happy' : m >= 45 ? 'neutral' : m >= 30 ? 'sad' : 'angry'
+const FACE_TONE: Record<FanFaceLevel, string> = {
+  delighted: 'var(--text-positive)', happy: 'var(--text-positive)', neutral: 'var(--gold)',
+  sad: 'var(--text-negative)', angry: 'var(--text-negative)',
+}
+export function FanFace({ mood, label, className }: { mood: number; label: string; className?: string }) {
+  const lvl = fanFaceLevel(mood)
+  const name = `face${lvl[0].toUpperCase()}${lvl.slice(1)}`
+  return (
+    <span className={`fan-face${className ? ` ${className}` : ''}`} data-face={lvl} role="img" aria-label={label}
+      style={{ color: FACE_TONE[lvl] }}>
+      <Glyph name={name} />
+    </span>
+  )
+}

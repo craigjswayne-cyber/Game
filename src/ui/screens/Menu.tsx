@@ -18,9 +18,10 @@ export default function Menu() {
   const [confirmDel, setConfirmDel] = useState<string | null>(null)
 
   useEffect(() => { void listSaves().then(setSaves) }, [])
-  // THE MATCH STILL GOING (1.8.2). A career left mid-match reopens into that
-  // match, so the tile says so before it is pressed rather than surprising
-  // anybody. Read from the live-match records, never from the career itself.
+  // THE MATCH STILL GOING (1.8.2). A career left mid-match has that match
+  // played out as it opens (round 5: store.resumeLiveMatch), so the tile says
+  // so before it is pressed rather than surprising anybody. Read from the
+  // live-match records, never from the career itself.
   const [live, setLive] = useState<{ slot: string; rec: LiveStamp }[]>([])
   useEffect(() => { void peekResumes<LiveStamp>().then(setLive).catch(() => {}) }, [])
   const liveFor = (m: SaveMeta) => live.find(l => l.slot === m.slot

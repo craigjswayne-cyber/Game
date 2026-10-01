@@ -34,14 +34,17 @@
  * analyst's read, which is right about as often as analystSkill says.
  */
 import type { Club, GameState, MatchPrep, Tactic, Fixture } from './model'
-import { analystRead, analystSkill, rollIsRight, type AnalystRead } from './analyst'
+import { absWeek as gameWeek } from './model'
+import { analystRead, analystSkill, readOdds, sureBand, type AnalystRead } from './analyst'
+import { tapeLine } from './armsrace'
 import { lineupFor, teamUnits } from './matchEngine'
-import { fuzzedCa, knowledge } from './scout'
+import { fuzzedCa, knowledge, margin } from './scout'
 import { analystShift, archetypeOf } from './oppcoach'
 import { COUNTER, philosophyOf } from './philosophy'
 import { DEFAULT_LINEOUT, DEFAULT_SCRUM, playbookOf, routineEffect } from './playbook'
 import { benchSeats } from './bench'
 import { clamp, hashString } from './rng'
+import { MATCHUP, atkName, defName, stylesOf } from './styles'
 
 export type Unit = AnalystRead['unit']
 
@@ -49,13 +52,13 @@ export type Unit = AnalystRead['unit']
 // What the save keeps
 // ---------------------------------------------------------------------------
 
-export type PlanId = 'exploit' | 'counter' | 'lesson' | 'finish'
-export const PLAN_IDS: readonly PlanId[] = ['exploit', 'counter', 'lesson', 'finish']
+export type PlanId = 'exploit' | 'counter' | 'lesson' | 'finish' | 'starve'
+export const PLAN_IDS: readonly PlanId[] = ['exploit', 'counter', 'lesson', 'finish', 'starve']
 
 /** The levers a plan sets. Every field is an existing control. */
 export interface PlanLevers {
   prep?: MatchPrep
-  dials?: Partial<Pick<Tactic, 'style' | 'tempo' | 'kicking' | 'aggression' | 'defLine'>>
+  dials?: Partial<Pick<Tactic, 'style' | 'tempo' | 'kicking' | 'aggression' | 'defLine' | 'ruckCommit'>>
   kickStyle?: NonNullable<Tactic['kickStyle']>
   lineoutCall?: string
   scrumCall?: string
@@ -85,7 +88,7 @@ export interface FindingsRecord {
   items: Finding[]
   /** the set-piece contest worth remembering for next time (their side of it) */
   recall?: { unit: 'scrum' | 'lineout'; pct: number }
-  plan?: { id: PlanId; target: Unit | 'style' | 'late' | null; followed: boolean; verdict: PlanVerdict } | null
+  plan?: { id: PlanId; target: Unit | 'style' | 'late' | 'ball' | null; followed: boolean; verdict: PlanVerdict } | null
 }
 
 export interface ChosenPlan {
@@ -93,7 +96,7 @@ export interface ChosenPlan {
   abs: number
   oppId: string
   id: PlanId
-  target: Unit | 'style' | 'late' | null
+  target: Unit | 'style' | 'late' | 'ball' | null
   levers: PlanLevers
 }
 
@@ -110,7 +113,7 @@ export const FINDINGS_CAP = 6
 // The report
 // ---------------------------------------------------------------------------
 
-export type ReportCat = 'style' | 'form' | 'setpiece' | 'players' | 'coach' | 'soft' | 'history'
+export type ReportCat = 'style' | 'form' | 'setpiece' | 'players' | 'coach' | 'soft' | 'history' | 'calls'
 
 export interface ReportLine {
   cat: ReportCat
@@ -119,6 +122,10 @@ export interface ReportLine {
   v?: Record<string, string | number>
   /** HIDDEN: whether this line is true. Never shown; the probe measures it. */
   ok?: boolean
+  /** how sure the analyst is of it (1.8.2): his own estimate of the odds
+   *  it is true, in the three words of his soft-spot read. Only on the lines
+   *  that can be wrong; the probe holds the words to the hit rate. */
+  conf?: 'high' | 'mid' | 'low'
 }
 
 export interface OppReport {
@@ -156,9 +163,10 @@ export const isClubFixture = (state: GameState, fx: Fixture) =>
   fx.homeId === state.userClubId || fx.awayId === state.userClubId
 
 /** How much of the truth the report can see, 0..1. */
-export function reportAccuracy(state: GameState, oppId: string): number {
-  // analystSkill runs 0.3 (bare club) to 0.78 (a full suite and a gold assistant)
-  const skill = clamp((analystSkill(state) - 0.3) / 0.48, 0, 1)
+export function reportAccuracy(state: GameState, oppId: string, topSetup = false): number {
+  // analystSkill runs 0.3 (bare club) to 0.78 (a full suite and a gold assistant);
+  // topSetup reads it at the top of that range (tape room night, below)
+  const skill = topSetup ? 1 : clamp((analystSkill(state) - 0.3) / 0.48, 0, 1)
   const xv = lineupFor(state, oppId).slice(0, 15)
     .map(id => (id != null ? state.players[id] : null)).filter(Boolean)
   const know = xv.length ? xv.reduce((s, p) => s + knowledge(state, p!), 0) / xv.length / 100 : 0.2
@@ -179,14 +187,15 @@ export function softSpot(state: GameState, oppId: string): OppReport['soft'] {
   }
   const lu = lineupFor(state, oppId)
   if (lu.slice(0, 15).filter(id => id != null).length < 15) return null
-  const u = teamUnits(state, lu)
-  const scores: [Unit, number][] = [
-    ['scrum', u.scrum], ['lineout', u.lineout], ['defence', u.defence], ['attack', u.attack], ['kicking', u.kicking],
-  ]
-  const avg = scores.reduce((s, [, v]) => s + v, 0) / scores.length
-  scores.sort((a, b) => a[1] / avg - b[1] / avg)
-  const right = rollIsRight(state.seed, absWeek(state), oppId, analystSkill(state))
-  return { unit: right ? scores[0][0] : scores[scores.length - 1][0], right, confidence: 0.45 + (h(state, oppId, 'conf') % 55) / 100 }
+  // the same odds and the same sense of them as the analyst's own read
+  const o = readOdds(state, oppId, teamUnits(state, lu), absWeek(state))
+  return { unit: o.right ? o.sorted[0][0] : o.sorted[o.sorted.length - 1][0], right: o.right, confidence: o.confidence }
+}
+
+/** Is tape room night on for this week's match against this side? */
+export function tapeRoom(state: GameState, oppId: string): boolean {
+  const tp = state.rewarded?.tape
+  return Array.isArray(tp) && tp[0] === gameWeek(state.season, state.week) && tp[1] === oppId
 }
 
 /** The last findings the save holds against this side. */
@@ -217,6 +226,19 @@ function styleLines(state: GameState, club: Club, acc: number): ReportLine[] {
   const ph = philosophyOf(club)
   if (ph && acc >= 0.35) out.push({ cat: 'style', k: 'oppreport.philosophy', v: { name_k: ph.name }, ok: true })
   else out.push({ cat: 'style', k: 'oppreport.styleUnclear' })
+  // THE STYLES (1.8.2): how they attack and how they defend, by name, which
+  // the tape shows at any accuracy; and how each meets ours, off the matchup
+  // table, so the report says in words what the Styles view draws
+  const theirs = stylesOf(state, club)
+  const ours = stylesOf(state, state.clubs[state.userClubId])
+  if (theirs) {
+    out.push({ cat: 'style', k: 'styles.oppStyles', v: { atk_k: atkName(theirs.atk), def_k: defName(theirs.def) }, ok: true })
+    if (ours) {
+      const edge = (m: number) => (m > 0 ? 'good' : m < 0 ? 'bad' : 'even')
+      out.push({ cat: 'style', k: `styles.edgeAtk_${edge(MATCHUP[ours.atk][theirs.def])}`, v: { mine_k: atkName(ours.atk), theirs_k: defName(theirs.def) }, ok: true })
+      out.push({ cat: 'style', k: `styles.edgeDef_${edge(-MATCHUP[theirs.atk][ours.def])}`, v: { mine_k: defName(ours.def), theirs_k: atkName(theirs.atk) }, ok: true })
+    }
+  }
   // the dials as the tape shows them: a hashed error that shrinks with accuracy
   const err = (1 - acc) * 34
   const half = Math.max(3, Math.round((1 - acc) * 20))
@@ -230,11 +252,18 @@ function styleLines(state: GameState, club: Club, acc: number): ReportLine[] {
     .slice(0, 2)
   for (const x of seen) {
     const hi = x.read > 50
+    // HOW SURE (1.8.2): he knows how far off his tape can be (err), so a read
+    // well past the line with a small error is a near certainty and one just
+    // over it with a big error is a coin: the odds the truth is past 56 (or
+    // under 44) with the error spread evenly either side of what he saw
+    const past = hi ? x.read - 56 : 44 - x.read
+    const p = err > 0 ? clamp((past / err + 1) / 2, 0, 1) : past >= 0 ? 1 : 0
     out.push({
       cat: 'style', k: `oppreport.dial_${x.d}_${hi ? 'hi' : 'lo'}`,
       v: { lo: clamp(x.read - half, 0, 100), hi: clamp(x.read + half, 0, 100) },
       // true when the habit really leans the way the tape says it does
       ok: hi ? x.truth >= 56 : x.truth <= 44,
+      conf: sureBand(p),
     })
   }
   return out
@@ -267,12 +296,20 @@ function keyMenLine(state: GameState, oppId: string): ReportLine | null {
   const xv = lineupFor(state, oppId).slice(0, 15)
     .map(id => (id != null ? state.players[id] : null)).filter(Boolean)
   if (!xv.length) return null
-  const byRead = [...xv].sort((a, b) => fuzzedCa(state, b!) - fuzzedCa(state, a!)).slice(0, 3)
+  const ranked = [...xv].sort((a, b) => fuzzedCa(state, b!) - fuzzedCa(state, a!))
+  const byRead = ranked.slice(0, 3)
   const best = [...xv].sort((a, b) => b!.ca - a!.ca)[0]
+  // HOW SURE (1.8.2): the scouts' error on these men (scout.ts margin, three
+  // rating points a step) against the room between the third man he names
+  // and the fourth he does not: known men far apart are a certainty
+  const noise = xv.reduce((s, p) => s + margin(knowledge(state, p!)) * 3, 0) / xv.length
+  const room = ranked.length > 3 ? fuzzedCa(state, ranked[2]!) - fuzzedCa(state, ranked[3]!) : 99
+  const p = noise <= 0 ? 1 : clamp(0.62 + room / (4 * noise) - noise / 40, 0, 1)
   return {
     cat: 'players', k: 'oppreport.keyMen',
     v: { names: byRead.map(p => `${p!.name} (${p!.pos})`).join(', ') },
     ok: byRead.includes(best),
+    conf: sureBand(p),
   }
 }
 
@@ -329,11 +366,20 @@ export function buildReport(state: GameState, oppId: string): OppReport {
   if (men) lines.push(men)
   if (club) lines.push(...setPieceLines(club, acc))
   if (club) lines.push(...coachLines(state, club, acc))
+  // THE ARMS RACE (1.8.2): what their analysts have on OUR calls, and whether
+  // this coach sets up for it (armsrace.ts); our own count, so always true
+  //
+  // TAPE ROOM NIGHT (1.8.2, rewarded.ts): a watched spot keeps the analysts in
+  // with the tape, and this one line is read as a top analysis setup would read
+  // it, for this match. Nothing else on the report moves.
+  const night = !!club && tapeRoom(state, oppId)
+  const tape = club ? tapeLine(state, oppId, night ? Math.max(acc, reportAccuracy(state, oppId, true)) : acc) : null
+  if (tape) lines.push({ cat: 'calls', ...tape, ok: true, ...(night ? { conf: 'high' as const } : {}) })
   if (soft) {
     lines.push({
       cat: 'soft', k: 'oppreport.soft',
       v: { unit_k: `oppreport.u_${soft.unit}`, sure_k: soft.confidence >= 0.85 ? 'oppreport.sureHigh' : soft.confidence >= 0.7 ? 'oppreport.sureMid' : 'oppreport.sureLow' },
-      ok: soft.right,
+      ok: soft.right, conf: sureBand(soft.confidence),
     })
   }
   lines.push(...historyLines(last))
@@ -403,8 +449,35 @@ export function planOptions(state: GameState, fx: Fixture): PlanOption[] {
     const attacking = ['width', 'tempo', 'chaos', 'structure'].includes(ph.id)
     out.push({ id: 'counter', target: 'style', levers: { prep: attacking ? 'defence' : 'attack', dials: { ...ctr.dials } } })
   }
+  out.push({ id: 'starve', target: 'ball', levers: starveLevers() })
   out.push({ id: 'finish', target: 'late', levers: { prep: 'fitness', brief: 'impact' } })
-  return out.slice(0, 3)
+  return out
+}
+
+/**
+ * STARVE THEM OF BALL (round 6, owner: "throw in an additional option. Should
+ * be different to the other options"). The other plans aim at a unit, at
+ * their coach's style or at the last twenty minutes; this one is about the
+ * ball itself: stop kicking it to them, slow the game down and put numbers
+ * into every ruck, so a dangerous back three spends the afternoon without
+ * it. Three dials the Tactics screen already has, so what it is worth is
+ * what the engine pays for those (kicking low, tempo low, ruck numbers high:
+ * a sixth fewer kicks from hand and a safer ruck, for less territory and
+ * fewer men in the line).
+ *
+ * AND THE DEFENSIVE WEEK. The week's training is most of what any plan is
+ * worth: the first cut set the attack week and was the best plan on the
+ * board (tacticloopprobe, 144 fixtures: +3.3 over no prep against the
+ * exploit plan's +2.8), a default rather than a read; with no prep at all it
+ * was worth nothing and their tries went up. The defensive week is the
+ * plan's own idea (they get little ball, and do little with what they get):
+ * +0.9 there, +1.5 in scripts/starveprobe.ts (exploit +5.0, counter +4.5,
+ * finish +2.2), the only plan that cuts the kicking, and the one their side
+ * scores least against.
+ */
+export const STARVE = { kicking: 10, tempo: 35, ruckCommit: 85 }
+export function starveLevers(): PlanLevers {
+  return { prep: 'defence', dials: { ...STARVE } }
 }
 
 /** Put a plan's levers on the club, and remember which plan it was. */

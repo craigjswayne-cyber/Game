@@ -12,12 +12,17 @@ import { seedNatRank } from './natrank'
 import { seedPhilosophies } from './philosophy'
 import { applyStadiumName, seedDeals } from './commercial'
 import { seedStaffPeople } from './staff'
+import { migrateRift } from './staffrift'
 import { ensureAcademyLeague, topUpAcademy } from './academy'
 import { migratePress } from './pressmigrate'
+import { migrateStyles } from './styles'
+import { migratePlaybook } from './armsrace'
 import { migrateBonds } from './bonds'
+import { migrateRoom } from './room'
 import { migrateMemory } from './memory'
 import { migrateTacLoop } from './oppreport'
 import { migrateHistory } from './history'
+import { migrateArc } from './arcbook'
 
 // NOT renamed with the game. This string is the key every existing save lives
 // under, so changing it to 'fab-rugby' would not rename anything - it would point
@@ -567,6 +572,37 @@ export function migrate(s: GameState): GameState {
     }
     // a club that is not in the file means free agency, not a ghost employer
     if (p.clubId != null && !s.clubs[p.clubId]) p.clubId = null
+    // THE DEVELOPMENT PROJECT'S TWO FIELDS (1.8.2, devproject.ts). Both absent
+    // on every older save, which is the right answer: a ceiling that has not
+    // moved and a timeline that starts this summer. Damaged, they are dropped
+    // or trimmed rather than trusted.
+    if (p.pa0 != null) {
+      if (typeof p.pa0 === 'number' && Number.isFinite(p.pa0)) p.pa0 = int(p.pa0, 1, 100, p.pa)
+      else delete p.pa0
+    }
+    if (p.tl != null) {
+      p.tl = Array.isArray(p.tl)
+        ? p.tl.filter(r => Array.isArray(r) && r.length === 3 && r.every(x => typeof x === 'number' && Number.isFinite(x)))
+          .map(r => [Math.round(r[0]), int(r[1], 1, 100, 50), Math.max(0, Math.round(r[2])) & 255] as [number, number, number])
+          .slice(-12)
+        : undefined
+      if (!p.tl?.length) delete p.tl
+    }
+  }
+  // the personal plans' second programme and tally (1.8.2): a plan entry that
+  // is not an object, or a second programme that is not a programme (or is the
+  // first one again), is healed; the plan itself is kept
+  if (s.plans != null) {
+    const FOCI = ['scrum', 'lineout', 'attack', 'defence', 'fitness', 'kicking', 'balanced']
+    s.plans = Array.isArray(s.plans)
+      ? s.plans.filter(x => x && typeof x === 'object' && typeof x.id === 'number' && FOCI.includes(x.plan as string))
+        .map(x => {
+          const y = { ...x }
+          if (y.plan2 != null && (!FOCI.includes(y.plan2 as string) || y.plan2 === y.plan || y.plan2 === 'balanced')) delete y.plan2
+          if (y.pts != null && !(typeof y.pts === 'number' && Number.isFinite(y.pts) && y.pts >= 0)) delete y.pts
+          return y
+        })
+      : []
   }
   for (const c of Object.values(s.clubs)) {
     if (!c || typeof c !== 'object') continue
@@ -721,11 +757,15 @@ export function migrate(s: GameState): GameState {
   s.facilityAskCooldown ??= 0
   // the backroom staff became people: give every level already paid for a face
   seedStaffPeople(s)
+  // a falling-out between two coaches (staffrift.ts): an older save has none
+  s.staffRift = migrateRift(s.staffRift)
+  if (s.staffRiftNext != null && !Number.isFinite(s.staffRiftNext)) delete s.staffRiftNext
   s.celebration ??= null
   s.records ??= {}
   s.mentors = list(s.mentors) as typeof s.mentors
   s.chem ??= {}
   s.bonds = migrateBonds(s.bonds)
+  s.room = migrateRoom(s.room)
   s.grudges = list(s.grudges) as typeof s.grudges
   s.review ??= null
   s.fanMood ??= 60
@@ -756,6 +796,20 @@ export function migrate(s: GameState): GameState {
   s.vowedAt ??= 0
   s.agency ??= { seniors: [], kids: [], best: {} }
   migrateMemory(s) // the manager's memory (memory.ts): an old save starts with an empty log
+  migrateArc(s) // the career arc (arcbook.ts): made whole, never invented
+  // a graduate from before 1.8.2 learns which academy made him: his first
+  // career row is the club he first played senior rugby for (a loan in his
+  // first season would name the loan club; there is nothing better to read),
+  // and a graduate yet to play is still where he graduated, or on loan from it
+  for (const p of Object.values(s.players)) {
+    if (!p?.homegrown || p.gradClub) continue
+    const first = Array.isArray(p.career) ? p.career[0] : undefined
+    const at = first?.clubId ?? p.loanFrom ?? p.clubId
+    if (at) p.gradClub = at
+    if (first && Number.isFinite(first.season)) p.gradS = first.season
+  }
+  if (s.ambitions != null && !Array.isArray(s.ambitions)) delete s.ambitions
+  if (s.ambitions) s.ambitions = s.ambitions.filter(a => !!a && typeof a.id === 'string' && typeof a.clubId === 'string').slice(0, 5)
   for (const c of Object.values(s.clubs)) { c.captain ??= null; c.vice ??= null; c.legends = list(c.legends) as typeof c.legends; c.marquee = list(c.marquee) as typeof c.marquee; c.tactic.roles = list(c.tactic.roles) as typeof c.tactic.roles; if (c.id !== s.userClubId) c.coach ??= 'The Head Coach' }
   /**
    * WHO THE STAFF ARE, on a save written before the game asked.
@@ -973,6 +1027,27 @@ export function migrate(s: GameState): GameState {
 
   // the tactical loop's findings: healed and capped (#181)
   migrateTacLoop(s)
+
+  // THE STYLES (1.8.2): a save from before them has dials and no style, so
+  // the manager's side is named the nearest attack and defence to its dials,
+  // and the dials are left exactly where he put them
+  migrateStyles(s)
+
+  // THE PLAYBOOK (1.8.2, armsrace.ts): the lineout and scrum calls become the
+  // primary and the secondary strike, and the arms race's tallies are healed
+  migratePlaybook(s)
+
+  // THE SEASON PLAN (1.8.2, seasonplan.ts). Absent on every older save, which
+  // is the no-plan game and needs nothing. A damaged one is dropped rather than
+  // half-read: an order that is not a list of ids, or an intent the game does
+  // not know, would rest men for reasons nobody chose.
+  if (s.seasonPlan != null) {
+    const sp = s.seasonPlan as Partial<NonNullable<GameState['seasonPlan']>>
+    const okOrder = Array.isArray(sp.order) && sp.order.every(x => typeof x === 'string')
+    const okRot = sp.rot === 'strongest' || sp.rot === 'balanced' || sp.rot === 'protect'
+    if (!okOrder || !okRot) delete s.seasonPlan
+    else if (typeof sp.season !== 'number') s.seasonPlan = { order: sp.order!, rot: sp.rot!, season: s.season }
+  }
 
   ensureCaptains(s, true)
   return s

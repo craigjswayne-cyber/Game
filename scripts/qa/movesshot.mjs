@@ -1,19 +1,22 @@
-// Screenshots of the attacking moves card on the Tactics Set Piece tab, at a
-// phone's portrait width and at landscape, with the page's depth in screens.
+// Screenshots of the playbook on the Tactics Set Piece tab (1.8.2: tap a
+// move, watch it run, add it to the slot picked), at a phone's portrait width and at landscape,
+// with three frames of the animated preview and the page's depth in screens.
 // A look, not a verdict: run after `npm run build`.
-//   node scripts/qa/movesshot.mjs [outdir]
+//   node scripts/qa/movesshot.mjs [outdir] [move]
 import { chromium } from 'playwright-core'
 import { startPreview } from '../lib/preview.mjs'
 import { mkdirSync } from 'node:fs'
 
 const out = process.argv[2] ?? 'shots-moves'
+const move = process.argv[3] ?? 'mv_loop'
 mkdirSync(out, { recursive: true })
-const server = await startPreview('4391', 3000)
+const PORT = process.env.PORT ?? '4391'
+const server = await startPreview(PORT, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 try {
   for (const [name, vp] of [['phone', { width: 390, height: 844 }], ['landscape', { width: 844, height: 390 }]]) {
     const page = await browser.newPage({ viewport: vp })
-    await page.goto('http://localhost:4391/')
+    await page.goto(`http://localhost:${PORT}/`)
     await page.waitForSelector('text=RUGBY', { timeout: 15000 })
     await page.click('text=New Career')
     await page.waitForSelector('[data-league="prem"]')
@@ -34,22 +37,38 @@ try {
     await page.click('.tab-bar >> text=Set Piece')
     await page.click('[data-sp-sub="moves"]')
     await page.waitForSelector('.mv-card')
-    await page.click('.mv-card [data-move="mv_loop"]')
-    await page.waitForTimeout(300)
-    const card = page.locator('.mv-card')
-    await card.scrollIntoViewIfNeeded()
-    await card.screenshot({ path: `${out}/moves-${name}.png` })
-    await page.click('.mv-card [data-call="open"]')
-    await page.click('.mv-card [data-move="mv_1331"]')
-    await page.waitForTimeout(300)
-    await card.screenshot({ path: `${out}/moves-${name}-shape.png` })
+    // two in already, so the slots show what they hold
+    for (const [id, slot] of [['mv_1331', 'shape'], ['mv_crash', 'main']]) {
+      await page.click(`.mv-card [data-move="${id}"]`)
+      await page.click('.mv-card [data-act="add"]')
+      await page.click(`.mv-slots [data-slot="${slot}"]`)
+    }
+    await page.click(`.mv-card [data-move="${move}"]`)
+    const svg = page.locator('.mv-preview svg.dg')
+    await svg.scrollIntoViewIfNeeded()
+    // three frames of the loop: the set-up, the move, the break
+    for (const [i, wait] of [[1, 900], [2, 1500], [3, 1900]]) {
+      await page.waitForTimeout(wait)
+      await svg.screenshot({ path: `${out}/playbook-${name}-frame${i}.png` })
+    }
+    // ALL=1: one mid-loop frame of every move's preview, for a look at each
+    if (process.env.ALL && name === 'phone') {
+      for (const id of await page.$$eval('.mv-card [data-move]', bs => bs.map(b => b.dataset.move))) {
+        await page.click(`.mv-card [data-move="${id}"]`)
+        await page.waitForTimeout(2600)
+        await page.locator('.mv-preview svg.dg').screenshot({ path: `${out}/all-${id}.png` })
+      }
+    }
+    await page.evaluate(() => { (document.querySelector('main.content') ?? document.scrollingElement).scrollTop = 0 })
+    await page.waitForTimeout(200)
+    await page.screenshot({ path: `${out}/playbook-${name}.png` })
     const m = await page.evaluate(() => {
       const el = document.querySelector('main.content') ?? document.scrollingElement
       const c = document.querySelector('.mv-card').getBoundingClientRect()
       const wide = document.documentElement.scrollWidth > document.documentElement.clientWidth
       return { h: el.scrollHeight, v: el.clientHeight, card: Math.round(c.height), wide }
     })
-    console.log(`${name}: set piece tab ${(m.h / m.v).toFixed(2)} screens, moves card ${m.card}px, horizontal scroll ${m.wide}`)
+    console.log(`${name}: set piece tab ${(m.h / m.v).toFixed(2)} screens, playbook card ${m.card}px, horizontal scroll ${m.wide}`)
     await page.close()
   }
 } finally {

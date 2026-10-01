@@ -81,7 +81,9 @@ ok(typeof R.offerResult === 'function' && typeof R.nemesis === 'function' && typ
   const theirs = Object.values(g.players).filter(p => p.clubId && p.clubId !== g.userClubId).slice(0, 3)
   for (const p of mine) { p.homegrown = true; p.stats.apps = 20 }
   ok(R.proteges(g).length === 0, 'a graduate still at your club is not one that got away')
-  for (const p of theirs) { p.homegrown = true; p.stats.apps = 20 }
+  // graduated here, on his watch (1.8.2, 25e775d): a protege carries the club
+  // and season he came up at, and homegrown alone is every club's academy
+  for (const p of theirs) { p.homegrown = true; p.stats.apps = 20; p.gradClub = g.userClubId; p.gradS = g.season }
   ok(R.proteges(g).length === 3, `the three who left are (${R.proteges(g).length})`)
   const never = theirs[0]
   never.stats.apps = 0
