@@ -313,7 +313,6 @@
   "circling": "In agguato",
   "seasonAhead": "La stagione che verrà",
   "objectives": "Obiettivi stagionali · {met}/{total} in linea",
-  "onCourse": " (in linea)",
   "tentpoleThisWeek": " questa settimana",
   "tentpoleIn": {
    "one": " fra {n} sett.",
@@ -2188,7 +2187,6 @@
   "seasonObjectives": "Obiettivi stagionali",
   "boardExpects": "Il consiglio ti chiede di {objective}.",
   "fallShort": "Se fallisci, la fiducia ne risentirà. Porta i risultati e avrai il loro appoggio.",
-  "onCourseSettled": " - in linea, verdetto al fischio finale",
   "boardConfidence": "Fiducia del consiglio",
   "boardDelighted": "Il consiglio è entusiasta del tuo lavoro.",
   "boardSatisfied": "Il consiglio è nel complesso soddisfatto.",

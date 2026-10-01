@@ -311,7 +311,6 @@
   "circling": "熱視線",
   "seasonAhead": "シーズンの展望",
   "objectives": "シーズン目標・{met}/{total}が順調",
-  "onCourse": "（順調）",
   "tentpoleThisWeek": "・今週",
   "tentpoleIn": {
    "one": "・あと{n}週",
@@ -2100,7 +2099,6 @@
   "seasonObjectives": "シーズン目標",
   "boardExpects": "取締役会の期待は「{objective}」だ。",
   "fallShort": "届かなければ信頼は下がる。果たせば、後ろ盾がつく。",
-  "onCourseSettled": "、今のところ順調。答え合わせは最後の笛で",
   "boardConfidence": "取締役会の信頼",
   "boardDelighted": "取締役会はあなたの仕事にご満悦だ。",
   "boardSatisfied": "取締役会はおおむね満足している。",

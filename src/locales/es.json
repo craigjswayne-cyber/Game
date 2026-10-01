@@ -314,7 +314,6 @@
   "circling": "Te rondan",
   "seasonAhead": "La temporada por delante",
   "objectives": "Objetivos de la temporada · {met}/{total} en buen camino",
-  "onCourse": " (por buen camino)",
   "tentpoleThisWeek": " esta semana",
   "tentpoleIn": {
    "one": " en {n} sem",
@@ -2178,7 +2177,6 @@
   "seasonObjectives": "Objetivos de temporada",
   "boardExpects": "La junta espera de ti {objective}.",
   "fallShort": "Quédate corto y la confianza se resentirá. Cumple y tendrás respaldo.",
-  "onCourseSettled": " - en camino; se decide con el pitido final",
   "boardConfidence": "Confianza de la junta",
   "boardDelighted": "La junta está encantada con tu trabajo.",
   "boardSatisfied": "La junta está satisfecha en general.",

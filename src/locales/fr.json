@@ -316,7 +316,6 @@
     "circling": "Ils rôdent",
     "seasonAhead": "La saison à venir",
   "objectives": "Objectifs de la saison · {met}/{total} en bonne voie",
-  "onCourse": " (en bonne voie)",
     "tentpoleThisWeek": " cette semaine",
     "tentpoleIn": {
       "one": " dans {n} sem.",
@@ -2195,7 +2194,6 @@
     "boardExpects": "Le conseil attend de vous de {objective}.",
     "fallShort": "Échouez et la confiance en souffrira. Réussissez, et vous serez soutenu.",
     "fallShort_w": "Échouez et la confiance en souffrira. Réussissez, et vous serez soutenue.",
-    "onCourseSettled": " - en bonne voie, réglé au coup de sifflet final",
     "boardConfidence": "Confiance du conseil",
     "boardDelighted": "Le conseil est ravi de votre travail.",
     "boardSatisfied": "Le conseil est globalement satisfait.",

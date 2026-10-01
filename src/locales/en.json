@@ -310,7 +310,6 @@
   "circling": "Circling",
   "seasonAhead": "The Season Ahead",
   "objectives": "Season Objectives · {met}/{total} on track",
-  "onCourse": " (on course)",
   "tentpoleThisWeek": " this week",
   "tentpoleIn": {
    "one": " in {n} wk",
@@ -2161,7 +2160,6 @@
   "seasonObjectives": "Season Objectives",
   "boardExpects": "The board expects you to {objective}.",
   "fallShort": "Fall short and confidence will suffer. Deliver, and you'll be backed.",
-  "onCourseSettled": " - on course, settled at the final whistle",
   "boardConfidence": "Board Confidence",
   "boardDelighted": "The board is delighted with your work.",
   "boardSatisfied": "The board is broadly satisfied.",
