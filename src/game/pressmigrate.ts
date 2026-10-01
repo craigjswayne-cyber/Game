@@ -22,6 +22,10 @@ import type { Vars } from './i18n'
 type Pattern = { k: string; names: string[]; rx: RegExp; literal: number }
 
 let INDEX: Pattern[] | null = null
+/** [key, the English it was saved under before its wording changed] */
+const LEGACY_EN: ReadonlyArray<readonly [string, string]> = [
+  ['press.campHeat', 'Warm-weather camp ({cost})'],
+]
 /** any one quote mark or apostrophe, straight or curly */
 const Q = `["“”‘’'«»]`
 
@@ -62,6 +66,10 @@ function index(): Pattern[] {
       }
     }
   }
+  // English that a key used to have and no longer does: a line saved under
+  // the old wording must still find its key (1.8.2 put a minus on the camp's
+  // cost, owner: costs read as costs)
+  for (const [k, old] of LEGACY_EN) add(k, old)
   out.sort((a, b) => b.literal - a.literal)
   INDEX = out
   return out
