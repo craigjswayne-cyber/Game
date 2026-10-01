@@ -2230,7 +2230,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .now-strip { padding: 0 10px 2px; }
 .comm-feed {
   position: relative; overflow: hidden;
-  height: clamp(96px, 17vh, 150px);
+  height: clamp(96px, 17vh, 150px); height: clamp(96px, 17dvh, 150px);
   /* the older lines fade out over the top edge rather than being cut */
   -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 26px);
   mask-image: linear-gradient(to bottom, transparent 0, #000 26px);
@@ -4721,7 +4721,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .talk-react { margin: 8px 14px; padding: 10px 12px; }
 .talk-react .tr-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
 .talk-react .tr-msg { margin: 6px 0 4px; }
-.talk-react .tr-list { list-style: none; margin: 0; padding: 0; max-height: 46vh; overflow-y: auto; }
+.talk-react .tr-list { list-style: none; margin: 0; padding: 0; max-height: 46vh; max-height: 46dvh; overflow-y: auto; }
 .talk-react .tr-list li {
   display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; align-items: center; gap: 6px;
   padding: 3px 0; border-top: 1px solid var(--border);
