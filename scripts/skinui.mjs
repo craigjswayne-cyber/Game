@@ -159,6 +159,13 @@ try {
   await page.waitForTimeout(600)
   const after = await page.locator('.app').first().getAttribute('class')
   ok((after ?? '').includes('skin-stealth'), 'the chosen skin is still on after a reload')
+  // a reload lands on Home since 1.8.2 (owner): walk back to Settings
+  if (await page.locator('.skin-card').count() === 0) {
+    await page.locator('.bottom-nav button[data-group]').nth(1).click()
+    await page.waitForSelector('.submenu')
+    await page.locator('.submenu-item', { hasText: 'Settings' }).click()
+    await page.waitForSelector('.skin-card')
+  }
 
   // ---- 4. THE FLOODLIGHT WORKS ON EVERY SKIN ----
   //
