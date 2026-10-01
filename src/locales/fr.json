@@ -2101,7 +2101,7 @@
     "loanAskTag": "(non proposé)"
   },
   "objectives": {
-    "youth": "Lancer les jeunes : donner 6 titularisations ou plus à des joueurs formés au club",
+    "youth": "Lancer les jeunes : 6 titularisations du centre",
     "derby": "Gagner un derby : les supporters réclament la fierté locale",
     "europe": "Atteindre les phases finales de la Coupe continentale",
     "europe_f": "Atteindre les phases finales du Championnat hémisphérique",
@@ -2125,7 +2125,7 @@
     "boardPlayoffsHead": "atteindre les phases finales",
     "boardTopHalfHead": "finir dans la première moitié de tableau",
     "boardSurviveHead": "éviter les deux dernières places",
-    "youth_f": "Lancer les jeunes : donner 6 titularisations ou plus à des joueuses formées au club"
+    "youth_f": "Lancer les jeunes : 6 titularisations du centre"
   },
   "finances": {
     "tabFinances": "Finances",

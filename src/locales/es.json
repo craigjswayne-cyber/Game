@@ -2085,7 +2085,7 @@
   "loanAskTag": "(no ofrecido)"
  },
  "objectives": {
-  "youth": "Dale minutos a la cantera: da 6 o más titularidades a canteranos",
+  "youth": "Dale minutos a la cantera: 6+ titularidades",
   "derby": "Gana un derbi: la afición exige mandar en el barrio",
   "europe": "Alcanza las eliminatorias de la Copa Continental",
   "europe_f": "Alcanza las eliminatorias del Campeonato Hemisférico",
@@ -2109,7 +2109,7 @@
   "boardPlayoffsHead": "llegar a los playoffs",
   "boardTopHalfHead": "acabar en la mitad alta",
   "boardSurviveHead": "mantenerte lejos de los dos últimos",
-  "youth_f": "Dale minutos a la cantera: da 6 o más titularidades a canteranas"
+  "youth_f": "Dale minutos a la cantera: 6+ titularidades"
  },
  "finances": {
   "tabFinances": "Finanzas",

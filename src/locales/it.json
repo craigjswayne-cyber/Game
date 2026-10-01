@@ -2095,7 +2095,7 @@
   "loanAskTag": "(non offerto)"
  },
  "objectives": {
-  "youth": "Lancia l'Academy: almeno 6 partite da titolare a giocatori dell'Academy",
+  "youth": "Lancia l'Academy: 6+ partite da titolare",
   "derby": "Vinci un derby: i tifosi pretendono la supremazia cittadina",
   "europe": "Raggiungi la fase a eliminazione della Continental Cup",
   "europe_f": "Raggiungi la fase a eliminazione del Campionato Emisferico",
@@ -2119,7 +2119,7 @@
   "boardPlayoffsHead": "raggiungere i playoff",
   "boardTopHalfHead": "chiudere nella metà alta della classifica",
   "boardSurviveHead": "restare lontano dalle ultime due",
-  "youth_f": "Lancia l'Academy: almeno 6 partite da titolare a giocatrici dell'Academy"
+  "youth_f": "Lancia l'Academy: 6+ partite da titolare"
  },
  "finances": {
   "tabFinances": "Finanze",

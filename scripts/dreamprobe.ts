@@ -68,8 +68,13 @@ ok(Array.isArray(D.DREAMS) && D.DREAMS.length >= 5, `there are dreams to choose 
   const RETIRED = ['bottom', 'legend', 'fallen', 'intl']
   const all = ['prem', 'champ', 'natl1'].flatMap(l => D.dreamsFor({ clubId: 'ealing', clubName: 'Ealing', leagueId: l, rep: 62 }).map(d => d.id))
   ok(RETIRED.every(id => !all.includes(id)), `none of ${RETIRED.join(', ')} is offered any more`)
-  ok(D.DREAMS.filter(d => !d.retired).map(d => d.id).join() === 'topflight,europe,double,dynasty,academy,world,immortal,league',
+  ok(D.DREAMS.filter(d => !d.retired).map(d => d.id).join() === 'topflight,europe,double,academy,league',
     'the rest keep their order')
+  // owner, round 7: four a manager can relate to; no international job
+  for (const [clubId, leagueId] of [['northampton', 'prem'], ['bedford', 'champ']] as const) {
+    const n = D.dreamsFor({ clubId, clubName: clubId, leagueId } as any).length
+    ok(n === 4, `${clubId} is offered four dreams (${n})`)
+  }
   const g = newGame('ealing', 'Dreamer', 31)
   for (const id of RETIRED) {
     g.dream = { id, clubId: 'ealing', season: g.season }

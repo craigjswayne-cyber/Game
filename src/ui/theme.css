@@ -5364,7 +5364,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 /* the game-time headings wrap inside their own column rather than painting
    across the next one (owner, round 2: "NAM HE WAS TOLD"), and the status
    select is as wide as its column, never wider */
-.dtable.fit .gt-head th { white-space: normal; overflow: hidden; overflow-wrap: anywhere; line-height: 1.15; vertical-align: bottom; }
+.dtable.fit .gt-head th { white-space: normal; overflow: hidden; overflow-wrap: normal; word-break: normal; line-height: 1.15; vertical-align: bottom; }
 .dtable.fit .gt-sel { width: 100%; max-width: 100%; text-overflow: ellipsis; }
 .gt-mood .status-dot { width: 9px; height: 9px; vertical-align: 0; }
 .preset-chip .glyph { font-size: 1.3em; vertical-align: -0.28em; }
