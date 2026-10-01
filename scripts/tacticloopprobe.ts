@@ -72,8 +72,8 @@ ok(r1t.every(s => !rawKey(s)) && r1t.every(s => !s.includes('—')), 'every line
 const cats = new Set(r1.lines.map(l => l.cat))
 ok(['form', 'style', 'players', 'setpiece', 'coach', 'soft'].every(c => cats.has(c as ReportLine['cat'])),
   `it covers form, style, key men, set piece, the dugout and the soft spot (${[...cats].join(', ')})`)
-ok(planOptions(g, leagueFx).length >= 2 && planOptions(g, leagueFx).length <= 3,
-  `two or three plans for a league match (${planOptions(g, leagueFx).map(o => o.id).join(', ')})`)
+ok(planOptions(g, leagueFx).length >= 3 && planOptions(g, leagueFx).length <= 5,
+  `three to five plans for a league match, stacked on the Prep tab since round 6 (${planOptions(g, leagueFx).map(o => o.id).join(', ')})`)
 
 // a cup tie against a side from another league, and a friendly
 const other = Object.values(g.clubs).find(c => c.leagueId !== me.leagueId && c.id !== me.id)!
@@ -146,7 +146,7 @@ ok(eLo.held > eHi.held, 'a vague report holds back what it cannot see')
 // ---- 3. plans map onto real levers -----------------------------------------
 console.log('\n3. plans are existing levers')
 const PREPS = new Set(['attack', 'defence', 'setpiece', 'fitness', 'recovery'])
-const DIALS = new Set(['style', 'tempo', 'kicking', 'aggression', 'defLine'])
+const DIALS = new Set(['style', 'tempo', 'kicking', 'aggression', 'defLine', 'ruckCommit'])
 const gp = clone(hi)
 let checked = 0, bad = 0
 for (const c of Object.values(gp.clubs)) {

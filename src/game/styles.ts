@@ -268,9 +268,10 @@ export const STYLE_MOVES: Record<AtkStyle, string[]> = {
   // side's, the tap and the 9's loop a pod side's, the full-back and the
   // blind wing in the line a wide side's, the kicks a kicking side's, and
   // the peel's pop off the maul an offloading side's)
-  direct: ['mv_crash', 'mv_1331', 'mv_crashswing', 'mv_maulswitch'],
+  direct: ['mv_crash', 'mv_1331', 'mv_crashswing', 'mv_maulswitch', 'mv_tapgo'],
   pods: ['mv_1331', 'mv_242', 'mv_backdoor', 'mv_loop9', 'mv_tap'],
-  width: ['mv_loop', 'mv_switch', 'mv_strike13', 'mv_242', 'mv_width', 'mv_wingin'],
+  // (round 6: the tap and spread, the ball out the back to the width, too)
+  width: ['mv_loop', 'mv_switch', 'mv_strike13', 'mv_242', 'mv_width', 'mv_wingin', 'mv_tapspread'],
   kick: ['mv_crosskick', 'mv_grubber'],
   offload: ['mv_backdoor', 'mv_decoy', 'mv_inside', 'mv_peel'],
 }

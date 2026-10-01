@@ -5,7 +5,7 @@
  *
  * No new screen: both halves fold into cards the manager already reads. Both
  * are compact at phone width - the report shows four lines and folds the rest
- * away. Since 1.8.3 the plans are a row of chips on the Prep tab and the
+ * away. Since 1.8.3 the plans are on the Prep tab (a stack since round 6) and the
  * report sits behind that tab's info button.
  */
 import { useState } from 'react'
@@ -35,7 +35,7 @@ function leverLine(L: PlanLevers): string {
 }
 
 function planDesc(o: PlanOption): string {
-  const unit = typeof o.target === 'string' && o.target !== 'style' && o.target !== 'late'
+  const unit = typeof o.target === 'string' && o.target !== 'style' && o.target !== 'late' && o.target !== 'ball'
     ? t(`oppreport.u_${o.target}`) : ''
   return t(`oppreport.planDesc_${o.id}`, { unit })
 }
@@ -48,10 +48,12 @@ export function usePrepOpponent(): string | null {
   return oppId ? teamShort(game, oppId) : null
 }
 
-/** THE RESPONSE PLANS, AS CHIPS (owner, 1.8.3: "Prep page - simplify, too
- *  much text, just a few options to select"). The name of each plan and
- *  nothing else; the one the club is carrying says what it set, in one line.
- *  What each is for is in the report behind the Prep tab's info button. */
+/** THE RESPONSE PLANS (owner, 1.8.3: "Prep page - simplify, too much text,
+ *  just a few options to select"; round 6: "make these options stacked").
+ *  One full-width option a plan, stacked: its name, and under it, smaller and
+ *  grey, one short line on what it is for, in the look of the board's
+ *  decisions (OptionLabel). The one the club is carrying says what it set,
+ *  in one line under the stack. */
 export function ResponsePlans() {
   const game = useStore(s => s.game)!
   const touch = useStore(s => s.touch)
@@ -63,13 +65,16 @@ export function ResponsePlans() {
   const on = opts.find(o => isCurrent(game, oppId, o))
   return (
     <div className="prep-plans">
-      <div className="preset-row" role="radiogroup" aria-label={t('oppreport.planTitle')}>
+      <div className="plan-stack" role="radiogroup" aria-label={t('oppreport.planTitle')}>
         {opts.map(o => {
           const sel = o === on
           return (
-            <button key={o.id} className={`preset-chip${sel ? ' on' : ''}`} role="radio" aria-checked={sel} data-plan={o.id}
+            <button key={o.id} className={`plan-opt${sel ? ' on' : ''}`} role="radio" aria-checked={sel} data-plan={o.id}
               onClick={() => { if (!sel) { applyPlan(game, fx, o); touch() } }}>
-              {t(`oppreport.plan_${o.id}`)}
+              <span className="opt-label">
+                <span className="opt-main">{t(`oppreport.plan_${o.id}`)}</span>
+                <span className="opt-detail">{planDesc(o)}</span>
+              </span>
             </button>
           )
         })}
