@@ -13,8 +13,9 @@
 //   the free places are printed, and a full book says so on the row;
 //   the Training screen's Club tab signposts mentoring to the Team Report,
 //     which opens on its Mentoring tab; a young player is chosen, every
-//     eligible mentor is listed with fit, position, leadership, caps, what he
-//     teaches and what it is worth, and a tap makes the pairing;
+//     eligible mentor is listed with position, leadership, caps and what he
+//     teaches (never the fit or a forecast: round 4 made a pairing a gamble
+//     for its first month), and a tap makes the pairing;
 //   all three survive a reload (the picks used to reach the disk only with the
 //     next week's autosave);
 //   nothing spills sideways at 412 or 360 wide.
@@ -148,7 +149,9 @@ try {
   const firstCard = await page.locator('[data-mentor]').first().innerText()
   ok(/Leadership \d+/.test(firstCard) && /caps/.test(firstCard) && /(Same position|Same unit|Different unit)/.test(firstCard),
     'each mentor shows his leadership, caps and position link')
-  ok(/Expected over a season: about [\d.]+ rating and [\d.]+ coached points/.test(firstCard), 'and the expected impact, in plain words')
+  // A GAMBLE (owner, round 4): no fit, no reason, no forecast at pairing time
+  ok(!/Inseparable|Working well|Coming along|Polite, no more|Not taking|A waste of|Expected over a season/.test(await page.locator('[data-mentor]').allInnerTexts().then(x => x.join(' '))),
+    'and nothing about how the pairing would go')
   await page.screenshot({ path: `${SHOTS}/mentoring-pick-412.png` })
   const mentor = await page.locator('[data-mentor]').first().getAttribute('data-mentor')
   await page.locator(`[data-mentor="${mentor}"] button`).click()
@@ -156,6 +159,7 @@ try {
   const pairs = await G(() => (window.rugbyStore.getState().game.mentors ?? []).map(m => ({ ...m })))
   ok(pairs.length === 1 && String(pairs[0].kid) === kid && String(pairs[0].senior) === mentor && pairs[0].since != null,
     'the pairing is made from the Team Report, with its ledger open')
+  ok(/Too early to tell/.test(await page.locator('[data-pair]').first().innerText()), 'and its card says only that it is too early to tell')
   await page.screenshot({ path: `${SHOTS}/mentoring-paired-412.png`, fullPage: true })
   await noSideScroll('mentoring')
 
