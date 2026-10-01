@@ -4,10 +4,13 @@
 // manager actually sees on a phone held upright:
 //
 //   1. the dressing room before kick-off: the moods read against the game in
-//      front of them, and five tones to choose from
+//      front of them, four tones to choose from (owner, round 6: "four
+//      different emotions and a no chat") and Say nothing under them
 //   2. the talk given: every man's reaction, in words with a mood arrow, on
 //      the stage for the opening minutes, inside the screen, no numbers
 //   3. half time: six tones, and the same per-man reactions after the talk
+//   4. a habit of saying nothing: the room takes the silence badly, in words
+//      on the stage, and the assistant says so once (no numbers)
 //
 // and saves 390x844 screenshots of both talks for the owner.
 //
@@ -39,6 +42,31 @@ const audit = async (sel) => page.evaluate(([sel, W]) => {
   }
 }, [sel, W])
 
+/** a fresh career on `pg`, walked to the Kick Off button */
+const toKickOff = async (pg, name) => {
+  await pg.goto(`http://localhost:${PORT}/`)
+  await pg.waitForSelector('text=RUGBY', { timeout: 15000 })
+  await pg.click('text=New Career')
+  await pg.waitForSelector('text=English Premier Division')
+  await pg.click('text=English Premier Division')
+  await pg.waitForSelector('.club-tile')
+  await pg.click('.tile >> text=Northampton')
+  await pg.waitForSelector('text=Star Player')
+  await pg.click('.action-bar >> text=Confirm')
+  await pg.fill('input[placeholder="e.g. A. Gaffer"]', name)
+  await pg.click('.speech-tile >> text=Forward Dominance')
+  await pg.click('.action-bar >> text=Confirm')
+  await pg.click('text=▸ Start Career')
+  await pg.waitForSelector('.tut-box', { timeout: 15000 })
+  await pg.click('.tut-close .btn')
+  for (let tap = 0; tap < 8; tap++) {
+    if (await pg.locator('text=Kick Off ▸').count()) break
+    await pg.click('.continue-btn')
+    await pg.waitForTimeout(450)
+  }
+  await pg.waitForSelector('text=Kick Off ▸', { timeout: 20000 })
+}
+
 try {
   await page.goto(`http://localhost:${PORT}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
@@ -67,7 +95,10 @@ try {
   await page.locator('.talk-modal').waitFor({ timeout: 5000 })
   const tiles = await page.locator('.talk-modal .speech-tile b').allInnerTexts()
   console.log(`  pre-match tones: ${tiles.join(' | ')}`)
-  ok(tiles.length === 5, `five pre-match tones (${tiles.length})`)
+  ok(tiles.length === 4, `four pre-match tones (${tiles.length})`)
+  ok(!tiles.some(x => /no pressure/i.test(x)), 'and "No pressure on us" is gone')
+  ok(await page.locator('.talk-modal >> text=Say nothing - straight out').count() === 1, 'with Say nothing under them')
+  await page.screenshot({ path: `${OUT}/talk-pre-four.png` })
   await page.click('.talk-modal .mood-fold > summary')
   await page.waitForTimeout(250)
   const moods = await page.locator('.talk-modal .mood-chip').allInnerTexts()
@@ -140,6 +171,46 @@ try {
   ok(ht.out === 0 && ht.digits === 0, 'inside the screen, and no numbers')
   await page.locator('.panel-area .talk-react').scrollIntoViewIfNeeded()
   await page.screenshot({ path: `${OUT}/talk-ht.png` })
+
+  // ---- 4. a habit of saying nothing
+  const p2 = await browser.newPage({ viewport: { width: 390, height: 844 } })
+  await toKickOff(p2, 'Silent')
+  // four silences already behind this room: the deepest the habit goes
+  await p2.evaluate(() => { window.rugbyStore.getState().game.preTalkLog = 'NNNN' })
+  await p2.locator('text=Kick Off ▸').first().click()
+  await p2.locator('.talk-modal').waitFor({ timeout: 5000 })
+  await p2.click('.talk-modal >> text=Say nothing - straight out')
+  try {
+    await p2.locator('text=▸ Take the Field').waitFor({ timeout: 2500 })
+    await p2.click('text=▸ Take the Field')
+  } catch { /* clean sheet */ }
+  await p2.waitForSelector('.scoreboard', { timeout: 20000 })
+  await p2.evaluate(() => {
+    const st = window.rugbyStore.getState()
+    if (st.liveMatch?.playing) st.matchCursor(st.liveMatch.cursor, false)
+  })
+  await p2.locator('.talk-react').first().waitFor({ timeout: 5000 })
+  const sil = await p2.evaluate(([W]) => {
+    const rows = [...document.querySelectorAll('.talk-react .tr-list li')]
+    const chips = rows.map(r => r.querySelector('.mood-chip'))
+    const box = document.querySelector('.talk-react')
+    return {
+      n: rows.length,
+      words: [...new Set(chips.map(c => c?.textContent?.trim()))],
+      digits: chips.filter(c => c && /\d/.test(c.textContent ?? '')).length,
+      out: chips.filter(c => c && c.getBoundingClientRect().right > W + 0.5).length,
+      text: box?.textContent ?? '',
+      log: window.rugbyStore.getState().game.preTalkLog,
+    }
+  }, [W])
+  console.log(`  silent-again reactions: ${sil.words.join(' / ')}`)
+  ok(sil.n >= 15, `a habit of silence: every man reacts to it (${sil.n} rows)`)
+  ok(sil.words.includes('Wanted a word from you'), 'and some of them wanted a word from the manager')
+  ok(/assistant/i.test(sil.text), 'the assistant says it once')
+  ok(sil.digits === 0 && sil.out === 0, 'in words, inside the screen')
+  ok(sil.log === 'NNNNN', `the room remembers (${sil.log})`)
+  await p2.screenshot({ path: `${OUT}/talk-silent-habit.png` })
+  await p2.close()
 } catch (e) {
   console.log('FAIL flow: ' + (e?.message ?? e).split('\n')[0])
   fails++

@@ -25,8 +25,8 @@
  */
 import { readFileSync } from 'node:fs'
 import { newGame } from '../src/game/newgame'
-import { applyPreTalk, applyTeamTalk, beginMatch, lineupFor, playHalf, paperOverall, recomputeSideUnits, talkListen, type LiveCtx } from '../src/game/matchEngine'
-import { HT_TONES, PRE_TONES, TALK_CAP, bestTone, talkFactor, talkReads, talkSetting, type HtTone, type PreTone, type TalkSetting } from '../src/game/teamtalk'
+import { applyPreTalk, applyTeamTalk, beginMatch, lineupFor, openDressingRoom, playHalf, paperOverall, recomputeSideUnits, talkListen, type LiveCtx } from '../src/game/matchEngine'
+import { HT_TONES, PRE_TONES, TALK_CAP, baseState, bestTone, logPreTalk, roomMood, silenceReads, silenceWeight, talkFactor, talkReads, talkSetting, type HtTone, type PreTone, type TalkSetting } from '../src/game/teamtalk'
 import { mulberry32 } from '../src/game/rng'
 import { processWeekAndAdvance, userFixtureThisWeek, weekRng } from '../src/game/season'
 import type { Fixture, GameState } from '../src/game/model'
@@ -119,11 +119,11 @@ console.log('--- 3. the room is read: the right tone helps, the wrong one backfi
     return Object.fromEntries(v) as Record<string, number>
   }
   const favs = row('pre, big favourites, buoyant', { exp: 0.95, home: true, big: false }, PRE_TONES, 8.5)
-  ok(favs.fire < 0 && favs.underdog < 0, 'firing up or talking down a buoyant favourite backfires (complacency)')
+  ok(favs.fire < 0 && favs.faith < favs.calm, 'firing up a buoyant favourite backfires, and more belief is the wrong medicine (complacency)')
   ok(favs.expect > 0.1 && favs.expect > favs.fire + 0.2, 'demanding standards of them is right')
   const dogs = row('pre, big underdogs, nervous', { exp: -0.95, home: false, big: false }, PRE_TONES, 4.5)
   ok(dogs.expect < 0, 'demanding a win of a frightened underdog backfires')
-  ok(dogs.underdog > 0.15, '"no pressure" frees a frightened underdog')
+  ok(dogs.faith > 0.15, 'faith frees a frightened underdog')
   const even = row('pre, evenly matched, settled', { exp: 0, home: true, big: false }, PRE_TONES, 6.5)
   ok(Math.max(...Object.values(even)) < Math.max(...Object.values(favs)), 'a settled room has less to gain from any speech')
   ok(even.calm >= -0.01, 'calm never hurts a settled room')
@@ -155,7 +155,7 @@ console.log('--- 4. bounded')
 
 // ---------------------------------------------------------------------------
 console.log('--- 5. it matters: paired matches, best talk against worst')
-type Plan = 'none' | 'best' | 'worst'
+type Plan = 'none' | 'best' | 'worst' | 'habit'
 function play(g0: GameState, fx: Fixture, seed: number, plan: Plan): { won: number; drawn: number; margin: number; f1: number; f2: number } {
   const g = clone(g0)
   const ctx = beginMatch(g, fx, mulberry32(seed), false)
@@ -172,7 +172,12 @@ function play(g0: GameState, fx: Fixture, seed: number, plan: Plan): { won: numb
     }
     return w
   }
-  if (plan !== 'none') {
+  if (plan === 'habit') {
+    // four silences already in the last five, and silent again: the deepest
+    // the habit goes (three steps)
+    g.preTalkLog = 'NNNN'
+    openDressingRoom(g, ctx, null)
+  } else if (plan !== 'none') {
     const s = talkSetting(paperOverall(g, mine.teamId, mine.lineup), paperOverall(g, opp.teamId, opp.lineup), mine === ctx.home, !!fx.stage || ctx.derby)
     applyPreTalk(g, ctx, pick(PRE_TONES, s, mine.lineup.slice(0, 23)))
   }
@@ -182,7 +187,7 @@ function play(g0: GameState, fx: Fixture, seed: number, plan: Plan): { won: numb
   }
   const f1 = xvF()
   playHalf(g, ctx)
-  if (plan !== 'none') {
+  if (plan !== 'none' && plan !== 'habit') {
     const s = talkSetting(paperOverall(g, mine.teamId, mine.lineup), paperOverall(g, opp.teamId, opp.lineup), mine === ctx.home, !!fx.stage || ctx.derby, mine.score - opp.score)
     const ids = mine.lineup.slice(0, 23).filter(id => id != null && (mine.onPitch.has(id) || !mine.ratings.has(id)))
     applyTeamTalk(g, ctx, pick(HT_TONES, s, ids, mine.talkShift))
@@ -260,6 +265,102 @@ console.log('--- 6. morale carries a little of it home')
   console.log(`     morale moved by the talk: up to ${maxAbs.toFixed(2)} a man`)
   ok(diffs.some(d => Math.abs(d) > 0.01), 'a talk leaves a trace in the men who heard it')
   ok(maxAbs <= 0.6, 'and only a trace: a match result moves morale more')
+}
+
+// ---------------------------------------------------------------------------
+console.log('--- 8. saying nothing: once is nothing, a habit drains the room (owner, round 6)')
+{
+  const en = JSON.parse(readFileSync('src/locales/en.json', 'utf8'))
+  ok(PRE_TONES.length === 4 && new Set(PRE_TONES).size === 4, `exactly four pre-match tones (${PRE_TONES.join(', ')})`)
+  // once: exactly the match it always was, and nothing on screen
+  {
+    const g = clone(base)
+    const fx = userFx(g)[0]
+    let draws = 0
+    const inner = mulberry32(21)
+    const ctx = beginMatch(g, fx, () => { draws++; return inner() }, true)
+    const mine = mineOf(ctx)
+    const units = JSON.stringify([ctx.home.units, ctx.away.units])
+    const d0 = draws
+    const msg = openDressingRoom(g, ctx, null)
+    ok(msg === null && !ctx.preReads && !mine.talkF, 'one silence: no reactions, no line, no multiplier')
+    ok(JSON.stringify([ctx.home.units, ctx.away.units]) === units, 'and both sides\' units are exactly as they were')
+    ok(draws === d0, 'and the match rng was not touched')
+    ok(g.preTalkLog === 'N', `the room remembers it (${g.preTalkLog})`)
+  }
+  // twice in five is forgiven; the third is a habit
+  ok(silenceWeight('NN') === 0 && silenceWeight('TNTNT') === 0, 'two silences in the last five are forgiven')
+  ok(silenceWeight('NNN') === 1 && silenceWeight('NNNN') === 2 && silenceWeight('NNNNN') === 3, 'each one past that is a step, three at most')
+  ok(silenceWeight('NNNNNNNNNN') === 3, 'and it never goes deeper than three')
+  // recovers when talks resume: the window slides
+  let log = 'NNNNN'
+  const path: number[] = []
+  for (let i = 0; i < 5; i++) { log = logPreTalk(log, true); path.push(silenceWeight(log)) }
+  ok(path.join(',') === '2,1,0,0,0', `talking again brings it back (${path.join(' -> ')})`)
+  // the habit: every man takes the silence badly, in words, bounded
+  {
+    const g = clone(base)
+    const fx = userFx(g)[0]
+    let draws = 0
+    const inner = mulberry32(22)
+    const ctx = beginMatch(g, fx, () => { draws++; return inner() }, true)
+    const mine = mineOf(ctx)
+    const opp = mine === ctx.home ? ctx.away : ctx.home
+    const oppUnits = JSON.stringify(opp.units)
+    g.preTalkLog = 'TNTN'
+    const d0 = draws
+    const msg = openDressingRoom(g, ctx, null)
+    const reads = ctx.preReads ?? []
+    ok(draws === d0, 'the habit draws nothing from the match rng')
+    ok(reads.length === mine.lineup.slice(0, 23).filter(id => id != null).length, `the third silence in five: all ${reads.length} react`)
+    ok(reads.every(r => r.r < 0), 'and every one of them takes it as a small knock')
+    ok(typeof msg === 'string' && msg.length > 0 && !/\d/.test(msg), `the assistant says it once, in words: "${msg}"`)
+    const words = [...new Set(reads.map(r => r.k))].map(k => k.split('.').reduce((o: any, p) => o?.[p], en) as string | undefined)
+    ok(words.every(w => typeof w === 'string' && !/\d/.test(w)), `reactions in plain words (${words.join(' / ')})`)
+    ok(JSON.stringify(opp.units) === oppUnits, 'the other side is untouched (AI talks stay neutral)')
+    ok(g.preTalkLog === 'TNTNN', `logged (${g.preTalkLog})`)
+    // bounded at the deepest step
+    const deep = silenceReads(g, mine.lineup.slice(0, 23), { exp: 0, home: true, big: false }, fx.id, 1, 3)
+    const lo = Math.min(...deep.map(r => talkFactor(r.r)))
+    ok(lo >= 1 - TALK_CAP, `three steps deep, nobody drops below the talk cap (worst man ${((lo - 1) * 100).toFixed(1)}%)`)
+  }
+  // belief: the room the preview shows is flatter after a habit of silence
+  {
+    const g = clone(base)
+    const ids = g.clubs[g.userClubId].tactic.lineup.slice(0, 23).filter((id): id is number => id != null)
+    const s: TalkSetting = { exp: 0, home: true, big: false }
+    const mean = () => ids.reduce((a, id) => a + baseState(g, g.players[id], s, 5), 0) / ids.length
+    const low = () => ids.filter(id => roomMood(baseState(g, g.players[id], s, 5), g.players[id]).tone === 'low').length
+    g.preTalkLog = 'TTTTT'
+    const m0 = mean(), l0 = low()
+    g.preTalkLog = 'NNNNN'
+    const m1 = mean(), l1 = low()
+    ok(m1 < m0 && l1 >= l0, `a habit of silence shows in the moods (room ${m0.toFixed(2)} -> ${m1.toFixed(2)}, low moods ${l0} -> ${l1})`)
+    // and a talk has more to do: faith helps a neglected room more
+    const sum = (tn: PreTone) => talkReads(g, ids, s, tn, 5, 0.6).reduce((a, r) => a + r.r, 0)
+    const fNeglect = sum('faith')
+    g.preTalkLog = 'TTTTT'
+    const fFine = sum('faith')
+    ok(fNeglect > fFine, 'and a word of faith does more for a neglected room than for a looked-after one')
+  }
+  // what it costs on the pitch: paired matches, even games
+  {
+    let n = 0, wn = 0, wh = 0, mh = 0
+    for (const [club, seed] of [['leicester', 4242], ['toulouse', 9], ['leinster', 31337], ['northampton', 777]] as const) {
+      const { g, out } = world(club, seed)
+      for (const { fx } of out.filter(x => x.exp >= -0.25 && x.exp <= 0.25).slice(0, 3)) {
+        for (let k = 0; k < Math.ceil((QUICK ? 40 : 120) / 3); k++) {
+          const sd = 5000 + k * 7919 + fx.id
+          const a = play(g, fx, sd, 'none'), h = play(g, fx, sd, 'habit')
+          n++; wn += a.won + a.drawn / 2; wh += h.won + h.drawn / 2; mh += h.margin - a.margin
+        }
+      }
+    }
+    const cost = (wn - wh) / n * 100
+    console.log(`     even games: one-off silence ${(wn / n * 100).toFixed(1)}%  a habit of it ${(wh / n * 100).toFixed(1)}%  (${cost.toFixed(1)}pp, margin ${(mh / n).toFixed(1)})`)
+    ok(cost > 0, 'a habit of silence costs results')
+    ok(cost <= 8, 'but less than a badly judged talk does: a slow leak, not a cliff')
+  }
 }
 
 // ---------------------------------------------------------------------------

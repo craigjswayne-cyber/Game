@@ -11,7 +11,7 @@ import { analystShift, archetypeOf, loudestDial, repetitionFatigue, respectLayer
 import { resolveContest, type Contest } from './contest'
 import { updateNatRank } from './natrank'
 import { bigMatchTemper, consistency, effAt } from './attributes'
-import { HT_TONES, PRE_CARRY, PRE_TONES, hotShare, roomVerdict, talkFactor, talkMorale, talkReads, talkSetting, type HtTone, type PreTone, type TalkRead, type TalkSetting } from './teamtalk'
+import { HT_TONES, PRE_CARRY, PRE_TONES, hotShare, logPreTalk, roomVerdict, silenceReads, silenceWeight, talkFactor, talkMorale, talkReads, talkSetting, type HtTone, type PreTone, type TalkRead, type TalkSetting } from './teamtalk'
 import { nationName, nationNameIn, nationVars } from './nations'
 import { derbyName, isDerby } from './rivalries'
 import { EXPLOITED_BY, analystEdge, settleAnalyst } from './analyst'
@@ -1043,6 +1043,15 @@ export interface SideCtx {
   reacted?: number
   /** an active Head Injury Assessment: who went off, who covers, verdict due */
   hia?: { pid: number; subId: number; failed: boolean; returnTick: number }
+  /** THE LAST INJURY STOPPAGE, as the engine resolved it (owner, round 6):
+   *  who went down, who the assistant sent on (null when nobody could go on)
+   *  and where the stoppage's own lines end in ctx.events. The injury sheet
+   *  reads the cover from here rather than guessing it from the next line of
+   *  commentary, and the free override is judged against `upTo`, so a line
+   *  written at the same stoppage (playing out of position, uncontested
+   *  scrums) is not mistaken for the cover having played. Never read by the
+   *  simulation, never a draw. */
+  lastInj?: { hurtId: number; coverId: number | null; upTo: number }
   /** goal-kicking bonus from the kicking coach */
   goalBonus: number
   /** players in this side facing a former club today - the old boys */
@@ -3708,8 +3717,44 @@ function pickBenchSub(state: GameState, side: SideCtx, outId: number): Player | 
 }
 
 const FRONT_ROW = ['LP', 'HK', 'TP'] as const
-function isFrontRower(p: Player | undefined | null): boolean {
+export function isFrontRower(p: Player | undefined | null): boolean {
   return !!p && FRONT_ROW.some(n => p.pos === n || p.alt.includes(n))
+}
+
+/**
+ * ONLY THE FRONT ROW IS HARD TO REPLACE (owner, round 6: "he is a back rower
+ * so I should be able to replace him with anyone ... Only front row players
+ * should be harder to replace ... if a back has to play front row for example
+ * then it would be uncontested scrums").
+ *
+ * Every other shirt takes any fit man on the bench, and a man out of position
+ * pays the existing cover charge (forcedSwitchCost). Shirts 1, 2 and 3 want a
+ * trained front-rower while one is available: an unused fit man on the bench,
+ * or `alsoId` (the assistant's injury cover, who goes back to the bench if he
+ * is swapped). When none is, anybody may take the shirt and Law 3 orders
+ * uncontested scrums (checkFrontRow). True means "a non-front-rower may not
+ * take this shirt now". Read-only, no draw.
+ */
+export function needsFrontRower(state: GameState, side: SideCtx, outId: number, alsoId?: number): boolean {
+  const slot = side.lineup.indexOf(outId)
+  if (slot < 0 || slot > 2) return false
+  if (alsoId != null && isFrontRower(state.players[alsoId])) return true
+  for (const id of side.lineup.slice(15)) {
+    if (id == null || side.onPitch.has(id) || side.ratings.has(id) || side.binned.has(id)) continue
+    const p = state.players[id]
+    if (p && !p.injury && p.bans === 0 && isFrontRower(p)) return true
+  }
+  return false
+}
+
+/** A non-front-rower has gone into a front-row shirt because nobody trained
+ *  was left: if the side can no longer cover all three positions, the
+ *  referee orders uncontested scrums. The change was the law's own answer to
+ *  the shortage, so nobody else leaves the field for it. */
+function frontRowGap(state: GameState, ctx: LiveCtx, side: SideCtx, min: number, lost: Player | undefined) {
+  if (!lost || ctx.uncontested || liveFrontRowCover(state, side)) return
+  const pretend: Player = isFrontRower(lost) ? lost : { ...lost, pos: 'LP' as Pos, alt: [] }
+  checkFrontRow(state, ctx, side, min, pretend, 'hia')
 }
 
 /** Law 3 mid-match: can the side still put a trained loosehead, hooker and
@@ -4700,6 +4745,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           }
           checkFrontRow(state, ctx, side, min, p, 'injury', !!sub)
           fieldChanged(state, ctx, side, min)
+          side.lastInj = { hurtId: p.id, coverId: sub && !back ? sub.id : null, upTo: ctx.events.length }
         }
       }
     }
@@ -5005,6 +5051,40 @@ export function applyPreTalk(state: GameState, ctx: LiveCtx, kind: PreTone): str
   return talkLine(state, ctx, kind, 'pre', roomVerdict(reads))
 }
 
+/**
+ * THE DRESSING ROOM, SPOKEN IN OR NOT (owner, round 6). Every way the manager
+ * takes the field (kick-off, Instant Result, a resumed match) comes through
+ * here, so the habit is counted once per match whichever door he used: a tone
+ * is the talk above, and nothing is nothing - unless it has become a habit,
+ * when the room takes the silence as a small knock of its own (teamtalk.ts,
+ * SAYING NOTHING). The log is written after the room is read, so the moods the
+ * preview showed are the moods the engine heard. No draws.
+ */
+export function openDressingRoom(state: GameState, ctx: LiveCtx, kind: PreTone | null | undefined): string | null {
+  if (ctx.preTalk) return null
+  if (kind) {
+    const msg = applyPreTalk(state, ctx, kind)
+    state.preTalkLog = logPreTalk(state.preTalkLog, true)
+    return msg
+  }
+  // this silence counted with the ones before it, past the two a room forgives
+  const k = silenceWeight(logPreTalk(state.preTalkLog, false))
+  let msg: string | null = null
+  if (k > 0) {
+    const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
+    const opp = mine === ctx.home ? ctx.away : ctx.home
+    const reads = silenceReads(state, mine.lineup.slice(0, 23), talkSettingFor(state, ctx, mine, opp), ctx.fx.id, talkListen(state), k)
+    ctx.preReads = reads
+    mine.talkShift = new Map(reads.map(x => [x.pid, x.after - x.before]))
+    landTalk(state, ctx, mine, reads, 0, false)
+    // the assistant says it once, plainly; the reactions say the rest
+    const n = (hashString(`${state.seed}:${ctx.fx.id}:pre:silent`) % TALK_LINES) + 1
+    msg = t(`tt.pre_silent${n}`)
+  }
+  state.preTalkLog = logPreTalk(state.preTalkLog, false)
+  return msg
+}
+
 /** Half-time team talk for the user's side. One per match. Read against the
  *  scoreline, and against whatever the pre-match talk left in each man; part
  *  of the pre-match reaction is still in the legs (PRE_CARRY). */
@@ -5062,6 +5142,8 @@ export function makeSubstitution(state: GameState, ctx: LiveCtx, outId: number, 
   // (a Test side's whole bench is on national duty by definition, so the
   // call-up check only applies when the side being coached is a club)
   if (slotIn < 15 || pin.bans > 0 || (pin.natSquad && !!state.clubs[mine.teamId])) return t('touch.notAvailable')
+  // shirts 1 to 3 take a trained front-rower while there is one on the bench
+  if (!isFrontRower(pin) && needsFrontRower(state, mine, outId)) return t('touch.frontRowOnly')
   mine.lineup[slotOut] = inId
   if (slotIn >= 0) mine.lineup[slotIn] = outId
   mine.onPitch.delete(outId)
@@ -5077,6 +5159,8 @@ export function makeSubstitution(state: GameState, ctx: LiveCtx, outId: number, 
   const coverBefore = !!mine.coverBlown
   const brief = applyBrief(state, mine, inId)
   forcedSwitchCost(state, ctx, mine, outId, pin, min)
+  // nobody trained was left for the front-row shirt: uncontested from here
+  if (slotOut <= 2 && !isFrontRower(pin)) frontRowGap(state, ctx, mine, min, pout)
   // remembered until play resumes, so this exact change can be taken back
   ctx.lastSub = {
     outId, inId,
@@ -5127,9 +5211,29 @@ export function swapInjuryCover(state: GameState, ctx: LiveCtx, onId: number, in
   for (let i = evs.length - 1; i >= 0; i--) {
     if (evs[i].k === 'comm.subComesOn' && evs[i].playerId === onId) { subIdx = i; break }
   }
+  // THE STOPPAGE'S OWN LINES ARE NOT HIM PLAYING (owner, round 6). A back-rower
+  // went down with no back-rower on the bench, the assistant sent a back on, and
+  // the engine wrote "playing out of position" under the substitution, at the
+  // same stoppage, carrying the new man's id. That line read as "he has done
+  // something", so every other name the manager tapped was refused as too late:
+  // the one injury he most needed to answer was the one he could not. The
+  // stoppage ends where the engine says it does (lastInj.upTo); only a line
+  // after that is the cover playing.
+  const inj = mine.lastInj && mine.lastInj.coverId === onId ? mine.lastInj : null
   if (subIdx >= 0) {
-    for (let i = subIdx + 1; i < evs.length; i++) {
+    for (let i = Math.max(subIdx + 1, inj ? inj.upTo : 0); i < evs.length; i++) {
       if (evs[i].playerId === onId) return t('touch.tooLateToUndo')
+    }
+  }
+  // the front row wants a trained front-rower while there is one (needsFrontRower):
+  // the assistant's own pick counts, because a swap sends him back to the bench
+  if (!isFrontRower(pin) && needsFrontRower(state, mine, onId, onId)) return t('touch.frontRowOnly')
+  // and the stoppage's "out of position" line named the man who is now going
+  // back to the bench: it is the record, so it goes with him (the charge is
+  // refunded and re-tested below, and a new line is written if it still applies)
+  if (inj) {
+    for (let i = inj.upTo - 1; i > subIdx && i >= 0; i--) {
+      if (evs[i].k === 'comm.outOfCover' && evs[i].playerId === onId) { evs.splice(i, 1); inj.upTo -= 1 }
     }
   }
   mine.lineup[slotOn] = inId
@@ -5162,6 +5266,9 @@ export function swapInjuryCover(state: GameState, ctx: LiveCtx, onId: number, in
   }
   const brief = applyBrief(state, mine, inId)
   forcedSwitchCost(state, ctx, mine, onId, pin, min)
+  // nobody trained was left for a front-row shirt: uncontested from here
+  if (slotOn <= 2 && !isFrontRower(pin)) frontRowGap(state, ctx, mine, min, inj ? state.players[inj.hurtId] : pon)
+  if (inj) inj.coverId = inId
   // THE MAN WHO NEVER GOT ON IS NOT IN THE COMMENTARY (owner, from a real
   // match: "I overrode the suggestion and chose someone else but the
   // commentary still mentioned the original player").
