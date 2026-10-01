@@ -8309,15 +8309,15 @@
   "name": "Naam",
   "personality": "Persoonlikheid",
   "mood": "Bui",
-  "believes": "Glo die span sal bo uitkom",
+  "believes": "Glo ons gaan wen",
   "lookingForward": "Sien uit na die wedstryd",
   "eager": "Gretig om te speel",
-  "happySquad": "Bly om in die wedstrydgroep te wees",
-  "balanced": "Het realistiese verwagtinge",
-  "nervous": "Senuweeagtig oor die wedstryd",
-  "tooComfortable": "Dink dié een is klaar gewen",
+  "happySquad": "Bly oor die keuse",
+  "balanced": "Realisties",
+  "nervous": "Senuweeagtig",
+  "tooComfortable": "Dink dis klaar gewen",
   "lowConfidence": "Min selfvertroue",
-  "leggy": "Voel die week in die bene"
+  "leggy": "Swaar bene"
  },
  "ctx": {
   "responseNeeded": {

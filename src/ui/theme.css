@@ -5333,7 +5333,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
    longer than the column, the chip would not wrap, and the table ran under
    the card's right edge with every long mood cut off mid-word. The chip
    wraps inside its own pill now and the table fits the phone. */
-.mood-table .mood-chip { white-space: normal; line-height: 1.3; }
+.mood-table .mood-chip { white-space: nowrap; line-height: 1.3; }
 
 /* The team sheet is four tables (forwards, backs, two halves of the bench)
    sharing one row renderer. Auto layout shared each table's slack out across

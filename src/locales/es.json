@@ -8155,15 +8155,15 @@
   "name": "Nombre",
   "personality": "Personalidad",
   "mood": "Ánimo",
-  "believes": "Cree que el equipo saldrá ganando",
+  "believes": "Cree en la victoria",
   "lookingForward": "Con ganas del partido",
   "eager": "Deseando jugar",
-  "happySquad": "Feliz de estar en la convocatoria",
-  "balanced": "Tiene expectativas equilibradas",
-  "nervous": "Le pueden los nervios del partido",
-  "tooComfortable": "Cree que esto ya está ganado",
+  "happySquad": "Feliz con la convocatoria",
+  "balanced": "Expectativas equilibradas",
+  "nervous": "Con nervios",
+  "tooComfortable": "Lo da por ganado",
   "lowConfidence": "Le falta confianza",
-  "leggy": "Nota la semana en las piernas"
+  "leggy": "Piernas cargadas"
  },
  "ctx": {
   "responseNeeded": {

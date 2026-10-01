@@ -8203,15 +8203,15 @@
   "name": "Nome",
   "personality": "Carattere",
   "mood": "Umore",
-  "believes": "Crede che la squadra vincerà",
-  "lookingForward": "Non vede l'ora di giocare la partita",
+  "believes": "Crede nella vittoria",
+  "lookingForward": "Attende la partita",
   "eager": "Ha voglia di giocare",
-  "happySquad": "Felice di essere nella rosa del match",
-  "balanced": "Ha aspettative equilibrate",
-  "nervous": "Sente la tensione della partita",
-  "tooComfortable": "Pensa che sia già vinta",
+  "happySquad": "Felice della convocazione",
+  "balanced": "Aspettative equilibrate",
+  "nervous": "Sente la tensione",
+  "tooComfortable": "La crede già vinta",
   "lowConfidence": "Ha poca fiducia",
-  "leggy": "Sente la settimana nelle gambe"
+  "leggy": "Gambe pesanti"
  },
  "ctx": {
   "responseNeeded": {

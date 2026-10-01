@@ -7844,15 +7844,15 @@
   "name": "名前",
   "personality": "性格",
   "mood": "気分",
-  "believes": "チームの勝利を信じている",
-  "lookingForward": "試合を楽しみにしている",
-  "eager": "早くプレーしたがっている",
-  "happySquad": "マッチデースコッド入りを喜んでいる",
-  "balanced": "期待は程よく落ち着いている",
-  "nervous": "試合を前に緊張している",
-  "tooComfortable": "もう勝ったつもりでいる",
+  "believes": "勝利を信じている",
+  "lookingForward": "試合が楽しみ",
+  "eager": "プレーしたい",
+  "happySquad": "メンバー入りを喜ぶ",
+  "balanced": "落ち着いている",
+  "nervous": "緊張している",
+  "tooComfortable": "もう勝った気でいる",
   "lowConfidence": "自信を失っている",
-  "leggy": "今週の疲れが脚に残っている"
+  "leggy": "脚が重い"
  },
  "ctx": {
   "responseNeeded": {
