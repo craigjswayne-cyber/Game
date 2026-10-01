@@ -1264,6 +1264,16 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
     display: grid; grid-template-columns: 1fr 1fr; column-gap: 28px; align-content: start;
     margin-top: 6px;
   }
+  /* the talk's reactions take the stage the same way: inside the main row,
+     scrolling, two columns of players, never over the controls */
+  .live-wrap .talk-react {
+    grid-area: main; align-self: stretch; min-height: 0; overflow-y: auto;
+    margin: 6px 14px 0;
+  }
+  .live-wrap .talk-react .tr-list {
+    max-height: none; overflow: visible;
+    display: grid; grid-template-columns: 1fr 1fr; column-gap: 20px;
+  }
   .live-wrap .live-stats .ls-head { grid-column: 1 / -1; }
   .live-wrap .live-stats .ls-row + .ls-row { border-top: none; }
   .live-wrap .speed-controls { grid-area: ctrl; }
@@ -4655,6 +4665,25 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .mood-fold { margin: 6px 0 2px; }
 .mood-fold > summary { cursor: pointer; font-weight: 700; font-size: 13px; padding: 6px 0; color: var(--info); }
 .mood-fold .mood-wrap { padding: 0 0 6px; }
+/* ---- how the room took the talk (round 4, TalkReactions.tsx) ----
+ * Every man, his reaction in words and a mood arrow, the classic manager
+ * game's answer to a team talk. The arrow is drawn, not a character. */
+.talk-react { margin: 8px 14px; padding: 10px 12px; }
+.talk-react .tr-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.talk-react .tr-msg { margin: 6px 0 4px; }
+.talk-react .tr-list { list-style: none; margin: 0; padding: 0; max-height: 46vh; overflow-y: auto; }
+.talk-react .tr-list li {
+  display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; align-items: center; gap: 6px;
+  padding: 3px 0; border-top: 1px solid var(--border);
+}
+.talk-react .tr-list li.bench { opacity: .78; }
+.talk-react .tr-list .num { font-variant-numeric: tabular-nums; color: var(--text-muted); font-size: 12px; }
+.talk-react .tr-list .nm { font-weight: 600; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.talk-react .mood-chip { display: inline-flex; align-items: center; gap: 5px; }
+.tr-dir { display: inline-block; width: 0; height: 0; flex: none; }
+.tr-dir.up { border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 7px solid var(--positive); }
+.tr-dir.down { border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 7px solid var(--danger); }
+.tr-dir.flat { width: 8px; height: 2px; background: var(--text-muted); }
 .mentor-intro { margin: 0 14px 8px; }
 .mentor-how { margin: 2px 0 0; }
 
