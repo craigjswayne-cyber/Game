@@ -114,13 +114,17 @@ export interface Desk {
 
 /** The line in the language on screen. */
 export function deskText(l: DeskLine): string {
+  // Each suffixed value is offered under both names: the bare one ({word})
+  // takes it formatted here, and the full one ({word_k}) goes to t() as it
+  // is, which resolves a _k key itself the way the press room and the inbox
+  // do. A line written either way reads; none prints its placeholder.
   const vars: Record<string, string | number> = {}
   for (const [k, v] of Object.entries(l.v ?? {})) {
+    vars[k] = v
     if (k.endsWith('_k') && typeof v === 'string') vars[k.slice(0, -2)] = t(v)
-    else if (k.endsWith('_m') && typeof v === 'number') vars[k.slice(0, -2)] = fmtMoney(v)
+    else if (k.endsWith('_m') && typeof v === 'number') vars[k] = vars[k.slice(0, -2)] = fmtMoney(v)
     else if (k.endsWith('_o') && typeof v === 'number') vars[k.slice(0, -2)] = ord(v)
-    else if (k.endsWith('_w') && typeof v === 'number') vars[k.slice(0, -2)] = `${fmtWage(v)}${t('common.perWeek')}`
-    else vars[k] = v
+    else if (k.endsWith('_w') && typeof v === 'number') vars[k] = vars[k.slice(0, -2)] = `${fmtWage(v)}${t('common.perWeek')}`
   }
   return t(l.k, vars)
 }

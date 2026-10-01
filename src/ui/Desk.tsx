@@ -12,7 +12,8 @@ import { useStore, type Screen } from '../store'
 import { t } from '../game/i18n'
 import { deskText, type Desk, type DeskDecision, type DeskGo, type DeskRow } from '../game/desk'
 import { newsSubject, pressLabel, pressQuestion } from '../game/model'
-import { prose, speech } from '../game/quotes'
+import { prose } from '../game/quotes'
+import { OptionLabel } from './OptionLabel'
 import { IcoChevron } from './icons'
 
 function useGo() {
@@ -41,7 +42,7 @@ function Decision({ d, open }: { d: DeskDecision; open: boolean }) {
         <div className="desk-qtext">{prose(pressQuestion(q))}</div>
         <div className="desk-opts">
           {q.options.map((o, i) => (
-            <button key={i} className="chip" onClick={() => answer(q.id, i)}>{speech(pressLabel(o))}</button>
+            <button key={i} className="chip" onClick={() => answer(q.id, i)}><OptionLabel text={pressLabel(o)} say /></button>
           ))}
         </div>
       </div>

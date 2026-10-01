@@ -345,44 +345,21 @@ export function BriefIcon({ brief }: { brief: Brief }) {
 export const PREP_ICON = { attack: IcoBreak, defence: IcoShield, setpiece: IcoLineout, fitness: IcoStopwatch, recovery: IcoRecharge }
 
 // ---------------------------------------------------------------------------
-// The 23: the fifteen in their shape, the eight on the bench
+// The replacements: the eight on the bench and what each has been told
 // ---------------------------------------------------------------------------
-
-/** Where each shirt stands, in percent of the panel. A team-sheet shape rather
- *  than the Roles pitch's: no row holds more than three men, so every surname
- *  has a third of the width and none of them has to be cut short. */
-const XV_AT: Record<number, [number, number]> = {
-  1: [22, 3], 2: [50, 3], 3: [78, 3],
-  4: [37, 17], 5: [63, 17],
-  6: [16, 31], 8: [50, 31], 7: [84, 31],
-  9: [36, 46], 10: [64, 46],
-  12: [30, 61], 13: [70, 61],
-  11: [16, 75], 15: [50, 83], 14: [84, 75],
-}
 
 const surname = (name: string) => name.split(' ').slice(-1)[0]
 
-export function TheTwentyThree({ game, club }: { game: GameState; club: Club }) {
+/** The eight seats, each with its man and his brief. The fifteen drawn on
+ *  grass beside them went (owner, round 5: "the graphic isn't needed"): the
+ *  bench page is the split, these eight, then the briefs that change them. */
+export function TheReplacements({ game, club }: { game: GameState; club: Club }) {
   const tac = club.tactic
   const seats = benchSeats(club)
   return (
     <div className="b23">
-      <div className="b23-pitch" role="list" aria-label={t('tacticsScreen.b23Xv')}>
-        {XV_SLOTS.map((slot, i) => {
-          const pid = tac.lineup[i]
-          const p = pid != null ? game.players[pid] : null
-          const [x, y] = XV_AT[slot.shirt]
-          return (
-            <div key={i} role="listitem" className="b23-man" style={{ '--fx': `${x}%`, '--fy': `${y}%` } as CSSProperties}>
-              <span className="b23-kit"><Jersey club={club} size={28} /><span className="b23-num">{slot.shirt}</span></span>
-              <span className="b23-name">{p ? surname(p.name) : '-'}</span>
-            </div>
-          )
-        })}
-      </div>
       <div className="b23-bench">
-        <div className="fact-label">{t('tacticsScreen.b23Bench')}</div>
-        <div className="b23-seats" role="list">
+        <div className="b23-seats" role="list" aria-label={t('tacticsScreen.b23Bench')}>
           {seats.map((seat, i) => {
             const pid = tac.lineup[15 + i]
             const p = pid != null ? game.players[pid] : null
