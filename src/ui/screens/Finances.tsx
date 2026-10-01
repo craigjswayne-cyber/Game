@@ -708,7 +708,7 @@ export default function Finances() {
                 {done ? <IcoTick /> : ok ? <IcoClock /> : <IcoOpen />}
               </span>
               <span style={{ color: done ? 'var(--text-positive)' : 'var(--text-secondary)' }}>
-                {t(def.textKey(game))}{ok && !def.banked ? t('finances.onCourseSettled') : ''}
+                {t(def.textKey(game))}
                 {/* what it is worth is said once, in the message the day it is
                     met (owner, round 5; season.ts and rollover.ts news.objPaid) */}
               </span>

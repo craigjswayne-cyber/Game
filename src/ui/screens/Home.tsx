@@ -368,7 +368,6 @@ export default function Home() {
                 return (
                   <span key={o!.id} style={{ color: done ? 'var(--text-positive)' : met ? 'var(--info)' : 'var(--text-secondary)' }}>
                     {done ? '✓' : met ? '◍' : '○'} {t(o!.textKey(game))}
-                    {met && !o!.banked ? t('home.onCourse') : ''}
                   </span>
                 )
               })}

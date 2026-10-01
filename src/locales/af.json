@@ -310,7 +310,6 @@
   "circling": "Op die loer",
   "seasonAhead": "Die Komende Seisoen",
   "objectives": "Seisoendoelwitte · {met}/{total} op koers",
-  "onCourse": " (op koers)",
   "tentpoleThisWeek": " hierdie week",
   "tentpoleIn": {
    "one": " oor {n} wk",
@@ -2158,7 +2157,6 @@
   "seasonObjectives": "Seisoendoelwitte",
   "boardExpects": "Die direksie se verwagting: {objective}.",
   "fallShort": "Skiet tekort, en vertroue sal ly. Lewer, en jy sal gerugsteun word.",
-  "onCourseSettled": " - op koers, beslis by die eindfluitjie",
   "boardConfidence": "Direksievertroue",
   "boardDelighted": "Die direksie is in die wolke oor jou werk.",
   "boardSatisfied": "Die direksie is oor die algemeen tevrede.",
