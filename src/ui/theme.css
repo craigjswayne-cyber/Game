@@ -5330,7 +5330,10 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .sack-ico { font-size: 52px; line-height: 1; margin: 6px 0 10px; }
 .celebrate-ico .glyph, .sack-ico .glyph { vertical-align: 0; }
 .mark { display: inline-flex; font-size: 1em; }
-.hub-widget .mood-dot { width: 14px; height: 14px; }
+/* the supporters' mood as a drawn face (glyphs.tsx FanFace) */
+.fan-face { display: inline-flex; line-height: 1; vertical-align: -0.14em; }
+.fan-face .glyph { vertical-align: 0; }
+.hub-widget .hub-face { font-size: 21px; vertical-align: middle; }
 .gt-mood { white-space: nowrap; font-size: 12px; overflow: hidden; text-overflow: ellipsis; }
 /* the game-time headings wrap inside their own column rather than painting
    across the next one (owner, round 2: "NAM HE WAS TOLD"), and the status
@@ -5396,6 +5399,9 @@ a.btn { text-decoration: none; }
 /* The ideas box on Report a Bug put its heading 14px further in than the text
    under it; inside a card the card's padding is the gutter. */
 .bug-ideas > .section-title { padding-left: 0; padding-right: 0; padding-top: 2px; }
+.ideas-discord { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; text-decoration: none; }
+.bug-ideas > .ideas-discord { margin: 2px 0 12px; width: 100%; }
+.ideas-discord .glyph { font-size: 1.2em; }
 
 /* Settings titles are sentence case; the language label is shared with the
    title screen, where it is capitals. */

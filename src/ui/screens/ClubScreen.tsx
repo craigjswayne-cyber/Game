@@ -15,7 +15,7 @@ import { chairWish } from '../../game/chairman'
 import { askTheBoard } from '../../game/season'
 import { archetypeOf } from '../../game/oppcoach'
 import { formTrend } from '../../game/formtraits'
-import { Glyph } from '../glyphs'
+import { Glyph, FanFace } from '../glyphs'
 
 export default function ClubScreen({ clubId }: { clubId: string }) {
   const game = useStore(s => s.game)!
@@ -113,7 +113,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           {club.id === game.userClubId && (() => {
             const m = game.fanMood ?? 60
             const word = t(m >= 80 ? 'club.fanBouncing' : m >= 62 ? 'club.fanBehind' : m >= 45 ? 'club.fanWatching' : m >= 30 ? 'club.fanRestless' : 'club.fanMutinous')
-            return <span className="chip" style={{ color: m >= 62 ? 'var(--text-positive)' : m <= 30 ? 'var(--text-negative)' : undefined }}>{t('club.fans')} <b>{word}</b></span>
+            return <span className="chip" style={{ color: m >= 62 ? 'var(--text-positive)' : m <= 30 ? 'var(--text-negative)' : undefined }}>{t('club.fans')} <FanFace mood={m} label={word} /> <b>{word}</b></span>
           })()}
           <span className="chip">{t('club.squad')} <b>{players.length}</b></span>
           <span className="chip">{t('club.squadValue')} <b>{fmtMoney(squadValue(game, club.id))}</b></span>
