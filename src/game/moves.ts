@@ -42,8 +42,15 @@
 // longer one per set piece but a playbook: a base shape for open play, a
 // primary and a secondary strike run off first-phase ball in the mix he
 // sets, and a red-zone play for the opposition 22 (the only place the maul
-// switch and the tap penalty are called). An AI coach still calls one move
-// per set piece off his philosophy, exactly as before.
+// switch is called). An AI coach still calls one move per set piece off his
+// philosophy, exactly as before.
+//
+// THE PENALTY SLOT (owner, round 6: "Penalty tap options should be a new slot
+// on what to do in a penalty situation"). The tap penalty plays have a slot
+// of their own: the play the side runs when it takes a quick tap, whether
+// that is the manager's answer at a kickable penalty (or his standing call,
+// Tactics > Set Piece) or a quick tap in their 22 in what would otherwise be
+// open play. Whether to tap at all is still the penalty call's business.
 //
 // name/desc are i18n KEYS; English wording is under `moves` in en.json.
 
@@ -54,8 +61,9 @@ import { clamp } from './rng'
 
 export type MoveGroup = 'shape' | 'strike'
 /** where a tick is launched from. 'tap' is never a launch of its own: it is
- *  the quick tap penalty a red-zone call takes in the opposition 22, on the
- *  ticks there that would otherwise be open play (callForTick). */
+ *  the quick tap penalty the penalty slot's play takes in the opposition 22,
+ *  on the ticks there that would otherwise be open play (callForTick), and
+ *  the play run when a kickable penalty is tapped (matchEngine decide). */
 export type Launch = 'lineout' | 'scrum' | 'open' | 'tap'
 export type DefTrait = 'rush' | 'drift' | 'narrow' | 'wide'
 
@@ -70,9 +78,10 @@ export interface Move {
   group: MoveGroup
   /** the set pieces a strike move is run from; a shape is open play */
   from: Launch[]
-  /** a red-zone play only (1.8.2): a maul or a tap penalty is what a side
-   *  does five metres out, never from halfway, so it can be called only in
-   *  the playbook's red-zone slot */
+  /** not a first-phase strike (1.8.2): a maul or a tap penalty is what a
+   *  side does five metres out, never from halfway, so the maul is called
+   *  only in the playbook's red-zone slot and a tap play (from 'tap') only in
+   *  its penalty slot (round 6) */
   red?: true
   /** a kick rather than a pass: the clip plays it as the kick through */
   kick?: 'cross' | 'grubber'
@@ -182,6 +191,26 @@ export const MOVES: Move[] = [
     needs: [{ shirts: [9], attrs: ['dec'] }, { shirts: [1, 2, 3, 4, 5], attrs: ['str'] }, { shirts: [10], attrs: ['pas'] }],
     beats: ['drift'], weak: ['rush'], peak: 0.18, tell: 1.1, tempo: 1.03, risk: 0.9,
   }),
+  // THE PENALTY SLOT'S OTHER TWO PLAYS (round 6), a pair that beats and is
+  // beaten by the same two defences between them, so the library's balance
+  // holds; with the switch above, each of the three is a different read.
+  // Tap and spread: the 9 taps, the forwards run hard flat lines at the mark
+  // and the ball goes out the back of them to the 10 and along the line. A
+  // line bunched round the mark leaves the width; a wide one has men there.
+  mv('mv_tapspread', 'strike', ['tap'], {
+    red: true,
+    needs: [{ shirts: [9], attrs: ['pas'] }, { shirts: [10, 12], attrs: ['pas', 'vis'] }, { shirts: [11, 14], attrs: ['pac'] }],
+    beats: ['narrow'], weak: ['wide'], peak: 0.17, tell: 1.0, tempo: 1.02, risk: 1.1,
+  }),
+  // Tap and go: the 9 taps and pops to a forward running a hard line off the
+  // mark, two more bound on him, and they go again off the floor. A line
+  // spread across the field is thin round the mark; a narrow one has the
+  // bodies there to hold it up.
+  mv('mv_tapgo', 'strike', ['tap'], {
+    red: true,
+    needs: [{ shirts: [9], attrs: ['dec'] }, { shirts: [1, 3, 8], attrs: ['str', 'han'] }],
+    beats: ['wide'], weak: ['narrow'], peak: 0.15, tell: 1.2, tempo: 1.02, risk: 0.7,
+  }),
   // Crash then swing: a flat crash ball with a back-rower on the shoulder
   // sucks the inside defence in, and off the quick ruck the ball goes back the
   // other way to the far edge. A line that bunches pays for it; a drift has
@@ -230,6 +259,8 @@ export const DEF_TRAITS: DefTrait[] = ['rush', 'drift', 'narrow', 'wide']
 export interface MoveCalls {
   lineout?: string; scrum?: string; shape?: string
   main?: string; alt?: string; mix?: number; red?: string
+  /** the tap penalty play (round 6), the manager's only */
+  pen?: string
 }
 
 /** What each head coach runs (AI clubs). Every philosophy has a set, and
@@ -256,10 +287,16 @@ export const isStrike = (id: string | undefined): id is string => {
   const m = id ? MOVE_BY_ID[id] : undefined
   return !!m && m.group === 'strike' && !m.red
 }
-/** a move the manager may put in the red-zone slot: any strike move or a red-zone play */
+/** a move the manager may put in the red-zone slot: any strike move or the
+ *  maul switch, but not a tap play, which has the penalty slot (round 6) */
 export const isRedCall = (id: string | undefined): id is string => {
   const m = id ? MOVE_BY_ID[id] : undefined
-  return !!m && m.group === 'strike'
+  return !!m && m.group === 'strike' && !m.from.includes('tap')
+}
+/** a move the manager may put in the penalty slot: a tap penalty play */
+export const isPenCall = (id: string | undefined): id is string => {
+  const m = id ? MOVE_BY_ID[id] : undefined
+  return !!m && m.from.includes('tap')
 }
 /** the primary strike's share of the first-phase ball both strikes can run
  *  off, in per cent: the manager's mix, 50 to 90, and two in three unset */
@@ -281,6 +318,7 @@ export function callsOf(state: GameState, club: Club | undefined): MoveCalls {
       mix: main && alt ? mixOf(tac) / 100 : undefined,
       shape: valid(tac.moveShape, 'open'),
       red: isRedCall(tac.moveRed) ? tac.moveRed : undefined,
+      pen: isPenCall(tac.movePen) ? tac.movePen : undefined,
     }
   }
   const ph = club.philosophy ? PH_MOVES[club.philosophy] : undefined
@@ -289,10 +327,10 @@ export function callsOf(state: GameState, club: Club | undefined): MoveCalls {
 
 /** Every move a side has called, once each. */
 export const calledIds = (c: MoveCalls): string[] =>
-  [...new Set([c.lineout, c.scrum, c.shape, c.main, c.alt, c.red].filter((x): x is string => !!x))]
+  [...new Set([c.lineout, c.scrum, c.shape, c.main, c.alt, c.red, c.pen].filter((x): x is string => !!x))]
 
 /** a side with any call at all */
-export const anyCall = (c: MoveCalls) => !!(c.lineout || c.scrum || c.shape || c.main || c.alt || c.red)
+export const anyCall = (c: MoveCalls) => !!(c.lineout || c.scrum || c.shape || c.main || c.alt || c.red || c.pen)
 
 /** The strike run off first-phase ball from this set piece, before the red
  *  zone has its say: an AI coach's call for the set piece, or the manager's
@@ -308,14 +346,17 @@ export function strikeFor(c: MoveCalls, launch: 'lineout' | 'scrum', u: number):
 }
 
 /** The move this tick runs, and what it is run from: in the opposition 22
- *  (`red`) the red-zone play when it can run from this launch (a tap penalty
- *  from what would be open play), otherwise the strike for the set piece or
- *  the shape in open play. */
+ *  (`red`) the red-zone play when it can run from this launch, and in what
+ *  would be open play there the penalty slot's tap play, otherwise the
+ *  strike for the set piece or the shape in open play. (Until round 6 the
+ *  tap was a red-zone call and ran on those same ticks; a save that had it
+ *  there has it in the penalty slot now, so it plays the same match.) */
 export function callForTick(c: MoveCalls, launch: Launch, u: number, red: boolean): { id: string; launch: Launch } | null {
-  if (red && c.red) {
-    const m = MOVE_BY_ID[c.red]
+  if (red) {
+    const m = c.red ? MOVE_BY_ID[c.red] : undefined
     if (m?.from.includes(launch)) return { id: m.id, launch }
-    if (m && launch === 'open' && m.from.includes('tap')) return { id: m.id, launch: 'tap' }
+    const p = c.pen ? MOVE_BY_ID[c.pen] : undefined
+    if (p && launch === 'open' && p.from.includes('tap')) return { id: p.id, launch: 'tap' }
   }
   const id = launch === 'lineout' || launch === 'scrum' ? strikeFor(c, launch, u) : launch === 'open' ? c.shape : undefined
   return id ? { id, launch } : null
@@ -508,8 +549,8 @@ export function moveTempoF(state: GameState, club: Club): number {
   let f = 1
   // a strike move is a share of the side's rugby, a shape most of it, and
   // a red-zone play a little of it
-  const list: [string | undefined, number][] = c.main || c.alt || c.red
-    ? [[c.main, 0.25], [c.alt, 0.25], [c.shape, 0.55], [c.red, 0.06]]
+  const list: [string | undefined, number][] = c.main || c.alt || c.red || c.pen
+    ? [[c.main, 0.25], [c.alt, 0.25], [c.shape, 0.55], [c.red, 0.06], [c.pen, 0.06]]
     : [[c.lineout, 0.25], [c.scrum, 0.25], [c.shape, 0.55]]
   for (const [id, sh] of list) {
     const m = id ? MOVE_BY_ID[id] : undefined
@@ -558,7 +599,7 @@ export const MOVE_MAKER: Record<string, number> = {
   mv_1331: 9, mv_242: 10, mv_backdoor: 10, mv_crash: 12, mv_switch: 10, mv_loop: 10,
   mv_decoy: 10, mv_blind: 9, mv_inside: 10, mv_strike13: 13,
   mv_wingin: 10, mv_width: 10, mv_peel: 2, mv_maulswitch: 2, mv_tap: 9, mv_crashswing: 12,
-  mv_loop9: 9, mv_crosskick: 10, mv_grubber: 10,
+  mv_loop9: 9, mv_crosskick: 10, mv_grubber: 10, mv_tapspread: 10, mv_tapgo: 8,
 }
 
 /** The move's name as the commentary says it, lower case mid-sentence

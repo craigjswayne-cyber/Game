@@ -236,6 +236,17 @@ try {
       ok(on.join() === 'counter', `pressing it marks that plan and no other (${on.join(', ')})`)
       ok(await page.locator('[data-plan-on="counter"]').count() === 1, 'and one line says what it set')
     }
+    // STACKED, WITH A FIFTH (round 6, owner: "make these options stacked and
+    // throw in an additional option"): one full-width option a plan, one
+    // under the next, each its name and a grey line; starve them of ball
+    // always among them
+    const boxes = await page.$$eval('.plan-stack [data-plan]', bs => bs.map(b => {
+      const r = b.getBoundingClientRect(), p = b.parentElement.getBoundingClientRect()
+      return { id: b.dataset.plan, x: r.left, y: r.top, h: r.height, w: r.width, pw: p.width, sub: !!b.querySelector('.opt-detail')?.textContent?.trim() }
+    }))
+    ok(boxes.length >= 3 && boxes.some(b => b.id === 'starve'), `the plans include starve them of ball (${boxes.map(b => b.id).join(', ')})`)
+    ok(boxes.every((b, i) => Math.abs(b.w - b.pw) < 2 && Math.abs(b.x - boxes[0].x) < 1 && (i === 0 || b.y >= boxes[i - 1].y + boxes[i - 1].h - 1)) && boxes.every(b => b.sub),
+      'stacked: each full width, one under the next, with its grey line')
     // the reading sits behind the one info button, closed until asked for
     ok(await page.locator('.opp-report').count() === 0, 'the opposition report is folded away by default')
     await page.click('[data-prep-info]')

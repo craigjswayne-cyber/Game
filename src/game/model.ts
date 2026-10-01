@@ -689,6 +689,10 @@ export interface Tactic {
   moveAlt?: string
   moveMix?: number
   moveRed?: string
+  /** THE PENALTY SLOT (round 6): the tap penalty play the side runs when it
+   *  takes a quick tap. Whether it taps is penaltyCall's (above). An old
+   *  save's tap play in the red-zone slot moves here (save migration). */
+  movePen?: string
 
   // ---- the attack and defence styles (1.8.2, styles.ts) ---------------------
   /** The side's overall game with the ball and without it, by style id. A
