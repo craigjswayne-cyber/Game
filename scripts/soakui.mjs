@@ -308,8 +308,9 @@ try {
   // every screen the rail can reach, checked periodically
   const HUB = ['Team', 'Tactics', 'Fixtures & Results', 'Finances', 'Transfer Centre',
     'Medical Centre', 'Academy', 'Training & Staff', 'Club Infrastructure', 'Team Report']
-  const MANAGER = ['Manager Profile', 'Press Room', 'Job Centre', 'Manager Legacy', "The Manager's Handbook", 'Save / Load Game']
-  const WORLD = ['Competitions', 'International Rugby', 'Team of the Week', 'Scouting Agency', 'Roll of Honour']
+  // the Job Centre moved from Manager to World in round 4
+  const MANAGER = ['Manager Profile', 'Press Room', 'Manager Legacy', "The Manager's Handbook", 'Save / Load Game']
+  const WORLD = ['Competitions', 'Job Centre', 'International Rugby', 'Team of the Week', 'Scouting Agency', 'Roll of Honour']
 
   async function sweepScreens(tag) {
     // A manager can be sacked, and this run's fifth season is where that first

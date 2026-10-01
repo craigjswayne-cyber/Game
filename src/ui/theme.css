@@ -3464,8 +3464,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   font-size: 14px; line-height: 1.5; font-style: italic; color: var(--text-secondary);
 }
 .wire-body .news-fact, .wire-body .news-list li, .wire-body .news-quotes blockquote { font-size: 14px; }
-/* the address never breaks across two lines on a phone (owner, 1.8.2) */
-.bug-mail { white-space: nowrap; }
 /* and no button label breaks mid-word ("E-/mail" at 360px): the row wraps instead */
 .bug-send { flex-wrap: wrap; }
 .bug-send .btn { flex: 1 1 auto; white-space: nowrap; }
@@ -4534,11 +4532,9 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .preset-chip.plan-empty { border-style: dashed; opacity: .85; }
 
 .depth-chart { padding: 6px 14px 14px; display: flex; flex-direction: column; gap: 8px; }
-.depth-row { background: var(--surface-1); border-radius: 10px; padding: 8px 10px; border-left: 4px solid transparent; }
-.depth-row.thin { border-left-color: var(--danger); }
+.depth-row { background: var(--surface-1); border-radius: 10px; padding: 8px 10px; }
 .depth-pos { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
 .depth-count { font-size: 11px; font-weight: 700; letter-spacing: .4px; color: var(--text-muted); text-transform: uppercase; }
-.depth-count.warn { color: var(--text-negative); }
 .depth-men { display: flex; flex-wrap: wrap; gap: 6px; }
 .depth-man {
   display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; min-height: 30px;
@@ -4547,7 +4543,6 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .depth-man .depth-ca { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--gold); }
 .depth-man.out { opacity: .55; }
 .depth-man .depth-why { font-size: 11px; color: var(--text-negative); font-weight: 700; }
-.depth-warn { margin-top: 6px; color: var(--text-negative); font-weight: 600; }
 
 /* v1.2.8: the Selection team sheet pins all six columns so its two tables
    line up from the 1 shirt to the 15 (see Selection.tsx) */
@@ -5408,7 +5403,7 @@ a.btn.home-community {
 .tick-event, .store-card, .challenge-card, .wire-card.unread, .desk-match,
 .resume-note, .now-line, .sheet-casualty, .inbox-cue, .news-quotes blockquote,
 .who-chip, .first-hint, .talk-said, .day-draw, .draw-verdict, .fix-grade,
-.respect-line, .temper-card .bench-note, .dev-card, .depth-row.thin,
+.respect-line, .temper-card .bench-note, .dev-card,
 .inbox-li.on, .feed-line {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;

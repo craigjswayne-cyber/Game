@@ -57,7 +57,8 @@ try {
   // underneath it, so the rail button opens the group and the group item is what
   // gets clicked - never the rail again while the veil is up.
   const openJobs = async () => {
-    await page.click('.bottom-nav button[title="Manager"]')
+    // a World item since round 4 (it was on the manager's menu)
+    await page.click('.bottom-nav button[title="World"]')
     await page.waitForSelector('.submenu', { timeout: 5000 })
     await page.click('.submenu >> text=Job Centre')
     await page.waitForSelector('text=Vacancies', { timeout: 5000 })

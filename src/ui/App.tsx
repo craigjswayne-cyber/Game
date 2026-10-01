@@ -661,10 +661,6 @@ export default function App() {
         // the manager is the one in front of the cameras, so the press room
         // belongs to him rather than to the team sheet
         { ico: <Glyph name="press" />, label: t('groups.press'), screen: 'press', badge: pressOpen },
-        // Only the jobs he has not answered. It used to be vacancies.length, so
-        // the red dot appeared because somebody somewhere got sacked and nothing
-        // he could do would clear it (see GameState.vacancies).
-        { ico: <Glyph name="jobs" />, label: t('groups.jobs'), screen: 'jobs', badge: game.vacancies.filter(v => !v.passed && !v.applied).length },
         { ico: <Glyph name="legacy" />, label: t('groups.legacy'), screen: 'legacy' },
         { ico: <Glyph name="handbook" />, label: t('groups.handbook'), screen: 'handbook' },
         // Settings sits ABOVE Report a Bug (owner, v1.2.1): the page you
@@ -693,6 +689,13 @@ export default function App() {
       title: t('groups.world'),
       items: [
         { ico: <Glyph name="competitions" />, label: t('groups.competitions'), screen: 'tables' },
+        // JOBS IS ITS OWN WORLD ITEM (owner, round 4). It was a tab on the
+        // Competitions row and an item on the manager's menu; the vacancies
+        // are other clubs' jobs, so they live with the rest of the world.
+        // Only the jobs he has not answered. It used to be vacancies.length, so
+        // the red dot appeared because somebody somewhere got sacked and nothing
+        // he could do would clear it (see GameState.vacancies).
+        { ico: <Glyph name="jobs" />, label: t('groups.jobs'), screen: 'jobs', badge: openJobs },
         // the pinnacle gets a door of its own while you hold a Test job
         ...(game.natTeam ? [{ ico: <Glyph name="country" />, label: t('groups.country'), screen: 'country' as const }] : []),
         { ico: <Glyph name="nations" />, label: t('groups.nations'), screen: 'nations' },
@@ -821,9 +824,10 @@ export default function App() {
                 somebody somewhere had been sacked, and nothing he could do would
                 clear it: the same bug the Job Centre item already fixed for itself,
                 still living in the group badge above it. Reported as "says there is
-                a notification but doesn't show anything". */}
-            {groupBtn('manager', <IcoPress />, t('nav.manager'), pressOpen + openJobs)}
-            {groupBtn('world', <IcoTrophy />, t('nav.world'))}
+                a notification but doesn't show anything". The count rides on
+                World now, where the Jobs item lives (round 4). */}
+            {groupBtn('manager', <IcoPress />, t('nav.manager'), pressOpen)}
+            {groupBtn('world', <IcoTrophy />, t('nav.world'), openJobs)}
           </>
         )}
       </nav>

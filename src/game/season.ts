@@ -44,6 +44,7 @@ import { resolveCommission, scoutPostcard } from './commission'
 import { clamp, mulberry32, shuffled, type Rng } from './rng'
 import { attrOdds, attrRoll, gapGrowth, trainPoint } from './ageing'
 import { gameTimeReview, settleGameTime } from './gametime'
+import { depthWatch } from './depthwatch'
 import { rebuildSeason, rollIntakeClass } from './rollover'
 import { setUpForUser } from './oppcoach'
 import { drillWeek } from './playbook'
@@ -2834,6 +2835,7 @@ export function processWeekAndAdvance(state: GameState) {
 
   // the physio's red flag: a position group stripped below cover gets an
   // assistant's alert with names, timelines and the loan-market options
+  const crisisPos = new Set<Pos>()
   if (!state.unemployed) {
     const club = state.clubs[state.userClubId]
     // 'need' is the number of starting shirts the group fills: an alert
@@ -2859,6 +2861,7 @@ export function processWeekAndAdvance(state: GameState) {
       if (fit.length >= grp.need || all.length <= grp.need) continue
       if (state.week - (state.crisisAt[grp.key] ?? -99) < 6) continue
       state.crisisAt[grp.key] = state.week
+      for (const p of grp.pos) crisisPos.add(p)
       const downRows: Vars[] = all.filter(p => p.injury || p.bans > 0)
         .map(p => ({
           k: p.injury ? 'news.crisisInjured' : 'news.crisisBanned',
@@ -2885,6 +2888,9 @@ export function processWeekAndAdvance(state: GameState) {
       })
     }
   }
+  // and the quieter word, once per spell, when a position is down to its last
+  // fit specialists (owner, round 4: the depth chart no longer flags it)
+  depthWatch(state, crisisPos)
 
   // the long goodbye: the game's oldest names call time in midwinter, so
   // the run-in doubles as a farewell tour. At 37 next summer is certain
