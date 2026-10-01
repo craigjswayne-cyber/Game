@@ -1874,14 +1874,14 @@
   },
   "ratingSince": "能力値{from}→{to}、うちペアの効果{n}",
   "coachedSoFar": "指導済み：{list}",
-  "tookCharacter": "メンターの性格を受け継いだ：現在は{pers_k}",
+  "tookCharacter": "メンターの性格を受け継いだ",
   "teachesList": "教えられるもの：{list}。",
   "teachesNone": "このポジションに必要な能力で明確に上回るものがなく、指導できることはない。",
   "newPairing": "新しいペア",
   "mentorFullNote": "ペアの枠はすべて使用中。新しく組むには、どれかを解消すること。",
   "pickKid": "若手を選ぶ（{age}歳以下）",
   "kidsNone": "空いている若手はいない：まだ伸びる{age}歳以下の選手には全員メンターがいる。",
-  "pickMentor": "{name}（{pos}、{age}歳、{pers_k}）のメンター候補",
+  "pickMentor": "{name}（{pos}、{age}歳）のメンター候補",
   "changeKid": "変更",
   "mentorsNone": "スカッドに{age}歳以上の選手がいない。",
   "leadershipN": "リーダーシップ{n}",
@@ -6507,14 +6507,6 @@
   "acadPromoted": "{player}に初のプロ契約を与えた。",
   "acadReleased": "{player}をアカデミーから放出した。"
  },
- "persShort": {
-  "Professional": "プロ",
-  "Loyal": "忠実",
-  "Ambitious": "野心家",
-  "Mercenary": "金銭重視",
-  "Temperamental": "短気",
-  "Leader": "リーダー"
- },
  "reply": {
   "overCap": "この条件では、サラリーキャップ（週{cap}）を週{over}超過してしまう。枠を空けるか、彼をマーキー選手に指名しよう。",
   "offerGone": "このオファーはもう有効ではない。",
@@ -6906,7 +6898,7 @@
  "press": {
   "campQ1": "プレシーズン、パフォーマンス部門が決断を求めている。予算で賄える特別な1週間はひとつだけ。海外での温暖地キャンプか、地元での地域交流ウィークか、スポンサー主催のエキシビションツアーか。どれにする？",
   "campQ2": "スタッフルームのホワイトボードには、空いたプレシーズンの1週間の使い道が3つ丸で囲まれている。暑熱キャンプか、地元か、スポンサーのロードショーか。各部門の責任者が君の返事を待っている。",
-  "campHeat": "温暖地キャンプ（{cost}）",
+  "campHeat": "温暖地キャンプ（-{cost}）",
   "campHeatR": "航空券は手配済み。太陽の下で1日2部練習の1週間。チームは絞れて、切れ味を増し、坂道ダッシュへの憎しみでひとつになって帰ってくる。",
   "campHome": "地元での地域交流ウィーク",
   "campHomeR": "学校訪問、ジュニアクラブ、公開練習。費用はゼロ、そして町はこれをシーズン中ずっと覚えていてくれる。",
@@ -8183,7 +8175,6 @@
   "ambStep": "目標まで{pct}%：{title_k}。現状：{note_k}。",
   "ambDoneSubj": "目標達成",
   "ambDone": "目標を達成した：{title_k}。結末：{note_k}。",
-  "pickUpTo": "3つまで選べる。最初のものがこのキャリアの目的になる。",
   "knownFor": "あなたの評判",
   "knownAs": "評判：{label_k}",
   "coachesTitle": "向こうのベンチ",

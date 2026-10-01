@@ -117,7 +117,7 @@ export default function MentoringPanel() {
                     {taught.length > 0 && <>{' · '}{t('training.coachedSoFar', { list: taught.map(([key, n]) => `${attrName(key)} +${n}`).join(', ') })}</>}
                   </>}
                 </div>
-                {changed && <div className="meta" style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-positive)' }}>{t('training.tookCharacter', { pers_k: `pers.${k.pers}` })}</div>}
+                {changed && <div className="meta" style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-positive)' }}>{t('training.tookCharacter')}</div>}
               </div>
             )}
           </div>
@@ -135,14 +135,14 @@ export default function MentoringPanel() {
             <button key={p.id} data-kid={p.id} className="club-pick" onClick={() => setKidId(p.id)}
               style={{ margin: 0, width: '100%', borderRadius: 0, border: 0, borderTop: i ? '1px solid var(--border)' : undefined, padding: '8px 0', background: 'transparent' }}>
               <span className="cname" style={{ fontSize: 13.5 }}>{p.name}</span>
-              <span className="muted" style={{ fontSize: 12 }}>{p.pos} · {p.age} · {t(`persShort.${p.pers}`)}</span>
+              <span className="muted" style={{ fontSize: 12 }}>{p.pos} · {p.age}</span>
             </button>
           ))}
         </div>
       ) : (
         <div className="card" style={{ padding: '6px 10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div className="fact-label" style={{ flex: 1 }}>{t('training.pickMentor', { name: kid.name, pos: kid.pos, age: kid.age, pers_k: `pers.${kid.pers}` })}</div>
+            <div className="fact-label" style={{ flex: 1 }}>{t('training.pickMentor', { name: kid.name, pos: kid.pos, age: kid.age })}</div>
             <button className="btn ghost" style={{ fontSize: 12, padding: '4px 10px' }} onClick={() => setKidId(null)}>{t('training.changeKid')}</button>
           </div>
           {seniors.length === 0 && <div className="meta" style={{ fontSize: 12, padding: '6px 0' }}>{t('training.mentorsNone', { age: MENTOR_MIN_AGE })}</div>}
@@ -151,7 +151,7 @@ export default function MentoringPanel() {
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13.5, fontWeight: 700 }}>
-                    {s.name} <span className="muted" style={{ fontWeight: 600, fontSize: 12 }}>{s.pos} · {s.age} · {t(`persShort.${s.pers}`)}</span>
+                    {s.name} <span className="muted" style={{ fontWeight: 600, fontSize: 12 }}>{s.pos} · {s.age}</span>
                   </div>
                   <div className="meta" style={{ fontSize: 12 }}>
                     {t(LINK_KEY[link])}

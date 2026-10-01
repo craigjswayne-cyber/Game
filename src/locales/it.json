@@ -1954,8 +1954,8 @@
   },
   "ratingSince": "valutazione da {from} a {to}, {n} grazie alla coppia",
   "coachedSoFar": "Allenato: {list}",
-  "tookCharacter": "Ha preso il carattere del mentore: ora {pers_k}",
-  "tookCharacter_f": "Ha preso il carattere della mentore: ora {pers_k}",
+  "tookCharacter": "Ha preso il carattere del mentore",
+  "tookCharacter_f": "Ha preso il carattere della mentore",
   "teachesList": "Insegna: {list}.",
   "teachesNone": "Nessun vantaggio chiaro in ciò che serve a questo ruolo, quindi niente da allenare.",
   "newPairing": "Nuova coppia",
@@ -1964,7 +1964,7 @@
   "pickKid_f": "Scegli una giovane ({age} anni o meno)",
   "kidsNone": "Nessun giovane è libero: tutti quelli di {age} anni o meno che possono ancora migliorare hanno già un mentore.",
   "kidsNone_f": "Nessuna giovane è libera: tutte quelle di {age} anni o meno che possono ancora migliorare hanno già una mentore.",
-  "pickMentor": "Mentori per {name} ({pos}, {age}, {pers_k})",
+  "pickMentor": "Mentori per {name} ({pos}, {age})",
   "changeKid": "Cambia",
   "mentorsNone": "Nessuno in rosa ha {age} anni o più.",
   "leadershipN": "Leadership {n}",
@@ -6845,14 +6845,6 @@
   "acadPromoted": "Primo contratto da professionista per {player}.",
   "acadReleased": "Svincolo dall'academy per {player}."
  },
- "persShort": {
-  "Professional": "Pro",
-  "Loyal": "Fedele",
-  "Ambitious": "Ambizioso",
-  "Mercenary": "Mercenario",
-  "Temperamental": "Testa calda",
-  "Leader": "Leader"
- },
  "reply": {
   "overCap": "Con queste condizioni il club sforerebbe di {over}/sett. il tetto salariale di {cap}/sett. Libera spazio, oppure nominalo marquee player.",
   "offerGone": "Offerta non più disponibile.",
@@ -7242,7 +7234,7 @@
  "press": {
   "campQ1": "Precampionato, e lo staff della performance vuole una decisione. Il budget basta per una sola settimana speciale: un ritiro al caldo all'estero, una settimana in mezzo alla gente o il tour di esibizione dello sponsor. Cosa scegli?",
   "campQ2": "Tre opzioni cerchiate sulla lavagna dello staff per la settimana libera del precampionato: il ritiro al caldo, la città o il roadshow dello sponsor. I capi reparto aspettano solo te.",
-  "campHeat": "Ritiro al caldo ({cost})",
+  "campHeat": "Ritiro al caldo (-{cost})",
   "campHeatR": "Voli prenotati. Una settimana di doppie sedute sotto il sole: la squadra torna a casa asciutta, brillante e unita nell'odio per le ripetute in salita.",
   "campHome": "Settimana in città",
   "campHomeR": "Scuole, club giovanili, allenamenti aperti. Non costa nulla, e la città se lo ricorderà per tutta la stagione.",
@@ -8546,7 +8538,6 @@
   "ambStep": "{pct}% della strada verso un'ambizione: {title_k}. A che punto è: {note_k}.",
   "ambDoneSubj": "Ambizione realizzata",
   "ambDone": "Un'ambizione realizzata: {title_k}. Com'è finita: {note_k}.",
-  "pickUpTo": "Scegline fino a tre; la prima è quella per cui esiste questa carriera.",
   "knownFor": "Cosa dicono di te",
   "knownAs": "Noto come {label_k}",
   "coachesTitle": "Dall'altra parte della panchina",

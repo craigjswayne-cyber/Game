@@ -1926,14 +1926,14 @@
   },
   "ratingSince": "rating {from} to {to}, {n} from the pairing",
   "coachedSoFar": "Coached: {list}",
-  "tookCharacter": "Has taken on the mentor's character: now {pers_k}",
+  "tookCharacter": "Has taken on the mentor's character",
   "teachesList": "Teaches: {list}.",
   "teachesNone": "No clear edge in anything this position needs, so nothing to coach.",
   "newPairing": "New pairing",
   "mentorFullNote": "Every pairing place is in use. End one to start another.",
   "pickKid": "Choose a young player ({age} or under)",
   "kidsNone": "No young player is free: everyone {age} or under who can still improve already has a mentor.",
-  "pickMentor": "Mentors for {name} ({pos}, {age}, {pers_k})",
+  "pickMentor": "Mentors for {name} ({pos}, {age})",
   "changeKid": "Change",
   "mentorsNone": "Nobody in the squad is {age} or over.",
   "leadershipN": "Leadership {n}",
@@ -6847,14 +6847,6 @@
   "acadPromoted": "Gave {player} a first professional contract.",
   "acadReleased": "Released {player} from the academy."
  },
- "persShort": {
-  "Professional": "Pro",
-  "Loyal": "Loyal",
-  "Ambitious": "Ambitious",
-  "Mercenary": "Mercenary",
-  "Temperamental": "Hot-head",
-  "Leader": "Leader"
- },
  "reply": {
   "overCap": "Those terms would put the club {over}/wk over the {cap}/wk salary cap. Free up room, or name him a marquee player.",
   "offerGone": "Offer no longer available.",
@@ -7263,7 +7255,7 @@
  "press": {
   "campQ1": "Pre-season, and the performance staff want a decision. The budget stretches to one special week: a warm-weather camp abroad, a community week at home, or the sponsor's exhibition tour. Which is it?",
   "campQ2": "Three options are circled on the staff-room whiteboard for the spare pre-season week: the heat camp, the town, or the sponsor's roadshow. The department heads are waiting on you.",
-  "campHeat": "Warm-weather camp ({cost})",
+  "campHeat": "Warm-weather camp (-{cost})",
   "campHeatR": "Flights booked. A week of double sessions in the sun - the squad comes home lean, sharp, and united in their hatred of the hill runs.",
   "campHome": "Community week at home",
   "campHomeR": "Schools, junior clubs, open training. Costs nothing, and the town will remember it all season.",
@@ -8605,7 +8597,6 @@
   "ambStep": "{pct}% of the way to an ambition: {title_k}. Where it stands: {note_k}.",
   "ambDoneSubj": "Ambition realised",
   "ambDone": "An ambition realised: {title_k}. Where it ended: {note_k}.",
-  "pickUpTo": "Name up to three; the first is the one this career is for.",
   "knownFor": "What they say about you",
   "knownAs": "Known as {label_k}",
   "coachesTitle": "Across the dugout",
