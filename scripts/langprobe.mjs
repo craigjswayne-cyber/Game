@@ -370,11 +370,14 @@ try {
   await page.locator('.bottom-nav button[data-group]').first().click()
   await page.waitForSelector('.submenu')
   await page.locator('.submenu-item', { hasText: 'Infirmerie' }).click()
-  await page.waitForSelector('.inline-input')
+  // the search box only shows with more than six men injured (1.8.2), so
+  // wait for the physio line instead
+  await page.waitForSelector('.card .meta')
   const physio = await page.locator('.card .meta').first().innerText()
   say(`  medical header: "${physio.replace(/\s+/g, ' ').trim().slice(0, 70)}"`)
-  ok(/kiné|blessures|poste vacant/i.test(physio), 'the medical header is French')
-  ok(await page.getAttribute('.inline-input', 'placeholder') === 'Chercher un joueur…', 'and so is the search placeholder')
+  ok(/kiné|blessé|blessures|poste vacant/i.test(physio), 'the medical header is French')
+  if (await page.locator('.inline-input').count())
+    ok(await page.getAttribute('.inline-input', 'placeholder') === 'Chercher un joueur…', 'and so is the search placeholder')
 
   // ---- Tactics, whose words nearly all come from the engine's own tables ----
   //
