@@ -387,6 +387,28 @@ export function pairWeeks(state: GameState, mp: { since?: number }): number {
   return mp.since == null ? 0 : Math.max(0, absWeek(state.season, state.week) - mp.since) + 1
 }
 
+/**
+ * ---- A PAIRING IS A GAMBLE FOR ITS FIRST MONTH (owner, round 4) ----
+ *
+ * Owner: "You shouldn't know how a mentorship is going to work for at least
+ * one month. You shouldn't be able to see things like 'inseparable' until
+ * that month. So it's a gamble whether it works."
+ *
+ * Nothing about the mechanics changes: the fit, the ramp and the rolls are
+ * exactly what they were. What changes is what the manager is TOLD. For the
+ * first REVEAL_WEEKS calendar weeks of a pairing the screen says only that it
+ * is too early to tell, the picker shows no fit or forecast at all, and no
+ * report says how the two are getting on. After that the card says how it is
+ * going in plain words. scripts/mentorreveal.ts holds this, news included.
+ */
+export const REVEAL_WEEKS = 4
+
+/** Whether the manager may yet know how this pairing is going. A pairing from
+ *  before the ledger (no `since`) is an old one, so it is known. */
+export function pairRevealed(state: GameState, mp: { since?: number }): boolean {
+  return mp.since == null || absWeek(state.season, state.week) - mp.since >= REVEAL_WEEKS
+}
+
 export type MentorStage = 'early' | 'growing' | 'flourishing' | 'settled' | 'stalled'
 /** Below this chemistry a pairing does not click: it creeps to a low ceiling. */
 export const STALL_CHEM = 0.75
@@ -553,6 +575,9 @@ export function mentorReports(state: GameState) {
     const weeks = pairWeeks(state, mp)
     const stage = mentorStage(s, k, weeks)
     const base = { last, seniorLast: s.name.split(' ').slice(-1)[0], kid: k.name, senior: s.name, stage_k: STAGE_KEY[stage] }
+    // nothing that says how the two are getting on before the month is up
+    // (pairRevealed); the early-days note says only that it is early
+    if (stage !== 'early' && !pairRevealed(state, mp)) continue
     if (stage === 'early') {
       // once, on the first report day after the pairing was made
       if (weeks > REPORT_EVERY) continue
