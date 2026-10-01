@@ -1,6 +1,7 @@
 import type { GameState, Player, Pos } from './model'
 import { POS_ORDER } from './model'
 import { tIn } from './i18n'
+import { clubMatchesPlayed } from './gametime'
 
 /**
  * THE ASSISTANT WATCHES THE DEPTH CHART (owner, round 4).
@@ -48,15 +49,22 @@ export function depthWatch(state: GameState, skip: ReadonlySet<Pos> = new Set())
   if (!club) return
   // a new club is a new squad: what was reported at the last one is not news here
   if (!state.depthShort || state.depthShort.club !== club.id) state.depthShort = { club: club.id, pos: [] }
+  // nothing before the first match (owner, round 7): a squad in pre-season is
+  // still being put together, and week 1 opened with two of these
+  if (clubMatchesPlayed(state, club.id) === 0) return
   const told = new Set(state.depthShort.pos)
   for (const pos of POS_ORDER) {
-    const n = fitAt(state, pos)
-    if (n >= depthNeed(pos)) { told.delete(pos); continue }
+    // the back row is one unit (owner, round 7): flankers and number 8s cover
+    // each other, so they are counted together under FL and N8 says nothing
+    if (pos === 'N8') { told.delete(pos); continue }
+    const backRow = pos === 'FL'
+    const n = backRow ? fitAt(state, 'FL') + fitAt(state, 'N8') : fitAt(state, pos)
+    if (n >= (backRow ? 3 : depthNeed(pos))) { told.delete(pos); continue }
     if (told.has(pos)) continue
     told.add(pos)
-    if (skip.has(pos)) continue
+    if (skip.has(pos) || (backRow && skip.has('N8'))) continue
     const k = n === 0 ? 'news.depthShortNone' : 'news.depthShort'
-    const v = { n, pos_k: `pos.${pos}` }
+    const v = { n, pos_k: backRow ? 'pos.backRow' : `pos.${pos}` }
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
       subject: tIn('en', `${k}Subj`, v),
