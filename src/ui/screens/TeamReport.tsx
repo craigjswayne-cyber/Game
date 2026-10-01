@@ -7,18 +7,20 @@ import { leaguePos } from '../../game/schedule'
 import { PosBadge, SectionTitle, Stars } from '../components'
 import { t } from '../../game/i18n'
 import MentoringPanel from './MentoringPanel'
+import DepthPane from './DepthChart'
 import { Glyph } from '../glyphs'
 
 /** The assistant's full report on the squad, FM Team Report style. */
 export default function TeamReport({ initial }: { initial?: string }) {
   const game = useStore(s => s.game)!
   const go = useStore(s => s.go)
-  // two pages: where we stand, and the XV. Squad depth lived here too, as a
-  // second copy of the Squad screen's Depth tab (owner, 27 Sep 2026: "weve got
-  // two squad depths in the game - remove it from team report"). Squad keeps it.
-  // Mentoring is the third (owner, 1.8.0: "Club/Mentoring should be moved into
-  // team report"); the Training screen's signpost opens it directly.
-  const [rtab, setRtab] = useState<'standing' | 'xv' | 'mentoring'>(initial === 'mentoring' ? 'mentoring' : 'standing')
+  // where we stand, the XV, the depth chart and mentoring. The depth chart is
+  // the only copy in the game: it left the Team screen's tabs for here (owner,
+  // round 4: "move Depth into the Team Report section"), which undoes the
+  // 27 Sep change that had kept it on Team instead. Mentoring came over from
+  // Club in 1.8.0; the Training screen's signpost opens it directly.
+  type RTab = 'standing' | 'xv' | 'depth' | 'mentoring'
+  const [rtab, setRtab] = useState<RTab>(initial === 'mentoring' || initial === 'depth' ? initial : 'standing')
   const club = game.clubs[game.userClubId]
   const squad = club.players.map(id => game.players[id]).filter((p): p is Player => !!p && !p.onLoan)
   const stars = starPlayerIds(game, club.id)
@@ -51,13 +53,15 @@ export default function TeamReport({ initial }: { initial?: string }) {
       <div className="tab-bar">
         <button className={rtab === 'standing' ? 'active' : ''} onClick={() => setRtab('standing')}>{t('report.trWhereWeStand')}</button>
         <button className={rtab === 'xv' ? 'active' : ''} onClick={() => setRtab('xv')}>{t('report.trBestXV')}</button>
+        <button className={rtab === 'depth' ? 'active' : ''} onClick={() => setRtab('depth')}>{t('squad.tabDepth')}</button>
         <button className={rtab === 'mentoring' ? 'active' : ''} onClick={() => setRtab('mentoring')}>{t('training.mentoring')}</button>
       </div>
-      {rtab !== 'mentoring' && <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+      {(rtab === 'standing' || rtab === 'xv') && <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
         <h3 style={{ fontSize: 14 }}>{t('report.trVerdict')}</h3>
         <div className="meta" style={{  }}>{assistantAdvice(game)}</div>
       </div>}
       {rtab === 'mentoring' && <MentoringPanel />}
+      {rtab === 'depth' && <DepthPane />}
 
       {rtab === 'standing' && <>
       <SectionTitle>{t('report.trWhereWeStand')}</SectionTitle>

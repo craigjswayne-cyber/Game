@@ -13,6 +13,10 @@ import { newCoachPhilosophy, seedPhilosophies } from './philosophy'
 import { t, tIn } from './i18n'
 import { telling } from './tellings'
 import { historyLeaveJob, historyTakeJob } from './history'
+import { arcAfterMove, arcBeforeMove, arcLeaveJob } from './arc'
+import { coachAppoint, coachSacked } from './rivalcoach'
+import { mgrTraits, traitLine } from './repute'
+import { fileHeldNews } from './heldnews'
 
 /**
  * ---- THE THREE MONTHS AFTER THEY SACK YOU ----
@@ -143,6 +147,9 @@ export function refreshVacancies(state: GameState, rng: Rng) {
       // F23: the new man brings his own idea of how to play, which is why a club
       // you have had the measure of for three seasons can start kicking at you.
       newCoachPhilosophy(state, state.clubs[v.clubId])
+      // a known coach out of work with this same idea of rugby may be the man
+      // who walks in: the name changes, the dials do not (rivalcoach.ts)
+      coachAppoint(state, state.clubs[v.clubId])
       coachAppointed(state, state.clubs[v.clubId])
     }
     return keep
@@ -181,6 +188,7 @@ export function refreshVacancies(state: GameState, rng: Rng) {
       // de their head coach" - which is exactly what they got.
       const exCoach = club.coach ?? tIn('en', 'news.theirHeadCoach')
       const coachK = club.coach ? 'news.coachNamed' : 'news.theirHeadCoach'
+      coachSacked(state, club) // the man, remembered (rivalcoach.ts)
       club.coach = undefined
       const pos = sortTable(state.comps[club.leagueId]?.table ?? []).findIndex(x => x.teamId === c.clubId) + 1
       // eleven sackings a season across the world, so the story is told three
@@ -294,6 +302,16 @@ export function applyForJob(state: GameState, clubId: string): string {
       body: tIn('en', 'news.jobOffered', { club: club.name, stadium: club.stadium, budget: fmtMoney(club.budget) }),
       k: 'news.jobOffered', v: { club: club.name, stadium: club.stadium, budget: fmtMoney(club.budget) },
     })
+    // WHY THEY WANT YOU (repute.ts): a club that offers a job says what it has
+    // heard, and a manager with a name has one. Held, so no id is spent.
+    const cite = offerCite(state)
+    if (cite) {
+      const v = { short: club.short, cite_k: cite.k, n: cite.v?.n ?? 0 }
+      fileHeldNews(state, [{
+        week: state.week, season: state.season, type: 'board', read: false,
+        subject: tIn('en', 'arc.offerCiteSubj', v), body: tIn('en', 'arc.offerCite', v), k: 'arc.offerCite', v,
+      }])
+    }
     return t('world.jbOffered', { club: club.name })
   }
   state.news.push({
@@ -303,6 +321,12 @@ export function applyForJob(state: GameState, clubId: string): string {
     k: 'news.jobRejected', v: { short: club.short, club: club.name },
   })
   return t('world.jbPassed', { club: club.short })
+}
+
+/** What a club offering the manager work says it knows him for, if anything. */
+export function offerCite(state: GameState): { k: string; v?: { n: number } } | null {
+  const top = mgrTraits(state)[0]
+  return top ? traitLine(top) : null
 }
 
 /**
@@ -351,6 +375,7 @@ function takeJob(state: GameState, clubId: string): string {
         p.loanFrom = null
       }
     }
+    arcBeforeMove(state, clubId) // the era at the old club is told (erastory.ts)
     if (!state.unemployed && oldClubId !== clubId) {
       // walking out - old club becomes vacant
       state.vacancies.push({ clubId: oldClubId, week: state.week })
@@ -418,6 +443,7 @@ function takeJob(state: GameState, clubId: string): string {
       k: 'news.appointed',
       v: { manager: state.managerName, club: club.name, stadium: club.stadium, budget: fmtMoney(club.budget) },
     })
+    arcAfterMove(state) // and a new one opened
     return t('world.jbHired', { club: club.name })
   }
 }
@@ -453,6 +479,7 @@ export function eraSummary(state: GameState): string {
 
 export function resignJob(state: GameState) {
   const club = state.clubs[state.userClubId]
+  arcLeaveJob(state, 'walked')
   historyLeaveJob(state, 'walked')
   state.unemployed = true
   // bids for the old club's players die with the job - they were addressed to
@@ -478,6 +505,7 @@ export function resignJob(state: GameState) {
  *  club/manager/era. */
 export function sackManager(state: GameState, k: string, extraV: Record<string, string | number> = {}) {
   const club = state.clubs[state.userClubId]
+  arcLeaveJob(state, 'sacked')
   historyLeaveJob(state, 'sacked')
   state.unemployed = true
   // and the board remembers for three months (SACK_COOLOFF). Written here

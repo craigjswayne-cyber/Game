@@ -25,7 +25,7 @@ export function ensureCaptains(state: GameState, quiet = false) {
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
           subject: `The armband passes to ${best.name}`,
-          body: `The captaincy fell vacant and the dressing room has looked to its senior man: ${best.name} (${best.age}, ${best.pos})${wasVice ? ', the vice-captain, steps up' : ' takes the armband'}. He is the natural choice on leadership and years of service. If you see it differently, hand it to someone else from the Tactics screen.`,
+          body: `The captaincy fell vacant and the dressing room has looked to its senior man: ${best.name} (${best.age}, ${best.pos})${wasVice ? ', the vice-captain, steps up' : ' takes the armband'}. He is the natural choice on leadership and years of service.`,
           k: 'news.armband',
           v: { player: best.name, age: best.age, pos: best.pos,
                how_k: wasVice ? 'news.armbandVice' : 'news.armbandTakes' },

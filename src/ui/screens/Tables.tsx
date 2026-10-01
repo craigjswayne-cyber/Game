@@ -28,8 +28,8 @@ export default function Tables({ initial }: { initial?: string }) {
         ))}
         <button onClick={() => go('nations')}>{t('tables.internationals')}</button>
         <button onClick={() => go('history')}>{t('tables.honours')}</button>
-        <button onClick={() => go('legacy')}>{t('tables.manager')}</button>
-        <button onClick={() => go('jobs')}>{t('tables.jobs')}</button>
+        {/* Manager and Jobs are gone from this row (owner, round 4): Legacy
+            is on the manager's own menu and Jobs has its own World item */}
       </div>
       <SectionTitle sub={comp.champion ? t('fixtures.champions', { club: teamShort(game, comp.champion) }) : undefined}>{comp.name}</SectionTitle>
       {/* the table itself lives in ../LeagueTable so that the copy on Fixtures &

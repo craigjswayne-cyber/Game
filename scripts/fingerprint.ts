@@ -503,13 +503,52 @@ const EXPECTED: string[] = [
   // points (subvalueprobe; +0.91 now). No new draw; one of six moved back
   // (harlequins-leicester). bandcheck: 49.1 pts, 6.24 tries, 52.7% home,
   // 1.6% draws, 8.8% blowouts.
-  'saracens 14-27 bath',
-  'exeter 3-30 gloucester',
-  'sale 39-25 bristol',
-  'harlequins 31-27 leicester',
-  'newcastle 13-30 northampton',
-  'exeter 10-42 saracens',
+  // 1.8.2, THE ATTACK AND DEFENCE STYLES (owner request, game/styles.ts):
+  // FIVE of six moved, and WITHOUT a new draw on the stream (sale-bristol
+  // held). Every club now plays one of five
+  // attacks and one of five defences (the AI's from its coach's philosophy,
+  // the manager's picked on the Tactics screen), and in every tick the two
+  // sides' styles scale the try chance and the penalty window, a tick that
+  // comes to nothing can end in a turnover or a metre of gain line, and a
+  // kicking game walks the line upfield: the same rolls against different
+  // thresholds, the turnover on a hash of the world, the fixture and the
+  // tick. A side with no style (a Test side) plays exactly as before. The
+  // world's try chance is normalised (styles.TRY_NORM) and the fit to a style
+  // is read against the side's own profile (styleFitRel), so the styles move
+  // who scores, not how much, and do not pay a strong side twice. bandcheck,
+  // pooled over four seeds, before and after:
+  //   pts 49.4 -> 49.9   tries 6.28 -> 6.34   home 51.5% -> 52.5%
+  //   draws 2.0% -> 1.6%   blowouts 9.0% -> 8.9% (every band holds)
+  // (the "before" is the pre-styles engine on its own tree; the release
+  // branch merged in at the end reads 49.4 / 6.30 / 52.3% / 1.7% / 8.5%)
+  // Home advantage read 51.2% to 53.5% over nine runs while the styles were
+  // tuned (per-seed spread 2 to 6 points), against 51.5% before them.
+  'saracens 31-27 bath',
+  'exeter 24-42 gloucester',
+  'sale 31-28 bristol',
+  'harlequins 44-27 leicester',
+  'newcastle 27-31 northampton',
+  'exeter 18-36 saracens',
 ]
+// REBASELINED for 1.8.2 depth (claude/182-depth), FIVE of six moved, and
+// WITHOUT a new draw on the shared stream: the match still takes the one draw
+// the old weather roll took (and throws it away), so every dice lands where it
+// did and only the thresholds they are compared against move. Why they move:
+//   - the day is now the fixture's (conditions.ts), by a hash of where and
+//     when it is played, so most fixtures get a different sky from before,
+//     and a damp day exists where it did not
+//   - a wet ball is turned over more, most for the handling styles, and wind
+//     cuts a kicking game's territory (styles.ts WET_TURN, WIND_TERR)
+//   - AI clubs pick between their coach's two styles with their league's lean
+//     (LEAGUE_LEAN), and a pod side plays a pod shape (POD_FX)
+//   - the injury roll's threshold carries the contact styles and the pitch
+//     (injuryF, centred on the world), and an artificial pitch gives its home
+//     side a small edge (ART_HOME)
+//   - six secret habits (habits.ts), each centred on the world's average side
+//   - a non-specialist in a specialist shirt, and Law 3's man off, where they occur
+// bandcheck, pooled over four seeds, before and after:
+//   pts 49.5 -> 49.9   tries 6.29 -> 6.36   home 53.0% -> 53.1%
+//   draws 1.4% -> 1.8%   blowouts 9.1% -> 8.8% (every band holds)
 // 1.8.1, the match engine and preparation round: ONE of six moved, and it is
 // the LEICESTER fixture again, because leicester is this world's user club and
 // a week nobody watches is now played the way a watched one is. The assistant
@@ -541,6 +580,18 @@ const EXPECTED: string[] = [
 // bandcheck, pooled over four seeds, before and after:
 //   pts 49.4 -> 49.6   tries 6.26 -> 6.30   home 53.2% -> 53.2%
 //   draws 1.6% -> 1.8%   blowouts 8.0% -> 8.8% (every band holds)
+// NOT rebaselined for the forward pass in the build-up (owner, 30 Sep 2026:
+// "IF a try happens then the TMO should get involved with 90% ruled off"),
+// and worth writing down why. Whether a try carries a forward pass, and
+// whether the TMO rules it out, is a hash of the world, the fixture, the side,
+// the minute and the try's number (matchEngine.scoreTry), never a draw, so
+// only a match with a forward-pass try that is ruled out can move, and none of
+// these six has one. scripts/fwdpassprobe.ts proves the rest: with the forward
+// pass switched off, every match takes the same draws. It does lower the
+// scoring, as a rule that takes tries away must. bandcheck, pooled over four
+// seeds, before and after (FWD_PASS.rate 0.03, 0.2 reviews a match):
+//   pts 49.8 -> 48.7   tries 6.32 -> 6.16   home 52.4% -> 53.3%
+//   draws 1.4% -> 1.7%   blowouts 8.6% -> 7.9% (every band holds)
 
 if (EXPECTED[0] === '@@EXPECTED@@') {
   console.log('BASELINE (paste into EXPECTED):')

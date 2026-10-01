@@ -214,7 +214,11 @@ try {
   // "confidence" becomes "confiance"; either can push a panel out of its row.
   const hub = await page.locator('.hub-widget label').allInnerTexts()
   say(`  hub widgets in French: ${hub.join(' | ')}`)
-  ok(hub.some(h => h.toLowerCase().includes('championnat')), 'the hub widgets are French')
+  ok(hub.some(h => h.toLowerCase().includes('forme')), 'the hub widgets are French')
+  // the desk's rows (1.8.2): the league position is the season row now
+  const desk = await page.locator('.desk-row .dr-l').allInnerTexts()
+  say(`  desk rows in French: ${desk.join(' | ')}`)
+  ok(desk.some(h => h.toLowerCase().includes('saison')), 'the desk rows are French')
 
   const dashHeads = await page.locator('.dash-head').allInnerTexts()
   say(`  dash panels in French: ${dashHeads.join(' | ')}`)
@@ -224,7 +228,7 @@ try {
   const homeOverflow = await page.evaluate(() => {
     const w = document.documentElement.clientWidth
     const bad = []
-    for (const el of document.querySelectorAll('.hub-widget span, .hub-widget label, .dash-head, .dash-line span, .dash-line b')) {
+    for (const el of document.querySelectorAll('.hub-widget span, .hub-widget label, .dash-head, .dash-line span, .dash-line b, .desk-row .dr-l, .desk-row .dr-t, .desk-sub')) {
       const r = el.getBoundingClientRect()
       if (r.width === 0) continue
       // clipped by its own box, or hanging off the screen
@@ -316,8 +320,8 @@ try {
   // commit. What this probe owns is the DIFFERENCE: a heading that the longer
   // language breaks and English does not.
   const squadHeadings = async () => {
-    // General, by position: third since v1.2.7 put the Depth chart second
-    await page.locator('.tab-bar button').nth(2).click()
+    // General, second since Depth moved to the Team Report (round 4)
+    await page.locator('.tab-bar button').nth(1).click()
     await page.waitForSelector('.dtable thead')
     await page.waitForTimeout(200)
     return page.evaluate(() => {
@@ -366,11 +370,14 @@ try {
   await page.locator('.bottom-nav button[data-group]').first().click()
   await page.waitForSelector('.submenu')
   await page.locator('.submenu-item', { hasText: 'Infirmerie' }).click()
-  await page.waitForSelector('.inline-input')
+  // the search box only shows with more than six men injured (1.8.2), so
+  // wait for the physio line instead
+  await page.waitForSelector('.card .meta')
   const physio = await page.locator('.card .meta').first().innerText()
   say(`  medical header: "${physio.replace(/\s+/g, ' ').trim().slice(0, 70)}"`)
-  ok(/kiné|blessures|poste vacant/i.test(physio), 'the medical header is French')
-  ok(await page.getAttribute('.inline-input', 'placeholder') === 'Chercher un joueur…', 'and so is the search placeholder')
+  ok(/kiné|blessé|blessures|poste vacant/i.test(physio), 'the medical header is French')
+  if (await page.locator('.inline-input').count())
+    ok(await page.getAttribute('.inline-input', 'placeholder') === 'Chercher un joueur…', 'and so is the search placeholder')
 
   // ---- Tactics, whose words nearly all come from the engine's own tables ----
   //
@@ -421,6 +428,15 @@ try {
 
   // the sliders and the opposition read, from game/tactics.ts and philosophy.ts
   await page.locator('.tab-bar button', { hasText: 'Plan de jeu' }).click()
+  // the styles view first (1.8.2): drawn, named and explained in French
+  await page.waitForSelector('[data-plan-sub="styles"]')
+  {
+    const styleText = await page.locator('.content').innerText()
+    const eng = ['Attack Style', 'Defence Style', 'Kick and Chase', 'Choke Tackle', 'Strong against', 'Your XV']
+      .filter(w => styleText.includes(w))
+    ok(eng.length === 0, `the attack and defence styles are French${eng.length ? ': ' + eng.join(', ') : ''}`)
+  }
+  await page.click('[data-plan-sub="tune"]')
   await page.waitForSelector('.slider-row')
   const sliderText = await page.locator('.slider-row').first().innerText()
   say(`  first dial: "${sliderText.replace(/\s+/g, ' ').trim().slice(0, 90)}"`)
@@ -565,7 +581,7 @@ try {
         say(`  full time: "${stamp.trim()}"`)
         ok(/VICTOIRE|DÉFAITE|MATCH NUL/i.test(stamp), 'the full-time stamp is French')
         const report = await page.locator('.panel-area').innerText()
-        const ftEng = ["Coach's Verdict", 'The Unit Battles', 'Star Player', 'Match Stats', 'The Highlights',
+        const ftEng = ["Coach's Verdict", 'The Unit Battles', 'Star Player', 'Match Stats',
           'Continue to Results', 'Player ratings', 'The Two Fixes', 'The Fix']
           .filter(w => report.includes(w))
         ok(ftEng.length === 0, `no English left in the full-time report${ftEng.length ? ': ' + ftEng.join(', ') : ''}`)

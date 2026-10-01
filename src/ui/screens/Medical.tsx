@@ -7,7 +7,6 @@ import { fuzzedCa } from '../../game/scout'
 import { HEAD_INJURIES, canPlayThrough, flareChance, playThrough, restKnock, weeksLeft } from '../../game/knock'
 import { canPhysioFavour } from '../../game/rewarded'
 import { rewardedAvailable } from '../../game/monetise'
-import { badgeLabel } from '../../game/staff'
 import { PosBadge, SectionTitle, RewardedButton, Stars } from '../components'
 import FullFitness from '../FullFitness'
 import { t } from '../../game/i18n'
@@ -32,6 +31,8 @@ export default function Medical() {
   const squad = club.players.map(id => game.players[id]).filter((p): p is Player => !!p)
     .filter(p => !q || p.name.toLowerCase().includes(q) || p.pos.toLowerCase() === q)
 
+  /** everyone in the treatment room, whatever is typed in the search box */
+  const hurtCount = club.players.filter(id => game.players[id]?.injury).length
   const injured = squad.filter(p => p.injury).sort((a, b) => (a.injury!.until) - (b.injury!.until))
   const rusty = squad.filter(p => !p.injury && (p.rust ?? 0) > 0)
   const banned = squad.filter(p => p.bans > 0)
@@ -60,34 +61,38 @@ export default function Medical() {
   }, [])
 
   // empty sections say nothing at all - six headers of "nobody" was noise.
-  // A ROW IS A NAME WITH ITS LINE UNDER IT, AND ITS BUTTONS TO THE RIGHT
-  // (owner, 27 Sep 2026: "tidy up the treatment room"). The injury text used
-  // to sit in the same cell as up to three buttons, wrapping between them.
-  const section = (title: string, sub: string, rows: Player[], render: (p: Player) => { info: React.ReactNode; act?: React.ReactNode }) =>
+  // ONE CARD A MAN, THREE LINES AT MOST (owner, round 2: "treatment room looks
+  // super messy"). The table put a stack of buttons in a right-hand column,
+  // so a row with none left its divider stopping half way and the rows with
+  // some floated out of line. Now: who he is and when he is back; what is
+  // wrong, on one line; and the buttons, side by side and the same width,
+  // only when there are any. A card with no buttons can carry a short note
+  // saying why (a head injury) instead of leaving a gap.
+  type Row = { pill?: { text: string; tone: 'short' | 'mid' | 'long' }; info: React.ReactNode; extra?: React.ReactNode; act?: React.ReactNode[]; note?: string }
+  const section = (title: string, sub: string | undefined, rows: Player[], render: (p: Player) => Row) =>
     rows.length === 0 ? null : (
       <>
         <SectionTitle sub={sub}>{title}</SectionTitle>
-        <div className="tblwrap">
-          <table className="dtable"><tbody>
-            {rows.map(p => {
-              const { info, act } = render(p)
-              return (
-              <tr key={p.id} className="med-row" onClick={() => go('player', p.id)}>
-                <td><PosBadge pos={p.pos} /></td>
-                <td className="name">
-                  {p.name}
-                  <div className="med-info">{info}</div>
-                  {msg?.id === p.id && (
-                    <div className="meta" style={{ fontSize: 11, fontWeight: 600, whiteSpace: 'normal' }}>
-                      {msg.text}
-                    </div>
-                  )}
-                </td>
-                <td className="med-act">{act}</td>
-              </tr>
-              )
-            })}
-          </tbody></table>
+        <div className="med-list">
+          {rows.map(p => {
+            const { pill, info, extra, act, note } = render(p)
+            const acts = (act ?? []).filter(Boolean)
+            return (
+              <div key={p.id} className="card med-card" onClick={() => go('player', p.id)}>
+                <div className="med-head">
+                  <PosBadge pos={p.pos} />
+                  <span className="med-name">{p.name}</span>
+                  {pill && <span className={`med-pill ${pill.tone}`}>{pill.text}</span>}
+                </div>
+                <div className="med-info">{info}</div>
+                {extra && <div className="med-extra">{extra}</div>}
+                {acts.length > 0
+                  ? <div className="med-acts">{acts}</div>
+                  : note && <div className="med-note">{note}</div>}
+                {msg?.id === p.id && <div className="med-msg">{msg.text}</div>}
+              </div>
+            )
+          })}
         </div>
       </>
     )
@@ -95,22 +100,26 @@ export default function Medical() {
 
   return (
     <>
-      <div className="card" style={{ borderLeft: '4px solid var(--gold)', padding: '8px 14px' }}>
-        <div className="meta">
-          <b>{game.staffPeople?.physio
-            ? t('medical.physioNamed', { name: game.staffPeople.physio.name, badge: badgeLabel(game.staff.physio).toLowerCase() })
-            : t('medical.headPhysio')}</b>
-          {game.staff.physio === 0
-            ? t('medical.physioVacant')
-            : t('medical.physioShorter', { pct: game.staff.physio * 12 })}
-        </div>
+      {/* one line, a square bar flush to the edge (owner, round 2: "square
+          left bars everywhere"). A vacant post keeps its wrap: that line is
+          the only place the room says where to hire one. */}
+      <div className={'card med-staff' + (game.staff.physio === 0 ? ' wrap' : '')}>
+        <b>{game.staffPeople?.physio
+          ? t('medical.physioNamed', { name: game.staffPeople.physio.name })
+          : t('medical.headPhysio')}</b>
+        {game.staff.physio === 0
+          ? t('medical.physioVacant')
+          : t('medical.physioShorter', { pct: game.staff.physio * 12 })}
       </div>
 
-      <div style={{ padding: '6px 14px 0' }}>
-        <input className="inline-input" placeholder={t('medical.findPlayer')} value={query}
-          onChange={e => setQuery(e.target.value)}
-          style={{ margin: 0, maxWidth: 240, padding: '4px 8px', fontSize: 12 }} />
-      </div>
+      {/* a search box is for a long list: under seven men it was a half-width
+          box in the way. Kept while something is typed, so it can be cleared. */}
+      {(hurtCount > 6 || !!q) && (
+        <div className="med-search">
+          <input className="inline-input" placeholder={t('medical.findPlayer')} value={query}
+            onChange={e => setQuery(e.target.value)} />
+        </div>
+      )}
 
       {/* THE TREATMENT TABLE IS WHERE YOU WANT A FIT SQUAD, not two menus away
           in a shop (owner: "ok put the full fitness on the medical screen,
@@ -120,13 +129,13 @@ export default function Medical() {
       <FullFitness />
 
       {allClear && (
-        <div className="card center" style={{ borderLeft: '4px solid var(--text-positive)' }}>
+        <div className="card center bar-sq" style={{ borderLeft: '4px solid var(--text-positive)' }}>
           <h3 style={{ fontSize: 16 }}>{t(q ? 'medical.nothingOnHim' : 'medical.quietRoom')}</h3>
           <div className="meta">{t(q ? 'medical.nothingOnHimSub' : 'medical.quietRoomSub')}</div>
         </div>
       )}
 
-      {section(t('medical.treatmentRoom'), t('medical.treatmentSub'), injured, p => {
+      {section(`${t('medical.treatmentRoom')} (${injured.length})`, undefined, injured, p => {
         /* ---- TWO DOORS, AND ONLY EVER ONE OF THEM IS A DECISION ----
            Owner, 1.5.8: the paid consult sat next to the free watch-an-ad
            button doing the same job. It nearly did. specialistConsult takes a
@@ -145,38 +154,39 @@ export default function Medical() {
         const favourOn = rewardedAvailable('medical') && canPhysioFavour(game, p.id)
         const feeOn = !p.specialist && p.injury!.until - game.week >= 3 && (!favourOn || feeCut > favourCut)
         const cover = jokerFor(game, p.id)
-        return { info: (
-          <>
-            <span className="neg">{injuryDesc(p.injury!)} · {t('common.weeksOut', { n: left })}</span>
-            {HEAD_INJURIES.has(p.injury!.dk ?? '') && weeksLeft(game, p) <= 3 && <span>{t('medical.knockHead')}</span>}
-            {cover && <span className="gold">{t('medical.jokerCovered', { name: cover.name })}</span>}
-          </>
-        ), act: (
-        <>
-          {/* the sponsor's consultant (v1.1.0): the same door with the fee
+        // the return pill: next week reads as good news, a month or more as bad
+        const tone = left <= 1 ? 'short' : left <= 3 ? 'mid' : 'long'
+        return {
+          pill: { text: t('common.weeksOut', { n: left }), tone },
+          info: injuryDesc(p.injury!),
+          extra: cover && <span className="gold">{t('medical.jokerCovered', { name: cover.name })}</span>,
+          // PLAY THROUGH IT is never offered on a head injury, and the room
+          // says so rather than leaving the button to go missing
+          note: HEAD_INJURIES.has(p.injury!.dk ?? '') ? t('medical.knockHead') : undefined,
+          act: [
+          /* the sponsor's consultant (v1.1.0): the same door with the fee
               replaced by a watched spot - only where a provider exists, and
               only while the week's ledger allows it (rewarded.ts). It is
               listed FIRST now: free before paid is the honest order, and the
-              owner's note was that the two read as interchangeable. */}
-          {favourOn && (
-            <RewardedButton place="medical" label={t('till.physioCut', { n: favourCut })}
+              owner's note was that the two read as interchangeable. */
+          favourOn && (
+            <RewardedButton key="favour" place="medical" label={t('till.physioCut', { n: favourCut })}
               className="btn ghost rowact"
               onDone={out => {
                 if (out === 'completed') setMsg({ id: p.id, text: rewardPhysio(p.id) ?? t('till.favourGone') })
                 else setMsg({ id: p.id, text: t(out === 'skipped' ? 'till.spotSkipped' : 'till.spotUnavailable') })
               }} />
-          )}
-          {feeOn && (
-            <button className="btn gold rowact"
+          ),
+          feeOn && (
+            <button key="fee" className="btn gold rowact"
               onClick={e => { e.stopPropagation(); setMsg({ id: p.id, text: specialistConsult(game, p.id) }); touch() }}>
               {t('medical.specialistCut', { n: feeCut, fee: fmtMoney(SPECIALIST_FEE) })}
             </button>
-          )}
-          {/* PLAY THROUGH IT (knock.ts): the last weeks of a lay-off can be
-              played on, at a risk the button states. Never a head injury, and
-              the room says so rather than leaving the button to go missing. */}
-          {canPlayThrough(game, p) && (
-            <button className="btn ghost rowact"
+          ),
+          /* PLAY THROUGH IT (knock.ts): the last weeks of a lay-off can be
+              played on, at a risk the button states. */
+          canPlayThrough(game, p) && (
+            <button key="knock" className="btn ghost rowact"
               onClick={e => {
                 e.stopPropagation()
                 const r = playThrough(game, p.id)
@@ -185,23 +195,23 @@ export default function Medical() {
               }}>
               {t('medical.knockBtn', { pct: Math.round(flareChance(weeksLeft(game, p)) * 100) })}
             </button>
-          )}
-          {/* THE MEDICAL JOKER (joker.ts): a long lay-off can be covered by one
-              short-term signing whose wage sits outside the cap */}
-          {!cover && jokerOpen(game, p) && (
-            <button className="btn ghost rowact"
+          ),
+          /* THE MEDICAL JOKER (joker.ts): a long lay-off can be covered by one
+              short-term signing whose wage sits outside the cap */
+          !cover && jokerOpen(game, p) && (
+            <button key="joker" className="btn ghost rowact"
               onClick={e => { e.stopPropagation(); setJokerHurt(p) }}>
               {t('medical.jokerBtn')}
             </button>
-          )}
-        </>
-        ) }
+          ),
+          ],
+        }
       })}
 
       {section(t('medical.knockTitle'), t('medical.knockSub'), knocks, p => ({
         info: <span className="gold">{t('medical.knockRow', { n: Math.max(0, p.knock!.until - game.week), pct: Math.round(flareChance(p.knock!.early) * 100) })}</span>,
-        act: (
-          <button className="btn ghost rowact"
+        act: [
+          <button key="rest" className="btn ghost rowact"
             onClick={e => {
               e.stopPropagation()
               const r = restKnock(game, p.id)
@@ -209,8 +219,8 @@ export default function Medical() {
               touch()
             }}>
             {t('medical.knockRest')}
-          </button>
-        ),
+          </button>,
+        ],
       }))}
 
       {section(t('medical.redZone'), t('medical.redZoneSub'), loaded, p => ({
@@ -219,12 +229,12 @@ export default function Medical() {
 
       {section(t('medical.returning'), t('medical.returningSub'), rusty, p => ({
         info: <span className="gold">{t('medical.rusty', { n: p.rust ?? 0 })}</span>,
-        act: game.cottonWk !== game.season * 100 + game.week && (
-          <button className="btn ghost rowact"
+        act: [game.cottonWk !== game.season * 100 + game.week && (
+          <button key="wool" className="btn ghost rowact"
             onClick={e => { e.stopPropagation(); setMsg({ id: p.id, text: cottonWool(game, p.id) }); touch() }}>
             {t('medical.cottonWool')}
           </button>
-        ),
+        )],
       }))}
 
       {section(t('medical.suspended'), t('medical.suspendedSub'), banned, p => ({

@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { useStore } from '../../store'
 import { SectionTitle } from '../components'
 import { CONTACT_MAILTO, DEV_CONTACT, PUBLISHER, PUBLISHER_ADDRESS } from '../../game/bugreport'
-import { COMMUNITY_URL } from '../../game/community'
+import { COMMUNITY_URL, IDEAS_URL } from '../../game/community'
+import { Glyph } from '../glyphs'
 import { adBridgePresent, adBridgeWhy, billingBridgePresent, tillHealth, tillOpen } from '../../game/monetise'
 import { nativePlatform } from '../../game/shell'
 import { t } from '../../game/i18n'
@@ -136,6 +137,9 @@ export default function About() {
         <div className="meta">{t('about.communityBody')}</div>
         <a className="btn gold block" style={{ marginTop: 8 }} href={COMMUNITY_URL} target="_blank" rel="noopener noreferrer">
           {t('about.communityLink')}
+        </a>
+        <a className="btn ghost block ideas-discord" style={{ marginTop: 8 }} href={IDEAS_URL} target="_blank" rel="noopener noreferrer">
+          <Glyph name="gossip" /> {t('menu.ideasDiscord')}
         </a>
       </div>
 

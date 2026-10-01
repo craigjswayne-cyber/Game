@@ -17,7 +17,7 @@ import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance, userFixtureThisWeek, weekRng } from '../src/game/season'
 import { simMatch, teamUnits } from '../src/game/matchEngine'
 import { bigMatchTemper, consistency, isLateBloomer, playerValue, playerWage } from '../src/game/attributes'
-import { staffChem, staffChemPairs } from '../src/game/staff'
+import { migrateRift, riftDrag, settleRift, staffRiftWeek } from '../src/game/staffrift'
 import { devFactor } from '../src/game/rollover'
 import { migrate } from '../src/game/save'
 import type { GameState, Player } from '../src/game/model'
@@ -78,10 +78,12 @@ const HOSTILE = [NaN, Infinity, -Infinity, -1, 0, 1e9, -1e9, 0.5]
     const fork = structuredClone(g)
     mut(fork)
     try {
-      const n = staffChem(fork)
-      const pairs = staffChemPairs(fork)
-      if (!Number.isFinite(n)) bad('staff chemistry', `${what} produced a non-finite score`)
-      if (!Array.isArray(pairs)) bad('staff chemistry', `${what} produced a non-array pair list`)
+      // the trait chemistry is gone (owner, round 4); what walks staffPeople
+      // now is the secret falling-out between two coaches (staffrift.ts)
+      fork.staffRift = migrateRift(fork.staffRift)
+      settleRift(fork)
+      staffRiftWeek(fork)
+      if (!Number.isFinite(riftDrag(fork))) bad('staff chemistry', `${what} produced a non-finite rift drag`)
       // devFactor multiplies growth by this: a NaN here poisons a career
       const kid = Object.values(fork.players).find(p => p.clubId === fork.userClubId)!
       const f = devFactor(fork, kid)
@@ -102,6 +104,9 @@ const HOSTILE = [NaN, Infinity, -Infinity, -1, 0, 1e9, -1e9, 0.5]
     s.staffPeople = Object.fromEntries(['assistant', 'physio', 'scout', 'attack', 'defence', 'scrumCoach', 'kicking', 'academyCoach'].map(k => [k, { ...p }])) as never
   }, 'one man cloned into all eight chairs')
   attack(s => { (s.staffPeople as Record<string, unknown>) = { attack: { name: 'A', trait: '__proto__' }, defence: { name: 'B', trait: 'constructor' } } }, 'traits that name object internals')
+  attack(s => { (s as unknown as Record<string, unknown>).staffRift = { clubId: 1, a: 'nope', b: null, since: NaN } }, 'a malformed rift')
+  attack(s => { s.staffRift = { clubId: s.userClubId, a: 'attack', b: 'defence', aName: 'Ghost', bName: 'Shade', since: 0, told: 9, next: -1 } }, 'a rift naming coaches who are not there')
+  attack(s => { s.staffRiftNext = NaN }, 'a cooldown that is not a number')
   ok(true, 'the staff room absorbed every shape a corrupted save can hold')
 }
 

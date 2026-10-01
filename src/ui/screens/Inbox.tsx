@@ -1,4 +1,5 @@
-import { TwoStep, paragraphs } from '../components'
+import { TwoStep } from '../components'
+import { NewsBody, NewsGo, plainNews } from '../NewsBody'
 import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../../store'
 import { newsBody, newsSubject, weekDate, type NewsItem } from '../../game/model'
@@ -80,8 +81,12 @@ export function RequestAnswer({ n }: { n: NewsItem }) {
 export function PeopleChips({ n }: { n: NewsItem }) {
   const game = useStore(s => s.game)!
   const go = useStore(s => s.go)
-  const ids = [...new Set([...(n.playerIds ?? []), ...(n.playerId != null ? [n.playerId] : [])])]
-    .filter(id => game.players[id])
+  // ONE TAP PER MAN (owner, round 2): the ContextCard beside the story already
+  // carries n.playerId with his crest, so a chip for him here was the same
+  // player twice. The chips only name the others the story mentions.
+  const carded = n.playerId != null && game.players[n.playerId] ? n.playerId : null
+  const ids = [...new Set(n.playerIds ?? [])]
+    .filter(id => game.players[id] && id !== carded)
   if (!ids.length) return null
   return (
     <div className="who-row">
@@ -115,7 +120,7 @@ export function InboxList({ compact }: { compact?: boolean }) {
           onClick={() => { markRead(game, n); touch() }}>
           <div className="when">{newsGlyph(n.type)} {weekDate(n.season, n.week)}</div>
           <div className="subj">{newsSubject(n)}</div>
-          <div className="body">{newsBody(n)}</div>
+          <div className="body">{plainNews(newsBody(n))}</div>
         </button>
       ))}
     </>
@@ -218,14 +223,12 @@ export default function Inbox() {
             how the engine happened to punctuate the story: some had 6px, some had
             12, and the result read as a wall with random gaps in it (user: "news
             graphics seem so messy, tidy them up. use paragraphs"). */}
-        {/* **name** renders bold: the loan postcards mark the player names so a
-            five-man report can be scanned (round 25). Odd segments of the split
-            are the marked ones; a body with no markers passes through intact. */}
-        {paragraphs(newsBody(n)).map((para, k) => (
-          <p key={k}>{para.split(/\*\*(.+?)\*\*/g).map((seg, j) => j % 2 === 1 ? <b key={j}>{seg}</b> : seg)}</p>
-        ))}
+        {/* **name** renders bold (the loan postcards), and a story that carries
+            data lays it out as rows and lists rather than prose (NewsBody). */}
+        <NewsBody body={newsBody(n)} />
         <RequestAnswer n={n} />
         <PeopleChips n={n} />
+        <NewsGo n={n} />
       </article>
       {/* the reader carries its own gutter; the card needs the page's */}
       <div className="ctx-gutter"><ContextCard n={n} /></div>

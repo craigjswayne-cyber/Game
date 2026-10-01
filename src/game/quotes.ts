@@ -50,6 +50,20 @@ export function unwrap(s: string): string {
   return inner.replace(new RegExp(`^[${NB}\\s]+|[${NB}\\s]+$`, 'g'), '') + tail
 }
 
+/** An answer split into what it says and the note after it (owner, round 5).
+ *  A choice like "Warm-weather camp (£400k)" or "Judge us in May - aim high
+ *  (+£13k war chest)" reads as its words, with the figure on a smaller grey
+ *  line underneath rather than in brackets. The note is the trailing
+ *  parenthetical, in either width of bracket (Japanese sets （）), so every
+ *  language splits the same way; a line without one is all main. The main
+ *  part is unwrapped of any outer quote marks, as unwrap() does. */
+export function optionParts(s: string): { main: string; detail: string | null } {
+  const all = unwrap(s ?? '')
+  const note = /^(.*?\S)\s*[(（]([^()（）]+)[)）]$/.exec(all)
+  if (!note) return { main: all, detail: null }
+  return { main: unwrap(note[1]), detail: note[2].trim() }
+}
+
 /** The manager's own words, in the reader's quote marks. Empty in, empty out. */
 export function speech(s: string, lang: Lang = getLang()): string {
   const v = unwrap(s ?? '')

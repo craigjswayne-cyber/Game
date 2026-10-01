@@ -80,9 +80,12 @@ ok(slowPct >= 0.45 && slowPct <= 0.62,
 // 2. an even ladder, so the difference between two settings can be felt
 const stepA = slow / normal
 const stepB = normal / fast
-ok(stepA >= 1.7 && stepA <= 2.4, `Slow to Normal is a ${stepA.toFixed(1)}x step`)
-ok(stepB >= 1.7 && stepB <= 2.4, `Normal to Fast is a ${stepB.toFixed(1)}x step`)
-ok(Math.abs(stepA - stepB) < 0.6,
+// Owner, round 2 (1.8.2): Normal went from 800 to 640ms on request, "just a
+// bit so it's not crazy fast", with Slow and Fast left where they were. The
+// ladder is no longer exactly even; these bounds hold it near even.
+ok(stepA >= 1.5 && stepA <= 2.6, `Slow to Normal is a ${stepA.toFixed(1)}x step`)
+ok(stepB >= 1.5 && stepB <= 2.6, `Normal to Fast is a ${stepB.toFixed(1)}x step`)
+ok(Math.abs(stepA - stepB) < 1.0,
   `and the two steps are the same size, so no setting is stranded next to a cliff (${stepA.toFixed(1)}x vs ${stepB.toFixed(1)}x)`)
 
 // 3. Normal has to be followable, Fast has to still be a skim rather than a blur
@@ -96,7 +99,7 @@ ok(fast / readMs >= 0.1,
 //    must not sail past the one a game of this exact shape shipped with.
 const TENSION = 1.6
 ok(fast >= 300, `Fast is no faster than CM 01/02's own fast-play figure of 300ms (${fast}ms)`)
-ok(normal >= 800, `Normal is at or above the floor of CM 01/02's playable band (${normal}ms vs 800ms)`)
+ok(normal * TENSION >= 800, `Normal at its most tense reaches the floor of CM 01/02's playable band (${Math.round(normal * TENSION)}ms vs 800ms)`)
 ok(slow * TENSION <= 2700,
   `and Slow at its most tense stays under that band's ceiling (${Math.round(slow * TENSION)}ms vs 2700ms)`)
 

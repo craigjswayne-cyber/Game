@@ -1,8 +1,10 @@
 // Scouting knowledge: attributes of unscouted players show as ranges.
 import { userWageBudget } from './grants'
 import { askingPrice } from './ai'
+import { playerValue } from './attributes'
 // Knowledge grows by shortlisting, playing against them, and via the
-// chief scout. Your own squad is always fully known.
+// chief scout. Your own squad is always fully known, bar a young man's ceiling
+// (youthPaMargin below: nobody can read what he will become as a number).
 
 import type { Attrs, GameState, Player, Pos } from './model'
 import { tIn } from './i18n'
@@ -47,6 +49,165 @@ export function fuzzedCa(state: GameState, p: Player): number {
   if (m === 0) return p.ca
   return clamp(p.ca + skew(p, 99, m * 3), 30, 99)
 }
+
+/**
+ * ---- THE CEILING IS FOUND, NOT GIVEN (1.8.2) ----
+ *
+ * Owner: "It shouldn't be easy to see the best youngsters and free agents;
+ * you should have to research and do deep dives."
+ *
+ * A man's potential is the most valuable secret in the game, and until now the
+ * World screen listed the eight highest in any league, free agents included,
+ * the pre-season circular named five of them, the market sorted on the true
+ * rating and priced on the true ceiling, and a player page put a Wonderkid
+ * chip on any teenager with one, scouted or not. So the ceiling is now read
+ * the way the attributes always were: through knowledge. Nothing the manager
+ * sees reads p.pa for a man at another club except through paRange, and
+ * everything that ranks or filters for him ranks on the reading.
+ *
+ *   under 35 knowledge  no reading at all: a name on a team sheet
+ *   35 to 54            a wide band, twelve either side
+ *   55 to 74            seven either side (WATCH_KNOW: a proper report)
+ *   75 to 94            four either side
+ *   95 and over         the number
+ *
+ * The band is skewed by a fixed per-man amount, like the attribute ranges, so
+ * its middle is not the truth. The only ways up the ladder are the ones that
+ * always raised knowledge: the shortlist, the league background and focus,
+ * facing him, and the chief scout's brief (weeklyScouting, scoutOpponent,
+ * commission.ts). AI clubs never read any of this; they see true values.
+ */
+export const WATCH_KNOW = 55
+
+/** Margin on the ceiling at a knowledge level, or -1 for no reading at all. */
+export function paMargin(k: number): number {
+  if (k >= 95) return 0
+  if (k >= 75) return 4
+  if (k >= 55) return 7
+  if (k >= 35) return 12
+  return -1
+}
+
+/**
+ * ---- A YOUNG MAN'S CEILING IS AN ESTIMATE, WHOEVER WATCHES HIM (1.8.2) ----
+ *
+ * Knowledge reads what a man IS. What he will become is still being decided
+ * (devproject.ts: the ceiling moves with his seasons until his early twenties),
+ * so no file, not even your own staff's on your own academy, reads it as a
+ * number while he is young. The floor on the margin runs from seven points at
+ * 18 to two at 23, and the club's own development staff see further: a
+ * level-3 assistant and a level-3 Centre of Excellence take a point each off
+ * it for the club's own men (never under one before 24). From 24 the full
+ * file is the number again, as it always was.
+ */
+export function youthPaMargin(state: GameState, p: Player): number {
+  if (p.age >= 24) return 0
+  const base = p.age <= 18 ? 7 : p.age <= 20 ? 5 : p.age <= 22 ? 4 : 2
+  if (p.clubId !== state.userClubId) return base
+  const club = state.clubs[state.userClubId]
+  const sight = ((state.staff?.assistant ?? 0) >= 3 ? 1 : 0) + ((club?.facilities?.academy ?? 0) >= 3 ? 1 : 0)
+  return Math.max(1, base - sight - (secondOpinion(state, p) ? 1 : 0))
+}
+
+/**
+ * A SECOND OPINION (1.8.2, rewarded.ts): a watched spot buys the development
+ * staff the look they would otherwise take a season or a better setup to
+ * reach, which is one more point of sight on this man's ceiling, this season.
+ * It sits under the same floor of one as the assistant and the Centre of
+ * Excellence, so a young man's ceiling is never read as a number early. Your
+ * own players only; it changes what the club reads of him (the band, and the
+ * middle of it the club's own lists sort on), never the man or any AI club.
+ */
+export function secondOpinion(state: GameState, p: Player): boolean {
+  const o = state.rewarded?.opinion
+  return p.clubId === state.userClubId && !!o && typeof o === 'object' && o[p.id] === state.season
+}
+
+/** The scouts' band on his ceiling, or null when they have not read it. */
+export function paRange(state: GameState, p: Player): [number, number] | null {
+  const km = paMargin(knowledge(state, p))
+  if (km < 0) return null
+  const m = Math.max(km, youthPaMargin(state, p))
+  if (m === 0) return [p.pa, p.pa]
+  const c = clamp(p.pa + skew(p, 98, m), 1, 99)
+  const floor = Math.round(fuzzedCa(state, p))
+  const lo = clamp(Math.max(floor, c - m), 1, 99)
+  return [lo, clamp(Math.max(lo, c + m), 1, 99)]
+}
+
+/**
+ * One number for "how high could he go", as far as the club knows: the middle
+ * of the band, or with no band at all a generic projection from what can be
+ * seen (his rating as read, plus the years he has left to grow). It never
+ * reads the ceiling of a man the scouts have not read.
+ */
+export function scoutPa(state: GameState, p: Player): number {
+  const r = paRange(state, p)
+  if (r) return (r[0] + r[1]) / 2
+  return clamp(fuzzedCa(state, p) + Math.max(0, 23 - p.age) * 2.5, 1, 99)
+}
+
+/** His price as the club reads it: the market's own formula fed the scouts'
+ *  reading instead of the truth, so a sort by value is not a hidden sort by
+ *  ceiling. Exact once he is fully known. */
+export function seenValue(state: GameState, p: Player): number {
+  if (knowledge(state, p) >= 95) return p.value
+  return playerValue(Math.round(fuzzedCa(state, p)), p.age, Math.round(scoutPa(state, p)), p.pos, p.form,
+    p.clubId ? p.contractEnds - state.season : undefined, p.caps)
+}
+
+/** The Wonderkid chip: the staff's estimate at your own club (1.8.2: an
+ *  estimate there too, devproject.ts), a proper report elsewhere. */
+export function wonderkidKnown(state: GameState, p: Player): boolean {
+  if (p.age > 21) return false
+  if (p.clubId === state.userClubId) return scoutPa(state, p) >= 86
+  return knowledge(state, p) >= WATCH_KNOW && scoutPa(state, p) >= 86
+}
+
+/** What a market list sorts on, for the columns that carry a hidden number. */
+export function searchKey(state: GameState, p: Player, key: 'ca' | 'value'): number {
+  return key === 'ca' ? fuzzedCa(state, p) : seenValue(state, p)
+}
+
+/**
+ * World > Team of the Season > Ones to Watch. Named: under-21s at clubs in
+ * the league (never free agents: owner, 1.8.2, a ranking list is no shop
+ * window for the unattached) the scouts have properly read, best reading first, plus the
+ * club's own. Leads: up to three the scouts have only heard about, at clubs in
+ * the league, never free agents, and never named: a position, an age and the
+ * league, to be followed up. The whisper behind a lead is the ceiling with a
+ * wide fixed error, and the three passed on are drawn at random from those it
+ * clears, so a lead is a tip and not a ranking.
+ */
+export function onesToWatch(state: GameState, leagueId: string): { named: Player[]; leads: Player[] } {
+  const pool = Object.values(state.players).filter(p =>
+    p.age <= 21 && !p.retiring && p.clubId != null && state.clubs[p.clubId]?.leagueId === leagueId)
+  const read = (p: Player) => p.clubId === state.userClubId || knowledge(state, p) >= WATCH_KNOW
+  const named = pool.filter(read)
+    .sort((a, b) => scoutPa(state, b) - scoutPa(state, a) || a.id - b.id)
+    .slice(0, 8)
+  const whisper = (p: Player) => p.pa + (mulberry32(hashString(`lead|${p.id}|${state.season}`))() * 2 - 1) * 8
+  // a whisper passes the bar or it does not; which three of those the scouts
+  // pass on is luck of the season, not an order, so the leads are no ranking
+  const draw = (p: Player) => mulberry32(hashString(`leadpick|${p.id}|${state.season}`))()
+  const leads = pool.filter(p => p.clubId && !read(p) && whisper(p) >= 80)
+    .sort((a, b) => draw(a) - draw(b) || a.id - b.id)
+    .slice(0, 3)
+  return { named, leads }
+}
+
+/** The row for a lead, as a key and its variables (news and the World screen). */
+export function leadRow(state: GameState, p: Player): { k: string; [x: string]: string | number } {
+  const lid = p.clubId ? state.clubs[p.clubId]?.leagueId : undefined
+  // the full English name: i18n.COMP_VARS translates a `league` on the way out
+  return { k: 'news.watchLead', age: p.age, pos_k: posNounKey(p.pos), league: (lid && state.comps[lid]?.name) || '' }
+}
+
+const POS_NOUN: Record<Pos, string> = {
+  LP: 'prop', TP: 'prop', HK: 'hooker', LK: 'lock', FL: 'flanker', N8: 'number8',
+  SH: 'scrumHalf', FH: 'flyHalf', CE: 'centre', WG: 'winger', FB: 'fullBack',
+}
+export const posNounKey = (pos: Pos) => `posNoun.${POS_NOUN[pos] ?? 'player'}`
 
 export function bumpKnowledge(p: Player, amt: number) {
   p.sc = clamp((p.sc ?? 20) + amt, 0, 100)

@@ -313,6 +313,127 @@ export function mentorRate(state: GameState, senior: Player, kid: Player): numbe
   return mentorBoost(senior, kid) * load * POS_RATE[posLink(senior, kid)] * (1 + 0.1 * mentorExperience(senior))
 }
 
+/**
+ * ---- A PAIRING GROWS, IT IS NOT SWITCHED ON (1.8.2) ----
+ *
+ * Owner: "Mentoring should grow or flourish over time, not be an instant
+ * success." Until now a pairing made on Monday ran at its full rate from its
+ * first week, so the best part of a pairing was the moment it was made.
+ *
+ * Now the rate above is what the pairing is worth ONCE THE TWO KNOW EACH
+ * OTHER, and the relationship has to get there. How close it has come is
+ * mentorBond: 1 - e^(-weeks / pace), a curve that starts near nothing and
+ * levels off. The pace is the pair's chemistry (pairChem: the character fit
+ * and the position link, the things that decide whether two men click), so a
+ * Leader with a Professional of his own position is most of the way there in a
+ * couple of months, an average pair in a season's first third, and a pair that
+ * does not click creeps up slowly to a low ceiling and stays there.
+ *
+ * How far it can come is the chemistry too (bondCeiling): a pair that clicks
+ * settles above the old flat rate, one that does not stalls near half of it.
+ *
+ * THE SEASON STAYS WHAT IT WAS. RAMP_SCALE is set so an average ESTABLISHED
+ * pairing (its second season) is worth what every pairing used to be worth,
+ * about one rating point, and its first season, the ramp included, a fifth
+ * less: across 1,858 real pairings at six clubs the old flat season was 0.85
+ * rating points, the new first season 0.69 and the second 0.87.
+ * scripts/mentorimpact.ts measures both. The instant front-loaded weeks are
+ * what went.
+ *
+ * Weeks are calendar weeks since the pairing began (the ledger's `since`),
+ * so the close season counts: two men who spent the summer in touch are
+ * further on in August than two who have just met.
+ */
+export const RAMP_SCALE = 1.05
+
+/** The pair's chemistry against an average pair (1.0): the character fit and
+ *  how close their jobs are. This, not the load or his caps, decides how fast
+ *  they click and how far. */
+export function pairChem(senior: Player, kid: Player): number {
+  return mentorBoost(senior, kid) * POS_RATE[posLink(senior, kid)]
+}
+
+/** Weeks for the relationship to come about two thirds of the way. Five for
+ *  the best pairs, nine for an average one, twenty for one that is not
+ *  clicking. */
+export function bondPace(chem: number): number {
+  return clamp(9 / Math.pow(Math.max(0.1, chem), 1.5), 5, 20)
+}
+
+/** 0 to 1: how far the relationship has come after `weeks` together. */
+export function mentorBond(senior: Player, kid: Player, weeks: number): number {
+  if (weeks <= 0) return 0
+  return 1 - Math.exp(-weeks / bondPace(pairChem(senior, kid)))
+}
+
+/**
+ * How far this relationship can go, against an average one (about 0.95 across
+ * real squads): a pair that does not click tops out near half, one that sparks
+ * goes past the old flat rate. This is the stall and the flourish; the pace
+ * above is only how soon they get there.
+ */
+export function bondCeiling(chem: number): number {
+  return clamp(0.4 + 0.6 * chem, 0.55, 1.15)
+}
+
+/** The multiplier the week's rolls take from the relationship: nothing on day
+ *  one, rising to RAMP_SCALE times the pair's ceiling once they are settled. */
+export function mentorRamp(senior: Player, kid: Player, weeks: number): number {
+  return RAMP_SCALE * bondCeiling(pairChem(senior, kid)) * mentorBond(senior, kid, weeks)
+}
+
+/** Weeks a pairing has run, counting the week it is in as one. */
+export function pairWeeks(state: GameState, mp: { since?: number }): number {
+  return mp.since == null ? 0 : Math.max(0, absWeek(state.season, state.week) - mp.since) + 1
+}
+
+/**
+ * ---- A PAIRING IS A GAMBLE FOR ITS FIRST MONTH (owner, round 4) ----
+ *
+ * Owner: "You shouldn't know how a mentorship is going to work for at least
+ * one month. You shouldn't be able to see things like 'inseparable' until
+ * that month. So it's a gamble whether it works."
+ *
+ * Nothing about the mechanics changes: the fit, the ramp and the rolls are
+ * exactly what they were. What changes is what the manager is TOLD. For the
+ * first REVEAL_WEEKS calendar weeks of a pairing the screen says only that it
+ * is too early to tell, the picker shows no fit or forecast at all, and no
+ * report says how the two are getting on. After that the card says how it is
+ * going in plain words. scripts/mentorreveal.ts holds this, news included.
+ */
+export const REVEAL_WEEKS = 4
+
+/** Whether the manager may yet know how this pairing is going. A pairing from
+ *  before the ledger (no `since`) is an old one, so it is known. */
+export function pairRevealed(state: GameState, mp: { since?: number }): boolean {
+  return mp.since == null || absWeek(state.season, state.week) - mp.since >= REVEAL_WEEKS
+}
+
+export type MentorStage = 'early' | 'growing' | 'flourishing' | 'settled' | 'stalled'
+/** Below this chemistry a pairing does not click: it creeps to a low ceiling. */
+export const STALL_CHEM = 0.75
+/** At or above it, a settled pairing is a flourishing one. */
+export const FLOURISH_CHEM = 1.15
+
+/**
+ * Where the relationship is, in a word for the page and the reports:
+ * early days for the first six weeks, whoever the two are; then not clicking
+ * for a pair without the chemistry, growing while the bond is still coming,
+ * and flourishing or settled once it has come.
+ */
+export function mentorStage(senior: Player, kid: Player, weeks: number): MentorStage {
+  if (weeks < 6) return 'early'
+  const chem = pairChem(senior, kid)
+  if (chem < STALL_CHEM) return 'stalled'
+  if (mentorBond(senior, kid, weeks) < 0.8) return 'growing'
+  return chem >= FLOURISH_CHEM ? 'flourishing' : 'settled'
+}
+
+export const STAGE_KEY: Record<MentorStage, string> = {
+  early: 'training.stageEarly', growing: 'training.stageGrowing', flourishing: 'training.stageFlourishing',
+  settled: 'training.stageSettled', stalled: 'training.stageStalled',
+}
+
 /** Weekly chances at a rate of 1.0. */
 export const COACHED_PER_WEEK = 0.045
 export const GROWTH_PER_WEEK = 0.02
@@ -338,9 +459,18 @@ export function mentorTeaches(senior: Player, kid: Player): (keyof Attrs)[] {
 export function mentorForecast(state: GameState, senior: Player, kid: Player) {
   const rate = mentorRate(state, senior, kid)
   const teaches = mentorTeaches(senior, kid)
-  const rating = Math.min(Math.max(0, kid.pa - kid.ca), GROWTH_PER_WEEK * rate * SEASON_TRAINING_WEEKS)
-  const coached = teaches.length ? COACHED_PER_WEEK * rate * SEASON_TRAINING_WEEKS : 0
-  return { rate, teaches, rating, coached, link: posLink(senior, kid), exp: mentorExperience(senior) }
+  // the next season of the relationship as it stands: a pairing not yet made
+  // starts from nothing, a running one from its own week
+  const mp = (state.mentors ?? []).find(x => x.kid === kid.id && x.senior === senior.id)
+  const w0 = mp ? pairWeeks(state, mp) : 0
+  let ramp = 0
+  for (let i = 1; i <= SEASON_TRAINING_WEEKS; i++) ramp += mentorRamp(senior, kid, w0 + i)
+  const rating = Math.min(Math.max(0, kid.pa - kid.ca), GROWTH_PER_WEEK * rate * ramp)
+  const coached = teaches.length ? COACHED_PER_WEEK * rate * ramp : 0
+  return {
+    rate, teaches, rating, coached, link: posLink(senior, kid), exp: mentorExperience(senior),
+    weeks: w0, stage: mentorStage(senior, kid, w0), bond: mentorBond(senior, kid, w0),
+  }
 }
 
 /**
@@ -356,7 +486,8 @@ export function mentorWeek(state: GameState, p: Player, rng: Rng) {
   if (!senior) return
   // a pairing from an older save opens its ledger on its first week here
   if (pair.since == null) { pair.since = absWeek(state.season, state.week); pair.ca0 = p.ca }
-  const rate = mentorRate(state, senior, p)
+  // the pairing's worth once settled, times how far the two have come
+  const rate = mentorRate(state, senior, p) * mentorRamp(senior, p, pairWeeks(state, pair))
   if (rng() < COACHED_PER_WEEK * rate) {
     const teaches = mentorTeaches(senior, p)
     const pick = rng()
@@ -438,7 +569,36 @@ export function mentorReports(state: GameState) {
     if (!s || !k) continue
     const fit = mentorFit(s, k)
     const last = k.name.split(' ').slice(-1)[0]
-    if (fit >= 66) {
+    // THE REPORT FOLLOWS THE RELATIONSHIP (1.8.2), not the fit alone: a pair
+    // is early days until it has had time, then growing, flourishing, settled
+    // or not clicking (mentorStage). Settled is fine, and fine is not news.
+    const weeks = pairWeeks(state, mp)
+    const stage = mentorStage(s, k, weeks)
+    const base = { last, seniorLast: s.name.split(' ').slice(-1)[0], kid: k.name, senior: s.name, stage_k: STAGE_KEY[stage] }
+    // nothing that says how the two are getting on before the month is up
+    // (pairRevealed); the early-days note says only that it is early
+    if (stage !== 'early' && !pairRevealed(state, mp)) continue
+    if (stage === 'early') {
+      // once, on the first report day after the pairing was made
+      if (weeks > REPORT_EVERY) continue
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: false,
+        subject: tIn('en', 'news.mentEarlySubj', base),
+        body: tIn('en', 'news.mentEarly', base),
+        k: 'news.mentEarly', v: base,
+        playerId: k.id,
+      })
+    } else if (stage === 'growing') {
+      // a pairing on the up is worth a line; a slow one that will stall says so below
+      if (pairChem(s, k) < 1) continue
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: false,
+        subject: tIn('en', 'news.mentGrowingSubj', base),
+        body: tIn('en', 'news.mentGrowing', base),
+        k: 'news.mentGrowing', v: base,
+        playerId: k.id,
+      })
+    } else if (stage === 'flourishing') {
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: false,
         subject: `${last} is thriving under ${s.name.split(' ').slice(-1)[0]}`,
@@ -447,21 +607,20 @@ export function mentorReports(state: GameState) {
         k: 'news.mentThriving',
         v: {
           last, seniorLast: s.name.split(' ').slice(-1)[0], kid: k.name,
-          fit_k: fitKey(fit), reason_k: reasonOf(s, k).key, ...reasonOf(s, k).vars,
+          fit_k: fitKey(fit), reason_k: reasonOf(s, k).key, ...reasonOf(s, k).vars, stage_k: base.stage_k,
         },
         playerId: k.id,
       })
-    } else if (fit < 36) {
+    } else if (stage === 'stalled') {
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: false,
         subject: `The ${s.name.split(' ').slice(-1)[0]} and ${last} pairing is not taking`,
         body: `${tIn('en', fitKey(fit))}. ${fitReasonEn(s, k)} ${k.name} is getting very little out of it. `
-          + `Nothing has gone wrong between them; it simply is not working. `
-          + `End the pairing on the Mentoring tab of the Team Report and put him with somebody else - there is an End button on the row, and the season is long enough for a fresh start to pay.`,
+          + `Nothing has gone wrong between them; it simply is not working, and the season is long enough for a fresh start to pay.`,
         k: 'news.mentFailing',
         v: {
           last, seniorLast: s.name.split(' ').slice(-1)[0], kid: k.name,
-          fit_k: fitKey(fit), reason_k: reasonOf(s, k).key, ...reasonOf(s, k).vars,
+          fit_k: fitKey(fit), reason_k: reasonOf(s, k).key, ...reasonOf(s, k).vars, stage_k: base.stage_k,
         },
         playerId: k.id,
       })

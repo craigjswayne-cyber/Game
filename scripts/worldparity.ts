@@ -104,7 +104,7 @@ for (const g of WORLDS) {
 }
 
 // every dream has to be reachable SOMEWHERE, or it is dead code wearing copy
-for (const d of DREAMS) {
+for (const d of DREAMS.filter(x => !x.retired)) {
   const anywhere = WORLDS.some(g =>
     LEAGUE_DEFS(g).some(l => [55, 70, 90].some(rep =>
       dreamsFor({ clubId: l.clubs[0].id, clubName: 'X', leagueId: l.id, rep }).some(x => x.id === d.id))))

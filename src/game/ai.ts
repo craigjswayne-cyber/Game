@@ -1,4 +1,4 @@
-import type { GameState, Player } from './model'
+import type { Club, GameState, Player } from './model'
 import { MARQUEE_SLOTS } from './cap'
 import { t, tIn, type Vars } from './i18n'
 import { clubIntent } from './living'
@@ -14,6 +14,7 @@ import { clamp, mulberry32, pick, type Rng } from './rng'
 import { book } from './books'
 import { identitySigning } from './identity'
 import { rememberDeparture } from './memory'
+import { agentTermsLift, talkPremium, unsettledFee, unsettledTerms } from './recruit'
 
 // ------------------------------------------------------------------
 // Transfer market
@@ -103,6 +104,16 @@ export function windowShut(week: number): string {
   return week < 26 ? t('reply.windowShut', { n: 26 }) : t('reply.windowShutSummer')
 }
 
+/** What an AI club bids for one of the user's men. A listed man or one who
+ *  has asked to leave comes in near value; anybody else at a premium, drawn,
+ *  less the same graded slice for a low mood that askingPrice takes
+ *  (recruit.ts unsettledFee). The draw is only taken on that last branch, as
+ *  it always was, so the shared rng sequence is unchanged. */
+export function aiBidFee(p: Player, rng: () => number, deadline: boolean): number {
+  const f = p.transferListed ? 0.95 : (p.wantsOut ?? 0) > 0 ? 1.05 : (1.2 + rng() * 0.4) * unsettledFee(p)
+  return Math.round((p.value * f * (deadline ? 1.15 : 1)) / 10_000) * 10_000
+}
+
 /** Asking price for a player from his current club's perspective. */
 export function askingPrice(state: GameState, p: Player): number {
   const club = p.clubId ? state.clubs[p.clubId] : null
@@ -115,7 +126,10 @@ export function askingPrice(state: GameState, p: Player): number {
     .map(q => q.ca).sort((a, b) => b - a)
   const isKey = p.ca >= (squadCa[7] ?? 70) // top-8 player at the club
   if (isKey && !p.transferListed) f = 1.7
-  if (p.morale <= 3.5) f *= 0.85
+  // an unsettled man is cheaper (recruit.ts unsettledFee): up to 15% off for
+  // one who has asked to leave or whose mood has gone, graded rather than the
+  // old single step at morale 3.5
+  f *= unsettledFee(p)
   return Math.round((p.value * f) / 10_000) * 10_000
 }
 
@@ -323,6 +337,42 @@ export function executeTransfer(state: GameState, p: Player, toClubId: string, f
   transferReaction(state, p, from?.id ?? null, toClubId, fee, wasListed)
 }
 
+/**
+ * What this AI club would buy this week if the market let it: its thinnest
+ * position, and the best man there its stance and money allow. A PURE LENS on
+ * the choosing half of aiTransfers, which draws the rng around it (whether the
+ * club shops at all, and whether the deal goes through) and calls this for the
+ * rest. Pulled out (1.8.2) so the scouting report can say "they are genuinely
+ * keen" and mean exactly the club that would do it: real interest is real
+ * because it is the same call. Returns null when the club is not shopping.
+ */
+export function aiShoppingTarget(state: GameState, buyer: Club): { intent: ReturnType<typeof clubIntent>; need: string; target: Player | undefined } | null {
+  // find thinnest position by count of quality bodies
+  const byPos: Record<string, number> = {}
+  for (const id of buyer.players) {
+    const p = state.players[id]
+    if (p && p.ca >= 68) byPos[p.pos] = (byPos[p.pos] ?? 0) + 1
+  }
+  const NEED_MIN: Record<string, number> = { LP: 2, HK: 2, TP: 2, LK: 3, FL: 3, N8: 2, SH: 2, FH: 2, CE: 3, WG: 3, FB: 2 }
+  const need = Object.entries(NEED_MIN).find(([pos, min]) => (byPos[pos] ?? 0) < min)?.[0]
+  if (!need) return null
+  // WHAT THIS CLUB IS ACTUALLY TRYING TO DO (living.ts). Without it a hundred
+  // clubs behave like one club with a hundred names: thinnest position, best
+  // body available, every time. A rebuilding side will not buy a thirty-year-
+  // old and a side going for it will not settle for a squad man.
+  const intent = clubIntent(state, buyer)
+  if (intent === 'breakup') return null // they are selling, not shopping
+  const targets = Object.values(state.players).filter(p =>
+    p.clubId && p.clubId !== buyer.id && p.clubId !== state.userClubId &&
+    p.pos === need && p.ca >= (intent === 'allin' ? 76 : 70) && !p.onLoan && !p.loanFrom &&
+    (intent === 'rebuild' ? p.age <= 25 : true) &&
+    (state.clubs[p.clubId]?.rep ?? 99) <= buyer.rep + 6 &&
+    askingPrice(state, p) <= buyer.budget)
+    // a rebuilding club buys for the future, everybody else buys the best now
+    .sort((a, b) => intent === 'rebuild' ? (b.pa - a.pa) || (b.ca - a.ca) : b.ca - a.ca)
+  return { intent, need, target: targets[0] }
+}
+
 /** Weekly AI transfer activity + bids for user players. */
 export function aiTransfers(state: GameState, rng: Rng) {
   const clubs = Object.values(state.clubs)
@@ -338,30 +388,11 @@ export function aiTransfers(state: GameState, rng: Rng) {
     // an embargo is the league's sanction on every club it lands on, not only
     // the manager's: an AI club serving one used to go on buying regardless
     if (buyer.id === state.userClubId || buyer.budget < 800_000 || embargoed(state, buyer.id)) continue
-    // find thinnest position by count of quality bodies
-    const byPos: Record<string, number> = {}
-    for (const id of buyer.players) {
-      const p = state.players[id]
-      if (p && p.ca >= 68) byPos[p.pos] = (byPos[p.pos] ?? 0) + 1
-    }
-    const NEED_MIN: Record<string, number> = { LP: 2, HK: 2, TP: 2, LK: 3, FL: 3, N8: 2, SH: 2, FH: 2, CE: 3, WG: 3, FB: 2 }
-    const need = Object.entries(NEED_MIN).find(([pos, min]) => (byPos[pos] ?? 0) < min)?.[0]
-    if (!need) continue
-    // WHAT THIS CLUB IS ACTUALLY TRYING TO DO (living.ts). Without it a hundred
-    // clubs behave like one club with a hundred names: thinnest position, best
-    // body available, every time. A rebuilding side will not buy a thirty-year-
-    // old and a side going for it will not settle for a squad man.
-    const intent = clubIntent(state, buyer)
-    if (intent === 'breakup') continue // they are selling, not shopping
-    const targets = Object.values(state.players).filter(p =>
-      p.clubId && p.clubId !== buyer.id && p.clubId !== state.userClubId &&
-      p.pos === need && p.ca >= (intent === 'allin' ? 76 : 70) && !p.onLoan && !p.loanFrom &&
-      (intent === 'rebuild' ? p.age <= 25 : true) &&
-      (state.clubs[p.clubId]?.rep ?? 99) <= buyer.rep + 6 &&
-      askingPrice(state, p) <= buyer.budget)
-      // a rebuilding club buys for the future, everybody else buys the best now
-      .sort((a, b) => intent === 'rebuild' ? (b.pa - a.pa) || (b.ca - a.ca) : b.ca - a.ca)
-    const p = targets[0]
+    // the choosing is aiShoppingTarget's, and it draws nothing: the scouting
+    // report (recruit.ts) asks the same question to say who really wants whom
+    const shop = aiShoppingTarget(state, buyer)
+    if (!shop) continue
+    const { intent, target: p } = shop
     if (p && rng() < (intent === 'allin' ? 0.75 : 0.6)) executeTransfer(state, p, buyer.id, askingPrice(state, p))
   }
 
@@ -405,8 +436,10 @@ export function aiTransfers(state: GameState, rng: Rng) {
     if (!bidders.length) continue
     const bidder = pick(rng, bidders)
     // a transfer request costs the seller the premium: the buyer knows the
-    // player wants it, so the bid comes in near value rather than over it
-    const fee = Math.round((p.value * (p.transferListed ? 0.95 : (p.wantsOut ?? 0) > 0 ? 1.05 : 1.2 + rng() * 0.4) * (deadline ? 1.15 : 1)) / 10_000) * 10_000
+    // player wants it, so the bid comes in near value rather than over it. A
+    // low mood alone takes the same graded slice off as the asking price does
+    // (unsettledFee); the rng draw is unchanged
+    const fee = aiBidFee(p, rng, deadline)
     state.offers.push({
       id: state.nextId++, playerId: p.id, fromClubId: bidder.id, toClubId: user.id,
       fee, week: state.week, forUser: true, status: 'pending',
@@ -415,8 +448,8 @@ export function aiTransfers(state: GameState, rng: Rng) {
       id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
       subject: deadline ? `Deadline-day bid: ${p.name}` : `Bid received: ${p.name}`,
       body: deadline
-        ? `${bidder.name} have come in late for ${p.name} - ${fmtMoney(fee)}, and the panic premium is baked in. The window shuts within days: respond from the Transfers screen or the offer dies with it.`
-        : `${bidder.name} have tabled a bid of ${fmtMoney(fee)} for ${p.name}. Respond via the Transfers screen - the offer will not stay open for long.`,
+        ? `${bidder.name} have come in late for ${p.name} - ${fmtMoney(fee)}, and the panic premium is baked in. The window shuts within days, and the offer dies with it.`
+        : `${bidder.name} have tabled a bid of ${fmtMoney(fee)} for ${p.name}. The offer will not stay open for long.`,
       k: deadline ? 'news.bidDeadline' : 'news.bidIn',
       v: { player: p.name, bidder: bidder.name, fee: fmtMoney(fee) },
       playerId: p.id,
@@ -495,7 +528,11 @@ export function personalTermsDemand(state: GameState, p: Player): number {
   // men stop taking the call - costs more again, and a mercenary charges most
   // of all, because the wage is the entire reason he is willing (interest.ts).
   const step = seller && user.rep < seller.rep ? 1.2 : 1
-  return Math.round(playerWage(p.ca, p.age) * step * interestPremium(state, p))
+  // THE SCOUTING REPORT'S TWO CONSEQUENCES (recruit.ts): a camp with another
+  // club to point at opens higher, genuine or not, and his agent's memory of
+  // your dealings with their clients moves the number both ways. An unsettled
+  // man drops the premium and asks for less (recruit.ts unsettledTerms)
+  return Math.round(playerWage(p.ca, p.age) * step * interestPremium(state, p) * talkPremium(state, p) * agentTermsLift(state, p) * unsettledTerms(p))
 }
 
 /** Stage 1 of the 8D bid flow: agree the FEE only - nothing is signed

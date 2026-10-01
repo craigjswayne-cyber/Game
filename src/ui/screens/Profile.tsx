@@ -3,11 +3,15 @@ import { useStore } from '../../store'
 import { decisionText, mgrReputation, seasonLabel, squadTrust, trustFactor, trustWord, type GameState, type Player } from '../../game/model'
 import { standing, standingWord } from '../../game/authority'
 import { CHALLENGES } from '../../game/newgame'
-import { flagOf, nationName } from '../../game/nations'
+import { nationName } from '../../game/nations'
+import { Flag } from '../flags'
 import { SectionTitle } from '../components'
 import { supportCount } from '../../game/monetise'
 import { t, compLabel } from '../../game/i18n'
 import { Glyph } from '../glyphs'
+import { mgrTraits, traitLine } from '../../game/repute'
+import { ambitionState, ambitionsOf } from '../../game/ambitions'
+import { dreamNote, dreamTitle } from '../../game/dream'
 
 /** Coaching badge tiers, earned through reputation. */
 export function badgeOf(rep: number): { name: string; icon: string; color: string; next: string | null; at: number | null } {
@@ -160,10 +164,49 @@ export default function Profile() {
         </div>
       </div>
 
+      {/* WHAT THEY SAY ABOUT YOU (repute.ts): read from what the career has
+          actually done, never chosen, and never a number */}
+      {(() => {
+        const traits = mgrTraits(game)
+        if (!traits.length) return null
+        return (
+          <div className="card mgr-traits">
+            <div className="fact-label">{t('arc.knownFor')}</div>
+            <div className="meta">{traits.map(tr => { const l = traitLine(tr); return t(l.k, l.v) }).join(' ')}</div>
+          </div>
+        )
+      })()}
+      {/* THE AMBITIONS (ambitions.ts): named at the start, one to three, each
+          with how far along it is and the milestones already passed */}
+      {(() => {
+        const list = ambitionsOf(game).map(a => ({ a, s: ambitionState(game, a) })).filter(x => x.s)
+        if (!list.length) return null
+        return (
+          <>
+            <SectionTitle sub={t('arc.ambSub')}>{t('arc.ambTitle')}</SectionTitle>
+            <div className="card mgr-ambitions">
+              {list.map(({ a, s }, i) => (
+                <div key={a.id} style={{ marginTop: i ? 9 : 0 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, fontSize: 13 }}>
+                    <b>{dreamTitle(s!.def, s!.ctx)}</b>
+                    <span className="muted">{s!.pct}%</span>
+                  </div>
+                  <span className="rt-bar"><i style={{ width: `${s!.pct}%` }} /></span>
+                  <div className="meta" style={{ fontSize: 11 }}>
+                    {dreamNote(s!.p)}
+                    {(a.log ?? []).map(x => ` · ${t('arc.ambMark', { pct: x.p, season: seasonLabel(x.s) })}`).join('')}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )
+      })()}
       {game.natOffer && (
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
           <h3 style={{ fontSize: 16 }}>{t('profile.natOffer', { nat: nationName(game.natOffer.nat) })}</h3>
           <div className="meta">{t('profile.natOfferBody')}</div>
+          <div className="meta" style={{ fontStyle: 'italic' }}>{t('arc.profile.national')}</div>
           {/* v1.1.5 (owner): taking the national side asks about the club job
               - keep both, or clear the desk and go all-in on country. An
               unemployed manager has no desk to keep, so the question is
@@ -216,7 +259,7 @@ export default function Profile() {
         <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span className="row-ico"><Glyph name="nations" /></span>
           <div style={{ flex: 1 }}>
-            <h3 style={{ fontSize: 14 }}>{flagOf(game.natTeam)} {t('profile.natHeadCoach', { nat: nationName(game.natTeam) })}</h3>
+            <h3 style={{ fontSize: 14 }}><Flag code={game.natTeam} /> {t('profile.natHeadCoach', { nat: nationName(game.natTeam) })}</h3>
             <div className="meta">
               {t('profile.testWeeksYours')}
               {game.natConfidence != null && (
@@ -237,12 +280,12 @@ export default function Profile() {
           <h3 style={{ fontSize: 16 }}>{t('profile.intlRecord')}</h3>
           {(game.natHistory ?? []).map((ten, i) => (
             <div key={i} className="meta" style={{ padding: '3px 0' }}>
-              {flagOf(ten.nat)} <b>{nationName(ten.nat)}</b> · {t(ten.m === 1 ? 'profile.testLineOne' : 'profile.testLine', { m: ten.m, w: ten.w, d: ten.d, l: ten.l })}
+              <Flag code={ten.nat} /> <b>{nationName(ten.nat)}</b> · {t(ten.m === 1 ? 'profile.testLineOne' : 'profile.testLine', { m: ten.m, w: ten.w, d: ten.d, l: ten.l })}
             </div>
           ))}
           {game.natTeam && game.natRecord && (
             <div className="meta" style={{ padding: '3px 0' }}>
-              {flagOf(game.natTeam)} <b>{nationName(game.natTeam)}</b> · {t(game.natRecord.m === 1 ? 'profile.testLineOne' : 'profile.testLine', { m: game.natRecord.m, w: game.natRecord.w, d: game.natRecord.d, l: game.natRecord.l })} <span className="muted">{t('profile.current')}</span>
+              <Flag code={game.natTeam} /> <b>{nationName(game.natTeam)}</b> · {t(game.natRecord.m === 1 ? 'profile.testLineOne' : 'profile.testLine', { m: game.natRecord.m, w: game.natRecord.w, d: game.natRecord.d, l: game.natRecord.l })} <span className="muted">{t('profile.current')}</span>
             </div>
           )}
         </div>

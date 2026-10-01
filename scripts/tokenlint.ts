@@ -14,6 +14,11 @@
  *     not hex, and the chromatic ones were all tokenised; anything chromatic
  *     that sneaks back in as rgba() is caught by the second check.
  *   - index.html: the PWA theme-color meta and its comments.
+ *   - src/ui/flags.tsx (1.8.2): the drawn national flags. A nation's red,
+ *     white and blue are the nation's, not the theme's, exactly as a club's
+ *     colours are, and no skin may repaint them; the grey of the blank flag
+ *     for a nation with no drawing sits with them. Every other file in
+ *     src/ui is held as before.
  *
  * Also bans the RETIRED token names (--ink, --paper, --gold-bright, ...) so
  * the old palette cannot creep back through a fallback.
@@ -44,6 +49,7 @@ const RETIRED = /var\(--(ink|paper|cream|hairline|gold-bright|gold-dark|gold-dee
 
 for (const f of files) {
   if (f.endsWith('tokens.css')) continue
+  if (f.replace(/\\/g, '/').endsWith('src/ui/flags.tsx')) continue
   const lines = readFileSync(f, 'utf8').split('\n')
   let inBlock = false
   lines.forEach((l, i) => {

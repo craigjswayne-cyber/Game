@@ -64,10 +64,11 @@
  */
 import type { Fixture, GameState } from './model'
 import {
-  applyPreTalk, applyTacticsChange, applyTeamTalk, beginMatch, makeSubstitution,
-  resolveDecision, stepTick, swapInjuryCover, swapShirts, undoSubstitution, type LiveCtx,
+  openDressingRoom, applyTacticsChange, applyTeamTalk, beginMatch, makeSubstitution, playSegment,
+  resolveDecision, stepTick, swapInjuryCover, swapShirts, teamShort, undoSubstitution, type LiveCtx,
 } from './matchEngine'
 import { matchRng, weekRng } from './season'
+import { tIn } from './i18n'
 
 /**
  * Everything the manager can do to a match in progress.
@@ -78,7 +79,7 @@ import { matchRng, weekRng } from './season'
  */
 export type MatchCmdBody =
   | { kind: 'decide'; choice: 'posts' | 'corner' | 'tap' }
-  | { kind: 'talk'; talk: 'fire' | 'calm' | 'praise' | 'demand' }
+  | { kind: 'talk'; talk: import('./teamtalk').HtTone }
   | { kind: 'sub'; outId: number; inId: number }
   | { kind: 'cover'; onId: number; inId: number }
   | { kind: 'undo' }
@@ -100,7 +101,7 @@ export interface MatchResume {
   stream?: 'match'
   fxId: number
   userSideId: string | null
-  preTalk: 'calm' | 'fire' | 'underdog' | 'expect' | null
+  preTalk: import('./teamtalk').PreTone | null
   mode: 'full' | 'highlights'
   /** how far the match has been simulated */
   tick: number
@@ -147,7 +148,7 @@ export function replayMatch(state: GameState, rec: MatchResume): Resumed | null 
 
   // a record written before 1.8.1 was played on the week's dice (matchRng)
   const ctx = beginMatch(state, fx, rec.stream === 'match' ? matchRng(state) : weekRng(state), true, rec.userSideId)
-  const preTalkMsg = rec.preTalk ? applyPreTalk(state, ctx, rec.preTalk) : null
+  const preTalkMsg = openDressingRoom(state, ctx, rec.preTalk)
   let talkMsg: string | null = null
 
   // Commands are applied at the tick they were made on, in the order they were
@@ -263,4 +264,48 @@ export function stampedRecord(state: GameState): MatchResume | null {
   const pre = JSON.parse(JSON.stringify(state)) as GameState
   delete pre.liveRec
   return { ...stamp, pre }
+}
+
+/**
+ * ---- A MATCH LEFT RUNNING IS PLAYED OUT ON THE WAY BACK IN (round 5) ----
+ *
+ * Owner: "When you load into the game again it should always load into the
+ * Home page. If it was during the match, the match needs to be completed."
+ *
+ * So a match that comes back from a record is no longer put back on the
+ * screen. It is replayed to the minute it had reached (replayMatch, with
+ * every call the manager made, at the tick he made it), and from there the
+ * assistant has it, exactly as he has a match handed to him before kick-off
+ * (store.instantResult, season.simMatch): he makes the changes from the bench,
+ * every kickable penalty goes to the posts, and the intervals pass without a
+ * talk. Nothing here draws on anything but the match's own dice (matchRng,
+ * carried in ctx), so a record reopened twice plays out to the same result
+ * twice, and a record reopened at the kick-off plays out to exactly the
+ * assistant's instant result.
+ *
+ * The caller settles a knockout tie at the whistle and turns the week, once:
+ * see store.resumeLiveMatch.
+ */
+export function playOut(state: GameState, ctx: LiveCtx): void {
+  // nobody is on the touchline any more
+  ctx.assistantSubs = true
+  let guard = 0
+  while (ctx.seg < 3 && guard++ < 12) playSegment(state, ctx)
+  // a last kick still in the manager's hands at the whistle
+  if (ctx.decision) resolveDecision(state, ctx, 'posts')
+  ctx.awaiting = null
+}
+
+/** The inbox's word on it: the match was left running and has been finished.
+ *  Filed in English with its key, like every story (model.ts NewsItem). */
+export function notePlayedOut(state: GameState, fx: Fixture, fromMin: number): void {
+  const v = {
+    home: teamShort(state, fx.homeId), away: teamShort(state, fx.awayId),
+    hs: fx.homeScore ?? 0, as: fx.awayScore ?? 0, min: Math.max(0, Math.min(80, Math.round(fromMin))),
+  }
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+    subject: tIn('en', 'news.playedOutSubj', v), body: tIn('en', 'news.playedOut', v),
+    k: 'news.playedOut', v,
+  })
 }

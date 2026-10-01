@@ -150,6 +150,37 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.8.2, Play version code 41
+
+Written 30 Sep 2026. 1.8.2: the five attack and five defence styles, the
+manager's desk, recruitment detective work, the career arc, the dressing room,
+development projects, season priorities, tactical depth, the playbook arms race
+and a calibrated analyst, nine new moves, rebuilt highlight clips, drawn flags
+and four more optional rewarded favours. The headline is the first sentence in
+every language: styles and a playbook the opposition learns to read.
+
+```
+<en-GB>
+Pick five attack and five defence styles, and a playbook opponents learn to read. Home is now your Today desk. Scouts report what they know and what they don't; youngsters' ceilings move with how they are handled. Rival coaches remember you, boards have characters, and the dressing room takes sides. Set season priorities, play through wind and rain, and watch rebuilt highlights of nine new moves. Drawn flags, clearer wording and many fixes.
+</en-GB>
+<fr-FR>
+Cinq styles d'attaque et cinq de défense, et un plan de jeu que l'adversaire apprend à lire. L'accueil devient votre bureau du jour. Les recruteurs disent ce qu'ils savent et ce qu'ils ignorent ; le potentiel des jeunes évolue selon leur gestion. Les entraîneurs rivaux se souviennent de vous, les présidents ont du caractère, le vestiaire prend parti. Priorités de saison, vent et pluie, et résumés refaits avec neuf nouvelles combinaisons. Drapeaux dessinés et correctifs.
+</fr-FR>
+<es-ES>
+Elige entre cinco estilos de ataque y cinco de defensa, y un libro de jugadas que el rival aprende a leer. El inicio es ahora tu escritorio del día. Los ojeadores cuentan lo que saben y lo que no; el techo de los jóvenes cambia según cómo los gestiones. Los técnicos rivales te recuerdan, las directivas tienen carácter y el vestuario toma partido. Prioridades de temporada, viento y lluvia, y resúmenes rehechos con nueve jugadas nuevas. Banderas dibujadas y arreglos.
+</es-ES>
+<it-IT>
+Scegli tra cinque stili d'attacco e cinque di difesa, e un playbook che gli avversari imparano a leggere. La home diventa la tua scrivania di oggi. Gli osservatori dicono ciò che sanno e ciò che non sanno; il potenziale dei giovani cambia con la loro gestione. Gli allenatori rivali si ricordano di te, i presidenti hanno carattere e lo spogliatoio si schiera. Priorità di stagione, vento e pioggia e highlights rifatti con nove nuove giocate. Bandiere disegnate e correzioni.
+</it-IT>
+<ja-JP>
+攻撃と守備それぞれ5つのスタイルを選び、相手が読み解くプレーブックを組もう。ホームは「今日」のデスクに。スカウトは分かっていることと分からないことを報告し、若手の伸びしろは育て方で変わる。ライバル監督はあなたを覚え、会長にも個性が、ロッカールームは派閥に分かれる。シーズンの優先順位、風と雨、9つの新しいムーブで作り直したハイライト。描き直した国旗と多数の修正。
+</ja-JP>
+<af>
+Kies uit vyf aanval- en vyf verdedigingstyle, en 'n speelboek wat teenstanders leer lees. Die tuisblad is nou jou lessenaar vir vandag. Spioene sê wat hulle weet en wat nie; jong spelers se plafon skuif met hoe jy hulle hanteer. Mededingende afrigters onthou jou, direksies het karakter en die kleedkamer kies kant. Stel seisoensprioriteite, speel in wind en reën en kyk herboude hoogtepunte van nege nuwe bewegings. Getekende vlae en baie regstellings.
+</af>
+```
+*(en-GB 444, fr-FR 474, es-ES 469, it-IT 476, ja-JP 181, af 453: all inside Play's 500)*
+
 ### What's new (500 max) - v1.8.1, Play version code 40
 
 Written 29 Sep 2026. 1.8.1 folds in what was planned as 1.9: the manager's
@@ -1478,7 +1509,7 @@ never enters the web bundle, and netprobe goes on enforcing that.
 | Is all of the user data collected by your app encrypted in transit? | Yes (ad provider transport) |
 | Do you provide a way for users to request that their data is deleted? | Per the ad provider's mechanism, linked from the privacy policy |
 | Third-party SDKs | the rewarded-ads provider, in the Android wrapper only |
-| Ads | **Contains ads** (two optional banner slots; rewarded ads at four player-initiated placements; Remove Ads disables the banners permanently) |
+| Ads | **Contains ads** (two optional banner slots; rewarded ads at eight player-initiated placements; Remove Ads disables the banners permanently) |
 
 ## Play Content rating (IARC questionnaire)
 

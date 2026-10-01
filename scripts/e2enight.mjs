@@ -160,8 +160,9 @@ try {
   await page.locator('.btn.ghost >> text=Market').first().click()
   await page.waitForTimeout(300)
   await shot('06f3-staff-market')
-  await page.click('.tab-bar >> text=Club')
-  await page.waitForSelector('text=Mentoring')
+  // mentoring lives on the Team Report now (1.8.2: Training lost its Club tab)
+  await page.evaluate(() => window.rugbyStore.getState().go('report', 'mentoring'))
+  await page.waitForSelector('.tab-bar button.active >> text=Mentoring')
   await shot('06g-mentoring')
 
   // the team sheet: forwards left, backs right in landscape

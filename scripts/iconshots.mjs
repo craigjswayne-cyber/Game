@@ -9,9 +9,10 @@
 //
 // It walks the screens the icon pass touched at the owner's phone size, with
 // the store attached so the Supporter page has a door, and on each one checks
-// that the visible text carries no pictographic emoji (flags aside, as in
-// emojiprobe) and that every drawn glyph has a size. Screenshots land in
-// $SHOTS (default /tmp/iconshots) to be looked at, not just counted.
+// that the visible text carries no pictographic emoji (flag emoji included
+// since 1.8.2, as in emojiprobe: flags are drawn by src/ui/flags.tsx) and
+// that every drawn glyph has a size. Screenshots land in $SHOTS (default
+// /tmp/iconshots) to be looked at, not just counted.
 //
 // Run: npm run build && node scripts/iconshots.mjs
 import { chromium } from 'playwright-core'
@@ -24,10 +25,9 @@ const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fail
 const OUT = process.env.SHOTS ?? '/tmp/iconshots'
 mkdirSync(OUT, { recursive: true })
 
-// the same definition as emojiprobe.ts: flags out first, then the pictographs
-const FLAGS = /[\u{1F1E6}-\u{1F1FF}]{2}|\u{1F3F4}[\u{E0020}-\u{E007F}]+/gu
+// the same definition as emojiprobe.ts: the pictographs, flag emoji included
 const PICTO = /[\u{1F000}-\u{1FFFF}\u{2600}-\u{2604}\u{2607}-\u{2712}\u{2714}\u{2716}\u{2718}-\u{27BF}\u{2B50}\u{2B55}\u{231A}\u{231B}\u{23E9}-\u{23F3}\u{23F8}-\u{23FA}]|.\u{FE0F}/gu
-const emojiIn = (s) => [...s.replace(FLAGS, '').matchAll(PICTO)].map(m => m[0])
+const emojiIn = (s) => [...s.matchAll(PICTO)].map(m => m[0])
 
 // ---- TEMPORARY EXCEPTIONS (the same namespaces as emojiprobe.ts) ----
 // Strings in these namespaces belong to tasks running alongside the icon pass
@@ -129,8 +129,6 @@ async function walk(width, night) {
   await check('squad-gametime', async () => {
     await page.click('.tab-bar >> text=Game Time')
     await page.waitForTimeout(200)
-    const all = page.locator('.preset-chip', { hasText: 'Needs a word' })
-    if (await all.count()) await all.click()
   })
   await check('transfers', () => go('transfers'))
   await check('transfers-contract', () => page.locator('select:has(option[value="contract"])').selectOption('contract'))

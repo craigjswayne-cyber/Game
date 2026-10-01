@@ -33,6 +33,7 @@ import { sortTable } from './schedule'
 import { dreamState } from './dream'
 import { isDerby } from './rivalries'
 import { historyStakes } from './history'
+import { coachStakes } from './rivalcoach'
 
 export interface Stake {
   text: string
@@ -152,6 +153,8 @@ export function matchStakes(state: GameState, fx: Fixture): string | null {
   if (grudge) out.push({ text: t('stakes.badBlood', { reason: grudge.reason }), weight: 78 })
   // an earned rivalry, or a club you used to manage (history.ts)
   out.push(...historyStakes(state, fx))
+  // the man in the other dugout, and your record against him (rivalcoach.ts)
+  out.push(...coachStakes(state, fx))
   const h2h = headToHead(state, oppId)
   if (h2h.streak >= 3) out.push({ text: t('stakes.beatenRun', { club: oppName, n: h2h.streak }), weight: 76 })
 

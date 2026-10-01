@@ -790,7 +790,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .press-q {
   font-family: var(--sans);
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 400;
 
   color: var(--text-primary);
   padding: 4px 16px 12px;
@@ -1264,6 +1264,16 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
     display: grid; grid-template-columns: 1fr 1fr; column-gap: 28px; align-content: start;
     margin-top: 6px;
   }
+  /* the talk's reactions take the stage the same way: inside the main row,
+     scrolling, two columns of players, never over the controls */
+  .live-wrap .talk-react {
+    grid-area: main; align-self: stretch; min-height: 0; overflow-y: auto;
+    margin: 6px 14px 0;
+  }
+  .live-wrap .talk-react .tr-list {
+    max-height: none; overflow: visible;
+    display: grid; grid-template-columns: 1fr 1fr; column-gap: 20px;
+  }
   .live-wrap .live-stats .ls-head { grid-column: 1 / -1; }
   .live-wrap .live-stats .ls-row + .ls-row { border-top: none; }
   .live-wrap .speed-controls { grid-area: ctrl; }
@@ -1573,6 +1583,87 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   padding: 9px 4px;
 
 }
+/* three widgets now League is the desk's season row: one line each, the
+   caption kept only where it is the reading (the fans' word under the light) */
+.hub-row.three { grid-template-columns: 1.35fr 1fr 1fr; }
+.hub-row.three .hub-widget { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 2px 7px; padding: 6px 4px; min-height: 44px; }
+.hub-row.three .hub-widget[data-w="form"] > span, .hub-row.three .hub-widget[data-w="board"] > span { display: none; }
+
+/* ================= The desk (1.8.2, game/desk.ts) =================
+   Home as a chain of decisions: what holds the week, the match, one line
+   each on the rest of the club, then Continue. Every line is a button that
+   reaches 44px, and no line carries more than a label and a sentence. */
+.desk-card { padding-top: 8px; padding-bottom: 4px; }
+.desk-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 28px; }
+.desk-head .studio-mark { flex-shrink: 0; }
+.desk-sub {
+  font-family: var(--cond); font-size: 13px; font-weight: 800; letter-spacing: .6px;
+  text-transform: uppercase; color: var(--text-primary);
+  display: flex; align-items: center; gap: 7px; flex-wrap: wrap; min-width: 0;
+}
+.desk-today { color: var(--gold); }
+.desk-clear { padding: 4px 0 6px; }
+.dash-stack { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+@media (orientation: landscape) and (min-width: 640px) { .dash-stack { display: contents; } }
+.app.tablet .dash-stack { display: contents; }
+.desk-n {
+  display: inline-block; min-width: 20px; padding: 0 6px; border-radius: 10px;
+  background: var(--gold-fill, var(--gold)); color: var(--on-gold);
+  font-size: 12px; line-height: 20px; text-align: center;
+}
+.desk-link {
+  display: flex; align-items: center; gap: 8px; width: 100%; min-height: 44px;
+  text-align: left; color: var(--text-primary); font-size: 13px;
+  border-top: 1px solid var(--border);
+}
+.desk-link > span:first-child, .desk-link > b { flex: 1; min-width: 0; }
+.desk-headline {
+  display: block; font-size: 12px; color: var(--text-muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.chev { display: inline-flex; width: 16px; height: 16px; color: var(--text-muted); flex-shrink: 0; }
+.chev svg { width: 16px; height: 16px; }
+.desk-q { border-top: 1px solid var(--border); }
+.desk-q > .desk-link { border-top: none; min-height: 44px; }
+.desk-qtext {
+  font-size: 13px; color: var(--text-secondary); line-height: 1.35;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+/* a choice's words, and its figure on a quieter line under them */
+.opt-label { display: inline-flex; flex-direction: column; min-width: 0; }
+.opt-detail { display: block; margin-top: 2px; font-size: 12px; font-weight: 500; line-height: 1.3; color: var(--text-muted); }
+.desk-opts { display: flex; flex-wrap: wrap; gap: 7px; padding: 8px 0 6px; }
+.desk-opts .chip { min-height: 36px; text-align: left; white-space: normal; line-height: 1.25; padding: 6px 10px; }
+.desk-match {
+  margin: 4px -13px 0; padding: 9px 13px 9px 9px; cursor: pointer;
+  border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  border-left: 4px solid var(--gold); background: var(--surface-2);
+}
+.desk-mhead { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.desk-mhead .chip { flex-shrink: 0; }
+.desk-hook { margin-top: 3px; font-size: 13px; }
+.desk-stakes { margin-top: 4px; font-weight: 600; color: var(--gold); font-size: 13px; }
+.desk-analyst { margin-top: 3px; color: var(--text-primary) !important; font-weight: 600 !important; }
+.desk-rows { margin-bottom: -4px; }
+@media (min-width: 640px) {
+  .desk-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 0 16px; align-items: start; }
+  .desk-body .desk-match { margin-right: 0; border-right: 1px solid var(--border); border-radius: 0 6px 6px 0; }
+  .desk-body .desk-rows { margin-bottom: 0; }
+  .desk-body .desk-rows .desk-row:first-child { border-top: none; }
+}
+.desk-row {
+  display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px;
+  text-align: left; color: var(--text-primary); font-size: 13px; line-height: 1.3;
+  border-top: 1px solid var(--border); padding: 5px 0;
+}
+.desk-row:first-child { border-top: none; }
+.desk-row .dr-l {
+  flex: 0 0 76px; font-family: var(--cond); font-size: 10.5px; font-weight: 800;
+  letter-spacing: .8px; text-transform: uppercase; color: var(--text-muted);
+}
+.desk-row .dr-t { flex: 1; min-width: 0; }
+.desk-row.alert .dr-l { color: var(--text-negative); }
+.desk-row[data-row="thread"] .dr-l { color: var(--gold); }
 .hub-widget label {
   font-family: var(--cond); font-size: 10px; font-weight: 700;
   letter-spacing: 1.2px; text-transform: uppercase;
@@ -2058,8 +2149,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    shrinking as it sails away over the bar. It fades before the far edge, so
    the flight reads the same wherever on the field it was struck from. */
 
-.now-line.tmo { border-left-color: var(--gold); }
-.now-line.tmo .txt { font-weight: 700; }
 .tick-event.tmo .txt { font-weight: 700; }
 
 /* ---- the broadcast card: half-time, the hour, full time (idea 5) ---- */
@@ -2117,47 +2206,87 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .derby-line { color: var(--danger); line-height: 1.45; }
 .derby-line b { font-weight: 700; }
 
-/* ---- the now-line: one commentary line at a time, broadcast style ---- */
-.now-line {
-  display: flex; gap: 10px; align-items: flex-start;
-  margin: 10px 14px; padding: 14px 16px;
-  background: var(--surface-1); border-radius: 10px;
+/* ---- THE COMMENTARY FEED (round 5, owner: "smoother as it flicks between
+   stories. Like FM manager style") ----
 
-  border-left: 4px solid var(--border-strong);
-  font-size: 16px; line-height: 1.45;
-  animation: now-in .32s ease both;
-  min-height: 76px;
+   It used to be ONE line in a box keyed on the cursor, so every beat the box
+   was torn down and rebuilt: the old line vanished in a frame, the new one
+   faded up from nothing, the whole box swapped to the other club's colours in
+   a frame, and the box took the height of the sentence, so the live stats
+   under it lurched up and down by a line every 640ms (feedprobe measured
+   29px). Now it is a short running feed in a box of FIXED height:
+
+     the lines stack newest at the foot, anchored to the bottom edge, and the
+       older ones leave over the top under a soft fade (the mask)
+     a new line slides the stack up by its own height (MatchDay.tsx
+       useFeedGlide, transform only, 220ms) and fades in as it comes
+     the current line wears the kit; when the next arrives it lets go of the
+       fill over 200ms and dims, and dims again a step each line it ages
+     a row is the same size current or old: only colour and opacity change,
+       never the font, so a demoted line never re-wraps and nothing above it
+       moves
+   The box's height is fixed, so the stats, a highlight or the talk's
+   reactions below it never move when a line arrives. */
+.now-strip { padding: 0 10px 2px; }
+.comm-feed {
+  position: relative; overflow: hidden;
+  height: clamp(96px, 17vh, 150px); height: clamp(96px, 17dvh, 150px);
+  /* the older lines fade out over the top edge rather than being cut */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 26px);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 26px);
 }
-.now-line .min {
-  font-family: var(--cond); font-weight: 800; font-size: 16px;
+.comm-list {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  display: flex; flex-direction: column; gap: 4px;
+  will-change: transform;
+}
+.comm-line {
+  display: flex; gap: 10px; align-items: center;
+  padding: 8px 14px; border-radius: 10px;
+  border-left: 4px solid transparent;
+  font-size: 14px; line-height: 1.4;
+  color: var(--text-secondary);
+  background: transparent;
+  transition: background-color .2s ease, color .2s ease, box-shadow .2s ease, opacity .2s ease, border-color .2s ease;
+}
+.comm-line .min {
+  font-family: var(--cond); font-weight: 800; font-size: 15px;
   color: var(--info); flex-shrink: 0; min-width: 30px;
+  font-variant-numeric: tabular-nums;
 }
-.now-line .txt { color: var(--text-primary); }
-.now-line.big { border-left-color: var(--gold); }
-.now-line.big .txt { font-weight: 700; color: var(--text-primary); font-size: 18px; }
-.now-line.card-y { border-left-color: var(--prop-yellow-deep); }
-.now-line.card-r { border-left-color: var(--prop-red); }
-.now-line.inj { border-left-color: var(--danger); }
-/* a line about a side wears its kit (MatchDay.tsx lineStyle): the text takes
-   the colour worked out for the fill */
-.now-line.kit .txt, .now-line.kit.big .txt { color: inherit; }
-.now-line.kit .min { color: inherit; opacity: .8; }
-@keyframes now-in {
-  from { opacity: 0; transform: translateY(7px); }
-  to { opacity: 1; transform: translateY(0); }
+.comm-line.cur { min-height: 54px; background: var(--surface-1); border-left-color: var(--border-strong); color: var(--text-primary); }
+.comm-line.cur.fresh { animation: comm-in .22s cubic-bezier(.25, .1, .25, 1) backwards; }
+.comm-line.old { opacity: .62; }
+.comm-line.old.a2 { opacity: .42; }
+.comm-line.old.a3 { opacity: .28; }
+/* a score is bold whether it is the current line or an old one: the weight
+   (and the size) belong to the line, not to being current, or a line would
+   re-wrap the moment it was demoted */
+.comm-line.big .txt { font-weight: 700; font-size: 16px; }
+.comm-line.tmo .txt { font-weight: 700; }
+.comm-line.big { border-left-color: var(--gold); }
+.comm-line.big .min { color: var(--gold); }
+.comm-line.card-y { border-left-color: var(--prop-yellow-deep); }
+.comm-line.card-r { border-left-color: var(--prop-red); }
+.comm-line.inj { border-left-color: var(--danger); }
+.comm-line.tmo { border-left-color: var(--gold); }
+.comm-line.pen { border-left-color: var(--info); }
+/* a line about a side wears its kit while it is current (MatchDay.tsx
+   lineStyle): the text takes the colour worked out for the fill */
+.comm-line.kit.cur .min { color: inherit; opacity: .8; }
+.live-wrap.big-text .comm-line .txt { font-size: 16px; line-height: 1.35; }
+.live-wrap.big-text .comm-line.big .txt { font-size: 18px; }
+.live-wrap.big-text .comm-line .min { font-size: 16px; }
+@keyframes comm-in { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .comm-line { transition: none; }
+  .comm-line.cur.fresh { animation: none; }
+  .comm-list { will-change: auto; }
 }
-
-/* ---- the long rectangle: one commentary line, classic CM ---- */
 /* THE STATS SHEET (v1.1.9). Home | label | away, the way a broadcast
    graphic reads, in fixed columns so the numbers do not jump about as they
    tick up. Tabular figures for the same reason. Deliberately quiet: it sits
    under live commentary and must never compete with it. */
-.now-strip { padding: 0 10px 2px; }
-.now-strip .now-line {
-  margin: 0; min-height: 54px; padding: 9px 14px;
-  font-size: 14px; align-items: center;
-}
-.now-strip .now-line.big .txt { font-size: 16px; }
 
 /* match prep chips on a single scrollable line */
 .preset-row.oneline { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
@@ -2387,6 +2516,13 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .btn.tiny::after {
   content: ''; position: absolute; inset: -13px -3px;
 }
+/* A rewarded spot offered on a line of text (1.8.2: the inside word, the
+   second opinion, tape room night). It sits in the line it answers rather than
+   in a block of its own, so its box is no taller than the text around it and
+   the page is not one pixel deeper for it (scrollaudit); the ::after carries
+   the tap out to 46px as it does for every tiny button (tapsize). */
+.btn.tiny.spot { padding: 0 8px; line-height: 15px; }
+.btn.tiny.spot::after { inset: -15px -3px; }
 /* A control that sits in a table row (the Medical Centre's specialist, favour,
    knock and joker buttons). Tapped on a phone like any other button, so it is
    36px of box and 5px of reach either side: 46px, clear of the 44 floor.
@@ -3101,13 +3237,49 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   .sp-card b { flex: 1 1 0; min-width: 0; text-align: left; }
 }
 
-/* ---- the attacking moves (1.8.1, ui/MovesSection.tsx) -------------------
-   One card for the three calls: which call on the top row, the options under
-   it, and the picture beside the facts (two columns on a phone, the picture
-   the narrower), so the section is one short card, not eighteen tiles on a
-   tab that was already the longest on the screen. */
-.mv-card { display: flex; flex-direction: column; gap: 7px; }
-.mv-calls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+/* ---- the attack and defence styles (1.8.2, ui/StylesSection.tsx) --------
+   Five drawn tiles a side, three to a row on a phone held upright and five
+   across once there is room, each a picture and a name; then one card for
+   the style that is picked, its picture large beside the words. On a short
+   landscape screen the tiles are already big enough to read, so the card
+   drops its copy of the picture and gives the words the whole width: the
+   Game Plan tab has to stay inside three screenfuls there (scrollaudit). */
+.routine-grid.st-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.st-tile { align-items: stretch; gap: 4px; padding: 5px; }
+.st-tile b { font-size: 12px; line-height: 1.2; text-align: center; }
+.st-body { display: grid; grid-template-columns: minmax(0, 42%) minmax(0, 1fr); gap: 9px; align-items: start; }
+.st-body .sp-txt { gap: 4px; }
+.st-body b { font-size: 13.5px; color: var(--text-primary); }
+.st-body .st-tag { font-size: 11.5px; font-weight: 700; color: var(--text-secondary); }
+.st-body .d { font-size: 11.5px; color: var(--text-muted); line-height: 1.4; }
+.st-body .mv-warn { color: var(--text-negative); font-weight: 600; }
+@media (min-width: 700px) {
+  .routine-grid.st-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+  .st-body { grid-template-columns: minmax(0, 240px) minmax(0, 1fr); }
+}
+@media (orientation: landscape) and (min-width: 640px) and (max-height: 560px) {
+  .st-body { grid-template-columns: minmax(0, 1fr); }
+  .st-body > .dg { display: none; }
+}
+
+/* ---- the playbook (1.8.1 moves, 1.8.2 playbook, ui/MovesSection.tsx) -----
+   One card, one flow (owner, 1.8.2: "preview and then the slots are filled"):
+   the five slots compact at the top, the picked move playing on a loop under
+   them with one line and one button, and the moves as chips below. */
+.mv-card { display: flex; flex-direction: column; gap: 8px; }
+.mv-calls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+/* five slots since round 6 (the penalty play): on a phone the odd one out
+   takes the whole row rather than leaving a hole */
+.mv-calls > .mv-callchip:last-child:nth-child(odd) { grid-column: 1 / -1; }
+@media (min-width: 480px) {
+  .mv-calls { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .mv-calls > .mv-callchip:last-child:nth-child(odd) { grid-column: auto; }
+}
+.mv-mixlabel { font-size: 11px; }
+/* an empty slot tapped: the moves that fit it, and the way back to them all */
+.mv-want { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.mv-want .meta { font-size: 11.5px; min-width: 0; }
+.mv-want .preset-chip { flex: none; min-height: 36px; margin: 0; }
 .mv-callchip {
   display: flex; flex-direction: column; align-items: flex-start; gap: 1px;
   border-radius: 10px; min-height: 44px; text-align: left; min-width: 0;
@@ -3116,30 +3288,28 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .mv-callchip span { font-size: 10px; opacity: .85; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
 .mv-chips { margin-top: 0; }
 .mv-chips .preset-chip { min-height: 36px; }
-.mv-pct { font-size: 10px; opacity: .8; font-weight: 600; }
-.mv-body { display: grid; grid-template-columns: minmax(0, 42%) minmax(0, 1fr); gap: 9px; align-items: start; }
-.mv-body .d { font-size: 11px; color: var(--text-muted); line-height: 1.35; }
-.mv-body b { font-size: 13px; color: var(--text-primary); }
-.mv-body .mv-warn { color: var(--text-negative); font-weight: 600; }
-@media (min-width: 700px) {
-  .mv-body { grid-template-columns: minmax(0, 220px) minmax(0, 1fr); }
+/* a move already in the playbook */
+.mv-chips .preset-chip.mv-in { box-shadow: inset 0 0 0 1.5px var(--gold); }
+.mv-preview { display: flex; flex-direction: column; gap: 7px; }
+.mv-preview .dg { max-height: 210px; }
+.mv-anim { aspect-ratio: 16 / 9; }
+.mv-preview .sp-txt { display: flex; flex-direction: column; gap: 3px; }
+.mv-preview .d { font-size: 11.5px; color: var(--text-muted); line-height: 1.35; }
+.mv-preview b { font-size: 13px; color: var(--text-primary); }
+.mv-hint { font-size: 11.5px; }
+/* the slot picker: one row a slot in the main menu's save-row look, the
+   slot's name and what it holds now; one the move cannot go in is greyed */
+.mv-slots { display: flex; flex-direction: column; gap: 6px; }
+.mv-slots .mv-slot {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  min-height: 44px; padding: 6px 12px; background: var(--surface-3); text-align: left;
 }
+.mv-slots .mv-slot b { font-size: 12.5px; flex: none; }
+.mv-slots .mv-slot span { font-size: 11px; opacity: .8; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mv-slots .mv-slot:disabled { opacity: .4; }
 
-/* the 23: the fifteen in a team-sheet shape on the grass, the eight on a bench */
-.b23 { margin: 6px 14px; display: grid; gap: 8px; }
-@media (min-width: 700px) {
-  .b23 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
-}
-.b23-pitch {
-  position: relative; height: 340px; border-radius: 10px; overflow: hidden;
-  background: repeating-linear-gradient(180deg, var(--hl-grass-a) 0 12.5%, var(--hl-grass-b) 12.5% 25%);
-  border: 1px solid var(--border);
-}
-.b23-man {
-  position: absolute; left: var(--fx); top: var(--fy); width: 31%;
-  transform: translateX(-50%);
-  display: flex; flex-direction: column; align-items: center;
-}
+/* the replacements: the eight on a bench, each with his brief */
+.b23 { margin: 6px 14px; }
 /* each shirt on a dark disc with a light rim: a bottle-green or black kit
    (Northampton's is both) otherwise vanishes into the grass at this size */
 .b23-kit {
@@ -3153,11 +3323,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%);
   padding: 0 2px; border-radius: 3px; background: rgba(8, 12, 18, .58);
   font-family: var(--cond); font-size: 10px; font-weight: 800; line-height: 12px; color: var(--on-hero);
-}
-.b23-name {
-  margin-top: 2px; padding: 0 4px; border-radius: 3px; max-width: 100%;
-  background: rgba(8, 12, 18, .78); color: var(--on-hero);
-  font-size: 10.5px; font-weight: 700; line-height: 13px; text-align: center; overflow-wrap: anywhere;
 }
 .b23-bench { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 8px; }
 .b23-seats {
@@ -3215,6 +3380,56 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .prep-ico svg { width: 20px; height: 20px; }
 .prep-card.sel .prep-ico { background: var(--pick); color: var(--pick-ink); }
+/* 1.8.3, owner: "just a few options to select". The cards lost their sums
+   and became chips: icon and name on one row, the sums in one line under
+   the grid (.prep-line) for the chosen focus only. */
+.prep-grid .prep-card { flex-direction: row; align-items: center; gap: 8px; padding: 7px 10px; position: relative; min-width: 0; }
+.prep-grid .prep-card b { min-width: 0; overflow-wrap: anywhere; hyphens: auto; line-height: 1.2; }
+.prep-grid .prep-card .prep-ico { flex: 0 0 auto; width: 28px; height: 28px; }
+.prep-grid .prep-card .prep-ico svg { width: 17px; height: 17px; }
+.prep-tag {
+  position: absolute; top: -7px; right: 8px;
+  font-size: 9px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase;
+  padding: 1px 6px; border-radius: 8px;
+  background: var(--gold-fill, var(--gold)); color: var(--on-gold);
+}
+@media (min-width: 700px) {
+  .prep-grid .prep-card { flex-direction: column; align-items: flex-start; }
+}
+.prep-line { margin: 8px 16px 0; font-size: 12px; }
+.prep-plans { padding: 0 14px; }
+.prep-plans .preset-row { margin-top: 0; }
+/* the plans stacked (round 6, owner: "make these options stacked"): one
+   full-width option a plan, its name and a short grey line under it, picked
+   the way a tile is (the pick ring and wash) */
+.plan-stack { display: flex; flex-direction: column; gap: 6px; }
+.plan-opt {
+  display: flex; align-items: center; width: 100%; min-height: 48px; padding: 8px 12px;
+  text-align: left; border-radius: 10px; border: 1px solid var(--border);
+  background: var(--surface-2); color: var(--text-primary); cursor: pointer;
+}
+.plan-opt:active { background: var(--row-hover-bg); }
+.plan-opt .opt-main { font-size: 14px; font-weight: 700; line-height: 1.25; }
+.plan-opt.on {
+  border-color: var(--pick); box-shadow: inset 0 0 0 2px var(--pick);
+  background: color-mix(in srgb, var(--pick) 26%, var(--surface-1));
+}
+/* the grey line on the picked one's wash takes the secondary ink, so it reads */
+.plan-opt.on .opt-detail { color: var(--text-secondary); }
+.prep-plans .prep-line { margin: 6px 2px 0; }
+.prep-info {
+  width: 26px; height: 26px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1.5px solid var(--border-strong); background: var(--surface-1); color: var(--text-secondary);
+  font-family: var(--sans); font-weight: 700; font-style: italic; font-size: 14px; line-height: 1;
+}
+.prep-info.on { background: var(--pick); color: var(--pick-ink); border-color: var(--pick); }
+.prep-detail { margin-top: 10px; }
+/* the Game Plan's pointer to the Playbook (1.8.3): one line and a chip */
+.plan-xref { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 2px 14px 4px; }
+.plan-xref .meta { font-size: 12px; min-width: 0; }
+.plan-xref .preset-chip { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 2px; }
+.plan-xref svg { width: 12px; height: 12px; }
 
 /* ---- the game-time ledger's status picker (F18) --------------------------
    .inline-input is a form control built for a card: 11px padding and a 6px
@@ -3277,6 +3492,41 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 /* Paragraph air, matched to the Wire so a story reads the same in both places. */
 .reader p { font-size: 14px; line-height: 1.6; margin: 0 0 10px; color: var(--text-primary); }
 .reader p:last-of-type { margin-bottom: 2px; }
+
+/* ---- a story that carries data (NewsBody, 1.8.2) --------------------------
+   Owner: "news stories are messy and hard to read". Facts as rows, lists as
+   lists, voices as quotes; the reader and the Wire share all three. */
+.news-facts {
+  margin: 0 0 10px; padding: 0;
+  border-top: 1px solid var(--border);
+}
+.news-fact {
+  display: flex; gap: 12px; align-items: baseline;
+  padding: 6px 0; border-bottom: 1px solid var(--border);
+  font-size: 14px; line-height: 1.4;
+}
+.news-fact dt {
+  flex: 0 0 38%; max-width: 150px; margin: 0;
+  color: var(--text-muted); font-size: 12.5px; font-weight: 600;
+}
+.news-fact dd { flex: 1 1 auto; min-width: 0; margin: 0; color: var(--text-primary); overflow-wrap: anywhere; }
+.news-fact dd::first-letter, .news-fact dt::first-letter { text-transform: uppercase; }
+.news-list { margin: 0 0 10px; padding: 0; list-style: none; border-top: 1px solid var(--border); }
+.news-list li {
+  padding: 6px 0; border-bottom: 1px solid var(--border);
+  font-size: 14px; line-height: 1.4; color: var(--text-primary);
+}
+.news-quotes { margin: 0 0 10px; }
+.news-quotes blockquote {
+  margin: 0 0 6px; padding: 2px 0 2px 10px;
+  border-left: 3px solid var(--gold);
+  font-size: 14px; line-height: 1.5; font-style: italic; color: var(--text-secondary);
+}
+.wire-body .news-fact, .wire-body .news-list li, .wire-body .news-quotes blockquote { font-size: 14px; }
+/* and no button label breaks mid-word ("E-/mail" at 360px): the row wraps instead */
+.bug-send { flex-wrap: wrap; }
+.bug-send .btn { flex: 1 1 auto; white-space: nowrap; }
+.news-go { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; margin: 10px 0 0; padding: 0 14px; font-size: 13px; }
 
 /* ---- people named in a story (feedback 10F) -----------------------------
    A story already knows who it is about; it just never offered them. */
@@ -4323,27 +4573,35 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .respect-line { margin-top: 6px; padding-left: 8px; border-left: 3px solid var(--gold); }
 .temper-card .bench-note { margin-top: 6px; padding-left: 8px; border-left: 3px solid var(--gold); }
 
+/* development as a project (1.8.2): the staff's read, and the timeline */
+.dev-card { border-left: 4px solid var(--info); }
+.dev-card .meta { font-size: 13px; line-height: 1.45; margin-top: 2px; }
+.dev-timeline { padding: 4px 12px; }
+.dev-timeline .tl-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-top: 1px solid var(--border); min-width: 0; }
+.dev-timeline .tl-row:first-child { border-top: 0; }
+.dev-timeline .tl-season { flex: 0 0 60px; font-size: 12px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.dev-timeline .tl-rating { flex: 0 0 26px; text-align: right; font-variant-numeric: tabular-nums; }
+.dev-timeline .tl-moments { display: flex; flex-wrap: wrap; gap: 4px; flex: 1 1 auto; min-width: 0; }
+.dev-timeline .tl-chip { padding: 2px 7px; }
+.dev-timeline .tl-now .tl-season { color: var(--text-primary); font-weight: 700; }
+
 .plan-slots { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 16px 0; }
 .plan-slot { display: inline-flex; gap: 2px; align-items: stretch; }
 .plan-slot .plan-over { padding-left: 8px; padding-right: 8px; min-width: 32px; }
 .preset-chip.plan-empty { border-style: dashed; opacity: .85; }
 
 .depth-chart { padding: 6px 14px 14px; display: flex; flex-direction: column; gap: 8px; }
-.depth-row { background: var(--surface-1); border-radius: 10px; padding: 8px 10px; border-left: 4px solid transparent; }
-.depth-row.thin { border-left-color: var(--danger); }
+.depth-row { background: var(--surface-1); border-radius: 10px; padding: 8px 10px; }
 .depth-pos { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
 .depth-count { font-size: 11px; font-weight: 700; letter-spacing: .4px; color: var(--text-muted); text-transform: uppercase; }
-.depth-count.warn { color: var(--text-negative); }
 .depth-men { display: flex; flex-wrap: wrap; gap: 6px; }
 .depth-man {
   display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; min-height: 30px;
   border-radius: 8px; background: var(--surface-3); color: var(--text-primary); font-size: 12px;
 }
 .depth-man .depth-ca { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--gold); }
-.depth-man.cover .depth-name { font-style: italic; }
 .depth-man.out { opacity: .55; }
 .depth-man .depth-why { font-size: 11px; color: var(--text-negative); font-weight: 700; }
-.depth-warn { margin-top: 6px; color: var(--text-negative); font-weight: 600; }
 
 /* v1.2.8: the Selection team sheet pins all six columns so its two tables
    line up from the 1 shirt to the 15 (see Selection.tsx) */
@@ -4457,6 +4715,26 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .mood-fold { margin: 6px 0 2px; }
 .mood-fold > summary { cursor: pointer; font-weight: 700; font-size: 13px; padding: 6px 0; color: var(--info); }
 .mood-fold .mood-wrap { padding: 0 0 6px; }
+/* ---- how the room took the talk (round 4, TalkReactions.tsx) ----
+ * Every man, his reaction in words and a mood arrow, the classic manager
+ * game's answer to a team talk. The arrow is drawn, not a character. */
+.talk-react { margin: 8px 14px; padding: 10px 12px; }
+.talk-react .tr-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.talk-react .tr-msg { margin: 6px 0 4px; }
+.talk-react .tr-list { list-style: none; margin: 0; padding: 0; max-height: 46vh; max-height: 46dvh; overflow-y: auto; }
+.talk-react .tr-list li {
+  display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; align-items: center; gap: 6px;
+  padding: 3px 0; border-top: 1px solid var(--border);
+}
+.talk-react .tr-list li.bench { opacity: .78; }
+.talk-react .tr-list .num { font-variant-numeric: tabular-nums; color: var(--text-muted); font-size: 12px; }
+.talk-react .tr-list .nm { font-weight: 600; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.talk-react .mood-chip { display: inline-flex; align-items: center; gap: 5px; }
+.tr-dir { display: inline-block; width: 0; height: 0; flex: none; }
+.tr-dir.up { border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 7px solid var(--positive); }
+.tr-dir.down { border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 7px solid var(--danger); }
+.tr-dir.flat { width: 8px; height: 2px; background: var(--text-muted); }
+.mentor-intro { margin: 0 14px 8px; }
 
 /* ---- the story and what it is about, side by side (1.8.0, ContextCard.tsx) ----
  * One column on a phone held upright (the card follows the story); two once
@@ -4845,7 +5123,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 }
 @media (prefers-reduced-motion: reduce) { .feed-line.newest { animation: none; } }
 /* the feed's newest line IS the now-line on a tablet: one of them, not both */
-@media (orientation: portrait) { .app.tablet .now-strip .now-line { display: none; } }
+@media (orientation: portrait) { .app.tablet .now-strip .comm-feed { display: none; } }
 
 /* ================================================================
    THE MOTION LAYER (1.8.0). Owner: "Could we add subtle motion throughout
@@ -4899,12 +5177,8 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 
 /* LARGE COMMENTARY (Match Settings, on by default; owner: "The size of the
    text in fm stands out"). The now-line was 14px body and 17px for a score. */
-.live-wrap.big-text .now-strip .now-line .txt { font-size: 16px; line-height: 1.35; }
-.live-wrap.big-text .now-strip .now-line.big .txt { font-size: 18px; }
-.live-wrap.big-text .now-strip .now-line .min { font-size: 16px; }
 .live-wrap.big-text .feed-line { font-size: 16px; }
 /* penalties in blue, beside the gold scores and the card colours */
-.now-line.pen { border-left-color: var(--info); }
 .feed-line.pen { border-left-color: var(--info); }
 
 /* THE SETTINGS SHEET IN THE FM26 LAYOUT: the choices, then the switches */
@@ -4933,7 +5207,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
     grid-area: deck; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1.4fr) minmax(0, 1fr);
     padding: 4px 14px 4px 0; min-height: 0;
   }
-  .app.tablet .live-wrap .now-strip .now-line { display: none; }
+  .app.tablet .live-wrap .now-strip .comm-feed { display: none; }
 
 }
 
@@ -5019,21 +5293,51 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .speed-controls .ctl-ico { display: inline-flex; align-items: center; justify-content: center; }
 .speed-controls .ctl-ico svg { width: 22px; height: 22px; }
 
-/* THE TREATMENT ROOM (owner, 27 Sep 2026: "tidy up the treatment room"): the
-   line under the name, the buttons stacked to the right at one width */
-.med-row td { vertical-align: middle; }
-.med-row td:first-child { width: 1%; }
-.med-row .med-info { display: flex; flex-direction: column; gap: 2px; margin-top: 3px; font-size: 12px; font-weight: 700; white-space: normal; color: var(--text-muted); }
-.med-row .med-info .neg { color: var(--text-negative); }
-.med-row .med-info .gold { color: var(--gold); }
-.med-row .med-act { text-align: right; width: 1%; }
-.med-row .med-act:empty { display: none; }
-/* smaller buttons with more room between them (owner, 27 Sep 2026): 32px
-   of box and 6px of reach either side is still 44 to tap, and 14px apart the
-   reaches of neighbours never meet */
-.med-row .med-act .rowact { display: flex; width: 100%; min-width: 118px; justify-content: center; white-space: nowrap; margin: 0; min-height: 32px; padding: 4px 10px; font-size: 11px; }
-.med-row .med-act .rowact::after { inset: -7px 0; }
-.med-row .med-act .rowact + .rowact { margin-top: 14px; }
+/* THE TREATMENT ROOM, ROUND TWO (owner: "treatment room looks super messy").
+   One card a man: position, name and a return pill on the first line; the
+   complaint on the second, one line and plain; the buttons on a third, side
+   by side at one width, only when there are any. No right-hand column, so no
+   divider stopping half way and nothing floating out of line. */
+.card.bar-sq { border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.med-staff {
+  border-left: 4px solid var(--gold); border-top-left-radius: 0; border-bottom-left-radius: 0;
+  padding: 8px 12px; font-size: 12px; font-weight: 500; color: var(--text-secondary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.med-staff b { color: var(--text-primary); font-weight: 700; }
+.med-staff.wrap { white-space: normal; }
+.med-search { padding: 4px 12px 0; }
+.med-search .inline-input { margin: 0; padding: 8px 10px; font-size: 13px; }
+.med-card { margin: 6px 12px; padding: 10px 12px; cursor: pointer; }
+.med-head { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.med-name { flex: 1 1 auto; min-width: 0; font-weight: 700; font-size: 14px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.med-pill {
+  flex-shrink: 0; padding: 2px 8px; border-radius: 999px;
+  font-size: 11px; font-weight: 700; letter-spacing: .3px; line-height: 16px;
+  border: 1px solid currentColor;
+}
+.med-pill.short { color: var(--text-positive); background: color-mix(in srgb, var(--text-positive) 12%, transparent); }
+.med-pill.mid { color: var(--gold); background: color-mix(in srgb, var(--gold-fill) 14%, transparent); }
+.med-pill.long { color: var(--text-negative); background: color-mix(in srgb, var(--text-negative) 12%, transparent); }
+.med-info {
+  display: block; margin-top: 5px; font-size: 13px; font-weight: 500; color: var(--text-secondary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.med-info::first-letter { text-transform: uppercase; }
+.med-info .neg { color: var(--text-negative); font-weight: 600; }
+.med-info .gold, .med-extra .gold { color: var(--gold); font-weight: 600; }
+.med-extra { margin-top: 3px; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.med-note { margin-top: 6px; font-size: 12px; font-weight: 500; color: var(--text-muted); }
+.med-msg { margin-top: 6px; font-size: 11px; font-weight: 600; color: var(--text-secondary); white-space: normal; }
+/* 32px of box and 7px of reach above and below is still 44 to tap, and a
+   14px gap between wrapped lines keeps the reaches of neighbours apart */
+.med-acts { display: flex; flex-wrap: wrap; gap: 14px 8px; margin-top: 10px; }
+.med-acts .rowact {
+  flex: 1 1 0; min-width: 130px; margin: 0; min-height: 32px; padding: 4px 8px;
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  white-space: normal; line-height: 1.2; font-size: 11px;
+}
+.med-acts .rowact::after { inset: -7px 0; }
 
 /* the contract traffic light on the squad table */
 .status-dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; vertical-align: middle; box-shadow: 0 0 0 2px color-mix(in srgb, var(--surface-1) 70%, transparent); }
@@ -5052,8 +5356,16 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .sack-ico { font-size: 52px; line-height: 1; margin: 6px 0 10px; }
 .celebrate-ico .glyph, .sack-ico .glyph { vertical-align: 0; }
 .mark { display: inline-flex; font-size: 1em; }
-.hub-widget .mood-dot { width: 14px; height: 14px; }
-.gt-mood { white-space: nowrap; font-size: 12px; }
+/* the supporters' mood as a drawn face (glyphs.tsx FanFace) */
+.fan-face { display: inline-flex; line-height: 1; vertical-align: -0.14em; }
+.fan-face .glyph { vertical-align: 0; }
+.hub-widget .hub-face { font-size: 21px; vertical-align: middle; }
+.gt-mood { white-space: nowrap; font-size: 12px; overflow: hidden; text-overflow: ellipsis; }
+/* the game-time headings wrap inside their own column rather than painting
+   across the next one (owner, round 2: "NAM HE WAS TOLD"), and the status
+   select is as wide as its column, never wider */
+.dtable.fit .gt-head th { white-space: normal; overflow: hidden; overflow-wrap: normal; word-break: normal; line-height: 1.15; vertical-align: bottom; }
+.dtable.fit .gt-sel { width: 100%; max-width: 100%; text-overflow: ellipsis; }
 .gt-mood .status-dot { width: 9px; height: 9px; vertical-align: 0; }
 .preset-chip .glyph { font-size: 1.3em; vertical-align: -0.28em; }
 
@@ -5069,7 +5381,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
    longer than the column, the chip would not wrap, and the table ran under
    the card's right edge with every long mood cut off mid-word. The chip
    wraps inside its own pill now and the table fits the phone. */
-.mood-table .mood-chip { white-space: normal; line-height: 1.3; }
+.mood-table .mood-chip { white-space: nowrap; line-height: 1.3; }
 
 /* The team sheet is four tables (forwards, backs, two halves of the bench)
    sharing one row renderer. Auto layout shared each table's slack out across
@@ -5113,6 +5425,9 @@ a.btn { text-decoration: none; }
 /* The ideas box on Report a Bug put its heading 14px further in than the text
    under it; inside a card the card's padding is the gutter. */
 .bug-ideas > .section-title { padding-left: 0; padding-right: 0; padding-top: 2px; }
+.ideas-discord { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; text-decoration: none; }
+.bug-ideas > .ideas-discord { margin: 2px 0 12px; width: 100%; }
+.ideas-discord .glyph { font-size: 1.2em; }
 
 /* Settings titles are sentence case; the language label is shared with the
    title screen, where it is capitals. */
@@ -5153,3 +5468,23 @@ a.btn.home-community {
   box-sizing: border-box; color: var(--text-primary); border-color: var(--border-strong);
 }
 .home-community svg { width: 18px; height: 18px; flex: none; }
+
+/* ================= SQUARE LEFT BARS (owner, round 2) =================
+   The owner likes the bar on the desk's next-match block: flat, flush with the
+   box's edge, square at both ends. Every other coloured left bar sat on a box
+   with rounded corners, so the border bent round them into a curved bar (the
+   Dream card on Home, the news chips, the staff and medical banners). One rule
+   squares the LEFT corners of every box that carries a bar, the same way
+   .desk-match does, whether the bar comes from a class here or from an inline
+   style on a screen; the right-hand corners keep their radius. A class whose
+   bar is transparent until it is switched on (.depth-row, .inbox-li) is only
+   squared while the bar shows. */
+[style*="border-left"],
+.tick-event, .store-card, .challenge-card, .wire-card.unread, .desk-match,
+.resume-note, .comm-line, .sheet-casualty, .inbox-cue, .news-quotes blockquote,
+.who-chip, .first-hint, .talk-said, .day-draw, .draw-verdict, .fix-grade,
+.respect-line, .temper-card .bench-note, .dev-card,
+.inbox-li.on, .feed-line {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}

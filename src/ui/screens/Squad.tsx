@@ -5,13 +5,13 @@ import { starPlayerIds } from '../../game/analysis'
 import { AvailTag, Mark, Nat, PosBadge, Stars, StickyControls } from '../components'
 import { STATUSES, STATUS_BY_ID, clubMatchesPlayed, ledgerRow, statusOf, type SquadStatus } from '../../game/gametime'
 import SelectionPane from './Selection'
-import { posName, t } from '../../game/i18n'
+import { t } from '../../game/i18n'
 import { Glyph } from '../glyphs'
 
 // Handheld squad layout: the team sheet first, then the tables - Pkd chip,
 // fitness ring, starred names, morale arrows, Av R and Value.
 
-type View = 'selection' | 'depth' | 'general' | 'stats' | 'gametime' | 'contracts'
+type View = 'selection' | 'general' | 'stats' | 'gametime' | 'contracts'
 type SortKey = 'pos' | 'name' | 'age' | 'ca' | 'form' | 'cond' | 'value' | 'apps' | 'tries' | 'points' | 'avr' | 'pkd' | 'wage' | 'until'
 
 /**
@@ -61,14 +61,6 @@ export default function Squad() {
   const [desc, setDesc] = useState(false)
   const [group, setGroup] = useState<'all' | 'aca'>('all')
   const [avail, setAvail] = useState<'any' | 'fit' | 'out'>('any')
-  /** Game Time opens on the men who are out of line rather than on all 42.
-   *
-   *  The page's job is "who is unhappy about minutes", and the answer is
-   *  usually three or four names. Listing the whole squad buried them four
-   *  screenfuls deep (user: "game time feels more packed then other pages in
-   *  squad. make it clearer and all on one page - not scroll"), so the default
-   *  view is the shortlist and Everyone is one tap away. */
-  const [gtAll, setGtAll] = useState(false)
 
   const club = game.clubs[game.userClubId]
   const stars = useMemo(() => starPlayerIds(game, club.id), [game, club.id, game.week])
@@ -85,12 +77,6 @@ export default function Squad() {
     const out = (p: Player) => !!p.injury || p.bans > 0 || !!p.natSquad || !!p.onLoan
     if (avail === 'fit') ps = ps.filter(p => !out(p))
     if (avail === 'out') ps = ps.filter(out)
-    if (view === 'gametime' && !gtAll) {
-      ps = ps.filter(p => {
-        const row = ledgerRow(game, club, p, played)
-        return row.gap <= -2 || row.mood === 'restless' || row.mood === 'unhappy'
-      })
-    }
     const dir = desc ? -1 : 1
     const posIdx = (p: Player) => POS_ORDER.indexOf(p.pos)
     const avr = (p: Player) => (p.stats.apps ? p.stats.ratingSum / p.stats.apps : 0)
@@ -114,7 +100,7 @@ export default function Squad() {
       }
     })
     return ps
-  }, [club.players, game.players, sort, desc, game.week, club.tactic.lineup, group, avail, view, gtAll, game, club, played])
+  }, [club.players, game.players, sort, desc, game.week, club.tactic.lineup, group, avail, view, game, club, played])
 
   const Th = ({ k, children, right }: { k: SortKey; children: React.ReactNode; right?: boolean }) => (
     <th className={`th-sort${sort === k ? ' active' : ''}${right ? ' num' : ''}`}
@@ -148,9 +134,11 @@ export default function Squad() {
             itself - the pane from screens/Selection.tsx - and the old
             overview table is gone: everything it showed lives on the pane or
             on General Info. */}
-        {(['selection', 'depth', 'general', 'stats', 'gametime', 'contracts'] as View[]).map(v => (
+        {/* Depth has moved to the Team Report (owner, round 4), where the
+            other squad-wide reading lives */}
+        {(['selection', 'general', 'stats', 'gametime', 'contracts'] as View[]).map(v => (
           <button key={v} className={view === v ? 'active' : ''} onClick={() => setView(v)}>
-            {t(v === 'selection' ? 'squad.tabSelection' : v === 'depth' ? 'squad.tabDepth' : v === 'general' ? 'squad.tabGeneral'
+            {t(v === 'selection' ? 'squad.tabSelection' : v === 'general' ? 'squad.tabGeneral'
               : v === 'stats' ? 'squad.tabStats' : v === 'gametime' ? 'squad.tabGameTime' : 'squad.tabContracts')}
           </button>
         ))}
@@ -163,7 +151,7 @@ export default function Squad() {
             General Info. */}
       </div>
       {/* the chips filter the tables; the team sheet pane has no use for them */}
-      {view !== 'selection' && view !== 'depth' && <div className="filter-row">
+      {view !== 'selection' && <div className="filter-row">
         {/* Forwards and Backs are gone (user: "you can remove forwards and backs
             as a sort here"): the list is ordered by shirt number, so 1 to 8 are
             already the forwards and 9 to 15 the backs. The chips filtered a
@@ -191,15 +179,12 @@ export default function Squad() {
             style={avail === k ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
             onClick={() => setAvail(k)}>{label.includes('.') ? t(label) : <Glyph name={label} />}</button>
         ))}
-        {view === 'gametime' && (
-          <button className="preset-chip" style={gtAll ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
-            onClick={() => setGtAll(!gtAll)}>{t(gtAll ? 'squad.everyoneShown' : 'squad.needsAWord')}</button>
-        )}
+        {/* The "Needs a word" shortlist chip is gone (owner, round 2): the ledger
+            lists the whole squad and the Mood column says who is unhappy. */}
       </div>}
       </StickyControls>
 
       {view === 'selection' && <SelectionPane />}
-      {view === 'depth' && <DepthPane />}
       {/* ---- why this table is told its column widths ----
           .tblwrap sets overflow-x: auto, and CSS computes the other axis to
           auto with it, so the wrapper became the table's vertical scrollport.
@@ -218,12 +203,21 @@ export default function Squad() {
           need to scroll and .fitwrap turns the scrollport off. Then .content is
           the scrollport again and the heading sticks under the controls where
           it belongs. */}
-      {view !== 'selection' && view !== 'depth' && <div className="tblwrap fitwrap"><table className="dtable zebra fit">
+      {/* a filter nobody matches: the message alone. An empty table shrank to
+          its fixed columns and stacked NAME a letter a line (owner, round 7) */}
+      {view !== 'selection' && players.length === 0 && (
+        <div className="muted" style={{ padding: '12px 16px' }}>{t('squad.emptyFiltered')}</div>
+      )}
+      {view !== 'selection' && players.length > 0 && <div className="tblwrap fitwrap"><table className="dtable zebra fit">
         {/* Mor 34 and Value 64 (UI QA, 1.8.0): at 26 the MOR heading was cut
             to "MO", and a value carrying its trend arrow ran off the glass */}
         {view === 'general' && <colgroup><col /><col width="36" /><col width="32" /><col width="28" /><col width="34" /><col width="42" /><col width="64" /></colgroup>}
         {view === 'stats' && <colgroup><col /><col width="34" /><col width="30" /><col width="38" /><col width="32" /><col width="32" /><col width="44" /></colgroup>}
-        {view === 'gametime' && <colgroup><col /><col width="104" /><col width="30" /><col width="32" /><col width="82" /></colgroup>}
+        {/* Share, not pixels, for the two wide columns (owner, round 2: "NAM HE
+            WAS TOLD"). 248px of fixed columns left the name 52px once the page
+            was zoomed or the phone was narrow, and the headings ran into each
+            other. Now the name keeps about a third of whatever width there is. */}
+        {view === 'gametime' && <colgroup><col /><col style={{ width: '29%' }} /><col width="30" /><col width="34" /><col style={{ width: '21%' }} /></colgroup>}
         {view === 'contracts' && <colgroup><col /><col width="36" /><col width="30" /><col width="56" /><col width="44" /><col width="46" /></colgroup>}
         <thead>
           {view === 'general' && (
@@ -238,7 +232,7 @@ export default function Squad() {
             </tr>
           )}
           {view === 'gametime' && (
-            <tr>
+            <tr className="gt-head">
               <Th k="name">{t('squad.colName')}</Th>
               <th>{t('squad.colToldHim')}</th>
               <Th k="apps" right>{t('squad.colAp')}</Th>
@@ -272,11 +266,6 @@ export default function Squad() {
           )}
         </thead>
         <tbody>
-          {players.length === 0 && (
-            <tr><td colSpan={8} className="muted" style={{ padding: 12, whiteSpace: 'normal' }}>
-              {t(view === 'gametime' && !gtAll ? 'squad.emptyGameTime' : 'squad.emptyFiltered')}
-            </td></tr>
-          )}
           {players.map(p => {
             const avr = p.stats.apps ? (p.stats.ratingSum / p.stats.apps) : 0
             return (
@@ -368,67 +357,8 @@ export default function Squad() {
           })}
         </tbody>
       </table></div>}
-      {view === 'contracts' && (
-        <div className="meta" style={{ padding: '6px 14px 0' }}>
-          {t('squad.contractsNote')}
-        </div>
-      )}
-      {view === 'gametime' && (
-        <div className="meta" style={{ padding: '6px 14px 0' }}>
-          {t('squad.gameTimeNote')}
-        </div>
-      )}
       <div className="spacer" />
     </>
   )
 }
 
-
-/**
- * THE DEPTH CHART (owner, v1.2.7: "nothing shows at a glance that you are one
- * hooker deep before a cup run"). One row per position, everyone who can play
- * it - his own position or a listed alternative - best first, with the men who
- * cannot play this week greyed and the reason on them. A position with fewer
- * than two fit bodies is flagged; the front row is flagged under three, because
- * the laws want a specialist replacement for each of them.
- */
-function DepthPane() {
-  const game = useStore(s => s.game)!
-  const club = game.clubs[game.userClubId]
-  const pool = club.players.map(id => game.players[id]).filter((p): p is Player => !!p && !p.acad)
-  const why = (p: Player) => p.injury ? t('squad.depthInjured') : p.bans > 0 ? t('squad.depthBanned') : p.natSquad ? t('squad.depthAway') : p.onLoan ? t('squad.depthOnLoan') : null
-  return (
-    <div className="depth-chart">
-      {POS_ORDER.map(pos => {
-        const men = pool.filter(p => p.pos === pos || p.alt.includes(pos)).sort((a, b) => b.ca - a.ca)
-        const fit = men.filter(p => !why(p)).length
-        const need = pos === 'LP' || pos === 'HK' || pos === 'TP' ? 3 : 2
-        const thin = fit < need
-        return (
-          <div key={pos} className={`depth-row${thin ? ' thin' : ''}`}>
-            <div className="depth-pos">
-              <PosBadge pos={pos} />
-              <span className={`depth-count${thin ? ' warn' : ''}`}>{t('squad.depthFit', { n: fit })}</span>
-            </div>
-            <div className="depth-men">
-              {men.length === 0 && <span className="meta muted">{t('squad.depthNobody')}</span>}
-              {men.map(p => {
-                const out = why(p)
-                return (
-                  <button key={p.id} className={`depth-man${out ? ' out' : ''}${p.pos !== pos ? ' cover' : ''}`}
-                    title={out ?? (p.pos !== pos ? t('squad.depthCovers', { pos: posName(p.pos) }) : undefined)}
-                    onClick={() => useStore.getState().go('player', p.id)}>
-                    <span className="depth-name">{p.name}</span>
-                    <span className="depth-ca">{p.ca}</span>
-                    {out && <span className="depth-why">{out}</span>}
-                  </button>
-                )
-              })}
-            </div>
-            {thin && <div className="meta depth-warn">{t(need === 3 ? 'squad.depthThinFront' : 'squad.depthThin', { pos: posName(pos) })}</div>}
-          </div>
-        )
-      })}
-    </div>
-  )
-}

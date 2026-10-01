@@ -195,5 +195,11 @@ export function drillWeek(state: GameState, club: Club, emphasisSetPiece: boolea
 
 /** A new season wipes the tape: last year's analysis is last year's. */
 export function resetFamiliarity(club: Club) {
-  playbookOf(club).used = {}
+  const pb = playbookOf(club)
+  pb.used = {}
+  // the arms race (1.8.2, armsrace.ts): last season's tape is half what it
+  // was to an analyst, and a side that has changed over the summer has lost
+  // a little of the feel for its calls
+  if (pb.faced) for (const k of Object.keys(pb.faced)) pb.faced[k] *= 0.5
+  if (pb.reps) for (const k of Object.keys(pb.reps)) pb.reps[k] *= 0.8
 }

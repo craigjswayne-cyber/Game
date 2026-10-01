@@ -1,13 +1,23 @@
-// Probe: reload the page mid-match and the match is still there.
+// Probe: reload the page mid-match and the match is finished, once, and the
+// career lands on Home (round 5).
 //
-// resumeprobe.ts proves the replay is exact. This proves the plumbing around it
-// works in a browser: the record is written to IndexedDB at kick-off, kept up to
-// date as the match runs, found again after a reload, and turned back into the
-// same live match on the same screen - with the score, the clock and the line of
-// commentary the manager was looking at.
+// It began as "a live match survives a reload": the first report of an early
+// batch, and the harshest one, was "I was playing a game and I dragged my
+// finger down and it restarted the game". The record written at kick-off fixed
+// that by replaying the match back onto the screen. Round 5 changed what the
+// reload does with it (owner: "When you load into the game again it should
+// always load into the Home page. If it was during the match, the match needs
+// to be completed."): the match is replayed to the minute it had reached and
+// played out by the assistant from there, the week turns once, and the career
+// opens on Home. scripts/noscumprobe.ts holds the result to the record played
+// out, in node; this holds the plumbing in a browser:
 //
-// It was the first report of the batch, and the harshest one: "I was playing a
-// game and I dragged my finger down and it restarted the game."
+//   a reload mid-match lands on Home, alone on the stack, no match on screen
+//   the fixture is played, and neither score is lower than it was at the
+//     reload (the minutes already played are kept, not replayed differently)
+//   the inbox says the match was played out, once
+//   and reloading again changes nothing: the same week, the same result, the
+//     same single inbox story
 //
 // Three things about driving a live match from a harness, all learned the hard
 // way by writing this wrong first:
@@ -15,9 +25,9 @@
 //   the match kicks off ALREADY PLAYING, so pressing play PAUSES it. The first
 //   draft paused the game at 0' and then complained the game had no commentary.
 //
-//   during play there is no commentary list. One line shows at a time in
-//   .now-strip; the .tick-event log only exists on the full-time page. Looking
-//   for the log mid-match finds nothing and proves nothing.
+//   during play there is no commentary log: the feed in .now-strip holds the
+//   last few lines and .now-line is the current one; the .tick-event log only
+//   exists on the full-time page.
 //
 //   the clock STOPS for a touchline call and for each interval, and waits for
 //   the manager. A harness that only sleeps sits at 1' forever.
@@ -196,32 +206,51 @@ try {
   const held = await snapshot()
   console.log(`  paused at: ${held.clock}, ${held.score}, "${held.nowTxt.slice(0, 46)}"`)
 
+  // what the career looked like with the match running
+  const fxBefore = await page.evaluate(() => {
+    const s = window.rugbyStore.getState()
+    const lm = s.liveMatch
+    return lm ? { id: lm.fixture.id, week: s.game.week, season: s.game.season, home: lm.ctx.home.score, away: lm.ctx.away.score } : null
+  })
+  ok(!!fxBefore, 'the store has the match live before the reload')
+
   // THE GESTURE THAT STARTED ALL THIS
   await page.reload({ waitUntil: 'domcontentloaded' })
-  const after = await drive(s => s.onMatch && !!s.nowTxt, 40000, 'the match to come back after the reload')
-  console.log(`  restored:  ${after.clock}, ${after.score}, "${after.nowTxt.slice(0, 46)}"`)
-
-  ok(after.onMatch, 'the reload came back to the match, not to the week')
-  // the score is the part nobody would forgive being wrong
-  ok(after.score === held.score, `the score came back the same (${held.score} then ${after.score})`)
-  ok(after.clock === held.clock, `the clock came back to the same minute (${held.clock} then ${after.clock})`)
-  ok(after.nowMin === held.nowMin && after.nowTxt === held.nowTxt,
-    'the line on screen is the same line, to the word')
-
-  // and the match can still be finished from here
-  const end = await drive(s => s.finished || !s.onMatch, 90000, 'the resumed match to reach full time')
-  ok(end.finished, `the resumed match reached full time (${end.clock || 'off the match screen'})`)
-  console.log(`  final score: ${end.score || '(gone)'}`)
-
-  // leave the match the way the manager does
-  await page.locator('.btn', { hasText: 'Continue to Results' }).first().click().catch(() => {})
+  await page.waitForSelector('.bottom-nav', { timeout: 40000 }).catch(() => {})
+  await page.waitForFunction(() => !window.rugbyStore?.getState().resuming, null, { timeout: 40000 }).catch(() => {})
   await page.waitForTimeout(1500)
+  const read = () => page.evaluate(id => {
+    const s = window.rugbyStore.getState()
+    const g = s.game
+    const fx = g?.fixtures.find(f => f.id === id)
+    return {
+      nav: s.nav.map(n => n.screen).join(' > '),
+      live: !!s.liveMatch,
+      onMatch: !!document.querySelector('.scoreboard'),
+      played: !!fx?.played, hs: fx?.homeScore ?? -1, as: fx?.awayScore ?? -1,
+      week: g?.week, season: g?.season,
+      playedOut: (g?.news ?? []).filter(n => n.k === 'news.playedOut').length,
+    }
+  }, fxBefore?.id ?? -1)
+  const after = await read()
+  console.log(`  after the reload: ${after.nav}, ${after.hs}-${after.as}, season ${after.season} week ${after.week}`)
+  ok(after.nav === 'home', `the reload lands on Home, alone on the stack (${after.nav})`)
+  ok(!after.live && !after.onMatch, 'and no match is on screen or live: it was played out')
+  ok(after.played, 'the fixture is played')
+  ok(!!fxBefore && after.hs >= fxBefore.home && after.as >= fxBefore.away,
+    `and the minutes already played were kept (${fxBefore?.home}-${fxBefore?.away} at the reload, ${after.hs}-${after.as} at full time)`)
+  ok(!!fxBefore && (after.week !== fxBefore.week || after.season !== fxBefore.season), 'the week has turned')
+  ok(after.playedOut === 1, `the inbox says it was played out, once (${after.playedOut})`)
 
-  // the record must not outlive the match: another reload stays out of it
+  // and again: nothing is played twice, nothing turns twice
   await page.reload({ waitUntil: 'domcontentloaded' })
-  await page.waitForTimeout(6000)
-  const post = await snapshot()
-  ok(!post.onMatch, `a reload after full-time does not drag the finished match back${post.onMatch ? ` (back at ${post.clock})` : ''}`)
+  await page.waitForSelector('.bottom-nav', { timeout: 40000 }).catch(() => {})
+  await page.waitForFunction(() => !window.rugbyStore?.getState().resuming, null, { timeout: 40000 }).catch(() => {})
+  await page.waitForTimeout(1500)
+  const again = await read()
+  ok(again.nav === 'home' && !again.onMatch, `a second reload lands on Home again (${again.nav})`)
+  ok(again.hs === after.hs && again.as === after.as && again.week === after.week && again.season === after.season && again.playedOut === 1,
+    `and it is the same career: same result, same week, one story (${again.hs}-${again.as}, week ${again.week}, ${again.playedOut})`)
 } catch (e) {
   ok(false, `the harness threw: ${String(e).split('\n')[0].slice(0, 180)}`)
 } finally {
@@ -236,5 +265,5 @@ if (errors.length) {
 }
 
 if (fails) { console.error(`\nRELOAD PROBE: ${fails} failures`); process.exit(1) }
-console.log('\nRELOAD PROBE PASSED: a live match survives a reload')
+console.log('\nRELOAD PROBE PASSED: a reload mid-match finishes the match once and lands on Home')
 done(0)
