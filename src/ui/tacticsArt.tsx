@@ -472,7 +472,7 @@ const Ruck = ({ x, y }: { x: number; y: number }) => <>
 
 /** Every move the library has a picture for; a probe holds the two lists together. */
 export const MOVE_DIAGRAMS = ['mv_1331', 'mv_242', 'mv_backdoor', 'mv_crash', 'mv_switch', 'mv_loop', 'mv_decoy', 'mv_blind', 'mv_inside', 'mv_strike13',
-  'mv_wingin', 'mv_width', 'mv_peel', 'mv_maulswitch', 'mv_tap', 'mv_crashswing', 'mv_loop9', 'mv_crosskick', 'mv_grubber']
+  'mv_wingin', 'mv_width', 'mv_peel', 'mv_maulswitch', 'mv_tap', 'mv_crashswing', 'mv_loop9', 'mv_crosskick', 'mv_grubber', 'mv_tapspread', 'mv_tapgo']
 
 export function MoveDiagram({ id }: { id: string }) {
   const [x9, y9] = BK.n9, [x10, y10] = BK.n10, [x12, y12] = BK.n12, [x13, y13] = BK.n13
@@ -630,6 +630,37 @@ export function MoveDiagram({ id }: { id: string }) {
         <Move x1={85} y1={19} x2={84} y2={15.5} dash ball="pass" w={1} head={2} />
         <Move x1={85} y1={12.5} x2={102} y2={10} w={2} head={3.4} />
         <Key x={76} y={52} />
+      </Frame>
+    case 'mv_tapspread':
+      // the 9 taps; the forwards run hard and flat at the mark (decoys) and
+      // the ball goes out the back of them to the 10, the 12 and the wing,
+      // round a line that came up off the mark too quickly
+      return <Frame>
+        <line x1={104} y1={0} x2={104} y2={H} style={chalk(1)} />
+        <Us x={84} y={22} r={2.8} /><Ball x={87} y={22} />
+        <Pod x={88} y={34} n={3} />
+        {[[92, 12], [92, 24], [93, 36], [95, 48], [97, 60], [99, 72]].map(([x, y], i) => <Them key={i} x={x} y={y} r={2.8} />)}
+        <Move x1={91} y1={34} x2={97} y2={35} w={1.4} faint />
+        <Us x={76} y={40} r={2.6} /><Us x={70} y={54} r={2.6} /><Us x={66} y={68} r={2.6} />
+        <Move x1={83} y1={25} x2={77.5} y2={37} dash ball="pass" w={1.1} head={2.2} />
+        <Move x1={75.5} y1={43} x2={71} y2={51} dash ball="pass" w={1.1} head={2.2} />
+        <Move x1={69} y1={57} x2={66.5} y2={65} dash ball="pass" w={1.1} head={2.2} />
+        <Move x1={69} y1={69} x2={100} y2={74} bend={-2} w={2} head={3.4} />
+        <Key x={66} y={68} />
+      </Frame>
+    case 'mv_tapgo':
+      // the 9 taps and pops to a forward on a hard line off the mark, two
+      // more bound on him, into a line spread thin round it
+      return <Frame>
+        <line x1={104} y1={0} x2={104} y2={H} style={chalk(1)} />
+        <Us x={84} y={38} r={2.8} /><Ball x={87} y={38} />
+        {[[97, 6], [96, 20], [95, 34], [95, 50], [96, 64], [97, 76]].map(([x, y], i) => <Them key={i} x={x} y={y} r={2.8} />)}
+        <Us x={78} y={46} r={2.8} /><Us x={74} y={41} r={2.6} /><Us x={74} y={51} r={2.6} />
+        <Move x1={83} y1={41} x2={80} y2={44} dash ball="pass" w={1.1} head={2.2} />
+        <Move x1={81} y1={46} x2={100} y2={44} w={2.6} head={4} />
+        <Move x1={77} y1={41} x2={92} y2={40} w={1.4} faint />
+        <Move x1={77} y1={51} x2={92} y2={48} w={1.4} faint />
+        <Key x={78} y={46} />
       </Frame>
     case 'mv_crashswing':
       // the crash ball into midfield and the ruck, then the ball swung back

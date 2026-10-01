@@ -200,7 +200,14 @@ export function migratePlaybook(s: GameState): void {
   }
   delete tac.moveLineout
   delete tac.moveScrum
-  for (const k of ['moveMain', 'moveAlt', 'moveRed', 'moveShape'] as const) if (tac[k] !== undefined && !ok(tac[k])) delete tac[k]
+  for (const k of ['moveMain', 'moveAlt', 'moveRed', 'moveShape', 'movePen'] as const) if (tac[k] !== undefined && !ok(tac[k])) delete tac[k]
+  // the tap penalty play had the red-zone slot until round 6: it moves to the
+  // penalty slot, so the side runs it on the same ticks it always did
+  if (tac.moveRed !== undefined && MOVE_BY_ID[tac.moveRed].from.includes('tap')) {
+    if (tac.movePen === undefined) tac.movePen = tac.moveRed
+    delete tac.moveRed
+  }
+  if (tac.movePen !== undefined && !MOVE_BY_ID[tac.movePen].from.includes('tap')) delete tac.movePen
   if (tac.moveMix !== undefined && !Number.isFinite(tac.moveMix)) delete tac.moveMix
   const pb = club.playbook
   if (!pb || typeof pb !== 'object') return

@@ -52,13 +52,13 @@ export type Unit = AnalystRead['unit']
 // What the save keeps
 // ---------------------------------------------------------------------------
 
-export type PlanId = 'exploit' | 'counter' | 'lesson' | 'finish'
-export const PLAN_IDS: readonly PlanId[] = ['exploit', 'counter', 'lesson', 'finish']
+export type PlanId = 'exploit' | 'counter' | 'lesson' | 'finish' | 'starve'
+export const PLAN_IDS: readonly PlanId[] = ['exploit', 'counter', 'lesson', 'finish', 'starve']
 
 /** The levers a plan sets. Every field is an existing control. */
 export interface PlanLevers {
   prep?: MatchPrep
-  dials?: Partial<Pick<Tactic, 'style' | 'tempo' | 'kicking' | 'aggression' | 'defLine'>>
+  dials?: Partial<Pick<Tactic, 'style' | 'tempo' | 'kicking' | 'aggression' | 'defLine' | 'ruckCommit'>>
   kickStyle?: NonNullable<Tactic['kickStyle']>
   lineoutCall?: string
   scrumCall?: string
@@ -88,7 +88,7 @@ export interface FindingsRecord {
   items: Finding[]
   /** the set-piece contest worth remembering for next time (their side of it) */
   recall?: { unit: 'scrum' | 'lineout'; pct: number }
-  plan?: { id: PlanId; target: Unit | 'style' | 'late' | null; followed: boolean; verdict: PlanVerdict } | null
+  plan?: { id: PlanId; target: Unit | 'style' | 'late' | 'ball' | null; followed: boolean; verdict: PlanVerdict } | null
 }
 
 export interface ChosenPlan {
@@ -96,7 +96,7 @@ export interface ChosenPlan {
   abs: number
   oppId: string
   id: PlanId
-  target: Unit | 'style' | 'late' | null
+  target: Unit | 'style' | 'late' | 'ball' | null
   levers: PlanLevers
 }
 
@@ -449,8 +449,35 @@ export function planOptions(state: GameState, fx: Fixture): PlanOption[] {
     const attacking = ['width', 'tempo', 'chaos', 'structure'].includes(ph.id)
     out.push({ id: 'counter', target: 'style', levers: { prep: attacking ? 'defence' : 'attack', dials: { ...ctr.dials } } })
   }
+  out.push({ id: 'starve', target: 'ball', levers: starveLevers() })
   out.push({ id: 'finish', target: 'late', levers: { prep: 'fitness', brief: 'impact' } })
-  return out.slice(0, 3)
+  return out
+}
+
+/**
+ * STARVE THEM OF BALL (round 6, owner: "throw in an additional option. Should
+ * be different to the other options"). The other plans aim at a unit, at
+ * their coach's style or at the last twenty minutes; this one is about the
+ * ball itself: stop kicking it to them, slow the game down and put numbers
+ * into every ruck, so a dangerous back three spends the afternoon without
+ * it. Three dials the Tactics screen already has, so what it is worth is
+ * what the engine pays for those (kicking low, tempo low, ruck numbers high:
+ * a sixth fewer kicks from hand and a safer ruck, for less territory and
+ * fewer men in the line).
+ *
+ * AND THE DEFENSIVE WEEK. The week's training is most of what any plan is
+ * worth: the first cut set the attack week and was the best plan on the
+ * board (tacticloopprobe, 144 fixtures: +3.3 over no prep against the
+ * exploit plan's +2.8), a default rather than a read; with no prep at all it
+ * was worth nothing and their tries went up. The defensive week is the
+ * plan's own idea (they get little ball, and do little with what they get):
+ * +0.9 there, +1.5 in scripts/starveprobe.ts (exploit +5.0, counter +4.5,
+ * finish +2.2), the only plan that cuts the kicking, and the one their side
+ * scores least against.
+ */
+export const STARVE = { kicking: 10, tempo: 35, ruckCommit: 85 }
+export function starveLevers(): PlanLevers {
+  return { prep: 'defence', dials: { ...STARVE } }
 }
 
 /** Put a plan's levers on the club, and remember which plan it was. */

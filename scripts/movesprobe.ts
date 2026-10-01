@@ -50,7 +50,7 @@ const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / Math.max(1, xs.le
 
 // ------------------------------------------------------------------ 1
 console.log('--- 1. the library\n')
-ok(MOVES.length >= 8 && MOVES.length <= 20, `${MOVES.length} moves (8 to 20; 1.8.2 added the study's new families)`)
+ok(MOVES.length >= 8 && MOVES.length <= 22, `${MOVES.length} moves (8 to 22; 1.8.2 added the study's new families, round 6 the penalty slot's two)`)
 const shapes = MOVES.filter(m => m.group === 'shape'), strikes = MOVES.filter(m => m.group === 'strike')
 ok(shapes.length >= 3 && strikes.length >= 6, `${shapes.length} phase-play shapes and ${strikes.length} strike moves`)
 ok(strikes.some(m => m.from.includes('lineout')) && strikes.some(m => m.from.includes('scrum')) && shapes.every(m => m.from.join() === 'open'),
@@ -162,7 +162,8 @@ const call = (me: Club, id: string | null, drilled = 95) => {
   // AI's own familiarity, so the move is worth here what it was in 1.8.1)
   me.tactic.moveMain = m && m.group === 'strike' && !m.red ? m.id : undefined
   me.tactic.moveAlt = undefined
-  me.tactic.moveRed = m?.red ? m.id : undefined
+  me.tactic.moveRed = m?.red && !m.from.includes('tap') ? m.id : undefined
+  me.tactic.movePen = m?.from.includes('tap') ? m.id : undefined
   me.tactic.moveShape = m?.from.includes('open') ? m.id : undefined
   if (m) playbookOf(me).reps = { [m.id]: 15 }
   if (m) { playbookOf(me).drilled[m.id] = drilled; playbookOf(me).used[m.id] = 0 }
@@ -318,6 +319,8 @@ console.log('\n--- 5. in the clips\n')
     mv_wingin: [9, 10, 14], mv_width: [9, 10, 12, 13, 15, 14], mv_tap: [9, 4, 10, 13, 14], mv_peel: [9, 2, 14],
     mv_maulswitch: [2, 4, 2], mv_crashswing: [9, 10, 12, 9, 10, 13, 15, 14], mv_loop9: [9, 10, 9, 14],
     mv_crosskick: [9, 10, 14], mv_grubber: [9, 10, 14],
+    // (round 6: the tap and spread, out the back of the forwards to the 10)
+    mv_tapspread: [9, 10, 12, 14], mv_tapgo: [9, 8],
   }
   let played = 0
   const wrong: string[] = []
@@ -414,7 +417,7 @@ console.log('\n--- 6. old saves\n')
   // a club from before moves: no calls on the tactic, no moves in the playbook
   const g = structuredClone(BASE)
   const me = g.clubs[ME]
-  delete me.tactic.moveMain; delete me.tactic.moveAlt; delete me.tactic.moveRed; delete me.tactic.moveShape
+  delete me.tactic.moveMain; delete me.tactic.moveAlt; delete me.tactic.moveRed; delete me.tactic.moveShape; delete me.tactic.movePen
   for (const k of Object.keys(playbookOf(me).drilled)) if (k.startsWith('mv_')) delete playbookOf(me).drilled[k]
   ok(Object.values(callsOf(g, me)).every(v => v == null) && drilledOf(g, me, 'mv_loop') > 0, 'no calls on an old save, and its moves start from scratch')
   let threw = false

@@ -256,8 +256,9 @@ console.log('\n--- 4. the new families\n')
   // drilled: each rises week by week when called
   const rose = NEW.filter(id => {
     const m = MOVE_BY_ID[id]
-    me.tactic.moveMain = undefined; me.tactic.moveRed = undefined
-    if (m.red) me.tactic.moveRed = id; else me.tactic.moveMain = id
+    me.tactic.moveMain = undefined; me.tactic.moveRed = undefined; me.tactic.movePen = undefined
+    // (round 6: a tap play has the penalty slot)
+    if (m.from.includes('tap')) me.tactic.movePen = id; else if (m.red) me.tactic.moveRed = id; else me.tactic.moveMain = id
     const a = drilledOf(g, me, id)
     for (let w = 0; w < 6; w++) drillMovesWeek(g, me, true)
     return drilledOf(g, me, id) > a + 5
@@ -284,7 +285,9 @@ console.log('\n--- 4. the new families\n')
     const h = structuredClone(g)
     const m2 = h.clubs[h.userClubId]
     m2.tactic.moveMain = 'mv_wingin'; m2.tactic.moveAlt = 'mv_crosskick'
-    m2.tactic.moveRed = s % 2 ? 'mv_tap' : 'mv_maulswitch'
+    // (round 6: the tap from the penalty slot, the maul from the red zone)
+    m2.tactic.moveRed = s % 2 ? undefined : 'mv_maulswitch'
+    m2.tactic.movePen = s % 2 ? 'mv_tap' : undefined
     for (const id of ['mv_wingin', 'mv_crosskick', 'mv_tap', 'mv_maulswitch']) playbookOf(m2).drilled[id] = 92
     const fx = h.fixtures.filter(f => (f.homeId === m2.id || f.awayId === m2.id) && h.clubs[f.homeId] && h.clubs[f.awayId])[s % 10]
     const ctx = beginMatch(h, fx, mulberry32(900 + s), true)

@@ -448,6 +448,32 @@ export const TRACKS: Record<string, Track[]> = backwards({
     '13': [[0, 84, 53.5], [1.4, 88, 54.5], [2.0, 91.5, 55.5]],
     W: [[0, 84, 62], [2.0, 90, 63], [2.6, 94, 64]],
   }, { first: '9', ball: [[0.8, '4', 'pop'], [1.2, '10'], [1.9, '13'], [2.5, 'W']], strike: 'W', decoys: ['1', '2', '3'], finish: 29 })],
+  // THE TAP AND SPREAD (round 6), the penalty slot's other play: the 9 taps,
+  // the forwards in front of him run hard and flat at the mark (decoys), and
+  // the ball goes out the back of them to the 10, on to the 12 and missed
+  // out to the wing on the far side of a line that came up too fast.
+  mv_tapspread: [spec('tap', [90, 35, 1, 0.3], {
+    '9': [[0, 90, 35], [0.6, 90.3, 35], [1.0, 90.5, 35.3]],
+    '1': [[0, 91, 31], [1.0, 92, 31]], '2': [[0, 91, 29], [1.0, 92, 29]], '3': [[0, 91, 27], [1.0, 92, 27]],
+    '4': [[0, 90.5, 37.5], [0.8, 92.5, 38], [1.4, 95, 38.5]], '5': [[0, 90.5, 40], [0.8, 92.5, 40.5], [1.4, 95, 41]], '8': [[0, 90, 42.5], [0.8, 92, 43], [1.4, 94.5, 43.5]],
+    '10': [[0, 85, 41], [0.8, 86.5, 43], [1.4, 88, 46]],
+    '12': [[0, 83, 47], [1.2, 85.5, 49], [1.9, 87.5, 51.5]],
+    '13': [[0, 82, 53], [1.4, 85, 54.5], [2.2, 88, 56]],
+    W: [[0, 82, 61], [1.6, 85.5, 62], [2.4, 89, 63], [3.0, 93, 64]],
+  }, { first: '9', ball: [[0.8, '10'], [1.5, '12'], [2.2, 'W', 'miss']], strike: 'W', decoys: ['4', '5', '8'], finish: 29 })],
+  // THE TAP AND GO (round 6): the 9 taps and pops to the 8 on a hard line
+  // off the mark, a prop bound on either side of him, and they carry it on
+  // into a line spread too thin round the mark to stop them.
+  mv_tapgo: [spec('tap', [90, 35, 1, 0.3], {
+    '9': [[0, 90, 35], [0.6, 90.2, 35], [1.0, 90.4, 35.2]],
+    '8': [[0, 87, 37.5], [0.5, 88, 37.2], [0.9, 90.5, 36.8], [1.5, 94, 36.5], [2.1, 97.5, 36.5]],
+    '1': [[0, 87.5, 40.5], [0.9, 89.5, 39.5], [1.5, 93, 38.5], [2.1, 96.5, 38.2]],
+    '3': [[0, 87.5, 33.5], [0.9, 89.5, 34.5], [1.5, 93, 35], [2.1, 96.5, 35]],
+    '4': [[0, 88, 30], [1.2, 89.5, 30.5]], '5': [[0, 88, 44], [1.2, 89.5, 43.5]],
+    '10': [[0, 85, 44], [1.4, 87, 45]],
+    '12': [[0, 84, 50], [1.4, 86, 51]],
+    W: [[0, 83, 62], [1.6, 86, 62]],
+  }, { first: '9', ball: [[0.75, '8', 'pop']], strike: '8', decoys: ['4', '5'], finish: 1.5 })],
   // THE LINEOUT PEEL: the maul sets at the tail, the hooker comes round the
   // back of it from his throw and takes it off the 9, runs across, and the
   // blind wing cuts back on his shoulder in the seam off the maul.

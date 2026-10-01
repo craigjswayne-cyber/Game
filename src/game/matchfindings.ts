@@ -124,6 +124,9 @@ export function buildFindings(state: GameState, ctx: LiveCtx): FindingsRecord | 
       : plan.target === 'kicking' ? poss >= 52
       : plan.target === 'style' ? mine.tries >= opp.tries
       : plan.target === 'late' ? ourLate >= theirLate
+      // starve them of ball (round 6): we had the most of it, and their
+      // attack, with little of it, made little
+      : plan.target === 'ball' ? poss >= 52 && opp.tries <= 2
       : false
     const won = margin > 0
     const verdict: PlanVerdict = !followed ? 'failed'
