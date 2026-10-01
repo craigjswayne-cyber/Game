@@ -258,7 +258,7 @@ export function appointStaff(state: GameState, role: StaffRole, idx: number): st
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
     subject: `${c.name} appointed ${tIn('en', info.name)}`,
-    body: `${club.name} have their man: ${c.name}, ${c.age}, a ${BADGE[c.tier].toLowerCase()}-badge ${tIn('en', info.name).toLowerCase()} known as a ${c.trait.toLowerCase()}. ${fmt(c.fee)} compensation, ${fmtWage(c.wage)} a week.${outgoing ? ` ${outgoing.name} leaves with the club's thanks.` : ''}`,
+    body: `${club.name} have their man: ${c.name}, ${c.age}, a ${BADGE[c.tier].toLowerCase()}-badge ${tIn('en', info.name).toLowerCase()}. ${fmt(c.fee)} compensation, ${fmtWage(c.wage)} a week.${outgoing ? ` ${outgoing.name} leaves with the club's thanks.` : ''}`,
     k: 'news.staffHired',
     v: {
       ...subjectVar(c.g), name: c.name, age: c.age, club: club.name, role_k: info.name,
