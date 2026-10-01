@@ -856,7 +856,6 @@
   "mixLean": "Lean 80/20",
   "mixTwo": "Mix 67/33",
   "mixEven": "Even 50/50",
-  "fam": "Familiarity {pct}%",
   "add": "Add to playbook",
   "remove": "Remove from playbook",
   "slotHint": "Tap a slot to put it there.",
