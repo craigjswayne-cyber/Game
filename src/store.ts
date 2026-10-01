@@ -298,9 +298,9 @@ interface Store {
   home: () => void
   touch: () => void
   continueWeek: () => void
-  kickOff: (preTalk?: 'calm' | 'fire' | 'underdog' | 'expect', mode?: 'full' | 'highlights') => void
+  kickOff: (preTalk?: import('./game/teamtalk').PreTone, mode?: 'full' | 'highlights') => void
   /** the assistant takes over: play the match out instantly with your team */
-  instantResult: (preTalk?: 'calm' | 'fire' | 'underdog' | 'expect') => void
+  instantResult: (preTalk?: import('./game/teamtalk').PreTone) => void
   advanceLive: () => void
   /** Simulate the next stretch of the live match without revealing any of it,
    *  so the match screen can see a try coming and play its build-up (1.8.0). */
@@ -311,7 +311,7 @@ interface Store {
   /** Change how the rest of this match is watched (F5). */
   matchMode: (mode: 'full' | 'highlights') => void
   finishMatch: () => void
-  teamTalk: (kind: 'fire' | 'calm' | 'praise' | 'demand') => void
+  teamTalk: (kind: import('./game/teamtalk').HtTone) => void
   halfTimeSub: (outId: number, inId: number) => string
   /** Override the assistant's injury replacement. Free, and only at the moment. */
   injuryCover: (onId: number, inId: number) => string

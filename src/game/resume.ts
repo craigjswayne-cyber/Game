@@ -78,7 +78,7 @@ import { matchRng, weekRng } from './season'
  */
 export type MatchCmdBody =
   | { kind: 'decide'; choice: 'posts' | 'corner' | 'tap' }
-  | { kind: 'talk'; talk: 'fire' | 'calm' | 'praise' | 'demand' }
+  | { kind: 'talk'; talk: import('./teamtalk').HtTone }
   | { kind: 'sub'; outId: number; inId: number }
   | { kind: 'cover'; onId: number; inId: number }
   | { kind: 'undo' }
@@ -100,7 +100,7 @@ export interface MatchResume {
   stream?: 'match'
   fxId: number
   userSideId: string | null
-  preTalk: 'calm' | 'fire' | 'underdog' | 'expect' | null
+  preTalk: import('./teamtalk').PreTone | null
   mode: 'full' | 'highlights'
   /** how far the match has been simulated */
   tick: number

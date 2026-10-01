@@ -4,7 +4,7 @@ import { analystArmed } from '../../game/rewarded'
 import { rewardedAvailable } from '../../game/monetise'
 import { AdSlot } from '../AdSlot'
 import {
-  matchStats, visitsTo22, goalKicker, teamShort, teamUnits, rosterOf, assistantJudgement, autoSelect, availablePlayers,
+  matchStats, visitsTo22, goalKicker, teamShort, teamUnits, paperOverall, rosterOf, assistantJudgement, autoSelect, availablePlayers,
   refFor, refNotes, homeCrowdLean, frontRowCover, repairSheet, sideEnergy, MAX_SUBS, type LiveCtx, type SideCtx,
 } from '../../game/matchEngine'
 import { MIDWEEK_OFF, BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, chemKey, clubCode, chemTier, eventText, injuryDesc, fixtureDate, fixtureDayOff, grudgeBetween, inRedZone, oldBoyApps, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
@@ -23,6 +23,9 @@ import { CrestT, Jersey, PosBadge, SectionTitle, Stars, RewardedButton, Toggle }
 import { stageName } from './Home'
 import { groundSound, matchSfx, soundOn, toggleSound } from '../audio'
 import { MoodTable } from '../MoodTable'
+import { TalkReactions } from '../TalkReactions'
+import { talkSetting, type HtTone, type PreTone } from '../../game/teamtalk'
+import { isDerby } from '../../game/rivalries'
 import { MatchPanels, Visits, Zones } from '../MatchPanels'
 import { useTablet } from '../tablet'
 import { readMatchPrefs, writeMatchPrefs, type MatchPrefs } from '../matchPrefs'
@@ -82,9 +85,10 @@ export default function MatchDay() {
 const SPEECHES = [
   { id: 'calm', icon: 'calm', name: 'matchday.spCalm', desc: 'matchday.spCalmD' },
   { id: 'fire', icon: 'derby', name: 'matchday.spFire', desc: 'matchday.spFireD' },
+  { id: 'faith', icon: 'heart', name: 'matchday.spFaith', desc: 'matchday.spFaithD' },
   { id: 'underdog', icon: 'wolf', name: 'matchday.spUnderdog', desc: 'matchday.spUnderdogD' },
   { id: 'expect', icon: 'crown', name: 'matchday.spExpect', desc: 'matchday.spExpectD' },
-] as const
+] as const satisfies readonly { id: PreTone; icon: string; name: string; desc: string }[]
 type SpeechId = typeof SPEECHES[number]['id']
 
 /** Three ways to spend a match (F5).
@@ -166,6 +170,13 @@ function Preview({ fxId }: { fxId: number }) {
   }, [game, opp])
   const oppUnits = teamUnits(game, oppLineup)
   const myUnits = teamUnits(game, tac.lineup)
+  // the room as the talk will find it (teamtalk.ts): the same paper strengths
+  // the engine reads at kick-off, so the moods are the ones that answer
+  const room = {
+    s: talkSetting(paperOverall(game, game.userClubId, tac.lineup), paperOverall(game, opp, oppLineup),
+      isHome, !!fx.stage || isDerby(fx.homeId, fx.awayId)),
+    fxId: fx.id,
+  }
 
   // the bench seats are whatever the split says they are (F4)
   const seats = benchSeats(club)
@@ -1115,7 +1126,7 @@ function Preview({ fxId }: { fxId: number }) {
 
         {ptab === 'talk' && <>
         <SectionTitle sub={t('mood.roomSub')}>{t('mood.room')}</SectionTitle>
-        <MoodTable game={game} lineup={tac.lineup} />
+        <MoodTable game={game} lineup={tac.lineup} room={room} />
         <SectionTitle sub={t('matchday.dressingRoomSub')}>{t('matchday.dressingRoom')}</SectionTitle>
         <div className="speech-grid">
           {SPEECHES.map(s => (
@@ -1162,7 +1173,7 @@ function Preview({ fxId }: { fxId: number }) {
               {/* the room before you speak to it (1.8.0) */}
               <details className="mood-fold">
                 <summary>{t('mood.room')}</summary>
-                <MoodTable game={game} lineup={tac.lineup} />
+                <MoodTable game={game} lineup={tac.lineup} room={room} />
               </details>
               <div className="speech-grid" style={{ marginTop: 6 }}>
                 {SPEECHES.map(sp => (
@@ -1518,6 +1529,9 @@ function Live() {
   /** the match-day squad, opened from the Squad button in the control row */
   const [sheet, setSheet] = useState(false)
   const [mpanels, setMpanels] = useState(false)
+  /** the pre-match talk's reactions, shown on the stage for the opening
+   *  minutes until the manager waves them away (teamtalk.ts) */
+  const [preSeen, setPreSeen] = useState(false)
   const tablet = useTablet()
   const [prefs, setPrefs] = useState(readMatchPrefs)
   const setPref = (p: Partial<MatchPrefs>) => setPrefs(o => { const n = { ...o, ...p }; writeMatchPrefs(n); return n })
@@ -1531,6 +1545,8 @@ function Live() {
   const atBreak = caughtUp && ctx.awaiting === 'BRK'
   const atDecision = caughtUp && !!ctx.decision && ctx.seg < 3
   const done = caughtUp && ctx.seg === 3
+  // how the room took the pre-match talk, for the opening twenty minutes
+  const showPreReact = !preSeen && !!ctx.preReads?.length && (last?.min ?? 0) < 20 && !done
 
   // coming back from another app can strand the heartbeat - kick it awake
   useEffect(() => {
@@ -1647,6 +1663,9 @@ function Live() {
   // Automated browsers time the ticker, so they get no clips unless a probe
   // asks for them with ?hl=1.
   const [clip, setClip] = useState<{ spec: ClipSpec; at: number } | null>(null)
+  // the first highlight is the match moving on: the talk's reactions have had
+  // their moment, and the stage goes back to the live stats after the clip
+  useEffect(() => { if (clip) setPreSeen(true) }, [clip])
   const played = useRef(new Set<number>())
   const highlightsOn = (() => {
     try { return /[?&]hl=1\b/.test(location.search) || !navigator.webdriver } catch { return true }
@@ -2023,7 +2042,11 @@ function Live() {
           onReveal={revealTo}
           onDone={() => setClip(null)} />
       )}
-      {!panelActive && !clip && !tablet && <LiveStats shown={shown} />}
+      {!panelActive && !clip && showPreReact && (
+        <TalkReactions game={game} reads={ctx.preReads!} lineup={ctx.home.teamId === ctx.userSideId ? ctx.home.lineup : ctx.away.lineup}
+          msg={live.preTalkMsg} onClose={() => setPreSeen(true)} />
+      )}
+      {!panelActive && !clip && !tablet && !showPreReact && <LiveStats shown={shown} />}
 
       {/* THE TABLET DECK (1.8.0). A phone reads the match a line at a time;
           a tablet has half a screen under the pitch that used to be empty, so
@@ -2767,12 +2790,16 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
     }
   }
 
-  const talks = [
-    ['fire', 'matchday.talkFire'],
+  // six tones, in the order a manager reaches for them: the steadying ones,
+  // the lifting ones, the stakes-raising ones (teamtalk.ts reads each man)
+  const talks: readonly (readonly [HtTone, string])[] = [
     ['calm', 'matchday.talkCalm'],
-    ['demand', 'matchday.talkDemand'],
+    ['faith', 'matchday.talkFaith'],
     ['praise', 'matchday.talkPraise'],
-  ] as const
+    ['fire', 'matchday.talkFire'],
+    ['demand', 'matchday.talkDemand'],
+    ['criticise', 'matchday.talkCriticise'],
+  ]
 
   const applyPreset = (values: { style: number; tempo: number; kicking: number; aggression: number }) => {
     club.tactic.style = values.style
@@ -2805,6 +2832,8 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
             ))}
           </div>
         </>
+      ) : ctx.htReads?.length ? (
+        <TalkReactions game={game} reads={ctx.htReads} lineup={mine.lineup} msg={live.talkMsg} />
       ) : live.talkMsg && (
         <div className="meta" style={{ margin: '6px 0' }}>{live.talkMsg}</div>
       ))}

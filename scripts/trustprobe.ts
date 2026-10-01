@@ -4,6 +4,7 @@
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance, userFixtureThisWeek, weekRng } from '../src/game/season'
 import { simMatch, beginMatch, applyPreTalk } from '../src/game/matchEngine'
+import { TALK_CAP } from '../src/game/teamtalk'
 import { mgrReputation, squadTrust, trustFactor } from '../src/game/model'
 
 let fails = 0
@@ -92,7 +93,10 @@ const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : ' FAIL 
   console.log(`the calm talk multiplies defence by ${cold.toFixed(4)} cold, ${warm.toFixed(4)} bought in`)
   ok(warm > cold, 'the same words are worth more to a room that trusts you')
   ok(cold > 1, 'but a cold room still gives you something - it is a discount, not a wall')
-  ok(Math.abs(warm - 1.06) < 0.002, 'and a fully bought-in room gives the full designed effect')
+  // round 4 (teamtalk.ts): a talk is heard man by man now, so there is no
+  // single designed multiplier to land on; what a fully bought-in room is
+  // owed is MORE than a cold one, and never more than the per-man cap allows
+  ok(warm <= 1 + TALK_CAP + 1e-9, `and even a fully bought-in room stays inside the per-man cap (${TALK_CAP})`)
 }
 
 console.log(fails ? `\nTRUST PROBE FAILED (${fails})` : '\nTRUST PROBE PASSED')
