@@ -173,8 +173,9 @@ export function fileFindings(state: GameState, ctx: LiveCtx): FindingsRecord | n
 export function lineText(line: Finding | ReportLine): string {
   const vars: Record<string, string | number> = {}
   for (const [k, v] of Object.entries(line.v ?? {})) {
+    // under both names: {word} takes the line, {word_k} lets t() resolve it
+    vars[k] = v
     if (k.endsWith('_k') && typeof v === 'string') vars[k.slice(0, -2)] = t(v)
-    else vars[k] = v
   }
   return t(line.k, vars)
 }

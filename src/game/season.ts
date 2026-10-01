@@ -33,7 +33,7 @@ import { recordTendency } from './tendency'
 import { flushIdentityNews, stepIdentity } from './identity'
 import { disciplineWeek } from './authority'
 import { updateAgency } from './agency'
-import { OBJECTIVE_DEFS } from './objectives'
+import { OBJECTIVE_DEFS, objectiveBonus } from './objectives'
 import { applyPlanSheet, boardPriorityF } from './seasonplan'
 import { IRON_REC, brittleF, formTraits } from './formtraits'
 import { derbyName, isDerby, rivalsOf } from './rivalries'
@@ -4469,16 +4469,22 @@ If you go, your assistant takes your national side for the duration. Nobody prep
       if (!def || !def.banked || state.objDone.includes(id)) continue
       if (!def.met(state)) continue
       state.objDone.push(id)
+      // WHAT IT EARNS IS SAID HERE, NOT ON THE OBJECTIVES CARD (owner, round
+      // 5: "it should be a message when you achieve it"). The money and the
+      // board's favour are settled in May (rollover.ts), so the line says when.
+      // Stories filed before this read 'news.objectiveMet', which stays for them.
+      const head_k = `${def.textKey(state)}Head`
+      const amount = fmtMoney(objectiveBonus(state.clubs[state.userClubId].budget))
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
-        subject: `Board objective met: ${tIn('en', def.textKey(state)).split(':')[0]}`,
-        body: `One of the season's briefs is in the bank: "${tIn('en', def.textKey(state))}." The board noted it at this morning's meeting, and it will count for you at the end-of-season review whatever else happens between now and May.`,
-        k: 'news.objectiveMet',
+        subject: tIn('en', 'news.objPaidSubj', { head_k }),
+        body: tIn('en', 'news.objPaid', { head_k, amount }),
+        k: 'news.objPaid',
         // The headline used to be the objective rendered to English and cut at
         // its colon, so the subject line was English in a French inbox. Each
         // objective has its own short form now; splitting a sentence on
         // punctuation is not a translation strategy.
-        v: { head_k: `${def.textKey(state)}Head`, text_k: def.textKey(state) },
+        v: { head_k, amount },
       })
     }
   }
