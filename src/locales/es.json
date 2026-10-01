@@ -870,7 +870,6 @@
   "shape": "Jugada de juego abierto",
   "none": "Sin llamada",
   "needPart": "{shirts}: {attrs}",
-  "misfire": "Sin entrenar: saldrá mal",
   "slotRed": "En su 22",
   "mixLabel": "Jugada principal en el {pct}% del balón que pueden jugar las dos",
   "mixLean": "Cargada 80/20",
@@ -879,7 +878,7 @@
   "fam": "Automatismo: {pct}%",
   "add": "Añadir al libro de jugadas",
   "remove": "Quitar del libro de jugadas",
-  "replaceHint": "Libro de jugadas lleno: toca una casilla iluminada para cambiarla.",
+  "slotHint": "Toca una casilla para ponerla ahí.",
   "tapHint": "Toca una jugada para verla en acción."
  },
  "bench": {

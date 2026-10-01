@@ -870,7 +870,6 @@
   "shape": "Chiamata nel gioco aperto",
   "none": "Nessuna chiamata",
   "needPart": "{shirts}: {attrs}",
-  "misfire": "Non provato: fallirà",
   "slotRed": "Nei loro 22",
   "mixLabel": "Schema principale sul {pct}% dei palloni che possono giocare entrambi",
   "mixLean": "Sbilanciato 80/20",
@@ -879,7 +878,7 @@
   "fam": "Automatismi: {pct}%",
   "add": "Aggiungi al libro degli schemi",
   "remove": "Togli dal libro degli schemi",
-  "replaceHint": "Libro degli schemi pieno: tocca una casella illuminata per sostituirla.",
+  "slotHint": "Tocca una casella per metterlo lì.",
   "tapHint": "Tocca uno schema per vederlo in azione."
  },
  "bench": {

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Club, GameState } from '../game/model'
-import { MOVES, MOVE_BY_ID, familiarityOf, isRedCall, isStrike, mixOf, moveEdge, type Move } from '../game/moves'
+import { MOVES, MOVE_BY_ID, familiarityOf, isRedCall, isStrike, mixOf, type Move } from '../game/moves'
 import { t } from '../game/i18n'
 import { SectionTitle } from './components'
 import MovePreview from './MovePreview'
@@ -12,14 +12,16 @@ import MovePreview from './MovePreview'
  * Four slots: the base shape for open phases, the primary and the secondary
  * strike off first-phase ball, and the red-zone play for their 22.
  *
- * ONE FLOW (1.8.2, owner: "Simplify so you preview and then the slots are
- * filled"): the four slots sit compactly at the top with how familiar the
- * side is with each; under them the moves; tap one and it plays on a loop
- * (MovePreview, the highlight clip's own runs) with one line on what it does
- * and one button. "Add to playbook" fills the first empty slot the move can
- * go in; when those are all taken, the slots it could go in light up and a
- * tap on one replaces what is there. A move already in the playbook offers
- * "Remove from playbook" instead.
+ * PREVIEW, THEN PICK THE SLOT (owner: "You should be able to select which of
+ * the moves goes where, like the main menu save option"): the four slots sit
+ * compactly at the top; under them the moves; tap one and it plays on a loop
+ * (MovePreview, the highlight clip's own runs) with one line on what it does.
+ * "Add to playbook" opens the slots as a list in the save-slot picker's look,
+ * each saying what it holds now; one the move cannot go in is there but
+ * greyed, and a tap on any other puts the move there, replacing what was. A
+ * move already in the playbook offers "Remove from playbook" instead. How
+ * well the side knows a move is shown as familiarity; what a half-learnt
+ * move costs on the day is left to the matches to teach (owner).
  */
 
 type Slot = 'shape' | 'main' | 'alt' | 'red'
@@ -34,7 +36,7 @@ const MIXES: [number, string][] = [[80, 'moves.mixLean'], [67, 'moves.mixTwo'], 
 
 export default function MovesSection({ game, club, touch }: { game: GameState; club: Club; touch: () => void }) {
   const [pick, setPick] = useState<string | null>(null)
-  const [replacing, setReplacing] = useState(false)
+  const [choosing, setChoosing] = useState(false)
   const tac = club.tactic
   const current = (key: SlotKey, fits: (m: Move) => boolean) => {
     const id = tac[key]
@@ -44,45 +46,33 @@ export default function MovesSection({ game, club, touch }: { game: GameState; c
   const inBook = new Set(SLOTS.map(([, , k, f]) => current(k, f)).filter((x): x is string => !!x))
 
   const m = pick ? MOVE_BY_ID[pick] : null
-  const fitsSlot = (s: typeof SLOTS[number]) => !!m && s[3](m)
-  const drilled = m ? moveEdge(game, club, m.id, 0, 0).drilled : 0
   const both = !!current('moveMain', SLOTS[1][3]) && !!current('moveAlt', SLOTS[2][3])
   const mix = mixOf(tac)
 
-  const choose = (id: string) => { setPick(id); setReplacing(false) }
-  const add = () => {
-    if (!m) return
-    const free = SLOTS.find(s => fitsSlot(s) && !current(s[2], s[3]))
-    if (!free) { setReplacing(true); return }
-    tac[free[2]] = m.id
+  const choose = (id: string) => { setPick(id); setChoosing(false) }
+  const place = (s: typeof SLOTS[number]) => {
+    if (!m || !s[3](m)) return
+    tac[s[2]] = m.id
+    setChoosing(false)
     touch()
   }
   const remove = () => {
     if (!m) return
     for (const [, , k] of SLOTS) if (tac[k] === m.id) tac[k] = undefined
-    setReplacing(false)
+    setChoosing(false)
     touch()
-  }
-  const tapSlot = (s: typeof SLOTS[number], filled: string | null) => {
-    if (replacing && m && fitsSlot(s)) {
-      tac[s[2]] = m.id
-      setReplacing(false)
-      touch()
-    } else if (filled) choose(filled)
   }
 
   return <>
     <SectionTitle sub={t('moves.headingSub')}>{t('moves.heading')}</SectionTitle>
-    <div className="card mv-card" data-replacing={replacing ? '1' : undefined}>
+    <div className="card mv-card" data-choosing={choosing ? '1' : undefined}>
       <div className="mv-calls">
-        {SLOTS.map(s => {
-          const [slot, heading, k, f] = s
+        {SLOTS.map(([slot, heading, k, f]) => {
           const c = current(k, f)
-          const target = replacing && fitsSlot(s)
           return (
-            <button key={slot} className={`preset-chip mv-callchip${target ? ' pick' : ''}${c && c === pick ? ' on' : ''}`}
-              data-call={slot} data-filled={c ?? ''} disabled={!target && !c}
-              onClick={() => tapSlot(s, c)}>
+            <button key={slot} className={`preset-chip mv-callchip${c && c === pick ? ' on' : ''}`}
+              data-call={slot} data-filled={c ?? ''} disabled={!c}
+              onClick={() => { if (c) choose(c) }}>
               <b>{t(heading)}</b>
               <span>{c ? t(MOVE_BY_ID[c].name) : t('moves.none')}</span>
               {c && <span className="mv-fam" data-fam={famPct(c)}>{t('moves.fam', { pct: famPct(c) })}</span>}
@@ -104,13 +94,30 @@ export default function MovesSection({ game, club, touch }: { game: GameState; c
           <b>{t(m.name)}</b>
           <span className="d">{t(m.desc)}</span>
           <span className="d" data-fam={famPct(m.id)}>{t('moves.fam', { pct: famPct(m.id) })}</span>
-          {drilled < 60 && <span className="d mv-warn">{t('moves.misfire')}</span>}
         </div>
-        {replacing
-          ? <div className="meta mv-hint" data-hint="replace">{t('moves.replaceHint')}</div>
-          : inBook.has(m.id)
-            ? <button className="btn ghost block" data-act="remove" onClick={remove}>{t('moves.remove')}</button>
-            : <button className="btn gold block" data-act="add" onClick={add}>{t('moves.add')}</button>}
+        {inBook.has(m.id)
+          ? <button className="btn ghost block" data-act="remove" onClick={remove}>{t('moves.remove')}</button>
+          : choosing
+            ? <>
+              {/* THE SLOT PICKER, in the look of the main menu's saves: one
+                  row a slot, what it holds under its name */}
+              <div className="meta mv-hint" data-hint="slot">{t('moves.slotHint')}</div>
+              <div className="mv-slots">
+                {SLOTS.map(s => {
+                  const [slot, heading, k, f] = s
+                  const c = current(k, f)
+                  return (
+                    <button key={slot} className="btn mv-slot" data-slot={slot} data-filled={c ?? ''}
+                      disabled={!f(m)} onClick={() => place(s)}>
+                      <b>{t(heading)}</b>
+                      <span>{c ? t(MOVE_BY_ID[c].name) : t('moves.none')}</span>
+                    </button>
+                  )
+                })}
+              </div>
+              <button className="btn ghost block" data-act="cancel" onClick={() => setChoosing(false)}>{t('player.cancel')}</button>
+            </>
+            : <button className="btn gold block" data-act="add" onClick={() => setChoosing(true)}>{t('moves.add')}</button>}
       </div> : <div className="meta mv-hint">{t('moves.tapHint')}</div>}
 
       <div className="preset-row mv-chips">

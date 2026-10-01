@@ -1,5 +1,5 @@
 // Screenshots of the playbook on the Tactics Set Piece tab (1.8.2: tap a
-// move, watch it run, add it), at a phone's portrait width and at landscape,
+// move, watch it run, add it to the slot picked), at a phone's portrait width and at landscape,
 // with three frames of the animated preview and the page's depth in screens.
 // A look, not a verdict: run after `npm run build`.
 //   node scripts/qa/movesshot.mjs [outdir] [move]
@@ -38,9 +38,10 @@ try {
     await page.click('[data-sp-sub="moves"]')
     await page.waitForSelector('.mv-card')
     // two in already, so the slots show what they hold
-    for (const id of ['mv_1331', 'mv_crash']) {
+    for (const [id, slot] of [['mv_1331', 'shape'], ['mv_crash', 'main']]) {
       await page.click(`.mv-card [data-move="${id}"]`)
       await page.click('.mv-card [data-act="add"]')
+      await page.click(`.mv-slots [data-slot="${slot}"]`)
     }
     await page.click(`.mv-card [data-move="${move}"]`)
     const svg = page.locator('.mv-preview svg.dg')

@@ -851,7 +851,6 @@
   "shape": "Open-Play Call",
   "none": "No Call",
   "needPart": "{shirts}: {attrs}",
-  "misfire": "Undrilled: it will misfire",
   "slotRed": "Red Zone",
   "mixLabel": "Primary strike on {pct}% of the ball both can run off",
   "mixLean": "Lean 80/20",
@@ -860,7 +859,7 @@
   "fam": "Familiarity {pct}%",
   "add": "Add to playbook",
   "remove": "Remove from playbook",
-  "replaceHint": "Playbook full: tap a lit slot to replace it.",
+  "slotHint": "Tap a slot to put it there.",
   "tapHint": "Tap a move to see it run."
  },
  "bench": {
