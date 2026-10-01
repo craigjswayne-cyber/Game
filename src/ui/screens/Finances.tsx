@@ -8,7 +8,7 @@ import {
 } from '../../game/monetise'
 import { canTownCollection } from '../../game/rewarded'
 import { staffWageBill } from '../../game/staff'
-import { OBJECTIVE_DEFS, objectiveBonus } from '../../game/objectives'
+import { OBJECTIVE_DEFS } from '../../game/objectives'
 import { demandedFinish } from '../../game/chairman'
 import { MARQUEE_SLOTS, capPosition, capWord, rosterGrid, rosterWarnings } from '../../game/cap'
 import { SectionTitle, RewardedButton } from '../components'
@@ -26,7 +26,8 @@ import {
 import { sheetOf } from '../../game/books'
 import { RELEASE_STEP, belowReserve, cashReserve, releasable, releaseBlock, releaseToBudget } from '../../game/treasury'
 import { requestFunds } from '../../game/season'
-import { prose, unwrap } from '../../game/quotes'
+import { optionParts, prose } from '../../game/quotes'
+import { OptionLabel } from '../OptionLabel'
 import { isBoardroom } from '../../game/media'
 import { INJECT_TIERS, injectionsLeft, userWageBudget, type InjectTier } from '../../game/grants'
 
@@ -708,10 +709,8 @@ export default function Finances() {
               </span>
               <span style={{ color: done ? 'var(--text-positive)' : 'var(--text-secondary)' }}>
                 {t(def.textKey(game))}{ok && !def.banked ? t('finances.onCourseSettled') : ''}
-                {/* what it is worth TO THIS CLUB. It read a flat "+£250k" for
-                    everybody, which is four per cent of one budget and six
-                    times another - see objectives.objectiveBonus. */}
-                {' '}<b style={{ color: 'var(--text-muted)' }}>{t('finances.objReward', { amount: fmtMoney(objectiveBonus(club.budget)) })}</b>
+                {/* what it is worth is said once, in the message the day it is
+                    met (owner, round 5; season.ts and rollover.ts news.objPaid) */}
               </span>
             </div>
           )
@@ -1011,7 +1010,7 @@ function BoardDecisions() {
             {item.options.map((o, i) => (
               <button key={i} className="btn ghost" style={{ textAlign: 'left' }}
                 onClick={() => answer(item.id, i)}>
-                {unwrap(pressLabel(o))}
+                <OptionLabel text={pressLabel(o)} />
               </button>
             ))}
           </div>
@@ -1021,8 +1020,10 @@ function BoardDecisions() {
         <div key={item.id} className="card">
           <div className="meta">{prose(pressQuestion(item))}</div>
           <div style={{ marginTop: 6, fontSize: 14 }}>
-            <b>{t('finances.boardDecided')}</b> {unwrap(pressAnswer(item)) || t('world.prNoAnswer')}
+            <b>{t('finances.boardDecided')}</b> {optionParts(pressAnswer(item)).main || t('world.prNoAnswer')}
           </div>
+          {/* the figure the choice carried, under it and quieter, as on the button */}
+          {optionParts(pressAnswer(item)).detail && <div className="opt-detail">{optionParts(pressAnswer(item)).detail}</div>}
           {pressReaction(item) && <div className="meta" style={{ marginTop: 4 }}>{prose(pressReaction(item))}</div>}
         </div>
       ))}

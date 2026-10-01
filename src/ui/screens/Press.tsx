@@ -9,6 +9,7 @@ import { OFFICE_OUTLET, PRESS_KEEP_WEEKS, isBoardroom } from '../../game/media'
 import { bandOf, currentMood, effectLines, moodRoom, pressWhy, type Baro } from '../../game/pressmood'
 import type { GameState, PressItem } from '../../game/model'
 import { t } from '../../game/i18n'
+import { OptionLabel } from '../OptionLabel'
 import { prose, speech } from '../../game/quotes'
 
 /* THE QUESTIONS AND THE ANSWERS STAY AS THEY WERE ASKED. A press item is written
@@ -70,7 +71,7 @@ export default function Press() {
             {item.options.map((o, i) => (
               <button key={i} className="btn ghost" style={{ textAlign: 'left' }}
                 onClick={() => answer(item.id, i)}>
-                {speech(pressLabel(o))}
+                <OptionLabel text={pressLabel(o)} say />
               </button>
             ))}
             {/* THE SPONSOR'S TEAM NIGHT (1.8.2, rewarded.ts): stand by the

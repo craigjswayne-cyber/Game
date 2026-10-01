@@ -1,4 +1,4 @@
-import type { Club, GameState, Player, Pos } from './model'
+import type { Club, GameState, NewsItem, Player, Pos } from './model'
 import { loanOutSummerGain, returnLoanIn } from './loans'
 import { preContractWage } from './ai'
 import { runTeamOfTheYear } from './yearend'
@@ -1485,6 +1485,7 @@ export function rebuildSeason(state: GameState) {
       // secondary objectives: side quests with real consequences
       const sideLines: string[] = []
       const sideRows: Vars[] = []
+      const paidNews: NewsItem[] = []
       for (const id of state.objectives ?? []) {
         const def = objectiveById(id)
         if (!def || !def.applies(state)) continue
@@ -1498,6 +1499,17 @@ export function rebuildSeason(state: GameState) {
         if (ok) { objBonus += bonus; state.boardOwed = true }
         sideLines.push(`${tIn('en', def.textKey(state))}${ok ? ` - met (+${fmtMoney(bonus)} budget)` : ' - missed'}`)
         sideRows.push({ k: ok ? 'news.sideMet' : 'news.sideMissed', text_k: def.textKey(state), amount: fmtMoney(bonus) })
+        // ONE SHORT LINE FOR EACH BRIEF MET (owner, round 5): a banked one had
+        // its line the week it came true (season.ts, objDone); one that only
+        // settles now gets it now, with what it earned.
+        if (ok && !(state.objDone ?? []).includes(id)) {
+          const v = { head_k: `${def.textKey(state)}Head`, amount: fmtMoney(bonus) }
+          paidNews.push({
+            id: 0, week: state.week, season: state.season, type: 'board', read: false,
+            subject: tIn('en', 'news.objPaidMaySubj', v), body: tIn('en', 'news.objPaidMay', v),
+            k: 'news.objPaidMay', v,
+          })
+        }
       }
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
@@ -1513,6 +1525,8 @@ export function rebuildSeason(state: GameState) {
           rows_ll: JSON.stringify(sideRows),
         },
       })
+      // after the verdict, so the inbox reads the season and then its briefs
+      for (const n of paidNews) state.news.push({ ...n, id: state.nextId++ })
     }
   }
 
