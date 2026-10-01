@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useStore } from '../../store'
 import { CHALLENGES, LEAGUE_DEFS, mediaVerdict, challengesFor, wizardAim } from '../../game/newgame'
 import { dreamsFor, dreamTitle, type DreamContext } from '../../game/dream'
-import { MAX_AMBITIONS, setAmbitions } from '../../game/ambitions'
+import { setAmbitions } from '../../game/ambitions'
 import { COACHING_STYLES } from '../../game/tactics'
 import type { RawClub } from '../../data/types'
 import { ClubStars, Crest, Jersey } from '../components'
@@ -82,15 +82,11 @@ export default function NewGame() {
      reach, and a career with no ambition at all is the hole this closes. The
      default is club-appropriate (a Championship side is offered promotion
      first) and the tiles sit right under it, so changing it is one tap. */
-  /* UP TO THREE (ambitions.ts): the first named is the dream this career is
-     for, and one or two more may sit beside it. A tap adds an ambition, a tap
-     on a chosen one takes it off, and the last one cannot be taken off. */
-  const chosen = (picked ?? []).filter(id => dreams.some(d => d.id === id))
+  /* ONE DREAM (owner, round 8: "I was able to select two dreams"). A tap
+     picks that one and only that one; the career is for a single dream. */
+  const chosen = (picked ?? []).filter(id => dreams.some(d => d.id === id)).slice(0, 1)
   const ambitions = chosen.length ? chosen : dreams[0] ? [dreams[0].id] : []
-  const toggleDream = (id: string) => {
-    if (ambitions.includes(id)) { if (ambitions.length > 1) setPicked(ambitions.filter(x => x !== id)); return }
-    setPicked(ambitions.length >= MAX_AMBITIONS ? [...ambitions.slice(0, MAX_AMBITIONS - 1), id] : [...ambitions, id])
-  }
+  const toggleDream = (id: string) => setPicked([id])
 
   const pickChallenge = (id: string) => {
     const ch = CHALLENGES.find(c => c.id === id)!
@@ -392,13 +388,13 @@ export default function NewGame() {
             <div className="card">
               <label className="fact-label">{t('wizard.yourDream')}</label>
               <div className="meta" style={{ marginBottom: 2 }}>
-                {t('wizard.dreamBlurb')} {t('arc.pickUpTo')}
+                {t('wizard.dreamBlurb')}
               </div>
               <div className="speech-grid" style={{ padding: '6px 0 0' }}>
                 {dreams.map(d => (
                   <button key={d.id} className={`speech-tile${ambitions.includes(d.id) ? ' sel' : ''}`}
                     onClick={() => toggleDream(d.id)}>
-                    <b>{ambitions.includes(d.id) ? `${ambitions.indexOf(d.id) + 1}. ` : ''}{dreamTitle(d, dreamCtx!)}</b>
+                    <b>{dreamTitle(d, dreamCtx!)}</b>
                   </button>
                 ))}
               </div>

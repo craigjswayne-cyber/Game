@@ -1923,14 +1923,14 @@
   },
   "ratingSince": "gradering {from} tot {to}, {n} danksy die paring",
   "coachedSoFar": "Afgerig: {list}",
-  "tookCharacter": "Het die mentor se karakter oorgeneem: nou {pers_k}",
+  "tookCharacter": "Het die mentor se karakter oorgeneem",
   "teachesList": "Leer aan: {list}.",
   "teachesNone": "Geen duidelike voorsprong in iets wat hierdie posisie nodig het nie, dus niks om af te rig nie.",
   "newPairing": "Nuwe paring",
   "mentorFullNote": "Elke paringsplek is in gebruik. Beëindig een om 'n ander te begin.",
   "pickKid": "Kies 'n jong speler ({age} of jonger)",
   "kidsNone": "Geen jong speler is vry nie: almal van {age} of jonger wat nog kan verbeter, het reeds 'n mentor.",
-  "pickMentor": "Mentors vir {name} ({pos}, {age}, {pers_k})",
+  "pickMentor": "Mentors vir {name} ({pos}, {age})",
   "changeKid": "Verander",
   "mentorsNone": "Niemand in die spangroep is {age} of ouer nie.",
   "leadershipN": "Leierskap {n}",
@@ -6885,14 +6885,6 @@
   "acadPromoted": "{player} 'n eerste professionele kontrak gegee.",
   "acadReleased": "{player} uit die akademie laat gaan."
  },
- "persShort": {
-  "Professional": "Pro",
-  "Loyal": "Lojaal",
-  "Ambitious": "Ambisieus",
-  "Mercenary": "Huurling",
-  "Temperamental": "Kortlont",
-  "Leader": "Leier"
- },
  "reply": {
   "overCap": "Daardie voorwaardes sal die klub {over}/wk oor die {cap}/wk-salarisperk sit. Maak plek, of noem hom 'n hoofspeler.",
   "overCap_f": "Daardie voorwaardes sal die klub {over}/wk oor die {cap}/wk-salarisperk sit. Maak plek, of noem haar 'n hoofspeler.",
@@ -7302,7 +7294,7 @@
  "press": {
   "campQ1": "Voorseisoen, en die prestasiepersoneel wil 'n besluit hê. Die begroting strek tot een spesiale week: 'n warmweerskamp in die buiteland, 'n gemeenskapsweek by die huis, of die borg se uitstallingstoer. Watter een gaan dit wees?",
   "campQ2": "Drie opsies is omkring op die personeelkamer se witbord vir die oorblywende voorseisoenweek: die hittekamp, die dorp, of die borg se roadshow. Die departementshoofde wag vir jou.",
-  "campHeat": "Warmweer-kamp ({cost})",
+  "campHeat": "Warmweer-kamp (-{cost})",
   "campHeatR": "Vlugte bespreek. 'n Week van dubbelsessies in die son - die spangroep kom lenig, skerp en verenig in hul haat vir die heuwelhardloop huis toe.",
   "campHome": "Gemeenskapsweek by die huis",
   "campHomeR": "Skole, junior klubs, oop oefensessies. Kos niks, en die dorp sal dit die hele seisoen onthou.",
@@ -8649,7 +8641,6 @@
   "ambStep": "{pct}% van die pad na 'n ambisie: {title_k}. Waar dit staan: {note_k}.",
   "ambDoneSubj": "Ambisie verwesenlik",
   "ambDone": "'n Ambisie verwesenlik: {title_k}. Waar dit geëindig het: {note_k}.",
-  "pickUpTo": "Kies tot drie; die eerste is die een waarvoor hierdie loopbaan is.",
   "knownFor": "Wat hulle van jou sê",
   "knownAs": "Bekend as {label_k}",
   "coachesTitle": "Oorkant die dugout",

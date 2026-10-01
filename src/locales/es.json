@@ -1943,8 +1943,8 @@
   },
   "ratingSince": "valoración de {from} a {to}, {n} gracias a la pareja",
   "coachedSoFar": "Trabajado: {list}",
-  "tookCharacter": "Ha adoptado el carácter de su mentor: ahora {pers_k}",
-  "tookCharacter_f": "Ha adoptado el carácter de su mentora: ahora {pers_k}",
+  "tookCharacter": "Ha adoptado el carácter de su mentor",
+  "tookCharacter_f": "Ha adoptado el carácter de su mentora",
   "teachesList": "Enseña: {list}.",
   "teachesNone": "Sin ventaja clara en nada que necesite esta posición, así que nada que trabajar.",
   "newPairing": "Nueva pareja",
@@ -1953,8 +1953,8 @@
   "pickKid_f": "Elige una joven ({age} años o menos)",
   "kidsNone": "No hay ningún joven libre: todos los de {age} años o menos que aún pueden mejorar ya tienen mentor.",
   "kidsNone_f": "No hay ninguna joven libre: todas las de {age} años o menos que aún pueden mejorar ya tienen mentora.",
-  "pickMentor": "Mentores para {name} ({pos}, {age}, {pers_k})",
-  "pickMentor_f": "Mentoras para {name} ({pos}, {age}, {pers_k})",
+  "pickMentor": "Mentores para {name} ({pos}, {age})",
+  "pickMentor_f": "Mentoras para {name} ({pos}, {age})",
   "changeKid": "Cambiar",
   "mentorsNone": "Nadie en la plantilla tiene {age} años o más.",
   "leadershipN": "Liderazgo {n}",
@@ -6804,14 +6804,6 @@
   "acadPromoted": "Primer contrato profesional para {player}.",
   "acadReleased": "Baja de {player} en la academia."
  },
- "persShort": {
-  "Professional": "Pro",
-  "Loyal": "Leal",
-  "Ambitious": "Ambicioso",
-  "Mercenary": "Mercenario",
-  "Temperamental": "Impulsivo",
-  "Leader": "Líder"
- },
  "reply": {
   "overCap": "Esas condiciones dejarían al club {over}/sem por encima del tope salarial de {cap}/sem. Libera espacio o nómbralo jugador franquicia.",
   "offerGone": "La oferta ya no está disponible.",
@@ -7202,7 +7194,7 @@
  "press": {
   "campQ1": "Pretemporada, y el área de rendimiento quiere una decisión. El presupuesto da para una semana especial: una concentración al sol en el extranjero, una semana comunitaria en casa o la gira de exhibición del patrocinador. ¿Cuál eliges?",
   "campQ2": "Tres opciones rodeadas en la pizarra de la sala de técnicos para la semana libre de pretemporada: la concentración al calor, la ciudad o la gira del patrocinador. Los jefes de departamento te esperan.",
-  "campHeat": "Concentración en el calor ({cost})",
+  "campHeat": "Concentración en el calor (-{cost})",
   "campHeatR": "Vuelos reservados. Una semana de dobles sesiones bajo el sol: la plantilla vuelve fina, afilada y unida en su odio a las cuestas.",
   "campHome": "Semana comunitaria en casa",
   "campHomeR": "Colegios, clubes de base, entrenamientos abiertos. No cuesta nada, y la ciudad lo recordará toda la temporada.",
@@ -8498,7 +8490,6 @@
   "ambStep": "{pct}% del camino hacia una ambición: {title_k}. Cómo va: {note_k}.",
   "ambDoneSubj": "Ambición cumplida",
   "ambDone": "Una ambición cumplida: {title_k}. Cómo terminó: {note_k}.",
-  "pickUpTo": "Elige hasta tres; la primera es la razón de esta carrera.",
   "knownFor": "Lo que dicen de ti",
   "knownAs": "Conocido como {label_k}",
   "coachesTitle": "Al otro lado del banquillo",

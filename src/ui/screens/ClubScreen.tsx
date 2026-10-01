@@ -430,7 +430,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
                       return (
                         <div key={`${f.a}_${f.b}`} className="rift-row">
                           <div className="meta">
-                            <b>{a.name}</b> ({a.pers.toLowerCase()}) and <b>{b.name}</b> ({b.pers.toLowerCase()})
+                            <b>{a.name}</b> and <b>{b.name}</b>
                             {t('club.riftLine', { week: f.week })}
                           </div>
                           <div className="btn-row" style={{ marginTop: 5 }}>
