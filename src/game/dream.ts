@@ -224,6 +224,8 @@ export const DREAMS: DreamDef[] = [
   },
   {
     id: 'dynasty',
+    // 1.8.2 (owner): four dreams a manager can relate to; kept for old saves
+    retired: true,
     titleK: 'dream.dynasty', titleLowerK: 'dream.dynastyLower',
     applies: () => true,
     progress: state => {
@@ -268,6 +270,9 @@ export const DREAMS: DreamDef[] = [
   },
   {
     id: 'world',
+    // 1.8.2 (owner): four to six dreams a manager can relate to at this
+    // club; kept so a save that chose it still reads
+    retired: true,
     needs: ['wc'],
     titleK: 'dream.world', titleLowerK: 'dream.worldLower',
     applies: () => true,
@@ -288,6 +293,9 @@ export const DREAMS: DreamDef[] = [
   },
   {
     id: 'immortal',
+    // 1.8.2 (owner): four to six dreams a manager can relate to at this
+    // club; kept so a save that chose it still reads
+    retired: true,
     titleK: 'dream.immortal', titleLowerK: 'dream.immortalLower',
     applies: () => true,
     progress: state => {

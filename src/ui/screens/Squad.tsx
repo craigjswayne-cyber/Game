@@ -203,7 +203,12 @@ export default function Squad() {
           need to scroll and .fitwrap turns the scrollport off. Then .content is
           the scrollport again and the heading sticks under the controls where
           it belongs. */}
-      {view !== 'selection' && <div className="tblwrap fitwrap"><table className="dtable zebra fit">
+      {/* a filter nobody matches: the message alone. An empty table shrank to
+          its fixed columns and stacked NAME a letter a line (owner, round 7) */}
+      {view !== 'selection' && players.length === 0 && (
+        <div className="muted" style={{ padding: '12px 16px' }}>{t('squad.emptyFiltered')}</div>
+      )}
+      {view !== 'selection' && players.length > 0 && <div className="tblwrap fitwrap"><table className="dtable zebra fit">
         {/* Mor 34 and Value 64 (UI QA, 1.8.0): at 26 the MOR heading was cut
             to "MO", and a value carrying its trend arrow ran off the glass */}
         {view === 'general' && <colgroup><col /><col width="36" /><col width="32" /><col width="28" /><col width="34" /><col width="42" /><col width="64" /></colgroup>}
@@ -261,11 +266,6 @@ export default function Squad() {
           )}
         </thead>
         <tbody>
-          {players.length === 0 && (
-            <tr><td colSpan={8} className="muted" style={{ padding: 12, whiteSpace: 'normal' }}>
-              {t('squad.emptyFiltered')}
-            </td></tr>
-          )}
           {players.map(p => {
             const avr = p.stats.apps ? (p.stats.ratingSum / p.stats.apps) : 0
             return (
