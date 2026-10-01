@@ -1526,7 +1526,7 @@ export function rebuildSeason(state: GameState) {
         },
       })
       // after the verdict, so the inbox reads the season and then its briefs
-      for (const n of paidNews) state.news.push({ ...n, id: state.nextId++ })
+      for (const n of paidNews) state.news.push({ ...n, k: n.k, id: state.nextId++ })
     }
   }
 
