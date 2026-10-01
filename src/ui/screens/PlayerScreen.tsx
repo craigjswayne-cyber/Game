@@ -6,7 +6,7 @@ import { FormPill, Nat, PosBadge, SectionTitle, Stars, TwoStep, RewardedButton }
 import { nationName } from '../../game/nations'
 import { Flag } from '../flags'
 import { fineAttr, playerWage } from '../../game/attributes'
-import { attrRange, fuzzedCa, knowledge, paRange, persKnown, reportStage, seenValue, wonderkidKnown } from '../../game/scout'
+import { attrRange, fuzzedCa, knowledge, paRange, reportStage, seenValue, wonderkidKnown } from '../../game/scout'
 import { benchNote, temperRead } from '../../game/temperament'
 import { formTrend, traitHints } from '../../game/formtraits'
 import { habitHint } from '../../game/habits'
@@ -17,7 +17,7 @@ import { LOAN_BUY_MIN_WEEKS, loanBuy, loanBuyOffer, loanOut, loanOutBoost, loanR
 import { releaseBlock, releaseCost, releasePlayer } from '../../game/release'
 import { MARQUEE_SLOTS, marqueeOpen, toggleMarquee } from '../../game/cap'
 import { answerRequest, canAnswerRequest, canChat, chatBudget, praisePlayer, warnPlayer } from '../../game/chats'
-import { attrBand, attrBandIndex, attrName, persName, posName, t, traitInfo, traitName, localeTag } from '../../game/i18n'
+import { attrBand, attrBandIndex, attrName, posName, t, localeTag } from '../../game/i18n'
 import { Glyph } from '../glyphs'
 import { driverLines, learningLines, monthKey, outlookLine, TL } from '../../game/devproject'
 import { activeEntry } from '../../game/season'
@@ -305,9 +305,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
       <div className="chips">
         <span className="chip" title={t('player.overallTitle')}>
           {t('player.overall')} <b style={{ fontSize: 13 }}>{Math.round(fuzzedCa(game, p))}</b><span className="muted">/100</span></span>
-        <span className="chip" title={t('player.characterTitle')}>{t('player.character')} <b>{persKnown(game, p) ? persName(p.pers) : t('player.unknown')}</b>{!persKnown(game, p) && <span className="muted" title={t('player.characterUnknownTitle')}> ?</span>}</span>
         {(p.caps ?? 0) > 0 && <span className="chip"><Glyph name="nations" /> <b>{p.caps}</b> {t('player.caps')}</span>}
-        {p.trait && reportStage(game, p) >= 2 && <span className="chip" title={traitInfo(p.trait)} style={{ color: 'var(--info)', fontWeight: 700 }}><Glyph name="trait" /> {traitName(p.trait)}</span>}
         {!mine && <span className="chip" style={know < 55 ? { color: 'var(--gold)' } : undefined}>
           {t('player.scouted')} <b>{Math.round(know)}%</b></span>}
       </div>

@@ -1,6 +1,5 @@
 import type { GameState, Player } from '../game/model'
-import { persName, t } from '../game/i18n'
-import { persKnown } from '../game/scout'
+import { t } from '../game/i18n'
 import { baseState, roomMood, type TalkSetting } from '../game/teamtalk'
 
 /**
@@ -51,7 +50,7 @@ export function MoodTable({ game, lineup, room }: { game: GameState; lineup: (nu
       </div>
       <div className="tblwrap">
         <table className="dtable mood-table">
-          <thead><tr><th>#</th><th>{t('mood.name')}</th><th>{t('mood.personality')}</th><th>{t('mood.mood')}</th></tr></thead>
+          <thead><tr><th>#</th><th>{t('mood.name')}</th><th>{t('mood.mood')}</th></tr></thead>
           <tbody>
             {rows.map(({ id, i, p }) => {
               const m = read(p, i < 15)
@@ -59,7 +58,6 @@ export function MoodTable({ game, lineup, room }: { game: GameState; lineup: (nu
                 <tr key={id} className={i >= 15 ? 'bench' : ''}>
                   <td className="num">{i + 1}</td>
                   <td className="nm">{p.name}</td>
-                  <td className="muted">{persKnown(game, p) ? persName(p.pers) : '?'}</td>
                   <td><span className={`mood-chip ${m.tone}`}>{t(m.k)}</span></td>
                 </tr>
               )
