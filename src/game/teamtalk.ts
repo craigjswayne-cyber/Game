@@ -24,7 +24,7 @@ import { mulberry32 } from './rng'
  * in the dressing room.
  *
  * A TONE MOVES MEN ALONG THAT AXIS. Calm draws everybody a little towards
- * settled and never hurts. "No pressure" and faith lift belief: right for a
+ * settled and never hurts. Faith lifts belief: right for a
  * frightened underdog, wrong for favourites who already think it is won.
  * Demanding and criticising raise the stakes: right for a complacent room,
  * a collapse in belief for a nervous one. Firing them up is the biggest lift
@@ -48,11 +48,23 @@ import { mulberry32 } from './rng'
  * engine's calibrated baseline, which is why it has no layer of its own).
  */
 
-export type PreTone = 'calm' | 'faith' | 'underdog' | 'expect' | 'fire'
+export type PreTone = 'calm' | 'faith' | 'expect' | 'fire'
 export type HtTone = 'calm' | 'faith' | 'praise' | 'demand' | 'criticise' | 'fire'
 export type Tone = PreTone | HtTone
 
-export const PRE_TONES: PreTone[] = ['calm', 'faith', 'underdog', 'expect', 'fire']
+/**
+ * FOUR TONES AND SILENCE (owner, round 6: "Reduce pre-match chat to four... 4
+ * different emotions and a no chat. Regular no chat will result in players
+ * losing faith and belief. It should be a tricky thing to balance.")
+ *
+ * Four emotions, one each: calm (settle them), faith (lift belief), expect
+ * (raise the stakes) and fire (the big lift). "No pressure on us" went: it was
+ * a second way of lifting belief, faith with a credibility clause, and two
+ * tiles that did nearly the same thing made the choice a guess rather than a
+ * reading of the room. A save from a build that offered it is heard as
+ * nothing, which is what applyPreTalk has always done with an unknown tone.
+ */
+export const PRE_TONES: PreTone[] = ['calm', 'faith', 'expect', 'fire']
 export const HT_TONES: HtTone[] = ['calm', 'faith', 'praise', 'demand', 'criticise', 'fire']
 
 /** The game in front of the room, as the manager can read it too. */
@@ -79,6 +91,46 @@ export const PRE_CARRY = 0.5
 /** where an unspoken-to room sits, below settled, before kick-off and at the break */
 const PRE_FLAT = 0.3
 const HT_FLAT = 0.15
+
+/**
+ * ---- SAYING NOTHING (owner, round 6) ----
+ *
+ * Once is nothing: a manager who leaves the room to itself before one game is
+ * trusting it, and the match is exactly the match it was. Make it a habit and
+ * the room notices. Over the last SILENCE_WINDOW matches the first two
+ * silences are forgiven; every one past that is a step of neglect (at most
+ * three). Each step:
+ *
+ *   - sits the room a little lower before anybody speaks (SILENCE_BELIEF on
+ *     baseState), so the moods the manager reads are flatter and the next
+ *     talk has more to do - "losing faith and belief", shown as moods
+ *   - and when he says nothing AGAIN on top of it, every man takes the
+ *     silence as a small negative reaction (SILENCE_R): a little off his game
+ *     through the same capped per-man multiplier as any talk, and a little
+ *     morale home with him (talkMorale)
+ *
+ * Bounded by construction: three steps at most, the per-man cap still holds,
+ * and it recovers as talks resume because the window slides. Only the
+ * manager's room: no AI club has a log, so the world's matches never move.
+ * No draws, no numbers on screen, no trait names.
+ */
+export const SILENCE_WINDOW = 5
+const SILENCE_FORGIVEN = 2
+const SILENCE_BELIEF = 0.08
+const SILENCE_R = 0.035
+
+/** Silences among the last SILENCE_WINDOW rooms in a log. */
+export function silenceCount(log: string | undefined): number {
+  return [...(log ?? '').slice(-SILENCE_WINDOW)].filter(c => c === 'N').length
+}
+/** Steps of neglect a log adds up to, 0..3. */
+export function silenceWeight(log: string | undefined): number {
+  return Math.max(0, silenceCount(log) - SILENCE_FORGIVEN)
+}
+/** The log with one more room on the end, kept to the window. */
+export function logPreTalk(log: string | undefined, spoke: boolean): string {
+  return ((log ?? '') + (spoke ? 'T' : 'N')).slice(-SILENCE_WINDOW)
+}
 
 export function talkSetting(myOverall: number, oppOverall: number, home: boolean, big: boolean, margin?: number): TalkSetting {
   const ratio = oppOverall > 0 ? myOverall / oppOverall : 1
@@ -118,6 +170,8 @@ export function baseState(state: GameState, p: Player, s: TalkSetting, fxId: num
   }
   // the big day: the hidden nerve decides who freezes and who grows
   if (s.big) c += 0.22 * Math.min(0, bigMatchTemper(state.seed, p.id)) - 0.05
+  // a room left to itself too often has less belief in it (SILENCE_BELIEF)
+  c -= SILENCE_BELIEF * silenceWeight(state.preTalkLog)
   // the young feel it; the old hands have seen it all
   if (p.age <= 21) c -= 0.08
   c *= VOLATILITY[p.pers] ?? 1
@@ -138,8 +192,6 @@ function push(tone: Tone, c: number, s: TalkSetting, p: Player): { d: number; cr
     // settles everybody a little, both ways, and can never push past settled
     case 'calm': return { d: -0.42 * c, credibility: 0 }
     case 'faith': return { d: 0.36 * (p.pers === 'Loyal' ? 1.25 : p.pers === 'Mercenary' ? 0.6 : 1), credibility: 0 }
-    // "nobody rates us": frees an underdog, and favourites know it is not true
-    case 'underdog': return { d: 0.5, credibility: s.exp > 0.25 ? -0.12 * s.exp : 0 }
     case 'praise': return { d: winning ? 0.42 : 0.2, credibility: winning ? 0 : -0.18 }
     // raising the stakes: the cure for complacency, poison for nerves. The
     // further above settled a man sits the harder it pulls him back; below
@@ -221,6 +273,36 @@ export function talkReads(
     const hot = after > 0.75
     const rk = reactionKey(p, before, after, r, tone)
     out.push({ pid: id, before, after, r, hot, ...rk })
+  }
+  return out
+}
+
+/**
+ * The room's reaction to saying nothing again, `k` steps into the habit
+ * (silenceWeight with this silence counted). Every man hears the silence his
+ * own way, as he would a talk: the ones who listen to the manager miss him
+ * most. Same shape as talkReads, so the engine lands it the same way.
+ */
+export function silenceReads(
+  state: GameState, ids: (number | null)[], s: TalkSetting, fxId: number, listen: number, k: number,
+): TalkRead[] {
+  const heard = 0.5 + 0.5 * clampN(listen, 0, 1)
+  const out: TalkRead[] = []
+  if (k <= 0) return out
+  for (const id of ids) {
+    if (id == null) continue
+    const p = state.players[id]
+    if (!p) continue
+    const before = baseState(state, p, s, fxId)
+    let sens = (SENS[p.pers] ?? 1) * heard * (0.7 + 0.6 * (wobble(state.seed, 0, p.id, 0x3C6E) + 1) / 2)
+    if (p.age <= 21) sens *= 1.15
+    else if (p.age >= 31) sens *= 0.85
+    const r = clampN(-SILENCE_R * k * sens, -1, 0)
+    const after = before - 0.1 * k * sens
+    const rk = r <= -0.05
+      ? { k: 'tt.rNoWord', tone: 'low' as const, dir: -1 as const }
+      : reactionKey(p, before, after, r, 'calm')
+    out.push({ pid: id, before, after, r, hot: false, ...rk })
   }
   return out
 }

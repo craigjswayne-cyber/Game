@@ -2183,6 +2183,10 @@ export interface GameState {
    *  the assistant takes it. A phone career is 40 matches a season and not all
    *  of them deserve ninety taps. */
   viewPref?: Record<string, 'full' | 'highlights' | 'instant'>
+  /** The manager's last few pre-match dressing rooms, oldest first: 'T' he
+   *  spoke, 'N' he said nothing (teamtalk.ts silenceWeight). Saying nothing
+   *  once costs nothing; making a habit of it drains the room. */
+  preTalkLog?: string
   /** A match in progress, inside a save written while it was being played
    *  (game/resume.ts stampedSave, 1.8.2). The rest of the save is the state
    *  from before kick-off; opening it resumes the match rather than offering it

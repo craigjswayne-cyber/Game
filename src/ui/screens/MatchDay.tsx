@@ -5,7 +5,7 @@ import { rewardedAvailable } from '../../game/monetise'
 import { AdSlot } from '../AdSlot'
 import {
   matchStats, visitsTo22, goalKicker, teamShort, teamUnits, paperOverall, rosterOf, assistantJudgement, autoSelect, availablePlayers,
-  refFor, refNotes, homeCrowdLean, frontRowCover, repairSheet, sideEnergy, MAX_SUBS, type LiveCtx, type SideCtx,
+  refFor, refNotes, homeCrowdLean, frontRowCover, repairSheet, sideEnergy, MAX_SUBS, isFrontRower, needsFrontRower, type LiveCtx, type SideCtx,
 } from '../../game/matchEngine'
 import { MIDWEEK_OFF, BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, chemKey, clubCode, chemTier, eventText, injuryDesc, fixtureDate, fixtureDayOff, grudgeBetween, inRedZone, oldBoyApps, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
 import { BRIEF_BY_ID, SPLIT_BY_ID, benchSeats, briefForSeat, splitFor } from '../../game/bench'
@@ -159,12 +159,13 @@ export default function MatchDay() {
 
 // the tables hold KEYS, the tiles call t() - the speech id is what reaches the
 // engine and the save, so only the words on the tile change with the language
+// Four tones, one emotion each (owner, round 6), and "say nothing" under them:
+// settle them, believe in them, demand of them, set them alight.
 const SPEECHES = [
   { id: 'calm', icon: 'calm', name: 'matchday.spCalm', desc: 'matchday.spCalmD' },
-  { id: 'fire', icon: 'derby', name: 'matchday.spFire', desc: 'matchday.spFireD' },
   { id: 'faith', icon: 'heart', name: 'matchday.spFaith', desc: 'matchday.spFaithD' },
-  { id: 'underdog', icon: 'wolf', name: 'matchday.spUnderdog', desc: 'matchday.spUnderdogD' },
   { id: 'expect', icon: 'crown', name: 'matchday.spExpect', desc: 'matchday.spExpectD' },
+  { id: 'fire', icon: 'derby', name: 'matchday.spFire', desc: 'matchday.spFireD' },
 ] as const satisfies readonly { id: PreTone; icon: string; name: string; desc: string }[]
 type SpeechId = typeof SPEECHES[number]['id']
 
@@ -1602,7 +1603,7 @@ function Live() {
   const [settings, setSettings] = useState(false)
   const [showLog, setShowLog] = useState(false)
   const [showRatings, setShowRatings] = useState(false)
-  const [injury, setInjury] = useState<{ hurt: string; desc: string; weeks: number; coverId: number | null } | null>(null)
+  const [injury, setInjury] = useState<{ hurt: string; hurtId: number; desc: string; weeks: number; coverId: number | null } | null>(null)
   /** the match-day squad, opened from the Squad button in the control row */
   const [sheet, setSheet] = useState(false)
   const [mpanels, setMpanels] = useState(false)
@@ -1664,13 +1665,19 @@ function Live() {
     // nagging; but a man who cannot continue is a man off the pitch, and who
     // replaces him is the manager's call every single time.
     if (!hurt?.injury) return
-    // whoever the assistant sent on: the SUB the engine pushed alongside it
-    const coverEv = events.slice(cursor - 1, cursor + 3).find(x => x.type === 'SUB' && x.teamId === e.teamId && x.playerId != null)
+    // WHOEVER THE ASSISTANT SENT ON, AS THE ENGINE SAYS (owner, round 6). This
+    // used to be "the next SUB line with a player in it", and most commentary
+    // lines are typed SUB: a failed head assessment, or an injury with nobody
+    // left to send on, armed whichever man the next line of play happened to
+    // name - sometimes an opponent - and with the bench empty that sheet could
+    // not be answered at all. The engine writes the stoppage down (lastInj).
+    const side = ctx.home.teamId === e.teamId ? ctx.home : ctx.away
+    const li = side.lastInj && side.lastInj.hurtId === hurt.id ? side.lastInj : null
     injSeen.current = cursor
     matchCursor(cursor, false)
     setDrawer(false)
     setSettings(false)
-    setInjury({ hurt: hurt.name, desc: injuryDesc(hurt.injury), weeks, coverId: coverEv?.playerId ?? null })
+    setInjury({ hurt: hurt.name, hurtId: hurt.id, desc: injuryDesc(hurt.injury), weeks, coverId: li?.coverId ?? null })
   }, [cursor])
 
   useEffect(() => {
@@ -2186,7 +2193,8 @@ function Live() {
           title={t('matchday.injOff', { player: injury.hurt })}
           hurtName={injury.hurt}
           hurtDesc={t('matchday.injDesc', { desc: injury.desc, n: injury.weeks })}
-          note={t('matchday.injNote')}
+          hurtId={injury.hurtId}
+          note={injury.coverId != null ? t('matchday.injNote') : undefined}
           freeCoverId={injury.coverId ?? undefined}
           /* forced: the physio is on, the clock is stopped, and the only way back
              to the match is through naming somebody */
@@ -2317,7 +2325,6 @@ function Live() {
               <div>
                 <MatchVerdict />
                 <MatchFindings />
-                <Highlights />
               </div>
               <div>
                 <StatsPanel />
@@ -2562,28 +2569,6 @@ function MatchVerdict() {
           </div>
         )
       })}
-    </div>
-  )
-}
-
-function Highlights() {
-  const live = useStore(s => s.liveMatch)!
-  const weight = (e: MatchEvent) =>
-    e.type === 'RC' ? 90 : e.type === 'TRY' ? 80 + e.min / 10 : e.type === 'DG' ? 55 : e.type === 'YC' ? 30 : 0
-  const picks = [...live.ctx.events]
-    .filter(e => weight(e) > 0)
-    .sort((a, b) => weight(b) - weight(a))
-    .slice(0, 3)
-    .sort((a, b) => a.min - b.min)
-  if (!picks.length) return null
-  return (
-    <div className="card" style={{ margin: '12px 0', borderLeft: '4px solid var(--gold)' }}>
-      <h3 style={{ fontSize: 14 }}>{t('matchday.highlightsTitle')}</h3>
-      {picks.map((e, i) => (
-        <div key={i} className="meta" style={{ padding: '3px 0' }}>
-          <b style={{ fontFamily: 'var(--cond)' }}>{e.min}'</b> - {eventText(e)}
-        </div>
-      ))}
     </div>
   )
 }
@@ -3006,7 +2991,7 @@ function usableChanges(game: { players: Record<number, Player> }, side: SideCtx,
  *  `forcedOffId` is the injury flow (feedback 9-3): when a man goes down badly
  *  the sheet opens with him already armed, so the only decision left is who
  *  comes on. */
-export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDesc, mustDecide, onTactics }: {
+export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDesc, hurtId, mustDecide, onTactics }: {
   onClose: () => void
   /** The man the assistant sent on to cover an injury. Swapping him is free. */
   freeCoverId?: number
@@ -3016,6 +3001,8 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
    *  heading scrolls out of reach on a phone once the bench is in view. */
   hurtName?: string
   hurtDesc?: string
+  /** the injured man's id, so the sheet can say what his shirt needs */
+  hurtId?: number
   /** A forced stop: the sheet cannot be dismissed until a change is made. Used
    *  for injuries, where somebody has to come on and the choice is the
    *  manager's, not the assistant's. */
@@ -3026,8 +3013,18 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
   const game = useStore(s => s.game)!
   const live = useStore(s => s.liveMatch)!
   const { halfTimeSub, injuryCover, undoSub, swapPositions } = useStore.getState()
-  const [offId, setOffId] = useState<number | null>(freeCoverId ?? null)
-  const [freeLeft, setFreeLeft] = useState(freeCoverId != null)
+  // THE FREE OVERRIDE ONLY EXISTS WHILE THE ASSISTANT'S MAN IS OUT THERE TO BE
+  // TAPPED. If he is not (nobody could go on, or the law took him straight back
+  // off), there is nothing to override and nothing to wait for: the side plays
+  // on with what it has, and the sheet can always be closed (owner, round 6:
+  // "I can't continue in the game").
+  const live0 = live.ctx.home.teamId === live.ctx.userSideId ? live.ctx.home : live.ctx.away
+  const coverOn = freeCoverId != null && live0.onPitch.has(freeCoverId) && live0.lineup.slice(0, 15).includes(freeCoverId)
+  const [offId, setOffId] = useState<number | null>(coverOn ? freeCoverId! : null)
+  const [freeLeft, setFreeLeft] = useState(coverOn)
+  /** a decision has been made: a change, a swap, or keeping the assistant's man.
+   *  A refused tap is not one, so it does not open the door. */
+  const [decided, setDecided] = useState(false)
   const [log, setLog] = useState<string[]>([])
   // COUNT THE CHANGES, do not count the lines about them. The Done button used to
   // read log.length, and log is a display list capped with .slice(0, 4) - so a
@@ -3060,28 +3057,44 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
   const left = Math.min(lawLeft, bench.length)
 
   const off = offId != null ? game.players[offId] : null
+  // THE SHIRT, NOT THE MAN WEARING IT. With the assistant's cover armed, the
+  // shirt being filled is the injured man's: a back sent on for a flanker is
+  // wearing 6, and the bench should be read for 6, not for wherever the back
+  // usually plays.
+  const offSlot = offId != null ? mine.lineup.indexOf(offId) : -1
+  const shirtPos: Pos | null = off ? (offSlot >= 0 && offSlot < 15 ? XV_SLOTS[offSlot].pos : off.pos) : null
   // Natural cover first, same as the engine's own bench discipline, so the
-  // like-for-like choice is the one at the top of the list.
-  const covers = (p: Player) => !!off && (p.pos === off.pos || p.alt.includes(off.pos))
+  // like-for-like choice is the one at the top of the list. Everybody else is
+  // still a choice: any fit man can take any shirt but the front row's.
+  const covers = (p: Player) => !!shirtPos && (p.pos === shirtPos || p.alt.includes(shirtPos))
   const benchSorted = [...bench].sort((a, b) => Number(covers(b)) - Number(covers(a)) || b.ca - a.ca)
 
   // Swapping the injury cover is free and does not burn one of them, so it
   // routes through injuryCover rather than a normal substitution.
   const isFreeSwap = freeLeft && offId != null && offId === freeCoverId
+  // shirts 1 to 3 want a trained front-rower while there is one (needsFrontRower);
+  // when there is none, anybody may go on and the scrums go uncontested
+  const frShirt = offSlot >= 0 && offSlot <= 2
+  const frOnly = off ? needsFrontRower(game, mine, off.id, isFreeSwap ? off.id : undefined) : false
+  const blocked = (p: Player) => frOnly && !isFrontRower(p)
+  const hurtP = hurtId != null ? game.players[hurtId] : null
   const doSub = (inP: Player) => {
-    if (offId == null) return
+    if (offId == null || blocked(inP)) return
     const msg = isFreeSwap ? injuryCover(offId, inP.id) : halfTimeSub(offId, inP.id)
+    // the engine has the last word: a refused change changes nothing here either
+    if (!mine.onPitch.has(inP.id)) { setLog(l => [msg, ...l].slice(0, MAX_SUBS)); return }
     if (isFreeSwap) setFreeLeft(false)
     // the display list holds the whole bench now rather than four of it, because a
     // log that quietly drops entries is what made the count wrong in the first place
     setLog(l => [msg, ...l].slice(0, MAX_SUBS))
     setMade(n => n + 1)
+    setDecided(true)
     setOffId(null)
   }
 
   // a forced stop is satisfied by any change, including keeping the assistant's
   // man - tapping him again is a decision, it is just the same decision
-  const settled = !mustDecide || log.length > 0 || !freeLeft
+  const settled = !mustDecide || decided || !freeLeft
   return (
     <div className="modal-veil" onClick={() => { if (settled) onClose() }}>
       <div className="modal squad-sheet" onClick={e => e.stopPropagation()}>
@@ -3110,9 +3123,13 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
               <Glyph name="medical" /> <b>{hurtName}</b>{t('matchday.casualty')}{hurtDesc ? t('matchday.casualtyDesc', { desc: hurtDesc }) : ''}
             </div>
           )}
+          {hurtP && ctx.uncontested && (
+            <div className="meta sheet-hint" style={{ fontWeight: 700 }}>{t('matchday.injUncontested')}</div>
+          )}
           <div className="meta sheet-hint">
             {note ? <>{note}{' '}</> : null}
-            {isFreeSwap && off ? t('matchday.hintFree', { player: off.name })
+            {hurtP && !coverOn && bench.length === 0 ? t('matchday.injNoCover')
+              : isFreeSwap && off ? t('matchday.hintFree', { player: off.name })
               : off ? t('matchday.hintArmed', { player: off.name })
               : left <= 0 ? t('matchday.hintNoneLeft')
               : t('matchday.hintTap')}
@@ -3138,6 +3155,7 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
                     // and so never appears in the bench column.
                     if (canFree && offId === p.id) {
                       setFreeLeft(false)
+                      setDecided(true)
                       // no setMade here on purpose: keeping the assistant's man is a
                       // decision, which settles the forced stop, but it is not a change
                       setLog(l => [t('matchday.keepsShirt', { player: p.name }), ...l].slice(0, MAX_SUBS))
@@ -3149,6 +3167,7 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
                     if (offId != null && offId !== p.id && !isFreeSwap && mine.onPitch.has(offId) && on) {
                       const msg = swapPositions(offId, p.id)
                       setLog(l => [msg, ...l].slice(0, MAX_SUBS))
+                      setDecided(true)
                       setOffId(null)
                       return
                     }
@@ -3186,7 +3205,12 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
             })}
           </div>
           <div className="sheet-col">
-            <div className="fact-label">{off ? t('matchday.benchCover', { pos: posName(off.pos) }) : t('matchday.bench')}</div>
+            <div className="fact-label">{shirtPos ? t('matchday.benchCover', { pos: posName(shirtPos) }) : t('matchday.bench')}</div>
+            {/* the front row is the one shirt with a rule on it, said where the
+                choice is made rather than discovered as a refusal */}
+            {off && frShirt && benchSorted.length > 0 && (frOnly || !ctx.uncontested) && (
+              <div className="meta sheet-frnote">{t(frOnly ? 'matchday.frOnlyNote' : 'matchday.frNoneNote')}</div>
+            )}
             {benchSorted.length === 0 && <div className="meta">{t('matchday.benchEmpty')}</div>}
             {benchSorted.map(p => {
               // what he was told before kick-off, so the choice is informed (F4)
@@ -3194,7 +3218,7 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
               const brief = seat != null ? briefForSeat(game.clubs[mine.teamId], seat) : 'orders'
               return (
                 <button key={p.id} className={`sheet-row ${off && covers(p) ? 'cover' : ''}`}
-                  disabled={!off || (left <= 0 && !isFreeSwap)}
+                  disabled={!off || (left <= 0 && !isFreeSwap) || blocked(p)}
                   onClick={() => doSub(p)}>
                   <span className="sh-num">{p.pos}</span>
                   <span className="sh-name">{p.name}</span>
