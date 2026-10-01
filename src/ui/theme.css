@@ -2146,8 +2146,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    shrinking as it sails away over the bar. It fades before the far edge, so
    the flight reads the same wherever on the field it was struck from. */
 
-.now-line.tmo { border-left-color: var(--gold); }
-.now-line.tmo .txt { font-weight: 700; }
 .tick-event.tmo .txt { font-weight: 700; }
 
 /* ---- the broadcast card: half-time, the hour, full time (idea 5) ---- */
@@ -2205,47 +2203,87 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .derby-line { color: var(--danger); line-height: 1.45; }
 .derby-line b { font-weight: 700; }
 
-/* ---- the now-line: one commentary line at a time, broadcast style ---- */
-.now-line {
-  display: flex; gap: 10px; align-items: flex-start;
-  margin: 10px 14px; padding: 14px 16px;
-  background: var(--surface-1); border-radius: 10px;
+/* ---- THE COMMENTARY FEED (round 5, owner: "smoother as it flicks between
+   stories. Like FM manager style") ----
 
-  border-left: 4px solid var(--border-strong);
-  font-size: 16px; line-height: 1.45;
-  animation: now-in .32s ease both;
-  min-height: 76px;
+   It used to be ONE line in a box keyed on the cursor, so every beat the box
+   was torn down and rebuilt: the old line vanished in a frame, the new one
+   faded up from nothing, the whole box swapped to the other club's colours in
+   a frame, and the box took the height of the sentence, so the live stats
+   under it lurched up and down by a line every 640ms (feedprobe measured
+   29px). Now it is a short running feed in a box of FIXED height:
+
+     the lines stack newest at the foot, anchored to the bottom edge, and the
+       older ones leave over the top under a soft fade (the mask)
+     a new line slides the stack up by its own height (MatchDay.tsx
+       useFeedGlide, transform only, 220ms) and fades in as it comes
+     the current line wears the kit; when the next arrives it lets go of the
+       fill over 200ms and dims, and dims again a step each line it ages
+     a row is the same size current or old: only colour and opacity change,
+       never the font, so a demoted line never re-wraps and nothing above it
+       moves
+   The box's height is fixed, so the stats, a highlight or the talk's
+   reactions below it never move when a line arrives. */
+.now-strip { padding: 0 10px 2px; }
+.comm-feed {
+  position: relative; overflow: hidden;
+  height: clamp(96px, 17vh, 150px);
+  /* the older lines fade out over the top edge rather than being cut */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 26px);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 26px);
 }
-.now-line .min {
-  font-family: var(--cond); font-weight: 800; font-size: 16px;
+.comm-list {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  display: flex; flex-direction: column; gap: 4px;
+  will-change: transform;
+}
+.comm-line {
+  display: flex; gap: 10px; align-items: center;
+  padding: 8px 14px; border-radius: 10px;
+  border-left: 4px solid transparent;
+  font-size: 14px; line-height: 1.4;
+  color: var(--text-secondary);
+  background: transparent;
+  transition: background-color .2s ease, color .2s ease, box-shadow .2s ease, opacity .2s ease, border-color .2s ease;
+}
+.comm-line .min {
+  font-family: var(--cond); font-weight: 800; font-size: 15px;
   color: var(--info); flex-shrink: 0; min-width: 30px;
+  font-variant-numeric: tabular-nums;
 }
-.now-line .txt { color: var(--text-primary); }
-.now-line.big { border-left-color: var(--gold); }
-.now-line.big .txt { font-weight: 700; color: var(--text-primary); font-size: 18px; }
-.now-line.card-y { border-left-color: var(--prop-yellow-deep); }
-.now-line.card-r { border-left-color: var(--prop-red); }
-.now-line.inj { border-left-color: var(--danger); }
-/* a line about a side wears its kit (MatchDay.tsx lineStyle): the text takes
-   the colour worked out for the fill */
-.now-line.kit .txt, .now-line.kit.big .txt { color: inherit; }
-.now-line.kit .min { color: inherit; opacity: .8; }
-@keyframes now-in {
-  from { opacity: 0; transform: translateY(7px); }
-  to { opacity: 1; transform: translateY(0); }
+.comm-line.cur { min-height: 54px; background: var(--surface-1); border-left-color: var(--border-strong); color: var(--text-primary); }
+.comm-line.cur.fresh { animation: comm-in .22s cubic-bezier(.25, .1, .25, 1) backwards; }
+.comm-line.old { opacity: .62; }
+.comm-line.old.a2 { opacity: .42; }
+.comm-line.old.a3 { opacity: .28; }
+/* a score is bold whether it is the current line or an old one: the weight
+   (and the size) belong to the line, not to being current, or a line would
+   re-wrap the moment it was demoted */
+.comm-line.big .txt { font-weight: 700; font-size: 16px; }
+.comm-line.tmo .txt { font-weight: 700; }
+.comm-line.big { border-left-color: var(--gold); }
+.comm-line.big .min { color: var(--gold); }
+.comm-line.card-y { border-left-color: var(--prop-yellow-deep); }
+.comm-line.card-r { border-left-color: var(--prop-red); }
+.comm-line.inj { border-left-color: var(--danger); }
+.comm-line.tmo { border-left-color: var(--gold); }
+.comm-line.pen { border-left-color: var(--info); }
+/* a line about a side wears its kit while it is current (MatchDay.tsx
+   lineStyle): the text takes the colour worked out for the fill */
+.comm-line.kit.cur .min { color: inherit; opacity: .8; }
+.live-wrap.big-text .comm-line .txt { font-size: 16px; line-height: 1.35; }
+.live-wrap.big-text .comm-line.big .txt { font-size: 18px; }
+.live-wrap.big-text .comm-line .min { font-size: 16px; }
+@keyframes comm-in { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .comm-line { transition: none; }
+  .comm-line.cur.fresh { animation: none; }
+  .comm-list { will-change: auto; }
 }
-
-/* ---- the long rectangle: one commentary line, classic CM ---- */
 /* THE STATS SHEET (v1.1.9). Home | label | away, the way a broadcast
    graphic reads, in fixed columns so the numbers do not jump about as they
    tick up. Tabular figures for the same reason. Deliberately quiet: it sits
    under live commentary and must never compete with it. */
-.now-strip { padding: 0 10px 2px; }
-.now-strip .now-line {
-  margin: 0; min-height: 54px; padding: 9px 14px;
-  font-size: 14px; align-items: center;
-}
-.now-strip .now-line.big .txt { font-size: 16px; }
 
 /* match prep chips on a single scrollable line */
 .preset-row.oneline { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
@@ -5074,7 +5112,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 }
 @media (prefers-reduced-motion: reduce) { .feed-line.newest { animation: none; } }
 /* the feed's newest line IS the now-line on a tablet: one of them, not both */
-@media (orientation: portrait) { .app.tablet .now-strip .now-line { display: none; } }
+@media (orientation: portrait) { .app.tablet .now-strip .comm-feed { display: none; } }
 
 /* ================================================================
    THE MOTION LAYER (1.8.0). Owner: "Could we add subtle motion throughout
@@ -5128,12 +5166,8 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 
 /* LARGE COMMENTARY (Match Settings, on by default; owner: "The size of the
    text in fm stands out"). The now-line was 14px body and 17px for a score. */
-.live-wrap.big-text .now-strip .now-line .txt { font-size: 16px; line-height: 1.35; }
-.live-wrap.big-text .now-strip .now-line.big .txt { font-size: 18px; }
-.live-wrap.big-text .now-strip .now-line .min { font-size: 16px; }
 .live-wrap.big-text .feed-line { font-size: 16px; }
 /* penalties in blue, beside the gold scores and the card colours */
-.now-line.pen { border-left-color: var(--info); }
 .feed-line.pen { border-left-color: var(--info); }
 
 /* THE SETTINGS SHEET IN THE FM26 LAYOUT: the choices, then the switches */
@@ -5162,7 +5196,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
     grid-area: deck; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1.4fr) minmax(0, 1fr);
     padding: 4px 14px 4px 0; min-height: 0;
   }
-  .app.tablet .live-wrap .now-strip .now-line { display: none; }
+  .app.tablet .live-wrap .now-strip .comm-feed { display: none; }
 
 }
 
@@ -5430,7 +5464,7 @@ a.btn.home-community {
    squared while the bar shows. */
 [style*="border-left"],
 .tick-event, .store-card, .challenge-card, .wire-card.unread, .desk-match,
-.resume-note, .now-line, .sheet-casualty, .inbox-cue, .news-quotes blockquote,
+.resume-note, .comm-line, .sheet-casualty, .inbox-cue, .news-quotes blockquote,
 .who-chip, .first-hint, .talk-said, .day-draw, .draw-verdict, .fix-grade,
 .respect-line, .temper-card .bench-note, .dev-card,
 .inbox-li.on, .feed-line {

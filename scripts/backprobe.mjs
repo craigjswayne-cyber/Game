@@ -193,25 +193,22 @@ try {
   ok(kicked.screen === 'matchday', `a match is running (${kicked.screen}, depth ${kicked.depth})`)
   ok(kicked.armed, `and it arms the spare entry at depth ${kicked.depth} like any other screen`)
 
-  // ---- now the case the exception exists for: a reload into a live match ----
+  // ---- a reload into a live match (round 5) ----
+  //
+  // This used to come back INTO the match, as a single matchday entry at depth
+  // 1, which is why matchday is armed whatever the depth. The owner has since
+  // decided that every load lands on Home and a match left running is played
+  // out on the way in: so a reload here comes back to Home, alone on the
+  // stack, with the match finished. The matchday exception stays in App.tsx
+  // (it costs nothing and a kick-off can still put matchday at the foot of a
+  // stack built some other way); what this holds now is the landing.
   await page.reload({ waitUntil: 'domcontentloaded' })
-  await page.waitForSelector('.scoreboard', { timeout: 40000 }).catch(() => {})
-  await page.waitForTimeout(2000)
+  await page.waitForSelector('.bottom-nav', { timeout: 40000 }).catch(() => {})
+  await page.waitForTimeout(2500)
   const resumed = await state()
-  ok(resumed.screen === 'matchday', `the reload comes back into the match (${resumed.screen})`)
-  if (resumed.screen === 'matchday') {
-    ok(resumed.depth === 1, `and it is the only screen on the stack, which is the whole problem (depth ${resumed.depth})`)
-    ok(resumed.armed, 'armed anyway, because there is nothing underneath it to go back to')
-    await page.goBack()
-    await page.waitForTimeout(900)
-    const after = await state()
-    ok(after.onApp && after.screen === 'matchday',
-       `BACK DOES NOT CLOSE A RECOVERED MATCH (${after.screen})`)
-    await page.goBack()
-    await page.waitForTimeout(900)
-    const after2 = await state()
-    ok(after2.onApp && after2.screen === 'matchday', 'nor does the press after that')
-  }
+  ok(resumed.screen === 'home' && resumed.depth === 1,
+    `the reload lands on Home, alone on the stack (${resumed.screen}, depth ${resumed.depth})`)
+  ok(await page.locator('.scoreboard').count() === 0, 'and the match is not on screen: it was played out')
 
 } catch (e) {
   ok(false, `the harness threw: ${String(e).split('\n')[0].slice(0, 180)}`)

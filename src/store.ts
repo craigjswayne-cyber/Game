@@ -102,7 +102,7 @@ import { deskBlock, deskGates, firstStepOfWeek, inInbox, markRead, matchDayIndex
 import { natSquadHold } from './game/country'
 import { clearResume, getResume, loadGame, migrate, peekResumes, putResume, saveGame } from './game/save'
 import {
-  recordReach, replayMatch, resumeFits, sameCareer, stampedRecord, stampedSave,
+  notePlayedOut, playOut, recordReach, replayMatch, resumeFits, sameCareer, stampedRecord, stampedSave,
   type LiveStamp, type MatchCmdBody, type MatchResume,
 } from './game/resume'
 import { isHighlight } from './game/highlights'
@@ -323,7 +323,8 @@ interface Store {
   noteCmd: (cmd: MatchCmdBody) => void
   noteProgress: () => void
   dropResume: () => void
-  /** rebuild a match that was in progress when the page went away */
+  /** finish a match that was in progress when the page went away: replay it
+   *  to the minute it reached, play it out, turn the week, land on Home */
   resumeLiveMatch: () => Promise<boolean>
   /** The manager has seen the "still going" line and pressed Resume. */
   ackResume: () => void
@@ -472,6 +473,9 @@ function landOnNextWeek(
   set: (fn: (s: Store) => Partial<Store>) => void,
   get: () => Store,
   extra: NavEntry[] = [],
+  // a match played out on the way back into a career (resumeLiveMatch): Home
+  // and nothing over it, as every load lands (round 5)
+  homeOnly = false,
 ) {
   const step = firstStepOfWeek(g)
   g.day = step.kind === 'day' ? step.day : step.kind === 'match' ? (matchDayIndex(g) ?? 0) : 0
@@ -485,7 +489,7 @@ function landOnNextWeek(
   // you want, and the new week's Monday sits underneath it, so backing out of the
   // round-up puts you at the start of the week rather than nowhere.
   set(s => ({
-    nav: [{ screen: 'home' }, ...dayEntry, ...extra, ...annualEntry],
+    nav: homeOnly ? [{ screen: 'home' }] : [{ screen: 'home' }, ...dayEntry, ...extra, ...annualEntry],
     tick: s.tick + 1,
   }))
   void get().persist()
@@ -698,12 +702,13 @@ export const useStore = create<Store>((set, get) => ({
     void get().persist()
   },
 
-  setGame: (g, slot, keepPlace = false) => {
-    // Continue passes keepPlace, so tapping it lands on the screen the manager
-    // was last on rather than dumping him on Home. Load Career deliberately does
-    // not: picking a different save out of a list is a fresh start on that save.
-    const where = keepPlace ? readWhere() : null
-    const nav = where && where.slot === slot ? where.nav : [{ screen: 'home' as const }]
+  setGame: (g, slot, _keepPlace = false) => {
+    // EVERY LOAD LANDS ON HOME (round 5, owner: "When you load into the game
+    // again it should always load into the Home page"). Continue used to
+    // pass keepPlace and land on whatever screen the bookmark held; the
+    // argument is still accepted so the callers need not change, and no
+    // longer does anything. One entry, so Back has nowhere stale to go.
+    const nav: NavEntry[] = [{ screen: 'home' }]
     noteWhere(slot, nav)
     // A MATCH KICKED OFF IS A MATCH TO FINISH (1.8.2, tester note 1.4). This
     // used to clear the live-match record, on the reasoning that loading from
@@ -737,11 +742,12 @@ export const useStore = create<Store>((set, get) => ({
    *  stay on the page"). Returns false when there is nothing to resume, which is
    *  the title screen's cue to behave as it always did. */
   /**
-   * Rebuild a match that was in progress when the page went away.
+   * Finish a match that was in progress when the page went away.
    *
    * Replays the recorded match on top of its own pre-match save, so the tries,
    * the cards and the injuries come back because they happen again. Returns true
-   * if a match was restored.
+   * if a match was found and played out (round 5: it is no longer put back
+   * on screen; see the comment where it is played out).
    */
   resumeLiveMatch: async () => {
     const slot = get().saveSlot
@@ -787,23 +793,31 @@ export const useStore = create<Store>((set, get) => ({
       const clean = JSON.parse(JSON.stringify(base)) as GameState
       const out = replayMatch(base, rec)
       if (!out) continue
-      // a tie that had gone to full time was settled at the whistle
-      if (out.ctx.seg === 3 && !out.ctx.decision) settleKnockout(base, out.ctx)
       const own: MatchResume = { ...rec, pre: clean }
-      if (c.from !== slot) void putResume(slot, own, true).catch(() => {})
-      set(s => ({
-        game: base,
-        matchRec: own,
-        liveMatch: {
-          ctx: out.ctx, fixture: out.fixture, events: out.ctx.events,
-          cursor: Math.max(0, Math.min(own.cursor, out.ctx.events.length)),
-          playing: false, speed: 1, mode: own.mode,
-          done: out.ctx.seg === 3, talkMsg: out.talkMsg, preTalkMsg: out.preTalkMsg,
-          resumed: true,
-        },
-        nav: [{ screen: 'matchday' as const }],
-        tick: s.tick + 1,
-      }))
+      // THE RECORD GOES DOWN IN THIS SLOT BEFORE ANYTHING ELSE. If the
+      // process dies between here and the finished career landing on disk,
+      // the next open finds this record and plays the same match out to the
+      // same whistle; nothing in between can be reopened as a fresh match.
+      if (c.from !== slot) await putResume(slot, own, true).catch(() => {})
+      if (get().game !== g) return false
+      // PLAYED OUT, NOT PUT BACK ON SCREEN (round 5, owner: "When you load
+      // into the game again it should always load into the Home page. If it
+      // was during the match, the match needs to be completed."). The minute
+      // it had reached is replayed above, with every call he made; from
+      // there the assistant has it (resume.ts playOut). Then exactly what
+      // finishMatch does, once: the findings, the week turned, the record
+      // dropped only when the finished career is on disk.
+      const fromMin = out.ctx.events[out.ctx.events.length - 1]?.min ?? 0
+      playOut(base, out.ctx)
+      // a tie level at the whistle is settled there, as the live match does
+      settleKnockout(base, out.ctx)
+      fileFindings(base, out.ctx)
+      notePlayedOut(base, out.fixture, fromMin)
+      base.newsFrom = base.nextId
+      processWeekAndAdvance(base)
+      set(s => ({ game: base, matchRec: own, liveMatch: null, resuming: false, tick: s.tick + 1 }))
+      get().dropResume()
+      landOnNextWeek(base, set, get, [], true)
       return true
     }
     return false
@@ -846,7 +860,11 @@ export const useStore = create<Store>((set, get) => ({
     if (!where) return false
     const g = await loadGame(where.slot).catch(() => null)
     if (!g) return false
-    set({ game: g, saveSlot: where.slot, nav: where.nav, tick: get().tick + 1, resuming: true })
+    // ON HOME, like every other way in (round 5): the bookmark now only says
+    // which career, not which screen
+    const nav: NavEntry[] = [{ screen: 'home' }]
+    noteWhere(where.slot, nav)
+    set({ game: g, saveSlot: where.slot, nav, tick: get().tick + 1, resuming: true })
     // AND THE MATCH HE WAS WATCHING. A refresh mid-match used to drop the manager
     // back into the week with the game gone; the record written at kick-off lets it
     // be played back to the same minute (game/resume.ts).
