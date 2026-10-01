@@ -61,6 +61,23 @@ ok(Array.isArray(D.DREAMS) && D.DREAMS.length >= 5, `there are dreams to choose 
   for (const list of [prem, champ, nl1]) ok(list.length > 0, 'and nobody is offered an empty list')
 }
 
+// ---- the four retired at the foot of the list (owner, round 6) ----
+// Never offered again, by the wizard or the Legacy refocus, but a save that
+// already named one still reads its title and its progress.
+{
+  const RETIRED = ['bottom', 'legend', 'fallen', 'intl']
+  const all = ['prem', 'champ', 'natl1'].flatMap(l => D.dreamsFor({ clubId: 'ealing', clubName: 'Ealing', leagueId: l, rep: 62 }).map(d => d.id))
+  ok(RETIRED.every(id => !all.includes(id)), `none of ${RETIRED.join(', ')} is offered any more`)
+  ok(D.DREAMS.filter(d => !d.retired).map(d => d.id).join() === 'topflight,europe,double,dynasty,academy,world,immortal,league',
+    'the rest keep their order')
+  const g = newGame('ealing', 'Dreamer', 31)
+  for (const id of RETIRED) {
+    g.dream = { id, clubId: 'ealing', season: g.season }
+    const st = D.dreamState(g)
+    ok(!!st && !!st.title && !/\./.test(st.title.slice(0, 6)), `an old save that named "${id}" still reads it (${st?.title})`)
+  }
+}
+
 // ---- nothing is free in week one ----
 {
   const worlds: [string, GameState][] = [
@@ -237,13 +254,10 @@ ok(Array.isArray(D.DREAMS) && D.DREAMS.length >= 5, `there are dreams to choose 
     setWorld('w')
     const wEuro = D.dreamTitle(euro, wCtx)
     const wDbl = D.dreamTitle(dbl, wCtx)
-    const wBlurb = (await import('../src/game/i18n')).t(euro.blurbK, euro.titleVars?.(wCtx))
-    const wDblBlurb = (await import('../src/game/i18n')).t(dbl.blurbK, dbl.titleVars?.(wCtx))
     ok(/H[eé]mi|Emisferic/i.test(wEuro), `[${lang}] the women's cup dream names the Hemispheric Championship (${wEuro})`)
-    ok(!/Continental|continentale|Europe|europ/i.test(wEuro + wDbl + wDblBlurb),
+    ok(!/Continental|continentale|Europe|europ/i.test(wEuro + wDbl),
       `[${lang}] and neither women's dream says Continental or Europe (${wDbl})`)
-    ok(!/\{cup/.test(wEuro + wDbl + wBlurb + wDblBlurb), `[${lang}] and no fragment is left unfilled`)
-    ok(!/four|quatre|quattro|cuatro|vier/i.test(wBlurb), `[${lang}] the cup blurb does not promise four knockout ties`)
+    ok(!/\{cup/.test(wEuro + wDbl), `[${lang}] and no fragment is left unfilled`)
     setWorld('m')
   }
   await ensureLang('en')
@@ -252,7 +266,7 @@ ok(Array.isArray(D.DREAMS) && D.DREAMS.length >= 5, `there are dreams to choose 
   // and the count itself: 16 teams, 8 into the knockouts, so QF, SF and final
   const { CC_KO_WEEKS, W_CC_KO_WEEKS } = await import('../src/game/schedule')
   ok(CC_KO_WEEKS.length === 3 && W_CC_KO_WEEKS.length === 3,
-    'both worlds play THREE knockout ties, which is what the blurb now says')
+    'both worlds play THREE knockout ties')
 }
 
 console.log(fails ? `DREAM PROBE FAILED (${fails})` : 'DREAM PROBE PASSED: the save knows what it is for')

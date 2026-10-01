@@ -84,6 +84,8 @@ const ALLOWED: [string, RegExp][] = [
   // and the bug-reports channel invite (1.8.2), the same kind of link, the
   // same file, only the bug screen's Post on Discord button opens it
   ['src/game/community.ts', /https:\/\/discord\.gg\/TWmWQxu38z/g],
+  // and the ideas invite (owner, round 6): ideas and suggestions open it
+  ['src/game/community.ts', /https:\/\/discord\.gg\/472rzEQbZ/g],
 ]
 
 const strip = (src: string, file: string) => {

@@ -20,7 +20,7 @@ import { ord, t, compLabel } from '../../game/i18n'
 import { AdSlot } from '../AdSlot'
 import { tillOpen } from '../../game/monetise'
 import { natWindow, weeksToSquad } from '../../game/country'
-import { Glyph } from '../glyphs'
+import { FanFace, Glyph } from '../glyphs'
 import { COMMUNITY_URL } from '../../game/community'
 import { buildDesk, deskText } from '../../game/desk'
 import { DeskCard } from '../Desk'
@@ -435,15 +435,14 @@ export default function Home() {
           <label>{t('home.wFans')}</label>
           {(() => {
             const m = game.fanMood ?? 60
-            // a coloured light, not a face (owner, 27 Sep 2026: icons, not
-            // emoji); the word under it says what the light means
-            const c = m >= 62 ? 'var(--positive)' : m >= 45 ? 'var(--gold)' : 'var(--danger)'
-            return <b><span className="status-dot mood-dot" style={{ background: c }} /></b>
+            const word = t(m >= 80 ? 'home.fanBouncing' : m >= 62 ? 'home.fanBehind' : m >= 45 ? 'home.fanWatching' : m >= 30 ? 'home.fanRestless' : 'home.fanMutinous')
+            // a drawn face, five of them from angry to delighted (owner, round
+            // 6), never an emoji (27 Sep 2026); the word under it says it too
+            return <>
+              <b><FanFace mood={m} label={word} className="hub-face" /></b>
+              <span>{word}</span>
+            </>
           })()}
-          <span>{(() => {
-            const m = game.fanMood ?? 60
-            return t(m >= 80 ? 'home.fanBouncing' : m >= 62 ? 'home.fanBehind' : m >= 45 ? 'home.fanWatching' : m >= 30 ? 'home.fanRestless' : 'home.fanMutinous')
-          })()}</span>
         </button>
       </div>
       {(() => {

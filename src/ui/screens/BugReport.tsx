@@ -3,7 +3,8 @@ import { useStore } from '../../store'
 import { SectionTitle } from '../components'
 import { buildReport, mailtoUrl, reportFilename } from '../../game/bugreport'
 import { t } from '../../game/i18n'
-import { BUG_CHANNEL_URL, COMMUNITY_URL } from '../../game/community'
+import { BUG_CHANNEL_URL, IDEAS_URL } from '../../game/community'
+import { Glyph } from '../glyphs'
 
 /**
  * Report a Bug. Under the Handbook in the menu, because it is the other half of
@@ -157,6 +158,14 @@ export default function BugReport() {
           a feedback box and a data collection box. */}
       <div className="card bug-ideas">
         <SectionTitle>{t('legacy.bgIdeasTitle')}</SectionTitle>
+        {/* IDEAS LIVE ON DISCORD (owner, round 6): the first thing in the box
+            is the way there, a plain link the player taps (game/community.ts),
+            so an in-app browser and the Android shell both follow it out. An
+            idea already written goes with it on the clipboard. */}
+        <a className="btn gold block ideas-discord" href={IDEAS_URL} target="_blank" rel="noopener noreferrer"
+          onClick={() => { if (idea.trim()) copyFor(ideaBody, 'legacy.bgIdeaDiscordDone', setIdeaMsg) }}>
+          <Glyph name="gossip" /> {t('menu.ideasDiscord')}
+        </a>
         <label className="bug-label" htmlFor="idea-notes">{t('legacy.bgIdeaLabel')}</label>
         <textarea
           id="idea-notes"
@@ -168,20 +177,13 @@ export default function BugReport() {
         />
         <div className="btn-row bug-send" style={{ marginTop: 8 }}>
           {canShare && (
-            <button className="btn gold" onClick={() => { void doShareIdea() }}>{t('legacy.bgShare')}</button>
+            <button className="btn" onClick={() => { void doShareIdea() }}>{t('legacy.bgShare')}</button>
           )}
           <a className="btn" href={ideaMail}
             onClick={e => { if (!idea.trim()) { e.preventDefault(); setIdeaMsg(t('legacy.bgIdeaEmpty')) } }}>
             {t('legacy.bgEmail')}
           </a>
           <button className="btn" onClick={() => { void doCopyIdea() }}>{t('legacy.bgCopy')}</button>
-          <a className="btn" href={COMMUNITY_URL} target="_blank" rel="noopener noreferrer"
-            onClick={e => {
-              if (!idea.trim()) { e.preventDefault(); setIdeaMsg(t('legacy.bgIdeaEmpty')); return }
-              copyFor(ideaBody, 'legacy.bgIdeaDiscordDone', setIdeaMsg)
-            }}>
-            {t('legacy.bgDiscord')}
-          </a>
         </div>
         {ideaMsg && <div className="bug-msg">{ideaMsg}</div>}
       </div>

@@ -85,8 +85,11 @@ export interface DreamDef {
    *  else: lowercasing an English sentence gives a lowercase English one. */
   titleLowerK: string
   titleVars?: (ctx: DreamContext) => Vars
-  /** what taking it on actually means */
-  blurbK: string
+  /** NO LONGER OFFERED (owner, round 6: the wizard keeps the first eight).
+   *  A retired dream is never put in front of a manager again, by the wizard
+   *  or the Legacy refocus, but its definition stays: a save that already
+   *  named it still reads its title and its progress. */
+  retired?: true
   /** THE COMPETITIONS THIS DREAM CANNOT BE FINISHED WITHOUT.
    *
    *  Declared rather than left inside progress(), because a dependency hidden
@@ -154,7 +157,6 @@ export const DREAMS: DreamDef[] = [
     id: 'topflight',
     titleK: 'dream.topflight', titleLowerK: 'dream.topflightLower',
     titleVars: ctx => ({ club: ctx.clubName }),
-    blurbK: 'dream.topflightBlurb',
     // only a club that is not already there can dream of getting there
     // Not offered in the women's world: its leagues are ringfenced (RELEGATES,
     // model.ts), so a club below the top flight has no road up to dream of.
@@ -179,7 +181,6 @@ export const DREAMS: DreamDef[] = [
     id: 'europe',
     titleK: 'dream.europe', titleLowerK: 'dream.europeLower',
     titleVars: ctx => ({ cup_k: cupKey(genderOfId(ctx.clubId)) }),
-    blurbK: 'dream.europeBlurb',
     needs: ['cc'],
     applies: () => true,
     progress: state => {
@@ -200,7 +201,6 @@ export const DREAMS: DreamDef[] = [
     id: 'double',
     titleK: 'dream.double', titleLowerK: 'dream.doubleLower',
     titleVars: ctx => ({ club: ctx.clubName, cup_k: cupKey(genderOfId(ctx.clubId)) }),
-    blurbK: 'dream.doubleBlurb',
     needs: ['cc'],
     applies: ctx => dreamTier(ctx.leagueId) === 1,
     progress: (state, clubId) => {
@@ -225,7 +225,6 @@ export const DREAMS: DreamDef[] = [
   {
     id: 'dynasty',
     titleK: 'dream.dynasty', titleLowerK: 'dream.dynastyLower',
-    blurbK: 'dream.dynastyBlurb',
     applies: () => true,
     progress: state => {
       // the longest run of consecutive title-winning seasons on the record
@@ -250,7 +249,6 @@ export const DREAMS: DreamDef[] = [
   {
     id: 'academy',
     titleK: 'dream.academy', titleLowerK: 'dream.academyLower',
-    blurbK: 'dream.academyBlurb',
     applies: () => true,
     progress: state => {
       const club = state.clubs[state.userClubId]
@@ -272,7 +270,6 @@ export const DREAMS: DreamDef[] = [
     id: 'world',
     needs: ['wc'],
     titleK: 'dream.world', titleLowerK: 'dream.worldLower',
-    blurbK: 'dream.worldBlurb',
     applies: () => true,
     progress: state => {
       const wc = won(state, 'wc')
@@ -292,7 +289,6 @@ export const DREAMS: DreamDef[] = [
   {
     id: 'immortal',
     titleK: 'dream.immortal', titleLowerK: 'dream.immortalLower',
-    blurbK: 'dream.immortalBlurb',
     applies: () => true,
     progress: state => {
       const n = state.mgr.trophies.length
@@ -310,7 +306,6 @@ export const DREAMS: DreamDef[] = [
   {
     id: 'league',
     titleK: 'arc.dream.league', titleLowerK: 'arc.dream.leagueLower',
-    blurbK: 'arc.dream.leagueBlurb',
     applies: () => true,
     progress: state => {
       const n = leagueTitleSeasons(state).length
@@ -319,9 +314,9 @@ export const DREAMS: DreamDef[] = [
   },
   {
     id: 'bottom',
+    retired: true,
     titleK: 'arc.dream.bottom', titleLowerK: 'arc.dream.bottomLower',
     titleVars: ctx => ({ club: ctx.clubName }),
-    blurbK: 'arc.dream.bottomBlurb',
     // a club with somewhere to climb from; the women's leagues are ringfenced
     applies: ctx => (LEAGUE_TIER[ctx.leagueId] ?? 1) > 1,
     progress: (state, clubId) => {
@@ -343,9 +338,9 @@ export const DREAMS: DreamDef[] = [
   },
   {
     id: 'legend',
+    retired: true,
     titleK: 'arc.dream.legend', titleLowerK: 'arc.dream.legendLower',
     titleVars: ctx => ({ club: ctx.clubName }),
-    blurbK: 'arc.dream.legendBlurb',
     applies: () => true,
     progress: (state, clubId) => {
       const club = dreamClub(state, clubId)
@@ -362,8 +357,8 @@ export const DREAMS: DreamDef[] = [
   },
   {
     id: 'fallen',
+    retired: true,
     titleK: 'arc.dream.fallen', titleLowerK: 'arc.dream.fallenLower',
-    blurbK: 'arc.dream.fallenBlurb',
     applies: () => true,
     progress: state => {
       // every job taken at a fallen giant, finished or not (chairman.ts profiles)
@@ -389,8 +384,8 @@ export const DREAMS: DreamDef[] = [
   },
   {
     id: 'intl',
+    retired: true,
     titleK: 'arc.dream.intl', titleLowerK: 'arc.dream.intlLower',
-    blurbK: 'arc.dream.intlBlurb',
     applies: () => true,
     progress: state => {
       const tests = (state.natHistory ?? []).reduce((s, x) => s + x.m, 0) + (state.natTeam ? state.natRecord?.m ?? 0 : 0)
@@ -439,7 +434,7 @@ export function worldHasComp(gender: Gender, compId: string): boolean {
 export function dreamsFor(ctx: DreamContext): DreamDef[] {
   // the club id carries the world: "w:bristol" is the women's Bristol
   const gender: Gender = isWomensId(ctx.clubId) ? 'w' : 'm'
-  return DREAMS.filter(d =>
+  return DREAMS.filter(d => !d.retired &&
     d.applies(ctx) && (d.needs ?? []).every(c => worldHasComp(gender, c)))
 }
 

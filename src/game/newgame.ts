@@ -36,7 +36,7 @@ import { assistantJudgement, autoSelect } from './matchEngine'
 import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildLeague, schedulePreseason, buildWomensContinentalCup } from './schedule'
 import { punditPredictions } from './gossip'
 import { WEEK_BASIS, CHEM_SLOTS, RELEGATES, chemKey, fmtMoney, initFacilities, isWorldCupSeason, worldCupSeasonFor } from './model'
-import { WATCH_KNOW, knowledge, leadRow, seedKnowledge } from './scout'
+import { seedKnowledge } from './scout'
 import { ensureCaptains } from './analysis'
 import { CLUB_CAPTAINS, sameName } from '../data/captains'
 import { pickObjectives } from './objectives'
@@ -794,23 +794,22 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   inheritStaff(state)
 
   // and only then the circulars
-  // THE CIRCULAR NAMES ONLY WHO THE SCOUTS HAVE WATCHED (1.8.2). It used to
-  // name five generational talents with their clubs on day one, which made
-  // the best teenagers in the world a free gift. Filed after seedKnowledge,
-  // so it can ask: a man the scouts have properly read (scout.WATCH_KNOW) is
-  // named; anyone else is a lead, a position, an age and a league, to be
-  // followed up. The free-agent prodigies are not mentioned at all.
+  // THE CIRCULAR NAMES THEM, THE SCOUTS STILL HAVE TO READ THEM (owner,
+  // round 6: "you should be able to see the names, but their profile info
+  // will need to be properly scouted"). 1.8.2 named only the men the scouts
+  // had properly read and set everyone else as an anonymous lead; now every
+  // row is a name, an age, a position and a club, each one tappable, and
+  // that is all the circular gives away. Knowledge is not touched: his page
+  // shows what the scouts know of him (scout.ts knowledge, the ranges and
+  // the staged report), so an unscouted name is still a name on a team sheet
+  // until somebody goes and watches him. The free-agent prodigies are not
+  // mentioned at all.
   if (watchIds.length) {
-    const rows = watchIds.map(id => state.players[id]).filter((p): p is Player => !!p).map(p =>
-      p.clubId === state.userClubId || knowledge(state, p) >= WATCH_KNOW
-        ? { k: 'news.watchNamed', name: p.name, age: p.age, pos: p.pos, club: state.clubs[p.clubId ?? '']?.short ?? '' }
-        // the same lead, set as a row in the story (news.watchLeadRow)
-        : { ...leadRow(state, p), k: 'news.watchLeadRow' })
-    const named = watchIds.filter(id => { const p = state.players[id]; return p && (p.clubId === state.userClubId || knowledge(state, p) >= WATCH_KNOW) })
-    // two leads can read alike (same position, age and league): one row says it
-    const seen = new Set<string>()
-    const uniq = rows.filter(r => { const key = JSON.stringify(r); if (seen.has(key)) return false; seen.add(key); return true })
-    const v = { list_ll: JSON.stringify(uniq) }
+    const men = watchIds.map(id => state.players[id]).filter((p): p is Player => !!p)
+    const rows = men.map(p =>
+      ({ k: 'news.watchNamed', name: p.name, age: p.age, pos: p.pos, club: state.clubs[p.clubId ?? '']?.short ?? '' }))
+    const named = men.map(p => p.id)
+    const v = { list_ll: JSON.stringify(rows) }
     state.news.push({
       id: state.nextId++, week: 1, season: 0, type: 'youth', read: false,
       subject: tIn('en', 'news.watchListSubj'),

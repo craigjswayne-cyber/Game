@@ -27,8 +27,18 @@ export const COMMUNITY_URL = 'https://discord.gg/3KKfDVsMb'
  * Owner: "Post on Discord" on the bug screen must land in the bug-reports
  * channel, not the server's front door. This is a channel invite, so it opens
  * straight into that channel. Only the bug report's button uses it; the menu's
- * "Join us on Discord", Home, About and the ideas box keep COMMUNITY_URL.
+ * "Join us on Discord", Home and About keep COMMUNITY_URL; ideas go to IDEAS_URL.
  * Same rules as above: a link the player taps, nothing sent by the game
  * (scripts/netprobe.ts allows this address in this file too).
  */
 export const BUG_CHANNEL_URL = 'https://discord.gg/TWmWQxu38z'
+
+/**
+ * ---- IDEAS AND SUGGESTIONS (owner, round 6) ----
+ *
+ * "Ideas and suggestions bit should be shared on" this invite: every place
+ * that asks for an idea (the ideas box on the bug screen, About) opens it.
+ * Bug reports keep BUG_CHANNEL_URL. Same rules: a link the player taps,
+ * nothing sent by the game (scripts/netprobe.ts allows it in this file).
+ */
+export const IDEAS_URL = 'https://discord.gg/472rzEQbZ'

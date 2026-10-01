@@ -8,8 +8,9 @@
 //      rewrite the hidden potential of every unscouted player and every list
 //      and reading (ones to watch, the market's sort keys and price, the loan
 //      window, the Wonderkid chip, the ceiling band) comes out the same
-//   2. ones to watch and the scouts' circular name only men the scouts have
-//      read; the rest are leads with no name, never free agents
+//   2. ones to watch names only men the scouts have read; the rest are leads
+//      with no name, never free agents. The scouts' circular names its men
+//      (owner, round 6) but gives away nothing the scouts have not read
 //   3. the agency ranks only teenagers it could have seen play
 //   4. scouting reveals: a shortlisted kid's band narrows week by week to the
 //      number, and once read he is named
@@ -74,7 +75,7 @@ for (const [club, seed] of [['leicester', 11], ['bath', 22], ['pirates', 33]] as
     `${club}: ${banded.length} half-read kids made generational: none named or chipped until the scouts file a proper report`)
 }
 
-console.log('--- 2. ones to watch and the circular name only the men the scouts have read')
+console.log('--- 2. ones to watch names only the men the scouts have read; the circular names, and reveals nothing')
 for (const [club, seed] of [['leicester', 11], ['northampton', 5], ['exeter', 7]] as const) {
   const g = newGame(club, 'Deep Dive', seed)
   const league = g.clubs[g.userClubId].leagueId
@@ -92,16 +93,26 @@ for (const [club, seed] of [['leicester', 11], ['northampton', 5], ['exeter', 7]
   const fa = Object.values(g.players).filter(p => !p.clubId && p.age <= 21 && p.pa >= 86)
   ok(fa.every(p => !o.named.includes(p) || !unread(g, p)) && fa.every(p => !wonderkidKnown(g, p) || !unread(g, p)),
     `${club}: ${fa.length} high-ceiling free agents, none flagged before they are scouted`)
+  // THE CIRCULAR NAMES THEM; THE PAGE STILL HAS TO BE EARNED (owner, round
+  // 6). Every man in it is a name, an age, a position and a club, tappable,
+  // and nothing more: no rating, no ceiling, no chip, and filing it moves no
+  // man's knowledge, so his page reads what the scouts know of him.
   const circ = g.news.find(n => n.k === 'news.watchList')
   ok(!!circ, `${club}: the scouts' circular is filed`)
   if (circ) {
-    const named = circ.playerIds ?? []
-    ok(named.every(id => !unread(g, g.players[id]!)), `${club}: the circular links only read men (${named.length})`)
-    const hidden = Object.values(g.players).filter(p => unread(g, p) && p.youth && p.age <= 19 && p.pa >= 88)
-    ok(hidden.every(p => !circ.body.includes(p.name)), `${club}: and names none of the ${hidden.length} unread academy prodigies`)
+    const named = (circ.playerIds ?? []).map(id => g.players[id]!).filter(Boolean)
+    const rows = JSON.parse(String(circ.v?.list_ll ?? '[]')) as Record<string, unknown>[]
+    ok(named.length > 0 && named.every(p => circ.body.includes(p.name)), `${club}: the circular names every man it links (${named.length})`)
+    ok(rows.every(r => r.k === 'news.watchNamed' && Object.keys(r).sort().join() === 'age,club,k,name,pos'),
+      `${club}: each row is a name, an age, a position and a club, nothing more`)
+    const fresh = newGame(club, 'Deep Dive', seed)
+    ok(named.every(p => p.sc === fresh.players[p.id]!.sc), `${club}: naming them read nobody: knowledge as seeded`)
+    const blindNamed = named.filter(p => unread(g, p))
+    ok(blindNamed.every(p => !wonderkidKnown(g, p) && (paRange(g, p) === null || paRange(g, p)![1] - paRange(g, p)![0] >= 14)),
+      `${club}: ${blindNamed.length} of them unread, and their pages show no chip and no close ceiling`)
     for (const lang of ['en', 'fr', 'ja'] as const) {
       const txt = tIn(lang, 'news.watchList', circ.v)
-      ok(!/\{[a-z_]+\}/.test(txt) && hidden.every(p => !txt.includes(p.name)), `${club}: the circular reads cleanly in ${lang}`)
+      ok(!/\{[a-z_]+\}/.test(txt) && named.every(p => txt.includes(p.name)), `${club}: the circular reads cleanly in ${lang}`)
     }
   }
 }

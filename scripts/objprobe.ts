@@ -133,5 +133,43 @@ console.log('\nevery brief met is one short message, and it says what it earned:
   }
 }
 
+// THE ACADEMY BRIEF COUNTS ACADEMY PLAYERS, NOT AN AGE (owner, round 6):
+// "give 6+ starts to Academy players". A bought 20-year-old's starts no longer
+// tick it; a graduate of this club's academy does, at any age; a graduate of
+// somebody else's does not; an old save's graduate with no gradClub is ours.
+console.log('\nthe academy brief counts the club\'s own academy players:\n')
+{
+  const youth = OBJECTIVE_DEFS.find(o => o.id === 'youth')!
+  const { isClubAcademyPlayer, academyStarts } = await import('../src/game/objectives')
+  const g: GameState = newGame('bath', 'Objective Probe', 1313)
+  const squad = g.clubs[g.userClubId].players.map(id => g.players[id]!).filter(Boolean)
+  for (const p of squad) p.stats.starts = 0
+  const bought = squad.find(p => !p.acad && !p.homegrown && p.age <= 21) ?? squad.find(p => !p.acad && !p.homegrown)!
+  bought.age = Math.min(bought.age, 20)
+  bought.stats.starts = 8
+  ok(!isClubAcademyPlayer(g, bought) && !youth.met(g), `a bought ${bought.age}-year-old's eight starts do not meet it (${academyStarts(g)})`)
+  bought.stats.starts = 0
+  const grad = squad.find(p => !p.acad && p !== bought)!
+  grad.homegrown = true; grad.gradClub = g.userClubId; grad.age = 26; grad.stats.starts = 6
+  ok(isClubAcademyPlayer(g, grad) && youth.met(g), `a 26-year-old graduate of this academy does (${academyStarts(g)})`)
+  grad.gradClub = 'leicester'
+  ok(!isClubAcademyPlayer(g, grad) && !youth.met(g), 'a graduate of another club\'s academy does not')
+  grad.gradClub = undefined
+  ok(isClubAcademyPlayer(g, grad), 'an old save\'s graduate with no academy stamped is taken as ours')
+  const scholar = squad.find(p => p.acad)
+  if (scholar) {
+    ok(isClubAcademyPlayer(g, scholar), 'a scholar still in the academy is an academy player')
+    scholar.demoted = true
+    ok(!isClubAcademyPlayer(g, scholar), 'a senior sent down by hand is not')
+  }
+  for (const l of ['en', 'fr', 'es', 'it', 'af', 'ja'] as Lang[]) {
+    await ensureLang(l); setLang(l)
+    const { t } = await import('../src/game/i18n')
+    const s = t('objectives.youth')
+    ok(!/21/.test(s) && !/\{/.test(s), `${l}: "${s}"`)
+  }
+  setLang('en')
+}
+
 if (fails) { console.error(`\nOBJECTIVE PROBE: ${fails} failures`); process.exit(1) }
 console.log('\nOBJECTIVE PROBE PASSED: nothing is ticked before it is earned')

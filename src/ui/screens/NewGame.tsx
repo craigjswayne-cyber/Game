@@ -399,7 +399,6 @@ export default function NewGame() {
                   <button key={d.id} className={`speech-tile${ambitions.includes(d.id) ? ' sel' : ''}`}
                     onClick={() => toggleDream(d.id)}>
                     <b>{ambitions.includes(d.id) ? `${ambitions.indexOf(d.id) + 1}. ` : ''}{dreamTitle(d, dreamCtx!)}</b>
-                    <span className="d">{t(d.blurbK, d.titleVars?.(dreamCtx!))}</span>
                   </button>
                 ))}
               </div>
