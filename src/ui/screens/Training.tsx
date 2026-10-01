@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
 import { STAFF_INFO, fmtMoney, fmtWage, injuryDesc, type TrainingFocus, weeksBetween100 } from '../../game/model'
-import { BADGE_COL, EXAM_PASS_PCT, badgeLabel, traitLabel, appointBlock, appointStaff, backroomFund, courseBlock, courseFee, sackCost, sackStaff, sendToCourse, staffCandidates, staffInterest, type StaffRole } from '../../game/staff'
+import { BADGE_COL, EXAM_PASS_PCT, badgeLabel, appointBlock, appointStaff, backroomFund, courseBlock, courseFee, sackCost, sackStaff, sendToCourse, staffCandidates, staffInterest, type StaffRole } from '../../game/staff'
 import DevelopmentPanel from './DevelopmentPanel'
 import { Flag } from '../flags'
 import { SectionTitle, TwoStep } from '../components'
@@ -131,7 +131,7 @@ function StaffPanel() {
                         <Flag code={p.nat} /> {p.name} <b style={{ color: BADGE_COL[p.tier], fontSize: 12 }}>{badgeLabel(p.tier).toUpperCase()}</b>
                       </h3>
                       <div className="meta" style={{ fontSize: 11 }}>
-                        {t('training.staffLine', { age: p.age, trait: traitLabel(p.trait), wage: fmtWage(p.wage) })}
+                        {t('training.staffLine', { age: p.age, wage: fmtWage(p.wage) })}
                         {(p.passed ?? 0) > 0 ? t(p.passed === 1 ? 'training.badgeHere' : 'training.badgesHere', { n: p.passed ?? 0 }) : ''}
                       </div>
                       {p.course && <div className="meta" style={{ fontSize: 11, color: 'var(--gold)', fontWeight: 700 }}>
@@ -197,7 +197,7 @@ function StaffPanel() {
                         <Flag code={c.nat} /> {c.name} <span style={{ color: BADGE_COL[c.tier], fontSize: 11 }}>{badgeLabel(c.tier).toUpperCase()}</span>
                       </div>
                       <div className="meta" style={{ fontSize: 11 }}>
-                        {t('training.candLine', { age: c.age, trait: traitLabel(c.trait), wage: fmtWage(c.wage), fee: fmtMoney(c.fee) })}
+                        {t('training.candLine', { age: c.age, wage: fmtWage(c.wage), fee: fmtMoney(c.fee) })}
                       </div>
                       {/* the money truth, on his row, before the tap - this is
                           the line the user went looking for and never found */}
