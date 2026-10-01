@@ -4,7 +4,7 @@
 // confidence figure is the share of his attributes it has exactly right.
 import type { GameState, Player } from '../game/model'
 import { scoutReport, sideStyleKeys, type Note } from '../game/recruit'
-import { persName, t } from '../game/i18n'
+import { t } from '../game/i18n'
 import { rewardedAvailable } from '../game/monetise'
 import { canInsideWord } from '../game/rewarded'
 import { useStore } from '../store'
@@ -25,7 +25,6 @@ export default function ScoutReportCard({ game, p, onMsg }: { game: GameState; p
     [t('recruit.concerns'), r.concerns.length ? r.concerns.map(n => noteWord(n, 'c')).join(' · ')
       : <span className="muted">{t(r.stage === 0 ? 'recruit.notSeen' : 'recruit.nothing')}</span>],
   ]
-  if (r.pers) rows.push([t('recruit.personality'), <b>{persName(r.pers)}</b>])
   rows.push([t('recruit.level'), <>
     <b>{band(r.level)}</b>{' · '}{t('recruit.ceiling')}{' '}
     {r.ceiling ? <b>{band(r.ceiling)}</b> : <span className="muted">?</span>}
