@@ -1645,6 +1645,11 @@ export interface GameState {
   staffPeople?: Partial<Record<keyof StaffLevels, StaffPerson>>
   /** bumped on every appointment so the candidate market refreshes */
   staffSalt?: number
+  /** two coaches at the manager's club who have fallen out (staffrift.ts).
+   *  Secret: only the news ever names it. Absent or null when they all get on. */
+  staffRift?: import('./staffrift').StaffRift | null
+  /** absWeek before which no new falling-out can start (staffrift.ts) */
+  staffRiftNext?: number
   mgr: ManagerStats
   /** the commercial slots and what is signed in them (F30; the sleeve joined
    *  in 1.8.0). Absent on a save written before the department existed;
@@ -2600,8 +2605,17 @@ export function closeNatTenure(state: GameState) {
  *    economy retired in v1.1.4.
  *  - 'news.pinnacle' (+Subj): the "your name goes to the federations"
  *    letter from when the International Stage took two weeks to answer;
- *    since v1.1.6 the offer itself arrives immediately instead. */
-export const LEGACY_NEWS_KEYS = ['news.dressingDown', 'news.pinnacle'] as const
+ *    since v1.1.6 the offer itself arrives immediately instead.
+ *  - 'news.staffChem', 'news.staffClick', 'news.staffClash' and the
+ *    staff.click and staff.clash notes they quote: the hire-day line on how a
+ *    new coach got on with the room, retired when staff chemistry became a
+ *    secret falling-out the news only hints at (staffrift.ts, round 4). */
+export const LEGACY_NEWS_KEYS = [
+  'news.dressingDown', 'news.pinnacle',
+  'news.staffChem', 'news.staffClick', 'news.staffClash',
+  'staff.clickNumbers', 'staff.clickRoom', 'staff.clickScrum', 'staff.clickCaps',
+  'staff.clashGps', 'staff.clashLaptop', 'staff.clashVideo',
+] as const
 
 /** A story filed before the icon pass (owner, 27 Sep 2026: "use icons instead
  *  of emojis") still has an emoji at the front of its English in an old save;
