@@ -47,6 +47,83 @@ const WEATHER_ICON: Record<string, string> = { Dry: 'sun', Damp: 'rain', Rain: '
  *  compared - the engine reads fixture.weather - and only the label moves. */
 const weatherWord = (w: string): string => t(`matchday.wx${w}`)
 
+/** How many lines the phone's commentary feed keeps in the DOM: the current
+ *  one and enough older ones to fill the fixed box under its top fade. */
+const FEED_ROWS = 5
+/** The glide: about a third of the Normal beat (640ms), so a line has landed
+ *  and been read for most of its beat before the next one moves it. */
+const GLIDE_MS = 220
+
+/** Motion is on for people (main.tsx sets data-motion) and off when the OS
+ *  asks for less of it. */
+function glideOn(): boolean {
+  try {
+    return document.documentElement.dataset.motion === 'on'
+      && !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  } catch { return false }
+}
+
+/** The list's vertical offset from its transform, mid-glide included. */
+function liveTy(el: HTMLElement): number {
+  const m = getComputedStyle(el).transform
+  if (!m || m === 'none') return 0
+  const v = m.match(/matrix(3d)?\(([^)]+)\)/)
+  if (!v) return 0
+  const n = v[2].split(',').map(Number)
+  return (v[1] ? n[13] : n[5]) || 0
+}
+
+/**
+ * THE GLIDE (round 5). A FLIP on the commentary list: when lines are added,
+ * every row that was already there is drawn where it WAS and then eased to
+ * where it now is, so the stack slides by the new line's height instead of
+ * jumping. Transform only (motionprobe's rule), one property on one element,
+ * and it starts from wherever a glide still in flight has got to, so lines
+ * arriving faster than the glide (Fast, a highlight's build-up) never snap.
+ *
+ * Rows carry data-k, the event's index in the match: stable for the life of
+ * the line, so React keeps the same node and its colour can transition as it
+ * goes from current to old.
+ */
+function useFeedGlide(listRef: React.RefObject<HTMLDivElement>, count: number) {
+  const where = useRef<Map<string, number> | null>(null)
+  useLayoutEffect(() => {
+    const list = listRef.current
+    const feed = list?.parentElement
+    if (!list || !feed) { where.current = null; return }
+    // every row's resting place in the feed box: where it is drawn, less
+    // whatever a glide still in flight is adding
+    const ty = liveTy(list)
+    const top = feed.getBoundingClientRect().top
+    const now = new Map<string, number>()
+    for (const el of Array.from(list.children) as HTMLElement[]) {
+      const k = el.dataset.k
+      if (k != null) now.set(k, el.getBoundingClientRect().top - top - ty)
+    }
+    const before = where.current
+    where.current = now
+    if (!before || !glideOn()) return
+    let dy: number | null = null
+    for (const [k, y] of now) {
+      const was = before.get(k)
+      if (was != null) { dy = was - y; break }
+    }
+    // a burst bigger than the box (Key Moments, a skip) is not a glide: the
+    // rows are new, and they simply arrive
+    if (dy == null || Math.abs(dy + ty) > feed.clientHeight * 1.5) {
+      list.style.transition = 'none'
+      list.style.transform = ''
+      return
+    }
+    if (Math.abs(dy) < 0.5) return
+    list.style.transition = 'none'
+    list.style.transform = `translateY(${dy + ty}px)`
+    void list.offsetHeight
+    list.style.transition = `transform ${GLIDE_MS}ms cubic-bezier(.25, .1, .25, 1)`
+    list.style.transform = ''
+  }, [count])
+}
+
 export default function MatchDay() {
   const game = useStore(s => s.game)!
   const live = useStore(s => s.liveMatch)
@@ -1536,6 +1613,8 @@ function Live() {
   const [prefs, setPrefs] = useState(readMatchPrefs)
   const setPref = (p: Partial<MatchPrefs>) => setPrefs(o => { const n = { ...o, ...p }; writeMatchPrefs(n); return n })
   const tickerRef = useRef<HTMLDivElement>(null)
+  const feedRef = useRef<HTMLDivElement>(null)
+  const tabRef = useRef<HTMLDivElement>(null)
 
   const { events, cursor, playing, fixture, ctx } = live
   const shown = events.slice(0, cursor)
@@ -1773,7 +1852,17 @@ function Live() {
       ...(plain ? { borderLeftColor: edge ?? fill } : {}),
     }
   }
+  /** An old line lets go of the fill and keeps its side as the stripe, the
+   *  way FM's feed keeps a team colour beside a line it has moved past. */
+  const oldStyle = (e: MatchEvent): React.CSSProperties | undefined => {
+    if (!e.teamId || cls(e)) return undefined
+    return { borderLeftColor: (e.teamId === fixture.awayId ? kits.away : kits.home)[0] }
+  }
   const panelActive = done || atHalfTime || atBreak || atDecision || (drawer && paused)
+  // the phone's feed: the last few lines, by their index in the match
+  const feedRows = shown.slice(-FEED_ROWS).map((e, j) => ({ e, i: Math.max(0, shown.length - FEED_ROWS) + j }))
+  useFeedGlide(feedRef, panelActive ? -1 : shown.length)
+  useFeedGlide(tabRef, panelActive || !tablet ? -1 : shown.length)
 
   // THE GROUND (idea 7): the crowd under the match, at a level that follows it
   // (matchAtmos.crowdLevel), quiet whenever the match is not being played -
@@ -2023,13 +2112,24 @@ function Live() {
             <span>⇄ {t('mstatus.subs', { left: usableChanges(game, ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away, ctx.subsUsed), max: MAX_SUBS })}</span>
             <span>{t(KICK_STYLE_LABEL[game.clubs[ctx.userSideId ?? '']?.tactic.kickStyle ?? 'balanced'] ?? 'tacticsScreen.kickBalanced')}</span>
           </div>
-          {last && (
-            <div key={cursor} className={`now-line ${cls(last)}${last.teamId ? ' kit' : ''}`}
-              style={lineStyle(last)}>
-              <span className="min">{Math.min(80, last.min)}'</span>
-              <span className="txt">{eventText(last)}</span>
+          {/* THE FEED (round 5): a fixed box, newest line at the foot, the
+              stack gliding up as each one arrives (useFeedGlide). The
+              current line keeps the now-line class the probes read. */}
+          <div className="comm-feed" aria-live="off">
+            <div className="comm-list" ref={feedRef}>
+              {feedRows.map(({ e, i }) => {
+                const age = shown.length - 1 - i
+                return (
+                  <div key={i} data-k={i}
+                    className={`comm-line ${cls(e)}${e.teamId ? ' kit' : ''}${age === 0 ? ` cur now-line fresh` : ` old a${Math.min(3, age)}`}`}
+                    style={age === 0 ? lineStyle(e) : oldStyle(e)}>
+                    <span className="min">{Math.min(80, e.min)}'</span>
+                    <span className="txt">{eventText(e)}</span>
+                  </div>
+                )
+              })}
             </div>
-          )}
+          </div>
         </div>
       )}
 
@@ -2056,13 +2156,17 @@ function Live() {
       {tablet && !panelActive && (
         <div className="tab-deck">
           <div className="tab-feed" aria-live="off">
-            {shown.slice(-12).reverse().map((e, k) => (
-              <div key={shown.length - k} className={`feed-line ${cls(e)}${e.teamId ? ' kit' : ''}${k === 0 ? ' newest' : ''}`}
-                style={lineStyle(e)}>
-                <span className="min">{Math.min(80, e.min)}'</span>
-                <span className="txt">{eventText(e)}</span>
-              </div>
-            ))}
+            {/* newest first, so a new line pushes the rest DOWN: the same
+                glide as the phone's feed, the other way up (round 5) */}
+            <div className="tab-list" ref={tabRef}>
+              {shown.slice(-12).reverse().map((e, k) => (
+                <div key={shown.length - k} data-k={shown.length - k} className={`feed-line ${cls(e)}${e.teamId ? ' kit' : ''}${k === 0 ? ' newest' : ''}`}
+                  style={lineStyle(e)}>
+                  <span className="min">{Math.min(80, e.min)}'</span>
+                  <span className="txt">{eventText(e)}</span>
+                </div>
+              ))}
+            </div>
           </div>
           <div className="tab-stats">
             <LiveStats shown={shown} />
