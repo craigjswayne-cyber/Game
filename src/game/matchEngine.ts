@@ -2938,6 +2938,29 @@ function moveInPlay(state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideCtx,
   return { id: m.id, launch: call.launch, gain: e.gain, risk: m.risk, maker: inShirt(state, side, (MOVE_MAKER[m.id] ?? 10) - 1) }
 }
 
+/** how far the penalty slot's play moves a quick tap's chance, per unit of
+ *  its edge: the edge is a share of the try chance, and a tap is one go at
+ *  the line, so it is added as it stands. At 1.6 the right play drilled
+ *  took a strong side's tap five metres out to the 55% ceiling, a cheat
+ *  code; at 1 the right play is worth about ten points of the chance, the
+ *  wrong one costs about three, and an undrilled one about twelve
+ *  (tapplayprobe). */
+const TAP_PLAY_W = 1.0
+
+/** The penalty slot's play, as a kickable penalty tapped runs it: what it is
+ *  worth with the men in the shirts against this defence, and who runs it.
+ *  Null for a side with no play in the slot. No draw. */
+function penPlay(state: GameState, side: SideCtx, opp: SideCtx): MoveInPlay | null {
+  const club = state.clubs[side.teamId]
+  const id = club ? callsOf(state, club).pen : undefined
+  const m = id ? MOVE_BY_ID[id] : undefined
+  if (!club || !m) return null
+  const fit = clamp(moveFit(m, (s, a) => inShirt(state, side, s - 1)?.a[a] ?? null)
+    + moveAffinity(side.sty?.atk, m.id, false), -1, 1)
+  const e = moveEdge(state, club, m.id, fit, moveMatchup(m, state.clubs[opp.teamId]?.tactic))
+  return { id: m.id, launch: 'tap', gain: e.gain, risk: m.risk, maker: inShirt(state, side, (MOVE_MAKER[m.id] ?? 9) - 1) }
+}
+
 /** Whether the try this tick scored is the move's, for its line and its
  *  clip: a strike move that came off usually is (it launched the tick), a
  *  shape now and then. Deterministic, so it never draws. */
@@ -3648,11 +3671,21 @@ function decide(
   // seven points a match. Close in with an attack that has the beating of
   // their defence it is now a real rival to the posts; from forty metres out
   // it is still a punt, which is rugby.
+  //
+  // AND IT IS RUN AS THE PLAYBOOK'S PENALTY PLAY (round 6). The play in the
+  // penalty slot moves the chance by what it is worth with these men against
+  // this defence (moveEdge, the same reckoning as any called move: drilled,
+  // fitted, matched, and a misfire when undrilled), and a try it makes is
+  // named for it. No play is the tap as it always was. Read off the side,
+  // never a draw: the one roll below is the one there always was.
   mine.poss += 1.4
   const toLine = mine === ctx.home ? 100 - ctx.field : ctx.field
-  const pTap = clamp(0.42 - toLine * 0.006 + (mine.units.attack - opp.units.defence) * 0.03, 0.10, 0.55)
+  const pen = penPlay(state, mine, opp)
+  const pTap = clamp(0.42 - toLine * 0.006 + (mine.units.attack - opp.units.defence) * 0.03 + (pen ? pen.gain * TAP_PLAY_W : 0), 0.10, 0.55)
   if (rng() < pTap) {
+    ctx.moveTry = pen ? { id: pen.id, launch: 'tap', maker: pen.maker?.id ?? null } : null
     scoreTry(state, ctx, mine, min, undefined)
+    ctx.moveTry = null
     return t('touch.quickTapWorks')
   }
   pushLine(state, ctx, min, 'SUB', mine, 'comm.quickTapPhases', { team: teamShort(state, mine.teamId) })
