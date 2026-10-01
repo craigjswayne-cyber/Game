@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Club, GameState } from '../game/model'
-import { MOVES, MOVE_BY_ID, familiarityOf, isRedCall, isStrike, mixOf, type Move } from '../game/moves'
+import { MOVES, MOVE_BY_ID, isRedCall, isStrike, mixOf, type Move } from '../game/moves'
 import { t } from '../game/i18n'
 import { SectionTitle } from './components'
 import MovePreview from './MovePreview'
@@ -20,8 +20,8 @@ import MovePreview from './MovePreview'
  * each saying what it holds now; one the move cannot go in is there but
  * greyed, and a tap on any other puts the move there, replacing what was. A
  * move already in the playbook offers "Remove from playbook" instead. How
- * well the side knows a move is shown as familiarity; what a half-learnt
- * move costs on the day is left to the matches to teach (owner).
+ * well the side knows a move is not shown at all: familiarity, and what a
+ * half-learnt move costs on the day, are left to the matches to teach (owner).
  */
 
 type Slot = 'shape' | 'main' | 'alt' | 'red'
@@ -42,7 +42,6 @@ export default function MovesSection({ game, club, touch }: { game: GameState; c
     const id = tac[key]
     return id && MOVE_BY_ID[id] && fits(MOVE_BY_ID[id]) ? id : null
   }
-  const famPct = (id: string) => Math.round(familiarityOf(game, club, id) * 100)
   const inBook = new Set(SLOTS.map(([, , k, f]) => current(k, f)).filter((x): x is string => !!x))
 
   const m = pick ? MOVE_BY_ID[pick] : null
@@ -75,7 +74,6 @@ export default function MovesSection({ game, club, touch }: { game: GameState; c
               onClick={() => { if (c) choose(c) }}>
               <b>{t(heading)}</b>
               <span>{c ? t(MOVE_BY_ID[c].name) : t('moves.none')}</span>
-              {c && <span className="mv-fam" data-fam={famPct(c)}>{t('moves.fam', { pct: famPct(c) })}</span>}
             </button>
           )
         })}
@@ -93,7 +91,6 @@ export default function MovesSection({ game, club, touch }: { game: GameState; c
         <div className="sp-txt">
           <b>{t(m.name)}</b>
           <span className="d">{t(m.desc)}</span>
-          <span className="d" data-fam={famPct(m.id)}>{t('moves.fam', { pct: famPct(m.id) })}</span>
         </div>
         {inBook.has(m.id)
           ? <button className="btn ghost block" data-act="remove" onClick={remove}>{t('moves.remove')}</button>

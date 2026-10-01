@@ -3225,7 +3225,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .mv-callchip b { font-size: 11px; line-height: 1.2; }
 .mv-callchip span { font-size: 10px; opacity: .85; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
-.mv-callchip .mv-fam { opacity: .7; }
 .mv-callchip:disabled { opacity: .55; }
 .mv-chips { margin-top: 0; }
 .mv-chips .preset-chip { min-height: 36px; }
