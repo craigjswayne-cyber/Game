@@ -18,7 +18,7 @@ const say = s => writeSync(1, s + '\n')
 let fails = 0
 const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
-const PORT = Number(process.argv[2] ?? 4237)
+const PORT = Number(process.argv[2] ?? 4280)
 const server = await startPreview(PORT, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
