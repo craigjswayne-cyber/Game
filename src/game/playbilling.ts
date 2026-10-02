@@ -26,7 +26,7 @@
  * handshake means no bridge, which means no purchase door, which is exactly what
  * the web build should look like.
  */
-import { CONSUMABLE_SKUS, creditAdd, setBillingReason, setLookupReason } from './monetise'
+import { CONSUMABLE_SKUS, creditAdd, setBillingCause, setBillingReason, setLookupReason } from './monetise'
 import type { BillingBridge, ConsumeResult, Product, PurchaseOutcome } from './monetise'
 
 /** Play's own identifier for its billing service. */
@@ -215,6 +215,9 @@ export async function playBridge(): Promise<BillingBridge | null> {
         try { await req.abort(); closed = true } catch { /* somebody is in the sheet: wait for them */ }
         if (closed) {
           setBillingReason(`Play did not open its payment sheet inside ${SHEET_MS / 1000} seconds`)
+          // a silence, not a refusal of this product: the player is told the
+          // store could not be reached, never that it is not sold where he is
+          setBillingCause('unreachable')
           return 'refused'
         }
         res = await shown

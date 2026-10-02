@@ -605,6 +605,25 @@ let lastLookup: string | null = null
 export const setLookupReason = (why: string | null) => { lastLookup = why }
 export const lookupReason = (): string | null => lastLookup
 export const setBillingReason = (why: string | null) => { lastReason = why }
+
+/**
+ * WHICH KIND OF "NO" THE STORE GAVE, as distinct from its words for it.
+ *
+ * 'unavailable' and 'refused' each used to cover several unrelated faults,
+ * and the line the player read had to guess. A store that is not offering a
+ * product in this storefront, a phone with purchases switched off, a store
+ * that could not be reached and a set-up fault on our side are four different
+ * sentences, and only the native shell knows which one happened. The shells
+ * send it as `cause` beside the outcome word (since 1.8.3); an older shell
+ * sends nothing, and the screen then says only what is true of all of them.
+ */
+export type BillingCause = 'unreachable' | 'disabled' | 'notOffered' | 'playBilling' | 'config'
+const CAUSES: readonly BillingCause[] = ['unreachable', 'disabled', 'notOffered', 'playBilling', 'config']
+let lastCause: BillingCause | null = null
+export const setBillingCause = (c: unknown) => {
+  lastCause = typeof c === 'string' && (CAUSES as readonly string[]).includes(c) ? c as BillingCause : null
+}
+export const billingCause = (): BillingCause | null => lastCause
 /** The bridge's own account of the last refusal wins where it has one: a
  *  native shell knows more about its store than this module does. The
  *  built-in Android and iOS bridges use setBillingReason above; a wrapper
@@ -786,6 +805,7 @@ export async function restore(): Promise<boolean> {
  *  closes with a sale. */
 export async function buyOwnable(sku: string): Promise<PurchaseOutcome> {
   const b = bridge()
+  setBillingCause(null) // a cause belongs to one tap; the bridge sets this one's
   if (!b || !(NC_SKUS as readonly string[]).includes(sku)) return 'unavailable'
   try {
     const out = await b.buy(sku)
@@ -810,6 +830,7 @@ export async function buySupporter(): Promise<PurchaseOutcome> {
  */
 export async function buyConsumable(sku: string): Promise<PurchaseOutcome> {
   const b = bridge()
+  setBillingCause(null) // a cause belongs to one tap; the bridge sets this one's
   if (!b || typeof b.consume !== 'function' || !CONSUMABLE_SKUS.includes(sku)) return 'unavailable'
   try {
     const out = await b.buy(sku)
