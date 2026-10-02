@@ -5545,3 +5545,7 @@ a.btn.home-community {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
 }
+
+/* Finances: decided board questions, one line each (1.8.3) */
+.board-done { display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
+.board-done-row .opt-detail { display: inline; }
