@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useStore } from '../../store'
 import { clubCode, fmtMoney, fmtWage, newsBody, newsSubject, POS_ORDER, seasonLabel, weekDate, type Attrs, type Pos, weeksBetween100 } from '../../game/model'
 import { counterIncomingOffer, renewalDemand, respondToOffer, windowOpen } from '../../game/ai'
-import { LOAN_LENGTHS, LOAN_SHARES, loanApproachable, loanIn, loanTargets, type LoanLength } from '../../game/loans'
+import { LOAN_LENGTHS, LOAN_SHARES, loanIn, loanMarket, loanTargets, type LoanLength } from '../../game/loans'
 import { attrRange, fuzzedCa, knowledge, searchKey, seenValue } from '../../game/scout'
 import { commissionScout, searchFee, type SearchMonths } from '../../game/commission'
 import { badgeLabel } from '../../game/staff'
@@ -50,6 +50,10 @@ const ATTR_ORDER: (keyof Attrs)[] = ['pac', 'str', 'sta', 'agi', 'scr', 'lin', '
 export default function Transfers() {
   const game = useStore(s => s.game)!
   const touch = useStore(s => s.touch)
+  /** bumped by touch() after every in-place change to the game: the lists
+   *  below are cached, and a loan, a bid or a signing struck this week has to
+   *  reach them this week (round 183) */
+  const tick = useStore(s => s.tick)
   const go = useStore(s => s.go)
   const [pos, setPos] = useState<Pos | 'ALL'>('ALL')
   const [query, setQuery] = useState('')
@@ -95,7 +99,15 @@ export default function Transfers() {
   // unsolicited approach finds anyone loanApproachable (the same gate the
   // engine applies), but only from a typed name: every under-23 in the world
   // is far too many rows to browse.
-  const listedLoans = useMemo(() => new Set(loanTargets(game).map(p => p.id)), [game, game.week])
+  //
+  // KEYED ON THE TICK AS WELL AS THE WEEK (owner, round 183: "when a player is
+  // loaned out, he still appears in the available loan list"). The game is
+  // changed in place, so a loan struck on this screen left `game` and
+  // `game.week` exactly as they were and both lists below kept serving the
+  // man who had just signed, until the week turned or the screen was left.
+  const listedLoans = useMemo(() => new Set(loanTargets(game).map(p => p.id)), [game, game.week, tick])
+  const loanIds = useMemo(() => deal === 'loan' ? new Set(loanMarket(game, query).map(p => p.id)) : null,
+    [game, game.week, tick, deal, query])
   const offers = game.offers.filter(o => o.status === 'pending' && o.forUser)
 
   const MTh = ({ k, children, right }: { k: typeof msort; children: React.ReactNode; right?: boolean }) => (
@@ -108,7 +120,8 @@ export default function Transfers() {
   const results = useMemo(() => {
     const q = query.trim().toLowerCase()
     let list = Object.values(game.players).filter(p => p.clubId !== game.userClubId)
-    if (deal === 'loan') list = list.filter(p => listedLoans.has(p.id) || (q.length >= 3 && loanApproachable(game, p)))
+    // the engine's market (loans.loanMarket), not a second opinion of it
+    if (loanIds) list = list.filter(p => loanIds.has(p.id))
     if (pos !== 'ALL') list = list.filter(p => p.pos === pos || p.alt.includes(pos))
     if (q) list = list.filter(p => p.name.toLowerCase().includes(q) || (p.clubId ? game.clubs[p.clubId]?.short.toLowerCase().includes(q) : false))
     // value and ability are read through the scouts (1.8.2): a filter or sort
@@ -134,7 +147,7 @@ export default function Transfers() {
       }
     })
     return list.slice(0, 120)
-  }, [game, game.players, game.clubs, pos, query, maxVal, maxAge, league, listedOnly, keenOnly, withInjured, expiringOnly, attrKey, attrMin, msort, mdesc, game.week, deal, listedLoans])
+  }, [game, game.players, game.clubs, pos, query, maxVal, maxAge, league, listedOnly, keenOnly, withInjured, expiringOnly, attrKey, attrMin, msort, mdesc, game.week, tick, deal, loanIds])
   const activeFilters = [deal === 'loan', pos !== 'ALL', league !== 'ALL', maxVal > 0, maxAge > 0, !!attrKey,
     listedOnly, keenOnly, expiringOnly, !withInjured].filter(Boolean).length
   const pages = Math.max(1, Math.ceil(results.length / PER_PAGE))
