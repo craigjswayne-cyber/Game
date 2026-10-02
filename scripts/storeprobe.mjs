@@ -75,7 +75,15 @@ const openPage = async ({ billing = false, ads = false, owns = [], deaf = false,
       const bought = new Set()
       const plugin = {
         details: async ({ skus }) => ({ products: skus.map(sku => ({ sku, price: '£1.99', title: sku })) }),
-        buy: async ({ sku }) => { bought.add(sku); return { outcome: 'owned' } },
+        // `__shellAnswer` lets a section make the plugin answer as a real
+        // shell does when it will not sell: { outcome, cause } (1.8.3), the
+        // bare word an older shell sends, or a rejected call ('throw')
+        buy: async ({ sku }) => {
+          const a = globalThis.__shellAnswer
+          if (a === 'throw') throw new Error('PhaseBilling.buy() is not implemented on ios')
+          if (a) return a
+          bought.add(sku); return { outcome: 'owned' }
+        },
         owned: async () => ({ skus: [...new Set([...owned, ...bought])] }),
         consume: async ({ sku }) => { bought.delete(sku); return {} },
       }
@@ -262,6 +270,49 @@ try {
     ok(boughtSupport || await page.evaluate(() => globalThis.__shellBought.size === 0 && true),
       `the tap reached the plugin's buy({ sku }) and its { outcome: 'owned' } came back (bought: ${await page.evaluate(() => [...globalThis.__shellBought].join(',') || 'consumed on landing')})`)
     ok(errs.length === 0, `no page errors on the Android shell (${errs.join(' | ') || 'none'})`)
+    await page.close()
+  }
+
+  // ---- 2g. EVERY KIND OF "NO" HAS ITS OWN SENTENCE (1.8.3) -------------
+  //
+  // A player reported "in-app payments not available in my country". The
+  // only sentence in the game that said "country" was the one refusal line,
+  // and it said it for every refusal; meanwhile a product StoreKit would not
+  // list read as "there is no store attached to this build". The shells now
+  // send a cause beside the outcome word, and this holds each cause to its
+  // own line, through the real storekit.ts bridge on a Capacitor global.
+  say('\n--- 2g. the shell says which kind of no it was, and the shelf says the same')
+  {
+    const page = await openPage({ shell: 'ios' })
+    const errs = []
+    page.on('pageerror', e => errs.push(e.message))
+    await startCareer(page)
+    await openAbout(page)
+    await page.locator('.btn.gold', { hasText: 'Open the Store' }).click()
+    await page.waitForSelector('.content')
+    const row = page.locator('.card', { hasText: 'Support the game' }).first()
+    const answer = async (a) => {
+      await page.evaluate((x) => { globalThis.__shellAnswer = x }, a)
+      await row.locator('.btn.gold').first().click()
+      await page.waitForTimeout(400)
+      return row.innerText()
+    }
+    const cases = [
+      [{ outcome: 'unavailable', cause: 'notOffered' }, /not offering this item to your account/i, 'a product the store does not list here: "not offering this item", ours to fix'],
+      [{ outcome: 'unavailable', cause: 'disabled' }, /switched off on this device/i, 'purchases switched off on the phone: says so, and where to look'],
+      [{ outcome: 'unavailable', cause: 'playBilling' }, /Google Play would not take a payment/i, "Play's BILLING_UNAVAILABLE: Play's own list of reasons, country among them"],
+      [{ outcome: 'error', cause: 'unreachable' }, /could not be reached/i, 'a store that did not answer: try again later'],
+      [{ outcome: 'refused', cause: 'config' }, /set-up fault on our side/i, 'a DEVELOPER_ERROR: a fault on our side, not the player\'s'],
+      [{ outcome: 'unavailable' }, /would not sell this item just now/i, 'an older shell with no cause: only what is true of every cause'],
+      ['throw', /set-up fault on our side/i, 'a rejected plugin call: a build fault, not the player\'s country'],
+    ]
+    for (const [a, want, what] of cases) {
+      const text = await answer(a)
+      ok(want.test(text), what)
+      if (!(a && a.cause === 'playBilling')) ok(!/country/i.test(text), '  and it does not blame the player\'s country')
+      ok(!/no store attached/i.test(text), '  and it never claims there is no store in a build that has one')
+    }
+    ok(errs.length === 0, `no page errors (${errs.join(' | ') || 'none'})`)
     await page.close()
   }
 
@@ -595,6 +646,9 @@ try {
     const till = await page.locator('.content').innerText()
     ok(/would not open a purchase/i.test(till), 'the shelf says the store refused, not that you cancelled')
     ok(/not active yet|licence-testing/i.test(till), 'and names the two things worth checking')
+    // the refusal line itself, not the shelf: other rows talk about a country desk
+    const refusal = till.slice(Math.max(0, till.search(/would not open a purchase/i))).split('\n')[0]
+    ok(!/country/i.test(refusal),'and does NOT guess that the product is not sold in the player\'s country (1.8.3)')
     ok(/item unavailable/i.test(till), "with the store's own words carried through for diagnosis")
     await page.close()
   }
