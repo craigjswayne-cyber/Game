@@ -98,13 +98,15 @@ export default function Menu() {
             and lose heart. Only in the Android shell, only with nothing saved,
             and only until it is put away. */}
         {isAndroidShell() && saves.length === 0 && !dismissed('rm-import-hint') && (
-          <div className="card" style={{ borderLeft: '4px solid var(--gold)', textAlign: 'left' }}>
-            <div className="fact-label">{t('menu.importHintTitle')}</div>
-            <div className="meta" style={{ marginTop: 3 }}>{t('menu.importHintBody')}</div>
-            <div className="btn-row" style={{ margin: '10px 0 0' }}>
-              <button className="btn ghost" onClick={() => { dismiss('rm-import-hint'); setSaves([...saves]) }}>{t('menu.importHintNo')}</button>
-              <button className="btn gold" style={{ flex: 1.6 }} onClick={() => go('saves')}>{t('menu.importHintGo')}</button>
-            </div>
+          // 1.8.3 (owner: "make it more premium looking"): one quiet panel
+          // instead of a card with a gold stripe and two equal buttons. The
+          // import is the one action, full width; starting fresh is the way
+          // out, set as a text button under it.
+          <div className="import-hint">
+            <div className="import-hint-title">{t('menu.importHintTitle')}</div>
+            <div className="import-hint-body">{t('menu.importHintBody')}</div>
+            <button className="btn gold import-hint-go" onClick={() => go('saves')}>{t('menu.importHintGo')}</button>
+            <button className="import-hint-no" onClick={() => { dismiss('rm-import-hint'); setSaves([...saves]) }}>{t('menu.importHintNo')}</button>
           </div>
         )}
         {showLoad && saves.map(s => (

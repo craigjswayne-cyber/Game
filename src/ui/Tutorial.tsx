@@ -34,15 +34,11 @@ export default function Tutorial() {
             to be able to move "Continue" to wherever French puts it, and it has
             to read the same as the button it points at. */}
         <h3>{t('report.tutTitle')}</h3>
-        <b>{t('report.tut1b')}</b>{t('report.tut1', { continue: t('report.tutContinue'), matchday: t('report.tutMatchday') })}
-        <br /><br />
-        <b>{t('report.tut2b')}</b>{t('report.tut2', { team: t('report.tutTeam'), bestXV: t('report.tutBestXV') })}
-        <br /><br />
-        <b>{t('report.tut3b')}</b>{t('report.tut3', { kickOff: t('report.tutKickOff') })}
-        <br /><br />
-        <b>{t('report.tut4b')}</b>{t('report.tut4', { handbook: t('report.tutHandbook') })}
-        <br /><br />
-        <b>{t('report.tut5b')}</b>{t('report.tut5')}
+        <p><b>{t('report.tut1b')}</b>{t('report.tut1', { continue: t('report.tutContinue'), matchday: t('report.tutMatchday') })}</p>
+        <p><b>{t('report.tut2b')}</b>{t('report.tut2', { team: t('report.tutTeam'), bestXV: t('report.tutBestXV') })}</p>
+        <p><b>{t('report.tut3b')}</b>{t('report.tut3', { kickOff: t('report.tutKickOff') })}</p>
+        <p><b>{t('report.tut4b')}</b>{t('report.tut4', { handbook: t('report.tutHandbook') })}</p>
+        <p><b>{t('report.tut5b')}</b>{t('report.tut5')}</p>
         <div className="muted">{t('report.tutAlwaysHere', { manager: t('report.tutManager'), howToPlay: t('report.tutHowToPlay') })}</div>
         <div className="tut-close">
           <button className="btn gold" onClick={close}>{t('report.tutGotIt')}</button>
