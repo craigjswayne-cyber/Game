@@ -21,7 +21,7 @@ import { coachFixes, gradeFixes, gradeLine, unitBattles, type FixTag } from '../
 import { MatchFindings } from '../OppReport'
 import { CrestT, Jersey, PosBadge, SectionTitle, Stars, RewardedButton, Toggle } from '../components'
 import { stageName } from './Home'
-import { groundSound, matchSfx, soundOn, toggleSound } from '../audio'
+import { matchSfx, soundOn, toggleSound } from '../audio'
 import { MoodTable } from '../MoodTable'
 import { TalkReactions } from '../TalkReactions'
 import { talkSetting, type HtTone, type PreTone } from '../../game/teamtalk'
@@ -30,7 +30,6 @@ import { MatchPanels, Visits, Zones } from '../MatchPanels'
 import { useTablet } from '../tablet'
 import { readMatchPrefs, writeMatchPrefs, type MatchPrefs } from '../matchPrefs'
 import { HighlightClip, buildClip, nextMoment, tokenColor, type ClipSpec } from '../HighlightClip'
-import { crowdLevel } from '../matchAtmos'
 import { derbyName } from '../../game/rivalries'
 import { matchStakes } from '../../game/stakes'
 import { dialLine, philosophyOf } from '../../game/philosophy'
@@ -1632,15 +1631,13 @@ function Live() {
   useEffect(() => {
     const wake = () => {
       const lm = useStore.getState().liveMatch
-      // the ground goes quiet with the screen; the next beat brings it back
-      if (document.visibilityState !== 'visible') groundSound(null)
       if (document.visibilityState === 'visible' && lm?.playing) advanceLive()
     }
     document.addEventListener('visibilitychange', wake)
     return () => document.removeEventListener('visibilitychange', wake)
   }, [])
 
-  // stadium sound & haptics on key events (skip when fast-forwarding)
+  // whistles & haptics on key events (skip when fast-forwarding)
   useEffect(() => {
     if (last && speedIdx < 2 && playing) matchSfx(last.fx === 'NOTRY' ? 'NOTRY' : last.type)
   }, [cursor])
@@ -1870,20 +1867,6 @@ function Live() {
   const feedRows = shown.slice(-FEED_ROWS).map((e, j) => ({ e, i: Math.max(0, shown.length - FEED_ROWS) + j }))
   useFeedGlide(feedRef, panelActive ? -1 : shown.length)
   useFeedGlide(tabRef, panelActive || !tablet ? -1 : shown.length)
-
-  // THE GROUND (idea 7): the crowd under the match, at a level that follows it
-  // (matchAtmos.crowdLevel), quiet whenever the match is not being played -
-  // a pause, an interval, a touchline call, full time, the screen left.
-  const groundLevel = crowdLevel({
-    // where the play is: the last line's field position, on the 6..94 scale
-    // the crowd was tuned on
-    ballX: 8 + (last?.fld ?? 50) * 0.84, homeAttacking: last?.teamId === fixture.homeId,
-    tension, review: last?.fx === 'TMO', att: fixture.att,
-  })
-  useEffect(() => {
-    groundSound(playing && sound && !panelActive ? groundLevel : null, fixture.weather ?? 'Dry')
-  }, [cursor, playing, sound, panelActive, groundLevel])
-  useEffect(() => () => groundSound(null), [])
 
   return (
     <div className={`live-wrap${prefs.bigText ? ' big-text' : ''}`}>

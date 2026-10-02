@@ -20,7 +20,8 @@ import { Glyph } from './glyphs'
  *
  *   0.0 - 1.1  dark; the desk lamp flickers on (a click on each flicker, the
  *              mains buzz), the framed match on the wall glows and flickers
- *              like a telly, and the telly's crowd is on in the background
+ *              like a telly (its crowd noise came out at the owner's call:
+ *              it sounded like static)
  *   0.8 -      steam curls up off the coffee mug; the room slowly pushes in
  *   1.9 - 2.6  a whoosh rises
  *   2.6 - 3.6  the title lands as the key art sets it: the badge, PHASE in
