@@ -178,6 +178,7 @@ console.log('\n--- 6. where an ad may appear')
 clear()
 g.rmAds = { mount: () => {} }
 ok(M.adsAllowed('home-foot'), 'with a provider attached, a declared place may draw one')
+ok(M.adsAllowed('news-foot') && M.adsAllowed('press-foot'), 'the news and press floors carry one too (owner, 1.8.3)')
 ok(!M.adsAllowed('match-live'), 'an undeclared place may not, whatever a caller passes')
 // 'match-foot' IS THE ONE EXCEPTION, AND IT IS THE OWNER'S (6 Sep, with a
 // screenshot of the empty strip under the commentary): "there should be an ad

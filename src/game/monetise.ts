@@ -1022,8 +1022,14 @@ export function adBridge(): AdBridge | null {
  *
  *  It has no unit id of its own yet. packaging/shell/ads-bridge.js falls back
  *  to the home unit when a place has none, so it earns from the first build and
- *  simply reports against the wrong unit until the owner creates two. */
-export const AD_PLACES = ['home-foot', 'results-foot', 'match-foot'] as const
+ *  simply reports against the wrong unit until the owner creates two.
+ *
+ *  'news-foot' AND 'press-foot' ARE THE OWNER'S TOO (1.8.3, with screenshots
+ *  of the empty floor under a news story and a quiet press room). Same terms
+ *  as the others: a banner under the nav, never over content; the press room
+ *  carries it only while no question is waiting, so an answer is never given
+ *  beside an advert. Both fall back to the Home unit until they have their own. */
+export const AD_PLACES = ['home-foot', 'results-foot', 'match-foot', 'news-foot', 'press-foot'] as const
 export type AdPlace = typeof AD_PLACES[number]
 
 /** Did the shell inject a purchase bridge at all? Not the same question as
