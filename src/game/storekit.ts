@@ -29,14 +29,16 @@
  * is paid for and not yet spent, and the game's existing pendingConsumables
  * recovery rows work on iOS without knowing iOS exists.
  */
-import { setBillingReason } from './monetise'
+import { setBillingCause, setBillingReason } from './monetise'
 import type { BillingBridge, ConsumeResult, Product, PurchaseOutcome } from './monetise'
 
 /** What the Swift plugin promises. Capacitor hands every method an object and
  *  gets one back, so each of these is that shape and nothing cleverer. */
 interface PhaseBillingPlugin {
   details(o: { skus: string[] }): Promise<{ products: { sku: string; price: string; title?: string }[] }>
-  buy(o: { sku: string }): Promise<{ outcome: string }>
+  /** `cause` is optional: shells from 1.8.3 say which kind of "no" it was
+   *  (see BillingCause in monetise.ts); older shells send the word alone. */
+  buy(o: { sku: string }): Promise<{ outcome: string; cause?: string }>
   owned(): Promise<{ skus: string[] }>
   /** Resolves { ok, count } since v1.5.9; older shells resolve {}. Both are
    *  handled below, because a phone runs whichever build it downloaded. */
@@ -160,12 +162,17 @@ export function storeKitBridge(): BillingBridge | null {
       // still processing it... Restore will pick it up"), and the held-receipt
       // pass hands it over the moment it does land.
       if (!got) { setBillingReason('the App Store did not answer inside 90 seconds'); return 'pending' }
+      setBillingCause(got.cause)
       return asOutcome(got.outcome)
     } catch (e) {
       // the same rule the Android side learned: a store that would not sell
       // must say so in its own words, or the fault is invisible from inside
       // the game
       setBillingReason((e as Error)?.message ?? 'no detail')
+      // the plugin call itself was rejected, which the shipped plugins never
+      // do: that is a build fault on our side, and the screen must not tell
+      // the player it is his country, his account or his phone
+      setBillingCause('config')
       return 'refused'
     }
   }
