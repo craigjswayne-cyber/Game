@@ -4,8 +4,9 @@ import { facLevel, fmtMoney, fmtWage, operatingCost, pressAnswer, pressLabel, pr
 import type { GameState } from '../../game/model'
 import {
   CHARTER_SKU, buyOwnable, hasEntitlement,
-  billingReason, rewardedAvailable, tillOpen,
+  rewardedAvailable, tillOpen,
 } from '../../game/monetise'
+import { endingText, type Ending } from '../purchase'
 import { canTownCollection } from '../../game/rewarded'
 import { staffWageBill } from '../../game/staff'
 import { OBJECTIVE_DEFS } from '../../game/objectives'
@@ -752,12 +753,8 @@ function BoardFunds() {
     key,
     // a refusal names itself here too - the Charter desk is the one shelf row
     // that did not move to the Store, so it needs the same diagnosis
-    text: t(out === 'cancelled' ? 'supporter.cancelled'
-      : out === 'pending' ? 'till.pending'
-      : out === 'unavailable' ? 'supporter.unavailable'
-      : out === 'refused' ? 'supporter.refused'
-      : 'supporter.error')
-      + (out === 'refused' && billingReason() ? ` (${billingReason()})` : ''),
+    // the same outcome-and-cause mapping as every other till (purchase.ts)
+    text: out === 'pending' ? t('till.pending') : endingText(out as Ending),
   })
 
   const buyCharter = async () => {

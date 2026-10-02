@@ -83,6 +83,13 @@ public class PhaseBilling extends Plugin implements PurchasesUpdatedListener {
     private final AtomicReference<PluginCall> pendingBuy = new AtomicReference<>(null);
     private String pendingSku = null;
 
+    /** The response code of the last failed connection, so a buy() that
+     *  could not connect can say WHY: BILLING_UNAVAILABLE (Play will not
+     *  bill this account - an unsupported country, an old Play Store, a
+     *  managed account) is a different sentence from a service that did not
+     *  answer. */
+    private volatile int setupCode = BillingClient.BillingResponseCode.SERVICE_UNAVAILABLE;
+
     @Override
     public void load() {
         client = BillingClient.newBuilder(getContext())
@@ -107,7 +114,7 @@ public class PhaseBilling extends Plugin implements PurchasesUpdatedListener {
         client.startConnection(new BillingClientStateListener() {
             @Override public void onBillingSetupFinished(@NonNull BillingResult r) {
                 boolean ok = r.getResponseCode() == BillingClient.BillingResponseCode.OK;
-                if (!ok) Log.w(TAG, "billing setup: " + r.getDebugMessage());
+                if (!ok) { setupCode = r.getResponseCode(); Log.w(TAG, "billing setup: " + r.getDebugMessage()); }
                 if (then != null) then.run(ok);
             }
             @Override public void onBillingServiceDisconnected() {
@@ -185,17 +192,24 @@ public class PhaseBilling extends Plugin implements PurchasesUpdatedListener {
         final String sku = call.getString("sku");
         if (sku == null) { call.resolve(outcome("error")); return; }
         if (pendingBuy.get() != null) {
-            // a second tap while the sheet is up: the till already refuses
-            // this, so it is only reachable by a race, and 'refused' is honest
-            call.resolve(outcome("refused")); return;
+            // a second tap while a sheet is still open. This used to answer
+            // 'refused', which the game read out as a refusal of the PRODUCT
+            // ("not on sale in your country"). It is a purchase already in
+            // flight, so it says so: 'pending', and Restore picks up the
+            // first one if it lands.
+            call.resolve(outcome("pending")); return;
         }
         connect(ok -> {
-            if (!ok) { call.resolve(outcome("unavailable")); return; }
+            if (!ok) { call.resolve(outcome(mapCode(setupCode), causeOf(setupCode))); return; }
             queryDetails(Arrays.asList(sku), (r, list) -> {
-                if (r.getResponseCode() != BillingClient.BillingResponseCode.OK || list == null || list.isEmpty()) {
-                    // the id is not in the Play Console, or is not active yet:
-                    // 'unavailable' is the honest word
-                    call.resolve(outcome("unavailable")); return;
+                if (r.getResponseCode() != BillingClient.BillingResponseCode.OK) {
+                    call.resolve(outcome(mapCode(r.getResponseCode()), causeOf(r.getResponseCode()))); return;
+                }
+                if (list == null || list.isEmpty()) {
+                    // Play answered and does not list this id here: it is not
+                    // active in the Play Console, or not available in this
+                    // account's country. 'unavailable', and it is ours to fix
+                    call.resolve(outcome("unavailable", "notOffered")); return;
                 }
                 Activity activity = getActivity();
                 if (activity == null) { call.resolve(outcome("error")); return; }
@@ -212,7 +226,7 @@ public class PhaseBilling extends Plugin implements PurchasesUpdatedListener {
                 if (launch.getResponseCode() != BillingClient.BillingResponseCode.OK) {
                     // the sheet did not open: answer now, do not wait for a
                     // callback that will never come
-                    finishBuy(mapCode(launch.getResponseCode()));
+                    finishBuy(mapCode(launch.getResponseCode()), causeOf(launch.getResponseCode()));
                 }
             });
         });
@@ -239,7 +253,7 @@ public class PhaseBilling extends Plugin implements PurchasesUpdatedListener {
             else if (pendingBuy.get() != null) finishBuy("error");
             return;
         }
-        if (pendingBuy.get() != null) finishBuy(mapCode(code));
+        if (pendingBuy.get() != null) finishBuy(mapCode(code), causeOf(code));
     }
 
     /**
@@ -267,11 +281,13 @@ public class PhaseBilling extends Plugin implements PurchasesUpdatedListener {
         }
     }
 
-    private void finishBuy(String result) {
+    private void finishBuy(String result) { finishBuy(result, null); }
+
+    private void finishBuy(String result, String cause) {
         PluginCall call = pendingBuy.getAndSet(null);
         pendingSku = null;
         if (call == null) return;
-        call.resolve(outcome(result));
+        call.resolve(outcome(result, cause));
         call.release(getBridge());
     }
 
@@ -293,9 +309,32 @@ public class PhaseBilling extends Plugin implements PurchasesUpdatedListener {
         }
     }
 
-    private static JSObject outcome(String s) {
+    /** Which kind of "no" a response code is (1.8.3), sent beside the
+     *  outcome word so the game can tell the player the true one. The names
+     *  are BillingCause in src/game/monetise.ts; anything else is sent as
+     *  nothing and the game falls back to the sentence true of every cause. */
+    private static String causeOf(int code) {
+        switch (code) {
+            case BillingClient.BillingResponseCode.ITEM_UNAVAILABLE: return "notOffered";
+            // Play's own documentation for this code: the Play Store app is
+            // out of date, the user is in an unsupported country, the account
+            // is managed with purchases off, or the payment method failed
+            case BillingClient.BillingResponseCode.BILLING_UNAVAILABLE: return "playBilling";
+            case BillingClient.BillingResponseCode.FEATURE_NOT_SUPPORTED: return "disabled";
+            case BillingClient.BillingResponseCode.SERVICE_UNAVAILABLE:
+            case BillingClient.BillingResponseCode.SERVICE_DISCONNECTED:
+            case BillingClient.BillingResponseCode.NETWORK_ERROR: return "unreachable";
+            case BillingClient.BillingResponseCode.DEVELOPER_ERROR: return "config";
+            default: return null;
+        }
+    }
+
+    private static JSObject outcome(String s) { return outcome(s, null); }
+
+    private static JSObject outcome(String s, String cause) {
         JSObject o = new JSObject();
         o.put("outcome", s);
+        if (cause != null) o.put("cause", cause);
         return o;
     }
 
