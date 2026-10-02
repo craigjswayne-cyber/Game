@@ -373,6 +373,12 @@ function takeJob(state: GameState, clubId: string): string {
         state.clubs[p.loanFrom].players.push(p.id)
         p.clubId = p.loanFrom
         p.loanFrom = null
+        // the rest of the loan's paperwork goes with it, as the end date and
+        // the wage share do in loans.returnLoanIn: a man back home carrying
+        // either reads as half on loan to anything that asks (round 183)
+        p.loanUntil = undefined
+        p.loanShare = undefined
+        p.loanCa = undefined
       }
     }
     arcBeforeMove(state, clubId) // the era at the old club is told (erastory.ts)
