@@ -314,12 +314,18 @@ export default function Squad() {
                   const [moodK, col] = MOOD[row.mood]
                   return (<>
                     <td onClick={e => e.stopPropagation()}>
-                      <select className="inline-input gt-sel" value={cur}
-                        onChange={e => { p.status = e.target.value as SquadStatus; touch() }}>
-                        {/* the engine keeps the English name on the def; the
-                            option shows the translated one, keyed by id */}
-                        {STATUSES.map(st => <option key={st.id} value={st.id}>{t(`squad.status${st.id[0].toUpperCase()}${st.id.slice(1)}`)}</option>)}
-                      </select>
+                      {/* the box you see is the span's, drawn small; the
+                          select inside it keeps the 44px a thumb needs
+                          (owner, round 183: "reduce the size of the box
+                          around the key player") */}
+                      <span className="gt-pick">
+                        <select className="inline-input gt-sel" value={cur}
+                          onChange={e => { p.status = e.target.value as SquadStatus; touch() }}>
+                          {/* the engine keeps the English name on the def; the
+                              option shows the translated one, keyed by id */}
+                          {STATUSES.map(st => <option key={st.id} value={st.id}>{t(`squad.status${st.id[0].toUpperCase()}${st.id.slice(1)}`)}</option>)}
+                        </select>
+                      </span>
                     </td>
                     <td className="num" style={{ fontWeight: 700 }}>{row.actual}</td>
                     <td className="num" style={{ color: row.gap < -2 ? 'var(--danger)' : undefined }}>{row.expected}</td>

@@ -5366,6 +5366,27 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
    select is as wide as its column, never wider */
 .dtable.fit .gt-head th { white-space: normal; overflow: hidden; overflow-wrap: normal; word-break: normal; line-height: 1.15; vertical-align: bottom; }
 .dtable.fit .gt-sel { width: 100%; max-width: 100%; text-overflow: ellipsis; }
+/* THE BOX, SMALLER THAN THE TARGET (owner, round 183: "reduce the size of the
+   box around the key player"). The select has to stay 44px tall to be tapped
+   (.gt-sel above), and its own border made every row a 44px bordered box with
+   "Key Player" sitting in it like a button. A select cannot carry a pseudo-
+   element, so the wrapper draws a 24px box behind it and the select itself
+   goes borderless and transparent: the eye sees a compact chip, the thumb
+   still gets the full 44px. */
+.gt-pick { position: relative; display: inline-block; max-width: 100%; vertical-align: middle; }
+.gt-pick::before {
+  content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 24px;
+  transform: translateY(-50%); pointer-events: none;
+  border: 1px solid var(--border-strong); border-radius: 6px;
+  background: var(--surface-1);
+}
+.gt-pick .gt-sel {
+  position: relative; display: block;
+  background: transparent; border-color: transparent;
+  padding: 0 2px 0 6px; font-size: 11px; line-height: 1;
+}
+.gt-pick .gt-sel:focus-visible { outline: 2px solid var(--row-selected-border); outline-offset: -10px; }
+.dtable.fit .gt-pick .gt-sel { width: auto; }
 .gt-mood .status-dot { width: 9px; height: 9px; vertical-align: 0; }
 .preset-chip .glyph { font-size: 1.3em; vertical-align: -0.28em; }
 
