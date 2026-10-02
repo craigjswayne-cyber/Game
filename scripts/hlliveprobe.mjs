@@ -11,6 +11,9 @@
 //     captions came off in 1.8.0), and the verdict only comes once the ball
 //     is down (the clip marks that moment with data-down)
 //   the clip goes and the live stats come back
+//   no crowd under the match: not one noise buffer is started on the match
+//     screen, no bed and no roar (owner: it sounded like static, so it came
+//     out entirely; the whistles are oscillators and stay)
 //   no console errors
 //
 // Run: npm run build && node scripts/hlliveprobe.mjs
@@ -25,6 +28,14 @@ page.on('console', m => { if (m.type() === 'error') errors.push(m.text()) })
 await page.addInitScript(() => {
   let a = 20260926
   Math.random = () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296 }
+})
+// every sound source the page starts, so the crowd's absence is checked
+await page.addInitScript(() => {
+  const log = window.__rmSources = []
+  const bs = AudioBufferSourceNode.prototype.start
+  AudioBufferSourceNode.prototype.start = function (...a) { log.push({ kind: 'buffer', loop: this.loop, at: location.href }); return bs.apply(this, a) }
+  const os = OscillatorNode.prototype.start
+  OscillatorNode.prototype.start = function (...a) { log.push({ kind: 'osc' }); return os.apply(this, a) }
 })
 let fails = 0
 const ok = (c, what) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
@@ -78,6 +89,9 @@ try {
     await page.waitForSelector('.live-stats', { timeout: 20000 }).catch(() => {})
     ok(await page.locator('.live-stats').count() > 0 && await page.locator('.hl-clip').count() === 0, 'the clip goes and the live stats come back')
   }
+  const src = await page.evaluate(() => window.__rmSources ?? [])
+  const bufs = src.filter(x => x.kind === 'buffer')
+  ok(bufs.length === 0, `no crowd under the match: ${bufs.length} noise buffers started (${src.length - bufs.length} whistle and thud oscillators)`)
   ok(errors.length === 0, `no console errors${errors.length ? ': ' + errors[0].slice(0, 160) : ''}`)
 } catch (e) {
   console.log(`FAIL  the walk broke: ${e.message}`); fails++
