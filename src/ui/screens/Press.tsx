@@ -1,3 +1,4 @@
+import { AdSlot } from '../AdSlot'
 import { useState } from 'react'
 import { useStore } from '../../store'
 import { RewardedButton, SectionTitle } from '../components'
@@ -117,6 +118,8 @@ export default function Press() {
           ))}
         </>
       )}
+      {/* a banner only while nobody is waiting on an answer (owner, 1.8.3) */}
+      {open.length === 0 && <AdSlot place="press-foot" />}
       <div className="spacer" />
     </>
   )

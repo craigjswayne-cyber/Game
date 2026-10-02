@@ -29,6 +29,9 @@
     "needs the AdMob console - and it is worth doing, because otherwise match",
     "revenue and home revenue are indistinguishable in the reports.",
     "",
+    "news-foot AND press-foot ARE NEW IN 1.8.3 and are empty for the same reason:",
+    "they report against the Home unit until their own units are created.",
+    "",
     "skAdNetworkIds IS GOOGLE'S PARTNER LIST, pasted from",
     "developers.google.com/admob/ios/3p-skadnetworks (page dated 30 Jan 2026,",
     "read 9 Sep 2026). Fifty identifiers, of which the first is Google's own.",
@@ -50,7 +53,9 @@
     "banner": {
       "home-foot": "ca-app-pub-1341622370227647/9355241648",
       "results-foot": "ca-app-pub-1341622370227647/4629528573",
-      "match-foot": ""
+      "match-foot": "",
+      "news-foot": "",
+      "press-foot": ""
     },
     "rewarded": "ca-app-pub-1341622370227647/8788994381"
   },
@@ -59,7 +64,9 @@
     "banner": {
       "home-foot": "ca-app-pub-1341622370227647/7168062002",
       "results-foot": "ca-app-pub-1341622370227647/7475912719",
-      "match-foot": ""
+      "match-foot": "",
+      "news-foot": "",
+      "press-foot": ""
     },
     "rewarded": "ca-app-pub-1341622370227647/8042159971"
   },

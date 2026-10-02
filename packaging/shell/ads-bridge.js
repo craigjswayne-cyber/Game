@@ -11,8 +11,9 @@
  *
  * WHAT THE GAME EXPECTS (src/game/monetise.ts, AdBridge):
  *
- *   mount(el, place)      draw a banner for this slot: 'home-foot' or
- *                         'results-foot', the only two places a banner may be
+ *   mount(el, place)      draw a banner for this slot: one of the game's
+ *                         AD_PLACES (home, results, match, news, press foot);
+ *                         a place with no unit id uses the Home unit
  *   unmount(el)           take it down when the slot leaves the screen
  *   showRewarded(place)   play a rewarded spot the player asked for, and
  *                         resolve 'completed' | 'skipped' | 'unavailable' -

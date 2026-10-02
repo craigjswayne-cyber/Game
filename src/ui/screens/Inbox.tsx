@@ -1,3 +1,4 @@
+import { AdSlot } from '../AdSlot'
 import { TwoStep } from '../components'
 import { NewsBody, NewsGo, plainNews } from '../NewsBody'
 import { useEffect, useRef, useState } from 'react'
@@ -240,6 +241,8 @@ export default function Inbox() {
           was cut at the user's request in 19D: "remove also in your inbox
           too". The reader is one story and its arrows again; the cue still
           serves the unread queue in order. */}
+      {/* the floor under the story carries a banner (owner, 1.8.3) */}
+      <AdSlot place="news-foot" />
       <div className="spacer" />
     </>
   )
