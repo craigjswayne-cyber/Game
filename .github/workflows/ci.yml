@@ -33,7 +33,7 @@ concurrency:
 
 jobs:
   engine:
-    name: Engine probes (shard ${{ matrix.shard }} of 4)
+    name: Engine probes (shard ${{ matrix.shard }} of 6)
     runs-on: ubuntu-latest
     timeout-minutes: 40
     # TWO SHARDS (v1.2.2). The engine suite crossed the thirty-minute ceiling
@@ -45,10 +45,14 @@ jobs:
     # minutes again (run 36465738222: shard 1 cancelled at 30m with every
     # probe it had reached passing, a handful from the end). Four halves the
     # load, and forty minutes leaves room for a slow runner.
+    # SIX SHARDS (1.8.3). Five new probes moved every file one place along the
+    # round robin, and shard 2 landed analystprobe and frliveprobe together:
+    # cancelled at forty minutes on both runs of PR 22 while the other three
+    # finished in twenty to thirty-one. Six spreads the heavy ones again.
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4]
+        shard: [1, 2, 3, 4, 5, 6]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -74,7 +78,7 @@ jobs:
         run: node scripts/ipprobe.mjs
       - name: Engine suite
         env:
-          SHARDS: 4
+          SHARDS: 6
           SHARD: ${{ matrix.shard }}
           PROBE_QUICK: 1
         run: bash scripts/suite.sh fast
