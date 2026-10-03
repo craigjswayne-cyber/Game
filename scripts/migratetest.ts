@@ -48,6 +48,18 @@ for (const c of Object.values(m.clubs)) for (const id of c.players) {
 }
 console.log(`roster integrity: ${orphans} orphans`)
 if (orphans) process.exit(1)
+// the match evidence (1.8.3) is optional: a loop from before it loads with
+// none, and is read as none; a mangled list is dropped, not loaded
+{
+  const pre = JSON.parse(JSON.stringify(m))
+  pre.tacLoop = { findings: [] }
+  const a = migrate(pre)
+  console.log(`evidence on a pre-1.8.3 loop: ${JSON.stringify(a.tacLoop?.evidence)}`)
+  if (a.tacLoop?.evidence !== undefined) { console.error('BUG: an absent evidence list was invented'); process.exit(1) }
+  const bad = JSON.parse(JSON.stringify(m))
+  bad.tacLoop = { findings: [], evidence: { not: 'a list' } }
+  if (migrate(bad).tacLoop?.evidence !== undefined) { console.error('BUG: a mangled evidence list was kept'); process.exit(1) }
+}
 // season still simulates
 for (let i = 0; i < 3; i++) processWeekAndAdvance(m)
 console.log('3 weeks simulated post-migration OK')

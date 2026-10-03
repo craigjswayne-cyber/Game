@@ -1552,13 +1552,6 @@
   "uwEdged": " a favore · l'abbiamo spuntata",
   "uwEven": " a favore · pari e patta",
   "uwShaded": " a favore · l'hanno spuntata loro",
-  "vdBeaten": "Battuti in ogni collisione. La video-analisi sarà onesta, e farà male.",
-  "vdDraw": "Un pareggio che entro martedì sembrerà una sconfitta o una vittoria, a seconda del video.",
-  "vdHabit": "Vincere le partite punto a punto è un'abitudine - e l'abbiamo appena nutrita.",
-  "vdMargins": "Margini sottili. Sistemiamo i due punti qui sotto e la partita è nostra.",
-  "vdRuthless": "Spietati. Il vice pretende gli stessi standard la prossima settimana, non un giro d'onore.",
-  "vdWasted": "Tutto quel possesso e niente in cassa - il vice cerchia in rosso le nostre finalizzazioni.",
-  "vdWonNoBall": "Abbiamo vinto senza palla - un turno di difesa enorme. Roba che vale ovunque.",
   "venueHome": "{stadium}, {city}",
   "venueNeutral": "{name}, {city} · campo neutro",
   "victory": "VITTORIA",
@@ -1643,9 +1636,67 @@
   "htWetTight": "È bagnato: un passaggio di troppo è un pallone perso. Portatelo avanti, e usate il piede.",
   "htWind": "Il vento si porta via i calci lunghi: cercate la touche corta e giocate alla mano controvento.",
   "htUncontested": "Ora le mischie sono non contese: la mischia non conta più, quindi giocate dalla touche.",
-  "htScrumBad": "La loro mischia domina: fate uscire il pallone in fretta dalle fasi statiche.",
-  "htScrumGood": "La nostra mischia vince: calciate negli angoli e attaccateli davanti.",
-  "htDefWorks": "La difesa continua a recuperare il pallone: tenete la linea dov'è."
+  "htWorking": "Funziona:",
+  "htHurting": "Ci fa male:",
+  "whyMoveFor": {
+   "one": "Con {move_k}: una meta e {m} m a chiamata.",
+   "other": "Con {move_k}: {n} mete e {m} m a chiamata."
+  },
+  "whyMoveForTries": {
+   "one": "Con {move_k}: una meta.",
+   "other": "Con {move_k}: {n} mete."
+  },
+  "whyMoveAgainst": {
+   "one": "La loro mossa, {move_k}, ci è costata una meta.",
+   "other": "La loro mossa, {move_k}, ci è costata {n} mete."
+  },
+  "whyRead": "Ci avevano letto {move_k}: {m} m in {n} chiamate, contro {m0} m senza quella lettura.",
+  "whySetFor": "Hanno perso {n} tra mischie e touche sulla loro introduzione; noi {m}.",
+  "whySetAgainst": "Abbiamo perso {n} tra mischie e touche sulla nostra introduzione; loro {m}.",
+  "whyPenFor": {
+   "one": "Hanno concesso una punizione: {p} punti per noi.",
+   "other": "Hanno concesso {n} punizioni: {p} punti per noi."
+  },
+  "whyPenFor0": {
+   "one": "Hanno concesso una punizione.",
+   "other": "Hanno concesso {n} punizioni."
+  },
+  "whyPenAgainst": {
+   "one": "Abbiamo concesso una punizione: {p} punti per loro.",
+   "other": "Abbiamo concesso {n} punizioni: {p} punti per loro."
+  },
+  "whyPenAgainst0": {
+   "one": "Abbiamo concesso una punizione.",
+   "other": "Abbiamo concesso {n} punizioni."
+  },
+  "whyTurnFor": {
+   "one": "Abbiamo recuperato il pallone una volta: {p} punti da lì.",
+   "other": "Abbiamo recuperato il pallone {n} volte: {p} punti da lì."
+  },
+  "whyTurnFor0": {
+   "one": "Abbiamo recuperato il pallone una volta.",
+   "other": "Abbiamo recuperato il pallone {n} volte."
+  },
+  "whyTurnAgainst": {
+   "one": "Abbiamo perso il pallone una volta: {p} punti per loro.",
+   "other": "Abbiamo perso il pallone {n} volte: {p} punti per loro."
+  },
+  "whyTurnAgainst0": {
+   "one": "Abbiamo perso il pallone una volta.",
+   "other": "Abbiamo perso il pallone {n} volte."
+  },
+  "whyBreakFor": "Linee spezzate: {n} nostre, {m} loro; {p} punti dalle nostre.",
+  "whyBreakFor0": "Linee spezzate: {n} nostre, {m} loro.",
+  "whyBreakAgainst": "Linee spezzate: {n} loro, {m} nostre; {p} punti dalle loro.",
+  "whyBreakAgainst0": "Linee spezzate: {n} loro, {m} nostre.",
+  "whyPhaseFor": "{mins} minuti nei loro 22: {p} punti dal gioco a fasi.",
+  "whyPhaseFor0": "{mins} minuti nei loro 22.",
+  "whyPhaseAgainst": "Loro, {mins} minuti nei nostri 22: {p} punti dal gioco a fasi.",
+  "whyPhaseAgainst0": "Loro, {mins} minuti nei nostri 22.",
+  "whyKickFor": "Drop e calci murati: {p} punti per noi.",
+  "whyKickAgainst": "Drop e calci murati: {p} punti per loro.",
+  "whyStyleFor": "Il duello di stili: {atk_k} ha avuto la meglio su {def_k}, circa {p} punti per noi.",
+  "whyStyleAgainst": "Il duello di stili: {atk_k} ha avuto la meglio su {def_k}, circa {p} punti per loro."
  },
  "tacticsScreen": {
   "tabRoles": "Ruoli",

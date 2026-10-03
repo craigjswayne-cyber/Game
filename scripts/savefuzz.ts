@@ -146,6 +146,27 @@ damaged('mentoring pairs pointing at nobody', s => {
   s.mentors = [{ senior: 999_998, kid: 999_999, since: 1 }]
 })
 
+// ------------------------------------- the match evidence (1.8.3, evidence.ts)
+// Filed beside the findings on tacLoop, and the newest field in the file, so
+// the one most likely to be missing or half-written in a save from elsewhere.
+console.log('\n--- the evidence beside the findings')
+damaged('a loop from before the evidence', s => { s.tacLoop = { findings: [] } })
+damaged('an evidence list that is not a list', s => { s.tacLoop = { findings: [], evidence: 'lots' } })
+damaged('an evidence list of half-written records', s => {
+  s.tacLoop = { findings: [], evidence: [null, { fxId: 3 }, { fxId: 4, oppId: 'bath', side: [{}, {}], swings: [], lead: [] }] }
+})
+{
+  const s = pristine()
+  s.tacLoop = { findings: [], evidence: [null, { fxId: 3 }, { fxId: 4, oppId: 'bath', side: [{ pts: [1] }], swings: [], lead: [] }] }
+  let g: GameState | null = null
+  try { g = migrate(s as unknown as GameState) } catch { g = null }
+  ok(!!g && Array.isArray(g.tacLoop?.evidence) && g.tacLoop!.evidence!.length === 0, 'and every unreadable evidence record is dropped rather than kept')
+  const s2 = pristine()
+  s2.tacLoop = { findings: [], evidence: 'lots' }
+  try { g = migrate(s2 as unknown as GameState) } catch { g = null }
+  ok(!!g && g.tacLoop?.evidence === undefined, 'and an evidence field that is not a list is removed')
+}
+
 // -------------------------------------------------- the world itself broken
 console.log('\n--- the world itself, broken')
 damaged('a squad listing players who are gone', s => {

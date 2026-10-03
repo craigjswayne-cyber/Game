@@ -1555,13 +1555,6 @@
     "uwEdged": " gagnés · nous l'avons emporté de peu",
     "uwEven": " gagnés · à égalité",
     "uwShaded": " gagnés · ils l'ont emporté de peu",
-    "vdBeaten": "Battus dans tous les impacts. Le débrief sera honnête, et il piquera.",
-    "vdDraw": "Un nul qui aura le goût d'une défaite ou d'une victoire d'ici mardi, selon la vidéo.",
-    "vdHabit": "Gagner les matchs serrés est une habitude - et nous venons de la nourrir.",
-    "vdMargins": "Des détails. Corrigez les deux points ci-dessous et le match est à nous.",
-    "vdRuthless": "Impitoyable. L'adjoint veut les mêmes exigences la semaine prochaine, pas un tour d'honneur.",
-    "vdWasted": "Tout ce ballon pour rien - l'adjoint entoure notre finition en rouge.",
-    "vdWonNoBall": "Nous avons gagné sans le ballon - l'abattage défensif a été énorme. Ça vaut partout.",
     "venueHome": "{stadium}, {city}",
     "venueNeutral": "{name}, {city} · terrain neutre",
     "victory": "VICTOIRE",
@@ -1650,9 +1643,67 @@
     "htWetTight": "C'est mouillé : une passe de trop, c'est un ballon perdu. Avancez balle en main, et servez-vous du pied.",
     "htWind": "Le vent emporte les longs coups de pied : trouvez la touche au plus court et gardez le ballon à la main face au vent.",
     "htUncontested": "Les mêlées sont simulées désormais : la mêlée ne pèse plus, alors jouez sur la touche.",
-    "htScrumBad": "Leur mêlée domine : sortez le ballon vite sur les phases statiques.",
-    "htScrumGood": "Notre mêlée gagne : tapez dans les coins et attaquez-les devant.",
-    "htDefWorks": "La défense ne cesse de récupérer le ballon : gardez la ligne où elle est."
+    "htWorking": "Ce qui marche :",
+    "htHurting": "Ce qui coince :",
+    "whyMoveFor": {
+      "one": "Avec {move_k} : un essai, et {m} m par annonce.",
+      "other": "Avec {move_k} : {n} essais, et {m} m par annonce."
+    },
+    "whyMoveForTries": {
+      "one": "Avec {move_k} : un essai.",
+      "other": "Avec {move_k} : {n} essais."
+    },
+    "whyMoveAgainst": {
+      "one": "Leur combinaison, {move_k}, nous a coûté un essai.",
+      "other": "Leur combinaison, {move_k}, nous a coûté {n} essais."
+    },
+    "whyRead": "Ils avaient lu {move_k} : {m} m sur {n} annonces, contre {m0} m sans cette lecture.",
+    "whySetFor": "Ils ont perdu {n} mêlées et touches sur leur introduction ; nous, {m}.",
+    "whySetAgainst": "Nous avons perdu {n} mêlées et touches sur notre introduction ; eux, {m}.",
+    "whyPenFor": {
+      "one": "Ils ont concédé une pénalité : {p} points pour nous.",
+      "other": "Ils ont concédé {n} pénalités : {p} points pour nous."
+    },
+    "whyPenFor0": {
+      "one": "Ils ont concédé une pénalité.",
+      "other": "Ils ont concédé {n} pénalités."
+    },
+    "whyPenAgainst": {
+      "one": "Nous avons concédé une pénalité : {p} points pour eux.",
+      "other": "Nous avons concédé {n} pénalités : {p} points pour eux."
+    },
+    "whyPenAgainst0": {
+      "one": "Nous avons concédé une pénalité.",
+      "other": "Nous avons concédé {n} pénalités."
+    },
+    "whyTurnFor": {
+      "one": "Nous avons récupéré le ballon une fois : {p} points derrière.",
+      "other": "Nous avons récupéré le ballon {n} fois : {p} points derrière."
+    },
+    "whyTurnFor0": {
+      "one": "Nous avons récupéré le ballon une fois.",
+      "other": "Nous avons récupéré le ballon {n} fois."
+    },
+    "whyTurnAgainst": {
+      "one": "Nous avons perdu le ballon une fois : {p} points pour eux.",
+      "other": "Nous avons perdu le ballon {n} fois : {p} points pour eux."
+    },
+    "whyTurnAgainst0": {
+      "one": "Nous avons perdu le ballon une fois.",
+      "other": "Nous avons perdu le ballon {n} fois."
+    },
+    "whyBreakFor": "Franchissements : {n} pour nous, {m} pour eux ; {p} points sur les nôtres.",
+    "whyBreakFor0": "Franchissements : {n} pour nous, {m} pour eux.",
+    "whyBreakAgainst": "Franchissements : {n} pour eux, {m} pour nous ; {p} points sur les leurs.",
+    "whyBreakAgainst0": "Franchissements : {n} pour eux, {m} pour nous.",
+    "whyPhaseFor": "{mins} minutes dans leurs 22 : {p} points sur le jeu de phases.",
+    "whyPhaseFor0": "{mins} minutes dans leurs 22.",
+    "whyPhaseAgainst": "{mins} minutes pour eux dans nos 22 : {p} points sur le jeu de phases.",
+    "whyPhaseAgainst0": "{mins} minutes pour eux dans nos 22.",
+    "whyKickFor": "Drops et contres : {p} points pour nous.",
+    "whyKickAgainst": "Drops et contres : {p} points pour eux.",
+    "whyStyleFor": "Le duel des styles : {atk_k} a pris le dessus sur {def_k}, environ {p} points pour nous.",
+    "whyStyleAgainst": "Le duel des styles : {atk_k} a pris le dessus sur {def_k}, environ {p} points pour eux."
   },
   "tacticsScreen": {
     "tabRoles": "Rôles",
