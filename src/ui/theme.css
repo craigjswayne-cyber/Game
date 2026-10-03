@@ -714,6 +714,22 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .scoreboard .tname {
   font-family: var(--sans);
   font-size: 16px; font-weight: 700; flex: 1; line-height: 1.25;
+  /* crest above the name on both sides, always (owner, 1.8.3). An inline
+     crest sat beside a short name and wrapped above a long one, so the two
+     sides of the same scoreboard disagreed: "Wellington" beside, "Northampton"
+     stacked. A column makes it one layout whatever the name's length. */
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  min-width: 0;
+}
+.scoreboard .tname > :first-child { margin: 0 !important; }
+/* a tablet has the width for crest and name on one line, every name, and
+   the stacked crest costs the commentary below it height it needs there:
+   so beside, on both sides alike, with the club bar under the pair */
+@media (min-width: 700px) {
+  .scoreboard .tname { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 4px 8px; }
+  /* a whole line of its own, so it wraps under the pair, drawn as the same
+     30px centred bar by clipping the rest */
+  .scoreboard .tname .clubbar { flex: 0 0 100%; width: 100%; margin: 2px 0 0; clip-path: inset(0 calc(50% - 15px)); }
 }
 .scoreboard .tname .clubbar { display: block; width: 30px; height: 3px; border-radius: 2px; margin: 5px auto 0; }
 .scoreboard .score {
