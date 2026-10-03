@@ -4,7 +4,7 @@
  * The fifteen-season audit found the one thing the ledger was missing. Money
  * arrived in the world (aiecon.ts) and clubs already RESPOND to debt - they shed
  * their best-paid man past twelve weeks of wages in the red, and they list
- * surplus bodies past four million - but nothing ever happened TO them. Measured
+ * surplus bodies past ten weeks of it - but nothing ever happened TO them. Measured
  * over fifteen seasons: about 41 clubs of 101 sit permanently in the red from
  * season nine on, most of them parked on the hard floor of minus twenty weeks'
  * wages, coping forever. Two fifths of the sport quietly ignoring bankruptcy for
