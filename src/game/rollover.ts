@@ -1,13 +1,13 @@
 import type { Club, GameState, NewsItem, Player, Pos } from './model'
 import { loanOutSummerGain, returnLoanIn } from './loans'
-import { preContractWage } from './ai'
+import { aiRenewalWage, preContractWage } from './ai'
 import { runTeamOfTheYear } from './yearend'
-import { aiBoardsReinvest } from './aiecon'
+import { aiBoardsReinvest, aiPayRate, aiTransferBudget, aiWageRooms } from './aiecon'
 import { activePlan, applyAdminPenalties } from './season'
 import { settleInsolvency } from './insolvency'
 import { ageManager } from './career'
 import { rivalVerdict } from './boss'
-import {absWeek, BASE_YEAR, boardPatience, closeNatTenure, demandCeiling, MAX_FOLLOWING, GROUND_TIERS, groundLevel, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, RELEGATES, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId, worldCupSeasonFor } from './model'
+import {absWeek, archiveSeason, BASE_YEAR, careerRows, boardPatience, isMyClub, closeNatTenure, demandCeiling, MAX_FOLLOWING, GROUND_TIERS, groundLevel, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, RELEGATES, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId, worldCupSeasonFor } from './model'
 import { assignPersonality, EARLY_FADE, LATE_PEAK } from './attributes'
 import { ageAttributes, gapGrowth } from './ageing'
 import { COE_MEAN, learning, markSights, seasonReview, tempoF, TL } from './devproject'
@@ -30,7 +30,7 @@ import { dreamState } from './dream'
 import { objectiveBonus, objectiveById, pickObjectives } from './objectives'
 import { boardPriorityF } from './seasonplan'
 import { deriveAttrs, deriveTrait, isLateBloomer, nextPid, playerValue, playerWage, benchDrag, repriceAcademies } from './attributes'
-import { nationByCode, regenName, worldNames } from './nations'
+import { dropNameRegistry, keptRetiredNames, nationByCode, regenName, worldNames } from './nations'
 import { clamp, mulberry32, pick, type Rng } from './rng'
 import { resetFamiliarity } from './playbook'
 import { closeAcademySeason, ensureAcademyLeague, topUpAcademy, acadCeiling } from './academy'
@@ -59,10 +59,42 @@ const ordinal = (n: number) =>
  * Deliberately deterministic: no draw from the shared season rng, so adding
  * this cannot shift any match or transfer that follows it.
  */
-/** A player leaves the world, and his name stays taken (GameState.retiredNames). */
+/** A player leaves the world, and his name stays taken for a couple of summers
+ *  (GameState.retiredNames, trimmed by pruneNames). */
 function forget(state: GameState, p: Player) {
   ;(state.retiredNames ??= []).push(p.name.toLowerCase())
   delete state.players[p.id]
+}
+
+/** The name registry's two lists, trimmed once a summer (nations.ts).
+ *
+ *  takenNames exists for the names handed out BEFORE their players exist
+ *  (the intake class, a scout's finds); once a man is in the world or has
+ *  left it his name is covered by players or retiredNames, so the list is
+ *  trimmed to what only it knows. Unpruned it was 5% of a fifteen-season
+ *  save (scripts/qa2/savesize.ts).
+ *
+ *  retiredNames keeps the newest RETIRED_NAMES_KEPT departures. Its one reader
+ *  is the registry, and what the registry needs from it is that a name does
+ *  not come back the summer after its man left; kept whole it was the
+ *  biggest list in a long save (1.8.3). Every forget() happens earlier in
+ *  the rollover than this, so between summers the list never runs past the
+ *  cap and migrate's trim of an old save is a no-op on a new one.
+ *
+ *  Both lists are what a reload rebuilds the registry from, so the running
+ *  game drops its cached registry here and rebuilds from the same lists:
+ *  otherwise it would still hold the trimmed names and a reload would not
+ *  (scripts/qa/determinism.ts). Runs whether or not the manager is in a job,
+ *  unlike boardReinvests, where the takenNames trim used to live. */
+function pruneNames(state: GameState) {
+  if (state.takenNames?.length) {
+    const held = new Set<string>()
+    for (const p of Object.values(state.players)) held.add(p.name.toLowerCase())
+    for (const n of state.retiredNames ?? []) held.add(n.toLowerCase())
+    state.takenNames = [...new Set(state.takenNames)].filter(n => !held.has(n))
+  }
+  if (state.retiredNames?.length) state.retiredNames = keptRetiredNames(state.retiredNames)
+  dropNameRegistry(state)
 }
 
 function boardReinvests(state: GameState) {
@@ -350,7 +382,7 @@ export function devFactor(state: GameState, p: Player): number {
   return clamp(f, p.acad ? 0.6 : 0.65, p.acad ? 1.65 : 1.4)
 }
 
-export function agePlayers(state: GameState, rng: Rng) {
+export function agePlayers(state: GameState, rng: Rng, rooms?: Map<string, number>) {
   const retirees: Player[] = []
   for (const p of Object.values(state.players)) {
     p.age += 1
@@ -462,8 +494,12 @@ export function agePlayers(state: GameState, rng: Rng) {
       p.gradS ??= state.season
       // HE SIGNS HIS FIRST PROFESSIONAL CONTRACT. He was on a development deal
       // (see playerWage), and graduating without re-pricing him would leave a
-      // senior squad man on academy money for the rest of his career.
-      p.wage = playerWage(p.ca, p.age)
+      // senior squad man on academy money for the rest of his career. At the
+      // rate his club can pay (aiecon.ts aiPayRate, 1.8.3).
+      const club = p.clubId ? state.clubs[p.clubId] : undefined
+      rooms ??= aiWageRooms(state)
+      const rate = club ? aiPayRate(state, club, rooms.get(club.id)) : 1
+      p.wage = Math.round(playerWage(p.ca, p.age) * rate / 50) * 50
       p.debutPending = p.stats.apps === 0 && p.career.length === 0 ? 'academy' : null
     }
   }
@@ -508,7 +544,7 @@ export function agePlayers(state: GameState, rng: Rng) {
   for (const p of retirees) {
     // the record book: 100+ appearances for a club earns a page in it
     const byClub = new Map<string, { apps: number; tries: number; pts: number }>()
-    for (const c of p.career) {
+    for (const c of careerRows(p)) {
       const e = byClub.get(c.clubId) ?? { apps: 0, tries: 0, pts: 0 }
       e.apps += c.apps; e.tries += c.tries; e.pts += c.points
       byClub.set(c.clubId, e)
@@ -521,9 +557,9 @@ export function agePlayers(state: GameState, rng: Rng) {
     }
 
     // the Hall of Fame: a career that will be talked about forever
-    const tApps = p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps + (p.hist?.apps ?? 0)
-    const tTries = p.career.reduce((s, c) => s + c.tries, 0) + p.stats.tries + (p.hist?.tries ?? 0)
-    const tPts = p.career.reduce((s, c) => s + c.points, 0) + p.stats.points + (p.hist?.points ?? 0)
+    const tApps = careerRows(p).reduce((s, c) => s + c.apps, 0) + p.stats.apps + (p.hist?.apps ?? 0)
+    const tTries = careerRows(p).reduce((s, c) => s + c.tries, 0) + p.stats.tries + (p.hist?.tries ?? 0)
+    const tPts = careerRows(p).reduce((s, c) => s + c.points, 0) + p.stats.points + (p.hist?.points ?? 0)
     const peakCa = Math.max(p.ca, p.q0, p.ca0 ?? 0)
     if ((peakCa >= 85 && (tApps >= 350 || tTries >= 150 || tPts >= 2200)) || tApps >= 470 || tTries >= 190 || tPts >= 3000) {
       const score = (h: { apps: number; tries: number; points: number }) => h.apps + h.tries * 2 + h.points / 10
@@ -680,13 +716,13 @@ export function agePlayers(state: GameState, rng: Rng) {
  *  apps, plus pre-2025 service for men who have never played anywhere else. */
 function clubServiceApps(state: GameState, p: Player): number {
   const clubId = state.userClubId
-  const here = p.career.filter(c => c.clubId === clubId).reduce((s, c) => s + c.apps, 0) + p.stats.apps
-  const oneClub = p.career.every(c => c.clubId === clubId)
+  const here = careerRows(p).filter(c => c.clubId === clubId).reduce((s, c) => s + c.apps, 0) + p.stats.apps
+  const oneClub = careerRows(p).every(c => c.clubId === clubId)
   const pre = oneClub ? Math.max(0, (p.hist?.apps ?? 0) - (p.exApps ?? 0)) : 0
   return here + pre
 }
 
-function handleContracts(state: GameState, rng: Rng) {
+function handleContracts(state: GameState, rng: Rng, rooms: Map<string, number>) {
   // every medical joker's deal ends with the season, before anybody can mistake
   // one for an expiring contract to roll (joker.ts)
   endSeasonJokers(state)
@@ -764,13 +800,25 @@ function handleContracts(state: GameState, rng: Rng) {
 
   const freed: Player[] = []
   const rolled: Player[] = []
+  // each club's middle senior wage, the line above which a board that cannot
+  // pay its bill thinks twice about a renewal (ai.ts aiRenewals)
+  const middles = new Map<string, number>()
+  for (const club of Object.values(state.clubs)) {
+    const w = club.players.map(id => state.players[id]).filter(p => p && !p.acad).map(p => p.wage).sort((a, b) => a - b)
+    middles.set(club.id, w[Math.floor(w.length / 2)] ?? 0)
+  }
   for (const p of Object.values(state.players)) {
     if (p.clubId && p.contractEnds < state.season + 1) {
       const club = state.clubs[p.clubId]
-      if (p.clubId !== state.userClubId && rng() < 0.5) {
+      // the quiet AI renewal is on the same terms as the in-season one
+      // (ai.ts aiRenewals, 1.8.3): at the rate the club can pay, and a board
+      // that cannot pay keeps fewer of its dear men. The draw is unchanged.
+      const rate = club && p.clubId !== state.userClubId ? aiPayRate(state, club, rooms.get(club.id)) : 1
+      const dear = !!club && p.wage > (middles.get(club.id) ?? Infinity)
+      if (p.clubId !== state.userClubId && rng() < 0.5 * (dear ? rate : 1)) {
         // quiet AI renewal
         p.contractEnds = state.season + 2
-        p.wage = playerWage(p.ca, p.age)
+        p.wage = rate < 1 ? aiRenewalWage(p, rate) : playerWage(p.ca, p.age)
         continue
       }
       // A ROLLING DEAL IS THE EXCEPTION, NOT THE SAFETY NET.
@@ -1004,7 +1052,7 @@ function youthIntake(state: GameState, rng: Rng) {
  *  (feedback 10G) no club on earth was ever under 26 registered players again,
  *  so a whole-squad count would have quietly switched this off and let senior
  *  squads shrivel season by season while the academy stayed full. */
-function replenishSquads(state: GameState, rng: Rng) {
+function replenishSquads(state: GameState, rng: Rng, rooms: Map<string, number>) {
   const freeAgents = () => Object.values(state.players)
     .filter(p => !p.clubId && p.age <= 34)
     .sort((a, b) => b.ca - a.ca)
@@ -1060,7 +1108,9 @@ function replenishSquads(state: GameState, rng: Rng) {
         continue
       }
       fa.clubId = club.id
-      fa.wage = playerWage(fa.ca, fa.age)
+      // a board filling its squad pays what it can (aiecon.ts aiPayRate,
+      // 1.8.3); the manager's board signs on the scale, as it always has
+      fa.wage = Math.round(playerWage(fa.ca, fa.age) * aiPayRate(state, club, rooms.get(club.id)) / 50) * 50
       fa.contractEnds = state.season + 1
       fa.morale = 7
       club.players.push(fa.id)
@@ -1626,8 +1676,7 @@ export function rebuildSeason(state: GameState) {
     }
     seasonReview(state, p, p.clubId === state.userClubId && !!activePlan(state, p.id))
     if (p.stats.apps > 0 && p.clubId) {
-      p.career.push({ season: state.season, clubId: p.clubId, apps: p.stats.apps, tries: p.stats.tries, points: p.stats.points })
-      if (p.career.length > 20) p.career = p.career.slice(-20)
+      archiveSeason(p, { season: state.season, clubId: p.clubId, apps: p.stats.apps, tries: p.stats.tries, points: p.stats.points })
     }
     // remembered across the wipe so devFactor can ask how much rugby the
     // season actually held (25D: minutes-gated growth)
@@ -1678,7 +1727,11 @@ export function rebuildSeason(state: GameState) {
   delete state.natFed
   state.natLineup = null
 
-  agePlayers(state, rng)
+  // what every AI board can pay, read while the season's gates are still on
+  // the fixture list: the contracts, the squad top-up and the budgets below
+  // all price from it (aiecon.ts, 1.8.3)
+  const rooms = aiWageRooms(state)
+  agePlayers(state, rng, rooms)
   const moved: { k: string; name: string; from: string; to: string }[] = []
   for (const [id, before] of sightsBefore) {
     const p = state.players[id]
@@ -1702,9 +1755,9 @@ export function rebuildSeason(state: GameState) {
       k: 'news.devReview', v,
     })
   }
-  handleContracts(state, rng)
+  handleContracts(state, rng, rooms)
   youthIntake(state, rng)
-  replenishSquads(state, rng)
+  replenishSquads(state, rng, rooms)
   // every academy in the world recruits its next scholarship year, back up to
   // 27 in shape - see topUpAcademy for why this is not optional (feedback 10G)
   for (const club of Object.values(state.clubs)) {
@@ -2134,6 +2187,7 @@ export function rebuildSeason(state: GameState) {
   }
 
   boardReinvests(state)
+  pruneNames(state)
   // and the other hundred boards, for the same reason his does it: money sitting
   // in a deposit account while the club stands still is money the board would
   // rather see in the academy and the training ground (aiecon.ts).
@@ -2142,6 +2196,9 @@ export function rebuildSeason(state: GameState) {
   // budgets: base by rep + carryover health
   for (const club of Object.values(state.clubs)) {
     club.budget = Math.max(200_000, Math.round((club.rep * 45_000 + Math.max(0, club.balance) * 0.15) / 50_000) * 50_000)
+    // an AI board's allowance answers to its books (aiecon.ts, 1.8.3); the
+    // manager's is the line above, unchanged
+    if (!isMyClub(state, club.id)) club.budget = aiTransferBudget(state, club, rooms.get(club.id))
     // the board injections bought this season stay spendable: whatever of
     // that cash is still in the account is the floor of next season's
     // allowance, not 15% of it (scripts/qa/p5_inject.ts, 1.6.3)
@@ -2268,17 +2325,6 @@ export function rebuildSeason(state: GameState) {
   // the two (scripts/qa/determinism.ts, migrate mode, 1.6.5). Same sweep
   // newGame runs, idempotent.
   repriceAcademies(Object.values(state.players))
-  // takenNames exists for the names handed out BEFORE their players exist
-  // (the intake class, a scout's finds); once a man is in the world or has
-  // left it his name is covered by players or retiredNames, so the list is
-  // trimmed to what only it knows. Unpruned it was 5% of a fifteen-season
-  // save (scripts/qa2/savesize.ts).
-  if (state.takenNames?.length) {
-    const held = new Set<string>()
-    for (const p of Object.values(state.players)) held.add(p.name.toLowerCase())
-    for (const n of state.retiredNames ?? []) held.add(n.toLowerCase())
-    state.takenNames = [...new Set(state.takenNames)].filter(n => !held.has(n))
-  }
   state.injectedThisSeason = undefined
   state.releasedThisSeason = undefined
   // the rewarded ledger is weekly or seasonal and goes with the season, all but

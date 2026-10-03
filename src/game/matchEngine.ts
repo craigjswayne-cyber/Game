@@ -4,7 +4,7 @@ import { genderOf, type Gender, subjectVar } from './gender'
 import { prepLeaked } from './talkingpoints'
 import { ROLE_FX, rolesForSlot } from './roles'
 import { zoneAt, zonePlan } from './tactics'
-import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, addGrudge, chemKey, demandCeiling, facLevel, fmtMoney, formGuide, grudgeBetween, inRedZone, oldBoyApps, trustFactor, unbeatenRun } from './model'
+import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, addGrudge, careerRows, chemKey, demandCeiling, facLevel, fmtMoney, formGuide, grudgeBetween, inRedZone, oldBoyApps, trustFactor, unbeatenRun } from './model'
 import { standing } from './authority'
 import { bondCohesion } from './bonds'
 import { analystShift, archetypeOf, loudestDial, repetitionFatigue, respectLayers } from './oppcoach'
@@ -654,25 +654,38 @@ export function homeCrowdLean(state: GameState, fx: Fixture): number {
 /** Law 3: a 23 must be able to replace all three front-row positions.
  *
  *  Six suitably trained front-rowers, in practice two who can play each of
- *  loosehead, hooker and tighthead - a man counts for every position he can
- *  actually cover, so a prop who packs down on both sides is worth two. Come up
- *  short and the referee orders uncontested scrums, which takes the set piece out
- *  of the game entirely: no shove, no scrum penalties, nothing for a dominant
- *  front row to win. That hurts whoever HAD the better scrum, which is why it is
- *  a genuine selection constraint and, in the real game, a genuine controversy -
- *  a side with a poor scrum has an incentive to be short. Comment kept rather
- *  than a sanction built: a front-row shortage already punishes itself when a
- *  tighthead limps off and the bench has no natural cover. */
-export function frontRowCover(state: GameState, lineup: (number | null)[]): { LP: number; HK: number; TP: number; legal: boolean } {
+ *  loosehead, hooker and tighthead. Come up short and the referee orders
+ *  uncontested scrums, which takes the set piece out of the game entirely: no
+ *  shove, no scrum penalties, nothing for a dominant front row to win. That
+ *  hurts whoever HAD the better scrum, which is why it is a genuine selection
+ *  constraint and, in the real game, a genuine controversy - a side with a
+ *  poor scrum has an incentive to be short. Comment kept rather than a
+ *  sanction built: a front-row shortage already punishes itself when a
+ *  tighthead limps off and the bench has no natural cover.
+ *
+ *  PLAYERS, NOT POSITIONS (1.8.3, Law 3.5). This used to count positions
+ *  covered, a man counting once for every one he could play, so a prop who
+ *  packs down on both sides was worth two and five men passed for six. The
+ *  law counts men: six front-rowers in a 23, five in a squad of 19 to 22,
+ *  four in 17 or 18 and three below that, each a different player, and the
+ *  two-of-each test still stands on top so every position has its cover. The
+ *  squad is the named men who are fit to play. No draw. */
+export function frontRowCover(state: GameState, lineup: (number | null)[]): { LP: number; HK: number; TP: number; players: number; need: number; legal: boolean } {
   const need = ['LP', 'HK', 'TP'] as const
-  const out = { LP: 0, HK: 0, TP: 0, legal: false }
+  const out = { LP: 0, HK: 0, TP: 0, players: 0, need: 6, legal: false }
+  const seen = new Set<number>()
   for (const id of lineup.slice(0, 23)) {
-    if (id == null) continue
+    if (id == null || seen.has(id)) continue
     const p = state.players[id]
     if (!p || p.injury) continue
-    for (const n of need) if (p.pos === n || p.alt.includes(n)) out[n] += 1
+    seen.add(id)
+    let fr = false
+    for (const n of need) if (p.pos === n || p.alt.includes(n)) { out[n] += 1; fr = true }
+    if (fr) out.players += 1
   }
-  out.legal = out.LP >= 2 && out.HK >= 2 && out.TP >= 2
+  const squad = seen.size
+  out.need = squad >= 23 ? 6 : squad >= 19 ? 5 : squad >= 17 ? 4 : 3
+  out.legal = out.LP >= 2 && out.HK >= 2 && out.TP >= 2 && out.players >= out.need
   return out
 }
 
@@ -1115,6 +1128,16 @@ export interface SideCtx {
   /** a man taken off under Law 3 while a front-rower sits a yellow, back on
    *  when the binned man returns (checkFrontRow) */
   lawOut?: { id: number; binned: number } | null
+  /** Law 3 with the cover on the bench (frontRowCardCover): a front-rower
+   *  sits a yellow, a trained replacement wears his shirt (`shirt`) and
+   *  `off` makes way for him. When the binned man's ten minutes end he takes
+   *  his shirt back, the replacement goes to the bench and `off` returns.
+   *  `swap` false once another man's return has settled the shirt: only
+   *  `off` is owed his place back. */
+  frCover?: { binned: number; on: number; off: number; shirt: number; swap: boolean }[]
+  /** the men sent off who sit in a replacement's seat, because the
+   *  replacement took the front-row shirt (frontRowCardCover): never cover */
+  sentOff?: Set<number>
   /** the men already named in the commentary as out of a specialist shirt */
   specSaid?: Set<number>
   /** the three set-piece units summed over the ticks played, and how many.
@@ -1122,6 +1145,98 @@ export interface SideCtx {
    *  side's units follow its replacements, the full-time figure is the pack
    *  that finished the game, not the one that contested most of it. */
   setAcc?: { scrum: number; lineout: number; breakdown: number; n: number }
+  /** WHAT THE MATCH WAS MADE OF (1.8.3, evidence.ts): counts kept as the
+   *  ticks run, from numbers each tick has already worked out, so the full
+   *  time and half time reads can say why without guessing. Never drawn,
+   *  never read by the simulation; absent on a match begun by an older build. */
+  ev?: EvCount
+}
+
+/** The causes a point can be put down to (EvCount.pts), in this order of
+ *  precedence for a try: a called move that made it, a turnover won in that
+ *  tick or the one before, a line break (a tick whose try chance cleared
+ *  BREAK_P), and phase play for the rest of open play. Then the other side's
+ *  penalties (the kick, the corner, the tap and a try under advantage), and
+ *  the boot (drop goals, and the try off a charge-down). A conversion goes
+ *  with its try. */
+export const EV_CAUSES = ['move', 'turn', 'break', 'phase', 'pen', 'kick'] as const
+export type EvCause = typeof EV_CAUSES[number]
+
+/** A LINE BREAK, as the engine sees one: a tick whose try chance, after
+ *  everything (units, ground, plan, contest, move, style, the clock), is at
+ *  least this. About five in a match for a side (evidenceprobe), more in a
+ *  mismatch; the counter only names the ticks, it decides nothing. */
+export const BREAK_P = 0.2
+
+/** the zone a side is in, by its own distance up the pitch (tactics.zoneAt):
+ *  0 its own 22, 1 the middle, 2 the opposition 22 */
+export const zoneIdx = (up: number): 0 | 1 | 2 => up < 22 ? 0 : up > 78 ? 2 : 1
+
+export interface EvCount {
+  /** per move called: [calls, metres it won or lost (the line's own move),
+   *  tries it made, calls the tape blunted, metres the blunting cost] */
+  calls: Record<string, number[]>
+  /** points by cause, in EV_CAUSES order; they sum to the side's score */
+  pts: number[]
+  /** line breaks, and ticks where this side won its carry (contest) */
+  breaks: number
+  carries: number
+  /** the style matchup summed over this side's ticks (styles.ts m), and the
+   *  tries the style added over the world's (the try chance it multiplied) */
+  sty: number
+  styX: number
+  /** ticks this side played in each zone (its plan's zone), own 22 first */
+  zone: number[]
+  /** turnovers won and lost, by the zone (from this side's view) they
+   *  happened in; and the tick of the last one won (for the try that follows) */
+  turnWon: number[]
+  turnLost: number[]
+  lastTurn: number
+  /** the try chance the tape took off this side's calls (armsrace.ts) */
+  bluntX: number
+}
+
+/** the counters, made on first use, so an old match reads as empty */
+export function evOf(side: SideCtx): EvCount {
+  return (side.ev ??= {
+    calls: {}, pts: [0, 0, 0, 0, 0, 0], breaks: 0, carries: 0, sty: 0, styX: 0,
+    zone: [0, 0, 0], turnWon: [0, 0, 0], turnLost: [0, 0, 0], lastTurn: -9, bluntX: 0,
+  })
+}
+
+/** Points on the board, put down to what made them: the cause the scoring
+ *  path set on ctx.evWhy, else phase play (a penalty kick and a drop goal
+ *  name their own). */
+function evPts(ctx: LiveCtx, side: SideCtx, n: number, cause?: EvCause) {
+  const c = cause ?? ctx.evWhy ?? 'phase'
+  evOf(side).pts[EV_CAUSES.indexOf(c)] += n
+}
+
+/** One tick's worth of evidence for the side with the ball, read off what
+ *  simTick has just worked out for it: where it was, whether the tick was a
+ *  line break, who won the carry, what the style matchup and the called move
+ *  were worth, and what the tape took off the call. */
+function evTick(side: SideCtx, opp: SideCtx, pTry: number, up: number,
+  mv: MoveInPlay | null, st: { m: number; tryF: number }, contest: Contest | null | undefined) {
+  const ev = evOf(side)
+  ev.zone[zoneIdx(up)] += 1
+  if (pTry >= BREAK_P) ev.breaks += 1
+  if (contest && contest.dominance > 0.5) ev.carries += 1
+  if (side.sty && opp.sty) {
+    ev.sty += st.m
+    if (st.tryF > 0) ev.styX += pTry * (1 - 1 / st.tryF)
+  }
+  if (!mv) return
+  // the ground the call moves the line by when the tick comes to nothing
+  const metres = (g: number) => g >= 0 ? g * 20 : g * 40 * mv.risk
+  const c = (ev.calls[mv.id] ??= [0, 0, 0, 0, 0])
+  c[0] += 1
+  c[1] += metres(mv.gain)
+  if (mv.gain0 != null && mv.gain0 !== mv.gain) {
+    c[3] += 1
+    c[4] += metres(mv.gain0) - metres(mv.gain)
+    ev.bluntX += pTry * ((1 + mv.gain0) / Math.max(0.05, 1 + mv.gain) - 1)
+  }
 }
 
 /** WHAT THE SKY DOES TO THE UNITS (conditions.ts), one place for kick-off and
@@ -2039,6 +2154,13 @@ export interface LiveCtx {
    *  in the try line instead of the pool's line, after the pool's draw has
    *  been taken, so the dice are the same either way. */
   moveTry?: { id: string; launch: Launch; maker: number | null } | null
+  /** WHAT THE POINTS ABOUT TO GO ON THE BOARD ARE PUT DOWN TO (1.8.3,
+   *  EvCount.pts): set just before a scoring call and cleared after it, as
+   *  moveTry is. Read only by the counters. */
+  evWhy?: EvCause | null
+  /** the margin (home minus away) at the end of each tick, for the lead
+   *  changes the evidence keeps (evidence.ts) */
+  marginHist?: number[]
 }
 
 /**
@@ -2082,6 +2204,8 @@ const DEPICTS: Record<string, NonNullable<MatchEvent['fx']>> = {
   'comm.uncontestedBin': 'SCRUM',   // Law 3: a second man sits the ten minutes out with him
   'comm.contestedAgain': 'SCRUM',   // the binned front-rower returns
   'comm.frontRowReturns': 'SCRUM',  // Law 3.35: a replaced front-rower comes back
+  'comm.frontRowBinCover': 'SCRUM', // Law 3: the bench front-rower on for a binned one
+  'comm.frontRowRedCover': 'SCRUM', // Law 3: the bench front-rower on for a sent-off one
   'comm.flav9': 'LINEOUT',          // steals the lineout against the throw
   'comm.flav13': 'LINEOUT',         // a 50:22 and the lineout that follows
   'comm.flav18': 'LINEOUT',         // a quick lineout taken
@@ -2313,10 +2437,12 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     tallyCalls(state, fx)
   }
   // The analysts were watching. Calling the same move every week is how it stops
-  // working, so the tally is kept here, once per match, for both clubs.
+  // working, so the tally is kept here, once per match, for both clubs. The
+  // manager's own is kept by tallyCalls above (1.8.3: it fades in-season and
+  // a strike wears by its share of the ball, armsrace.ts THE WEAR).
   for (const id of [fx.homeId, fx.awayId]) {
     const c = state.clubs[id]
-    if (!c) continue
+    if (!c || id === state.userClubId) continue
     const pb = playbookOf(c)
     for (const call of [c.tactic.lineoutCall ?? DEFAULT_LINEOUT, c.tactic.scrumCall ?? DEFAULT_SCRUM]) {
       pb.used[call] = (pb.used[call] ?? 0) + 1
@@ -2638,7 +2764,7 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
       for (const id of side.lineup.slice(0, 15)) {
         const p = id != null ? state.players[id] : null
         if (!p) continue
-        const cApps = p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps + (p.hist?.apps ?? 0) + 1
+        const cApps = careerRows(p).reduce((s, c) => s + c.apps, 0) + p.stats.apps + (p.hist?.apps ?? 0) + 1
         if ([50, 100, 150, 200, 250].includes(cApps)) {
           pushLine(state, ctx, 1, 'SUB', side, 'comm.milestoneApps', { player: p.name, n: cApps }, p.id)
         }
@@ -2788,6 +2914,7 @@ function takePenaltyShot(state: GameState, ctx: LiveCtx, side: SideCtx, min: num
   if (penOver) {
     side.score += 3
     side.pens += 1
+    evPts(ctx, side, 3, 'pen')
     if (kicker) {
       kicker.stats.pens += 1; kicker.stats.points += 3
       side.ratings.set(kicker.id, (side.ratings.get(kicker.id) ?? 6) + 0.15)
@@ -2922,6 +3049,9 @@ interface MoveInPlay {
   risk: number
   /** the man it is run through, if he is on the pitch */
   maker: Player | null
+  /** what the gain would have been had the opponent not been set for it
+   *  (armsrace.ts); present only on a call the tape blunted */
+  gain0?: number
 }
 
 /** The move this side runs in this tick, or null: what the tick was launched
@@ -2944,7 +3074,9 @@ function moveInPlay(state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideCtx,
   // the manager's opponent set for his most-run calls (armsrace.ts)
   const adapt = club.id === state.userClubId ? (ctx.callAdapt?.[m.id] ?? 0) : 0
   const e = moveEdge(state, club, m.id, fit, match, adapt)
-  return { id: m.id, launch: call.launch, gain: e.gain, risk: m.risk, maker: inShirt(state, side, (MOVE_MAKER[m.id] ?? 10) - 1) }
+  // the same reckoning without the tape, for the evidence: a read, no draw
+  const gain0 = adapt > 0 ? moveEdge(state, club, m.id, fit, match, 0).gain : undefined
+  return { id: m.id, launch: call.launch, gain: e.gain, risk: m.risk, maker: inShirt(state, side, (MOVE_MAKER[m.id] ?? 10) - 1), gain0 }
 }
 
 /** how far the penalty slot's play moves a quick tap's chance, per unit of
@@ -3228,7 +3360,9 @@ function chargeDown(state: GameState, ctx: LiveCtx, kick: SideCtx, charge: SideC
     // which quietly paid the own-22 exit plans twice (optionsprobe)
     charge.pressure = clamp(charge.pressure + 42, 0, 100)
     kick.pressure = clamp(kick.pressure * 0.55, 0, 100)
+    ctx.evWhy = 'kick'
     scoreTry(state, ctx, charge, min, said(ctx, CHARGE_TRY_LINES), charger, { player: charger.name }, false)
+    ctx.evWhy = null
     return
   }
   // otherwise one of four, evenly: touch, a scrum, the chargers regather, or
@@ -3286,6 +3420,7 @@ function dropGoalAttempt(state: GameState, ctx: LiveCtx, side: SideCtx, min: num
   noteKick(ctx, side, dgOver)
   if (dgOver) {
     side.score += 3
+    evPts(ctx, side, 3, 'kick')
     fh.stats.drops += 1; fh.stats.points += 3
     // the line before the restart, so it is stamped where it was struck
     pushLine(state, ctx, min, 'DG', side, 'comm.dropGoal', { player: fh.name }, fh.id)
@@ -3416,6 +3551,7 @@ function scoreTry(
   ctx.field = ctx.field * 0.6 + 50 * 0.4
   side.score += 5
   side.tries += 1
+  evPts(ctx, side, 5)
   if (scorer) {
     // ---- A TRY IS SCORED BY FIFTEEN MEN ----
     //
@@ -3461,7 +3597,7 @@ function scoreTry(
     if (fwdStands) pushLine(state, ctx, min, 'SUB', side, `comm.tmoFwdStands${1 + ((min + scorer.id) % 2)}`, { team: teamShort(state, side.teamId) }, scorer.id)
   }
   else pushLine(state, ctx, min, 'TRY', side, 'comm.tryPackDrive')
-  const cTries = scorer ? scorer.career.reduce((s, c) => s + c.tries, 0) + scorer.stats.tries + (scorer.hist?.tries ?? 0) : 0
+  const cTries = scorer ? careerRows(scorer).reduce((s, c) => s + c.tries, 0) + scorer.stats.tries + (scorer.hist?.tries ?? 0) : 0
   if (scorer && ctx.detail && [25, 50, 75, 100].includes(cTries)) {
     pushLine(state, ctx, min + 1, 'SUB', side, 'comm.tryCareerMilestone', { n: cTries, player: scorer.name }, scorer.id)
   } else if (scorer && ctx.detail && [10, 15, 20, 25].includes(scorer.stats.tries)) {
@@ -3497,6 +3633,7 @@ function scoreTry(
   noteKick(ctx, side, conOver)
   if (conOver) {
     side.score += 2
+    evPts(ctx, side, 2)
     if (kicker) { kicker.stats.cons += 1; kicker.stats.points += 2 }
     // A TRY UNDER THE POSTS IS NOT CONVERTED FROM THE TOUCHLINE (1.6.3). The
     // conversion line was drawn without looking at the try line, and thirteen
@@ -3538,7 +3675,10 @@ export function resolveDecision(state: GameState, ctx: LiveCtx, choice: 'posts' 
   ctx.decision = null
   const whistleAt = ctx.whistleAt
   const before = ctx.events.length
+  // whatever the answer puts on the board is the penalty's (EvCount.pts)
+  ctx.evWhy = 'pen'
   const msg = decide(state, ctx, d, choice)
+  ctx.evWhy = null
   if (whistleAt != null && whistleAt <= before) {
     const moved = ctx.events.splice(before)
     // AND THEY TAKE THE WHISTLE'S CLOCK WITH THEM.
@@ -3804,7 +3944,7 @@ export function liveFrontRowCover(state: GameState, side: SideCtx): boolean {
   // is why uncontested scrums are rare in the professional game. Only the
   // injured, the binned and the man on the pitch are out of the reckoning.
   for (const id of side.lineup.slice(15)) {
-    if (id == null || side.onPitch.has(id) || side.binned.has(id)) continue
+    if (id == null || side.onPitch.has(id) || side.binned.has(id) || side.sentOff?.has(id)) continue
     const p = state.players[id]
     if (p && !p.injury) pool.push(p)
   }
@@ -3822,12 +3962,131 @@ export function liveFrontRowCover(state: GameState, side: SideCtx): boolean {
 function returningFrontRower(state: GameState, side: SideCtx): Player | null {
   let best: Player | null = null
   for (const id of side.lineup.slice(15)) {
-    if (id == null || side.onPitch.has(id) || side.binned.has(id) || !side.ratings.has(id)) continue
+    if (id == null || side.onPitch.has(id) || side.binned.has(id) || side.sentOff?.has(id) || !side.ratings.has(id)) continue
     const p = state.players[id]
     if (!p || p.injury || !isFrontRower(p)) continue
     if (!best || p.ca > best.ca) best = p
   }
   return best
+}
+
+/** Can the men on the pitch pack down a trained front row: a hooker and two
+ *  props, three different men? A prop is a prop on either side here, as he
+ *  is for the shirts (specialistGaps). Read-only, no draw. */
+function pitchFrontRow(state: GameState, ids: Iterable<number>): boolean {
+  const fr: Player[] = []
+  for (const id of ids) { const p = state.players[id]; if (p && !p.injury && isFrontRower(p)) fr.push(p) }
+  if (fr.length < 3) return false
+  const hook = (p: Player) => p.pos === 'HK' || p.alt.includes('HK')
+  const prop = (p: Player) => p.pos === 'LP' || p.pos === 'TP' || p.alt.includes('LP') || p.alt.includes('TP')
+  for (const h of fr) {
+    if (!hook(h)) continue
+    if (fr.filter(p => p !== h && prop(p)).length >= 2) return true
+  }
+  return false
+}
+
+/**
+ * LAW 3 WITH THE COVER ON THE BENCH (1.8.3, Laws 3.19 and 3.20).
+ *
+ * A front-rower is carded and a trained replacement is sitting on the bench.
+ * This used to stop at "the cover exists": liveFrontRowCover counted the bench
+ * man, so the scrum stayed contested, and nobody came on. The AI bench skipped
+ * the empty shirt (aiAutoSubs replaces only a man who is out there) and the
+ * manager could not fill it either (makeSubstitution refuses a binned man), so
+ * the side scrummaged for ten minutes, or for the rest of the match, with a
+ * card in the front row and a hooker on the bench.
+ *
+ * The law's answer: the side nominates another player to leave the field and
+ * the front-row replacement comes on, so the scrum stays a contest and the
+ * side is still a man down for the card. For a yellow it is undone when the
+ * ten minutes end (simTick, the bin block): the carded man takes his shirt
+ * back, the replacement goes back to the bench and the nominated man returns.
+ * For a red it is for the match (RED-CARD-01: the sending-off is permanent).
+ *
+ * The replacement is the unused bench man who best fits the shirt (effAt), and
+ * failing one a front-rower already replaced (Law 3.35), on the legs he left
+ * with. The man who makes way is chosen as checkFrontRow chooses its man off:
+ * the least valuable non-front-rower still out there by his mark so far. It is
+ * the same for the manager's side and the AI's: forced, like an injury change,
+ * so it spends none of the manager's replacements. No draw. Returns false when
+ * nobody on the bench restores a whole front row, and Law 3 then orders
+ * uncontested scrums as before.
+ */
+function frontRowCardCover(state: GameState, ctx: LiveCtx, side: SideCtx, min: number, lost: Player, cause: 'red' | 'yellow'): boolean {
+  const shirt = side.lineup.indexOf(lost.id)
+  if (shirt < 0 || shirt > 14) return false
+  const pos = XV_SLOTS[shirt].pos
+  const fresh: Player[] = []
+  const used: Player[] = []
+  for (const id of side.lineup.slice(15)) {
+    if (id == null || side.onPitch.has(id) || side.binned.has(id) || side.sentOff?.has(id)) continue
+    const p = state.players[id]
+    if (!p || p.injury || p.bans > 0 || !isFrontRower(p)) continue
+    if (!pitchFrontRow(state, [...side.onPitch, p.id])) continue
+    ;(side.ratings.has(id) ? used : fresh).push(p)
+  }
+  let rep: Player | null = null
+  for (const p of fresh) if (!rep || effAt(p, pos) > effAt(rep, pos)) rep = p
+  const back = !rep
+  if (!rep) for (const p of used) if (!rep || p.ca > rep.ca) rep = p
+  if (!rep) return false
+  const rest = [...side.onPitch].map(id => state.players[id]).filter((p): p is Player => !!p && !isFrontRower(p))
+  if (!rest.length) return false
+  let nom = rest[0]
+  for (const p of rest) if ((side.ratings.get(p.id) ?? 6) < (side.ratings.get(nom.id) ?? 6)) nom = p
+  // the replacement wears the carded man's shirt, and the carded man takes
+  // the replacement's seat; the man who makes way keeps his shirt, off the
+  // pitch, the way a Law 3.20 removal does
+  const seat = side.lineup.indexOf(rep.id)
+  side.lineup[shirt] = rep.id
+  if (seat >= 0) side.lineup[seat] = lost.id
+  side.onPitch.delete(nom.id)
+  side.onPitch.add(rep.id)
+  cameOn(side, rep.id, min)
+  if (!back) {
+    side.ratings.set(rep.id, 6)
+    side.energy.set(rep.id, benchTank(rep))
+  } else {
+    side.energy.set(rep.id, Math.min(benchTank(rep), side.energy.get(rep.id) ?? benchTank(rep)))
+  }
+  if (cause === 'yellow') (side.frCover ??= []).push({ binned: lost.id, on: rep.id, off: nom.id, shirt, swap: true })
+  else (side.sentOff ??= new Set()).add(lost.id)
+  fieldChanged(state, ctx, side, min)
+  pushLine(state, ctx, min, 'SUB', side, cause === 'yellow' ? 'comm.frontRowBinCover' : 'comm.frontRowRedCover',
+    { team: teamShort(state, side.teamId), on: rep.name, player: nom.name, lost: lost.name }, rep.id)
+  return true
+}
+
+/** The bin block's half of frontRowCardCover: the carded front-rower's ten
+ *  minutes are up. He takes his shirt back from whoever wears it now (the
+ *  replacement, or whoever replaced him), that man goes to the bench, and the
+ *  man who made way comes back on. Returns true when it handled the man. */
+function frontRowCoverEnds(state: GameState, ctx: LiveCtx, s: SideCtx, id: number, min: number): boolean {
+  const list = s.frCover
+  const i = list ? list.findIndex(r => r.binned === id) : -1
+  if (!list || i < 0) return false
+  const r = list[i]
+  list.splice(i, 1)
+  const p = state.players[id]
+  const nom = state.players[r.off]
+  if (r.swap && p && !p.injury) {
+    const cur = s.lineup[r.shirt]
+    const seat = s.lineup.indexOf(id)
+    if (cur != null && cur !== id) {
+      s.lineup[r.shirt] = id
+      if (seat >= 0) s.lineup[seat] = cur
+      s.onPitch.delete(cur)
+    }
+    s.onPitch.add(id)
+    // a later card on the same shirt is settled by this return: its man
+    // off is still owed his place, but the shirt is spoken for
+    for (const o of list) if (o.shirt === r.shirt) o.swap = false
+    pushLine(state, ctx, min, 'SUB', s, 'comm.frontRowBinBack',
+      { team: teamShort(state, s.teamId), lost: p.name, on: cur != null ? state.players[cur]?.name ?? '' : '', player: nom?.name ?? '' }, id)
+  }
+  if (nom && !nom.injury && s.lineup.slice(0, 15).includes(nom.id) && !s.binned.has(nom.id)) s.onPitch.add(nom.id)
+  return true
 }
 
 /**
@@ -3861,7 +4120,13 @@ function returningFrontRower(state: GameState, side: SideCtx): Player | null {
  */
 export function checkFrontRow(state: GameState, ctx: LiveCtx, side: SideCtx, min: number, lost: Player, cause: 'red' | 'yellow' | 'injury' | 'hia', replaced = true) {
   if (ctx.uncontested || !isFrontRower(lost)) return
-  if (liveFrontRowCover(state, side)) return
+  // a card with the cover on the bench: the cover comes on and another man
+  // makes way (frontRowCardCover); a front row still whole on the pitch
+  // needs nothing; and only when neither holds is it uncontested
+  if (cause === 'red' || cause === 'yellow') {
+    if (pitchFrontRow(state, side.onPitch)) return
+    if (frontRowCardCover(state, ctx, side, min, lost, cause)) return
+  } else if (liveFrontRowCover(state, side)) return
   const { home, away } = ctx
   const level = (home.units.scrum + away.units.scrum) / 2
   const homeF = level / Math.max(1, home.units.scrum)
@@ -4188,6 +4453,8 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     for (const id of [...s.binned]) {
       if ((s.yellowUntil.get(id) ?? 0) > min) continue
       s.binned.delete(id)
+      // Law 3: back from the bin to a shirt a front-row replacement wore
+      if (frontRowCoverEnds(state, ctx, s, id, min)) continue
       const p = state.players[id]
       if (p && !p.injury && s.lineup.slice(0, 15).includes(id)) s.onPitch.add(id)
       // Law 3: the man who went off with a binned front-rower comes back with him
@@ -4489,6 +4756,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
      * the way it does when you are watching.
      */
     side.xTry = (side.xTry ?? 0) + pTry
+    evTick(side, opp, pTry, up, mv, st, contest)
     const floor = clamp(pTry * 190, 4, 62)
     side.pressure = clamp(side.pressure * 0.72 + floor * 0.28, 0, 100)
 
@@ -4497,8 +4765,16 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       side.pressure = clamp(side.pressure + 42, 0, 100)
       opp.pressure = clamp(opp.pressure * 0.55, 0, 100)
       ctx.moveTry = moveTryOf(state, ctx, side, mv, tick)
+      // what the try is put down to (EV_CAUSES, in that order)
+      ctx.evWhy = ctx.moveTry ? 'move' : evOf(side).lastTurn >= tick - 1 ? 'turn' : pTry >= BREAK_P ? 'break' : 'phase'
+      const tries0 = side.tries
       scoreTry(state, ctx, side, min)
+      if (ctx.moveTry && side.tries > tries0) {
+        const c = evOf(side).calls[ctx.moveTry.id]
+        if (c) c[2] += 1
+      }
       ctx.moveTry = null
+      ctx.evWhy = null
     } else if (r < pTry + penWindow) {
       // a penalty won is a side on the front foot, whatever it does with it
       side.pressure = clamp(side.pressure + 17, 0, 100)
@@ -4542,7 +4818,9 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       if (advRoll < pAdvTry) {
         // they did not need the three: the arm was still out when they scored
         if (detail) pushLine(state, ctx, min, 'SUB', side, 'comm.advPlaying', { team: teamShort(state, side.teamId) })
+        ctx.evWhy = 'pen'
         scoreTry(state, ctx, side, min)
+        ctx.evWhy = null
       } else if (advRoll < pAdvTry + pAdvOver) {
         // ground made, nothing at the end of it, and the kick is gone with it
         if (detail) pushLine(state, ctx, min, 'SUB', side, 'comm.advOver', { team: teamShort(state, side.teamId) })
@@ -4611,6 +4889,12 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     if (r >= pTry + penWindow && side.score + opp.score === scores0 && side.sty && opp.sty) {
       if (st.ground) backTowards(ctx, side, -st.ground)
       if (moveHash(styleSalt(state, ctx), tick, side === home ? 3 : 4, 0x57) < st.turnP) {
+        // where it was lost, for the evidence, before the line moves
+        const z = zoneIdx(upOf(ctx, side))
+        evOf(side).turnLost[z] += 1
+        const eo = evOf(opp)
+        eo.turnWon[2 - z] += 1
+        eo.lastTurn = tick
         backTowards(ctx, side, TURN_M)
         opp.styTurnWon = (opp.styTurnWon ?? 0) + 1
         side.styTurnLost = (side.styTurnLost ?? 0) + 1
@@ -4676,7 +4960,12 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           side.ratings.set(p.id, (side.ratings.get(p.id) ?? 6) - 2)
           pushLine(state, ctx, min, 'RC', side, 'comm.redCard', { player: p.name }, p.id)
           checkFrontRow(state, ctx, side, min, p, 'red')
-        } else {
+        } else if (side.onPitch.size > 13) {
+          // NEVER BELOW THIRTEEN FOR A YELLOW (1.8.3): the repeated-penalty
+          // bin has always stopped at thirteen on the pitch (concedePenalty)
+          // and this one did not, so a side already two down could lose a
+          // third. Same floor here; the draws above are taken either way, so
+          // the stream does not move, only the card that is no longer shown.
           side.yellowUntil.set(p.id, binUntil(ctx, min))
           // he SITS the ten minutes: off the pitch pools, so a man in the bin
           // cannot score a try, take another card or pull an injury while he
@@ -4865,6 +5154,8 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
   // rolling possession history: each entry is the home share of one tick,
   // so the live 'LAST 10 MINUTES' graphic can average the recent window
   ;(ctx.momoHist ??= []).push(dh + da > 0 ? dh / (dh + da) : 0.5)
+  // and the scoreboard at the end of it, for the lead changes (evidence.ts)
+  ;(ctx.marginHist ??= []).push(home.score - away.score)
 }
 
 /**

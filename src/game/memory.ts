@@ -29,7 +29,7 @@
 // literal in MemoryKind, and adding one is a one-word change.
 
 import type { Fixture, GameState, Player } from './model'
-import { absWeek, fmtMoney, seasonLabel, SEASON_WEEKS } from './model'
+import { absWeek, careerRows, fmtMoney, seasonLabel, SEASON_WEEKS } from './model'
 import { clamp } from './rng'
 import { tIn, type Vars } from './i18n'
 import { fileHeldNews } from './heldnews'
@@ -233,7 +233,7 @@ export function rememberDeparture(
  */
 function notableDeparture(state: GameState, p: Player, from: string): boolean {
   if (p.homegrown) return true
-  const apps = p.career.filter(c => c.clubId === from).reduce((n, c) => n + c.apps, 0) + (p.clubId === from ? p.stats.apps : 0)
+  const apps = careerRows(p).filter(c => c.clubId === from).reduce((n, c) => n + c.apps, 0) + (p.clubId === from ? p.stats.apps : 0)
   if (apps >= 10) return true
   const cas = (state.clubs[from]?.players ?? [])
     .map(id => state.players[id]).filter(x => x && x.id !== p.id && !x.acad).map(x => x.ca).sort((a, b) => a - b)

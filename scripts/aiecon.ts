@@ -91,14 +91,33 @@ const SEASONS = 10
  *  standard errors of a 24-world pool (sd 0.158M a world, error 0.032M),
  *  which is the coin the old floor had become. Plus or minus 0.10M is three
  *  of them, and it still catches the median club sliding into loss. */
-const WAS_PER_SEASON = 0.08e6
-/** how far the pooled median may sit from WAS_PER_SEASON: about three
- *  standard errors of 24 worlds */
+/*  RE-REFERENCED in 1.8.3 (3 Oct 2026), both numbers, on purpose. AI boards
+ *  now pay what their income lets them (aiecon.ts aiPayRate): renewals, free
+ *  agents, graduates and AI signings are priced at the club's pay rate, a
+ *  club that cannot pay its bill lets dear men go at expiry, one in debt
+ *  shops less, and the dead-money line drops from 26 weeks of wages to 20. The fifteen-season audit
+ *  had found the lower leagues structurally insolvent and the top flight
+ *  banking a median £15M (scripts/distressprobe.ts). The same 24 worlds:
+ *
+ *                       median club      mean club    red now   index
+ *    1.8.2 (43e53b3)    0.13 +0.033      0.40         49/107    1.41x
+ *    1.8.3              0.18 +0.006      0.27          7/107    1.07x
+ *
+ *  The median club gains a little more and far more evenly (sd 0.029M a
+ *  world, from 0.158M): it is a lower-league club, and it stopped bleeding.
+ *  The mean falls because the top no longer piles up money: the richest club
+ *  ends on 21.0M, not 35.2M, and twenty weeks of surplus is spent rather than
+ *  twenty-six. The money index stays near one because the wage spiral it
+ *  chased has stopped; the manager's own income was never indexed (model.ts
+ *  operatingCost). The band stays at 0.10M, now over fifteen standard
+ *  errors: wide, but it is the same question it always asked. */
+const WAS_PER_SEASON = 0.18e6
+/** how far the pooled median may sit from WAS_PER_SEASON */
 const MEDIAN_BAND = 0.10e6
-/** the mean AI club's gain a season: 0.386M over the 24 RATE_SEEDS worlds
- *  at the 1.8.1 release tip (sd 0.076M a world); it was 0.465M on eight
+/** the mean AI club's gain a season: 0.27M over the 24 RATE_SEEDS worlds
+ *  at 1.8.3; it was 0.386M at the 1.8.1 release tip and 0.465M on eight
  *  worlds at 1.7.3 */
-const MEAN_WAS = 0.39e6
+const MEAN_WAS = 0.27e6
 /** Worlds the rate and solvency checks pool over; the first is also the one
  *  every other check below reads. */
 /*  TWENTY-FOUR WORLDS, NOT EIGHT (28 Sep 2026). One world's median rate has

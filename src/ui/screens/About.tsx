@@ -4,7 +4,7 @@ import { SectionTitle } from '../components'
 import { CONTACT_MAILTO, DEV_CONTACT, PUBLISHER, PUBLISHER_ADDRESS } from '../../game/bugreport'
 import { COMMUNITY_URL, IDEAS_URL } from '../../game/community'
 import { Glyph } from '../glyphs'
-import { adBridgePresent, adBridgeWhy, billingBridgePresent, tillHealth, tillOpen } from '../../game/monetise'
+import { adBridgePresent, adBridgeWhy, billingBridgePresent, tillHealth, tillOpen, type TillState } from '../../game/monetise'
 import { nativePlatform } from '../../game/shell'
 import { t } from '../../game/i18n'
 
@@ -38,7 +38,7 @@ export default function About() {
   // one - it sent the owner hunting through two web consoles for a product
   // nobody had named. The ids are ugly and belong here, on the page that
   // already reports which bridges the shell brought, rather than on a shelf.
-  const [till, setTill] = useState<{ live: number; asked: number; missing: string[] } | null>(null)
+  const [till, setTill] = useState<TillState | null>(null)
   useEffect(() => {
     if (!platform || !storeOn) return
     let alive = true

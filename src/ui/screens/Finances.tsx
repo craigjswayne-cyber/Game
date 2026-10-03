@@ -4,8 +4,9 @@ import { facLevel, fmtMoney, fmtWage, operatingCost, pressAnswer, pressLabel, pr
 import type { GameState } from '../../game/model'
 import {
   CHARTER_SKU, buyOwnable, hasEntitlement,
-  billingReason, rewardedAvailable, tillOpen,
+  rewardedAvailable, tillOpen,
 } from '../../game/monetise'
+import { endingText, type Ending } from '../purchase'
 import { canTownCollection } from '../../game/rewarded'
 import { staffWageBill } from '../../game/staff'
 import { OBJECTIVE_DEFS } from '../../game/objectives'
@@ -693,7 +694,6 @@ export default function Finances() {
       <SectionTitle>{t('finances.seasonObjectives')}</SectionTitle>
       <div className="card" style={{ marginTop: 6 }}>
         <h3 style={{ fontSize: 16 }}>{t('finances.boardExpects', { objective: t(demandedFinish(game, club.id, game.comps[club.leagueId]?.table.length ?? 14).text) })}</h3>
-        <div className="meta">{t('finances.fallShort')}</div>
         {(game.objectives ?? []).map(id => {
           const def = OBJECTIVE_DEFS.find(o => o.id === id)
           if (!def || !def.applies(game)) return null
@@ -752,12 +752,8 @@ function BoardFunds() {
     key,
     // a refusal names itself here too - the Charter desk is the one shelf row
     // that did not move to the Store, so it needs the same diagnosis
-    text: t(out === 'cancelled' ? 'supporter.cancelled'
-      : out === 'pending' ? 'till.pending'
-      : out === 'unavailable' ? 'supporter.unavailable'
-      : out === 'refused' ? 'supporter.refused'
-      : 'supporter.error')
-      + (out === 'refused' && billingReason() ? ` (${billingReason()})` : ''),
+    // the same outcome-and-cause mapping as every other till (purchase.ts)
+    text: out === 'pending' ? t('till.pending') : endingText(out as Ending),
   })
 
   const buyCharter = async () => {
@@ -770,8 +766,7 @@ function BoardFunds() {
 
   return (
     <>
-      <SectionTitle sub={t('till.boardSub')}>{t('till.boardTitle')}</SectionTitle>
-      <div className="muted" style={{ padding: '0 14px 6px', fontSize: 13 }}>{t('till.boardBlurb')}</div>
+      <SectionTitle>{t('till.boardTitle')}</SectionTitle>
 
       {game.uncapped ? (
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
@@ -1016,17 +1011,19 @@ function BoardDecisions() {
           </div>
         </div>
       ))}
-      {done.map(item => (
-        <div key={item.id} className="card">
-          <div className="meta">{prose(pressQuestion(item))}</div>
-          <div style={{ marginTop: 6, fontSize: 14 }}>
-            <b>{t('finances.boardDecided')}</b> {optionParts(pressAnswer(item)).main || t('world.prNoAnswer')}
-          </div>
-          {/* the figure the choice carried, under it and quieter, as on the button */}
-          {optionParts(pressAnswer(item)).detail && <div className="opt-detail">{optionParts(pressAnswer(item)).detail}</div>}
-          {pressReaction(item) && <div className="meta" style={{ marginTop: 4 }}>{prose(pressReaction(item))}</div>}
+      {/* WHAT WAS DECIDED, ONE LINE EACH (owner, 1.8.3: "too much text on
+          here"). The question and the reaction were the story of the choice;
+          once it is made, the page only needs the choice and its figure. */}
+      {done.length > 0 && (
+        <div className="card board-done">
+          {done.map(item => (
+            <div key={item.id} className="board-done-row">
+              <b>{t('finances.boardDecided')}</b> {optionParts(pressAnswer(item)).main || t('world.prNoAnswer')}
+              {optionParts(pressAnswer(item)).detail && <span className="opt-detail"> {optionParts(pressAnswer(item)).detail}</span>}
+            </div>
+          ))}
         </div>
-      ))}
+      )}
     </>
   )
 }

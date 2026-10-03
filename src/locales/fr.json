@@ -1448,7 +1448,7 @@
     },
     "soundAndBuzz": "Son et vibration",
     "soundOff": "Silence, sans vibration",
-    "soundOn": "Foule, sifflet et vibration activés",
+    "soundOn": "Sifflet et vibration activés",
     "spCalm": "Calmer les nerfs",
     "spCalmD": "Apaise tout le monde un peu. Rarement une erreur, rarement un coup de génie.",
     "spExpect": "J'attends une victoire",
@@ -1555,13 +1555,6 @@
     "uwEdged": " gagnés · nous l'avons emporté de peu",
     "uwEven": " gagnés · à égalité",
     "uwShaded": " gagnés · ils l'ont emporté de peu",
-    "vdBeaten": "Battus dans tous les impacts. Le débrief sera honnête, et il piquera.",
-    "vdDraw": "Un nul qui aura le goût d'une défaite ou d'une victoire d'ici mardi, selon la vidéo.",
-    "vdHabit": "Gagner les matchs serrés est une habitude - et nous venons de la nourrir.",
-    "vdMargins": "Des détails. Corrigez les deux points ci-dessous et le match est à nous.",
-    "vdRuthless": "Impitoyable. L'adjoint veut les mêmes exigences la semaine prochaine, pas un tour d'honneur.",
-    "vdWasted": "Tout ce ballon pour rien - l'adjoint entoure notre finition en rouge.",
-    "vdWonNoBall": "Nous avons gagné sans le ballon - l'abattage défensif a été énorme. Ça vaut partout.",
     "venueHome": "{stadium}, {city}",
     "venueNeutral": "{name}, {city} · terrain neutre",
     "victory": "VICTOIRE",
@@ -1580,6 +1573,8 @@
     "warnNoSpeech": "Aucune causerie choisie - les joueurs se feront leur propre idée.",
     "warnRusty": "{player} MANQUE DE RYTHME ({n} sem.) - gros risque de rechute s'il joue.",
     "warnScrum": "Problème en mêlée : dans tout votre groupe du match, vous avez {missing}. L'arbitre exige 2 hommes pour chaque poste de première ligne, sinon il ordonne des mêlées simulées - plus de poussée, et un pack solide ne vaut plus rien. Mettez davantage de première ligne sur le banc.",
+    "warnScrumFew": "Problème en mêlée : votre groupe du match ne compte que {n} joueurs différents capables de jouer en première ligne, et l'arbitre en exige {need}. Sinon il ordonne des mêlées simulées - plus de poussée, et un pack solide ne vaut plus rien. Mettez davantage de première ligne sur le banc.",
+    "warnScrumFew_f": "Problème en mêlée : votre groupe du match ne compte que {n} joueuses différentes capables de jouer en première ligne, et l'arbitre en exige {need}. Sinon il ordonne des mêlées simulées - plus de poussée, et un pack solide ne vaut plus rien. Mettez davantage de première ligne sur le banc.",
     "warnSixPointer": "MATCH À SIX POINTS : {gap}, et vous visez le même objectif. Battez-les et enterrez-les.",
     "warnTurnaround": "Seulement {n} jours depuis le dernier match - le groupe a moins bien récupéré cette semaine. Surveillez les réservoirs.",
     "warnUnfit": "{player} n'est qu'à {pct}% de sa condition - son réservoir se videra tôt.",
@@ -1650,9 +1645,67 @@
     "htWetTight": "C'est mouillé : une passe de trop, c'est un ballon perdu. Avancez balle en main, et servez-vous du pied.",
     "htWind": "Le vent emporte les longs coups de pied : trouvez la touche au plus court et gardez le ballon à la main face au vent.",
     "htUncontested": "Les mêlées sont simulées désormais : la mêlée ne pèse plus, alors jouez sur la touche.",
-    "htScrumBad": "Leur mêlée domine : sortez le ballon vite sur les phases statiques.",
-    "htScrumGood": "Notre mêlée gagne : tapez dans les coins et attaquez-les devant.",
-    "htDefWorks": "La défense ne cesse de récupérer le ballon : gardez la ligne où elle est."
+    "htWorking": "Ce qui marche :",
+    "htHurting": "Ce qui coince :",
+    "whyMoveFor": {
+      "one": "Avec {move_k} : un essai, et {m} m par annonce.",
+      "other": "Avec {move_k} : {n} essais, et {m} m par annonce."
+    },
+    "whyMoveForTries": {
+      "one": "Avec {move_k} : un essai.",
+      "other": "Avec {move_k} : {n} essais."
+    },
+    "whyMoveAgainst": {
+      "one": "Leur combinaison, {move_k}, nous a coûté un essai.",
+      "other": "Leur combinaison, {move_k}, nous a coûté {n} essais."
+    },
+    "whyRead": "Ils avaient lu {move_k} : {m} m sur {n} annonces, contre {m0} m sans cette lecture.",
+    "whySetFor": "Ils ont perdu {n} mêlées et touches sur leur introduction ; nous, {m}.",
+    "whySetAgainst": "Nous avons perdu {n} mêlées et touches sur notre introduction ; eux, {m}.",
+    "whyPenFor": {
+      "one": "Ils ont concédé une pénalité : {p} points pour nous.",
+      "other": "Ils ont concédé {n} pénalités : {p} points pour nous."
+    },
+    "whyPenFor0": {
+      "one": "Ils ont concédé une pénalité.",
+      "other": "Ils ont concédé {n} pénalités."
+    },
+    "whyPenAgainst": {
+      "one": "Nous avons concédé une pénalité : {p} points pour eux.",
+      "other": "Nous avons concédé {n} pénalités : {p} points pour eux."
+    },
+    "whyPenAgainst0": {
+      "one": "Nous avons concédé une pénalité.",
+      "other": "Nous avons concédé {n} pénalités."
+    },
+    "whyTurnFor": {
+      "one": "Nous avons récupéré le ballon une fois : {p} points derrière.",
+      "other": "Nous avons récupéré le ballon {n} fois : {p} points derrière."
+    },
+    "whyTurnFor0": {
+      "one": "Nous avons récupéré le ballon une fois.",
+      "other": "Nous avons récupéré le ballon {n} fois."
+    },
+    "whyTurnAgainst": {
+      "one": "Nous avons perdu le ballon une fois : {p} points pour eux.",
+      "other": "Nous avons perdu le ballon {n} fois : {p} points pour eux."
+    },
+    "whyTurnAgainst0": {
+      "one": "Nous avons perdu le ballon une fois.",
+      "other": "Nous avons perdu le ballon {n} fois."
+    },
+    "whyBreakFor": "Franchissements : {n} pour nous, {m} pour eux ; {p} points sur les nôtres.",
+    "whyBreakFor0": "Franchissements : {n} pour nous, {m} pour eux.",
+    "whyBreakAgainst": "Franchissements : {n} pour eux, {m} pour nous ; {p} points sur les leurs.",
+    "whyBreakAgainst0": "Franchissements : {n} pour eux, {m} pour nous.",
+    "whyPhaseFor": "{mins} minutes dans leurs 22 : {p} points sur le jeu de phases.",
+    "whyPhaseFor0": "{mins} minutes dans leurs 22.",
+    "whyPhaseAgainst": "{mins} minutes pour eux dans nos 22 : {p} points sur le jeu de phases.",
+    "whyPhaseAgainst0": "{mins} minutes pour eux dans nos 22.",
+    "whyKickFor": "Drops et contres : {p} points pour nous.",
+    "whyKickAgainst": "Drops et contres : {p} points pour eux.",
+    "whyStyleFor": "Le duel des styles : {atk_k} a pris le dessus sur {def_k}, environ {p} points pour nous.",
+    "whyStyleAgainst": "Le duel des styles : {atk_k} a pris le dessus sur {def_k}, environ {p} points pour eux."
   },
   "tacticsScreen": {
     "tabRoles": "Rôles",
@@ -2209,8 +2262,6 @@
     "holesToFill": "Trous à combler",
     "seasonObjectives": "Objectifs de la saison",
     "boardExpects": "Le conseil attend de vous de {objective}.",
-    "fallShort": "Échouez et la confiance en souffrira. Réussissez, et vous serez soutenu.",
-    "fallShort_w": "Échouez et la confiance en souffrira. Réussissez, et vous serez soutenue.",
     "boardConfidence": "Confiance du conseil",
     "boardDelighted": "Le conseil est ravi de votre travail.",
     "boardSatisfied": "Le conseil est globalement satisfait.",
@@ -4343,7 +4394,12 @@
     "alreadyYours": "Déjà à vous - rien à restaurer.",
     "badge": "Soutien",
     "cancelled": "Rien n'a été débité.",
-    "refused": "La boutique n'a pas voulu ouvrir d'achat pour cet article. Rien n'a été débité. Cela signifie en général que le produit n'est pas vendu dans votre pays, qu'il n'est pas encore actif, ou que ce compte ne figure pas sur la liste des testeurs sous licence.",
+    "refused": "La boutique n'a pas voulu ouvrir d'achat pour cet article. Rien n'a été débité. Cela signifie en général que le produit n'est pas encore actif, ou que ce compte ne figure pas sur la liste des testeurs sous licence.",
+    "notOffered": "La boutique ne propose pas cet article à votre compte pour le moment, donc rien n'a été débité. C'est une question de configuration de notre côté, pas un problème de votre compte ou de votre appareil - il n'est peut-être pas encore en vente dans votre région.",
+    "disabled": "Les achats sont désactivés sur cet appareil, la boutique n'a donc pas pu s'ouvrir. Rien n'a été débité. Vérifiez les restrictions d'achat (Temps d'écran, contrôle parental ou familial) dans les réglages de l'appareil.",
+    "playBilling": "Google Play n'a pas accepté de paiement sur ce compte. Rien n'a été débité. Play donne cette réponse quand les achats intégrés ne sont pas pris en charge dans le pays du compte, quand l'application Play Store doit être mise à jour, ou quand le moyen de paiement a été refusé.",
+    "setup": "La boutique n'a pas ouvert d'achat pour cet article à cause d'une erreur de configuration de notre côté, pas du vôtre. Rien n'a été débité - réessayez après la prochaine mise à jour.",
+    "notNow": "La boutique n'a pas voulu vendre cet article pour l'instant. Rien n'a été débité. Vérifiez que vous êtes en ligne et connecté à la boutique, puis réessayez plus tard.",
     "error": "La boutique est injoignable. Rien n'a été débité - réessayez plus tard.",
     "nothingToRestore": "Rien à restaurer sur ce compte.",
     "pending": "La boutique traite encore l'achat. Rien de plus à faire ici : il arrivera tout seul, et Restaurer le récupérera si vous fermez le jeu entre-temps.",
@@ -6810,6 +6866,9 @@
     "uncontestedShort": "Et cela coûte un second joueur à {team} : selon la règle 3.20, une équipe qui passe en mêlée simulée à cause d'un carton doit sortir un homme de plus. {player} quitte le terrain.",
     "contestedAgain": "Le joueur de première ligne est revenu après son carton, et la couverture avec lui : l'arbitre rétablit les MÊLÉES DISPUTÉES.",
     "frontRowReturns": "Le banc est vide, alors {player} revient : un joueur de première ligne remplacé peut reprendre la place d'un blessé, et la mêlée reste disputée.",
+    "frontRowBinCover": "Pendant que {lost} purge ses dix minutes, {team} fait entrer {on} selon la règle 3 pour garder une première ligne formée : {player} quitte le terrain pour lui laisser la place jusqu'à la fin des dix minutes. La mêlée reste disputée.",
+    "frontRowRedCover": "Après le carton rouge de {lost}, {team} fait entrer {on} selon la règle 3 pour garder une première ligne formée, et {player} quitte le terrain pour le reste du match afin de lui laisser la place. La mêlée reste disputée, mais {team} joue toujours en infériorité numérique.",
+    "frontRowBinBack": "{lost} revient après ses dix minutes et reprend sa place en première ligne à {on}, qui retourne sur le banc ; {player} revient aussi sur le terrain.",
     "oldBoy_f": "Un visage familier sur le terrain : {player} affronte {oldClub}, où elle a disputé {n} matchs. {tail_k}",
     "try11_f": "ESSAI ! Un raffut monumental de {player} et elle termine tranquillement !",
     "flavGrass4_f": "Énorme clameur depuis le balcon du club-house quand {player} aplatit son vis-à-vis. Quelqu'un sonne la cloche.",
@@ -7990,8 +8049,6 @@
   },
   "till": {
     "boardTitle": "Résolutions du conseil",
-    "boardSub": "des fonds exceptionnels, votés en haut lieu",
-    "boardBlurb": "Un vrai achat via la boutique, signé dans cette sauvegarde sans retour possible.",
     "injectS": "Injection du conseil (petite)",
     "injectM": "Injection du conseil (moyenne)",
     "injectL": "Injection du conseil (grande)",
@@ -8007,14 +8064,14 @@
     "pending": "La boutique la traite encore. Rien de plus à faire : dès qu'elle aboutit, cette page la proposera à la carrière ouverte devant vous.",
     "applyHere": "L'appliquer à cette carrière",
     "charterTitle": "Supprimer le plafond salarial",
-    "charterBody": "Le plafond salarial de la ligue ne s'applique plus à ce club. Plus de plafond, plus d'amendes, plus d'embargos - définitif, pour cette sauvegarde seule, qui porte la marque.",
+    "charterBody": "Plus de plafond salarial pour ce club, définitivement. Cette sauvegarde uniquement.",
     "charterApply": "Le supprimer sur cette sauvegarde",
     "charterConfirm": "Le supprimer - aucun retour possible",
     "charterStay": "Pas aujourd'hui",
     "charterDone": "C'est fait. La loi salariale ne s'applique plus à ce club.",
     "charterSigned": "Le plafond a disparu pour toute cette carrière : plus de plafond, plus d'amendes, plus d'embargos.",
     "charterOwned": "Vous le possédez déjà. Activez-le ci-dessous quand vous serez certain - c'est irréversible.",
-    "fineprint": "Les prix sont ceux de la boutique. Un achat n'est débité qu'une fois arrivé dans votre carrière ; en cas d'interruption, cette page vous le propose de nouveau.",
+    "fineprint": "Les prix sont ceux de la boutique. Rien n'est dépensé avant d'arriver dans votre carrière.",
     "stampLicensed": "Départ sous licence",
     "stampCharter": "Charte du propriétaire",
     "watchAgency": "Demander son dossier à l'agence (regarder un spot)",
@@ -8075,6 +8132,7 @@
     "fundingLine": "Quatre résolutions du conseil, de 10 à 130 M£, chacune avec une saison de salaires hors plafond.",
     "fineprint": "Paiements uniques, gérés par la boutique d'applications. Rien ici ne joue les matchs, et le jeu n'envoie toujours rien vous concernant où que ce soit.",
     "tillSilent": "La boutique est connectée mais n'a pas encore répondu. L'achat peut quand même fonctionner : sa propre fenêtre s'ouvre avant tout paiement. Si cette version vient d'arriver, patientez une minute.",
+    "tillEmpty": "La boutique a répondu, mais elle n'a encore rien en vente pour ce compte : rien ne peut être acheté ici pour l'instant. Rien n'a été débité.",
     "tillPartial": "La boutique a répondu pour {live} produits sur {asked}. Les autres ne sont peut-être pas encore en vente sur ce compte.",
     "pickNation": "À vous. Choisissez la fédération et prenez le poste - la nomination est immédiate.",
     "support": "Soutenir le jeu",

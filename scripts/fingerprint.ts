@@ -592,6 +592,48 @@ const EXPECTED: string[] = [
 // seeds, before and after (FWD_PASS.rate 0.03, 0.2 reviews a match):
 //   pts 49.8 -> 48.7   tries 6.32 -> 6.16   home 52.4% -> 53.3%
 //   draws 1.4% -> 1.7%   blowouts 8.6% -> 7.9% (every band holds)
+// NOT rebaselined for Law 3 (1.8.3), though all three of its fixes change
+// results where they apply, because none of them applies in these six: no
+// front-rower is carded, no sheet is short, no side is at thirteen. A carded
+// front-rower with a trained man on the bench now brings him on and sends
+// another man off (frontRowCardCover; a yellow is undone when the ten end,
+// a red stands), the kick-off test counts players rather than positions (six
+// in a 23, five in 19 to 22), and the random yellow keeps the penalty bin's
+// floor of thirteen. No new draw anywhere: the same rolls, different men on
+// the pitch. Per 1,000 matches between AI sides (scripts/frontrowcardprobe.ts
+// has the probe): a front-rower is carded 205 times and the bench cover now
+// comes on 199 times; the sides playing a contested scrum with a carded hole
+// in the front row fall from 193 to 2.5; yellows shown to a side already at
+// thirteen fall from 1.8 to 0; the player count bites on 1 sheet in 10,240
+// over four seasons. Paired on the same 4,000 fixtures and seeds, before
+// and after: pts 48.96 -> 48.95, tries 6.112 -> 6.110, home 60.5% -> 60.4%,
+// draws 2.1% -> 2.1%, tries after the hour 26.48% -> 26.52%. bandcheck, whose
+// worlds re-deal as soon as one match plays out differently, pooled over four
+// seeds: pts 49.5 -> 49.2   tries 6.26 -> 6.21   home 53.3% -> 52.1%
+//   draws 1.6% -> 1.2% (under the 1.4 floor)   blowouts 8.5% -> 9.2%
+// and over twelve other seeds (11 to 22), the same check on both trees:
+//   pts 49.0 -> 48.9   tries 6.20 -> 6.17   home 52.3% -> 52.4%
+//   draws 1.8% -> 1.7%   blowouts 8.5% -> 8.1%
+// NOT rebaselined for 1.8.3's tape (claude/183-tape), although it changes
+// match outcomes, and worth writing down why. Two changes, both to the
+// manager's playbook alone and neither a draw (armsrace.ts THE ANSWER, THE
+// WEAR): a coach now reads how predictable the whole tape is, not the one
+// call he saw most, so switching strikes match by match no longer beats
+// splitting the ball between them; and the wear on a call left out fades
+// with a half-life of six matches instead of waiting for the summer. Both
+// read the manager's tape and his strike calls, and in this stream his
+// fixture is the first he has played, with no strike called: no tape, no
+// wear, and the same set-piece count it always had. The AI's wear is counted
+// as it always was. So all six held, and bandcheck reads the same to the
+// digit on both trees (its managers call no strikes either):
+//   pts 49.5   tries 6.26   home 53.3%   draws 1.6%   blowouts 8.5%
+// What it does to a manager who calls them is scripts/tapeprobe.ts, the
+// strike's worth on its own ticks against an analyst coach, matches 4 to 15:
+//   spam one -0.29% -> -0.29%   alternate two +1.77% -> +1.58%
+//   mix 50/50 +1.02% -> +1.68%   mix 67/33 +0.72% -> +1.39%
+//   rotate three +2.43% -> +2.59%   three pairs at 50/50 +1.94% -> +2.82%
+// and a full season of each on four seeds moved the manager's league margin
+// only inside its own noise (about two points a match either way).
 
 if (EXPECTED[0] === '@@EXPECTED@@') {
   console.log('BASELINE (paste into EXPECTED):')

@@ -714,6 +714,22 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .scoreboard .tname {
   font-family: var(--sans);
   font-size: 16px; font-weight: 700; flex: 1; line-height: 1.25;
+  /* crest above the name on both sides, always (owner, 1.8.3). An inline
+     crest sat beside a short name and wrapped above a long one, so the two
+     sides of the same scoreboard disagreed: "Wellington" beside, "Northampton"
+     stacked. A column makes it one layout whatever the name's length. */
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  min-width: 0;
+}
+.scoreboard .tname > :first-child { margin: 0 !important; }
+/* a tablet has the width for crest and name on one line, every name, and
+   the stacked crest costs the commentary below it height it needs there:
+   so beside, on both sides alike, with the club bar under the pair */
+@media (min-width: 700px) {
+  .scoreboard .tname { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 4px 8px; }
+  /* a whole line of its own, so it wraps under the pair, drawn as the same
+     30px centred bar by clipping the rest */
+  .scoreboard .tname .clubbar { flex: 0 0 100%; width: 100%; margin: 2px 0 0; clip-path: inset(0 calc(50% - 15px)); }
 }
 .scoreboard .tname .clubbar { display: block; width: 30px; height: 3px; border-radius: 2px; margin: 5px auto 0; }
 .scoreboard .score {
@@ -1383,7 +1399,14 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    ends off-screen and the close button becomes untappable - caught by
    scripts/textscale.mjs. Auto margins keep the top edge reachable and the
    veil scrolls the rest. */
-.tut-veil { position: fixed; inset: 0; background: rgba(6, 35, 26, .7); z-index: 90; display: flex; align-items: center; justify-content: center; padding: 22px; overflow-y: auto; }
+.tut-veil {
+  position: fixed; inset: 0; background: rgba(6, 35, 26, .7); z-index: 90;
+  display: flex; align-items: center; justify-content: center; overflow-y: auto;
+  /* clear of the phone's own bars (owner, 1.8.3: the box sat up under the
+     status bar and ran down behind the gesture bar on Android, where env()
+     reads 0 and only the token has the real inset) */
+  padding: calc(var(--safe-area-inset-top) + 16px) 16px calc(var(--safe-area-inset-bottom) + var(--ad-inset, 0px) + 16px);
+}
 .tut-box {
   background: var(--surface-2); color: var(--text-primary);
   border: 2px solid var(--gold);
@@ -1400,16 +1423,45 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
      text scale 1.3 a bare dvh ceiling renders 30% taller than the screen it is
      meant to fit. The comment sits ABOVE the pair because cssaudit requires the
      dvh companion on the line right after its vh fallback. */
-  max-height: calc(100vh - 44px);
-  max-height: calc(100dvh / var(--zoom, 1) - 44px);
+  max-height: calc(100vh - 32px - var(--safe-area-inset-top) - var(--safe-area-inset-bottom) - var(--ad-inset, 0px));
+  max-height: calc(100dvh / var(--zoom, 1) - 32px - var(--safe-area-inset-top) - var(--safe-area-inset-bottom) - var(--ad-inset, 0px));
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   margin: auto;
+  padding-bottom: 0;
 }
-.tut-close { margin-top: 14px; }
+.tut-box p { margin: 0 0 12px; }
+.tut-close {
+  /* the button stays in reach while the steps scroll under it */
+  position: sticky; bottom: 0;
+  margin: 14px -18px 0; padding: 12px 18px 16px;
+  background: var(--surface-2);
+  border-top: 1px solid var(--border);
+}
 .tut-close .btn { width: 100%; }
+
+/* ---- COMING FROM THE OLD VERSION (1.8.3, owner: "more premium looking") ---- */
+.import-hint {
+  margin: 4px 0 0;
+  padding: 16px 16px 8px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .02)), var(--surface-1);
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .06);
+  text-align: left;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.import-hint-title { font-size: 16px; font-weight: 700; color: var(--text-primary); }
+.import-hint-body { font-size: 13.5px; line-height: 1.5; color: var(--text-secondary); }
+.import-hint-go { width: 100%; margin-top: 6px; }
+.import-hint-no {
+  align-self: center; min-height: 44px; padding: 0 16px;
+  background: none; border: 0; cursor: pointer;
+  font: inherit; font-size: 13.5px; font-weight: 600; color: var(--text-secondary);
+  text-decoration: underline; text-underline-offset: 3px;
+}
 .tut-box h3 { font-family: var(--sans); font-size: 18px; font-weight: 700; color: var(--gold); margin-bottom: 8px; }
-.tut-box .muted { color: var(--text-secondary); margin-top: 12px; }
+.tut-box .muted { color: var(--text-secondary); margin-top: 0; }
 
 /* floodlit toggle in masthead */
 .night-btn {
@@ -5366,6 +5418,27 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
    select is as wide as its column, never wider */
 .dtable.fit .gt-head th { white-space: normal; overflow: hidden; overflow-wrap: normal; word-break: normal; line-height: 1.15; vertical-align: bottom; }
 .dtable.fit .gt-sel { width: 100%; max-width: 100%; text-overflow: ellipsis; }
+/* THE BOX, SMALLER THAN THE TARGET (owner, round 183: "reduce the size of the
+   box around the key player"). The select has to stay 44px tall to be tapped
+   (.gt-sel above), and its own border made every row a 44px bordered box with
+   "Key Player" sitting in it like a button. A select cannot carry a pseudo-
+   element, so the wrapper draws a 24px box behind it and the select itself
+   goes borderless and transparent: the eye sees a compact chip, the thumb
+   still gets the full 44px. */
+.gt-pick { position: relative; display: inline-block; max-width: 100%; vertical-align: middle; }
+.gt-pick::before {
+  content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 24px;
+  transform: translateY(-50%); pointer-events: none;
+  border: 1px solid var(--border-strong); border-radius: 6px;
+  background: var(--surface-1);
+}
+.gt-pick .gt-sel {
+  position: relative; display: block;
+  background: transparent; border-color: transparent;
+  padding: 0 2px 0 6px; font-size: 11px; line-height: 1;
+}
+.gt-pick .gt-sel:focus-visible { outline: 2px solid var(--row-selected-border); outline-offset: -10px; }
+.dtable.fit .gt-pick .gt-sel { width: auto; }
 .gt-mood .status-dot { width: 9px; height: 9px; vertical-align: 0; }
 .preset-chip .glyph { font-size: 1.3em; vertical-align: -0.28em; }
 
@@ -5488,3 +5561,7 @@ a.btn.home-community {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
 }
+
+/* Finances: decided board questions, one line each (1.8.3) */
+.board-done { display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
+.board-done-row .opt-detail { display: inline; }

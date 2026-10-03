@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
-import { CHEM_SLOTS, chemKey, chemTier, fmtMoney, grudgeReason, POS_ORDER } from '../../game/model'
+import { CHEM_SLOTS, careerRows, chemKey, chemTier, fmtMoney, grudgeReason, POS_ORDER } from '../../game/model'
 import { Crest, FormPill, Jersey, Nat, PosBadge, SectionTitle, Stars } from '../components'
 import { nationName } from '../../game/nations'
 import { squadValue, starPlayerIds } from '../../game/analysis'
@@ -182,7 +182,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
         // record book: retired legends + serving players with 100+ apps here
         const serving = players
           .map(p => {
-            const past = p.career.filter(c => c.clubId === club.id)
+            const past = careerRows(p).filter(c => c.clubId === club.id)
               .reduce((t, c) => ({ apps: t.apps + c.apps, tries: t.tries + c.tries, pts: t.pts + c.points }), { apps: 0, tries: 0, pts: 0 })
             return { name: `${p.name} *`, apps: past.apps + p.stats.apps, tries: past.tries + p.stats.tries, pts: past.pts + p.stats.points }
           })

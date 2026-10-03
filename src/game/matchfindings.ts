@@ -7,7 +7,8 @@
  * unit battles the coach's verdict shows (coachfix.unitBattles, so the two
  * cards can never quote different percentages), the commentary events (late
  * points), the settled player marks, and whether the plan chosen before the
- * match was carried and whether its target was exploited.
+ * match was carried and whether its target was exploited, which the match's
+ * evidence decides (evidence.ts planExploited).
  *
  * A reading of a finished match, so: no rng, nothing written into the engine,
  * and the same match always produces the same findings. The record kept on the
@@ -16,8 +17,9 @@
  * struggled").
  */
 import type { GameState } from './model'
-import { matchStats, type LiveCtx, type SideCtx } from './matchEngine'
+import { matchStats, type LiveCtx } from './matchEngine'
 import { unitBattles } from './coachfix'
+import { buildEvidence, planExploited, pointsAfter, sidesOf } from './evidence'
 import { t } from './i18n'
 import { noteMemory } from './memory'
 import {
@@ -31,31 +33,10 @@ function note(state: GameState, e: { kind: string; clubId?: string; payload?: Re
   noteMemory(state, e)
 }
 
-function pointsAfter(ctx: LiveCtx, teamId: string, min: number): number {
-  // the score at the minute, read off the commentary, for each side
-  let atMin: { homeScore: number; awayScore: number } | null = null
-  let end: { homeScore: number; awayScore: number } | null = null
-  for (const e of ctx.events) {
-    if (e.type === 'FT') continue
-    if (e.min <= min) atMin = e
-    end = e
-  }
-  const home = ctx.fx.homeId === teamId
-  const pick = (x: { homeScore: number; awayScore: number } | null) => (x ? (home ? x.homeScore : x.awayScore) : 0)
-  return Math.max(0, pick(end) - pick(atMin))
-}
-
-function sides(ctx: LiveCtx): { mine: SideCtx; opp: SideCtx } | null {
-  if (!ctx.userSideId) return null
-  const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away.teamId === ctx.userSideId ? ctx.away : null
-  if (!mine) return null
-  return { mine, opp: mine === ctx.home ? ctx.away : ctx.home }
-}
-
 /** The findings for a finished match, plus the record the save keeps. Null for
  *  a match the manager was not coaching. Pure: the same ctx reads the same. */
 export function buildFindings(state: GameState, ctx: LiveCtx): FindingsRecord | null {
-  const s = sides(ctx)
+  const s = sidesOf(ctx)
   if (!s) return null
   const { mine, opp } = s
   const homeIdx = mine === ctx.home ? 0 : 1
@@ -72,8 +53,8 @@ export function buildFindings(state: GameState, ctx: LiveCtx): FindingsRecord | 
   else items.push({ cat: 'tactical', k: 'find.possLevel', v: { poss, n: mine.tries }, tone: 0 })
 
   // ---- physical: the last twenty and the tackle count ---------------------
-  const ourLate = pointsAfter(ctx, mine.teamId, 60)
-  const theirLate = pointsAfter(ctx, opp.teamId, 60)
+  const ourLate = pointsAfter(ctx, mine, 60)
+  const theirLate = pointsAfter(ctx, opp, 60)
   const made = st.tackles[homeIdx]
   const missed = mine.missed ? [...mine.missed.values()].reduce((a, b) => a + b, 0) : 0
   const missPct = made + missed > 0 ? Math.round((missed / (made + missed)) * 100) : 0
@@ -116,18 +97,10 @@ export function buildFindings(state: GameState, ctx: LiveCtx): FindingsRecord | 
   let planRec: FindingsRecord['plan'] = null
   if (plan) {
     const followed = planFollowed(state, plan)
-    const pct = (k: 'scrum' | 'lineout') => units.find(u => u.key === k)!.pct
-    const exploited =
-      plan.target === 'scrum' || plan.target === 'lineout' ? pct(plan.target) >= 55
-      : plan.target === 'defence' ? mine.tries >= 3
-      : plan.target === 'attack' ? opp.tries <= 2
-      : plan.target === 'kicking' ? poss >= 52
-      : plan.target === 'style' ? mine.tries >= opp.tries
-      : plan.target === 'late' ? ourLate >= theirLate
-      // starve them of ball (round 6): we had the most of it, and their
-      // attack, with little of it, made little
-      : plan.target === 'ball' ? poss >= 52 && opp.tries <= 2
-      : false
+    // the target, judged on what the match was made of rather than on the
+    // tries and the possession share standing in for it (1.8.3)
+    const ev = buildEvidence(state, ctx)
+    const exploited = !!ev && planExploited(plan.target, ev)
     const won = margin > 0
     const verdict: PlanVerdict = !followed ? 'failed'
       : exploited && won ? 'worked' : exploited || won ? 'partly' : 'failed'

@@ -1,11 +1,11 @@
-import type { Club, FacilityId, GameState } from './model'
-import { ATTR_KEYS, FACILITY_INFO, MAX_FACILITY, SEASON_WEEKS, WEEK_BASIS, emptyStats, finalVenue, initFacilities } from './model'
+import type { CareerRow, Club, FacilityId, GameState } from './model'
+import { ATTR_KEYS, FACILITY_INFO, MAX_FACILITY, SEASON_WEEKS, WEEK_BASIS, emptyStats, finalVenue, foldCareer, initFacilities } from './model'
 import { ensureCaptains } from './analysis'
 import { ACADEMY_MAX, ACADEMY_MIN, buildPlayer, deriveCaps, deriveHist, deriveTrait, resetIds , playerWage } from './attributes'
 import { LEAGUE_DEFS, seedExClubs } from './newgame'
 import { genderOf, staffGender, type Gender } from './gender'
 import { autoSelect } from './matchEngine'
-import { NATIONS, regenName, worldNames } from './nations'
+import { NATIONS, keptRetiredNames, regenName, worldNames } from './nations'
 import { rebuildTable } from './season'
 import { hashString, mulberry32 } from './rng'
 import { seedNatRank } from './natrank'
@@ -21,6 +21,7 @@ import { migrateBonds } from './bonds'
 import { migrateRoom } from './room'
 import { migrateMemory } from './memory'
 import { migrateTacLoop } from './oppreport'
+import { migrateEvidence } from './evidence'
 import { migrateHistory } from './history'
 import { migrateArc } from './arcbook'
 
@@ -548,6 +549,9 @@ export function migrate(s: GameState): GameState {
     const n = typeof v === 'number' && Number.isFinite(v) ? v : Number.NaN
     return Number.isFinite(n) ? Math.max(min, Math.min(max, n)) : dflt
   }
+  const careerRow = (r: unknown): r is CareerRow => !!r && typeof r === 'object'
+    && typeof (r as CareerRow).clubId === 'string'
+    && ['season', 'apps', 'tries', 'points'].every(k => Number.isFinite((r as Record<string, unknown>)[k]))
   for (const p of Object.values(s.players)) {
     if (!p || typeof p !== 'object') continue
     p.ca = int(p.ca, 1, 100, 50)
@@ -588,6 +592,16 @@ export function migrate(s: GameState): GameState {
         : undefined
       if (!p.tl?.length) delete p.tl
     }
+    // THE FOLDED SEASONS (1.8.3, model.ts careerOld). Absent on every older
+    // save: the rows the table cut before then are gone, and the totals read
+    // short for a man past twenty seasons, which nothing in the file can
+    // repair. A damaged row is dropped rather than summed.
+    if (!Array.isArray(p.career)) p.career = []
+    if (p.careerOld != null) {
+      p.careerOld = Array.isArray(p.careerOld) ? p.careerOld.filter(careerRow) : undefined
+      if (!p.careerOld?.length) delete p.careerOld
+    }
+    foldCareer(p)
   }
   // the personal plans' second programme and tally (1.8.2): a plan entry that
   // is not an object, or a second programme that is not a programme (or is the
@@ -789,7 +803,11 @@ export function migrate(s: GameState): GameState {
   migrateHistory(s) // the club's memory (history.ts): made whole, never invented
   s.gateRecord ??= null
   s.potyRoll = list(s.potyRoll) as typeof s.potyRoll
-  s.retiredNames = list(s.retiredNames) as typeof s.retiredNames
+  // an older save kept every name that ever left the world: it keeps the
+  // newest, as the rollover now does (nations.ts keptRetiredNames, 1.8.3). On a
+  // save made since, the summer already trimmed it and this changes nothing,
+  // so a reload rebuilds the registry the running game had.
+  s.retiredNames = keptRetiredNames((list(s.retiredNames) as string[]).filter(n => typeof n === 'string'))
   s.takenNames = list(s.takenNames) as typeof s.takenNames
   s.courtedAt ??= 0
   s.courtedBy ??= null
@@ -1025,8 +1043,10 @@ export function migrate(s: GameState): GameState {
     }
   }
 
-  // the tactical loop's findings: healed and capped (#181)
+  // the tactical loop's findings: healed and capped (#181), and the evidence
+  // filed beside them (1.8.3): absent on an older save, and left absent
   migrateTacLoop(s)
+  migrateEvidence(s)
 
   // THE STYLES (1.8.2): a save from before them has dials and no style, so
   // the manager's side is named the nearest attack and defence to its dials,

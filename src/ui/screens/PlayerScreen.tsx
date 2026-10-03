@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { useStore } from '../../store'
-import { ATTR_KEYS, SEASON_WEEKS, fmtMoney, fmtWage, injuryDesc, type Attrs, type GameState, type Player, type TrainingFocus } from '../../game/model'
+import { ATTR_KEYS, SEASON_WEEKS, careerRows, fmtMoney, fmtWage, injuryDesc, type Attrs, type GameState, type Player, type TrainingFocus } from '../../game/model'
 import { agreeFee, agreePreContract, askingPrice, floorPrice, sellerWillingness, offerRenewalAt, personalTermsDemand, renewalDemand, signFreeAgent, signOnTerms } from '../../game/ai'
 import { FormPill, Nat, PosBadge, SectionTitle, Stars, TwoStep, RewardedButton } from '../components'
 import { nationName } from '../../game/nations'
@@ -523,9 +523,9 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
               <tr style={{ fontWeight: 700 }}>
                 <td>{t('player.total')}</td>
                 <td className="muted">{t('player.inclThisSeason')}</td>
-                <td className="num">{p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps + (p.hist?.apps ?? 0)}</td>
-                <td className="num">{p.career.reduce((s, c) => s + c.tries, 0) + p.stats.tries + (p.hist?.tries ?? 0)}</td>
-                <td className="num">{p.career.reduce((s, c) => s + c.points, 0) + p.stats.points + (p.hist?.points ?? 0)}</td>
+                <td className="num">{careerRows(p).reduce((s, c) => s + c.apps, 0) + p.stats.apps + (p.hist?.apps ?? 0)}</td>
+                <td className="num">{careerRows(p).reduce((s, c) => s + c.tries, 0) + p.stats.tries + (p.hist?.tries ?? 0)}</td>
+                <td className="num">{careerRows(p).reduce((s, c) => s + c.points, 0) + p.stats.points + (p.hist?.points ?? 0)}</td>
               </tr>
             </tbody>
           </table></div>

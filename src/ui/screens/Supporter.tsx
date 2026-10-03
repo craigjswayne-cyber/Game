@@ -5,7 +5,7 @@ import {
   CHARTER_SKU, ESTATE_SKU, GROUND_SKU, HEAL_SKU, INJECT_SKUS, PINNACLE_SKU, SUPPORT_SKU, SUPPORTER_SKU,
   adBridge, bankReceipts, buyConsumable, buyOwnable, claimHeld, creditCount, creditTake, hasEntitlement, hasSupporter,
   billingReason, heldConsumables, markXlBought, recordSupport, restore, xlWaitMs,
-  supportCount, tillHealth, tillOpen,
+  supportCount, tillHealth, tillOpen, type TillState,
 } from '../../game/monetise'
 import { INJECT_TIERS, estateBuiltHere, healReady, injectionCash, injectionsLeft, type InjectTier } from '../../game/grants'
 import { fmtMoney, fmtWage } from '../../game/model'
@@ -135,10 +135,12 @@ const TIER_KEY: Record<InjectTier, string> = {
  * is set up properly, so nearly all of them.
  */
 function TillHealth() {
-  const [state, setState] = useState<{ live: number; asked: number; missing: string[] } | null>(null)
+  const [state, setState] = useState<TillState | null>(null)
   useEffect(() => { void tillHealth().then(setState) }, [])
   if (!state || state.live === state.asked) return null
-  const key = state.live === 0 ? 'store.tillSilent' : 'store.tillPartial'
+  // a store that answered with nothing on sale is not a store still waking
+  // up, and telling the shopper to give it a minute would be a fib (1.8.3)
+  const key = state.live > 0 ? 'store.tillPartial' : state.answered ? 'store.tillEmpty' : 'store.tillSilent'
   // ONE LINE, NOT TWO (owner, v1.1.13: "few error messages showing on shop").
   //
   // This used to print the store's raw failure underneath - "getDetails threw

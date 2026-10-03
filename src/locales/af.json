@@ -1404,7 +1404,7 @@
   },
   "soundAndBuzz": "Klank en vibrasie",
   "soundOff": "Stil, en geen vibrasie nie",
-  "soundOn": "Skare, fluitjie en vibrasie aan",
+  "soundOn": "Fluitjie en vibrasie aan",
   "spCalm": "Kalmeer die senuwees",
   "spCalmD": "Kalmeer almal 'n bietjie. Selde verkeerd, selde meesterlik.",
   "spExpect": "Ek verwag 'n oorwinning",
@@ -1511,13 +1511,6 @@
   "uwEdged": " gewen · ons het dit net-net gevat",
   "uwEven": " gewen · gelyk verdeel",
   "uwShaded": " gewen · hulle het dit net-net gevat",
-  "vdBeaten": "In elke botsing geklop. Die ontleding sal eerlik wees, en dit sal steek.",
-  "vdDraw": "'n Gelykop wat teen Dinsdag soos 'n nederlaag of 'n oorwinning sal voel, na gelang van die video.",
-  "vdHabit": "Om noue wedstryde te wen is 'n gewoonte - en ons het pas die gewoonte gevoed.",
-  "vdMargins": "Fyn marges. Stel die twee hieronder reg en dit is ons wedstryd.",
-  "vdRuthless": "Genadeloos. Die assistent wil volgende week dieselfde standaarde hê, nie 'n ererondte nie.",
-  "vdWasted": "Al daardie bal en niks om te wys nie - die assistent omkring ons afronding in rooi.",
-  "vdWonNoBall": "Ons het sonder die bal gewen - die verdedigingskof was enorm. Dit sal ons oral goed te pas kom.",
   "venueHome": "{stadium}, {city}",
   "venueNeutral": "{name}, {city} · neutrale veld",
   "victory": "OORWINNING",
@@ -1536,6 +1529,7 @@
   "warnNoSpeech": "Geen kleedkamertoespraak gekies nie - die spelers sal self besluit.",
   "warnRusty": "{player} is ROESTERIG ({n}wk) - hoë risiko van herbesering as hy speel.",
   "warnScrum": "Skrumprobleem: in jou hele wedstryddag-spangroep het jy {missing}. Die skeidsregter benodig 2 vir elke voorry-trui, anders maak hy elke skrum onbestrede - geen stoot nie, en 'n sterk pak tel vir niks. Sit meer voorry-dekking op die bank.",
+  "warnScrumFew": "Skrumprobleem: jou wedstryddag-spangroep het net {n} verskillende spelers wat in die voorry kan speel, en die skeidsregter benodig {need}. Daarsonder maak hy elke skrum onbestrede - geen stoot nie, en 'n sterk pak tel vir niks. Sit meer voorry-dekking op die bank.",
   "warnSixPointer": "SESPUNTER: {gap} en julle veg om dieselfde prys. Klop hulle en begrawe hulle.",
   "warnTurnaround": "Net {n} dae sedert die vorige wedstryd - die spangroep het dié week stadiger herstel. Hou die tenks dop.",
   "warnUnfit": "{player} is net {pct}% fiks - sy tenk gaan vroeg leegloop.",
@@ -1613,9 +1607,67 @@
   "htWetTight": "Dit is nat: een aangee te veel is 'n omset. Dra dit, en gebruik die skop.",
   "htWind": "Die wind vat die lang skoppe: vind kort die kantlyn en hou dit in die hand teen die wind.",
   "htUncontested": "Die skrums is nou onbestrede: die skrum tel nie meer nie, so speel van die lynstaan af.",
-  "htScrumBad": "Hulle skrum is bo: kry die bal vinnig in en uit by die vaste stel.",
-  "htScrumGood": "Ons skrum wen: skop vir die hoeke en vat hulle voor aan.",
-  "htDefWorks": "Die verdediging wen die bal aanhoudend terug: hou die lyn waar dit is."
+  "htWorking": "Werk:",
+  "htHurting": "Maak seer:",
+  "whyMoveFor": {
+   "one": "Met {move_k}: een drie en {m} m per oproep.",
+   "other": "Met {move_k}: {n} drieë en {m} m per oproep."
+  },
+  "whyMoveForTries": {
+   "one": "Met {move_k}: een drie.",
+   "other": "Met {move_k}: {n} drieë."
+  },
+  "whyMoveAgainst": {
+   "one": "Met {move_k} het hulle een drie teen ons gedruk.",
+   "other": "Met {move_k} het hulle {n} drieë teen ons gedruk."
+  },
+  "whyRead": "Hulle het {move_k} gelees: {m} m uit {n} oproepe, teenoor {m0} m sonder daardie lesing.",
+  "whySetFor": "Hulle het {n} skrums en lynstane op eie bal verloor; ons {m}.",
+  "whySetAgainst": "Ons het {n} skrums en lynstane op eie bal verloor; hulle {m}.",
+  "whyPenFor": {
+   "one": "Hulle het een strafskop afgestaan: {p} punte vir ons.",
+   "other": "Hulle het {n} strafskoppe afgestaan: {p} punte vir ons."
+  },
+  "whyPenFor0": {
+   "one": "Hulle het een strafskop afgestaan.",
+   "other": "Hulle het {n} strafskoppe afgestaan."
+  },
+  "whyPenAgainst": {
+   "one": "Ons het een strafskop afgestaan: {p} punte vir hulle.",
+   "other": "Ons het {n} strafskoppe afgestaan: {p} punte vir hulle."
+  },
+  "whyPenAgainst0": {
+   "one": "Ons het een strafskop afgestaan.",
+   "other": "Ons het {n} strafskoppe afgestaan."
+  },
+  "whyTurnFor": {
+   "one": "Ons het die bal een keer teruggewen: {p} punte daaruit.",
+   "other": "Ons het die bal {n} keer teruggewen: {p} punte daaruit."
+  },
+  "whyTurnFor0": {
+   "one": "Ons het die bal een keer teruggewen.",
+   "other": "Ons het die bal {n} keer teruggewen."
+  },
+  "whyTurnAgainst": {
+   "one": "Ons het die bal een keer verloor: {p} punte vir hulle.",
+   "other": "Ons het die bal {n} keer verloor: {p} punte vir hulle."
+  },
+  "whyTurnAgainst0": {
+   "one": "Ons het die bal een keer verloor.",
+   "other": "Ons het die bal {n} keer verloor."
+  },
+  "whyBreakFor": "Lynbreuke: {n} vir ons, {m} vir hulle; {p} punte uit ons s'n.",
+  "whyBreakFor0": "Lynbreuke: {n} vir ons, {m} vir hulle.",
+  "whyBreakAgainst": "Lynbreuke: {n} vir hulle, {m} vir ons; {p} punte uit hulle s'n.",
+  "whyBreakAgainst0": "Lynbreuke: {n} vir hulle, {m} vir ons.",
+  "whyPhaseFor": "{mins} minute in hulle 22: {p} punte uit fasespel.",
+  "whyPhaseFor0": "{mins} minute in hulle 22.",
+  "whyPhaseAgainst": "Hulle het {mins} minute in ons 22 gehad: {p} punte uit fasespel.",
+  "whyPhaseAgainst0": "Hulle het {mins} minute in ons 22 gehad.",
+  "whyKickFor": "Skepdoele en geblokte skoppe: {p} punte vir ons.",
+  "whyKickAgainst": "Skepdoele en geblokte skoppe: {p} punte vir hulle.",
+  "whyStyleFor": "Die stylstryd: {atk_k} het die oorhand oor {def_k} gekry, omtrent {p} punte vir ons.",
+  "whyStyleAgainst": "Die stylstryd: {atk_k} het die oorhand oor {def_k} gekry, omtrent {p} punte vir hulle."
  },
  "tacticsScreen": {
   "tabRoles": "Rolle",
@@ -2172,7 +2224,6 @@
   "holesToFill": "Gate om te vul",
   "seasonObjectives": "Seisoendoelwitte",
   "boardExpects": "Die direksie se verwagting: {objective}.",
-  "fallShort": "Skiet tekort, en vertroue sal ly. Lewer, en jy sal gerugsteun word.",
   "boardConfidence": "Direksievertroue",
   "boardDelighted": "Die direksie is in die wolke oor jou werk.",
   "boardSatisfied": "Die direksie is oor die algemeen tevrede.",
@@ -4229,7 +4280,12 @@
   "alreadyYours": "Reeds joune - niks om te herstel nie.",
   "badge": "Ondersteuner",
   "cancelled": "Niks is gehef nie.",
-  "refused": "Die winkel wou nie 'n aankoop vir hierdie item open nie. Niks is gehef nie. Dit beteken gewoonlik dat die produk nie in jou land te koop is nie, dat dit nog nie aktief is nie, of dat hierdie rekening nie op die lisensietoetslys is nie.",
+  "refused": "Die winkel wou nie 'n aankoop vir hierdie item open nie. Niks is gehef nie. Dit beteken gewoonlik dat die produk nog nie aktief is nie, of dat hierdie rekening nie op die lisensietoetslys is nie.",
+  "notOffered": "Die winkel bied hierdie item tans nie aan jou rekening aan nie, so niks is gehef nie. Dit is 'n opstelsaak aan ons kant, nie 'n fout met jou rekening of toestel nie - dit is dalk nog nie in jou streek te koop nie.",
+  "disabled": "Aankope is op hierdie toestel afgeskakel, so die winkel wou nie oopmaak nie. Niks is gehef nie. Kyk na die aankoopbeperkings (Skermtyd, ouer- of gesinskontroles) in jou toestel se instellings.",
+  "playBilling": "Google Play wou nie 'n betaling op hierdie rekening aanvaar nie. Niks is gehef nie. Play gee hierdie antwoord wanneer in-app-aankope nie in die rekening se land ondersteun word nie, wanneer die Play Winkel-toep bygewerk moet word, of wanneer die betaalmetode geweier is.",
+  "setup": "Die winkel wou nie 'n aankoop vir hierdie item open nie weens 'n opstelfout aan ons kant, nie joune nie. Niks is gehef nie - probeer asseblief weer ná die volgende opdatering.",
+  "notNow": "Die winkel wou nie hierdie item nou verkoop nie. Niks is gehef nie. Maak seker jy is aanlyn en by die winkel aangemeld, en probeer dan later weer.",
   "error": "Die winkel kon nie bereik word nie. Niks is gehef nie - probeer later weer.",
   "nothingToRestore": "Niks om op hierdie rekening te herstel nie.",
   "pending": "Die winkel verwerk dit steeds. Daar is niks meer hier om te doen nie - dit beland vanself, en Herstel sal dit optel as jy eers die spel toemaak.",
@@ -6723,6 +6779,9 @@
   "uncontestedShort": "En dit kos {team} nog 'n speler: onder Wet 3.20 moet 'n span wat onbestrede skrums kry weens 'n kaart, nog 'n man aftrek. {player} maak plek.",
   "contestedAgain": "Die voorryspeler is terug van die sondebank af en so ook die dekking: die skeidsregter herstel BESTREDE SKRUMS.",
   "frontRowReturns": "Die bank is op, so {player} kom weer op: 'n vervangde voorryspeler mag vir 'n beseerde een terugkeer, en die skrum bly 'n stryd.",
+  "frontRowBinCover": "{lost} sit tien minute uit en {team} het 'n opgeleide voorry nodig, so onder Wet 3 kom {on} op en {player} gaan af om plek te maak totdat die tien minute verby is. Die skrum bly 'n stryd.",
+  "frontRowRedCover": "{lost} is vir die res van die wedstryd weg en {team} het 'n opgeleide voorry nodig, so onder Wet 3 kom {on} op en {player} gaan vir die res van die wedstryd af om plek te maak. Die skrum bly 'n stryd, en {team} is steeds 'n speler minder.",
+  "frontRowBinBack": "{lost} is terug van die sondebank af en neem die voorry-trui terug by {on}, wat bank toe gaan; {player} kom ook weer op.",
   "testimonial_f": "{player} se huldigingswedstryd. Sy lei die spanne uit met haar kinders langs haar, die hele stadion op hul voete, serpe bo elke kop. Dan blaas die fluitjie en dis weer net 'n rugbywedstryd.",
   "oldBoy_f": "'n Bekende gesig daar buite: {player} speel teen {oldClub}, waar sy {n} wedstryde gespeel het. {tail_k}",
   "oldBoyKnowsThem_f": "Sy ken hierdie teenstander soos die palm van haar hand.",
@@ -7933,8 +7992,6 @@
  },
  "till": {
   "boardTitle": "Direksiebesluite",
-  "boardSub": "buitengewone fondse, bo deurgestem",
-  "boardBlurb": "Regte geld deur die toepassingwinkel, in hierdie stoorlêer geteken sonder 'n pad terug.",
   "injectS": "Direksie-inspuiting (klein)",
   "injectM": "Direksie-inspuiting (middel)",
   "injectL": "Direksie-inspuiting (groot)",
@@ -7950,14 +8007,14 @@
   "pending": "Die winkel verwerk dit nog. Niks meer om te doen nie - wanneer dit land, bied hierdie bladsy dit aan die loopbaan voor jou aan.",
   "applyHere": "Pas dit op hierdie loopbaan toe",
   "charterTitle": "Skrap die salarisperk",
-  "charterBody": "Die liga se salarisperk geld nie meer vir hierdie klub nie. Geen plafon, geen boetes, geen verbod - permanent, net vir hierdie stoorlêer, wat die merk dra.",
+  "charterBody": "Geen salarisperk vir hierdie klub nie, vir altyd. Net hierdie stoorlêer.",
   "charterApply": "Skrap dit op hierdie stoorlêer",
   "charterConfirm": "Skrap dit - daar is geen pad terug nie",
   "charterStay": "Nie vandag nie",
   "charterDone": "Klaar. Die salariswet geld nie meer vir hierdie klub nie.",
   "charterSigned": "Die perk is weg solank hierdie loopbaan duur: geen plafon, geen boetes, geen verbod.",
   "charterOwned": "Jy besit dit. Skakel dit hieronder aan wanneer jy seker is - dit kan nie afgeskakel word nie.",
-  "fineprint": "Pryse is die winkel s'n. 'n Aankoop word eers bestee wanneer dit in jou loopbaan geland het; as iets onderbreek word, bied hierdie bladsy dit weer aan.",
+  "fineprint": "Die pryse is die winkel s'n. Niks word bestee voordat dit in jou loopbaan land nie.",
   "stampLicensed": "Gelisensieerde begin",
   "stampCharter": "Eienaarshandves",
   "watchAgency": "Vra die agentskap vir hulle lêer (kyk 'n advertensie)",
@@ -8021,6 +8078,7 @@
   "fundingLine": "Vier direksiebesluite, £10m tot £130m, elk met 'n seisoen se perkvrye salarisse.",
   "fineprint": "Eenmalige betalings, deur die toepassingwinkel hanteer. Niks hier speel die wedstryde nie, en die spel stuur steeds niks oor jou êrens heen nie.",
   "tillSilent": "Die winkel is gekoppel maar het nog nie geantwoord nie. Koop kan steeds werk - sy eie blad maak oop voor enigiets gehef word. As hierdie weergawe pas aangekom het, gee dit 'n minuut.",
+  "tillEmpty": "Die winkel het geantwoord, maar het nog niks vir hierdie rekening te koop nie, so niks kan hier nou gekoop word nie. Niks is gehef nie.",
   "tillPartial": "Die winkel het vir {live} van {asked} produkte geantwoord. Die ander is dalk nog nie vir hierdie rekening te koop nie.",
   "pickNation": "Joune. Kies die federasie en vat die werk - die aanstelling is onmiddellik.",
   "support": "Ondersteun die spel",

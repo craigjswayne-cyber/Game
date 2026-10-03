@@ -110,13 +110,27 @@ public class PhaseBilling: CAPPlugin {
         guard let sku = call.getString("sku") else {
             call.resolve(["outcome": "error"]); return
         }
+        // Every "no" carries a cause beside its outcome word (1.8.3), so the
+        // game can tell the player which kind of no it was. Before this, a
+        // product StoreKit would not list and a phone with purchases switched
+        // off both read as "there is no store attached to this build", and
+        // the one refusal line guessed "not on sale in your country". The
+        // causes are named in BillingCause in src/game/monetise.ts.
+        //
+        // Purchases switched off (Screen Time, a managed device) are asked
+        // about first, before any product lookup.
+        guard AppStore.canMakePayments else {
+            call.resolve(["outcome": "unavailable", "cause": "disabled"]); return
+        }
         Task {
             do {
                 guard let product = try await Product.products(for: [sku]).first else {
-                    // the id is not in App Store Connect, or is not approved
-                    // yet: "unavailable" is the honest word and the game says
-                    // so plainly rather than blaming the customer
-                    call.resolve(["outcome": "unavailable"]); return
+                    // StoreKit answered and did not list this id in this
+                    // customer's storefront: the IAP is not approved yet, the
+                    // Paid Apps agreement is not active, or the product is not
+                    // available in this territory. All of it is App Store
+                    // Connect, none of it is the customer's doing.
+                    call.resolve(["outcome": "unavailable", "cause": "notOffered"]); return
                 }
                 switch try await product.purchase() {
                 case .success(let verification):
@@ -144,8 +158,14 @@ public class PhaseBilling: CAPPlugin {
                 @unknown default:
                     call.resolve(["outcome": "error"])
                 }
+            } catch Product.PurchaseError.purchaseNotAllowed {
+                call.resolve(["outcome": "unavailable", "cause": "disabled"])
+            } catch Product.PurchaseError.productUnavailable {
+                call.resolve(["outcome": "unavailable", "cause": "notOffered"])
             } catch {
-                call.resolve(["outcome": "error"])
+                // no network, the App Store not answering: the store could
+                // not be reached, and nothing was charged
+                call.resolve(["outcome": "error", "cause": "unreachable"])
             }
         }
     }
