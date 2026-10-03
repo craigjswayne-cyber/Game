@@ -88,13 +88,46 @@ export const chemTier = (g: number) =>
   t(g >= 50 ? 'common.chemTelepathic' : g >= 25 ? 'common.chemEstablished'
     : g >= 10 ? 'common.chemSettled' : g >= 5 ? 'common.chemSettlingIn' : 'common.chemBrandNew')
 
+/** One season of a man's club career (Player.career), or, in careerOld, every
+ *  season at one club older than the table keeps; season is then the latest. */
+export type CareerRow = { season: number; clubId: string; apps: number; tries: number; points: number }
+
+/** How many seasons Player.career lists before the oldest is folded away. */
+export const CAREER_ROWS = 20
+
+/** Every season of his club career this world has seen: the folded seasons
+ *  (careerOld) and the table (career). What totals and club tallies read;
+ *  career alone is the last CAREER_ROWS seasons and undercounts a long one. */
+export function careerRows(p: { career: CareerRow[]; careerOld?: CareerRow[] }): CareerRow[] {
+  return p.careerOld?.length ? [...p.careerOld, ...p.career] : p.career
+}
+
+/** Push this season's row and fold whatever the table no longer has room for
+ *  into careerOld, one summed row per club (rollover.ts). */
+export function archiveSeason(p: Pick<Player, 'career' | 'careerOld'>, row: CareerRow): void {
+  p.career.push(row)
+  foldCareer(p)
+}
+
+/** Fold the rows past CAREER_ROWS out of the table and into careerOld. */
+export function foldCareer(p: Pick<Player, 'career' | 'careerOld'>): void {
+  while (p.career.length > CAREER_ROWS) {
+    const old = p.career.shift()!
+    const into = (p.careerOld ??= []).find(r => r.clubId === old.clubId)
+    if (into) {
+      into.apps += old.apps; into.tries += old.tries; into.points += old.points
+      into.season = Math.max(into.season, old.season)
+    } else p.careerOld.push({ ...old })
+  }
+}
+
 /** Appearances this player made for a club he has since left - 0 if he is
  *  still there. Fuels the old-boy storyline when the fixture list brings
  *  him back to a former home. */
 export function oldBoyApps(p: Player, clubId: string): number {
   if (p.clubId === clubId) return 0
   let apps = p.exClub === clubId ? (p.exApps ?? 0) : 0
-  for (const r of p.career) if (r.clubId === clubId) apps += r.apps
+  for (const r of careerRows(p)) if (r.clubId === clubId) apps += r.apps
   return apps
 }
 
@@ -312,7 +345,13 @@ export interface Player {
   value: number
   // career
   stats: SeasonStats
-  career: { season: number; clubId: string; apps: number; tries: number; points: number }[]
+  career: CareerRow[]
+  /** The seasons career no longer lists, summed per club (1.8.3). career keeps
+   *  the newest CAREER_ROWS seasons for the table on his page; a row folded
+   *  out of it lands here, so every total and every club tally still counts
+   *  it (careerRows). Absent until a career outgrows the table; a row cut
+   *  before 1.8.3 is gone and nothing can bring it back. */
+  careerOld?: CareerRow[]
   transferListed: boolean
   youth?: boolean
   /** character type - drives contracts, morale and media reactions */
@@ -1849,7 +1888,8 @@ export interface GameState {
    *  and a reloaded save must not either: without this list a reload rebuilt
    *  the registry from the players left and a regen could take a retired
    *  man's name, which is how a reload changed the rollover
-   *  (scripts/qa/determinism.ts, 1.6.5). */
+   *  (scripts/qa/determinism.ts, 1.6.5). The newest RETIRED_NAMES_KEPT of them,
+   *  trimmed each summer (nations.ts, 1.8.3): about two summers' worth. */
   retiredNames?: string[]
   /** Every name the registry has handed to a generated player (nations.ts),
    *  so a reload rebuilds the same registry the running game had. */

@@ -34,7 +34,9 @@ export interface AnalystRead {
   settled?: boolean
 }
 
-const UNIT_PREP: Record<AnalystRead['unit'], MatchPrep> = {
+/** The week's prep that works on each soft spot. One table for the club read
+ *  here and the report's plans (oppreport.ts planOptions). */
+export const UNIT_PREP: Record<AnalystRead['unit'], MatchPrep> = {
   scrum: 'setpiece',
   lineout: 'setpiece',
   defence: 'attack',
@@ -147,6 +149,18 @@ export function readOdds(state: GameState, oppId: string, units: Record<AnalystR
   return { sorted, clarity, p, right, confidence }
 }
 
+/** The unit his read names. A correct read names the genuine weakness; a
+ *  wrong one names something else. It used to name their STRENGTH every
+ *  time, which the unit numbers on the preview give away, so a careful
+ *  manager could tell a wrong read from a right one without trusting his
+ *  analyst at all. Which of the other four is on a hash, so the read still
+ *  costs no shared rng. The club read and a Test side's report (oppreport.ts
+ *  softSpot) both name theirs here, so the two cannot drift apart again. */
+export function readUnit(state: GameState, oppId: string, abs: number, o: Pick<ReadOdds, 'sorted' | 'right'>): AnalystRead['unit'] {
+  const { sorted, right } = o
+  return right ? sorted[0][0] : sorted[1 + (hash(state.seed, abs, oppId) % (sorted.length - 1))][0]
+}
+
 /** the band a confidence reads as, the same three words everywhere */
 export const sureBand = (c: number): 'high' | 'mid' | 'low' => (c >= 0.85 ? 'high' : c >= 0.7 ? 'mid' : 'low')
 
@@ -162,16 +176,12 @@ export function analystRead(state: GameState, oppId: string): AnalystRead | null
   if (!opp) return null
   const units = teamUnits(state, lineupFor(state, oppId))
   const xv = lineupFor(state, oppId).slice(0, 15).map(id => id != null ? state.players[id] : null)
-  const h = hash(state.seed, abs, oppId)
   // the true soft spot, by unit strength relative to the rest of their game,
-  // and the odds he reads it, and how sure he is (readOdds)
-  const { sorted, right, confidence } = readOdds(state, oppId, units, abs)
-  // a correct read names the genuine weakness; a wrong one names something
-  // else. It used to name their STRENGTH every time, which the unit numbers
-  // on the preview give away, so a careful manager could tell a wrong read
-  // from a right one without trusting his analyst at all. Which of the other
-  // four is on the same hash, so the read still costs no shared rng.
-  const unit = right ? sorted[0][0] : sorted[1 + (h % (sorted.length - 1))][0]
+  // and the odds he reads it, and how sure he is (readOdds); then the unit he
+  // names, right or wrong (readUnit)
+  const odds = readOdds(state, oppId, units, abs)
+  const { right, confidence } = odds
+  const unit = readUnit(state, oppId, abs, odds)
 
   // a name to hang it on: the man in that area of their side
   const slotFor: Record<AnalystRead['unit'], number[]> = {

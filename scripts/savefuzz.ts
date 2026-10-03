@@ -199,6 +199,21 @@ damaged('a club with no players array', s => {
   const clubs = s.clubs as Record<string, Record<string, unknown>>
   delete Object.values(clubs)[0].players
 })
+// the name registry's memory and the folded seasons (1.8.3): a retiredNames
+// list far past the cap, or full of rubbish, and careerOld in every wrong shape
+damaged('a retiredNames list of thirty thousand, nulls among them', s => {
+  s.retiredNames = Array.from({ length: 30000 }, (_, i) => (i % 97 === 0 ? null : `old boy ${i % 21000}`))
+})
+damaged('a retiredNames list that is not a list', s => { s.retiredNames = { many: 'names' } })
+damaged('careerOld in every wrong shape', s => {
+  const players = s.players as Record<string, Record<string, unknown>>
+  const ps = Object.values(players)
+  ps[0].careerOld = 'lots'
+  ps[1].careerOld = [null, { clubId: 7 }, { season: 1, clubId: 'x', apps: Infinity, tries: 0, points: 0 }]
+  ps[2].careerOld = [{ season: -3, clubId: 'northampton', apps: 300, tries: 40, points: 200 }]
+  ps[3].career = Array.from({ length: 30 }, (_, i) => ({ season: i - 30, clubId: 'northampton', apps: 10, tries: 1, points: 5 }))
+  ps[4].career = 'none'
+})
 // the manager's playbook: the wear on his calls fades and adds a share of a
 // call since 1.8.3 (armsrace.ts THE WEAR), so it is read as a number every match
 damaged('a playbook whose wear is rubbish', s => {

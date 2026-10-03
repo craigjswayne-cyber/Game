@@ -7970,6 +7970,7 @@
   "fundingLine": "Quattro delibere del consiglio, da £10m a £130m, ognuna con una stagione di stipendi fuori dal tetto.",
   "fineprint": "Pagamenti una tantum, gestiti dall'app store. Niente di tutto questo gioca le partite, e il gioco continua a non mandare in giro nulla di te.",
   "tillSilent": "Lo store è collegato ma non ha ancora risposto. Acquistare può comunque funzionare: la sua schermata si apre prima di qualsiasi addebito. Se questa versione è appena arrivata, dagli un minuto.",
+  "tillEmpty": "Lo store ha risposto, ma non ha ancora nulla in vendita per questo account, quindi per ora qui non si può acquistare niente. Non è stato addebitato nulla.",
   "tillPartial": "Lo store ha risposto per {live} prodotti su {asked}. Gli altri potrebbero non essere ancora in vendita su questo account.",
   "pickNation": "Tuo. Scegli la federazione e accetta l'incarico: la nomina è immediata.",
   "support": "Sostieni il gioco",

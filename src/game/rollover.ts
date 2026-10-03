@@ -7,7 +7,7 @@ import { activePlan, applyAdminPenalties } from './season'
 import { settleInsolvency } from './insolvency'
 import { ageManager } from './career'
 import { rivalVerdict } from './boss'
-import {absWeek, BASE_YEAR, boardPatience, isMyClub, closeNatTenure, demandCeiling, MAX_FOLLOWING, GROUND_TIERS, groundLevel, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, RELEGATES, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId, worldCupSeasonFor } from './model'
+import {absWeek, archiveSeason, BASE_YEAR, careerRows, boardPatience, isMyClub, closeNatTenure, demandCeiling, MAX_FOLLOWING, GROUND_TIERS, groundLevel, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, RELEGATES, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId, worldCupSeasonFor } from './model'
 import { assignPersonality, EARLY_FADE, LATE_PEAK } from './attributes'
 import { ageAttributes, gapGrowth } from './ageing'
 import { COE_MEAN, learning, markSights, seasonReview, tempoF, TL } from './devproject'
@@ -30,7 +30,7 @@ import { dreamState } from './dream'
 import { objectiveBonus, objectiveById, pickObjectives } from './objectives'
 import { boardPriorityF } from './seasonplan'
 import { deriveAttrs, deriveTrait, isLateBloomer, nextPid, playerValue, playerWage, benchDrag, repriceAcademies } from './attributes'
-import { nationByCode, regenName, worldNames } from './nations'
+import { dropNameRegistry, keptRetiredNames, nationByCode, regenName, worldNames } from './nations'
 import { clamp, mulberry32, pick, type Rng } from './rng'
 import { resetFamiliarity } from './playbook'
 import { closeAcademySeason, ensureAcademyLeague, topUpAcademy, acadCeiling } from './academy'
@@ -59,10 +59,42 @@ const ordinal = (n: number) =>
  * Deliberately deterministic: no draw from the shared season rng, so adding
  * this cannot shift any match or transfer that follows it.
  */
-/** A player leaves the world, and his name stays taken (GameState.retiredNames). */
+/** A player leaves the world, and his name stays taken for a couple of summers
+ *  (GameState.retiredNames, trimmed by pruneNames). */
 function forget(state: GameState, p: Player) {
   ;(state.retiredNames ??= []).push(p.name.toLowerCase())
   delete state.players[p.id]
+}
+
+/** The name registry's two lists, trimmed once a summer (nations.ts).
+ *
+ *  takenNames exists for the names handed out BEFORE their players exist
+ *  (the intake class, a scout's finds); once a man is in the world or has
+ *  left it his name is covered by players or retiredNames, so the list is
+ *  trimmed to what only it knows. Unpruned it was 5% of a fifteen-season
+ *  save (scripts/qa2/savesize.ts).
+ *
+ *  retiredNames keeps the newest RETIRED_NAMES_KEPT departures. Its one reader
+ *  is the registry, and what the registry needs from it is that a name does
+ *  not come back the summer after its man left; kept whole it was the
+ *  biggest list in a long save (1.8.3). Every forget() happens earlier in
+ *  the rollover than this, so between summers the list never runs past the
+ *  cap and migrate's trim of an old save is a no-op on a new one.
+ *
+ *  Both lists are what a reload rebuilds the registry from, so the running
+ *  game drops its cached registry here and rebuilds from the same lists:
+ *  otherwise it would still hold the trimmed names and a reload would not
+ *  (scripts/qa/determinism.ts). Runs whether or not the manager is in a job,
+ *  unlike boardReinvests, where the takenNames trim used to live. */
+function pruneNames(state: GameState) {
+  if (state.takenNames?.length) {
+    const held = new Set<string>()
+    for (const p of Object.values(state.players)) held.add(p.name.toLowerCase())
+    for (const n of state.retiredNames ?? []) held.add(n.toLowerCase())
+    state.takenNames = [...new Set(state.takenNames)].filter(n => !held.has(n))
+  }
+  if (state.retiredNames?.length) state.retiredNames = keptRetiredNames(state.retiredNames)
+  dropNameRegistry(state)
 }
 
 function boardReinvests(state: GameState) {
@@ -512,7 +544,7 @@ export function agePlayers(state: GameState, rng: Rng, rooms?: Map<string, numbe
   for (const p of retirees) {
     // the record book: 100+ appearances for a club earns a page in it
     const byClub = new Map<string, { apps: number; tries: number; pts: number }>()
-    for (const c of p.career) {
+    for (const c of careerRows(p)) {
       const e = byClub.get(c.clubId) ?? { apps: 0, tries: 0, pts: 0 }
       e.apps += c.apps; e.tries += c.tries; e.pts += c.points
       byClub.set(c.clubId, e)
@@ -525,9 +557,9 @@ export function agePlayers(state: GameState, rng: Rng, rooms?: Map<string, numbe
     }
 
     // the Hall of Fame: a career that will be talked about forever
-    const tApps = p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps + (p.hist?.apps ?? 0)
-    const tTries = p.career.reduce((s, c) => s + c.tries, 0) + p.stats.tries + (p.hist?.tries ?? 0)
-    const tPts = p.career.reduce((s, c) => s + c.points, 0) + p.stats.points + (p.hist?.points ?? 0)
+    const tApps = careerRows(p).reduce((s, c) => s + c.apps, 0) + p.stats.apps + (p.hist?.apps ?? 0)
+    const tTries = careerRows(p).reduce((s, c) => s + c.tries, 0) + p.stats.tries + (p.hist?.tries ?? 0)
+    const tPts = careerRows(p).reduce((s, c) => s + c.points, 0) + p.stats.points + (p.hist?.points ?? 0)
     const peakCa = Math.max(p.ca, p.q0, p.ca0 ?? 0)
     if ((peakCa >= 85 && (tApps >= 350 || tTries >= 150 || tPts >= 2200)) || tApps >= 470 || tTries >= 190 || tPts >= 3000) {
       const score = (h: { apps: number; tries: number; points: number }) => h.apps + h.tries * 2 + h.points / 10
@@ -684,8 +716,8 @@ export function agePlayers(state: GameState, rng: Rng, rooms?: Map<string, numbe
  *  apps, plus pre-2025 service for men who have never played anywhere else. */
 function clubServiceApps(state: GameState, p: Player): number {
   const clubId = state.userClubId
-  const here = p.career.filter(c => c.clubId === clubId).reduce((s, c) => s + c.apps, 0) + p.stats.apps
-  const oneClub = p.career.every(c => c.clubId === clubId)
+  const here = careerRows(p).filter(c => c.clubId === clubId).reduce((s, c) => s + c.apps, 0) + p.stats.apps
+  const oneClub = careerRows(p).every(c => c.clubId === clubId)
   const pre = oneClub ? Math.max(0, (p.hist?.apps ?? 0) - (p.exApps ?? 0)) : 0
   return here + pre
 }
@@ -1644,8 +1676,7 @@ export function rebuildSeason(state: GameState) {
     }
     seasonReview(state, p, p.clubId === state.userClubId && !!activePlan(state, p.id))
     if (p.stats.apps > 0 && p.clubId) {
-      p.career.push({ season: state.season, clubId: p.clubId, apps: p.stats.apps, tries: p.stats.tries, points: p.stats.points })
-      if (p.career.length > 20) p.career = p.career.slice(-20)
+      archiveSeason(p, { season: state.season, clubId: p.clubId, apps: p.stats.apps, tries: p.stats.tries, points: p.stats.points })
     }
     // remembered across the wipe so devFactor can ask how much rugby the
     // season actually held (25D: minutes-gated growth)
@@ -2156,6 +2187,7 @@ export function rebuildSeason(state: GameState) {
   }
 
   boardReinvests(state)
+  pruneNames(state)
   // and the other hundred boards, for the same reason his does it: money sitting
   // in a deposit account while the club stands still is money the board would
   // rather see in the academy and the training ground (aiecon.ts).
@@ -2293,17 +2325,6 @@ export function rebuildSeason(state: GameState) {
   // the two (scripts/qa/determinism.ts, migrate mode, 1.6.5). Same sweep
   // newGame runs, idempotent.
   repriceAcademies(Object.values(state.players))
-  // takenNames exists for the names handed out BEFORE their players exist
-  // (the intake class, a scout's finds); once a man is in the world or has
-  // left it his name is covered by players or retiredNames, so the list is
-  // trimmed to what only it knows. Unpruned it was 5% of a fifteen-season
-  // save (scripts/qa2/savesize.ts).
-  if (state.takenNames?.length) {
-    const held = new Set<string>()
-    for (const p of Object.values(state.players)) held.add(p.name.toLowerCase())
-    for (const n of state.retiredNames ?? []) held.add(n.toLowerCase())
-    state.takenNames = [...new Set(state.takenNames)].filter(n => !held.has(n))
-  }
   state.injectedThisSeason = undefined
   state.releasedThisSeason = undefined
   // the rewarded ledger is weekly or seasonal and goes with the season, all but

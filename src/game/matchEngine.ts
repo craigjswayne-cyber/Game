@@ -4,7 +4,7 @@ import { genderOf, type Gender, subjectVar } from './gender'
 import { prepLeaked } from './talkingpoints'
 import { ROLE_FX, rolesForSlot } from './roles'
 import { zoneAt, zonePlan } from './tactics'
-import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, addGrudge, chemKey, demandCeiling, facLevel, fmtMoney, formGuide, grudgeBetween, inRedZone, oldBoyApps, trustFactor, unbeatenRun } from './model'
+import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, addGrudge, careerRows, chemKey, demandCeiling, facLevel, fmtMoney, formGuide, grudgeBetween, inRedZone, oldBoyApps, trustFactor, unbeatenRun } from './model'
 import { standing } from './authority'
 import { bondCohesion } from './bonds'
 import { analystShift, archetypeOf, loudestDial, repetitionFatigue, respectLayers } from './oppcoach'
@@ -2764,7 +2764,7 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
       for (const id of side.lineup.slice(0, 15)) {
         const p = id != null ? state.players[id] : null
         if (!p) continue
-        const cApps = p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps + (p.hist?.apps ?? 0) + 1
+        const cApps = careerRows(p).reduce((s, c) => s + c.apps, 0) + p.stats.apps + (p.hist?.apps ?? 0) + 1
         if ([50, 100, 150, 200, 250].includes(cApps)) {
           pushLine(state, ctx, 1, 'SUB', side, 'comm.milestoneApps', { player: p.name, n: cApps }, p.id)
         }
@@ -3597,7 +3597,7 @@ function scoreTry(
     if (fwdStands) pushLine(state, ctx, min, 'SUB', side, `comm.tmoFwdStands${1 + ((min + scorer.id) % 2)}`, { team: teamShort(state, side.teamId) }, scorer.id)
   }
   else pushLine(state, ctx, min, 'TRY', side, 'comm.tryPackDrive')
-  const cTries = scorer ? scorer.career.reduce((s, c) => s + c.tries, 0) + scorer.stats.tries + (scorer.hist?.tries ?? 0) : 0
+  const cTries = scorer ? careerRows(scorer).reduce((s, c) => s + c.tries, 0) + scorer.stats.tries + (scorer.hist?.tries ?? 0) : 0
   if (scorer && ctx.detail && [25, 50, 75, 100].includes(cTries)) {
     pushLine(state, ctx, min + 1, 'SUB', side, 'comm.tryCareerMilestone', { n: cTries, player: scorer.name }, scorer.id)
   } else if (scorer && ctx.detail && [10, 15, 20, 25].includes(scorer.stats.tries)) {
