@@ -18,23 +18,41 @@
 //   opposition's analysts hold is his recent rugby, and it halves over the
 //   summer (playbook.resetFamiliarity).
 //
-//   THE ANSWER. An AI coach who reads tape sets his defence for the call he
-//   has seen most: the matchup of that call is pulled towards the worst it
-//   can be (moves.ts moveEdge, adapt), by how much of the first-phase ball it
-//   is (nothing below 30%, all of it by 75%), how much tape there is, and
-//   what kind of coach he is (oppcoach.ts archetypeOf: an analyst fully, a
-//   reactive coach most of the way, a stubborn one barely). So a call run on
-//   two thirds of the ball is blunted against the sharp dugouts, and the
-//   manager's dilemma is the owner's: keep running it and take the blunting,
-//   or hide it behind the secondary and develop something else, which costs
-//   familiarity while the new call beds in.
+//   THE ANSWER. An AI coach who reads tape sets his defence for the calls he
+//   has seen: the matchup of a call is pulled towards the worst it can be
+//   (moves.ts moveEdge, adapt), by how predictable the whole tape is (1.8.3:
+//   the sum of the squared shares, so one strike on everything is 1, two
+//   halves 0.5 and three thirds 0.33; nothing at 35%, all of it by 75%), how
+//   much of the tape this call is (a call on two possessions in five is
+//   planned for in full), how much tape there is, and what kind of coach he
+//   is (oppcoach.ts archetypeOf: an analyst fully, a reactive coach most of
+//   the way, a stubborn one barely). So a call run on two thirds of the ball
+//   is blunted against the sharp dugouts, and the manager's dilemma is the
+//   owner's: keep running it and take the blunting, or hide it behind the
+//   secondary and develop something else, which costs familiarity while the
+//   new call beds in. Until 1.8.3 the coach read each call's share alone, so
+//   switching between two strikes match by match ran each on the smaller
+//   share of a two-strike tape and was worth more than splitting the ball
+//   between them in every match; a coach who reads the whole tape sees two
+//   strikes either way.
+//
+//   THE WEAR. What the analysts have on a call (playbook.used, read by
+//   moveEdge and routineEffect) is no longer kept until the summer (1.8.3):
+//   a call left out fades by WEAR_FADE a match, a half-life of six, so one
+//   left on the shelf for a month and a half comes back with most of its
+//   surprise. A strike goes on it by its share of this match's first-phase
+//   strikes and fades by the share it did not get, so one strike on all the
+//   ball wears exactly as every call did before, and splitting the ball
+//   between two wears each by half, as the tape does; every other call is
+//   a whole one. This is the manager's alone: an AI club's wear is counted
+//   in matchEngine as it always was.
 //
 // Deterministic throughout: no draw on any shared rng, and nothing here
 // touches an AI club's rugby, so a world without a manager is the same world.
 
 import type { Club, Fixture, GameState } from './model'
-import { MOVE_BY_ID, calledIds, callForTick, callsOf, launchOf, mixHash, type Launch } from './moves'
-import { playbookOf } from './playbook'
+import { MIX_DEFAULT, MOVE_BY_ID, calledIds, callForTick, callsOf, launchOf, mixHash, type Launch } from './moves'
+import { DEFAULT_LINEOUT, DEFAULT_SCRUM, playbookOf } from './playbook'
 import { archetypeOf, type Archetype } from './oppcoach'
 import { clamp } from './rng'
 
@@ -42,10 +60,16 @@ import { clamp } from './rng'
 export const MATCH_TICKS = 20
 /** what is left of the tape on a strike after each further match */
 export const TAPE_FADE = 0.8
-/** the share of first-phase ball a call can have before anybody sets up for it */
-export const ADAPT_FROM = 0.3
-/** and the share past that at which a coach is fully set for it */
-export const ADAPT_SPAN = 0.45
+/** how predictable the tape (the sum of its squared shares) can be before
+ *  anybody sets up for it: three strikes in equal parts read as nothing */
+export const ADAPT_FROM = 0.35
+/** and the predictability past that at which a coach is fully set */
+export const ADAPT_SPAN = 0.4
+/** the share of the tape at which a call is planned for in full; below it,
+ *  in proportion */
+export const ADAPT_COVER = 0.4
+/** what is left of the wear on a call after each match (a half-life of six) */
+export const WEAR_FADE = Math.pow(0.5, 1 / 6)
 /** the furthest a defence moves: the matchup pulled 55% of the way to the worst */
 export const ADAPT_MAX = 0.55
 /** first-phase possessions of tape before a coach trusts what he has */
@@ -72,9 +96,10 @@ export function firstPhase(state: GameState, club: Club, fxId: number, home: boo
 
 /**
  * The match's tape, filed as the manager's match kicks off (matchEngine
- * beginMatch, before the season's call counts): a rep for every call in the
- * playbook, the tape of the ones that are not fading, and this fixture's
- * first-phase strikes on top. Once per fixture however often it is begun.
+ * beginMatch): a rep for every call in the playbook, the wear on every call
+ * faded and this match's calls on it, the tape of the ones that are not
+ * fading, and this fixture's first-phase strikes on top. Once per fixture
+ * however often it is begun.
  */
 export function tallyCalls(state: GameState, fx: Fixture): void {
   const club = state.clubs[state.userClubId]
@@ -89,7 +114,8 @@ export function tallyCalls(state: GameState, fx: Fixture): void {
     for (const [id, n] of Object.entries(pb.used)) if (MOVE_BY_ID[id] && Number.isFinite(n)) pb.reps[id] = n
   }
   const reps = pb.reps
-  const called = new Set(calledIds(callsOf(state, club)))
+  const c = callsOf(state, club)
+  const called = new Set(calledIds(c))
   for (const id of Object.keys(reps)) {
     if (called.has(id)) continue
     // a call left out of the playbook is slowly forgotten
@@ -97,13 +123,35 @@ export function tallyCalls(state: GameState, fx: Fixture): void {
     if (reps[id] < 0.05) delete reps[id]
   }
   for (const id of called) reps[id] = (Number.isFinite(reps[id]) ? reps[id] : 0) + 1
+  const fp = firstPhase(state, club, fx.id, fx.homeId === club.id)
+  // the wear: this match's share of each call (a strike its share of the
+  // strikes run, so one strike on all of them is a whole call; the shape,
+  // the red-zone and penalty plays and the set-piece routines a call each),
+  // and each fades by the share it did not get
+  const share: Record<string, number> = {}
+  const struck = Object.values(fp.runs).reduce((a, b) => a + b, 0)
+  const whole = new Set([c.shape, c.red, c.pen].filter((x): x is string => !!x))
+  // (a fixture with no first-phase ball wears the strikes by the mix)
+  const mix = c.main && c.alt ? (c.mix ?? MIX_DEFAULT / 100) : 1
+  for (const id of called) {
+    share[id] = whole.has(id) || (id !== c.main && id !== c.alt) ? 1
+      : struck > 0 ? (fp.runs[id] ?? 0) / struck
+      : id === c.main ? mix : 1 - mix
+  }
+  for (const id of [club.tactic.lineoutCall ?? DEFAULT_LINEOUT, club.tactic.scrumCall ?? DEFAULT_SCRUM]) share[id] = 1
+  const used = (pb.used && typeof pb.used === 'object') ? pb.used : (pb.used = {})
+  for (const id of new Set([...Object.keys(used), ...Object.keys(share)])) {
+    const was = Number.isFinite(used[id]) && used[id] > 0 ? used[id] : 0
+    const s = share[id] ?? 0
+    used[id] = was * Math.pow(WEAR_FADE, 1 - s) + s
+    if (used[id] < 0.05) delete used[id]
+  }
   // the tape
   const faced = (pb.faced && typeof pb.faced === 'object') ? pb.faced : (pb.faced = {})
   for (const id of Object.keys(faced)) {
     faced[id] = Number.isFinite(faced[id]) ? faced[id] * TAPE_FADE : 0
     if (faced[id] < 0.05) delete faced[id]
   }
-  const fp = firstPhase(state, club, fx.id, fx.homeId === club.id)
   for (const [id, n] of Object.entries(fp.runs)) faced[id] = (faced[id] ?? 0) + n
 }
 
@@ -114,6 +162,8 @@ export interface Tape {
   share: Record<string, number>
   /** the one run most, if any */
   top: { id: string; share: number } | null
+  /** how predictable it is, 0..1: the sum of the squared shares */
+  predict: number
 }
 
 /** What the opposition's analysts have on the manager's strikes. */
@@ -125,14 +175,17 @@ export function tapeOf(club: Club | undefined): Tape {
     for (const [id, n] of Object.entries(faced)) if (MOVE_BY_ID[id] && Number.isFinite(n) && n > 0) total += n
     if (total > 0) for (const [id, n] of Object.entries(faced)) if (MOVE_BY_ID[id] && Number.isFinite(n) && n > 0) share[id] = n / total
   }
-  let top: Tape['top'] = null
-  for (const [id, s] of Object.entries(share)) if (!top || s > top.share || (s === top.share && id < top.id)) top = { id, share: s }
-  return { total, share, top }
+  let top: Tape['top'] = null, predict = 0
+  for (const [id, s] of Object.entries(share)) {
+    predict += s * s
+    if (!top || s > top.share || (s === top.share && id < top.id)) top = { id, share: s }
+  }
+  return { total, share, top, predict }
 }
 
 /** How far this opponent's coach sets his defence for the manager's call,
- *  0..ADAPT_MAX. Nothing for a Test side, the manager's own club, or a call
- *  he has not run enough of the first-phase ball for anybody to plan on. */
+ *  0..ADAPT_MAX. Nothing for a Test side, the manager's own club, a call that
+ *  is not on the tape, or a tape too varied for anybody to plan on. */
 export function adaptOf(state: GameState, oppId: string | null | undefined, id: string): number {
   if (!oppId || oppId === state.userClubId) return 0
   const opp = state.clubs[oppId]
@@ -140,9 +193,10 @@ export function adaptOf(state: GameState, oppId: string | null | undefined, id: 
   if (!opp || !me) return 0
   const tape = tapeOf(me)
   const s = tape.share[id] ?? 0
-  if (s <= ADAPT_FROM) return 0
+  if (s <= 0 || tape.predict <= ADAPT_FROM) return 0
   return SHARP[archetypeOf(opp.id, opp.rep)] * ADAPT_MAX
-    * clamp((s - ADAPT_FROM) / ADAPT_SPAN, 0, 1) * clamp(tape.total / TAPE_FULL, 0, 1)
+    * clamp((tape.predict - ADAPT_FROM) / ADAPT_SPAN, 0, 1) * clamp(s / ADAPT_COVER, 0, 1)
+    * clamp(tape.total / TAPE_FULL, 0, 1)
 }
 
 /** The adapt for every call the manager has, against one opponent, taken
@@ -211,6 +265,11 @@ export function migratePlaybook(s: GameState): void {
   if (tac.moveMix !== undefined && !Number.isFinite(tac.moveMix)) delete tac.moveMix
   const pb = club.playbook
   if (!pb || typeof pb !== 'object') return
+  // the wear is a count per call, moves and set-piece routines alike
+  if (!pb.used || typeof pb.used !== 'object' || Array.isArray(pb.used)) pb.used = {}
+  for (const [id, v] of Object.entries(pb.used as Record<string, unknown>)) {
+    if (typeof v !== 'number' || !Number.isFinite(v) || v < 0) delete (pb.used as Record<string, unknown>)[id]
+  }
   for (const k of ['reps', 'faced'] as const) {
     const m = pb[k] as unknown
     if (m === undefined) continue
