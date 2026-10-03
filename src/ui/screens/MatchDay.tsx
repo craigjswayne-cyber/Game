@@ -362,7 +362,9 @@ function Preview({ fxId }: { fxId: number }) {
       .filter(([k]) => frontRow[k] < 2)
       .map(([k, word]) => t(frontRow[k] === 0 ? 'matchday.frNone' : 'matchday.frOnly', { n: frontRow[k], pos: t(word) }))
       .join(t('matchday.frJoin'))
-    warnings.push({ level: 'bad', text: t('matchday.warnScrum', { missing }) })
+    // every shirt has two, but too few different men for it (Law 3.5: six
+    // front-rowers in a 23, a prop who plays both sides counted once)
+    warnings.push({ level: 'bad', text: missing ? t('matchday.warnScrum', { missing }) : t('matchday.warnScrumFew', { n: frontRow.players, need: frontRow.need }) })
   }
   // milestone watch: pre-announce the numbers worth playing for today
   for (const pid of tac.lineup.slice(0, 15)) {
