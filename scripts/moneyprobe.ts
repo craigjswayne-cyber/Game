@@ -408,6 +408,43 @@ console.log('\n--- 12b. the credit bank: spends are banked, banks are drawn')
   singles = 0
   const old = await M.tillHealth()
   ok(old.live === old.asked && singles === old.asked, `a bridge with only details(sku) is asked per product (${singles}) and still answers`)
+  ok(h.answered && part.answered && old.answered, 'and each of those stores is marked as having answered')
+}
+
+// ---- 12f. ANSWERED EMPTY IS NOT SILENT (1.8.3) -----------------------------
+//
+// The shelf said "the store has not answered yet" about a store that had
+// answered at once with no products: a setup fault no minute of waiting
+// mends. tillHealth now says whether it heard back at all, and the shelf
+// phrases the two apart (store.tillEmpty, store.tillSilent).
+{
+  g.rmBilling = {
+    detailsMany: async () => [],
+    buy: async () => 'owned',
+    owned: async () => [],
+    consume: async () => {},
+  }
+  const empty = await M.tillHealth()
+  ok(empty.live === 0 && empty.answered, 'an empty list is an answer: nothing priced, and the store did reply')
+  g.rmBilling = {
+    details: async () => null,
+    buy: async () => 'owned',
+    owned: async () => [],
+    consume: async () => {},
+  }
+  const nulls = await M.tillHealth()
+  ok(nulls.live === 0 && nulls.answered, 'so is "no such product" for every single lookup')
+  g.rmBilling = {
+    details: async () => { throw new Error('clientAppUnavailable') },
+    buy: async () => 'owned',
+    owned: async () => [],
+    consume: async () => {},
+  }
+  const threw = await M.tillHealth()
+  ok(threw.live === 0 && !threw.answered, 'a store that throws on every lookup has not answered')
+  delete g.rmBilling
+  const none = await M.tillHealth()
+  ok(none.live === 0 && !none.answered, 'and no store at all has not answered either')
 }
 
 // ---- 12c. THE SUGAR DADDY'S DAY CLOCK (owner: "once a day. in real life") --

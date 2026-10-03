@@ -40,6 +40,9 @@
 package com.phaserugbymanager.app;
 
 import android.app.Activity;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.SystemClock;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -81,7 +84,27 @@ public class PhaseBilling extends Plugin implements PurchasesUpdatedListener {
      *  here until it does. One at a time: the game's till runs one purchase
      *  per SKU and disables the shelf while it waits. */
     private final AtomicReference<PluginCall> pendingBuy = new AtomicReference<>(null);
-    private String pendingSku = null;
+    private volatile String pendingSku = null;
+
+    /** HOW LONG A PARKED buy() MAY WAIT (1.8.3). onPurchasesUpdated is the only
+     *  thing that released the call, and if it never came (the activity torn
+     *  down under the sheet, Play's service dying mid-flow) pendingBuy stayed
+     *  set for the life of the process: every later tap answered 'pending'
+     *  and nothing could be bought until the app was killed. The game stops
+     *  waiting at ninety seconds and calls the purchase pending
+     *  (src/game/storekit.ts); this lets go a little after, so the game's
+     *  answer always comes first and the next tap is a real one. Play's sheet
+     *  covers the game while it is open, so a tap that finds a call parked
+     *  this long is never a second sheet over a first. The stuck call is
+     *  answered 'pending', never 'error': money may have moved, and a
+     *  purchase that lands afterwards (a bank's check that ran long) is still
+     *  settled by onPurchasesUpdated and handed over by owned(), as Restore
+     *  does. */
+    private static final long BUY_TIMEOUT_MS = 120 * 1000L;
+    private final Handler timer = new Handler(Looper.getMainLooper());
+    /** When the parked call was parked (elapsedRealtime), so a tap can see a
+     *  stuck call for itself even if the timer never ran. */
+    private volatile long pendingSince = 0L;
 
     /** The response code of the last failed connection, so a buy() that
      *  could not connect can say WHY: BILLING_UNAVAILABLE (Play will not
@@ -191,7 +214,14 @@ public class PhaseBilling extends Plugin implements PurchasesUpdatedListener {
     public void buy(final PluginCall call) {
         final String sku = call.getString("sku");
         if (sku == null) { call.resolve(outcome("error")); return; }
-        if (pendingBuy.get() != null) {
+        PluginCall parked = pendingBuy.get();
+        if (parked != null && SystemClock.elapsedRealtime() - pendingSince >= BUY_TIMEOUT_MS) {
+            // parked past its time and the timer has not let it go: let it go
+            // now, and this tap goes ahead as a fresh purchase
+            releaseStuck(parked);
+            parked = pendingBuy.get();
+        }
+        if (parked != null) {
             // a second tap while a sheet is still open. This used to answer
             // 'refused', which the game read out as a refusal of the PRODUCT
             // ("not on sale in your country"). It is a purchase already in
@@ -215,12 +245,19 @@ public class PhaseBilling extends Plugin implements PurchasesUpdatedListener {
                 if (activity == null) { call.resolve(outcome("error")); return; }
                 List<BillingFlowParams.ProductDetailsParams> params = new ArrayList<>();
                 params.add(BillingFlowParams.ProductDetailsParams.newBuilder().setProductDetails(list.get(0)).build());
+                // two taps can both pass the check above before either parks:
+                // only the first parks, the second is told one is in flight
+                // (the stamp goes first, so a tap that sees this call parked
+                // never reads the last purchase's stamp against it)
+                pendingSince = SystemClock.elapsedRealtime();
+                if (!pendingBuy.compareAndSet(null, call)) { call.resolve(outcome("pending")); return; }
                 pendingSku = sku;
-                pendingBuy.set(call);
                 // a Capacitor call that waits on a later callback must be
                 // kept, or the bridge releases it and the answer has nowhere
                 // to go
                 call.setKeepAlive(true);
+                // and it is not kept for ever (BUY_TIMEOUT_MS)
+                timer.postDelayed(() -> releaseStuck(call), BUY_TIMEOUT_MS);
                 BillingResult launch = client.launchBillingFlow(activity,
                     BillingFlowParams.newBuilder().setProductDetailsParamsList(params).build());
                 if (launch.getResponseCode() != BillingClient.BillingResponseCode.OK) {
@@ -239,17 +276,23 @@ public class PhaseBilling extends Plugin implements PurchasesUpdatedListener {
         int code = r.getResponseCode();
         if (code == BillingClient.BillingResponseCode.OK && purchases != null) {
             String settled = null;
+            boolean other = false;
             for (Purchase p : purchases) {
                 if (p.getPurchaseState() == Purchase.PurchaseState.PURCHASED) {
                     settle(p);
-                    for (String s : p.getProducts()) if (s.equals(pendingSku)) settled = "owned";
+                    for (String s : p.getProducts()) { if (s.equals(pendingSku)) settled = "owned"; else other = true; }
                 } else if (p.getPurchaseState() == Purchase.PurchaseState.PENDING) {
                     // cash at a shop, a slow card: a customer who has begun to
                     // pay must not be told that they have failed
-                    for (String s : p.getProducts()) if (s.equals(pendingSku)) settled = "pending";
+                    for (String s : p.getProducts()) { if (s.equals(pendingSku)) settled = "pending"; else other = true; }
                 }
             }
             if (settled != null) finishBuy(settled);
+            // a purchase for some other product, landing late: one whose call
+            // was let go as stuck (BUY_TIMEOUT_MS), or one cleared outside the
+            // sheet. It is settled above and owned() hands it over; it says
+            // nothing about the sheet that is open now, so that call waits on
+            else if (other) return;
             else if (pendingBuy.get() != null) finishBuy("error");
             return;
         }
@@ -285,9 +328,22 @@ public class PhaseBilling extends Plugin implements PurchasesUpdatedListener {
 
     private void finishBuy(String result, String cause) {
         PluginCall call = pendingBuy.getAndSet(null);
-        pendingSku = null;
         if (call == null) return;
+        pendingSku = null;
+        // answered in time: its timer has nothing left to do
+        timer.removeCallbacksAndMessages(null);
         call.resolve(outcome(result, cause));
+        call.release(getBridge());
+    }
+
+    /** Let go of a parked buy() that Play never answered (BUY_TIMEOUT_MS), as
+     *  'pending'. Only THAT call: if it was answered meanwhile, or another
+     *  purchase has parked since, this does nothing. */
+    private void releaseStuck(PluginCall call) {
+        if (!pendingBuy.compareAndSet(call, null)) return;
+        pendingSku = null;
+        Log.w(TAG, "buy: no answer from Play in " + (BUY_TIMEOUT_MS / 1000) + "s; released as pending");
+        call.resolve(outcome("pending"));
         call.release(getBridge());
     }
 

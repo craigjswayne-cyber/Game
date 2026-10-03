@@ -1,6 +1,6 @@
 import type { GameState, OfficeTopic, Player, PressItem, PressOption } from './model'
 import { subjectVar } from './gender'
-import {absWeek, SEASON_WEEKS, fmtMoney, formGuide, logDecision, poss, weeksBetween100, stamp100 } from './model'
+import {absWeek, careerRows, SEASON_WEEKS, fmtMoney, formGuide, logDecision, poss, weeksBetween100, stamp100 } from './model'
 import { loanOut } from './loans'
 import { academyCalls, acadCallLive, resolveAcadCall } from './acadcall'
 import { resolveRoom, roomLive } from './room'
@@ -531,12 +531,12 @@ export function generatePress(state: GameState, rng: Rng) {
   // 8. THE MILESTONE - a hundredth game or fiftieth try for the club, on Saturday
   {
     const p = squad.find(q => {
-      const apps = q.stats.apps + q.career.filter(c => c.clubId === club.id).reduce((a, c) => a + c.apps, 0)
-      const tries = q.stats.tries + q.career.filter(c => c.clubId === club.id).reduce((a, c) => a + c.tries, 0)
+      const apps = q.stats.apps + careerRows(q).filter(c => c.clubId === club.id).reduce((a, c) => a + c.apps, 0)
+      const tries = q.stats.tries + careerRows(q).filter(c => c.clubId === club.id).reduce((a, c) => a + c.tries, 0)
       return xvIds.includes(q.id) && (apps === 99 || tries === 49) && !askedThisSeason('press.centuryQ', q.id)
     })
     if (p) {
-      const apps = p.stats.apps + p.career.filter(c => c.clubId === club.id).reduce((a, c) => a + c.apps, 0)
+      const apps = p.stats.apps + careerRows(p).filter(c => c.clubId === club.id).reduce((a, c) => a + c.apps, 0)
       const cap = club.captain != null && club.captain !== p.id ? state.players[club.captain] : null
       candidates.push(mk(state,
         { k: voice(38 + p.id, ['press.centuryQ1', 'press.centuryQ2']), v: { player: p.name, what_k: apps === 99 ? 'press.centuryGames' : 'press.centuryTries' } },

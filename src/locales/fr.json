@@ -8132,6 +8132,7 @@
     "fundingLine": "Quatre résolutions du conseil, de 10 à 130 M£, chacune avec une saison de salaires hors plafond.",
     "fineprint": "Paiements uniques, gérés par la boutique d'applications. Rien ici ne joue les matchs, et le jeu n'envoie toujours rien vous concernant où que ce soit.",
     "tillSilent": "La boutique est connectée mais n'a pas encore répondu. L'achat peut quand même fonctionner : sa propre fenêtre s'ouvre avant tout paiement. Si cette version vient d'arriver, patientez une minute.",
+    "tillEmpty": "La boutique a répondu, mais elle n'a encore rien en vente pour ce compte : rien ne peut être acheté ici pour l'instant. Rien n'a été débité.",
     "tillPartial": "La boutique a répondu pour {live} produits sur {asked}. Les autres ne sont peut-être pas encore en vente sur ce compte.",
     "pickNation": "À vous. Choisissez la fédération et prenez le poste - la nomination est immédiate.",
     "support": "Soutenir le jeu",

@@ -28,7 +28,7 @@
  * file only deals in the club's own history and its records.
  */
 import type { GameState, Player } from './model'
-import { seasonLabel } from './model'
+import { careerRows, seasonLabel } from './model'
 import type { Vars } from './i18n'
 import { book, file, hashOf, moment, once, type ClubRec, type Legend, type RecStat } from './histbook'
 
@@ -46,9 +46,9 @@ const REC_K: Record<RecStat, string> = { apps: 'hist.recApps', tries: 'hist.recT
  *  the same rule rollover.ts uses for the testimonial. */
 export function service(p: Player, clubId: string): Record<RecStat, number> {
   let apps = 0, tries = 0, pts = 0
-  for (const c of p.career) if (c.clubId === clubId) { apps += c.apps; tries += c.tries; pts += c.points }
+  for (const c of careerRows(p)) if (c.clubId === clubId) { apps += c.apps; tries += c.tries; pts += c.points }
   if (p.clubId === clubId) { apps += p.stats.apps; tries += p.stats.tries; pts += p.stats.points }
-  if (p.career.every(c => c.clubId === clubId) && p.clubId === clubId && !p.exClub) {
+  if (careerRows(p).every(c => c.clubId === clubId) && p.clubId === clubId && !p.exClub) {
     apps += Math.max(0, (p.hist?.apps ?? 0) - (p.exApps ?? 0))
     tries += p.hist?.tries ?? 0
     pts += p.hist?.points ?? 0
@@ -96,7 +96,11 @@ function seed(state: GameState, clubId: string): void {
 function trimLegends(state: GameState): void {
   const h = book(state)
   if (h.legends.length <= 40) return
-  // the ones still playing stay; the longest-gone go first
+  // the ones still playing stay; of the rest, the fewest appearances go first,
+  // however recently. How long ago a man left does not enter into it: the
+  // book keeps its biggest names, and a 400-game man gone twenty years
+  // outlasts a 150-game man gone one (1.8.3: this comment used to say the
+  // longest-gone went first, which the sort has never done)
   h.legends.sort((a, b) => (a.gone == null ? 0 : 1) - (b.gone == null ? 0 : 1) || b.apps - a.apps)
   h.legends.length = 40
 }

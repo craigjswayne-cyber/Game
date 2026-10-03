@@ -31,7 +31,7 @@
 // pass, never in newGame, so a fresh world, the fingerprint and every AI club
 // are untouched. User club only, like the game-time ledger.
 import type { Club, GameState, Player, PressItem, PressOption } from './model'
-import { absWeek } from './model'
+import { absWeek, careerRows } from './model'
 import { mentorStage, pairWeeks } from './mentoring'
 import { clamp, mulberry32 } from './rng'
 import { tIn, type Vars } from './i18n'
@@ -148,7 +148,7 @@ function seniors(state: GameState, club: Club): Player[] {
  *  for a man who was already here, every season since, and this one. */
 function clubApps(p: Player, clubId: string): number {
   let n = (p.exClub == null && p.joinedAt == null ? p.hist?.apps ?? 0 : 0) + p.stats.apps
-  for (const r of p.career) if (r.clubId === clubId) n += r.apps
+  for (const r of careerRows(p)) if (r.clubId === clubId) n += r.apps
   return n
 }
 

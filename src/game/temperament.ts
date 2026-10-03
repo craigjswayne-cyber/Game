@@ -19,6 +19,7 @@
 //
 // Pure reads of (seed, id) and the save: nothing is stored, nothing rolled.
 import type { GameState, Player } from './model'
+import { careerRows } from './model'
 import { benchDrag, bigMatchTemper, consistency } from './attributes'
 import { analystSkill } from './analyst'
 import { reportStage } from './scout'
@@ -45,7 +46,7 @@ export function bigBand(seed: number, id: number): BigBand {
  *  while he is still on the books. */
 export function appsForUser(state: GameState, p: Player): number {
   let n = p.clubId === state.userClubId ? p.stats.apps : 0
-  for (const r of p.career) if (r.clubId === state.userClubId) n += r.apps
+  for (const r of careerRows(p)) if (r.clubId === state.userClubId) n += r.apps
   return n
 }
 

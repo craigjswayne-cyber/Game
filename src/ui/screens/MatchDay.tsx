@@ -7,7 +7,7 @@ import {
   matchStats, visitsTo22, goalKicker, teamShort, teamUnits, paperOverall, rosterOf, assistantJudgement, autoSelect, availablePlayers,
   refFor, refNotes, homeCrowdLean, frontRowCover, repairSheet, sideEnergy, MAX_SUBS, isFrontRower, needsFrontRower, type LiveCtx, type SideCtx,
 } from '../../game/matchEngine'
-import { MIDWEEK_OFF, BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, chemKey, clubCode, chemTier, eventText, injuryDesc, fixtureDate, fixtureDayOff, grudgeBetween, inRedZone, oldBoyApps, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
+import { MIDWEEK_OFF, BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, careerRows, chemKey, clubCode, chemTier, eventText, injuryDesc, fixtureDate, fixtureDayOff, grudgeBetween, inRedZone, oldBoyApps, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
 import { BRIEF_BY_ID, SPLIT_BY_ID, benchSeats, briefForSeat, splitFor } from '../../game/bench'
 import { BriefIcon } from '../tacticsArt'
 import { assistantFixtureThisWeek, isKnockoutTie, userMatchThisWeek } from '../../game/season'
@@ -370,9 +370,9 @@ function Preview({ fxId }: { fxId: number }) {
   for (const pid of tac.lineup.slice(0, 15)) {
     const pl = pid != null ? game.players[pid] : null
     if (!pl) continue
-    const cTries = pl.career.reduce((s, c) => s + c.tries, 0) + pl.stats.tries + (pl.hist?.tries ?? 0)
-    const cApps = pl.career.reduce((s, c) => s + c.apps, 0) + pl.stats.apps + (pl.hist?.apps ?? 0)
-    const cPts = pl.career.reduce((s, c) => s + c.points, 0) + pl.stats.points + (pl.hist?.points ?? 0)
+    const cTries = careerRows(pl).reduce((s, c) => s + c.tries, 0) + pl.stats.tries + (pl.hist?.tries ?? 0)
+    const cApps = careerRows(pl).reduce((s, c) => s + c.apps, 0) + pl.stats.apps + (pl.hist?.apps ?? 0)
+    const cPts = careerRows(pl).reduce((s, c) => s + c.points, 0) + pl.stats.points + (pl.hist?.points ?? 0)
     for (const [val, at, label] of [
       [cApps + 1, [100, 200, 300, 400], 'apps'],
       [cTries, [49, 99], 'tries'],
@@ -935,9 +935,9 @@ function Preview({ fxId }: { fxId: number }) {
                 for (const id of tac.lineup.slice(0, 15)) {
                   const p = id != null ? game.players[id] : null
                   if (!p) continue
-                  const cApps = p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps + (p.hist?.apps ?? 0)
-                  const cTries = p.career.reduce((s, c) => s + c.tries, 0) + p.stats.tries + (p.hist?.tries ?? 0)
-                  const cPts = p.career.reduce((s, c) => s + c.points, 0) + p.stats.points + (p.hist?.points ?? 0)
+                  const cApps = careerRows(p).reduce((s, c) => s + c.apps, 0) + p.stats.apps + (p.hist?.apps ?? 0)
+                  const cTries = careerRows(p).reduce((s, c) => s + c.tries, 0) + p.stats.tries + (p.hist?.tries ?? 0)
+                  const cPts = careerRows(p).reduce((s, c) => s + c.points, 0) + p.stats.points + (p.hist?.points ?? 0)
                   if (APPS.includes(cApps + 1)) {
                     lines.push({ p, text: t('matchday.brinkApps', { n: cApps + 1 }) })
                   } else if (TRIES.some(m => m - cTries === 1) && p.form >= 6.5) {

@@ -172,10 +172,33 @@ const N: Record<string, [string[], string[]]> = {
  *  new object and gets a fresh registry, which is correct: the names it contains
  *  are exactly the ones in it.
  *
- *  Retirements never give a name back. That is deliberate - a Freddie Barnes who
- *  played two hundred games and hung up his boots should not be replaced by
- *  another Freddie Barnes the following August. */
+ *  Retirements do not give a name back for years. That is deliberate - a Freddie
+ *  Barnes who played two hundred games and hung up his boots should not be
+ *  replaced by another Freddie Barnes the following August. The memory is the
+ *  newest RETIRED_NAMES_KEPT departures (about two summers of them), not every
+ *  one there has ever been: kept whole it was 23,500 names and 447 KB of a
+ *  twelve-season save (1.8.3, scripts/qa2/savesize.ts). */
 const REGISTRY = new WeakMap<object, Set<string>>()
+
+/** How many departed names the world remembers (GameState.retiredNames).
+ *  Retirements and the free-agent cull let go of about two thousand a summer. */
+export const RETIRED_NAMES_KEPT = 4000
+
+/** The newest RETIRED_NAMES_KEPT names of a departures list, oldest first as
+ *  it was written, each once. A list already inside the cap comes back as it
+ *  was, so trimming twice is trimming once. */
+export function keptRetiredNames(names: string[]): string[] {
+  if (names.length <= RETIRED_NAMES_KEPT && new Set(names).size === names.length) return names
+  const seen = new Set<string>()
+  const kept: string[] = []
+  for (let i = names.length - 1; i >= 0 && kept.length < RETIRED_NAMES_KEPT; i--) {
+    const n = names[i]
+    if (typeof n !== 'string' || seen.has(n)) continue
+    seen.add(n)
+    kept.push(n)
+  }
+  return kept.reverse()
+}
 
 export function nameRegistry(world: object, existing: () => Iterable<string>, onTake?: (name: string) => void): Set<string> {
   let set = REGISTRY.get(world)
@@ -192,6 +215,15 @@ export function nameRegistry(world: object, existing: () => Iterable<string>, on
     REGISTRY.set(world, set)
   }
   return set
+}
+
+/** Throw the cached registry away, so the next generator rebuilds it from the
+ *  state. The rollover calls this after it trims the lists the registry is
+ *  rebuilt from (rollover.ts pruneNames): a running game and a reloaded save
+ *  must hold the same set, and a cache that still held the trimmed names
+ *  would make the running game the odd one out. */
+export function dropNameRegistry(world: object): void {
+  REGISTRY.delete(world)
 }
 
 /** A name for a generated player. Pass the registry and it will be his alone.

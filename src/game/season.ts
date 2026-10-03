@@ -19,7 +19,7 @@ import { AWARD_EVERY, managerOfMonth, runLine, runVars } from './awards'
 import { boardMemo } from './boardmemo'
 import { terraceWeek } from './terraces'
 import { upkeepWeek } from './upkeep'
-import {absWeek, addGrudge, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, buildWeeks, finalVenue, fixtureDayOff, fmtMoney, leagueTier, LEDGER_WEEKS, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, RELEGATES, SEASON_WEEKS, seasonLabel, squadTrust, stamp100, GROUND_TIERS, groundLevel, groundBuildWeeks, unbeatenRun, weeklyCentral, mgrWinWeight, addWeeks100 } from './model'
+import {absWeek, addGrudge, careerRows, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, buildWeeks, finalVenue, fixtureDayOff, fmtMoney, leagueTier, LEDGER_WEEKS, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, RELEGATES, SEASON_WEEKS, seasonLabel, squadTrust, stamp100, GROUND_TIERS, groundLevel, groundBuildWeeks, unbeatenRun, weeklyCentral, mgrWinWeight, addWeeks100 } from './model'
 import { simMatch, autoSelect, pickTrainingInjury, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { BARRAGE_WEEK, windowSpan } from './calendar'
 import { emptyRow, leaguePos, sortTable, snIdFor, snWeeksFor, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS, W_AUTUMN_WEEKS, W_SIX_NATIONS_WEEKS, W_PAC4_WEEKS, W_SUMMER_TEST_WEEKS } from './schedule'
@@ -1745,9 +1745,9 @@ function milestones(state: GameState, rng: Rng) {
     const p = state.players[id]
     // only the week he actually crossed the number - never a repeat salute
     if (!p || !p.stats.apps || p.lastWk !== state.week) continue
-    const totApps = p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps + (p.hist?.apps ?? 0)
-    const totTries = p.career.reduce((s, c) => s + c.tries, 0) + p.stats.tries + (p.hist?.tries ?? 0)
-    const totPts = p.career.reduce((s, c) => s + c.points, 0) + p.stats.points + (p.hist?.points ?? 0)
+    const totApps = careerRows(p).reduce((s, c) => s + c.apps, 0) + p.stats.apps + (p.hist?.apps ?? 0)
+    const totTries = careerRows(p).reduce((s, c) => s + c.tries, 0) + p.stats.tries + (p.hist?.tries ?? 0)
+    const totPts = careerRows(p).reduce((s, c) => s + c.points, 0) + p.stats.points + (p.hist?.points ?? 0)
     const hits: { k: string; n: number }[] = []
     if ([50, 100, 150, 200, 250].includes(totApps)) hits.push({ k: 'news.mileApps', n: totApps })
     if ([25, 50, 75, 100].includes(totTries)) hits.push({ k: 'news.mileTries', n: totTries })
@@ -2918,8 +2918,8 @@ export function processWeekAndAdvance(state: GameState) {
       // story carried "31 appearances and 10 tries" in the middle of it - the
       // fragment was translatable and the join threw the translation away.
       const cvVars = (p: typeof stars[0]) => {
-        const apps = p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps
-        const tries = p.career.reduce((s, c) => s + c.tries, 0) + p.stats.tries
+        const apps = careerRows(p).reduce((s, c) => s + c.apps, 0) + p.stats.apps
+        const tries = careerRows(p).reduce((s, c) => s + c.tries, 0) + p.stats.tries
         return {
           k: tries ? 'news.cvTries' : 'news.cv',
           name: p.name, age: p.age, club: state.clubs[p.clubId!]?.name ?? '', apps, tries,
@@ -3984,9 +3984,9 @@ export function processWeekAndAdvance(state: GameState) {
   for (const id of state.clubs[state.userClubId]?.players ?? []) {
     const p = state.players[id]
     if (!p || p.lastWk !== state.week || state.unemployed) continue
-    const total = p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps + (p.hist?.apps ?? 0)
-    const cTries = p.career.reduce((s, c) => s + c.tries, 0) + p.stats.tries + (p.hist?.tries ?? 0)
-    const cPts = p.career.reduce((s, c) => s + c.points, 0) + p.stats.points + (p.hist?.points ?? 0)
+    const total = careerRows(p).reduce((s, c) => s + c.apps, 0) + p.stats.apps + (p.hist?.apps ?? 0)
+    const cTries = careerRows(p).reduce((s, c) => s + c.tries, 0) + p.stats.tries + (p.hist?.tries ?? 0)
+    const cPts = careerRows(p).reduce((s, c) => s + c.points, 0) + p.stats.points + (p.hist?.points ?? 0)
     // tries/points can park exactly on a number for weeks - salute once only
     const trySubj = `${p.name}: ${cTries} career tries`
     const ptsSubj = `${p.name}: ${cPts.toLocaleString()} career points`
@@ -4008,7 +4008,7 @@ export function processWeekAndAdvance(state: GameState) {
       })
     }
     // appearances made since this save began - the ones you were there for
-    const inSave = p.stats.apps + p.career.reduce((sum, c) => sum + c.apps, 0)
+    const inSave = p.stats.apps + careerRows(p).reduce((sum, c) => sum + c.apps, 0)
     if (MILESTONES.has(total) && inSave >= 5) appSalutes.push({ p, total })
   }
   if (appSalutes.length) {

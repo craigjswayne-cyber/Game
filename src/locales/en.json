@@ -8034,6 +8034,7 @@
   "fundingLine": "Four board resolutions, £10m to £130m, each with a season of cap-exempt wages.",
   "fineprint": "One-off payments, handled by the app store. Nothing here plays the matches, and the game still sends nothing about you anywhere.",
   "tillSilent": "The store is connected but has not answered yet. Buying can still work - its own sheet opens before anything is charged. If this build just arrived, give it a minute.",
+  "tillEmpty": "The store answered, but it has nothing on sale to this account yet, so nothing here can be bought for now. Nothing has been charged.",
   "tillPartial": "The store answered for {live} of {asked} products. The others may not be on sale to this account yet.",
   "pickNation": "Yours. Pick the federation and take the job - the appointment is immediate.",
   "support": "Support the game",

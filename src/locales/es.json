@@ -7923,6 +7923,7 @@
   "fundingLine": "Cuatro resoluciones de la junta, de £10m a £130m, cada una con una temporada de sueldos exentos del tope.",
   "fineprint": "Pagos únicos, gestionados por la tienda de aplicaciones. Nada de aquí juega los partidos, y el juego sigue sin enviar nada sobre ti a ninguna parte.",
   "tillSilent": "La tienda está conectada pero aún no ha respondido. Comprar puede funcionar igualmente: su propia hoja se abre antes de cobrar nada. Si esta versión acaba de llegar, dale un minuto.",
+  "tillEmpty": "La tienda ha respondido, pero aún no tiene nada a la venta para esta cuenta, así que de momento aquí no se puede comprar nada. No se ha cobrado nada.",
   "tillPartial": "La tienda ha respondido para {live} de {asked} productos. Puede que los demás aún no estén a la venta en esta cuenta.",
   "pickNation": "Tuyo. Elige la federación y acepta el cargo: el nombramiento es inmediato.",
   "support": "Apoya el juego",

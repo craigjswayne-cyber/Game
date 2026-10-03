@@ -8078,6 +8078,7 @@
   "fundingLine": "Vier direksiebesluite, £10m tot £130m, elk met 'n seisoen se perkvrye salarisse.",
   "fineprint": "Eenmalige betalings, deur die toepassingwinkel hanteer. Niks hier speel die wedstryde nie, en die spel stuur steeds niks oor jou êrens heen nie.",
   "tillSilent": "Die winkel is gekoppel maar het nog nie geantwoord nie. Koop kan steeds werk - sy eie blad maak oop voor enigiets gehef word. As hierdie weergawe pas aangekom het, gee dit 'n minuut.",
+  "tillEmpty": "Die winkel het geantwoord, maar het nog niks vir hierdie rekening te koop nie, so niks kan hier nou gekoop word nie. Niks is gehef nie.",
   "tillPartial": "Die winkel het vir {live} van {asked} produkte geantwoord. Die ander is dalk nog nie vir hierdie rekening te koop nie.",
   "pickNation": "Joune. Kies die federasie en vat die werk - die aanstelling is onmiddellik.",
   "support": "Ondersteun die spel",

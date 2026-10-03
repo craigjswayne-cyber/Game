@@ -29,12 +29,12 @@ const server = await startPreview('4209', 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
 /** A page with, or without, a store attached before the app boots. */
-const openPage = async ({ billing = false, ads = false, owns = [], deaf = false, refuse = false, hang = null, shell = null } = {}) => {
+const openPage = async ({ billing = false, ads = false, owns = [], deaf = false, refuse = false, hang = null, shell = null, shelf = null } = {}) => {
   const page = await browser.newPage({ viewport: { width: 412, height: 780 }, locale: 'en-GB' })
   page.setDefaultTimeout(9000)
   await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
   if (billing) {
-    await page.addInitScript(([owned, mute, refuse, hang]) => {
+    await page.addInitScript(([owned, mute, refuse, hang, shelf]) => {
       // the same shape a Play TWA's Digital Goods wrapper has (v1.1.0):
       // non-consumables stay owned once bought; a consumable stays in owned()
       // until the game consumes it, which is the recovery path under test
@@ -63,7 +63,14 @@ const openPage = async ({ billing = false, ads = false, owns = [], deaf = false,
         owned: async () => [...new Set([...owned, ...bought])],
         consume: async (sku) => { bought.delete(sku) },
       }
-    }, [owns, deaf, refuse, hang])
+      // `shelf` is how the store answers the shelf's one health call (1.8.3):
+      // 'empty' answers at once with no products at all, 'nulls' answers
+      // every single lookup with "no such product", and 'slow' takes the
+      // call and never answers, so the game's own clock runs out
+      if (shelf === 'empty') globalThis.rmBilling.detailsMany = async () => []
+      if (shelf === 'nulls') globalThis.rmBilling.details = async () => null
+      if (shelf === 'slow') globalThis.rmBilling.detailsMany = () => new Promise(() => {})
+    }, [owns, deaf, refuse, hang, shelf])
   }
   if (shell) {
     // THE CAPACITOR SHELL, as Android (v1.2.9) or iOS present it: no
@@ -622,6 +629,38 @@ try {
     const priced = till.match(/£\d+\.\d\d\b/g) ?? []
     ok(priced.length === 0,
       `and NOT ONE price is on the shelf, because every figure here would be ours rather than the store's (${priced.join(', ') || 'none'})`)
+    await page.close()
+  }
+
+
+  // ---- 2d2. a store that answers, with nothing on sale --------------------
+  //
+  // 1.8.3: a store that answered with an empty list read exactly like one that
+  // had not answered - "has not answered yet ... give it a minute" - and no
+  // minute would ever fix it: the products are not on sale to this build. The
+  // shelf now tells the two apart, and says the true thing for each.
+  say('\n--- 2d2. a store that answers with no products, and one that never answers')
+  for (const [shelf, answered, what] of [
+    ['empty', true, 'one call, an empty list'],
+    ['nulls', true, 'every lookup says "no such product"'],
+    ['slow', false, 'the one call never comes back'],
+  ]) {
+    const page = await openPage({ billing: true, shelf })
+    await startCareer(page)
+    await openAbout(page)
+    await page.locator('.btn.gold', { hasText: 'Open the Store' }).click()
+    await page.waitForSelector('.content')
+    // the slow store runs the game's own twelve-second clock out
+    if (answered) await page.waitForTimeout(400)
+    else await page.waitForFunction(() => /has not answered|nothing on sale/i.test(document.querySelector('.content')?.innerText ?? ''), null, { timeout: 16000 })
+    const till = await page.locator('.content').innerText()
+    if (answered) {
+      ok(/answered, but it has nothing on sale/i.test(till), `${what}: the shelf says the store answered and sells nothing here`)
+      ok(!/has not answered|give it a minute/i.test(till), `${what}: and does not tell the shopper to wait for an answer that came`)
+    } else {
+      ok(/has not answered/i.test(till), `${what}: the shelf says the store has not answered`)
+      ok(!/nothing on sale/i.test(till), `${what}: and does not claim it answered with nothing`)
+    }
     await page.close()
   }
 
