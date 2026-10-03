@@ -2437,10 +2437,12 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     tallyCalls(state, fx)
   }
   // The analysts were watching. Calling the same move every week is how it stops
-  // working, so the tally is kept here, once per match, for both clubs.
+  // working, so the tally is kept here, once per match, for both clubs. The
+  // manager's own is kept by tallyCalls above (1.8.3: it fades in-season and
+  // a strike wears by its share of the ball, armsrace.ts THE WEAR).
   for (const id of [fx.homeId, fx.awayId]) {
     const c = state.clubs[id]
-    if (!c) continue
+    if (!c || id === state.userClubId) continue
     const pb = playbookOf(c)
     for (const call of [c.tactic.lineoutCall ?? DEFAULT_LINEOUT, c.tactic.scrumCall ?? DEFAULT_SCRUM]) {
       pb.used[call] = (pb.used[call] ?? 0) + 1

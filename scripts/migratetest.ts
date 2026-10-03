@@ -4,6 +4,7 @@ import { newGame } from '../src/game/newgame'
 import { migrate } from '../src/game/save'
 import { resetIds, nextPid } from '../src/game/attributes'
 import { processWeekAndAdvance } from '../src/game/season'
+import { playbookOf } from '../src/game/playbook'
 
 const g = newGame('leicester', 'Test', 4242)
 // strip natl1 + jl1 as if the save predates them
@@ -60,7 +61,15 @@ if (orphans) process.exit(1)
   bad.tacLoop = { findings: [], evidence: { not: 'a list' } }
   if (migrate(bad).tacLoop?.evidence !== undefined) { console.error('BUG: a mangled evidence list was kept'); process.exit(1) }
 }
+// a 1.8.2 playbook's wear (whole counts that only the summer cleared) carries
+// on under 1.8.3's, which fades a call left out (armsrace.ts THE WEAR)
+const pb = playbookOf(m.clubs[m.userClubId])
+pb.used = { ...pb.used, mv_loop: 9, mv_switch: 6 }
+m.clubs[m.userClubId].tactic.moveMain = 'mv_loop'
 // season still simulates
 for (let i = 0; i < 3; i++) processWeekAndAdvance(m)
 console.log('3 weeks simulated post-migration OK')
+const wear = playbookOf(m.clubs[m.userClubId]).used
+console.log(`old wear after 3 weeks: loop ${wear.mv_loop?.toFixed(2)}, switch (shelved) ${wear.mv_switch?.toFixed(2)}`)
+if (!(wear.mv_loop >= 9 && wear.mv_switch < 6 && Object.values(wear).every(v => Number.isFinite(v) && v >= 0))) { console.error('BUG: an old playbook\'s wear does not carry on'); process.exit(1) }
 console.log('MIGRATE TEST PASSED')

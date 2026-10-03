@@ -86,6 +86,9 @@ function damaged(label: string, wreck: (s: Record<string, unknown>) => void, mus
   }
   ok(thrown === 0, `${label}: and five weeks play out afterwards`)
   checkWorld(g, label, true)
+  // the manager's wear is arithmetic every match (armsrace.ts tallyCalls)
+  const pb = g.clubs[g.userClubId]?.playbook
+  if (pb) ok(!!pb.used && Object.values(pb.used).every(v => Number.isFinite(v) && v >= 0), `${label}: the wear on the manager's calls reads as numbers`)
 }
 
 // -------------------------------------------------- fields that went missing
@@ -195,6 +198,21 @@ damaged('a club with no tactic', s => {
 damaged('a club with no players array', s => {
   const clubs = s.clubs as Record<string, Record<string, unknown>>
   delete Object.values(clubs)[0].players
+})
+// the manager's playbook: the wear on his calls fades and adds a share of a
+// call since 1.8.3 (armsrace.ts THE WEAR), so it is read as a number every match
+damaged('a playbook whose wear is rubbish', s => {
+  const clubs = s.clubs as Record<string, Record<string, unknown>>
+  const me = clubs[s.userClubId as string]
+  me.playbook = { drilled: {}, used: { mv_loop: NaN, lo_middle: -2, sc_hold: 'x', mv_switch: 3.5 }, faced: { mv_loop: 'x' } }
+  const tac = me.tactic as Record<string, unknown>
+  tac.moveMain = 'mv_loop'; tac.moveAlt = 'mv_switch'
+})
+damaged('a playbook with no wear at all', s => {
+  const clubs = s.clubs as Record<string, Record<string, unknown>>
+  const me = clubs[s.userClubId as string]
+  me.playbook = { drilled: {}, used: 'none' }
+  ;(me.tactic as Record<string, unknown>).moveMain = 'mv_loop'
 })
 damaged('a league table that disagrees with the fixtures', s => {
   const comps = s.comps as Record<string, { table?: { p: number; w: number; d: number; l: number; pts: number }[] }>
