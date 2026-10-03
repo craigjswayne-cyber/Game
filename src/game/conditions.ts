@@ -151,36 +151,44 @@ export interface RefRead { name: string; scrum: number; breakdown: number; patie
 /** What the assistant says at half time, off what has happened so far: at
  *  most two lines, each an i18n key and its values, the most pressing first.
  *  Pure reads of the match; nothing drawn. `mine` and `theirs` carry the few
- *  numbers it reads. */
+ *  numbers it reads.
+ *
+ *  WHAT IS WORKING AND WHAT IS HURTING (1.8.3) come in as `evidence`
+ *  (evidence.ts htEvidence: at most one of each, with its number) and are
+ *  weighed against the reads here, so they take the place of a weaker line
+ *  rather than adding to the two. They replaced the scrum ratio and the
+ *  count of ball won back that this used to work out for itself; and where a
+ *  read here and an evidence line are about the same thing (the penalty
+ *  count, the ball lost, the set piece), only the weightier is said. */
 export interface HalfSide {
   consPens: number
   turnLost: number
   turnWon: number
-  scrum: number
   score: number
 }
-export function halfTimeHints(ref: RefRead, weather: Weather | null | undefined, mine: HalfSide, theirs: HalfSide, uncontested: boolean):
-  { k: string; v?: Record<string, string | number> }[] {
-  const out: { k: string; v?: Record<string, string | number>; w: number }[] = []
+export interface HalfLine { k: string; v?: Record<string, string | number>; tag?: 'work' | 'hurt' }
+export function halfTimeHints(ref: RefRead, weather: Weather | null | undefined, mine: HalfSide, theirs: HalfSide, uncontested: boolean,
+  evidence: (HalfLine & { w: number; about?: 'pens' | 'ball' | 'set' })[] = []): HalfLine[] {
+  const out: (HalfLine & { w: number; about?: string })[] = []
   // the whistle at the breakdown
-  if (mine.consPens >= ref.patience - 1) out.push({ w: 5, k: 'matchday.htPensBin', v: { n: mine.consPens, ref: ref.name } })
-  else if (ref.breakdown <= 0.95 && mine.consPens >= 3) out.push({ w: 4, k: 'matchday.htRefTight', v: { ref: ref.name } })
+  if (mine.consPens >= ref.patience - 1) out.push({ w: 5, k: 'matchday.htPensBin', v: { n: mine.consPens, ref: ref.name }, about: 'pens' })
+  else if (ref.breakdown <= 0.95 && mine.consPens >= 3) out.push({ w: 4, k: 'matchday.htRefTight', v: { ref: ref.name }, about: 'pens' })
   else if (ref.breakdown >= 1.05 && theirs.turnWon < mine.turnWon) out.push({ w: 2, k: 'matchday.htRefLoose', v: { ref: ref.name } })
   // the weather in our hands
   const wet = wetness(weather)
-  if (wet > 0 && mine.turnLost >= 3) out.push({ w: 4.5, k: 'matchday.htWetHands' })
-  else if (wet >= 1 && mine.turnLost >= 1) out.push({ w: 2.5, k: 'matchday.htWetTight' })
+  if (wet > 0 && mine.turnLost >= 3) out.push({ w: 4.5, k: 'matchday.htWetHands', about: 'ball' })
+  else if (wet >= 1 && mine.turnLost >= 1) out.push({ w: 2.5, k: 'matchday.htWetTight', about: 'ball' })
   if (weather === 'Wind') out.push({ w: 2, k: 'matchday.htWind' })
   // the set piece
-  if (uncontested) out.push({ w: 3, k: 'matchday.htUncontested' })
-  else if (mine.scrum > 0 && theirs.scrum > 0) {
-    const r = mine.scrum / theirs.scrum
-    if (r < 0.93) out.push({ w: 3, k: 'matchday.htScrumBad' })
-    else if (r > 1.07) out.push({ w: 3, k: 'matchday.htScrumGood' })
+  if (uncontested) out.push({ w: 3, k: 'matchday.htUncontested', about: 'set' })
+  // what the first forty was made of, one subject once
+  for (const e of evidence) {
+    const same = e.about ? out.findIndex(o => o.about === e.about) : -1
+    if (same < 0) out.push(e)
+    else if (e.w > out[same].w) out[same] = e
   }
-  // the defence winning ball
-  if (mine.turnWon >= 3 && mine.turnWon > theirs.turnWon) out.push({ w: 1.5, k: 'matchday.htDefWorks' })
-  return out.sort((a, b) => b.w - a.w).slice(0, 2).map(({ k, v }) => (v ? { k, v } : { k }))
+  return out.sort((a, b) => b.w - a.w).slice(0, 2)
+    .map(({ k, v, tag }) => ({ k, ...(v ? { v } : {}), ...(tag ? { tag } : {}) }))
 }
 
 /** one line for the card on how the ground plays */

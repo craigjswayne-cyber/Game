@@ -1511,13 +1511,6 @@
   "uwEdged": " gewen · ons het dit net-net gevat",
   "uwEven": " gewen · gelyk verdeel",
   "uwShaded": " gewen · hulle het dit net-net gevat",
-  "vdBeaten": "In elke botsing geklop. Die ontleding sal eerlik wees, en dit sal steek.",
-  "vdDraw": "'n Gelykop wat teen Dinsdag soos 'n nederlaag of 'n oorwinning sal voel, na gelang van die video.",
-  "vdHabit": "Om noue wedstryde te wen is 'n gewoonte - en ons het pas die gewoonte gevoed.",
-  "vdMargins": "Fyn marges. Stel die twee hieronder reg en dit is ons wedstryd.",
-  "vdRuthless": "Genadeloos. Die assistent wil volgende week dieselfde standaarde hê, nie 'n ererondte nie.",
-  "vdWasted": "Al daardie bal en niks om te wys nie - die assistent omkring ons afronding in rooi.",
-  "vdWonNoBall": "Ons het sonder die bal gewen - die verdedigingskof was enorm. Dit sal ons oral goed te pas kom.",
   "venueHome": "{stadium}, {city}",
   "venueNeutral": "{name}, {city} · neutrale veld",
   "victory": "OORWINNING",
@@ -1613,9 +1606,67 @@
   "htWetTight": "Dit is nat: een aangee te veel is 'n omset. Dra dit, en gebruik die skop.",
   "htWind": "Die wind vat die lang skoppe: vind kort die kantlyn en hou dit in die hand teen die wind.",
   "htUncontested": "Die skrums is nou onbestrede: die skrum tel nie meer nie, so speel van die lynstaan af.",
-  "htScrumBad": "Hulle skrum is bo: kry die bal vinnig in en uit by die vaste stel.",
-  "htScrumGood": "Ons skrum wen: skop vir die hoeke en vat hulle voor aan.",
-  "htDefWorks": "Die verdediging wen die bal aanhoudend terug: hou die lyn waar dit is."
+  "htWorking": "Werk:",
+  "htHurting": "Maak seer:",
+  "whyMoveFor": {
+   "one": "Met {move_k}: een drie en {m} m per oproep.",
+   "other": "Met {move_k}: {n} drieë en {m} m per oproep."
+  },
+  "whyMoveForTries": {
+   "one": "Met {move_k}: een drie.",
+   "other": "Met {move_k}: {n} drieë."
+  },
+  "whyMoveAgainst": {
+   "one": "Met {move_k} het hulle een drie teen ons gedruk.",
+   "other": "Met {move_k} het hulle {n} drieë teen ons gedruk."
+  },
+  "whyRead": "Hulle het {move_k} gelees: {m} m uit {n} oproepe, teenoor {m0} m sonder daardie lesing.",
+  "whySetFor": "Hulle het {n} skrums en lynstane op eie bal verloor; ons {m}.",
+  "whySetAgainst": "Ons het {n} skrums en lynstane op eie bal verloor; hulle {m}.",
+  "whyPenFor": {
+   "one": "Hulle het een strafskop afgestaan: {p} punte vir ons.",
+   "other": "Hulle het {n} strafskoppe afgestaan: {p} punte vir ons."
+  },
+  "whyPenFor0": {
+   "one": "Hulle het een strafskop afgestaan.",
+   "other": "Hulle het {n} strafskoppe afgestaan."
+  },
+  "whyPenAgainst": {
+   "one": "Ons het een strafskop afgestaan: {p} punte vir hulle.",
+   "other": "Ons het {n} strafskoppe afgestaan: {p} punte vir hulle."
+  },
+  "whyPenAgainst0": {
+   "one": "Ons het een strafskop afgestaan.",
+   "other": "Ons het {n} strafskoppe afgestaan."
+  },
+  "whyTurnFor": {
+   "one": "Ons het die bal een keer teruggewen: {p} punte daaruit.",
+   "other": "Ons het die bal {n} keer teruggewen: {p} punte daaruit."
+  },
+  "whyTurnFor0": {
+   "one": "Ons het die bal een keer teruggewen.",
+   "other": "Ons het die bal {n} keer teruggewen."
+  },
+  "whyTurnAgainst": {
+   "one": "Ons het die bal een keer verloor: {p} punte vir hulle.",
+   "other": "Ons het die bal {n} keer verloor: {p} punte vir hulle."
+  },
+  "whyTurnAgainst0": {
+   "one": "Ons het die bal een keer verloor.",
+   "other": "Ons het die bal {n} keer verloor."
+  },
+  "whyBreakFor": "Lynbreuke: {n} vir ons, {m} vir hulle; {p} punte uit ons s'n.",
+  "whyBreakFor0": "Lynbreuke: {n} vir ons, {m} vir hulle.",
+  "whyBreakAgainst": "Lynbreuke: {n} vir hulle, {m} vir ons; {p} punte uit hulle s'n.",
+  "whyBreakAgainst0": "Lynbreuke: {n} vir hulle, {m} vir ons.",
+  "whyPhaseFor": "{mins} minute in hulle 22: {p} punte uit fasespel.",
+  "whyPhaseFor0": "{mins} minute in hulle 22.",
+  "whyPhaseAgainst": "Hulle het {mins} minute in ons 22 gehad: {p} punte uit fasespel.",
+  "whyPhaseAgainst0": "Hulle het {mins} minute in ons 22 gehad.",
+  "whyKickFor": "Skepdoele en geblokte skoppe: {p} punte vir ons.",
+  "whyKickAgainst": "Skepdoele en geblokte skoppe: {p} punte vir hulle.",
+  "whyStyleFor": "Die stylstryd: {atk_k} het die oorhand oor {def_k} gekry, omtrent {p} punte vir ons.",
+  "whyStyleAgainst": "Die stylstryd: {atk_k} het die oorhand oor {def_k} gekry, omtrent {p} punte vir hulle."
  },
  "tacticsScreen": {
   "tabRoles": "Rolle",

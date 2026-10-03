@@ -1502,13 +1502,6 @@
   "uwEdged": " 勝ち · 僅差で上回った",
   "uwEven": " 勝ち · 五分五分",
   "uwShaded": " 勝ち · 僅差で譲った",
-  "vdBeaten": "すべての接点で負けた。レビューは正直に、そして痛烈になる。",
-  "vdDraw": "この引き分けが敗戦に感じるか勝利に感じるかは、火曜のビデオ次第だ。",
-  "vdHabit": "接戦をものにするのは習慣だ。今日もその習慣に餌をやった。",
-  "vdMargins": "紙一重だった。下の2点を直せば、それはうちの試合だ。",
-  "vdRuthless": "非情なまでの完勝。アシスタントが求めるのは来週も同じ基準であって、ウイニングランではない。",
-  "vdWasted": "あれだけボールを持って、この結果とは。アシスタントは決定力の項目を赤丸で囲んだ。",
-  "vdWonNoBall": "ボールなしで勝った。守備の運動量は途方もなかった。これはどこでも通用する。",
   "venueHome": "{stadium}、{city}",
   "venueNeutral": "{name}、{city} · 中立地",
   "victory": "勝利",
@@ -1582,9 +1575,67 @@
   "htWetTight": "濡れている。パスを一本多くすればターンオーバーだ。持って前に出て、キックを使おう。",
   "htWind": "風がロングキックをさらっている。タッチは短く狙い、風上では手で持って進もう。",
   "htUncontested": "スクラムはノンコンテストになった。セットプレーは関係ない。ラインアウトから攻めよう。",
-  "htScrumBad": "相手のスクラムが優勢だ。セットプレーでは素早くボールを出そう。",
-  "htScrumGood": "こちらのスクラムが勝っている。コーナーに蹴り込み、FW戦で勝負しよう。",
-  "htDefWorks": "ディフェンスが何度もボールを奪い返している。この守り方を続けよう。"
+  "htWorking": "効いている：",
+  "htHurting": "苦しんでいる：",
+  "whyMoveFor": {
+   "one": "{move_k}で{n}トライ、1回あたり{m}m。",
+   "other": "{move_k}で{n}トライ、1回あたり{m}m。"
+  },
+  "whyMoveForTries": {
+   "one": "{move_k}で{n}トライ。",
+   "other": "{move_k}で{n}トライ。"
+  },
+  "whyMoveAgainst": {
+   "one": "相手の{move_k}で{n}トライを許した。",
+   "other": "相手の{move_k}で{n}トライを許した。"
+  },
+  "whyRead": "{move_k}は読まれていた。{n}回で{m}m、読まれなければ{m0}m。",
+  "whySetFor": "相手は自ボールのスクラムとラインアウトを{n}回失った。こちらは{m}回。",
+  "whySetAgainst": "自ボールのスクラムとラインアウトを{n}回失った。相手は{m}回。",
+  "whyPenFor": {
+   "one": "相手の反則{n}回：こちらに{p}点。",
+   "other": "相手の反則{n}回：こちらに{p}点。"
+  },
+  "whyPenFor0": {
+   "one": "相手の反則{n}回。",
+   "other": "相手の反則{n}回。"
+  },
+  "whyPenAgainst": {
+   "one": "こちらの反則{n}回：相手に{p}点。",
+   "other": "こちらの反則{n}回：相手に{p}点。"
+  },
+  "whyPenAgainst0": {
+   "one": "こちらの反則{n}回。",
+   "other": "こちらの反則{n}回。"
+  },
+  "whyTurnFor": {
+   "one": "ボールを{n}回奪い返し、そこから{p}点。",
+   "other": "ボールを{n}回奪い返し、そこから{p}点。"
+  },
+  "whyTurnFor0": {
+   "one": "ボールを{n}回奪い返した。",
+   "other": "ボールを{n}回奪い返した。"
+  },
+  "whyTurnAgainst": {
+   "one": "ボールを{n}回失い、相手に{p}点。",
+   "other": "ボールを{n}回失い、相手に{p}点。"
+  },
+  "whyTurnAgainst0": {
+   "one": "ボールを{n}回失った。",
+   "other": "ボールを{n}回失った。"
+  },
+  "whyBreakFor": "ラインブレイクはこちら{n}回、相手{m}回。こちらのブレイクから{p}点。",
+  "whyBreakFor0": "ラインブレイクはこちら{n}回、相手{m}回。",
+  "whyBreakAgainst": "ラインブレイクは相手{n}回、こちら{m}回。相手のブレイクから{p}点。",
+  "whyBreakAgainst0": "ラインブレイクは相手{n}回、こちら{m}回。",
+  "whyPhaseFor": "相手陣22mに{mins}分、フェーズ攻撃で{p}点。",
+  "whyPhaseFor0": "相手陣22mに{mins}分。",
+  "whyPhaseAgainst": "自陣22mに{mins}分攻め込まれ、フェーズ攻撃で{p}点を許した。",
+  "whyPhaseAgainst0": "自陣22mに{mins}分攻め込まれた。",
+  "whyKickFor": "ドロップゴールとチャージダウンでこちらに{p}点。",
+  "whyKickAgainst": "ドロップゴールとチャージダウンで相手に{p}点。",
+  "whyStyleFor": "スタイルの勝負は{atk_k}が{def_k}を上回り、こちらに約{p}点。",
+  "whyStyleAgainst": "スタイルの勝負は{atk_k}が{def_k}を上回り、相手に約{p}点。"
  },
  "tacticsScreen": {
   "tabRoles": "役割",

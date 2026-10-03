@@ -1552,13 +1552,6 @@
   "uwEdged": " ganados · lo sacamos por poco",
   "uwEven": " ganados · tablas",
   "uwShaded": " ganados · fueron algo mejores",
-  "vdBeaten": "Superados en cada colisión. El análisis será honesto, y va a escocer.",
-  "vdDraw": "Un empate que para el martes sabrá a derrota o a victoria, según lo que diga el vídeo.",
-  "vdHabit": "Ganar los partidos apretados es un hábito, y acabamos de alimentarlo.",
-  "vdMargins": "Márgenes mínimos. Corrige los dos puntos de abajo y ese partido es nuestro.",
-  "vdRuthless": "Implacables. El ayudante quiere el mismo nivel la semana que viene, no una vuelta de honor.",
-  "vdWasted": "Tanto balón para nada - el ayudante rodea en rojo nuestra puntería.",
-  "vdWonNoBall": "Ganamos sin balón - el esfuerzo defensivo fue descomunal. Eso vale en cualquier campo.",
   "venueHome": "{stadium}, {city}",
   "venueNeutral": "{name}, {city} · campo neutral",
   "victory": "VICTORIA",
@@ -1639,9 +1632,67 @@
   "htWetTight": "Está mojado: un pase de más es un balón perdido. Avanza con el balón, y usa el pie.",
   "htWind": "El viento se lleva las patadas largas: busca la touch corta y juega a la mano contra el viento.",
   "htUncontested": "Ahora las melés son simuladas: la melé ya no cuenta, así que juega desde el lateral.",
-  "htScrumBad": "Su melé domina: saca el balón rápido en las fases estáticas.",
-  "htScrumGood": "Nuestra melé gana: patea a las esquinas y atácalos delante.",
-  "htDefWorks": "La defensa no para de recuperar el balón: mantén la línea donde está."
+  "htWorking": "Funciona:",
+  "htHurting": "Nos hace daño:",
+  "whyMoveFor": {
+   "one": "Con {move_k}: un ensayo y {m} m por jugada.",
+   "other": "Con {move_k}: {n} ensayos y {m} m por jugada."
+  },
+  "whyMoveForTries": {
+   "one": "Con {move_k}: un ensayo.",
+   "other": "Con {move_k}: {n} ensayos."
+  },
+  "whyMoveAgainst": {
+   "one": "Su jugada, {move_k}, nos costó un ensayo.",
+   "other": "Su jugada, {move_k}, nos costó {n} ensayos."
+  },
+  "whyRead": "Nos leyeron {move_k}: {m} m en {n} jugadas, frente a {m0} m sin esa lectura.",
+  "whySetFor": "Perdieron {n} melés y touches con su introducción; nosotros, {m}.",
+  "whySetAgainst": "Perdimos {n} melés y touches con nuestra introducción; ellos, {m}.",
+  "whyPenFor": {
+   "one": "Cometieron un golpe de castigo: {p} puntos para nosotros.",
+   "other": "Cometieron {n} golpes de castigo: {p} puntos para nosotros."
+  },
+  "whyPenFor0": {
+   "one": "Cometieron un golpe de castigo.",
+   "other": "Cometieron {n} golpes de castigo."
+  },
+  "whyPenAgainst": {
+   "one": "Cometimos un golpe de castigo: {p} puntos para ellos.",
+   "other": "Cometimos {n} golpes de castigo: {p} puntos para ellos."
+  },
+  "whyPenAgainst0": {
+   "one": "Cometimos un golpe de castigo.",
+   "other": "Cometimos {n} golpes de castigo."
+  },
+  "whyTurnFor": {
+   "one": "Recuperamos el balón una vez: {p} puntos de ahí.",
+   "other": "Recuperamos el balón {n} veces: {p} puntos de ahí."
+  },
+  "whyTurnFor0": {
+   "one": "Recuperamos el balón una vez.",
+   "other": "Recuperamos el balón {n} veces."
+  },
+  "whyTurnAgainst": {
+   "one": "Perdimos el balón una vez: {p} puntos para ellos.",
+   "other": "Perdimos el balón {n} veces: {p} puntos para ellos."
+  },
+  "whyTurnAgainst0": {
+   "one": "Perdimos el balón una vez.",
+   "other": "Perdimos el balón {n} veces."
+  },
+  "whyBreakFor": "Rupturas de línea: {n} nuestras, {m} suyas; {p} puntos de las nuestras.",
+  "whyBreakFor0": "Rupturas de línea: {n} nuestras, {m} suyas.",
+  "whyBreakAgainst": "Rupturas de línea: {n} suyas, {m} nuestras; {p} puntos de las suyas.",
+  "whyBreakAgainst0": "Rupturas de línea: {n} suyas, {m} nuestras.",
+  "whyPhaseFor": "{mins} minutos en su 22: {p} puntos del juego por fases.",
+  "whyPhaseFor0": "{mins} minutos en su 22.",
+  "whyPhaseAgainst": "Ellos, {mins} minutos en nuestro 22: {p} puntos del juego por fases.",
+  "whyPhaseAgainst0": "Ellos, {mins} minutos en nuestro 22.",
+  "whyKickFor": "Drops y patadas tapadas: {p} puntos para nosotros.",
+  "whyKickAgainst": "Drops y patadas tapadas: {p} puntos para ellos.",
+  "whyStyleFor": "El duelo de estilos: {atk_k} pudo con {def_k}, unos {p} puntos para nosotros.",
+  "whyStyleAgainst": "El duelo de estilos: {atk_k} pudo con {def_k}, unos {p} puntos para ellos."
  },
  "tacticsScreen": {
   "tabRoles": "Roles",

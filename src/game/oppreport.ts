@@ -103,6 +103,9 @@ export interface ChosenPlan {
 export interface TacLoop {
   plan?: ChosenPlan | null
   findings: FindingsRecord[]
+  /** what each of the last six matches was made of (evidence.ts), filed
+   *  beside its findings; absent on a save from before 1.8.3 */
+  evidence?: import('./evidence').CausalEvidence[]
 }
 
 /** how many post-match reads the save keeps: enough to remember a side met in
