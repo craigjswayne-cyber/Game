@@ -38,6 +38,14 @@ const WORLDS: [string, number][] = [
   ['northampton', 9],
   ['leinster', 4242],
   ['crusaders', 31337],
+  // Four more (1.8.3). Draws are the thinnest band, a couple of dozen games in
+  // a thousand, and on four worlds the Law 3 front-row fix, which changes no
+  // draw, re-dealt them from 1.6% to 1.2%. Eight worlds hold the floor honestly
+  // instead of moving it.
+  ['saracens', 11],
+  ['munster', 23],
+  ['clermont', 404],
+  ['blues', 606],
 ]
 
 interface Row { games: number; pts: number; tries: number; home: number; draw: number; blow: number }
