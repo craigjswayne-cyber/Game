@@ -211,7 +211,7 @@ console.log('\n--- 3. the briefing\n')
 {
   const WX: Weather[] = ['Dry', 'Damp', 'Rain', 'Wind', 'Snow']
   const keys = [...WX.flatMap(w => [`matchday.wx${w}`, wxEffectKey(w)]), ...SURFACES.flatMap(s => [surfKey(s), surfaceNote(s)]), 'matchday.theConditions', 'matchday.htWord',
-    ...['htPensBin', 'htRefTight', 'htRefLoose', 'htWetHands', 'htWetTight', 'htWind', 'htUncontested', 'htScrumBad', 'htScrumGood', 'htDefWorks'].map(k => `matchday.${k}`)]
+    ...['htPensBin', 'htRefTight', 'htRefLoose', 'htWetHands', 'htWetTight', 'htWind', 'htUncontested', 'htWorking', 'htHurting'].map(k => `matchday.${k}`)]
   ok(LANGS.every(l => keys.every(k => has(l, k))), `the conditions card and the half-time read speak six languages (${keys.length} keys)`)
   const src = readFileSync('src/game/matchEngine.ts', 'utf8')
   ok(['L. Pearce', 'K. Dickson', 'N. Amashukeli', 'P. Brousset'].every(n => src.includes(`name: '${n}'`)), 'the referee panel keeps its real names')

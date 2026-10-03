@@ -36,6 +36,7 @@ import type { GameState, Tactic } from './model'
 import { MAX_SUBS } from './matchEngine'
 import type { LiveCtx, SideCtx } from './matchEngine'
 import { t } from './i18n'
+import { pointsAfter, possPct } from './evidence'
 
 /** MAX_SUBS as a word for prose, so the advice can never disagree with the
  *  engine's cap again. Falls back to digits if the cap ever outgrows the list. */
@@ -197,18 +198,6 @@ export function gradeLine(fixed: readonly FixTag[], missed: readonly FixTag[]): 
   return null
 }
 
-/** The opposition's score at the hour, for spotting a side that empties. */
-function scoreAt(ctx: LiveCtx, min: number, home: boolean): number {
-  let last: { homeScore: number; awayScore: number } | null = null
-  for (const e of ctx.events) {
-    if (e.type === 'FT') continue
-    if (e.min > min) break
-    last = e
-  }
-  if (!last) return 0
-  return home ? last.homeScore : last.awayScore
-}
-
 /**
  * Up to `want` things to change, worst first.
  *
@@ -220,8 +209,7 @@ export function coachFixes(
 ): CoachFix[] {
   const c: Cand[] = []
   const units = unitBattles(ctx, mine, opp)
-  const isHome = mine === ctx.home
-  const poss = Math.round((mine.poss / (ctx.home.poss + ctx.away.poss || 1)) * 100)
+  const poss = possPct(ctx, mine)
   const margin = mine.score - opp.score
 
   // ---- the set piece: the worst of the three, if it actually lost ------------
@@ -294,8 +282,8 @@ export function coachFixes(
   }
 
   // ---- the last twenty ------------------------------------------------------
-  const oppAt60 = scoreAt(ctx, 60, !isHome)
-  const lateAgainst = opp.score - oppAt60
+  // the opposition's points after the hour, for spotting a side that empties
+  const lateAgainst = pointsAfter(ctx, opp, 60)
   if (lateAgainst >= 10) {
     c.push({
       tag: 'fitness', score: lateAgainst * 2.4,
