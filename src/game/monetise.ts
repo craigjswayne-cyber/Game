@@ -605,6 +605,25 @@ let lastLookup: string | null = null
 export const setLookupReason = (why: string | null) => { lastLookup = why }
 export const lookupReason = (): string | null => lastLookup
 export const setBillingReason = (why: string | null) => { lastReason = why }
+
+/**
+ * WHICH KIND OF "NO" THE STORE GAVE, as distinct from its words for it.
+ *
+ * 'unavailable' and 'refused' each used to cover several unrelated faults,
+ * and the line the player read had to guess. A store that is not offering a
+ * product in this storefront, a phone with purchases switched off, a store
+ * that could not be reached and a set-up fault on our side are four different
+ * sentences, and only the native shell knows which one happened. The shells
+ * send it as `cause` beside the outcome word (since 1.8.3); an older shell
+ * sends nothing, and the screen then says only what is true of all of them.
+ */
+export type BillingCause = 'unreachable' | 'disabled' | 'notOffered' | 'playBilling' | 'config'
+const CAUSES: readonly BillingCause[] = ['unreachable', 'disabled', 'notOffered', 'playBilling', 'config']
+let lastCause: BillingCause | null = null
+export const setBillingCause = (c: unknown) => {
+  lastCause = typeof c === 'string' && (CAUSES as readonly string[]).includes(c) ? c as BillingCause : null
+}
+export const billingCause = (): BillingCause | null => lastCause
 /** The bridge's own account of the last refusal wins where it has one: a
  *  native shell knows more about its store than this module does. The
  *  built-in Android and iOS bridges use setBillingReason above; a wrapper
@@ -786,6 +805,7 @@ export async function restore(): Promise<boolean> {
  *  closes with a sale. */
 export async function buyOwnable(sku: string): Promise<PurchaseOutcome> {
   const b = bridge()
+  setBillingCause(null) // a cause belongs to one tap; the bridge sets this one's
   if (!b || !(NC_SKUS as readonly string[]).includes(sku)) return 'unavailable'
   try {
     const out = await b.buy(sku)
@@ -810,6 +830,7 @@ export async function buySupporter(): Promise<PurchaseOutcome> {
  */
 export async function buyConsumable(sku: string): Promise<PurchaseOutcome> {
   const b = bridge()
+  setBillingCause(null) // a cause belongs to one tap; the bridge sets this one's
   if (!b || typeof b.consume !== 'function' || !CONSUMABLE_SKUS.includes(sku)) return 'unavailable'
   try {
     const out = await b.buy(sku)
@@ -904,13 +925,27 @@ export async function skuPriceFrom(sku: string): Promise<{ price: string | null;
   return { price: null, live: false }
 }
 
+/** What tillHealth found: how many products the store priced, out of how
+ *  many asked, which ones it did not, and whether it answered at all. */
+export interface TillState {
+  live: number
+  asked: number
+  missing: string[]
+  /** the store replied, even if the reply named nothing. False when the call
+   *  ran out the clock, threw, or there is no store to ask. A store that
+   *  answers with an empty list is set up wrong and will stay that way; one
+   *  that has not answered yet may still be waking, and the shelf tells the
+   *  shopper which (1.8.3: both used to read "has not answered yet"). */
+  answered: boolean
+}
+
 /** Can this build actually take money right now?
  *
  *  Asked of the whole shelf rather than one row, because one product left
  *  inactive in the console is a different fault from a store that is not
  *  answering at all, and the screen phrases them differently. Returns the
  *  count that answered and the count asked. */
-export async function tillHealth(): Promise<{ live: number; asked: number; missing: string[] }> {
+export async function tillHealth(): Promise<TillState> {
   // ONLY THE PRODUCTS THIS BUILD ACTUALLY SELLS. Remove-all-ads is in the
   // catalogue but deliberately NOT in any store until a build ships ads
   // (packaging/twa/README.md 4; the Store hides its row on the same rule), so
@@ -940,17 +975,35 @@ export async function tillHealth(): Promise<{ live: number; asked: number; missi
           live: priced.length,
           asked: sellable.length,
           missing: sellable.filter(s => !live.has(s)),
+          // an empty list is still an answer: the store is there and sells
+          // nothing to this build, which no amount of waiting will change
+          answered: Array.isArray(got),
         }
       }
       // the one call timed out: nothing is known, so nothing is named
-      return { live: 0, asked: sellable.length, missing: [...sellable] }
+      return { live: 0, asked: sellable.length, missing: [...sellable], answered: false }
     } catch { /* a throwing store has priced nothing; fall through to the count below */ }
   }
-  const got = await Promise.all(sellable.map(s => skuPriceFrom(s).then(r => r.live).catch(() => false)))
+  // one lookup per product. The clock's fallback is a marker of its own, so a
+  // store that answers "no such product" (null) is told from one that never
+  // answered: the first is an answer, the second is not
+  const TIMED_OUT = Symbol('timed out')
+  const one = async (sku: string): Promise<{ live: boolean; answered: boolean }> => {
+    if (!b?.details) return { live: false, answered: false }
+    try {
+      const p = await quick<Product | null | typeof TIMED_OUT>(b.details(sku), TIMED_OUT)
+      if (p === TIMED_OUT) return { live: false, answered: false }
+      return { live: !!p?.price, answered: true }
+    } catch {
+      return { live: false, answered: false }
+    }
+  }
+  const got = await Promise.all(sellable.map(one))
   return {
-    live: got.filter(Boolean).length,
+    live: got.filter(r => r.live).length,
     asked: sellable.length,
-    missing: sellable.filter((_, i) => !got[i]),
+    missing: sellable.filter((_, i) => !got[i].live),
+    answered: got.some(r => r.answered),
   }
 }
 
@@ -1001,8 +1054,14 @@ export function adBridge(): AdBridge | null {
  *
  *  It has no unit id of its own yet. packaging/shell/ads-bridge.js falls back
  *  to the home unit when a place has none, so it earns from the first build and
- *  simply reports against the wrong unit until the owner creates two. */
-export const AD_PLACES = ['home-foot', 'results-foot', 'match-foot'] as const
+ *  simply reports against the wrong unit until the owner creates two.
+ *
+ *  'news-foot' AND 'press-foot' ARE THE OWNER'S TOO (1.8.3, with screenshots
+ *  of the empty floor under a news story and a quiet press room). Same terms
+ *  as the others: a banner under the nav, never over content; the press room
+ *  carries it only while no question is waiting, so an answer is never given
+ *  beside an advert. Both fall back to the Home unit until they have their own. */
+export const AD_PLACES = ['home-foot', 'results-foot', 'match-foot', 'news-foot', 'press-foot'] as const
 export type AdPlace = typeof AD_PLACES[number]
 
 /** Did the shell inject a purchase bridge at all? Not the same question as

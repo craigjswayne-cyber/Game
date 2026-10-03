@@ -11,13 +11,54 @@ import { userWageBudget } from './grants'
 import { playerWage } from './attributes'
 import { scoutPa } from './scout'
 
+/**
+ * ---- WHO IS FREE TO BE LENT AT ALL ----
+ *
+ * Owner, round 183: "when a player is loaned out, he still appears in the
+ * available loan list. A loaned player must be removed from that list
+ * immediately and must not reappear until he returns or is eligible again."
+ *
+ * One gate for every door into a loan - the shop window, the unsolicited
+ * approach and loanIn itself - so none of them can disagree about a man who
+ * is already somebody's loan. He is out of the market while he is:
+ *   - at this club, which includes every loan-in (his clubId is ours)
+ *   - away on a loan of his own (onLoan), wherever his deed sits - the man
+ *     left behind at an old club when the manager changed jobs included
+ *   - on loan FROM somebody (loanFrom), whoever's books he is on
+ * and back in it only when the loan has actually ended: returnLoanIn, the
+ * rollover and a recall all clear those flags, and nothing else does. All of
+ * it is read from the player, so a save carries it and the weekly settle
+ * cannot rebuild a list that forgets it.
+ */
+export function loanFree(state: GameState, p: Player): boolean {
+  if (!p.clubId || p.clubId === state.userClubId || !state.clubs[p.clubId]) return false
+  return !p.onLoan && !p.loanFrom
+}
+
+/**
+ * THE LOAN MARKET, AS THE TRANSFERS SCREEN SHOWS IT. The shop window, plus,
+ * once three letters of a name are typed, anyone a manager may ring about.
+ * Built here rather than in the screen so the rule is the engine's: the screen
+ * once cached its own version of this list against the week, and a loan struck
+ * mid-week left the man on it until Monday.
+ */
+export function loanMarket(state: GameState, query = ''): Player[] {
+  const q = query.trim()
+  const listed = loanTargets(state)
+  const ids = new Set(listed.map(p => p.id))
+  const asked = q.length >= 3
+    ? Object.values(state.players).filter(p => !ids.has(p.id) && loanApproachable(state, p))
+    : []
+  return [...listed, ...asked]
+}
+
 /** Young talent parked on big-club benches, available for a season's loan. */
 export function loanTargets(state: GameState): Player[] {
   const user = state.clubs[state.userClubId]
   return Object.values(state.players)
     .filter(p => {
-      if (!p.clubId || p.clubId === user.id || p.onLoan || p.loanFrom) return false
-      const parent = state.clubs[p.clubId]
+      if (!loanFree(state, p)) return false
+      const parent = state.clubs[p.clubId!]
       if (!parent || parent.rep < user.rep + 4) return false
       if (p.age > 23 || p.ca < 60 || p.ca > 80) return false
       if (p.injury || p.natSquad) return false
@@ -108,8 +149,8 @@ export interface LoanVerdict {
  */
 export function loanApproachable(state: GameState, p: Player): boolean {
   const user = state.clubs[state.userClubId]
-  if (!user || !p.clubId || p.clubId === user.id) return false
-  if (p.onLoan || p.loanFrom || p.injury || p.natSquad) return false
+  if (!user || !loanFree(state, p)) return false
+  if (p.injury || p.natSquad) return false
   // a development loan, so it is a young player or it is nothing
   return p.age <= 23
 }
@@ -148,8 +189,9 @@ export function loanScore(state: GameState, playerId: number, length: LoanLength
 export function loanTerms(state: GameState, playerId: number, length: LoanLength, share: number): LoanVerdict {
   const p = state.players[playerId]
   const user = state.clubs[state.userClubId]
-  if (!p || !p.clubId || p.clubId === user.id) return { ok: false, k: 'reply.unavailable' }
-  const parent = state.clubs[p.clubId]
+  // already somebody's loan, ours included: nothing to negotiate (round 183)
+  if (!p || !loanFree(state, p)) return { ok: false, k: 'reply.unavailable' }
+  const parent = state.clubs[p.clubId!]
   if (!parent) return { ok: false, k: 'reply.unavailable' }
   // NOT ON THE SHOP WINDOW IS NO LONGER A CLOSED DOOR (owner, 7 Sep). It is a
   // harder conversation, priced in loanScore - except with a rival, which is
@@ -173,8 +215,8 @@ export function loanTerms(state: GameState, playerId: number, length: LoanLength
 export function loanIn(state: GameState, playerId: number, length: LoanLength = 'season', share = 0.5): string {
   const p = state.players[playerId]
   const user = state.clubs[state.userClubId]
-  if (!p || !p.clubId || p.clubId === user.id) return t('reply.unavailable')
-  const parent = state.clubs[p.clubId]
+  if (!p || !loanFree(state, p)) return t('reply.unavailable')
+  const parent = state.clubs[p.clubId!]
   if (!parent) return t('reply.unavailable')
   // the same count every signing reads, demoted seniors included (ai.ts)
   if (squadFull(state, user)) return t('reply.seniorSquadFull')

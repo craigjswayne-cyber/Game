@@ -203,8 +203,12 @@ console.log('\n--- the manager\'s own change, credited the same way\n')
   ok(si.starts - bi.starts === 0 && (!clean || si.mins - bi.mins === Math.round(80 - at)),
     `the replacement: no start, +${si.mins - bi.mins} minutes${clean ? '' : ' (he did not see it out, so not checked exactly)'}`)
   // the fifteen who were never touched played the eighty, less any bin
+  // (a man who left the field under Law 3 so a front-row replacement could
+  // come on for a binned front-rower, 1.8.3, sat out those ten minutes too)
+  const madeWay = new Set(ctx.events.filter(e => e.k === 'comm.frontRowBinCover' || e.k === 'comm.uncontestedBin')
+    .map(e => ids.find(id => g.players[id].name === e.v?.player)).filter((x): x is number => x != null))
   const untouched = ids.slice(1, 15).filter(id => mine.starters?.has(id) && mine.onPitch.has(id) && !mine.yellowUntil.has(id) &&
-    ![...mine.onAt?.keys() ?? []].includes(id))
+    ![...mine.onAt?.keys() ?? []].includes(id) && !madeWay.has(id))
   ok(untouched.every(id => g.players[id].stats.mins - before.get(id)!.mins === 80),
     `a starter who saw it out uncarded played 80 (${untouched.length} of them)`)
 }

@@ -1406,7 +1406,7 @@
   },
   "soundAndBuzz": "Sound and buzz",
   "soundOff": "Silent, and no buzz",
-  "soundOn": "Crowd, whistle and buzz on",
+  "soundOn": "Whistle and buzz on",
   "spCalm": "Calm the nerves",
   "spCalmD": "Settles everyone a little. Rarely wrong, rarely a masterstroke.",
   "spExpect": "I expect a win",
@@ -1513,13 +1513,6 @@
   "uwEdged": " won · we edged it",
   "uwEven": " won · broke even",
   "uwShaded": " won · they shaded it",
-  "vdBeaten": "Beaten in every collision. The review will be honest, and it will sting.",
-  "vdDraw": "A draw that will feel like a loss or a win by Tuesday, depending on the video.",
-  "vdHabit": "Winning tight ones is a habit - and we just fed the habit.",
-  "vdMargins": "Fine margins. Fix the two below and that is our game.",
-  "vdRuthless": "Ruthless. The assistant wants the same standards next week, not a lap of honour.",
-  "vdWasted": "All that ball and nothing to show for it - the assistant circles our finishing in red.",
-  "vdWonNoBall": "We won without the ball - the defensive shift was enormous. Take that anywhere.",
   "venueHome": "{stadium}, {city}",
   "venueNeutral": "{name}, {city} · neutral ground",
   "victory": "VICTORY",
@@ -1538,6 +1531,7 @@
   "warnNoSpeech": "No dressing-room speech chosen - the players will make their own minds up.",
   "warnRusty": "{player} is RUSTY ({n}w) - high re-injury risk if he plays.",
   "warnScrum": "Scrum problem: in your whole matchday squad you have {missing}. The referee needs 2 for each front-row shirt, or he makes every scrum uncontested - no pushing, and a strong pack counts for nothing. Put more front-row cover on the bench.",
+  "warnScrumFew": "Scrum problem: your matchday squad has only {n} different players who can play in the front row, and the referee needs {need}. Short of that he makes every scrum uncontested - no pushing, and a strong pack counts for nothing. Put more front-row cover on the bench.",
   "warnSixPointer": "SIX-POINTER: {gap} and fighting for the same prize. Beat them and bury them.",
   "warnTurnaround": "Only a {n}-day turnaround since the last match - the squad recovered slower this week. Watch the tanks.",
   "warnUnfit": "{player} is only {pct}% fit - his tank will empty early.",
@@ -1617,9 +1611,67 @@
   "htWetTight": "It is wet: one pass too many is a turnover. Carry it, and use the boot.",
   "htWind": "The wind is taking the long kicks: find touch short and keep it in hand into it.",
   "htUncontested": "The scrums are uncontested now: the set piece is out of it, so play off the lineout.",
-  "htScrumBad": "Their scrum is on top: get the ball in and out quickly at the set piece.",
-  "htScrumGood": "Our scrum is winning: kick for the corners and take them on up front.",
-  "htDefWorks": "The defence keeps winning the ball back: hold the line where it is."
+  "htWorking": "Working:",
+  "htHurting": "Hurting:",
+  "whyMoveFor": {
+   "one": "Your {move_k} made a try, and {m}m a call.",
+   "other": "Your {move_k} made {n} tries, and {m}m a call."
+  },
+  "whyMoveForTries": {
+   "one": "Your {move_k} made a try.",
+   "other": "Your {move_k} made {n} tries."
+  },
+  "whyMoveAgainst": {
+   "one": "Their {move_k} made a try against us.",
+   "other": "Their {move_k} made {n} tries against us."
+  },
+  "whyRead": "They had read your {move_k}: {m}m from {n} calls, where it would have made {m0}m.",
+  "whySetFor": "They lost {n} of their own scrums and lineouts; we lost {m}.",
+  "whySetAgainst": "We lost {n} of our own scrums and lineouts; they lost {m}.",
+  "whyPenFor": {
+   "one": "They gave away a penalty: {p} points for us.",
+   "other": "They gave away {n} penalties: {p} points for us."
+  },
+  "whyPenFor0": {
+   "one": "They gave away a penalty.",
+   "other": "They gave away {n} penalties."
+  },
+  "whyPenAgainst": {
+   "one": "We gave away a penalty: {p} points for them.",
+   "other": "We gave away {n} penalties: {p} points for them."
+  },
+  "whyPenAgainst0": {
+   "one": "We gave away a penalty.",
+   "other": "We gave away {n} penalties."
+  },
+  "whyTurnFor": {
+   "one": "We won the ball back once: {p} points from it.",
+   "other": "We won the ball back {n} times: {p} points from it."
+  },
+  "whyTurnFor0": {
+   "one": "We won the ball back once.",
+   "other": "We won the ball back {n} times."
+  },
+  "whyTurnAgainst": {
+   "one": "We lost the ball once: {p} points to them.",
+   "other": "We lost the ball {n} times: {p} points to them."
+  },
+  "whyTurnAgainst0": {
+   "one": "We lost the ball once.",
+   "other": "We lost the ball {n} times."
+  },
+  "whyBreakFor": "Line breaks: {n} for us, {m} for them; {p} points from ours.",
+  "whyBreakFor0": "Line breaks: {n} for us, {m} for them.",
+  "whyBreakAgainst": "Line breaks: {n} for them, {m} for us; {p} points from theirs.",
+  "whyBreakAgainst0": "Line breaks: {n} for them, {m} for us.",
+  "whyPhaseFor": "{mins} minutes in their 22: {p} points from phase play.",
+  "whyPhaseFor0": "{mins} minutes in their 22.",
+  "whyPhaseAgainst": "They had {mins} minutes in our 22: {p} points from phase play.",
+  "whyPhaseAgainst0": "They had {mins} minutes in our 22.",
+  "whyKickFor": "Drop goals and charge-downs: {p} points for us.",
+  "whyKickAgainst": "Drop goals and charge-downs: {p} points for them.",
+  "whyStyleFor": "The battle of styles: {atk_k} had the beating of {def_k}, about {p} points to us.",
+  "whyStyleAgainst": "The battle of styles: {atk_k} had the beating of {def_k}, about {p} points to them."
  },
  "tacticsScreen": {
   "tabRoles": "Roles",
@@ -2175,7 +2227,6 @@
   "holesToFill": "Holes to fill",
   "seasonObjectives": "Season Objectives",
   "boardExpects": "The board expects you to {objective}.",
-  "fallShort": "Fall short and confidence will suffer. Deliver, and you'll be backed.",
   "boardConfidence": "Board Confidence",
   "boardDelighted": "The board is delighted with your work.",
   "boardSatisfied": "The board is broadly satisfied.",
@@ -4221,7 +4272,12 @@
   "alreadyYours": "Already yours - nothing to restore.",
   "badge": "Supporter",
   "cancelled": "Nothing was charged.",
-  "refused": "The store would not open a purchase for this item. Nothing was charged. Usually this means the product is not on sale in your country, or it is not active yet, or this account is not on the licence-testing list.",
+  "refused": "The store would not open a purchase for this item. Nothing was charged. Usually this means the product is not active yet, or this account is not on the licence-testing list.",
+  "notOffered": "The store is not offering this item to your account at the moment, so nothing was charged. That is a set-up matter on our side, not a fault with your account or device - it may not be on sale in your region yet.",
+  "disabled": "Purchases are switched off on this device, so the store would not open. Nothing was charged. Check the purchase restrictions (Screen Time, parental or family controls) in your device settings.",
+  "playBilling": "Google Play would not take a payment on this account. Nothing was charged. Play gives this answer when in-app purchases are not supported in the account's country, when the Play Store app needs updating, or when the payment method was declined.",
+  "setup": "The store would not open a purchase for this item because of a set-up fault on our side, not yours. Nothing was charged - please try again after the next update.",
+  "notNow": "The store would not sell this item just now. Nothing was charged. Check you are online and signed in to the store, then try again later.",
   "error": "The store could not be reached. Nothing was charged - try again later.",
   "nothingToRestore": "Nothing to restore on this account.",
   "pending": "The store is still processing it. Nothing more to do here - it lands on its own, and Restore will pick it up if you close the game first.",
@@ -6688,6 +6744,9 @@
   "uncontestedShort": "And it costs {team} a second player: under Law 3.20 a side that goes uncontested through a card must take another man off. {player} makes way.",
   "contestedAgain": "The front-rower is back from the bin and so is the cover: the referee restores CONTESTED SCRUMS.",
   "frontRowReturns": "The bench is spent, so {player} comes back on: a replaced front-rower may return for an injured one, and the scrum stays a contest.",
+  "frontRowBinCover": "{lost} is in the bin and {team} need a trained front row, so under Law 3 {on} comes on and {player} leaves the field to make way until the ten minutes are up. The scrum stays a contest.",
+  "frontRowRedCover": "{lost} is gone for the match and {team} need a trained front row, so under Law 3 {on} comes on and {player} leaves the field to make way for the rest of it. The scrum stays a contest, and {team} are still a player down.",
+  "frontRowBinBack": "{lost} is back from the bin and takes the front-row shirt back from {on}, who returns to the bench; {player} comes back on too.",
   "testimonial_f": "{player}'s testimonial. She leads the teams out with her kids at her side, the ground on its feet, scarves above every head. Then the whistle blows and it is a rugby match again.",
   "oldBoy_f": "A familiar face out there: {player} lines up against {oldClub}, where she made {n} appearances. {tail_k}",
   "oldBoyKnowsThem_f": "She knows this opposition inside out.",
@@ -7889,8 +7948,6 @@
  },
  "till": {
   "boardTitle": "Board resolutions",
-  "boardSub": "extraordinary funds, voted through upstairs",
-  "boardBlurb": "Real money through the app store, signed into this save with no way back.",
   "injectS": "Board Injection (Small)",
   "injectM": "Board Injection (Medium)",
   "injectL": "Board Injection (Large)",
@@ -7906,14 +7963,14 @@
   "pending": "The store is still processing it. Nothing more to do - when it lands, this page will offer it to the career in front of you.",
   "applyHere": "Apply it to this career",
   "charterTitle": "Remove the salary cap",
-  "charterBody": "The league's salary cap stops applying to this club. No ceiling, no fines, no embargoes - permanent, this save only, and the save wears the mark.",
+  "charterBody": "No salary cap for this club, for good. This save only.",
   "charterApply": "Remove it on this save",
   "charterConfirm": "Remove it - there is no way back",
   "charterStay": "Not today",
   "charterDone": "Done. The wage law no longer applies to this club.",
   "charterSigned": "The cap is gone for as long as this career runs: no ceiling, no fines, no embargoes.",
   "charterOwned": "You own this. Turn it on below when you are certain - it cannot be turned off.",
-  "fineprint": "Prices are the store's own. A purchase is only spent once it has landed in your career; if anything is interrupted, this page offers it back.",
+  "fineprint": "Prices are the store's own. Nothing is spent until it lands in your career.",
   "stampLicensed": "Licensed start",
   "stampCharter": "Owner's Charter",
   "watchAgency": "Ask the agency for their file (watch a spot)",
@@ -7977,6 +8034,7 @@
   "fundingLine": "Four board resolutions, £10m to £130m, each with a season of cap-exempt wages.",
   "fineprint": "One-off payments, handled by the app store. Nothing here plays the matches, and the game still sends nothing about you anywhere.",
   "tillSilent": "The store is connected but has not answered yet. Buying can still work - its own sheet opens before anything is charged. If this build just arrived, give it a minute.",
+  "tillEmpty": "The store answered, but it has nothing on sale to this account yet, so nothing here can be bought for now. Nothing has been charged.",
   "tillPartial": "The store answered for {live} of {asked} products. The others may not be on sale to this account yet.",
   "pickNation": "Yours. Pick the federation and take the job - the appointment is immediate.",
   "support": "Support the game",

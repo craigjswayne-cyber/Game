@@ -7,11 +7,12 @@ import {
   matchStats, visitsTo22, goalKicker, teamShort, teamUnits, paperOverall, rosterOf, assistantJudgement, autoSelect, availablePlayers,
   refFor, refNotes, homeCrowdLean, frontRowCover, repairSheet, sideEnergy, MAX_SUBS, isFrontRower, needsFrontRower, type LiveCtx, type SideCtx,
 } from '../../game/matchEngine'
-import { MIDWEEK_OFF, BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, chemKey, clubCode, chemTier, eventText, injuryDesc, fixtureDate, fixtureDayOff, grudgeBetween, inRedZone, oldBoyApps, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
+import { MIDWEEK_OFF, BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, careerRows, chemKey, clubCode, chemTier, eventText, injuryDesc, fixtureDate, fixtureDayOff, grudgeBetween, inRedZone, oldBoyApps, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
 import { BRIEF_BY_ID, SPLIT_BY_ID, benchSeats, briefForSeat, splitFor } from '../../game/bench'
 import { BriefIcon } from '../tacticsArt'
 import { assistantFixtureThisWeek, isKnockoutTie, userMatchThisWeek } from '../../game/season'
 import { halfTimeHints, matchConditions, surfKey, surfaceNote, surfaceOf, wxEffectKey } from '../../game/conditions'
+import { buildEvidence, halfSides, htEvidence, rankWhy } from '../../game/evidence'
 import { effAt } from '../../game/attributes'
 import { fuzzedCa } from '../../game/scout'
 import { PRESETS, SLIDER_INFO, sliderReadout, type SliderKey } from '../../game/tactics'
@@ -21,7 +22,7 @@ import { coachFixes, gradeFixes, gradeLine, unitBattles, type FixTag } from '../
 import { MatchFindings } from '../OppReport'
 import { CrestT, Jersey, PosBadge, SectionTitle, Stars, RewardedButton, Toggle } from '../components'
 import { stageName } from './Home'
-import { groundSound, matchSfx, soundOn, toggleSound } from '../audio'
+import { matchSfx, soundOn, toggleSound } from '../audio'
 import { MoodTable } from '../MoodTable'
 import { TalkReactions } from '../TalkReactions'
 import { talkSetting, type HtTone, type PreTone } from '../../game/teamtalk'
@@ -30,7 +31,6 @@ import { MatchPanels, Visits, Zones } from '../MatchPanels'
 import { useTablet } from '../tablet'
 import { readMatchPrefs, writeMatchPrefs, type MatchPrefs } from '../matchPrefs'
 import { HighlightClip, buildClip, nextMoment, tokenColor, type ClipSpec } from '../HighlightClip'
-import { crowdLevel } from '../matchAtmos'
 import { derbyName } from '../../game/rivalries'
 import { matchStakes } from '../../game/stakes'
 import { dialLine, philosophyOf } from '../../game/philosophy'
@@ -362,15 +362,17 @@ function Preview({ fxId }: { fxId: number }) {
       .filter(([k]) => frontRow[k] < 2)
       .map(([k, word]) => t(frontRow[k] === 0 ? 'matchday.frNone' : 'matchday.frOnly', { n: frontRow[k], pos: t(word) }))
       .join(t('matchday.frJoin'))
-    warnings.push({ level: 'bad', text: t('matchday.warnScrum', { missing }) })
+    // every shirt has two, but too few different men for it (Law 3.5: six
+    // front-rowers in a 23, a prop who plays both sides counted once)
+    warnings.push({ level: 'bad', text: missing ? t('matchday.warnScrum', { missing }) : t('matchday.warnScrumFew', { n: frontRow.players, need: frontRow.need }) })
   }
   // milestone watch: pre-announce the numbers worth playing for today
   for (const pid of tac.lineup.slice(0, 15)) {
     const pl = pid != null ? game.players[pid] : null
     if (!pl) continue
-    const cTries = pl.career.reduce((s, c) => s + c.tries, 0) + pl.stats.tries + (pl.hist?.tries ?? 0)
-    const cApps = pl.career.reduce((s, c) => s + c.apps, 0) + pl.stats.apps + (pl.hist?.apps ?? 0)
-    const cPts = pl.career.reduce((s, c) => s + c.points, 0) + pl.stats.points + (pl.hist?.points ?? 0)
+    const cTries = careerRows(pl).reduce((s, c) => s + c.tries, 0) + pl.stats.tries + (pl.hist?.tries ?? 0)
+    const cApps = careerRows(pl).reduce((s, c) => s + c.apps, 0) + pl.stats.apps + (pl.hist?.apps ?? 0)
+    const cPts = careerRows(pl).reduce((s, c) => s + c.points, 0) + pl.stats.points + (pl.hist?.points ?? 0)
     for (const [val, at, label] of [
       [cApps + 1, [100, 200, 300, 400], 'apps'],
       [cTries, [49, 99], 'tries'],
@@ -933,9 +935,9 @@ function Preview({ fxId }: { fxId: number }) {
                 for (const id of tac.lineup.slice(0, 15)) {
                   const p = id != null ? game.players[id] : null
                   if (!p) continue
-                  const cApps = p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps + (p.hist?.apps ?? 0)
-                  const cTries = p.career.reduce((s, c) => s + c.tries, 0) + p.stats.tries + (p.hist?.tries ?? 0)
-                  const cPts = p.career.reduce((s, c) => s + c.points, 0) + p.stats.points + (p.hist?.points ?? 0)
+                  const cApps = careerRows(p).reduce((s, c) => s + c.apps, 0) + p.stats.apps + (p.hist?.apps ?? 0)
+                  const cTries = careerRows(p).reduce((s, c) => s + c.tries, 0) + p.stats.tries + (p.hist?.tries ?? 0)
+                  const cPts = careerRows(p).reduce((s, c) => s + c.points, 0) + p.stats.points + (p.hist?.points ?? 0)
                   if (APPS.includes(cApps + 1)) {
                     lines.push({ p, text: t('matchday.brinkApps', { n: cApps + 1 }) })
                   } else if (TRIES.some(m => m - cTries === 1) && p.form >= 6.5) {
@@ -1632,15 +1634,13 @@ function Live() {
   useEffect(() => {
     const wake = () => {
       const lm = useStore.getState().liveMatch
-      // the ground goes quiet with the screen; the next beat brings it back
-      if (document.visibilityState !== 'visible') groundSound(null)
       if (document.visibilityState === 'visible' && lm?.playing) advanceLive()
     }
     document.addEventListener('visibilitychange', wake)
     return () => document.removeEventListener('visibilitychange', wake)
   }, [])
 
-  // stadium sound & haptics on key events (skip when fast-forwarding)
+  // whistles & haptics on key events (skip when fast-forwarding)
   useEffect(() => {
     if (last && speedIdx < 2 && playing) matchSfx(last.fx === 'NOTRY' ? 'NOTRY' : last.type)
   }, [cursor])
@@ -1870,20 +1870,6 @@ function Live() {
   const feedRows = shown.slice(-FEED_ROWS).map((e, j) => ({ e, i: Math.max(0, shown.length - FEED_ROWS) + j }))
   useFeedGlide(feedRef, panelActive ? -1 : shown.length)
   useFeedGlide(tabRef, panelActive || !tablet ? -1 : shown.length)
-
-  // THE GROUND (idea 7): the crowd under the match, at a level that follows it
-  // (matchAtmos.crowdLevel), quiet whenever the match is not being played -
-  // a pause, an interval, a touchline call, full time, the screen left.
-  const groundLevel = crowdLevel({
-    // where the play is: the last line's field position, on the 6..94 scale
-    // the crowd was tuned on
-    ballX: 8 + (last?.fld ?? 50) * 0.84, homeAttacking: last?.teamId === fixture.homeId,
-    tension, review: last?.fx === 'TMO', att: fixture.att,
-  })
-  useEffect(() => {
-    groundSound(playing && sound && !panelActive ? groundLevel : null, fixture.weather ?? 'Dry')
-  }, [cursor, playing, sound, panelActive, groundLevel])
-  useEffect(() => () => groundSound(null), [])
 
   return (
     <div className={`live-wrap${prefs.bigText ? ' big-text' : ''}`}>
@@ -2375,24 +2361,28 @@ function Live() {
 
 /** THE ASSISTANT'S WORD AT HALF TIME (1.8.2 depth): one or two plain lines
  *  read off what the first forty did against the referee and the day
- *  (conditions.ts halfTimeHints). Nothing drawn; silent when there is
+ *  (conditions.ts halfTimeHints), and since 1.8.3 what is working and what
+ *  is hurting, off the first half's evidence (evidence.ts htEvidence), each
+ *  in the place of a weaker line. Nothing drawn; silent when there is
  *  nothing worth saying. */
 function HalfTimeWord() {
   const game = useStore(s => s.game)!
   const live = useStore(s => s.liveMatch)!
   const ctx = live.ctx
-  const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
-  const opp = mine === ctx.home ? ctx.away : ctx.home
-  const read = (s: SideCtx) => ({
-    consPens: s.consPens, turnLost: s.styTurnLost ?? 0, turnWon: s.styTurnWon ?? 0,
-    scrum: s.setAcc && s.setAcc.n ? s.setAcc.scrum / s.setAcc.n : 0, score: s.score,
-  })
-  const lines = halfTimeHints(refFor(ctx.fx.id), ctx.weather, read(mine), read(opp), !!ctx.uncontested)
-  if (!lines.length || !game) return null
+  const ev = game ? buildEvidence(game, ctx) : null
+  if (!ev || !game) return null
+  const [mine, opp] = halfSides(ev)
+  const lines = halfTimeHints(refFor(ctx.fx.id), ctx.weather, mine, opp, !!ctx.uncontested, htEvidence(ev))
+  if (!lines.length) return null
   return (
     <div className="card" style={{ margin: '8px 14px' }} data-halftime-word={lines.length}>
       <div className="fact-label">{t('matchday.htWord')}</div>
-      {lines.map(l => <div key={l.k} className="meta">{t(l.k, l.v)}</div>)}
+      {lines.map(l => (
+        <div key={l.k} className="meta" data-ht-tag={l.tag}>
+          {l.tag && <b style={{ color: l.tag === 'work' ? 'var(--text-positive)' : 'var(--text-negative)' }}>{t(l.tag === 'work' ? 'matchday.htWorking' : 'matchday.htHurting')} </b>}
+          {t(l.k, l.v)}
+        </div>
+      ))}
     </div>
   )
 }
@@ -2458,21 +2448,12 @@ function MatchVerdict() {
   const opp = mine === ctx.home ? ctx.away : ctx.home
   const star = ctx.motmId != null ? game.players[ctx.motmId] : null
   const starMine = star && mine.ratings.has(star.id)
-  const margin = mine.score - opp.score
-  // `possTotal`, not `t`: t() is the translator (src/game/i18n.ts), and a local
-  // called t here would shadow it silently - everything still typechecks
-  const possTotal = ctx.home.poss + ctx.away.poss || 1
-  const myPoss = Math.round(((mine === ctx.home ? ctx.home.poss : ctx.away.poss) / possTotal) * 100)
-  const feedback = t(margin > 0
-    ? (myPoss < 45 ? 'matchday.vdWonNoBall'
-      : margin >= 20 ? 'matchday.vdRuthless'
-      : 'matchday.vdHabit')
-    : margin === 0
-      ? 'matchday.vdDraw'
-      : (myPoss >= 55 ? 'matchday.vdWasted'
-        : margin <= -20 ? 'matchday.vdBeaten'
-        : 'matchday.vdMargins'))
-  // The verdict used to stop at the sentence above, which names nothing (user:
+  // WHY (1.8.3): the three causes that decided it, ranked, each with its
+  // number (evidence.ts rankWhy). It replaced one sentence picked from the
+  // possession share and the margin, which named nothing.
+  const ev = buildEvidence(game, ctx)
+  const why = ev ? rankWhy(ev, 3) : []
+  // The verdict used to stop at one sentence, which named nothing (user:
   // "it should outline what the two fixes would be etc so the player can keep
   // tweaking the tactics"). game/coachfix reads the same match data and turns it
   // into two instructions that each point at a real control.
@@ -2529,7 +2510,12 @@ function MatchVerdict() {
         </div>
       )}
       <div className="fact-label" style={{ marginTop: 8 }}>{t('matchday.coachsVerdict')}</div>
-      <div className="meta">{feedback}</div>
+      {why.map(w => (
+        <div key={w.cause} className="meta" data-why={w.cause}
+          style={{ borderLeft: `3px solid ${w.sig > 0 ? 'var(--text-positive)' : 'var(--text-negative)'}`, paddingLeft: 6, marginTop: 3 }}>
+          {t(w.k, w.v)}
+        </div>
+      ))}
 
       {verdictOnLast && (
         <div className={`fix-grade${grade.missed.length === 0 ? ' good' : ''}`}>

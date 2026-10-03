@@ -10,7 +10,10 @@
 //   it is gone by five and a half seconds, and the menu takes taps
 //   a tap skips it
 //   where the browser holds sound back, a speaker button starts it without
-//   skipping (the office: the telly, the lamp, the title landing)
+//   skipping (the office: the lamp, the whoosh, the title landing)
+//   and nothing it plays is the telly's crowd: no looped noise bed, no buffer
+//   longer than the one-second whoosh (owner: the crowd sounded like static,
+//   so it came out entirely)
 //   without ?intro=1 an automated browser never sees it
 //
 // Frames go to shots/intro-*.png at 412 and 820 wide for a look.
@@ -58,7 +61,15 @@ try {
   ok(await page.$('.intro') == null, 'a tap skips it')
 
   // the speaker: a headless browser holds sound until a tap, so it is offered;
-  // pressing it starts the sound and does NOT skip the titles
+  // pressing it starts the sound and does NOT skip the titles. Every source
+  // started is logged, so the crowd's absence is checked, not assumed.
+  await page.addInitScript(() => {
+    const log = window.__rmSources = []
+    const bs = AudioBufferSourceNode.prototype.start
+    AudioBufferSourceNode.prototype.start = function (...a) { log.push({ kind: 'buffer', loop: this.loop, secs: this.buffer?.duration ?? 0 }); return bs.apply(this, a) }
+    const os = OscillatorNode.prototype.start
+    OscillatorNode.prototype.start = function (...a) { log.push({ kind: 'osc' }); return os.apply(this, a) }
+  })
   await page.goto('http://localhost:4247/?intro=1')
   await page.waitForSelector('.intro')
   const spk = await page.waitForSelector('.intro-sound', { timeout: 2000 }).catch(() => null)
@@ -67,8 +78,14 @@ try {
     await spk.click()
     await page.waitForTimeout(300)
     ok(await page.$('.intro') != null && await page.$('.intro-sound') == null, 'the speaker starts the sound and the titles carry on')
+    await page.waitForTimeout(2600)
+    const src = await page.evaluate(() => window.__rmSources)
+    const bufs = src.filter(x => x.kind === 'buffer')
+    ok(src.some(x => x.kind === 'osc'), `the title sound still plays (${src.length} sources started)`)
+    ok(!bufs.some(x => x.loop), 'no looped noise bed: the telly crowd is gone')
+    ok(bufs.every(x => x.secs <= 1.01), `no noise longer than the whoosh (${Math.max(0, ...bufs.map(x => x.secs)).toFixed(2)}s at most)`)
   }
-  await page.waitForTimeout(5500)
+  await page.waitForTimeout(2900)
   await page.goto('http://localhost:4247/')
   await page.waitForSelector('.title-screen')
   await page.waitForTimeout(300)

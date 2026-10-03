@@ -201,9 +201,12 @@ try {
 
     // leave the screen: hidden; come back: resumed, not re-requested
     const before = (await log(page)).length
-    await page.locator('.bottom-nav button').nth(0).click()   // the news
+    // The Manager's Profile, not the news: the news floor carries its own
+    // banner since 1.8.3, and a screen with no slot is what this tests
+    await page.locator('.bottom-nav button').nth(3).click()   // the manager's menu
+    await page.locator('.submenu-item').first().click()        // Profile
     await page.waitForTimeout(500)
-    ok((await log(page)).slice(before).includes('hideBanner') && (await inset(page)) === '0px', 'leaving Home hides the banner (no slot on the inbox)')
+    ok((await log(page)).slice(before).includes('hideBanner') && (await inset(page)) === '0px', 'leaving Home hides the banner (no slot on the profile)')
     ok(await page.evaluate(() => document.querySelectorAll('.ad-slot').length === 0), 'and the game has no slot on that screen')
     await page.locator('.bottom-nav button').nth(1).click()   // home
     await page.waitForTimeout(500)
@@ -398,8 +401,9 @@ try {
   const units = Object.values(ADS.android.banner).concat(Object.values(ADS.ios.banner), [ADS.android.rewarded, ADS.ios.rewarded])
   ok(units.filter(s => s !== '').every(s => /\//.test(s)), 'every ad unit id that is set carries a /')
   const pending = Object.entries(ADS.android.banner).concat(Object.entries(ADS.ios.banner)).filter(([, v]) => v === '').map(([k]) => k)
-  ok(pending.every(k => k === 'match-foot'),
-    pending.length ? `the only place still awaiting a unit id is match-foot (${[...new Set(pending)].join(', ')})` : 'every place has its own unit id')
+  const AWAITING = ['match-foot', 'news-foot', 'press-foot']
+  ok(pending.every(k => AWAITING.includes(k)),
+    pending.length ? `only the newer places await a unit id (${[...new Set(pending)].join(', ')})` : 'every place has its own unit id')
 
   // ---- SKADNETWORK, WHICH FAILS BY EARNING LESS ----
   //

@@ -86,6 +86,9 @@ function damaged(label: string, wreck: (s: Record<string, unknown>) => void, mus
   }
   ok(thrown === 0, `${label}: and five weeks play out afterwards`)
   checkWorld(g, label, true)
+  // the manager's wear is arithmetic every match (armsrace.ts tallyCalls)
+  const pb = g.clubs[g.userClubId]?.playbook
+  if (pb) ok(!!pb.used && Object.values(pb.used).every(v => Number.isFinite(v) && v >= 0), `${label}: the wear on the manager's calls reads as numbers`)
 }
 
 // -------------------------------------------------- fields that went missing
@@ -146,6 +149,27 @@ damaged('mentoring pairs pointing at nobody', s => {
   s.mentors = [{ senior: 999_998, kid: 999_999, since: 1 }]
 })
 
+// ------------------------------------- the match evidence (1.8.3, evidence.ts)
+// Filed beside the findings on tacLoop, and the newest field in the file, so
+// the one most likely to be missing or half-written in a save from elsewhere.
+console.log('\n--- the evidence beside the findings')
+damaged('a loop from before the evidence', s => { s.tacLoop = { findings: [] } })
+damaged('an evidence list that is not a list', s => { s.tacLoop = { findings: [], evidence: 'lots' } })
+damaged('an evidence list of half-written records', s => {
+  s.tacLoop = { findings: [], evidence: [null, { fxId: 3 }, { fxId: 4, oppId: 'bath', side: [{}, {}], swings: [], lead: [] }] }
+})
+{
+  const s = pristine()
+  s.tacLoop = { findings: [], evidence: [null, { fxId: 3 }, { fxId: 4, oppId: 'bath', side: [{ pts: [1] }], swings: [], lead: [] }] }
+  let g: GameState | null = null
+  try { g = migrate(s as unknown as GameState) } catch { g = null }
+  ok(!!g && Array.isArray(g.tacLoop?.evidence) && g.tacLoop!.evidence!.length === 0, 'and every unreadable evidence record is dropped rather than kept')
+  const s2 = pristine()
+  s2.tacLoop = { findings: [], evidence: 'lots' }
+  try { g = migrate(s2 as unknown as GameState) } catch { g = null }
+  ok(!!g && g.tacLoop?.evidence === undefined, 'and an evidence field that is not a list is removed')
+}
+
 // -------------------------------------------------- the world itself broken
 console.log('\n--- the world itself, broken')
 damaged('a squad listing players who are gone', s => {
@@ -174,6 +198,36 @@ damaged('a club with no tactic', s => {
 damaged('a club with no players array', s => {
   const clubs = s.clubs as Record<string, Record<string, unknown>>
   delete Object.values(clubs)[0].players
+})
+// the name registry's memory and the folded seasons (1.8.3): a retiredNames
+// list far past the cap, or full of rubbish, and careerOld in every wrong shape
+damaged('a retiredNames list of thirty thousand, nulls among them', s => {
+  s.retiredNames = Array.from({ length: 30000 }, (_, i) => (i % 97 === 0 ? null : `old boy ${i % 21000}`))
+})
+damaged('a retiredNames list that is not a list', s => { s.retiredNames = { many: 'names' } })
+damaged('careerOld in every wrong shape', s => {
+  const players = s.players as Record<string, Record<string, unknown>>
+  const ps = Object.values(players)
+  ps[0].careerOld = 'lots'
+  ps[1].careerOld = [null, { clubId: 7 }, { season: 1, clubId: 'x', apps: Infinity, tries: 0, points: 0 }]
+  ps[2].careerOld = [{ season: -3, clubId: 'northampton', apps: 300, tries: 40, points: 200 }]
+  ps[3].career = Array.from({ length: 30 }, (_, i) => ({ season: i - 30, clubId: 'northampton', apps: 10, tries: 1, points: 5 }))
+  ps[4].career = 'none'
+})
+// the manager's playbook: the wear on his calls fades and adds a share of a
+// call since 1.8.3 (armsrace.ts THE WEAR), so it is read as a number every match
+damaged('a playbook whose wear is rubbish', s => {
+  const clubs = s.clubs as Record<string, Record<string, unknown>>
+  const me = clubs[s.userClubId as string]
+  me.playbook = { drilled: {}, used: { mv_loop: NaN, lo_middle: -2, sc_hold: 'x', mv_switch: 3.5 }, faced: { mv_loop: 'x' } }
+  const tac = me.tactic as Record<string, unknown>
+  tac.moveMain = 'mv_loop'; tac.moveAlt = 'mv_switch'
+})
+damaged('a playbook with no wear at all', s => {
+  const clubs = s.clubs as Record<string, Record<string, unknown>>
+  const me = clubs[s.userClubId as string]
+  me.playbook = { drilled: {}, used: 'none' }
+  ;(me.tactic as Record<string, unknown>).moveMain = 'mv_loop'
 })
 damaged('a league table that disagrees with the fixtures', s => {
   const comps = s.comps as Record<string, { table?: { p: number; w: number; d: number; l: number; pts: number }[] }>

@@ -35,7 +35,7 @@
  */
 import type { Club, GameState, MatchPrep, Tactic, Fixture } from './model'
 import { absWeek as gameWeek } from './model'
-import { analystRead, analystSkill, readOdds, sureBand, type AnalystRead } from './analyst'
+import { analystRead, analystSkill, readOdds, readUnit, sureBand, UNIT_PREP, type AnalystRead } from './analyst'
 import { tapeLine } from './armsrace'
 import { lineupFor, teamUnits } from './matchEngine'
 import { fuzzedCa, knowledge, margin } from './scout'
@@ -103,6 +103,9 @@ export interface ChosenPlan {
 export interface TacLoop {
   plan?: ChosenPlan | null
   findings: FindingsRecord[]
+  /** what each of the last six matches was made of (evidence.ts), filed
+   *  beside its findings; absent on a save from before 1.8.3 */
+  evidence?: import('./evidence').CausalEvidence[]
 }
 
 /** how many post-match reads the save keeps: enough to remember a side met in
@@ -179,7 +182,9 @@ const DIALS = ['style', 'tempo', 'kicking', 'aggression', 'defLine'] as const
 
 /** The soft spot. A club's comes from the analyst's own read, so the report and
  *  his card can never disagree; a Test side has no club record for him to file
- *  against, so the same roll is made here, unsaved. */
+ *  against, so the same roll is made here, unsaved, and the same unit named
+ *  (analyst.ts readUnit). It used to name their strongest unit whenever he
+ *  was wrong, long after the club read stopped doing so (1.8.3). */
 export function softSpot(state: GameState, oppId: string): OppReport['soft'] {
   if (state.clubs[oppId]) {
     const r = analystRead(state, oppId)
@@ -189,7 +194,7 @@ export function softSpot(state: GameState, oppId: string): OppReport['soft'] {
   if (lu.slice(0, 15).filter(id => id != null).length < 15) return null
   // the same odds and the same sense of them as the analyst's own read
   const o = readOdds(state, oppId, teamUnits(state, lu), absWeek(state))
-  return { unit: o.right ? o.sorted[0][0] : o.sorted[o.sorted.length - 1][0], right: o.right, confidence: o.confidence }
+  return { unit: readUnit(state, oppId, absWeek(state), o), right: o.right, confidence: o.confidence }
 }
 
 /** Is tape room night on for this week's match against this side? */
@@ -422,10 +427,6 @@ export function leversFor(state: GameState, unit: Unit, prep: MatchPrep): PlanLe
     case 'kicking':
       return { prep, dials: { kicking: nudge(tac.kicking, -6) } }
   }
-}
-
-const UNIT_PREP: Record<Unit, MatchPrep> = {
-  scrum: 'setpiece', lineout: 'setpiece', defence: 'attack', attack: 'defence', kicking: 'attack',
 }
 
 /** Two or three plans, from the report. Club fixtures only: a Test side trains
