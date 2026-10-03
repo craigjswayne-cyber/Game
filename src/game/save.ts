@@ -21,6 +21,7 @@ import { migrateBonds } from './bonds'
 import { migrateRoom } from './room'
 import { migrateMemory } from './memory'
 import { migrateTacLoop } from './oppreport'
+import { migrateEvidence } from './evidence'
 import { migrateHistory } from './history'
 import { migrateArc } from './arcbook'
 
@@ -1025,8 +1026,10 @@ export function migrate(s: GameState): GameState {
     }
   }
 
-  // the tactical loop's findings: healed and capped (#181)
+  // the tactical loop's findings: healed and capped (#181), and the evidence
+  // filed beside them (1.8.3): absent on an older save, and left absent
   migrateTacLoop(s)
+  migrateEvidence(s)
 
   // THE STYLES (1.8.2): a save from before them has dials and no style, so
   // the manager's side is named the nearest attack and defence to its dials,

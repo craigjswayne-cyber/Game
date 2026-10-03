@@ -12,6 +12,7 @@ import { BRIEF_BY_ID, SPLIT_BY_ID, benchSeats, briefForSeat, splitFor } from '..
 import { BriefIcon } from '../tacticsArt'
 import { assistantFixtureThisWeek, isKnockoutTie, userMatchThisWeek } from '../../game/season'
 import { halfTimeHints, matchConditions, surfKey, surfaceNote, surfaceOf, wxEffectKey } from '../../game/conditions'
+import { buildEvidence, halfSides, htEvidence, rankWhy } from '../../game/evidence'
 import { effAt } from '../../game/attributes'
 import { fuzzedCa } from '../../game/scout'
 import { PRESETS, SLIDER_INFO, sliderReadout, type SliderKey } from '../../game/tactics'
@@ -2375,24 +2376,28 @@ function Live() {
 
 /** THE ASSISTANT'S WORD AT HALF TIME (1.8.2 depth): one or two plain lines
  *  read off what the first forty did against the referee and the day
- *  (conditions.ts halfTimeHints). Nothing drawn; silent when there is
+ *  (conditions.ts halfTimeHints), and since 1.8.3 what is working and what
+ *  is hurting, off the first half's evidence (evidence.ts htEvidence), each
+ *  in the place of a weaker line. Nothing drawn; silent when there is
  *  nothing worth saying. */
 function HalfTimeWord() {
   const game = useStore(s => s.game)!
   const live = useStore(s => s.liveMatch)!
   const ctx = live.ctx
-  const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
-  const opp = mine === ctx.home ? ctx.away : ctx.home
-  const read = (s: SideCtx) => ({
-    consPens: s.consPens, turnLost: s.styTurnLost ?? 0, turnWon: s.styTurnWon ?? 0,
-    scrum: s.setAcc && s.setAcc.n ? s.setAcc.scrum / s.setAcc.n : 0, score: s.score,
-  })
-  const lines = halfTimeHints(refFor(ctx.fx.id), ctx.weather, read(mine), read(opp), !!ctx.uncontested)
-  if (!lines.length || !game) return null
+  const ev = game ? buildEvidence(game, ctx) : null
+  if (!ev || !game) return null
+  const [mine, opp] = halfSides(ev)
+  const lines = halfTimeHints(refFor(ctx.fx.id), ctx.weather, mine, opp, !!ctx.uncontested, htEvidence(ev))
+  if (!lines.length) return null
   return (
     <div className="card" style={{ margin: '8px 14px' }} data-halftime-word={lines.length}>
       <div className="fact-label">{t('matchday.htWord')}</div>
-      {lines.map(l => <div key={l.k} className="meta">{t(l.k, l.v)}</div>)}
+      {lines.map(l => (
+        <div key={l.k} className="meta" data-ht-tag={l.tag}>
+          {l.tag && <b style={{ color: l.tag === 'work' ? 'var(--text-positive)' : 'var(--text-negative)' }}>{t(l.tag === 'work' ? 'matchday.htWorking' : 'matchday.htHurting')} </b>}
+          {t(l.k, l.v)}
+        </div>
+      ))}
     </div>
   )
 }
@@ -2458,21 +2463,12 @@ function MatchVerdict() {
   const opp = mine === ctx.home ? ctx.away : ctx.home
   const star = ctx.motmId != null ? game.players[ctx.motmId] : null
   const starMine = star && mine.ratings.has(star.id)
-  const margin = mine.score - opp.score
-  // `possTotal`, not `t`: t() is the translator (src/game/i18n.ts), and a local
-  // called t here would shadow it silently - everything still typechecks
-  const possTotal = ctx.home.poss + ctx.away.poss || 1
-  const myPoss = Math.round(((mine === ctx.home ? ctx.home.poss : ctx.away.poss) / possTotal) * 100)
-  const feedback = t(margin > 0
-    ? (myPoss < 45 ? 'matchday.vdWonNoBall'
-      : margin >= 20 ? 'matchday.vdRuthless'
-      : 'matchday.vdHabit')
-    : margin === 0
-      ? 'matchday.vdDraw'
-      : (myPoss >= 55 ? 'matchday.vdWasted'
-        : margin <= -20 ? 'matchday.vdBeaten'
-        : 'matchday.vdMargins'))
-  // The verdict used to stop at the sentence above, which names nothing (user:
+  // WHY (1.8.3): the three causes that decided it, ranked, each with its
+  // number (evidence.ts rankWhy). It replaced one sentence picked from the
+  // possession share and the margin, which named nothing.
+  const ev = buildEvidence(game, ctx)
+  const why = ev ? rankWhy(ev, 3) : []
+  // The verdict used to stop at one sentence, which named nothing (user:
   // "it should outline what the two fixes would be etc so the player can keep
   // tweaking the tactics"). game/coachfix reads the same match data and turns it
   // into two instructions that each point at a real control.
@@ -2529,7 +2525,12 @@ function MatchVerdict() {
         </div>
       )}
       <div className="fact-label" style={{ marginTop: 8 }}>{t('matchday.coachsVerdict')}</div>
-      <div className="meta">{feedback}</div>
+      {why.map(w => (
+        <div key={w.cause} className="meta" data-why={w.cause}
+          style={{ borderLeft: `3px solid ${w.sig > 0 ? 'var(--text-positive)' : 'var(--text-negative)'}`, paddingLeft: 6, marginTop: 3 }}>
+          {t(w.k, w.v)}
+        </div>
+      ))}
 
       {verdictOnLast && (
         <div className={`fix-grade${grade.missed.length === 0 ? ' good' : ''}`}>

@@ -144,6 +144,9 @@ try {
 
   // Drive to full time. The clock stops dead for a touchline call, and Skip is
   // disabled while one is waiting, so those are answered first or the walk hangs.
+  // At half time the assistant's word is read on the way past (1.8.3): two
+  // lines at most, and what is working or hurting carries its label.
+  let htWord = null
   for (let i = 0; i < 200; i++) {
     const s = await page.evaluate(() => {
       const body = document.body.textContent ?? ''
@@ -156,6 +159,13 @@ try {
     if (s.ft) break
     if (s.call) await page.click('text=Take the Points').catch(() => {})
     else if (s.interval) {
+      if (!htWord && await page.locator('text=▸ Start Second Half').count()) {
+        htWord = await page.evaluate(() => {
+          const card = document.querySelector('[data-halftime-word]')
+          if (!card) return { lines: [] }
+          return { lines: [...card.querySelectorAll('.meta')].map(m => ({ tag: m.getAttribute('data-ht-tag'), text: (m.textContent ?? '').trim() })) }
+        })
+      }
       await page.click('text=▸ Start Second Half')
         .catch(() => page.click('text=▸ Play the Final Quarter').catch(() => {}))
     } else {
@@ -183,6 +193,15 @@ try {
     }
   })
   ok(!!verdict, 'the full-time card carries a coach\'s verdict')
+  // ---- why we won or lost (1.8.3) -------------------------------------------
+  const why = await page.evaluate(() => [...document.querySelectorAll('[data-why]')].map(r => (r.textContent ?? '').trim()))
+  say('')
+  for (const w of why) say(`  why: ${w}`)
+  if (htWord) for (const l of htWord.lines) say(`  half time${l.tag ? ` (${l.tag})` : ''}: ${l.text}`)
+  ok(why.length >= 1 && why.length <= 3, `the verdict gives ${why.length} ranked reason(s), three at most`)
+  ok(why.every(w => /\d| a try| once| a penalty/.test(w)), 'and every reason carries its number')
+  ok(!htWord || htWord.lines.length <= 2, `the half-time word stays at two lines at most (${htWord?.lines.length ?? 'not seen'})`)
+  ok(!htWord || htWord.lines.filter(l => l.tag).every(l => /^(Working|Hurting):/.test(l.text)), 'and what is working or hurting says which')
   if (verdict) {
     say('')
     for (const r of verdict.rows) say(`  ${r.no}. ${r.head}\n     ${r.how}`)

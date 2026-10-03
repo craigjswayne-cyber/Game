@@ -1122,6 +1122,98 @@ export interface SideCtx {
    *  side's units follow its replacements, the full-time figure is the pack
    *  that finished the game, not the one that contested most of it. */
   setAcc?: { scrum: number; lineout: number; breakdown: number; n: number }
+  /** WHAT THE MATCH WAS MADE OF (1.8.3, evidence.ts): counts kept as the
+   *  ticks run, from numbers each tick has already worked out, so the full
+   *  time and half time reads can say why without guessing. Never drawn,
+   *  never read by the simulation; absent on a match begun by an older build. */
+  ev?: EvCount
+}
+
+/** The causes a point can be put down to (EvCount.pts), in this order of
+ *  precedence for a try: a called move that made it, a turnover won in that
+ *  tick or the one before, a line break (a tick whose try chance cleared
+ *  BREAK_P), and phase play for the rest of open play. Then the other side's
+ *  penalties (the kick, the corner, the tap and a try under advantage), and
+ *  the boot (drop goals, and the try off a charge-down). A conversion goes
+ *  with its try. */
+export const EV_CAUSES = ['move', 'turn', 'break', 'phase', 'pen', 'kick'] as const
+export type EvCause = typeof EV_CAUSES[number]
+
+/** A LINE BREAK, as the engine sees one: a tick whose try chance, after
+ *  everything (units, ground, plan, contest, move, style, the clock), is at
+ *  least this. About five in a match for a side (evidenceprobe), more in a
+ *  mismatch; the counter only names the ticks, it decides nothing. */
+export const BREAK_P = 0.2
+
+/** the zone a side is in, by its own distance up the pitch (tactics.zoneAt):
+ *  0 its own 22, 1 the middle, 2 the opposition 22 */
+export const zoneIdx = (up: number): 0 | 1 | 2 => up < 22 ? 0 : up > 78 ? 2 : 1
+
+export interface EvCount {
+  /** per move called: [calls, metres it won or lost (the line's own move),
+   *  tries it made, calls the tape blunted, metres the blunting cost] */
+  calls: Record<string, number[]>
+  /** points by cause, in EV_CAUSES order; they sum to the side's score */
+  pts: number[]
+  /** line breaks, and ticks where this side won its carry (contest) */
+  breaks: number
+  carries: number
+  /** the style matchup summed over this side's ticks (styles.ts m), and the
+   *  tries the style added over the world's (the try chance it multiplied) */
+  sty: number
+  styX: number
+  /** ticks this side played in each zone (its plan's zone), own 22 first */
+  zone: number[]
+  /** turnovers won and lost, by the zone (from this side's view) they
+   *  happened in; and the tick of the last one won (for the try that follows) */
+  turnWon: number[]
+  turnLost: number[]
+  lastTurn: number
+  /** the try chance the tape took off this side's calls (armsrace.ts) */
+  bluntX: number
+}
+
+/** the counters, made on first use, so an old match reads as empty */
+export function evOf(side: SideCtx): EvCount {
+  return (side.ev ??= {
+    calls: {}, pts: [0, 0, 0, 0, 0, 0], breaks: 0, carries: 0, sty: 0, styX: 0,
+    zone: [0, 0, 0], turnWon: [0, 0, 0], turnLost: [0, 0, 0], lastTurn: -9, bluntX: 0,
+  })
+}
+
+/** Points on the board, put down to what made them: the cause the scoring
+ *  path set on ctx.evWhy, else phase play (a penalty kick and a drop goal
+ *  name their own). */
+function evPts(ctx: LiveCtx, side: SideCtx, n: number, cause?: EvCause) {
+  const c = cause ?? ctx.evWhy ?? 'phase'
+  evOf(side).pts[EV_CAUSES.indexOf(c)] += n
+}
+
+/** One tick's worth of evidence for the side with the ball, read off what
+ *  simTick has just worked out for it: where it was, whether the tick was a
+ *  line break, who won the carry, what the style matchup and the called move
+ *  were worth, and what the tape took off the call. */
+function evTick(side: SideCtx, opp: SideCtx, pTry: number, up: number,
+  mv: MoveInPlay | null, st: { m: number; tryF: number }, contest: Contest | null | undefined) {
+  const ev = evOf(side)
+  ev.zone[zoneIdx(up)] += 1
+  if (pTry >= BREAK_P) ev.breaks += 1
+  if (contest && contest.dominance > 0.5) ev.carries += 1
+  if (side.sty && opp.sty) {
+    ev.sty += st.m
+    if (st.tryF > 0) ev.styX += pTry * (1 - 1 / st.tryF)
+  }
+  if (!mv) return
+  // the ground the call moves the line by when the tick comes to nothing
+  const metres = (g: number) => g >= 0 ? g * 20 : g * 40 * mv.risk
+  const c = (ev.calls[mv.id] ??= [0, 0, 0, 0, 0])
+  c[0] += 1
+  c[1] += metres(mv.gain)
+  if (mv.gain0 != null && mv.gain0 !== mv.gain) {
+    c[3] += 1
+    c[4] += metres(mv.gain0) - metres(mv.gain)
+    ev.bluntX += pTry * ((1 + mv.gain0) / Math.max(0.05, 1 + mv.gain) - 1)
+  }
 }
 
 /** WHAT THE SKY DOES TO THE UNITS (conditions.ts), one place for kick-off and
@@ -2039,6 +2131,13 @@ export interface LiveCtx {
    *  in the try line instead of the pool's line, after the pool's draw has
    *  been taken, so the dice are the same either way. */
   moveTry?: { id: string; launch: Launch; maker: number | null } | null
+  /** WHAT THE POINTS ABOUT TO GO ON THE BOARD ARE PUT DOWN TO (1.8.3,
+   *  EvCount.pts): set just before a scoring call and cleared after it, as
+   *  moveTry is. Read only by the counters. */
+  evWhy?: EvCause | null
+  /** the margin (home minus away) at the end of each tick, for the lead
+   *  changes the evidence keeps (evidence.ts) */
+  marginHist?: number[]
 }
 
 /**
@@ -2788,6 +2887,7 @@ function takePenaltyShot(state: GameState, ctx: LiveCtx, side: SideCtx, min: num
   if (penOver) {
     side.score += 3
     side.pens += 1
+    evPts(ctx, side, 3, 'pen')
     if (kicker) {
       kicker.stats.pens += 1; kicker.stats.points += 3
       side.ratings.set(kicker.id, (side.ratings.get(kicker.id) ?? 6) + 0.15)
@@ -2922,6 +3022,9 @@ interface MoveInPlay {
   risk: number
   /** the man it is run through, if he is on the pitch */
   maker: Player | null
+  /** what the gain would have been had the opponent not been set for it
+   *  (armsrace.ts); present only on a call the tape blunted */
+  gain0?: number
 }
 
 /** The move this side runs in this tick, or null: what the tick was launched
@@ -2944,7 +3047,9 @@ function moveInPlay(state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideCtx,
   // the manager's opponent set for his most-run calls (armsrace.ts)
   const adapt = club.id === state.userClubId ? (ctx.callAdapt?.[m.id] ?? 0) : 0
   const e = moveEdge(state, club, m.id, fit, match, adapt)
-  return { id: m.id, launch: call.launch, gain: e.gain, risk: m.risk, maker: inShirt(state, side, (MOVE_MAKER[m.id] ?? 10) - 1) }
+  // the same reckoning without the tape, for the evidence: a read, no draw
+  const gain0 = adapt > 0 ? moveEdge(state, club, m.id, fit, match, 0).gain : undefined
+  return { id: m.id, launch: call.launch, gain: e.gain, risk: m.risk, maker: inShirt(state, side, (MOVE_MAKER[m.id] ?? 10) - 1), gain0 }
 }
 
 /** how far the penalty slot's play moves a quick tap's chance, per unit of
@@ -3228,7 +3333,9 @@ function chargeDown(state: GameState, ctx: LiveCtx, kick: SideCtx, charge: SideC
     // which quietly paid the own-22 exit plans twice (optionsprobe)
     charge.pressure = clamp(charge.pressure + 42, 0, 100)
     kick.pressure = clamp(kick.pressure * 0.55, 0, 100)
+    ctx.evWhy = 'kick'
     scoreTry(state, ctx, charge, min, said(ctx, CHARGE_TRY_LINES), charger, { player: charger.name }, false)
+    ctx.evWhy = null
     return
   }
   // otherwise one of four, evenly: touch, a scrum, the chargers regather, or
@@ -3286,6 +3393,7 @@ function dropGoalAttempt(state: GameState, ctx: LiveCtx, side: SideCtx, min: num
   noteKick(ctx, side, dgOver)
   if (dgOver) {
     side.score += 3
+    evPts(ctx, side, 3, 'kick')
     fh.stats.drops += 1; fh.stats.points += 3
     // the line before the restart, so it is stamped where it was struck
     pushLine(state, ctx, min, 'DG', side, 'comm.dropGoal', { player: fh.name }, fh.id)
@@ -3416,6 +3524,7 @@ function scoreTry(
   ctx.field = ctx.field * 0.6 + 50 * 0.4
   side.score += 5
   side.tries += 1
+  evPts(ctx, side, 5)
   if (scorer) {
     // ---- A TRY IS SCORED BY FIFTEEN MEN ----
     //
@@ -3497,6 +3606,7 @@ function scoreTry(
   noteKick(ctx, side, conOver)
   if (conOver) {
     side.score += 2
+    evPts(ctx, side, 2)
     if (kicker) { kicker.stats.cons += 1; kicker.stats.points += 2 }
     // A TRY UNDER THE POSTS IS NOT CONVERTED FROM THE TOUCHLINE (1.6.3). The
     // conversion line was drawn without looking at the try line, and thirteen
@@ -3538,7 +3648,10 @@ export function resolveDecision(state: GameState, ctx: LiveCtx, choice: 'posts' 
   ctx.decision = null
   const whistleAt = ctx.whistleAt
   const before = ctx.events.length
+  // whatever the answer puts on the board is the penalty's (EvCount.pts)
+  ctx.evWhy = 'pen'
   const msg = decide(state, ctx, d, choice)
+  ctx.evWhy = null
   if (whistleAt != null && whistleAt <= before) {
     const moved = ctx.events.splice(before)
     // AND THEY TAKE THE WHISTLE'S CLOCK WITH THEM.
@@ -4489,6 +4602,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
      * the way it does when you are watching.
      */
     side.xTry = (side.xTry ?? 0) + pTry
+    evTick(side, opp, pTry, up, mv, st, contest)
     const floor = clamp(pTry * 190, 4, 62)
     side.pressure = clamp(side.pressure * 0.72 + floor * 0.28, 0, 100)
 
@@ -4497,8 +4611,16 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       side.pressure = clamp(side.pressure + 42, 0, 100)
       opp.pressure = clamp(opp.pressure * 0.55, 0, 100)
       ctx.moveTry = moveTryOf(state, ctx, side, mv, tick)
+      // what the try is put down to (EV_CAUSES, in that order)
+      ctx.evWhy = ctx.moveTry ? 'move' : evOf(side).lastTurn >= tick - 1 ? 'turn' : pTry >= BREAK_P ? 'break' : 'phase'
+      const tries0 = side.tries
       scoreTry(state, ctx, side, min)
+      if (ctx.moveTry && side.tries > tries0) {
+        const c = evOf(side).calls[ctx.moveTry.id]
+        if (c) c[2] += 1
+      }
       ctx.moveTry = null
+      ctx.evWhy = null
     } else if (r < pTry + penWindow) {
       // a penalty won is a side on the front foot, whatever it does with it
       side.pressure = clamp(side.pressure + 17, 0, 100)
@@ -4542,7 +4664,9 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       if (advRoll < pAdvTry) {
         // they did not need the three: the arm was still out when they scored
         if (detail) pushLine(state, ctx, min, 'SUB', side, 'comm.advPlaying', { team: teamShort(state, side.teamId) })
+        ctx.evWhy = 'pen'
         scoreTry(state, ctx, side, min)
+        ctx.evWhy = null
       } else if (advRoll < pAdvTry + pAdvOver) {
         // ground made, nothing at the end of it, and the kick is gone with it
         if (detail) pushLine(state, ctx, min, 'SUB', side, 'comm.advOver', { team: teamShort(state, side.teamId) })
@@ -4611,6 +4735,12 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     if (r >= pTry + penWindow && side.score + opp.score === scores0 && side.sty && opp.sty) {
       if (st.ground) backTowards(ctx, side, -st.ground)
       if (moveHash(styleSalt(state, ctx), tick, side === home ? 3 : 4, 0x57) < st.turnP) {
+        // where it was lost, for the evidence, before the line moves
+        const z = zoneIdx(upOf(ctx, side))
+        evOf(side).turnLost[z] += 1
+        const eo = evOf(opp)
+        eo.turnWon[2 - z] += 1
+        eo.lastTurn = tick
         backTowards(ctx, side, TURN_M)
         opp.styTurnWon = (opp.styTurnWon ?? 0) + 1
         side.styTurnLost = (side.styTurnLost ?? 0) + 1
@@ -4865,6 +4995,8 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
   // rolling possession history: each entry is the home share of one tick,
   // so the live 'LAST 10 MINUTES' graphic can average the recent window
   ;(ctx.momoHist ??= []).push(dh + da > 0 ? dh / (dh + da) : 0.5)
+  // and the scoreboard at the end of it, for the lead changes (evidence.ts)
+  ;(ctx.marginHist ??= []).push(home.score - away.score)
 }
 
 /**

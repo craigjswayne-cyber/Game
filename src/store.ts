@@ -107,6 +107,7 @@ import {
 } from './game/resume'
 import { isHighlight } from './game/highlights'
 import { fileFindings } from './game/matchfindings'
+import { fileEvidence } from './game/evidence'
 
 /**
  * How close together two Continue taps have to be before the second is treated as
@@ -812,6 +813,7 @@ export const useStore = create<Store>((set, get) => ({
       // a tie level at the whistle is settled there, as the live match does
       settleKnockout(base, out.ctx)
       fileFindings(base, out.ctx)
+      fileEvidence(base, out.ctx)
       notePlayedOut(base, out.fixture, fromMin)
       base.newsFrom = base.nextId
       processWeekAndAdvance(base)
@@ -1165,6 +1167,7 @@ export const useStore = create<Store>((set, get) => ({
       playHalf(g, ctx)
       // the tactical loop's findings, before the week turns (#181)
       fileFindings(g, ctx)
+      fileEvidence(g, ctx)
     }
     const resultsKey = resultsParam(fx.compId, g.week)
     // Exactly what finishMatch does, and for the same reason. This used to set
@@ -1529,8 +1532,11 @@ export const useStore = create<Store>((set, get) => ({
     const live = get().liveMatch
     if (!g) return
     const resultsKey = live ? resultsParam(live.fixture.compId, g.week) : null
-    // the tactical loop's findings, before the week turns (#181)
-    if (live) fileFindings(g, live.ctx)
+    // the tactical loop's findings and the evidence, before the week turns (#181)
+    if (live) {
+      fileFindings(g, live.ctx)
+      fileEvidence(g, live.ctx)
+    }
     g.newsFrom = g.nextId
     processWeekAndAdvance(g)
     set(s => ({ liveMatch: null, tick: s.tick + 1 }))

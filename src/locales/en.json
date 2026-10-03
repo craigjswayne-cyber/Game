@@ -1513,13 +1513,6 @@
   "uwEdged": " won · we edged it",
   "uwEven": " won · broke even",
   "uwShaded": " won · they shaded it",
-  "vdBeaten": "Beaten in every collision. The review will be honest, and it will sting.",
-  "vdDraw": "A draw that will feel like a loss or a win by Tuesday, depending on the video.",
-  "vdHabit": "Winning tight ones is a habit - and we just fed the habit.",
-  "vdMargins": "Fine margins. Fix the two below and that is our game.",
-  "vdRuthless": "Ruthless. The assistant wants the same standards next week, not a lap of honour.",
-  "vdWasted": "All that ball and nothing to show for it - the assistant circles our finishing in red.",
-  "vdWonNoBall": "We won without the ball - the defensive shift was enormous. Take that anywhere.",
   "venueHome": "{stadium}, {city}",
   "venueNeutral": "{name}, {city} · neutral ground",
   "victory": "VICTORY",
@@ -1617,9 +1610,67 @@
   "htWetTight": "It is wet: one pass too many is a turnover. Carry it, and use the boot.",
   "htWind": "The wind is taking the long kicks: find touch short and keep it in hand into it.",
   "htUncontested": "The scrums are uncontested now: the set piece is out of it, so play off the lineout.",
-  "htScrumBad": "Their scrum is on top: get the ball in and out quickly at the set piece.",
-  "htScrumGood": "Our scrum is winning: kick for the corners and take them on up front.",
-  "htDefWorks": "The defence keeps winning the ball back: hold the line where it is."
+  "htWorking": "Working:",
+  "htHurting": "Hurting:",
+  "whyMoveFor": {
+   "one": "Your {move_k} made a try, and {m}m a call.",
+   "other": "Your {move_k} made {n} tries, and {m}m a call."
+  },
+  "whyMoveForTries": {
+   "one": "Your {move_k} made a try.",
+   "other": "Your {move_k} made {n} tries."
+  },
+  "whyMoveAgainst": {
+   "one": "Their {move_k} made a try against us.",
+   "other": "Their {move_k} made {n} tries against us."
+  },
+  "whyRead": "They had read your {move_k}: {m}m from {n} calls, where it would have made {m0}m.",
+  "whySetFor": "They lost {n} of their own scrums and lineouts; we lost {m}.",
+  "whySetAgainst": "We lost {n} of our own scrums and lineouts; they lost {m}.",
+  "whyPenFor": {
+   "one": "They gave away a penalty: {p} points for us.",
+   "other": "They gave away {n} penalties: {p} points for us."
+  },
+  "whyPenFor0": {
+   "one": "They gave away a penalty.",
+   "other": "They gave away {n} penalties."
+  },
+  "whyPenAgainst": {
+   "one": "We gave away a penalty: {p} points for them.",
+   "other": "We gave away {n} penalties: {p} points for them."
+  },
+  "whyPenAgainst0": {
+   "one": "We gave away a penalty.",
+   "other": "We gave away {n} penalties."
+  },
+  "whyTurnFor": {
+   "one": "We won the ball back once: {p} points from it.",
+   "other": "We won the ball back {n} times: {p} points from it."
+  },
+  "whyTurnFor0": {
+   "one": "We won the ball back once.",
+   "other": "We won the ball back {n} times."
+  },
+  "whyTurnAgainst": {
+   "one": "We lost the ball once: {p} points to them.",
+   "other": "We lost the ball {n} times: {p} points to them."
+  },
+  "whyTurnAgainst0": {
+   "one": "We lost the ball once.",
+   "other": "We lost the ball {n} times."
+  },
+  "whyBreakFor": "Line breaks: {n} for us, {m} for them; {p} points from ours.",
+  "whyBreakFor0": "Line breaks: {n} for us, {m} for them.",
+  "whyBreakAgainst": "Line breaks: {n} for them, {m} for us; {p} points from theirs.",
+  "whyBreakAgainst0": "Line breaks: {n} for them, {m} for us.",
+  "whyPhaseFor": "{mins} minutes in their 22: {p} points from phase play.",
+  "whyPhaseFor0": "{mins} minutes in their 22.",
+  "whyPhaseAgainst": "They had {mins} minutes in our 22: {p} points from phase play.",
+  "whyPhaseAgainst0": "They had {mins} minutes in our 22.",
+  "whyKickFor": "Drop goals and charge-downs: {p} points for us.",
+  "whyKickAgainst": "Drop goals and charge-downs: {p} points for them.",
+  "whyStyleFor": "The battle of styles: {atk_k} had the beating of {def_k}, about {p} points to us.",
+  "whyStyleAgainst": "The battle of styles: {atk_k} had the beating of {def_k}, about {p} points to them."
  },
  "tacticsScreen": {
   "tabRoles": "Roles",
