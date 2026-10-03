@@ -29,7 +29,7 @@
 // banks it. scripts/aiecon.ts holds both the median and the spread.
 import { seniorsOf } from './ai'
 import { MARQUEE_SLOTS } from './cap'
-import {isMyClub, LEDGER_WEEKS, weeklyCentral, groundUpkeep, groundTrade, type Club, type GameState, type Player } from './model'
+import { demandCeiling, isMyClub, LEDGER_WEEKS, weeklyCentral, groundUpkeep, groundTrade, type Club, type GameState, type Player } from './model'
 
 /** Same £30 a head the manager's club takes, because it is the same ticket. */
 const GATE_PER_HEAD = 30
@@ -101,8 +101,163 @@ export function moneyIndex(state: GameState): number {
   return Math.min(4, Math.max(1, median / BASE_WAGE_BILL))
 }
 
-/** A club this deep in the hole starts looking at who it can live without. */
-export const FIRE_SALE = -4_000_000
+/**
+ * A club this deep in the hole starts looking at who it can live without, in
+ * weeks of wages.
+ *
+ * Until 1.8.3 it was a flat four million, which is twelve weeks of a Premiership
+ * bill and twenty to fifty of a National One one. The board below sheds wages at
+ * twelve weeks and the bank stops the slide at twenty, so a small club hit the
+ * floor, and then administration, without ever putting a man on the market.
+ * Ten weeks sits just ahead of the shedding, for everybody.
+ */
+export const FIRE_SALE_WEEKS = 10
+
+/**
+ * ---- WHAT A CLUB CAN PAY (1.8.3) ----
+ *
+ * The fifteen-season audit found the bottom of the pyramid structurally
+ * insolvent. Every wage in the world was priced by playerWage on ability and
+ * age alone, so a National One side that developed its men paid them what a
+ * Premiership side pays the same ability, out of a fraction of the income:
+ * its bill grew two and a half to three times over fourteen seasons against
+ * income that grew by half, and by season nine nine clubs in ten down there
+ * were in the red. A renewal never fell below the man's current wage, so a
+ * bill, once grown, could only grow.
+ *
+ * Real clubs pay what their income lets them. This is that number: the share
+ * of the market rate a board can offer when it renews, buys, signs a free
+ * agent or promotes a graduate. One at a club that can afford its bill, and the scale
+ * is exactly what it was; below one where the bill outruns the income, so the
+ * next deals come in cheaper and the bill walks back towards what the club
+ * earns. A thin bank balance counts against it, so a club in the red pays
+ * less again until it has cleared the debt and put a cushion by. The
+ * manager's own club never reads it: his negotiations, and the demands on
+ * his contract screen, are unchanged.
+ */
+
+/** The lowest share of the scale a board will offer. A man takes a cut to
+ *  stay at a club that cannot pay, but not below half his worth. */
+const PAY_FLOOR = 0.5
+
+/** The share of what is left after staff and the ground that a board will
+ *  commit to wages, so a club that pays its way also puts a little by. */
+const WAGE_SHARE = 0.92
+
+/** A board likes this many weeks of wages in the bank, and pays less until it
+ *  has them. Aiming at nought left half of every lower league either side of
+ *  it, so in the red as often as not, and eight weeks still left National One
+ *  at about nought: a board's pressure only balances the drift of its men's
+ *  ability up the scale once it is short of the cushion, so the cushion has
+ *  to sit above where the balance comes to rest (scripts/distressprobe.ts:
+ *  44%, then 21-38%, then 12% of the lower leagues in the red at season 14,
+ *  31% once the transfer allowance stopped reading it, aiTransferBudget). */
+const RESERVE_WEEKS = 12
+
+/** A shortfall against that cushion is planned to be made up over this many
+ *  ledger weeks: one season. */
+const REPAY_WEEKS = 45
+
+/** Before this many weeks of the season, too few gates have been taken to
+ *  read, and the expected gate stands in for them. */
+const GATE_READ_WEEKS = 10
+
+/** Prize money per place from the bottom (rollover.ts): a board budgets for a
+ *  mid-table finish. */
+const PRIZE_PER_PLACE = 120_000
+
+/**
+ * Each club's weekly gate across the season so far, as the ledger booked it
+ * (aiWeek: home fixtures inside the ledger, at £30 a head on the index).
+ * Early in a season, before there are gates to read, the expected one: the
+ * attendance formula's own centre (matchEngine.ts) on the seats the club can
+ * sell, at one home game for each opponent in its league.
+ */
+function gateRates(state: GameState, clubs: Club[], index: number): Map<string, number> {
+  const weeks = Math.min(LEDGER_WEEKS, state.week)
+  const out = new Map<string, number>()
+  if (weeks >= GATE_READ_WEEKS) {
+    const one = clubs.length === 1 ? clubs[0].id : null
+    for (const f of state.fixtures) {
+      if (!f.played || !f.att || f.week > LEDGER_WEEKS || (one && f.homeId !== one)) continue
+      out.set(f.homeId, (out.get(f.homeId) ?? 0) + f.att * GATE_PER_HEAD * index / weeks)
+    }
+    return out
+  }
+  for (const club of clubs) {
+    const homes = Math.max(0, (state.comps[club.leagueId]?.table.length ?? 12) - 1)
+    const interest = Math.min(0.96, Math.max(0.24, 0.44 + club.rep / 250 + 60 / 430))
+    const att = Math.min(club.capacity, demandCeiling(club)) * interest
+    out.set(club.id, homes * att * GATE_PER_HEAD * index / LEDGER_WEEKS)
+  }
+  return out
+}
+
+/**
+ * What each AI club can afford to spend on wages a week: its income less its
+ * staff and its ground, a mid-table share of the prize money, and the margin.
+ * Measured once and passed around, because the rollover needs it after the
+ * season's fixtures (its gates) have been cleared.
+ */
+export function aiWageRooms(state: GameState, only?: Club): Map<string, number> {
+  const index = moneyIndex(state)
+  const clubs = (only ? [only] : Object.values(state.clubs)).filter(c => !isMyClub(state, c.id))
+  const gates = gateRates(state, clubs, index)
+  const out = new Map<string, number>()
+  for (const club of clubs) {
+    const w = aiWeek(state, club, index)
+    const size = state.comps[club.leagueId]?.table.length ?? 12
+    const prize = ((size + 1) / 2) * PRIZE_PER_PLACE / LEDGER_WEEKS
+    const income = w.central + w.commercial + (gates.get(club.id) ?? 0) + prize
+    out.set(club.id, Math.max(0, (income - w.staff - w.upkeep) * WAGE_SHARE))
+  }
+  return out
+}
+
+/**
+ * The share of the market rate this club offers on its next deals, 0.5 to 1.
+ * `room` comes from aiWageRooms; without it the club's own is measured.
+ * Always 1 for the manager's club.
+ */
+export function aiPayRate(state: GameState, club: Club, room?: number): number {
+  if (isMyClub(state, club.id)) return 1
+  const r = room ?? aiWageRooms(state, club).get(club.id) ?? 0
+  const bill = club.players.reduce((s, id) => s + (state.players[id]?.wage ?? 0), 0)
+  if (bill <= 0) return 1
+  const afford = r + Math.min(0, club.balance - RESERVE_WEEKS * bill) / REPAY_WEEKS
+  // squared, because only the deals that come up this year can move the
+  // bill: a club fifteen per cent over its means has to offer about a
+  // quarter under the scale on those to close the gap in a contract cycle
+  // (measured: offering just the shortfall left lower-league bills sitting
+  // 15-20% over their income for good, scripts/distressprobe.ts)
+  const share = Math.min(1, afford / bill)
+  return Math.max(PAY_FLOOR, share * share)
+}
+
+/**
+ * AN AI BOARD IN DEBT DOES NOT GO SHOPPING (1.8.3).
+ *
+ * The summer allowance was reputation times £45,000 plus fifteen per cent of
+ * any surplus, and nothing else, so a club twenty weeks of wages under water
+ * was handed the same war chest as a solvent one and spent it on men whose
+ * wages it could not pay. Now the reputation part is paid at the club's pay
+ * rate, and half of any debt comes off the total, down to nothing at all. A
+ * club that can pay its way and is in the black gets exactly what it got.
+ *
+ * The cushion (RESERVE_WEEKS) is deliberately not in here. A first cut took
+ * half of any shortfall against it, and since most clubs sit under twelve
+ * weeks of wages in the bank, the average AI allowance at season twenty of a
+ * soak fell from £4.4M to £1.3M (scripts/soakhealth.ts): a market with
+ * nobody in it to buy the manager's players. Without it the soak reads
+ * £2.4M, the lower in part because nobody is sitting on thirty million any
+ * more, and the lower leagues' books still clear the line: 31% of them in
+ * the red at season fourteen, against 12% with it (scripts/distressprobe.ts).
+ */
+export function aiTransferBudget(state: GameState, club: Club, room?: number): number {
+  const rate = aiPayRate(state, club, room)
+  const base = club.rep * 45_000 * rate + Math.max(0, club.balance) * 0.15 + Math.min(0, club.balance) * 0.5
+  return Math.max(0, Math.round(base / 50_000) * 50_000)
+}
 
 /**
  * Twelve weeks of wages in the red, and the board stops asking nicely.
@@ -147,8 +302,16 @@ const DEBT_FLOOR_WEEKS = 20
  * clubs in the first calibration banked seventy-eight million doing nothing with
  * it, which is both unrealistic and a transfer market the manager cannot live in.
  * The manager's own board does exactly this every summer (boardReinvests).
+ *
+ * Twenty weeks, not twenty-six (1.8.3). With the lower leagues paying what
+ * they can (aiPayRate), the top flight's median balance at season fourteen
+ * came down from £15.0M to £8.4M, and this rule was what held it there: forty
+ * per cent of anything over twenty-six weeks a summer, against a club making
+ * a couple of million a year, settles about five million above the line.
+ * With twenty weeks and the cushion above it reads £3.8M, which is still
+ * months of wages in the bank (scripts/distressprobe.ts, four worlds).
  */
-const SURPLUS_WEEKS = 26
+const SURPLUS_WEEKS = 20
 
 export interface AiLedger {
   gate: number
@@ -300,7 +463,9 @@ export function aiBoardsReinvest(state: GameState): void {
 export function aiFireSale(state: GameState): number {
   let listed = 0
   for (const club of Object.values(state.clubs)) {
-    if (isMyClub(state, club.id) || club.balance > FIRE_SALE) continue
+    if (isMyClub(state, club.id)) continue
+    const wages = club.players.reduce((s, id) => s + (state.players[id]?.wage ?? 0), 0)
+    if (wages <= 0 || club.balance > -FIRE_SALE_WEEKS * wages) continue
     const squad = club.players
       .map(id => state.players[id])
       .filter((p): p is Player => !!p && !p.youth && !p.acad)

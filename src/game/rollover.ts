@@ -1,13 +1,13 @@
 import type { Club, GameState, NewsItem, Player, Pos } from './model'
 import { loanOutSummerGain, returnLoanIn } from './loans'
-import { preContractWage } from './ai'
+import { aiRenewalWage, preContractWage } from './ai'
 import { runTeamOfTheYear } from './yearend'
-import { aiBoardsReinvest } from './aiecon'
+import { aiBoardsReinvest, aiPayRate, aiTransferBudget, aiWageRooms } from './aiecon'
 import { activePlan, applyAdminPenalties } from './season'
 import { settleInsolvency } from './insolvency'
 import { ageManager } from './career'
 import { rivalVerdict } from './boss'
-import {absWeek, BASE_YEAR, boardPatience, closeNatTenure, demandCeiling, MAX_FOLLOWING, GROUND_TIERS, groundLevel, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, RELEGATES, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId, worldCupSeasonFor } from './model'
+import {absWeek, BASE_YEAR, boardPatience, isMyClub, closeNatTenure, demandCeiling, MAX_FOLLOWING, GROUND_TIERS, groundLevel, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, RELEGATES, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId, worldCupSeasonFor } from './model'
 import { assignPersonality, EARLY_FADE, LATE_PEAK } from './attributes'
 import { ageAttributes, gapGrowth } from './ageing'
 import { COE_MEAN, learning, markSights, seasonReview, tempoF, TL } from './devproject'
@@ -350,7 +350,7 @@ export function devFactor(state: GameState, p: Player): number {
   return clamp(f, p.acad ? 0.6 : 0.65, p.acad ? 1.65 : 1.4)
 }
 
-export function agePlayers(state: GameState, rng: Rng) {
+export function agePlayers(state: GameState, rng: Rng, rooms?: Map<string, number>) {
   const retirees: Player[] = []
   for (const p of Object.values(state.players)) {
     p.age += 1
@@ -462,8 +462,12 @@ export function agePlayers(state: GameState, rng: Rng) {
       p.gradS ??= state.season
       // HE SIGNS HIS FIRST PROFESSIONAL CONTRACT. He was on a development deal
       // (see playerWage), and graduating without re-pricing him would leave a
-      // senior squad man on academy money for the rest of his career.
-      p.wage = playerWage(p.ca, p.age)
+      // senior squad man on academy money for the rest of his career. At the
+      // rate his club can pay (aiecon.ts aiPayRate, 1.8.3).
+      const club = p.clubId ? state.clubs[p.clubId] : undefined
+      rooms ??= aiWageRooms(state)
+      const rate = club ? aiPayRate(state, club, rooms.get(club.id)) : 1
+      p.wage = Math.round(playerWage(p.ca, p.age) * rate / 50) * 50
       p.debutPending = p.stats.apps === 0 && p.career.length === 0 ? 'academy' : null
     }
   }
@@ -686,7 +690,7 @@ function clubServiceApps(state: GameState, p: Player): number {
   return here + pre
 }
 
-function handleContracts(state: GameState, rng: Rng) {
+function handleContracts(state: GameState, rng: Rng, rooms: Map<string, number>) {
   // every medical joker's deal ends with the season, before anybody can mistake
   // one for an expiring contract to roll (joker.ts)
   endSeasonJokers(state)
@@ -764,13 +768,25 @@ function handleContracts(state: GameState, rng: Rng) {
 
   const freed: Player[] = []
   const rolled: Player[] = []
+  // each club's middle senior wage, the line above which a board that cannot
+  // pay its bill thinks twice about a renewal (ai.ts aiRenewals)
+  const middles = new Map<string, number>()
+  for (const club of Object.values(state.clubs)) {
+    const w = club.players.map(id => state.players[id]).filter(p => p && !p.acad).map(p => p.wage).sort((a, b) => a - b)
+    middles.set(club.id, w[Math.floor(w.length / 2)] ?? 0)
+  }
   for (const p of Object.values(state.players)) {
     if (p.clubId && p.contractEnds < state.season + 1) {
       const club = state.clubs[p.clubId]
-      if (p.clubId !== state.userClubId && rng() < 0.5) {
+      // the quiet AI renewal is on the same terms as the in-season one
+      // (ai.ts aiRenewals, 1.8.3): at the rate the club can pay, and a board
+      // that cannot pay keeps fewer of its dear men. The draw is unchanged.
+      const rate = club && p.clubId !== state.userClubId ? aiPayRate(state, club, rooms.get(club.id)) : 1
+      const dear = !!club && p.wage > (middles.get(club.id) ?? Infinity)
+      if (p.clubId !== state.userClubId && rng() < 0.5 * (dear ? rate : 1)) {
         // quiet AI renewal
         p.contractEnds = state.season + 2
-        p.wage = playerWage(p.ca, p.age)
+        p.wage = rate < 1 ? aiRenewalWage(p, rate) : playerWage(p.ca, p.age)
         continue
       }
       // A ROLLING DEAL IS THE EXCEPTION, NOT THE SAFETY NET.
@@ -1004,7 +1020,7 @@ function youthIntake(state: GameState, rng: Rng) {
  *  (feedback 10G) no club on earth was ever under 26 registered players again,
  *  so a whole-squad count would have quietly switched this off and let senior
  *  squads shrivel season by season while the academy stayed full. */
-function replenishSquads(state: GameState, rng: Rng) {
+function replenishSquads(state: GameState, rng: Rng, rooms: Map<string, number>) {
   const freeAgents = () => Object.values(state.players)
     .filter(p => !p.clubId && p.age <= 34)
     .sort((a, b) => b.ca - a.ca)
@@ -1060,7 +1076,9 @@ function replenishSquads(state: GameState, rng: Rng) {
         continue
       }
       fa.clubId = club.id
-      fa.wage = playerWage(fa.ca, fa.age)
+      // a board filling its squad pays what it can (aiecon.ts aiPayRate,
+      // 1.8.3); the manager's board signs on the scale, as it always has
+      fa.wage = Math.round(playerWage(fa.ca, fa.age) * aiPayRate(state, club, rooms.get(club.id)) / 50) * 50
       fa.contractEnds = state.season + 1
       fa.morale = 7
       club.players.push(fa.id)
@@ -1678,7 +1696,11 @@ export function rebuildSeason(state: GameState) {
   delete state.natFed
   state.natLineup = null
 
-  agePlayers(state, rng)
+  // what every AI board can pay, read while the season's gates are still on
+  // the fixture list: the contracts, the squad top-up and the budgets below
+  // all price from it (aiecon.ts, 1.8.3)
+  const rooms = aiWageRooms(state)
+  agePlayers(state, rng, rooms)
   const moved: { k: string; name: string; from: string; to: string }[] = []
   for (const [id, before] of sightsBefore) {
     const p = state.players[id]
@@ -1702,9 +1724,9 @@ export function rebuildSeason(state: GameState) {
       k: 'news.devReview', v,
     })
   }
-  handleContracts(state, rng)
+  handleContracts(state, rng, rooms)
   youthIntake(state, rng)
-  replenishSquads(state, rng)
+  replenishSquads(state, rng, rooms)
   // every academy in the world recruits its next scholarship year, back up to
   // 27 in shape - see topUpAcademy for why this is not optional (feedback 10G)
   for (const club of Object.values(state.clubs)) {
@@ -2142,6 +2164,9 @@ export function rebuildSeason(state: GameState) {
   // budgets: base by rep + carryover health
   for (const club of Object.values(state.clubs)) {
     club.budget = Math.max(200_000, Math.round((club.rep * 45_000 + Math.max(0, club.balance) * 0.15) / 50_000) * 50_000)
+    // an AI board's allowance answers to its books (aiecon.ts, 1.8.3); the
+    // manager's is the line above, unchanged
+    if (!isMyClub(state, club.id)) club.budget = aiTransferBudget(state, club, rooms.get(club.id))
     // the board injections bought this season stay spendable: whatever of
     // that cash is still in the account is the floor of next season's
     // allowance, not 15% of it (scripts/qa/p5_inject.ts, 1.6.3)

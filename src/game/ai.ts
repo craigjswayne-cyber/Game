@@ -5,7 +5,8 @@ import { clubIntent } from './living'
 import { userCap, userWageBudget } from './grants'
 import { offerSigning } from './records'
 import { transferReaction } from './terraces'
-import {absWeek, SEASON_WEEKS, addGrudge, fmtMoney, fmtWage } from './model'
+import {absWeek, SEASON_WEEKS, addGrudge, fmtMoney, fmtWage, isMyClub } from './model'
+import { aiPayRate, aiWageRooms } from './aiecon'
 import { ensureCaptains } from './analysis'
 import { rivalsOf } from './rivalries'
 import { interestPremium, transferInterest } from './interest'
@@ -311,7 +312,11 @@ export function executeTransfer(state: GameState, p: Player, toClubId: string, f
     p.sc = 100
     identitySigning(state, p, fee) // an academy club's crowd has a view on a big fee (identity.ts)
   }
-  p.wage = Math.max(p.wage, playerWage(p.ca, p.age))
+  // an AI buyer offers what it can pay (aiecon.ts aiPayRate), and a man
+  // stepping down to a club that cannot match his wage takes the cut to play
+  p.wage = isMyClub(state, toClubId)
+    ? Math.max(p.wage, playerWage(p.ca, p.age))
+    : Math.round(Math.max(p.wage, playerWage(p.ca, p.age)) * aiPayRate(state, to) / 50) * 50
   p.contractEnds = state.season + 2 + (p.age < 30 ? 1 : 0)
   // a free agent has no selling club, and 'free agency' is a phrase, not a
   // name: it cannot ride in through {from} or it reaches a French screen in
@@ -979,12 +984,17 @@ export function aiPreContractPoach(state: GameState, rng: Rng) {
   })
 }
 
-export function renewalDemand(p: Player): number {
+/** What the wage scale says a man asks for on renewal, his character included. */
+function renewalScale(p: Player): number {
   const persF = p.pers === 'Mercenary' ? 1.35 : p.pers === 'Loyal' ? 0.9 : p.pers === 'Ambitious' ? 1.15 : 1
   // an academy player renews on the academy scale: the professional one was
   // quoted, signed, and then cut back by repriceAcademies at the next summer,
   // so the deal the manager agreed was not the deal the lad got
-  const scale = Math.round((playerWage(p.ca, p.age, !!p.acad && !p.demoted) * 1.1 * persF) / 50) * 50
+  return Math.round((playerWage(p.ca, p.age, !!p.acad && !p.demoted) * 1.1 * persF) / 50) * 50
+}
+
+export function renewalDemand(p: Player): number {
+  const scale = renewalScale(p)
   // NO AGENT OPENS BY ASKING FOR LESS. The figure above is what the wage scale
   // says a man of his ability and age is worth, and for a loyal young player on
   // an early big contract, or anyone whose ability has slipped, it can land under
@@ -1088,17 +1098,50 @@ export function offerRenewalAt(state: GameState, playerId: number, offer: number
   return { ok: true, msg: t('reply.signsUntil', { name: p.name, year: 2026 + p.contractEnds, wage: fmtWage(wage) }) }
 }
 
+/**
+ * What an AI club renews a man at (1.8.3): his demand, at the share of the
+ * scale the club can pay (aiPayRate). At a club that can afford its bill
+ * this is renewalDemand to the pound. At one that cannot, it is the demand
+ * cut by the same share, and it can come in under what he is on now: a man
+ * renewing at a club that is struggling to pay takes less to stay, which is
+ * the only way a bill that has outgrown its income ever comes back down.
+ */
+export function aiRenewalWage(p: Player, rate: number): number {
+  if (rate >= 1) return renewalDemand(p)
+  const floor = Number.isFinite(p.wage) ? Math.max(0, p.wage) : 0
+  return Math.round((Math.max(renewalScale(p), floor) * rate) / 50) * 50
+}
+
+/** The renewal rate a club runs when it can afford its bill. */
+const AI_RENEW = 0.75
+
 /** AI clubs renew their expiring key players (some slip through to free agency). */
 export function aiRenewals(state: GameState, rng: Rng) {
   if (state.week !== 28 && state.week !== 36) return
+  const rooms = aiWageRooms(state)
   for (const club of Object.values(state.clubs)) {
-    if (club.id === state.userClubId) continue
+    // isMyClub, not userClubId: a sacked manager's old club is run by its
+    // board, and its contracts ran down untouched while he was out of work
+    // (the same fix aiWeeklyFinance had in 1.8.1)
+    if (isMyClub(state, club.id)) continue
+    const rate = aiPayRate(state, club, rooms.get(club.id))
+    // A CLUB THAT CANNOT PAY LETS ITS DEAR MEN GO (1.8.3). Three in four were
+    // renewed whatever the books said. Now a board that cannot afford its bill
+    // keeps fewer of the expiring men earning above its middle, by its pay
+    // rate; the cheap ones it keeps as before. Cutting those too cost the
+    // lower leagues more of their quality than their books needed
+    // (scripts/distressprobe.ts).
+    // Still one draw a man, so the stream only moves where a decision does.
+    const wages = club.players.map(id => state.players[id]).filter(p => p && !p.acad).map(p => p.wage).sort((a, b) => a - b)
+    const middle = wages[Math.floor(wages.length / 2)] ?? 0
     for (const id of club.players) {
       const p = state.players[id]
-      if (p && p.contractEnds <= state.season && rng() < 0.75 && !p.retiring &&
+      if (!p || p.contractEnds > state.season) continue
+      const keep = AI_RENEW * (p.wage > middle ? rate : 1)
+      if (rng() < keep && !p.retiring &&
         !(state.preContracts ?? []).some(pc => pc.playerId === p.id)) {
         p.contractEnds = state.season + 1 + Math.floor(rng() * 2)
-        p.wage = renewalDemand(p)
+        p.wage = aiRenewalWage(p, rate)
       }
     }
   }
