@@ -31,6 +31,8 @@ const at = (state: GameState, w: number, m: number, seasons: number, titles: num
   state.mgr.finishes = Array.from({ length: seasons }, (_, i) => ({
     season: i, leagueId: 'prem', pos: i < titles ? 1 : 5,
   }))
+  // a title is the league's trophy in the cabinet, not first place (1.8.4)
+  state.mgr.trophies = Array.from({ length: titles }, (_, i) => ({ compId: 'prem', season: i }))
   return horizon(state)
 }
 
