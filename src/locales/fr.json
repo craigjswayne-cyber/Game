@@ -6006,6 +6006,7 @@
     "unitCentres": "les centres",
     "unitBackThree": "le triangle arrière",
     "transferDoneFree": "{to} a finalisé la signature de {player}, qui était sans club. Le joueur de {age} ans s'est mis d'accord sur {wage}/semaine jusqu'en {until}.",
+    "transferDoneFreeSubj": "{player} rejoint {to}",
     "sponsorYears": {
       "one": "une saison",
       "other": "{n} saisons"

@@ -5858,6 +5858,7 @@
   "unitCentres": "die senters",
   "unitBackThree": "die agterste drie",
   "transferDoneFree": "{to} het die tekening van {player}, wat sonder 'n klub was, voltooi. Die {age}-jarige het terme van {wage}/week ooreengekom tot {until}.",
+  "transferDoneFreeSubj": "{player} sluit by {to} aan",
   "sponsorYears": {
    "one": "een seisoen",
    "other": "{n} seisoene"

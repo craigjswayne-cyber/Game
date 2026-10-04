@@ -5942,6 +5942,7 @@
   "unitCentres": "los centros",
   "unitBackThree": "el triángulo ancho",
   "transferDoneFree": "{to} ha cerrado el fichaje de {player}, que estaba sin equipo. El jugador de {age} años ha acordado un contrato de {wage}/semana hasta {until}.",
+  "transferDoneFreeSubj": "{player} ficha por {to}",
   "sponsorYears": {
    "one": "una temporada",
    "other": "{n} temporadas"
