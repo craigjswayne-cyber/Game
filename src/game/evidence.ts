@@ -12,11 +12,16 @@
  * piece as the stats panel has it, and what the opposition's tape took off
  * the manager's calls.
  *
- * This module turns those counts into three things:
+ * This module turns those counts into four things:
  *
  *   THE RECORD. A CausalEvidence of a few hundred bytes for each of the
- *     manager's matches, filed beside the findings (state.tacLoop.evidence,
- *     the newest six) for the season's story to read later.
+ *     manager's matches, filed beside the findings (state.tacLoop.evidence:
+ *     the newest six, and before them the latest against each other side),
+ *     which the next full time and the next report read back.
+ *
+ *   THE FOLLOW-UP (1.8.4). What hurt at half time, held against the second
+ *     half alone; what hurt most last match, held against this one; and the
+ *     touchline dial that answers a cause, where one does.
  *
  *   THE RANKING. significance() puts every cause in points, signed for us:
  *     the points the cause put on the board for each side, net, and a small
@@ -36,10 +41,10 @@
  */
 import type { GameState } from './model'
 import { EV_CAUSES, evOf, matchStats, type EvCause, type LiveCtx, type SideCtx } from './matchEngine'
-import { FINDINGS_CAP } from './oppreport'
 import { sayKey } from './moves'
 import { atkSay, defSay } from './styles'
 import type { HalfSide } from './conditions'
+import { noteDecider } from './turning'
 
 // ---------------------------------------------------------------- shared reads
 
@@ -120,10 +125,36 @@ export interface CausalEvidence {
   lead: number[]
   /** what the margin moved by after the hour (positive for us) */
   late: number
+  /** set on a friendly: kept for the run of matches, never read as the
+   *  last meeting (a friendly in an idle week wiped a rival's memory) */
+  fr?: 1
 }
 
-/** how many the save keeps: as many as the findings */
-export const EVIDENCE_CAP = FINDINGS_CAP
+/** THE NEWEST SIX, AND THE LAST TIME AGAINST EVERYBODY ELSE (1.8.4). The
+ *  save kept the newest six and nothing more, but a league plays its return
+ *  fixture nine or more rounds after the first, so the record of the side
+ *  coming back to town had always gone by the time it came: the report's
+ *  "last time we met", the lesson plan and the "why" of the last meeting
+ *  never had anything to read. Now the newest RECENT are kept whoever they
+ *  were against, and before them the latest against each other side, up to
+ *  RECALL_CAP in all (a league's worth and a cup run). The findings keep
+ *  the same shape (oppreport keepFindings). */
+export const EVIDENCE_CAP = 6
+export const RECALL_CAP = 24
+
+/** The list as the save keeps it, oldest first, from a list in the order the
+ *  matches were played. */
+export function trimRecall<T extends { oppId: string; fr?: 1 }>(list: T[], recent = EVIDENCE_CAP, cap = RECALL_CAP): T[] {
+  const keep = new Set<number>()
+  const seen = new Set<string>()
+  for (let i = list.length - 1; i >= 0 && keep.size < cap; i--) {
+    if (i >= list.length - recent) keep.add(i)
+    else if (!list[i].fr && !seen.has(list[i].oppId)) keep.add(i)
+    // a friendly does not take the last-meeting slot
+    if (!list[i].fr) seen.add(list[i].oppId)
+  }
+  return list.filter((_, i) => keep.has(i))
+}
 
 function evSide(ctx: LiveCtx, side: SideCtx, st: ReturnType<typeof matchStats>, keep: number): EvSide {
   const e = evOf(side)
@@ -202,11 +233,13 @@ export function buildEvidence(state: GameState, ctx: LiveCtx): CausalEvidence | 
     swings: swingsOf(ctx, home),
     lead: leadOf(ctx, home),
     late: at60 == null ? 0 : (home ? 1 : -1) * (fin - at60),
+    ...(ctx.fx.compId === 'fr' ? { fr: 1 as const } : {}),
   }
 }
 
-/** File the evidence at full time, once per fixture, the newest six kept.
- *  Called beside fileFindings wherever a match ends. */
+/** File the evidence at full time, once per fixture (trimRecall keeps the
+ *  newest six and the last against each other side). Called beside
+ *  fileFindings wherever a match ends. */
 export function fileEvidence(state: GameState, ctx: LiveCtx): CausalEvidence | null {
   if (ctx.seg !== 3) return null
   const ev = buildEvidence(state, ctx)
@@ -214,7 +247,8 @@ export function fileEvidence(state: GameState, ctx: LiveCtx): CausalEvidence | n
   const loop = (state.tacLoop ??= { findings: [] })
   const list = loop.evidence ?? []
   if (list.some(e => e.fxId === ev.fxId && e.season === ev.season)) return ev
-  loop.evidence = [...list, ev].slice(-EVIDENCE_CAP)
+  loop.evidence = trimRecall([...list, ev])
+  noteDecider(state, ctx.fx, ev) // a final that turned goes into the annals (turning.ts)
   return ev
 }
 
@@ -242,7 +276,7 @@ export function migrateEvidence(s: GameState): void {
     && num(e.fxId) && typeof e.oppId === 'string' && num(e.us) && num(e.them) && num(e.poss) && num(e.late)
     && Array.isArray(e.side) && e.side.length === 2 && e.side.every(okSide)
     && Array.isArray(e.swings) && Array.isArray(e.lead))
-    .slice(-EVIDENCE_CAP)
+  loop.evidence = trimRecall(loop.evidence)
 }
 
 // ---------------------------------------------------------------- the ranking
@@ -296,7 +330,7 @@ export interface WhyLine {
 export const WHY_MIN = 1.5
 
 /** the move that did most for a side: tries, then calls */
-function bestMove(s: EvSide): [string, number[]] | null {
+export function bestMove(s: EvSide): [string, number[]] | null {
   const m = Object.entries(s.calls).sort((a, b) => b[1][2] - a[1][2] || b[1][0] - a[1][0])[0]
   return m && m[1][2] > 0 ? m : null
 }
@@ -414,6 +448,8 @@ export interface HtEvidence {
   w: number
   tag: 'work' | 'hurt'
   about?: 'pens' | 'ball' | 'set'
+  /** what it is about, for the dial that answers it (LEVERS) */
+  cause: WhyCause
 }
 
 /** The few numbers the half-time reads take (conditions.ts HalfSide), from
@@ -437,9 +473,187 @@ export function htEvidence(ev: CausalEvidence | null): HtEvidence[] {
       .map(c => lineFor(ev, c, sig[c]))
       .filter((l): l is WhyLine => !!l)
       .sort((a, b) => b.sig * d - a.sig * d)[0]
-    if (best) out.push({ k: best.k, v: best.v, w: Math.min(6, 1.5 + Math.abs(best.sig) / 3), tag, about: HT_ABOUT[best.cause] })
+    if (best) out.push({ k: best.k, v: best.v, w: Math.min(6, 1.5 + Math.abs(best.sig) / 3), tag, about: HT_ABOUT[best.cause], cause: best.cause })
   }
   return out
+}
+
+// ---------------------------------------------------------------- the follow-up
+
+/** The touchline dial that answers a cause, and which way: the four on the
+ *  in-match panel, where one of them measurably moves the count behind it
+ *  over a second half (scripts/loopprobe.ts). Penalties come down with
+ *  Physicality, their line breaks with a slower Tempo (the defence is set
+ *  more often), and their time in our 22 with more Kicking. The ball lost
+ *  comes from the attacking style and the set piece from the men in the
+ *  shirts, neither of which a dial at half time reaches, so they name none. */
+export type LeverDial = 'style' | 'tempo' | 'kicking' | 'aggression'
+export const LEVER_DIALS: readonly LeverDial[] = ['style', 'tempo', 'kicking', 'aggression']
+export const LEVERS: Partial<Record<WhyCause, { dial: LeverDial; dir: 1 | -1 }>> = {
+  pen: { dial: 'aggression', dir: -1 },
+  break: { dial: 'tempo', dir: -1 },
+  phase: { dial: 'kicking', dir: 1 },
+}
+
+/** The count behind a cause that is bad for us when it is high: what a
+ *  follow-up holds one stretch of rugby against another with. The 22 is
+ *  in minutes, four to a tick. Null where the record cannot honestly split
+ *  it (the tape keeps only the moves worth naming). */
+export function hurtCount(ev: CausalEvidence, c: WhyCause): number | null {
+  const [u, o] = ev.side
+  switch (c) {
+    case 'pen': return u.pens
+    case 'turn': return sum(u.turnLost)
+    case 'set': return u.setLost[0] + u.setLost[1]
+    case 'break': return o.breaks
+    case 'phase': return o.zone[2] * 4
+    case 'move': return o.pts[ci('move')]
+    case 'kick': return o.pts[ci('kick')]
+    case 'style': return Math.max(0, Math.round(-significance(ev).style))
+    case 'read': return null
+  }
+}
+
+/** how the count moved: halved or better, down, about the same, or up */
+export type Trend = 'improved' | 'partly' | 'unchanged' | 'worse'
+
+/** `a` before, `b` after, both counts of something bad. A change smaller
+ *  than one step (a tick is four minutes) or than a seventh of the count is
+ *  no change. */
+export function trendOf(a: number, b: number, step = 1): Trend {
+  const tol = Math.max(step, a * 0.15)
+  if (b - a >= tol) return 'worse'
+  if (a - b < tol) return 'unchanged'
+  return b <= a / 2 ? 'improved' : 'partly'
+}
+
+export interface Follow {
+  cause: WhyCause
+  /** the count before and after */
+  a: number
+  b: number
+  trend: Trend
+  /** a new weakness that has taken over (match to match only) */
+  now?: WhyCause
+}
+
+/** The second half alone: the full-time record less the half-time one. The
+ *  calls are kept for the moves both name. Only for the counts; the margin
+ *  history and the swings are the full match's. */
+export function secondHalf(full: CausalEvidence, ht: CausalEvidence): CausalEvidence {
+  const d = (a: number[], b: number[]) => a.map((x, i) => x - (b[i] ?? 0))
+  const side = (f: EvSide, h: EvSide): EvSide => {
+    const calls: Record<string, number[]> = {}
+    for (const [id, c] of Object.entries(f.calls)) if (h.calls[id]) calls[id] = d(c, h.calls[id])
+    return {
+      ...f, calls, pts: d(f.pts, h.pts), breaks: f.breaks - h.breaks,
+      styleEdge: f.styleEdge - h.styleEdge, blunted: f.blunted - h.blunted,
+      setWon: d(f.setWon, h.setWon) as [number, number], setLost: d(f.setLost, h.setLost) as [number, number],
+      turnWon: d(f.turnWon, h.turnWon), turnLost: d(f.turnLost, h.turnLost),
+      pens: f.pens - h.pens, zone: d(f.zone, h.zone),
+    }
+  }
+  return {
+    ...full, us: full.us - ht.us, them: full.them - ht.them, min: full.min - ht.min,
+    side: [side(full.side[0], ht.side[0]), side(full.side[1], ht.side[1])],
+  }
+}
+
+/** What was hurting at half time: the cause of the half-time word's hurting
+ *  line (htEvidence), or null when nothing was. */
+export function htHurt(ht: CausalEvidence | null | undefined): WhyCause | null {
+  return htEvidence(ht ?? null).find(h => h.tag === 'hurt')?.cause ?? null
+}
+
+/** The step a count moves in */
+const stepOf = (c: WhyCause) => (c === 'phase' ? 4 : 1)
+
+/** WHAT HURT AT HALF TIME, AFTER IT. The half-time hurting cause held
+ *  against the second half alone. Null when nothing hurt at the break, or
+ *  the cause cannot be split. */
+export function halfFollow(full: CausalEvidence, ht: CausalEvidence | null | undefined): Follow | null {
+  const cause = htHurt(ht)
+  if (!cause || !ht) return null
+  const a = hurtCount(ht, cause), b = hurtCount(secondHalf(full, ht), cause)
+  if (a == null || b == null) return null
+  return { cause, a, b, trend: trendOf(a, b, stepOf(cause)) }
+}
+
+/** The cause that hurt most in a match: the most costly with a line to say,
+ *  at least WHY_MIN, and one a count can follow. */
+export function topProblem(ev: CausalEvidence): WhyCause | null {
+  const sig = significance(ev)
+  const c = (Object.keys(sig) as WhyCause[])
+    .filter(k => sig[k] <= -WHY_MIN && hurtCount(ev, k) != null && lineFor(ev, k, sig[k]))
+    .sort((a, b) => sig[a] - sig[b])[0]
+  return c ?? null
+}
+
+/** LAST MATCH'S PROBLEM, THIS MATCH. What hurt most last time held against
+ *  today, and the new problem when another cause hurt more today. */
+export function matchFollow(prev: CausalEvidence, cur: CausalEvidence): Follow | null {
+  const cause = topProblem(prev)
+  if (!cause) return null
+  const a = hurtCount(prev, cause), b = hurtCount(cur, cause)
+  if (a == null || b == null) return null
+  const now = topProblem(cur)
+  return { cause, a, b, trend: trendOf(a, b, stepOf(cause)), ...(now && now !== cause ? { now } : {}) }
+}
+
+/** The record a follow-up reads for this match: the manager's last one
+ *  before it, of the same kind (club or Test), within four weeks of the
+ *  same season. Cup runs and Test windows put a gap between matches, so
+ *  not just last week; beyond a month it is not the same side's problem. */
+export function prevEvidence(state: GameState, cur: CausalEvidence): CausalEvidence | null {
+  const list = state.tacLoop?.evidence ?? []
+  for (let i = list.length - 1; i >= 0; i--) {
+    const e = list[i]
+    if (e.fxId === cur.fxId && e.season === cur.season) continue
+    if (e.season !== cur.season || cur.week - e.week > 4 || cur.week < e.week) return null
+    return !!state.clubs[e.oppId] === !!state.clubs[cur.oppId] ? e : null
+  }
+  return null
+}
+
+/** The last record the save holds against a side: what the report's history
+ *  says decided the last meeting. */
+export function lastEvidence(state: GameState, oppId: string): CausalEvidence | null {
+  const list = state.tacLoop?.evidence ?? []
+  for (let i = list.length - 1; i >= 0; i--) if (list[i].oppId === oppId && !list[i].fr) return list[i]
+  return null
+}
+
+/** Which way a touchline dial moved over the break, against the way that
+ *  answers the cause: 'right', 'wrong', or 'none' under ten points. Null
+ *  when the cause has no dial or the dials were not read (a Test). */
+export function leverMoved(cause: WhyCause, before?: number[], after?: number[]): 'right' | 'wrong' | 'none' | null {
+  const L = LEVERS[cause]
+  if (!L || !before || !after) return null
+  const i = LEVER_DIALS.indexOf(L.dial)
+  const d = (after[i] - before[i]) * L.dir
+  return d >= 10 ? 'right' : d <= -10 ? 'wrong' : 'none'
+}
+
+/** THE LEAD-IN for each full-time line, framed for the manager rather than
+ *  the analyst: the line that did most in the direction of the result is
+ *  "the biggest difference" in a win, else "what hurt you most" or "your
+ *  strongest advantage" by its sign; after it, the first line of the other
+ *  sign takes the other label once, and the rest go without. A label says
+ *  which way a cause pulled, not that it alone decided anything. */
+export function whyLeads(ev: CausalEvidence, lines: WhyLine[]): (string | null)[] {
+  const won = ev.us > ev.them
+  let plus = false, minus = false
+  return lines.map((l, i) => {
+    if (l.sig > 0 && !plus) {
+      plus = true
+      return i === 0 && won ? 'matchday.leadDiff' : 'matchday.leadEdge'
+    }
+    if (l.sig < 0 && !minus) {
+      minus = true
+      return 'matchday.leadHurt'
+    }
+    return null
+  })
 }
 
 // ---------------------------------------------------------------- the plan

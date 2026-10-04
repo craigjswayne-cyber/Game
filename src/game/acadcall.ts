@@ -175,6 +175,7 @@ export function resolveAcadCall(state: GameState, item: PressItem, opt: PressOpt
       p.gradClub ??= club.id
       p.gradS ??= state.season
       p.wage = opt.acadWage ?? playerWage(p.ca, p.age)
+      armDebut(p)
     } else {
       p.wage = opt.acadWage ?? playerWage(p.ca, p.age, true)
     }
@@ -191,6 +192,7 @@ export function resolveAcadCall(state: GameState, item: PressItem, opt: PressOpt
     p.gradClub ??= club.id
     p.gradS ??= state.season
     p.wage = opt.acadWage ?? playerWage(p.ca, p.age)
+    armDebut(p)
     p.morale = Math.min(10, p.morale + 0.5)
     logDecision(state, 'dec.acadPromoted', { player: p.name }, true)
   } else {
@@ -222,4 +224,17 @@ export function settleAcadCalls(state: GameState): number {
     }
   }
   return released
+}
+
+/**
+ * HIS FIRST SENIOR GAME IS AN ACADEMY DEBUT, HOWEVER HE WAS PROMOTED (1.8.4
+ * career QA). Only the summer graduation armed it (rollover.ts), so a lad
+ * promoted from his page or from this call played his first game as nobody's
+ * debut: no academy-debut memory, and with it no graduates on the era card,
+ * no youth reputation and no debuts for a chairman who asked for them - an
+ * academy builder who promoted fifty men was known for none of it. The same
+ * test the graduation makes: never a senior game, never a career row.
+ */
+export function armDebut(p: Player): void {
+  if (p.stats.apps === 0 && p.career.length === 0) p.debutPending = 'academy'
 }

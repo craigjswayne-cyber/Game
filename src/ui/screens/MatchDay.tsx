@@ -12,7 +12,10 @@ import { BRIEF_BY_ID, SPLIT_BY_ID, benchSeats, briefForSeat, splitFor } from '..
 import { BriefIcon } from '../tacticsArt'
 import { assistantFixtureThisWeek, isKnockoutTie, userMatchThisWeek } from '../../game/season'
 import { halfTimeHints, matchConditions, surfKey, surfaceNote, surfaceOf, wxEffectKey } from '../../game/conditions'
-import { buildEvidence, halfSides, htEvidence, rankWhy } from '../../game/evidence'
+import {
+  LEVERS, buildEvidence, halfFollow, halfSides, htEvidence, leverMoved, matchFollow, prevEvidence, rankWhy, whyLeads,
+  type Follow, type WhyCause,
+} from '../../game/evidence'
 import { effAt } from '../../game/attributes'
 import { fuzzedCa } from '../../game/scout'
 import { PRESETS, SLIDER_INFO, sliderReadout, type SliderKey } from '../../game/tactics'
@@ -20,7 +23,7 @@ import { ord, posName, t, localeTag, compLabel } from '../../game/i18n'
 import { subjectVar } from '../../game/gender'
 import { coachFixes, gradeFixes, gradeLine, unitBattles, type FixTag } from '../../game/coachfix'
 import { MatchFindings } from '../OppReport'
-import { CrestT, Jersey, PosBadge, SectionTitle, Stars, RewardedButton, Toggle } from '../components'
+import { CrestT, Jersey, PosBadge, SectionTitle, Stars, RewardedButton, Toggle, availabilityTag } from '../components'
 import { stageName } from './Home'
 import { matchSfx, soundOn, toggleSound } from '../audio'
 import { MoodTable } from '../MoodTable'
@@ -585,7 +588,9 @@ function Preview({ fxId }: { fxId: number }) {
         <td style={{ width: 38 }}><PosBadge pos={pos} /></td>
         <td className="name">
           {p ? p.name : <span className="muted">{t('matchday.tapToPick')}</span>}
-          {prob && p && <span style={{ color: 'var(--text-negative)', fontSize: 11, fontWeight: 700 }}> {prob}</span>}
+          {/* the squad list's own short tags, in the player's language: the
+              sheet printed the internal code ("INTL DUTY") in all six */}
+          {prob && p && <span style={{ color: 'var(--text-negative)', fontSize: 11, fontWeight: 700 }}> {prob === 'GONE' ? t('common.goneTag') : availabilityTag(p, game.week)?.txt ?? prob}</span>}
           {!prob && p && (p.rust ?? 0) > 0 && <span style={{ color: 'var(--gold)', fontSize: 11, fontWeight: 700 }}> {t('matchday.rusty')}</span>}
         </td>
         <td style={{ width: 92 }}>{p && <Stars ca={effAt(p, pos)} />}</td>
@@ -2362,9 +2367,13 @@ function Live() {
 /** THE ASSISTANT'S WORD AT HALF TIME (1.8.2 depth): one or two plain lines
  *  read off what the first forty did against the referee and the day
  *  (conditions.ts halfTimeHints), and since 1.8.3 what is working and what
- *  is hurting, off the first half's evidence (evidence.ts htEvidence), each
- *  in the place of a weaker line. Nothing drawn; silent when there is
- *  nothing worth saying. */
+ *  is hurting, off the first half's evidence (evidence.ts htEvidence).
+ *
+ *  AND WHAT TO DO ABOUT IT (1.8.4). Under the hurting line, the touchline
+ *  dial that answers its cause (evidence.ts LEVERS), as a tap that brings
+ *  that dial on the panel below into view. Only where a dial measurably
+ *  moves the count, and only in a club match, where the dials are his.
+ *  Nothing drawn; silent when there is nothing worth saying. */
 function HalfTimeWord() {
   const game = useStore(s => s.game)!
   const live = useStore(s => s.liveMatch)!
@@ -2374,15 +2383,33 @@ function HalfTimeWord() {
   const [mine, opp] = halfSides(ev)
   const lines = halfTimeHints(refFor(ctx.fx.id), ctx.weather, mine, opp, !!ctx.uncontested, htEvidence(ev))
   if (!lines.length) return null
+  const club = ctx.userSideId === game.userClubId
+  const hurt = lines.find(l => l.tag === 'hurt')
+  const lever = club && hurt?.cause ? LEVERS[hurt.cause as WhyCause] : undefined
+  const info = lever ? SLIDER_INFO.find(s => s.key === lever.dial) : undefined
+  // to the dial on the panel below, and a moment's ring round it
+  const showDial = () => {
+    const row = document.querySelector<HTMLElement>(`[data-dial="${lever!.dial}"]`)
+    if (!row) return
+    row.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    row.querySelector('input')?.focus({ preventScroll: true })
+    row.style.outline = '2px solid var(--gold)'
+    window.setTimeout(() => { row.style.outline = '' }, 1600)
+  }
   return (
     <div className="card" style={{ margin: '8px 14px' }} data-halftime-word={lines.length}>
       <div className="fact-label">{t('matchday.htWord')}</div>
       {lines.map(l => (
-        <div key={l.k} className="meta" data-ht-tag={l.tag}>
+        <div key={l.k} className="meta" data-ht-tag={l.tag} data-ht-cause={l.cause}>
           {l.tag && <b style={{ color: l.tag === 'work' ? 'var(--text-positive)' : 'var(--text-negative)' }}>{t(l.tag === 'work' ? 'matchday.htWorking' : 'matchday.htHurting')} </b>}
           {t(l.k, l.v)}
         </div>
       ))}
+      {lever && info && (
+        <button className="preset-chip" style={{ marginTop: 6 }} data-ht-lever={lever.dial} onClick={showDial}>
+          <Glyph name="tactics" /> {t(lever.dir < 0 ? 'matchday.htLeverDown' : 'matchday.htLeverUp', { dial_k: info.label, n: game.clubs[game.userClubId].tactic[lever.dial] })}
+        </button>
+      )}
     </div>
   )
 }
@@ -2439,6 +2466,24 @@ function DecisionPanel() {
   )
 }
 
+/** ONE FOLLOW-UP LINE (1.8.4): a count before and after, which way it went,
+ *  and for the half-time one whether the answering dial moved at the break;
+ *  for the match-to-match one, the new problem when another hurt more. */
+function FollowLine({ f, label, pair, moved }: { f: Follow; label: string; pair: string; moved?: 'right' | 'wrong' | 'none' | null }) {
+  const good = f.trend === 'improved' || f.trend === 'partly'
+  const dial = LEVERS[f.cause] ? SLIDER_INFO.find(s => s.key === LEVERS[f.cause]!.dial) : undefined
+  return (
+    <div className="meta" data-follow={label.slice(-2) === 'Ht' ? 'half' : 'match'} data-trend={f.trend}
+      style={{ borderLeft: `3px solid ${good ? 'var(--text-positive)' : f.trend === 'worse' ? 'var(--text-negative)' : 'var(--border)'}`, paddingLeft: 6, marginTop: 3 }}>
+      <b>{t(label)} </b>
+      {t(pair, { what_k: `matchday.fuM_${f.cause}`, a: f.a, b: f.b })}{' '}
+      {t(`matchday.fuTrend_${f.trend}`)}
+      {moved && dial && <>{' '}{t(`matchday.fuLever_${moved}`, { dial_k: dial.label })}</>}
+      {f.now && <>{' '}{t('matchday.fuNow', { what_k: `matchday.fuM_${f.now}` })}</>}
+    </div>
+  )
+}
+
 /** The three moments everyone will be talking about on the drive home. */
 function MatchVerdict() {
   const game = useStore(s => s.game)!
@@ -2453,6 +2498,19 @@ function MatchVerdict() {
   // possession share and the margin, which named nothing.
   const ev = buildEvidence(game, ctx)
   const why = ev ? rankWhy(ev, 3) : []
+  // framed for the manager (1.8.4): which way each pulled, not a proof
+  const leads = ev ? whyLeads(ev, why) : []
+  // AND WHETHER IT WORKED (1.8.4, evidence.ts): what hurt at half time held
+  // against the second half alone, with the dial that answers it as he left
+  // it at the break; and what hurt most last match held against this one.
+  // Read before the filing at the whistle puts this match on the record.
+  const half = ev ? halfFollow(ev, ctx.htEv) : null
+  const moved = half ? leverMoved(half.cause, ctx.htDials, ctx.shDials) : null
+  const prev = ev ? prevEvidence(game, ev) : null
+  const follow = ev && prev ? matchFollow(prev, ev) : null
+  // the new problem goes unsaid when the line above already leads with it
+  const hurtLed = why.find((_, i) => leads[i] === 'matchday.leadHurt')?.cause
+  const last = follow && follow.now === hurtLed ? { ...follow, now: undefined } : follow
   // The verdict used to stop at one sentence, which named nothing (user:
   // "it should outline what the two fixes would be etc so the player can keep
   // tweaking the tactics"). game/coachfix reads the same match data and turns it
@@ -2484,12 +2542,9 @@ function MatchVerdict() {
     : { fixed: [], missed: [] }
   const verdictOnLast = gradeLine(grade.fixed, grade.missed)
 
-  // and then this match's two become the homework. Written once per fixture by
-  // the store, because this card re-renders on every tick.
-  const noteFixes = useStore.getState().noteFixes
-  const fxId = live.fixture.id
-  const tags = fixes.map(f => f.tag).join(',')
-  useEffect(() => { noteFixes(fxId, tags ? tags.split(',') as FixTag[] : []) }, [fxId, tags, noteFixes])
+  // and then this match's two become the homework: since 1.8.4 set where the
+  // match is filed (coachfix fileHomework), so a match the assistant played
+  // sets it too
   return (
     <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
       {star && (
@@ -2510,12 +2565,15 @@ function MatchVerdict() {
         </div>
       )}
       <div className="fact-label" style={{ marginTop: 8 }}>{t('matchday.coachsVerdict')}</div>
-      {why.map(w => (
-        <div key={w.cause} className="meta" data-why={w.cause}
+      {why.map((w, i) => (
+        <div key={w.cause} className="meta" data-why={w.cause} data-why-lead={leads[i] ?? undefined}
           style={{ borderLeft: `3px solid ${w.sig > 0 ? 'var(--text-positive)' : 'var(--text-negative)'}`, paddingLeft: 6, marginTop: 3 }}>
+          {leads[i] && <b>{t(leads[i]!)} </b>}
           {t(w.k, w.v)}
         </div>
       ))}
+      {half && <FollowLine f={half} label="matchday.fuSinceHt" pair="matchday.fuHalves" moved={moved} />}
+      {last && <FollowLine f={last} label="matchday.fuSinceLast" pair="matchday.fuMatches" />}
 
       {verdictOnLast && (
         <div className={`fix-grade${grade.missed.length === 0 ? ' good' : ''}`}>
@@ -2926,7 +2984,7 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
 
       <div className="fact-label" style={{ marginTop: 10 }}>{t('matchday.inMatchTactics')} <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>{t('matchday.tapAName')}</span></div>
       {SLIDER_INFO.map(s => (
-        <div key={s.key} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '2px 0' }}>
+        <div key={s.key} data-dial={s.key} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '2px 0', borderRadius: 6 }}>
           <span style={{ width: 78, fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--cond)', textTransform: 'uppercase', letterSpacing: .5, cursor: 'pointer' }}
             onClick={() => setExplain(`${t(s.label)}: ${sliderReadout(s.key, club.tactic[s.key])}`)}>
             {t(s.label)}

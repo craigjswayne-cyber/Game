@@ -14,8 +14,9 @@
  *      zone are the ticks played; the set piece is the stats panel's and the
  *      penalties the referee's count. A watched match and the same match
  *      played silently carry the same evidence.
- *   2. The record is filed once per fixture, the newest six kept, small, and
- *      an old or damaged save loads with it healed or absent.
+ *   2. The record is filed once per fixture, the newest six kept and the last
+ *      against each other side before them (1.8.4), small, and an old or
+ *      damaged save loads with it healed or absent.
  *   3. Over 300 decided matches, the top "why" line names the cause that put
  *      the most points on the board in the direction of the result, by the
  *      engine's own account of every point, at least 80% of the time. The
@@ -27,8 +28,9 @@
  *      cause; that number is reported, not held to a bar.
  *   4. The lines read as words in all six languages, three at most, each
  *      with a figure in it.
- *   5. At half time: at most one working and one hurting line, and the
- *      assistant's word stays at two lines.
+ *   5. At half time: at most one working and one hurting line, both said
+ *      whenever the evidence has both (1.8.4), and the assistant's word
+ *      stays at two lines.
  *   6. The tape: a call the opposition was set for is counted as blunted,
  *      and the line can say what it cost.
  *
@@ -38,7 +40,7 @@ import { newGame } from '../src/game/newgame'
 import { beginMatch, matchStats, playSegment, evOf, EV_CAUSES, type LiveCtx } from '../src/game/matchEngine'
 import { mulberry32 } from '../src/game/rng'
 import {
-  EVIDENCE_CAP, WHY_MIN, buildEvidence, fileEvidence, halfSides, htEvidence, marginLeader, migrateEvidence, netPts,
+  EVIDENCE_CAP, RECALL_CAP, WHY_MIN, buildEvidence, trimRecall, fileEvidence, halfSides, htEvidence, marginLeader, migrateEvidence, netPts,
   rankWhy, significance, type CausalEvidence, type WhyCause,
 } from '../src/game/evidence'
 import { halfTimeHints } from '../src/game/conditions'
@@ -175,7 +177,23 @@ console.log('\n--- 2. filing and the save\n')
     fileEvidence(g, ctx) // twice: kept once
   }
   const list = g.tacLoop?.evidence ?? []
-  ok(list.length === EVIDENCE_CAP, `nine matches keep the newest ${list.length} (cap ${EVIDENCE_CAP})`)
+  // the newest six whoever they were against, and before them the last
+  // against each other side (1.8.4, trimRecall)
+  const older = list.slice(0, -EVIDENCE_CAP)
+  const newest = new Set(list.slice(-EVIDENCE_CAP).map(e => e.oppId))
+  ok(list.slice(-EVIDENCE_CAP).map(e => e.fxId).join() === mine.slice(-EVIDENCE_CAP).map(f => f.id).join()
+    && new Set(older.map(e => e.oppId)).size === older.length && older.every(e => !newest.has(e.oppId))
+    && list.length === EVIDENCE_CAP + new Set(mine.slice(0, -EVIDENCE_CAP).map(f => f.homeId === g.userClubId ? f.awayId : f.homeId).filter(o => !newest.has(o))).size,
+  `nine matches keep the newest ${EVIDENCE_CAP} and the last against each other side: ${list.length}`)
+  {
+    // forty matches against twelve sides: six, and the other six sides once each
+    const fake = Array.from({ length: 40 }, (_, i) => ({ oppId: `o${i % 12}`, fxId: i }))
+    const kept = trimRecall(fake)
+    ok(kept.length === 12 && kept.slice(-6).map(e => e.fxId).join() === '34,35,36,37,38,39' && kept[0].fxId === 28,
+      `forty matches against twelve sides keep ${kept.length}: the newest six and the latest against the other six`)
+    const many = trimRecall(Array.from({ length: 80 }, (_, i) => ({ oppId: `o${i}`, fxId: i })))
+    ok(many.length === RECALL_CAP && many[many.length - 1].fxId === 79, `eighty sides keep ${many.length}, the newest (cap ${RECALL_CAP})`)
+  }
   ok(new Set(list.map(e => e.fxId)).size === list.length, 'one record per fixture, even filed twice')
   ok(list[list.length - 1].fxId === mine[mine.length - 1].id, 'the newest is the last match played')
   const size = JSON.stringify(list).length
@@ -184,7 +202,7 @@ console.log('\n--- 2. filing and the save\n')
   // a half-time read is never filed
   const ht = beginMatch(g, mine[0], mulberry32(4), true, g.userClubId)
   playSegment(g, ht)
-  ok(fileEvidence(g, ht) === null && (g.tacLoop?.evidence ?? []).length === EVIDENCE_CAP, 'nothing is filed before full time')
+  ok(fileEvidence(g, ht) === null && (g.tacLoop?.evidence ?? []).length === list.length, 'nothing is filed before full time')
   // the save
   const round = migrate(structuredClone(g))
   ok(JSON.stringify(round.tacLoop?.evidence) === JSON.stringify(list), 'a real list survives a save and load untouched')
@@ -199,8 +217,9 @@ console.log('\n--- 2. filing and the save\n')
   const mixed = structuredClone(g)
   mixed.tacLoop!.evidence = [null, { fxId: 'x' }, { ...list[0], side: [list[0].side[0]] }, ...list, ...list] as unknown as CausalEvidence[]
   migrateEvidence(mixed)
-  ok(mixed.tacLoop!.evidence!.length === EVIDENCE_CAP && mixed.tacLoop!.evidence!.every(e => Array.isArray(e.side) && e.side.length === 2),
-    'unreadable entries are dropped and the rest capped')
+  ok(mixed.tacLoop!.evidence!.length === new Set(mixed.tacLoop!.evidence!.map(e => e.fxId)).size
+    && mixed.tacLoop!.evidence!.length <= RECALL_CAP && mixed.tacLoop!.evidence!.every(e => Array.isArray(e.side) && e.side.length === 2),
+    'unreadable entries are dropped and the rest trimmed')
   let threw = false
   try { migrate(structuredClone(mixed)) } catch { threw = true }
   ok(!threw, 'and the whole save still loads')
@@ -211,7 +230,7 @@ console.log('\n--- 5. half time\n')
 {
   const g = newGame('leicester', 'Half Time', 1831)
   const fxs = g.fixtures.filter(f => g.clubs[f.homeId] && g.clubs[f.awayId]).slice(0, 80)
-  let said = 0, tagged = 0, over = 0, both = 0
+  let said = 0, tagged = 0, over = 0, both = 0, pairs = 0, lost = 0
   const shown: string[] = []
   for (const fx of fxs) {
     const ctx = beginMatch(g, fx, mulberry32(fx.id + 11), true, fx.homeId)
@@ -227,11 +246,13 @@ console.log('\n--- 5. half time\n')
     const tg = lines.filter(l => l.tag)
     if (tg.length) tagged++
     if (tg.length === 2) both++
+    if (hte.length === 2) { pairs++; if (tg.length !== 2) lost++ }
     if (shown.length < 4 && tg.length) shown.push(`${ev.us}-${ev.them}: ${lines.map(l => `${l.tag ? tIn('en', l.tag === 'work' ? 'matchday.htWorking' : 'matchday.htHurting') + ' ' : ''}${tIn('en', l.k, l.v)}`).join(' / ')}`)
   }
   for (const s of shown) console.log(`      ${s}`)
   console.log(`      ${fxs.length} first halves: the word spoke in ${said}, with an evidence line in ${tagged} (both a working and a hurting line in ${both})`)
   ok(over === 0, 'at most one working and one hurting line, and never more than two lines in all')
+  ok(lost === 0, `a half with a working and a hurting line says both (${pairs} such halves)`)
   ok(tagged > fxs.length / 3, 'working or hurting is said in a good share of first halves')
 }
 

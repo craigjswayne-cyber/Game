@@ -29,7 +29,8 @@
  * It never touches the shared match rng, so a hunt cannot move a single result,
  * and the fingerprint is untouched. Same rule as dialweight and the Dream.
  */
-import { fmtMoney, poss } from './model'
+import { absWeek, fmtMoney, poss } from './model'
+import { INK_WEEKS } from './ai'
 import type { Club, GameState, Player } from './model'
 import { hashString, mulberry32 } from './rng'
 
@@ -154,6 +155,13 @@ export function advanceHunt(state: GameState): void {
   const nextStage = (h.stage + 1) as Exclude<HuntStage, 0>
   if (nextStage > 3 || state.week < STAGE_WEEK[nextStage]) return
   if (nextStage === 3 && SLAM_WEEKS.includes(state.week)) return
+  // THE INK IS STILL WET HERE TOO (1.8.4 career QA). The hunt re-targets
+  // whoever is the talisman now, so a star bought in the January window
+  // could be hunted from scratch and bid for at 1.45x his value three weeks
+  // later: bought for £9.2m in week 26, sold for £13.7m in week 31. The
+  // spontaneous bids wait INK_WEEKS (ai.ts aiTransfers); the hunt's bid waits
+  // with them, and the story simply holds at the press-conference stage.
+  if (nextStage === 3 && p.joinedAt != null && absWeek(state.season, state.week) - p.joinedAt < INK_WEEKS) return
   h.stage = nextStage
 
   if (nextStage === 1) {

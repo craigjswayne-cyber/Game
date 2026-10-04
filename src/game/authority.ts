@@ -261,6 +261,7 @@ export function applyResponse(state: GameState, inc: Incident, response: 'fine' 
   // the fine: deterministic on the incident id, biased by standing
   // the club's culture (culture.ts) eases or hardens it: 0 at a neutral club
   const lands = mulberry32((state.seed + inc.id * 977) >>> 0)() > Math.max(0, Math.min(1, a.bite - authorityEdge(state)))
+  inc.fined = true
   if (lands) {
     inc.state = 'handled'
     p.morale = clamp(p.morale - 0.2, 1, 10)

@@ -40,7 +40,7 @@ import { settleAcadCalls } from './acadcall'
 // side plays the Friday before the first team's Saturday. Imported rather than
 // redeclared so the two calendars can never drift apart.
 import { LEAGUE_WEEKS } from './schedule'
-import { buildPlayer } from './attributes'
+import { buildPlayer, playerWage } from './attributes'
 import { gapGrowth } from './ageing'
 import { regenName, worldNames } from './nations'
 
@@ -148,6 +148,15 @@ export function topUpAcademy(state: GameState, club: Club, rng: Rng, seedBase = 
       // the season he joins: at the rollover (week 48) that is the season about
       // to start, and the summer decision reads it (acadcall.ts)
       p.acadJoined = state.week >= SEASON_WEEKS ? state.season + 1 : state.season
+      // on a scholar's deal from the day he arrives, and in the shape a loaded
+      // save gives him: a lad topped up while loading an old save came in on
+      // first-team money, and the next load cut it (1.8.4, Phase 9)
+      p.wage = playerWage(p.ca, p.age, true)
+      p.onLoan ??= false
+      p.retiring ??= false
+      p.debutPending ??= null
+      p.rust ??= 0
+      p.loanFrom ??= null
       state.players[p.id] = p
       club.players.push(p.id)
       made++

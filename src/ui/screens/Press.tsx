@@ -63,7 +63,7 @@ export default function Press() {
           </div>
           <div className="press-q">{prose(pressQuestion(item))}</div>
           {item.playerId != null && game.players[item.playerId] && (
-            <button className="muted" style={{ padding: '0 14px 8px', fontWeight: 600, color: 'var(--info)' }}
+            <button className="muted" style={{ padding: '0 14px 8px', minHeight: 40, fontWeight: 600, color: 'var(--info)' }}
               onClick={() => go('player', item.playerId!)}>
               {t('world.prView', { player: game.players[item.playerId].name })}
             </button>

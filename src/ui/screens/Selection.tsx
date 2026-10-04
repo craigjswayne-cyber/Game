@@ -286,7 +286,7 @@ export default function SelectionPane() {
           told so BEFORE match day - the moment he touches a shirt this line
           goes away, because the sheet is his from then on */}
       {!tac.userPicked && (
-        <div className="muted" style={{ padding: '4px 2px 0' }}>
+        <div className="muted" style={{ padding: '4px 14px 0' }}>
           {/* with a season plan he does update it, every week (seasonplan.ts) */}
           {game.seasonPlan ? t('selection.untouchedPlan')
             : t('selection.untouched', { g: game.staffPeople?.assistant?.g ?? 'm' })}

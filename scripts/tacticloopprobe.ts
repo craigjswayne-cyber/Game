@@ -35,6 +35,7 @@ import {
   type FindingsRecord, type ReportLine,
 } from '../src/game/oppreport'
 import { buildFindings, fileFindings, lineText } from '../src/game/matchfindings'
+import { RECALL_CAP } from '../src/game/evidence'
 import type { Fixture, GameState } from '../src/game/model'
 
 let fails = 0
@@ -249,7 +250,16 @@ console.log(`      plan verdicts: ${[...verdicts.entries()].map(([k, v]) => `${k
 ok(verdicts.size >= 2, 'plans are judged, and not always the same way')
 
 console.log('\n6. storage')
-ok((gw.tacLoop?.findings.length ?? 0) === Math.min(FINDINGS_CAP, matches), `the save keeps the last ${gw.tacLoop?.findings.length} (cap ${FINDINGS_CAP})`)
+{
+  // the newest six whoever they were against, and before them the last
+  // against each other side (1.8.4, evidence.ts trimRecall)
+  const fs = gw.tacLoop?.findings ?? []
+  const newest = new Set(fs.slice(-FINDINGS_CAP).map(f => f.oppId))
+  const older = fs.slice(0, -FINDINGS_CAP)
+  ok(fs.length >= Math.min(FINDINGS_CAP, matches) && fs.length <= RECALL_CAP
+    && new Set(older.map(f => f.oppId)).size === older.length && older.every(f => !newest.has(f.oppId)),
+  `the save keeps the newest ${FINDINGS_CAP} and the last against each other side: ${fs.length} of ${matches}`)
+}
 ok(new Set(gw.tacLoop!.findings.map(f => f.fxId)).size === gw.tacLoop!.findings.length, 'one record per fixture, even filed twice')
 {
   const last = gw.tacLoop!.findings[gw.tacLoop!.findings.length - 1]
@@ -257,7 +267,7 @@ ok(new Set(gw.tacLoop!.findings.map(f => f.fxId)).size === gw.tacLoop!.findings.
   const hist = rep.lines.filter(l => l.cat === 'history')
   ok(hist.length >= 1, `the next report against ${gw.clubs[last.oppId]?.short} remembers the last meeting`)
   for (const l of hist) console.log(`      ${lineText(l)}`)
-  console.log(`      reports that recalled an earlier meeting in the walk: ${recalled}`)
+  console.log(`      reports that recalled an earlier meeting in the walk: ${recalled} (a league rematch is held to it in loopprobe)`)
 }
 {
   const s = clone(g)

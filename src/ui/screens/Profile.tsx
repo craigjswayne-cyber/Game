@@ -9,7 +9,7 @@ import { SectionTitle } from '../components'
 import { supportCount } from '../../game/monetise'
 import { t, compLabel } from '../../game/i18n'
 import { Glyph } from '../glyphs'
-import { mgrTraits, traitLine } from '../../game/repute'
+import { mgrTraits, traitLine, trendLines } from '../../game/repute'
 import { ambitionState, ambitionsOf } from '../../game/ambitions'
 import { dreamNote, dreamTitle } from '../../game/dream'
 
@@ -168,11 +168,14 @@ export default function Profile() {
           actually done, never chosen, and never a number */}
       {(() => {
         const traits = mgrTraits(game)
-        if (!traits.length) return null
+        // and which way the name is moving (mgrTrends): at most two lines
+        const trends = trendLines(game)
+        if (!traits.length && !trends.length) return null
         return (
           <div className="card mgr-traits">
             <div className="fact-label">{t('arc.knownFor')}</div>
-            <div className="meta">{traits.map(tr => { const l = traitLine(tr); return t(l.k, l.v) }).join(' ')}</div>
+            {traits.length > 0 && <div className="meta">{traits.map(tr => { const l = traitLine(tr); return t(l.k, l.v) }).join(' ')}</div>}
+            {trends.map(x => <div key={x.k} className="meta mgr-trend" style={{ marginTop: 4, fontStyle: 'italic' }}>{t(x.k, { trait_k: x.trait_k })}</div>)}
           </div>
         )
       })()}
@@ -380,7 +383,7 @@ export default function Profile() {
         <div className="card" style={{ padding: '6px 10px' }}>
           {game.decisions!.slice(0, 12).map((d, i) => (
             <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '3px 0', borderTop: i ? '1px solid var(--border)' : undefined }}>
-              <span className="muted" style={{ fontFamily: 'var(--cond)', fontSize: 11, minWidth: 62, flexShrink: 0 }}>
+              <span className="muted" style={{ fontFamily: 'var(--cond)', fontSize: 11, width: 70, flexShrink: 0, whiteSpace: 'nowrap' }}>
                 {seasonLabel(d.season)} w{d.week}
               </span>
               {/* A FIXED COLUMN FOR THE MARKER (owner: "on the decisions bit

@@ -43,7 +43,9 @@ export function horizon(state: GameState): Horizon[] {
   const nextWin = next(WIN_MARKS, m.w)
   const nextGame = next(GAME_MARKS, m.m)
   const seasons = m.finishes.length
-  const titles = m.finishes.filter(f => f.pos === 1).length
+  // a title is the league's trophy in the cabinet, not first place: a side
+  // that tops the table and loses the final has not won it (1.8.4 career QA)
+  const titles = m.finishes.filter(f => m.trophies.some(x => x.compId === f.leagueId && x.season === f.season)).length
 
   if (nextWin) {
     rows.push({ label: t('legacy.hzWins', { n: nextWin }), at: m.w, goal: nextWin, note: t('legacy.hzMore', { n: nextWin - m.w }) })

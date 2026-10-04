@@ -125,20 +125,43 @@ public class PhaseBilling extends Plugin implements PurchasesUpdatedListener {
         connect(null);
     }
 
+    /** The activity is going: let go of Play's service, or the next
+     *  activity's plugin builds a second client beside a leaked first. */
+    @Override
+    protected void handleOnDestroy() {
+        if (client != null) client.endConnection();
+        super.handleOnDestroy();
+    }
+
     // ---- connection ----
 
     private interface Ready { void run(boolean ok); }
+
+    /** Everybody waiting on the one startConnection in flight. Billing 8
+     *  answers a second startConnection made while the first is still
+     *  connecting with DEVELOPER_ERROR ("Client is already in the process of
+     *  connecting to billing service."), which buy() would report as
+     *  'refused'/'config'. Concurrent callers queue here instead. */
+    private final List<Ready> waiting = new ArrayList<>();
+    private boolean connecting = false; // guarded by `waiting`
 
     /** Connect if not connected, then run. The library drops the connection
      *  when Play's service restarts, so every entry point goes through here. */
     private void connect(final Ready then) {
         if (client == null) { if (then != null) then.run(false); return; }
         if (client.isReady()) { if (then != null) then.run(true); return; }
+        synchronized (waiting) {
+            if (then != null) waiting.add(then);
+            if (connecting) return;
+            connecting = true;
+        }
         client.startConnection(new BillingClientStateListener() {
             @Override public void onBillingSetupFinished(@NonNull BillingResult r) {
                 boolean ok = r.getResponseCode() == BillingClient.BillingResponseCode.OK;
                 if (!ok) { setupCode = r.getResponseCode(); Log.w(TAG, "billing setup: " + r.getDebugMessage()); }
-                if (then != null) then.run(ok);
+                List<Ready> run;
+                synchronized (waiting) { connecting = false; run = new ArrayList<>(waiting); waiting.clear(); }
+                for (Ready w : run) w.run(ok);
             }
             @Override public void onBillingServiceDisconnected() {
                 Log.w(TAG, "billing service disconnected; will reconnect on the next call");
@@ -214,8 +237,10 @@ public class PhaseBilling extends Plugin implements PurchasesUpdatedListener {
     public void buy(final PluginCall call) {
         final String sku = call.getString("sku");
         if (sku == null) { call.resolve(outcome("error")); return; }
-        PluginCall parked = pendingBuy.get();
-        if (parked != null && SystemClock.elapsedRealtime() - pendingSince >= BUY_TIMEOUT_MS) {
+        PluginCall parked;
+        long since;
+        synchronized (pendingBuy) { parked = pendingBuy.get(); since = pendingSince; }
+        if (parked != null && SystemClock.elapsedRealtime() - since >= BUY_TIMEOUT_MS) {
             // parked past its time and the timer has not let it go: let it go
             // now, and this tap goes ahead as a fresh purchase
             releaseStuck(parked);
@@ -247,24 +272,31 @@ public class PhaseBilling extends Plugin implements PurchasesUpdatedListener {
                 params.add(BillingFlowParams.ProductDetailsParams.newBuilder().setProductDetails(list.get(0)).build());
                 // two taps can both pass the check above before either parks:
                 // only the first parks, the second is told one is in flight
-                // (the stamp goes first, so a tap that sees this call parked
-                // never reads the last purchase's stamp against it)
-                pendingSince = SystemClock.elapsedRealtime();
-                if (!pendingBuy.compareAndSet(null, call)) { call.resolve(outcome("pending")); return; }
-                pendingSku = sku;
+                // call, sku and stamp change together, or a finishBuy() for the
+                // last purchase can null the sku of this one
+                synchronized (pendingBuy) {
+                    if (!pendingBuy.compareAndSet(null, call)) { call.resolve(outcome("pending")); return; }
+                    pendingSku = sku;
+                    pendingSince = SystemClock.elapsedRealtime();
+                }
                 // a Capacitor call that waits on a later callback must be
                 // kept, or the bridge releases it and the answer has nowhere
                 // to go
                 call.setKeepAlive(true);
                 // and it is not kept for ever (BUY_TIMEOUT_MS)
-                timer.postDelayed(() -> releaseStuck(call), BUY_TIMEOUT_MS);
-                BillingResult launch = client.launchBillingFlow(activity,
-                    BillingFlowParams.newBuilder().setProductDetailsParamsList(params).build());
-                if (launch.getResponseCode() != BillingClient.BillingResponseCode.OK) {
-                    // the sheet did not open: answer now, do not wait for a
-                    // callback that will never come
-                    finishBuy(mapCode(launch.getResponseCode()), causeOf(launch.getResponseCode()));
-                }
+                // (the call is the token, so finishBuy removes THIS timer only)
+                timer.postAtTime(() -> releaseStuck(call), call, SystemClock.uptimeMillis() + BUY_TIMEOUT_MS);
+                // launchBillingFlow is @UiThread in Billing 8, and this
+                // callback runs on Capacitor's plugin thread
+                timer.post(() -> {
+                    BillingResult launch = client.launchBillingFlow(activity,
+                        BillingFlowParams.newBuilder().setProductDetailsParamsList(params).build());
+                    if (launch.getResponseCode() != BillingClient.BillingResponseCode.OK) {
+                        // the sheet did not open: answer now, do not wait for a
+                        // callback that will never come
+                        finishBuy(mapCode(launch.getResponseCode()), causeOf(launch.getResponseCode()));
+                    }
+                });
             });
         });
     }
@@ -327,11 +359,14 @@ public class PhaseBilling extends Plugin implements PurchasesUpdatedListener {
     private void finishBuy(String result) { finishBuy(result, null); }
 
     private void finishBuy(String result, String cause) {
-        PluginCall call = pendingBuy.getAndSet(null);
-        if (call == null) return;
-        pendingSku = null;
+        PluginCall call;
+        synchronized (pendingBuy) {
+            call = pendingBuy.getAndSet(null);
+            if (call == null) return;
+            pendingSku = null;
+        }
         // answered in time: its timer has nothing left to do
-        timer.removeCallbacksAndMessages(null);
+        timer.removeCallbacksAndMessages(call);
         call.resolve(outcome(result, cause));
         call.release(getBridge());
     }
@@ -340,8 +375,10 @@ public class PhaseBilling extends Plugin implements PurchasesUpdatedListener {
      *  'pending'. Only THAT call: if it was answered meanwhile, or another
      *  purchase has parked since, this does nothing. */
     private void releaseStuck(PluginCall call) {
-        if (!pendingBuy.compareAndSet(call, null)) return;
-        pendingSku = null;
+        synchronized (pendingBuy) {
+            if (!pendingBuy.compareAndSet(call, null)) return;
+            pendingSku = null;
+        }
         Log.w(TAG, "buy: no answer from Play in " + (BUY_TIMEOUT_MS / 1000) + "s; released as pending");
         call.resolve(outcome("pending"));
         call.release(getBridge());

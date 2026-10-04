@@ -23,7 +23,7 @@ import { coachAfterMatch, coachWeek, coachYearEnd } from './rivalcoach'
 import { closeEra, eraAfterMatch, eraYearEnd, openEra, tellEra } from './erastory'
 import { announceTraits, conductRow, notePattern, reputeYearEnd } from './repute'
 import { ambitionsWeek } from './ambitions'
-import { boardSummer, newChairman } from './chairman'
+import { boardMethod, boardSummer, newChairman } from './chairman'
 import { ARC_CAPS } from './arcbook'
 
 export function arcAfterMatch(state: GameState, fx: Fixture): void {
@@ -45,8 +45,11 @@ export function arcWeek(state: GameState): void {
   flushArcNews(state)
 }
 
-export function arcYearEnd(state: GameState): void {
-  if (ARC_OFF.on) return
+/** Returns the board's points for the season's method (chairman.ts
+ *  boardMethod), for the rollover to add after its summer pull. */
+export function arcYearEnd(state: GameState): number {
+  if (ARC_OFF.on) return 0
+  let method = 0
   const a = arcOf(state)
   if (!state.unemployed) {
     openEra(state)
@@ -56,14 +59,17 @@ export function arcYearEnd(state: GameState): void {
       a.conduct.push(row)
       if (a.conduct.length > ARC_CAPS.conduct) a.conduct.splice(0, a.conduct.length - ARC_CAPS.conduct)
     }
-    const rows = boardSummer(state, row)
-    if (rows) arcFile(state, 'arc.verdict', { rows_ll: JSON.stringify(rows) }, { type: 'board', summer: true })
+    const meth = boardMethod(state, row)
+    method = meth.d
+    const rows = [...(boardSummer(state, row) ?? []), ...meth.rows]
+    if (rows.length) arcFile(state, 'arc.verdict', { rows_ll: JSON.stringify(rows) }, { type: 'board', summer: true })
     if (eraYearEnd(state)) tellEra(state, '5', true)
     reputeYearEnd(state)
     announceTraits(state)
   }
   coachYearEnd(state)
   for (const [k, s] of Object.entries(a.said)) if (s < state.season) delete a.said[k]
+  return method
 }
 
 /** jobs.ts resignJob and sackManager, while the desk is still his. */

@@ -123,9 +123,14 @@ export function paragraphs(body: string): string[] {
     // sentence ends: . ! or ? then a space then something that starts a sentence
     const parts = block.split(/(?<=[.!?])\s+(?=[A-Z0-9"'\u00c0-\u017f])/)
     let buf = ''
+    // never break inside a quotation: an agent's two sentences are one voice,
+    // and splitting them left a dangling opening mark on one paragraph and the
+    // closing mark on the next (1.8.4 Phase 7)
+    const open = (s: string) => ((s.match(/"/g) ?? []).length % 2 === 1)
+      || (s.match(/[«“]/g) ?? []).length > (s.match(/[»”]/g) ?? []).length
     for (const part of parts) {
       buf = buf ? `${buf} ${part}` : part
-      if (buf.length >= 150) { out.push(buf); buf = '' }
+      if (buf.length >= 150 && !open(buf)) { out.push(buf); buf = '' }
     }
     if (buf) {
       // a short tail joins the paragraph before it rather than sitting alone

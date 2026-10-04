@@ -39,6 +39,19 @@ async function career(page, url) {
   await page.waitForSelector('.bottom-nav', { timeout: 15000 })
 }
 const running = page => page.evaluate(() => document.getAnimations().filter(a => a.playState === 'running' && !(a.effect?.target?.closest?.('.pitch, .intro'))).length)
+// SETTLED, ON A CLOCK THAT ALLOWS FOR THE MACHINE (1.8.4). This waited a flat
+// 700ms and then counted running animations: right on a desktop, but on a
+// GitHub runner, whose headless frames come slower, Home's staggered deal-in
+// was still finishing and the harness failed there and nowhere else. The
+// motion is the CSS's; what this guards is that it ENDS. So it polls for up
+// to two seconds and fails only if something is still running after that.
+async function settles(page, max = 2000) {
+  for (let t = 0; t < max; t += 100) {
+    if (await running(page) === 0) return true
+    await page.waitForTimeout(100)
+  }
+  return await running(page) === 0
+}
 
 try {
   const page = await browser.newPage({ viewport: { width: 412, height: 915 } })
@@ -51,16 +64,14 @@ try {
   await page.click('.filter-btn')
   const sheet = await page.evaluate(() => [...new Set(document.getAnimations().map(a => a.animationName))])
   ok(sheet.includes('m-sheet'), 'a sheet slides up')
-  await page.waitForTimeout(700)
-  ok(await running(page) === 0, `everything has settled within 700ms (${await running(page)} still running)`)
+  ok(await settles(page), `everything has settled (${await running(page)} still running)`)
   const pos = await page.evaluate(() => { const r = document.querySelector('.filter-sheet').getBoundingClientRect(); return { bottom: Math.round(r.bottom), h: innerHeight } })
   ok(Math.abs(pos.bottom - pos.h) <= 2, `the sheet sits on the bottom of the glass (${pos.bottom} of ${pos.h})`)
   await page.click('.filter-sheet .btn.gold')
   await page.click('.bottom-nav button[title="Home"]')
   const home = await page.evaluate(() => document.querySelector('.card-grid > *')?.getAnimations().map(a => a.animationName) ?? [])
   ok(home.includes('m-rise'), 'Home deals its cards in')
-  await page.waitForTimeout(700)
-  ok(await running(page) === 0, 'and they have all landed within 700ms')
+  ok(await settles(page), 'and they have all landed')
   await page.close()
 
   const calm = await browser.newPage({ viewport: { width: 412, height: 915 }, reducedMotion: 'reduce' })

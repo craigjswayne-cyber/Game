@@ -193,10 +193,16 @@ export default function Inbox() {
         <button className="btn ghost tiny" disabled={i <= 0}
           title={t('inbox.newerMessage')} aria-label={t('inbox.newerMessage')}
           onClick={() => inboxStep(1)}>▶</button>
-        <ResponseNeeded />
-        {unread > 0
-          ? <button className="btn gold tiny" onClick={() => openInbox()}>{t('inbox.nextUnread', { n: unread })}</button>
-          : <button className="btn ghost tiny" onClick={() => clearRead()}>{t('inbox.clearRead')}</button>}
+        {/* the two actions keep together and drop to their own row when the
+            bar is too narrow, rather than squeezing the position to "B..."
+            and cutting "Response needed" off at 360px (1.8.4 Phase 7). The
+            unread count is said once, in the position line. */}
+        <span className="reader-acts">
+          <ResponseNeeded />
+          {unread > 0
+            ? <button className="btn gold tiny" onClick={() => openInbox()}>{t('inbox.nextUnread')}</button>
+            : <button className="btn ghost tiny" onClick={() => clearRead()}>{t('inbox.clearRead')}</button>}
+        </span>
       </div>
 
       <div className="inbox-panes">

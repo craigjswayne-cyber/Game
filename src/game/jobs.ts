@@ -15,7 +15,8 @@ import { telling } from './tellings'
 import { historyLeaveJob, historyTakeJob } from './history'
 import { arcAfterMove, arcBeforeMove, arcLeaveJob } from './arc'
 import { coachAppoint, coachSacked } from './rivalcoach'
-import { mgrTraits, traitLine } from './repute'
+import { mgrTraits, traitLine, type Trait } from './repute'
+import { jobProfile, type JobProfile } from './chairman'
 import { fileHeldNews } from './heldnews'
 
 /**
@@ -119,7 +120,31 @@ export function jobChance(state: GameState, clubId: string): number {
     // Leinster before the scaling)
     c = Math.max(c, modesty * 0.62)
   }
+  // a board looking for exactly what the manager is known for (jobFit)
+  if (jobFit(state, clubId)) c += JOB_FIT
   return clamp(c, 0.05, 0.95)
+}
+
+/**
+ * ---- THE NAME THAT FITS THE JOB ----
+ *
+ * A manager's top trait (repute.ts) is what a board has heard of him, and a
+ * club whose job is that trait's job listens a little harder: an academy club
+ * to a youth developer, a club in trouble to a man who has turned one round,
+ * a newcomer's money to a man known for spending it. Six points of chance,
+ * no more, and the vacancy card says so. Traits with no job of their own
+ * (attack, defence, the hard man) fit nothing here.
+ */
+export const JOB_FIT = 0.06
+const FITS: Partial<Record<Trait, JobProfile>> = {
+  youth: 'academy', youthBacks: 'academy', youthPack: 'academy', youthIntl: 'academy',
+  turnaround: 'troubled', spender: 'newcomer',
+}
+
+/** The manager's top trait, when it is what this club's job wants. */
+export function jobFit(state: GameState, clubId: string): Trait | null {
+  const top = mgrTraits(state)[0]
+  return top && FITS[top.id] && FITS[top.id] === jobProfile(state, clubId) ? top.id : null
 }
 
 /** Keep a rolling set of 2-4 vacancies, biased towards struggling clubs. */
@@ -135,7 +160,7 @@ export function refreshVacancies(state: GameState, rng: Rng) {
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: tIn('en', 'news.jobWithdrawnSubj', { short: c.short }),
         body: tIn('en', 'news.jobWithdrawn', { club: c.name }),
-        k: 'news.jobWithdrawn', v: { club: c.name },
+        k: 'news.jobWithdrawn', v: { club: c.name, short: c.short },
       })
     }
     // the club he is out of work from appoints like any other: userClubId
@@ -300,7 +325,7 @@ export function applyForJob(state: GameState, clubId: string): string {
       id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
       subject: tIn('en', 'news.jobOfferedSubj', { short: club.short }),
       body: tIn('en', 'news.jobOffered', { club: club.name, stadium: club.stadium, budget: fmtMoney(club.budget) }),
-      k: 'news.jobOffered', v: { club: club.name, stadium: club.stadium, budget: fmtMoney(club.budget) },
+      k: 'news.jobOffered', v: { club: club.name, short: club.short, stadium: club.stadium, budget: fmtMoney(club.budget) },
     })
     // WHY THEY WANT YOU (repute.ts): a club that offers a job says what it has
     // heard, and a manager with a name has one. Held, so no id is spent.

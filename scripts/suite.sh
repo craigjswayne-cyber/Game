@@ -43,6 +43,14 @@ run() {
   else
     FAILED_NAMES="$FAILED_NAMES $name"
     printf 'FAIL  %-16s %s\n' "$name" "$last"
+    # on a CI runner, each failure is also an annotation: the run page lists
+    # them by name, which a log behind a download link does not
+    if [ -n "${GITHUB_ACTIONS:-}" ]; then
+      # the first line that says what went wrong, not node's version footer
+      why=$(printf '%s' "$out" | grep -m1 -E '^(FAIL|PROBE THREW)|Error: |Timeout|exceeded' | cut -c1-200)
+      [ -z "$why" ] && why=$(printf '%s' "$out" | grep -v '^\s*at ' | tail -6 | tr '\n' ' ' | cut -c1-300)
+      echo "::error title=$name::${why:-$last}"
+    fi
     # SAY WHAT FAILED, not just that something did. This threw the whole of $out
     # away and printed the summary line, so "FAIL subsprobe SUBS PROBE FAILED (2)"
     # meant re-running the probe by hand to find out which two - and a probe that
@@ -75,8 +83,13 @@ echo "=== engine ==="
 # SHARDS (v1.2.2): CI runs the engine probes as two parallel jobs, each taking
 # every other file, so the wall clock halves without a single probe being
 # skipped. Locally SHARDS is unset and one loop runs everything, as before.
+# BROWSER MODE (1.8.4): the CI browser job ran `suite.sh` and so ran every
+# engine probe again, unsharded, before its first harness: over two hours,
+# cancelled at the 75-minute ceiling on every merge to main since 1.8.2, so
+# the harnesses never actually ran in CI. The engine has its own sharded jobs;
+# `browser` skips it here.
 i=0
-for f in scripts/*.ts; do
+[ "$MODE" = browser ] || for f in scripts/*.ts; do
   n=$(basename "$f" .ts)
   [ "$n" = worldcheck ] && continue                       # a library, not a probe
   case " $REPORTERS $SLOW " in *" $n "*) continue;; esac
@@ -97,8 +110,15 @@ if [ "$MODE" != fast ]; then
 # not run what CI runs is not a gate, it is a rehearsal.
 echo "=== build, then the browser ==="
   run build npm run build
+  b=0
   for n in e2e e2enight backprobe savequeue resilience reloadprobe subsprobe dramaprobe jobsprobe hubprobe tapsize motionprobe drawui portraitqa densityaudit stickyaudit scrollaudit overlapaudit blockprobe pickaudit nightcontrast contrastprobe colouraudit breaker subreach injurygate unemployedprobe stakesprobe devicematrix backlogprobe annualprobe geosweep strangerpath hireprobe bidprobe deskgate textscale langprobe skinui sackui engageui tillface keyscreen storeprobe backupreach replyreach subline testsheet healrefresh sidescroll adsprobe womensui mgrgender joboffer matchad boardroomui pressureprobe introprobe tabletprobe ambientprobe overlayprobe tidyprobe ipprobe slotprobe feedprobe loanlistui floorad; do
     [ -f "scripts/$n.mjs" ] || continue
+    # BSHARDS: the CI browser job runs as parallel shards, each taking every
+    # BSHARDS-th harness; locally it is unset and every harness runs
+    if [ -n "${BSHARDS:-}" ]; then
+      b=$((b + 1))
+      [ $((b % BSHARDS)) -ne $(( ${BSHARD:-1} % BSHARDS )) ] && continue
+    fi
     run "$n" timeout 1200 node "scripts/$n.mjs"
   done
 fi

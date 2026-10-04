@@ -22,6 +22,7 @@ import { KNOCK_ENERGY } from './knock'
 import { DEFAULT_LINEOUT, DEFAULT_SCRUM, ROUTINE_BY_ID, playbookOf, routineEffect } from './playbook'
 import { MOVE_BY_ID, MOVE_MAKER, RED_ZONE, anyCall, calledIds, callForTick, callsOf, launchOf, mixHash, moveEdge, moveFit, moveHash, moveMatchup, moveTempoF, sayKey, type Launch } from './moves'
 import { adaptMap, tallyCalls } from './armsrace'
+import { rematchOf, withRematch, type Rematch } from './rematch'
 import {
 
 
@@ -29,6 +30,7 @@ import {
   type BenchSplit,
 } from './bench'
 import { rememberDebut } from './memory'
+import { LEVER_DIALS, buildEvidence, type CausalEvidence } from './evidence'
 import { ATK_KICKS, atkSay, defSay, moveAffinity, styleDrain, styleFitRel, styleTerr, styleTick, stylesOf, TURN_BASE, TURN_M, type SideStyle } from './styles'
 import { ART_HOME, clubSurface, goalPenaltyOf, injuryF, matchConditions, styleWx, surfaceOf, wetness, type Surface } from './conditions'
 import { HABITS, HABITS_OFF, clutchKick, habitFx } from './habits'
@@ -2039,6 +2041,9 @@ export interface LiveCtx {
   /** how far the manager's opponent is set for each of his calls (1.8.2,
    *  armsrace.ts), taken at kick-off; absent in a match he is not in */
   callAdapt?: Record<string, number>
+  /** what the manager's opponent remembers of the last meeting (1.8.4,
+   *  rematch.ts), taken at kick-off with the tape; absent otherwise */
+  rematch?: Rematch
   home: SideCtx
   away: SideCtx
   rng: Rng
@@ -2161,6 +2166,22 @@ export interface LiveCtx {
   /** the margin (home minus away) at the end of each tick, for the lead
    *  changes the evidence keeps (evidence.ts) */
   marginHist?: number[]
+  /** THE HALF-TIME READ, KEPT (1.8.4, evidence.ts halfFollow): the evidence
+   *  as it stood at the break, and the manager's four touchline dials there
+   *  and as the second half kicked off, so full time can say whether what
+   *  was hurting eased and whether he moved the dial that answers it. Read
+   *  at the whistle, never drawn; a resumed match replays to the same. */
+  htEv?: CausalEvidence
+  htDials?: number[]
+  shDials?: number[]
+}
+
+/** The manager's four touchline dials, in LEVER_DIALS order: his club's
+ *  match only (a Test side has no club board). */
+function userDials(state: GameState, ctx: LiveCtx): number[] | undefined {
+  if (!ctx.userSideId || ctx.userSideId !== state.userClubId) return undefined
+  const tac = state.clubs[ctx.userSideId]?.tactic
+  return tac ? LEVER_DIALS.map(k => tac[k]) : undefined
 }
 
 /**
@@ -2431,9 +2452,16 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
   // THE ARMS RACE (1.8.2, armsrace.ts): how far this opponent is set for each
   // of the manager's calls, off the tape as it stood BEFORE this match, and
   // then this match's reps and first-phase strikes on the tape
+  //
+  // THE REMATCH (1.8.4, rematch.ts): and what this coach remembers of the
+  // last meeting, read off the same tape, a little more on the call that
+  // beat him or a little more in the unit that did
   let callAdapt: Record<string, number> | undefined
+  let rematch: Rematch | null = null
   if (fx.homeId === state.userClubId || fx.awayId === state.userClubId) {
-    callAdapt = adaptMap(state, fx.homeId === state.userClubId ? fx.awayId : fx.homeId)
+    const oppId = fx.homeId === state.userClubId ? fx.awayId : fx.homeId
+    rematch = rematchOf(state, oppId)
+    callAdapt = withRematch(adaptMap(state, oppId), rematch)
     tallyCalls(state, fx)
   }
   // The analysts were watching. Calling the same move every week is how it stops
@@ -2685,6 +2713,7 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     tick: 0, seg: 0, awaiting: null, field: 50, motmId: null, talkUsed: false, subsUsed: 0,
     preTalk: null, decision: null, momo: 0, grudge: grudge?.reason ?? null,
     callAdapt,
+    ...(rematch ? { rematch } : {}),
   }
   ctx.kickSeed = Math.floor(rng() * 4294967296) >>> 0
   ctx.chemToday = chemToday
@@ -2701,6 +2730,14 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     // more effort in defence and at the breakdown, for this match only
     const rl = respectLayers(state, side.teamId)
     if (rl) for (const [u, m] of Object.entries(rl)) layer(side, u as keyof SideMods, m)
+    // THE REMATCH (1.8.4): the unit that lost him the last meeting, a little
+    // lifted; a remembered call is in callAdapt above. Said at kick-off, as
+    // the report and the desk said it before
+    const rm = ctx.rematch
+    if (rm) {
+      if (rm.unit && rm.layer !== 1) layer(side, rm.unit, rm.layer)
+      pushLine(state, ctx, 0, 'SUB', side, 'comm.oppRematch', { team: teamShort(state, side.teamId) })
+    }
     const shift = analystShift(state, side.teamId)
     if (!shift) continue
     for (const [u, m] of Object.entries(shift.layers)) layer(side, u as keyof SideMods, m)
@@ -5183,6 +5220,11 @@ function blowHalfTime(state: GameState, ctx: LiveCtx) {
     hposs: Math.round((ctx.home.poss / possTotal) * 100), aposs: Math.round((ctx.away.poss / possTotal) * 100),
     htries: ctx.home.tries, atries: ctx.away.tries, hpens: ctx.home.pens, apens: ctx.away.pens,
   })
+  if (ctx.userSideId) {
+    const ev = buildEvidence(state, ctx)
+    if (ev) ctx.htEv = ev
+    ctx.htDials = userDials(state, ctx)
+  }
 }
 
 /** Blow full time. Same deal: seg only reaches 3 - which is what every caller
@@ -5200,6 +5242,8 @@ export function stepTick(state: GameState, ctx: LiveCtx): 'play' | 'HT' | 'BRK' 
   // taken back (16B), and no whistle is waiting on anything
   ctx.lastSub = null
   ctx.whistleAt = null
+  // the dials the second half kicks off with, against the half-time read
+  if (ctx.tick === 10 && ctx.htEv && !ctx.shDials) ctx.shDials = userDials(state, ctx)
   simTick(state, ctx, ctx.tick)
   ctx.tick += 1
   aiTacticShift(state, ctx)

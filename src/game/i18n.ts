@@ -385,6 +385,9 @@ function fill(text: string, vars?: Vars, lang: Lang = current): string {
     }
     if (typeof v === 'string' && COMP_VARS.has(name)) return compLabel(v, lang)
     if (name === 'host' && typeof v === 'string' && TOUR_HOST[v]) return tourHost(v, lang)
+    // A YEAR IS NOT A QUANTITY (1.8.4 RC): "until the end of 2,027" was a
+    // contract year put through the thousands separator.
+    if (name === 'year' && typeof v === 'number') return String(v)
     return typeof v === 'number' ? v.toLocaleString(NUMBER_LOCALE[lang]) : String(v)
   })
 }

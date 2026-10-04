@@ -177,6 +177,9 @@ export interface Willingness {
  *  assemble on those terms is not the squad the cap was balanced against. */
 export const MAX_HAGGLE = 0.3
 
+/** no AI club bids for a man the manager signed fewer weeks ago than this */
+export const INK_WEEKS = 22
+
 export function sellerWillingness(state: GameState, p: Player): Willingness {
   const club = p.clubId ? state.clubs[p.clubId] : null
   if (!club) return { discount: 0, premium: 0, reasons: [] }
@@ -437,6 +440,11 @@ export function aiTransfers(state: GameState, rng: Rng) {
     if (!wanted.length) continue
     const p = pick(rng, wanted)
     if (state.offers.some(o => o.playerId === p.id && o.status === 'pending')) continue
+    // THE INK IS STILL WET. Nobody bids for a man the manager signed less
+    // than INK_WEEKS ago: signing free agents and selling them on at once
+    // cleared about £22M a season (1.8.4 exploit hunt, E1/E2). Read after
+    // the pick, so the draws are the ones they were.
+    if (p.joinedAt != null && absWeek(state.season, state.week) - p.joinedAt < INK_WEEKS) continue
     const bidders = clubs.filter(c => c.id !== user.id && c.rep >= user.rep - 15 && c.budget >= p.value * 0.8)
     if (!bidders.length) continue
     const bidder = pick(rng, bidders)
@@ -724,13 +732,16 @@ export function signFreeAgent(state: GameState, playerId: number): { ok: boolean
   if (embargoed(state, user.id)) {
     return { ok: false, msg: t('reply.embargoSign') }
   }
-  const wage = renewalDemand(p)
+  // a scholar let go by his academy signs as a senior: on the professional
+  // scale and in the senior count (1.8.4 exploit hunt, E9)
+  const wage = renewalDemand(p.acad ? { ...p, acad: false } : p)
   const capMsg = capBreak(state, user.id, wage)
   if (capMsg) return { ok: false, msg: capMsg }
   if (capBill(state, user) + wage > userWageBudget(state, user)) {
     return { ok: false, msg: t('reply.wageDemandsExceed', { wage: fmtWage(wage) }) }
   }
   executeTransfer(state, p, user.id, 0)
+  p.acad = false
   p.wage = wage
   p.contractEnds = state.season + 2
   return { ok: true, msg: t('reply.signsFree', { name: p.name, wage: fmtWage(wage) }) }
@@ -778,6 +789,7 @@ export function counterIncomingOffer(state: GameState, offerId: number): string 
   }
   if (rng() < 0.55) {
     o.fee = newFee
+    o.raised = true
     return t('reply.bidderRaises', { club: bidder.short, fee: fmtMoney(newFee), last: p.name.split(' ').slice(-1)[0] })
   }
   o.status = 'rejected'
@@ -823,6 +835,9 @@ export function respondToOffer(state: GameState, offerId: number, accept: boolea
   // is the cost of refusing it.
   if (o.countered && o.fee >= p.value * 1.2) {
     p.morale = clamp(p.morale - (sulky ? 1.8 : 0.9), 1, 10)
+    // "came back with more" only when they did (1.8.4 RC): a best-and-final
+    // reply kept the fee where it was, and the line told the manager otherwise
+    if (!o.raised) return t('reply.bidRejectedFrustrated', { player: p.name })
     return t('reply.bidRejectedKnew', { player: p.name, club: bidder.short, mood_k: sulky ? 'reply.bidRejectedFurious' : 'reply.bidRejectedSoured' })
   }
   if (p.morale <= 4 || (sulky && bidder.rep > (state.clubs[state.userClubId]?.rep ?? 0))) {
@@ -1056,7 +1071,10 @@ export function offerRenewalAt(state: GameState, playerId: number, offer: number
   // without a roll, which is what "they'd sign today at X" has to mean.
   // And a wage is formatted as a wage: fmtMoney printed the same 8,400 the
   // button showed as "£8.4k/wk" back at the manager as "£8k/wk".
-  const counterAt = Math.round((demand * 0.97) / 50) * 50
+  // and never under what he already earns: a counter below his wage was a
+  // pay cut he would sign for (1.8.4 exploit hunt, E3)
+  const earns = Math.round((Number.isFinite(p.wage) ? p.wage : 0) / 50) * 50
+  const counterAt = Math.max(Math.round((demand * 0.97) / 50) * 50, earns)
   if (offer < counterAt) {
     const ratio = offer / demand
     if (ratio < 0.85) {
@@ -1072,7 +1090,8 @@ export function offerRenewalAt(state: GameState, playerId: number, offer: number
     const acceptP =
       (p.pers === 'Loyal' ? 0.6 : p.pers === 'Professional' ? 0.45 : p.pers === 'Mercenary' ? 0.12 : 0.3)
       + (p.morale >= 7.5 ? 0.15 : 0) + (ratio - 0.85) * 1.2
-    if (rng() >= acceptP) {
+    // the roll is drawn either way; a pay cut is never the deal it lands on
+    if (rng() >= acceptP || offer < earns) {
       return { ok: false, msg: t('reply.signTodayAt', { name: p.name, counter: fmtWage(counterAt) }), counter: counterAt }
     }
   }
