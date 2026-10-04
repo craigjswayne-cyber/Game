@@ -159,9 +159,9 @@ export function unbeatenRun(state: GameState, clubId: string): number {
  *  reads the array tail and a by-date result falls out. The dash panel one
  *  card below learned this exact lesson (see its comment); the pips never
  *  got the sort. */
-export function formGuide(state: GameState, clubId: string, n = 5): ('W' | 'L' | 'D')[] {
+export function formGuide(state: GameState, clubId: string, n = 5, competitive = false): ('W' | 'L' | 'D')[] {
   return state.fixtures
-    .filter(f => f.played && (f.homeId === clubId || f.awayId === clubId))
+    .filter(f => f.played && (f.homeId === clubId || f.awayId === clubId) && (!competitive || f.compId !== 'fr'))
     .sort((a, b) => a.week - b.week)
     .slice(-n)
     .map(f => {
