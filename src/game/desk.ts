@@ -57,6 +57,8 @@ import { rivalCoach } from './rivalcoach'
 import { demandedFinish } from './chairman'
 import { atkName, defName, stylesOf } from './styles'
 import { deskQuestion } from './armsrace'
+import { rematchOf } from './rematch'
+import { tacticalMemory } from './tacmemory'
 import type { Club } from './model'
 
 /** A sentence as a key and its values. A value under a name ending `_k` is
@@ -310,6 +312,9 @@ function tacticsRow(state: GameState): DeskRow | null {
   if (plan && first && state.comps[first]) {
     lines.push({ k: 'desk.priority', v: { comp: state.comps[first].name, rot_k: ROT_KEY[plan.rot] } })
   }
+  // WHAT THE LAST FEW MATCHES SAY (1.8.4, tacmemory.ts): at most two
+  // conclusions, each with its numbers
+  for (const n of tacticalMemory(state)) lines.push({ k: n.k, v: n.v })
   return { id: 'tactics', label: 'groups.tactics', lines, go: { screen: 'tactics' } }
 }
 
@@ -353,9 +358,10 @@ function seasonRow(state: GameState): DeskRow | null {
 
 /**
  * One open thread the career is carrying that this week touches, or none.
- * In order: a man you let go lining up against you, your rival in the other
- * dugout, a promise falling due, a man you rushed back, a projection the
- * staff have just revised, and last match's homework.
+ * In order: a man you let go lining up against you, a coach who has changed
+ * his plan since the last meeting, your rival in the other dugout, a
+ * promise falling due, a man you rushed back, a projection the staff have
+ * just revised, and last match's homework.
  */
 function threadRow(state: GameState): DeskRow | null {
   if (state.unemployed) return null
@@ -371,6 +377,14 @@ function threadRow(state: GameState): DeskRow | null {
       return {
         id: 'thread', label: 'desk.thread', go: { screen: 'player', param: gone.playerId! },
         lines: [{ k: 'desk.tFormer', v: { player: playerName(state, gone.playerId), club: state.clubs[opp].short } }],
+      }
+    }
+    // THE REMATCH (1.8.4, rematch.ts): they have changed their plan since
+    // the last meeting; the report says what
+    if (rematchOf(state, opp)) {
+      return {
+        id: 'thread', label: 'desk.thread', go: { screen: 'tactics' },
+        lines: [{ k: 'desk.tRematch', v: { club: state.clubs[opp].short } }],
       }
     }
     const rc = rivalCoach(state)
