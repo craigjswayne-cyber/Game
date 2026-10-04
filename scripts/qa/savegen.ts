@@ -28,6 +28,12 @@ try { EV = await import('../../src/game/evidence') } catch { /* pre-1.8.3 */ }
 
 export function playWeek(g: GameState): void {
   const S = SEASON as Any, M = ME as Any
+  // KEEPJOB=1 keeps the manager in work so a long save still has a club to
+  // play for (as deepsave.ts does); without it the board may sack him
+  if (process.env.KEEPJOB && !g.unemployed) {
+    const c = g.clubs[g.userClubId] as Any
+    c.boardConfidence = Math.max(c.boardConfidence ?? 0, 55)
+  }
   // the Annual is a UI gate only (Annual.tsx clears it on the button)
   if ((g as Any).annual) (g as Any).annual = undefined
   const fx = S.userMatchThisWeek ? S.userMatchThisWeek(g) : S.userFixtureThisWeek(g)

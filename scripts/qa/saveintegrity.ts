@@ -27,6 +27,17 @@ import { genderOf } from '../../src/game/gender'
 process.env.SAVEGEN_LIB = '1'
 const { playWeek } = await import('./savegen')
 
+/** JSON with every object's keys sorted: a property deleted and re-added in
+ *  the same week moves to the end of its object, which is not a difference
+ *  in the world. Maps whose ORDER the engine iterates would show up as a
+ *  value difference a week later, so nothing real hides behind this. */
+//  A field the engine leaves unset on a man it mints and migrate backfills
+//  (onLoan false, rust 0, debutPending null) is read with ?? everywhere, so
+//  absent and its default are the same world: dropped from both sides.
+const TRIVIAL = (v: unknown) => v === undefined || v === null || v === false || v === 0
+const canon = (x: unknown): string => JSON.stringify(x, (_k, v) =>
+  v && typeof v === 'object' && !Array.isArray(v)
+    ? Object.fromEntries(Object.keys(v).sort().filter(k => !TRIVIAL(v[k])).map(k => [k, v[k]])) : v)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Any = any
 const args = process.argv.slice(2).filter(a => a !== '--')
@@ -48,6 +59,7 @@ function diff(a: Any, b: Any, path = '', out: string[] = [], depth = 0): string[
   if (out.length >= 15 || depth > 14) return out
   if (a === b) return out
   if (typeof a !== typeof b || a === null || b === null || typeof a !== 'object') {
+    if (TRIVIAL(a) && TRIVIAL(b)) return out
     if (!(Number.isNaN(a) && Number.isNaN(b))) out.push(`${path}: ${JSON.stringify(a)?.slice(0, 80)} vs ${JSON.stringify(b)?.slice(0, 80)}`)
     return out
   }
@@ -161,7 +173,7 @@ function orphans(g: GameState, when: string) {
 }
 
 function signature(g: GameState): string {
-  return JSON.stringify(g)
+  return canon(g)
 }
 
 // ------------------------------------------------------------------- run
@@ -203,11 +215,11 @@ if (LANG) {
   let F = load(j1)
   const K2 = Math.min(K, 8)
   for (let w = 0; w < K2; w++) playWeek(F)
-  const sigF = JSON.stringify(F)
+  const sigF = canon(F)
   setLang('en')
   let E = load(j1)
   for (let w = 0; w < K2; w++) playWeek(E)
-  const sigE = JSON.stringify(E)
+  const sigE = canon(E)
   verdict('LANGUAGE', sigF === sigE, `${K2} weeks in French differ from English: ${diff(JSON.parse(sigE), JSON.parse(sigF)).slice(0, 10).join(' | ')}`)
 }
 
