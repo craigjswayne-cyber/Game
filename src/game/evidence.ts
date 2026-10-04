@@ -124,6 +124,9 @@ export interface CausalEvidence {
   lead: number[]
   /** what the margin moved by after the hour (positive for us) */
   late: number
+  /** set on a friendly: kept for the run of matches, never read as the
+   *  last meeting (a friendly in an idle week wiped a rival's memory) */
+  fr?: 1
 }
 
 /** THE NEWEST SIX, AND THE LAST TIME AGAINST EVERYBODY ELSE (1.8.4). The
@@ -140,13 +143,14 @@ export const RECALL_CAP = 24
 
 /** The list as the save keeps it, oldest first, from a list in the order the
  *  matches were played. */
-export function trimRecall<T extends { oppId: string }>(list: T[], recent = EVIDENCE_CAP, cap = RECALL_CAP): T[] {
+export function trimRecall<T extends { oppId: string; fr?: 1 }>(list: T[], recent = EVIDENCE_CAP, cap = RECALL_CAP): T[] {
   const keep = new Set<number>()
   const seen = new Set<string>()
   for (let i = list.length - 1; i >= 0 && keep.size < cap; i--) {
     if (i >= list.length - recent) keep.add(i)
-    else if (!seen.has(list[i].oppId)) keep.add(i)
-    seen.add(list[i].oppId)
+    else if (!list[i].fr && !seen.has(list[i].oppId)) keep.add(i)
+    // a friendly does not take the last-meeting slot
+    if (!list[i].fr) seen.add(list[i].oppId)
   }
   return list.filter((_, i) => keep.has(i))
 }
@@ -228,6 +232,7 @@ export function buildEvidence(state: GameState, ctx: LiveCtx): CausalEvidence | 
     swings: swingsOf(ctx, home),
     lead: leadOf(ctx, home),
     late: at60 == null ? 0 : (home ? 1 : -1) * (fin - at60),
+    ...(ctx.fx.compId === 'fr' ? { fr: 1 as const } : {}),
   }
 }
 
@@ -612,7 +617,7 @@ export function prevEvidence(state: GameState, cur: CausalEvidence): CausalEvide
  *  says decided the last meeting. */
 export function lastEvidence(state: GameState, oppId: string): CausalEvidence | null {
   const list = state.tacLoop?.evidence ?? []
-  for (let i = list.length - 1; i >= 0; i--) if (list[i].oppId === oppId) return list[i]
+  for (let i = list.length - 1; i >= 0; i--) if (list[i].oppId === oppId && !list[i].fr) return list[i]
   return null
 }
 
