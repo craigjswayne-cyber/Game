@@ -48,6 +48,7 @@ run() {
     if [ -n "${GITHUB_ACTIONS:-}" ]; then
       # the first line that says what went wrong, not node's version footer
       why=$(printf '%s' "$out" | grep -m1 -E '^(FAIL|PROBE THREW)|Error: |Timeout|exceeded' | cut -c1-200)
+      [ -z "$why" ] && why=$(printf '%s' "$out" | grep -v '^\s*at ' | tail -6 | tr '\n' ' ' | cut -c1-300)
       echo "::error title=$name::${why:-$last}"
     fi
     # SAY WHAT FAILED, not just that something did. This threw the whole of $out
