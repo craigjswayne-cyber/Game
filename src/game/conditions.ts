@@ -154,19 +154,26 @@ export interface RefRead { name: string; scrum: number; breakdown: number; patie
  *  numbers it reads.
  *
  *  WHAT IS WORKING AND WHAT IS HURTING (1.8.3) come in as `evidence`
- *  (evidence.ts htEvidence: at most one of each, with its number) and are
- *  weighed against the reads here, so they take the place of a weaker line
- *  rather than adding to the two. They replaced the scrum ratio and the
- *  count of ball won back that this used to work out for itself; and where a
- *  read here and an evidence line are about the same thing (the penalty
- *  count, the ball lost, the set piece), only the weightier is said. */
+ *  (evidence.ts htEvidence: at most one of each, with its number), and
+ *  since 1.8.4 each keeps a place of the two, working first: the reads here
+ *  fill what is left. They replaced the scrum ratio and the count of ball
+ *  won back that this used to work out for itself; and where a read here is
+ *  about the same thing as the hurting line (the penalty count, the ball
+ *  lost, the set piece), only the weightier is said, under its label. */
 export interface HalfSide {
   consPens: number
   turnLost: number
   turnWon: number
   score: number
 }
-export interface HalfLine { k: string; v?: Record<string, string | number>; tag?: 'work' | 'hurt' }
+export interface HalfLine {
+  k: string
+  v?: Record<string, string | number>
+  tag?: 'work' | 'hurt'
+  /** the evidence cause behind a working or hurting line (evidence.ts
+   *  WhyCause), for the dial that answers it */
+  cause?: string
+}
 export function halfTimeHints(ref: RefRead, weather: Weather | null | undefined, mine: HalfSide, theirs: HalfSide, uncontested: boolean,
   evidence: (HalfLine & { w: number; about?: 'pens' | 'ball' | 'set' })[] = []): HalfLine[] {
   const out: (HalfLine & { w: number; about?: string })[] = []
@@ -181,14 +188,22 @@ export function halfTimeHints(ref: RefRead, weather: Weather | null | undefined,
   if (weather === 'Wind') out.push({ w: 2, k: 'matchday.htWind' })
   // the set piece
   if (uncontested) out.push({ w: 3, k: 'matchday.htUncontested', about: 'set' })
-  // what the first forty was made of, one subject once
-  for (const e of evidence) {
-    const same = e.about ? out.findIndex(o => o.about === e.about) : -1
-    if (same < 0) out.push(e)
-    else if (e.w > out[same].w) out[same] = e
+  // WHAT THE FIRST FORTY WAS MADE OF, BOTH SIDES OF IT (1.8.4). A working
+  // and a hurting line each keep a place when the evidence has one, rather
+  // than being outweighed by the reads here: the manager is owed what to
+  // keep and what to change. A read about the same thing as the hurting
+  // line, and weightier, speaks in its place under its label (the bin is
+  // nearer than the count). The reads fill whatever place is left.
+  const tagged: (HalfLine & { w: number; about?: string })[] = []
+  for (const e of [...evidence].sort((a, b) => (a.tag === 'work' ? 0 : 1) - (b.tag === 'work' ? 0 : 1))) {
+    const same = e.tag === 'hurt' && e.about ? out.findIndex(o => o.about === e.about) : -1
+    const read = same >= 0 ? out.splice(same, 1)[0] : null
+    tagged.push(read && read.w > e.w ? { ...read, tag: e.tag, cause: e.cause } : e)
   }
-  return out.sort((a, b) => b.w - a.w).slice(0, 2)
-    .map(({ k, v, tag }) => ({ k, ...(v ? { v } : {}), ...(tag ? { tag } : {}) }))
+  const rest = out.sort((a, b) => b.w - a.w).slice(0, Math.max(0, 2 - tagged.length))
+  const rank = (l: HalfLine) => (l.tag === 'work' ? 0 : l.tag === 'hurt' ? 1 : 2)
+  return [...tagged.slice(0, 2), ...rest].sort((a, b) => rank(a) - rank(b) || b.w - a.w)
+    .map(({ k, v, tag, cause }) => ({ k, ...(v ? { v } : {}), ...(tag ? { tag } : {}), ...(cause ? { cause } : {}) }))
 }
 
 /** one line for the card on how the ground plays */

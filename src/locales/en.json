@@ -272,7 +272,8 @@
   "tPromise_deal": "You promised {player} a new deal",
   "tRushed": "{player} played through a knock",
   "tProjUp": "The staff raised their sights for {player}",
-  "tProjDown": "The staff lowered their sights for {player}"
+  "tProjDown": "The staff lowered their sights for {player}",
+  "tHomework": "Homework from last match: {fix_k}"
  },
  "home": {
   "jobCentre": "The Job Centre",
@@ -1671,7 +1672,32 @@
   "whyKickFor": "Drop goals and charge-downs: {p} points for us.",
   "whyKickAgainst": "Drop goals and charge-downs: {p} points for them.",
   "whyStyleFor": "The battle of styles: {atk_k} had the beating of {def_k}, about {p} points to us.",
-  "whyStyleAgainst": "The battle of styles: {atk_k} had the beating of {def_k}, about {p} points to them."
+  "whyStyleAgainst": "The battle of styles: {atk_k} had the beating of {def_k}, about {p} points to them.",
+  "leadDiff": "The biggest difference:",
+  "leadEdge": "Your strongest advantage:",
+  "leadHurt": "What hurt you most:",
+  "htLeverDown": "To answer it: bring {dial_k} down (now {n})",
+  "htLeverUp": "To answer it: push {dial_k} up (now {n})",
+  "fuSinceHt": "After the break:",
+  "fuSinceLast": "Since last match:",
+  "fuHalves": "{what_k}, {a} in the first half and {b} in the second.",
+  "fuMatches": "{what_k}, {a} last match and {b} today.",
+  "fuM_pen": "penalties conceded",
+  "fuM_turn": "turnovers lost",
+  "fuM_set": "own scrums and lineouts lost",
+  "fuM_break": "their line breaks",
+  "fuM_phase": "minutes they spent in our 22",
+  "fuM_move": "points from their called moves",
+  "fuM_kick": "points from their drop goals and charge-downs",
+  "fuM_style": "points the battle of styles cost us",
+  "fuTrend_improved": "Improved.",
+  "fuTrend_partly": "Partly improved.",
+  "fuTrend_unchanged": "No real change.",
+  "fuTrend_worse": "Worse.",
+  "fuLever_right": "You moved {dial_k} the right way at the break.",
+  "fuLever_wrong": "{dial_k} went the other way at the break.",
+  "fuLever_none": "{dial_k} was left where it was.",
+  "fuNow": "The bigger problem today: {what_k}."
  },
  "tacticsScreen": {
   "tabRoles": "Roles",

@@ -18,7 +18,7 @@
  */
 import type { GameState } from './model'
 import { matchStats, type LiveCtx } from './matchEngine'
-import { unitBattles } from './coachfix'
+import { fileHomework, unitBattles } from './coachfix'
 import { buildEvidence, planExploited, pointsAfter, sidesOf } from './evidence'
 import { t } from './i18n'
 import { noteMemory } from './memory'
@@ -124,12 +124,15 @@ export function buildFindings(state: GameState, ctx: LiveCtx): FindingsRecord | 
 }
 
 /**
- * File the findings once the whistle has gone. Called by the store on both
- * ways a match ends (watched and instant), before the week turns, and safe to
- * call twice: the record is kept once per fixture.
+ * File the findings once the whistle has gone, and set the homework. Called
+ * by the store on every way a match ends (watched, instant and played out
+ * after a reload), before the week turns, and safe to call twice: the
+ * record is kept once per fixture.
  */
 export function fileFindings(state: GameState, ctx: LiveCtx): FindingsRecord | null {
   if (ctx.seg !== 3) return null
+  // the coach's two fixes become next match's homework, a Test's as well
+  fileHomework(state, ctx)
   const rec = buildFindings(state, ctx)
   if (!rec) return null
   const already = state.tacLoop?.findings.some(f => f.fxId === rec.fxId && f.season === rec.season)

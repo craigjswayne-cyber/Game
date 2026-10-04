@@ -276,7 +276,8 @@
     "tPromise_deal": "Vous avez promis un nouveau contrat à {player}",
     "tRushed": "{player} a joué malgré un pépin",
     "tProjUp": "Le staff voit plus haut pour {player}",
-    "tProjDown": "Le staff revoit {player} à la baisse"
+    "tProjDown": "Le staff revoit {player} à la baisse",
+    "tHomework": "Devoirs du dernier match : {fix_k}"
   },
   "home": {
     "jobCentre": "La bourse aux postes",
@@ -1705,7 +1706,32 @@
     "whyKickFor": "Drops et contres : {p} points pour nous.",
     "whyKickAgainst": "Drops et contres : {p} points pour eux.",
     "whyStyleFor": "Le duel des styles : {atk_k} a pris le dessus sur {def_k}, environ {p} points pour nous.",
-    "whyStyleAgainst": "Le duel des styles : {atk_k} a pris le dessus sur {def_k}, environ {p} points pour eux."
+    "whyStyleAgainst": "Le duel des styles : {atk_k} a pris le dessus sur {def_k}, environ {p} points pour eux.",
+    "leadDiff": "Ce qui a fait la différence :",
+    "leadEdge": "Votre meilleur atout :",
+    "leadHurt": "Ce qui vous a le plus coûté :",
+    "htLeverDown": "Pour y répondre : baissez {dial_k} (à {n})",
+    "htLeverUp": "Pour y répondre : montez {dial_k} (à {n})",
+    "fuSinceHt": "Après la pause :",
+    "fuSinceLast": "Depuis le dernier match :",
+    "fuHalves": "{what_k}, {a} en première période et {b} en seconde.",
+    "fuMatches": "{what_k}, {a} au dernier match et {b} aujourd'hui.",
+    "fuM_pen": "pénalités concédées",
+    "fuM_turn": "ballons perdus",
+    "fuM_set": "mêlées et touches perdues sur notre introduction",
+    "fuM_break": "leurs franchissements",
+    "fuM_phase": "minutes passées par eux dans nos 22",
+    "fuM_move": "points sur leurs combinaisons",
+    "fuM_kick": "points sur leurs drops et contres",
+    "fuM_style": "points perdus dans le duel des styles",
+    "fuTrend_improved": "En progrès.",
+    "fuTrend_partly": "En partie mieux.",
+    "fuTrend_unchanged": "Pas de vrai changement.",
+    "fuTrend_worse": "Pire.",
+    "fuLever_right": "Vous avez réglé {dial_k} dans le bon sens à la pause.",
+    "fuLever_wrong": "{dial_k} est allé dans l'autre sens à la pause.",
+    "fuLever_none": "{dial_k} n'a pas bougé.",
+    "fuNow": "Le plus gros problème aujourd'hui : {what_k}."
   },
   "tacticsScreen": {
     "tabRoles": "Rôles",

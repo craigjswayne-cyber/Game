@@ -276,7 +276,8 @@
   "tPromise_deal": "Prometiste un contrato nuevo a {player}",
   "tRushed": "{player} jugó tocado",
   "tProjUp": "El cuerpo técnico eleva sus expectativas con {player}",
-  "tProjDown": "El cuerpo técnico rebaja sus expectativas con {player}"
+  "tProjDown": "El cuerpo técnico rebaja sus expectativas con {player}",
+  "tHomework": "Deberes del último partido: {fix_k}"
  },
  "home": {
   "jobCentre": "La oficina de empleo",
@@ -1694,7 +1695,32 @@
   "whyKickFor": "Drops y patadas tapadas: {p} puntos para nosotros.",
   "whyKickAgainst": "Drops y patadas tapadas: {p} puntos para ellos.",
   "whyStyleFor": "El duelo de estilos: {atk_k} pudo con {def_k}, unos {p} puntos para nosotros.",
-  "whyStyleAgainst": "El duelo de estilos: {atk_k} pudo con {def_k}, unos {p} puntos para ellos."
+  "whyStyleAgainst": "El duelo de estilos: {atk_k} pudo con {def_k}, unos {p} puntos para ellos.",
+  "leadDiff": "La mayor diferencia:",
+  "leadEdge": "Tu mejor baza:",
+  "leadHurt": "Lo que más te dolió:",
+  "htLeverDown": "Para corregirlo: baja {dial_k} (ahora {n})",
+  "htLeverUp": "Para corregirlo: sube {dial_k} (ahora {n})",
+  "fuSinceHt": "Tras el descanso:",
+  "fuSinceLast": "Desde el último partido:",
+  "fuHalves": "{what_k}, {a} en la primera parte y {b} en la segunda.",
+  "fuMatches": "{what_k}, {a} en el último partido y {b} hoy.",
+  "fuM_pen": "golpes de castigo cometidos",
+  "fuM_turn": "balones perdidos",
+  "fuM_set": "melés y touches perdidas con nuestra introducción",
+  "fuM_break": "sus rupturas de línea",
+  "fuM_phase": "minutos suyos en nuestro 22",
+  "fuM_move": "puntos de sus jugadas",
+  "fuM_kick": "puntos de sus drops y patadas tapadas",
+  "fuM_style": "puntos que nos costó el duelo de estilos",
+  "fuTrend_improved": "Mejor.",
+  "fuTrend_partly": "Algo mejor.",
+  "fuTrend_unchanged": "Sin cambio real.",
+  "fuTrend_worse": "Peor.",
+  "fuLever_right": "Moviste {dial_k} en la buena dirección en el descanso.",
+  "fuLever_wrong": "{dial_k} fue en la dirección contraria en el descanso.",
+  "fuLever_none": "{dial_k} se quedó donde estaba.",
+  "fuNow": "El mayor problema hoy: {what_k}."
  },
  "tacticsScreen": {
   "tabRoles": "Roles",

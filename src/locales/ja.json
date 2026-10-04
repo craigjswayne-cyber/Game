@@ -273,7 +273,8 @@
   "tPromise_deal": "{player}に新契約を約束した",
   "tRushed": "{player}は痛みを抱えてプレーした",
   "tProjUp": "スタッフが{player}の見立てを上方修正した",
-  "tProjDown": "スタッフが{player}の見立てを下方修正した"
+  "tProjDown": "スタッフが{player}の見立てを下方修正した",
+  "tHomework": "前の試合からの宿題：{fix_k}"
  },
  "home": {
   "jobCentre": "求人センター",
@@ -1636,7 +1637,32 @@
   "whyKickFor": "ドロップゴールとチャージダウンでこちらに{p}点。",
   "whyKickAgainst": "ドロップゴールとチャージダウンで相手に{p}点。",
   "whyStyleFor": "スタイルの勝負は{atk_k}が{def_k}を上回り、こちらに約{p}点。",
-  "whyStyleAgainst": "スタイルの勝負は{atk_k}が{def_k}を上回り、相手に約{p}点。"
+  "whyStyleAgainst": "スタイルの勝負は{atk_k}が{def_k}を上回り、相手に約{p}点。",
+  "leadDiff": "最大の差：",
+  "leadEdge": "最大の強み：",
+  "leadHurt": "最も痛かった点：",
+  "htLeverDown": "対策：{dial_k}を下げる（現在{n}）",
+  "htLeverUp": "対策：{dial_k}を上げる（現在{n}）",
+  "fuSinceHt": "ハーフタイム後：",
+  "fuSinceLast": "前の試合と比べて：",
+  "fuHalves": "{what_k}は前半{a}、後半{b}。",
+  "fuMatches": "{what_k}は前の試合で{a}、今日は{b}。",
+  "fuM_pen": "反則",
+  "fuM_turn": "ターンオーバーされた回数",
+  "fuM_set": "自ボールのスクラムとラインアウトを失った回数",
+  "fuM_break": "相手のラインブレイク",
+  "fuM_phase": "自陣22mに攻め込まれた時間（分）",
+  "fuM_move": "相手のサインプレーによる失点",
+  "fuM_kick": "相手のドロップゴールとチャージダウンによる失点",
+  "fuM_style": "スタイルの勝負で失った点",
+  "fuTrend_improved": "改善した。",
+  "fuTrend_partly": "やや改善した。",
+  "fuTrend_unchanged": "ほぼ変わらず。",
+  "fuTrend_worse": "悪化した。",
+  "fuLever_right": "ハーフタイムに{dial_k}を正しい方向へ動かした。",
+  "fuLever_wrong": "ハーフタイムに{dial_k}は逆の方向へ動いた。",
+  "fuLever_none": "{dial_k}はそのままだった。",
+  "fuNow": "今日のより大きな問題：{what_k}。"
  },
  "tacticsScreen": {
   "tabRoles": "役割",

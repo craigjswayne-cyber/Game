@@ -63,6 +63,21 @@ if (orphans) process.exit(1)
   bad.tacLoop = { findings: [], evidence: { not: 'a list' } }
   if (migrate(bad).tacLoop?.evidence !== undefined) { console.error('BUG: a mangled evidence list was kept'); process.exit(1) }
 }
+// THE LAST MEETING WITH EACH SIDE (1.8.4): an older save's lists, six or
+// fewer, keep every record; homework from before it was set on every match
+// loads as it was, and homework that cannot be read is dropped
+{
+  const pre = JSON.parse(JSON.stringify(m))
+  const rec = (i: number) => ({ fxId: i, season: m.season, week: i, oppId: `o${i}`, us: 1, them: 0, items: [] })
+  pre.tacLoop = { findings: [1, 2, 3, 4, 5, 6].map(rec) }
+  pre.fixHw = { fxId: 6, season: m.season, week: 6, tags: ['discipline'] }
+  const a = migrate(pre)
+  console.log(`a six-record loop after migration: ${a.tacLoop?.findings.map(f => f.fxId).join(',')}; homework ${JSON.stringify(a.fixHw?.tags)}`)
+  if (a.tacLoop?.findings.length !== 6 || a.fixHw?.tags[0] !== 'discipline') { console.error('BUG: an older loop or its homework was changed'); process.exit(1) }
+  const bad = JSON.parse(JSON.stringify(m))
+  bad.fixHw = { fxId: 'x', tags: 'none' }
+  if (migrate(bad).fixHw !== undefined) { console.error('BUG: unreadable homework was kept'); process.exit(1) }
+}
 // THE NAME REGISTRY'S MEMORY (1.8.3): a save that kept every departed name
 // keeps the newest RETIRED_NAMES_KEPT, each once, in the order written; a
 // list inside the cap is left exactly as it was

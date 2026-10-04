@@ -2338,7 +2338,8 @@ export interface GameState {
   slAlerted?: number[]
   /** absolute week (season*100+week) the cotton-wool pick was last used */
   cottonWk?: number
-  /** Last full time's two fixes, so the next one can mark the homework (C2). */
+  /** Last full time's two fixes, so the next one can mark the homework (C2).
+   *  Set wherever a match is filed, watched or not (coachfix fileHomework). */
   fixHw?: { fxId: number; season: number; week: number; tags: string[] }
   /** the user's hand-picked Test 23 for the current window */
   natLineup?: { team: string; lineup: (number | null)[] } | null
