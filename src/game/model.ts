@@ -1169,6 +1169,9 @@ export interface TransferOffer {
    *  An unlimited counter would be a money printer (keep demanding until the
    *  dice land), so it is one round of haggling per offer, then you answer. */
   countered?: boolean
+  /** The haggle worked: the bidder did come back with more (1.8.4 RC). A
+   *  best-and-final reply leaves this unset. */
+  raised?: boolean
   /** How many times a rival has topped this bid (18C). A war runs three
    *  raises at most, then whoever holds the ball has to hear an answer. */
   raises?: number

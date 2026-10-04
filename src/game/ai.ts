@@ -789,6 +789,7 @@ export function counterIncomingOffer(state: GameState, offerId: number): string 
   }
   if (rng() < 0.55) {
     o.fee = newFee
+    o.raised = true
     return t('reply.bidderRaises', { club: bidder.short, fee: fmtMoney(newFee), last: p.name.split(' ').slice(-1)[0] })
   }
   o.status = 'rejected'
@@ -834,6 +835,9 @@ export function respondToOffer(state: GameState, offerId: number, accept: boolea
   // is the cost of refusing it.
   if (o.countered && o.fee >= p.value * 1.2) {
     p.morale = clamp(p.morale - (sulky ? 1.8 : 0.9), 1, 10)
+    // "came back with more" only when they did (1.8.4 RC): a best-and-final
+    // reply kept the fee where it was, and the line told the manager otherwise
+    if (!o.raised) return t('reply.bidRejectedFrustrated', { player: p.name })
     return t('reply.bidRejectedKnew', { player: p.name, club: bidder.short, mood_k: sulky ? 'reply.bidRejectedFurious' : 'reply.bidRejectedSoured' })
   }
   if (p.morale <= 4 || (sulky && bidder.rep > (state.clubs[state.userClubId]?.rep ?? 0))) {
