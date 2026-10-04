@@ -134,6 +134,11 @@ console.log(`\n${runs.length} careers, ${SEASONS} seasons each (${played} season
 function backed(g: GameState, p: Player, l: StoryLine, made: (p: Player) => boolean): boolean {
   const uid = g.unemployed ? null : g.userClubId
   const n = Number(l.v.n ?? -1)
+  // his appearances for a club as the book has them: his service, or his
+  // legend entry's count when higher (a veteran the career opened with keeps
+  // his years there once he has moved on)
+  const booked = (q: Player, clubId: string) => Math.max(service(q, clubId).apps,
+    (g.hist?.legends ?? []).find(x => x.pid === q.id && x.clubId === clubId)?.apps ?? 0)
   const last = (kinds: MemoryKind[]) => {
     const all = recall(g, { kind: kinds, playerId: p.id }); return all[all.length - 1]
   }
@@ -143,10 +148,11 @@ function backed(g: GameState, p: Player, l: StoryLine, made: (p: Player) => bool
     case 'record': return g.era?.recordSigning?.playerId === p.id && l.v.season === seasonLabel(g.era.recordSigning.season)
       && (l.k !== 'story.record' || (p.clubId === uid && n === appsSince(p, uid!, g.era.recordSigning.season)))
     case 'captain': return !!uid && p.clubId === uid && g.clubs[uid].captain === p.id && n === service(p, uid).apps
-    case 'legend': return (g.hist?.legends ?? []).some(x => x.pid === p.id && n === service(p, x.clubId).apps)
+    // a legend's count is the book's (his entry keeps it once he has gone)
+    case 'legend': return (g.hist?.legends ?? []).some(x => x.pid === p.id && n === booked(p, x.clubId))
     case 'sold': case 'released': case 'let-go': {
       const e = last(['sold', 'released', 'let-go'])
-      return !!e && e.kind === l.why && e.clubId != null && p.clubId !== e.clubId && n === service(p, e.clubId).apps && n > 0
+      return !!e && e.kind === l.why && e.clubId != null && p.clubId !== e.clubId && n === booked(p, e.clubId) && n > 0
         && (e.payload?.nb === 1 || e.sal >= 2) && l.v.season === seasonLabel(e.season)
     }
     case 'promise': {
