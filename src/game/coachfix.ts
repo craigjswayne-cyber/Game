@@ -36,7 +36,7 @@ import type { GameState, Tactic } from './model'
 import { MAX_SUBS } from './matchEngine'
 import type { LiveCtx, SideCtx } from './matchEngine'
 import { t } from './i18n'
-import { pointsAfter, possPct, sidesOf } from './evidence'
+import { LEVERS, WHY_MIN, buildEvidence, htHurt, pointsAfter, possPct, sidesOf, significance } from './evidence'
 
 /** MAX_SUBS as a word for prose, so the advice can never disagree with the
  *  engine's cap again. Falls back to digits if the cap ever outgrows the list. */
@@ -174,6 +174,19 @@ export function gradeFixes(
   }
 }
 
+/** MARK THE HOMEWORK AGAINST EVERY COMPLAINT THE MATCH STILL RAISES, not
+ *  only the two that made the card (1.8.5, scripts/onestoryprobe.ts). A job
+ *  is sorted when the coach would not raise it at all: graded against the
+ *  two shown, the cards lost the second seat to the bench and were marked
+ *  sorted in a match with a man in the bin. Using the bench still needs
+ *  the two changes made (ACTION_TAGS). */
+export function gradeHomework(
+  game: GameState, ctx: LiveCtx, mine: SideCtx, opp: SideCtx, tactic: Tactic | null, prev: readonly FixTag[],
+): { fixed: FixTag[]; missed: FixTag[] } {
+  const open = coachFixes(game, ctx, mine, opp, tactic, 99).map(f => f.tag)
+  return gradeFixes(prev, open, { fitness: ctx.subsUsed >= 2 })
+}
+
 /** One line of English for a grade, or null when there is nothing to report. */
 export function gradeLine(fixed: readonly FixTag[], missed: readonly FixTag[]): string | null {
   // `tag`, not `t`: t() is the translator
@@ -211,6 +224,17 @@ export function coachFixes(
   const units = unitBattles(ctx, mine, opp)
   const poss = possPct(ctx, mine)
   const margin = mine.score - opp.score
+  const cards = ctx.events.filter(e => (e.type === 'YC' || e.type === 'RC') && e.teamId === mine.teamId)
+  // ONE DIAL, ONE WAY (1.8.5, scripts/onestoryprobe.ts). What the half-time
+  // chip asked of a dial (evidence.ts LEVERS), and whether Physicality is
+  // already a problem today, so no fix sends a dial back the other way: the
+  // breakdown's "push Physicality up" sat beside the cards' "pull it under
+  // fifty", and after the chip's "bring Physicality down"; the territory
+  // fix's "bring Kicking down" after the chip's "push Kicking up".
+  const htLever = LEVERS[htHurt(ctx.htEv) ?? 'read']
+  const ev = buildEvidence(game, ctx)
+  const physCosts = cards.length > 0 || htLever?.dial === 'aggression'
+    || (!!ev && significance(ev).pen <= -WHY_MIN)
 
   // ---- the set piece: the worst of the three, if it actually lost ------------
   const worst = [...units].sort((a, b) => a.pct - b.pct)[0]
@@ -224,12 +248,11 @@ export function coachFixes(
         unit: t(worst.label), pct: worst.pct,
         verdict: t(worst.verdict === 'bullied' ? 'coachfix.spBullied' : 'coachfix.spShaded'),
       }),
-      how: t(how[worst.key]),
+      how: t(worst.key === 'breakdown' && physCosts ? 'coachfix.howBreakdownSel' : how[worst.key]),
     })
   }
 
   // ---- discipline: cards are the most expensive thing on this list -----------
-  const cards = ctx.events.filter(e => (e.type === 'YC' || e.type === 'RC') && e.teamId === mine.teamId)
   const sendings = cards.filter(e => e.type === 'RC')
   const reds = sendings.length
   const yellows = cards.length - reds
@@ -275,8 +298,10 @@ export function coachFixes(
     c.push({
       tag: 'territory', score: (48 - poss) * 1.8,
       head: t('coachfix.terrHead', { poss }),
+      // kicking pushed up at the break to get out of our own 22, as the chip
+      // asked: the trade is named, not undone
       how: tactic && tactic.kicking >= 55
-        ? t('coachfix.terrHowKick', { n: tactic.kicking })
+        ? t(htLever?.dial === 'kicking' ? 'coachfix.terrHowTrade' : 'coachfix.terrHowKick', { n: tactic.kicking })
         : t('coachfix.terrHowElse'),
     })
   }

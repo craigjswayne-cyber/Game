@@ -39,7 +39,7 @@ import { analystRead, analystSkill, readOdds, readUnit, sureBand, UNIT_PREP, typ
 import { tapeLine } from './armsrace'
 import { rematchLine, rematchOf } from './rematch'
 import { lineupFor, teamUnits } from './matchEngine'
-import { lastEvidence, rankWhy, trimRecall } from './evidence'
+import { LEVER_DIALS, lastEvidence, rankWhy, trimRecall } from './evidence'
 import { fuzzedCa, knowledge, margin } from './scout'
 import { analystShift, archetypeOf } from './oppcoach'
 import { COUNTER, philosophyOf } from './philosophy'
@@ -364,7 +364,9 @@ function historyLines(state: GameState, last: FindingsRecord | null): ReportLine
       v: { unit_k: `oppreport.u_${last.recall.unit}`, pct: last.recall.pct }, ok: true,
     })
   }
-  if (last.plan) {
+  // a plan dropped before it had a half to work was never judged (the
+  // findings said so), so the report does not call it a failure after the event
+  if (last.plan?.followed) {
     out.push({ cat: 'history', k: `oppreport.lastPlan_${last.plan.verdict}`, v: { plan_k: `oppreport.plan_${last.plan.id}` }, ok: true })
   }
   // what decided it (1.8.4): the full-time card's top line from that match,
@@ -526,11 +528,16 @@ export function currentPlan(state: GameState, oppId: string): ChosenPlan | null 
 }
 
 /** Whether the club is still carrying the plan's levers. A dial moved more than
- *  a few points, another prep, another call: the plan was not followed. */
-export function planFollowed(state: GameState, plan: ChosenPlan): boolean {
+ *  a few points, another prep, another call: the plan was not followed.
+ *
+ *  `dials`, when given, are the four touchline dials (evidence.ts
+ *  LEVER_DIALS order) as they stood at a moment of the match: kick-off, or
+ *  the second half's (1.8.5). They are all a manager can move once the ball
+ *  is in play, so the rest is read off the club as it is. */
+export function planFollowed(state: GameState, plan: ChosenPlan, dials?: number[]): boolean {
   const club = state.clubs[state.userClubId]
   if (!club) return false
-  const tac = club.tactic
+  const tac = dials ? { ...club.tactic, ...Object.fromEntries(LEVER_DIALS.map((k, i) => [k, dials[i]])) } : club.tactic
   const L = plan.levers
   if (L.prep && state.matchPrep !== L.prep) return false
   for (const [k, v] of Object.entries(L.dials ?? {})) {

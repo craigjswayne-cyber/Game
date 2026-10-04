@@ -164,7 +164,8 @@ function evSide(ctx: LiveCtx, side: SideCtx, st: ReturnType<typeof matchStats>, 
   const top = Object.entries(e.calls).sort((a, b) => b[1][2] - a[1][2] || b[1][3] - a[1][3] || b[1][0] - a[1][0]).slice(0, keep)
   const calls: Record<string, number[]> = {}
   for (const [id, c] of top) {
-    calls[id] = [c[0], Math.round(c[1]), c[2], c[3], Math.round(c[4])]
+    // (|| 0: a few centimetres lost rounds to -0, which read "-0m" on the card)
+    calls[id] = [c[0], Math.round(c[1]) || 0, c[2], c[3], Math.round(c[4]) || 0]
   }
   return {
     calls,
@@ -417,6 +418,40 @@ export function rankWhy(ev: CausalEvidence, n = 3): WhyLine[] {
     }
   }
   return lines.slice(0, n)
+}
+
+/**
+ * THE CALL THEY WERE WAITING FOR, AFTER THE MATCH (1.8.5). The report and
+ * the desk say before kick-off when this coach is set for one of the
+ * manager's calls (armsrace.ts tapeLine, deskQuestion; rematch.ts memMove),
+ * and the "why" names the read only when it cost a point and a half, which
+ * a blunted strike almost never does on its own (scripts/onestoryprobe.ts: a
+ * third of a point a match, at the most a coach adapts). So the warning was
+ * never answered: did it matter? This is the answer, for the calls the
+ * pre-match named (`ids`): the ground the read cost the one run most, or
+ * that it made its ground regardless. Null when none was run three times.
+ */
+export function toldCalls(ctx: LiveCtx, worth: number): string[] {
+  // the call the report and the desk named (the tape's top call, the most
+  // set for), and the one the rematch line named
+  const top = Object.entries(ctx.callAdapt ?? {}).filter(([, a]) => a >= worth)
+    .sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1))[0]?.[0]
+  const mem = ctx.rematch?.cause === 'move' ? ctx.rematch.move : undefined
+  return [...new Set([top, mem].filter((x): x is string => !!x))]
+}
+
+/** The line itself, for the calls toldCalls names. */
+export function readTold(ev: CausalEvidence, ids: readonly string[]): WhyLine | null {
+  const u = ev.side[0]
+  const m = ids.map(id => [id, u.calls[id]] as const).filter(([, c]) => c && c[0] >= 3)
+    .sort((a, b) => b[1][0] - a[1][0] || (a[0] < b[0] ? -1 : 1))[0]
+  if (!m) return null
+  const [id, c] = m
+  const sig = significance(ev).read
+  if (c[4] >= 1) return { cause: 'read', sig, k: 'matchday.whyRead', v: { move_k: sayKey(id), n: c[0], m: c[1], m0: c[1] + c[4] } }
+  // the tape cost it under a metre: it made its ground anyway, or it made
+  // none and the tape was not why
+  return { cause: 'read', sig, k: c[1] > 0 ? 'matchday.whyReadHeld' : 'matchday.whyReadNil', v: { move_k: sayKey(id), n: c[0], m: c[1] } }
 }
 
 /** The cause that put the most points on the board in the direction of the
@@ -675,19 +710,25 @@ export function whyLeads(ev: CausalEvidence, lines: WhyLine[]): (string | null)[
  *                            the hour
  *   starve them of ball      52% of the ball or more, and 10 or fewer to
  *                            them in open play
+ *
+ * `half` reads a first forty (1.8.5: a plan carried to the break and
+ * changed there is judged on the half it was played for): the counts and
+ * the points above halved, the shares and the comparisons as they are.
  */
-export function planExploited(target: string | null, ev: CausalEvidence): boolean {
+export function planExploited(target: string | null, ev: CausalEvidence, half = false): boolean {
   const [u, o] = ev.side
   const open = (s: EvSide) => s.pts[ci('move')] + s.pts[ci('break')] + s.pts[ci('phase')]
+  const two = half ? 1 : 2, ten = half ? 5 : 10
   switch (target) {
-    case 'scrum': return o.setLost[0] - u.setLost[0] >= 2
-    case 'lineout': return o.setLost[1] - u.setLost[1] >= 2
-    case 'defence': return u.breaks - o.breaks >= 2 || open(u) >= 19
-    case 'attack': return open(o) <= 10 && o.breaks <= u.breaks
+    case 'scrum': return o.setLost[0] - u.setLost[0] >= two
+    case 'lineout': return o.setLost[1] - u.setLost[1] >= two
+    case 'defence': return u.breaks - o.breaks >= two || open(u) >= (half ? 10 : 19)
+    case 'attack': return open(o) <= ten && o.breaks <= u.breaks
     case 'kicking': return u.zone[2] > o.zone[2]
     case 'style': return u.styleEdge >= o.styleEdge
-    case 'late': return ev.late >= 0
-    case 'ball': return ev.poss >= 52 && open(o) <= 10
+    // the last twenty cannot be read off the first forty
+    case 'late': return !half && ev.late >= 0
+    case 'ball': return ev.poss >= 52 && open(o) <= ten
     default: return false
   }
 }

@@ -1105,7 +1105,12 @@
   "spEven": "Fasi statiche in equilibrio. Nessuno ne ha ricavato una piattaforma.",
   "playerBoth": "Il migliore: {best} ({r}). Una giornata da dimenticare per {worst} ({r2}).",
   "playerBest": "Il migliore: {best} ({r}).",
-  "planDropped": "Il piano ({plan}) è stato impostato ma non mantenuto, quindi non si può giudicare.",
+  "planDropped": "Il piano ({plan}) è stato cambiato prima di avere un tempo per funzionare, quindi non si può giudicare.",
+  "planHalf_hit": "Il piano ({plan}) ha centrato l'obiettivo nel primo tempo: {us}-{them} all'intervallo. {chg} Il secondo tempo è finito {us2}-{them2}.",
+  "planHalf_miss": "Il piano ({plan}) non aveva centrato l'obiettivo all'intervallo: {us}-{them}. {chg} Il secondo tempo è finito {us2}-{them2}.",
+  "chgPreset": "All'intervallo hai scelto «{preset}».",
+  "chgBreak": "All'intervallo hai cambiato le impostazioni.",
+  "chgSecond": "Hai cambiato le impostazioni nel secondo tempo.",
   "plan_worked": "Il piano ({plan}) ha funzionato: obiettivo centrato e risultato anche.",
   "plan_partly": "Il piano ({plan}) ha funzionato a metà: l'obiettivo o il risultato, non entrambi.",
   "plan_failed": "Il piano ({plan}) non è riuscito.",
@@ -1671,6 +1676,8 @@
    "other": "La loro mossa, {move_k}, ci è costata {n} mete."
   },
   "whyRead": "Ci avevano letto {move_k}: {m} m in {n} chiamate, contro {m0} m senza quella lettura.",
+  "whyReadHeld": "Aspettavano {move_k}, e ha comunque guadagnato {m} m in {n} chiamate.",
+  "whyReadNil": "Aspettavano {move_k}, ma non è stata la loro lettura a fermarla: {n} chiamate, nessun metro guadagnato.",
   "whySetFor": "Hanno perso {n} tra mischie e touche sulla loro introduzione; noi {m}.",
   "whySetAgainst": "Abbiamo perso {n} tra mischie e touche sulla nostra introduzione; loro {m}.",
   "whyPenFor": {
@@ -1741,7 +1748,9 @@
   "fuLever_right": "Hai mosso {dial_k} nella direzione giusta all'intervallo.",
   "fuLever_wrong": "{dial_k} è andato nella direzione opposta all'intervallo.",
   "fuLever_none": "{dial_k} è rimasto dov'era.",
-  "fuNow": "Il problema più grande oggi: {what_k}."
+  "fuNow": "Il problema più grande oggi: {what_k}.",
+  "planAside": "Così il piano ({plan}) viene messo da parte: sarà giudicato sul primo tempo.",
+  "planAsideEarly": "Così il piano ({plan}) viene messo da parte prima di aver avuto un tempo, quindi non si potrà giudicare."
  },
  "tacticsScreen": {
   "tabRoles": "Ruoli",
@@ -4293,7 +4302,7 @@
   "discYcWho": "{player} in panca puniti: dieci minuti in inferiorità numerica.",
   "fixAdmin": "tenere un solo piano",
   "fixAttack": "trasformare il possesso in punti",
-  "fixDiscipline": "la disciplina",
+  "fixDiscipline": "restare in quindici in campo",
   "fixFitness": "l'uso della panchina",
   "fixKicking": "i calci ai pali",
   "fixSetpiece": "le fasi statiche",
@@ -4305,6 +4314,7 @@
   "gradeOneDone": "{fixed} è a posto dall'ultima volta. Continua a fare qualunque cosa sia stata.",
   "gradeOneMissed": "L'ultima volta abbiamo parlato di {missed}, ed eccolo di nuovo qui.",
   "howBreakdown": "Un flanker jackal in Selezione, o alza la Fisicità. La palla contesa la vincono i corpi che arrivano, non lo schema.",
+  "howBreakdownSel": "Un flanker jackal in Selezione. La palla contesa la vincono i corpi che arrivano, non lo schema, e la Fisicità ci costa già calci di punizione.",
   "howLineout": "Porta un secondo saltatore vero in seconda o terza linea in Selezione, e cambia la chiamata in touche nelle Fasi statiche, così smettono di leggerla.",
   "howScrum": "Scegli una prima linea più pesante in Selezione, o da' a un pilone il ruolo di mischiatore nella scheda Ruoli. Una manopola non può sollevare un tight five leggero.",
   "kickOrderHead": "Nessun ordine di piazzatori indicato.",
@@ -4349,6 +4359,7 @@
   "terrHead": "Abbiamo avuto solo il {poss}% di possesso.",
   "terrHowElse": "Abbassa il Ritmo perché le fasi durino, e imposta l'uscita sul contrattacco nelle Fasi statiche invece di calciarla al loro estremo.",
   "terrHowKick": "Il Gioco al piede è a {n}, quindi la restituiamo apposta. Abbassalo e tieni la palla in mano.",
+  "terrHowTrade": "Il Gioco al piede a {n} ci ha fatto uscire dai nostri 22 e ha dato loro la palla. Lascialo lì e abbassa il Ritmo perché le nostre fasi durino.",
   "unitBreakdownLower": "breakdown",
   "unitLineoutLower": "touche",
   "unitScrumLower": "mischia",

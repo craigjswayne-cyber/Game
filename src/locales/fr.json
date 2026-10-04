@@ -1110,7 +1110,12 @@
     "spEven": "La conquête s'est équilibrée. Personne n'en a tiré de plateforme.",
     "playerBoth": "Le meilleur : {best} ({r}). Un jour sans pour {worst} ({r2}).",
     "playerBest": "Le meilleur : {best} ({r}).",
-    "planDropped": "Le plan ({plan}) a été mis en place puis abandonné, on ne peut donc pas le juger.",
+    "planDropped": "Le plan ({plan}) a été changé avant d'avoir eu une mi-temps pour agir, on ne peut donc pas le juger.",
+    "planHalf_hit": "Le plan ({plan}) a atteint sa cible en première période : {us}-{them} à la pause. {chg} La seconde période s'est jouée {us2}-{them2}.",
+    "planHalf_miss": "Le plan ({plan}) n'avait pas atteint sa cible à la pause : {us}-{them}. {chg} La seconde période s'est jouée {us2}-{them2}.",
+    "chgPreset": "Vous avez choisi « {preset} » à la pause.",
+    "chgBreak": "Vous avez modifié les réglages à la pause.",
+    "chgSecond": "Vous avez modifié les réglages en seconde période.",
     "plan_worked": "Le plan ({plan}) a fonctionné : la cible a été atteinte, le résultat aussi.",
     "plan_partly": "Le plan ({plan}) a fonctionné à moitié : la cible ou le résultat, pas les deux.",
     "plan_failed": "Le plan ({plan}) n'a pas marché.",
@@ -1679,6 +1684,8 @@
       "other": "Leur combinaison, {move_k}, nous a coûté {n} essais."
     },
     "whyRead": "Ils avaient lu {move_k} : {m} m sur {n} annonces, contre {m0} m sans cette lecture.",
+    "whyReadHeld": "Ils attendaient {move_k}, et l'annonce a quand même gagné {m} m sur {n} annonces.",
+    "whyReadNil": "Ils attendaient {move_k}, mais ce n'est pas leur lecture qui l'a arrêtée : {n} annonces, aucun terrain gagné.",
     "whySetFor": "Ils ont perdu {n} mêlées et touches sur leur introduction ; nous, {m}.",
     "whySetAgainst": "Nous avons perdu {n} mêlées et touches sur notre introduction ; eux, {m}.",
     "whyPenFor": {
@@ -1749,7 +1756,9 @@
     "fuLever_right": "Vous avez réglé {dial_k} dans le bon sens à la pause.",
     "fuLever_wrong": "{dial_k} est allé dans l'autre sens à la pause.",
     "fuLever_none": "{dial_k} n'a pas bougé.",
-    "fuNow": "Le plus gros problème aujourd'hui : {what_k}."
+    "fuNow": "Le plus gros problème aujourd'hui : {what_k}.",
+    "planAside": "Le plan ({plan}) est mis de côté : il sera jugé sur la première période.",
+    "planAsideEarly": "Le plan ({plan}) est mis de côté avant d'avoir eu une mi-temps, on ne pourra donc pas le juger."
   },
   "tacticsScreen": {
     "tabRoles": "Rôles",
@@ -4333,7 +4342,7 @@
     "discYcWho_f": "{player} exclue temporairement : dix minutes en infériorité.",
     "fixAdmin": "la fidélité à un seul plan",
     "fixAttack": "la transformation de la possession en points",
-    "fixDiscipline": "la discipline",
+    "fixDiscipline": "garder quinze joueurs sur le terrain",
     "fixFitness": "l'utilisation du banc",
     "fixKicking": "le jeu au pied de but",
     "fixSetpiece": "les phases statiques",
@@ -4345,6 +4354,7 @@
     "gradeOneDone": "{fixed} : c'est réglé depuis la dernière fois. Continuez, quoi que vous ayez fait.",
     "gradeOneMissed": "Nous avions parlé de {missed} la dernière fois, et voilà que ça revient.",
     "howBreakdown": "Un flanker gratteur en Sélection, ou montez l'Engagement physique. Le ballon disputé se gagne par le nombre de corps qui arrivent, pas par la forme du jeu.",
+    "howBreakdownSel": "Un flanker gratteur en Sélection. Le ballon disputé se gagne par le nombre de corps qui arrivent, pas par la forme du jeu, et l'Engagement physique nous coûte déjà des pénalités.",
     "howLineout": "Faites entrer un second vrai sauteur en deuxième ou troisième ligne en Sélection, et changez la combinaison de touche dans Phases statiques pour qu'ils cessent de la lire.",
     "howScrum": "Alignez une première ligne plus lourde en Sélection, ou donnez à un pilier le rôle de pousseur dans l'onglet Rôles. Aucun curseur ne rendra lourde une première ligne légère.",
     "kickOrderHead": "Aucun ordre de buteurs désigné.",
@@ -4389,6 +4399,7 @@
     "terrHead": "Nous n'avons eu que {poss}% du ballon.",
     "terrHowElse": "Baissez le Rythme pour faire durer les temps de jeu, et réglez la sortie de camp sur la contre-attaque dans Phases statiques plutôt que de le taper sur leur arrière.",
     "terrHowKick": "Le Jeu au pied est à {n} : nous leur rendons le ballon volontairement. Baissez-le et gardez-le à la main.",
+    "terrHowTrade": "Le Jeu au pied à {n} nous a sortis de nos 22 et leur a donné le ballon. Gardez-le là et baissez le Rythme pour faire durer nos temps de jeu.",
     "unitBreakdownLower": "le combat au sol",
     "unitLineoutLower": "la touche",
     "unitScrumLower": "la mêlée",
