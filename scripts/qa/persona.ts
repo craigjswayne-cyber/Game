@@ -90,7 +90,9 @@ function run(reloadEachWeek: boolean): { results: string[]; taps: number; msPerS
       if (key === lastKey) { sameCount++ } else { sameCount = 0; lastKey = key }
       if (sameCount > 12) { stuck.push(key); bad(`stuck at ${key}`); break }
       const scr = top()
-      if (scr === 'press') {
+      // a board decision holds the week on Finances > The Board, the way a
+      // question holds it in the press room (store continueWeek)
+      if (scr === 'press' || scr === 'finances') {
         for (const pi of g.press.filter(p => !p.answered)) st.getState().answerPressOption(pi.id, 0)
         st.getState().back()
         continue

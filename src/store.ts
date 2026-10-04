@@ -1031,6 +1031,19 @@ export const useStore = create<Store>((set, get) => ({
         const unread = g.news.filter(n => !n.read && !n.cleared && inInbox(g, n)).sort((a, b) => a.id - b.id)
         if (onWire) {
           for (const n of unread) markRead(g, n)
+          // THE PRESS WAITED FOR THE MAIL, NOT FOR THE WEEK (1.8.4 career QA).
+          // pressBlock stands aside while a story is unread, and this tap is
+          // the one that reads the last of them - so without asking again
+          // here, leaving the Wire turned the week with every question still
+          // open, and a manager who only ever pressed Continue was never once
+          // taken to the press room or the board in eighteen weeks. The mail
+          // is read now: whatever it was holding back holds the week.
+          const press = pressBlock(g)
+          if (press) {
+            const where = press.kind === 'board' ? 'finances' as const : 'press' as const
+            set(s => ({ nav: [...s.nav, { screen: where }], tick: s.tick + 1 }))
+            return
+          }
         } else if (unread.length) {
           get().openWire(unread.map(n => n.id))
           return
