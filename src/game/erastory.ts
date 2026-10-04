@@ -121,7 +121,10 @@ export function eraYearEnd(state: GameState): boolean {
     const tier = leagueTier(club.leagueId)
     const rose = tier < cur.tier0 || (tier === cur.tier0 && pos > 0 && pos <= cur.pos0 - 4)
     const mended = cur.bal0 < 0 && club.balance > 0
-    if (rose || mended) a.turned.push(cur.c)
+    if (rose || mended) {
+      a.turned.push(cur.c)
+      ;(a.turnedAt ??= {})[cur.c] = state.season
+    }
   }
   const seasons = state.season - cur.f + 1
   return seasons > 0 && seasons % 5 === 0

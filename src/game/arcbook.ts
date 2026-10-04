@@ -161,6 +161,8 @@ export interface CareerArc {
   eras: Era[]
   /** clubs turned round from trouble */
   turned: string[]
+  /** the season each was turned (1.8.4); absent for a club turned before */
+  turnedAt?: Record<string, number>
   /** traits already announced, so each is told once */
   told: string[]
   /** identity runs at the current club: label -> seasons held in a row */
@@ -281,6 +283,10 @@ export function migrateArc(s: GameState): void {
     if (a.cur.pats != null && !Array.isArray(a.cur.pats)) a.cur.pats = []
   }
   a.turned = a.turned.filter(x => typeof x === 'string')
+  if (a.turnedAt != null) {
+    const ok = typeof a.turnedAt === 'object' && !Array.isArray(a.turnedAt)
+    a.turnedAt = ok ? Object.fromEntries(Object.entries(a.turnedAt).filter(([c, v]) => a.turned.includes(c) && typeof v === 'number' && Number.isFinite(v))) : {}
+  }
   a.told = a.told.filter(x => typeof x === 'string').slice(-ARC_CAPS.told)
   a.pcSeen = a.pcSeen.filter(num).slice(-60)
   if (a.repute != null && (typeof a.repute !== 'object' || typeof a.repute.l !== 'string' || typeof a.repute.c !== 'string')) delete a.repute

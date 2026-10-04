@@ -24,6 +24,8 @@ export default function Legacy() {
   const [retireMsg, setRetireMsg] = useState<string | null>(null)
   const club = game.clubs[game.userClubId]
   const m = game.mgr
+  // a title is the league's trophy, not first place: a play-off can still be lost
+  const won = (f: { leagueId: string; season: number }) => m.trophies.some(x => x.compId === f.leagueId && x.season === f.season)
   const winPct = m.m ? Math.round((m.w / m.m) * 100) : 0
   const challenge = game.challenge ? CHALLENGES.find(c => c.id === game.challenge) : null
 
@@ -327,8 +329,8 @@ export default function Legacy() {
                         <div key={`a${j}`} className="muted" style={{ fontSize: 11, fontWeight: 400, whiteSpace: 'normal' }}>{line}</div>
                       ))}
                     </td>
-                    <td className="num" style={{ fontWeight: 700, color: f.pos === 1 ? 'var(--gold)' : undefined }}>
-                      {f.pos === 1 ? t('legacy.lgChampionPos') : ord(f.pos)}
+                    <td className="num" style={{ fontWeight: 700, color: won(f) ? 'var(--gold)' : undefined }}>
+                      {won(f) ? t('legacy.lgChampionPos') : ord(f.pos)}
                     </td>
                   </tr>
                 )

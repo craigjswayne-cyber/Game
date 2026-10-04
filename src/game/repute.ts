@@ -195,7 +195,14 @@ export function mgrTrends(state: GameState): Trend[] {
   const all = state.arc.conduct ?? []
   const last = all.length ? all[all.length - 1].s : state.season
   const thenRows = all.filter(r => r.s <= last - TREND_GAP)
+  // When the club was turned (turnedAt, 1.8.4), or failing a date, a club
+  // he has already left. Without the date the club he is still at never
+  // aged into the past reading, and "you are developing a reputation for
+  // turning clubs round" read every summer of a long stay (1.8.4 career QA:
+  // six seasons running at Esher)
   const turnedThen = state.arc.turned.filter(c => {
+    const when = state.arc!.turnedAt?.[c]
+    if (when != null) return when <= last - TREND_GAP
     const at = all.filter(r => r.c === c)
     return at.length > 0 && at.every(r => r.s <= last - TREND_GAP)
   }).length

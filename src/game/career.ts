@@ -94,7 +94,9 @@ export function careerVerdict(state: GameState): Verdict {
   const games = m.m
   const winPct = games ? m.w / games : 0
   const trophies = m.trophies.length
-  const titles = m.finishes.filter(f => f.pos === 1).length
+  // a title is the league's trophy in the cabinet, not first place: a side
+  // that tops the table and loses the final has not won it (1.8.4 career QA)
+  const titles = m.finishes.filter(f => m.trophies.some(x => x.compId === f.leagueId && x.season === f.season)).length
   const topFlight = m.finishes.filter(f => LEAGUE_TIER[f.leagueId] === 1).length
   const seasons = m.finishes.length
   const legends = state.legendOf?.length ?? 0
