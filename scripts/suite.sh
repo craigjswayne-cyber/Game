@@ -45,7 +45,11 @@ run() {
     printf 'FAIL  %-16s %s\n' "$name" "$last"
     # on a CI runner, each failure is also an annotation: the run page lists
     # them by name, which a log behind a download link does not
-    if [ -n "${GITHUB_ACTIONS:-}" ]; then echo "::error title=$name::$last"; fi
+    if [ -n "${GITHUB_ACTIONS:-}" ]; then
+      # the first line that says what went wrong, not node's version footer
+      why=$(printf '%s' "$out" | grep -m1 -E '^(FAIL|PROBE THREW)|Error|rror:' | cut -c1-200)
+      echo "::error title=$name::${why:-$last}"
+    fi
     # SAY WHAT FAILED, not just that something did. This threw the whole of $out
     # away and printed the summary line, so "FAIL subsprobe SUBS PROBE FAILED (2)"
     # meant re-running the probe by hand to find out which two - and a probe that
