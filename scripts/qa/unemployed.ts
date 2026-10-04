@@ -11,7 +11,7 @@ const top = () => st.getState().nav[st.getState().nav.length - 1]?.screen
 const G = () => st.getState().game!
 function tap() {
   const g = G(); const scr = top()
-  if (scr === 'press') { for (const pi of g.press.filter(p => !p.answered)) st.getState().answerPressOption(pi.id, 0); st.getState().back(); return }
+  if (scr === 'press' || scr === 'finances') { for (const pi of g.press.filter(p => !p.answered)) st.getState().answerPressOption(pi.id, 0); st.getState().back(); return }
   if (scr === 'offers') { for (const o of g.offers.filter(o => o.status === 'pending' && o.forUser)) respondToOffer(g, o.id, false); st.getState().back(); return }
   if (scr === 'annual') { g.annual = undefined; st.getState().back(); return }
   if (scr === 'country') { st.getState().back(); return }
