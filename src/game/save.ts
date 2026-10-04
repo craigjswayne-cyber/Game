@@ -1055,6 +1055,10 @@ export function migrate(s: GameState): GameState {
   const hw = s.fixHw as unknown as Record<string, unknown> | undefined
   if (hw !== undefined && (!hw || typeof hw !== 'object' || ![hw.fxId, hw.season, hw.week].every(n => typeof n === 'number' && Number.isFinite(n))
     || !Array.isArray(hw.tags) || !hw.tags.every(x => typeof x === 'string'))) delete s.fixHw
+  else if (hw) {
+    if (hw.test !== undefined && typeof hw.test !== 'boolean') delete hw.test
+    if (hw.was !== undefined && !(Array.isArray(hw.was) && hw.was.every(x => typeof x === 'string'))) delete hw.was
+  }
 
   // THE STYLES (1.8.2): a save from before them has dials and no style, so
   // the manager's side is named the nearest attack and defence to its dials,

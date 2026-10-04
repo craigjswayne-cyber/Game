@@ -806,7 +806,8 @@
  "armsrace": {
   "tapeSet": "I loro analisti hanno {move_k} sul {pct}% della tua palla di prima fase, e questo allenatore prepara la difesa su ciò che mostrano i video.",
   "tapeCalm": "I loro analisti hanno {move_k} sul {pct}% della tua palla di prima fase, ma questo allenatore non cambia molto per questo.",
-  "tapeUnread": "I loro analisti hanno {move_k} sul {pct}% della tua palla di prima fase. Se si prepareranno contro, il rapporto non può dirlo."
+  "tapeUnread": "I loro analisti hanno {move_k} sul {pct}% della tua palla di prima fase. Se si prepareranno contro, il rapporto non può dirlo.",
+  "tapeRetired": "I loro analisti hanno {move_k} sul {pct}% della tua palla di prima fase, una chiamata che non usi più: niente nel video per cui prepararsi."
  },
  "moves": {
   "mv_1331": "Cariche in ampiezza",
@@ -1043,6 +1044,9 @@
   "lastPlan_worked": "Il nostro piano di allora ({plan}) ha funzionato.",
   "lastPlan_partly": "Il nostro piano di allora ({plan}) ha funzionato a metà.",
   "lastPlan_failed": "Il nostro piano di allora ({plan}) non è riuscito.",
+  "lastPlanHalf_worked": "Il nostro piano di allora ({plan}) ha funzionato, a giudicare dal primo tempo, prima che lo cambiassimo.",
+  "lastPlanHalf_partly": "Il nostro piano di allora ({plan}) ha funzionato a metà, a giudicare dal primo tempo, prima che lo cambiassimo.",
+  "lastPlanHalf_failed": "Il nostro piano di allora ({plan}) non è riuscito, a giudicare dal primo tempo, prima che lo cambiassimo.",
   "soft": "Punto debole: {unit} ({sure}).",
   "sureHigh": "sicuro",
   "sureMid": "abbastanza sicuro",
@@ -1676,6 +1680,7 @@
    "other": "La loro mossa, {move_k}, ci è costata {n} mete."
   },
   "whyRead": "Ci avevano letto {move_k}: {m} m in {n} chiamate, contro {m0} m senza quella lettura.",
+  "whyReadLost": "Ci avevano letto {move_k}: {n} chiamate hanno perso {m} m, {d} m peggio che senza quella lettura.",
   "whyReadHeld": "Aspettavano {move_k}, e ha comunque guadagnato {m} m in {n} chiamate.",
   "whyReadNil": "Aspettavano {move_k}, ma non è stata la loro lettura a fermarla: {n} chiamate, nessun metro guadagnato.",
   "whySetFor": "Hanno perso {n} tra mischie e touche sulla loro introduzione; noi {m}.",

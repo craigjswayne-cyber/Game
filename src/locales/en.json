@@ -787,7 +787,8 @@
  "armsrace": {
   "tapeSet": "Their analysts have your {move_k} on {pct}% of your first-phase ball, and this coach sets the defence for what the tape shows.",
   "tapeCalm": "Their analysts have your {move_k} on {pct}% of your first-phase ball, but this coach does not change much for it.",
-  "tapeUnread": "Their analysts have your {move_k} on {pct}% of your first-phase ball. Whether they will set up for it, the report cannot say."
+  "tapeUnread": "Their analysts have your {move_k} on {pct}% of your first-phase ball. Whether they will set up for it, the report cannot say.",
+  "tapeRetired": "Their analysts have your {move_k} on {pct}% of your first-phase ball, a call you no longer run: nothing on the tape for them to set up for."
  },
  "moves": {
   "mv_1331": "Wide Carries",
@@ -1025,6 +1026,9 @@
   "lastPlan_worked": "Our plan then ({plan}) worked.",
   "lastPlan_partly": "Our plan then ({plan}) half worked.",
   "lastPlan_failed": "Our plan then ({plan}) did not come off.",
+  "lastPlanHalf_worked": "Our plan then ({plan}) worked, judged on the first half before we changed it.",
+  "lastPlanHalf_partly": "Our plan then ({plan}) half worked, judged on the first half before we changed it.",
+  "lastPlanHalf_failed": "Our plan then ({plan}) did not come off, judged on the first half before we changed it.",
   "soft": "Soft spot: their {unit} ({sure}).",
   "sureHigh": "confident",
   "sureMid": "fairly sure",
@@ -1649,6 +1653,7 @@
    "other": "Their {move_k} made {n} tries against us."
   },
   "whyRead": "They had read your {move_k}: {m}m from {n} calls, where it would have made {m0}m.",
+  "whyReadLost": "They had read your {move_k}: {n} calls lost {m}m, {d}m worse than if it had not been read.",
   "whyReadHeld": "They were set for your {move_k}, and it still made {m}m from {n} calls.",
   "whyReadNil": "They were set for your {move_k}, but their reading was not what stopped it: {n} calls, no ground made.",
   "whySetFor": "They lost {n} of their own scrums and lineouts; we lost {m}.",

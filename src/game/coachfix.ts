@@ -460,5 +460,25 @@ export function fileHomework(state: GameState, ctx: LiveCtx): void {
   if (!s) return
   if (state.fixHw?.fxId === ctx.fx.id && state.fixHw.season === state.season) return
   const tags = coachFixes(state, ctx, s.mine, s.opp, state.clubs[s.mine.teamId]?.tactic ?? null, 2).map(f => f.tag)
-  state.fixHw = { fxId: ctx.fx.id, season: state.season, week: state.week, tags }
+  // the homework before it, so the desk can say a job once rather than
+  // every week it stays open (desk.ts threadRow); the homework this match
+  // marked only (same season, same kind of match, homeworkFor)
+  const test = !state.clubs[s.opp.teamId]
+  const old = homeworkFor(state, ctx.fx.id, s.opp.teamId)
+  state.fixHw = { fxId: ctx.fx.id, season: state.season, week: state.week, tags, test, was: old ? old.tags : [] }
+}
+
+/**
+ * THE HOMEWORK THIS MATCH MARKS, or null. Set at the last full time within
+ * four weeks of the same season, and of the same kind of match (1.8.5 trust
+ * audit): "Since last match" compares a club match with the club match
+ * before it and a Test with a Test (evidence.ts prevEvidence), and the
+ * homework graded a club side's set piece against a Test fifteen the club
+ * did not pick. A record from before the kind was kept is read as matching.
+ */
+export function homeworkFor(state: GameState, fxId: number, oppId: string): NonNullable<GameState['fixHw']> | null {
+  const hw = state.fixHw
+  if (!hw || hw.fxId === fxId || hw.season !== state.season || state.week - hw.week > 4 || state.week < hw.week) return null
+  if (hw.test != null && hw.test !== !state.clubs[oppId]) return null
+  return hw
 }

@@ -21,7 +21,7 @@ import { fuzzedCa } from '../../game/scout'
 import { PRESETS, SLIDER_INFO, sliderReadout, type SliderKey } from '../../game/tactics'
 import { ord, posName, t, localeTag, compLabel } from '../../game/i18n'
 import { subjectVar } from '../../game/gender'
-import { coachFixes, gradeHomework, gradeLine, unitBattles, type FixTag } from '../../game/coachfix'
+import { coachFixes, gradeHomework, gradeLine, homeworkFor, unitBattles, type FixTag } from '../../game/coachfix'
 import { MatchFindings } from '../OppReport'
 import { currentPlan, planFollowed } from '../../game/oppreport'
 import { ADAPT_WORTH } from '../../game/armsrace'
@@ -2535,8 +2535,8 @@ function MatchVerdict() {
   // grade against a game six weeks and a transfer window ago is not a grade, it
   // is a non sequitur. Cup runs and international weeks mean "next match" is not
   // always next week, hence four rather than one.
-  const hw = game.fixHw
-  const fresh = !!hw && hw.fxId !== live.fixture.id && hw.season === game.season && game.week - hw.week <= 4
+  const hw = homeworkFor(game, live.fixture.id, opp.teamId)
+  const fresh = !!hw
   // "using the bench" is a job you DO, so it is graded on evidence rather than
   // on the complaint staying quiet - ctx.subsUsed is the only honest witness.
   // Two changes, not one (1.8.1): the bench advice itself speaks below two
