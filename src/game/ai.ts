@@ -16,6 +16,7 @@ import { book } from './books'
 import { identitySigning } from './identity'
 import { rememberDeparture } from './memory'
 import { agentTermsLift, talkPremium, unsettledFee, unsettledTerms } from './recruit'
+import { chooseBetween, liveRivalBid, openRivalBid, rivalBidLine, rivalBidWon } from './rivalbids'
 
 // ------------------------------------------------------------------
 // Transfer market
@@ -605,12 +606,15 @@ export function agreeFee(state: GameState, playerId: number, fee: number): { ok:
       return { ok: false, msg: t('reply.wontDropDown', { club: seller.short, name: p.name }) }
     }
     const under = ask - fee
-    return {
-      ok: true,
-      msg: under >= 50_000
-        ? t('reply.feeAgreedUnder', { fee: fmtMoney(fee), under: fmtMoney(under), name: p.name })
-        : t('reply.feeAgreed', { fee: fmtMoney(fee), name: p.name }),
-    }
+    const agreed = under >= 50_000
+      ? t('reply.feeAgreedUnder', { fee: fmtMoney(fee), under: fmtMoney(under), name: p.name })
+      : t('reply.feeAgreed', { fee: fmtMoney(fee), name: p.name })
+    // ANOTHER CLUB MAY HAVE AGREED THE SAME FEE (rivalbids.ts, 1.8.5): the
+    // player then weighs both offers, and the manager is told who and what
+    const rb = openRivalBid(state, p, fee)
+    if (!rb) return { ok: true, msg: agreed }
+    const line = rivalBidLine(state, rb)
+    return { ok: true, msg: `${agreed} ${t(line.k, line.v)}` }
   }
   // A near miss names the number that would do it, and says what is weakening
   // their hand, so the next bid is judgement rather than guesswork.
@@ -700,7 +704,21 @@ export function signOnTerms(state: GameState, playerId: number, fee: number, wag
       msg: t('reply.campShakeHeads', { name: p.name, demand: fmtWage(demand), floor: fmtWage(floor), tail_k: signOn > 0 || promiseMinutes ? 'reply.campTailExtras' : 'reply.campTailBonus' }),
     }
   }
+  // A RIVAL AT THE TABLE (rivalbids.ts, 1.8.5). He weighs both offers; if
+  // theirs is better the manager can still improve his own this week
+  const rb = liveRivalBid(state, p.id)
+  let beat: ReturnType<typeof chooseBetween> | null = null
+  if (rb) {
+    rb.mine = { wage, signOn, promise: promiseMinutes }
+    const choice = chooseBetween(state, p, rb, rb.mine)
+    if (!choice.mine) {
+      const rival = state.clubs[rb.clubId]
+      return { ok: false, msg: t('reply.rivalBidPrefers', { name: p.name, club: rival?.short ?? '', wage: fmtWage(rb.wage), why_k: choice.why.k, ...choice.why.v }) }
+    }
+    beat = choice
+  }
   executeTransfer(state, p, user.id, fee)
+  if (rb && beat) rivalBidWon(state, p, rb, beat.why)
   p.wage = wage
   user.balance -= signOn
   // the bonus is transfer money: the check above was `fee + signOn <= budget`,

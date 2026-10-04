@@ -1,4 +1,5 @@
 import type { CareerRow, Club, FacilityId, GameState } from './model'
+import { migrateRivalBids } from './rivalbids'
 import { ATTR_KEYS, FACILITY_INFO, MAX_FACILITY, SEASON_WEEKS, WEEK_BASIS, emptyStats, finalVenue, foldCareer, initFacilities } from './model'
 import { ensureCaptains } from './analysis'
 import { ACADEMY_MAX, ACADEMY_MIN, buildPlayer, deriveCaps, deriveHist, deriveTrait, resetIds , playerWage } from './attributes'
@@ -790,6 +791,8 @@ export function migrate(s: GameState): GameState {
   s.pledges = list(s.pledges) as typeof s.pledges
   s.intakeClass ??= null
   s.preContracts = list(s.preContracts) as typeof s.preContracts
+  // rival bids and backed rivals (rivalbids.ts, 1.8.5): optional, cleaned
+  migrateRivalBids(s)
   s.takeover ??= null
   s.newOwnerUntil ??= null
   s.derbyBook ??= {}

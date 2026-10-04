@@ -2636,6 +2636,8 @@
   "3": "Expediente completo: números, carácter y temperamento verificados."
  },
  "player": {
+  "rivalBidLine": "{club} también lo quiere: {wage}/sem sobre la mesa.",
+  "rivalBidLine_f": "{club} también la quiere: {wage}/sem sobre la mesa.",
   "ceiling": "Techo",
   "ceilingTitle": "Su potencial según tus ojeadores. El margen se estrecha a medida que lo siguen; un signo de interrogación significa que aún no lo han evaluado.",
   "gone": "El jugador ya no está en el mundo del juego (retirado o sin equipo).",
@@ -4423,6 +4425,24 @@
   "unofficialBody_f": "PHASE: Rugby Manager no está afiliado, avalado ni licenciado por ninguna jugadora, club, liga u organismo. Los nombres de los clubes son reales; las competiciones, los estadios y los patrocinadores están renombrados o inventados. Los nombres de las jugadoras son reales, usados para identificar a personas en una base de datos deportiva y para nada más, y no se incluye ningún escudo, camiseta ni logotipo oficial."
  },
  "news": {
+  "rivalBidLostSubj": "{player} se decide por {short}",
+  "rivalBidLost": "{player} ficha por {club}, que igualó el traspaso de {fee} y ofreció {wage}/semana. Lo que decidió: {why_k}.",
+  "rivalBidWonSubj": "{player} te prefiere a ti antes que a {short}",
+  "rivalBidWon": "{club} había igualado el traspaso y ofrecía {wage}/semana, pero {player} eligió tu club. Lo que decidió: {why_k}.",
+  "rivalBackedSubj": "{short} respalda a su entrenador",
+  "rivalBacked": "La directiva de {club} da {amount} más a {coach} tras terminar por detrás de ti. Buscan un {pos_k}.",
+  "rivalBackedBoardSubj": "{short} abre la chequera",
+  "rivalBackedBoard": "La directiva de {club} libera {amount} más tras terminar por detrás de ti. Buscan un {pos_k}.",
+  "rivalPushBidSubj": "{short} ofrece {fee} por {player}",
+  "rivalPushBid": "{club}, respaldado por su directiva tras terminar por detrás de ti, ofrece {fee} por {player}.",
+  "rivalWhyMinutes": "más minutos como {pos_k}",
+  "rivalWhyWage": "el mejor sueldo",
+  "rivalWhyRep": "el club más grande",
+  "rivalWhyPromise": "la promesa de jugar en el primer equipo",
+  "rivalWhyReturn": "volver a un club que conoce",
+  "rivalWhyAgentWarm": "la confianza de su agente en ti",
+  "rivalWhyAgentCool": "las dudas de su agente sobre ti",
+  "rivalWhyNoTerms": "nunca le pusiste condiciones sobre la mesa",
   "mentEarlySubj": "Primeros días para {last} y {seniorLast}",
   "mentEarly": "{kid} y {senior} todavía se están conociendo, así que no esperes mucho aún. Una pareja tarda semanas en asentarse.",
   "mentGrowingSubj": "{last} progresa junto a {seniorLast}",
@@ -6922,6 +6942,8 @@
   "acadReleased": "Baja de {player} en la academia."
  },
  "reply": {
+  "rivalBidOpen": "{club} ha igualado el traspaso y le ofrece {wage}/sem. Decidirá esta semana.",
+  "rivalBidPrefers": "{name} se inclina por {club}, que ofrece {wage}/sem. Lo que pesa: {why_k}. Su oferta sigue en pie hasta que acabe la semana.",
   "overCap": "Esas condiciones dejarían al club {over}/sem por encima del tope salarial de {cap}/sem. Libera espacio o nómbralo jugador franquicia.",
   "offerGone": "La oferta ya no está disponible.",
   "inkWetTerms": "{club} retira la oferta de la mesa: {name} acaba de llegar y no se mueve de ahí.",
