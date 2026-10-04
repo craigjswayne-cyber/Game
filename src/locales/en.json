@@ -8792,6 +8792,33 @@
   "offerCiteSubj": "Why {short} want you",
   "offerCite": "Why {short} want you, in their words: {cite_k}",
   "offerHeard": "What they have heard: {cite_k}",
+  "jobFit": "What you are known for is what this job wants.",
+  "trend": {
+   "new": "You are developing a reputation for {trait_k}.",
+   "rise": "Your name is increasingly tied to {trait_k}.",
+   "fade": "Less is said these days about {trait_k}."
+  },
+  "trait": {
+   "youth": "youth development",
+   "innovator": "new ideas of rugby",
+   "spender": "big spending",
+   "hard": "discipline",
+   "players": "man-management",
+   "turnaround": "turning clubs round",
+   "defence": "defensive rugby",
+   "attack": "attacking rugby"
+  },
+  "meth": {
+   "broke": "Your methods: promises to players were broken, and the board heard.",
+   "kept": "Your methods: promises to players were kept. The board noticed.",
+   "debt": "Your methods: the debt grew on your watch.",
+   "prudent": "Your methods: the spending stayed within the club's means.",
+   "hard": "Your methods: hard calls and an unhappy dressing room. The board is uneasy.",
+   "academy": "Your methods: academy players were given their chance.",
+   "attack": "Your methods: the side attacked, and the chairman enjoyed it.",
+   "spent": "Your methods: the money was spent boldly.",
+   "defence": "Your methods: a side that is hard to beat."
+  },
   "profile": {
    "giant": "A rich club that expects titles.",
    "fallen": "A fallen giant: a big name and a squad that no longer matches it.",
