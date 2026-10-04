@@ -40,7 +40,7 @@
 import type { Club, GameState, Player, Pos } from './model'
 import { XV_SLOTS, absWeek, careerRows, fmtMoney, fmtWage, isMyClub, leagueTier } from './model'
 import { INK_WEEKS, askingPrice, capBill, embargoed, executeTransfer, seniorsOf, SQUAD_LIMIT, windowOpen } from './ai'
-import { aiPayRate } from './aiecon'
+import { aiCanCarry, aiPayRate, aiWageRooms } from './aiecon'
 import { playerWage } from './attributes'
 import { clubIntent } from './living'
 import { agentTone } from './recruit'
@@ -385,23 +385,30 @@ export function aiFreeAgents(state: GameState): void {
   if (!tries.length) return
   const clubs = Object.values(state.clubs).filter(c => !isMyClub(state, c.id) && !embargoed(state, c.id) &&
     seniorsOf(state, c) < SQUAD_LIMIT && clubIntent(state, c) !== 'breakup')
-  // the pay rate is a pass over the world, so it is read once a club a week
-  const spend = new Map<string, boolean>()
-  const can = (c: Club) => { let v = spend.get(c.id); if (v == null) { v = canSpend(state, c); spend.set(c.id, v) } return v }
+  // the wage rooms are a pass over the world, so they are read once a week
+  const rooms = aiWageRooms(state)
   const used = new Set<string>()
   for (const p of tries) {
-    let best: Club | null = null, bestKeen = -Infinity
+    let best: Club | null = null, bestKeen = -Infinity, bestWage = 0
     for (const c of clubs) {
-      if (used.has(c.id) || c.rep < p.ca - 10 || minutesAt(state, c, p) < 2 || !can(c)) continue
-      const wage = playerWage(p.ca, p.age)
+      if (used.has(c.id) || c.rep < p.ca - 10 || minutesAt(state, c, p) < 2) continue
+      // he is offered what the club pays on new deals, and the club signs him
+      // only if it can carry that within its means: a free man costs no fee,
+      // so the wage is the whole decision (scripts/distressprobe.ts measured
+      // the first cut, which only asked whether the club could spend at all,
+      // pushing a third of the top flight into the red)
+      const room = rooms.get(c.id) ?? 0
+      const wage = Math.round(playerWage(p.ca, p.age) * clamp(aiPayRate(state, c, room), 0.75, 1) / 50) * 50
+      if (!aiCanCarry(state, c, wage, room)) continue
       const cap = c.leagueId ? state.caps?.[c.leagueId] : null
       if (typeof cap === 'number' && cap > 0 && capBill(state, c) + wage > cap) continue
       const keen = c.rep / 10 + (clubIntent(state, c) === 'allin' ? 1 : 0) + rand(`fakeen|${state.seed}|${p.id}|${c.id}|${state.season}`)
-      if (keen > bestKeen) { bestKeen = keen; best = c }
+      if (keen > bestKeen) { bestKeen = keen; best = c; bestWage = wage }
     }
     if (!best) continue
     used.add(best.id)
     executeTransfer(state, p, best.id, 0)
+    if (p.clubId === best.id) p.wage = bestWage
   }
 }
 
