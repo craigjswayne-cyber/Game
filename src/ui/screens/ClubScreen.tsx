@@ -14,6 +14,7 @@ import { boardRequests } from '../../game/boardroom'
 import { chairWish } from '../../game/chairman'
 import { askTheBoard } from '../../game/season'
 import { archetypeOf } from '../../game/oppcoach'
+import { reportAccuracy } from '../../game/oppreport'
 import { formTrend } from '../../game/formtraits'
 import { Glyph, FanFace } from '../glyphs'
 
@@ -75,14 +76,20 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           if (!ph || club.id === game.userClubId) return null
           return (
             <div className="meta">
-              <Glyph name="tactics" /> {t(ph.name)} <span className="muted">({dialLine(club.tactic)})</span>
+              <Glyph name="tactics" /> {t(ph.name)}{reportAccuracy(game, club.id) >= 0.55 && <span className="muted"> ({dialLine(club.tactic)})</span>}
             </div>
           )
         })()}
         {/* the dugout's character (pillar 2): countering is a system you can
             plan against, not a hidden tax - so the scouting says who reads
             whom before you pick a game plan */}
-        {club.id !== game.userClubId && (() => {
+        {/* HOW HE COACHES, AND HIS EXACT DIALS, ARE SCOUTING (1.8.4). This
+            page printed both for any club at any time, while the opposition
+            report keeps the coach back below an accuracy of 0.55 and fuzzes
+            the dials: the club page was a free copy of the scouting the
+            analyst is paid for. The style's name is public; the rest is the
+            report's, at the report's own threshold. */}
+        {club.id !== game.userClubId && reportAccuracy(game, club.id) >= 0.55 && (() => {
           const arch = archetypeOf(club.id, club.rep)
           const word = t(arch === 'analyst' ? 'club.archAnalystDesc'
             : arch === 'reactive' ? 'club.archTinkererDesc' : 'club.archBelieverDesc')
