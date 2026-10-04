@@ -806,7 +806,8 @@
  "armsrace": {
   "tapeSet": "Sus analistas tienen {move_k} en el {pct}% de tu balón de primera fase, y este entrenador prepara la defensa según lo que muestran los vídeos.",
   "tapeCalm": "Sus analistas tienen {move_k} en el {pct}% de tu balón de primera fase, pero este entrenador apenas cambia nada por ello.",
-  "tapeUnread": "Sus analistas tienen {move_k} en el {pct}% de tu balón de primera fase. Si se prepararán contra ella, el informe no lo puede decir."
+  "tapeUnread": "Sus analistas tienen {move_k} en el {pct}% de tu balón de primera fase. Si se prepararán contra ella, el informe no lo puede decir.",
+  "tapeRetired": "Sus analistas tienen {move_k} en el {pct}% de tu balón de primera fase, una jugada que ya no usas: nada en el vídeo para lo que prepararse."
  },
  "moves": {
   "mv_1331": "Cargas a lo ancho",
@@ -1043,6 +1044,9 @@
   "lastPlan_worked": "Nuestro plan de entonces ({plan}) funcionó.",
   "lastPlan_partly": "Nuestro plan de entonces ({plan}) funcionó a medias.",
   "lastPlan_failed": "Nuestro plan de entonces ({plan}) no salió.",
+  "lastPlanHalf_worked": "Nuestro plan de entonces ({plan}) funcionó, a juzgar por la primera parte, antes de cambiarlo.",
+  "lastPlanHalf_partly": "Nuestro plan de entonces ({plan}) funcionó a medias, a juzgar por la primera parte, antes de cambiarlo.",
+  "lastPlanHalf_failed": "Nuestro plan de entonces ({plan}) no salió, a juzgar por la primera parte, antes de cambiarlo.",
   "soft": "Punto débil: {unit} ({sure}).",
   "sureHigh": "seguro",
   "sureMid": "bastante seguro",
@@ -1672,6 +1676,7 @@
    "other": "Su jugada, {move_k}, nos costó {n} ensayos."
   },
   "whyRead": "Nos leyeron {move_k}: {m} m en {n} jugadas, frente a {m0} m sin esa lectura.",
+  "whyReadLost": "Nos leyeron {move_k}: {n} jugadas perdieron {m} m, {d} m peor que sin esa lectura.",
   "whyReadHeld": "Esperaban {move_k}, y aun así ganó {m} m en {n} jugadas.",
   "whyReadNil": "Esperaban {move_k}, pero no fue su lectura lo que la frenó: {n} jugadas, ni un metro ganado.",
   "whySetFor": "Perdieron {n} melés y touches con su introducción; nosotros, {m}.",

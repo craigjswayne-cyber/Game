@@ -785,7 +785,8 @@
  "armsrace": {
   "tapeSet": "Hul ontleders het {move_k} op {pct}% van jou eerstefase-balle, en hierdie afrigter stel die verdediging op volgens wat die video wys.",
   "tapeCalm": "Hul ontleders het {move_k} op {pct}% van jou eerstefase-balle, maar hierdie afrigter verander nie veel daarvoor nie.",
-  "tapeUnread": "Hul ontleders het {move_k} op {pct}% van jou eerstefase-balle. Of hulle daarvoor gaan opstel, kan die verslag nie sê nie."
+  "tapeUnread": "Hul ontleders het {move_k} op {pct}% van jou eerstefase-balle. Of hulle daarvoor gaan opstel, kan die verslag nie sê nie.",
+  "tapeRetired": "Hul ontleders het {move_k} op {pct}% van jou eerstefase-balle, 'n oproep wat jy nie meer gebruik nie: niks op die band om voor te beplan nie."
  },
  "moves": {
   "mv_1331": "Breë drae",
@@ -1023,6 +1024,9 @@
   "lastPlan_worked": "Ons plan destyds ({plan}) het gewerk.",
   "lastPlan_partly": "Ons plan destyds ({plan}) het half gewerk.",
   "lastPlan_failed": "Ons plan destyds ({plan}) het nie uitgewerk nie.",
+  "lastPlanHalf_worked": "Ons plan destyds ({plan}) het gewerk, beoordeel op die eerste helfte voordat ons dit verander het.",
+  "lastPlanHalf_partly": "Ons plan destyds ({plan}) het half gewerk, beoordeel op die eerste helfte voordat ons dit verander het.",
+  "lastPlanHalf_failed": "Ons plan destyds ({plan}) het nie uitgewerk nie, beoordeel op die eerste helfte voordat ons dit verander het.",
   "soft": "Swak plek: hul {unit} ({sure}).",
   "sureHigh": "seker",
   "sureMid": "taamlik seker",
@@ -1645,6 +1649,7 @@
    "other": "Met {move_k} het hulle {n} drieë teen ons gedruk."
   },
   "whyRead": "Hulle het {move_k} gelees: {m} m uit {n} oproepe, teenoor {m0} m sonder daardie lesing.",
+  "whyReadLost": "Hulle het {move_k} gelees: {n} oproepe het {m} m verloor, {d} m swakker as sonder daardie lesing.",
   "whyReadHeld": "Hulle was gereed vir {move_k}, en dit het steeds {m} m uit {n} oproepe gewen.",
   "whyReadNil": "Hulle was gereed vir {move_k}, maar dit was nie hul lesing wat dit gestop het nie: {n} oproepe, geen grond gewen nie.",
   "whySetFor": "Hulle het {n} skrums en lynstane op eie bal verloor; ons {m}.",

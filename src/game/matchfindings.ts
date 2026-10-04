@@ -143,7 +143,7 @@ export function buildFindings(state: GameState, ctx: LiveCtx): FindingsRecord | 
       const exploited = planExploited(plan.target, ht, true)
       const ahead = ht.us > ht.them
       const verdict: PlanVerdict = exploited && ahead ? 'worked' : exploited || ahead ? 'partly' : 'failed'
-      planRec = { id: plan.id, target: plan.target, followed: true, verdict }
+      planRec = { id: plan.id, target: plan.target, followed: true, verdict, half: true }
       const preset = carry === 'ht' ? presetOf(ctx.shDials) : null
       items.push({
         cat: 'strategic', k: `find.planHalf_${exploited ? 'hit' : 'miss'}`,

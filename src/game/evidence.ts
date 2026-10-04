@@ -359,7 +359,8 @@ function lineFor(ev: CausalEvidence, cause: WhyCause, sig: number): WhyLine | nu
       // what the same calls would have made with nobody waiting for them
       const m = Object.entries(u.calls).filter(([, c]) => c[3] >= 3).sort((a, b) => b[1][4] - a[1][4])[0]
       if (!m || m[1][4] < 1) return null
-      return L('whyRead', { move_k: sayKey(m[0]), n: m[1][0], m: m[1][1], m0: m[1][1] + m[1][4] })
+      const r = readVars(m[0], m[1])
+      return L(r.k, r.v)
     }
     case 'set': {
       const lost = (s: EvSide) => s.setLost[0] + s.setLost[1]
@@ -440,6 +441,15 @@ export function toldCalls(ctx: LiveCtx, worth: number): string[] {
   return [...new Set([top, mem].filter((x): x is string => !!x))]
 }
 
+/** WHAT THE TAPE COST A CALL, IN METRES THAT READ (1.8.5 trust audit). A
+ *  read call that went backwards over the match quoted "-3m from 4 calls";
+ *  it says it lost the ground now, and by how much more than unread. */
+function readVars(id: string, c: readonly number[]): { k: string; v: Record<string, string | number> } {
+  return c[1] >= 0
+    ? { k: 'whyRead', v: { move_k: sayKey(id), n: c[0], m: c[1], m0: c[1] + c[4] } }
+    : { k: 'whyReadLost', v: { move_k: sayKey(id), n: c[0], m: -c[1], d: c[4] } }
+}
+
 /** The line itself, for the calls toldCalls names. */
 export function readTold(ev: CausalEvidence, ids: readonly string[]): WhyLine | null {
   const u = ev.side[0]
@@ -448,7 +458,7 @@ export function readTold(ev: CausalEvidence, ids: readonly string[]): WhyLine | 
   if (!m) return null
   const [id, c] = m
   const sig = significance(ev).read
-  if (c[4] >= 1) return { cause: 'read', sig, k: 'matchday.whyRead', v: { move_k: sayKey(id), n: c[0], m: c[1], m0: c[1] + c[4] } }
+  if (c[4] >= 1) { const r = readVars(id, c); return { cause: 'read', sig, k: `matchday.${r.k}`, v: r.v } }
   // the tape cost it under a metre: it made its ground anyway, or it made
   // none and the tape was not why
   return { cause: 'read', sig, k: c[1] > 0 ? 'matchday.whyReadHeld' : 'matchday.whyReadNil', v: { move_k: sayKey(id), n: c[0], m: c[1] } }

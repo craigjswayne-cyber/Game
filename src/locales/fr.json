@@ -808,7 +808,8 @@
   "armsrace": {
     "tapeSet": "Leurs analystes ont repéré {move_k} sur {pct} % de vos ballons de première main, et cet entraîneur organise sa défense selon ce que montrent les images.",
     "tapeCalm": "Leurs analystes ont repéré {move_k} sur {pct} % de vos ballons de première main, mais cet entraîneur ne change pas grand-chose pour autant.",
-    "tapeUnread": "Leurs analystes ont repéré {move_k} sur {pct} % de vos ballons de première main. S'ils s'organiseront contre, le rapport ne peut pas le dire."
+    "tapeUnread": "Leurs analystes ont repéré {move_k} sur {pct} % de vos ballons de première main. S'ils s'organiseront contre, le rapport ne peut pas le dire.",
+    "tapeRetired": "Leurs analystes ont repéré {move_k} sur {pct} % de vos ballons de première main, une annonce que vous ne jouez plus : rien sur la vidéo à préparer."
   },
   "moves": {
     "mv_1331": "Charges sur la largeur",
@@ -1048,6 +1049,9 @@
     "lastPlan_worked": "Notre plan d'alors ({plan}) a fonctionné.",
     "lastPlan_partly": "Notre plan d'alors ({plan}) a fonctionné à moitié.",
     "lastPlan_failed": "Notre plan d'alors ({plan}) n'a pas marché.",
+    "lastPlanHalf_worked": "Notre plan d'alors ({plan}) a fonctionné, à en juger par la première période, avant que nous le changions.",
+    "lastPlanHalf_partly": "Notre plan d'alors ({plan}) a fonctionné à moitié, à en juger par la première période, avant que nous le changions.",
+    "lastPlanHalf_failed": "Notre plan d'alors ({plan}) n'a pas marché, à en juger par la première période, avant que nous le changions.",
     "soft": "Point faible : leur {unit} ({sure}).",
     "sureHigh": "certain",
     "sureMid": "assez sûr",
@@ -1684,6 +1688,7 @@
       "other": "Leur combinaison, {move_k}, nous a coûté {n} essais."
     },
     "whyRead": "Ils avaient lu {move_k} : {m} m sur {n} annonces, contre {m0} m sans cette lecture.",
+    "whyReadLost": "Ils avaient lu {move_k} : {n} annonces ont perdu {m} m, soit {d} m de moins que sans cette lecture.",
     "whyReadHeld": "Ils attendaient {move_k}, et l'annonce a quand même gagné {m} m sur {n} annonces.",
     "whyReadNil": "Ils attendaient {move_k}, mais ce n'est pas leur lecture qui l'a arrêtée : {n} annonces, aucun terrain gagné.",
     "whySetFor": "Ils ont perdu {n} mêlées et touches sur leur introduction ; nous, {m}.",

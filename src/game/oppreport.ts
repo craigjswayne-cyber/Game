@@ -90,7 +90,9 @@ export interface FindingsRecord {
   items: Finding[]
   /** the set-piece contest worth remembering for next time (their side of it) */
   recall?: { unit: 'scrum' | 'lineout'; pct: number }
-  plan?: { id: PlanId; target: Unit | 'style' | 'late' | 'ball' | null; followed: boolean; verdict: PlanVerdict } | null
+  /** half: judged on the first half alone, the plan changed at the break
+   *  (matchfindings.ts, 1.8.5) */
+  plan?: { id: PlanId; target: Unit | 'style' | 'late' | 'ball' | null; followed: boolean; verdict: PlanVerdict; half?: boolean } | null
 }
 
 export interface ChosenPlan {
@@ -367,7 +369,9 @@ function historyLines(state: GameState, last: FindingsRecord | null): ReportLine
   // a plan dropped before it had a half to work was never judged (the
   // findings said so), so the report does not call it a failure after the event
   if (last.plan?.followed) {
-    out.push({ cat: 'history', k: `oppreport.lastPlan_${last.plan.verdict}`, v: { plan_k: `oppreport.plan_${last.plan.id}` }, ok: true })
+    // and one changed at the break was judged on the first half: the
+    // report says so rather than "worked" of a plan dropped at forty minutes
+    out.push({ cat: 'history', k: `oppreport.lastPlan${last.plan.half ? 'Half' : ''}_${last.plan.verdict}`, v: { plan_k: `oppreport.plan_${last.plan.id}` }, ok: true })
   }
   // what decided it (1.8.4): the full-time card's top line from that match,
   // our own count, so always true
