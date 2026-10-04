@@ -2222,6 +2222,13 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   font-variant-numeric: tabular-nums; color: var(--text-primary);
 }
 .score-card .sc-score i { font-style: normal; margin: 0 7px; color: var(--text-muted); }
+/* a small phone cut "Northampton" to "Northa..." beside a 34px score: the
+   score gives up a few pixels so the names are whole (1.8.4 Phase 7) */
+@media (max-width: 380px) {
+  .score-card .sc-score { font-size: 28px; }
+  .score-card .sc-score i { margin: 0 4px; }
+  .score-card .sc-team { letter-spacing: 0; }
+}
 .score-card .sc-lists { display: flex; gap: 12px; margin-top: 8px; }
 .score-card .sc-story { margin-top: 10px; text-align: center; }
 .score-card .sc-scorers { flex: 1; min-width: 0; font-size: 12px; line-height: 1.55; color: var(--text-primary); }
@@ -3517,9 +3524,11 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    The old inbox was sixty collapsed grey bars, so the thing you had just been
    sent looked exactly like the fifty-nine before it. */
 .reader-bar {
-  display: flex; align-items: center; gap: 6px;
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
   padding: 6px 14px; border-bottom: 1px solid var(--border);
 }
+.reader-acts { display: flex; gap: 6px; margin-left: auto; }
+.reader-acts .btn.tiny { white-space: nowrap; }
 /* The older/newer arrows are the control a manager uses most often outside a
    match, and they were 30x24. Here they get real size rather than an invisible
    expander: the bar's siblings are 6px away, so an expander big enough to reach
@@ -3528,7 +3537,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .reader-bar .btn.tiny::after { content: none; }
 .reader-bar .btn.tiny:disabled { opacity: .35; }
 .reader-pos {
-  flex: 1; font-family: var(--cond); font-size: 11px; font-weight: 700;
+  flex: 0 1 auto; min-width: 0; font-family: var(--cond); font-size: 11px; font-weight: 700;
   letter-spacing: .04em; text-transform: uppercase; color: var(--text-muted);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
