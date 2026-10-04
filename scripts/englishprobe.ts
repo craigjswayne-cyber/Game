@@ -93,6 +93,9 @@ const PAIRED: Record<string, string> = {
  *  entry here is a lie that outlives the person who told it, so the reason has
  *  to name the thing that bounds the number. */
 const CANNOT_BE_ONE: Record<string, string> = {
+  'desk.memStrong': 'tacmemory.ts files it only when the call scored in STRONG_MATCHES (3) matches with 3+ tries, out of MIN_MATCHES (4)+ recent matches',
+  'desk.memSetBetter': 'tacmemory.ts returns nothing below MIN_MATCHES (4) recent matches, and m is that count',
+  'desk.memSetWorse': 'same gate: m >= MIN_MATCHES (4)',
   'press.silverDoubleQ1': 'the double voicing only fires when two or more finals were won',
   'press.crisisQ1': 'the crisis question needs 3 defeats in the last 4',
   'press.crisisQ3': 'same gate: 3 defeats',
