@@ -2278,7 +2278,7 @@
     "boardDeclinesTalk": "Le conseil décline poliment : « Remplissez d'abord nos objectifs, et nous en reparlerons. » Atteignez les objectifs de la saison pour gagner une faveur.",
     "boardDeclines": "Le conseil décline poliment. Gagnez d'abord sa confiance.",
     "moveMoney": "Transférer {amount} du solde vers le budget transferts",
-    "reserveNote": "Le conseil garde {reserve} en banque (une saison de salaires plus un matelas) ; tout ce qui dépasse est à vous, par tranches de {step}.",
+    "reserveNote": "La réserve salariale est de {reserve} : une saison de salaires plus un matelas. L'argent se déplace par tranches de {step}.",
     "commercialDept": "Le service commercial",
     "commercialSub": "{amount} par semaine sur {n} des 4 emplacements",
     "dealLive": "{sponsor} · {weekly}/sem · jusqu'à la fin de {year}",

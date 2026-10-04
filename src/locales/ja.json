@@ -2182,7 +2182,7 @@
   "boardDeclinesTalk": "取締役会は丁重にお断り。「まずは目標を果たしたまえ。話はそれからだ」。シーズン目標を達成して貸しをつくろう。",
   "boardDeclines": "取締役会は丁重にお断り。まずは信頼を勝ち取ること。",
   "moveMoney": "残高から{amount}を移籍予算へ移す",
-  "reserveNote": "取締役会は銀行に{reserve}を確保している（1シーズン分の給与+予備費）。それを超える分は{step}刻みで自由に動かせる。",
+  "reserveNote": "給与の予備費は{reserve}（1シーズン分の給与+予備）。資金は{step}刻みで動かせる。",
   "commercialDept": "商業部門",
   "commercialSub": "4枠中{n}枠で週{amount}",
   "dealLive": "{sponsor}・{weekly}/週・{year}末まで",

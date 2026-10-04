@@ -2240,7 +2240,7 @@
   "boardDeclinesTalk": "Die direksie weier beleefd: \"Lewer eers ons doelwitte, dan praat ons.\" Behaal seisoendoelwitte om 'n guns te verdien.",
   "boardDeclines": "Die direksie weier beleefd. Verdien eers hul vertroue.",
   "moveMoney": "Skuif {amount} van die balans na die oordragbegroting",
-  "reserveNote": "Die direksie beskerm {reserve} in die bank ('n seisoen se salarisse plus 'n buffer); alles daarbo is joune om te skuif, {step} op 'n slag.",
+  "reserveNote": "Die salarisbuffer is {reserve}: 'n seisoen se salarisse plus 'n buffer. Geld skuif {step} op 'n slag.",
   "commercialDept": "Die kommersiële afdeling",
   "commercialSub": "{amount} per week uit {n} van 4 gleuwe",
   "dealLive": "{sponsor} · {weekly}/wk · tot einde {year}",

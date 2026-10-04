@@ -2262,7 +2262,7 @@
   "boardDeclinesTalk": "La junta declina con educación: «Cumple primero nuestros objetivos y luego hablamos». Cumple los objetivos de temporada para ganarte un favor.",
   "boardDeclines": "La junta declina con educación. Gánate antes su confianza.",
   "moveMoney": "Pasar {amount} del saldo al presupuesto de fichajes",
-  "reserveNote": "La junta protege {reserve} en el banco (una temporada de salarios más un colchón); todo lo que quede por encima puedes moverlo, en tramos de {step}.",
+  "reserveNote": "El colchón salarial es de {reserve}: una temporada de salarios más un margen. El dinero se mueve en tramos de {step}.",
   "commercialDept": "El departamento comercial",
   "commercialSub": "{amount} a la semana por {n} de 4 espacios",
   "dealLive": "{sponsor} · {weekly}/sem · hasta finales de {year}",
