@@ -359,8 +359,10 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
       {/* THE OFFICE (audit 20D). Players used to knock on the manager's door;
           the manager could never knock back. Two conversations a week, one per
           man: praise the form or have the quiet word. The outcome is his
-          personality's, not a dice roll - see chats.ts. */}
-      {mine && !p.onLoan && (
+          personality's, not a dice roll - see chats.ts. Not for a scholar:
+          canChat never lets him in, and the card told the manager his week's
+          conversations were used up when they were not (1.8.4 RC). */}
+      {mine && !p.onLoan && !p.acad && (
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
           <div className="fact-label">{t('player.theOffice')}</div>
           {chatMsg
