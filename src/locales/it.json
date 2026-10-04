@@ -2645,6 +2645,8 @@
   "3": "Dossier completo: numeri, carattere e temperamento tutti verificati."
  },
  "player": {
+  "rivalBidLine": "Anche {club} lo vuole: {wage}/sett. sul tavolo.",
+  "rivalBidLine_f": "Anche {club} la vuole: {wage}/sett. sul tavolo.",
   "ceiling": "Potenziale",
   "ceilingTitle": "Il suo potenziale secondo i tuoi osservatori. La forbice si stringe man mano che lo seguono; un punto interrogativo vuol dire che non lo hanno ancora valutato.",
   "gone": "Il giocatore non è più nel mondo di gioco (ritirato o svincolato).",
@@ -4449,6 +4451,26 @@
   "unofficialBody_f": "PHASE: Rugby Manager non è affiliato, approvato o autorizzato da alcuna giocatrice, club, lega o federazione. I nomi dei club sono reali; competizioni, stadi e sponsor sono rinominati o inventati. I nomi delle giocatrici sono reali, usati per identificare persone in un database sportivo e per nulla altro, e non è incluso alcuno stemma, maglia o logo ufficiale."
  },
  "news": {
+  "rivalBidLostSubj": "{player} sceglie {short}",
+  "rivalBidLost": "{player} firma con {club}, che ha pareggiato il cartellino da {fee} e gli ha offerto {wage}/settimana. A decidere: {why_k}.",
+  "rivalBidLost_f": "{player} firma con {club}, che ha pareggiato il cartellino da {fee} e le ha offerto {wage}/settimana. A decidere: {why_k}.",
+  "rivalBidWonSubj": "{player} sceglie te invece di {short}",
+  "rivalBidWon": "{club} aveva pareggiato il cartellino e offriva {wage}/settimana, ma {player} ha scelto il tuo club. A decidere: {why_k}.",
+  "rivalBackedSubj": "{short} sostiene il suo allenatore",
+  "rivalBacked": "La dirigenza di {club} concede {amount} in più a {coach} dopo aver chiuso dietro di te. Cercano un {pos_k}.",
+  "rivalBackedBoardSubj": "{short} apre il portafoglio",
+  "rivalBackedBoard": "La dirigenza di {club} sblocca {amount} in più dopo aver chiuso dietro di te. Cercano un {pos_k}.",
+  "rivalPushBidSubj": "{short} offre {fee} per {player}",
+  "rivalPushBid": "{club}, sostenuto dalla dirigenza dopo aver chiuso dietro di te, offre {fee} per {player}.",
+  "rivalWhyMinutes": "più minuti come {pos_k}",
+  "rivalWhyWage": "l'ingaggio migliore",
+  "rivalWhyRep": "il club più grande",
+  "rivalWhyPromise": "la promessa di un posto da titolare",
+  "rivalWhyReturn": "il ritorno in un club che conosce",
+  "rivalWhyAgentWarm": "la fiducia del suo procuratore in te",
+  "rivalWhyAgentCool": "i dubbi del suo procuratore su di te",
+  "rivalWhyNoTerms": "non gli hai mai proposto un contratto",
+  "rivalWhyNoTerms_f": "non le hai mai proposto un contratto",
   "mentEarlySubj": "Primi giorni per {last} e {seniorLast}",
   "mentEarly": "{kid} e {senior} si stanno ancora conoscendo, quindi per ora non aspettarti molto. Una coppia ha bisogno di settimane per rodarsi.",
   "mentGrowingSubj": "{last} sta crescendo accanto a {seniorLast}",
@@ -6966,6 +6988,10 @@
   "acadReleased": "Svincolo dall'academy per {player}."
  },
  "reply": {
+  "rivalBidOpen": "{club} ha pareggiato il cartellino e gli offre {wage}/sett. Deciderà questa settimana.",
+  "rivalBidOpen_f": "{club} ha pareggiato il cartellino e le offre {wage}/sett. Deciderà questa settimana.",
+  "rivalBidPrefers": "{name} è orientato verso {club}, che offre {wage}/sett. A pesare: {why_k}. La loro offerta resta valida fino a fine settimana.",
+  "rivalBidPrefers_f": "{name} è orientata verso {club}, che offre {wage}/sett. A pesare: {why_k}. La loro offerta resta valida fino a fine settimana.",
   "overCap": "Con queste condizioni il club sforerebbe di {over}/sett. il tetto salariale di {cap}/sett. Libera spazio, oppure nominalo marquee player.",
   "offerGone": "Offerta non più disponibile.",
   "inkWetTerms": "{club} toglie l'accordo dal tavolo: {name} è appena arrivato, e non si muove di lì.",

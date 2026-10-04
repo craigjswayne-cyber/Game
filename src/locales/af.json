@@ -2613,6 +2613,8 @@
   "3": "Volle lêer: syfers, karakter en temperament almal bevestig."
  },
  "player": {
+  "rivalBidLine": "{club} wil hom ook hê: {wage}/wk op die tafel.",
+  "rivalBidLine_f": "{club} wil haar ook hê: {wage}/wk op die tafel.",
   "ceiling": "Plafon",
   "ceilingTitle": "Sy potensiaal soos jou talentsoekers dit lees. Die band word nouer soos hulle hom dophou; 'n vraagteken beteken hulle het hom nog nie gelees nie.",
   "gone": "Speler is nie meer in die spelwêreld nie (afgetree of vrygestel).",
@@ -4374,6 +4376,28 @@
   "bridgeProducts": "Produkte waarvoor die winkel 'n prys gegee het: {live} van {asked}"
  },
  "news": {
+  "rivalBidLostSubj": "{player} kies {short}",
+  "rivalBidLost": "{player} het by {club} aangesluit, wat die fooi van {fee} geëwenaar en {wage}/week aangebied het. Wat dit beslis het: {why_k}.",
+  "rivalBidWonSubj": "{player} kies jou bo {short}",
+  "rivalBidWon": "{club} het die fooi geëwenaar en {wage}/week aangebied, maar {player} het jou klub gekies. Wat dit beslis het: {why_k}.",
+  "rivalBackedSubj": "{short} staan agter hul afrigter",
+  "rivalBacked": "Die direksie van {club} gee {coach} 'n ekstra {amount} nadat hulle agter jou geëindig het. Hulle soek 'n {pos_k}.",
+  "rivalBackedBoardSubj": "{short} haal die tjekboek uit",
+  "rivalBackedBoard": "Die direksie van {club} stel 'n ekstra {amount} beskikbaar nadat hulle agter jou geëindig het. Hulle soek 'n {pos_k}.",
+  "rivalPushBidSubj": "{short} bie {fee} vir {player}",
+  "rivalPushBid": "{club}, gerugsteun deur hul direksie nadat hulle agter jou geëindig het, bie {fee} vir {player}.",
+  "rivalWhyMinutes": "meer speeltyd as {pos_k}",
+  "rivalWhyWage": "die beter salaris",
+  "rivalWhyRep": "die groter klub",
+  "rivalWhyPromise": "die belofte van eerstespan-rugby",
+  "rivalWhyReturn": "'n terugkeer na 'n klub wat hy ken",
+  "rivalWhyReturn_f": "'n terugkeer na 'n klub wat sy ken",
+  "rivalWhyAgentWarm": "sy agent se vertroue in jou",
+  "rivalWhyAgentWarm_f": "haar agent se vertroue in jou",
+  "rivalWhyAgentCool": "sy agent se twyfel oor jou",
+  "rivalWhyAgentCool_f": "haar agent se twyfel oor jou",
+  "rivalWhyNoTerms": "jy het hom nooit voorwaardes aangebied nie",
+  "rivalWhyNoTerms_f": "jy het haar nooit voorwaardes aangebied nie",
   "mentEarlySubj": "Vroeë dae vir {last} en {seniorLast}",
   "mentEarly": "{kid} en {senior} leer mekaar nog ken, so moenie nou al veel verwag nie. 'n Paar vat weke om te vestig.",
   "mentGrowingSubj": "{last} kom aan onder {seniorLast}",
@@ -7002,6 +7026,9 @@
   "acadReleased": "{player} uit die akademie laat gaan."
  },
  "reply": {
+  "rivalBidOpen": "{club} het dieselfde fooi ooreengekom en bied hom {wage}/wk aan. Hy besluit hierdie week.",
+  "rivalBidOpen_f": "{club} het dieselfde fooi ooreengekom en bied haar {wage}/wk aan. Sy besluit hierdie week.",
+  "rivalBidPrefers": "{name} leun na {club}, wat {wage}/wk aanbied. Wat swaar weeg: {why_k}. Hul aanbod staan tot die einde van die week.",
   "overCap": "Daardie voorwaardes sal die klub {over}/wk oor die {cap}/wk-salarisperk sit. Maak plek, of noem hom 'n hoofspeler.",
   "overCap_f": "Daardie voorwaardes sal die klub {over}/wk oor die {cap}/wk-salarisperk sit. Maak plek, of noem haar 'n hoofspeler.",
   "offerGone": "Aanbod nie meer beskikbaar nie.",

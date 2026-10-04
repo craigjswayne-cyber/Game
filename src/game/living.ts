@@ -140,8 +140,11 @@ export function advanceHunt(state: GameState): void {
     const suitors = Object.values(state.clubs).filter(c =>
       c.id !== state.userClubId && c.rep >= user.rep - 4 && !c.admin)
     if (!suitors.length) return
+    // a club whose board backed it to answer him comes first (rivalbids.ts)
+    const backed = state.rivalPush?.season === state.season
+      ? suitors.filter(c => state.rivalPush!.clubs.some(e => e.id === c.id)) : []
     const keen = suitors.filter(c => clubIntent(state, c) === 'allin')
-    const pool = keen.length ? keen : suitors
+    const pool = backed.length ? backed : keen.length ? keen : suitors
     const pick = pool[Math.floor(gate() * pool.length) % pool.length]
     state.hunt = { clubId: pick.id, playerId: star.id, stage: 0, season: state.season }
   }

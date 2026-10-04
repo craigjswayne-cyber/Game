@@ -2550,6 +2550,7 @@
   "3": "完全ファイル：数値・人柄・気性のすべてを検証済み。"
  },
  "player": {
+  "rivalBidLine": "{club}も獲得を狙っている。提示は週{wage}。",
   "ceiling": "ポテンシャル",
   "ceilingTitle": "スカウトが見立てたポテンシャル。視察を重ねるほど幅が狭まる。「?」はまだ評価していないという意味。",
   "gone": "この選手はもうゲーム世界にいない（引退または退団）。",
@@ -4212,6 +4213,24 @@
   "bridgeProducts": "ストアが価格を返した商品：{asked}件中{live}件"
  },
  "news": {
+  "rivalBidLostSubj": "{player}は{short}を選んだ",
+  "rivalBidLost": "{player}は{club}に加入した。同クラブは移籍金{fee}に並び、週{wage}を提示していた。決め手は{why_k}。",
+  "rivalBidWonSubj": "{player}は{short}ではなくあなたを選んだ",
+  "rivalBidWon": "{club}も移籍金に並び週{wage}を提示していたが、{player}はあなたのクラブを選んだ。決め手は{why_k}。",
+  "rivalBackedSubj": "{short}が監督を後押し",
+  "rivalBacked": "{club}の役員会は、あなたの後塵を拝したことを受けて{coach}に{amount}を追加した。{pos_k}の補強を狙っている。",
+  "rivalBackedBoardSubj": "{short}が財布の紐を緩める",
+  "rivalBackedBoard": "{club}の役員会は、あなたの後塵を拝したことを受けて{amount}を追加で用意した。{pos_k}の補強を狙っている。",
+  "rivalPushBidSubj": "{short}が{player}に{fee}のオファー",
+  "rivalPushBid": "あなたの後塵を拝し役員会の後押しを受けた{club}が、{player}に{fee}のオファーを出した。",
+  "rivalWhyMinutes": "{pos_k}としての出場機会",
+  "rivalWhyWage": "より良い給料",
+  "rivalWhyRep": "より大きなクラブ",
+  "rivalWhyPromise": "先発起用の約束",
+  "rivalWhyReturn": "古巣への復帰",
+  "rivalWhyAgentWarm": "代理人のあなたへの信頼",
+  "rivalWhyAgentCool": "代理人のあなたへの不信",
+  "rivalWhyNoTerms": "あなたが条件を提示しなかったこと",
   "mentEarlySubj": "{last}と{seniorLast}、まだ始まったばかり",
   "mentEarly": "{kid}と{senior}はまだ互いを知っている段階で、今は大きな効果は期待できない。ペアが軌道に乗るには何週間もかかる。",
   "mentGrowingSubj": "{last}、{seniorLast}のもとで伸びてきた",
@@ -6622,6 +6641,8 @@
   "acadReleased": "{player}をアカデミーから放出した。"
  },
  "reply": {
+  "rivalBidOpen": "{club}も同じ移籍金で合意し、週{wage}を提示している。今週中に本人が決める。",
+  "rivalBidPrefers": "{name}は週{wage}を提示する{club}に傾いている。決め手は{why_k}。先方のオファーは今週いっぱい有効。",
   "overCap": "この条件では、サラリーキャップ（週{cap}）を週{over}超過してしまう。枠を空けるか、彼をマーキー選手に指名しよう。",
   "offerGone": "このオファーはもう有効ではない。",
   "inkWetTerms": "{club}が取引を白紙に戻した。{name}は来たばかりで、どこへも行かせるつもりはないという。",

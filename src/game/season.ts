@@ -10,6 +10,7 @@ import { talkingPoints } from './talkingpoints'
 import { aiFireSale, aiWeeklyFinance } from './aiecon'
 import { adminPenalty, insolvencyWarning } from './insolvency'
 import { advanceHunt } from './living'
+import { aiFreeAgents, aiYouthHunt, rivalPushWeek, settleRivalBids } from './rivalbids'
 import { offerResult, offerRun } from './records'
 import { rivalBeat } from './boss'
 import { auditCaps, refreshCaps } from './cap'
@@ -4420,7 +4421,14 @@ If you go, your assistant takes your national side for the duration. Nobody prep
   // of 42 winners with no senior minutes in the window.
   //
   // scripts/potmprobe.ts holds all of that at zero now.
+  // the week is out for any rival bid on the manager's targets, then the
+  // backed rivals and the youth hunters move (rivalbids.ts): all hashed, no
+  // draws on the shared stream
+  settleRivalBids(state)
   aiTransfers(state, rng)
+  rivalPushWeek(state)
+  aiYouthHunt(state)
+  aiFreeAgents(state)
   aiRenewals(state, rng)
   if (!state.unemployed) aiPreContractPoach(state, rng)
   refreshVacancies(state, rng)

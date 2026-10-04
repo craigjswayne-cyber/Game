@@ -2328,6 +2328,13 @@ export interface GameState {
    *  rather than an alert that arrived. One per season; cleared when the
    *  season turns or the player leaves. */
   hunt?: { clubId: string; playerId: number; stage: 0 | 1 | 2 | 3; season: number }
+  /** AI clubs that agreed the same fee as the manager this season
+   *  (rivalbids.ts, 1.8.5): the live one is settled when the week ends, the
+   *  rest stop a man being contested twice in a season. Absent in older saves. */
+  rivalBids?: import('./rivalbids').RivalBid[]
+  /** The clubs whose boards backed them after finishing behind the manager,
+   *  and the position each is buying (rivalbids.ts). One summer only. */
+  rivalPush?: import('./rivalbids').RivalPush
   /** last published ranking order (nation codes), for movement arrows */
   natRankPrev?: string[]
   /** Scouting Agency monthly rankings: last month's order + best-ever ranks */

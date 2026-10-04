@@ -2616,6 +2616,8 @@
   "3": "Full file: numbers, character and temperament all verified."
  },
  "player": {
+  "rivalBidLine": "{club} want him too: {wage}/wk on the table.",
+  "rivalBidLine_f": "{club} want her too: {wage}/wk on the table.",
   "ceiling": "Ceiling",
   "ceilingTitle": "His potential as your scouts read it. The band narrows as they watch him; a question mark means they have not read it yet.",
   "gone": "Player no longer in the game world (retired or released).",
@@ -4366,6 +4368,28 @@
   "bridgeProducts": "Products priced by the store: {live} of {asked}"
  },
  "news": {
+  "rivalBidLostSubj": "{player} chooses {short}",
+  "rivalBidLost": "{player} has joined {club}, who matched the {fee} fee and offered {wage}/week. What decided it: {why_k}.",
+  "rivalBidWonSubj": "{player} chooses you over {short}",
+  "rivalBidWon": "{club} had matched the fee and offered {wage}/week, but {player} chose you. What decided it: {why_k}.",
+  "rivalBackedSubj": "{short} back their coach",
+  "rivalBacked": "{club}'s board has given {coach} an extra {amount} after finishing behind you. They are looking for a {pos_k}.",
+  "rivalBackedBoardSubj": "{short} open the cheque book",
+  "rivalBackedBoard": "{club}'s board has released an extra {amount} after finishing behind you. They are looking for a {pos_k}.",
+  "rivalPushBidSubj": "{short} bid {fee} for {player}",
+  "rivalPushBid": "{club}, backed by their board after finishing behind you, have bid {fee} for {player}.",
+  "rivalWhyMinutes": "more minutes as a {pos_k}",
+  "rivalWhyWage": "the better wage",
+  "rivalWhyRep": "the bigger club",
+  "rivalWhyPromise": "the promise of first-team rugby",
+  "rivalWhyReturn": "a return to a club he knows",
+  "rivalWhyReturn_f": "a return to a club she knows",
+  "rivalWhyAgentWarm": "his agent's trust in you",
+  "rivalWhyAgentWarm_f": "her agent's trust in you",
+  "rivalWhyAgentCool": "his agent's doubts about you",
+  "rivalWhyAgentCool_f": "her agent's doubts about you",
+  "rivalWhyNoTerms": "you never put terms to him",
+  "rivalWhyNoTerms_f": "you never put terms to her",
   "mentEarlySubj": "Early days for {last} and {seniorLast}",
   "mentEarly": "{kid} and {senior} are still getting to know each other, so expect little from it yet. A pairing takes weeks to bed in.",
   "mentGrowingSubj": "{last} is coming on under {seniorLast}",
@@ -6964,6 +6988,9 @@
   "acadReleased": "Released {player} from the academy."
  },
  "reply": {
+  "rivalBidOpen": "{club} have agreed the same fee and offer him {wage}/wk. He decides this week.",
+  "rivalBidOpen_f": "{club} have agreed the same fee and offer her {wage}/wk. She decides this week.",
+  "rivalBidPrefers": "{name} leans towards {club}, who offer {wage}/wk. What sways it: {why_k}. Their offer stands until the week is out.",
   "overCap": "Those terms would put the club {over}/wk over the {cap}/wk salary cap. Free up room, or name him a marquee player.",
   "offerGone": "Offer no longer available.",
   "inkWetTerms": "{club} pull the deal off the table: {name} has only just arrived, and he is going nowhere.",
