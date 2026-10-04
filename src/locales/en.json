@@ -8800,24 +8800,24 @@
   },
   "trait": {
    "youth": "youth development",
-   "innovator": "new ideas of rugby",
+   "innovator": "new ideas",
    "spender": "big spending",
-   "hard": "discipline",
+   "hard": "tough decisions",
    "players": "man-management",
    "turnaround": "turning clubs round",
    "defence": "defensive rugby",
    "attack": "attacking rugby"
   },
   "meth": {
-   "broke": "Your methods: promises to players were broken, and the board heard.",
-   "kept": "Your methods: promises to players were kept. The board noticed.",
-   "debt": "Your methods: the debt grew on your watch.",
-   "prudent": "Your methods: the spending stayed within the club's means.",
-   "hard": "Your methods: hard calls and an unhappy dressing room. The board is uneasy.",
-   "academy": "Your methods: academy players were given their chance.",
-   "attack": "Your methods: the side attacked, and the chairman enjoyed it.",
-   "spent": "Your methods: the money was spent boldly.",
-   "defence": "Your methods: a side that is hard to beat."
+   "broke": "Promises to players were broken, and the board heard.",
+   "kept": "Promises to players were kept. The board noticed.",
+   "debt": "The debt grew on your watch.",
+   "prudent": "The spending stayed within the club's means.",
+   "hard": "Hard calls and an unhappy dressing room. The board is uneasy.",
+   "academy": "Academy players were given their chance.",
+   "attack": "The side attacked, and the chairman enjoyed it.",
+   "spent": "The money was spent boldly.",
+   "defence": "A side that is hard to beat."
   },
   "profile": {
    "giant": "A rich club that expects titles.",

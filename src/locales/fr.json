@@ -8908,22 +8908,22 @@
       "youth": "la formation des jeunes",
       "innovator": "les idées de jeu nouvelles",
       "spender": "les grosses dépenses",
-      "hard": "la discipline",
+      "hard": "les décisions difficiles",
       "players": "la gestion du groupe",
       "turnaround": "le redressement des clubs",
       "defence": "le jeu défensif",
       "attack": "le jeu offensif"
     },
     "meth": {
-      "broke": "Vos méthodes : des promesses faites au groupe n'ont pas été tenues, et la direction l'a su.",
-      "kept": "Vos méthodes : les promesses faites au groupe ont été tenues. La direction l'a remarqué.",
-      "debt": "Vos méthodes : la dette s'est creusée sous votre direction.",
-      "prudent": "Vos méthodes : les dépenses sont restées dans les moyens du club.",
-      "hard": "Vos méthodes : des décisions dures et un vestiaire mécontent. La direction est inquiète.",
-      "academy": "Vos méthodes : les jeunes du centre de formation ont eu leur chance.",
-      "attack": "Vos méthodes : l'équipe a attaqué, et le président a apprécié.",
-      "spent": "Vos méthodes : l'argent a été dépensé avec audace.",
-      "defence": "Vos méthodes : une équipe difficile à battre."
+      "broke": "Des promesses faites au groupe n'ont pas été tenues, et la direction l'a su.",
+      "kept": "Les promesses faites au groupe ont été tenues. La direction l'a remarqué.",
+      "debt": "La dette s'est creusée sous votre direction.",
+      "prudent": "Les dépenses sont restées dans les moyens du club.",
+      "hard": "Des décisions dures et un vestiaire mécontent. La direction est inquiète.",
+      "academy": "Les jeunes du centre de formation ont eu leur chance.",
+      "attack": "L'équipe a attaqué, et le président a apprécié.",
+      "spent": "L'argent a été dépensé avec audace.",
+      "defence": "Une équipe difficile à battre."
     },
     "profile": {
       "giant": "Un club riche qui exige des titres.",
