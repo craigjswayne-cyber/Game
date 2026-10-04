@@ -383,7 +383,7 @@ export default function Profile() {
         <div className="card" style={{ padding: '6px 10px' }}>
           {game.decisions!.slice(0, 12).map((d, i) => (
             <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '3px 0', borderTop: i ? '1px solid var(--border)' : undefined }}>
-              <span className="muted" style={{ fontFamily: 'var(--cond)', fontSize: 11, minWidth: 62, flexShrink: 0 }}>
+              <span className="muted" style={{ fontFamily: 'var(--cond)', fontSize: 11, width: 70, flexShrink: 0, whiteSpace: 'nowrap' }}>
                 {seasonLabel(d.season)} w{d.week}
               </span>
               {/* A FIXED COLUMN FOR THE MARKER (owner: "on the decisions bit
