@@ -139,7 +139,6 @@ const CANNOT_BE_ONE: Record<string, string> = {
   'news.adminOther': 'as above',
   'news.insolvencyWarning': 'as above',
   'legacy.cvSeasonsOne': 'the matches in a season, not the seasons',
-  'legacy.srRecordLine': 'a season of fixtures',
   'news.srRecord': 'as above',
   'finances.lgMen': 'a senior squad, not a man',
   'club.duoLine': 'a partnership needs games behind it to register at all',

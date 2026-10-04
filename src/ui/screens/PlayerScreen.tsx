@@ -826,7 +826,9 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             const block = releaseBlock(game, p.id)
             const cost = releaseCost(game, p.id)
             return (
-              <div style={{ marginTop: 8 }}>
+              // the page gutter, like every button above it: this one ran
+              // edge to edge at 412 and 360 (1.8.4 Phase 7)
+              <div style={{ margin: '8px 14px 0' }}>
                 <TwoStep className="btn ghost block" style={{ margin: 0, width: '100%' }} disabled={!!block}
                   title={block ? t(`player.release${block[0].toUpperCase()}${block.slice(1)}`, { name: p.name, n: 24 }) : undefined}
                   label={t('player.release', { cost: fmtMoney(cost) })} confirm={t('player.releaseConfirm', { cost: fmtMoney(cost) })}

@@ -34,16 +34,10 @@ export default function SeasonReview() {
   )
   return (
     <>
-      <header className="masthead">
-        <div className="masthead-row">
-          <button className="back-btn" onClick={back}>‹</button>
-          <div style={{ flex: 1 }}>
-            <h1>{t('legacy.srTitle', { label: seasonLabel(r.season) })}</h1>
-            <div className="date">{t('legacy.srSub', { club: r.clubName })}</div>
-          </div>
-        </div>
-      </header>
-      <main className="content">
+      {/* ONE MASTHEAD (1.8.4 Phase 7). This screen carried its own header and
+          its own scrolling main inside the app's, so the review opened under
+          two back arrows and two title bars. The app's masthead wears the
+          title now (App.tsx) and this is just the page. */}
         {/* THE SEASON CARD (C4).
             The review is nine sections long and reads beautifully on the sofa,
             which is not the same thing as being showable. This is the year in one
@@ -84,10 +78,8 @@ export default function SeasonReview() {
         </div>
 
         <div className="card center" style={{ borderLeft: '4px solid var(--gold)' }}>
+          {/* the record under the verdict said the season card's W D L again */}
           <h3 style={{ fontSize: 18 }}>{headline}</h3>
-          <div className="meta">
-            {t('legacy.srRecordLine', { w: r.overall.w, d: r.overall.d, l: r.overall.l, m: r.overall.m })}
-          </div>
         </div>
 
         {/* THE TURNING POINT (1.8.4, turning.ts): at most one a season, and
@@ -208,7 +200,6 @@ export default function SeasonReview() {
           {t('legacy.srFileAway')}
         </button>
         <div className="spacer" />
-      </main>
     </>
   )
 }
