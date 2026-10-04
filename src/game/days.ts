@@ -215,7 +215,10 @@ export function medicalNews(state: GameState): { out: string[]; back: string[] }
       // the injury's own description stays as it was written into the save; the
       // sentence around it is rebuilt in the language on screen
       if (weeks > 0) out.push(t('dayroom.medOut', { player: p.name, desc: injuryDesc(p.injury), n: weeks }))
-    } else if (p.sharp < 70) {
+    } else if ((p.rust ?? 0) > 0 && p.sharp < 70) {
+      // BACK FROM SOMETHING, not merely unpicked (1.8.4 RC). Sharpness alone
+      // listed every fit man who sat out the friendly as "back in training";
+      // rust is what an injury or a long absence leaves behind (season.ts).
       back.push(t('dayroom.medBack', { player: p.name, pct: Math.round(p.sharp) }))
     }
   }
