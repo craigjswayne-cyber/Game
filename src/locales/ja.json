@@ -5689,6 +5689,7 @@
   "unitCentres": "センター陣",
   "unitBackThree": "バックスリー",
   "transferDoneFree": "{to}が無所属だった{player}の獲得を完了した。{age}歳の同選手は{until}までの契約で週給{wage}に合意している。",
+  "transferDoneFreeSubj": "{player}が{to}へ",
   "sponsorYears": {
    "one": "1シーズン",
    "other": "{n}シーズン"

@@ -5980,6 +5980,7 @@
   "unitCentres": "i centri",
   "unitBackThree": "il triangolo allargato",
   "transferDoneFree": "{to} hanno completato l'ingaggio di {player}, che era svincolato. Il {age}enne ha accettato un contratto da {wage} a settimana fino a {until}.",
+  "transferDoneFreeSubj": "{player} passa a {to}",
   "sponsorYears": {
    "one": "una stagione",
    "other": "{n} stagioni"
