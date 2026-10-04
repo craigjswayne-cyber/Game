@@ -22,6 +22,7 @@ import { KNOCK_ENERGY } from './knock'
 import { DEFAULT_LINEOUT, DEFAULT_SCRUM, ROUTINE_BY_ID, playbookOf, routineEffect } from './playbook'
 import { MOVE_BY_ID, MOVE_MAKER, RED_ZONE, anyCall, calledIds, callForTick, callsOf, launchOf, mixHash, moveEdge, moveFit, moveHash, moveMatchup, moveTempoF, sayKey, type Launch } from './moves'
 import { adaptMap, tallyCalls } from './armsrace'
+import { rematchOf, withRematch, type Rematch } from './rematch'
 import {
 
 
@@ -2040,6 +2041,9 @@ export interface LiveCtx {
   /** how far the manager's opponent is set for each of his calls (1.8.2,
    *  armsrace.ts), taken at kick-off; absent in a match he is not in */
   callAdapt?: Record<string, number>
+  /** what the manager's opponent remembers of the last meeting (1.8.4,
+   *  rematch.ts), taken at kick-off with the tape; absent otherwise */
+  rematch?: Rematch
   home: SideCtx
   away: SideCtx
   rng: Rng
@@ -2448,9 +2452,16 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
   // THE ARMS RACE (1.8.2, armsrace.ts): how far this opponent is set for each
   // of the manager's calls, off the tape as it stood BEFORE this match, and
   // then this match's reps and first-phase strikes on the tape
+  //
+  // THE REMATCH (1.8.4, rematch.ts): and what this coach remembers of the
+  // last meeting, read off the same tape, a little more on the call that
+  // beat him or a little more in the unit that did
   let callAdapt: Record<string, number> | undefined
+  let rematch: Rematch | null = null
   if (fx.homeId === state.userClubId || fx.awayId === state.userClubId) {
-    callAdapt = adaptMap(state, fx.homeId === state.userClubId ? fx.awayId : fx.homeId)
+    const oppId = fx.homeId === state.userClubId ? fx.awayId : fx.homeId
+    rematch = rematchOf(state, oppId)
+    callAdapt = withRematch(adaptMap(state, oppId), rematch)
     tallyCalls(state, fx)
   }
   // The analysts were watching. Calling the same move every week is how it stops
@@ -2702,6 +2713,7 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     tick: 0, seg: 0, awaiting: null, field: 50, motmId: null, talkUsed: false, subsUsed: 0,
     preTalk: null, decision: null, momo: 0, grudge: grudge?.reason ?? null,
     callAdapt,
+    ...(rematch ? { rematch } : {}),
   }
   ctx.kickSeed = Math.floor(rng() * 4294967296) >>> 0
   ctx.chemToday = chemToday
@@ -2718,6 +2730,14 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     // more effort in defence and at the breakdown, for this match only
     const rl = respectLayers(state, side.teamId)
     if (rl) for (const [u, m] of Object.entries(rl)) layer(side, u as keyof SideMods, m)
+    // THE REMATCH (1.8.4): the unit that lost him the last meeting, a little
+    // lifted; a remembered call is in callAdapt above. Said at kick-off, as
+    // the report and the desk said it before
+    const rm = ctx.rematch
+    if (rm) {
+      if (rm.unit && rm.layer !== 1) layer(side, rm.unit, rm.layer)
+      pushLine(state, ctx, 0, 'SUB', side, 'comm.oppRematch', { team: teamShort(state, side.teamId) })
+    }
     const shift = analystShift(state, side.teamId)
     if (!shift) continue
     for (const [u, m] of Object.entries(shift.layers)) layer(side, u as keyof SideMods, m)

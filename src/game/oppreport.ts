@@ -37,6 +37,7 @@ import type { Club, GameState, MatchPrep, Tactic, Fixture } from './model'
 import { absWeek as gameWeek } from './model'
 import { analystRead, analystSkill, readOdds, readUnit, sureBand, UNIT_PREP, type AnalystRead } from './analyst'
 import { tapeLine } from './armsrace'
+import { rematchLine, rematchOf } from './rematch'
 import { lineupFor, teamUnits } from './matchEngine'
 import { lastEvidence, rankWhy, trimRecall } from './evidence'
 import { fuzzedCa, knowledge, margin } from './scout'
@@ -351,6 +352,11 @@ function historyLines(state: GameState, last: FindingsRecord | null): ReportLine
   const out: ReportLine[] = [{
     cat: 'history', k: `oppreport.lastMet${res}`, v: { us: last.us, them: last.them }, ok: true,
   }]
+  // THE REMATCH (1.8.4, rematch.ts): what their coach has changed since,
+  // said whenever it changes the match, at any accuracy, second so it is
+  // never folded away
+  const rm = rematchOf(state, last.oppId)
+  if (rm) out.push({ cat: 'history', ...rematchLine(rm), ok: true })
   if (last.recall) {
     const theyStruggled = last.recall.pct >= 50
     out.push({
@@ -399,6 +405,10 @@ export function buildReport(state: GameState, oppId: string): OppReport {
     })
   }
   lines.push(...historyLines(state, last))
+  // (a rematch read off the evidence is said even if the findings of that
+  // meeting are gone: nothing that changes the match goes unsaid)
+  const rm = !last && club ? rematchOf(state, oppId) : null
+  if (rm) lines.push({ cat: 'history', ...rematchLine(rm), ok: true })
   return { oppId, abs: absWeek(state), test: !club, accuracy: acc, band: bandOf(acc), lines, soft, last }
 }
 

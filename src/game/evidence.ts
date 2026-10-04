@@ -323,7 +323,7 @@ export interface WhyLine {
 export const WHY_MIN = 1.5
 
 /** the move that did most for a side: tries, then calls */
-function bestMove(s: EvSide): [string, number[]] | null {
+export function bestMove(s: EvSide): [string, number[]] | null {
   const m = Object.entries(s.calls).sort((a, b) => b[1][2] - a[1][2] || b[1][0] - a[1][0])[0]
   return m && m[1][2] > 0 ? m : null
 }

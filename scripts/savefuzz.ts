@@ -3,6 +3,9 @@ import { processWeekAndAdvance } from '../src/game/season'
 import { isPlayable, migrate } from '../src/game/save'
 import { type GameState } from '../src/game/model'
 import { bad, ok, finite, checkWorld, failCount } from './worldcheck'
+import { tacticalMemory, tacticalNotes } from '../src/game/tacmemory'
+import { rematchOf } from '../src/game/rematch'
+import { buildDesk } from '../src/game/desk'
 
 /**
  * ---- THE SAVE FILE, DAMAGED ----
@@ -168,6 +171,44 @@ damaged('an evidence list of half-written records', s => {
   s2.tacLoop = { findings: [], evidence: 'lots' }
   try { g = migrate(s2 as unknown as GameState) } catch { g = null }
   ok(!!g && g.tacLoop?.evidence === undefined, 'and an evidence field that is not a list is removed')
+}
+
+// ------------------------- what the records are read for (1.8.4, phase 4)
+// Nothing new is saved: the desk's conclusions (tacmemory.ts) and the
+// rematch (rematch.ts) are read off the evidence on demand. So what matters
+// is that a record the migration lets through, odd but well formed, is read
+// without a throw: a call that is no move, numbers far out of range, a
+// record against a club that is gone, one from a season long past.
+console.log('\n--- the records, read for the desk and the rematch')
+{
+  const s = pristine()
+  const side = (big: number) => ({
+    calls: { mv_nonesuch: [9, 9, 9, 9, 9], mv_loop: [big, -big, big, big, big] }, pts: [big, 0, big, 0, 0, 0], breaks: big,
+    styleEdge: 0, blunted: 0, setWon: [0, 0], setLost: [big, 0], turnWon: [0, 0, 0], turnLost: [big, 0, 0], pens: 0, zone: [0, 0, 0],
+  })
+  const clubs = Object.keys(s.clubs as Record<string, unknown>)
+  s.tacLoop = {
+    findings: [],
+    evidence: [0, 1, 2, 3, 4, 5, 6].map(i => ({
+      fxId: 900 + i, season: i === 6 ? 1990 : 2026, week: i + 1, oppId: i === 5 ? 'gone' : clubs[(i % 3) + 1],
+      us: 1e9, them: 0, min: 80, poss: 50, side: [side(i % 2 ? 1e9 : 0), side(0)], swings: [], lead: [], late: 0,
+    })),
+  }
+  let g: GameState | null = null
+  let threw = ''
+  try {
+    g = migrate(s as unknown as GameState)
+    if (g) {
+      g.clubs[g.userClubId].tactic.moveMain = 'mv_loop'
+      tacticalNotes(g)
+      for (const id of Object.keys(g.clubs)) rematchOf(g, id)
+      rematchOf(g, 'gone')
+      buildDesk(g)
+    }
+  } catch (e) { threw = String(e).split('\n')[0].slice(0, 120) }
+  ok(!threw, `odd records are read for the desk and the rematch without a throw${threw ? `: ${threw}` : ''}`)
+  ok(!!g && (g.tacLoop?.evidence?.length ?? 0) > 0, 'and the records were let through to be read')
+  ok(!!g && tacticalMemory(g).length <= 2, 'and the desk still says two things at most')
 }
 
 // ----------------------------- the homework and the long memory (1.8.4)
