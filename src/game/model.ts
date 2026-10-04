@@ -2377,6 +2377,10 @@ export interface GameState {
   /** squad-depth standard this save has been topped up to - the one-shot
    *  migration that grew 33-man squads to 38 stamps this so it never reruns */
   squadDepth?: number
+  /** 1 once migrate has run its one-shot legacy academy-wage repair (1.8.5);
+   *  after that the rollover's repriceAcademies owns scholar wages, and a
+   *  load never moves one mid-season (save.ts) */
+  acadPriced?: number
   /** the A League: the academy sides of the user's league, with their own
    *  fixtures and table. Kept outside state.comps deliberately - see academy.ts */
   academy?: import('./academy').AcadLeague
