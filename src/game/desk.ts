@@ -52,7 +52,7 @@ import { TL } from './devproject'
 import { userWageBudget } from './grants'
 import { insolvencyRisk } from './insolvency'
 import { rankedComps, type RotIntent } from './seasonplan'
-import { recall } from './memory'
+import { formerFacing, recall } from './memory'
 import { windowOpen } from './ai'
 import { rivalCoach } from './rivalcoach'
 import { demandedFinish } from './chairman'
@@ -377,13 +377,13 @@ function threadRow(state: GameState): DeskRow | null {
   const fx = userFixtureThisWeek(state)
   const opp = fx && !assistantFixtureThisWeek(state) ? opponentIn(state, fx) : null
   if (opp && state.clubs[opp]) {
-    const gone = recall(state, { kind: ['sold', 'released', 'let-go'] })
-      .filter(e => e.playerId != null && state.players[e.playerId]?.clubId === opp)
-      .sort((a, b) => b.sal - a.sal || b.id - a.id)[0]
+    // the notable ones only (memory.ts formerFacing): a squad man of no
+    // note who left is not a thread the career is carrying
+    const gone = formerFacing(state, opp)[0]
     if (gone) {
       return {
-        id: 'thread', label: 'desk.thread', go: { screen: 'player', param: gone.playerId! },
-        lines: [{ k: 'desk.tFormer', v: { player: playerName(state, gone.playerId), club: state.clubs[opp].short } }],
+        id: 'thread', label: 'desk.thread', go: { screen: 'player', param: gone.p.id },
+        lines: [{ k: 'desk.tFormer', v: { player: gone.p.name, club: state.clubs[opp].short } }],
       }
     }
     // THE REMATCH (1.8.4, rematch.ts): they have changed their plan since

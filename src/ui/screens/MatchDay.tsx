@@ -22,6 +22,7 @@ import { PRESETS, SLIDER_INFO, sliderReadout, type SliderKey } from '../../game/
 import { ord, posName, t, localeTag, compLabel } from '../../game/i18n'
 import { subjectVar } from '../../game/gender'
 import { coachFixes, gradeHomework, gradeLine, homeworkFor, unitBattles, type FixTag } from '../../game/coachfix'
+import { formerDecided, formerFacing, formersAlso } from '../../game/memory'
 import { MatchFindings } from '../OppReport'
 import { currentPlan, planFollowed } from '../../game/oppreport'
 import { ADAPT_WORTH } from '../../game/armsrace'
@@ -885,19 +886,29 @@ function Preview({ fxId }: { fxId: number }) {
                 ) : null
               })()}
               {(() => {
+                // THE MEN YOU LET GO (1.8.5, memory.ts formerFacing): how he
+                // left and what he has done since, the boy sold before he
+                // played included; the rest by their games for you
+                const all = formerFacing(game, opp, oppLineup, Infinity)
+                const formers = all.slice(0, 2)
+                const also = formersAlso(all)
                 const theirs = oppLineup
                   .map(id => id != null ? game.players[id] : null)
-                  .filter((p): p is Player => !!p && oldBoyApps(p, game.userClubId) > 0)
+                  .filter((p): p is Player => !!p && oldBoyApps(p, game.userClubId) > 0 && !all.some(f => f.p.id === p.id))
                   .sort((a, b) => oldBoyApps(b, game.userClubId) - oldBoyApps(a, game.userClubId))
                 const ours = tac.lineup
                   .map(id => id != null ? game.players[id] : null)
                   .filter((p): p is Player => !!p && oldBoyApps(p, opp) > 0)
                   .sort((a, b) => oldBoyApps(b, opp) - oldBoyApps(a, opp))
-                if (!theirs.length && !ours.length) return null
+                if (!formers.length && !theirs.length && !ours.length) return null
                 return (
                   <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
                     <div className="fact-label">{t('matchday.oldBoys')}</div>
-                    {theirs.slice(0, 3).map(p => (
+                    {formers.map(f => (
+                      <div key={f.p.id} className="meta" data-former={f.p.id}>{t(f.k, f.v)}</div>
+                    ))}
+                    {also && <div className="meta" data-former-also>{t(also.k, also.v)}</div>}
+                    {theirs.slice(0, 3 - formers.length).map(p => (
                       <div key={p.id} className="meta">
                         <b>{p.name}</b>{t('matchday.oldBoyTheirs', { pos: p.pos, n: oldBoyApps(p, game.userClubId) })}
                       </div>
@@ -2569,6 +2580,11 @@ function MatchVerdict() {
           </span>
         </div>
       )}
+      {(() => {
+        // A MAN YOU LET GO DECIDED IT (1.8.5, memory.ts formerDecided)
+        const f = formerDecided(game, opp.teamId, mine.score, opp.score, ctx.events, ctx.motmId ?? null)
+        return f ? <div className="meta" data-former-ft={f.p} style={{ marginTop: 6 }}>{t(f.k, f.v)}</div> : null
+      })()}
       <div className="fact-label" style={{ marginTop: 8 }}>{t('matchday.coachsVerdict')}</div>
       {why.map((w, i) => (
         <div key={w.cause} className="meta" data-why={w.cause} data-why-lead={leads[i] ?? undefined}
