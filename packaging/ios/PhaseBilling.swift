@@ -162,6 +162,11 @@ public class PhaseBilling: CAPPlugin {
                 call.resolve(["outcome": "unavailable", "cause": "disabled"])
             } catch Product.PurchaseError.productUnavailable {
                 call.resolve(["outcome": "unavailable", "cause": "notOffered"])
+            } catch StoreKitError.userCancelled {
+                // StoreKit can THROW a cancel (a dismissed sign-in or
+                // authentication sheet) instead of returning .userCancelled;
+                // it is still somebody changing their mind, not a fault
+                call.resolve(["outcome": "cancelled"])
             } catch {
                 // no network, the App Store not answering: the store could
                 // not be reached, and nothing was charged
