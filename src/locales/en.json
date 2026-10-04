@@ -2243,7 +2243,7 @@
   "boardDeclinesTalk": "The board politely declines: \"Deliver our objectives first, then we'll talk.\" Meet season objectives to earn a favour.",
   "boardDeclines": "The board politely declines. Earn their confidence first.",
   "moveMoney": "Move {amount} of the balance into the transfer budget",
-  "reserveNote": "The board protects {reserve} in the bank (a season of wages plus a float); everything above it is yours to move, {step} at a time.",
+  "reserveNote": "The wage float is {reserve}: a season of wages plus a buffer. Money moves {step} at a time.",
   "commercialDept": "The Commercial Department",
   "commercialSub": "{amount} a week from {n} of 4 slots",
   "dealLive": "{sponsor} · {weekly}/wk · to the end of {year}",

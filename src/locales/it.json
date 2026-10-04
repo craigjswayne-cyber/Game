@@ -2272,7 +2272,7 @@
   "boardDeclinesTalk": "Il consiglio declina con garbo: «Prima i nostri obiettivi, poi ne riparliamo.» Centra gli obiettivi stagionali per guadagnarti un favore.",
   "boardDeclines": "Il consiglio declina con garbo. Prima guadagnati la loro fiducia.",
   "moveMoney": "Sposta {amount} dal saldo al budget mercato",
-  "reserveNote": "Il consiglio protegge {reserve} in banca (una stagione di ingaggi più una scorta); tutto ciò che sta sopra è tuo da spostare, {step} alla volta.",
+  "reserveNote": "La scorta ingaggi è di {reserve}: una stagione di ingaggi più un margine. Il denaro si sposta {step} alla volta.",
   "commercialDept": "L'ufficio commerciale",
   "commercialSub": "{amount} a settimana da {n} slot su 4",
   "dealLive": "{sponsor} · {weekly}/sett. · fino a fine {year}",
