@@ -3567,7 +3567,11 @@
   "anRival": "{club}とのライバル関係が誕生。",
   "anFinish": "{comp}で{pos_o}。",
   "anArrived": "{club}の指揮を執る。",
-  "anReturned": "{club}に復帰。"
+  "anReturned": "{club}に復帰。",
+  "anTurnWon": "{comp}{stage_k}：{min}分に逆転してリードを守り、{us}-{them}で勝利。",
+  "anTurnLost": "{comp}{stage_k}：{min}分までリードしながら、{us}-{them}で敗戦。",
+  "stageFinal": "決勝",
+  "stagePlayoff": "入れ替え戦"
  },
  "legacy": {
   "lgDirectorOf": "{club}のディレクター・オブ・ラグビー",
@@ -8424,12 +8428,16 @@
   "erasTitle": "時代",
   "erasSub": "職を去るとき、そして5シーズンごとに語られる",
   "eraSoFar": "進行中",
-  "eraRecord": "成績",
-  "eraTrophies": "タイトル",
+  "builtSeasons": {"one": "{n}シーズン", "other": "{n}シーズン"},
+  "builtCups": {"one": "タイトル{n}個", "other": "タイトル{n}個"},
+  "builtUp": {"one": "昇格{n}回", "other": "昇格{n}回"},
+  "builtDown": {"one": "降格{n}回", "other": "降格{n}回"},
+  "builtGrads": {"one": "アカデミー出身デビュー{n}人", "other": "アカデミー出身デビュー{n}人"},
+  "builtCapped": {"one": "代表{n}人", "other": "代表{n}人"},
+  "builtFee": "最高額補強：{fee}（{player}）",
   "eraIntl": "アカデミー出身の代表選手",
   "eraPlayer": "最高の選手",
   "eraRival": "ライバル",
-  "eraIdentity": "クラブがなったもの",
   "eraEndSubj": "{cn}：ある時代の物語",
   "eraEnd": "{story_k}{w}勝{d}分{l}敗、タイトル{cups}、{from}から{to}まで。時代の全体は「監督の足跡」に残る。",
   "eraFiveSubj": "{cn}：ここまでの物語",
@@ -8687,5 +8695,37 @@
   "verdict_good": "響いた。ほとんどの選手が準備万端に見える。",
   "verdict_mixed": "響いた者もいれば、そうでない者もいる。",
   "verdict_bad": "空回りだ。そんな言葉を聞く雰囲気ではなかった。"
+ },
+ "story": {
+  "grad": {"one": "{season}に{club}のアカデミーから昇格。以来{n}試合出場。", "other": "{season}に{club}のアカデミーから昇格。以来{n}試合出場。"},
+  "gradNew": "{season}に{club}のアカデミーから昇格。",
+  "gradTest": "{season}に{club}のアカデミーから昇格し、代表選手に。",
+  "record": {"one": "{season}に{fee}で獲得した、あなたの最高額補強。以来{n}試合出場。", "other": "{season}に{fee}で獲得した、あなたの最高額補強。以来{n}試合出場。"},
+  "recordGone": "{season}に{fee}で獲得した、あなたの最高額補強。",
+  "captain": {"one": "キャプテン。{club}で{n}試合出場。", "other": "キャプテン。{club}で{n}試合出場。"},
+  "legend": {"one": "{season}から{club}のレジェンド。クラブで{n}試合出場。", "other": "{season}から{club}のレジェンド。クラブで{n}試合出場。"},
+  "legendOld": {"one": "{club}のレジェンド。クラブで{n}試合出場。", "other": "{club}のレジェンド。クラブで{n}試合出場。"},
+  "sold": {"one": "{season}に{fee}で{buyer}へ売却。{club}では{n}試合出場。", "other": "{season}に{fee}で{buyer}へ売却。{club}では{n}試合出場。"},
+  "released": {"one": "{season}に{club}から放出。在籍中{n}試合出場。", "other": "{season}に{club}から放出。在籍中{n}試合出場。"},
+  "letGo": {"one": "{season}に{club}を退団。在籍中{n}試合出場。", "other": "{season}に{club}を退団。在籍中{n}試合出場。"},
+  "promiseKept": "{season}に{what_k}を約束し、約束を守った。",
+  "promiseBroken": "{season}に{what_k}を約束し、約束を破った。",
+  "what": {
+   "plans": "構想内の居場所",
+   "minutes": "より多くの出場時間",
+   "deal": "新契約",
+   "role": "先発の座"
+  },
+  "reqRefused": "{season}に移籍を志願し、あなたは却下した。",
+  "reqGranted": "{season}に移籍を志願し、あなたは受け入れた。",
+  "oldBoy": {"one": "移籍前に{club}で{n}試合出場。", "other": "移籍前に{club}で{n}試合出場。"},
+  "service": {"one": "{club}で{n}試合出場。", "other": "{club}で{n}試合出場。"}
+ },
+ "tp": {
+  "era": "転機",
+  "season": "このシーズンの転機",
+  "run": {"one": "{n}試合連続無敗。キャリア最長記録。", "other": "{n}試合連続無敗。キャリア最長記録。"},
+  "low": "{opp}に{us}-{them}で敗戦。この時代で最悪の敗戦。翌シーズンは上向いた。",
+  "signing": "{player}を{fee}で獲得。この時代の最高額。"
  }
 }

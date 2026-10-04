@@ -3727,7 +3727,11 @@
   "anRival": "Nació una rivalidad con {club}.",
   "anFinish": "{pos_o} en {comp}.",
   "anArrived": "Tomaste las riendas de {club}.",
-  "anReturned": "Volviste a {club}."
+  "anReturned": "Volviste a {club}.",
+  "anTurnWon": "{stage_k} de {comp}: por delante para siempre desde el minuto {min}, victoria {us}-{them}.",
+  "anTurnLost": "{stage_k} de {comp}: por delante hasta el minuto {min}, derrota {us}-{them}.",
+  "stageFinal": "Final",
+  "stagePlayoff": "Promoción"
  },
  "legacy": {
   "lgDirectorOf": "Director de rugby, {club}",
@@ -8740,12 +8744,16 @@
   "erasTitle": "Épocas",
   "erasSub": "Al dejar un cargo, y cada cinco temporadas",
   "eraSoFar": "en curso",
-  "eraRecord": "Balance",
-  "eraTrophies": "Títulos",
+  "builtSeasons": {"one": "{n} temporada", "other": "{n} temporadas"},
+  "builtCups": {"one": "{n} título", "other": "{n} títulos"},
+  "builtUp": {"one": "{n} ascenso", "other": "{n} ascensos"},
+  "builtDown": {"one": "{n} descenso", "other": "{n} descensos"},
+  "builtGrads": {"one": "{n} debut de la cantera", "other": "{n} debuts de la cantera"},
+  "builtCapped": {"one": "{n} internacional", "other": "{n} internacionales"},
+  "builtFee": "Mayor desembolso: {fee} ({player})",
   "eraIntl": "Internacionales de la cantera",
   "eraPlayer": "Mejor jugador",
   "eraRival": "Rival",
-  "eraIdentity": "En qué se convirtió el club",
   "eraEndSubj": "{cn}: la historia de una época",
   "eraEnd": "{story_k} Ganados {w}, empatados {d}, perdidos {l}, títulos {cups}, de {from} a {to}. Toda la época queda en Legado del entrenador.",
   "eraFiveSubj": "{cn}: la historia hasta ahora",
@@ -9034,5 +9042,44 @@
   "verdict_mixed": "Cala en unos y en otros no.",
   "verdict_mixed_f": "Cala en unas y en otras no.",
   "verdict_bad": "No cala: el vestuario no estaba para eso."
+ },
+ "story": {
+  "grad": {"one": "Salido de tu cantera en {club} en {season}: {n} partido desde entonces.", "other": "Salido de tu cantera en {club} en {season}: {n} partidos desde entonces."},
+  "grad_f": {"one": "Salida de tu cantera en {club} en {season}: {n} partido desde entonces.", "other": "Salida de tu cantera en {club} en {season}: {n} partidos desde entonces."},
+  "gradNew": "Salido de tu cantera en {club} en {season}.",
+  "gradNew_f": "Salida de tu cantera en {club} en {season}.",
+  "gradTest": "Salido de tu cantera en {club} en {season}, y después internacional.",
+  "gradTest_f": "Salida de tu cantera en {club} en {season}, y después internacional.",
+  "record": {"one": "Tu fichaje récord, {fee} en {season}: {n} partido desde entonces.", "other": "Tu fichaje récord, {fee} en {season}: {n} partidos desde entonces."},
+  "recordGone": "Tu fichaje récord, {fee} en {season}.",
+  "captain": {"one": "Tu capitán: {n} partido con {club}.", "other": "Tu capitán: {n} partidos con {club}."},
+  "captain_f": {"one": "Tu capitana: {n} partido con {club}.", "other": "Tu capitana: {n} partidos con {club}."},
+  "legend": {"one": "Leyenda de {club} desde {season}: {n} partido con el club.", "other": "Leyenda de {club} desde {season}: {n} partidos con el club."},
+  "legendOld": {"one": "Leyenda de {club}: {n} partido con el club.", "other": "Leyenda de {club}: {n} partidos con el club."},
+  "sold": {"one": "Vendido a {buyer} por {fee} en {season}, tras {n} partido con {club}.", "other": "Vendido a {buyer} por {fee} en {season}, tras {n} partidos con {club}."},
+  "sold_f": {"one": "Vendida a {buyer} por {fee} en {season}, tras {n} partido con {club}.", "other": "Vendida a {buyer} por {fee} en {season}, tras {n} partidos con {club}."},
+  "released": {"one": "Liberado por {club} en {season}, tras {n} partido.", "other": "Liberado por {club} en {season}, tras {n} partidos."},
+  "released_f": {"one": "Liberada por {club} en {season}, tras {n} partido.", "other": "Liberada por {club} en {season}, tras {n} partidos."},
+  "letGo": {"one": "{club} lo dejó marchar en {season}, tras {n} partido.", "other": "{club} lo dejó marchar en {season}, tras {n} partidos."},
+  "letGo_f": {"one": "{club} la dejó marchar en {season}, tras {n} partido.", "other": "{club} la dejó marchar en {season}, tras {n} partidos."},
+  "promiseKept": "Prometiste {what_k} en {season}, y cumpliste tu palabra.",
+  "promiseBroken": "Prometiste {what_k} en {season}, y faltaste a tu palabra.",
+  "what": {
+   "plans": "un sitio en tus planes",
+   "minutes": "más minutos",
+   "deal": "un contrato nuevo",
+   "role": "un puesto de titular"
+  },
+  "reqRefused": "Pidió salir en {season}, y dijiste que no.",
+  "reqGranted": "Pidió salir en {season}, y aceptaste.",
+  "oldBoy": {"one": "{n} partido con {club} antes de marcharse.", "other": "{n} partidos con {club} antes de marcharse."},
+  "service": {"one": "{n} partido con {club}.", "other": "{n} partidos con {club}."}
+ },
+ "tp": {
+  "era": "Momentos clave",
+  "season": "El momento clave",
+  "run": {"one": "{n} partido seguido sin perder, la mejor racha de tu carrera.", "other": "{n} partidos seguidos sin perder, la mejor racha de tu carrera."},
+  "low": "Derrota {us}-{them} ante {opp}, la peor de la era. La temporada siguiente fue mejor.",
+  "signing": "Fichaje de {player} por {fee}, el mayor desembolso de la era."
  }
 }

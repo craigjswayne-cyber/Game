@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
-import { CHEM_SLOTS, careerRows, chemKey, chemTier, fmtMoney, grudgeReason, POS_ORDER } from '../../game/model'
+import { CHEM_SLOTS, careerRows, chemKey, chemTier, fmtMoney, grudgeReason, POS_ORDER, seasonLabel } from '../../game/model'
 import { Crest, FormPill, Jersey, Nat, PosBadge, SectionTitle, Stars } from '../components'
 import { nationName } from '../../game/nations'
 import { squadValue, starPlayerIds } from '../../game/analysis'
@@ -17,6 +17,8 @@ import { archetypeOf } from '../../game/oppcoach'
 import { reportAccuracy } from '../../game/oppreport'
 import { formTrend } from '../../game/formtraits'
 import { Glyph, FanFace } from '../glyphs'
+import { buildEra } from '../../game/erastory'
+import { EraCard } from '../EraCard'
 
 export default function ClubScreen({ clubId }: { clubId: string }) {
   const game = useStore(s => s.game)!
@@ -103,13 +105,13 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           const honours = game.history.filter(h => h.champion === club.id)
           if (!honours.length) return null
           const byComp: Record<string, number[]> = {}
-          for (const h of honours) (byComp[h.compId] ??= []).push(2025 + h.season)
+          for (const h of honours) (byComp[h.compId] ??= []).push(h.season)
           return (
             <div style={{ marginTop: 8 }}>
               <div className="fact-label">{t('club.honoursBoard')}</div>
               {Object.entries(byComp).map(([compId, years]) => (
                 <div key={compId} className="meta">
-                  {compLabel(game.comps[compId]?.name) ?? compId} × {years.length} <span className="muted">({years.map(y => `${y}-${String((y + 1) % 100).padStart(2, '0')}`).join(', ')})</span>
+                  {compLabel(game.comps[compId]?.name) ?? compId} × {years.length} <span className="muted">({years.map(seasonLabel).join(', ')})</span>
                 </div>
               ))}
             </div>
@@ -151,7 +153,9 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           currently"). This card always has something true to say, and it names
           what will fill the rest of the page in. */}
       {ctab === 'story' && (() => {
-        const rec = club.id === game.userClubId ? game.mgr : null
+        // the career's record, unless the era card below gives this job's own
+        // (two records for one club on one page would disagree)
+        const rec = club.id === game.userClubId && !(game.arc?.cur?.c === club.id && game.arc.cur.m > 0) ? game.mgr : null
         const seasons = game.history.filter(h => h.champion === club.id).length
         const capped = players.filter(p => (p.caps ?? 0) > 0).length
         return (
@@ -184,6 +188,12 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
             </div>
           </>
         )
+      })()}
+      {/* WHAT YOU HAVE BUILT HERE (1.8.4): the era in progress, as the Legacy
+          screen tells it (EraCard, turning.ts) */}
+      {ctab === 'story' && club.id === game.userClubId && !game.unemployed && game.arc?.cur?.c === club.id && (() => {
+        const e = buildEra(game, '5')
+        return e && e.m > 0 ? <EraCard e={e} live /> : null
       })()}
       {ctab === 'story' && (() => {
         // record book: retired legends + serving players with 100+ apps here
@@ -220,7 +230,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           <SectionTitle>{t('club.honoursEra')}</SectionTitle>
           <div className="chips">
             {honours.map((h, i) => (
-              <span key={i} className="chip"><Glyph name="trophy" /> {compLabel(game.comps[h.compId]?.name) ?? h.compId} {2025 + h.season}-{String((2026 + h.season) % 100).padStart(2, '0')}</span>
+              <span key={i} className="chip"><Glyph name="trophy" /> {compLabel(game.comps[h.compId]?.name) ?? h.compId} {seasonLabel(h.season)}</span>
             ))}
           </div>
         </>
@@ -381,7 +391,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
               {gate && (
                 <div className="meta" style={{ padding: '3px 0' }}>
                   {t('club.recordGate')} <b>{gate.att.toLocaleString(localeTag())}</b>{t('club.vsClub', { club: game.clubs[gate.oppId]?.short ?? gate.oppId })}
-                  {' '}<span className="muted">({2025 + gate.season}-{String((gate.season + 26) % 100).padStart(2, '0')})</span>
+                  {' '}<span className="muted">({seasonLabel(gate.season)})</span>
                 </div>
               )}
               {tots && (
@@ -473,7 +483,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
                 const opp = g.a === club.id ? g.b : g.a
                 return (
                   <div key={`f${i}`} className="meta" style={{ padding: '3px 0' }}>
-                    <Glyph name="derby" /> <b>{game.clubs[opp]?.short ?? opp}</b> - {grudgeReason(g)} <span className="muted">{t('club.feudRuns', { years: `${2025 + g.until}-${String((g.until + 26) % 100).padStart(2, '0')}` })}</span>
+                    <Glyph name="derby" /> <b>{game.clubs[opp]?.short ?? opp}</b> - {grudgeReason(g)} <span className="muted">{t('club.feudRuns', { years: seasonLabel(g.until) })}</span>
                   </div>
                 )
               })}
