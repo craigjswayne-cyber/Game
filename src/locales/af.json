@@ -8862,6 +8862,8 @@
   "offerCite": "Hoekom {short} jou wil hê, in hul eie woorde: {cite_k}",
   "offerHeard": "Wat hulle gehoor het: {cite_k}",
   "jobFit": "Waarvoor jy bekend is, is presies wat hierdie pos soek.",
+  "jobFitAttack": "Hulle sukkel om punte aan te teken, en jy is bekend vir spanne wat dit doen.",
+  "jobFitDefence": "Hulle lek punte, en jy is bekend vir spanne wat moeilik is om deur te breek.",
   "trend": {
    "new": "Jy bou 'n naam op vir {trait_k}.",
    "rise": "Jou naam word al hoe meer met {trait_k} verbind.",

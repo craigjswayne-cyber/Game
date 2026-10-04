@@ -8818,6 +8818,8 @@
   "offerCite": "Why {short} want you, in their words: {cite_k}",
   "offerHeard": "What they have heard: {cite_k}",
   "jobFit": "What you are known for is what this job wants.",
+  "jobFitAttack": "They have struggled for points, and you are known for sides that score them.",
+  "jobFitDefence": "They have been leaking points, and you are known for sides that are hard to break down.",
   "trend": {
    "new": "You are developing a reputation for {trait_k}.",
    "rise": "Your name is increasingly tied to {trait_k}.",

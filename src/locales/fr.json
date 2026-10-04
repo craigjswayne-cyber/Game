@@ -8925,6 +8925,8 @@
     "offerCite": "Pourquoi {short} vous veut, selon ses dirigeants : {cite_k}",
     "offerHeard": "Ce qu'ils ont entendu : {cite_k}",
     "jobFit": "Ce qui fait votre réputation est ce que ce poste demande.",
+    "jobFitAttack": "Ils peinent à marquer, et votre réputation tient à des équipes qui marquent beaucoup.",
+    "jobFitDefence": "Ils encaissent trop, et votre réputation tient à des équipes difficiles à percer.",
     "trend": {
       "new": "Une réputation se dessine : {trait_k}.",
       "rise": "Une réputation qui se renforce : {trait_k}.",

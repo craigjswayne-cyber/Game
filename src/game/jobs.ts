@@ -132,19 +132,66 @@ export function jobChance(state: GameState, clubId: string): number {
  * club whose job is that trait's job listens a little harder: an academy club
  * to a youth developer, a club in trouble to a man who has turned one round,
  * a newcomer's money to a man known for spending it. Six points of chance,
- * no more, and the vacancy card says so. Traits with no job of their own
- * (attack, defence, the hard man) fit nothing here.
+ * no more, and the vacancy card says so.
+ *
+ * AND WHAT THE CLUB IS SHORT OF (1.8.5). Only youth, turnaround and spender
+ * had a job, and a career rarely earns them: three careers of four seasons
+ * the assistant ran earned "attack" and nothing else, so not one vacancy in
+ * 146 fitted (and QA's thirty applications saw none). The traits a career
+ * actually earns are its results, so a board short of what he is known for
+ * listens too: a side scoring a sixth under its league's rate to a manager
+ * known for points, one conceding a sixth over it to a manager known for
+ * defence (four league matches in, so a fortnight's form is not a need).
+ * The rest have a kind of job each: a giant, fallen or not, wants new
+ * ideas, a club in trouble a hard hand, an academy a man the players
+ * trust, a minnow its own kids, and a giant's money a man who spends it. scripts/jobfitprobe.ts holds the rate: a manager
+ * known for something fits some vacancies, never most of them.
  */
 export const JOB_FIT = 0.06
-const FITS: Partial<Record<Trait, JobProfile>> = {
-  youth: 'academy', youthBacks: 'academy', youthPack: 'academy', youthIntl: 'academy',
-  turnaround: 'troubled', spender: 'newcomer',
+const FITS: Partial<Record<Trait, JobProfile[]>> = {
+  youth: ['academy', 'minnow'], youthBacks: ['academy', 'minnow'], youthPack: ['academy', 'minnow'], youthIntl: ['academy', 'minnow'],
+  turnaround: ['troubled', 'fallen'], spender: ['newcomer', 'giant'],
+  innovator: ['fallen', 'giant'], hard: ['troubled'], players: ['academy'],
+}
+/** a sixth either way of the league's rate is a need */
+export const NEED = 1 / 6
+/** league matches before a club's scoring is read as a need */
+const NEED_FROM = 4
+
+/** What a club's league form says it is short of: points, or a defence (the
+ *  further off the league's rate, when both). */
+export function clubNeed(state: GameState, clubId: string): 'attack' | 'defence' | null {
+  const club = state.clubs[clubId]
+  const table = club ? state.comps[club.leagueId]?.table : undefined
+  if (!table) return null
+  const row = table.find(r => r.teamId === clubId)
+  const p = table.reduce((s, r) => s + r.p, 0)
+  if (!row || row.p < NEED_FROM || !p) return null
+  const lg = table.reduce((s, r) => s + r.pf, 0) / p
+  if (!lg) return null
+  const short = 1 - (row.pf / row.p) / lg, leak = (row.pa / row.p) / lg - 1
+  if (short >= NEED && short >= leak) return 'attack'
+  if (leak >= NEED) return 'defence'
+  return null
+}
+
+/** Whether a trait fits this club's job: its kind, or what it is short of. */
+export function traitFits(state: GameState, clubId: string, trait: Trait): boolean {
+  if (FITS[trait]?.includes(jobProfile(state, clubId))) return true
+  return (trait === 'attack' || trait === 'defence') && clubNeed(state, clubId) === trait
+}
+
+/** The vacancy card's line for a fit: what the club is short of, when that
+ *  is the reason, else the kind of job. */
+export function jobFitLine(state: GameState, clubId: string, trait: Trait): string {
+  if (FITS[trait]?.includes(jobProfile(state, clubId))) return 'arc.jobFit'
+  return trait === 'attack' ? 'arc.jobFitAttack' : trait === 'defence' ? 'arc.jobFitDefence' : 'arc.jobFit'
 }
 
 /** The manager's top trait, when it is what this club's job wants. */
 export function jobFit(state: GameState, clubId: string): Trait | null {
   const top = mgrTraits(state)[0]
-  return top && FITS[top.id] && FITS[top.id] === jobProfile(state, clubId) ? top.id : null
+  return top && traitFits(state, clubId, top.id) ? top.id : null
 }
 
 /** Keep a rolling set of 2-4 vacancies, biased towards struggling clubs. */

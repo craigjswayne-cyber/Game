@@ -8712,6 +8712,8 @@
   "offerCite": "Por qué {short} te quiere, en sus palabras: {cite_k}",
   "offerHeard": "Lo que han oído: {cite_k}",
   "jobFit": "Aquello por lo que se te conoce es justo lo que pide este puesto.",
+  "jobFitAttack": "Les cuesta sumar puntos, y se te conoce por equipos que los anotan.",
+  "jobFitDefence": "Encajan demasiados puntos, y se te conoce por equipos difíciles de superar.",
   "trend": {
    "new": "Empiezas a tener fama por {trait_k}.",
    "rise": "Tu nombre se asocia cada vez más con {trait_k}.",
