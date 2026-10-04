@@ -8763,6 +8763,8 @@
   "offerCite": "Perché {short} ti vuole, con parole sue: {cite_k}",
   "offerHeard": "Cosa hanno sentito dire: {cite_k}",
   "jobFit": "La tua reputazione è proprio ciò che cerca questo posto.",
+  "jobFitAttack": "Fanno fatica a segnare, e la tua reputazione è fatta di squadre che segnano tanto.",
+  "jobFitDefence": "Subiscono troppi punti, e la tua reputazione è fatta di squadre difficili da superare.",
   "trend": {
    "new": "Ti stai facendo un nome per {trait_k}.",
    "rise": "Il tuo nome evoca sempre più {trait_k}.",
