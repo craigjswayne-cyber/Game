@@ -297,6 +297,17 @@ damaged('a playbook with no wear at all', s => {
   me.playbook = { drilled: {}, used: 'none' }
   ;(me.tactic as Record<string, unknown>).moveMain = 'mv_loop'
 })
+// the era book's 1.8.4 facts (academy debuts, the seasons of the biggest fee
+// and the worst defeat) are optional, and the era card and turning points
+// read them every time the Legacy screen opens (turning.ts)
+damaged('eras whose 1.8.4 facts are rubbish', s => {
+  const era = (x: Record<string, unknown>) => ({ c: s.userClubId, cn: 'X', f: 0, t: 1, m: 3, w: 1, d: 1, l: 1, tr: [], intl: 0, sk: 'arc.storyShort', sv: {}, why: '5', ...x })
+  s.arc = { eras: [
+    era({ gr: 'many', rs: { n: 'A', fee: 5, s: 'x' }, wd: { o: 'bath', us: 3, them: 40, s: null } }),
+    era({ gr: NaN, rs: { n: 'B', fee: 7 } }),
+    era({ gr: 4, rs: { n: 'C', fee: 9, s: 0 }, wd: { o: 'bath', us: 0, them: 30, s: 1 } }),
+  ] }
+})
 damaged('a league table that disagrees with the fixtures', s => {
   const comps = s.comps as Record<string, { table?: { p: number; w: number; d: number; l: number; pts: number }[] }>
   for (const c of Object.values(comps)) {

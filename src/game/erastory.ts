@@ -134,7 +134,10 @@ export function buildEra(state: GameState, why: Era['why']): Era | null {
   const club = state.clubs[cur.c]
   const a = arcOf(state)
   const tr = state.mgr.trophies.filter(x => x.clubId === cur.c && x.season >= cur.f).map(x => x.compId)
-  const intl = cur.grads.map(id => state.players[id]).filter(p => p && (p.caps ?? 0) > 0).length
+  // the debuts kept at each year end, and this season's so far
+  const grads = [...new Set([...cur.grads, ...recall(state, { kind: 'academy-debut', clubId: cur.c, sinceSeason: Math.max(cur.f, state.season) })
+    .map(e => e.playerId).filter((id): id is number => id != null)])]
+  const intl = grads.map(id => state.players[id]).filter(p => p && (p.caps ?? 0) > 0).length
   const top = Object.values(cur.top).sort((x, y) => y.a - x.a)[0]
   const rival = rivalCoach(state)
   const labels = identityOf(state).labels
@@ -142,11 +145,11 @@ export function buildEra(state: GameState, why: Era['why']): Era | null {
   const story = storyOf(state, cur, tr)
   return {
     c: cur.c, cn: club?.name ?? cur.c, f: cur.f, t: state.season,
-    m: cur.m, w: cur.w, d: cur.d, l: cur.l, tr, intl,
-    rs: cur.rs ? { n: cur.rs.n, fee: cur.rs.fee } : undefined,
+    m: cur.m, w: cur.w, d: cur.d, l: cur.l, tr, intl, gr: grads.length,
+    rs: cur.rs ? { n: cur.rs.n, fee: cur.rs.fee, s: cur.rs.s } : undefined,
     gp: top ? { n: top.n, a: top.a } : undefined,
     gw: cur.gw ? { o: cur.gw.o, us: cur.gw.us, them: cur.gw.them } : undefined,
-    wd: cur.wd ? { o: cur.wd.o, us: cur.wd.us, them: cur.wd.them } : undefined,
+    wd: cur.wd ? { o: cur.wd.o, us: cur.wd.us, them: cur.wd.them, s: cur.wd.s } : undefined,
     rv: rival?.n, id: rep ?? undefined,
     sk: story.k, sv: story.v, why, pf: cur.prof,
   }

@@ -83,6 +83,21 @@ export function offerSigning(state: GameState, playerId: number, fee: number): v
   eraSigning(state, playerId, fee) // and this job's own book (erastory.ts)
 }
 
+/** Did the manager make him? ONLY THE ONES HE MADE (1.8.2). homegrown is set
+ *  for every club's academy graduates (rollover.ts), so a lens on it alone
+ *  counted the whole world's - "1,706 of your graduates are playing
+ *  elsewhere". A man he made graduated from a club while the manager was in
+ *  charge of it: gradClub and gradS say where and when, and the history
+ *  book's tenures say where he was. A graduate from before gradS was recorded
+ *  counts if his club is one the manager has held. Built once per read. */
+export function madeBy(state: GameState): (p: Player) => boolean {
+  const jobs = [
+    ...(state.hist?.tenures ?? []).map(x => ({ c: x.clubId, f: x.from, t: x.to ?? state.season })),
+    ...(state.unemployed ? [] : [{ c: state.userClubId, f: state.tenureStart ?? 0, t: state.season }]),
+  ]
+  return (p: Player) => !!p.gradClub && jobs.some(j => j.c === p.gradClub && (p.gradS == null || (p.gradS >= j.f && p.gradS <= j.t)))
+}
+
 /**
  * The men you made who play for somebody else now. A PURE LENS.
  *
@@ -90,17 +105,7 @@ export function offerSigning(state: GameState, playerId: number, fee: number): v
  * so this is simply everyone carrying it who has moved on and is still playing.
  */
 export function proteges(state: GameState): Player[] {
-  // ONLY THE ONES HE MADE (1.8.2). homegrown is set for every club's academy
-  // graduates (rollover.ts), so this counted the whole world's - "1,706 of your
-  // graduates are playing elsewhere". A protege graduated from a club while the
-  // manager was in charge of it: gradClub and gradS say where and when, and the
-  // history book's tenures say where he was. A graduate from before gradS was
-  // recorded counts if his club is one the manager has held.
-  const jobs = [
-    ...(state.hist?.tenures ?? []).map(x => ({ c: x.clubId, f: x.from, t: x.to ?? state.season })),
-    ...(state.unemployed ? [] : [{ c: state.userClubId, f: state.tenureStart ?? 0, t: state.season }]),
-  ]
-  const made = (p: Player) => !!p.gradClub && jobs.some(j => j.c === p.gradClub && (p.gradS == null || (p.gradS >= j.f && p.gradS <= j.t)))
+  const made = madeBy(state)
   return Object.values(state.players)
     .filter(p => p.homegrown && p.clubId && p.clubId !== state.userClubId && p.stats.apps > 0 && made(p))
     .sort((a, b) => b.ca - a.ca)

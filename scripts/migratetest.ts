@@ -130,6 +130,19 @@ if (orphans) process.exit(1)
   const after = careerRows(p).reduce((n, c) => n + c.apps, 0)
   if (p.career.length !== CAREER_ROWS || after !== apps + 7) { console.error('BUG: the summer fold lost appearances'); process.exit(1) }
 }
+// THE ERA'S 1.8.4 FACTS: an era told before them loads without them and is
+// read without them (no academy count, no seasons on the fee or the defeat);
+// a fact that cannot be read is dropped, a good one kept
+{
+  const pre = JSON.parse(JSON.stringify(m))
+  const era = { c: m.userClubId, cn: 'X', f: 0, t: 2, m: 10, w: 5, d: 1, l: 4, tr: [], intl: 1, sk: 'arc.storyShort', sv: {}, why: '5' }
+  pre.arc = { eras: [{ ...era, rs: { n: 'A', fee: 5 } }, { ...era, gr: 'x', rs: { n: 'B', fee: 5, s: 'y' }, wd: { o: 'bath', us: 0, them: 9, s: 1 } }, { ...era, gr: 3 }] }
+  const a = migrate(pre)
+  const [old, bad, good] = a.arc!.eras
+  console.log(`eras after migration: gr ${old.gr}/${bad.gr}/${good.gr}, rs.s ${old.rs?.s}/${bad.rs?.s}, wd.s ${bad.wd?.s}`)
+  if (old.gr !== undefined || old.rs?.s !== undefined) { console.error('BUG: an older era had 1.8.4 facts invented'); process.exit(1) }
+  if (bad.gr !== undefined || bad.rs?.s !== undefined || bad.wd?.s !== 1 || good.gr !== 3) { console.error('BUG: an era fact was not healed or not kept'); process.exit(1) }
+}
 // a 1.8.2 playbook's wear (whole counts that only the summer cleared) carries
 // on under 1.8.3's, which fades a call left out (armsrace.ts THE WEAR)
 const pb = playbookOf(m.clubs[m.userClubId])

@@ -44,6 +44,7 @@ import { EV_CAUSES, evOf, matchStats, type EvCause, type LiveCtx, type SideCtx }
 import { sayKey } from './moves'
 import { atkSay, defSay } from './styles'
 import type { HalfSide } from './conditions'
+import { noteDecider } from './turning'
 
 // ---------------------------------------------------------------- shared reads
 
@@ -242,6 +243,7 @@ export function fileEvidence(state: GameState, ctx: LiveCtx): CausalEvidence | n
   const list = loop.evidence ?? []
   if (list.some(e => e.fxId === ev.fxId && e.season === ev.season)) return ev
   loop.evidence = trimRecall([...list, ev])
+  noteDecider(state, ctx.fx, ev) // a final that turned goes into the annals (turning.ts)
   return ev
 }
 
