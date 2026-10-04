@@ -8836,6 +8836,33 @@
   "offerCiteSubj": "Hoekom {short} jou wil hê",
   "offerCite": "Hoekom {short} jou wil hê, in hul eie woorde: {cite_k}",
   "offerHeard": "Wat hulle gehoor het: {cite_k}",
+  "jobFit": "Waarvoor jy bekend is, is presies wat hierdie pos soek.",
+  "trend": {
+   "new": "Jy bou 'n naam op vir {trait_k}.",
+   "rise": "Jou naam word al hoe meer met {trait_k} verbind.",
+   "fade": "Daar word deesdae minder gepraat oor {trait_k}."
+  },
+  "trait": {
+   "youth": "jeugontwikkeling",
+   "innovator": "nuwe idees oor rugby",
+   "spender": "groot besteding",
+   "hard": "dissipline",
+   "players": "mensbestuur",
+   "turnaround": "klubs wat omgedraai word",
+   "defence": "verdedigende rugby",
+   "attack": "aanvallende rugby"
+  },
+  "meth": {
+   "broke": "Jou metodes: beloftes aan die spelers is gebreek, en die raad het daarvan gehoor.",
+   "kept": "Jou metodes: beloftes aan die spelers is nagekom. Die raad het dit opgemerk.",
+   "debt": "Jou metodes: die skuld het onder jou toesig gegroei.",
+   "prudent": "Jou metodes: die besteding het binne die klub se vermoë gebly.",
+   "hard": "Jou metodes: harde besluite en 'n ongelukkige kleedkamer. Die raad is onrustig.",
+   "academy": "Jou metodes: akademiespelers het hul kans gekry.",
+   "attack": "Jou metodes: die span het aangeval, en die voorsitter het dit geniet.",
+   "spent": "Jou metodes: die geld is dapper bestee.",
+   "defence": "Jou metodes: 'n span wat moeilik is om te klop."
+  },
   "profile": {
    "giant": "'n Ryk klub wat titels verwag.",
    "fallen": "'n Gevalle reus: 'n groot naam en 'n groep wat nie meer daarby pas nie.",
