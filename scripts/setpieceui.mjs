@@ -31,7 +31,7 @@ const SHOTS = process.env.SHOTS ?? '/tmp/setpieceui'
 mkdirSync(SHOTS, { recursive: true })
 const PORT = 4323
 const server = await startPreview(PORT, 3000)
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
+const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
 let fails = 0
 const ok = (c, what) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
