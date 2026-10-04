@@ -31,7 +31,7 @@ const CONFIGS = [
 ].filter(c => !ONLY.length || ONLY.includes(c.id))
 
 const server = await startPreview(String(PORT), 2500)
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
+const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 412, height: 915 } })
 await page.addInitScript(() => {
   let a = 20260927

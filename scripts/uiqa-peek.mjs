@@ -13,7 +13,7 @@ const PROFILE = process.env.UIQA_PROFILE ?? '/tmp/uiqa-profile'
 const fresh = !existsSync(PROFILE) || process.argv.includes('--fresh')
 mkdirSync(out, { recursive: true })
 const server = await startPreview('4393', 2200)
-const ctx = await chromium.launchPersistentContext(PROFILE, { executablePath: '/opt/pw-browsers/chromium', viewport: { width: w, height: h } })
+const ctx = await chromium.launchPersistentContext(PROFILE, { executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium', viewport: { width: w, height: h } })
 const page = ctx.pages()[0] ?? await ctx.newPage()
 page.on('pageerror', e => console.log('pageerror', e.message))
 try {
