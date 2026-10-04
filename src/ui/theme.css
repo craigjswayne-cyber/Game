@@ -1714,6 +1714,12 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   letter-spacing: .8px; text-transform: uppercase; color: var(--text-muted);
 }
 .desk-row .dr-t { flex: 1; min-width: 0; }
+/* a small phone gave the label 76px and wrapped most one-line answers onto a
+   second line; the label gives up ten so the answer keeps its line */
+@media (max-width: 380px) {
+  .desk-row { gap: 8px; }
+  .desk-row .dr-l { flex-basis: 68px; letter-spacing: .4px; }
+}
 .desk-row.alert .dr-l { color: var(--text-negative); }
 .desk-row[data-row="thread"] .dr-l { color: var(--gold); }
 .hub-widget label {
@@ -2225,9 +2231,10 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 /* a small phone cut "Northampton" to "Northa..." beside a 34px score: the
    score gives up a few pixels so the names are whole (1.8.4 Phase 7) */
 @media (max-width: 380px) {
-  .score-card .sc-score { font-size: 28px; }
+  .score-card .sc-teams { gap: 6px; }
+  .score-card .sc-score { font-size: 26px; }
   .score-card .sc-score i { margin: 0 4px; }
-  .score-card .sc-team { letter-spacing: 0; }
+  .score-card .sc-team { letter-spacing: 0; font-size: 12px; }
 }
 .score-card .sc-lists { display: flex; gap: 12px; margin-top: 8px; }
 .score-card .sc-story { margin-top: 10px; text-align: center; }
