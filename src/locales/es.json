@@ -1105,7 +1105,12 @@
   "spEven": "Las fases estáticas fueron parejas. Nadie sacó una plataforma de ellas.",
   "playerBoth": "El mejor: {best} ({r}). Un día para olvidar de {worst} ({r2}).",
   "playerBest": "El mejor: {best} ({r}).",
-  "planDropped": "El plan ({plan}) se activó pero no se mantuvo, así que no se puede juzgar.",
+  "planDropped": "El plan ({plan}) se cambió antes de tener una parte para funcionar, así que no se puede juzgar.",
+  "planHalf_hit": "El plan ({plan}) dio en el blanco en la primera parte: {us}-{them} al descanso. {chg} La segunda parte fue {us2}-{them2}.",
+  "planHalf_miss": "El plan ({plan}) no había dado en el blanco al descanso: {us}-{them}. {chg} La segunda parte fue {us2}-{them2}.",
+  "chgPreset": "Cambiaste a «{preset}» en el descanso.",
+  "chgBreak": "Cambiaste los ajustes en el descanso.",
+  "chgSecond": "Cambiaste los ajustes en la segunda parte.",
   "plan_worked": "El plan ({plan}) funcionó: se logró el objetivo y también el resultado.",
   "plan_partly": "El plan ({plan}) funcionó a medias: el objetivo o el resultado, no ambos.",
   "plan_failed": "El plan ({plan}) no salió.",
@@ -1667,6 +1672,8 @@
    "other": "Su jugada, {move_k}, nos costó {n} ensayos."
   },
   "whyRead": "Nos leyeron {move_k}: {m} m en {n} jugadas, frente a {m0} m sin esa lectura.",
+  "whyReadHeld": "Esperaban {move_k}, y aun así ganó {m} m en {n} jugadas.",
+  "whyReadNil": "Esperaban {move_k}, pero no fue su lectura lo que la frenó: {n} jugadas, ni un metro ganado.",
   "whySetFor": "Perdieron {n} melés y touches con su introducción; nosotros, {m}.",
   "whySetAgainst": "Perdimos {n} melés y touches con nuestra introducción; ellos, {m}.",
   "whyPenFor": {
@@ -1737,7 +1744,9 @@
   "fuLever_right": "Moviste {dial_k} en la buena dirección en el descanso.",
   "fuLever_wrong": "{dial_k} fue en la dirección contraria en el descanso.",
   "fuLever_none": "{dial_k} se quedó donde estaba.",
-  "fuNow": "El mayor problema hoy: {what_k}."
+  "fuNow": "El mayor problema hoy: {what_k}.",
+  "planAside": "Esto deja de lado el plan ({plan}): se juzgará por la primera parte.",
+  "planAsideEarly": "Esto deja de lado el plan ({plan}) antes de que haya tenido una parte, así que no se podrá juzgar."
  },
  "tacticsScreen": {
   "tabRoles": "Roles",
@@ -4266,7 +4275,7 @@
   "discYcWho": "Expulsión temporal de {player}: diez minutos con uno menos.",
   "fixAdmin": "mantener un solo plan",
   "fixAttack": "convertir la posesión en puntos",
-  "fixDiscipline": "la disciplina",
+  "fixDiscipline": "mantener a los quince en el campo",
   "fixFitness": "el uso del banquillo",
   "fixKicking": "la patada a palos",
   "fixSetpiece": "las fases estáticas",
@@ -4278,6 +4287,7 @@
   "gradeOneDone": "Desde la última vez, {fixed} está en orden. Sigue haciendo lo que fuera aquello.",
   "gradeOneMissed": "La última vez preguntamos por {missed}, y aquí está otra vez.",
   "howBreakdown": "Un flanker de rapiña en Selección, o sube la Dureza. El balón disputado lo ganan los cuerpos que llegan, no el dibujo.",
+  "howBreakdownSel": "Un flanker de rapiña en Selección. El balón disputado lo ganan los cuerpos que llegan, no el dibujo, y la Dureza ya nos cuesta penales.",
   "howLineout": "Mete en Selección un segundo saltador de verdad entre la segunda y la tercera línea, y cambia el código de la touch en Fases Estáticas para que dejen de leerla.",
   "howScrum": "Elige una primera línea más pesada en Selección, o dale a un pilar el rol de meleador en la pestaña de Roles. Un dial no levanta a un cinco de delante ligero.",
   "kickOrderHead": "Sin orden de pateadores designado.",
@@ -4322,6 +4332,7 @@
   "terrHead": "Solo tuvimos el {poss}% del balón.",
   "terrHowElse": "Baja el Ritmo para que las fases duren, y pon la salida en contraataque en Fases Estáticas en vez de regalarle el balón al pie a su zaguero.",
   "terrHowKick": "El Juego al Pie está en {n}, así que devolvemos el balón a propósito. Bájalo y mantén el balón en la mano.",
+  "terrHowTrade": "El Juego al Pie en {n} nos sacó de nuestra 22 y les dio el balón. Déjalo ahí y baja el Ritmo para que nuestras fases duren.",
   "unitBreakdownLower": "ruck",
   "unitLineoutLower": "touch",
   "unitScrumLower": "melé",

@@ -13,7 +13,7 @@ import { BriefIcon } from '../tacticsArt'
 import { assistantFixtureThisWeek, isKnockoutTie, userMatchThisWeek } from '../../game/season'
 import { halfTimeHints, matchConditions, surfKey, surfaceNote, surfaceOf, wxEffectKey } from '../../game/conditions'
 import {
-  LEVERS, buildEvidence, halfFollow, halfSides, htEvidence, leverMoved, matchFollow, prevEvidence, rankWhy, whyLeads,
+  LEVERS, buildEvidence, readTold, toldCalls, halfFollow, halfSides, htEvidence, leverMoved, matchFollow, prevEvidence, rankWhy, whyLeads,
   type Follow, type WhyCause,
 } from '../../game/evidence'
 import { effAt } from '../../game/attributes'
@@ -21,8 +21,10 @@ import { fuzzedCa } from '../../game/scout'
 import { PRESETS, SLIDER_INFO, sliderReadout, type SliderKey } from '../../game/tactics'
 import { ord, posName, t, localeTag, compLabel } from '../../game/i18n'
 import { subjectVar } from '../../game/gender'
-import { coachFixes, gradeFixes, gradeLine, unitBattles, type FixTag } from '../../game/coachfix'
+import { coachFixes, gradeHomework, gradeLine, unitBattles, type FixTag } from '../../game/coachfix'
 import { MatchFindings } from '../OppReport'
+import { currentPlan, planFollowed } from '../../game/oppreport'
+import { ADAPT_WORTH } from '../../game/armsrace'
 import { CrestT, Jersey, PosBadge, SectionTitle, Stars, RewardedButton, Toggle, availabilityTag } from '../components'
 import { stageName } from './Home'
 import { matchSfx, soundOn, toggleSound } from '../audio'
@@ -2500,6 +2502,9 @@ function MatchVerdict() {
   const why = ev ? rankWhy(ev, 3) : []
   // framed for the manager (1.8.4): which way each pulled, not a proof
   const leads = ev ? whyLeads(ev, why) : []
+  // the call the report and the desk said they were set for, answered
+  // (1.8.5, evidence.ts readTold): unlabelled, since it rarely decides much
+  const told = ev && !why.some(w => w.cause === 'read') ? readTold(ev, toldCalls(ctx, ADAPT_WORTH)) : null
   // AND WHETHER IT WORKED (1.8.4, evidence.ts): what hurt at half time held
   // against the second half alone, with the dial that answers it as he left
   // it at the break; and what hurt most last match held against this one.
@@ -2538,7 +2543,7 @@ function MatchVerdict() {
   // and asks for "the two or three", so a single change had the homework
   // marked done on a match where the advice would have been given again.
   const grade = fresh && hw
-    ? gradeFixes(hw.tags as FixTag[], fixes.map(f => f.tag), { fitness: live.ctx.subsUsed >= 2 })
+    ? gradeHomework(game, ctx, mine, opp, myClub?.tactic ?? null, hw.tags as FixTag[])
     : { fixed: [], missed: [] }
   const verdictOnLast = gradeLine(grade.fixed, grade.missed)
 
@@ -2572,6 +2577,11 @@ function MatchVerdict() {
           {t(w.k, w.v)}
         </div>
       ))}
+      {told && (
+        <div className="meta" data-why="read" data-why-told="1" style={{ borderLeft: '3px solid var(--border)', paddingLeft: 6, marginTop: 3 }}>
+          {t(told.k, told.v)}
+        </div>
+      )}
       {half && <FollowLine f={half} label="matchday.fuSinceHt" pair="matchday.fuHalves" moved={moved} />}
       {last && <FollowLine f={last} label="matchday.fuSinceLast" pair="matchday.fuMatches" />}
 
@@ -2976,7 +2986,16 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
       <div className="preset-row">
         {PRESETS.map(p => (
           <button key={p.id} className="preset-chip" title={t(p.desc)}
-            onClick={() => { applyPreset(p.values); setExplain(`${t(p.name)}: ${t(p.desc)}`) }}>
+            onClick={() => {
+              // the prep plan this sets aside, said as it happens (1.8.5):
+              // full time judges it on the part of the match it was played for
+              const opp = mine === ctx.home ? ctx.away : ctx.home
+              const plan = currentPlan(game, opp.teamId)
+              const had = !!plan && planFollowed(game, plan)
+              applyPreset(p.values)
+              const aside = had && !planFollowed(game, plan!) ? ` ${t(ctx.tick >= 10 ? 'matchday.planAside' : 'matchday.planAsideEarly', { plan: t(`oppreport.plan_${plan!.id}`) })}` : ''
+              setExplain(`${t(p.name)}: ${t(p.desc)}${aside}`)
+            }}>
             <Glyph name={p.icon} /> {t(p.name)}
           </button>
         ))}
