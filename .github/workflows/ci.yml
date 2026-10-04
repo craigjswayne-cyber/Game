@@ -84,11 +84,20 @@ jobs:
         run: bash scripts/suite.sh fast
 
   browser:
-    name: Browser harnesses
+    name: Browser harnesses (shard ${{ matrix.bshard }} of 3)
     # only where it is worth 40 minutes: the branch that deploys, and overnight
     if: github.ref == 'refs/heads/main' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 75
+    # THREE SHARDS, BROWSER ONLY (1.8.4). This job ran `suite.sh`, which runs
+    # every engine probe unsharded before the first harness: it was cancelled
+    # at 75 minutes on every merge to main since 1.8.2 without reaching one.
+    # The engine is the engine job's; this runs `suite.sh browser`, split three
+    # ways over 67 harnesses.
+    strategy:
+      fail-fast: false
+      matrix:
+        bshard: [1, 2, 3]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -112,15 +121,18 @@ jobs:
         run: echo "PW_CHROMIUM=$(node -e "console.log(require('playwright-core').chromium.executablePath())")" >> "$GITHUB_ENV"
       - name: Build
         run: npm run build
-      - name: Full suite
-        run: bash scripts/suite.sh
+      - name: Browser harnesses
+        env:
+          BSHARDS: 3
+          BSHARD: ${{ matrix.bshard }}
+        run: bash scripts/suite.sh browser
       # a failed browser run is worth looking at, and a screenshot says more
       # than the line that failed
       - name: Keep the screenshots
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: shots
+          name: shots-${{ matrix.bshard }}
           path: |
             shots/
             shots-*/
