@@ -160,7 +160,7 @@ export function refreshVacancies(state: GameState, rng: Rng) {
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: tIn('en', 'news.jobWithdrawnSubj', { short: c.short }),
         body: tIn('en', 'news.jobWithdrawn', { club: c.name }),
-        k: 'news.jobWithdrawn', v: { club: c.name },
+        k: 'news.jobWithdrawn', v: { club: c.name, short: c.short },
       })
     }
     // the club he is out of work from appoints like any other: userClubId
@@ -325,7 +325,7 @@ export function applyForJob(state: GameState, clubId: string): string {
       id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
       subject: tIn('en', 'news.jobOfferedSubj', { short: club.short }),
       body: tIn('en', 'news.jobOffered', { club: club.name, stadium: club.stadium, budget: fmtMoney(club.budget) }),
-      k: 'news.jobOffered', v: { club: club.name, stadium: club.stadium, budget: fmtMoney(club.budget) },
+      k: 'news.jobOffered', v: { club: club.name, short: club.short, stadium: club.stadium, budget: fmtMoney(club.budget) },
     })
     // WHY THEY WANT YOU (repute.ts): a club that offers a job says what it has
     // heard, and a manager with a name has one. Held, so no id is spent.
