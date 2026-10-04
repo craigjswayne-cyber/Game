@@ -2157,7 +2157,10 @@ export interface GameState {
    *  incident is flagged when it happens and moves through handled, festering
    *  or challenged depending on how - and by WHOM - it is dealt with. Pruned
    *  once resolved and older than a season, so the list cannot grow. */
-  incidents?: { id: number; pid: number; kind: 'training' | 'rating'; state: 'flagged' | 'handled' | 'festering' | 'challenged'; season: number; week: number }[]
+  incidents?: { id: number; pid: number; kind: 'training' | 'rating'; state: 'flagged' | 'handled' | 'festering' | 'challenged'; season: number; week: number
+    /** answered with a fine, not a quiet word (a fine that lands is 'handled'
+     *  too); read by the conduct row's hard calls (repute.ts) */
+    fined?: true }[]
   /** season*100+week the senior players last called a meeting to question the
    *  manager's authority - a stamp, never a news scan */
   challengeAt?: number

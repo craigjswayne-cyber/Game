@@ -92,7 +92,10 @@ export function conductRow(state: GameState): Conduct | null {
   const since = { sinceSeason: state.season }
   const deb = recall(state, { kind: 'academy-debut', clubId: uid, ...since }).length
   const hard = recall(state, { kind: ['request-refused', 'senior-dropped', 'staff-sacked'], ...since }).length +
-    (state.incidents ?? []).filter(i => i.season === state.season && (i.state === 'handled' || i.state === 'challenged')).length
+    // a fine is a hard call, landed or challenged; a quiet word is not, though it
+    // leaves the incident 'handled' too (1.8.4 career QA: a manager who only
+    // ever had a word was "known as a disciplinarian")
+    (state.incidents ?? []).filter(i => i.season === state.season && (i.fined || i.state === 'challenged')).length
   const kind = recall(state, { kind: ['promise-kept', 'request-granted'], ...since }).length
   const broke = recall(state, { kind: 'promise-broken', ...since }).length
   const books = state.books && state.books.clubId === uid ? state.books : null
