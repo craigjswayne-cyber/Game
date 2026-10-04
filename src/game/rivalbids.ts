@@ -272,7 +272,7 @@ export function rivalBidWon(state: GameState, p: Player, rb: RivalBid, why: { k:
   const c = state.clubs[rb.clubId]
   rb.week = -1
   if (!c) return
-  const v: Vars = { player: p.name, club: c.name, short: c.short, wage: fmtMoney(rb.wage), why_k: why.k, ...why.v }
+  const v: Vars = { player: p.name, club: c.name, short: c.short, wage: fmtWage(rb.wage), why_k: why.k, ...why.v }
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
     subject: tIn('en', 'news.rivalBidWonSubj', v), body: tIn('en', 'news.rivalBidWon', v),
@@ -299,7 +299,7 @@ export function settleRivalBids(state: GameState): void {
     if (choice.mine) choice.why = { k: 'news.rivalWhyNoTerms', v: {} }
     executeTransfer(state, p, club.id, rb.fee)
     p.wage = rb.wage
-    const v: Vars = { player: p.name, club: club.name, short: club.short, wage: fmtMoney(rb.wage), fee: fmtMoney(rb.fee), why_k: choice.why.k, ...choice.why.v }
+    const v: Vars = { player: p.name, club: club.name, short: club.short, wage: fmtWage(rb.wage), fee: fmtMoney(rb.fee), why_k: choice.why.k, ...choice.why.v }
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
       subject: tIn('en', 'news.rivalBidLostSubj', v), body: tIn('en', 'news.rivalBidLost', v),
