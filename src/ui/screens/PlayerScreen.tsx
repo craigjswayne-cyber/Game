@@ -23,6 +23,7 @@ import { Glyph } from '../glyphs'
 import { driverLines, learningLines, monthKey, outlookLine, TL } from '../../game/devproject'
 import { activeEntry } from '../../game/season'
 import { focusIds } from '../../game/development'
+import { armDebut } from '../../game/acadcall'
 
 /** The timeline's moment chips, in the order they read (devproject TL). */
 const TL_KEYS: [number, string][] = [
@@ -675,6 +676,8 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             // A RETURNING senior keeps his contract: he never stopped being paid
             // like a first-teamer (the cap never stopped counting him either).
             p.wage = playerWage(p.ca, p.age)
+            // and his first senior game is an academy debut (acadcall.ts armDebut)
+            armDebut(p)
             game.news.push({
               id: game.nextId++, week: game.week, season: game.season, type: 'youth', read: true,
               subject: `${p.name} promoted to the first team`,
