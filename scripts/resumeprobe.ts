@@ -50,6 +50,9 @@ function signature(state: GameState, ctx: LiveCtx): string {
     rates(ctx.home.ratings), rates(ctx.away.ratings),
     `motm:${ctx.motmId ?? '-'}`, `tick:${ctx.tick}`, `seg:${ctx.seg}`,
     `subs:${ctx.subsUsed}`, `talk:${ctx.talkUsed}`, ledger,
+    // the half-time read the full-time follow-up holds the second half
+    // against, and the dials either side of the break (1.8.4)
+    `ht:${JSON.stringify(ctx.htEv ?? null)}|${ctx.htDials ?? '-'}|${ctx.shDials ?? '-'}`,
   ].join('#')
 }
 
@@ -86,6 +89,13 @@ function playWithMeddling(seed: number, stopAt: number): { sig: string; rec: Mat
       cmds.push({ at: ctx.tick, kind: 'talk', talk: 'calm' })
       applyTeamTalk(g, ctx, 'calm')
       talked = true
+      // and the physicality brought down at the break, as the half-time
+      // word asks when the penalties are what is hurting
+      const tac = g.clubs[g.userClubId].tactic
+      const dials = { style: tac.style, tempo: tac.tempo, kicking: tac.kicking, aggression: 20 }
+      Object.assign(tac, dials)
+      cmds.push({ at: ctx.tick, kind: 'dials', ...dials })
+      applyTacticsChange(g, ctx)
     }
     // two substitutions, at the first two stoppages after the 40th minute
     if (subs < 2 && ctx.awaiting && ctx.tick >= 10) {
@@ -137,7 +147,7 @@ for (const seed of [4242, 777, 31337]) {
       // say WHERE it diverged, because "different" is not a bug report
       const a = live.sig.split('#'), b = back.split('#')
       const names = ['events', 'home score', 'away score', 'home ratings', 'away ratings',
-        'motm', 'tick', 'seg', 'subs used', 'talk used', 'the save ledger']
+        'motm', 'tick', 'seg', 'subs used', 'talk used', 'the save ledger', 'the half-time read']
       for (let i = 0; i < a.length; i++) {
         if (a[i] === b[i]) continue
         if (i === 0) {

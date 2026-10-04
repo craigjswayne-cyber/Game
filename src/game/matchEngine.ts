@@ -29,6 +29,7 @@ import {
   type BenchSplit,
 } from './bench'
 import { rememberDebut } from './memory'
+import { LEVER_DIALS, buildEvidence, type CausalEvidence } from './evidence'
 import { ATK_KICKS, atkSay, defSay, moveAffinity, styleDrain, styleFitRel, styleTerr, styleTick, stylesOf, TURN_BASE, TURN_M, type SideStyle } from './styles'
 import { ART_HOME, clubSurface, goalPenaltyOf, injuryF, matchConditions, styleWx, surfaceOf, wetness, type Surface } from './conditions'
 import { HABITS, HABITS_OFF, clutchKick, habitFx } from './habits'
@@ -2161,6 +2162,22 @@ export interface LiveCtx {
   /** the margin (home minus away) at the end of each tick, for the lead
    *  changes the evidence keeps (evidence.ts) */
   marginHist?: number[]
+  /** THE HALF-TIME READ, KEPT (1.8.4, evidence.ts halfFollow): the evidence
+   *  as it stood at the break, and the manager's four touchline dials there
+   *  and as the second half kicked off, so full time can say whether what
+   *  was hurting eased and whether he moved the dial that answers it. Read
+   *  at the whistle, never drawn; a resumed match replays to the same. */
+  htEv?: CausalEvidence
+  htDials?: number[]
+  shDials?: number[]
+}
+
+/** The manager's four touchline dials, in LEVER_DIALS order: his club's
+ *  match only (a Test side has no club board). */
+function userDials(state: GameState, ctx: LiveCtx): number[] | undefined {
+  if (!ctx.userSideId || ctx.userSideId !== state.userClubId) return undefined
+  const tac = state.clubs[ctx.userSideId]?.tactic
+  return tac ? LEVER_DIALS.map(k => tac[k]) : undefined
 }
 
 /**
@@ -5183,6 +5200,11 @@ function blowHalfTime(state: GameState, ctx: LiveCtx) {
     hposs: Math.round((ctx.home.poss / possTotal) * 100), aposs: Math.round((ctx.away.poss / possTotal) * 100),
     htries: ctx.home.tries, atries: ctx.away.tries, hpens: ctx.home.pens, apens: ctx.away.pens,
   })
+  if (ctx.userSideId) {
+    const ev = buildEvidence(state, ctx)
+    if (ev) ctx.htEv = ev
+    ctx.htDials = userDials(state, ctx)
+  }
 }
 
 /** Blow full time. Same deal: seg only reaches 3 - which is what every caller
@@ -5200,6 +5222,8 @@ export function stepTick(state: GameState, ctx: LiveCtx): 'play' | 'HT' | 'BRK' 
   // taken back (16B), and no whistle is waiting on anything
   ctx.lastSub = null
   ctx.whistleAt = null
+  // the dials the second half kicks off with, against the half-time read
+  if (ctx.tick === 10 && ctx.htEv && !ctx.shDials) ctx.shDials = userDials(state, ctx)
   simTick(state, ctx, ctx.tick)
   ctx.tick += 1
   aiTacticShift(state, ctx)

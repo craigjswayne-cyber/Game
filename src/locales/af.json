@@ -272,7 +272,8 @@
   "tPromise_deal": "Jy het {player} 'n nuwe kontrak belowe",
   "tRushed": "{player} het met 'n besering gespeel",
   "tProjUp": "Die afrigters mik hoër vir {player}",
-  "tProjDown": "Die afrigters mik laer vir {player}"
+  "tProjDown": "Die afrigters mik laer vir {player}",
+  "tHomework": "Huiswerk van die vorige wedstryd: {fix_k}"
  },
  "home": {
   "jobCentre": "Die Werksentrum",
@@ -1667,7 +1668,32 @@
   "whyKickFor": "Skepdoele en geblokte skoppe: {p} punte vir ons.",
   "whyKickAgainst": "Skepdoele en geblokte skoppe: {p} punte vir hulle.",
   "whyStyleFor": "Die stylstryd: {atk_k} het die oorhand oor {def_k} gekry, omtrent {p} punte vir ons.",
-  "whyStyleAgainst": "Die stylstryd: {atk_k} het die oorhand oor {def_k} gekry, omtrent {p} punte vir hulle."
+  "whyStyleAgainst": "Die stylstryd: {atk_k} het die oorhand oor {def_k} gekry, omtrent {p} punte vir hulle.",
+  "leadDiff": "Die grootste verskil:",
+  "leadEdge": "Jou sterkste voordeel:",
+  "leadHurt": "Wat jou die meeste seergemaak het:",
+  "htLeverDown": "Om dit reg te stel: bring {dial_k} af (nou {n})",
+  "htLeverUp": "Om dit reg te stel: stoot {dial_k} op (nou {n})",
+  "fuSinceHt": "Ná die rustyd:",
+  "fuSinceLast": "Sedert die vorige wedstryd:",
+  "fuHalves": "{what_k}, {a} in die eerste helfte en {b} in die tweede.",
+  "fuMatches": "{what_k}, {a} in die vorige wedstryd en {b} vandag.",
+  "fuM_pen": "strafskoppe afgestaan",
+  "fuM_turn": "balle verloor",
+  "fuM_set": "skrums en lynstane op eie bal verloor",
+  "fuM_break": "hulle lynbreuke",
+  "fuM_phase": "minute wat hulle in ons 22 was",
+  "fuM_move": "punte uit hulle beplande skuiwe",
+  "fuM_kick": "punte uit hulle skepdoele en geblokte skoppe",
+  "fuM_style": "punte wat die stylstryd ons gekos het",
+  "fuTrend_improved": "Beter.",
+  "fuTrend_partly": "Effens beter.",
+  "fuTrend_unchanged": "Geen werklike verandering.",
+  "fuTrend_worse": "Erger.",
+  "fuLever_right": "Jy het {dial_k} in rustyd die regte kant toe geskuif.",
+  "fuLever_wrong": "{dial_k} het in rustyd die ander kant toe gegaan.",
+  "fuLever_none": "{dial_k} is gelos waar dit was.",
+  "fuNow": "Die groter probleem vandag: {what_k}."
  },
  "tacticsScreen": {
   "tabRoles": "Rolle",

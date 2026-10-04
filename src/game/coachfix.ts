@@ -36,7 +36,7 @@ import type { GameState, Tactic } from './model'
 import { MAX_SUBS } from './matchEngine'
 import type { LiveCtx, SideCtx } from './matchEngine'
 import { t } from './i18n'
-import { pointsAfter, possPct } from './evidence'
+import { pointsAfter, possPct, sidesOf } from './evidence'
 
 /** MAX_SUBS as a word for prose, so the advice can never disagree with the
  *  engine's cap again. Falls back to digits if the cap ever outgrows the list. */
@@ -418,4 +418,22 @@ export function coachFixes(
     .sort((a, b) => b.score - a.score)
     .slice(0, want)
     .map(({ head, how, tag }) => ({ head, how, tag }))
+}
+
+/**
+ * THE HOMEWORK, SET ON EVERY MATCH (1.8.4). The two fixes became the
+ * homework from inside the full-time card (a React effect), so a match the
+ * assistant played, or one a reload played out, set none, and the next
+ * match marked the homework from a game or more before. Set here instead,
+ * from the same reading, wherever a match is filed (matchfindings
+ * fileFindings), once per fixture. The full-time card reads it before the
+ * filing replaces it, so it still marks the match before.
+ */
+export function fileHomework(state: GameState, ctx: LiveCtx): void {
+  if (ctx.seg !== 3) return
+  const s = sidesOf(ctx)
+  if (!s) return
+  if (state.fixHw?.fxId === ctx.fx.id && state.fixHw.season === state.season) return
+  const tags = coachFixes(state, ctx, s.mine, s.opp, state.clubs[s.mine.teamId]?.tactic ?? null, 2).map(f => f.tag)
+  state.fixHw = { fxId: ctx.fx.id, season: state.season, week: state.week, tags }
 }

@@ -170,6 +170,33 @@ damaged('an evidence list of half-written records', s => {
   ok(!!g && g.tacLoop?.evidence === undefined, 'and an evidence field that is not a list is removed')
 }
 
+// ----------------------------- the homework and the long memory (1.8.4)
+// The homework is now written on every match, and the loop keeps the last
+// meeting with each side as well as the newest six, so both are in every
+// save from here on and either can arrive damaged or overlong.
+console.log('\n--- the homework and the last meeting with each side')
+damaged('homework that is not a record', s => { s.fixHw = 'do better' })
+damaged('homework with no tags', s => { s.fixHw = { fxId: 3, season: 2026, week: 4 } })
+damaged('homework with tags that are not words', s => { s.fixHw = { fxId: 3, season: 2026, week: 4, tags: [null, 7] } })
+damaged('a findings list hundreds long against one side', s => {
+  s.tacLoop = { findings: Array.from({ length: 400 }, (_, i) => ({ fxId: i, season: 2026, week: 1, oppId: 'bath', us: 3, them: 0, items: [] })) }
+})
+{
+  const s = pristine()
+  s.fixHw = { fxId: 3, season: 2026, week: 4, tags: [null, 7] }
+  s.tacLoop = { findings: Array.from({ length: 400 }, (_, i) => ({ fxId: i, season: 2026, week: 1, oppId: `side${i % 60}`, us: 3, them: 0, items: [] })) }
+  let g: GameState | null = null
+  try { g = migrate(s as unknown as GameState) } catch { g = null }
+  ok(!!g && g.fixHw === undefined, 'and homework that cannot be read is dropped, read as none')
+  const f = g?.tacLoop?.findings ?? []
+  ok(f.length === 24 && f[f.length - 1].fxId === 399 && new Set(f.map(x => x.oppId)).size === 24,
+    `and an overlong findings list keeps the newest six and the last against each other side (${f.length})`)
+  const s2 = pristine()
+  s2.fixHw = { fxId: 3, season: 2026, week: 4, tags: ['discipline', 'setpiece'] }
+  try { g = migrate(s2 as unknown as GameState) } catch { g = null }
+  ok(!!g && g.fixHw?.tags.join() === 'discipline,setpiece', 'and good homework is kept as it was')
+}
+
 // -------------------------------------------------- the world itself broken
 console.log('\n--- the world itself, broken')
 damaged('a squad listing players who are gone', s => {
