@@ -70,11 +70,19 @@ export function playerStory(state: GameState, p: Player, made: (p: Player) => bo
     if (uid && p.clubId === uid) add('record', 'story.record', { ...v, n: appsSince(p, uid, rs.season) })
     else add('record', 'story.recordGone', v)
   }
+  // HIS APPEARANCES FOR A CLUB, as the book has them (1.8.4 career QA). A man
+  // the career opened with carries his years before it as a lump (p.hist),
+  // which service() can only credit while he is still there, so a legend
+  // who was sold read "A Gloucester legend: 0 appearances" and "sold after 9
+  // appearances" about a man with 160. The legend's own entry keeps the count
+  // from his last match for the club, so it is the floor.
+  const appsFor = (clubId: string) => Math.max(service(p, clubId).apps,
+    (state.hist?.legends ?? []).find(l => l.pid === p.id && l.clubId === clubId)?.apps ?? 0)
   const capt = !!uid && p.clubId === uid && state.clubs[uid]?.captain === p.id
   if (capt) add('captain', 'story.captain', { club: short(uid!), n: service(p, uid!).apps })
   const legend = (state.hist?.legends ?? []).find(l => l.pid === p.id)
   if (legend) {
-    const n = service(p, legend.clubId).apps
+    const n = appsFor(legend.clubId)
     add('legend', legend.season >= 0 ? 'story.legend' : 'story.legendOld', { club: short(legend.clubId), season: seasonLabel(Math.max(0, legend.season)), n })
   }
   // a notable man who left the manager's club, and how
@@ -82,7 +90,7 @@ export function playerStory(state: GameState, p: Player, made: (p: Player) => bo
   const gone = !!dep && dep.clubId != null && p.clubId !== dep.clubId && (dep.payload?.nb === 1 || dep.sal >= 2)
   if (gone) {
     const from = dep!.clubId!
-    const n = service(p, from).apps
+    const n = appsFor(from)
     const to = typeof dep!.payload?.to === 'string' ? dep!.payload.to : ''
     const fee = Number(dep!.payload?.fee ?? 0)
     const v = { club: short(from), season: seasonLabel(dep!.season), n }
