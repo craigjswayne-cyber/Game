@@ -127,10 +127,15 @@ export function historyAfterMatch(state: GameState, fx: Fixture): void {
   if (HIST_OFF.on || fx.compId === 'fr' || state.unemployed) return
   const uid = state.userClubId
   if (fx.homeId !== uid && fx.awayId !== uid) return
+  // A TENURE OPENED JUST NOW is seeded from vsBook, and boardReaction has
+  // already written this match into vsBook: counting it again put one match
+  // too many on every career's first job (1.8.4, storyprobe: the era's
+  // record and the history book's disagreed by exactly one)
+  const had = !!state.hist?.tenures?.some(x => x.clubId === uid && x.to == null)
   const cur = openTenure(state)
   const us = fx.homeId === uid ? fx.homeScore : fx.awayScore
   const them = fx.homeId === uid ? fx.awayScore : fx.homeScore
-  if (cur) { if (us > them) cur.w++; else if (us < them) cur.l++; else cur.d++ }
+  if (cur && had) { if (us > them) cur.w++; else if (us < them) cur.l++; else cur.d++ }
   // a thumping is a moment; only the season's biggest is kept for the annals
   if (us - them >= 25) {
     const h = book(state)

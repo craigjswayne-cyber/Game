@@ -3,6 +3,9 @@ import { processWeekAndAdvance } from '../src/game/season'
 import { isPlayable, migrate } from '../src/game/save'
 import { type GameState } from '../src/game/model'
 import { bad, ok, finite, checkWorld, failCount } from './worldcheck'
+import { tacticalMemory, tacticalNotes } from '../src/game/tacmemory'
+import { rematchOf } from '../src/game/rematch'
+import { buildDesk } from '../src/game/desk'
 
 /**
  * ---- THE SAVE FILE, DAMAGED ----
@@ -170,6 +173,71 @@ damaged('an evidence list of half-written records', s => {
   ok(!!g && g.tacLoop?.evidence === undefined, 'and an evidence field that is not a list is removed')
 }
 
+// ------------------------- what the records are read for (1.8.4, phase 4)
+// Nothing new is saved: the desk's conclusions (tacmemory.ts) and the
+// rematch (rematch.ts) are read off the evidence on demand. So what matters
+// is that a record the migration lets through, odd but well formed, is read
+// without a throw: a call that is no move, numbers far out of range, a
+// record against a club that is gone, one from a season long past.
+console.log('\n--- the records, read for the desk and the rematch')
+{
+  const s = pristine()
+  const side = (big: number) => ({
+    calls: { mv_nonesuch: [9, 9, 9, 9, 9], mv_loop: [big, -big, big, big, big] }, pts: [big, 0, big, 0, 0, 0], breaks: big,
+    styleEdge: 0, blunted: 0, setWon: [0, 0], setLost: [big, 0], turnWon: [0, 0, 0], turnLost: [big, 0, 0], pens: 0, zone: [0, 0, 0],
+  })
+  const clubs = Object.keys(s.clubs as Record<string, unknown>)
+  s.tacLoop = {
+    findings: [],
+    evidence: [0, 1, 2, 3, 4, 5, 6].map(i => ({
+      fxId: 900 + i, season: i === 6 ? 1990 : 2026, week: i + 1, oppId: i === 5 ? 'gone' : clubs[(i % 3) + 1],
+      us: 1e9, them: 0, min: 80, poss: 50, side: [side(i % 2 ? 1e9 : 0), side(0)], swings: [], lead: [], late: 0,
+    })),
+  }
+  let g: GameState | null = null
+  let threw = ''
+  try {
+    g = migrate(s as unknown as GameState)
+    if (g) {
+      g.clubs[g.userClubId].tactic.moveMain = 'mv_loop'
+      tacticalNotes(g)
+      for (const id of Object.keys(g.clubs)) rematchOf(g, id)
+      rematchOf(g, 'gone')
+      buildDesk(g)
+    }
+  } catch (e) { threw = String(e).split('\n')[0].slice(0, 120) }
+  ok(!threw, `odd records are read for the desk and the rematch without a throw${threw ? `: ${threw}` : ''}`)
+  ok(!!g && (g.tacLoop?.evidence?.length ?? 0) > 0, 'and the records were let through to be read')
+  ok(!!g && tacticalMemory(g).length <= 2, 'and the desk still says two things at most')
+}
+
+// ----------------------------- the homework and the long memory (1.8.4)
+// The homework is now written on every match, and the loop keeps the last
+// meeting with each side as well as the newest six, so both are in every
+// save from here on and either can arrive damaged or overlong.
+console.log('\n--- the homework and the last meeting with each side')
+damaged('homework that is not a record', s => { s.fixHw = 'do better' })
+damaged('homework with no tags', s => { s.fixHw = { fxId: 3, season: 2026, week: 4 } })
+damaged('homework with tags that are not words', s => { s.fixHw = { fxId: 3, season: 2026, week: 4, tags: [null, 7] } })
+damaged('a findings list hundreds long against one side', s => {
+  s.tacLoop = { findings: Array.from({ length: 400 }, (_, i) => ({ fxId: i, season: 2026, week: 1, oppId: 'bath', us: 3, them: 0, items: [] })) }
+})
+{
+  const s = pristine()
+  s.fixHw = { fxId: 3, season: 2026, week: 4, tags: [null, 7] }
+  s.tacLoop = { findings: Array.from({ length: 400 }, (_, i) => ({ fxId: i, season: 2026, week: 1, oppId: `side${i % 60}`, us: 3, them: 0, items: [] })) }
+  let g: GameState | null = null
+  try { g = migrate(s as unknown as GameState) } catch { g = null }
+  ok(!!g && g.fixHw === undefined, 'and homework that cannot be read is dropped, read as none')
+  const f = g?.tacLoop?.findings ?? []
+  ok(f.length === 24 && f[f.length - 1].fxId === 399 && new Set(f.map(x => x.oppId)).size === 24,
+    `and an overlong findings list keeps the newest six and the last against each other side (${f.length})`)
+  const s2 = pristine()
+  s2.fixHw = { fxId: 3, season: 2026, week: 4, tags: ['discipline', 'setpiece'] }
+  try { g = migrate(s2 as unknown as GameState) } catch { g = null }
+  ok(!!g && g.fixHw?.tags.join() === 'discipline,setpiece', 'and good homework is kept as it was')
+}
+
 // -------------------------------------------------- the world itself broken
 console.log('\n--- the world itself, broken')
 damaged('a squad listing players who are gone', s => {
@@ -228,6 +296,17 @@ damaged('a playbook with no wear at all', s => {
   const me = clubs[s.userClubId as string]
   me.playbook = { drilled: {}, used: 'none' }
   ;(me.tactic as Record<string, unknown>).moveMain = 'mv_loop'
+})
+// the era book's 1.8.4 facts (academy debuts, the seasons of the biggest fee
+// and the worst defeat) are optional, and the era card and turning points
+// read them every time the Legacy screen opens (turning.ts)
+damaged('eras whose 1.8.4 facts are rubbish', s => {
+  const era = (x: Record<string, unknown>) => ({ c: s.userClubId, cn: 'X', f: 0, t: 1, m: 3, w: 1, d: 1, l: 1, tr: [], intl: 0, sk: 'arc.storyShort', sv: {}, why: '5', ...x })
+  s.arc = { eras: [
+    era({ gr: 'many', rs: { n: 'A', fee: 5, s: 'x' }, wd: { o: 'bath', us: 3, them: 40, s: null } }),
+    era({ gr: NaN, rs: { n: 'B', fee: 7 } }),
+    era({ gr: 4, rs: { n: 'C', fee: 9, s: 0 }, wd: { o: 'bath', us: 0, them: 30, s: 1 } }),
+  ] }
 })
 damaged('a league table that disagrees with the fixtures', s => {
   const comps = s.comps as Record<string, { table?: { p: number; w: number; d: number; l: number; pts: number }[] }>

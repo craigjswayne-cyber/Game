@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { useStore } from '../../store'
-import { ATTR_KEYS, SEASON_WEEKS, careerRows, fmtMoney, fmtWage, injuryDesc, type Attrs, type GameState, type Player, type TrainingFocus } from '../../game/model'
+import { ATTR_KEYS, SEASON_WEEKS, careerRows, fmtMoney, fmtWage, injuryDesc, type Attrs, type GameState, type Player, type TrainingFocus, seasonLabel } from '../../game/model'
 import { agreeFee, agreePreContract, askingPrice, floorPrice, sellerWillingness, offerRenewalAt, personalTermsDemand, renewalDemand, signFreeAgent, signOnTerms } from '../../game/ai'
 import { FormPill, Nat, PosBadge, SectionTitle, Stars, TwoStep, RewardedButton } from '../components'
 import { nationName } from '../../game/nations'
@@ -10,6 +10,7 @@ import { attrRange, fuzzedCa, knowledge, paRange, reportStage, seenValue, wonder
 import { benchNote, temperRead } from '../../game/temperament'
 import { formTrend, traitHints } from '../../game/formtraits'
 import { habitHint } from '../../game/habits'
+import { playerStory } from '../../game/stories'
 import { bondsLine } from '../../game/bonds'
 import { canAgencyFile, canSecondOpinion } from '../../game/rewarded'
 import { rewardedAvailable } from '../../game/monetise'
@@ -17,11 +18,12 @@ import { LOAN_BUY_MIN_WEEKS, loanBuy, loanBuyOffer, loanOut, loanOutBoost, loanR
 import { releaseBlock, releaseCost, releasePlayer } from '../../game/release'
 import { MARQUEE_SLOTS, marqueeOpen, toggleMarquee } from '../../game/cap'
 import { answerRequest, canAnswerRequest, canChat, chatBudget, praisePlayer, warnPlayer } from '../../game/chats'
-import { attrBand, attrBandIndex, attrName, posName, t, localeTag } from '../../game/i18n'
+import { attrBand, attrBandIndex, attrName, posName, t, tIn, localeTag } from '../../game/i18n'
 import { Glyph } from '../glyphs'
 import { driverLines, learningLines, monthKey, outlookLine, TL } from '../../game/devproject'
 import { activeEntry } from '../../game/season'
 import { focusIds } from '../../game/development'
+import { armDebut } from '../../game/acadcall'
 
 /** The timeline's moment chips, in the order they read (devproject TL). */
 const TL_KEYS: [number, string][] = [
@@ -139,6 +141,17 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             <div style={{ marginTop: 4 }}><FormPill v={p.form} trend={formTrend(p)} /></div>
           </div>
         </div>
+        {/* HIS STORY WITH YOU (1.8.4, stories.ts): one to three lines for the
+            few men who have one, read from what the save already holds */}
+        {(() => {
+          const story = playerStory(game, p)
+          if (!story.length) return null
+          return (
+            <div className="player-story" style={{ marginTop: 8, paddingTop: 6, borderTop: '1px solid var(--border)' }}>
+              {story.map(l => <div key={l.why} className="meta" style={{ fontStyle: 'italic' }}>{t(l.k, l.v)}</div>)}
+            </div>
+          )
+        })()}
       </div>
 
       {/* ---- what this man is, in one sentence, before any numbers ----
@@ -346,8 +359,10 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
       {/* THE OFFICE (audit 20D). Players used to knock on the manager's door;
           the manager could never knock back. Two conversations a week, one per
           man: praise the form or have the quiet word. The outcome is his
-          personality's, not a dice roll - see chats.ts. */}
-      {mine && !p.onLoan && (
+          personality's, not a dice roll - see chats.ts. Not for a scholar:
+          canChat never lets him in, and the card told the manager his week's
+          conversations were used up when they were not (1.8.4 RC). */}
+      {mine && !p.onLoan && !p.acad && (
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
           <div className="fact-label">{t('player.theOffice')}</div>
           {chatMsg
@@ -480,7 +495,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           <div className="card dev-timeline">
             {(p.tl ?? []).map(([s, r, f]) => (
               <div key={s} className="tl-row">
-                <span className="tl-season">{2025 + s}-{String((2026 + s) % 100).padStart(2, '0')}</span>
+                <span className="tl-season">{seasonLabel(s)}</span>
                 <b className="tl-rating">{r}</b>
                 <span className="tl-moments">{TL_KEYS.filter(([bit]) => f & bit).map(([, k]) => <span key={k} className="chip tl-chip">{t(k)}</span>)}</span>
               </div>
@@ -504,7 +519,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             <tbody>
               {[...p.career].reverse().map((c, i) => (
                 <tr key={i}>
-                  <td>{2025 + c.season}-{String((2026 + c.season) % 100).padStart(2, '0')}</td>
+                  <td>{seasonLabel(c.season)}</td>
                   <td>{game.clubs[c.clubId]?.short ?? c.clubId}</td>
                   <td className="num">{c.apps}</td>
                   <td className="num">{c.tries}</td>
@@ -663,6 +678,8 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             // A RETURNING senior keeps his contract: he never stopped being paid
             // like a first-teamer (the cap never stopped counting him either).
             p.wage = playerWage(p.ca, p.age)
+            // and his first senior game is an academy debut (acadcall.ts armDebut)
+            armDebut(p)
             game.news.push({
               id: game.nextId++, week: game.week, season: game.season, type: 'youth', read: true,
               subject: `${p.name} promoted to the first team`,
@@ -693,8 +710,9 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           p.morale = Math.max(0, p.morale - 2)
           game.news.push({
             id: game.nextId++, week: game.week, season: game.season, type: 'youth', read: true,
-            subject: `${p.name} sent down to the academy squad`,
-            body: `${p.name} (${p.age}) has been told to train with the academy squad until further notice. He emptied his locker without a word. His wage still counts against the cap, and he can be recalled the same way he went down.`,
+            subject: tIn('en', 'news.sentDownSubj', { name: p.name }),
+            body: tIn('en', 'news.sentDown', { name: p.name, age: p.age }),
+            k: 'news.sentDown', v: { name: p.name, age: p.age },
             playerId: p.id,
           })
           setMsg(t('player.sentDownMsg', { name: p.name }))
@@ -814,7 +832,9 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             const block = releaseBlock(game, p.id)
             const cost = releaseCost(game, p.id)
             return (
-              <div style={{ marginTop: 8 }}>
+              // the page gutter, like every button above it: this one ran
+              // edge to edge at 412 and 360 (1.8.4 Phase 7)
+              <div style={{ margin: '8px 14px 0' }}>
                 <TwoStep className="btn ghost block" style={{ margin: 0, width: '100%' }} disabled={!!block}
                   title={block ? t(`player.release${block[0].toUpperCase()}${block.slice(1)}`, { name: p.name, n: 24 }) : undefined}
                   label={t('player.release', { cost: fmtMoney(cost) })} confirm={t('player.releaseConfirm', { cost: fmtMoney(cost) })}

@@ -547,6 +547,8 @@ export default function App() {
   const mastheadTitle = cur.screen === 'home' || (cur.screen === 'supporter' && !tillOpen())
     ? (game.unemployed ? t('titles.unemployed') : club.name)
     : otherClub ? otherClub.name
+    // the season review's own header was a second masthead under this one
+    : cur.screen === 'seasonreview' && game.review ? t('legacy.srTitle', { label: seasonLabel(game.review.season) })
     : TITLES.includes(cur.screen) ? t(`titles.${cur.screen}`)
     // the Academy was the one screen off the Hub with a blank masthead (UI QA,
     // 1.8.0): it borrows the menu's own word rather than a new key per language

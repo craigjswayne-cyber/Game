@@ -63,6 +63,21 @@ if (orphans) process.exit(1)
   bad.tacLoop = { findings: [], evidence: { not: 'a list' } }
   if (migrate(bad).tacLoop?.evidence !== undefined) { console.error('BUG: a mangled evidence list was kept'); process.exit(1) }
 }
+// THE LAST MEETING WITH EACH SIDE (1.8.4): an older save's lists, six or
+// fewer, keep every record; homework from before it was set on every match
+// loads as it was, and homework that cannot be read is dropped
+{
+  const pre = JSON.parse(JSON.stringify(m))
+  const rec = (i: number) => ({ fxId: i, season: m.season, week: i, oppId: `o${i}`, us: 1, them: 0, items: [] })
+  pre.tacLoop = { findings: [1, 2, 3, 4, 5, 6].map(rec) }
+  pre.fixHw = { fxId: 6, season: m.season, week: 6, tags: ['discipline'] }
+  const a = migrate(pre)
+  console.log(`a six-record loop after migration: ${a.tacLoop?.findings.map(f => f.fxId).join(',')}; homework ${JSON.stringify(a.fixHw?.tags)}`)
+  if (a.tacLoop?.findings.length !== 6 || a.fixHw?.tags[0] !== 'discipline') { console.error('BUG: an older loop or its homework was changed'); process.exit(1) }
+  const bad = JSON.parse(JSON.stringify(m))
+  bad.fixHw = { fxId: 'x', tags: 'none' }
+  if (migrate(bad).fixHw !== undefined) { console.error('BUG: unreadable homework was kept'); process.exit(1) }
+}
 // THE NAME REGISTRY'S MEMORY (1.8.3): a save that kept every departed name
 // keeps the newest RETIRED_NAMES_KEPT, each once, in the order written; a
 // list inside the cap is left exactly as it was
@@ -114,6 +129,19 @@ if (orphans) process.exit(1)
   archiveSeason(p, { season: 1, clubId: 'leicester', apps: 7, tries: 1, points: 5 })
   const after = careerRows(p).reduce((n, c) => n + c.apps, 0)
   if (p.career.length !== CAREER_ROWS || after !== apps + 7) { console.error('BUG: the summer fold lost appearances'); process.exit(1) }
+}
+// THE ERA'S 1.8.4 FACTS: an era told before them loads without them and is
+// read without them (no academy count, no seasons on the fee or the defeat);
+// a fact that cannot be read is dropped, a good one kept
+{
+  const pre = JSON.parse(JSON.stringify(m))
+  const era = { c: m.userClubId, cn: 'X', f: 0, t: 2, m: 10, w: 5, d: 1, l: 4, tr: [], intl: 1, sk: 'arc.storyShort', sv: {}, why: '5' }
+  pre.arc = { eras: [{ ...era, rs: { n: 'A', fee: 5 } }, { ...era, gr: 'x', rs: { n: 'B', fee: 5, s: 'y' }, wd: { o: 'bath', us: 0, them: 9, s: 1 } }, { ...era, gr: 3 }] }
+  const a = migrate(pre)
+  const [old, bad, good] = a.arc!.eras
+  console.log(`eras after migration: gr ${old.gr}/${bad.gr}/${good.gr}, rs.s ${old.rs?.s}/${bad.rs?.s}, wd.s ${bad.wd?.s}`)
+  if (old.gr !== undefined || old.rs?.s !== undefined) { console.error('BUG: an older era had 1.8.4 facts invented'); process.exit(1) }
+  if (bad.gr !== undefined || bad.rs?.s !== undefined || bad.wd?.s !== 1 || good.gr !== 3) { console.error('BUG: an era fact was not healed or not kept'); process.exit(1) }
 }
 // a 1.8.2 playbook's wear (whole counts that only the summer cleared) carries
 // on under 1.8.3's, which fades a call left out (armsrace.ts THE WEAR)

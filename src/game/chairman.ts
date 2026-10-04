@@ -45,7 +45,7 @@ import type { Club, GameState } from './model'
 import { boardObjective, leagueTier } from './model'
 import { leaguePos } from './schedule'
 import { isWomensId } from './gender'
-import { ARC_OFF, arcHash, arcOf } from './arcbook'
+import { ARC_OFF, arcHash, arcOf, type Conduct } from './arcbook'
 import type { BoardAsk } from './boardroom'
 import type { Vars } from './i18n'
 
@@ -266,6 +266,60 @@ export function boardSummer(state: GameState, row: { pos: number; deb: number } 
   if (dem) { delta += dem.d; rows.push({ k: dem.k }) }
   club.boardConfidence = Math.max(5, Math.min(100, club.boardConfidence + delta))
   return rows.length ? rows : null
+}
+
+/**
+ * ---- HOW, NOT ONLY WHAT ----
+ *
+ * The board judged the finish, the books and the chairman's one wish, and
+ * never the way the season was run: a broken promise cost a player's morale
+ * and an agent's trust but not a word upstairs. Now the May letter reads the
+ * season's conduct row (repute.ts conductRow) as well, each man in the chair
+ * through his own eyes:
+ *
+ *   any chairman   promises broken (-1 each, -2 at most), promises kept (+1),
+ *                  debt grown on the manager's watch (-1), hard calls with an
+ *                  unhappy room (-1)
+ *   stability      a winning side hard to beat (+1); spending within means
+ *                  (+2); debt grown (-2 rather than -1)
+ *   commercial     spending within means (+2); debt grown (-2)
+ *   ambition       a winning side that scores (+1); the money spent boldly,
+ *                  and the club still in the black (+1)
+ *   youth          academy debuts (+2)
+ *
+ * What the chairman's wish already judged this season (the books, the debuts)
+ * is not judged twice. The sum is held to METHOD_CAP either way, and the
+ * letter names the one or two that weighed most. The points are returned, not
+ * applied: the rollover adds them AFTER the summer pull toward the finish,
+ * which would otherwise halve them (rollover.ts, the boardroom reset).
+ */
+export const METHOD_CAP = 4
+
+export function boardMethod(state: GameState, row: Conduct | null): { d: number; rows: Vars[] } {
+  const none = { d: 0, rows: [] }
+  if (ARC_OFF.on || state.unemployed || !row) return none
+  const club = state.clubs[state.userClubId]
+  if (!club || row.c !== club.id) return none
+  const ch = chairmanOf(state, club.id)
+  const wish = chairWish(state)
+  const books = state.books && state.books.clubId === club.id ? state.books : null
+  const drift = books ? club.balance - books.opening - (state.injectedThisSeason ?? 0) : 0
+  const careful = ch === 'stability' || ch === 'commercial'
+  const spend = row.wages > 0 ? row.buy / row.wages : 0
+  const parts: { k: string; d: number }[] = []
+  if (row.broke > 0) parts.push({ k: 'arc.meth.broke', d: -Math.min(2, row.broke) })
+  else if (row.kind >= 3) parts.push({ k: 'arc.meth.kept', d: 1 })
+  if (books && drift < 0 && club.balance < 0) parts.push({ k: 'arc.meth.debt', d: careful ? -2 : -1 })
+  else if (books && careful && drift >= 0 && spend < 0.25 && wish !== 'black' && wish !== 'profit') parts.push({ k: 'arc.meth.prudent', d: 2 })
+  if (row.hard >= 5 && row.mor < 6) parts.push({ k: 'arc.meth.hard', d: -1 })
+  if (ch === 'youth' && row.deb >= 2 && wish !== 'debuts') parts.push({ k: 'arc.meth.academy', d: 2 })
+  if (ch === 'ambition' && row.lg > 0 && row.w > row.l && row.pf / row.lg >= 1.15) parts.push({ k: 'arc.meth.attack', d: 1 })
+  if (ch === 'ambition' && spend >= 0.45 && club.balance >= 0) parts.push({ k: 'arc.meth.spent', d: 1 })
+  if (ch === 'stability' && row.lg > 0 && row.w > row.l && row.pa / row.lg <= 0.85) parts.push({ k: 'arc.meth.defence', d: 1 })
+  if (!parts.length) return none
+  const d = Math.max(-METHOD_CAP, Math.min(METHOD_CAP, parts.reduce((s, x) => s + x.d, 0)))
+  const told = [...parts].sort((a, b) => Math.abs(b.d) - Math.abs(a.d)).slice(0, 2)
+  return { d, rows: told.map(x => ({ k: x.k })) }
 }
 
 /** A line for the monthly memo: what the chairman made of it, in his own terms. */

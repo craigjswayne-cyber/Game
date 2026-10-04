@@ -159,9 +159,9 @@ export function unbeatenRun(state: GameState, clubId: string): number {
  *  reads the array tail and a by-date result falls out. The dash panel one
  *  card below learned this exact lesson (see its comment); the pips never
  *  got the sort. */
-export function formGuide(state: GameState, clubId: string, n = 5): ('W' | 'L' | 'D')[] {
+export function formGuide(state: GameState, clubId: string, n = 5, competitive = false): ('W' | 'L' | 'D')[] {
   return state.fixtures
-    .filter(f => f.played && (f.homeId === clubId || f.awayId === clubId))
+    .filter(f => f.played && (f.homeId === clubId || f.awayId === clubId) && (!competitive || f.compId !== 'fr'))
     .sort((a, b) => a.week - b.week)
     .slice(-n)
     .map(f => {
@@ -1169,6 +1169,9 @@ export interface TransferOffer {
    *  An unlimited counter would be a money printer (keep demanding until the
    *  dice land), so it is one round of haggling per offer, then you answer. */
   countered?: boolean
+  /** The haggle worked: the bidder did come back with more (1.8.4 RC). A
+   *  best-and-final reply leaves this unset. */
+  raised?: boolean
   /** How many times a rival has topped this bid (18C). A war runs three
    *  raises at most, then whoever holds the ball has to hear an answer. */
   raises?: number
@@ -2157,7 +2160,10 @@ export interface GameState {
    *  incident is flagged when it happens and moves through handled, festering
    *  or challenged depending on how - and by WHOM - it is dealt with. Pruned
    *  once resolved and older than a season, so the list cannot grow. */
-  incidents?: { id: number; pid: number; kind: 'training' | 'rating'; state: 'flagged' | 'handled' | 'festering' | 'challenged'; season: number; week: number }[]
+  incidents?: { id: number; pid: number; kind: 'training' | 'rating'; state: 'flagged' | 'handled' | 'festering' | 'challenged'; season: number; week: number
+    /** answered with a fine, not a quiet word (a fine that lands is 'handled'
+     *  too); read by the conduct row's hard calls (repute.ts) */
+    fined?: true }[]
   /** season*100+week the senior players last called a meeting to question the
    *  manager's authority - a stamp, never a news scan */
   challengeAt?: number
@@ -2338,7 +2344,8 @@ export interface GameState {
   slAlerted?: number[]
   /** absolute week (season*100+week) the cotton-wool pick was last used */
   cottonWk?: number
-  /** Last full time's two fixes, so the next one can mark the homework (C2). */
+  /** Last full time's two fixes, so the next one can mark the homework (C2).
+   *  Set wherever a match is filed, watched or not (coachfix fileHomework). */
   fixHw?: { fxId: number; season: number; week: number; tags: string[] }
   /** the user's hand-picked Test 23 for the current window */
   natLineup?: { team: string; lineup: (number | null)[] } | null

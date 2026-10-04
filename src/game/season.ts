@@ -2593,6 +2593,11 @@ export function processWeekAndAdvance(state: GameState) {
     // deserves its own card; three or more become one word-from-camp round-up
     // with every Test in it.
     const reports: { fx: Fixture; lines: { id: number; rating: number; row: Record<string, string | number>; text: string }[] }[] = []
+    // a touring side's opponent can be a club (the Isles tour), which has no
+    // nation key: its name goes in as itself, as compLabel reads a _k it
+    // cannot find (1.8.4 career QA: "nation.crusaders 21-43 ...")
+    const sideK = (id: string) => (nationByCode(id) ? `nation.${id}` : state.clubs[id]?.name ?? id)
+    const sideName = (id: string) => (nationByCode(id) ? nationNameIn('en', id) : state.clubs[id]?.name ?? id)
     for (const fx of thisWeek) {
       const icomp = state.comps[fx.compId]
       if (!icomp || icomp.type !== 'intl') continue
@@ -2619,8 +2624,8 @@ export function processWeekAndAdvance(state: GameState) {
 
     if (reports.length <= 2) {
       for (const { fx, lines } of reports) {
-        const hName = nationNameIn('en', fx.homeId)
-        const aName = nationNameIn('en', fx.awayId)
+        const hName = sideName(fx.homeId)
+        const aName = sideName(fx.awayId)
         const shown = lines.slice(0, 4).map(l => l.text)
         const more = lines.length - shown.length
         state.news.push({
@@ -2629,7 +2634,7 @@ export function processWeekAndAdvance(state: GameState) {
           body: shown.join('\n') + (more > 0 ? `\nAnd ${more} more of yours came through it fine.` : ''),
           k: more > 0 ? 'news.capsMore' : 'news.caps',
           v: {
-            home_k: `nation.${fx.homeId}`, away_k: `nation.${fx.awayId}`,
+            home_k: sideK(fx.homeId), away_k: sideK(fx.awayId),
             hs: fx.homeScore, as: fx.awayScore,
             rows_ll: JSON.stringify(lines.slice(0, 4).map(l => l.row)), n: more,
           },
@@ -2644,7 +2649,7 @@ export function processWeekAndAdvance(state: GameState) {
       // one card, every Test on it, best man from each named
       const blocks = reports.map(({ fx, lines }) => ({
         k: 'news.campBlock',
-        home_k: `nation.${fx.homeId}`, away_k: `nation.${fx.awayId}`,
+        home_k: sideK(fx.homeId), away_k: sideK(fx.awayId),
         hs: fx.homeScore, as: fx.awayScore,
         best: lines[0].row.player as string,
         rating: lines[0].row.rating as string,

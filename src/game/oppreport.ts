@@ -37,7 +37,9 @@ import type { Club, GameState, MatchPrep, Tactic, Fixture } from './model'
 import { absWeek as gameWeek } from './model'
 import { analystRead, analystSkill, readOdds, readUnit, sureBand, UNIT_PREP, type AnalystRead } from './analyst'
 import { tapeLine } from './armsrace'
+import { rematchLine, rematchOf } from './rematch'
 import { lineupFor, teamUnits } from './matchEngine'
+import { lastEvidence, rankWhy, trimRecall } from './evidence'
 import { fuzzedCa, knowledge, margin } from './scout'
 import { analystShift, archetypeOf } from './oppcoach'
 import { COUNTER, philosophyOf } from './philosophy'
@@ -103,13 +105,18 @@ export interface ChosenPlan {
 export interface TacLoop {
   plan?: ChosenPlan | null
   findings: FindingsRecord[]
-  /** what each of the last six matches was made of (evidence.ts), filed
-   *  beside its findings; absent on a save from before 1.8.3 */
+  /** what the manager's matches were made of (evidence.ts), filed beside
+   *  the findings and kept the same way (trimRecall); absent on a save from
+   *  before 1.8.3 */
   evidence?: import('./evidence').CausalEvidence[]
 }
 
-/** how many post-match reads the save keeps: enough to remember a side met in
- *  the autumn by the spring, without the file growing a season at a time */
+/** how many of the newest post-match reads the save keeps whoever they were
+ *  against. Six alone never reached a league's return fixture, nine or more
+ *  rounds on, so since 1.8.4 the latest against each other side is kept
+ *  before them as well (evidence.ts trimRecall, RECALL_CAP in all): a side
+ *  met in the autumn is remembered in the spring, and the file still does
+ *  not grow a season at a time. */
 export const FINDINGS_CAP = 6
 
 // ---------------------------------------------------------------------------
@@ -339,12 +346,17 @@ function coachLines(state: GameState, club: Club, acc: number): ReportLine[] {
   return out
 }
 
-function historyLines(last: FindingsRecord | null): ReportLine[] {
+function historyLines(state: GameState, last: FindingsRecord | null): ReportLine[] {
   if (!last) return []
   const res = last.us > last.them ? 'W' : last.us < last.them ? 'L' : 'D'
   const out: ReportLine[] = [{
     cat: 'history', k: `oppreport.lastMet${res}`, v: { us: last.us, them: last.them }, ok: true,
   }]
+  // THE REMATCH (1.8.4, rematch.ts): what their coach has changed since,
+  // said whenever it changes the match, at any accuracy, second so it is
+  // never folded away
+  const rm = rematchOf(state, last.oppId)
+  if (rm) out.push({ cat: 'history', ...rematchLine(rm), ok: true })
   if (last.recall) {
     const theyStruggled = last.recall.pct >= 50
     out.push({
@@ -355,6 +367,11 @@ function historyLines(last: FindingsRecord | null): ReportLine[] {
   if (last.plan) {
     out.push({ cat: 'history', k: `oppreport.lastPlan_${last.plan.verdict}`, v: { plan_k: `oppreport.plan_${last.plan.id}` }, ok: true })
   }
+  // what decided it (1.8.4): the full-time card's top line from that match,
+  // our own count, so always true
+  const ev = lastEvidence(state, last.oppId)
+  const why = ev && ev.fxId === last.fxId ? rankWhy(ev, 1)[0] : null
+  if (why) out.push({ cat: 'history', k: why.k, v: why.v, ok: true })
   return out
 }
 
@@ -387,7 +404,11 @@ export function buildReport(state: GameState, oppId: string): OppReport {
       ok: soft.right, conf: sureBand(soft.confidence),
     })
   }
-  lines.push(...historyLines(last))
+  lines.push(...historyLines(state, last))
+  // (a rematch read off the evidence is said even if the findings of that
+  // meeting are gone: nothing that changes the match goes unsaid)
+  const rm = !last && club ? rematchOf(state, oppId) : null
+  if (rm) lines.push({ cat: 'history', ...rematchLine(rm), ok: true })
   return { oppId, abs: absWeek(state), test: !club, accuracy: acc, band: bandOf(acc), lines, soft, last }
 }
 
@@ -532,11 +553,12 @@ export const isCurrent = (state: GameState, oppId: string, opt: PlanOption) => {
 // The save
 // ---------------------------------------------------------------------------
 
-/** Keep a findings record, one per fixture, capped. */
+/** Keep a findings record, one per fixture: the newest six and the last
+ *  against each other side (trimRecall). */
 export function keepFindings(state: GameState, rec: FindingsRecord): void {
   const loop = (state.tacLoop ??= { findings: [] })
   if (loop.findings.some(f => f.fxId === rec.fxId && f.season === rec.season)) return
-  loop.findings = [...loop.findings, rec].slice(-FINDINGS_CAP)
+  loop.findings = trimRecall([...loop.findings, rec], FINDINGS_CAP)
 }
 
 /** Heal whatever an older or damaged save carries. An absent loop stays absent. */
@@ -548,7 +570,7 @@ export function migrateTacLoop(s: GameState): void {
   const list = Array.isArray(loop.findings) ? loop.findings : []
   loop.findings = list.filter(f => !!f && typeof f === 'object'
     && typeof f.fxId === 'number' && typeof f.oppId === 'string' && Array.isArray(f.items))
-    .slice(-FINDINGS_CAP)
+  loop.findings = trimRecall(loop.findings, FINDINGS_CAP)
   const p = loop.plan
   if (p && (typeof p !== 'object' || typeof p.abs !== 'number' || typeof p.oppId !== 'string'
     || !PLAN_IDS.includes(p.id) || !p.levers || typeof p.levers !== 'object')) loop.plan = null

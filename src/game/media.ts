@@ -681,7 +681,10 @@ export function generatePress(state: GameState, rng: Rng) {
 
   // results pressure. formGuide sorts by week; a raw slice of the fixtures
   // array reads appended cup rounds out of calendar order (the Home pips bug).
-  const recent = formGuide(state, club.id, 4)
+  // NOT THE FRIENDLIES (1.8.4 RC): three pre-season run-outs lost were
+  // asked about as "talk of a crisis" while the barometer beside the
+  // question said no competitive result had been played yet
+  const recent = formGuide(state, club.id, 4, true)
   const losses = recent.filter(r => r === 'L').length
   if (losses >= 3) {
     candidates.push(mk(state,
@@ -876,7 +879,7 @@ export function generatePress(state: GameState, rng: Rng) {
       if (star && suitor) pool.push(() => mk(state,
         { k: voice(52 + star.id, ['press.baroSuitorQ1', 'press.baroSuitorQ2']), v: { player: star.name, club: suitor.name } },
         star.id, [
-          opt({ morale: 0.6, board: 0, squad: 0.2, press: -2, fans: 0.3, lk: 'press.baroSuitorNo', rk: 'press.baroSuitorNoR', rv: { player: star.name } }),
+          opt({ morale: 0.6, board: 0, squad: 0.2, press: -2, fans: 0.3, lk: 'press.baroSuitorNo', lv: { player: star.name }, rk: 'press.baroSuitorNoR', rv: { player: star.name } }),
           opt({ morale: -1, board: 0.2, squad: -0.3, press: 3, unsettle: true, lk: 'press.baroSuitorListen', rk: 'press.baroSuitorListenR' }),
           opt({ morale: 0, board: -0.1, squad: 0.3, press: -6, fans: 0.4, lk: 'press.baroBite', rk: 'press.baroBiteR' }),
           opt({ morale: 0, board: 0, press: 1, lk: 'press.baroSuitorNoCall', rk: 'press.baroSuitorNoCallR' }),

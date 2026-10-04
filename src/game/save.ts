@@ -1044,9 +1044,17 @@ export function migrate(s: GameState): GameState {
   }
 
   // the tactical loop's findings: healed and capped (#181), and the evidence
-  // filed beside them (1.8.3): absent on an older save, and left absent
+  // filed beside them (1.8.3): absent on an older save, and left absent.
+  // Since 1.8.4 both keep the last against each other side as well as the
+  // newest six (evidence.ts trimRecall), and an older save's lists, already
+  // six or fewer, keep every record they have.
   migrateTacLoop(s)
   migrateEvidence(s)
+  // the homework, now set on every match (coachfix fileHomework): one that
+  // cannot be read is dropped, which is read as no homework
+  const hw = s.fixHw as unknown as Record<string, unknown> | undefined
+  if (hw !== undefined && (!hw || typeof hw !== 'object' || ![hw.fxId, hw.season, hw.week].every(n => typeof n === 'number' && Number.isFinite(n))
+    || !Array.isArray(hw.tags) || !hw.tags.every(x => typeof x === 'string'))) delete s.fixHw
 
   // THE STYLES (1.8.2): a save from before them has dials and no style, so
   // the manager's side is named the nearest attack and defence to its dials,

@@ -3,6 +3,17 @@ import { fmtMoney, seasonLabel } from '../../game/model'
 import { Crest, SectionTitle } from '../components'
 import { ord, t, compLabel } from '../../game/i18n'
 import { Glyph } from '../glyphs'
+import { seasonTurn } from '../../game/turning'
+
+/** How far each cup run went. The review is written into the save at the
+ *  rollover in English (rollover.ts), so it is put into words here: a French
+ *  season review said "semi-final exit" beside "Coupe continentale". */
+const CUP_RESULT: Record<string, string> = {
+  'Pool stages': 'legacy.srCupPool', 'playoff barrage': 'legacy.srCupBAR', 'last-16 exit': 'legacy.srCupR16',
+  'quarter-final exit': 'legacy.srCupQF', 'semi-final exit': 'legacy.srCupSF', 'Runners-up': 'legacy.srCupF',
+  CHAMPIONS: 'legacy.srChampions',
+}
+const cupResult = (s: string): string => CUP_RESULT[s] ? t(CUP_RESULT[s]) : s
 
 /** The annual: last season on one page - the league, the cups, the
  *  stars, the money and the board's mood. */
@@ -20,7 +31,7 @@ export default function SeasonReview() {
   }
   const club = game.clubs[game.userClubId]
   const headline = r.trophies.length
-    ? t('legacy.srHeadTrophies', { list: r.trophies.join(' · ') })
+    ? t('legacy.srHeadTrophies', { list: r.trophies.map(n => compLabel(n)).join(' · ') })
     : r.league.pos === 1 ? t('legacy.srHeadLeaders')
     : r.league.predicted && r.league.pos < r.league.predicted ? t('legacy.srHeadAbove')
     : r.league.predicted && r.league.pos > r.league.predicted ? t('legacy.srHeadBelow')
@@ -33,16 +44,10 @@ export default function SeasonReview() {
   )
   return (
     <>
-      <header className="masthead">
-        <div className="masthead-row">
-          <button className="back-btn" onClick={back}>‹</button>
-          <div style={{ flex: 1 }}>
-            <h1>{t('legacy.srTitle', { label: seasonLabel(r.season) })}</h1>
-            <div className="date">{t('legacy.srSub', { club: r.clubName })}</div>
-          </div>
-        </div>
-      </header>
-      <main className="content">
+      {/* ONE MASTHEAD (1.8.4 Phase 7). This screen carried its own header and
+          its own scrolling main inside the app's, so the review opened under
+          two back arrows and two title bars. The app's masthead wears the
+          title now (App.tsx) and this is just the page. */}
         {/* THE SEASON CARD (C4).
             The review is nine sections long and reads beautifully on the sofa,
             which is not the same thing as being showable. This is the year in one
@@ -78,16 +83,29 @@ export default function SeasonReview() {
             </div>
           )}
           {r.trophies.length > 0 && (
-            <div className="sc-cup"><Glyph name="trophy" /> {r.trophies.join(' · ')}</div>
+            <div className="sc-cup"><Glyph name="trophy" /> {r.trophies.map(n => compLabel(n)).join(' · ')}</div>
           )}
         </div>
 
         <div className="card center" style={{ borderLeft: '4px solid var(--gold)' }}>
+          {/* the record under the verdict said the season card's W D L again */}
           <h3 style={{ fontSize: 18 }}>{headline}</h3>
-          <div className="meta">
-            {t('legacy.srRecordLine', { w: r.overall.w, d: r.overall.d, l: r.overall.l, m: r.overall.m })}
-          </div>
         </div>
+
+        {/* THE TURNING POINT (1.8.4, turning.ts): at most one a season, and
+            only when something changed the club. A plain title or cup is the
+            headline already; the final that turned is not */}
+        {(() => {
+          const cid = game.mgr.finishes.find(f => f.season === r.season)?.clubId ?? game.userClubId
+          const tp = seasonTurn(game, cid, r.season)
+          if (!tp || tp.why === 'title' || tp.why === 'cup') return null
+          return (
+            <div className="card season-turn">
+              <div className="fact-label">{t('tp.season')}</div>
+              <div className="meta" style={{ marginTop: 3 }}>{t(tp.k, tp.v)}</div>
+            </div>
+          )
+        })()}
 
         {r.dream && (
           <>
@@ -126,7 +144,7 @@ export default function SeasonReview() {
           <>
             <SectionTitle sub={t('legacy.srCupsSub')}>{t('legacy.srTheCups')}</SectionTitle>
             <div className="card">
-              {r.cups.map((c, i) => row(c.comp, c.result, c.result.includes('CHAMPIONS')))}
+              {r.cups.map(c => row(compLabel(c.comp), cupResult(c.result), c.result.includes('CHAMPIONS')))}
             </div>
           </>
         )}
@@ -159,7 +177,7 @@ export default function SeasonReview() {
                       {a.league.pos > 0 ? ord(a.league.pos) : '-'}
                     </td>
                     <td className="num">{a.overall.w}-{a.overall.d}-{a.overall.l}</td>
-                    <td>{a.trophies.length > 0 && <><span style={{ color: 'var(--gold)' }}><Glyph name="trophy" /></span> {a.trophies.length > 1 ? `×${a.trophies.length}` : a.trophies[0]}</>}</td>
+                    <td>{a.trophies.length > 0 && <><span style={{ color: 'var(--gold)' }}><Glyph name="trophy" /></span> {a.trophies.length > 1 ? `×${a.trophies.length}` : compLabel(a.trophies[0])}</>}</td>
                   </tr>
                 ))}
               </tbody>
@@ -192,7 +210,6 @@ export default function SeasonReview() {
           {t('legacy.srFileAway')}
         </button>
         <div className="spacer" />
-      </main>
     </>
   )
 }
