@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../../store'
 import { fmtMoney, mgrReputation } from '../../game/model'
-import { jobChance, offerCite, sackCooloff } from '../../game/jobs'
+import { jobChance, jobFit, offerCite, sackCooloff } from '../../game/jobs'
 import { jobProfile } from '../../game/chairman'
 import { squadValue } from '../../game/analysis'
 import { Crest, SectionTitle } from '../components'
@@ -72,6 +72,8 @@ export default function Jobs() {
             </div>
             {/* WHAT KIND OF JOB (chairman.ts): read from the club, one line */}
             <div className="meta job-profile" style={{ fontStyle: 'italic' }}>{t(`arc.profile.${jobProfile(game, club.id)}`)}</div>
+            {/* and whether what he is known for is what it wants (jobs.ts jobFit) */}
+            {cold === 0 && jobFit(game, club.id) && <div className="meta job-fit" style={{ color: 'var(--text-positive)' }}>{t('arc.jobFit')}</div>}
           </div>
           {cold === 0 && (
             <button className="btn gold" disabled={!!v.applied}
