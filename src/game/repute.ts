@@ -23,7 +23,10 @@
  *   attack        sides that score well over it
  *
  * Shown as a line of plain sentences on the manager's profile and cited by the
- * clubs that offer him work. No numbers anywhere.
+ * clubs that offer him work. No numbers anywhere. Which way each is moving
+ * (mgrTrends) is a line under it. The top trait gives a small lift at a club
+ * whose job it fits (jobs.ts jobFit), and the chairman reads the season's row
+ * in May (chairman.ts boardMethod).
  *
  * THE CLUB'S. identity.ts forms and fades labels as the club is run. A label
  * held four summers running hardens into the club's REPUTATION ("A club built
@@ -115,10 +118,15 @@ export function conductRow(state: GameState): Conduct | null {
 export function mgrTraits(state: GameState): { id: Trait; n?: number }[] {
   if (ARC_OFF.on) return []
   const rows = (state.arc?.conduct ?? []).slice(-WINDOW)
+  return readTraits(state, rows, state.arc?.turned.length ?? 0)
+    .sort((a, b) => b.w - a.w).slice(0, 3).map(({ id, n }) => ({ id, n }))
+}
+
+/** Every trait the rows show, with its strength. Unsorted. */
+function readTraits(state: GameState, rows: Conduct[], turned: number): { id: Trait; n?: number; w: number }[] {
   const out: { id: Trait; n?: number; w: number }[] = []
-  const turned = state.arc?.turned.length ?? 0
   if (turned > 0) out.push({ id: 'turnaround', n: turned, w: 60 + turned * 10 })
-  if (rows.length < MIN_SEASONS) return out.map(({ id, n }) => ({ id, n }))
+  if (rows.length < MIN_SEASONS) return out
   const avg = (f: (r: Conduct) => number) => rows.reduce((s, r) => s + f(r), 0) / rows.length
   const played = rows.filter(r => r.m > 0)
   const avgP = (f: (r: Conduct) => number) => played.length ? played.reduce((s, r) => s + f(r), 0) / played.length : 0
@@ -153,7 +161,62 @@ export function mgrTraits(state: GameState): { id: Trait; n?: number }[] {
     if (pa <= 0.82) out.push({ id: 'defence', w: 30 + (1 - pa) * 100 })
     if (pf >= 1.18) out.push({ id: 'attack', w: 30 + (pf - 1) * 100 })
   }
-  return out.sort((a, b) => b.w - a.w).slice(0, 3).map(({ id, n }) => ({ id, n }))
+  return out
+}
+
+/**
+ * ---- WHERE THE NAME IS GOING ----
+ *
+ * The traits say what the manager is known for; this says which way it is
+ * moving. The same reading is taken twice, over the rows as they stand and
+ * over the rows as they stood TREND_GAP seasons ago, and the two compared: a
+ * trait that was not there then is forming, one clearly stronger is growing,
+ * one that was there and has gone is fading. Nothing is stored, so change the
+ * conduct and the line changes with it.
+ *
+ * The youth variants are one family here (the variant reads today's
+ * graduates, which a past reading cannot see). A club turned round carries no
+ * date, so the past reading counts only the clubs he had already left.
+ */
+export const TREND_GAP = 3
+/** how much stronger a trait must read now than then to be growing */
+const TREND_RISE = 1.12
+export type TraitFamily = 'youth' | Exclude<Trait, 'youthBacks' | 'youthPack' | 'youthIntl'>
+export type Trend = { id: TraitFamily; dir: 'new' | 'rise' | 'fade'; now: number; then: number }
+
+const familyOf = (id: Trait): TraitFamily => id.startsWith('youth') ? 'youth' : id as TraitFamily
+
+/** Each trait's movement, strongest first. Pure. */
+export function mgrTrends(state: GameState): Trend[] {
+  if (ARC_OFF.on || !state.arc) return []
+  const all = state.arc.conduct ?? []
+  const last = all.length ? all[all.length - 1].s : state.season
+  const thenRows = all.filter(r => r.s <= last - TREND_GAP)
+  const turnedThen = state.arc.turned.filter(c => {
+    const at = all.filter(r => r.c === c)
+    return at.length > 0 && at.every(r => r.s <= last - TREND_GAP)
+  }).length
+  const read = (rows: Conduct[], turned: number) => {
+    const m = new Map<TraitFamily, number>()
+    for (const tr of readTraits(state, rows.slice(-WINDOW), turned)) m.set(familyOf(tr.id), Math.max(m.get(familyOf(tr.id)) ?? 0, tr.w))
+    return m
+  }
+  const now = read(all, state.arc.turned.length), then = read(thenRows, turnedThen)
+  const out: Trend[] = []
+  for (const [id, w] of now) {
+    const was = then.get(id)
+    if (was == null) out.push({ id, dir: 'new', now: w, then: 0 })
+    else if (w >= was * TREND_RISE) out.push({ id, dir: 'rise', now: w, then: was })
+  }
+  for (const [id, was] of then) if (!now.has(id)) out.push({ id, dir: 'fade', now: 0, then: was })
+  return out.sort((a, b) => Math.max(b.now, b.then) - Math.max(a.now, a.then))
+}
+
+/** At most two lines for the profile: the strongest movement up, and a fade. */
+export function trendLines(state: GameState): { k: string; trait_k: string }[] {
+  const ts = mgrTrends(state)
+  const up = ts.find(x => x.dir !== 'fade'), down = ts.find(x => x.dir === 'fade')
+  return [up, down].filter((x): x is Trend => !!x).map(x => ({ k: `arc.trend.${x.dir}`, trait_k: `arc.trait.${x.id}` }))
 }
 
 /** Academy players the manager's jobs gave a debut, as they are now. */

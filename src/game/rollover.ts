@@ -1658,7 +1658,10 @@ export function rebuildSeason(state: GameState) {
     }
   }
 
-  arcYearEnd(state) // the career arc's summer: conduct, the chairman's verdict, eras, rivals (arc.ts)
+  // the career arc's summer: conduct, the chairman's verdict, eras, rivals
+  // (arc.ts). The board's points for the season's METHOD come back rather
+  // than land here, and are added after the summer pull below.
+  const methodPts = arcYearEnd(state)
   identitySeasonEnd(state) // the identity's expectations, met or missed (identity.ts)
   // archive player season -> career
   // THE SEASON REVIEW (1.8.2, devproject.ts): before the season's numbers are
@@ -2223,6 +2226,13 @@ export function rebuildSeason(state: GameState) {
     const frac = finishFrac.get(club.id)
     const target = frac == null ? 75 : 86 - frac * 54
     club.boardConfidence = clamp(club.boardConfidence * 0.55 + target * 0.45, 0, 100)
+    // THE METHOD SURVIVES THE PULL. The pull keeps 55% of whatever stood
+    // before it, so the board's read of how the season was run (chairman.ts
+    // boardMethod, at most 4 points) would arrive as two. It is added here,
+    // after, so the letter's points are the points the boardroom keeps.
+    if (methodPts && club.id === state.userClubId && !state.unemployed) {
+      club.boardConfidence = clamp(club.boardConfidence + methodPts, 0, 100)
+    }
     // THE MANAGER'S OWN SHEET SURVIVES THE SUMMER. It used to be re-picked here
     // for every club, his included, and marked as the game's, so a side he had
     // chosen with care came back in August as the auto-pick's. Only the men who

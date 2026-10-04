@@ -8736,6 +8736,33 @@
   "offerCiteSubj": "Perché {short} ti vuole",
   "offerCite": "Perché {short} ti vuole, con parole sue: {cite_k}",
   "offerHeard": "Cosa hanno sentito dire: {cite_k}",
+  "jobFit": "La tua reputazione è proprio ciò che cerca questo posto.",
+  "trend": {
+   "new": "Ti stai facendo un nome per {trait_k}.",
+   "rise": "Il tuo nome evoca sempre più {trait_k}.",
+   "fade": "La tua fama per {trait_k} si sta spegnendo."
+  },
+  "trait": {
+   "youth": "la crescita dei giovani",
+   "innovator": "le idee nuove di gioco",
+   "spender": "le grandi spese",
+   "hard": "la disciplina",
+   "players": "la gestione dello spogliatoio",
+   "turnaround": "il rilancio dei club",
+   "defence": "il rugby difensivo",
+   "attack": "il rugby d'attacco"
+  },
+  "meth": {
+   "broke": "I tuoi metodi: promesse fatte allo spogliatoio non mantenute, e la dirigenza lo ha saputo.",
+   "kept": "I tuoi metodi: promesse fatte allo spogliatoio mantenute. La dirigenza lo ha notato.",
+   "debt": "I tuoi metodi: il debito è cresciuto sotto la tua guida.",
+   "prudent": "I tuoi metodi: le spese sono rimaste nei mezzi del club.",
+   "hard": "I tuoi metodi: decisioni dure e uno spogliatoio scontento. La dirigenza è inquieta.",
+   "academy": "I tuoi metodi: il vivaio ha avuto la sua occasione.",
+   "attack": "I tuoi metodi: la squadra ha attaccato, e il presidente si è divertito.",
+   "spent": "I tuoi metodi: i soldi sono stati spesi con audacia.",
+   "defence": "I tuoi metodi: una squadra difficile da battere."
+  },
   "profile": {
    "giant": "Un club ricco che pretende titoli.",
    "fallen": "Un gigante decaduto: un grande nome e una rosa non più all'altezza.",
