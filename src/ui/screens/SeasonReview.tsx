@@ -3,6 +3,7 @@ import { fmtMoney, seasonLabel } from '../../game/model'
 import { Crest, SectionTitle } from '../components'
 import { ord, t, compLabel } from '../../game/i18n'
 import { Glyph } from '../glyphs'
+import { seasonTurn } from '../../game/turning'
 
 /** The annual: last season on one page - the league, the cups, the
  *  stars, the money and the board's mood. */
@@ -88,6 +89,21 @@ export default function SeasonReview() {
             {t('legacy.srRecordLine', { w: r.overall.w, d: r.overall.d, l: r.overall.l, m: r.overall.m })}
           </div>
         </div>
+
+        {/* THE TURNING POINT (1.8.4, turning.ts): at most one a season, and
+            only when something changed the club. A plain title or cup is the
+            headline already; the final that turned is not */}
+        {(() => {
+          const cid = game.mgr.finishes.find(f => f.season === r.season)?.clubId ?? game.userClubId
+          const tp = seasonTurn(game, cid, r.season)
+          if (!tp || tp.why === 'title' || tp.why === 'cup') return null
+          return (
+            <div className="card season-turn">
+              <div className="fact-label">{t('tp.season')}</div>
+              <div className="meta" style={{ marginTop: 3 }}>{t(tp.k, tp.v)}</div>
+            </div>
+          )
+        })()}
 
         {r.dream && (
           <>

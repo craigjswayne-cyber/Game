@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { useStore } from '../../store'
-import { ATTR_KEYS, SEASON_WEEKS, careerRows, fmtMoney, fmtWage, injuryDesc, type Attrs, type GameState, type Player, type TrainingFocus } from '../../game/model'
+import { ATTR_KEYS, SEASON_WEEKS, careerRows, fmtMoney, fmtWage, injuryDesc, type Attrs, type GameState, type Player, type TrainingFocus, seasonLabel } from '../../game/model'
 import { agreeFee, agreePreContract, askingPrice, floorPrice, sellerWillingness, offerRenewalAt, personalTermsDemand, renewalDemand, signFreeAgent, signOnTerms } from '../../game/ai'
 import { FormPill, Nat, PosBadge, SectionTitle, Stars, TwoStep, RewardedButton } from '../components'
 import { nationName } from '../../game/nations'
@@ -10,6 +10,7 @@ import { attrRange, fuzzedCa, knowledge, paRange, reportStage, seenValue, wonder
 import { benchNote, temperRead } from '../../game/temperament'
 import { formTrend, traitHints } from '../../game/formtraits'
 import { habitHint } from '../../game/habits'
+import { playerStory } from '../../game/stories'
 import { bondsLine } from '../../game/bonds'
 import { canAgencyFile, canSecondOpinion } from '../../game/rewarded'
 import { rewardedAvailable } from '../../game/monetise'
@@ -139,6 +140,17 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             <div style={{ marginTop: 4 }}><FormPill v={p.form} trend={formTrend(p)} /></div>
           </div>
         </div>
+        {/* HIS STORY WITH YOU (1.8.4, stories.ts): one to three lines for the
+            few men who have one, read from what the save already holds */}
+        {(() => {
+          const story = playerStory(game, p)
+          if (!story.length) return null
+          return (
+            <div className="player-story" style={{ marginTop: 8, paddingTop: 6, borderTop: '1px solid var(--border)' }}>
+              {story.map(l => <div key={l.why} className="meta" style={{ fontStyle: 'italic' }}>{t(l.k, l.v)}</div>)}
+            </div>
+          )
+        })()}
       </div>
 
       {/* ---- what this man is, in one sentence, before any numbers ----
@@ -480,7 +492,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           <div className="card dev-timeline">
             {(p.tl ?? []).map(([s, r, f]) => (
               <div key={s} className="tl-row">
-                <span className="tl-season">{2025 + s}-{String((2026 + s) % 100).padStart(2, '0')}</span>
+                <span className="tl-season">{seasonLabel(s)}</span>
                 <b className="tl-rating">{r}</b>
                 <span className="tl-moments">{TL_KEYS.filter(([bit]) => f & bit).map(([, k]) => <span key={k} className="chip tl-chip">{t(k)}</span>)}</span>
               </div>
@@ -504,7 +516,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             <tbody>
               {[...p.career].reverse().map((c, i) => (
                 <tr key={i}>
-                  <td>{2025 + c.season}-{String((2026 + c.season) % 100).padStart(2, '0')}</td>
+                  <td>{seasonLabel(c.season)}</td>
                   <td>{game.clubs[c.clubId]?.short ?? c.clubId}</td>
                   <td className="num">{c.apps}</td>
                   <td className="num">{c.tries}</td>

@@ -3711,7 +3711,11 @@
   "anRival": "'n Wedywering met {club} is gebore.",
   "anFinish": "{pos_o} in die {comp}.",
   "anArrived": "Het by {club} oorgeneem.",
-  "anReturned": "Het na {club} teruggekeer."
+  "anReturned": "Het na {club} teruggekeer.",
+  "anTurnWon": "{comp}-{stage_k}: ná {min} minute vir goed voor, en {us}-{them} gewen.",
+  "anTurnLost": "{comp}-{stage_k}: voor tot ná {min} minute, en {us}-{them} verloor.",
+  "stageFinal": "eindstryd",
+  "stagePlayoff": "uitspeelwedstryd"
  },
  "legacy": {
   "lgDirectorOf": "Rugbydirekteur, {club}",
@@ -8890,12 +8894,16 @@
   "erasTitle": "Eras",
   "erasSub": "Wanneer 'n pos eindig, en elke vyf seisoene",
   "eraSoFar": "tot dusver",
-  "eraRecord": "Rekord",
-  "eraTrophies": "Trofeë",
+  "builtSeasons": {"one": "{n} seisoen", "other": "{n} seisoene"},
+  "builtCups": {"one": "{n} trofee", "other": "{n} trofeë"},
+  "builtUp": {"one": "{n} bevordering", "other": "{n} bevorderings"},
+  "builtDown": {"one": "{n} relegasie", "other": "{n} relegasies"},
+  "builtGrads": {"one": "{n} akademiedebuut", "other": "{n} akademiedebute"},
+  "builtCapped": {"one": "{n} internasionaal", "other": "{n} internasionale"},
+  "builtFee": "Grootste bedrag: {fee} ({player})",
   "eraIntl": "Internasionale spelers uit die akademie",
   "eraPlayer": "Grootste speler",
   "eraRival": "Mededinger",
-  "eraIdentity": "Wat die klub geword het",
   "eraEndSubj": "{cn}: die verhaal van 'n era",
   "eraEnd": "{story_k} Gewen {w}, gelykop {d}, verloor {l}, trofeë {cups}, van {from} tot {to}. Die hele era word in Bestuurder se Nalatenskap bewaar.",
   "eraFiveSubj": "{cn}: die verhaal tot dusver",
@@ -9155,5 +9163,37 @@
   "verdict_good": "Dit tref: byna die hele kleedkamer lyk gereed.",
   "verdict_mixed": "Dit tref by party, en by ander nie.",
   "verdict_bad": "Dit mis: die kleedkamer was nie lus daarvoor nie."
+ },
+ "story": {
+  "grad": {"one": "Deur jou akademie by {club} in {season}: {n} wedstryd sedertdien.", "other": "Deur jou akademie by {club} in {season}: {n} wedstryde sedertdien."},
+  "gradNew": "Deur jou akademie by {club} in {season}.",
+  "gradTest": "Deur jou akademie by {club} in {season}, en daarna Toetsrugby.",
+  "record": {"one": "Jou rekordaanwins, {fee} in {season}: {n} wedstryd sedertdien.", "other": "Jou rekordaanwins, {fee} in {season}: {n} wedstryde sedertdien."},
+  "recordGone": "Jou rekordaanwins, {fee} in {season}.",
+  "captain": {"one": "Jou kaptein: {n} wedstryd vir {club}.", "other": "Jou kaptein: {n} wedstryde vir {club}."},
+  "legend": {"one": "'n {club}-legende sedert {season}: {n} wedstryd vir die klub.", "other": "'n {club}-legende sedert {season}: {n} wedstryde vir die klub."},
+  "legendOld": {"one": "'n {club}-legende: {n} wedstryd vir die klub.", "other": "'n {club}-legende: {n} wedstryde vir die klub."},
+  "sold": {"one": "In {season} vir {fee} aan {buyer} verkoop, ná {n} wedstryd vir {club}.", "other": "In {season} vir {fee} aan {buyer} verkoop, ná {n} wedstryde vir {club}."},
+  "released": {"one": "In {season} deur {club} vrygestel, ná {n} wedstryd.", "other": "In {season} deur {club} vrygestel, ná {n} wedstryde."},
+  "letGo": {"one": "In {season} deur {club} laat gaan, ná {n} wedstryd.", "other": "In {season} deur {club} laat gaan, ná {n} wedstryde."},
+  "promiseKept": "Jy het in {season} {what_k} belowe, en jou woord gehou.",
+  "promiseBroken": "Jy het in {season} {what_k} belowe, en jou woord gebreek.",
+  "what": {
+   "plans": "'n plek in jou planne",
+   "minutes": "meer speeltyd",
+   "deal": "'n nuwe kontrak",
+   "role": "'n plek in die beginspan"
+  },
+  "reqRefused": "Het in {season} gevra om te gaan, en jy het nee gesê.",
+  "reqGranted": "Het in {season} gevra om te gaan, en jy het ingestem.",
+  "oldBoy": {"one": "{n} wedstryd vir {club} voor die skuif.", "other": "{n} wedstryde vir {club} voor die skuif."},
+  "service": {"one": "{n} wedstryd vir {club}.", "other": "{n} wedstryde vir {club}."}
+ },
+ "tp": {
+  "era": "Keerpunte",
+  "season": "Die keerpunt",
+  "run": {"one": "{n} wedstryd op 'n ry onoorwonne, die langste reeks van jou loopbaan.", "other": "{n} wedstryde op 'n ry onoorwonne, die langste reeks van jou loopbaan."},
+  "low": "{us}-{them} teen {opp} verloor, die swaarste nederlaag van die era. Die volgende seisoen was beter.",
+  "signing": "{player} vir {fee} gekontrakteer, die grootste bedrag van die era."
  }
 }

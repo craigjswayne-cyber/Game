@@ -119,10 +119,14 @@ export interface Era {
   tr: string[]
   /** academy players he gave a debut who have played Test rugby */
   intl: number
-  rs?: { n: string; fee: number }
+  /** academy players he gave a debut (1.8.4; absent on an era told before) */
+  gr?: number
+  /** the biggest fee and the worst defeat carry their season (1.8.4), so the
+   *  era's turning points can place them (turning.ts) */
+  rs?: { n: string; fee: number; s?: number }
   gp?: { n: string; a: number }
   gw?: { o: string; us: number; them: number }
-  wd?: { o: string; us: number; them: number }
+  wd?: { o: string; us: number; them: number; s?: number }
   /** the rival coach's name, and the identity label the club held */
   rv?: string
   id?: string
@@ -262,6 +266,10 @@ export function migrateArc(s: GameState): void {
     if (!Array.isArray(e.tr)) e.tr = []
     if (!e.sv || typeof e.sv !== 'object') e.sv = {}
     for (const k of ['m', 'w', 'd', 'l', 'intl', 't'] as const) if (!num(e[k])) e[k] = 0
+    // 1.8.4's optional facts: absent on an older era, and dropped when unreadable
+    if (e.gr != null && !num(e.gr)) delete e.gr
+    if (e.rs && e.rs.s != null && !num(e.rs.s)) delete e.rs.s
+    if (e.wd && e.wd.s != null && !num(e.wd.s)) delete e.wd.s
   }
   const cur = a.cur as unknown
   if (cur != null && (typeof cur !== 'object' || typeof a.cur!.c !== 'string' || !num(a.cur!.f))) delete a.cur

@@ -3707,7 +3707,11 @@
   "anRival": "A rivalry with {club} was born.",
   "anFinish": "Finished {pos_o} in the {comp}.",
   "anArrived": "Took charge of {club}.",
-  "anReturned": "Came back to {club}."
+  "anReturned": "Came back to {club}.",
+  "anTurnWon": "{comp} {stage_k}: took the lead for good on {min} minutes and won {us}-{them}.",
+  "anTurnLost": "{comp} {stage_k}: led until {min} minutes and lost {us}-{them}.",
+  "stageFinal": "final",
+  "stagePlayoff": "play-off"
  },
  "legacy": {
   "lgDirectorOf": "Director of Rugby, {club}",
@@ -8846,12 +8850,16 @@
   "erasTitle": "Eras",
   "erasSub": "Told when a job ends, and every fifth season",
   "eraSoFar": "so far",
-  "eraRecord": "Record",
-  "eraTrophies": "Trophies",
+  "builtSeasons": {"one": "{n} season", "other": "{n} seasons"},
+  "builtCups": {"one": "{n} trophy", "other": "{n} trophies"},
+  "builtUp": {"one": "{n} promotion", "other": "{n} promotions"},
+  "builtDown": {"one": "{n} relegation", "other": "{n} relegations"},
+  "builtGrads": {"one": "{n} academy debut", "other": "{n} academy debuts"},
+  "builtCapped": {"one": "{n} capped", "other": "{n} capped"},
+  "builtFee": "Biggest fee: {fee} ({player})",
   "eraIntl": "Academy internationals",
   "eraPlayer": "Greatest player",
   "eraRival": "Rival",
-  "eraIdentity": "What the club became",
   "eraEndSubj": "{cn}: the story of an era",
   "eraEnd": "{story_k} Won {w}, drawn {d}, lost {l}, trophies {cups}, from {from} to {to}. The whole era is kept in Manager Legacy.",
   "eraFiveSubj": "{cn}: the story so far",
@@ -9109,5 +9117,37 @@
   "verdict_good": "It lands: most of the room looks ready.",
   "verdict_mixed": "It lands with some and not with others.",
   "verdict_bad": "It misses: the room was in no mood for that."
+ },
+ "story": {
+  "grad": {"one": "Came through your academy at {club} in {season}: {n} appearance since.", "other": "Came through your academy at {club} in {season}: {n} appearances since."},
+  "gradNew": "Came through your academy at {club} in {season}.",
+  "gradTest": "Came through your academy at {club} in {season}, and on to Test rugby.",
+  "record": {"one": "Your record signing, {fee} in {season}: {n} appearance since.", "other": "Your record signing, {fee} in {season}: {n} appearances since."},
+  "recordGone": "Your record signing, {fee} in {season}.",
+  "captain": {"one": "Your captain: {n} appearance for {club}.", "other": "Your captain: {n} appearances for {club}."},
+  "legend": {"one": "A {club} legend since {season}: {n} appearance for the club.", "other": "A {club} legend since {season}: {n} appearances for the club."},
+  "legendOld": {"one": "A {club} legend: {n} appearance for the club.", "other": "A {club} legend: {n} appearances for the club."},
+  "sold": {"one": "Sold to {buyer} for {fee} in {season}, after {n} appearance for {club}.", "other": "Sold to {buyer} for {fee} in {season}, after {n} appearances for {club}."},
+  "released": {"one": "Released by {club} in {season}, after {n} appearance.", "other": "Released by {club} in {season}, after {n} appearances."},
+  "letGo": {"one": "Let go by {club} in {season}, after {n} appearance.", "other": "Let go by {club} in {season}, after {n} appearances."},
+  "promiseKept": "You promised {what_k} in {season}, and kept your word.",
+  "promiseBroken": "You promised {what_k} in {season}, and broke your word.",
+  "what": {
+   "plans": "a place in your plans",
+   "minutes": "more minutes",
+   "deal": "a new contract",
+   "role": "a starting role"
+  },
+  "reqRefused": "Asked to leave in {season}, and you said no.",
+  "reqGranted": "Asked to leave in {season}, and you agreed.",
+  "oldBoy": {"one": "{n} appearance for {club} before moving on.", "other": "{n} appearances for {club} before moving on."},
+  "service": {"one": "{n} appearance for {club}.", "other": "{n} appearances for {club}."}
+ },
+ "tp": {
+  "era": "Turning points",
+  "season": "The turning point",
+  "run": {"one": "Unbeaten in {n} match in a row, the longest run of your career.", "other": "Unbeaten in {n} matches in a row, the longest run of your career."},
+  "low": "Lost {us}-{them} to {opp}, the worst defeat of the era. The next season was better.",
+  "signing": "Signed {player} for {fee}, the biggest fee of the era."
  }
 }
