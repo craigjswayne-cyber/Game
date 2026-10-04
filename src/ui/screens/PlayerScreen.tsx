@@ -18,7 +18,7 @@ import { LOAN_BUY_MIN_WEEKS, loanBuy, loanBuyOffer, loanOut, loanOutBoost, loanR
 import { releaseBlock, releaseCost, releasePlayer } from '../../game/release'
 import { MARQUEE_SLOTS, marqueeOpen, toggleMarquee } from '../../game/cap'
 import { answerRequest, canAnswerRequest, canChat, chatBudget, praisePlayer, warnPlayer } from '../../game/chats'
-import { attrBand, attrBandIndex, attrName, posName, t, localeTag } from '../../game/i18n'
+import { attrBand, attrBandIndex, attrName, posName, t, tIn, localeTag } from '../../game/i18n'
 import { Glyph } from '../glyphs'
 import { driverLines, learningLines, monthKey, outlookLine, TL } from '../../game/devproject'
 import { activeEntry } from '../../game/season'
@@ -710,8 +710,9 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           p.morale = Math.max(0, p.morale - 2)
           game.news.push({
             id: game.nextId++, week: game.week, season: game.season, type: 'youth', read: true,
-            subject: `${p.name} sent down to the academy squad`,
-            body: `${p.name} (${p.age}) has been told to train with the academy squad until further notice. He emptied his locker without a word. His wage still counts against the cap, and he can be recalled the same way he went down.`,
+            subject: tIn('en', 'news.sentDownSubj', { name: p.name }),
+            body: tIn('en', 'news.sentDown', { name: p.name, age: p.age }),
+            k: 'news.sentDown', v: { name: p.name, age: p.age },
             playerId: p.id,
           })
           setMsg(t('player.sentDownMsg', { name: p.name }))
