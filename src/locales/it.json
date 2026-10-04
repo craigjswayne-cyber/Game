@@ -182,6 +182,7 @@
   "intlTag": "NAZ",
   "l": "P",
   "loanHereTag": "PRESTITO",
+  "goneTag": "FUORI ROSA",
   "mastheadDate": "{day} · {season} · Sett. {week}",
   "matchdayBtn": "Si gioca ▸",
   "neutralVenue": "Campo neutro",
@@ -1348,7 +1349,7 @@
   "pause": "Pausa",
   "pausedTitle": "Gioco fermo - cambia il quadro",
   "penAhead": " avanti di {n}",
-  "penAwaiting": "PUNIZIONI · SI ATTENDE IL CALCIO D'INIZIO",
+  "penAwaiting": "PUNIZIONI · IN ATTESA DEL VIA",
   "penBehind": " sotto di {n}",
   "penCall": "Punizione - la scelta è tua dalla laterale",
   "penLevel": " in parità",
@@ -3891,6 +3892,12 @@
   "srBack": "Indietro",
   "srTitle": "L'Annuario {label}",
   "srChampions": "CAMPIONI",
+  "srCupPool": "Fase a gironi",
+  "srCupBAR": "spareggio",
+  "srCupR16": "fuori agli ottavi",
+  "srCupQF": "fuori ai quarti",
+  "srCupSF": "fuori in semifinale",
+  "srCupF": "Finalista",
   "srInLeague": "in campionato",
   "srWon": " vinta",
   "srTries": {
@@ -7986,7 +7993,7 @@
   "teamNightDone_f": "La serata di squadra offerta dallo sponsor ha attenuato il colpo per le senatrici dello spogliatoio."
  },
  "store": {
-  "title": "Store",
+  "title": "Negozio",
   "owned": "Tuo",
   "bought": "Tuo. Segue il tuo account dello store: Ripristina lo riporta su un telefono nuovo.",
   "needCareer": "Apri prima una carriera: il ritiro ha bisogno di una squadra da visitare.",

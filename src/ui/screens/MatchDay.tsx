@@ -23,7 +23,7 @@ import { ord, posName, t, localeTag, compLabel } from '../../game/i18n'
 import { subjectVar } from '../../game/gender'
 import { coachFixes, gradeFixes, gradeLine, unitBattles, type FixTag } from '../../game/coachfix'
 import { MatchFindings } from '../OppReport'
-import { CrestT, Jersey, PosBadge, SectionTitle, Stars, RewardedButton, Toggle } from '../components'
+import { CrestT, Jersey, PosBadge, SectionTitle, Stars, RewardedButton, Toggle, availabilityTag } from '../components'
 import { stageName } from './Home'
 import { matchSfx, soundOn, toggleSound } from '../audio'
 import { MoodTable } from '../MoodTable'
@@ -588,7 +588,9 @@ function Preview({ fxId }: { fxId: number }) {
         <td style={{ width: 38 }}><PosBadge pos={pos} /></td>
         <td className="name">
           {p ? p.name : <span className="muted">{t('matchday.tapToPick')}</span>}
-          {prob && p && <span style={{ color: 'var(--text-negative)', fontSize: 11, fontWeight: 700 }}> {prob}</span>}
+          {/* the squad list's own short tags, in the player's language: the
+              sheet printed the internal code ("INTL DUTY") in all six */}
+          {prob && p && <span style={{ color: 'var(--text-negative)', fontSize: 11, fontWeight: 700 }}> {prob === 'GONE' ? t('common.goneTag') : availabilityTag(p, game.week)?.txt ?? prob}</span>}
           {!prob && p && (p.rust ?? 0) > 0 && <span style={{ color: 'var(--gold)', fontSize: 11, fontWeight: 700 }}> {t('matchday.rusty')}</span>}
         </td>
         <td style={{ width: 92 }}>{p && <Stars ca={effAt(p, pos)} />}</td>
