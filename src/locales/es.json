@@ -8696,22 +8696,22 @@
    "youth": "la formación de jóvenes",
    "innovator": "las ideas nuevas de juego",
    "spender": "los grandes fichajes",
-   "hard": "la disciplina",
+   "hard": "las decisiones duras",
    "players": "la gestión del vestuario",
    "turnaround": "reflotar clubes",
    "defence": "el rugby defensivo",
    "attack": "el rugby de ataque"
   },
   "meth": {
-   "broke": "Tus métodos: se rompieron promesas hechas al vestuario, y la directiva se enteró.",
-   "kept": "Tus métodos: se cumplieron las promesas hechas al vestuario. La directiva lo notó.",
-   "debt": "Tus métodos: la deuda creció bajo tu mando.",
-   "prudent": "Tus métodos: el gasto no pasó de lo que el club se puede permitir.",
-   "hard": "Tus métodos: decisiones duras y un vestuario descontento. La directiva está inquieta.",
-   "academy": "Tus métodos: la cantera tuvo su oportunidad.",
-   "attack": "Tus métodos: el equipo atacó, y el presidente lo disfrutó.",
-   "spent": "Tus métodos: el dinero se gastó con audacia.",
-   "defence": "Tus métodos: un equipo difícil de batir."
+   "broke": "Se rompieron promesas hechas al vestuario, y la directiva se enteró.",
+   "kept": "Se cumplieron las promesas hechas al vestuario. La directiva lo notó.",
+   "debt": "La deuda creció bajo tu mando.",
+   "prudent": "El gasto no pasó de lo que el club se puede permitir.",
+   "hard": "Decisiones duras y un vestuario descontento. La directiva está inquieta.",
+   "academy": "La cantera tuvo su oportunidad.",
+   "attack": "El equipo atacó, y el presidente lo disfrutó.",
+   "spent": "El dinero se gastó con audacia.",
+   "defence": "Un equipo difícil de batir."
   },
   "profile": {
    "giant": "Un club rico que exige títulos.",

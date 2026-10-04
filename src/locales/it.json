@@ -8746,22 +8746,22 @@
    "youth": "la crescita dei giovani",
    "innovator": "le idee nuove di gioco",
    "spender": "le grandi spese",
-   "hard": "la disciplina",
+   "hard": "le decisioni dure",
    "players": "la gestione dello spogliatoio",
    "turnaround": "il rilancio dei club",
    "defence": "il rugby difensivo",
    "attack": "il rugby d'attacco"
   },
   "meth": {
-   "broke": "I tuoi metodi: promesse fatte allo spogliatoio non mantenute, e la dirigenza lo ha saputo.",
-   "kept": "I tuoi metodi: promesse fatte allo spogliatoio mantenute. La dirigenza lo ha notato.",
-   "debt": "I tuoi metodi: il debito è cresciuto sotto la tua guida.",
-   "prudent": "I tuoi metodi: le spese sono rimaste nei mezzi del club.",
-   "hard": "I tuoi metodi: decisioni dure e uno spogliatoio scontento. La dirigenza è inquieta.",
-   "academy": "I tuoi metodi: il vivaio ha avuto la sua occasione.",
-   "attack": "I tuoi metodi: la squadra ha attaccato, e il presidente si è divertito.",
-   "spent": "I tuoi metodi: i soldi sono stati spesi con audacia.",
-   "defence": "I tuoi metodi: una squadra difficile da battere."
+   "broke": "Promesse fatte allo spogliatoio non mantenute, e la dirigenza lo ha saputo.",
+   "kept": "Promesse fatte allo spogliatoio mantenute. La dirigenza lo ha notato.",
+   "debt": "Il debito è cresciuto sotto la tua guida.",
+   "prudent": "Le spese sono rimaste nei mezzi del club.",
+   "hard": "Decisioni dure e uno spogliatoio scontento. La dirigenza è inquieta.",
+   "academy": "Il vivaio ha avuto la sua occasione.",
+   "attack": "La squadra ha attaccato, e il presidente si è divertito.",
+   "spent": "I soldi sono stati spesi con audacia.",
+   "defence": "Una squadra difficile da battere."
   },
   "profile": {
    "giant": "Un club ricco che pretende titoli.",
