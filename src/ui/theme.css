@@ -3329,7 +3329,8 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    Game Plan tab has to stay inside three screenfuls there (scrollaudit). */
 .routine-grid.st-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
 .st-tile { align-items: stretch; gap: 4px; padding: 5px; }
-.st-tile b { font-size: 12px; line-height: 1.2; text-align: center; }
+.st-tile b { font-size: 12px; line-height: 1.2; text-align: center; hyphens: auto; overflow-wrap: anywhere; }
+/* "Blitsverdediging" is one 95px word in an 81px tile at 320 (1.8.6 sweep) */
 .st-body { display: grid; grid-template-columns: minmax(0, 42%) minmax(0, 1fr); gap: 9px; align-items: start; }
 .st-body .sp-txt { gap: 4px; }
 .st-body b { font-size: 13.5px; color: var(--text-primary); }
@@ -3871,7 +3872,8 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
      just stops filling it to the ellipsis. */
   /* the dark label (27 Sep 2026) keeps the name its 64px: thin side padding,
      counted inside the cap, and the chip's own side padding given up for it */
-  .form-chip .fc-name { font-size: 9.5px; max-width: 70px; box-sizing: border-box; padding: 1px 3px; }
+  /* 2px side padding (1.8.6): "Hibbert-Jones" was 2px over at 3px */
+  .form-chip .fc-name { font-size: 9.5px; max-width: 70px; box-sizing: border-box; padding: 1px 2px; letter-spacing: -.1px; }
   .form-chip .fc-role { font-size: 8.5px; letter-spacing: .5px; }
   .form-pitch { height: 460px; }
 
@@ -5614,9 +5616,14 @@ a.btn.home-community {
 /* A NAME IN A TABLE IS NEVER CUT ON THE SMALLEST PHONE (1.8.4 m12). At 320px
    the team sheet's name column is 100px and "Emmanuel Iyo..." was every other
    row; the name takes a second line instead. break-word, not anywhere, so a
-   table's columns still size to whole words. */
-@media (max-width: 340px) {
+   table's columns still size to whole words. Every phone width since 1.8.6:
+   "P. Bourdon Sansus" lost 4px in the market at 360-412. A name that fits
+   keeps its one line. */
+@media (max-width: 480px) {
   .dtable td.name, .xv-fixed .dtable td.name, .dtable.codefirst td.name { white-space: normal; overflow-wrap: break-word; }
+  /* in a table that scrolls sideways anyway, the name keeps room for an
+     initial and a surname on one line rather than the table squeezing it */
+  .tblwrap .dtable td.name { min-width: 7.5em; }
 }
 /* a vacancy's odds and the quiet answer on one row (1.8.6, Jobs.tsx) */
 .job-foot { display: flex; align-items: center; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
