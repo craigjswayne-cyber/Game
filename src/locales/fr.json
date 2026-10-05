@@ -4503,7 +4503,7 @@
     "unofficialBody": "PHASE : Rugby Manager n'est ni affilié, ni approuvé, ni sous licence d'un joueur, d'un club, d'une ligue ou d'une fédération. Les noms de clubs sont réels ; les compétitions, les stades et les sponsors sont renommés ou inventés. Les noms des joueurs sont réels, utilisés pour identifier des personnes dans une base de données sportive et pour rien d'autre, et aucun écusson, maillot ou logo officiel n'est inclus.",
     "unofficialLabel": "Non officiel et indépendant",
     "newsPartnerLabel": "Partenaire actualités",
-    "newsPartnerBody": "Ruck ({site}). L'actualité du reste de la ligue, les rumeurs et les débats sur le règlement portent la signature RUCK.",
+    "newsPartnerBody": "Ruck ({site}). L'actualité du reste de la ligue, les rumeurs et les débats sur le règlement portent la signature et le logo de {site}.",
     "storeLabel": "La Boutique",
     "storeBody": "Des extras facultatifs - rien de tout cela ne joue les matchs.",
     "storeBtn": "Ouvrir la Boutique",
