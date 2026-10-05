@@ -12,11 +12,12 @@
 // scripts/feedbackui.mjs holds the card itself.
 //
 // Run: npx vite-node scripts/feedbackprobe.ts
+import { readFileSync } from 'node:fs'
 import { newGame } from '../src/game/newgame'
 import { genderOf } from '../src/game/gender'
 import { DEV_CONTACT, MAILTO_LIMIT, mailtoUrl, noteScreen } from '../src/game/bugreport'
 import {
-  ACTIONS, FIRST_MONTH_MATCHES, FEEDBACK_SUBJECT, MAIN_SCREENS, USAGE_KEY, buildFeedbackReport, countMatch,
+  ACTIONS, FIRST_MONTH_WEEKS, FEEDBACK_SUBJECT, MAIN_SCREENS, USAGE_KEY, buildFeedbackReport, countMatch, countWeek,
   countScreen, feedbackDue, freshUsage, neverOpened, noteUse, parseUsage, readUsage, withOffered, writeUsage,
   type Usage,
 } from '../src/game/usage'
@@ -175,27 +176,36 @@ console.log('--- month one')
 {
   mem.clear()
   const due: boolean[] = []
-  for (let i = 1; i <= 8; i++) {
-    countMatch(`4242:0:${i}`, '4242:0')
+  // a first career from week 1: each turn of the week lands in the next one
+  for (let w = 2; w <= 10; w++) {
+    countWeek(`4242:0:${w}`)
+    countWeek(`4242:0:${w}`) // a reload landing on the same week again
+    if (w % 2 === 0) countMatch(`4242:0:${w}`, '4242:0')
     const isDue = feedbackDue(readUsage())
     due.push(isDue)
     if (isDue) ok(writeUsage(withOffered(readUsage())), 'the offer is recorded before the card shows')
   }
-  ok(due.filter(Boolean).length === 1, `due exactly once over eight matches (${due.map(d => d ? 'Y' : '.').join('')})`)
-  ok(due.indexOf(true) === FIRST_MONTH_MATCHES - 1, `and after the ${FIRST_MONTH_MATCHES}th competitive match`)
+  ok(due.filter(Boolean).length === 1, `due exactly once over nine weeks (${due.map(d => d ? 'Y' : '.').join('')})`)
+  ok(due.indexOf(true) === FIRST_MONTH_WEEKS - 1, `on landing in week ${FIRST_MONTH_WEEKS + 1}, ${FIRST_MONTH_WEEKS} weeks in`)
   const u = readUsage()
-  ok(u.offered && u.offeredAt === FIRST_MONTH_MATCHES, `offeredAt marks that match flow (${u.offeredAt})`)
+  ok(u.weeks === 9, `a week is counted once however often it is landed on (${u.weeks})`)
+  ok(u.offered && u.offeredAt === 2, `offeredAt marks that match flow (${u.offeredAt})`)
   ok(withOffered(u).offeredAt === u.offeredAt, 'opening it again later does not move the mark')
+  ok(/weeks\s+9\n/.test(report(u)), 'the report says how many weeks')
   // a new career on the same device: the ledger is the device's
-  countMatch('9999:0:1', '9999:0')
+  countWeek('9999:0:2'); countMatch('9999:0:1', '9999:0')
   ok(!feedbackDue(readUsage()) && readUsage().seasons === 2, 'a second career does not bring it back, and its season counts')
-  // friendlies never reach here (store.ts countForPro returns first), so a
-  // pre-season does not bring it forward: checked by reading the call site
+  // a device that has never been offered it, three weeks in: not yet
+  mem.clear()
+  for (let w = 2; w <= 4; w++) countWeek(`1:0:${w}`)
+  ok(!feedbackDue(readUsage()), 'three weeks in is not yet a month')
+  const st = readFileSync('src/store.ts', 'utf8')
+  const low = st.slice(st.indexOf('function landOnNextWeek('), st.indexOf('function landOnNextWeek(') + 900)
+  ok(/countWeek\(`\$\{g\.seed\}:\$\{g\.season\}:\$\{g\.week\}`\)/.test(low), 'every way a week ends counts it (landOnNextWeek)')
 }
 
 // ---- no network, no simulation ---------------------------------------------------
 {
-  const { readFileSync } = await import('node:fs')
   const src = readFileSync('src/game/usage.ts', 'utf8') + readFileSync('src/ui/FeedbackPrompt.tsx', 'utf8')
   ok(!/\bfetch\(|XMLHttpRequest|sendBeacon|WebSocket/.test(src), 'no network call in the counters or the card')
   ok(!/Math\.random|matchRng|from '\.\/rng'/.test(readFileSync('src/game/usage.ts', 'utf8')), 'no randomness in the counters')

@@ -109,7 +109,7 @@ import { isHighlight } from './game/highlights'
 import { fileFindings } from './game/matchfindings'
 import { fileEvidence } from './game/evidence'
 import { proMatchPlayed, readFunnel, writeFunnel } from './game/profunnel'
-import { countMatch, countScreen, noteUse } from './game/usage'
+import { countMatch, countScreen, countWeek, noteUse } from './game/usage'
 
 /** ONE COMPETITIVE MATCH COMPLETED, FOR THE PRO MANAGER CADENCE (1.8.6).
  *
@@ -500,6 +500,9 @@ function landOnNextWeek(
   // and nothing over it, as every load lands (round 5)
   homeOnly = false,
 ) {
+  // the feedback report's week count (game/usage.ts): device state, keyed so
+  // a week is counted once however it was reached
+  countWeek(`${g.seed}:${g.season}:${g.week}`)
   const step = firstStepOfWeek(g)
   g.day = step.kind === 'day' ? step.day : step.kind === 'match' ? (matchDayIndex(g) ?? 0) : 0
   const dayEntry: NavEntry[] = step.kind === 'day' ? [{ screen: 'day' }] : []

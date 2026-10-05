@@ -22,11 +22,12 @@
  * fingerprint cannot move. And every counter is wrapped so that a storage
  * failure costs a count, never a crash.
  *
- * THE MONTH-ONE RULE: the card is due once FIRST_MONTH_MATCHES competitive
- * matches have been completed on this device. A match a week, that is four
- * in-game weeks of a first career - the week of the fourth competitive match,
- * which lands in week 4 or 5 of a first season. Friendlies do not count, so a
- * pre-season does not bring it forward. It is offered automatically once.
+ * THE MONTH-ONE RULE: the card is due once FIRST_MONTH_WEEKS in-game weeks
+ * have been played on this device - a career that starts in week 1 sees it on
+ * landing in week 5, the first time Home or the day room is safe. Weeks rather
+ * than competitive matches, because a first season opens with pre-season
+ * friendlies and byes: four competitive matches landed in week 10, two months
+ * in. It is offered automatically once, ever, on this device.
  */
 
 /** The actions worth counting. Each maps to a real thing the manager does,
@@ -81,7 +82,7 @@ export const MAIN_SCREENS = [
   'settings', 'bug', 'about', 'saves', 'tables', 'jobs', 'nations', 'dreamteam', 'agency', 'history',
 ] as const
 
-export const FIRST_MONTH_MATCHES = 4
+export const FIRST_MONTH_WEEKS = 4
 
 export interface Usage {
   v: 1
@@ -89,6 +90,10 @@ export interface Usage {
   acts: Partial<Record<Action, number>>
   /** competitive matches completed on this device */
   matches: number
+  /** in-game weeks played on this device */
+  weeks: number
+  /** the last week counted, so a week is never counted twice */
+  lastWeek: string
   /** seasons in which a competitive match was completed on this device */
   seasons: number
   /** the last season counted, so the same one is not counted twice */
@@ -104,7 +109,7 @@ export interface Usage {
 export const USAGE_KEY = 'rm-use'
 
 export const freshUsage = (): Usage => ({
-  v: 1, screens: {}, acts: {}, matches: 0, seasons: 0, lastSeason: '', seen: [], offered: false, offeredAt: -1,
+  v: 1, screens: {}, acts: {}, matches: 0, weeks: 0, lastWeek: '', seasons: 0, lastSeason: '', seen: [], offered: false, offeredAt: -1,
 })
 
 const int = (n: unknown, d: number) => (typeof n === 'number' && Number.isFinite(n) ? Math.max(0, Math.floor(n)) : d)
@@ -136,6 +141,8 @@ export function parseUsage(raw: string | null): Usage {
       screens,
       acts,
       matches: int(o.matches, 0),
+      weeks: int(o.weeks, 0),
+      lastWeek: typeof o.lastWeek === 'string' ? o.lastWeek.slice(0, 40) : '',
       seasons: int(o.seasons, 0),
       lastSeason: typeof o.lastSeason === 'string' ? o.lastSeason.slice(0, 40) : '',
       seen: Array.isArray(o.seen) ? o.seen.filter((k): k is string => typeof k === 'string').slice(-8) : [],
@@ -172,8 +179,14 @@ export function withMatch(u: Usage, key: string, season: string): Usage {
   }
 }
 
+/** One in-game week played. `key` names the new week; it is not reported. */
+export function withWeek(u: Usage, key: string): Usage {
+  if (key === u.lastWeek) return u
+  return { ...u, weeks: u.weeks + 1, lastWeek: key }
+}
+
 /** Is the automatic card due? Once, after the first month. */
-export const feedbackDue = (u: Usage): boolean => !u.offered && u.matches >= FIRST_MONTH_MATCHES
+export const feedbackDue = (u: Usage): boolean => !u.offered && u.weeks >= FIRST_MONTH_WEEKS
 
 export const withOffered = (u: Usage): Usage => ({ ...u, offered: true, offeredAt: u.offered ? u.offeredAt : u.matches })
 
@@ -220,6 +233,11 @@ export function noteUse(a: Action, perVisit = false): void {
   update(u => withAction(u, a))
 }
 
+/** A week has turned (store.ts landOnNextWeek, every way a week ends). */
+export function countWeek(key: string): void {
+  update(u => withWeek(u, key))
+}
+
 /** A competitive match of the manager's was completed. */
 export function countMatch(key: string, season: string): void {
   update(u => withMatch(u, key, season))
@@ -252,6 +270,7 @@ export function buildFeedbackReport(i: FeedbackInput): string {
   out += line('language', i.lang)
   out += line('device', i.tablet ? 'tablet' : 'phone')
   out += line('game', i.gender === 'w' ? "women's" : i.gender === 'm' ? "men's" : 'no career loaded')
+  out += line('weeks', u.weeks)
   out += line('seasons', u.seasons)
   out += line('matches', `${u.matches} competitive`)
   out += '\n'
