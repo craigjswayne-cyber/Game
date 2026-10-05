@@ -9169,6 +9169,7 @@
   "captain": {"one": "Your captain: {n} appearance for {club}.", "other": "Your captain: {n} appearances for {club}."},
   "legend": {"one": "A {club} legend since {season}: {n} appearance for the club.", "other": "A {club} legend since {season}: {n} appearances for the club."},
   "legendOld": {"one": "A {club} legend: {n} appearance for the club.", "other": "A {club} legend: {n} appearances for the club."},
+  "captainLegend": {"one": "Your captain, and a {club} legend since {season}: {n} appearance for the club.", "other": "Your captain, and a {club} legend since {season}: {n} appearances for the club."},
   "sold": {"one": "Sold to {buyer} for {fee} in {season}, after {n} appearance for {club}.", "other": "Sold to {buyer} for {fee} in {season}, after {n} appearances for {club}."},
   "soldYoung": "Sold to {buyer} for {fee} in {season}, before a first-team game for {club}.",
   "released": {"one": "Released by {club} in {season}, after {n} appearance.", "other": "Released by {club} in {season}, after {n} appearances."},
