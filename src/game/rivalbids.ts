@@ -394,12 +394,16 @@ export function aiFreeAgents(state: GameState): void {
       if (used.has(c.id) || c.rep < p.ca - 10 || minutesAt(state, c, p) < 2) continue
       // he is offered what the club pays on new deals, and the club signs him
       // only if it can carry that within its means: a free man costs no fee,
-      // so the wage is the whole decision (scripts/distressprobe.ts measured
-      // the first cut, which only asked whether the club could spend at all,
-      // pushing a third of the top flight into the red)
+      // so the wage is the whole decision. The first cut only asked whether
+      // the club could spend at all, and distressprobe found 42% of the lower
+      // leagues and 30% of the top flight in the red at season fourteen. A
+      // star (85 and up) is the exception a board stretches for when it has
+      // his whole deal in the bank: there are few of them, and one left lying
+      // there is the drain this answers
       const room = rooms.get(c.id) ?? 0
       const wage = Math.round(playerWage(p.ca, p.age) * clamp(aiPayRate(state, c, room), 0.75, 1) / 50) * 50
-      if (!aiCanCarry(state, c, wage, room)) continue
+      const stretch = p.ca >= 85 && c.balance > wage * 150 && canSpend(state, c)
+      if (!stretch && !aiCanCarry(state, c, wage, room)) continue
       const cap = c.leagueId ? state.caps?.[c.leagueId] : null
       if (typeof cap === 'number' && cap > 0 && capBill(state, c) + wage > cap) continue
       const keen = c.rep / 10 + (clubIntent(state, c) === 'allin' ? 1 : 0) + rand(`fakeen|${state.seed}|${p.id}|${c.id}|${state.season}`)
