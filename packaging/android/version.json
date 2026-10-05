@@ -78,11 +78,12 @@
     "42 IS 1.8.3: why you won or lost (three reasons at full time, two at half time, from what the match actually did), Law 3 front-row cards, the playbook read across the whole tape, lower leagues that pay their way, crowd noise removed, loans that leave the list at once, honest store messages, advert spots on News and the Press Room. Check the Console's highest accepted code before building.",
     "43 IS 1.8.4: the world remembers. The full-time reasons say what to move and the next match says whether it worked, beaten coaches answer what beat them last time, the desk reads a run of matches, the manager's methods shape his name, his job offers and his board, players carry their stories and eras their turning points, the news is shorter, and the exploit holes the hunt found are shut. Check the Console's highest accepted code before building.",
     "44 IS 1.8.5: release hardening and rivals who fight back. AI clubs bid against you for the players you chase and say why the player chose, hunt young talent, and back their managers after you beat them, so the league no longer drains over a long career; half-time plans judged on the half they were played; one consistent story from half time to full time; the men you sold and the legends you made met again where it matters; saves that reload into the same world; the free-agent flip halved; a manager's reputation read from what he actually does. Check the Console's highest accepted code before building.",
+    "46 IS 1.8.7: advert placement from the owner's simulator pass. The live match banner now shows only while a highlight animation plays, never over the live stats; new banners on the floor of the day room and of every Finances tab; the news reader's top bar laid out as two tidy rows on a phone. Check the Console's highest accepted code before building.",
     "45 IS 1.8.6: the Pro Manager prompts. One card before the first competitive match, a one-time offer on phase.supporter.intro (a new non-consumable about 25% under Pro Manager; create it in Play Console first, see docs/pro-manager.md) after it, and a light reminder every ten competitive matches while free; never for Pro owners. Nothing in the rugby changes. Check the Console's highest accepted code before building.",
     "versionName comes from the root package.json.",
     "billingLibrary is the Play Billing Library version PhaseBilling.java is",
     "written against. Play refuses anything below 8.0.0 (learned 4 Sep 2026)."
   ],
-  "versionCode": 45,
+  "versionCode": 46,
   "billingLibrary": "8.0.0"
 }

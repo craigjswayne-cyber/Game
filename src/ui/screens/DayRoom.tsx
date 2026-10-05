@@ -12,6 +12,7 @@ import { analystClaim, analystRead, prepLabel, unitLabel } from '../../game/anal
 import { CrestT, SectionTitle } from '../components'
 import { ord, posName, t, compLabel } from '../../game/i18n'
 import { Glyph, newsGlyph } from '../glyphs'
+import { AdSlot } from '../AdSlot'
 
 
 /**
@@ -89,6 +90,10 @@ export default function DayRoom() {
           action: this one exists because the bottom of the page is where a
           reader's thumb already is when they have finished reading it. */}
       <button className="btn gold block day-next" onClick={continueWeek}>{t('dayroom.continue')}</button>
+      {/* the floor under the week carries a banner (owner, 1.8.7, with a
+          screenshot of the empty space under Continue). Below the button that
+          walks on, so it never sits between a tap and what the tap was for. */}
+      <AdSlot place="week-foot" />
       <div className="spacer" />
     </>
   )

@@ -468,7 +468,7 @@ section('3.2 ads: banners only where allowed, rewarded favours capped and fail-c
   ;(globalThis as { rmAds?: unknown }).rmAds = undefined
   ok(adsAllowed('home-foot') === false, 'no ad provider: no banner anywhere')
   ;(globalThis as { rmAds?: unknown }).rmAds = { mount() {}, showRewarded: async () => 'skipped' }
-  ok(adsAllowed('home-foot') && adsAllowed('results-foot') && adsAllowed('match-foot'), 'with a provider: the three named placements render')
+  ok(adsAllowed('home-foot') && adsAllowed('week-foot') && adsAllowed('results-foot') && adsAllowed('match-foot'), 'with a provider: the named placements render')
   ok(!adsAllowed('tactics') && !adsAllowed('store') && !adsAllowed('modal'), 'nowhere else does - never on a decision, never on the title')
   ok(await showRewarded('medical') === 'skipped', 'a skipped spot reports "skipped" - the caller grants nothing')
   ;(globalThis as { rmAds?: unknown }).rmAds = { mount() {}, showRewarded: async () => { throw new Error('sdk') } }
