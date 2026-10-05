@@ -2698,6 +2698,14 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
    in a block of its own, so its box is no taller than the text around it and
    the page is not one pixel deeper for it (scrollaudit); the ::after carries
    the tap out to 46px as it does for every tiny button (tapsize). */
+/* a rewarded-advert button: the store's gold with near-black ink, in every
+   theme and skin (1.8.9, components.tsx RewardedButton) */
+.btn.spot-ad, .btn.ghost.spot-ad {
+  background: var(--gold-fill); color: var(--on-gold-fill);
+  border: 1.5px solid var(--gold-fill);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35);
+}
+.btn.spot-ad:disabled { opacity: .7; }
 .btn.tiny.spot { padding: 0 8px; line-height: 15px; }
 .btn.tiny.spot::after { inset: -15px -3px; }
 /* A control that sits in a table row (the Medical Centre's specialist, favour,

@@ -745,8 +745,12 @@ export function RewardedButton({ place, label, onDone, className = 'btn ghost bl
   style?: CSSProperties
 }) {
   const [busy, setBusy] = useState(false)
+  // GOLD AND BLACK, EVERYWHERE (owner, 1.8.9, of "Ask the agency": "should
+  // be gold and black like the store"). Every rewarded button wears .spot-ad
+  // whatever the caller's size class, so they read as one kind of thing, and
+  // every label ends "(Free with ad)".
   return (
-    <button className={className} style={style} disabled={busy}
+    <button className={`${className} spot-ad`} style={style} disabled={busy}
       onClick={e => {
         e.stopPropagation()
         if (busy) return

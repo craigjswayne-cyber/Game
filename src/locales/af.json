@@ -8140,11 +8140,11 @@
   "fineprint": "Die pryse is die winkel s'n. Niks word bestee voordat dit in jou loopbaan land nie.",
   "stampLicensed": "Gelisensieerde begin",
   "stampCharter": "Eienaarshandves",
-  "watchAgency": "Vra die agentskap vir hulle lêer (kyk 'n advertensie)",
+  "watchAgency": "Vra die agentskap vir hulle lêer (gratis met 'n advertensie)",
   "analystDone": "Die ontleder se volle lesing is op die kaart - die inligtingstuk hierbo is die geheel daarvan.",
   "townTitle": "Die dorp se kollekte",
   "townBody": "Die ondersteunersvereniging stuur die emmer rond vir 'n klub in werklike moeilikheid - kyk 'n advertensie en die kollekte beland in die bank. Dit betaal salarisse en die kragrekening, nooit spelers nie.",
-  "watchTown": "Laat hulle die emmer rondstuur",
+  "watchTown": "Laat hulle die emmer rondstuur (gratis met 'n advertensie)",
   "townDone": "Die kollekte het op {amount} te staan gekom. Dit is in die bank.",
   "agencyDone": "Die agentskap se lêer oor {name} is in: elke eienskap, en die karakter daarby.",
   "spotSkipped": "Die advertensie is vroeg toegemaak, so niks het verander nie - die guns geld net as jy dit tot die einde kyk.",
@@ -8152,22 +8152,22 @@
   "spotLoading": "Op soek na 'n advertensie…",
   "favourGone": "Die oomblik is verby: die week se toelae is reeds gebruik.",
   "watchAnalyst": {
-   "one": "Die ontleder het nog een lesing - sy deurnagsessie vir 'n advertensie",
-   "other": "Die ontleder het nog {n} lesings - sy deurnagsessie vir 'n advertensie"
+   "one": "Die ontleder het nog een lesing, sy deurnagsessie (gratis met 'n advertensie)",
+   "other": "Die ontleder het nog {n} lesings, sy deurnagsessie (gratis met 'n advertensie)"
   },
   "owedHeld": "Reeds betaal. Dit is nog nie afgelewer nie, so jy is nie weer gehef nie - die spel hou in die agtergrond aan probeer. Kom oor 'n minuut terug.",
   "asking": "Vra die winkel…",
   "watchAnalyst_w": {
-   "one": "Die ontleder het nog een lesing - haar deurnagsessie vir 'n advertensie",
-   "other": "Die ontleder het nog {n} lesings - haar deurnagsessie vir 'n advertensie"
+   "one": "Die ontleder het nog een lesing, haar deurnagsessie (gratis met 'n advertensie)",
+   "other": "Die ontleder het nog {n} lesings, haar deurnagsessie (gratis met 'n advertensie)"
   },
-  "physioCut": "Guns -{n}w",
-  "watchInside": "Die agent se binnewoord (kyk 'n advertensie)",
+  "physioCut": "Guns -{n}w (gratis met 'n advertensie)",
+  "watchInside": "Die agent se binnewoord (gratis met 'n advertensie)",
   "insideDone": "Die agent se binnewoord oor {name} is in: die lyn oor mededingende belangstelling lees nou soos die volle lêer dit sou lees.",
-  "watchOpinion": "Tweede mening (kyk 'n advertensie)",
+  "watchOpinion": "Tweede mening (gratis met 'n advertensie)",
   "opinionDone": "'n Tweede mening oor {name} is in: die afrigtingspan se skatting van die plafon is een stap nouer vir die res van die seisoen.",
-  "watchTapeRoom": "Nag in die videokamer (kyk 'n advertensie)",
-  "watchTeamNight": "Staan by die besluit, en die borg trakteer die groep op 'n spanaand (kyk 'n advertensie)",
+  "watchTapeRoom": "Nag in die videokamer (gratis met 'n advertensie)",
+  "watchTeamNight": "Staan by die besluit, en die borg trakteer die groep op 'n spanaand (gratis met 'n advertensie)",
   "teamNightDone": "Die borg se spanaand het die angel vir die senior spelers deels uitgehaal."
  },
  "store": {
