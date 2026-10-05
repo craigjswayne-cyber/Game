@@ -55,6 +55,7 @@ import Infrastructure from './screens/Infrastructure'
 import Academy from './screens/Academy'
 import Tutorial from './Tutorial'
 import { Intro } from './Intro'
+import { ProPrompt } from './ProPrompt'
 import { bigTablet, useTablet } from './tablet'
 import { COMMUNITY_URL } from '../game/community'
 
@@ -231,6 +232,9 @@ function Overlays() {
       <SaveWarning />
       <Tutorial />
       <Celebration />
+      {/* Pro Manager, at most one card per match flow and only at a safe
+          moment on Home or the day room (ProPrompt.tsx) */}
+      <ProPrompt />
       {/* last, so it sits over the lot: nothing outranks losing your job */}
       <Sacked />
       {/* the opening titles, once per launch, over everything (Intro.tsx) */}

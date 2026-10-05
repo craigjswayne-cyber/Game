@@ -9238,5 +9238,24 @@
   "run": {"one": "Unbeaten in {n} match in a row, the longest run of your career.", "other": "Unbeaten in {n} matches in a row, the longest run of your career."},
   "low": "Lost {us}-{them} to {opp}, the worst defeat of the era. The next season was better.",
   "signing": "Signed {player} for {fee}, the biggest fee of the era."
+ },
+ "pro": {
+  "title": "PRO MANAGER",
+  "firstLine": "The whole game is free, and it stays free. Pro Manager is an optional extra.",
+  "benefitAds": "No adverts",
+  "benefitSkins": "Three skins only Pro managers get",
+  "benefitBack": "Backs an independent game",
+  "buy": "Become Pro",
+  "free": "Continue Free",
+  "laterFine": "Nothing about the rugby changes. You can become Pro later from the Store.",
+  "offerTag": "ONE-TIME OFFER",
+  "offerLine": "Pro Manager at a lower price, offered this once. Bought once, yours for good.",
+  "offerFine": "This price is shown once. Continue Free keeps your game exactly as it is, and Pro stays in the Store at its usual price.",
+  "off": "{n}% OFF",
+  "usually": "Usually {price}",
+  "reminderLine": "Enjoying the season? Pro Manager takes the adverts away and adds three skins, whenever you want it.",
+  "reminderLineSkins": "Enjoying the season? Pro Manager adds three skins only Pro managers get, whenever you want it.",
+  "done": "You are a Pro Manager. Thank you for backing the game. The three skins are waiting in Settings.",
+  "close": "Continue"
  }
 }

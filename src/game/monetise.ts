@@ -73,6 +73,22 @@ export function edition(): Edition {
  * owner's overnight brief.
  */
 export const SUPPORTER_SKU = 'phase.supporter'
+/**
+ * PRO MANAGER AT THE ONE-TIME PRICE (1.8.6, docs/pro-manager.md).
+ *
+ * The one-time offer is a SECOND NON-CONSUMABLE, not a promotional price on
+ * the first: neither store lets a one-off product carry a per-customer
+ * discount the game can switch on, and an introductory offer on Apple's side
+ * is a subscription concept. So the discount is its own product id at its
+ * own (lower) price, and owning EITHER is owning Pro Manager - hasEntitlement
+ * below answers for both wherever the game asks about SUPPORTER_SKU.
+ *
+ * It is never on the Store shelf and never in SELLABLE_SKUS: the only door to
+ * it is the one-time offer card (ui/ProPrompt.tsx). A store that does not
+ * list it yet (the owner has not created it in the console) is not a fault
+ * the shopper should hear about, so tillHealth does not ask about it either.
+ */
+export const PRO_INTRO_SKU = 'phase.supporter.intro'
 /** "Support the game", 99p (v1.1.6). The Play id is permanent, so the SKU
  *  keeps the name it was born with - it sold as the Manager's License
  *  (proven-name start, £2.99) until the owner swapped it: same product id,
@@ -118,7 +134,7 @@ export const HEAL_SKU = 'phase.heal'
 export const GROUND_SKU = 'phase.ground'
 
 /** Owned once, restorable from the store for ever. */
-export const NC_SKUS = [SUPPORTER_SKU, CHARTER_SKU, ESTATE_SKU, PINNACLE_SKU] as const
+export const NC_SKUS = [SUPPORTER_SKU, CHARTER_SKU, ESTATE_SKU, PINNACLE_SKU, PRO_INTRO_SKU] as const
 /** Bought, consumed, buyable again - the store forgets them, the career keeps
  *  what they did.
  *
@@ -639,6 +655,11 @@ export interface Product {
    *  here: a price this file made up would be wrong in most of the world. */
   price: string
   title?: string
+  /** The same price as a number, in millionths of the currency unit, where
+   *  the store gives one (Play's priceAmountMicros, StoreKit's Decimal price,
+   *  Digital Goods' value). Never displayed: it exists so the one-time offer
+   *  can check that a percentage it prints is true (proDiscount). */
+  micros?: number
 }
 
 /**
@@ -722,7 +743,11 @@ export function grant(sku: string) {
 export function grantSupporter() { grant(SUPPORTER_SKU) }
 
 export function hasEntitlement(sku: string): boolean {
-  return ownedCache().has(sku)
+  const owned = ownedCache()
+  // EITHER PRO PRODUCT IS PRO (1.8.6). The one-time offer sells the same
+  // thing under its own id, so every reader of SUPPORTER_SKU - the adverts,
+  // the skins, the Store row's owned chip - sees the intro receipt too.
+  return owned.has(sku) || (sku === SUPPORTER_SKU && owned.has(PRO_INTRO_SKU))
 }
 
 /** HOW MANY TIMES THIS DEVICE HAS PUT SOMETHING IN THE JAR.
@@ -807,14 +832,28 @@ export async function buyOwnable(sku: string): Promise<PurchaseOutcome> {
   const b = bridge()
   setBillingCause(null) // a cause belongs to one tap; the bridge sets this one's
   if (!b || !(NC_SKUS as readonly string[]).includes(sku)) return 'unavailable'
+  buying++
   try {
     const out = await b.buy(sku)
     if (out === 'owned') grant(sku)
     return out
   } catch {
     return 'error'
-  }
+  } finally { buying--; lastBuyEnd = Date.now() }
 }
+
+/**
+ * IS A PURCHASE IN THE AIR, OR JUST OVER? (1.8.6)
+ *
+ * The Pro Manager prompts (ui/ProPrompt.tsx) never open over a payment sheet
+ * or straight on top of the line a purchase has just printed. Counted here,
+ * at the two doors every sale goes through, so no screen has to remember to
+ * report its own taps.
+ */
+let buying = 0
+let lastBuyEnd = 0
+export const purchaseActive = (): boolean => buying > 0
+export const msSincePurchase = (now = Date.now()): number => (lastBuyEnd ? now - lastBuyEnd : Infinity)
 
 /** The original single-product door, kept so nothing that learned it moves. */
 export async function buySupporter(): Promise<PurchaseOutcome> {
@@ -832,12 +871,13 @@ export async function buyConsumable(sku: string): Promise<PurchaseOutcome> {
   const b = bridge()
   setBillingCause(null) // a cause belongs to one tap; the bridge sets this one's
   if (!b || typeof b.consume !== 'function' || !CONSUMABLE_SKUS.includes(sku)) return 'unavailable'
+  buying++
   try {
     const out = await b.buy(sku)
     return out
   } catch {
     return 'error'
-  }
+  } finally { buying--; lastBuyEnd = Date.now() }
 }
 
 /** Mark a consumable spent, after its grant has been written into the career.
@@ -923,6 +963,81 @@ export async function skuPriceFrom(sku: string): Promise<{ price: string | null;
     } catch { /* a store that throws has priced nothing */ }
   }
   return { price: null, live: false }
+}
+
+/**
+ * ---- THE TWO PRO PRICES, AS THE STORE NAMES THEM (1.8.6) ----
+ *
+ * The prompts quote a price where the Store shelf does not (the shelf's
+ * rule, v1.2.3, is "just a buy button"): a card that asks somebody to decide
+ * has to say what the decision costs. It is still only ever the store's own
+ * formatted figure, read live, never one of ours.
+ */
+export async function proPrices(): Promise<{ normal: Product | null; intro: Product | null }> {
+  const b = bridge()
+  const none = { normal: null, intro: null }
+  if (!b) return none
+  const keep = (p: Product | null | undefined): Product | null => (p && p.price ? p : null)
+  try {
+    if (b.detailsMany) {
+      const got = await quick(b.detailsMany([SUPPORTER_SKU, PRO_INTRO_SKU]), null)
+      if (got) {
+        return {
+          normal: keep(got.find(p => p?.sku === SUPPORTER_SKU)),
+          intro: keep(got.find(p => p?.sku === PRO_INTRO_SKU)),
+        }
+      }
+    }
+    if (b.details) {
+      const [normal, intro] = await Promise.all([
+        quick(b.details(SUPPORTER_SKU), null).catch(() => null),
+        quick(b.details(PRO_INTRO_SKU), null).catch(() => null),
+      ])
+      return { normal: keep(normal), intro: keep(intro) }
+    }
+  } catch { /* a store that throws has priced nothing */ }
+  return none
+}
+
+/** A store-formatted price as a plain number, for comparing two prices in
+ *  the SAME currency and format - never for display. "£1.99", "1,99 €",
+ *  "US$1.99", "¥300" and "1.234,56 kr" all come out right; anything without
+ *  a digit is NaN. */
+export function priceNumber(s: string): number {
+  const raw = (s ?? '').replace(/[^\d.,]/g, '')
+  if (!/\d/.test(raw)) return NaN
+  const lastDot = raw.lastIndexOf('.')
+  const lastComma = raw.lastIndexOf(',')
+  const dec = Math.max(lastDot, lastComma)
+  // one separator followed by exactly three digits is a thousands mark
+  // ("1.000", "1,000"); anything else after the last separator is the cents
+  const tail = dec >= 0 ? raw.length - dec - 1 : 0
+  const onlyOne = (lastDot < 0) !== (lastComma < 0)
+  if (dec < 0 || (onlyOne && tail === 3)) return Number(raw.replace(/[.,]/g, ''))
+  const whole = raw.slice(0, dec).replace(/[.,]/g, '')
+  return Number(`${whole}.${raw.slice(dec + 1)}`)
+}
+
+/** The discount to print on the one-time offer, or null when printing one
+ *  would not be true.
+ *
+ *  The owner's rule: "25% OFF" only when the stores' real prices make it
+ *  true, which is an intro price between 70% and 80% of the normal one. Inside
+ *  that window the figure printed is the real saving ROUNDED DOWN, so the card
+ *  can understate a discount and never overstate one: £1.99 to £1.49 prints
+ *  25, and a console that set £1.55 would print 22 rather than a 25 it is not.
+ *  Micros are used where both prices carry them; otherwise the two formatted
+ *  strings are compared, which is sound because they come from one store in
+ *  one currency. */
+export function proDiscount(normal: Product | null, intro: Product | null): number | null {
+  if (!normal || !intro) return null
+  const both = Number.isFinite(normal.micros) && Number.isFinite(intro.micros) && normal.micros! > 0
+  const n = both ? normal.micros! : priceNumber(normal.price)
+  const i = both ? intro.micros! : priceNumber(intro.price)
+  if (!Number.isFinite(n) || !Number.isFinite(i) || n <= 0 || i <= 0) return null
+  const r = i / n
+  if (r < 0.70 || r > 0.80) return null
+  return Math.floor((1 - r) * 100 + 1e-9)
 }
 
 /** What tillHealth found: how many products the store priced, out of how

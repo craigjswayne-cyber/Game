@@ -1463,6 +1463,71 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .tut-box h3 { font-family: var(--sans); font-size: 18px; font-weight: 700; color: var(--gold); margin-bottom: 8px; }
 .tut-box .muted { color: var(--text-secondary); margin-top: 0; }
 
+/* ---- PRO MANAGER CARD (1.8.6, ui/ProPrompt.tsx) ----
+   The Store's hero row, lifted into a card: the same gold rule, the same fine
+   weave over the theme's own --canvas, so it follows a skin and tokenlint
+   stays green. Centred rather than a bottom sheet, so it reads as a pause
+   rather than a menu, and sized for 320px: two full-width buttons of equal
+   height, primary and secondary, neither hidden. */
+.pro-veil {
+  position: fixed; inset: 0; background: var(--scrim); z-index: 85;
+  display: flex; align-items: center; justify-content: center; overflow-y: auto;
+  padding: calc(var(--safe-area-inset-top) + 16px) 16px calc(var(--safe-area-inset-bottom) + var(--ad-inset, 0px) + 16px);
+}
+.pro-card {
+  position: relative;
+  width: 100%; max-width: 380px; margin: auto;
+  padding: 18px 18px 14px;
+  border-radius: 12px;
+  border: 1.5px solid color-mix(in srgb, var(--gold) 72%, transparent);
+  color: var(--text-primary);
+  background:
+    repeating-linear-gradient(135deg,
+      color-mix(in srgb, var(--gold) 9%, transparent) 0 2px,
+      transparent 2px 6px),
+    linear-gradient(158deg,
+      color-mix(in srgb, var(--gold) 24%, var(--canvas)) 0%,
+      color-mix(in srgb, var(--gold) 7%, var(--canvas)) 46%,
+      var(--canvas) 88%);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .5), inset 0 1px 0 color-mix(in srgb, var(--gold) 55%, transparent);
+  display: flex; flex-direction: column; gap: 10px;
+  max-height: calc(100vh - 32px - var(--safe-area-inset-top) - var(--safe-area-inset-bottom) - var(--ad-inset, 0px));
+  max-height: calc(100dvh / var(--zoom, 1) - 32px - var(--safe-area-inset-top) - var(--safe-area-inset-bottom) - var(--ad-inset, 0px));
+  overflow-y: auto;
+}
+.pro-card::before {
+  content: "";
+  position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+  border-radius: 12px 0 0 12px;
+  background: linear-gradient(to bottom, var(--gold-fill), color-mix(in srgb, var(--gold) 35%, transparent));
+}
+.pro-tag {
+  align-self: flex-start;
+  font-size: 11px; font-weight: 700; letter-spacing: 1.2px;
+  color: var(--gold); border: 1px solid var(--gold); border-radius: 4px; padding: 2px 7px;
+}
+.pro-head { display: flex; align-items: center; gap: 10px; }
+.pro-head h2 {
+  margin: 0; font-size: 20px; font-weight: 700; letter-spacing: 1.4px; color: var(--gold);
+  text-shadow: 0 1px 6px color-mix(in srgb, var(--gold) 30%, transparent);
+}
+.pro-ico { font-size: 24px; color: var(--gold); display: inline-flex; }
+.pro-line { margin: 0; font-size: 14px; line-height: 1.5; }
+.pro-list { margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.6; }
+.pro-list li::marker { color: var(--gold); }
+.pro-price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.pro-price b { font-size: 22px; letter-spacing: .3px; }
+.pro-off {
+  font-size: 12px; font-weight: 700; letter-spacing: .8px;
+  color: var(--on-primary); background: var(--primary); border-radius: 4px; padding: 2px 6px;
+}
+.pro-usual { font-size: 13px; color: var(--text-secondary); }
+.pro-btn { width: 100%; min-height: 44px; font-size: 14px; }
+.pro-card .btn.ghost.pro-btn { border: 1px solid var(--border-strong); }
+.pro-msg { border-left: 3px solid var(--gold); padding-left: 8px; }
+.pro-fine { margin: 0; font-size: 12px; line-height: 1.45; color: var(--text-secondary); }
+.pro-light { gap: 8px; }
+
 /* floodlit toggle in masthead */
 .night-btn {
   position: relative;
