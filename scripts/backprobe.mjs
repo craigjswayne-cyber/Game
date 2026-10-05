@@ -122,6 +122,38 @@ try {
   }
   ok(survived === 4, `Back keeps working press after press (${survived} of 4 round trips)`)
 
+  // ---- the bottom buttons (owner, 1.8.7, a tester on a Samsung) ----------
+  // "when you press back on the bottom buttons it takes you out of the game.
+  // Not back a page." Hub, Manager and World open a menu over Home rather than
+  // a page, so Back from Home with one open had nothing to go back to.
+  for (const group of ['hub', 'manager', 'world']) {
+    await page.click(`.bottom-nav [data-group=${group}]`)
+    await page.waitForTimeout(300)
+    const open = await page.locator('.submenu').count()
+    await page.goBack()
+    await page.waitForTimeout(600)
+    const after = await state()
+    const still = await page.locator('.submenu').count()
+    ok(open === 1 && still === 0 && after.onApp && after.hasGame && after.url === home.url,
+      `Back with the ${group} menu open closes the menu and stays in the game (${after.screen})`)
+  }
+  // and Back on Home itself stays in the game, press after press
+  let stayed = 0
+  for (let i = 0; i < 3; i++) {
+    await page.goBack()
+    await page.waitForTimeout(500)
+    const h = await state()
+    if (h.onApp && h.hasGame && h.url === home.url && h.screen === 'home') stayed++
+  }
+  ok(stayed === 3, `Back on Home never leaves the game (${stayed} of 3 presses)`)
+  // a bottom-nav page goes back to Home
+  await page.click('.bottom-nav button[aria-label="News"]')
+  await page.waitForTimeout(400)
+  await page.goBack()
+  await page.waitForTimeout(600)
+  const fromNews = await state()
+  ok(fromNews.onApp && fromNews.screen === 'home', `Back from News returns Home (${fromNews.screen})`)
+
   // ---- two deep, and back out one screen at a time --------------------------
   //
   // The failure worth catching here is a Back that unwinds the whole stack at
