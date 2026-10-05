@@ -113,6 +113,9 @@ export function eraYearEnd(state: GameState): boolean {
   }
   if (cur.grads.length > ARC_CAPS.grads) cur.grads.splice(0, cur.grads.length - ARC_CAPS.grads)
   cur.pats = []
+  // the season's touchline work and the men the cap refused: read into the
+  // conduct row already (arc.ts arcYearEnd), so they start again
+  delete cur.plans; delete cur.chg; delete cur.ansN; delete cur.ans; delete cur.capb; delete cur.embb
   // a club taken over in trouble, turned round within this job
   const a = arcOf(state)
   if (cur.trouble && !a.turned.includes(cur.c) && club) {

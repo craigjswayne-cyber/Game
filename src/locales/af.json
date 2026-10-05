@@ -8869,7 +8869,7 @@
   "wishMet": "Die voorsitter het {wish_k} gevra, en dit gekry.",
   "wishMissed": "Die voorsitter het {wish_k} gevra, en dit nie gekry nie.",
   "verdictSubj": "Die raad se uitspraak oor die seisoen",
-  "verdict": "Die raad se someruitspraak.\n{rows_ll}",
+  "verdict": "{rows_ll}",
   "demGiantWon": "'n Trofee, en daarvoor bestaan hierdie klub. Die raad is tevrede.",
   "demGiantEmpty": "Twee seisoene sonder 'n trofee. By 'n klub van hierdie grootte word dit raakgesien, en die raad het dit raakgesien.",
   "demFallenRise": "'n Hoër plek as 'n jaar gelede. Die raad wil die ou aansien terughê, en dit is die pad daarheen.",
@@ -8908,7 +8908,9 @@
     "other": "Het {n} klubs in die moeilikheid omgedraai."
    },
    "defence": "Bekend vir spanne wat moeilik is om deur te breek.",
-   "attack": "Bekend vir spanne wat baie punte aanteken."
+   "attack": "Bekend vir spanne wat baie punte aanteken.",
+   "tactician": "Bekend daarvoor dat die spelplan verander word, week na week en by rustyd.",
+   "prudent": "Bekend daarvoor dat die boeke in orde bly en die salarisrekening binne die begroting."
   },
   "traitNewsSubj": "Wat hulle van jou sê",
   "traitNews": "Die koerante het besluit hoe om jou te beskryf: {trait_k}",
@@ -8932,7 +8934,9 @@
    "players": "mensbestuur",
    "turnaround": "klubs wat omgedraai word",
    "defence": "verdedigende rugby",
-   "attack": "aanvallende rugby"
+   "attack": "aanvallende rugby",
+   "tactician": "die verandering van spelplanne",
+   "prudent": "versigtige besteding"
   },
   "meth": {
    "broke": "Beloftes aan die spelers is gebreek, en die raad het daarvan gehoor.",
@@ -8943,7 +8947,12 @@
    "academy": "Akademiespelers het hul kans gekry.",
    "attack": "Die span het aangeval, en die voorsitter het dit geniet.",
    "spent": "Die geld is dapper bestee.",
-   "defence": "'n span wat moeilik is om te klop."
+   "defence": "'n span wat moeilik is om te klop.",
+   "prudentWages": "Die salarisrekening het onder die begroting gebly en die boeke het gebalanseer. Die raad het dit opgemerk.",
+   "tacWorked": "Die spelplan het week na week verander, en die uitslae het gevolg.",
+   "tacRestless": "Die spelplan het week na week verander, maar die uitslae het nie gevolg nie.",
+   "capHeld": "Die salarisplafon het aankope gekeer waarvoor jy gegaan het. Die raad weet die grens was die liga s'n.",
+   "embargo": "Die oordragverbod weens die salarisplafon het die klub uit die mark gehou."
   },
   "profile": {
    "giant": "'n Ryk klub wat titels verwag.",
