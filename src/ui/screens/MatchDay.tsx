@@ -885,6 +885,110 @@ function Preview({ fxId }: { fxId: number }) {
                   </div>
                 ) : null
               })()}
+              {/* INFORMATION HIERARCHY (1.8.6): what it is for and who can hurt
+                  you, then the matchup and the plan you can apply, then the
+                  day itself, then the history and the men you know. The
+                  Apply button used to sit under eleven cards. */}
+              {danger && (
+                <div className="card" style={{ borderLeft: '4px solid var(--danger)' }}>
+                  <div className="fact-label">{t('matchday.dangerMan')}</div>
+                  <div className="meta">
+                    <b>{danger.name}</b>{t('matchday.dangerBody', { pos: danger.pos, club: oppClub?.short ?? t('matchday.theyShort') })}
+                  </div>
+                </div>
+              )}
+              <SectionTitle sub={t('matchday.h2hYours')}>{t('matchday.headToHead')}</SectionTitle>
+              {bar(t('matchday.h2hScrum'), myUnits.scrum, oppUnits.scrum)}
+              {bar(t('matchday.h2hLineout'), myUnits.lineout, oppUnits.lineout)}
+              {bar(t('matchday.h2hBreakdown'), myUnits.breakdown, oppUnits.breakdown)}
+              {bar(t('matchday.h2hAttack'), myUnits.attack, oppUnits.attack)}
+              {bar(t('matchday.h2hDefence'), myUnits.defence, oppUnits.defence)}
+
+              {gamePlan.length > 0 && (
+                <div className="card" style={{ borderLeft: '4px solid var(--gold)', marginTop: 8 }}>
+                  <div className="fact-label">{t('matchday.gamePlanTitle')}</div>
+                  {gamePlan.map((p, i) => (
+                    <div key={i} className="meta" style={{ padding: '2px 0' }}>• {p.text}</div>
+                  ))}
+                  <button className="btn ghost block" style={{ marginTop: 8 }} disabled={planApplied} onClick={applyPlan}>
+                    {t(planApplied ? 'matchday.planApplied' : 'matchday.planApply')}
+                  </button>
+                  {rewardedAvailable('matchday') && !fullRead && allPlans.length > gamePlan.length && (
+                    <RewardedButton place="matchday" style={{ marginTop: 6, fontSize: 13 }}
+                      label={t('till.watchAnalyst', { n: allPlans.length - gamePlan.length, ...subjectVar(game.analystGender) })}
+                      onDone={out => {
+                        if (out === 'completed') rewardAnalyst()
+                        else setSpotMsg(t(out === 'skipped' ? 'till.spotSkipped' : 'till.spotUnavailable'))
+                      }} />
+                  )}
+                  {fullRead && <div className="meta" style={{ marginTop: 6, color: 'var(--gold)' }}>{t('till.analystDone')}</div>}
+                  {spotMsg && <div className="meta sheet-log" style={{ marginTop: 6, borderLeft: '3px solid var(--gold)', paddingLeft: 8 }}>{spotMsg}</div>}
+                </div>
+              )}
+              {(() => {
+                // His actual opinions, not a bucket label. This used to read
+                // "a stickler" or "firm but fair", which told you nothing you
+                // could pick a back row around.
+                const ref = refFor(fx.id)
+                const notes = refNotes(ref)
+                // the ground's, not the referee's (matchEngine.homeCrowdLean)
+                if (homeCrowdLean(game, fx) >= 0.03) notes.push(t('matchday.refCrowd', { team: teamShort(game, fx.homeId) }))
+                // THE CONDITIONS (1.8.2 depth): the man with the whistle, the
+                // sky and the ground, on one card, each read off the fixture
+                const surface = surfaceOf(game, fx)
+                return (
+                  <div className="card" data-conditions={`${forecast}/${surface}`}>
+                    <div className="fact-label">{t('matchday.theConditions')}</div>
+                    <div className="meta" style={{ marginBottom: 4 }}>
+                      <b>{ref.name}</b>{t('matchday.refAppointed')}
+                    </div>
+                    {notes.map((n, i) => <div key={i} className="meta">· {n}</div>)}
+                    {notes.length === 0 && <div className="meta">{t('matchday.refNothing')}</div>}
+                    <div className="meta">· <Glyph name={WEATHER_ICON[forecast]} /> <b>{weatherWord(forecast)}.</b> {t(wxEffectKey(forecast))}</div>
+                    <div className="meta">· <b>{t(surfKey(surface))}.</b> {t(surfaceNote(surface))}</div>
+                  </div>
+                )
+              })()}
+              {oppClub?.coach && (
+                <div className="card">
+                  <div className="fact-label">{t('matchday.oppositeNumber')}</div>
+                  <div className="meta">
+                    <b>{oppClub.coach}</b>
+                    {t('matchday.oppCoachLine', { club: oppClub.short, quote: t(QUOTES[(fx.id + game.week) % QUOTES.length]) })}
+                  </div>
+                  {/* F23: what he actually asks of them. How a side plays is
+                      public knowledge - you can watch them - so the philosophy
+                      and the dials are always here. Where it leaves them open is
+                      analysis, and analysis needs a briefing suite. */}
+                  {(() => {
+                    const ph = philosophyOf(oppClub)
+                    if (!ph) return null
+                    const suite = game.clubs[game.userClubId]?.facilities?.briefing ?? 0
+                    return (
+                      <>
+                        <div className="meta" style={{ marginTop: 4 }}>
+                          <b>{t(ph.name)}.</b> {t(ph.blurb)}
+                        </div>
+                        <div className="meta muted">{dialLine(oppClub.tactic)}</div>
+                        {/* THEY RESPECT YOU NOW (1.8.0, E9): the dials above are
+                            already this week's plan for you (oppcoach.ts
+                            setUpForUser); this says why, and what it goes after */}
+                        {oppClub.vsUser && (
+                          <div className="meta respect-line">
+                            <b>{t('matchday.respectLine')}</b>
+                            {oppClub.vsUser.unit && <> {t(`matchday.respectAt_${oppClub.vsUser.unit}`)}</>}
+                          </div>
+                        )}
+                        {suite >= 1 && (
+                          <div className="meta" style={{ marginTop: 4 }}>
+                            <b>{t('matchday.theAngle')}</b> {t(ph.soft)}
+                          </div>
+                        )}
+                      </>
+                    )
+                  })()}
+                </div>
+              )}
               {(() => {
                 // THE MEN YOU LET GO (1.8.5, memory.ts formerFacing): how he
                 // left and what he has done since, the boy sold before he
@@ -977,38 +1081,6 @@ function Preview({ fxId }: { fxId: number }) {
                   </div>
                 )
               })()}
-              {danger && (
-                <div className="card" style={{ borderLeft: '4px solid var(--danger)' }}>
-                  <div className="fact-label">{t('matchday.dangerMan')}</div>
-                  <div className="meta">
-                    <b>{danger.name}</b>{t('matchday.dangerBody', { pos: danger.pos, club: oppClub?.short ?? t('matchday.theyShort') })}
-                  </div>
-                </div>
-              )}
-              {(() => {
-                // His actual opinions, not a bucket label. This used to read
-                // "a stickler" or "firm but fair", which told you nothing you
-                // could pick a back row around.
-                const ref = refFor(fx.id)
-                const notes = refNotes(ref)
-                // the ground's, not the referee's (matchEngine.homeCrowdLean)
-                if (homeCrowdLean(game, fx) >= 0.03) notes.push(t('matchday.refCrowd', { team: teamShort(game, fx.homeId) }))
-                // THE CONDITIONS (1.8.2 depth): the man with the whistle, the
-                // sky and the ground, on one card, each read off the fixture
-                const surface = surfaceOf(game, fx)
-                return (
-                  <div className="card" data-conditions={`${forecast}/${surface}`}>
-                    <div className="fact-label">{t('matchday.theConditions')}</div>
-                    <div className="meta" style={{ marginBottom: 4 }}>
-                      <b>{ref.name}</b>{t('matchday.refAppointed')}
-                    </div>
-                    {notes.map((n, i) => <div key={i} className="meta">· {n}</div>)}
-                    {notes.length === 0 && <div className="meta">{t('matchday.refNothing')}</div>}
-                    <div className="meta">· <Glyph name={WEATHER_ICON[forecast]} /> <b>{weatherWord(forecast)}.</b> {t(wxEffectKey(forecast))}</div>
-                    <div className="meta">· <b>{t(surfKey(surface))}.</b> {t(surfaceNote(surface))}</div>
-                  </div>
-                )
-              })()}
               {(() => {
                 // The bench plan, in words, before you go out (F4). The split is
                 // set on the Tactics bench page; this is where you find out what
@@ -1052,46 +1124,6 @@ function Preview({ fxId }: { fxId: number }) {
                   </div>
                 )
               })()}
-              {oppClub?.coach && (
-                <div className="card">
-                  <div className="fact-label">{t('matchday.oppositeNumber')}</div>
-                  <div className="meta">
-                    <b>{oppClub.coach}</b>
-                    {t('matchday.oppCoachLine', { club: oppClub.short, quote: t(QUOTES[(fx.id + game.week) % QUOTES.length]) })}
-                  </div>
-                  {/* F23: what he actually asks of them. How a side plays is
-                      public knowledge - you can watch them - so the philosophy
-                      and the dials are always here. Where it leaves them open is
-                      analysis, and analysis needs a briefing suite. */}
-                  {(() => {
-                    const ph = philosophyOf(oppClub)
-                    if (!ph) return null
-                    const suite = game.clubs[game.userClubId]?.facilities?.briefing ?? 0
-                    return (
-                      <>
-                        <div className="meta" style={{ marginTop: 4 }}>
-                          <b>{t(ph.name)}.</b> {t(ph.blurb)}
-                        </div>
-                        <div className="meta muted">{dialLine(oppClub.tactic)}</div>
-                        {/* THEY RESPECT YOU NOW (1.8.0, E9): the dials above are
-                            already this week's plan for you (oppcoach.ts
-                            setUpForUser); this says why, and what it goes after */}
-                        {oppClub.vsUser && (
-                          <div className="meta respect-line">
-                            <b>{t('matchday.respectLine')}</b>
-                            {oppClub.vsUser.unit && <> {t(`matchday.respectAt_${oppClub.vsUser.unit}`)}</>}
-                          </div>
-                        )}
-                        {suite >= 1 && (
-                          <div className="meta" style={{ marginTop: 4 }}>
-                            <b>{t('matchday.theAngle')}</b> {t(ph.soft)}
-                          </div>
-                        )}
-                      </>
-                    )
-                  })()}
-                </div>
-              )}
               {(() => {
                 const rec = game.vsBook?.[opp]
                 const total = rec ? rec.w + rec.d + rec.l : 0
@@ -1121,35 +1153,6 @@ function Preview({ fxId }: { fxId: number }) {
             </>
           )
         })()}
-        <SectionTitle sub={t('matchday.h2hYours')}>{t('matchday.headToHead')}</SectionTitle>
-        {bar(t('matchday.h2hScrum'), myUnits.scrum, oppUnits.scrum)}
-        {bar(t('matchday.h2hLineout'), myUnits.lineout, oppUnits.lineout)}
-        {bar(t('matchday.h2hBreakdown'), myUnits.breakdown, oppUnits.breakdown)}
-        {bar(t('matchday.h2hAttack'), myUnits.attack, oppUnits.attack)}
-        {bar(t('matchday.h2hDefence'), myUnits.defence, oppUnits.defence)}
-
-        {gamePlan.length > 0 && (
-          <div className="card" style={{ borderLeft: '4px solid var(--gold)', marginTop: 8 }}>
-            <div className="fact-label">{t('matchday.gamePlanTitle')}</div>
-            {gamePlan.map((p, i) => (
-              <div key={i} className="meta" style={{ padding: '2px 0' }}>• {p.text}</div>
-            ))}
-            <button className="btn ghost block" style={{ marginTop: 8 }} disabled={planApplied} onClick={applyPlan}>
-              {t(planApplied ? 'matchday.planApplied' : 'matchday.planApply')}
-            </button>
-            {rewardedAvailable('matchday') && !fullRead && allPlans.length > gamePlan.length && (
-              <RewardedButton place="matchday" style={{ marginTop: 6, fontSize: 13 }}
-                label={t('till.watchAnalyst', { n: allPlans.length - gamePlan.length, ...subjectVar(game.analystGender) })}
-                onDone={out => {
-                  if (out === 'completed') rewardAnalyst()
-                  else setSpotMsg(t(out === 'skipped' ? 'till.spotSkipped' : 'till.spotUnavailable'))
-                }} />
-            )}
-            {fullRead && <div className="meta" style={{ marginTop: 6, color: 'var(--gold)' }}>{t('till.analystDone')}</div>}
-            {spotMsg && <div className="meta sheet-log" style={{ marginTop: 6, borderLeft: '3px solid var(--gold)', paddingLeft: 8 }}>{spotMsg}</div>}
-          </div>
-        )}
-
         {(() => {
           const label: Record<number, string> = {
             0: t('matchday.partFrontRow'), 3: t('matchday.partLocks'),
@@ -2580,11 +2583,6 @@ function MatchVerdict() {
           </span>
         </div>
       )}
-      {(() => {
-        // A MAN YOU LET GO DECIDED IT (1.8.5, memory.ts formerDecided)
-        const fs = formerDecided(game, opp.teamId, mine.score, opp.score, ctx.events, ctx.motmId ?? null)
-        return fs.map(f => <div key={f.p} className="meta" data-former-ft={f.p} style={{ marginTop: 6 }}>{t(f.k, f.v)}</div>)
-      })()}
       <div className="fact-label" style={{ marginTop: 8 }}>{t('matchday.coachsVerdict')}</div>
       {why.map((w, i) => (
         <div key={w.cause} className="meta" data-why={w.cause} data-why-lead={leads[i] ?? undefined}
@@ -2593,14 +2591,6 @@ function MatchVerdict() {
           {t(w.k, w.v)}
         </div>
       ))}
-      {told && (
-        <div className="meta" data-why="read" data-why-told="1" style={{ borderLeft: '3px solid var(--border)', paddingLeft: 6, marginTop: 3 }}>
-          {t(told.k, told.v)}
-        </div>
-      )}
-      {half && <FollowLine f={half} label="matchday.fuSinceHt" pair="matchday.fuHalves" moved={moved} />}
-      {last && <FollowLine f={last} label="matchday.fuSinceLast" pair="matchday.fuMatches" />}
-
       {verdictOnLast && (
         <div className={`fix-grade${grade.missed.length === 0 ? ' good' : ''}`}>
           <Glyph name={grade.missed.length === 0 ? 'check' : 'tactics'} /> {verdictOnLast}
@@ -2624,7 +2614,29 @@ function MatchVerdict() {
         </>
       )}
 
-      <div className="fact-label" style={{ marginTop: 8 }}>{t('matchday.unitBattlesTitle')}</div>
+      {/* INFORMATION HIERARCHY (1.8.6): the verdict, then what to change,
+          then the memory: who you let go, the call he was set for, whether the
+          half-time change and last week's problem moved. Everything stays;
+          the order is the point. */}
+      <div className="ft-context">
+        {(() => {
+          // A MAN YOU LET GO DECIDED IT (1.8.5, memory.ts formerDecided)
+          const fs = formerDecided(game, opp.teamId, mine.score, opp.score, ctx.events, ctx.motmId ?? null)
+          return fs.map(f => <div key={f.p} className="meta" data-former-ft={f.p} style={{ marginTop: 6 }}>{t(f.k, f.v)}</div>)
+        })()}
+        {told && (
+          <div className="meta" data-why="read" data-why-told="1" style={{ borderLeft: '3px solid var(--border)', paddingLeft: 6, marginTop: 3 }}>
+            {t(told.k, told.v)}
+          </div>
+        )}
+        {half && <FollowLine f={half} label="matchday.fuSinceHt" pair="matchday.fuHalves" moved={moved} />}
+        {last && <FollowLine f={last} label="matchday.fuSinceLast" pair="matchday.fuMatches" />}
+      </div>
+      {/* the unit percentages, and the match analysis and stats below say
+          the same thing at length: folded, the way the talk sheet folds the
+          room (1.8.6) */}
+      <details className="mood-fold ft-units">
+      <summary>{t('matchday.unitBattlesTitle')}</summary>
       {units.map(({ key, label, pct, verdict }) => {
         const color = pct >= 52 ? 'var(--text-positive)' : pct <= 48 ? 'var(--text-negative)' : undefined
         // the verdict is a token, not a phrase: 'we edged it' and 'ils l'ont
@@ -2639,6 +2651,7 @@ function MatchVerdict() {
           </div>
         )
       })}
+      </details>
     </div>
   )
 }

@@ -4803,7 +4803,14 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .mood-chip.good { border-color: var(--primary); background: var(--primary-tint); }
 .mood-chip.low { border-color: var(--danger); background: var(--danger-tint); }
 .mood-fold { margin: 6px 0 2px; }
-.mood-fold > summary { cursor: pointer; font-weight: 700; font-size: 13px; padding: 6px 0; color: var(--info); }
+.mood-fold > summary { cursor: pointer; font-weight: 700; font-size: 13px; padding: 6px 0; color: var(--info); min-height: 40px; box-sizing: border-box; display: flex; align-items: center; gap: 6px; }
+.mood-fold > summary::before { content: '▸'; font-size: 11px; }
+.mood-fold[open] > summary::before { content: '▾'; }
+.mood-fold > summary::-webkit-details-marker { display: none; }
+/* the full-time memory lines, under the two fixes (1.8.6) */
+.ft-context:not(:empty) { margin-top: 10px; padding-top: 6px; border-top: 1px solid var(--border); }
+.ft-units { margin-top: 8px; }
+.ft-units > summary { text-transform: uppercase; letter-spacing: .5px; font-size: 12px; }
 .mood-fold .mood-wrap { padding: 0 0 6px; }
 /* ---- how the room took the talk (round 4, TalkReactions.tsx) ----
  * Every man, his reaction in words and a mood arrow, the classic manager
@@ -5611,3 +5618,5 @@ a.btn.home-community {
 @media (max-width: 340px) {
   .dtable td.name, .xv-fixed .dtable td.name, .dtable.codefirst td.name { white-space: normal; overflow-wrap: break-word; }
 }
+/* a vacancy's odds and the quiet answer on one row (1.8.6, Jobs.tsx) */
+.job-foot { display: flex; align-items: center; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
