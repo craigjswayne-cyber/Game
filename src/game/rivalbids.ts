@@ -365,6 +365,15 @@ export function aiYouthHunt(state: GameState): void {
 
 // ---------------------------------------------------------------- free agents ---
 
+/** The free agents AI boards look at: the stars, whose idling in the pool was
+ *  the drain (scripts/leaguestrength.ts). Every free man signed is a wage the
+ *  world did not pay before and a fee no selling club got: taking the 78-84s
+ *  too put 45% of the lower leagues in the red at season fourteen against
+ *  27% on stars alone (scripts/distressprobe.ts). */
+const FREE_MIN_CA = 85
+/** What a man out of contract takes on the club's rate for new deals. */
+const FREE_CUT = 0.85
+
 /**
  * A STAR LET GO IS NOT LEFT LYING THERE. Measured before this round
  * (scripts/leaguestrength.ts): AI clubs that could not afford a renewal let
@@ -374,11 +383,6 @@ export function aiYouthHunt(state: GameState): void {
  * going is a little over a third in a window week and about one in eight in
  * any other, so the manager can still beat them to him, but not at leisure.
  */
-/** The free agents AI boards look at: men who would start for a top side. */
-const FREE_MIN_CA = 78
-/** What a man out of contract takes on the club's rate for new deals. */
-const FREE_CUT = 0.85
-
 export function aiFreeAgents(state: GameState): void {
   // a free agent has no registration to move, so he can sign in any week;
   // boards do most of it in the windows, when they are looking anyway
