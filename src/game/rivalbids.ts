@@ -39,7 +39,7 @@
  */
 import type { Club, GameState, Player, Pos } from './model'
 import { XV_SLOTS, absWeek, careerRows, fmtMoney, fmtWage, isMyClub, leagueTier } from './model'
-import { INK_WEEKS, askingPrice, capBill, embargoed, executeTransfer, seniorsOf, SQUAD_LIMIT, windowOpen } from './ai'
+import { INK_WEEKS, askingPrice, freeDeal, capBill, embargoed, executeTransfer, seniorsOf, SQUAD_LIMIT, windowOpen } from './ai'
 import { aiCanCarry, aiPayRate, aiWageRooms } from './aiecon'
 import { playerWage } from './attributes'
 import { clubIntent } from './living'
@@ -525,7 +525,7 @@ export function rivalPushWeek(state: GameState): void {
     // a bid for his man at that position, once, and only a real one
     if (!e.bid && user && !state.unemployed && rand(`rpbid|${key}`) < 0.35) {
       const his = user.players.map(id => state.players[id])
-        .filter(p => p && !p.acad && !p.loanFrom && !p.retiring && p.pos === e.pos && p.ca >= 78)
+        .filter(p => p && !p.acad && !p.loanFrom && !p.retiring && p.pos === e.pos && p.ca >= 78 && !freeDeal(state, p))
         .sort((a, b) => b.ca - a.ca)[0]
       const dry = his && (his.joinedAt == null || absWeek(state.season, state.week) - his.joinedAt >= INK_WEEKS)
       if (his && dry && !state.offers.some(o => o.playerId === his.id && o.status === 'pending') && club.budget >= his.value) {

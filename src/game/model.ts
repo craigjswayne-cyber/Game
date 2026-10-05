@@ -517,6 +517,10 @@ export interface Player {
    *  able to buy them back within 6 months"). Absent on moves from before
    *  the stamp existed. */
   joinedAt?: number
+  /** Signed by the manager out of the free-agent pool: the season that deal
+   *  runs to. Until then a club bids for him only if its income could have
+   *  carried him when he was free (ai.ts freeDeal). Cleared when he moves. */
+  freeUntil?: number
   /** The rating he arrived on loan with. Read by the loan-to-buy option: a
    *  parent club that lent out a boy will sell him, unless the months at your
    *  place turned him into somebody they want back. Without this the "if things
@@ -2370,7 +2374,10 @@ export interface GameState {
   potyRoll?: { season: number; playerId: number; name: string; clubName: string }[]
   /** the season's most dramatic try by the user's club, judged live at each
    *  full-time whistle and honoured at the Annual */
-  tryOfSeason?: { playerId: number; name: string; min: number; opp: string; text: string; drama: number; season: number } | null
+  tryOfSeason?: { playerId: number; name: string; min: number; opp: string; text: string; drama: number; season: number
+    /** the line's key and values as JSON ({ k, ...v }), for the award story's
+     *  text_j: the English in `text` is the fallback for a save from before */
+    tj?: string } | null
   /** challenges conquered this career, badged forever on the profile */
   challengesDone?: string[]
   /** absolute week (season*100+week) a bigger club last courted the manager -

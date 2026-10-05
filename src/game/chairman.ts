@@ -197,7 +197,10 @@ export function wishMet(state: GameState, wish: string, row: { pos: number; deb:
     case 'steady': {
       const prev = [...state.mgr.finishes].reverse().find(f => f.clubId === club.id && f.season === state.season - 1)
       const aim = demandedFinish(state, club.id, comp?.table.length ?? 14).pos
-      return pos > 0 && (prev && prev.leagueId === club.leagueId ? pos <= prev.pos : pos <= aim)
+      // progress is a climb; standing still counts only where the board
+      // wanted him to be. "pos <= prev" read last of twelve, twice, as
+      // "steady progress up the table, and got it" (1.8.5 career QA)
+      return pos > 0 && (prev && prev.leagueId === club.leagueId ? pos < prev.pos || (pos === prev.pos && pos <= aim) : pos <= aim)
     }
     case 'black': return club.balance - (state.injectedThisSeason ?? 0) >= 0 && drift >= 0
     case 'silver': return state.mgr.trophies.some(x => x.season === state.season) ||

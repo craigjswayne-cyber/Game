@@ -16,7 +16,7 @@ import { book } from './books'
 import { identitySigning } from './identity'
 import { rememberDeparture } from './memory'
 import { agentTermsLift, talkPremium, unsettledFee, unsettledTerms } from './recruit'
-import { chooseBetween, liveRivalBid, openRivalBid, rivalBidLine, rivalBidWon } from './rivalbids'
+import { chooseBetween, liveRivalBid, minutesAt, openRivalBid, rivalBidLine, rivalBidWon } from './rivalbids'
 
 // ------------------------------------------------------------------
 // Transfer market
@@ -114,6 +114,33 @@ export function windowShut(week: number): string {
 export function aiBidFee(p: Player, rng: () => number, deadline: boolean): number {
   const f = p.transferListed ? 0.95 : (p.wantsOut ?? 0) > 0 ? 1.05 : (1.2 + rng() * 0.4) * unsettledFee(p)
   return Math.round((p.value * f * (deadline ? 1.15 : 1)) / 10_000) * 10_000
+}
+
+/**
+ * THE FREE-AGENT FLIP (1.8.5 career QA). The ink gate (INK_WEEKS) stopped a
+ * man signed for nothing being sold on at once, but not at all: sign every
+ * free agent worth a fee, list each once the ink is dry, and the bids came
+ * in at his value. Measured on a manager who did only that (Leicester, eight
+ * to twelve seasons, two worlds): 18 to 37 million a season clear in 1.8.4
+ * and in this release alike, against about half a million for the same club
+ * left alone. The AI clubs taking the 85-rated stars from the pool changed
+ * nothing: the manager has first pick of the pool every week.
+ *
+ * A market that let a man sit in the pool for nothing does not pay his full
+ * value to have him back while he is still on the deal he signed for
+ * nothing: until that deal's term is out (freeUntil, fixed when he signs, so
+ * an early renewal does not wash it) bids for him come in at FREE_RESALE of
+ * the usual fee. Measured at a half, a flipper still cleared 17-24 million a
+ * season, because he simply sold more men; asking the bidders to carry his
+ * wage (the free-agent test) took nothing off at all. At a quarter the same
+ * manager clears about ten million a season (selling at once, or holding
+ * each man to the end of his free deal), and the one who sold at once was
+ * sacked in one of the two worlds. After the term he is an ordinary player
+ * again, two seasons of wages later.
+ */
+export const FREE_RESALE = 0.25
+export function freeDeal(state: GameState, p: Player): boolean {
+  return p.freeUntil != null && state.season < p.freeUntil
 }
 
 /** Asking price for a player from his current club's perspective. */
@@ -303,6 +330,7 @@ export function executeTransfer(state: GameState, p: Player, toClubId: string, f
   p.clubId = toClubId
   p.morale = clamp(p.morale + 1, 1, 10)
   p.transferListed = false
+  p.freeUntil = undefined
   p.debutPending = 'signing'
   // the arrival is stamped: the buy-back gate in agreeFee reads it, and the
   // game-time ledger's availability counter starts fresh at the new club
@@ -446,14 +474,20 @@ export function aiTransfers(state: GameState, rng: Rng) {
     // cleared about £22M a season (1.8.4 exploit hunt, E1/E2). Read after
     // the pick, so the draws are the ones they were.
     if (p.joinedAt != null && absWeek(state.season, state.week) - p.joinedAt < INK_WEEKS) continue
-    const bidders = clubs.filter(c => c.id !== user.id && c.rep >= user.rep - 15 && c.budget >= p.value * 0.8)
+    // A CLUB BIDS FOR A MAN IT WOULD USE (1.8.5 career QA): one who would at
+    // least make its matchday squad. Without it every listed man drew bids
+    // from the bigger clubs whatever he was (a 36-rated 33-year-old went from
+    // National One to Exeter for a fee), and a manager could sign the free
+    // pool's 66-rated men and sell ten a season on at their value.
+    const bidders = clubs.filter(c => c.id !== user.id && c.rep >= user.rep - 15 && c.budget >= p.value * 0.8 &&
+      minutesAt(state, c, p) >= 1)
     if (!bidders.length) continue
     const bidder = pick(rng, bidders)
     // a transfer request costs the seller the premium: the buyer knows the
     // player wants it, so the bid comes in near value rather than over it. A
     // low mood alone takes the same graded slice off as the asking price does
     // (unsettledFee); the rng draw is unchanged
-    const fee = aiBidFee(p, rng, deadline)
+    const fee = Math.round(aiBidFee(p, rng, deadline) * (freeDeal(state, p) ? FREE_RESALE : 1) / 10_000) * 10_000
     state.offers.push({
       id: state.nextId++, playerId: p.id, fromClubId: bidder.id, toClubId: user.id,
       fee, week: state.week, forUser: true, status: 'pending',
@@ -559,6 +593,11 @@ export function agreeFee(state: GameState, playerId: number, fee: number): { ok:
   if (p.clubId === user.id) return { ok: false, msg: t('reply.alreadyYours') }
   if (!windowOpen(state.week)) return { ok: false, msg: windowShut(state.week) }
   if (fee > user.budget) return { ok: false, msg: t('reply.bidOverBudget') }
+  // AN EMBARGO SHUTS THE FIRST DOOR TOO (1.8.5 career QA). Stage 2 refuses
+  // every signing under one, but a fee could still be agreed here, which
+  // opened a rival bid (rivalbids.ts) the manager could never answer: the
+  // rival signed the man and the news said "you never put terms to him".
+  if (embargoed(state, user.id)) return { ok: false, msg: t('reply.embargoSign') }
   const ask = askingPrice(state, p)
   const seller = state.clubs[p.clubId]
   // THE INK IS STILL WET (user: "i just sold this player - i shouldn't
@@ -762,6 +801,8 @@ export function signFreeAgent(state: GameState, playerId: number): { ok: boolean
   p.acad = false
   p.wage = wage
   p.contractEnds = state.season + 2
+  // the free deal's term, fixed now: a renewal does not wash it (freeDeal)
+  p.freeUntil = p.contractEnds
   return { ok: true, msg: t('reply.signsFree', { name: p.name, wage: fmtWage(wage) }) }
 }
 
