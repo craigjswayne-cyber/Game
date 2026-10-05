@@ -57,13 +57,14 @@ const words = (s: string) => s.replace(/\{[^}]*\}/g, '').match(/[A-Za-z][A-Za-z'
 /**
  * Names that are the same in every language on purpose.
  *
- * "Pro Manager" is the product in the store and is sold under that name.
+ * "Pro Manager" is the product in the store and is sold under that name,
+ * on the Store row and on the Pro cards alike.
  * "Sauvez Sapiac" is a French challenge title and is French in the English
  * file too. The rest are competitions, which carry their fictional names
  * everywhere the way the club names do.
  */
 const PROPER = new Set([
-  'store.removeAds', 'challenges.sapiac', 'week.compWc', 'week.compPnc',
+  'store.removeAds', 'pro.title', 'challenges.sapiac', 'week.compWc', 'week.compPnc',
   'player.worldPoty', 'world.dtTitle', 'world.natPnc', 'world.natSn',
   'world.natTrc', 'world.natWc', 'legacy.lgHallOfFame', 'matchday.testMatch',
   // the American league's own name, which it keeps abroad as its clubs do
