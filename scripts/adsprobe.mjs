@@ -79,8 +79,9 @@ const openPage = async ({ platform = 'android', consent = 'required', spot = 're
         if (quirk === 'nofill') return setTimeout(() => fire('bannerAdFailedToLoad', { code: 3, message: 'no fill' }), 0)
         setTimeout(() => fire('bannerAdSizeChanged', { width: 320, height: 50 }), 0)
       },
-      hideBanner: async () => { log.push('hideBanner'); setTimeout(() => fire('bannerAdSizeChanged', { width: 0, height: 0 }), 0) },
-      resumeBanner: async () => { log.push('resumeBanner'); setTimeout(() => fire('bannerAdSizeChanged', { width: 320, height: 50 }), 0) },
+      // 'slow' is a device: the native view takes a few hundred ms to go and come
+      hideBanner: async () => { log.push('hideBanner'); if (quirk === 'slow') await new Promise(r => setTimeout(r, 300)); setTimeout(() => fire('bannerAdSizeChanged', { width: 0, height: 0 }), 0) },
+      resumeBanner: async () => { log.push('resumeBanner'); if (quirk === 'slow') await new Promise(r => setTimeout(r, 300)); setTimeout(() => fire('bannerAdSizeChanged', { width: 320, height: 50 }), 0) },
       removeBanner: async () => { log.push('removeBanner'); setTimeout(() => fire('bannerAdSizeChanged', { width: 0, height: 0 }), 0) },
       prepareRewardVideoAd: async (o) => { log.push('prepareRewardVideoAd:' + o.adId); if (spot === 'noload') throw new Error('no fill') ; return { adUnitId: o.adId } },
       showRewardVideoAd: async () => {
@@ -183,7 +184,10 @@ try {
     // a sheet over the page: the banner steps aside
     await page.evaluate(() => { const v = document.createElement('div'); v.className = 'modal-veil'; v.id = 'probe-veil'; document.body.appendChild(v) })
     await settle(page, 400)
-    ok((await lastBanner(page)) === 'hideBanner' && (await inset(page)) === '0px', 'a sheet over the page hides the banner and the room is given back')
+    // 1.8.9: the room is HELD while the slot still wants its banner, so the
+    // layout under a finger does not move when the banner steps aside (owner,
+    // 1.8.8 on an iPhone: taps landing on the row below). It was '0px' here.
+    ok((await lastBanner(page)) === 'hideBanner' && (await inset(page)) === '50px', 'a sheet over the page hides the banner and the room is held, so nothing moves')
     await page.evaluate(() => document.getElementById('probe-veil').remove())
     await settle(page, 400)
     ok((await lastBanner(page)) === 'resumeBanner' && (await inset(page)) === '50px', 'closing the sheet brings it back without a new request')
@@ -193,7 +197,7 @@ try {
     await page.locator('.bottom-nav button').nth(2).click()
     await page.waitForSelector('.submenu-veil')
     await settle(page, 400)
-    ok((await lastBanner(page)) === 'hideBanner' && (await inset(page)) === '0px', 'the slide-out club menu is not sat on by the advert')
+    ok((await lastBanner(page)) === 'hideBanner' && (await inset(page)) === '50px', 'the slide-out club menu is not sat on by the advert (and the room is held)')
     await page.locator('.submenu-veil').click({ position: { x: 400, y: 60 } })  // the panel is on the left; tap the bare strip beside it
     await page.waitForSelector('.submenu-veil', { state: 'detached' })
     await settle(page, 400)
@@ -220,6 +224,69 @@ try {
     const tail = (await log(page)).slice(-2)
     ok(tail[0] === 'removeBanner' && tail[1] === `showBanner:${ADS.android.banner['results-foot']}:BOTTOM_CENTER`,
       `a slot with another unit id takes the old banner down and requests its own (${tail.join(' → ')})`)
+    ok(errs.length === 0, `no page errors (${errs.join(' | ') || 'none'})`)
+    await page.close()
+  }
+
+  // ---- 1b. nothing moves under a finger --------------------------------------
+  // 1.8.8, iOS Simulator: "I'm clicking on the buttons in the menu but it is
+  // selecting the one below". The banner was hidden a few hundred ms AFTER a
+  // menu or sheet appeared, --ad-inset fell to 0, and the page jumped by the
+  // banner's height under a tap already on its way. With a plugin as slow as a
+  // device, every element's box is read the moment the veil appears and again
+  // a second later: none may have moved.
+  say('\n--- 1b. opening a menu or a sheet over a banner moves nothing')
+  {
+    const { page, errs } = await openPage({ plugin: 'slow' })
+    await startCareer(page)
+    await settle(page, 1200)
+    ok((await inset(page)) === '50px', `a banner is up on Home (--ad-inset ${await inset(page)})`)
+    const boxes = (sel) => page.evaluate((sel) => [...document.querySelectorAll(sel)].map(e => {
+      const r = e.getBoundingClientRect(); return `${e.className}|${Math.round(r.left)},${Math.round(r.top)},${Math.round(r.width)},${Math.round(r.height)}`
+    }), sel)
+    const SEL = '.bottom-nav button, .submenu-item, .modal, .modal .dtable tr, .content .card'
+    const still = async (what) => {
+      // the menu's own 180ms slide-in is motion, not a shift: let it land first.
+      // The slow plugin's hide reports at 300ms, so a shift would still fall
+      // between the two reads.
+      await page.evaluate(() => Promise.all(document.getAnimations().map(a => a.finished.catch(() => {}))))
+      const a = await boxes(SEL)
+      await page.waitForTimeout(1000)
+      const b = await boxes(SEL)
+      const moved = a.filter((x, i) => x !== b[i])
+      ok(a.length === b.length && moved.length === 0, `${what}: ${a.length} boxes, none moved in the next second${moved.length ? ` (moved: ${moved.slice(0, 3).join(' ; ')})` : ''}`)
+    }
+    for (const [n, name] of [[2, 'Hub'], [3, 'Manager'], [4, 'World']]) {
+      await page.locator('.bottom-nav button').nth(n).click()
+      await page.waitForSelector('.submenu-item')
+      await still(`the ${name} menu`)
+      ok((await lastBanner(page)) === 'hideBanner', `and the banner stepped aside for the ${name} menu`)
+      await page.locator('.submenu-veil').click({ position: { x: 400, y: 60 } })
+      await page.waitForSelector('.submenu-veil', { state: 'detached' })
+      await still(`closing the ${name} menu`)
+    }
+    // a bottom sheet, built from the game's own classes, over the Home slot
+    await page.evaluate(() => {
+      const v = document.createElement('div'); v.className = 'modal-veil'; v.id = 'probe-sheet'
+      const rows = Array.from({ length: 8 }, (_, i) => `<tr><td class="name">Row ${i}</td><td class="num">${i}</td></tr>`).join('')
+      v.innerHTML = `<div class="modal" role="dialog"><div class="grab"></div><table class="dtable"><tbody>${rows}</tbody></table><button class="btn ghost block">Close</button></div>`
+      document.querySelector('main.content').appendChild(v)
+    })
+    await still('a bottom sheet')
+    await page.evaluate(() => document.getElementById('probe-sheet').remove())
+    await still('closing the sheet')
+    ok((await lastBanner(page)) === 'resumeBanner' && (await inset(page)) === '50px', 'and the banner came back into the room it left')
+    // room is still released where no slot wants a banner (the 1.8.4 band)
+    await page.locator('.bottom-nav button').nth(3).click()
+    await page.locator('.submenu-item').first().click()
+    await page.waitForTimeout(900)
+    ok((await inset(page)) === '0px', 'a screen with no slot holds no room')
+    // and coming back makes the room in the frame the screen draws
+    await page.locator('.bottom-nav button').nth(1).click()
+    const navAt = await page.evaluate(() => document.querySelector('.bottom-nav').getBoundingClientRect().top)
+    await page.waitForTimeout(1000)
+    const navLater = await page.evaluate(() => document.querySelector('.bottom-nav').getBoundingClientRect().top)
+    ok(Math.abs(navAt - navLater) < 1, `back on Home the nav is where it stays (${Math.round(navAt)} then ${Math.round(navLater)})`)
     ok(errs.length === 0, `no page errors (${errs.join(' | ') || 'none'})`)
     await page.close()
   }
