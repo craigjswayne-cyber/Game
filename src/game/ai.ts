@@ -16,7 +16,7 @@ import { book } from './books'
 import { identitySigning } from './identity'
 import { rememberDeparture } from './memory'
 import { agentTermsLift, talkPremium, unsettledFee, unsettledTerms } from './recruit'
-import { chooseBetween, liveRivalBid, minutesAt, openRivalBid, rivalBidLine, rivalBidWon } from './rivalbids'
+import { chooseBetween, liveRivalBid, openRivalBid, rivalBidLine, rivalBidWon } from './rivalbids'
 
 // ------------------------------------------------------------------
 // Transfer market
@@ -133,10 +133,11 @@ export function aiBidFee(p: Player, rng: () => number, deadline: boolean): numbe
  * the usual fee. Measured at a half, a flipper still cleared 17-24 million a
  * season, because he simply sold more men; asking the bidders to carry his
  * wage (the free-agent test) took nothing off at all. At a quarter the same
- * manager clears about ten million a season (selling at once, or holding
- * each man to the end of his free deal), and the one who sold at once was
- * sacked in one of the two worlds. After the term he is an ordinary player
- * again, two seasons of wages later.
+ * manager clears 0 to 17 million a season over four runs (selling at once,
+ * or holding each man to the end of his free deal; one was sacked inside a
+ * season and cleared nothing). What is left is mostly the holding: after the
+ * term he is an ordinary player again, two seasons of wages and a squad
+ * place later, and sells at his value.
  */
 export const FREE_RESALE = 0.25
 export function freeDeal(state: GameState, p: Player): boolean {
@@ -474,13 +475,7 @@ export function aiTransfers(state: GameState, rng: Rng) {
     // cleared about £22M a season (1.8.4 exploit hunt, E1/E2). Read after
     // the pick, so the draws are the ones they were.
     if (p.joinedAt != null && absWeek(state.season, state.week) - p.joinedAt < INK_WEEKS) continue
-    // A CLUB BIDS FOR A MAN IT WOULD USE (1.8.5 career QA): one who would at
-    // least make its matchday squad. Without it every listed man drew bids
-    // from the bigger clubs whatever he was (a 36-rated 33-year-old went from
-    // National One to Exeter for a fee), and a manager could sign the free
-    // pool's 66-rated men and sell ten a season on at their value.
-    const bidders = clubs.filter(c => c.id !== user.id && c.rep >= user.rep - 15 && c.budget >= p.value * 0.8 &&
-      minutesAt(state, c, p) >= 1)
+    const bidders = clubs.filter(c => c.id !== user.id && c.rep >= user.rep - 15 && c.budget >= p.value * 0.8)
     if (!bidders.length) continue
     const bidder = pick(rng, bidders)
     // a transfer request costs the seller the premium: the buyer knows the
