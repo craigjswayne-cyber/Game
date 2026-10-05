@@ -9442,5 +9442,20 @@
     "reminderLineSkins": "La saison vous plaît ? Pro Manager ajoute trois habillages réservés aux Pro, quand vous le souhaitez.",
     "done": "Vous êtes Pro Manager. Merci de soutenir le jeu. Les trois habillages vous attendent dans les Réglages.",
     "close": "Continuer"
+  },
+  "feedback": {
+    "title": "Aidez à façonner le jeu",
+    "line": "Voici ce que vous avez utilisé jusqu'ici, rien d'autre. Rien n'est envoyé tant que vous ne l'envoyez pas.",
+    "email": "E-mail",
+    "copy": "Copier",
+    "notNow": "Pas maintenant",
+    "discord": "Ou copiez-le et collez-le dans #feedback sur notre Discord.",
+    "discordLink": "Ouvrir Discord",
+    "copied": "Copié. Collez-le dans #feedback sur Discord.",
+    "copyFailed": "La copie a été bloquée. Sélectionnez le rapport ci-dessus pour le copier.",
+    "rowTitle": "Rapport d'utilisation",
+    "rowLine": "Ce que vous avez utilisé jusqu'ici, prêt à envoyer si vous le souhaitez.",
+    "rowBtn": "Envoyer le rapport d'utilisation",
+    "reportLabel": "Votre rapport"
   }
 }
