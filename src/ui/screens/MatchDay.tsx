@@ -2582,8 +2582,8 @@ function MatchVerdict() {
       )}
       {(() => {
         // A MAN YOU LET GO DECIDED IT (1.8.5, memory.ts formerDecided)
-        const f = formerDecided(game, opp.teamId, mine.score, opp.score, ctx.events, ctx.motmId ?? null)
-        return f ? <div className="meta" data-former-ft={f.p} style={{ marginTop: 6 }}>{t(f.k, f.v)}</div> : null
+        const fs = formerDecided(game, opp.teamId, mine.score, opp.score, ctx.events, ctx.motmId ?? null)
+        return fs.map(f => <div key={f.p} className="meta" data-former-ft={f.p} style={{ marginTop: 6 }}>{t(f.k, f.v)}</div>)
       })()}
       <div className="fact-label" style={{ marginTop: 8 }}>{t('matchday.coachsVerdict')}</div>
       {why.map((w, i) => (

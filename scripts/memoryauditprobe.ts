@@ -156,8 +156,8 @@ function career(clubId: string, seed: number, seasons: number, moveAt: number | 
         theirIds = theirSide.lineup.filter((x): x is number => x != null)
       }
       const usScore = us, themScore = them
-      const ft = decidedBy && !forfeit ? decidedBy(g, opp, us, them, events, motm) : null
-      if (ft && samples.length < 8) samples.push(`full time: ${say(ft.k, ft.v)}`)
+      const ft = decidedBy && !forfeit ? decidedBy(g, opp, us, them, events, motm) : []
+      for (const f of ft) if (samples.length < 8) samples.push(`full time: ${say(f.k, f.v)}`)
       // the settle: news filed for this week
       processWeekAndAdvance(g)
       const after = g.news.filter(n => !newsBefore.has(n.id))
@@ -183,15 +183,15 @@ function career(clubId: string, seed: number, seasons: number, moveAt: number | 
         moment('meetFormer', named(p), comm, newsAfter, `${p.name} (${d.young ? 'young' : 'senior'}, sold ${seasonLabel(d.season)}) [${where(p)}] ${after.filter(n => n.playerId === pid).map(n => n.k).join(',')}`)
         if (d.bad) moment('badTermsMeet', facing.some(f => f.p.id === pid && /faceBroken|faceRefused/.test(String(f.v.extra_k ?? ''))), false, newsAfter, p.name)
         const scored = events.some(e => e.type === 'TRY' && e.playerId === pid)
-        if (scored) moment('formerScores', false, comm || events.some(e => e.playerId === pid && e.type === 'SUB'), newsAfter || ft?.p === pid, p.name)
+        if (scored) moment('formerScores', false, comm || events.some(e => e.playerId === pid && e.type === 'SUB'), newsAfter || ft.some(f => f.p === pid), p.name)
         // decided it: his try was worth the margin of a defeat, or he was the
         // best man on the pitch in one
         const decides = themScore > usScore && ((scored && themScore - usScore <= 5) || motm === pid)
         if (decides) {
-          moment('formerDecides', false, comm, ft?.p === pid || after.some(n => n.playerId === pid && /motm|tryVs|oldBoy/.test(n.k ?? '')), `${p.name} ${usScore}-${themScore}${motm === pid ? ' motm' : ''}`)
-          if (decidedBy) { const x = T('formerDecides'); x.ft = (x.ft ?? 0) + (ft?.p === pid ? 1 : 0) }
+          moment('formerDecides', false, comm, ft.some(f => f.p === pid) || after.some(n => n.playerId === pid && /motm|tryVs|oldBoy/.test(n.k ?? '')), `${p.name} ${usScore}-${themScore}${motm === pid ? ' motm' : ''}`)
+          if (decidedBy) { const x = T('formerDecides'); x.ft = (x.ft ?? 0) + (ft.some(f => f.p === pid) ? 1 : 0) }
         }
-        if (ft && ft.p !== pid && L.sold.get(ft.p)?.ordinary) ordinaryLeaks.push(`full time names ${g.players[ft.p]?.name}`)
+        for (const f of ft) if (f.p !== pid && L.sold.get(f.p)?.ordinary) ordinaryLeaks.push(`full time names ${g.players[f.p]?.name}`)
       }
       if (rc && rc.at === opp && rc.n === rcCoach) moment('rivalMeet', thread.includes(rc.n) || stake.includes(rc.n) || repText.some(x => x.includes(rc.n)), false, false, rc.n)
       if (formerTenure(g, opp)) moment('oldClub', preNews.some(n => /hist\.return/.test(n.k ?? '')) || !!stake, false, false, g.clubs[opp].short)
