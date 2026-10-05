@@ -39,6 +39,7 @@
  *     stamp - is part of that career's story and travels with it, exactly like
  *     a signing it paid for.)
  */
+import { noteUse } from './usage'
 
 /** Which build this is.
  *
@@ -1233,6 +1234,7 @@ export async function showRewarded(place: RewardedPlace): Promise<'completed' | 
   if (!a || typeof a.showRewarded !== 'function') return 'unavailable'
   try {
     const out = await a.showRewarded(place)
+    if (out === 'completed') noteUse('advert')
     return out === 'completed' ? 'completed' : out === 'skipped' ? 'skipped' : 'unavailable'
   } catch {
     return 'unavailable'
