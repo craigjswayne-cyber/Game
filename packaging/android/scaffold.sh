@@ -50,29 +50,13 @@ echo "    PhaseBilling.java"
 # mode in a different costume (packageClassList): a plugin that compiled,
 # loaded, and was invisible to the web view, so the game had no shop.
 MAIN=$PKG_DIR/MainActivity.java
-if ! grep -q "registerPlugin(PhaseBilling.class)" "$MAIN"; then
-  cat > "$MAIN" <<'EOF'
-package com.phaserugbymanager.app;
-
-import android.os.Bundle;
-
-import com.getcapacitor.BridgeActivity;
-
-public class MainActivity extends BridgeActivity {
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        // the purchase bridge is part of the app, not an npm package, so it is
-        // registered here by hand - before super.onCreate, or the bridge has
-        // already built its plugin list without it
-        registerPlugin(PhaseBilling.class);
-        super.onCreate(savedInstanceState);
-    }
-}
-EOF
-  echo "    registered PhaseBilling in MainActivity"
-else
-  echo "    PhaseBilling already registered"
-fi
+#
+# MainActivity.java lives in this folder and is COPIED EVERY TIME, like
+# PhaseBilling.java: it carries the Back button handler (1.8.10), and the old
+# "write it only if PhaseBilling is not registered" check would have left every
+# existing shell on the activity that let Back close the game.
+cp MainActivity.java "$MAIN"
+echo "    MainActivity.java (PhaseBilling registered; Back never closes the game)"
 
 # ---- GRADLE: the billing library, and the version Play will see ----
 GRADLE=$APP/build.gradle

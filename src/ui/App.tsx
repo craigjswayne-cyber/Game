@@ -398,9 +398,14 @@ function useHardwareBack(depth: number, screen: Screen, menuOpen: boolean, close
       // a single page that is not Home goes Home rather than out of the game
       else if (s.nav[s.nav.length - 1]?.screen !== 'home'
         && s.nav[s.nav.length - 1]?.screen !== 'matchday') s.home()
-      // and on Home itself, or a match resumed at depth 1, Back stays put:
-      // the game is left with the phone's own Home gesture, never by a press
-      // meant for the page (same report)
+      // ON HOME, BACK GOES TO THE TITLE (owner, 1.8.10: "It should ALWAYS take
+      // me to title page to keep me in the game. Never quit unless I press the
+      // middle menu button"). The career is saved as it goes, so the title's
+      // Continue picks it straight back up. On the title itself Back does
+      // nothing: MainActivity.java hands every press to history.back(), and
+      // there is no listener there to act on it. A match resumed at depth 1
+      // still stays put; the match screen has its own ways out.
+      else if (s.nav[s.nav.length - 1]?.screen === 'home') { s.toTitle(); return }
       arm()
     }
 
