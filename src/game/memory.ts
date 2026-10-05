@@ -629,18 +629,21 @@ export function formerFacing(state: GameState, oppId: string, ids?: readonly (nu
 /**
  * Full time: a man you let go DECIDED it against you. His try was worth the
  * margin of the defeat, or he was the best man on the pitch in a defeat.
- * Null otherwise, and for a win: the commentary has had its word on a try
+ * None otherwise, and none for a win: the commentary has had its word on a try
  * that did not cost you.
  */
 export function formerDecided(
   state: GameState, oppId: string, us: number, them: number,
   events: readonly { type: string; teamId?: string; playerId?: number }[], motmId: number | null,
-): { k: string; v: Vars; p: number } | null {
-  if (us >= them) return null
+): { k: string; v: Vars; p: number }[] {
+  // every man who decided it, not the first: two former players can share a
+  // defeat, one with the try and one as the best man on the pitch (1.8.5)
+  if (us >= them) return []
+  const out: { k: string; v: Vars; p: number }[] = []
   for (const f of formerFacing(state, oppId, undefined, Infinity)) {
     const tried = events.some(ev => ev.type === 'TRY' && ev.playerId === f.p.id)
-    if (tried && them - us <= 5) return { k: 'mem.ftTry', v: { ...howVars(state, f.e), us, them }, p: f.p.id }
-    if (motmId === f.p.id) return { k: 'mem.ftMotm', v: { ...howVars(state, f.e), us, them }, p: f.p.id }
+    if (tried && them - us <= 5) out.push({ k: 'mem.ftTry', v: { ...howVars(state, f.e), us, them }, p: f.p.id })
+    else if (motmId === f.p.id) out.push({ k: 'mem.ftMotm', v: { ...howVars(state, f.e), us, them }, p: f.p.id })
   }
-  return null
+  return out
 }
