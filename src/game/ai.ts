@@ -17,6 +17,7 @@ import { identitySigning } from './identity'
 import { rememberDeparture } from './memory'
 import { agentTermsLift, talkPremium, unsettledFee, unsettledTerms } from './recruit'
 import { chooseBetween, liveRivalBid, openRivalBid, rivalBidLine, rivalBidWon } from './rivalbids'
+import { noteBlocked } from './arcbook'
 
 // ------------------------------------------------------------------
 // Transfer market
@@ -592,7 +593,7 @@ export function agreeFee(state: GameState, playerId: number, fee: number): { ok:
   // every signing under one, but a fee could still be agreed here, which
   // opened a rival bid (rivalbids.ts) the manager could never answer: the
   // rival signed the man and the news said "you never put terms to him".
-  if (embargoed(state, user.id)) return { ok: false, msg: t('reply.embargoSign') }
+  if (embargoed(state, user.id)) { noteBlocked(state, p.id, 'emb'); return { ok: false, msg: t('reply.embargoSign') } }
   const ask = askingPrice(state, p)
   const seller = state.clubs[p.clubId]
   // THE INK IS STILL WET (user: "i just sold this player - i shouldn't
@@ -712,6 +713,7 @@ export function signOnTerms(state: GameState, playerId: number, fee: number, wag
   if (fee + signOn > user.budget) return { ok: false, msg: t('reply.feeBonusOverBudget') }
   if (squadFull(state, user)) return { ok: false, msg: t('reply.squadFull') }
   if (embargoed(state, user.id)) {
+    noteBlocked(state, p.id, 'emb')
     return { ok: false, msg: t('reply.embargoSign') }
   }
   // NAMED A MARQUEE MAN AT THE TABLE (owner, v1.2.8: the cap refusal said
@@ -724,7 +726,8 @@ export function signOnTerms(state: GameState, playerId: number, fee: number, wag
   user.marquee = (user.marquee ?? []).filter(id => state.players[id]?.clubId === user.id)
   const marqueeSlots = MARQUEE_SLOTS - user.marquee.length
   const capMsg = asMarquee && marqueeSlots > 0 ? null : capBreak(state, user.id, wage, 0, marqueeSlots > 0)
-  if (capMsg) return { ok: false, msg: capMsg }
+  // the season's tally of men the cap kept out, for the board's letter (repute.ts)
+  if (capMsg) { noteBlocked(state, p.id, 'cap'); return { ok: false, msg: capMsg } }
   const demand = personalTermsDemand(state, p)
   const squadWages = capBill(state, user)
   if (squadWages + wage > userWageBudget(state, user)) {
@@ -782,13 +785,14 @@ export function signFreeAgent(state: GameState, playerId: number): { ok: boolean
   if (!p || p.clubId != null || !user) return { ok: false, msg: t('reply.notFreeAgent') }
   if (squadFull(state, user)) return { ok: false, msg: t('reply.squadFull') }
   if (embargoed(state, user.id)) {
+    noteBlocked(state, p.id, 'emb')
     return { ok: false, msg: t('reply.embargoSign') }
   }
   // a scholar let go by his academy signs as a senior: on the professional
   // scale and in the senior count (1.8.4 exploit hunt, E9)
   const wage = renewalDemand(p.acad ? { ...p, acad: false } : p)
   const capMsg = capBreak(state, user.id, wage)
-  if (capMsg) return { ok: false, msg: capMsg }
+  if (capMsg) { noteBlocked(state, p.id, 'cap'); return { ok: false, msg: capMsg } }
   if (capBill(state, user) + wage > userWageBudget(state, user)) {
     return { ok: false, msg: t('reply.wageDemandsExceed', { wage: fmtWage(wage) }) }
   }
@@ -991,7 +995,7 @@ export function agreePreContract(state: GameState, playerId: number): { ok: bool
   if (staying + arriving >= SQUAD_LIMIT) return { ok: false, msg: t('reply.squadFull') }
   // (no marquee door to point at: he is not the club's to name until he arrives)
   const capMsg = capBreak(state, user.id, wage, 0, 'none')
-  if (capMsg) return { ok: false, msg: capMsg }
+  if (capMsg) { noteBlocked(state, p.id, 'cap'); return { ok: false, msg: capMsg } }
   if (capBill(state, user) + wage > userWageBudget(state, user)) {
     return { ok: false, msg: t('reply.termsBreakBudget', { wage: fmtWage(wage) }) }
   }

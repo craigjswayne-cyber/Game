@@ -151,7 +151,7 @@ export const JOB_FIT = 0.06
 const FITS: Partial<Record<Trait, JobProfile[]>> = {
   youth: ['academy', 'minnow'], youthBacks: ['academy', 'minnow'], youthPack: ['academy', 'minnow'], youthIntl: ['academy', 'minnow'],
   turnaround: ['troubled', 'fallen'], spender: ['newcomer', 'giant'],
-  innovator: ['fallen', 'giant'], hard: ['troubled'], players: ['academy'],
+  innovator: ['fallen', 'giant'], tactician: ['fallen'], prudent: ['troubled', 'minnow'], hard: ['troubled'], players: ['academy'],
 }
 /** a sixth either way of the league's rate is a need */
 export const NEED = 1 / 6

@@ -8934,7 +8934,7 @@
     "wishMet": "Le président voulait {wish_k}, et il l'a eu.",
     "wishMissed": "Le président voulait {wish_k}, et il ne l'a pas eu.",
     "verdictSubj": "Le verdict de la direction sur la saison",
-    "verdict": "Le verdict estival de la direction.\n{rows_ll}",
+    "verdict": "{rows_ll}",
     "demGiantWon": "Un trophée, la raison d'être de ce club. La direction est satisfaite.",
     "demGiantEmpty": "Deux saisons sans trophée. Dans un club de cette taille, cela se remarque, et la direction l'a remarqué.",
     "demFallenRise": "Un meilleur classement qu'il y a un an. La direction veut retrouver le rang d'autrefois, et c'est le chemin.",
@@ -8966,7 +8966,7 @@
       "innovator": "Réputé pour changer la manière de jouer d'une équipe, et gagner ainsi.",
       "spender": "Réputé pour dépenser sans compter sur le marché des transferts.",
       "seller": "Réputation de vendeur : même les meilleurs joueurs finissent par partir.",
-      "seller_w": "Réputation de vendeur : même les meilleures joueuses finissent par partir.",
+      "seller_w": "Réputation de vendeuse : même les meilleurs joueurs finissent par partir.",
       "hard": "Réputé pour sa discipline : personne n'est plus grand que le club.",
       "players": "Réputé proche de ses joueurs : promesses tenues, vestiaire heureux.",
       "turnaround": {
@@ -8974,7 +8974,28 @@
         "other": "A redressé {n} clubs en difficulté."
       },
       "defence": "Réputé pour des équipes très difficiles à percer.",
-      "attack": "Réputé pour des équipes qui marquent beaucoup de points."
+      "attack": "Réputé pour des équipes qui marquent beaucoup de points.",
+      "tactician": "Réputé pour changer de plan de jeu, d'une semaine à l'autre et à la mi-temps.",
+      "prudent": "Réputé pour tenir les comptes et garder la masse salariale dans le budget.",
+      "youth_w": "Réputée pour donner leur chance aux jeunes.",
+      "youthBacks_w": "Réputée pour former de jeunes trois-quarts.",
+      "youthPack_w": "Réputée pour former de jeunes avants.",
+      "youthIntl_w": {
+        "one": "Réputée pour avoir fait d'un joueur du centre de formation un international.",
+        "other": "Réputée pour faire de joueurs du centre de formation des internationaux : {n} à ce jour."
+      },
+      "innovator_w": "Réputée pour changer la manière de jouer d'une équipe, et gagner ainsi.",
+      "spender_w": "Réputée pour dépenser sans compter sur le marché des transferts.",
+      "hard_w": "Réputée pour sa discipline : personne n'est plus grand que le club.",
+      "players_w": "Réputée proche de ses joueurs : promesses tenues, vestiaire heureux.",
+      "defence_w": "Réputée pour des équipes très difficiles à percer.",
+      "attack_w": "Réputée pour des équipes qui marquent beaucoup de points.",
+      "tactician_w": "Réputée pour changer de plan de jeu, d'une semaine à l'autre et à la mi-temps.",
+      "prudent_w": "Réputée pour tenir les comptes et garder la masse salariale dans le budget.",
+      "seller_f": "Réputation de vendeur : même les meilleures joueuses finissent par partir.",
+      "seller_fw": "Réputation de vendeuse : même les meilleures joueuses finissent par partir.",
+      "players_f": "Réputé proche de ses joueuses : promesses tenues, vestiaire heureux.",
+      "players_fw": "Réputée proche de ses joueuses : promesses tenues, vestiaire heureux."
     },
     "traitNewsSubj": "Ce qu'on dit de vous",
     "traitNews": "La presse a trouvé comment vous décrire : {trait_k}",
@@ -8994,12 +9015,14 @@
       "innovator": "les idées de jeu nouvelles",
       "spender": "les grosses dépenses",
       "seller": "la vente de joueurs",
-      "seller_w": "la vente de joueuses",
       "hard": "les décisions difficiles",
       "players": "la gestion du groupe",
       "turnaround": "le redressement des clubs",
       "defence": "le jeu défensif",
-      "attack": "le jeu offensif"
+      "attack": "le jeu offensif",
+      "tactician": "les changements de plan de jeu",
+      "prudent": "la gestion prudente",
+      "seller_f": "la vente de joueuses"
     },
     "meth": {
       "broke": "Des promesses faites au groupe n'ont pas été tenues, et la direction l'a su.",
@@ -9010,7 +9033,12 @@
       "academy": "Les jeunes du centre de formation ont eu leur chance.",
       "attack": "L'équipe a attaqué, et le président a apprécié.",
       "spent": "L'argent a été dépensé avec audace.",
-      "defence": "Une équipe difficile à battre."
+      "defence": "Une équipe difficile à battre.",
+      "prudentWages": "La masse salariale est restée sous le budget et les comptes à l'équilibre. La direction l'a remarqué.",
+      "tacWorked": "Le plan de jeu a changé d'une semaine à l'autre, et les résultats ont suivi.",
+      "tacRestless": "Le plan de jeu a changé d'une semaine à l'autre, sans que les résultats suivent.",
+      "capHeld": "Le plafond salarial a bloqué des recrues que vous visiez. La direction sait que la limite venait de la ligue.",
+      "embargo": "L'interdiction de recruter, sanction du plafond salarial, a fermé le marché au club."
     },
     "profile": {
       "giant": "Un club riche qui exige des titres.",

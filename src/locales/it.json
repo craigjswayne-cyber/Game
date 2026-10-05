@@ -8770,7 +8770,7 @@
   "wishMet": "Il presidente chiedeva {wish_k}, e l'ha avuto.",
   "wishMissed": "Il presidente chiedeva {wish_k}, e non l'ha avuto.",
   "verdictSubj": "Il verdetto della dirigenza sulla stagione",
-  "verdict": "Il verdetto estivo della dirigenza.\n{rows_ll}",
+  "verdict": "{rows_ll}",
   "demGiantWon": "Un trofeo, che è la ragione d'essere di questo club. La dirigenza è soddisfatta.",
   "demGiantEmpty": "Due stagioni senza trofei. In un club di queste dimensioni si nota, e la dirigenza l'ha notato.",
   "demFallenRise": "Un piazzamento migliore di un anno fa. La dirigenza rivuole il rango di un tempo, e questa è la strada.",
@@ -8802,7 +8802,7 @@
    "innovator": "Noto per cambiare il modo di giocare di una squadra, e vincere così.",
    "spender": "Noto per spendere molto sul mercato.",
    "seller": "Noto per vendere i giocatori, anche i migliori.",
-   "seller_w": "Noto per vendere le giocatrici, anche le migliori.",
+   "seller_w": "Nota per vendere i giocatori, anche i migliori.",
    "hard": "Noto per la disciplina: nessuno è più grande del club.",
    "players": "Noto come un allenatore vicino ai giocatori: promesse mantenute, spogliatoio felice.",
    "turnaround": {
@@ -8810,7 +8810,26 @@
     "other": "Ha risollevato {n} club in difficoltà."
    },
    "defence": "Noto per squadre difficilissime da superare.",
-   "attack": "Noto per squadre che segnano tanti punti."
+   "attack": "Noto per squadre che segnano tanti punti.",
+   "tactician": "Noto per cambiare il piano di gioco, di settimana in settimana e all'intervallo.",
+   "prudent": "Noto per tenere i conti in ordine e il monte ingaggi nel budget.",
+   "youth_w": "Nota per dare una possibilità ai giovani.",
+   "youthBacks_w": "Nota per far crescere giovani trequarti.",
+   "youthPack_w": "Nota per far crescere giovani avanti.",
+   "youthIntl_w": {
+     "one": "Nota per aver trasformato un ragazzo del vivaio in un nazionale.",
+     "other": "Nota per trasformare ragazzi del vivaio in nazionali: {n} finora."
+   },
+   "innovator_w": "Nota per cambiare il modo di giocare di una squadra, e vincere così.",
+   "spender_w": "Nota per spendere molto sul mercato.",
+   "hard_w": "Nota per la disciplina: nessuno è più grande del club.",
+   "players_w": "Nota come un'allenatrice vicina alla squadra: promesse mantenute, spogliatoio felice.",
+   "defence_w": "Nota per squadre difficilissime da superare.",
+   "attack_w": "Nota per squadre che segnano tanti punti.",
+   "tactician_w": "Nota per cambiare il piano di gioco, di settimana in settimana e all'intervallo.",
+   "prudent_w": "Nota per tenere i conti in ordine e il monte ingaggi nel budget.",
+   "seller_f": "Noto per vendere le giocatrici, anche le migliori.",
+   "seller_fw": "Nota per vendere le giocatrici, anche le migliori."
   },
   "traitNewsSubj": "Cosa dicono di te",
   "traitNews": "La stampa ha trovato il modo di descriverti: {trait_k}",
@@ -8830,12 +8849,14 @@
    "innovator": "le idee nuove di gioco",
    "spender": "le grandi spese",
    "seller": "la vendita di giocatori",
-   "seller_w": "la vendita di giocatrici",
    "hard": "le decisioni dure",
    "players": "la gestione dello spogliatoio",
    "turnaround": "il rilancio dei club",
    "defence": "il rugby difensivo",
-   "attack": "il rugby d'attacco"
+   "attack": "il rugby d'attacco",
+   "tactician": "i cambi di piano",
+   "prudent": "la gestione prudente",
+   "seller_f": "la vendita di giocatrici"
   },
   "meth": {
    "broke": "Promesse fatte allo spogliatoio non mantenute, e la dirigenza lo ha saputo.",
@@ -8846,7 +8867,12 @@
    "academy": "Il vivaio ha avuto la sua occasione.",
    "attack": "La squadra ha attaccato, e il presidente si è divertito.",
    "spent": "I soldi sono stati spesi con audacia.",
-   "defence": "Una squadra difficile da battere."
+   "defence": "Una squadra difficile da battere.",
+   "prudentWages": "Il monte ingaggi è rimasto sotto il budget e i conti in pari. La dirigenza lo ha notato.",
+   "tacWorked": "Il piano di gioco è cambiato di settimana in settimana, e i risultati sono arrivati.",
+   "tacRestless": "Il piano di gioco è cambiato di settimana in settimana, ma i risultati non sono arrivati.",
+   "capHeld": "Il tetto salariale ha bloccato acquisti che cercavi. La dirigenza sa che il limite era della lega.",
+   "embargo": "Il blocco per il tetto salariale ha tenuto il club fuori dal mercato."
   },
   "profile": {
    "giant": "Un club ricco che pretende titoli.",
