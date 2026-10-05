@@ -150,6 +150,28 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.8.11, Play version code 50
+
+Each entry is under 500 characters. Paste the matching language into each Play locale.
+
+**en-GB**
+Ruck joins as our news partner: league news, rumours and law talk now carry the ruck.co.uk byline. The Back button never closes the game, and the screen stays on while you play. Adverts moved to quieter spots and never cover a button. Taps land where you touch, commentary speed is remembered, Continue sits above the stats at full time, and the News button always moves to the next story. Advert privacy choices are in Settings.
+
+**fr-FR**
+Ruck devient notre partenaire actualités : infos de la ligue, rumeurs et débats sur les règles portent la signature ruck.co.uk. Le bouton Retour ne ferme plus le jeu et l'écran reste allumé pendant la partie. Les publicités sont plus discrètes et ne couvrent jamais un bouton. La vitesse des commentaires est mémorisée, Continuer passe au-dessus des stats en fin de match et le bouton Actualités passe toujours à l'article suivant.
+
+**es-ES**
+Ruck se une como socio de noticias: la actualidad de la liga, los rumores y los debates sobre el reglamento llevan la firma de ruck.co.uk. El botón Atrás ya no cierra el juego y la pantalla se mantiene encendida mientras juegas. Los anuncios están en lugares más tranquilos y nunca tapan un botón. Se recuerda la velocidad de los comentarios y Continuar aparece encima de las estadísticas al final del partido.
+
+**it-IT**
+Ruck diventa il nostro partner per le notizie: notizie del campionato, voci di mercato e dibattiti sulle regole portano la firma di ruck.co.uk. Il tasto Indietro non chiude più il gioco e lo schermo resta acceso mentre giochi. Le pubblicità sono in punti più tranquilli e non coprono mai un pulsante. La velocità della cronaca viene ricordata e Continua compare sopra le statistiche a fine partita.
+
+**ja-JP**
+Ruckがニュースパートナーに。リーグのニュース、移籍のうわさ、ルール論議にruck.co.ukの署名が入ります。戻るボタンでゲームが終了しなくなり、プレイ中は画面が消えません。広告は目立たない場所に移り、ボタンを覆いません。実況の速度を記憶し、試合終了時は「続ける」が成績の上に表示されます。ニュースボタンは常に次の記事へ進みます。
+
+**af**
+Ruck sluit aan as ons nuusvennoot: liganuus, gerugte en reëldebatte dra nou die ruck.co.uk-byskrif. Die Terug-knoppie maak nie meer die spel toe nie, en die skerm bly aan terwyl jy speel. Advertensies is op stiller plekke en bedek nooit 'n knoppie nie. Die spoed van die kommentaar word onthou, en Gaan voort staan bo die statistiek aan die einde van die wedstryd.
+
 ### What's new (500 max) - v1.8.2, Play version code 41
 
 Written 30 Sep 2026. 1.8.2: the five attack and five defence styles, the
