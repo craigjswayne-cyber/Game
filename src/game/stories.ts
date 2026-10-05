@@ -79,11 +79,15 @@ export function playerStory(state: GameState, p: Player, made: (p: Player) => bo
   const appsFor = (clubId: string) => Math.max(service(p, clubId).apps,
     (state.hist?.legends ?? []).find(l => l.pid === p.id && l.clubId === clubId)?.apps ?? 0)
   const capt = !!uid && p.clubId === uid && state.clubs[uid]?.captain === p.id
-  if (capt) add('captain', 'story.captain', { club: short(uid!), n: service(p, uid!).apps })
   const legend = (state.hist?.legends ?? []).find(l => l.pid === p.id)
+  // HIS CAPTAIN AND HIS LEGEND, ONE LINE (1.8.6): the two lines gave the same
+  // count twice in a row ("Your captain: 160 appearances for Northampton. A
+  // Northampton legend since 2026-27: 160 appearances for the club.")
+  const captLegend = capt && !!legend && legend.clubId === uid && legend.season >= 0
+  if (capt && !captLegend) add('captain', 'story.captain', { club: short(uid!), n: service(p, uid!).apps })
   if (legend) {
     const n = appsFor(legend.clubId)
-    add('legend', legend.season >= 0 ? 'story.legend' : 'story.legendOld', { club: short(legend.clubId), season: seasonLabel(Math.max(0, legend.season)), n })
+    add('legend', captLegend ? 'story.captainLegend' : legend.season >= 0 ? 'story.legend' : 'story.legendOld', { club: short(legend.clubId), season: seasonLabel(Math.max(0, legend.season)), n })
   }
   // a notable man who left the manager's club, and how
   const dep = latest(state, p, ['sold', 'released', 'let-go'])

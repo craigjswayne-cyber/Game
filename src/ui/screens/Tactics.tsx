@@ -65,10 +65,15 @@ const readPlanSub = (): PlanSub => {
   try { return sessionStorage.getItem(PLAN_SUB_KEY) === 'tune' ? 'tune' : 'styles' } catch { return 'styles' }
 }
 
-export default function Tactics() {
+type TTab = 'tactics' | 'setp' | 'bench' | 'prep' | 'plan'
+const TTABS: TTab[] = ['tactics', 'setp', 'bench', 'prep', 'plan']
+
+/** `initial` (1.8.6): the tab a link means. The desk's "they have changed
+ *  their plan" line opened on Roles, two taps from the plan it was about. */
+export default function Tactics({ initial }: { initial?: string } = {}) {
   const game = useStore(s => s.game)!
   const touch = useStore(s => s.touch)
-  const [ttab, setTtab] = useState<'tactics' | 'setp' | 'bench' | 'prep' | 'plan'>('tactics')
+  const [ttab, setTtab] = useState<TTab>(TTABS.includes(initial as TTab) ? initial as TTab : 'tactics')
   const [spSub, setSpSubState] = useState<SpSub>(readSpSub)
   const [planSub, setPlanSubState] = useState<PlanSub>(readPlanSub)
   const setPlanSub = (v: PlanSub) => {
