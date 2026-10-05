@@ -647,8 +647,18 @@ export const useStore = create<Store>((set, get) => ({
         tick: s.tick + 1,
       }
     }
+    // nothing unread, and already reading: the button still moves (owner,
+    // 1.8.11: "i should always be able to skip through the news"). It steps
+    // one story older through the same 20-story window the arrows walk, and
+    // from the oldest wraps back to the newest, so a tap is never a dead tap.
+    const window20 = [...live].sort((a, b) => b.id - a.id).slice(0, 20)
+    if (onInbox && window20.length > 1) {
+      const i = window20.findIndex(n => n.id === s.inboxId)
+      const nextOlder = window20[i < 0 || i >= window20.length - 1 ? 0 : i + 1]
+      return { inboxId: nextOlder.id, tick: s.tick + 1 }
+    }
     // nothing unread: open the newest story so the screen is never blank
-    const newest = [...live].sort((a, b) => b.id - a.id)[0]
+    const newest = window20[0]
     return {
       inboxId: s.inboxId ?? newest?.id ?? null,
       nav: onInbox ? s.nav : [...s.nav, { screen: 'inbox' as const }],

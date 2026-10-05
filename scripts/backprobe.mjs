@@ -247,9 +247,11 @@ try {
     await page.goBack().catch(() => {})
     await page.waitForTimeout(400)
     const t = await page.evaluate(() => ({ screen: window.rugbyStore.getState().nav.at(-1)?.screen, url: location.href })).catch(() => null)
-    if (t && t.url === home.url) stayed++
+    // on the TITLE, not just on the page: a bug here bounced title -> Home ->
+    // title, which never left the URL (1.8.10 audit)
+    if (t && t.url === home.url && t.screen === 'menu') stayed++
   }
-  ok(stayed === 3, `Back on the title never leaves the game (${stayed} of 3 presses)`)
+  ok(stayed === 3, `Back on the title stays on the title, in the game (${stayed} of 3 presses)`)
 } catch (e) {
   ok(false, `the harness threw: ${String(e).split('\n')[0].slice(0, 180)}`)
 } finally {
