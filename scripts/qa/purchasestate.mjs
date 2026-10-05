@@ -49,7 +49,16 @@ const entHas = (s, sku) => (s.ent ?? '').split(',').includes(sku)
 const credit = (s, sku) => { try { return JSON.parse(s.credits ?? '{}')[sku] ?? 0 } catch { return -1 } }
 
 async function startCareer(page) {
+  try { await startCareerInner(page) } catch (e) {
+    console.log('  [startCareer stuck on] ' + (await page.locator('body').innerText()).replace(/\s+/g, ' ').slice(0, 400))
+    throw e
+  }
+}
+async function startCareerInner(page) {
   await page.goto(URL)
+  // a device with a career reopens it; the title is one step back
+  await page.locator('text=New Career').or(page.locator('.bottom-nav')).first().waitFor()
+  if (await page.locator('.bottom-nav').count()) await page.evaluate(() => window.rugbyStore.getState().toTitle())
   await page.waitForSelector('text=RUGBY')
   await page.click('text=New Career')
   await page.waitForSelector('text=English Premier Division')
@@ -61,8 +70,9 @@ async function startCareer(page) {
   await page.fill('input[placeholder="e.g. A. Gaffer"]', 'Gaffer')
   await page.click('.action-bar >> text=Confirm')
   await page.click('text=▸ Start Career')
-  await page.waitForSelector('.tut-box', { timeout: 15000 })
-  await page.click('.tut-close .btn')
+  // the tutorial is a first-run thing: a second career goes straight to Home
+  await page.locator('.tut-box').or(page.locator('.bottom-nav')).first().waitFor({ timeout: 15000 })
+  if (await page.locator('.tut-box').count()) await page.click('.tut-close .btn')
   await page.waitForSelector('.bottom-nav')
 }
 const go = (page, screen) => page.evaluate((s) => window.rugbyStore.getState().go(s), screen)
