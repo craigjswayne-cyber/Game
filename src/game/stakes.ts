@@ -24,7 +24,7 @@
  *   4. IT CHANGES NOTHING. Like the Dream, this is a lens: it reads state, draws
  *      no rng and writes nothing back, so it cannot move a single result.
  */
-import { grudgeBetween, unbeatenRun } from './model'
+import { grudgeBetween, grudgeReason, unbeatenRun } from './model'
 import { ord, t } from './i18n'
 // WIN_MARKS lives in season.ts (legacy.ts imports it the same way)
 import { WIN_MARKS } from './season'
@@ -148,9 +148,11 @@ export function matchStakes(state: GameState, fx: Fixture): string | null {
   // isDerby, not fx.derby alone: the flag is written at kick-off (beginMatch),
   // so a derby still to come read as an ordinary fixture here
   if (fx.derby || isDerby(fx.homeId, fx.awayId)) out.push({ text: t('stakes.derbyDay', { club: oppName }), weight: 80 })
-  // the grudge's own reason is written into the save when the grudge is struck,
-  // so it stays in the language it was filed in and the sentence carries it
-  if (grudge) out.push({ text: t('stakes.badBlood', { reason: grudge.reason }), weight: 78 })
+  // the grudge's reason, in the reader's language (grudgeReason reads its key;
+  // the English it was filed with is only for a save from before the key):
+  // the raw field put "they broke our hearts in the Premier final" into a
+  // French sentence on the home screen (1.8.5 career QA)
+  if (grudge) out.push({ text: t('stakes.badBlood', { reason: grudgeReason(grudge) }), weight: 78 })
   // an earned rivalry, or a club you used to manage (history.ts)
   out.push(...historyStakes(state, fx))
   // the man in the other dugout, and your record against him (rivalcoach.ts)

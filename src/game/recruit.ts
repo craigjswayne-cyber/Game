@@ -138,9 +138,14 @@ const baseCache = new WeakMap<GameState, { key: string; means: Record<string, Re
 
 /** Mean of each attribute at each position across the world's senior players.
  *  What "good at breakdown work" means for a flanker is not what it means for
- *  a wing. Cached a season at a time: the world's shape barely moves. */
+ *  a wing. Cached a WEEK at a time: the cache lives on the state object, not
+ *  in the save, so a season-long cache held the means from whenever the
+ *  running game first asked while a reloaded career recomputed them from the
+ *  week it was loaded, and a scout report's strengths and concerns could read
+ *  differently after a reload (1.8.5 save audit; identity.ts tiltMedian had
+ *  the same fault). A week is a point both reach the same way. */
 export function posBaselines(state: GameState): Record<string, Record<Key, number>> {
-  const key = `${state.season}`
+  const key = `${state.season}|${state.week}`
   const hit = baseCache.get(state)
   if (hit && hit.key === key) return hit.means
   const sums: Record<string, { n: number; s: Record<Key, number> }> = {}

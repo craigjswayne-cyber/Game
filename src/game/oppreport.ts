@@ -38,8 +38,11 @@ import { absWeek as gameWeek } from './model'
 import { analystRead, analystSkill, readOdds, readUnit, sureBand, UNIT_PREP, type AnalystRead } from './analyst'
 import { tapeLine } from './armsrace'
 import { rematchLine, rematchOf } from './rematch'
+import { formerFacing, formersAlso } from './memory'
+import { rivalAt } from './rivalcoach'
+import { legendsFacing } from './legends'
 import { lineupFor, teamUnits } from './matchEngine'
-import { lastEvidence, rankWhy, trimRecall } from './evidence'
+import { LEVER_DIALS, lastEvidence, rankWhy, trimRecall } from './evidence'
 import { fuzzedCa, knowledge, margin } from './scout'
 import { analystShift, archetypeOf } from './oppcoach'
 import { COUNTER, philosophyOf } from './philosophy'
@@ -90,7 +93,9 @@ export interface FindingsRecord {
   items: Finding[]
   /** the set-piece contest worth remembering for next time (their side of it) */
   recall?: { unit: 'scrum' | 'lineout'; pct: number }
-  plan?: { id: PlanId; target: Unit | 'style' | 'late' | 'ball' | null; followed: boolean; verdict: PlanVerdict } | null
+  /** half: judged on the first half alone, the plan changed at the break
+   *  (matchfindings.ts, 1.8.5) */
+  plan?: { id: PlanId; target: Unit | 'style' | 'late' | 'ball' | null; followed: boolean; verdict: PlanVerdict; half?: boolean } | null
 }
 
 export interface ChosenPlan {
@@ -337,6 +342,11 @@ function coachLines(state: GameState, club: Club, acc: number): ReportLine[] {
   }
   // a plan written against the manager this week is public knowledge (the
   // pre-match report already says so), so it shows at any accuracy
+  // YOUR RIVAL (1.8.5, rivalcoach.ts): the record against him, at any
+  // accuracy, since it is ours; the preview's billing said it only when
+  // nothing else outranked it, a meeting in four
+  const rv = rivalAt(state, club.id)
+  if (rv) out.push({ cat: 'coach', k: rv.k, v: rv.v as Record<string, string | number>, ok: true })
   const v = club.vsUser
   if (v) {
     out.push(v.unit
@@ -364,8 +374,12 @@ function historyLines(state: GameState, last: FindingsRecord | null): ReportLine
       v: { unit_k: `oppreport.u_${last.recall.unit}`, pct: last.recall.pct }, ok: true,
     })
   }
-  if (last.plan) {
-    out.push({ cat: 'history', k: `oppreport.lastPlan_${last.plan.verdict}`, v: { plan_k: `oppreport.plan_${last.plan.id}` }, ok: true })
+  // a plan dropped before it had a half to work was never judged (the
+  // findings said so), so the report does not call it a failure after the event
+  if (last.plan?.followed) {
+    // and one changed at the break was judged on the first half: the
+    // report says so rather than "worked" of a plan dropped at forty minutes
+    out.push({ cat: 'history', k: `oppreport.lastPlan${last.plan.half ? 'Half' : ''}_${last.plan.verdict}`, v: { plan_k: `oppreport.plan_${last.plan.id}` }, ok: true })
   }
   // what decided it (1.8.4): the full-time card's top line from that match,
   // our own count, so always true
@@ -386,6 +400,24 @@ export function buildReport(state: GameState, oppId: string): OppReport {
   if (club) lines.push(...styleLines(state, club, acc))
   const men = keyMenLine(state, oppId)
   if (men) lines.push(men)
+  // THE MEN YOU LET GO (1.8.5, memory.ts formerFacing): who, how, and what
+  // he has done since, for the notable ones in their twenty-three; ours to
+  // know at any accuracy
+  const their23 = lineupFor(state, oppId).slice(0, 23)
+  const formers = formerFacing(state, oppId, their23, Infinity)
+  for (const f of formers.slice(0, 2)) {
+    lines.push({ cat: 'players', k: f.k, v: f.v as Record<string, string | number>, ok: true })
+  }
+  const also = formersAlso(formers)
+  if (also) lines.push({ cat: 'players', k: also.k, v: also.v as Record<string, string | number>, ok: true })
+  // A LEGEND OF YOURS IN THEIR COLOURS (1.8.5, legends.ts legendsFacing).
+  // The news tells the first meeting with each club and nothing after; the
+  // report says it every time he is in their twenty-three or their staff
+  const mine = state.clubs[state.userClubId]
+  for (const { l, as } of legendsFacing(state, oppId)) {
+    if (!mine || (as === 'player' && !their23.includes(l.pid)) || formers.some(f => f.p.id === l.pid)) continue
+    lines.push({ cat: 'players', k: as === 'player' ? 'oppreport.legendTheirs' : 'oppreport.legendStaff', v: { player: l.name, club: mine.short, n: l.apps }, ok: true })
+  }
   if (club) lines.push(...setPieceLines(club, acc))
   if (club) lines.push(...coachLines(state, club, acc))
   // THE ARMS RACE (1.8.2): what their analysts have on OUR calls, and whether
@@ -526,11 +558,16 @@ export function currentPlan(state: GameState, oppId: string): ChosenPlan | null 
 }
 
 /** Whether the club is still carrying the plan's levers. A dial moved more than
- *  a few points, another prep, another call: the plan was not followed. */
-export function planFollowed(state: GameState, plan: ChosenPlan): boolean {
+ *  a few points, another prep, another call: the plan was not followed.
+ *
+ *  `dials`, when given, are the four touchline dials (evidence.ts
+ *  LEVER_DIALS order) as they stood at a moment of the match: kick-off, or
+ *  the second half's (1.8.5). They are all a manager can move once the ball
+ *  is in play, so the rest is read off the club as it is. */
+export function planFollowed(state: GameState, plan: ChosenPlan, dials?: number[]): boolean {
   const club = state.clubs[state.userClubId]
   if (!club) return false
-  const tac = club.tactic
+  const tac = dials ? { ...club.tactic, ...Object.fromEntries(LEVER_DIALS.map((k, i) => [k, dials[i]])) } : club.tactic
   const L = plan.levers
   if (L.prep && state.matchPrep !== L.prep) return false
   for (const [k, v] of Object.entries(L.dials ?? {})) {

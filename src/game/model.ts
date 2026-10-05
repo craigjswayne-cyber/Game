@@ -517,6 +517,10 @@ export interface Player {
    *  able to buy them back within 6 months"). Absent on moves from before
    *  the stamp existed. */
   joinedAt?: number
+  /** Signed by the manager out of the free-agent pool: the season that deal
+   *  runs to. Until then a club bids for him only if its income could have
+   *  carried him when he was free (ai.ts freeDeal). Cleared when he moves. */
+  freeUntil?: number
   /** The rating he arrived on loan with. Read by the loan-to-buy option: a
    *  parent club that lent out a boy will sell him, unless the months at your
    *  place turned him into somebody they want back. Without this the "if things
@@ -2328,6 +2332,13 @@ export interface GameState {
    *  rather than an alert that arrived. One per season; cleared when the
    *  season turns or the player leaves. */
   hunt?: { clubId: string; playerId: number; stage: 0 | 1 | 2 | 3; season: number }
+  /** AI clubs that agreed the same fee as the manager this season
+   *  (rivalbids.ts, 1.8.5): the live one is settled when the week ends, the
+   *  rest stop a man being contested twice in a season. Absent in older saves. */
+  rivalBids?: import('./rivalbids').RivalBid[]
+  /** The clubs whose boards backed them after finishing behind the manager,
+   *  and the position each is buying (rivalbids.ts). One summer only. */
+  rivalPush?: import('./rivalbids').RivalPush
   /** last published ranking order (nation codes), for movement arrows */
   natRankPrev?: string[]
   /** Scouting Agency monthly rankings: last month's order + best-ever ranks */
@@ -2346,7 +2357,7 @@ export interface GameState {
   cottonWk?: number
   /** Last full time's two fixes, so the next one can mark the homework (C2).
    *  Set wherever a match is filed, watched or not (coachfix fileHomework). */
-  fixHw?: { fxId: number; season: number; week: number; tags: string[] }
+  fixHw?: { fxId: number; season: number; week: number; tags: string[]; test?: boolean; was?: string[] }
   /** the user's hand-picked Test 23 for the current window */
   natLineup?: { team: string; lineup: (number | null)[] } | null
   /** men the national coach sent home from camp this window. A recall gives
@@ -2363,7 +2374,10 @@ export interface GameState {
   potyRoll?: { season: number; playerId: number; name: string; clubName: string }[]
   /** the season's most dramatic try by the user's club, judged live at each
    *  full-time whistle and honoured at the Annual */
-  tryOfSeason?: { playerId: number; name: string; min: number; opp: string; text: string; drama: number; season: number } | null
+  tryOfSeason?: { playerId: number; name: string; min: number; opp: string; text: string; drama: number; season: number
+    /** the line's key and values as JSON ({ k, ...v }), for the award story's
+     *  text_j: the English in `text` is the fallback for a save from before */
+    tj?: string } | null
   /** challenges conquered this career, badged forever on the profile */
   challengesDone?: string[]
   /** absolute week (season*100+week) a bigger club last courted the manager -
@@ -2377,6 +2391,10 @@ export interface GameState {
   /** squad-depth standard this save has been topped up to - the one-shot
    *  migration that grew 33-man squads to 38 stamps this so it never reruns */
   squadDepth?: number
+  /** 1 once migrate has run its one-shot legacy academy-wage repair (1.8.5);
+   *  after that the rollover's repriceAcademies owns scholar wages, and a
+   *  load never moves one mid-season (save.ts) */
+  acadPriced?: number
   /** the A League: the academy sides of the user's league, with their own
    *  fixtures and table. Kept outside state.comps deliberately - see academy.ts */
   academy?: import('./academy').AcadLeague

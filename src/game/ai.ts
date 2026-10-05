@@ -16,6 +16,8 @@ import { book } from './books'
 import { identitySigning } from './identity'
 import { rememberDeparture } from './memory'
 import { agentTermsLift, talkPremium, unsettledFee, unsettledTerms } from './recruit'
+import { chooseBetween, liveRivalBid, openRivalBid, rivalBidLine, rivalBidWon } from './rivalbids'
+import { noteBlocked } from './arcbook'
 
 // ------------------------------------------------------------------
 // Transfer market
@@ -113,6 +115,34 @@ export function windowShut(week: number): string {
 export function aiBidFee(p: Player, rng: () => number, deadline: boolean): number {
   const f = p.transferListed ? 0.95 : (p.wantsOut ?? 0) > 0 ? 1.05 : (1.2 + rng() * 0.4) * unsettledFee(p)
   return Math.round((p.value * f * (deadline ? 1.15 : 1)) / 10_000) * 10_000
+}
+
+/**
+ * THE FREE-AGENT FLIP (1.8.5 career QA). The ink gate (INK_WEEKS) stopped a
+ * man signed for nothing being sold on at once, but not at all: sign every
+ * free agent worth a fee, list each once the ink is dry, and the bids came
+ * in at his value. Measured on a manager who did only that (Leicester, eight
+ * to twelve seasons, two worlds): 18 to 37 million a season clear in 1.8.4
+ * and in this release alike, against about half a million for the same club
+ * left alone. The AI clubs taking the 85-rated stars from the pool changed
+ * nothing: the manager has first pick of the pool every week.
+ *
+ * A market that let a man sit in the pool for nothing does not pay his full
+ * value to have him back while he is still on the deal he signed for
+ * nothing: until that deal's term is out (freeUntil, fixed when he signs, so
+ * an early renewal does not wash it) bids for him come in at FREE_RESALE of
+ * the usual fee. Measured at a half, a flipper still cleared 17-24 million a
+ * season, because he simply sold more men; asking the bidders to carry his
+ * wage (the free-agent test) took nothing off at all. At a quarter the same
+ * manager clears 0 to 17 million a season over four runs (selling at once,
+ * or holding each man to the end of his free deal; one was sacked inside a
+ * season and cleared nothing). What is left is mostly the holding: after the
+ * term he is an ordinary player again, two seasons of wages and a squad
+ * place later, and sells at his value.
+ */
+export const FREE_RESALE = 0.25
+export function freeDeal(state: GameState, p: Player): boolean {
+  return p.freeUntil != null && state.season < p.freeUntil
 }
 
 /** Asking price for a player from his current club's perspective. */
@@ -302,6 +332,7 @@ export function executeTransfer(state: GameState, p: Player, toClubId: string, f
   p.clubId = toClubId
   p.morale = clamp(p.morale + 1, 1, 10)
   p.transferListed = false
+  p.freeUntil = undefined
   p.debutPending = 'signing'
   // the arrival is stamped: the buy-back gate in agreeFee reads it, and the
   // game-time ledger's availability counter starts fresh at the new club
@@ -452,7 +483,7 @@ export function aiTransfers(state: GameState, rng: Rng) {
     // player wants it, so the bid comes in near value rather than over it. A
     // low mood alone takes the same graded slice off as the asking price does
     // (unsettledFee); the rng draw is unchanged
-    const fee = aiBidFee(p, rng, deadline)
+    const fee = Math.round(aiBidFee(p, rng, deadline) * (freeDeal(state, p) ? FREE_RESALE : 1) / 10_000) * 10_000
     state.offers.push({
       id: state.nextId++, playerId: p.id, fromClubId: bidder.id, toClubId: user.id,
       fee, week: state.week, forUser: true, status: 'pending',
@@ -558,6 +589,11 @@ export function agreeFee(state: GameState, playerId: number, fee: number): { ok:
   if (p.clubId === user.id) return { ok: false, msg: t('reply.alreadyYours') }
   if (!windowOpen(state.week)) return { ok: false, msg: windowShut(state.week) }
   if (fee > user.budget) return { ok: false, msg: t('reply.bidOverBudget') }
+  // AN EMBARGO SHUTS THE FIRST DOOR TOO (1.8.5 career QA). Stage 2 refuses
+  // every signing under one, but a fee could still be agreed here, which
+  // opened a rival bid (rivalbids.ts) the manager could never answer: the
+  // rival signed the man and the news said "you never put terms to him".
+  if (embargoed(state, user.id)) { noteBlocked(state, p.id, 'emb'); return { ok: false, msg: t('reply.embargoSign') } }
   const ask = askingPrice(state, p)
   const seller = state.clubs[p.clubId]
   // THE INK IS STILL WET (user: "i just sold this player - i shouldn't
@@ -605,12 +641,15 @@ export function agreeFee(state: GameState, playerId: number, fee: number): { ok:
       return { ok: false, msg: t('reply.wontDropDown', { club: seller.short, name: p.name }) }
     }
     const under = ask - fee
-    return {
-      ok: true,
-      msg: under >= 50_000
-        ? t('reply.feeAgreedUnder', { fee: fmtMoney(fee), under: fmtMoney(under), name: p.name })
-        : t('reply.feeAgreed', { fee: fmtMoney(fee), name: p.name }),
-    }
+    const agreed = under >= 50_000
+      ? t('reply.feeAgreedUnder', { fee: fmtMoney(fee), under: fmtMoney(under), name: p.name })
+      : t('reply.feeAgreed', { fee: fmtMoney(fee), name: p.name })
+    // ANOTHER CLUB MAY HAVE AGREED THE SAME FEE (rivalbids.ts, 1.8.5): the
+    // player then weighs both offers, and the manager is told who and what
+    const rb = openRivalBid(state, p, fee)
+    if (!rb) return { ok: true, msg: agreed }
+    const line = rivalBidLine(state, rb)
+    return { ok: true, msg: `${agreed} ${t(line.k, line.v)}` }
   }
   // A near miss names the number that would do it, and says what is weakening
   // their hand, so the next bid is judgement rather than guesswork.
@@ -674,6 +713,7 @@ export function signOnTerms(state: GameState, playerId: number, fee: number, wag
   if (fee + signOn > user.budget) return { ok: false, msg: t('reply.feeBonusOverBudget') }
   if (squadFull(state, user)) return { ok: false, msg: t('reply.squadFull') }
   if (embargoed(state, user.id)) {
+    noteBlocked(state, p.id, 'emb')
     return { ok: false, msg: t('reply.embargoSign') }
   }
   // NAMED A MARQUEE MAN AT THE TABLE (owner, v1.2.8: the cap refusal said
@@ -686,7 +726,8 @@ export function signOnTerms(state: GameState, playerId: number, fee: number, wag
   user.marquee = (user.marquee ?? []).filter(id => state.players[id]?.clubId === user.id)
   const marqueeSlots = MARQUEE_SLOTS - user.marquee.length
   const capMsg = asMarquee && marqueeSlots > 0 ? null : capBreak(state, user.id, wage, 0, marqueeSlots > 0)
-  if (capMsg) return { ok: false, msg: capMsg }
+  // the season's tally of men the cap kept out, for the board's letter (repute.ts)
+  if (capMsg) { noteBlocked(state, p.id, 'cap'); return { ok: false, msg: capMsg } }
   const demand = personalTermsDemand(state, p)
   const squadWages = capBill(state, user)
   if (squadWages + wage > userWageBudget(state, user)) {
@@ -700,7 +741,21 @@ export function signOnTerms(state: GameState, playerId: number, fee: number, wag
       msg: t('reply.campShakeHeads', { name: p.name, demand: fmtWage(demand), floor: fmtWage(floor), tail_k: signOn > 0 || promiseMinutes ? 'reply.campTailExtras' : 'reply.campTailBonus' }),
     }
   }
+  // A RIVAL AT THE TABLE (rivalbids.ts, 1.8.5). He weighs both offers; if
+  // theirs is better the manager can still improve his own this week
+  const rb = liveRivalBid(state, p.id)
+  let beat: ReturnType<typeof chooseBetween> | null = null
+  if (rb) {
+    rb.mine = { wage, signOn, promise: promiseMinutes }
+    const choice = chooseBetween(state, p, rb, rb.mine)
+    if (!choice.mine) {
+      const rival = state.clubs[rb.clubId]
+      return { ok: false, msg: t('reply.rivalBidPrefers', { name: p.name, club: rival?.short ?? '', wage: fmtWage(rb.wage), why_k: choice.why.k, ...choice.why.v }) }
+    }
+    beat = choice
+  }
   executeTransfer(state, p, user.id, fee)
+  if (rb && beat) rivalBidWon(state, p, rb, beat.why)
   p.wage = wage
   user.balance -= signOn
   // the bonus is transfer money: the check above was `fee + signOn <= budget`,
@@ -730,13 +785,14 @@ export function signFreeAgent(state: GameState, playerId: number): { ok: boolean
   if (!p || p.clubId != null || !user) return { ok: false, msg: t('reply.notFreeAgent') }
   if (squadFull(state, user)) return { ok: false, msg: t('reply.squadFull') }
   if (embargoed(state, user.id)) {
+    noteBlocked(state, p.id, 'emb')
     return { ok: false, msg: t('reply.embargoSign') }
   }
   // a scholar let go by his academy signs as a senior: on the professional
   // scale and in the senior count (1.8.4 exploit hunt, E9)
   const wage = renewalDemand(p.acad ? { ...p, acad: false } : p)
   const capMsg = capBreak(state, user.id, wage)
-  if (capMsg) return { ok: false, msg: capMsg }
+  if (capMsg) { noteBlocked(state, p.id, 'cap'); return { ok: false, msg: capMsg } }
   if (capBill(state, user) + wage > userWageBudget(state, user)) {
     return { ok: false, msg: t('reply.wageDemandsExceed', { wage: fmtWage(wage) }) }
   }
@@ -744,6 +800,8 @@ export function signFreeAgent(state: GameState, playerId: number): { ok: boolean
   p.acad = false
   p.wage = wage
   p.contractEnds = state.season + 2
+  // the free deal's term, fixed now: a renewal does not wash it (freeDeal)
+  p.freeUntil = p.contractEnds
   return { ok: true, msg: t('reply.signsFree', { name: p.name, wage: fmtWage(wage) }) }
 }
 
@@ -937,7 +995,7 @@ export function agreePreContract(state: GameState, playerId: number): { ok: bool
   if (staying + arriving >= SQUAD_LIMIT) return { ok: false, msg: t('reply.squadFull') }
   // (no marquee door to point at: he is not the club's to name until he arrives)
   const capMsg = capBreak(state, user.id, wage, 0, 'none')
-  if (capMsg) return { ok: false, msg: capMsg }
+  if (capMsg) { noteBlocked(state, p.id, 'cap'); return { ok: false, msg: capMsg } }
   if (capBill(state, user) + wage > userWageBudget(state, user)) {
     return { ok: false, msg: t('reply.termsBreakBudget', { wage: fmtWage(wage) }) }
   }
@@ -1160,7 +1218,10 @@ export function aiRenewals(state: GameState, rng: Rng) {
       if (rng() < keep && !p.retiring &&
         !(state.preContracts ?? []).some(pc => pc.playerId === p.id)) {
         p.contractEnds = state.season + 1 + Math.floor(rng() * 2)
-        p.wage = aiRenewalWage(p, rate)
+        // a scholar is renewed on the academy scale, as the summer reprice
+        // would put him: the senior or cut rate here paid him outside the
+        // academy band until then (1.8.5 save audit). Same draws either way.
+        p.wage = p.acad ? playerWage(p.ca, p.age, true) : aiRenewalWage(p, rate)
       }
     }
   }

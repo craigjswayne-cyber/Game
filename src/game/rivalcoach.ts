@@ -299,6 +299,16 @@ export function coachYearEnd(state: GameState): void {
   pruneCoaches(state)
 }
 
+/** The opposition report's line when your rival is in their dugout
+ *  (oppreport.ts, 1.8.5): the billing's line, which the match preview gives
+ *  only when nothing outranks it. Null otherwise. */
+export function rivalAt(state: GameState, oppId: string): { k: string; v: Vars } | null {
+  if (ARC_OFF.on || state.unemployed || !state.arc) return null
+  const r = rivalCoach(state)
+  if (!r || r.at !== oppId || r.n !== state.clubs[oppId]?.coach) return null
+  return { k: 'arc.stakeRival', v: coachVars(state, r) }
+}
+
 /** stakes.ts: the billing line for the man in the other dugout. */
 export function coachStakes(state: GameState, fx: Fixture): { text: string; weight: number }[] {
   if (ARC_OFF.on || state.unemployed || !state.arc) return []

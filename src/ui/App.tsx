@@ -561,7 +561,7 @@ export default function App() {
       case 'offers': return <Offers />
       case 'squad': return <Squad />
       case 'player': return <PlayerScreen playerId={cur.param as number} />
-      case 'tactics': return <Tactics />
+      case 'tactics': return <Tactics initial={cur.param as string | undefined} />
       case 'fixtures': return <Fixtures />
       case 'tables': return <Tables initial={cur.param as string | undefined} />
       case 'transfers': return <Transfers />

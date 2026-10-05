@@ -1,4 +1,5 @@
 import type { CareerRow, Club, FacilityId, GameState } from './model'
+import { migrateRivalBids } from './rivalbids'
 import { ATTR_KEYS, FACILITY_INFO, MAX_FACILITY, SEASON_WEEKS, WEEK_BASIS, emptyStats, finalVenue, foldCareer, initFacilities } from './model'
 import { ensureCaptains } from './analysis'
 import { ACADEMY_MAX, ACADEMY_MIN, buildPlayer, deriveCaps, deriveHist, deriveTrait, resetIds , playerWage } from './attributes'
@@ -564,6 +565,7 @@ export function migrate(s: GameState): GameState {
     p.wage = num(p.wage, 0, 1_000_000_000, 5_000)
     p.value = num(p.value, 0, 1_000_000_000_000, 100_000)
     p.bans = int(p.bans, 0, 99, 0)
+    if (p.freeUntil !== undefined && !(typeof p.freeUntil === 'number' && Number.isFinite(p.freeUntil))) delete p.freeUntil
     if (typeof p.name !== 'string' || !p.name) p.name = 'Unnamed Player'
     p.stats ??= emptyStats()
     // an attribute grid that is missing or not an object: derive a flat set from
@@ -790,6 +792,8 @@ export function migrate(s: GameState): GameState {
   s.pledges = list(s.pledges) as typeof s.pledges
   s.intakeClass ??= null
   s.preContracts = list(s.preContracts) as typeof s.preContracts
+  // rival bids and backed rivals (rivalbids.ts, 1.8.5): optional, cleaned
+  migrateRivalBids(s)
   s.takeover ??= null
   s.newOwnerUntil ??= null
   s.derbyBook ??= {}
@@ -828,7 +832,18 @@ export function migrate(s: GameState): GameState {
   }
   if (s.ambitions != null && !Array.isArray(s.ambitions)) delete s.ambitions
   if (s.ambitions) s.ambitions = s.ambitions.filter(a => !!a && typeof a.id === 'string' && typeof a.clubId === 'string').slice(0, 5)
-  for (const c of Object.values(s.clubs)) { c.captain ??= null; c.vice ??= null; c.legends = list(c.legends) as typeof c.legends; c.marquee = list(c.marquee) as typeof c.marquee; c.tactic.roles = list(c.tactic.roles) as typeof c.tactic.roles; if (c.id !== s.userClubId) c.coach ??= 'The Head Coach' }
+  // A CLUB BETWEEN COACHES STAYS BETWEEN COACHES (1.8.5 save QA). The fill
+  // below is for a save written before AI coaches had names. A club whose
+  // coach has just been sacked is MEANT to have none for the five weeks its
+  // vacancy is open (jobs.ts; boss.ts: "a club between coaches is nobody's
+  // rival"), and the old fill named every one of them "The Head Coach" on
+  // each load - so a career saved and reloaded mid-vacancy had a rival boss,
+  // a press line and a remembered coach (rivalcoach) that the same career
+  // played straight through never had. scripts/qa/savedet.ts found it.
+  const between = new Set(s.vacancies.map(v => v?.clubId))
+  // clubs whose leaders this save already records (see ensureCaptains below)
+  const settled = new Set<string>()
+  for (const c of Object.values(s.clubs)) { if (c.captain !== undefined && c.vice !== undefined) settled.add(c.id); c.captain ??= null; c.vice ??= null; c.legends = list(c.legends) as typeof c.legends; c.marquee = list(c.marquee) as typeof c.marquee; c.tactic.roles = list(c.tactic.roles) as typeof c.tactic.roles; if (c.id !== s.userClubId && !between.has(c.id)) c.coach ??= 'The Head Coach' }
   /**
    * WHO THE STAFF ARE, on a save written before the game asked.
    *
@@ -852,6 +867,8 @@ export function migrate(s: GameState): GameState {
   for (const p of Object.values(s.staffPeople ?? {})) if (p) p.g ??= coinFor(p.name)
   s.analystGender ??= coinFor('the analyst')
   const PERS = ['Professional', 'Loyal', 'Ambitious', 'Mercenary', 'Temperamental', 'Leader'] as const
+  const repricedOnce = s.acadPriced === 1
+  s.acadPriced = 1
   for (const p of Object.values(s.players)) {
     p.pers ??= PERS[p.id % PERS.length]
     p.sc ??= p.clubId === s.userClubId ? 100 : 30
@@ -878,7 +895,18 @@ export function migrate(s: GameState): GameState {
     // the one place a save/load changed the simulation (scripts/qa/
     // determinism.ts, migrate mode, 1.6.5). A wage inside the development band
     // is a deal the game made, and loading keeps it.
-    if (p.acad && !(p.wage >= ACADEMY_MIN && p.wage <= ACADEMY_MAX)) p.wage = playerWage(p.ca, p.age, true)
+    //
+    // AND ONLY ONCE IN THE LIFE OF A SAVE (1.8.5 save QA, s.acadPriced). The
+    // game itself now writes scholar wages outside the band between summers -
+    // an AI board renewing an expiring academy contract at week 28 or 36 does
+    // it at its own pay rate (ai.ts aiRenewals), and the rollover's
+    // repriceAcademies puts them back - so "outside the band" no longer means
+    // "a save from before development deals". Repricing on every load moved
+    // 150-odd AI wage bills mid-season, and a career saved and loaded after
+    // week 28 ran a different world from the same career played straight
+    // through (scripts/qa/savedet.ts). The legacy repair runs on the first
+    // load of an old save; after that the game's own summer sweep owns it.
+    if (!repricedOnce && p.acad && !(p.wage >= ACADEMY_MIN && p.wage <= ACADEMY_MAX)) p.wage = playerWage(p.ca, p.age, true)
     if (p.trait === undefined) p.trait = deriveTrait(p)
     p.hist ??= deriveHist(p)
     p.caps ??= deriveCaps(p)
@@ -1008,7 +1036,18 @@ export function migrate(s: GameState): GameState {
   // migration injects a few lines above, and every club a future build adds, came
   // into the world with no academy at all and no way to field an A League side.
   // topUpAcademy is a no-op on a full academy, so asking all 101 costs nothing.
-  for (const club of Object.values(s.clubs)) topUpAcademy(s, club, rng, 0xACAD)
+  //
+  // ONLY A CLUB WITH NO ACADEMY AT ALL (1.8.5 save QA). A club that has one is
+  // the game's to keep full, and the game refills it at the summer: between
+  // the academy call in late season (promotions, releases) and the rollover,
+  // a live academy is legitimately short. Topping it up on load minted
+  // scholars - and drew their names and abilities - that the same career
+  // played straight through never had, so a save made in that window ran a
+  // different world from week 47 on (scripts/qa/savedet.ts). A legacy save
+  // and an injected club have no scholars, which is exactly what this asks.
+  for (const club of Object.values(s.clubs)) {
+    if (!club.players.some(id => s.players[id]?.acad)) topUpAcademy(s, club, rng, 0xACAD)
+  }
   ensureAcademyLeague(s)
 
   // clubs injected by a later build get an estate too
@@ -1055,6 +1094,10 @@ export function migrate(s: GameState): GameState {
   const hw = s.fixHw as unknown as Record<string, unknown> | undefined
   if (hw !== undefined && (!hw || typeof hw !== 'object' || ![hw.fxId, hw.season, hw.week].every(n => typeof n === 'number' && Number.isFinite(n))
     || !Array.isArray(hw.tags) || !hw.tags.every(x => typeof x === 'string'))) delete s.fixHw
+  else if (hw) {
+    if (hw.test !== undefined && typeof hw.test !== 'boolean') delete hw.test
+    if (hw.was !== undefined && !(Array.isArray(hw.was) && hw.was.every(x => typeof x === 'string'))) delete hw.was
+  }
 
   // THE STYLES (1.8.2): a save from before them has dials and no style, so
   // the manager's side is named the nearest attack and defence to its dials,
@@ -1077,7 +1120,16 @@ export function migrate(s: GameState): GameState {
     else if (typeof sp.season !== 'number') s.seasonPlan = { order: sp.order!, rot: sp.rot!, season: s.season }
   }
 
-  ensureCaptains(s, true)
+  // LEADERS ARE NAMED FOR A CLUB THE SAVE HAS NEVER NAMED THEM FOR - a save
+  // from before the armband, or a club injected above - and nowhere else
+  // (1.8.5 save QA). This ran over every club on every load, and the game
+  // itself leaves an armband empty between moves: a board releasing its
+  // dearest man for money vacates it (aiecon.ts) and the next transfer or
+  // the summer fills it. A load filled it at once, so a career saved and
+  // reloaded in that window picked a different vice-captain from the same
+  // career played straight through (scripts/qa/savedet.ts).
+  const fresh = Object.values(s.clubs).filter(c => !settled.has(c.id))
+  if (fresh.length) ensureCaptains({ ...s, clubs: Object.fromEntries(fresh.map(c => [c.id, c])) }, true)
   return s
 }
 

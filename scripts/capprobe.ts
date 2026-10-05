@@ -1,6 +1,6 @@
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
-import { offerRenewalAt, signOnTerms } from '../src/game/ai'
+import { capBill, offerRenewalAt, signOnTerms } from '../src/game/ai'
 import { capPosition, capWord, refreshCaps, rosterGrid, rosterWarnings, MARQUEE_SLOTS } from '../src/game/cap'
 import { SEASON_WEEKS, fmtMoney, type GameState } from '../src/game/model'
 import { ok, checkWorld, failCount } from './worldcheck'
@@ -114,14 +114,31 @@ console.log('\n--- the ceiling rises with the sport and never falls')
   const opening = g2.caps![lg]
   let lowest = opening
   const seen: number[] = [opening]
+  // RISES WITH THE SPORT, READ AS THE RULE RATHER THAN AS ONE WORLD'S LUCK
+  // (1.8.5). This asserted that the cap had risen over six seasons, and on
+  // this seed it had, once: the division's median bill crossed the opening
+  // line by 2.7% in season four and nowhere else (301k to 309k). The 1.8.3
+  // economy holds wages nearly flat, so whether a median of ten bills pokes
+  // over a line set above the biggest spender is a coin; the market round
+  // moved who signs whom and the same seed missed by £125 with one change and
+  // passed with another. What the cap promises is that every summer it stands
+  // at least a shade above the median club, so a league whose wages rise
+  // carries the cap up with them: that is asserted, every summer.
+  let tracked = true
+  const trail: string[] = []
   for (let s = 0; s < 6; s++) {
     for (let w = 0; w < SEASON_WEEKS; w++) { g2.newsFrom = g2.nextId; processWeekAndAdvance(g2) }
     const now = g2.caps![lg]
     lowest = Math.min(lowest, now)
     seen.push(now)
+    const bills = Object.values(g2.clubs).filter(c => c.leagueId === lg).map(c => capBill(g2, c)).sort((a, b) => a - b)
+    const mid = bills.length % 2 ? bills[(bills.length - 1) / 2] : (bills[bills.length / 2 - 1] + bills[bills.length / 2]) / 2
+    const rule = Math.round((Math.round(mid) * 1.16) / 1_000) * 1_000
+    trail.push(`${fmtMoney(rule)}`)
+    if (now < rule) tracked = false
   }
   ok(lowest >= opening, `the cap never dropped below its opening figure (${seen.map(v => fmtMoney(v)).join(' -> ')})`)
-  ok(seen[seen.length - 1] > opening, 'and it has risen with wages over six seasons')
+  ok(tracked, `and every summer it stands at least a shade above the median club (the median rule asked ${trail.join(', ')})`)
   // and a second refresh in the same summer must not move it: the rule is stable
   const before = g2.caps![lg]
   refreshCaps(g2)

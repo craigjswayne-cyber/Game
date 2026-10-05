@@ -2174,6 +2174,10 @@ export interface LiveCtx {
   htEv?: CausalEvidence
   htDials?: number[]
   shDials?: number[]
+  /** the same four dials as the ball was first kicked (1.8.5), so full time
+   *  can tell a plan carried into the match and changed at the break from
+   *  one dropped before it (matchfindings planCarried) */
+  koDials?: number[]
 }
 
 /** The manager's four touchline dials, in LEVER_DIALS order: his club's
@@ -2717,6 +2721,7 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
   }
   ctx.kickSeed = Math.floor(rng() * 4294967296) >>> 0
   ctx.chemToday = chemToday
+  ctx.koDials = userDials(state, ctx)
 
   // THE ANALYST'S HOMEWORK (pillar 2): an analyst-archetype dugout facing the
   // user starts with its plan pulled toward the counter to the user's habit.
@@ -6435,6 +6440,7 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
           state.tryOfSeason = {
             playerId: e.playerId, name: e.playerName ?? scorer.name, min: e.min,
             opp: oppName, text: e.text, drama, season: state.season,
+            ...(e.k ? { tj: JSON.stringify({ ...(e.v ?? {}), k: e.k }) } : {}),
           }
         }
       }

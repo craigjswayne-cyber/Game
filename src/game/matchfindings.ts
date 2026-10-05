@@ -19,18 +19,42 @@
 import type { GameState } from './model'
 import { matchStats, type LiveCtx } from './matchEngine'
 import { fileHomework, unitBattles } from './coachfix'
-import { buildEvidence, planExploited, pointsAfter, sidesOf } from './evidence'
+import { LEVER_DIALS, buildEvidence, planExploited, pointsAfter, sidesOf } from './evidence'
+import { PRESETS } from './tactics'
 import { t } from './i18n'
 import { noteMemory } from './memory'
 import {
   currentPlan, keepFindings, planFollowed,
-  type Finding, type FindingsRecord, type PlanVerdict, type ReportLine,
+  type ChosenPlan, type Finding, type FindingsRecord, type PlanVerdict, type ReportLine,
 } from './oppreport'
 
 /** Whether the manager's plan was followed goes into the manager's memory
  *  (memory.ts), as 'plan-followed' or 'plan-ignored'. */
 function note(state: GameState, e: { kind: string; clubId?: string; payload?: Record<string, unknown> }): void {
   noteMemory(state, e)
+}
+
+/** How long the plan was carried (1.8.5): the whole match; to the break and
+ *  changed there; into the second half and changed in it; or changed before
+ *  it had a half to work (before kick-off, or in the first half). The four
+ *  touchline dials are all that moves once the ball is in play, and the
+ *  engine keeps them at kick-off, at the break and as the second half
+ *  starts (matchEngine koDials, htDials, shDials). */
+export type PlanCarry = 'full' | 'ht' | 'second' | 'dropped'
+export function planCarried(state: GameState, ctx: LiveCtx, plan: ChosenPlan): PlanCarry {
+  const now = planFollowed(state, plan)
+  // a match begun before the dials were kept at kick-off
+  if (!ctx.koDials) return now ? 'full' : 'dropped'
+  if (!planFollowed(state, plan, ctx.koDials)) return 'dropped'
+  if (now) return 'full'
+  if (!ctx.htEv || !ctx.htDials || !planFollowed(state, plan, ctx.htDials)) return 'dropped'
+  return ctx.shDials && !planFollowed(state, plan, ctx.shDials) ? 'ht' : 'second'
+}
+
+/** The Quick Game Plan the dials were set to, if they match one exactly. */
+export function presetOf(dials: number[] | undefined) {
+  if (!dials) return null
+  return PRESETS.find(p => LEVER_DIALS.every((k, i) => p.values[k] === dials[i])) ?? null
 }
 
 /** The findings for a finished match, plus the record the save keeps. Null for
@@ -96,21 +120,45 @@ export function buildFindings(state: GameState, ctx: LiveCtx): FindingsRecord | 
   const plan = currentPlan(state, opp.teamId)
   let planRec: FindingsRecord['plan'] = null
   if (plan) {
-    const followed = planFollowed(state, plan)
-    // the target, judged on what the match was made of rather than on the
-    // tries and the possession share standing in for it (1.8.3)
-    const ev = buildEvidence(state, ctx)
-    const exploited = !!ev && planExploited(plan.target, ev)
-    const won = margin > 0
-    const verdict: PlanVerdict = !followed ? 'failed'
-      : exploited && won ? 'worked' : exploited || won ? 'partly' : 'failed'
-    planRec = { id: plan.id, target: plan.target, followed, verdict }
-    items.push({
-      cat: 'strategic',
-      k: !followed ? 'find.planDropped' : `find.plan_${verdict}`,
-      v: { plan_k: `oppreport.plan_${plan.id}` },
-      tone: !followed ? 0 : verdict === 'worked' ? 1 : verdict === 'partly' ? 0 : -1,
-    })
+    const carry = planCarried(state, ctx, plan)
+    const ht = ctx.htEv
+    if (carry === 'full') {
+      // the target, judged on what the match was made of rather than on the
+      // tries and the possession share standing in for it (1.8.3)
+      const ev = buildEvidence(state, ctx)
+      const exploited = !!ev && planExploited(plan.target, ev)
+      const won = margin > 0
+      const verdict: PlanVerdict = exploited && won ? 'worked' : exploited || won ? 'partly' : 'failed'
+      planRec = { id: plan.id, target: plan.target, followed: true, verdict }
+      items.push({
+        cat: 'strategic', k: `find.plan_${verdict}`, v: { plan_k: `oppreport.plan_${plan.id}` },
+        tone: verdict === 'worked' ? 1 : verdict === 'partly' ? 0 : -1,
+      })
+    } else if (carry !== 'dropped' && ht) {
+      // CARRIED TO THE BREAK, THEN CHANGED (1.8.5). The plan is judged on the
+      // forty minutes it was played for, the change is named, and the second
+      // half's score is what the change bought. It used to be judged on the
+      // dials at the whistle, so a Quick Game Plan at half time read as a
+      // plan "set but not carried through".
+      const exploited = planExploited(plan.target, ht, true)
+      const ahead = ht.us > ht.them
+      const verdict: PlanVerdict = exploited && ahead ? 'worked' : exploited || ahead ? 'partly' : 'failed'
+      planRec = { id: plan.id, target: plan.target, followed: true, verdict, half: true }
+      const preset = carry === 'ht' ? presetOf(ctx.shDials) : null
+      items.push({
+        cat: 'strategic', k: `find.planHalf_${exploited ? 'hit' : 'miss'}`,
+        v: {
+          plan_k: `oppreport.plan_${plan.id}`, us: ht.us, them: ht.them,
+          chg_k: carry === 'second' ? 'find.chgSecond' : preset ? 'find.chgPreset' : 'find.chgBreak',
+          ...(preset ? { preset_k: preset.name } : {}),
+          us2: mine.score - ht.us, them2: opp.score - ht.them,
+        },
+        tone: verdict === 'worked' ? 1 : verdict === 'partly' ? 0 : -1,
+      })
+    } else {
+      planRec = { id: plan.id, target: plan.target, followed: false, verdict: 'failed' }
+      items.push({ cat: 'strategic', k: 'find.planDropped', v: { plan_k: `oppreport.plan_${plan.id}` }, tone: 0 })
+    }
   } else if (!state.clubs[opp.teamId]) {
     items.push({ cat: 'strategic', k: 'find.testWeek', tone: 0 })
   } else {
@@ -151,10 +199,16 @@ export function fileFindings(state: GameState, ctx: LiveCtx): FindingsRecord | n
  *  in _k are keys themselves and are translated first. */
 export function lineText(line: Finding | ReportLine): string {
   const vars: Record<string, string | number> = {}
-  for (const [k, v] of Object.entries(line.v ?? {})) {
+  const entries = Object.entries(line.v ?? {})
+  for (const [k, v] of entries) {
     // under both names: {word} takes the line, {word_k} lets t() resolve it
     vars[k] = v
     if (k.endsWith('_k') && typeof v === 'string') vars[k.slice(0, -2)] = t(v)
+  }
+  // a key that is a sentence of its own takes the line's values too (1.8.5,
+  // find.chgPreset names the Quick Game Plan)
+  for (const [k, v] of entries) {
+    if (k.endsWith('_k') && typeof v === 'string') vars[k.slice(0, -2)] = t(v, vars)
   }
   return t(line.k, vars)
 }

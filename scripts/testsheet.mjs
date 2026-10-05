@@ -110,7 +110,9 @@ try {
   }
   ok(reached, 'the walk reaches a Test week with the England job in hand')
 
-  for (let i = 0; i < 80; i++) {
+  // a time budget, not a step count: each step waits on fixed timers, so a
+  // slow runner used to spend its 80 steps before the sheet came up
+  for (const until = Date.now() + 120_000; Date.now() < until;) {
     // the desk fills again as the week walks, and every hold stops Continue -
     // keep it clear and the camp legal, then press on to the sheet
     await page.evaluate(() => {
@@ -137,7 +139,9 @@ try {
     if (await page.locator('text=Continue ▸').count()) { await page.click('text=Continue ▸'); await page.waitForTimeout(400); continue }
     await page.waitForTimeout(150)
   }
-  ok(await page.locator('text=YOUR TEST XV').count() > 0, 'and lands on the Test team sheet')
+  const onSheet = await page.locator('text=YOUR TEST XV').count() > 0
+  if (!onSheet) console.log('  stuck on:', (await page.evaluate(() => document.body.innerText)).slice(0, 400).replace(/\s+/g, ' '))
+  ok(onSheet, 'and lands on the Test team sheet')
 
   // HOW YOU WATCH IT IS A DECISION MADE ON THE PAGE, not one buried in the
   // sheet you press to start the match

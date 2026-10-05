@@ -326,6 +326,9 @@
   "storeLabel": "Tienda",
   "dreamDone": "EL SUEÑO, CUMPLIDO",
   "circling": "Te rondan",
+  "circling1": "Dicen que {club} admira a {player}.",
+  "circling2": "{club} ya no niega su interés por {player}. El ruido va a más.",
+  "circling3": "{club} ha pujado por {player}, y va en serio.",
   "seasonAhead": "La temporada por delante",
   "objectives": "Objetivos de la temporada · {met}/{total} en buen camino",
   "tentpoleThisWeek": " esta semana",
@@ -806,7 +809,8 @@
  "armsrace": {
   "tapeSet": "Sus analistas tienen {move_k} en el {pct}% de tu balón de primera fase, y este entrenador prepara la defensa según lo que muestran los vídeos.",
   "tapeCalm": "Sus analistas tienen {move_k} en el {pct}% de tu balón de primera fase, pero este entrenador apenas cambia nada por ello.",
-  "tapeUnread": "Sus analistas tienen {move_k} en el {pct}% de tu balón de primera fase. Si se prepararán contra ella, el informe no lo puede decir."
+  "tapeUnread": "Sus analistas tienen {move_k} en el {pct}% de tu balón de primera fase. Si se prepararán contra ella, el informe no lo puede decir.",
+  "tapeRetired": "Sus analistas tienen {move_k} en el {pct}% de tu balón de primera fase, una jugada que ya no usas: nada en el vídeo para lo que prepararse."
  },
  "moves": {
   "mv_1331": "Cargas a lo ancho",
@@ -1023,6 +1027,9 @@
   "spCalls": "Fases estáticas: en el lateral sobre todo {lo}, en la melé sobre todo {sc}.",
   "spPredictable": "Cantan las mismas jugadas semana tras semana. Sus fases estáticas se pueden leer.",
   "keyMen": "Los hombres clave: {names}.",
+  "keyMen_w": "Las jugadoras clave: {names}.",
+  "legendTheirs": {"one": "{player}, leyenda de {club} con {n} partido con nosotros, está en su convocatoria.", "other": "{player}, leyenda de {club} con {n} partidos con nosotros, está en su convocatoria."},
+  "legendStaff": {"one": "{player}, leyenda de {club} con {n} partido con nosotros, forma parte de su cuerpo técnico.", "other": "{player}, leyenda de {club} con {n} partidos con nosotros, forma parte de su cuerpo técnico."},
   "coach_stubborn": "Su banquillo juega a lo suyo, tenga delante a quien tenga.",
   "coach_analyst": "Su banquillo estudia nuestros últimos partidos y se prepara contra nuestros hábitos.",
   "coach_reactive": "Su banquillo cambia cosas desde la banda una vez empezado el partido.",
@@ -1043,6 +1050,9 @@
   "lastPlan_worked": "Nuestro plan de entonces ({plan}) funcionó.",
   "lastPlan_partly": "Nuestro plan de entonces ({plan}) funcionó a medias.",
   "lastPlan_failed": "Nuestro plan de entonces ({plan}) no salió.",
+  "lastPlanHalf_worked": "Nuestro plan de entonces ({plan}) funcionó, a juzgar por la primera parte, antes de cambiarlo.",
+  "lastPlanHalf_partly": "Nuestro plan de entonces ({plan}) funcionó a medias, a juzgar por la primera parte, antes de cambiarlo.",
+  "lastPlanHalf_failed": "Nuestro plan de entonces ({plan}) no salió, a juzgar por la primera parte, antes de cambiarlo.",
   "soft": "Punto débil: {unit} ({sure}).",
   "sureHigh": "seguro",
   "sureMid": "bastante seguro",
@@ -1105,7 +1115,12 @@
   "spEven": "Las fases estáticas fueron parejas. Nadie sacó una plataforma de ellas.",
   "playerBoth": "El mejor: {best} ({r}). Un día para olvidar de {worst} ({r2}).",
   "playerBest": "El mejor: {best} ({r}).",
-  "planDropped": "El plan ({plan}) se activó pero no se mantuvo, así que no se puede juzgar.",
+  "planDropped": "El plan ({plan}) se cambió antes de tener una parte para funcionar, así que no se puede juzgar.",
+  "planHalf_hit": "El plan ({plan}) dio en el blanco en la primera parte: {us}-{them} al descanso. {chg} La segunda parte fue {us2}-{them2}.",
+  "planHalf_miss": "El plan ({plan}) no había dado en el blanco al descanso: {us}-{them}. {chg} La segunda parte fue {us2}-{them2}.",
+  "chgPreset": "Cambiaste a «{preset}» en el descanso.",
+  "chgBreak": "Cambiaste los ajustes en el descanso.",
+  "chgSecond": "Cambiaste los ajustes en la segunda parte.",
   "plan_worked": "El plan ({plan}) funcionó: se logró el objetivo y también el resultado.",
   "plan_partly": "El plan ({plan}) funcionó a medias: el objetivo o el resultado, no ambos.",
   "plan_failed": "El plan ({plan}) no salió.",
@@ -1667,6 +1682,9 @@
    "other": "Su jugada, {move_k}, nos costó {n} ensayos."
   },
   "whyRead": "Nos leyeron {move_k}: {m} m en {n} jugadas, frente a {m0} m sin esa lectura.",
+  "whyReadLost": "Nos leyeron {move_k}: {n} jugadas perdieron {m} m, {d} m peor que sin esa lectura.",
+  "whyReadHeld": "Esperaban {move_k}, y aun así ganó {m} m en {n} jugadas.",
+  "whyReadNil": "Esperaban {move_k}, pero no fue su lectura lo que la frenó: {n} jugadas, ni un metro ganado.",
   "whySetFor": "Perdieron {n} melés y touches con su introducción; nosotros, {m}.",
   "whySetAgainst": "Perdimos {n} melés y touches con nuestra introducción; ellos, {m}.",
   "whyPenFor": {
@@ -1737,7 +1755,9 @@
   "fuLever_right": "Moviste {dial_k} en la buena dirección en el descanso.",
   "fuLever_wrong": "{dial_k} fue en la dirección contraria en el descanso.",
   "fuLever_none": "{dial_k} se quedó donde estaba.",
-  "fuNow": "El mayor problema hoy: {what_k}."
+  "fuNow": "El mayor problema hoy: {what_k}.",
+  "planAside": "Esto deja de lado el plan ({plan}): se juzgará por la primera parte.",
+  "planAsideEarly": "Esto deja de lado el plan ({plan}) antes de que haya tenido una parte, así que no se podrá juzgar."
  },
  "tacticsScreen": {
   "tabRoles": "Roles",
@@ -2484,6 +2504,7 @@
   "whipHand": " - la sartén por el mango la tienen ellos",
   "rifts": "Grietas en el vestuario",
   "riftsSub": "dos de los tuyos no se hablan",
+  "riftPair": "{a} y {b}",
   "riftLine": "no se hablan desde la semana {week}.",
   "getThemInARoom": "Siéntalos cara a cara",
   "askedAlready": "Ya los has reunido esta semana",
@@ -2636,6 +2657,8 @@
   "3": "Expediente completo: números, carácter y temperamento verificados."
  },
  "player": {
+  "rivalBidLine": "{club} también lo quiere: {wage}/sem sobre la mesa.",
+  "rivalBidLine_f": "{club} también la quiere: {wage}/sem sobre la mesa.",
   "ceiling": "Techo",
   "ceilingTitle": "Su potencial según tus ojeadores. El margen se estrecha a medida que lo siguen; un signo de interrogación significa que aún no lo han evaluado.",
   "gone": "El jugador ya no está en el mundo del juego (retirado o sin equipo).",
@@ -4266,7 +4289,7 @@
   "discYcWho": "Expulsión temporal de {player}: diez minutos con uno menos.",
   "fixAdmin": "mantener un solo plan",
   "fixAttack": "convertir la posesión en puntos",
-  "fixDiscipline": "la disciplina",
+  "fixDiscipline": "mantener a los quince en el campo",
   "fixFitness": "el uso del banquillo",
   "fixKicking": "la patada a palos",
   "fixSetpiece": "las fases estáticas",
@@ -4278,6 +4301,7 @@
   "gradeOneDone": "Desde la última vez, {fixed} está en orden. Sigue haciendo lo que fuera aquello.",
   "gradeOneMissed": "La última vez preguntamos por {missed}, y aquí está otra vez.",
   "howBreakdown": "Un flanker de rapiña en Selección, o sube la Dureza. El balón disputado lo ganan los cuerpos que llegan, no el dibujo.",
+  "howBreakdownSel": "Un flanker de rapiña en Selección. El balón disputado lo ganan los cuerpos que llegan, no el dibujo, y la Dureza ya nos cuesta penales.",
   "howLineout": "Mete en Selección un segundo saltador de verdad entre la segunda y la tercera línea, y cambia el código de la touch en Fases Estáticas para que dejen de leerla.",
   "howScrum": "Elige una primera línea más pesada en Selección, o dale a un pilar el rol de meleador en la pestaña de Roles. Un dial no levanta a un cinco de delante ligero.",
   "kickOrderHead": "Sin orden de pateadores designado.",
@@ -4322,6 +4346,7 @@
   "terrHead": "Solo tuvimos el {poss}% del balón.",
   "terrHowElse": "Baja el Ritmo para que las fases duren, y pon la salida en contraataque en Fases Estáticas en vez de regalarle el balón al pie a su zaguero.",
   "terrHowKick": "El Juego al Pie está en {n}, así que devolvemos el balón a propósito. Bájalo y mantén el balón en la mano.",
+  "terrHowTrade": "El Juego al Pie en {n} nos sacó de nuestra 22 y les dio el balón. Déjalo ahí y baja el Ritmo para que nuestras fases duren.",
   "unitBreakdownLower": "ruck",
   "unitLineoutLower": "touch",
   "unitScrumLower": "melé",
@@ -4423,6 +4448,24 @@
   "unofficialBody_f": "PHASE: Rugby Manager no está afiliado, avalado ni licenciado por ninguna jugadora, club, liga u organismo. Los nombres de los clubes son reales; las competiciones, los estadios y los patrocinadores están renombrados o inventados. Los nombres de las jugadoras son reales, usados para identificar a personas en una base de datos deportiva y para nada más, y no se incluye ningún escudo, camiseta ni logotipo oficial."
  },
  "news": {
+  "rivalBidLostSubj": "{player} se decide por {short}",
+  "rivalBidLost": "{player} ficha por {club}, que igualó el traspaso de {fee} y ofreció {wage}/semana. Lo que decidió: {why_k}.",
+  "rivalBidWonSubj": "{player} te prefiere a ti antes que a {short}",
+  "rivalBidWon": "{club} había igualado el traspaso y ofrecía {wage}/semana, pero {player} eligió tu club. Lo que decidió: {why_k}.",
+  "rivalBackedSubj": "{short} respalda a su entrenador",
+  "rivalBacked": "La directiva de {club} da {amount} más a {coach} tras terminar por detrás de ti. Buscan un {pos_k}.",
+  "rivalBackedBoardSubj": "{short} abre la chequera",
+  "rivalBackedBoard": "La directiva de {club} libera {amount} más tras terminar por detrás de ti. Buscan un {pos_k}.",
+  "rivalPushBidSubj": "{short} ofrece {fee} por {player}",
+  "rivalPushBid": "{club}, respaldado por su directiva tras terminar por detrás de ti, ofrece {fee} por {player}.",
+  "rivalWhyMinutes": "más minutos como {pos_k}",
+  "rivalWhyWage": "el mejor sueldo",
+  "rivalWhyRep": "el club más grande",
+  "rivalWhyPromise": "la promesa de jugar en el primer equipo",
+  "rivalWhyReturn": "volver a un club que conoce",
+  "rivalWhyAgentWarm": "la confianza de su agente en ti",
+  "rivalWhyAgentCool": "las dudas de su agente sobre ti",
+  "rivalWhyNoTerms": "nunca le pusiste condiciones sobre la mesa",
   "mentEarlySubj": "Primeros días para {last} y {seniorLast}",
   "mentEarly": "{kid} y {senior} todavía se están conociendo, así que no esperes mucho aún. Una pareja tarda semanas en asentarse.",
   "mentGrowingSubj": "{last} progresa junto a {seniorLast}",
@@ -6119,6 +6162,7 @@
   "jokerEndsSeason": "Terminó la temporada y con ella el contrato de joker médico de {name}. {name} queda sin equipo y puede volver a firmar en condiciones normales.",
   "grounds1Subj": "POR OTROS CAMPOS: el pantalón cede y la touch espera",
   "grounds1": "Un pilier del {club} llegó el sábado al frente de una touch con el pantalón por las rodillas, tras perder una discusión muy desigual con un ruck treinta segundos antes. Tan tranquilo, pidió el balón dos veces. El árbitro, menos relajado, paró el juego y lo mandó a la banda a recomponerse. La televisión enseñó el cielo durante once segundos.",
+  "grounds1_w": "Una pilier del {club} llegó el sábado al frente de una touch con el pantalón por las rodillas, tras perder una discusión muy desigual con un ruck treinta segundos antes. Tan tranquila, pidió el balón dos veces. El árbitro, menos relajado, paró el juego y la mandó a la banda a recomponerse. La televisión enseñó el cielo durante once segundos.",
   "grounds2Subj": "POR OTROS CAMPOS: dos equipaciones de local, ninguna de visitante",
   "grounds2": "La furgoneta llegó a {other} con dos juegos completos de camisetas de local del {club} y ninguna de visitante. Como ambos clubes visten de un color muy parecido, los visitantes jugaron la primera parte con la ropa del tercer equipo anfitrión, con el nombre de un fontanero del barrio en el pecho. Nadie distinguía a nadie, y los jugadores menos que nadie.",
   "grounds3Subj": "POR OTROS CAMPOS: el perro coge el balón y se lo queda",
@@ -6286,6 +6330,7 @@
   "expOpenedSubj": "Abre la grada nueva de {stadium}",
   "expOpened": "Han caído las vallas y los tornos ya giran: {stadium} pasa a tener {cap} localidades, {seats} de ellas nuevas. La lista de espera por fin avanza, y cada uno de esos asientos se paga solo en taquilla.",
   "trainInjurySubj": "{player} se lesiona en el entrenamiento",
+  "trainInjury_w": {"one": "{player} se ha retirado del campo de entrenamiento dolorida: {injury_k}. El fisio quiere una semana, así que se pierde el próximo partido.", "other": "{player} se ha retirado del campo de entrenamiento dolorida: {injury_k}. El fisio la da de baja unas {n} semanas, así que queda fuera de tus planes hasta entonces."},
   "trainInjury": {
    "one": "{player} se ha retirado del campo de entrenamiento dolorido: {injury_k}. El fisio quiere una semana, así que se pierde el próximo partido.",
    "other": "{player} se ha retirado del campo de entrenamiento dolorido: {injury_k}. El fisio lo da de baja unas {n} semanas, así que queda fuera de tus planes hasta entonces."
@@ -6922,6 +6967,8 @@
   "acadReleased": "Baja de {player} en la academia."
  },
  "reply": {
+  "rivalBidOpen": "{club} ha igualado el traspaso y le ofrece {wage}/sem. Decidirá esta semana.",
+  "rivalBidPrefers": "{name} se inclina por {club}, que ofrece {wage}/sem. Lo que pesa: {why_k}. Su oferta sigue en pie hasta que acabe la semana.",
   "overCap": "Esas condiciones dejarían al club {over}/sem por encima del tope salarial de {cap}/sem. Libera espacio o nómbralo jugador franquicia.",
   "offerGone": "La oferta ya no está disponible.",
   "inkWetTerms": "{club} retira la oferta de la mesa: {name} acaba de llegar y no se mueve de ahí.",
@@ -8417,7 +8464,19 @@
   "grudgeSubj": "{player} no ha olvidado",
   "grudge": "{player} no ha olvidado la promesa que rompiste en {season}. Otra vez fuera del equipo, {player} ya no dice ni una palabra en los entrenamientos, y el núcleo duro del vestuario se ha dado cuenta de cómo se está gestionando.",
   "agentsSubj": "Los agentes hablan de tu palabra",
-  "agents": "Entre agentes todo se sabe. La historia que circula en este mercado es la promesa que le rompiste a {player} en {club}, y quien se plantea fichar por ti pide más dinero por adelantado antes de fiarse de tu palabra."
+  "agents": "Entre agentes todo se sabe. La historia que circula en este mercado es la promesa que le rompiste a {player} en {club}, y quien se plantea fichar por ti pide más dinero por adelantado antes de fiarse de tu palabra.",
+  "face": "{how_k} {since_k}",
+  "faceX": "{how_k} {since_k} {extra_k}",
+  "sinceNone": "Aún sin partidos con {club}.",
+  "sinceGames": {"one": "{n} partido desde entonces, sin ensayos.", "other": "{n} partidos desde entonces, sin ensayos."},
+  "sinceTry": {"one": "{n} partido desde entonces, y un ensayo.", "other": "{n} partidos desde entonces, y un ensayo."},
+  "sinceTries": {"one": "{n} partido desde entonces, {tr} ensayos.", "other": "{n} partidos desde entonces, {tr} ensayos."},
+  "faceBroken": "La salida llegó tras una promesa que rompiste en {bs}.",
+  "faceRefused": "La salida llegó tras una petición de traspaso que rechazaste en {bs}.",
+  "faceCapped": "Ya juega con su selección.",
+  "faceAlso": "También pasaron por tu club: {names}.",
+  "ftTry": "{how_k} Hoy la diferencia en tu derrota por {us}-{them} fue un ensayo de {player}.",
+  "ftMotm": "{how_k} Hoy {player} se llevó el galardón del partido en tu derrota por {us}-{them}."
  },
  "hl": {
   "try": "¡ENSAYO!",
@@ -8655,7 +8714,7 @@
   "wishMet": "El presidente pidió {wish_k}, y lo consiguió.",
   "wishMissed": "El presidente pidió {wish_k}, y no lo consiguió.",
   "verdictSubj": "El veredicto de la directiva sobre la temporada",
-  "verdict": "El veredicto veraniego de la directiva.\n{rows_ll}",
+  "verdict": "{rows_ll}",
   "demGiantWon": "Un título, que es para lo que existe este club. La directiva está satisfecha.",
   "demGiantEmpty": "Dos temporadas sin un título. En un club de este tamaño eso se nota, y la directiva lo ha notado.",
   "demFallenRise": "Una posición mejor que hace un año. La directiva quiere recuperar la vieja categoría, y este es el camino.",
@@ -8686,6 +8745,8 @@
    },
    "innovator": "Conocido por cambiar la forma de jugar de un equipo, y ganar así.",
    "spender": "Conocido por gastar a lo grande en el mercado de fichajes.",
+   "seller": "Conocido por vender jugadores, también a los mejores.",
+   "seller_w": "Conocida por vender jugadores, también a los mejores.",
    "hard": "Conocido por su disciplina: nadie está por encima del club.",
    "players": "Conocido como un entrenador cercano: promesas cumplidas, un vestuario feliz.",
    "turnaround": {
@@ -8693,7 +8754,26 @@
     "other": "Reflotó {n} clubes en apuros."
    },
    "defence": "Conocido por equipos muy difíciles de romper.",
-   "attack": "Conocido por equipos que anotan muchos puntos."
+   "attack": "Conocido por equipos que anotan muchos puntos.",
+   "tactician": "Conocido por cambiar el plan de juego, semana a semana y en el descanso.",
+   "prudent": "Conocido por cuadrar las cuentas y mantener los salarios dentro del presupuesto.",
+   "youth_w": "Conocida por dar su oportunidad a los jóvenes.",
+   "youthBacks_w": "Conocida por formar a jóvenes tres cuartos.",
+   "youthPack_w": "Conocida por formar a jóvenes delanteros.",
+   "youthIntl_w": {
+     "one": "Conocida por convertir a un canterano en internacional.",
+     "other": "Conocida por convertir canteranos en internacionales: {n} hasta ahora."
+   },
+   "innovator_w": "Conocida por cambiar la forma de jugar de un equipo, y ganar así.",
+   "spender_w": "Conocida por gastar a lo grande en el mercado de fichajes.",
+   "hard_w": "Conocida por su disciplina: nadie está por encima del club.",
+   "players_w": "Conocida como una entrenadora cercana: promesas cumplidas, un vestuario feliz.",
+   "defence_w": "Conocida por equipos muy difíciles de romper.",
+   "attack_w": "Conocida por equipos que anotan muchos puntos.",
+   "tactician_w": "Conocida por cambiar el plan de juego, semana a semana y en el descanso.",
+   "prudent_w": "Conocida por cuadrar las cuentas y mantener los salarios dentro del presupuesto.",
+   "seller_f": "Conocido por vender jugadoras, también a las mejores.",
+   "seller_fw": "Conocida por vender jugadoras, también a las mejores."
   },
   "traitNewsSubj": "Lo que dicen de ti",
   "traitNews": "La prensa ya tiene una forma de describirte: {trait_k}",
@@ -8701,6 +8781,8 @@
   "offerCite": "Por qué {short} te quiere, en sus palabras: {cite_k}",
   "offerHeard": "Lo que han oído: {cite_k}",
   "jobFit": "Aquello por lo que se te conoce es justo lo que pide este puesto.",
+  "jobFitAttack": "Les cuesta sumar puntos, y se te conoce por equipos que los anotan.",
+  "jobFitDefence": "Encajan demasiados puntos, y se te conoce por equipos difíciles de superar.",
   "trend": {
    "new": "Empiezas a tener fama por {trait_k}.",
    "rise": "Tu nombre se asocia cada vez más con {trait_k}.",
@@ -8710,11 +8792,15 @@
    "youth": "la formación de jóvenes",
    "innovator": "las ideas nuevas de juego",
    "spender": "los grandes fichajes",
+   "seller": "la venta de jugadores",
    "hard": "las decisiones duras",
    "players": "la gestión del vestuario",
    "turnaround": "reflotar clubes",
    "defence": "el rugby defensivo",
-   "attack": "el rugby de ataque"
+   "attack": "el rugby de ataque",
+   "tactician": "los cambios de plan",
+   "prudent": "la gestión prudente",
+   "seller_f": "la venta de jugadoras"
   },
   "meth": {
    "broke": "Se rompieron promesas hechas al vestuario, y la directiva se enteró.",
@@ -8725,7 +8811,12 @@
    "academy": "La cantera tuvo su oportunidad.",
    "attack": "El equipo atacó, y el presidente lo disfrutó.",
    "spent": "El dinero se gastó con audacia.",
-   "defence": "Un equipo difícil de batir."
+   "defence": "Un equipo difícil de batir.",
+   "prudentWages": "La masa salarial quedó por debajo del presupuesto y las cuentas cuadraron. La directiva lo notó.",
+   "tacWorked": "El plan de juego cambió semana a semana, y los resultados acompañaron.",
+   "tacRestless": "El plan de juego cambió semana a semana, y los resultados no acompañaron.",
+   "capHeld": "El tope salarial bloqueó fichajes que buscabas. La directiva sabe que el límite era de la liga.",
+   "embargo": "La sanción por el tope salarial dejó al club fuera del mercado."
   },
   "profile": {
    "giant": "Un club rico que exige títulos.",
@@ -9066,7 +9157,10 @@
   "captain_f": {"one": "Tu capitana: {n} partido con {club}.", "other": "Tu capitana: {n} partidos con {club}."},
   "legend": {"one": "Leyenda de {club} desde {season}: {n} partido con el club.", "other": "Leyenda de {club} desde {season}: {n} partidos con el club."},
   "legendOld": {"one": "Leyenda de {club}: {n} partido con el club.", "other": "Leyenda de {club}: {n} partidos con el club."},
+  "captainLegend": {"one": "Tu capitán, leyenda de {club} desde {season}: {n} partido con el club.", "other": "Tu capitán, leyenda de {club} desde {season}: {n} partidos con el club."},
   "sold": {"one": "Vendido a {buyer} por {fee} en {season}, tras {n} partido con {club}.", "other": "Vendido a {buyer} por {fee} en {season}, tras {n} partidos con {club}."},
+  "soldYoung": "Vendido a {buyer} por {fee} en {season}, antes de debutar con {club}.",
+  "soldYoung_f": "Vendida a {buyer} por {fee} en {season}, antes de debutar con {club}.",
   "sold_f": {"one": "Vendida a {buyer} por {fee} en {season}, tras {n} partido con {club}.", "other": "Vendida a {buyer} por {fee} en {season}, tras {n} partidos con {club}."},
   "released": {"one": "Liberado por {club} en {season}, tras {n} partido.", "other": "Liberado por {club} en {season}, tras {n} partidos."},
   "released_f": {"one": "Liberada por {club} en {season}, tras {n} partido.", "other": "Liberada por {club} en {season}, tras {n} partidos."},
