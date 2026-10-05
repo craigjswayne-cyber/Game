@@ -152,7 +152,7 @@ function backed(g: GameState, p: Player, l: StoryLine, made: (p: Player) => bool
     case 'legend': return (g.hist?.legends ?? []).some(x => x.pid === p.id && n === booked(p, x.clubId))
     case 'sold': case 'released': case 'let-go': {
       const e = last(['sold', 'released', 'let-go'])
-      return !!e && e.kind === l.why && e.clubId != null && p.clubId !== e.clubId && n === booked(p, e.clubId) && n > 0
+      return !!e && e.kind === l.why && e.clubId != null && p.clubId !== e.clubId && n === booked(p, e.clubId) && (n > 0) === (l.k !== 'story.soldYoung')
         && (e.payload?.nb === 1 || e.sal >= 2) && l.v.season === seasonLabel(e.season)
     }
     case 'promise': {

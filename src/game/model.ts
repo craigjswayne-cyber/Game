@@ -2353,7 +2353,7 @@ export interface GameState {
   cottonWk?: number
   /** Last full time's two fixes, so the next one can mark the homework (C2).
    *  Set wherever a match is filed, watched or not (coachfix fileHomework). */
-  fixHw?: { fxId: number; season: number; week: number; tags: string[] }
+  fixHw?: { fxId: number; season: number; week: number; tags: string[]; test?: boolean; was?: string[] }
   /** the user's hand-picked Test 23 for the current window */
   natLineup?: { team: string; lineup: (number | null)[] } | null
   /** men the national coach sent home from camp this window. A recall gives
@@ -2384,6 +2384,10 @@ export interface GameState {
   /** squad-depth standard this save has been topped up to - the one-shot
    *  migration that grew 33-man squads to 38 stamps this so it never reruns */
   squadDepth?: number
+  /** 1 once migrate has run its one-shot legacy academy-wage repair (1.8.5);
+   *  after that the rollover's repriceAcademies owns scholar wages, and a
+   *  load never moves one mid-season (save.ts) */
+  acadPriced?: number
   /** the A League: the academy sides of the user's league, with their own
    *  fixtures and table. Kept outside state.comps deliberately - see academy.ts */
   academy?: import('./academy').AcadLeague

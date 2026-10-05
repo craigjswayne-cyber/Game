@@ -321,6 +321,32 @@ function fill(text: string, vars?: Vars, lang: Lang = current): string {
     // scouting stories now set their lists one to a line ({men_ll}, {list_ll});
     // a story filed before carries the same list as men_l, or as a plain
     // string under the bare name, and reads it rather than printing a hole.
+    // A TEAM THAT IS A NATION, marked by a _n twin holding its code (1.8.5).
+    // The story stores the English name under the plain variable, as data
+    // that does not change with the screen; the reader's language names the
+    // country here. A save from before keeps whatever it stored.
+    const code = vars[`${name}_n`]
+    if (typeof code === 'string') {
+      const own = lookup(DICTS[lang], `nation.${code}`) ?? lookup(DICTS.en, `nation.${code}`)
+      if (typeof own === 'string') return own
+    }
+    // A WHOLE SENTENCE FRAGMENT, marked by a _j twin: a JSON { k, ...vars }
+    // rendered in the reader's language (1.8.5), for a line that has its own
+    // variables and so cannot ride a _k. The plain variable holds the English
+    // as data; a save from before has only that, and reads it.
+    const frag = vars[`${name}_j`]
+    if (typeof frag === 'string') {
+      try {
+        const o = JSON.parse(frag) as { k?: unknown } & Vars
+        if (o && typeof o.k === 'string') {
+          const { k, ...fv } = o
+          const own = lookupForWorld(DICTS[lang], k, subjectOf(fv as Vars))
+          const txt = own ?? lookupForWorld(DICTS.en, k, subjectOf(fv as Vars))
+          const out = render(txt, fv as Vars, own === undefined ? 'en' : lang)
+          if (out != null) return out
+        }
+      } catch { /* a mangled fragment falls through to the stored English */ }
+    }
     const v = vars[name] ?? (name.endsWith('_ll')
       ? (vars[name.slice(0, -1)] != null ? vars[name.slice(0, -1)] : vars[name.slice(0, -3)])
       : undefined)

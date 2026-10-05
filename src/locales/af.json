@@ -785,7 +785,8 @@
  "armsrace": {
   "tapeSet": "Hul ontleders het {move_k} op {pct}% van jou eerstefase-balle, en hierdie afrigter stel die verdediging op volgens wat die video wys.",
   "tapeCalm": "Hul ontleders het {move_k} op {pct}% van jou eerstefase-balle, maar hierdie afrigter verander nie veel daarvoor nie.",
-  "tapeUnread": "Hul ontleders het {move_k} op {pct}% van jou eerstefase-balle. Of hulle daarvoor gaan opstel, kan die verslag nie sê nie."
+  "tapeUnread": "Hul ontleders het {move_k} op {pct}% van jou eerstefase-balle. Of hulle daarvoor gaan opstel, kan die verslag nie sê nie.",
+  "tapeRetired": "Hul ontleders het {move_k} op {pct}% van jou eerstefase-balle, 'n oproep wat jy nie meer gebruik nie: niks op die band om voor te beplan nie."
  },
  "moves": {
   "mv_1331": "Breë drae",
@@ -1003,6 +1004,8 @@
   "spCalls": "Vaste spel: lynstane meestal {lo}, skrums meestal {sc}.",
   "spPredictable": "Hulle roep week na week dieselfde bewegings. Hul vaste spel kan gelees word.",
   "keyMen": "Die manne wat saak maak: {names}.",
+  "legendTheirs": {"one": "{player}, 'n {club}-legende met {n} wedstryd vir ons, is in hul groep.", "other": "{player}, 'n {club}-legende met {n} wedstryde vir ons, is in hul groep."},
+  "legendStaff": {"one": "{player}, 'n {club}-legende met {n} wedstryd vir ons, is deel van hul afrigtingspan.", "other": "{player}, 'n {club}-legende met {n} wedstryde vir ons, is deel van hul afrigtingspan."},
   "coach_stubborn": "Hul afrigtingspan speel hul eie spel, wie ook al voor hulle staan.",
   "coach_analyst": "Hul afrigtingspan bestudeer ons onlangse wedstryde en berei voor teen ons gewoontes.",
   "coach_reactive": "Hul afrigtingspan verander dinge van die kantlyn af sodra die wedstryd aan die gang is.",
@@ -1023,6 +1026,9 @@
   "lastPlan_worked": "Ons plan destyds ({plan}) het gewerk.",
   "lastPlan_partly": "Ons plan destyds ({plan}) het half gewerk.",
   "lastPlan_failed": "Ons plan destyds ({plan}) het nie uitgewerk nie.",
+  "lastPlanHalf_worked": "Ons plan destyds ({plan}) het gewerk, beoordeel op die eerste helfte voordat ons dit verander het.",
+  "lastPlanHalf_partly": "Ons plan destyds ({plan}) het half gewerk, beoordeel op die eerste helfte voordat ons dit verander het.",
+  "lastPlanHalf_failed": "Ons plan destyds ({plan}) het nie uitgewerk nie, beoordeel op die eerste helfte voordat ons dit verander het.",
   "soft": "Swak plek: hul {unit} ({sure}).",
   "sureHigh": "seker",
   "sureMid": "taamlik seker",
@@ -1085,7 +1091,12 @@
   "spEven": "Die vaste spel was gelykop. Niemand het 'n platform daaruit gekry nie.",
   "playerBoth": "Uitblinker: {best} ({r}). 'n Dag om te vergeet vir {worst} ({r2}).",
   "playerBest": "Uitblinker: {best} ({r}).",
-  "planDropped": "Die plan ({plan}) is gestel maar nie deurgevoer nie, so dit kan nie beoordeel word nie.",
+  "planDropped": "Die plan ({plan}) is verander voordat dit 'n helfte kon werk, so dit kan nie beoordeel word nie.",
+  "planHalf_hit": "Die plan ({plan}) het sy teiken in die eerste helfte getref: {us}-{them} met rustyd. {chg} Die tweede helfte het {us2}-{them2} geëindig.",
+  "planHalf_miss": "Die plan ({plan}) het sy teiken teen rustyd nog nie getref nie: {us}-{them}. {chg} Die tweede helfte het {us2}-{them2} geëindig.",
+  "chgPreset": "Jy het met rustyd na {preset} oorgeskakel.",
+  "chgBreak": "Jy het die instellings met rustyd verander.",
+  "chgSecond": "Jy het die instellings in die tweede helfte verander.",
   "plan_worked": "Die plan ({plan}) het gewerk: die teiken is getref en die uitslag ook.",
   "plan_partly": "Die plan ({plan}) het half gewerk: die teiken of die uitslag, nie albei nie.",
   "plan_failed": "Die plan ({plan}) het nie uitgewerk nie.",
@@ -1640,6 +1651,9 @@
    "other": "Met {move_k} het hulle {n} drieë teen ons gedruk."
   },
   "whyRead": "Hulle het {move_k} gelees: {m} m uit {n} oproepe, teenoor {m0} m sonder daardie lesing.",
+  "whyReadLost": "Hulle het {move_k} gelees: {n} oproepe het {m} m verloor, {d} m swakker as sonder daardie lesing.",
+  "whyReadHeld": "Hulle was gereed vir {move_k}, en dit het steeds {m} m uit {n} oproepe gewen.",
+  "whyReadNil": "Hulle was gereed vir {move_k}, maar dit was nie hul lesing wat dit gestop het nie: {n} oproepe, geen grond gewen nie.",
   "whySetFor": "Hulle het {n} skrums en lynstane op eie bal verloor; ons {m}.",
   "whySetAgainst": "Ons het {n} skrums en lynstane op eie bal verloor; hulle {m}.",
   "whyPenFor": {
@@ -1710,7 +1724,9 @@
   "fuLever_right": "Jy het {dial_k} in rustyd die regte kant toe geskuif.",
   "fuLever_wrong": "{dial_k} het in rustyd die ander kant toe gegaan.",
   "fuLever_none": "{dial_k} is gelos waar dit was.",
-  "fuNow": "Die groter probleem vandag: {what_k}."
+  "fuNow": "Die groter probleem vandag: {what_k}.",
+  "planAside": "Dit sit die plan ({plan}) eenkant: dit word op die eerste helfte beoordeel.",
+  "planAsideEarly": "Dit sit die plan ({plan}) eenkant voordat dit 'n helfte gehad het, so dit kan nie beoordeel word nie."
  },
  "tacticsScreen": {
   "tabRoles": "Rolle",
@@ -4223,7 +4239,7 @@
   "discYcWho": "{player} na die sondebank: tien minute 'n speler kort.",
   "fixAdmin": "om by een plan te hou",
   "fixAttack": "om besit in punte om te sit",
-  "fixDiscipline": "die dissipline",
+  "fixDiscipline": "vyftien man op die veld",
   "fixFitness": "om die bank te gebruik",
   "fixKicking": "die doelskopwerk",
   "fixSetpiece": "die vaste fase",
@@ -4235,6 +4251,7 @@
   "gradeOneDone": "{fixed} is reggemaak sedert verlede keer. Hou aan doen wat ook al dit was.",
   "gradeOneMissed": "Ons het verlede keer oor {missed} gevra, en hier is dit weer.",
   "howBreakdown": "'n Jakkals-flank op Keuse, of stoot Fisiekheid op. Betwiste bal word gewen deur liggame wat opdaag, nie deur vorm nie.",
+  "howBreakdownSel": "'n Jakkals-flank op Keuse. Betwiste bal word gewen deur liggame wat opdaag, nie deur vorm nie, en Fisiekheid kos ons reeds strafskoppe.",
   "howLineout": "Kry 'n tweede ware springer in die agterste vyf op Keuse, en verander die lynstaan-roep op Vaste Fase sodat hulle dit nie meer kan lees nie.",
   "howScrum": "Kies 'n swaarder voorry op Keuse, of gee 'n stut die skrummeerder-rol op die Rolle-oortjie. 'n Wyser kan nie 'n ligte stywe vyf optel nie.",
   "kickOrderHead": "Geen skopvolgorde aangewys nie.",
@@ -4279,6 +4296,7 @@
   "terrHead": "Ons het slegs {poss}% van die bal gehad.",
   "terrHowElse": "Verlaag Tempo sodat fases langer hou, en stel die uitgang op teenaanval by Vaste Fase eerder as om dit na hul heelagter te skop.",
   "terrHowKick": "Skop is op {n}, so ons gee dit doelbewus terug. Bring dit af en hou die bal in die hand.",
+  "terrHowTrade": "Skop op {n} het ons uit ons 22 gekry en hulle die bal gegee. Hou dit daar en verlaag Tempo sodat ons eie fases langer hou.",
   "unitBreakdownLower": "afbreekpunt",
   "unitLineoutLower": "lynstaan",
   "unitScrumLower": "skrum",
@@ -8595,7 +8613,19 @@
   "grudgeSubj": "{player} het nie vergeet nie",
   "grudge": "{player} het nie die belofte vergeet wat jy in {season} verbreek het nie. Weer uit die span gelaat, is {player} stil by oefening, en die senior spelers het opgemerk hoe dit hanteer word.",
   "agentsSubj": "Agente praat: jou woord op die mark",
-  "agents": "Nuus versprei tussen agente. Die storie wat hierdie venster die rondte doen, is die belofte wat jy by {club} aan {player} verbreek het, en wie ook al oorweeg om na jou toe te kom, wil vooraf meer geld hê voordat jy op jou woord geneem word."
+  "agents": "Nuus versprei tussen agente. Die storie wat hierdie venster die rondte doen, is die belofte wat jy by {club} aan {player} verbreek het, en wie ook al oorweeg om na jou toe te kom, wil vooraf meer geld hê voordat jy op jou woord geneem word.",
+  "face": "{how_k} {since_k}",
+  "faceX": "{how_k} {since_k} {extra_k}",
+  "sinceNone": "Nog geen wedstryde vir {club} nie.",
+  "sinceGames": {"one": "{n} wedstryd sedertdien, geen drieë nie.", "other": "{n} wedstryde sedertdien, geen drieë nie."},
+  "sinceTry": {"one": "{n} wedstryd sedertdien, en een drie.", "other": "{n} wedstryde sedertdien, en een drie."},
+  "sinceTries": {"one": "{n} wedstryd sedertdien, {tr} drieë.", "other": "{n} wedstryde sedertdien, {tr} drieë."},
+  "faceBroken": "Dit het gevolg op 'n belofte wat jy in {bs} gebreek het.",
+  "faceRefused": "Dit het gevolg op 'n oordragversoek wat jy in {bs} geweier het.",
+  "faceCapped": "Nou 'n toetsspeler.",
+  "faceAlso": "Ook voorheen joune: {names}.",
+  "ftTry": "{how_k} Vandag was die verskil in jou {us}-{them}-nederlaag 'n drie deur {player}.",
+  "ftMotm": "{how_k} Vandag was {player} die speler van die wedstryd in jou {us}-{them}-nederlaag."
  },
  "hl": {
   "try": "DRIE!",
@@ -8878,6 +8908,8 @@
   "offerCite": "Hoekom {short} jou wil hê, in hul eie woorde: {cite_k}",
   "offerHeard": "Wat hulle gehoor het: {cite_k}",
   "jobFit": "Waarvoor jy bekend is, is presies wat hierdie pos soek.",
+  "jobFitAttack": "Hulle sukkel om punte aan te teken, en jy is bekend vir spanne wat dit doen.",
+  "jobFitDefence": "Hulle lek punte, en jy is bekend vir spanne wat moeilik is om deur te breek.",
   "trend": {
    "new": "Jy bou 'n naam op vir {trait_k}.",
    "rise": "Jou naam word al hoe meer met {trait_k} verbind.",
@@ -9211,6 +9243,7 @@
   "legend": {"one": "'n {club}-legende sedert {season}: {n} wedstryd vir die klub.", "other": "'n {club}-legende sedert {season}: {n} wedstryde vir die klub."},
   "legendOld": {"one": "'n {club}-legende: {n} wedstryd vir die klub.", "other": "'n {club}-legende: {n} wedstryde vir die klub."},
   "sold": {"one": "In {season} vir {fee} aan {buyer} verkoop, ná {n} wedstryd vir {club}.", "other": "In {season} vir {fee} aan {buyer} verkoop, ná {n} wedstryde vir {club}."},
+  "soldYoung": "In {season} vir {fee} aan {buyer} verkoop, voor 'n eerstespanwedstryd vir {club}.",
   "released": {"one": "In {season} deur {club} vrygestel, ná {n} wedstryd.", "other": "In {season} deur {club} vrygestel, ná {n} wedstryde."},
   "letGo": {"one": "In {season} deur {club} laat gaan, ná {n} wedstryd.", "other": "In {season} deur {club} laat gaan, ná {n} wedstryde."},
   "promiseKept": "Jy het in {season} {what_k} belowe, en jou woord gehou.",

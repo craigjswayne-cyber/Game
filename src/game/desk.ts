@@ -52,7 +52,8 @@ import { TL } from './devproject'
 import { userWageBudget } from './grants'
 import { insolvencyRisk } from './insolvency'
 import { rankedComps, type RotIntent } from './seasonplan'
-import { recall } from './memory'
+import { formerFacing, recall } from './memory'
+import { windowOpen } from './ai'
 import { rivalCoach } from './rivalcoach'
 import { demandedFinish } from './chairman'
 import { atkName, defName, stylesOf } from './styles'
@@ -279,13 +280,19 @@ function moneyRow(state: GameState): DeskRow | null {
   const wages = club.players.reduce((s, id) => s + (state.players[id]?.wage ?? 0), 0)
   const room = userWageBudget(state, club) - wages
   const risk = insolvencyRisk(state, club)
-  const head: DeskLine = risk !== 'none' ? { k: 'desk.moneyAdmin' }
+  // THE WAGE LINE IS SAID WHILE THE WINDOW IS OPEN (1.8.5). "Wage budget
+  // full" sat on the desk in four weeks of five at a club living at the cap,
+  // and the room left the same figure all season once the window shut; it
+  // matters when a signing can be made, and the Transfers screen says so on
+  // any offer that would break it. Debt and administration speak any week.
+  const head: DeskLine | null = risk !== 'none' ? { k: 'desk.moneyAdmin' }
     : club.balance < 0 ? { k: 'home.inTheRed' }
+    : !windowOpen(state.week) ? null
     : room <= 0 ? { k: 'desk.moneyWagesFull' }
     : { k: 'desk.moneyRoom', v: { room_w: room } }
   return {
     id: 'money', label: 'home.dashFinances', go: { screen: 'finances' }, alert: risk !== 'none' || club.balance < 0,
-    lines: [{ k: 'desk.money', v: { bal_m: club.balance } }, head],
+    lines: [{ k: 'desk.money', v: { bal_m: club.balance } }, ...(head ? [head] : [])],
   }
 }
 
@@ -370,13 +377,13 @@ function threadRow(state: GameState): DeskRow | null {
   const fx = userFixtureThisWeek(state)
   const opp = fx && !assistantFixtureThisWeek(state) ? opponentIn(state, fx) : null
   if (opp && state.clubs[opp]) {
-    const gone = recall(state, { kind: ['sold', 'released', 'let-go'] })
-      .filter(e => e.playerId != null && state.players[e.playerId]?.clubId === opp)
-      .sort((a, b) => b.sal - a.sal || b.id - a.id)[0]
+    // the notable ones only (memory.ts formerFacing): a squad man of no
+    // note who left is not a thread the career is carrying
+    const gone = formerFacing(state, opp)[0]
     if (gone) {
       return {
-        id: 'thread', label: 'desk.thread', go: { screen: 'player', param: gone.playerId! },
-        lines: [{ k: 'desk.tFormer', v: { player: playerName(state, gone.playerId), club: state.clubs[opp].short } }],
+        id: 'thread', label: 'desk.thread', go: { screen: 'player', param: gone.p.id },
+        lines: [{ k: 'desk.tFormer', v: { player: gone.p.name, club: state.clubs[opp].short } }],
       }
     }
     // THE REMATCH (1.8.4, rematch.ts): they have changed their plan since
@@ -439,8 +446,15 @@ function threadRow(state: GameState): DeskRow | null {
   // THE HOMEWORK STILL OPEN (1.8.4): the worst of last match's two fixes,
   // until the next full time marks it (coachfix fileHomework, gradeFixes)
   const hw = state.fixHw
-  const tag = hw && hw.season === state.season && state.week > hw.week && state.week - hw.week <= 4
-    ? (hw.tags as FixTag[]).find(x => x !== 'admin' && FIX_LABEL[x]) : undefined
+  // (and of the kind this week's match is: a club side's homework is not
+  // marked against a Test, coachfix homeworkFor)
+  const sameKind = !hw || hw.test == null || !fx || !opp || hw.test === !state.clubs[opp]
+  // SAID ONCE (1.8.5): a job that was already last match's homework is not
+  // the desk's news again; full time marks it every match, and the desk
+  // speaks when the homework changes. "Using the bench" sat on the desk most
+  // weeks of a season when it was.
+  const tag = hw && sameKind && hw.season === state.season && state.week > hw.week && state.week - hw.week <= 4
+    ? (hw.tags as FixTag[]).find(x => x !== 'admin' && FIX_LABEL[x] && !(hw.was ?? []).includes(x)) : undefined
   if (tag) {
     return {
       id: 'thread', label: 'desk.thread', go: { screen: 'tactics' },

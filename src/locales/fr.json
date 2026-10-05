@@ -808,7 +808,8 @@
   "armsrace": {
     "tapeSet": "Leurs analystes ont repéré {move_k} sur {pct} % de vos ballons de première main, et cet entraîneur organise sa défense selon ce que montrent les images.",
     "tapeCalm": "Leurs analystes ont repéré {move_k} sur {pct} % de vos ballons de première main, mais cet entraîneur ne change pas grand-chose pour autant.",
-    "tapeUnread": "Leurs analystes ont repéré {move_k} sur {pct} % de vos ballons de première main. S'ils s'organiseront contre, le rapport ne peut pas le dire."
+    "tapeUnread": "Leurs analystes ont repéré {move_k} sur {pct} % de vos ballons de première main. S'ils s'organiseront contre, le rapport ne peut pas le dire.",
+    "tapeRetired": "Leurs analystes ont repéré {move_k} sur {pct} % de vos ballons de première main, une annonce que vous ne jouez plus : rien sur la vidéo à préparer."
   },
   "moves": {
     "mv_1331": "Charges sur la largeur",
@@ -1028,6 +1029,8 @@
     "spCalls": "Conquête : en touche surtout {lo}, en mêlée surtout {sc}.",
     "spPredictable": "Ils appellent les mêmes combinaisons semaine après semaine. Leur conquête se lit.",
     "keyMen": "Les hommes clés : {names}.",
+    "legendTheirs": {"one": "{player}, une légende de {club} avec {n} match chez nous, figure dans leur groupe.", "other": "{player}, une légende de {club} avec {n} matchs chez nous, figure dans leur groupe."},
+    "legendStaff": {"one": "{player}, une légende de {club} avec {n} match chez nous, fait partie de leur staff.", "other": "{player}, une légende de {club} avec {n} matchs chez nous, fait partie de leur staff."},
     "coach_stubborn": "Leur banc joue son jeu, quel que soit l'adversaire.",
     "coach_analyst": "Leur banc étudie nos derniers matchs et se prépare contre nos habitudes.",
     "coach_reactive": "Leur banc change les choses depuis la touche une fois le match lancé.",
@@ -1048,6 +1051,9 @@
     "lastPlan_worked": "Notre plan d'alors ({plan}) a fonctionné.",
     "lastPlan_partly": "Notre plan d'alors ({plan}) a fonctionné à moitié.",
     "lastPlan_failed": "Notre plan d'alors ({plan}) n'a pas marché.",
+    "lastPlanHalf_worked": "Notre plan d'alors ({plan}) a fonctionné, à en juger par la première période, avant que nous le changions.",
+    "lastPlanHalf_partly": "Notre plan d'alors ({plan}) a fonctionné à moitié, à en juger par la première période, avant que nous le changions.",
+    "lastPlanHalf_failed": "Notre plan d'alors ({plan}) n'a pas marché, à en juger par la première période, avant que nous le changions.",
     "soft": "Point faible : leur {unit} ({sure}).",
     "sureHigh": "certain",
     "sureMid": "assez sûr",
@@ -1110,7 +1116,12 @@
     "spEven": "La conquête s'est équilibrée. Personne n'en a tiré de plateforme.",
     "playerBoth": "Le meilleur : {best} ({r}). Un jour sans pour {worst} ({r2}).",
     "playerBest": "Le meilleur : {best} ({r}).",
-    "planDropped": "Le plan ({plan}) a été mis en place puis abandonné, on ne peut donc pas le juger.",
+    "planDropped": "Le plan ({plan}) a été changé avant d'avoir eu une mi-temps pour agir, on ne peut donc pas le juger.",
+    "planHalf_hit": "Le plan ({plan}) a atteint sa cible en première période : {us}-{them} à la pause. {chg} La seconde période s'est jouée {us2}-{them2}.",
+    "planHalf_miss": "Le plan ({plan}) n'avait pas atteint sa cible à la pause : {us}-{them}. {chg} La seconde période s'est jouée {us2}-{them2}.",
+    "chgPreset": "Vous avez choisi « {preset} » à la pause.",
+    "chgBreak": "Vous avez modifié les réglages à la pause.",
+    "chgSecond": "Vous avez modifié les réglages en seconde période.",
     "plan_worked": "Le plan ({plan}) a fonctionné : la cible a été atteinte, le résultat aussi.",
     "plan_partly": "Le plan ({plan}) a fonctionné à moitié : la cible ou le résultat, pas les deux.",
     "plan_failed": "Le plan ({plan}) n'a pas marché.",
@@ -1679,6 +1690,9 @@
       "other": "Leur combinaison, {move_k}, nous a coûté {n} essais."
     },
     "whyRead": "Ils avaient lu {move_k} : {m} m sur {n} annonces, contre {m0} m sans cette lecture.",
+    "whyReadLost": "Ils avaient lu {move_k} : {n} annonces ont perdu {m} m, soit {d} m de moins que sans cette lecture.",
+    "whyReadHeld": "Ils attendaient {move_k}, et l'annonce a quand même gagné {m} m sur {n} annonces.",
+    "whyReadNil": "Ils attendaient {move_k}, mais ce n'est pas leur lecture qui l'a arrêtée : {n} annonces, aucun terrain gagné.",
     "whySetFor": "Ils ont perdu {n} mêlées et touches sur leur introduction ; nous, {m}.",
     "whySetAgainst": "Nous avons perdu {n} mêlées et touches sur notre introduction ; eux, {m}.",
     "whyPenFor": {
@@ -1749,7 +1763,9 @@
     "fuLever_right": "Vous avez réglé {dial_k} dans le bon sens à la pause.",
     "fuLever_wrong": "{dial_k} est allé dans l'autre sens à la pause.",
     "fuLever_none": "{dial_k} n'a pas bougé.",
-    "fuNow": "Le plus gros problème aujourd'hui : {what_k}."
+    "fuNow": "Le plus gros problème aujourd'hui : {what_k}.",
+    "planAside": "Le plan ({plan}) est mis de côté : il sera jugé sur la première période.",
+    "planAsideEarly": "Le plan ({plan}) est mis de côté avant d'avoir eu une mi-temps, on ne pourra donc pas le juger."
   },
   "tacticsScreen": {
     "tabRoles": "Rôles",
@@ -4335,7 +4351,7 @@
     "discYcWho_f": "{player} exclue temporairement : dix minutes en infériorité.",
     "fixAdmin": "la fidélité à un seul plan",
     "fixAttack": "la transformation de la possession en points",
-    "fixDiscipline": "la discipline",
+    "fixDiscipline": "garder quinze joueurs sur le terrain",
     "fixFitness": "l'utilisation du banc",
     "fixKicking": "le jeu au pied de but",
     "fixSetpiece": "les phases statiques",
@@ -4347,6 +4363,7 @@
     "gradeOneDone": "{fixed} : c'est réglé depuis la dernière fois. Continuez, quoi que vous ayez fait.",
     "gradeOneMissed": "Nous avions parlé de {missed} la dernière fois, et voilà que ça revient.",
     "howBreakdown": "Un flanker gratteur en Sélection, ou montez l'Engagement physique. Le ballon disputé se gagne par le nombre de corps qui arrivent, pas par la forme du jeu.",
+    "howBreakdownSel": "Un flanker gratteur en Sélection. Le ballon disputé se gagne par le nombre de corps qui arrivent, pas par la forme du jeu, et l'Engagement physique nous coûte déjà des pénalités.",
     "howLineout": "Faites entrer un second vrai sauteur en deuxième ou troisième ligne en Sélection, et changez la combinaison de touche dans Phases statiques pour qu'ils cessent de la lire.",
     "howScrum": "Alignez une première ligne plus lourde en Sélection, ou donnez à un pilier le rôle de pousseur dans l'onglet Rôles. Aucun curseur ne rendra lourde une première ligne légère.",
     "kickOrderHead": "Aucun ordre de buteurs désigné.",
@@ -4391,6 +4408,7 @@
     "terrHead": "Nous n'avons eu que {poss}% du ballon.",
     "terrHowElse": "Baissez le Rythme pour faire durer les temps de jeu, et réglez la sortie de camp sur la contre-attaque dans Phases statiques plutôt que de le taper sur leur arrière.",
     "terrHowKick": "Le Jeu au pied est à {n} : nous leur rendons le ballon volontairement. Baissez-le et gardez-le à la main.",
+    "terrHowTrade": "Le Jeu au pied à {n} nous a sortis de nos 22 et leur a donné le ballon. Gardez-le là et baissez le Rythme pour faire durer nos temps de jeu.",
     "unitBreakdownLower": "le combat au sol",
     "unitLineoutLower": "la touche",
     "unitScrumLower": "la mêlée",
@@ -8655,7 +8673,20 @@
     "grudgeSubj": "{player} n'a pas oublié",
     "grudge": "{player} n'a pas oublié la promesse que vous avez rompue en {season}. De nouveau hors du groupe, {player} ne dit plus un mot à l'entraînement, et les cadres du vestiaire ont remarqué la façon dont c'est géré.",
     "agentsSubj": "Les agents parlent de votre parole",
-    "agents": "Tout se sait entre agents. L'histoire qui circule pendant ce mercato, c'est la promesse que vous avez rompue envers {player} à {club}, et quiconque envisage de vous rejoindre réclame davantage d'argent d'avance avant de vous croire sur parole."
+    "agents": "Tout se sait entre agents. L'histoire qui circule pendant ce mercato, c'est la promesse que vous avez rompue envers {player} à {club}, et quiconque envisage de vous rejoindre réclame davantage d'argent d'avance avant de vous croire sur parole.",
+    "face": "{how_k} {since_k}",
+    "faceX": "{how_k} {since_k} {extra_k}",
+    "sinceNone": "Pas encore de match avec {club}.",
+    "sinceGames": {"one": "{n} match depuis, aucun essai.", "other": "{n} matchs depuis, aucun essai."},
+    "sinceTry": {"one": "{n} match depuis, et un essai.", "other": "{n} matchs depuis, et un essai."},
+    "sinceTries": {"one": "{n} match depuis, {tr} essais.", "other": "{n} matchs depuis, {tr} essais."},
+    "faceBroken": "Le départ a suivi une promesse non tenue en {bs}.",
+    "faceRefused": "Le départ a suivi une demande de transfert refusée en {bs}.",
+    "faceCapped": "Désormais en sélection.",
+    "faceAlso": "Aussi passés par votre club : {names}.",
+    "faceAlso_f": "Aussi passées par votre club : {names}.",
+    "ftTry": "{how_k} Aujourd'hui, l'écart de votre défaite {us}-{them}, c'est un essai de {player}.",
+    "ftMotm": "{how_k} Aujourd'hui, {player} a reçu la distinction du match lors de votre défaite {us}-{them}."
   },
   "hl": {
     "try": "ESSAI !",
@@ -8938,6 +8969,8 @@
     "offerCite": "Pourquoi {short} vous veut, selon ses dirigeants : {cite_k}",
     "offerHeard": "Ce qu'ils ont entendu : {cite_k}",
     "jobFit": "Ce qui fait votre réputation est ce que ce poste demande.",
+    "jobFitAttack": "Ils peinent à marquer, et votre réputation tient à des équipes qui marquent beaucoup.",
+    "jobFitDefence": "Ils encaissent trop, et votre réputation tient à des équipes difficiles à percer.",
     "trend": {
       "new": "Une réputation se dessine : {trait_k}.",
       "rise": "Une réputation qui se renforce : {trait_k}.",
@@ -9305,6 +9338,8 @@
     "legend": {"one": "Une légende de {club} depuis {season} : {n} match pour le club.", "other": "Une légende de {club} depuis {season} : {n} matchs pour le club."},
     "legendOld": {"one": "Une légende de {club} : {n} match pour le club.", "other": "Une légende de {club} : {n} matchs pour le club."},
     "sold": {"one": "Vendu à {buyer} pour {fee} en {season}, après {n} match avec {club}.", "other": "Vendu à {buyer} pour {fee} en {season}, après {n} matchs avec {club}."},
+    "soldYoung": "Vendu à {buyer} pour {fee} en {season}, avant un premier match avec {club}.",
+    "soldYoung_f": "Vendue à {buyer} pour {fee} en {season}, avant un premier match avec {club}.",
     "sold_f": {"one": "Vendue à {buyer} pour {fee} en {season}, après {n} match avec {club}.", "other": "Vendue à {buyer} pour {fee} en {season}, après {n} matchs avec {club}."},
     "released": {"one": "Libéré par {club} en {season}, après {n} match.", "other": "Libéré par {club} en {season}, après {n} matchs."},
     "released_f": {"one": "Libérée par {club} en {season}, après {n} match.", "other": "Libérée par {club} en {season}, après {n} matchs."},

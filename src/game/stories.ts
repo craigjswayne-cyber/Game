@@ -98,6 +98,10 @@ export function playerStory(state: GameState, p: Player, made: (p: Player) => bo
       if (dep!.kind === 'sold' && to && fee > 0) add('sold', 'story.sold', { ...v, buyer: short(to), fee: fmtMoney(fee) })
       else if (dep!.kind === 'released') add('released', 'story.released', v)
       else if (dep!.kind === 'let-go') add('let-go', 'story.letGo', v)
+    } else if (dep!.kind === 'sold' && to && fee > 0) {
+      // SOLD BEFORE HE PLAYED (1.8.5): the boy with a ceiling the manager
+      // cashed in on had no line at all, the one a career is asked about
+      add('sold', 'story.soldYoung', { ...v, buyer: short(to), fee: fmtMoney(fee) })
     }
   }
   // what he was promised, and whether the word held
