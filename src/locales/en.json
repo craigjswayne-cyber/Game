@@ -8096,11 +8096,11 @@
   "fineprint": "Prices are the store's own. Nothing is spent until it lands in your career.",
   "stampLicensed": "Licensed start",
   "stampCharter": "Owner's Charter",
-  "watchAgency": "Ask the agency for their file (watch a spot)",
+  "watchAgency": "Ask the agency for their file (Free with ad)",
   "analystDone": "The analyst's full read is on the card - the briefing above is the whole of it.",
   "townTitle": "The town's collection",
   "townBody": "The supporters' trust will pass the bucket for a club in real trouble - watch a spot and the collection lands in the bank. It pays wages and lights, never players.",
-  "watchTown": "Let them pass the bucket",
+  "watchTown": "Let them pass the bucket (Free with ad)",
   "townDone": "The collection came to {amount}. It is in the bank.",
   "agencyDone": "The agency's file on {name} is in: every attribute, and the character to go with it.",
   "spotSkipped": "The spot was closed early, so nothing changed - the favour needs the whole thing.",
@@ -8108,22 +8108,22 @@
   "spotLoading": "Finding a spot…",
   "favourGone": "The moment has passed: the week's allowance was already used.",
   "watchAnalyst": {
-   "one": "The analyst has one more read - his all-nighter for a spot",
-   "other": "The analyst has {n} more reads - his all-nighter for a spot"
+   "one": "The analyst has one more read, his all-nighter (Free with ad)",
+   "other": "The analyst has {n} more reads, his all-nighter (Free with ad)"
   },
   "owedHeld": "Already paid for. It has not been delivered yet, so you have not been charged again - the game keeps trying in the background. Come back in a minute.",
   "asking": "Asking the store…",
   "watchAnalyst_w": {
-   "one": "The analyst has one more read - her all-nighter for a spot",
-   "other": "The analyst has {n} more reads - her all-nighter for a spot"
+   "one": "The analyst has one more read, her all-nighter (Free with ad)",
+   "other": "The analyst has {n} more reads, her all-nighter (Free with ad)"
   },
-  "physioCut": "Favour -{n}w",
-  "watchInside": "Inside word (watch a spot)",
+  "physioCut": "Favour -{n}w (Free with ad)",
+  "watchInside": "Inside word (Free with ad)",
   "insideDone": "The agent's inside word on {name} is in: the rival-interest line now reads as the full file would read it.",
-  "watchOpinion": "Second opinion (watch a spot)",
+  "watchOpinion": "Second opinion (Free with ad)",
   "opinionDone": "A second opinion on {name} is in: the staff's estimate of the ceiling is a step narrower for the rest of the season.",
-  "watchTapeRoom": "Tape room night (watch a spot)",
-  "watchTeamNight": "Stand by it, and the sponsor stands the squad a team night (watch a spot)",
+  "watchTapeRoom": "Tape room night (Free with ad)",
+  "watchTeamNight": "Stand by it, and the sponsor stands the squad a team night (Free with ad)",
   "teamNightDone": "The sponsor's team night took some of the sting out of it for the senior players."
  },
  "store": {

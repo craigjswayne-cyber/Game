@@ -7978,11 +7978,11 @@
   "fineprint": "Los precios son los de la tienda. No se gasta nada hasta que llega a tu carrera.",
   "stampLicensed": "Inicio con licencia",
   "stampCharter": "Carta del Propietario",
-  "watchAgency": "Pedir su informe a la agencia (ver un anuncio)",
+  "watchAgency": "Pedir su informe a la agencia (gratis con un anuncio)",
   "analystDone": "La lectura completa del analista está en la ficha: el informe de arriba es todo lo que hay.",
   "townTitle": "La colecta del pueblo",
   "townBody": "La peña de socios pasará la gorra por un club en apuros de verdad: ve un anuncio y la colecta entra en el banco. Paga sueldos y luz, nunca jugadores.",
-  "watchTown": "Que pasen la gorra",
+  "watchTown": "Que pasen la gorra (gratis con un anuncio)",
   "townDone": "La colecta ha sumado {amount}. Ya está en el banco.",
   "agencyDone": "El informe de la agencia sobre {name} ya está: cada atributo, y el carácter que los acompaña.",
   "spotSkipped": "El anuncio se cerró antes de tiempo, así que nada ha cambiado: el favor exige verlo entero.",
@@ -7990,23 +7990,23 @@
   "spotLoading": "Buscando un anuncio…",
   "favourGone": "El momento pasó: el cupo de la semana ya estaba gastado.",
   "watchAnalyst": {
-   "one": "Al analista le queda una lectura más: su noche en vela, por un anuncio",
-   "other": "Al analista le quedan {n} lecturas más: su noche en vela, por un anuncio"
+   "one": "Al analista le queda una lectura más: su noche en vela (gratis con un anuncio)",
+   "other": "Al analista le quedan {n} lecturas más: su noche en vela (gratis con un anuncio)"
   },
   "watchAnalyst_w": {
-   "one": "A la analista le queda una lectura más: su noche en vela, por un anuncio",
-   "other": "A la analista le quedan {n} lecturas más: su noche en vela, por un anuncio"
+   "one": "A la analista le queda una lectura más: su noche en vela (gratis con un anuncio)",
+   "other": "A la analista le quedan {n} lecturas más: su noche en vela (gratis con un anuncio)"
   },
   "owedHeld": "Ya está pagado. Aún no se ha entregado, así que no se te ha vuelto a cobrar: el juego sigue intentándolo en segundo plano. Vuelve en un minuto.",
   "asking": "Consultando la tienda…",
   "townBody_f": "La peña de socios pasará la gorra por un club en apuros de verdad: ve un anuncio y la colecta entra en el banco. Paga sueldos y luz, nunca jugadoras.",
-  "physioCut": "Favor -{n}sem",
-  "watchInside": "El soplo del agente (ver un anuncio)",
+  "physioCut": "Favor -{n}sem (gratis con un anuncio)",
+  "watchInside": "El soplo del agente (gratis con un anuncio)",
   "insideDone": "Ya está el soplo del agente sobre {name}: la línea de interés rival se lee ahora como en el informe completo.",
-  "watchOpinion": "Segunda opinión (ver un anuncio)",
+  "watchOpinion": "Segunda opinión (gratis con un anuncio)",
   "opinionDone": "Ya está la segunda opinión sobre {name}: la estimación del techo del cuerpo técnico se estrecha un paso hasta final de temporada.",
-  "watchTapeRoom": "Noche en la sala de vídeo (ver un anuncio)",
-  "watchTeamNight": "Mantener la decisión, y el patrocinador invita a una cena de equipo (ver un anuncio)",
+  "watchTapeRoom": "Noche en la sala de vídeo (gratis con un anuncio)",
+  "watchTeamNight": "Mantener la decisión, y el patrocinador invita a una cena de equipo (gratis con un anuncio)",
   "teamNightDone": "La cena de equipo del patrocinador suavizó el golpe para los veteranos del vestuario.",
   "teamNightDone_f": "La cena de equipo del patrocinador suavizó el golpe para las veteranas del vestuario."
  },
