@@ -806,7 +806,8 @@
  "armsrace": {
   "tapeSet": "I loro analisti hanno {move_k} sul {pct}% della tua palla di prima fase, e questo allenatore prepara la difesa su ciò che mostrano i video.",
   "tapeCalm": "I loro analisti hanno {move_k} sul {pct}% della tua palla di prima fase, ma questo allenatore non cambia molto per questo.",
-  "tapeUnread": "I loro analisti hanno {move_k} sul {pct}% della tua palla di prima fase. Se si prepareranno contro, il rapporto non può dirlo."
+  "tapeUnread": "I loro analisti hanno {move_k} sul {pct}% della tua palla di prima fase. Se si prepareranno contro, il rapporto non può dirlo.",
+  "tapeRetired": "I loro analisti hanno {move_k} sul {pct}% della tua palla di prima fase, una chiamata che non usi più: niente nel video per cui prepararsi."
  },
  "moves": {
   "mv_1331": "Cariche in ampiezza",
@@ -1023,6 +1024,8 @@
   "spCalls": "Fasi statiche: in touche soprattutto {lo}, in mischia soprattutto {sc}.",
   "spPredictable": "Chiamano gli stessi schemi settimana dopo settimana. Le loro fasi statiche si possono leggere.",
   "keyMen": "Gli uomini chiave: {names}.",
+  "legendTheirs": {"one": "{player}, una leggenda di {club} con {n} presenza con noi, è nella loro rosa.", "other": "{player}, una leggenda di {club} con {n} presenze con noi, è nella loro rosa."},
+  "legendStaff": {"one": "{player}, una leggenda di {club} con {n} presenza con noi, fa parte del loro staff tecnico.", "other": "{player}, una leggenda di {club} con {n} presenze con noi, fa parte del loro staff tecnico."},
   "coach_stubborn": "La loro panchina gioca a modo suo, chiunque abbia davanti.",
   "coach_analyst": "La loro panchina studia le nostre ultime partite e si prepara contro le nostre abitudini.",
   "coach_reactive": "La loro panchina cambia le cose da bordo campo a partita iniziata.",
@@ -1043,6 +1046,9 @@
   "lastPlan_worked": "Il nostro piano di allora ({plan}) ha funzionato.",
   "lastPlan_partly": "Il nostro piano di allora ({plan}) ha funzionato a metà.",
   "lastPlan_failed": "Il nostro piano di allora ({plan}) non è riuscito.",
+  "lastPlanHalf_worked": "Il nostro piano di allora ({plan}) ha funzionato, a giudicare dal primo tempo, prima che lo cambiassimo.",
+  "lastPlanHalf_partly": "Il nostro piano di allora ({plan}) ha funzionato a metà, a giudicare dal primo tempo, prima che lo cambiassimo.",
+  "lastPlanHalf_failed": "Il nostro piano di allora ({plan}) non è riuscito, a giudicare dal primo tempo, prima che lo cambiassimo.",
   "soft": "Punto debole: {unit} ({sure}).",
   "sureHigh": "sicuro",
   "sureMid": "abbastanza sicuro",
@@ -1105,7 +1111,12 @@
   "spEven": "Fasi statiche in equilibrio. Nessuno ne ha ricavato una piattaforma.",
   "playerBoth": "Il migliore: {best} ({r}). Una giornata da dimenticare per {worst} ({r2}).",
   "playerBest": "Il migliore: {best} ({r}).",
-  "planDropped": "Il piano ({plan}) è stato impostato ma non mantenuto, quindi non si può giudicare.",
+  "planDropped": "Il piano ({plan}) è stato cambiato prima di avere un tempo per funzionare, quindi non si può giudicare.",
+  "planHalf_hit": "Il piano ({plan}) ha centrato l'obiettivo nel primo tempo: {us}-{them} all'intervallo. {chg} Il secondo tempo è finito {us2}-{them2}.",
+  "planHalf_miss": "Il piano ({plan}) non aveva centrato l'obiettivo all'intervallo: {us}-{them}. {chg} Il secondo tempo è finito {us2}-{them2}.",
+  "chgPreset": "All'intervallo hai scelto «{preset}».",
+  "chgBreak": "All'intervallo hai cambiato le impostazioni.",
+  "chgSecond": "Hai cambiato le impostazioni nel secondo tempo.",
   "plan_worked": "Il piano ({plan}) ha funzionato: obiettivo centrato e risultato anche.",
   "plan_partly": "Il piano ({plan}) ha funzionato a metà: l'obiettivo o il risultato, non entrambi.",
   "plan_failed": "Il piano ({plan}) non è riuscito.",
@@ -1671,6 +1682,9 @@
    "other": "La loro mossa, {move_k}, ci è costata {n} mete."
   },
   "whyRead": "Ci avevano letto {move_k}: {m} m in {n} chiamate, contro {m0} m senza quella lettura.",
+  "whyReadLost": "Ci avevano letto {move_k}: {n} chiamate hanno perso {m} m, {d} m peggio che senza quella lettura.",
+  "whyReadHeld": "Aspettavano {move_k}, e ha comunque guadagnato {m} m in {n} chiamate.",
+  "whyReadNil": "Aspettavano {move_k}, ma non è stata la loro lettura a fermarla: {n} chiamate, nessun metro guadagnato.",
   "whySetFor": "Hanno perso {n} tra mischie e touche sulla loro introduzione; noi {m}.",
   "whySetAgainst": "Abbiamo perso {n} tra mischie e touche sulla nostra introduzione; loro {m}.",
   "whyPenFor": {
@@ -1741,7 +1755,9 @@
   "fuLever_right": "Hai mosso {dial_k} nella direzione giusta all'intervallo.",
   "fuLever_wrong": "{dial_k} è andato nella direzione opposta all'intervallo.",
   "fuLever_none": "{dial_k} è rimasto dov'era.",
-  "fuNow": "Il problema più grande oggi: {what_k}."
+  "fuNow": "Il problema più grande oggi: {what_k}.",
+  "planAside": "Così il piano ({plan}) viene messo da parte: sarà giudicato sul primo tempo.",
+  "planAsideEarly": "Così il piano ({plan}) viene messo da parte prima di aver avuto un tempo, quindi non si potrà giudicare."
  },
  "tacticsScreen": {
   "tabRoles": "Ruoli",
@@ -4295,7 +4311,7 @@
   "discYcWho": "{player} in panca puniti: dieci minuti in inferiorità numerica.",
   "fixAdmin": "tenere un solo piano",
   "fixAttack": "trasformare il possesso in punti",
-  "fixDiscipline": "la disciplina",
+  "fixDiscipline": "restare in quindici in campo",
   "fixFitness": "l'uso della panchina",
   "fixKicking": "i calci ai pali",
   "fixSetpiece": "le fasi statiche",
@@ -4307,6 +4323,7 @@
   "gradeOneDone": "{fixed} è a posto dall'ultima volta. Continua a fare qualunque cosa sia stata.",
   "gradeOneMissed": "L'ultima volta abbiamo parlato di {missed}, ed eccolo di nuovo qui.",
   "howBreakdown": "Un flanker jackal in Selezione, o alza la Fisicità. La palla contesa la vincono i corpi che arrivano, non lo schema.",
+  "howBreakdownSel": "Un flanker jackal in Selezione. La palla contesa la vincono i corpi che arrivano, non lo schema, e la Fisicità ci costa già calci di punizione.",
   "howLineout": "Porta un secondo saltatore vero in seconda o terza linea in Selezione, e cambia la chiamata in touche nelle Fasi statiche, così smettono di leggerla.",
   "howScrum": "Scegli una prima linea più pesante in Selezione, o da' a un pilone il ruolo di mischiatore nella scheda Ruoli. Una manopola non può sollevare un tight five leggero.",
   "kickOrderHead": "Nessun ordine di piazzatori indicato.",
@@ -4351,6 +4368,7 @@
   "terrHead": "Abbiamo avuto solo il {poss}% di possesso.",
   "terrHowElse": "Abbassa il Ritmo perché le fasi durino, e imposta l'uscita sul contrattacco nelle Fasi statiche invece di calciarla al loro estremo.",
   "terrHowKick": "Il Gioco al piede è a {n}, quindi la restituiamo apposta. Abbassalo e tieni la palla in mano.",
+  "terrHowTrade": "Il Gioco al piede a {n} ci ha fatto uscire dai nostri 22 e ha dato loro la palla. Lascialo lì e abbassa il Ritmo perché le nostre fasi durino.",
   "unitBreakdownLower": "breakdown",
   "unitLineoutLower": "touche",
   "unitScrumLower": "mischia",
@@ -8495,7 +8513,20 @@
   "grudgeSubj": "{player} non ha dimenticato",
   "grudge": "{player} non ha dimenticato la promessa che hai infranto nella stagione {season}. Di nuovo fuori dalla squadra, {player} in allenamento non dice più una parola, e il gruppo storico dello spogliatoio ha notato come viene gestita la cosa.",
   "agentsSubj": "Gli agenti parlano della tua parola",
-  "agents": "Tra agenti tutto si sa. La storia che gira in questa finestra di mercato è la promessa infranta con {player} ai tempi di {club}, e chi valuta un trasferimento da te chiede più soldi in anticipo prima di fidarsi della tua parola."
+  "agents": "Tra agenti tutto si sa. La storia che gira in questa finestra di mercato è la promessa infranta con {player} ai tempi di {club}, e chi valuta un trasferimento da te chiede più soldi in anticipo prima di fidarsi della tua parola.",
+  "face": "{how_k} {since_k}",
+  "faceX": "{how_k} {since_k} {extra_k}",
+  "sinceNone": "Ancora nessuna partita con {club}.",
+  "sinceGames": {"one": "{n} partita da allora, nessuna meta.", "other": "{n} partite da allora, nessuna meta."},
+  "sinceTry": {"one": "{n} partita da allora, e una meta.", "other": "{n} partite da allora, e una meta."},
+  "sinceTries": {"one": "{n} partita da allora, {tr} mete.", "other": "{n} partite da allora, {tr} mete."},
+  "faceBroken": "La partenza è arrivata dopo una promessa che hai infranto nella stagione {bs}.",
+  "faceRefused": "La partenza è arrivata dopo una richiesta di cessione che hai respinto nella stagione {bs}.",
+  "faceCapped": "Ora gioca in nazionale.",
+  "faceAlso": "Sono passati anche dal tuo club: {names}.",
+  "faceAlso_f": "Sono passate anche dal tuo club: {names}.",
+  "ftTry": "{how_k} Oggi lo scarto della tua sconfitta per {us}-{them} è stato una meta di {player}.",
+  "ftMotm": "{how_k} Oggi {player} ha ricevuto il premio di migliore in campo nella tua sconfitta per {us}-{them}."
  },
  "hl": {
   "try": "META!",
@@ -8778,6 +8809,8 @@
   "offerCite": "Perché {short} ti vuole, con parole sue: {cite_k}",
   "offerHeard": "Cosa hanno sentito dire: {cite_k}",
   "jobFit": "La tua reputazione è proprio ciò che cerca questo posto.",
+  "jobFitAttack": "Fanno fatica a segnare, e la tua reputazione è fatta di squadre che segnano tanto.",
+  "jobFitDefence": "Subiscono troppi punti, e la tua reputazione è fatta di squadre difficili da superare.",
   "trend": {
    "new": "Ti stai facendo un nome per {trait_k}.",
    "rise": "Il tuo nome evoca sempre più {trait_k}.",
@@ -9143,6 +9176,8 @@
   "legend": {"one": "Una leggenda di {club} dal {season}: {n} presenza con il club.", "other": "Una leggenda di {club} dal {season}: {n} presenze con il club."},
   "legendOld": {"one": "Una leggenda di {club}: {n} presenza con il club.", "other": "Una leggenda di {club}: {n} presenze con il club."},
   "sold": {"one": "Ceduto a {buyer} per {fee} nel {season}, dopo {n} presenza con {club}.", "other": "Ceduto a {buyer} per {fee} nel {season}, dopo {n} presenze con {club}."},
+  "soldYoung": "Ceduto a {buyer} per {fee} nel {season}, prima di una partita in prima squadra con {club}.",
+  "soldYoung_f": "Ceduta a {buyer} per {fee} nel {season}, prima di una partita in prima squadra con {club}.",
   "sold_f": {"one": "Ceduta a {buyer} per {fee} nel {season}, dopo {n} presenza con {club}.", "other": "Ceduta a {buyer} per {fee} nel {season}, dopo {n} presenze con {club}."},
   "released": {"one": "Svincolato da {club} nel {season}, dopo {n} presenza.", "other": "Svincolato da {club} nel {season}, dopo {n} presenze."},
   "released_f": {"one": "Svincolata da {club} nel {season}, dopo {n} presenza.", "other": "Svincolata da {club} nel {season}, dopo {n} presenze."},

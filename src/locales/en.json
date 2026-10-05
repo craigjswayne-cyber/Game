@@ -787,7 +787,8 @@
  "armsrace": {
   "tapeSet": "Their analysts have your {move_k} on {pct}% of your first-phase ball, and this coach sets the defence for what the tape shows.",
   "tapeCalm": "Their analysts have your {move_k} on {pct}% of your first-phase ball, but this coach does not change much for it.",
-  "tapeUnread": "Their analysts have your {move_k} on {pct}% of your first-phase ball. Whether they will set up for it, the report cannot say."
+  "tapeUnread": "Their analysts have your {move_k} on {pct}% of your first-phase ball. Whether they will set up for it, the report cannot say.",
+  "tapeRetired": "Their analysts have your {move_k} on {pct}% of your first-phase ball, a call you no longer run: nothing on the tape for them to set up for."
  },
  "moves": {
   "mv_1331": "Wide Carries",
@@ -1005,6 +1006,8 @@
   "spCalls": "Set piece: lineouts mostly {lo}, scrums mostly {sc}.",
   "spPredictable": "They call the same moves week after week. Their set piece can be read.",
   "keyMen": "The men who matter: {names}.",
+  "legendTheirs": {"one": "{player}, a {club} legend with {n} appearance for us, is in their squad.", "other": "{player}, a {club} legend with {n} appearances for us, is in their squad."},
+  "legendStaff": {"one": "{player}, a {club} legend with {n} appearance for us, is on their coaching staff.", "other": "{player}, a {club} legend with {n} appearances for us, is on their coaching staff."},
   "coach_stubborn": "Their dugout plays its own game whoever is in front of it.",
   "coach_analyst": "Their dugout studies our recent matches and sets up against our habits.",
   "coach_reactive": "Their dugout changes things from the touchline once the match is on.",
@@ -1025,6 +1028,9 @@
   "lastPlan_worked": "Our plan then ({plan}) worked.",
   "lastPlan_partly": "Our plan then ({plan}) half worked.",
   "lastPlan_failed": "Our plan then ({plan}) did not come off.",
+  "lastPlanHalf_worked": "Our plan then ({plan}) worked, judged on the first half before we changed it.",
+  "lastPlanHalf_partly": "Our plan then ({plan}) half worked, judged on the first half before we changed it.",
+  "lastPlanHalf_failed": "Our plan then ({plan}) did not come off, judged on the first half before we changed it.",
   "soft": "Soft spot: their {unit} ({sure}).",
   "sureHigh": "confident",
   "sureMid": "fairly sure",
@@ -1087,7 +1093,12 @@
   "spEven": "The set piece was even. Nobody got a platform from it.",
   "playerBoth": "Standout: {best} ({r}). A day to forget for {worst} ({r2}).",
   "playerBest": "Standout: {best} ({r}).",
-  "planDropped": "The plan ({plan}) was set but not carried through, so it cannot be judged.",
+  "planDropped": "The plan ({plan}) was changed before it had a half to work, so it cannot be judged.",
+  "planHalf_hit": "The plan ({plan}) hit its target in the first half: {us}-{them} at the break. {chg} The second half went {us2}-{them2}.",
+  "planHalf_miss": "The plan ({plan}) had not hit its target by the break: {us}-{them}. {chg} The second half went {us2}-{them2}.",
+  "chgPreset": "You switched to {preset} at half time.",
+  "chgBreak": "You changed the dials at half time.",
+  "chgSecond": "You changed the dials in the second half.",
   "plan_worked": "The plan ({plan}) worked: the target was hit and so was the result.",
   "plan_partly": "The plan ({plan}) half worked: the target or the result, not both.",
   "plan_failed": "The plan ({plan}) did not come off.",
@@ -1644,6 +1655,9 @@
    "other": "Their {move_k} made {n} tries against us."
   },
   "whyRead": "They had read your {move_k}: {m}m from {n} calls, where it would have made {m0}m.",
+  "whyReadLost": "They had read your {move_k}: {n} calls lost {m}m, {d}m worse than if it had not been read.",
+  "whyReadHeld": "They were set for your {move_k}, and it still made {m}m from {n} calls.",
+  "whyReadNil": "They were set for your {move_k}, but their reading was not what stopped it: {n} calls, no ground made.",
   "whySetFor": "They lost {n} of their own scrums and lineouts; we lost {m}.",
   "whySetAgainst": "We lost {n} of our own scrums and lineouts; they lost {m}.",
   "whyPenFor": {
@@ -1714,7 +1728,9 @@
   "fuLever_right": "You moved {dial_k} the right way at the break.",
   "fuLever_wrong": "{dial_k} went the other way at the break.",
   "fuLever_none": "{dial_k} was left where it was.",
-  "fuNow": "The bigger problem today: {what_k}."
+  "fuNow": "The bigger problem today: {what_k}.",
+  "planAside": "This sets the plan ({plan}) aside: it will be judged on the first half.",
+  "planAsideEarly": "This sets the plan ({plan}) aside before it has had a half, so it cannot be judged."
  },
  "tacticsScreen": {
   "tabRoles": "Roles",
@@ -4215,7 +4231,7 @@
   "discYcWho": "{player} binned: ten minutes a player short.",
   "fixAdmin": "sticking to one plan",
   "fixAttack": "turning possession into points",
-  "fixDiscipline": "the discipline",
+  "fixDiscipline": "keeping fifteen on the pitch",
   "fixFitness": "using the bench",
   "fixKicking": "the goal kicking",
   "fixSetpiece": "the set piece",
@@ -4227,6 +4243,7 @@
   "gradeOneDone": "{fixed} is sorted since last time. Keep doing whatever that was.",
   "gradeOneMissed": "We asked about {missed} last time, and here it is again.",
   "howBreakdown": "A jackal flanker on Selection, or push Physicality up. Contested ball is won by bodies arriving, not by shape.",
+  "howBreakdownSel": "A jackal flanker on Selection. Contested ball is won by bodies arriving, not by shape, and Physicality is already costing us penalties.",
   "howLineout": "Get a second genuine jumper into the back five on Selection, and change the lineout call on Set Piece so they stop reading it.",
   "howScrum": "Pick a heavier front row on Selection, or give a prop the scrummager role on the Roles tab. A dial cannot lift a light tight five.",
   "kickOrderHead": "No kicking order named.",
@@ -4271,6 +4288,7 @@
   "terrHead": "We only had {poss}% of the ball.",
   "terrHowElse": "Lower Tempo so phases last, and set the exit to counter on Set Piece rather than kicking it to their fullback.",
   "terrHowKick": "Kicking is at {n}, so we hand it back on purpose. Bring it down and keep the ball in hand.",
+  "terrHowTrade": "Kicking at {n} got us out of our 22 and gave them the ball. Keep it there and lower Tempo so our own phases last.",
   "unitBreakdownLower": "breakdown",
   "unitLineoutLower": "lineout",
   "unitScrumLower": "scrum",
@@ -8551,7 +8569,19 @@
   "grudgeSubj": "{player} has not forgotten",
   "grudge": "{player} has not forgotten the promise you broke in {season}. Left out again, {player} has gone quiet in training, and the senior players have noticed how it is being handled.",
   "agentsSubj": "Agents talk: your word on the market",
-  "agents": "Word travels between agents. The story doing the rounds this window is the promise you broke to {player} at {club}, and anyone weighing up a move to you wants more money up front before taking you at your word."
+  "agents": "Word travels between agents. The story doing the rounds this window is the promise you broke to {player} at {club}, and anyone weighing up a move to you wants more money up front before taking you at your word.",
+  "face": "{how_k} {since_k}",
+  "faceX": "{how_k} {since_k} {extra_k}",
+  "sinceNone": "No games for {club} yet.",
+  "sinceGames": {"one": "{n} game since, no tries.", "other": "{n} games since, no tries."},
+  "sinceTry": {"one": "{n} game since, and a try.", "other": "{n} games since, and a try."},
+  "sinceTries": {"one": "{n} game since, {tr} tries.", "other": "{n} games since, {tr} tries."},
+  "faceBroken": "It followed a promise you broke in {bs}.",
+  "faceRefused": "It followed a transfer request you turned down in {bs}.",
+  "faceCapped": "A Test player now.",
+  "faceAlso": "Also once yours: {names}.",
+  "ftTry": "{how_k} Today a try by {player} was the margin: lost {us}-{them}.",
+  "ftMotm": "{how_k} Today {player} was player of the match: lost {us}-{them}."
  },
  "hl": {
   "try": "TRY!",
@@ -8834,6 +8864,8 @@
   "offerCite": "Why {short} want you, in their words: {cite_k}",
   "offerHeard": "What they have heard: {cite_k}",
   "jobFit": "What you are known for is what this job wants.",
+  "jobFitAttack": "They have struggled for points, and you are known for sides that score them.",
+  "jobFitDefence": "They have been leaking points, and you are known for sides that are hard to break down.",
   "trend": {
    "new": "You are developing a reputation for {trait_k}.",
    "rise": "Your name is increasingly tied to {trait_k}.",
@@ -9165,6 +9197,7 @@
   "legend": {"one": "A {club} legend since {season}: {n} appearance for the club.", "other": "A {club} legend since {season}: {n} appearances for the club."},
   "legendOld": {"one": "A {club} legend: {n} appearance for the club.", "other": "A {club} legend: {n} appearances for the club."},
   "sold": {"one": "Sold to {buyer} for {fee} in {season}, after {n} appearance for {club}.", "other": "Sold to {buyer} for {fee} in {season}, after {n} appearances for {club}."},
+  "soldYoung": "Sold to {buyer} for {fee} in {season}, before a first-team game for {club}.",
   "released": {"one": "Released by {club} in {season}, after {n} appearance.", "other": "Released by {club} in {season}, after {n} appearances."},
   "letGo": {"one": "Let go by {club} in {season}, after {n} appearance.", "other": "Let go by {club} in {season}, after {n} appearances."},
   "promiseKept": "You promised {what_k} in {season}, and kept your word.",

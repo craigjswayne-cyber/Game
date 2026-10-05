@@ -119,16 +119,23 @@ function seniors(state: GameState, club: Club): Player[] {
   return club.players.map(id => state.players[id]).filter((p): p is Player => !!p && !p.acad)
 }
 
-/** The world's middle pack tilt, read once a season: it walks the whole
- *  world's squads, and the identity steps every club match. */
-const medianMemo = new WeakMap<GameState, { season: number; m: number }>()
+/** The world's middle pack tilt, read once a WEEK: it walks the whole
+ *  world's squads, and the identity steps every club match.
+ *
+ *  It was read once a season, and the cache lives on the state object, not
+ *  in the save - so the running game held the median from whenever it first
+ *  asked that season while a reloaded career recomputed it from the squads of
+ *  the week it was loaded, and the two careers' identities parted by a tenth
+ *  (1.8.5 save QA, scripts/qa/savedet.ts). A week is a point both reach
+ *  the same way, and one walk of the world a week costs nothing. */
+const medianMemo = new WeakMap<GameState, { season: number; week: number; m: number }>()
 function tiltMedian(state: GameState): number {
   const hit = medianMemo.get(state)
-  if (hit && hit.season === state.season) return hit.m
+  if (hit && hit.season === state.season && hit.week === state.week) return hit.m
   const gaps = Object.values(state.clubs).filter(c => c.players.length).map(c => packTilt(state, c, 0)).sort((a, b) => a - b)
   const mid = gaps.length >> 1
   const m = !gaps.length ? 0 : gaps.length % 2 ? gaps[mid] : (gaps[mid - 1] + gaps[mid]) / 2
-  medianMemo.set(state, { season: state.season, m })
+  medianMemo.set(state, { season: state.season, week: state.week, m })
   return m
 }
 

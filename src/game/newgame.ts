@@ -828,6 +828,9 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   // every academy man on a development deal, BEFORE the cap is measured so the
   // cap is taken from a bill that is actually true (see repriceAcademies)
   repriceAcademies(Object.values(state.players))
+  // a new world is on development deals from day one: migrate's one-shot
+  // legacy repair has nothing to do here (save.ts, acadPriced)
+  state.acadPriced = 1
 
   // the salary cap for every division, measured from the division itself (F6)
   refreshCaps(state, true)

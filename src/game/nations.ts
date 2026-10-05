@@ -120,7 +120,10 @@ export const nationNameIn = (lang: Lang, c: string) => (nationByCode(c) ? tIn(la
 /** The three forms as news variables, so a story can be written in either
  *  language without the caller knowing which one will read it. */
 export const nationVars = (c: string) => ({
-  nation: nationName(c),
+  // English, as data: no dictionary renders {nation} (every one reads the _k
+  // keys below), and a screen-language name here made the same career save
+  // different bytes in French and English (1.8.5 save QA)
+  nation: nationNameIn('en', c),
   nation_k: `nation.${c}`, nationThe_k: `nationThe.${c}`, nationCap_k: `nationCap.${c}`,
 })
 

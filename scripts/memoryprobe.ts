@@ -200,7 +200,7 @@ const leagueRival = (g: GameState) => {
   executeTransfer(g, nobody, rival.id, 100_000)
   const starE = recall(g, { kind: 'sold', playerId: star.id })[0]
   const nobodyE = recall(g, { kind: 'sold', playerId: nobody.id })[0]
-  ok(starE.payload?.nb === 1 && nobodyE.payload?.nb == null, `${star.name} is notable when he goes, the squad's lowest-rated man is not`)
+  ok(starE.payload?.nb === 1 && nobodyE.payload?.nb !== 1, `${star.name} is notable when he goes, the squad's lowest-rated man is not`)
   g.week = 23
   nobody.lastWk = g.week
   memoryAfterMatch(g, { ...quiet, id: 999_003, week: 23 })

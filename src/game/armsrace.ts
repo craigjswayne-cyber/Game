@@ -228,11 +228,28 @@ export function tapeLine(state: GameState, oppId: string, acc: number): { k: str
   if (!me || !opp) return null
   const tape = tapeOf(me)
   if (!tape.top || tape.total < 6) return null
-  const pct = Math.round(tape.top.share * 100)
-  const v = { move_k: MOVE_BY_ID[tape.top.id].say, pct }
+  // A CALL HE STILL RUNS (1.8.5 trust audit). The tape's top call may be one
+  // the manager has since taken out of the playbook: the line named it as the
+  // thing they set the defence for, while the match's adapt (adaptMap) and
+  // the desk only ever read the calls he has. It names the most-taped call
+  // he still runs, and says so plainly when the tape is all of old calls.
+  const top = liveTop(state, me, tape)
+  if (!top) return { k: 'armsrace.tapeRetired', v: { move_k: MOVE_BY_ID[tape.top.id].say, pct: Math.round(tape.top.share * 100) } }
+  const v = { move_k: MOVE_BY_ID[top.id].say, pct: Math.round(top.share * 100) }
   if (acc < 0.55) return { k: 'armsrace.tapeUnread', v }
-  const a = adaptOf(state, oppId, tape.top.id)
+  const a = adaptOf(state, oppId, top.id)
   return { k: a >= ADAPT_WORTH ? 'armsrace.tapeSet' : 'armsrace.tapeCalm', v }
+}
+
+/** The most-taped call the manager still runs, or null. */
+function liveTop(state: GameState, me: Club, tape: Tape): { id: string; share: number } | null {
+  const called = calledIds(callsOf(state, me))
+  let top: { id: string; share: number } | null = null
+  for (const [id, s] of Object.entries(tape.share)) {
+    if (!called.includes(id)) continue
+    if (!top || s > top.share || (s === top.share && id < top.id)) top = { id, share: s }
+  }
+  return top
 }
 
 /**
@@ -286,8 +303,7 @@ export function migratePlaybook(s: GameState): void {
 export function deskQuestion(state: GameState, oppId: string): { move_k: string; pct: number } | null {
   const me = state.clubs[state.userClubId]
   if (!me || !state.clubs[oppId]) return null
-  const tape = tapeOf(me)
-  if (!tape.top || !calledIds(callsOf(state, me)).includes(tape.top.id)) return null
-  if (adaptOf(state, oppId, tape.top.id) < ADAPT_WORTH) return null
-  return { move_k: MOVE_BY_ID[tape.top.id].say, pct: Math.round(tape.top.share * 100) }
+  const top = liveTop(state, me, tapeOf(me))
+  if (!top || adaptOf(state, oppId, top.id) < ADAPT_WORTH) return null
+  return { move_k: MOVE_BY_ID[top.id].say, pct: Math.round(top.share * 100) }
 }
