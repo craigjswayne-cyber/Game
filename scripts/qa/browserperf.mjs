@@ -40,6 +40,8 @@ async function run(port) {
   await page.waitForSelector('text=New Career')
   out.launch = Date.now() - t
   out.fcp = await page.evaluate(() => Math.round(performance.getEntriesByName('first-contentful-paint')[0]?.startTime ?? -1))
+  // LAUNCH_ONLY=1: many cheap samples of the one number that varies most
+  if (process.env.LAUNCH_ONLY) { await ctx.close(); out.match = {}; out.career = NaN; return out }
   await page.click('text=New Career')
   await page.click('text=English Premier Division')
   await page.click('.tile >> text=Leicester')
