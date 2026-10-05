@@ -137,15 +137,6 @@ try {
     ok(open === 1 && still === 0 && after.onApp && after.hasGame && after.url === home.url,
       `Back with the ${group} menu open closes the menu and stays in the game (${after.screen})`)
   }
-  // and Back on Home itself stays in the game, press after press
-  let stayed = 0
-  for (let i = 0; i < 3; i++) {
-    await page.goBack()
-    await page.waitForTimeout(500)
-    const h = await state()
-    if (h.onApp && h.hasGame && h.url === home.url && h.screen === 'home') stayed++
-  }
-  ok(stayed === 3, `Back on Home never leaves the game (${stayed} of 3 presses)`)
   // a bottom-nav page goes back to Home
   await page.click('.bottom-nav button[aria-label="News"]')
   await page.waitForTimeout(400)
@@ -242,6 +233,23 @@ try {
     `the reload lands on Home, alone on the stack (${resumed.screen}, depth ${resumed.depth})`)
   ok(await page.locator('.scoreboard').count() === 0, 'and the match is not on screen: it was played out')
 
+  // ---- Back on Home goes to the title, and the title stays put ----------
+  await page.evaluate(() => window.rugbyStore.getState().home())
+  await page.waitForTimeout(500)
+  // and Back on Home goes to the TITLE (owner, 1.8.10: "It should ALWAYS take
+  // me to title page to keep me in the game"), where further presses stay put
+  await page.goBack()
+  await page.waitForTimeout(700)
+  const title = await page.evaluate(() => ({ screen: window.rugbyStore.getState().nav.at(-1)?.screen, url: location.href, game: !!window.rugbyStore.getState().game }))
+  ok(title.screen === 'menu' && title.url === home.url && title.game, `Back on Home lands on the title, career still loaded (${title.screen})`)
+  let stayed = 0
+  for (let i = 0; i < 3; i++) {
+    await page.goBack().catch(() => {})
+    await page.waitForTimeout(400)
+    const t = await page.evaluate(() => ({ screen: window.rugbyStore.getState().nav.at(-1)?.screen, url: location.href })).catch(() => null)
+    if (t && t.url === home.url) stayed++
+  }
+  ok(stayed === 3, `Back on the title never leaves the game (${stayed} of 3 presses)`)
 } catch (e) {
   ok(false, `the harness threw: ${String(e).split('\n')[0].slice(0, 180)}`)
 } finally {
