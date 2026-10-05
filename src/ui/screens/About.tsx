@@ -61,6 +61,14 @@ export default function About() {
         <div className="meta">{t('about.unofficialBody')}</div>
       </div>
 
+      {/* the news partner (owner, 1.8.7): Ruck is the named source over the
+          league news, the rumour mill and the law talk. The independence
+          line above stays exactly as it is. */}
+      <div className="card">
+        <div className="fact-label">{t('about.newsPartnerLabel')}</div>
+        <div className="meta">{t('about.newsPartnerBody', { site: 'ruck.co.uk' })}</div>
+      </div>
+
       <div className="card">
         <div className="fact-label">{t('about.privacyLabel')}</div>
         <div className="meta">{t('about.privacyBody')}</div>

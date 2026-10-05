@@ -7,6 +7,7 @@ import { newsBody, newsSubject, weekDate } from '../../game/model'
 import { markRead } from '../../game/days'
 import { t } from '../../game/i18n'
 import { newsGlyph } from '../glyphs'
+import { Byline } from '../Byline'
 
 
 /** This week's stories, full screen, one page at a time - the breath between
@@ -51,7 +52,7 @@ export default function Wire() {
           dont dwarf the page"). It used to stretch to fill the screen. */}
       <div className="card" style={{ display: 'flex', flexDirection: 'column', margin: 0 }}>
         <div className="wire-date" style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span>{t('week.wireDateNews', { date: weekDate(n.season, n.week) })}</span>
+          <span><Byline n={n} sep />{t('week.wireDateNews', { date: weekDate(n.season, n.week) })}</span>
           <span>{t('week.wirePos', { i: idx + 1, n: items.length })}</span>
         </div>
         <h2 style={{ fontSize: 18, lineHeight: 1.3, margin: '8px 0 10px' }}>

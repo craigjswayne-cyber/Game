@@ -13,6 +13,7 @@ import { OBJECTIVE_DEFS } from '../../game/objectives'
 import { demandedFinish } from '../../game/chairman'
 import { MARQUEE_SLOTS, capPosition, capWord, rosterGrid, rosterWarnings } from '../../game/cap'
 import { SectionTitle, RewardedButton } from '../components'
+import { AdSlot } from '../AdSlot'
 import { IcoClock, IcoOpen, IcoTick } from '../icons'
 import { t } from '../../game/i18n'
 import { bookEvent, bookedThisWeek, eventFee, eventSlate, isCloseSeason } from '../../game/closeseason'
@@ -720,6 +721,10 @@ export default function Finances() {
           board belongs there); the objectives it is judged on stay here */}
       <BoardFunds />
       </>}
+      {/* the floor of every Finances tab carries a banner (owner, 1.8.7:
+          "On the bottom of all financial tabs"). Below the last control on
+          the page, so it never sits between a tap and what the tap was for. */}
+      <AdSlot place="finance-foot" />
     </>
   )
 }

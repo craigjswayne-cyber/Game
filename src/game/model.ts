@@ -983,7 +983,24 @@ export interface NewsItem {
    *  table is empty, a settling week has moved on), so the claim the probe
    *  holds the memo to is recorded next to the prose it appears in. */
   quotedPos?: number
+  /** WHO FILED IT, when it was not the game's own neutral voice (1.8.7).
+   *
+   *  The owner agreed with Ruck, the UK rugby site, that it is the named source
+   *  for the news about everybody else: other clubs' business, the rumour mill,
+   *  signings around the league, and the law-change talk. Stories about the
+   *  manager's OWN club keep the neutral voice they always had, and the SOCIAL
+   *  clips stay SOCIAL. The byline is text, "RUCK" in the game's own type, and
+   *  it is display-only: subject and body above are untouched, so nothing the
+   *  engine reads back changes. Absent on every story filed before this field
+   *  existed, and on every story that is not Ruck's, which reads as no byline. */
+  src?: 'ruck'
 }
+
+/** The byline a story carries on screen, or null for the game's own voice.
+ *  A proper name, the same in every language, so it is a constant rather than
+ *  a dictionary entry (owner: text only, no logo). */
+export const RUCK_BYLINE = 'RUCK'
+export const newsByline = (n: NewsItem): string | null => (n.src === 'ruck' ? RUCK_BYLINE : null)
 
 export interface PressOption {
   /** the English label, kept because it is written onto answered items and
@@ -2138,6 +2155,11 @@ export interface GameState {
    *  lawWatchAt, because the news log is trimmed and a same-season scan
    *  re-arms every rollover. */
   groundsAt?: number
+  /** Absolute week (absWeek) of the last calendar LAW WATCH story, the
+   *  plausible proposals Ruck covers twice a season (gossip.ts lawTalk). A
+   *  stamp rather than a news scan for the same reasons as lawWatchAt. Absent
+   *  on saves from before 1.8.7, which simply reads as never aired. */
+  lawTalkAt?: number
   /** the season the playoff-clinch announcement ran (user: "no announcement
    *  when you mathematically qualify"). A stamp, not a news-log scan. */
   playoffClinch?: number
