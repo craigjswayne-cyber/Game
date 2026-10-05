@@ -8219,6 +8219,10 @@
   "healNext": "Hierdie rondte gebruik. Weer beskikbaar ná jou volgende wedstryd."
  },
  "settings": {
+  "adPrivacy": "Advertensie-privaatheid",
+  "adPrivacyLine": "Verander enige tyd waartoe jy ingestem het oor advertensies en data.",
+  "adPrivacyOpen": "Hersien keuses",
+  "adPrivacyFail": "Die privaatheidsvorm kon nie oopmaak nie. Probeer weer oor 'n oomblik.",
   "title": "Instellings",
   "sub": "Hoe die spel lyk, nie hoe dit speel nie",
   "skin": "Tema",

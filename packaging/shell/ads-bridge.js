@@ -242,6 +242,9 @@
         var opts = cfg.consentDebug ? { debugGeography: 1, testDeviceIdentifiers: cfg.testDevices || [] } : undefined
         var info = await ad.requestConsentInfo(opts)
         log('consent info:', JSON.stringify(info))
+        // the UMP SDK says whether this player must be able to reopen their
+        // choices (EEA, UK); the game shows a Settings button only then
+        privacyRequired = !!(info && info.privacyOptionsRequirementStatus === 'REQUIRED')
         if (info && !info.canRequestAds && info.isConsentFormAvailable) {
           try {
             info = await openConsentForm(ad)
@@ -300,6 +303,7 @@
   // hide.
   var q = Promise.resolve()
   function enqueue(job) { q = q.then(job, job).catch(function () {}); return q }
+  var privacyRequired = false
   var wantedEl = null, wantedPlace = null, created = null /* place the live banner was made for */, visible = false
   // the height of the last banner that really drew, while it is worth holding
   // room for (see holding); 0 once a banner failed or the bridge gave up
@@ -490,6 +494,18 @@
     },
     unmount: function (el) { if (wantedEl === el || !el) { wantedEl = null; wantedPlace = null; reconcile() } },
     showRewarded: showRewarded,
+    // ADVERT PRIVACY CHOICES (1.8.11). Google requires players in the EEA and
+    // UK to be able to change their consent at any time from inside the app;
+    // the device log showed privacyOptionsRequirementStatus REQUIRED. The
+    // form is Google's own; the SDK applies the new choice to every later
+    // advert request, so nothing else here needs to change.
+    privacyOptionsRequired: function () { return privacyRequired },
+    showPrivacyOptions: async function () {
+      var ad = plugin()
+      if (!ad || typeof ad.showPrivacyOptionsForm !== 'function') return false
+      try { await ad.showPrivacyOptionsForm(); log('privacy options form shown'); return true }
+      catch (e) { log('privacy options form failed:', e && e.message || e); return false }
+    },
     // for the probe and for a debugging session on a device: never read by the game
     __state: function () { return { created: created, visible: visible, wanted: wantedPlace, spotsToday: spotsToday(), why: why } }
   }

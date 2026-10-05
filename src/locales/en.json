@@ -8175,6 +8175,10 @@
   "healNext": "Used this round. Available again after your next match."
  },
  "settings": {
+  "adPrivacy": "Advert privacy choices",
+  "adPrivacyLine": "Change what you agreed to about adverts and data, at any time.",
+  "adPrivacyOpen": "Review choices",
+  "adPrivacyFail": "The privacy form could not open. Try again in a moment.",
   "title": "Settings",
   "sub": "How the game looks, not how it plays",
   "skin": "Skin",

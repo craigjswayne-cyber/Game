@@ -8275,6 +8275,10 @@
     "healNext": "Déjà utilisé pour cette journée. De nouveau disponible après votre prochain match."
   },
   "settings": {
+    "adPrivacy": "Choix de confidentialité des publicités",
+    "adPrivacyLine": "Modifiez à tout moment ce que vous avez accepté au sujet des publicités et des données.",
+    "adPrivacyOpen": "Revoir mes choix",
+    "adPrivacyFail": "Le formulaire de confidentialité n'a pas pu s'ouvrir. Réessayez dans un instant.",
     "title": "Réglages",
     "sub": "L'allure du jeu, pas sa façon de jouer",
     "skin": "Habillage",
