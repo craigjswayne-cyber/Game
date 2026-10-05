@@ -395,13 +395,13 @@ try {
   ok(/~/.test(ADS.android.appId) && /~/.test(ADS.ios.appId), 'App IDs carry a ~')
   // An EMPTY id is allowed and means one thing only: the place has no unit of
   // its own yet, and ads-bridge.js falls back to the home unit for it. That is
-  // how match-foot shipped in v1.5.0 - the slot earns from the first build and
+  // how the newer places ship - the slot earns from the first build and
   // reports against Home until the owner creates two units in AdMob. A
   // MALFORMED id is still a failure, because that is a typo rather than a plan.
   const units = Object.values(ADS.android.banner).concat(Object.values(ADS.ios.banner), [ADS.android.rewarded, ADS.ios.rewarded])
   ok(units.filter(s => s !== '').every(s => /\//.test(s)), 'every ad unit id that is set carries a /')
   const pending = Object.entries(ADS.android.banner).concat(Object.entries(ADS.ios.banner)).filter(([, v]) => v === '').map(([k]) => k)
-  const AWAITING = ['match-foot', 'news-foot', 'press-foot']
+  const AWAITING = ['week-foot', 'match-foot', 'news-foot', 'press-foot', 'finance-foot']
   ok(pending.every(k => AWAITING.includes(k)),
     pending.length ? `only the newer places await a unit id (${[...new Set(pending)].join(', ')})` : 'every place has its own unit id')
 

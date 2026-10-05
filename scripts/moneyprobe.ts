@@ -180,16 +180,11 @@ g.rmAds = { mount: () => {} }
 ok(M.adsAllowed('home-foot'), 'with a provider attached, a declared place may draw one')
 ok(M.adsAllowed('news-foot') && M.adsAllowed('press-foot'), 'the news and press floors carry one too (owner, 1.8.3)')
 ok(!M.adsAllowed('match-live'), 'an undeclared place may not, whatever a caller passes')
-// 'match-foot' IS THE ONE EXCEPTION, AND IT IS THE OWNER'S (6 Sep, with a
-// screenshot of the empty strip under the commentary): "there should be an ad
-// down the bottom during game time when the motion screen is on... should only
-// be in-game! NOT when making subs, half-time, 60 or ft."
-//
-// The rest of the rule stands and is worth more for having one hole in it: no
-// tunnel, no modal, no title screen, and nothing else inside a match. The
-// exception is not taken on trust either - scripts/matchad.mjs drives a real
-// match in a real browser and holds the banner to all eight of the states the
-// owner listed, which is a stronger guarantee than this line ever was.
+// 'match-foot' IS THE ONE EXCEPTION, AND IT IS THE OWNER'S (6 Sep). Since
+// 1.8.7 it is up only while a highlight animation plays ("It shouldnt be over
+// stats or lineups"). scripts/matchad.mjs drives a real match and holds it to
+// that, which is a stronger guarantee than this line.
+ok(M.adsAllowed('week-foot') && M.adsAllowed('finance-foot'), 'the floors of the week and of Finances carry one (owner, 1.8.7)')
 const AD_EXCEPTIONS = ['match-foot']
 for (const place of M.AD_PLACES) {
   if (AD_EXCEPTIONS.includes(place)) continue
