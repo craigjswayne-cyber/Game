@@ -1150,6 +1150,24 @@ export interface AdBridge {
    *  only outcome that earns the favour. A shell without this simply has no
    *  rewarded buttons anywhere in the game. */
   showRewarded?(place: string): Promise<'completed' | 'skipped' | 'unavailable'>
+  /** Does Google's consent SDK require a way back into the privacy choices
+   *  for this player (EEA, UK)? Settings shows the button only when it does. */
+  privacyOptionsRequired?(): boolean
+  /** Open Google's own privacy options form. True if it opened. */
+  showPrivacyOptions?(): Promise<boolean>
+}
+
+/** Should Settings offer "Advert privacy choices"? (1.8.11) */
+export function adPrivacyAvailable(): boolean {
+  const a = adBridge()
+  try { return !!a && typeof a.showPrivacyOptions === 'function' && !!a.privacyOptionsRequired?.() } catch { return false }
+}
+
+/** Open the advert privacy choices form. False when it could not open. */
+export async function showAdPrivacy(): Promise<boolean> {
+  const a = adBridge()
+  if (!a || typeof a.showPrivacyOptions !== 'function') return false
+  try { return await a.showPrivacyOptions() } catch { return false }
 }
 
 export function adBridge(): AdBridge | null {

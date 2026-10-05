@@ -8111,6 +8111,10 @@
   "healNext": "Già usato in questa giornata. Di nuovo disponibile dopo la tua prossima partita."
  },
  "settings": {
+  "adPrivacy": "Privacy degli annunci",
+  "adPrivacyLine": "Cambia quando vuoi ciò che hai accettato su annunci e dati.",
+  "adPrivacyOpen": "Rivedi le scelte",
+  "adPrivacyFail": "Non è stato possibile aprire il modulo sulla privacy. Riprova tra un momento.",
   "title": "Impostazioni",
   "sub": "L'aspetto del gioco, non il modo di giocarlo",
   "skin": "Aspetto",

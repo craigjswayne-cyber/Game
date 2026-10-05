@@ -59,9 +59,10 @@ const openPage = async ({ platform = 'android', consent = 'required', spot = 're
       requestTrackingAuthorization: async () => { log.push('requestTrackingAuthorization') },
       requestConsentInfo: async () => {
         log.push('requestConsentInfo')
-        if (consent === 'none') return { status: 'NOT_REQUIRED', canRequestAds: true, isConsentFormAvailable: false }
-        return { status: 'REQUIRED', canRequestAds: false, isConsentFormAvailable: true }
+        if (consent === 'none') return { status: 'NOT_REQUIRED', canRequestAds: true, isConsentFormAvailable: false, privacyOptionsRequirementStatus: 'NOT_REQUIRED' }
+        return { status: 'REQUIRED', canRequestAds: false, isConsentFormAvailable: true, privacyOptionsRequirementStatus: 'REQUIRED' }
       },
+      showPrivacyOptionsForm: async () => { log.push('showPrivacyOptionsForm') },
       showConsentForm: async () => {
         log.push('showConsentForm')
         // the iPhone Simulator, 5 Sep: the first ask fails because Apple's
@@ -178,6 +179,18 @@ try {
     ok(i('initialize') > i('showConsentForm'), 'the SDK was initialised only after consent answered')
     ok(i('showBanner') > i('initialize'), 'and the first banner request came after that, not before')
     ok(!l.some(x => x.startsWith('trackingAuthorizationStatus')), 'no tracking prompt on Android (it is an Apple thing)')
+    // advert privacy choices (1.8.11): Google requires a way back into consent
+    // for EEA/UK players, and the consent info said REQUIRED
+    ok(await page.evaluate(() => globalThis.rmAds.privacyOptionsRequired() === true), 'the bridge reports that privacy options are required here')
+    await page.evaluate(() => window.rugbyStore.getState().go('settings'))
+    await settle(page, 400)
+    const privBtn = page.locator('button', { hasText: 'Review choices' })
+    ok(await privBtn.count() === 1, 'Settings offers "Advert privacy choices"')
+    await privBtn.first().click()
+    await settle(page, 300)
+    ok((await log(page)).includes('showPrivacyOptionsForm'), "and the button opens Google's privacy options form")
+    await page.evaluate(() => window.rugbyStore.getState().home())
+    await settle(page, 400)
     ok(l.filter(x => x.startsWith('showBanner')).length === 1, 'exactly one banner request on Home')
     ok(l.some(x => x === `showBanner:${ADS.android.banner['home-foot']}:BOTTOM_CENTER`), `with the Home unit id, at the bottom (${l.find(x => x.startsWith('showBanner'))})`)
     ok(await page.evaluate(() => document.querySelectorAll('.ad-slot').length === 1), 'the game rendered one slot, on Home')
@@ -345,6 +358,9 @@ try {
     const l = await log(page)
     ok(l.includes('requestConsentInfo') && !l.includes('showConsentForm') && l.some(x => x.startsWith('initialize')), 'consent info asked, no form needed, SDK initialised')
     ok(l.some(x => x.startsWith('showBanner')), 'and the Home banner requested')
+    await page.evaluate(() => window.rugbyStore.getState().go('settings'))
+    await settle(page, 400)
+    ok(await page.locator('button', { hasText: 'Review choices' }).count() === 0, 'and no privacy-choices button where Google does not require one')
     await page.close()
   }
 
