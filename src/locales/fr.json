@@ -183,6 +183,8 @@
     "intlTag": "SÉLEC",
     "l": "D",
     "loanHereTag": "PRÊT",
+    "loanKey": "Les noms en surbrillance sont prêtés",
+    "onLoanSr": "prêté",
     "goneTag": "PARTI",
     "goneTag_f": "PARTIE",
     "mastheadDate": "{day} · {season} · Sem. {week}",

@@ -7,7 +7,7 @@ import { userFixtureThisWeek } from '../../game/season'
 import { formTrend } from '../../game/formtraits'
 import SeasonPlanCard from '../SeasonPlanCard'
 import { effAt } from '../../game/attributes'
-import { AvailTag, FormPill, PosBadge, SectionTitle, Stars } from '../components'
+import { AvailTag, FormPill, LoanKey, LoanName, PosBadge, SectionTitle, Stars } from '../components'
 import { benchSeats } from '../../game/bench'
 import { t } from '../../game/i18n'
 import { IcoAttack, IcoChevron, IcoHandshake, IcoPack, IcoShield } from '../icons'
@@ -125,7 +125,7 @@ export default function SelectionPane() {
         className={`${problem ? 'prob-row' : ''}${sel === slot ? ' held-row' : ''}`}>
         <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{shirt}</td>
         <td><PosBadge pos={pos} /></td>
-        <td className="name">{p ? p.name : <span className="muted">{t('selection.tapToSelect')}</span>}
+        <td className="name">{p ? <LoanName p={p} /> : <span className="muted">{t('selection.tapToSelect')}</span>}
           {p && club.captain === p.id && <b style={{ color: 'var(--gold)' }}> (C)</b>}
           {p && <> <AvailTag p={p} g={game} /></>}</td>
         <td>{p && <Stars ca={effAt(p, pos)} />}</td>
@@ -302,6 +302,7 @@ export default function SelectionPane() {
         <table className="dtable"><colgroup><col className="c-num" /><col className="c-pos" /><col /><col className="c-stars" /><col className="c-form" /><col className="c-cond" /></colgroup><tbody>{seats.slice(0, 4).map((_, i) => renderSlot(15 + i))}</tbody></table>
         <table className="dtable"><colgroup><col className="c-num" /><col className="c-pos" /><col /><col className="c-stars" /><col className="c-form" /><col className="c-cond" /></colgroup><tbody>{seats.slice(4).map((_, i) => renderSlot(19 + i))}</tbody></table>
       </div>
+      <LoanKey show={tac.lineup.some(id => id != null && !!game.players[id]?.loanFrom)} />
       </div>
       <div>
       <SectionTitle sub={t('selection.leadershipSub')}>{t('selection.leadership')}</SectionTitle>

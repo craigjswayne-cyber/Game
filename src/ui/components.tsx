@@ -296,8 +296,32 @@ export function availabilityTag(p: Player, week: number): { txt: string; color: 
   if (p.bans > 0) return { txt: t('common.banTag', { n: p.bans }), color: 'var(--text-negative)' }
   if (p.natSquad) return { txt: t('common.intlTag'), color: 'var(--gold)' }
   if ((p.rust ?? 0) > 0) return { txt: t('medical.rusty', { n: p.rust ?? 0 }), color: 'var(--gold)' }
-  if (p.loanFrom) return { txt: t('common.loanHereTag'), color: 'var(--info)' }
+  // A man here on loan is not unavailable, and since 1.8.9 the tables say so
+  // by colouring his NAME (LoanName below) rather than with a LOAN word after
+  // it (owner: "Messy names over two lines. If loan make their name a
+  // different colour").
   return null
+}
+
+/** A player's name, in the loan colour when he is here on loan (1.8.9). The
+ *  colour is a token (--loan) set for every theme and skin; the status stays
+ *  in the text for a screen reader. `className` lets a table make it the one
+ *  part of the row that gives way to an ellipsis. */
+export function LoanName({ p, className = '', style }: { p: Player; className?: string; style?: CSSProperties }) {
+  const loan = !!p.loanFrom
+  return (
+    <span className={`${className}${loan ? ' nm-loan' : ''}`.trim() || undefined} style={style}>
+      {p.name}{loan && <span className="sr-only"> ({t('common.onLoanSr')})</span>}
+    </span>
+  )
+}
+
+/** The one line under a table that explains the loan colour, shown only when
+ *  a loan man is in it. Worded without naming the colour, because a skin
+ *  changes it; the swatch shows it. */
+export function LoanKey({ show }: { show: boolean }) {
+  if (!show) return null
+  return <div className="loan-key"><span className="loan-swatch" aria-hidden="true" />{t('common.loanKey')}</div>
 }
 
 /** A small icon beside a name that carries meaning (injured, on the list,

@@ -696,6 +696,10 @@
   --on-positive: var(--on-primary);
   --text-positive: var(--positive);
   --text-negative: var(--danger);
+  /* a man here on loan: his name in the tables (1.8.9). --info is declared
+     by every theme and skin, clears 4.5:1 on a card in each (skinprobe), and
+     is never the name ink, the captain and star gold or the injury red. */
+  --loan: var(--info);
   --text-rating: var(--gold);
   --row-selected-bg: var(--primary-tint);
   --row-selected-border: var(--primary);

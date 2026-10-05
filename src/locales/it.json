@@ -182,6 +182,8 @@
   "intlTag": "NAZ",
   "l": "P",
   "loanHereTag": "PRESTITO",
+  "loanKey": "I nomi evidenziati sono in prestito",
+  "onLoanSr": "in prestito",
   "goneTag": "FUORI ROSA",
   "mastheadDate": "{day} · {season} · Sett. {week}",
   "matchdayBtn": "Si gioca ▸",

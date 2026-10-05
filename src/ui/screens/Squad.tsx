@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useStore } from '../../store'
 import { POS_ORDER, fmtMoney, fmtWage, type Player } from '../../game/model'
 import { starPlayerIds } from '../../game/analysis'
-import { AvailTag, Mark, Nat, PosBadge, Stars, StickyControls } from '../components'
+import { AvailTag, LoanKey, LoanName, Mark, Nat, PosBadge, Stars, StickyControls } from '../components'
 import { STATUSES, STATUS_BY_ID, clubMatchesPlayed, ledgerRow, statusOf, type SquadStatus } from '../../game/gametime'
 import SelectionPane from './Selection'
 import { t } from '../../game/i18n'
@@ -109,13 +109,22 @@ export default function Squad() {
     </th>
   )
 
+  // ONE LINE A MAN (owner, 1.8.9: "Messy names over two lines"). The name is
+  // the only part that gives way, to an ellipsis; the fitness ring, (C), the
+  // star and an availability tag always show. A loan man's name is in the
+  // loan colour instead of a LOAN word after it.
   const NameCell = ({ p }: { p: Player }) => (
     <td className="name">
-      <FitRing v={p.cond} />{' '}
-      {/* red while he is away with his country (user: "if a player is on
-          International duty they should have a red colour for their name") -
-          one glance down the list shows who the Test window has taken */}
-      <span style={p.natSquad ? { color: 'var(--danger)', fontWeight: 700 } : undefined}>{p.name}</span>{game.clubs[game.userClubId].captain === p.id ? <b style={{ color: 'var(--gold)' }}> (C)</b> : ''}{stars.has(p.id) && <> <Mark name="star" color="var(--gold)" /></>} <AvailTag p={p} g={game} />
+      <span className="nm-line">
+        <FitRing v={p.cond} />
+        {/* red while he is away with his country (user: "if a player is on
+            International duty they should have a red colour for their name") -
+            one glance down the list shows who the Test window has taken */}
+        <LoanName p={p} className="nm" style={p.natSquad ? { color: 'var(--danger)', fontWeight: 700 } : undefined} />
+        {game.clubs[game.userClubId].captain === p.id && <b style={{ color: 'var(--gold)' }}>(C)</b>}
+        {stars.has(p.id) && <Mark name="star" color="var(--gold)" />}
+        <AvailTag p={p} g={game} />
+      </span>
     </td>
   )
 
@@ -363,6 +372,7 @@ export default function Squad() {
           })}
         </tbody>
       </table></div>}
+      {view !== 'selection' && <LoanKey show={players.some(p => !!p.loanFrom)} />}
       <div className="spacer" />
     </>
   )
