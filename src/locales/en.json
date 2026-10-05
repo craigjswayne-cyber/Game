@@ -322,6 +322,9 @@
   "storeLabel": "Store",
   "dreamDone": "THE DREAM, REALISED",
   "circling": "Circling",
+  "circling1": "{club} are said to admire {player}.",
+  "circling2": "{club} will not deny their interest in {player}. This is getting louder.",
+  "circling3": "{club} have bid for {player}, and they mean it.",
   "seasonAhead": "The Season Ahead",
   "objectives": "Season Objectives · {met}/{total} on track",
   "tentpoleThisWeek": " this week",
@@ -787,7 +790,8 @@
  "armsrace": {
   "tapeSet": "Their analysts have your {move_k} on {pct}% of your first-phase ball, and this coach sets the defence for what the tape shows.",
   "tapeCalm": "Their analysts have your {move_k} on {pct}% of your first-phase ball, but this coach does not change much for it.",
-  "tapeUnread": "Their analysts have your {move_k} on {pct}% of your first-phase ball. Whether they will set up for it, the report cannot say."
+  "tapeUnread": "Their analysts have your {move_k} on {pct}% of your first-phase ball. Whether they will set up for it, the report cannot say.",
+  "tapeRetired": "Their analysts have your {move_k} on {pct}% of your first-phase ball, a call you no longer run: nothing on the tape for them to set up for."
  },
  "moves": {
   "mv_1331": "Wide Carries",
@@ -1005,6 +1009,9 @@
   "spCalls": "Set piece: lineouts mostly {lo}, scrums mostly {sc}.",
   "spPredictable": "They call the same moves week after week. Their set piece can be read.",
   "keyMen": "The men who matter: {names}.",
+  "keyMen_w": "The women who matter: {names}.",
+  "legendTheirs": {"one": "{player}, a {club} legend with {n} appearance for us, is in their squad.", "other": "{player}, a {club} legend with {n} appearances for us, is in their squad."},
+  "legendStaff": {"one": "{player}, a {club} legend with {n} appearance for us, is on their coaching staff.", "other": "{player}, a {club} legend with {n} appearances for us, is on their coaching staff."},
   "coach_stubborn": "Their dugout plays its own game whoever is in front of it.",
   "coach_analyst": "Their dugout studies our recent matches and sets up against our habits.",
   "coach_reactive": "Their dugout changes things from the touchline once the match is on.",
@@ -1025,6 +1032,9 @@
   "lastPlan_worked": "Our plan then ({plan}) worked.",
   "lastPlan_partly": "Our plan then ({plan}) half worked.",
   "lastPlan_failed": "Our plan then ({plan}) did not come off.",
+  "lastPlanHalf_worked": "Our plan then ({plan}) worked, judged on the first half before we changed it.",
+  "lastPlanHalf_partly": "Our plan then ({plan}) half worked, judged on the first half before we changed it.",
+  "lastPlanHalf_failed": "Our plan then ({plan}) did not come off, judged on the first half before we changed it.",
   "soft": "Soft spot: their {unit} ({sure}).",
   "sureHigh": "confident",
   "sureMid": "fairly sure",
@@ -1087,7 +1097,12 @@
   "spEven": "The set piece was even. Nobody got a platform from it.",
   "playerBoth": "Standout: {best} ({r}). A day to forget for {worst} ({r2}).",
   "playerBest": "Standout: {best} ({r}).",
-  "planDropped": "The plan ({plan}) was set but not carried through, so it cannot be judged.",
+  "planDropped": "The plan ({plan}) was changed before it had a half to work, so it cannot be judged.",
+  "planHalf_hit": "The plan ({plan}) hit its target in the first half: {us}-{them} at the break. {chg} The second half went {us2}-{them2}.",
+  "planHalf_miss": "The plan ({plan}) had not hit its target by the break: {us}-{them}. {chg} The second half went {us2}-{them2}.",
+  "chgPreset": "You switched to {preset} at half time.",
+  "chgBreak": "You changed the dials at half time.",
+  "chgSecond": "You changed the dials in the second half.",
   "plan_worked": "The plan ({plan}) worked: the target was hit and so was the result.",
   "plan_partly": "The plan ({plan}) half worked: the target or the result, not both.",
   "plan_failed": "The plan ({plan}) did not come off.",
@@ -1644,6 +1659,9 @@
    "other": "Their {move_k} made {n} tries against us."
   },
   "whyRead": "They had read your {move_k}: {m}m from {n} calls, where it would have made {m0}m.",
+  "whyReadLost": "They had read your {move_k}: {n} calls lost {m}m, {d}m worse than if it had not been read.",
+  "whyReadHeld": "They were set for your {move_k}, and it still made {m}m from {n} calls.",
+  "whyReadNil": "They were set for your {move_k}, but their reading was not what stopped it: {n} calls, no ground made.",
   "whySetFor": "They lost {n} of their own scrums and lineouts; we lost {m}.",
   "whySetAgainst": "We lost {n} of our own scrums and lineouts; they lost {m}.",
   "whyPenFor": {
@@ -1714,7 +1732,9 @@
   "fuLever_right": "You moved {dial_k} the right way at the break.",
   "fuLever_wrong": "{dial_k} went the other way at the break.",
   "fuLever_none": "{dial_k} was left where it was.",
-  "fuNow": "The bigger problem today: {what_k}."
+  "fuNow": "The bigger problem today: {what_k}.",
+  "planAside": "This sets the plan ({plan}) aside: it will be judged on the first half.",
+  "planAsideEarly": "This sets the plan ({plan}) aside before it has had a half, so it cannot be judged."
  },
  "tacticsScreen": {
   "tabRoles": "Roles",
@@ -2461,6 +2481,7 @@
   "whipHand": " - they hold the whip hand",
   "rifts": "Dressing-Room Rifts",
   "riftsSub": "two of yours are not speaking",
+  "riftPair": "{a} and {b}",
   "riftLine": "have not spoken since week {week}.",
   "getThemInARoom": "Get Them In A Room",
   "askedAlready": "You had them in this week already",
@@ -2616,6 +2637,8 @@
   "3": "Full file: numbers, character and temperament all verified."
  },
  "player": {
+  "rivalBidLine": "{club} want him too: {wage}/wk on the table.",
+  "rivalBidLine_f": "{club} want her too: {wage}/wk on the table.",
   "ceiling": "Ceiling",
   "ceilingTitle": "His potential as your scouts read it. The band narrows as they watch him; a question mark means they have not read it yet.",
   "gone": "Player no longer in the game world (retired or released).",
@@ -4213,7 +4236,7 @@
   "discYcWho": "{player} binned: ten minutes a player short.",
   "fixAdmin": "sticking to one plan",
   "fixAttack": "turning possession into points",
-  "fixDiscipline": "the discipline",
+  "fixDiscipline": "keeping fifteen on the pitch",
   "fixFitness": "using the bench",
   "fixKicking": "the goal kicking",
   "fixSetpiece": "the set piece",
@@ -4225,6 +4248,7 @@
   "gradeOneDone": "{fixed} is sorted since last time. Keep doing whatever that was.",
   "gradeOneMissed": "We asked about {missed} last time, and here it is again.",
   "howBreakdown": "A jackal flanker on Selection, or push Physicality up. Contested ball is won by bodies arriving, not by shape.",
+  "howBreakdownSel": "A jackal flanker on Selection. Contested ball is won by bodies arriving, not by shape, and Physicality is already costing us penalties.",
   "howLineout": "Get a second genuine jumper into the back five on Selection, and change the lineout call on Set Piece so they stop reading it.",
   "howScrum": "Pick a heavier front row on Selection, or give a prop the scrummager role on the Roles tab. A dial cannot lift a light tight five.",
   "kickOrderHead": "No kicking order named.",
@@ -4269,6 +4293,7 @@
   "terrHead": "We only had {poss}% of the ball.",
   "terrHowElse": "Lower Tempo so phases last, and set the exit to counter on Set Piece rather than kicking it to their fullback.",
   "terrHowKick": "Kicking is at {n}, so we hand it back on purpose. Bring it down and keep the ball in hand.",
+  "terrHowTrade": "Kicking at {n} got us out of our 22 and gave them the ball. Keep it there and lower Tempo so our own phases last.",
   "unitBreakdownLower": "breakdown",
   "unitLineoutLower": "lineout",
   "unitScrumLower": "scrum",
@@ -4366,6 +4391,28 @@
   "bridgeProducts": "Products priced by the store: {live} of {asked}"
  },
  "news": {
+  "rivalBidLostSubj": "{player} chooses {short}",
+  "rivalBidLost": "{player} has joined {club}, who matched the {fee} fee and offered {wage}/week. What decided it: {why_k}.",
+  "rivalBidWonSubj": "{player} chooses you over {short}",
+  "rivalBidWon": "{club} had matched the fee and offered {wage}/week, but {player} chose you. What decided it: {why_k}.",
+  "rivalBackedSubj": "{short} back their coach",
+  "rivalBacked": "{club}'s board has given {coach} an extra {amount} after finishing behind you. They are looking for a {pos_k}.",
+  "rivalBackedBoardSubj": "{short} open the cheque book",
+  "rivalBackedBoard": "{club}'s board has released an extra {amount} after finishing behind you. They are looking for a {pos_k}.",
+  "rivalPushBidSubj": "{short} bid {fee} for {player}",
+  "rivalPushBid": "{club}, backed by their board after finishing behind you, have bid {fee} for {player}.",
+  "rivalWhyMinutes": "more minutes as a {pos_k}",
+  "rivalWhyWage": "the better wage",
+  "rivalWhyRep": "the bigger club",
+  "rivalWhyPromise": "the promise of first-team rugby",
+  "rivalWhyReturn": "a return to a club he knows",
+  "rivalWhyReturn_f": "a return to a club she knows",
+  "rivalWhyAgentWarm": "his agent's trust in you",
+  "rivalWhyAgentWarm_f": "her agent's trust in you",
+  "rivalWhyAgentCool": "his agent's doubts about you",
+  "rivalWhyAgentCool_f": "her agent's doubts about you",
+  "rivalWhyNoTerms": "you never put terms to him",
+  "rivalWhyNoTerms_f": "you never put terms to her",
   "mentEarlySubj": "Early days for {last} and {seniorLast}",
   "mentEarly": "{kid} and {senior} are still getting to know each other, so expect little from it yet. A pairing takes weeks to bed in.",
   "mentGrowingSubj": "{last} is coming on under {seniorLast}",
@@ -6014,6 +6061,7 @@
   "jokerEndsSeason": "The season is over and so is {name}'s medical-joker deal. {name} is now a free agent and can be signed again on ordinary terms.",
   "grounds1Subj": "AROUND THE GROUNDS: shorts give way, lineout waits",
   "grounds1": "A {club} prop reached the front of a lineout on Saturday with his shorts around his knees, having lost a one-sided argument with a breakdown thirty seconds earlier. Unbothered, they called for the ball twice. The referee, less relaxed, stopped the game and sent them to the touchline to be reassembled. The broadcaster showed the sky for eleven seconds.",
+  "grounds1_w": "A {club} prop reached the front of a lineout on Saturday with her shorts around her knees, having lost a one-sided argument with a breakdown thirty seconds earlier. Unbothered, they called for the ball twice. The referee, less relaxed, stopped the game and sent them to the touchline to be reassembled. The broadcaster showed the sky for eleven seconds.",
   "grounds2Subj": "AROUND THE GROUNDS: two home kits, no away kit, one long afternoon",
   "grounds2": "The kit van arrived at {other} carrying two full sets of {club} home shirts and no away shirts whatsoever. Since both clubs play in much the same colour, the visitors spent the first half in a borrowed set belonging to the host's third team, complete with a local plumber's name across the chest. Nobody could tell anybody apart, least of all the players.",
   "grounds3Subj": "AROUND THE GROUNDS: dog takes the ball, dog keeps the ball",
@@ -6297,6 +6345,7 @@
   "expOpenedSubj": "The new stand opens at {stadium}",
   "expOpened": "The hoardings are down and the turnstiles are through it: {stadium} now holds {cap}, {seats} of them new. The waiting list finally moves, and every one of those seats pays its way at the gate.",
   "trainInjurySubj": "{player} hurt in training",
+  "trainInjury_w": {"one": "{player} came off the training paddock holding it: {injury_k}. The physio wants a week on it, so she misses the next one.", "other": "{player} came off the training paddock holding it: {injury_k}. The physio has her down for about {n} weeks, so she is out of your reckoning until then."},
   "trainInjury": {
    "one": "{player} came off the training paddock holding it: {injury_k}. The physio wants a week on it, so he misses the next one.",
    "other": "{player} came off the training paddock holding it: {injury_k}. The physio has him down for about {n} weeks, so he is out of your reckoning until then."
@@ -6964,6 +7013,9 @@
   "acadReleased": "Released {player} from the academy."
  },
  "reply": {
+  "rivalBidOpen": "{club} have agreed the same fee and offer him {wage}/wk. He decides this week.",
+  "rivalBidOpen_f": "{club} have agreed the same fee and offer her {wage}/wk. She decides this week.",
+  "rivalBidPrefers": "{name} leans towards {club}, who offer {wage}/wk. What sways it: {why_k}. Their offer stands until the week is out.",
   "overCap": "Those terms would put the club {over}/wk over the {cap}/wk salary cap. Free up room, or name him a marquee player.",
   "offerGone": "Offer no longer available.",
   "inkWetTerms": "{club} pull the deal off the table: {name} has only just arrived, and he is going nowhere.",
@@ -8524,7 +8576,19 @@
   "grudgeSubj": "{player} has not forgotten",
   "grudge": "{player} has not forgotten the promise you broke in {season}. Left out again, {player} has gone quiet in training, and the senior players have noticed how it is being handled.",
   "agentsSubj": "Agents talk: your word on the market",
-  "agents": "Word travels between agents. The story doing the rounds this window is the promise you broke to {player} at {club}, and anyone weighing up a move to you wants more money up front before taking you at your word."
+  "agents": "Word travels between agents. The story doing the rounds this window is the promise you broke to {player} at {club}, and anyone weighing up a move to you wants more money up front before taking you at your word.",
+  "face": "{how_k} {since_k}",
+  "faceX": "{how_k} {since_k} {extra_k}",
+  "sinceNone": "No games for {club} yet.",
+  "sinceGames": {"one": "{n} game since, no tries.", "other": "{n} games since, no tries."},
+  "sinceTry": {"one": "{n} game since, and a try.", "other": "{n} games since, and a try."},
+  "sinceTries": {"one": "{n} game since, {tr} tries.", "other": "{n} games since, {tr} tries."},
+  "faceBroken": "It followed a promise you broke in {bs}.",
+  "faceRefused": "It followed a transfer request you turned down in {bs}.",
+  "faceCapped": "A Test player now.",
+  "faceAlso": "Also once yours: {names}.",
+  "ftTry": "{how_k} Today a try by {player} was the margin: lost {us}-{them}.",
+  "ftMotm": "{how_k} Today {player} was player of the match: lost {us}-{them}."
  },
  "hl": {
   "try": "TRY!",
@@ -8761,7 +8825,7 @@
   "wishMet": "The chairman asked for {wish_k}, and got it.",
   "wishMissed": "The chairman asked for {wish_k}, and did not get it.",
   "verdictSubj": "The board's verdict on the season",
-  "verdict": "The board's summer verdict.\n{rows_ll}",
+  "verdict": "{rows_ll}",
   "demGiantWon": "Silverware, which is what this club exists for. The board is satisfied.",
   "demGiantEmpty": "Two seasons without a trophy. At a club this size that is noticed, and the board has noticed.",
   "demFallenRise": "A higher finish than a year ago. The board wants the old standing back, and this is the road to it.",
@@ -8792,6 +8856,7 @@
    },
    "innovator": "Known for changing the way a side plays, and winning with it.",
    "spender": "Known for spending big in the transfer market.",
+   "seller": "Known for selling players on, the best ones included.",
    "hard": "Known as a disciplinarian: nobody is bigger than the club.",
    "players": "Known as a players' manager: promises kept, a happy dressing room.",
    "turnaround": {
@@ -8799,7 +8864,9 @@
     "other": "Turned round {n} clubs in trouble."
    },
    "defence": "Known for sides that are hard to break down.",
-   "attack": "Known for sides that score a lot of points."
+   "attack": "Known for sides that score a lot of points.",
+   "tactician": "Known for changing the plan, week to week and at half time.",
+   "prudent": "Known for keeping the books in order and the wage bill within budget."
   },
   "traitNewsSubj": "What they say about you",
   "traitNews": "The papers have settled on a way to describe you: {trait_k}",
@@ -8807,6 +8874,8 @@
   "offerCite": "Why {short} want you, in their words: {cite_k}",
   "offerHeard": "What they have heard: {cite_k}",
   "jobFit": "What you are known for is what this job wants.",
+  "jobFitAttack": "They have struggled for points, and you are known for sides that score them.",
+  "jobFitDefence": "They have been leaking points, and you are known for sides that are hard to break down.",
   "trend": {
    "new": "You are developing a reputation for {trait_k}.",
    "rise": "Your name is increasingly tied to {trait_k}.",
@@ -8816,11 +8885,14 @@
    "youth": "youth development",
    "innovator": "new ideas",
    "spender": "big spending",
+   "seller": "selling players on",
    "hard": "tough decisions",
    "players": "man-management",
    "turnaround": "turning clubs round",
    "defence": "defensive rugby",
-   "attack": "attacking rugby"
+   "attack": "attacking rugby",
+   "tactician": "changing the plan",
+   "prudent": "careful spending"
   },
   "meth": {
    "broke": "Promises to players were broken, and the board heard.",
@@ -8831,7 +8903,12 @@
    "academy": "Academy players were given their chance.",
    "attack": "The side attacked, and the chairman enjoyed it.",
    "spent": "The money was spent boldly.",
-   "defence": "A side that is hard to beat."
+   "defence": "A side that is hard to beat.",
+   "prudentWages": "The wage bill stayed under budget and the books balanced. The board noticed.",
+   "tacWorked": "The plan changed from week to week, and the results came with it.",
+   "tacRestless": "The plan changed from week to week, and the results did not follow.",
+   "capHeld": "The salary cap blocked signings you went for. The board knows the limit was the league's.",
+   "embargo": "The salary-cap embargo kept the club out of the market."
   },
   "profile": {
    "giant": "A rich club that expects titles.",
@@ -9137,7 +9214,9 @@
   "captain": {"one": "Your captain: {n} appearance for {club}.", "other": "Your captain: {n} appearances for {club}."},
   "legend": {"one": "A {club} legend since {season}: {n} appearance for the club.", "other": "A {club} legend since {season}: {n} appearances for the club."},
   "legendOld": {"one": "A {club} legend: {n} appearance for the club.", "other": "A {club} legend: {n} appearances for the club."},
+  "captainLegend": {"one": "Your captain, and a {club} legend since {season}: {n} appearance for the club.", "other": "Your captain, and a {club} legend since {season}: {n} appearances for the club."},
   "sold": {"one": "Sold to {buyer} for {fee} in {season}, after {n} appearance for {club}.", "other": "Sold to {buyer} for {fee} in {season}, after {n} appearances for {club}."},
+  "soldYoung": "Sold to {buyer} for {fee} in {season}, before a first-team game for {club}.",
   "released": {"one": "Released by {club} in {season}, after {n} appearance.", "other": "Released by {club} in {season}, after {n} appearances."},
   "letGo": {"one": "Let go by {club} in {season}, after {n} appearance.", "other": "Let go by {club} in {season}, after {n} appearances."},
   "promiseKept": "You promised {what_k} in {season}, and kept your word.",

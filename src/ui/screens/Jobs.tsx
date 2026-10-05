@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../../store'
 import { fmtMoney, mgrReputation } from '../../game/model'
-import { jobChance, jobFit, offerCite, sackCooloff } from '../../game/jobs'
+import { jobChance, jobFit, jobFitLine, offerCite, sackCooloff } from '../../game/jobs'
 import { jobProfile } from '../../game/chairman'
 import { squadValue } from '../../game/analysis'
 import { Crest, SectionTitle } from '../components'
@@ -61,6 +61,7 @@ export default function Jobs() {
     // be refused for three months, so the card says so and the button goes -
     // "Long shot" beside a live Apply invites a tap that can never land.
     const cold = sackCooloff(game, club.id)
+    const fit = jobFit(game, club.id)
     return (
       <div className="card" key={club.id} style={v.passed ? { opacity: .62 } : undefined}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -73,7 +74,7 @@ export default function Jobs() {
             {/* WHAT KIND OF JOB (chairman.ts): read from the club, one line */}
             <div className="meta job-profile" style={{ fontStyle: 'italic' }}>{t(`arc.profile.${jobProfile(game, club.id)}`)}</div>
             {/* and whether what he is known for is what it wants (jobs.ts jobFit) */}
-            {cold === 0 && jobFit(game, club.id) && <div className="meta job-fit" style={{ color: 'var(--text-positive)' }}>{t('arc.jobFit')}</div>}
+            {cold === 0 && fit && <div className="meta job-fit" style={{ color: 'var(--text-positive)' }}>{t(jobFitLine(game, club.id, fit))}</div>}
           </div>
           {cold === 0 && (
             <button className="btn gold" disabled={!!v.applied}
@@ -82,48 +83,53 @@ export default function Jobs() {
             </button>
           )}
         </div>
-        {/* TURNING IT DOWN IS AN ANSWER. The badge on the rail counts jobs he
-            has not answered, and before this there was no way to answer one
-            except by applying for it - so the red dot sat there for a job he
-            had no interest in. */}
-        {!v.applied && (
-          <button className="btn ghost block" style={{ marginTop: 6, fontSize: 13 }}
-            onClick={() => {
-              // READ IT BEFORE THE CALL. passJob writes v.passed straight onto the
-              // vacancy in game state, and `v` here is that same object - so a
-              // ternary after the call read the value the call had just written and
-              // the confirmation was always the opposite of what you did. Turning a
-              // club down answered "Back on the list: you would consider Northampton
-              // Saints after all." Caught in a screenshot, not by a test, which is
-              // why the probe now asserts the sentence.
-              const wasPassed = !!v.passed
-              passJob(club.id, !wasPassed)
-              setMsg({
-                key: club.id,
-                text: t(wasPassed ? 'world.jbBackOnList' : 'world.jbTurnedDown', { club: club.name }),
-              })
-            }}>
-            {t(v.passed ? 'world.jbPutBack' : 'world.jbNotInterested')}
-          </button>
-        )}
+        {/* THE ODDS BEFORE THE ANSWER (1.8.6): the prospects line sat under a
+            full-width Not interested, so the quiet answer outweighed Apply and
+            the one fact that decides it came last. One row now. */}
+        <div className="job-foot">
+          <div className="meta" style={{ flex: 1, minWidth: 0 }}>
+            {cold > 0 ? (
+              <b style={{ color: 'var(--danger)' }}>
+                {t('world.jbShutDoor', { n: cold, weeks_k: cold === 1 ? 'count.weekOne' : 'count.weekMany' })}
+              </b>
+            ) : (
+              <>
+                {t('world.jbProspects')}<b style={{ color: chance > 0.65 ? 'var(--text-positive)' : chance > 0.35 ? 'var(--gold)' : 'var(--danger)' }}>
+                  {t(chance > 0.75 ? 'world.jbExcellent' : chance > 0.5 ? 'world.jbGood' : chance > 0.3 ? 'world.jbOutsideShot' : 'world.jbLongShot')}
+                </b>
+              </>
+            )}
+          </div>
+          {/* TURNING IT DOWN IS AN ANSWER. The badge on the rail counts jobs he
+              has not answered, and before this there was no way to answer one
+              except by applying for it - so the red dot sat there for a job he
+              had no interest in. */}
+          {!v.applied && (
+            <button className="btn ghost" style={{ fontSize: 13, flex: '0 0 auto' }}
+              onClick={() => {
+                // READ IT BEFORE THE CALL. passJob writes v.passed straight onto the
+                // vacancy in game state, and `v` here is that same object - so a
+                // ternary after the call read the value the call had just written and
+                // the confirmation was always the opposite of what you did. Turning a
+                // club down answered "Back on the list: you would consider Northampton
+                // Saints after all." Caught in a screenshot, not by a test, which is
+                // why the probe now asserts the sentence.
+                const wasPassed = !!v.passed
+                passJob(club.id, !wasPassed)
+                setMsg({
+                  key: club.id,
+                  text: t(wasPassed ? 'world.jbBackOnList' : 'world.jbTurnedDown', { club: club.name }),
+                })
+              }}>
+              {t(v.passed ? 'world.jbPutBack' : 'world.jbNotInterested')}
+            </button>
+          )}
+        </div>
         {msg?.key === club.id && (
           <div className="meta sheet-log" style={{ marginTop: 8, borderLeft: '3px solid var(--gold)', paddingLeft: 8 }}>
             {msg.text}
           </div>
         )}
-        <div className="meta" style={{ marginTop: 5 }}>
-          {cold > 0 ? (
-            <b style={{ color: 'var(--danger)' }}>
-              {t('world.jbShutDoor', { n: cold, weeks_k: cold === 1 ? 'count.weekOne' : 'count.weekMany' })}
-            </b>
-          ) : (
-            <>
-              {t('world.jbProspects')}<b style={{ color: chance > 0.65 ? 'var(--text-positive)' : chance > 0.35 ? 'var(--gold)' : 'var(--danger)' }}>
-                {t(chance > 0.75 ? 'world.jbExcellent' : chance > 0.5 ? 'world.jbGood' : chance > 0.3 ? 'world.jbOutsideShot' : 'world.jbLongShot')}
-              </b>
-            </>
-          )}
-        </div>
       </div>
     )
   }

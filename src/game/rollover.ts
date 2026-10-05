@@ -1,3 +1,4 @@
+import { backResponders, respondersTo } from './rivalbids'
 import type { Club, GameState, NewsItem, Player, Pos } from './model'
 import { loanOutSummerGain, returnLoanIn } from './loans'
 import { aiRenewalWage, preContractWage } from './ai'
@@ -1149,6 +1150,9 @@ function tryOfTheSeason(state: GameState) {
     k: 'news.tryOfSeason',
     v: {
       player: t.name, min_o: t.min, opp: t.opp, club: club.name, text: t.text,
+      // the commentary line in the reader's language (i18n _j); the English
+      // stays as the fallback (1.8.5 career QA: "TRY! Quick tap by..." in French)
+      ...(typeof t.tj === 'string' ? { text_j: t.tj } : {}),
       tail_k: scorer && scorer.clubId === state.userClubId ? 'news.totsHere' : 'news.totsGone',
     },
     playerId: t.playerId,
@@ -1601,6 +1605,10 @@ export function rebuildSeason(state: GameState) {
       if (teamId === state.userClubId) book(state, 'prize', prize)
     })
   }
+  // WHO WILL WANT TO ANSWER HIM (rivalbids.ts, 1.8.5): read off the final
+  // table while it stands, backed after the budgets are set below
+  const userComp = state.unemployed ? null : state.comps[state.clubs[state.userClubId]?.leagueId ?? '']
+  const responders = userComp?.type === 'league' ? respondersTo(state, sortTable(userComp.table).map(r => r.teamId), userComp.champion) : []
 
   // bums on seats: clubs that keep selling out build bigger stands
   for (const club of Object.values(state.clubs)) {
@@ -2306,6 +2314,8 @@ export function rebuildSeason(state: GameState) {
       }
     }
   }
+  // the boards that finished behind him back their coaches (rivalbids.ts)
+  backResponders(state, responders)
   ensureCaptains(state)
 
   // loan-ins go home to their parent clubs (the same road a dated loan

@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { useStore } from '../../store'
 import { ATTR_KEYS, SEASON_WEEKS, careerRows, fmtMoney, fmtWage, injuryDesc, type Attrs, type GameState, type Player, type TrainingFocus, seasonLabel } from '../../game/model'
+import { liveRivalBid } from '../../game/rivalbids'
 import { agreeFee, agreePreContract, askingPrice, floorPrice, sellerWillingness, offerRenewalAt, personalTermsDemand, renewalDemand, signFreeAgent, signOnTerms } from '../../game/ai'
 import { FormPill, Nat, PosBadge, SectionTitle, Stars, TwoStep, RewardedButton } from '../components'
 import { nationName } from '../../game/nations'
@@ -563,6 +564,11 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
           <h3 style={{ fontSize: 16 }}>{t('player.personalTerms', { fee: fmtMoney(termsFee) })}</h3>
           <div className="meta" style={{ margin: '4px 0' }}>{t('player.campOpensAt')}<b>{fmtWage(personalTermsDemand(game, p))}{t('common.perWeek')}</b>{t('player.campOpensRest')}</div>
+          {/* a rival that agreed the same fee (rivalbids.ts): who, and what they offer */}
+          {(() => {
+            const rb = liveRivalBid(game, p.id)
+            return rb ? <div className="meta" style={{ margin: '4px 0' }}>{t('player.rivalBidLine', { club: game.clubs[rb.clubId]?.short ?? '', wage: fmtWage(rb.wage) })}</div> : null
+          })()}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0' }}>
             <span className="fact-label" style={{ width: 84 }}>{t('player.wagePerWeek')}</span>
             <button className="btn ghost" onClick={() => { setWage(Math.max(500, wage - 500)) }}>−</button>

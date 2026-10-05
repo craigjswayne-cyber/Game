@@ -79,18 +79,22 @@ export function playerStory(state: GameState, p: Player, made: (p: Player) => bo
   const appsFor = (clubId: string) => Math.max(service(p, clubId).apps,
     (state.hist?.legends ?? []).find(l => l.pid === p.id && l.clubId === clubId)?.apps ?? 0)
   const capt = !!uid && p.clubId === uid && state.clubs[uid]?.captain === p.id
-  if (capt) add('captain', 'story.captain', { club: short(uid!), n: service(p, uid!).apps })
   const legend = (state.hist?.legends ?? []).find(l => l.pid === p.id)
+  // HIS CAPTAIN AND HIS LEGEND, ONE LINE (1.8.6): the two lines gave the same
+  // count twice in a row ("Your captain: 160 appearances for Northampton. A
+  // Northampton legend since 2026-27: 160 appearances for the club.")
+  const captLegend = capt && !!legend && legend.clubId === uid && legend.season >= 0
+  if (capt && !captLegend) add('captain', 'story.captain', { club: short(uid!), n: service(p, uid!).apps })
   if (legend) {
     const n = appsFor(legend.clubId)
-    add('legend', legend.season >= 0 ? 'story.legend' : 'story.legendOld', { club: short(legend.clubId), season: seasonLabel(Math.max(0, legend.season)), n })
+    add('legend', captLegend ? 'story.captainLegend' : legend.season >= 0 ? 'story.legend' : 'story.legendOld', { club: short(legend.clubId), season: seasonLabel(Math.max(0, legend.season)), n })
   }
   // a notable man who left the manager's club, and how
   const dep = latest(state, p, ['sold', 'released', 'let-go'])
   const gone = !!dep && dep.clubId != null && p.clubId !== dep.clubId && (dep.payload?.nb === 1 || dep.sal >= 2)
   if (gone) {
     const from = dep!.clubId!
-    const n = appsFor(from)
+    const n = Math.max(appsFor(from), Number(dep!.payload?.ap ?? 0) || 0)
     const to = typeof dep!.payload?.to === 'string' ? dep!.payload.to : ''
     const fee = Number(dep!.payload?.fee ?? 0)
     const v = { club: short(from), season: seasonLabel(dep!.season), n }
@@ -98,6 +102,10 @@ export function playerStory(state: GameState, p: Player, made: (p: Player) => bo
       if (dep!.kind === 'sold' && to && fee > 0) add('sold', 'story.sold', { ...v, buyer: short(to), fee: fmtMoney(fee) })
       else if (dep!.kind === 'released') add('released', 'story.released', v)
       else if (dep!.kind === 'let-go') add('let-go', 'story.letGo', v)
+    } else if (dep!.kind === 'sold' && to && fee > 0) {
+      // SOLD BEFORE HE PLAYED (1.8.5): the boy with a ceiling the manager
+      // cashed in on had no line at all, the one a career is asked about
+      add('sold', 'story.soldYoung', { ...v, buyer: short(to), fee: fmtMoney(fee) })
     }
   }
   // what he was promised, and whether the word held
