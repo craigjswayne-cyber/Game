@@ -6440,6 +6440,7 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
           state.tryOfSeason = {
             playerId: e.playerId, name: e.playerName ?? scorer.name, min: e.min,
             opp: oppName, text: e.text, drama, season: state.season,
+            ...(e.k ? { tj: JSON.stringify({ ...(e.v ?? {}), k: e.k }) } : {}),
           }
         }
       }

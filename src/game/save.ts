@@ -565,6 +565,7 @@ export function migrate(s: GameState): GameState {
     p.wage = num(p.wage, 0, 1_000_000_000, 5_000)
     p.value = num(p.value, 0, 1_000_000_000_000, 100_000)
     p.bans = int(p.bans, 0, 99, 0)
+    if (p.freeUntil !== undefined && !(typeof p.freeUntil === 'number' && Number.isFinite(p.freeUntil))) delete p.freeUntil
     if (typeof p.name !== 'string' || !p.name) p.name = 'Unnamed Player'
     p.stats ??= emptyStats()
     // an attribute grid that is missing or not an object: derive a flat set from

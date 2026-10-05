@@ -1150,6 +1150,9 @@ function tryOfTheSeason(state: GameState) {
     k: 'news.tryOfSeason',
     v: {
       player: t.name, min_o: t.min, opp: t.opp, club: club.name, text: t.text,
+      // the commentary line in the reader's language (i18n _j); the English
+      // stays as the fallback (1.8.5 career QA: "TRY! Quick tap by..." in French)
+      ...(typeof t.tj === 'string' ? { text_j: t.tj } : {}),
       tail_k: scorer && scorer.clubId === state.userClubId ? 'news.totsHere' : 'news.totsGone',
     },
     playerId: t.playerId,
