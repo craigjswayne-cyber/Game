@@ -3,6 +3,7 @@ import { useStore } from '../../store'
 import { clubCode, fmtMoney, fmtWage, newsBody, newsSubject, POS_ORDER, seasonLabel, weekDate, type Attrs, type Pos, weeksBetween100 } from '../../game/model'
 import { counterIncomingOffer, renewalDemand, respondToOffer, windowOpen } from '../../game/ai'
 import { LOAN_LENGTHS, LOAN_SHARES, loanIn, loanMarket, loanTargets, type LoanLength } from '../../game/loans'
+import { noteUse } from '../../game/usage'
 import { attrRange, fuzzedCa, knowledge, searchKey, seenValue } from '../../game/scout'
 import { commissionScout, searchFee, type SearchMonths } from '../../game/commission'
 import { badgeLabel } from '../../game/staff'
@@ -361,7 +362,7 @@ export default function Transfers() {
                 <button className="btn ghost" onClick={() => setLoanDeal(null)}>{t(gone ? 'transfers.loanDone' : 'transfers.loanClose')}</button>
                 {!gone && (
                   <button className="btn gold" style={{ flex: 1.6 }}
-                    onClick={() => { setMsg({ key: `loan:${loanDeal.id}`, text: loanIn(game, loanDeal.id, loanDeal.length, loanDeal.share) }); touch() }}>
+                    onClick={() => { setMsg({ key: `loan:${loanDeal.id}`, text: loanIn(game, loanDeal.id, loanDeal.length, loanDeal.share) }); noteUse('loan'); touch() }}>
                     {t('transfers.loanOffer')}
                   </button>
                 )}

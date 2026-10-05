@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
 import { STAFF_INFO, fmtMoney, fmtWage, injuryDesc, type TrainingFocus, weeksBetween100 } from '../../game/model'
+import { noteUse } from '../../game/usage'
 import { BADGE_COL, EXAM_PASS_PCT, badgeLabel, appointBlock, appointStaff, backroomFund, courseBlock, courseFee, sackCost, sackStaff, sendToCourse, staffCandidates, staffInterest, type StaffRole } from '../../game/staff'
 import DevelopmentPanel from './DevelopmentPanel'
 import { Flag } from '../flags'
@@ -39,7 +40,7 @@ export default function Training() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 4, padding: '0 14px' }}>
         {FOCUSES.map(f => (
           <button key={f.id} className={`club-pick${game.training === f.id ? ' sel' : ''}`} style={{ margin: 0 }}
-            onClick={() => { game.training = f.id; touch() }}>
+            onClick={() => { if (game.training !== f.id) noteUse('training'); game.training = f.id; touch() }}>
             <span style={{ fontSize: 16 }}>{game.training === f.id ? '●' : '○'}</span>
             <span className="cname">{t(f.name)}</span>
             <span className="muted" style={{ maxWidth: '52%', textAlign: 'right', fontSize: 11 }}>{t(f.desc)}</span>

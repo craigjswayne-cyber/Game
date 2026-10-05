@@ -109,6 +109,7 @@ import { isHighlight } from './game/highlights'
 import { fileFindings } from './game/matchfindings'
 import { fileEvidence } from './game/evidence'
 import { proMatchPlayed, readFunnel, writeFunnel } from './game/profunnel'
+import { countMatch, countScreen, noteUse } from './game/usage'
 
 /** ONE COMPETITIVE MATCH COMPLETED, FOR THE PRO MANAGER CADENCE (1.8.6).
  *
@@ -120,6 +121,10 @@ import { proMatchPlayed, readFunnel, writeFunnel } from './game/profunnel'
  *  reload - and keyed by career and fixture, so no match counts twice. */
 function countForPro(g: GameState, fx: Pick<Fixture, 'id' | 'compId'> | null | undefined) {
   if (!fx || fx.compId === 'fr') return
+  // the feedback report's match count (game/usage.ts) rides the same four
+  // places and the same key, and counts whatever the store: device state,
+  // never the career, never the rng
+  countMatch(`${g.seed}:${g.season}:${fx.id}`, `${g.seed}:${g.season}`)
   if (!tillOpen() || hasSupporter()) return
   const f = readFunnel()
   const n = proMatchPlayed(f, `${g.seed}:${g.season}:${fx.id}`)
@@ -237,6 +242,10 @@ interface Store {
    *  Manager menu can bring it back after it has been dismissed (blocker A2). */
   tut: boolean
   openTut: () => void
+  /** the feedback report card is on screen (ui/FeedbackPrompt.tsx) */
+  feedback: boolean
+  openFeedback: () => void
+  closeFeedback: () => void
   closeTut: () => void
   /** Consecutive failed writes to IndexedDB, and why the last one failed.
    *
@@ -537,6 +546,7 @@ export const useStore = create<Store>((set, get) => ({
     // choice, so no route into this setter can dress a free game in a paid
     // palette.
     if (skinLocked(skin)) return
+    if (skin !== get().skin) noteUse('skin')
     try { localStorage.setItem(SKIN_KEY, skin) } catch { /* private mode */ }
     set({ skin })
   },
@@ -563,6 +573,7 @@ export const useStore = create<Store>((set, get) => ({
   },
   toggleNight: () => set(s => {
     const night = !s.night
+    noteUse('night')
     try { localStorage.setItem('rm-night', night ? '1' : '0') } catch { /* private mode */ }
     return { night }
   }),
@@ -588,13 +599,16 @@ export const useStore = create<Store>((set, get) => ({
   // only commits once it has loaded, so the store cannot read the answer
   // synchronously - the onLangChange subscription below carries the commit
   // into React whenever it lands, first tap or slow network alike.
-  setLang: (l: Lang) => applyLang(l),
+  setLang: (l: Lang) => { if (l !== get().lang) noteUse('lang'); return applyLang(l) },
 
   supporter: hasSupporter(),
   claimSupporter: () => set(s => ({ supporter: hasSupporter(), tick: s.tick + 1 })),
 
   tut: false,
   openTut: () => set({ tut: true }),
+  feedback: false,
+  openFeedback: () => set({ feedback: true }),
+  closeFeedback: () => set({ feedback: false }),
   closeTut: () => {
     try { localStorage.setItem('rm-tut', '1') } catch { /* private mode */ }
     set({ tut: false })
@@ -618,6 +632,8 @@ export const useStore = create<Store>((set, get) => ({
     const live = g.news.filter(n => inInbox(g, n))
     const unread = live.filter(n => !n.read).sort((a, b) => a.id - b.id)
     const onInbox = s.nav[s.nav.length - 1]?.screen === 'inbox'
+    // the inbox opens here rather than through go(): count it as a visit
+    if (!onInbox) countScreen('inbox')
     // oldest unread first: a queue is read front to back
     const next = unread[0]
     if (next) {
@@ -1176,6 +1192,8 @@ export const useStore = create<Store>((set, get) => ({
     const forfeit = forfeitSide(g, fx)
     if (forfeit) settleForfeit(g, fx, forfeit)
     else {
+      noteUse('instant')
+      if (preTalk) noteUse('talk')
       const ctx = beginMatch(g, fx, matchRng(g), true, userTeamId)
       // the assistant has the match, so the assistant makes the changes
       ctx.assistantSubs = true
@@ -1252,6 +1270,8 @@ export const useStore = create<Store>((set, get) => ({
       landOnNextWeek(g, set, get, [{ screen: 'results', param: resultsKey }])
       return
     }
+    noteUse('watched')
+    if (preTalk) noteUse('talk')
     const pre = JSON.parse(JSON.stringify(g)) as GameState
     const ctx = beginMatch(g, fx, matchRng(g), true, userTeamId)
     // spoken or not, the room is opened once (teamtalk.ts, SAYING NOTHING)
@@ -1431,6 +1451,7 @@ export const useStore = create<Store>((set, get) => ({
     const { game, liveMatch } = get()
     if (!game || !liveMatch || liveMatch.ctx.awaiting !== 'HT') return
     get().noteCmd({ kind: 'talk', talk: kind })
+    noteUse('talk')
     const msg = applyTeamTalk(game, liveMatch.ctx, kind)
     set(s => ({ liveMatch: s.liveMatch ? { ...s.liveMatch, talkMsg: msg } : null, tick: s.tick + 1 }))
   },
@@ -1450,6 +1471,7 @@ export const useStore = create<Store>((set, get) => ({
     // change was impossible because the room closed after the first.
     const wasCaughtUp = liveMatch.cursor >= liveMatch.ctx.events.length
     get().noteCmd({ kind: 'sub', outId, inId })
+    noteUse('sub')
     const msg = makeSubstitution(game, liveMatch.ctx, outId, inId)
     set(s => ({
       liveMatch: s.liveMatch && wasCaughtUp
@@ -1509,6 +1531,7 @@ export const useStore = create<Store>((set, get) => ({
     // still holds whatever they were before he moved them
     const t = game.clubs[game.userClubId].tactic
     get().noteCmd({ kind: 'dials', style: t.style, tempo: t.tempo, kicking: t.kicking, aggression: t.aggression })
+    noteUse('liveTactics')
     applyTacticsChange(game, liveMatch.ctx)
     set(s => ({ tick: s.tick + 1 }))
   },
@@ -1572,6 +1595,7 @@ export const useStore = create<Store>((set, get) => ({
     const g = get().game
     if (!g) return
     answerPress(g, pressId, optionIndex)
+    noteUse('press')
     set(s => ({ tick: s.tick + 1 }))
     // P1-01 from the external audit of 13 Sep 2026: this mutated persistent
     // career state - morale, board and fan standing, promises, relationships -
