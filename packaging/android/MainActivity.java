@@ -1,6 +1,7 @@
 package com.phaserugbymanager.app;
 
 import android.os.Bundle;
+import android.view.WindowManager;
 import android.webkit.WebView;
 
 import androidx.activity.OnBackPressedCallback;
@@ -8,7 +9,8 @@ import androidx.activity.OnBackPressedCallback;
 import com.getcapacitor.BridgeActivity;
 
 /**
- * THE ACTIVITY, AND THE BACK BUTTON THAT NEVER CLOSES THE GAME.
+ * THE ACTIVITY: THE BACK BUTTON THAT NEVER CLOSES THE GAME, AND A SCREEN THAT
+ * STAYS ON WHILE IT IS OPEN (see onCreate).
  *
  * Owner, 1.8.10, on a Samsung: "Every time I hit back button on my Samsung it
  * still makes me quit the game. It should ALWAYS take me to title page to keep
@@ -33,6 +35,13 @@ public class MainActivity extends BridgeActivity {
         // already built its plugin list without it
         registerPlugin(PhaseBilling.class);
         super.onCreate(savedInstanceState);
+
+        // THE SCREEN STAYS ON WHILE THE GAME IS OPEN (owner, 1.8.11: "the
+        // screen saver energy mode is coming on when in-game ... Like in
+        // fmmobile it just stays on screen"). A window flag, so it holds only
+        // while this activity is in front: leave the game and the phone sleeps
+        // on its own timer as usual. No permission needed.
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
