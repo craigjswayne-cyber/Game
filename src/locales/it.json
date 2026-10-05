@@ -9273,5 +9273,20 @@
   "reminderLineSkins": "Ti stai godendo la stagione? Pro Manager aggiunge tre temi che hanno solo i Pro, quando vuoi tu.",
   "done": "Ora sei Pro Manager. Grazie per sostenere il gioco. I tre temi ti aspettano nelle Impostazioni.",
   "close": "Continua"
+ },
+ "feedback": {
+  "title": "Aiuta a migliorare il gioco",
+  "line": "Ecco cosa hai usato finora, nient'altro. Non viene inviato nulla se non lo invii tu.",
+  "email": "E-mail",
+  "copy": "Copia",
+  "notNow": "Non ora",
+  "discord": "Oppure copialo e incollalo in #feedback sul nostro Discord.",
+  "discordLink": "Apri Discord",
+  "copied": "Copiato. Incollalo in #feedback su Discord.",
+  "copyFailed": "La copia è stata bloccata. Seleziona il resoconto qui sopra per copiarlo.",
+  "rowTitle": "Resoconto d'uso",
+  "rowLine": "Ciò che hai usato finora, pronto da inviare se vuoi.",
+  "rowBtn": "Invia il resoconto d'uso",
+  "reportLabel": "Il tuo resoconto"
  }
 }

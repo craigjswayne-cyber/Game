@@ -5,6 +5,7 @@ import { buildReport, mailtoUrl, reportFilename } from '../../game/bugreport'
 import { t } from '../../game/i18n'
 import { BUG_CHANNEL_URL, IDEAS_URL } from '../../game/community'
 import { Glyph } from '../glyphs'
+import { readUsage, withOffered, writeUsage } from '../../game/usage'
 
 /**
  * Report a Bug. Under the Handbook in the menu, because it is the other half of
@@ -35,6 +36,7 @@ export default function BugReport() {
   const game = useStore(s => s.game)
   const saveFail = useStore(s => s.saveFail)
   const saveFailMsg = useStore(s => s.saveFailMsg)
+  const openFeedback = useStore(s => s.openFeedback)
   const [notes, setNotes] = useState('')
   const [idea, setIdea] = useState('')
   const [ideaMsg, setIdeaMsg] = useState<string | null>(null)
@@ -144,6 +146,23 @@ export default function BugReport() {
         </div>
         {msg && <div className="bug-msg">{msg}</div>}
         {showFull && <pre className="bug-preview">{report}</pre>}
+      </div>
+
+      {/* THE FEEDBACK REPORT, ANY TIME (game/usage.ts). The card offers itself
+          once after the first month; this is the permanent way back to it, so
+          a player can send an updated one later. It opens the same card, which
+          shows the whole report before anything is sent. */}
+      <div className="card fb-row">
+        <SectionTitle>{t('feedback.rowTitle')}</SectionTitle>
+        <div className="meta">{t('feedback.rowLine')}</div>
+        <button className="btn block fb-open" style={{ marginTop: 8 }}
+          onClick={() => {
+            // seen now: the automatic offer has nothing left to say
+            writeUsage(withOffered(readUsage()))
+            openFeedback()
+          }}>
+          <Glyph name="chart" /> {t('feedback.rowBtn')}
+        </button>
       </div>
 
       {/* IDEAS, NOT ONLY FAULTS (owner, v1.1.12: "could we add

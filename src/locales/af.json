@@ -9317,5 +9317,20 @@
   "reminderLineSkins": "Geniet jy die seisoen? Pro-bestuurder voeg drie temas by wat net Pro-bestuurders kry, wanneer jy wil.",
   "done": "Jy is 'n Pro-bestuurder. Dankie dat jy die spel ondersteun. Die drie temas wag vir jou in Instellings.",
   "close": "Gaan voort"
+ },
+ "feedback": {
+  "title": "Help om die spel te vorm",
+  "line": "Dit is wat jy tot dusver gebruik het, niks anders nie. Niks word gestuur tensy jy dit self stuur nie.",
+  "email": "E-pos",
+  "copy": "Kopieer",
+  "notNow": "Nie nou nie",
+  "discord": "Of kopieer dit en plak dit in #feedback op ons Discord.",
+  "discordLink": "Maak Discord oop",
+  "copied": "Gekopieer. Plak dit in #feedback op Discord.",
+  "copyFailed": "Kopieer is geblokkeer. Kies die verslag hierbo om dit te kopieer.",
+  "rowTitle": "Gebruiksverslag",
+  "rowLine": "Wat jy tot dusver gebruik het, gereed om te stuur as jy wil.",
+  "rowBtn": "Stuur gebruiksverslag",
+  "reportLabel": "Jou verslag"
  }
 }

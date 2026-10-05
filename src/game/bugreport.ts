@@ -242,9 +242,14 @@ export const MAILTO_LIMIT = 1800
 export const CONTACT_SUBJECT = 'PHASE: Rugby Manager'
 export const CONTACT_MAILTO = `mailto:${DEV_CONTACT}?subject=${encodeURIComponent(CONTACT_SUBJECT)}`
 
-export function mailtoUrl(report: string, subject = 'PHASE: Rugby Manager - bug report'): string {
+export function mailtoUrl(
+  report: string,
+  subject = 'PHASE: Rugby Manager - bug report',
+  /** what the trimmed mail says instead: the feedback report has no Save */
+  trimNote = '[trimmed for e-mail - use Copy or Save for the full report]',
+): string {
   const body = report.length > MAILTO_LIMIT
-    ? report.slice(0, MAILTO_LIMIT) + '\n\n[trimmed for e-mail - use Copy or Save for the full report]'
+    ? report.slice(0, MAILTO_LIMIT) + '\n\n' + trimNote
     : report
   return `mailto:${DEV_CONTACT}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
 }

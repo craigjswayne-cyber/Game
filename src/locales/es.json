@@ -9218,5 +9218,20 @@
   "reminderLineSkins": "¿Disfrutando de la temporada? Pro Manager añade tres apariencias que solo tienen los Pro, cuando tú quieras.",
   "done": "Ya eres Pro Manager. Gracias por apoyar el juego. Las tres apariencias te esperan en Ajustes.",
   "close": "Continuar"
+ },
+ "feedback": {
+  "title": "Ayuda a dar forma al juego",
+  "line": "Esto es lo que has usado hasta ahora, nada más. No se envía nada a menos que lo envíes tú.",
+  "email": "Correo",
+  "copy": "Copiar",
+  "notNow": "Ahora no",
+  "discord": "O cópialo y pégalo en #feedback en nuestro Discord.",
+  "discordLink": "Abrir Discord",
+  "copied": "Copiado. Pégalo en #feedback en Discord.",
+  "copyFailed": "No se ha podido copiar. Selecciona el informe de arriba para copiarlo.",
+  "rowTitle": "Informe de uso",
+  "rowLine": "Lo que has usado hasta ahora, listo para enviar si quieres.",
+  "rowBtn": "Enviar informe de uso",
+  "reportLabel": "Tu informe"
  }
 }

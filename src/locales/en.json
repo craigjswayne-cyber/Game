@@ -9271,5 +9271,20 @@
   "reminderLineSkins": "Enjoying the season? Pro Manager adds three skins only Pro managers get, whenever you want it.",
   "done": "You are a Pro Manager. Thank you for backing the game. The three skins are waiting in Settings.",
   "close": "Continue"
+ },
+ "feedback": {
+  "title": "Help shape the game",
+  "line": "This is what you have used so far, nothing else. Nothing is sent unless you send it.",
+  "email": "Email",
+  "copy": "Copy",
+  "notNow": "Not now",
+  "discord": "Or copy it and paste it in #feedback on our Discord.",
+  "discordLink": "Open Discord",
+  "copied": "Copied. Paste it in #feedback on Discord.",
+  "copyFailed": "Copying was blocked. Select the report above to copy it.",
+  "rowTitle": "Feedback report",
+  "rowLine": "What you have used so far, ready to send if you choose.",
+  "rowBtn": "Send feedback report",
+  "reportLabel": "Your report"
  }
 }
