@@ -35,7 +35,6 @@ function diff(a: Any, b: Any, path = '', out: string[] = [], depth = 0): string[
     return out
   }
   const ka = Object.keys(a), kb = Object.keys(b)
-  if (!Array.isArray(a) && ka.join() !== kb.join() && new Set([...ka, ...kb]).size === ka.length && ka.length === kb.length) out.push(`${path}: key order ${ka.join(',').slice(0, 80)} vs ${kb.join(',').slice(0, 80)}`)
   for (const k of new Set([...ka, ...kb])) diff(a[k], b[k], `${path}.${k}`, out, depth + 1)
   return out
 }

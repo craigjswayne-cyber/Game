@@ -4622,6 +4622,21 @@ If you go, your assistant takes your national side for the duration. Nobody prep
 
   // (derby build-up now lives in the pre-advance block above, with the
   // all-time ledger - the old duplicate beat here was removed)
+  // EVERY MAN MINTED THIS WEEK CARRIES HIS BASELINE (1.8.5 save QA). The
+  // academy heirs, the youth intake and the replenish regens are built as
+  // literals in rollover.ts without ca0 or hist, and migrate gives them both on
+  // load - so a career reloaded mid-season measured a scholar's growth from
+  // the day it was loaded (a breakthrough story, the desk's riser, the
+  // development project) while the same career played on measured none until
+  // the next summer, and a reloaded regen of 26 gained the pre-2025 career
+  // deriveHist invents for the opening world (scripts/qa/savedet.ts). Growth
+  // is measured from the week he arrives, as it is for every man buildPlayer
+  // makes; his history before us is none, which is what the game already read
+  // an absent one as (hist?.apps ?? 0), now written down so a load agrees.
+  for (const p of Object.values(state.players)) {
+    if (p.ca0 === undefined) p.ca0 = p.ca
+    if (p.hist === undefined) p.hist = { apps: 0, tries: 0, points: 0 }
+  }
   // the counter the save carries, after every mint this week made (1.6.4)
   state.pidNext = peekPid()
 }
