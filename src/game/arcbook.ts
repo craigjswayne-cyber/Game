@@ -79,6 +79,8 @@ export interface Conduct {
   deb: number; hg: number
   /** fees paid and the annual wage bill */
   buy: number; wages: number
+  /** fees received for his men (1.8.5): absent on a row written before */
+  sell?: number
   /** hard calls (requests refused, seniors dropped, staff sacked) and kind ones
    *  (promises kept, requests granted), and promises broken */
   hard: number; kind: number; broke: number
@@ -262,6 +264,7 @@ export function migrateArc(s: GameState): void {
     for (const k of ['tier', 'pos', 'n', 'm', 'w', 'd', 'l', 'pf', 'pa', 'lg', 'deb', 'hg', 'buy', 'wages', 'hard', 'kind', 'broke', 'mor', 'pats'] as const) {
       if (!num(r[k])) r[k] = 0
     }
+    if (r.sell != null && !num(r.sell)) delete r.sell
   }
   a.eras = a.eras.filter(e => !!e && typeof e === 'object' && typeof e.c === 'string' && typeof e.sk === 'string' && num(e.f)).slice(-ARC_CAPS.eras)
   for (const e of a.eras) {

@@ -33,6 +33,7 @@ import { absWeek, fmtMoney, poss } from './model'
 import { INK_WEEKS } from './ai'
 import type { Club, GameState, Player } from './model'
 import { hashString, mulberry32 } from './rng'
+import { t } from './i18n'
 
 export type Intent = 'rebuild' | 'consolidate' | 'allin' | 'breakup'
 
@@ -206,7 +207,6 @@ export function huntLine(state: GameState): string | null {
   const p = state.players[h.playerId]
   const club = state.clubs[h.clubId]
   if (!p || !club || p.clubId !== state.userClubId) return null
-  return h.stage === 1 ? `${club.short} are said to admire ${p.name}.`
-    : h.stage === 2 ? `${club.short} will not deny their interest in ${p.name}. This is getting louder.`
-    : `${club.short} have bid for ${p.name}, and they mean it.`
+  // in the reader's language: the line was English on every screen (1.8.5 QA)
+  return t(`home.circling${h.stage === 1 ? 1 : h.stage === 2 ? 2 : 3}`, { club: club.short, player: p.name })
 }
