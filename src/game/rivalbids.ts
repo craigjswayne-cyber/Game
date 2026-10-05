@@ -374,12 +374,17 @@ export function aiYouthHunt(state: GameState): void {
  * going is a little over a third in a window week and about one in eight in
  * any other, so the manager can still beat them to him, but not at leisure.
  */
+/** The free agents AI boards look at: men who would start for a top side. */
+const FREE_MIN_CA = 78
+/** What a man out of contract takes on the club's rate for new deals. */
+const FREE_CUT = 0.85
+
 export function aiFreeAgents(state: GameState): void {
   // a free agent has no registration to move, so he can sign in any week;
   // boards do most of it in the windows, when they are looking anyway
   const chance = windowOpen(state.week) ? 0.35 : 0.12
   const pool = Object.values(state.players)
-    .filter(p => !p.clubId && !p.retiring && !p.acad && p.ca >= 74 && p.age <= 33)
+    .filter(p => !p.clubId && !p.retiring && !p.acad && p.ca >= FREE_MIN_CA && p.age <= 33)
     .sort((a, b) => b.ca - a.ca || a.id - b.id)
   const tries = pool.slice(0, 30).filter(p => rand(`fa|${state.seed}|${p.id}|${state.season}|${state.week}`) < chance)
   if (!tries.length) return
@@ -392,18 +397,18 @@ export function aiFreeAgents(state: GameState): void {
     let best: Club | null = null, bestKeen = -Infinity, bestWage = 0
     for (const c of clubs) {
       if (used.has(c.id) || c.rep < p.ca - 10 || minutesAt(state, c, p) < 2) continue
-      // he is offered what the club pays on new deals, and the club signs him
-      // only if it can carry that within its means: a free man costs no fee,
-      // so the wage is the whole decision. The first cut only asked whether
-      // the club could spend at all, and distressprobe found 42% of the lower
-      // leagues and 30% of the top flight in the red at season fourteen. A
-      // star (85 and up) is the exception a board stretches for when it has
-      // his whole deal in the bank: there are few of them, and one left lying
-      // there is the drain this answers
+      // He is offered the club's rate on new deals, less a little (a man out
+      // of contract has nobody bidding against it), and the club signs him
+      // only if its income carries the bill with him on it: a free man costs
+      // no fee, so the wage is the whole decision, and every one signed is a
+      // wage the world did not pay before. Measured (scripts/distressprobe.ts,
+      // scripts/aiecon.ts): asking only whether a club could spend at all put
+      // 42% of the lower leagues in the red at season fourteen, and letting
+      // rich boards stretch for stars took the mean AI club's gain from
+      // 0.25M to 0.21M a season; on income alone it holds.
       const room = rooms.get(c.id) ?? 0
-      const wage = Math.round(playerWage(p.ca, p.age) * clamp(aiPayRate(state, c, room), 0.75, 1) / 50) * 50
-      const stretch = p.ca >= 85 && c.balance > wage * 150 && canSpend(state, c)
-      if (!stretch && !aiCanCarry(state, c, wage, room)) continue
+      const wage = Math.round(playerWage(p.ca, p.age) * clamp(aiPayRate(state, c, room), 0.75, 1) * FREE_CUT / 50) * 50
+      if (!aiCanCarry(state, c, wage, room)) continue
       const cap = c.leagueId ? state.caps?.[c.leagueId] : null
       if (typeof cap === 'number' && cap > 0 && capBill(state, c) + wage > cap) continue
       const keen = c.rep / 10 + (clubIntent(state, c) === 'allin' ? 1 : 0) + rand(`fakeen|${state.seed}|${p.id}|${c.id}|${state.season}`)

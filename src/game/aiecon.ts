@@ -237,14 +237,14 @@ export function aiPayRate(state: GameState, club: Club, room?: number): number {
 /**
  * Can this AI club carry another wage of `wage` a week within its means: its
  * income covers the bill with him on it (after paying down any shortfall on
- * the cushion), or it sits on twenty weeks of that bill in the bank. A free
- * agent costs no fee, so this is the whole question (rivalbids.ts).
+ * the cushion). Money in the bank is not income: a rich board that signed
+ * on its balance paid for it in the mean AI club's gain (scripts/aiecon.ts).
+ * A free agent costs no fee, so this is the whole question (rivalbids.ts).
  */
 export function aiCanCarry(state: GameState, club: Club, wage: number, room?: number): boolean {
   if (isMyClub(state, club.id) || club.balance <= 0) return false
   const r = room ?? aiWageRooms(state, club).get(club.id) ?? 0
   const bill = club.players.reduce((s, id) => s + (state.players[id]?.wage ?? 0), 0) + wage
-  if (club.balance > 20 * bill) return true
   return r + Math.min(0, club.balance - RESERVE_WEEKS * bill) / REPAY_WEEKS >= bill
 }
 
