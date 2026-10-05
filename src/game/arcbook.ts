@@ -86,6 +86,27 @@ export interface Conduct {
   hard: number; kind: number; broke: number
   /** average squad morale at the end, and how many ideas of rugby the side played */
   mor: number; pats: number
+  /** ---- 1.8.5 career QA: what the manager chose, beside what happened ----
+   *  Every field below is absent on a row written before, and the readers
+   *  fall back to the old rule for such a row (repute.ts).
+   *
+   *  yd: academy debuts given to men of 20 or under, which is a manager
+   *  picking a boy, not the age gate topping up the squad; u21 and u21l: the
+   *  share of senior appearances (0-100) to men of 21 or under, here and in
+   *  the rest of the league; hgl: the league's homegrown share, so a squad
+   *  that is homegrown because everybody's is reads as nothing special */
+  yd?: number; u21?: number; u21l?: number; hgl?: number
+  /** distinct game plans used, live matches where the dials moved, half-time
+   *  answers to the hurting cause (the right lever moved) and how many of
+   *  those the second half bore out (evidence.ts halfFollow) */
+  pl?: number; chg?: number; ansN?: number; ans?: number
+  /** signings he went for that the salary cap or an embargo refused (men) */
+  capb?: number; embb?: number
+  /** the wage bill as a share of the wage budget (0-100), and the balance's
+   *  move over the season, injections aside */
+  wr?: number; bk?: number
+  /** the league's median wage share of budget, the same way (0-100) */
+  wrl?: number
 }
 
 /** The job in progress, for the era summary. */
@@ -108,6 +129,12 @@ export interface CurEra {
   pats?: string[]
   /** the kind of job it was when he took it (chairman.ts JobProfile) */
   prof?: string
+  /** this season's game plans (hashed), live matches with the dials moved,
+   *  half-time answers and the ones that worked, and the men the cap or an
+   *  embargo refused him (1.8.5). Reset each summer with pats. */
+  plans?: number[]
+  chg?: number; ansN?: number; ans?: number
+  capb?: number[]; embb?: number[]
 }
 
 /** A finished era, or a five-season milestone of one still going. */
@@ -183,7 +210,31 @@ export interface CareerArc {
   queue?: Omit<import('./model').NewsItem, 'id'>[]
 }
 
-export const ARC_CAPS = { coaches: 48, conduct: 30, eras: 16, told: 16, top: 12, grads: 40, stints: 6 } as const
+export const ARC_CAPS = { coaches: 48, conduct: 30, eras: 16, told: 16, top: 12, grads: 40, stints: 6, plans: 24 } as const
+/** a conduct row's optional facts (1.8.5): dropped when unreadable */
+const OPT_ROW = ['yd', 'u21', 'u21l', 'hgl', 'pl', 'chg', 'ansN', 'ans', 'capb', 'embb', 'wr', 'bk', 'wrl'] as const
+
+/** Note a signing the cap or an embargo refused (ai.ts): once per man a season. */
+export function noteBlocked(state: GameState, playerId: number, why: 'cap' | 'emb'): void {
+  if (ARC_OFF.on || state.unemployed) return
+  const cur = state.arc?.cur
+  if (!cur || cur.c !== state.userClubId) return
+  const k = why === 'cap' ? 'capb' : 'embb'
+  const list = (cur[k] ??= [])
+  if (!list.includes(playerId)) list.push(playerId)
+  if (list.length > ARC_CAPS.plans) list.splice(0, list.length - ARC_CAPS.plans)
+}
+
+/** Note a live match's touchline work (evidence.ts fileEvidence): whether the
+ *  dials moved, and a half-time answer to the hurting cause and whether it worked. */
+export function noteMatchWork(state: GameState, moved: boolean, answered: boolean, worked: boolean): void {
+  if (ARC_OFF.on || state.unemployed) return
+  const cur = state.arc?.cur
+  if (!cur || cur.c !== state.userClubId) return
+  if (moved) cur.chg = (cur.chg ?? 0) + 1
+  if (answered) cur.ansN = (cur.ansN ?? 0) + 1
+  if (answered && worked) cur.ans = (cur.ans ?? 0) + 1
+}
 
 /** The arc, created on first touch. */
 export function arcOf(state: GameState): CareerArc {
@@ -265,6 +316,7 @@ export function migrateArc(s: GameState): void {
       if (!num(r[k])) r[k] = 0
     }
     if (r.sell != null && !num(r.sell)) delete r.sell
+    for (const k of OPT_ROW) if (r[k] != null && !num(r[k])) delete r[k]
   }
   a.eras = a.eras.filter(e => !!e && typeof e === 'object' && typeof e.c === 'string' && typeof e.sk === 'string' && num(e.f)).slice(-ARC_CAPS.eras)
   for (const e of a.eras) {
@@ -284,6 +336,11 @@ export function migrateArc(s: GameState): void {
     if (!a.cur.top || typeof a.cur.top !== 'object') a.cur.top = {}
     a.cur.grads = Array.isArray(a.cur.grads) ? a.cur.grads.filter(num).slice(-ARC_CAPS.grads) : []
     if (a.cur.pats != null && !Array.isArray(a.cur.pats)) a.cur.pats = []
+    for (const k of ['plans', 'capb', 'embb'] as const) {
+      const v = a.cur[k] as unknown
+      if (v != null) a.cur[k] = Array.isArray(v) ? v.filter(num).slice(-ARC_CAPS.plans) : []
+    }
+    for (const k of ['chg', 'ansN', 'ans'] as const) if (a.cur[k] != null && !num(a.cur[k])) delete a.cur[k]
   }
   a.turned = a.turned.filter(x => typeof x === 'string')
   if (a.turnedAt != null) {

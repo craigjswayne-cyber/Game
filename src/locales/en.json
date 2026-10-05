@@ -8825,7 +8825,7 @@
   "wishMet": "The chairman asked for {wish_k}, and got it.",
   "wishMissed": "The chairman asked for {wish_k}, and did not get it.",
   "verdictSubj": "The board's verdict on the season",
-  "verdict": "The board's summer verdict.\n{rows_ll}",
+  "verdict": "{rows_ll}",
   "demGiantWon": "Silverware, which is what this club exists for. The board is satisfied.",
   "demGiantEmpty": "Two seasons without a trophy. At a club this size that is noticed, and the board has noticed.",
   "demFallenRise": "A higher finish than a year ago. The board wants the old standing back, and this is the road to it.",
@@ -8864,7 +8864,9 @@
     "other": "Turned round {n} clubs in trouble."
    },
    "defence": "Known for sides that are hard to break down.",
-   "attack": "Known for sides that score a lot of points."
+   "attack": "Known for sides that score a lot of points.",
+   "tactician": "Known for changing the plan, week to week and at half time.",
+   "prudent": "Known for keeping the books in order and the wage bill within budget."
   },
   "traitNewsSubj": "What they say about you",
   "traitNews": "The papers have settled on a way to describe you: {trait_k}",
@@ -8888,7 +8890,9 @@
    "players": "man-management",
    "turnaround": "turning clubs round",
    "defence": "defensive rugby",
-   "attack": "attacking rugby"
+   "attack": "attacking rugby",
+   "tactician": "changing the plan",
+   "prudent": "careful spending"
   },
   "meth": {
    "broke": "Promises to players were broken, and the board heard.",
@@ -8899,7 +8903,12 @@
    "academy": "Academy players were given their chance.",
    "attack": "The side attacked, and the chairman enjoyed it.",
    "spent": "The money was spent boldly.",
-   "defence": "A side that is hard to beat."
+   "defence": "A side that is hard to beat.",
+   "prudentWages": "The wage bill stayed under budget and the books balanced. The board noticed.",
+   "tacWorked": "The plan changed from week to week, and the results came with it.",
+   "tacRestless": "The plan changed from week to week, and the results did not follow.",
+   "capHeld": "The salary cap blocked signings you went for. The board knows the limit was the league's.",
+   "embargo": "The salary-cap embargo kept the club out of the market."
   },
   "profile": {
    "giant": "A rich club that expects titles.",

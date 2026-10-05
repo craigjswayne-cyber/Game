@@ -10,15 +10,20 @@
  * the traits themselves except which ones have already been announced, so a
  * trait comes and goes with the behaviour behind it:
  *
- *   youth         academy debuts and homegrown minutes, season after season
- *                 (and it says young backs or young forwards when the debuts
- *                 lean one way, and internationals when they became them)
- *   innovator     many ideas of rugby in one season, and winning with them
+ *   youth         debuts given to boys he picked and minutes beyond the
+ *                 league's own share, season after season (and it says young
+ *                 backs or young forwards when the debuts lean one way, and
+ *                 internationals when they became them)
+ *   innovator     many plans and ideas of rugby in a season, touchline
+ *                 changes, and winning with them
+ *   tactician     the same work without the results to show for it
  *   spender       fees paid well beyond the wage bill, year on year
  *   seller        fees taken well beyond the wage bill and well beyond what
  *                 was spent: the manager who sells his best men on (1.8.5
  *                 career QA: a career that sold 38 internationals for 89
  *                 million read the same as one that sold nobody)
+ *   prudent       the wage bill kept under budget and the books level, with
+ *                 little spent on fees
  *   hard          the calls that cost a player something: requests refused,
  *                 seniors dropped, staff let go, incidents confronted
  *   players       promises kept and requests granted, few broken, a happy room
@@ -46,10 +51,11 @@ import { isForward } from './bench'
 import { recall } from './memory'
 import { tendencyProfile } from './tendency'
 import { identityOf } from './identity'
-import { ARC_CAPS, ARC_OFF, arcFile, arcOf, type Conduct } from './arcbook'
+import { ARC_CAPS, ARC_OFF, arcFile, arcHash, arcOf, type Conduct } from './arcbook'
+import { userWageBudget } from './grants'
 
-export type Trait = 'youth' | 'youthBacks' | 'youthPack' | 'youthIntl' | 'innovator' | 'spender' | 'seller' | 'hard' | 'players' |
-  'turnaround' | 'defence' | 'attack'
+export type Trait = 'youth' | 'youthBacks' | 'youthPack' | 'youthIntl' | 'innovator' | 'tactician' | 'spender' | 'seller' | 'prudent' |
+  'hard' | 'players' | 'turnaround' | 'defence' | 'attack'
 
 /** Seasons read for the traits, and the fewest before any can show. */
 const WINDOW = 8
@@ -61,14 +67,52 @@ const REPUTE_FADE = 3
 
 // ---------------------------------------------------------------- conduct ---
 
-/** The kind of rugby played this week, for the innovator's read (arc.ts). */
+/** The kind of rugby played this week, and the plan it was played with, for
+ *  the tactician's read (arc.ts, after each club match). */
 export function notePattern(state: GameState): void {
   const cur = state.arc?.cur
   if (!cur || cur.c !== state.userClubId) return
+  // THE PLAN HE PICKED (1.8.5 career QA). The kinds of rugby the side played
+  // are a result; a manager who changed his styles and calls every few weeks
+  // was invisible behind it. The plan is the styles, the calls, the zones and
+  // the four dials to the nearest third, hashed so the save holds a number.
+  const t = state.clubs[state.userClubId]?.tactic
+  if (t) {
+    const sig = [t.atkStyle, t.defStyle, t.lineoutCall, t.scrumCall, t.moveMain, t.zones?.own22, t.zones?.middle, t.zones?.opp22,
+      ...[t.style, t.tempo, t.kicking, t.aggression].map(v => Math.round((v ?? 50) / 34))].join('|')
+    const h = arcHash(sig) % 1_000_000
+    cur.plans ??= []
+    if (!cur.plans.includes(h)) cur.plans.push(h)
+    if (cur.plans.length > ARC_CAPS.plans) cur.plans.splice(0, cur.plans.length - ARC_CAPS.plans)
+  }
   const p = tendencyProfile(state)?.pattern
   if (!p) return
   cur.pats ??= []
   if (!cur.pats.includes(p)) cur.pats.push(p)
+}
+
+/** Senior appearances in a league this season, other than the manager's club:
+ *  the share to homegrown men and to men of 21 or under (0-100). The norm the
+ *  manager's own shares are read against. */
+function leagueNorm(state: GameState, leagueId: string, except: string): { hg: number; u21: number; wr: number } | null {
+  let tot = 0, hg = 0, u21 = 0
+  const wrs: number[] = []
+  for (const c of Object.values(state.clubs)) {
+    if (c.leagueId !== leagueId || c.id === except) continue
+    let bill = 0
+    for (const id of c.players) { const p = state.players[id]; if (p && !p.acad) bill += p.wage }
+    if (c.wageBudget > 0) wrs.push((bill / c.wageBudget) * 100)
+    for (const id of c.players) {
+      const p = state.players[id]
+      if (!p || p.acad || !p.stats.apps) continue
+      tot += p.stats.apps
+      if (p.homegrown) hg += p.stats.apps
+      if (p.age <= 21) u21 += p.stats.apps
+    }
+  }
+  wrs.sort((a, b) => a - b)
+  const wr = wrs.length ? Math.round(wrs[wrs.length >> 1]) : 0
+  return tot ? { hg: Math.round((hg / tot) * 100), u21: Math.round((u21 / tot) * 100), wr } : null
 }
 
 /** The season's conduct row, from facts that are still standing at the
@@ -91,10 +135,20 @@ export function conductRow(state: GameState): Conduct | null {
   const table = comp?.table ?? []
   const pos = table.length ? sortTable(table).findIndex(r => r.teamId === uid) + 1 : 0
   const seniors = club.players.map(id => state.players[id]).filter((p): p is Player => !!p && !p.acad)
-  let tot = 0, hg = 0, mor = 0, wages = 0
-  for (const p of seniors) { tot += p.stats.apps; if (p.homegrown) hg += p.stats.apps; mor += p.morale; wages += p.wage }
+  let tot = 0, hg = 0, mor = 0, wages = 0, u21 = 0
+  for (const p of seniors) {
+    tot += p.stats.apps; mor += p.morale; wages += p.wage
+    if (p.homegrown) hg += p.stats.apps
+    if (p.age <= 21) u21 += p.stats.apps
+  }
   const since = { sinceSeason: state.season }
-  const deb = recall(state, { kind: 'academy-debut', clubId: uid, ...since }).length
+  const debs = recall(state, { kind: 'academy-debut', clubId: uid, ...since })
+  const deb = debs.length
+  // the debuts that were his choice: a boy of 20 or under picked, not a man
+  // through the age gate because the squad needed bodies (rollover.ts; read
+  // before the summer ages anybody)
+  const yd = debs.filter(e => { const p = e.playerId != null ? state.players[e.playerId] : undefined; return !!p && p.age <= 20 }).length
+  const norm = leagueNorm(state, club.leagueId, uid)
   // a senior left out is one hard call a season, however many weeks it runs:
   // the bonds ledger notes every match he misses, and a rotation that sat the
   // same voice twelve times read as twelve calls (1.8.5 career QA: a manager
@@ -109,6 +163,8 @@ export function conductRow(state: GameState): Conduct | null {
   const broke = recall(state, { kind: 'promise-broken', ...since }).length
   const books = state.books && state.books.clubId === uid ? state.books : null
   const m = mine.length
+  const cur = state.arc?.cur?.c === uid ? state.arc.cur : null
+  const wb = userWageBudget(state, club)
   return {
     s: state.season, c: uid, tier: leagueTier(club.leagueId), pos, n: table.length,
     m, w, d, l,
@@ -118,7 +174,12 @@ export function conductRow(state: GameState): Conduct | null {
     sell: Math.max(0, books?.lines.sales ?? 0),
     hard, kind, broke,
     mor: seniors.length ? Math.round((mor / seniors.length) * 10) / 10 : 0,
-    pats: state.arc?.cur?.c === uid ? (state.arc.cur.pats?.length ?? 0) : 0,
+    pats: cur ? (cur.pats?.length ?? 0) : 0,
+    yd, u21: tot ? Math.round((u21 / tot) * 100) : 0, u21l: norm?.u21 ?? 0, hgl: norm?.hg ?? 0,
+    pl: cur?.plans?.length ?? 0, chg: cur?.chg ?? 0, ansN: cur?.ansN ?? 0, ans: cur?.ans ?? 0,
+    capb: cur?.capb?.length ?? 0, embb: cur?.embb?.length ?? 0,
+    wr: Number.isFinite(wb) && wb > 0 ? Math.round((wages / wb) * 100) : 0, wrl: norm?.wr ?? 0,
+    bk: books ? club.balance - books.opening - (state.injectedThisSeason ?? 0) : 0,
   }
 }
 
@@ -144,9 +205,19 @@ function readTraits(state: GameState, rows: Conduct[], turned: number): { id: Tr
   const played = rows.filter(r => r.m > 0)
   const avgP = (f: (r: Conduct) => number) => played.length ? played.reduce((s, r) => s + f(r), 0) / played.length : 0
 
-  // youth: debuts and homegrown minutes, and what the debutants became
-  const deb = avg(r => r.deb), hg = avg(r => r.hg)
-  if (deb >= 1.5 && hg >= 22) {
+  // youth: debuts he chose and minutes beyond the league's, and what the
+  // debutants became. THE MANAGER'S CHOICES, NOT THE CHURN (1.8.5 career QA):
+  // read as raw debuts and a raw homegrown share, every career of ten seasons
+  // was a youth developer by the sixth, because the age gate tops a squad up
+  // and every club's squad turns homegrown with time. So a debut counts when
+  // the boy was 20 or under (picked, not through the gate), and the minutes
+  // count by how far they run over the league's own share, homegrown or under
+  // 21, whichever is further. A row written before has neither, and reads as
+  // it always did: every debut, and the share over twelve points (so the old
+  // threshold of 22 stands).
+  const chosen = avg(r => r.yd ?? r.deb)
+  const edge = avg(r => r.hgl != null ? Math.max(r.hg - r.hgl, (r.u21 ?? 0) - (r.u21l ?? 0)) : r.hg - 12)
+  if (chosen >= 1.5 && edge >= 10) {
     const grads = gradsOf(state)
     const intl = grads.filter(p => (p.caps ?? 0) > 0).length
     const backs = grads.filter(p => !isForward(p.pos)).length
@@ -155,17 +226,44 @@ function readTraits(state: GameState, rows: Conduct[], turned: number): { id: Tr
       : grads.length >= 4 && backs >= grads.length * 0.7 ? 'youthBacks'
       : grads.length >= 4 && fwd >= grads.length * 0.7 ? 'youthPack'
       : 'youth'
-    out.push({ id, n: intl, w: 40 + deb * 8 + hg / 2 })
+    out.push({ id, n: intl, w: 40 + chosen * 8 + (edge + 12) / 2 })
   }
-  // innovator: several ideas of rugby a season, and winning with them
+  // THE TACTICIAN (1.8.5 career QA): a manager who changed his styles and
+  // calls every few weeks and answered the half-time chip read as nothing,
+  // because the only tactical trait asked for a winning side as well. Now
+  // the work itself is read: plans used, live matches where the dials moved,
+  // and the kinds of rugby the side played. Winning with it, or half-time
+  // answers that the second half bore out on a side breaking even, is the
+  // innovator; the same work without the results is the plainer tactician.
   const pats = avg(r => r.pats), winRate = avgP(r => r.w / Math.max(1, r.m))
-  if (pats >= 3 && winRate >= 0.5) out.push({ id: 'innovator', w: 30 + pats * 8 + winRate * 20 })
+  const plans = avg(r => r.pl ?? 0), moved = avgP(r => (r.chg ?? 0) / Math.max(1, r.m))
+  const ansN = rows.reduce((n, r) => n + (r.ansN ?? 0), 0), ans = rows.reduce((n, r) => n + (r.ans ?? 0), 0)
+  const worked = ansN >= 4 ? ans / ansN : 0
+  if (pats >= 3 || plans >= 4 || moved >= 0.25) {
+    const won = winRate >= 0.5 || (winRate >= 0.45 && worked >= 0.5)
+    const busy = Math.max(pats * 8, Math.min(plans, 10) * 5) + moved * 30
+    out.push(won ? { id: 'innovator', w: 30 + busy + winRate * 20 } : { id: 'tactician', w: 25 + busy })
+  }
   // spender: fees well beyond the wage bill
   const spend = avg(r => (r.wages > 0 ? r.buy / r.wages : 0))
   if (spend >= 0.45) out.push({ id: 'spender', w: 30 + spend * 30 })
   // seller: fees taken well beyond the wage bill, and twice what was spent
   const sold = avg(r => (r.wages > 0 ? (r.sell ?? 0) / r.wages : 0))
   if (sold >= 0.6 && sold >= spend * 2) out.push({ id: 'seller', w: 30 + sold * 20 })
+  // CAREFUL WITH MONEY (1.8.5 career QA): a manager who kept the wage bill
+  // under its budget and the books level or better, season after season, and
+  // bought little, was known for nothing; the club's "well run" label went to
+  // every career alike. The wage budget is set once and wages inflate, so
+  // the bill is read against the league's own (the median club's bill over
+  // its budget): under it, or under budget outright. Rows written before
+  // carry no wage share and are not read.
+  const fin = rows.filter(r => (r.wr ?? 0) > 0)
+  if (fin.length >= MIN_SEASONS && sold < 0.3) {
+    const under = fin.filter(r => (r.wr ?? 0) <= Math.max(92, r.wrl ?? 0)).length / fin.length
+    const level = fin.filter(r => (r.bk ?? 0) >= 0).length / fin.length
+    const fees = fin.reduce((x, r) => x + (r.wages > 0 ? r.buy / r.wages : 0), 0) / fin.length
+    if (under >= 0.6 && level >= 0.6 && fees < 0.15) out.push({ id: 'prudent', w: 30 + under * 15 + level * 15 })
+  }
   // the hard calls and the kind ones
   const hard = avg(r => r.hard), kind = avg(r => r.kind), broke = avg(r => r.broke), mor = avgP(r => r.mor)
   if (hard >= 3 && hard >= kind * 1.5) out.push({ id: 'hard', w: 25 + hard * 5 })
