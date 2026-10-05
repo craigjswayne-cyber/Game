@@ -32,6 +32,7 @@ import { aiFreeAgents, backResponders, chooseBetween, liveRivalBid, minutesAt, r
 import { migrate } from '../src/game/save'
 import { tIn } from '../src/game/i18n'
 import type { GameState, Player } from '../src/game/model'
+import { playerWage } from '../src/game/attributes'
 
 let fails = 0
 const ok = (c: boolean, what: string) => {
@@ -273,16 +274,27 @@ ok(badMoney === 0, `and every one can pay the fee (${badMoney} not)`)
   mid.splice(7, 0, g.userClubId)
   ok(respondersTo(g, mid).every(id => mid.indexOf(id) > 7), 'a mid-table finish backs nobody who finished above him')
 
-  // a star dropped into the pool in a window week is gone within the window
+  // stars dropped into the pool in a window week are mostly gone within it,
+  // each to a club whose income carries his wage, at less than the scale
   const h = newGame('leicester', 'Pool', 73)
-  const star = Object.values(h.players).filter(p => p.clubId && p.clubId !== h.userClubId && !p.acad && p.ca >= 86 && p.age <= 29)
-    .sort((a, b) => b.ca - a.ca)[0]
-  const from = h.clubs[star.clubId!]
-  from.players = from.players.filter(id => id !== star.id)
-  star.clubId = null
-  let week = 2
-  while (!star.clubId && week <= 7) { h.week = week++; aiFreeAgents(h) }
-  ok(!!star.clubId && star.clubId !== h.userClubId, `a free ${star.ca}-rated ${star.pos} is signed by an AI club within the window (${star.clubId ?? 'nobody'}, week ${week - 1})`)
+  const stars = Object.values(h.players).filter(p => p.clubId && p.clubId !== h.userClubId && !p.acad && p.ca >= 84 && p.ca <= 89 && p.age <= 29)
+    .sort((a, b) => a.id - b.id).slice(0, 8)
+  for (const p of stars) {
+    const from = h.clubs[p.clubId!]
+    from.players = from.players.filter(id => id !== p.id)
+    p.clubId = null
+  }
+  for (let week = 2; week <= 7; week++) { h.week = week; aiFreeAgents(h) }
+  const signed = stars.filter(p => p.clubId && p.clubId !== h.userClubId)
+  ok(signed.length >= stars.length / 2, `${signed.length} of ${stars.length} free stars (84-89) signed by AI clubs within the window (${signed.map(p => `${p.ca} to ${p.clubId}`).join(', ')})`)
+  ok(signed.every(p => p.wage <= playerWage(p.ca, p.age) * 0.85 + 50 && h.clubs[p.clubId!].balance > 0),
+    'each on less than the scale, by a club in the black')
+  const broke = newGame('leicester', 'Broke pool', 73)
+  for (const c of Object.values(broke.clubs)) if (c.id !== broke.userClubId) c.balance = -1
+  const bstars = Object.values(broke.players).filter(p => p.clubId && p.clubId !== broke.userClubId && !p.acad && p.ca >= 84).slice(0, 8)
+  for (const p of bstars) { const c = broke.clubs[p.clubId!]; c.players = c.players.filter(id => id !== p.id); p.clubId = null }
+  for (let week = 2; week <= 7; week++) { broke.week = week; aiFreeAgents(broke) }
+  ok(bstars.every(p => !p.clubId), 'no club in the red signs a free agent')
 }
 
 console.log(fails ? `\nRIVAL BID PROBE FAILED: ${fails}` : '\nRIVAL BID PROBE PASSED')
