@@ -91,8 +91,12 @@ public class PhaseBilling: CAPPlugin {
         Task {
             do {
                 let products = try await Product.products(for: skus)
+                // 1.8.6: `micros` is the same price as a number, read only by
+                // the one-time offer's check that a printed percentage is
+                // true. displayPrice is still the only figure anybody sees.
                 call.resolve(["products": products.map {
-                    ["sku": $0.id, "price": $0.displayPrice, "title": $0.displayName]
+                    ["sku": $0.id, "price": $0.displayPrice, "title": $0.displayName,
+                     "micros": NSDecimalNumber(decimal: $0.price * 1_000_000).intValue]
                 }])
             } catch {
                 // a configuration mistake or no network: no price, never a

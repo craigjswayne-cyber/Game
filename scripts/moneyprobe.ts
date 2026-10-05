@@ -240,11 +240,16 @@ clear()
 // ground had to be its own consumable (phase.ground). The first ground is still
 // covered by phase.estate, which is why BOTH exist rather than one replacing
 // the other.
-ok(M.NC_SKUS.length === 4 && M.CONSUMABLE_SKUS.length === 7, 'eleven products: four owned for ever, seven repeatable')
+// 1.8.6: twelve. The one-time offer is Pro Manager under its own id at its own
+// lower price (docs/pro-manager.md) - owned for ever like the first, sold
+// only from the offer card, and never on the shelf (not in SELLABLE_SKUS).
+ok(M.NC_SKUS.length === 5 && M.CONSUMABLE_SKUS.length === 7, 'twelve products: five owned for ever, seven repeatable')
+ok((M.NC_SKUS as readonly string[]).includes(M.PRO_INTRO_SKU) && !M.SELLABLE_SKUS.includes(M.PRO_INTRO_SKU),
+   'the one-time Pro price is owned for ever and never on the shelf')
 ok(M.CONSUMABLE_SKUS.includes(M.SUPPORT_SKU), 'and the thank-you is one of the repeatable ones')
 ok(M.CONSUMABLE_SKUS.includes(M.GROUND_SKU) && (M.NC_SKUS as readonly string[]).includes(M.ESTATE_SKU),
    'the Estate is owned for ever and its repeat at a new ground is repeatable - the pair the club-scoping needs')
-ok(new Set([...M.NC_SKUS, ...M.CONSUMABLE_SKUS]).size === 11, 'and no sku sits on both shelves')
+ok(new Set([...M.NC_SKUS, ...M.CONSUMABLE_SKUS]).size === 12, 'and no sku sits on both shelves')
 ok(![...M.NC_SKUS, ...M.CONSUMABLE_SKUS].includes('phase.editor'), 'and the Editor is not quietly back')
 
 // ---- 10. consumables: the store confirms, the career keeps ---------------
@@ -282,6 +287,19 @@ console.log('\n--- 11. restore, v1.1.0')
   ok(M.hasSupporter(), 'a receipt written before v1.1.0 still stands, unre-litigated')
   M.grant(M.CHARTER_SKU)
   ok(M.hasSupporter() && M.hasEntitlement(M.CHARTER_SKU), 'and survives a new receipt joining it in the cache')
+  // 1.8.6: the one-time offer's receipt IS Pro Manager, everywhere it is asked
+  clear()
+  g.rmBilling = fakeStore({ owns: [M.PRO_INTRO_SKU] })
+  g.rmAds = { mount: () => {} }
+  ok(await M.restore() === true && M.hasEntitlement(M.PRO_INTRO_SKU), 'restore recognises the one-time Pro product')
+  ok(M.hasEntitlement(M.SUPPORTER_SKU) && M.hasSupporter() && !M.adsAllowed('home-foot'),
+    'and owning it is owning Pro Manager: entitlement, supporter, no adverts')
+  ok(M.proDiscount({ sku: 'a', price: '£1.99' }, { sku: 'b', price: '£1.49' }) === 25,
+    'a £1.49 offer on £1.99 is printed as 25% off')
+  ok(M.proDiscount({ sku: 'a', price: '£1.99', micros: 1_990_000 }, { sku: 'b', price: '£1.69', micros: 1_690_000 }) === null,
+    'a discount outside 20-30% prints no percentage at all')
+  ok(M.proDiscount({ sku: 'a', price: '1,99 €' }, { sku: 'b', price: '1,49 €' }) === 25 && M.proDiscount(null, { sku: 'b', price: '£1' }) === null,
+    'comma decimals parse, and a missing normal price claims nothing')
   ok(store.size === 1 && [...store.keys()][0] === 'rm-ent', 'still exactly one key beside night mode')
 }
 
@@ -1023,7 +1041,7 @@ console.log('\n--- 14. the StoreKit bridge and the native files behind it')
     `the test configuration names a British storefront, so its prices read in pounds (${kit.settings?._storefront ?? 'none'})`)
   const badPrice: string[] = []
   for (const p of kit.products as { productID: string; displayPrice: string }[]) {
-    if (!M.SELLABLE_SKUS.includes(p.productID)) badPrice.push(`${p.productID} is in no catalogue`)
+    if (!M.SELLABLE_SKUS.includes(p.productID) && p.productID !== M.PRO_INTRO_SKU) badPrice.push(`${p.productID} is in no catalogue`)
     else if (!/^\d+\.\d\d$/.test(p.displayPrice ?? '')) badPrice.push(`${p.productID} priced "${p.displayPrice}"`)
   }
   ok(badPrice.length === 0,

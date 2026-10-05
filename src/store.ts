@@ -108,6 +108,23 @@ import {
 import { isHighlight } from './game/highlights'
 import { fileFindings } from './game/matchfindings'
 import { fileEvidence } from './game/evidence'
+import { proMatchPlayed, readFunnel, writeFunnel } from './game/profunnel'
+
+/** ONE COMPETITIVE MATCH COMPLETED, FOR THE PRO MANAGER CADENCE (1.8.6).
+ *
+ *  Device state only (game/profunnel.ts): nothing here reads the rng or
+ *  writes the career. Friendlies do not count, nothing counts once Pro is
+ *  owned, and nothing counts where there is no store to buy it from. Called
+ *  at each of the four places a match of the manager's ends - the live
+ *  whistle, the assistant's result, a walkover and a match played out on
+ *  reload - and keyed by career and fixture, so no match counts twice. */
+function countForPro(g: GameState, fx: Pick<Fixture, 'id' | 'compId'> | null | undefined) {
+  if (!fx || fx.compId === 'fr') return
+  if (!tillOpen() || hasSupporter()) return
+  const f = readFunnel()
+  const n = proMatchPlayed(f, `${g.seed}:${g.season}:${fx.id}`)
+  if (n !== f) writeFunnel(n)
+}
 
 /**
  * How close together two Continue taps have to be before the second is treated as
@@ -801,6 +818,7 @@ export const useStore = create<Store>((set, get) => ({
       fileFindings(base, out.ctx)
       fileEvidence(base, out.ctx)
       notePlayedOut(base, out.fixture, fromMin)
+      countForPro(base, out.fixture)
       base.newsFrom = base.nextId
       processWeekAndAdvance(base)
       set(s => ({ game: base, matchRec: own, liveMatch: null, resuming: false, tick: s.tick + 1 }))
@@ -1168,6 +1186,7 @@ export const useStore = create<Store>((set, get) => ({
       fileFindings(g, ctx)
       fileEvidence(g, ctx)
     }
+    countForPro(g, fx)
     const resultsKey = resultsParam(fx.compId, g.week)
     // Exactly what finishMatch does, and for the same reason. This used to set
     // its own watermark aside and then push every new story of the week into the
@@ -1224,6 +1243,7 @@ export const useStore = create<Store>((set, get) => ({
     const forfeit = forfeitSide(g, fx)
     if (forfeit) {
       settleForfeit(g, fx, forfeit)
+      countForPro(g, fx)
       const resultsKey = resultsParam(fx.compId, g.week)
       g.newsFrom = g.nextId
       processWeekAndAdvance(g)
@@ -1535,6 +1555,7 @@ export const useStore = create<Store>((set, get) => ({
     if (live) {
       fileFindings(g, live.ctx)
       fileEvidence(g, live.ctx)
+      countForPro(g, live.fixture)
     }
     g.newsFrom = g.nextId
     processWeekAndAdvance(g)

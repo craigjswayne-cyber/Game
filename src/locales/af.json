@@ -9284,5 +9284,24 @@
   "run": {"one": "{n} wedstryd op 'n ry onoorwonne, die langste reeks van jou loopbaan.", "other": "{n} wedstryde op 'n ry onoorwonne, die langste reeks van jou loopbaan."},
   "low": "{us}-{them} teen {opp} verloor, die swaarste nederlaag van die era. Die volgende seisoen was beter.",
   "signing": "{player} vir {fee} gekontrakteer, die grootste bedrag van die era."
+ },
+ "pro": {
+  "title": "PRO-BESTUURDER",
+  "firstLine": "Die hele spel is gratis, en dit bly gratis. Pro-bestuurder is 'n opsionele ekstra.",
+  "benefitAds": "Geen advertensies",
+  "benefitSkins": "Drie temas wat net Pro-bestuurders kry",
+  "benefitBack": "Ondersteun 'n onafhanklike spel",
+  "buy": "Word Pro",
+  "free": "Gaan gratis voort",
+  "laterFine": "Niks aan die rugby verander nie. Jy kan later in die Winkel Pro word.",
+  "offerTag": "EENMALIGE AANBOD",
+  "offerLine": "Pro-bestuurder teen 'n laer prys, net hierdie keer aangebied. Een keer gekoop, joune vir altyd.",
+  "offerFine": "Hierdie prys word net een keer gewys. Gaan gratis voort laat jou spel net soos dit is, en Pro bly in die Winkel teen die gewone prys.",
+  "off": "{n}% AF",
+  "usually": "Gewoonlik {price}",
+  "reminderLine": "Geniet jy die seisoen? Pro-bestuurder haal die advertensies weg en voeg drie temas by, wanneer jy wil.",
+  "reminderLineSkins": "Geniet jy die seisoen? Pro-bestuurder voeg drie temas by wat net Pro-bestuurders kry, wanneer jy wil.",
+  "done": "Jy is 'n Pro-bestuurder. Dankie dat jy die spel ondersteun. Die drie temas wag vir jou in Instellings.",
+  "close": "Gaan voort"
  }
 }

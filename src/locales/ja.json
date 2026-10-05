@@ -8805,5 +8805,24 @@
   "run": {"one": "{n}試合連続無敗。キャリア最長記録。", "other": "{n}試合連続無敗。キャリア最長記録。"},
   "low": "{opp}に{us}-{them}で敗戦。この時代で最悪の敗戦。翌シーズンは上向いた。",
   "signing": "{player}を{fee}で獲得。この時代の最高額。"
+ },
+ "pro": {
+  "title": "PRO MANAGER",
+  "firstLine": "ゲームはすべて無料で遊べ、これからも無料のまま。Pro Managerは任意の追加購入だ。",
+  "benefitAds": "広告なし",
+  "benefitSkins": "Proだけが使える3つのスキン",
+  "benefitBack": "インディーゲームの応援になる",
+  "buy": "Proになる",
+  "free": "無料で続ける",
+  "laterFine": "ラグビーの中身は変わらない。Proにはあとからストアでもなれる。",
+  "offerTag": "一度きりのオファー",
+  "offerLine": "Pro Managerを一度きりの割引価格で。一度買えばずっと自分のもの。",
+  "offerFine": "この価格が表示されるのは一度だけ。「無料で続ける」を選んでもゲームはそのまま。Proは通常価格でストアに残る。",
+  "off": "{n}%オフ",
+  "usually": "通常価格 {price}",
+  "reminderLine": "シーズンを楽しんでいる？Pro Managerなら広告がなくなり、3つのスキンが加わる。好きなときにどうぞ。",
+  "reminderLineSkins": "シーズンを楽しんでいる？Pro ManagerならProだけの3つのスキンが加わる。好きなときにどうぞ。",
+  "done": "Pro Managerになった。ゲームを応援してくれてありがとう。3つのスキンは設定で選べる。",
+  "close": "続ける"
  }
 }

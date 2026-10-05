@@ -194,6 +194,10 @@ public class PhaseBilling extends Plugin implements PurchasesUpdatedListener {
                         o.put("sku", d.getProductId());
                         o.put("price", one != null ? one.getFormattedPrice() : "");
                         o.put("title", d.getName());
+                        // 1.8.6: the same price as a number, for the one-time
+                        // offer's check that a printed percentage is true.
+                        // Never shown; the formatted price above is.
+                        if (one != null) o.put("micros", one.getPriceAmountMicros());
                         out.add(o);
                     }
                 } else {

@@ -35,7 +35,7 @@ import type { BillingBridge, ConsumeResult, Product, PurchaseOutcome } from './m
 /** What the Swift plugin promises. Capacitor hands every method an object and
  *  gets one back, so each of these is that shape and nothing cleverer. */
 interface PhaseBillingPlugin {
-  details(o: { skus: string[] }): Promise<{ products: { sku: string; price: string; title?: string }[] }>
+  details(o: { skus: string[] }): Promise<{ products: { sku: string; price: string; title?: string; micros?: number }[] }>
   /** `cause` is optional: shells from 1.8.3 say which kind of "no" it was
    *  (see BillingCause in monetise.ts); older shells send the word alone. */
   buy(o: { sku: string }): Promise<{ outcome: string; cause?: string }>
@@ -60,6 +60,12 @@ type WithCapacitor = {
 }
 
 const PLUGIN = 'PhaseBilling'
+
+/** The price as a number, which shells from 1.8.6 send beside the formatted
+ *  one (Play's priceAmountMicros, StoreKit's Decimal price): read only by the
+ *  one-time offer's honesty check, never shown. An older shell sends none. */
+const microsOf = (v: unknown): number | undefined =>
+  typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : undefined
 
 /**
  * ---- HOW YOU ACTUALLY GET HOLD OF A CAPACITOR PLUGIN ----
@@ -131,7 +137,7 @@ export function storeKitBridge(): BillingBridge | null {
       // the customer's own storefront and currency, so it is passed through
       // untouched. A price this code assembled would be wrong in most of the
       // world - the same rule the Android side learned the hard way.
-      return d ? { sku: d.sku, price: d.price, title: d.title } : null
+      return d ? { sku: d.sku, price: d.price, title: d.title, micros: microsOf(d.micros) } : null
     } catch { return null }
   }
 
@@ -139,7 +145,7 @@ export function storeKitBridge(): BillingBridge | null {
    *  always wrapping one sku in an array. This passes the shelf through. */
   const detailsMany = async (skus: string[]): Promise<Product[]> => {
     const { products } = await p.details({ skus })
-    return (products ?? []).map(d => ({ sku: d.sku, price: d.price, title: d.title }))
+    return (products ?? []).map(d => ({ sku: d.sku, price: d.price, title: d.title, micros: microsOf(d.micros) }))
   }
 
   const buy = async (sku: string): Promise<PurchaseOutcome> => {
