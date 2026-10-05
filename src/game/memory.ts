@@ -221,6 +221,12 @@ export function rememberDeparture(
   // a0/t0: his season so far, which a move mid-season carries to the next
   // club's row; what he has done since is read past them (formerFacing)
   const payload: Record<string, string | number> = { name: p.name, from, caps: p.caps ?? 0, ca: p.ca, a0: p.stats.apps, t0: p.stats.tries }
+  // ap: his games for the club as the book has them on the day he goes, the
+  // years before the career opened included. service() can credit that lump
+  // only while he is still there, so a one-club man sold in the first window
+  // read "sold before a first-team game" (1.8.5 career QA, Freddie Steward)
+  const ap = service(p, from).apps
+  if (ap > 0) payload.ap = ap
   if (to) { payload.to = to; payload.buyer = to }
   if (fee && fee > 0) payload.fee = fee
   if (p.homegrown || p.youth || p.acad) payload.acad = 1

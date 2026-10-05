@@ -152,7 +152,10 @@ function backed(g: GameState, p: Player, l: StoryLine, made: (p: Player) => bool
     case 'legend': return (g.hist?.legends ?? []).some(x => x.pid === p.id && n === booked(p, x.clubId))
     case 'sold': case 'released': case 'let-go': {
       const e = last(['sold', 'released', 'let-go'])
-      return !!e && e.kind === l.why && e.clubId != null && p.clubId !== e.clubId && n === booked(p, e.clubId) && (n > 0) === (l.k !== 'story.soldYoung')
+      // the book's count, or the count the departure itself recorded (ap: his
+      // games there on the day he left, the years before the career included)
+      return !!e && e.kind === l.why && e.clubId != null && p.clubId !== e.clubId
+        && n === Math.max(booked(p, e.clubId), Number(e.payload?.ap ?? 0) || 0) && (n > 0) === (l.k !== 'story.soldYoung')
         && (e.payload?.nb === 1 || e.sal >= 2) && l.v.season === seasonLabel(e.season)
     }
     case 'promise': {

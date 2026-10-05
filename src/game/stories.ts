@@ -94,7 +94,7 @@ export function playerStory(state: GameState, p: Player, made: (p: Player) => bo
   const gone = !!dep && dep.clubId != null && p.clubId !== dep.clubId && (dep.payload?.nb === 1 || dep.sal >= 2)
   if (gone) {
     const from = dep!.clubId!
-    const n = appsFor(from)
+    const n = Math.max(appsFor(from), Number(dep!.payload?.ap ?? 0) || 0)
     const to = typeof dep!.payload?.to === 'string' ? dep!.payload.to : ''
     const fee = Number(dep!.payload?.fee ?? 0)
     const v = { club: short(from), season: seasonLabel(dep!.season), n }
