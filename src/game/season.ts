@@ -78,6 +78,21 @@ export function weekRng(state: GameState): Rng {
  *  so the first AI fixture of the week had the manager's weather and his
  *  match's dice (measured: 41 weeks in 44). A salt on the same week seed
  *  keeps it deterministic per week, so the forecast still predicts the day. */
+/** A team's short name AS A SAVE STORES IT (1.8.5 save QA). A nation's name
+ *  comes out of the dictionary, so teamShort wrote it in whatever language the
+ *  screen was in that week - "Japon win the Pacific Islands Cup" sat in a
+ *  career for good, a French word inside an English sentence, and the same
+ *  career played in English saved different text. Stored in English here,
+ *  with the code beside it (natTwin) so the reader's language names it. */
+function savedShort(state: GameState, id: string): string {
+  return state.clubs[id]?.short ?? nationNameIn('en', id)
+}
+/** `{ champ_n: 'JPN' }` when the team is a nation: i18n fill() renders a
+ *  {champ} that has a _n twin as that nation, in the reader's language. */
+function natTwin(state: GameState, name: string, id: string): Record<string, string> {
+  return state.clubs[id] || !nationByCode(id) ? {} : { [`${name}_n`]: id }
+}
+
 export function matchRng(state: GameState): Rng {
   return mulberry32((state.seed ^ (state.season * 131 + state.week * 7919)) ^ 0x6d2b79f5)
 }
@@ -3841,12 +3856,14 @@ export function processWeekAndAdvance(state: GameState) {
       state.history.push({ season: state.season, compId: comp.id, champion: comp.champion })
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
-        subject: `${teamShort(state, comp.champion)} win the ${comp.name}!`,
-        body: `${teamShort(state, comp.champion)} defeated ${teamShort(state, final.homeId === comp.champion ? final.awayId : final.homeId)} ${Math.max(final.homeScore, final.awayScore)}-${Math.min(final.homeScore, final.awayScore)} in the ${comp.name} final.`,
+        subject: `${savedShort(state, comp.champion)} win the ${comp.name}!`,
+        body: `${savedShort(state, comp.champion)} defeated ${savedShort(state, final.homeId === comp.champion ? final.awayId : final.homeId)} ${Math.max(final.homeScore, final.awayScore)}-${Math.min(final.homeScore, final.awayScore)} in the ${comp.name} final.`,
         k: 'news.cupWon',
         v: {
-          champ: teamShort(state, comp.champion), comp: comp.name,
-          loser: teamShort(state, final.homeId === comp.champion ? final.awayId : final.homeId),
+          champ: savedShort(state, comp.champion), comp: comp.name,
+          loser: savedShort(state, final.homeId === comp.champion ? final.awayId : final.homeId),
+          ...natTwin(state, 'champ', comp.champion),
+          ...natTwin(state, 'loser', final.homeId === comp.champion ? final.awayId : final.homeId),
           hi: Math.max(final.homeScore, final.awayScore), lo: Math.min(final.homeScore, final.awayScore),
         },
       })
@@ -3926,9 +3943,9 @@ export function processWeekAndAdvance(state: GameState) {
         }
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
-          subject: `${teamShort(state, comp.champion)} win the ${comp.name}`,
-          body: `${teamShort(state, comp.champion)} have been crowned ${comp.name} champions.`,
-          k: 'news.leagueWon', v: { champ: teamShort(state, comp.champion), comp: comp.name },
+          subject: `${savedShort(state, comp.champion)} win the ${comp.name}`,
+          body: `${savedShort(state, comp.champion)} have been crowned ${comp.name} champions.`,
+          k: 'news.leagueWon', v: { champ: savedShort(state, comp.champion), comp: comp.name, ...natTwin(state, 'champ', comp.champion) },
         })
       }
     }
