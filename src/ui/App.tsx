@@ -395,6 +395,11 @@ function useHardwareBack(depth: number, screen: Screen, menuOpen: boolean, close
       if (s.feedback) s.closeFeedback()
       else if (menuRef.current) closeRef.current()
       else if (s.nav.length > 1) s.back()
+      // THE TITLE STAYS PUT. App renders the title too (nav [menu], with or
+      // without a career loaded), so this listener is live there; without
+      // this line Back on the title went to Home, and Back on Home to the
+      // title, for ever (1.8.10 audit). The title has no page to go back to.
+      else if (s.nav[s.nav.length - 1]?.screen === 'menu') { /* stay */ }
       // a single page that is not Home goes Home rather than out of the game
       else if (s.nav[s.nav.length - 1]?.screen !== 'home'
         && s.nav[s.nav.length - 1]?.screen !== 'matchday') s.home()
