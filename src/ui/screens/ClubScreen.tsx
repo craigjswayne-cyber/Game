@@ -9,7 +9,7 @@ import { mulberry32 } from '../../game/rng'
 import { fuzzedCa, knowledge, seenValue } from '../../game/scout'
 import { dialLine, philosophyOf } from '../../game/philosophy'
 import { identityOf } from '../../game/identity'
-import { t, localeTag, compLabel } from '../../game/i18n'
+import { t, localeTag, compLabel, getLang } from '../../game/i18n'
 import { boardRequests } from '../../game/boardroom'
 import { chairWish } from '../../game/chairman'
 import { askTheBoard } from '../../game/season'
@@ -447,7 +447,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
                       return (
                         <div key={`${f.a}_${f.b}`} className="rift-row">
                           <div className="meta">
-                            <b>{a.name}</b> and <b>{b.name}</b>
+                            <b>{t('club.riftPair', { a: a.name, b: b.name })}</b>{getLang() === 'ja' ? '' : ' '}
                             {t('club.riftLine', { week: f.week })}
                           </div>
                           <div className="btn-row" style={{ marginTop: 5 }}>

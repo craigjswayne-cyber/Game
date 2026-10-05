@@ -15,6 +15,10 @@
  *                 lean one way, and internationals when they became them)
  *   innovator     many ideas of rugby in one season, and winning with them
  *   spender       fees paid well beyond the wage bill, year on year
+ *   seller        fees taken well beyond the wage bill and well beyond what
+ *                 was spent: the manager who sells his best men on (1.8.5
+ *                 career QA: a career that sold 38 internationals for 89
+ *                 million read the same as one that sold nobody)
  *   hard          the calls that cost a player something: requests refused,
  *                 seniors dropped, staff let go, incidents confronted
  *   players       promises kept and requests granted, few broken, a happy room
@@ -44,7 +48,7 @@ import { tendencyProfile } from './tendency'
 import { identityOf } from './identity'
 import { ARC_CAPS, ARC_OFF, arcFile, arcOf, type Conduct } from './arcbook'
 
-export type Trait = 'youth' | 'youthBacks' | 'youthPack' | 'youthIntl' | 'innovator' | 'spender' | 'hard' | 'players' |
+export type Trait = 'youth' | 'youthBacks' | 'youthPack' | 'youthIntl' | 'innovator' | 'spender' | 'seller' | 'hard' | 'players' |
   'turnaround' | 'defence' | 'attack'
 
 /** Seasons read for the traits, and the fewest before any can show. */
@@ -91,7 +95,12 @@ export function conductRow(state: GameState): Conduct | null {
   for (const p of seniors) { tot += p.stats.apps; if (p.homegrown) hg += p.stats.apps; mor += p.morale; wages += p.wage }
   const since = { sinceSeason: state.season }
   const deb = recall(state, { kind: 'academy-debut', clubId: uid, ...since }).length
-  const hard = recall(state, { kind: ['request-refused', 'senior-dropped', 'staff-sacked'], ...since }).length +
+  // a senior left out is one hard call a season, however many weeks it runs:
+  // the bonds ledger notes every match he misses, and a rotation that sat the
+  // same voice twelve times read as twelve calls (1.8.5 career QA: a manager
+  // pressing the auto-pick every week was "known as a disciplinarian")
+  const dropped = new Set(recall(state, { kind: 'senior-dropped', ...since }).map(e => e.playerId ?? -1)).size
+  const hard = recall(state, { kind: ['request-refused', 'staff-sacked'], ...since }).length + dropped +
     // a fine is a hard call, landed or challenged; a quiet word is not, though it
     // leaves the incident 'handled' too (1.8.4 career QA: a manager who only
     // ever had a word was "known as a disciplinarian")
@@ -106,6 +115,7 @@ export function conductRow(state: GameState): Conduct | null {
     pf: m ? Math.round((pf / m) * 10) / 10 : 0, pa: m ? Math.round((pa / m) * 10) / 10 : 0, lg: Math.round(lg * 10) / 10,
     deb, hg: tot ? Math.round((hg / tot) * 100) : 0,
     buy: Math.max(0, -(books?.lines.buys ?? 0)), wages: wages * 52,
+    sell: Math.max(0, books?.lines.sales ?? 0),
     hard, kind, broke,
     mor: seniors.length ? Math.round((mor / seniors.length) * 10) / 10 : 0,
     pats: state.arc?.cur?.c === uid ? (state.arc.cur.pats?.length ?? 0) : 0,
@@ -153,6 +163,9 @@ function readTraits(state: GameState, rows: Conduct[], turned: number): { id: Tr
   // spender: fees well beyond the wage bill
   const spend = avg(r => (r.wages > 0 ? r.buy / r.wages : 0))
   if (spend >= 0.45) out.push({ id: 'spender', w: 30 + spend * 30 })
+  // seller: fees taken well beyond the wage bill, and twice what was spent
+  const sold = avg(r => (r.wages > 0 ? (r.sell ?? 0) / r.wages : 0))
+  if (sold >= 0.6 && sold >= spend * 2) out.push({ id: 'seller', w: 30 + sold * 20 })
   // the hard calls and the kind ones
   const hard = avg(r => r.hard), kind = avg(r => r.kind), broke = avg(r => r.broke), mor = avgP(r => r.mor)
   if (hard >= 3 && hard >= kind * 1.5) out.push({ id: 'hard', w: 25 + hard * 5 })
