@@ -322,7 +322,7 @@ function tacticsRow(state: GameState): DeskRow | null {
   // WHAT THE LAST FEW MATCHES SAY (1.8.4, tacmemory.ts): at most two
   // conclusions, each with its numbers
   for (const n of tacticalMemory(state)) lines.push({ k: n.k, v: n.v })
-  return { id: 'tactics', label: 'groups.tactics', lines, go: { screen: 'tactics' } }
+  return { id: 'tactics', label: 'groups.tactics', lines, go: { screen: 'tactics', param: 'plan' } }
 }
 
 // ---------------------------------------------------------- dressing room
@@ -390,7 +390,7 @@ function threadRow(state: GameState): DeskRow | null {
     // the last meeting; the report says what
     if (rematchOf(state, opp)) {
       return {
-        id: 'thread', label: 'desk.thread', go: { screen: 'tactics' },
+        id: 'thread', label: 'desk.thread', go: { screen: 'tactics', param: 'prep' },
         lines: [{ k: 'desk.tRematch', v: { club: state.clubs[opp].short } }],
       }
     }
@@ -406,7 +406,7 @@ function threadRow(state: GameState): DeskRow | null {
     const q = deskQuestion(state, opp)
     if (q) {
       return {
-        id: 'thread', label: 'desk.thread', go: { screen: 'tactics' },
+        id: 'thread', label: 'desk.thread', go: { screen: 'tactics', param: 'setp' },
         lines: [{ k: 'desk.tPlaybook', v: { move_k: q.move_k, pct: q.pct, club: state.clubs[opp].short } }],
       }
     }
