@@ -98,9 +98,15 @@ async function startCareer(page) {
   await page.goto(URL)
   await page.locator('text=New Career').or(page.locator('.bottom-nav')).first().waitFor()
   // a device with a career reopens it, and the reopening can land a moment
-  // after the title first paints: settle, then step back to the title
-  await page.waitForTimeout(1200)
-  if (await page.evaluate(() => !!window.rugbyStore.getState().game)) await page.evaluate(() => window.rugbyStore.getState().toTitle())
+  // after the title first paints - on a slow CI runner well after the 1.2s
+  // this used to wait (1.8.8 run 37355664315: the career opened over the
+  // title and "New Career" was gone). So step back to the title until the
+  // title has held, with no career, for a whole second.
+  for (let held = 0, i = 0; held < 4 && i < 40; i++) {
+    await page.waitForTimeout(250)
+    const has = await page.evaluate(() => !!window.rugbyStore.getState().game)
+    if (has) { await page.evaluate(() => window.rugbyStore.getState().toTitle()); held = 0 } else held++
+  }
   await page.waitForSelector('text=RUGBY')
   await page.evaluate(() => window.rugbyStore.getState().setLang('en'))
   await page.click('text=New Career')

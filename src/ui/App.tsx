@@ -344,9 +344,10 @@ function useResume() {
  * would drift the first time a week turned over, and a drifted mirror is worse
  * than none - back would then eat the wrong number of screens.
  *
- * So history holds exactly one spare entry whenever there is somewhere to go
- * back to. Back spends it, we pop the nav ourselves, and we lay another one
- * down. The stack stays the game's business and history never has to agree
+ * So history holds exactly one spare entry for as long as a career is open
+ * (since 1.8.7: it used to be only when there was somewhere to go back to, and
+ * Back on Home then left the app). Back spends it, we close an open menu or pop
+ * the nav ourselves, and we lay another one down. The stack stays the game's business and history never has to agree
  * with it about anything except "is there somewhere to go back to".
  *
  * THE MATCH IS THE EXCEPTION, and not for the reason this comment first gave.
@@ -359,9 +360,16 @@ function useResume() {
  * depth 1 Back does nothing rather than exiting. The screen has its own ways
  * out. Found by backprobe, which asserted the kickOff story and failed.
  */
-function useHardwareBack(depth: number, screen: Screen) {
+function useHardwareBack(depth: number, screen: Screen, menuOpen: boolean, closeMenu: () => void) {
   // module-scope would leak between tests; a ref keeps it to this mount
   const armed = useRef(false)
+  // the menu is React state in App, and the popstate listener is installed
+  // once: refs let it read the current menu without being torn down and
+  // re-added on every open and close
+  const menuRef = useRef(menuOpen)
+  menuRef.current = menuOpen
+  const closeRef = useRef(closeMenu)
+  closeRef.current = closeMenu
 
   useEffect(() => {
     const arm = () => {
@@ -374,27 +382,35 @@ function useHardwareBack(depth: number, screen: Screen) {
       // the spare is spent: whatever happens now, it has to be laid again
       armed.current = false
       const s = useStore.getState()
-      if (s.nav.length > 1) s.back()
-      // at the root, and not in a match, the entry is deliberately NOT replaced
-      // so the press that follows leaves the app, which is what Back on a title
-      // screen is for. The effect below re-arms everywhere else.
-      else if (s.nav[s.nav.length - 1]?.screen === 'matchday') arm()
+      // AN OPEN MENU CLOSES FIRST (owner, 1.8.7, from a tester on a Samsung:
+      // "when you press back on the bottom buttons it takes you out of the
+      // game. Not back a page"). Hub, Manager and World open a menu over the
+      // page rather than a page of their own, so Back from Home with one open
+      // had nothing to go back to and closed the app.
+      if (menuRef.current) closeRef.current()
+      else if (s.nav.length > 1) s.back()
+      // a single page that is not Home goes Home rather than out of the game
+      else if (s.nav[s.nav.length - 1]?.screen !== 'home'
+        && s.nav[s.nav.length - 1]?.screen !== 'matchday') s.home()
+      // and on Home itself, or a match resumed at depth 1, Back stays put:
+      // the game is left with the phone's own Home gesture, never by a press
+      // meant for the page (same report)
+      arm()
     }
 
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
   }, [])
 
-  // Re-armed on every change of depth or screen rather than once on mount,
-  // because nav can go from 1 to 4 and back to 1 several times in a career and
-  // the spare has to exist for all of it.
+  // ALWAYS ARMED IN A CAREER (1.8.7). This used to arm only with somewhere to
+  // go back to, so the press that followed on Home left the app on purpose.
+  // Testers read that as the game closing itself. Re-checked on every change
+  // of depth, screen and menu, because a spent spare has to be laid again.
   useEffect(() => {
     if (armed.current) return
-    if (depth > 1 || screen === 'matchday') {
-      armed.current = true
-      window.history.pushState({ phase: 'phase-back' }, '')
-    }
-  }, [depth, screen])
+    armed.current = true
+    window.history.pushState({ phase: 'phase-back' }, '')
+  }, [depth, screen, menuOpen])
 }
 
 interface MenuItem {
@@ -436,7 +452,7 @@ export default function App() {
   useResume()
 
   const cur = nav[nav.length - 1]
-  useHardwareBack(nav.length, cur.screen)
+  useHardwareBack(nav.length, cur.screen, menu !== null, () => setMenu(null))
   // a skin is a third class on the same root: tokens.css declares the skin
   // blocks after night and day, so the skin wins the cascade and the
   // floodlight toggle still does its job underneath
