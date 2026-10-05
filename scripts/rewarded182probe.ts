@@ -189,6 +189,10 @@ console.log('\n--- 3. tape room night\n')
 {
   const g = newGame('bedford', 'Rewarded 182', 8204)
   const me = g.clubs[g.userClubId]
+  // the tape is of calls he runs: since 1.8.5 the line names only a call
+  // still in his playbook (a tape of dropped calls reads tapeRetired)
+  me.tactic.moveMain = 'mv_loop'
+  me.tactic.moveAlt = 'mv_blind'
   playbookOf(me).faced = { mv_loop: 14, mv_blind: 3 }
   const fx = g.fixtures.find(f => f.week >= g.week && (f.homeId === me.id || f.awayId === me.id) && g.clubs[f.homeId] && g.clubs[f.awayId])!
   const opp = fx.homeId === me.id ? fx.awayId : fx.homeId
