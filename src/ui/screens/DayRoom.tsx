@@ -1,6 +1,7 @@
 import { useStore } from '../../store'
 import { windowOpen } from '../../game/ai'
 import { fmtMoney, newsSubject, unbeatenRun } from '../../game/model'
+import { Byline } from '../Byline'
 import { teamShort } from '../../game/matchEngine'
 import {
   dayDate, dayName, daySub, dayTheme, medicalNews, pressWaiting, storiesForDay, today,
@@ -78,7 +79,7 @@ export default function DayRoom() {
             {stories.map(n => (
               <button key={n.id} className="day-story" onClick={() => openWire(stories.map(s => s.id), n.id)}>
                 <span className="ds-ico">{newsGlyph(n.type)}</span>
-                <span className="ds-subj">{newsSubject(n)}</span>
+                <span className="ds-subj"><Byline n={n} />{newsSubject(n)}</span>
                 <span className="ds-go">›</span>
               </button>
             ))}

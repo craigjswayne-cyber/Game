@@ -19,16 +19,26 @@ import { nextTelling } from './tellings'
  *
  *  There is no way to file a Wire story without a key, which is deliberate: the
  *  compiler is a better reminder than a probe, and a better one still than
- *  hoping somebody remembers. */
-function wire(state: GameState, k: string, v: Vars, playerId?: number) {
+ *  hoping somebody remembers.
+ *
+ *  `src` is the byline (model.ts NewsItem.src): 'ruck' for the stories Ruck
+ *  covers - the rest of the league, the rumour mill, the law talk - and absent
+ *  for anything about the manager's own club, which keeps the neutral voice. */
+function wire(state: GameState, k: string, v: Vars, playerId?: number, src?: 'ruck') {
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'gossip',
     read: false,
     subject: tIn('en', `${k}Subj`, v),
     body: tIn('en', k, v),
     k, v, playerId,
+    ...(src ? { src } : {}),
   })
 }
+
+/** Ruck's byline for a story about this club, or none when it is the manager's
+ *  own: the owner's line is that his club's news keeps its own voice. */
+const ruckUnlessMine = (state: GameState, clubId: string | null | undefined): 'ruck' | undefined =>
+  (isMyClub(state, clubId) ? undefined : 'ruck')
 
 // deterministic voicing: the same story wears different words from week to
 // week without drawing on the shared rng, so the world stream is untouched.
@@ -279,7 +289,7 @@ function moneyMen(state: GameState, rng: Rng) {
     if (state.week - t.week < 2 || rng() > 0.5) return
     if (t.stage === 0) {
       state.takeover = { ...t, week: state.week, stage: 1 }
-      wire(state, 'news.wTakeoverHardens', { short: club.short, club: club.name })
+      wire(state, 'news.wTakeoverHardens', { short: club.short, club: club.name }, undefined, ruckUnlessMine(state, club.id))
       return
     }
     // resolution: most collapse, some complete - and not every buyer
@@ -297,6 +307,7 @@ function moneyMen(state: GameState, rng: Rng) {
             : `${club.name}'s new owners have arrived with accountants, not ambition. Expect their best players to be quietly available - at the right price.`,
           k: isMyClub(state, club.id) ? 'news.takeoverTightMine' : 'news.takeoverTight',
           v: { club: club.name, budget: fmtMoney(club.budget) },
+          ...(isMyClub(state, club.id) ? {} : { src: 'ruck' as const }),
         })
       } else {
         const boost = 4_000_000 + Math.round(rng() * 10_000_000 / 500_000) * 500_000
@@ -312,6 +323,7 @@ function moneyMen(state: GameState, rng: Rng) {
             : `It's done. The consortium has completed its purchase of ${club.name} and immediately pledged fresh investment. The rest of the league takes note: ${club.short} just became dangerous in the market.`,
           k: isMyClub(state, club.id) ? 'news.takeoverRichMine' : 'news.takeoverRich',
           v: { club: club.name, short: club.short, boost: fmtMoney(boost) },
+          ...(isMyClub(state, club.id) ? {} : { src: 'ruck' as const }),
         })
       }
       // a new boss upstairs: the slate is half-wiped, and for two months
@@ -321,7 +333,7 @@ function moneyMen(state: GameState, rng: Rng) {
         state.newOwnerUntil = Math.min(state.week + 8, 45)
       }
     } else {
-      wire(state, 'news.wTakeoverOff', { short: club.short, club: club.name })
+      wire(state, 'news.wTakeoverOff', { short: club.short, club: club.name }, undefined, ruckUnlessMine(state, club.id))
     }
     return
   }
@@ -330,7 +342,7 @@ function moneyMen(state: GameState, rng: Rng) {
   if (!candidates.length) return
   const club = pick(rng, candidates)
   state.takeover = { clubId: club.id, week: state.week, stage: 0 }
-  wire(state, 'news.wTakeoverCircle', { short: club.short, club: club.name })
+  wire(state, 'news.wTakeoverCircle', { short: club.short, club: club.name }, undefined, ruckUnlessMine(state, club.id))
 }
 
 /** Rumours live where deals live: the opening window (weeks 1-7) and the run
@@ -360,10 +372,15 @@ function transferRumour(state: GameState, rng: Rng) {
   const owner = state.clubs[t.clubId!]
   const fee = Math.round(t.value * (1.1 + rng() * 0.5) / 100_000) * 100_000
   const line = pick(rng, ['news.wRumour1', 'news.wRumour2', 'news.wRumour3', 'news.wRumour4'])!
+  // THE RUMOUR MILL IS RUCK'S, unless the manager's club is in it. A whisper
+  // about his own man, or about his own club's scouts, is news about his club
+  // and keeps the neutral voice (owner, 1.8.7). The byline is read from state
+  // after the draws, so the stream is exactly what it was.
+  const ours = isMyClub(state, owner.id) || isMyClub(state, buyer.id)
   wire(state, line, {
     player: t.name, buyer: buyer.short, buyerName: buyer.name, buyerCity: buyer.city,
     owner: owner.short, ownerPoss: poss(owner.short), buyerPoss: poss(buyer.short), fee: fmtMoney(fee),
-  }, t.id)
+  }, t.id, ours ? undefined : 'ruck')
   // being talked about turns some heads
   if (t.clubId === state.userClubId && (t.pers === 'Mercenary' || t.pers === 'Ambitious') && rng() < 0.5) {
     t.morale = clamp(t.morale - 0.5, 1, 10)
@@ -389,7 +406,8 @@ function powerRankings(state: GameState) {
       : i === 2 ? 'news.wRank3' : i === 3 ? 'news.wRank4' : 'news.wRank5'
     return { k: 'news.wRankLine', n: i + 1, club: c?.short ?? r.teamId, tag_k: tagKey }
   })
-  wire(state, 'news.wPowerRankings', { rows_ll: JSON.stringify(lines) })
+  // the whole table's business, not one club's: Ruck's column
+  wire(state, 'news.wPowerRankings', { rows_ll: JSON.stringify(lines) }, undefined, 'ruck')
 }
 
 function streakWatch(state: GameState, rng: Rng) {
@@ -466,7 +484,7 @@ function wonderkidWatch(state: GameState, rng: Rng) {
     player: k.name, age: k.age, pos: k.pos,
     club: club?.short ?? tIn('en', 'news.hisClub'),
     clubPoss: poss(club?.short ?? tIn('en', 'news.hisClub')),
-  }, k.id)
+  }, k.id, ruckUnlessMine(state, k.clubId))
 }
 
 /** Fringe stars want minutes: too good to sit, and they'll say so. */
@@ -702,7 +720,7 @@ function clubhouseTales(state: GameState, rng: Rng) {
 
 /** Once or twice a year the world governing body floats something outrageous, purely to
  *  see the fans combust. Nothing ever comes of it. Nothing ever will. */
-function lawWatch(state: GameState, rng: Rng) {
+export function lawWatch(state: GameState, rng: Rng) {
   if (rng() > 0.033) return
   const proposals: [string][] = [
     ['news.lawWatch1'],
@@ -721,7 +739,44 @@ function lawWatch(state: GameState, rng: Rng) {
   const now = absWeek(state.season, state.week)
   if (state.lawWatchAt != null && now - state.lawWatchAt < 12) return
   state.lawWatchAt = now
-  wire(state, pick2[0], {})
+  wire(state, pick2[0], {}, undefined, 'ruck')
+}
+
+/**
+ * ---- LAW WATCH, THE SERIOUS KIND ----
+ *
+ * The owner's brief for Ruck included "potential law changes", and the wind-ups
+ * above are once every thirty weeks or so and never plausible on purpose. These
+ * are the debates the real sport actually has: kicking clocks, a captain's
+ * challenge, tackle height, scrum resets, the goal-line drop-out, a foul-play
+ * bunker. Two a season, on the calendar.
+ *
+ * NEWS ONLY (owner, final): no proposal here changes a single law in the match
+ * engine, and nothing in this function touches anything but the news list and
+ * its own stamp. scripts/ruckprobe.ts holds that. Nothing about a shorter red
+ * card, either: a red card in this game is permanent by the owner's rule, and a
+ * story suggesting otherwise would only confuse.
+ *
+ * IT DRAWS NO RNG, like aroundTheGrounds: the window, the stamp and the pick
+ * are arithmetic, so a career under way runs as it did (scripts/fingerprint.ts).
+ * It waits a week if the wind-up aired this very week, so two law stories
+ * never land in one inbox.
+ */
+const LAW_TALK: readonly string[] = [
+  'news.lawTalk1', 'news.lawTalk2', 'news.lawTalk3',
+  'news.lawTalk4', 'news.lawTalk5', 'news.lawTalk6',
+]
+
+export function lawTalk(state: GameState) {
+  // an early window and a late one, three weeks wide each
+  const half = state.week >= 9 && state.week <= 11 ? 0 : state.week >= 34 && state.week <= 36 ? 1 : -1
+  if (half < 0) return
+  const now = absWeek(state.season, state.week)
+  if (state.lawTalkAt != null && now - state.lawTalkAt < 6) return
+  if (state.lawWatchAt === now) return
+  state.lawTalkAt = now
+  // a full turn of the six every three seasons, never the same one twice running
+  wire(state, LAW_TALK[(state.season * 2 + half) % LAW_TALK.length], {}, undefined, 'ruck')
 }
 
 /**
@@ -777,10 +832,11 @@ export function aroundTheGrounds(state: GameState) {
   if (!home || !away || home.id === away.id) return
 
   state.groundsAt = now
+  // never the manager's ground, so always Ruck's (owner, 1.8.7)
   wire(state, GROUNDS[spin % GROUNDS.length], {
     club: home.short ?? home.name,
     other: away.short ?? away.name,
-  })
+  }, undefined, 'ruck')
 }
 
 /** Preseason pundit predictions for the user's league. Stored on state.preds
@@ -851,6 +907,7 @@ export function generateGossip(state: GameState, rng: Rng) {
   // the predictions column lands once the friendlies are done (FY feedback)
   if (state.week === 4 && !state.unemployed) postPredictionsNews(state)
   lawWatch(state, rng)
+  lawTalk(state)           // no rng: the calendar's law story (Ruck)
   aroundTheGrounds(state)
   if (!state.unemployed) clubhouseTales(state, rng)
   // THREE THAT FOLLOWED HIM OUT OF THE DOOR. Each reads
@@ -878,11 +935,12 @@ export function generateGossip(state: GameState, rng: Rng) {
   // cheap talk is constant even when real business is quiet
   if (rng() < 0.8) socialBuzz(state, rng)
   if (windowOpen(state) && rng() < 0.45) transferRumour(state, rng)
+  // the window is the whole league's story: Ruck's
   if (state.week === 25) {
-    wire(state, 'news.wDeadlineAhead', {})
+    wire(state, 'news.wDeadlineAhead', {}, undefined, 'ruck')
   }
   if (state.week === 28) {
-    wire(state, 'news.wWindowShut', {})
+    wire(state, 'news.wWindowShut', {}, undefined, 'ruck')
   }
   const wheel = rng()
   if (state.week % 6 === 3) powerRankings(state)
