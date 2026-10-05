@@ -16,6 +16,7 @@ import { bondsLine } from '../../game/bonds'
 import { canAgencyFile, canSecondOpinion } from '../../game/rewarded'
 import { rewardedAvailable } from '../../game/monetise'
 import { LOAN_BUY_MIN_WEEKS, loanBuy, loanBuyOffer, loanOut, loanOutBoost, loanRecall } from '../../game/loans'
+import { noteUse } from '../../game/usage'
 import { releaseBlock, releaseCost, releasePlayer } from '../../game/release'
 import { MARQUEE_SLOTS, marqueeOpen, toggleMarquee } from '../../game/cap'
 import { answerRequest, canAnswerRequest, canChat, chatBudget, praisePlayer, warnPlayer } from '../../game/chats'
@@ -553,6 +554,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         {counter != null && (
           <button className="btn gold" style={{ marginTop: 8, width: '100%' }} onClick={() => {
             const r = agreeFee(game, p.id, counter)
+            noteUse('bid')
             setMsg(r.msg); setCounter(r.counter ?? null)
             if (r.ok) { setTermsFee(counter); setWage(personalTermsDemand(game, p)); setSignOn(0); setPromiseMin(false) }
             touch()
@@ -642,7 +644,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
 
       {mine && !p.onLoan && p.age <= 23 && !game.clubs[game.userClubId].tactic.lineup.slice(0, 15).includes(p.id) && (
         <TwoStep className="btn ghost block" label={t('player.sendOnLoan')} confirm={t('player.sendOnLoanConfirm')}
-          onConfirm={() => { setMsg(loanOut(game, p.id).msg); touch() }} />
+          onConfirm={() => { setMsg(loanOut(game, p.id).msg); noteUse('loan'); touch() }} />
       )}
       {/* the loan is visible from here too (16B, user: "there should be a
           report on how they are doing... they should also be able to be
@@ -780,6 +782,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                   {!talkSigned && wageCounter != null && (
                     <button className="btn gold" style={{ marginTop: 8, width: '100%' }} onClick={() => {
                       const r = offerRenewalAt(game, p.id, wageCounter)
+                      noteUse('renew')
                       setMsg(r.msg); setTalkOutcome(r.msg); setTalkSigned(r.ok)
                       setWageCounter(r.counter ?? null); setWageText(String(wageCounter)); touch()
                     }}>{t('player.meetTheirNumber', { wage: fmtWage(wageCounter) })}</button>
@@ -793,6 +796,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                   <div className="btn-row" style={{ margin: '10px 0 0' }}>
                     <button className="btn gold" onClick={() => {
                       const r = offerRenewalAt(game, p.id, wageOffer)
+                      noteUse('renew')
                       setMsg(r.msg); setTalkOutcome(r.msg); setTalkSigned(r.ok)
                       setWageCounter(r.counter ?? null); touch()
                     }}>{t('player.offerWage', { amount: wageOffer.toLocaleString(localeTag()) })}</button>
@@ -876,6 +880,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
               )}
               <button className="btn gold block" onClick={() => {
                 const r = agreeFee(game, p.id, ask)
+                noteUse('bid')
                 setMsg(r.msg); setCounter(r.counter ?? null)
                 if (r.ok) { setTermsFee(ask); setWage(personalTermsDemand(game, p)); setSignOn(0); setPromiseMin(false) }
                 touch()
@@ -956,6 +961,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                   <button className="btn ghost" onClick={() => setBidding(false)}>{t('player.cancel')}</button>
                   <button className="btn gold" style={{ flex: 1.6 }} onClick={() => {
                     const r = agreeFee(game, p.id, bid)
+                    noteUse('bid')
                     setMsg(r.msg); setCounter(r.counter ?? null); setBidding(false)
                     if (r.ok) { setTermsFee(bid); setWage(personalTermsDemand(game, p)); setSignOn(0); setPromiseMin(false) }
                     touch()

@@ -56,6 +56,7 @@ import Academy from './screens/Academy'
 import Tutorial from './Tutorial'
 import { Intro } from './Intro'
 import { ProPrompt } from './ProPrompt'
+import { FeedbackPrompt } from './FeedbackPrompt'
 import { bigTablet, useTablet } from './tablet'
 import { COMMUNITY_URL } from '../game/community'
 
@@ -235,6 +236,9 @@ function Overlays() {
       {/* Pro Manager, at most one card per match flow and only at a safe
           moment on Home or the day room (ProPrompt.tsx) */}
       <ProPrompt />
+      {/* the feedback report, offered once after the first month and never
+          in the same match flow as a Pro card (FeedbackPrompt.tsx) */}
+      <FeedbackPrompt />
       {/* last, so it sits over the lot: nothing outranks losing your job */}
       <Sacked />
       {/* the opening titles, once per launch, over everything (Intro.tsx) */}
@@ -387,7 +391,9 @@ function useHardwareBack(depth: number, screen: Screen, menuOpen: boolean, close
       // game. Not back a page"). Hub, Manager and World open a menu over the
       // page rather than a page of their own, so Back from Home with one open
       // had nothing to go back to and closed the app.
-      if (menuRef.current) closeRef.current()
+      // the feedback report card is put away like Not now
+      if (s.feedback) s.closeFeedback()
+      else if (menuRef.current) closeRef.current()
       else if (s.nav.length > 1) s.back()
       // a single page that is not Home goes Home rather than out of the game
       else if (s.nav[s.nav.length - 1]?.screen !== 'home'

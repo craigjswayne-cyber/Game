@@ -1469,12 +1469,12 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    stays green. Centred rather than a bottom sheet, so it reads as a pause
    rather than a menu, and sized for 320px: two full-width buttons of equal
    height, primary and secondary, neither hidden. */
-.pro-veil {
+.pro-veil, .fb-veil {
   position: fixed; inset: 0; background: var(--scrim); z-index: 85;
   display: flex; align-items: center; justify-content: center; overflow-y: auto;
   padding: calc(var(--safe-area-inset-top) + 16px) 16px calc(var(--safe-area-inset-bottom) + var(--ad-inset, 0px) + 16px);
 }
-.pro-card {
+.pro-card, .fb-card {
   position: relative;
   width: 100%; max-width: 380px; margin: auto;
   padding: 18px 18px 14px;
@@ -1495,7 +1495,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   max-height: calc(100dvh / var(--zoom, 1) - 32px - var(--safe-area-inset-top) - var(--safe-area-inset-bottom) - var(--ad-inset, 0px));
   overflow-y: auto;
 }
-.pro-card::before {
+.pro-card::before, .fb-card::before {
   content: "";
   position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
   border-radius: 12px 0 0 12px;
@@ -1527,6 +1527,26 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .pro-msg { border-left: 3px solid var(--gold); padding-left: 8px; }
 .pro-fine { margin: 0; font-size: 12px; line-height: 1.45; color: var(--text-secondary); }
 .pro-light { gap: 8px; }
+
+/* ---- FEEDBACK REPORT CARD (ui/FeedbackPrompt.tsx) ----
+   The Pro card's frame, so it reads as the same kind of pause. The report is
+   shown whole, in a box that scrolls on its own so the three buttons stay on
+   screen; the buttons stack full width at one size, Not now included. */
+.fb-report {
+  margin: 0; padding: 8px 10px;
+  max-height: 34vh; max-height: 34dvh;
+  overflow: auto;
+  white-space: pre-wrap; overflow-wrap: anywhere;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; line-height: 1.45;
+  color: var(--text-primary);
+  background: var(--surface-2);
+  border: 1px solid var(--border); border-radius: 8px;
+  user-select: text; -webkit-user-select: text;
+}
+.fb-btns { display: flex; flex-direction: column; gap: 8px; }
+.fb-btn { width: 100%; min-height: 44px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+.fb-card .btn.ghost.fb-btn { border: 1px solid var(--border-strong); }
+.fb-discord { color: var(--gold); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 
 /* floodlit toggle in masthead */
 .night-btn {

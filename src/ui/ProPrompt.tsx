@@ -7,6 +7,7 @@ import {
 } from '../game/monetise'
 import { proDue, proOfferAnswered, proShown, readFunnel, writeFunnel, type ProKind } from '../game/profunnel'
 import { userMatchThisWeek } from '../game/season'
+import { readUsage } from '../game/usage'
 import { endingText } from './purchase'
 import { Glyph } from './glyphs'
 
@@ -37,7 +38,7 @@ import { Glyph } from './glyphs'
 /** Where a card may appear: the desk and the day room. */
 const SAFE: ReadonlySet<Screen> = new Set<Screen>(['home', 'day'])
 /** Anything already floating over the screen. The card never stacks on one. */
-const OVERLAYS = '.modal-veil, .tut-veil, .celebrate-veil, .sack-veil, .submenu-veil, .intro'
+const OVERLAYS = '.modal-veil, .tut-veil, .celebrate-veil, .sack-veil, .submenu-veil, .intro, .fb-veil'
 /** How long after a purchase ends before a card may follow it: long enough
  *  that the line the purchase printed has been read and left behind. */
 const AFTER_PURCHASE_MS = 30_000
@@ -90,6 +91,10 @@ export function ProPrompt() {
     if (!canBuy() || !proLocked() || hasSupporter()) return true
     if (purchaseActive() || msSincePurchase() < AFTER_PURCHASE_MS) return true
     if (typeof document !== 'undefined' && document.querySelector(OVERLAYS)) return true
+    // the feedback report card had this match flow: never both in one
+    // (FeedbackPrompt.tsx, game/usage.ts)
+    const u = readUsage()
+    if (u.offeredAt >= 0 && u.offeredAt === u.matches) return true
     return false
   }
 
