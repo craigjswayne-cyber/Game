@@ -38,7 +38,8 @@
  *   never over a sheet                 a MutationObserver watches for
  *                                      .modal-veil / .tut-veil and hides the
  *                                      banner while one is open, resuming it
- *                                      after.
+ *                                      after. The ROOM is held meanwhile, so
+ *                                      nothing under a finger moves (holding).
  *   never on the title, in a match,    the game only mounts a slot on Home and
  *   between a tap and its result       Results (AdSlot.tsx); the bridge draws
  *                                      nothing anywhere it was not mounted.
@@ -114,7 +115,15 @@
     // gets an honest nothing, rather than finding no rmAds at all and every
     // later call landing in the dark.
     try {
-      ad.addListener('bannerAdSizeChanged', function (s) { log('banner size', JSON.stringify(s)); setInset(s && s.height ? s.height : 0) })
+      ad.addListener('bannerAdSizeChanged', function (s) {
+        log('banner size', JSON.stringify(s))
+        var h = s && s.height ? s.height : 0
+        if (h > 0) { held = h; setInset(h); return }
+        // A zero is what hideBanner and removeBanner report. While a slot still
+        // wants its banner (a sheet is over it, or it is swapping units) the
+        // room is HELD, so nothing on the page moves; see holding() below.
+        if (!holding()) setInset(0)
+      })
       // A banner that asked and got nothing is an empty grey box sitting over
       // the game. Google does not retry it and neither do we: the strip comes
       // down, the page takes its space back, and the next screen that mounts a
@@ -127,6 +136,7 @@
         // here so About & legal can show it on the phone, because that console
         // line above needs a Mac to read.
         why = 'the advert network refused the banner: ' + (e && (e.message || e.code || JSON.stringify(e)) || 'no reason given')
+        held = 0
         setInset(0)
         enqueue(async function () {
           try { await ad.removeBanner() } catch (e2) {}
@@ -277,6 +287,29 @@
   var q = Promise.resolve()
   function enqueue(job) { q = q.then(job, job).catch(function () {}); return q }
   var wantedEl = null, wantedPlace = null, created = null /* place the live banner was made for */, visible = false
+  // the height of the last banner that really drew, while it is worth holding
+  // room for (see holding); 0 once a banner failed or the bridge gave up
+  var held = 0
+
+  // ROOM IS HELD, NOT RELEASED, WHILE THE SLOT STILL WANTS ITS BANNER.
+  //
+  // 1.8.8 on an iPhone: "I'm clicking on the buttons in the menu but it is
+  // selecting the one below". Opening a sheet or the club menu hid the banner,
+  // which set --ad-inset to 0 a few hundred milliseconds AFTER the sheet
+  // appeared, and everything sized by it (the bottom nav's floor, the room
+  // under the tutorial and Pro cards, a Home list scrolled to its end) jumped
+  // by the banner's height, under a finger already on its way down. Closing
+  // the sheet put it all back, the other way.
+  //
+  // So hiding the banner for a veil, or swapping one unit for another, keeps
+  // the room. The strip under the nav shows the page's own background behind
+  // the veil, and the layout under the finger does not move. This is NOT the
+  // black band of 1.8.4 ("room is only ever held for a banner that is there"):
+  // that was room left standing with NO slot on the screen at all. Room is
+  // still released the moment no slot wants a banner, when a banner fails to
+  // fill, and when the bridge cannot get one; and it is only ever held at the
+  // height of a banner that really drew.
+  function holding() { return !!wantedEl && held > 0 && !!created }
 
   // Everything the game puts OVER the screen. The banner is a native view
   // laid on top of the web page, so it does not go behind these the way a
@@ -317,7 +350,7 @@
       // the ones that throw.
       try {
         if (shouldShow) {
-          if (!(await ready())) return
+          if (!(await ready())) { held = 0; return }
           if (created && created !== wantedPlace) { await ad.removeBanner(); created = null; visible = false }
           if (!created) {
             log('asking for banner', wantedPlace, ids.banner[wantedPlace] || ids.banner['home-foot'])
@@ -331,10 +364,15 @@
         } else if (visible) {
           await ad.hideBanner(); visible = false
         }
+      } catch (e) {
+        // a plugin call that threw leaves no banner we can vouch for: no room
+        held = 0
+        throw e
       } finally {
         // bannerAdSizeChanged sets the real height while one is up; this only
-        // ever takes room back, and never fights it
-        if (!visible) setInset(0)
+        // ever takes room back, and never fights it. Held room (a sheet over a
+        // slot that still wants its banner) is the one exception: see holding.
+        if (!visible) { if (holding()) setInset(held); else setInset(0) }
       }
     })
   }
@@ -422,7 +460,14 @@
 
   // ---- the bridge ----------------------------------------------------------
   w.rmAds = {
-    mount: function (el, place) { wantedEl = el; wantedPlace = place; reconcile() },
+    mount: function (el, place) {
+      wantedEl = el; wantedPlace = place
+      // coming back to a screen whose banner is only hidden: make the room in
+      // the same frame the screen draws, so the nav does not settle and then
+      // jump when the banner resumes a moment later
+      if (created === place && held > 0 && !veiled()) setInset(held)
+      reconcile()
+    },
     unmount: function (el) { if (wantedEl === el || !el) { wantedEl = null; wantedPlace = null; reconcile() } },
     showRewarded: showRewarded,
     // for the probe and for a debugging session on a device: never read by the game
