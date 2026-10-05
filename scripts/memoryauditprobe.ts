@@ -241,7 +241,11 @@ function career(clubId: string, seed: number, seasons: number, moveAt: number | 
   }
   // ordinary men stay quiet: nobody the manager never touched has a line
   const made = madeBy(g)
-  const strangers = Object.values(g.players).filter(p => !made(p) && !recall(g, { playerId: p.id }).length && oldBoyApps(p, g.userClubId) === 0 && p.clubId !== g.userClubId)
+  // a legend of a club the manager has held is in his book, not a stranger:
+  // his page says so on purpose (legends.ts; 1.8.5 QA: a Gloucester legend
+  // made while the manager was there read as a leak once he had moved on)
+  const legends = new Set((g.hist?.legends ?? []).map(l => l.pid))
+  const strangers = Object.values(g.players).filter(p => !made(p) && !recall(g, { playerId: p.id }).length && oldBoyApps(p, g.userClubId) === 0 && p.clubId !== g.userClubId && !legends.has(p.id))
   const loud = strangers.filter(p => playerStory(g, p, made).length)
   if (loud.length) ordinaryLeaks.push(...loud.slice(0, 3).map(p => `${p.name} has a page story`))
   return g
