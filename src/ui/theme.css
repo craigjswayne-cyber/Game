@@ -1087,6 +1087,12 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   margin: 6px 0;
 }
 .inline-input:focus { outline: none; border-color: var(--row-selected-border); }
+/* A long option never runs under the chevron, and a select never outgrows
+   its row. Every <select> in the game carries .inline-input (selectlint). */
+select.inline-input { max-width: 100%; text-overflow: ellipsis; }
+/* the Pinnacle federation picker beside its Make the Call button (1.8.9:
+   it was the one bare <select> in the game, a pill with no padding) */
+.nat-pick { flex: 1; min-width: 0; margin: 0; }
 .club-pick {
   display: flex; align-items: center; gap: 11px; width: 100%; text-align: left;
   padding: 11px 16px; border-bottom: 1px solid var(--border);
