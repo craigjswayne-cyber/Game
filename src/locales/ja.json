@@ -180,6 +180,8 @@
   "intlTag": "代表",
   "l": "敗",
   "loanHereTag": "ローン",
+  "loanKey": "色付きの名前はレンタル移籍中の選手",
+  "onLoanSr": "レンタル移籍中",
   "goneTag": "退団",
   "mastheadDate": "{day}・{season}・第{week}週",
   "matchdayBtn": "試合日 ▸",

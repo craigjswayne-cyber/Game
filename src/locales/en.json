@@ -179,6 +179,8 @@
   "intlTag": "INTL",
   "l": "L",
   "loanHereTag": "LOAN",
+  "loanKey": "Highlighted names are on loan",
+  "onLoanSr": "on loan",
   "goneTag": "GONE",
   "mastheadDate": "{day} · {season} · Wk {week}",
   "matchdayBtn": "Matchday ▸",

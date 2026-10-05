@@ -2654,6 +2654,17 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .tblwrap.fitwrap { overflow: visible; }
 .dtable.fit { table-layout: fixed; }
 .dtable.fit td.name { max-width: none; }
+/* the squad tables' name cell, one line (1.8.9): only the name ellipsises */
+.dtable td.name .nm-line { display: flex; align-items: center; gap: 4px; min-width: 0; white-space: nowrap; }
+.nm-line > * { flex: none; }
+.nm-line > .nm { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nm-loan { color: var(--loan); }
+.loan-key { display: flex; align-items: center; gap: 6px; margin: 6px 16px 0; font-size: 12px; color: var(--text-secondary); }
+.loan-swatch { width: 10px; height: 10px; border-radius: 3px; background: var(--loan); flex: none; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
 /* the last column breathes: flush against the bezel it read as cut off
    (user: "squad cover needs to be better fitted") */
 .dtable.fit th:last-child, .dtable.fit td:last-child { padding-right: 16px; }

@@ -179,6 +179,8 @@
   "intlTag": "INTL",
   "l": "V",
   "loanHereTag": "LEEN",
+  "loanKey": "Uitgeligte name is op lening",
+  "onLoanSr": "op lening",
   "goneTag": "WEG",
   "mastheadDate": "{day} · {season} · Wk {week}",
   "matchdayBtn": "Wedstryddag ▸",
