@@ -4378,7 +4378,7 @@
   "unofficialBody": "PHASE: Rugby Manager is not affiliated with, endorsed by or licensed by any player, club, league or governing body. Club names are real; competitions, grounds and sponsors are renamed or invented. Player names are real, used to identify people in a sporting database and for nothing else - and no official badges, kits or logos are included.",
   "unofficialLabel": "Unofficial, and independent",
   "newsPartnerLabel": "News partner",
-  "newsPartnerBody": "Ruck ({site}). News from around the league, the rumour mill and the law talk carry the RUCK byline.",
+  "newsPartnerBody": "Ruck ({site}). News from around the league, the rumour mill and the law talk carry the {site} byline and logo.",
   "storeLabel": "The Store",
   "storeBody": "Optional extras - none of it plays the matches.",
   "storeBtn": "Open the Store",

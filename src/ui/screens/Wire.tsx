@@ -7,7 +7,7 @@ import { newsBody, newsSubject, weekDate } from '../../game/model'
 import { markRead } from '../../game/days'
 import { t } from '../../game/i18n'
 import { newsGlyph } from '../glyphs'
-import { Byline } from '../Byline'
+import { Byline, RuckMark } from '../Byline'
 
 
 /** This week's stories, full screen, one page at a time - the breath between
@@ -66,6 +66,7 @@ export default function Wire() {
         <div className="wire-body">
           <NewsBody body={newsBody(n)} />
         </div>
+        <RuckMark n={n} />
         {/* the same chip row the inbox reader uses, so a name looks tappable in
             the same way wherever the story is being read (10F) */}
         <RequestAnswer n={n} />
