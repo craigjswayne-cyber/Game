@@ -15,14 +15,17 @@ import type { GameState } from '../../src/game/model'
 import { ensureLang, setLang, setWorld, setManagerGender, t, type Lang } from '../../src/game/i18n'
 import { genderOf } from '../../src/game/gender'
 process.env.SAVEGEN_LIB = '1'
-const { playWeek } = await import('./savegen')
+const { playWeek, startCareer } = await import('./savegen')
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Any = any
 const args = process.argv.slice(2).filter(a => a !== '--')
 const WEEKS = Number(args[1] ?? 24)
 const LANG = (args[2] ?? 'fr') as Lang
-const json = JSON.stringify(migrate(JSON.parse(readFileSync(args[0], 'utf8')).state))
+// no file: a career of this build, 40 weeks in
+const json = JSON.stringify(migrate(args[0] ? JSON.parse(readFileSync(args[0], 'utf8')).state : (() => {
+  const g = startCareer('m', 4242); for (let w = 0; w < 40; w++) playWeek(g); return JSON.parse(JSON.stringify(g))
+})()))
 const load = () => {
   const g = migrate(JSON.parse(json) as GameState)
   setWorld(genderOf(g)); setManagerGender(g.mgrGender === 'w' ? 'w' : 'm')

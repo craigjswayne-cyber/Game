@@ -3,13 +3,13 @@
 // save file. Prints the pre-week difference (what the load changed) and the
 // post-week difference (what that did to the world).
 //
-//   npx vite-node scripts/qa/savedet.ts -- <save.json> [weeks=30]
+//   npx vite-node scripts/qa/savedet.ts -- [save.json or ""] [weeks=30]
 import { readFileSync } from 'node:fs'
 import { migrate } from '../../src/game/save'
 import type { GameState } from '../../src/game/model'
 import { peekPid, resetIds } from '../../src/game/attributes'
 process.env.SAVEGEN_LIB = '1'
-const { playWeek } = await import('./savegen')
+const { playWeek, startCareer } = await import('./savegen')
 
 /** JSON with every object's keys sorted: a property deleted and re-added in
  *  the same week moves to the end of its object, which is not a difference
@@ -38,7 +38,11 @@ function diff(a: Any, b: Any, path = '', out: string[] = [], depth = 0): string[
   for (const k of new Set([...ka, ...kb])) diff(a[k], b[k], `${path}.${k}`, out, depth + 1)
   return out
 }
-const raw = JSON.parse(readFileSync(args[0], 'utf8'))
+// no file: a career of this build, 70 weeks in (past the AI renewals of week
+// 28, into the academy call and the summer the next 48 weeks cross)
+const raw = args[0] ? JSON.parse(readFileSync(args[0], 'utf8')) : (() => {
+  const g = startCareer('m', 4242); for (let w = 0; w < 70; w++) playWeek(g); return { state: JSON.parse(JSON.stringify(g)) }
+})()
 const base = JSON.stringify(migrate(JSON.parse(JSON.stringify(raw.state ?? raw))))
 let A = migrate(JSON.parse(base)) as GameState
 let pidA = peekPid()
