@@ -8838,5 +8838,20 @@
   "reminderLineSkins": "シーズンを楽しんでいる？Pro ManagerならProだけの3つのスキンが加わる。好きなときにどうぞ。",
   "done": "Pro Managerになった。ゲームを応援してくれてありがとう。3つのスキンは設定で選べる。",
   "close": "続ける"
+ },
+ "feedback": {
+  "title": "ゲームづくりに協力する",
+  "line": "これまでに使った機能だけをまとめたものです。あなたが送らない限り、何も送信されません。",
+  "email": "メール",
+  "copy": "コピー",
+  "notNow": "今はしない",
+  "discord": "コピーしてDiscordの#feedbackに貼り付けることもできます。",
+  "discordLink": "Discordを開く",
+  "copied": "コピーしました。Discordの#feedbackに貼り付けてください。",
+  "copyFailed": "コピーできませんでした。上のレポートを選択してコピーしてください。",
+  "rowTitle": "利用レポート",
+  "rowLine": "これまでに使った機能の記録です。送るかどうかはあなたが決めます。",
+  "rowBtn": "利用レポートを送る",
+  "reportLabel": "あなたのレポート"
  }
 }

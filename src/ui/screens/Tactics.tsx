@@ -10,6 +10,7 @@ import { userFixtureThisWeek } from '../../game/season'
 import { counterTo, dialLine, philosophyOf } from '../../game/philosophy'
 import { repetitionFatigue } from '../../game/oppcoach'
 import { ROUTINES, DEFAULT_LINEOUT, DEFAULT_SCRUM, routineEffect } from '../../game/playbook'
+import { noteUse } from '../../game/usage'
 import { BRIEFS, SPLITS, actualSplit, benchFrontRow, benchSeats, briefForSeat, refillBench, splitFor, type BenchSplit, type Brief } from '../../game/bench'
 import { t } from '../../game/i18n'
 import { subjectVar } from '../../game/gender'
@@ -72,7 +73,10 @@ const TTABS: TTab[] = ['tactics', 'setp', 'bench', 'prep', 'plan']
  *  their plan" line opened on Roles, two taps from the plan it was about. */
 export default function Tactics({ initial }: { initial?: string } = {}) {
   const game = useStore(s => s.game)!
-  const touch = useStore(s => s.touch)
+  const storeTouch = useStore(s => s.touch)
+  // every change on this board goes through here, so the feedback report's
+  // count is one line: once per visit, so a dragged slider is one change
+  const touch = () => { noteUse('tactics', true); storeTouch() }
   const [ttab, setTtab] = useState<TTab>(TTABS.includes(initial as TTab) ? initial as TTab : 'tactics')
   const [spSub, setSpSubState] = useState<SpSub>(readSpSub)
   const [planSub, setPlanSubState] = useState<PlanSub>(readPlanSub)
@@ -311,7 +315,7 @@ export default function Tactics({ initial }: { initial?: string } = {}) {
                 return (
                   <button key={r.id} className={`speech-tile sp-call${on ? ' sel' : ''}`} aria-pressed={on}
                     data-call={r.id}
-                    onClick={() => { tac[key] = r.id; touch() }}>
+                    onClick={() => { tac[key] = r.id; noteUse('playbook'); touch() }}>
                     {kind === 'lineout' ? <LineoutDiagram call={r.id} /> : <ScrumDiagram call={r.id} />}
                     <span className="sp-txt">
                       <b>{t(r.name)}</b>

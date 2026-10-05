@@ -22,6 +22,7 @@
  */
 import type { GameState } from './model'
 import { billingReason, lookupReason } from './monetise'
+import { countScreen } from './usage'
 
 /**
  * Where a report is addressed. ONE constant, because it is the only line to
@@ -60,6 +61,9 @@ const trail: string[] = []
  *  report can say "he was on Squad, then Player, then it went" - the single
  *  most useful line in a bug report and the one players never think to write. */
 export function noteScreen(screen: string, param?: string | number): void {
+  // the feedback report's count: the screen's name only, never its param
+  // (a param can be a player id). game/usage.ts; it never throws.
+  countScreen(screen)
   const entry = param != null ? `${screen}:${param}` : screen
   if (trail[trail.length - 1] === entry) return
   trail.push(entry)
@@ -238,9 +242,14 @@ export const MAILTO_LIMIT = 1800
 export const CONTACT_SUBJECT = 'PHASE: Rugby Manager'
 export const CONTACT_MAILTO = `mailto:${DEV_CONTACT}?subject=${encodeURIComponent(CONTACT_SUBJECT)}`
 
-export function mailtoUrl(report: string, subject = 'PHASE: Rugby Manager - bug report'): string {
+export function mailtoUrl(
+  report: string,
+  subject = 'PHASE: Rugby Manager - bug report',
+  /** what the trimmed mail says instead: the feedback report has no Save */
+  trimNote = '[trimmed for e-mail - use Copy or Save for the full report]',
+): string {
   const body = report.length > MAILTO_LIMIT
-    ? report.slice(0, MAILTO_LIMIT) + '\n\n[trimmed for e-mail - use Copy or Save for the full report]'
+    ? report.slice(0, MAILTO_LIMIT) + '\n\n' + trimNote
     : report
   return `mailto:${DEV_CONTACT}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
 }
