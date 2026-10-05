@@ -155,6 +155,16 @@ export default function Inbox() {
     if (rescues.current++ < 25) openInbox()
   }, [inboxId, live.length])
 
+  // EVERY NEW STORY OPENS AT ITS HEADLINE (owner, 1.8.11, on Android: "When I
+  // tap the news button i should always be able to skip through the news to
+  // see the next unread mail"). The News button did serve the next unread
+  // story, but the page kept its scroll position, so after reading to the foot
+  // of a long story the next one appeared already scrolled down, under the
+  // fold, and the tap looked as if it had done nothing.
+  useEffect(() => {
+    try { document.querySelector('main.content')?.scrollTo({ top: 0 }) } catch { /* old engines */ }
+  }, [inboxId])
+
   // THE 34-UNREAD LOOP (round 25, from a screenshot reading "0 of 20 · 34
   // unread"). The unread queue serves oldest first, but with more than 20
   // stories pending the oldest sits outside the 20-story browse window - and

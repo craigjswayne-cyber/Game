@@ -164,6 +164,27 @@ node -e '
   console.log("    wired at load() - the consent form now has a screen to open on")
 '
 
+# ---- THE SCREEN STAYS ON WHILE THE GAME IS OPEN (1.8.11) ----
+#
+# Owner, on Android: "the screen saver energy mode is coming on when in-game ...
+# Like in fmmobile it just stays on screen." The iPhone equivalent is the idle
+# timer. Turned off when the app becomes active (which covers launch and every
+# return from the background); iOS restores normal sleep as soon as the app
+# leaves the screen. Patched into the generated AppDelegate.swift, idempotent.
+echo "==> keeping the screen on while the game is open"
+node -e '
+  const fs = require("fs")
+  const f = "ios/App/App/AppDelegate.swift"
+  if (!fs.existsSync(f)) { console.log("!! " + f + " is missing"); process.exit(1) }
+  let s = fs.readFileSync(f, "utf8")
+  if (s.includes("PHASE: screen stays on")) { console.log("    already set"); process.exit(0) }
+  const anchor = "func applicationDidBecomeActive(_ application: UIApplication) {"
+  if (!s.includes(anchor)) { console.log("!! AppDelegate no longer has applicationDidBecomeActive - add the idle timer line by hand"); process.exit(1) }
+  s = s.replace(anchor, anchor + "\n        // PHASE: screen stays on while the game is open (owner, 1.8.11)\n        application.isIdleTimerDisabled = true")
+  fs.writeFileSync(f, s)
+  console.log("    idle timer off while the game is in front")
+'
+
 # ---- iPHONE AND iPAD (1.8.0) ----
 #
 # Owner, mid-submission, before tablet mode existed: "this game is not for

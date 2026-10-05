@@ -101,11 +101,14 @@ async function startCareer(page) {
   // after the title first paints - on a slow CI runner well after the 1.2s
   // this used to wait (1.8.8 run 37355664315: the career opened over the
   // title and "New Career" was gone). So step back to the title until the
-  // title has held, with no career, for a whole second.
+  // title has held for a whole second. Held means the TITLE is the screen:
+  // toTitle() keeps a loaded career in memory, so "no career loaded" never
+  // came true on a device with a save and the loop always ran its full ten
+  // seconds (1.8.10 audit). Bounded at 40 samples either way.
   for (let held = 0, i = 0; held < 4 && i < 40; i++) {
     await page.waitForTimeout(250)
-    const has = await page.evaluate(() => !!window.rugbyStore.getState().game)
-    if (has) { await page.evaluate(() => window.rugbyStore.getState().toTitle()); held = 0 } else held++
+    const onTitle = await page.evaluate(() => window.rugbyStore.getState().nav.at(-1)?.screen === 'menu')
+    if (!onTitle) { await page.evaluate(() => window.rugbyStore.getState().toTitle()); held = 0 } else held++
   }
   await page.waitForSelector('text=RUGBY')
   await page.evaluate(() => window.rugbyStore.getState().setLang('en'))
