@@ -455,7 +455,9 @@ export default function Supporter() {
             the choice is the point of it. */}
         {ownsPinnacle && canCall && (
           <div className="btn-row" style={{ alignItems: 'stretch' }}>
-            <select value={natPick} onChange={e => setNatPick(e.target.value)} style={{ flex: 1, minWidth: 0 }}>
+            {/* the game's own dropdown (owner, 1.8.8: a bare <select> drew as a
+                pill with "Canada" hard against its left edge) */}
+            <select className="inline-input nat-pick" value={natPick} onChange={e => setNatPick(e.target.value)}>
               {natOptions.map(([code]) => (
                 <option key={code} value={code}>{nationName(code)}</option>
               ))}
