@@ -77,6 +77,13 @@ export async function playBridge(): Promise<BillingBridge | null> {
     } catch { return `${value} ${currency}` }
   }
 
+  /** Play's own number, in millionths, for comparing two prices (the
+   *  one-time offer's honesty check) - never shown. */
+  const micros = (value: string): number | undefined => {
+    const n = Number(value)
+    return Number.isFinite(n) ? Math.round(n * 1_000_000) : undefined
+  }
+
   const details = async (sku: string): Promise<Product | null> => {
     // SAY WHICH KIND OF NOTHING THIS IS.
     //
@@ -94,7 +101,7 @@ export async function playBridge(): Promise<BillingBridge | null> {
         setLookupReason(`getDetails answered with ${Array.isArray(got) ? got.length : 'no'} items for ${sku} - Play is reachable and does not offer this product here`)
         return null
       }
-      return { sku, price: money(d.price.value, d.price.currency), title: d.title }
+      return { sku, price: money(d.price.value, d.price.currency), title: d.title, micros: micros(d.price.value) }
     } catch (e) {
       const err = e as Error
       setLookupReason(`getDetails threw ${err?.name ?? 'Error'}: ${err?.message ?? 'no detail'} - the billing service is attached but not answering`)
@@ -113,7 +120,7 @@ export async function playBridge(): Promise<BillingBridge | null> {
         const missing = skus.filter(s => !list.some(d => d.itemId === s))
         setLookupReason(`getDetails answered for ${list.length} of ${skus.length} products - Play is reachable and does not offer ${missing.join(', ')} here`)
       }
-      return list.map(d => ({ sku: d.itemId, price: money(d.price.value, d.price.currency), title: d.title }))
+      return list.map(d => ({ sku: d.itemId, price: money(d.price.value, d.price.currency), title: d.title, micros: micros(d.price.value) }))
     } catch (e) {
       const err = e as Error
       setLookupReason(`getDetails threw ${err?.name ?? 'Error'}: ${err?.message ?? 'no detail'} - the billing service is attached but not answering`)

@@ -9185,5 +9185,24 @@
   "run": {"one": "{n} partido seguido sin perder, la mejor racha de tu carrera.", "other": "{n} partidos seguidos sin perder, la mejor racha de tu carrera."},
   "low": "Derrota {us}-{them} ante {opp}, la peor de la era. La temporada siguiente fue mejor.",
   "signing": "Fichaje de {player} por {fee}, el mayor desembolso de la era."
+ },
+ "pro": {
+  "title": "PRO MANAGER",
+  "firstLine": "El juego completo es gratis, y lo seguirá siendo. Pro Manager es un extra opcional.",
+  "benefitAds": "Sin anuncios",
+  "benefitSkins": "Tres apariencias que solo tienen los Pro",
+  "benefitBack": "Apoya a un juego independiente",
+  "buy": "Hazte Pro",
+  "free": "Seguir gratis",
+  "laterFine": "En el rugby no cambia nada. Puedes hacerte Pro más tarde desde la Tienda.",
+  "offerTag": "OFERTA ÚNICA",
+  "offerLine": "Pro Manager a un precio más bajo, solo esta vez. Se compra una vez y es tuyo para siempre.",
+  "offerFine": "Este precio se muestra una sola vez. Seguir gratis deja tu partida tal como está, y Pro sigue en la Tienda a su precio habitual.",
+  "off": "{n} % DE DESCUENTO",
+  "usually": "Normalmente {price}",
+  "reminderLine": "¿Disfrutando de la temporada? Pro Manager quita los anuncios y añade tres apariencias, cuando tú quieras.",
+  "reminderLineSkins": "¿Disfrutando de la temporada? Pro Manager añade tres apariencias que solo tienen los Pro, cuando tú quieras.",
+  "done": "Ya eres Pro Manager. Gracias por apoyar el juego. Las tres apariencias te esperan en Ajustes.",
+  "close": "Continuar"
  }
 }

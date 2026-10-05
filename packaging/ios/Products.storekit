@@ -166,6 +166,21 @@
       "productID": "phase.supporter",
       "referenceName": "Pro Manager",
       "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "2.19",
+      "familyShareable": false,
+      "internalID": "1012",
+      "localizations": [
+        {
+          "description": "Pro Manager at a one-time lower price: no adverts and three skins only Pro managers get. Nothing about the rugby changes.",
+          "displayName": "Pro Manager (one-time offer)",
+          "locale": "en_GB"
+        }
+      ],
+      "productID": "phase.supporter.intro",
+      "referenceName": "Pro Manager (one-time offer)",
+      "type": "NonConsumable"
     }
   ],
   "settings": {

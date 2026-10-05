@@ -9409,5 +9409,24 @@
     "low": "Défaite {us}-{them} contre {opp}, la plus lourde de l'ère. La saison suivante a été meilleure.",
     "signing": "{player} recruté pour {fee}, la plus grosse dépense de l'ère.",
     "signing_f": "{player} recrutée pour {fee}, la plus grosse dépense de l'ère."
+  },
+  "pro": {
+    "title": "PRO MANAGER",
+    "firstLine": "Le jeu complet est gratuit, et il le restera. Pro Manager est un supplément facultatif.",
+    "benefitAds": "Aucune publicité",
+    "benefitSkins": "Trois habillages réservés aux Pro",
+    "benefitBack": "Soutient un jeu indépendant",
+    "buy": "Passer Pro",
+    "free": "Continuer gratuitement",
+    "laterFine": "Rien ne change au rugby. Vous pourrez passer Pro plus tard depuis la Boutique.",
+    "offerTag": "OFFRE UNIQUE",
+    "offerLine": "Pro Manager à prix réduit, proposé une seule fois. Acheté une fois, à vous pour de bon.",
+    "offerFine": "Ce prix n'apparaît qu'une fois. Continuer gratuitement ne change rien à votre partie ; Pro reste en Boutique à son prix habituel.",
+    "off": "{n} % DE RÉDUCTION",
+    "usually": "Prix habituel : {price}",
+    "reminderLine": "La saison vous plaît ? Pro Manager supprime les publicités et ajoute trois habillages, quand vous le souhaitez.",
+    "reminderLineSkins": "La saison vous plaît ? Pro Manager ajoute trois habillages réservés aux Pro, quand vous le souhaitez.",
+    "done": "Vous êtes Pro Manager. Merci de soutenir le jeu. Les trois habillages vous attendent dans les Réglages.",
+    "close": "Continuer"
   }
 }
