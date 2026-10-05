@@ -193,15 +193,19 @@ console.log('\n--- edges')
 
 console.log('\n--- the percentage is only ever true')
 {
-  ok(proDiscount({ sku: 'p', price: '£1.99' }, { sku: 'i', price: '£1.49' }) === 25, '£1.99 -> £1.49 prints 25')
-  ok(proDiscount({ sku: 'p', price: '$1.99', micros: 1_990_000 }, { sku: 'i', price: '$1.49', micros: 1_490_000 }) === 25, 'micros agree')
-  ok(proDiscount({ sku: 'p', price: '£2.99' }, { sku: 'i', price: '£2.19' }) === 26, '£2.99 -> £2.19 prints 26, not 25')
+  // 1.8.9: the owner moved the offer to 40% off; the window is 35-45% off
+  // (intro 0.55-0.65 of normal), the figure still the real saving rounded down
+  ok(proDiscount({ sku: 'p', price: '£1.99' }, { sku: 'i', price: '£1.19' }) === 40, '£1.99 -> £1.19 prints 40')
+  ok(proDiscount({ sku: 'p', price: '$1.99', micros: 1_990_000 }, { sku: 'i', price: '$1.19', micros: 1_190_000 }) === 40, 'micros agree')
+  ok(proDiscount({ sku: 'p', price: '£2.99' }, { sku: 'i', price: '£1.79' }) === 40, '£2.99 -> £1.79 (the StoreKit fixture, 40.1% off) prints 40')
+  ok(proDiscount({ sku: 'p', price: '£1.99' }, { sku: 'i', price: '£1.18' }) === 40, '£1.99 -> £1.18 is 40.7% off and prints 40, never 41: rounded down')
   ok(proDiscount({ sku: 'p', price: '£1.99' }, { sku: 'i', price: '£0.99' }) === null, 'a 50% cut is outside the window: no percentage')
-  ok(proDiscount({ sku: 'p', price: '£1.99' }, { sku: 'i', price: '£1.79' }) === null, 'a 10% cut is outside it too')
+  ok(proDiscount({ sku: 'p', price: '£1.99' }, { sku: 'i', price: '£1.49' }) === null, 'the old 25% offer is outside it too')
+  ok(proDiscount({ sku: 'p', price: '£1.99' }, { sku: 'i', price: '£1.79' }) === null, 'and a 10% cut')
   ok(proDiscount({ sku: 'p', price: '£1.99' }, { sku: 'i', price: '£1.99' }) === null, 'the same price claims nothing')
-  ok(proDiscount({ sku: 'p', price: '1,99 €' }, { sku: 'i', price: '1,49 €' }) === 25, 'comma decimals')
-  ok(proDiscount({ sku: 'p', price: '¥300' }, { sku: 'i', price: '¥230' }) === 23, 'yen, no decimals: 23')
-  ok(proDiscount({ sku: 'p', price: 'R 39,99' }, { sku: 'i', price: 'R 29,99' }) === 25, 'rand')
+  ok(proDiscount({ sku: 'p', price: '1,99 €' }, { sku: 'i', price: '1,19 €' }) === 40, 'comma decimals')
+  ok(proDiscount({ sku: 'p', price: '¥300' }, { sku: 'i', price: '¥175' }) === 41, 'yen, no decimals: 41')
+  ok(proDiscount({ sku: 'p', price: 'R 39,99' }, { sku: 'i', price: 'R 23,99' }) === 40, 'rand')
   ok(Number.isNaN(priceNumber('Free')) && proDiscount({ sku: 'p', price: 'Free' }, { sku: 'i', price: '£1' }) === null, 'a price with no digits claims nothing')
   ok(priceNumber('1.234,56 kr') === 1234.56 && priceNumber('US$1,999.00') === 1999, 'thousands separators')
 }

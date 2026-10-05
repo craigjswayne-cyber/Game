@@ -51,7 +51,7 @@ const FRESH = { v: 1, firstPromptShown: false, firstOfferShown: false, firstOffe
  *  store lists (a sku left out is "not created in the console"); `answer`
  *  maps a sku to the sheet's ending ('owned' by default). `seed` presets the
  *  device ledger, `ent` the entitlement cache. */
-async function phone({ billing = true, ads = true, owns = [], prices = { 'phase.supporter': '£1.99', 'phase.supporter.intro': '£1.49' }, micros = null, answer = {}, seed = null, ent = null, size = { width: 412, height: 780 }, lang = null } = {}) {
+async function phone({ billing = true, ads = true, owns = [], prices = { 'phase.supporter': '£1.99', 'phase.supporter.intro': '£1.19' }, micros = null, answer = {}, seed = null, ent = null, size = { width: 412, height: 780 }, lang = null } = {}) {
   const ctx = await browser.newContext({ viewport: size, locale: 'en-GB' })
   await ctx.addInitScript(([billing, ads, owns, prices, micros, answer, seed, ent, lang]) => {
     if (!sessionStorage.getItem('__booted')) {
@@ -189,8 +189,8 @@ try {
             `Become Pro and Continue Free are the same size, both 40px or more (${b.map(x => `${x.t} ${Math.round(x.w)}x${Math.round(x.h)}`).join(', ')})`)
         }
         if (k === 'offer') {
-          ok(/ONE-TIME OFFER/.test(text) && /£1\.49/.test(text) && /25% OFF/.test(text) && /Usually £1\.99/.test(text),
-            'the offer is labelled one-time, at the store\'s intro price, 25% OFF (true for £1.49 on £1.99)')
+          ok(/ONE-TIME OFFER/.test(text) && /£1\.19/.test(text) && /40% OFF/.test(text) && /Usually £1\.99/.test(text),
+            'the offer is labelled one-time, at the store\'s intro price, 40% OFF (true for £1.19 on £1.99)')
           ok(await page.locator('.pro-card').getAttribute('data-sku') === 'phase.supporter.intro', 'and it sells the intro product')
         }
         if (k === 'reminder') ok(!/ONE-TIME/.test(text) && /£1\.99/.test(text), 'a reminder is the light card at the normal price')
@@ -352,8 +352,9 @@ try {
   // ---- the percentage is only printed when true ---------------------------
   say('--- % OFF only when the prices make it true')
   for (const [intro, micros, want] of [
-    ['£1.69', { 'phase.supporter': 1990000, 'phase.supporter.intro': 1690000 }, null],
-    ['£1.49', { 'phase.supporter': 1990000, 'phase.supporter.intro': 1490000 }, '25% OFF'],
+    // 40% since 1.8.9 (owner): the old 25% offer now prints no percentage
+    ['£1.49', { 'phase.supporter': 1990000, 'phase.supporter.intro': 1490000 }, null],
+    ['£1.19', { 'phase.supporter': 1990000, 'phase.supporter.intro': 1190000 }, '40% OFF'],
     ['£0.99', null, null],
   ]) {
     const { ctx, page } = await phone({ prices: { 'phase.supporter': '£1.99', 'phase.supporter.intro': intro }, micros, seed: { ...FRESH, firstPromptShown: true, played: 1, lastShownAt: 0 } })
