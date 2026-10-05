@@ -9242,6 +9242,7 @@
   "captain": {"one": "Jou kaptein: {n} wedstryd vir {club}.", "other": "Jou kaptein: {n} wedstryde vir {club}."},
   "legend": {"one": "'n {club}-legende sedert {season}: {n} wedstryd vir die klub.", "other": "'n {club}-legende sedert {season}: {n} wedstryde vir die klub."},
   "legendOld": {"one": "'n {club}-legende: {n} wedstryd vir die klub.", "other": "'n {club}-legende: {n} wedstryde vir die klub."},
+  "captainLegend": {"one": "Jou kaptein, 'n {club}-legende sedert {season}: {n} wedstryd vir die klub.", "other": "Jou kaptein, 'n {club}-legende sedert {season}: {n} wedstryde vir die klub."},
   "sold": {"one": "In {season} vir {fee} aan {buyer} verkoop, ná {n} wedstryd vir {club}.", "other": "In {season} vir {fee} aan {buyer} verkoop, ná {n} wedstryde vir {club}."},
   "soldYoung": "In {season} vir {fee} aan {buyer} verkoop, voor 'n eerstespanwedstryd vir {club}.",
   "released": {"one": "In {season} deur {club} vrygestel, ná {n} wedstryd.", "other": "In {season} deur {club} vrygestel, ná {n} wedstryde."},

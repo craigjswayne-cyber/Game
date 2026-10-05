@@ -8766,6 +8766,7 @@
   "captain": {"one": "キャプテン。{club}で{n}試合出場。", "other": "キャプテン。{club}で{n}試合出場。"},
   "legend": {"one": "{season}から{club}のレジェンド。クラブで{n}試合出場。", "other": "{season}から{club}のレジェンド。クラブで{n}試合出場。"},
   "legendOld": {"one": "{club}のレジェンド。クラブで{n}試合出場。", "other": "{club}のレジェンド。クラブで{n}試合出場。"},
+  "captainLegend": {"one": "キャプテン。{season}から{club}のレジェンド。クラブで{n}試合出場。", "other": "キャプテン。{season}から{club}のレジェンド。クラブで{n}試合出場。"},
   "sold": {"one": "{season}に{fee}で{buyer}へ売却。{club}では{n}試合出場。", "other": "{season}に{fee}で{buyer}へ売却。{club}では{n}試合出場。"},
   "soldYoung": "{season}に{fee}で{buyer}へ売却。{club}でのトップチーム出場はなかった。",
   "released": {"one": "{season}に{club}から放出。在籍中{n}試合出場。", "other": "{season}に{club}から放出。在籍中{n}試合出場。"},
