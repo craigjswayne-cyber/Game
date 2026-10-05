@@ -1157,26 +1157,25 @@ export function adBridge(): AdBridge | null {
  *  nowhere near a decision: never on a modal, never on the title screen, never
  *  between a tap and the thing the tap was for.
  *
- *  'match-foot' IS THE OWNER'S CALL AND IT BREAKS THE OLD RULE, which said
- *  never during a match at all (owner, 6 Sep: "there should be an ad down the
- *  bottom during game time when the motion screen is on"). The match screen is
- *  the busiest minute in the game and the one where a mis-tap costs a
- *  substitution, so the surface pays for the decision rather than the rule
- *  simply being deleted: MatchDay renders it ONLY while the match is actually
- *  running, and takes it down for half time, the hour break, a penalty
- *  decision and full time - every moment the player is being asked for
- *  something. The banner is a native view under the controls, never over them.
+ *  'match-foot' IS THE OWNER'S CALL (6 Sep) AND IT BREAKS THE OLD RULE, which
+ *  said never during a match at all. Since 1.8.7 it is up ONLY while a
+ *  highlight animation is the stage (owner, from the iOS simulator: "It
+ *  shouldnt be over stats or lineups" and, of the pitch animation, "It works
+ *  really well"). The match screen has no bottom nav to make room, so while
+ *  the live stats show the strip would cover them. MatchDay also takes it
+ *  down for half time, the hour break, a penalty decision, full time and
+ *  every open panel. It reports against the home unit until it has its own.
  *
- *  It has no unit id of its own yet. packaging/shell/ads-bridge.js falls back
- *  to the home unit when a place has none, so it earns from the first build and
- *  simply reports against the wrong unit until the owner creates two.
+ *  'week-foot' (1.8.7, the owner's own example) is the floor of the day room,
+ *  under the Continue that walks the week on. 'finance-foot' (1.8.7, owner:
+ *  "On the bottom of all financial tabs") is the floor of every Finances tab.
  *
  *  'news-foot' AND 'press-foot' ARE THE OWNER'S TOO (1.8.3, with screenshots
  *  of the empty floor under a news story and a quiet press room). Same terms
  *  as the others: a banner under the nav, never over content; the press room
  *  carries it only while no question is waiting, so an answer is never given
  *  beside an advert. Both fall back to the Home unit until they have their own. */
-export const AD_PLACES = ['home-foot', 'results-foot', 'match-foot', 'news-foot', 'press-foot'] as const
+export const AD_PLACES = ['home-foot', 'week-foot', 'results-foot', 'match-foot', 'news-foot', 'press-foot', 'finance-foot'] as const
 export type AdPlace = typeof AD_PLACES[number]
 
 /** Did the shell inject a purchase bridge at all? Not the same question as

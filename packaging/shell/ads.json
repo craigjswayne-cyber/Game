@@ -20,17 +20,16 @@
     "consentDebug forces the EEA consent form on the testDevices phones so the",
     "form can be seen outside Europe.",
     "",
-    "match-foot IS NEW IN v1.5.0 AND HAS NO UNIT ID YET. The live match screen",
-    "carries a banner while play is running (owner, 6 Sep). Both entries are",
-    "empty strings on purpose: ads-bridge.js falls back to the home-foot unit",
-    "when a place has none, so the slot earns from the first build and simply",
-    "reports against the Home unit until two new adaptive-banner units are",
+    "AN EMPTY UNIT ID IS ON PURPOSE: ads-bridge.js falls back to the home-foot",
+    "unit when a place has none, so the slot earns from the first build and",
+    "simply reports against the Home unit until its own adaptive-banner unit is",
     "created in AdMob and pasted here. Creating them is the owner's job - it",
-    "needs the AdMob console - and it is worth doing, because otherwise match",
-    "revenue and home revenue are indistinguishable in the reports.",
+    "needs the AdMob console.",
     "",
-    "news-foot AND press-foot ARE NEW IN 1.8.3 and are empty for the same reason:",
-    "they report against the Home unit until their own units are created.",
+    "week-foot AND finance-foot ARE NEW IN 1.8.7 (the floor of the day room,",
+    "and of every Finances tab).",
+    "match-foot (v1.5.0) shows only while a highlight animation plays (1.8.7).",
+    "news-foot AND press-foot ARE FROM 1.8.3. All five await their own units.",
     "",
     "skAdNetworkIds IS GOOGLE'S PARTNER LIST, pasted from",
     "developers.google.com/admob/ios/3p-skadnetworks (page dated 30 Jan 2026,",
@@ -53,9 +52,11 @@
     "banner": {
       "home-foot": "ca-app-pub-1341622370227647/9355241648",
       "results-foot": "ca-app-pub-1341622370227647/4629528573",
+      "week-foot": "",
       "match-foot": "",
       "news-foot": "",
-      "press-foot": ""
+      "press-foot": "",
+      "finance-foot": ""
     },
     "rewarded": "ca-app-pub-1341622370227647/8788994381"
   },
@@ -64,9 +65,11 @@
     "banner": {
       "home-foot": "ca-app-pub-1341622370227647/7168062002",
       "results-foot": "ca-app-pub-1341622370227647/7475912719",
+      "week-foot": "",
       "match-foot": "",
       "news-foot": "",
-      "press-foot": ""
+      "press-foot": "",
+      "finance-foot": ""
     },
     "rewarded": "ca-app-pub-1341622370227647/8042159971"
   },

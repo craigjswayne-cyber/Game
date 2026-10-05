@@ -1,4 +1,9 @@
-// Probe: the match-screen banner is up during PLAY and nowhere else.
+// Probe: the match-screen banner is up only while a HIGHLIGHT plays, and
+// nowhere else in a match. Plus the week's floor carries one (1.8.7).
+//
+// Owner, 1.8.7, from the iOS simulator: "It shouldnt be over stats or
+// lineups" and, of the banner under the pitch animation, "It works really
+// well when the animation is on screen".
 //
 // Owner, 6 Sep, with a screenshot of the empty strip under the commentary:
 // "should only be in-game! NOT when making subs, half-time, 60 or ft. its just
@@ -36,9 +41,29 @@ await page.addInitScript(() => {
 })
 
 const slotUp = async () => (await page.locator('.ad-slot').count()) > 0
+const clipUp = async () => (await page.locator('[data-testid=hl-clip]').count()) > 0
+const statsUp = async () => (await page.locator('[data-testid=live-stats]').count()) > 0
+// a touchline call stops the clock and disables Skip until it is answered
+const answer = async () => {
+  for (const label of ['Take the Points', 'Kick for the Corner', 'Scrum']) {
+    const b = page.locator(`button:has-text("${label}")`)
+    if (await b.count()) { await b.first().click().catch(() => {}); await page.waitForTimeout(200); return true }
+  }
+  return false
+}
+const skip = async (until) => {
+  for (let i = 0; i < 60; i++) {
+    if (await page.locator(`text=${until}`).count()) return
+    await answer()
+    const b = page.locator('.speed-controls [data-ctl=skip]:not([disabled])')
+    if (await b.count()) await b.first().click().catch(() => {})
+    await page.waitForTimeout(500)
+  }
+}
 
 try {
-  await page.goto('http://localhost:4216/')
+  // ?hl=1: highlights are off under a test driver unless asked for
+  await page.goto('http://localhost:4216/?hl=1')
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   await page.click('text=New Career')
   await page.waitForSelector('text=English Premier Division')
@@ -56,8 +81,10 @@ try {
 
   // Continue walks the week a day at a time, same as e2e does it: the button
   // reads Continue on the bulletin days and Matchday on the day of the game.
+  let weekSeen = 0, weekWithSlot = 0
   for (let tap = 0; tap < 10; tap++) {
     if (await page.locator('text=Kick Off').count()) break
+    if (await page.locator('.day-next').count()) { weekSeen++; if (await slotUp()) weekWithSlot++ }
     for (const label of ['On to the Week', 'Next Story ▸', 'Get On With The Week']) {
       const b = page.locator(`text=${label}`)
       if (await b.count()) { await b.first().click(); await page.waitForTimeout(200) }
@@ -70,6 +97,7 @@ try {
     await page.waitForTimeout(450)
   }
   await page.waitForSelector('text=Kick Off', { timeout: 20000 })
+  ok(weekSeen > 0 && weekWithSlot === weekSeen, `the floor of the week carries a banner (${weekWithSlot} of ${weekSeen} days)`)
 
   await page.locator('text=Kick Off ▸').first().click()
   try {
@@ -84,38 +112,47 @@ try {
 
   await page.waitForSelector('.scoreboard', { timeout: 20000 })
   await page.waitForTimeout(600)
-  ok(await slotUp(), 'the banner is up while the match is running')
+  // ---- the stage: stats or a highlight ----
+  // Sample the screen while play runs: every moment the live stats are the
+  // stage there must be no banner, and every moment a highlight is, there is.
+  let statsMoments = 0, statsWithSlot = 0, clipMoments = 0, clipWithSlot = 0
+  for (let i = 0; i < 480 && (clipMoments < 3 || statsMoments < 3); i++) {
+    if (await answer()) continue
+    const c = await clipUp(), st = await statsUp(), up = await slotUp()
+    if (c) { clipMoments++; if (up) clipWithSlot++ }
+    else if (st) { statsMoments++; if (up) statsWithSlot++ }
+    await page.waitForTimeout(250)
+  }
+  ok(statsMoments > 0 && statsWithSlot === 0, `no banner over the live stats (${statsWithSlot} of ${statsMoments} moments)`)
+  ok(clipMoments > 0 && clipWithSlot === clipMoments, `the banner is up under a highlight (${clipWithSlot} of ${clipMoments} moments)`)
 
   // ---- making subs ----
   const squad = page.locator('.speed-controls [data-ctl=squad]')
   if (await squad.count()) {
     await squad.first().click()
     await page.waitForTimeout(400)
-    ok(!(await slotUp()), 'and it is gone the moment the squad sheet opens for a sub')
+    ok(!(await slotUp()), 'no banner while the squad sheet is open for a sub')
     await page.keyboard.press('Escape')
     await page.waitForTimeout(400)
-    const back = await slotUp()
-    if (!back) {
+    if (await page.locator('.modal').count()) {
       const close = page.locator('.modal .grab, .modal-veil')
       if (await close.count()) { await close.first().click({ position: { x: 5, y: 5 } }); await page.waitForTimeout(400) }
     }
-    ok(await slotUp(), 'and it comes back when the sheet closes')
   } else {
     ok(false, 'could not find the Squad button to open a sub sheet')
   }
 
   // ---- half time ----
-  await page.click('.speed-controls [data-ctl=skip]')
+  await skip('Start Second Half')
   await page.waitForSelector('text=Start Second Half', { timeout: 25000 })
   await page.waitForTimeout(400)
   ok(!(await slotUp()), 'no banner at half time')
 
   await page.click('text=▸ Start Second Half')
   await page.waitForTimeout(500)
-  ok(await slotUp(), 'up again for the second half')
 
   // ---- the hour break ----
-  await page.click('.speed-controls [data-ctl=skip]')
+  await skip('Play the Final Quarter')
   await page.waitForSelector('text=Play the Final Quarter', { timeout: 25000 })
   await page.waitForTimeout(400)
   ok(!(await slotUp()), 'no banner at the hour break')
@@ -124,7 +161,7 @@ try {
   await page.waitForTimeout(500)
 
   // ---- full time ----
-  await page.click('.speed-controls [data-ctl=skip]')
+  await skip('Continue to Results')
   await page.waitForSelector('text=Continue to Results', { timeout: 25000 })
   await page.waitForTimeout(400)
   ok(!(await slotUp()), 'and none at full time')
@@ -138,7 +175,7 @@ try {
 
 say('')
 say(fails === 0
-  ? 'MATCH AD PASSED: in play only - never over a sub, half time, the hour or full time'
+  ? 'MATCH AD PASSED: under a highlight only - never over the stats, a sub, half time, the hour or full time'
   : `MATCH AD FAILED (${fails})`)
 await browser.close()
 server.stop?.()

@@ -2,7 +2,6 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperti
 import { useStore } from '../../store'
 import { analystArmed } from '../../game/rewarded'
 import { rewardedAvailable } from '../../game/monetise'
-import { AdSlot } from '../AdSlot'
 import {
   matchStats, visitsTo22, goalKicker, teamShort, teamUnits, paperOverall, rosterOf, assistantJudgement, autoSelect, availablePlayers,
   refFor, refNotes, homeCrowdLean, frontRowCover, repairSheet, sideEnergy, MAX_SUBS, isFrontRower, needsFrontRower, type LiveCtx, type SideCtx,
@@ -36,6 +35,7 @@ import { isDerby } from '../../game/rivalries'
 import { MatchPanels, Visits, Zones } from '../MatchPanels'
 import { useTablet } from '../tablet'
 import { readMatchPrefs, writeMatchPrefs, type MatchPrefs } from '../matchPrefs'
+import { AdSlot } from '../AdSlot'
 import { HighlightClip, buildClip, nextMoment, tokenColor, type ClipSpec } from '../HighlightClip'
 import { derbyName } from '../../game/rivalries'
 import { matchStakes } from '../../game/stakes'
@@ -2359,22 +2359,19 @@ function Live() {
         )}
       </div>
       )}
-      {/* THE BANNER, AND THE FOUR MOMENTS IT REFUSES TO APPEAR.
-          Owner: "there should be an ad down the bottom during game time when
-          the motion screen is on." It is the last child of .live-wrap, so it
-          sits UNDER the controls rather than over them, and the native banner
-          reserves its own height through --ad-inset.
+      {/* THE MATCH BANNER: ONLY WHILE A HIGHLIGHT IS PLAYING (owner, 1.8.7,
+          from the iOS simulator). It used to be up for all of open play and
+          sat over the live stats - "It shouldnt be over stats or lineups" -
+          while under the pitch animation "it works really well". There is no
+          bottom nav here to make room for it, so it goes up only when the
+          highlight is the stage and comes down the moment the stats return.
 
-          It is up only while the match is RUNNING. Half time, the hour break, a
-          penalty decision and full time all take it down, because each of those
-          is the game asking the manager for something and an advert beside a
-          question is how a mis-tap becomes a substitution you did not make. So
-          do the squad sheet, the drawer, the settings and an injury prompt -
-          the owner's list was "NOT when making subs, half-time, 60 or ft", and
-          making subs is a panel rather than a moment on the clock. A
-          supporter never sees it at all - adsAllowed answers that inside the
-          slot, before any provider is asked. */}
-      {!done && !atHalfTime && !atBreak && !atDecision
+          Still never at half time, the hour break, a penalty decision or full
+          time, nor while the squad sheet, the drawer, the settings or an
+          injury prompt is open: each of those is the game asking the manager
+          for something. Never on a tablet, where the stats sit beside the
+          feed under the pitch. A supporter never sees it at all. */}
+      {clip && !panelActive && !tablet && !done && !atHalfTime && !atBreak && !atDecision
         && !sheet && !drawer && !settings && !injury && <AdSlot place="match-foot" />}
     </div>
   )
