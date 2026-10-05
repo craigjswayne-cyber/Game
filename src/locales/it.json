@@ -9149,6 +9149,7 @@
   "captain": {"one": "Il tuo capitano: {n} presenza con {club}.", "other": "Il tuo capitano: {n} presenze con {club}."},
   "legend": {"one": "Una leggenda di {club} dal {season}: {n} presenza con il club.", "other": "Una leggenda di {club} dal {season}: {n} presenze con il club."},
   "legendOld": {"one": "Una leggenda di {club}: {n} presenza con il club.", "other": "Una leggenda di {club}: {n} presenze con il club."},
+  "captainLegend": {"one": "Il tuo capitano, una leggenda di {club} dal {season}: {n} presenza con il club.", "other": "Il tuo capitano, una leggenda di {club} dal {season}: {n} presenze con il club."},
   "sold": {"one": "Ceduto a {buyer} per {fee} nel {season}, dopo {n} presenza con {club}.", "other": "Ceduto a {buyer} per {fee} nel {season}, dopo {n} presenze con {club}."},
   "soldYoung": "Ceduto a {buyer} per {fee} nel {season}, prima di una partita in prima squadra con {club}.",
   "soldYoung_f": "Ceduta a {buyer} per {fee} nel {season}, prima di una partita in prima squadra con {club}.",
