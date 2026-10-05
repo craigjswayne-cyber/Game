@@ -1620,7 +1620,9 @@ function Live() {
   // was measured from, which meant every first match of every career ran at
   // 1,600ms a line before anybody found the ⚙. Normal is the 800ms middle
   // rung (640ms since round 2) and both neighbours are one tap away.
-  const [speedIdx, setSpeedIdx] = useState(1)
+  // and REMEMBERED (owner, 1.8.8: "I selected fast ... it doesn't remember
+  // next time I play it"): the pace lives in matchPrefs with the other Match
+  // Settings, declared just below, so it survives the match and a restart.
   const [sound, setSound] = useState(soundOn())
   const [drawer, setDrawer] = useState(false)
   const [settings, setSettings] = useState(false)
@@ -1636,6 +1638,8 @@ function Live() {
   const tablet = useTablet()
   const [prefs, setPrefs] = useState(readMatchPrefs)
   const setPref = (p: Partial<MatchPrefs>) => setPrefs(o => { const n = { ...o, ...p }; writeMatchPrefs(n); return n })
+  const speedIdx = prefs.speed
+  const setSpeedIdx = (i: number) => setPref({ speed: i === 0 || i === 2 ? i : 1 })
   const tickerRef = useRef<HTMLDivElement>(null)
   const feedRef = useRef<HTMLDivElement>(null)
   const tabRef = useRef<HTMLDivElement>(null)
