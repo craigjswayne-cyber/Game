@@ -321,7 +321,7 @@ function rebaseStamps(s: GameState): void {
     if (num(q.debtSince)) q.debtSince = rebase(q.debtSince)
   }
   const g = s as unknown as Record<string, unknown>
-  for (const f of ['groundsAt', 'lawWatchAt', 'challengeAt', 'chatWk', 'natAskAt',
+  for (const f of ['groundsAt', 'lawWatchAt', 'lawTalkAt', 'challengeAt', 'chatWk', 'natAskAt',
                    'natCoachAskAt', 'natCall']) {
     if (num(g[f])) g[f] = rebase(g[f])
   }
@@ -506,6 +506,9 @@ export function migrate(s: GameState): GameState {
     if (typeof n.subject !== 'string' || !n.subject) n.subject = 'From the archive'
     if (typeof n.body !== 'string') n.body = ''
     n.read ??= true
+    // the byline is one known source or none: anything else a bad copy left
+    // there would print a stranger's name over a story (1.8.7, Ruck)
+    if (n.src != null && n.src !== 'ruck') delete n.src
   }
   s.press = s.press.filter(p => story(p) && typeof (p as { question?: unknown }).question === 'string')
   s.offers = s.offers.filter(story)

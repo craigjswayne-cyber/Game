@@ -361,12 +361,17 @@ export function executeTransfer(state: GameState, p: Player, toClubId: string, f
     fee: fmtMoney(fee), age: p.age, wage: fmtMoney(p.wage), until: 2026 + p.contractEnds,
   }
   if (from) v.from = from.name
+  // SIGNINGS AROUND THE LEAGUE ARE RUCK'S (owner, 1.8.7): a move between two
+  // other clubs, or another club signing a free agent, carries the byline. A
+  // move the manager's club is party to keeps the neutral voice.
+  const theirs = !isMyClub(state, to.id) && !isMyClub(state, from?.id)
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
     subject: `${p.name} joins ${to.name}`,
     body: tIn('en', k, v),
     k, v,
     playerId: p.id,
+    ...(theirs ? { src: 'ruck' as const } : {}),
   })
   ensureCaptains(state) // reappoint leaders wherever the move vacated an armband
   // THE TERRACES GET A SAY (terraces.ts). A transfer is the loudest thing a
