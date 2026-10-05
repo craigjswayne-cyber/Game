@@ -8693,8 +8693,8 @@
     "faceBroken": "Le départ a suivi une promesse non tenue en {bs}.",
     "faceRefused": "Le départ a suivi une demande de transfert refusée en {bs}.",
     "faceCapped": "Désormais en sélection.",
-    "faceAlso": "Aussi passés par votre club : {names}.",
-    "faceAlso_f": "Aussi passées par votre club : {names}.",
+    "faceAlso": "Aussi passés par votre club : {names}.",
+    "faceAlso_f": "Aussi passées par votre club : {names}.",
     "ftTry": "{how_k} Aujourd'hui, l'écart de votre défaite {us}-{them}, c'est un essai de {player}.",
     "ftMotm": "{how_k} Aujourd'hui, {player} a reçu la distinction du match lors de votre défaite {us}-{them}."
   },

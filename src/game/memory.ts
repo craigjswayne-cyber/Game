@@ -376,9 +376,9 @@ export function memoryAfterMatch(state: GameState, fx: Fixture): void {
       : p.lastWk === state.week
     // A TRY BY A MAN OF NOTE (1.8.5): the squad man of no note who left is
     // not a story for scoring once, and a try the match report has already
-    // filed as an old boy's (matchEngine news.oldBoyWe*) is not filed twice
+    // filed as an old boy's (matchEngine, the old boy's Won/Lost story) is not filed twice
     // the same afternoon; it is spent, so it does not come later either.
-    const onPage = state.news.some(n => n.playerId === p.id && n.fixtureId === fx.id && !!n.k?.startsWith('news.oldBoyWe'))
+    const onPage = state.news.some(n => n.playerId === p.id && n.fixtureId === fx.id && (n.k === 'news.oldBoyWeWon' || n.k === 'news.oldBoyWeLost'))
     if (scored && onPage && !motm && !paid(e, 'try')) { markPaid(e, 'try'); if (!paid(e, 'met')) markPaid(e, 'met') }
     const rank = motm && !paid(e, 'motm') ? 3
       : scored && notable(e) && !paid(e, 'motm') && !paid(e, 'try') ? 2
