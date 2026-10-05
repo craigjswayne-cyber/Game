@@ -1178,7 +1178,10 @@ export function aiRenewals(state: GameState, rng: Rng) {
       if (rng() < keep && !p.retiring &&
         !(state.preContracts ?? []).some(pc => pc.playerId === p.id)) {
         p.contractEnds = state.season + 1 + Math.floor(rng() * 2)
-        p.wage = aiRenewalWage(p, rate)
+        // a scholar is renewed on the academy scale, as the summer reprice
+        // would put him: the senior or cut rate here paid him outside the
+        // academy band until then (1.8.5 save audit). Same draws either way.
+        p.wage = p.acad ? playerWage(p.ca, p.age, true) : aiRenewalWage(p, rate)
       }
     }
   }
