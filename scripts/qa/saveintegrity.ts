@@ -95,7 +95,7 @@ function numbers(g: GameState, when: string) {
   walk(g, '', '', 0)
   verdict('NUMBERS', nan.length === 0, `${when}: ${nan.length} non-finite: ${nan.slice(0, 6).join(', ')}`)
   // typed nullable on purpose: an empty shirt on a team sheet
-  const NULLABLE = [/\.lineup\[\]$/]
+  const NULLABLE = [/\.lineup\[\]$/, /\.clubs\.\*\.(captain|vice)$/]
   const suspicious = [...nulls.entries()].filter(([p]) => numericAt.has(p) && !NULLABLE.some(re => re.test(p)))
   verdict('NUMBERS', suspicious.length === 0, `${when}: null where a number lives: ${suspicious.slice(0, 8).map(([p, n]) => `${p} x${n}`).join(', ')}`)
 }

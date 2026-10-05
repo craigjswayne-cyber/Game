@@ -10,7 +10,7 @@ import { clamp, hashString, mulberry32, type Rng } from './rng'
 import { nationByCode, regenName } from './nations'
 import { inheritStaff } from './staff'
 import { newCoachPhilosophy, seedPhilosophies } from './philosophy'
-import { t, tIn } from './i18n'
+import { t, tIn, type Vars } from './i18n'
 import { telling } from './tellings'
 import { historyLeaveJob, historyTakeJob } from './history'
 import { arcAfterMove, arcBeforeMove, arcLeaveJob } from './arc'
@@ -530,8 +530,23 @@ function takeJob(state: GameState, clubId: string): string {
 /** The era in one line: years served, record, silverware, legend status.
  *  Used by both exits - the resignation and the sack. */
 export function eraSummary(state: GameState): string {
+  const e = eraParts(state)
+  return e ? t(e.k, e.v) : ''
+}
+
+/** The era as a story stores it (1.8.5 save QA): the English line under the
+ *  plain name, as data, and the line itself as a key and its variables under
+ *  a _j twin so the reader's language tells it (i18n fill). eraSummary used
+ *  to be rendered in the screen's language and saved, so a career sacked in
+ *  French carried a French sentence inside every later English reading. */
+export function eraVars(state: GameState): { era: string; era_j?: string } {
+  const e = eraParts(state)
+  return e ? { era: tIn('en', e.k, e.v), era_j: JSON.stringify({ k: e.k, ...e.v }) } : { era: '' }
+}
+
+function eraParts(state: GameState): { k: string; v: Vars } | null {
   const club = state.clubs[state.userClubId]
-  if (!club) return ''
+  if (!club) return null
   const tenure = state.season - (state.tenureStart ?? state.season) + 1
   const era = (state.annals ?? []).filter(a => a.clubName === club.name).slice(-tenure)
   let w = era.reduce((s, a) => s + a.overall.w, 0)
@@ -546,13 +561,13 @@ export function eraSummary(state: GameState): string {
     else if (us < them) l++
   }
   const legend = (state.legendOf ?? []).includes(club.id)
-  return t('reply.eraInNumbers', {
+  return { k: 'reply.eraInNumbers', v: {
     n: tenure, seasons_k: tenure === 1 ? 'count.seasonOne' : 'count.seasonMany',
     w, wins_k: w === 1 ? 'count.winOne' : 'count.winMany',
     l, defeats_k: l === 1 ? 'count.defeatOne' : 'count.defeatMany',
     cups, cups_k: cups === 1 ? 'count.trophyOne' : 'count.trophyMany',
     legend_k: legend ? 'reply.legendStays' : 'common.nothing',
-  })
+  } }
 }
 
 export function resignJob(state: GameState) {
@@ -569,8 +584,8 @@ export function resignJob(state: GameState) {
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
     subject: `${state.managerName} resigns at ${club.name}`,
-    body: `You clear your desk on your own terms. ${eraSummary(state)} The rumour mill starts turning immediately - where next?`,
-    k: 'news.resigned', v: { manager: state.managerName, club: club.name, era: eraSummary(state) },
+    body: `You clear your desk on your own terms. ${eraVars(state).era} The rumour mill starts turning immediately - where next?`,
+    k: 'news.resigned', v: { manager: state.managerName, club: club.name, ...eraVars(state) },
   })
 }
 
@@ -593,7 +608,7 @@ export function sackManager(state: GameState, k: string, extraV: Record<string, 
   // bids for the old club's players go with the job (see resignJob)
   state.offers = []
   state.vacancies.push({ clubId: club.id, week: state.week })
-  const v = { club: club.name, manager: state.managerName, era: eraSummary(state), ...extraV }
+  const v = { club: club.name, manager: state.managerName, ...eraVars(state), ...extraV }
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
     subject: tIn('en', `${k}Subj`, v), body: tIn('en', k, v),
