@@ -45,6 +45,7 @@ import { sayKey } from './moves'
 import { atkSay, defSay } from './styles'
 import type { HalfSide } from './conditions'
 import { noteDecider } from './turning'
+import { noteMatchWork } from './arcbook'
 
 // ---------------------------------------------------------------- shared reads
 
@@ -250,6 +251,16 @@ export function fileEvidence(state: GameState, ctx: LiveCtx): CausalEvidence | n
   if (list.some(e => e.fxId === ev.fxId && e.season === ev.season)) return ev
   loop.evidence = trimRecall([...list, ev])
   noteDecider(state, ctx.fx, ev) // a final that turned goes into the annals (turning.ts)
+  // the manager's own touchline work, for what he is known for (repute.ts):
+  // a match he watched, not one the assistant took (store.ts instantResult)
+  if (!ctx.assistantSubs && ctx.koDials) {
+    const t = state.clubs[state.userClubId]?.tactic
+    const now = t ? LEVER_DIALS.map(k => t[k]) : null
+    const moved = !!now && now.some((v, i) => Math.abs(v - (ctx.koDials![i] ?? v)) >= 10)
+    const half = halfFollow(ev, ctx.htEv)
+    const answered = !!half && leverMoved(half.cause, ctx.htDials, ctx.shDials) === 'right'
+    noteMatchWork(state, moved, answered, !!half && (half.trend === 'improved' || half.trend === 'partly'))
+  }
   return ev
 }
 

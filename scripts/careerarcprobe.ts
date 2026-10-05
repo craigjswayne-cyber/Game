@@ -37,7 +37,7 @@ import { processWeekAndAdvance } from '../src/game/season'
 import { SEASON_WEEKS, boardObjective, type Fixture, type GameState } from '../src/game/model'
 import { migrate } from '../src/game/save'
 import { resignJob } from '../src/game/jobs'
-import { tIn } from '../src/game/i18n'
+import { ensureLang, setManagerGender, tIn } from '../src/game/i18n'
 import { ARC_OFF, arcOf, flushArcNews, migrateArc, type Conduct } from '../src/game/arcbook'
 import { coachAfterMatch, coachAppoint, coachAt, coachSacked, coachStakes, coachWeek, coachYearEnd, rivalCoach, RIVAL_AT } from '../src/game/rivalcoach'
 import { mgrTraits, reputeYearEnd, traitLine } from '../src/game/repute'
@@ -160,6 +160,28 @@ const keepBoard = (g: GameState) => {
   ok(mgrTraits(g).some(tr => tr.id === 'players'), "kept promises and a happy room read as a players' manager")
   a.conduct = [0, 1, 2].map(s => row({ s, pats: 4, w: 16, l: 8 }))
   ok(mgrTraits(g).some(tr => tr.id === 'innovator'), 'many ideas of rugby, and winning, reads as an innovator')
+  // 1.8.5 career QA: the rows carry what the manager chose, and are read by it
+  const now = (o: Partial<Conduct>) => row({ yd: 0, u21: 8, u21l: 8, hgl: 60, pl: 1, chg: 0, ansN: 0, ans: 0, capb: 0, embb: 0, wr: 100, bk: -1, ...o })
+  a.conduct = [0, 1, 2].map(s => now({ s, deb: 4, hg: 80, hgl: 72 }))
+  ok(!mgrTraits(g).some(tr => tr.id.startsWith('youth')), `the age gate's debuts and a homegrown squad like the league's are not a youth developer (${mgrTraits(g).map(x => x.id)})`)
+  a.conduct = [0, 1, 2].map(s => now({ s, deb: 4, yd: 3, hg: 40, hgl: 20, u21: 22 }))
+  ok(mgrTraits(g).some(tr => tr.id.startsWith('youth')), `boys picked and minutes over the league's read as a youth developer (${mgrTraits(g).map(x => x.id)})`)
+  a.conduct = [0, 1, 2].map(s => now({ s, pl: 7, chg: 10, w: 9, l: 15 }))
+  ok(mgrTraits(g).some(tr => tr.id === 'tactician') && !mgrTraits(g).some(tr => tr.id === 'innovator'), `the plan changed every few weeks on a losing side reads as a tactician (${mgrTraits(g).map(x => x.id)})`)
+  a.conduct = [0, 1, 2].map(s => now({ s, pl: 7, chg: 10, w: 14, l: 10 }))
+  ok(mgrTraits(g).some(tr => tr.id === 'innovator'), `and on a winning one as an innovator (${mgrTraits(g).map(x => x.id)})`)
+  a.conduct = [0, 1, 2].map(s => now({ s, pl: 1, chg: 0 }))
+  ok(!mgrTraits(g).some(tr => tr.id === 'innovator' || tr.id === 'tactician'), 'one plan all season is neither')
+  a.conduct = [0, 1, 2].map(s => now({ s, wr: 82, bk: 200_000 }))
+  ok(mgrTraits(g).some(tr => tr.id === 'prudent'), `a bill under budget and level books read as careful with money (${mgrTraits(g).map(x => x.id)})`)
+  a.conduct = [0, 1, 2].map(s => now({ s, wr: 99, bk: 200_000 }))
+  ok(!mgrTraits(g).some(tr => tr.id === 'prudent'), 'a bill at its budget is not')
+  // a woman in the dugout is réputée, not réputé (1.8.5 career QA)
+  await ensureLang('fr')
+  setManagerGender('w')
+  const fem = tIn('fr', 'arc.cite.youth'), sold = tIn('fr', 'arc.cite.seller')
+  setManagerGender('m')
+  ok(fem.startsWith('Réputée') && sold.includes('vendeuse') && tIn('fr', 'arc.cite.youth').startsWith('Réputé '), `the French reputation agrees with a woman manager ("${fem}" / "${sold}")`)
   a.conduct = []
   a.turned = ['bedford', 'coventry']
   const tr = mgrTraits(g)

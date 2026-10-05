@@ -8714,7 +8714,7 @@
   "wishMet": "El presidente pidió {wish_k}, y lo consiguió.",
   "wishMissed": "El presidente pidió {wish_k}, y no lo consiguió.",
   "verdictSubj": "El veredicto de la directiva sobre la temporada",
-  "verdict": "El veredicto veraniego de la directiva.\n{rows_ll}",
+  "verdict": "{rows_ll}",
   "demGiantWon": "Un título, que es para lo que existe este club. La directiva está satisfecha.",
   "demGiantEmpty": "Dos temporadas sin un título. En un club de este tamaño eso se nota, y la directiva lo ha notado.",
   "demFallenRise": "Una posición mejor que hace un año. La directiva quiere recuperar la vieja categoría, y este es el camino.",
@@ -8746,7 +8746,7 @@
    "innovator": "Conocido por cambiar la forma de jugar de un equipo, y ganar así.",
    "spender": "Conocido por gastar a lo grande en el mercado de fichajes.",
    "seller": "Conocido por vender jugadores, también a los mejores.",
-   "seller_w": "Conocido por vender jugadoras, también a las mejores.",
+   "seller_w": "Conocida por vender jugadores, también a los mejores.",
    "hard": "Conocido por su disciplina: nadie está por encima del club.",
    "players": "Conocido como un entrenador cercano: promesas cumplidas, un vestuario feliz.",
    "turnaround": {
@@ -8754,7 +8754,26 @@
     "other": "Reflotó {n} clubes en apuros."
    },
    "defence": "Conocido por equipos muy difíciles de romper.",
-   "attack": "Conocido por equipos que anotan muchos puntos."
+   "attack": "Conocido por equipos que anotan muchos puntos.",
+   "tactician": "Conocido por cambiar el plan de juego, semana a semana y en el descanso.",
+   "prudent": "Conocido por cuadrar las cuentas y mantener los salarios dentro del presupuesto.",
+   "youth_w": "Conocida por dar su oportunidad a los jóvenes.",
+   "youthBacks_w": "Conocida por formar a jóvenes tres cuartos.",
+   "youthPack_w": "Conocida por formar a jóvenes delanteros.",
+   "youthIntl_w": {
+     "one": "Conocida por convertir a un canterano en internacional.",
+     "other": "Conocida por convertir canteranos en internacionales: {n} hasta ahora."
+   },
+   "innovator_w": "Conocida por cambiar la forma de jugar de un equipo, y ganar así.",
+   "spender_w": "Conocida por gastar a lo grande en el mercado de fichajes.",
+   "hard_w": "Conocida por su disciplina: nadie está por encima del club.",
+   "players_w": "Conocida como una entrenadora cercana: promesas cumplidas, un vestuario feliz.",
+   "defence_w": "Conocida por equipos muy difíciles de romper.",
+   "attack_w": "Conocida por equipos que anotan muchos puntos.",
+   "tactician_w": "Conocida por cambiar el plan de juego, semana a semana y en el descanso.",
+   "prudent_w": "Conocida por cuadrar las cuentas y mantener los salarios dentro del presupuesto.",
+   "seller_f": "Conocido por vender jugadoras, también a las mejores.",
+   "seller_fw": "Conocida por vender jugadoras, también a las mejores."
   },
   "traitNewsSubj": "Lo que dicen de ti",
   "traitNews": "La prensa ya tiene una forma de describirte: {trait_k}",
@@ -8774,12 +8793,14 @@
    "innovator": "las ideas nuevas de juego",
    "spender": "los grandes fichajes",
    "seller": "la venta de jugadores",
-   "seller_w": "la venta de jugadoras",
    "hard": "las decisiones duras",
    "players": "la gestión del vestuario",
    "turnaround": "reflotar clubes",
    "defence": "el rugby defensivo",
-   "attack": "el rugby de ataque"
+   "attack": "el rugby de ataque",
+   "tactician": "los cambios de plan",
+   "prudent": "la gestión prudente",
+   "seller_f": "la venta de jugadoras"
   },
   "meth": {
    "broke": "Se rompieron promesas hechas al vestuario, y la directiva se enteró.",
@@ -8790,7 +8811,12 @@
    "academy": "La cantera tuvo su oportunidad.",
    "attack": "El equipo atacó, y el presidente lo disfrutó.",
    "spent": "El dinero se gastó con audacia.",
-   "defence": "Un equipo difícil de batir."
+   "defence": "Un equipo difícil de batir.",
+   "prudentWages": "La masa salarial quedó por debajo del presupuesto y las cuentas cuadraron. La directiva lo notó.",
+   "tacWorked": "El plan de juego cambió semana a semana, y los resultados acompañaron.",
+   "tacRestless": "El plan de juego cambió semana a semana, y los resultados no acompañaron.",
+   "capHeld": "El tope salarial bloqueó fichajes que buscabas. La directiva sabe que el límite era de la liga.",
+   "embargo": "La sanción por el tope salarial dejó al club fuera del mercado."
   },
   "profile": {
    "giant": "Un club rico que exige títulos.",

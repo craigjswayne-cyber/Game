@@ -288,7 +288,14 @@ export function boardSummer(state: GameState, row: { pos: number; deb: number } 
  *   commercial     spending within means (+2); debt grown (-2)
  *   ambition       a winning side that scores (+1); the money spent boldly,
  *                  and the club still in the black (+1)
- *   youth          academy debuts (+2)
+ *   youth          academy debuts (+2); spending within means, the books
+ *                  level without selling men to level them (+1, as any
+ *                  chairman but an ambitious one; said of the wage bill too
+ *                  when it ran under budget, or under the league's own share)
+ *   any chairman   a busy touchline in a winning season (+1); in a losing
+ *                  one, -1 from a stability chairman
+ *
+ * And said without points: the signings the salary cap or an embargo refused.
  *
  * What the chairman's wish already judged this season (the books, the debuts)
  * is not judged twice. The sum is held to METHOD_CAP either way, and the
@@ -313,16 +320,40 @@ export function boardMethod(state: GameState, row: Conduct | null): { d: number;
   if (row.broke > 0) parts.push({ k: 'arc.meth.broke', d: -Math.min(2, row.broke) })
   else if (row.kind >= 3) parts.push({ k: 'arc.meth.kept', d: 1 })
   if (books && drift < 0 && club.balance < 0) parts.push({ k: 'arc.meth.debt', d: careful ? -2 : -1 })
-  else if (books && careful && drift >= 0 && spend < 0.25 && wish !== 'black' && wish !== 'profit') parts.push({ k: 'arc.meth.prudent', d: 2 })
+  else if (books && drift >= 0 && spend < 0.25 && wish !== 'black' && wish !== 'profit') {
+    // THE CAREFUL MANAGER IS CREDITED BY MORE THAN THE CAREFUL CHAIRMAN (1.8.5
+    // career QA: a manager who kept the bill under budget for eight seasons
+    // under a youth chairman never read a word of it). A careful chair as
+    // before; any other, a point, for a bill held under its budget as well
+    // (an ambitious one excepted: he wanted the money used)
+    // (and books kept level by selling his men are a seller's, not a careful
+    // man's: those go unremarked by any but the careful chair)
+    const under = (row.wr ?? 0) > 0 && (row.wr ?? 0) <= Math.max(92, row.wrl ?? 0)
+    const sold = row.wages > 0 ? (row.sell ?? 0) / row.wages : 0
+    if (careful) parts.push({ k: under ? 'arc.meth.prudentWages' : 'arc.meth.prudent', d: 2 })
+    else if (ch !== 'ambition' && sold < 0.3) parts.push({ k: under ? 'arc.meth.prudentWages' : 'arc.meth.prudent', d: 1 })
+  }
   if (row.hard >= 5 && row.mor < 6) parts.push({ k: 'arc.meth.hard', d: -1 })
   if (ch === 'youth' && row.deb >= 2 && wish !== 'debuts') parts.push({ k: 'arc.meth.academy', d: 2 })
   if (ch === 'ambition' && row.lg > 0 && row.w > row.l && row.pf / row.lg >= 1.15) parts.push({ k: 'arc.meth.attack', d: 1 })
   if (ch === 'ambition' && spend >= 0.45 && club.balance >= 0) parts.push({ k: 'arc.meth.spent', d: 1 })
   if (ch === 'stability' && row.lg > 0 && row.w > row.l && row.pa / row.lg <= 0.85) parts.push({ k: 'arc.meth.defence', d: 1 })
-  if (!parts.length) return none
+  // THE TOUCHLINE (1.8.5 career QA): a season of changed plans and half-time
+  // answers, which the board reads by what it brought. Winning, a point from
+  // anybody; losing, a point off a chairman who likes things steady.
+  const busy = (row.pl ?? 0) >= 4 || (row.m > 0 && (row.chg ?? 0) / row.m >= 0.25)
+  if (busy && row.w > row.l) parts.push({ k: 'arc.meth.tacWorked', d: 1 })
+  else if (busy && ch === 'stability') parts.push({ k: 'arc.meth.tacRestless', d: -1 })
+  // WHAT HELD HIM BACK (1.8.5 career QA: a manager the cap refused 26 times
+  // in ten seasons and an embargo 13 was never told so in one place). Said,
+  // not scored: the rule is the league's, and the board knows it.
+  const said: Vars[] = []
+  if ((row.embb ?? 0) >= 1) said.push({ k: 'arc.meth.embargo' })
+  else if ((row.capb ?? 0) >= 2) said.push({ k: 'arc.meth.capHeld' })
+  if (!parts.length) return { d: 0, rows: said }
   const d = Math.max(-METHOD_CAP, Math.min(METHOD_CAP, parts.reduce((s, x) => s + x.d, 0)))
   const told = [...parts].sort((a, b) => Math.abs(b.d) - Math.abs(a.d)).slice(0, 2)
-  return { d, rows: told.map(x => ({ k: x.k })) }
+  return { d, rows: [...told.map(x => ({ k: x.k })), ...said] }
 }
 
 /** A line for the monthly memo: what the chairman made of it, in his own terms. */

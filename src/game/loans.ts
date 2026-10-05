@@ -10,6 +10,7 @@ import { askingPrice, capBill, capBreak, capWage, embargoed, executeTransfer, sq
 import { userWageBudget } from './grants'
 import { playerWage } from './attributes'
 import { scoutPa } from './scout'
+import { noteBlocked } from './arcbook'
 
 /**
  * ---- WHO IS FREE TO BE LENT AT ALL ----
@@ -225,10 +226,10 @@ export function loanIn(state: GameState, playerId: number, length: LoanLength = 
   // barred from the market or pressed against the cap could borrow its way
   // round both. It is measured at the share the club will actually pay, which
   // is what the weekly ledger charges and what the cap bill now counts.
-  if (embargoed(state, user.id)) return t('reply.embargoSign')
+  if (embargoed(state, user.id)) { noteBlocked(state, p.id, 'emb'); return t('reply.embargoSign') }
   const paid = Math.round(p.wage * share)
   const capMsg = capBreak(state, user.id, paid, 0, 'none')
-  if (capMsg) return capMsg
+  if (capMsg) { noteBlocked(state, p.id, 'cap'); return capMsg }
   if (capBill(state, user) + paid > userWageBudget(state, user)) {
     return t('reply.wagesBreakBudget', { wage: fmtWage(paid) })
   }
