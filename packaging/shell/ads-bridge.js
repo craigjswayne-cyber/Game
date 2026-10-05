@@ -118,6 +118,16 @@
       ad.addListener('bannerAdSizeChanged', function (s) {
         log('banner size', JSON.stringify(s))
         var h = s && s.height ? s.height : 0
+        if (h > 0 && !up) {
+          // A banner that drew AFTER it was told to go. The request went out
+          // during a highlight, the final whistle took the slot down while the
+          // advert was still loading, and the load finished over full time
+          // with nothing on the page to say so (owner, 1.8.8: an advert over
+          // "Continue to Results"). It is put away again, and no room is made.
+          log('a banner drew after it was hidden - hiding it again')
+          enqueue(async function () { if (!up) { try { await ad.hideBanner() } catch (e) {} } })
+          return
+        }
         if (h > 0) { held = h; setInset(h); return }
         // A zero is what hideBanner and removeBanner report. While a slot still
         // wants its banner (a sheet is over it, or it is swapping units) the
@@ -136,14 +146,18 @@
         // here so About & legal can show it on the phone, because that console
         // line above needs a Mac to read.
         why = 'the advert network refused the banner: ' + (e && (e.message || e.code || JSON.stringify(e)) || 'no reason given')
-        held = 0
+        held = 0; up = false
         setInset(0)
         enqueue(async function () {
           try { await ad.removeBanner() } catch (e2) {}
           created = null; visible = false
         })
       })
-      ad.addListener('bannerAdLoaded', function () { log('banner loaded'); why = 'ready' })
+      ad.addListener('bannerAdLoaded', function () {
+        log('banner loaded'); why = 'ready'
+        // the same late arrival, reported the other way
+        if (!up) enqueue(async function () { if (!up) { try { await ad.hideBanner() } catch (e) {} } })
+      })
     } catch (e) { log('could not listen for banner events:', e && (e.message || e.code) || e) }
     return ad
   }
@@ -290,6 +304,10 @@
   // the height of the last banner that really drew, while it is worth holding
   // room for (see holding); 0 once a banner failed or the bridge gave up
   var held = 0
+  // whether the banner is MEANT to be on screen: set before each show or
+  // resume is sent and cleared before each hide, so an event that lands while
+  // a call is still in flight is read against what was last asked for
+  var up = false
 
   // ROOM IS HELD, NOT RELEASED, WHILE THE SLOT STILL WANTS ITS BANNER.
   //
@@ -351,19 +369,21 @@
       try {
         if (shouldShow) {
           if (!(await ready())) { held = 0; return }
-          if (created && created !== wantedPlace) { await ad.removeBanner(); created = null; visible = false }
+          if (created && created !== wantedPlace) { up = false; await ad.removeBanner(); created = null; visible = false }
           if (!created) {
             log('asking for banner', wantedPlace, ids.banner[wantedPlace] || ids.banner['home-foot'])
+            up = true
             await ad.showBanner({
               adId: ids.banner[wantedPlace] || ids.banner['home-foot'],
               adSize: 'ADAPTIVE_BANNER', position: 'BOTTOM_CENTER', margin: 0,
               isTesting: !!cfg.testing
             })
             created = wantedPlace; visible = true
-          } else if (!visible) { await ad.resumeBanner(); visible = true }
+          } else if (!visible) { up = true; await ad.resumeBanner(); visible = true }
         } else if (visible) {
+          up = false
           await ad.hideBanner(); visible = false
-        }
+        } else up = false
       } catch (e) {
         // a plugin call that threw leaves no banner we can vouch for: no room
         held = 0

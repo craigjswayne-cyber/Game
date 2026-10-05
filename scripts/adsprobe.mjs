@@ -77,6 +77,9 @@ const openPage = async ({ platform = 'android', consent = 'required', spot = 're
       showBanner: async (o) => {
         log.push('showBanner:' + o.adId + ':' + o.position)
         if (quirk === 'nofill') return setTimeout(() => fire('bannerAdFailedToLoad', { code: 3, message: 'no fill' }), 0)
+        // 'lateload': the advert arrives 600ms after the request, whatever has
+        // been asked of the banner since (a device on a slow network)
+        if (quirk === 'lateload') return setTimeout(() => { fire('bannerAdSizeChanged', { width: 320, height: 50 }); fire('bannerAdLoaded', {}) }, 600)
         setTimeout(() => fire('bannerAdSizeChanged', { width: 320, height: 50 }), 0)
       },
       // 'slow' is a device: the native view takes a few hundred ms to go and come
@@ -451,6 +454,30 @@ try {
     ok(l.includes('removeBanner'), 'and taken down again when nothing filled it')
     ok(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--ad-inset').trim()) === '0px',
       'the page takes its space back')
+    ok(errs.length === 0, `no page errors (${errs.join(' | ') || 'none'})`)
+    await page.close()
+  }
+
+  // ---- 5e. an advert that lands after its slot has gone -------------------
+  // Owner, 1.8.8: a banner over the foot of the full-time screen, over
+  // "Continue to Results". The match slot is up only under a highlight; one
+  // asked for in the last highlight of a match can finish loading after the
+  // final whistle has taken the slot down. It must be put away again, and the
+  // page must not make room for it.
+  {
+    say('\n--- 5e. a banner that finishes loading after its slot has gone')
+    const { page, errs } = await openPage({ plugin: 'lateload' })
+    await startCareer(page)
+    // leave Home for a screen with no slot before Home's advert has landed
+    await page.locator('.bottom-nav button').nth(3).click()
+    await page.locator('.submenu-item').first().click()
+    await settle(page, 1500)
+    const l = await log(page)
+    const shown = l.findIndex(x => x.startsWith('showBanner:'))
+    ok(shown >= 0, 'the banner was asked for on Home')
+    ok((await lastBanner(page)) === 'hideBanner' && l.filter(x => x === 'hideBanner').length >= 2,
+      `the late advert was hidden again (${l.filter(x => BANNER_CALLS.some(c => x.startsWith(c))).join(' > ')})`)
+    ok((await inset(page)) === '0px', 'and no room was made for it')
     ok(errs.length === 0, `no page errors (${errs.join(' | ') || 'none'})`)
     await page.close()
   }

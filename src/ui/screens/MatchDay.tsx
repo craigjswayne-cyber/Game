@@ -2332,6 +2332,14 @@ function Live() {
         {done && (
           <>
             <ScoreCard label={t('matchday.fullTime')} />
+            {/* THE WAY ON COMES FIRST (owner, 1.8.8, iOS: "Continue button
+                should always be above match stats at end of game"). It was
+                the last thing on the page, under the verdict, the stats, the
+                ratings and the whole commentary, and with an advert over the
+                foot of the screen it could not be reached at all. */}
+            <button className="btn gold block ft-continue" style={{ margin: '6px 14px 10px', width: 'auto' }} onClick={finishMatch}>
+              {t('matchday.continueToResults')}
+            </button>
             <div className="review-grid">
               <div>
                 <MatchVerdict />
@@ -2356,9 +2364,6 @@ function Live() {
                 <span className="txt">{eventText(e)}</span>
               </div>
             ))}
-            <button className="btn gold block" style={{ margin: '10px 14px 14px' }} onClick={finishMatch}>
-              {t('matchday.continueToResults')}
-            </button>
           </>
         )}
       </div>

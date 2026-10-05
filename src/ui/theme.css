@@ -1185,8 +1185,11 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   min-height: 0;
   grid-area: 1 / 1 / -1 / -1;
   /* no bottom nav on match day, so the column itself stops above the system
-     bar; without this the last button sat under it on the Android shell */
-  padding-bottom: var(--safe-area-inset-bottom);
+     bar; without this the last button sat under it on the Android shell.
+     And above the advert (1.8.9, owner: "Ads should not impact or cover key
+     buttons"): the native banner overlays the web view, so the column keeps
+     its height clear of it and everything in it can scroll out from under. */
+  padding-bottom: calc(var(--safe-area-inset-bottom) + var(--ad-inset, 0px));
 }
 /* During live play only four fixed-height pieces stack here (scoreboard,
    pitch, controls, the one-line ticker) - nothing flex-grows by default, so
