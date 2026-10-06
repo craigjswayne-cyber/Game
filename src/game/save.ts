@@ -770,6 +770,13 @@ export function migrate(s: GameState): GameState {
   s.analyst ??= null
   s.analystRecord ??= { right: 0, wrong: 0 }
   s.commission ??= null
+  // the monthly letter's stamp (commission.ts scoutPostcard) is season*100+week,
+  // never on the 45/48 basis, so it is not rebased: only a junk value goes, and
+  // the brief falls back to its week-4, 8, 12 cadence
+  if (s.commission && typeof s.commission === 'object') {
+    const lw = s.commission.lastWord
+    if (lw != null && !(typeof lw === 'number' && Number.isFinite(lw) && lw > 0)) delete s.commission.lastWord
+  }
   s.scoutFinds ??= null
   s.facilityBuild ??= null
   s.stadiumBuild ??= null
