@@ -542,7 +542,7 @@ function maybeCreateKnockouts(state: GameState, comp: Competition, rng: Rng) {
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: `The ${comp.short} ${stg} draw: ${teamShort(state, opp)}`,
         body: fx.venue
-          ? `It is settled. ${teamShort(state, opp)} in the ${comp.name} FINAL, at ${fx.venue.name} in ${fx.venue.city} - ${fx.venue.capacity.toLocaleString()} seats and both towns emptying to fill them. One match. Everything on it.`
+          ? `It is settled. ${teamShort(state, opp)} in the ${comp.name} FINAL, at ${fx.venue.name} in ${fx.venue.city} - ${fx.venue.capacity.toLocaleString()} seats and both sets of supporters on the road to fill them. One match. Everything on it.`
           : us === home
             ? `The balls have been drawn. You host ${teamShort(state, opp)} in the ${comp.name} ${stg} - win, and the road continues. ${stg === 'FINAL' ? 'One match. Everything on it.' : 'Get the place rocking.'}`
             : `The balls have been drawn. You travel to ${teamShort(state, opp)} for the ${comp.name} ${stg}. ${stg === 'FINAL' ? 'One match. Everything on it.' : 'Quiet the crowd early and anything is possible.'}`,
@@ -3257,13 +3257,13 @@ export function processWeekAndAdvance(state: GameState) {
         body: youLost
           ? `${score}. The ${state.comps[best.fx.compId]?.name ?? 'cup'} run ends at the hands of a side nobody rated - and that is exactly how the papers will write it. Cup rugby forgives nothing.`
           : youWon
-            ? `${score}. Your side knocked out a club a class above on paper, and paper lost. The players cut souvenirs from the net of the changing room whiteboard; the town will talk about this one for years.`
-            : `${score} in the ${state.comps[best.fx.compId]?.name ?? 'cup'}. ${win?.name} beat a side a class above them on paper, and the whole sport smiles - except in ${lose?.city ?? 'one town'}.`,
+            ? `${score}. Your side knocked out a club a class above on paper, and paper lost. The players cut souvenirs from the net of the changing room whiteboard; ${win?.city} will talk about this one for years.`
+            : `${score} in the ${state.comps[best.fx.compId]?.name ?? 'cup'}. ${win?.name} beat a side a class above them on paper, and the whole sport smiles - except in ${lose?.city ?? 'one place'}.`,
         k: youLost ? 'news.giantLost' : youWon ? 'news.giantWon' : 'news.giantOther',
         v: {
           score, comp: state.comps[best.fx.compId]?.name ?? tIn('en', 'news.theCup'),
           win: win?.short ?? '', winName: win?.name ?? '', lose: lose?.short ?? '',
-          loseCity: lose?.city ?? tIn('en', 'news.oneTown'),
+          loseCity: lose?.city ?? tIn('en', 'news.oneTown'), city: win?.city ?? '',
         },
         fixtureId: best.fx.id,
       })
@@ -3296,7 +3296,7 @@ export function processWeekAndAdvance(state: GameState) {
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: `YOU ARE IN THE FINAL: ${compName}`,
         body: [
-          `The semi-final is won and there is one game left in the ${compName}${oppName ? ` - ${oppName}, winner takes the trophy` : ''}. The town plans its week around it, training closes to the public, and everyone you have ever met asks about tickets.`,
+          `The semi-final is won and there is one game left in the ${compName}${oppName ? ` - ${oppName}, winner takes the trophy` : ''}. The supporters plan their week around it, training closes to the public, and everyone you have ever met asks about tickets.`,
           v ? `And it is at ${v.name}. ${v.capacity.toLocaleString()} people in ${v.city}, half of them yours.` : '',
           `Nobody remembers a beaten finalist. Pick the team that wins it.`,
         ].filter(Boolean).join('\n'),
@@ -3889,8 +3889,8 @@ export function processWeekAndAdvance(state: GameState) {
           state.news.push({
             id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
             subject: `CHAMPIONS! The ${comp.name} is yours`,
-            body: `Scenes of pure joy as ${state.clubs[state.userClubId].name} lift the ${comp.name}. The city will talk about this night for years - and the board have noted exactly who delivered it.`,
-            k: 'news.youWonCup', v: { comp: comp.name, club: state.clubs[state.userClubId].name },
+            body: `Scenes of pure joy as ${state.clubs[state.userClubId].name} lift the ${comp.name}. ${state.clubs[state.userClubId].city} will talk about this night for years - and the board have noted exactly who delivered it.`,
+            k: 'news.youWonCup', v: { comp: comp.name, club: state.clubs[state.userClubId].name, city: state.clubs[state.userClubId].city },
           })
           state.clubs[state.userClubId].boardConfidence = clamp(state.clubs[state.userClubId].boardConfidence + 20, 0, 100)
         } else {
@@ -3926,8 +3926,8 @@ export function processWeekAndAdvance(state: GameState) {
           state.news.push({
             id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
             subject: `CHAMPIONS! The ${comp.name} title is yours`,
-            body: `${state.clubs[state.userClubId].name} finish top of the pile. Promotion won, history made - the town will remember this season.`,
-            k: 'news.youWonLeague', v: { comp: comp.name, club: state.clubs[state.userClubId].name },
+            body: `${state.clubs[state.userClubId].name} finish top of the pile. Promotion won, history made - ${state.clubs[state.userClubId].city} will remember this season.`,
+            k: 'news.youWonLeague', v: { comp: comp.name, club: state.clubs[state.userClubId].name, city: state.clubs[state.userClubId].city },
           })
           state.clubs[state.userClubId].boardConfidence = clamp(state.clubs[state.userClubId].boardConfidence + 20, 0, 100)
         }

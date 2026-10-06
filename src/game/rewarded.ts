@@ -121,7 +121,7 @@ export function townCollection(state: GameState): number | null {
   const club = state.clubs[state.userClubId]
   const amt = Math.round(clamp((club.budgetAtOpen ?? club.budget) * 0.02, 25_000, 75_000) / 1_000) * 1_000
   club.balance += amt // the bucket keeps the lights on; it buys nobody
-  const v = { club: club.name, amount: fmtMoney(amt) }
+  const v = { club: club.name, amount: fmtMoney(amt), city: club.city }
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
     subject: tIn('en', 'news.townCollectionSubj'),
