@@ -382,6 +382,14 @@ export function migrate(s: GameState): GameState {
   for (const n of s.news) {
     for (const [was, now] of RENAMED_KEYS) if (n?.k === was) n.k = now
   }
+  // THE CLUB'S HOME BY NAME. These stories said "the town" and now name the
+  // place ({city}); one filed before carries no city and would print the hole,
+  // so it reads the manager's club's.
+  const CITY_KEYS = ['news.giantWon', 'news.youWonCup', 'news.youWonLeague', 'news.townCollection', 'news.fanSignedIcon']
+  const home = (s.clubs as Record<string, Club | undefined> | undefined)?.[s.userClubId]?.city
+  for (const n of s.news) {
+    if (home && n?.k && CITY_KEYS.includes(n.k) && n.v && n.v.city == null) n.v.city = home
+  }
   for (const f of s.fixtures) {
     for (const [was, now] of RENAMED_VENUES) if (f?.venue?.name === was) f.venue.name = now
   }

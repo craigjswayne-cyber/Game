@@ -25,6 +25,16 @@ let INDEX: Pattern[] | null = null
 /** [key, the English it was saved under before its wording changed] */
 const LEGACY_EN: ReadonlyArray<readonly [string, string]> = [
   ['press.campHeat', 'Warm-weather camp ({cost})'],
+  // these stopped calling every club's home "the town" (owner: language
+  // relevant to location)
+  ['press.campQ2', "Three options are circled on the staff-room whiteboard for the spare pre-season week: the heat camp, the town, or the sponsor's roadshow. The department heads are waiting on you."],
+  ['press.campHomeR', 'Schools, junior clubs, open training. Costs nothing, and the town will remember it all season.'],
+  ['press.silverFansR', 'The town takes it personally, in the best way. Season-ticket renewals do not need a letter this year.'],
+  ['press.raceQ3', 'Two horses left in this race, and the other one is {club}. They are talking a big game across town. Anything to send back?'],
+  ['press.runInPrivilegeR', 'Instant back-page headline. The town believes.'],
+  ['press.unbeatenSayItR', 'The town roars. The board swallows hard - that quote will follow you into every ground.'],
+  ['press.derbyWonCity', 'This club owns this city'],
+  ['press.derbyLostQ2', 'They will paint the town their colours tonight. A derby lost - how long does this one hurt?'],
 ]
 /** any one quote mark or apostrophe, straight or curly */
 const Q = `["“”‘’'«»]`
