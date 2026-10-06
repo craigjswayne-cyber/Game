@@ -88,10 +88,25 @@ export function matchStakes(state: GameState, fx: Fixture): string | null {
     const mine = table[meIdx]
     if (mine && meIdx >= 0) {
       const pos = meIdx + 1
-      // four points is a win with a try bonus: the honest "if we win" figure is
-      // four, and using it keeps the claim conservative
+      // WHAT A WIN GUARANTEES, NOT WHAT IT MIGHT DO (owner, 1.8.12: "it said
+      // win and we go top, we won convincingly but didnt go top. The outcome
+      // must match with the promise"). This used to set our four points
+      // against everybody else's points as they stand, as if the rest of the
+      // league sat the weekend out; a club above that also won kept its place.
+      // Now every other club is given the most it can take from this round
+      // (five a game, two from us if it is our opponent: a losing bonus and a
+      // try bonus), level on points counts against us, and only what holds
+      // whatever happens elsewhere is promised. A win is four points: the
+      // try bonus is not assumed.
       const after = mine.pts + 4
-      const above = table.slice(0, meIdx).filter(r => r.pts <= after)
+      const round = state.fixtures.filter(f => f.compId === comp.id && !f.stage && !f.played && f.week === fx.week)
+      const most = (r: typeof mine) => r.pts + round.reduce((n, f) =>
+        f.homeId !== r.teamId && f.awayId !== r.teamId ? n
+          : n + ((f.homeId === uid || f.awayId === uid) ? 2 : 5), 0)
+      const others = table.filter(r => r.teamId !== uid)
+      // the place a win makes certain, and the best a win could make it
+      const surePos = 1 + others.filter(r => most(r) >= after).length
+      const bestPos = 1 + others.filter(r => r.pts > mine.pts + 5).length
       const played = mine.p
       // WEEK ONE IS NOT A STORY. Every club sits on 0 points before a ball is
       // kicked, which makes "climb to the top" trivially true for everyone at
@@ -104,17 +119,17 @@ export function matchStakes(state: GameState, fx: Fixture): string | null {
       const total = state.fixtures.filter(f =>
         f.compId === comp.id && !f.stage && (f.homeId === uid || f.awayId === uid)).length
       const late = played >= total - 5
-      if (played >= 4 && meIdx > 0 && above.length > 0) {
-        const climbTo = meIdx + 1 - above.length
-        if (climbTo === 1) out.push({ text: t('stakes.goTop'), weight: 100 })
-        else out.push({ text: t('stakes.climbTo', { pos: ord(climbTo) }), weight: 55 + (late ? 20 : 0) })
+      if (played >= 4 && meIdx > 0) {
+        if (surePos === 1) out.push({ text: t('stakes.goTop'), weight: 100 })
+        else if (bestPos === 1) out.push({ text: t('stakes.goTopIf'), weight: 80 })
+        else if (surePos < pos) out.push({ text: t('stakes.climbTo', { pos: ord(surePos) }), weight: 55 + (late ? 20 : 0) })
       } else if (played >= 4 && meIdx === 0) {
         const chaser = table[1]
         const gap = mine.pts - (chaser?.pts ?? 0)
         out.push({
           text: gap <= 4
             ? t('stakes.topNarrow', { n: gap, gap, club: state.clubs[chaser.teamId]?.short ?? t('stakes.chasers') })
-            : t('stakes.topClear', { gap: gap + 4 }),
+            : surePos === 1 ? t('stakes.topClear', { gap }) : t('stakes.topNarrow', { n: gap, gap, club: state.clubs[chaser.teamId]?.short ?? t('stakes.chasers') }),
           weight: gap <= 4 ? 92 : 60,
         })
       }

@@ -4441,10 +4441,11 @@
     "dreamRoad": "Un match couperet de Continental Cup - exactement la route sur laquelle votre carrière est engagée.",
     "dreamRoad_f": "Un match couperet du Championnat hémisphérique - exactement la route sur laquelle votre carrière est engagée.",
     "goTop": "Gagnez et vous prenez la tête du championnat.",
+    "goTopIf": "Gagnez, et si les autres résultats vous sourient, vous pourriez prendre la tête.",
     "nearBottom": "{pos} sur {n}. Le bas du classement est assez proche pour être lu.",
     "playoffChase": "Les places de barrage sont à {gap} points, avec {left} matchs à jouer.",
     "relSixPointer": "Un match de la peur qui ne dit pas son nom : la descente n'est qu'à un mauvais après-midi.",
-    "topClear": "En tête du championnat. Gagnez et l'écart passe à {gap}.",
+    "topClear": "En tête du championnat avec {gap} points d'avance. Gagnez et vous y restez.",
     "topNarrow": {
       "one": "En tête avec {gap} point d'avance - et {club} vous colle aux talons.",
       "other": "En tête avec {gap} points d'avance - et {club} vous colle aux talons."

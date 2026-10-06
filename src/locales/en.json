@@ -4315,10 +4315,11 @@
   "dreamRoad": "Continental Cup knockout rugby - the exact road your career was pointed down.",
   "dreamRoad_f": "Hemispheric Championship knockout rugby - the exact road your career was pointed down.",
   "goTop": "Win and you go top of the league.",
+  "goTopIf": "Win, and with results elsewhere going your way, you could go top.",
   "nearBottom": "{pos} of {n}. The bottom of this table is close enough to read.",
   "playoffChase": "The playoff places are {gap} points away with {left} to play.",
   "relSixPointer": "A relegation six-pointer in all but name: the drop is one bad afternoon away.",
-  "topClear": "Top of the league. Win and the gap goes out to {gap}.",
+  "topClear": "Top of the league, {gap} points clear. Win and you stay there.",
   "topNarrow": {
    "one": "Top of the league by {gap} point - and {club} are right behind you.",
    "other": "Top of the league by {gap} points - and {club} are right behind you."
