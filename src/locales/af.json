@@ -5644,6 +5644,22 @@
    "other": "{weeksIn} weke in die opdrag. \"{verdict_k} Ek gaan aanhou kyk - omtrent {n} weke voor ek alles opskryf.\"\n\nHy is nou behoorlik opgesoek: 'n ware lesing, nie 'n reeks nie."
   },
   "postcardKeen": "Het {player} nou twee keer dopgehou en ek sal my naam agter hom sit. {age}, {pos_k} {at_k}, en hy doen die dinge wat jy nie kan leer nie.",
+  "scoutMonthlySubj": {
+   "one": "Woord van {scout}: nog {n} week",
+   "other": "Woord van {scout}: nog {n} weke"
+  },
+  "scoutMonthly": {
+   "one": "{weeksIn} weke op die pad. Opdrag: {brief_k} {where_k}.\n\nNuwe naam: {player}, {age}, {pos_k} {at_k}. Name tot dusver: {found}. Verslag oor {n} week.",
+   "other": "{weeksIn} weke op die pad. Opdrag: {brief_k} {where_k}.\n\nNuwe naam: {player}, {age}, {pos_k} {at_k}. Name tot dusver: {found}. Verslag oor {n} weke."
+  },
+  "scoutMonthlyNoneSubj": {
+   "one": "Woord van {scout}: nog {n} week",
+   "other": "Woord van {scout}: nog {n} weke"
+  },
+  "scoutMonthlyNone": {
+   "one": "{weeksIn} weke op die pad. Opdrag: {brief_k} {where_k}.\n\nGeen nuwe name hierdie maand nie. Name tot dusver: {found}. Verslag oor {n} week.",
+   "other": "{weeksIn} weke op die pad. Opdrag: {brief_k} {where_k}.\n\nGeen nuwe name hierdie maand nie. Name tot dusver: {found}. Verslag oor {n} weke."
+  },
   "postcardMaybe": "{player} is 'n vermelding werd. {age}, {pos_k} {at_k}. Nie op sy eie die antwoord nie, maar ek sal hom nie afskryf nie.",
   "scoutReportSubj": {
    "one": "{scout_k} lewer sy verslag: {n} naam",

@@ -5467,6 +5467,10 @@
    "other": "任務{weeksIn}週目。「{verdict_k}引き続き探します。すべてまとめるまで、あと{n}週ほどです」\n\n視察はこれで完了。推定の幅ではなく、実際の能力が分かった。"
   },
   "postcardKeen": "{player}はこれで2度確認しましたが、名前を懸けて推せます。{age}歳、{at_k}の{pos_k}。教えて身につくものではない部分を持っています。",
+  "scoutMonthlySubj": "{scout}より一報：残り{n}週間",
+  "scoutMonthly": "遠征{weeksIn}週目。任務：{brief_k}（{where_k}）。\n\n新たな名前：{player}、{age}歳、{at_k}の{pos_k}。これまでの名前：{found}人。報告書まで残り{n}週間。",
+  "scoutMonthlyNoneSubj": "{scout}より一報：残り{n}週間",
+  "scoutMonthlyNone": "遠征{weeksIn}週目。任務：{brief_k}（{where_k}）。\n\n今月は新たな名前なし。これまでの名前：{found}人。報告書まで残り{n}週間。",
   "postcardMaybe": "{player}はお耳に入れておく価値があります。{age}歳、{at_k}の{pos_k}。彼ひとりで答えになる選手ではありませんが、切り捨てる気にもなれません。",
   "scoutReportSubj": {
    "one": "{scout_k}が報告書を提出：候補{n}名",

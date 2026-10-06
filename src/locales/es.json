@@ -5719,6 +5719,22 @@
    "other": "{weeksIn} semanas de viaje. «{verdict_k} Seguiré mirando: más o menos {n} semanas y lo pongo todo por escrito.»\n\nYa está ojeada a fondo: una lectura real, no una horquilla."
   },
   "postcardKeen": "He visto a {player} dos veces ya y pondría mi firma junto a su nombre. {age} años, {pos_k} {at_k}, y hace las cosas que no se enseñan.",
+  "scoutMonthlySubj": {
+   "one": "Noticias de {scout}: queda {n} semana",
+   "other": "Noticias de {scout}: quedan {n} semanas"
+  },
+  "scoutMonthly": {
+   "one": "{weeksIn} semanas de viaje. Encargo: {brief_k} {where_k}.\n\nNombre nuevo: {player}, {age} años, {pos_k} {at_k}. Nombres hasta ahora: {found}. Informe en {n} semana.",
+   "other": "{weeksIn} semanas de viaje. Encargo: {brief_k} {where_k}.\n\nNombre nuevo: {player}, {age} años, {pos_k} {at_k}. Nombres hasta ahora: {found}. Informe en {n} semanas."
+  },
+  "scoutMonthlyNoneSubj": {
+   "one": "Noticias de {scout}: queda {n} semana",
+   "other": "Noticias de {scout}: quedan {n} semanas"
+  },
+  "scoutMonthlyNone": {
+   "one": "{weeksIn} semanas de viaje. Encargo: {brief_k} {where_k}.\n\nNingún nombre nuevo este mes. Nombres hasta ahora: {found}. Informe en {n} semana.",
+   "other": "{weeksIn} semanas de viaje. Encargo: {brief_k} {where_k}.\n\nNingún nombre nuevo este mes. Nombres hasta ahora: {found}. Informe en {n} semanas."
+  },
   "postcardMaybe": "{player} merece una mención. {age} años, {pos_k} {at_k}. No es la solución por sí solo, pero yo no lo descartaría.",
   "postcardMaybe_f": "{player} merece una mención. {age} años, {pos_k} {at_k}. No es la solución por sí sola, pero yo no la descartaría.",
   "scoutReportSubj": {
