@@ -84,7 +84,7 @@ export default function Medical() {
                   <span className="med-name">{p.name}</span>
                   {pill && <span className={`med-pill ${pill.tone}`}>{pill.text}</span>}
                 </div>
-                <div className="med-info">{info}</div>
+                {info != null && <div className="med-info">{info}</div>}
                 {extra && <div className="med-extra">{extra}</div>}
                 {acts.length > 0
                   ? <div className="med-acts">{acts}</div>
@@ -247,8 +247,11 @@ export default function Medical() {
           the hour sitting down (matchEngine.ts). Saying "consider resting" flat
           out told half a squad something untrue, so the line now names who it
           is actually talking to. */}
+      {/* one line a man (owner, 1.8.12): position and name on the left, the
+          figure on the right where the other sections keep their pill */}
       {section(t('medical.onFumes'), t('medical.onFumesSub'), tired, p => ({
-        info: <span>{Math.round(p.cond)}%</span>,
+        pill: { text: `${Math.round(p.cond)}%`, tone: p.cond < 50 ? 'long' : 'mid' },
+        info: null,
       }))}
 
       {section(t('medical.awayFromClub'), t('medical.awayFromClubSub'), away, p => ({

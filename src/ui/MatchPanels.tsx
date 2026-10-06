@@ -177,9 +177,9 @@ export function Zones({ ctx, shown }: { ctx: LiveCtx; shown: MatchEvent[] }) {
       <div className="mp-zones">
         {home.map((v, k) => (
           <div key={k} className="mp-zone">
-            <div className="bar"><i style={{ height: `${Math.max(3, v)}%` }} /></div>
-            <b>{v}%</b>
             <span>{label[k]}</span>
+            <div className="bar"><i style={{ width: `${Math.max(2, v)}%` }} /></div>
+            <b>{v}%</b>
           </div>
         ))}
       </div>

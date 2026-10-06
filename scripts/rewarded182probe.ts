@@ -32,7 +32,7 @@ import { paRange, reportStage, youthPaMargin } from '../src/game/scout'
 import { buildReport, reportAccuracy } from '../src/game/oppreport'
 import { adaptMap, tapeLine } from '../src/game/armsrace'
 import { playbookOf } from '../src/game/playbook'
-import { roomKind, TEAM_NIGHT } from '../src/game/room'
+import { roomKind, TEAM_NIGHT, TEAM_NIGHT_LIFT } from '../src/game/room'
 
 let fails = 0
 const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
@@ -264,10 +264,17 @@ console.log('\n--- 4. the sponsor\'s team night\n')
     const q = night.press.find(x => x.id === item.id)!
     ok(q.answered && q.options[q.options.findIndex(o => o.room === 'stand')].lk === q.alk, 'the question is answered, standing by the call')
     const drop = (h: GameState, id: number) => g.players[id].morale - h.players[id].morale
-    const halved = campIds.filter(id => g.players[id].morale > 1.5)
-      .every(id => Math.abs(drop(night, id) - drop(plain, id) * TEAM_NIGHT) < 1e-9)
-    ok(halved && campIds.some(id => drop(plain, id) > 0), `every senior man's hit is ${TEAM_NIGHT} of what it would have been`)
-    const other = diffPaths(plain, night, '', [], ['rewarded']).filter(p => !campIds.some(id => p === `players.${id}.morale`))
+    // 1.8.12: the night also lifts the squad (owner: "team morale should
+    // improve after it"), so a senior man's net is half the hit less the lift
+    const inRange = (id: number) => g.players[id].morale > 1.5 && g.players[id].morale < 9.5
+    const halved = campIds.filter(inRange)
+      .every(id => Math.abs(drop(night, id) - (drop(plain, id) * TEAM_NIGHT - TEAM_NIGHT_LIFT)) < 1e-9)
+    ok(halved && campIds.some(id => drop(plain, id) > 0), `every senior man's hit is ${TEAM_NIGHT} of what it would have been, less the night's lift`)
+    const leftOut = Number(item.qv?.pid ?? item.playerId)
+    const squad = Object.values(g.players).filter(m => m.clubId === g.userClubId && m.id !== leftOut && !campIds.includes(m.id) && inRange(m.id))
+    ok(squad.length > 0 && squad.every(m => Math.abs((night.players[m.id].morale - plain.players[m.id].morale) - TEAM_NIGHT_LIFT) < 1e-9),
+      `the rest of the squad is ${TEAM_NIGHT_LIFT} happier than without it (${squad.length} men)`)
+    const other = diffPaths(plain, night, '', [], ['rewarded']).filter(p => !/^players\.\d+\.morale$/.test(p) || p === `players.${leftOut}.morale`)
     ok(other.length === 0, `nothing else differs from standing by it without one: the man left out, trust, the culture (${other.join(', ')})`)
     ok(aiClubs(night) === world0, 'no AI club moved')
     // the cap: four game-weeks, whatever else is asked in between
