@@ -48,7 +48,13 @@ export function service(p: Player, clubId: string): Record<RecStat, number> {
   let apps = 0, tries = 0, pts = 0
   for (const c of careerRows(p)) if (c.clubId === clubId) { apps += c.apps; tries += c.tries; pts += c.points }
   if (p.clubId === clubId) { apps += p.stats.apps; tries += p.stats.tries; pts += p.stats.points }
-  if (careerRows(p).every(c => c.clubId === clubId) && p.clubId === clubId && !p.exClub) {
+  // THE LUMP BELONGS TO THE CLUB HE STARTED AT (owner, 1.8.12: a medical
+  // joker signed from the free list read "275 appearances for Northampton").
+  // A man with no career rows yet was credited his whole pre-2025 career at
+  // whichever club he stood at, so a signing walked in with it. A signing is
+  // stamped (joinedAt) on every path, and bonds.ts already reads the lump the
+  // same way: only a man who has been there since the career began.
+  if (careerRows(p).every(c => c.clubId === clubId) && p.clubId === clubId && !p.exClub && p.joinedAt == null) {
     apps += Math.max(0, (p.hist?.apps ?? 0) - (p.exApps ?? 0))
     tries += p.hist?.tries ?? 0
     pts += p.hist?.points ?? 0
