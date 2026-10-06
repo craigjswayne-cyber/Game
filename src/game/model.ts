@@ -966,6 +966,10 @@ export interface NewsItem {
    *  review and the history all read this list - it simply stops appearing in the
    *  inbox reader. */
   cleared?: boolean
+  /** The day of the week (0 Monday .. 5 Saturday) the story belongs to, when
+   *  it is not the day its type gives it (days.ts dayOfStory): the transfer
+   *  window's countdown is posted on the day it counts down to (window.ts). */
+  day?: number
   /** The absolute day (days.absDay) the manager actually read it. The recall
    *  window counts from HERE, not from when the story was written: an old
    *  unread story used to expire the instant the queue marked it read, so the
@@ -1697,6 +1701,9 @@ export interface GameState {
    *  arithmetic entirely. The id watermark taken before the settlement is exact
    *  in both cases. See game/days.ts. */
   newsFrom?: number
+  /** The last transfer-window notice posted to the manager's inbox, stamped
+   *  (season * 100 + week) * 10 + day so each one posts once (window.ts). */
+  windowNote?: number
   /** Which day of the current week the manager is standing on, 0 = Monday.
    *
    *  Presentation only: the engine still settles a whole week at a time. This is

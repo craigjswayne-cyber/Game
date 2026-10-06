@@ -34,6 +34,7 @@ import { INK_WEEKS } from './ai'
 import type { Club, GameState, Player } from './model'
 import { hashString, mulberry32 } from './rng'
 import { t } from './i18n'
+import { JANUARY_OPEN, nextWeek, windowOpen } from './window'
 
 export type Intent = 'rebuild' | 'consolidate' | 'allin' | 'breakup'
 
@@ -100,16 +101,11 @@ export interface Hunt {
   season: number
 }
 
-/** The bid lands on the mid-season deadline (1.8.1). It was week 28, which is
- *  the week the window slams shut and aiTransfers voids every pending bid on
- *  the manager's desk, and it runs after the hunt in the same settle: the
- *  season's one story arrived and died in a single tick, and the manager never
- *  saw the offer he had been told for months was coming. Week 26 puts it on
- *  the desk with the deadline still to come. */
-const STAGE_WEEK: Record<Exclude<HuntStage, 0>, number> = { 1: 6, 2: 16, 3: 26 }
-/** The weeks the window shuts and every open bid for his players is voided
- *  (aiTransfers). A hunt running late never files its bid into one of them. */
-const SLAM_WEEKS = [8, 28]
+/** The bid lands in the January window (1.8.1, moved with the window in
+ *  1.8.12). It was once filed into the week the window slammed shut, and the
+ *  season's one story arrived and died in a single tick. Filed on the window's
+ *  opening week, it lands on the desk with the deadline still to come. */
+const STAGE_WEEK: Record<Exclude<HuntStage, 0>, number> = { 1: 6, 2: 16, 3: JANUARY_OPEN }
 
 /**
  * Open a hunt for this season if one is due, then move it along.
@@ -158,7 +154,9 @@ export function advanceHunt(state: GameState): void {
 
   const nextStage = (h.stage + 1) as Exclude<HuntStage, 0>
   if (nextStage > 3 || state.week < STAGE_WEEK[nextStage]) return
-  if (nextStage === 3 && SLAM_WEEKS.includes(state.week)) return
+  // a hunt running late never files its bid into a shut week: it is answered
+  // in the week after the settle, which has to be a window week
+  if (nextStage === 3 && !windowOpen(nextWeek(state.week))) return
   // THE INK IS STILL WET HERE TOO (1.8.4 career QA). The hunt re-targets
   // whoever is the talisman now, so a star bought in the January window
   // could be hunted from scratch and bid for at 1.45x his value three weeks

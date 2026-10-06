@@ -18,6 +18,7 @@ import { rememberDeparture } from './memory'
 import { agentTermsLift, talkPremium, unsettledFee, unsettledTerms } from './recruit'
 import { chooseBetween, liveRivalBid, openRivalBid, rivalBidLine, rivalBidWon } from './rivalbids'
 import { noteBlocked } from './arcbook'
+import { isDeadlineWeek, nextOpening, nextWeek, openDate, windowOpen } from './window'
 
 // ------------------------------------------------------------------
 // Transfer market
@@ -86,25 +87,18 @@ export function embargoed(state: GameState, clubId: string): boolean {
 /**
  * THE TRANSFER WINDOW, ONE RULE FOR EVERYBODY (1.8.1).
  *
- * The world already kept it: the AI does its buying in weeks 1 to 7 and on the
- * mid-season deadline (26 and 27), and every bid on the manager's desk dies
- * when it slams shut in weeks 8 and 28. The chip on the Transfer Centre said
- * so, and the Wednesday desk told him "the window is shut, so nothing moves
- * until it reopens". Then nothing stopped him buying in week 15, which made
- * the window a rule for everybody except the one club that reads it.
- *
  * Permanent signings for a fee are what it governs, as it is in the real
  * game. A clubless man can be signed whenever (there is no registration to
- * transfer), a development loan is a different door, and a pre-contract is an
- * agreement for the summer rather than a move today.
+ * transfer), a development loan is a different door, a medical joker is the
+ * league's own exception, and a pre-contract is an agreement for the summer
+ * rather than a move today. The weeks themselves live in window.ts (1.8.12:
+ * the summer window from the close season to early October, and January).
  */
-export function windowOpen(week: number): boolean {
-  return week <= 7 || week === 26 || week === 27
-}
+export { windowOpen }
 
 /** The refusal a shut window gives, naming when it opens again. */
-export function windowShut(week: number): string {
-  return week < 26 ? t('reply.windowShut', { n: 26 }) : t('reply.windowShutSummer')
+export function windowShut(state: GameState): string {
+  return t(nextOpening(state.week) === 'january' ? 'reply.windowShut' : 'reply.windowShutSummer', openDate(state))
 }
 
 /** What an AI club bids for one of the user's men. A listed man or one who
@@ -421,11 +415,17 @@ export function aiShoppingTarget(state: GameState, buyer: Club): { intent: Retur
 export function aiTransfers(state: GameState, rng: Rng) {
   const clubs = Object.values(state.clubs)
 
-  // squad-building intent. Real moves are concentrated in the windows:
-  // early season (weeks 1-7) and the mid-season deadline (26-27) are
-  // busy; the rest of the season is a trickle - rumours do the talking.
-  const deadline = state.week === 7 || state.week === 26 || state.week === 27
+  // squad-building intent. Real moves happen in the windows (window.ts), and
+  // deadline week is the busiest of all. Outside them the clubs still look
+  // (the draws are taken as they always were, so the week's stream is the
+  // same) but nothing is signed: the window is everybody's rule (1.8.12).
+  const deadline = isDeadlineWeek(state.week)
   const window = windowOpen(state.week)
+  // a bid on the manager's desk is answered in the week after the settle, so
+  // it is made only when that week is a window week, and the frenzy comes the
+  // settle before deadline week
+  const bidNext = windowOpen(nextWeek(state.week))
+  const bidDeadline = isDeadlineWeek(nextWeek(state.week))
   for (let k = 0; k < (deadline ? 5 : 2); k++) {
     if (rng() > (deadline ? 0.6 : window ? 0.35 : 0.1)) continue
     const buyer = pick(rng, clubs)
@@ -437,7 +437,7 @@ export function aiTransfers(state: GameState, rng: Rng) {
     const shop = aiShoppingTarget(state, buyer)
     if (!shop) continue
     const { intent, target: p } = shop
-    if (p && rng() < (intent === 'allin' ? 0.75 : 0.6)) executeTransfer(state, p, buyer.id, askingPrice(state, p))
+    if (p && rng() < (intent === 'allin' ? 0.75 : 0.6) && window) executeTransfer(state, p, buyer.id, askingPrice(state, p))
   }
 
   // unsettled/listed players move - mostly in the windows
@@ -453,7 +453,7 @@ export function aiTransfers(state: GameState, rng: Rng) {
     const p = pick(rng, targets)
     const fee = askingPrice(state, p)
     const seller = state.clubs[p.clubId!]
-    if (seller && rng() < 0.75) executeTransfer(state, p, buyer.id, fee)
+    if (seller && rng() < 0.75 && window) executeTransfer(state, p, buyer.id, fee)
   }
 
   // AI bids for user players: a trickle in normal weeks, a feeding frenzy
@@ -463,8 +463,8 @@ export function aiTransfers(state: GameState, rng: Rng) {
   // club after a dismissal, so this loop went on putting offers for his former
   // players on his desk - and sackManager empties the inbox precisely because
   // answering one from a new desk sold another club's player.
-  for (let k = 0; !state.unemployed && k < (deadline ? 3 : 1); k++) {
-    if (rng() > (deadline ? 0.55 : 0.3)) continue
+  for (let k = 0; !state.unemployed && k < (bidDeadline ? 3 : 1); k++) {
+    if (rng() > (bidDeadline ? 0.55 : 0.3)) continue
     const user = state.clubs[state.userClubId]
     const squad = user.players.map(id => state.players[id]).filter(Boolean)
     const wanted = squad.filter(p => !p.loanFrom).filter(p => p.transferListed || p.morale <= 4 ||
@@ -488,18 +488,20 @@ export function aiTransfers(state: GameState, rng: Rng) {
     // player wants it, so the bid comes in near value rather than over it. A
     // low mood alone takes the same graded slice off as the asking price does
     // (unsettledFee); the rng draw is unchanged
-    const fee = Math.round(aiBidFee(p, rng, deadline) * (freeDeal(state, p) ? FREE_RESALE : 1) / 10_000) * 10_000
+    const fee = Math.round(aiBidFee(p, rng, bidDeadline) * (freeDeal(state, p) ? FREE_RESALE : 1) / 10_000) * 10_000
+    // drawn, and held: no bid lands on the desk in a week it cannot be accepted
+    if (!bidNext) continue
     state.offers.push({
       id: state.nextId++, playerId: p.id, fromClubId: bidder.id, toClubId: user.id,
       fee, week: state.week, forUser: true, status: 'pending',
     })
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
-      subject: deadline ? `Deadline-day bid: ${p.name}` : `Bid received: ${p.name}`,
-      body: deadline
+      subject: bidDeadline ? `Deadline-day bid: ${p.name}` : `Bid received: ${p.name}`,
+      body: bidDeadline
         ? `${bidder.name} have come in late for ${p.name} - ${fmtMoney(fee)}, and the panic premium is baked in. The window shuts within days, and the offer dies with it.`
         : `${bidder.name} have tabled a bid of ${fmtMoney(fee)} for ${p.name}. The offer will not stay open for long.`,
-      k: deadline ? 'news.bidDeadline' : 'news.bidIn',
+      k: bidDeadline ? 'news.bidDeadline' : 'news.bidIn',
       v: { player: p.name, bidder: bidder.name, fee: fmtMoney(fee) },
       playerId: p.id,
     })
@@ -528,9 +530,12 @@ export function aiTransfers(state: GameState, rng: Rng) {
       c.rep >= user.rep - 15 && c.budget >= o.fee * 0.25)
     if (!rivals.length) continue
     const rival = pick(rng, rivals)
+    // the raise is drawn either way; the market only moves while it is open
+    const raised = Math.round((o.fee * (1.08 + rng() * 0.07)) / 10_000) * 10_000
+    if (!bidNext) continue
     const ousted = state.clubs[o.fromClubId]?.name ?? 'the first bidder'
     o.fromClubId = rival.id
-    o.fee = Math.round((o.fee * (1.08 + rng() * 0.07)) / 10_000) * 10_000
+    o.fee = raised
     o.week = state.week
     o.raises = (o.raises ?? 0) + 1
     o.countered = false // a fresh bidder can still be haggled once
@@ -551,8 +556,9 @@ export function aiTransfers(state: GameState, rng: Rng) {
   for (const o of state.offers) {
     if (o.status === 'pending' && state.week - o.week >= 2) o.status = 'rejected'
   }
-  // the window slamming shut kills every open bid on your players
-  if (state.week === 8 || state.week === 28) {
+  // the window slamming shut kills every open bid on your players: deadline
+  // week is settled, and the next week is shut
+  if (isDeadlineWeek(state.week)) {
     const lapsed = state.offers.filter(o => o.status === 'pending' && o.forUser)
     for (const o of lapsed) o.status = 'rejected'
     if (lapsed.length) {
@@ -592,7 +598,7 @@ export function agreeFee(state: GameState, playerId: number, fee: number): { ok:
   const user = state.clubs[state.userClubId]
   if (!p || !p.clubId) return { ok: false, msg: t('reply.playerUnavailable') }
   if (p.clubId === user.id) return { ok: false, msg: t('reply.alreadyYours') }
-  if (!windowOpen(state.week)) return { ok: false, msg: windowShut(state.week) }
+  if (!windowOpen(state.week)) return { ok: false, msg: windowShut(state) }
   if (fee > user.budget) return { ok: false, msg: t('reply.bidOverBudget') }
   // AN EMBARGO SHUTS THE FIRST DOOR TOO (1.8.5 career QA). Stage 2 refuses
   // every signing under one, but a fee could still be agreed here, which
@@ -697,7 +703,7 @@ export function signOnTerms(state: GameState, playerId: number, fee: number, wag
   if (!p || !p.clubId) return { ok: false, msg: t('reply.playerUnavailable') }
   // stage 2 is its own call, so it asks the window again for the same reason
   // it asks the ink-wet gate again below
-  if (!windowOpen(state.week)) return { ok: false, msg: windowShut(state.week) }
+  if (!windowOpen(state.week)) return { ok: false, msg: windowShut(state) }
   const seller = state.clubs[p.clubId]
   // THE INK IS STILL WET, CHECKED AGAIN (owner, v1.1.3: "if a club signs a
   // player and the player tries to buy for their club the bid should be
@@ -870,6 +876,8 @@ export function respondToOffer(state: GameState, offerId: number, accept: boolea
     // it landed - cannot be accepted: it moved a free agent to the bidder and
     // burned the fee (1.6.3, scripts/qa/exploit.ts)
     if (p.clubId !== state.userClubId) { o.status = 'rejected'; return t('reply.offerWithdrawn') }
+    // a sale is a permanent transfer: it waits for the window like a signing
+    if (!windowOpen(state.week)) return windowShut(state)
     // THE BOARD'S SQUAD FLOOR (chaos sweep finding). There is no release
     // button in this game, so accepting incoming bids is the one lever that
     // can drain a squad - and it had no floor at all: accept everything and

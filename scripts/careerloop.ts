@@ -191,16 +191,16 @@ console.log('\n--- 5. dreams a club can actually finish')
 // ---- 6. the wider world -----------------------------------------------------
 console.log('\n--- 6. the wider world')
 {
-  // the hunt's bid lands on the mid-season deadline (week 26, living.ts), and
-  // is still on the desk when the manager next looks
+  // the hunt's bid is filed as the January window opens (week 22, living.ts),
+  // and is still on the desk when the manager next looks
   const g = newGame('leicester', 'Probe', 777)
   const star = talismanOf(g, g.userClubId)!
   const rival = Object.values(g.clubs).find(c => c.id !== g.userClubId && c.rep >= 70)!
   g.hunt = { clubId: rival.id, playerId: star.id, stage: 2, season: g.season }
-  g.week = 25
+  g.week = 21
   advanceHunt(g)
   ok(g.hunt.stage === 2, 'no bid before its week')
-  g.week = 26
+  g.week = 22
   processWeekAndAdvance(g)
   const bid = g.offers.find(o => o.playerId === star.id && o.fromClubId === rival.id)
   ok(bid?.status === 'pending', `the hunt's bid is pending when the manager reads it in week ${g.week}`)

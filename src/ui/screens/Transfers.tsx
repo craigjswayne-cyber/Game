@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useStore } from '../../store'
 import { clubCode, fmtMoney, fmtWage, newsBody, newsSubject, POS_ORDER, seasonLabel, weekDate, type Attrs, type Pos, weeksBetween100 } from '../../game/model'
 import { counterIncomingOffer, renewalDemand, respondToOffer, windowOpen } from '../../game/ai'
+import { isDeadlineWeek, openDate, shutDate } from '../../game/window'
 import { LOAN_LENGTHS, LOAN_SHARES, loanIn, loanMarket, loanTargets, type LoanLength } from '../../game/loans'
 import { noteUse } from '../../game/usage'
 import { attrRange, fuzzedCa, knowledge, searchKey, seenValue } from '../../game/scout'
@@ -172,9 +173,8 @@ export default function Transfers() {
           color: windowOpen(game.week) ? 'var(--text-positive)' : 'var(--text-muted)',
           fontWeight: 700,
         }}>
-          {t(game.week <= 7 ? 'transfers.windowOpen'
-            : game.week === 26 || game.week === 27 ? 'transfers.deadlineWindow'
-            : 'transfers.windowClosed')}
+          {!windowOpen(game.week) ? t('transfers.windowClosed', openDate(game))
+            : t(isDeadlineWeek(game.week) ? 'transfers.deadlineWindow' : 'transfers.windowOpen', shutDate(game))}
         </span>
       </div>
 

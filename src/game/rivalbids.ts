@@ -48,6 +48,7 @@ import { rivalsOf } from './rivalries'
 import { rivalCoach } from './rivalcoach'
 import { clamp, hashString, mulberry32 } from './rng'
 import { tIn, type Vars } from './i18n'
+import { JANUARY_OPEN, SUMMER_SHUT, nextWeek } from './window'
 
 const rand = (s: string): number => mulberry32(hashString(s))()
 
@@ -313,7 +314,7 @@ export function settleRivalBids(state: GameState): void {
 // ---------------------------------------------------------------- youth hunt ---
 
 const NEED_MIN: Record<string, number> = { LP: 2, HK: 2, TP: 2, LK: 3, FL: 3, N8: 2, SH: 2, FH: 2, CE: 3, WG: 3, FB: 2 }
-const HUNT_WEEKS = [2, 4, 6, 26]
+const HUNT_WEEKS = [2, 4, 6, JANUARY_OPEN + 1]
 
 /** Is this one of the best young prospects in the world? */
 export const isProspect = (p: Player): boolean =>
@@ -511,19 +512,20 @@ export function backResponders(state: GameState, ids: string[]): void {
 }
 
 /** The backed clubs spend it: up to two men at the position that beat them,
- *  and one bid for the manager's own man there. Summer window only. */
+ *  and one bid for the manager's own man there. Summer window only, and the
+ *  bid only while the week it lands in is still a window week. */
 export function rivalPushWeek(state: GameState): void {
   const rp = state.rivalPush
   if (!rp) return
   if (rp.season !== state.season) { state.rivalPush = undefined; return }
-  if (state.week > 7 || !windowOpen(state.week)) return
+  if (state.week > SUMMER_SHUT || !windowOpen(state.week)) return
   const user = state.clubs[state.userClubId]
   for (const e of rp.clubs) {
     const club = state.clubs[e.id]
     if (!club || isMyClub(state, e.id) || embargoed(state, e.id)) continue
     const key = `${state.seed}|${e.id}|${state.season}|${state.week}`
     // a bid for his man at that position, once, and only a real one
-    if (!e.bid && user && !state.unemployed && rand(`rpbid|${key}`) < 0.35) {
+    if (!e.bid && user && !state.unemployed && windowOpen(nextWeek(state.week)) && rand(`rpbid|${key}`) < 0.35) {
       const his = user.players.map(id => state.players[id])
         .filter(p => p && !p.acad && !p.loanFrom && !p.retiring && p.pos === e.pos && p.ca >= 78 && !freeDeal(state, p))
         .sort((a, b) => b.ca - a.ca)[0]
