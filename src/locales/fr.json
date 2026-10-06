@@ -5786,6 +5786,22 @@
       "other": "{weeksIn} semaines de mission. « {verdict_k} Je continue à chercher - encore environ {n} semaines avant de tout rédiger. »\n\nElle est correctement scoutée désormais : une vraie mesure, plus une fourchette."
     },
     "postcardKeen": "J'ai vu {player} deux fois maintenant et je mettrais mon nom sur lui. {age} ans, {pos_k} {at_k}, et il fait les choses qui ne s'enseignent pas.",
+    "scoutMonthlySubj": {
+      "one": "Des nouvelles de {scout} : encore {n} semaine",
+      "other": "Des nouvelles de {scout} : encore {n} semaines"
+    },
+    "scoutMonthly": {
+      "one": "{weeksIn} semaines sur la route. Mission : {brief_k} {where_k}.\n\nNouveau nom : {player}, {age} ans, {pos_k} {at_k}. Noms transmis jusqu'ici : {found}. Rapport dans {n} semaine.",
+      "other": "{weeksIn} semaines sur la route. Mission : {brief_k} {where_k}.\n\nNouveau nom : {player}, {age} ans, {pos_k} {at_k}. Noms transmis jusqu'ici : {found}. Rapport dans {n} semaines."
+    },
+    "scoutMonthlyNoneSubj": {
+      "one": "Des nouvelles de {scout} : encore {n} semaine",
+      "other": "Des nouvelles de {scout} : encore {n} semaines"
+    },
+    "scoutMonthlyNone": {
+      "one": "{weeksIn} semaines sur la route. Mission : {brief_k} {where_k}.\n\nAucun nouveau nom ce mois-ci. Noms transmis jusqu'ici : {found}. Rapport dans {n} semaine.",
+      "other": "{weeksIn} semaines sur la route. Mission : {brief_k} {where_k}.\n\nAucun nouveau nom ce mois-ci. Noms transmis jusqu'ici : {found}. Rapport dans {n} semaines."
+    },
     "postcardMaybe": "{player} mérite d'être mentionné. {age} ans, {pos_k} {at_k}. Pas la réponse à lui seul, mais je ne l'écarterais pas.",
     "postcardMaybe_f": "{player} mérite d'être mentionnée. {age} ans, {pos_k} {at_k}. Pas la réponse à elle seule, mais je ne l'écarterais pas.",
     "scoutReportSubj": {

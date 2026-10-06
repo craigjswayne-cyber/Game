@@ -5630,6 +5630,22 @@
    "other": "{weeksIn} weeks into the brief. \"{verdict_k} I will keep looking - about {n} weeks until I write it all up.\"\n\nHe is properly scouted now: a true reading, not a range."
   },
   "postcardKeen": "Watched {player} twice now and I would put my name to him. {age}, {pos_k} {at_k}, and he does the things you cannot teach.",
+  "scoutMonthlySubj": {
+   "one": "Word from {scout}: {n} week to go",
+   "other": "Word from {scout}: {n} weeks to go"
+  },
+  "scoutMonthly": {
+   "one": "{weeksIn} weeks on the road. Brief: {brief_k} {where_k}.\n\nNew name: {player}, {age}, {pos_k} {at_k}. Names so far: {found}. Report in {n} week.",
+   "other": "{weeksIn} weeks on the road. Brief: {brief_k} {where_k}.\n\nNew name: {player}, {age}, {pos_k} {at_k}. Names so far: {found}. Report in {n} weeks."
+  },
+  "scoutMonthlyNoneSubj": {
+   "one": "Word from {scout}: {n} week to go",
+   "other": "Word from {scout}: {n} weeks to go"
+  },
+  "scoutMonthlyNone": {
+   "one": "{weeksIn} weeks on the road. Brief: {brief_k} {where_k}.\n\nNo new names this month. Names so far: {found}. Report in {n} week.",
+   "other": "{weeksIn} weeks on the road. Brief: {brief_k} {where_k}.\n\nNo new names this month. Names so far: {found}. Report in {n} weeks."
+  },
   "postcardMaybe": "{player} is worth a mention. {age}, {pos_k} {at_k}. Not the answer on his own, but I would not rule him out.",
   "scoutReportSubj": {
    "one": "{scout_k} files his report: {n} name",
