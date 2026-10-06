@@ -38,7 +38,7 @@ import { punditPredictions } from './gossip'
 import { WEEK_BASIS, CHEM_SLOTS, RELEGATES, chemKey, fmtMoney, initFacilities, isWorldCupSeason, worldCupSeasonFor } from './model'
 import { seedKnowledge } from './scout'
 import { ensureCaptains } from './analysis'
-import { CLUB_CAPTAINS, sameName } from '../data/captains'
+import { CLUB_CAPTAINS, CLUB_VICES, sameName } from '../data/captains'
 import { pickObjectives } from './objectives'
 import { hashString, mulberry32 } from './rng'
 import { ACAD_SHAPE, ACADEMY_SIZE, acadQuality, ensureAcademyLeague } from './academy'
@@ -699,6 +699,18 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     if (!man) continue
     club.captain = man.id
     man.a.lea = Math.max(man.a.lea, 15)
+  }
+  // announced vice-captains: the first wears the vice's armband, and each is
+  // given a leader's standing
+  for (const [cid, names] of Object.entries(CLUB_VICES)) {
+    const club = state.clubs[cid]
+    if (!club) continue
+    for (const name of names) {
+      const man = club.players.map(id => state.players[id]).find(p => p && sameName(p.name, name))
+      if (!man || man.id === club.captain) continue
+      if (club.vice == null) club.vice = man.id
+      man.a.lea = Math.max(man.a.lea, 14)
+    }
   }
   ensureCaptains(state, true)
   state.objectives = pickObjectives(state)
