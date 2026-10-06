@@ -216,6 +216,7 @@
   "confirmSell": "Confirm sale"
  },
  "desk": {
+  "tPromise_start": "You promised {player} a start",
   "title": "Today",
   "decide": "Needs your decision",
   "clear": "Nothing waiting on you",
@@ -1163,6 +1164,7 @@
   "dialSpreadDef": "spread defence"
  },
  "matchday": {
+  "warnPromise": "{player} was promised a start and is not in the XV.",
   "adviceCard": "{player} is walking a tightrope - one more infringement and it's red.",
   "advicePoor": "{player} is having one of those days ({rating}) - fresh legs might spare him.",
   "adviceTired": "{player} is {word}.",
@@ -2638,6 +2640,9 @@
   "3": "Full file: numbers, character and temperament all verified."
  },
  "player": {
+  "transferRequestLocked": "Transfer request in, for good",
+  "promiseStartTitle": "Promised in the press room: a start in the next match. No start means a transfer request.",
+  "promiseStart": "Promised a start",
   "rivalBidLine": "{club} want him too: {wage}/wk on the table.",
   "rivalBidLine_f": "{club} want her too: {wage}/wk on the table.",
   "ceiling": "Ceiling",
@@ -4394,6 +4399,12 @@
   "bridgeProducts": "Products priced by the store: {live} of {asked}"
  },
  "news": {
+  "startVoid": "{player} was not available for selection, so the promised start no longer stands.",
+  "startVoidSubj": "Promise lifted: {player}",
+  "startBroke": "You promised {player} a start in the next match, and it did not happen. A transfer request is on your desk, and it will not be withdrawn.",
+  "startBrokeSubj": "{player} hands in a transfer request",
+  "startKept": "You said in the press room that {player} would start, and the team sheet agreed. The dressing room noticed.",
+  "startKeptSubj": "Word kept: {player}",
   "rivalBidLostSubj": "{player} chooses {short}",
   "rivalBidLost": "{player} has joined {club}, who matched the {fee} fee and offered {wage}/week. What decided it: {why_k}.",
   "rivalBidWonSubj": "{player} chooses you over {short}",
@@ -7028,6 +7039,7 @@
   "acadReleased": "Released {player} from the academy."
  },
  "reply": {
+  "requestLockedRenew": "{name} will not talk terms. The transfer request stands.",
   "rivalBidOpen": "{club} have agreed the same fee and offer him {wage}/wk. He decides this week.",
   "rivalBidOpen_f": "{club} have agreed the same fee and offer her {wage}/wk. She decides this week.",
   "rivalBidPrefers": "{name} leans towards {club}, who offer {wage}/wk. What sways it: {why_k}. Their offer stands until the week is out.",
@@ -9241,6 +9253,7 @@
   "promiseKept": "You promised {what_k} in {season}, and kept your word.",
   "promiseBroken": "You promised {what_k} in {season}, and broke your word.",
   "what": {
+   "start": "a start",
    "plans": "a place in your plans",
    "minutes": "more minutes",
    "deal": "a new contract",

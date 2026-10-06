@@ -222,6 +222,7 @@
     "confirmSell": "Confirmer la vente"
   },
   "desk": {
+    "tPromise_start": "Vous avez promis une titularisation à {player}",
     "title": "Aujourd'hui",
     "decide": "À décider",
     "clear": "Rien ne vous attend",
@@ -1187,6 +1188,7 @@
     "dialSpreadDef": "défense étalée"
   },
   "matchday": {
+    "warnPromise": "{player} s'est vu promettre une titularisation et ne figure pas dans le XV.",
     "adviceCard": "{player} marche sur un fil - une faute de plus et c'est rouge.",
     "advicePoor": "{player} vit un jour sans ({rating}) - des jambes fraîches lui éviteraient ça.",
     "adviceTired": "{player} est {word}.",
@@ -2679,6 +2681,9 @@
     "3": "Dossier complet : chiffres, caractère et tempérament tous vérifiés."
   },
   "player": {
+    "transferRequestLocked": "Demande de transfert, définitive",
+    "promiseStartTitle": "Promis en conférence de presse : une titularisation au prochain match. Sans elle, une demande de transfert.",
+    "promiseStart": "Titularisation promise",
     "rivalBidLine": "{club} le veut aussi : {wage}/sem. sur la table.",
     "rivalBidLine_f": "{club} la veut aussi : {wage}/sem. sur la table.",
     "ceiling": "Plafond",
@@ -4521,6 +4526,12 @@
     "unofficialBody_f": "PHASE : Rugby Manager n'est ni affilié, ni approuvé, ni sous licence d'une joueuse, d'un club, d'une ligue ou d'une fédération. Les noms de clubs sont réels ; les compétitions, les stades et les sponsors sont renommés ou inventés. Les noms des joueuses sont réels, utilisés pour identifier des personnes dans une base de données sportive et pour rien d'autre, et aucun écusson, maillot ou logo officiel n'est inclus."
   },
   "news": {
+    "startVoid": "{player} n'était pas disponible, donc la titularisation promise ne tient plus.",
+    "startVoidSubj": "Promesse levée : {player}",
+    "startBroke": "Vous aviez promis à {player} une titularisation au match suivant, et elle n'est pas venue. Une demande de transfert est sur votre bureau, et elle ne sera pas retirée.",
+    "startBrokeSubj": "{player} dépose une demande de transfert",
+    "startKept": "Vous aviez annoncé en conférence de presse que {player} serait titulaire, et la feuille de match l'a confirmé. Le vestiaire l'a remarqué.",
+    "startKeptSubj": "Parole tenue : {player}",
     "rivalBidLostSubj": "{player} choisit {short}",
     "rivalBidLost": "{player} rejoint {club}, qui s'est aligné sur l'indemnité de {fee} et a offert {wage}/semaine. Ce qui a fait la différence : {why_k}.",
     "rivalBidWonSubj": "{player} vous préfère à {short}",
@@ -7137,6 +7148,7 @@
     "acadReleased": "{player} libéré de l'académie."
   },
   "reply": {
+    "requestLockedRenew": "{name} refuse de discuter d'un contrat. La demande de transfert tient toujours.",
     "rivalBidOpen": "{club} s'est aligné sur la même indemnité et lui offre {wage}/sem. Il tranchera cette semaine.",
     "rivalBidOpen_f": "{club} s'est aligné sur la même indemnité et lui offre {wage}/sem. Elle tranchera cette semaine.",
     "rivalBidPrefers": "{name} penche pour {club}, qui offre {wage}/sem. Ce qui pèse : {why_k}. L'offre tient jusqu'à la fin de la semaine.",
@@ -9412,6 +9424,7 @@
     "promiseKept": "Vous aviez promis {what_k} en {season}, et vous avez tenu parole.",
     "promiseBroken": "Vous aviez promis {what_k} en {season}, et vous avez manqué à votre parole.",
     "what": {
+      "start": "une titularisation",
       "plans": "une place dans vos plans",
       "minutes": "plus de temps de jeu",
       "deal": "un nouveau contrat",

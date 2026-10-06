@@ -515,6 +515,10 @@ export function migrate(s: GameState): GameState {
   s.fixtures = s.fixtures.filter(story)
   s.mentors = s.mentors.filter(story)
   s.pledges = s.pledges.filter(story)
+  // a promise of a start settles on its two counts (handshake.ts): without
+  // them it cannot be read, so it is dropped rather than broken by default
+  s.pledges = s.pledges.filter(pl => pl.kind !== 'start' ||
+    (Number.isFinite(pl.baseStarts) && Number.isFinite(pl.baseGames)))
   s.preContracts = s.preContracts.filter(story)
 
   // ---- the id counter must clear everything already in the world ----
@@ -569,6 +573,7 @@ export function migrate(s: GameState): GameState {
     p.value = num(p.value, 0, 1_000_000_000_000, 100_000)
     p.bans = int(p.bans, 0, 99, 0)
     if (p.freeUntil !== undefined && !(typeof p.freeUntil === 'number' && Number.isFinite(p.freeUntil))) delete p.freeUntil
+    if (p.reqLock !== undefined && typeof p.reqLock !== 'string') delete p.reqLock
     if (typeof p.name !== 'string' || !p.name) p.name = 'Unnamed Player'
     p.stats ??= emptyStats()
     // an attribute grid that is missing or not an object: derive a flat set from

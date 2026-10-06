@@ -28,6 +28,7 @@ import {absWeek, SEASON_WEEKS } from './model'
 import { clamp } from './rng'
 import { tIn } from './i18n'
 import { REQUEST_ANSWER_WEEKS } from './chats'
+import { requestLocked } from './handshake'
 
 export type SquadStatus = 'key' | 'rotation' | 'squad' | 'prospect' | 'fringe'
 
@@ -237,7 +238,8 @@ export function settleGameTime(state: GameState) {
       })
     }
     // and the road back: minutes, actually given, withdraw the request
-    if ((p.wantsOut ?? 0) > 0 && row.gap >= -2) {
+    // (not a request handed in over a broken handshake: that one stands)
+    if ((p.wantsOut ?? 0) > 0 && row.gap >= -2 && !requestLocked(p)) {
       p.wantsOut = 0
       p.reqAns = 0   // the grievance is gone, and so is the answer to it
       state.news.push({

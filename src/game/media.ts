@@ -13,6 +13,7 @@ import { settleTalk } from './talkback'
 import { applyMoodAnswer, moodRoom, settlePressMood, userResults, trailingRun } from './pressmood'
 import { clamp, pick, type Rng } from './rng'
 import { tIn, type Vars } from './i18n'
+import { clubGamesPlayed } from './handshake'
 
 const OUTLETS = [
   'The Rugby Chronicle', 'Oval Times', 'The Breakdown Podcast', 'Rugby World Weekly',
@@ -571,7 +572,7 @@ export function generatePress(state: GameState, rng: Rng) {
         p.id, [
           opt({ morale: -0.6, board: 0.2, unsettle: true, lk: 'press.benchDoor', rk: 'press.benchDoorR' }),
           opt({ morale: 0.1, board: 0, lk: 'press.benchBuilding', rk: 'press.benchBuildingR' }),
-          opt({ morale: 0.7, board: 0, lock: true, lk: 'press.benchNextWeek', rk: 'press.benchNextWeekR', rv: { player: p.name } }),
+          opt({ morale: 0.7, board: 0, lock: true, pledge: 'start', lk: 'press.benchNextWeek', rk: 'press.benchNextWeekR', rv: { player: p.name } }),
         ], rng))
     }
   }
@@ -1310,8 +1311,10 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
       if (opt.pledge && !(state.pledges ?? []).some(pl => pl.playerId === p.id && pl.kind === opt.pledge)) {
         ;(state.pledges ??= []).push({
           playerId: p.id, kind: opt.pledge, week: state.week, season: state.season,
-          due: Math.min(state.week + (opt.pledge === 'deal' ? 8 : 6), 44),
+          due: opt.pledge === 'start' ? state.week : Math.min(state.week + (opt.pledge === 'deal' ? 8 : 6), 44),
           baseApps: p.stats.apps,
+          // a start is owed at the next match played, not by a date (handshake.ts)
+          ...(opt.pledge === 'start' ? { baseStarts: p.stats.starts, baseGames: clubGamesPlayed(state, state.userClubId) } : {}),
         })
       }
     }

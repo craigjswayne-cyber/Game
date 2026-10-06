@@ -216,6 +216,7 @@
   "confirmSell": "Bevestig verkoop"
  },
  "desk": {
+  "tPromise_start": "Jy het {player} 'n beginplek belowe",
   "title": "Vandag",
   "decide": "Wag op jou besluit",
   "clear": "Niks wag op jou nie",
@@ -1161,6 +1162,7 @@
   "dialSpreadDef": "gespreide verdediging"
  },
  "matchday": {
+  "warnPromise": "{player} is 'n beginplek belowe en is nie in die XV nie.",
   "adviceCard": "{player} loop op 'n slap draad - nog een oortreding en dis rooi.",
   "advicePoor": "{player} het een van daardie dae ({rating}) - vars bene kan hom dalk spaar.",
   "adviceTired": "{player} is {word}.",
@@ -2635,6 +2637,9 @@
   "3": "Volle lêer: syfers, karakter en temperament almal bevestig."
  },
  "player": {
+  "transferRequestLocked": "Oordragversoek ingedien, finaal",
+  "promiseStartTitle": "Belowe by die perskonferensie: 'n plek in die beginspan vir die volgende wedstryd. Geen begin nie, dan 'n oordragversoek.",
+  "promiseStart": "Beginplek belowe",
   "rivalBidLine": "{club} wil hom ook hê: {wage}/wk op die tafel.",
   "rivalBidLine_f": "{club} wil haar ook hê: {wage}/wk op die tafel.",
   "ceiling": "Plafon",
@@ -4403,6 +4408,12 @@
   "bridgeProducts": "Produkte waarvoor die winkel 'n prys gegee het: {live} van {asked}"
  },
  "news": {
+  "startVoid": "{player} was nie beskikbaar nie, so die beloofde plek in die beginspan geld nie meer nie.",
+  "startVoidSubj": "Belofte vervalle: {player}",
+  "startBroke": "Jy het {player} 'n plek in die beginspan vir die volgende wedstryd belowe, en dit het nie gebeur nie. 'n Oordragversoek lê op jou lessenaar, en dit sal nie teruggetrek word nie.",
+  "startBrokeSubj": "{player} dien 'n oordragversoek in",
+  "startKept": "Jy het by die perskonferensie gesê {player} sal begin, en die spanlys het saamgestem. Die kleedkamer het dit raakgesien.",
+  "startKeptSubj": "Woord gehou: {player}",
   "rivalBidLostSubj": "{player} kies {short}",
   "rivalBidLost": "{player} het by {club} aangesluit, wat die fooi van {fee} geëwenaar en {wage}/week aangebied het. Wat dit beslis het: {why_k}.",
   "rivalBidWonSubj": "{player} kies jou bo {short}",
@@ -7066,6 +7077,7 @@
   "acadReleased": "{player} uit die akademie laat gaan."
  },
  "reply": {
+  "requestLockedRenew": "{name} wil nie oor 'n kontrak praat nie. Die oordragversoek staan.",
   "rivalBidOpen": "{club} het dieselfde fooi ooreengekom en bied hom {wage}/wk aan. Hy besluit hierdie week.",
   "rivalBidOpen_f": "{club} het dieselfde fooi ooreengekom en bied haar {wage}/wk aan. Sy besluit hierdie week.",
   "rivalBidPrefers": "{name} leun na {club}, wat {wage}/wk aanbied. Wat swaar weeg: {why_k}. Hul aanbod staan tot die einde van die week.",
@@ -9287,6 +9299,7 @@
   "promiseKept": "Jy het in {season} {what_k} belowe, en jou woord gehou.",
   "promiseBroken": "Jy het in {season} {what_k} belowe, en jou woord gebreek.",
   "what": {
+   "start": "'n beginplek",
    "plans": "'n plek in jou planne",
    "minutes": "meer speeltyd",
    "deal": "'n nuwe kontrak",

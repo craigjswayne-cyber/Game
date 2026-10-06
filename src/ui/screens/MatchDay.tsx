@@ -410,6 +410,16 @@ function Preview({ fxId }: { fxId: number }) {
   const gapDays = lastPlayed ? 7 + fixtureDayOff(fx.id) - fixtureDayOff(lastPlayed.id) : 7
   if (gapDays <= 5) warnings.push({ level: 'warn', text: t('matchday.warnTurnaround', { n: gapDays }) })
   if (!speech) warnings.push({ level: 'note', text: t('matchday.warnNoSpeech') })
+  // a start promised in the press room (handshake.ts): a competitive match
+  // without him in the XV is the promise broken
+  if (fx.compId !== 'fr' && !fx.devSide) {
+    for (const pl of game.pledges ?? []) {
+      const p = pl.kind === 'start' && pl.season === game.season ? game.players[pl.playerId] : null
+      if (p && p.clubId === club.id && !problem(p) && !tac.lineup.slice(0, 15).includes(p.id)) {
+        warnings.push({ level: 'warn', text: t('matchday.warnPromise', { player: p.name }) })
+      }
+    }
+  }
 
   // THE HARD GATE (user: "when a player is injured you shouldn't be able to
   // process the game without making changes"). A bad warning used to be

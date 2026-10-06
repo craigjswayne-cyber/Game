@@ -114,7 +114,7 @@ export function playerStory(state: GameState, p: Player, made: (p: Player) => bo
     const role = recall(state, { kind: 'role-promised', playerId: p.id, sinceSeason: pr.season }).some(e => e.season === pr.season)
     const what = role ? 'role' : String(pr.payload?.what ?? 'plans')
     add('promise', pr.kind === 'promise-kept' ? 'story.promiseKept' : 'story.promiseBroken', {
-      season: seasonLabel(pr.season), what_k: `story.what.${['plans', 'minutes', 'deal', 'role'].includes(what) ? what : 'plans'}`,
+      season: seasonLabel(pr.season), what_k: `story.what.${['plans', 'minutes', 'deal', 'role', 'start'].includes(what) ? what : 'plans'}`,
     })
   }
   // a transfer request, and the answer

@@ -20,6 +20,7 @@ import { noteUse } from '../../game/usage'
 import { releaseBlock, releaseCost, releasePlayer } from '../../game/release'
 import { MARQUEE_SLOTS, marqueeOpen, toggleMarquee } from '../../game/cap'
 import { answerRequest, canAnswerRequest, canChat, chatBudget, praisePlayer, warnPlayer } from '../../game/chats'
+import { requestLocked, startPromise } from '../../game/handshake'
 import { attrBand, attrBandIndex, attrName, posName, t, tIn, localeTag } from '../../game/i18n'
 import { Glyph } from '../glyphs'
 import { driverLines, learningLines, monthKey, outlookLine, TL } from '../../game/devproject'
@@ -345,7 +346,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           {t('player.agentWantsTerms')}</span>}
         {(p.wantsOut ?? 0) > 0 && <span className="chip" style={{ borderColor: 'var(--text-negative)', color: 'var(--text-negative)', fontWeight: 700 }}
           title={t('player.transferRequestTitle')}>
-          {t('player.transferRequest')}</span>}
+          {t(requestLocked(p) ? 'player.transferRequestLocked' : 'player.transferRequest')}</span>}
         <span className="chip" title={t('player.moraleTitle')}>{t('player.morale')} <b>{moraleWord(p.morale)}</b></span>
         <span className="chip" title={t('player.fitnessTitle')}>{t('player.fitness')} <b>{Math.round(p.cond)}%</b></span>
         <span className="chip" title={t('player.sharpnessTitle')}>{t('player.sharpness')} <b>{Math.round(p.sharp)}%</b></span>
@@ -469,8 +470,8 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           </span>
         )}
         {(game.pledges ?? []).some(pl => pl.playerId === p.id) && !(game.preContracts ?? []).some(x => x.playerId === p.id) && (
-          <span className="chip" style={{ borderColor: 'var(--gold)' }} title={t('player.promiseTitle')}>
-            <Glyph name="handshake" /> <b>{t('player.promiseMade')}</b>
+          <span className="chip" style={{ borderColor: 'var(--gold)' }} title={t(startPromise(game, p) ? 'player.promiseStartTitle' : 'player.promiseTitle')}>
+            <Glyph name="handshake" /> <b>{t(startPromise(game, p) ? 'player.promiseStart' : 'player.promiseMade')}</b>
           </span>
         )}
         {(() => {
