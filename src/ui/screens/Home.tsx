@@ -1,4 +1,5 @@
 import { genderOf } from '../../game/gender'
+import { isDeadlineWeek } from '../../game/window'
 import { useStore } from '../../store'
 import { dismiss, dismissed, isOldPlayApp } from '../../game/shell'
 import { snIdFor, snWeeksFor } from '../../game/schedule'
@@ -599,7 +600,7 @@ function weekHook(game: GameState, fx: Fixture | undefined): { hook: string | nu
   const hook = derby ? t('home.derbyWeek', { derby: derby.toUpperCase() })
     : grudge ? t('home.grudge', { reason: grudgeReason(grudge) })
     : fx?.stage ? t('home.knockout', { stage: stageName(fx.stage) })
-    : game.week === 7 || game.week === 27 ? t('home.deadlineWeek')
+    : isDeadlineWeek(game.week) ? t('home.deadlineWeek')
     : null
   if (!club) return { hook, streak: null, winless: false }
   // streak framing: the cheapest dopamine in sport

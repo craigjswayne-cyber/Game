@@ -286,7 +286,10 @@ for (const f of dedup.values()) {
 }
 console.log(`moved clubs by the end: genuine interest ${pct(gMoved / Math.max(1, gN))} of ${gN}; agent talk ${pct(fMoved / Math.max(1, fN))} of ${fN}`)
 ok(gN > 20 && fN > 20, 'too little talk to judge')
-ok(gMoved / gN > fMoved / fN + 0.05, 'genuine interest is no more likely than agent talk to end in a move')
+// a ratio rather than a margin since the windows bind every club (1.8.12):
+// with no moves between them the world makes fewer of them in sixty weeks, and
+// genuine interest at twice the agent-talk rate was failing a five-point gap
+ok(gMoved / gN > (fMoved / fN) * 1.5, `genuine interest is no more likely than agent talk to end in a move (${gMoved}/${gN} against ${fMoved}/${fN})`)
 
 // ---- an unsettled man is cheaper (owner, 1.8.2) --------------------------
 // "if they are unhappy they should be cheaper". Each man is priced content,
