@@ -771,8 +771,9 @@ export function RewardedButton({ place, label, onDone, className = 'btn ghost bl
   const [busy, setBusy] = useState(false)
   // GOLD AND BLACK, EVERYWHERE (owner, 1.8.9, of "Ask the agency": "should
   // be gold and black like the store"). Every rewarded button wears .spot-ad
-  // whatever the caller's size class, so they read as one kind of thing, and
-  // every label ends "(Free with ad)".
+  // whatever the caller's size class, so they read as one kind of thing. The
+  // gold box is the whole signal: the "(Free with ad)" tag came off every label
+  // in 1.8.12 (owner: "just leave it distinct with gold box").
   return (
     <button className={`${className} spot-ad`} style={style} disabled={busy}
       onClick={e => {

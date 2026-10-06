@@ -243,6 +243,8 @@ function splitQuestion(state: GameState, club: Club): boolean {
 /** What is left of the senior men's hit when the sponsor has stood the squad
  *  a team night (1.8.2, rewarded.ts). The existing effect, made smaller. */
 export const TEAM_NIGHT = 0.5
+/** The squad-wide lift the team night itself gives (1.8.12). */
+export const TEAM_NIGHT_LIFT = 0.15
 
 /** Was the team night bought for this split? */
 export function teamNightOn(state: GameState, pressId: number): boolean {
@@ -276,6 +278,12 @@ function resolveSplit(state: GameState, item: PressItem, opt: PressOption, D: Pl
     // (rewarded.ts) takes half the sting out of it for the senior men
     const hit = (backs ? 0.1 : 0.2) * (1 + Math.max(0, -lean) * 0.5) * (teamNightOn(state, item.id) ? TEAM_NIGHT : 1)
     for (const m of camp) mood(m, -hit)
+    // THE NIGHT ITSELF LIFTS THE SQUAD (owner, 1.8.12: "team morale should
+    // improve after it"): on top of the smaller sting, every man but the one
+    // left out goes home in better heart
+    if (teamNightOn(state, item.id)) {
+      for (const m of Object.values(state.players)) if (m.clubId === club.id && m.id !== D.id) mood(m, TEAM_NIGHT_LIFT)
+    }
     mood(D, D.pers === 'Professional' || D.pers === 'Leader' ? -0.1
       : D.pers === 'Temperamental' || D.pers === 'Ambitious' || D.pers === 'Mercenary' ? -0.4 : -0.25)
     // authority: firmer the more the room is used to the manager's word

@@ -2337,7 +2337,7 @@ function Live() {
                 the last thing on the page, under the verdict, the stats, the
                 ratings and the whole commentary, and with an advert over the
                 foot of the screen it could not be reached at all. */}
-            <button className="btn gold block ft-continue" style={{ margin: '6px 14px 10px', width: 'auto' }} onClick={finishMatch}>
+            <button className="btn gold block ft-continue" onClick={finishMatch}>
               {t('matchday.continueToResults')}
             </button>
             <div className="review-grid">

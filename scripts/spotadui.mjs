@@ -1,11 +1,14 @@
-// Probe: every rewarded-advert button is gold and black and says "(Free with ad)".
+// Probe: every rewarded-advert button is gold and black, and carries no
+// "(Free with ad)" tag: the gold box alone marks it (owner, 1.8.12: "remove the
+// free with ad text just leave it distinct with gold box and remove favour too").
 //
+// History:
 // Owner, 1.8.9, from the Player Profile on Android: "Ask the agency should be
 // gold and black like the store. (Free with ad) should be the actual wording."
 // RewardedButton (components.tsx) is the one component behind every such
 // button, so this opens one of them, the agency's file on another club's
 // player, and reads it under the night theme, the day theme and a skin in
-// each: the label ends "(Free with ad)", the fill is the theme's --gold-fill,
+// each: the fill is the theme's --gold-fill,
 // the ink is --on-gold-fill, and the two clear 4.5:1. The six locales' labels
 // are read straight from the dictionaries.
 //
@@ -24,8 +27,8 @@ const KEYS = ['watchAgency', 'watchInside', 'watchOpinion', 'watchTapeRoom', 'wa
 for (const [lang, suf] of Object.entries(SUFFIX)) {
   const till = JSON.parse(readFileSync(`src/locales/${lang}.json`, 'utf8')).till
   const labels = [...KEYS.map(k => till[k]), ...['watchAnalyst', 'watchAnalyst_w'].flatMap(k => till[k] ? Object.values(till[k]) : [])]
-  const bad = labels.filter(s => typeof s !== 'string' || !s.endsWith(suf))
-  ok(bad.length === 0, `${lang}: every rewarded label ends "${suf}"${bad.length ? ` (not: ${bad.join(' | ')})` : ''}`)
+  const bad = labels.filter(s => typeof s !== 'string' || s.includes(suf) || /favou?r|faveur|favore|guns|厚意/i.test(s))
+  ok(bad.length === 0, `${lang}: no rewarded label says "${suf}" or "favour"${bad.length ? ` (still: ${bad.join(' | ')})` : ''}`)
 }
 
 const server = await startPreview('4241', 3000)
@@ -92,7 +95,7 @@ try {
     return r
   }
   const night = await check('night')
-  ok(/\(Free with ad\)$/.test(night.text), `it reads "${night.text}"`)
+  ok(!/Free with ad/.test(night.text), `it reads "${night.text}"`)
   ok(night.h >= 44, `and is a full-size target (${Math.round(night.h)}px)`)
 
   const setApp = (add, remove) => page.evaluate(([a, r]) => { const el = document.querySelector('.app'); r.forEach(x => el.classList.remove(x)); a.forEach(x => el.classList.add(x)) }, [add, remove])
@@ -111,5 +114,5 @@ try {
 if (errors.length) ok(false, `page errors: ${[...new Set(errors)].join(' | ').slice(0, 200)}`)
 await browser.close()
 await server.stop?.()
-say(fails ? `\nSPOT AD UI FAILED (${fails})` : '\nSPOT AD UI PASSED: every rewarded button is gold and black and says Free with ad')
+say(fails ? `\nSPOT AD UI FAILED (${fails})` : '\nSPOT AD UI PASSED: every rewarded button is gold and black, no Free with ad tag')
 done(fails)
