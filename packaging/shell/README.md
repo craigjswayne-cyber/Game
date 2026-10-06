@@ -21,7 +21,9 @@ AdSlot.tsx mounts a slot on Home or Results
        -> 'bannerAdSizeChanged' -> --ad-inset: 50px on <html>
             -> .bottom-nav padding grows by that much (theme.css), so the
                native banner, which overlays the web view, sits under the nav
-  leaving the screen / a sheet opening -> hideBanner(), --ad-inset: 0px
+  leaving the screen                   -> hideBanner(), --ad-inset: 0px
+  a sheet opening over the slot        -> hideBanner(), --ad-inset HELD, so
+                                          nothing under a finger moves
   coming back                          -> resumeBanner(), no second request
 ```
 

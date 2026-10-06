@@ -4,7 +4,7 @@ import { NewsBody, NewsGo, plainNews } from '../NewsBody'
 import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../../store'
 import { newsBody, newsSubject, weekDate, type NewsItem } from '../../game/model'
-import { Byline } from '../Byline'
+import { Byline, RuckMark } from '../Byline'
 import { RECALL_DAYS, daysLeft, inInbox, markRead } from '../../game/days'
 import { t } from '../../game/i18n'
 import { answerRequest, canAnswerRequest } from '../../game/chats'
@@ -155,6 +155,16 @@ export default function Inbox() {
     if (rescues.current++ < 25) openInbox()
   }, [inboxId, live.length])
 
+  // EVERY NEW STORY OPENS AT ITS HEADLINE (owner, 1.8.11, on Android: "When I
+  // tap the news button i should always be able to skip through the news to
+  // see the next unread mail"). The News button did serve the next unread
+  // story, but the page kept its scroll position, so after reading to the foot
+  // of a long story the next one appeared already scrolled down, under the
+  // fold, and the tap looked as if it had done nothing.
+  useEffect(() => {
+    try { document.querySelector('main.content')?.scrollTo({ top: 0 }) } catch { /* old engines */ }
+  }, [inboxId])
+
   // THE 34-UNREAD LOOP (round 25, from a screenshot reading "0 of 20 · 34
   // unread"). The unread queue serves oldest first, but with more than 20
   // stories pending the oldest sits outside the 20-story browse window - and
@@ -224,7 +234,7 @@ export default function Inbox() {
       </nav>
       <div className="news-split">
       <article className="reader">
-        {/* the source first, then the date: "RUCK · 22 AUG 2026" (1.8.7) */}
+        {/* the source first, then the date: "RUCK.CO.UK · 22 AUG 2026" (1.8.7) */}
         <div className="when">{newsGlyph(n.type)} <Byline n={n} sep />{weekDate(n.season, n.week)}{shelf}</div>
         <h2>{newsSubject(n)}</h2>
         {/* Real paragraphs, no spacer divs. A blank line in the source used to
@@ -235,6 +245,7 @@ export default function Inbox() {
         {/* **name** renders bold (the loan postcards), and a story that carries
             data lays it out as rows and lists rather than prose (NewsBody). */}
         <NewsBody body={newsBody(n)} />
+        <RuckMark n={n} />
         <RequestAnswer n={n} />
         <PeopleChips n={n} />
         <NewsGo n={n} />

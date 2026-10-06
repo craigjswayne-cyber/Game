@@ -6,6 +6,7 @@ import App from './ui/App'
 import ErrorBoundary from './ui/ErrorBoundary'
 import { installCrashCapture } from './game/bugreport'
 import { installDialogA11y } from './ui/a11y'
+import { installKeyboardScrollFix } from './ui/keyboardScroll'
 import { noteShell } from './game/shell'
 import { attachPlayBilling } from './game/playbilling'
 import { attachStoreKit } from './game/storekit'
@@ -23,6 +24,9 @@ import './ui/theme.css'
 // report screen attaches them, so they no longer depend on being noticed.
 installCrashCapture()
 installDialogA11y()
+// iOS can leave the page scrolled after the keyboard, and every tap then
+// lands a row low (1.8.8, ui/keyboardScroll.ts)
+installKeyboardScrollFix()
 // which box the game is in has to be read off the first navigation's referrer
 noteShell()
 // THE MOTION LAYER (1.8.0): screens, sheets and cards arrive rather than

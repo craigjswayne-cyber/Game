@@ -88,7 +88,8 @@ for (const run of RUNS) {
         kinds.add(n.k ?? n.subject)
         if (n.type === 'transfer') ruckTransfers++
         if (n.type === 'gossip') ruckWire++
-        if (newsByline(n) !== 'RUCK') slips.push(`byline missing on ${n.k}`)
+        // the company name since 1.8.9 (owner: "It should also be ruck.co.uk")
+        if (newsByline(n) !== 'RUCK.CO.UK') slips.push(`byline missing on ${n.k}`)
         if (g.unemployed) continue // no club of his own to keep out of it
         const touchesSquad = [n.playerId, ...(n.playerIds ?? [])].some(id => id != null && squad.has(id))
         if ((namesUs && !LEAGUE_WIDE.has(n.k ?? '')) || touchesSquad) {

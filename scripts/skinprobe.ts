@@ -72,6 +72,8 @@ const PAIRS: [string, string, number][] = [
   // and the text that sits ON each of those as a fill
   ['--on-primary', '--primary', 4.5],
   ['--on-gold', '--gold', 4.5],
+  // the Free with ad buttons (1.8.9): near-black on the gold fill
+  ['--on-gold-fill', '--gold-fill', 4.5],
   ['--on-positive', '--positive', 4.5],
   ['--on-info', '--info', 4.5],
 ]

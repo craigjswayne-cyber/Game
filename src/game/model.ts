@@ -989,7 +989,7 @@ export interface NewsItem {
    *  for the news about everybody else: other clubs' business, the rumour mill,
    *  signings around the league, and the law-change talk. Stories about the
    *  manager's OWN club keep the neutral voice they always had, and the SOCIAL
-   *  clips stay SOCIAL. The byline is text, "RUCK" in the game's own type, and
+   *  clips stay SOCIAL. The byline is text, "RUCK.CO.UK" in the game's own type, and
    *  it is display-only: subject and body above are untouched, so nothing the
    *  engine reads back changes. Absent on every story filed before this field
    *  existed, and on every story that is not Ruck's, which reads as no byline. */
@@ -998,8 +998,10 @@ export interface NewsItem {
 
 /** The byline a story carries on screen, or null for the game's own voice.
  *  A proper name, the same in every language, so it is a constant rather than
- *  a dictionary entry (owner: text only, no logo). */
-export const RUCK_BYLINE = 'RUCK'
+ *  a dictionary entry. The company name, ruck.co.uk (owner, 1.8.9: "It should
+ *  also be ruck.co.uk as the company name"); the wordmark sits at the foot of
+ *  the story (ui/Byline.tsx RuckMark). */
+export const RUCK_BYLINE = 'RUCK.CO.UK'
 export const newsByline = (n: NewsItem): string | null => (n.src === 'ruck' ? RUCK_BYLINE : null)
 
 export interface PressOption {

@@ -57,6 +57,12 @@
   --gold-fill: #e9be68;
   --gold-tint: #322914;
   --on-gold: #1f1708;
+  /* the ink ON --gold-fill (1.8.9, the Free with ad buttons: "gold and black
+     like the store"). --on-gold pairs with the TEXT gold, and on the day
+     skins it is white, which on a gold fill reads at under 2.5:1. Every
+     --gold-fill is a light gold, so one near-black serves every palette;
+     skinprobe holds it to 4.5:1 on each. */
+  --on-gold-fill: #1f1708;
 
   /* loss and risk. --danger-fill is --danger's hero-safe twin, the same
      doctrine as --gold-fill: --danger is tuned per theme to sit on the
@@ -129,6 +135,7 @@
   --gold-fill: #e9be68;
   --gold-tint: #faf0da;
   --on-gold: #1f1708;
+  --on-gold-fill: #1f1708;
 
   --danger: #c0362c;
   /* same value as night on purpose - see the night block: the hero it sits
@@ -253,6 +260,7 @@
   --gold-fill: #FFB800;
   --gold-tint: #33280A;
   --on-gold: #1A1200;
+  --on-gold-fill: #1f1708;
 
   --danger: #FF7A6E;
   --danger-fill: #FF9D8F;
@@ -319,6 +327,7 @@
   --gold-fill: #E0B15C;
   --gold-tint: #33270F;
   --on-gold: #1A1206;
+  --on-gold-fill: #1f1708;
 
   --danger: #FF9A8E;
   --danger-fill: #FFB3A6;
@@ -365,6 +374,7 @@
   --gold-fill: #D8A24A;
   --gold-tint: #2F2617;
   --on-gold: #1A1206;
+  --on-gold-fill: #1f1708;
 
   --danger: #EF6C63;
   --danger-fill: #FF9D8F;
@@ -415,6 +425,7 @@
   --gold-fill: #C8A05A;
   --gold-tint: #241C0E;
   --on-gold: #170F03;
+  --on-gold-fill: #1f1708;
 
   /* the brief's #E63946 kept exactly, as the fill; text uses its twin */
   --danger: #EC5C66;
@@ -498,6 +509,7 @@
   --gold-fill: #FFB800;
   --gold-tint: #FDF0D5;
   --on-gold: #FFFFFF;
+  --on-gold-fill: #1f1708;
 
   --danger: #C22E20;
   --danger-fill: #FF9D8F;
@@ -552,6 +564,7 @@
   --gold-fill: #C9A227;
   --gold-tint: #F7EDD4;
   --on-gold: #FFFCFC;
+  --on-gold-fill: #1f1708;
 
   --danger: #B32E22;
   --danger-fill: #E8897E;
@@ -597,6 +610,7 @@
   --gold-fill: #C9A227;
   --gold-tint: #F7EDD4;
   --on-gold: #FFFDF8;
+  --on-gold-fill: #1f1708;
 
   --danger: #B32E22;
   --danger-fill: #E8897E;
@@ -646,6 +660,7 @@
   --gold-fill: #C8A05A;
   --gold-tint: #F5EEDD;
   --on-gold: #FFFFFF;
+  --on-gold-fill: #1f1708;
 
   --danger: #C1281F;
   --danger-fill: #E63946;
@@ -681,6 +696,10 @@
   --on-positive: var(--on-primary);
   --text-positive: var(--positive);
   --text-negative: var(--danger);
+  /* a man here on loan: his name in the tables (1.8.9). --info is declared
+     by every theme and skin, clears 4.5:1 on a card in each (skinprobe), and
+     is never the name ink, the captain and star gold or the injury red. */
+  --loan: var(--info);
   --text-rating: var(--gold);
   --row-selected-bg: var(--primary-tint);
   --row-selected-border: var(--primary);

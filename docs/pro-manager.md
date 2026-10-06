@@ -29,7 +29,7 @@ the "No adverts" line).
 | Product id | Type | Price | Where it is sold |
 | --- | --- | --- | --- |
 | `phase.supporter` | Non-consumable (Play: one-time product) | As configured in the consoles. docs/monetisation-spec.md sets **$1.99**. | The Store's Pro Manager row, the first card, reminders |
-| `phase.supporter.intro` | Non-consumable (Play: one-time product) | About **25% below** Pro Manager, set by the owner in the consoles (e.g. $1.49 / £1.49 / €1.49 against 1.99) | Only the one-time offer card |
+| `phase.supporter.intro` | Non-consumable (Play: one-time product) | About **40% below** Pro Manager, set by the owner in the consoles (e.g. $1.19 / £1.19 / €1.19 against 1.99) | Only the one-time offer card |
 
 **The app holds no prices.** Every figure on a card is the store's own
 formatted price, read live through the billing bridge (`proPrices()`), in
@@ -43,14 +43,15 @@ chip all follow. Restore recognises both (`phase.supporter.intro` is in
 Store shelf never lists it and the shelf's health line never complains that
 it is missing.
 
-**"25% OFF" is printed only when it is true.** `proDiscount()` compares the
+**"40% OFF" is printed only when it is true.** `proDiscount()` compares the
 two live prices (the stores' micro prices where the shell sends them, which
 1.8.6 shells do: Play `priceAmountMicros`, StoreKit `Product.price`; otherwise
 the two formatted strings, which come from one store in one currency). Only
-when intro / normal is between 0.70 and 0.80 is a percentage printed, and it
-is the real saving **rounded down**, so it can understate and never
-overstate: 1.49 on 1.99 prints "25% OFF"; 1.55 would print "22% OFF"; 0.99
-or 1.79 print no percentage at all, only the real intro price. "Usually
+when intro / normal is between 0.55 and 0.65 (35 to 45% off) is a
+percentage printed, and it is the real saving **rounded down**, so it can
+understate and never overstate: 1.19 on 1.99 prints "40% OFF"; 1.18 is 40.7%
+off and still prints "40% OFF"; 0.99, 1.49 (the 25% of 1.8.6) or 1.79 print
+no percentage at all, only the real intro price. "Usually
 {price}" beside it is the live normal price.
 
 **If the store does not return the intro product** (not created yet, not
@@ -90,7 +91,7 @@ comes at the next one, and the offer waits one more match.
 
 After the first completed competitive match, if still free and the first
 card was seen. Labelled ONE-TIME OFFER, with the real intro price, "Usually
-{normal}", and "25% OFF" only if true (section 2). Become Pro buys
+{normal}", and "40% OFF" only if true (section 2). Become Pro buys
 `phase.supporter.intro`. Continue Free declines it for ever. It is marked
 shown the moment it opens, so a restart mid-card or mid-purchase cannot show
 it twice.
@@ -238,9 +239,9 @@ Do not change `phase.supporter` or its price.
 4. Purchase option: one **Buy** option, **not** a rental, and do not mark it
    consumable (the app never consumes it: it is acknowledged on purchase and
    stays owned, exactly like `phase.supporter`).
-5. Price: about 25% under Pro Manager in the default currency (for example
-   1.49 against 1.99), then **Update exchange rates** and check each country
-   lands between 70% and 80% of Pro Manager's local price, or the card will
+5. Price: about 40% under Pro Manager in the default currency (for example
+   1.19 against 1.99), then **Update exchange rates** and check each country
+   lands between 55% and 65% of Pro Manager's local price, or the card will
    honestly show no percentage there.
 6. Save and **Activate**. Licence testers can buy it once it is active.
 
@@ -250,8 +251,8 @@ Do not change `phase.supporter` or its price.
    Purchases** > **+**.
 2. Type: **Non-Consumable**. Reference name: `Pro Manager (one-time offer)`.
    Product ID: `phase.supporter.intro`.
-3. Price schedule: the tier about 25% below Pro Manager (for example
-   $1.49 against $1.99); check the per-storefront prices the same way.
+3. Price schedule: the tier about 40% below Pro Manager (for example
+   $1.19 against $1.99); check the per-storefront prices the same way.
 4. Localisation (English (U.K.) and others as wished): display name
    `Pro Manager (one-time offer)`, description `No adverts and three skins
    only Pro managers get, at a one-time lower price.`
@@ -261,8 +262,8 @@ Do not change `phase.supporter` or its price.
    with a build).
 
 `packaging/ios/Products.storekit` already carries it for local StoreKit
-testing (2.19 against the fixture's 2.99 for Pro Manager, so the local card
-prints "26% OFF", which is the true figure for those two).
+testing (1.79 against the fixture's 2.99 for Pro Manager, 40.1% off, so the
+local card prints "40% OFF", which is the true figure for those two).
 
 ## 9. Test coverage
 

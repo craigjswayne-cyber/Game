@@ -51,7 +51,7 @@ const FRESH = { v: 1, firstPromptShown: false, firstOfferShown: false, firstOffe
  *  store lists (a sku left out is "not created in the console"); `answer`
  *  maps a sku to the sheet's ending ('owned' by default). `seed` presets the
  *  device ledger, `ent` the entitlement cache. */
-async function phone({ billing = true, ads = true, owns = [], prices = { 'phase.supporter': '£1.99', 'phase.supporter.intro': '£1.49' }, micros = null, answer = {}, seed = null, ent = null, size = { width: 412, height: 780 }, lang = null } = {}) {
+async function phone({ billing = true, ads = true, owns = [], prices = { 'phase.supporter': '£1.99', 'phase.supporter.intro': '£1.19' }, micros = null, answer = {}, seed = null, ent = null, size = { width: 412, height: 780 }, lang = null } = {}) {
   const ctx = await browser.newContext({ viewport: size, locale: 'en-GB' })
   await ctx.addInitScript(([billing, ads, owns, prices, micros, answer, seed, ent, lang]) => {
     if (!sessionStorage.getItem('__booted')) {
@@ -101,11 +101,14 @@ async function startCareer(page) {
   // after the title first paints - on a slow CI runner well after the 1.2s
   // this used to wait (1.8.8 run 37355664315: the career opened over the
   // title and "New Career" was gone). So step back to the title until the
-  // title has held, with no career, for a whole second.
+  // title has held for a whole second. Held means the TITLE is the screen:
+  // toTitle() keeps a loaded career in memory, so "no career loaded" never
+  // came true on a device with a save and the loop always ran its full ten
+  // seconds (1.8.10 audit). Bounded at 40 samples either way.
   for (let held = 0, i = 0; held < 4 && i < 40; i++) {
     await page.waitForTimeout(250)
-    const has = await page.evaluate(() => !!window.rugbyStore.getState().game)
-    if (has) { await page.evaluate(() => window.rugbyStore.getState().toTitle()); held = 0 } else held++
+    const onTitle = await page.evaluate(() => window.rugbyStore.getState().nav.at(-1)?.screen === 'menu')
+    if (!onTitle) { await page.evaluate(() => window.rugbyStore.getState().toTitle()); held = 0 } else held++
   }
   await page.waitForSelector('text=RUGBY')
   await page.evaluate(() => window.rugbyStore.getState().setLang('en'))
@@ -189,8 +192,8 @@ try {
             `Become Pro and Continue Free are the same size, both 40px or more (${b.map(x => `${x.t} ${Math.round(x.w)}x${Math.round(x.h)}`).join(', ')})`)
         }
         if (k === 'offer') {
-          ok(/ONE-TIME OFFER/.test(text) && /£1\.49/.test(text) && /25% OFF/.test(text) && /Usually £1\.99/.test(text),
-            'the offer is labelled one-time, at the store\'s intro price, 25% OFF (true for £1.49 on £1.99)')
+          ok(/ONE-TIME OFFER/.test(text) && /£1\.19/.test(text) && /40% OFF/.test(text) && /Usually £1\.99/.test(text),
+            'the offer is labelled one-time, at the store\'s intro price, 40% OFF (true for £1.19 on £1.99)')
           ok(await page.locator('.pro-card').getAttribute('data-sku') === 'phase.supporter.intro', 'and it sells the intro product')
         }
         if (k === 'reminder') ok(!/ONE-TIME/.test(text) && /£1\.99/.test(text), 'a reminder is the light card at the normal price')
@@ -352,8 +355,9 @@ try {
   // ---- the percentage is only printed when true ---------------------------
   say('--- % OFF only when the prices make it true')
   for (const [intro, micros, want] of [
-    ['£1.69', { 'phase.supporter': 1990000, 'phase.supporter.intro': 1690000 }, null],
-    ['£1.49', { 'phase.supporter': 1990000, 'phase.supporter.intro': 1490000 }, '25% OFF'],
+    // 40% since 1.8.9 (owner): the old 25% offer now prints no percentage
+    ['£1.49', { 'phase.supporter': 1990000, 'phase.supporter.intro': 1490000 }, null],
+    ['£1.19', { 'phase.supporter': 1990000, 'phase.supporter.intro': 1190000 }, '40% OFF'],
     ['£0.99', null, null],
   ]) {
     const { ctx, page } = await phone({ prices: { 'phase.supporter': '£1.99', 'phase.supporter.intro': intro }, micros, seed: { ...FRESH, firstPromptShown: true, played: 1, lastShownAt: 0 } })
