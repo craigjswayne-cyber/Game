@@ -4397,10 +4397,11 @@
   "dreamRoad": "Rugby a eliminazione diretta in Continental Cup - esattamente la strada verso cui puntava la tua carriera.",
   "dreamRoad_f": "Rugby a eliminazione diretta nel Campionato Emisferico - esattamente la strada verso cui puntava la tua carriera.",
   "goTop": "Vinci e sei in testa al campionato.",
+  "goTopIf": "Vinci e, se gli altri risultati ti danno una mano, potresti andare in testa.",
   "nearBottom": "{pos} su {n}. Il fondo di questa classifica è abbastanza vicino da leggerlo.",
   "playoffChase": "I posti playoff sono a {gap} punti con {left} partite da giocare.",
   "relSixPointer": "Uno scontro salvezza in tutto tranne che nel nome: la retrocessione è a un solo brutto pomeriggio di distanza.",
-  "topClear": "In testa al campionato. Vinci e il vantaggio sale a {gap}.",
+  "topClear": "In testa al campionato con {gap} punti di vantaggio. Vinci e resti lassù.",
   "topNarrow": {
    "one": "In testa al campionato con {gap} punto di vantaggio - e {club} sono lì dietro.",
    "other": "In testa al campionato con {gap} punti di vantaggio - e {club} sono lì dietro."

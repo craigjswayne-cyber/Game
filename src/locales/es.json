@@ -4371,10 +4371,11 @@
   "dreamRoad": "Eliminatorias de la Continental Cup: exactamente el camino al que apuntaba tu carrera.",
   "dreamRoad_f": "Eliminatorias del Campeonato Hemisférico: exactamente el camino al que apuntaba tu carrera.",
   "goTop": "Gana y te pones líder.",
+  "goTopIf": "Gana y, si los demás resultados te acompañan, podrías ponerte líder.",
   "nearBottom": "{pos} de {n}. El fondo de esta tabla está lo bastante cerca como para leerlo.",
   "playoffChase": "Los puestos de playoff están a {gap} puntos con {left} por jugar.",
   "relSixPointer": "Una final por la permanencia en todo menos el nombre: el descenso está a una mala tarde.",
-  "topClear": "Líder de la liga. Gana y la ventaja se va a {gap}.",
+  "topClear": "Líder con {gap} puntos de ventaja. Gana y sigues ahí arriba.",
   "topNarrow": {
    "one": "Líder por {gap} punto, y {club} pisándote los talones.",
    "other": "Líder por {gap} puntos, y {club} pisándote los talones."

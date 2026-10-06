@@ -4324,10 +4324,11 @@
   "dreamRoad": "Continental Cup-uitklopregby - presies die pad waarop jou loopbaan gemik was.",
   "dreamRoad_f": "Hemisferiese Kampioenskap-uitklopregby - presies die pad waarop jou loopbaan gemik was.",
   "goTop": "Wen, en jy gaan bo-aan die liga.",
+  "goTopIf": "Wen, en as die ander uitslae jou kant toe val, kan jy bo-aan gaan.",
   "nearBottom": "{pos} van {n}. Die onderkant van hierdie puntestand is naby genoeg om te lees.",
   "playoffChase": "Die uitspeelplekke is {gap} punte weg, met {left} nog te speel.",
   "relSixPointer": "'n Degradering-ses-punter in alles behalwe naam: die afgradering is een slegte middag ver.",
-  "topClear": "Bo-aan die liga. Wen, en die gaping styg na {gap}.",
+  "topClear": "Bo-aan die liga, {gap} punte voor. Wen, en jy bly daar.",
   "topNarrow": {
    "one": "Bo-aan die liga met {gap} punt - en {club} is reg agter jou.",
    "other": "Bo-aan die liga met {gap} punte - en {club} is reg agter jou."

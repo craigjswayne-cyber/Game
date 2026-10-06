@@ -20,6 +20,7 @@
  */
 import * as S from '../src/game/stakes'
 import { newGame } from '../src/game/newgame'
+import { processWeekAndAdvance } from '../src/game/season'
 import { sortTable } from '../src/game/schedule'
 import type { Fixture, GameState } from '../src/game/model'
 
@@ -60,19 +61,69 @@ const nextLeague = (g: GameState): Fixture => {
   const uid = g.userClubId
   const club = g.clubs[uid]
   const comp = g.comps[club.leagueId]
-  // stage a table where a win takes us top: leader on 20, us 2nd on 17
-  const table = sortTable(comp.table)
+  // stage a table where a win takes us top whatever else happens: the leader
+  // is our opponent, on 18 to our 17, and at most takes two bonus points off
+  // a defeat to us; everybody else is out of reach
   for (const r of comp.table) { r.pts = 5; r.p = 6 }
-  const leader = comp.table.find(r => r.teamId !== uid)!
-  const me = comp.table.find(r => r.teamId === uid)!
-  leader.pts = 20; me.pts = 17
   const fx = nextLeague(g)
+  const oppId = fx.homeId === uid ? fx.awayId : fx.homeId
+  const leader = comp.table.find(r => r.teamId === oppId)!
+  const me = comp.table.find(r => r.teamId === uid)!
+  leader.pts = 18; me.pts = 17
   const line = S.matchStakes(g, fx)
-  ok(!!line && line.includes('top of the league'), `a 3-point gap at the top bills the summit (got "${line}")`)
+  ok(!!line && line.includes('go top of the league'), `beat the leader and you are top, certain (got "${line}")`)
+  // THE PROMISE HOLDS WHATEVER HAPPENS ELSEWHERE (owner, 1.8.12: "it said win
+  // and we go top, we won convincingly but didnt go top"). A leader three
+  // points up who plays somebody else the same weekend can win too: a win
+  // makes top possible, not certain, and the line says so
+  const other = comp.table.find(r => r.teamId !== uid && r.teamId !== oppId &&
+    g.fixtures.some(f => !f.played && !f.stage && f.week === fx.week && f.compId === comp.id && (f.homeId === r.teamId || f.awayId === r.teamId)))!
+  leader.pts = 5; other.pts = 20
+  const maybe = S.matchStakes(g, fx)
+  ok(!!maybe && !maybe.includes('go top of the league') && maybe.includes('could go top'), `a leader who also plays: "could", never "will" (got "${maybe}")`)
   // now put the leader out of reach of a single win: no top claim
-  leader.pts = 40
+  other.pts = 40
   const far = S.matchStakes(g, fx)
   ok(!far || !far.includes('go top'), `a 23-point gap does not claim the summit (got "${far}")`)
+}
+
+// ---- and the table is played out for real ----
+// Every club's billing is read before each league round (the line is a pure
+// read, so it is asked as if each club were the manager's), the round is
+// played, and every club that won is held to what it was told.
+{
+  let promises = 0, broken: string[] = []
+  for (const seed of [81, 82, 83]) {
+    const g = newGame('northampton', 'Billing', seed)
+    const uid = g.userClubId
+    for (let w = 0; w < 46; w++) {
+      if (!g.unemployed) g.clubs[g.userClubId].boardConfidence = Math.max(g.clubs[g.userClubId].boardConfidence, 55)
+      const said: { club: string; fx: Fixture; want: number; line: string }[] = []
+      for (const fx of g.fixtures.filter(f => !f.played && !f.stage && f.week === g.week && g.comps[f.compId]?.type === 'league')) {
+        for (const club of [fx.homeId, fx.awayId]) {
+          if (!g.clubs[club]) continue
+          g.userClubId = club
+          const line = S.matchStakes(g, fx) ?? ''
+          g.userClubId = uid
+          const climb = line.match(/climb to (\d+)/)
+          const want = line.includes('go top of the league') || line.includes('you stay there') ? 1 : climb ? Number(climb[1]) : 0
+          if (want) said.push({ club, fx, want, line })
+        }
+      }
+      g.userClubId = uid
+      processWeekAndAdvance(g)
+      for (const x of said) {
+        const f = g.fixtures.find(y => y.id === x.fx.id)!
+        if (!f.played) continue
+        const won = f.homeId === x.club ? f.homeScore > f.awayScore : f.awayScore > f.homeScore
+        if (!won) continue
+        promises++
+        const pos = sortTable(g.comps[f.compId].table).findIndex(r => r.teamId === x.club) + 1
+        if (pos > x.want) broken.push(`${x.club} told "${x.line}", finished the round ${pos}`)
+      }
+    }
+  }
+  ok(promises >= 20 && broken.length === 0, `${promises} promises kept by winners across three played seasons${broken.length ? `; broken: ${broken.slice(0, 3).join(' | ')}` : ''}`)
 }
 
 // ---- the boardroom outshouts the table ----
