@@ -26,6 +26,7 @@ import { simMatch, autoSelect, pickTrainingInjury, teamShort, teamUnits, rosterO
 import { BARRAGE_WEEK, windowSpan } from './calendar'
 import { emptyRow, leaguePos, sortTable, snIdFor, snWeeksFor, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS, W_AUTUMN_WEEKS, W_SIX_NATIONS_WEEKS, W_PAC4_WEEKS, W_SUMMER_TEST_WEEKS } from './schedule'
 import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice } from './ai'
+import { isDeadlineWeek, nextWeek, postWindowNotes, prevWeek } from './window'
 import { OFFICE_OUTLET, PRESS_KEEP_WEEKS, generatePress, isBoardroom } from './media'
 import { debtWeek } from './treasury'
 import { generateGossip } from './gossip'
@@ -2482,6 +2483,9 @@ export function processWeekAndAdvance(state: GameState) {
   // never mint below the counter the save carries: a career opened in the
   // same session as another must not reuse ids the other career freed (1.6.4)
   resetIds(Math.max(peekPid(), state.pidNext ?? 0))
+  // the window's countdown for any day of this week the walk did not reach,
+  // so a week settled in one go still files every notice, in order (window.ts)
+  postWindowNotes(state, 5)
   // did last week's match make a knock worse? (knock.ts) - before the jokers,
   // so a flare-up that puts a man out long-term is one a joker can cover
   settleKnocks(state)
@@ -2691,8 +2695,9 @@ export function processWeekAndAdvance(state: GameState) {
   // cleared, so he cannot also turn out for the A side (feedback 10G).
   playAcademyWeek(state, rng)
   // DEADLINE DAY: the last week of each window is a circus - panic
-  // listings appear at cut prices and nobody's star is safe
-  if ((state.week === 7 || state.week === 27) && !state.unemployed) {
+  // listings appear at cut prices and nobody's star is safe. Filed by the
+  // settle before it, so the story is on the desk for deadline week itself
+  if (isDeadlineWeek(nextWeek(state.week)) && !state.unemployed) {
     const bargains: string[] = []
     const pool = Object.values(state.players).filter(p =>
       p.clubId && p.clubId !== state.userClubId && state.clubs[p.clubId] &&
@@ -2717,7 +2722,7 @@ export function processWeekAndAdvance(state: GameState) {
   }
 
   // the morning after deadline day: the window is shut, here is the rundown
-  if ((state.week === 8 || state.week === 28) && !state.unemployed) {
+  if (isDeadlineWeek(prevWeek(state.week)) && !state.unemployed) {
     // read by the story's key and its variables, not its English (1.8.1): the
     // subject and body are stored in English for the engine, and a round-up
     // that parsed them broke the day anybody reworded a transfer story
@@ -4631,6 +4636,8 @@ If you go, your assistant takes your national side for the duration. Nobody prep
   // else does: a breakthrough or a revised projection is written to be read
   // that week, and must not push a rarer story (the club's history book, a
   // record, a farewell) off the end of the inbox (devnews.ts trimDevFirst)
+  // the new week's Monday notice, if the window opens or shuts on it
+  postWindowNotes(state, 0)
   trimDevFirst(state, NEWS_KEEP)
   if (state.news.length > NEWS_KEEP) state.news = state.news.slice(-NEWS_KEEP)
 

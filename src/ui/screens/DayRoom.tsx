@@ -1,5 +1,6 @@
 import { useStore } from '../../store'
 import { windowOpen } from '../../game/ai'
+import { isDeadlineWeek, nextWeek } from '../../game/window'
 import { fmtMoney, newsSubject, unbeatenRun } from '../../game/model'
 import { Byline } from '../Byline'
 import { teamShort } from '../../game/matchEngine'
@@ -291,10 +292,10 @@ function WednesdayBlocks() {
         </button>
       </div>
       {/* deadline week gets said out loud, not implied by a date */}
-      {(game.week === 7 || game.week === 26 || game.week === 27) && (
+      {(isDeadlineWeek(game.week) || isDeadlineWeek(nextWeek(game.week))) && (
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
           <div className="fact-label">{t('dayroom.deadline')}</div>
-          <div className="meta">{t((game.week === 7 || game.week === 27) ? 'dayroom.deadlineBody' : 'dayroom.deadlineSoonBody')}</div>
+          <div className="meta">{t(isDeadlineWeek(game.week) ? 'dayroom.deadlineBody' : 'dayroom.deadlineSoonBody')}</div>
         </div>
       )}
       {/* the agency's fresh rankings, the week they land (v1.1.3): the scout

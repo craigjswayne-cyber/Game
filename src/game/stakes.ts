@@ -34,6 +34,7 @@ import { dreamState } from './dream'
 import { isDerby } from './rivalries'
 import { historyStakes } from './history'
 import { coachStakes } from './rivalcoach'
+import { JANUARY_SHUT, SUMMER_SHUT } from './window'
 
 export interface Stake {
   text: string
@@ -237,9 +238,9 @@ export function seasonTentpoles(state: GameState): Tentpole[] {
     else if (fx.stage === 'SF') out.push({ week: fx.week, icon: 'trophy', label: t('stakes.tpSemi') })
   }
   // the fixed furniture of a season
-  out.push({ week: 7, icon: 'contract', label: t('stakes.tpDeadline') })
+  out.push({ week: SUMMER_SHUT, icon: 'contract', label: t('stakes.tpDeadline') })
   out.push({ week: 24, icon: 'board', label: t('stakes.tpHalfTerm') })
-  out.push({ week: 27, icon: 'contract', label: t('stakes.tpMidDeadline') })
+  out.push({ week: JANUARY_SHUT, icon: 'contract', label: t('stakes.tpMidDeadline') })
   out.push({ week: 30, icon: 'academy', label: t('stakes.tpAcademyPreview') })
   out.push({ week: 44, icon: 'academy', label: t('stakes.tpIntake') })
   out.sort((a, b) => a.week - b.week)

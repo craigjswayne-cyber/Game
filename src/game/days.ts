@@ -3,6 +3,7 @@ import type { GameState, NewsItem } from './model'
 import { seasonStart, BASE_YEAR, dayAbbr, fixtureDayOff, injuryDesc, monthName, weekDate } from './model'
 import { userMatchThisWeek } from './season'
 import { t } from './i18n'
+import { isDeadlineWeek, windowNoteDue } from './window'
 
 /**
  * ---- THE WEEK, DAY BY DAY ----
@@ -52,6 +53,8 @@ export const daySub = (day: DayIndex): string => t(`dayroom.sub${day}`)
  *  A pure function of the story's own type, so it never touches the match rng
  *  and the same story lands on the same day every time it is read. */
 export function dayOfStory(n: NewsItem): DayIndex {
+  // a story filed for a named day keeps it (the window's countdown, window.ts)
+  if (n.day != null && n.day >= 0 && n.day <= 5) return n.day as DayIndex
   switch (n.type) {
     // the weekend, picked over
     case 'result': return 0
@@ -233,6 +236,8 @@ export function medicalNews(state: GameState): { out: string[]; back: string[] }
 export function dayHasSomething(state: GameState, day: DayIndex): boolean {
   if (day === MATCH_DAY) return true
   if (storiesForDay(state, day).length > 0) return true
+  // the window's countdown has a day of its own, posted when the walk gets there
+  if (windowNoteDue(state, day)) return true
   if (day === 1 && pressWaiting(state) > 0) return true
   if (day === 0) {
     const med = medicalNews(state)
@@ -249,7 +254,7 @@ export function dayHasSomething(state: GameState, day: DayIndex): boolean {
   // agency publishes fresh rankings, which is the scouting review the owner
   // asked to see.
   if (day === 2) {
-    if (state.week === 7 || state.week === 27) return true
+    if (isDeadlineWeek(state.week)) return true
     const at = state.agency?.at
     if (at && at.season === state.season && state.week - at.week >= 0 && state.week - at.week <= 1) return true
   }

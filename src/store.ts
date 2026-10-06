@@ -99,6 +99,7 @@ import {
 import { applyForJob, resignJob, answerJobOffer } from './game/jobs'
 import { answerPress } from './game/media'
 import { deskBlock, deskGates, firstStepOfWeek, inInbox, markRead, matchDayIndex, nextStep, pressBlock } from './game/days'
+import { postWindowNotes } from './game/window'
 import { natSquadHold } from './game/country'
 import { clearResume, getResume, loadGame, migrate, peekResumes, putResume, saveGame } from './game/save'
 import {
@@ -505,6 +506,8 @@ function landOnNextWeek(
   countWeek(`${g.seed}:${g.season}:${g.week}`)
   const step = firstStepOfWeek(g)
   g.day = step.kind === 'day' ? step.day : step.kind === 'match' ? (matchDayIndex(g) ?? 0) : 0
+  // the window's countdown is posted as the walk reaches its day (window.ts)
+  postWindowNotes(g)
   const dayEntry: NavEntry[] = step.kind === 'day' ? [{ screen: 'day' }] : []
   // THE ANNUAL GATE (25C): a rollover just happened, so before anything else
   // the manager gets the "ready for a new season?" page. It rides on TOP of
@@ -984,6 +987,10 @@ export const useStore = create<Store>((set, get) => ({
     // masthead's label, this handler and the day bulletin all read it, so they
     // can never disagree about what day it is or what happens next.
     const step = nextStep(g)
+    // the window's countdown for the day the week leaves on (a Friday-night
+    // match is the Friday notice) is posted here, so the gate below has it
+    // read before kick-off or the settle rather than after them (window.ts)
+    if (deskGates(step)) postWindowNotes(g, step.kind === 'match' ? (matchDayIndex(g) ?? 5) : 5)
     // ---- THE DESK GATE (see game/days.ts deskBlock) ----
     //
     // Asked for twice: "when I click continue it doesnt just continue through
@@ -1134,6 +1141,7 @@ export const useStore = create<Store>((set, get) => ({
     }
     if (step.kind === 'day') {
       g.day = step.day
+      postWindowNotes(g)
       set(s => ({ nav: openDay(s.nav), tick: s.tick + 1 }))
       void get().persist()
       return

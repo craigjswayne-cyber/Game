@@ -34,6 +34,7 @@ import { clamp } from './rng'
 import { tIn, type Vars } from './i18n'
 import { fileHeldNews } from './heldnews'
 import { service } from './legends'
+import { windowOpen } from './window'
 
 /** What the manager did, by name. Add a literal to add a kind. */
 export type MemoryKind =
@@ -506,7 +507,7 @@ export function memoryWeek(state: GameState): void {
   }
 
   // ---- and the agents talk about it, once a window ----
-  const window = state.week <= 7 || (state.week >= 24 && state.week <= 27)
+  const window = windowOpen(state.week)
   if (window && canTell(state)) {
     const broken = brokenPromises(state)
     const e = broken.find(x => !paid(x, `agents${state.season}`))
