@@ -7,7 +7,7 @@ export const URC_B: RawClub[] = [
     city: 'Pretoria', country: 'RSA',
     stadium: 'Loftus Field', capacity: 51762,
     colors: ['#5eb6e4', '#0a2240'],
-    rep: 85, budget: 2800000,
+    rep: 86, budget: 2800000,
     players: [
       { name: 'Gerhard Steenekamp', pos: 'LP', age: 28, nat: 'RSA', q: 80, intl: true },
       { name: 'Simphiwe Matanzima', pos: 'LP', age: 25, nat: 'RSA', q: 74 },
@@ -48,7 +48,7 @@ export const URC_B: RawClub[] = [
     city: 'Cape Town', country: 'RSA',
     stadium: 'Green Point Stadium', capacity: 55000,
     colors: ['#0d2240', '#4ba3dd'],
-    rep: 83, budget: 2400000,
+    rep: 84, budget: 2400000,
     players: [
       { name: 'Kwenzo Blose', pos: 'LP', age: 25, nat: 'RSA', q: 72 },
       { name: 'Leon Lyons', pos: 'LP', age: 26, nat: 'RSA', q: 68 },

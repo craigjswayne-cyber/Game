@@ -18,7 +18,7 @@
 //      the entries the Saints commit deleted - not invented.
 //   5. The captains the league names are the captains the game names.
 import { newGame } from '../src/game/newgame'
-import { CLUB_CAPTAINS } from '../src/data/captains'
+import { CLUB_CAPTAINS, CLUB_VICES } from '../src/data/captains'
 import { verifiedClub } from '../src/data/verified'
 
 let fails = 0
@@ -83,13 +83,19 @@ for (const [name, want] of [['Tom West', 'newcastle'], ['Elliot Millar Mills', '
 // ---- 5. the armbands ----
 console.log('\nthe captains the league names:\n')
 for (const [cid, want] of [['bath', 'Ben Spencer'], ['bristol', 'Fitz Harding'], ['exeter', 'Dafydd Jenkins'],
-  ['harlequins', 'Alex Dombrandt'], ['leicester', 'Ollie Chessum'], ['newcastle', 'George McGuigan'],
-  ['northampton', 'Fraser Dingwall'], ['sale', 'Ernst van Rhyn'], ['saracens', 'Maro Itoje']] as [string, string][]) {
+  ['harlequins', 'Alex Dombrandt'], ['leicester', 'Ollie Chessum'], ['newcastle', 'Tom Christie'],
+  ['northampton', 'Fraser Dingwall'], ['sale', 'Ernst van Rhyn'], ['saracens', 'Maro Itoje'],
+  ['gloucester', 'Dewi Lake']] as [string, string][]) {
   ok(CLUB_CAPTAINS[cid] === want, `${cid}: ${want}${CLUB_CAPTAINS[cid] === want ? '' : ` (found ${CLUB_CAPTAINS[cid] ?? 'none'})`}`)
   ok(squad(cid).has(want), `  and ${want} is actually in the ${cid} squad`)
 }
-ok(CLUB_CAPTAINS['gloucester'] === undefined,
-  'Gloucester name nobody - the league says the job is TBC after Tomos Williams left')
+// Gloucester's announced vice-captains, both in the squad
+for (const want of CLUB_VICES['gloucester'] ?? []) ok(squad('gloucester').has(want), `${want} is a Gloucester vice-captain in the squad`)
+{
+  const glos = g.clubs['gloucester']
+  ok(g.players[glos.captain!]?.name === 'Dewi Lake', 'Dewi Lake wears the Gloucester armband at kickoff')
+  ok(g.players[glos.vice!]?.name === 'Seb Atkinson', 'Seb Atkinson is his vice-captain')
+}
 
 console.log(fails ? `\nTRANSFER WINDOW PROBE FAILED (${fails})` : '\nTRANSFER WINDOW PROBE PASSED: the window is in the world')
 process.exit(fails ? 1 : 0)
