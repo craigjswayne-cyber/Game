@@ -7,14 +7,22 @@
     "browser pointed at a website.",
     "",
     "backgroundColor is the night ground from src/ui/tokens.css. It has to match",
-    "or a white frame flashes between the launch screen and the first paint."
+    "or a white frame flashes between the launch screen and the first paint.",
+    "",
+    "contentInset is 'never' (Capacitor's default) since 1.8.9. It was 'always',",
+    "which makes the native scroll view inset the page by the safe areas itself:",
+    "the page then stopped short of the home indicator and the web view's own",
+    "dark backgroundColor showed as a band under the title screen (owner, iOS 26",
+    "Simulator). index.html asks for viewport-fit=cover and theme.css pads every",
+    "edge with the --safe-area-inset-* tokens, the same as the Android shell, so",
+    "the page draws to the glass and keeps its own content clear of the bars."
   ],
   "appId": "com.phaserugbymanager.app",
   "appName": "PHASE: Rugby Manager",
   "webDir": "../../dist",
   "backgroundColor": "#1a201e",
   "ios": {
-    "contentInset": "always",
+    "contentInset": "never",
     "backgroundColor": "#1a201e",
     "scrollEnabled": true,
     "limitsNavigationsToAppBoundDomains": true

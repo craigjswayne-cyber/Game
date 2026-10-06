@@ -289,11 +289,12 @@ console.log('\n--- 11. restore, v1.1.0')
   ok(await M.restore() === true && M.hasEntitlement(M.PRO_INTRO_SKU), 'restore recognises the one-time Pro product')
   ok(M.hasEntitlement(M.SUPPORTER_SKU) && M.hasSupporter() && !M.adsAllowed('home-foot'),
     'and owning it is owning Pro Manager: entitlement, supporter, no adverts')
-  ok(M.proDiscount({ sku: 'a', price: '£1.99' }, { sku: 'b', price: '£1.49' }) === 25,
-    'a £1.49 offer on £1.99 is printed as 25% off')
-  ok(M.proDiscount({ sku: 'a', price: '£1.99', micros: 1_990_000 }, { sku: 'b', price: '£1.69', micros: 1_690_000 }) === null,
-    'a discount outside 20-30% prints no percentage at all')
-  ok(M.proDiscount({ sku: 'a', price: '1,99 €' }, { sku: 'b', price: '1,49 €' }) === 25 && M.proDiscount(null, { sku: 'b', price: '£1' }) === null,
+  // 40% since 1.8.9 (owner: "40% off, not 25%")
+  ok(M.proDiscount({ sku: 'a', price: '£1.99' }, { sku: 'b', price: '£1.19' }) === 40,
+    'a £1.19 offer on £1.99 is printed as 40% off')
+  ok(M.proDiscount({ sku: 'a', price: '£1.99', micros: 1_990_000 }, { sku: 'b', price: '£1.49', micros: 1_490_000 }) === null,
+    'a discount outside 35-45% (the old 25%) prints no percentage at all')
+  ok(M.proDiscount({ sku: 'a', price: '1,99 €' }, { sku: 'b', price: '1,19 €' }) === 40 && M.proDiscount(null, { sku: 'b', price: '£1' }) === null,
     'comma decimals parse, and a missing normal price claims nothing')
   ok(store.size === 1 && [...store.keys()][0] === 'rm-ent', 'still exactly one key beside night mode')
 }

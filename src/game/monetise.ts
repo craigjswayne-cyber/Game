@@ -1022,11 +1022,14 @@ export function priceNumber(s: string): number {
 /** The discount to print on the one-time offer, or null when printing one
  *  would not be true.
  *
- *  The owner's rule: "25% OFF" only when the stores' real prices make it
- *  true, which is an intro price between 70% and 80% of the normal one. Inside
- *  that window the figure printed is the real saving ROUNDED DOWN, so the card
- *  can understate a discount and never overstate one: £1.99 to £1.49 prints
- *  25, and a console that set £1.55 would print 22 rather than a 25 it is not.
+ *  The owner's rule: a percentage only when the stores' real prices make it
+ *  true. The one-time offer is about 40% off (owner, 1.8.9: "40% off, not
+ *  25%"), so a figure is printed only for an intro price between 55% and 65%
+ *  of the normal one (35 to 45% off). Inside that window the figure printed
+ *  is the real saving ROUNDED DOWN, so the card can understate a discount and
+ *  never overstate one: £1.99 to £1.19 prints 40, and a console that set
+ *  £1.18 would print 40 rather than the 41 it rounds to. Outside it (the old
+ *  £1.49, a 50% cut) the card shows the real intro price and no percentage.
  *  Micros are used where both prices carry them; otherwise the two formatted
  *  strings are compared, which is sound because they come from one store in
  *  one currency. */
@@ -1037,7 +1040,7 @@ export function proDiscount(normal: Product | null, intro: Product | null): numb
   const i = both ? intro.micros! : priceNumber(intro.price)
   if (!Number.isFinite(n) || !Number.isFinite(i) || n <= 0 || i <= 0) return null
   const r = i / n
-  if (r < 0.70 || r > 0.80) return null
+  if (r < 0.55 || r > 0.65) return null
   return Math.floor((1 - r) * 100 + 1e-9)
 }
 
@@ -1147,6 +1150,24 @@ export interface AdBridge {
    *  only outcome that earns the favour. A shell without this simply has no
    *  rewarded buttons anywhere in the game. */
   showRewarded?(place: string): Promise<'completed' | 'skipped' | 'unavailable'>
+  /** Does Google's consent SDK require a way back into the privacy choices
+   *  for this player (EEA, UK)? Settings shows the button only when it does. */
+  privacyOptionsRequired?(): boolean
+  /** Open Google's own privacy options form. True if it opened. */
+  showPrivacyOptions?(): Promise<boolean>
+}
+
+/** Should Settings offer "Advert privacy choices"? (1.8.11) */
+export function adPrivacyAvailable(): boolean {
+  const a = adBridge()
+  try { return !!a && typeof a.showPrivacyOptions === 'function' && !!a.privacyOptionsRequired?.() } catch { return false }
+}
+
+/** Open the advert privacy choices form. False when it could not open. */
+export async function showAdPrivacy(): Promise<boolean> {
+  const a = adBridge()
+  if (!a || typeof a.showPrivacyOptions !== 'function') return false
+  try { return await a.showPrivacyOptions() } catch { return false }
 }
 
 export function adBridge(): AdBridge | null {

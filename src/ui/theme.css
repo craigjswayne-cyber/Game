@@ -1087,6 +1087,12 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   margin: 6px 0;
 }
 .inline-input:focus { outline: none; border-color: var(--row-selected-border); }
+/* A long option never runs under the chevron, and a select never outgrows
+   its row. Every <select> in the game carries .inline-input (selectlint). */
+select.inline-input { max-width: 100%; text-overflow: ellipsis; }
+/* the Pinnacle federation picker beside its Make the Call button (1.8.9:
+   it was the one bare <select> in the game, a pill with no padding) */
+.nat-pick { flex: 1; min-width: 0; margin: 0; }
 .club-pick {
   display: flex; align-items: center; gap: 11px; width: 100%; text-align: left;
   padding: 11px 16px; border-bottom: 1px solid var(--border);
@@ -1179,8 +1185,11 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   min-height: 0;
   grid-area: 1 / 1 / -1 / -1;
   /* no bottom nav on match day, so the column itself stops above the system
-     bar; without this the last button sat under it on the Android shell */
-  padding-bottom: var(--safe-area-inset-bottom);
+     bar; without this the last button sat under it on the Android shell.
+     And above the advert (1.8.9, owner: "Ads should not impact or cover key
+     buttons"): the native banner overlays the web view, so the column keeps
+     its height clear of it and everything in it can scroll out from under. */
+  padding-bottom: calc(var(--safe-area-inset-bottom) + var(--ad-inset, 0px));
 }
 /* During live play only four fixed-height pieces stack here (scoreboard,
    pitch, controls, the one-line ticker) - nothing flex-grows by default, so
@@ -2645,6 +2654,17 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .tblwrap.fitwrap { overflow: visible; }
 .dtable.fit { table-layout: fixed; }
 .dtable.fit td.name { max-width: none; }
+/* the squad tables' name cell, one line (1.8.9): only the name ellipsises */
+.dtable td.name .nm-line { display: flex; align-items: center; gap: 4px; min-width: 0; white-space: nowrap; }
+.nm-line > * { flex: none; }
+.nm-line > .nm { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nm-loan { color: var(--loan); }
+.loan-key { display: flex; align-items: center; gap: 6px; margin: 6px 16px 0; font-size: 12px; color: var(--text-secondary); }
+.loan-swatch { width: 10px; height: 10px; border-radius: 3px; background: var(--loan); flex: none; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
 /* the last column breathes: flush against the bezel it read as cut off
    (user: "squad cover needs to be better fitted") */
 .dtable.fit th:last-child, .dtable.fit td:last-child { padding-right: 16px; }
@@ -2689,6 +2709,14 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    in a block of its own, so its box is no taller than the text around it and
    the page is not one pixel deeper for it (scrollaudit); the ::after carries
    the tap out to 46px as it does for every tiny button (tapsize). */
+/* a rewarded-advert button: the store's gold with near-black ink, in every
+   theme and skin (1.8.9, components.tsx RewardedButton) */
+.btn.spot-ad, .btn.ghost.spot-ad {
+  background: var(--gold-fill); color: var(--on-gold-fill);
+  border: 1.5px solid var(--gold-fill);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35);
+}
+.btn.spot-ad:disabled { opacity: .7; }
 .btn.tiny.spot { padding: 0 8px; line-height: 15px; }
 .btn.tiny.spot::after { inset: -15px -3px; }
 /* A control that sits in a table row (the Medical Centre's specialist, favour,
@@ -3674,8 +3702,8 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   letter-spacing: .05em; text-transform: uppercase; color: var(--gold);
 }
 /* THE SOURCE'S NAME (1.8.7): Ruck is the named source for the news about the
-   rest of the league, and the owner's line is text only, in the game's own
-   type, no logo. It sits in front of the date on the date lines and in front
+   rest of the league, "RUCK.CO.UK" in the game's own type (1.8.9); the logo
+   sits at the foot of the story, not here. It sits in front of the date on the date lines and in front
    of the headline in the day room's list, in the primary ink so it reads as a
    name rather than as more of the date. */
 .byline {
@@ -3683,6 +3711,12 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   text-transform: uppercase; color: var(--text-primary); white-space: nowrap;
 }
 .ds-subj .byline { font-size: 11px; margin-right: 2px; }
+/* THE PARTNER'S WORDMARK at the foot of a Ruck story (1.8.9, owner). The file
+   is white on transparent for the night theme; under the day theme it is
+   turned black with a filter, so no second file and no colour literal. */
+.ruck-foot { margin: 14px 0 4px; line-height: 0; }
+.ruck-mark { display: inline-block; height: 20px; width: auto; max-width: 120px; }
+.app:not(.night) .ruck-mark { filter: brightness(0); }
 .reader h2 {
   font-family: var(--serif); font-size: 18px; line-height: 1.2;
   margin: 3px 0 7px; color: var(--text-primary);

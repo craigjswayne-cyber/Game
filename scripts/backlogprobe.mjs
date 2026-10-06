@@ -64,6 +64,32 @@ try {
     'every tap of Next unread shows a DIFFERENT story, backlog or not')
   ok(seen.every(s => /Backlog story/.test(s) || s.length > 0),
     'and each is a real story, not an empty reader')
+
+  // THE NEWS BUTTON (owner, 1.8.11: "When I tap the news button i should
+  // always be able to skip through the news to see the next unread mail").
+  // Scroll to the foot of the story, tap News: a different story, at its top.
+  const long = 'A long paragraph. '.repeat(400)
+  await page.evaluate(t => {
+    const st = window.rugbyStore.getState(); const n = st.game.news.find(x => x.id === st.inboxId); n.body = t; delete n.k; st.touch()
+  }, long)
+  await page.waitForTimeout(300)
+  await page.evaluate(() => { const m = document.querySelector('main.content'); m.scrollTop = m.scrollHeight })
+  await page.waitForTimeout(200)
+  const before = await page.evaluate(() => ({ id: window.rugbyStore.getState().inboxId, top: document.querySelector('main.content').scrollTop }))
+  await page.click('.bottom-nav button[aria-label="News"]')
+  await page.waitForTimeout(400)
+  const after = await page.evaluate(() => ({ id: window.rugbyStore.getState().inboxId, top: document.querySelector('main.content').scrollTop }))
+  ok(before.top > 200 && after.id !== before.id && after.top === 0,
+    `the News button serves the next unread story at its headline (scroll ${before.top} -> ${after.top})`)
+  // and with everything read, the button still moves on rather than doing nothing
+  await page.evaluate(() => { const st = window.rugbyStore.getState(); for (const n of st.game.news) n.read = true; st.touch() })
+  const ids = new Set()
+  for (let tap = 0; tap < 4; tap++) {
+    await page.click('.bottom-nav button[aria-label="News"]')
+    await page.waitForTimeout(250)
+    ids.add(await page.evaluate(() => window.rugbyStore.getState().inboxId))
+  }
+  ok(ids.size === 4, `with nothing unread, each News tap still moves to another story (${ids.size} of 4 different)`)
 } catch (e) {
   say(`FAIL  ${e.message.split('\n')[0]}`)
   fails++

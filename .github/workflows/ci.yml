@@ -35,7 +35,10 @@ jobs:
   engine:
     name: Engine probes (shard ${{ matrix.shard }} of 8)
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    # 55 MINUTES (1.8.11). Shard 2 ran 40m16s and was cancelled at the 40-minute
+    # cap twice on 6 Oct (runs 37383214771, 37389756605) after new probes moved
+    # the round-robin; it passes locally. Headroom rather than a ninth shard.
+    timeout-minutes: 55
     # TWO SHARDS (v1.2.2). The engine suite crossed the thirty-minute ceiling
     # on 1 Sept (run 33558333319, cancelled at 29m37s). dialweight moved to the
     # release-only list and frliveprobe gained a quick mode; the rest is split

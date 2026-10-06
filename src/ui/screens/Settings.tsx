@@ -4,6 +4,7 @@ import { SectionTitle, Toggle } from '../components'
 import { introOn, setIntroOn } from '../Intro'
 import { LANGS, getLang, t } from '../../game/i18n'
 import { Glyph } from '../glyphs'
+import { adPrivacyAvailable, showAdPrivacy } from '../../game/monetise'
 
 /**
  * SETTINGS. Above Report a Bug in the manager's menu, because it is the page a
@@ -57,6 +58,7 @@ function Swatches({ skin, night }: { skin: Skin; night: boolean }) {
 }
 
 export default function Settings() {
+  const [adPrivacyMsg, setAdPrivacyMsg] = useState<string | null>(null)
   const go = useStore(s => s.go)
   const skin = useStore(s => s.skin)
   const setSkin = useStore(s => s.setSkin)
@@ -164,6 +166,26 @@ export default function Settings() {
           {LANGS.map(l => <option key={l.code} value={l.code} lang={l.code}>{l.label}</option>)}
         </select>
       </div>
+
+      {/* ---- advert privacy choices (1.8.11) ----
+          Google requires players in the EEA and UK to be able to change their
+          advert consent from inside the app at any time. Shown only where the
+          consent SDK says it is required, and only in a shell with adverts. */}
+      {adPrivacyAvailable() && (
+        <div className="card">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span className="row-ico" style={{ fontSize: 20 }}><Glyph name="paper" /></span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontWeight: 700, fontSize: 14 }}>{t('settings.adPrivacy')}</div>
+              <div className="meta" style={{ marginTop: 1 }}>{adPrivacyMsg ?? t('settings.adPrivacyLine')}</div>
+            </div>
+          </div>
+          <button className="btn ghost block" style={{ marginTop: 8 }}
+            onClick={() => { void showAdPrivacy().then(okd => setAdPrivacyMsg(okd ? null : t('settings.adPrivacyFail'))) }}>
+            {t('settings.adPrivacyOpen')}
+          </button>
+        </div>
+      )}
 
       {/* ---- he or she ----
           Asked at the end of the new-career wizard until v1.5.3, on the
