@@ -83,6 +83,11 @@ const LASTS = (['steady', 'black'] as const).map(want => {
 /** A career down this path: two plain seasons, then four of the method. */
 function career(p: Path, chair: ChairType, over?: Partial<Conduct>, half = 1): GameState {
   const g = newGame('leicester', 'Identity', 18400)
+  // A STEADY JOB, held there (1.8.12): Leicester went to 84 with the 2025-26
+  // standings, which reads as a giant, and a giant's board docks three for a
+  // trophyless second year. These careers are about the letter's arithmetic,
+  // not Leicester's stature, so the club stays where they were written.
+  g.clubs[g.userClubId].rep = Math.min(g.clubs[g.userClubId].rep, 83)
   seat(g, chair)
   const a = arcOf(g)
   const first = LASTS[half] - SEASONS + 1
