@@ -1,4 +1,5 @@
 import { talkbackWeek } from './talkback'
+import { settleStartPledge } from './handshake'
 import type { Competition, FacilityId, Fixture, GameState, Player, Pos, TableRow, TrainingFocus } from './model'
 import { W, genderOf, mayTakeMaternityLeave, MATERNITY_WEEKS, subjectVar } from './gender'
 // FRIENDLY_DAY below is the Wednesday index this hands to dayDate
@@ -2771,6 +2772,8 @@ export function processWeekAndAdvance(state: GameState) {
       // survives his signature on someone else's paper
       if (pl.season !== state.season || !p || p.clubId !== state.userClubId || state.unemployed ||
         (state.preContracts ?? []).some(pc => pc.playerId === p.id)) continue
+      // a start is owed at the next match played (handshake.ts)
+      if (pl.kind === 'start') { if (settleStartPledge(state, pl, p)) remain.push(pl); continue }
       if (state.week < pl.due) { remain.push(pl); continue }
       const gap = p.stats.apps - pl.baseApps
       const kept = pl.kind === 'plans' ? gap >= 2

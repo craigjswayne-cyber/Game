@@ -14,6 +14,7 @@ import type { GameState, Player } from './model'
 import {absWeek, SEASON_WEEKS, logDecision } from './model'
 import { t, tIn } from './i18n'
 import { remember } from './memory'
+import { requestLocked } from './handshake'
 
 const CAP_PER_WEEK = 2
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v))
@@ -131,7 +132,8 @@ export function warnPlayer(state: GameState, p: Player): string {
 export const REQUEST_ANSWER_WEEKS = 12
 
 export function canAnswerRequest(state: GameState, p: Player): boolean {
-  return p.clubId === state.userClubId && (p.wantsOut ?? 0) > 0 && !(p.reqAns ?? 0)
+  // a request over a broken handshake is not a question (handshake.ts)
+  return p.clubId === state.userClubId && (p.wantsOut ?? 0) > 0 && !(p.reqAns ?? 0) && !requestLocked(p)
 }
 
 /** Everyone else in the dressing room, which is who "the camp" means. */
