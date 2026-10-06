@@ -1705,6 +1705,27 @@ function Live() {
     setInjury({ hurt: hurt.name, hurtId: hurt.id, desc: injuryDesc(hurt.injury), weeks, coverId: li?.coverId ?? null })
   }, [cursor])
 
+  // A TRY FLASHES (owner: "when a try is scored it should flash with inverted
+  // team colours for 1 second just to make it feel different - it should go
+  // back to normal in the commentary after"). Only a try line the ticker has
+  // just stepped onto: a skip, a scrub or a screen opened on a match already
+  // under way moves the cursor further than a beat or two, and flashes
+  // nothing. The class comes off after the animation, so a feed rebuilt when
+  // a panel closes shows the line settled.
+  const [flash, setFlash] = useState(-1)
+  const flashFrom = useRef(cursor)
+  useEffect(() => {
+    const from = flashFrom.current
+    flashFrom.current = cursor
+    if (cursor <= from || cursor - from > 3) return
+    for (let i = cursor - 1; i >= from; i--) if (events[i]?.type === 'TRY' && events[i].teamId) { setFlash(i); return }
+  }, [cursor])
+  useEffect(() => {
+    if (flash < 0) return
+    const timer = setTimeout(() => setFlash(-1), 1100)
+    return () => clearTimeout(timer)
+  }, [flash])
+
   useEffect(() => {
     // a panel (half-time talk, break, full-time) must open at its TOP -
     // scrolling to the bottom buried the team talk (8C feedback)
@@ -1883,6 +1904,14 @@ function Live() {
       boxShadow: `inset 0 0 0 1px ${edge ?? 'var(--border-strong)'}`,
       ...(plain ? { borderLeftColor: edge ?? fill } : {}),
     }
+  }
+  /** the flashing try's pair, the line's own two colours the other way
+   *  round: its text colour as the fill and its fill as the text (theme.css
+   *  try-flash) */
+  const flashStyle = (e: MatchEvent, i: number) => {
+    if (i !== flash || !e.teamId) return undefined
+    const fill = (e.teamId === fixture.awayId ? kits.away : kits.home)[0]
+    return { '--flash-bg': contrastText(fill), '--flash-fg': fill } as React.CSSProperties
   }
   /** An old line lets go of the fill and keeps its side as the stripe, the
    *  way FM's feed keeps a team colour beside a line it has moved past. */
@@ -2139,8 +2168,8 @@ function Live() {
                 const age = shown.length - 1 - i
                 return (
                   <div key={i} data-k={i}
-                    className={`comm-line ${cls(e)}${e.teamId ? ' kit' : ''}${age === 0 ? ` cur now-line fresh` : ` old a${Math.min(3, age)}`}`}
-                    style={age === 0 ? lineStyle(e) : oldStyle(e)}>
+                    className={`comm-line ${cls(e)}${e.teamId ? ' kit' : ''}${age === 0 ? ` cur now-line fresh` : ` old a${Math.min(3, age)}`}${i === flash ? ' try-flash' : ''}`}
+                    style={{ ...(age === 0 ? lineStyle(e) : oldStyle(e)), ...flashStyle(e, i) }}>
                     <span className="min">{Math.min(80, e.min)}'</span>
                     <span className="txt">{eventText(e)}</span>
                   </div>
@@ -2178,8 +2207,8 @@ function Live() {
                 glide as the phone's feed, the other way up (round 5) */}
             <div className="tab-list" ref={tabRef}>
               {shown.slice(-12).reverse().map((e, k) => (
-                <div key={shown.length - k} data-k={shown.length - k} className={`feed-line ${cls(e)}${e.teamId ? ' kit' : ''}${k === 0 ? ' newest' : ''}`}
-                  style={lineStyle(e)}>
+                <div key={shown.length - k} data-k={shown.length - k} className={`feed-line ${cls(e)}${e.teamId ? ' kit' : ''}${k === 0 ? ' newest' : ''}${shown.length - 1 - k === flash ? ' try-flash' : ''}`}
+                  style={{ ...lineStyle(e), ...flashStyle(e, shown.length - 1 - k) }}>
                   <span className="min">{Math.min(80, e.min)}'</span>
                   <span className="txt">{eventText(e)}</span>
                 </div>
