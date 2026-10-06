@@ -18,6 +18,7 @@ import { rememberDeparture } from './memory'
 import { agentTermsLift, talkPremium, unsettledFee, unsettledTerms } from './recruit'
 import { chooseBetween, liveRivalBid, openRivalBid, rivalBidLine, rivalBidWon } from './rivalbids'
 import { noteBlocked } from './arcbook'
+import { requestLocked } from './handshake'
 
 // ------------------------------------------------------------------
 // Transfer market
@@ -287,6 +288,7 @@ export function executeTransfer(state: GameState, p: Player, toClubId: string, f
   // player and banked the fee. Refuse before anything moves.
   if (!to || to === from) return
   if (from) rememberDeparture(state, p, 'sold', from.id, to.id, fee) // memory.ts: only ever the user's club
+  p.reqLock = undefined // a request over a broken handshake leaves with him (handshake.ts)
   // read before the move clears it: the terraces judge a departure partly on
   // whether the club had said out loud that he was for sale (terraces.ts)
   const wasListed = !!p.transferListed
@@ -1101,6 +1103,8 @@ export function offerRenewalAt(state: GameState, playerId: number, offer: number
   // morale, and with no gate a squad went from 7.0 to 10.0 in one week for
   // nothing (scripts/qa/exploit.ts)
   if (p.renewedSeason === state.season) return { ok: false, msg: t('reply.renewedThisSeason', { name: p.name }) }
+  // a request over a broken handshake: he is leaving, not renewing (handshake.ts)
+  if (requestLocked(p)) return { ok: false, msg: t('reply.requestLockedRenew', { name: p.name }) }
   if ((state.preContracts ?? []).some(pc => pc.playerId === p.id)) {
     return { ok: false, msg: t('reply.preContractElsewhere', { name: p.name }) }
   }
