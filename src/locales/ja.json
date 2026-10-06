@@ -217,6 +217,7 @@
   "confirmSell": "売却を確定"
  },
  "desk": {
+  "tPromise_start": "{player}に先発を約束した",
   "title": "今日",
   "decide": "判断待ち",
   "clear": "待っている案件はない",
@@ -1151,6 +1152,7 @@
   "dialSpreadDef": "広めの防御"
  },
  "matchday": {
+  "warnPromise": "{player}に先発を約束しているが、先発15人に入っていない。",
   "adviceCard": "{player}は綱渡り状態。あと1回の反則でレッドだ。",
   "advicePoor": "{player}は今日は冴えない（{rating}）。新しい脚を入れて楽にさせる手もある。",
   "adviceTired": "{player}は{word}。",
@@ -2571,6 +2573,9 @@
   "3": "完全ファイル：数値・人柄・気性のすべてを検証済み。"
  },
  "player": {
+  "transferRequestLocked": "移籍願提出済み（撤回なし）",
+  "promiseStartTitle": "会見での約束：次の試合で先発。果たさなければ移籍願。",
+  "promiseStart": "先発を約束",
   "rivalBidLine": "{club}も獲得を狙っている。提示は週{wage}。",
   "ceiling": "ポテンシャル",
   "ceilingTitle": "スカウトが見立てたポテンシャル。視察を重ねるほど幅が狭まる。「?」はまだ評価していないという意味。",
@@ -4239,6 +4244,12 @@
   "bridgeProducts": "ストアが価格を返した商品：{asked}件中{live}件"
  },
  "news": {
+  "startVoid": "{player}は出場できる状態になかったため、先発の約束は白紙になった。",
+  "startVoidSubj": "約束は白紙に：{player}",
+  "startBroke": "次の試合での先発を{player}に約束したが、果たされなかった。移籍願が机の上にある。取り下げられることはない。",
+  "startBrokeSubj": "{player}が移籍願を提出",
+  "startKept": "会見で{player}の先発を明言し、メンバー表もそのとおりになった。ロッカールームも見ている。",
+  "startKeptSubj": "約束を守った：{player}",
   "rivalBidLostSubj": "{player}は{short}を選んだ",
   "rivalBidLost": "{player}は{club}に加入した。同クラブは移籍金{fee}に並び、週{wage}を提示していた。決め手は{why_k}。",
   "rivalBidWonSubj": "{player}は{short}ではなくあなたを選んだ",
@@ -6683,6 +6694,7 @@
   "acadReleased": "{player}をアカデミーから放出した。"
  },
  "reply": {
+  "requestLockedRenew": "{name}は契約の話に応じない。移籍願は撤回されない。",
   "rivalBidOpen": "{club}も同じ移籍金で合意し、週{wage}を提示している。今週中に本人が決める。",
   "rivalBidPrefers": "{name}は週{wage}を提示する{club}に傾いている。決め手は{why_k}。先方のオファーは今週いっぱい有効。",
   "overCap": "この条件では、サラリーキャップ（週{cap}）を週{over}超過してしまう。枠を空けるか、彼をマーキー選手に指名しよう。",
@@ -8813,6 +8825,7 @@
   "promiseKept": "{season}に{what_k}を約束し、約束を守った。",
   "promiseBroken": "{season}に{what_k}を約束し、約束を破った。",
   "what": {
+   "start": "先発",
    "plans": "構想内の居場所",
    "minutes": "より多くの出場時間",
    "deal": "新契約",

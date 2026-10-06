@@ -448,6 +448,9 @@ export interface Player {
    *  who is still being left out months later, asks again. Cleared with
    *  wantsOut whenever the minutes make it right. */
   reqAns?: number
+  /** A request that cannot be withdrawn (handshake.ts): the id of the club he
+   *  handed it in at after a broken promise of a start. Lapses when he leaves. */
+  reqLock?: string
   /** absolute week (season * SEASON_WEEKS + week) of the manager's last
    *  office chat with him (20D) - one conversation per man per week, or
    *  praise stops meaning anything */
@@ -1112,13 +1115,17 @@ export type OfficeTopic = 'plans' | 'loan' | 'deal' | 'dropped' | 'signing' | 'a
  *  at the due week it is settled as kept or broken, with consequences. */
 export interface Pledge {
   playerId: number
-  kind: 'plans' | 'minutes' | 'deal'
+  kind: 'plans' | 'minutes' | 'deal' | 'start'
   week: number
   season: number
   /** week the promise falls due for settling */
   due: number
   /** the player's apps when the promise was made */
   baseApps: number
+  /** 'start' only (handshake.ts): his starts, and the club's competitive
+   *  matches played, when the promise was made */
+  baseStarts?: number
+  baseGames?: number
 }
 
 export interface PressItem {

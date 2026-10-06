@@ -219,6 +219,7 @@
   "confirmSell": "Conferma la vendita"
  },
  "desk": {
+  "tPromise_start": "Hai promesso una maglia da titolare a {player}",
   "title": "Oggi",
   "decide": "In attesa di una tua decisione",
   "clear": "Nulla ti aspetta",
@@ -1181,6 +1182,7 @@
   "dialSpreadDef": "difesa larga"
  },
  "matchday": {
+  "warnPromise": "A {player} è stata promessa una maglia da titolare, ma non è nel XV.",
   "adviceCard": "{player} cammina sul filo: un altro fallo ed è rosso.",
   "advicePoor": "{player} è in una di quelle giornate ({rating}): gambe fresche potrebbero risparmiargli il resto.",
   "advicePoor_f": "{player} è in una di quelle giornate ({rating}): gambe fresche potrebbero risparmiarle il resto.",
@@ -2667,6 +2669,9 @@
   "3": "Dossier completo: numeri, carattere e temperamento tutti verificati."
  },
  "player": {
+  "transferRequestLocked": "Richiesta di cessione, definitiva",
+  "promiseStartTitle": "Promesso in conferenza stampa: una maglia da titolare nella prossima partita. Senza, richiesta di trasferimento.",
+  "promiseStart": "Titolarità promessa",
   "rivalBidLine": "Anche {club} lo vuole: {wage}/sett. sul tavolo.",
   "rivalBidLine_f": "Anche {club} la vuole: {wage}/sett. sul tavolo.",
   "ceiling": "Potenziale",
@@ -4478,6 +4483,12 @@
   "unofficialBody_f": "PHASE: Rugby Manager non è affiliato, approvato o autorizzato da alcuna giocatrice, club, lega o federazione. I nomi dei club sono reali; competizioni, stadi e sponsor sono rinominati o inventati. I nomi delle giocatrici sono reali, usati per identificare persone in un database sportivo e per nulla altro, e non è incluso alcuno stemma, maglia o logo ufficiale."
  },
  "news": {
+  "startVoid": "{player} non era a disposizione, quindi la maglia da titolare promessa non vale più.",
+  "startVoidSubj": "Promessa sciolta: {player}",
+  "startBroke": "Avevi promesso a {player} una maglia da titolare nella partita successiva, e non è arrivata. Sulla tua scrivania c'è una richiesta di trasferimento, e non verrà ritirata.",
+  "startBrokeSubj": "{player} presenta richiesta di trasferimento",
+  "startKept": "Avevi detto in conferenza stampa che {player} avrebbe giocato dall'inizio, e la formazione l'ha confermato. Lo spogliatoio se n'è accorto.",
+  "startKeptSubj": "Parola mantenuta: {player}",
   "rivalBidLostSubj": "{player} sceglie {short}",
   "rivalBidLost": "{player} firma con {club}, che ha pareggiato il cartellino da {fee} e gli ha offerto {wage}/settimana. A decidere: {why_k}.",
   "rivalBidLost_f": "{player} firma con {club}, che ha pareggiato il cartellino da {fee} e le ha offerto {wage}/settimana. A decidere: {why_k}.",
@@ -7045,6 +7056,7 @@
   "acadReleased": "Svincolo dall'academy per {player}."
  },
  "reply": {
+  "requestLockedRenew": "{name} non vuole parlare di contratto. La richiesta di trasferimento resta.",
   "rivalBidOpen": "{club} ha pareggiato il cartellino e gli offre {wage}/sett. Deciderà questa settimana.",
   "rivalBidOpen_f": "{club} ha pareggiato il cartellino e le offre {wage}/sett. Deciderà questa settimana.",
   "rivalBidPrefers": "{name} è orientato verso {club}, che offre {wage}/sett. A pesare: {why_k}. La loro offerta resta valida fino a fine settimana.",
@@ -9260,6 +9272,7 @@
   "promiseKept": "Avevi promesso {what_k} nel {season}, e hai mantenuto la parola.",
   "promiseBroken": "Avevi promesso {what_k} nel {season}, e non hai mantenuto la parola.",
   "what": {
+   "start": "una maglia da titolare",
    "plans": "un posto nei tuoi piani",
    "minutes": "più minuti",
    "deal": "un nuovo contratto",
