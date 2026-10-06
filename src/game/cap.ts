@@ -1,6 +1,6 @@
 import { capBill, windowOpen } from './ai'
 import { userCap } from './grants'
-import { fmtMoney, fmtWage, type Club, type GameState } from './model'
+import { LEDGER_WEEKS, fmtMoney, fmtWage, type Club, type GameState } from './model'
 import { t } from './i18n'
 
 /**
@@ -185,7 +185,9 @@ export function capPosition(state: GameState, clubId: string): CapPosition {
  * is inside the window by construction, so that door is unchanged.
  */
 export function marqueeOpen(state: GameState): boolean {
-  return windowOpen(state.week)
+  // not in the close season: the summer window opens before the audit in
+  // week 48, and a list that could move then is the dodge this closes
+  return windowOpen(state.week) && state.week <= LEDGER_WEEKS
 }
 
 /** Name him, or take the designation away. False when the list is locked or

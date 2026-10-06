@@ -168,6 +168,9 @@ function career(clubId: string, seed: number, seasons: number, moveAt: number | 
         if (!p || !played.has(pid) || p.clubId !== opp) continue
         const comm = events.some(e => e.playerId === pid && /^comm\.(oldBoy|tryNoCelebration|former)/.test(e.k ?? ''))
         const newsAfter = after.some(n => n.playerId === pid)
+        // a departure the log has since pruned under its cap (memory.ts
+        // pruneMemory) is forgotten by design, not missed
+        if (!(g.memory?.entries ?? []).some(e => e.playerId === pid && ['sold', 'released', 'let-go'].includes(e.kind))) continue
         if (d.minor) { moment('meetMinor', named(p), comm, newsAfter, `${p.name} [${where(p)}]`); continue }
         if (d.ordinary) {
           moment('meetOrdinary', named(p), comm, newsAfter, `${p.name} [${where(p)}] ${after.filter(n => n.playerId === pid).map(n => n.k).join(',')}`)

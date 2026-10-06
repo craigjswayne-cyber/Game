@@ -498,6 +498,9 @@ export function migrate(s: GameState): GameState {
   s.season = int(s.season, 0, 999, 0)
   s.week = int(s.week, 1, SEASON_WEEKS, 1)
   s.day = int(s.day, 0, 5, 0) as GameState['day']
+  // the window countdown's stamp (window.ts): a number or nothing, and nothing
+  // only means the next notice due is posted
+  if (s.windowNote != null && !(typeof s.windowNote === 'number' && Number.isFinite(s.windowNote))) delete s.windowNote
   if (!Number.isFinite(s.seed)) s.seed = hashString(`${s.userClubId ?? 'rugby'}-${s.season}`)
 
   // ---- prune the rubbish out of the lists ----
@@ -518,6 +521,8 @@ export function migrate(s: GameState): GameState {
     // the byline is one known source or none: anything else a bad copy left
     // there would print a stranger's name over a story (1.8.7, Ruck)
     if (n.src != null && n.src !== 'ruck') delete n.src
+    // a named day is a day of the week or nothing (days.ts dayOfStory)
+    if (n.day != null && !(Number.isInteger(n.day) && n.day >= 0 && n.day <= 5)) delete n.day
   }
   s.press = s.press.filter(p => story(p) && typeof (p as { question?: unknown }).question === 'string')
   s.offers = s.offers.filter(story)
