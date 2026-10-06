@@ -66,6 +66,7 @@ const kinds = () => ({
   attack: specs.filter(s => s.kind === 'attack').length,
 })
 const enough = () => { const k = kinds(); return k.try >= 20 && k.kick >= 20 && k.attack >= 10 }
+const conLines: number[] = []
 for (let seed = 1; seed <= 40 && (seed <= 12 || !enough()); seed++) {
   const g = newGame('leicester', 'HL Probe', 5000 + seed)
   const fx = g.fixtures.find(f => f.week >= 2 + seed % 5 && g.clubs[f.homeId] && g.clubs[f.awayId])!
@@ -77,6 +78,15 @@ for (let seed = 1; seed <= 40 && (seed <= 12 || !enough()); seed++) {
     if (!kind) continue
     const spec = buildClip(ev, i, kind, fx.homeId, () => undefined, colours, labels, () => 'Name')
     specs.push({ spec, kind }); real++
+    // the conversion is kicked in line with where the try was grounded (1.8.12)
+    if (kind === 'kick' && ev[i].type === 'CON') {
+      let ti = i - 1
+      while (ti >= 0 && !(ev[ti].type === 'TRY' && ev[ti].teamId === ev[i].teamId)) ti--
+      if (ti >= 0) {
+        const at = buildClip(ev, ti, 'try', fx.homeId, () => undefined, colours, labels, () => 'Name').finish.y
+        conLines.push(Math.abs(spec.finish.y - Math.max(5, Math.min(65, at))))
+      }
+    }
     if (momentAt(ev, i, fx.homeId, 'key') && !momentAt(ev, i, fx.homeId, 'key')?.match(/try/) && lateAndClose(ev, i)) late++
     // REAL PACE (E10): the same try with the quickest men and the slowest,
     // both ways round, so the speed limits below cover the extremes
@@ -509,6 +519,7 @@ const oneCarrier = specs.every(({ spec }) => {
   return true
 })
 ok(oneCarrier, 'never two ball carriers at once')
+ok(conLines.length >= 5 && conLines.every(d => d < 0.01), `every conversion is kicked in line with its try (${conLines.length} checked)`)
 
 console.log(fails ? `\nHL PROBE FAILED (${fails})` : '\nHL PROBE PASSED')
 process.exit(fails ? 1 : 0)
