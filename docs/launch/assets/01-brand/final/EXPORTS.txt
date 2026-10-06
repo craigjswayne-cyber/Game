@@ -1,0 +1,33 @@
+docs/launch/assets/01-brand/final/icon/icon-master-1024.png 1024x1024
+docs/launch/assets/02-store/final/play/play-icon-512.png 512x512
+docs/launch/assets/02-store/final/ios-6.9/appstore-icon-1024.png 1024x1024
+docs/launch/assets/05-website/final/favicon-16.png 16x16
+docs/launch/assets/05-website/final/favicon-32.png 32x32
+docs/launch/assets/05-website/final/favicon-48.png 48x48
+docs/launch/assets/05-website/final/favicon.ico 16/32/48
+docs/launch/assets/05-website/final/apple-touch-icon-180.png 180x180
+docs/launch/assets/01-brand/final/icon/icon-size-check.png 760x220
+docs/launch/assets/01-brand/final/avatar/avatar-master-1024.png 1024x1024
+docs/launch/assets/04-social/final/avatars/youtube-avatar-800.png 800x800
+docs/launch/assets/04-social/final/avatars/x-avatar-400.png 400x400
+docs/launch/assets/04-social/final/avatars/instagram-avatar-320.png 320x320
+docs/launch/assets/04-social/final/avatars/tiktok-avatar-200.png 200x200
+docs/launch/assets/04-social/final/avatars/facebook-avatar-720.png 720x720
+docs/launch/assets/07-discord/final/discord-server-icon-512.png 512x512
+docs/launch/assets/01-brand/final/logo/lockup-horizontal-dark-bg.png 1000x300
+docs/launch/assets/01-brand/final/logo/lockup-horizontal-light-bg.png 1000x300
+docs/launch/assets/01-brand/final/logo/wordmark-dark-bg.png 800x220
+docs/launch/assets/01-brand/final/logo/wordmark-light-bg.png 800x220
+docs/launch/assets/01-brand/final/logo/lockup-stacked-dark-bg.png 800x800
+docs/launch/assets/01-brand/final/logo/mark.svg
+docs/launch/assets/01-brand/final/icon/icon-master.svg
+docs/launch/assets/01-brand/final/palette.png 1600x900
+docs/launch/assets/01-brand/final/typography.png 1600x900
+docs/launch/assets/02-store/final/play/feature-graphic-1024x500.png 1024x500
+docs/launch/assets/05-website/final/og-image-1200x630.png 1200x630
+docs/launch/assets/03-trailer/final/youtube-thumbnail-1280x720.png 1280x720
+docs/launch/assets/04-social/final/headers/youtube-banner-2560x1440.png 2560x1440
+docs/launch/assets/04-social/final/headers/x-header-1500x500.png 1500x500
+docs/launch/assets/04-social/final/headers/facebook-cover-1640x624.png 1640x624
+docs/launch/assets/07-discord/final/discord-server-banner-960x540.png 960x540
+docs/launch/assets/07-discord/final/discord-welcome-1600x900.png 1600x900

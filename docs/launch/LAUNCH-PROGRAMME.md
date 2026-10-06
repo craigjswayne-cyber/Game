@@ -23,9 +23,9 @@ Owner column: **O** = owner (needs a human, an account, money or a signature) ·
 | Android | Live on Play under the personal account; production code last accepted 36 (29 Sep). Closed testing in use. Org-account transfer not done |
 | iOS | Not on the App Store. Apple developer enrolment pending; nothing created in App Store Connect |
 | Website | Live at phaserugbymanager.com (landing page, privacy, app-ads.txt), deploys from main |
-| Trailer | None |
+| Trailer | Script, storyboard and animatics done; final blocked on music licence and device capture (`assets/03-trailer/TRAILER.md`) |
 | Discord | Server exists; bot code in repo but not hosted; #feedback channel requested (Cowork prompt) |
-| Marketing | None started |
+| Marketing | Launch assets built: see `docs/launch/ASSET-MANIFEST.md` |
 | Press | None |
 | Analytics | None by design (no network calls); console statistics only; on-device feedback report |
 | Support | Email + in-game bug report + Discord; no support page or FAQ |
@@ -143,14 +143,14 @@ They help a launch; none stops one.
 |---|---|---|---|---|---|
 | G1 | Decide: launch on the personal account, or finish the org transfer first (`PLAY-ORG-MOVE.md`) | P0 | ⬜ | O | Decision recorded |
 | G2 | Store listing copy final (name, short, full; proposition "the world remembers what you did") | P1 | ⬜ | O+C | Text in `store-listing.md`, pasted |
-| G3 | Screenshots: 8-frame story (section 10) | P1 | ⬜ | O+C | Exported, uploaded |
+| G3 | Screenshots: 8-frame story (section 10) | P1 | 🔵 exported, upload pending | O+C | Exported, uploaded |
 | G4 | Feature graphic | P1 | 🟢 VERIFY | C | `storeart/play/feature-graphic.png` reviewed |
 | G5 | Data Safety + ads declaration + target audience + app access (B3) | P0 | 🔴 | O+C | Submitted, matches build |
 | G6 | Content rating (IARC) re-check with current IAP list | P1 | ⬜ | O | Certificate current |
 | G7 | Store localisation decision (D2) | P2 | ⬜ | O | Recorded |
 | G8 | Production AAB code 50: signed with the existing keystore, archived | P0 | ⬜ | O | AAB stored off-machine |
 | G9 | R8/minify decision (currently off; leave off for launch, D5) | P3 | ⏸️ | | |
-| G10 | Release notes for 1.8.11 in six languages | P1 | ⬜ | C | In `store-listing.md` |
+| G10 | Release notes for 1.8.11 in six languages | P1 | 🟢 `docs/releases/1.8.11.md` | C | In `store-listing.md` |
 | G11 | Staged rollout (start 20%, watch 48h) | P1 | ⬜ | O | Rollout set |
 
 ### D. Apple App Store (Phase 2)
@@ -172,20 +172,20 @@ Fix before use (C): §17d says iPhone-only (scaffold now builds iPhone + iPad); 
 ### E. Brand (Phase 3)
 | ID | Task | Pri | Status | Owner | DoD |
 |---|---|---|---|---|---|
-| BR1 | One-page brand sheet: logo usage, palette, type, voice (British, concise, no em dashes) | P2 | ⬜ | C | `docs/launch/brand.md` |
-| BR2 | Store screenshot template (frame + headline style) | P1 | ⬜ | C | Template in storeart.mjs |
-| BR3 | Social avatars/headers (X, Instagram, TikTok, YouTube, Discord) | P2 | ⬜ | O+C | Exported |
-| BR4 | Space Grotesk OFL licence file shipped | P1 | ⬜ | C | `LICENSES/` |
+| BR1 | One-page brand sheet: logo usage, palette, type, voice (British, concise, no em dashes) | P2 | 🟢 | C | `docs/launch/BRAND.md` |
+| BR2 | Store screenshot template (frame + headline style) | P1 | 🟢 | C | `scripts/launch/storeframes.mjs` |
+| BR3 | Social avatars/headers (X, Instagram, TikTok, YouTube, Discord) | P2 | 🔵 exported; accounts O | O+C | Exported |
+| BR4 | Space Grotesk OFL licence file shipped | P1 | 🟢 | C | `LICENSES/SpaceGrotesk-OFL.txt` |
 
 ### F. Trailer (Phase 4): see section 9. P2 for launch day, P1 for paid ads.
 
 ### G. Website (Phase 6)
 | ID | Task | Pri | Status | Owner | DoD |
 |---|---|---|---|---|---|
-| W1 | Landing copy refresh: proposition headline, App Store badge only when live, consistent club count | P1 | ⬜ | C | Deployed |
-| W2 | Support page + FAQ (purchases, restore, saves, devices) and point store Support URL at it | P1 | ⬜ | C then O | `/support.html` live |
-| W3 | Terms of use page | P1 | ⬜ | C then O (legal read) | `/terms.html` live |
-| W4 | Press kit page (logos, shots, fact sheet, contact) | P2 | ⬜ | C | `/press/` live |
+| W1 | Landing copy refresh: proposition headline, App Store badge only when live, consistent club count | P1 | 🔵 done on branch, deploys on merge | C | Deployed |
+| W2 | Support page + FAQ (purchases, restore, saves, devices) and point store Support URL at it | P1 | 🔵 page done; store URL O | C then O | `/support.html` live |
+| W3 | Terms of use page | P1 | 🔵 draft for legal read: `assets/05-website/working/terms-DRAFT.md` | C then O (legal read) | `/terms.html` live |
+| W4 | Press kit page (logos, shots, fact sheet, contact) | P2 | 🔵 done on branch, deploys on merge | C | `/press.html` live |
 | W5 | Search Console verified (file exists) | P2 | 🟢 VERIFY | O | Property shows data |
 | W6 | Store-link UTM/referrer tags | P2 | ⬜ | C | Links carry `referrer=` |
 
@@ -194,8 +194,8 @@ Fix before use (C): §17d says iPhone-only (scaffold now builds iPhone + iPad); 
 |---|---|---|---|---|---|
 | D1 | #feedback channel (Cowork prompt already written) | P1 | 🔵 | O | Channel live, invite valid |
 | D2 | Channel set per brief (#welcome, #announcements, #patch-notes, #known-issues, #faq, #bug-reports, #suggestions, #support, community channels) | P2 | ⬜ | O | Done by hand or Cowork; the bot is not needed |
-| D3 | Rules, welcome, bug and idea templates | P2 | ⬜ | C drafts, O posts | Pinned |
-| D4 | Announcement webhook (for automation) | P2 | ⬜ | O creates, C wires | Secret stored in GitHub, never in the repo |
+| D3 | Rules, welcome, bug and idea templates | P2 | 🔵 drafted: `assets/07-discord/DISCORD.md` | C drafts, O posts | Pinned |
+| D4 | Announcement webhook (for automation) | P2 | 🔵 wired (`release.yml`); secret O | O creates, C wires | Secret stored in GitHub, never in the repo |
 
 ### I. Marketing, PR, creators, community (Phases 9-14): sections 8 and 11. All P2 unless stated.
 

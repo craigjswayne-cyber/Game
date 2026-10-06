@@ -1,0 +1,50 @@
+/* The inner pages of phaserugbymanager.com (support, press, changelog).
+   Same rules as index.html: no build step, nothing fetched off-site, and the
+   palette a frozen copy of the night tokens in src/ui/tokens.css. */
+@font-face { font-family: 'Space Grotesk'; font-style: normal; font-weight: 300 700; font-display: swap; src: url('./space-grotesk-latin.woff2') format('woff2'); }
+:root {
+  --canvas: #1a201e; --surface-1: #242b29; --surface-2: #2e3634; --border: #333c3a; --border-strong: #4a5553;
+  --text-primary: #f0f4f2; --text-secondary: #b3bdb9; --text-muted: #8b958f;
+  --primary: #34c06f; --primary-hover: #4ed88c; --on-primary: #070d0a; --gold: #e9be68;
+  --sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: var(--canvas); color: var(--text-primary); font-family: var(--sans); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+a { color: var(--primary); }
+img { max-width: 100%; display: block; }
+.wrap { max-width: 860px; margin: 0 auto; padding: 0 20px; }
+.top { border-bottom: 1px solid var(--border); }
+.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 18px; padding-bottom: 18px; }
+.brand { display: flex; align-items: center; gap: 10px; color: var(--text-primary); text-decoration: none; font-weight: 700; letter-spacing: 3px; font-size: 13px; }
+.brand img { width: 30px; height: 30px; }
+.top nav { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 14px; }
+.top nav a { color: var(--text-secondary); text-decoration: none; }
+.top nav a:hover, .top nav a[aria-current] { color: var(--primary); }
+header.page { padding: clamp(40px, 9vw, 80px) 0 clamp(20px, 4vw, 36px); }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--text-secondary); }
+h1 { font-size: clamp(32px, 7vw, 54px); line-height: 1.02; text-transform: uppercase; letter-spacing: -0.6px; margin-top: 12px; }
+h1 .dot, h2 .dot { color: var(--primary); }
+.lede { margin-top: 18px; color: var(--text-secondary); font-size: 18px; max-width: 54ch; }
+section { padding: 28px 0; border-top: 1px solid var(--border); }
+h2 { font-size: clamp(20px, 3.6vw, 26px); margin-bottom: 12px; letter-spacing: -0.2px; }
+h3 { font-size: 16px; margin: 18px 0 6px; }
+p, li { color: var(--text-secondary); }
+p + p { margin-top: 10px; }
+ul { padding-left: 20px; }
+li { margin: 4px 0; }
+details { border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin: 10px 0; background: var(--surface-1); }
+summary { cursor: pointer; font-weight: 700; color: var(--text-primary); }
+details p { margin-top: 10px; }
+.facts { display: grid; grid-template-columns: max-content 1fr; gap: 8px 24px; }
+.facts dt { color: var(--text-muted); font-size: 14px; }
+.facts dd { color: var(--text-primary); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; margin-top: 14px; }
+.grid a { display: block; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--surface-1); text-decoration: none; }
+.grid span { display: block; padding: 8px 10px; font-size: 13px; color: var(--text-secondary); }
+.btn { display: inline-block; margin-top: 12px; padding: 12px 20px; border-radius: 12px; background: var(--primary); color: var(--on-primary); font-weight: 700; text-decoration: none; }
+.btn:hover { background: var(--primary-hover); }
+article { padding: 26px 0; border-top: 1px solid var(--border); }
+article .when { color: var(--text-muted); font-size: 14px; }
+article h3 { color: var(--gold); font-size: 12px; letter-spacing: 2px; text-transform: uppercase; }
+footer { padding: 40px 0 56px; font-size: 13.5px; color: var(--text-muted); border-top: 1px solid var(--border); margin-top: 30px; }
+footer a { color: var(--text-secondary); }

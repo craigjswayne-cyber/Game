@@ -1,0 +1,69 @@
+name: Release communications
+
+# When a GitHub Release is published (tag vX.Y.Z), everything that announces it
+# is derived from docs/releases/X.Y.Z.md and nothing else:
+#
+#   GitHub Release  ->  check the release file (6 languages, 500-char store limit)
+#                   ->  Discord announcement (webhook secret DISCORD_RELEASE_WEBHOOK)
+#                   ->  social post staged in the run summary (posting stays manual)
+#   push to main    ->  pages.yml rebuilds the website changelog from the same file
+#
+# It never invents release information: if the release file is missing or fails
+# its check, the run fails and nothing is posted.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version, e.g. 1.8.11'
+        required: true
+      post:
+        description: 'Post to Discord (false = dry run)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  announce:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Version
+        id: v
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            V="${{ github.event.release.tag_name }}"; V="${V#v}"
+            echo "post=true" >> "$GITHUB_OUTPUT"
+            echo "date=$(date -u -d '${{ github.event.release.published_at }}' '+%-d %B %Y')" >> "$GITHUB_OUTPUT"
+          else
+            V="${{ inputs.version }}"
+            echo "post=${{ inputs.post }}" >> "$GITHUB_OUTPUT"
+            echo "date=" >> "$GITHUB_OUTPUT"
+          fi
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+      - name: Check the release file
+        run: node scripts/launch/release.mjs check "${{ steps.v.outputs.version }}"
+      - name: Discord announcement
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_RELEASE_WEBHOOK }}
+        run: |
+          node scripts/launch/release.mjs discord "${{ steps.v.outputs.version }}" "${{ steps.v.outputs.date }}" > discord.json
+          if [ "${{ steps.v.outputs.post }}" != "true" ]; then echo "dry run:"; cat discord.json; exit 0; fi
+          if [ -z "$WEBHOOK" ]; then echo "::warning::DISCORD_RELEASE_WEBHOOK is not set; nothing posted"; cat discord.json; exit 0; fi
+          curl -fsS -H 'Content-Type: application/json' -d @discord.json "$WEBHOOK"
+      - name: Stage store and social copy
+        run: |
+          {
+            echo "## PHASE ${{ steps.v.outputs.version }}"
+            echo; echo "### Social post (paste by hand)"; echo '```'
+            node scripts/launch/release.mjs social "${{ steps.v.outputs.version }}"
+            echo '```'; echo; echo "### Store What's new"; echo '```'
+            node scripts/launch/release.mjs store "${{ steps.v.outputs.version }}"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,28 @@
+{
+  "_readme": "Every PHASE social graphic, as data. Edit the words, run `node scripts/launch/social.mjs`, collect PNGs from 04-social/final. Every `shot` is a real capture from storeart/raw (see scripts/launch/capture.mjs). Every quote is the game's own text from the showcase career; never write a quote the game did not.",
+  "posts": [
+    { "id": "SOC-T01", "kind": "feature", "pillar": "Features", "h": "Build|your squad.", "sub": "Rivals come for your best players. Sell, or hold your nerve.", "shot": "offers" },
+    { "id": "SOC-T02", "kind": "decision", "pillar": "What would you do?", "h": "You have £3.1m left.|Who do you sign?", "sub": "The window closes in week 8.", "shot": "transfers", "foot": "Reply with your signing." },
+    { "id": "SOC-T03", "kind": "story", "pillar": "Stories", "quote": "He will not have forgotten a word of it and neither should you.", "lead": "Lilian Bousquet finished above you.", "attr": "From a PHASE career · season 12", "shot": "rival-coach" },
+    { "id": "SOC-T04", "kind": "story", "pillar": "Stories", "quote": "You said I would get my chance and you kept your word. I will not forget that, coach.", "lead": "Lilian Larrieu, flanker", "attr": "From a PHASE career · season 11", "shot": "word-kept", "big": true },
+    { "id": "SOC-T05", "kind": "career", "pillar": "Careers", "h": "Twelve seasons.|One club.", "stats": [["360", "matches"], ["189", "wins"], ["53%", "win rate"], ["75-0", "biggest win"]], "sub": "Known as a club built on youth.", "attr": "One PHASE career, RC Montauban", "shot": "legacy", "focus": 0.55 },
+    { "id": "SOC-T06", "kind": "decision", "pillar": "What would you do?", "h": "3 points down|at half-time.|What do you change?", "sub": "Their crash ball is hurting you. Two of your forwards are out on their feet.", "shot": "match-live", "foot": "Reply with your half-time call." },
+    { "id": "SOC-T07", "kind": "feature", "pillar": "Development", "h": "Why players|remember what|you did.", "sub": "Inside the consequence engine: promises kept, promises broken, and the agents who hear about both.", "shot": "office" },
+    { "id": "SOC-T08", "kind": "community", "pillar": "Community", "h": "Tell us about|the strangest career|you've created.", "sub": "The best ones go in the next community post." },
+    { "id": "SOC-T09", "kind": "decision", "pillar": "What would you do?", "h": "The press want|an answer.", "sub": "29 weeks on the bench for one of your players. Do you defend him, or open the door?", "shot": "press-question", "foot": "Reply with your answer." },
+    { "id": "SOC-T10", "kind": "feature", "pillar": "Features", "h": "Every decision|has consequences.", "sub": "Lose, and the coach tells you exactly why.", "shot": "match-fulltime", "focus": 0.47 },
+
+    { "id": "LCH-01", "kind": "launch", "h": "PHASE|is coming.", "sub": "The rugby management game where the world remembers what you did.", "formats": ["feed", "story", "square", "wide"] },
+    { "id": "LCH-07", "kind": "countdown", "n": "7", "h": "days.", "sub": "Every decision leaves a mark.", "formats": ["feed", "story", "square"] },
+    { "id": "LCH-06", "kind": "countdown", "n": "6", "h": "days.", "sub": "Your players remember.", "formats": ["feed", "story", "square"] },
+    { "id": "LCH-05", "kind": "countdown", "n": "5", "h": "days.", "sub": "So does every agent.", "formats": ["feed", "story", "square"] },
+    { "id": "LCH-04", "kind": "countdown", "n": "4", "h": "days.", "sub": "171 clubs. The men's and women's game.", "formats": ["feed", "story", "square"] },
+    { "id": "LCH-03", "kind": "countdown", "n": "3", "h": "days.", "sub": "Six languages. Plays offline.", "formats": ["feed", "story", "square"] },
+    { "id": "LCH-02", "kind": "countdown", "n": "2", "h": "days.", "sub": "Pick your club.", "formats": ["feed", "story", "square"] },
+    { "id": "LCH-00", "kind": "countdown", "n": "1", "h": "day.", "sub": "Tomorrow, the world starts remembering.", "formats": ["feed", "story", "square"] },
+    { "id": "LCH-10", "kind": "launch", "h": "PHASE|is live.", "sub": "The rugby management game where the world remembers what you did.", "store": true, "formats": ["feed", "story", "square", "wide"] },
+    { "id": "LCH-11", "kind": "launch", "h": "Play PHASE|now.", "sub": "Free on Google Play.", "store": true, "formats": ["feed", "story", "square", "wide"] },
+    { "id": "LCH-12", "kind": "update", "h": "PHASE 1.8.11", "sub": "Ruck joins as our news partner. The Back button never closes the game. Advert privacy choices are in Settings.", "formats": ["feed", "square", "wide"] },
+    { "id": "LCH-13", "kind": "launch", "h": "Your career.|Your story.", "sub": "Share yours in the PHASE Discord.", "formats": ["feed", "story", "square", "wide"] }
+  ]
+}

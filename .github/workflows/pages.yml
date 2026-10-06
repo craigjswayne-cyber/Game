@@ -66,6 +66,10 @@ jobs:
           rm -rf site && mkdir -p site
           cp -R public/. site/
           cp -R landing/. site/
+          # the changelog is regenerated from docs/releases/ on every deploy, so
+          # the website can never show release notes the release file lacks
+          node scripts/launch/release.mjs changelog site/changelog.html
+          rm -f site/changelog.template.html
           test -f site/index.html
           test -f site/privacy.html
           test -f site/CNAME
