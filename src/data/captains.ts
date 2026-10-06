@@ -18,19 +18,18 @@
 //               in June, so the club may yet change it - Furbank, arriving
 //               from Saints, is named as a candidate
 //   sale        van Rhyn, confirmed, and corrected below
-// The same article says Gloucester's captaincy is officially TBC after Tomos
-// Williams left for Saracens, which is why no name is pinned there.
+// The same article said Gloucester's captaincy was TBC after Tomos Williams
+// left for Saracens. The club has since named Dewi Lake (see below).
 export const CLUB_CAPTAINS: Record<string, string> = {
   // Gallagher Premiership
   bath: 'Ben Spencer',
   // Named club captain for 2025-26 alongside a long-term extension
   bristol: 'Fitz Harding',
   exeter: 'Dafydd Jenkins',
-  // Named club captain for 2025-26, with Clark and Atkinson as his vices
-  // Tomos Williams captained Gloucester until the 2026-27 window took him to Saracens.
-  // No source names his replacement, so the armband is left to the game's
-  // own leadership pick rather than to a guess - the same way 65 other clubs
-  // choose theirs.
+  // Tomos Williams captained Gloucester until the 2026-27 window took him to
+  // Saracens. The club's own announcement names Lake captain for 2026-27,
+  // with Seb Atkinson and Jac Morgan as his vice-captains (CLUB_VICES).
+  gloucester: 'Dewi Lake',
   harlequins: 'Alex Dombrandt',
   // Montoya left for Pau at the end of 2024-25; Chessum leads Leicester now
   leicester: 'Ollie Chessum',
@@ -39,7 +38,8 @@ export const CLUB_CAPTAINS: Record<string, string> = {
   // started every league game of it - the league's own club-by-club captains
   // piece settles the contradiction this file recorded above.
   sale: 'Ernst van Rhyn',
-  newcastle: 'George McGuigan',
+  // Christie named club captain for 2026-27 by the club (newcastleredbulls.com)
+  newcastle: 'Tom Christie',
   saracens: 'Maro Itoje',
 
   // United Rugby Championship
@@ -77,6 +77,13 @@ export const CLUB_CAPTAINS: Record<string, string> = {
   brumbies: 'Allan Alaalatoa',
   waratahs: 'Jake Gordon',
   reds: 'Tate McDermott',
+}
+
+// Announced vice-captains, applied the same way as the captains above. The
+// game has one vice-captain's armband, so the first name wears it; every name
+// listed is given a leader's standing in the dressing room.
+export const CLUB_VICES: Record<string, string[]> = {
+  gloucester: ['Seb Atkinson', 'Jac Morgan'],
 }
 
 /** Loose match: accents and punctuation differ between data files. */
