@@ -465,7 +465,13 @@ export function aiTransfers(state: GameState, rng: Rng) {
   // club after a dismissal, so this loop went on putting offers for his former
   // players on his desk - and sackManager empties the inbox precisely because
   // answering one from a new desk sold another club's player.
-  for (let k = 0; !state.unemployed && k < (bidDeadline ? 3 : 1); k++) {
+  // THE SAME INTEREST, IN THE WEEKS IT CAN LAND (1.8.12). A trickle of one
+  // try a week across 48 weeks became one try a week across the thirteen
+  // window weeks, and bids for the manager's men fell by two thirds (62 from
+  // 172 across three careers). Three tries in a window week put the season's
+  // bid count back where it was, gathered where a real one gathers; the shut
+  // weeks keep their single draw, so their stream is unchanged.
+  for (let k = 0; !state.unemployed && k < (bidDeadline ? 3 : bidNext ? 3 : 1); k++) {
     if (rng() > (bidDeadline ? 0.55 : 0.3)) continue
     const user = state.clubs[state.userClubId]
     const squad = user.players.map(id => state.players[id]).filter(Boolean)
