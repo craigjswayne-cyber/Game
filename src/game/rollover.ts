@@ -1109,6 +1109,9 @@ function replenishSquads(state: GameState, rng: Rng, rooms: Map<string, number>)
         continue
       }
       fa.clubId = club.id
+      // stamped like every other arrival, so his career before this one is
+      // never read as service to the club that just signed him (legends.ts)
+      fa.joinedAt = absWeek(state.season, state.week)
       // a board filling its squad pays what it can (aiecon.ts aiPayRate,
       // 1.8.3); the manager's board signs on the scale, as it always has
       fa.wage = Math.round(playerWage(fa.ca, fa.age) * aiPayRate(state, club, rooms.get(club.id)) / 50) * 50

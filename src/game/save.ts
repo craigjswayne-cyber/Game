@@ -1,4 +1,5 @@
 import type { CareerRow, Club, FacilityId, GameState } from './model'
+import { LEGEND_APPS, service } from './legends'
 import { migrateRivalBids } from './rivalbids'
 import { ATTR_KEYS, FACILITY_INFO, MAX_FACILITY, SEASON_WEEKS, WEEK_BASIS, emptyStats, finalVenue, foldCareer, initFacilities } from './model'
 import { ensureCaptains } from './analysis'
@@ -920,6 +921,17 @@ export function migrate(s: GameState): GameState {
     if (p.trait === undefined) p.trait = deriveTrait(p)
     p.hist ??= deriveHist(p)
     p.caps ??= deriveCaps(p)
+  }
+  // A SIGNING CROWNED ON SOMEBODY ELSE'S APPEARANCES (1.8.12). Before the
+  // fix in legends.ts service(), a man signed with no career rows carried his
+  // whole pre-2025 career into his new club's count, so one match there could
+  // make him its legend. A legend made in this career by a man the club
+  // signed, whose real count there is short of the mark, comes off the board.
+  if (s.hist?.legends?.length) {
+    s.hist.legends = s.hist.legends.filter(l => {
+      const p = s.players[l.pid]
+      return !(p && l.season >= 0 && p.clubId === l.clubId && p.joinedAt != null && service(p, l.clubId).apps < LEGEND_APPS)
+    })
   }
   // CRITICAL: restore the player-id counter. Only newGame resets it, so a
   // cold-started session that loads a save would otherwise mint new player
