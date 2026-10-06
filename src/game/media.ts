@@ -557,7 +557,13 @@ export function generatePress(state: GameState, rng: Rng) {
     // still came round every week about a different man, and read as the
     // room's only question (scripts/varietyprobe.ts)
     const recentBench = state.press.some(q => q.season === state.season && (q.qk ?? '').startsWith('press.benchQ') && state.week - q.week < 2)
-    const p = squad.find(q => !recentBench && q.ca >= median && !xvIds.includes(q.id) && !q.onLoan && !q.acad &&
+    // FIT AND PASSED OVER, NOT HURT (owner, 1.8.12: "If someone is injured,
+    // they should not be moaning about lack of game time"). He has to be
+    // available now, and to have been available for the club's matches this
+    // season (gametime.ts counts them), or the weeks "on the bench" were weeks
+    // in the treatment room.
+    const fitAll = (q: Player) => !q.injury && q.bans === 0 && !q.natSquad && (q.avail ?? 0) >= clubGamesPlayed(state, club.id) - 1
+    const p = squad.find(q => !recentBench && q.ca >= median && !xvIds.includes(q.id) && !q.onLoan && !q.acad && fitAll(q) &&
       (q.lastWk == null || q.lastWk <= state.week - 6) && state.week > 8 && !askedThisSeason('press.benchQ', q.id))
     if (p) {
       // SIX IS A FLOOR, NOT THE NUMBER. The condition above is
