@@ -9,27 +9,30 @@ import { genderOf, type Gender } from './gender'
 
 /**
  * WHERE A NEW CAREER STARTS: World Rugby's own rankings, men's and women's,
- * as published on 21 September 2026 (the owner's screenshot of the official
- * table). The exchange below uses the same 40-100 scale, so these are the real
- * points, not an imitation of the order.
+ * as published in October 2026 (the owner's screenshots of the official
+ * table, places 1 to 29 of each). The exchange below uses the same 40-100
+ * scale, so these are the real points, not an imitation of the order.
  *
- * Only the top fifteen of each were on the page. A nation below that is placed
- * under the fifteenth, in the order of its reputation, half a point apart:
- * the order is a guess, the fact that they sit below fifteenth is not.
- * (Women's 15th, the Netherlands, has no side in this game.)
+ * Every men's nation in this game is inside the published 29. The women's
+ * sides of Argentina, Chile, Namibia, Romania and Uruguay are not, so they are
+ * placed under the 29th (Mexico, 43.34) in the order of their reputation, half
+ * a point apart: the order is a guess, the fact that they sit below is not.
+ * Chile is CHL here, CHI on World Rugby's page.
  */
 /** The Isles XV is a touring invitational, not a nation - never ranked. */
 const UNRANKED = new Set(['LIO'])
 
 const WR_MEN: Record<string, number> = {
-  RSA: 95.09, NZL: 91.15, IRE: 88.08, FRA: 87.43, ENG: 85.68, SCO: 84.78, AUS: 83.55, ARG: 82.24,
+  RSA: 93.09, NZL: 91.15, IRE: 88.08, FRA: 87.43, ENG: 85.68, AUS: 85.55, SCO: 84.78, ARG: 82.24,
   JPN: 77.28, FIJ: 76.81, WAL: 76.38, ITA: 76.30, GEO: 73.94, POR: 69.39, USA: 67.58,
+  CHL: 66.94, ESP: 66.83, URU: 65.75, TGA: 65.14, SAM: 64.73, ROU: 62.45, CAN: 62.29, NAM: 56.96,
 }
 const WR_WOMEN: Record<string, number> = {
-  ENG: 97.26, NZL: 91.90, CAN: 90.61, FRA: 84.29, IRE: 77.23, USA: 75.51, ITA: 75.29, SCO: 74.40,
-  AUS: 74.03, RSA: 69.87, WAL: 67.80, JPN: 67.63, FIJ: 66.44, ESP: 63.54,
+  ENG: 97.72, NZL: 91.44, CAN: 88.16, FRA: 86.74, IRE: 77.32, USA: 75.74, AUS: 75.58, ITA: 73.75,
+  SCO: 72.84, RSA: 71.73, WAL: 67.57, JPN: 67.54, FIJ: 66.65, ESP: 63.22, SAM: 58.31,
+  POR: 47.29, GEO: 43.88, TGA: 43.53,
 }
-const FLOOR = { m: 67.58, w: 58.49 }
+const FLOOR = { m: 54.78, w: 43.34 }
 
 const seedOf = (code: string, world: Gender = 'm'): number => {
   const table = world === 'w' ? WR_WOMEN : WR_MEN

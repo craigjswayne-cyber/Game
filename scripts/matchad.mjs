@@ -118,7 +118,13 @@ try {
   let statsMoments = 0, statsWithSlot = 0, clipMoments = 0, clipWithSlot = 0
   for (let i = 0; i < 480 && (clipMoments < 3 || statsMoments < 3); i++) {
     if (await answer()) continue
-    const c = await clipUp(), st = await statsUp(), up = await slotUp()
+    // (one snapshot of the page, not three queries in turn: a clip that ended
+    // between asking for it and asking for the banner read as a clip without one)
+    const { c, st, up } = await page.evaluate(() => ({
+      c: !!document.querySelector('[data-testid=hl-clip]'),
+      st: !!document.querySelector('[data-testid=live-stats]'),
+      up: !!document.querySelector('.ad-slot'),
+    }))
     if (c) { clipMoments++; if (up) clipWithSlot++ }
     else if (st) { statsMoments++; if (up) statsWithSlot++ }
     await page.waitForTimeout(250)

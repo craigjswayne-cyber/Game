@@ -131,7 +131,10 @@ export function paRange(state: GameState, p: Player): [number, number] | null {
   if (m === 0) return [p.pa, p.pa]
   const c = clamp(p.pa + skew(p, 98, m), 1, 99)
   const floor = Math.round(fuzzedCa(state, p))
-  const lo = clamp(Math.max(floor, c - m), 1, 99)
+  // (a band that runs past 99 slides down rather than being cut short: cut,
+  // it narrowed as the ceiling rose, and a tight band at the top told the
+  // reader of an unscouted man that he was the real thing)
+  const lo = clamp(Math.max(floor, c - m - Math.max(0, c + m - 99)), 1, 99)
   return [lo, clamp(Math.max(lo, c + m), 1, 99)]
 }
 

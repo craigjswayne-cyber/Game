@@ -267,11 +267,16 @@ console.log('\n--- 6. the tape\n')
   const fxs = g.fixtures.filter(f => (f.homeId === me.id || f.awayId === me.id) && g.clubs[f.homeId] && g.clubs[f.awayId])
   let read = 0, blunted = 0, lines = 0
   let shown = ''
-  for (const fx of fxs.slice(0, 20)) {
+  // Three matches against each of 20 sides: whether a read costs enough to
+  // earn a line of its own is a close call in any one match, so one sample
+  // per side left this check at the mercy of how the world was dealt.
+  let played = 0
+  for (const fx of fxs.slice(0, 20)) for (const k of [5, 6, 7]) {
     const oppId = fx.homeId === me.id ? fx.awayId : fx.homeId
     const set = (adaptMap(g, oppId).mv_loop ?? 0) > 0
     playbookOf(me).faced = { mv_loop: 40 }
-    const ctx = play(g, fx, fx.id + 5, me.id)
+    played++
+    const ctx = play(g, fx, fx.id + k, me.id)
     const ev = buildEvidence(g, ctx)!
     const c = ev.side[0].calls.mv_loop
     if (set) read++
@@ -283,7 +288,7 @@ console.log('\n--- 6. the tape\n')
       if (l) { lines++; shown ||= tIn('en', l.k, l.v) }
     }
   }
-  console.log(`      ${read} of 20 opponents were set for the loop; blunted calls counted in ${blunted}`)
+  console.log(`      ${read} of ${played} matches against sides set for the loop; blunted calls counted in ${blunted}`)
   if (shown) console.log(`      ${shown}`)
   ok(read > 0 && blunted === read, 'a call the opposition was set for is counted as blunted, and only then')
   ok(lines > 0, `the cost of the read can be a line of its own (${lines})`)

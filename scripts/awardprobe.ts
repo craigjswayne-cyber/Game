@@ -23,7 +23,12 @@ let awards = 0, noAward = 0, userWins = 0, thin = 0, pointless = 0
 let minWinPts = 99
 const lines: string[] = []
 
-for (const seed of [12345, 777, 4242]) {
+// Three full careers. A manager who never touches his side can be sacked, and
+// a career cut short leaves too few windows to judge, so a sacking moves on to
+// the next seed (what it awarded before then still counts) until three ran on.
+let full = 0
+for (const seed of [12345, 777, 4242, 9001, 31337, 2718, 1618, 4141, 5150, 8080]) {
+  if (full >= 3) break
   const g = newGame('northampton', 'Award Probe', seed)
   for (let w = 0; w < SEASON_WEEKS * 2; w++) {
     if (g.week % AWARD_EVERY === 0 && !g.unemployed) {
@@ -65,6 +70,7 @@ for (const seed of [12345, 777, 4242]) {
     }
     try { processWeekAndAdvance(g) } catch { break }
   }
+  if (!g.unemployed) full++
 }
 
 console.log('matches a club played in an award window:')
@@ -78,6 +84,7 @@ console.log('sample write-ups:')
 for (const l of lines) console.log(l)
 
 // ---- the standard ----
+if (full < 3) bad(`only ${full} careers ran their course in ten seeds`)
 if (awards < 15) bad(`only ${awards} awards over three careers, which is too few to judge`)
 if (thin) bad(`${thin} awards were decided on two matches or fewer`)
 if (pointless) bad(`${pointless} awards went to a manager who won nothing`)
