@@ -532,12 +532,24 @@ const EXPECTED: string[] = [
   // internationals). bandcheck, pooled over four seeds, main -> this data:
   //   pts 49.0 -> 49.0   tries 6.19 -> 6.20   home 52.8% -> 52.6%
   //   draws 1.5% -> 2.0%   blowouts 9.0% -> 8.6% (every band holds)
+  // Rebaselined (1.8.14), MECHANICS, the owner's balance round after the
+  // difficulty stress test, and no new draw on any stream: every change moves
+  // a threshold or a multiplier the dice are compared against. Four of six
+  // results move. What moved them: the room's doubts on the pitch for an
+  // unknown at an elite club (authority.ts EXEC_BITE, Leicester is the user
+  // here); tempo a trade both ways; condition costs less craft and starts a
+  // fuller tank; every club recovers on the same clock; a fifth more knocks;
+  // a style that does not fit the squad costs it; coaching levels at 1.3%;
+  // a cup knockout squeezes the favourite harder. bandcheck, pooled over four
+  // seeds, 1.8.13 -> this:
+  //   pts 49.0 -> 48.9   tries 6.20 -> 6.14   home 52.6% -> 53.1%
+  //   draws 2.0% -> 1.5%   blowouts 8.6% -> 8.3% (every band holds)
   'saracens 31-27 bath',
-  'exeter 24-42 gloucester',
+  'exeter 28-10 gloucester',
   'sale 39-25 bristol',
-  'harlequins 36-27 leicester',
-  'newcastle 27-33 northampton',
-  'exeter 18-36 saracens',
+  'harlequins 33-34 leicester',
+  'newcastle 16-30 northampton',
+  'exeter 38-31 saracens',
 ]
 // REBASELINED for 1.8.2 depth (claude/182-depth), FIVE of six moved, and
 // WITHOUT a new draw on the shared stream: the match still takes the one draw
