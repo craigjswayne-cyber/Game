@@ -23,7 +23,7 @@ const STARS: Record<string, RawPlayer[]> = {
   bravelupus: [{ name: 'Richie Mo\'unga', pos: 'FH', age: 31, nat: 'NZL', q: 92, gk: true, intl: true }],
   canon: [{ name: 'Faf de Klerk', pos: 'SH', age: 33, nat: 'RSA', q: 87, intl: true }],
   sungoliath: [{ name: 'Cheslin Kolbe', pos: 'WG', age: 31, nat: 'RSA', q: 90, intl: true }],
-  wildknights: [{ name: 'Damian de Allende', pos: 'CE', age: 33, nat: 'RSA', q: 87, intl: true }],
+  wildknights: [{ name: 'Damian de Allende', pos: 'CE', age: 33, nat: 'RSA', q: 88, intl: true }],
   spears: [{ name: 'Malcolm Marx', pos: 'HK', age: 31, nat: 'RSA', q: 91, intl: true }],
 }
 
