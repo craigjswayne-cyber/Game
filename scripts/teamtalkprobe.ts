@@ -343,12 +343,16 @@ console.log('--- 8. saying nothing: once is nothing, a habit drains the room (ow
     const fFine = sum('faith')
     ok(fNeglect > fFine, 'and a word of faith does more for a neglected room than for a looked-after one')
   }
-  // what it costs on the pitch: paired matches, even games
+  // what it costs on the pitch: paired matches, even games. Six even
+  // fixtures a world from 1.8.14, not three: the habit is a slow leak (under
+  // half a point a match measured directly), and on three fixtures a world
+  // the balance round's reshuffled squads read 1.1pp the wrong way where the
+  // same habit, measured on every fixture of a league, cost 0.4 points.
   {
     let n = 0, wn = 0, wh = 0, mh = 0
     for (const [club, seed] of [['leicester', 4242], ['toulouse', 9], ['leinster', 31337], ['northampton', 777]] as const) {
       const { g, out } = world(club, seed)
-      for (const { fx } of out.filter(x => x.exp >= -0.25 && x.exp <= 0.25).slice(0, 3)) {
+      for (const { fx } of out.filter(x => x.exp >= -0.25 && x.exp <= 0.25).slice(0, 6)) {
         for (let k = 0; k < Math.ceil((QUICK ? 40 : 120) / 3); k++) {
           const sd = 5000 + k * 7919 + fx.id
           const a = play(g, fx, sd, 'none'), h = play(g, fx, sd, 'habit')
