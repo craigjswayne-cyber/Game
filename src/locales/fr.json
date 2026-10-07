@@ -6235,6 +6235,8 @@
       "one": "Les comptes sont à l'équilibre après {weeks} semaine dans le rouge. Le conseil ne dit rien, ce qui est un compliment.",
       "other": "Les comptes sont à l'équilibre après {weeks} semaines dans le rouge. Le conseil ne dit rien, ce qui est un compliment."
     },
+    "cashRunwaySubj": "La trésorerie s'amenuise",
+    "cashRunway": "Il reste environ {amount} en banque, et {burn} de plus sortent chaque semaine qu'il n'en rentre. À ce rythme, le club sera à découvert d'ici deux mois. Le conseil souhaite que la masse salariale ou les dépenses soient maîtrisées d'ici là.",
     "debtOpenedSubj": "Le découvert",
     "grudgeAbove": "Le classement affiche désormais {mine} et {theirs}, dans cet ordre. Ça n'était plus arrivé depuis un moment, et le forum des supporters l'a remarqué aussitôt.",
     "grudgeAboveSubj": "Devant {rival}",

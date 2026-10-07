@@ -6172,6 +6172,8 @@
    "one": "Las cuentas vuelven a cuadrar tras {weeks} semana en números rojos. La junta no dice nada, que es todo un elogio.",
    "other": "Las cuentas vuelven a cuadrar tras {weeks} semanas en números rojos. La junta no dice nada, que es todo un elogio."
   },
+  "cashRunwaySubj": "Se acaba el dinero",
+  "cashRunway": "Quedan unos {amount} en el banco, y cada semana salen {burn} más de los que entran. A este ritmo, el club estará en números rojos en dos meses. La junta quiere ver controlada la masa salarial o el gasto antes de esa fecha.",
   "debtOpenedSubj": "El descubierto",
   "grudgeAbove": "La tabla ahora dice {mine} y {theirs}, por ese orden. Hacía tiempo que no lo decía, y el foro de la afición se ha dado cuenta al instante.",
   "grudgeAboveSubj": "Por encima de {rival}",

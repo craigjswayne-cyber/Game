@@ -6087,6 +6087,8 @@
    "one": "Die boeke balanseer weer na {weeks} week in die rooi. Die direksie sê niks, wat die kompliment is.",
    "other": "Die boeke balanseer weer na {weeks} weke in die rooi. Die direksie sê niks, wat die kompliment is."
   },
+  "cashRunwaySubj": "Die kontant raak min",
+  "cashRunway": "Daar is omtrent {amount} oor in die bank, en elke week gaan {burn} meer uit as wat inkom. Teen hierdie tempo is die klub binne twee maande oortrokke. Die raad wil hê die loonrekening of die besteding moet voor dan onder beheer wees.",
   "debtOpenedSubj": "Die oortrokke rekening",
   "grudgeAbove": "Die puntestand lees nou {mine} en {theirs}, in daardie volgorde. Dit het lank laas so gelees, en die ondersteunersforum het dit dadelik opgemerk.",
   "grudgeAboveSubj": "Bo {rival}",

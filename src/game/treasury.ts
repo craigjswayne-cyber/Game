@@ -24,7 +24,8 @@
 // cash the summer sweep can no longer turn into facilities.
 
 import type { GameState } from './model'
-import {absWeek, SEASON_WEEKS, fmtMoney, logDecision, operatingCost } from './model'
+import {absWeek, SEASON_WEEKS, boardObjective, fmtMoney, logDecision, operatingCost } from './model'
+import { leaguePos } from './schedule'
 import { t, tIn } from './i18n'
 
 export const RELEASE_STEP = 500_000
@@ -198,6 +199,24 @@ export function debtWeek(state: GameState): void {
   const now = absWeek(state.season, state.week)
 
   if (club.balance >= 0) {
+    // THE WARNING BEFORE THE RED (1.8.14). The first letter used to arrive on
+    // the day the club went overdrawn. Now the finance director writes when
+    // the money is falling and will be gone within about eight weeks at this
+    // rate, at most once in twelve weeks - time to cut the bill or sell.
+    const hist = state.finHist ?? []
+    if (hist.length >= 5 && state.debtSince == null) {
+      const burn = (hist[hist.length - 5].b - club.balance) / 4
+      if (burn > 0 && club.balance / burn < 8 && (state.cashWarnAt == null || now - state.cashWarnAt >= 12)) {
+        state.cashWarnAt = now
+        const v = { amount: fmtMoney(club.balance), burn: fmtMoney(burn) }
+        state.news.push({
+          id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
+          subject: tIn('en', 'news.cashRunwaySubj'),
+          body: tIn('en', 'news.cashRunway', v),
+          k: 'news.cashRunway', v,
+        })
+      }
+    }
     // OUT OF IT. The relief is filed only if there was something to be
     // relieved about - a club that has never been overdrawn says nothing.
     if (state.debtSince != null) {
@@ -220,7 +239,12 @@ export function debtWeek(state: GameState): void {
   // size.
   const upkeep = Math.max(1, operatingCost(state))
   const depth = Math.min(10, -club.balance / upkeep)
-  const bite = Math.min(DEBT_MAX_WEEKLY, DEBT_BITE * weeks * (0.5 + depth / 4))
+  // A BOARD READS THE TABLE AS WELL AS THE BANK (1.8.14): a side on course for
+  // the finish it was asked for buys half the patience back
+  const comp = state.comps[club.leagueId]
+  const pos = leaguePos(comp?.table, club.id)
+  const onCourse = pos > 0 && pos <= boardObjective(club.rep, comp?.table?.length ?? 14).pos
+  const bite = Math.min(DEBT_MAX_WEEKLY, DEBT_BITE * weeks * (0.5 + depth / 4)) * (onCourse ? 0.5 : 1)
   club.boardConfidence = Math.max(0, club.boardConfidence - bite)
 
   if (weeks === 1 || weeks % 4 === 0) {

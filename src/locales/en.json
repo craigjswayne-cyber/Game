@@ -6071,6 +6071,8 @@
    "one": "The books balance again after {weeks} week in the red. The board say nothing, which is the compliment.",
    "other": "The books balance again after {weeks} weeks in the red. The board say nothing, which is the compliment."
   },
+  "cashRunwaySubj": "Cash is running low",
+  "cashRunway": "About {amount} left in the bank, and {burn} more going out each week than coming in. At this rate the club is overdrawn within two months. The board would like the wage bill or the spending brought under control before then.",
   "debtOpenedSubj": "The overdraft",
   "grudgeAbove": "The table now reads {mine} and {theirs}, in that order. It has not read that way for a while, and the supporters' forum has noticed at once.",
   "grudgeAboveSubj": "Above {rival}",
