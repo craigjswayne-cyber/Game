@@ -11,6 +11,7 @@
 // a real return, merit over table position, and no award at all in a month where
 // nobody did enough.
 import { newGame } from '../src/game/newgame'
+import { autoSelect } from '../src/game/matchEngine'
 import { processWeekAndAdvance } from '../src/game/season'
 import { SEASON_WEEKS } from '../src/game/model'
 import { AWARD_EVERY, MIN_MATCHES, MIN_WINS, deserves, managerOfMonth, monthRun, runLine } from '../src/game/awards'
@@ -68,6 +69,12 @@ for (const seed of [12345, 777, 4242, 9001, 31337, 2718, 1618, 4141, 5150, 8080]
         }
       }
     }
+    // (he names his best fit XV each week: since 1.8.14 a stranger who never
+    // opens a screen at a big club is sacked in most worlds, and the awards
+    // need careers that run)
+    const c = g.clubs[g.userClubId]
+    const pool = c.players.map(id => g.players[id]).filter(p => p && !p.injury && p.bans === 0 && !p.onLoan && !p.natSquad && !p.acad)
+    if (!g.unemployed && pool.length >= 23) { c.tactic.lineup = autoSelect(g, pool as any, c.tactic?.split); c.tactic.userPicked = true }
     try { processWeekAndAdvance(g) } catch { break }
   }
   if (!g.unemployed) full++

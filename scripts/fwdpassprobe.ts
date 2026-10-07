@@ -33,7 +33,9 @@ let fails = 0
 const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
 const CLUBS = ['leicester', 'toulouse', 'leinster', 'crusaders', 'northampton', 'saracens']
-const SEEDS = 60
+// (72, from 60: at 840 matches the count sat at 94 against a floor of 100
+// once 1.8.14 moved the try count a little; the rate was 1.7% of tries as ever)
+const SEEDS = 72
 const PER = 14
 const RATE = FWD_PASS.rate
 
