@@ -2474,10 +2474,10 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     const dog = fav === home ? away : home
     const gapR = (fav.units.overall - dog.units.overall) / Math.max(1, dog.units.overall)
     // A CUP TIE IS ITS OWN KIND OF DAY (1.8.14): one game, no table to fall
-    // back on, so in a cup knockout the squeeze is wider (up to 5.5%) than
+    // back on, so in a cup knockout the squeeze is wider (up to 4.5%) than
     // in a league play-off or a derby
     const cupKO = !!fx.stage && state.comps[fx.compId]?.type === 'cup'
-    const squeeze = Math.min(cupKO ? 0.055 : 0.03, gapR * (cupKO ? 0.6 : 0.35))
+    const squeeze = Math.min(cupKO ? 0.045 : 0.03, gapR * (cupKO ? 0.5 : 0.35))
     if (squeeze > 0.001) {
       layer(fav, 'attack', 1 - squeeze)
       layer(fav, 'defence', 1 - squeeze)
