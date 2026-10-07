@@ -6150,7 +6150,7 @@
     "dressingDownSubj": "Rumeurs de vestiaire : {player} a mal vécu son recadrage",
     "dressingDown": "Il a filtré que {player} a été convoqué par l'entraîneur au sujet de sa forme récente - et qu'il ne l'a pas bien pris. Ses coéquipiers disent qu'il s'est entraîné seul mardi.",
     "boardPushedSubj": "AVERTISSEMENT FORMEL : la réponse du conseil est maintenue",
-    "boardPushed": "On vous a donné une décision et vous êtes revenu frapper à la porte malgré tout. Le conseil y voit un défi à son autorité, et l'écrit noir sur blanc : la réponse n'a pas changé, la confiance en votre jugement est sérieusement entamée, et la prochaine répétition de cette conversation sera la dernière au club.",
+    "boardPushed": "On vous a donné une décision et vous êtes revenu frapper à la porte malgré tout. Le conseil y voit un défi à son autorité, et l'écrit noir sur blanc : la réponse n'a pas changé, la confiance en votre jugement est sérieusement entamée, et chaque répétition de cette conversation vous en coûtera davantage.",
     "sackedPushedSubj": "LICENCIÉ : {club} se sépare de {manager}",
     "sackedPushed": "Averti par écrit, et de retour à la porte du conseil dans le mois quand même. Le conseil a décidé que le club avait besoin d'un entraîneur capable d'entendre un non. {era} Votre réputation vous suit. Et l'histoire de cette fin aussi.",
     "dreamRefocusSubj": "Le rêve est réalisé",
@@ -7303,7 +7303,8 @@
       "one": "Le consultant du sponsor a trouvé un chemin plus court pour {player} : retour avec une semaine d'avance.",
       "other": "Le consultant du sponsor a trouvé un chemin plus court pour {player} : retour avec {n} semaines d'avance."
     },
-    "boardPushedWarn": "Le silence se fait. « Nous vous avons donné notre réponse. » Un avertissement formel suit dans l'heure, et le respect du conseil à votre égard est réduit de moitié. Insistez encore et vous viderez votre bureau.",
+    "boardPushedAgain": "La réponse est toujours non. Chaque fois que vous insistez, le conseil a un peu moins confiance en votre jugement.",
+    "boardPushedWarn": "Le silence se fait. « Nous vous avons donné notre réponse. » Un avertissement formel suit dans l'heure, et le respect du conseil à votre égard est réduit de moitié. Insistez encore et cela vous coûtera davantage.",
     "boardPushedSacked": "Vous avez demandé une fois de trop. Le président se lève, tend une poignée de main que personne ne pense, et le communiqué du club sort avant que vous n'atteigniez le parking.",
     "notHomeBased": "{player} joue en club à l'étranger. {nat} ne sélectionne que dans son propre championnat, il devrait d'abord rentrer.",
     "wontDropDown": "{club} acceptent votre offre, mais {name} ne descendra pas si bas. Seul un joueur malheureux, un joueur que son club pousse dehors ou un mercenaire parle à un club aussi petit.",

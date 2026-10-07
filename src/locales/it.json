@@ -6121,7 +6121,7 @@
   "dressingDownSubj": "Voci di spogliatoio: {player} scontento dopo la strigliata",
   "dressingDown": "È trapelato che {player} è stato convocato dall'allenatore per la sua forma recente - e non l'ha presa bene. I compagni raccontano che martedì si è allenato per conto suo.",
   "boardPushedSubj": "RICHIAMO FORMALE: la risposta del consiglio non cambia",
-  "boardPushed": "Ti era stata data una decisione e sei tornato a bussare comunque. Il consiglio la considera una sfida alla propria autorità, e lo mette per iscritto: la risposta non è cambiata, la fiducia nel tuo giudizio è gravemente incrinata, e la prossima replica di questa conversazione sarà la tua ultima al club.",
+  "boardPushed": "Ti era stata data una decisione e sei tornato a bussare comunque. Il consiglio la considera una sfida alla propria autorità, e lo mette per iscritto: la risposta non è cambiata, la fiducia nel tuo giudizio è gravemente incrinata, e ogni replica di questa conversazione ti costerà di più.",
   "sackedPushedSubj": "ESONERATO: il {club} saluta {manager}",
   "sackedPushed": "Richiamato per iscritto, e di nuovo alla porta del consiglio nel giro di un mese. Il consiglio ha deciso che al club serviva un allenatore capace di sentirsi dire di no. {era} La tua reputazione viaggia con te. E con lei la storia di com'è finita.",
   "dreamRefocusSubj": "Il sogno è realtà",
@@ -7182,7 +7182,8 @@
    "one": "Il consulente dello sponsor ha trovato una scorciatoia per {player}: rientro con una settimana d'anticipo.",
    "other": "Il consulente dello sponsor ha trovato una scorciatoia per {player}: rientro con {n} settimane d'anticipo."
   },
-  "boardPushedWarn": "La stanza si gela. «Ti abbiamo già dato la nostra risposta.» Entro un'ora arriva un richiamo formale, e il rispetto del consiglio nei tuoi confronti si dimezza. Chiedi ancora e ti toccherà svuotare la scrivania.",
+  "boardPushedAgain": "La risposta è sempre no. Ogni volta che insisti, il consiglio si fida un po' meno del tuo giudizio.",
+  "boardPushedWarn": "La stanza si gela. «Ti abbiamo già dato la nostra risposta.» Entro un'ora arriva un richiamo formale, e il rispetto del consiglio nei tuoi confronti si dimezza. Chiedi ancora e ti costerà di più.",
   "boardPushedSacked": "Hai chiesto una volta di troppo. Il presidente si alza, offre una stretta di mano a cui non crede nessuno, e il comunicato del club esce prima che tu arrivi al parcheggio.",
   "notHomeBased": "{player} gioca il suo rugby di club all'estero. {nat} convoca solo dal proprio campionato, dovrebbe prima tornare a casa.",
   "wontDropDown": "{club} accetta la tua offerta, ma {name} non scenderà così in basso. Solo un giocatore scontento, uno che il suo club sta spingendo fuori, o un mercenario tratta con un club tanto più piccolo.",

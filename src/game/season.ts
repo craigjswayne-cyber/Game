@@ -124,9 +124,13 @@ function pressBoard(state: GameState, kind: 'capital' | 'funds' | 'time' | 'staf
     })
     return t('reply.boardPushedWarn')
   }
-  logDecision(state, 'dec.boardPushedOut', {}, false)
-  sackManager(state, 'news.sackedPushed')
-  return t('reply.boardPushedSacked')
+  // GOODWILL, NOT THE JOB (1.8.14). The second ask after a refusal used to be
+  // a sacking on the spot, and it took a manager top of the table with it.
+  // Each further ask now costs a quarter of what confidence is left; a board
+  // pushed far enough sacks the usual way, on its confidence.
+  club.boardConfidence = clamp(Math.round(club.boardConfidence * 0.75), 0, 100)
+  logDecision(state, 'dec.boardPushed', {}, false)
+  return t('reply.boardPushedAgain')
 }
 
 /** Facility upgrades go through the boardroom (8-batch feedback): the board
@@ -3806,7 +3810,12 @@ export function processWeekAndAdvance(state: GameState) {
     // warnings above still go out, so he can feel the clock.
     state.boardFloorWeeks = club.boardConfidence <= 3 ? (state.boardFloorWeeks ?? 0) + 1 : 0
     const honeymoon = (state.tenureStart ?? -1) === state.season && state.week < honeymoonEnd(club.rep)
-    if (club.boardConfidence <= 3 && state.week > 8 && !reprieved && !honeymoon && state.boardFloorWeeks >= 3) {
+    // SILVERWARE BUYS TIME (1.8.14). A manager who had won the club two titles
+    // was sacked inside one mid-season slump, on the same three weeks as a man
+    // who had won nothing. Each trophy at this club in the last two seasons
+    // adds three weeks to how long the board's confidence must sit on the floor.
+    const silver = Math.min(2, (state.mgr?.trophies ?? []).filter(x => x.clubId === club.id && x.season >= state.season - 1).length)
+    if (club.boardConfidence <= 3 && state.week > 8 && !reprieved && !honeymoon && state.boardFloorWeeks >= 3 + 3 * silver) {
       // the mechanics live in sackManager (jobs.ts) - shared with the
       // pushed-once-too-often dismissal of the board-request escalation
       sackManager(state, 'news.sacked')
