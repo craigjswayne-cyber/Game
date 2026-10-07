@@ -152,6 +152,14 @@ export function askingPrice(state: GameState, p: Player): number {
     .map(q => q.ca).sort((a, b) => b - a)
   const isKey = p.ca >= (squadCa[7] ?? 70) // top-8 player at the club
   if (isKey && !p.transferListed) f = 1.7
+  // SURPLUS IS PRICED AS SURPLUS (1.8.14). A club's 28th man cost 1.15 times his
+  // value, the same as a regular starter, so a mid-table club with £2-3M found
+  // about one man a window it could afford who would walk into its side, and a
+  // "moneyball" approach had nothing to buy. Outside his club's best 23 he is
+  // offered at 0.8 of his value, and outside its best 30 at 0.65 - the men a
+  // big squad carries and would rather have off the wage bill.
+  else if (!p.transferListed && p.ca < (squadCa[29] ?? -1)) f = 0.65
+  else if (!p.transferListed && p.ca < (squadCa[22] ?? -1)) f = 0.8
   // an unsettled man is cheaper (recruit.ts unsettledFee): up to 15% off for
   // one who has asked to leave or whose mood has gone, graded rather than the
   // old single step at morale 3.5
@@ -405,6 +413,11 @@ export function aiShoppingTarget(state: GameState, buyer: Club): { intent: Retur
   const targets = Object.values(state.players).filter(p =>
     p.clubId && p.clubId !== buyer.id && p.clubId !== state.userClubId &&
     p.pos === need && p.ca >= (intent === 'allin' ? 76 : 70) && !p.onLoan && !p.loanFrom &&
+    // (1.8.14) nobody pays a fee for a man whose deal runs out this season and
+    // who has already agreed to join somebody else - once surplus was priced
+    // as surplus, AI clubs began buying exactly those men and voiding the
+    // manager's pre-contracts in the last week of the season
+    !(state.preContracts ?? []).some(pc => pc.playerId === p.id) &&
     (intent === 'rebuild' ? p.age <= 25 : true) &&
     (state.clubs[p.clubId]?.rep ?? 99) <= buyer.rep + 6 &&
     askingPrice(state, p) <= buyer.budget)
@@ -450,6 +463,7 @@ export function aiTransfers(state: GameState, rng: Rng) {
     const targets = Object.values(state.players).filter(p =>
       p.clubId && p.clubId !== buyer.id && p.clubId !== state.userClubId &&
       !p.loanFrom && !p.retiring && (p.transferListed || p.morale < 4 || p.contractEnds <= state.season) &&
+      !(state.preContracts ?? []).some(pc => pc.playerId === p.id) && // (1.8.14, as above)
       p.ca >= 62 && p.ca <= buyer.rep + 12 && askingPrice(state, p) <= buyer.budget)
     if (!targets.length) continue
     const p = pick(rng, targets)

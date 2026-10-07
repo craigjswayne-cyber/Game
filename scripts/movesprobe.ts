@@ -34,7 +34,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { newGame } from '../src/game/newgame'
 import { beginMatch, lineupFor, playHalf, resolveDecision, simMatch, stepTick } from '../src/game/matchEngine'
 import { mulberry32 } from '../src/game/rng'
-import type { Club, GameState } from '../src/game/model'
+import type { Club, Fixture, GameState } from '../src/game/model'
 import { tIn } from '../src/game/i18n'
 import { processWeekAndAdvance, userFixtureThisWeek, weekRng } from '../src/game/season'
 import {
@@ -441,21 +441,28 @@ console.log('\n--- 6. old saves\n')
 // ------------------------------------------------------------------ 7
 console.log('\n--- 7. the league still plays rugby\n')
 {
-  // one of bandcheck's worlds, a season with every AI club calling moves:
-  // the bands are bandcheck's own (it asserts them over four worlds pooled;
-  // one world is noisier, so this is a tripwire, not the measurement)
-  const g = newGame('toulouse', 'Moves Bands', 777)
-  while (g.week < 36) {
-    const fx = userFixtureThisWeek(g)
-    if (fx) simMatch(g, fx, weekRng(g), false)
-    processWeekAndAdvance(g)
+  // two of bandcheck's worlds, a season each with every AI club calling
+  // moves: the bands are bandcheck's own (it asserts them over four worlds
+  // pooled; fewer worlds are noisier, so this is a tripwire, not the
+  // measurement). One world until 1.8.14, when seed 777 alone read 50.9% home
+  // wins against a floor of 51 while 778-780 read 53.1-53.3: a single world's
+  // home rate swings about two points, so two are pooled.
+  const played: Fixture[] = []
+  let named = 0
+  for (const seed of [777, 778]) {
+    const g = newGame('toulouse', 'Moves Bands', seed)
+    while (g.week < 36) {
+      const fx = userFixtureThisWeek(g)
+      if (fx) simMatch(g, fx, weekRng(g), false)
+      processWeekAndAdvance(g)
+    }
+    played.push(...g.fixtures.filter(f => f.played && g.comps[f.compId]?.type === 'league'))
+    named = Math.max(named, Object.values(g.clubs).filter(c => Object.keys(playbookOf(c).drilled).some(k => k.startsWith('mv_'))).length)
   }
-  const played = g.fixtures.filter(f => f.played && g.comps[f.compId]?.type === 'league')
   const n = played.length
   const pts = played.reduce((a, f) => a + f.homeScore + f.awayScore, 0) / n
   const tries = played.reduce((a, f) => a + f.homeTries + f.awayTries, 0) / n
   const home = played.filter(f => f.homeScore > f.awayScore).length / n
-  const named = Object.values(g.clubs).filter(c => Object.keys(playbookOf(c).drilled).some(k => k.startsWith('mv_'))).length
   console.log(`  ${n} league games: ${pts.toFixed(1)} pts, ${tries.toFixed(2)} tries, ${(home * 100).toFixed(1)}% home wins; ${named} clubs drilled moves`)
   ok(pts >= 48 && pts <= 53 && tries >= 6.0 && tries <= 6.6 && home >= 0.51 && home <= 0.57, 'points, tries and home advantage inside bandcheck\'s bands')
 }

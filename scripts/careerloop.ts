@@ -60,6 +60,10 @@ const coachless = (g: GameState) => Object.values(g.clubs).filter(c =>
 console.log('--- 1. the summer')
 {
   const g = newGame('leicester', 'Probe', 777)
+  // this summer is about the sheet, not the board: from 1.8.14 a manager who
+  // does nothing at Leicester is usually sacked in his first season (6 of 8
+  // seeds), and this one was, in week 31. The board is held off for the run.
+  g.boardGrace = 999_999
   runTo(g, 0, 44)
   // the manager's own sheet: the auto-pick's with two bench shirts swapped, so
   // it is his and not a sheet the rollover could have written by itself

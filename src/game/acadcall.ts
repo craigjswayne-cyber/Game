@@ -32,7 +32,7 @@
  */
 import type { Club, GameState, Player, PressItem, PressOption } from './model'
 import { LEDGER_WEEKS, fmtMoney, logDecision } from './model'
-import { playerWage } from './attributes'
+import { firstProWage, playerWage } from './attributes'
 import { tIn, type Vars } from './i18n'
 import { OFFICE_OUTLET } from './media'
 import { planAcademyLoan } from './room'
@@ -191,7 +191,7 @@ export function resolveAcadCall(state: GameState, item: PressItem, opt: PressOpt
     p.homegrown = true
     p.gradClub ??= club.id
     p.gradS ??= state.season
-    p.wage = opt.acadWage ?? playerWage(p.ca, p.age)
+    p.wage = opt.acadWage ?? firstProWage(p.ca, p.age)
     armDebut(p)
     p.morale = Math.min(10, p.morale + 0.5)
     logDecision(state, 'dec.acadPromoted', { player: p.name }, true)

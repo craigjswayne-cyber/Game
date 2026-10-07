@@ -38,6 +38,10 @@ club.boardConfidence = 85
 let built = 0
 for (let i = 0; i < 6; i++) {
   club.balance = 30_000_000
+  // (this is the building ladder, not the results: an idle manager's board
+  // cools over the 36 weeks the probe runs, and 1.8.14's balance round made
+  // a stranger's first season harder, so the faith is held where it started)
+  club.boardConfidence = 85
   g.facilityAskCooldown = 0
   const msg = requestFacility(g, 'shop')
   if (!g.facilityBuild) { console.log(`  shop stopped at level ${club.facilities?.shop}: ${msg}`); break }
@@ -162,11 +166,15 @@ if (sc.capacity < cap0) bad('capacity went backwards')
     bad(`the warning did not halve respect (${confAfterDenial} -> ${ec.boardConfidence})`)
   }
   if (!e.news.some(n => n.k === 'news.boardPushed')) bad('no formal warning letter landed')
-  const out = requestFacility(e, 'shop') // past the warning: the sack
-  console.log(`pushed twice: ${out.slice(0, 60)}...`)
-  if (!e.unemployed) bad('pushing past the warning did not cost the job')
-  if (!e.news.some(n => n.k === 'news.sackedPushed')) bad('the dismissal letter is missing')
-  if (!e.vacancies.some(v => v.clubId === ec.id)) bad('the sacking opened no vacancy')
+  // GOODWILL, NOT THE JOB (1.8.14, owner's balance round): past the warning
+  // each further ask takes a quarter of the confidence left, and the job is
+  // lost only the usual way, on the board's confidence
+  const c1 = ec.boardConfidence
+  const out = requestFacility(e, 'shop')
+  console.log(`pushed twice: ${c1} -> ${ec.boardConfidence} | ${out.slice(0, 60)}...`)
+  if (e.unemployed) bad('pushing past the warning cost the job (it costs goodwill now)')
+  if (ec.boardConfidence !== Math.round(c1 * 0.75)) bad(`pushing past the warning did not cost a quarter of the confidence (${c1} -> ${ec.boardConfidence})`)
+  if (e.facilityBuild) bad('pushing past the warning got the project approved')
 }
 
 // 6. the funds ask, engine-owned (it was an untyped flag on the save): once
@@ -197,9 +205,11 @@ if (sc.capacity < cap0) bad('capacity went backwards')
   requestFunds(n) // strike one
   if (n.unemployed) bad('first funds push sacked instead of warning')
   if (nc.boardConfidence !== Math.round(c0 * 0.5)) bad(`funds warning did not halve respect (${c0} -> ${nc.boardConfidence})`)
-  requestFunds(n) // strike two
-  if (!n.unemployed) bad('pushing the funds door past its warning did not cost the job')
-  console.log(`funds, denied then pushed twice: sacked as promised`)
+  const c2 = nc.boardConfidence
+  requestFunds(n) // strike two: goodwill, not the job (1.8.14)
+  if (n.unemployed) bad('pushing the funds door past its warning cost the job')
+  if (nc.boardConfidence !== Math.round(c2 * 0.75)) bad(`the funds door past its warning did not cost a quarter of the confidence (${c2} -> ${nc.boardConfidence})`)
+  console.log(`funds, denied then pushed twice: ${c0} -> ${c2} -> ${nc.boardConfidence}, still in a job`)
 }
 
 if (fails) { console.error(`ESTATE PROBE: ${fails} failures`); process.exit(1) }

@@ -47,7 +47,22 @@ export interface Standing {
   familiarity: number
   /** multiplier on team-talk effect distance (0.3 at full bite) */
   talk: number
+  /** ON THE PITCH TOO (1.8.14). Multiplier on the side's attack, defence and
+   *  breakdown: how much of the plan a room that has not bought in actually
+   *  carries out. 1 - EXEC_BITE at full bite, 1 once the room is won. */
+  execution: number
 }
+
+/** THE ROOKIE'S PRICE (1.8.14, owner's balance brief: "an inexperienced
+ *  manager taking over an elite club should NOT automatically win the
+ *  league"). Measured before it: a new manager at the four best clubs won the
+ *  title 21 times in 48 first seasons and played exactly as well as one with
+ *  the Manager's License, because the room's doubts reached drilling and team
+ *  talks and never the pitch. At full bite (an unknown in front of a squad of
+ *  internationals, trust not yet earned) the side carries out the plan 7%
+ *  worse; it eases as results lift his reputation and the room buys in, and a
+ *  room of his own level never feels it. Deterministic: no draw from any rng. */
+export const EXEC_BITE = 0.07
 
 /** Where the manager stands with this squad. Trust is earned HERE; standing
  *  is brought here - a manager can be out of his depth on paper and still
@@ -66,10 +81,18 @@ export function standing(state: GameState): Standing {
   // rather than quietly breaking it.
   const earned = squadTrust(state) / 100
   const bite = strain * (1 - earned)
+  // on the pitch the room's doubts lift more slowly than they do in the
+  // meeting room: half-won trust cancels about a third of them, not half
+  // and on the pitch it is a big room's problem: a squad of internationals
+  // tests a stranger, a mid-table squad gives him the benefit of the doubt
+  // (none below a profile of 50, all of it from 75 - Toulouse and Leinster)
+  const elite = clamp((profile - 50) / 25, 0, 1)
+  const execBite = strain * (1 - earned ** 1.5) * elite
   return {
     rep, profile, gap, bite,
     familiarity: 1 - bite * 0.5,
     talk: 1 - bite * 0.7,
+    execution: 1 - execBite * EXEC_BITE,
   }
 }
 

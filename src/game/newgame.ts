@@ -1,3 +1,4 @@
+import { softCeilings } from './ageing'
 import type { RawClub, RawPlayer } from '../data/types'
 import { migrateStyles } from './styles'
 import { refreshCaps } from './cap'
@@ -857,6 +858,8 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   const firstStory = state.news.reduce((m, n) => Math.min(m, n.id), state.nextId)
   state.newsFrom = firstStory
 
+  // the world class stays rare: ceilings above 88 softened once (ageing.ts)
+  softCeilings(state)
   // the id counter travels with the save from here (GameState.pidNext, 1.6.4)
   state.pidNext = peekPid()
   return state

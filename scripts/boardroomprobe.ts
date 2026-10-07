@@ -146,8 +146,9 @@ const askOf = (g: GameState, id: typeof BOARD_ASKS[number]) => boardRequests(g).
   askTheBoard(g, 'staff')                       // strike one: the warning
   ok(club.boardConfidence < conf0, `pressing it dents the board's faith (${conf0} -> ${club.boardConfidence})`)
   ok(!g.unemployed, 'but does not cost the job on its own')
-  askTheBoard(g, 'staff')                       // strike two
-  ok(g.unemployed, 'pressing it again after the warning does')
+  const conf1 = club.boardConfidence
+  askTheBoard(g, 'staff')                       // strike two: goodwill, not the job (1.8.14)
+  ok(!g.unemployed && club.boardConfidence < conf1, `pressing it again after the warning costs more faith, not the job (${conf1} -> ${club.boardConfidence})`)
 }
 
 // ---- 8. every story the room files reads as words, in every language ----

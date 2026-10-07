@@ -35,7 +35,7 @@
  * Run: npx vite-node scripts/injurysubprobe.ts
  */
 import { newGame } from '../src/game/newgame'
-import { beginMatch, isFrontRower, makeSubstitution, stepTick, swapInjuryCover, type LiveCtx, type SideCtx } from '../src/game/matchEngine'
+import { beginMatch, isFrontRower, makeSubstitution, resolveDecision, stepTick, swapInjuryCover, type LiveCtx, type SideCtx } from '../src/game/matchEngine'
 import { mulberry32 } from '../src/game/rng'
 import { t } from '../src/game/i18n'
 import type { GameState, Player } from '../src/game/model'
@@ -186,7 +186,16 @@ console.log('--- 3. the front row is the one shirt with a rule on it')
       ok(bare.stop.mine.onPitch.has(other.id), `the manager can still send anybody on instead (${other.pos})`)
     }
     // and the match goes on to full time
-    while (bare.stop.ctx.tick < 20) { bare.stop.ctx.awaiting = null; bare.stop.ctx.decision = null; stepTick(bare.stop.g, bare.stop.ctx) }
+    // (to the whistle, not to tick 20: a stoppage can fall on the last tick
+    // and the final step after it is what blows full time - 1.8.14's extra
+    // knocks put one there)
+    // (a penalty call is answered the way the touchline panel answers it, so a
+    // whistle held for a last-minute kick is blown by the kick)
+    for (let n = 0; n < 200 && bare.stop.ctx.seg !== 3; n++) {
+      bare.stop.ctx.awaiting = null
+      if (bare.stop.ctx.decision) { resolveDecision(bare.stop.g, bare.stop.ctx, 'posts'); continue }
+      stepTick(bare.stop.g, bare.stop.ctx)
+    }
     ok(bare.stop.ctx.seg === 3, 'the match reaches full time')
   }
 }
