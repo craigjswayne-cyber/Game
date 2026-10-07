@@ -12,10 +12,10 @@ Read with: `BRAND.md` (look and voice), `FACTS.md` (what copy may claim),
 
 | | Count |
 |---|---|
-| Required assets | 95 |
-| ✅ Done | 68 |
-| ⛔ Blocked | 18 |
-| ⬜ Not started | 9 |
+| Required assets | 96 |
+| ✅ Done | 77 |
+| ⛔ Blocked | 7 |
+| ⬜ Not started | 12 |
 | In progress | 0 (nothing is left half-made) |
 
 Counts are rows in the tables below; one row may be one file or one set (for
@@ -30,7 +30,9 @@ node scripts/launch/capture.mjs               # phone captures (and VIEW=1032x13
 node scripts/launch/storeframes.mjs           # store screenshots, all sizes
 node scripts/launch/brandkit.mjs              # icons, avatars, lockups, headers, feature graphic, OG, thumbnail
 node scripts/launch/social.mjs                # social templates and launch graphics
-node scripts/launch/trailer.mjs               # animatics, cards, captions (10 min)
+node scripts/launch/trailer.mjs               # animatics and cards (10 min)
+node scripts/launch/motion.mjs                # real trailer footage from the build (25 min, plays a match)
+node scripts/launch/cut.mjs                   # final trailer masters: footage, score, sound, captions (30 min)
 bash scripts/launch/presskit.sh               # press kit zip and press page files
 node scripts/launch/release.mjs changelog landing/changelog.html
 ```
@@ -77,7 +79,7 @@ thumbnail test (headline readable at a quarter size).
 | STO-L04 | Paste the new copy and frames into Play Console | Google Play | | | ⬜ | O | STO-01 to 08, STO-L01, STO-FG | Play Console |
 | STO-L10 | French listing corrected to match | Both | | | ⬜ | C | `docs/store-listing.md` French section | `02-store/STORE-COPY.md` |
 | STO-L11 | French screenshots | Both | | | ⬜ | C | `LANG_UI=fr` capture + French headlines | `02-store/final/*-fr/` (P2) |
-| STO-V01 | Play promo video (YouTube URL) | Google Play | 16:9 | | ⛔ | O+C | Blocked on VID-01 | YouTube |
+| STO-V01 | Play promo video (YouTube URL) | Google Play | 16:9 | | ⬜ | O | Upload `phase-trailer-30s-16x9.mp4` to YouTube, paste the URL | YouTube |
 | STO-V02 | App preview | App Store | 886 x 1920, 15 to 30 s | | ⛔ | O+C | Blocked on device capture and iOS | |
 
 Note: Play's "games" promotion slot wants landscape 1920 x 1080 shots. PHASE is
@@ -97,13 +99,14 @@ edit, exported per the spec table.
 | VID-CRD | Title and end cards, 4 ratios | All | | | ✅ | C | `trailer.mjs` | `03-trailer/final/cards/` |
 | VID-CAP | Caption files (SRT) per cut | YouTube, accessibility | | | ✅ | C | `trailer.mjs` | `03-trailer/final/captions/` |
 | VID-THB | YouTube thumbnail | YouTube | 1280 x 720 | THE WORLD REMEMBERS. | ✅ | C | `brandkit.mjs` | `03-trailer/final/youtube-thumbnail-1280x720.png` |
-| VID-MUS | Music, licensed and recorded | All cuts | | | ⛔ | O | Owner to licence | `10-source/music/` + table in TRAILER.md |
-| VID-CAPT | Device capture session (10 beats) | All cuts | | | ⛔ | O | Capture list in TRAILER.md; save in `10-source/saves/` | `03-trailer/source/` |
-| VID-01 | 60 s master, 4 ratios | YouTube, website | 1920 x 1080 etc. | | ⛔ | C | VID-MUS, VID-CAPT | `03-trailer/final/` |
-| VID-02 | 30 s cut, 4 ratios | Play promo, social | | | ⛔ | C | Same | `03-trailer/final/` |
-| VID-03 | 15 s cut, 4 ratios | Social | | | ⛔ | C | Same | `03-trailer/final/` |
-| VID-04 | 6 s teaser, 4 ratios | Social bumper | | | ⛔ | C | Same | `03-trailer/final/` |
-| VID-SFX | Sound design pass | All cuts | | | ⬜ | C | After VID-01; licensed library | `10-source/sfx/` |
+| VID-MUS | Original score, composed in code (no licence needed) | All cuts | | | ✅ | C | `scripts/launch/score.py` | Mixed into VID-01 to 04; record in TRAILER.md |
+| VID-CAPT | Real footage, 11 beats, recorded from the 1.8.11 build | All cuts | 800 x 1736, 30 fps | | ✅ | C | `scripts/launch/motion.mjs` | `storeart/motion/` (regenerated) |
+| VID-01 | 60 s master, 4 ratios | YouTube, website | 1920 x 1080 etc. | | ✅ | C | `scripts/launch/cut.mjs` | `03-trailer/final/phase-trailer-60s-*.mp4` |
+| VID-02 | 30 s cut, 4 ratios | Play promo, social | | | ✅ | C | Same | `03-trailer/final/phase-trailer-30s-*.mp4` |
+| VID-03 | 15 s cut, 4 ratios | Social | | | ✅ | C | Same | `03-trailer/final/phase-trailer-15s-*.mp4` |
+| VID-04 | 6 s teaser, 4 ratios | Social bumper | | | ✅ | C | Same | `03-trailer/final/phase-trailer-6s-*.mp4` |
+| VID-SFX | Sound design: the game's own whistle and thud, taps, crowd, page | All cuts | | | ✅ | C | `scripts/launch/score.py` | Mixed into VID-01 to 04 |
+| VID-EAR | Owner listens to the score and signs it off (Claude cannot hear audio) | All cuts | | | ⬜ | O | | |
 | VID-BDG | Official Google Play badge on end card | End card | | | ⛔ | O | Owner downloads Google's badge artwork (blocked from here) | `03-trailer/source/` |
 
 ## 04 Social
@@ -133,7 +136,7 @@ DoD: real screen or game quote, rendered in all listed formats, copy checked aga
 | SOC-HD | Headers: YouTube 2560 x 1440, X 1500 x 500, Facebook 1640 x 624 | Social | | THE WORLD REMEMBERS WHAT YOU DID. | ✅ | C | `brandkit.mjs` | `04-social/final/headers/` |
 | SOC-CP | 30-post copy bank | All | | 6 pillars × 5 | ✅ | C | FACTS.md | `04-social/SOCIAL-BANK.md` |
 | SOC-VB | 15 short-video briefs | TikTok, Reels, Shorts | 9:16 | Hooks, captions, CTAs | ✅ | C | | `04-social/SOCIAL-BANK.md` |
-| SOC-VID | 15 short videos produced | TikTok, Reels, Shorts | 9:16 | | ⛔ | C | Blocked on VID-CAPT (4 could be cut from stills now) | `04-social/final/video/` |
+| SOC-VID | 15 short videos produced | TikTok, Reels, Shorts | 9:16 | | ⬜ | C | Footage now exists (`motion.mjs`); not yet cut | `04-social/final/video/` |
 | SOC-ACC | Accounts created with avatars and headers | All | | | ⬜ | O | SOC-AV, SOC-HD | Platforms |
 | SOC-S5 | Real "former player scores against you" capture | All | | | ⬜ | C | A showcase career that produces the story | `10-source/captures/` |
 
@@ -151,7 +154,7 @@ off-site, passes `scripts/landingprobe.ts`, no horizontal scroll at 390 px.
 | WEB-05 | Share image (Open Graph) | ✅ | C | `brandkit.mjs` | `landing/img/og.jpg`, `05-website/final/og-image-1200x630.png` |
 | WEB-06 | Favicons and touch icon | ✅ | C | BRD-04 | `05-website/final/` |
 | WEB-07 | Terms of use | ⛔ | O | Draft for legal review: `05-website/working/terms-DRAFT.md` | `landing/terms.html` after approval |
-| WEB-08 | Trailer on the homepage | ⛔ | C | VID-01 | `landing/index.html` |
+| WEB-08 | Trailer on the homepage | ⬜ | C | Needs the YouTube URL (no script tags allowed, so a linked thumbnail) | `landing/index.html` |
 | WEB-09 | App Store badge live | ⛔ | O+C | iOS approval | `landing/index.html` |
 | WEB-10 | Point the store "Support URL" at /support.html | ⬜ | O | WEB-02 deployed | Play Console, App Store Connect |
 
@@ -167,7 +170,7 @@ store buttons); Contact is on the support page. Privacy is the existing
 | PRS-02 | Downloadable press pack (logos, icon, 8 frames, 8 screens, key art, GIF, facts) | ✅ | C | `landing/press/phase-press-kit.zip` |
 | PRS-03 | Usage guidance, credits, Ruck attribution | ✅ | C | `PRESS-KIT.md`, press page |
 | PRS-04 | Developer bio | ⛔ | O | Owner's own words: `PRESS-KIT.md` |
-| PRS-05 | Trailer and gameplay clips in the pack | ⛔ | C | After VID-01 |
+| PRS-05 | Trailer in the press pack | ✅ | C | Link in `PRESS-KIT.md`; file too large for the zip |
 
 ## 07 Discord
 
@@ -208,4 +211,4 @@ store buttons); Contact is on the support page. Privacy is the existing
 | SRC-02 | Importable showcase saves (verified through Saves > Import) | ✅ | C | `10-source/saves/showcase-saves.zip` |
 | SRC-03 | Raw captures: phone, phone "Bigger" text, iPad, iPad "Bigger" text | ✅ | C | `10-source/captures/` |
 | SRC-04 | Capture, compose and build scripts | ✅ | C | `scripts/launch/` |
-| SRC-05 | Music and SFX licences on file | ⛔ | O | `10-source/music/`, `10-source/sfx/` |
+| SRC-05 | Music and SFX provenance recorded (original, no licences needed) | ✅ | C | `03-trailer/TRAILER.md` |

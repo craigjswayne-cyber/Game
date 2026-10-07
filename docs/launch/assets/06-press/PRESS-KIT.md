@@ -51,8 +51,7 @@ Download: `landing/press/phase-press-kit.zip` (built by `scripts/launch/presskit
 | `gif/` | A short loop of the "Word kept" beat |
 | `FACTS.txt` | This fact sheet and the descriptions |
 
-Trailer: not in the pack until the final cut exists (see 03-trailer). Gameplay
-clips: after the device capture session.
+Trailer: `03-trailer/final/phase-trailer-60s-16x9.mp4` (and the 30s, 15s and 6s cuts). Too large for the zip; send the YouTube link once it is uploaded, or the file on request.
 
 ## Permitted use
 
