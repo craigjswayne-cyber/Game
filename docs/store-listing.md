@@ -150,6 +150,28 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.8.14, Play version code 53
+
+Each entry is under 500 characters. Paste the matching language into each Play locale.
+
+**en-GB**
+A balance update from a full difficulty test. A new manager at a big club must now win the dressing room before it plays for him, so a first title has to be earned. Slow, kicking rugby is a real trade, tired legs weigh less, the world's elite stay rare over long careers, plans must suit your squad, smaller top-flight clubs can pay their way, boards weigh trophies before sacking, and cup ties give the underdog a better chance.
+
+**fr-FR**
+Mise à jour d'équilibre issue d'un test complet de difficulté. Un nouvel entraîneur dans un grand club doit d'abord gagner le vestiaire : le premier titre se mérite. Le jeu lent au pied devient un vrai compromis, la fatigue pèse moins, l'élite mondiale reste rare sur une longue carrière, le plan doit convenir à l'effectif, les petits clubs de l'élite équilibrent leurs comptes, la direction pèse les trophées avant de limoger, et les matchs de coupe sourient davantage aux outsiders.
+
+**es-ES**
+Actualización de equilibrio tras una prueba completa de dificultad. Un entrenador nuevo en un club grande debe ganarse antes el vestuario: el primer título hay que merecerlo. El juego lento y al pie es un verdadero sacrificio, el cansancio pesa menos, la élite mundial sigue siendo escasa en carreras largas, el plan debe encajar con la plantilla, los clubes pequeños de la élite cuadran sus cuentas, la junta valora los títulos antes de destituir y los cruces de copa dan más opciones al débil.
+
+**it-IT**
+Aggiornamento di bilanciamento dopo un test completo di difficoltà. Un nuovo allenatore in un grande club deve prima conquistare lo spogliatoio: il primo titolo va guadagnato. Il gioco lento al piede è un vero compromesso, la stanchezza pesa meno, l'élite mondiale resta rara nelle lunghe carriere, il piano deve adattarsi alla rosa, i piccoli club della massima serie fanno quadrare i conti, la dirigenza pesa i trofei prima di esonerare e le sfide di coppa danno più possibilità agli sfavoriti.
+
+**ja-JP**
+難易度テストに基づくバランス調整。ビッグクラブの新監督は、まずロッカールームの信頼を勝ち取らなければチームが動かず、初タイトルは努力で勝ち取るものに。遅いキック主体のラグビーは代償を伴い、疲労の影響は軽減。長いキャリアでも世界のトップ選手は希少なまま。戦術はチームに合わせる必要があり、トップリーグの小規模クラブも収支が合うように。取締役会は解任前にタイトルを考慮し、カップ戦では格下にチャンスが広がります。
+
+**af**
+'n Balansopdatering ná 'n volledige moeilikheidstoets. 'n Nuwe afrigter by 'n groot klub moet nou eers die kleedkamer wen voordat die span vir hom speel, so 'n eerste titel moet verdien word. Stadige skoprugby is 'n regte afweging, moegheid weeg minder, die wêreld se beste bly skaars oor lang loopbane, die plan moet by jou groep pas, kleiner klubs in die hoogste liga kan hul rekeninge betaal, direksies weeg trofeë voor 'n afdanking, en bekerwedstryde gee die underdog 'n beter kans.
+
 ### What's new (500 max) - v1.8.13, Play version code 52
 
 Each entry is under 500 characters. Paste the matching language into each Play locale.
