@@ -258,7 +258,19 @@ export function buildClip(events: MatchEvent[], m: number, kind: ClipKind, homeI
     const good = e.type === 'PEN' || e.type === 'DG' || e.type === 'CON'
     const drop = e.type === 'DG' || /^comm\.dropMiss\d/.test(e.k ?? '')
     const u = e.type === 'CON' ? 85 : Math.max(58, Math.min(drop ? 80 : 90, up(e.fld ?? 72)))
-    const y = e.type === 'CON' ? 12 + hash(m) * 46 : 16 + hash(m) * 38
+    // A CONVERSION IS TAKEN IN LINE WITH THE TRY (owner, 1.8.12: a maul try
+    // in the corner had its kick drawn in front of the posts). The try's own
+    // clip is worked out the same way the try was shown, and the kick goes
+    // from across the field where it was grounded, a few metres in from touch.
+    let y = e.type === 'CON' ? 12 + hash(m) * 46 : 16 + hash(m) * 38
+    if (e.type === 'CON' || e.k === 'comm.conWide') {
+      let ti = m - 1
+      while (ti >= 0 && !(events[ti].type === 'TRY' && events[ti].teamId === e.teamId)) ti--
+      if (ti >= 0 && m - ti <= 3) {
+        const tryClip = buildClip(events, ti, 'try', homeId, shirtOf, colours, labels, nameOf, paceOf, tacticOf)
+        y = Math.max(5, Math.min(65, tryClip.finish.y))
+      }
+    }
     return {
       kind, style: 'phases', attackHome, beats: [], finish: { x: toX(u), y, carrier: shirtOf(e.playerId) ?? 10 }, endLine: m, ...styles,
       kickGood: good, drop, label: good ? labels.good : labels.wide, att, def, misses: 0,

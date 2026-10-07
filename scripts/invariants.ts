@@ -131,7 +131,7 @@ function audit(g: GameState, tag: string) {
   }
   for (const pl of g.pledges ?? []) {
     if (!g.players[pl.playerId]) bad(`${tag} pledge for missing player ${pl.playerId}`)
-    if (pl.season === g.season && g.week > pl.due + 1) bad(`${tag} pledge overdue and unsettled (due w${pl.due}, now w${g.week})`)
+    if (pl.kind !== 'start' && pl.season === g.season && g.week > pl.due + 1) bad(`${tag} pledge overdue and unsettled (due w${pl.due}, now w${g.week})`)
   }
   if (g.intakeClass?.length && g.week < 30) bad(`${tag} intake class exists before the week-30 preview`)
   if (g.takeover) {

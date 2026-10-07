@@ -118,7 +118,9 @@ export const TOP14_B: RawClub[] = [
     city: 'Montpellier', country: 'FRA',
     stadium: 'Stade de l\'Hérault', capacity: 15697,
     colors: ['#003d7c', '#ffffff'],
-    rep: 74, budget: 3000000,
+    // 2025-26 Top 14 finalists (lost 28-20 to Toulouse) and Challenge Cup
+    // winners. Only nudged, for the same filler reason as Exeter's
+    rep: 76, budget: 3000000,
     players: [
       { name: 'Paolo Garbisi', pos: 'FH', age: 25, nat: 'ITA', q: 82, gk: true, intl: true },
       { name: 'Enzo Forletta', pos: 'LP', age: 28, nat: 'FRA', q: 68 },

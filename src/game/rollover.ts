@@ -1109,6 +1109,9 @@ function replenishSquads(state: GameState, rng: Rng, rooms: Map<string, number>)
         continue
       }
       fa.clubId = club.id
+      // stamped like every other arrival, so his career before this one is
+      // never read as service to the club that just signed him (legends.ts)
+      fa.joinedAt = absWeek(state.season, state.week)
       // a board filling its squad pays what it can (aiecon.ts aiPayRate,
       // 1.8.3); the manager's board signs on the scale, as it always has
       fa.wage = Math.round(playerWage(fa.ca, fa.age) * aiPayRate(state, club, rooms.get(club.id)) / 50) * 50
@@ -1393,7 +1396,7 @@ export function rebuildSeason(state: GameState) {
         state.fanMood = clamp((state.fanMood ?? 60) + 10, 5, 98)
         state.news.push({
           id: state.nextId++, week: 1, season: state.season + 1, type: 'award', read: false,
-          subject: `CLUB LEGEND: the city claims you as its own`,
+          subject: `CLUB LEGEND: the supporters claim you as their own`,
           body: `${tenure} seasons. ${eraCups} trophies. The supporters' trust has voted unanimously: you are a legend of ${club0.name}, whatever happens from here. There is talk of a statue outside ${club0.stadium}, and the artist has already asked how you would like to be posed. Results can dip; this cannot be taken away.`,
           k: 'news.clubLegend',
           v: { n: tenure, cups: eraCups, club: club0.name, stadium: club0.stadium },

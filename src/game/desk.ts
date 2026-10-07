@@ -412,7 +412,7 @@ function threadRow(state: GameState): DeskRow | null {
     }
   }
   const due = (state.pledges ?? [])
-    .filter(pl => pl.season === state.season && pl.due >= state.week &&
+    .filter(pl => pl.season === state.season && (pl.due >= state.week || pl.kind === 'start') &&
       state.players[pl.playerId]?.clubId === club.id)
     .sort((a, b) => a.due - b.due || a.playerId - b.playerId)[0]
   if (due) {

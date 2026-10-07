@@ -448,6 +448,9 @@ export interface Player {
    *  who is still being left out months later, asks again. Cleared with
    *  wantsOut whenever the minutes make it right. */
   reqAns?: number
+  /** A request that cannot be withdrawn (handshake.ts): the id of the club he
+   *  handed it in at after a broken promise of a start. Lapses when he leaves. */
+  reqLock?: string
   /** absolute week (season * SEASON_WEEKS + week) of the manager's last
    *  office chat with him (20D) - one conversation per man per week, or
    *  praise stops meaning anything */
@@ -966,6 +969,10 @@ export interface NewsItem {
    *  review and the history all read this list - it simply stops appearing in the
    *  inbox reader. */
   cleared?: boolean
+  /** The day of the week (0 Monday .. 5 Saturday) the story belongs to, when
+   *  it is not the day its type gives it (days.ts dayOfStory): the transfer
+   *  window's countdown is posted on the day it counts down to (window.ts). */
+  day?: number
   /** The absolute day (days.absDay) the manager actually read it. The recall
    *  window counts from HERE, not from when the story was written: an old
    *  unread story used to expire the instant the queue marked it read, so the
@@ -1112,13 +1119,17 @@ export type OfficeTopic = 'plans' | 'loan' | 'deal' | 'dropped' | 'signing' | 'a
  *  at the due week it is settled as kept or broken, with consequences. */
 export interface Pledge {
   playerId: number
-  kind: 'plans' | 'minutes' | 'deal'
+  kind: 'plans' | 'minutes' | 'deal' | 'start'
   week: number
   season: number
   /** week the promise falls due for settling */
   due: number
   /** the player's apps when the promise was made */
   baseApps: number
+  /** 'start' only (handshake.ts): his starts, and the club's competitive
+   *  matches played, when the promise was made */
+  baseStarts?: number
+  baseGames?: number
 }
 
 export interface PressItem {
@@ -1697,6 +1708,9 @@ export interface GameState {
    *  arithmetic entirely. The id watermark taken before the settlement is exact
    *  in both cases. See game/days.ts. */
   newsFrom?: number
+  /** The last transfer-window notice posted to the manager's inbox, stamped
+   *  (season * 100 + week) * 10 + day so each one posts once (window.ts). */
+  windowNote?: number
   /** Which day of the current week the manager is standing on, 0 = Monday.
    *
    *  Presentation only: the engine still settles a whole week at a time. This is

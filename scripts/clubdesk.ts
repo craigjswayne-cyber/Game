@@ -15,7 +15,7 @@ import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import {
   agreeFee, agreePreContract, askingPrice, capBill, capWage, embargoed, executeTransfer, offerRenewalAt,
-  personalTermsDemand, seniorsOf, signOnTerms, squadFull, windowOpen,
+  personalTermsDemand, seniorsOf, signOnTerms, squadFull, windowOpen, windowShut,
 } from '../src/game/ai'
 import { loanBuyOffer, loanIn, loanOutSummerGain, LOAN_FULL_WEEKS } from '../src/game/loans'
 import { MARQUEE_SLOTS, marqueeOpen, rosterGrid, toggleMarquee } from '../src/game/cap'
@@ -27,7 +27,8 @@ import { bookEvent, bookedThisWeek, CLOSE_EVENTS, eventOpen } from '../src/game/
 import { insolvencyWarning } from '../src/game/insolvency'
 import { requestFacility } from '../src/game/season'
 import { absWeek, boardObjective, fmtMoney, SEASON_WEEKS, type GameState, type Player } from '../src/game/model'
-import { t } from '../src/game/i18n'
+import { t, tIn } from '../src/game/i18n'
+import { openDate } from '../src/game/window'
 
 let fails = 0
 const ok = (c: boolean, what: string) => {
@@ -56,29 +57,29 @@ console.log('--- the transfer window binds the manager as it binds the AI')
   const g = fresh()
   roomy(g)
   const p = target(g)
-  ok([1, 7, 26, 27].every(windowOpen) && ![8, 12, 25, 28, 40].some(windowOpen),
-    'the window is weeks 1 to 7 and the deadline, 26 and 27')
+  ok([1, 8, 22, 25, 46, 48].every(windowOpen) && ![9, 12, 21, 26, 45].some(windowOpen),
+    'the window is the close season to week 8, and January (22 to 25)')
   g.week = 12
   const shut = agreeFee(g, p.id, askingPrice(g, p) * 3)
-  ok(!shut.ok && shut.msg === t('reply.windowShut', { n: 26 }), `a bid in week 12 is refused and names week 26 ("${shut.msg}")`)
+  ok(!shut.ok && shut.msg === windowShut(g) && shut.msg.includes(tIn('en', 'date.mon0')), `a bid in week 12 is refused and names January ("${shut.msg}")`)
   const terms = signOnTerms(g, p.id, askingPrice(g, p) * 3, personalTermsDemand(g, p) * 2, 0, false)
   ok(!terms.ok && p.clubId !== g.userClubId, 'and personal terms cannot complete the move behind it')
   g.week = 30
-  ok(agreeFee(g, p.id, askingPrice(g, p) * 3).msg === t('reply.windowShutSummer'), 'after the deadline it says the summer')
-  g.week = 26
-  ok(agreeFee(g, p.id, askingPrice(g, p) * 3).msg !== t('reply.windowShut', { n: 26 }), 'on deadline week the door is open again')
+  ok(agreeFee(g, p.id, askingPrice(g, p) * 3).msg === t('reply.windowShutSummer', openDate(g)), 'after the deadline it says the summer')
+  g.week = 25
+  ok(agreeFee(g, p.id, askingPrice(g, p) * 3).msg !== windowShut(g), 'on deadline week the door is open again')
 }
 
 console.log('--- the deadline round-up reads the stories, not their English')
 {
   const g = fresh()
-  g.week = 7
+  g.week = 8
   const movers = Object.values(g.players).filter(p => p.clubId && p.clubId !== g.userClubId && !p.acad && p.ca >= 70).slice(0, 2)
   const buyer = Object.values(g.clubs).find(c => c.id !== g.userClubId && movers.every(m => m.clubId !== c.id))!
   for (const m of movers) executeTransfer(g, m, buyer.id, 1_250_000)
   // the English subject can say anything now: the round-up must not care
   for (const n of g.news) if (n.k === 'news.transferDone') n.subject = 'reworded'
-  g.week = 8
+  g.week = 9
   processWeekAndAdvance(g)
   const up = g.news.find(n => n.k === 'news.ddRoundup' || n.k === 'news.ddRoundupFlop')
   const rows = up ? JSON.parse(String(up.v?.rows_ll ?? '[]')) as { fee_k: string; fee: string }[] : []
@@ -191,7 +192,7 @@ console.log('--- loan to buy is a signing: the window, the cap, the embargo')
   kid.joinedAt = absWeek(g.season, 1)
   g.week = 12
   ok(loanBuyOffer(g, kid.id)?.k === 'reply.loanBuyWindow', 'in week 12 the option waits for the window')
-  g.week = 26
+  g.week = 25
   ok(loanBuyOffer(g, kid.id)?.ok === true, 'on deadline week it can be taken')
   u.capEmbargoUntil = g.season
   ok(loanBuyOffer(g, kid.id)?.k === 'reply.embargoSign', 'but not under an embargo')

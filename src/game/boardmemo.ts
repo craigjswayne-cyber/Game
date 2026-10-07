@@ -162,7 +162,7 @@ export function boardMemo(state: GameState): void {
         : '')
   // the season, on its own line, because it is not the same window as the form above
   const tableLine = pos
-    ? `League: ${ord(pos)} in the ${state.comps[club.leagueId]?.short ?? 'league'} on the season so far.`
+    ? `League: ${ord(pos)} in the table on the season so far.`
     : null
 
   // ---- the three constituencies, one line each ----

@@ -1068,6 +1068,15 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   border-radius: 5px; padding: 2px 5px; color: var(--club1-ink);
   box-shadow: inset 0 1px 0 rgba(255,255,255,.2);
 }
+/* The form trend's arrow, left of the pill (components.tsx FormPill). The slot
+   keeps its width when there is no arrow, so the pills line up down a column,
+   and the cell gives back most of its left gutter so the stars only move over
+   a little to make room. */
+.form-trend { display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; vertical-align: middle; }
+.form-trend .ft-arrow { flex: none; width: 8px; height: 10px; line-height: 0; }
+.form-trend .ft-arrow.up { color: var(--text-positive); }
+.form-trend .ft-arrow.down { color: var(--text-negative); }
+.dtable td:has(> .form-trend) { padding-left: 2px; }
 .pos-badge {
   display: inline-block;
   font-family: var(--cond); font-size: 12px; font-weight: 700; letter-spacing: .5px;
@@ -2455,9 +2464,22 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .live-wrap.big-text .comm-line.big .txt { font-size: 18px; }
 .live-wrap.big-text .comm-line .min { font-size: 16px; }
 @keyframes comm-in { from { opacity: 0; } }
+/* A TRY FLASHES: for about a second the line wears its colours the other way
+   round (MatchDay.tsx flashStyle sets the pair), then eases back to its own
+   look. The arrival fade is listed again so the two do not fight over
+   `animation` while the line goes from current to old. */
+.comm-line.try-flash, .comm-line.cur.fresh.try-flash {
+  animation: comm-in .22s cubic-bezier(.25, .1, .25, 1) backwards, try-flash 1s linear;
+}
+@keyframes try-flash {
+  0%, 80% { background-color: var(--flash-bg); color: var(--flash-fg); box-shadow: inset 0 0 0 1px var(--flash-fg); }
+}
 @media (prefers-reduced-motion: reduce) {
   .comm-line { transition: none; }
   .comm-line.cur.fresh { animation: none; }
+  /* a still highlight for the second the class is on, no fade in or out
+     (important: the line's kit is an inline style) */
+  .comm-line.try-flash, .comm-line.cur.fresh.try-flash { animation: none; background-color: var(--flash-bg) !important; color: var(--flash-fg) !important; }
   .comm-list { will-change: auto; }
 }
 /* THE STATS SHEET (v1.1.9). Home | label | away, the way a broadcast
@@ -4844,7 +4866,9 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .xv-fixed .dtable col.c-num { width: 30px; }
 .xv-fixed .dtable col.c-pos { width: 38px; }
 .xv-fixed .dtable col.c-stars { width: 66px; }
-.xv-fixed .dtable col.c-form { width: 40px; }
+/* the form cell carries its trend arrow on the left of the pill now, so it is
+   ten pixels wider and the stars sit that much further over */
+.xv-fixed .dtable col.c-form { width: 50px; }
 .xv-fixed .dtable col.c-cond { width: 46px; }
 .xv-fixed .dtable td.name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
@@ -5002,6 +5026,14 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 
 /* ---- the match menu (1.8.0, MatchPanels.tsx) ---- */
 .mpanels { max-width: 920px; width: calc(100% - 24px); padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 8px; max-height: 88vh; max-height: 88dvh; }
+/* ABOVE THE SYSTEM BAR (owner, 1.8.12, Samsung: "Back to the match is hidden
+   by the phone buttons"). The panel's own padding replaced the sheet's safe-area
+   foot, so it sat on the bottom edge of an edge-to-edge web view. It now stands
+   clear of the bar and of any banner, and its height gives way by the same. */
+.modal-veil > .mpanels {
+  margin-bottom: calc(var(--safe-area-inset-bottom) + var(--ad-inset, 0px) + 8px);
+  max-height: calc(88dvh - var(--safe-area-inset-bottom) - var(--ad-inset, 0px));
+}
 .mp-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .mp-head b { font-family: var(--cond); font-size: 16px; letter-spacing: 1px; text-transform: uppercase; }
 .mp-dots { display: flex; justify-content: center; gap: 6px; }
@@ -5033,12 +5065,15 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .mp-grid th:first-child, .mp-grid td:first-child { padding-left: 6px; }
 .mp-grid th, .mp-grid td { padding-left: 4px; padding-right: 4px; }
 .mp-note { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
-.mp-zones { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: end; padding: 6px 4px; }
-.mp-zone { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
-.mp-zone .bar { height: 110px; width: 44px; display: flex; align-items: flex-end; border-bottom: 1px solid var(--border-strong); }
-.mp-zone .bar i { display: block; width: 100%; border-radius: 3px 3px 0 0; background: var(--primary); }
-.mp-zone b { font-family: var(--cond); font-size: 18px; }
-.mp-zone span { font-size: 12px; color: var(--text-muted); }
+/* WHERE IT WAS PLAYED as three rows (owner, 1.8.12: "very messy"): the
+   upright bars floated at different heights once a long club name wrapped
+   under one of them. A row each - name, bar, figure - reads at any width. */
+.mp-zones { display: flex; flex-direction: column; gap: 12px; padding: 6px 4px; }
+.mp-zone { display: grid; grid-template-columns: minmax(0, 9em) minmax(0, 1fr) 3.2em; align-items: center; gap: 10px; }
+.mp-zone .bar { height: 14px; border-radius: 3px; background: var(--border); overflow: hidden; }
+.mp-zone .bar i { display: block; height: 100%; border-radius: 3px; background: var(--primary); }
+.mp-zone b { font-family: var(--cond); font-size: 18px; text-align: right; font-variant-numeric: tabular-nums; }
+.mp-zone span { font-size: 13px; color: var(--text-muted); overflow-wrap: anywhere; }
 
 /* ---- the search screen's views (1.8.0, Transfers.tsx) ---- */
 /* ---- THE FILTER SHEET (1.8.0) ----
@@ -5361,7 +5396,9 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
   overflow-y: auto; min-height: 0; display: flex; flex-direction: column; gap: 10px;
   background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px;
 }
-@media (prefers-reduced-motion: reduce) { .feed-line.newest { animation: none; } }
+/* the tablet's feed flashes a try the same way (.comm-line.try-flash) */
+.feed-line.try-flash { animation: feed-in .3s cubic-bezier(.2, 0, 0, 1), try-flash 1s linear; }
+@media (prefers-reduced-motion: reduce) { .feed-line.newest { animation: none; } .feed-line.try-flash { animation: none; background-color: var(--flash-bg) !important; color: var(--flash-fg) !important; } }
 /* the feed's newest line IS the now-line on a tablet: one of them, not both */
 @media (orientation: portrait) { .app.tablet .now-strip .comm-feed { display: none; } }
 
@@ -5398,7 +5435,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
   [data-motion="on"] .modal { animation: m-sheet .24s cubic-bezier(.2, 0, 0, 1) backwards; }
   /* bars fill from the left the first time they are drawn */
   [data-motion="on"] .grow-x { transform-origin: left center; animation: m-grow .6s cubic-bezier(.2, 0, 0, 1) .1s backwards; }
-  [data-motion="on"] .mp-zone .bar i { transform-origin: bottom center; animation: m-grow-y .5s cubic-bezier(.2, 0, 0, 1) backwards; }
+  [data-motion="on"] .mp-zone .bar i { transform-origin: left center; animation: m-grow-x .5s cubic-bezier(.2, 0, 0, 1) backwards; }
   /* a new count on the inbox badge pops once */
   [data-motion="on"] .bottom-nav .dot { animation: m-pop .3s cubic-bezier(.3, 1.6, .5, 1) backwards; }
   /* cards that open something give under the thumb, 100ms */
@@ -5413,6 +5450,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 @keyframes m-sheet { from { opacity: .4; transform: translateY(28px); } }
 @keyframes m-grow { from { transform: scaleX(0); } }
 @keyframes m-grow-y { from { transform: scaleY(0); } }
+@keyframes m-grow-x { from { transform: scaleX(0); } }
 @keyframes m-pop { from { transform: scale(.4); } }
 
 /* LARGE COMMENTARY (Match Settings, on by default; owner: "The size of the

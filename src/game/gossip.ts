@@ -7,6 +7,7 @@ import { sortTable } from './schedule'
 import { clamp, gauss, pick, type Rng } from './rng'
 import { tIn, type Vars } from './i18n'
 import { nextTelling } from './tellings'
+import { JANUARY_SHUT, nextWeek, prevWeek, windowOpen as dealWeek } from './window'
 
 /** File a Wire story.
  *
@@ -345,12 +346,11 @@ function moneyMen(state: GameState, rng: Rng) {
   wire(state, 'news.wTakeoverCircle', { short: club.short, club: club.name }, undefined, ruckUnlessMine(state, club.id))
 }
 
-/** Rumours live where deals live: the opening window (weeks 1-7) and the run
- *  into and out of the mid-season deadline (weeks 25-28, the deadline itself
- *  being 26 and 27 - see windowOpen in ai.ts). The talk starts a week before
- *  the deals and dies a week after them, which is how talk behaves. */
+/** Rumours live where deals live: the two transfer windows (window.ts). The
+ *  talk starts a week before the deals and dies a week after them, which is
+ *  how talk behaves. */
 function windowOpen(state: GameState): boolean {
-  return state.week <= 7 || (state.week >= 25 && state.week <= 28)
+  return dealWeek(prevWeek(state.week)) || dealWeek(state.week) || dealWeek(nextWeek(state.week))
 }
 
 /** The club that sacked him, while he is out of work: the wire's random beats
@@ -936,10 +936,10 @@ export function generateGossip(state: GameState, rng: Rng) {
   if (rng() < 0.8) socialBuzz(state, rng)
   if (windowOpen(state) && rng() < 0.45) transferRumour(state, rng)
   // the window is the whole league's story: Ruck's
-  if (state.week === 25) {
+  if (state.week === JANUARY_SHUT - 2) {
     wire(state, 'news.wDeadlineAhead', {}, undefined, 'ruck')
   }
-  if (state.week === 28) {
+  if (state.week === JANUARY_SHUT) {
     wire(state, 'news.wWindowShut', {}, undefined, 'ruck')
   }
   const wheel = rng()

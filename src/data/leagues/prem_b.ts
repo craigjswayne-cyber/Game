@@ -7,7 +7,7 @@ export const PREM_B: RawClub[] = [
     city: 'Leicester', country: 'ENG',
     stadium: 'Welford Street', capacity: 25849,
     colors: ['#00563f', '#c8102e'],
-    rep: 83, budget: 3500000,
+    rep: 84, budget: 3500000,
     players: [
       { name: 'Nicky Smith', pos: 'LP', age: 32, nat: 'WAL', q: 77, intl: true },
       { name: 'James Whitcombe', pos: 'LP', age: 24, nat: 'ENG', q: 68 },
@@ -86,7 +86,7 @@ export const PREM_B: RawClub[] = [
     city: 'Northampton', country: 'ENG',
     stadium: 'The Gardens', capacity: 15249,
     colors: ['#000000', '#00843d'],
-    rep: 86, budget: 4000000,
+    rep: 87, budget: 4000000,
     // The club's own published 2026/27 squad list (user's screenshot of the
     // official announcement, round 27). Out: West, Millar Mills, Atuanya,
     // Scott-Young, Graham, Brown, James, Furbank, Ramm. Ion Neculai and
@@ -144,7 +144,7 @@ export const PREM_B: RawClub[] = [
     city: 'Salford', country: 'ENG',
     stadium: 'Salford City Stadium', capacity: 12000,
     colors: ['#001a4d', '#ff6a13'],
-    rep: 82, budget: 3000000,
+    rep: 80, budget: 3000000,
     players: [
       { name: 'Bevan Rodd', pos: 'LP', age: 25, nat: 'ENG', q: 79, intl: true },
       { name: 'Si McIntyre', pos: 'LP', age: 34, nat: 'ENG', q: 68 },
@@ -180,7 +180,7 @@ export const PREM_B: RawClub[] = [
     city: 'London', country: 'ENG',
     stadium: 'Hendon Park', capacity: 10500,
     colors: ['#000000', '#141414'],
-    rep: 86, budget: 4500000,
+    rep: 85, budget: 4500000,
     players: [
       { name: 'Rhys Carre', pos: 'LP', age: 27, nat: 'WAL', q: 76, intl: true },
       { name: 'Eroni Mawi', pos: 'LP', age: 29, nat: 'FIJ', q: 74, intl: true },

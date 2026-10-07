@@ -107,7 +107,10 @@ export const PREM_A: RawClub[] = [
     city: 'Exeter', country: 'ENG',
     stadium: 'Beachy Park', capacity: 15600,
     colors: ['#000000', '#ffffff'],
-    rep: 78, budget: 2200000,
+    // 2025-26 Prem finalists (lost 26-17 to Saints), third in the table. Only
+    // nudged: rep also sets the level of generated squad filler, and any higher
+    // an invented prop takes a real man's shirt in this front row
+    rep: 79, budget: 2200000,
     players: [
       { name: 'Scott Sio', pos: 'LP', age: 34, nat: 'AUS', q: 74, intl: true },
       { name: 'Nika Abuladze', pos: 'LP', alt: ['TP'], age: 25, nat: 'GEO', q: 72, intl: true },
@@ -181,7 +184,7 @@ export const PREM_A: RawClub[] = [
       { name: 'Adam Hastings', pos: 'FH', age: 29, nat: 'SCO', q: 78, gk: true, intl: true },
       { name: 'Charlie Atkinson', pos: 'FH', alt: ['FB'], age: 24, nat: 'ENG', q: 74, gk: true },
       { name: 'Max Llewellyn', pos: 'CE', age: 26, nat: 'WAL', q: 75, intl: true },
-      { name: 'Seb Atkinson', pos: 'CE', age: 23, nat: 'ENG', q: 74 },
+      { name: 'Seb Atkinson', pos: 'CE', age: 23, nat: 'ENG', q: 79, intl: true },
       { name: 'Will Joseph', pos: 'CE', age: 23, nat: 'ENG', q: 72 },
       { name: 'Will Butler', pos: 'CE', age: 27, nat: 'ENG', q: 68 },
       { name: 'Ollie Thorley', pos: 'WG', age: 29, nat: 'ENG', q: 78, intl: true },
@@ -197,7 +200,7 @@ export const PREM_A: RawClub[] = [
     city: 'London', country: 'ENG',
     stadium: 'Little Twickenham', capacity: 14800,
     colors: ['#006747', '#b7228f'],
-    rep: 83, budget: 3200000,
+    rep: 79, budget: 3200000,
     players: [
       { name: 'Fin Baxter', pos: 'LP', age: 23, nat: 'ENG', q: 81, intl: true },
       { name: 'Boris Wenger', pos: 'LP', age: 24, nat: 'FRA', q: 69 },
