@@ -1212,6 +1212,19 @@ function weeklyTraining(state: GameState, rng: Rng) {
   // "back in training" letters in one midwinter inbox told the manager the same
   // thing three times over, and he still had to open each one to learn who.
   const returned: Player[] = []
+  // every other club's turnaround, the same sum as the manager's above
+  const aiTurn = new Map<string, number>()
+  {
+    const last = new Map<string, Fixture>(), next = new Map<string, Fixture>()
+    for (const f of state.fixtures) {
+      if (f.week === state.week - 1 && f.played) { last.set(f.homeId, f); last.set(f.awayId, f) }
+      else if (f.week === state.week && !f.played) { next.set(f.homeId, f); next.set(f.awayId, f) }
+    }
+    for (const [id, nf] of next) {
+      const lf = last.get(id)
+      if (lf) aiTurn.set(id, (7 + fixtureDayOff(nf.id) - fixtureDayOff(lf.id)) / 7)
+    }
+  }
   // two coaches at odds this week (staffrift.ts): 1 or 0, the manager's club only
   const rift = riftDrag(state)
   for (const club of Object.values(state.clubs)) {
@@ -1228,7 +1241,11 @@ function weeklyTraining(state: GameState, rng: Rng) {
       // an iron constitution (formtraits.ts) gets more back, and a short
       // turnaround does not cut into it
       const iron = formTraits(state.seed, p.id).iron
-      p.cond = clamp(p.cond + Math.round((((p.rust ?? 0) > 0 ? 16 : 22) + gym + (iron ? IRON_REC : 0)) * (isUser ? (iron ? Math.max(1, turnF) : turnF) : 1)), 20, 100)
+      // THE SAME CLOCK FOR EVERYBODY (1.8.14): a short turnaround slows every
+      // club's recovery, not only the manager's - the AI used to get a full
+      // week back whatever the gap between its fixtures
+      const tf = isUser ? turnF : (aiTurn.get(club.id) ?? 1)
+      p.cond = clamp(p.cond + Math.round((((p.rust ?? 0) > 0 ? 16 : 22) + gym + (iron ? IRON_REC : 0)) * (iron ? Math.max(1, tf) : tf)), 20, 100)
       p.sharp = clamp(p.sharp - 4, 0, 100)
       if ((p.rust ?? 0) > 0) p.rust = (p.rust ?? 1) - 1
       // ---- MATERNITY LEAVE: the grant, and the road back ----
