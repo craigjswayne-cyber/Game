@@ -152,10 +152,18 @@ console.log('--- the world mean: three seasons against the old curve')
    *  mean by -0.10 and the under-23s by -0.37, with the same +-0.5 band
    *  (a world's sd is 0.11 and 0.09, so the band is still about five). */
   const ALL_REF = 59.32 - 0.10, U23_REF = 57.18 - 0.37
-  console.log(`  S3: mean rating ${all.toFixed(2)} (old curve 59.32, now ${ALL_REF.toFixed(2)}), under-23s ${u23.toFixed(2)} (57.18, now ${U23_REF.toFixed(2)}), attributes of 18+ ${hi18} (265)`)
+  console.log(`  S3: mean rating ${all.toFixed(2)} (old curve 59.32, now ${ALL_REF.toFixed(2)}), under-23s ${u23.toFixed(2)} (57.18, now ${U23_REF.toFixed(2)}), attributes of 18+ ${hi18} (265, with 1.8.13's data ${265 + 47})`)
   ok(Math.abs(all - ALL_REF) <= 0.5, 'the world mean holds')
   ok(Math.abs(u23 - U23_REF) <= 0.5, 'the under-23 mean holds')
-  ok(hi18 < 265 && hi18 > 100, 'an 18 is rarer, and still exists')
+  /*  RE-REFERENCED in 1.8.13 (7 Oct 2026): the ratings floors. 177 real
+   *  internationals were raised to the floor their world ranking sets (the
+   *  owner's PHASE Top 200 and Women's Top 100), nobody lowered. On this seed
+   *  and the same code that is 230 attributes of 18+ on 1.8.12's data and 277
+   *  on 1.8.13's: the best men in the world are better, so they carry more of
+   *  the top marks. The ceiling moves by that measured +47; the means above
+   *  did not need to (59.09 and 59.02, 56.65 and 56.47, inside their band). */
+  const HI18_REF = 265 + 47
+  ok(hi18 < HI18_REF && hi18 > 100, `an 18 is rarer, and still exists (${hi18}, under ${HI18_REF})`)
 }
 
 console.log(fails ? `\n${fails} FAILURES` : '\nGAP PROBE PASSED: the gap is the pace, the top is hard, the world holds')

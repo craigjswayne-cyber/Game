@@ -72,7 +72,7 @@ console.log('\n--- 2. a lapsed contract usually costs you the player\n')
   // ACROSS MANY CAREERS, because one rollover is one coin toss. The claim is
   // "most likely will leave", so the measurement is a rate, not a case.
   let left = 0, stayed = 0
-  for (let seed = 1; seed <= 24; seed++) {
+  for (let seed = 1; seed <= 48; seed++) {
     const g: GameState = newGame('northampton', 'Contract Clock', 200 + seed)
     const squad = g.clubs[g.userClubId].players.map(id => g.players[id]).filter(Boolean) as Player[]
     // settled men, unlisted, in their final year - the exact population that
@@ -90,13 +90,16 @@ console.log('\n--- 2. a lapsed contract usually costs you the player\n')
   }
   const total = left + stayed
   const leaveRate = left / Math.max(1, total)
-  ok(total > 50, `a real sample of expiring men (${total} across 24 careers)`)
+  ok(total > 50, `a real sample of expiring men (${total} across 48 careers)`)
   // BOUNDED BOTH WAYS, because both halves of his sentence are claims. "Most
   // likely will leave" is the majority; "they can go on a rolling contract" is
   // an outcome that has to actually happen. The first attempt at this ran at
   // 97% gone, which met the letter of the first half and made the second half
   // fiction - five men in twenty-four careers.
-  ok(leaveRate > 0.55,
+  // (48 careers and the claim as he made it, most of them: over 96 careers the
+  // rate is 56% on 1.8.12's data and 1.8.13's alike, and at 24 careers a 55%
+  // bar sat inside one standard error of it, 3.6%, so it failed on the dice)
+  ok(leaveRate > 0.5,
     `most of them leave (${Math.round(leaveRate * 100)}% gone)`)
   ok(leaveRate < 0.85,
     `but a rolling deal is a real outcome, not a rounding error (${stayed} of ${total} stayed on)`)

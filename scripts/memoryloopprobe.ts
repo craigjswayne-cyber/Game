@@ -241,9 +241,13 @@ function play(g: GameState, fx: Fixture, seed: number): LiveCtx {
 const margin = (ctx: LiveCtx) => (ctx.home.teamId === ctx.userSideId ? 1 : -1) * (ctx.home.score - ctx.away.score)
 const effects: Record<string, { d: number[]; win: number[] }> = {}
 {
-  const FX = mine.slice(0, 8), ROLLS = 30
+  // (the three rematches at their caps take 90 rolls a fixture, the tape 30:
+  // the band they are judged on is two se wide, and at 30 rolls on 1.8.13's
+  // world its top sat at 1.73 with every effect within one se of nothing,
+  // swinging 0.62, 0.41, -0.07 as the sample grew; at 90 it reads 0.63)
+  const FX = mine.slice(0, 8)
   /** paired: the margin without, less the margin with */
-  const pair = (name: string, off: () => GameState, on: () => GameState, check?: (c: LiveCtx) => boolean) => {
+  const pair = (name: string, off: () => GameState, on: () => GameState, check?: (c: LiveCtx) => boolean, ROLLS = 90) => {
     const d: number[] = [], win: number[] = []
     let applied = 0
     for (const fx0 of FX) {
@@ -263,7 +267,7 @@ const effects: Record<string, { d: number[]; win: number[] }> = {}
   }
   // the tape at full: the loop on every first-phase ball, against none
   const spam = (faced: Record<string, number>) => () => { const g = withEv([], faced); g.clubs[g.userClubId].tactic.moveAlt = undefined; return g }
-  pair('the 1.8.3 tape at full (one strike, analyst)', spam({}), spam({ [L]: 40 }))
+  pair('the 1.8.3 tape at full (one strike, analyst)', spam({}), spam({ [L]: 40 }), undefined, 30)
   // the signature mix's own tape, against none
   const app = (k: Rematch['cause'], u?: string) => (c: LiveCtx) => c.rematch?.cause === k && (!u || c.rematch.unit === u) && c.rematch.w === 1
   pair('rematch at its cap: the loop (on the mix\'s tape)', () => withEv([]), () => withEv([wonBy('move', A, S0, 1)]), app('move'))

@@ -170,7 +170,8 @@ console.log('--- 4. the knocks')
 
   // POSITION: a squad man with a second position, not getting on
   const m = clone(g)
-  const mover = squad(m).find(q => q.alt.length > 0 && q.age >= 21 && q.age <= 31 && q.status !== 'key')
+  // (a fit man: an injured one does not ask for game time, 1.8.12)
+  const mover = squad(m).find(q => q.alt.length > 0 && q.age >= 21 && q.age <= 31 && q.status !== 'key' && !q.injury)
   if (mover) {
     mover.stats.apps = 0
     const ml = m.clubs[m.userClubId]
@@ -183,7 +184,8 @@ console.log('--- 4. the knocks')
   // SIGNING: the captain, the week after a signing in a starter's position
   const sg = clone(g)
   const sc = sg.clubs[sg.userClubId]
-  const incumbent = squad(sg).filter(q => q.id !== sc.captain && q.stats.starts >= 3).sort((x, y) => y.ca - x.ca)[0]
+  // (a fit incumbent: an injured man is nobody's rival for the shirt this week)
+  const incumbent = squad(sg).filter(q => q.id !== sc.captain && q.stats.starts >= 3 && !q.injury).sort((x, y) => y.ca - x.ca)[0]
   const newcomer = squad(sg).find(q => q.id !== incumbent.id && q.id !== sc.captain && q.pos === incumbent.pos) ?? squad(sg).find(q => q.id !== incumbent.id && q.id !== sc.captain)!
   newcomer.pos = incumbent.pos; newcomer.ca = Math.max(newcomer.ca, 72)
   newcomer.joinedAt = sg.season * 48 + sg.week - 1
