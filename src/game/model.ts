@@ -1516,8 +1516,17 @@ export function weeklyCentral(club: Club): number {
   // three slots are sold at market rate - which is what makes the split neutral
   // against a calibrated economy, and what scripts/dealprobe.ts checks.
   const commercial = 40_000
-  const expectedSeats = Math.min(23_000, Math.max(0, club.rep - 45) * 620)
+  // THE TOP FLIGHT'S SOLIDARITY SHARE (1.8.14). The gap was sized to a club's
+  // name, so the top flight's smallest name in its smallest ground was broke
+  // by design: Newcastle, managed by anybody, lost £78k a week (their upkeep,
+  // to the pound) and the manager was sacked in a quarter of seasons after
+  // meeting the board's own objective. A top-flight club is now expected to
+  // fill 18,000 seats whatever its name, and the share per missing seat is
+  // larger at that level; a big ground gets nothing it did not get before.
+  const top = LEAGUE_TIER[club.leagueId] === 1
+  const expectedSeats = Math.max(top ? 18_000 : 0, Math.min(23_000, Math.max(0, club.rep - 45) * 620))
   const missingSeats = Math.max(0, expectedSeats - club.capacity)
+  const perSeat = top ? 12 : 8.5
   // 8.5 per missing seat: 30 a ticket, ~85% full, one home game every three weeks
   // The MRC plays five home games where everyone else plays eleven (1.7.3), so
   // its central pot carries the gates its calendar does not: about six missing
@@ -1525,7 +1534,7 @@ export function weeklyCentral(club: Club): number {
   // American club was broke by design, and fire-sold its best men into the
   // rest of the world every season.
   const shortSeason = club.leagueId === 'mrc' ? 18_000 : 0
-  return Math.round(commercial + missingSeats * 8.5 + shortSeason)
+  return Math.round(commercial + missingSeats * perSeat + shortSeason)
 }
 
 /**
@@ -2107,6 +2116,8 @@ export interface GameState {
    *  (treasury.debtWeek). The board's patience is measured from here: a short
    *  overdraft to buy a player is a fair gamble, living in one is not. */
   debtSince?: number | null
+  /** when the finance director last warned that the cash would run out (1.8.14) */
+  cashWarnAt?: number
   /** The International Stage (v1.1.4): the call to the federations has been
    *  made at least once in this save. A RECORD, not a gate, since v1.1.13 -
    *  the door is closed by holding a national job, not by having held one, so

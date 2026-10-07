@@ -6213,6 +6213,8 @@
    "one": "I conti tornano in pari dopo {weeks} settimana in rosso. Il consiglio non dice niente, e questo è il complimento.",
    "other": "I conti tornano in pari dopo {weeks} settimane in rosso. Il consiglio non dice niente, e questo è il complimento."
   },
+  "cashRunwaySubj": "La cassa si sta esaurendo",
+  "cashRunway": "Restano circa {amount} in banca, e ogni settimana escono {burn} in più di quanto entri. Di questo passo il club andrà in rosso entro due mesi. Il consiglio vuole che il monte ingaggi o le spese siano sotto controllo prima di allora.",
   "debtOpenedSubj": "Lo scoperto",
   "grudgeAbove": "La classifica ora dice {mine} e {theirs}, in quest'ordine. Non lo diceva da un pezzo, e il forum dei tifosi se n'è accorto all'istante.",
   "grudgeAboveSubj": "Davanti a {rival}",
