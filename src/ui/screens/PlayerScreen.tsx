@@ -6,7 +6,7 @@ import { agreeFee, agreePreContract, askingPrice, floorPrice, sellerWillingness,
 import { FormPill, Nat, PosBadge, SectionTitle, Stars, TwoStep, RewardedButton } from '../components'
 import { nationName } from '../../game/nations'
 import { Flag } from '../flags'
-import { fineAttr, playerWage } from '../../game/attributes'
+import { firstProWage, fineAttr, playerWage } from '../../game/attributes'
 import { attrRange, fuzzedCa, knowledge, paRange, reportStage, seenValue, wonderkidKnown } from '../../game/scout'
 import { benchNote, temperRead } from '../../game/temperament'
 import { formTrend, traitHints } from '../../game/formtraits'
@@ -686,7 +686,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             // which made hand-promotion a free-labour loophole (audit 16D).
             // A RETURNING senior keeps his contract: he never stopped being paid
             // like a first-teamer (the cap never stopped counting him either).
-            p.wage = playerWage(p.ca, p.age)
+            p.wage = firstProWage(p.ca, p.age)
             // and his first senior game is an academy debut (acadcall.ts armDebut)
             armDebut(p)
             game.news.push({

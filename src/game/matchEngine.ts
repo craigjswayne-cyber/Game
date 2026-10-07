@@ -1052,6 +1052,8 @@ export interface SideCtx {
   talkR?: Map<number, number>
   talkShift?: Map<number, number>
   /** drain multiplier from tempo tactics */
+  /** how far the style dial is from the squad's natural shape, as a unit cost (1.8.14) */
+  styleMisfit?: number
   tempoF: number
   /** energy-drain multiplier from match preparation (fitness week) */
   drainF: number
@@ -1357,8 +1359,24 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
     // to an average finish of 3.9th, from 5.8th. Slowing the game down now
     // costs more going forward, buys nothing at the back, and saves half as
     // much legs; playing fast still costs a little shape in defence.
+    // A PLAN THE SQUAD CANNOT PLAY (1.8.14, owner's balance brief: "bad tactics
+    // with great players should be punished"). Measured before it: the
+    // strongest squad in France finished exactly as high playing the opposite
+    // of its strengths as playing to them. A squad has a natural shape - read
+    // off its own units, backs against pack, where the world's squads run from
+    // about -0.04 (a pack side) to +0.22 (a back three side), mean 0.05, sd 0.064 - and a
+    // style dial more than 15 away from it costs up to 6% of attack (at 45
+    // away) and half that of the breakdown. Read before the dials move the units, so the dial cannot
+    // chase its own tail. Every club, the same rule.
+    const fwdU = (side.units.scrum + side.units.breakdown + side.units.lineout) / 3
+    const lean = (side.units.attack - fwdU) / Math.max(1e-6, (side.units.attack + fwdU) / 2)
+    const natural = 50 + clamp((lean - 0.05) / 0.064, -2, 2) * 20
+    const styleV = Number.isFinite(tac.style) ? clamp(tac.style, 0, 100) : 50
+    const misfit = clamp((Math.abs(styleV - natural) - 15) / 30, 0, 1) * 0.06
+    side.styleMisfit = misfit
     const tf = f(tac.tempo)
-    side.units.attack *= 1 + f(tac.style) * 0.06 + tf * (tf < 0 ? 0.08 : 0.05) - f(tac.kicking) * 0.035
+    side.units.attack *= (1 - misfit) * (1 + f(tac.style) * 0.06 + tf * (tf < 0 ? 0.08 : 0.05) - f(tac.kicking) * 0.035)
+    side.units.breakdown *= 1 - misfit * 0.5
     side.units.scrum *= 1 - f(tac.style) * 0.05
     side.units.breakdown *= 1 + f(tac.aggression) * 0.06 - f(tac.style) * 0.03 - f(tac.kicking) * 0.02
     side.units.kicking *= 1 + f(tac.kicking) * 0.1
@@ -5074,7 +5092,11 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     // the rush defence that meets it, on a hard pitch, take a bigger share of
     // the roll; centred on the world, so it shifts who is hurt more than how
     // many. The draw is the same draw; only what it is compared with moves.
-    if (rng() < 0.036 * injuryF(side.sty, opp.sty, ctx.surface ?? 'hybrid')) {
+    // (1.8.14: 0.043, from 0.036. Losing six first-choice men for nine weeks
+    // moved the strongest club in France from 1.83rd to 2.0th: a big squad
+    // shrugged off a crisis. A fifth more knocks makes depth a decision.
+    // Same draw, a different threshold.)
+    if (rng() < 0.043 * injuryF(side.sty, opp.sty, ctx.surface ?? 'hybrid')) {
       const ids = [...side.onPitch]
       const ps = ids.map(id => state.players[id]).filter(p => p && !p.injury)
       if (ps.length) {
