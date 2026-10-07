@@ -291,7 +291,13 @@ export function teamUnits(state: GameState, lineup: (number | null)[], day?: { f
   const at = (i: number, k: keyof Player['a']) => {
     const p = P(i)
     if (!p) return 5
-    const fit = 0.75 + 0.25 * (p.cond / 100)
+    // CONDITION COSTS LESS OF A MAN'S CRAFT (1.8.14). At 0.75 + 0.25 a squad at
+    // 80% condition lost 21 points of win rate on this term and the energy
+    // tank together - more than tactics, morale and staff combined, which made
+    // the cheapest way to win "spend less of yourself" (low tempo) rather than
+    // anything a manager would recognise as rugby. Tiredness still bites, in
+    // the tank and the last quarter, where it belongs.
+    const fit = 0.82 + 0.18 * (p.cond / 100)
     const frm = 0.9 + 0.02 * p.form
     // match sharpness: a player eased back after a layoff is a touch off the pace
     const shp = 0.945 + 0.055 * ((p.sharp ?? 70) / 100)
@@ -1345,12 +1351,19 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
      * dial, which is the same as no instruction at all.
      */
     const f = (v: number) => (Number.isFinite(v) ? Math.max(0, Math.min(100, v)) - 50 : 0) / 50 // -1..1
-    side.units.attack *= 1 + f(tac.style) * 0.06 + f(tac.tempo) * 0.05 - f(tac.kicking) * 0.035
+    // TEMPO IS A TRADE BOTH WAYS (1.8.14). Slow used to buy defence (+3% at
+    // the bottom of the dial) as well as 22% less running, for 5% of attack:
+    // held all season it took the seventh-best squad in the Premier Division
+    // to an average finish of 3.9th, from 5.8th. Slowing the game down now
+    // costs more going forward, buys nothing at the back, and saves half as
+    // much legs; playing fast still costs a little shape in defence.
+    const tf = f(tac.tempo)
+    side.units.attack *= 1 + f(tac.style) * 0.06 + tf * (tf < 0 ? 0.08 : 0.05) - f(tac.kicking) * 0.035
     side.units.scrum *= 1 - f(tac.style) * 0.05
     side.units.breakdown *= 1 + f(tac.aggression) * 0.06 - f(tac.style) * 0.03 - f(tac.kicking) * 0.02
     side.units.kicking *= 1 + f(tac.kicking) * 0.1
-    side.units.defence *= 1 - f(tac.tempo) * 0.03
-    side.tempoF = 1 + f(tac.tempo) * 0.22
+    side.units.defence *= 1 - Math.max(0, tf) * 0.03
+    side.tempoF = 1 + tf * 0.12
     side.cardRisk = 0.012 + f(tac.aggression) * 0.006
     side.aggF = f(tac.aggression)
     side.penRisk = aggPenRisk(side.aggF, side.refPenF ?? 1)
@@ -1701,7 +1714,12 @@ function mkSide(state: GameState, teamId: string, userTeamId: string | null, fxI
       // not something a bench fix should be quietly deciding.
       // carrying a knock (knock.ts): he starts short of his usual tank
       const knockF = state.players[id]?.knock ? KNOCK_ENERGY : 1
-      energy.set(id, Math.max(50, state.players[id]?.cond ?? 85) * knockF)
+      // HALF OF LAST WEEK IS IN THE LEGS, NOT ALL OF IT (1.8.14). The tank
+      // started at his condition, so 80% condition was 80% of a tank on top of
+      // the 4% the craft term takes: one tired week cost a side 18 points of
+      // win rate. A night's sleep and a team run give some of it back.
+      const c0 = state.players[id]?.cond ?? 85
+      energy.set(id, Math.max(50, 100 - (100 - c0) * 0.45) * knockF)
     }
   })
   const units = teamUnits(state, lineup, { fxId, big })

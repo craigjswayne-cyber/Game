@@ -83,7 +83,7 @@ export function assistantAdvice(state: GameState): string {
     const id = lineup[i]
     const p = id != null ? state.players[id] : null
     const slot = XV_SLOTS[i]
-    const eff = p ? effAt(p, slot.pos) * (0.75 + 0.25 * (p.cond / 100)) : 0
+    const eff = p ? effAt(p, slot.pos) * (0.82 + 0.18 * (p.cond / 100)) : 0
     if (!worst || eff < worst.eff) worst = { label: `${slot.shirt}. ${p?.name ?? 'EMPTY'}`, eff, pos: slot.pos }
   }
   if (!worst) return t('reply.xvLooksSet')
