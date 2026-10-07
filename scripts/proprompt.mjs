@@ -164,7 +164,8 @@ async function playOne(page) {
       st.continueWeek()
       await new Promise(r => setTimeout(r, 5))
     }
-    return 'stuck'
+    const st = s.getState(); const unread = st.game.news.filter(n => !n.read).slice(-3).map(n => n.k)
+    return 'stuck:' + st.nav[st.nav.length - 1]?.screen + ' wk' + st.game.week + ' ' + JSON.stringify(unread) + ' gate ' + JSON.stringify(st.game.inboxGate ?? null)
   })
   if (out !== 'card') await home(page)
   return out
@@ -204,8 +205,8 @@ try {
       }
       const comp = await playOne(page)
       if (comp === 'card') { k = await card(page, 500); shown.push({ kind: k, played: (await ledger(page)).played, during: true }); continue }
-      if (comp === 'fr') friendlies++; else if (comp !== 'none' && comp !== 'stuck') comps++
-      if (comp === 'stuck') { ok(false, 'the drive got stuck'); break }
+      if (comp === 'fr') friendlies++; else if (comp !== 'none' && !String(comp).startsWith('stuck')) comps++
+      if (String(comp).startsWith('stuck')) { ok(false, 'the drive got stuck ' + comp); break }
       k = await card(page)
       if (k) shown.push({ kind: k, played: (await ledger(page)).played, comp })
     }

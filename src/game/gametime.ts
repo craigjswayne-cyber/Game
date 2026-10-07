@@ -28,6 +28,7 @@ import {absWeek, SEASON_WEEKS } from './model'
 import { clamp } from './rng'
 import { tIn } from './i18n'
 import { REQUEST_ANSWER_WEEKS } from './chats'
+import { requestLocked } from './handshake'
 
 export type SquadStatus = 'key' | 'rotation' | 'squad' | 'prospect' | 'fringe'
 
@@ -119,8 +120,11 @@ export function ledgerRow(state: GameState, club: Club, p: Player, played: numbe
   const expected = Math.round((p.avail ?? Math.max(0, played - out)) * share)
   const actual = p.stats.apps
   const gap = actual - expected
-  const mood: LedgerRow['mood'] =
-    gap >= 2 ? 'happy'
+  // AN INJURED MAN DOES NOT MOAN ABOUT MINUTES (owner, 1.8.12: "If someone is
+  // injured, they should not be moaning about lack of game time"). Whatever
+  // the sheets say, he is not asking for a place he cannot take.
+  const mood: LedgerRow['mood'] = p.injury ? 'content'
+    : gap >= 2 ? 'happy'
     : gap >= -1 ? 'content'
     : gap >= -4 ? 'restless'
     : 'unhappy'
@@ -183,6 +187,8 @@ export function settleGameTime(state: GameState) {
   for (const id of club.players) {
     const p = state.players[id]
     if (!p || p.onLoan || named.has(p.id)) continue
+    // on the treatment table he has nothing to raise: no sulk, no letter
+    if (p.injury) continue
     // The two directions cannot be mechanically equal, and it took two
     // measurements to see why.
     //
@@ -237,7 +243,8 @@ export function settleGameTime(state: GameState) {
       })
     }
     // and the road back: minutes, actually given, withdraw the request
-    if ((p.wantsOut ?? 0) > 0 && row.gap >= -2) {
+    // (not a request handed in over a broken handshake: that one stands)
+    if ((p.wantsOut ?? 0) > 0 && row.gap >= -2 && !requestLocked(p)) {
       p.wantsOut = 0
       p.reqAns = 0   // the grievance is gone, and so is the answer to it
       state.news.push({
@@ -280,7 +287,7 @@ export function gameTimeReview(state: GameState): void {
   if (state.week !== 14 && state.week !== 26) return
   const club = state.clubs[state.userClubId]
   if (!club) return
-  const rows = ledger(state, club).filter(r => r.status !== 'fringe' && r.gap <= -3).slice(0, 5)
+  const rows = ledger(state, club).filter(r => r.status !== 'fringe' && r.gap <= -3 && !r.p.injury).slice(0, 5)
   if (!rows.length) return
   // A name is data; "Your assistant" is a sentence. Splitting them is what
   // stops a French ledger opening with "Your assistant a épluché les feuilles".

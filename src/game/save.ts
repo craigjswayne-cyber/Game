@@ -1,4 +1,5 @@
 import type { CareerRow, Club, FacilityId, GameState } from './model'
+import { LEGEND_APPS, service } from './legends'
 import { migrateRivalBids } from './rivalbids'
 import { ATTR_KEYS, FACILITY_INFO, MAX_FACILITY, SEASON_WEEKS, WEEK_BASIS, emptyStats, finalVenue, foldCareer, initFacilities } from './model'
 import { ensureCaptains } from './analysis'
@@ -381,6 +382,14 @@ export function migrate(s: GameState): GameState {
   for (const n of s.news) {
     for (const [was, now] of RENAMED_KEYS) if (n?.k === was) n.k = now
   }
+  // THE CLUB'S HOME BY NAME. These stories said "the town" and now name the
+  // place ({city}); one filed before carries no city and would print the hole,
+  // so it reads the manager's club's.
+  const CITY_KEYS = ['news.giantWon', 'news.youWonCup', 'news.youWonLeague', 'news.townCollection', 'news.fanSignedIcon']
+  const home = (s.clubs as Record<string, Club | undefined> | undefined)?.[s.userClubId]?.city
+  for (const n of s.news) {
+    if (home && n?.k && CITY_KEYS.includes(n.k) && n.v && n.v.city == null) n.v.city = home
+  }
   for (const f of s.fixtures) {
     for (const [was, now] of RENAMED_VENUES) if (f?.venue?.name === was) f.venue.name = now
   }
@@ -489,6 +498,9 @@ export function migrate(s: GameState): GameState {
   s.season = int(s.season, 0, 999, 0)
   s.week = int(s.week, 1, SEASON_WEEKS, 1)
   s.day = int(s.day, 0, 5, 0) as GameState['day']
+  // the window countdown's stamp (window.ts): a number or nothing, and nothing
+  // only means the next notice due is posted
+  if (s.windowNote != null && !(typeof s.windowNote === 'number' && Number.isFinite(s.windowNote))) delete s.windowNote
   if (!Number.isFinite(s.seed)) s.seed = hashString(`${s.userClubId ?? 'rugby'}-${s.season}`)
 
   // ---- prune the rubbish out of the lists ----
@@ -509,12 +521,18 @@ export function migrate(s: GameState): GameState {
     // the byline is one known source or none: anything else a bad copy left
     // there would print a stranger's name over a story (1.8.7, Ruck)
     if (n.src != null && n.src !== 'ruck') delete n.src
+    // a named day is a day of the week or nothing (days.ts dayOfStory)
+    if (n.day != null && !(Number.isInteger(n.day) && n.day >= 0 && n.day <= 5)) delete n.day
   }
   s.press = s.press.filter(p => story(p) && typeof (p as { question?: unknown }).question === 'string')
   s.offers = s.offers.filter(story)
   s.fixtures = s.fixtures.filter(story)
   s.mentors = s.mentors.filter(story)
   s.pledges = s.pledges.filter(story)
+  // a promise of a start settles on its two counts (handshake.ts): without
+  // them it cannot be read, so it is dropped rather than broken by default
+  s.pledges = s.pledges.filter(pl => pl.kind !== 'start' ||
+    (Number.isFinite(pl.baseStarts) && Number.isFinite(pl.baseGames)))
   s.preContracts = s.preContracts.filter(story)
 
   // ---- the id counter must clear everything already in the world ----
@@ -569,6 +587,7 @@ export function migrate(s: GameState): GameState {
     p.value = num(p.value, 0, 1_000_000_000_000, 100_000)
     p.bans = int(p.bans, 0, 99, 0)
     if (p.freeUntil !== undefined && !(typeof p.freeUntil === 'number' && Number.isFinite(p.freeUntil))) delete p.freeUntil
+    if (p.reqLock !== undefined && typeof p.reqLock !== 'string') delete p.reqLock
     if (typeof p.name !== 'string' || !p.name) p.name = 'Unnamed Player'
     p.stats ??= emptyStats()
     // an attribute grid that is missing or not an object: derive a flat set from
@@ -770,6 +789,13 @@ export function migrate(s: GameState): GameState {
   s.analyst ??= null
   s.analystRecord ??= { right: 0, wrong: 0 }
   s.commission ??= null
+  // the monthly letter's stamp (commission.ts scoutPostcard) is season*100+week,
+  // never on the 45/48 basis, so it is not rebased: only a junk value goes, and
+  // the brief falls back to its week-4, 8, 12 cadence
+  if (s.commission && typeof s.commission === 'object') {
+    const lw = s.commission.lastWord
+    if (lw != null && !(typeof lw === 'number' && Number.isFinite(lw) && lw > 0)) delete s.commission.lastWord
+  }
   s.scoutFinds ??= null
   s.facilityBuild ??= null
   s.stadiumBuild ??= null
@@ -913,6 +939,17 @@ export function migrate(s: GameState): GameState {
     if (p.trait === undefined) p.trait = deriveTrait(p)
     p.hist ??= deriveHist(p)
     p.caps ??= deriveCaps(p)
+  }
+  // A SIGNING CROWNED ON SOMEBODY ELSE'S APPEARANCES (1.8.12). Before the
+  // fix in legends.ts service(), a man signed with no career rows carried his
+  // whole pre-2025 career into his new club's count, so one match there could
+  // make him its legend. A legend made in this career by a man the club
+  // signed, whose real count there is short of the mark, comes off the board.
+  if (s.hist?.legends?.length) {
+    s.hist.legends = s.hist.legends.filter(l => {
+      const p = s.players[l.pid]
+      return !(p && l.season >= 0 && p.clubId === l.clubId && p.joinedAt != null && service(p, l.clubId).apps < LEGEND_APPS)
+    })
   }
   // CRITICAL: restore the player-id counter. Only newGame resets it, so a
   // cold-started session that loads a save would otherwise mint new player

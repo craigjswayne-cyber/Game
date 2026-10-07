@@ -1,4 +1,5 @@
 import { talkbackWeek } from './talkback'
+import { settleStartPledge } from './handshake'
 import type { Competition, FacilityId, Fixture, GameState, Player, Pos, TableRow, TrainingFocus } from './model'
 import { W, genderOf, mayTakeMaternityLeave, MATERNITY_WEEKS, subjectVar } from './gender'
 // FRIENDLY_DAY below is the Wednesday index this hands to dayDate
@@ -25,6 +26,7 @@ import { simMatch, autoSelect, pickTrainingInjury, teamShort, teamUnits, rosterO
 import { BARRAGE_WEEK, windowSpan } from './calendar'
 import { emptyRow, leaguePos, sortTable, snIdFor, snWeeksFor, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS, W_AUTUMN_WEEKS, W_SIX_NATIONS_WEEKS, W_PAC4_WEEKS, W_SUMMER_TEST_WEEKS } from './schedule'
 import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice } from './ai'
+import { isDeadlineWeek, nextWeek, postWindowNotes, prevWeek } from './window'
 import { OFFICE_OUTLET, PRESS_KEEP_WEEKS, generatePress, isBoardroom } from './media'
 import { debtWeek } from './treasury'
 import { generateGossip } from './gossip'
@@ -542,7 +544,7 @@ function maybeCreateKnockouts(state: GameState, comp: Competition, rng: Rng) {
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: `The ${comp.short} ${stg} draw: ${teamShort(state, opp)}`,
         body: fx.venue
-          ? `It is settled. ${teamShort(state, opp)} in the ${comp.name} FINAL, at ${fx.venue.name} in ${fx.venue.city} - ${fx.venue.capacity.toLocaleString()} seats and both towns emptying to fill them. One match. Everything on it.`
+          ? `It is settled. ${teamShort(state, opp)} in the ${comp.name} FINAL, at ${fx.venue.name} in ${fx.venue.city} - ${fx.venue.capacity.toLocaleString()} seats and both sets of supporters on the road to fill them. One match. Everything on it.`
           : us === home
             ? `The balls have been drawn. You host ${teamShort(state, opp)} in the ${comp.name} ${stg} - win, and the road continues. ${stg === 'FINAL' ? 'One match. Everything on it.' : 'Get the place rocking.'}`
             : `The balls have been drawn. You travel to ${teamShort(state, opp)} for the ${comp.name} ${stg}. ${stg === 'FINAL' ? 'One match. Everything on it.' : 'Quiet the crowd early and anything is possible.'}`,
@@ -2481,6 +2483,9 @@ export function processWeekAndAdvance(state: GameState) {
   // never mint below the counter the save carries: a career opened in the
   // same session as another must not reuse ids the other career freed (1.6.4)
   resetIds(Math.max(peekPid(), state.pidNext ?? 0))
+  // the window's countdown for any day of this week the walk did not reach,
+  // so a week settled in one go still files every notice, in order (window.ts)
+  postWindowNotes(state, 5)
   // did last week's match make a knock worse? (knock.ts) - before the jokers,
   // so a flare-up that puts a man out long-term is one a joker can cover
   settleKnocks(state)
@@ -2690,8 +2695,9 @@ export function processWeekAndAdvance(state: GameState) {
   // cleared, so he cannot also turn out for the A side (feedback 10G).
   playAcademyWeek(state, rng)
   // DEADLINE DAY: the last week of each window is a circus - panic
-  // listings appear at cut prices and nobody's star is safe
-  if ((state.week === 7 || state.week === 27) && !state.unemployed) {
+  // listings appear at cut prices and nobody's star is safe. Filed by the
+  // settle before it, so the story is on the desk for deadline week itself
+  if (isDeadlineWeek(nextWeek(state.week)) && !state.unemployed) {
     const bargains: string[] = []
     const pool = Object.values(state.players).filter(p =>
       p.clubId && p.clubId !== state.userClubId && state.clubs[p.clubId] &&
@@ -2716,7 +2722,7 @@ export function processWeekAndAdvance(state: GameState) {
   }
 
   // the morning after deadline day: the window is shut, here is the rundown
-  if ((state.week === 8 || state.week === 28) && !state.unemployed) {
+  if (isDeadlineWeek(prevWeek(state.week)) && !state.unemployed) {
     // read by the story's key and its variables, not its English (1.8.1): the
     // subject and body are stored in English for the engine, and a round-up
     // that parsed them broke the day anybody reworded a transfer story
@@ -2771,6 +2777,8 @@ export function processWeekAndAdvance(state: GameState) {
       // survives his signature on someone else's paper
       if (pl.season !== state.season || !p || p.clubId !== state.userClubId || state.unemployed ||
         (state.preContracts ?? []).some(pc => pc.playerId === p.id)) continue
+      // a start is owed at the next match played (handshake.ts)
+      if (pl.kind === 'start') { if (settleStartPledge(state, pl, p)) remain.push(pl); continue }
       if (state.week < pl.due) { remain.push(pl); continue }
       const gap = p.stats.apps - pl.baseApps
       const kept = pl.kind === 'plans' ? gap >= 2
@@ -3257,13 +3265,13 @@ export function processWeekAndAdvance(state: GameState) {
         body: youLost
           ? `${score}. The ${state.comps[best.fx.compId]?.name ?? 'cup'} run ends at the hands of a side nobody rated - and that is exactly how the papers will write it. Cup rugby forgives nothing.`
           : youWon
-            ? `${score}. Your side knocked out a club a class above on paper, and paper lost. The players cut souvenirs from the net of the changing room whiteboard; the town will talk about this one for years.`
-            : `${score} in the ${state.comps[best.fx.compId]?.name ?? 'cup'}. ${win?.name} beat a side a class above them on paper, and the whole sport smiles - except in ${lose?.city ?? 'one town'}.`,
+            ? `${score}. Your side knocked out a club a class above on paper, and paper lost. The players cut souvenirs from the net of the changing room whiteboard; ${win?.city} will talk about this one for years.`
+            : `${score} in the ${state.comps[best.fx.compId]?.name ?? 'cup'}. ${win?.name} beat a side a class above them on paper, and the whole sport smiles - except in ${lose?.city ?? 'one place'}.`,
         k: youLost ? 'news.giantLost' : youWon ? 'news.giantWon' : 'news.giantOther',
         v: {
           score, comp: state.comps[best.fx.compId]?.name ?? tIn('en', 'news.theCup'),
           win: win?.short ?? '', winName: win?.name ?? '', lose: lose?.short ?? '',
-          loseCity: lose?.city ?? tIn('en', 'news.oneTown'),
+          loseCity: lose?.city ?? tIn('en', 'news.oneTown'), city: win?.city ?? '',
         },
         fixtureId: best.fx.id,
       })
@@ -3296,7 +3304,7 @@ export function processWeekAndAdvance(state: GameState) {
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: `YOU ARE IN THE FINAL: ${compName}`,
         body: [
-          `The semi-final is won and there is one game left in the ${compName}${oppName ? ` - ${oppName}, winner takes the trophy` : ''}. The town plans its week around it, training closes to the public, and everyone you have ever met asks about tickets.`,
+          `The semi-final is won and there is one game left in the ${compName}${oppName ? ` - ${oppName}, winner takes the trophy` : ''}. The supporters plan their week around it, training closes to the public, and everyone you have ever met asks about tickets.`,
           v ? `And it is at ${v.name}. ${v.capacity.toLocaleString()} people in ${v.city}, half of them yours.` : '',
           `Nobody remembers a beaten finalist. Pick the team that wins it.`,
         ].filter(Boolean).join('\n'),
@@ -3889,8 +3897,8 @@ export function processWeekAndAdvance(state: GameState) {
           state.news.push({
             id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
             subject: `CHAMPIONS! The ${comp.name} is yours`,
-            body: `Scenes of pure joy as ${state.clubs[state.userClubId].name} lift the ${comp.name}. The city will talk about this night for years - and the board have noted exactly who delivered it.`,
-            k: 'news.youWonCup', v: { comp: comp.name, club: state.clubs[state.userClubId].name },
+            body: `Scenes of pure joy as ${state.clubs[state.userClubId].name} lift the ${comp.name}. ${state.clubs[state.userClubId].city} will talk about this night for years - and the board have noted exactly who delivered it.`,
+            k: 'news.youWonCup', v: { comp: comp.name, club: state.clubs[state.userClubId].name, city: state.clubs[state.userClubId].city },
           })
           state.clubs[state.userClubId].boardConfidence = clamp(state.clubs[state.userClubId].boardConfidence + 20, 0, 100)
         } else {
@@ -3926,8 +3934,8 @@ export function processWeekAndAdvance(state: GameState) {
           state.news.push({
             id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
             subject: `CHAMPIONS! The ${comp.name} title is yours`,
-            body: `${state.clubs[state.userClubId].name} finish top of the pile. Promotion won, history made - the town will remember this season.`,
-            k: 'news.youWonLeague', v: { comp: comp.name, club: state.clubs[state.userClubId].name },
+            body: `${state.clubs[state.userClubId].name} finish top of the pile. Promotion won, history made - ${state.clubs[state.userClubId].city} will remember this season.`,
+            k: 'news.youWonLeague', v: { comp: comp.name, club: state.clubs[state.userClubId].name, city: state.clubs[state.userClubId].city },
           })
           state.clubs[state.userClubId].boardConfidence = clamp(state.clubs[state.userClubId].boardConfidence + 20, 0, 100)
         }
@@ -4628,6 +4636,8 @@ If you go, your assistant takes your national side for the duration. Nobody prep
   // else does: a breakthrough or a revised projection is written to be read
   // that week, and must not push a rarer story (the club's history book, a
   // record, a farewell) off the end of the inbox (devnews.ts trimDevFirst)
+  // the new week's Monday notice, if the window opens or shuts on it
+  postWindowNotes(state, 0)
   trimDevFirst(state, NEWS_KEEP)
   if (state.news.length > NEWS_KEEP) state.news = state.news.slice(-NEWS_KEEP)
 

@@ -98,6 +98,8 @@ try {
       const live = s.liveMatch
       const e = live.ctx.events[live.cursor - 1]
       const el = document.querySelector('.now-line')
+      // a try line flashes inverted for its first second (1.8.12): read it settled
+      if (el && el.classList.contains('try-flash')) return null
       return el && e ? { teamId: e.teamId, bg: getComputedStyle(el).backgroundColor } : null
     })
     if (r) {

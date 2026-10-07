@@ -32,7 +32,7 @@ import { newGame } from '../src/game/newgame'
 import { activeWindows, natFixtureThisWeek, processWeekAndAdvance, userMatchThisWeek } from '../src/game/season'
 import { natCallUp, natDrop, natEligible, natWindow, weeksToSquad, NAT_SQUAD_FLOOR } from '../src/game/country'
 import { NAT_TIERS } from '../src/game/nations'
-import { NAT_SQUAD_SIZE, homeBased, sharesClubComp } from '../src/game/nations'
+import { NAT_SQUAD_SIZE, clubQuotaLeft, homeBased, sharesClubComp } from '../src/game/nations'
 import { answerPress, generatePress } from '../src/game/media'
 import { mulberry32 } from '../src/game/rng'
 import type { Fixture, GameState } from '../src/game/model'
@@ -104,10 +104,14 @@ ok(floorMsg != null && floorMsg.includes(String(NAT_SQUAD_FLOOR)), `the refusal 
 
 // ---- 1b. the Test XV is voided by a squad change ----
 g.natLineup = { team: 'SCO', lineup: squad.slice(0, 15) }
-const backIn = natEligible(g)[0]
+// the first man the call-up can take: one from a club already at its quota
+// (the national coach's own club sends only what the federation would) is
+// refused by design, and which club tops the list moves with the world
+const wSize = natWindow(g)?.size ?? NAT_SQUAD_SIZE
+const backIn = natEligible(g).find(q => !q.clubId || clubQuotaLeft(g, g.natTeam!, wSize, g.natSquads[g.natTeam!] ?? [], q.clubId) > 0)!
 ok(!!backIn && !backIn.natSquad, `the next man in is waiting (${backIn?.name})`)
 const callRes = natCallUp(g, backIn.id)
-ok(callRes == null, 'the call-up goes through')
+ok(callRes == null, `the call-up goes through${callRes ? ` (${callRes})` : ''}`)
 ok(squad.includes(backIn.id) && backIn.natSquad === true, 'he is in the room with the flag on')
 ok(g.natLineup == null, 'the old Test XV is voided - match day repicks from the real room')
 

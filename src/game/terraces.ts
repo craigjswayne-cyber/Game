@@ -138,7 +138,7 @@ function starSigned(state: GameState, p: Player, fee: number) {
     .filter((m): m is Player => !!m && m.id !== p.id && m.pos === p.pos)
     .sort((a, b) => b.ca - a.ca)
   terrace(state, standing >= 0.78 ? 'news.fanSignedIcon' : 'news.fanSignedStar', {
-    player: p.name, club: club.short, pos: p.pos,
+    player: p.name, club: club.short, pos: p.pos, city: club.city,
     n: Math.round(moved),
     rival_k: rivals.length ? 'news.fanRivalNamed' : 'news.fanRivalNone',
     rival: rivals[0]?.name ?? '',

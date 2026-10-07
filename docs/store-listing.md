@@ -150,6 +150,28 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.8.12, Play version code 51
+
+Each entry is under 500 characters. Paste the matching language into each Play locale.
+
+**en-GB**
+Two transfer windows for every club, summer and January, with a countdown to each deadline. Promise a player a start and it is a handshake: break it and he asks to leave. Scouts on the road write home monthly. Win and you go top now means it. Conversions line up with the try, tries flash in the commentary, and form arrows sit beside ratings. Injured players stop asking for minutes, and Gloucester have their new captain.
+
+**fr-FR**
+Deux fenêtres de transferts pour tous les clubs, l'été et en janvier, avec un compte à rebours avant chaque clôture. Promettez une titularisation et c'est une poignée de main : ne la tenez pas et il demande à partir. Les recruteurs en mission écrivent chaque mois. Les transformations s'alignent sur l'essai, les essais clignotent dans le commentaire et les flèches de forme accompagnent les notes. Les blessés ne réclament plus de temps de jeu.
+
+**es-ES**
+Dos ventanas de fichajes para todos los clubes, en verano y en enero, con cuenta atrás hasta cada cierre. Promete a un jugador la titularidad y es un apretón de manos: si no cumples, pide salir. Los ojeadores de viaje escriben cada mes. Las conversiones se alinean con el ensayo, los ensayos destellan en la narración y las flechas de forma acompañan a las notas. Los lesionados ya no piden minutos.
+
+**it-IT**
+Due finestre di mercato per tutti i club, estate e gennaio, con il conto alla rovescia verso ogni chiusura. Prometti una maglia da titolare ed è una stretta di mano: se non la mantieni, chiede di andarsene. Gli osservatori in viaggio scrivono ogni mese. Le trasformazioni si allineano alla meta, le mete lampeggiano nella cronaca e le frecce di forma affiancano i voti. Gli infortunati non chiedono più minuti.
+
+**ja-JP**
+全クラブに夏と1月の2つの移籍期間。締め切りまでカウントダウンを表示。先発を約束すれば握手の約束、破れば移籍を申し出る。遠征中のスカウトは毎月報告。コンバージョンはトライ地点に合わせて蹴り、トライは実況で光り、評価の横にフォームの矢印。負傷中の選手は出場機会を求めなくなった。
+
+**af**
+Twee oordragvensters vir elke klub, somer en Januarie, met 'n aftelling na elke sperdatum. Belowe 'n speler 'n begin en dit is 'n handdruk: breek dit en hy vra om te gaan. Spioene op pad skryf elke maand. Doelskoppe is in lyn met die drie, drieë flits in die kommentaar en vormpyle staan langs die graderings. Beseerde spelers vra nie meer vir speeltyd nie.
+
 ### What's new (500 max) - v1.8.11, Play version code 50
 
 Each entry is under 500 characters. Paste the matching language into each Play locale.

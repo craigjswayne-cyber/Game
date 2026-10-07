@@ -24,6 +24,8 @@ export interface Commission {
   leagueId: string | null
   /** men he has already sent word about, so the postcards do not repeat */
   sent?: number[]
+  /** absolute week (season*100+week) of his last monthly letter */
+  lastWord?: number
 }
 
 /** The scout's line, stored as a key and its fragments rather than a sentence:
@@ -95,10 +97,18 @@ export function commissionScout(state: GameState, pos: Pos | 'any', months: Sear
  * "when a scout goes on the road - they should drip feed their finds and
  * suggestions. they should come into the inbox").
  *
- * Every fourth week he writes in with one name he has been watching, and that
- * man becomes properly scouted there and then - so a postcard is worth something
- * beyond the reading. He never sends the same name twice, and the final report
- * still lands at the end with the graded shortlist.
+ * Once a month (every fourth week) he writes in: where the brief has him, how
+ * long until the report, and what he has turned up so far. Most months that is
+ * one new name he has been watching, and that man becomes properly scouted
+ * there and then - so a postcard is worth something beyond the reading. He
+ * never sends the same name twice, and the final report still lands at the end
+ * with the graded shortlist.
+ *
+ * A month with nobody new still gets its letter (owner: "there should be an
+ * update in news once a month for the period of time"): a narrow brief, a
+ * hooker in one league, used to run dry and go silent for the rest of the
+ * trip. The month is stamped on the brief (lastWord), so the cadence holds
+ * across a save and a load and never files twice in one week.
  *
  * The pick is a deterministic gate on (seed, week, brief) - never the shared
  * match stream - and it is drawn from the same ranked pool the report uses, so
@@ -109,49 +119,62 @@ export function scoutPostcard(state: GameState) {
   if (!c) return
   const abs = state.season * 100 + state.week
   if (abs >= c.done) return
-  // week 4, 8, 12 ... of the trip, and never in its last fortnight - the report
-  // itself is the news by then
+  // a month since his last letter, and never in the last fortnight of the
+  // trip - the report itself is the news by then. A brief from before the
+  // stamp keeps the old week-4, 8, 12 cadence until its first letter.
   const weeksIn = SEARCH_WEEKS[c.months] - weeksBetween100(c.done, abs)
-  if (weeksIn <= 0 || weeksIn % 4 !== 0) return
+  if (weeksIn <= 0) return
+  const since = c.lastWord != null ? weeksBetween100(abs, c.lastWord) : weeksIn % 4 === 0 ? 4 : 0
+  if (since < 4) return
   if (c.done - abs <= 2) return
   const man = state.staffPeople?.scout
   if (!man) return
   const tier = state.staff.scout ?? 1
+  c.lastWord = abs
   const rng = mulberry32((state.seed ^ Math.imul(abs, 40503) ^ (c.months * 104729)) >>> 0)
   const pool = Object.values(state.players).filter(p =>
     p.clubId && p.clubId !== state.userClubId && !p.acad && p.age <= 32 &&
     (c.pos === 'any' || p.pos === c.pos || p.alt.includes(c.pos)) &&
     (!c.leagueId || state.clubs[p.clubId]?.leagueId === c.leagueId) &&
     !(c.sent ?? []).includes(p.id))
-  if (!pool.length) return
   const worthOf = (p: Player) => (p.ca - 60) * 1.8 + (p.pa - p.ca) * 1.8 + (30 - p.age) * 0.8
   const ranked = pool.map(p => ({ p, worth: worthOf(p) })).sort((a, b) => b.worth - a.worth)
   const bias = 1.6 + tier * 0.6
-  const pick = ranked[Math.min(ranked.length - 1, Math.floor(ranked.length * Math.pow(rng(), bias)))]
-  if (!pick) return
-  const p = pick.p
-  c.sent = [...(c.sent ?? []), p.id]
-  // the real payoff: a man he has watched in person is a man you know about
-  bumpKnowledge(p, 26 + tier * 6)
-  const club = state.clubs[p.clubId ?? '']
-  const keen = pick.worth >= 40
+  const pick = ranked.length
+    ? ranked[Math.min(ranked.length - 1, Math.floor(ranked.length * Math.pow(rng(), bias)))]
+    : undefined
+  const before = (c.sent ?? []).filter(id => state.players[id])
+  const p = pick?.p
+  if (p) {
+    c.sent = [...(c.sent ?? []), p.id]
+    // the real payoff: a man he has watched in person is a man you know about
+    bumpKnowledge(p, 26 + tier * 6)
+  }
+  const club = p ? state.clubs[p.clubId ?? ''] : undefined
   const weeksLeft = c.done - abs
+  const where = c.leagueId ? state.comps[c.leagueId]?.short ?? '' : ''
+  const found = before.length + (p ? 1 : 0)
+  const brief = c.pos === 'any' ? 'anyone who can play' : POS_NAMES[c.pos].toLowerCase()
+  const s = weeksLeft === 1 ? '' : 's'
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false, tag: 'scout',
-    subject: `Word from ${man.name}: ${p.name}`,
-    body: `${weeksIn} weeks into the brief. "${keen
-      ? `Watched ${p.name} twice now and I would put my name to him. ${p.age}, ${POS_NAMES[p.pos].toLowerCase()} at ${club?.name ?? 'a club abroad'}, and he does the things you cannot teach.`
-      : `${p.name} is worth a mention. ${p.age}, ${POS_NAMES[p.pos].toLowerCase()} at ${club?.name ?? 'a club abroad'}. Not the answer on his own, but I would not rule him out.`}`
-      + ` I will keep looking - about ${weeksLeft} week${weeksLeft === 1 ? '' : 's'} until I write it all up."\n\n`
-      + `He is properly scouted now, so his page shows what he actually is rather than a range.`,
-    k: 'news.postcard',
+    subject: `Word from ${man.name}: ${weeksLeft} week${s} to go`,
+    body: `${weeksIn} weeks on the road. Brief: ${brief} ${where ? `in ${where}` : 'wherever the game is played'}.\n\n`
+      + (p ? `New name: ${p.name}, ${p.age}, ${POS_NAMES[p.pos]} ${club ? `at ${club.name}` : 'at a club abroad'}.` : 'No new names this month.')
+      + ` Names so far: ${found}. Report in ${weeksLeft} week${s}.`,
+    k: p ? 'news.scoutMonthly' : 'news.scoutMonthlyNone',
     v: {
-      ...subjectVar(man.g), scout: man.name, player: p.name, weeksIn, n: weeksLeft,
-      verdict_k: keen ? 'news.postcardKeen' : 'news.postcardMaybe',
-      age: p.age, pos_k: `pos.${p.pos}`, club: club?.name ?? '',
-      at_k: club ? 'news.atClub' : 'news.atClubAbroad',
+      ...subjectVar(man.g), scout: man.name, weeksIn, n: weeksLeft, found, where,
+      where_k: where ? 'news.inLeague' : 'news.inLeagueAny',
+      brief_k: c.pos === 'any' ? 'news.briefAnyone' : `pos.${c.pos}`,
+      ...(p ? {
+        player: p.name, age: p.age, pos_k: `pos.${p.pos}`, club: club?.name ?? '',
+        at_k: club ? 'news.atClub' : 'news.atClubAbroad',
+      } : {}),
     },
-    playerId: p.id,
+    ...(p ? { playerId: p.id } : {}),
+    // the names from earlier months ride along as chips under the story
+    ...(before.length ? { playerIds: before.slice(-8) } : {}),
   })
 }
 

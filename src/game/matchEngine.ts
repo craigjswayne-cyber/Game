@@ -1857,7 +1857,10 @@ const CON_LINES = [
   'comm.con8',
 ]
 /** try lines that put the ball under the posts, and conversion lines that
- *  put the kicker on the touchline: the two never follow each other */
+ *  put the kicker on the touchline: the two never follow each other. Since
+ *  1.8.12 neither line names the posts (owner: the clip showed the try nowhere
+ *  near them), but the swap stays so the line sequence, and the fingerprint
+ *  built from it, are unchanged */
 const UNDER_POSTS = new Set(['comm.try5', 'comm.try21'])
 const TOUCHLINE_CON = new Set(['comm.con3', 'comm.con8'])
 const FLAVOR_GRASSROOTS = [

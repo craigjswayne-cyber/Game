@@ -45,10 +45,12 @@ const bad = (msg: string) => { fails++; console.error(`CHALLENGE FAIL: ${msg}`) 
 
 for (const ch of CHALLENGES) {
   let sawComplete = false
+  let atAward: ReturnType<typeof newGame> | null = null
   // the women's four are pinned to women's clubs, which only exist in the
   // women's world - newGame built with the default 'm' has no such club and
   // dies inside seedKnowledge with an undefined club rather than a message
   const g = newGame(ch.clubId, 'Audit Gaffer', 20260804, ch.id, 'coach', ch.gender ?? genderOfId(ch.clubId))
+  const live = g
   if (g.challenge !== ch.id) bad(`${ch.id} not stamped at boot`)
   for (let season = 0; season < 2; season++) {
     const target = g.season + 1
@@ -62,11 +64,18 @@ for (const ch of CHALLENGES) {
       // seen as it lands: the inbox is capped at 250 stories, and a challenge
       // completed in the first season is gone from g.news by the second summer
       if (g.news.some(n => n.subject.includes('CHALLENGE COMPLETE'))) sawComplete = true
+      // JUDGED WHEN IT IS AWARDED (1.8.12). The game reads the condition the
+      // summer it pays out; a later read can disagree without anything being
+      // wrong - the head-to-head with Gloucester is a running book, and it
+      // went on after the badge in one re-dealt world. The state that decided
+      // it is kept from the week the badge lands.
+      if (!atAward && (g.challengesDone ?? []).includes(ch.id)) atAward = JSON.parse(JSON.stringify(g)) as typeof g
     }
   }
   const done = (g.challengesDone ?? []).includes(ch.id)
   if (done) {
     // completion must be backed by the real condition, not a stray flag
+    const g = atAward ?? live
     const uid = g.userClubId
     const legit =
       ch.id === 'sapiac' ? uid === 'montauban' && g.clubs[uid].leagueId === 'top14'
