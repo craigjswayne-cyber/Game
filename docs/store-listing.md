@@ -150,6 +150,28 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.8.13, Play version code 52
+
+Each entry is under 500 characters. Paste the matching language into each Play locale.
+
+**en-GB**
+New ratings for the 2026-27 season: the world's best players now rate where the game's rankings put them, in both the men's and women's game. World rankings updated to the October table. Nineteen real players join or are corrected at their 2026-27 clubs, including Taniela Tupou at Racing 92, Ben White at Toulon, and Megan Jones, Abby Dow and Ruby Tui at Ealing.
+
+**fr-FR**
+Nouvelles notes pour la saison 2026-27 : les meilleurs joueurs et joueuses du monde sont notés à leur vrai niveau. Classement mondial mis à jour avec la table d'octobre. Dix-neuf vrais joueurs et joueuses rejoignent ou sont corrigés dans leur club 2026-27, dont Taniela Tupou au Racing 92, Ben White à Toulon, et Megan Jones, Abby Dow et Ruby Tui à Ealing.
+
+**es-ES**
+Nuevas valoraciones para la temporada 2026-27: los mejores jugadores y jugadoras del mundo se valoran a su nivel real. Ranking mundial actualizado con la tabla de octubre. Diecinueve jugadores y jugadoras reales se incorporan o se corrigen en sus clubes de 2026-27, como Taniela Tupou en el Racing 92, Ben White en Toulon y Megan Jones, Abby Dow y Ruby Tui en Ealing.
+
+**it-IT**
+Nuove valutazioni per la stagione 2026-27: i migliori giocatori e giocatrici del mondo sono valutati al loro vero livello. Ranking mondiale aggiornato alla classifica di ottobre. Diciannove giocatori e giocatrici reali entrano o vengono corretti nei club 2026-27, tra cui Taniela Tupou al Racing 92, Ben White a Tolone e Megan Jones, Abby Dow e Ruby Tui all'Ealing.
+
+**ja-JP**
+2026-27シーズンの新レーティング。男女とも世界のトップ選手が実力どおりに評価されます。世界ランキングを10月の最新版に更新。ラシン92のタニエラ・トゥポウ、トゥーロンのベン・ホワイト、イーリングのミーガン・ジョーンズ、アビー・ダウ、ルビー・トゥイなど、19人の実在選手が2026-27年の所属クラブに加入・修正されました。
+
+**af**
+Nuwe graderings vir die 2026-27-seisoen: die wêreld se beste spelers, mans en vroue, word nou op hul ware vlak gegradeer. Wêreldranglys bygewerk tot die Oktober-tabel. Negentien regte spelers sluit aan of word reggestel by hul 2026-27-klubs, onder andere Taniela Tupou by Racing 92, Ben White by Toulon, en Megan Jones, Abby Dow en Ruby Tui by Ealing.
+
 ### What's new (500 max) - v1.8.12, Play version code 51
 
 Each entry is under 500 characters. Paste the matching language into each Play locale.

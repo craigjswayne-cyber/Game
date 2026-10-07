@@ -38,6 +38,8 @@ export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
   // the files only had Berjon.
   // ---- the 2026-27 window, second instalment (owner's v1.1.6 list) --------
   exeter: [
+    // 147th. Source: owner's PHASE Verified Player Club Database 2026-27 (7 Oct 2026).
+    { name: 'Stephen Varney', pos: 'SH', age: 25, nat: 'ITA', q: 82, intl: true },
     // Bath's published 2026/27 squad dropped these two with nowhere to go
     // (see prem2526.ts's Bath note); the owner's list lands them at Exeter.
     { name: 'Will Butt', pos: 'CE', age: 26, nat: 'WAL', q: 70, intl: true },
@@ -205,15 +207,21 @@ export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
     { name: 'Thomas du Toit', pos: 'TP', alt: ['LP'], age: 31, nat: 'RSA', q: 90, intl: true },
   ],
   racing92: [
+    // 66th in the owner's PHASE Top 200. Source: owner's PHASE Verified Player Club Database 2026-27 (7 Oct 2026).
+    { name: 'Taniela Tupou', pos: 'TP', age: 30, nat: 'AUS', q: 87, intl: true },
     { name: 'Romain Taofifenua', pos: 'LK', age: 36, nat: 'FRA', q: 70, intl: true },
     { name: 'Sam James', pos: 'CE', age: 32, nat: 'ENG', q: 69 },
   ],
   toulon: [
+    // 118th. Source: owner's PHASE Verified Player Club Database 2026-27 (7 Oct 2026).
+    { name: 'Ben White', pos: 'SH', age: 28, nat: 'SCO', q: 84, intl: true },
     { name: 'Kyle Sinckler', pos: 'TP', age: 33, nat: 'ENG', q: 79, intl: true },
     { name: 'Lewis Ludlam', pos: 'FL', age: 30, nat: 'ENG', q: 77, intl: true },
     { name: 'Antoine Frisch', pos: 'CE', age: 30, nat: 'IRE', q: 74, intl: true },
   ],
   bordeaux: [
+    // 132nd. Source: owner's PHASE Verified Player Club Database 2026-27 (7 Oct 2026).
+    { name: 'Jefferson Poirot', pos: 'LP', age: 33, nat: 'FRA', q: 83, intl: true },
     { name: 'Alex Moon', pos: 'LK', age: 29, nat: 'ENG', q: 69 },
     { name: 'Salesi Rayasi', pos: 'WG', age: 29, nat: 'FIJ', q: 80 },
   ],
@@ -302,6 +310,8 @@ export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
     { name: 'Jasper Wiese', pos: 'N8', age: 30, nat: 'RSA', q: 86, intl: true },
   ],
   hondaheat: [
+    // 106th; stayed at Honda for 2026-27. Source: owner's PHASE Verified Player Club Database 2026-27 (7 Oct 2026).
+    { name: 'Pablo Matera', pos: 'FL', alt: ['N8'], age: 33, nat: 'ARG', q: 85, intl: true },
     { name: 'Franco Mostert', pos: 'LK', age: 35, nat: 'RSA', q: 77, intl: true },
   ],
   dynaboars: [
@@ -341,6 +351,8 @@ export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
     { name: 'Bernard Foley', pos: 'FH', age: 37, nat: 'AUS', q: 71, gk: true, intl: true },
   ],
   montpellier: [
+    // 124th. Source: owner's PHASE Verified Player Club Database 2026-27 (7 Oct 2026).
+    { name: 'Adam Beard', pos: 'LK', age: 30, nat: 'WAL', q: 84, intl: true },
     { name: 'Tom Banks', pos: 'FB', age: 32, nat: 'AUS', q: 70, intl: true },
   ],
   salefc: [
@@ -348,6 +360,42 @@ export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
   ],
   cambridge: [
     { name: 'Ruaridh Dawson', pos: 'SH', age: 24, nat: 'SCO', q: 60 },
+  ],
+  dragons: [
+    // 129th. Source: owner's PHASE Verified Player Club Database 2026-27 (7 Oct 2026).
+    { name: 'Dillon Lewis', pos: 'TP', age: 30, nat: 'WAL', q: 83, intl: true },
+  ],
+  bayonne: [
+    // 176th. Source: owner's PHASE Verified Player Club Database 2026-27 (7 Oct 2026).
+    { name: 'Mateo Carreras', pos: 'WG', age: 26, nat: 'ARG', q: 80, intl: true },
+  ],
+  'w:trailfinders': [
+    // 4th in the owner's Women's Top 100. Source: owner's PHASE Verified Player Club Database 2026-27 (7 Oct 2026).
+    { name: 'Megan Jones', pos: 'CE', age: 29, nat: 'ENG', q: 88, intl: true },
+    // 16th. Source: owner's PHASE Verified Player Club Database 2026-27 (7 Oct 2026).
+    { name: 'Abby Dow', pos: 'WG', age: 28, nat: 'ENG', q: 86, intl: true },
+    // 34th (the ranking sheet spelt her Alana Borland). Source: owner's PHASE Verified Player Club Database 2026-27 (7 Oct 2026).
+    { name: 'Alana Bremner', pos: 'LK', alt: ['FL'], age: 29, nat: 'NZL', q: 84, intl: true },
+    // 62nd; from Loughborough; born 18 Aug 2002 (Wikipedia). Source: owner's PHASE Verified Player Club Database 2026-27 (7 Oct 2026).
+    { name: 'Bo Westcombe-Evans', pos: 'WG', alt: ['FB'], age: 24, nat: 'ENG', q: 81, intl: true },
+    // 92nd. Source: owner's PHASE Verified Player Club Database 2026-27 (7 Oct 2026).
+    { name: 'Ruby Tui', pos: 'WG', age: 34, nat: 'NZL', q: 78, intl: true },
+  ],
+  'w:exeter': [
+    // 26th. Source: owner's PHASE Verified Player Club Database 2026-27 (7 Oct 2026).
+    { name: 'Claudia MacDonald', pos: 'WG', alt: ['SH'], age: 30, nat: 'ENG', q: 85, intl: true },
+  ],
+  'w:glosharty': [
+    // 71st; born 14 Nov 1996 (Wikipedia). Source: owner's PHASE Verified Player Club Database 2026-27 (7 Oct 2026).
+    { name: 'Hannah Jones', pos: 'CE', age: 29, nat: 'WAL', q: 80, intl: true },
+  ],
+  'w:bordeaux': [
+    // 20th; Stade Bordelais. Source: owner's PHASE Verified Player Club Database 2026-27 (7 Oct 2026).
+    { name: 'Madoussou Fall', pos: 'LK', alt: ['FL'], age: 28, nat: 'FRA', q: 86, intl: true },
+  ],
+  'w:rennes': [
+    // 72nd; Stade Rennais. Source: owner's PHASE Verified Player Club Database 2026-27 (7 Oct 2026).
+    { name: 'Jade Ulutule', pos: 'SH', alt: ['CE'], age: 33, nat: 'FRA', q: 80, intl: true },
   ],
 }
 

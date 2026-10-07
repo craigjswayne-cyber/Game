@@ -523,11 +523,20 @@ const EXPECTED: string[] = [
   // branch merged in at the end reads 49.4 / 6.30 / 52.3% / 1.7% / 8.5%)
   // Home advantage read 51.2% to 53.5% over nine runs while the styles were
   // tuned (per-seed spread 2 to 6 points), against 51.5% before them.
+  // Rebaselined (1.8.13), DATA not mechanics: player ratings held to the
+  // owner's PHASE rankings (135 men raised, none lowered) and nine men added
+  // to the files, Thomas du Toit and eight from the owner's verified club
+  // database. The engine and its draws are untouched; three of the six
+  // results move because the men in them are rated differently (Sale,
+  // Bristol, Quins, Leicester, Newcastle and Northampton all carry raised
+  // internationals). bandcheck, pooled over four seeds, main -> this data:
+  //   pts 49.0 -> 49.0   tries 6.19 -> 6.20   home 52.8% -> 52.6%
+  //   draws 1.5% -> 2.0%   blowouts 9.0% -> 8.6% (every band holds)
   'saracens 31-27 bath',
   'exeter 24-42 gloucester',
-  'sale 31-28 bristol',
-  'harlequins 44-27 leicester',
-  'newcastle 27-31 northampton',
+  'sale 39-25 bristol',
+  'harlequins 36-27 leicester',
+  'newcastle 27-33 northampton',
   'exeter 18-36 saracens',
 ]
 // REBASELINED for 1.8.2 depth (claude/182-depth), FIVE of six moved, and

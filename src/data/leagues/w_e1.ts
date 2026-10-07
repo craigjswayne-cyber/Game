@@ -138,7 +138,10 @@ export const W_E1: RawClub[] = [
       { name: 'Fabiola Forteza', pos: 'FL', age: 28, nat: 'FRA', q: 80 },
       { name: 'Manon Delbos', pos: 'SH', age: 24, nat: 'FRA', q: 80 },
       { name: 'Maiana Gony', pos: 'FH', age: 18, nat: 'FRA', q: 65 },
-      { name: 'Justine Pelletier', pos: 'SH', age: 23, nat: 'FRA', q: 74 },
+      // the Canada scrum-half, 44th in the owner's Women's Top 100; at Stade
+      // Bordelais per the owner's verified database (7 Oct 2026); born 27 Feb
+      // 1996 (Wikipedia). Was a generated 23-year-old French nine.
+      { name: 'Justine Pelletier', pos: 'SH', age: 30, nat: 'CAN', q: 83, intl: true },
       { name: 'Sarah Maude Lachance', pos: 'CE', age: 28, nat: 'FRA', q: 75 },
       { name: 'Aubane Rousset', pos: 'CE', age: 31, nat: 'FRA', q: 72 },
       { name: 'Lilou Graciet', pos: 'CE', age: 27, nat: 'FRA', q: 80 },
