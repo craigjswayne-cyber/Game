@@ -143,8 +143,30 @@ export function demandedFinish(state: GameState, clubId: string, teams = 14): { 
   const steps = ladder(teams)
   const i = steps.findIndex(s => s.text === base.text)
   if (i < 0) return base
-  const j = Math.max(0, Math.min(steps.length - 1, i + SHIFT[profileOf(state, clubId)]))
+  let j = Math.max(0, Math.min(steps.length - 1, i + SHIFT[profileOf(state, clubId)]))
+  // A BOARD THAT HAS LOOKED AT ITS OWN SQUAD (owner, 1.8.14: "expect a bit
+  // less"). Stature alone set the aim, so Leicester's board asked a new man
+  // for the top four with the eighth-best squad in a league of ten, and a
+  // manager who changed nothing was sacked in six first seasons of eight.
+  // When the squad ranks three or more places below the aim, the aim drops
+  // one step. The terraces do not lower theirs (season.ts, terraces.ts).
+  const rank = squadRank(state, clubId)
+  if (rank && rank - steps[j].pos >= 3) j = Math.min(steps.length - 1, j + 1)
   return j === i ? base : steps[j]
+}
+
+/** Where a club's squad stands in its league on paper: the mean current
+ *  ability of its best 23 senior men, ranked. Null outside a league. */
+export function squadRank(state: GameState, clubId: string): number | null {
+  const club = state.clubs[clubId]
+  const ids = state.comps[club?.leagueId ?? '']?.teamIds
+  if (!club || !ids?.includes(clubId)) return null
+  const depth = (id: string) => {
+    const ca = (state.clubs[id]?.players ?? []).map(pid => state.players[pid]).filter(p => p && !p.acad).map(p => p.ca).sort((a, b) => b - a).slice(0, 23)
+    return ca.length ? ca.reduce((a, b) => a + b, 0) / ca.length : 0
+  }
+  const mine = depth(clubId)
+  return 1 + ids.filter(id => id !== clubId && depth(id) > mine).length
 }
 
 /** How far a result moves this boardroom, beside everything else it weighs. */

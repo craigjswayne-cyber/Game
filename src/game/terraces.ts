@@ -184,7 +184,9 @@ export function campaignStage(state: GameState): CampaignStage {
   if (!club) return 0
   const mood = state.fanMood ?? 60
   const board = club.boardConfidence
-  if (mood > 42 || board > 62) return 0
+  // a big club's support starts the campaign sooner (1.8.14): the grumbling
+  // begins at 50 rather than 42 from reputation 80
+  if (mood > (club.rep >= 80 ? 50 : 42) || board > 62) return 0
   if (mood <= 18 && board <= 32) return 3
   if (mood <= 28 && board <= 45) return 2
   return 1
