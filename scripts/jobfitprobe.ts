@@ -54,7 +54,13 @@ function needTruth(g: GameState, id: string): string | null {
   return short >= NEED && short >= leak ? 'attack' : leak >= NEED ? 'defence' : null
 }
 
-for (const [club, seed] of [['leicester', 51], ['bath', 52], ['northampton', 53]] as const) {
+// Three worlds, and up to three more while a trait has fitted nothing yet: an
+// academy job is three clubs in the world (Benetton, Provence, Seattle), and
+// whether one of them loses its coach in two seasons is the dice, not the code
+let worlds = 0
+for (const [club, seed] of [['leicester', 51], ['bath', 52], ['northampton', 53], ['exeter', 54], ['sale', 55], ['gloucester', 56]] as const) {
+  if (worlds >= 3 && TRAITS.every(tr => (fit[tr] ?? 0) > 0)) break
+  worlds++
   const g = newGame(club, 'Fit', seed)
   const seen = new Set<string>()
   for (let w = 0; w < SEASON_WEEKS * 2; w++) {
@@ -80,7 +86,7 @@ for (const [club, seed] of [['leicester', 51], ['bath', 52], ['northampton', 53]
     }
   }
 }
-console.log(`\n      ${vacs} vacancies over three worlds of two seasons (${((performance.now() - t0) / 1000).toFixed(0)}s); the share each trait fits:`)
+console.log(`\n      ${vacs} vacancies over ${worlds} worlds of two seasons (${((performance.now() - t0) / 1000).toFixed(0)}s); the share each trait fits:`)
 for (const tr of TRAITS) console.log(`        ${tr.padEnd(11)} ${Math.round(((fit[tr] ?? 0) / vacs) * 100)}%`)
 for (const s of shown) console.log(`      "${s}"`)
 const share = (tr: Trait) => (fit[tr] ?? 0) / Math.max(1, vacs)

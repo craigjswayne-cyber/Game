@@ -40,6 +40,10 @@ for (const [seed, cause] of [[11, 'red'], [12, 'yellow'], [13, 'injury']] as con
   const { g, ctx } = fresh(seed)
   ok(!ctx.uncontested, 'contested at kick-off with a legal 23')
   ok(liveFrontRowCover(g, ctx.home), 'live cover is fine with three front-rowers on the pitch')
+  // (the levelling needs a gap to level: two packs that start the same to
+  // the third decimal, as Leicester's and Bath's did on 1.8.13's data, are
+  // given a point between them first)
+  if (scrumGap(ctx) < 0.5) ctx.away.units.scrum += 1
   const before = scrumGap(ctx)
   const hooker = [...ctx.home.onPitch].map(id => g.players[id]).find(p => p.pos === 'HK')!
   ctx.home.onPitch.delete(hooker.id)
