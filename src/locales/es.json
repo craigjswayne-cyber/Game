@@ -6082,7 +6082,7 @@
   "dressingDown": "Se ha filtrado que {player} fue llamado a capítulo por su estado de forma reciente... y no se lo tomó bien. Sus compañeros cuentan que el martes entrenó por su cuenta.",
   "dressingDown_f": "Se ha filtrado que {player} fue llamada a capítulo por su estado de forma reciente... y no se lo tomó bien. Sus compañeros cuentan que el martes entrenó por su cuenta.",
   "boardPushedSubj": "AVISO FORMAL: la respuesta de la junta no cambia",
-  "boardPushed": "Se te dio una decisión y volviste a llamar a la puerta de todos modos. La junta lo toma como un desafío a su autoridad, y lo dice por escrito: la respuesta no ha cambiado, la confianza en tu criterio ha quedado seriamente tocada, y la próxima vez que repitas esta conversación será la última en el club.",
+  "boardPushed": "Se te dio una decisión y volviste a llamar a la puerta de todos modos. La junta lo toma como un desafío a su autoridad, y lo dice por escrito: la respuesta no ha cambiado, la confianza en tu criterio ha quedado seriamente tocada, y cada vez que repitas esta conversación te costará más.",
   "sackedPushedSubj": "DESPEDIDO: {club} prescinde de {manager}",
   "sackedPushed": "Avisado por escrito, y de vuelta en la puerta de la junta antes de un mes. La junta decidió que el club necesitaba un entrenador capaz de oír un no. {era} Tu reputación viaja contigo... y también la historia de cómo acabó esto.",
   "dreamRefocusSubj": "El sueño, cumplido",
@@ -7134,7 +7134,8 @@
    "one": "El consultor del patrocinador le ha encontrado un atajo a {player}: vuelve una semana antes.",
    "other": "El consultor del patrocinador le ha encontrado un atajo a {player}: vuelve {n} semanas antes."
   },
-  "boardPushedWarn": "La sala se queda helada. «Ya te dimos nuestra respuesta». Antes de una hora llega una amonestación formal, y el respeto de la junta por ti se reduce a la mitad. Vuelve a preguntar y estarás recogiendo tu despacho.",
+  "boardPushedAgain": "La respuesta sigue siendo no. Cada vez que insistes, la junta confía un poco menos en tu criterio.",
+  "boardPushedWarn": "La sala se queda helada. «Ya te dimos nuestra respuesta». Antes de una hora llega una amonestación formal, y el respeto de la junta por ti se reduce a la mitad. Vuelve a preguntar y te costará más.",
   "boardPushedSacked": "Preguntaste una vez de más. El presidente se levanta, ofrece un apretón de manos que nadie siente, y el comunicado del club sale antes de que llegues al aparcamiento.",
   "notHomeBased": "{player} juega su rugby de clubes en el extranjero. {nat} solo convoca de su propia liga: primero tendría que volver a casa.",
   "wontDropDown": "{club} acepta tu oferta, pero {name} no piensa bajar tantos escalones. Solo un jugador descontento, uno al que su club empuja hacia la salida o un mercenario negocia con un club tan inferior.",

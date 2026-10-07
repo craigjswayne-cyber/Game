@@ -1603,11 +1603,15 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
   // weeks mean borrowed players, not your own coaching department)
   if (side.isUser && side.teamId === state.userClubId && state.staff) {
     const s = state.staff
-    side.units.attack *= 1 + (s.attack ?? 0) * 0.016
-    side.units.defence *= 1 + (s.defence ?? 0) * 0.016
-    side.units.scrum *= 1 + (s.scrumCoach ?? 0) * 0.015
-    side.units.lineout *= 1 + (s.scrumCoach ?? 0) * 0.015
-    side.units.kicking *= 1 + (s.kicking ?? 0) * 0.02
+    // (1.8.14: a level is 1.3%, from 1.6%, so a fully badged department is
+    // worth what the best AI club's flat coaching is - 3.9% against 4.0% -
+    // rather than more. A full house measured +5 to +11 points of win rate
+    // over an empty one, more than any decision the manager made)
+    side.units.attack *= 1 + (s.attack ?? 0) * 0.013
+    side.units.defence *= 1 + (s.defence ?? 0) * 0.013
+    side.units.scrum *= 1 + (s.scrumCoach ?? 0) * 0.013
+    side.units.lineout *= 1 + (s.scrumCoach ?? 0) * 0.013
+    side.units.kicking *= 1 + (s.kicking ?? 0) * 0.016
     side.goalBonus = (s.kicking ?? 0) * 0.012 + facLevel(state, 'kicking') * 0.005
     // swagger tax: a squad drunk on its own headlines turns up flat
     if ((state.pressTone ?? 0) >= 4) {
@@ -2451,7 +2455,11 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     const fav = home.units.overall >= away.units.overall ? home : away
     const dog = fav === home ? away : home
     const gapR = (fav.units.overall - dog.units.overall) / Math.max(1, dog.units.overall)
-    const squeeze = Math.min(0.03, gapR * 0.35)
+    // A CUP TIE IS ITS OWN KIND OF DAY (1.8.14): one game, no table to fall
+    // back on, so in a cup knockout the squeeze is wider (up to 5.5%) than
+    // in a league play-off or a derby
+    const cupKO = !!fx.stage && state.comps[fx.compId]?.type === 'cup'
+    const squeeze = Math.min(cupKO ? 0.055 : 0.03, gapR * (cupKO ? 0.6 : 0.35))
     if (squeeze > 0.001) {
       layer(fav, 'attack', 1 - squeeze)
       layer(fav, 'defence', 1 - squeeze)
