@@ -254,8 +254,13 @@ for (const [key, want] of Object.entries(VERIFIED_CLUB)) {
   //     in a file anywhere (that would be a relocation, and it belongs in
   //     verified.ts), and he must arrive at the club named and nowhere else.
   let added = 0
+  // THE WOMEN'S WORLD IS BUILT ON ITS OWN (1.8.13): a 'w:' club is never in
+  // the men's leagues or the men's world, so its additions are checked
+  // against a women's world, built once, the same way.
+  let gw: ReturnType<typeof newGame> | null = null
+  const worldOf = (clubId: string) => clubId.startsWith('w:') ? (gw ??= newGame('w:trailfinders', 'Data Audit', 20260805, undefined, 'coach', 'w')) : g
   for (const [clubId, extras] of Object.entries(EXTRA_PLAYERS)) {
-    if (!clubIds.has(clubId)) bad(`additions table names club ${clubId}, which does not exist`)
+    if (clubId.startsWith('w:') ? !worldOf(clubId).clubs[clubId] : !clubIds.has(clubId)) bad(`additions table names club ${clubId}, which does not exist`)
     for (const rp of extras) {
       added++
       const key = rp.name.toLowerCase()
@@ -267,7 +272,7 @@ for (const [key, want] of Object.entries(VERIFIED_CLUB)) {
       if (already.length) {
         bad(`additions table adds ${rp.name}, who is already in the files at ${already.join(', ')} - relocate him instead`)
       }
-      const hits = Object.values(g.players).filter(p => p.name.toLowerCase() === key)
+      const hits = Object.values(worldOf(clubId).players).filter(p => p.name.toLowerCase() === key)
       if (!hits.length) bad(`${rp.name} was added but never built`)
       else if (!hits.some(h => h.clubId === clubId)) {
         bad(`${rp.name} was built at ${hits.map(h => h.clubId).join(', ')}, wants ${clubId}`)
