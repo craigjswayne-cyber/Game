@@ -105,8 +105,14 @@ console.log('\nevery brief met is one short message, and it says what it earned:
     while (g.season === start && guard++ < 70) { processWeekAndAdvance(g); gather() }
     return { g, start, paid: [...seen.values()].sort((a, b) => a.id - b.id) }
   }
-  for (const [clubId, seed] of [['northampton', 4242], ['bedford', 909], ['bath', 77]] as const) {
-    const { g, paid } = season(clubId, seed)
+  for (const [clubId, seed0] of [['northampton', 4242], ['bedford', 909], ['bath', 77]] as const) {
+    // A SEASON THAT REACHES MAY (1.8.12). A sacked manager gets no verdict to
+    // count briefs against; the windows re-dealt bath 77 into a week-27 sacking
+    // (one career in twelve is sacked by week 30 on main and on this branch
+    // alike), so the next seed is taken until the season runs its course.
+    let seed: number = seed0, run = season(clubId, seed)
+    while (run.g.unemployed && seed < seed0 + 10) run = season(clubId, ++seed)
+    const { g, paid } = run
     const verdict = [...g.news].reverse().find(n => n.k === 'news.boardHappy' || n.k === 'news.boardUnhappy')
     const rows = verdict ? (JSON.parse(String(verdict.v?.rows_ll ?? '[]')) as { k: string; text_k: string; amount: string }[]) : []
     const met = rows.filter(r => r.k === 'news.sideMet')
