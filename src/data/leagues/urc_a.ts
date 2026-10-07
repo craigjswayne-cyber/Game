@@ -59,7 +59,7 @@ export const URC_A: RawClub[] = [
       { name: 'Oli Jager', pos: 'TP', age: 30, nat: 'IRE', q: 76, intl: true },
       { name: 'Stephen Archer', pos: 'TP', age: 37, nat: 'IRE', q: 67, intl: true },
       { name: 'Tadhg Beirne', pos: 'LK', alt: ['FL'], age: 33, nat: 'IRE', q: 87, intl: true },
-      { name: 'Jean Kleyn', pos: 'LK', age: 32, nat: 'IRE', q: 75, intl: true },
+      { name: 'Jean Kleyn', pos: 'LK', age: 32, nat: 'RSA', q: 75, intl: true },
       { name: 'Fineen Wycherley', pos: 'LK', age: 27, nat: 'IRE', q: 70 },
       { name: 'Tom Ahern', pos: 'LK', alt: ['FL'], age: 25, nat: 'IRE', q: 73, intl: true },
       { name: 'Gavin Coombes', pos: 'N8', age: 27, nat: 'IRE', q: 78, intl: true },
