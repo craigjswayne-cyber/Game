@@ -94,17 +94,21 @@ console.log('--- the signing-on bonus is transfer money')
   roomy(g)
   const u = userOf(g)
   let done: Player | null = null
-  let before = 0
+  let before = 0, paidAt = 0
   const fee = 1_000_000
   const signOn = 400_000
   for (const p of Object.values(g.players).filter(q => q.clubId && q.clubId !== u.id && !q.acad && q.ca >= 60 && q.ca <= 70 && q.joinedAt == null)) {
     before = u.budget
-    const r = signOnTerms(g, p.id, Math.max(fee, askingPrice(g, p)), personalTermsDemand(g, p) * 2, signOn, false)
+    // the fee struck at the table, read BEFORE he moves: once he is ours his
+    // asking price is the user club's to set (a surplus man is offered under
+    // value since 1.8.14), so reading it afterwards reads a different price
+    paidAt = Math.max(fee, askingPrice(g, p))
+    const r = signOnTerms(g, p.id, paidAt, personalTermsDemand(g, p) * 2, signOn, false)
     if (r.ok) { done = p; break }
   }
   ok(!!done, `a signing completed for the test (${done?.name})`)
   if (done) {
-    const paid = Math.max(fee, askingPrice(g, done))
+    const paid = paidAt
     ok(u.budget === Math.max(0, before - paid - signOn), `the budget fell by the fee and the bonus, not the fee alone (${before} -> ${u.budget})`)
   }
 }

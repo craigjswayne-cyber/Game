@@ -343,9 +343,20 @@ console.log('--- 8. saying nothing: once is nothing, a habit drains the room (ow
     const fFine = sum('faith')
     ok(fNeglect > fFine, 'and a word of faith does more for a neglected room than for a looked-after one')
   }
-  // what it costs on the pitch: paired matches, even games
+  // what it costs on the pitch: paired matches, even games.
+  //
+  // THE COST IS ASSERTED ON THE XV, NOT ON THE WIN RATE (1.8.14). The habit
+  // takes about half a percent off the side on the day (the mean per-man
+  // factor read 0.9947), worth a point or so of wins. But the two arms of a
+  // pair part ways the moment one man's rating moves, so the paired win
+  // difference has the noise of two independent samples: two to three
+  // points at these sizes. Over the 1.8.13 and 1.8.14 worlds this check read
+  // +2.8pp, then -1.1 and -1.8 (the last on twice the fixtures) with the
+  // habit's factor unchanged: the sign was the dice. So the claim it can
+  // actually carry is the mechanism - every man the habit reaches is a
+  // little worse, never better - and the result is printed for the record.
   {
-    let n = 0, wn = 0, wh = 0, mh = 0
+    let n = 0, wn = 0, wh = 0, mh = 0, fh = 0, fmax = 0
     for (const [club, seed] of [['leicester', 4242], ['toulouse', 9], ['leinster', 31337], ['northampton', 777]] as const) {
       const { g, out } = world(club, seed)
       for (const { fx } of out.filter(x => x.exp >= -0.25 && x.exp <= 0.25).slice(0, 3)) {
@@ -353,12 +364,13 @@ console.log('--- 8. saying nothing: once is nothing, a habit drains the room (ow
           const sd = 5000 + k * 7919 + fx.id
           const a = play(g, fx, sd, 'none'), h = play(g, fx, sd, 'habit')
           n++; wn += a.won + a.drawn / 2; wh += h.won + h.drawn / 2; mh += h.margin - a.margin
+          fh += h.f1; fmax = Math.max(fmax, h.f1)
         }
       }
     }
     const cost = (wn - wh) / n * 100
-    console.log(`     even games: one-off silence ${(wn / n * 100).toFixed(1)}%  a habit of it ${(wh / n * 100).toFixed(1)}%  (${cost.toFixed(1)}pp, margin ${(mh / n).toFixed(1)})`)
-    ok(cost > 0, 'a habit of silence costs results')
+    console.log(`     even games: one-off silence ${(wn / n * 100).toFixed(1)}%  a habit of it ${(wh / n * 100).toFixed(1)}%  (${cost.toFixed(1)}pp, margin ${(mh / n).toFixed(1)}); the XV on the day x${(fh / n).toFixed(4)}`)
+    ok(fh / n < 0.999 && fmax <= 1, `a habit of silence takes something off the side on the day (mean x${(fh / n).toFixed(4)}, never above 1)`)
     ok(cost <= 8, 'but less than a badly judged talk does: a slow leak, not a cliff')
   }
 }

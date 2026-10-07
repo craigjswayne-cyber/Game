@@ -291,7 +291,13 @@ export function teamUnits(state: GameState, lineup: (number | null)[], day?: { f
   const at = (i: number, k: keyof Player['a']) => {
     const p = P(i)
     if (!p) return 5
-    const fit = 0.75 + 0.25 * (p.cond / 100)
+    // CONDITION COSTS LESS OF A MAN'S CRAFT (1.8.14). At 0.75 + 0.25 a squad at
+    // 80% condition lost 21 points of win rate on this term and the energy
+    // tank together - more than tactics, morale and staff combined, which made
+    // the cheapest way to win "spend less of yourself" (low tempo) rather than
+    // anything a manager would recognise as rugby. Tiredness still bites, in
+    // the tank and the last quarter, where it belongs.
+    const fit = 0.82 + 0.18 * (p.cond / 100)
     const frm = 0.9 + 0.02 * p.form
     // match sharpness: a player eased back after a layoff is a touch off the pace
     const shp = 0.945 + 0.055 * ((p.sharp ?? 70) / 100)
@@ -1046,6 +1052,8 @@ export interface SideCtx {
   talkR?: Map<number, number>
   talkShift?: Map<number, number>
   /** drain multiplier from tempo tactics */
+  /** how far the style dial is from the squad's natural shape, as a unit cost (1.8.14) */
+  styleMisfit?: number
   tempoF: number
   /** energy-drain multiplier from match preparation (fitness week) */
   drainF: number
@@ -1345,12 +1353,35 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
      * dial, which is the same as no instruction at all.
      */
     const f = (v: number) => (Number.isFinite(v) ? Math.max(0, Math.min(100, v)) - 50 : 0) / 50 // -1..1
-    side.units.attack *= 1 + f(tac.style) * 0.06 + f(tac.tempo) * 0.05 - f(tac.kicking) * 0.035
+    // TEMPO IS A TRADE BOTH WAYS (1.8.14). Slow used to buy defence (+3% at
+    // the bottom of the dial) as well as 22% less running, for 5% of attack:
+    // held all season it took the seventh-best squad in the Premier Division
+    // to an average finish of 3.9th, from 5.8th. Slowing the game down now
+    // costs more going forward, buys nothing at the back, and saves half as
+    // much legs; playing fast still costs a little shape in defence.
+    // A PLAN THE SQUAD CANNOT PLAY (1.8.14, owner's balance brief: "bad tactics
+    // with great players should be punished"). Measured before it: the
+    // strongest squad in France finished exactly as high playing the opposite
+    // of its strengths as playing to them. A squad has a natural shape - read
+    // off its own units, backs against pack, where the world's squads run from
+    // about -0.04 (a pack side) to +0.22 (a back three side), mean 0.05, sd 0.064 - and a
+    // style dial more than 15 away from it costs up to 6% of attack (at 45
+    // away) and half that of the breakdown. Read before the dials move the units, so the dial cannot
+    // chase its own tail. Every club, the same rule.
+    const fwdU = (side.units.scrum + side.units.breakdown + side.units.lineout) / 3
+    const lean = (side.units.attack - fwdU) / Math.max(1e-6, (side.units.attack + fwdU) / 2)
+    const natural = 50 + clamp((lean - 0.05) / 0.064, -2, 2) * 20
+    const styleV = Number.isFinite(tac.style) ? clamp(tac.style, 0, 100) : 50
+    const misfit = clamp((Math.abs(styleV - natural) - 15) / 30, 0, 1) * 0.06
+    side.styleMisfit = misfit
+    const tf = f(tac.tempo)
+    side.units.attack *= (1 - misfit) * (1 + f(tac.style) * 0.06 + tf * (tf < 0 ? 0.08 : 0.05) - f(tac.kicking) * 0.035)
+    side.units.breakdown *= 1 - misfit * 0.5
     side.units.scrum *= 1 - f(tac.style) * 0.05
     side.units.breakdown *= 1 + f(tac.aggression) * 0.06 - f(tac.style) * 0.03 - f(tac.kicking) * 0.02
     side.units.kicking *= 1 + f(tac.kicking) * 0.1
-    side.units.defence *= 1 - f(tac.tempo) * 0.03
-    side.tempoF = 1 + f(tac.tempo) * 0.22
+    side.units.defence *= 1 - Math.max(0, tf) * 0.03
+    side.tempoF = 1 + tf * 0.12
     side.cardRisk = 0.012 + f(tac.aggression) * 0.006
     side.aggF = f(tac.aggression)
     side.penRisk = aggPenRisk(side.aggF, side.refPenF ?? 1)
@@ -1576,15 +1607,29 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
     side.goalBonus = (side.goalBonus ?? 0) + coach * 0.22
   }
 
+  // THE ROOM CARRIES OUT WHAT IT BELIEVES IN (1.8.14, authority.ts EXEC_BITE).
+  // Keyed on the club like the coaching baseline above: the manager's club
+  // plays with the room he has, whoever is pressing the buttons.
+  if (side.teamId === state.userClubId && !state.unemployed) {
+    const ex = standing(state).execution
+    side.units.attack *= ex
+    side.units.defence *= ex
+    side.units.breakdown *= ex
+  }
+
   // your backroom staff sharpen the matchday units (club only - Test
   // weeks mean borrowed players, not your own coaching department)
   if (side.isUser && side.teamId === state.userClubId && state.staff) {
     const s = state.staff
-    side.units.attack *= 1 + (s.attack ?? 0) * 0.016
-    side.units.defence *= 1 + (s.defence ?? 0) * 0.016
-    side.units.scrum *= 1 + (s.scrumCoach ?? 0) * 0.015
-    side.units.lineout *= 1 + (s.scrumCoach ?? 0) * 0.015
-    side.units.kicking *= 1 + (s.kicking ?? 0) * 0.02
+    // (1.8.14: a level is 1.3%, from 1.6%, so a fully badged department is
+    // worth what the best AI club's flat coaching is - 3.9% against 4.0% -
+    // rather than more. A full house measured +5 to +11 points of win rate
+    // over an empty one, more than any decision the manager made)
+    side.units.attack *= 1 + (s.attack ?? 0) * 0.013
+    side.units.defence *= 1 + (s.defence ?? 0) * 0.013
+    side.units.scrum *= 1 + (s.scrumCoach ?? 0) * 0.013
+    side.units.lineout *= 1 + (s.scrumCoach ?? 0) * 0.013
+    side.units.kicking *= 1 + (s.kicking ?? 0) * 0.016
     side.goalBonus = (s.kicking ?? 0) * 0.012 + facLevel(state, 'kicking') * 0.005
     // swagger tax: a squad drunk on its own headlines turns up flat
     if ((state.pressTone ?? 0) >= 4) {
@@ -1629,6 +1674,10 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
       // charge-downs and the two-layer contest took it to -14.0 and then
       // -0.3 (following sound reads was worth nothing against a fitness
       // week). At 0.07: +44.4, ahead in 14 of 24 paired seasons.
+      // 0.09 from 1.8.14: the fatigue rebalance (a fresher starting tank,
+      // condition costing less per point) made a fitness week relatively
+      // stronger again, and the edge read -4.5 a season over 48 seasons.
+      // Measured on the same 48: 0.09 reads +31.3 (ahead in 30), 0.11 +44.9.
       //
       // This is OUR half of the edge. Their half, the soft spot itself giving
       // a little more (x0.955), is layered once at kick-off in beginMatch; the
@@ -1636,7 +1685,7 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
       // x1.03 on our OWN unit of the same name, so a read of their defence
       // lifted our defence as well as our attack: one read paid twice, once
       // on a unit it had nothing to do with.
-      const homework = 0.07 * prepF
+      const homework = 0.09 * prepF
       side.units[EXPLOITED_BY[read.unit]] *= 1 + homework
     }
   }
@@ -1691,7 +1740,12 @@ function mkSide(state: GameState, teamId: string, userTeamId: string | null, fxI
       // not something a bench fix should be quietly deciding.
       // carrying a knock (knock.ts): he starts short of his usual tank
       const knockF = state.players[id]?.knock ? KNOCK_ENERGY : 1
-      energy.set(id, Math.max(50, state.players[id]?.cond ?? 85) * knockF)
+      // HALF OF LAST WEEK IS IN THE LEGS, NOT ALL OF IT (1.8.14). The tank
+      // started at his condition, so 80% condition was 80% of a tank on top of
+      // the 4% the craft term takes: one tired week cost a side 18 points of
+      // win rate. A night's sleep and a team run give some of it back.
+      const c0 = state.players[id]?.cond ?? 85
+      energy.set(id, Math.max(50, 100 - (100 - c0) * 0.45) * knockF)
     }
   })
   const units = teamUnits(state, lineup, { fxId, big })
@@ -2423,7 +2477,11 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     const fav = home.units.overall >= away.units.overall ? home : away
     const dog = fav === home ? away : home
     const gapR = (fav.units.overall - dog.units.overall) / Math.max(1, dog.units.overall)
-    const squeeze = Math.min(0.03, gapR * 0.35)
+    // A CUP TIE IS ITS OWN KIND OF DAY (1.8.14): one game, no table to fall
+    // back on, so in a cup knockout the squeeze is wider (up to 4.5%) than
+    // in a league play-off or a derby
+    const cupKO = !!fx.stage && state.comps[fx.compId]?.type === 'cup'
+    const squeeze = Math.min(cupKO ? 0.045 : 0.03, gapR * (cupKO ? 0.5 : 0.35))
     if (squeeze > 0.001) {
       layer(fav, 'attack', 1 - squeeze)
       layer(fav, 'defence', 1 - squeeze)
@@ -5038,7 +5096,11 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     // the rush defence that meets it, on a hard pitch, take a bigger share of
     // the roll; centred on the world, so it shifts who is hurt more than how
     // many. The draw is the same draw; only what it is compared with moves.
-    if (rng() < 0.036 * injuryF(side.sty, opp.sty, ctx.surface ?? 'hybrid')) {
+    // (1.8.14: 0.043, from 0.036. Losing six first-choice men for nine weeks
+    // moved the strongest club in France from 1.83rd to 2.0th: a big squad
+    // shrugged off a crisis. A fifth more knocks makes depth a decision.
+    // Same draw, a different threshold.)
+    if (rng() < 0.043 * injuryF(side.sty, opp.sty, ctx.surface ?? 'hybrid')) {
       const ids = [...side.onPitch]
       const ps = ids.map(id => state.players[id]).filter(p => p && !p.injury)
       if (ps.length) {

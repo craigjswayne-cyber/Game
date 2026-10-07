@@ -124,9 +124,13 @@ function pressBoard(state: GameState, kind: 'capital' | 'funds' | 'time' | 'staf
     })
     return t('reply.boardPushedWarn')
   }
-  logDecision(state, 'dec.boardPushedOut', {}, false)
-  sackManager(state, 'news.sackedPushed')
-  return t('reply.boardPushedSacked')
+  // GOODWILL, NOT THE JOB (1.8.14). The second ask after a refusal used to be
+  // a sacking on the spot, and it took a manager top of the table with it.
+  // Each further ask now costs a quarter of what confidence is left; a board
+  // pushed far enough sacks the usual way, on its confidence.
+  club.boardConfidence = clamp(Math.round(club.boardConfidence * 0.75), 0, 100)
+  logDecision(state, 'dec.boardPushed', {}, false)
+  return t('reply.boardPushedAgain')
 }
 
 /** Facility upgrades go through the boardroom (8-batch feedback): the board
@@ -1212,6 +1216,19 @@ function weeklyTraining(state: GameState, rng: Rng) {
   // "back in training" letters in one midwinter inbox told the manager the same
   // thing three times over, and he still had to open each one to learn who.
   const returned: Player[] = []
+  // every other club's turnaround, the same sum as the manager's above
+  const aiTurn = new Map<string, number>()
+  {
+    const last = new Map<string, Fixture>(), next = new Map<string, Fixture>()
+    for (const f of state.fixtures) {
+      if (f.week === state.week - 1 && f.played) { last.set(f.homeId, f); last.set(f.awayId, f) }
+      else if (f.week === state.week && !f.played) { next.set(f.homeId, f); next.set(f.awayId, f) }
+    }
+    for (const [id, nf] of next) {
+      const lf = last.get(id)
+      if (lf) aiTurn.set(id, (7 + fixtureDayOff(nf.id) - fixtureDayOff(lf.id)) / 7)
+    }
+  }
   // two coaches at odds this week (staffrift.ts): 1 or 0, the manager's club only
   const rift = riftDrag(state)
   for (const club of Object.values(state.clubs)) {
@@ -1228,7 +1245,11 @@ function weeklyTraining(state: GameState, rng: Rng) {
       // an iron constitution (formtraits.ts) gets more back, and a short
       // turnaround does not cut into it
       const iron = formTraits(state.seed, p.id).iron
-      p.cond = clamp(p.cond + Math.round((((p.rust ?? 0) > 0 ? 16 : 22) + gym + (iron ? IRON_REC : 0)) * (isUser ? (iron ? Math.max(1, turnF) : turnF) : 1)), 20, 100)
+      // THE SAME CLOCK FOR EVERYBODY (1.8.14): a short turnaround slows every
+      // club's recovery, not only the manager's - the AI used to get a full
+      // week back whatever the gap between its fixtures
+      const tf = isUser ? turnF : (aiTurn.get(club.id) ?? 1)
+      p.cond = clamp(p.cond + Math.round((((p.rust ?? 0) > 0 ? 16 : 22) + gym + (iron ? IRON_REC : 0)) * (iron ? Math.max(1, tf) : tf)), 20, 100)
       p.sharp = clamp(p.sharp - 4, 0, 100)
       if ((p.rust ?? 0) > 0) p.rust = (p.rust ?? 1) - 1
       // ---- MATERNITY LEAVE: the grant, and the road back ----
@@ -1352,8 +1373,11 @@ function weeklyTraining(state: GameState, rng: Rng) {
       // real cost rather than an absent bonus, and read off every club's own
       // estate rather than only the manager's.
       const surfBoost = 0.88 + (club.facilities?.pitch ?? 0) * 0.048
-      const growBoost = (isUser ? (1 + state.staff.assistant * 0.25) * (1 - RIFT_TRAINING * rift) : 1) * surfBoost
-      const eliteF = p.ca >= 94 ? 0.15 : p.ca >= 88 ? 0.5 : 1
+      // (1.8.14: the assistant's lift halved, 12% a level from 25%. With every
+      // user-only lever stacked a mid-table squad out-grew the whole league -
+      // seventh best to best by five points inside seven seasons)
+      const growBoost = (isUser ? (1 + state.staff.assistant * 0.12) * (1 - RIFT_TRAINING * rift) : 1) * surfBoost
+      const eliteF = p.ca >= 94 ? 0.15 : p.ca >= 88 ? 0.5 : p.ca >= 83 ? 0.7 : 1
       // and the gap to his potential is the pace (E5, ageing.ts gapGrowth)
       // ...and the week itself (1.8.2, devproject.ts weekGrowth): his minutes,
       // confidence, shirt, the side's style, the Centre of Excellence, his
@@ -2028,8 +2052,14 @@ function boardReaction(state: GameState, fx: Fixture, delegated = false) {
   // with every consecutive defeat, exactly as a run compounds it. Without the
   // mirror, twelve underdog wins papered over sixteen losses and the season
   // finished level - a losing year has to end with less belief than it began.
+  // BELIEF IS SLOWER TO WIN THAN TO LOSE AT THE TOP (1.8.14). A winning side
+  // took a stranger from 26 to 80-100 inside one season, so the room's doubts
+  // were over before the first trophy was. A win now buys less belief the more
+  // the room already has: about half a season of winning moves a new man from
+  // doubted to accepted, and full conviction takes two or three good years.
+  const believe = clamp(1.25 - squadTrust(state) / 100, 0.3, 1)
   const trustMag = us > them
-    ? 1.5 + Math.max(0, diff) * 1.6 + Math.min(2, streak * 0.25)
+    ? (1.5 + Math.max(0, diff) * 1.6 + Math.min(2, streak * 0.25)) * believe
     : -(1.5 + Math.max(0, -diff) * 1.2 + Math.min(2, slump * 0.25))
   state.mgrTrust = clamp(squadTrust(state) + trustMag * derbyF, 0, 100)
   // the derby ledger: every meeting with a rival is written down forever
@@ -2108,7 +2138,17 @@ function boardReaction(state: GameState, fx: Fixture, delegated = false) {
   // the terraces have longer memories and shorter fuses than the board
   const before = state.fanMood ?? 60
   const heat = fx.derby || grudgeBetween(state, fx.homeId, fx.awayId) ? 1.7 : historyWeight(state, fx)
-  let mood = before + (us > them ? 4 * heat : us < them ? -(5 * heat + (isHome ? 1.5 : 0)) : -1)
+  // A BIG CLUB'S TERRACES DO NOT LOWER THEIR SIGHTS (owner, 1.8.14: "the fans
+  // should be aggressive on piling on the pressure for results"). The board
+  // now reads its squad before it sets the aim (chairman.ts demandedFinish);
+  // the support reads the badge. From reputation 80 a draw is a defeat's
+  // little brother (it costs double) and the campaign starts sooner
+  // (terraces.ts). A defeat costs what it always did: mood also sets the home
+  // crowd's lift on the day, and a defeat that cost 1.4 times the mood at
+  // Northampton turned into a spiral (an idle manager sacked in six first
+  // seasons of eight, three on 1.8.13).
+  const big = state.clubs[state.userClubId].rep >= 80
+  let mood = before + (us > them ? 4 * heat : us < them ? -(5 * heat + (isHome ? 1.5 : 0)) : big ? -2 : -1)
   mood += (55 - mood) * 0.03 // everything fades toward "fine"
   state.fanMood = clamp(mood, 5, 98)
   if (before < 80 && state.fanMood >= 80) {
@@ -3780,7 +3820,12 @@ export function processWeekAndAdvance(state: GameState) {
     // warnings above still go out, so he can feel the clock.
     state.boardFloorWeeks = club.boardConfidence <= 3 ? (state.boardFloorWeeks ?? 0) + 1 : 0
     const honeymoon = (state.tenureStart ?? -1) === state.season && state.week < honeymoonEnd(club.rep)
-    if (club.boardConfidence <= 3 && state.week > 8 && !reprieved && !honeymoon && state.boardFloorWeeks >= 3) {
+    // SILVERWARE BUYS TIME (1.8.14). A manager who had won the club two titles
+    // was sacked inside one mid-season slump, on the same three weeks as a man
+    // who had won nothing. Each trophy at this club in the last two seasons
+    // adds three weeks to how long the board's confidence must sit on the floor.
+    const silver = Math.min(2, (state.mgr?.trophies ?? []).filter(x => x.clubId === club.id && x.season >= state.season - 1).length)
+    if (club.boardConfidence <= 3 && state.week > 8 && !reprieved && !honeymoon && state.boardFloorWeeks >= 3 + 3 * silver) {
       // the mechanics live in sackManager (jobs.ts) - shared with the
       // pushed-once-too-often dismissal of the board-request escalation
       sackManager(state, 'news.sacked')

@@ -293,6 +293,7 @@ console.log('--- 5 + 7. capped, small and bounded over simulated seasons')
   if (told === 0) {
     for (const seed of [183, 184]) {
       const k = newGame('leicester', 'Bonds Probe', seed)
+      k.boardGrace = 999_999 // an idle manager at Leicester is sacked most seasons from 1.8.14 (183 and 184 both were)
       let n = 0
       while (k.season < 2) { week(k); if (bondsReport.week >= 0) n += bondsReport.stories }
       console.log(`      a silent world: seed ${seed} tells ${n}`)
