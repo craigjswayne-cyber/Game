@@ -328,6 +328,8 @@ export interface Player {
   a: Attrs
   ca: number // current ability 1-100
   pa: number // potential ability 1-100 (hidden)
+  /** the ceiling has been through ageing.ts softCeilings (1.8.14) */
+  paN?: 1
   q0: number // original data quality (for reference)
   intl: boolean
   gk: boolean

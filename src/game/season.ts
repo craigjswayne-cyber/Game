@@ -1369,8 +1369,11 @@ function weeklyTraining(state: GameState, rng: Rng) {
       // real cost rather than an absent bonus, and read off every club's own
       // estate rather than only the manager's.
       const surfBoost = 0.88 + (club.facilities?.pitch ?? 0) * 0.048
-      const growBoost = (isUser ? (1 + state.staff.assistant * 0.25) * (1 - RIFT_TRAINING * rift) : 1) * surfBoost
-      const eliteF = p.ca >= 94 ? 0.15 : p.ca >= 88 ? 0.5 : 1
+      // (1.8.14: the assistant's lift halved, 12% a level from 25%. With every
+      // user-only lever stacked a mid-table squad out-grew the whole league -
+      // seventh best to best by five points inside seven seasons)
+      const growBoost = (isUser ? (1 + state.staff.assistant * 0.12) * (1 - RIFT_TRAINING * rift) : 1) * surfBoost
+      const eliteF = p.ca >= 94 ? 0.15 : p.ca >= 88 ? 0.5 : p.ca >= 83 ? 0.7 : 1
       // and the gap to his potential is the pace (E5, ageing.ts gapGrowth)
       // ...and the week itself (1.8.2, devproject.ts weekGrowth): his minutes,
       // confidence, shirt, the side's style, the Centre of Excellence, his
