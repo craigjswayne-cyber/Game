@@ -13,7 +13,7 @@
 import { chromium } from 'playwright-core'
 import { mkdirSync, writeFileSync, readFileSync, existsSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { execFileSync } from 'node:child_process'
+import { execFileSync, spawnSync } from 'node:child_process'
 import { C, fontFace, mark, head } from './brand.mjs'
 
 const A = 'docs/launch/assets/03-trailer'
@@ -201,11 +201,30 @@ for (const [cut, seq] of Object.entries(CUTS)) {
   writeFileSync(plan, JSON.stringify({ cut, total, beats }, null, 1))
   writeFileSync(`${A}/final/captions/phase-trailer-${cut}s.srt`, srt)
   execFileSync('python3', ['scripts/launch/score.py', plan], { stdio: 'inherit' })
-  // music and sound design, mixed and set to -14 LUFS, -1.5 dBTP
+  // music and sound design, mixed and set to -14 LUFS, -1.5 dBTP. Two passes:
+  // one-pass loudnorm overshot the long cuts by 2 LU (measured -11.9 on the 60s)
   const mix = `${AUDIO}/mix-${cut}.wav`
+  const pre = `${AUDIO}/premix-${cut}.wav`
   ff(['-i', `${AUDIO}/plan-${cut}-music.wav`, '-i', `${AUDIO}/plan-${cut}-sfx.wav`, '-filter_complex',
-    `[0:a]volume=1.0[m];[1:a]volume=0.9[s];[m][s]amix=inputs=2:normalize=0,afade=t=out:st=${(total - 1.2).toFixed(2)}:d=1.2,loudnorm=I=-14:TP=-1.5:LRA=11,aresample=48000[a]`,
-    '-map', '[a]', '-c:a', 'pcm_s16le', mix])
+    `[0:a]volume=1.0[m];[1:a]volume=0.9[s];[m][s]amix=inputs=2:normalize=0,afade=t=out:st=${(total - 1.2).toFixed(2)}:d=1.2[a]`,
+    '-map', '[a]', '-c:a', 'pcm_s24le', pre])
+  const probe = spawnSync('ffmpeg', ['-hide_banner', '-i', pre, '-af', 'loudnorm=I=-14:TP=-1.5:LRA=11:print_format=json', '-f', 'null', '-'],
+    { encoding: 'utf8' }).stderr
+  const m = JSON.parse(probe.slice(probe.lastIndexOf('{'), probe.lastIndexOf('}') + 1))
+  ff(['-i', pre, '-af', `loudnorm=I=-14:TP=-1.5:LRA=11:linear=true:measured_I=${m.input_i}:measured_TP=${m.input_tp}:measured_LRA=${m.input_lra}:measured_thresh=${m.input_thresh}:offset=${m.target_offset},aresample=48000`,
+    '-c:a', 'pcm_s16le', mix])
+  if (process.env.AUDIO_ONLY) {
+    // re-lay the audio on finished masters without re-rendering the picture
+    for (const fmt of Object.keys(FORMATS)) {
+      const out = `${A}/final/phase-trailer-${cut}s-${fmt}.mp4`
+      if (!existsSync(out)) continue
+      const tmp = `${TMP}/relay-${cut}-${fmt}.mp4`
+      ff(['-i', out, '-i', mix, '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '320k', '-ar', '48000', '-movflags', '+faststart', '-t', total.toFixed(3), tmp])
+      execFileSync('mv', [tmp, out])
+      console.log(`${out}  audio re-laid`)
+    }
+    continue
+  }
 
   for (const fmt of Object.keys(FORMATS)) {
     if (want.fmt && want.fmt !== fmt) continue
