@@ -319,6 +319,14 @@ export function playerWage(ca: number, age: number, acad = false): number {
   return Math.max(ACADEMY_MIN, Math.min(ACADEMY_MAX, Math.round(pro * 0.15 / 50) * 50))
 }
 
+/** A SCHOLAR'S FIRST PRO DEAL (1.8.14): 60% of the going rate for a promoted
+ *  man of 21 or under, so building through the academy is cheaper than buying
+ *  the same rating. Earn it on the pitch and he will ask for the rest. */
+export function firstProWage(ca: number, age: number): number {
+  const w = playerWage(ca, age)
+  return age <= 21 ? Math.max(400, Math.round(w * 0.6 / 50) * 50) : w
+}
+
 let idCounter = 1
 export function resetIds(start: number) { idCounter = start }
 export function nextPid() { return idCounter++ }
