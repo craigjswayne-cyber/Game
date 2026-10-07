@@ -2028,8 +2028,14 @@ function boardReaction(state: GameState, fx: Fixture, delegated = false) {
   // with every consecutive defeat, exactly as a run compounds it. Without the
   // mirror, twelve underdog wins papered over sixteen losses and the season
   // finished level - a losing year has to end with less belief than it began.
+  // BELIEF IS SLOWER TO WIN THAN TO LOSE AT THE TOP (1.8.14). A winning side
+  // took a stranger from 26 to 80-100 inside one season, so the room's doubts
+  // were over before the first trophy was. A win now buys less belief the more
+  // the room already has: about half a season of winning moves a new man from
+  // doubted to accepted, and full conviction takes two or three good years.
+  const believe = clamp(1.25 - squadTrust(state) / 100, 0.3, 1)
   const trustMag = us > them
-    ? 1.5 + Math.max(0, diff) * 1.6 + Math.min(2, streak * 0.25)
+    ? (1.5 + Math.max(0, diff) * 1.6 + Math.min(2, streak * 0.25)) * believe
     : -(1.5 + Math.max(0, -diff) * 1.2 + Math.min(2, slump * 0.25))
   state.mgrTrust = clamp(squadTrust(state) + trustMag * derbyF, 0, 100)
   // the derby ledger: every meeting with a rival is written down forever

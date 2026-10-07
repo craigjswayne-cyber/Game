@@ -1576,6 +1576,16 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
     side.goalBonus = (side.goalBonus ?? 0) + coach * 0.22
   }
 
+  // THE ROOM CARRIES OUT WHAT IT BELIEVES IN (1.8.14, authority.ts EXEC_BITE).
+  // Keyed on the club like the coaching baseline above: the manager's club
+  // plays with the room he has, whoever is pressing the buttons.
+  if (side.teamId === state.userClubId && !state.unemployed) {
+    const ex = standing(state).execution
+    side.units.attack *= ex
+    side.units.defence *= ex
+    side.units.breakdown *= ex
+  }
+
   // your backroom staff sharpen the matchday units (club only - Test
   // weeks mean borrowed players, not your own coaching department)
   if (side.isUser && side.teamId === state.userClubId && state.staff) {
