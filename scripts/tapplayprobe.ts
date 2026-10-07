@@ -145,19 +145,26 @@ console.log('\n--- 4. in their 22, and old saves\n')
   // the same ticks run the tap as ran it from the red zone: compare a match
   // played with the play in the penalty slot against the same match run
   // through the pre-round-6 rule (the red slot's tap) by hand
-  const run = (put: (t: Club['tactic']) => void) => {
+  const run = (put: (t: Club['tactic']) => void, seed: number) => {
     const h = structuredClone(BASE)
     const m2 = h.clubs[ME]
     put(m2.tactic)
     playbookOf(m2).drilled.mv_tap = 92
     const fx = h.fixtures.find(f => f.id === FXS[2].id)!
-    const ctx = beginMatch(h, fx, mulberry32(77), true)
+    const ctx = beginMatch(h, fx, mulberry32(seed), true)
     playHalf(h, ctx); playHalf(h, ctx)
     return { s: `${ctx.home.score}-${ctx.away.score}`, taps: ctx.events.filter(e => e.v?.move_k === 'moves.say.mv_tap').length }
   }
-  const a = run(t => { t.movePen = 'mv_tap' })
-  const b = run(t => { t.moveRed = 'mv_tap'; migratePlaybookOn(t) })
-  ok(a.s === b.s && a.taps === b.taps && a.taps > 0, `the play runs in their 22 (${a.taps} lines name it), and a migrated save plays the same match (${a.s} and ${b.s})`)
+  // (a match with a penalty in their 22 to tap: a rout can go by without one,
+  // as 63-0 did on 1.8.13's data, so up to five matches until one has it;
+  // every one of them must play the same both ways)
+  let a = { s: '', taps: 0 }, b = a, same = true
+  for (let seed = 77; seed < 82 && a.taps === 0; seed++) {
+    a = run(t => { t.movePen = 'mv_tap' }, seed)
+    b = run(t => { t.moveRed = 'mv_tap'; migratePlaybookOn(t) }, seed)
+    same &&= a.s === b.s && a.taps === b.taps
+  }
+  ok(same && a.taps > 0, `the play runs in their 22 (${a.taps} lines name it), and a migrated save plays the same match (${a.s} and ${b.s})`)
 }
 function migratePlaybookOn(t: Club['tactic']) {
   const g = { userClubId: 'x', clubs: { x: { tactic: t } } } as unknown as GameState

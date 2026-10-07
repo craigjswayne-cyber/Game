@@ -1691,8 +1691,14 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
         const kind = nb[2] ?? 'pass'
         // (never faster on average than a hard pass, 22 m/s)
         const dur = flightFor(kind, dist)
-        flight = { from, to, t0: kt, dur, lift: kind === 'pop' ? 0.5 : kind === 'miss' ? 1.8 : 0.9 }
-        nextPass++
+        // (a man who caught it late, with the next man already level or in
+        // front of him, holds it the moment it takes that man to drop back
+        // behind him, as he would have to: up to 0.6 s, then it goes)
+        const ahead = (r.x + r.vx * dur + d * 0.4 - from.x) * d > -CATCH_BEHIND
+        if (!ahead || kt >= nb[0] + 0.6) {
+          flight = { from, to, t0: kt, dur, lift: kind === 'pop' ? 0.5 : kind === 'miss' ? 1.8 : 0.9 }
+          nextPass++
+        }
       }
       if (flight) {
         const r = att[flight.to], kk = smooth((kt - flight.t0) / flight.dur)

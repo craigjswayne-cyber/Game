@@ -70,7 +70,7 @@ export const W_CELT: RawClub[] = [
       { name: 'Fiona Tuite', pos: 'HK', age: 29, nat: 'IRE', q: 70, intl: true },
       { name: 'Megan Burns', pos: 'SH', age: 31, nat: 'IRE', q: 65 },
       { name: 'Katie Corrigan', pos: 'FH', age: 33, nat: 'IRE', q: 61, gk: true },
-      { name: 'Aoife Dalton', pos: 'CE', age: 25, nat: 'IRE', q: 68 },
+      { name: 'Aoife Dalton', pos: 'CE', age: 25, nat: 'IRE', q: 82 },
       { name: 'Vicky Elmes Kinlan', pos: 'WG', age: 22, nat: 'IRE', q: 68 },
       { name: 'Stacey Flood', pos: 'FB', age: 28, nat: 'IRE', q: 78, gk: true },
       { name: 'Jade Gaffney', pos: 'CE', age: 25, nat: 'IRE', q: 73 },
