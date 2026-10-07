@@ -59,10 +59,10 @@ export interface Standing {
  *  title 21 times in 48 first seasons and played exactly as well as one with
  *  the Manager's License, because the room's doubts reached drilling and team
  *  talks and never the pitch. At full bite (an unknown in front of a squad of
- *  internationals, trust not yet earned) the side carries out the plan 10%
+ *  internationals, trust not yet earned) the side carries out the plan 7%
  *  worse; it eases as results lift his reputation and the room buys in, and a
  *  room of his own level never feels it. Deterministic: no draw from any rng. */
-export const EXEC_BITE = 0.10
+export const EXEC_BITE = 0.07
 
 /** Where the manager stands with this squad. Trust is earned HERE; standing
  *  is brought here - a manager can be out of his depth on paper and still
@@ -83,7 +83,11 @@ export function standing(state: GameState): Standing {
   const bite = strain * (1 - earned)
   // on the pitch the room's doubts lift more slowly than they do in the
   // meeting room: half-won trust cancels about a third of them, not half
-  const execBite = strain * (1 - earned ** 1.5)
+  // and on the pitch it is a big room's problem: a squad of internationals
+  // tests a stranger, a mid-table squad gives him the benefit of the doubt
+  // (none below a profile of 50, all of it from 75 - Toulouse and Leinster)
+  const elite = clamp((profile - 50) / 25, 0, 1)
+  const execBite = strain * (1 - earned ** 1.5) * elite
   return {
     rep, profile, gap, bite,
     familiarity: 1 - bite * 0.5,
