@@ -393,6 +393,12 @@ export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
     // 20th; Stade Bordelais. Source: owner's PHASE Verified Player Club Database 2026-27 (7 Oct 2026).
     { name: 'Madoussou Fall', pos: 'LK', alt: ['FL'], age: 28, nat: 'FRA', q: 86, intl: true },
   ],
+  'w:grenoble': [
+    // 46th in the owner's Women's Top 100; Grenoble Amazones per the owner's
+    // verified database (7 Oct 2026), which the owner confirmed over a search
+    // result naming Valsugana. Born 6 Dec 2001 (Wikipedia).
+    { name: 'Vittoria Ostuni Minuzzi', pos: 'FB', age: 24, nat: 'ITA', q: 82, intl: true },
+  ],
   'w:rennes': [
     // 72nd; Stade Rennais. Source: owner's PHASE Verified Player Club Database 2026-27 (7 Oct 2026).
     { name: 'Jade Ulutule', pos: 'SH', alt: ['CE'], age: 33, nat: 'FRA', q: 80, intl: true },
