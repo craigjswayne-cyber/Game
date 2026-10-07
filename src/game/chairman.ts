@@ -148,10 +148,13 @@ export function demandedFinish(state: GameState, clubId: string, teams = 14): { 
   // less"). Stature alone set the aim, so Leicester's board asked a new man
   // for the top four with the eighth-best squad in a league of ten, and a
   // manager who changed nothing was sacked in six first seasons of eight.
-  // When the squad ranks three or more places below the aim, the aim drops
-  // one step. The terraces do not lower theirs (season.ts, terraces.ts).
+  // When the aim is in the top half and the squad ranks two or more places
+  // below it, the aim drops one step: Leicester's top four becomes the
+  // playoffs, Northampton's title (third-best squad) the top two. Only the
+  // top half, so a newcomer's new-money ambition at the foot of the table
+  // stands. The terraces do not lower theirs (season.ts, terraces.ts).
   const rank = squadRank(state, clubId)
-  if (rank && rank - steps[j].pos >= 3) j = Math.min(steps.length - 1, j + 1)
+  if (rank && steps[j].pos <= teams / 2 && rank - steps[j].pos >= 2) j = Math.min(steps.length - 1, j + 1)
   return j === i ? base : steps[j]
 }
 
