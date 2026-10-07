@@ -10,7 +10,7 @@ import { ageManager } from './career'
 import { rivalVerdict } from './boss'
 import {absWeek, archiveSeason, BASE_YEAR, careerRows, boardPatience, isMyClub, closeNatTenure, demandCeiling, MAX_FOLLOWING, GROUND_TIERS, groundLevel, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, RELEGATES, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId, worldCupSeasonFor } from './model'
 import { assignPersonality, EARLY_FADE, LATE_PEAK } from './attributes'
-import { ageAttributes, gapGrowth } from './ageing'
+import { ageAttributes, gapGrowth, softCeilings } from './ageing'
 import { COE_MEAN, learning, markSights, seasonReview, tempoF, TL } from './devproject'
 import { paRange, scoutPa } from './scout'
 import { intakePicks } from './devnews'
@@ -384,6 +384,7 @@ export function devFactor(state: GameState, p: Player): number {
 }
 
 export function agePlayers(state: GameState, rng: Rng, rooms?: Map<string, number>) {
+  softCeilings(state)
   const retirees: Player[] = []
   for (const p of Object.values(state.players)) {
     p.age += 1
@@ -393,6 +394,11 @@ export function agePlayers(state: GameState, rng: Rng, rooms?: Map<string, numbe
     const growth = (base: number) =>
       p.ca >= 94 ? (rng() < 0.4 ? 1 : 0)
       : p.ca >= 88 ? Math.max(1, Math.floor(base / 2))
+      // THE GOOD ARE SLOWER TO BECOME GREAT (1.8.14). Damping began at 88, so a
+      // generated prospect ran at full pace through the 80s: ten seasons took
+      // the world from 30 men rated 90+ to over 150 and the best 200 two and a
+      // half points higher, younger every year. No new draw: a rounding.
+      : p.ca >= 83 ? Math.max(1, Math.round(base * 0.65))
       : base
     // the dev factor scales the roll; the fraction is settled by a second
     // roll so a 1.1x factor means 10% more growth on average, not rounding
@@ -443,7 +449,8 @@ export function agePlayers(state: GameState, rng: Rng, rooms?: Map<string, numbe
     // ability goes (ageing.ts trainPoint); what a programme adds is this, one
     // rating point a summer while he is below his potential, the owner's
     // chosen "redirect + small boost". The user's club only, like the plans.
-    if (p.clubId === state.userClubId && activePlan(state, p.id) && p.ca < p.pa) p.ca += 1
+    // (1.8.14: a programme is for a man still learning his trade, 26 or under)
+    if (p.clubId === state.userClubId && activePlan(state, p.id) && p.ca < p.pa && p.age <= 26) p.ca += 1
     // the attributes follow the rating, shaped by age (ageing.ts). This used
     // to scale every attribute by rating against BIRTH rating every summer,
     // which compounded without end

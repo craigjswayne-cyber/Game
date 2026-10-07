@@ -121,6 +121,26 @@ function hashRound(x: number, seed: number, id: number, season: number, i: numbe
  * followed the old curve (scripts/gapprobe.ts, three worlds, eight seasons).
  */
 const GAP_MID = 11.5
+
+/**
+ * THE WORLD CLASS STAYS RARE (1.8.14). Thirty men are rated 90 or better when
+ * a career starts; six seasons later there were sixty, and only two of them
+ * were the original thirty. The rest were 20-to-24-year-olds of 80-something
+ * walking up to ceilings of 90-99 - eighty-two real players and about one
+ * generated prospect in seventy carried one. A ceiling above 88 is now read at
+ * a little under half its height above 88 (99 becomes 93, 95 becomes 91, 90
+ * becomes 89), never below what the man already is. Once per player: the
+ * flag keeps the summer pass from squeezing the same ceiling twice, and an old
+ * save's men are softened at their first summer.
+ */
+export const SOFT_FROM = 88
+export function softCeilings(state: GameState) {
+  for (const p of Object.values(state.players)) {
+    if (p.paN) continue
+    p.paN = 1
+    if (p.pa > SOFT_FROM && p.pa > p.ca) p.pa = Math.max(p.ca, Math.round(SOFT_FROM + (p.pa - SOFT_FROM) * 0.45))
+  }
+}
 export function gapGrowth(ca: number, pa: number): number {
   const gap = Math.max(0, pa - ca)
   return clamp(0.5 + 0.5 * gap / GAP_MID, 0.55, 1.8)
