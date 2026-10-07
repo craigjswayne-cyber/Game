@@ -2141,10 +2141,14 @@ function boardReaction(state: GameState, fx: Fixture, delegated = false) {
   // A BIG CLUB'S TERRACES DO NOT LOWER THEIR SIGHTS (owner, 1.8.14: "the fans
   // should be aggressive on piling on the pressure for results"). The board
   // now reads its squad before it sets the aim (chairman.ts demandedFinish);
-  // the support reads the badge. From reputation 78 a defeat costs more mood,
-  // up to 1.6 times as much at the very biggest clubs, and a draw costs double.
-  const big = clamp(1 + (state.clubs[state.userClubId].rep - 78) / 25, 1, 1.6)
-  let mood = before + (us > them ? 4 * heat : us < them ? -(5 * heat + (isHome ? 1.5 : 0)) * big : -1 * (big > 1 ? 2 : 1))
+  // the support reads the badge. From reputation 80 a draw is a defeat's
+  // little brother (it costs double) and the campaign starts sooner
+  // (terraces.ts). A defeat costs what it always did: mood also sets the home
+  // crowd's lift on the day, and a defeat that cost 1.4 times the mood at
+  // Northampton turned into a spiral (an idle manager sacked in six first
+  // seasons of eight, three on 1.8.13).
+  const big = state.clubs[state.userClubId].rep >= 80
+  let mood = before + (us > them ? 4 * heat : us < them ? -(5 * heat + (isHome ? 1.5 : 0)) : big ? -2 : -1)
   mood += (55 - mood) * 0.03 // everything fades toward "fine"
   state.fanMood = clamp(mood, 5, 98)
   if (before < 80 && state.fanMood >= 80) {
