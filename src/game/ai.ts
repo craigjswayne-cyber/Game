@@ -413,6 +413,11 @@ export function aiShoppingTarget(state: GameState, buyer: Club): { intent: Retur
   const targets = Object.values(state.players).filter(p =>
     p.clubId && p.clubId !== buyer.id && p.clubId !== state.userClubId &&
     p.pos === need && p.ca >= (intent === 'allin' ? 76 : 70) && !p.onLoan && !p.loanFrom &&
+    // (1.8.14) nobody pays a fee for a man whose deal runs out this season and
+    // who has already agreed to join somebody else - once surplus was priced
+    // as surplus, AI clubs began buying exactly those men and voiding the
+    // manager's pre-contracts in the last week of the season
+    !(state.preContracts ?? []).some(pc => pc.playerId === p.id) &&
     (intent === 'rebuild' ? p.age <= 25 : true) &&
     (state.clubs[p.clubId]?.rep ?? 99) <= buyer.rep + 6 &&
     askingPrice(state, p) <= buyer.budget)
@@ -458,6 +463,7 @@ export function aiTransfers(state: GameState, rng: Rng) {
     const targets = Object.values(state.players).filter(p =>
       p.clubId && p.clubId !== buyer.id && p.clubId !== state.userClubId &&
       !p.loanFrom && !p.retiring && (p.transferListed || p.morale < 4 || p.contractEnds <= state.season) &&
+      !(state.preContracts ?? []).some(pc => pc.playerId === p.id) && // (1.8.14, as above)
       p.ca >= 62 && p.ca <= buyer.rep + 12 && askingPrice(state, p) <= buyer.budget)
     if (!targets.length) continue
     const p = pick(rng, targets)

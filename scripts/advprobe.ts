@@ -239,8 +239,9 @@ console.log('\n=== 8. a zone plan does what it says, in its own zone ===')
   // see a real effect that small than to look at more of it.
   const inZone = (planId: string, zone: 'own22' | 'opp22' | 'middle') => {
     let ticks = 0, sum = 0
-    for (const seed of [5, 15, 25, 35, 45, 55, 65, 75, 85, 95,
-      105, 115, 125, 135, 145, 155, 165, 175, 185, 195]) {
+    // SIXTY SEEDS (1.8.14): at twenty the long exit read 51.8 against 51.9 on
+    // the balance round's engine - its own noise floor again
+    for (const seed of Array.from({ length: 60 }, (_, i) => 5 + i * 10)) {
       const g = newGame('toulouse', 'Adv', seed)
       const club = g.clubs[g.userClubId]
       club.tactic.zones = { [zone]: planId } as never

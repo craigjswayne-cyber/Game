@@ -69,8 +69,11 @@ console.log('--- 3. he starts short of his tank')
   hurt(g, starter, 1)
   playThrough(g, starter.id)
   const knocked = beginMatch(g, { ...fx, id: 999002 }, mulberry32(5), true).home.energy.get(starter.id)
-  ok(fresh === 90, `fit, he kicks off on his condition (${fresh})`)
-  ok(knocked === Math.round(90 * KNOCK_ENERGY * 100) / 100 || Math.abs((knocked ?? 0) - 90 * KNOCK_ENERGY) < 0.01,
+  // (1.8.14: the tank starts at half of last week's deficit back, so a man on
+  // 90% condition kicks off on 95.5 - matchEngine beginMatch)
+  const tank = 100 - (100 - 90) * 0.45
+  ok(Math.abs((fresh ?? 0) - tank) < 0.01, `fit, he kicks off on his condition's tank (${fresh})`)
+  ok(Math.abs((knocked ?? 0) - tank * KNOCK_ENERGY) < 0.01,
     `carrying a knock, on ${KNOCK_ENERGY * 100}% of it (${knocked})`)
 }
 
