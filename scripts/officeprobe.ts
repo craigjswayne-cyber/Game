@@ -8,6 +8,7 @@ import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { canChat, chatBudget, praisePlayer, warnPlayer } from '../src/game/chats'
 import { recruitmentMeeting } from '../src/game/scout'
+import { askingPrice } from '../src/game/ai'
 import type { Player } from '../src/game/model'
 
 let fails = 0
@@ -30,7 +31,10 @@ const ok = (cond: boolean, what: string) => {
     for (const id of ids) {
       const p = g.players[id]
       ok(!!p && p.clubId !== g.userClubId, `${p?.name ?? id} plays somewhere else`)
-      if (p) ok(Math.round(p.value * 1.15) <= club.budget, `${p.name} is affordable (fee estimate inside the budget)`)
+      // (the fee his club would actually ask, as the meeting itself reads it:
+      // since 1.8.14 a club's surplus men are offered under value, so the old
+      // flat value * 1.15 estimate over-prices exactly the men it recommends)
+      if (p) ok(askingPrice(g, p) <= club.budget, `${p.name} is affordable (asking price inside the budget)`)
     }
     ok((memo.body ?? '').length <= 700, `and the memo fits a phone (${(memo.body ?? '').length} chars)`)
   }

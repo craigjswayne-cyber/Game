@@ -20,6 +20,7 @@
  * rather than pretending something new was built.
  */
 import { newGame } from '../src/game/newgame'
+import { autoSelect } from '../src/game/matchEngine'
 import { processWeekAndAdvance } from '../src/game/season'
 import { talkingPoints, fillRate, prepLeaked } from '../src/game/talkingpoints'
 import { SEASON_WEEKS } from '../src/game/model'
@@ -105,10 +106,20 @@ console.log('\n--- 4. an empty ground is a board matter')
 // 0/1/7/0/57/40 after). Seed 11 was one of the survivors until ageing moved it;
 // a sacked manager is at zero in both worlds and the comparison reads nothing.
 // So the world is the first of a few in which the full ground keeps him.
+// A MANAGER WHO PICKS HIS SIDE (1.8.14). The balance round made a stranger's
+// first season at a big club harder, and an unmanaged Bath's board now sits
+// near the floor in every world, full ground or empty, which measures the
+// sackings and not the gates. He names his best fit XV each week, as anybody
+// actually in the job would; the two worlds still differ only in the ground.
+const pickXV = (g: ReturnType<typeof newGame>) => {
+  const c = g.clubs[g.userClubId]
+  const pool = c.players.map(id => g.players[id]).filter(p => p && !p.injury && p.bans === 0 && !p.onLoan && !p.natSquad && !p.acad)
+  if (pool.length >= 23) { c.tactic.lineup = autoSelect(g, pool as any, c.tactic?.split); c.tactic.userPicked = true }
+}
 const run = (capacity: number, seed: number) => {
   const s2 = newGame('bath', 'Test', seed)
   s2.clubs[s2.userClubId].capacity = capacity
-  for (let i = 0; i < 30; i++) processWeekAndAdvance(s2)
+  for (let i = 0; i < 30; i++) { pickXV(s2); processWeekAndAdvance(s2) }
   return s2
 }
 const WORLDS = [11, 15, 16, 12]
