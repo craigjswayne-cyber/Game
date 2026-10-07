@@ -1507,6 +1507,9 @@ export function operatingCost(state: GameState): number {
  *
  * A club whose ground fits its name gets exactly what it always got.
  */
+/** the leagues whose small grounds draw the solidarity share (weeklyCentral) */
+const SOLIDARITY = ['prem', 'top14', 'urc']
+
 export function weeklyCentral(club: Club): number {
   // F30 moved the reputation-driven sponsorship out of here and into three
   // signable deals (commercial.ts). What is left is the money that arrives
@@ -1523,7 +1526,15 @@ export function weeklyCentral(club: Club): number {
   // meeting the board's own objective. A top-flight club is now expected to
   // fill 18,000 seats whatever its name, and the share per missing seat is
   // larger at that level; a big ground gets nothing it did not get before.
-  const top = LEAGUE_TIER[club.leagueId] === 1
+  // THE EUROPEAN TOP FLIGHTS ONLY (1.8.15). Applied to every tier-1 league it
+  // paid £86m a season into 41 clubs, most of it to American and Japanese
+  // grounds of 4,500 to 6,000 seats in leagues where every ground is that size
+  // (Washington alone £146k a week): by season fifteen of a world no club was in
+  // the red and the sport held £1.1bn against £294m on 1.8.13. Premiership, Top
+  // 14 and URC only: Newcastle keeps the full share (four careers of two
+  // seasons, balance -£1.7m and two sackings on 1.8.13, +£0.05m and none on
+  // this), at about half the cost.
+  const top = SOLIDARITY.includes(club.leagueId)
   const expectedSeats = Math.max(top ? 18_000 : 0, Math.min(23_000, Math.max(0, club.rep - 45) * 620))
   const missingSeats = Math.max(0, expectedSeats - club.capacity)
   const perSeat = top ? 12 : 8.5
