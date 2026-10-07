@@ -178,15 +178,18 @@ export type CampaignStage = 0 | 1 | 2 | 3
  * the mood AND the board, and the board is the game's own measure of whether
  * the last few months have gone wrong.
  */
-export function campaignStage(state: GameState): CampaignStage {
+export function campaignStage(state: GameState, boardroom = false): CampaignStage {
   if (state.unemployed) return 0
   const club = state.clubs[state.userClubId]
   if (!club) return 0
   const mood = state.fanMood ?? 60
   const board = club.boardConfidence
   // a big club's support starts the campaign sooner (1.8.14): the grumbling
-  // begins at 50 rather than 42 from reputation 80
-  if (mood > (club.rep >= 80 ? 50 : 42) || board > 62) return 0
+  // begins at 50 rather than 42 from reputation 80. The boardroom still reads
+  // the old line: louder terraces are pressure on the manager, not a second
+  // route to the sack (an idle manager at Northampton went from 3 sackings
+  // in 8 first seasons to 6 when the board read the new one too)
+  if (mood > (club.rep >= 80 && !boardroom ? 50 : 42) || board > 62) return 0
   if (mood <= 18 && board <= 32) return 3
   if (mood <= 28 && board <= 45) return 2
   return 1
@@ -244,9 +247,10 @@ export function terraceWeek(state: GameState) {
   // which is the right division of labour: an angry support makes directors
   // doubt you, results are what actually end it.
   const mood = state.fanMood ?? 60
+  const pull = campaignStage(state, true)
   if (stage > 0) {
-    if (club.boardConfidence > TERRACE_FLOOR) {
-      club.boardConfidence = Math.max(TERRACE_FLOOR, club.boardConfidence - 0.35 * stage)
+    if (pull > 0 && club.boardConfidence > TERRACE_FLOOR) {
+      club.boardConfidence = Math.max(TERRACE_FLOOR, club.boardConfidence - 0.35 * pull)
     }
   } else if (mood >= 78) {
     club.boardConfidence = clamp(club.boardConfidence + 0.25, 0, 100)

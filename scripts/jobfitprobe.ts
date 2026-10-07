@@ -65,6 +65,10 @@ for (const [club, seed] of [['leicester', 51], ['bath', 52], ['northampton', 53]
   if (worlds >= 3 && vacs >= 60 && TRAITS.every(tr => (fit[tr] ?? 0) > 0)) break
   worlds++
   const g = newGame(club, 'Fit', seed)
+  // the manager here does nothing, and from 1.8.14 an idle manager at these
+  // clubs is often sacked in his first season: the world he would see as a
+  // free agent is a different sample of vacancies, so the board is held off
+  g.boardGrace = 999_999
   const seen = new Set<string>()
   for (let w = 0; w < SEASON_WEEKS * 2; w++) {
     processWeekAndAdvance(g)
