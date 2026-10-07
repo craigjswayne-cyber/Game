@@ -56,7 +56,7 @@ export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
     { name: 'Tom James', pos: 'SH', age: 25, nat: 'ENG', q: 68 },
   ],
   la_rochelle: [
-    { name: 'Davit Niniashvili', pos: 'FB', alt: ['WG'], age: 24, nat: 'GEO', q: 81, intl: true },
+    { name: 'Davit Niniashvili', pos: 'FB', alt: ['WG'], age: 24, nat: 'GEO', q: 82, intl: true },
     { name: 'Teddy Iribaren', pos: 'SH', age: 34, nat: 'FRA', q: 74, gk: true },
   ],
   // Boris Wenger used to be added here to cover Harlequins' loosehead gap. The
@@ -78,7 +78,7 @@ export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
     { name: 'Nama Xaba', pos: 'FL', age: 28, nat: 'RSA', q: 70 },
     // Three seasons at Leicester, then home to the Bulls on a two-year deal
     // from 1 July 2025.
-    { name: 'Handre Pollard', pos: 'FH', age: 31, nat: 'RSA', q: 87, gk: true, intl: true },
+    { name: 'Handre Pollard', pos: 'FH', age: 31, nat: 'RSA', q: 88, gk: true, intl: true },
   ],
   // Clermont had NO recognised full-back in the files at all - the worst single
   // gap the audit found. Hamdaoui has been their arriere since 2024, after five
@@ -131,7 +131,7 @@ export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
     { name: 'Chris Harris', pos: 'CE', age: 36, nat: 'SCO', q: 68, intl: true },
     // his hand-authored Force entry moves with him (hand-added men are exempt
     // from the relocation table, so the entry itself changes blocks)
-    { name: 'Franco Molina', pos: 'LK', age: 29, nat: 'ARG', q: 70, intl: true },
+    { name: 'Franco Molina', pos: 'LK', age: 29, nat: 'ARG', q: 81, intl: true },
     { name: 'James Harper', pos: 'SH', age: 23, nat: 'ENG', q: 64 },
     { name: 'Max Hicks', pos: 'FL', alt: ['LK'], age: 24, nat: 'ENG', q: 62 },
     { name: 'Rus Tuima', pos: 'LK', age: 21, nat: 'ENG', q: 63 },
@@ -198,6 +198,11 @@ export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
   ],
   sharks: [
     { name: 'Andre Esterhuizen', pos: 'CE', age: 32, nat: 'RSA', q: 82, intl: true },
+    // home from Bath for 2026-27 (Planet Rugby, "Springboks prop Thomas du
+    // Toit to return to South Africa"; Daily News, 13 Oct 2025, Kings Park).
+    // prem2526.ts already took him off Bath's list; he was nowhere after it.
+    // 21st in the owner's PHASE Top 200 (68th in FloRugby's Top 100).
+    { name: 'Thomas du Toit', pos: 'TP', alt: ['LP'], age: 31, nat: 'RSA', q: 90, intl: true },
   ],
   racing92: [
     { name: 'Romain Taofifenua', pos: 'LK', age: 36, nat: 'FRA', q: 70, intl: true },
@@ -210,7 +215,7 @@ export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
   ],
   bordeaux: [
     { name: 'Alex Moon', pos: 'LK', age: 29, nat: 'ENG', q: 69 },
-    { name: 'Salesi Rayasi', pos: 'WG', age: 29, nat: 'FIJ', q: 70 },
+    { name: 'Salesi Rayasi', pos: 'WG', age: 29, nat: 'FIJ', q: 80 },
   ],
   stade_francais: [
     { name: 'Israel Leota', pos: 'LP', age: 27, nat: 'SAM', q: 62 },
@@ -225,7 +230,7 @@ export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
     { name: 'Joe Jonas', pos: 'WG', age: 23, nat: 'RSA', q: 66 },
   ],
   perpignan: [
-    { name: 'Jonny Gray', pos: 'LK', age: 32, nat: 'SCO', q: 77, intl: true },
+    { name: 'Jonny Gray', pos: 'LK', age: 32, nat: 'SCO', q: 84, intl: true },
     { name: 'Lachlan Swinton', pos: 'FL', age: 29, nat: 'AUS', q: 72, intl: true },
     { name: 'Antoine Aucagne', pos: 'FH', age: 24, nat: 'FRA', q: 63, gk: true },
   ],
@@ -253,7 +258,7 @@ export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
     { name: 'Matt Gallagher', pos: 'FB', age: 30, nat: 'ITA', q: 70 },
   ],
   crusaders: [
-    { name: "Leicester Fainga'anuku", pos: 'WG', alt: ['CE'], age: 26, nat: 'NZL', q: 81, intl: true },
+    { name: "Leicester Fainga'anuku", pos: 'WG', alt: ['CE'], age: 26, nat: 'NZL', q: 83, intl: true },
   ],
   chiefs: [
     { name: 'Liam Coombes-Fabling', pos: 'WG', age: 23, nat: 'NZL', q: 62 },
@@ -274,7 +279,7 @@ export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
   ],
   verblitz: [
     { name: 'Aaron Smith', pos: 'SH', age: 37, nat: 'NZL', q: 74, intl: true },
-    { name: 'Pieter-Steph du Toit', pos: 'FL', age: 34, nat: 'RSA', q: 84, intl: true },
+    { name: 'Pieter-Steph du Toit', pos: 'FL', age: 34, nat: 'RSA', q: 90, intl: true },
   ],
   wildknights: [
     { name: 'Lood de Jager', pos: 'LK', age: 33, nat: 'RSA', q: 79, intl: true },
@@ -284,7 +289,7 @@ export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
     { name: 'Shaun Stevenson', pos: 'FB', alt: ['WG'], age: 28, nat: 'NZL', q: 80, intl: true },
   ],
   canon: [
-    { name: 'Jesse Kriel', pos: 'CE', age: 32, nat: 'RSA', q: 81, intl: true },
+    { name: 'Jesse Kriel', pos: 'CE', age: 32, nat: 'RSA', q: 86, intl: true },
   ],
   bluerevs: [
     { name: 'Kwagga Smith', pos: 'FL', age: 33, nat: 'RSA', q: 78, intl: true },
@@ -294,7 +299,7 @@ export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
   ],
   drocks: [
     { name: 'Steve Cummins', pos: 'LK', age: 31, nat: 'AUS', q: 60 },
-    { name: 'Jasper Wiese', pos: 'N8', age: 30, nat: 'RSA', q: 83, intl: true },
+    { name: 'Jasper Wiese', pos: 'N8', age: 30, nat: 'RSA', q: 86, intl: true },
   ],
   hondaheat: [
     { name: 'Franco Mostert', pos: 'LK', age: 35, nat: 'RSA', q: 77, intl: true },
@@ -317,7 +322,7 @@ export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
     { name: 'Oskar Rixen', pos: 'CE', age: 24, nat: 'FRA', q: 63 },
   ],
   bristol: [
-    { name: 'Matias Moroni', pos: 'CE', age: 35, nat: 'ARG', q: 68, intl: true },
+    { name: 'Matias Moroni', pos: 'CE', age: 35, nat: 'ARG', q: 81, intl: true },
     // ---- the 2026-27 window, second instalment (owner's v1.1.6 list, 28
     // Aug). Same doctrine as the Northampton block above: the list is the
     // checked source for the MOVE; age, position and quality are judged the
