@@ -1674,6 +1674,10 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
       // charge-downs and the two-layer contest took it to -14.0 and then
       // -0.3 (following sound reads was worth nothing against a fitness
       // week). At 0.07: +44.4, ahead in 14 of 24 paired seasons.
+      // 0.09 from 1.8.14: the fatigue rebalance (a fresher starting tank,
+      // condition costing less per point) made a fitness week relatively
+      // stronger again, and the edge read -4.5 a season over 48 seasons.
+      // Measured on the same 48: 0.09 reads +31.3 (ahead in 30), 0.11 +44.9.
       //
       // This is OUR half of the edge. Their half, the soft spot itself giving
       // a little more (x0.955), is layered once at kick-off in beginMatch; the
@@ -1681,7 +1685,7 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
       // x1.03 on our OWN unit of the same name, so a read of their defence
       // lifted our defence as well as our attack: one read paid twice, once
       // on a unit it had nothing to do with.
-      const homework = 0.07 * prepF
+      const homework = 0.09 * prepF
       side.units[EXPLOITED_BY[read.unit]] *= 1 + homework
     }
   }
