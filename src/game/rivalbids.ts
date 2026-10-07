@@ -551,6 +551,7 @@ export function rivalPushWeek(state: GameState): void {
     const target = Object.values(state.players).filter(p =>
       p.clubId && p.clubId !== club.id && !isMyClub(state, p.clubId) && p.pos === e.pos && !p.acad &&
       !p.onLoan && !p.loanFrom && !p.retiring && p.ca >= 74 && p.ca > theirBest &&
+      !(state.preContracts ?? []).some(pc => pc.playerId === p.id) && // (1.8.14) promised elsewhere
       (state.clubs[p.clubId]?.rep ?? 99) <= club.rep + 6 &&
       (p.joinedAt == null || absWeek(state.season, state.week) - p.joinedAt >= INK_WEEKS) &&
       askingPrice(state, p) <= club.budget)

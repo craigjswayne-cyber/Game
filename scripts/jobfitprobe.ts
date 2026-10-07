@@ -56,10 +56,13 @@ function needTruth(g: GameState, id: string): string | null {
 
 // Three worlds, and up to three more while a trait has fitted nothing yet: an
 // academy job is three clubs in the world (Benetton, Provence, Seattle), and
-// whether one of them loses its coach in two seasons is the dice, not the code
+// whether one of them loses its coach in two seasons is the dice, not the code.
+// From 1.8.14 also while there are fewer than sixty vacancies: a board that
+// weighs recent silverware before sacking opens a few fewer jobs, and three
+// worlds read 59. The bar is a sample size, so the sample grows to meet it.
 let worlds = 0
 for (const [club, seed] of [['leicester', 51], ['bath', 52], ['northampton', 53], ['exeter', 54], ['sale', 55], ['gloucester', 56]] as const) {
-  if (worlds >= 3 && TRAITS.every(tr => (fit[tr] ?? 0) > 0)) break
+  if (worlds >= 3 && vacs >= 60 && TRAITS.every(tr => (fit[tr] ?? 0) > 0)) break
   worlds++
   const g = newGame(club, 'Fit', seed)
   const seen = new Set<string>()
