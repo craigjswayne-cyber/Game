@@ -40,7 +40,11 @@ if (cmd === 'dump') {
   writeFileSync(arg, JSON.stringify(protectedKeys(), null, 1))
   console.log(`${Object.keys(protectedKeys()).length} protected strings written to ${arg}`)
 } else if (cmd === 'apply') {
-  const guard = protectedKeys()
+  // the scan reads all of scripts/ and is slow; it is cached until --rescan
+  const CACHE = 'node_modules/.cache/voicepatch-protected.json'
+  let guard
+  try { if (process.argv.includes('--rescan')) throw 0; guard = JSON.parse(readFileSync(CACHE, 'utf8')) }
+  catch { guard = protectedKeys(); try { writeFileSync(CACHE, JSON.stringify(guard)) } catch { /* no cache dir */ } }
   const patch = JSON.parse(readFileSync(arg, 'utf8'))
   for (const k of Object.keys(patch)) if (k in guard && !process.argv.includes('--allow-protected')) { console.log(`REFUSED ${k}: a harness selects this text (pass --allow-protected after updating it)`); delete patch[k] }
   applyPatch(patch)
@@ -84,6 +88,8 @@ function applyPatch(patch) {
     const open = l.match(/^\s*"((?:[^"\\]|\\.)*)": \{\s*$/)
     if (open) { stack.push(open[1]); return }
     if (/^\s*\},?\s*$/.test(l)) { stack.pop(); return }
+    const inl = l.match(/^\s*"((?:[^"\\]|\\.)*)": (\{".*\})(,?)\s*$/)
+    if (inl) { for (const sub of Object.keys(JSON.parse(inl[2]))) where[[...stack, inl[1], sub].join('.')] = i; return }
     const kv = l.match(/^(\s*)"((?:[^"\\]|\\.)*)": (".*")(,?)\s*$/)
     if (kv) where[[...stack, kv[2]].join('.')] = i
   })
@@ -98,8 +104,14 @@ function applyPatch(patch) {
     if (/\p{Extended_Pictographic}/u.test(v) && !/\p{Extended_Pictographic}/u.test(cur[k])) { why('emoji'); continue }
     if (/\s{2,}|^\s|\s$/.test(v) && !/\s{2,}|^\s|\s$/.test(cur[k])) { why('stray whitespace'); continue }
     const i = where[k]
-    const m = lines[i].match(/^(\s*"(?:[^"\\]|\\.)*": )(".*")(,?)\s*$/)
-    lines[i] = m[1] + JSON.stringify(v) + m[3]
+    const im = lines[i].match(/^(\s*"(?:[^"\\]|\\.)*": )(\{".*\})(,?)\s*$/)
+    if (im) {
+      const o = JSON.parse(im[2]); o[k.split('.').pop()] = v
+      lines[i] = im[1] + '{' + Object.entries(o).map(([a, b]) => `${JSON.stringify(a)}: ${JSON.stringify(b)}`).join(', ') + '}' + im[3]
+    } else {
+      const m = lines[i].match(/^(\s*"(?:[^"\\]|\\.)*": )(".*")(,?)\s*$/)
+      lines[i] = m[1] + JSON.stringify(v) + m[3]
+    }
     applied++
   }
   if (flag !== '--dry') writeFileSync(FILE, lines.join('\n'))

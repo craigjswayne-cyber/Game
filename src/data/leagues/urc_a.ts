@@ -46,7 +46,7 @@ export const URC_A: RawClub[] = [
   {
     id: 'munster', name: 'Munster RFC', short: 'Munster',
     city: 'Limerick', country: 'IRE',
-    stadium: 'Thormond Park', capacity: 25600,
+    stadium: 'Thomond Park', capacity: 25600,
     colors: ['#c8102e', '#001a3a'],
     rep: 84, budget: 3000000,
     players: [
