@@ -184,7 +184,7 @@ export function gradeHomework(
   game: GameState, ctx: LiveCtx, mine: SideCtx, opp: SideCtx, tactic: Tactic | null, prev: readonly FixTag[],
 ): { fixed: FixTag[]; missed: FixTag[] } {
   const open = coachFixes(game, ctx, mine, opp, tactic, 99).map(f => f.tag)
-  return gradeFixes(prev, open, { fitness: ctx.subsUsed >= 2 })
+  return gradeFixes(prev, open, { fitness: benchOn(ctx, mine) >= 2 })
 }
 
 /** One line of English for a grade, or null when there is nothing to report. */
@@ -217,6 +217,16 @@ export function gradeLine(fixed: readonly FixTag[], missed: readonly FixTag[]): 
  * Always returns something. A side that won by thirty still has a next opponent,
  * and "nothing to fix" teaches the manager that the panel is decoration.
  */
+/** EVERY BENCH SHIRT THAT TOOK THE FIELD (1.8.15). ctx.subsUsed counts the
+ *  manager's tactical changes only, so a match with three men on for injuries
+ *  and head assessments told him "No replacements used out of eight" under a
+ *  header reading five changes left (first-time-player pass). Fresh legs are
+ *  fresh legs whoever sent them on. */
+export function benchOn(ctx: LiveCtx, mine: SideCtx): number {
+  const played = mine.lineup.slice(15).filter(id => id != null && mine.ratings.has(id)).length
+  return Math.max(ctx.subsUsed, played)
+}
+
 export function coachFixes(
   game: GameState, ctx: LiveCtx, mine: SideCtx, opp: SideCtx, tactic: Tactic | null, want = 2,
 ): CoachFix[] {
@@ -231,6 +241,7 @@ export function coachFixes(
   // breakdown's "push Physicality up" sat beside the cards' "pull it under
   // fifty", and after the chip's "bring Physicality down"; the territory
   // fix's "bring Kicking down" after the chip's "push Kicking up".
+  const fresh = benchOn(ctx, mine)
   const htLever = LEVERS[htHurt(ctx.htEv) ?? 'read']
   const ev = buildEvidence(game, ctx)
   const physCosts = cards.length > 0 || htLever?.dial === 'aggression'
@@ -313,9 +324,9 @@ export function coachFixes(
     c.push({
       tag: 'fitness', score: lateAgainst * 2.4,
       head: t('coachfix.lateHead', { n: lateAgainst }),
-      how: ctx.subsUsed <= 2
+      how: fresh <= 2
         ? t('coachfix.lateHowFew', {
-          changes: ctx.subsUsed === 0 ? t('coachfix.lateNone') : t('coachfix.lateSome', { n: ctx.subsUsed }),
+          changes: fresh === 0 ? t('coachfix.lateNone') : t('coachfix.lateSome', { n: fresh }),
         })
         : t('coachfix.lateHowMany'),
     })
@@ -358,10 +369,10 @@ export function coachFixes(
   // Three or more used, against a bench of eight rather than the old five: the
   // complaint is about a manager who HAS gone to his bench and is still being
   // out-run, not about one who has barely started.
-  if (ctx.subsUsed >= 3 && theirTank - tank >= 20) {
+  if (fresh >= 3 && theirTank - tank >= 20) {
     c.push({
       tag: 'fitness', score: (theirTank - tank) * 1.1,
-      head: t('coachfix.tankHead', { subs: ctx.subsUsed, mine: Math.round(tank), theirs: Math.round(theirTank) }),
+      head: t('coachfix.tankHead', { subs: fresh, mine: Math.round(tank), theirs: Math.round(theirTank) }),
       how: t('coachfix.tankHow'),
     })
   }
@@ -378,18 +389,18 @@ export function coachFixes(
   // than no hint system, because the player trusts it. The engine's freshness
   // band has been widened so the changes are worth making; the number it names
   // is now the number that wins.
-  if (ctx.subsUsed < 2) {
+  if (fresh < 2) {
     c.push({
       // the score stays where it was: this candidate shares its 'fitness' tag
       // with the late-points complaint and loses the seat to it whenever the
       // opposition scored after the hour, so dropping it made the bench line
       // stop surfacing at all (fixprobe, eight matches, never seen)
-      tag: 'fitness', score: 16 - ctx.subsUsed * 5,
+      tag: 'fitness', score: 16 - fresh * 5,
       // the head keeps 'out of ${CAP_WORD}' deliberately: the cap derives from
       // MAX_SUBS so the sentence cannot drift from the real bench size the way
       // 'out of five' did for two rounds after the bench grew to eight, and
       // scripts/fixprobe.ts holds it there by reading the sentence back
-      head: t(ctx.subsUsed === 0 ? 'coachfix.benchHeadNone' : 'coachfix.benchHeadOne', { cap: capWord() }),
+      head: t(fresh === 0 ? 'coachfix.benchHeadNone' : 'coachfix.benchHeadOne', { cap: capWord() }),
       how: t('coachfix.benchHow', { cap: capWord() }),
     })
   }

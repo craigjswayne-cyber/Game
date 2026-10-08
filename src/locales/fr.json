@@ -1770,7 +1770,7 @@
     "fuTrend_worse": "Pire.",
     "fuLever_right": "Vous avez réglé {dial_k} dans le bon sens à la pause.",
     "fuLever_wrong": "{dial_k} est allé dans l'autre sens à la pause.",
-    "fuLever_none": "{dial_k} n'a pas bougé.",
+    "fuLever_none": "{dial_k} n'a pas bougé à la pause.",
     "fuNow": "Le plus gros problème aujourd'hui : {what_k}.",
     "planAside": "Le plan ({plan}) est mis de côté : il sera jugé sur la première période.",
     "planAsideEarly": "Le plan ({plan}) est mis de côté avant d'avoir eu une mi-temps, on ne pourra donc pas le juger."

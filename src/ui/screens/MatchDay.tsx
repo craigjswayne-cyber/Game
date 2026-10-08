@@ -433,6 +433,17 @@ function Preview({ fxId }: { fxId: number }) {
   const hasBad = warnings.some(w => w.level === 'bad')
   const fixedLineup = useMemo(() => {
     if (!confirm || !hasBad) return null
+    // A REPAIR COSTS THE BROKEN SHIRTS, NOT THE SIDE (1.8.15). This re-picked
+    // the whole twenty-three through the assistant's imperfect eye, so one
+    // injured flanker cost a first-time player eight starters and his captain
+    // - and the dressing room then blamed HIM for dropping the captain, because
+    // the sheet it wrote was his. The note promises a repair, so it repairs:
+    // every fit man keeps his shirt and only the unfit ones are filled
+    // (repairSheet, the same thing kick-off does). Only when that still leaves
+    // the scrum short does the assistant re-pick from scratch.
+    const repaired = repairSheet(game, club, tac.lineup, splitFor(club))
+    const sound = repaired.every((id, i) => i >= 15 && id == null ? true : !problem(id != null ? game.players[id] ?? null : null))
+    if (sound && frontRowCover(game, repaired).legal) return repaired
     // his re-pick, his eye: the tunnel fix is the assistant working, so it
     // carries assistantJudgement like every side he names
     const picked = autoSelect(game, availablePlayers(game, club.players), splitFor(club), assistantJudgement(game))

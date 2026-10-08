@@ -1730,7 +1730,7 @@
   "fuTrend_worse": "Erger.",
   "fuLever_right": "Jy het {dial_k} in rustyd die regte kant toe geskuif.",
   "fuLever_wrong": "{dial_k} het in rustyd die ander kant toe gegaan.",
-  "fuLever_none": "{dial_k} is gelos waar dit was.",
+  "fuLever_none": "{dial_k} is in rustyd gelos waar dit was.",
   "fuNow": "Die groter probleem vandag: {what_k}.",
   "planAside": "Dit sit die plan ({plan}) eenkant: dit word op die eerste helfte beoordeel.",
   "planAsideEarly": "Dit sit die plan ({plan}) eenkant voordat dit 'n helfte gehad het, so dit kan nie beoordeel word nie."

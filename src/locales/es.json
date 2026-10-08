@@ -1757,7 +1757,7 @@
   "fuTrend_worse": "Peor.",
   "fuLever_right": "Moviste {dial_k} en la buena dirección en el descanso.",
   "fuLever_wrong": "{dial_k} fue en la dirección contraria en el descanso.",
-  "fuLever_none": "{dial_k} se quedó donde estaba.",
+  "fuLever_none": "{dial_k} se quedó donde estaba en el descanso.",
   "fuNow": "El mayor problema hoy: {what_k}.",
   "planAside": "Esto deja de lado el plan ({plan}): se juzgará por la primera parte.",
   "planAsideEarly": "Esto deja de lado el plan ({plan}) antes de que haya tenido una parte, así que no se podrá juzgar."
