@@ -3824,7 +3824,15 @@ export function processWeekAndAdvance(state: GameState) {
     // was sacked inside one mid-season slump, on the same three weeks as a man
     // who had won nothing. Each trophy at this club in the last two seasons
     // adds three weeks to how long the board's confidence must sit on the floor.
-    const silver = Math.min(2, (state.mgr?.trophies ?? []).filter(x => x.clubId === club.id && x.season >= state.season - 1).length)
+    // AND A LEGACY BUYS A LITTLE MORE (1.8.15). A twenty-season soak sacked a
+    // manager who had won Toulouse eleven trophies, the last of them three
+    // seasons earlier, with the side fifth of fourteen and inside the playoff
+    // places: two seasons is a short memory for a board he had filled the
+    // cabinet for. Every four trophies at the club, ever, add three weeks more,
+    // at most six; the whole allowance stays capped at nine extra weeks, so a
+    // decorated manager in a real collapse still goes.
+    const mine = (state.mgr?.trophies ?? []).filter(x => x.clubId === club.id)
+    const silver = Math.min(3, Math.min(2, mine.filter(x => x.season >= state.season - 1).length) + Math.min(2, Math.floor(mine.length / 4)))
     if (club.boardConfidence <= 3 && state.week > 8 && !reprieved && !honeymoon && state.boardFloorWeeks >= 3 + 3 * silver) {
       // the mechanics live in sackManager (jobs.ts) - shared with the
       // pushed-once-too-often dismissal of the board-request escalation
