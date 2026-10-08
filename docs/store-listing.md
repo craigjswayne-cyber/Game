@@ -150,6 +150,28 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.8.15, Play version code 54
+
+Each entry is under 500 characters. Paste the matching language into each Play locale.
+
+**en-GB**
+A polish and fairness update. Instant Result now stops at full time, so you see why the match went the way it did. Match days, fixture dates and season targets agree on every screen. Transfer sums match the figures shown, and the asking-price button says when it is over your budget. Bigger buttons, sliders and tick boxes. Young players develop more realistically, with the rare wonderkid still breaking through, and club finances across the world are rebalanced.
+
+**fr-FR**
+Une mise à jour de finition et d'équité. Le Résultat immédiat s'arrête désormais au coup de sifflet final pour expliquer le match. Jours de match, dates et objectifs de saison concordent sur tous les écrans. Les montants des transferts correspondent aux chiffres affichés, et le bouton du prix demandé indique s'il dépasse votre budget. Boutons, curseurs et cases plus grands. Les jeunes progressent de façon plus réaliste, avec de rares prodiges, et les finances des clubs sont rééquilibrées.
+
+**es-ES**
+Una actualización de pulido y equidad. El Resultado inmediato ahora se detiene al final del partido para explicar por qué acabó así. Días de partido, fechas y objetivos de temporada coinciden en todas las pantallas. Las cifras de los fichajes cuadran con lo mostrado y el botón del precio exigido avisa si supera tu presupuesto. Botones, deslizadores y casillas más grandes. Los jóvenes progresan de forma más realista, con algún prodigio excepcional, y las finanzas de los clubes se reequilibran.
+
+**it-IT**
+Un aggiornamento di rifinitura ed equità. Il Risultato immediato ora si ferma al fischio finale per spiegare com'è andata la partita. Giorni di gara, date e obiettivi stagionali coincidono in ogni schermata. Le cifre dei trasferimenti tornano con quelle mostrate e il pulsante della richiesta avvisa se supera il budget. Pulsanti, cursori e caselle più grandi. I giovani crescono in modo più realistico, con qualche raro fenomeno, e le finanze dei club sono state riequilibrate.
+
+**ja-JP**
+仕上げと公平性のアップデート。即時結果は試合終了時点で止まり、結果の理由を確認できるようになりました。試合日、日程、シーズン目標がすべての画面で一致。移籍金額は表示どおりに計算され、言い値が予算を超える場合はボタンに表示されます。ボタン、スライダー、チェックボックスを大きくしました。若手の成長はより現実的になり、まれに突出した逸材も現れます。世界中のクラブ財政も再調整しました。
+
+**af**
+'n Opdatering vir afronding en regverdigheid. Kitsuitslag stop nou by die eindfluitjie, sodat jy sien waarom die wedstryd so verloop het. Wedstryddae, datums en seisoenteikens stem op elke skerm ooreen. Oordragsyfers klop met wat gewys word, en die vraprysknoppie sê wanneer dit bo jou begroting is. Groter knoppies, skuiwers en blokkies. Jong spelers ontwikkel meer realisties, met die seldsame wonderkind wat steeds deurbreek, en klubfinansies wêreldwyd is herbalanseer.
+
 ### What's new (500 max) - v1.8.14, Play version code 53
 
 Each entry is under 500 characters. Paste the matching language into each Play locale.
