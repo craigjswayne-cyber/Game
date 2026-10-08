@@ -4464,7 +4464,7 @@
  },
  "news": {
   "koHatTrickSubj": "Hat-trick en {stage_k} de {comp}: {player}",
-  "koHatTrick": "{player} marcó {n} ensayos para {team} en {stage_k} de {comp}. Las eliminatorias no regalan muchos de esos.",
+  "koHatTrick": "{player} firmó un hat-trick para {team} en {stage_k} de {comp}. Las eliminatorias no regalan muchos de esos.",
   "koFastestSubj": "El ensayo más rápido de la historia en eliminatorias: {player}, {min} minutos",
   "koFastest": "{player} marcó para {team} a los {min} minutos de {stage_k} de {comp}, el ensayo más rápido de la historia en eliminatorias. El récord anterior era de {old}, a los {oldMin} minutos.",
   "koStage_QF": "los cuartos de final",

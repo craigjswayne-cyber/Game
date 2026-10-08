@@ -3186,6 +3186,11 @@ function backTowards(ctx: LiveCtx, side: SideCtx, m: number) {
  */
 function describePlay(state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideCtx, contest?: Contest | null) {
   if (!ctx.detail) return
+  // A BUSY AFTERNOON NEEDS LESS FILLER (1.8.16). The incidents have their own
+  // lines, so a match full of them ran to 190 against the owner's 100-150:
+  // past about two lines a minute, the carries and the phase counts go quiet
+  // by half and the cards, the tries and the TMO keep the room.
+  if (ctx.events.length > 2.0 * Math.max(8, ctx.lastMin) && ctx.crng() < 0.5) return
   const up = upOf(ctx, side)
   const team = teamShort(state, side.teamId), oppT = teamShort(state, opp.teamId)
   // the set piece now and then: the sheet derives about thirteen scrums and
@@ -3198,7 +3203,9 @@ function describePlay(state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideCt
     colour(state, ctx, side, said(ctx, SP_SCRUM), { team, opp: oppT })
   }
   // the carry, where the ball is: forwards close in, backs in space
-  if (ctx.crng() < 0.45) {
+  // (0.45 to 0.38 in 1.8.16: the incidents' own lines took the room, and the
+  // owner's 100-150 lines a match is a ceiling as well as a floor)
+  if (ctx.crng() < 0.38) {
     const bank = up < 22 ? PBP_DEEP : up > 78 ? PBP_RED : PBP_MID
     // the man the contest put into contact, when there was one
     const real = contest && side.onPitch.has(contest.carrier) ? state.players[contest.carrier] : null
@@ -3214,7 +3221,7 @@ function describePlay(state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideCt
   if (bd < 0.15) {
     const p = sayWho(state, ctx, side, [0, 1, 2, 3, 4, 5, 6, 7, 8], [1, 1, 1, 1, 1, 2, 2, 1, 2])
     if (p) colour(state, ctx, side, said(ctx, PBP_RUCK), { team, opp: oppT, player: p.name }, p.id)
-  } else if (bd < 0.24) {
+  } else if (bd < 0.21) {
     colour(state, ctx, side, said(ctx, PBP_PHASES), { team, opp: oppT, n: 3 + Math.floor(ctx.crng() * 9) })
   }
   if ((ctx.weather === 'Rain' || ctx.weather === 'Snow') && ctx.crng() < 0.07) {
@@ -3389,7 +3396,7 @@ const MOVE_TRY: Record<Launch, { self: string; lines: string[] }> = {
  *  that had it: a line about the defence. A man named for a hit is one the
  *  tackle count already has making hits (TACKLE_LINES rule). */
 function describeDefence(state: GameState, ctx: LiveCtx, def: SideCtx, att: SideCtx, contest?: Contest | null) {
-  if (!ctx.detail || ctx.crng() >= 0.25) return
+  if (!ctx.detail || ctx.crng() >= 0.21) return
   const team = teamShort(state, def.teamId), oppT = teamShort(state, att.teamId)
   const hitters = onField(state, def).filter(q => (def.tackles?.get(q.id) ?? 0) > 0)
   if (hitters.length && ctx.crng() < 0.45) {
@@ -4837,6 +4844,14 @@ const CARD_SHARE = 0.75
 const MAN_DOWN = 0.1
 /** what the card from the discipline roll was for: words only */
 const YC_REASONS = ['comm.yellowCard', 'comm.ycHigh', 'comm.ycKnockOn', 'comm.ycOffsideRepeat', 'comm.ycShoulder', 'comm.ycTrip']
+/** GARBAGE TIME FOR THE INCIDENTS TOO: a side more than four converted tries
+ *  up takes its foot off, so the intercept and the penalty try damp the way
+ *  the scoring roll does (blowprobe: without it the far tail of mismatches
+ *  reached 40 in 20,000 past 90 points) */
+function leadDamp(scoring: SideCtx, other: SideCtx): number {
+  const lead = scoring.score - other.score
+  return lead > 28 ? Math.max(0.26, 28 / lead) : 1
+}
 /** a man by position, weighted, off the given stream */
 function manFor(r: Rng, ps: Player[], w: Partial<Record<Pos, number>>, agg = 0): Player | null {
   if (!ps.length) return null
@@ -4965,7 +4980,7 @@ function cynicalIncident(state: GameState, ctx: LiveCtx, side: SideCtx, opp: Sid
   if (up < 70) return null
   const r = incRng(ctx, tick, side, 0xC71C)
   const near = up >= 88
-  const p = near ? clamp(CYN_NEAR * pTry / 0.1, 0.05, 0.25) : CYN_FAR
+  const p = (near ? clamp(CYN_NEAR * pTry / 0.1, 0.05, 0.25) : CYN_FAR) * leadDamp(side, opp)
   if (r() >= p) return null
   const u = r()
   const kind = u < 0.4 ? 'knockDown' : u < 0.75 ? 'ruck' : 'maul'
@@ -5017,13 +5032,22 @@ function interceptTick(state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideC
   const r = incRng(ctx, tick, side, 0x1A7C)
   const rush = (state.clubs[opp.teamId]?.tactic.defLine ?? 50) / 100
   const wet = ctx.weather === 'Rain' || ctx.weather === 'Snow' ? 1.2 : 1
-  const p = INTERCEPT_P * (0.7 + 0.6 * rush) * (up > 45 ? 1.2 : 0.5) * clamp(side.fwdF ?? 1, 0.6, 1.6) * wet
+  const p = INTERCEPT_P * (0.7 + 0.6 * rush) * (up > 45 ? 1.2 : 0.5) * clamp(side.fwdF ?? 1, 0.6, 1.6) * wet * leadDamp(opp, side)
   if (r() >= p) return false
   const man = manFor(r, onField(state, opp), { WG: 3, CE: 3, FB: 1.5, FH: 1, SH: 0.8, FL: 0.4 })
   if (!man) return false
   // the run is as long as the attack had come: `up` metres back to their line
   const pAway = clamp(1.05 - up * 0.006 + (man.a.pac - 12) * 0.025, 0.35, 0.97)
   opp.ratings.set(man.id, (opp.ratings.get(man.id) ?? 6) + 0.25)
+  // it is a turnover, and the evidence counts it as one, where it happened
+  // (the try it may become is put down to turnovers, so the count must have it)
+  const z = zoneIdx(up)
+  evOf(side).turnLost[z] += 1
+  const eo = evOf(opp)
+  eo.turnWon[2 - z] += 1
+  eo.lastTurn = tick
+  opp.styTurnWon = (opp.styTurnWon ?? 0) + 1
+  side.styTurnLost = (side.styTurnLost ?? 0) + 1
   if (r() < pAway) {
     side.pressure = clamp(side.pressure * 0.55, 0, 100)
     ctx.evWhy = 'turn'

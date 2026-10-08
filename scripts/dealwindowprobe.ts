@@ -37,7 +37,13 @@ const targets = Object.values(g.players)
   .filter((p): p is Player => !!p.clubId && p.clubId !== user.id && !p.acad && !p.loanFrom && !p.onLoan && !p.retiring && g.clubs[p.clubId]?.leagueId === 'champ' && p.age < 30 && (p.joinedAt == null))
   .sort((a, b) => askingPrice(g, b) - askingPrice(g, a))
 const [a, b] = targets.filter(p => askingPrice(g, p) >= 300_000)
-const askA = askingPrice(g, a), askB = askingPrice(g, b)
+// THE PRICE THAT CLEARS (1.8.16). A selling club's floor can sit a notch above
+// its asking price (sellerWillingness's premium), and then the ask draws a
+// counter rather than a yes. That is the market working; the window is what
+// this probe is about, so it bids what the club will take.
+const clears = (p: Player) => { const ask = askingPrice(g, p); const r = agreeFee(g, p.id, ask); return r.ok ? ask : (r.counter ?? ask) }
+user.budget = Math.max(askingPrice(g, a), askingPrice(g, b)) * 2
+const askA = clears(a), askB = clears(b)
 // each fits on its own, not both together
 user.budget = Math.max(askA, askB) + 50_000
 const budget0 = user.budget, balance0 = user.balance, fromA = a.clubId, fromB = b.clubId

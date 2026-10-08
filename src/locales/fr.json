@@ -4534,7 +4534,7 @@
   },
   "news": {
     "koHatTrickSubj": "Triplé en {stage_k} de {comp} : {player}",
-    "koHatTrick": "{player} a marqué {n} essais pour {team} en {stage_k} de {comp}. Les phases finales n'en offrent pas souvent.",
+    "koHatTrick": "{player} a signé un triplé pour {team} en {stage_k} de {comp}. Les phases finales n'en offrent pas souvent.",
     "koFastestSubj": "Essai le plus rapide de l'histoire en phase finale : {player}, {min} minutes",
     "koFastest": "{player} a marqué pour {team} après {min} minutes de jeu en {stage_k} de {comp}, l'essai le plus rapide jamais inscrit en phase finale. L'ancien record appartenait à {old}, après {oldMin} minutes.",
     "koStage_QF": "quart de finale",

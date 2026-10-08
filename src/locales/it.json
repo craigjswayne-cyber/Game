@@ -4490,7 +4490,7 @@
  },
  "news": {
   "koHatTrickSubj": "Tripletta nella {stage_k} di {comp}: {player}",
-  "koHatTrick": "{player} ha segnato {n} mete per {team} nella {stage_k} di {comp}. Il rugby a eliminazione diretta non ne regala molte.",
+  "koHatTrick": "{player} ha firmato una tripletta per {team} nella {stage_k} di {comp}. Il rugby a eliminazione diretta non ne regala molte.",
   "koFastestSubj": "La meta più veloce di sempre a eliminazione diretta: {player}, {min} minuti",
   "koFastest": "{player} ha segnato per {team} dopo {min} minuti della {stage_k} di {comp}, la meta più veloce di sempre in una gara a eliminazione diretta. Il record precedente era di {old}, dopo {oldMin} minuti.",
   "koStage_QF": "quarto di finale",

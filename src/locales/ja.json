@@ -4251,7 +4251,7 @@
  },
  "news": {
   "koHatTrickSubj": "{comp}{stage_k}でハットトリック：{player}",
-  "koHatTrick": "{player}が{comp}{stage_k}で{team}の{n}トライを挙げた。ノックアウトラグビーでこれほどの活躍はそう見られない。",
+  "koHatTrick": "{player}が{comp}{stage_k}で{team}の一員としてハットトリックを達成した。ノックアウトラグビーでこれほどの活躍はそう見られない。",
   "koFastestSubj": "ノックアウトステージ史上最速トライ：{player}、{min}分",
   "koFastest": "{player}が{comp}{stage_k}の開始{min}分で{team}のトライを挙げ、ノックアウトステージ史上最速記録となった。これまでの記録は{old}の{oldMin}分だった。",
   "koStage_QF": "準々決勝",

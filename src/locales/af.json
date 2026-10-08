@@ -4416,7 +4416,7 @@
  },
  "news": {
   "koHatTrickSubj": "Driekuns in die {comp} {stage_k}: {player}",
-  "koHatTrick": "{player} het {n} drieë vir {team} in die {comp} {stage_k} gedruk. Uitkloprugby deel nie baie daarvan uit nie.",
+  "koHatTrick": "{player} het 'n driekuns vir {team} in die {comp} {stage_k} gedruk. Uitkloprugby deel nie baie daarvan uit nie.",
   "koFastestSubj": "Vinnigste uitklopdrie nog: {player}, {min} minute",
   "koFastest": "{player} het vir {team} gedruk na {min} minute van die {comp} {stage_k}, die vinnigste uitklopdrie nog. Die vorige rekord was {old} s'n, na {oldMin} minute.",
   "koStage_QF": "kwarteindstryd",

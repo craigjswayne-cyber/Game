@@ -4408,7 +4408,7 @@
  "news": {
   "dealOff": "The window opened and the deal for {name} could not go through. {why}",
   "koHatTrickSubj": "Hat-trick in the {comp} {stage_k}: {player}",
-  "koHatTrick": "{player} scored {n} tries for {team} in the {comp} {stage_k}. Knockout rugby does not hand out many of those.",
+  "koHatTrick": "{player} scored a hat-trick for {team} in the {comp} {stage_k}. Knockout rugby does not hand out many of those.",
   "koFastestSubj": "Fastest knockout try on record: {player}, {min} minutes",
   "koFastest": "{player} scored for {team} after {min} minutes of the {comp} {stage_k}, the fastest knockout try on record. The old mark was {old}'s, after {oldMin} minutes.",
   "koStage_QF": "quarter-final",
