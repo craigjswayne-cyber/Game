@@ -31,7 +31,7 @@
 // reads what has actually happened against them (halfTimeHints).
 import type { Club, Fixture, GameState, Weather } from './model'
 import { SEASON_WEEKS } from './model'
-import { venueOf, climateOf } from './geo'
+import { venueOf, climateOf, warmth } from './geo'
 import { hashString, mulberry32 } from './rng'
 import { ATK_CONTACT, DEF_HITS, DEF_OWN, type SideStyle, type StyleWx } from './styles'
 
@@ -91,6 +91,23 @@ export function matchConditions(state: GameState, fx: Pick<Fixture, 'id' | 'week
   if (u < pSnow + pRain + pDamp) return 'Damp'
   if (u < pSnow + pRain + pDamp + pWind) return 'Wind'
   return 'Dry'
+}
+
+/**
+ * A HOT AFTERNOON (1.8.16, owner's coverage list item 31). A dry day early or
+ * late in the season, and anywhere warm: legs go sooner and the referee stops
+ * the game for water at the quarters. Off the venue's warmth for the week and
+ * a hash of the fixture, so it is the fixture's day and never a draw. In
+ * England it is a September or May thing, and not every September Saturday.
+ */
+export function hotDay(state: GameState, fx: Pick<Fixture, 'id' | 'week' | 'homeId' | 'venue'>, weather: Weather): boolean {
+  if (weather !== 'Dry') return false
+  const home = state.clubs[fx.homeId]
+  const v = fx.venue ? venueOf(fx.venue.city, undefined) : venueOf(home?.city, home?.country ?? fx.homeId)
+  if (!v) return false
+  const w = warmth(v, fx.week, SEASON_WEEKS)
+  const u = mulberry32(((state.seed ^ Math.imul(fx.id | 0, 0x3C6EF372) ^ Math.imul(state.season | 0, 0x407)) >>> 0) || 1)()
+  return w >= 0.45 && u < (w - 0.4) * 4
 }
 
 /** the home edge on an artificial pitch against a side from grass (matchEngine) */

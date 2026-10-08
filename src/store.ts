@@ -79,7 +79,7 @@ export const PRO_PLANS = 2
 export function planSlots(): number { return proLocked() ? FREE_PLANS : PRO_PLANS }
 /** What the app actually wears, as opposed to what was chosen. */
 export function effectiveSkin(chosen: Skin): Skin { return skinLocked(chosen) ? FREE_SKIN : chosen }
-import { getLang, initLang, onLangChange, setLang as applyLang, setManagerGender, setWorld, t, type Lang } from './game/i18n'
+import { getLang, initLang, onLangChange, setLang as applyLang, setManagerGender, setWorld, t, tIn, type Lang } from './game/i18n'
 import { adBridgePresent, hasSupporter, tillOpen } from './game/monetise'
 import { applyCharter, applyEstate, applyHeal, applyInjection, applyPinnacle, type InjectTier } from './game/grants'
 import {
@@ -401,12 +401,19 @@ function nextHighlight(events: MatchEvent[], cursor: number, homeId: string): nu
 function settleKnockout(g: GameState, ctx: LiveCtx) {
   const fx = ctx.fx
   if (isKnockoutTie(fx) && fx.homeScore === fx.awayScore) {
-    resolveKnockoutDraw(g, fx, weekRng(g))
-    ctx.events.push({
-      min: 90, type: 'FT', teamId: '',
-      text: `SUDDEN DEATH! ${teamShort(g, fx.homeScore > fx.awayScore ? fx.homeId : fx.awayId)} snatch it in extra time - ${fx.homeScore}-${fx.awayScore}!`,
-      homeScore: fx.homeScore, awayScore: fx.awayScore,
-    })
+    // EXTRA TIME, THEN TRIES, THEN THE KICKS (1.8.16): every step of it on
+    // the ticker, as keys like every other line (this used to be one line of
+    // English, the same in a French match)
+    const h0 = fx.homeScore, a0 = fx.awayScore
+    const lines = resolveKnockoutDraw(g, fx, weekRng(g))
+    let hs = h0, as = a0
+    for (const l of lines) {
+      if (l.type === 'TRY' || l.type === 'PEN') {
+        const pts = l.k === 'comm.etTryCon' ? 7 : l.k === 'comm.etTry' ? 5 : 3
+        if (l.teamId === fx.homeId) hs += pts; else as += pts
+      }
+      ctx.events.push({ min: l.min, type: l.type, teamId: l.teamId, text: tIn('en', l.k, l.v), k: l.k, v: l.v, homeScore: hs, awayScore: as })
+    }
     fx.events = ctx.events
   }
 }

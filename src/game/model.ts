@@ -817,6 +817,12 @@ export interface Fixture {
   events?: MatchEvent[] // only kept for user matches
   att?: number
   stage?: string // 'QF' | 'SF' | 'F' | 'BAR' etc for knockouts
+  /** A knockout tie still level after extra time (1.8.16): settled on tries
+   *  scored, then a place-kick competition. The score stays level, as it
+   *  does in the real competition, so the winner is kept here (tieWinner). */
+  decider?: { by: 'tries' | 'kicks'; winner: string; kicks?: [number, number] }
+  /** points scored in extra time, home and away, when there was any */
+  aet?: [number, number]
   tableApplied?: boolean
   motm?: number
   weather?: Weather
@@ -2272,6 +2278,9 @@ export interface GameState {
   annual?: { season: number }
   /** all-time single-season records per league (points / tries) */
   records?: Record<string, { pts: { name: string; val: number; season: number }; tries: { name: string; val: number; season: number } }>
+  /** the fastest try anybody has scored in a knockout tie (1.8.16): minute,
+   *  scorer, side and season, for the record line in the news */
+  koFastest?: { min: number; name: string; team: string; season: number }
   /** games played together by key partnerships (front row, locks, halfbacks,
    *  centres) - familiarity sharpens the relevant unit. Key: chemKey(a, b) */
   chem?: Record<string, number>
@@ -3095,4 +3104,11 @@ export function shownMoney(v: number): number {
   if (a >= M || Math.round(a / K) >= 1000) return at(M, a >= 10 * M ? 0 : 1)
   if (a >= K) return sg * Math.round(a / K) * K
   return v
+}
+
+/** Who went through: the side with more points, or for a tie level after
+ *  extra time, the side the try count or the kicks sent through (1.8.16). */
+export function tieWinner(fx: Pick<Fixture, 'homeId' | 'awayId' | 'homeScore' | 'awayScore' | 'decider'>): string {
+  if (fx.homeScore !== fx.awayScore) return fx.homeScore > fx.awayScore ? fx.homeId : fx.awayId
+  return fx.decider?.winner ?? fx.homeId
 }

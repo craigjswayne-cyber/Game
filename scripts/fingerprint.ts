@@ -544,12 +544,44 @@ const EXPECTED: string[] = [
   // seeds, 1.8.13 -> this:
   //   pts 49.0 -> 48.9   tries 6.20 -> 6.14   home 52.6% -> 53.1%
   //   draws 2.0% -> 1.5%   blowouts 8.6% -> 8.3% (every band holds)
-  'saracens 31-27 bath',
-  'exeter 28-10 gloucester',
+  // REBASELINED for THE AFTERNOON'S INCIDENTS (1.8.16, owner: "lets add all
+  // the changes, its important each game feels different and authentic. We
+  // need randomness amongst all the tactics"). Five of the six moved, and all
+  // of them were always going to, because the first thing kick-off now does is
+  // deal THE DAY: every unit of both sides a little up or down for this match
+  // (a lineout that will not fire, a scrum on top), and the plan clicking or
+  // stalling (exec). That changes every comparison of the afternoon.
+  //
+  // Mechanical, deliberately, and none of it on the shared stream: every
+  // incident decides off its own small stream (incRng, seeded from kickSeed),
+  // and what it then does runs on that stream too (withRng), so a match where
+  // nothing happens has its dice where they were. What is new: the penalty
+  // try and the professional foul, the intercept, held up and the goal-line
+  // drop-out, free kicks and crooked throws, the TMO calling back foul play,
+  // the referee reversing a penalty, the scuffle, the 50:22 and the kick out
+  // on the full, the shot clock, the warm-up withdrawal, a hot afternoon's
+  // legs, and the TMO's new reasons for a no-try (offside at the kick, a
+  // blocker, offside at the lineout phases back). The old discipline roll
+  // fires at CARD_SHARE (0.75) of its rate, since the new incidents give
+  // cards of their own.
+  //
+  // bandcheck, eight worlds, 8,136 league games, before -> after:
+  //   points 48.5 -> 49.9   tries 6.08 -> 6.39   home 52.6% -> 54.0%
+  //   draws 1.6% -> 1.7%    blowouts 8.4% -> 9.1%       every band holds
+  // (with MAN_DOWN at 0.10 a missing man, from 0.07: a yellow was worth 2.8
+  // net points to the other side over its ten minutes and is now 3.2; these
+  // six fixtures did not move with it)
+  // scripts/incidentprobe.ts, 1,200 watched matches, per match after:
+  //   yellows 0.96 -> 1.48, reds 0.04, penalty tries 0.17, intercept tries
+  //   0.17, held up 0.41, free kicks 3.2, 50:22s 0.31, TMO foul play 0.27,
+  //   scuffles 0.45, reversals 0.11, warm-up withdrawals 0.04.
+  // The one result that held is sale 39-25 bristol.
+  'saracens 14-44 bath',
+  'exeter 35-13 gloucester',
   'sale 39-25 bristol',
-  'harlequins 33-34 leicester',
-  'newcastle 16-30 northampton',
-  'exeter 38-31 saracens',
+  'harlequins 51-24 leicester',
+  'newcastle 24-54 northampton',
+  'exeter 38-20 saracens',
 ]
 // REBASELINED for 1.8.2 depth (claude/182-depth), FIVE of six moved, and
 // WITHOUT a new draw on the shared stream: the match still takes the one draw

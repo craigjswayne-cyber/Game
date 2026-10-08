@@ -32,7 +32,7 @@ import {
 import { rememberDebut } from './memory'
 import { LEVER_DIALS, buildEvidence, type CausalEvidence } from './evidence'
 import { ATK_KICKS, atkSay, defSay, moveAffinity, styleDrain, styleFitRel, styleTerr, styleTick, stylesOf, TURN_BASE, TURN_M, type SideStyle } from './styles'
-import { ART_HOME, clubSurface, goalPenaltyOf, injuryF, matchConditions, styleWx, surfaceOf, wetness, type Surface } from './conditions'
+import { ART_HOME, clubSurface, goalPenaltyOf, hotDay, injuryF, matchConditions, styleWx, surfaceOf, wetness, type Surface } from './conditions'
 import { HABITS, HABITS_OFF, clutchKick, habitFx } from './habits'
 
 /**
@@ -1102,6 +1102,30 @@ export interface SideCtx {
   /** a man is playing out of his depth after a forced positional switch */
   coverBlown?: boolean
 
+  // ---- THE AFTERNOON ITSELF (1.8.16, see THE AFTERNOON'S INCIDENTS) ----------
+  /** how each unit is going today: the lineout that will not fire, the scrum
+   *  that is on top. Set once at kick-off, layered so a sub keeps it. */
+  day?: Partial<Record<DayUnit, number>>
+  /** how well the side is executing its plan today: scales what its called
+   *  moves and its zone plans are worth, never their sign */
+  exec?: number
+  /** scrum free kicks against this side, for the full-arm escalation */
+  scrumFK?: number
+  /** free kicks this side has won, and offences it has been named for */
+  freeKicks?: number
+  /** tries each man has scored in this match (the hat-trick and records) */
+  matchTries?: Map<number, number>
+  /** the minute of this side's first try, for the fastest-try record */
+  firstTryMin?: number
+  /** and who scored it */
+  firstTryBy?: number
+  /** the referee has had a word with this side's captain */
+  warned?: number
+  /** penalty tries awarded to this side */
+  penTries?: number
+  /** 50:22s this side has found */
+  fifty22?: number
+
   // ---- who was out there, and for how long ----------------------------------
   /** the XV on the pitch when the first tick ran. The lineup array is
    *  rewritten by every substitution, so reading it at full time handed the
@@ -2086,7 +2110,7 @@ const CHARGE_SAFE = ['comm.chargeSafe1', 'comm.chargeSafe2', 'comm.chargeSafe3']
 
 /** DROP GOALS THAT MISS (1.8.0): the attempt was always rolled and counted as
  *  a kick at goal, and a miss said nothing at all */
-const DROP_MISS = ['comm.dropMiss1', 'comm.dropMiss2', 'comm.dropMiss3', 'comm.dropMiss4', 'comm.dropMiss5']
+const DROP_MISS = ['comm.dropMiss1', 'comm.dropMiss2', 'comm.dropMiss3', 'comm.dropMiss4', 'comm.dropMiss5', 'comm.dropMiss6']
 
 /** Live match context. The match is simulated tick by tick (4 minutes per
  *  tick, 20 ticks) so tactics changes and substitutions genuinely change
@@ -2235,6 +2259,9 @@ export interface LiveCtx {
    *  can tell a plan carried into the match and changed at the break from
    *  one dropped before it (matchfindings planCarried) */
   koDials?: number[]
+  /** a hot afternoon (1.8.16): legs go sooner and the referee calls water
+   *  breaks at the quarters. Set at kick-off from the conditions, no draw. */
+  hot?: boolean
 }
 
 /** The manager's four touchline dials, in LEVER_DIALS order: his club's
@@ -2307,6 +2334,31 @@ const DEPICTS: Record<string, NonNullable<MatchEvent['fx']>> = {
   'comm.dropMiss3': 'MISS',
   'comm.dropMiss4': 'MISS',
   'comm.dropMiss5': 'MISS',
+  'comm.dropMiss6': 'MISS',         // off the upright (1.8.16)
+  'comm.penPost1': 'MISS',
+  'comm.penPost2': 'MISS',
+  'comm.conPost': 'MISS',
+  'comm.fk_lineoutNumbers': 'LINEOUT',
+  'comm.notStraight1': 'LINEOUT',
+  'comm.notStraight2': 'LINEOUT',
+  'comm.notStraightCold': 'LINEOUT',
+  'comm.fk_scrumEarly': 'SCRUM',
+  'comm.fk_scrumFeed': 'SCRUM',
+  'comm.fifty22_1': 'LINEOUT',
+  'comm.fifty22_2': 'LINEOUT',
+  'comm.fifty22_3': 'LINEOUT',
+  'comm.tmoFoul_high': 'TMO',
+  'comm.tmoFoul_secondary': 'TMO',
+  'comm.tmoFoul_neckRoll': 'TMO',
+  'comm.tmoFoul_cleanout': 'TMO',
+  'comm.tmoFoul_ballOnGround': 'TMO',
+  'comm.reverse_screen': 'TMO',
+  'comm.tmoReview5': 'TMO',
+  'comm.tmoReview6': 'TMO',
+  'comm.tmoReview7': 'TMO',
+  'comm.tmoNoTry5': 'NOTRY',
+  'comm.tmoNoTry6': 'NOTRY',
+  'comm.tmoNoTry7': 'NOTRY',
   'comm.lineout3': 'LINEOUT',       // the jumper lifted, the throw taken
   'comm.lineout7': 'LINEOUT',
   'comm.scrum2': 'SCRUM',           // the scrum that goes forward
@@ -2782,6 +2834,13 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
   }
   ctx.kickSeed = Math.floor(rng() * 4294967296) >>> 0
   ctx.chemToday = chemToday
+  // THE DAY (1.8.16): how each side's units are going, and a warm-up
+  // withdrawal now and then, both off the incident dice (no draw on rng);
+  // and whether it is a hot afternoon, off the fixture
+  dealTheDay(ctx, uncontested)
+  lateWithdrawal(state, ctx, home)
+  lateWithdrawal(state, ctx, away)
+  ctx.hot = hotDay(state, fx, weather)
   ctx.koDials = userDials(state, ctx)
 
   // THE ANALYST'S HOMEWORK (pillar 2): an analyst-archetype dugout facing the
@@ -2833,6 +2892,14 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
       ...koSty,
     })
   }
+  // THE HAKA (item 54): New Zealand lay down the challenge, and the side
+  // facing it answers. Only ever for the national side; words only.
+  if (detail && (fx.homeId === 'NZL' || fx.awayId === 'NZL')) {
+    const nz = fx.homeId === 'NZL' ? home : away
+    const them = nz === home ? away : home
+    pushLine(state, ctx, 0, 'SUB', nz, `comm.haka${1 + (fx.id % 3)}`, { team: teamShort(state, nz.teamId), opp: teamShort(state, them.teamId) })
+  }
+  if (detail && ctx.hot) pushLine(state, ctx, 0, 'SUB', null, 'comm.hotDay')
   noteSpecialists(state, ctx, home)
   noteSpecialists(state, ctx, away)
   if (uncontested) {
@@ -2954,7 +3021,8 @@ const FW_POS = new Set(['LP', 'HK', 'TP', 'LK', 'FL', 'N8'])
 
 /** Drain the petrol tanks of everyone on the pitch for one tick. */
 function drainEnergy(state: GameState, ctx: LiveCtx, side: SideCtx) {
-  const wF = ctx.weather === 'Snow' ? 1.1 : 1
+  // snow and a hot afternoon both take more out of a man (heat, 1.8.16)
+  const wF = ctx.weather === 'Snow' ? 1.1 : ctx.hot ? 1.08 : 1
   for (const id of side.onPitch) {
     const p = state.players[id]
     if (!p) continue
@@ -3005,11 +3073,22 @@ function noteKick(ctx: LiveCtx, side: SideCtx, made: boolean) {
   if (ctx.detail) (ctx.kickLog ??= []).push([ctx.events.length, side === ctx.home ? 0 : 1, made ? 1 : 0])
 }
 
+/** how often the shot clock beats a kicker (1.8.16) */
+const SHOT_CLOCK_P = 0.006
 /** Take the three points: roll the kick at goal. */
 function takePenaltyShot(state: GameState, ctx: LiveCtx, side: SideCtx, min: number) {
   const { rng, detail, goalPenalty } = ctx
   const kicker = goalKicker(state, side)
   const other = side === ctx.home ? ctx.away : ctx.home
+  // THE SHOT CLOCK (1.8.16, item 30): sixty seconds from the mark, and the
+  // kick is lost when it runs out - a scrum to the other side where the
+  // penalty was. Rare, on its own dice; the kick's draw is still taken.
+  if (incRng(ctx, min, side, 0x5C10C)() < SHOT_CLOCK_P) {
+    rng()
+    pushLine(state, ctx, min, 'SUB', side, `comm.shotClock${1 + (min % 2)}`,
+      { player: kicker?.name ?? teamShort(state, side.teamId), team: teamShort(state, side.teamId), opp: teamShort(state, other.teamId) }, kicker?.id)
+    return
+  }
   // the kicker's nerve with the match on the line (habits.ts): a threshold, never a draw
   const pPen = clamp(kickChance(state, kicker, 0.53, 54, ctx.goalPenalty ?? 0, side) + clutchKick(state.seed, kicker, min, side.score - other.score), 0.3, 0.92)
   const penOver = rng() < pPen
@@ -3040,7 +3119,9 @@ function takePenaltyShot(state: GameState, ctx: LiveCtx, side: SideCtx, min: num
     ctx.field = ctx.field * 0.6 + 50 * 0.4
     describeRestart(state, ctx, side)
   } else if (detail && ctx.crng() < 0.7) {
-    pushLine(state, ctx, min, 'SUB', side, kicker ? 'comm.penWideNamed' : 'comm.penWide',
+    // now and then it is the upright that says no (item 57), words only
+    const post = !!kicker && ctx.crng() < 0.14
+    pushLine(state, ctx, min, 'SUB', side, post ? `comm.penPost${1 + Math.floor(ctx.crng() * 2)}` : kicker ? 'comm.penWideNamed' : 'comm.penWide',
       { player: kicker?.name ?? '' }, kicker?.id)
   }
 }
@@ -3179,7 +3260,10 @@ function moveInPlay(state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideCtx,
   const e = moveEdge(state, club, m.id, fit, match, adapt)
   // the same reckoning without the tape, for the evidence: a read, no draw
   const gain0 = adapt > 0 ? moveEdge(state, club, m.id, fit, match, 0).gain : undefined
-  return { id: m.id, launch: call.launch, gain: e.gain, risk: m.risk, maker: inShirt(state, side, (MOVE_MAKER[m.id] ?? 10) - 1), gain0 }
+  // and how the plan is clicking today (THE DAY, 1.8.16): the same call is
+  // worth more on one Saturday than the next, in whichever direction it goes
+  const ex = side.exec ?? 1
+  return { id: m.id, launch: call.launch, gain: e.gain * ex, risk: m.risk, maker: inShirt(state, side, (MOVE_MAKER[m.id] ?? 10) - 1), gain0: gain0 != null ? gain0 * ex : undefined }
 }
 
 /** how far the penalty slot's play moves a quick tap's chance, per unit of
@@ -3202,7 +3286,7 @@ function penPlay(state: GameState, side: SideCtx, opp: SideCtx): MoveInPlay | nu
   const fit = clamp(moveFit(m, (s, a) => inShirt(state, side, s - 1)?.a[a] ?? null)
     + moveAffinity(side.sty?.atk, m.id, false), -1, 1)
   const e = moveEdge(state, club, m.id, fit, moveMatchup(m, state.clubs[opp.teamId]?.tactic))
-  return { id: m.id, launch: 'tap', gain: e.gain, risk: m.risk, maker: inShirt(state, side, (MOVE_MAKER[m.id] ?? 9) - 1) }
+  return { id: m.id, launch: 'tap', gain: e.gain * (side.exec ?? 1), risk: m.risk, maker: inShirt(state, side, (MOVE_MAKER[m.id] ?? 9) - 1) }
 }
 
 /** Whether the try this tick scored is the move's, for its line and its
@@ -3416,8 +3500,46 @@ function kicksFromHand(state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideC
   for (let i = 0; i < n; i++) {
     side.handKicks = (side.handKicks ?? 0) + 1
     if (rng() < CHARGE_RATE) { chargeDown(state, ctx, side, opp, min); return }
+    // OUT ON THE FULL, AND THE 50:22 (1.8.16, items 51, 59). On the same
+    // kick dice. A kick that goes out without bouncing comes back to where it
+    // was struck, a lineout to them; a kick from your own half that bounces
+    // out inside their 22 is your throw there. A better boot finds more of
+    // those, a touch-finding style looks for them, and now and then the
+    // referee rules the ball was taken back into the kicker's half first and
+    // it is an ordinary lineout to them.
+    const k = rng()
+    if (k < OUT_FULL_P * (2 - (side.day?.kicking ?? 1))) {
+      backTowards(ctx, side, 7)
+      const p = sayWho(state, ctx, side, [9, 14, 11], [5, 3, 1])
+      colour(state, ctx, side, said(ctx, OUT_FULL), { team: teamShort(state, side.teamId), opp: teamShort(state, opp.teamId), player: p?.name ?? teamShort(state, side.teamId) }, p?.id)
+      continue
+    }
+    if (up < 50 && k < OUT_FULL_P + fiftyTwentyTwoP(side, tac)) {
+      const p = sayWho(state, ctx, side, [9, 14, 8], [5, 3, 1])
+      const v = { team: teamShort(state, side.teamId), opp: teamShort(state, opp.teamId), player: p?.name ?? teamShort(state, side.teamId) }
+      if (rng() < VOID_5022) {
+        colour(state, ctx, side, 'comm.void5022', v, p?.id)
+        continue
+      }
+      ctx.field = side === ctx.home ? 82 : 18
+      side.pressure = clamp(side.pressure + 15, 0, 100)
+      side.fifty22 = (side.fifty22 ?? 0) + 1
+      colour(state, ctx, side, said(ctx, FIFTY22), v, p?.id)
+      return
+    }
     describeKick(state, ctx, side, opp, up, tac?.kickStyle)
   }
+}
+
+/** a kick that goes out on the full, a 50:22 found, and the share of those
+ *  the referee voids because the ball was taken back into the half (1.8.16) */
+const OUT_FULL_P = 0.012
+const VOID_5022 = 0.15
+const OUT_FULL = ['comm.outFull1', 'comm.outFull2', 'comm.outFull3']
+const FIFTY22 = ['comm.fifty22_1', 'comm.fifty22_2', 'comm.fifty22_3']
+function fiftyTwentyTwoP(side: SideCtx, tac: Tactic | undefined): number {
+  const boot = clamp(side.units.kicking / 16, 0.6, 1.5)
+  return 0.017 * boot * (tac?.kickStyle === 'territory' ? 1.4 : tac?.kickStyle === 'attack' ? 0.8 : 1)
 }
 
 /** a kick from hand, in words: where it was kicked from decides what kind */
@@ -3433,6 +3555,11 @@ function describeKick(state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideCt
   if (!p) return
   const team = teamShort(state, side.teamId), oppT = teamShort(state, opp.teamId)
   colour(state, ctx, side, said(ctx, bank), { team, opp: oppT, player: p.name }, p.id)
+  // a ball in touch, and the quick throw taken before the lineout forms (item 29)
+  if (bank === KICK_TOUCH && ctx.crng() < 0.12) {
+    const q = sayWho(state, ctx, opp, [14, 10, 13, 8], [3, 2, 2, 1])
+    if (q) colour(state, ctx, opp, `comm.quickThrow${1 + Math.floor(ctx.crng() * 2)}`, { team: oppT, opp: team, player: q.name }, q.id)
+  }
   // the other side's answer to a kick they have to field
   if ((bank === KICK_LONG || bank === KICK_UP || bank === KICK_BOX) && ctx.crng() < 0.35) {
     const q = sayWho(state, ctx, opp, [14, 10, 13, 8], [4, 2, 2, 1])
@@ -3633,7 +3760,11 @@ function scoreTry(
     side.fwdStood = (side.fwdStood ?? 0) + 1
     fwdStands = true
   } else if (upstairs) {
-    const q = 1 + ((min + (scorer?.id ?? 0)) % 4)
+    // what is being checked (1.8.16, items 40, 24, 58): grounding, knock-on,
+    // the last pass and the touchline as before, and now offside at the kick
+    // in the build-up, a blocker running interference, and the TMO going back
+    // through the phases to an offside at the lineout. Picked, never drawn.
+    const q = 1 + ((min + (scorer?.id ?? 0)) % 7)
     // the lines name the side, not the man: no pronoun to get wrong, and a
     // pack drive has no single scorer to name
     const team = { team: teamShort(state, side.teamId) }
@@ -3643,6 +3774,8 @@ function scoreTry(
       // at the defending side's line: a scrum five metres out or a drop-out,
       // and the attack still has the field it had earned.
       pushLine(state, ctx, min, 'SUB', side, `comm.tmoNoTry${q}`, team, scorer?.id)
+      // an offence by the attack is a penalty to the defence, kicked clear
+      if (q >= 5) backTowards(ctx, side, 12)
       return
     }
   }
@@ -3655,6 +3788,9 @@ function scoreTry(
   side.score += 5
   side.tries += 1
   evPts(ctx, side, 5)
+  // the hat-trick and the fastest try (records, 1.8.16)
+  if (side.firstTryMin == null) { side.firstTryMin = min; side.firstTryBy = scorer?.id }
+  if (scorer) (side.matchTries ??= new Map()).set(scorer.id, (side.matchTries.get(scorer.id) ?? 0) + 1)
   if (scorer) {
     // ---- A TRY IS SCORED BY FIFTEEN MEN ----
     //
@@ -3696,6 +3832,8 @@ function scoreTry(
     // drawn for it is swapped after the draw, so the stream is untouched
     else if (fwdStands && DEPICTS[tryKey] === 'MAUL') tryKey = 'comm.try2'
     pushLine(state, ctx, min, 'TRY', side, tryKey, mt ? mt.v : { player: scorer.name }, scorer.id)
+    // three in an afternoon (1.8.16)
+    if (side.matchTries?.get(scorer.id) === 3) colour(state, ctx, side, 'comm.hatTrick', { player: scorer.name, team: teamShort(state, side.teamId) }, scorer.id)
     // and the debate that follows a tight call
     if (fwdStands) pushLine(state, ctx, min, 'SUB', side, `comm.tmoFwdStands${1 + ((min + scorer.id) % 2)}`, { team: teamShort(state, side.teamId) }, scorer.id)
   }
@@ -3748,7 +3886,8 @@ function scoreTry(
     pushLine(state, ctx, min + 1, 'CON', side, conKey,
       { player: kicker?.name ?? tIn('en', 'comm.theKicker') }, kicker?.id)
   } else {
-    pushLine(state, ctx, min + 1, 'SUB', side, 'comm.conWide')
+    pushLine(state, ctx, min + 1, 'SUB', side, ctx.detail && kicker && ctx.crng() < 0.12 ? 'comm.conPost' : 'comm.conWide',
+      { player: kicker?.name ?? '' }, kicker?.id)
   }
   describeRestart(state, ctx, side)
 }
@@ -3914,7 +4053,7 @@ function decide(
     mine.poss += 1.2
     pushLine(state, ctx, min + 1, 'SUB', mine, 'comm.maulRepelledPenalty')
     // the line says they gave away another penalty, so the count has it
-    concedePenalty(state, ctx, opp, min + 1)
+    concedePenalty(state, ctx, opp, min + 1, null)
     return t('touch.pinnedNoPoints')
   }
   // TAP AND GO READS THE PLACE AND THE MATCHUP (1.8.0, optionsprobe). It
@@ -3949,9 +4088,13 @@ function decide(
  *  team. One place for it, because the failed maul says "another penalty"
  *  too and used to leave the count, and so the warning and the bin, where
  *  they were (1.8.1). */
-function concedePenalty(state: GameState, ctx: LiveCtx, opp: SideCtx, min: number) {
+function concedePenalty(state: GameState, ctx: LiveCtx, opp: SideCtx, min: number, name?: null) {
   opp.consPens += 1
   const binAt = refFor(ctx.fx.id).patience
+  // WHAT IT WAS FOR, AND THE WORD WITH THE CAPTAIN (1.8.16): words only, on
+  // crng. `null` from a caller whose own line already says what it was.
+  if (name !== null) describeOffence(state, ctx, opp, opp === ctx.home ? ctx.away : ctx.home)
+  describeWarning(state, ctx, opp, binAt)
   if ((opp.consPens === binAt || opp.consPens === binAt * 2) && opp.onPitch.size > 13) {
     const ps = [...opp.onPitch].map(id => state.players[id]).filter(Boolean)
     if (ps.length) {
@@ -4540,6 +4683,556 @@ function forcedSwitchCost(state: GameState, ctx: LiveCtx, side: SideCtx, outId: 
   }
 }
 
+/**
+ * ---- THE AFTERNOON'S INCIDENTS (1.8.16) ----------------------------------
+ *
+ * The owner sat through a season of real broadcasts (TNT Sports' Prem, the
+ * play-offs, the Quilter Nations Series) and wrote down everything that
+ * happened in them that this engine could not: the penalty try and the yellow
+ * that goes with it, the intercept run in from halfway, the TMO calling back
+ * a high shot after play had gone on, held up over the line and the goal-line
+ * drop-out, free kicks, the 50:22, the kick that goes out on the full, the
+ * referee's word with the captain, the scuffle, the warm-up withdrawal. His
+ * brief: "its important each game feels different and authentic. We need
+ * randomness amongst all the tactics."
+ *
+ * THE INCIDENT DICE. Every one of these changes a match, so none of them is
+ * the commentary's (crng). But none of them draws on the shared stream either:
+ * each decision comes off a small stream of its own, seeded from the match's
+ * kickSeed (taken once from rng at kick-off) and the tick, the side and what
+ * is being decided. So a side that is never in position for an intercept
+ * still has every other dice of the afternoon where it was, which keeps the
+ * common random numbers optionsprobe and dialweight depend on. What an
+ * incident then DOES (who scores, the conversion, the card's front-row law)
+ * is run on the same incident stream (withRng), for the same reason.
+ *
+ * Wording stays on crng, as everywhere else in this file.
+ */
+export type DayUnit = 'scrum' | 'lineout' | 'breakdown' | 'kicking' | 'attack' | 'defence'
+const DAY_UNITS: DayUnit[] = ['scrum', 'lineout', 'breakdown', 'kicking', 'attack', 'defence']
+/** how much each unit can be up or down on the day, one standard deviation.
+ *  The set piece swings most (a lineout that will not fire is the most
+ *  common story of a bad afternoon); attack and defence least, because they
+ *  reach the try chance through a power of 2.6. */
+const DAY_SD: Record<DayUnit, number> = { scrum: 0.05, lineout: 0.06, breakdown: 0.045, kicking: 0.05, attack: 0.022, defence: 0.022 }
+/** how far the plan clicks or stalls on the day: scales what called moves
+ *  and zone plans are worth, never their direction */
+const EXEC_SD = 0.28
+
+/** a stream for one decision: the match, the tick, the side and the question */
+function incRng(ctx: LiveCtx, tick: number, side: SideCtx | null, salt: number): Rng {
+  const s = ((ctx.kickSeed ?? (ctx.fx.id | 0)) ^ Math.imul(tick + 11, 0x9e3779b1) ^ Math.imul(salt | 0, 0x85ebca6b)
+    ^ (side == null ? 0x2f1 : side === ctx.home ? 0x1d0f5 : 0x7a31b)) >>> 0
+  return mulberry32(s || 1)
+}
+
+/** run `fn` with ctx.rng set to `r`, so whatever it draws comes off `r` */
+function withRng<T>(ctx: LiveCtx, r: Rng, fn: () => T): T {
+  const was = ctx.rng
+  ctx.rng = r
+  try { return fn() } finally { ctx.rng = was }
+}
+
+/** a standard normal off a stream (Box-Muller) */
+function normalOf(r: Rng): number {
+  const u = Math.max(1e-9, r())
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * r())
+}
+
+/**
+ * THE DAY (1.8.16, owner: "each game feels different"). Every side turns up
+ * with a lineout that fires or does not, a scrum that is on top or under it,
+ * a boot that finds touch or slices it. Drawn once at kick-off, mean-neutral
+ * (a lognormal with its drift taken out), layered so a substitution keeps it,
+ * and the same whether anybody is watching. The plan itself clicks or stalls
+ * too (exec), which is the "randomness amongst all the tactics": the same
+ * tactics are worth more on one Saturday than the next.
+ */
+function dealTheDay(ctx: LiveCtx, uncontested = false) {
+  for (const side of [ctx.home, ctx.away]) {
+    const r = incRng(ctx, -2, side, 0xDA7)
+    const day: Partial<Record<DayUnit, number>> = {}
+    for (const u of DAY_UNITS) {
+      const sd = DAY_SD[u]
+      const m = Math.exp(sd * normalOf(r) - (sd * sd) / 2)
+      day[u] = clamp(m, 1 - 3 * sd, 1 + 3 * sd)
+      // an uncontested scrum has no good day or bad one (the draw is still
+      // taken, so the units after it are dealt the same)
+      if (u === 'scrum' && uncontested) { day[u] = 1; continue }
+      layer(side, u, day[u]!)
+    }
+    side.day = day
+    side.exec = clamp(Math.exp(EXEC_SD * normalOf(r) - (EXEC_SD * EXEC_SD) / 2), 0.4, 1.8)
+  }
+}
+
+/** The day, in words, once it has had time to show: the unit furthest from
+ *  normal for each side, at about twenty minutes, and the plan by the hour. */
+function describeDay(state: GameState, ctx: LiveCtx, tick: number) {
+  if (!ctx.detail || (tick !== 5 && tick !== 14)) return
+  for (const side of [ctx.home, ctx.away]) {
+    const team = teamShort(state, side.teamId)
+    if (tick === 5 && side.day) {
+      let best: DayUnit | null = null, far = 0
+      for (const u of DAY_UNITS) {
+        if (u === 'attack' || u === 'defence') continue
+        const d = Math.abs((side.day[u] ?? 1) - 1) / DAY_SD[u]
+        if (d > far) { far = d; best = u }
+      }
+      if (best && far >= 1.3) {
+        const up = (side.day[best] ?? 1) > 1
+        colour(state, ctx, side, `comm.day_${best}${up ? 'Up' : 'Down'}`, { team })
+      }
+    }
+    if (tick === 14 && side.exec != null) {
+      if (side.exec >= 1.35) colour(state, ctx, side, 'comm.day_planClicks', { team })
+      else if (side.exec <= 0.7) colour(state, ctx, side, 'comm.day_planStalls', { team })
+    }
+  }
+}
+
+/** the man leading this side on the pitch: the captain, the vice, or the
+ *  most natural leader out there */
+function captainOf(state: GameState, side: SideCtx): Player | null {
+  const club = state.clubs[side.teamId]
+  for (const id of [club?.captain, club?.vice]) {
+    if (id != null && side.onPitch.has(id)) return state.players[id] ?? null
+  }
+  const ps = onField(state, side)
+  return ps.length ? ps.reduce((a, b) => (b.a.lea > a.a.lea ? b : a)) : null
+}
+
+/** ten minutes in the bin, for a named reason. Never below thirteen. */
+function giveYellow(state: GameState, ctx: LiveCtx, side: SideCtx, p: Player, min: number, key: string, v?: Record<string, string | number>): boolean {
+  if (side.onPitch.size <= 13 || !side.onPitch.has(p.id)) return false
+  side.yellowUntil.set(p.id, binUntil(ctx, min))
+  side.onPitch.delete(p.id)
+  side.binned.add(p.id)
+  p.stats.yc += 1
+  side.ratings.set(p.id, (side.ratings.get(p.id) ?? 6) - 0.7)
+  pushLine(state, ctx, min, 'YC', side, key, { player: p.name, team: teamShort(state, side.teamId), ...(v ?? {}) }, p.id)
+  checkFrontRow(state, ctx, side, min, p, 'yellow')
+  fieldChanged(state, ctx, side, min)
+  return true
+}
+
+/** a red card: for the match (RED-CARD-01), with the ban that follows */
+function giveRed(state: GameState, ctx: LiveCtx, side: SideCtx, p: Player, min: number, key: string, v?: Record<string, string | number>): boolean {
+  if (!side.onPitch.has(p.id)) return false
+  side.sent += 1
+  side.onPitch.delete(p.id)
+  p.stats.rc += 1
+  p.bans += 2 + Math.floor(ctx.rng() * 2)
+  side.ratings.set(p.id, (side.ratings.get(p.id) ?? 6) - 2)
+  pushLine(state, ctx, min, 'RC', side, key, { player: p.name, team: teamShort(state, side.teamId), ...(v ?? {}) }, p.id)
+  checkFrontRow(state, ctx, side, min, p, 'red')
+  fieldChanged(state, ctx, side, min)
+  return true
+}
+
+/** the share of the old card roll that still fires, now that the
+ *  professional foul, the TMO and the scuffle give cards of their own */
+const CARD_SHARE = 0.75
+/** the strength each missing man (bin, red, unreplaced) takes from a side */
+const MAN_DOWN = 0.1
+/** what the card from the discipline roll was for: words only */
+const YC_REASONS = ['comm.yellowCard', 'comm.ycHigh', 'comm.ycKnockOn', 'comm.ycOffsideRepeat', 'comm.ycShoulder', 'comm.ycTrip']
+/** a man by position, weighted, off the given stream */
+function manFor(r: Rng, ps: Player[], w: Partial<Record<Pos, number>>, agg = 0): Player | null {
+  if (!ps.length) return null
+  return wpick(r, ps, ps.map(p => (w[p.pos] ?? 0.3) * (1 + agg * (p.a.agg - 10) / 10)))
+}
+
+/**
+ * ---- WHAT THE PENALTY WAS FOR (item 18, and 24, 25, 40, 44, 45, 46) ----
+ *
+ * Every broadcast names the offence and this engine never did: "PENALTY to
+ * Leicester" and nothing about why. Named now, and named from what the side
+ * giving it away is doing: a rush defence is penalised for offside, a side
+ * contesting every ruck for hands in it, a pack going backwards at the scrum
+ * for collapsing. A fussy breakdown referee blows more of the ruck offences.
+ * Words only, on crng: the penalty happened either way.
+ */
+type Offence =
+  | 'offsideLine' | 'offsideRuck' | 'sideEntry' | 'handsRuck' | 'offFeet' | 'notRelease' | 'notRoll'
+  | 'highTackle' | 'scrumCollapse' | 'scrumAngle' | 'scrumBind' | 'scrumKnee' | 'scrumEarly'
+  | 'maulCollapse' | 'lineoutBarge' | 'lineoutThrough' | 'lifterAcross' | 'offsideKick' | 'boxKick10'
+  | 'pullBack' | 'beyondRuck' | 'noBall'
+const OFFENCE_MEN: Record<Offence, Partial<Record<Pos, number>>> = {
+  offsideLine: { CE: 3, WG: 2, FH: 1, FL: 1.5, FB: 0.6 }, offsideRuck: { FL: 2, N8: 1.5, LK: 1.5, CE: 1 },
+  sideEntry: { FL: 2, LK: 2, HK: 1.5, N8: 1.5, LP: 1, TP: 1 }, handsRuck: { FL: 3, N8: 2, HK: 1.5, CE: 1 },
+  offFeet: { FL: 3, HK: 2, N8: 1.5, LK: 1.2, CE: 0.8 }, notRelease: { CE: 2, FL: 2, LK: 1.5, WG: 1, FB: 1 },
+  notRoll: { LK: 2, FL: 2, LP: 1.5, TP: 1.5, HK: 1, CE: 1 }, highTackle: { LK: 2, FL: 2, CE: 2, LP: 1, TP: 1, HK: 1 },
+  scrumCollapse: { LP: 3, TP: 3, HK: 1 }, scrumAngle: { LP: 2, TP: 3 }, scrumBind: { LP: 3, TP: 2, HK: 1 },
+  scrumKnee: { LP: 3, TP: 3 }, scrumEarly: { LP: 2, TP: 2, HK: 2 },
+  maulCollapse: { LK: 3, FL: 2, HK: 1, N8: 1 }, lineoutBarge: { LK: 3, FL: 2, N8: 1 },
+  lineoutThrough: { LK: 2, FL: 2, N8: 2 }, lifterAcross: { LP: 3, TP: 3, FL: 1 },
+  offsideKick: { CE: 2, WG: 2, FL: 1.5, FH: 1 }, boxKick10: { FL: 2, N8: 1.5, WG: 1.5, CE: 1 },
+  pullBack: { FL: 2, LK: 1.5, N8: 1.5, HK: 1 }, beyondRuck: { FL: 2, LK: 2, HK: 1.5, N8: 1.5 },
+  noBall: { CE: 2, FL: 2, WG: 1.5, LK: 1 },
+}
+const SCRUM_OFFENCES = new Set<Offence>(['scrumCollapse', 'scrumAngle', 'scrumBind', 'scrumKnee', 'scrumEarly'])
+
+function pickOffence(state: GameState, ctx: LiveCtx, off: SideCtx, att: SideCtx): Offence {
+  const tac = state.clubs[off.teamId]?.tactic
+  const rush = clamp(((tac?.defLine ?? 50) - 50) / 50, -1, 1)
+  const contest = clamp(((tac?.ruckContest ?? 50) - 50) / 50, -1, 1)
+  const fussy = clamp(2 - refFor(ctx.fx.id).breakdown, 0.7, 1.3)
+  const scrumDown = clamp(att.units.scrum / Math.max(1, off.units.scrum), 0.7, 1.5)
+  const attUp = upOf(ctx, att)
+  const W: [Offence, number][] = [
+    ['offsideLine', 1.1 + 1.4 * Math.max(0, rush)], ['offsideRuck', 0.7], ['sideEntry', 0.7 * fussy],
+    ['handsRuck', (1 + 0.9 * Math.max(0, contest)) * fussy], ['offFeet', (0.9 + 0.5 * Math.max(0, contest)) * fussy],
+    ['notRelease', 0.9 * fussy], ['notRoll', attUp > 78 ? 1.3 : 0.6], ['highTackle', 0.45 * (1 + (off.aggF ?? 0))],
+    ['scrumCollapse', 0.7 * scrumDown * scrumDown], ['scrumAngle', 0.25 * scrumDown], ['scrumBind', 0.25 * scrumDown],
+    ['scrumKnee', 0.18 * scrumDown], ['maulCollapse', attUp > 68 ? 0.8 : 0.1], ['lineoutBarge', 0.18],
+    ['lineoutThrough', 0.14], ['lifterAcross', 0.1], ['offsideKick', 0.3], ['boxKick10', attUp < 40 ? 0.35 : 0.1],
+    ['pullBack', 0.12], ['beyondRuck', 0.28], ['noBall', 0.22],
+  ]
+  const tot = W.reduce((s, [, w]) => s + w, 0)
+  let x = ctx.crng() * tot
+  for (const [o, w] of W) { x -= w; if (x < 0) return o }
+  return 'offsideLine'
+}
+
+/** the offence named, on the commentary's dice, before the kick decision */
+function describeOffence(state: GameState, ctx: LiveCtx, off: SideCtx, att: SideCtx) {
+  if (!ctx.detail) return
+  const o = pickOffence(state, ctx, off, att)
+  const ps = onField(state, off)
+  const w = OFFENCE_MEN[o]
+  let p: Player | null = null
+  if (ps.length) {
+    let x = ctx.crng() * ps.reduce((s, q) => s + (w[q.pos] ?? 0.2), 0)
+    for (const q of ps) { x -= w[q.pos] ?? 0.2; if (x < 0) { p = q; break } }
+  }
+  const v = { team: teamShort(state, off.teamId), opp: teamShort(state, att.teamId), player: p?.name ?? teamShort(state, off.teamId) }
+  colour(state, ctx, off, `comm.off_${o}${1 + Math.floor(ctx.crng() * 2)}`, v, p?.id)
+  // a second scrum offence after a free kick is the full arm (item 49)
+  if (SCRUM_OFFENCES.has(o) && (off.scrumFK ?? 0) > 0) colour(state, ctx, off, 'comm.offFullArm', v)
+}
+
+/** the referee and the captain: the warning before the bin, the final one
+ *  before the second, and now and then a skipper asking for a word */
+function describeWarning(state: GameState, ctx: LiveCtx, off: SideCtx, binAt: number) {
+  if (!ctx.detail) return
+  const cap = captainOf(state, off)
+  const v = { team: teamShort(state, off.teamId), player: cap?.name ?? teamShort(state, off.teamId), n: off.consPens }
+  if (binAt >= 3 && off.consPens === binAt - 1) {
+    off.warned = (off.warned ?? 0) + 1
+    colour(state, ctx, off, `comm.refWarn${1 + Math.floor(ctx.crng() * 3)}`, v, cap?.id)
+  } else if (off.consPens === binAt * 2 - 1) {
+    colour(state, ctx, off, 'comm.refWarnFinal', v, cap?.id)
+  } else if (off.consPens >= 3 && ctx.crng() < 0.12) {
+    colour(state, ctx, off, `comm.capTalk${1 + Math.floor(ctx.crng() * 3)}`, v, cap?.id)
+  }
+}
+
+/**
+ * THE REFEREE CHANGES HIS MIND (item 53). Late word from the touch judge, a
+ * replay on the big screen, or a block the attack ran that he had not seen:
+ * the penalty goes the other way. About one in fifty.
+ */
+const REVERSE_P = 0.02
+function reversedPenalty(state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideCtx, min: number, tick: number): boolean {
+  const r = incRng(ctx, tick, side, 0x8E7E)
+  if (r() >= REVERSE_P) return false
+  const u = r()
+  const kind = u < 0.4 ? 'obstruction' : u < 0.7 ? 'screen' : 'touchJudge'
+  withRng(ctx, r, () => {
+    pushLine(state, ctx, min, 'SUB', side, `comm.reverse_${kind}`, { team: teamShort(state, side.teamId), opp: teamShort(state, opp.teamId) })
+    concedePenalty(state, ctx, side, min, null)
+  })
+  side.pressure = clamp(side.pressure * 0.6, 0, 100)
+  opp.pressure = clamp(opp.pressure + 12, 0, 100)
+  backTowards(ctx, side, 12)
+  return true
+}
+
+/**
+ * ---- CYNICAL, AND THE PENALTY TRY (items 21, 26, 41) ----
+ *
+ * Close to the line, a defence about to be scored against will sometimes
+ * kill it: a hand slapping a pass down, a body lying on the ball, a maul
+ * pulled down. Inside the 22 that is a yellow card for the professional
+ * foul; within a few metres, with a try coming, the referee goes under the
+ * posts for seven points and the man still goes to the bin. How likely
+ * scales with how likely the try was (pTry), so the side carving the
+ * defence open is the side that gets them.
+ */
+const CYN_NEAR = 0.1, CYN_FAR = 0.018
+function cynicalIncident(state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideCtx, min: number, tick: number, up: number, pTry: number): 'pt' | 'yc' | null {
+  if (up < 70) return null
+  const r = incRng(ctx, tick, side, 0xC71C)
+  const near = up >= 88
+  const p = near ? clamp(CYN_NEAR * pTry / 0.1, 0.05, 0.25) : CYN_FAR
+  if (r() >= p) return null
+  const u = r()
+  const kind = u < 0.4 ? 'knockDown' : u < 0.75 ? 'ruck' : 'maul'
+  const W: Partial<Record<Pos, number>> = kind === 'knockDown' ? { WG: 3, CE: 3, FB: 2, FH: 1, SH: 1, FL: 1 }
+    : kind === 'ruck' ? { FL: 3, N8: 2, LK: 2, HK: 1.5 } : { LK: 3, FL: 2, HK: 1.5, LP: 1, TP: 1 }
+  const p0 = manFor(r, onField(state, opp), W, 0.5)
+  if (!p0) return null
+  const pt = near && r() < (up >= 93 ? 0.45 : 0.2)
+  const v = { team: teamShort(state, opp.teamId), opp: teamShort(state, side.teamId), player: p0.name }
+  return withRng(ctx, r, () => {
+    pushLine(state, ctx, min, 'SUB', opp, `comm.cyn_${kind}`, v, p0.id)
+    if (pt) {
+      penaltyTry(state, ctx, side, min)
+      giveYellow(state, ctx, opp, p0, min + 1, 'comm.ycPenTry')
+      return 'pt' as const
+    }
+    giveYellow(state, ctx, opp, p0, min, 'comm.ycProfFoul')
+    return 'yc' as const
+  })
+}
+
+/** seven points under the posts, no conversion, nobody credited (Law 8) */
+function penaltyTry(state: GameState, ctx: LiveCtx, side: SideCtx, min: number) {
+  side.pressure = clamp(side.pressure + 42, 0, 100)
+  const opp = side === ctx.home ? ctx.away : ctx.home
+  opp.pressure = clamp(opp.pressure * 0.55, 0, 100)
+  ctx.field = ctx.field * 0.6 + 50 * 0.4
+  side.score += 7
+  side.tries += 1
+  side.penTries = (side.penTries ?? 0) + 1
+  evPts(ctx, side, 7, 'pen')
+  pushLine(state, ctx, min, 'TRY', side, `comm.penTry${1 + ((min + side.score) % 3)}`, { team: teamShort(state, side.teamId) })
+  describeRestart(state, ctx, side)
+}
+
+/**
+ * ---- THE INTERCEPT (items 22, 50) ----
+ *
+ * A pass floated wide into a rush defence, and the man who read it is gone.
+ * Off a tick that came to nothing for the side with the ball, likelier
+ * against a rush (defLine) and a loose handling side (fwdF), and on a wet
+ * ball. From deep it is a long way: a slower man is run down, and the ball
+ * is then deep in the attacking side's half anyway. Nobody sends an
+ * intercept upstairs.
+ */
+const INTERCEPT_P = 0.0085
+const INTERCEPT_TRY = ['comm.tryIntercept1', 'comm.tryIntercept2', 'comm.tryIntercept3', 'comm.tryIntercept4']
+function interceptTick(state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideCtx, min: number, tick: number, up: number): boolean {
+  const r = incRng(ctx, tick, side, 0x1A7C)
+  const rush = (state.clubs[opp.teamId]?.tactic.defLine ?? 50) / 100
+  const wet = ctx.weather === 'Rain' || ctx.weather === 'Snow' ? 1.2 : 1
+  const p = INTERCEPT_P * (0.7 + 0.6 * rush) * (up > 45 ? 1.2 : 0.5) * clamp(side.fwdF ?? 1, 0.6, 1.6) * wet
+  if (r() >= p) return false
+  const man = manFor(r, onField(state, opp), { WG: 3, CE: 3, FB: 1.5, FH: 1, SH: 0.8, FL: 0.4 })
+  if (!man) return false
+  // the run is as long as the attack had come: `up` metres back to their line
+  const pAway = clamp(1.05 - up * 0.006 + (man.a.pac - 12) * 0.025, 0.35, 0.97)
+  opp.ratings.set(man.id, (opp.ratings.get(man.id) ?? 6) + 0.25)
+  if (r() < pAway) {
+    side.pressure = clamp(side.pressure * 0.55, 0, 100)
+    ctx.evWhy = 'turn'
+    withRng(ctx, r, () => scoreTry(state, ctx, opp, min, said(ctx, INTERCEPT_TRY), man, { player: man.name }, false))
+    ctx.evWhy = null
+  } else {
+    backTowards(ctx, side, Math.min(60, up * 0.7))
+    opp.pressure = clamp(opp.pressure + 25, 0, 100)
+    pushLine(state, ctx, min, 'SUB', opp, `comm.interceptCaught${1 + (min % 2)}`, { player: man.name, team: teamShort(state, opp.teamId) }, man.id)
+  }
+  return true
+}
+
+/**
+ * ---- HELD UP, AND THE GOAL-LINE DROP-OUT (items 19, 27) ----
+ *
+ * Over the line and the ball never touches the grass: a body underneath it,
+ * an arm in the way. Since the 2022 law it restarts with a drop-out from the
+ * defending side's own goal line, so being held up is a real defensive win:
+ * the attack had the ball five metres out and now receives it near halfway.
+ */
+const HELD_UP_P = 0.24
+function heldUpTick(state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideCtx, min: number, tick: number, up: number): boolean {
+  if (up < 86) return false
+  const r = incRng(ctx, tick, side, 0x4E1D)
+  if (r() >= HELD_UP_P) return false
+  const carrier = manFor(r, onField(state, side), { N8: 2, FL: 2, LK: 1.5, HK: 2, LP: 1, TP: 1, CE: 1.2, WG: 1 })
+  const stopper = manFor(r, onField(state, opp), { FL: 2, N8: 2, LK: 1.5, CE: 1.2, SH: 1, WG: 1, FB: 1 })
+  if (stopper) opp.ratings.set(stopper.id, (opp.ratings.get(stopper.id) ?? 6) + 0.15)
+  pushLine(state, ctx, min, 'SUB', opp, `comm.heldUp${1 + (min % 3)}`, {
+    team: teamShort(state, opp.teamId), opp: teamShort(state, side.teamId),
+    player: stopper?.name ?? teamShort(state, opp.teamId), carrier: carrier?.name ?? teamShort(state, side.teamId),
+  }, stopper?.id)
+  pushLine(state, ctx, min, 'SUB', opp, `comm.gldo${1 + (min % 2)}`, { team: teamShort(state, opp.teamId) })
+  backTowards(ctx, side, 45)
+  side.pressure = clamp(side.pressure * 0.6, 0, 100)
+  opp.pressure = clamp(opp.pressure + 15, 0, 100)
+  return true
+}
+
+/**
+ * ---- FREE KICKS, AND THE THROW THAT IS NOT STRAIGHT (items 28, 33, 34, 46) ----
+ *
+ * The short arm: early engagement at the scrum, numbers at the lineout,
+ * a crooked feed, time-wasting at the set piece, and a mark called inside
+ * the 22. Nobody kicks at goal from one, so it is a little ground and the
+ * ball, and a scrum offence given as a free kick makes the next one a full
+ * penalty (describeOffence). A throw that is not straight hands the other
+ * side the scrum; a hooker who throws badly, or one who has just come off the
+ * bench cold, throws more of them.
+ */
+const FK_P = 0.08, NOT_STRAIGHT_P = 0.011
+function setPieceTick(state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideCtx, min: number, tick: number) {
+  const r = incRng(ctx, tick, side, 0xF4EE)
+  const u = r()
+  const up = upOf(ctx, side)
+  const team = teamShort(state, side.teamId), oppT = teamShort(state, opp.teamId)
+  if (u < FK_P) {
+    const k = r()
+    const kind = up < 22 && k < 0.35 ? 'mark' : k < 0.5 ? 'scrumEarly' : k < 0.68 ? 'lineoutNumbers'
+      : k < 0.82 ? 'scrumFeed' : k < 0.92 ? 'delay' : 'lineoutGap'
+    if (kind === 'scrumEarly' || kind === 'scrumFeed') opp.scrumFK = (opp.scrumFK ?? 0) + 1
+    side.freeKicks = (side.freeKicks ?? 0) + 1
+    const who = kind === 'mark' ? manFor(r, onField(state, side), { FB: 4, WG: 2, FH: 1 }) : null
+    backTowards(ctx, opp, kind === 'mark' ? 18 : 5)
+    side.pressure = clamp(side.pressure + 6, 0, 100)
+    side.poss += 0.3
+    pushLine(state, ctx, min, 'SUB', side, `comm.fk_${kind}`, { team, opp: oppT, player: who?.name ?? team }, who?.id)
+    return
+  }
+  // the throw: the side throwing is `opp`, and `side` gets the scrum
+  const hk = inShirt(state, opp, 1)
+  const cold = hk && (opp.onAt?.get(hk.id) ?? 0) > 0 && min - (opp.onAt?.get(hk.id) ?? 0) < 12
+  const pNS = NOT_STRAIGHT_P * clamp(1 + (12 - (hk?.a.lin ?? 12)) / 10, 0.6, 1.8) * (cold ? 1.4 : 1) * (2 - (opp.day?.lineout ?? 1))
+  if (u < FK_P + pNS) {
+    side.poss += 0.2
+    opp.pressure = clamp(opp.pressure * 0.85, 0, 100)
+    pushLine(state, ctx, min, 'SUB', opp, cold ? 'comm.notStraightCold' : `comm.notStraight${1 + (min % 2)}`,
+      { team: oppT, opp: team, player: hk?.name ?? oppT }, hk?.id)
+  }
+}
+
+/**
+ * ---- THE TMO CALLS IT BACK (items 23, 43) ----
+ *
+ * Play has gone on, and the screen shows a high shot, a neck roll, a
+ * dangerous clean-out, or a man playing the ball on the floor out of a
+ * tackle. The referee goes upstairs for foul play, and the outcome is the
+ * modern process: red for the worst, yellow for most, and a penalty only
+ * when there is mitigation (a carrier dipping, a late change of direction, a
+ * man falling into the tackle, low danger). The penalty is kicked to touch.
+ */
+const TMO_FOUL_P = 0.0062
+function tmoFoulTick(state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideCtx, min: number, tick: number) {
+  const r = incRng(ctx, tick, side, 0x7F01)
+  const agg = onField(state, opp).reduce((s, p) => s + p.a.agg, 0) / Math.max(1, opp.onPitch.size)
+  const p = TMO_FOUL_P * clamp(agg / 11, 0.6, 1.6) * (ctx.derby ? 1.3 : 1) * refFor(ctx.fx.id).cards
+  if (r() >= p) return
+  const k = r()
+  const kind = k < 0.35 ? 'high' : k < 0.55 ? 'secondary' : k < 0.68 ? 'neckRoll' : k < 0.82 ? 'cleanout' : 'ballOnGround'
+  const W: Partial<Record<Pos, number>> = kind === 'ballOnGround' ? { HK: 2, FL: 3, N8: 2, LK: 1 }
+    : kind === 'cleanout' ? { LK: 3, LP: 2, TP: 2, HK: 1.5, FL: 1.5 } : { LK: 2, FL: 2, CE: 2, LP: 1, TP: 1, HK: 1, N8: 1 }
+  const man = manFor(r, onField(state, opp), W, 0.8)
+  if (!man) return
+  const v = { team: teamShort(state, opp.teamId), opp: teamShort(state, side.teamId), player: man.name }
+  withRng(ctx, r, () => {
+    pushLine(state, ctx, min, 'SUB', opp, `comm.tmoFoul_${kind}`, v, man.id)
+    const verdict = r()
+    if (kind !== 'ballOnGround' && verdict < 0.05) {
+      giveRed(state, ctx, opp, man, min, 'comm.rcTmo')
+    } else if (verdict < 0.6) {
+      giveYellow(state, ctx, opp, man, min, kind === 'ballOnGround' ? 'comm.ycBallOnGround' : 'comm.ycTmo')
+    } else {
+      const m = r()
+      pushLine(state, ctx, min, 'SUB', opp, `comm.tmoMit_${m < 0.3 ? 'dip' : m < 0.55 ? 'fall' : m < 0.8 ? 'late' : 'low'}`, v, man.id)
+    }
+    concedePenalty(state, ctx, opp, min, null)
+  })
+  backTowards(ctx, opp, 12)
+  side.pressure = clamp(side.pressure + 12, 0, 100)
+}
+
+/**
+ * ---- HANDBAGS (item 42) ----
+ *
+ * A shove after the whistle becomes six men and a referee. Mostly nothing
+ * comes of it; sometimes the man who started it is penalised, and now and
+ * then he is in the bin. More of them in a derby or a grudge match, in a
+ * tight finish, and between sides with short fuses. Once a tick, not per side.
+ */
+const SCUFFLE_P = 0.011
+function scuffleTick(state: GameState, ctx: LiveCtx, tick: number, min: number) {
+  const r = incRng(ctx, tick, null, 0x5C0F)
+  const margin = Math.abs(ctx.home.score - ctx.away.score)
+  const heat = (ctx.derby ? 2.2 : ctx.grudge ? 1.6 : 1) * (tick >= 15 && margin <= 10 ? 1.4 : 1)
+  if (r() >= SCUFFLE_P * heat) return
+  const aggOf = (s: SideCtx) => onField(state, s).reduce((t, p) => t + p.a.agg, 0) / Math.max(1, s.onPitch.size)
+  const ha = aggOf(ctx.home), aa = aggOf(ctx.away)
+  const inst = r() < ha / Math.max(1, ha + aa) ? ctx.home : ctx.away
+  const other = inst === ctx.home ? ctx.away : ctx.home
+  const man = manFor(r, onField(state, inst), { LK: 2, FL: 2, HK: 2, LP: 1.5, TP: 1.5, N8: 1, CE: 1 }, 1.2)
+  if (!man) return
+  const v = { team: teamShort(state, inst.teamId), opp: teamShort(state, other.teamId), player: man.name }
+  pushLine(state, ctx, min, 'SUB', inst, `comm.scuffle${1 + Math.floor(r() * 3)}`, v, man.id)
+  const o = r()
+  if (o < 0.55) {
+    pushLine(state, ctx, min, 'SUB', null, 'comm.scuffleNothing', v)
+  } else {
+    withRng(ctx, r, () => {
+      pushLine(state, ctx, min, 'SUB', inst, 'comm.scufflePen', v, man.id)
+      concedePenalty(state, ctx, inst, min, null)
+      if (o >= 0.88) giveYellow(state, ctx, inst, man, min, 'comm.ycScuffle')
+    })
+    backTowards(ctx, inst, 10)
+    other.pressure = clamp(other.pressure + 10, 0, 100)
+  }
+}
+
+/** THE WATER BREAK (item 31): a hot afternoon stops at the quarters */
+function waterBreak(state: GameState, ctx: LiveCtx, tick: number) {
+  if (!ctx.hot || (tick !== 5 && tick !== 15)) return
+  colour(state, ctx, null, `comm.waterBreak${tick === 5 ? 1 : 2}`, { home: teamShort(state, ctx.home.teamId), away: teamShort(state, ctx.away.teamId) })
+}
+
+/**
+ * ---- THE WARM-UP WITHDRAWAL (item 55) ----
+ *
+ * A hamstring tightens in the warm-up and the team sheet changes an hour
+ * before kick-off: the replacement who was named on the bench starts, and the
+ * side plays with a bench one short. Never a front-rower (the scrum law has
+ * its own rules), about one side in fifty, and the man who pulls out misses a
+ * week.
+ */
+const WITHDRAW_P = 0.02
+function lateWithdrawal(state: GameState, ctx: LiveCtx, side: SideCtx) {
+  const r = incRng(ctx, -1, side, 0x1A7E)
+  if (r() >= WITHDRAW_P) return
+  const slot = 3 + Math.floor(r() * 12)
+  const outId = side.lineup[slot]
+  const out = outId != null ? state.players[outId] : null
+  if (!out || !side.onPitch.has(out.id)) return
+  const pos = XV_SLOTS[slot].pos
+  let bIdx = -1
+  for (let i = 15; i < side.lineup.length; i++) {
+    const id = side.lineup[i]
+    const b = id != null ? state.players[id] : null
+    if (!b || b.injury) continue
+    if (b.pos === pos || b.alt.includes(pos)) { bIdx = i; break }
+    if (bIdx < 0 && isForward(b.pos) === isForward(pos) && !isFrontRower(b)) bIdx = i
+  }
+  if (bIdx < 0) return
+  const b = state.players[side.lineup[bIdx] as number]
+  side.lineup[slot] = b.id
+  side.lineup[bIdx] = null
+  side.onPitch.delete(out.id)
+  side.onPitch.add(b.id)
+  side.benchIds.delete(b.id)
+  side.ratings.delete(out.id)
+  side.ratings.set(b.id, 6)
+  side.energy.delete(out.id)
+  side.energy.set(b.id, benchTank(b))
+  side.since?.delete(out.id)
+  side.since?.set(b.id, 0)
+  out.injury = { desc: tIn('en', 'injury.warmup'), dk: 'injury.warmup', until: state.week + 1, weeks: 1 }
+  out.injLog = [...(out.injLog ?? []), { s: state.season, w: state.week, dk: 'injury.warmup', weeks: 1 }].slice(-20)
+  recomputeSideUnits(state, ctx, side)
+  pushLine(state, ctx, 0, 'SUB', side, 'comm.lateWithdrawal', { team: teamShort(state, side.teamId), player: out.name, sub: b.name }, b.id)
+}
+
 function simTick(state: GameState, ctx: LiveCtx, tick: number) {
   const { rng, detail, derby, goalPenalty, home, away } = ctx
   const min = tick * 4 + Math.floor(rng() * 4) + 1
@@ -4712,6 +5405,10 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
   const ap = planOf(away)
   // where the game is, in words (watched only, and no draw on rng)
   describeState(state, ctx, tick)
+  // the day's form showing, a hot afternoon's water break, and a scuffle
+  describeDay(state, ctx, tick)
+  waterBreak(state, ctx, tick)
+  scuffleTick(state, ctx, tick, min)
 
   for (const [side, opp, adv] of [[home, away, ctx.hfa], [away, home, 1]] as [SideCtx, SideCtx, number][]) {
     // THE SECOND LAYER (E12, contest.ts): this tick's phase is a contest
@@ -4741,8 +5438,13 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     side.fwdF = clamp(st.turnP / TURN_BASE, 0.5, 2)
     describeStyle(state, ctx, side, opp, st)
     const scores0 = side.score + opp.score
-    const numF = 1 - 0.07 * ([...side.yellowUntil.values()].filter(u => u > min).length + side.sent + side.short)
-    const oppNumF = 1 - 0.07 * ([...opp.yellowUntil.values()].filter(u => u > min).length + opp.sent + opp.short)
+    // A MAN DOWN COSTS WHAT IT COSTS (1.8.16, coverage list item 35): at 7%
+    // a man, a yellow card was worth 2.8 net points to the other side over
+    // its ten minutes (incidentprobe), well short of the professional game's
+    // figure of about five. MAN_DOWN is the share of the side's strength each
+    // missing man takes.
+    const numF = 1 - MAN_DOWN * ([...side.yellowUntil.values()].filter(u => u > min).length + side.sent + side.short)
+    const oppNumF = 1 - MAN_DOWN * ([...opp.yellowUntil.values()].filter(u => u > min).length + opp.sent + opp.short)
     // the breakdown dials (1.7.3): your commitment protects your own ball, and
     // their contest attacks it - both exactly 1 when nobody has touched them
     const att = (side.units.attack * 0.55 + side.units.breakdown * 0.25 * (side.ruckSecure ?? 1) + side.units.scrum * 0.1 + side.units.lineout * 0.1) * eF(side)
@@ -4797,7 +5499,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     if (derby) ratio = Math.pow(ratio, 0.72) // form book out the window
     else if (ctx.grudge) ratio = Math.pow(ratio, 0.85) // needle levels the contest
     side.poss += ratio
-    let pTry = clamp(TRY_BASE * Math.pow(ratio, 2.6) * plan.tryF * (contest?.tryF ?? 1) * mvTry * st.tryF, 0.01, 0.42)
+    let pTry = clamp(TRY_BASE * Math.pow(ratio, 2.6) * (1 + (plan.tryF - 1) * (side.exec ?? 1)) * (contest?.tryF ?? 1) * mvTry * st.tryF, 0.01, 0.42)
     // THE LAST QUARTER OPENS UP (audit 16D). Measured before this existed:
     // tries were dead flat across the 80 (11.6-14.0% per ten-minute bucket)
     // because both sides drain together and the mutual exhaustion cancels in
@@ -4882,8 +5584,15 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       // a penalty won is a side on the front foot, whatever it does with it
       side.pressure = clamp(side.pressure + 17, 0, 100)
       opp.pressure = clamp(opp.pressure * 0.86, 0, 100)
-      // a kickable penalty: yours is a touchline decision, theirs is automatic
-      concedePenalty(state, ctx, opp, min)
+      // a kickable penalty: yours is a touchline decision, theirs is automatic.
+      // THE REFEREE CAN CHANGE HIS MIND, AND A DEFENCE CAN KILL IT (1.8.16):
+      // a reversed penalty is the other side's; a cynical one near the line
+      // is a card, and within a few metres a penalty try. Either way the
+      // advantage draw below is still taken, so the stream after it is where
+      // it always was.
+      const reversed = reversedPenalty(state, ctx, side, opp, min, tick)
+      if (!reversed) concedePenalty(state, ctx, opp, min)
+      const cyn = reversed ? null : cynicalIncident(state, ctx, side, opp, min, tick, up, pTry)
       /**
        * ---- ADVANTAGE (design review, v1.6.7) ----
        *
@@ -4918,7 +5627,10 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       // moment is still on the ticker most weeks.
       const pAdvTry = Math.min(0.10, pTry * 0.42)
       const pAdvOver = 0.08 * refFor(ctx.fx.id).flow
-      if (advRoll < pAdvTry) {
+      if (reversed || cyn === 'pt') {
+        // nothing more to play for: the penalty went the other way, or the
+        // seven points are already on the board
+      } else if (advRoll < pAdvTry) {
         // they did not need the three: the arm was still out when they scored
         if (detail) pushLine(state, ctx, min, 'SUB', side, 'comm.advPlaying', { team: teamShort(state, side.teamId) })
         ctx.evWhy = 'pen'
@@ -5005,6 +5717,16 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       }
     }
 
+    // THE AFTERNOON'S INCIDENTS (1.8.16), each on its own dice: when the
+    // tick came to nothing, held up over the line close in or a pass picked
+    // off further out; and whatever the tick was, the set piece's short arm,
+    // the throw that is not straight, and the TMO calling back foul play
+    if (r >= pTry + penWindow && side.score + opp.score === scores0) {
+      if (!heldUpTick(state, ctx, side, opp, min, tick, up)) interceptTick(state, ctx, side, opp, min, tick, up)
+    }
+    setPieceTick(state, ctx, side, opp, min, tick)
+    tmoFoulTick(state, ctx, side, opp, min, tick)
+
     // the kicks from hand this side puts in, and any that are charged down
     kicksFromHand(state, ctx, side, opp, min, tick)
     // and when nothing came of the tick, a word for the side that stopped it
@@ -5047,7 +5769,10 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
 
     // discipline - tired sides give away more
     const tiredCards = sideEnergy(side) < 35 ? 1.25 : 1
-    if (rng() < side.cardRisk * tiredCards) {
+    // CARD_SHARE (1.8.16): the professional foul, the TMO's foul-play call
+    // and the scuffle now give their own cards for their own reasons, so the
+    // card that comes from nowhere comes a little less often
+    if (rng() < side.cardRisk * tiredCards * CARD_SHARE) {
       const ids = [...side.onPitch]
       const ps = ids.map(id => state.players[id]).filter(Boolean)
       if (ps.length) {
@@ -5077,7 +5802,8 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           side.binned.add(p.id)
           p.stats.yc += 1
           side.ratings.set(p.id, (side.ratings.get(p.id) ?? 6) - 0.7)
-          pushLine(state, ctx, min, 'YC', side, 'comm.yellowCard', { player: p.name }, p.id)
+          // and it says what it was for (item 26 among them), words only
+          pushLine(state, ctx, min, 'YC', side, ctx.detail ? said(ctx, YC_REASONS) : 'comm.yellowCard', { player: p.name, team: teamShort(state, side.teamId) }, p.id)
           checkFrontRow(state, ctx, side, min, p, 'yellow')
         }
         fieldChanged(state, ctx, side, min)
@@ -5233,7 +5959,9 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
         side.ratings.set(sub.id, 6)
         side.energy.set(sub.id, benchTank(sub))
         side.hia = { pid: p.id, subId: sub.id, failed: rng() < 0.4, returnTick: ctx.tick + 3 }
-        pushLine(state, ctx, min, 'INJ', side, 'comm.hiaLedAway', { player: p.name, sub: sub.name }, p.id)
+        // the smart mouthguard flags more of them than the eye does now
+        // (item 56): which of the two lines is said is words only
+        pushLine(state, ctx, min, 'INJ', side, ctx.detail && ctx.crng() < 0.4 ? 'comm.hiaMouthguard' : 'comm.hiaLedAway', { player: p.name, sub: sub.name }, p.id)
         fieldChanged(state, ctx, side, min)
       }
     }
@@ -6403,6 +7131,10 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
     })
   }
 
+  // PLAYOFF RECORDS (1.8.16, item 47): a hat-trick in a knockout tie, and
+  // the fastest knockout try anybody has scored, are news wherever they come
+  koRecords(state, ctx)
+
   // the morning paper: a proper match report for every game you took charge of
   if (detail && isUser) {
     const usHome = ctx.userSideId === fx.homeId
@@ -6566,6 +7298,42 @@ export function settleForfeit(state: GameState, fx: Fixture, side: 'home' | 'awa
     })
   }
   return { events, motmId: null }
+}
+
+const KO_STAGE = new Set(['QF', 'SF', 'F', 'BAR'])
+function koRecords(state: GameState, ctx: LiveCtx) {
+  const fx = ctx.fx
+  if (!fx.stage || !KO_STAGE.has(fx.stage)) return
+  const stage_k = `news.koStage_${fx.stage}`
+  const comp = state.comps[fx.compId]?.name ?? ''
+  for (const side of [ctx.home, ctx.away]) {
+    for (const [pid, n] of side.matchTries ?? []) {
+      const p = state.players[pid]
+      if (!p || n < 3) continue
+      const v = { player: p.name, team: teamShort(state, side.teamId), n, comp, stage_k }
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+        subject: tIn('en', 'news.koHatTrickSubj', v), body: tIn('en', 'news.koHatTrick', v),
+        k: 'news.koHatTrick', v, playerId: p.id, fixtureId: fx.id,
+      })
+    }
+  }
+  const first = [ctx.home, ctx.away].filter(s => s.firstTryMin != null && s.firstTryBy != null)
+    .sort((a, b) => (a.firstTryMin ?? 99) - (b.firstTryMin ?? 99))[0]
+  if (!first || first.firstTryMin == null || first.firstTryBy == null) return
+  const rec = state.koFastest
+  if (rec && rec.min <= first.firstTryMin) return
+  const p = state.players[first.firstTryBy]
+  if (!p) return
+  state.koFastest = { min: first.firstTryMin, name: p.name, team: teamShort(state, first.teamId), season: state.season }
+  // the first one set is not news: a record needs something to beat
+  if (!rec) return
+  const v = { player: p.name, team: teamShort(state, first.teamId), min: first.firstTryMin, old: rec.name, oldMin: rec.min, comp, stage_k }
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+    subject: tIn('en', 'news.koFastestSubj', v), body: tIn('en', 'news.koFastest', v),
+    k: 'news.koFastest', v, playerId: p.id, fixtureId: fx.id,
+  })
 }
 
 export function simMatch(state: GameState, fx: Fixture, rng: Rng, detail: boolean): SimResult {
