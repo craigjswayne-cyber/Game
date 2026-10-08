@@ -1,6 +1,6 @@
 import { isBoardroom } from './media'
 import type { GameState, NewsItem } from './model'
-import { seasonStart, BASE_YEAR, dayAbbr, fixtureDayOff, injuryDesc, monthName, weekDate } from './model'
+import { seasonStart, BASE_YEAR, dayAbbr, fixtureDayOff, fxDate, injuryDesc, monthName, weekDate } from './model'
 import { userMatchThisWeek } from './season'
 import { t } from './i18n'
 import { isDeadlineWeek, windowNoteDue } from './window'
@@ -451,6 +451,13 @@ export function firstStepOfWeek(state: GameState): NextStep {
  *  The old line showed the week's Saturday every day of the week, which was the
  *  only date the game had. */
 export function dayLine(state: GameState): string {
+  // THE MATCH IS ON THE DAY IT IS ON (1.8.15). The walk's last stop is the
+  // match whichever day it falls on, so on a Sunday kick-off the masthead
+  // read Saturday over a Match Day screen dated Sunday.
+  if (today(state) === MATCH_DAY) {
+    const fx = userMatchThisWeek(state)
+    if (fx && !fx.midweek && fixtureDayOff(fx.id) === 1) return fxDate(state.season, fx)
+  }
   return dayDate(state.season, state.week, today(state))
 }
 

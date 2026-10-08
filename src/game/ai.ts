@@ -1,4 +1,4 @@
-import type { Club, GameState, Player } from './model'
+import type { Club, GameState, PendingDeal, Player } from './model'
 import { MARQUEE_SLOTS } from './cap'
 import { t, tIn, type Vars } from './i18n'
 import { clubIntent } from './living'
@@ -100,6 +100,17 @@ export { windowOpen }
 /** The refusal a shut window gives, naming when it opens again. */
 export function windowShut(state: GameState): string {
   return t(nextOpening(state.week) === 'january' ? 'reply.windowShut' : 'reply.windowShutSummer', openDate(state))
+}
+
+/** The deal agreed for this man while the window was shut, if there is one. */
+export function pendingDeal(state: GameState, playerId: number): PendingDeal | undefined {
+  return (state.pendingDeals ?? []).find(d => d.playerId === playerId)
+}
+
+/** Spoken for: a pre-contract elsewhere, or a deal agreed and waiting on the
+ *  window. AI clubs leave such a man alone. */
+export function promisedElsewhere(state: GameState, playerId: number): boolean {
+  return (state.preContracts ?? []).some(pc => pc.playerId === playerId) || !!pendingDeal(state, playerId)
 }
 
 /** What an AI club bids for one of the user's men. A listed man or one who
@@ -417,7 +428,7 @@ export function aiShoppingTarget(state: GameState, buyer: Club): { intent: Retur
     // who has already agreed to join somebody else - once surplus was priced
     // as surplus, AI clubs began buying exactly those men and voiding the
     // manager's pre-contracts in the last week of the season
-    !(state.preContracts ?? []).some(pc => pc.playerId === p.id) &&
+    !promisedElsewhere(state, p.id) &&
     (intent === 'rebuild' ? p.age <= 25 : true) &&
     (state.clubs[p.clubId]?.rep ?? 99) <= buyer.rep + 6 &&
     askingPrice(state, p) <= buyer.budget)
@@ -463,7 +474,7 @@ export function aiTransfers(state: GameState, rng: Rng) {
     const targets = Object.values(state.players).filter(p =>
       p.clubId && p.clubId !== buyer.id && p.clubId !== state.userClubId &&
       !p.loanFrom && !p.retiring && (p.transferListed || p.morale < 4 || p.contractEnds <= state.season) &&
-      !(state.preContracts ?? []).some(pc => pc.playerId === p.id) && // (1.8.14, as above)
+      !promisedElsewhere(state, p.id) && // (1.8.14, as above; 1.8.15 agreed deals too)
       p.ca >= 62 && p.ca <= buyer.rep + 12 && askingPrice(state, p) <= buyer.budget)
     if (!targets.length) continue
     const p = pick(rng, targets)
@@ -511,8 +522,10 @@ export function aiTransfers(state: GameState, rng: Rng) {
     // low mood alone takes the same graded slice off as the asking price does
     // (unsettledFee); the rng draw is unchanged
     const fee = Math.round(aiBidFee(p, rng, bidDeadline) * (freeDeal(state, p) ? FREE_RESALE : 1) / 10_000) * 10_000
-    // drawn, and held: no bid lands on the desk in a week it cannot be accepted
-    if (!bidNext) continue
+    // A BID LANDS WHENEVER IT IS MADE (1.8.15). It used to be drawn and held in
+    // a week it could not be accepted; an accepted bid outside a window is now
+    // an agreed sale that completes when the window opens (pendingDeals).
+    if (promisedElsewhere(state, p.id)) continue
     state.offers.push({
       id: state.nextId++, playerId: p.id, fromClubId: bidder.id, toClubId: user.id,
       fee, week: state.week, forUser: true, status: 'pending',
@@ -620,7 +633,9 @@ export function agreeFee(state: GameState, playerId: number, fee: number): { ok:
   const user = state.clubs[state.userClubId]
   if (!p || !p.clubId) return { ok: false, msg: t('reply.playerUnavailable') }
   if (p.clubId === user.id) return { ok: false, msg: t('reply.alreadyYours') }
-  if (!windowOpen(state.week)) return { ok: false, msg: windowShut(state) }
+  // OUTSIDE THE WINDOW A FEE CAN STILL BE AGREED (1.8.15): the move waits for
+  // the window, and the money with it (signOnTerms, settlePendingDeals)
+  if (pendingDeal(state, p.id)) return { ok: false, msg: t('reply.dealAlreadyAgreed', { name: p.name }) }
   if (fee > user.budget) return { ok: false, msg: t('reply.bidOverBudget') }
   // AN EMBARGO SHUTS THE FIRST DOOR TOO (1.8.5 career QA). Stage 2 refuses
   // every signing under one, but a fee could still be agreed here, which
@@ -718,14 +733,18 @@ export function agreeFee(state: GameState, playerId: number, fee: number): { ok:
 /** Stage 2: personal terms. A signing bonus and a first-team promise both
  *  soften the wage his camp will take - the promise is a real pledge and
  *  he will hold you to it. */
-export function signOnTerms(state: GameState, playerId: number, fee: number, wage: number, signOn: number, promiseMinutes: boolean, asMarquee = false): { ok: boolean; msg: string } {
+export function signOnTerms(state: GameState, playerId: number, fee: number, wage: number, signOn: number, promiseMinutes: boolean, asMarquee = false, completing = false): { ok: boolean; msg: string } {
   if (!realMoney(fee, wage, signOn)) return notAFigure()
   const p = state.players[playerId]
   const user = state.clubs[state.userClubId]
   if (!p || !p.clubId) return { ok: false, msg: t('reply.playerUnavailable') }
-  // stage 2 is its own call, so it asks the window again for the same reason
-  // it asks the ink-wet gate again below
-  if (!windowOpen(state.week)) return { ok: false, msg: windowShut(state) }
+  // A SHUT WINDOW DEFERS THE MOVE, IT DOES NOT REFUSE IT (1.8.15). Every
+  // check below still runs today; the terms are kept, and the deal completes
+  // on the Monday the window opens if it can still be afforded then
+  // (settlePendingDeals). `completing` is that Monday's call: the camp and any
+  // rival already had their say when the terms were agreed.
+  const later = !windowOpen(state.week) && !completing
+  if (!completing && pendingDeal(state, p.id)) return { ok: false, msg: t('reply.dealAlreadyAgreed', { name: p.name }) }
   const seller = state.clubs[p.clubId]
   // THE INK IS STILL WET, CHECKED AGAIN (owner, v1.1.3: "if a club signs a
   // player and the player tries to buy for their club the bid should be
@@ -739,7 +758,7 @@ export function signOnTerms(state: GameState, playerId: number, fee: number, wag
   {
     const now = absWeek(state.season, state.week)
     const weeksIn = p.joinedAt != null ? now - p.joinedAt : null
-    if (weeksIn != null && weeksIn < 22 && fee < askingPrice(state, p) * 2) {
+    if (!completing && weeksIn != null && weeksIn < 22 && fee < askingPrice(state, p) * 2) {
       return { ok: false, msg: t('reply.inkWetTerms', { club: seller.short, name: p.name }) }
     }
   }
@@ -768,7 +787,7 @@ export function signOnTerms(state: GameState, playerId: number, fee: number, wag
   }
   const sweet = signOn >= demand * 8 ? 0.06 : signOn >= demand * 4 ? 0.03 : 0
   const floor = Math.round(demand * (1 - sweet - (promiseMinutes ? 0.05 : 0)))
-  if (wage < floor) {
+  if (!completing && wage < floor) {
     return {
       ok: false,
       msg: t('reply.campShakeHeads', { name: p.name, demand: fmtWage(demand), floor: fmtWage(floor), tail_k: signOn > 0 || promiseMinutes ? 'reply.campTailExtras' : 'reply.campTailBonus' }),
@@ -776,7 +795,7 @@ export function signOnTerms(state: GameState, playerId: number, fee: number, wag
   }
   // A RIVAL AT THE TABLE (rivalbids.ts, 1.8.5). He weighs both offers; if
   // theirs is better the manager can still improve his own this week
-  const rb = liveRivalBid(state, p.id)
+  const rb = completing ? null : liveRivalBid(state, p.id)
   let beat: ReturnType<typeof chooseBetween> | null = null
   if (rb) {
     rb.mine = { wage, signOn, promise: promiseMinutes }
@@ -786,6 +805,13 @@ export function signOnTerms(state: GameState, playerId: number, fee: number, wag
       return { ok: false, msg: t('reply.rivalBidPrefers', { name: p.name, club: rival?.short ?? '', wage: fmtWage(rb.wage), why_k: choice.why.k, ...choice.why.v }) }
     }
     beat = choice
+  }
+  if (later) {
+    ;(state.pendingDeals ??= []).push({
+      id: state.nextId++, kind: 'buy', playerId: p.id, clubId: p.clubId, myClubId: user.id,
+      fee, wage, signOn, promise: promiseMinutes, marquee: asMarquee, season: state.season, week: state.week,
+    })
+    return { ok: true, msg: t('reply.dealAgreedBuy', { name: p.name, fee: fmtMoney(fee), ...openDate(state) }) }
   }
   executeTransfer(state, p, user.id, fee)
   if (rb && beat) rivalBidWon(state, p, rb, beat.why)
@@ -898,8 +924,10 @@ export function respondToOffer(state: GameState, offerId: number, accept: boolea
     // it landed - cannot be accepted: it moved a free agent to the bidder and
     // burned the fee (1.6.3, scripts/qa/exploit.ts)
     if (p.clubId !== state.userClubId) { o.status = 'rejected'; return t('reply.offerWithdrawn') }
-    // a sale is a permanent transfer: it waits for the window like a signing
-    if (!windowOpen(state.week)) return windowShut(state)
+    // a sale is a permanent transfer: it waits for the window like a signing,
+    // and from 1.8.15 an accepted bid outside one is agreed now and completes
+    // when the window opens (settlePendingDeals)
+    if (pendingDeal(state, p.id)) { o.status = 'rejected'; return t('reply.offerGone') }
     // THE BOARD'S SQUAD FLOOR (chaos sweep finding). There is no release
     // button in this game, so accepting incoming bids is the one lever that
     // can drain a squad - and it had no floor at all: accept everything and
@@ -914,6 +942,14 @@ export function respondToOffer(state: GameState, offerId: number, accept: boolea
     if (p.clubId === state.userClubId && !p.acad && seniors - 1 < 18) {
       o.status = 'rejected'
       return t('reply.boardVetoesSale', { n: seniors - 1 })
+    }
+    if (!windowOpen(state.week)) {
+      o.status = 'agreed'
+      ;(state.pendingDeals ??= []).push({
+        id: state.nextId++, kind: 'sell', playerId: p.id, clubId: bidder.id, myClubId: state.userClubId,
+        fee: o.fee, offerId: o.id, season: state.season, week: state.week,
+      })
+      return t('reply.saleAgreed', { player: p.name, club: bidder.name, fee: fmtMoney(o.fee), ...openDate(state) })
     }
     o.status = 'accepted'
     executeTransfer(state, p, bidder.id, o.fee)
@@ -1262,4 +1298,75 @@ export function aiRenewals(state: GameState, rng: Rng) {
       }
     }
   }
+}
+
+
+/**
+ * ---- THE WINDOW OPENS, AND THE AGREED DEALS GO THROUGH (1.8.15) ----
+ *
+ * Owner: "you should be able to buy players outside of transfer window... BUT
+ * they cant transfer until the window is open. The money doesnt leave your
+ * account so you could buy many people and then not afford them once the
+ * window opens. Those transfers should be cancelled." And sales the same way.
+ *
+ * Called on the Monday the window opens, before any AI club moves. Each deal
+ * runs in the order it was agreed, through every check a signing or a sale
+ * passes today: the budget, the squad limit, the cap, the wage budget, the
+ * board's squad floor, the buyer's money. One that fails falls through and the
+ * inbox says why. A deal made at a club the manager has since left is void.
+ */
+export function settlePendingDeals(state: GameState): void {
+  const deals = state.pendingDeals ?? []
+  if (!deals.length || !windowOpen(state.week)) return
+  state.pendingDeals = []
+  for (const d of deals) {
+    const p = state.players[d.playerId]
+    const other = state.clubs[d.clubId]
+    if (state.unemployed || state.userClubId !== d.myClubId) continue
+    let ok = false, why = ''
+    if (!p || !other) why = t('reply.dealOffGone')
+    else if (d.kind === 'buy') {
+      if (p.clubId !== d.clubId) why = t('reply.dealOffMoved', { name: p.name })
+      else {
+        const r = signOnTerms(state, p.id, d.fee, d.wage ?? p.wage, d.signOn ?? 0, !!d.promise, !!d.marquee, true)
+        ok = r.ok; why = r.msg
+      }
+    } else {
+      const user = state.clubs[state.userClubId]
+      const seniors = (user?.players ?? []).map(id => state.players[id]).filter(x => x && !x.acad).length
+      if (p.clubId !== state.userClubId) why = t('reply.dealOffMoved', { name: p.name })
+      else if (other.budget < d.fee) why = t('reply.dealOffBuyerShort', { club: other.short })
+      else if (!p.acad && seniors - 1 < 18) why = t('reply.boardVetoesSale', { n: seniors - 1 })
+      else {
+        executeTransfer(state, p, other.id, d.fee)
+        const o = state.offers.find(x => x.id === d.offerId)
+        if (o) o.status = 'accepted'
+        ok = true
+        why = t('reply.sold', { player: p.name, club: other.name, fee: fmtMoney(d.fee) })
+      }
+    }
+    if (!ok) {
+      const o = d.offerId != null ? state.offers.find(x => x.id === d.offerId) : null
+      if (o) o.status = 'rejected'
+    }
+    const name = p?.name ?? ''
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
+      subject: ok ? `Deal done: ${name}` : `Deal off: ${name}`,
+      body: why,
+      k: ok ? 'news.dealDone' : 'news.dealOff',
+      v: { name, why },
+      playerId: d.playerId,
+    })
+  }
+}
+
+/** The manager calls off a deal he agreed. Nothing was paid, so nothing is owed. */
+export function callOffDeal(state: GameState, playerId: number): string {
+  const d = pendingDeal(state, playerId)
+  if (!d) return t('reply.offerGone')
+  state.pendingDeals = (state.pendingDeals ?? []).filter(x => x !== d)
+  const o = d.offerId != null ? state.offers.find(x => x.id === d.offerId) : null
+  if (o) o.status = 'rejected'
+  return t('reply.dealCalledOff', { name: state.players[playerId]?.name ?? '' })
 }

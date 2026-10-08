@@ -324,7 +324,7 @@ interface Store {
   continueWeek: () => void
   kickOff: (preTalk?: import('./game/teamtalk').PreTone, mode?: 'full' | 'highlights') => void
   /** the assistant takes over: play the match out instantly with your team */
-  instantResult: (preTalk?: import('./game/teamtalk').PreTone) => void
+  instantResult: (preTalk?: import('./game/teamtalk').PreTone, review?: boolean) => void
   advanceLive: () => void
   /** Simulate the next stretch of the live match without revealing any of it,
    *  so the match screen can see a try coming and play its build-up (1.8.0). */
@@ -1185,7 +1185,7 @@ export const useStore = create<Store>((set, get) => ({
 
   /** From the MatchDay preview: take the field. The match simulates
    *  tick by tick as the ticker plays, so nothing is decided yet. */
-  instantResult: (preTalk) => {
+  instantResult: (preTalk, review) => {
     const g = get().game
     if (!g) return
     // a match already kicked off is finished, never started again (1.8.2)
@@ -1218,9 +1218,27 @@ export const useStore = create<Store>((set, get) => ({
       const ctx = beginMatch(g, fx, matchRng(g), true, userTeamId)
       // the assistant has the match, so the assistant makes the changes
       ctx.assistantSubs = true
-      openDressingRoom(g, ctx, preTalk)
+      const preTalkMsg = openDressingRoom(g, ctx, preTalk)
       playHalf(g, ctx)
       playHalf(g, ctx)
+      // STRAIGHT TO THE WHISTLE, NOT PAST IT (1.8.15). From the match screen
+      // the assistant's result used to turn the week at once and land on the
+      // round-up, so a manager who never watched never saw why it went the
+      // way it did: the three causes, the coach's two fixes and last week's
+      // homework all live on the full-time card. Now the button stops there,
+      // the same card a watched match ends on, and Continue to Results turns
+      // the week through finishMatch (which files the findings and the
+      // evidence, as below). Callers without review keep the one-step path.
+      if (review) {
+        set(s => ({
+          liveMatch: {
+            ctx, fixture: fx, events: ctx.events, cursor: ctx.events.length, playing: false, speed: 1,
+            mode: 'full', done: true, talkMsg: null, preTalkMsg,
+          },
+          tick: s.tick + 1,
+        }))
+        return
+      }
       // the tactical loop's findings, before the week turns (#181)
       fileFindings(g, ctx)
       fileEvidence(g, ctx)
@@ -1593,7 +1611,10 @@ export const useStore = create<Store>((set, get) => ({
   finishMatch: () => {
     const g = get().game
     const live = get().liveMatch
-    if (!g) return
+    // ONE TAP, ONE WEEK (1.8.15). Two taps landing in one frame on Continue to
+    // Results each called this, and the second, with the match already gone,
+    // turned a second week. Instant Result now ends on this button too.
+    if (!g || !live) return
     const resultsKey = live ? resultsParam(live.fixture.compId, g.week) : null
     // the tactical loop's findings and the evidence, before the week turns (#181)
     if (live) {

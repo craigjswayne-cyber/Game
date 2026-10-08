@@ -17,8 +17,8 @@
 //      the ball to them (a sixth fewer kicks from hand), and their side
 //      scores less against it than against any other plan.
 //   3. IT IS NOT THE ANSWER: worth no more than the best of the other plans
-//      over the same fixtures, and more than no plan at all, so choosing it
-//      is a read of the opposition, not a default.
+//      over the same fixtures, and not clearly worse than no plan at all, so
+//      choosing it is a read of the opposition, not a default.
 //
 // HOW IT WAS SET. Possession share was the first measure tried, and it is
 // not one: it is mostly the scoreboard's, and every plan that wins more moves
@@ -150,7 +150,16 @@ const bestOther = Math.max(...others.map(id => m(gain, id)))
 // the bar is the best other plan plus half a standard error of starve's own.
 const tie = 0.5 * se(gain.get('starve') ?? [])
 ok(sg <= bestOther + tie, `not dominant: worth ${sgn(sg)} a match, against ${sgn(bestOther)} for the best of the others (tie band ${tie.toFixed(2)})`)
-ok(sg > 0, 'but worth having: it wins more than no plan at all')
+// NOT CLEARLY WORSE THAN NO PLAN (1.8.15, owner-approved). It used to have to
+// win more than no plan at all. After the youth and economy recalibration it
+// reads about zero: +1.60 over 240 paired fixtures before (se 0.89), -0.25
+// after (se 0.97), and eight dial settings swept on the new world topped out
+// at +0.25, with the default 80-fixture sample reading -1.07 for the same
+// dials. It is the defensive choice now: the fewest tries against, at no
+// clear cost. So the bar is that it is not worse than no plan by more than
+// its own standard error.
+const sgSe = se(gain.get('starve') ?? [])
+ok(sg > -sgSe, `but not a mistake: not clearly worse than no plan at all (${sgn(sg)} a match, se ${sgSe.toFixed(2)})`)
 
 console.log(fails ? `\nSTARVE PROBE FAILED (${fails})` : '\nSTARVE PROBE PASSED: a plan of its own, and not the answer')
 process.exit(fails ? 1 : 0)

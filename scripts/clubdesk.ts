@@ -14,7 +14,7 @@
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import {
-  agreeFee, agreePreContract, askingPrice, capBill, capWage, embargoed, executeTransfer, offerRenewalAt,
+  agreeFee, agreePreContract, callOffDeal, askingPrice, capBill, capWage, embargoed, executeTransfer, offerRenewalAt,
   personalTermsDemand, seniorsOf, signOnTerms, squadFull, windowOpen, windowShut,
 } from '../src/game/ai'
 import { loanBuyOffer, loanIn, loanOutSummerGain, LOAN_FULL_WEEKS } from '../src/game/loans'
@@ -59,15 +59,19 @@ console.log('--- the transfer window binds the manager as it binds the AI')
   const p = target(g)
   ok([1, 8, 22, 25, 46, 48].every(windowOpen) && ![9, 12, 21, 26, 45].some(windowOpen),
     'the window is the close season to week 8, and January (22 to 25)')
+  // FROM 1.8.15 A SHUT WINDOW DEFERS THE MOVE RATHER THAN REFUSING IT
+  // (owner): the fee and terms can be agreed, the man stays where he is, and
+  // the deal completes on the Monday the window opens (dealwindowprobe.ts)
   g.week = 12
   const shut = agreeFee(g, p.id, askingPrice(g, p) * 3)
-  ok(!shut.ok && shut.msg === windowShut(g) && shut.msg.includes(tIn('en', 'date.mon0')), `a bid in week 12 is refused and names January ("${shut.msg}")`)
+  ok(shut.ok, `a bid in week 12 agrees the fee ("${shut.msg}")`)
   const terms = signOnTerms(g, p.id, askingPrice(g, p) * 3, personalTermsDemand(g, p) * 2, 0, false)
-  ok(!terms.ok && p.clubId !== g.userClubId, 'and personal terms cannot complete the move behind it')
+  ok(terms.ok && p.clubId !== g.userClubId && terms.msg.includes(tIn('en', 'date.mon0')), `and the terms agree a deal that waits for January ("${terms.msg.slice(0, 90)}")`)
+  callOffDeal(g, p.id)
   g.week = 30
-  ok(agreeFee(g, p.id, askingPrice(g, p) * 3).msg === t('reply.windowShutSummer', openDate(g)), 'after the deadline it says the summer')
+  ok(windowShut(g) === t('reply.windowShutSummer', openDate(g)), 'after the deadline the shut window names the summer')
   g.week = 25
-  ok(agreeFee(g, p.id, askingPrice(g, p) * 3).msg !== windowShut(g), 'on deadline week the door is open again')
+  ok(agreeFee(g, p.id, askingPrice(g, p) * 3).ok, 'on deadline week the door is open as ever')
 }
 
 console.log('--- the deadline round-up reads the stories, not their English')

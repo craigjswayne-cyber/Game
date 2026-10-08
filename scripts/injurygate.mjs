@@ -70,7 +70,7 @@ try {
     const b = bid != null ? g.players[bid] : null
     if (b) b.injury = { desc: 'calf (warm-up)', until: g.week + 2, weeks: 2 }
     st.touch()
-    return { id: pid, name: p.name, benchId: bid, benchName: b?.name ?? null }
+    return { id: pid, name: p.name, benchId: bid, benchName: b?.name ?? null, before: [...club.tactic.lineup] }
   })
   say(`  injured the starting loosehead: ${hurt.name}, and on the bench: ${hurt.benchName}`)
 
@@ -97,8 +97,15 @@ try {
       inXV: club.tactic.lineup.slice(0, 15).includes(hurtId),
       anyInjuredIn23: club.tactic.lineup
         .some(id => id != null && g.players[id]?.injury),
+      lineup: [...club.tactic.lineup],
     }
   }, hurt.id)
+  // A REPAIR COSTS THE BROKEN SHIRTS, NOT THE SIDE (1.8.15): it used to
+  // re-pick all twenty-three, and a first-time player lost eight starters and
+  // his captain to one injured flanker. Two men were hurt, so at most two
+  // shirts may change.
+  const moved = hurt.before.map((id, i) => id !== after.lineup[i] ? i : -1).filter(i => i >= 0)
+  ok(moved.length <= 2, `only the injured men's shirts change (${moved.length} changed: shirts ${moved.map(i => i + 1).join(', ')})`)
   ok(!after.inXV, `${hurt.name} is out of the team sheet, visibly, not patched in the engine`)
   ok(!after.anyInjuredIn23, 'and nobody injured is anywhere in the repaired 23, bench included')
   say('  the match is under way with a fit twenty-three')

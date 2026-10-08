@@ -1195,7 +1195,8 @@ export interface TransferOffer {
   week: number
   /** offer directed at user needs response */
   forUser: boolean
-  status: 'pending' | 'accepted' | 'rejected'
+  /** 'agreed': accepted outside a window, completes when it opens (pendingDeals) */
+  status: 'pending' | 'accepted' | 'rejected' | 'agreed'
   /** He has already been asked for more once.
    *
    *  Haggling (ai.ts counterIncomingOffer) raises the fee by
@@ -1507,6 +1508,9 @@ export function operatingCost(state: GameState): number {
  *
  * A club whose ground fits its name gets exactly what it always got.
  */
+/** the leagues whose small grounds draw the solidarity share (weeklyCentral) */
+const SOLIDARITY = ['prem', 'top14', 'urc']
+
 export function weeklyCentral(club: Club): number {
   // F30 moved the reputation-driven sponsorship out of here and into three
   // signable deals (commercial.ts). What is left is the money that arrives
@@ -1523,7 +1527,15 @@ export function weeklyCentral(club: Club): number {
   // meeting the board's own objective. A top-flight club is now expected to
   // fill 18,000 seats whatever its name, and the share per missing seat is
   // larger at that level; a big ground gets nothing it did not get before.
-  const top = LEAGUE_TIER[club.leagueId] === 1
+  // THE EUROPEAN TOP FLIGHTS ONLY (1.8.15). Applied to every tier-1 league it
+  // paid £86m a season into 41 clubs, most of it to American and Japanese
+  // grounds of 4,500 to 6,000 seats in leagues where every ground is that size
+  // (Washington alone £146k a week): by season fifteen of a world no club was in
+  // the red and the sport held £1.1bn against £294m on 1.8.13. Premiership, Top
+  // 14 and URC only: Newcastle keeps the full share (four careers of two
+  // seasons, balance -£1.7m and two sackings on 1.8.13, +£0.05m and none on
+  // this), at about half the cost.
+  const top = SOLIDARITY.includes(club.leagueId)
   const expectedSeats = Math.max(top ? 18_000 : 0, Math.min(23_000, Math.max(0, club.rep - 45) * 620))
   const missingSeats = Math.max(0, expectedSeats - club.capacity)
   const perSeat = top ? 12 : 8.5
@@ -1684,6 +1696,28 @@ export interface ManagerStats {
   spent: number
   /** Manager of the Month awards won */
   moms?: number
+}
+
+/** A transfer agreed outside the window (1.8.15, owner: "you should be able to
+ *  buy players outside of transfer window... but they cant transfer until the
+ *  window is open"). 'buy': the manager's signing, with the terms he agreed;
+ *  'sell': an AI club's bid he accepted. */
+export interface PendingDeal {
+  id: number
+  kind: 'buy' | 'sell'
+  playerId: number
+  /** the club at the other end: the seller for a buy, the buyer for a sale */
+  clubId: string
+  /** the manager's club when it was agreed: a deal does not follow him to a new job */
+  myClubId: string
+  fee: number
+  wage?: number
+  signOn?: number
+  promise?: boolean
+  marquee?: boolean
+  offerId?: number
+  season: number
+  week: number
 }
 
 export interface GameState {
@@ -2311,6 +2345,10 @@ export interface GameState {
    *  pre-contracts), paid from the day he arrives. Absent on the AI's and on
    *  saves from before 1.8.1. */
   preContracts?: { playerId: number; toClubId: string; week: number; wage?: number }[]
+  /** Transfers agreed while the window was shut (1.8.15): they complete, in
+   *  order, on the Monday the window opens, or fall through then (ai.ts
+   *  settlePendingDeals). Nothing is paid until they complete. */
+  pendingDeals?: PendingDeal[]
   /** a takeover in motion (the moneyMen storyline): rumour -> exclusivity ->
    *  completion or collapse */
   takeover?: { clubId: string; week: number; stage: number } | null
@@ -2819,6 +2857,13 @@ export function fixtureDate(season: number, week: number, fxId: number, dayOff?:
   return `${dayAbbr(d.getUTCDay())} ${d.getUTCDate()} ${monthName(d.getUTCMonth())}`
 }
 
+/** One fixture's kick-off date, midweek rounds included: the one call every
+ *  screen that dates a fixture makes, so the preview, the Home card and the
+ *  report all print the same day (1.8.15). */
+export function fxDate(season: number, fx: { week: number; id: number; midweek?: boolean }): string {
+  return fixtureDate(season, fx.week, fx.id, fx.midweek ? MIDWEEK_OFF : undefined)
+}
+
 /**
  * The real-world year that season 0 starts in.
  *
@@ -3033,4 +3078,21 @@ export function fmtMoney(v: number): string {
   if (a >= M || Math.round(a / K) >= 1000) return `${sign}£${(a / M).toFixed(a >= 10 * M ? 0 : 1)}m`
   if (a >= K) return `${sign}£${Math.round(a / K)}k`
   return `${sign}£${a}`
+}
+
+/**
+ * The number fmtMoney prints, as a number. A difference shown next to two
+ * printed figures has to be the difference of what is printed (1.8.15:
+ * "£12m ... valued at £7.5m, so this is £4.3m over" was right to the pound
+ * and wrong to anyone reading it, because £11.8m prints as £12m).
+ */
+export function shownMoney(v: number): number {
+  if (!Number.isFinite(v)) return 0
+  const a = Math.abs(v), sg = v < 0 ? -1 : 1
+  const K = 1_000, M = 1_000_000, B = 1_000_000_000
+  const at = (unit: number, dp: number) => sg * Number((a / unit).toFixed(dp)) * unit
+  if (a >= B || Math.round(a / M) >= 1000) return at(B, a >= 10 * B ? 0 : 1)
+  if (a >= M || Math.round(a / K) >= 1000) return at(M, a >= 10 * M ? 0 : 1)
+  if (a >= K) return sg * Math.round(a / K) * K
+  return v
 }

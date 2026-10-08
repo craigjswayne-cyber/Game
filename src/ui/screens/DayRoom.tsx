@@ -1,7 +1,7 @@
 import { useStore } from '../../store'
 import { windowOpen } from '../../game/ai'
 import { isDeadlineWeek, nextWeek } from '../../game/window'
-import { fmtMoney, newsSubject, unbeatenRun } from '../../game/model'
+import { fixtureDayOff, fmtMoney, fxDate, newsSubject, unbeatenRun } from '../../game/model'
 import { Byline } from '../Byline'
 import { teamShort } from '../../game/matchEngine'
 import {
@@ -428,7 +428,8 @@ function FridayBlocks() {
         const read = analystRead(game, oppId)
         return (
           <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-            <div className="fact-label">{t('dayroom.tomorrow')}</div>
+            {/* "Tomorrow" only when it is: a Sunday kick-off is named by its date (1.8.15) */}
+            <div className="fact-label">{fixtureDayOff(fx.id) === 1 && !fx.midweek ? fxDate(game.season, fx) : t('dayroom.tomorrow')}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
               <CrestT g={game} teamId={oppId} size={26} />
               <b style={{ fontSize: 16 }}>

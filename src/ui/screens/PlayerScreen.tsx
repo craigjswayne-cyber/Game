@@ -1,8 +1,9 @@
 import { useRef, useState } from 'react'
 import { useStore } from '../../store'
-import { ATTR_KEYS, SEASON_WEEKS, careerRows, fmtMoney, fmtWage, injuryDesc, type Attrs, type GameState, type Player, type TrainingFocus, seasonLabel } from '../../game/model'
+import { ATTR_KEYS, SEASON_WEEKS, careerRows, fmtMoney, fmtWage, shownMoney, injuryDesc, type Attrs, type GameState, type Player, type TrainingFocus, seasonLabel } from '../../game/model'
 import { liveRivalBid } from '../../game/rivalbids'
-import { agreeFee, agreePreContract, askingPrice, floorPrice, sellerWillingness, offerRenewalAt, personalTermsDemand, renewalDemand, signFreeAgent, signOnTerms } from '../../game/ai'
+import { agreeFee, agreePreContract, askingPrice, callOffDeal, floorPrice, pendingDeal, sellerWillingness, offerRenewalAt, personalTermsDemand, renewalDemand, signFreeAgent, signOnTerms } from '../../game/ai'
+import { openDate } from '../../game/window'
 import { FormPill, Nat, PosBadge, SectionTitle, Stars, TwoStep, RewardedButton } from '../components'
 import { nationName } from '../../game/nations'
 import { Flag } from '../flags'
@@ -359,6 +360,26 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         {p.transferListed && <span className="chip" style={{ color: 'var(--gold)' }}>{t('player.transferListed')}</span>}
       </div>
 
+      {/* AN AGREED DEAL WAITING ON THE WINDOW (1.8.15, owner: "if a transfer is
+          happening it should be added to their profile"). A signing or a sale
+          agreed while the window was shut: who, for what, and the day it goes
+          through, with the way out. Nothing is paid until then. */}
+      {(() => {
+        const d = pendingDeal(game, p.id)
+        if (!d) return null
+        const to = d.kind === 'buy' ? game.clubs[game.userClubId] : game.clubs[d.clubId]
+        return (
+          <div className="card" data-deal={d.kind} style={{ borderLeft: '4px solid var(--gold)' }}>
+            <div className="meta" style={{ fontWeight: 600 }}>
+              {t('player.dealPendingBuy', { club: to?.short ?? '', fee: fmtMoney(d.fee), ...openDate(game) })}
+            </div>
+            <div className="btn-row" style={{ marginTop: 6 }}>
+              <button className="btn ghost" onClick={() => { setMsg(callOffDeal(game, p.id)); touch() }}>{t('player.dealCallOff')}</button>
+            </div>
+          </div>
+        )
+      })()}
+
       {/* THE OFFICE (audit 20D). Players used to knock on the manager's door;
           the manager could never knock back. Two conversations a week, one per
           man: praise the form or have the quiet word. The outcome is his
@@ -574,17 +595,17 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           })()}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0' }}>
             <span className="fact-label" style={{ width: 84 }}>{t('player.wagePerWeek')}</span>
-            <button className="btn ghost" onClick={() => { setWage(Math.max(500, wage - 500)) }}>−</button>
+            <button className="btn ghost stepper" onClick={() => { setWage(Math.max(500, wage - 500)) }}>−</button>
             <b style={{ minWidth: 76, textAlign: 'center' }}>{fmtWage(wage)}</b>
-            <button className="btn ghost" onClick={() => { setWage(wage + 500) }}>+</button>
+            <button className="btn ghost stepper" onClick={() => { setWage(wage + 500) }}>+</button>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0' }}>
             <span className="fact-label" style={{ width: 84 }}>{t('player.signOn')}</span>
-            <button className="btn ghost" onClick={() => { setSignOn(Math.max(0, signOn - 25_000)) }}>−</button>
+            <button className="btn ghost stepper" onClick={() => { setSignOn(Math.max(0, signOn - 25_000)) }}>−</button>
             <b style={{ minWidth: 76, textAlign: 'center' }}>{fmtMoney(signOn)}</b>
-            <button className="btn ghost" onClick={() => { setSignOn(signOn + 25_000) }}>+</button>
+            <button className="btn ghost stepper" onClick={() => { setSignOn(signOn + 25_000) }}>+</button>
           </div>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', fontSize: 13 }}>
+          <label className="check-row">
             <input type="checkbox" checked={promiseMin} onChange={e => setPromiseMin(e.target.checked)} />
             {t('player.promiseFirstTeam')}
           </label>
@@ -593,7 +614,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           {(() => {
             const free = MARQUEE_SLOTS - (game.clubs[game.userClubId].marquee ?? []).length
             return free > 0 ? (
-              <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', fontSize: 13 }}>
+              <label className="check-row">
                 <input type="checkbox" checked={asMarquee} onChange={e => setAsMarquee(e.target.checked)} />
                 {t(free === 1 ? 'player.signAsMarqueeOne' : 'player.signAsMarquee', { n: free })}
               </label>
@@ -870,7 +891,8 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                 else setMsg(t(out === 'skipped' ? 'till.spotSkipped' : 'till.spotUnavailable'))
               }} />
           )}
-          {!bidding
+          {/* once a fee is agreed the table is about terms, not the fee */}
+          {termsFee != null || pendingDeal(game, p.id) ? null : !bidding
             ? <>
               {p.contractEnds <= game.season && game.week >= 25 && !(game.preContracts ?? []).some(x => x.playerId === p.id) && (
                 <button className="btn gold block" onClick={() => {
@@ -879,14 +901,20 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                   {t('player.agreePreContract')}
                 </button>
               )}
-              <button className="btn gold block" onClick={() => {
+              {/* NOT A BUTTON THAT CANNOT WORK (1.8.15): over the budget it
+                  used to stay live and answer with a refusal; now it is
+                  disabled and its own label says by how much, in the figures
+                  printed on the page */}
+              <button className="btn gold block" disabled={ask > game.clubs[game.userClubId].budget} onClick={() => {
                 const r = agreeFee(game, p.id, ask)
                 noteUse('bid')
                 setMsg(r.msg); setCounter(r.counter ?? null)
                 if (r.ok) { setTermsFee(ask); setWage(personalTermsDemand(game, p)); setSignOn(0); setPromiseMin(false) }
                 touch()
               }}>
-                {t('player.offerAskingPrice', { fee: fmtMoney(ask) })}
+                {ask > game.clubs[game.userClubId].budget
+                  ? t('player.askOverBudget', { ask: fmtMoney(ask), amount: fmtMoney(shownMoney(ask) - shownMoney(game.clubs[game.userClubId].budget)) })
+                  : t('player.offerAskingPrice', { fee: fmtMoney(ask) })}
               </button>
               {/* WHERE THE SELLING CLUB STANDS.
                   Asked in live play: "would they ever accept under?" They would,

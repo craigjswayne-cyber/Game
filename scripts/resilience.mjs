@@ -268,6 +268,17 @@ try {
   })
   console.log(`  .. ready check: ${twin2}`)
   await page.waitForTimeout(1200)
+  // FROM 1.8.15 INSTANT RESULT STOPS AT THE FULL-TIME CARD, and the week turns
+  // on Continue to Results - the same twin tap, on the button that turns it
+  const twin3 = await page.evaluate(() => {
+    const b = document.querySelector('.ft-continue')
+    if (!b) return 'no full-time card'
+    b.click()
+    b.click()
+    return 'both dispatched'
+  })
+  console.log(`  .. continue to results: ${twin3}`)
+  await page.waitForTimeout(1200)
   const weekAfter = await weekNow()
   check(weekBefore != null && weekAfter === weekBefore + 1,
     `two taps advanced exactly one week (${weekBefore} to ${weekAfter})`)

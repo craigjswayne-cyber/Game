@@ -116,7 +116,12 @@ try {
   // Sample the screen while play runs: every moment the live stats are the
   // stage there must be no banner, and every moment a highlight is, there is.
   let statsMoments = 0, statsWithSlot = 0, clipMoments = 0, clipWithSlot = 0
-  for (let i = 0; i < 480 && (clipMoments < 3 || statsMoments < 3); i++) {
+  // 960 samples (four minutes), not 480: the career's seed is fresh every run,
+  // and on the 1.8.15 RC run one first half went two minutes without a
+  // highlight, so the check read "0 of 0" on a screen that was working (the
+  // next two runs found 58 and 36). The loop still stops as soon as it has
+  // three of each.
+  for (let i = 0; i < 960 && (clipMoments < 3 || statsMoments < 3); i++) {
     if (await answer()) continue
     // (one snapshot of the page, not three queries in turn: a clip that ended
     // between asking for it and asking for the banner read as a clip without one)

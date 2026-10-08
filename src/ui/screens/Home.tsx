@@ -15,7 +15,7 @@ import { matchStakes, seasonTentpoles } from '../../game/stakes'
 import { huntLine } from '../../game/living'
 import { CrestT, SectionTitle } from '../components'
 import { InboxList } from './Inbox'
-import { formGuide, grudgeBetween, grudgeReason, weekDate, type Fixture, type GameState } from '../../game/model'
+import { formGuide, grudgeBetween, grudgeReason, fxDate, weekDate, type Fixture, type GameState } from '../../game/model'
 import { natRankOrder } from '../../game/natrank'
 import { ord, t, compLabel } from '../../game/i18n'
 import { AdSlot } from '../AdSlot'
@@ -126,7 +126,7 @@ export default function Home() {
             <CrestT g={game} teamId={fx.homeId} size={20} />{teamShort(game, fx.homeId)} {t('common.v')} <CrestT g={game} teamId={fx.awayId} size={20} />{teamShort(game, fx.awayId)}
           </h3>
           <div className="meta">
-            {fx.venue?.name ?? game.clubs[fx.homeId]?.stadium ?? t('common.neutralVenue')} · {weekDate(game.season, fx.week)}
+            {fx.venue?.name ?? game.clubs[fx.homeId]?.stadium ?? t('common.neutralVenue')} · {fxDate(game.season, fx)}
             {fx.venue ? t('home.atNeutral') : fx.homeId === club.id ? t('home.atHome') : t('home.atAway')}
           </div>
           {/* why this week matters, which had that card too */}

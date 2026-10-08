@@ -1063,7 +1063,14 @@ export function migrate(s: GameState): GameState {
   {
     const d = s.deals?.naming
     const club = s.clubs[s.userClubId]
-    if (d && club && d.until >= s.season && !club.stadium.startsWith(d.sponsor)) {
+    // NOT AN INHERITED DEAL ON A TRADITIONAL NAME (1.8.15). seedDeals keeps
+    // "Kinshome" as Kinshome and marks the deal keepName; this heal renamed it
+    // "Ravensbank Stadium at Kinshome" on the first reload, so the same career
+    // read two different grounds either side of a save. A save from before the
+    // flag: an inherited deal is one dated to the career's first season that
+    // nobody signed (no perf terms, not a caretaker) on a ground with no " at ".
+    const inherited = d?.keepName || (d && !d.auto && !d.perf && d.from === 0 && !club?.stadiumBase && !club?.stadium.includes(' at '))
+    if (d && club && !inherited && d.until >= s.season && !club.stadium.startsWith(d.sponsor)) {
       applyStadiumName(s, d.sponsor)
     }
   }

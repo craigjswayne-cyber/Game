@@ -5103,7 +5103,6 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
   .filter-sheet { max-width: 760px; max-height: 94vh; max-height: 94dvh; }
   .fs-grid { grid-template-columns: auto 1fr auto 1fr; gap: 6px 12px; }
   .fs-toggles { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; margin-top: 8px; }
-  .fs-toggle { min-height: 36px; }
 }
 .dtable td.attr-cell { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ctx-gutter { padding: 0 14px; }
@@ -5806,3 +5805,20 @@ a.btn.home-community {
 }
 /* a vacancy's odds and the quiet answer on one row (1.8.6, Jobs.tsx) */
 .job-foot { display: flex; align-items: center; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+
+/* ---- THE LAST SMALL CONTROLS (1.8.15) ----
+ * Found by the release hardening play-through, measured on a 412px phone:
+ * the contract steppers were 33x36, the two contract checkboxes sat in 30px
+ * rows, the filter toggles in 40px rows, and every slider in the game was a
+ * 16px strip. scripts/tapsize.mjs never saw form controls, so nothing held
+ * them; scripts/tapcontrols.mjs does now. */
+.btn.stepper { min-width: 44px; min-height: 44px; }
+.check-row { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 13px; cursor: pointer; }
+.check-row input, .fs-toggle input { width: 22px; height: 22px; accent-color: var(--primary); flex: none; }
+.fs-toggle { min-height: 44px; }
+/* A slider's reach is its own box, so the box is 44px tall. Inside a
+   .slider-row the extra sits over the label and the readout, neither of
+   which is a control, so the row keeps its height. */
+input[type=range] { height: 44px; }
+.slider-row input[type=range] { display: block; margin: -14px 0; position: relative; }
+.dial-row { min-height: 44px; }

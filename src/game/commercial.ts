@@ -166,6 +166,10 @@ export interface Deal {
   /** true when the department took this itself because you did not act. A
    *  stopgap rather than a contract: you may replace it whenever you like. */
   auto?: boolean
+  /** an inherited naming deal on a ground whose own name carries no sponsor
+   *  (seedDeals): the traditional name stays over the gates until the slot
+   *  is next signed, so the load heal must not rename it (1.8.15) */
+  keepName?: boolean
   /** a performance structure struck at the negotiating table (1.8.0): the
    *  weekly above is only the guaranteed part, and these bonuses are paid at
    *  the end of each season the deal covers (sponsortalks.settleSponsorBonuses) */
@@ -552,6 +556,7 @@ export function seedDeals(state: GameState) {
       // staggered, so all three do not fall due in the same summer
       until: state.season + 1 + ((h + i) % 3),
       repAt: club.rep,
+      ...(slot.id === 'naming' && !dataSponsor ? { keepName: true } : {}),
     }
   }
 }

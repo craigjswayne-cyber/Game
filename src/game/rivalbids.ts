@@ -39,7 +39,7 @@
  */
 import type { Club, GameState, Player, Pos } from './model'
 import { XV_SLOTS, absWeek, careerRows, fmtMoney, fmtWage, isMyClub, leagueTier } from './model'
-import { INK_WEEKS, askingPrice, freeDeal, capBill, embargoed, executeTransfer, seniorsOf, SQUAD_LIMIT, windowOpen } from './ai'
+import { INK_WEEKS, askingPrice, freeDeal, capBill, embargoed, executeTransfer, promisedElsewhere, seniorsOf, SQUAD_LIMIT, windowOpen } from './ai'
 import { aiCanCarry, aiPayRate, aiWageRooms } from './aiecon'
 import { playerWage } from './attributes'
 import { clubIntent } from './living'
@@ -294,6 +294,8 @@ export function settleRivalBids(state: GameState): void {
     const club = state.clubs[rb.clubId]
     rb.week = -1
     if (!p || !club || p.clubId !== rb.sellerId || !windowOpen(state.week)) continue
+    // the manager's agreed deal stands (1.8.15): it completed first, or failed on its own terms
+    if (promisedElsewhere(state, p.id)) continue
     if (club.budget < rb.fee * 0.85 || embargoed(state, club.id) || seniorsOf(state, club) >= SQUAD_LIMIT) continue
     // terms he would have taken but never signed count as no terms at all
     const choice = chooseBetween(state, p, rb, rb.mine ?? null)
@@ -551,7 +553,7 @@ export function rivalPushWeek(state: GameState): void {
     const target = Object.values(state.players).filter(p =>
       p.clubId && p.clubId !== club.id && !isMyClub(state, p.clubId) && p.pos === e.pos && !p.acad &&
       !p.onLoan && !p.loanFrom && !p.retiring && p.ca >= 74 && p.ca > theirBest &&
-      !(state.preContracts ?? []).some(pc => pc.playerId === p.id) && // (1.8.14) promised elsewhere
+      !promisedElsewhere(state, p.id) && // (1.8.14) promised elsewhere; 1.8.15 agreed deals too
       (state.clubs[p.clubId]?.rep ?? 99) <= club.rep + 6 &&
       (p.joinedAt == null || absWeek(state.season, state.week) - p.joinedAt >= INK_WEEKS) &&
       askingPrice(state, p) <= club.budget)
