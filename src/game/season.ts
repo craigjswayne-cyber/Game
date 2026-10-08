@@ -46,7 +46,7 @@ import { resolveCourses, staffWageBill } from './staff'
 import { RIFT_MORALE, RIFT_TRAINING, riftDrag, staffRiftWeek } from './staffrift'
 import { resolveCommission, scoutPostcard } from './commission'
 import { clamp, mulberry32, shuffled, type Rng } from './rng'
-import { attrOdds, attrRoll, gapGrowth, trainPoint, youthPace } from './ageing'
+import { attrOdds, attrRoll, gapGrowth, PRODIGY_PA, trainPoint, youthPace } from './ageing'
 import { gameTimeReview, settleGameTime } from './gametime'
 import { depthWatch } from './depthwatch'
 import { rebuildSeason, rollIntakeClass } from './rollover'
@@ -58,7 +58,7 @@ import { settleKnocks } from './knock'
 import { askBoard, type BoardAsk } from './boardroom'
 import { expireLoans, loanOutBoost, loanTargets } from './loans'
 import { FOCUS_MAX_AGE, focusIds } from './development'
-import { confidence, devHash, heavyLoad, planAffinity, weekGrowth } from './devproject'
+import { confidence, devHash, heavyLoad, learning, planAffinity, weekGrowth } from './devproject'
 import { devNewsWeek, previewRead, trimDevFirst } from './devnews'
 import { refreshVacancies, sackManager } from './jobs'
 import { historyAfterMatch, historyPreview, historyWeight } from './history'
@@ -1384,7 +1384,7 @@ function weeklyTraining(state: GameState, rng: Rng) {
       // tempo and the month's spell, bounded and centred on the world's mean.
       // Every club's youngsters, the same rules. The short-circuit keeps the
       // rng draw exactly where it was.
-      if (p.age <= 24 && p.ca < p.pa && rng() < 0.06 * growBoost * eliteF * gapGrowth(p.ca, p.pa) * weekGrowth(state, p) * youthPace(p.age)) p.ca += 1
+      if (p.age <= 24 && p.ca < p.pa && rng() < 0.06 * growBoost * eliteF * gapGrowth(p.ca, p.pa) * weekGrowth(state, p) * youthPace(p.age, p.age <= 21 && p.pa >= PRODIGY_PA && learning(state.seed, p).tempo === 'early')) p.ca += 1
       // CONFIDENCE FEEDS FORM, a little (1.8.2): a man flying carries it into
       // the next week, one in a hole carries that. Read off his last three
       // ratings (devproject.confidence), mean zero across the world

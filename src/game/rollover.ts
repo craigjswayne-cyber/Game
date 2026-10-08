@@ -10,7 +10,7 @@ import { ageManager } from './career'
 import { rivalVerdict } from './boss'
 import {absWeek, archiveSeason, BASE_YEAR, careerRows, boardPatience, isMyClub, closeNatTenure, demandCeiling, MAX_FOLLOWING, GROUND_TIERS, groundLevel, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, RELEGATES, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId, worldCupSeasonFor } from './model'
 import { assignPersonality, EARLY_FADE, LATE_PEAK } from './attributes'
-import { ageAttributes, gapGrowth, softCeilings, youthPace } from './ageing'
+import { ageAttributes, gapGrowth, PRODIGY_PA, softCeilings, youthPace } from './ageing'
 import { COE_MEAN, learning, markSights, seasonReview, tempoF, TL } from './devproject'
 import { paRange, scoutPa } from './scout'
 import { intakePicks } from './devnews'
@@ -408,7 +408,7 @@ export function agePlayers(state: GameState, rng: Rng, rooms?: Map<string, numbe
     // summer and a man a point off his ceiling barely moves
     // and his tempo (1.8.2, devproject.ts): an early developer's growth comes
     // before 21, a late bloomer's after
-    const dev = devFactor(state, p) * gapGrowth(p.ca, p.pa) * tempoF(learning(state.seed, p).tempo, p.age) * youthPace(p.age)
+    const dev = devFactor(state, p) * gapGrowth(p.ca, p.pa) * tempoF(learning(state.seed, p).tempo, p.age) * youthPace(p.age, p.pa >= PRODIGY_PA && learning(state.seed, p).tempo === 'early')
     const scaled = (b: number) => { const r = b * dev; const n = Math.floor(r); return n + (rng() < r - n ? 1 : 0) }
     // the late bloomer's clock runs slow (25D): his fast lane reaches 25 and
     // growth stays alive to 29 - the hidden flag is a pure function of

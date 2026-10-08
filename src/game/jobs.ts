@@ -153,6 +153,12 @@ const FITS: Partial<Record<Trait, JobProfile[]>> = {
   turnaround: ['troubled', 'fallen'], spender: ['newcomer', 'giant'],
   innovator: ['fallen', 'giant'], tactician: ['fallen'], prudent: ['troubled', 'minnow'], hard: ['troubled'], players: ['academy'],
 }
+const YOUTH_TRAITS = new Set<Trait>(['youth', 'youthBacks', 'youthPack', 'youthIntl'])
+/** At least three in ten of a club's seniors are 23 or under. */
+function youngSquad(state: GameState, clubId: string): boolean {
+  const sen = (state.clubs[clubId]?.players ?? []).map(id => state.players[id]).filter(p => p && !p.acad)
+  return sen.length > 0 && sen.filter(p => p!.age <= 23).length / sen.length >= 0.3
+}
 /** a sixth either way of the league's rate is a need */
 export const NEED = 1 / 6
 /** league matches before a club's scoring is read as a need */
@@ -177,7 +183,16 @@ export function clubNeed(state: GameState, clubId: string): 'attack' | 'defence'
 
 /** Whether a trait fits this club's job: its kind, or what it is short of. */
 export function traitFits(state: GameState, clubId: string, trait: Trait): boolean {
-  if (FITS[trait]?.includes(jobProfile(state, clubId))) return true
+  const prof = jobProfile(state, clubId)
+  // A MINNOW WANTS ITS OWN KIDS, so it has to have some (1.8.15). Every small
+  // club read as a youth job, and vacancies lean to struggling clubs, so once
+  // teenagers grew more slowly (ageing.ts youthPace) the minnows that open
+  // jobs became most of the market: a youth developer fitted 59% of vacancies
+  // (scripts/jobfitprobe.ts). A minnow is a youth job when young men are a
+  // real part of its squad: three in ten of its seniors 23 or under, about
+  // the world's top third. An academy club always is.
+  if (prof === 'minnow' && YOUTH_TRAITS.has(trait)) return youngSquad(state, clubId)
+  if (FITS[trait]?.includes(prof)) return true
   return (trait === 'attack' || trait === 'defence') && clubNeed(state, clubId) === trait
 }
 

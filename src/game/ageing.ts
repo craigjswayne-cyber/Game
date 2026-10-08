@@ -152,9 +152,20 @@ export function softCeilings(state: GameState) {
  * taken from the man who gets there. A multiplier on an existing chance: no
  * new draw anywhere.
  */
-export function youthPace(age: number): number {
-  return age <= 18 ? 0.45 : age === 19 ? 0.55 : age === 20 ? 0.7 : age === 21 ? 0.85 : 1
+export function youthPace(age: number, prodigy = false): number {
+  const base = age <= 18 ? 0.45 : age === 19 ? 0.55 : age === 20 ? 0.7 : age === 21 ? 0.85 : 1
+  // THE EXCEPTION (owner, 1.8.15: "there may be anomalies and special
+  // wonderkids who are just incredible and with the right training will be
+  // world class"). An early developer (devproject.ts learning, about one man
+  // in twelve) with elite potential keeps most of a teenager's pace: three
+  // quarters of the slowdown is waived. Everything else that makes a player
+  // grow - minutes, facilities, the mentor, the staff - still applies, so the
+  // right club is what turns one into a world-class player.
+  return prodigy ? 1 - (1 - base) * 0.25 : base
 }
+
+/** Elite potential and an early developer: the rare teenager who arrives early. */
+export const PRODIGY_PA = 88
 
 export function gapGrowth(ca: number, pa: number): number {
   const gap = Math.max(0, pa - ca)
