@@ -153,8 +153,15 @@ export function demandedFinish(state: GameState, clubId: string, teams = 14): { 
   // playoffs, Northampton's title (third-best squad) the top two. Only the
   // top half, so a newcomer's new-money ambition at the foot of the table
   // stands. The terraces do not lower theirs (season.ts, terraces.ts).
+  // AND A TITLE IS ONLY DEMANDED OF THE BEST SQUAD (1.8.15). From 1.8.14 a new
+  // man at a giant wins the league about a quarter of the time, so a board
+  // asking Bath (the second-best squad) for the title asked for a three-in-four
+  // failure: an engaged manager's board there fell into crisis in 9 seasons of
+  // 36 and its lowest point averaged 35, against 4 and 48 on 1.8.13
+  // (autopilotprobe). The second-best squad is asked for the top two.
   const rank = squadRank(state, clubId)
-  if (rank && steps[j].pos <= teams / 2 && rank - steps[j].pos >= 2) j = Math.min(steps.length - 1, j + 1)
+  const short = rank != null && ((steps[j].pos <= teams / 2 && rank - steps[j].pos >= 2) || (steps[j].pos === 1 && rank > 1))
+  if (short) j = Math.min(steps.length - 1, j + 1)
   return j === i ? base : steps[j]
 }
 
