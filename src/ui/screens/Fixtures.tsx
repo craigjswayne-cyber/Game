@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useStore } from '../../store'
 import { teamShort } from '../../game/matchEngine'
 import { venueBadge, venueEffect } from '../../game/venue'
-import { MIDWEEK_OFF, fixtureDate, weekDate, type Fixture, type MatchEvent } from '../../game/model'
+import { MIDWEEK_OFF, fixtureDate, fxDate, weekDate, type Fixture, type MatchEvent } from '../../game/model'
 import { ClubLink, CrestT, Jersey, SectionTitle } from '../components'
 import LeagueTable from '../LeagueTable'
 import { stageShort } from './Home'
@@ -211,7 +211,7 @@ export default function Fixtures() {
         <div className="modal-veil" onClick={() => setReplayId(null)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="grab" />
-            <SectionTitle sub={`${weekDate(game.season, replay.week)}${replay.att ? t('fixtures.replaySub', { att: replay.att, venue: replay.venue?.name ?? game.clubs[replay.homeId]?.stadium ?? t('fixtures.neutralVenueLower') }) : ''}`}>
+            <SectionTitle sub={`${fxDate(game.season, replay)}${replay.att ? t('fixtures.replaySub', { att: replay.att, venue: replay.venue?.name ?? game.clubs[replay.homeId]?.stadium ?? t('fixtures.neutralVenueLower') }) : ''}`}>
               {teamShort(game, replay.homeId)} {replay.homeScore} – {replay.awayScore} {teamShort(game, replay.awayId)}
             </SectionTitle>
             <div style={{ padding: '0 4px' }}>

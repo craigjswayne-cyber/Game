@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
 import { teamShort } from '../../game/matchEngine'
-import { weekDate } from '../../game/model'
+import { fxDate } from '../../game/model'
 import { ClubLink, CrestT, SectionTitle } from '../components'
 import LeagueTable from '../LeagueTable'
 import { stageName } from './Home'
@@ -44,7 +44,7 @@ export default function Tables({ initial }: { initial?: string }) {
               <tr key={f.id}>
                 <td className="muted">{stageName(f.stage!)}</td>
                 <td className="name"><CrestT g={game} teamId={f.homeId} size={15} /><ClubLink g={game} clubId={f.homeId}>{teamShort(game, f.homeId)}</ClubLink> {t('common.v')} <CrestT g={game} teamId={f.awayId} size={15} /><ClubLink g={game} clubId={f.awayId}>{teamShort(game, f.awayId)}</ClubLink></td>
-                <td className="num">{f.played ? `${f.homeScore}-${f.awayScore}` : weekDate(game.season, f.week).slice(0, -5)}</td>
+                <td className="num">{f.played ? `${f.homeScore}-${f.awayScore}` : fxDate(game.season, f)}</td>
               </tr>
             ))}
           </tbody></table></div>

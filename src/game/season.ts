@@ -25,7 +25,7 @@ import {absWeek, addGrudge, careerRows, boardPatience, demandCeiling, FACILITY_I
 import { simMatch, autoSelect, pickTrainingInjury, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { BARRAGE_WEEK, windowSpan } from './calendar'
 import { emptyRow, leaguePos, sortTable, snIdFor, snWeeksFor, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS, W_AUTUMN_WEEKS, W_SIX_NATIONS_WEEKS, W_PAC4_WEEKS, W_SUMMER_TEST_WEEKS } from './schedule'
-import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice } from './ai'
+import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice, settlePendingDeals } from './ai'
 import { isDeadlineWeek, nextWeek, postWindowNotes, prevWeek } from './window'
 import { OFFICE_OUTLET, PRESS_KEEP_WEEKS, generatePress, isBoardroom } from './media'
 import { debtWeek } from './treasury'
@@ -46,7 +46,7 @@ import { resolveCourses, staffWageBill } from './staff'
 import { RIFT_MORALE, RIFT_TRAINING, riftDrag, staffRiftWeek } from './staffrift'
 import { resolveCommission, scoutPostcard } from './commission'
 import { clamp, mulberry32, shuffled, type Rng } from './rng'
-import { attrOdds, attrRoll, gapGrowth, trainPoint } from './ageing'
+import { attrOdds, attrRoll, gapGrowth, PRODIGY_PA, trainPoint, youthPace } from './ageing'
 import { gameTimeReview, settleGameTime } from './gametime'
 import { depthWatch } from './depthwatch'
 import { rebuildSeason, rollIntakeClass } from './rollover'
@@ -58,7 +58,7 @@ import { settleKnocks } from './knock'
 import { askBoard, type BoardAsk } from './boardroom'
 import { expireLoans, loanOutBoost, loanTargets } from './loans'
 import { FOCUS_MAX_AGE, focusIds } from './development'
-import { confidence, devHash, heavyLoad, planAffinity, weekGrowth } from './devproject'
+import { confidence, devHash, heavyLoad, learning, planAffinity, weekGrowth } from './devproject'
 import { devNewsWeek, previewRead, trimDevFirst } from './devnews'
 import { refreshVacancies, sackManager } from './jobs'
 import { historyAfterMatch, historyPreview, historyWeight } from './history'
@@ -1384,7 +1384,7 @@ function weeklyTraining(state: GameState, rng: Rng) {
       // tempo and the month's spell, bounded and centred on the world's mean.
       // Every club's youngsters, the same rules. The short-circuit keeps the
       // rng draw exactly where it was.
-      if (p.age <= 24 && p.ca < p.pa && rng() < 0.06 * growBoost * eliteF * gapGrowth(p.ca, p.pa) * weekGrowth(state, p)) p.ca += 1
+      if (p.age <= 24 && p.ca < p.pa && rng() < 0.06 * growBoost * eliteF * gapGrowth(p.ca, p.pa) * weekGrowth(state, p) * youthPace(p.age, p.age <= 21 && p.pa >= PRODIGY_PA && learning(state.seed, p).tempo === 'early')) p.ca += 1
       // CONFIDENCE FEEDS FORM, a little (1.8.2): a man flying carries it into
       // the next week, one in a hole carries that. Read off his last three
       // ratings (devproject.confidence), mean zero across the world
@@ -3824,7 +3824,15 @@ export function processWeekAndAdvance(state: GameState) {
     // was sacked inside one mid-season slump, on the same three weeks as a man
     // who had won nothing. Each trophy at this club in the last two seasons
     // adds three weeks to how long the board's confidence must sit on the floor.
-    const silver = Math.min(2, (state.mgr?.trophies ?? []).filter(x => x.clubId === club.id && x.season >= state.season - 1).length)
+    // AND A LEGACY BUYS A LITTLE MORE (1.8.15). A twenty-season soak sacked a
+    // manager who had won Toulouse eleven trophies, the last of them three
+    // seasons earlier, with the side fifth of fourteen and inside the playoff
+    // places: two seasons is a short memory for a board he had filled the
+    // cabinet for. Every four trophies at the club, ever, add three weeks more,
+    // at most six; the whole allowance stays capped at nine extra weeks, so a
+    // decorated manager in a real collapse still goes.
+    const mine = (state.mgr?.trophies ?? []).filter(x => x.clubId === club.id)
+    const silver = Math.min(3, Math.min(2, mine.filter(x => x.season >= state.season - 1).length) + Math.min(2, Math.floor(mine.length / 4)))
     if (club.boardConfidence <= 3 && state.week > 8 && !reprieved && !honeymoon && state.boardFloorWeeks >= 3 + 3 * silver) {
       // the mechanics live in sackManager (jobs.ts) - shared with the
       // pushed-once-too-often dismissal of the board-request escalation
@@ -4683,6 +4691,9 @@ If you go, your assistant takes your national side for the duration. Nobody prep
   // record, a farewell) off the end of the inbox (devnews.ts trimDevFirst)
   // the new week's Monday notice, if the window opens or shuts on it
   postWindowNotes(state, 0)
+  // the deals agreed while it was shut go through first thing on the Monday
+  // it opens, before any AI club moves (1.8.15, ai.ts settlePendingDeals)
+  settlePendingDeals(state)
   trimDevFirst(state, NEWS_KEEP)
   if (state.news.length > NEWS_KEEP) state.news = state.news.slice(-NEWS_KEEP)
 

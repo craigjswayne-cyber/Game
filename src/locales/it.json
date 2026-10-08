@@ -1761,7 +1761,7 @@
   "fuTrend_worse": "Peggio.",
   "fuLever_right": "Hai mosso {dial_k} nella direzione giusta all'intervallo.",
   "fuLever_wrong": "{dial_k} è andato nella direzione opposta all'intervallo.",
-  "fuLever_none": "{dial_k} è rimasto dov'era.",
+  "fuLever_none": "{dial_k} è rimasto dov'era all'intervallo.",
   "fuNow": "Il problema più grande oggi: {what_k}.",
   "planAside": "Così il piano ({plan}) viene messo da parte: sarà giudicato sul primo tempo.",
   "planAsideEarly": "Così il piano ({plan}) viene messo da parte prima di aver avuto un tempo, quindi non si potrà giudicare."
@@ -2669,6 +2669,8 @@
   "3": "Dossier completo: numeri, carattere e temperamento tutti verificati."
  },
  "player": {
+  "dealCallOff": "Annulla l'accordo",
+  "dealPendingBuy": "Accordo raggiunto: passa al {club} per {fee} all'apertura del mercato, {date}.",
   "transferRequestLocked": "Richiesta di cessione, definitiva",
   "promiseStartTitle": "Promesso in conferenza stampa: una maglia da titolare nella prossima partita. Senza, richiesta di trasferimento.",
   "promiseStart": "Titolarità promessa",
@@ -2693,6 +2695,7 @@
   "scouted_f": "Osservata",
   "value": "Valore",
   "valueTitle": "quanto vale secondo il mercato, non quanto un club accetterebbe",
+  "askOverBudget": "Richiesta {ask}: {amount} oltre il tuo budget",
   "wage": "Ingaggio",
   "wageTitle": "quanto ti costa ogni settimana dell'anno",
   "contractTo": "Contratto fino al",
@@ -4484,6 +4487,10 @@
   "unofficialBody_f": "PHASE: Rugby Manager non è affiliato, approvato o autorizzato da alcuna giocatrice, club, lega o federazione. I nomi dei club sono reali; competizioni, stadi e sponsor sono rinominati o inventati. I nomi delle giocatrici sono reali, usati per identificare persone in un database sportivo e per nulla altro, e non è incluso alcuno stemma, maglia o logo ufficiale."
  },
  "news": {
+  "dealOff": "Il mercato si è aperto e l'accordo per {name} non è andato in porto. {why}",
+  "dealOffSubj": "Affare saltato: {name}",
+  "dealDone": "Il mercato è aperto e l'accordo è stato completato. {why}",
+  "dealDoneSubj": "Affare concluso: {name}",
   "startVoid": "{player} non era a disposizione, quindi la maglia da titolare promessa non vale più.",
   "startVoidSubj": "Promessa sciolta: {player}",
   "startBroke": "Avevi promesso a {player} una maglia da titolare nella partita successiva, e non è arrivata. Sulla tua scrivania c'è una richiesta di trasferimento, e non verrà ritirata.",
@@ -7072,6 +7079,13 @@
   "acadReleased": "Svincolo dall'academy per {player}."
  },
  "reply": {
+  "dealCalledOff": "L'accordo per {name} è saltato. Non è stato pagato nulla.",
+  "dealOffBuyerShort": "Il {club} non può più pagare la cifra.",
+  "dealOffMoved": "{name} ha cambiato squadra dopo l'accordo.",
+  "dealOffGone": "Il giocatore non è più disponibile.",
+  "saleAgreed": "Accordo raggiunto: {player} passa al {club} per {fee} all'apertura del mercato, {date}.",
+  "dealAgreedBuy": "Accordo raggiunto: {name} arriva per {fee} all'apertura del mercato, {date}. Fino ad allora non si paga nulla, e l'accordo salta se quel giorno non puoi permettertelo.",
+  "dealAlreadyAgreed": "Per {name} c'è già un accordo. Si chiude all'apertura del mercato.",
   "requestLockedRenew": "{name} non vuole parlare di contratto. La richiesta di trasferimento resta.",
   "rivalBidOpen": "{club} ha pareggiato il cartellino e gli offre {wage}/sett. Deciderà questa settimana.",
   "rivalBidOpen_f": "{club} ha pareggiato il cartellino e le offre {wage}/sett. Deciderà questa settimana.",
@@ -8777,6 +8791,8 @@
  "arc": {
   "aimTop2": "chiudere tra le prime due",
   "aimTop4": "chiudere tra le prime quattro",
+  "aimTop6": "chiudere tra le prime sei",
+  "aimTop7": "chiudere tra le prime sette",
   "aimNotBottom": "non chiudere all'ultimo posto",
   "ambTitle": "Ambizioni",
   "ambSub": "Lo scopo di questa carriera",

@@ -28,6 +28,14 @@ const ok = (c: boolean, what: string) => {
   if (!c) fails++
 }
 
+// THE MANAGER STAYS IN POST (1.8.15). This measures the contract clock, and
+// a clock nobody is there to hear is not a measurement: after the AI economy
+// was recalibrated the idle manager at Leicester on seed 51 was sacked in week
+// 36, so the 3-month and 2-week reminders were never filed, and a sacked
+// manager's men were renewed by his old board and counted as staying. The
+// board is held where a manager doing his job would keep it.
+const keepInPost = (g: GameState) => { const c = g.clubs[g.userClubId]; if (c && !g.unemployed) c.boardConfidence = Math.max(c.boardConfidence, 60) }
+
 console.log('\n--- 1. four reminders, and each says how long is left\n')
 {
   const g = newGame('leicester', 'Contract Clock', 51)
@@ -43,6 +51,7 @@ console.log('\n--- 1. four reminders, and each says how long is left\n')
   const seen: { week: number; when: string }[] = []
   const known = new Set<number>(g.news.map(n => n.id))
   for (let i = 0; i < SEASON_WEEKS + 2 && g.season === 0; i++) {
+    keepInPost(g)
     processWeekAndAdvance(g)
     for (const n of g.news) {
       if (known.has(n.id)) continue
@@ -80,7 +89,7 @@ console.log('\n--- 2. a lapsed contract usually costs you the player\n')
     const watch = squad.filter(p => p.morale >= 4.5 && !p.transferListed).slice(0, 8)
     for (const p of watch) p.contractEnds = g.season
     const ids = watch.map(p => p.id)
-    for (let i = 0; i < SEASON_WEEKS + 2 && g.season === 0; i++) processWeekAndAdvance(g)
+    for (let i = 0; i < SEASON_WEEKS + 2 && g.season === 0; i++) { keepInPost(g); processWeekAndAdvance(g) }
     for (const id of ids) {
       const p = g.players[id]
       if (!p) continue

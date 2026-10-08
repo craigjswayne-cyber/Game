@@ -150,8 +150,14 @@ console.log('--- the world mean: three seasons against the old curve')
    *  assistant's bench -0.04. So the references move by the measured
    *  shift, from the old curve's 59.32 and 57.18 on this seed: the world
    *  mean by -0.10 and the under-23s by -0.37, with the same +-0.5 band
-   *  (a world's sd is 0.11 and 0.09, so the band is still about five). */
-  const ALL_REF = 59.32 - 0.10, U23_REF = 57.18 - 0.37
+   *  (a world's sd is 0.11 and 0.09, so the band is still about five).
+   *  AND AGAIN FOR THE YOUNG (1.8.15, owner-approved): teenagers now grow at
+   *  45-85% of the old pace until 22 (ageing.ts youthPace), so under-21s rated
+   *  80+ settle at about forty rather than climbing to a hundred, with the
+   *  rare early-developing wonderkid exempt. Three seasons in, that is meant
+   *  to show: measured on this seed the world mean moves by -0.85 and the
+   *  under-23s by -1.64. The references move by exactly that, same band. */
+  const ALL_REF = 59.32 - 0.10 - 0.85, U23_REF = 57.18 - 0.37 - 1.64
   console.log(`  S3: mean rating ${all.toFixed(2)} (old curve 59.32, now ${ALL_REF.toFixed(2)}), under-23s ${u23.toFixed(2)} (57.18, now ${U23_REF.toFixed(2)}), attributes of 18+ ${hi18} (265, with 1.8.13's data ${265 + 47})`)
   ok(Math.abs(all - ALL_REF) <= 0.5, 'the world mean holds')
   ok(Math.abs(u23 - U23_REF) <= 0.5, 'the under-23 mean holds')

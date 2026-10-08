@@ -433,6 +433,18 @@ function Preview({ fxId }: { fxId: number }) {
   const hasBad = warnings.some(w => w.level === 'bad')
   const fixedLineup = useMemo(() => {
     if (!confirm || !hasBad) return null
+    // A REPAIR COSTS THE BROKEN SHIRTS, NOT THE SIDE (1.8.15). This re-picked
+    // the whole twenty-three through the assistant's imperfect eye, so one
+    // injured flanker cost a first-time player eight starters and his captain
+    // - and the dressing room then blamed HIM for dropping the captain, because
+    // the sheet it wrote was his. The note promises a repair, so it repairs:
+    // every fit man keeps his shirt and only the unfit ones are filled
+    // (repairSheet, the same thing kick-off does). Only when that still leaves
+    // the scrum short does the assistant re-pick from scratch.
+    const repaired = repairSheet(game, club, tac.lineup, splitFor(club))
+    // (frontRow above is this same repaired sheet's front-row read)
+    const sound = repaired.every((id, i) => i >= 15 && id == null ? true : !problem(id != null ? game.players[id] ?? null : null))
+    if (sound && frontRow.legal) return repaired
     // his re-pick, his eye: the tunnel fix is the assistant working, so it
     // carries assistantJudgement like every side he names
     const picked = autoSelect(game, availablePlayers(game, club.players), splitFor(club), assistantJudgement(game))
@@ -558,7 +570,7 @@ function Preview({ fxId }: { fxId: number }) {
   }
   const goDownTheTunnel = (sp: SpeechId | null) => {
     if (warnings.length) { setConfirm(true); return }
-    if (view === 'instant') instantResult(sp ?? undefined)
+    if (view === 'instant') instantResult(sp ?? undefined, true)
     else kickOff(sp ?? undefined, view)
   }
   const tryKickOff = () => {
@@ -692,7 +704,7 @@ function Preview({ fxId }: { fxId: number }) {
                 onClick={() => {
                   if (hasBad && fixedLineup) { tac.lineup = fixedLineup; touch() }
                   setConfirm(false)
-                  if (view === 'instant') instantResult(speech ?? undefined)
+                  if (view === 'instant') instantResult(speech ?? undefined, true)
                   else kickOff(speech ?? undefined, view)
                 }}>
                 {hasBad && fixedLineup ? t('matchday.fixItPrefix') : ''}{t(view === 'instant' ? 'matchday.letHimTakeIt' : 'matchday.takeField')}
@@ -1536,7 +1548,7 @@ function NationPreview({ fxId }: { fxId: number }) {
               <button className="btn gold" style={{ flex: 1.5, fontSize: 16 }}
                 onClick={() => {
                   setConfirm(false)
-                  if (view === 'instant') instantResult(speech ?? undefined)
+                  if (view === 'instant') instantResult(speech ?? undefined, true)
                   else kickOff(speech ?? undefined, view)
                 }}>
                 {t(view === 'instant' ? 'matchday.letHimTakeIt' : 'matchday.takeField')}
@@ -2624,7 +2636,8 @@ function MatchVerdict() {
             <span className="muted">({clubCode(teamShort(game, starMine ? mine.teamId : opp.teamId))})</span>
           </div>
           <span className="form-pill" style={{ background: 'var(--text-positive)', fontSize: 16 }}>
-            {ctx.motmId != null ? (mine.ratings.get(ctx.motmId) ?? opp.ratings.get(ctx.motmId) ?? 7).toFixed(1) : ''}
+            {/* the published mark, as the findings and the ratings table print it (1.8.15: this read the running in-match number, so one man was "8.5" here and "10.0" two lines below) */}
+            {ctx.motmId != null ? (mine.finalR?.get(ctx.motmId) ?? opp.finalR?.get(ctx.motmId) ?? mine.ratings.get(ctx.motmId) ?? opp.ratings.get(ctx.motmId) ?? 7).toFixed(1) : ''}
           </span>
         </div>
       )}
@@ -3077,7 +3090,7 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
 
       <div className="fact-label" style={{ marginTop: 10 }}>{t('matchday.inMatchTactics')} <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>{t('matchday.tapAName')}</span></div>
       {SLIDER_INFO.map(s => (
-        <div key={s.key} data-dial={s.key} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '2px 0', borderRadius: 6 }}>
+        <div key={s.key} data-dial={s.key} className="dial-row" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '2px 0', borderRadius: 6 }}>
           <span style={{ width: 78, fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--cond)', textTransform: 'uppercase', letterSpacing: .5, cursor: 'pointer' }}
             onClick={() => setExplain(`${t(s.label)}: ${sliderReadout(s.key, club.tactic[s.key])}`)}>
             {t(s.label)}

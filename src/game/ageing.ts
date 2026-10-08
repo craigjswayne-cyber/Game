@@ -141,6 +141,32 @@ export function softCeilings(state: GameState) {
     if (p.pa > SOFT_FROM && p.pa > p.ca) p.pa = Math.max(p.ca, Math.round(SOFT_FROM + (p.pa - SOFT_FROM) * 0.45))
   }
 }
+/**
+ * ---- RUGBY PLAYERS ARRIVE IN THEIR MID-TWENTIES (1.8.15) ----
+ *
+ * A twenty-season soak counted the under-21s rated 80+: twelve at the start,
+ * a hundred by season five, every one of them a generated prospect who had
+ * gained six or seven points a year from seventeen. The sport's best young
+ * men are good, not finished. The pace a teenager develops at is scaled down,
+ * so the same potential is reached three or four years later, and nothing is
+ * taken from the man who gets there. A multiplier on an existing chance: no
+ * new draw anywhere.
+ */
+export function youthPace(age: number, prodigy = false): number {
+  const base = age <= 18 ? 0.45 : age === 19 ? 0.55 : age === 20 ? 0.7 : age === 21 ? 0.85 : 1
+  // THE EXCEPTION (owner, 1.8.15: "there may be anomalies and special
+  // wonderkids who are just incredible and with the right training will be
+  // world class"). An early developer (devproject.ts learning, about one man
+  // in twelve) with elite potential keeps most of a teenager's pace: three
+  // quarters of the slowdown is waived. Everything else that makes a player
+  // grow - minutes, facilities, the mentor, the staff - still applies, so the
+  // right club is what turns one into a world-class player.
+  return prodigy ? 1 - (1 - base) * 0.25 : base
+}
+
+/** Elite potential and an early developer: the rare teenager who arrives early. */
+export const PRODIGY_PA = 88
+
 export function gapGrowth(ca: number, pa: number): number {
   const gap = Math.max(0, pa - ca)
   return clamp(0.5 + 0.5 * gap / GAP_MID, 0.55, 1.8)

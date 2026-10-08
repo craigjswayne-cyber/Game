@@ -1770,7 +1770,7 @@
     "fuTrend_worse": "Pire.",
     "fuLever_right": "Vous avez réglé {dial_k} dans le bon sens à la pause.",
     "fuLever_wrong": "{dial_k} est allé dans l'autre sens à la pause.",
-    "fuLever_none": "{dial_k} n'a pas bougé.",
+    "fuLever_none": "{dial_k} n'a pas bougé à la pause.",
     "fuNow": "Le plus gros problème aujourd'hui : {what_k}.",
     "planAside": "Le plan ({plan}) est mis de côté : il sera jugé sur la première période.",
     "planAsideEarly": "Le plan ({plan}) est mis de côté avant d'avoir eu une mi-temps, on ne pourra donc pas le juger."
@@ -2681,6 +2681,8 @@
     "3": "Dossier complet : chiffres, caractère et tempérament tous vérifiés."
   },
   "player": {
+    "dealCallOff": "Annuler l'accord",
+    "dealPendingBuy": "Accord conclu : rejoint {club} pour {fee} à l'ouverture du mercato, le {date}.",
     "transferRequestLocked": "Demande de transfert, définitive",
     "promiseStartTitle": "Promis en conférence de presse : une titularisation au prochain match. Sans elle, une demande de transfert.",
     "promiseStart": "Titularisation promise",
@@ -2707,6 +2709,7 @@
     "scouted_f": "Observée",
     "value": "Valeur",
     "valueTitle": "ce que le marché dit qu'il vaut, pas ce qu'un club accepterait",
+    "askOverBudget": "Prix demandé {ask} : {amount} au-dessus de votre budget",
     "valueTitle_f": "ce que le marché dit qu'elle vaut, pas ce qu'un club accepterait",
     "wage": "Salaire",
     "wageTitle": "ce qu'il vous coûte chaque semaine de l'année",
@@ -4528,6 +4531,10 @@
     "unofficialBody_f": "PHASE : Rugby Manager n'est ni affilié, ni approuvé, ni sous licence d'une joueuse, d'un club, d'une ligue ou d'une fédération. Les noms de clubs sont réels ; les compétitions, les stades et les sponsors sont renommés ou inventés. Les noms des joueuses sont réels, utilisés pour identifier des personnes dans une base de données sportive et pour rien d'autre, et aucun écusson, maillot ou logo officiel n'est inclus."
   },
   "news": {
+    "dealOff": "Le mercato s'est ouvert et l'accord pour {name} n'a pas pu aboutir. {why}",
+    "dealOffSubj": "Transfert annulé : {name}",
+    "dealDone": "Le mercato est ouvert et l'accord a été finalisé. {why}",
+    "dealDoneSubj": "Transfert finalisé : {name}",
     "startVoid": "{player} n'était pas disponible, donc la titularisation promise ne tient plus.",
     "startVoidSubj": "Promesse levée : {player}",
     "startBroke": "Vous aviez promis à {player} une titularisation au match suivant, et elle n'est pas venue. Une demande de transfert est sur votre bureau, et elle ne sera pas retirée.",
@@ -7181,6 +7188,13 @@
     "acadReleased": "{player} libéré de l'académie."
   },
   "reply": {
+    "dealCalledOff": "L'accord pour {name} est annulé. Rien n'a été payé.",
+    "dealOffBuyerShort": "{club} ne peut plus payer l'indemnité.",
+    "dealOffMoved": "{name} a changé de club depuis l'accord.",
+    "dealOffGone": "Le joueur n'est plus disponible.",
+    "saleAgreed": "Accord conclu : {player} rejoint {club} pour {fee} à l'ouverture du mercato, le {date}.",
+    "dealAgreedBuy": "Accord conclu : {name} arrive pour {fee} à l'ouverture du mercato, le {date}. Rien n'est payé d'ici là, et l'accord tombe si vous ne pouvez pas payer ce jour-là.",
+    "dealAlreadyAgreed": "Un accord pour {name} est déjà conclu. Il sera finalisé à l'ouverture du mercato.",
     "requestLockedRenew": "{name} refuse de discuter d'un contrat. La demande de transfert tient toujours.",
     "rivalBidOpen": "{club} s'est aligné sur la même indemnité et lui offre {wage}/sem. Il tranchera cette semaine.",
     "rivalBidOpen_f": "{club} s'est aligné sur la même indemnité et lui offre {wage}/sem. Elle tranchera cette semaine.",
@@ -8941,6 +8955,8 @@
   "arc": {
     "aimTop2": "finir dans les deux premiers",
     "aimTop4": "finir dans les quatre premiers",
+    "aimTop6": "finir dans les six premiers",
+    "aimTop7": "finir dans les sept premiers",
     "aimNotBottom": "ne pas finir dernier",
     "ambTitle": "Ambitions",
     "ambSub": "Ce pour quoi vous faites carrière",

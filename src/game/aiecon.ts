@@ -54,7 +54,14 @@ const STAFF_PER_REP = 620
  * one number chosen to make the median come out where it was, and the one to
  * move if it drifts.
  */
-const COMMERCIAL_PER_REP = 1_800
+// 1_800 until 1.8.15. The release-hardening fixes took the drift out of
+// wages and slowed the young (youthPace), so the same income outran a slower
+// bill: the mean AI club gained 0.82M a season against the calibrated 0.27M
+// and the top-flight median sat at 12.7M at season fourteen. A flat cut to
+// 1_600 met both but put the smallest top-flight clubs (Drua) into
+// administration twice in five seasons, so the cut is smaller and the rest
+// comes off the clubs sitting on money (SURPLUS_WEEKS, REINVEST_SHARE).
+const COMMERCIAL_PER_REP = 1_700
 
 /**
  * A median AI wage bill at kick-off of a new career, in £/week. The reference
@@ -325,7 +332,10 @@ const DEBT_FLOOR_WEEKS = 20
  * With twenty weeks and the cushion above it reads £3.8M, which is still
  * months of wages in the bank (scripts/distressprobe.ts, four worlds).
  */
-const SURPLUS_WEEKS = 20
+// Sixteen, and half of the excess, from 1.8.15 (it was twenty and forty per
+// cent): see COMMERCIAL_PER_REP. Swept on four worlds over fourteen seasons.
+const SURPLUS_WEEKS = 16
+const REINVEST_SHARE = 0.5
 
 export interface AiLedger {
   gate: number
@@ -454,7 +464,7 @@ export function aiBoardsReinvest(state: GameState): void {
     const wages = aiWeek(state, club, index).wages
     const keep = wages * SURPLUS_WEEKS
     if (wages <= 0 || club.balance <= keep) continue
-    club.balance -= Math.round((club.balance - keep) * 0.4)
+    club.balance -= Math.round((club.balance - keep) * REINVEST_SHARE)
   }
 }
 

@@ -150,6 +150,28 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.8.15, Play version code 54
+
+Each entry is under 500 characters. Paste the matching language into each Play locale.
+
+**en-GB**
+Transfers can now be agreed while the window is shut: they go through when it opens, or fall through if you cannot afford them then, and the profile shows the deal. Instant Result stops at full time to explain the match. Dates and season targets agree on every screen, transfer sums match the figures shown, and controls are bigger. Young players develop more realistically, with the rare wonderkid still breaking through, and club finances are rebalanced.
+
+**fr-FR**
+Les transferts peuvent être conclus mercato fermé : ils sont finalisés à son ouverture, ou annulés si vous ne pouvez plus payer, et la fiche du joueur l'indique. Le Résultat immédiat s'arrête au coup de sifflet final pour expliquer le match. Dates et objectifs concordent partout, les montants sont justes et les commandes plus grandes. Les jeunes progressent de façon plus réaliste, avec de rares prodiges, et les finances des clubs sont rééquilibrées.
+
+**es-ES**
+Ahora se pueden cerrar fichajes con el mercado cerrado: se completan cuando abre, o se caen si ya no puedes pagarlos, y la ficha del jugador lo indica. El Resultado inmediato se detiene al final para explicar el partido. Fechas y objetivos coinciden en todas las pantallas, las cifras cuadran y los controles son más grandes. Los jóvenes progresan de forma más realista, con algún prodigio, y las finanzas de los clubes se reequilibran.
+
+**it-IT**
+Ora i trasferimenti si possono concordare a mercato chiuso: si chiudono all'apertura, o saltano se non puoi più permetterteli, e la scheda del giocatore lo mostra. Il Risultato immediato si ferma al fischio finale per spiegare la partita. Date e obiettivi coincidono ovunque, le cifre tornano e i comandi sono più grandi. I giovani crescono in modo più realistico, con qualche raro fenomeno, e le finanze dei club sono riequilibrate.
+
+**ja-JP**
+移籍ウィンドウが閉じている間も移籍に合意できるようになりました。ウィンドウが開いた時点で成立し、支払えなければ破談になります。合意は選手のプロフィールに表示されます。即時結果は試合終了時点で止まり、結果の理由を確認できます。日程とシーズン目標は全画面で一致し、移籍金額は表示どおりに計算され、操作部も大きくなりました。若手の成長はより現実的になり、まれに突出した逸材も現れます。クラブ財政も再調整しました。
+
+**af**
+Oordragte kan nou ooreengekom word terwyl die venster toe is: dit gaan deur wanneer dit oopgaan, of val deur as jy dit dan nie kan bekostig nie, en die profiel wys die ooreenkoms. Kitsuitslag stop by die eindfluitjie om die wedstryd te verduidelik. Datums en teikens stem oral ooreen, oordragsyfers klop en kontroles is groter. Jong spelers ontwikkel meer realisties, met die seldsame wonderkind wat steeds deurbreek, en klubfinansies is herbalanseer.
+
 ### What's new (500 max) - v1.8.14, Play version code 53
 
 Each entry is under 500 characters. Paste the matching language into each Play locale.

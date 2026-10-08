@@ -1757,7 +1757,7 @@
   "fuTrend_worse": "Peor.",
   "fuLever_right": "Moviste {dial_k} en la buena dirección en el descanso.",
   "fuLever_wrong": "{dial_k} fue en la dirección contraria en el descanso.",
-  "fuLever_none": "{dial_k} se quedó donde estaba.",
+  "fuLever_none": "{dial_k} se quedó donde estaba en el descanso.",
   "fuNow": "El mayor problema hoy: {what_k}.",
   "planAside": "Esto deja de lado el plan ({plan}): se juzgará por la primera parte.",
   "planAsideEarly": "Esto deja de lado el plan ({plan}) antes de que haya tenido una parte, así que no se podrá juzgar."
@@ -2660,6 +2660,8 @@
   "3": "Expediente completo: números, carácter y temperamento verificados."
  },
  "player": {
+  "dealCallOff": "Anular el acuerdo",
+  "dealPendingBuy": "Acuerdo cerrado: llega a {club} por {fee} cuando abra el mercado, el {date}.",
   "transferRequestLocked": "Traspaso pedido, sin vuelta atrás",
   "promiseStartTitle": "Prometido en rueda de prensa: titularidad en el próximo partido. Sin ella, solicitud de traspaso.",
   "promiseStart": "Titularidad prometida",
@@ -2685,6 +2687,7 @@
   "scouted_f": "Ojeada",
   "value": "Valor",
   "valueTitle": "lo que el mercado dice que vale, no lo que un club aceptaría",
+  "askOverBudget": "Precio exigido {ask}: {amount} por encima de tu presupuesto",
   "wage": "Sueldo",
   "wageTitle": "lo que te cuesta cada semana del año",
   "contractTo": "Contrato hasta",
@@ -4458,6 +4461,10 @@
   "unofficialBody_f": "PHASE: Rugby Manager no está afiliado, avalado ni licenciado por ninguna jugadora, club, liga u organismo. Los nombres de los clubes son reales; las competiciones, los estadios y los patrocinadores están renombrados o inventados. Los nombres de las jugadoras son reales, usados para identificar a personas en una base de datos deportiva y para nada más, y no se incluye ningún escudo, camiseta ni logotipo oficial."
  },
  "news": {
+  "dealOff": "El mercado abrió y el acuerdo por {name} no pudo completarse. {why}",
+  "dealOffSubj": "Fichaje caído: {name}",
+  "dealDone": "El mercado está abierto y el acuerdo se ha completado. {why}",
+  "dealDoneSubj": "Fichaje cerrado: {name}",
   "startVoid": "{player} no estaba disponible, así que la titularidad prometida ya no vale.",
   "startVoidSubj": "Promesa anulada: {player}",
   "startBroke": "Prometiste a {player} la titularidad en el siguiente partido y no llegó. Hay una solicitud de traspaso en tu mesa, y no se va a retirar.",
@@ -7026,6 +7033,13 @@
   "acadReleased": "Baja de {player} en la academia."
  },
  "reply": {
+  "dealCalledOff": "El acuerdo por {name} queda anulado. No se pagó nada.",
+  "dealOffBuyerShort": "{club} ya no puede pagar el traspaso.",
+  "dealOffMoved": "{name} ha cambiado de club desde que se cerró el acuerdo.",
+  "dealOffGone": "El jugador ya no está disponible.",
+  "saleAgreed": "Acuerdo cerrado: {player} se marcha a {club} por {fee} cuando abra el mercado, el {date}.",
+  "dealAgreedBuy": "Acuerdo cerrado: {name} llega por {fee} cuando abra el mercado, el {date}. No se paga nada hasta entonces, y el acuerdo se cae si ese día no puedes pagarlo.",
+  "dealAlreadyAgreed": "Ya hay un acuerdo cerrado por {name}. Se completa cuando abra el mercado.",
   "requestLockedRenew": "{name} no quiere hablar de contrato. La solicitud de traspaso sigue en pie.",
   "rivalBidOpen": "{club} ha igualado el traspaso y le ofrece {wage}/sem. Decidirá esta semana.",
   "rivalBidPrefers": "{name} se inclina por {club}, que ofrece {wage}/sem. Lo que pesa: {why_k}. Su oferta sigue en pie hasta que acabe la semana.",
@@ -8721,6 +8735,8 @@
  "arc": {
   "aimTop2": "terminar entre los dos primeros",
   "aimTop4": "terminar entre los cuatro primeros",
+  "aimTop6": "terminar entre los seis primeros",
+  "aimTop7": "terminar entre los siete primeros",
   "aimNotBottom": "no terminar último",
   "ambTitle": "Ambiciones",
   "ambSub": "Para qué es esta carrera",

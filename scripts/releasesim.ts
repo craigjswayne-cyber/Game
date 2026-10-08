@@ -29,6 +29,7 @@ import { simMatch } from '../src/game/matchEngine'
 import { answerPress } from '../src/game/media'
 import { ATTR_KEYS, SEASON_WEEKS, leagueTier } from '../src/game/model'
 import type { GameState } from '../src/game/model'
+import { insolvencyRisk } from '../src/game/insolvency'
 
 const SEASONS = Number(process.argv[2] ?? 15)
 const SEED = Number(process.argv[3] ?? 20260822)
@@ -82,6 +83,9 @@ interface Row {
   deep: number
   /** clubs whose points deduction applies to this season */
   admin: number
+  /** clubs still past the administration line straight after the rollover
+   *  with no administration to show for it: the ones that escaped the rule */
+  owing: number
   /** RATING INFLATION (1.6.3). The u23 mean above stayed flat while the world
    *  went from 30 players rated 90+ to over 200 in ten seasons and National
    *  One's best XV closed a 32-point gap on the Premiership to six
@@ -106,6 +110,10 @@ for (let s = 0; s < SEASONS; s++) {
     processWeekAndAdvance(g)
   }
   ok(g.season === target, `season ${target}: the year actually rolled (week ${g.week})`)
+  // the books have just been settled: nobody may still be past the line
+  // without the administration that line means (measured here, not in the
+  // last week of the season, when season-end money still has to land)
+  const owing = Object.values(g.clubs).filter(c => insolvencyRisk(g, c) === 'gone' && !c.admin).length
 
   const json = JSON.stringify(g)
   // NaN/Infinity serialise to null through JSON.stringify, so scan the live
@@ -139,6 +147,7 @@ for (let s = 0; s < SEASONS; s++) {
       return w > 0 && c.balance < -10 * w
     }).length,
     admin: clubs.filter(c => c.admin && c.admin.season === g.season).length,
+    owing,
     news: g.news.length,
     ca90: ids.filter(id => g.players[id].ca >= 90).length,
     ca85: ids.filter(id => g.players[id].ca >= 85).length,
@@ -226,8 +235,18 @@ ok(rows.slice(2).every(r => r.retiredish > 0 && r.newU23 > 0),
    *  below requires to happen. 0.4 is 43 clubs, about 2.8 sd over the tip. */
   ok(last.deep <= Object.keys(g.clubs).length * 0.4,
     `distress is contained (${last.deep} clubs more than ten weeks under)`)
-  ok(rows.slice(6).some(r => r.admin > 0),
-    `and clubs that cannot pay actually go under (${rows.reduce((x, r) => x + r.admin, 0)} administrations over the run)`)
+  // WHAT THIS PROMISES IS THAT NOBODY ESCAPES, NOT THAT SOMEBODY FALLS
+  // (1.8.15). Until 1.8.14 forty clubs sat in the red and one went under
+  // every season or two, so "an administration after season six" stood in
+  // for "the rule bites". The 1.8.14 economy (wages that follow a world no
+  // longer inflating, a top-flight solidarity share) leaves no club near the
+  // line at all, and the stand-in failed while the rule was untouched
+  // (insolvprobe drives a club over it and checks it goes). So the check is
+  // the rule itself: straight after every rollover no club is still past the
+  // line without being in administration, and the count of both is printed.
+  const owed = rows.reduce((x, r) => x + r.owing, 0), went = rows.reduce((x, r) => x + r.admin, 0)
+  ok(owed === 0,
+    `and clubs that cannot pay actually go under (${went} administrations over the run, ${owed} clubs left past the line without one)`)
 }
 ok(Number.isFinite(last.leagueBal) && Math.abs(last.leagueBal) < 30e9,
   `league-wide money stays on a human scale (£${(last.leagueBal / 1e6).toFixed(0)}m)`)
