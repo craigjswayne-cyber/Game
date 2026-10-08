@@ -1195,7 +1195,8 @@ export interface TransferOffer {
   week: number
   /** offer directed at user needs response */
   forUser: boolean
-  status: 'pending' | 'accepted' | 'rejected'
+  /** 'agreed': accepted outside a window, completes when it opens (pendingDeals) */
+  status: 'pending' | 'accepted' | 'rejected' | 'agreed'
   /** He has already been asked for more once.
    *
    *  Haggling (ai.ts counterIncomingOffer) raises the fee by
@@ -1695,6 +1696,28 @@ export interface ManagerStats {
   spent: number
   /** Manager of the Month awards won */
   moms?: number
+}
+
+/** A transfer agreed outside the window (1.8.15, owner: "you should be able to
+ *  buy players outside of transfer window... but they cant transfer until the
+ *  window is open"). 'buy': the manager's signing, with the terms he agreed;
+ *  'sell': an AI club's bid he accepted. */
+export interface PendingDeal {
+  id: number
+  kind: 'buy' | 'sell'
+  playerId: number
+  /** the club at the other end: the seller for a buy, the buyer for a sale */
+  clubId: string
+  /** the manager's club when it was agreed: a deal does not follow him to a new job */
+  myClubId: string
+  fee: number
+  wage?: number
+  signOn?: number
+  promise?: boolean
+  marquee?: boolean
+  offerId?: number
+  season: number
+  week: number
 }
 
 export interface GameState {
@@ -2322,6 +2345,10 @@ export interface GameState {
    *  pre-contracts), paid from the day he arrives. Absent on the AI's and on
    *  saves from before 1.8.1. */
   preContracts?: { playerId: number; toClubId: string; week: number; wage?: number }[]
+  /** Transfers agreed while the window was shut (1.8.15): they complete, in
+   *  order, on the Monday the window opens, or fall through then (ai.ts
+   *  settlePendingDeals). Nothing is paid until they complete. */
+  pendingDeals?: PendingDeal[]
   /** a takeover in motion (the moneyMen storyline): rumour -> exclusivity ->
    *  completion or collapse */
   takeover?: { clubId: string; week: number; stage: number } | null

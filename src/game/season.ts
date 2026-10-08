@@ -25,7 +25,7 @@ import {absWeek, addGrudge, careerRows, boardPatience, demandCeiling, FACILITY_I
 import { simMatch, autoSelect, pickTrainingInjury, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { BARRAGE_WEEK, windowSpan } from './calendar'
 import { emptyRow, leaguePos, sortTable, snIdFor, snWeeksFor, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS, W_AUTUMN_WEEKS, W_SIX_NATIONS_WEEKS, W_PAC4_WEEKS, W_SUMMER_TEST_WEEKS } from './schedule'
-import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice } from './ai'
+import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice, settlePendingDeals } from './ai'
 import { isDeadlineWeek, nextWeek, postWindowNotes, prevWeek } from './window'
 import { OFFICE_OUTLET, PRESS_KEEP_WEEKS, generatePress, isBoardroom } from './media'
 import { debtWeek } from './treasury'
@@ -4691,6 +4691,9 @@ If you go, your assistant takes your national side for the duration. Nobody prep
   // record, a farewell) off the end of the inbox (devnews.ts trimDevFirst)
   // the new week's Monday notice, if the window opens or shuts on it
   postWindowNotes(state, 0)
+  // the deals agreed while it was shut go through first thing on the Monday
+  // it opens, before any AI club moves (1.8.15, ai.ts settlePendingDeals)
+  settlePendingDeals(state)
   trimDevFirst(state, NEWS_KEEP)
   if (state.news.length > NEWS_KEEP) state.news = state.news.slice(-NEWS_KEEP)
 

@@ -2681,6 +2681,8 @@
     "3": "Dossier complet : chiffres, caractère et tempérament tous vérifiés."
   },
   "player": {
+    "dealCallOff": "Annuler l'accord",
+    "dealPendingBuy": "Accord conclu : rejoint {club} pour {fee} à l'ouverture du mercato, le {date}.",
     "transferRequestLocked": "Demande de transfert, définitive",
     "promiseStartTitle": "Promis en conférence de presse : une titularisation au prochain match. Sans elle, une demande de transfert.",
     "promiseStart": "Titularisation promise",
@@ -4529,6 +4531,10 @@
     "unofficialBody_f": "PHASE : Rugby Manager n'est ni affilié, ni approuvé, ni sous licence d'une joueuse, d'un club, d'une ligue ou d'une fédération. Les noms de clubs sont réels ; les compétitions, les stades et les sponsors sont renommés ou inventés. Les noms des joueuses sont réels, utilisés pour identifier des personnes dans une base de données sportive et pour rien d'autre, et aucun écusson, maillot ou logo officiel n'est inclus."
   },
   "news": {
+    "dealOff": "Le mercato s'est ouvert et l'accord pour {name} n'a pas pu aboutir. {why}",
+    "dealOffSubj": "Transfert annulé : {name}",
+    "dealDone": "Le mercato est ouvert et l'accord a été finalisé. {why}",
+    "dealDoneSubj": "Transfert finalisé : {name}",
     "startVoid": "{player} n'était pas disponible, donc la titularisation promise ne tient plus.",
     "startVoidSubj": "Promesse levée : {player}",
     "startBroke": "Vous aviez promis à {player} une titularisation au match suivant, et elle n'est pas venue. Une demande de transfert est sur votre bureau, et elle ne sera pas retirée.",
@@ -7182,6 +7188,13 @@
     "acadReleased": "{player} libéré de l'académie."
   },
   "reply": {
+    "dealCalledOff": "L'accord pour {name} est annulé. Rien n'a été payé.",
+    "dealOffBuyerShort": "{club} ne peut plus payer l'indemnité.",
+    "dealOffMoved": "{name} a changé de club depuis l'accord.",
+    "dealOffGone": "Le joueur n'est plus disponible.",
+    "saleAgreed": "Accord conclu : {player} rejoint {club} pour {fee} à l'ouverture du mercato, le {date}.",
+    "dealAgreedBuy": "Accord conclu : {name} arrive pour {fee} à l'ouverture du mercato, le {date}. Rien n'est payé d'ici là, et l'accord tombe si vous ne pouvez pas payer ce jour-là.",
+    "dealAlreadyAgreed": "Un accord pour {name} est déjà conclu. Il sera finalisé à l'ouverture du mercato.",
     "requestLockedRenew": "{name} refuse de discuter d'un contrat. La demande de transfert tient toujours.",
     "rivalBidOpen": "{club} s'est aligné sur la même indemnité et lui offre {wage}/sem. Il tranchera cette semaine.",
     "rivalBidOpen_f": "{club} s'est aligné sur la même indemnité et lui offre {wage}/sem. Elle tranchera cette semaine.",

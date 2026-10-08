@@ -2637,6 +2637,8 @@
   "3": "Volle lêer: syfers, karakter en temperament almal bevestig."
  },
  "player": {
+  "dealCallOff": "Kanselleer die ooreenkoms",
+  "dealPendingBuy": "Ooreengekom: sluit vir {fee} by {club} aan wanneer die venster op {date} oopgaan.",
   "transferRequestLocked": "Oordragversoek ingedien, finaal",
   "promiseStartTitle": "Belowe by die perskonferensie: 'n plek in die beginspan vir die volgende wedstryd. Geen begin nie, dan 'n oordragversoek.",
   "promiseStart": "Beginplek belowe",
@@ -4411,6 +4413,10 @@
   "bridgeProducts": "Produkte waarvoor die winkel 'n prys gegee het: {live} van {asked}"
  },
  "news": {
+  "dealOff": "Die venster het oopgegaan en die ooreenkoms vir {name} kon nie deurgaan nie. {why}",
+  "dealOffSubj": "Ooreenkoms van die baan: {name}",
+  "dealDone": "Die venster is oop en die ooreenkoms is afgehandel. {why}",
+  "dealDoneSubj": "Ooreenkoms afgehandel: {name}",
   "startVoid": "{player} was nie beskikbaar nie, so die beloofde plek in die beginspan geld nie meer nie.",
   "startVoidSubj": "Belofte vervalle: {player}",
   "startBroke": "Jy het {player} 'n plek in die beginspan vir die volgende wedstryd belowe, en dit het nie gebeur nie. 'n Oordragversoek lê op jou lessenaar, en dit sal nie teruggetrek word nie.",
@@ -7111,6 +7117,13 @@
   "acadReleased": "{player} uit die akademie laat gaan."
  },
  "reply": {
+  "dealCalledOff": "Die ooreenkoms vir {name} is van die baan. Niks is betaal nie.",
+  "dealOffBuyerShort": "{club} kan nie meer die fooi betaal nie.",
+  "dealOffMoved": "{name} het sedert die ooreenkoms na 'n ander klub geskuif.",
+  "dealOffGone": "Die speler is nie meer beskikbaar nie.",
+  "saleAgreed": "Ooreengekom: {player} sluit vir {fee} by {club} aan wanneer die venster op {date} oopgaan.",
+  "dealAgreedBuy": "Ooreengekom: {name} sluit vir {fee} aan wanneer die venster op {date} oopgaan. Niks word tot dan betaal nie, en die ooreenkoms val deur as jy dit op die dag nie kan bekostig nie.",
+  "dealAlreadyAgreed": "Daar is reeds 'n ooreenkoms vir {name}. Dit word afgehandel wanneer die venster oopgaan.",
   "requestLockedRenew": "{name} wil nie oor 'n kontrak praat nie. Die oordragversoek staan.",
   "rivalBidOpen": "{club} het dieselfde fooi ooreengekom en bied hom {wage}/wk aan. Hy besluit hierdie week.",
   "rivalBidOpen_f": "{club} het dieselfde fooi ooreengekom en bied haar {wage}/wk aan. Sy besluit hierdie week.",

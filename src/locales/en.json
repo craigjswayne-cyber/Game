@@ -2640,6 +2640,8 @@
   "3": "Full file: numbers, character and temperament all verified."
  },
  "player": {
+  "dealCallOff": "Call the deal off",
+  "dealPendingBuy": "Agreed: joins {club} for {fee} when the window opens on {date}.",
   "transferRequestLocked": "Transfer request in, for good",
   "promiseStartTitle": "Promised in the press room: a start in the next match. No start means a transfer request.",
   "promiseStart": "Promised a start",
@@ -4402,6 +4404,10 @@
   "bridgeProducts": "Products priced by the store: {live} of {asked}"
  },
  "news": {
+  "dealOff": "The window opened and the deal for {name} could not go through. {why}",
+  "dealOffSubj": "Deal off: {name}",
+  "dealDone": "The window is open and the agreed deal has gone through. {why}",
+  "dealDoneSubj": "Deal done: {name}",
   "startVoid": "{player} was not available for selection, so the promised start no longer stands.",
   "startVoidSubj": "Promise lifted: {player}",
   "startBroke": "You promised {player} a start in the next match, and it did not happen. A transfer request is on your desk, and it will not be withdrawn.",
@@ -7073,6 +7079,13 @@
   "acadReleased": "Released {player} from the academy."
  },
  "reply": {
+  "dealCalledOff": "The deal for {name} is off. Nothing was paid.",
+  "dealOffBuyerShort": "{club} can no longer pay the fee.",
+  "dealOffMoved": "{name} has moved on since the deal was agreed.",
+  "dealOffGone": "The player is no longer available.",
+  "saleAgreed": "Agreed: {player} joins {club} for {fee} when the window opens on {date}.",
+  "dealAgreedBuy": "Agreed: {name} joins for {fee} when the window opens on {date}. Nothing is paid until then, and the deal falls through if you cannot afford it on the day.",
+  "dealAlreadyAgreed": "A deal for {name} is already agreed. It completes when the window opens.",
   "requestLockedRenew": "{name} will not talk terms. The transfer request stands.",
   "rivalBidOpen": "{club} have agreed the same fee and offer him {wage}/wk. He decides this week.",
   "rivalBidOpen_f": "{club} have agreed the same fee and offer her {wage}/wk. She decides this week.",

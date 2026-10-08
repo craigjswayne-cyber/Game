@@ -2,7 +2,8 @@ import { useRef, useState } from 'react'
 import { useStore } from '../../store'
 import { ATTR_KEYS, SEASON_WEEKS, careerRows, fmtMoney, fmtWage, shownMoney, injuryDesc, type Attrs, type GameState, type Player, type TrainingFocus, seasonLabel } from '../../game/model'
 import { liveRivalBid } from '../../game/rivalbids'
-import { agreeFee, agreePreContract, askingPrice, floorPrice, sellerWillingness, offerRenewalAt, personalTermsDemand, renewalDemand, signFreeAgent, signOnTerms } from '../../game/ai'
+import { agreeFee, agreePreContract, askingPrice, callOffDeal, floorPrice, pendingDeal, sellerWillingness, offerRenewalAt, personalTermsDemand, renewalDemand, signFreeAgent, signOnTerms } from '../../game/ai'
+import { openDate } from '../../game/window'
 import { FormPill, Nat, PosBadge, SectionTitle, Stars, TwoStep, RewardedButton } from '../components'
 import { nationName } from '../../game/nations'
 import { Flag } from '../flags'
@@ -358,6 +359,26 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         {p.onLoan && <span className="chip" style={{ color: 'var(--gold)' }}>{t('player.awayOnLoan')}</span>}
         {p.transferListed && <span className="chip" style={{ color: 'var(--gold)' }}>{t('player.transferListed')}</span>}
       </div>
+
+      {/* AN AGREED DEAL WAITING ON THE WINDOW (1.8.15, owner: "if a transfer is
+          happening it should be added to their profile"). A signing or a sale
+          agreed while the window was shut: who, for what, and the day it goes
+          through, with the way out. Nothing is paid until then. */}
+      {(() => {
+        const d = pendingDeal(game, p.id)
+        if (!d) return null
+        const to = d.kind === 'buy' ? game.clubs[game.userClubId] : game.clubs[d.clubId]
+        return (
+          <div className="card" data-deal={d.kind} style={{ borderLeft: '4px solid var(--gold)' }}>
+            <div className="meta" style={{ fontWeight: 600 }}>
+              {t('player.dealPendingBuy', { club: to?.short ?? '', fee: fmtMoney(d.fee), ...openDate(game) })}
+            </div>
+            <div className="btn-row" style={{ marginTop: 6 }}>
+              <button className="btn ghost" onClick={() => { setMsg(callOffDeal(game, p.id)); touch() }}>{t('player.dealCallOff')}</button>
+            </div>
+          </div>
+        )
+      })()}
 
       {/* THE OFFICE (audit 20D). Players used to knock on the manager's door;
           the manager could never knock back. Two conversations a week, one per
@@ -871,7 +892,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
               }} />
           )}
           {/* once a fee is agreed the table is about terms, not the fee */}
-          {termsFee != null ? null : !bidding
+          {termsFee != null || pendingDeal(game, p.id) ? null : !bidding
             ? <>
               {p.contractEnds <= game.season && game.week >= 25 && !(game.preContracts ?? []).some(x => x.playerId === p.id) && (
                 <button className="btn gold block" onClick={() => {

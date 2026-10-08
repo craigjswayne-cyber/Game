@@ -2573,6 +2573,8 @@
   "3": "完全ファイル：数値・人柄・気性のすべてを検証済み。"
  },
  "player": {
+  "dealCallOff": "合意を取り消す",
+  "dealPendingBuy": "合意済み：移籍ウィンドウが開く{date}に{fee}で{club}へ加入。",
   "transferRequestLocked": "移籍願提出済み（撤回なし）",
   "promiseStartTitle": "会見での約束：次の試合で先発。果たさなければ移籍願。",
   "promiseStart": "先発を約束",
@@ -4246,6 +4248,10 @@
   "bridgeProducts": "ストアが価格を返した商品：{asked}件中{live}件"
  },
  "news": {
+  "dealOff": "移籍ウィンドウが開いたが、{name}の移籍は成立しなかった。{why}",
+  "dealOffSubj": "移籍破談：{name}",
+  "dealDone": "移籍ウィンドウが開き、合意していた移籍が成立した。{why}",
+  "dealDoneSubj": "移籍成立：{name}",
   "startVoid": "{player}は出場できる状態になかったため、先発の約束は白紙になった。",
   "startVoidSubj": "約束は白紙に：{player}",
   "startBroke": "次の試合での先発を{player}に約束したが、果たされなかった。移籍願が机の上にある。取り下げられることはない。",
@@ -6711,6 +6717,13 @@
   "acadReleased": "{player}をアカデミーから放出した。"
  },
  "reply": {
+  "dealCalledOff": "{name}との合意は取り消した。支払いは発生していない。",
+  "dealOffBuyerShort": "{club}はもう移籍金を払えない。",
+  "dealOffMoved": "合意後に{name}は別のクラブへ移った。",
+  "dealOffGone": "その選手はもう獲得できない。",
+  "saleAgreed": "合意：{player}は移籍ウィンドウが開く{date}に{fee}で{club}へ移籍する。",
+  "dealAgreedBuy": "合意：{name}は移籍ウィンドウが開く{date}に{fee}で加入する。それまで支払いは発生せず、その日に支払えなければ契約は破談になる。",
+  "dealAlreadyAgreed": "{name}とはすでに合意済み。移籍ウィンドウが開いた時点で成立する。",
   "requestLockedRenew": "{name}は契約の話に応じない。移籍願は撤回されない。",
   "rivalBidOpen": "{club}も同じ移籍金で合意し、週{wage}を提示している。今週中に本人が決める。",
   "rivalBidPrefers": "{name}は週{wage}を提示する{club}に傾いている。決め手は{why_k}。先方のオファーは今週いっぱい有効。",

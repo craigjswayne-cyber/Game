@@ -108,6 +108,10 @@ for (const [club, seed, walk] of [['leicester', 7101, false], ['bath', 7102, tru
       }
     }
     const was = new Map(Object.values(g.players).map(p => [p.id, { club: p.clubId, loanFrom: p.loanFrom }]))
+    // a deal agreed while the window was shut completes on the Monday it
+    // opens (1.8.15, ai.ts settlePendingDeals): legal, and it happens inside
+    // the call that settles the last shut week
+    const agreed = new Set((g.pendingDeals ?? []).map(d => d.playerId))
     const from = g.nextId
     processWeekAndAdvance(g)
     g.day = 0
@@ -121,12 +125,16 @@ for (const [club, seed, walk] of [['leicester', 7101, false], ['bath', 7102, tru
       const story = g.news.filter(n => n.id >= from && n.playerId === p.id && n.k?.startsWith('news.transferDone')).pop()
       if (story?.k === 'news.transferDoneFree') continue
       moves++
+      if (agreed.has(p.id) && windowOpen(g.week)) continue
       if (!windowOpen(week)) illegal.push(`${p.name} ${b.club}->${p.clubId} wk${week} ${story?.k ?? ''}`)
     }
     if (!windowOpen(g.week) && !g.unemployed) {
+      // FROM 1.8.15 A BID MAY SIT ON THE DESK IN A SHUT WEEK: accepting it
+      // agrees the sale and the man moves when the window opens (above), so
+      // what must hold is that he does not move today
       const n = g.offers.filter(o => o.status === 'pending' && o.forUser).length
       if (n) deskShut.push(`wk${g.week}: ${n}`)
-      // and a stale one cannot be accepted
+      // and an accepted one does not move him in a shut week
       const p = g.clubs[g.userClubId].players.map(id => g.players[id]).find(q => q && !q.acad)
       const other = Object.values(g.clubs).find(c => c.id !== g.userClubId)
       if (p && other && g.week === 12) {
@@ -143,8 +151,8 @@ for (const [club, seed, walk] of [['leicester', 7101, false], ['bath', 7102, tru
   console.log(`  ${moves} moves between clubs, ${sold} of them the manager's sales${sackedAt < Infinity ? `, sacked at ${sackedAt}` : ''}`)
   ok(moves > 10, 'the market still moves')
   ok(illegal.length === 0, `no permanent move between clubs outside a window${illegal.length ? ': ' + illegal.slice(0, 5).join('; ') : ''}`)
-  ok(deskShut.length === 0, `no bid for the manager's men sits on his desk in a shut week${deskShut.length ? ': ' + deskShut.join(', ') : ''}`)
-  ok(refused >= 1, `and a stale bid in a shut week cannot be accepted (${refused})`)
+  console.log(`  bids on the desk in shut weeks: ${deskShut.length} (allowed from 1.8.15)`)
+  ok(refused >= 1, `and a bid accepted in a shut week does not move him that week (${refused})`)
 
   const seq = notes.map(n => `${n.season}:${n.week}:${n.day}:${(n.k ?? '').slice(11)}`)
   const want: string[] = []
