@@ -2662,6 +2662,7 @@
   "scouted": "Scouted",
   "value": "Value",
   "valueTitle": "what the market says he is worth, not what a club would accept",
+  "askOverBudget": "Asking price {ask}: {amount} over your budget",
   "wage": "Wage",
   "wageTitle": "what he costs you every week of the year",
   "contractTo": "Contract to",
@@ -8832,6 +8833,8 @@
  "arc": {
   "aimTop2": "finish in the top two",
   "aimTop4": "finish in the top four",
+  "aimTop6": "finish in the top six",
+  "aimTop7": "finish in the top seven",
   "aimNotBottom": "stay off the bottom of the table",
   "ambTitle": "Ambitions",
   "ambSub": "What this career is for",

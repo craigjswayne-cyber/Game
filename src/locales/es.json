@@ -2685,6 +2685,7 @@
   "scouted_f": "Ojeada",
   "value": "Valor",
   "valueTitle": "lo que el mercado dice que vale, no lo que un club aceptaría",
+  "askOverBudget": "Precio exigido {ask}: {amount} por encima de tu presupuesto",
   "wage": "Sueldo",
   "wageTitle": "lo que te cuesta cada semana del año",
   "contractTo": "Contrato hasta",
@@ -8721,6 +8722,8 @@
  "arc": {
   "aimTop2": "terminar entre los dos primeros",
   "aimTop4": "terminar entre los cuatro primeros",
+  "aimTop6": "terminar entre los seis primeros",
+  "aimTop7": "terminar entre los siete primeros",
   "aimNotBottom": "no terminar último",
   "ambTitle": "Ambiciones",
   "ambSub": "Para qué es esta carrera",

@@ -2659,6 +2659,7 @@
   "scouted": "Verken",
   "value": "Waarde",
   "valueTitle": "wat die mark sê hy werd is, nie wat 'n klub sou aanvaar nie",
+  "askOverBudget": "Vraprys {ask}: {amount} bo jou begroting",
   "wage": "Salaris",
   "wageTitle": "wat hy jou elke week van die jaar kos",
   "contractTo": "Kontrak tot",
@@ -8876,6 +8877,8 @@
  "arc": {
   "aimTop2": "onder die eerste twee eindig",
   "aimTop4": "onder die eerste vier eindig",
+  "aimTop6": "onder die eerste ses eindig",
+  "aimTop7": "onder die eerste sewe eindig",
   "aimNotBottom": "nie heel onder eindig nie",
   "ambTitle": "Ambisies",
   "ambSub": "Waarvoor hierdie loopbaan is",

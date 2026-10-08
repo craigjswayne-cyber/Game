@@ -139,7 +139,7 @@ const SHIFT: Record<JobProfile, number> = { giant: -1, fallen: -1, newcomer: -1,
 export function demandedFinish(state: GameState, clubId: string, teams = 14): { text: string; pos: number } {
   const club = state.clubs[clubId]
   const base = boardObjective(club?.rep ?? 60, teams)
-  if (ARC_OFF.on || !club) return base
+  if (ARC_OFF.on || !club) return nameAim(state, clubId, base, teams)
   const steps = ladder(teams)
   const i = steps.findIndex(s => s.text === base.text)
   if (i < 0) return base
@@ -162,7 +162,27 @@ export function demandedFinish(state: GameState, clubId: string, teams = 14): { 
   const rank = squadRank(state, clubId)
   const short = rank != null && ((steps[j].pos <= teams / 2 && rank - steps[j].pos >= 2) || (steps[j].pos === 1 && rank > 1))
   if (short) j = Math.min(steps.length - 1, j + 1)
-  return j === i ? base : steps[j]
+  return nameAim(state, clubId, j === i ? base : steps[j], teams)
+}
+
+/**
+ * THE WORDS SAY THE NUMBER (1.8.15). Two rungs of the ladder carry fixed
+ * places, sixth for the playoffs and seventh for the top half, which are only
+ * those things in a fourteen-club league. In the ten-club Premier Division the
+ * board said "finish in the top half" and marked seventh as met, so the desk
+ * counted places off an aim nobody could see, and the same club was told it
+ * faced a playoff push, the top half and relegation in its first week. The
+ * place stays (it is the balance); the words now name it when the league's
+ * own shape does not.
+ */
+function nameAim(state: GameState, clubId: string, aim: { text: string; pos: number }, teams: number): { text: string; pos: number } {
+  const n = Math.max(2, Math.round(teams))
+  if (aim.pos >= n) return aim
+  const lg = state.comps[state.clubs[clubId]?.leagueId ?? '']
+  const playoffs = (lg as { playoffTeams?: number } | undefined)?.playoffTeams ?? 0
+  if (aim.text === 'objectives.boardPlayoffs' && playoffs !== aim.pos && (aim.pos === 6 || aim.pos === 7)) return { ...aim, text: `arc.aimTop${aim.pos}` }
+  if (aim.text === 'objectives.boardTopHalf' && Math.floor(n / 2) !== aim.pos && (aim.pos === 6 || aim.pos === 7)) return { ...aim, text: `arc.aimTop${aim.pos}` }
+  return aim
 }
 
 /** Where a club's squad stands in its league on paper: the mean current

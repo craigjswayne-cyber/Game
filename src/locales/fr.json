@@ -2707,6 +2707,7 @@
     "scouted_f": "Observée",
     "value": "Valeur",
     "valueTitle": "ce que le marché dit qu'il vaut, pas ce qu'un club accepterait",
+    "askOverBudget": "Prix demandé {ask} : {amount} au-dessus de votre budget",
     "valueTitle_f": "ce que le marché dit qu'elle vaut, pas ce qu'un club accepterait",
     "wage": "Salaire",
     "wageTitle": "ce qu'il vous coûte chaque semaine de l'année",
@@ -8941,6 +8942,8 @@
   "arc": {
     "aimTop2": "finir dans les deux premiers",
     "aimTop4": "finir dans les quatre premiers",
+    "aimTop6": "finir dans les six premiers",
+    "aimTop7": "finir dans les sept premiers",
     "aimNotBottom": "ne pas finir dernier",
     "ambTitle": "Ambitions",
     "ambSub": "Ce pour quoi vous faites carrière",

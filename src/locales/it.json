@@ -2693,6 +2693,7 @@
   "scouted_f": "Osservata",
   "value": "Valore",
   "valueTitle": "quanto vale secondo il mercato, non quanto un club accetterebbe",
+  "askOverBudget": "Richiesta {ask}: {amount} oltre il tuo budget",
   "wage": "Ingaggio",
   "wageTitle": "quanto ti costa ogni settimana dell'anno",
   "contractTo": "Contratto fino al",
@@ -8777,6 +8778,8 @@
  "arc": {
   "aimTop2": "chiudere tra le prime due",
   "aimTop4": "chiudere tra le prime quattro",
+  "aimTop6": "chiudere tra le prime sei",
+  "aimTop7": "chiudere tra le prime sette",
   "aimNotBottom": "non chiudere all'ultimo posto",
   "ambTitle": "Ambizioni",
   "ambSub": "Lo scopo di questa carriera",

@@ -2830,6 +2830,13 @@ export function fixtureDate(season: number, week: number, fxId: number, dayOff?:
   return `${dayAbbr(d.getUTCDay())} ${d.getUTCDate()} ${monthName(d.getUTCMonth())}`
 }
 
+/** One fixture's kick-off date, midweek rounds included: the one call every
+ *  screen that dates a fixture makes, so the preview, the Home card and the
+ *  report all print the same day (1.8.15). */
+export function fxDate(season: number, fx: { week: number; id: number; midweek?: boolean }): string {
+  return fixtureDate(season, fx.week, fx.id, fx.midweek ? MIDWEEK_OFF : undefined)
+}
+
 /**
  * The real-world year that season 0 starts in.
  *
@@ -3044,4 +3051,21 @@ export function fmtMoney(v: number): string {
   if (a >= M || Math.round(a / K) >= 1000) return `${sign}£${(a / M).toFixed(a >= 10 * M ? 0 : 1)}m`
   if (a >= K) return `${sign}£${Math.round(a / K)}k`
   return `${sign}£${a}`
+}
+
+/**
+ * The number fmtMoney prints, as a number. A difference shown next to two
+ * printed figures has to be the difference of what is printed (1.8.15:
+ * "£12m ... valued at £7.5m, so this is £4.3m over" was right to the pound
+ * and wrong to anyone reading it, because £11.8m prints as £12m).
+ */
+export function shownMoney(v: number): number {
+  if (!Number.isFinite(v)) return 0
+  const a = Math.abs(v), sg = v < 0 ? -1 : 1
+  const K = 1_000, M = 1_000_000, B = 1_000_000_000
+  const at = (unit: number, dp: number) => sg * Number((a / unit).toFixed(dp)) * unit
+  if (a >= B || Math.round(a / M) >= 1000) return at(B, a >= 10 * B ? 0 : 1)
+  if (a >= M || Math.round(a / K) >= 1000) return at(M, a >= 10 * M ? 0 : 1)
+  if (a >= K) return sg * Math.round(a / K) * K
+  return v
 }

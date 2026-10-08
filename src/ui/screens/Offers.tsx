@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
-import { fmtMoney, fmtWage } from '../../game/model'
+import { fmtMoney, fmtWage, shownMoney } from '../../game/model'
 import { counterIncomingOffer, respondToOffer } from '../../game/ai'
 import { CrestT, PosBadge, Stars, TwoStep } from '../components'
 import { statusOf, STATUS_BY_ID } from '../../game/gametime'
@@ -61,7 +61,8 @@ export default function Offers() {
     .filter(x => x && x.id !== p.id && (x.pos === p.pos || x.alt.includes(p.pos)))
     .sort((a, b) => b.ca - a.ca)
   const deadline = [7, 26, 27].includes(game.week)
-  const over = o.fee - p.value
+  // the gap between the two figures on the page, not the two behind them
+  const over = shownMoney(o.fee) - shownMoney(p.value)
 
   const answer = (key: number, fn: () => string) => { setMsg({ key, text: fn() }); touch() }
 

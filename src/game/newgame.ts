@@ -781,15 +781,20 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   const challenge = challengeId ? CHALLENGES.find(c => c.id === challengeId) : null
 
   // 1. the appointment
+  // THE BOARD'S OWN WORDS (1.8.15): the letter read the club's stature on its
+  // own scale ("a playoff push is expected") while the board, the desk and
+  // the Finances page read demandedFinish, so a first week could carry two
+  // different aims. One source now.
+  const aimK = demandedFinish(state, uc.id, state.comps[uc.leagueId]?.table.length ?? 14).text
   state.news.push({
     id: state.nextId++, week: 1, season: 0, type: 'board', read: false,
     subject: challenge ? `THE CHALLENGE: ${tIn('en', challenge.title)}` : `Welcome to ${uc.name}`,
-    body: `${challenge ? tIn('en', challenge.desc) + '\n\n' : ''}The board of ${uc.name} is delighted to confirm the appointment of ${managerName} as the club's new Director of Rugby. Expectations at ${uc.stadium} are ${uc.rep >= 85 ? 'sky-high: silverware is demanded' : uc.rep >= 75 ? 'high: a playoff push is expected' : 'modest: steady the ship and build for the future'}. Your transfer budget this season is ${fmtMoney(uc.budget)}.`,
+    body: `${challenge ? tIn('en', challenge.desc) + '\n\n' : ''}The board of ${uc.name} is delighted to confirm the appointment of ${managerName} as the club's new Director of Rugby. The board expects you to ${tIn('en', aimK)}. Your transfer budget this season is ${fmtMoney(uc.budget)}.`,
     k: challenge ? 'news.appointChallenge' : 'news.appoint',
     v: {
       club: uc.name, manager: managerName, stadium: uc.stadium,
       money: fmtMoney(uc.budget),
-      expect_k: uc.rep >= 85 ? 'news.expectHigh' : uc.rep >= 75 ? 'news.expectMid' : 'news.expectLow',
+      expect_k: aimK,
       ...(challenge ? { title_k: challenge.title, desc_k: challenge.desc } : {}),
     },
   })

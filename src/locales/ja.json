@@ -2594,6 +2594,7 @@
   "scouted": "視察済み",
   "value": "価値",
   "valueTitle": "市場が言う彼の値段であって、クラブが手放す額ではない",
+  "askOverBudget": "言い値{ask}：予算を{amount}超過",
   "wage": "週給",
   "wageTitle": "一年中、毎週あなたが払い続ける額",
   "contractTo": "契約満了",
@@ -8387,6 +8388,8 @@
  "arc": {
   "aimTop2": "2位以内で終える",
   "aimTop4": "4位以内で終える",
+  "aimTop6": "6位以内で終える",
+  "aimTop7": "7位以内で終える",
   "aimNotBottom": "最下位を避ける",
   "ambTitle": "キャリアの目標",
   "ambSub": "このキャリアの目的",
