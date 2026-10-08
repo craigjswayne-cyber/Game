@@ -2707,7 +2707,7 @@
     "scouted_f": "Observée",
     "value": "Valeur",
     "valueTitle": "ce que le marché dit qu'il vaut, pas ce qu'un club accepterait",
-    "askOverBudget": "Prix demandé {ask} : {amount} au-dessus de votre budget",
+    "askOverBudget": "Prix demandé {ask} : {amount} au-dessus de votre budget",
     "valueTitle_f": "ce que le marché dit qu'elle vaut, pas ce qu'un club accepterait",
     "wage": "Salaire",
     "wageTitle": "ce qu'il vous coûte chaque semaine de l'année",
