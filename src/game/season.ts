@@ -234,8 +234,8 @@ export function requestFacility(state: GameState, fid: FacilityId): string {
     },
   })
   return boardPut > 0
-    ? `Approved. The board put up ${fmtMoney(boardPut)}, the club ${fmtMoney(clubShare)} - about ${weeks} weeks to build.`
-    : `Approved. ${fmtMoney(clubShare)} released - about ${weeks} weeks to build.`
+    ? `Approved. The board put up ${fmtMoney(boardPut)} and the club ${fmtMoney(clubShare)}. About ${weeks} weeks to build.`
+    : `Approved. ${fmtMoney(clubShare)} released. About ${weeks} weeks to build.`
 }
 
 /** Cost of the next stand: seats added, at the same rate the board pays. */

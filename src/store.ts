@@ -1834,8 +1834,8 @@ export const useStore = create<Store>((set, get) => ({
         id: g.nextId++, week: g.week, season: g.season, type: 'board', read: false,
         subject: `Appointed: national head coach of ${nat}`,
         body: keepClub && !g.unemployed
-          ? `A proud day. You now coach ${nat} alongside your club duties. In Test windows, when your club has no fixture, you'll take charge of the national side on match day - and every championship they win goes in YOUR cabinet.`
-          : `A proud day. ${nat} is your whole job now: Test windows, championship campaigns, and every trophy they win goes in YOUR cabinet.`,
+          ? `You'll coach ${nat} alongside the club job. In Test windows, when the club has no fixture, you take the national side on match day. Any championship they win goes in your cabinet.`
+          : `${nat} is the whole job now. Every Test window is yours, and so is any trophy they win.`,
       })
       // v1.1.5 (owner): taking a national job asks whether the club job is
       // kept. Declining it walks the same resignation the Profile button

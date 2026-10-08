@@ -352,7 +352,7 @@ export function loanOut(state: GameState, playerId: number): { ok: boolean; msg:
     v: feeder ? { player: p.name, club: feeder.name } : { player: p.name },
     playerId: p.id,
   })
-  return { ok: true, msg: `${p.name} will spend the season on loan${feeder ? ` at ${feeder.name}` : ''}. He returns next summer, better for it.` }
+  return { ok: true, msg: `${p.name} will spend the season on loan${feeder ? ` at ${feeder.name}` : ''}. He is back next summer.` }
 }
 
 /**
@@ -409,7 +409,7 @@ export function loanRecall(state: GameState, playerId: number): { ok: boolean; m
     const left = 4 - served
     return {
       ok: false,
-      msg: `${p.name} has only just walked through their door. The feeder club expect him to play some rugby before you change your mind - give it ${left} more week${left === 1 ? '' : 's'}.`,
+      msg: `${p.name} has only just got there. The feeder club want a few games out of him before you change your mind. Give it ${left} more week${left === 1 ? '' : 's'}.`,
     }
   }
   p.onLoan = false

@@ -104,7 +104,8 @@ say('\n--- 2. the dash hinge')
 {
   // where the text stands now, plus a point or two of room. Spanish is here to
   // be looked at, not to be met tomorrow.
-  const CEILING: Record<Lang, number> = { en: 30, fr: 27, es: 5, it: 24, ja: 25, af: 30 }
+  // en came down from 21% to 4% in the 1.8.16 voice pass (docs/voice-bible.md)
+  const CEILING: Record<Lang, number> = { en: 6, fr: 27, es: 5, it: 24, ja: 25, af: 30 }
   for (const lang of LANGS) {
     const long = stringsOf(lang).filter(([, s]) => isLong(lang, s))
     const n = long.filter(([, s]) => HINGE.test(s)).length
@@ -120,7 +121,7 @@ say('\n--- 2. the dash hinge')
 // ---------------------------------------------------------------------------
 say('\n--- 3. stories that all end the same way')
 {
-  const CEILING: Record<Lang, number> = { en: 55, fr: 48, es: 10, it: 38, ja: 90, af: 62 }
+  const CEILING: Record<Lang, number> = { en: 18, fr: 48, es: 10, it: 38, ja: 90, af: 62 }
   for (const lang of LANGS) {
     const long = stringsOf(lang).filter(([, s]) => isLong(lang, s))
     const n = long.filter(([, s]) => CLOSE.test(s.trim())).length
@@ -145,6 +146,46 @@ say('\n--- 4. how sentences begin')
   const articles = prose.filter(([, s]) => /^(?:The|A|An)\s/.test(s.trim())).length
   const pct = Math.round((articles / prose.length) * 100)
   ok(pct <= 22, `${articles} of ${prose.length} English lines open on The/A/An (${pct}%, ceiling 22%)`)
+}
+
+// ---------------------------------------------------------------------------
+// 5. THE CONSTRUCTIONS THE OWNER NAMED
+//
+// Owner, 1.8.16: "a player should never stop and think: that sounds like AI".
+// The voice bible (docs/voice-bible.md, section 5) was built from 86,000 words
+// of real Premiership and Test broadcasts, and none of these phrases occurs in
+// any of it. Each is allowed where a person would genuinely say it, so the
+// ceiling is where the English stood after the voice pass, not zero; it exists
+// so they cannot creep back while nobody is reading.
+// ---------------------------------------------------------------------------
+say('\n--- 5. report-voice constructions the broadcasts never use')
+{
+  const NAMED: [string, RegExp, number][] = [
+    ['"there is plenty to / of"', /\bthere(?:'s| is) plenty (?:to|of)\b/i, 3],
+    ['"the challenge now is"', /\bthe challenge now is\b/i, 0],
+    ['"it will be important to"', /\bit (?:will be|is) (?:important|crucial|vital) to\b/i, 0],
+    ['"represents a significant"', /\brepresents? an? (?:significant|major|huge|big)\b/i, 0],
+    ['"will be looking to"', /\bwill be looking to\b/i, 0],
+    ['"encouraging signs"', /\bencouraging signs?\b/i, 0],
+    ['"demonstrate(d)"', /\bdemonstrat(?:e|ed|es|ing)\b/i, 0],
+    ['"a positive step / step forward"', /\b(?:positive step|step forward)\b/i, 0],
+    ['"a key factor"', /\bkey factor\b/i, 0],
+    ['"it remains to be seen"', /\bremains to be seen\b/i, 0],
+    ['"the focus now turns / shifts"', /\bfocus (?:now )?(?:turns|shifts)\b/i, 0],
+    ['"a valuable learning experience"', /\blearning experience\b/i, 0],
+    ['"moving / going forward"', /\b(?:moving|going) forward\b(?! (?:in|into|with|to|from)\b)/i, 2],
+    ['"significant / substantial"', /\b(?:significant|substantial)(?:ly)?\b/i, 2],
+    ['"ensure"', /\bensur(?:e|es|ing)\b/i, 0],
+    ['"utilise / facilitate / optimal / leverage"', /\b(?:utilis|facilitat|optimal|leverag)\w*/i, 0],
+    ['"journey"', /\bjourney\b/i, 2],
+    ['"playoff" (British rugby writes play-off)', /\bplayoffs?\b/i, 0],
+  ]
+  const prose = stringsOf('en')
+  for (const [name, rx, ceiling] of NAMED) {
+    const hits = prose.filter(([, s]) => rx.test(s))
+    ok(hits.length <= ceiling,
+      `${name}: ${hits.length} (ceiling ${ceiling})${hits.length > ceiling ? ` - ${hits.map(h => h[0]).slice(0, 4).join(', ')}` : ''}`)
+  }
 }
 
 console.log(fails

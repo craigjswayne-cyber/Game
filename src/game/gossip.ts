@@ -132,7 +132,7 @@ export function reconcileFeud(state: GameState, index: number, rng: Rng): { ok: 
   b.morale = clamp(b.morale - 0.5, 1, 10)
   wire(state, 'news.wTalksFail',
     { short: state.clubs[state.userClubId].short, a: a.name, b: b.name }, a.id)
-  return { ok: false, msg: `${a.name} would not shake on it. That has cost you: the room knows you tried and failed.` }
+  return { ok: false, msg: `${a.name} would not shake on it, and the whole squad knows you tried.` }
 }
 
 function feuds(state: GameState): Feud[] {

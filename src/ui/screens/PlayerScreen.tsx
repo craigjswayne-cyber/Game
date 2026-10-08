@@ -713,7 +713,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             game.news.push({
               id: game.nextId++, week: game.week, season: game.season, type: 'youth', read: true,
               subject: `${p.name} promoted to the first team`,
-              body: `A big day at the training ground: ${p.name} (${p.age}) has been called up from the academy to full first-team duty. The academy coach shakes his hand at the door - his work here is done.`,
+              body: `Big day at the training ground. ${p.name} (${p.age}) is up from the academy and trains with the first team from today. The academy coach shook his hand on the way out.`,
               playerId: p.id,
             })
           }
