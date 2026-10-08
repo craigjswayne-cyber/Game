@@ -1611,7 +1611,10 @@ export const useStore = create<Store>((set, get) => ({
   finishMatch: () => {
     const g = get().game
     const live = get().liveMatch
-    if (!g) return
+    // ONE TAP, ONE WEEK (1.8.15). Two taps landing in one frame on Continue to
+    // Results each called this, and the second, with the match already gone,
+    // turned a second week. Instant Result now ends on this button too.
+    if (!g || !live) return
     const resultsKey = live ? resultsParam(live.fixture.compId, g.week) : null
     // the tactical loop's findings and the evidence, before the week turns (#181)
     if (live) {
