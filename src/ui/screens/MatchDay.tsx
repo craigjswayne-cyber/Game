@@ -570,7 +570,7 @@ function Preview({ fxId }: { fxId: number }) {
   }
   const goDownTheTunnel = (sp: SpeechId | null) => {
     if (warnings.length) { setConfirm(true); return }
-    if (view === 'instant') instantResult(sp ?? undefined)
+    if (view === 'instant') instantResult(sp ?? undefined, true)
     else kickOff(sp ?? undefined, view)
   }
   const tryKickOff = () => {
@@ -704,7 +704,7 @@ function Preview({ fxId }: { fxId: number }) {
                 onClick={() => {
                   if (hasBad && fixedLineup) { tac.lineup = fixedLineup; touch() }
                   setConfirm(false)
-                  if (view === 'instant') instantResult(speech ?? undefined)
+                  if (view === 'instant') instantResult(speech ?? undefined, true)
                   else kickOff(speech ?? undefined, view)
                 }}>
                 {hasBad && fixedLineup ? t('matchday.fixItPrefix') : ''}{t(view === 'instant' ? 'matchday.letHimTakeIt' : 'matchday.takeField')}
@@ -1548,7 +1548,7 @@ function NationPreview({ fxId }: { fxId: number }) {
               <button className="btn gold" style={{ flex: 1.5, fontSize: 16 }}
                 onClick={() => {
                   setConfirm(false)
-                  if (view === 'instant') instantResult(speech ?? undefined)
+                  if (view === 'instant') instantResult(speech ?? undefined, true)
                   else kickOff(speech ?? undefined, view)
                 }}>
                 {t(view === 'instant' ? 'matchday.letHimTakeIt' : 'matchday.takeField')}
