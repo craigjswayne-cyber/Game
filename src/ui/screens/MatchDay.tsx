@@ -442,8 +442,9 @@ function Preview({ fxId }: { fxId: number }) {
     // (repairSheet, the same thing kick-off does). Only when that still leaves
     // the scrum short does the assistant re-pick from scratch.
     const repaired = repairSheet(game, club, tac.lineup, splitFor(club))
+    // (frontRow above is this same repaired sheet's front-row read)
     const sound = repaired.every((id, i) => i >= 15 && id == null ? true : !problem(id != null ? game.players[id] ?? null : null))
-    if (sound && frontRowCover(game, repaired).legal) return repaired
+    if (sound && frontRow.legal) return repaired
     // his re-pick, his eye: the tunnel fix is the assistant working, so it
     // carries assistantJudgement like every side he names
     const picked = autoSelect(game, availablePlayers(game, club.players), splitFor(club), assistantJudgement(game))
