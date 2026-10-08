@@ -33,7 +33,7 @@
  *     written in English can be re-read in French. See docs/i18n.md.
  */
 import type { GameState, Tactic } from './model'
-import { MAX_SUBS } from './matchEngine'
+import { MAX_SUBS, matchStats } from './matchEngine'
 import type { LiveCtx, SideCtx } from './matchEngine'
 import { t } from './i18n'
 import { LEVERS, WHY_MIN, buildEvidence, htHurt, pointsAfter, possPct, sidesOf, significance } from './evidence'
@@ -80,9 +80,28 @@ function overMatch(side: SideCtx, key: UnitKey): number {
  *  differently week to week without ever being random. */
 export function unitBattles(ctx: LiveCtx, mine: SideCtx, opp: SideCtx): UnitBattle[] {
   const keys: [UnitKey, number][] = [['scrum', 1], ['lineout', 2], ['breakdown', 3]]
+  // THE SET PIECE IS READ OFF THE TABLE THE MANAGER SEES (1.8.15). This was
+  // a paper read of the two packs plus a hashed wobble, printed as "Scrum:
+  // 43% won" beside a stats table showing our scrum winning six to their four
+  // (first-time-player pass). For scrum and lineout it is now the share of
+  // all the set pieces in the match that we won - ours kept plus theirs
+  // taken - from matchStats, the same numbers as the table. The breakdown has
+  // no table line, so it keeps the read of the units.
+  const st = matchStats(ctx)
+  const me = mine === ctx.home ? 0 : 1, them = 1 - me
+  const share = (won: [number, number], lost: [number, number]) => {
+    const all = won[0] + won[1] + lost[0] + lost[1]
+    return all >= 4 ? Math.round(((won[me] + lost[them]) / all) * 100) : null
+  }
+  const counted: Partial<Record<UnitKey, number | null>> = {
+    scrum: share(st.scrumsWon, st.scrumsLost),
+    lineout: share(st.lineoutsWon, st.lineoutsLost),
+  }
   return keys.map(([key, salt]) => {
     const jit = ((((ctx.fx.id * 2654435761) >>> 0) + salt * 977) % 9) - 4
-    const pct = Math.max(22, Math.min(78, Math.round(50 + (overMatch(mine, key) - overMatch(opp, key)) * 5.5 + jit)))
+    const read = counted[key]
+    const pct = read != null ? Math.max(22, Math.min(78, read))
+      : Math.max(22, Math.min(78, Math.round(50 + (overMatch(mine, key) - overMatch(opp, key)) * 5.5 + jit)))
     const verdict = pct >= 57 ? 'dominated' : pct >= 52 ? 'edged' : pct > 48 ? 'even'
       : pct > 43 ? 'shaded' : 'bullied'
     return { key, label: UNIT_LABEL[key], pct, verdict }
