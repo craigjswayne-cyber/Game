@@ -31,7 +31,7 @@ import {
 } from './bench'
 import { rememberDebut } from './memory'
 import { LEVER_DIALS, buildEvidence, type CausalEvidence } from './evidence'
-import { ATK_KICKS, atkSay, defSay, moveAffinity, styleDrain, styleFitRel, styleTerr, styleTick, stylesOf, TURN_BASE, TURN_M, type SideStyle } from './styles'
+import { ATK_KICKS, atkSay, defSay, moveAffinity, styleDrain, styleFitsRel, styleTerr, styleTick, stylesOf, TURN_BASE, TURN_M, type SideStyle } from './styles'
 import { ART_HOME, clubSurface, goalPenaltyOf, hotDay, injuryF, matchConditions, styleWx, surfaceOf, wetness, type Surface } from './conditions'
 import { HABITS, HABITS_OFF, clutchKick, habitFx } from './habits'
 
@@ -1144,6 +1144,8 @@ export interface SideCtx {
    *  personnel or of style re-reads it. Absent for a side with no club (a
    *  Test side), which the style arithmetic reads as neutral. */
   sty?: SideStyle
+  /** the style fits, kept against the shirts and styles they were scored on */
+  styFit?: { k: string; atkFit: number; defFit: number }
   /** turnovers this side's defence won through its style, and how many of
    *  its own ticks it lost the ball in (styleprobe reads both) */
   styTurnWon?: number
@@ -1478,7 +1480,15 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
         const p = pid != null ? state.players[pid] : undefined
         return p ? p.a[a] : null
       }
-      side.sty = { ...sty, atkFit: styleFitRel(sty.atk, at), defFit: styleFitRel(sty.def, at) }
+      // a man's attributes do not move during a match, so the fit only
+      // changes with the shirts or the styles: kept until one of them does
+      // (perfprobe, 1.8.16: every rebuild scored the XV twice over)
+      const k = `${sty.atk}|${sty.def}|${shirts.join(',')}`
+      if (side.styFit?.k !== k) {
+        const [atkFit, defFit] = styleFitsRel([sty.atk, sty.def], at)
+        side.styFit = { k, atkFit, defFit }
+      }
+      side.sty = { ...sty, atkFit: side.styFit.atkFit, defFit: side.styFit.defFit }
       side.tempoF *= styleDrain(sty)
     }
 

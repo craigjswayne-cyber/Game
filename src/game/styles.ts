@@ -224,14 +224,15 @@ const FIT_SPAN = 3
  *  man's attribute in that shirt, or null when the shirt is empty (read as a
  *  weak one, as moves.ts does). */
 export function styleFit(id: AtkStyle | DefStyle, at: (shirt: number, a: keyof Attrs) => number | null): number {
-  let sum = 0, n = 0
-  for (const need of STYLE_NEEDS[id]) for (const s of need.shirts) for (const a of need.attrs) {
-    const v = at(s, a)
-    sum += ((v ?? 6) - (REF[`${s}.${a}`] ?? 11)) / FIT_SPAN
-    n++
-  }
-  return n ? clamp(sum / n, -1, 1) : 0
+  // the same reads in the same order as walking STYLE_NEEDS, with the
+  // reference looked up once per style rather than on every call (perfprobe,
+  // 1.8.16: the key strings were most of a rebuild's cost)
+  const reads = FIT_READS[id] ??= STYLE_NEEDS[id].flatMap(need => need.shirts.flatMap(s => need.attrs.map(a => ({ s, a, ref: REF[`${s}.${a}`] ?? 11 }))))
+  let sum = 0
+  for (const r of reads) sum += ((at(r.s, r.a) ?? 6) - r.ref) / FIT_SPAN
+  return reads.length ? clamp(sum / reads.length, -1, 1) : 0
 }
+const FIT_READS: Partial<Record<AtkStyle | DefStyle, { s: number; a: keyof Attrs; ref: number }[]>> = {}
 
 /**
  * THE FIT THAT COUNTS: how much better this XV suits one style than it suits
@@ -244,10 +245,16 @@ export function styleFit(id: AtkStyle | DefStyle, at: (shirt: number, a: keyof A
  * asking. This is what the engine plays and the Tactics screen shows.
  */
 export function styleFitRel(id: AtkStyle | DefStyle, at: (shirt: number, a: keyof Attrs) => number | null): number {
+  return styleFitsRel([id], at)[0]
+}
+
+/** styleFitRel for several styles off one scoring of the XV: the mean is the
+ *  same for every style, so the engine's attack and defence fits share it. */
+export function styleFitsRel(ids: (AtkStyle | DefStyle)[], at: (shirt: number, a: keyof Attrs) => number | null): number[] {
   const all = [...ATK_STYLES, ...DEF_STYLES]
   const raw = Object.fromEntries(all.map(s => [s, styleFit(s, at)])) as Record<string, number>
   const mean = all.reduce((t, s) => t + raw[s], 0) / all.length
-  return clamp(raw[id] - mean, -1, 1)
+  return ids.map(id => clamp(raw[id] - mean, -1, 1))
 }
 
 /** a club's fit for a style, off its team sheet as it stands */
