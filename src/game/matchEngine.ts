@@ -1106,6 +1106,8 @@ export interface SideCtx {
   /** how each unit is going today: the lineout that will not fire, the scrum
    *  that is on top. Set once at kick-off, layered so a sub keeps it. */
   day?: Partial<Record<DayUnit, number>>
+  /** the number each man wore at kick-off, by player id (1.8.16) */
+  shirtNo?: Record<number, number>
   /** how well the side is executing its plan today: scales what its called
    *  moves and its zone plans are worth, never their sign */
   exec?: number
@@ -2948,7 +2950,24 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
   // leave the units exactly as they were). Rebuilt once from the mods here, so
   // every later rebuild starts from the number it would have made. No draws.
   for (const side of [home, away]) recomputeSideUnits(state, ctx, side)
+  // THE NUMBER ON THE BACK IS THE ONE HE WALKED OUT IN (owner, 1.8.16: "if
+  // they are number 23 on the bench they should be 23 on the pitch"). Taken
+  // once the sheet is final (after any warm-up withdrawal), 1-15 the XV and
+  // 16-23 the bench, and it does not change when he takes another man's place.
+  for (const side of [home, away]) {
+    side.shirtNo = {}
+    side.lineup.forEach((id, i) => { if (id != null && i < 23) side.shirtNo![id] = i + 1 })
+  }
   return ctx
+}
+
+/** The number a man wears in this match: the one he had at kick-off, or, on a
+ *  match saved before 1.8.16, the shirt he is filling now. */
+export function shirtNumber(side: SideCtx, id: number): number | undefined {
+  const n = side.shirtNo?.[id]
+  if (n != null) return n
+  const i = side.lineup.indexOf(id)
+  return i >= 0 ? i + 1 : undefined
 }
 
 /**

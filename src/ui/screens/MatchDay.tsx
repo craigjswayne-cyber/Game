@@ -5,6 +5,7 @@ import { rewardedAvailable } from '../../game/monetise'
 import {
   matchStats, visitsTo22, goalKicker, teamShort, teamUnits, paperOverall, rosterOf, assistantJudgement, autoSelect, availablePlayers,
   refFor, refNotes, homeCrowdLean, frontRowCover, repairSheet, sideEnergy, MAX_SUBS, isFrontRower, needsFrontRower, type LiveCtx, type SideCtx,
+  shirtNumber,
 } from '../../game/matchEngine'
 import { MIDWEEK_OFF, BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, careerRows, chemKey, clubCode, chemTier, eventText, injuryDesc, fixtureDate, fixtureDayOff, grudgeBetween, inRedZone, oldBoyApps, tieWinner, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
 import { BRIEF_BY_ID, SPLIT_BY_ID, benchSeats, briefForSeat, splitFor } from '../../game/bench'
@@ -1859,6 +1860,12 @@ function Live() {
         const sd = home ? ctx.home : ctx.away
         const tac = game.clubs[sd.teamId]?.tactic
         return sd.sty ? { ...tac, atkStyle: sd.sty.atk, defStyle: sd.sty.def, podShape: sd.sty.pod } : tac
+      },
+      // the number on his back is the one he walked out in (1.8.16)
+      (home, shirt) => {
+        const sd = home ? ctx.home : ctx.away
+        const id = sd.lineup[shirt - 1]
+        return id != null ? shirtNumber(sd, id) : undefined
       })
     // the clip starts with its build-up, so the commentary never jumps: the
     // ticker reads on until it reaches the first line of it (in Key Moments,
@@ -3198,8 +3205,9 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
 
   // The XV in shirt order, because that is how a team sheet reads and how the
   // man you are looking for is found.
+  // the number he walked out in: a replacement in 23 stays 23 (1.8.16)
   const xv = mine.lineup.slice(0, 15).map((id, i) => ({
-    shirt: i + 1,
+    shirt: (id != null ? shirtNumber(mine, id) : undefined) ?? i + 1,
     p: id != null ? game.players[id] : null,
   })).filter((r): r is { shirt: number; p: Player } => !!r.p)
 

@@ -173,7 +173,11 @@ const notOver = tries.filter(s => !over(s.spec))
 ok(notOver.length === 0, `every try ends with the ball grounded over the line (${tries.length - notOver.length}/${tries.length})${notOver.length ? ' not: ' + [...new Set(notOver.map(s => s.spec.style))].join(', ') : ''}`)
 ok(tries.every(s => s.spec.beats.length >= 2), 'every try has a build-up of at least two phases')
 const lens = tries.map(s => clipLength(s.spec))
-ok(lens.every(l => l >= 4 && l <= 16), `a try clip runs between 4 and 16 seconds (${Math.min(...lens).toFixed(1)} to ${Math.max(...lens).toFixed(1)})`)
+// a TMO review holds 1.5 s longer for the verdict (3.6 s after the ball goes
+// down against 2.1), so a reviewed try has that much more room (1.8.16, when
+// the TMO gained new reasons to look and a reviewed try ran 16.2 s)
+const tooLong = tries.filter(s => clipLength(s.spec) > (s.spec.reviewLine != null ? 17.5 : 16))
+ok(lens.every(l => l >= 4) && tooLong.length === 0, `a try clip runs between 4 and 16 seconds, 17.5 with a review (${Math.min(...lens).toFixed(1)} to ${Math.max(...lens).toFixed(1)})`)
 const fwd = tries.every(({ spec }) => {
   const xs = [...spec.beats.map(b => b.x), spec.finish.x]
   return xs.every((x, i) => i === 0 || (spec.attackHome ? x >= xs[i - 1] : x <= xs[i - 1]))

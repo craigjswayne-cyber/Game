@@ -95,6 +95,9 @@ export interface ClipSpec {
    *  away from the cover and a slow prop is run down. Absent, everyone is 11. */
   attPace?: (number | undefined)[]
   defPace?: (number | undefined)[]
+  /** the number printed on each man, by shirt index (1.8.16): absent, i + 1 */
+  attNum?: number[]
+  defNum?: number[]
   /** THE CALLED MOVE THAT MADE IT (1.8.1, game/moves.ts), read off the try
    *  line's move_k: a strike move is played from its set piece (style
    *  'move'), and a phase-play shape puts the forwards in its pods */
@@ -238,7 +241,8 @@ export function buildClip(events: MatchEvent[], m: number, kind: ClipKind, homeI
   shirtOf: (playerId?: number) => number | undefined, colours: { home: [string, string]; away: [string, string] },
   labels: ClipLabels, nameOf: (playerId?: number) => string | undefined,
   paceOf?: (home: boolean, shirt: number) => number | undefined,
-  tacticOf?: (home: boolean) => StyleDials | undefined): ClipSpec {
+  tacticOf?: (home: boolean) => StyleDials | undefined,
+  numOf?: (home: boolean, shirt: number) => number | undefined): ClipSpec {
   const e = events[m]
   // THE STYLES (1.8.2): the defending side's system, the attacking side's style
   const styles = {
@@ -249,6 +253,9 @@ export function buildClip(events: MatchEvent[], m: number, kind: ClipKind, homeI
   }
   const attackHome = e.teamId === homeId
   const paces = (home: boolean) => paceOf ? Array.from({ length: 15 }, (_, i) => paceOf(home, i + 1)) : undefined
+  // the number on each back: a replacement keeps the one he walked out in
+  // (owner, 1.8.16: "if they are number 23 on the bench they should be 23")
+  const nums = (home: boolean) => numOf ? Array.from({ length: 15 }, (_, i) => numOf(home, i + 1) ?? i + 1) : undefined
   const up = (f: number) => attackHome ? f : 100 - f       // metres towards their line
   const toX = (u: number) => attackHome ? u : 100 - u
   const att = attackHome ? colours.home : colours.away
@@ -267,12 +274,12 @@ export function buildClip(events: MatchEvent[], m: number, kind: ClipKind, homeI
       let ti = m - 1
       while (ti >= 0 && !(events[ti].type === 'TRY' && events[ti].teamId === e.teamId)) ti--
       if (ti >= 0 && m - ti <= 3) {
-        const tryClip = buildClip(events, ti, 'try', homeId, shirtOf, colours, labels, nameOf, paceOf, tacticOf)
+        const tryClip = buildClip(events, ti, 'try', homeId, shirtOf, colours, labels, nameOf, paceOf, tacticOf, numOf)
         y = Math.max(5, Math.min(65, tryClip.finish.y))
       }
     }
     return {
-      kind, style: 'phases', attackHome, beats: [], finish: { x: toX(u), y, carrier: shirtOf(e.playerId) ?? 10 }, endLine: m, ...styles,
+      kind, style: 'phases', attackHome, beats: [], finish: { x: toX(u), y, carrier: shirtOf(e.playerId) ?? 10 }, endLine: m, attNum: nums(attackHome), defNum: nums(!attackHome), ...styles,
       kickGood: good, drop, label: good ? labels.good : labels.wide, att, def, misses: 0,
       sub: nameOf(e.playerId),
     }
@@ -331,7 +338,7 @@ export function buildClip(events: MatchEvent[], m: number, kind: ClipKind, homeI
       reviewLabel: labels.review,
       misses: hash(m * 17) < 0.4 ? 1 : 0,
       label: labels.try, sub: nameOf(e.playerId), att, def,
-      attPace: paces(attackHome), defPace: paces(!attackHome), ...styles,
+      attPace: paces(attackHome), defPace: paces(!attackHome), attNum: nums(attackHome), defNum: nums(!attackHome), ...styles,
     }
   }
   const style: ClipStyle = kind === 'attack' ? (hash(m * 5) < 0.5 ? 'overlap' : 'phases') : styleOf(events, m, from[0] ?? m)
@@ -401,7 +408,7 @@ export function buildClip(events: MatchEvent[], m: number, kind: ClipKind, homeI
       : ending === 'turnover' ? labels.turnover : ending === 'saved' ? labels.saved : '',
     sub: kind === 'attack' ? undefined : nameOf(e.playerId),
     att, def,
-    attPace: paces(attackHome), defPace: paces(!attackHome), ...styles,
+    attPace: paces(attackHome), defPace: paces(!attackHome), attNum: nums(attackHome), defNum: nums(!attackHome), ...styles,
     // a phase-play shape: the build-up is played in its pods
     ...(mvId && launch === 'open' ? { move: mvId, launch } : {}),
   }
@@ -2215,8 +2222,8 @@ export function HighlightClip({ spec, speed = 1, paused, onReveal, onDone }: {
         g.globalAlpha = 1
       }
 
-      for (let i = 0; i < 15; i++) dot(f.def[i], spec.def[0], spec.def[1], i + 1, f.carrying[15 + i] > 0.5, f.down[15 + i] > 0.5, f.aloft[15 + i])
-      for (let i = 0; i < 15; i++) dot(f.att[i], spec.att[0], spec.att[1], i + 1, f.carrying[i] > 0.5 && !finishing, f.down[i] > 0.5, f.aloft[i])
+      for (let i = 0; i < 15; i++) dot(f.def[i], spec.def[0], spec.def[1], spec.defNum?.[i] ?? i + 1, f.carrying[15 + i] > 0.5, f.down[15 + i] > 0.5, f.aloft[15 + i])
+      for (let i = 0; i < 15; i++) dot(f.att[i], spec.att[0], spec.att[1], spec.attNum?.[i] ?? i + 1, f.carrying[i] > 0.5 && !finishing, f.down[i] > 0.5, f.aloft[i])
 
       // THE REFEREE (owner, 1.8.0): a circle like everybody else, told apart
       // by the colour neither side wears, no number, a little smaller, and a
