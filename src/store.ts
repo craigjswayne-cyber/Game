@@ -101,6 +101,7 @@ import { answerPress } from './game/media'
 import { deskBlock, deskGates, firstStepOfWeek, inInbox, markRead, matchDayIndex, nextStep, pressBlock } from './game/days'
 import { postWindowNotes } from './game/window'
 import { natSquadHold } from './game/country'
+import { nationNameIn } from './game/nations'
 import { clearResume, getResume, loadGame, migrate, peekResumes, putResume, saveGame } from './game/save'
 import {
   notePlayedOut, playOut, recordReach, replayMatch, resumeFits, sameCareer, stampedRecord, stampedSave,
@@ -1830,12 +1831,14 @@ export const useStore = create<Store>((set, get) => ({
       g.natTeam = nat
       g.natConfidence = 60
       g.natRecord = { m: 0, w: 0, d: 0, l: 0 } // a new tenure starts at nought
+      // filed as a key and its variables, with the English beside it: the
+      // nation travels as its English name plus a code twin (nat_n), so the
+      // reader's language names the country
+      const k = keepClub && !g.unemployed ? 'news.natTaken' : 'news.natTakenSole'
+      const v = { nat: nationNameIn('en', nat), nat_n: nat }
       g.news.push({
         id: g.nextId++, week: g.week, season: g.season, type: 'board', read: false,
-        subject: `Appointed: national head coach of ${nat}`,
-        body: keepClub && !g.unemployed
-          ? `You'll coach ${nat} alongside the club job. In Test windows, when the club has no fixture, you take the national side on match day. Any championship they win goes in your cabinet.`
-          : `${nat} is the whole job now. Every Test window is yours, and so is any trophy they win.`,
+        subject: tIn('en', `${k}Subj`, v), body: tIn('en', k, v), k, v,
       })
       // v1.1.5 (owner): taking a national job asks whether the club job is
       // kept. Declining it walks the same resignation the Profile button
@@ -1865,10 +1868,11 @@ export const useStore = create<Store>((set, get) => ({
     if (!g || !g.natTeam) return
     const nat = g.natTeam
     closeNatTenure(g) // the record moves to the profile's history, not the bin
+    const v = { nat: nationNameIn('en', nat), nat_n: nat }
     g.news.push({
       id: g.nextId++, week: g.week, season: g.season, type: 'board', read: false,
-      subject: `You step down as ${nat} head coach`,
-      body: `The union thanks you for your service. The door, they say, stays open.`,
+      subject: tIn('en', 'news.natResignedSubj', v), body: tIn('en', 'news.natResigned', v),
+      k: 'news.natResigned', v,
     })
     set(s => ({ tick: s.tick + 1 }))
     void get().persist()

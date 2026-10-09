@@ -208,9 +208,7 @@ export function retire(state: GameState, forced = false): string {
       title_k: v.titleKey, rows_ll: JSON.stringify(v.rows),
     },
   })
-  return forced
-    ? `Retired at ${mgrAge(state)}. ${v.title}.`
-    : `You walk away at ${mgrAge(state)}. ${v.title}.`
+  return t(forced ? 'legacy.retireMsgForced' : 'legacy.retireMsgChosen', { age: mgrAge(state), title_k: v.titleKey })
 }
 
 /** Called once a summer from the rollover: the clock, and the hard stop. */

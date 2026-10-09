@@ -710,10 +710,14 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             p.wage = firstProWage(p.ca, p.age)
             // and his first senior game is an academy debut (acadcall.ts armDebut)
             armDebut(p)
+            // a save holds the English and the key: the inbox renders the
+            // key in the reader's language (docs/i18n.md)
+            const v = { player: p.name, age: p.age }
             game.news.push({
               id: game.nextId++, week: game.week, season: game.season, type: 'youth', read: true,
-              subject: `${p.name} promoted to the first team`,
-              body: `Big day at the training ground. ${p.name} (${p.age}) is up from the academy and trains with the first team from today. The academy coach shook his hand on the way out.`,
+              subject: tIn('en', 'news.handPromotedSubj', v),
+              body: tIn('en', 'news.handPromoted', v),
+              k: 'news.handPromoted', v,
               playerId: p.id,
             })
           }

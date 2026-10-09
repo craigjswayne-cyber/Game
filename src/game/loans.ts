@@ -3,7 +3,7 @@
 import type { GameState, Player } from './model'
 import { absWeek, SEASON_WEEKS, fmtWage, leagueTier } from './model'
 import { autoSelect } from './matchEngine'
-import { t, tIn } from './i18n'
+import { t, tIn, type Vars } from './i18n'
 import { clamp, mulberry32 } from './rng'
 import { isDerby } from './rivalries'
 import { askingPrice, capBill, capBreak, capWage, embargoed, executeTransfer, squadFull, windowOpen } from './ai'
@@ -309,16 +309,23 @@ export function expireLoans(state: GameState, rng: () => number): void {
   }
 }
 
-export function loanOut(state: GameState, playerId: number): { ok: boolean; msg: string } {
+/** What a loan button says back: the line in the reader's language for the
+ *  screen, and the key and its variables for anything that files it in a save
+ *  (media.ts puts a refusal into a press reaction), so a stored copy renders
+ *  in whatever language the save is later read in. */
+export interface LoanReply { ok: boolean; msg: string; k: string; v: Vars }
+const reply = (ok: boolean, k: string, v: Vars = {}): LoanReply => ({ ok, msg: t(k, v), k, v })
+
+export function loanOut(state: GameState, playerId: number): LoanReply {
   const p = state.players[playerId]
-  if (!p) return { ok: false, msg: 'No such player.' }
-  if (p.clubId !== state.userClubId) return { ok: false, msg: 'He is not yours to send anywhere.' }
-  if (p.onLoan) return { ok: false, msg: `${p.name} is already out on loan.` }
-  if (p.loanFrom) return { ok: false, msg: `${p.name} is here on loan himself.` }
-  if (p.age > 23) return { ok: false, msg: `${p.name} is past the age where a loan teaches him anything.` }
+  if (!p) return reply(false, 'reply.noSuchPlayer')
+  if (p.clubId !== state.userClubId) return reply(false, 'reply.loanNotYours')
+  if (p.onLoan) return reply(false, 'reply.loanAlreadyOut', { player: p.name })
+  if (p.loanFrom) return reply(false, 'reply.loanHereHimself', { player: p.name })
+  if (p.age > 23) return reply(false, 'reply.loanTooOld', { player: p.name })
   const club = state.clubs[state.userClubId]
   if (club?.tactic.lineup.slice(0, 15).includes(p.id)) {
-    return { ok: false, msg: `${p.name} is in your starting XV. Drop him first if you mean it.` }
+    return reply(false, 'reply.loanInXV', { player: p.name })
   }
   p.onLoan = true
   p.loanSince = absWeek(state.season, state.week)
@@ -352,7 +359,9 @@ export function loanOut(state: GameState, playerId: number): { ok: boolean; msg:
     v: feeder ? { player: p.name, club: feeder.name } : { player: p.name },
     playerId: p.id,
   })
-  return { ok: true, msg: `${p.name} will spend the season on loan${feeder ? ` at ${feeder.name}` : ''}. He is back next summer.` }
+  return feeder
+    ? reply(true, 'reply.loanSentAt', { player: p.name, club: feeder.name })
+    : reply(true, 'reply.loanSent', { player: p.name })
 }
 
 /**
@@ -388,11 +397,11 @@ export function loanOutSummerGain(state: GameState, p: Player): number {
  * served. Half a season or more earns a single point of it now; less earns
  * nothing but the body. Deterministic, no rng.
  */
-export function loanRecall(state: GameState, playerId: number): { ok: boolean; msg: string } {
+export function loanRecall(state: GameState, playerId: number): LoanReply {
   const p = state.players[playerId]
-  if (!p) return { ok: false, msg: 'No such player.' }
-  if (p.clubId !== state.userClubId) return { ok: false, msg: 'He is not yours to recall.' }
-  if (!p.onLoan) return { ok: false, msg: `${p.name} is not out on loan.` }
+  if (!p) return reply(false, 'reply.noSuchPlayer')
+  if (p.clubId !== state.userClubId) return reply(false, 'reply.recallNotYours')
+  if (!p.onLoan) return reply(false, 'reply.recallNotOut', { player: p.name })
   // A LOAN IS WEEKS OF RUGBY, NOT A BUTTON.
   //
   // Out and straight back was a free reset of condition, sharpness and rust,
@@ -407,10 +416,7 @@ export function loanRecall(state: GameState, playerId: number): { ok: boolean; m
   const served = (absWeek(state.season, state.week)) - (p.loanSince ?? 0)
   if (served < 4) {
     const left = 4 - served
-    return {
-      ok: false,
-      msg: `${p.name} has only just got there. The feeder club want a few games out of him before you change your mind. Give it ${left} more week${left === 1 ? '' : 's'}.`,
-    }
+    return reply(false, 'reply.recallTooSoon', { player: p.name, n: left })
   }
   p.onLoan = false
   p.loanClub = undefined
@@ -434,7 +440,7 @@ export function loanRecall(state: GameState, playerId: number): { ok: boolean; m
     v: { player: p.name, pos: p.pos, age: p.age },
     playerId: p.id,
   })
-  return { ok: true, msg: `${p.name} reports back to training in the morning.` }
+  return reply(true, 'reply.recallDone', { player: p.name })
 }
 
 /**

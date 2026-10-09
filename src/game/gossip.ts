@@ -5,7 +5,7 @@ import type { GameState, Player } from './model'
 import {absWeek, RELEGATES, SEASON_WEEKS, fmtMoney, formGuide, isMyClub, mgrReputation, poss, weeksBetween100 } from './model'
 import { sortTable } from './schedule'
 import { clamp, gauss, pick, type Rng } from './rng'
-import { tIn, type Vars } from './i18n'
+import { t, tIn, type Vars } from './i18n'
 import { nextTelling } from './tellings'
 import { JANUARY_SHUT, nextWeek, prevWeek, windowOpen as dealWeek } from './window'
 
@@ -109,12 +109,12 @@ export function reconcileChance(state: GameState, f: Feud): number {
 export function reconcileFeud(state: GameState, index: number, rng: Rng): { ok: boolean; msg: string } {
   const list = feuds(state)
   const f = activeFeuds(state)[index]
-  if (!f) return { ok: false, msg: 'That rift has already settled.' }
+  if (!f) return { ok: false, msg: t('reply.riftSettled') }
   const a = state.players[f.a]
   const b = state.players[f.b]
-  if (!a || !b) return { ok: false, msg: 'That rift has already settled.' }
+  if (!a || !b) return { ok: false, msg: t('reply.riftSettled') }
   if (f.tried != null && state.week - f.tried < 1) {
-    return { ok: false, msg: 'You had them in this week already. Give it seven days.' }
+    return { ok: false, msg: t('reply.riftTried') }
   }
   f.tried = state.week
   const p = reconcileChance(state, f)
@@ -125,14 +125,14 @@ export function reconcileFeud(state: GameState, index: number, rng: Rng): { ok: 
     b.morale = clamp(b.morale + 1.1, 1, 10)
     wire(state, 'news.wPeaceBrokered',
       { a: a.name.split(' ').slice(-1)[0], b: b.name.split(' ').slice(-1)[0] }, a.id)
-    return { ok: true, msg: `Handshakes. ${a.name} and ${b.name} will play together.` }
+    return { ok: true, msg: t('reply.riftHealed', { a: a.name, b: b.name }) }
   }
   // a failed intervention is worse than none: now the room knows he tried
   a.morale = clamp(a.morale - 0.5, 1, 10)
   b.morale = clamp(b.morale - 0.5, 1, 10)
   wire(state, 'news.wTalksFail',
     { short: state.clubs[state.userClubId].short, a: a.name, b: b.name }, a.id)
-  return { ok: false, msg: `${a.name} would not shake on it, and the whole squad knows you tried.` }
+  return { ok: false, msg: t('reply.riftFailed', { a: a.name }) }
 }
 
 function feuds(state: GameState): Feud[] {
