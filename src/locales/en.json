@@ -7262,7 +7262,7 @@
   "inkWetTerms": "{club} pull the deal off the table: {name} has only just arrived, and he is going nowhere.",
   "alreadyCountered": "You have already been back to them once. Answer the offer.",
   "offerWithdrawn": "Offer withdrawn.",
-  "bidderFinal": "{club} won't budge. They are already paying over the odds, and {fee} is their final offer. Answer it.",
+  "bidderFinal": "{club} won't budge. They are already paying over the odds, and {fee} is their best and final. Answer it.",
   "bidderRaises": "{club} grumble, then agree to {fee}. Accept while it's there, and know that {last} will hear a bid this size was on the table.",
   "bidderWalks": "{club} walk away from the table. The offer is gone.",
   "boardVetoesSale": "The board vetoes the sale. With {n} senior players the club cannot fulfil its fixtures. Build the squad back up before selling again.",

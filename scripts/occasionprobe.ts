@@ -106,12 +106,12 @@ const inject = (g: GameState, fx: Fixture, att: number, venue?: { name: string; 
     ok(spot.subject.includes('top seed') && !spot.body.includes('Win and it is yours'),
       `topping a playoff league promises the top seed, not the title ("${spot.subject}")`)
   }
-  const clinch = g.news.find(n => n.subject.includes('PLAYOFFS SECURED'))
+  const clinch = g.news.find(n => /PLAY-?OFFS SECURED/.test(n.subject))
   ok(!!clinch, 'mathematical qualification got said out loud')
   ok(g.playoffClinch === g.season, 'and it is stamped, so it says it once')
-  const before = g.news.filter(n => n.subject.includes('PLAYOFFS SECURED')).length
+  const before = g.news.filter(n => /PLAY-?OFFS SECURED/.test(n.subject)).length
   processWeekAndAdvance(g)
-  const after = g.news.filter(n => n.subject.includes('PLAYOFFS SECURED')).length
+  const after = g.news.filter(n => /PLAY-?OFFS SECURED/.test(n.subject)).length
   ok(after === before, 'the following week does not announce it again')
 }
 

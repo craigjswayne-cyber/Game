@@ -4114,7 +4114,7 @@ export function processWeekAndAdvance(state: GameState) {
         state.fixtures.push(fx)
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
-          subject: `The relegation playoff: ${teamShort(state, bottom)} v ${teamShort(state, up)}`,
+          subject: `The relegation play-off: ${teamShort(state, bottom)} v ${teamShort(state, up)}`,
           body: `One game for a Premier Division place. ${state.clubs[bottom].name} finished bottom and get to defend their status at home; ${state.clubs[up].name} won the Championship and come to take it. Winner plays top-flight rugby next season.`,
           k: 'news.barrage',
           v: {
@@ -4447,7 +4447,7 @@ export function processWeekAndAdvance(state: GameState) {
               const club2 = state.clubs[state.userClubId]
               state.news.push({
                 id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
-                subject: `PLAYOFFS SECURED: ${club2.short} are mathematically in`,
+                subject: `PLAY-OFFS SECURED: ${club2.short} are mathematically in`,
                 body: `Whatever happens from here, ${club2.name} will be in the ${comp.short} playoffs - no combination of results can push you out of the top ${line}. The seeding is still worth fighting for: finish higher and the knockout rounds come to ${club2.stadium}. The office has already had a call about semi-final ticketing.`,
                 k: 'news.clinch',
                 v: { short: club2.short, club: club2.name, comp: comp.short, line, stadium: club2.stadium },
