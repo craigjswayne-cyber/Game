@@ -2941,6 +2941,13 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
       }
     }
   }
+  // ONE CANONICAL BUILD AT KICK-OFF (1.8.16): the day, the respect, the
+  // rematch and the analyst each layer onto the units one multiplication at a
+  // time, and the rebuild multiplies the same mods in another order, so the two
+  // differed in the fifteenth decimal place (teamtalkprobe: a silent room must
+  // leave the units exactly as they were). Rebuilt once from the mods here, so
+  // every later rebuild starts from the number it would have made. No draws.
+  for (const side of [home, away]) recomputeSideUnits(state, ctx, side)
   return ctx
 }
 
