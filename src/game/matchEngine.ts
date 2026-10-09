@@ -4035,12 +4035,54 @@ function decide(
   // posts" went up from your own 43 (kickrangeprobe, 1 in 533). Absent on a
   // decision saved before 1.8.0, which keeps the old behaviour.
   if (d.fld != null) ctx.field = d.fld
-  const rng = ctx.rng
   if (choice === 'posts') {
     takePenaltyShot(state, ctx, mine, min)
     return t('touch.pointsOnBoard')
   }
-  if (choice === 'corner') {
+  if (choice === 'corner') return kickToCorner(state, ctx, mine, opp, min)
+  return tapAndGo(state, ctx, mine, opp, min)
+}
+
+/**
+ * ---- POSTS, CORNER OR TAP: THE AI'S CALL (1.8.16) ----
+ *
+ * The broadcasts are full of it: "go to the corner and back the maul", three
+ * points turned down because three are not enough. The AI kicked every
+ * kickable penalty at goal. Now it reads what a captain reads: the clock and
+ * the scoreboard first (late and more than a kick behind, it needs a try), then
+ * how close the line is and whether its maul has the beating of their pack.
+ * Each club has its own appetite for it, off a hash of its id, so some sides
+ * go to the corner far more than others. No draw: the call is read, and the
+ * dice that follow are the ones the manager's own call would have taken.
+ */
+function aiPenaltyCall(state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideCtx, min: number): 'posts' | 'corner' | 'tap' {
+  const toLine = side === ctx.home ? 100 - ctx.field : ctx.field
+  const behind = opp.score - side.score
+  const drive = side.units.lineout * 0.6 + side.units.scrum * 0.4
+  const stop = opp.units.defence * 0.5 + opp.units.breakdown * 0.5
+  const maul = drive - stop
+  const pace = side.units.attack - opp.units.defence
+  let h = 0
+  for (const ch of side.teamId) h = (h * 31 + ch.charCodeAt(0)) >>> 0
+  const appetite = (h % 1000) / 1000   // 0 = always the posts, 1 = loves the corner
+  // the last ten minutes, more than a kick behind: three points will not do
+  if (min >= 70 && behind > 3) return toLine <= 8 && pace > 1 ? 'tap' : 'corner'
+  // ahead late, or level and the kick puts them in front: take the points
+  if (min >= 60 && behind <= 0) return 'posts'
+  // five metres out with backs who have the beating of them
+  if (toLine <= 5 && pace > 3.5 - appetite) return 'tap'
+  // close in with a pack that is on top: back the maul. Rarer than the
+  // posts by a distance, as it is in the Premiership: the tries it makes were
+  // measured against the bands (bandcheck), not added on top of them
+  if (toLine <= 12 && maul > 3.8 - appetite * 2.4 && behind > -10) return 'corner'
+  return 'posts'
+}
+
+/** The corner and the maul, for whichever side has the penalty (the manager's
+ *  call through decide, the AI's through aiPenaltyCall). */
+function kickToCorner(state: GameState, ctx: LiveCtx, mine: SideCtx, opp: SideCtx, min: number): string {
+  const rng = ctx.rng
+  {
     // THE MAUL IS A SET-PIECE CONTEST, so it reads the set piece: your lineout
     // AND your pack against their defence AND their breakdown. It used to read
     // one unit against a defensive average that barely moves on the 1-20 scale,
@@ -4070,6 +4112,11 @@ function decide(
     concedePenalty(state, ctx, opp, min + 1, null)
     return t('touch.pinnedNoPoints')
   }
+}
+
+/** The quick tap, for whichever side has the penalty. */
+function tapAndGo(state: GameState, ctx: LiveCtx, mine: SideCtx, opp: SideCtx, min: number): string {
+  const rng = ctx.rng
   // TAP AND GO READS THE PLACE AND THE MATCHUP (1.8.0, optionsprobe). It
   // scored 17% of the time from anywhere against anyone, 1.01 points a call
   // from twenty metres against 2.47 for the posts, so "always tap" gave away
@@ -4745,7 +4792,7 @@ const DAY_UNITS: DayUnit[] = ['scrum', 'lineout', 'breakdown', 'kicking', 'attac
 const DAY_SD: Record<DayUnit, number> = { scrum: 0.05, lineout: 0.06, breakdown: 0.045, kicking: 0.05, attack: 0.022, defence: 0.022 }
 /** how far the plan clicks or stalls on the day: scales what called moves
  *  and zone plans are worth, never their direction */
-const EXEC_SD = 0.28
+const EXEC_SD = 0.15
 
 /** a stream for one decision: the match, the tick, the side and the question */
 function incRng(ctx: LiveCtx, tick: number, side: SideCtx | null, salt: number): Rng {
@@ -4832,10 +4879,23 @@ function captainOf(state: GameState, side: SideCtx): Player | null {
 
 /** ten minutes in the bin, for a named reason. Never below thirteen. */
 function giveYellow(state: GameState, ctx: LiveCtx, side: SideCtx, p: Player, min: number, key: string, v?: Record<string, string | number>): boolean {
-  // a man who has already been to the bin plays the rest of it with his
-  // hands behind his back: no second yellow (the law would make it a red,
-  // and the engine has no second-yellow red yet)
-  if (side.onPitch.size <= 13 || !side.onPitch.has(p.id) || side.yellowUntil.has(p.id)) return false
+  if (!side.onPitch.has(p.id)) return false
+  // A SECOND YELLOW IS A RED (Law 9 and World Rugby Regulation 17): a man
+  // already back from the bin is sent off for the rest of it. The panel often
+  // calls the sending-off sanction enough, sometimes adds a week; which one is
+  // read off the man and the minute, so no draw is taken from either stream.
+  if (side.yellowUntil.has(p.id)) {
+    side.sent += 1
+    side.onPitch.delete(p.id)
+    p.stats.rc += 1
+    p.bans += (p.id + min) % 2
+    side.ratings.set(p.id, (side.ratings.get(p.id) ?? 6) - 2)
+    pushLine(state, ctx, min, 'RC', side, 'comm.secondYellow', { player: p.name, team: teamShort(state, side.teamId) }, p.id)
+    checkFrontRow(state, ctx, side, min, p, 'red')
+    fieldChanged(state, ctx, side, min)
+    return true
+  }
+  if (side.onPitch.size <= 13) return false
   side.yellowUntil.set(p.id, binUntil(ctx, min))
   side.onPitch.delete(p.id)
   side.binned.add(p.id)
@@ -4874,7 +4934,7 @@ const YC_REASONS = ['comm.yellowCard', 'comm.ycHigh', 'comm.ycKnockOn', 'comm.yc
  *  reached 40 in 20,000 past 90 points) */
 function leadDamp(scoring: SideCtx, other: SideCtx): number {
   const lead = scoring.score - other.score
-  return lead > 28 ? Math.max(0.26, 28 / lead) : 1
+  return lead > 28 ? Math.max(0.2, Math.pow(28 / lead, 1.4)) : 1
 }
 /** a man by position, weighted, off the given stream */
 function manFor(r: Rng, ps: Player[], w: Partial<Record<Pos, number>>, agg = 0): Player | null {
@@ -5597,7 +5657,12 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     // (31) had barely moved. A damp that only engages five converted tries in
     // is a damp that never sees the games it exists for.
     const lead = side.score - opp.score
-    if (lead > 28) pTry *= Math.max(0.26, 28 / lead)
+    // 1.8.16: the damp steepens with the lead (power 1.4, floor 0.2). The
+    // narrower execution factor made a strong side strong every week rather
+    // than most weeks, and blowprobe's mismatch tail went from 34 to 49 in
+    // 20,000 past 90. Below 28 up nothing changes; at 56 up the leading side
+    // keeps 38% of its chance rather than 50%.
+    if (lead > 28) pTry *= Math.max(0.2, Math.pow(28 / lead, 1.4))
 
     /**
      * PRESSURE (v1.7.0), read off this tick and never rolled for. It decays
@@ -5723,6 +5788,18 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
             // by scripts/optionsprobe.ts, where corner and tap had changed
             // nothing in a match nobody watched.
             resolveDecision(state, ctx, standing)
+          }
+        } else if (!side.isUser) {
+          // THE AI MAKES THE CALL TOO (owner, 1.8.16: "they should also go to
+          // the corner"). It used to kick every penalty at goal.
+          const call = aiPenaltyCall(state, ctx, side, opp, min)
+          if (call === 'posts') takePenaltyShot(state, ctx, side, min)
+          else {
+            const was = ctx.evWhy
+            ctx.evWhy = 'pen'
+            if (call === 'corner') kickToCorner(state, ctx, side, opp, min)
+            else tapAndGo(state, ctx, side, opp, min)
+            ctx.evWhy = was
           }
         } else {
           takePenaltyShot(state, ctx, side, min)

@@ -57,8 +57,11 @@ export const MEM_ADAPT = 0.1
 /** the most a remembered unit is lifted by. 0.025 until 1.8.14, when the
  *  balance round made a unit's lift cost more on the day: at its cap on the
  *  manager's defence it read 0.77 points a match (se 0.30) against memoryloopprobe's
- *  bar of under one at the top of a two-se band; at 0.02 it reads 0.43 (se 0.27). */
-export const MEM_UNIT = 0.02
+ *  bar of under one at the top of a two-se band; at 0.02 it reads 0.43 (se 0.27).
+ *  1.8.16 made every afternoon less alike (the day's dice, the incidents), so
+ *  a paired match drifts further from its twin and the band widened (se 0.33):
+ *  0.02 then read 0.62 to 0.80. Halved to keep the remembered lift a nudge. */
+export const MEM_UNIT = 0.01
 /** what the cause was worth on the day for the whole of it: a converted try */
 export const MEM_FULL = 7
 /** below this share of the whole a coach changes nothing worth saying */

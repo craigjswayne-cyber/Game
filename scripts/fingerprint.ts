@@ -576,12 +576,28 @@ const EXPECTED: string[] = [
   //   0.17, held up 0.41, free kicks 3.2, 50:22s 0.31, TMO foul play 0.27,
   //   scuffles 0.45, reversals 0.11, warm-up withdrawals 0.04.
   // The one result that held is sale 39-25 bristol.
-  'saracens 14-44 bath',
-  'exeter 35-13 gloucester',
+  //
+  // AND AGAIN, SAME ROUND, after the suite read the tactics gates:
+  //   - the execution factor's spread narrowed from 0.28 to 0.15: at 0.28 the
+  //     day's luck drowned the plan (tapplayprobe had the wrong play beating
+  //     the right one, starveprobe had starving them not cut their tries)
+  //   - the rematch lift halved to 0.01 (rematch.ts) and memoryloopprobe's
+  //     two unit pairs measured on 1,440 matches, not 720
+  //   - a second yellow is a red (Law 9, Regulation 17), no draw taken
+  //   - the AI calls posts, corner or tap (owner: "they should also go to the
+  //     corner"): 2.90 shots, 0.29 corners and 0.04 taps a match, read off
+  //     the clock, the score, the distance and the packs, no draw of its own
+  //   - garbage time steepens (power 1.4 on the lead past 28): a strong side
+  //     strong every week ran the mismatch tail to 49 in 20,000 past 90; 23 now
+  // bandcheck, eight worlds, 8,136 league games: points 49.8, tries 6.51,
+  // home 53.8%, draws 1.8%, blowouts 9.0%, every band holds.
+  // Four of six moved; sale-bristol and harlequins-leicester held.
+  'saracens 31-23 bath',
+  'exeter 28-24 gloucester',
   'sale 39-25 bristol',
   'harlequins 51-24 leicester',
-  'newcastle 24-54 northampton',
-  'exeter 38-20 saracens',
+  'newcastle 38-29 northampton',
+  'exeter 40-17 saracens',
 ]
 // REBASELINED for 1.8.2 depth (claude/182-depth), FIVE of six moved, and
 // WITHOUT a new draw on the shared stream: the match still takes the one draw
