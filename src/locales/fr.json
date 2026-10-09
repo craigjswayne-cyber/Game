@@ -1138,7 +1138,7 @@
   "philosophy": {
     "pack": "Domination des avants",
     "packBlurb": "Jeu d'avants : mauls sur touche, jeu au près, pression en mêlée.",
-    "packSoft": "Fragile si vous ralentissez leurs ballons.",
+    "packSoft": "Ça cède quand on ralentit leurs ballons.",
     "width": "Largeur et offloads",
     "widthBlurb": "Déploie le ballon au large tôt et fait des offloads au contact.",
     "widthSoft": "Faible si vous gagnez les impacts et forcez les fautes de main.",
