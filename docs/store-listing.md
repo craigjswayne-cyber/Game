@@ -120,6 +120,28 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.8.16, Play version code 55
+
+Each entry is under 500 characters. Paste the matching language into each Play locale.
+
+**en-GB**
+No two afternoons alike. Each side has its day: the lineout that misfires, the pack on top. Penalty tries, intercepts, held up over the line, free kicks, 50:22s, the TMO calling foul play and the referee naming the offence. Sides now kick for the corner. A second yellow is a red, and a drawn knockout goes to extra time. Replacements keep their bench number. Every line of the game rewritten so it reads like rugby, in all six languages.
+
+**fr-FR**
+Plus aucun match pareil. Chaque équipe a son jour : la touche qui se dérègle, le pack qui domine. Essais de pénalité, interceptions, ballons tenus dans l'en-but, coups francs, 50-22, l'arbitre vidéo sur le jeu déloyal et l'arbitre qui nomme la faute. Les équipes jouent désormais la pénaltouche. Deux jaunes font un rouge, et une phase finale à égalité va en prolongation. Les remplaçants gardent leur numéro. Tous les textes réécrits pour sonner rugby, dans les six langues.
+
+**es-ES**
+Ningún partido igual. Cada equipo tiene su día: la touche que falla, la delantera que manda. Ensayos de castigo, intercepciones, balones retenidos en la zona de marca, golpes francos, 50:22, el TMO revisando el juego sucio y el árbitro que nombra la falta. Los equipos ya van a la touche para el maul. Dos amarillas son roja, y una eliminatoria empatada va a la prórroga. Los suplentes conservan su dorsal. Todos los textos reescritos para que suenen a rugby, en los seis idiomas.
+
+**it-IT**
+Nessuna partita uguale. Ogni squadra ha la sua giornata: la touche che si inceppa, il pacchetto che domina. Mete tecniche, intercetti, palloni tenuti alti in meta, calci liberi, 50:22, il TMO sul gioco scorretto e l'arbitro che dice il fallo. Ora le squadre calciano in touche per la maul. Due gialli fanno un rosso, e una partita a eliminazione in parità va ai supplementari. I subentrati tengono il loro numero. Tutti i testi riscritti per suonare come il rugby, in sei lingue.
+
+**ja-JP**
+同じ試合は二つとない。各チームに好不調の日があり、ラインアウトが乱れる日もあればスクラムで圧倒する日もある。ペナルティトライ、インターセプト、インゴールでのヘルドアップ、フリーキック、50:22、TMOの反則確認、レフリーの反則宣告を追加。AIチームもタッチキックからモールを選ぶように。イエロー2枚でレッド、ノックアウトの同点は延長戦へ。リザーブは控えの背番号のまま出場。全テキストを6言語でラグビーらしく書き直しました。
+
+**af**
+Geen twee wedstryde dieselfde nie. Elke span het sy dag: die lynstaan wat haper, die voorspelers wat oorheers. Strafdrieë, onderskeppings, vasgehou oor die doellyn, vryskoppe, 50:22's, die TBO wat vuil spel ondersoek en die skeidsregter wat die oortreding noem. Spanne skop nou vir die hoek. Twee geel kaarte is rooi, en 'n gelykop uitklopwedstryd gaan na ekstra tyd. Plaasvervangers hou hul banknommer. Elke reël herskryf sodat dit soos rugby klink, in al ses tale.
+
 ### What's new (500 max) - v1.8.15, Play version code 54
 
 Each entry is under 500 characters. Paste the matching language into each Play locale.
