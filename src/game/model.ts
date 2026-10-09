@@ -205,18 +205,6 @@ export function finalVenue(state: GameState, compId: string): FinalVenue | null 
   return EURO_FINAL_VENUES[i]
 }
 
-/** Signature traits and what they do, for player pages and scouting. */
-export const TRAIT_INFO: Record<string, string> = {
-  'The Step': 'Feet like a dancer - defenders grasp at air. Scores more tries.',
-  'Offload King': 'Keeps the ball alive through contact. Sharpens the whole attack.',
-  'Siege Gun': 'A boot from another postcode - dangerous from anywhere kickable.',
-  'Metronome': 'Never misses the ones he should make. Raises the kicking floor.',
-  'Jackal': 'First over every tackle. More breakdown menace.',
-  'Enforcer': 'Brings the dark arts - muscle at scrum and ruck, and refs know his name.',
-  'Big-Game Player': 'Grows three inches in knockouts and derbies.',
-  'Hot Head': 'One flashpoint from a card, every single week.',
-}
-
 /** One-page season review captured at rollover, shown early next season. */
 export interface SeasonReview {
   season: number

@@ -532,7 +532,7 @@ Il Campionato delle Province Unite gioca ora il suo vero formato: diciotto giorn
 
 ### What's new (500 max) - v1.6.3, Play version code 32
 
-The release-gate fixes (docs/release-audit-v1.6.2.md): the women's cup ties
+The release-gate fixes (docs/archive/release-audit-v1.6.2.md): the women's cup ties
 are yours to play, money is charged once, board injections carry over, the
 world stops inflating, and a leftover match can no longer replace a career.
 
@@ -934,7 +934,7 @@ skryf wat hy nie het nie.
 ```
 
 **The honest account of v1.5.1**: the bugs were the open items from the 1.5.0
-release audit (`docs/release-audit-prompt.md` and the published report).
+release audit (`docs/archive/release-audit-prompt.md` and the published report).
 Uncontested scrums were decided at kick-off only; a tighthead sent off in the
 30th minute with no trained cover left the scrum contested for fifty minutes.
 Thirty-eight office replies were English string literals in every language.

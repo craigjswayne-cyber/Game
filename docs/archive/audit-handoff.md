@@ -618,7 +618,7 @@ the blowout ceiling, fmtMoney's billions tier. Browser leg: -10m ledger,
 ## Open work, roughly in order
 
 1. **Pass 9 of the commercial release audit** - untouched.
-   Prompt: docs/release-audit-prompt.md.
+   Prompt: docs/archive/release-audit-prompt.md.
 2. **Where does a managed save's edge come from?** The 106-3 needed an
    effective strength gap headless play never produces between top clubs.
    Facilities + morale + chem + talks + briefs each measured fine alone;

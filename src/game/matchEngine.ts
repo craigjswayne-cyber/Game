@@ -3007,7 +3007,7 @@ export function shirtNumber(side: SideCtx, id: number): number | undefined {
  * was drafted and cut. The unit figures it would read carry the tactical dials,
  * so a rating built on them could be farmed by a slider - and ratings feed form,
  * which feeds selection. That is the free-lunch shape the kicking dial had, and
- * dialweight cannot currently resolve effects that small (docs/audit-handoff).
+ * dialweight cannot currently resolve effects that small (docs/archive/audit-handoff).
  * The forwards/backs gap is real and measured (7% of forwards rated 7+ against
  * 18% of backs); it is not closed here, because closing it with a number nobody
  * can validate is how the last three calibrations got reverted.

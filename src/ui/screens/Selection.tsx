@@ -13,17 +13,12 @@ import { t } from '../../game/i18n'
 import { IcoAttack, IcoChevron, IcoHandshake, IcoPack, IcoShield } from '../icons'
 
 /* Keys, not words: this array is built once at module load and the language
-   can change afterwards. The English wording is in src/locales/en.json.
-
-   `desc` is not translated because nothing renders it - it has been dead since
-   the leadership grid was written, and a translated string nobody can read is
-   dead weight in every language rather than one. Left in English, and left
-   alone: giving it a home is a product decision, not a translation. */
+   can change afterwards. The English wording is in src/locales/en.json. */
 const PORTFOLIOS = [
-  { id: 'pack' as const, icon: <IcoPack />, name: 'selection.pfPack', desc: 'Set piece and the breakdown, at the cost of the general lift.' },
-  { id: 'defence' as const, icon: <IcoShield />, name: 'selection.pfDefence', desc: 'The defensive system, taken off attacking shape.' },
-  { id: 'attack' as const, icon: <IcoAttack />, name: 'selection.pfAttack', desc: 'Attacking shape, taken off the defensive line.' },
-  { id: 'culture' as const, icon: <IcoHandshake />, name: 'selection.pfCulture', desc: 'The room and the discipline. No unit moves.' },
+  { id: 'pack' as const, icon: <IcoPack />, name: 'selection.pfPack' },
+  { id: 'defence' as const, icon: <IcoShield />, name: 'selection.pfDefence' },
+  { id: 'attack' as const, icon: <IcoAttack />, name: 'selection.pfAttack' },
+  { id: 'culture' as const, icon: <IcoHandshake />, name: 'selection.pfCulture' },
 ]
 
 /**
