@@ -237,13 +237,6 @@ export function persKnown(state: GameState, p: Player): boolean {
   return reportStage(state, p) >= 3
 }
 
-export const STAGE_WORD: Record<ReportStage, string> = {
-  0: 'Unscouted: a name on a team sheet. The numbers below are guesswork.',
-  1: 'Initial report: a weekend of tape. Broad numbers, nothing behind them.',
-  2: 'Detailed report: strengths and role are clear. Character still unknown.',
-  3: 'Full file: numbers, character and temperament all verified.',
-}
-
 /** Weekly knowledge gathering. */
 export function weeklyScouting(state: GameState) {
   const scoutLvl = state.staff.scout

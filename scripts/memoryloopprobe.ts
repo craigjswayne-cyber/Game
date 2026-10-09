@@ -271,8 +271,8 @@ const effects: Record<string, { d: number[]; win: number[] }> = {}
   // the signature mix's own tape, against none
   const app = (k: Rematch['cause'], u?: string) => (c: LiveCtx) => c.rematch?.cause === k && (!u || c.rematch.unit === u) && c.rematch.w === 1
   pair('rematch at its cap: the loop (on the mix\'s tape)', () => withEv([]), () => withEv([wonBy('move', A, S0, 1)]), app('move'))
-  pair('rematch at its cap: his defence', () => withEv([]), () => withEv([wonBy('break', A, S0, 1)]), app('break', 'defence'))
-  pair('rematch at its cap: his breakdown', () => withEv([]), () => withEv([wonBy('turn', A, S0, 1)]), app('turn', 'breakdown'))
+  pair('rematch at its cap: his defence', () => withEv([]), () => withEv([wonBy('break', A, S0, 1)]), app('break', 'defence'), 180)
+  pair('rematch at its cap: his breakdown', () => withEv([]), () => withEv([wonBy('turn', A, S0, 1)]), app('turn', 'breakdown'), 180)
   const tape = mean(effects['the 1.8.3 tape at full (one strike, analyst)'].d)
   const caps = ['rematch at its cap: the loop (on the mix\'s tape)', 'rematch at its cap: his defence', 'rematch at its cap: his breakdown']
   const se = (k: string) => sd(effects[k].d) / Math.sqrt(effects[k].d.length)

@@ -5,8 +5,9 @@ import { rewardedAvailable } from '../../game/monetise'
 import {
   matchStats, visitsTo22, goalKicker, teamShort, teamUnits, paperOverall, rosterOf, assistantJudgement, autoSelect, availablePlayers,
   refFor, refNotes, homeCrowdLean, frontRowCover, repairSheet, sideEnergy, MAX_SUBS, isFrontRower, needsFrontRower, type LiveCtx, type SideCtx,
+  shirtNumber,
 } from '../../game/matchEngine'
-import { MIDWEEK_OFF, BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, careerRows, chemKey, clubCode, chemTier, eventText, injuryDesc, fixtureDate, fixtureDayOff, grudgeBetween, inRedZone, oldBoyApps, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
+import { MIDWEEK_OFF, BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, careerRows, chemKey, clubCode, chemTier, eventText, injuryDesc, fixtureDate, fixtureDayOff, grudgeBetween, inRedZone, oldBoyApps, tieWinner, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
 import { BRIEF_BY_ID, SPLIT_BY_ID, benchSeats, briefForSeat, splitFor } from '../../game/bench'
 import { BriefIcon } from '../tacticsArt'
 import { assistantFixtureThisWeek, isKnockoutTie, userMatchThisWeek } from '../../game/season'
@@ -1859,6 +1860,12 @@ function Live() {
         const sd = home ? ctx.home : ctx.away
         const tac = game.clubs[sd.teamId]?.tactic
         return sd.sty ? { ...tac, atkStyle: sd.sty.atk, defStyle: sd.sty.def, podShape: sd.sty.pod } : tac
+      },
+      // the number on his back is the one he walked out in (1.8.16)
+      (home, shirt) => {
+        const sd = home ? ctx.home : ctx.away
+        const id = sd.lineup[shirt - 1]
+        return id != null ? shirtNumber(sd, id) : undefined
       })
     // the clip starts with its build-up, so the commentary never jumps: the
     // ticker reads on until it reaches the first line of it (in Key Moments,
@@ -2079,15 +2086,20 @@ function Live() {
           exactly that against Loughborough and went away believing the game had
           changed a result behind his back. Level and still to be settled means
           no verdict yet; the stamp waits for the extra-time event. */}
-      {done && ctx.userSideId && !(isKnockoutTie(fixture) && hs === as) && (() => {
+      {done && ctx.userSideId && !(isKnockoutTie(fixture) && hs === as && !fixture.decider) && (() => {
         const isHome = ctx.userSideId === fixture.homeId
         const us = isHome ? hs : as
         const them = isHome ? as : hs
-        const kind = us > them ? 'w' : us < them ? 'l' : 'd'
+        // LEVEL AFTER EXTRA TIME (1.8.16): the score stays level and the try
+        // count or the kicks decided it, so the verdict reads the decider
+        const dec = us === them && fixture.decider && fixture.homeScore === fixture.awayScore ? fixture.decider : null
+        const won = dec ? tieWinner(fixture) === ctx.userSideId : us > them
+        const lost = dec ? !won : us < them
+        const kind = won ? 'w' : lost ? 'l' : 'd'
         return (
           <div className={`ft-stamp ${kind}`} key={`stamp-${fixture.id}`}>
-            <b>{t(us > them ? 'matchday.victory' : us < them ? 'matchday.defeat' : 'matchday.drawn')}</b>
-            <span>{hs} - {as}</span>
+            <b>{t(won ? 'matchday.victory' : lost ? 'matchday.defeat' : 'matchday.drawn')}</b>
+            <span>{hs} - {as}{dec ? ` ${t(dec.by === 'tries' ? 'matchday.onTries' : 'matchday.onKicks')}` : ''}</span>
           </div>
         )
       })()}
@@ -3193,8 +3205,9 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
 
   // The XV in shirt order, because that is how a team sheet reads and how the
   // man you are looking for is found.
+  // the number he walked out in: a replacement in 23 stays 23 (1.8.16)
   const xv = mine.lineup.slice(0, 15).map((id, i) => ({
-    shirt: i + 1,
+    shirt: (id != null ? shirtNumber(mine, id) : undefined) ?? i + 1,
     p: id != null ? game.players[id] : null,
   })).filter((r): r is { shirt: number; p: Player } => !!r.p)
 

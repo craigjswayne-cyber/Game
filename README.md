@@ -1,51 +1,55 @@
-# 🏉 PHASE: Rugby Manager
+# PHASE: Rugby Manager
 
-A classic-style rugby union management game for mobile, in the spirit of the
-great late-90s management sims, dressed in an editorial heritage look (deep
-forest green, parchment, serif mastheads). English and French.
+A rugby union management game for phones. Pick a club, pick a side, live with
+it. Dense squad tables, a real decision most days, and a career that remembers
+season one when you get to season fifteen. English, French, Spanish, Italian,
+Japanese and Afrikaans.
 
-**Unofficial and independent.** Clubs, competitions, grounds and sponsors are
-fictional (location-based identities, since v1.0.2) and no official badge, kit
-or logo ships with the game. Player names are real, used to identify people in a
-sporting database and for nothing else; the game is not affiliated with,
-endorsed by or licensed by any player, club, league or governing body. Anybody
-named who would rather not be can write to info@fwdsandbcks.com and will
-be removed in the next update.
+**Unofficial and independent.** PHASE: Rugby Manager is not affiliated with,
+endorsed by or licensed by any player, club, league or governing body. Club
+names are real; competitions, grounds and sponsors are renamed or invented.
+Player names are real, used to identify people in a sporting database and for
+nothing else. No official badges, kits or logos ship with the game. Anybody
+named who would rather not be can write to info@fwdsandbcks.com and will be
+removed in the next update.
 
-The game collects nothing and sends nothing anywhere: no accounts, no analytics,
-no network calls at all (`scripts/netprobe.ts` fails the build if one appears).
+The game itself collects nothing and sends nothing anywhere: no accounts, no
+analytics, no network calls (`scripts/netprobe.ts` fails the build if one
+appears). The Google Play and App Store builds add Google AdMob adverts in the
+app shell, outside the game, and a Pro Manager purchase takes the banners away.
 Careers are saved on the device, with export, import and a share-sheet backup.
 
 Store release work - the monetisation layer, the legal surface, the listing copy
 and the packaging - is documented in `docs/monetisation.md`,
-`docs/store-listing.md`, `docs/release-readiness.md` and `packaging/twa/`.
+`docs/store-listing.md`, `docs/release-readiness.md`, `docs/launch/` and
+`packaging/`. Anything a player reads, store copy included, is written to
+`docs/voice-bible.md`.
 
 ## What's in the game
 
-- **8 selectable competitions, 100+ clubs, ~1,600 real players (2026–27 window, verified)**
-  - The English, French and Celtic/South African top flights plus their second
-    tiers, Super Rugby Pacific and Japan's League One
-  - Fictional location-based clubs and grounds with real capacities and
-    colours, calibrated 1–100 player ratings
-- **Competitions**: full league seasons with bonus points and playoffs, a 16-team
-  Champions Cup (pools → knockouts), plus the Six Nations, Rugby Championship and
-  Autumn internationals simulated around you — your players get called up and
-  become unavailable during test windows.
-- **The classic loop**: Inbox → team selection → Continue → match day. Dense sortable
-  squad tables, 1–20 attributes across 18 rugby-specific categories (scrummaging,
-  lineout, rucking, goal kicking…), form, morale, condition, sharpness, injuries, bans.
-- **Match day**: live-text commentary with a pitch view and flashing key events —
-  tries, conversions, penalties, drop goals, cards, injuries — at three playback
-  speeds, with instant skip.
-- **Squad building**: transfers with AI bids and negotiations, free agents,
-  contracts and renewals, transfer listing, wage and transfer budgets, board
-  confidence and season objectives — fail badly enough and you're sacked.
-- **The press**: journalists ask about your players and your results; your right
-  to reply moves morale and board confidence.
-- **Long-term play**: seasons roll over with awards, ageing, retirements, youth
-  academy intakes (regens), Champions Cup requalification, prize money, and a
-  roll of honour. 10 seasons simulate in ~2.5 seconds.
-- **Saves**: IndexedDB save slots with autosave — installable as a PWA and playable offline.
+- **171 clubs in 15 leagues.** Nine in the men's game (the English, French,
+  United Provinces and Pacific top flights, Japan, the United States, and the
+  second and third tiers beneath them) and six in the women's game, built the
+  same way. Real players in the top flights, generated squads lower down.
+- **Competitions**: full league seasons with bonus points and play-offs, a
+  16-club Continental Cup, and the Northern and Southern Championships and the
+  autumn and summer Tests played around you. Your internationals get called up and miss
+  club matches.
+- **The week**: inbox, team selection, Continue, match day. Sortable squad
+  tables, 1 to 20 attributes across 18 rugby categories (scrummaging, lineout,
+  rucking, goal kicking and the rest), form, morale, condition, sharpness,
+  injuries and bans.
+- **Match day**: live text commentary with live stats, and the pitch for tries
+  and big moments, at three speeds or as an instant result that explains itself.
+- **Squad building**: transfers with AI bids and negotiation, two windows, free
+  agents, loans, contracts and renewals, the salary cap, board confidence and
+  season objectives. Fail badly enough and you're sacked.
+- **The press**: journalists ask about your players and your results. What you
+  say reaches the dressing room and the board.
+- **The long game**: seasons roll over with awards, ageing, retirements, academy
+  intakes, prize money and a Roll of Honour. Ten seasons simulate in about 2.5
+  seconds.
+- **Saves**: four IndexedDB career slots with autosave.
 
 ## Run it
 
@@ -56,8 +60,9 @@ npm run build      # production build to dist/
 npm run preview    # serve the production build
 ```
 
-Open on your phone (or in devtools mobile viewport, ~390×844) and add to your
-home screen for the full app experience.
+Open it on a phone, or in a devtools mobile viewport of about 390×844. The
+browser build is for development only: the public site no longer serves the
+game, and players get it from the stores.
 
 ## Dev scripts
 

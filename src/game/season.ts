@@ -21,7 +21,7 @@ import { AWARD_EVERY, managerOfMonth, runLine, runVars } from './awards'
 import { boardMemo } from './boardmemo'
 import { terraceWeek } from './terraces'
 import { upkeepWeek } from './upkeep'
-import {absWeek, addGrudge, careerRows, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, buildWeeks, finalVenue, fixtureDayOff, fmtMoney, leagueTier, LEDGER_WEEKS, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, RELEGATES, SEASON_WEEKS, seasonLabel, squadTrust, stamp100, GROUND_TIERS, groundLevel, groundBuildWeeks, unbeatenRun, weeklyCentral, mgrWinWeight, addWeeks100 } from './model'
+import {absWeek, addGrudge, careerRows, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, buildWeeks, finalVenue, fixtureDayOff, fmtMoney, leagueTier, LEDGER_WEEKS, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, RELEGATES, SEASON_WEEKS, seasonLabel, squadTrust, stamp100, GROUND_TIERS, groundLevel, groundBuildWeeks, unbeatenRun, weeklyCentral, mgrWinWeight, addWeeks100, tieWinner } from './model'
 import { simMatch, autoSelect, pickTrainingInjury, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { BARRAGE_WEEK, windowSpan } from './calendar'
 import { emptyRow, leaguePos, sortTable, snIdFor, snWeeksFor, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS, W_AUTUMN_WEEKS, W_SIX_NATIONS_WEEKS, W_PAC4_WEEKS, W_SUMMER_TEST_WEEKS } from './schedule'
@@ -234,8 +234,8 @@ export function requestFacility(state: GameState, fid: FacilityId): string {
     },
   })
   return boardPut > 0
-    ? `Approved. The board put up ${fmtMoney(boardPut)}, the club ${fmtMoney(clubShare)} - about ${weeks} weeks to build.`
-    : `Approved. ${fmtMoney(clubShare)} released - about ${weeks} weeks to build.`
+    ? t('reply.facApprovedShared', { board: fmtMoney(boardPut), club: fmtMoney(clubShare), n: weeks })
+    : t('reply.facApprovedOwn', { club: fmtMoney(clubShare), n: weeks })
 }
 
 /** Cost of the next stand: seats added, at the same rate the board pays. */
@@ -478,15 +478,92 @@ export function isKnockoutTie(fx: Fixture): boolean {
   return !!fx.stage && KO_STAGES.has(fx.stage)
 }
 
-/** In knockout rugby there are no draws - nudge a golden-point winner. */
-export function resolveKnockoutDraw(state: GameState, fx: Fixture, rng: Rng) {
-  if (!isKnockoutTie(fx)) return
-  if (fx.homeScore !== fx.awayScore) return
-  const hs = teamUnits(state, autoLineup(state, fx.homeId)).overall
-  const as = teamUnits(state, autoLineup(state, fx.awayId)).overall
-  const pHome = hs / (hs + as) + 0.05
-  if (rng() < pHome) fx.homeScore += 3
-  else fx.awayScore += 3
+/** A line of extra time, for the ticker (store.ts settleKnockout). */
+export interface EtLine { min: number; type: 'SUB' | 'TRY' | 'PEN' | 'FT'; teamId: string; k: string; v: Record<string, string | number> }
+
+/**
+ * ---- EXTRA TIME (1.8.16, owner's coverage list item 20) ----
+ *
+ * In knockout rugby there are no draws, and this used to settle a level tie
+ * with a coin weighted on squad strength that added three points to one side:
+ * a golden point nobody saw. The Premiership's play-off regulations (and the
+ * European cups') do it in three steps, and so does this now:
+ *
+ *   1. two ten-minute periods of extra time, every point of it counting;
+ *   2. still level, the side that scored more tries in the match goes through;
+ *   3. still level, a place-kick competition: three kickers a side, six kicks
+ *      each from the 22 and the ten-metre line, then sudden death.
+ *
+ * After steps 2 and 3 the score stays level, as it does in the real game, and
+ * the winner is kept on the fixture (decider, read by tieWinner).
+ *
+ * Extra time is played in four five-minute blocks off the strength of the two
+ * sides' best available XVs, as the old coin was. Tired men and the bench are
+ * in the strength already: this is the epilogue to a match, not a second one.
+ */
+export function resolveKnockoutDraw(state: GameState, fx: Fixture, rng: Rng): EtLine[] {
+  if (!isKnockoutTie(fx)) return []
+  if (fx.homeScore !== fx.awayScore) return []
+  const lines: EtLine[] = []
+  const short = (id: string) => teamShort(state, id)
+  const hl = autoLineup(state, fx.homeId), al = autoLineup(state, fx.awayId)
+  const hs = teamUnits(state, hl).overall
+  const as = teamUnits(state, al).overall
+  // a final at a neutral ground has no home edge
+  const share = clamp(hs / (hs + as) + (fx.venue ? 0 : 0.03), 0.2, 0.8)
+  lines.push({ min: 80, type: 'SUB', teamId: '', k: 'comm.etStart', v: { home: short(fx.homeId), away: short(fx.awayId), hs: fx.homeScore, ascore: fx.awayScore } })
+  const et: [number, number] = [0, 0]
+  for (let b = 0; b < 4; b++) {
+    const min = 81 + b * 5 + Math.floor(rng() * 5)
+    for (const home of [true, false]) {
+      const s = home ? share : 1 - share
+      if (rng() >= 0.1 * Math.pow(s * 2, 1.6)) continue
+      const id = home ? fx.homeId : fx.awayId
+      let pts: number
+      if (rng() < 0.45) {
+        const con = rng() < 0.7
+        pts = con ? 7 : 5
+        if (home) fx.homeTries += 1; else fx.awayTries += 1
+        lines.push({ min, type: 'TRY', teamId: id, k: con ? 'comm.etTryCon' : 'comm.etTry', v: { team: short(id) } })
+      } else {
+        pts = 3
+        lines.push({ min, type: 'PEN', teamId: id, k: 'comm.etPen', v: { team: short(id) } })
+      }
+      if (home) { fx.homeScore += pts; et[0] += pts } else { fx.awayScore += pts; et[1] += pts }
+    }
+    if (b === 1) lines.push({ min: 90, type: 'SUB', teamId: '', k: 'comm.etTurn', v: { hs: fx.homeScore, ascore: fx.awayScore } })
+  }
+  if (et[0] || et[1]) fx.aet = et
+  if (fx.homeScore !== fx.awayScore) {
+    const w = fx.homeScore > fx.awayScore ? fx.homeId : fx.awayId
+    lines.push({ min: 100, type: 'FT', teamId: w, k: 'comm.etWon', v: { team: short(w), hs: fx.homeScore, ascore: fx.awayScore } })
+    return lines
+  }
+  // still level: the try count
+  if (fx.homeTries !== fx.awayTries) {
+    const w = fx.homeTries > fx.awayTries ? fx.homeId : fx.awayId
+    fx.decider = { by: 'tries', winner: w }
+    lines.push({ min: 100, type: 'FT', teamId: w, k: 'comm.etOnTries', v: { team: short(w), n: Math.max(fx.homeTries, fx.awayTries), m: Math.min(fx.homeTries, fx.awayTries), hs: fx.homeScore, ascore: fx.awayScore } })
+    return lines
+  }
+  // and the kicks: three kickers a side, six kicks each, then sudden death
+  const kickers = (ids: (number | null)[]) => ids.slice(0, 15)
+    .map(id => (id != null ? state.players[id] : null))
+    .filter((p): p is Player => !!p)
+    .sort((a, b) => b.a.goa - a.a.goa)
+    .slice(0, 3)
+  const hk = kickers(hl), ak = kickers(al)
+  const made = (p: Player | undefined, spot: number) => rng() < clamp(0.42 + (p?.a.goa ?? 8) / 40 - (spot % 2) * 0.08, 0.35, 0.92)
+  let h = 0, a = 0
+  for (let i = 0; i < 6; i++) { if (made(hk[i % 3], i)) h++; if (made(ak[i % 3], i)) a++ }
+  let round = 0
+  while (h === a && round < 30) { if (made(hk[round % 3], 1)) h++; if (made(ak[round % 3], 1)) a++; round++ }
+  if (h === a) { if (share >= 0.5) h++; else a++ }
+  const w = h > a ? fx.homeId : fx.awayId
+  fx.decider = { by: 'kicks', winner: w, kicks: [h, a] }
+  lines.push({ min: 100, type: 'SUB', teamId: '', k: 'comm.etKicksStart', v: { home: short(fx.homeId), away: short(fx.awayId) } })
+  lines.push({ min: 100, type: 'FT', teamId: w, k: round ? 'comm.etKicksSudden' : 'comm.etKicksWon', v: { team: short(w), n: Math.max(h, a), m: Math.min(h, a), hs: fx.homeScore, ascore: fx.awayScore } })
+  return lines
 }
 
 function autoLineup(state: GameState, teamId: string) {
@@ -742,7 +819,7 @@ function maybeCreateKnockouts(state: GameState, comp: Competition, rng: Rng) {
   holdTheDraw()
 }
 
-const winnerOf = (fx: Fixture) => (fx.homeScore >= fx.awayScore ? fx.homeId : fx.awayId)
+const winnerOf = (fx: Fixture) => tieWinner(fx)
 
 // ------------------------------------------------------------------
 // Internationals
@@ -3209,7 +3286,7 @@ export function processWeekAndAdvance(state: GameState) {
     // world champions in the building: your club's players in the winning
     // squad get their moment regardless of whether you coach a nation
     if (wcFinal) {
-      const champ = wcFinal.homeScore > wcFinal.awayScore ? wcFinal.homeId : wcFinal.awayId
+      const champ = tieWinner(wcFinal)
       const winners = (state.natSquads[champ] ?? [])
         .map(id => state.players[id])
         .filter((p): p is Player => !!p && p.clubId === state.userClubId)
@@ -3239,8 +3316,7 @@ export function processWeekAndAdvance(state: GameState) {
     if (wcFinal && nat) {
       const seeds = state.comps['wc']?.seeds ?? []
       const seed = seeds.indexOf(nat) + 1
-      const won = (wcFinal.homeId === nat && wcFinal.homeScore > wcFinal.awayScore) ||
-        (wcFinal.awayId === nat && wcFinal.awayScore > wcFinal.homeScore)
+      const won = tieWinner(wcFinal) === nat
       const inFinal = wcFinal.homeId === nat || wcFinal.awayId === nat
       const wcFx = state.fixtures.filter(f => f.compId === 'wc' && f.played && (f.homeId === nat || f.awayId === nat))
       const deepest = wcFx.some(f => f.stage === 'F') ? (won ? 1 : 2)
@@ -3336,7 +3412,7 @@ export function processWeekAndAdvance(state: GameState) {
       const compName = state.comps[sf.compId]?.name ?? 'the cup'
       const otherSf = state.fixtures.find(f => f.compId === sf.compId && f.stage === 'SF' && f.id !== sf.id)
       const oppId = otherSf?.played
-        ? (otherSf.homeScore > otherSf.awayScore ? otherSf.homeId : otherSf.awayId)
+        ? tieWinner(otherSf)
         : null
       const oppName = oppId ? (state.clubs[oppId]?.name ?? nationNameIn('en', oppId)) : null
       const v = state.clubs[mine] ? finalVenue(state, sf.compId) : null
@@ -3620,7 +3696,7 @@ export function processWeekAndAdvance(state: GameState) {
   for (const fx of state.fixtures.filter(f =>
     f.week === state.week && f.played && (f.stage === 'SF' || f.stage === 'F') &&
     state.clubs[f.homeId] && state.clubs[f.awayId])) {
-    const winner = fx.homeScore > fx.awayScore ? fx.homeId : fx.awayId
+    const winner = tieWinner(fx)
     const loser = winner === fx.homeId ? fx.awayId : fx.homeId
     const comp = state.comps[fx.compId]
     addGrudge(state, loser, winner,
@@ -4038,7 +4114,7 @@ export function processWeekAndAdvance(state: GameState) {
         state.fixtures.push(fx)
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
-          subject: `The relegation playoff: ${teamShort(state, bottom)} v ${teamShort(state, up)}`,
+          subject: `The relegation play-off: ${teamShort(state, bottom)} v ${teamShort(state, up)}`,
           body: `One game for a Premier Division place. ${state.clubs[bottom].name} finished bottom and get to defend their status at home; ${state.clubs[up].name} won the Championship and come to take it. Winner plays top-flight rugby next season.`,
           k: 'news.barrage',
           v: {
@@ -4371,7 +4447,7 @@ export function processWeekAndAdvance(state: GameState) {
               const club2 = state.clubs[state.userClubId]
               state.news.push({
                 id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
-                subject: `PLAYOFFS SECURED: ${club2.short} are mathematically in`,
+                subject: `PLAY-OFFS SECURED: ${club2.short} are mathematically in`,
                 body: `Whatever happens from here, ${club2.name} will be in the ${comp.short} playoffs - no combination of results can push you out of the top ${line}. The seeding is still worth fighting for: finish higher and the knockout rounds come to ${club2.stadium}. The office has already had a call about semi-final ticketing.`,
                 k: 'news.clinch',
                 v: { short: club2.short, club: club2.name, comp: comp.short, line, stadium: club2.stadium },

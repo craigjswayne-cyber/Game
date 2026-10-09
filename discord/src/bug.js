@@ -76,5 +76,5 @@ export async function submitBug(interaction) {
     },
     reason: `Bug report from ${interaction.user.tag}`,
   })
-  return interaction.editReply(`Thank you. Your report is here: ${thread.url}\nYou can add more screenshots or detail in that post.`)
+  return interaction.editReply(`Thanks. Your report is here: ${thread.url}\nAdd screenshots or more detail in that post.`)
 }

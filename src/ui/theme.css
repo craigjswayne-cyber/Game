@@ -3128,12 +3128,12 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 }
 
 /* ---- title screen: the Continue tile fits on one line -------------------
-   "'continue - craig, northampton saints' should be on one line - so widen the
+   "'continue - [manager], northampton saints' should be on one line - so widen the
    box." The column was capped at 300px. The longest club name in the game is
    "Montpellier Hérault Rugby" at 25 characters and a manager can call himself
    anything, so widening alone is not a guarantee: the line also refuses to wrap
    and ellipsises if someone really does type a paragraph. */
-/* 460px fitted "Craig, Northampton Saints" exactly and nothing longer, and the
+/* 460px fitted "Manager, Northampton Saints" exactly and nothing longer, and the
    title screen has 844px to play with, so it gets real headroom instead. */
 .title-screen .menu-btns { max-width: 540px; }
 .continue-tile { font-size: 16px; padding: 12px 14px; }

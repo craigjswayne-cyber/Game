@@ -70,7 +70,7 @@ for (let seed = 1; seed <= 100; seed++) {
         const block = ev.slice(Math.max(0, j - 3), j).reverse().find(b => b.k?.startsWith('comm.chargeDown'))
         if (e.type !== 'TRY' || !block || block.teamId !== e.teamId) chargeTryBad++
         // and the conversion follows, made or missed
-        if (!ev.slice(j + 1, j + 4).some(c => (c.type === 'CON' || c.k === 'comm.conWide') && c.teamId === e.teamId)) chargeNoCon++
+        if (!ev.slice(j + 1, j + 5).some(c => (c.type === 'CON' || c.k === 'comm.conWide' || c.k === 'comm.conPost') && c.teamId === e.teamId)) chargeNoCon++ // (1.8.16: a miss can hit the post, and a hat-trick line can come between)
         if (momentAt(ev, j, fx.homeId, 'key') === 'try') {
           chargeSeen++
           if (buildClip(ev, j, 'try', fx.homeId, () => 6, colours, labels, () => 'N').style !== 'charge') chargeStyleBad++

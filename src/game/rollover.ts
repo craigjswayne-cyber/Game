@@ -8,7 +8,7 @@ import { activePlan, applyAdminPenalties } from './season'
 import { settleInsolvency } from './insolvency'
 import { ageManager } from './career'
 import { rivalVerdict } from './boss'
-import {absWeek, archiveSeason, BASE_YEAR, careerRows, boardPatience, isMyClub, closeNatTenure, demandCeiling, MAX_FOLLOWING, GROUND_TIERS, groundLevel, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, RELEGATES, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId, worldCupSeasonFor } from './model'
+import {absWeek, archiveSeason, BASE_YEAR, careerRows, boardPatience, isMyClub, closeNatTenure, demandCeiling, MAX_FOLLOWING, GROUND_TIERS, groundLevel, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, RELEGATES, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId, worldCupSeasonFor, tieWinner } from './model'
 import { assignPersonality, EARLY_FADE, LATE_PEAK } from './attributes'
 import { ageAttributes, gapGrowth, PRODIGY_PA, softCeilings, youthPace } from './ageing'
 import { COE_MEAN, learning, markSights, seasonReview, tempoF, TL } from './devproject'
@@ -1866,7 +1866,7 @@ export function rebuildSeason(state: GameState) {
     if (topId === 'prem') {
       const bar = state.fixtures.find(f => f.compId === 'prem' && f.stage === 'BAR' && f.played)
       if (bar) {
-        const winner = bar.homeScore > bar.awayScore ? bar.homeId : bar.awayId
+        const winner = tieWinner(bar)
         if (winner === down) {
           const lineV = {
             k: 'news.barKept', kept: state.clubs[down].name, stay: state.clubs[up].name,
@@ -1921,7 +1921,7 @@ export function rebuildSeason(state: GameState) {
       body: (() => {
         const bar = topId === 'prem' ? state.fixtures.find(f => f.compId === 'prem' && f.stage === 'BAR' && f.played) : null
         const how = bar
-          ? `${state.clubs[up].name} win the relegation playoff ${Math.max(bar.homeScore, bar.awayScore)}-${Math.min(bar.homeScore, bar.awayScore)} away from home and take the Premier Division place. ${state.clubs[down].name} lose it on their own ground and drop into the second tier.`
+          ? `${state.clubs[up].name} win the relegation play-off ${Math.max(bar.homeScore, bar.awayScore)}-${Math.min(bar.homeScore, bar.awayScore)} away from home and take the Premier Division place. ${state.clubs[down].name} lose it on their own ground and drop into the second tier.`
           : `${state.clubs[up].name} have won promotion to ${tIn('en', topName)}. ${state.clubs[down].name} finished bottom and drop into the second tier.`
         return `${how}${down === state.userClubId ? ' The board is wounded and the budget will feel it - win the league and bounce straight back.' : ''}${up === state.userClubId ? ' The big time. The board urges cool heads: survival is the first objective.' : ''}`
       })(),

@@ -43,7 +43,7 @@ for (const league of LEAGUE_DEFS()) {
     `${league.short}: the press can tell its clubs apart (${distinct.size} verdicts across ${league.clubs.length} clubs)`)
   ok(verdicts.filter(v => v === 'Title favourites').length === 1,
     `${league.short}: exactly one title favourite`)
-  const saysPlayoffs = verdicts.some(v => v.includes('Playoff'))
+  const saysPlayoffs = verdicts.some(v => /Play-?off/.test(v))
   const saysPromotion = verdicts.some(v => v.includes('Promotion'))
   const saysRelegation = verdicts.some(v => v.toLowerCase().includes('relegation'))
   ok(saysPlayoffs === (league.playoffTeams > 0),

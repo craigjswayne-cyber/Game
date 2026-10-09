@@ -37,7 +37,7 @@ your own legal name is published on the App Store as the seller, visible to
 every customer. Organization publishes under a company name — but needs a
 D-U-N-S number, which is free and can take up to a couple of weeks to issue.
 
-**Done — 31 Aug 2026.** D&B issued D-U-N-S **506525570** for **FWDS & BCKS**.
+**Done — 31 Aug 2026.** D&B issued the D-U-N-S number (kept out of the repository) for **FWDS & BCKS**.
 When enrolling:
 
 * Pick **Organization** and enter that number. The legal entity name must be

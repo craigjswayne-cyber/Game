@@ -38,15 +38,6 @@ import { JANUARY_OPEN, nextWeek, windowOpen } from './window'
 
 export type Intent = 'rebuild' | 'consolidate' | 'allin' | 'breakup'
 
-const INTENT_BLURB: Record<Intent, string> = {
-  rebuild: 'rebuilding: young signings, patient board, no interest in a 32-year-old',
-  consolidate: 'consolidating: steady as she goes, and nobody is being sold cheap',
-  allin: 'going for it: the board has opened the cheque book and wants it spent',
-  breakup: 'being broken up: the money has run out and everybody has a price',
-}
-
-export const intentBlurb = (i: Intent): string => INTENT_BLURB[i]
-
 /**
  * What this club is trying to do this season. A PURE LENS: same club, same
  * season, same answer, every time anybody asks, with nothing written down.

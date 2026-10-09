@@ -55,7 +55,7 @@ function runSeason(seed: number, bend: (bar: Fixture, g: GameState) => void) {
     ok(bar.homeId === bottom && g.clubs[bottom] != null, `the Premiership's bottom club hosts (${g.clubs[bottom]?.short})`)
     ok(g.clubs[up] != null && bar.awayId === up, `the Championship winner travels (${g.clubs[up]?.short})`)
     ok(bar.played, 'and the game was actually played')
-    ok(g.news.some(n => /relegation playoff/i.test(n.subject)), 'the playoff was announced when the finals settled')
+    ok(g.news.some(n => /relegation play-?off/i.test(n.subject)), 'the playoff was announced when the finals settled')
   }
 }
 
