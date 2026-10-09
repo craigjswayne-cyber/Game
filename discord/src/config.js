@@ -111,7 +111,7 @@ export const LAYOUT = [
 
 export const WELCOME = [
   '# Welcome to PHASE: Rugby Manager',
-  'This is the home of the game\'s players and a place for anyone who loves rugby.',
+  'For people who play the game, and anyone who would rather talk rugby than do the washing up.',
   '',
   '**Two things this server is for:**',
   '1. **Finding what is wrong with the game, in every language it speaks.** If a word is wrong, a screen breaks or a result makes no sense, use `/bug` and tell us. Reports in any of the six languages are welcome.',
