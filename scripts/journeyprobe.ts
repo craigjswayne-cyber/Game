@@ -198,7 +198,7 @@ say('--- 1. the score on the card is the score the commentary described')
     for (const side of [p.ctx.home, p.ctx.away]) {
       const from = p.ctx.events
         .filter(e => e.teamId === side.teamId && POINTS[e.type] !== undefined)
-        .reduce((s, e) => s + POINTS[e.type], 0)
+        .reduce((s, e) => s + POINTS[e.type] + (e.k?.startsWith('comm.penTry') ? 2 : 0), 0)  // a penalty try is seven, with no conversion (1.8.16)
       checked++
       if (from !== side.score) wrong.push(`fx ${p.fx.id} ${side.teamId}: card ${side.score}, commentary ${from}`)
       const tries = p.ctx.events.filter(e => e.teamId === side.teamId && e.type === 'TRY').length

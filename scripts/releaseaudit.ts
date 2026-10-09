@@ -120,9 +120,12 @@ section('1.1 weather x tactics: the multipliers the engine applies, then 200 mat
   const rain = beginWith(g, same, 'Rain', 2)!
   const wind = beginWith(g, same, 'Wind', 3)!
   strong.tactic.kickStyle = styles[0]; weak.tactic.kickStyle = styles[1]
-  const rA = rain.home.units.attack / dry.home.units.attack
-  const rB = rain.home.units.breakdown / dry.home.units.breakdown
-  const wK = wind.home.units.kicking / dry.home.units.kicking
+  // each match deals each side a day per unit (1.8.16), a layer on top of the
+  // sky: divided out, so the ratio is the weather and nothing else
+  const u = (c: typeof dry, k: 'attack' | 'breakdown' | 'kicking') => c.home.units[k] / (c.home.day?.[k] ?? 1)
+  const rA = u(rain, 'attack') / u(dry, 'attack')
+  const rB = u(rain, 'breakdown') / u(dry, 'breakdown')
+  const wK = u(wind, 'kicking') / u(dry, 'kicking')
   ok(Math.abs(rA - 0.90) < 0.02, `rain cuts attack to ${f1(rA)}x dry (engine: 0.90)`)
   ok(Math.abs(rB - 1.04) < 0.02, `rain lifts breakdown to ${f1(rB)}x dry (engine: 1.04 - wet weather is forward weather)`)
   ok(Math.abs(wK - 0.92) < 0.02, `wind cuts kicking to ${f1(wK)}x dry (engine: 0.92)`)

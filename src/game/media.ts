@@ -1289,7 +1289,10 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
     if (!r.ok) {
       // he is in the XV, or too old, or already out: say so rather than print a
       // reaction describing a move that did not happen
-      item.rk = 'press.loanBlocked'; item.rv = { why: r.msg }
+      // the reason is filed as English plus its key (why_j), not as the line
+      // the screen would show: the press log is in the save, and a French
+      // reader must not find the English, nor an English one the French
+      item.rk = 'press.loanBlocked'; item.rv = { why: tIn('en', r.k, r.v), why_j: JSON.stringify({ k: r.k, ...r.v }) }
       item.reaction = tIn('en', item.rk, item.rv)
     } else {
       logDecision(state, 'dec.agreedLoan', { player: state.players[item.playerId]?.name ?? '' }, true)

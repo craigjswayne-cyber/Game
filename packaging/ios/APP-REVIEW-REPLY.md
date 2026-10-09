@@ -73,17 +73,21 @@ menu. The Store (also on the Home menu) lists the optional in-app purchases.
 Settings holds language, text size, day/night and colour skins. About & legal
 holds the privacy policy and the unofficial-status statement.
 
-**4. External services.** None, beyond Apple's own. The only external service
-the app uses is Apple In-App Purchase through StoreKit, for the optional
-purchases configured alongside this submission. There are no data providers,
-no authentication service, no third-party payment processor, no analytics SDK,
-no advertising SDK and no AI service. The app makes no network requests of its
-own; all content is bundled and all game state is stored on the device. The
-"Report a bug" and contact buttons open the device's Mail app to
-info@fwdsandbcks.com; nothing is sent automatically.
+**4. External services.** Two, besides Apple's own. Apple In-App Purchase
+through StoreKit handles the optional purchases configured alongside this
+submission. Google AdMob serves advertising: small banners at the foot of some
+screens and optional "watch an advert" buttons the player chooses to press.
+Consent is gathered through Google's UMP form before any advert is requested,
+and App Tracking Transparency is requested before the advertising identifier is
+used. There are no data providers, no authentication service, no third-party
+payment processor, no analytics SDK and no AI service. The game makes no
+network requests of its own; all content is bundled and all game state is
+stored on the device. The "Report a bug" and contact buttons open the device's
+Mail app to info@fwdsandbcks.com, and a Discord link opens the community server
+in the browser or the Discord app; nothing is sent automatically.
 
 **5. Regional differences.** None. The app functions identically in every
-region. It ships in English, French, Spanish, Italian and Japanese, chosen by
+region. It ships in English, French, Spanish, Italian, Japanese and Afrikaans, chosen by
 the user in Settings; the choice affects language only, not features or
 content.
 

@@ -1,7 +1,7 @@
 {
   "name": "PHASE: Rugby Manager",
   "short_name": "PHASE",
-  "description": "A classic-style rugby union management game: deep seasons, big decisions, a career worth the chase.",
+  "description": "A rugby union management game. Pick a club, pick a side, live with it.",
   "start_url": "./",
   "display": "standalone",
   "orientation": "any",

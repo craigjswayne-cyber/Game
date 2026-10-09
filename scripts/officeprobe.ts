@@ -68,7 +68,7 @@ const ok = (cond: boolean, what: string) => {
   b.pers = 'Temperamental'; b.form = 5; b.morale = 6
   const line2 = praisePlayer(g, b)
   ok(b.morale < 6, `flattering a struggling hothead backfires (morale ${b.morale.toFixed(1)})`)
-  ok(/set up/.test(line2), 'and he says so')
+  ok(/taking the mick|set up/.test(line2), 'and he says so')
 
   // two a week, no more
   ok(chatBudget(g) === 0, 'two conversations spend the week')

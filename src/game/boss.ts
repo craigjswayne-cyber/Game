@@ -154,6 +154,8 @@ export function rivalVerdict(state: GameState): { k: string; v: Vars } | null {
   const above = myPos < hisPos
   return {
     k: above ? 'news.rivalBelowYou' : 'news.rivalAboveYou',
-    v: { boss: r.boss, meShort: me.short, mine: myPos, his: hisPos },
+    // filed with the rival's own gender, or the _w sibling followed the
+    // manager's and a woman coach read "she" about a man across the way
+    v: { ...subjectVar(r.club.coachGender), boss: r.boss, meShort: me.short, mine: myPos, his: hisPos },
   }
 }

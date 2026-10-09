@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useStore } from '../store'
 import { XV_SLOTS, type MatchEvent, type Player } from '../game/model'
 import { t } from '../game/i18n'
-import { visitsTo22, type LiveCtx, type SideCtx } from '../game/matchEngine'
+import { visitsTo22, shirtNumber, type LiveCtx, type SideCtx } from '../game/matchEngine'
 import { moodOf } from './MoodTable'
 
 /**
@@ -71,7 +71,7 @@ function Lineups({ ctx }: { ctx: LiveCtx }) {
       <tbody>
         {xv(s, game).map(({ slot, p }) => (
           <tr key={p.id} className={s.onPitch.has(p.id) ? '' : 'off'}>
-            <td className="num shirt">{XV_SLOTS[slot].shirt}</td>
+            <td className="num shirt">{shirtNumber(s, p.id) ?? XV_SLOTS[slot].shirt}</td>
             <td className="nm">{p.name}{game.clubs[s.teamId]?.captain === p.id ? ' (C)' : ''}</td>
             <td className={`num ${cond(s, p.id) < 55 ? 'neg' : 'pos'}`}>{cond(s, p.id)}</td>
             <td className="num">{rating(s, p.id)}</td>
@@ -97,7 +97,7 @@ function Room({ ctx }: { ctx: LiveCtx }) {
           const m = r ? { k: r.k, tone: r.tone } : moodOf(p, true)
           return (
             <tr key={p.id}>
-              <td className="num">{XV_SLOTS[slot].shirt}</td>
+              <td className="num">{shirtNumber(mine, p.id) ?? XV_SLOTS[slot].shirt}</td>
               <td className="nm">{p.name}</td>
               <td><span className={`mood-chip ${m.tone}`}>{t(m.k)}</span></td>
               <td className="num">{cond(mine, p.id)}</td>
@@ -142,7 +142,7 @@ function PlayerLines({ ctx, shown }: { ctx: LiveCtx; shown: MatchEvent[] }) {
             const c = count.get(p.id) ?? { tries: 0, kicks: 0, cards: 0, seen: 0 }
             return (
               <tr key={p.id} className={s.onPitch.has(p.id) ? '' : 'off'}>
-                <td className="num shirt">{XV_SLOTS[slot].shirt}</td>
+                <td className="num shirt">{shirtNumber(s, p.id) ?? XV_SLOTS[slot].shirt}</td>
                 <td className="nm">{p.name.split(' ').slice(-1)[0]}</td>
                 <td className="num">{c.tries}</td><td className="num">{c.kicks}</td>
                 <td className="num">{c.cards}</td><td className="num">{tkl.get(p.id) ?? 0}</td>

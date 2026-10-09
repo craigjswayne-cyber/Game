@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useStore } from '../../store'
 import { teamShort } from '../../game/matchEngine'
 import { venueBadge, venueEffect } from '../../game/venue'
-import { MIDWEEK_OFF, fixtureDate, fxDate, weekDate, type Fixture, type MatchEvent } from '../../game/model'
+import { MIDWEEK_OFF, fixtureDate, fxDate, tieWinner, weekDate, type Fixture, type MatchEvent } from '../../game/model'
 import { ClubLink, CrestT, Jersey, SectionTitle } from '../components'
 import LeagueTable from '../LeagueTable'
 import { stageShort } from './Home'
@@ -35,8 +35,9 @@ export default function Fixtures() {
     if (!f.played) return <span className="muted">{t(f.homeId === me ? 'common.h' : 'common.a')}</span>
     const us = f.homeId === me ? f.homeScore : f.awayScore
     const them = f.homeId === me ? f.awayScore : f.homeScore
-    const cls = us > them ? 'result-w' : us < them ? 'result-l' : 'result-d'
-    return <span className={cls}>{t(us > them ? 'common.w' : us < them ? 'common.l' : 'common.d')} {f.homeScore}-{f.awayScore}</span>
+    // a knockout settled on tries or kicks is a win or a defeat, not a draw (1.8.16)
+    const r = us > them ? 'w' : us < them ? 'l' : f.decider ? (tieWinner(f) === me ? 'w' : 'l') : 'd'
+    return <span className={`result-${r}`}>{t(`common.${r}`)} {f.homeScore}-{f.awayScore}{f.decider ? ` ${t(f.decider.by === 'tries' ? 'matchday.onTries' : 'matchday.onKicks')}` : ''}</span>
   }
 
   // magazine-style THIS WEEKEND card: this round in the user's league

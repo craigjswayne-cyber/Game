@@ -52,7 +52,7 @@ const MIN_TAP = { MIN: 44, FLOOR: ['preset-chip', 'form-chip', 'chip'] }
 // because it is the narrowest phone anybody on this project owns, but Play
 // still serves 320dp devices and an original iPhone SE is 320pt - so the
 // narrowest screen the game actually ships to had never been rendered. Added
-// by the v1.5.6 pre-launch audit (docs/release-audit-v1.5.6.md, T-5).
+// by the v1.5.6 pre-launch audit (docs/archive/release-audit-v1.5.6.md, T-5).
 const GEOMETRIES = [
   { name: '320x568 smallest', w: 320, h: 568 },
   { name: '360x740 floor', w: 360, h: 740 },

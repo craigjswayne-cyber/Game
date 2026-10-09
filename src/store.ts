@@ -79,7 +79,7 @@ export const PRO_PLANS = 2
 export function planSlots(): number { return proLocked() ? FREE_PLANS : PRO_PLANS }
 /** What the app actually wears, as opposed to what was chosen. */
 export function effectiveSkin(chosen: Skin): Skin { return skinLocked(chosen) ? FREE_SKIN : chosen }
-import { getLang, initLang, onLangChange, setLang as applyLang, setManagerGender, setWorld, t, type Lang } from './game/i18n'
+import { getLang, initLang, onLangChange, setLang as applyLang, setManagerGender, setWorld, t, tIn, type Lang } from './game/i18n'
 import { adBridgePresent, hasSupporter, tillOpen } from './game/monetise'
 import { applyCharter, applyEstate, applyHeal, applyInjection, applyPinnacle, type InjectTier } from './game/grants'
 import {
@@ -101,6 +101,7 @@ import { answerPress } from './game/media'
 import { deskBlock, deskGates, firstStepOfWeek, inInbox, markRead, matchDayIndex, nextStep, pressBlock } from './game/days'
 import { postWindowNotes } from './game/window'
 import { natSquadHold } from './game/country'
+import { nationNameIn } from './game/nations'
 import { clearResume, getResume, loadGame, migrate, peekResumes, putResume, saveGame } from './game/save'
 import {
   notePlayedOut, playOut, recordReach, replayMatch, resumeFits, sameCareer, stampedRecord, stampedSave,
@@ -401,12 +402,19 @@ function nextHighlight(events: MatchEvent[], cursor: number, homeId: string): nu
 function settleKnockout(g: GameState, ctx: LiveCtx) {
   const fx = ctx.fx
   if (isKnockoutTie(fx) && fx.homeScore === fx.awayScore) {
-    resolveKnockoutDraw(g, fx, weekRng(g))
-    ctx.events.push({
-      min: 90, type: 'FT', teamId: '',
-      text: `SUDDEN DEATH! ${teamShort(g, fx.homeScore > fx.awayScore ? fx.homeId : fx.awayId)} snatch it in extra time - ${fx.homeScore}-${fx.awayScore}!`,
-      homeScore: fx.homeScore, awayScore: fx.awayScore,
-    })
+    // EXTRA TIME, THEN TRIES, THEN THE KICKS (1.8.16): every step of it on
+    // the ticker, as keys like every other line (this used to be one line of
+    // English, the same in a French match)
+    const h0 = fx.homeScore, a0 = fx.awayScore
+    const lines = resolveKnockoutDraw(g, fx, weekRng(g))
+    let hs = h0, as = a0
+    for (const l of lines) {
+      if (l.type === 'TRY' || l.type === 'PEN') {
+        const pts = l.k === 'comm.etTryCon' ? 7 : l.k === 'comm.etTry' ? 5 : 3
+        if (l.teamId === fx.homeId) hs += pts; else as += pts
+      }
+      ctx.events.push({ min: l.min, type: l.type, teamId: l.teamId, text: tIn('en', l.k, l.v), k: l.k, v: l.v, homeScore: hs, awayScore: as })
+    }
     fx.events = ctx.events
   }
 }
@@ -1823,12 +1831,14 @@ export const useStore = create<Store>((set, get) => ({
       g.natTeam = nat
       g.natConfidence = 60
       g.natRecord = { m: 0, w: 0, d: 0, l: 0 } // a new tenure starts at nought
+      // filed as a key and its variables, with the English beside it: the
+      // nation travels as its English name plus a code twin (nat_n), so the
+      // reader's language names the country
+      const k = keepClub && !g.unemployed ? 'news.natTaken' : 'news.natTakenSole'
+      const v = { nat: nationNameIn('en', nat), nat_n: nat }
       g.news.push({
         id: g.nextId++, week: g.week, season: g.season, type: 'board', read: false,
-        subject: `Appointed: national head coach of ${nat}`,
-        body: keepClub && !g.unemployed
-          ? `A proud day. You now coach ${nat} alongside your club duties. In Test windows, when your club has no fixture, you'll take charge of the national side on match day - and every championship they win goes in YOUR cabinet.`
-          : `A proud day. ${nat} is your whole job now: Test windows, championship campaigns, and every trophy they win goes in YOUR cabinet.`,
+        subject: tIn('en', `${k}Subj`, v), body: tIn('en', k, v), k, v,
       })
       // v1.1.5 (owner): taking a national job asks whether the club job is
       // kept. Declining it walks the same resignation the Profile button
@@ -1858,10 +1868,11 @@ export const useStore = create<Store>((set, get) => ({
     if (!g || !g.natTeam) return
     const nat = g.natTeam
     closeNatTenure(g) // the record moves to the profile's history, not the bin
+    const v = { nat: nationNameIn('en', nat), nat_n: nat }
     g.news.push({
       id: g.nextId++, week: g.week, season: g.season, type: 'board', read: false,
-      subject: `You step down as ${nat} head coach`,
-      body: `The union thanks you for your service. The door, they say, stays open.`,
+      subject: tIn('en', 'news.natResignedSubj', v), body: tIn('en', 'news.natResigned', v),
+      k: 'news.natResigned', v,
     })
     set(s => ({ tick: s.tick + 1 }))
     void get().persist()

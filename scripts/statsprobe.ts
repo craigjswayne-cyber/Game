@@ -145,8 +145,10 @@ console.log('\n--- kicks at goal: counted, and they add up\n')
     const si = matchStats(ci)
     for (const [side, [m, t]] of [[ci.home, si.goalKicks[0]], [ci.away, si.goalKicks[1]]] as const) {
       made += m; taken += t
-      const kickPts = side.score - 5 * side.tries
-      if (m > t || kickPts < 2 * m || kickPts > 3 * m || t < side.tries) bad++
+      // a penalty try is seven and has no conversion (1.8.16)
+      const pt = side.penTries ?? 0
+      const kickPts = side.score - 5 * side.tries - 2 * pt
+      if (m > t || kickPts < 2 * m || kickPts > 3 * m || t < side.tries - pt) bad++
     }
   }
   ok(bad === 0, `every side's kicks made fit its score, and every try got its conversion attempt (${bad} that did not)`)

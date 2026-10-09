@@ -19,7 +19,7 @@
  * injuries, different opponents' form - so the world's noise voted in every
  * comparison, and the estimator's error bar was bigger than most effects it
  * was ranking. Three calibrations were tuned against that slop and all three
- * were reverted (docs/audit-handoff.md).
+ * were reverted (docs/archive/audit-handoff.md).
  *
  * This version holds the world still and moves ONLY the dial:
  *

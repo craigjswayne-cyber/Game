@@ -712,7 +712,7 @@ final code.
 29 Sep 2026 (owner), so 37 to 41 were never spent; 40 leaves a margin
 (`packaging/android/version.json`). 1.8.0 was never uploaded and ships inside
 1.8.1. The publisher is FWDS & BCKS LTD. The full
-report is `docs/qa-report-1.8.1.md`.
+report is `docs/archive/qa-report-1.8.1.md`.
 
 ### What changed
 
@@ -740,7 +740,7 @@ report is `docs/qa-report-1.8.1.md`.
 ### The evidence
 
 Final: default suite 282 passed, 0 failed; every long probe passes; GitHub's
-engine shards are green (`docs/qa-report-1.8.1.md`). Measured on the balance
+engine shards are green (`docs/archive/qa-report-1.8.1.md`). Measured on the balance
 branch:
 bandcheck about 49.6 points, 6.3 tries, 53.2% home, 1.8% draws, 8.8%
 blowouts, every band inside. Two releasesim lines and the aiecon references
@@ -766,7 +766,7 @@ highest accepted code before building.
 
 ### What changed
 
-The full list is in `docs/qa-report-1.8.2.md`. In short: five attack and
+The full list is in `docs/archive/qa-report-1.8.2.md`. In short: five attack and
 five defence styles; the manager's desk on Home; recruitment detective work;
 the career arc (rival coaches, reputation, job profiles, chairmen, ambitions,
 eras); the dressing room; development projects; season priorities, form and

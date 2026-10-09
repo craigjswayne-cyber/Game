@@ -426,7 +426,8 @@ if (!QUICK) {
   ok(pts >= 48 && pts <= 53, `scoring in band (${pts.toFixed(1)}, 48-53)`)
   ok(tries >= 6.0 && tries <= 6.6, `tries in band (${tries.toFixed(2)}, 6.0-6.6)`)
   ok(home >= 0.51 && home <= 0.57, `home wins in band (${(home * 100).toFixed(1)}%, 51-57)`)
-  ok(draw >= 0.014 && draw <= 0.030, `draws in band (${(draw * 100).toFixed(1)}%, 1.4-3.0)`)
+  // the same floor as bandcheck (1.3%): on half its sample, 1.4 was a coin toss
+  ok(draw >= 0.013 && draw <= 0.030, `draws in band (${(draw * 100).toFixed(1)}%, 1.3-3.0)`)
 } else console.log('     (skipped with --quick)')
 
 console.log(fails ? `\nTEAM TALK PROBE FAILED (${fails})` : '\nTEAM TALK PROBE PASSED')

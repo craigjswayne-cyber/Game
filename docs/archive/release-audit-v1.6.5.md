@@ -131,7 +131,7 @@ Not executed:
 - Memory after exactly ten matches: measured as the JS heap at the start and end of a season on one page (soak), not at the tenth match.
 - WXV: not in this release, per the brief.
 
-## 10. Comparison with docs/release-audit-v1.6.2.md, read last
+## 10. Comparison with docs/archive/release-audit-v1.6.2.md, read last
 
 Bugs this pass found that the 1.6.2 audit did not: CAL-02 (the audit's own QA-01 fix created it), CAL-03, CAL-04, CAL-05, QA-GATE-01 (the audit reported "browser 57 of 57" on a gate that could not fail), QA-GATE-02, SAVE-01, TRANSFER-01, TOUR-01, AWARD-01 (the audit saw the Player-of-the-Month half), CAP-01, CAP-LOAN-01, SHEET-01, ECON-01, FR-01, and the name-registry half of DET-01.
 

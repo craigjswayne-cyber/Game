@@ -142,6 +142,9 @@ console.log('--- an AI side\'s replacement reaches its units, and the credit is 
       if (side.yellowUntil.has(outId) || side.yellowUntil.has(inId)) continue
       if ((offFrom.get(outId) ?? Infinity) < tick) continue
       if (side.onPitch.has(outId) || !side.starters?.has(outId)) continue
+      // a replaced front-rower may come back on to cover a binned one (Law 3):
+      // he did come back, so his minutes include that spell
+      if (side.onAt?.has(outId)) continue
       const b = before.get(side)!
       const so = g.players[outId].stats, si = g.players[inId].stats
       const bo = b.get(outId)!, bi = b.get(inId)!

@@ -198,8 +198,15 @@ for (const sp of SPLITS) {
     for (let slot = 0; slot < 15 && made < 5; slot++) {
       const outId = mine.lineup[slot]
       if (outId == null || !mine.onPitch.has(outId)) continue
-      const inId = mine.lineup.slice(15).find(id => id != null && !mine.onPitch.has(id) && !mine.ratings.has(id))
-      if (inId == null) break
+      // A REPLACEMENT FROM THE SAME HALF OF THE TEAM (1.8.16). This measures
+      // what a brief adds, and a back sent on for a forward is charged the
+      // out-of-position cost (COVER_ATT/COVER_DEF) on top of it, which buried
+      // the brief the first time the match's own events reshuffled the bench
+      // (a front-rower binned under Law 3 in the hour before the changes).
+      const fwd = (id: number) => ['LP', 'HK', 'TP', 'LK', 'FL', 'N8'].includes(gg.players[id]?.pos ?? '')
+      const free = (id: number | null): id is number => id != null && !mine.onPitch.has(id) && !mine.ratings.has(id)
+      const inId = mine.lineup.slice(15).find(id => free(id) && fwd(id) === fwd(outId))
+      if (inId == null) continue
       makeSubstitution(gg, ctx, outId, inId)
       made++
     }
