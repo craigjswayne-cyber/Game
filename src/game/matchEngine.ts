@@ -4103,7 +4103,8 @@ function concedePenalty(state: GameState, ctx: LiveCtx, opp: SideCtx, min: numbe
   if (name !== null) describeOffence(state, ctx, opp, opp === ctx.home ? ctx.away : ctx.home)
   describeWarning(state, ctx, opp, binAt)
   if ((opp.consPens === binAt || opp.consPens === binAt * 2) && opp.onPitch.size > 13) {
-    const ps = [...opp.onPitch].map(id => state.players[id]).filter(Boolean)
+    // never the man already back from the bin (see giveYellow)
+    const ps = [...opp.onPitch].map(id => state.players[id]).filter(x => x && !opp.yellowUntil.has(x.id))
     if (ps.length) {
       const p = wpick(ctx.rng, ps, ps.map(x => x.a.agg))
       opp.yellowUntil.set(p.id, binUntil(ctx, min))
@@ -4323,6 +4324,13 @@ function frontRowCoverEnds(state: GameState, ctx: LiveCtx, s: SideCtx, id: numbe
   list.splice(i, 1)
   const p = state.players[id]
   const nom = state.players[r.off]
+  // THE COVER IS IN THE BIN HIMSELF: the replacement hooker took a card of
+  // his own while he wore the shirt (frontrowcardprobe, after 1.8.16 gave the
+  // TMO and the professional foul cards of their own). The man who made way
+  // for him is owed his place back when the COVER's ten minutes end, not now,
+  // or the side would have one more on the pitch than its cards allow.
+  const cover = s.lineup[r.shirt]
+  const coverSitting = r.swap && cover != null && cover !== id && s.binned.has(cover)
   if (r.swap && p && !p.injury) {
     const cur = s.lineup[r.shirt]
     const seat = s.lineup.indexOf(id)
@@ -4338,7 +4346,8 @@ function frontRowCoverEnds(state: GameState, ctx: LiveCtx, s: SideCtx, id: numbe
     pushLine(state, ctx, min, 'SUB', s, 'comm.frontRowBinBack',
       { team: teamShort(state, s.teamId), lost: p.name, on: cur != null ? state.players[cur]?.name ?? '' : '', player: nom?.name ?? '' }, id)
   }
-  if (nom && !nom.injury && s.lineup.slice(0, 15).includes(nom.id) && !s.binned.has(nom.id)) s.onPitch.add(nom.id)
+  if (coverSitting) list.push({ binned: cover!, on: cover!, off: r.off, shirt: r.shirt, swap: false })
+  else if (nom && !nom.injury && s.lineup.slice(0, 15).includes(nom.id) && !s.binned.has(nom.id)) s.onPitch.add(nom.id)
   return true
 }
 
@@ -4811,7 +4820,10 @@ function captainOf(state: GameState, side: SideCtx): Player | null {
 
 /** ten minutes in the bin, for a named reason. Never below thirteen. */
 function giveYellow(state: GameState, ctx: LiveCtx, side: SideCtx, p: Player, min: number, key: string, v?: Record<string, string | number>): boolean {
-  if (side.onPitch.size <= 13 || !side.onPitch.has(p.id)) return false
+  // a man who has already been to the bin plays the rest of it with his
+  // hands behind his back: no second yellow (the law would make it a red,
+  // and the engine has no second-yellow red yet)
+  if (side.onPitch.size <= 13 || !side.onPitch.has(p.id) || side.yellowUntil.has(p.id)) return false
   side.yellowUntil.set(p.id, binUntil(ctx, min))
   side.onPitch.delete(p.id)
   side.binned.add(p.id)
@@ -5274,9 +5286,9 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       if ((s.yellowUntil.get(id) ?? 0) > min) continue
       s.binned.delete(id)
       // Law 3: back from the bin to a shirt a front-row replacement wore
-      if (frontRowCoverEnds(state, ctx, s, id, min)) continue
+      const covered = frontRowCoverEnds(state, ctx, s, id, min)
       const p = state.players[id]
-      if (p && !p.injury && s.lineup.slice(0, 15).includes(id)) s.onPitch.add(id)
+      if (!covered && p && !p.injury && s.lineup.slice(0, 15).includes(id)) s.onPitch.add(id)
       // Law 3: the man who went off with a binned front-rower comes back with him
       if (s.lawOut && s.lawOut.binned === id) {
         const o = state.players[s.lawOut.id]
@@ -5812,7 +5824,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           side.ratings.set(p.id, (side.ratings.get(p.id) ?? 6) - 2)
           pushLine(state, ctx, min, 'RC', side, 'comm.redCard', { player: p.name }, p.id)
           checkFrontRow(state, ctx, side, min, p, 'red')
-        } else if (side.onPitch.size > 13) {
+        } else if (side.onPitch.size > 13 && !side.yellowUntil.has(p.id)) {
           // NEVER BELOW THIRTEEN FOR A YELLOW (1.8.3): the repeated-penalty
           // bin has always stopped at thirteen on the pitch (concedePenalty)
           // and this one did not, so a side already two down could lose a
