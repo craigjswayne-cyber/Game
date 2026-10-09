@@ -1567,37 +1567,22 @@ Achats intégrés facultatifs : des facilités et des habillages. Une carrière
 
 ## Play Data safety
 
-Answers, with the evidence for each. `scripts/netprobe.ts` fails the build if any
-of this stops being true.
-
-| Question | Answer |
-|---|---|
-| Does your app collect or share any of the required user data types? | **No** |
-| Is all of the user data collected by your app encrypted in transit? | N/A - nothing is transmitted |
-| Do you provide a way for users to request that their data is deleted? | N/A - nothing is held. Careers are on-device and deleted with the app |
-| Data types collected | none |
-| Data types shared | none |
-| Third-party SDKs | none |
-| Ads | **No ads** |
-
-### v1.1.0 replacement (owner's decision, 25 Aug 2026 - monetisation-spec.md §7)
-
-These answers replace the table above IN THE SAME COMMIT that puts the
-rewarded-ads SDK into the Play wrapper, and not a moment earlier: the build
-that is live today collects nothing and its listing must keep saying so.
-The web game at the GitHub Pages URL is unaffected either way - the SDK
-never enters the web bundle, and netprobe goes on enforcing that.
+**The build ships AdMob adverts, so the answers below are the only current
+ones.** Two older tables used to sit here: a "No ads / nothing collected" one
+for the pre-advert build, and a v1.1.0 draft for rewarded ads only. Both were
+wrong for every build since adverts landed and are removed so nobody copies
+them. The source of truth is `docs/ADS-STEP-BY-STEP.md`, Step 7, and
+`docs/launch/STORE-DECLARATIONS.md`; this table repeats it.
 
 | Question | Answer |
 |---|---|
 | Does your app collect or share any of the required user data types? | **Yes** |
-| Data types collected | Device or other IDs (advertising identifier), collected by the ad provider when the player chooses to watch a rewarded ad |
-| Purpose | Advertising or marketing |
-| Is data collection optional? | Yes - rewarded ads are player-initiated; never watching one means never being collected from |
-| Is all of the user data collected by your app encrypted in transit? | Yes (ad provider transport) |
-| Do you provide a way for users to request that their data is deleted? | Per the ad provider's mechanism, linked from the privacy policy |
-| Third-party SDKs | the rewarded-ads provider, in the Android wrapper only |
-| Ads | **Contains ads** (two optional banner slots; rewarded ads at eight player-initiated placements; Remove Ads disables the banners permanently) |
+| Is all of the user data collected by your app encrypted in transit? | Yes |
+| Do you provide a way for users to request that their data is deleted? | Yes: the advertising identifier is reset or deleted in the phone's own settings; the app holds no account data |
+| Data types | **Device or other IDs** only: collected **and** shared, not ephemeral, users can choose (consent form, and Pro Manager removes the banners), purpose Advertising or marketing |
+| Everything else | No |
+| Third-party SDKs | Google AdMob (`@capacitor-community/admob` 8.1.0) and Google's consent SDK, in the Android and iOS apps only; the web game has none (`scripts/netprobe.ts`) |
+| Ads | **Contains ads**: one banner at the foot of seven screens, optional rewarded spots; Pro Manager removes the banners |
 
 ## Play Content rating (IARC questionnaire)
 
@@ -1617,12 +1602,19 @@ Expected result: **PEGI 3 / ESRB Everyone / USK 0**.
 
 ## Apple privacy nutrition labels
 
-Select **Data Not Collected**. Nothing else applies: no identifiers, no usage
-data, no diagnostics, no contact info.
+**Not** "Data Not Collected": the app shows AdMob adverts. Declare:
+
+| Data type | Used for | Linked to the user | Used for tracking |
+|---|---|---|---|
+| Identifiers → Device ID | Third-Party Advertising | Yes | Yes |
+| Usage Data → Advertising Data | Third-Party Advertising | Yes | No |
+
+Nothing else applies: no contact info, no diagnostics, no crash data.
 
 ## Apple export compliance
 
-The app uses no encryption of its own and makes no network connections at all.
+The game uses no encryption of its own. The only network traffic is the AdMob
+SDK's, over the operating system's standard HTTPS, which is exempt.
 Answer **No** to "Does your app use encryption?", or set in Info.plist:
 
 ```xml
@@ -1888,7 +1880,7 @@ Fixes: the team sheet lines up from 1 to 15, deal years print plain, seasonal st
 | Game subcategories | Simulation, Sports |
 | Age rating | 4+ (no violence, no gambling, no user content, no web access) |
 | Content Rights | Does not contain third-party content (the unofficial statement covers the player-name database) |
-| Privacy nutrition label | Data Not Collected |
+| Privacy nutrition label | Device ID and Advertising Data, for third-party advertising (see "Apple privacy nutrition labels") |
 | App uses encryption | No (the App Encryption Documentation answer is "none") |
 | Sign-in required | No |
 | Devices | iPhone and iPad (from 1.8.0: tablet mode; 13-inch iPad screenshots from `scripts/ipadshots.mjs`, 2048 x 2732) |
