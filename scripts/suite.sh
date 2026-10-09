@@ -29,6 +29,11 @@ REPORTERS="analysis leaguestrength gapreport icons shots qa-shots qa-shots2 news
 # ~290 paired seasons and alone took ten of the Gate's thirty minutes. Its
 # own header calls it "release audit, Pass 2" - it runs in `all` and in the
 # release deep test, not on every push.
+# LONG: in the fast run, but given 30 minutes rather than 15. memoryloopprobe
+# measures the rematch on 1,440 paired matches since 1.8.16, and frliveprobe
+# plays every line in French; both finish in 12 alone and ran past 15 under a
+# four-shard load.
+LONG="memoryloopprobe frliveprobe"
 SLOW="soakhealth soakui stresstest deepsave e2edeep releasesim dialweight optionsprobe autopilotprobe aiecon stackprobe distressprobe"
 
 run() {
@@ -97,6 +102,7 @@ i=0
     i=$((i + 1))
     [ $((i % SHARDS)) -ne $(( ${SHARD:-1} % SHARDS )) ] && continue
   fi
+  case " $LONG " in *" $n "*) run "$n" timeout 1800 npx vite-node "$f"; continue;; esac
   run "$n" timeout 900 npx vite-node "$f"
 done
 
