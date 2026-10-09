@@ -4685,7 +4685,7 @@
   "grSchoolVisitSubj": "WHOLESOME: {kid} shows up to a school assembly and stays two hours",
   "grSchoolVisit": "A local primary asked the {short} academy whether anyone could hand out a reading prize. {kid} arrived early, stayed two hours and signed everything put in front of him including the lectern and one teacher's laptop lid. The video has more views than the club's last three tries combined.",
   "grAgentFlatteredSubj": "AGENT TALK: {target} \"flattered\" by the interest, says everyone",
-  "grAgentFlattered": "{target}'s representatives had every chance to hose this down and didn't: \"My client is very happy at {other}. But every player listens.\" The fan forums did the rest before lunch.",
+  "grAgentFlattered": "{target}'s representatives had every chance to hose this down and didn't: \"My client is very happy at {other}. But every player listens.\" Nobody needed that translated. The fan forums did the rest before lunch.",
   "grForumDreamSubj": "FAN FORUM: the \"realistic transfer targets\" thread is anything but",
   "grForumDream": "The {short} thread is titled \"realistic targets\" and {target} appears on every page of it. The finances are impossible, the positional fit is questionable and the enthusiasm is absolute. Somebody has made a graphic. Somebody else has made a better one.",
   "grRefMicSubj": "REF MIC: the clip every group chat is quoting",
