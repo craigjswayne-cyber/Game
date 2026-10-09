@@ -1158,7 +1158,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
      veil is a large-viewport tall, flex-end puts the sheet's foot below the fold
      and its head above it, whatever the sheet's own max-height says. */
   max-height: 100vh;
-  max-height: 100dvh;
+  max-height: calc(100dvh / var(--zoom, 1));
   z-index: 50;
   display: flex; align-items: flex-end; justify-content: center;
   backdrop-filter: blur(2px);
@@ -1175,7 +1175,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
      down the page." dvh is the viewport as it really is right now.
      The vh line stays first as the fallback for anything without dvh. */
   max-height: 80vh;
-  max-height: 80dvh;
+  max-height: calc(80dvh / var(--zoom, 1));
   overscroll-behavior-y: contain;
   border-radius: 16px 16px 0 0;
   padding-bottom: calc(var(--safe-area-inset-bottom) + 10px);
@@ -1552,7 +1552,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
    screen; the buttons stack full width at one size, Not now included. */
 .fb-report {
   margin: 0; padding: 8px 10px;
-  max-height: 34vh; max-height: 34dvh;
+  max-height: 34vh; max-height: calc(34dvh / var(--zoom, 1));
   overflow: auto;
   white-space: pre-wrap; overflow-wrap: anywhere;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; line-height: 1.45;
@@ -2416,7 +2416,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .now-strip { padding: 0 10px 2px; }
 .comm-feed {
   position: relative; overflow: hidden;
-  height: clamp(96px, 17vh, 150px); height: clamp(96px, 17dvh, 150px);
+  height: clamp(96px, 17vh, 150px); height: clamp(96px, calc(17dvh / var(--zoom, 1)), 150px);
   /* the older lines fade out over the top edge rather than being cut */
   -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 26px);
   mask-image: linear-gradient(to bottom, transparent 0, #000 26px);
@@ -2808,7 +2808,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .lead-btn .lead-tag svg { width: 18px; height: 18px; vertical-align: middle; }
 .lead-btn .lead-who { flex: 1; min-width: 0; text-align: right; font-weight: 600; font-size: 13px; overflow-wrap: anywhere; line-height: 1.3; }
 .lead-btn .lead-chev svg { width: 16px; height: 16px; color: var(--text-muted); vertical-align: middle; }
-.lead-sheet .lead-list { max-height: min(56vh, 460px); max-height: min(56dvh, 460px); overflow-y: auto; margin: 0 -2px 10px; }
+.lead-sheet .lead-list { max-height: min(56vh, 460px); max-height: min(calc(56dvh / var(--zoom, 1)), 460px); overflow-y: auto; margin: 0 -2px 10px; }
 .lead-sheet tr { cursor: pointer; }
 .lead-sheet tr.sel td { background: color-mix(in srgb, var(--gold) 14%, transparent); }
 .lead-sheet .lead-bar { width: 34%; }
@@ -2939,7 +2939,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 
 /* the dressing room opens itself on match day, so it has to fit a short
    landscape screen without scrolling: four speeches two-up, not four-up */
-.talk-modal { max-height: 92vh; max-height: 92dvh; }
+.talk-modal { max-height: 92vh; max-height: calc(92dvh / var(--zoom, 1)); }
 @media (orientation: landscape) and (min-width: 640px) {
   .talk-modal .speech-grid {
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -2976,7 +2976,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
    Two columns, the XV and the bench, so a change is two taps and several
    changes are one visit. Tuned for a 300px-tall landscape phone: the columns
    scroll, the header and the Done button do not. */
-.squad-sheet { max-height: 94vh; max-height: 94dvh; display: flex; flex-direction: column; }
+.squad-sheet { max-height: 94vh; max-height: calc(94dvh / var(--zoom, 1)); display: flex; flex-direction: column; }
 /* STICKY, and it is the whole brief that sticks: the title, the casualty and the
    line telling you what to tap next.
    A phone screenshot showed the sheet scrolled down to reach the bench with the
@@ -3048,7 +3048,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
     display: block;
     /* the portrait sheet is the one the bug was reported against */
     max-height: 88vh;
-    max-height: 88dvh;
+    max-height: calc(88dvh / var(--zoom, 1));
     overflow-y: auto;
     overscroll-behavior-y: contain;
     -webkit-overflow-scrolling: touch;
@@ -3856,7 +3856,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .crash-box {
   max-width: 460px; width: 100%;
   max-height: calc(100vh - 36px);
-  max-height: calc(100dvh - 36px);
+  max-height: calc(calc(100dvh / var(--zoom, 1)) - 36px);
   overflow-y: auto;
   background: var(--surface-1);
   border: 2px solid var(--gold);
@@ -3871,7 +3871,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   white-space: pre-wrap; word-break: break-word;
   background: rgba(0, 0, 0, .35); border-radius: 7px;
   padding: 9px 10px; margin: 0 0 12px; color: var(--danger);
-  max-height: 28vh; max-height: 28dvh; overflow-y: auto;
+  max-height: 28vh; max-height: calc(28dvh / var(--zoom, 1)); overflow-y: auto;
 }
 .crash-btns { display: flex; gap: 9px; flex-wrap: wrap; }
 .crash-btns .btn { flex: 1; min-width: 150px; padding: 12px 10px; font-size: 13px; }
@@ -4668,7 +4668,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
      bare vh does not follow it, so the preview would stand taller than the
      screen with the address bar showing. cssaudit requires the companion. */
   max-height: 46vh;
-  max-height: 46dvh;
+  max-height: calc(46dvh / var(--zoom, 1));
   overflow: auto;
   -webkit-overflow-scrolling: touch;
   background: var(--surface-2);
@@ -4918,7 +4918,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
    reasoning as .modal above. */
 .campus-frame {
   max-width: calc(62vh * 768 / 1024);
-  max-width: calc(62dvh * 768 / 1024);
+  max-width: calc(calc(62dvh / var(--zoom, 1)) * 768 / 1024);
   margin-inline: auto;
 }
 
@@ -4985,7 +4985,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .talk-react { margin: 8px 14px; padding: 10px 12px; }
 .talk-react .tr-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
 .talk-react .tr-msg { margin: 6px 0 4px; }
-.talk-react .tr-list { list-style: none; margin: 0; padding: 0; max-height: 46vh; max-height: 46dvh; overflow-y: auto; }
+.talk-react .tr-list { list-style: none; margin: 0; padding: 0; max-height: 46vh; max-height: calc(46dvh / var(--zoom, 1)); overflow-y: auto; }
 .talk-react .tr-list li {
   display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; align-items: center; gap: 6px;
   padding: 3px 0; border-top: 1px solid var(--border);
@@ -5025,14 +5025,14 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 }
 
 /* ---- the match menu (1.8.0, MatchPanels.tsx) ---- */
-.mpanels { max-width: 920px; width: calc(100% - 24px); padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 8px; max-height: 88vh; max-height: 88dvh; }
+.mpanels { max-width: 920px; width: calc(100% - 24px); padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 8px; max-height: 88vh; max-height: calc(88dvh / var(--zoom, 1)); }
 /* ABOVE THE SYSTEM BAR (owner, 1.8.12, Samsung: "Back to the match is hidden
    by the phone buttons"). The panel's own padding replaced the sheet's safe-area
    foot, so it sat on the bottom edge of an edge-to-edge web view. It now stands
    clear of the bar and of any banner, and its height gives way by the same. */
 .modal-veil > .mpanels {
   margin-bottom: calc(var(--safe-area-inset-bottom) + var(--ad-inset, 0px) + 8px);
-  max-height: calc(88dvh - var(--safe-area-inset-bottom) - var(--ad-inset, 0px));
+  max-height: calc(calc(88dvh / var(--zoom, 1)) - var(--safe-area-inset-bottom) - var(--ad-inset, 0px));
 }
 .mp-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .mp-head b { font-family: var(--cond); font-size: 16px; letter-spacing: 1px; text-transform: uppercase; }
@@ -5100,7 +5100,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 /* landscape: the phone is 412 tall, so the sheet goes wide instead of long,
    two label-and-control pairs to a row and the switches in two columns */
 @media (orientation: landscape) and (max-height: 560px) {
-  .filter-sheet { max-width: 760px; max-height: 94vh; max-height: 94dvh; }
+  .filter-sheet { max-width: 760px; max-height: 94vh; max-height: calc(94dvh / var(--zoom, 1)); }
   .fs-grid { grid-template-columns: auto 1fr auto 1fr; gap: 6px 12px; }
   .fs-toggles { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; margin-top: 8px; }
 }
@@ -5200,7 +5200,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 
 /* the title, set as the key art sets it */
 .intro-lockup {
-  position: relative; z-index: 2; margin-top: max(13vh, 60px); margin-top: max(13dvh, 60px); text-align: center; padding: 0 16px;
+  position: relative; z-index: 2; margin-top: max(13vh, 60px); margin-top: max(calc(13dvh / var(--zoom, 1)), 60px); text-align: center; padding: 0 16px;
   display: flex; flex-direction: column; align-items: center;
 }
 .intro-badge {
@@ -5825,3 +5825,97 @@ a.btn.home-community {
 input[type=range] { height: 44px; }
 .slider-row input[type=range] { display: block; margin: -14px 0; position: relative; }
 .dial-row { min-height: 44px; }
+
+/* ================================================================
+   THE TABLET ROUND (owner, 9 Oct 2026: "The mobile game is in a good place
+   but the tablet version has issues"). Every rule here is .app.tablet only,
+   so a phone is exactly as it was. Photographed at 768x1024, 820x1180,
+   1024x1366 and 1180x820 before and after.
+================================================================ */
+
+/* HOME, ONE GRID ("the home page is a bit disjointed"). auto-fit with a 300px
+   floor gave two columns on one iPad and three on another, and an odd card
+   out left a hole beside it (Season Objectives alone on its row). Two equal
+   columns, paired cards the same height, an odd last card across the row,
+   and one 12px gap and 14px gutter from the first card to the last. */
+.app.tablet .content[data-screen="home"] > .card { margin: 12px 14px 0; max-width: none; }
+.app.tablet .card-grid {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px; padding: 12px 14px 0; align-items: stretch;
+}
+.app.tablet .card-grid > .card { margin: 0; width: auto; }
+.app.tablet .card-grid > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+.app.tablet .card-grid.one { grid-template-columns: minmax(0, 1fr); }
+.app.tablet .hub-row, .app.tablet .dash-row { gap: 12px; padding: 12px 14px 0; }
+.app.tablet a.btn.home-community { margin: 16px 14px 0; width: calc(100% - 28px); }
+
+/* THE HIGHLIGHT, A DELIBERATE SIZE ("the animation on tablet seems a bit too
+   big", "the pitch's corners are cut off"). Upright, the clip took whatever
+   height the flex column left it, so it was a strip on one iPad and most of
+   the glass on the 13-inch one. On its side it was given the whole row's
+   height and a 760px cap wider than its column, so it ran under the
+   commentary and lost the far in-goal. Now: a fixed share of the width,
+   capped, centred, and never wider than the column it sits in. The canvas
+   fits the whole pitch inside whatever box it gets (HighlightClip size()). */
+@media (orientation: portrait) {
+  .app.tablet .live-wrap .hl-clip {
+    flex: none; width: min(calc(100% - 28px), 440px); max-width: none;
+    margin: 8px auto 0;
+  }
+}
+@media (orientation: landscape) {
+  .app.tablet .live-wrap .hl-clip {
+    align-self: center; justify-self: center;
+    width: min(calc(100% - 20px), 520px); height: auto; max-width: none;
+    max-height: calc(100% - 6px); margin: 6px 10px 0;
+  }
+}
+
+/* LIVE STATS: CRESTS, NOT NAMES ("some of the text overlaps like live stats
+   and team names - can you use team logos"). The crest carries the club's
+   three letters. On its side the phone's two-column stats grid also reached
+   the tablet's narrow stats panel and laid POSSESSION over 58%: the panel is
+   one column of rows, as it is upright. */
+.ls-head i { font-style: normal; }
+.ls-crest { display: none; }
+.app.tablet .ls-head { grid-template-columns: auto minmax(0, 1fr) auto; row-gap: 0; }
+.app.tablet .ls-head span { grid-row: 1; display: inline-flex; align-items: center; }
+.app.tablet .ls-head b { grid-column: 2; grid-row: 1; }
+.app.tablet .ls-crest { display: inline-flex; }
+.app.tablet .ls-name {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+.app.tablet .tab-stats .live-stats { display: block; overflow: visible; margin: 0; }
+.app.tablet .tab-stats .live-stats .ls-row + .ls-row { border-top: 1px solid var(--border); }
+
+/* HOW THEY TOOK IT, IN THE STATS' PLACE ("you can't see the commentary when
+   it shows the team and their mood unless you press Got it"). It sat over
+   the deck and pushed the feed off the glass; it now fills the stats panel
+   beside the feed until Got it, and the panel scrolls it. */
+.app.tablet .tab-stats .talk-react { margin: 0; padding: 2px 2px 0; border: none; background: none; box-shadow: none; overflow: visible; }
+.app.tablet .tab-stats .talk-react .tr-list { max-height: none; overflow: visible; display: block; }
+
+/* THE FOUR TONES IN ONE ROW, OR TWO BY TWO. Three columns left "Light the
+   fuse" alone under the other three with two empty slots beside it. */
+.app.tablet .talk-tones { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.app.tablet .talk-modal .talk-tones { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+/* THE NEWS FILLS THE GLASS ("team news doesn't fill the full space"). The
+   list stopped under its last story and the page stopped under the letter,
+   leaving the bottom half of the screen bare. The two panes now run down to
+   the navigation, the list's rule with them. */
+.app.tablet .content[data-screen="inbox"] { display: flex; flex-direction: column; }
+.app.tablet .content[data-screen="inbox"] > * { flex-shrink: 0; }
+.app.tablet .content[data-screen="inbox"] > .inbox-panes { flex: 1 0 auto; align-items: stretch; }
+
+/* THE ADVERT'S ROOM ON ITS SIDE. Upright the bottom bar makes room for the
+   banner (--ad-inset); on its side the bar is the left rail, so nothing did
+   and the banner sat over the foot of the page. The page leaves the room
+   itself there. The bridge reports the banner in screen points and the page
+   is zoomed, so the room is divided back down by the zoom. */
+@media (orientation: landscape) {
+  .app.tablet .content { padding-bottom: calc(10px + var(--ad-inset, 0px) / var(--zoom, 1)); }
+}
+.app.tablet .tab-stats .talk-react .tr-head .btn { white-space: nowrap; flex: none; }
+.app.tablet .talk-modal .talk-tones { padding: 6px 0; }
