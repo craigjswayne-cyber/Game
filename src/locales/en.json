@@ -1290,7 +1290,7 @@
    "one": "{desc}, out for {n} week",
    "other": "{desc}, out for {n} weeks"
   },
-  "injNote": "Name his replacement before play restarts.",
+  "injNote": "Your bench cover has gone on for him. Change it before play restarts if you want someone else.",
   "injOff": "{player} is off",
   "injuredFlag": "Injured",
   "instantResult": "Instant Result ▸",
@@ -1604,7 +1604,7 @@
   "hintFree_f": "The assistant has sent {player} on. Tap someone else to change it, free of charge, or tap her again to keep her.",
   "hintNoneLeft_f": "No tactical replacements left. You can still tap two women on the pitch to swap their positions.",
   "hintTap_f": "Tap a woman on the pitch, then tap who comes on for her. Tapping a second woman on the pitch swaps their positions instead.",
-  "injNote_f": "Name her replacement before play restarts.",
+  "injNote_f": "Your bench cover has gone on for her. Change it before play restarts if you want someone else.",
   "letHimTakeIt_f": "Let Her Take It",
   "msTry_f": "try number {n} of her career would bring up {mark}",
   "mustDecide_f": "Play is stopped until somebody takes her shirt. Tap the woman you want on, or tap the assistant's pick again to keep her.",

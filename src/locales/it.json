@@ -1318,8 +1318,8 @@
    "one": "{desc}, fuori per {n} settimana",
    "other": "{desc}, fuori per {n} settimane"
   },
-  "injNote": "Nomina il sostituto prima che il gioco riprenda.",
-  "injNote_f": "Nomina la sostituta prima che il gioco riprenda.",
+  "injNote": "Il cambio previsto è già entrato al suo posto. Cambialo prima che il gioco riprenda se preferisci qualcun altro.",
+  "injNote_f": "La sostituta prevista è già entrata al suo posto. Cambiala prima che il gioco riprenda se preferisci qualcun'altra.",
   "injOff": "{player} lascia il campo",
   "injuredFlag": "Infortunato",
   "instantResult": "Risultato immediato ▸",

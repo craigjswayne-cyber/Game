@@ -1322,8 +1322,8 @@
       "one": "{desc}, absent {n} semaine",
       "other": "{desc}, absent {n} semaines"
     },
-    "injNote": "Désignez son remplaçant avant la reprise du jeu.",
-    "injNote_f": "Désignez sa remplaçante avant la reprise du jeu.",
+    "injNote": "Le remplaçant prévu est entré à sa place. Changez-le avant la reprise du jeu si vous préférez quelqu'un d'autre.",
+    "injNote_f": "La remplaçante prévue est entrée à sa place. Changez-la avant la reprise du jeu si vous préférez quelqu'un d'autre.",
     "injOff": "{player} sort",
     "injuredFlag": "Blessé",
     "instantResult": "Résultat immédiat ▸",

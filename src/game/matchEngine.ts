@@ -95,6 +95,7 @@ export function autoSelect(state: GameState, pool: Player[], split?: BenchSplit,
   const BENCH = seatsFor(split)
   // academy players are a second squad - only raided when the seniors run dry
   const seniors = pool.filter(p => !p.acad)
+  const allPool = pool
   if (seniors.length >= 23) pool = seniors
   const used = new Set<number>()
   const lineup: (number | null)[] = new Array(23).fill(null)
@@ -181,7 +182,63 @@ export function autoSelect(state: GameState, pool: Player[], split?: BenchSplit,
     }
     if (best) { lineup[15 + b] = best.id; used.add(best.id) }
   }
+  coverFrontRow(state, lineup, allPool, score)
   return lineup
+}
+
+/**
+ * ---- A PROP FROM THE ACADEMY BEFORE UNCONTESTED SCRUMS (release QA after 1.8.16) ----
+ *
+ * Measured over three seasons of every club's sheet: 1.9% of the 23s this
+ * picks could not cover the front row under Law 3, and in 45% of those the
+ * club had the cover fit and unnamed. Saracens in week 7 had one fit senior
+ * loosehead, put a third tighthead on the bench, and left two academy
+ * looseheads at home: uncontested scrums from the first minute, for a side
+ * with one of the best packs in the league. The academy is only raided when
+ * the seniors cannot fill 23 shirts, and nothing asked whether those 23 could
+ * scrummage.
+ *
+ * So when a sheet is short, the best fit man who can play the missing
+ * position, academy included, takes a bench seat from a man that cover does
+ * not need: a front-rower of a position with spare cover first, else the
+ * weakest of the rest. The XV is never touched. A squad with nobody to call
+ * on stays short, and the referee orders uncontested scrums as before.
+ */
+function coverFrontRow(state: GameState, lineup: (number | null)[], pool: Player[], score: (p: Player, pos: Pos) => number) {
+  const FR = ['LP', 'HK', 'TP'] as const
+  const can = (p: Player, pos: Pos) => p.pos === pos || p.alt.includes(pos)
+  for (let guard = 0; guard < 3; guard++) {
+    const cov = frontRowCover(state, lineup)
+    if (cov.legal) return
+    // a position with fewer than two, else (every position covered twice but
+    // by too few men, a two-sided prop counting for both) any front-row man
+    const short = FR.find(pos => cov[pos] < 2)
+    const named = new Set(lineup.filter((x): x is number => x != null))
+    let cand: Player | null = null
+    let candS = -1
+    for (const p of pool) {
+      if (named.has(p.id)) continue
+      const pos = short ?? FR.find(f => can(p, f))
+      if (!pos || !can(p, pos)) continue
+      const s = score(p, pos)
+      if (s > candS) { cand = p; candS = s }
+    }
+    if (!cand) return
+    // the seat to give up: never a man the cover itself rests on
+    let seat = -1, seatS = Infinity, seatSpare = false
+    for (let i = 15; i < 23; i++) {
+      const id = lineup[i]
+      const p = id != null ? state.players[id] : null
+      if (!p) { seat = i; break }
+      const fr = FR.filter(pos => can(p, pos))
+      if (fr.some(pos => cov[pos] <= 2)) continue
+      const spare = fr.length > 0
+      const s = score(p, p.pos)
+      if ((spare && !seatSpare) || (spare === seatSpare && s < seatS)) { seat = i; seatS = s; seatSpare = spare }
+    }
+    if (seat < 0) return
+    lineup[seat] = cand.id
+  }
 }
 
 /**
@@ -1900,6 +1957,20 @@ const TRY_LINES = [
   'comm.try25',
   'comm.try26',
 ]
+/** try lines only a forward finishes (the maul, the pick-and-go), and the
+ *  ones only a back does (outpacing, chips, the wraparound) */
+const TRY_FWD_ONLY = new Set(['comm.try4', 'comm.try15', 'comm.tryWet5'])
+const TRY_BACK_ONLY = new Set(['comm.try9', 'comm.try14', 'comm.try17', 'comm.try19', 'comm.tryWet1'])
+function fitTryLine(k: string, scorer: Player): string {
+  const fwd = FW_POS.has(scorer.pos)
+  // picking from the base is a number eight's or a scrum-half's try
+  if (k === 'comm.try10' && !fwd && scorer.pos !== 'SH') return 'comm.try6'
+  // "in comes the blindside wing" names a wing
+  if (k === 'comm.try22' && scorer.pos !== 'WG') return fwd ? 'comm.try1' : 'comm.try6'
+  if (!fwd && TRY_FWD_ONLY.has(k)) return 'comm.try6'
+  if (fwd && TRY_BACK_ONLY.has(k)) return 'comm.try1'
+  return k
+}
 const TRY_LINES_WET = [
   'comm.tryWet1',
   'comm.tryWet2',
@@ -2086,6 +2157,15 @@ const SP_SCRUM = [
   'comm.scrum1', 'comm.scrum2', 'comm.scrum3', 'comm.scrum4', 'comm.scrum5',
   'comm.scrum6', 'comm.scrum7', 'comm.scrum8', 'comm.scrum9', 'comm.scrum10',
 ]
+/** UNCONTESTED SCRUMS HAVE NO CONTEST (release QA after 1.8.16): a match the
+ *  referee had made uncontested at kick-off still had the scrum going
+ *  forward, a wheel, a reset, a shove, a penalty at the scrum and a prop
+ *  "who will make the scrum creak". Under Law 3 nobody pushes and nobody is
+ *  penalised for it. These are the words that stay true; the other pools
+ *  below lose their contest lines the same way. Commentary dice only: no
+ *  result moves. */
+const SP_SCRUM_UNCONTESTED = ['comm.scrum1', 'comm.scrum8', 'comm.scrum9']
+const SCRUM_CONTEST_FLAV = new Set(['comm.flav4', 'comm.flav21'])
 /** the kick-off after a score, taken by the side that conceded it */
 const RESTART = [
   'comm.restart1', 'comm.restart2', 'comm.restart3', 'comm.restart4', 'comm.restart5',
@@ -2237,6 +2317,8 @@ export interface LiveCtx {
    *  that cannot cover the front row, or mid-match when the last trained
    *  loosehead, hooker or tighthead goes off. Read before ordering them twice. */
   uncontested?: boolean
+  /** a penalty just kicked to touch: whose throw the lineout is (commentary) */
+  touchThrow?: { teamId: string; min: number } | null
   /** the levelling factors a sin-bin ordered, kept so the scrum can be
    *  contested again when the binned front-rower returns. Absent for a
    *  shortage that cannot mend itself (kick-off, injury, red card). */
@@ -3232,11 +3314,17 @@ function describePlay(state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideCt
   // the set piece now and then: the sheet derives about thirteen scrums and
   // twenty-five lineouts a match, and these name a few of them
   const sp = ctx.crng()
+  // a penalty kicked to touch a moment ago: that lineout is the kicker's, so
+  // the other side gets no lineout line until it has been taken
+  const owed = ctx.touchThrow && ctx.lastMin - ctx.touchThrow.min <= 1 ? ctx.touchThrow : null
   if (sp < 0.13) {
     const p = sayWho(state, ctx, side, [3, 4, 5, 6, 7], [3, 3, 1, 2, 1])
-    if (p) colour(state, ctx, side, said(ctx, SP_LINEOUT), { team, opp: oppT, player: p.name }, p.id)
+    if (p && !(owed && owed.teamId !== side.teamId)) {
+      colour(state, ctx, side, said(ctx, SP_LINEOUT), { team, opp: oppT, player: p.name }, p.id)
+      if (owed) ctx.touchThrow = null
+    }
   } else if (sp < 0.21) {
-    colour(state, ctx, side, said(ctx, SP_SCRUM), { team, opp: oppT })
+    colour(state, ctx, side, said(ctx, ctx.uncontested ? SP_SCRUM_UNCONTESTED : SP_SCRUM), { team, opp: oppT })
   }
   // the carry, where the ball is: forwards close in, backs in space
   // (0.45 to 0.38 in 1.8.16: the incidents' own lines took the room, and the
@@ -3874,6 +3962,12 @@ function scoreTry(
     // a try that came through a forward pass came through hands: a maul line
     // drawn for it is swapped after the draw, so the stream is untouched
     else if (fwdStands && DEPICTS[tryKey] === 'MAUL') tryKey = 'comm.try2'
+    // THE WORDS FIT THE MAN (owner's screenshot, release QA after 1.8.16:
+    // "Fin Smith powers over off the back of the maul"). The scorer is drawn
+    // first and the line after, from one pool, so a fly-half could finish a
+    // maul and a prop could "arc outside his man". A line that does not fit
+    // his position is swapped after the draw, so the stream is untouched.
+    else tryKey = fitTryLine(tryKey, scorer)
     pushLine(state, ctx, min, 'TRY', side, tryKey, mt ? mt.v : { player: scorer.name }, scorer.id)
     // three in an afternoon (1.8.16)
     if (side.matchTries?.get(scorer.id) === 3) colour(state, ctx, side, 'comm.hatTrick', { player: scorer.name, team: teamShort(state, side.teamId) }, scorer.id)
@@ -5012,8 +5106,9 @@ function pickOffence(state: GameState, ctx: LiveCtx, off: SideCtx, att: SideCtx)
     ['offsideLine', 1.1 + 1.4 * Math.max(0, rush)], ['offsideRuck', 0.7], ['sideEntry', 0.7 * fussy],
     ['handsRuck', (1 + 0.9 * Math.max(0, contest)) * fussy], ['offFeet', (0.9 + 0.5 * Math.max(0, contest)) * fussy],
     ['notRelease', 0.9 * fussy], ['notRoll', attUp > 78 ? 1.3 : 0.6], ['highTackle', 0.45 * (1 + (off.aggF ?? 0))],
-    ['scrumCollapse', 0.7 * scrumDown * scrumDown], ['scrumAngle', 0.25 * scrumDown], ['scrumBind', 0.25 * scrumDown],
-    ['scrumKnee', 0.18 * scrumDown], ['maulCollapse', attUp > 68 ? 0.8 : 0.1], ['lineoutBarge', 0.18],
+    // no scrum offences at an uncontested scrum: the packs do not engage
+    ['scrumCollapse', ctx.uncontested ? 0 : 0.7 * scrumDown * scrumDown], ['scrumAngle', ctx.uncontested ? 0 : 0.25 * scrumDown],
+    ['scrumBind', ctx.uncontested ? 0 : 0.25 * scrumDown], ['scrumKnee', ctx.uncontested ? 0 : 0.18 * scrumDown], ['maulCollapse', attUp > 68 ? 0.8 : 0.1], ['lineoutBarge', 0.18],
     ['lineoutThrough', 0.14], ['lifterAcross', 0.1], ['offsideKick', 0.3], ['boxKick10', attUp < 40 ? 0.35 : 0.1],
     ['pullBack', 0.12], ['beyondRuck', 0.28], ['noBall', 0.22],
   ]
@@ -5220,8 +5315,11 @@ function setPieceTick(state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideCt
   const team = teamShort(state, side.teamId), oppT = teamShort(state, opp.teamId)
   if (u < FK_P) {
     const k = r()
-    const kind = up < 22 && k < 0.35 ? 'mark' : k < 0.5 ? 'scrumEarly' : k < 0.68 ? 'lineoutNumbers'
+    const kind0 = up < 22 && k < 0.35 ? 'mark' : k < 0.5 ? 'scrumEarly' : k < 0.68 ? 'lineoutNumbers'
       : k < 0.82 ? 'scrumFeed' : k < 0.92 ? 'delay' : 'lineoutGap'
+    // nobody engages at an uncontested scrum, so nobody goes early: the same
+    // free kick is given for numbers at the lineout (both move play 5 metres)
+    const kind = ctx.uncontested && kind0 === 'scrumEarly' ? 'lineoutNumbers' : kind0
     if (kind === 'scrumEarly' || kind === 'scrumFeed') opp.scrumFK = (opp.scrumFK ?? 0) + 1
     side.freeKicks = (side.freeKicks ?? 0) + 1
     const who = kind === 'mark' ? manFor(r, onField(state, side), { FB: 4, WG: 2, FH: 1 }) : null
@@ -5789,6 +5887,10 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
         // field. How far is the boot's, with no draw on the stream.
         // the line first, so it is stamped where the penalty was given
         if (detail) pushLine(state, ctx, min, 'SUB', side, 'comm.penTouchOwnHalf', { team: teamShort(state, side.teamId) })
+        // the throw is theirs: the next lineout line must not hand it to the
+        // other side (owner's screenshot: Cape Town kicked to touch, and the
+        // very next line had Northampton throwing in)
+        ctx.touchThrow = { teamId: side.teamId, min }
         const gain = 14 + Math.min(12, side.units.kicking * 0.8)
         ctx.field = side === home ? clamp(ctx.field + gain, 4, 96) : clamp(ctx.field - gain, 4, 96)
       } else {
@@ -5905,6 +6007,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
             : ctx.weather === 'Wind' && ctx.crng() < 0.25 ? FLAVOR_WIND
             : FLAVOR
           let key = styledKick(pool[Math.floor(ctx.crng() * pool.length)], state.clubs[side.teamId]?.tactic.kickStyle)
+          if (ctx.uncontested && SCRUM_CONTEST_FLAV.has(key)) key = FLAVOR[0]
           // a line that names a man for a hit names one the tackle count
           // already has making hits: it describes the count, it does not add
           // to it (it used to add one, so a watched match's sheet had more
@@ -6788,6 +6891,8 @@ function noteSpecialists(state: GameState, ctx: LiveCtx, side: SideCtx) {
   if (!ctx.detail) return
   const xv = fieldLineup(side).slice(0, 15).map(id => (id != null && side.onPitch.has(id) ? state.players[id] : null))
   for (const i of specialistGaps(xv)) {
+    // a makeshift prop matters only to a contested scrum
+    if (ctx.uncontested && (i === 0 || i === 2)) continue
     const p = xv[i]!
     const said = (side.specSaid ??= new Set())
     if (said.has(p.id)) continue

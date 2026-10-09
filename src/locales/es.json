@@ -1313,8 +1313,8 @@
    "one": "{desc}, {n} semana de baja",
    "other": "{desc}, {n} semanas de baja"
   },
-  "injNote": "Nombra a su sustituto antes de que se reanude el juego.",
-  "injNote_f": "Nombra a su sustituta antes de que se reanude el juego.",
+  "injNote": "El suplente previsto ya ha entrado por él. Cámbialo antes de que se reanude el juego si prefieres a otro.",
+  "injNote_f": "La suplente prevista ya ha entrado por ella. Cámbiala antes de que se reanude el juego si prefieres a otra.",
   "injOff": "{player} se retira",
   "injuredFlag": "Lesionado",
   "instantResult": "Resultado inmediato ▸",

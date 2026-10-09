@@ -1288,7 +1288,7 @@
    "one": "{desc}, {n} week uit",
    "other": "{desc}, {n} weke uit"
   },
-  "injNote": "Kies sy reserwe voor die spel hervat.",
+  "injNote": "Jou bankspeler is reeds op in sy plek. Verander dit voor die spel hervat as jy iemand anders wil hê.",
   "injOff": "{player} is af",
   "injuredFlag": "Beseer",
   "instantResult": "Kitsuitslag ▸",
@@ -1602,7 +1602,7 @@
   "hintFree_f": "Die assistent het {player} aangestuur. Tik iemand anders om dit gratis te verander, of tik haar weer om haar te hou.",
   "hintNoneLeft_f": "Geen taktiese vervangings oor nie. Jy kan steeds twee vroue op die veld tik om hul posisies te ruil.",
   "hintTap_f": "Tik 'n vrou op die veld, tik dan wie vir haar aankom. As jy 'n tweede vrou op die veld tik, ruil hulle eerder posisies.",
-  "injNote_f": "Kies haar reserwe voor die spel hervat.",
+  "injNote_f": "Jou bankspeler is reeds op in haar plek. Verander dit voor die spel hervat as jy iemand anders wil hê.",
   "letHimTakeIt_f": "Laat Haar Dit Vat",
   "msTry_f": "drie nommer {n} van haar loopbaan sal {mark} opbring",
   "mustDecide_f": "Spel is gestop tot iemand haar trui vat. Tik die vrou wat jy op wil hê, of tik die assistent se keuse weer om haar te hou.",

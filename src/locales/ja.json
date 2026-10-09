@@ -1278,7 +1278,7 @@
    "one": "{desc}、全治{n}週",
    "other": "{desc}、全治{n}週"
   },
-  "injNote": "プレー再開までに交代選手を指名しろ。",
+  "injNote": "控えの選手がすでに代わりに入っている。別の選手にするなら、プレー再開前に変更しろ。",
   "injOff": "{player}が退く",
   "injuredFlag": "負傷",
   "instantResult": "即時結果 ▸",
