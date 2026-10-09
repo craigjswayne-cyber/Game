@@ -7483,10 +7483,13 @@ function koRecords(state: GameState, ctx: LiveCtx) {
   // the first one set is not news: a record needs something to beat
   if (!rec) return
   const v = { player: p.name, team: teamShort(state, first.teamId), min: first.firstTryMin, old: rec.name, oldMin: rec.min, comp, stage_k }
+  // "after 1 minutes": a minute is the one count the old record can never be
+  // (the record it beats is longer), so only {min} needs a singular line
+  const k = first.firstTryMin === 1 ? 'news.koFastest1' : 'news.koFastest'
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
-    subject: tIn('en', 'news.koFastestSubj', v), body: tIn('en', 'news.koFastest', v),
-    k: 'news.koFastest', v, playerId: p.id, fixtureId: fx.id,
+    subject: tIn('en', k + 'Subj', v), body: tIn('en', k, v),
+    k, v, playerId: p.id, fixtureId: fx.id,
   })
 }
 

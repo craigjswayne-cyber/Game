@@ -4471,7 +4471,9 @@
   "koHatTrickSubj": "Hat-trick en {stage_k} de {comp}: {player}",
   "koHatTrick": "{player} firmó un hat-trick para {team} en {stage_k} de {comp}. Las eliminatorias no regalan muchos de esos.",
   "koFastestSubj": "El ensayo más rápido de la historia en eliminatorias: {player}, {min} minutos",
+  "koFastest1Subj": "El ensayo más rápido de la historia en eliminatorias: {player}, {min} minuto",
   "koFastest": "{player} marcó para {team} a los {min} minutos de {stage_k} de {comp}, el ensayo más rápido de la historia en eliminatorias. El récord anterior era de {old}, a los {oldMin} minutos.",
+  "koFastest1": "{player} marcó para {team} al minuto {min} de {stage_k} de {comp}, el ensayo más rápido de la historia en eliminatorias. El récord anterior era de {old}, a los {oldMin} minutos.",
   "koStage_QF": "los cuartos de final",
   "koStage_SF": "las semifinales",
   "koStage_F": "la final",
@@ -4648,7 +4650,7 @@
    "one": "{who} vuelve a entrenar",
    "other": "{who} vuelven a entrenar"
   },
-  "backInTraining": "Otra vez disponibles: {men_l}.",
+  "backInTraining": "De vuelta en el grupo: {men_l}.",
   "backInTrainingV2Subj": {"one": "{who} recibe el alta", "other": "{who} reciben el alta"},
   "backInTrainingV2": "Los fisios han dado el alta: {men_l}.",
   "backInTrainingV3Subj": {"one": "{who} vuelve al trabajo con el grupo", "other": "{who} vuelven al trabajo con el grupo"},

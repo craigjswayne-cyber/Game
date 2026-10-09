@@ -4497,7 +4497,9 @@
   "koHatTrickSubj": "Tripletta nella {stage_k} di {comp}: {player}",
   "koHatTrick": "{player} ha firmato una tripletta per {team} nella {stage_k} di {comp}. Il rugby a eliminazione diretta non ne regala molte.",
   "koFastestSubj": "La meta più veloce di sempre a eliminazione diretta: {player}, {min} minuti",
+  "koFastest1Subj": "La meta più veloce di sempre a eliminazione diretta: {player}, {min} minuto",
   "koFastest": "{player} ha segnato per {team} dopo {min} minuti della {stage_k} di {comp}, la meta più veloce di sempre in una gara a eliminazione diretta. Il record precedente era di {old}, dopo {oldMin} minuti.",
+  "koFastest1": "{player} ha segnato per {team} dopo {min} minuto della {stage_k} di {comp}, la meta più veloce di sempre in una gara a eliminazione diretta. Il record precedente era di {old}, dopo {oldMin} minuti.",
   "koStage_QF": "quarto di finale",
   "koStage_SF": "semifinale",
   "koStage_F": "finale",
@@ -4678,7 +4680,7 @@
    "one": "{who} di nuovo in allenamento",
    "other": "{who} di nuovo in allenamento"
   },
-  "backInTraining": "Di nuovo selezionabili: {men_l}.",
+  "backInTraining": "Di nuovo in gruppo: {men_l}.",
   "backInTrainingV2Subj": {"one": "Via libera per {who}", "other": "Via libera per {who}"},
   "backInTrainingV2": "I fisioterapisti hanno dato il via libera: {men_l}.",
   "backInTrainingV3Subj": {"one": "{who} torna ad allenarsi con il gruppo", "other": "{who} tornano ad allenarsi con il gruppo"},
