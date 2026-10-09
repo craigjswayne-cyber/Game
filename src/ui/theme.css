@@ -2474,6 +2474,11 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 @keyframes try-flash {
   0%, 80% { background-color: var(--flash-bg); color: var(--flash-fg); box-shadow: inset 0 0 0 1px var(--flash-fg); }
 }
+/* the minute flashes with its line. A try line's minute is gold, and an old
+   line's gold minute stayed gold while the line behind it went white for
+   the flash: 1.7:1 (nightcontrast, caught mid-flash). The class is on for
+   1.1s only (MatchDay setFlash), so this never outlives the flash. */
+.comm-line.try-flash .min, .feed-line.try-flash .min { color: inherit; }
 @media (prefers-reduced-motion: reduce) {
   .comm-line { transition: none; }
   .comm-line.cur.fresh { animation: none; }
