@@ -4338,6 +4338,11 @@ function frontRowCoverEnds(state: GameState, ctx: LiveCtx, s: SideCtx, id: numbe
       s.lineup[r.shirt] = id
       if (seat >= 0) s.lineup[seat] = cur
       s.onPitch.delete(cur)
+      // the shirt's wearer is off for a head assessment: the man standing in
+      // for HIM leaves now, and the assessed man, whatever the doctors say,
+      // has no shirt to come back to (journeyprobe: sixteen on the pitch when
+      // a binned front-rower returned during his cover's HIA)
+      if (s.hia && s.hia.pid === cur) s.onPitch.delete(s.hia.subId)
     }
     s.onPitch.add(id)
     // a later card on the same shirt is settled by this return: its man
