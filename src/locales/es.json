@@ -1359,7 +1359,7 @@
   "partLocks": "Segunda línea",
   "partTogether": "{n} juntos · {tier}",
   "partnerships": "Parejas",
-  "partnershipsSub": "cuantos más partidos juntos, mejor se entienden",
+  "partnershipsSub": "se entienden mejor con partidos",
   "pause": "Pausa",
   "pausedTitle": "Juego en pausa - cambia el panorama",
   "penAhead": " {n} arriba",
@@ -6092,7 +6092,7 @@
   "playedOut": "El partido quedó en marcha en el {min}'. Tu asistente lo terminó desde ahí, haciendo los cambios y yendo a palos cuando hubo ocasión. Resultado final: {home} {hs}-{as} {away}.",
   "playedOutSubj": "Partido completado: {home} {hs}-{as} {away}",
   "boardInjection": "La junta ha aprobado los fondos: {amount} entra en el presupuesto de fichajes de inmediato, y los salarios que vengan con ellos los cubren desde arriba hasta el verano. En el acta consta una condición: gástalo como si importara.",
-  "charterSubj": "Nuevos dueños: se acabó la ley salarial",
+  "charterSubj": "Nuevos dueños: se acabó el tope salarial",
   "charter": "El papeleo está firmado y los abogados se han ido a casa. {club} ya no está sujeto al tope salarial de la liga. Ni techo, ni nada que la liga pueda multar. El comunicado de la liga es un párrafo corto. Los agentes llevan llamando desde el desayuno.",
   "physioFavourSubj": "El especialista del patrocinador: {player}, antes de lo previsto",
   "physioFavour": {

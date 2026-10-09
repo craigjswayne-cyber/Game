@@ -1334,7 +1334,7 @@
   "partLocks": "Locks",
   "partTogether": "{n} together · {tier}",
   "partnerships": "Partnerships",
-  "partnershipsSub": "the more games together, the better they click",
+  "partnershipsSub": "pairs click with games together",
   "pause": "Pause",
   "pausedTitle": "Play is paused - change the picture",
   "penAhead": " {n} ahead",
@@ -6006,7 +6006,7 @@
   "playedOut": "The match was left running at {min}'. Your assistant saw it out from there, making the changes and kicking for the posts when the chance came. Full time: {home} {hs}-{as} {away}.",
   "playedOutSubj": "Played out: {home} {hs}-{as} {away}",
   "boardInjection": "The board have voted the funds through: {amount} goes into the transfer budget straight away, and the wages that come with it are covered from upstairs until the summer. The minutes record one condition: spend it like it matters.",
-  "charterSubj": "New ownership: the wage law no longer applies",
+  "charterSubj": "New ownership: the salary cap no longer applies",
   "charter": "The paperwork is signed and the lawyers have gone home. {club} are no longer bound by the league's salary cap. No ceiling, and nothing the league can fine. The league's statement runs to one short paragraph. Agents have been ringing since breakfast.",
   "physioFavourSubj": "The sponsor's consultant: {player} ahead of schedule",
   "physioFavour": {

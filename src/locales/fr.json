@@ -6165,7 +6165,7 @@
     "playedOut": "Le match a été laissé en cours à {min}'. Votre adjoint l'a mené à son terme, en faisant les changements et en tapant les pénalités quand l'occasion se présentait. Score final : {home} {hs}-{as} {away}.",
     "playedOutSubj": "Match terminé : {home} {hs}-{as} {away}",
     "boardInjection": "Le conseil a voté les fonds : {amount} arrivent tout de suite dans le budget transferts, et les salaires qui vont avec sont couverts d'en haut jusqu'à l'été. Le procès-verbal ne pose qu'une condition : dépensez-les à bon escient.",
-    "charterSubj": "Nouveau propriétaire : la loi salariale ne s'applique plus",
+    "charterSubj": "Nouveau propriétaire : le plafond salarial ne s'applique plus",
     "charter": "Les papiers sont signés et les avocats sont rentrés chez eux. {club} n'est plus soumis au plafond salarial de la ligue. Plus de plafond, et plus rien que la ligue puisse sanctionner. Le communiqué de la ligue tient en un court paragraphe. Les agents appellent depuis le petit-déjeuner.",
     "physioFavourSubj": "Le consultant du sponsor : {player} en avance",
     "physioFavour": {
