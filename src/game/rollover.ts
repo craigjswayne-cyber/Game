@@ -590,10 +590,12 @@ export function agePlayers(state: GameState, rng: Rng, rooms?: Map<string, numbe
         : `${inductees.length} enter the Hall of Fame`,
       body: one
         ? `${line(inductees[0])} retires with numbers that close the argument. ${mine.length ? 'He finishes as one of yours - a career your club will claim for generations.' : 'The game stands to applaud one of its greats.'} His plaque goes up alongside the immortals.`
-        : `The class of ${state.season + 1} is confirmed. ${inductees.map(line).join('. ')}. ${mine.length ? `${mine.length === 1 ? `${mine[0].p.name} finishes` : `${mine.length} of them finish`} as ${mine.length === 1 ? 'one of yours' : 'yours'} - careers your club will claim for generations.` : 'The game stands to applaud them all.'} The plaques go up alongside the immortals.`,
+        : `The class of ${BASE_YEAR + state.season + 1} is confirmed. ${inductees.map(line).join('. ')}. ${mine.length ? `${mine.length === 1 ? `${mine[0].p.name} finishes` : `${mine.length} of them finish`} as ${mine.length === 1 ? 'one of yours' : 'yours'} - careers your club will claim for generations.` : 'The game stands to applaud them all.'} The plaques go up alongside the immortals.`,
       k: one ? 'news.hofOne' : 'news.hofMany',
       v: {
-        who: inductees[0].p.name, n: inductees.length, season: state.season + 1,
+        // the induction YEAR, as text: "the class of 1" was the season counter
+        // (release QA after 1.8.16), and a number would print as 2,027
+        who: inductees[0].p.name, n: inductees.length, season: String(BASE_YEAR + state.season + 1),
         men_l: JSON.stringify(inductees.map(i => ({
           k: 'news.hofMan', name: i.p.name, pos: i.p.pos, apps: i.apps, tries: i.tries, pts: i.pts,
         }))),

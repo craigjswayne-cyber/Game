@@ -1318,8 +1318,8 @@
    "one": "{desc}, fuori per {n} settimana",
    "other": "{desc}, fuori per {n} settimane"
   },
-  "injNote": "Nomina il sostituto prima che il gioco riprenda.",
-  "injNote_f": "Nomina la sostituta prima che il gioco riprenda.",
+  "injNote": "Il cambio previsto è già entrato al suo posto. Cambialo prima che il gioco riprenda se preferisci qualcun altro.",
+  "injNote_f": "La sostituta prevista è già entrata al suo posto. Cambiala prima che il gioco riprenda se preferisci qualcun'altra.",
   "injOff": "{player} lascia il campo",
   "injuredFlag": "Infortunato",
   "instantResult": "Risultato immediato ▸",
@@ -4497,7 +4497,9 @@
   "koHatTrickSubj": "Tripletta nella {stage_k} di {comp}: {player}",
   "koHatTrick": "{player} ha firmato una tripletta per {team} nella {stage_k} di {comp}. Il rugby a eliminazione diretta non ne regala molte.",
   "koFastestSubj": "La meta più veloce di sempre a eliminazione diretta: {player}, {min} minuti",
+  "koFastest1Subj": "La meta più veloce di sempre a eliminazione diretta: {player}, {min} minuto",
   "koFastest": "{player} ha segnato per {team} dopo {min} minuti della {stage_k} di {comp}, la meta più veloce di sempre in una gara a eliminazione diretta. Il record precedente era di {old}, dopo {oldMin} minuti.",
+  "koFastest1": "{player} ha segnato per {team} dopo {min} minuto della {stage_k} di {comp}, la meta più veloce di sempre in una gara a eliminazione diretta. Il record precedente era di {old}, dopo {oldMin} minuti.",
   "koStage_QF": "quarto di finale",
   "koStage_SF": "semifinale",
   "koStage_F": "finale",
@@ -4678,7 +4680,7 @@
    "one": "{who} di nuovo in allenamento",
    "other": "{who} di nuovo in allenamento"
   },
-  "backInTraining": "Di nuovo selezionabili: {men_l}.",
+  "backInTraining": "Di nuovo in gruppo: {men_l}.",
   "backInTrainingV2Subj": {"one": "Via libera per {who}", "other": "Via libera per {who}"},
   "backInTrainingV2": "I fisioterapisti hanno dato il via libera: {men_l}.",
   "backInTrainingV3Subj": {"one": "{who} torna ad allenarsi con il gruppo", "other": "{who} tornano ad allenarsi con il gruppo"},
@@ -6135,7 +6137,7 @@
   "playedOut": "La partita è stata lasciata in corso al {min}'. Il tuo vice l'ha portata a termine da lì, facendo i cambi e calciando ai pali quando ce n'era l'occasione. Risultato finale: {home} {hs}-{as} {away}.",
   "playedOutSubj": "Partita completata: {home} {hs}-{as} {away}",
   "boardInjection": "Il consiglio ha approvato i fondi: {amount} entrano subito nel budget trasferimenti, e gli stipendi che ne derivano sono coperti dai piani alti fino all'estate. A verbale una sola condizione: spenderli come se contassero davvero.",
-  "charterSubj": "Nuova proprietà: la legge sugli stipendi non vale più",
+  "charterSubj": "Nuova proprietà: il tetto salariale non vale più",
   "charter": "Le carte sono firmate e gli avvocati sono tornati a casa. Il {club} non è più vincolato al tetto salariale della lega. Niente limiti, e niente che la lega possa multare. Il comunicato della lega è un paragrafo striminzito. Gli agenti chiamano da colazione.",
   "physioFavourSubj": "Il consulente dello sponsor: {player} in anticipo sulla tabella",
   "physioFavour": {

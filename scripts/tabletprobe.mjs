@@ -97,6 +97,22 @@ try {
       return g ? getComputedStyle(g).gridTemplateColumns.split(' ').length : 0
     })
     ok(cols >= 2, `Home lays its cards out in columns (${cols})`)
+    // "the home page is a bit disjointed": no card alone on half a row, and
+    // every block on Home shares one right-hand edge
+    const home = await page.evaluate(() => {
+      const g = document.querySelector('.card-grid')
+      const kids = g ? [...g.children] : []
+      const gr = g?.getBoundingClientRect()
+      const lone = kids.filter(k => { const b = k.getBoundingClientRect(); return !kids.some(o => o !== k && Math.abs(o.getBoundingClientRect().top - b.top) < 2) && b.width < (gr.width - 40) * 0.75 }).length
+      const edges = [...document.querySelectorAll('.content > .card, .card-grid, .hub-row, .dash-row')].map(e => {
+        const b = e.getBoundingClientRect(), cs = getComputedStyle(e)
+        // a card's own edge; a grid's edge is where its cards stop
+        return Math.round(e.classList.contains('card') ? b.right : b.right - parseFloat(cs.paddingRight))
+      })
+      return { lone, spread: Math.max(...edges) - Math.min(...edges) }
+    })
+    ok(home.lone === 0, `Home: no card sits alone on half a row (${home.lone})`)
+    ok(home.spread <= 4, `Home: every block shares one right edge (spread ${home.spread}px)`)
     ok((await overflow(page)).length === 0, `Home: nothing past the right edge ${JSON.stringify(await overflow(page))}`)
     await page.screenshot({ path: `shots/tablet-${d.name}-home.png` })
 
@@ -158,7 +174,20 @@ try {
       await page.click('.talk-modal .speech-tile >> nth=0')
       try { await page.locator('text=▸ Take the Field').waitFor({ timeout: 2500 }); await page.click('text=▸ Take the Field') } catch { /* clean sheet */ }
       await page.waitForSelector('.scoreboard', { timeout: 20000 })
-      await page.waitForTimeout(6000)
+      // TABLET ROUND (owner, 9 Oct 2026): "you can't see the commentary when it
+      // shows the team and their mood unless you press Got it". The room's
+      // reactions sit in the stats panel beside the feed, never over the deck,
+      // and the commentary is on the glass from the first line.
+      await page.waitForSelector('.talk-react', { timeout: 8000 }).catch(() => {})
+      await page.waitForTimeout(1500)
+      const room = await page.evaluate(() => {
+        const r = document.querySelector('.talk-react'), f = document.querySelector('.tab-feed')?.getBoundingClientRect()
+        return { react: !!r, inPanel: !!r?.closest('.tab-stats'), feedTop: Math.round(f?.top ?? 9e9), feedH: Math.round(f?.height ?? 0) }
+      })
+      ok(room.react && room.inPanel, `kick-off: the room's reactions sit in the stats panel (${JSON.stringify(room)})`)
+      ok(room.feedH >= 200 && room.feedTop < d.h - 200, `kick-off: the commentary is on the glass beside them (${JSON.stringify(room)})`)
+      if (room.react) await page.click('.talk-react .tr-head .btn')
+      await page.waitForTimeout(4000)
       // a touchline call takes the pitch's place, as on a phone: answer it
       for (let k = 0; k < 3 && await page.locator('text=Take the Points').count(); k++) {
         await page.click('text=Take the Points')
@@ -174,6 +203,23 @@ try {
         `match: the deck sits inside the screen (${JSON.stringify(m.deck)})`)
       ok(m.stats && m.stats.w >= 260 && m.rows >= 8, `match: the live stats beside the feed, every row there (${m.stats?.w}px, ${m.rows} rows)`)
       ok(m.feed && m.feed.w >= 260 && m.feed.h >= 120, `match: the running commentary has room to read (${JSON.stringify(m.feed)})`)
+      // "can you use team logos": the crests head the stats, the names are
+      // kept for a screen reader only
+      const head = await page.evaluate(() => {
+        const crests = [...document.querySelectorAll('.tab-stats .ls-crest')].filter(e => getComputedStyle(e).display !== 'none' && e.getBoundingClientRect().width > 20)
+        const names = [...document.querySelectorAll('.tab-stats .ls-name')].filter(e => e.getBoundingClientRect().width > 2)
+        return { crests: crests.length, names: names.length }
+      })
+      ok(head.crests === 2 && head.names === 0, `match: two crests over the stats, no names to collide (${JSON.stringify(head)})`)
+      // "it doesn't fit on screen": a sheet is zoomed with the page, so its
+      // height cap has to be divided back down or its top leaves the glass
+      await page.click('.speed-controls [data-ctl="squad"]')
+      await page.waitForSelector('.squad-sheet', { timeout: 5000 })
+      await page.waitForTimeout(500)
+      const sh = await page.evaluate(() => { const b = document.querySelector('.squad-sheet').getBoundingClientRect(); return { top: Math.round(b.top), bottom: Math.round(b.bottom) } })
+      ok(sh.top >= 0 && sh.bottom <= d.h + 1, `match: the squad sheet fits the glass, top to bottom (${JSON.stringify(sh)} of ${d.h})`)
+      await page.screenshot({ path: `shots/tablet-${d.name}-sheet.png` })
+      await page.keyboard.press('Escape').catch(() => {})
       await page.screenshot({ path: `shots/tablet-${d.name}-match.png` })
     }
     await page.close()

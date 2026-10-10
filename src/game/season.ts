@@ -40,7 +40,7 @@ import { OBJECTIVE_DEFS, objectiveBonus } from './objectives'
 import { applyPlanSheet, boardPriorityF } from './seasonplan'
 import { IRON_REC, brittleF, formTraits } from './formtraits'
 import { derbyName, isDerby, rivalsOf } from './rivalries'
-import { NAT_DEPTH, NAT_SQUAD_FLOOR, NAT_SQUAD_SIZE, NAT_TIERS, pickableNations, homeBased, clubQuotaLeft, conflictedClub, federationList, federationPick, releaseClubDuty, nationByCode, nationNameIn, nationVars, regenName, worldNames } from './nations'
+import { NAT_DEPTH, NAT_SQUAD_FLOOR, NAT_SQUAD_SIZE, NAT_TIERS, pickableNations, homeBased, clubQuotaLeft, conflictedClub, federationList, federationPick, releaseClubDuty, withFrontRow, nationByCode, nationNameIn, nationVars, regenName, worldNames } from './nations'
 import { isMyClub, logDecision } from './model'
 import { resolveCourses, staffWageBill } from './staff'
 import { RIFT_MORALE, RIFT_TRAINING, riftDrag, staffRiftWeek } from './staffrift'
@@ -869,7 +869,7 @@ function manageInternationals(state: GameState, rng: Rng) {
         const usersNat = nat === state.natTeam || (nat === 'LIO' && islesCoach(state))
         // the squad, plus the next men in behind it
         const target = w.size + NAT_DEPTH
-        const pool = Object.values(state.players)
+        const ranked = Object.values(state.players)
           .filter(p => (nat === 'LIO' ? HOME4.includes(p.nat) : p.nat === nat) &&
             // England and France pick from their own leagues, and the
             // federation's own list obeys the rule the coach obeys
@@ -884,7 +884,7 @@ function manageInternationals(state: GameState, rng: Rng) {
           // deep. Cut at squad-plus-depth and the number means what the next
           // line asks it to mean - how many men this country can actually put
           // forward.
-          .slice(0, target)
+        const pool = ranked.slice(0, target)
         // EMERGING NATIONS NEED A SQUAD AND SOMEBODY TO FIGHT FOR IT.
         //
         // Our club world does not carry enough home-based Georgians or Uruguayans
@@ -975,7 +975,9 @@ function manageInternationals(state: GameState, rng: Rng) {
           })
           continue
         }
-        const travelling = pool.slice(0, w.size)
+        // the front row may come from below the depth cut: a third hooker is
+        // picked before a twentieth back, however far down the list he sits
+        const travelling = withFrontRow([...pool, ...ranked.slice(target)], w.size)
         state.natSquads[nat] = travelling.map(p => p.id)
         for (const p of travelling) {
           p.natSquad = true

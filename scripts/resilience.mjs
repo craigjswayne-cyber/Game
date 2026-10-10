@@ -323,7 +323,7 @@ try {
   await shot('05-save-failed')
   // and it clears itself the moment a write lands again
   await page.evaluate(() => { indexedDB.open = window.__realOpen })
-  await page.click('.save-warn >> text=Try again')
+  await page.click('.save-warn button >> text=Try again')
   await page.waitForSelector('.save-warn', { state: 'detached', timeout: 10000 })
   check(true, 'and a successful write clears it')
 

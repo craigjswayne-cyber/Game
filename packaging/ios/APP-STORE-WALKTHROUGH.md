@@ -380,7 +380,10 @@ Every field is written out word for word, inside Apple's limits, in
 
 The answers people get wrong:
 
-* App Privacy — **Data Not Collected**. Nothing else applies.
+* App Privacy — **not** "Data Not Collected": the app shows AdMob adverts.
+  Identifiers → Device ID (Third-Party Advertising, linked, used for tracking)
+  and Usage Data → Advertising Data (Third-Party Advertising, linked, not used
+  for tracking). The full table is in `docs/ADS-STEP-BY-STEP.md`, Step 7.
 * Age rating — every category **None**, giving **4+**.
 * Category — **Games → Sports**, secondary **Simulation**.
 * Price — **Free**, with in-app purchases.
@@ -393,27 +396,28 @@ The answers people get wrong:
 
 ### 17b. Refresh the content the app will ship
 
-**Do this every single time, before anything else in this phase.** Android and
-iOS do not work the same way and it is the easiest mistake in the project to
-make:
-
-* the **Android** app is a TWA - it renders the LIVE SITE, so a Pages deploy
-  reaches every phone and no upload is needed for a content change;
-* the **iOS** app **BUNDLES** the site inside the binary (`webDir` is
-  `../../dist`). Nothing you deploy to the web reaches it. If you archive
-  without rebuilding, you will ship whatever `dist/` happened to hold last
-  time, and it will pass review looking like an old version of the game.
+**Do this every single time, before anything else in this phase.** The iOS
+app **BUNDLES** the game inside the binary (`webDir` is `../../dist`), and so
+does the Android app since it stopped being a browser wrapper. Nothing you
+deploy to the website reaches either. If you archive without rebuilding, you
+ship whatever `dist/` happened to hold last time, and it passes review looking
+like an old version of the game.
 
 From the repository root:
 
 ```
 git pull                      # get the release you mean to ship
 npm ci && npm run build       # rebuild dist/ at that version
-cd packaging/ios && npx cap sync ios
+cd packaging/ios && ./scaffold.sh
 ```
 
-`cap sync` is what copies `dist/` into the iOS project. Run the CLI from
-`packaging/ios`, not from the repo root - `webDir` is relative to that folder.
+Run `./scaffold.sh`, not `npx cap sync ios` on its own. The scaffold syncs and
+then puts the advert bridge (`packaging/shell/install-ads.mjs`) and the
+purchase bridge back into the copied page. A bare `cap sync` copies `dist/`
+over that page and takes the advert bridge out with it: the app then builds,
+runs and passes review with no adverts at all, and the Xcode console shows no
+`[phase-ads]` lines. If you ever do run `cap sync` by hand, follow it with
+`node ../shell/install-ads.mjs ios` from `packaging/ios`.
 
 ### 17c. Check the app icon is ours, not Capacitor's
 
@@ -439,23 +443,17 @@ Three rules Apple enforces on this file, all handled by the generator: exactly
 1024×1024, no alpha channel, and square corners (iOS applies its own mask, and
 rounding it twice leaves a pinched silhouette).
 
-### 17d. iPhone only, not iPad
+### 17d. iPhone and iPad, nothing else
 
-Capacitor scaffolds every project as universal, so Xcode's *General* tab lists
-four **Supported Destinations**: iPhone, iPad, Mac (Designed for iPad) and
-Apple Vision (Designed for iPad). The last two ride along with iPad; they are
-not separate decisions.
+Since 1.8.0 (tablet mode) the app ships for **iPhone and iPad**. `scaffold.sh`
+sets this and switches off the two destinations that ride along with iPad,
+Mac (Designed for iPad) and Apple Vision (Designed for iPad), which nobody has
+tested. To check: *App* target → *General* → **Supported Destinations** should
+list iPhone and iPad only.
 
-`scaffold.sh` now sets iPhone-only automatically. To check, or to fix a project
-scaffolded before v1.2.5: *App* target → *General* → **Supported
-Destinations** → select iPad, Mac and Apple Vision and press the **–** button,
-leaving iPhone alone.
-
-This is worth getting right before submitting rather than after. **App Store
-Connect requires a full set of iPad screenshots from any binary that claims
-iPad support**, and holds the submission until they exist — so a game nobody
-intends to ship on iPad blocks its own release waiting for artwork of a layout
-that was never designed.
+**App Store Connect requires a full set of 13-inch iPad screenshots from any
+binary that supports iPad**, and holds the submission until they exist.
+`scripts/ipadshots.mjs` makes them at 2048 x 2732.
 
 There is nothing to switch off for Apple Watch. A watchOS app is a separate
 target that has to be added deliberately, and this project has never had one.
@@ -493,7 +491,8 @@ Change the device dropdown from a simulator to **Any iOS Device (arm64)**, then
 ### 20. Upload it
 
 Organizer → **Distribute App** → *App Store Connect* → *Upload*. Answer the
-encryption question **No** — the app uses none and makes no network connections.
+encryption question **No**: the game uses no encryption of its own, and the
+advert SDK only uses the system's standard HTTPS, which is exempt.
 
 Processing takes five to thirty minutes before the build appears in App Store
 Connect.

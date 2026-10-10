@@ -1,14 +1,23 @@
-# Store declarations checklist (1.8.15)
+# Store declarations checklist (1.8.16)
 
 The release hardening pass could not check these from the repository: they live
 in Play Console and App Store Connect. This is the list to tick there before the
-1.8.15 build goes to production. Each line says what the build actually does,
+1.8.16 build goes to production. Each line says what the build actually does,
 so an answer can be checked against it.
+
+Re-checked against the code on 9 October 2026 (release-readiness round after
+1.8.16). The boxes below are console tasks: none of them can be ticked from the
+repository, and none is marked done without the owner's confirmation.
 
 ## What the build does (facts from the repo)
 
 - **Adverts:** Google AdMob through `@capacitor-community/admob` 8.1.0, in the
-  Android and iOS shells only (`packaging/android/package.json`,
+  Android and iOS shells only. One banner at the foot of seven screens
+  (`AD_PLACES` in `src/game/monetise.ts`: Home, the day's schedule, results,
+  the live match's highlights, news, the press room, finances), optional
+  rewarded spots, `maxAdContentRating: 'General'`, live ids (`testing: false`
+  in `packaging/shell/ads.json`). Pro Manager (`phase.supporter`) removes the
+  banners. The ad bridge lives only in the shells (`packaging/android/package.json`,
   `packaging/shell/ads.json`). The web game has no adverts and makes no
   network calls (`scripts/netprobe.ts` enforces this).
 - **Advertising ID:** the AdMob SDK adds the `com.google.android.gms.permission.AD_ID`
@@ -70,6 +79,11 @@ so an answer can be checked against it.
 
 ## On the day
 
-- [ ] Version code 54, version name 1.8.15 (only once you approve the bump).
+- [ ] Play: version code 55, version name 1.8.16 (`packaging/android/version.json`).
+- [ ] App Store: version 1.8.16, build number one higher than the last build in
+      TestFlight (Xcode does not track it; check App Store Connect).
+- [ ] iOS archive built with `./scaffold.sh` as the last step, not a bare
+      `cap sync` (which strips the advert bridge). Before archiving, the Xcode
+      console filtered on `phase-ads` must show `bridge loaded for ios`.
 - [ ] Release notes: short, no tips.
 - [ ] After upload, open the pre-launch report and check it found no crash.

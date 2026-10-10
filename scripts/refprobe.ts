@@ -100,7 +100,13 @@ for (let w = 0; w < 20; w++) {
 const rate = (unc / tot) * 100
 console.log(`  uncontested in ${unc}/${tot} matches (${rate.toFixed(1)}%)`)
 ok(rate < 15, `front-row shortages stay uncommon (${rate.toFixed(1)}%)`)
-ok(rate > 0.2, 'and they do happen, so the rule is not decoration')
+// The floor that sat here ("rate > 0.2: they do happen, so the rule is not
+// decoration") was measuring a selection bug: the auto-pick left fit academy
+// front-rowers at home and AI federations flew without hookers (release QA
+// after 1.8.16, frontrowsquadprobe). With those fixed, a full-strength club
+// world goes whole months without one, as the professional game does. That
+// the rule is wired, not decoration, is held above by forcing a shortage and
+// seeing the referee order uncontested scrums.
 
 console.log(fails ? `\nREF PROBE FAILED (${fails})` : '\nREF PROBE PASSED')
 process.exit(fails ? 1 : 0)
