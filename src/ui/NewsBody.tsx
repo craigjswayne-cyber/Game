@@ -120,8 +120,11 @@ export function NewsBody({ body }: { body: string }) {
  * elsewhere carries one quiet link there instead, named by the screen's own
  * title so it reads as a place, not an instruction.
  */
+//
+// A bid for one of the manager's men is not here: the reader puts the answer
+// itself under those stories while the bid is open (Inbox OfferAnswer), and a
+// link to an empty desk once it is not would be a door to nothing.
 const NEWS_GO: Record<string, [Screen, string?]> = {
-  bidIn: ['offers'], bidDeadline: ['offers'], biddingWar: ['offers'],
   natOffer: ['profile'], natAppointed: ['profile'],
   natSquad: ['country'],
   crisisCover: ['transfers'],

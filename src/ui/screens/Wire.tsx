@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../../store'
-import { PeopleChips, RequestAnswer } from './Inbox'
+import { OfferAnswer, PeopleChips, RequestAnswer } from './Inbox'
 import { ContextCard, ResponseNeeded } from '../ContextCard'
 import { NewsBody, NewsGo } from '../NewsBody'
 import { newsBody, newsSubject, weekDate } from '../../game/model'
@@ -70,6 +70,7 @@ export default function Wire() {
         {/* the same chip row the inbox reader uses, so a name looks tappable in
             the same way wherever the story is being read (10F) */}
         <RequestAnswer n={n} />
+        <OfferAnswer n={n} />
         <PeopleChips n={n} />
         <NewsGo n={n} />
       </div>

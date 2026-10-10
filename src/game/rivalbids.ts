@@ -535,15 +535,16 @@ export function rivalPushWeek(state: GameState): void {
       if (his && dry && !state.offers.some(o => o.playerId === his.id && o.status === 'pending') && club.budget >= his.value) {
         e.bid = true
         const fee = Math.round((his.value * 1.3) / 10_000) * 10_000
+        const offerId = state.nextId++
         state.offers.push({
-          id: state.nextId++, playerId: his.id, fromClubId: club.id, toClubId: user.id,
+          id: offerId, playerId: his.id, fromClubId: club.id, toClubId: user.id,
           fee, week: state.week, forUser: true, status: 'pending',
         })
         const v: Vars = { player: his.name, club: club.name, short: club.short, fee: fmtMoney(fee) }
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
           subject: tIn('en', 'news.rivalPushBidSubj', v), body: tIn('en', 'news.rivalPushBid', v),
-          k: 'news.rivalPushBid', v, playerId: his.id,
+          k: 'news.rivalPushBid', v, playerId: his.id, offerId,
         })
       }
     }
