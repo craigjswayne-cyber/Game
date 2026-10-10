@@ -222,6 +222,48 @@ if [ -f "$PBX" ]; then
   echo "    iPhone and iPad (TARGETED_DEVICE_FAMILY = 1,2), no Mac or Vision"
 fi
 
+# ---- STORE ESSENTIALS THE TEMPLATE LEAVES BLANK (1.8.17) ----
+#
+# Four things every upload needs that `cap add ios` does not provide, each of
+# which was a hand step in APP-STORE-WALKTHROUGH.md and so could be missed:
+#   - the app icon. The template's AppIcon-512@2x.png is Capacitor's
+#     placeholder; AppIcon-1024.png is ours (1024 x 1024, no alpha, as Apple
+#     requires). The first 1.2.4 upload went out with the placeholder.
+#   - the launch screen. The template's Splash images are white, which flashed
+#     before the dark first paint. Splash-2732.png is the night ground with the
+#     icon in the middle, the same look as the Android splash.
+#   - ITSAppUsesNonExemptEncryption = NO. The app uses no encryption of its own
+#     (the only network traffic is AdMob over the system's HTTPS), so this
+#     answers the export question once instead of on every upload.
+#   - the version. MARKETING_VERSION comes from the root package.json, so the
+#     App Store version always matches the game's own. The BUILD number is
+#     still set by hand: it has to be one higher than the last build in App
+#     Store Connect, which this folder cannot know.
+node -e '
+  const fs = require("fs")
+  const app = "ios/App/App"
+  const icon = app + "/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png"
+  if (fs.existsSync(icon)) { fs.copyFileSync("AppIcon-1024.png", icon); console.log("    app icon installed (1024, opaque)") }
+  else console.log("!! no AppIcon.appiconset/AppIcon-512@2x.png - put AppIcon-1024.png in the asset catalogue by hand")
+  const splash = app + "/Assets.xcassets/Splash.imageset"
+  if (fs.existsSync(splash)) {
+    for (const f of fs.readdirSync(splash).filter(f => f.endsWith(".png"))) fs.copyFileSync("Splash-2732.png", splash + "/" + f)
+    console.log("    launch screen is the dark splash")
+  }
+  const pl = app + "/Info.plist"
+  let p = fs.readFileSync(pl, "utf8")
+  if (!p.includes("ITSAppUsesNonExemptEncryption")) {
+    const i = p.lastIndexOf("</dict>")
+    p = p.slice(0, i) + "\t<key>ITSAppUsesNonExemptEncryption</key>\n\t<false/>\n" + p.slice(i)
+    fs.writeFileSync(pl, p)
+  }
+  console.log("    export compliance: ITSAppUsesNonExemptEncryption = NO")
+  const ver = require("../../package.json").version
+  const pbx = "ios/App/App.xcodeproj/project.pbxproj"
+  fs.writeFileSync(pbx, fs.readFileSync(pbx, "utf8").replace(/MARKETING_VERSION = [^;]+;/g, "MARKETING_VERSION = " + ver + ";"))
+  console.log("    version " + ver + " (set the build number in Xcode: one higher than the last upload)")
+'
+
 BUNDLE=$(grep -m1 'PRODUCT_BUNDLE_IDENTIFIER' ios/App/App.xcodeproj/project.pbxproj | tr -d '\t ;' | cut -d= -f2)
 echo
 echo "the shell is built. bundle identity: $BUNDLE"

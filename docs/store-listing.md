@@ -23,7 +23,8 @@ the first thing a reviewer sees.
 | Developer / publisher | FWDS & BCKS LTD |
 | Registered address | 71-75 Shelton Street, London, WC2H 9JQ, United Kingdom |
 | Privacy policy URL | `https://phaserugbymanager.com/privacy.html` (ships in `public/`) |
-| Support URL | the same page, which carries the contact address |
+| Support URL | `https://phaserugbymanager.com/support.html` (ships in `public/`; contact, restore, refunds, saves, adverts) |
+| Website (Play) / Marketing URL (App Store) | `https://phaserugbymanager.com`. Must be this domain: AdMob finds `app-ads.txt` through the developer website the store lists |
 | Content rating | 3+ / Everyone (see the questionnaire below) |
 | Languages | English, French, Spanish, Italian, Japanese, Afrikaans |
 
@@ -1617,7 +1618,7 @@ them. The source of truth is `docs/ADS-STEP-BY-STEP.md`, Step 7, and
 | Miscellaneous - gambling | None. No simulated gambling, no loot boxes, no randomised purchase |
 | Users can interact | **No.** No chat, no user-generated content, no social features |
 | Shares location | No |
-| Digital purchases | **Yes.** The free edition ships the catalogue of `docs/monetisation-spec.md` §1: four non-consumables and four consumables, all one-way, no cash-out |
+| Digital purchases | **Yes.** The free edition ships the catalogue of `docs/monetisation-spec.md` §1: eleven products, four permanent unlocks and seven consumables (plus `phase.supporter.intro`, Pro Manager at its introductory price), all one-way, no cash-out |
 | Unrestricted internet access | No |
 
 Expected result: **PEGI 3 / ESRB Everyone / USK 0**.

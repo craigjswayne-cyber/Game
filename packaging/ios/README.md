@@ -126,8 +126,10 @@ cannot find it, nothing is wrong: skip it.
 
 And before the first archive:
 
-* **Info.plist**: `ITSAppUsesNonExemptEncryption` = NO (the app uses no
-  encryption and makes no connections).
+* **Info.plist**: `ITSAppUsesNonExemptEncryption` = NO is now written by
+  `scaffold.sh` (the app has no encryption of its own; its only network
+  traffic is AdMob over the system's HTTPS). The scaffold also installs the
+  app icon and the dark launch screen and sets the version from package.json.
 * **Orientation**: portrait and landscape both allowed - which is what the
   generated Info.plist already declares, and it matches the web manifest's
   `"orientation": "any"`. Portrait is the tuned one; the game works either way
