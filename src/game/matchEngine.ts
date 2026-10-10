@@ -354,7 +354,12 @@ export function teamUnits(state: GameState, lineup: (number | null)[], day?: { f
     // the cheapest way to win "spend less of yourself" (low tempo) rather than
     // anything a manager would recognise as rugby. Tiredness still bites, in
     // the tank and the last quarter, where it belongs.
-    const fit = 0.82 + 0.18 * (p.cond / 100)
+    // AND A LITTLE MORE AGAIN (1.8.17, FIT_W): at 0.82 + 0.18 a side picked on
+    // fitness every week was worth 3 points a season over one left as it was,
+    // under autopilotprobe's bar of 5; the owner chose to restore some of the
+    // cost. 0.22 is about half way back. The tempo trade that closed the
+    // low-tempo exploit in 1.8.14 is untouched.
+    const fit = (1 - FIT_W) + FIT_W * (p.cond / 100)
     const frm = 0.9 + 0.02 * p.form
     // match sharpness: a player eased back after a layoff is a touch off the pace
     const shp = 0.945 + 0.055 * ((p.sharp ?? 70) / 100)
@@ -494,6 +499,13 @@ export function teamShort(state: GameState, teamId: string): string {
   return state.clubs[teamId]?.short ?? nationName(teamId)
 }
 
+/** How much of a man's craft his condition governs (`fit` in the unit build),
+ *  and how much of last week's lost condition he starts a match without (the
+ *  energy tank). 1.8.14 took them to 0.18 and 0.45; 1.8.17 half way back.
+ *  autopilotprobe, 54 worlds: picking the side worth 6.9 points a season
+ *  (3.1 before); bandcheck inside every band. */
+export const FIT_W = 0.22
+export const TANK_K = 0.75
 export function lineupFor(state: GameState, teamId: string): (number | null)[] {
   const club = state.clubs[teamId]
   // A team sheet that is not an array at all - a save from before the field
@@ -1837,8 +1849,10 @@ function mkSide(state: GameState, teamId: string, userTeamId: string | null, fxI
       // started at his condition, so 80% condition was 80% of a tank on top of
       // the 4% the craft term takes: one tired week cost a side 18 points of
       // win rate. A night's sleep and a team run give some of it back.
+      // THREE QUARTERS, NOT HALF (1.8.17, TANK_K, with FIT_W above): half let
+      // the same tired XV go out every week at almost no cost.
       const c0 = state.players[id]?.cond ?? 85
-      energy.set(id, Math.max(50, 100 - (100 - c0) * 0.45) * knockF)
+      energy.set(id, Math.max(50, 100 - (100 - c0) * TANK_K) * knockF)
     }
   })
   const units = teamUnits(state, lineup, { fxId, big })

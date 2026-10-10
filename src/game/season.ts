@@ -977,7 +977,19 @@ function manageInternationals(state: GameState, rng: Rng) {
         }
         // the front row may come from below the depth cut: a third hooker is
         // picked before a twentieth back, however far down the list he sits
-        const travelling = withFrontRow([...pool, ...ranked.slice(target)], w.size)
+        // AND FROM BELOW THE RATING BAR (1.8.17). The pool only reads men rated
+        // 68 and up, so a week with two hookers hurt left a country with one
+        // fit hooker over the bar and a squad that could not name a legal 23
+        // (frontrowsquadprobe: 4 of 182, once tiredness weighed more and the
+        // knocks came a little more often). A federation calls up its next
+        // fit front-rower whatever his rating rather than play uncontested;
+        // they are only reached for when the squad is short.
+        const frCover = Object.values(state.players)
+          .filter(p => (nat === 'LIO' ? HOME4.includes(p.nat) : p.nat === nat) &&
+            p.clubId && homeBased(state, p, nat) && !p.injury && !p.onLoan &&
+            !ranked.includes(p) && ['LP', 'HK', 'TP'].some(f => p.pos === f || (p.alt as string[]).includes(f)))
+          .sort((a, b) => b.ca - a.ca || a.id - b.id)
+        const travelling = withFrontRow([...pool, ...ranked.slice(target), ...frCover], w.size)
         state.natSquads[nat] = travelling.map(p => p.id)
         for (const p of travelling) {
           p.natSquad = true
@@ -2031,6 +2043,8 @@ export function honeymoonEnd(rep: number): number {
   return Math.round(32 - 20 * t)
 }
 
+/** board confidence a week at a title favourite for a sheet the manager never claimed */
+export const ABSENT_SHEET = 1.1
 function boardReaction(state: GameState, fx: Fixture, delegated = false) {
   const club = state.clubs[state.userClubId]
   const isHome = fx.homeId === club.id
@@ -2096,6 +2110,27 @@ function boardReaction(state: GameState, fx: Fixture, delegated = false) {
   const prioF = boardPriorityF(state, fx.compId)
   if (us > them) club.boardConfidence = clamp(club.boardConfidence + mag * derbyF * ownerF * stanceF * patienceF * prioF, 0, 100)
   else if (us < them) club.boardConfidence = clamp(club.boardConfidence - mag * derbyF * ownerF * stanceF * patienceF * prioF, 0, 100)
+
+  // THE BOARD KNOWS WHO PICKED THE SIDE (1.8.17, owner: "everything should be
+  // green", on autopilotprobe). A big club's board reads its results, and it
+  // also knows whether the manager it pays named the twenty-three or left
+  // that to his assistant: a season of the assistant's sheets is a manager
+  // who is not doing the job, whatever the table says. Without this the
+  // board could only judge a sleepwalker by the results his assistant's
+  // sides earned, which since 1.8.14 are close to an engaged manager's, so
+  // the engaged Bath was in crisis 12 seasons in 36 against the absent
+  // one's 14. A little each week a sheet nobody claimed is played, scaled
+  // by stature: nothing at a club whose board is patient (boardPatience 1
+  // and under, about rep 55), the full amount at a title favourite. One
+  // touch of the Selection screen claims the sheet (tactic.userPicked), and
+  // an international week the assistant runs is not counted (delegated).
+  // Measured with it at 1.1 (autopilotprobe, 36 seasons each): crisis 9
+  // engaged against 20 absent at Bath, sacked 1 against 11; Esher, whose
+  // board is patient, untouched (0 of 36, worst 26).
+  if (!delegated && club.tactic.userPicked !== true) {
+    const giant = clamp((boardPatience(club.rep) - 1) / 0.9, 0, 1)
+    if (giant > 0) club.boardConfidence = clamp(club.boardConfidence - ABSENT_SHEET * giant, 0, 100)
+  }
 
   // The dressing room keeps its own book, and it is slower to move than the
   // board's. Belief is earned a win at a time and it does not arrive in one

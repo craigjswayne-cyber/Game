@@ -31,6 +31,19 @@ const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fail
 const server = await startPreview('4216', 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 412, height: 780 }, locale: 'en-GB' })
+// ONE KNOWN MATCH (as tryflash). The career seed was a Math.random draw, and
+// on 6 and 7 Oct CI met matches whose sampled stretch never showed the live
+// stats ("0 of 0 moments"). Math.random is seeded so it is the same match
+// every run; MA_SEED picks another.
+await page.addInitScript(seed => {
+  let a = seed >>> 0
+  Math.random = () => {
+    a = (a + 0x6D2B79F5) | 0
+    let t = Math.imul(a ^ (a >>> 15), 1 | a)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}, Number(process.env.MA_SEED ?? 3))
 page.setDefaultTimeout(15000)
 
 // A provider that exists. Without one the slot renders null everywhere and
@@ -112,6 +125,9 @@ try {
 
   await page.waitForSelector('.scoreboard', { timeout: 20000 })
   await page.waitForTimeout(600)
+  // the room's reactions hold the stage for the first twenty minutes unless
+  // they are put away, and while they do the live stats are not on it
+  if (await page.locator('.talk-react .tr-head .btn').count()) await page.click('.talk-react .tr-head .btn').catch(() => {})
   // ---- the stage: stats or a highlight ----
   // Sample the screen while play runs: every moment the live stats are the
   // stage there must be no banner, and every moment a highlight is, there is.

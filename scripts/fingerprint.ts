@@ -16,6 +16,18 @@ picks.forEach((fx, i) => {
 })
 
 const EXPECTED: string[] = [
+  // REBASELINED for tiredness weighing a little more again (1.8.17, owner
+  // chose "Restore some fitness cost" so picking your own side is worth
+  // points: autopilotprobe). A tired man keeps 0.78 + 0.22 x condition of his
+  // craft (was 0.82 + 0.18) and starts a match three quarters of last week's
+  // deficit down (was 0.45). No new draws. Exactly ONE result moved, and it
+  // is the one it should be: exeter 40-17 saracens became exeter 19-23
+  // saracens - the last fixture in the stream, played by a Saracens whose
+  // condition the earlier fixtures here had already spent; the five with
+  // fresh legs on both sides are unchanged. bandcheck over 8,136 games after:
+  // 49.8 pts, 6.49 tries, 53.0% home, 1.9% draws, 8.8% blowouts, all inside
+  // their bands.
+  //
   // REBASELINED for the AI coaching baseline (the "make it tougher" round), and
   // exactly ONE of the six results moved: leicester 37-30 saracens became
   // leicester 16-48 saracens. That it is the LEICESTER fixture is the whole
@@ -597,7 +609,7 @@ const EXPECTED: string[] = [
   'sale 39-25 bristol',
   'harlequins 51-24 leicester',
   'newcastle 38-29 northampton',
-  'exeter 40-17 saracens',
+  'exeter 19-23 saracens',
 ]
 // REBASELINED for 1.8.2 depth (claude/182-depth), FIVE of six moved, and
 // WITHOUT a new draw on the shared stream: the match still takes the one draw
