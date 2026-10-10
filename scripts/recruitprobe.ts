@@ -236,10 +236,17 @@ ok(toneCool === 'cool' && wageCool > wage0, 'a broken promise to his agency did 
 ok(toneOther === 'neutral', 'another agency\'s clients moved this agent')
 
 // ---- 6. rival talk: real interest is real, and the read is honest --------
-const h = newGame('bath', 'Recruit Probe 2', 777)
+// FOUR WORLDS, NOT ONE (1.8.17). The move check below rested on one sixty-
+// week world, which gave six genuine-interest moves: 6/126 against 45/1400
+// read 1.49 against a bar of 1.5 after tiredness was reweighted, one move
+// from either side of the line. The reads and the moves are pooled across
+// four worlds; every assertion is unchanged.
 const tally: Record<string, Record<string, { g: number; n: number }>> = {}
-const followed: { id: number; club: string; genuine: boolean; from: string; season: number }[] = []
 let talkSeen = 0
+let gMoved = 0, gN = 0, fMoved = 0, fN = 0
+for (const seed of [777, 778, 2024, 31337]) {
+const h = newGame('bath', 'Recruit Probe 2', seed)
+const followed: { id: number; club: string; genuine: boolean; from: string; season: number }[] = []
 for (let w = 0; w < 60; w++) {
   processWeekAndAdvance(h)
   if (h.week % 3 !== 0) continue
@@ -261,6 +268,15 @@ for (let w = 0; w < 60; w++) {
     if (followed.length < 4000) followed.push({ id: p.id, club: truth.clubId, genuine: truth.genuine, from: p.clubId!, season: h.season })
   }
 }
+// the consequence: a man with genuine interest leaves more often than one with agent talk
+const dedup = new Map<number, typeof followed[number]>()
+for (const f of followed) if (!dedup.has(f.id)) dedup.set(f.id, f)
+for (const f of dedup.values()) {
+  const p = h.players[f.id]
+  const moved = !p || p.clubId !== f.from
+  if (f.genuine) { gN++; if (moved) gMoved++ } else { fN++; if (moved) fMoved++ }
+}
+}
 console.log(`\nrival talk heard ${talkSeen} times; share of each read that was really genuine:`)
 console.log('knowledge  "genuine"        "could be either"  "agent talk"')
 for (const band of ['tape', 'detailed', 'full']) {
@@ -275,15 +291,6 @@ for (const band of ['tape', 'detailed', 'full']) {
 }
 const gap = (b: string) => tally[b].genuine.g / tally[b].genuine.n - tally[b].agent.g / tally[b].agent.n
 ok(gap('full') > gap('tape'), 'the read gets no sharper with knowledge')
-// the consequence: a man with genuine interest leaves more often than one with agent talk
-const dedup = new Map<number, typeof followed[number]>()
-for (const f of followed) if (!dedup.has(f.id)) dedup.set(f.id, f)
-let gMoved = 0, gN = 0, fMoved = 0, fN = 0
-for (const f of dedup.values()) {
-  const p = h.players[f.id]
-  const moved = !p || p.clubId !== f.from
-  if (f.genuine) { gN++; if (moved) gMoved++ } else { fN++; if (moved) fMoved++ }
-}
 console.log(`moved clubs by the end: genuine interest ${pct(gMoved / Math.max(1, gN))} of ${gN}; agent talk ${pct(fMoved / Math.max(1, fN))} of ${fN}`)
 ok(gN > 20 && fN > 20, 'too little talk to judge')
 // a ratio rather than a margin since the windows bind every club (1.8.12):
