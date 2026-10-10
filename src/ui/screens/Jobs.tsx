@@ -86,15 +86,21 @@ export default function Jobs() {
         {/* THE ODDS BEFORE THE ANSWER (1.8.6): the prospects line sat under a
             full-width Not interested, so the quiet answer outweighed Apply and
             the one fact that decides it came last. One row now. */}
+        {/* TWO LINES, ALWAYS (owner: "Interview prospects should be over two
+            lines"): the label on one line and the verdict under it, in every
+            language. The label never wraps, so the row's floor is the label's
+            width: where it and the button cannot share a row, the button
+            drops below rather than the label breaking. */}
         <div className="job-foot">
-          <div className="meta" style={{ flex: 1, minWidth: 0 }}>
+          <div className="meta" style={{ flex: 1 }}>
             {cold > 0 ? (
               <b style={{ color: 'var(--danger)' }}>
                 {t('world.jbShutDoor', { n: cold, weeks_k: cold === 1 ? 'count.weekOne' : 'count.weekMany' })}
               </b>
             ) : (
               <>
-                {t('world.jbProspects')}<b style={{ color: chance > 0.65 ? 'var(--text-positive)' : chance > 0.35 ? 'var(--gold)' : 'var(--danger)' }}>
+                <div className="job-odds-label" style={{ whiteSpace: 'nowrap' }}>{t('world.jbProspects')}</div>
+                <b style={{ display: 'block', color: chance > 0.65 ? 'var(--text-positive)' : chance > 0.35 ? 'var(--gold)' : 'var(--danger)' }}>
                   {t(chance > 0.75 ? 'world.jbExcellent' : chance > 0.5 ? 'world.jbGood' : chance > 0.3 ? 'world.jbOutsideShot' : 'world.jbLongShot')}
                 </b>
               </>
