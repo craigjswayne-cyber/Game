@@ -14,7 +14,7 @@
  * Run: npx vite-node scripts/knockprobe.ts
  */
 import { newGame } from '../src/game/newgame'
-import { availablePlayers, beginMatch } from '../src/game/matchEngine'
+import { TANK_K, availablePlayers, beginMatch } from '../src/game/matchEngine'
 import { mulberry32 } from '../src/game/rng'
 import { KNOCK_ENERGY, KNOCK_MAX_WEEKS, canPlayThrough, flareChance, playThrough, restKnock, settleKnocks } from '../src/game/knock'
 import type { Fixture, GameState, Player } from '../src/game/model'
@@ -69,9 +69,10 @@ console.log('--- 3. he starts short of his tank')
   hurt(g, starter, 1)
   playThrough(g, starter.id)
   const knocked = beginMatch(g, { ...fx, id: 999002 }, mulberry32(5), true).home.energy.get(starter.id)
-  // (1.8.14: the tank starts at half of last week's deficit back, so a man on
-  // 90% condition kicks off on 95.5 - matchEngine beginMatch)
-  const tank = 100 - (100 - 90) * 0.45
+  // (the tank starts TANK_K of last week's deficit down - 0.45 in 1.8.14,
+  // 0.75 from 1.8.17 - so a man on 90% condition kicks off on 92.5;
+  // matchEngine beginMatch. Read from the engine so the two cannot drift.)
+  const tank = 100 - (100 - 90) * TANK_K
   ok(Math.abs((fresh ?? 0) - tank) < 0.01, `fit, he kicks off on his condition's tank (${fresh})`)
   ok(Math.abs((knocked ?? 0) - tank * KNOCK_ENERGY) < 0.01,
     `carrying a knock, on ${KNOCK_ENERGY * 100}% of it (${knocked})`)
