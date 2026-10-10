@@ -308,7 +308,7 @@ try {
       [{ outcome: 'unavailable', cause: 'notOffered' }, /not offering this item to your account/i, 'a product the store does not list here: "not offering this item", ours to fix'],
       [{ outcome: 'unavailable', cause: 'disabled' }, /switched off on this device/i, 'purchases switched off on the phone: says so, and where to look'],
       [{ outcome: 'unavailable', cause: 'playBilling' }, /Google Play would not take a payment/i, "Play's BILLING_UNAVAILABLE: Play's own list of reasons, country among them"],
-      [{ outcome: 'error', cause: 'unreachable' }, /could not be reached/i, 'a store that did not answer: try again later'],
+      [{ outcome: 'error', cause: 'unreachable' }, /couldn.t reach the store/i, 'a store that did not answer: try again later'],
       [{ outcome: 'refused', cause: 'config' }, /set-up fault on our side/i, 'a DEVELOPER_ERROR: a fault on our side, not the player\'s'],
       [{ outcome: 'unavailable' }, /would not sell this item just now/i, 'an older shell with no cause: only what is true of every cause'],
       ['throw', /set-up fault on our side/i, 'a rejected plugin call: a build fault, not the player\'s country'],
@@ -538,7 +538,7 @@ try {
     await page.waitForSelector('text=You own this')
     await page.locator('button', { hasText: 'Remove it on this save' }).click()
     await page.locator('button', { hasText: 'Remove it - there is no way back' }).click()
-    await page.waitForSelector('text=The wage law no longer applies')
+    await page.waitForSelector('text=The salary cap no longer applies')
     const chartered = await page.evaluate(() => {
       const g = window.rugbyStore.getState().game
       return { uncapped: g.uncapped === true, news: g.news.some(n => n.k === 'news.charter') }

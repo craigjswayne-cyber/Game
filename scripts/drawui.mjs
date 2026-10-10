@@ -101,7 +101,7 @@ try {
   check(await page.locator('.draw-tie').count() === 4, 'all four ties are out')
   check(await page.locator('.draw-tie.ours').count() === 1, 'and exactly one of them is called out as yours')
   const verdict = await page.textContent('.draw-verdict').catch(() => '')
-  check(/travel to|at home to/i.test(verdict || ''), `the verdict reads: ${(verdict || '').slice(0, 60)}`)
+  check(/^(Home|Away) draw: /.test(verdict || ''), `the verdict says home or away: ${(verdict || '').slice(0, 60)}`)
   check(!/undefined|NaN/.test(await page.textContent('.draw-room')), 'no NaN or undefined anywhere in the room')
   await page.screenshot({ path: `${SHOTS}/draw-full.png` })
 

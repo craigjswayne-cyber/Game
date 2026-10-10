@@ -1252,7 +1252,7 @@ function Preview({ fxId }: { fxId: number }) {
         <SectionTitle sub={t('mood.roomSub')}>{t('mood.room')}</SectionTitle>
         <MoodTable game={game} lineup={tac.lineup} room={room} />
         <SectionTitle sub={t('matchday.dressingRoomSub')}>{t('matchday.dressingRoom')}</SectionTitle>
-        <div className="speech-grid">
+        <div className="speech-grid talk-tones">
           {SPEECHES.map(s => (
             <button key={s.id} className={`speech-tile${speech === s.id ? ' sel' : ''}`}
               onClick={() => setSpeech(speech === s.id ? null : s.id)}>
@@ -1299,7 +1299,7 @@ function Preview({ fxId }: { fxId: number }) {
                 <summary>{t('mood.room')}</summary>
                 <MoodTable game={game} lineup={tac.lineup} room={room} />
               </details>
-              <div className="speech-grid" style={{ marginTop: 6 }}>
+              <div className="speech-grid talk-tones" style={{ marginTop: 6 }}>
                 {SPEECHES.map(sp => (
                   <button key={sp.id} className={`speech-tile${speech === sp.id ? ' sel' : ''}`}
                     onClick={() => {
@@ -1497,7 +1497,7 @@ function NationPreview({ fxId }: { fxId: number }) {
         )}
 
         <SectionTitle sub={t('matchday.dressingRoomSub')}>{t('matchday.dressingRoom')}</SectionTitle>
-        <div className="speech-grid">
+        <div className="speech-grid talk-tones">
           {SPEECHES.map(s => (
             <button key={s.id} className={`speech-tile${speech === s.id ? ' sel' : ''}`}
               onClick={() => setSpeech(speech === s.id ? null : s.id)}>
@@ -1677,6 +1677,10 @@ function Live() {
   const done = caughtUp && ctx.seg === 3
   // how the room took the pre-match talk, for the opening twenty minutes
   const showPreReact = !preSeen && !!ctx.preReads?.length && (last?.min ?? 0) < 20 && !done
+  const preReact = showPreReact ? (
+    <TalkReactions game={game} reads={ctx.preReads!} lineup={ctx.home.teamId === ctx.userSideId ? ctx.home.lineup : ctx.away.lineup}
+      msg={live.preTalkMsg} onClose={() => setPreSeen(true)} />
+  ) : null
 
   // coming back from another app can strand the heartbeat - kick it awake
   useEffect(() => {
@@ -2223,10 +2227,7 @@ function Live() {
           onReveal={revealTo}
           onDone={() => setClip(null)} />
       )}
-      {!panelActive && !clip && showPreReact && (
-        <TalkReactions game={game} reads={ctx.preReads!} lineup={ctx.home.teamId === ctx.userSideId ? ctx.home.lineup : ctx.away.lineup}
-          msg={live.preTalkMsg} onClose={() => setPreSeen(true)} />
-      )}
+      {!panelActive && !clip && !tablet && showPreReact && preReact}
       {!panelActive && !clip && !tablet && !showPreReact && <LiveStats shown={shown} />}
 
       {/* THE TABLET DECK (1.8.0). A phone reads the match a line at a time;
@@ -2249,8 +2250,11 @@ function Live() {
               ))}
             </div>
           </div>
+          {/* the room's reactions take the stats' place until Got it, never
+              the commentary's: above the deck they pushed the feed off the
+              bottom of the glass (owner, tablet round) */}
           <div className="tab-stats">
-            <LiveStats shown={shown} />
+            {showPreReact ? preReact : <LiveStats shown={shown} />}
           </div>
         </div>
       )}
@@ -2871,10 +2875,13 @@ function LiveStats({ shown }: { shown: MatchEvent[] }) {
   ]
   return (
     <div className="live-stats" data-testid="live-stats">
+      {/* the crests carry the three-letter code; a tablet shows them in
+          place of the names, which ran into each other and into the title in
+          its narrow panel (owner, tablet round: "can you use team logos") */}
       <div className="ls-head">
-        <span>{teamShort(game, homeId)}</span>
+        <span><i className="ls-crest"><CrestT g={game} teamId={homeId} size={30} mr={0} /></i><i className="ls-name">{teamShort(game, homeId)}</i></span>
         <b>{t('matchday.liveStats')}</b>
-        <span>{teamShort(game, live.fixture.awayId)}</span>
+        <span><i className="ls-name">{teamShort(game, live.fixture.awayId)}</i><i className="ls-crest"><CrestT g={game} teamId={live.fixture.awayId} size={30} mr={0} /></i></span>
       </div>
       {rows.map(([label, v, fmt]) => {
         const share = v[0] + v[1] > 0 ? v[0] / (v[0] + v[1]) : 0.5
