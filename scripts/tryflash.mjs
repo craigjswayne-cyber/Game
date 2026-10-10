@@ -160,13 +160,22 @@ try {
 
   // ---- reduced motion: a still highlight, no animation ----
   await page.emulateMedia({ reducedMotion: 'reduce' })
-  let still = null
-  for (let i = 0; i < 600 && !still; i++) {
-    if (await answer()) continue
-    if (await page.locator('text=Play the Final Quarter').count()) await page.click('text=▸ Play the Final Quarter')
-    if (await page.locator('text=Continue to Results').count()) break
-    still = await page.evaluate(() => {
-      const el = document.querySelector('.comm-line.try-flash')
+  // A real flash needs a try in the second half, and some matches have none:
+  // one CI run on main reached full time without one and read null. So when
+  // play has not produced one by full time, a score line is put into the
+  // feed with the class and the colours flashStyle gives it, and the same
+  // measurement is taken: what is under test is the reduced-motion rule.
+  const measure = (fake) => page.evaluate((fake) => {
+      let el = document.querySelector('.comm-line.try-flash')
+      if (!el && fake) {
+        const list = document.querySelector('.comm-list') ?? document.querySelector('.live-wrap')
+        if (!list) return null
+        el = document.createElement('div')
+        el.className = 'comm-line big kit old a1 try-flash'
+        el.style.setProperty('--flash-bg', '#ffffff'); el.style.setProperty('--flash-fg', '#1b5e20')
+        el.innerHTML = '<span class="min">60\'</span><span class="txt">TRY!</span>'
+        list.appendChild(el)
+      }
       if (!el) return null
       const cs = getComputedStyle(el)
       const probe = document.createElement('div')
@@ -175,10 +184,19 @@ try {
       const want = getComputedStyle(probe)
       const r = { anims: el.getAnimations().filter(a => a.animationName).length, inverted: cs.backgroundColor === want.backgroundColor && cs.color === want.color }
       probe.remove()
+      if (fake) el.remove()
       return r
-    })
+    }, fake)
+  let still = null, staged = false
+  for (let i = 0; i < 600 && !still; i++) {
+    if (await answer()) continue
+    if (await page.locator('text=Play the Final Quarter').count()) await page.click('text=▸ Play the Final Quarter')
+    if (await page.locator('text=Continue to Results').count()) break
+    still = await measure(false)
     if (!still) await page.waitForTimeout(100)
   }
+  if (!still) { still = await measure(true); staged = true }
+  say(`      reduced motion measured on ${staged ? 'a staged score line (no try in the second half)' : 'a real try'}`)
   ok(!!still && still.inverted && still.anims === 0, `with reduced motion a try is a still highlight (${JSON.stringify(still)})`)
   await page.evaluate(() => { globalThis.__tf.stop = true })
 } catch (e) {

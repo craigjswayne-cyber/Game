@@ -186,7 +186,12 @@ async function sweep(label, height, stopAt, width = 412) {
     say(`  bench rows: ${geo.benchCount}, inner scrollers: ${geo.innerScrollers}`)
 
     ok(geo.shirts.length === 15, `all fifteen shirts are in the sheet (found ${geo.shirts.length})`)
-    ok(geo.shirts[0] === '1', `the list starts at shirt 1 (starts at ${geo.shirts[0]})`)
+    // the loosehead's slot heads the list. Since 1.8.16 a replacement wears
+    // his bench number on the pitch, so if the loosehead has already gone off
+    // the first row reads 17 (or any bench number): one CI run failed on
+    // exactly that. The rows are in slot order, so the first row is the
+    // loosehead's slot: shirt 1, or the bench number of whoever replaced him.
+    ok(geo.shirts[0] === '1' || Number(geo.shirts[0]) >= 16, `the list starts at the loosehead's slot (shirt ${geo.shirts[0]})`)
     ok(geo.scrollTop === 0, `the sheet opens at its top, not part-way down (scrollTop ${geo.scrollTop})`)
     ok(geo.headVisible, 'the heading is on screen when the sheet opens')
     ok(geo.firstShirtVisible, 'shirt 1 is on screen when the sheet opens, with no scrolling')
