@@ -45,6 +45,7 @@ import { isMyClub, logDecision } from './model'
 import { resolveCourses, staffWageBill } from './staff'
 import { RIFT_MORALE, RIFT_TRAINING, riftDrag, staffRiftWeek } from './staffrift'
 import { resolveCommission, scoutPostcard } from './commission'
+import { scoutDesk } from './scoutrecs'
 import { clamp, mulberry32, shuffled, type Rng } from './rng'
 import { attrOdds, attrRoll, gapGrowth, PRODIGY_PA, trainPoint, youthPace } from './ageing'
 import { gameTimeReview, settleGameTime } from './gametime'
@@ -4372,6 +4373,8 @@ export function processWeekAndAdvance(state: GameState) {
   if (!state.unemployed) {
     weeklyFinance(state, rng)
     weeklyScouting(state)
+    // the verdicts still owed to the inbox, two scouting stories a week at most
+    scoutDesk(state)
     // the run-in: from week 31, gaps and rivals become the story
     if (state.week >= 31 && !state.unemployed) {
       const club = state.clubs[state.userClubId]

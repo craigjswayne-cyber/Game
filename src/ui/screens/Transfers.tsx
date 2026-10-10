@@ -1,20 +1,16 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '../../store'
-import { clubCode, fmtMoney, fmtWage, newsBody, newsSubject, POS_ORDER, seasonLabel, weekDate, type Attrs, type Pos, weeksBetween100 } from '../../game/model'
+import { clubCode, fmtMoney, fmtWage, POS_ORDER, seasonLabel, type Attrs, type Pos } from '../../game/model'
 import { counterIncomingOffer, renewalDemand, respondToOffer, windowOpen } from '../../game/ai'
 import { isDeadlineWeek, openDate, shutDate } from '../../game/window'
 import { LOAN_LENGTHS, LOAN_SHARES, loanIn, loanMarket, loanTargets, type LoanLength } from '../../game/loans'
 import { noteUse } from '../../game/usage'
 import { attrRange, fuzzedCa, knowledge, searchKey, seenValue } from '../../game/scout'
-import { commissionScout, searchFee, type SearchMonths } from '../../game/commission'
-import { badgeLabel } from '../../game/staff'
-import { ClubLink, FormPill, Mark, Nat, PosBadge, SectionTitle, Stars, TwoStep } from '../components'
+import { FormPill, Mark, Nat, PosBadge, SectionTitle, Stars, TwoStep } from '../components'
 import { attrName, posName, t, compLabel } from '../../game/i18n'
 import { userWageBudget } from '../../game/grants'
 import { transferInterest } from '../../game/interest'
-import { rivalTalk } from '../../game/recruit'
-import { Glyph } from '../glyphs'
-import { plainNews } from '../NewsBody'
+import { ScoutingBody } from './Scouting'
 
 /** The classic search screen's views (1.8.0): which columns the table shows. */
 type SearchView = 'general' | 'contract' | 'physical' | 'setpiece' | 'handling' | 'mind'
@@ -34,19 +30,6 @@ function initialName(name: string): string {
   return parts.length < 2 ? name : `${parts[0][0]}. ${parts.slice(1).join(' ')}`
 }
 
-/** The leagues the scouts can be pointed at, the MRC beside the Premier
- *  (owner, 27 Sep 2026: "MRC should be on the same line as prem ... not on its
- *  own down below"). It was the last league created, so it came last and sat
- *  alone on a row of its own. The game's own order is left alone: the season
- *  runs its leagues in that order. */
-function scoutLeagues(game: NonNullable<ReturnType<typeof useStore.getState>['game']>) {
-  const all = Object.values(game.comps).filter(c => c.type === 'league')
-  const mrc = all.find(c => c.id === 'mrc')
-  if (!mrc) return all
-  const rest = all.filter(c => c !== mrc)
-  const at = rest.findIndex(c => c.id === 'prem')
-  return at < 0 ? all : [...rest.slice(0, at + 1), mrc, ...rest.slice(at + 1)]
-}
 const ATTR_ORDER: (keyof Attrs)[] = ['pac', 'str', 'sta', 'agi', 'scr', 'lin', 'kic', 'goa', 'pas', 'han', 'tac', 'ruc', 'vis', 'dec', 'pos', 'lea', 'agg', 'wor']
 
 export default function Transfers() {
@@ -256,24 +239,11 @@ export default function Transfers() {
         )
       })()}
 
-      {xtab === 'scouting' && <>
-      <ScoutCommission />
-      <div className="card">
-        <div className="fact-label">{t('transfers.scoutingAssignment')}</div>
-        <div className="meta" style={{ marginBottom: 6 }}>
-          {t('transfers.assignmentNote', { unassigned: game.scoutFocus ? '' : t('transfers.unassigned') })}
-        </div>
-        <div className="chips" style={{ padding: 0 }}>
-          {scoutLeagues(game).map(c => (
-            <button key={c.id} className="chip" onClick={() => { game.scoutFocus = game.scoutFocus === c.id ? null : c.id; touch() }}
-              style={game.scoutFocus === c.id ? { borderColor: 'var(--gold)', color: 'var(--info)', fontWeight: 700 } : undefined}>
-              {game.scoutFocus === c.id && <><Glyph name="scout" /> </>}{compLabel(c.short)}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      </>}
+      {/* THE SCOUTING TAB IS THE SCOUTING PAGE (owner: "It should have a
+          list and you click in for a scout report"). One body, Scouting.tsx,
+          with the verdicts cut to a short preview here and the whole list on
+          the Hub's own Scouting page. */}
+      {xtab === 'scouting' && <ScoutingBody preview />}
 
       {xtab === 'market' && offers.length > 0 && (
         <>
@@ -304,29 +274,6 @@ export default function Transfers() {
               </div>
             )
           })}
-        </>
-      )}
-
-      {xtab === 'scouting' && game.shortlist.length > 0 && (
-        <>
-          <SectionTitle sub={t('transfers.shortlistSub')}>{t('transfers.shortlist')}</SectionTitle>
-          <div className="tblwrap"><table className="dtable codefirst"><tbody>
-            {game.shortlist.map(id => game.players[id]).filter(Boolean).map(p => (
-              <tr key={p.id} onClick={() => go('player', p.id)}>
-                <td><PosBadge pos={p.pos} /></td>
-                <td className="name">{p.name}{rivalTalk(game, p) && <span style={{ color: 'var(--gold)' }} title={t('recruit.talkMark')} aria-label={t('recruit.talkMark')}> <Glyph name="talk" /></span>}</td>
-                {/* the club column was the widest thing in this table and ran
-                    64px off the side of a 412px phone. Three letters, the same
-                    code the crest draws (owner, v1.1.17). Search still matches
-                    the full club name - only the cell shortens. */}
-                <td className="muted">{p.clubId ? <ClubLink g={game} clubId={p.clubId}>{clubCode(game.clubs[p.clubId]?.short ?? '')}</ClubLink> : t('transfers.freeAgent')}</td>
-                <td><Stars ca={fuzzedCa(game, p)} /></td>
-                <td className="num" style={{ color: knowledge(game, p) >= 95 ? 'var(--text-positive)' : undefined }}>
-                  {Math.round(knowledge(game, p))}%
-                </td>
-              </tr>
-            ))}
-          </tbody></table></div>
         </>
       )}
 
@@ -571,149 +518,6 @@ export default function Transfers() {
       )}
       </>}
       <div className="spacer" />
-    </>
-  )
-}
-
-/**
- * Commissioned scouting (8-batch feedback): send the chief scout out for 3, 6
- * or 9 months and read what he brings back. The report is deliberately mixed -
- * his verdict on each man is the point, not a list of ready-made signings.
- */
-function ScoutCommission() {
-  const game = useStore(s => s.game)!
-  const touch = useStore(s => s.touch)
-  const go = useStore(s => s.go)
-  const [pos, setPos] = useState<Pos | 'any'>('any')
-  const [msg, setMsg] = useState('')
-  const abs = game.season * 100 + game.week
-  const man = game.staffPeople?.scout
-  const tier = game.staff.scout ?? 0
-  const out = game.commission
-  const weeksLeft = out ? Math.max(1, weeksBetween100(out.done, abs)) : 0
-  const finds = game.scoutFinds ?? []
-  return (
-    <>
-      <SectionTitle sub={man ? t('transfers.scoutBadge', { name: man.name, badge: badgeLabel(tier).toLowerCase() }) : t('transfers.noChiefScout')}>{t('transfers.commissionedSearch')}</SectionTitle>
-      <div className="card">
-        {!man && (
-          <div className="meta">
-            {t('transfers.nobodyToSend')}
-          </div>
-        )}
-        {man && out && (
-          <div className="meta">
-            <Glyph name="scout" /> <b>{t('transfers.onTheRoad', { name: man.name })}</b>
-            {t('transfers.briefLine', {
-              months: out.months,
-              pos: out.pos !== 'any' ? t('transfers.briefForPos', { pos: posName(out.pos).toLowerCase() }) : t('transfers.briefForAnyone'),
-              league: out.leagueId ? t('transfers.briefInLeague', { league: compLabel(game.comps[out.leagueId]?.short) ?? t('transfers.focusLeague') }) : '',
-            })}
-            {t(weeksLeft === 1 ? 'transfers.reportsBackOne' : 'transfers.reportsBack', { n: weeksLeft, g: man.g ?? 'm' })}
-          </div>
-        )}
-        {man && !out && (
-          <>
-            <div className="meta" style={{ marginBottom: 6 }}>
-              {t('transfers.longerTrip', {
-                g: game.staffPeople?.scout?.g ?? 'm',
-                where: game.scoutFocus
-                  ? t('transfers.watchesLeague', { league: compLabel(game.comps[game.scoutFocus]?.short) ?? t('transfers.focusLeague') })
-                  : t('transfers.watchesWorld'),
-              })}
-            </div>
-            {/* THE BRIEF ON ONE ROW, THE THREE TRIPS ON THE NEXT (owner, 1.5.8:
-                "all three buttons should be below on the same line"). All four
-                controls shared a wrapping flex row, so the dropdown took its
-                140px and the nine-month trip dropped onto a line of its own -
-                three prices that should be read side by side, split two and
-                one. The lengths are now their own row and each takes a third of
-                it, so they compare at a glance and stay compared at any width. */}
-            <select className="inline-input" style={{ margin: '0 0 8px', width: '100%' }} value={pos}
-              onChange={e => setPos(e.target.value as Pos | 'any')}>
-              <option value="any">{t('transfers.anyPosition')}</option>
-              {POS_ORDER.map(p => <option key={p} value={p}>{posName(p)}</option>)}
-            </select>
-            <div style={{ display: 'flex', gap: 8 }}>
-              {([3, 6, 9] as SearchMonths[]).map(m => (
-                <button key={m} className="btn gold" style={{ flex: '1 1 0', minWidth: 0, padding: '9px 4px', fontSize: 12, lineHeight: 1.25 }}
-                  onClick={() => { setMsg(commissionScout(game, pos, m)); touch() }}>
-                  {t('transfers.months', { n: m })}<br />
-                  <span style={{ fontSize: 10, fontWeight: 600 }}>{fmtMoney(searchFee(m, Math.max(1, tier)))}</span>
-                </button>
-              ))}
-            </div>
-          </>
-        )}
-        {msg && <div className="meta" style={{ marginTop: 6, color: 'var(--gold)', fontWeight: 700 }}>{msg}</div>}
-      </div>
-
-      {finds.length > 0 && (
-        <>
-          <SectionTitle sub={t('transfers.scoutsReportSub', { g: game.staffPeople?.scout?.g ?? 'm' })}>{t('transfers.scoutsReport')}</SectionTitle>
-          <div className="tblwrap"><table className="dtable codefirst"><tbody>
-            {finds.map(f => {
-              const p = game.players[f.playerId]
-              if (!p) return null
-              const col = f.grade >= 3 ? 'var(--text-positive)' : f.grade === 2 ? 'var(--text-secondary)' : f.grade === 1 ? 'var(--border-strong)' : 'var(--text-negative)'
-              return (
-                <tr key={f.playerId} onClick={() => go('player', f.playerId)}>
-                  <td><PosBadge pos={p.pos} /></td>
-                  <td className="name">
-                    {p.name}
-                    <span className="muted" style={{ fontWeight: 400 }}> {p.age} · {p.clubId ? game.clubs[p.clubId]?.short : t('transfers.free')}</span>
-                    <div className="meta" style={{ fontSize: 11 }}>
-                      {typeof f.note === 'string' ? f.note : t(f.note.k, f.note)}
-                    </div>
-                  </td>
-                  <td><Stars ca={fuzzedCa(game, p)} /></td>
-                  <td className="num" style={{ color: col, fontWeight: 700, fontSize: 11 }}>{'★'.repeat(f.grade + 1)}</td>
-                  <td>
-                    <button className="btn ghost" style={{ fontSize: 11, padding: '4px 9px' }}
-                      onClick={e => { e.stopPropagation(); useStore.getState().toggleShortlist(f.playerId) }}>
-                      {t(game.shortlist.includes(f.playerId) ? 'transfers.alreadyListed' : 'transfers.addShortlist')}
-                    </button>
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody></table></div>
-        </>
-      )}
-
-      <ScoutReports />
-    </>
-  )
-}
-
-/** Everything the department has ever written home, in one pile.
- *
- *  The postcards and reports land in the inbox and then age off its five-day
- *  shelf, which left the manager asking a fair question (user: "when you hit
- *  scout on a player ... where do those reports go? They should appear in news
- *  and a section called scout reports"). They still arrive as news; this is the
- *  filing cabinet copy, read straight off the same list by its scout tag, so
- *  nothing here can drift from what the inbox said. */
-function ScoutReports() {
-  const game = useStore(s => s.game)!
-  const [openId, setOpenId] = useState<number | null>(null)
-  const reports = [...game.news].filter(n => n.tag === 'scout').sort((a, b) => b.id - a.id).slice(0, 10)
-  if (!reports.length) return null
-  return (
-    <>
-      <SectionTitle sub={t('transfers.scoutReportsSub')}>{t('transfers.scoutReports')}</SectionTitle>
-      <div className="card" style={{ padding: '2px 10px' }}>
-        {reports.map((n, i) => (
-          <div key={n.id} style={{ padding: '6px 0', borderTop: i ? '1px solid var(--border)' : undefined }}
-            onClick={() => setOpenId(openId === n.id ? null : n.id)}>
-            <div className="meta" style={{ fontSize: 11 }}>{weekDate(n.season, n.week)}</div>
-            <div style={{ fontWeight: 700, fontSize: 13, lineHeight: 1.3 }}>{newsSubject(n)}</div>
-            {openId === n.id && (
-              <div className="meta" style={{ whiteSpace: 'pre-line', fontSize: 12, marginTop: 3 }}>{plainNews(newsBody(n))}</div>
-            )}
-          </div>
-        ))}
-      </div>
     </>
   )
 }

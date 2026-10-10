@@ -7,6 +7,7 @@ import { t, tIn } from './i18n'
 import { mulberry32 } from './rng'
 import { bumpKnowledge } from './scout'
 import { BADGE } from './staff'
+import { fileRec, makeRec, scoutVerdict, type ScoutRec } from './scoutrecs'
 
 export type SearchMonths = 3 | 6 | 9
 export const SEARCH_WEEKS: Record<SearchMonths, number> = { 3: 13, 6: 26, 9: 39 }
@@ -150,6 +151,10 @@ export function scoutPostcard(state: GameState) {
     // the real payoff: a man he has watched in person is a man you know about
     bumpKnowledge(p, 26 + tier * 6)
   }
+  // his first verdict on the new name, told in this letter: a month's look,
+  // so a rougher read than the final report's (scoutrecs.ts)
+  const rec = p ? makeRec(state, p, Math.min(weeksIn, 8), 'road', true) : null
+  if (rec) fileRec(state, rec)
   const club = p ? state.clubs[p.clubId ?? ''] : undefined
   const weeksLeft = c.done - abs
   const where = c.leagueId ? state.comps[c.leagueId]?.short ?? '' : ''
@@ -160,9 +165,9 @@ export function scoutPostcard(state: GameState) {
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false, tag: 'scout',
     subject: `Word from ${man.name}: ${weeksLeft} week${s} to go`,
     body: `${weeksIn} weeks on the road. Brief: ${brief} ${where ? `in ${where}` : 'wherever the game is played'}.\n\n`
-      + (p ? `New name: ${p.name}, ${p.age}, ${POS_NAMES[p.pos]} ${club ? `at ${club.name}` : 'at a club abroad'}.` : 'No new names this month.')
+      + (p ? `New name: ${p.name}, ${p.age}, ${POS_NAMES[p.pos]} ${club ? `at ${club.name}` : 'at a club abroad'}. First verdict: ${tIn('en', `news.grade${rec!.grade}`)}.` : 'No new names this month.')
       + ` Names so far: ${found}. Report in ${weeksLeft} week${s}.`,
-    k: p ? 'news.scoutMonthly' : 'news.scoutMonthlyNone',
+    k: p ? 'news.scoutMonthlyRec' : 'news.scoutMonthlyNone',
     v: {
       ...subjectVar(man.g), scout: man.name, weeksIn, n: weeksLeft, found, where,
       where_k: where ? 'news.inLeague' : 'news.inLeagueAny',
@@ -170,6 +175,7 @@ export function scoutPostcard(state: GameState) {
       ...(p ? {
         player: p.name, age: p.age, pos_k: `pos.${p.pos}`, club: club?.name ?? '',
         at_k: club ? 'news.atClub' : 'news.atClubAbroad',
+        grade_k: `news.grade${rec!.grade}`,
       } : {}),
     },
     ...(p ? { playerId: p.id } : {}),
@@ -207,20 +213,30 @@ export function resolveCommission(state: GameState) {
     .sort((a, b) => b.worth - a.worth)
   const finds: ScoutFind[] = []
   const seen = new Set<number>()
+  const recs: ScoutRec[] = []
   const bias = 1.8 + skill * 4.5
   for (let i = 0; i < n * 12 && finds.length < n; i++) {
     const idx = Math.min(ranked.length - 1, Math.floor(ranked.length * Math.pow(rng(), bias)))
-    const { p, worth } = ranked[idx]
+    const { p } = ranked[idx]
     if (!p || seen.has(p.id)) continue
     seen.add(p.id)
-    const grade = worth >= 52 ? 3 : worth >= 34 ? 2 : worth >= 16 ? 1 : 0
-    finds.push({ playerId: p.id, grade, note: noteFor(p, grade, p.pa - p.ca, rng) })
     // real benefit: the men he watched are properly known to you now
     bumpKnowledge(p, 40 + Math.round(skill * 45))
+    // HIS VERDICT IS AN OPINION (scoutrecs.ts). It was graded off the man's
+    // true ability and ceiling, so every "bring him in" was right. Now it is
+    // read off the file he just filled in plus his own judgement, which can
+    // miss, by less for a better badge and a longer trip.
+    const est = scoutVerdict(state, p, SEARCH_WEEKS[c.months])
+    const note = noteFor(est.grade, est.pot - est.cur, rng)
+    finds.push({ playerId: p.id, grade: est.grade, note })
+    recs.push({ playerId: p.id, ...est, note, season: state.season, week: state.week, src: 'brief', posted: false })
   }
   if (!finds.length) return
   finds.sort((a, b) => b.grade - a.grade)
   state.scoutFinds = finds
+  // every name on it is a recommendation with a story of its own to come
+  // (scoutDesk); the man at the top is told in the report itself
+  for (const r of recs) fileRec(state, { ...r, posted: r.playerId === finds[0].playerId })
   const best = state.players[finds[0].playerId]
   const good = finds.filter(f => f.grade >= 2).length
   // built by noteFor just above, so it is always the object form here
@@ -253,7 +269,7 @@ export function resolveCommission(state: GameState) {
  *  afterwards, so it cannot be prose: it would be the scout speaking English
  *  inside a French report. The three-way pick stays deterministic on the same
  *  rng draws it always took. */
-function noteFor(p: Player, grade: number, upside: number, rng: () => number): NoteRef {
+export function noteFor(grade: number, upside: number, rng: () => number): NoteRef {
   const openers = ['news.noteOpen1', 'news.noteOpen2', 'news.noteOpen3']
   const bodies = grade >= 3 ? ['news.noteA1', 'news.noteA2', 'news.noteA3']
     : grade === 2 ? ['news.noteB1', 'news.noteB2', 'news.noteB3']
@@ -261,7 +277,6 @@ function noteFor(p: Player, grade: number, upside: number, rng: () => number): N
     : ['news.noteD1', 'news.noteD2', 'news.noteD3']
   const open_k = openers[Math.floor(rng() * 3)]
   const body_k = bodies[Math.floor(rng() * bodies.length)]
-  void p
   return {
     k: 'news.scoutNote', open_k, body_k,
     grade_k: `news.grade${grade}`,

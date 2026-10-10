@@ -2204,6 +2204,8 @@ export function rebuildSeason(state: GameState) {
     state.scoutFinds = state.scoutFinds.filter(f => state.players[f.playerId])
     if (!state.scoutFinds.length) state.scoutFinds = null
   }
+  // and the verdicts behind the Scouting page
+  if (state.scoutRecs?.length) state.scoutRecs = state.scoutRecs.filter(r => state.players[r.playerId])
   // the shortlist has the same shape of problem
   if (state.shortlist?.length) {
     state.shortlist = state.shortlist.filter(pid => state.players[pid])

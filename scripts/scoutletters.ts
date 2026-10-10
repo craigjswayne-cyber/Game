@@ -15,7 +15,9 @@ import { addWeeks100, stamp100, type GameState, type NewsItem, type Pos } from '
 
 let fails = 0
 const bad = (m: string) => { fails++; console.error('FAIL: ' + m) }
-const LETTERS = new Set(['news.scoutMonthly', 'news.scoutMonthlyNone'])
+// scoutMonthlyRec: a letter with a new name now carries his first verdict
+// (scoutrecs.ts); scoutMonthly is what saves from before it hold
+const LETTERS = new Set(['news.scoutMonthly', 'news.scoutMonthlyRec', 'news.scoutMonthlyNone'])
 const LANGS: Lang[] = ['en', 'fr', 'es', 'it', 'af', 'ja']
 for (const l of LANGS) await ensureLang(l)
 
