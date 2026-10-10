@@ -977,7 +977,19 @@ function manageInternationals(state: GameState, rng: Rng) {
         }
         // the front row may come from below the depth cut: a third hooker is
         // picked before a twentieth back, however far down the list he sits
-        const travelling = withFrontRow([...pool, ...ranked.slice(target)], w.size)
+        // AND FROM BELOW THE RATING BAR (1.8.17). The pool only reads men rated
+        // 68 and up, so a week with two hookers hurt left a country with one
+        // fit hooker over the bar and a squad that could not name a legal 23
+        // (frontrowsquadprobe: 4 of 182, once tiredness weighed more and the
+        // knocks came a little more often). A federation calls up its next
+        // fit front-rower whatever his rating rather than play uncontested;
+        // they are only reached for when the squad is short.
+        const frCover = Object.values(state.players)
+          .filter(p => (nat === 'LIO' ? HOME4.includes(p.nat) : p.nat === nat) &&
+            p.clubId && homeBased(state, p, nat) && !p.injury && !p.onLoan &&
+            !ranked.includes(p) && ['LP', 'HK', 'TP'].some(f => p.pos === f || (p.alt as string[]).includes(f)))
+          .sort((a, b) => b.ca - a.ca || a.id - b.id)
+        const travelling = withFrontRow([...pool, ...ranked.slice(target), ...frCover], w.size)
         state.natSquads[nat] = travelling.map(p => p.id)
         for (const p of travelling) {
           p.natSquad = true
