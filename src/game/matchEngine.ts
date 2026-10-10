@@ -354,7 +354,7 @@ export function teamUnits(state: GameState, lineup: (number | null)[], day?: { f
     // the cheapest way to win "spend less of yourself" (low tempo) rather than
     // anything a manager would recognise as rugby. Tiredness still bites, in
     // the tank and the last quarter, where it belongs.
-    const fit = 0.82 + 0.18 * (p.cond / 100)
+    const fit = (1 - FIT_W) + FIT_W * (p.cond / 100)
     const frm = 0.9 + 0.02 * p.form
     // match sharpness: a player eased back after a layoff is a touch off the pace
     const shp = 0.945 + 0.055 * ((p.sharp ?? 70) / 100)
@@ -494,6 +494,8 @@ export function teamShort(state: GameState, teamId: string): string {
   return state.clubs[teamId]?.short ?? nationName(teamId)
 }
 
+/** how much of a man's craft his condition governs (see `fit` in the unit build) */
+export const FIT_W = Number(globalThis.process?.env?.FIT_W ?? 0.18)
 export function lineupFor(state: GameState, teamId: string): (number | null)[] {
   const club = state.clubs[teamId]
   // A team sheet that is not an array at all - a save from before the field

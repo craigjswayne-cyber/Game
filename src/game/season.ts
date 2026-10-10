@@ -2031,6 +2031,8 @@ export function honeymoonEnd(rep: number): number {
   return Math.round(32 - 20 * t)
 }
 
+/** board confidence a week at a title favourite for a sheet the manager never claimed */
+export const ABSENT_SHEET = Number(globalThis.process?.env?.ABSENT_SHEET ?? 0.5)
 function boardReaction(state: GameState, fx: Fixture, delegated = false) {
   const club = state.clubs[state.userClubId]
   const isHome = fx.homeId === club.id
@@ -2096,6 +2098,24 @@ function boardReaction(state: GameState, fx: Fixture, delegated = false) {
   const prioF = boardPriorityF(state, fx.compId)
   if (us > them) club.boardConfidence = clamp(club.boardConfidence + mag * derbyF * ownerF * stanceF * patienceF * prioF, 0, 100)
   else if (us < them) club.boardConfidence = clamp(club.boardConfidence - mag * derbyF * ownerF * stanceF * patienceF * prioF, 0, 100)
+
+  // THE BOARD KNOWS WHO PICKED THE SIDE (1.8.17, owner: "everything should be
+  // green", on autopilotprobe). A big club's board reads its results, and it
+  // also knows whether the manager it pays named the twenty-three or left
+  // that to his assistant: a season of the assistant's sheets is a manager
+  // who is not doing the job, whatever the table says. Without this the
+  // board could only judge a sleepwalker by the results his assistant's
+  // sides earned, which since 1.8.14 are close to an engaged manager's, so
+  // the engaged Bath was in crisis 12 seasons in 36 against the absent
+  // one's 14. A little each week a sheet nobody claimed is played, scaled
+  // by stature: nothing at a club whose board is patient (boardPatience 1
+  // and under, about rep 55), the full amount at a title favourite. One
+  // touch of the Selection screen claims the sheet (tactic.userPicked), and
+  // an international week the assistant runs is not counted (delegated).
+  if (!delegated && club.tactic.userPicked !== true) {
+    const giant = clamp((boardPatience(club.rep) - 1) / 0.9, 0, 1)
+    if (giant > 0) club.boardConfidence = clamp(club.boardConfidence - ABSENT_SHEET * giant, 0, 100)
+  }
 
   // The dressing room keeps its own book, and it is slower to move than the
   // board's. Belief is earned a win at a time and it does not arrive in one
