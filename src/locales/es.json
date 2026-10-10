@@ -4443,7 +4443,7 @@
   "communityLink": "Únete al Discord de PHASE",
   "publishedBy": "Publicado por",
   "contactLabel": "Di algo",
-  "privacyBody": "El juego no recoge nada sobre ti y no envía nada a ninguna parte. Las carreras se guardan solo en este dispositivo, y por eso la pantalla Guardar / Cargar tiene un botón Exportar: es la única copia de seguridad que existe.",
+  "privacyBody": "El juego en sí no recoge nada sobre ti. Las carreras se guardan solo en este dispositivo, y por eso la pantalla Guardar / Cargar tiene un botón Exportar: es la única copia de seguridad que existe. En las apps para móvil, los anuncios los sirve Google AdMob, que usa el identificador de publicidad de tu dispositivo; la política de privacidad lo explica en detalle.",
   "privacyBtn": "Leer la política de privacidad",
   "privacyLabel": "Tus datos",
   "sub": "qué es esto, y qué te pide: nada",

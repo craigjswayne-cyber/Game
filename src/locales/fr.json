@@ -4515,7 +4515,7 @@
     "communityLink": "Rejoindre le Discord PHASE",
     "publishedBy": "Publié par",
     "contactLabel": "Nous écrire",
-    "privacyBody": "Le jeu ne collecte rien vous concernant et n'envoie rien nulle part. Les carrières sont enregistrées sur cet appareil uniquement, d'où le bouton d'export sur l'écran Sauvegardes : c'est la seule copie qui existe.",
+    "privacyBody": "Le jeu lui-même ne collecte rien vous concernant. Les carrières sont enregistrées sur cet appareil uniquement, d'où le bouton d'export sur l'écran Sauvegardes : c'est la seule copie qui existe. Dans les applications mobiles, les publicités sont diffusées par Google AdMob, qui utilise l'identifiant publicitaire de votre appareil ; la politique de confidentialité donne le détail.",
     "privacyBtn": "Lire la politique de confidentialité",
     "privacyLabel": "Vos données",
     "sub": "ce que c'est, et ce qu'il prend : rien",

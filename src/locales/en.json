@@ -4394,7 +4394,7 @@
   "communityLink": "Join the PHASE Discord",
   "publishedBy": "Published by",
   "contactLabel": "Say something",
-  "privacyBody": "The game collects nothing about you and sends nothing anywhere. Careers are saved on this device only, which is why the Save / Load screen has an Export button: it is the only backup there is.",
+  "privacyBody": "The game itself collects nothing about you. Careers are saved on this device only, which is why the Save / Load screen has an Export button: it is the only backup there is. In the phone apps, the adverts are served by Google AdMob, which uses your device's advertising identifier; the privacy policy has the detail.",
   "privacyBtn": "Read the privacy policy",
   "privacyLabel": "Your data",
   "sub": "what this is, and what it takes: nothing",
