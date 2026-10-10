@@ -120,6 +120,28 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.8.17, Play version code 56
+
+Each entry is under 500 characters. Paste the matching language into each Play locale.
+
+**en-GB**
+Tablet and iPad fixes: team crests in the live stats, a highlight pitch that fits its panel, every pop-up fits the screen, the team talk reactions sit beside the commentary, and a tidier Home. Tiredness counts for a little more again, so picking and resting your side earns points. A big club's board now notices if you leave team selection to your assistant. Front rows picked properly, uncontested scrums described as they are, and contract years printed correctly.
+
+**fr-FR**
+Tablettes et iPad : écussons des clubs dans les stats en direct, terrain des temps forts à sa taille, chaque fenêtre tient dans l'écran, les réactions à la causerie à côté du commentaire, et un Accueil plus net. La fatigue pèse de nouveau un peu plus : choisir et faire tourner son équipe rapporte des points. Le conseil d'un grand club remarque si vous laissez la composition à votre adjoint. Premières lignes bien choisies, mêlées simulées décrites comme telles, années de contrat correctes.
+
+**es-ES**
+Tabletas e iPad: escudos de los clubes en las estadísticas en directo, el campo de las jugadas destacadas a su tamaño, cada ventana cabe en la pantalla, las reacciones a la charla junto a la narración y un Inicio más ordenado. El cansancio vuelve a pesar un poco más, así que elegir y rotar el equipo da puntos. La directiva de un club grande ahora nota si dejas la alineación a tu ayudante. Primeras líneas bien elegidas, melés no disputadas descritas como tales y años de contrato correctos.
+
+**it-IT**
+Tablet e iPad: stemmi dei club nelle statistiche live, il campo degli highlight della misura giusta, ogni finestra sta nello schermo, le reazioni al discorso accanto alla telecronaca e una Home più ordinata. La stanchezza torna a pesare un po' di più, quindi scegliere e far ruotare la squadra porta punti. La dirigenza di un grande club ora nota se lasci la formazione al tuo vice. Prime linee scelte bene, mischie non contese descritte come tali e anni di contratto corretti.
+
+**ja-JP**
+タブレットとiPadの改善：ライブスタッツにクラブのエンブレムを表示、ハイライトのピッチが枠内に収まるように、すべてのポップアップが画面内に収まるように、チームトークへの選手たちの反応を実況の横に表示、ホーム画面を整理。疲労の影響が再び少し大きくなり、メンバー選考とローテーションが勝ち点につながるように。ビッグクラブの理事会は、メンバー選考をアシスタントに任せきりにしていると気づくように。フロントローの選考を改善、ノンコンテストスクラムの実況を修正、契約年の表示を修正。
+
+**af**
+Tablet- en iPad-regstellings: klubwapens in die regstreekse statistiek, 'n hoogtepuntveld wat in sy paneel pas, elke opspringvenster pas op die skerm, die reaksies op die spanpraatjie langs die kommentaar, en 'n netter Tuis-skerm. Moegheid tel weer 'n bietjie meer, so om jou span te kies en te roteer verdien punte. 'n Groot klub se direksie merk nou op as jy spankeuse aan jou assistent oorlaat. Voorrye reg gekies, onbetwiste skrums beskryf soos hulle is, en kontrakjare reg gedruk.
+
 ### What's new (500 max) - v1.8.16, Play version code 55
 
 Each entry is under 500 characters. Paste the matching language into each Play locale.

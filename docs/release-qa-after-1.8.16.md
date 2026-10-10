@@ -146,3 +146,33 @@ To reach GO: approve and merge this branch (privacy page deploys with it),
 decide 1.8.16/code 55 versus 1.8.17/code 56, build both apps from the merge
 with `./scaffold.sh` last, run the device checklist in PLAY-WALKTHROUGH step 9
 and the TestFlight equivalent, tick STORE-DECLARATIONS, file the Ruck email.
+
+---
+
+## 8. Update, 10 October 2026: 1.8.17 (Play version code 56)
+
+Merged since this report: #35 (this report's fixes plus the tablet and iPad
+round) and #36 (every harness green, board patience, tiredness, Test front rows).
+
+| Item above | Now |
+|---|---|
+| 1, 2: main's CI red | Green on main (`b99a563`): 8 engine shards, 3 browser shards. One browser shard (`testsheet`, a 120-second walk to the Test sheet) failed once on CI, passed on the single re-run and 2 of 2 locally. A season of weeks times about 205ms a week on main against about 219ms before #35, so the game did not slow down. |
+| 5: privacy policy | Approved by merge and deployed with the site at 07:39 UTC. |
+| 16, 17: board patience | Fixed in #36 on the owner's choice ("Restore some fitness cost"). autopilotprobe passes every check: picking the side worth 6.9 points a season (3.1 before), Bath crisis 9 engaged against 20 absent, sacked 1 against 11, Esher 0 of 36. bandcheck inside every band. The 6.9 is inside one standard error (about 1.8) of a smaller true effect. |
+| Intermittent harnesses | tryflash and matchad now play one seeded match; subreach accepts a replacement's bench number in the loosehead's slot; recruitprobe pools four worlds. |
+| Version | 1.8.17, Play version code 56 (codes only have to rise). What's new written in six languages, each under 500 characters (`docs/store-listing.md`). |
+
+Slow set on the final values: autopilotprobe, dialweight, optionsprobe,
+stackprobe, aiecon and stresstest all pass. Browser suite: 78 of 78 locally.
+
+Still outside the code, and still not marked done:
+
+- Play Console and App Store Connect answers (`docs/launch/STORE-DECLARATIONS.md`).
+- Device QA on the exact production builds (Android and iOS, with `./scaffold.sh` last).
+- Written Ruck permission (LAUNCH-PROGRAMME B7).
+- Store copy: a rewrite of the description is with the owner, with three
+  wording changes that need approval before they ship: "Club names are real"
+  is not accurate (clubs carry town and city names; the in-game About page
+  says the same and should change with it), some real ground names remain,
+  and "conveniences and cosmetic skins" understates the purchases.
+- The landing page still says "Coming soon to the App Store".
