@@ -1405,46 +1405,54 @@ gestion,simulation,entraineur,equipe,tactique,transferts,carriere,championnat,sp
 ### Description complète
 
 ```
-Choisissez un club. Composez votre XV. Assumez vos choix.
+Votre club. Votre héritage. Votre heure.
 
-PHASE: Rugby Manager est un jeu de gestion de rugby à XV dans la tradition des grandes simulations textuelles : des tableaux d'effectif denses, de vraies décisions presque chaque jour, et une carrière qui se souvient en saison quinze de ce que vous avez fait en saison une. Libérez un joueur, il reviendra peut-être marquer contre vous. Rompez une promesse, son agent demandera plus.
+Prenez un club et faites-en le vôtre. Composez le XV, recrutez, fixez le plan, et assumez le samedi. PHASE: Rugby Manager est un jeu de gestion de rugby à XV dans la lignée des simulations textuelles : tableaux d'effectif denses, une vraie décision presque chaque jour, et une carrière qui se souvient en saison quinze de la saison une.
+
+Libérez un joueur, il reviendra peut-être marquer contre vous. Rompez une promesse, son agent demandera plus. Lancez un jeune de l'académie, il sera peut-être votre capitaine.
+
+Bâtissez quelque chose qui restera.
 
 DEUX JEUX, UNE APPLI
-• Le rugby masculin : neuf championnats et 107 clubs en Angleterre, en France, dans les Provinces unies, le Pacifique, au Japon et aux États-Unis, de l'élite jusqu'à la National One.
-• Le rugby féminin, construit de la même façon et pas greffé après coup : six championnats et 64 clubs en Angleterre, en France, dans le Pacifique et les provinces celtes, avec sa coupe continentale, son calendrier de tests, ses effectifs et ses défis de carrière.
+• Rugby masculin : neuf championnats et 107 clubs en Angleterre, France, Provinces unies, Pacifique, Japon et États-Unis, de l'élite à la National One.
+• Rugby féminin, pensé pareil, pas greffé : six championnats et 64 clubs en Angleterre, France, Pacifique et provinces celtes, avec sa coupe continentale, ses tests et ses défis de carrière.
 
-LA SAISON
-• Des saisons complètes avec points de bonus, des tirages de coupe sous vos yeux, une coupe continentale, des phases finales, des montées et des descentes.
-• Un calendrier international qui vous prend vos meilleurs joueurs au pire moment, et un poste de sélectionneur si votre nom commence à circuler.
-• Les joueurs vieillissent, ralentissent et prennent leur retraite. Les jeunes que vous avez formés récupèrent leur maillot.
+LE MONDE
+Tirages de coupe sous vos yeux, coupe continentale, phases finales, montées et descentes chez les hommes. Les sélections prennent vos meilleurs joueurs au pire moment ; si votre nom circule, une sélection peut vous appeler. Les rivaux visent vos cibles et limogent leur coach si ça tourne mal.
 
 LA SEMAINE
-• Le lundi, l'infirmerie. Le mardi, la presse. En milieu de semaine, les affaires. Le jeudi, le groupe. Le vendredi, le rapport sur l'adversaire. Puis le samedi.
-• Des agents qui négocient, des contrats qui arrivent à échéance, des joueurs libres, et des recruteurs qui disent ce qu'ils savent et ce qu'ils ignorent.
-• Deux mercatos, l'été et en janvier. Des prêts négociés sur la durée et la part du salaire.
-• Un conseil qui a un avis sur vous, une presse qui vous cite, et une ville qui retient le score d'un derby plus longtemps que le classement.
+Lundi, le débriefing. Mardi, les caméras et le conseil. Mercredi, les affaires du club. Jeudi, l'effectif. Vendredi, l'adversaire. Puis samedi.
+• Agents qui marchandent, contrats qui expirent, agents libres, recruteurs qui avouent ce qu'ils ignorent.
+• Mercato d'été et d'hiver. Des prêts à la durée, salaire partagé.
+• Libérez un joueur, renvoyez un entraîneur, désignez deux joueurs hors plafond, gérez le plafond salarial.
+• Installations à bâtir, sponsors à gérer, un conseil qui vous juge, une presse qui retient vos promesses, un public qui se souvient d'un derby plus que du classement.
 
 LE MATCH
-• Un commentaire en direct avec statistiques, et le terrain pour les essais et les grands moments, à trois vitesses. Ou le résultat immédiat, avec l'explication du match.
-• Les décisions vous appartiennent : la pénalité au pied ou la pénaltouche, la causerie de mi-temps, le moment de vider le banc.
-• Cinq styles d'attaque et cinq de défense, des annonces en conquête, un jeu au pied, un plan de jeu que l'adversaire apprend à lire, et vos plans enregistrés.
-• Un verdict du coach qui nomme deux choses à corriger, et vérifie la semaine suivante si vous l'avez fait.
+Commentaire et stats en direct, le terrain pour les essais et les grands moments. Ou le résultat immédiat, et pourquoi.
+• À vous de décider : les poteaux, la touche ou la pénalité jouée vite ; les causeries ; quand vider le banc.
+• Cinq styles d'attaque, cinq de défense, annonces en conquête, jeu au pied, et un répertoire que l'adversaire apprend à lire.
+• Après le match, le coach cite deux points à corriger, puis vérifie la semaine d'après.
 
-CONÇU POUR UN TÉLÉPHONE
-• En portrait, à une main. Jour et nuit, taille du texte réglable, et quatre habillages (dont trois avec Pro Manager).
-• Le jeu fonctionne hors ligne : pas de compte, pas de connexion, pas de cloud, et votre carrière ne quitte jamais votre téléphone. Seules les publicités utilisent le réseau.
-• Gratuit. De petites bannières en bas de certains écrans, jamais par-dessus une décision, et des boutons « regarder une pub » facultatifs. Pro Manager supprime les bannières pour de bon.
-• Quatre emplacements de carrière, sauvegarde chaque semaine, export et import pour garder vos propres copies.
-• En français, anglais, espagnol, italien, japonais et afrikaans.
+LA MÉMOIRE
+Chaque joueur garde ses dix dernières notes et ses blessures : de quoi distinguer une mauvaise passe d'une mauvaise semaine. Armoire à trophées, Temple de la renommée et Palmarès survivent à chaque poste.
 
-LA COMMUNAUTÉ
-• Signalez un problème dans n'importe laquelle des six langues, partagez vos idées et parlez rugby avec d'autres entraîneurs sur le Discord PHASE : discord.gg/3KKfDVsMb
+NOUVEAU AU RUGBY ?
+Le manuel du manager explique chaque chiffre du jeu et chaque mot du rugby, recherche comprise. Le gratteur, les 22 mètres, ce que vaut un banc à 6-2 : tout y est.
 
-PHASE: Rugby Manager est un jeu non officiel et indépendant. Les noms de clubs sont réels ; les compétitions, les stades et les sponsors sont renommés ou inventés. Les noms des joueurs sont réels, utilisés pour identifier des personnes dans une base de données sportive et pour rien d'autre ; le jeu n'est ni affilié, ni approuvé, ni sous licence d'un joueur, d'un club, d'une ligue ou d'une fédération, et ne contient aucun écusson, maillot ou logo officiel.
+SUR MOBILE
+• Portrait, paysage et tablette. Jour et nuit, trois tailles de texte, quatre habillages (trois avec Pro Manager).
+• Ni compte ni cloud : le jeu tourne hors ligne, votre carrière reste sur le téléphone. Le réseau ne sert qu'aux pubs et aux achats.
+• Quatre emplacements de sauvegarde, sauvés chaque semaine, export et import pour vos copies.
+• Français, anglais, espagnol, italien, japonais et afrikaans.
 
-Achats intégrés facultatifs : des facilités et des habillages. Une carrière complète se joue sans rien acheter.
+GRATUIT
+De petites bannières au bas de certains écrans, jamais sur une décision. Les boutons « regarder une pub » sont facultatifs. Pro Manager supprime les bannières pour de bon. D'autres achats facultatifs accélèrent la carrière, des fonds du conseil à un effectif en pleine forme. Aucun n'est nécessaire.
+
+Parlez rugby, partagez vos idées, signalez un bug sur le Discord PHASE : discord.gg/3KKfDVsMb
+
+PHASE: Rugby Manager est un jeu non officiel et indépendant. Les noms de clubs sont réels ; compétitions, stades et sponsors sont renommés ou inventés. Les noms des joueurs sont réels, utilisés pour identifier des personnes dans une base de données sportive et pour rien d'autre ; le jeu n'est affilié à aucun joueur, club, ligue ou instance dirigeante, ni approuvé ou licencié par eux, et ne contient aucun écusson, maillot ou logo officiel.
 ```
-*(3934, espaces insécables comprises. Réécrite le 9 oct. 2026 : six langues, publicités et avertissement alignés sur le jeu.)*
+*(3989, espaces insécables comprises. Retraduite le 10 oct. 2026 depuis la description anglaise approuvée.)*
 
 ### Nouveautés (500 max) - v1.1.2
 
@@ -1584,6 +1592,351 @@ Achats intégrés facultatifs : des facilités et des habillages. Une carrière
 • Les postes s'affichent au moment de choisir les plans d'entraînement.
 ```
 *(374)*
+
+---
+
+## Spanish listing
+
+### Título (30)
+
+```
+PHASE: Rugby Manager
+```
+*(20)*
+
+### Descripción breve (80)
+
+```
+Elige el XV y asume tus decisiones. Gestión de rugby a fondo, sin conexión.
+```
+*(75)*
+
+### Subtítulo App Store (30)
+
+```
+Clubes masculinos y femeninos
+```
+*(29)*
+
+### Texto promocional (170)
+
+```
+Da la baja a un jugador y puede que vuelva para marcarte un ensayo. Gestión de rugby XV a fondo: 171 clubes masculinos y femeninos, sin conexión y sin cuenta.
+```
+*(158)*
+
+### Palabras clave (100 bytes)
+
+```
+gestion,simulador,entrenador,tactica,fichajes,carrera,liga,temporada,deporte,sin conexion,mele,xv
+```
+*(97 bytes UTF-8, 97 characters)*
+
+### Descripción completa
+
+```
+Tu club. Tu legado. Tu momento.
+
+Toma un club de rugby y hazlo tuyo. Elige el XV, ficha jugadores, marca el plan y rinde cuentas el sábado. PHASE: Rugby Manager es un juego de gestión de rugby XV en la tradición de los simuladores de texto: tablas densas, una decisión de verdad casi cada día y una carrera que en la temporada quince recuerda la primera.
+
+Da la baja a un jugador y quizá vuelva para marcarte un ensayo. Rompe una promesa y su agente pedirá más. Saca a un chaval de la cantera y quizá acabe de capitán.
+
+Construye algo digno de recordar.
+
+DOS JUEGOS, UNA APP
+• Rugby masculino: nueve ligas y 107 clubes en Inglaterra, Francia, las Provincias Unidas, el Pacífico, Japón y EE. UU., de la élite a la National One.
+• Rugby femenino, hecho igual, no como añadido: seis ligas y 64 clubes en Inglaterra, Francia, el Pacífico y las provincias celtas, con su copa continental, test matches y desafíos de carrera.
+
+EL MUNDO
+Sorteos de copa en directo, rugby continental, playoffs, ascensos y descensos en el masculino. Las convocatorias se llevan a tus mejores jugadores en el peor momento y, si tu nombre suena, puede llegar una selección. Los rivales pujan por los que quieres y despiden al entrenador si todo se tuerce.
+
+LA SEMANA
+Lunes, el repaso. Martes, las cámaras y la directiva. Miércoles, asuntos del club. Jueves, la plantilla. Viernes, el rival. Y el sábado.
+• Agentes que regatean, contratos que vencen, agentes libres y ojeadores que dicen lo que saben y lo que no.
+• Mercado de verano y de invierno. Cesiones por plazo y salario compartido, y un club de origen que explica su negativa.
+• Da la baja a un jugador, despide a un técnico, designa dos jugadores franquicia y cuadra el tope salarial.
+• Instalaciones que construir, patrocinadores, una directiva que te juzga, una prensa que no olvida tus promesas y una afición que recuerda un derbi más que la tabla.
+
+DÍA DE PARTIDO
+Relato y estadísticas en directo, con el campo para ensayos y grandes jugadas. O el resultado inmediato, y el porqué.
+• Tú decides: a palos, a la esquina o jugarla rápida; las charlas técnicas; cuándo vaciar el banquillo.
+• Cinco estilos de ataque y cinco de defensa, jugadas a balón parado, juego al pie y un libro de jugadas que el rival aprende a leer.
+• Después, el entrenador señala dos cosas que corregir y la semana siguiente lo comprueba.
+
+EL HISTORIAL
+Cada jugador guarda sus diez últimas notas y sus lesiones, para distinguir una mala racha de una mala semana. Vitrina de trofeos, Salón de la Fama y palmarés sobreviven a cualquier cargo.
+
+¿NUEVO EN EL RUGBY?
+El Manual del entrenador explica cada número del juego y cada palabra del rugby, con buscador. El jackal, la línea de 22, lo que te da un banquillo 6-2: está todo ahí.
+
+EN TU MÓVIL
+• Vertical, horizontal y tableta. Tema de día y de noche, tres tamaños de texto, cuatro aspectos (tres con Pro Manager).
+• Sin cuenta ni nube: el juego funciona sin conexión y tu carrera no sale de tu móvil. Solo anuncios y compras usan la red.
+• Cuatro ranuras de guardado, guardado semanal, exportar e importar para tus copias.
+• Español, inglés, francés, italiano, japonés y afrikáans.
+
+GRATIS
+Pequeños banners al pie de algunas pantallas, nunca sobre una decisión. Los botones «ver un anuncio» son opcionales. Pro Manager elimina los banners para siempre. Otras compras opcionales aceleran la carrera, de fondos de la directiva a una plantilla en plena forma. No necesitas ninguna.
+
+Habla de rugby, comparte ideas e informa de fallos en el Discord de PHASE: discord.gg/3KKfDVsMb
+
+PHASE: Rugby Manager es un juego no oficial e independiente. Los nombres de los clubes son reales; competiciones, estadios y patrocinadores están renombrados o inventados. Los nombres de los jugadores son reales y solo sirven para identificar a personas en una base de datos deportiva; el juego no está afiliado a ningún jugador, club, liga u organismo rector, ni cuenta con su respaldo o licencia, y no contiene escudos, equipaciones ni logotipos oficiales.
+```
+*(3992, counted as characters including line breaks. Translated 10 Oct 2026 from the approved English description.)*
+
+---
+
+## Italian listing
+
+### Titolo (30)
+
+```
+PHASE: Rugby Manager
+```
+*(20)*
+
+### Descrizione breve (80)
+
+```
+Scegli il XV e ne rispondi tu. Manageriale di rugby profondo, anche offline.
+```
+*(76)*
+
+### Sottotitolo App Store (30)
+
+```
+Club maschili e femminili
+```
+*(25)*
+
+### Testo promozionale (170)
+
+```
+Svincola un giocatore e magari tornerà a segnarti contro. Un manageriale di rugby a 15 profondo: 171 club tra maschile e femminile, giocabile offline, senza account.
+```
+*(165)*
+
+### Parole chiave (100 byte)
+
+```
+manageriale,gestione,simulatore,allenatore,tattica,mercato,carriera,campionato,offline,mischia,xv
+```
+*(97 bytes UTF-8, 97 characters)*
+
+### Descrizione completa
+
+```
+Il tuo club. La tua eredità. Il tuo momento.
+
+Prendi un club di rugby e fallo tuo. Scegli il XV, fai mercato, decidi il piano e il sabato ne rispondi. PHASE: Rugby Manager è un manageriale di rugby a 15 nella tradizione dei simulatori testuali: tabelle fitte, una decisione vera quasi ogni giorno e una carriera che alla quindicesima stagione ricorda ancora la prima.
+
+Svincola un giocatore e magari tornerà a segnarti contro. Rompi una promessa e il procuratore alzerà il prezzo. Lancia un ragazzo dell'academy e magari diventerà capitano.
+
+Costruisci qualcosa da ricordare.
+
+DUE GIOCHI, UN'APP
+• Il maschile: nove campionati e 107 club tra Inghilterra, Francia, Province Unite, Pacifico, Giappone e Stati Uniti, dalla massima serie alla National One.
+• Il femminile, costruito allo stesso modo, non aggiunto in coda: sei campionati e 64 club tra Inghilterra, Francia, Pacifico e province celtiche, con coppa continentale, test match e sfide di carriera propri.
+
+IL MONDO
+Sorteggi di coppa in diretta, rugby continentale, playoff, promozioni e retrocessioni nel maschile. Le convocazioni ti tolgono i migliori sul più bello e, se il tuo nome gira, può chiamarti una nazionale. I rivali puntano i tuoi stessi giocatori ed esonerano l'allenatore quando va male.
+
+LA SETTIMANA
+Lunedì, il bilancio. Martedì, le telecamere e la società. Mercoledì, gli affari del club. Giovedì, la rosa. Venerdì, l'avversario. Poi il sabato.
+• Procuratori che trattano, contratti in scadenza, svincolati e osservatori che dicono cosa sanno e cosa no.
+• Mercato estivo e di gennaio. Prestiti per durata e quota d'ingaggio, e un club proprietario che motiva il suo no.
+• Svincola un giocatore, licenzia un tecnico, scegli due giocatori marquee e gestisci il salary cap.
+• Strutture da costruire, sponsor da gestire, una società che ti giudica, una stampa che ricorda le promesse, tifosi che ricordano un derby più della classifica.
+
+GIORNO DI PARTITA
+Cronaca e statistiche in diretta, con il campo per mete e grandi momenti. Oppure il risultato immediato, con il perché.
+• Decidi tu: i pali, la touche o la punizione veloce; i discorsi alla squadra; quando svuotare la panchina.
+• Cinque stili d'attacco e cinque di difesa, chiamate sulle fasi statiche, gioco al piede e un libro degli schemi che l'avversario impara a leggere.
+• Dopo la partita il tecnico indica due cose da correggere e la settimana dopo verifica.
+
+LA MEMORIA
+Ogni giocatore conserva gli ultimi dieci voti e gli infortuni, così distingui un periodo no da una settimana storta. Bacheca dei trofei, Hall of Fame e Albo d'oro sopravvivono a ogni incarico.
+
+NUOVO AL RUGBY?
+Il manuale del manager spiega ogni numero del gioco e ogni parola del rugby, con ricerca. Lo sciacallo, i 22, cosa ti dà una panchina 6-2: c'è tutto.
+
+SUL TUO TELEFONO
+• Verticale, orizzontale e tablet. Temi giorno e notte, tre dimensioni del testo, quattro aspetti (tre con Pro Manager).
+• Niente account né cloud: il gioco funziona offline e la carriera resta sul telefono. Solo pubblicità e acquisti usano la rete.
+• Quattro slot di salvataggio, salvataggio settimanale, export e import per i tuoi backup.
+• Italiano, inglese, francese, spagnolo, giapponese e afrikaans.
+
+GRATIS
+Piccoli banner in fondo a certe schermate, mai sopra una decisione. I pulsanti «guarda una pubblicità» sono facoltativi. Pro Manager toglie i banner per sempre. Altri acquisti facoltativi accelerano la carriera, dai fondi della società a una rosa in piena forma. Non ne serve nessuno.
+
+Parla di rugby, condividi idee e segnala problemi sul Discord di PHASE: discord.gg/3KKfDVsMb
+
+PHASE: Rugby Manager è un gioco non ufficiale e indipendente. I nomi dei club sono reali; competizioni, stadi e sponsor sono rinominati o inventati. I nomi dei giocatori sono reali e usati solo per identificare persone in un database sportivo; il gioco non è affiliato ad alcun giocatore, club, lega o organo di governo, né da essi approvato o concesso in licenza, e non contiene stemmi, divise o loghi ufficiali.
+```
+*(3991, counted as characters including line breaks. Translated 10 Oct 2026 from the approved English description.)*
+
+---
+
+## Japanese listing
+
+### タイトル（30）
+
+```
+PHASE: Rugby Manager
+```
+*(20)*
+
+### 簡単な説明（80）
+
+```
+先発XVを選び、その結果を背負う。オフラインで遊べる本格ラグビー監督ゲーム。
+```
+*(38)*
+
+### App Store サブタイトル（30）
+
+```
+男子・女子ラグビーのクラブ監督
+```
+*(15)*
+
+### プロモーションテキスト（170）
+
+```
+放出した選手が、敵としてトライを決めに戻ってくるかもしれない。男女171クラブを収録した本格派のラグビー監督ゲーム。オフラインで遊べて、アカウントも不要です。
+```
+*(79)*
+
+### キーワード（100バイト）
+
+```
+育成,戦術,移籍,経営,スポーツ,オフライン,スクラム,シミュレーション
+```
+*(94 bytes UTF-8, 36 characters)*
+
+### 詳しい説明
+
+```
+あなたのクラブ。あなたが残すもの。あなたの時代。
+
+ラグビークラブを任され、自分のチームに作り上げる。先発XVを選び、選手を獲得し、プランを決め、そのすべての責任を土曜日に負う。PHASE: Rugby Managerは、昔ながらのテキスト型シミュレーションの流れをくむ15人制ラグビーの監督ゲームです。情報の詰まったスカッド表、ほぼ毎日訪れる本物の決断、そしてシーズン15になってもシーズン1を覚えているキャリア。
+
+放出した選手が、敵としてトライを決めに戻ってくるかもしれない。約束を破れば、代理人の要求は上がる。アカデミーから育てた10代の選手が、いつかキャプテンを務めるかもしれない。
+
+語り継がれるクラブを築こう。
+
+ひとつのアプリに、ふたつのゲーム
+• 男子：イングランド、フランス、ユナイテッド・プロヴィンシズ、パシフィック、日本、アメリカの9リーグ107クラブ。最上位リーグからナショナル1まで。
+• 女子：後付けではなく、男子と同じ作り込みで。イングランド、フランス、パシフィック、ケルティックの6リーグ64クラブ。独自のコンチネンタルカップ、テストマッチ日程、キャリアチャレンジも。
+
+世界
+目の前で行われるカップ戦の抽選、大陸規模の大会、プレーオフ、そして男子では昇格と降格。国際日程は最悪のタイミングで主力を連れていき、名前が知られれば代表監督の声がかかることも。ライバルクラブはあなたが狙う選手に入札し、成績が悪ければ監督を解任します。
+
+1週間
+月曜は振り返り。火曜はカメラの前と取締役会。水曜はクラブ業務。木曜はスカッド。金曜は対戦相手レポート。そして土曜日。
+• 駆け引きする代理人、期限が迫る契約、フリーの選手、そして知っていることと知らないことを正直に伝えるスカウト。
+• 夏と1月の移籍ウィンドウ。期間と給与負担で決めるレンタル移籍。断るときは理由を説明する保有元クラブ。
+• 選手の放出、コーチの解任、2人のマーキー選手の指名、サラリーキャップのやりくり。
+• 整備する設備、交渉するスポンサー、あなたを評価する取締役会、約束を覚えている記者たち、そして順位表よりもダービーの結果を長く覚えているファン。
+
+試合日
+テキスト実況とスタッツをライブで。トライや大きな場面はピッチ表示で。即時結果を選んで、試合がなぜそうなったかを読むこともできます。
+• 判断はあなたのもの：ショットか、コーナーか、タップ&ゴーか。チームトーク。ベンチを使い切るタイミング。
+• 5つの攻撃スタイルと5つの守備スタイル、セットプレーのコール、キックゲーム、そして相手に読まれていくプレーブック。
+• 試合後、コーチが修正点を2つ挙げ、翌週それができたかを確かめます。
+
+記録
+全選手に直近10試合の評価と負傷歴が残るので、不調なのか一週悪かっただけなのかを見分けられます。トロフィー棚、殿堂、栄光の記録は、どのポストよりも長く残ります。
+
+ラグビーは初めて？
+監督ハンドブックが、ゲーム内のすべての数値とラグビーのすべての用語を解説。検索もできます。ジャッカル、22メートルライン、6-2のベンチ構成で何が得られるか。すべて載っています。
+
+スマホで
+• 縦画面、横画面、タブレットに対応。昼と夜のテーマ、3段階の文字サイズ、4種類のスキン（うち3つはPro Manager）。
+• アカウントもクラウドも不要。オフラインで遊べて、キャリアはあなたの端末に保存されます。ネットワークを使うのは広告と購入だけです。
+• セーブスロットは4つ。毎週セーブされ、書き出しと読み込みで自分でバックアップも取れます。
+• 日本語、英語、フランス語、スペイン語、イタリア語、アフリカーンス語に対応。
+
+基本プレイ無料
+一部の画面の下に小さなバナーが出ますが、決断の上に重なることはありません。「広告を見る」ボタンは任意です。Pro Managerでバナーは完全に消えます。そのほかの任意の購入で、取締役会からの資金からスカッド全員のコンディション回復まで、キャリアを早めることができます。どれも必須ではありません。
+
+PHASEのDiscordで、ラグビー談義、アイデアの共有、不具合の報告をどうぞ：discord.gg/3KKfDVsMb
+
+PHASE: Rugby Managerは非公式の独立系ゲームです。クラブ名は実在のものです。大会、スタジアム、スポンサーは名称を変更したもの、または架空のものです。選手名は実在のもので、スポーツデータベース内で人物を識別するためだけに使用しています。本ゲームはいかなる選手、クラブ、リーグ、統括団体とも提携しておらず、承認やライセンスも受けていません。公式のエンブレム、ユニフォーム、ロゴは一切含まれていません。
+```
+*(1983, counted as characters including line breaks. Translated 10 Oct 2026 from the approved English description.)*
+
+---
+
+## Afrikaans listing
+
+Google Play only: App Store Connect has no Afrikaans localisation
+
+### Titel (30)
+
+```
+PHASE: Rugby Manager
+```
+*(20)*
+
+### Kort beskrywing (80)
+
+```
+Kies die XV en leef daarmee. 'n Diepgaande rugbybestuurspel wat vanlyn speel.
+```
+*(77)*
+
+### Volledige beskrywing
+
+```
+Jou klub. Jou nalatenskap. Jou tyd.
+
+Vat 'n rugbyklub en maak dit joune. Kies die XV, kontrakteer spelers, lê die plan neer en staan Saterdag vir alles in. PHASE: Rugby Manager is 'n rugbybestuurspel in die tradisie van teks-simulasies: digte spangroeptabelle, 'n regte besluit byna elke dag, en 'n loopbaan wat in seisoen vyftien nog seisoen een onthou.
+
+'n Speler wat jy laat gaan, kan terugkom om 'n drie teen jou te druk. Breek 'n belofte en die agent wil meer hê. 'n Tiener wat deur jou akademie kom, kan eendag jou kaptein wees.
+
+Bou iets wat onthou sal word.
+
+TWEE SPELLE, EEN TOEP
+• Mansrugby: nege ligas en 107 klubs in Engeland, Frankryk, die Verenigde Provinsies, die Stille Oseaan, Japan en die VSA, van die topliga tot National One.
+• Vrouerugby, net so gebou en nie later aangelas nie: ses ligas en 64 klubs in Engeland, Frankryk, die Stille Oseaan en die Keltiese provinsies, met 'n eie kontinentale beker, toetskalender en loopbaanuitdagings.
+
+DIE WÊRELD
+Bekertrekkings voor jou oë, kontinentale rugby, uitspeelwedstryde, en bevordering en degradering in mansrugby. Toetsrugby vat jou beste spelers op die slegste oomblik, en as jou naam rondgaan, kan 'n nasionale pos volg. Mededingers bie op die spelers wat jy wil hê en dank hul afrigters af as dit skeefloop.
+
+DIE WEEK
+Maandag, die oorsig. Dinsdag, die kameras en die direksie. Woensdag, klubsake. Donderdag, die spangroep. Vrydag, die teenstander. Dan Saterdag.
+• Agente wat beding, kontrakte wat uitloop, kontrakvrye spelers, en talentsoekers wat jou sê wat hulle weet en wat nie.
+• Somer- en Januarie-oordragvensters. Lenings volgens tydsduur en salarisdeel, en 'n moederklub wat sê waarom dit nee sê.
+• Laat 'n speler gaan, dank 'n afrigter af, wys twee hoofspelers aan en werk binne die salarisperk.
+• Fasiliteite om te bou, borge om te hanteer, 'n direksie met 'n mening oor jou, 'n perskorps wat jou beloftes onthou, en ondersteuners wat 'n derby langer as die punteleer onthou.
+
+WEDSTRYDDAG
+Regstreekse tekskommentaar en statistiek, met die veld vir drieë en groot oomblikke. Of vat die kitsuitslag en lees waarom dit so geloop het.
+• Jy besluit: die pale, die hoek of die vinnige tik; die spanpraatjies; wanneer om die bank leeg te maak.
+• Vyf aanvals- en vyf verdedigingstyle, oproepe by die vaste spel, 'n skopspel, en 'n spelboek wat die teenstander leer lees.
+• Daarna noem die afrigter twee dinge om reg te stel, en kyk die week daarna of dit gedoen is.
+
+DIE REKORD
+Elke speler se laaste tien punte en beserings word bygehou, sodat jy 'n insinking van 'n slegte week kan onderskei. 'n Trofeekas, 'n Roemsaal en 'n Ererol oorleef enige pos.
+
+NUUT IN RUGBY?
+Die Bestuurder se Handboek verduidelik elke getal in die spel en elke woord van rugby, met 'n soekfunksie. Die jakkals, die 22, wat 'n 6-2-bank vir jou gee: dis alles daarin.
+
+OP JOU FOON
+• Portret, landskap en tablet. Dag- en nagmodus, drie teksgroottes, vier temas (drie met Pro-bestuurder).
+• Geen rekening of wolk nie: die spel speel vanlyn en jou loopbaan bly op jou foon. Net advertensies en aankope gebruik die netwerk.
+• Vier stoorgleuwe, elke week gestoor, met uitvoer en invoer vir jou eie rugsteun.
+• Afrikaans, Engels, Frans, Spaans, Italiaans en Japannees.
+
+GRATIS OM TE SPEEL
+Klein baniere onderaan sommige skerms, nooit oor 'n besluit nie. Die “kyk 'n advertensie”-knoppies is opsioneel. Pro-bestuurder verwyder die baniere vir goed. Ander opsionele aankope versnel 'n loopbaan, van direksiefondse tot 'n volledig fikse span. Jy het nie een daarvan nodig nie.
+
+Praat rugby, deel idees en rapporteer probleme op die PHASE-Discord: discord.gg/3KKfDVsMb
+
+PHASE: Rugby Manager is 'n nie-amptelike, onafhanklike spel. Klubname is eg; kompetisies, stadions en borge is herdoop of versin. Spelersname is eg en word net gebruik om mense in 'n sportdatabasis te identifiseer; die spel is nie geaffilieer met, onderskryf deur of gelisensieer deur enige speler, klub, liga of beheerliggaam nie, en bevat geen amptelike klubwapens, truie of logo's nie.
+```
+*(3995, counted as characters including line breaks. Translated 10 Oct 2026 from the approved English description.)*
 
 ---
 
