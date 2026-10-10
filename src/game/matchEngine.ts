@@ -495,7 +495,9 @@ export function teamShort(state: GameState, teamId: string): string {
 }
 
 /** how much of a man's craft his condition governs (see `fit` in the unit build) */
-export const FIT_W = Number(globalThis.process?.env?.FIT_W ?? 0.18)
+export const FIT_W = 0.22
+/** how much of last week's lost condition a man starts the match without */
+export const TANK_K = 0.75
 export function lineupFor(state: GameState, teamId: string): (number | null)[] {
   const club = state.clubs[teamId]
   // A team sheet that is not an array at all - a save from before the field
@@ -1840,7 +1842,7 @@ function mkSide(state: GameState, teamId: string, userTeamId: string | null, fxI
       // the 4% the craft term takes: one tired week cost a side 18 points of
       // win rate. A night's sleep and a team run give some of it back.
       const c0 = state.players[id]?.cond ?? 85
-      energy.set(id, Math.max(50, 100 - (100 - c0) * 0.45) * knockF)
+      energy.set(id, Math.max(50, 100 - (100 - c0) * TANK_K) * knockF)
     }
   })
   const units = teamUnits(state, lineup, { fxId, big })
