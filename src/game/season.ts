@@ -2032,7 +2032,7 @@ export function honeymoonEnd(rep: number): number {
 }
 
 /** board confidence a week at a title favourite for a sheet the manager never claimed */
-export const ABSENT_SHEET = Number(globalThis.process?.env?.ABSENT_SHEET ?? 0.5)
+export const ABSENT_SHEET = 1.1
 function boardReaction(state: GameState, fx: Fixture, delegated = false) {
   const club = state.clubs[state.userClubId]
   const isHome = fx.homeId === club.id
