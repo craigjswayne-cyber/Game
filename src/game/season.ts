@@ -2112,6 +2112,9 @@ function boardReaction(state: GameState, fx: Fixture, delegated = false) {
   // and under, about rep 55), the full amount at a title favourite. One
   // touch of the Selection screen claims the sheet (tactic.userPicked), and
   // an international week the assistant runs is not counted (delegated).
+  // Measured with it at 1.1 (autopilotprobe, 36 seasons each): crisis 9
+  // engaged against 20 absent at Bath, sacked 1 against 11; Esher, whose
+  // board is patient, untouched (0 of 36, worst 26).
   if (!delegated && club.tactic.userPicked !== true) {
     const giant = clamp((boardPatience(club.rep) - 1) / 0.9, 0, 1)
     if (giant > 0) club.boardConfidence = clamp(club.boardConfidence - ABSENT_SHEET * giant, 0, 100)
