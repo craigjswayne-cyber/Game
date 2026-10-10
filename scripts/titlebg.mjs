@@ -29,6 +29,9 @@
 // the trophy, the ball, the shirt, the chair, the lamp - is never touched,
 // because the mask is per-pixel and bounded away from all of it.
 //
+// Then run scripts/art/fix_title_posts.py on the result: the art draws both
+// sets of posts on the team sheet the wrong way round.
+//
 // The darkening is left to CSS rather than baked in, so the balance between
 // "premium office" and "readable text" can be tuned without re-encoding.
 //
