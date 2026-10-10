@@ -2322,24 +2322,16 @@ function drawField(g: CanvasRenderingContext2D, w: number, h: number, ink: Retur
   for (const y of [5, 15, 55, 65]) { g.beginPath(); g.moveTo(X(0), Y(y)); g.lineTo(X(100), Y(y)); g.stroke() }
   g.setLineDash([])
   g.strokeRect(0.7, 0.7, w - 1.4, h - 1.4)
-  // THE POSTS, to scale (owner: "a bit small compared to the correct style").
-  // Seen straight down they are a bar and two dots, which is what they were.
-  // They are drawn as the team sheet draws them: an H laid back into the
-  // in-goal from the try line, uprights 5.6m apart, the crossbar nearer the
-  // field and the tall part pointing away from it. Heights are foreshortened
-  // by POST_TILT (a camera about 60 degrees up) so a 12m post fits the 7m of
-  // in-goal drawn; the field is drawn under the players, so they never hide
-  // play.
-  const POST_TILT = 0.5, BAR_M = 3, POST_M = 12
-  for (const [x, away] of [[0, -1], [100, 1]] as const) {
-    const bar = X(x + away * BAR_M * POST_TILT), top = X(x + away * POST_M * POST_TILT)
-    g.lineWidth = 2.2; g.strokeStyle = ink.white; g.lineCap = 'round'
-    g.beginPath(); g.moveTo(bar, Y(32.2)); g.lineTo(bar, Y(37.8)); g.stroke()
-    for (const y of [32.2, 37.8]) {
-      g.beginPath(); g.moveTo(X(x), Y(y)); g.lineTo(top, Y(y)); g.stroke()
-      // the pad at the foot of each upright, on the try line
-      g.beginPath(); g.arc(X(x), Y(y), 2.2, 0, Math.PI * 2); g.fillStyle = ink.white; g.fill()
-    }
-    g.lineCap = 'butt'
+  // the posts: a crossbar on the try line and the two uprights, seen from
+  // above. Everything in metres on the pitch's own scale (owner: keep the
+  // line and two dots, but in proportion): uprights 5.6m apart, centred on
+  // the 35m line, and each upright with its pad about 0.6m across. The bar
+  // sits on the try line, so a floor of 2px (a metre is about 3.5px on a
+  // phone) keeps it from vanishing into the line under it.
+  const m = Math.abs(Y(1) - Y(0))
+  for (const x of [0, 100]) {
+    g.lineWidth = Math.max(2, 0.3 * m); g.strokeStyle = ink.white
+    g.beginPath(); g.moveTo(X(x), Y(32.2)); g.lineTo(X(x), Y(37.8)); g.stroke()
+    for (const y of [32.2, 37.8]) { g.beginPath(); g.arc(X(x), Y(y), Math.max(2, 0.3 * m), 0, Math.PI * 2); g.fillStyle = ink.white; g.fill() }
   }
 }
