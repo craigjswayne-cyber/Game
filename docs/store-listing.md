@@ -49,53 +49,52 @@ Pick the XV and live with it. A deep rugby union manager that plays offline.
 ### Full description (4000 max)
 
 ```
-Pick a club. Pick a side. Live with it.
+Your club. Your legacy. Your time.
 
-PHASE: Rugby Manager is a rugby union management game in the old text-sim tradition: dense squad tables, a real decision most days, and a career that remembers season one when you get to season fifteen. Release a player and they may come back to score against you. Break a promise and the agent wants more.
+Take a rugby club and make it yours. Pick the XV, sign the players, set the plan, and answer for all of it on Saturday. PHASE: Rugby Manager is a rugby union manager in the old text-sim tradition: dense squad tables, a real decision most days, and a career that remembers season one when you get to season fifteen.
+
+Release a player and they may come back to score against you. Break a promise and the agent wants more. Bring a teenager through the academy and they may captain the side.
+
+Build something worth remembering.
 
 TWO GAMES, ONE APP
 • The men's game: nine leagues and 107 clubs across England, France, the United Provinces, the Pacific, Japan and the United States, from the top flight down to National One.
-• The women's game, built the same way rather than bolted on: six leagues and 64 clubs across England, France, the Pacific and the Celtic provinces, with its own continental cup, Test calendar, squads and career challenges.
+• The women's game, built the same way rather than bolted on: six leagues and 64 clubs across England, France, the Pacific and the Celtic provinces, with its own continental cup, Test calendar and career challenges.
 
 THE WORLD
-• Full seasons with bonus points, cup draws made in front of you, continental rugby, play-offs, promotion and relegation.
-• An international calendar that takes your best players at the worst moment, and a national job if your name gets about.
-• Players age, slow down and retire. The kids you brought through take their shirts.
-• Rival clubs sign players and sack coaches too.
+Cup draws made in front of you, continental rugby, play-offs, and promotion and relegation in the men's game. An international calendar takes your best players at the worst moment, and if your name gets about, a national job may follow. Rival clubs bid for the players you want and sack their coaches when it goes wrong.
 
 THE WEEK
-• Monday is the treatment room, Tuesday the press, midweek the business, Thursday the squad, Friday the opposition report. Then Saturday.
-• Agents who haggle, contracts that run down, pre-contracts, free agents, and scouts who tell you what they know and what they don't.
-• Two transfer windows, summer and January. Loans by length and wage share, and a parent club that tells you why it said no.
-• Release a player and pay off the contract. Sack a coach. Name your marquee players and work the cap.
-• A board with an opinion of you, a press pack that quotes you back, and a town that remembers a derby longer than the table does.
+Monday is the review. Tuesday, the cameras and the board. Wednesday, club business. Thursday, the squad. Friday, the opposition report. Then Saturday.
+• Agents who haggle, contracts that run down, free agents, and scouts who tell you what they know and what they don't.
+• Summer and January windows. Loans by length and wage share, and a parent club that tells you why it said no.
+• Release a player, sack a coach, name two marquee players and work the cap.
+• Facilities to build, sponsors to deal with, a board with an opinion of you, a press pack that remembers your promises, and supporters who remember a derby longer than the table does.
 
 MATCH DAY
-• Live text commentary with live stats, and the pitch for the tries and big moments, at three speeds. Or take the instant result and read why it went that way.
-• The calls are yours: the kick at goal or the corner, the half-time talk, when to empty the bench.
-• Five attack and five defence styles, set-piece calls, a kicking game, a playbook the opposition learns to read, and saved game plans.
-• A coach's verdict afterwards that names two things to fix, then checks next week whether you did.
+Live text commentary and stats, with the pitch for the tries and big moments. Or take the instant result and read why it went that way.
+• The calls are yours: the posts, the corner or the quick tap; the team talks; when to empty the bench.
+• Five attack and five defence styles, set-piece calls, a kicking game, and a playbook the opposition learns to read.
+• Afterwards the coach names two things to fix, then checks next week whether you did.
 
 THE RECORD
-• Every player carries their last ten ratings and every injury of their career, so you can tell a slump from a bad week.
-• A trophy cabinet, a Hall of Fame and a Roll of Honour that outlast any one job.
+Every player carries their last ten ratings and their injury history, so you can tell a slump from a bad week. A trophy cabinet, a Hall of Fame and a Roll of Honour outlast any one job.
 
 NEW TO RUGBY?
-• The Manager's Handbook explains every number in the game and every word of the sport, with a search box. The jackal, the 22, what a 6-2 bench buys you: it's in there.
+The Manager's Handbook explains every number in the game and every word of the sport, with a search box. The jackal, the 22, what a 6-2 bench buys you: it's in there.
 
-BUILT FOR A PHONE
-• Portrait and one-handed. Day and night, a text-size setting, and four colour skins (three with Pro Manager).
-• The game runs offline: no account, no login, no cloud, and your career never leaves your phone. The adverts are the only part that uses the network.
-• Free to play. Small banners sit at the foot of some screens, never over a decision, plus optional "watch an advert" buttons you choose to press. Pro Manager removes the banners for good.
-• Four career slots, saved every week, with export and import so a backup is yours to keep.
+ON YOUR PHONE
+• Portrait, landscape and tablet layouts. Day and night themes, three text sizes, four colour skins (three with Pro Manager).
+• No account and no cloud: the game plays offline and your career stays on your phone. Only adverts and purchases use the network.
+• Four career slots, saved every week, with export and import for your own backups.
 • English, French, Spanish, Italian, Japanese and Afrikaans.
 
-THE COMMUNITY
-• Report a problem in any of the six languages, share ideas and talk rugby with other managers on the PHASE Discord: discord.gg/3KKfDVsMb
+FREE TO PLAY
+Small banners sit at the foot of some screens, never over a decision. The "watch an advert" buttons are optional. Pro Manager removes the banners for good. Other optional purchases speed a career along, from board funding to a fully fit squad. You don't need any of them.
+
+Talk rugby, share ideas and report problems on the PHASE Discord: discord.gg/3KKfDVsMb
 
 PHASE: Rugby Manager is an unofficial, independent game. Club names are real; competitions, grounds and sponsors are renamed or invented. Player names are real, used to identify people in a sporting database and for nothing else; the game is not affiliated with, endorsed by or licensed by any player, club, league or governing body, and contains no official badges, kits or logos.
-
-Optional in-app purchases add conveniences and cosmetic skins. You can play a full career without buying anything.
 ```
 *(3977, counted as characters including line breaks. Rewritten 9 Oct 2026 against `docs/voice-bible.md`; the same text is the App Store description below.)*
 
@@ -1707,53 +1706,52 @@ vestigial field nothing reads, and "three colour skins" when there are four.
 It also never mentioned the women's game, which is half the app.*
 
 ```
-Pick a club. Pick a side. Live with it.
+Your club. Your legacy. Your time.
 
-PHASE: Rugby Manager is a rugby union management game in the old text-sim tradition: dense squad tables, a real decision most days, and a career that remembers season one when you get to season fifteen. Release a player and they may come back to score against you. Break a promise and the agent wants more.
+Take a rugby club and make it yours. Pick the XV, sign the players, set the plan, and answer for all of it on Saturday. PHASE: Rugby Manager is a rugby union manager in the old text-sim tradition: dense squad tables, a real decision most days, and a career that remembers season one when you get to season fifteen.
+
+Release a player and they may come back to score against you. Break a promise and the agent wants more. Bring a teenager through the academy and they may captain the side.
+
+Build something worth remembering.
 
 TWO GAMES, ONE APP
 • The men's game: nine leagues and 107 clubs across England, France, the United Provinces, the Pacific, Japan and the United States, from the top flight down to National One.
-• The women's game, built the same way rather than bolted on: six leagues and 64 clubs across England, France, the Pacific and the Celtic provinces, with its own continental cup, Test calendar, squads and career challenges.
+• The women's game, built the same way rather than bolted on: six leagues and 64 clubs across England, France, the Pacific and the Celtic provinces, with its own continental cup, Test calendar and career challenges.
 
 THE WORLD
-• Full seasons with bonus points, cup draws made in front of you, continental rugby, play-offs, promotion and relegation.
-• An international calendar that takes your best players at the worst moment, and a national job if your name gets about.
-• Players age, slow down and retire. The kids you brought through take their shirts.
-• Rival clubs sign players and sack coaches too.
+Cup draws made in front of you, continental rugby, play-offs, and promotion and relegation in the men's game. An international calendar takes your best players at the worst moment, and if your name gets about, a national job may follow. Rival clubs bid for the players you want and sack their coaches when it goes wrong.
 
 THE WEEK
-• Monday is the treatment room, Tuesday the press, midweek the business, Thursday the squad, Friday the opposition report. Then Saturday.
-• Agents who haggle, contracts that run down, pre-contracts, free agents, and scouts who tell you what they know and what they don't.
-• Two transfer windows, summer and January. Loans by length and wage share, and a parent club that tells you why it said no.
-• Release a player and pay off the contract. Sack a coach. Name your marquee players and work the cap.
-• A board with an opinion of you, a press pack that quotes you back, and a town that remembers a derby longer than the table does.
+Monday is the review. Tuesday, the cameras and the board. Wednesday, club business. Thursday, the squad. Friday, the opposition report. Then Saturday.
+• Agents who haggle, contracts that run down, free agents, and scouts who tell you what they know and what they don't.
+• Summer and January windows. Loans by length and wage share, and a parent club that tells you why it said no.
+• Release a player, sack a coach, name two marquee players and work the cap.
+• Facilities to build, sponsors to deal with, a board with an opinion of you, a press pack that remembers your promises, and supporters who remember a derby longer than the table does.
 
 MATCH DAY
-• Live text commentary with live stats, and the pitch for the tries and big moments, at three speeds. Or take the instant result and read why it went that way.
-• The calls are yours: the kick at goal or the corner, the half-time talk, when to empty the bench.
-• Five attack and five defence styles, set-piece calls, a kicking game, a playbook the opposition learns to read, and saved game plans.
-• A coach's verdict afterwards that names two things to fix, then checks next week whether you did.
+Live text commentary and stats, with the pitch for the tries and big moments. Or take the instant result and read why it went that way.
+• The calls are yours: the posts, the corner or the quick tap; the team talks; when to empty the bench.
+• Five attack and five defence styles, set-piece calls, a kicking game, and a playbook the opposition learns to read.
+• Afterwards the coach names two things to fix, then checks next week whether you did.
 
 THE RECORD
-• Every player carries their last ten ratings and every injury of their career, so you can tell a slump from a bad week.
-• A trophy cabinet, a Hall of Fame and a Roll of Honour that outlast any one job.
+Every player carries their last ten ratings and their injury history, so you can tell a slump from a bad week. A trophy cabinet, a Hall of Fame and a Roll of Honour outlast any one job.
 
 NEW TO RUGBY?
-• The Manager's Handbook explains every number in the game and every word of the sport, with a search box. The jackal, the 22, what a 6-2 bench buys you: it's in there.
+The Manager's Handbook explains every number in the game and every word of the sport, with a search box. The jackal, the 22, what a 6-2 bench buys you: it's in there.
 
-BUILT FOR A PHONE
-• Portrait and one-handed. Day and night, a text-size setting, and four colour skins (three with Pro Manager).
-• The game runs offline: no account, no login, no cloud, and your career never leaves your phone. The adverts are the only part that uses the network.
-• Free to play. Small banners sit at the foot of some screens, never over a decision, plus optional "watch an advert" buttons you choose to press. Pro Manager removes the banners for good.
-• Four career slots, saved every week, with export and import so a backup is yours to keep.
+ON YOUR PHONE
+• Portrait, landscape and tablet layouts. Day and night themes, three text sizes, four colour skins (three with Pro Manager).
+• No account and no cloud: the game plays offline and your career stays on your phone. Only adverts and purchases use the network.
+• Four career slots, saved every week, with export and import for your own backups.
 • English, French, Spanish, Italian, Japanese and Afrikaans.
 
-THE COMMUNITY
-• Report a problem in any of the six languages, share ideas and talk rugby with other managers on the PHASE Discord: discord.gg/3KKfDVsMb
+FREE TO PLAY
+Small banners sit at the foot of some screens, never over a decision. The "watch an advert" buttons are optional. Pro Manager removes the banners for good. Other optional purchases speed a career along, from board funding to a fully fit squad. You don't need any of them.
+
+Talk rugby, share ideas and report problems on the PHASE Discord: discord.gg/3KKfDVsMb
 
 PHASE: Rugby Manager is an unofficial, independent game. Club names are real; competitions, grounds and sponsors are renamed or invented. Player names are real, used to identify people in a sporting database and for nothing else; the game is not affiliated with, endorsed by or licensed by any player, club, league or governing body, and contains no official badges, kits or logos.
-
-Optional in-app purchases add conveniences and cosmetic skins. You can play a full career without buying anything.
 ```
 *(3977, counted as characters including line breaks; identical to the Play full description.)*
 
