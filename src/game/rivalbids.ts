@@ -435,9 +435,9 @@ const SUMMER_LIST = 0.15
 /** No club has more than this many men on its list at once (aiFireSale's cap). */
 const SUMMER_LISTED_MAX = 2
 /** A club's chance, each summer week, of buying for its thinnest position. */
-const SUMMER_BUY = 0.05
+const SUMMER_BUY = 0
 /** A listed man's chance, each summer week, of finding a club that wants him. */
-const SUMMER_SELL = 0.1
+const SUMMER_SELL = 0.06
 /** The chance, each summer week, of an approach for one of the manager's
  *  fringe men. */
 const SUMMER_BID = 0.6
@@ -494,10 +494,24 @@ export function aiSummerMarket(state: GameState): void {
   const free = (p: Player) => !p.acad && !p.youth && !p.onLoan && !p.loanFrom && !p.retiring &&
     !leaving(p) && !promisedElsewhere(state, p.id)
   const rooms = aiWageRooms(state)
-  // can this club pay what executeTransfer will put him on?
+  const used = new Set<string>()
+  // A SUMMER MOVE CARRIES HIS WAGE WITH HIM. executeTransfer puts a man
+  // joining an AI club on that club's pay rate, which is usually a cut, and
+  // fifty moves a summer cutting fifty wages took money out of the world's
+  // wage bill and put it in the boards' accounts (scripts/aiecon.ts: the median
+  // club's gain rose from 0.18M a season to 0.30M). The buying club pays what
+  // he was on, at least, and has to be able to carry it.
+  const wageAt = (c: Club, p: Player, room: number) =>
+    Math.max(p.wage, Math.max(p.wage, playerWage(p.ca, p.age)) * aiPayRate(state, c, room))
+  const move = (p: Player, c: Club, fee: number) => {
+    const wage = wageAt(c, p, rooms.get(c.id) ?? 0)
+    executeTransfer(state, p, c.id, fee)
+    if (p.clubId === c.id) { p.wage = Math.round(wage / 50) * 50; used.add(c.id) }
+  }
+  // can this club pay what he will be on?
   const carries = (c: Club, p: Player): boolean => {
     const room = rooms.get(c.id) ?? 0
-    const wage = Math.max(p.wage, playerWage(p.ca, p.age)) * aiPayRate(state, c, room)
+    const wage = wageAt(c, p, room)
     if (!aiCanCarry(state, c, wage, room)) return false
     const cap = c.leagueId ? state.caps?.[c.leagueId] : null
     return !(typeof cap === 'number' && cap > 0 && capBill(state, c) + wage > cap)
@@ -507,7 +521,6 @@ export function aiSummerMarket(state: GameState): void {
     const cut = squad.map(p => p.ca).sort((a, b) => b - a)[22] ?? -1
     return squad.filter(p => p.ca < cut && betterAt(state, c, p) >= 2)
   }
-  const used = new Set<string>()
 
   // the clear-out
   for (const c of clubs) {
@@ -526,13 +539,12 @@ export function aiSummerMarket(state: GameState): void {
     if (c.budget < 800_000 || embargoed(state, c.id) || seniorsOf(state, c) >= SQUAD_LIMIT) continue
     const p = aiShoppingTarget(state, c)?.target
     if (!p || !free(p) || !carries(c, p)) continue
-    executeTransfer(state, p, c.id, askingPrice(state, p))
-    if (p.clubId === c.id) used.add(c.id)
+    move(p, c, askingPrice(state, p))
   }
 
   // the listed move
   const listed = Object.values(state.players)
-    .filter(p => p.transferListed && p.clubId && !isMyClub(state, p.clubId) && free(p))
+    .filter(p => p.clearOut && p.transferListed && p.clubId && !isMyClub(state, p.clubId) && free(p))
     .sort((a, b) => a.id - b.id)
   for (const p of listed) {
     if (rand(`smsell|${key}|${p.id}`) >= SUMMER_SELL) continue
@@ -547,8 +559,7 @@ export function aiSummerMarket(state: GameState): void {
       if (keen > bestKeen) { bestKeen = keen; best = c }
     }
     if (!best) continue
-    executeTransfer(state, p, best.id, fee)
-    if (p.clubId === best.id) used.add(best.id)
+    move(p, best, fee)
   }
 
   // the phone rings: a bid lands only when the next week is open to answer it
