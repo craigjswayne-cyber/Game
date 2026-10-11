@@ -523,6 +523,8 @@ export function migrate(s: GameState): GameState {
     if (n.src != null && n.src !== 'ruck') delete n.src
     // a named day is a day of the week or nothing (days.ts dayOfStory)
     if (n.day != null && !(Number.isInteger(n.day) && n.day >= 0 && n.day <= 5)) delete n.day
+    // the bid a story is about is an id or nothing (Inbox OfferAnswer)
+    if (n.offerId != null && !Number.isFinite(n.offerId)) delete n.offerId
   }
   s.press = s.press.filter(p => story(p) && typeof (p as { question?: unknown }).question === 'string')
   s.offers = s.offers.filter(story)
@@ -797,6 +799,7 @@ export function migrate(s: GameState): GameState {
     if (lw != null && !(typeof lw === 'number' && Number.isFinite(lw) && lw > 0)) delete s.commission.lastWord
   }
   s.scoutFinds ??= null
+  if (s.scoutRecs != null && !Array.isArray(s.scoutRecs)) delete s.scoutRecs
   s.facilityBuild ??= null
   s.stadiumBuild ??= null
   s.facilityAskCooldown ??= 0

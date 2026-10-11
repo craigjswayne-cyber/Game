@@ -1,13 +1,17 @@
-# Store declarations checklist (1.8.16)
+# Store declarations checklist (1.8.17)
 
 The release hardening pass could not check these from the repository: they live
 in Play Console and App Store Connect. This is the list to tick there before the
-1.8.16 build goes to production. Each line says what the build actually does,
+1.8.17 build goes to production. Each line says what the build actually does,
 so an answer can be checked against it.
 
 Re-checked against the code on 9 October 2026 (release-readiness round after
 1.8.16). The boxes below are console tasks: none of them can be ticked from the
 repository, and none is marked done without the owner's confirmation.
+
+1.8.17 (10 October 2026) changes nothing these answers rest on: it is tablet
+layout, a tiredness and board-patience rebalance, international squad selection
+and test fixes. No new SDK, permission, data, advert placement or product.
 
 ## What the build does (facts from the repo)
 
@@ -79,8 +83,9 @@ repository, and none is marked done without the owner's confirmation.
 
 ## On the day
 
-- [ ] Play: version code 55, version name 1.8.16 (`packaging/android/version.json`).
-- [ ] App Store: version 1.8.16, build number one higher than the last build in
+- [ ] Play: version code 56, version name 1.8.17 (`packaging/android/version.json`).
+      Codes only have to rise, so 56 is right whether or not 55 was uploaded.
+- [ ] App Store: version 1.8.17, build number one higher than the last build in
       TestFlight (Xcode does not track it; check App Store Connect).
 - [ ] iOS archive built with `./scaffold.sh` as the last step, not a bare
       `cap sync` (which strips the advert bridge). Before archiving, the Xcode

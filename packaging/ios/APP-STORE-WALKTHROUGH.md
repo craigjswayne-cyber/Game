@@ -388,7 +388,8 @@ The answers people get wrong:
 * Category — **Games → Sports**, secondary **Simulation**.
 * Price — **Free**, with in-app purchases.
 * Privacy policy URL — `https://phaserugbymanager.com/privacy.html`
-* Support URL — the same page; it carries the contact address.
+* Support URL — `https://phaserugbymanager.com/support.html` (contact, restore, refunds, saves).
+* Marketing URL — `https://phaserugbymanager.com` (where AdMob looks for `app-ads.txt`).
 
 ---
 
@@ -425,8 +426,9 @@ runs and passes review with no adverts at all, and the Xcode console shows no
 nothing in the sync replaces it. It shipped in the first 1.2.4 upload before
 anybody looked at it.
 
-The real one is committed at **`packaging/ios/AppIcon-1024.png`**. Copy it over
-the placeholder:
+The real one is committed at **`packaging/ios/AppIcon-1024.png`**. From 1.8.17
+`scaffold.sh` copies it over the placeholder for you; if you scaffolded with an
+older checkout, copy it by hand:
 
 ```
 cp packaging/ios/AppIcon-1024.png \

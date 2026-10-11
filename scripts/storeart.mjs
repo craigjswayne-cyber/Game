@@ -24,12 +24,21 @@ const only = process.argv[2]
 const say = (s) => console.log(s)
 
 /** Store sizes, as the consoles demand them. */
+// Play refuses a shot whose long side is more than twice its short side, so
+// the old 1080x2340 (2.17:1) phone set could not be uploaded. Play's phone
+// shots are 9:16 now. Tablets run with touch on, because tablet mode needs a
+// touch screen at least 700px wide (src/ui/tablet.ts): the 7-inch set is a
+// real 600dp tablet and so shows the phone layout, the 10-inch set and the
+// iPad set show tablet mode.
 const TARGETS = [
-  // Play wants 16:9 or 9:16 phone shots; 1080x2340 is a stock Android panel
-  { store: 'play', w: 540, h: 1170, dsf: 2 },
-  // Apple's 6.7" slot is 1290x2796 and is the one that cannot be skipped
-  { store: 'ios', w: 430, h: 932, dsf: 3 },
-].filter(t => !only || t.store === only)
+  { store: 'play', dir: 'play', w: 540, h: 960, dsf: 2 },                       // 1080x1920
+  { store: 'play', dir: 'play-tablet7', w: 600, h: 960, dsf: 2, touch: true },   // 1200x1920
+  { store: 'play', dir: 'play-tablet10', w: 800, h: 1280, dsf: 2, touch: true }, // 1600x2560
+  // Apple's 6.9-inch slot takes 1290x2796 and is the one that cannot be skipped
+  { store: 'ios', dir: 'ios', w: 430, h: 932, dsf: 3 },
+  // and a build that runs on iPad needs the 13-inch slot: 2048x2732
+  { store: 'ios', dir: 'ios-ipad13', w: 1024, h: 1366, dsf: 2, touch: true },
+].filter(t => !only || t.store === only || t.dir === only)
 
 const LANGS = ['en', 'fr']
 
@@ -102,6 +111,9 @@ async function walk(page, dir) {
       await page.waitForTimeout(700)
     }
     await page.waitForSelector('.live-wrap', { timeout: 15000 })
+    // put the team-talk reactions away, as a player does: on a phone the card
+    // sits over the commentary, which is the thing the shot is selling
+    await page.locator('.talk-react .tr-head .btn').first().click({ timeout: 3000 }).catch(() => {})
     // a match worth showing: the half-hour or the first points, whichever
     // comes first (a 7th-minute 0-0 with empty stats was the old shot),
     // and never more than thirty seconds of waiting
@@ -141,19 +153,20 @@ async function walk(page, dir) {
 try {
   for (const target of TARGETS) {
     for (const lang of LANGS) {
-      const dir = `storeart/${target.store}/${lang}`
+      const dir = `storeart/${target.dir}/${lang}`
       mkdirSync(dir, { recursive: true })
       const page = await browser.newPage({
         viewport: { width: target.w, height: target.h },
         deviceScaleFactor: target.dsf,
         locale: lang === 'fr' ? 'fr-FR' : 'en-GB',
+        hasTouch: !!target.touch, isMobile: !!target.touch,
       })
       page.setDefaultTimeout(12000)
       await page.addInitScript(([l]) => {
         localStorage.setItem('rm-night', '1')
         localStorage.setItem('rm-lang', l)
       }, [lang])
-      say(`${target.store}/${lang}: ${target.w * target.dsf}x${target.h * target.dsf}`)
+      say(`${target.dir}/${lang}: ${target.w * target.dsf}x${target.h * target.dsf}`)
       await walk(page, dir)
       await page.close()
     }
@@ -175,7 +188,7 @@ try {
                       font-size:22px;color:#c8a24a;text-transform:uppercase">Rugby Manager</div>
           <div style="font-size:74px;font-weight:700;letter-spacing:2px;line-height:1.05;margin-top:6px">PHASE</div>
           <div style="font-size:22px;color:#9aa39c;margin-top:14px;max-width:520px;line-height:1.4">
-            Take a club from the bottom to the top.<br/>Seasons deep, entirely offline.
+            Your club. Your legacy. Your time.<br/>Build something worth remembering.
           </div>
         </div>
       </div></body>`)

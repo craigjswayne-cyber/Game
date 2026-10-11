@@ -10,6 +10,7 @@ import type { Attrs, GameState, Player, Pos } from './model'
 import { tIn } from './i18n'
 import { ATTR_KEYS, fmtMoney } from './model'
 import { clamp, hashString, mulberry32 } from './rng'
+import { fileRec, makeRec } from './scoutrecs'
 
 export function knowledge(state: GameState, p: Player): number {
   if (p.clubId === state.userClubId) return 100
@@ -368,6 +369,9 @@ export function recruitmentMeeting(state: GameState): void {
     if (cand) picks.push({ p: cand.p, need, fee: cand.fee })
   }
   if (!picks.length) return
+  // the names go on the Scouting page with the department's verdict; this
+  // story is their news, so none is owed (scoutrecs.ts)
+  for (const x of picks) fileRec(state, makeRec(state, x.p, 6, 'meeting', true))
   // Two row keys rather than one with an "abroad" variable in it: a variable
   // holds a club's short name, which is the same word in any language, and the
   // moment it can also hold the WORD "abroad" it is smuggling English into a

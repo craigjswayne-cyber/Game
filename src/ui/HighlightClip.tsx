@@ -2322,10 +2322,16 @@ function drawField(g: CanvasRenderingContext2D, w: number, h: number, ink: Retur
   for (const y of [5, 15, 55, 65]) { g.beginPath(); g.moveTo(X(0), Y(y)); g.lineTo(X(100), Y(y)); g.stroke() }
   g.setLineDash([])
   g.strokeRect(0.7, 0.7, w - 1.4, h - 1.4)
-  // the posts: a crossbar on the try line and the two uprights, seen from above
+  // the posts: a crossbar on the try line and the two uprights, seen from
+  // above. Real uprights are 5.6m apart; the bar is drawn 8m long, centred on
+  // the 35m line (owner: a little longer, so it reads at a glance), and each
+  // upright with its pad is about 0.6m across. The bar sits on the try line,
+  // so a floor of 2px (a metre is about 3.5px on a phone) keeps it from
+  // vanishing into the line under it.
+  const m = Math.abs(Y(1) - Y(0))
   for (const x of [0, 100]) {
-    g.lineWidth = 2.2; g.strokeStyle = ink.white
-    g.beginPath(); g.moveTo(X(x), Y(32.2)); g.lineTo(X(x), Y(37.8)); g.stroke()
-    for (const y of [32.2, 37.8]) { g.beginPath(); g.arc(X(x), Y(y), 2, 0, Math.PI * 2); g.fillStyle = ink.white; g.fill() }
+    g.lineWidth = Math.max(2, 0.3 * m); g.strokeStyle = ink.white
+    g.beginPath(); g.moveTo(X(x), Y(31)); g.lineTo(X(x), Y(39)); g.stroke()
+    for (const y of [31, 39]) { g.beginPath(); g.arc(X(x), Y(y), Math.max(2, 0.3 * m), 0, Math.PI * 2); g.fillStyle = ink.white; g.fill() }
   }
 }

@@ -3786,6 +3786,9 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .bug-send { flex-wrap: wrap; }
 .bug-send .btn { flex: 1 1 auto; white-space: nowrap; }
 .news-go { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; margin: 10px 0 0; padding: 0 14px; font-size: 13px; }
+/* the answer to a bid, under the story that brings it (Inbox OfferAnswer): the
+   reader carries its own gutter, so the button spans it rather than insetting */
+.btn.block.offer-answer { width: 100%; margin: 14px 0 0; }
 
 /* ---- people named in a story (feedback 10F) -----------------------------
    A story already knows who it is about; it just never offered them. */
@@ -4883,6 +4886,34 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .loan-sheet .loan-deal { display: flex; flex-direction: column; gap: 10px; padding: 4px 14px 0; }
 .loan-sheet .loan-deal label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; text-transform: uppercase; letter-spacing: .4px; }
 .loan-sheet .loan-deal .inline-input { padding: 9px 10px; width: 100%; }
+
+/* ---- THE SCOUT'S LIST (Scouting.tsx) ----
+   Owner: "It should have a list and you click in for a scout report." One
+   line a man, nothing in it wraps: the badge, the name over his age and club,
+   then a fixed-width rating column. The name gives way, never the rating. */
+.scout-list { border-top: 1px solid var(--border); }
+.scout-row {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 9px 14px; min-height: 52px;
+  background: none; border: 0; border-bottom: 1px solid var(--border);
+  color: var(--text-primary); text-align: left; font: inherit; cursor: pointer;
+}
+.scout-row:active { background: var(--surface-2); }
+.scout-row .pos-badge { flex: 0 0 auto; min-width: 30px; text-align: center; }
+.scout-row-who { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.scout-row-who b, .scout-row-who .muted { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.scout-row-who b { font-size: 14px; }
+.scout-row-rate { flex: 0 0 auto; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.scout-row-verdict { font-size: 11px; font-weight: 700; white-space: nowrap; max-width: 128px; overflow: hidden; text-overflow: ellipsis; }
+.scout-row-go { flex: 0 0 auto; color: var(--text-muted); font-size: 18px; line-height: 1; }
+.scout-sheet-head { display: flex; align-items: center; gap: 10px; padding: 2px 14px 8px; }
+.scout-sheet-name { font-family: var(--cond); font-size: 20px; font-weight: 700; line-height: 1.15; overflow-wrap: anywhere; }
+.scout-verdict-word { font-family: var(--cond); font-size: 19px; font-weight: 700; margin-top: 2px; }
+.scout-verdict-quote { font-size: 13.5px; line-height: 1.4; margin-top: 2px; color: var(--text-secondary); }
+.scout-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; }
+.scout-fact { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 13px; min-width: 0; }
+.scout-facts > .meta { grid-column: 1 / -1; }
+@media (max-width: 380px) { .scout-facts { grid-template-columns: 1fr; } }
 
 /* ---- THE PRESSURE BARS (v1.7.0) ----
    Two bars either side of a centred label, each filling OUTWARD from the

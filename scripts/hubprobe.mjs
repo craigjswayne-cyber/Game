@@ -35,8 +35,10 @@ await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
 // for a local preview and turns every dead end into a fast, visible failure.
 page.setDefaultTimeout(4000)
 
+// Scouting sits directly under Training & Staff (owner, 1.8.17: "make it a
+// page underneath training and staff")
 const WANT = [
-  'Team', 'Team Report', 'Tactics', 'Academy', 'Training & Staff',
+  'Team', 'Team Report', 'Tactics', 'Academy', 'Training & Staff', 'Scouting',
   'Medical Centre', 'Fixtures & Results', 'Finances', 'Transfer Centre',
   'Club Infrastructure', 'Club Information',
 ]
