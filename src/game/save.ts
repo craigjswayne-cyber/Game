@@ -799,6 +799,7 @@ export function migrate(s: GameState): GameState {
     if (lw != null && !(typeof lw === 'number' && Number.isFinite(lw) && lw > 0)) delete s.commission.lastWord
   }
   s.scoutFinds ??= null
+  if (s.scoutRecs != null && !Array.isArray(s.scoutRecs)) delete s.scoutRecs
   s.facilityBuild ??= null
   s.stadiumBuild ??= null
   s.facilityAskCooldown ??= 0

@@ -74,7 +74,7 @@ const SCREENS = [
   'transfers', 'training', 'finances', 'club', 'press', 'nations', 'history',
   'legacy', 'handbook', 'jobs', 'wire', 'medical', 'report', 'profile', 'saves',
   'day', 'draw', 'annual', 'dreamteam', 'results', 'seasonreview', 'agency',
-  'infra', 'academy',
+  'infra', 'academy', 'scouting',
 ]
 
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })

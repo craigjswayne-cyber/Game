@@ -124,7 +124,7 @@ export function NewsBody({ body }: { body: string }) {
 // A bid for one of the manager's men is not here: the reader puts the answer
 // itself under those stories while the bid is open (Inbox OfferAnswer), and a
 // link to an empty desk once it is not would be a door to nothing.
-const NEWS_GO: Record<string, [Screen, string?]> = {
+const NEWS_GO: Record<string, [Screen, (string | '@player')?]> = {
   natOffer: ['profile'], natAppointed: ['profile'],
   natSquad: ['country'],
   crisisCover: ['transfers'],
@@ -136,6 +136,10 @@ const NEWS_GO: Record<string, [Screen, string?]> = {
   jobOffered: ['jobs'],
   // the assistant's thin-position word opens the chart it is about (round 4)
   depthShort: ['report', 'depth'], depthShortNone: ['report', 'depth'],
+  // the scout's verdicts open his report on the man (scoutrecs.ts); a story
+  // about several names opens the list
+  scoutRec: ['scouting', '@player'], scoutRecs: ['scouting'], scoutMonthlyRec: ['scouting', '@player'],
+  scoutReport: ['scouting'],
 }
 
 export function NewsGo({ n }: { n: NewsItem }) {
@@ -144,7 +148,7 @@ export function NewsGo({ n }: { n: NewsItem }) {
   const to = NEWS_GO[base]
   if (!to) return null
   return (
-    <button className="btn ghost news-go" onClick={() => go(to[0], to[1])}>
+    <button className="btn ghost news-go" onClick={() => go(to[0], to[1] === '@player' ? n.playerId : to[1])}>
       {t(`titles.${to[0]}`)} <span aria-hidden>›</span>
     </button>
   )

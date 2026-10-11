@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../../store'
 import { ATTR_KEYS, SEASON_WEEKS, careerRows, fmtMoney, fmtWage, shownMoney, injuryDesc, type Attrs, type GameState, type Player, type TrainingFocus, seasonLabel } from '../../game/model'
 import { liveRivalBid } from '../../game/rivalbids'
@@ -37,10 +37,20 @@ const TL_KEYS: [number, string][] = [
 ]
 import ScoutReportCard from '../ScoutReport'
 
+/** Set by the scout report's Make an offer (Scouting.tsx): the page opens
+ *  scrolled to the deal, once. */
+export const offerFocus: { id: number | null } = { id: null }
+
 export default function PlayerScreen({ playerId }: { playerId: number }) {
   const game = useStore(s => s.game)!
   const touch = useStore(s => s.touch)
   const go = useStore(s => s.go)
+  useEffect(() => {
+    if (offerFocus.id !== playerId) return
+    offerFocus.id = null
+    const id = window.setTimeout(() => document.getElementById('deal-desk')?.scrollIntoView({ block: 'start' }), 60)
+    return () => window.clearTimeout(id)
+  }, [playerId])
   const [msg, setMsgRaw] = useState<string | null>(null)
   /**
    * Say something back, WHERE THE MANAGER IS LOOKING.
@@ -779,6 +789,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           The office block above (canChat/praisePlayer/warnPlayer) is the one
           conversation system now: two chats a week, squad-wide, and the words
           keep their value (v1.1.4). */}
+      <div id="deal-desk" />
       {mine ? (
         <>
           {negotiating && (

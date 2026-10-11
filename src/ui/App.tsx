@@ -24,6 +24,7 @@ import Fixtures from './screens/Fixtures'
 import Tables from './screens/Tables'
 import Transfers from './screens/Transfers'
 import Training from './screens/Training'
+import Scouting from './screens/Scouting'
 import Finances from './screens/Finances'
 import ClubScreen from './screens/ClubScreen'
 import MatchDay from './screens/MatchDay'
@@ -72,6 +73,7 @@ const TITLES: readonly string[] = [
   'nations', 'country', 'history', 'legacy', 'jobs', 'medical',
   'report', 'profile', 'saves', 'day', 'draw', 'annual',
   'dreamteam', 'wire', 'infra', 'handbook', 'settings', 'bug', 'about', 'supporter',
+  'scouting',
 ]
 
 const IcoMoon = () => (
@@ -505,7 +507,7 @@ export default function App() {
   useEffect(() => {
     if (!game?.unemployed) return
     const DESK: Set<string> = new Set(['squad', 'report', 'tactics', 'academy',
-      'training', 'medical', 'fixtures', 'finances', 'transfers', 'infra', 'matchday', 'offers'])
+      'training', 'scouting', 'medical', 'fixtures', 'finances', 'transfers', 'infra', 'matchday', 'offers'])
     if (DESK.has(cur.screen)) home()
   }, [game?.unemployed, cur.screen, home])
 
@@ -602,6 +604,7 @@ export default function App() {
       case 'tables': return <Tables initial={cur.param as string | undefined} />
       case 'transfers': return <Transfers />
       case 'training': return <Training />
+      case 'scouting': return <Scouting initial={typeof cur.param === 'number' ? cur.param : undefined} />
       case 'finances': return <Finances />
       case 'club': return <ClubScreen clubId={(cur.param as string) ?? game.userClubId} />
       case 'press': return <Press />
@@ -671,6 +674,10 @@ export default function App() {
         { ico: <Glyph name="tactics" />, label: t('groups.tactics'), screen: 'tactics' },
         { ico: <Glyph name="academy" />, label: t('groups.academy'), screen: 'academy' },
         { ico: <Glyph name="training" />, label: t('groups.trainingStaff'), screen: 'training' },
+        // SCOUTING, UNDER TRAINING AND STAFF (owner: "Scouting needs to be
+        // more visible as an option"). It was a tab inside the Transfer
+        // Centre; the verdicts list and the reports now have a door here too.
+        { ico: <Glyph name="scout" />, label: t('groups.scouting'), screen: 'scouting' },
         { ico: <Glyph name="medical" />, label: t('groups.medical'), screen: 'medical', badge: injuredCount },
         { ico: <Glyph name="fixtures" />, label: t('groups.fixturesResults'), screen: 'fixtures' },
         { ico: <Glyph name="finances" />, label: t('groups.finances'), screen: 'finances', badge: boardOpen },

@@ -1921,6 +1921,9 @@ export interface GameState {
   commission?: import('./commission').Commission | null
   /** the report he filed when he got back */
   scoutFinds?: import('./commission').ScoutFind[] | null
+  /** every verdict the department has given, newest last, capped
+   *  (scoutrecs.ts): the Scouting page's list and the news it owes */
+  scoutRecs?: import('./scoutrecs').ScoutRec[]
   /** legacy: facilities now live on the club. Kept so old saves can be
    *  migrated into Club.facilities, then emptied. */
   facilities?: Partial<Record<FacilityId, number>>
