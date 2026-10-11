@@ -17,6 +17,7 @@
 //   - the recruitment meeting carries the scout tag for the Scout Reports pile
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
+import { autoSelect } from '../src/game/matchEngine'
 import { jobChance } from '../src/game/jobs'
 import { MENTOR_MAX_KIDS, mentorCap, mentorGraduations, mentorLoad } from '../src/game/mentoring'
 import type { GameState, PressItem } from '../src/game/model'
@@ -152,7 +153,19 @@ console.log('\none full season, watched:\n')
   const meetingsSeen = new Map<number, { tag?: string }>()
   const intlSeen = new Map<number, (typeof g.news)[number]>()
   let guard = 0
+  // A MANAGER WHO PICKS HIS SIDE (1.8.17). Since 1.8.17's board-patience
+  // round a big club's board notices a manager who never names the XV, and
+  // in this world an unmanaged Northampton was sacked in week 25, before the
+  // autumn Tests, so there was nobody to report them to. The probe is about
+  // the reports, not the job: he names his best fit XV each week, as
+  // pointsprobe's manager does.
+  const pickXV = () => {
+    const c = g.clubs[g.userClubId]
+    const pool = c.players.map(id => g.players[id]).filter(p => p && !p.injury && p.bans === 0 && !p.onLoan && !p.natSquad && !p.acad)
+    if (pool.length >= 23) { c.tactic.lineup = autoSelect(g, pool as any, c.tactic?.split); c.tactic.userPicked = true }
+  }
   while (g.season === start && guard++ < 60) {
+    if (!g.unemployed) pickXV()
     processWeekAndAdvance(g)
     for (const n of g.news) if (n.subject.includes('Recruitment meeting')) meetingsSeen.set(n.id, { tag: n.tag })
     // international reports too, for the same reason: the autumn window is

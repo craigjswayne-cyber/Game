@@ -1,4 +1,4 @@
-import type { Club, GameState, PendingDeal, Player } from './model'
+import type { Club, GameState, NewsItem, PendingDeal, Player, TransferOffer } from './model'
 import { MARQUEE_SLOTS } from './cap'
 import { t, tIn, type Vars } from './i18n'
 import { clubIntent } from './living'
@@ -19,6 +19,7 @@ import { agentTermsLift, talkPremium, unsettledFee, unsettledTerms } from './rec
 import { chooseBetween, liveRivalBid, openRivalBid, rivalBidLine, rivalBidWon } from './rivalbids'
 import { noteBlocked } from './arcbook'
 import { requestLocked } from './handshake'
+import { bidRefused, flattered, saleFelt } from './fallout'
 import { isDeadlineWeek, nextOpening, nextWeek, openDate, windowOpen } from './window'
 
 // ------------------------------------------------------------------
@@ -312,6 +313,8 @@ export function executeTransfer(state: GameState, p: Player, toClubId: string, f
   // a man out on loan comes home before he is sold: the flag used to travel
   // with him to the buyer until the rollover (1.6.3, scripts/qa/p3_loans.ts)
   if (p.onLoan) { p.onLoan = false; p.loanClub = undefined; p.loanSince = undefined }
+  // the dressing room's reaction, read while he is still one of them (fallout.ts)
+  if (from) saleFelt(state, from, p)
   if (from) {
     from.players = from.players.filter(id => id !== p.id)
     if (from.marquee) from.marquee = from.marquee.filter(id => id !== p.id)
@@ -473,7 +476,11 @@ export function aiTransfers(state: GameState, rng: Rng) {
     if (buyer.id === state.userClubId || buyer.budget < 200_000 || embargoed(state, buyer.id)) continue
     const targets = Object.values(state.players).filter(p =>
       p.clubId && p.clubId !== buyer.id && p.clubId !== state.userClubId &&
-      !p.loanFrom && !p.retiring && (p.transferListed || p.morale < 4 || p.contractEnds <= state.season) &&
+      !p.loanFrom && !p.retiring &&
+      // a summer clear-out listing is for the manager to answer (rivalbids.ts
+      // aiSummerMarket), not a new supply for this loop: it stays the market
+      // it was, so the AI economy and the title race read as they did
+      ((p.transferListed && !p.clearOut) || p.morale < 4 || p.contractEnds <= state.season) &&
       !promisedElsewhere(state, p.id) && // (1.8.14, as above; 1.8.15 agreed deals too)
       p.ca >= 62 && p.ca <= buyer.rep + 12 && askingPrice(state, p) <= buyer.budget)
     if (!targets.length) continue
@@ -526,8 +533,9 @@ export function aiTransfers(state: GameState, rng: Rng) {
     // a week it could not be accepted; an accepted bid outside a window is now
     // an agreed sale that completes when the window opens (pendingDeals).
     if (promisedElsewhere(state, p.id)) continue
+    const offerId = state.nextId++
     state.offers.push({
-      id: state.nextId++, playerId: p.id, fromClubId: bidder.id, toClubId: user.id,
+      id: offerId, playerId: p.id, fromClubId: bidder.id, toClubId: user.id,
       fee, week: state.week, forUser: true, status: 'pending',
     })
     state.news.push({
@@ -538,7 +546,7 @@ export function aiTransfers(state: GameState, rng: Rng) {
         : `${bidder.name} have tabled a bid of ${fmtMoney(fee)} for ${p.name}. The offer will not stay open for long.`,
       k: bidDeadline ? 'news.bidDeadline' : 'news.bidIn',
       v: { player: p.name, bidder: bidder.name, fee: fmtMoney(fee) },
-      playerId: p.id,
+      playerId: p.id, offerId,
     })
   }
 
@@ -583,7 +591,7 @@ export function aiTransfers(state: GameState, rng: Rng) {
         player: p.name, rival: rival.name, short: rival.short, ousted, fee: fmtMoney(o.fee),
         tail_k: (o.raises ?? 0) >= 3 ? 'news.bidDone' : 'news.bidMore',
       },
-      playerId: p.id,
+      playerId: p.id, offerId: o.id,
     })
   }
 
@@ -913,6 +921,20 @@ export function counterIncomingOffer(state: GameState, offerId: number): string 
   return t('reply.bidderWalks', { club: bidder.short })
 }
 
+/** The bids for the manager's men, by the stories that bring them. */
+const BID_STORIES = ['bidIn', 'bidDeadline', 'biddingWar', 'huntBid', 'rivalPushBid']
+
+/** The open bid a story is about, or nothing once it has been answered, has
+ *  lapsed or has gone (Inbox OfferAnswer). A story filed before stories named
+ *  their bid finds it by the player, which is exact while a man can only have
+ *  one open bid at a time. */
+export function openBidFor(state: GameState, n: NewsItem): TransferOffer | undefined {
+  const base = (n.k ?? '').replace(/^news\./, '').replace(/_[fw]+$/, '')
+  if (!BID_STORIES.includes(base) || n.playerId == null || state.unemployed) return undefined
+  const open = (o: TransferOffer) => o.status === 'pending' && o.forUser && o.playerId === n.playerId
+  return n.offerId != null ? state.offers.find(o => o.id === n.offerId && open(o)) : state.offers.find(open)
+}
+
 export function respondToOffer(state: GameState, offerId: number, accept: boolean): string {
   const o = state.offers.find(x => x.id === offerId)
   if (!o || o.status !== 'pending') return t('reply.offerGone')
@@ -956,6 +978,11 @@ export function respondToOffer(state: GameState, offerId: number, accept: boolea
     return t('reply.sold', { player: p.name, club: bidder.name, fee: fmtMoney(o.fee) })
   }
   o.status = 'rejected'
+  // KEPT AGAINST HIS WILL (1.8.18). A man who wanted the move takes the
+  // refusal hard, and a man the room follows takes some of it with him
+  // (fallout.ts)
+  const kept = bidRefused(state, o, p, bidder)
+  if (kept) return kept
   const sulky = p.pers === 'Ambitious' || p.pers === 'Mercenary' || p.pers === 'Temperamental'
   // THE OTHER HALF OF THE HAGGLE. If you went back for more, got it, and then
   // turned the raised bid down anyway, the player knows a club valued him well
@@ -973,6 +1000,8 @@ export function respondToOffer(state: GameState, offerId: number, accept: boolea
     p.morale = clamp(p.morale - (sulky ? 1.4 : 0.5), 1, 10)
     return t('reply.bidRejectedFrustrated', { player: p.name })
   }
+  // a content man hears that he is wanted, and does not mind (fallout.ts)
+  if (flattered(state, p)) return t('reply.bidRejectedFlattered', { player: p.name })
   return t('reply.bidRejectedStays', { player: p.name })
 }
 

@@ -343,6 +343,9 @@ export interface Player {
    *  before 1.8.3 is gone and nothing can bring it back. */
   careerOld?: CareerRow[]
   transferListed: boolean
+  /** Put up for sale in his AI club's summer clear-out (rivalbids.ts
+   *  aiSummerMarket): taken back off the list when the window shuts. */
+  clearOut?: boolean
   youth?: boolean
   /** character type - drives contracts, morale and media reactions */
   pers: Personality
@@ -961,6 +964,10 @@ export interface NewsItem {
   /** multi-name stories: every listed player is tappable in the feed */
   playerIds?: number[]
   fixtureId?: number
+  /** The bid on the manager's desk this story is about (1.8.18), so the reader
+   *  can offer the way to answer it while, and only while, it is still open.
+   *  Absent on older saves and on every story that is not a bid. */
+  offerId?: number
   /** Filed away by the manager. The story stays in state - the Wire, the season
    *  review and the history all read this list - it simply stops appearing in the
    *  inbox reader. */
@@ -1917,6 +1924,9 @@ export interface GameState {
   commission?: import('./commission').Commission | null
   /** the report he filed when he got back */
   scoutFinds?: import('./commission').ScoutFind[] | null
+  /** every verdict the department has given, newest last, capped
+   *  (scoutrecs.ts): the Scouting page's list and the news it owes */
+  scoutRecs?: import('./scoutrecs').ScoutRec[]
   /** legacy: facilities now live on the club. Kept so old saves can be
    *  migrated into Club.facilities, then emptied. */
   facilities?: Partial<Record<FacilityId, number>>

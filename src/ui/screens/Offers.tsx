@@ -16,7 +16,7 @@ import { t } from '../../game/i18n'
  *  Continue now stops here instead. One bid at a time, the context you need to
  *  judge it, and no way past without an answer. The week does not move until the
  *  desk is clear, which is also how a real director of rugby's week works. */
-export default function Offers() {
+export default function Offers({ focus }: { focus?: number }) {
   const game = useStore(s => s.game)!
   useStore(s => s.tick)
   const { touch, continueWeek, go } = useStore.getState()
@@ -27,7 +27,8 @@ export default function Offers() {
   const [msg, setMsg] = useState<{ key: number; text: string } | null>(null)
 
   const pending = game.offers.filter(o => o.status === 'pending' && o.forUser)
-  const o = pending[0]
+  // arriving from a story about one bid (Inbox OfferAnswer), that bid is on top
+  const o = pending.find(x => x.id === focus) ?? pending[0]
 
   // The desk is clear: press on with the week that was interrupted. This is the
   // only way out of the screen, which is the point of it.

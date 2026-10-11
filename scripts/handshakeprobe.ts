@@ -8,16 +8,18 @@
 //   5. no match played (postponed): the promise waits
 //   6. saves: a damaged pledge or lock is dropped, not trusted
 //   7. six languages carry every key
+//   8. no competitive match next week (the summer): the promise is not offered,
+//      and one already made waits rather than breaking
 //
 // Run: npx vite-node scripts/handshakeprobe.ts
 import { readFileSync } from 'node:fs'
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
-import { answerPress } from '../src/game/media'
+import { answerPress, generatePress } from '../src/game/media'
 import { migrate } from '../src/game/save'
 import { canAnswerRequest } from '../src/game/chats'
 import { executeTransfer, offerRenewalAt, renewalDemand } from '../src/game/ai'
-import { requestLocked, startPromise } from '../src/game/handshake'
+import { competitiveMatchIn, requestLocked, startPromise } from '../src/game/handshake'
 import type { GameState, Player, PressItem } from '../src/game/model'
 
 let fails = 0
@@ -169,6 +171,60 @@ const newsFor = (g: GameState, p: Player, k: string) => g.news.some(n => n.k ===
     const missing = keys.filter(k => typeof k.split('.').reduce((x: unknown, s) => (x as Record<string, unknown>)?.[s], o) !== 'string')
     ok(!missing.length, `${lang}: every key${missing.length ? ` (missing ${missing.join(', ')})` : ''}`)
   }
+}
+
+// ---- 8. the summer: no match, no promise ----
+{
+  /** The bench question as the room would ask it this week, if it is one of
+   *  the week's candidates: every chance-gated room is shut (the rng reads
+   *  0.99), then the pick is walked across the candidate list. */
+  const benchAsked = (g: GameState): PressItem | null => {
+    let calls = 0
+    const probe = clone(g)
+    for (const q of probe.press) q.answered = true
+    generatePress(probe, () => { calls++; return 0.99 })
+    for (let i = 0; i < 40; i++) {
+      const h = clone(g)
+      for (const q of h.press) q.answered = true
+      const before = new Set(h.press.map(q => q.id))
+      let k = 0
+      generatePress(h, () => { k++; return k < calls ? 0.99 : k === calls ? 0 : (i + 0.5) / 40 })
+      const item = h.press.find(q => !before.has(q.id) && (q.qk ?? '').startsWith('press.benchQ'))
+      if (item) return item
+    }
+    return null
+  }
+  const offersStart = (q: PressItem) => q.options.some(o => o.pledge === 'start')
+
+  // in the season, with a match next week, the promise is on the table
+  // (the first such week in which somebody qualifies for the question)
+  const g = clone(base)
+  let guard = 0
+  let inSeason: PressItem | null = null
+  while (g.week < 40 && guard++ < 40) {
+    if (competitiveMatchIn(g, g.userClubId, g.week + 1) && (inSeason = benchAsked(g))) break
+    settle(g)
+  }
+  ok(!!inSeason && offersStart(inSeason), `week ${g.week}, a match next week: the bench question offers "He'll start next week"`)
+
+  // the summer: the season is over and the next match is weeks away
+  guard = 0
+  while (g.season === base.season && (g.week < 44 || competitiveMatchIn(g, g.userClubId, g.week + 1)) && guard++ < 60) settle(g)
+  ok(g.season === base.season && !competitiveMatchIn(g, g.userClubId, g.week + 1), `week ${g.week}: no competitive match next week`)
+  const summer = benchAsked(g)
+  ok(!!summer, `week ${g.week}: the bench question can still be asked`)
+  ok(!!summer && !offersStart(summer) && summer.options.length >= 2,
+    `but without the promise of a start (${summer?.options.map(o => o.lk).join(', ')})`)
+
+  // a promise already on the ledger cannot break across weeks with no match
+  const h = clone(g)
+  const p = promise(h)
+  const club = h.clubs[h.userClubId]
+  club.tactic.lineup = club.tactic.lineup.map(id => (id === p.id ? null : id))
+  let quiet = 0
+  for (let i = 0; i < 3 && h.season === g.season && !competitiveMatchIn(h, h.userClubId, h.week); i++) { settle(h); quiet++ }
+  ok(quiet > 0 && !newsFor(h, p, 'news.startBroke') && !requestLocked(p),
+    `${quiet} weeks without a match: the promise has not been judged broken`)
 }
 
 console.log(fails ? `HANDSHAKE PROBE FAILED (${fails})` : 'HANDSHAKE PROBE PASSED')

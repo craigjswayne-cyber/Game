@@ -1860,7 +1860,7 @@ export function rebuildSeason(state: GameState) {
     const down = topOrder[topOrder.length - 1]
     const up = lowComp.champion ?? sortTable(lowComp.table)[0]?.teamId
     if (!down || !up || down === up || !state.clubs[down] || !state.clubs[up]) continue
-    // THE ENGLISH TRAPDOOR IS A GAME NOW (21A). Finals day's playoff decided
+    // THE ENGLISH TRAPDOOR IS A GAME NOW (21A). The relegation playoff decided
     // this pair on the pitch: the swap only happens if the Championship
     // winner actually won it. A save that rolled over without the fixture
     // (or a playoff that somehow never played) falls back to the automatic
@@ -2204,6 +2204,8 @@ export function rebuildSeason(state: GameState) {
     state.scoutFinds = state.scoutFinds.filter(f => state.players[f.playerId])
     if (!state.scoutFinds.length) state.scoutFinds = null
   }
+  // and the verdicts behind the Scouting page
+  if (state.scoutRecs?.length) state.scoutRecs = state.scoutRecs.filter(r => state.players[r.playerId])
   // the shortlist has the same shape of problem
   if (state.shortlist?.length) {
     state.shortlist = state.shortlist.filter(pid => state.players[pid])

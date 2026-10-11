@@ -19,7 +19,7 @@ const ok = (cond: boolean, what: string) => {
   if (!cond) fails++
 }
 
-/** Walk a season to the playoff week (BARRAGE_WEEK, 43 since 1.6.5) with the bar played, hand the scoreline to the
+/** Walk a season to the playoff week (BARRAGE_WEEK, semi-final week; finals day was 43) with the bar played, hand the scoreline to the
  *  caller to bend, then roll into next season and report who plays where. */
 function runSeason(seed: number, bend: (bar: Fixture, g: GameState) => void) {
   const g = newGame('northampton', 'Barrage', seed)
@@ -56,6 +56,28 @@ function runSeason(seed: number, bend: (bar: Fixture, g: GameState) => void) {
     ok(g.clubs[up] != null && bar.awayId === up, `the Championship winner travels (${g.clubs[up]?.short})`)
     ok(bar.played, 'and the game was actually played')
     ok(g.news.some(n => /relegation play-?off/i.test(n.subject)), 'the playoff was announced when the finals settled')
+  }
+}
+
+// ---- finals day stands alone (owner: "when it is prem final day - other
+// games like a playoff for relegation should not be in the same week") -------
+{
+  const g = newGame('northampton', 'Barrage', 7)
+  let guard = 0
+  while (g.season === 0 && g.week < 44 && guard++ < 60) processWeekAndAdvance(g)
+  const bar = g.fixtures.find(f => f.compId === 'prem' && f.stage === 'BAR')
+  const final = g.fixtures.find(f => f.compId === 'prem' && f.stage === 'F')
+  const champFinal = g.fixtures.find(f => f.compId === 'champ' && f.stage === 'F')
+  ok(!!bar && !!final && !!champFinal, 'the playoff, the Premiership final and the Championship final all exist')
+  if (bar && final && champFinal) {
+    ok(bar.week !== final.week, `the playoff (week ${bar.week}) is not on finals day (week ${final.week})`)
+    const finalsDay = g.fixtures.filter(f => f.compId === 'prem' && f.week === final.week)
+    ok(finalsDay.length === 1, `finals day holds the final and nothing else (${finalsDay.length} Premiership fixtures)`)
+    ok(champFinal.week < bar.week, `the Championship crowns its winner (week ${champFinal.week}) before the playoff`)
+    const both = [bar.homeId, bar.awayId]
+    const clash = g.fixtures.filter(f => f !== bar && f.week === bar.week && !f.devSide && !f.midweek &&
+      (both.includes(f.homeId) || both.includes(f.awayId)))
+    ok(clash.length === 0, 'and neither playoff club has another fixture that week')
   }
 }
 

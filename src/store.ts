@@ -170,6 +170,8 @@ export type Screen =
   // the two the store release added: what this is and who made it, and the one
   // till in the game (which has a door only where a store exists to open it)
   | 'about' | 'supporter'
+  // the scouting department's own page, under Training and Staff (owner)
+  | 'scouting'
 
 interface NavEntry {
   screen: Screen

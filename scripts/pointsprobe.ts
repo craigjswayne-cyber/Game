@@ -122,7 +122,9 @@ const run = (capacity: number, seed: number) => {
   for (let i = 0; i < 30; i++) { pickXV(s2); processWeekAndAdvance(s2) }
   return s2
 }
-const WORLDS = [11, 15, 16, 12]
+// TWELVE WORLDS (1.8.17), so that enough of them have two sides who won
+// alike (the like-with-like reading below; seven of the twelve do).
+const WORLDS = [11, 15, 16, 12, 3, 7, 21, 33, 5, 9, 19, 27]
 let seed4 = WORLDS[0]
 let f = run(1_000, seed4)    // a ground that cannot help selling out
 for (const sd of WORLDS.slice(1)) {
@@ -139,11 +141,27 @@ ok(!seen(f, 'point.tickets'), 'and never when the club is selling out')
 // 30 weeks of results as much as it compared two grounds: the two-layer
 // engine moved the stream and the single world read 34.9 against 34.5 the
 // wrong way round. The claim is the same; the evidence is four worlds.
+// LIKE WITH LIKE (1.8.17). The two worlds are not twins for long: by week 5
+// a bid one club's money can carry and the other's cannot has gone
+// differently, and from there the results are their own (that was true
+// before 1.8.17 too). Over twelve worlds the luck swamped the gate: one
+// empty-ground side won 17 to the full side's 10 and its board loved it.
+// So the claim is read where the football was equal: the worlds whose two
+// sides won the same number of games, give or take one. There the empty
+// ground's board must sit lower on average.
 const conf = (g: ReturnType<typeof run>) => g.clubs[g.userClubId].boardConfidence
-let emptySum = 0, fullSum = 0
-for (const sd of WORLDS) { emptySum += conf(run(60_000, sd)); fullSum += conf(run(1_000, sd)) }
+const wins = (g: ReturnType<typeof run>) => g.fixtures.filter(x => x.played && (x.homeId === g.userClubId || x.awayId === g.userClubId) &&
+  (x.homeId === g.userClubId ? x.homeScore! > x.awayScore! : x.awayScore! > x.homeScore!)).length
+let emptySum = 0, fullSum = 0, likeDiff = 0, like = 0
+for (const sd of WORLDS) {
+  const e = run(60_000, sd), fl = run(1_000, sd)
+  emptySum += conf(e); fullSum += conf(fl)
+  if (Math.abs(wins(e) - wins(fl)) <= 1) { likeDiff += conf(e) - conf(fl); like++ }
+}
 console.log(`     over ${WORLDS.length} worlds: empty ground confidence ${(emptySum / WORLDS.length).toFixed(1)}, full ground ${(fullSum / WORLDS.length).toFixed(1)}`)
-ok(emptySum < fullSum,
+console.log(`     where the football was equal (${like} worlds): empty ground ${(likeDiff / Math.max(1, like)).toFixed(1)} points against the full`)
+ok(like >= 4, `enough worlds where the two sides won alike to judge it (${like})`)
+ok(likeDiff < 0,
   'the empty ground costs the manager standing, not just words')
 
 // ---- 5. THE BREAKAWAY NEVER HAPPENS -------------------------------------

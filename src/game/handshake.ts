@@ -29,6 +29,15 @@ export function clubGamesPlayed(state: GameState, clubId: string): number {
   return n
 }
 
+/** Does the club have a competitive match to play in this week? A start can
+ *  only be promised for "next week" when it does (owner: "when we are in the
+ *  off season it should not make promises that a player will be played in the
+ *  next week as there isn't a game"). */
+export function competitiveMatchIn(state: GameState, clubId: string, week: number): boolean {
+  return state.fixtures.some(f => !f.played && f.week === week && f.compId !== 'fr' && !f.devSide &&
+    (f.homeId === clubId || f.awayId === clubId))
+}
+
 /** The live promise of a start made to this player, if any. */
 export function startPromise(state: GameState, p: Player): Pledge | undefined {
   return (state.pledges ?? []).find(pl => pl.kind === 'start' && pl.playerId === p.id && pl.season === state.season)
