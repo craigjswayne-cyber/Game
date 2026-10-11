@@ -594,7 +594,7 @@ export default function App() {
     switch (cur.screen) {
       case 'home': return <Home />
       case 'inbox': return <Inbox />
-      case 'offers': return <Offers />
+      case 'offers': return <Offers focus={cur.param as number | undefined} />
       case 'squad': return <Squad />
       case 'player': return <PlayerScreen playerId={cur.param as number} />
       case 'tactics': return <Tactics initial={cur.param as string | undefined} />

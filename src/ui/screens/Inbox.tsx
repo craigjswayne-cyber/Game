@@ -8,6 +8,7 @@ import { Byline, RuckMark } from '../Byline'
 import { RECALL_DAYS, daysLeft, inInbox, markRead } from '../../game/days'
 import { t } from '../../game/i18n'
 import { answerRequest, canAnswerRequest } from '../../game/chats'
+import { openBidFor } from '../../game/ai'
 import { ContextCard, ResponseNeeded } from '../ContextCard'
 import { newsGlyph } from '../glyphs'
 
@@ -55,11 +56,13 @@ import { newsGlyph } from '../glyphs'
  * Silent on every other story, and silent once the request has been answered
  * anywhere, which is what canAnswerRequest already decides.
  */
+const REQUEST_STORIES = ['news.transferRequest', 'news.bidBlockedRequest', 'news.bidBlockedRequestRoom']
+
 export function RequestAnswer({ n }: { n: NewsItem }) {
   const game = useStore(s => s.game)
   const touch = useStore.getState().touch
   const [msg, setMsg] = useState<string | null>(null)
-  if (!game || n.k !== 'news.transferRequest' || n.playerId == null) return null
+  if (!game || !REQUEST_STORIES.includes(n.k ?? '') || n.playerId == null) return null
   const p = game.players[n.playerId]
   if (!p) return null
   // the reply stays on screen after the buttons have gone, so the answer is
@@ -77,6 +80,30 @@ export function RequestAnswer({ n }: { n: NewsItem }) {
           onConfirm={() => { setMsg(answerRequest(game, p, false)); touch() }} />
       </div>
     </div>
+  )
+}
+
+/**
+ * A BID ON THE DESK, ANSWERED FROM THE STORY THAT BRINGS IT (1.8.18).
+ *
+ * Owner, with a screenshot of "Bath bid £13m for Tommy Freeman": the story
+ * that asks the question needs a way to answer it. The bid stories carried a
+ * quiet link to the Offers screen, and the circling club's own bid (living.ts)
+ * carried nothing but the player's card. Each now carries one plain button to
+ * the desk with this bid on top, for as long as the bid is open: answered,
+ * lapsed or gone, and the button goes with it.
+ *
+ * Which bid, and whether it is still open, is ai.openBidFor.
+ */
+export function OfferAnswer({ n }: { n: NewsItem }) {
+  const game = useStore(s => s.game)
+  const go = useStore(s => s.go)
+  const o = game ? openBidFor(game, n) : undefined
+  if (!o) return null
+  return (
+    <button className="btn gold block offer-answer" onClick={() => go('offers', o.id)}>
+      {t('inbox.respondToOffer')} <span aria-hidden>›</span>
+    </button>
   )
 }
 
@@ -247,6 +274,7 @@ export default function Inbox() {
         <NewsBody body={newsBody(n)} />
         <RuckMark n={n} />
         <RequestAnswer n={n} />
+        <OfferAnswer n={n} />
         <PeopleChips n={n} />
         <NewsGo n={n} />
       </article>

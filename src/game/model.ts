@@ -961,6 +961,10 @@ export interface NewsItem {
   /** multi-name stories: every listed player is tappable in the feed */
   playerIds?: number[]
   fixtureId?: number
+  /** The bid on the manager's desk this story is about (1.8.18), so the reader
+   *  can offer the way to answer it while, and only while, it is still open.
+   *  Absent on older saves and on every story that is not a bid. */
+  offerId?: number
   /** Filed away by the manager. The story stays in state - the Wire, the season
    *  review and the history all read this list - it simply stops appearing in the
    *  inbox reader. */

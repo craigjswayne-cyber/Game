@@ -3786,6 +3786,9 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .bug-send { flex-wrap: wrap; }
 .bug-send .btn { flex: 1 1 auto; white-space: nowrap; }
 .news-go { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; margin: 10px 0 0; padding: 0 14px; font-size: 13px; }
+/* the answer to a bid, under the story that brings it (Inbox OfferAnswer): the
+   reader carries its own gutter, so the button spans it rather than insetting */
+.btn.block.offer-answer { width: 100%; margin: 14px 0 0; }
 
 /* ---- people named in a story (feedback 10F) -----------------------------
    A story already knows who it is about; it just never offered them. */
