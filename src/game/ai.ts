@@ -476,7 +476,11 @@ export function aiTransfers(state: GameState, rng: Rng) {
     if (buyer.id === state.userClubId || buyer.budget < 200_000 || embargoed(state, buyer.id)) continue
     const targets = Object.values(state.players).filter(p =>
       p.clubId && p.clubId !== buyer.id && p.clubId !== state.userClubId &&
-      !p.loanFrom && !p.retiring && (p.transferListed || p.morale < 4 || p.contractEnds <= state.season) &&
+      !p.loanFrom && !p.retiring &&
+      // a summer clear-out listing is for the manager to answer (rivalbids.ts
+      // aiSummerMarket), not a new supply for this loop: it stays the market
+      // it was, so the AI economy and the title race read as they did
+      ((p.transferListed && !p.clearOut) || p.morale < 4 || p.contractEnds <= state.season) &&
       !promisedElsewhere(state, p.id) && // (1.8.14, as above; 1.8.15 agreed deals too)
       p.ca >= 62 && p.ca <= buyer.rep + 12 && askingPrice(state, p) <= buyer.budget)
     if (!targets.length) continue

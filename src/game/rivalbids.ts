@@ -439,7 +439,13 @@ const SUMMER_LISTED_MAX = 2
 /** A club's chance, each summer week, of buying for its thinnest position. */
 const SUMMER_BUY = 0
 /** A listed man's chance, each summer week, of finding a club that wants him. */
-const SUMMER_SELL = 0.06
+// 0 FROM 1.8.17's balance runs: every rate that moved surplus men between AI
+// clubs in volume shifted the AI economy (scripts/aiecon.ts, the mean club's
+// gain) or thinned the rivals a big club on autopilot plays (autopilotprobe).
+// The summer is busy where the manager sees it instead: the clear-out lists
+// men he can buy, and bids come in for his own fringe men. AI clubs still
+// trade at the ordinary window rate in aiTransfers.
+const SUMMER_SELL = 0
 /** The chance, each summer week, of an approach for one of the manager's
  *  fringe men. */
 const SUMMER_BID = 0.6
@@ -518,11 +524,9 @@ export function aiSummerMarket(state: GameState): void {
     const cap = c.leagueId ? state.caps?.[c.leagueId] : null
     return !(typeof cap === 'number' && cap > 0 && capBill(state, c) + wage > cap)
   }
-  // SURPLUS IS WHAT IS LEFT AFTER A SEASON'S WORTH OF COVER: the best
-  // thirty-four, not the best twenty-three (thirty still read 4.6). Cutting at a matchday 23 stripped every AI
-  // squad of the depth a 46-week season of injuries and rotation needs, and a
-  // big club left on autopilot (which keeps its own men) won twice the titles
-  // (scripts/autopilotprobe.ts: 6 of 54, picking your side worth 3.9 points).
+  // SURPLUS IS WHAT IS LEFT AFTER A SEASON'S WORTH OF COVER: a club's best
+  // thirty-four are never listed or bid for. Cutting at a matchday 23 marked
+  // the depth a 46-week season of injuries needs as spare.
   const surplus = (c: Club): Player[] => {
     const squad = c.players.map(id => state.players[id]).filter((p): p is Player => !!p && !p.acad && !p.youth)
     const cut = squad.map(p => p.ca).sort((a, b) => b - a)[SURPLUS_KEEP - 1] ?? -1

@@ -73,11 +73,13 @@ for (const [club, seed, walk] of [['leicester', 7101, false], ['bath', 7102, tru
   const illegal: string[] = []
   const deskShut: string[] = []
   let moves = 0, sold = 0, refused = 0
-  // the summer is the busy window (rivalbids.ts aiSummerMarket): moves and
-  // bids for the manager's men, tallied by the window they landed in
+  // the summer is the busy window where the manager sees it (rivalbids.ts
+  // aiSummerMarket): men on AI lists he can buy, and bids for his own men,
+  // tallied by the window they landed in. Moves between AI clubs run at the
+  // ordinary rate in both windows since 1.8.17's balance runs.
   const SUMMER = (w: number) => w >= SUMMER_OPEN || w <= SUMMER_SHUT
   const JAN = (w: number) => w >= JANUARY_OPEN && w <= JANUARY_SHUT
-  const tally = { summer: { weeks: 0, moves: 0, bids: 0 }, january: { weeks: 0, moves: 0, bids: 0 } }
+  const tally = { summer: { weeks: 0, moves: 0, bids: 0, listed: 0 }, january: { weeks: 0, moves: 0, bids: 0, listed: 0 } }
   // every notice as it is filed (the shelf is trimmed later), and the week the
   // manager stopped having an inbox for them, if he was sacked
   const seen = new Set<number>()
@@ -126,6 +128,7 @@ for (const [club, seed, walk] of [['leicester', 7101, false], ['bath', 7102, tru
     if (bucket) {
       bucket.weeks++
       bucket.bids += g.offers.filter(o => o.forUser && !bidsBefore.has(o.id)).length
+      bucket.listed += Object.values(g.players).filter(p => p.transferListed && p.clubId && p.clubId !== g.userClubId).length
     }
     for (const p of Object.values(g.players)) {
       const b = was.get(p.id)
@@ -162,10 +165,10 @@ for (const [club, seed, walk] of [['leicester', 7101, false], ['bath', 7102, tru
   }
   console.log(`  ${moves} moves between clubs, ${sold} of them the manager's sales${sackedAt < Infinity ? `, sacked at ${sackedAt}` : ''}`)
   ok(moves > 10, 'the market still moves')
-  const rate = (b: { weeks: number; moves: number; bids: number }, k: 'moves' | 'bids') => b.weeks ? b[k] / b.weeks : 0
-  console.log(`  a summer week: ${rate(tally.summer, 'moves').toFixed(2)} moves, ${rate(tally.summer, 'bids').toFixed(2)} bids for his men; a January week: ${rate(tally.january, 'moves').toFixed(2)} moves, ${rate(tally.january, 'bids').toFixed(2)} bids`)
-  ok(rate(tally.summer, 'moves') > 2 * rate(tally.january, 'moves'),
-    'the summer window is the busy one: more than twice the moves a week of January')
+  const rate = (b: { weeks: number; moves: number; bids: number; listed: number }, k: 'moves' | 'bids' | 'listed') => b.weeks ? b[k] / b.weeks : 0
+  console.log(`  a summer week: ${rate(tally.summer, 'listed').toFixed(1)} men listed, ${rate(tally.summer, 'moves').toFixed(2)} moves, ${rate(tally.summer, 'bids').toFixed(2)} bids for his men; a January week: ${rate(tally.january, 'listed').toFixed(1)} listed, ${rate(tally.january, 'moves').toFixed(2)} moves, ${rate(tally.january, 'bids').toFixed(2)} bids`)
+  ok(rate(tally.summer, 'listed') > 2 * rate(tally.january, 'listed'),
+    'the summer window is the busy one: more than twice the men on the market of January')
   ok(tally.summer.bids > 0, 'and the phone rings for his players in the summer')
   ok(illegal.length === 0, `no permanent move between clubs outside a window${illegal.length ? ': ' + illegal.slice(0, 5).join('; ') : ''}`)
   console.log(`  bids on the desk in shut weeks: ${deskShut.length} (allowed from 1.8.15)`)
