@@ -578,9 +578,9 @@ export function generatePress(state: GameState, rng: Rng) {
         p.id, [
           opt({ morale: -0.6, board: 0.2, unsettle: true, lk: 'press.benchDoor', rk: 'press.benchDoorR' }),
           opt({ morale: 0.1, board: 0, lk: 'press.benchBuilding', rk: 'press.benchBuildingR' }),
-          // the promise needs a match to keep it in: none next week (the
-          // summer, a blank week), and it is not on the table
-          ...(competitiveMatchIn(state, club.id, state.week + 1)
+          // the promise needs a match to keep it in: none still to play this
+          // week or next (the summer, a blank week), and it is not on the table
+          ...(competitiveMatchIn(state, club.id, state.week) || competitiveMatchIn(state, club.id, state.week + 1)
             ? [opt({ morale: 0.7, board: 0, lock: true, pledge: 'start', lk: 'press.benchNextWeek', rk: 'press.benchNextWeekR', rv: { player: p.name } })]
             : []),
         ], rng))
