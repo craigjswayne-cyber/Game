@@ -40,7 +40,9 @@ const TARGETS = [
   { store: 'ios', dir: 'ios-ipad13', w: 1024, h: 1366, dsf: 2, touch: true },
 ].filter(t => !only || t.store === only || t.dir === only)
 
-const LANGS = ['en', 'fr']
+// en and fr by default; LANGS=en,fr,es,it,ja,af for the whole listing
+const LANGS = (process.env.LANGS ?? 'en,fr').split(',')
+const LOCALES = { en: 'en-GB', fr: 'fr-FR', es: 'es-ES', it: 'it-IT', ja: 'ja-JP', af: 'af-ZA' }
 
 const server = await startPreview('4210', 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
@@ -158,7 +160,7 @@ try {
       const page = await browser.newPage({
         viewport: { width: target.w, height: target.h },
         deviceScaleFactor: target.dsf,
-        locale: lang === 'fr' ? 'fr-FR' : 'en-GB',
+        locale: LOCALES[lang] ?? 'en-GB',
         hasTouch: !!target.touch, isMobile: !!target.touch,
       })
       page.setDefaultTimeout(12000)
