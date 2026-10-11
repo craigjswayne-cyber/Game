@@ -64,11 +64,12 @@ export const SEASON_LEN = 48
 // 34     CC quarter-finals (early April)
 // 35-37  league
 // 38     CC semi-finals (early May)
-// 39     league
-// 40     league playoff round 1 (QF / barrage); Championship semi-finals
+// 39     league; Championship semi-finals (its league ends in 37)
+// 40     league playoff round 1 (QF / barrage); Championship FINAL
 // 41     CC FINAL (end of May)
-// 42     league semi-finals; Championship FINAL
-// 43     league FINALS (June); the relegation playoff, Premiership bottom v Championship winner
+// 42     league semi-finals; the relegation playoff, Premiership bottom v
+//        Championship winner (the bottom club is never a semi-finalist)
+// 43     league FINALS (June), and nothing else in England
 // 44-45  summer Tests (north heads south)
 // 44-48  an Isles XV tour, every fourth year
 export const PRESEASON_WEEKS = [1, 2, 3]
@@ -128,7 +129,8 @@ export const W_CUP_LEAGUES = [W + 'pwr', W + 'pac', W + 'e1', W + 'celt']
 /** The weeks a league's rounds may use. Zero spare in the women's lists is
  *  deliberate: every week of the women's year is spoken for. */
 export function leagueWeeksFor(gender: Gender, worldCup: boolean, leagueId: string): number[] {
-  if (gender !== 'w') return LEAGUE_WEEKS
+  // the Championship gives up week 39 to its semi-finals (CHAMP_KO_WEEKS)
+  if (gender !== 'w') return leagueId === 'champ' ? LEAGUE_WEEKS.filter(w => !CHAMP_KO_WEEKS.includes(w)) : LEAGUE_WEEKS
   const base = worldCup ? W_LEAGUE_WEEKS_WC : W_LEAGUE_WEEKS
   if (W_CUP_LEAGUES.includes(leagueId)) return base
   return [...base, ...W_CC_POOL_WEEKS].sort((a, b) => a - b)
@@ -138,17 +140,24 @@ export function preseasonWeeksFor(gender: Gender): number[] {
   return gender === 'w' ? W_PRESEASON_WEEKS : PRESEASON_WEEKS
 }
 
-/** The relegation playoff (Premiership bottom v Championship winner) plays on
- *  finals day, inside the season. It was week 44 until 1.6.5, which is the
- *  summer camp week: both clubs played it without their internationals. */
-export const BARRAGE_WEEK = 43
+/** The relegation playoff (Premiership bottom v Championship winner) plays
+ *  in the Premiership's semi-final week, inside the season. It was week 44
+ *  until 1.6.5, which is the summer camp week: both clubs played it without
+ *  their internationals. Then it was 43, finals day, which put a relegation
+ *  scrap on the round-up beside the Premiership final (owner: "when it is prem
+ *  final day, other games like a playoff for relegation should not be in the
+ *  same week"). The final now has its week to itself. */
+export const BARRAGE_WEEK = 42
+
+/** The Championship's semi-finals and final, early enough to crown its winner
+ *  before the relegation playoff: semi-finals in 39 (its last league round
+ *  moves back to 37), the final in 40, clear of the Shield final in 41 that a
+ *  Championship club can also be in (scripts/qa2/matrix.ts caught Exeter drawn
+ *  twice). Four clubs only: there is no free week for a bigger bracket. */
+export const CHAMP_KO_WEEKS = [39, 40]
 
 export function playoffWeeksFor(playoffTeams: number, leagueId = ''): number[] {
-  // the Championship crowns its winner a week early, so the relegation
-  // playoff can be played on finals day rather than in the summer camp week
-  // (semi-finals in 40, not 41: the Shield final is 41, and a Championship
-  // club can be in both - scripts/qa2/matrix.ts caught Exeter drawn twice)
-  if (leagueId === 'champ') return playoffTeams > 4 ? [40, 41, 42] : [40, 42]
+  if (leagueId === 'champ') return CHAMP_KO_WEEKS
   return playoffTeams > 4 ? [40, 42, 43] : [42, 43]
 }
 

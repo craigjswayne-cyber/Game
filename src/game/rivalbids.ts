@@ -39,16 +39,16 @@
  */
 import type { Club, GameState, Player, Pos } from './model'
 import { XV_SLOTS, absWeek, careerRows, fmtMoney, fmtWage, isMyClub, leagueTier } from './model'
-import { INK_WEEKS, askingPrice, freeDeal, capBill, embargoed, executeTransfer, promisedElsewhere, seniorsOf, SQUAD_LIMIT, windowOpen } from './ai'
+import { FREE_RESALE, INK_WEEKS, aiShoppingTarget, askingPrice, freeDeal, capBill, embargoed, executeTransfer, promisedElsewhere, seniorsOf, SQUAD_LIMIT, windowOpen } from './ai'
 import { aiCanCarry, aiPayRate, aiWageRooms } from './aiecon'
 import { playerWage } from './attributes'
 import { clubIntent } from './living'
-import { agentTone } from './recruit'
+import { agentTone, unsettledFee } from './recruit'
 import { rivalsOf } from './rivalries'
 import { rivalCoach } from './rivalcoach'
 import { clamp, hashString, mulberry32 } from './rng'
 import { tIn, type Vars } from './i18n'
-import { JANUARY_OPEN, SUMMER_SHUT, nextWeek } from './window'
+import { JANUARY_OPEN, SUMMER_OPEN, SUMMER_SHUT, nextWeek } from './window'
 
 const rand = (s: string): number => mulberry32(hashString(s))()
 
@@ -426,6 +426,174 @@ export function aiFreeAgents(state: GameState): void {
     executeTransfer(state, p, best.id, 0)
     if (p.clubId === best.id) p.wage = bestWage
   }
+}
+
+// ---------------------------------------------------------------- the summer market ---
+
+/** A club's chance, each summer week, of putting a surplus man up for sale. */
+const SUMMER_LIST = 0.15
+/** No club has more than this many men on its list at once (aiFireSale's cap). */
+const SUMMER_LISTED_MAX = 2
+/** A club's chance, each summer week, of buying for its thinnest position. */
+const SUMMER_BUY = 0
+/** A listed man's chance, each summer week, of finding a club that wants him. */
+const SUMMER_SELL = 0.06
+/** The chance, each summer week, of an approach for one of the manager's
+ *  fringe men. */
+const SUMMER_BID = 0.6
+
+/**
+ * THE SUMMER IS WHEN RUGBY DOES ITS BUSINESS (owner, 2026-27: "the off season
+ * needs work - there are no deals in the transfer bit, check if there ever
+ * are").
+ *
+ * There were, but no more of them than in January. aiTransfers gives every
+ * window week the same few tries, so the eleven summer weeks ran at the
+ * January rate, under one move between AI clubs a week across a hundred clubs,
+ * and fewer bids for the manager's men than January. Measured over three
+ * careers of two seasons (Northampton, seeds 3, 7, 11): 0.74 moves a summer
+ * week, 0.58 a January week; 0.68 bids for his players a summer week, 0.96 a
+ * January week; about ten men listed in the whole world.
+ *
+ * Real summers are the busy ones: squads are rebuilt, the men a club no longer
+ * needs are put up for sale, and the phones ring about the manager's fringe
+ * players. So in the summer window only, on top of aiTransfers:
+ *
+ *   THE CLEAR-OUT. A club puts a surplus man up for sale: outside its best 23,
+ *   with two better men in his position, never more than two listed at once.
+ *   The manager's market has a shop window to browse.
+ *   NEED. A club buys for its thinnest position (aiShoppingTarget, the same
+ *   choice aiTransfers makes) when it can carry the wage.
+ *   THE LISTED MOVE. A listed man goes to a club that would play him and can
+ *   pay his fee and his wage.
+ *   THE PHONE RINGS. A club that would play him bids for one of the manager's
+ *   fringe men, at about his value: a squad man is not bought at a premium.
+ *
+ * Measured after, the same three careers: 4.7 moves a summer week against
+ * 0.6 in January, 1.0 bids for his men a summer week against 0.9, and about
+ * sixty men listed through the summer, back to seven once it shuts.
+ *
+ * A man whose contract runs out at the rollover is nobody's to sell: he leaves
+ * for nothing in a week or two. Every decision is a hash of the seed, the ids
+ * and the week (see DETERMINISM above), so the shared stream does not move.
+ */
+export function aiSummerMarket(state: GameState): void {
+  // the window has shut: a clear-out man nobody bought is back in the squad
+  if (state.week === SUMMER_SHUT + 1) {
+    for (const p of Object.values(state.players)) {
+      if (!p.clearOut) continue
+      if (p.clubId && !isMyClub(state, p.clubId)) p.transferListed = false
+      p.clearOut = undefined
+    }
+  }
+  if (!(state.week >= SUMMER_OPEN || state.week <= SUMMER_SHUT)) return
+  const key = `${state.seed}|${state.season}|${state.week}`
+  const clubs = Object.values(state.clubs).filter(c => !isMyClub(state, c.id))
+    .sort((a, b) => a.id.localeCompare(b.id))
+  const leaving = (p: Player) => state.week >= SUMMER_OPEN && p.contractEnds <= state.season
+  const free = (p: Player) => !p.acad && !p.youth && !p.onLoan && !p.loanFrom && !p.retiring &&
+    !leaving(p) && !promisedElsewhere(state, p.id)
+  const rooms = aiWageRooms(state)
+  const used = new Set<string>()
+  // A SUMMER MOVE CARRIES HIS WAGE WITH HIM. executeTransfer puts a man
+  // joining an AI club on that club's pay rate, which is usually a cut, and
+  // fifty moves a summer cutting fifty wages took money out of the world's
+  // wage bill and put it in the boards' accounts (scripts/aiecon.ts: the median
+  // club's gain rose from 0.18M a season to 0.30M). The buying club pays what
+  // he was on, at least, and has to be able to carry it.
+  const wageAt = (c: Club, p: Player, room: number) =>
+    Math.max(p.wage, Math.max(p.wage, playerWage(p.ca, p.age)) * aiPayRate(state, c, room))
+  const move = (p: Player, c: Club, fee: number) => {
+    const wage = wageAt(c, p, rooms.get(c.id) ?? 0)
+    executeTransfer(state, p, c.id, fee)
+    if (p.clubId === c.id) { p.wage = Math.round(wage / 50) * 50; used.add(c.id) }
+  }
+  // can this club pay what he will be on?
+  const carries = (c: Club, p: Player): boolean => {
+    const room = rooms.get(c.id) ?? 0
+    const wage = wageAt(c, p, room)
+    if (!aiCanCarry(state, c, wage, room)) return false
+    const cap = c.leagueId ? state.caps?.[c.leagueId] : null
+    return !(typeof cap === 'number' && cap > 0 && capBill(state, c) + wage > cap)
+  }
+  const surplus = (c: Club): Player[] => {
+    const squad = c.players.map(id => state.players[id]).filter((p): p is Player => !!p && !p.acad && !p.youth)
+    const cut = squad.map(p => p.ca).sort((a, b) => b - a)[22] ?? -1
+    return squad.filter(p => p.ca < cut && betterAt(state, c, p) >= 2)
+  }
+
+  // the clear-out
+  for (const c of clubs) {
+    if (rand(`smlist|${key}|${c.id}`) >= SUMMER_LIST) continue
+    if (c.players.filter(id => state.players[id]?.transferListed).length >= SUMMER_LISTED_MAX) continue
+    const pool = surplus(c).filter(p => free(p) && !p.transferListed && !p.injury)
+    if (!pool.length) continue
+    const sell = pool.reduce((best, p) => (p.value > best.value ? p : best), pool[0])
+    sell.transferListed = true
+    sell.clearOut = true
+  }
+
+  // need
+  for (const c of clubs) {
+    if (rand(`smbuy|${key}|${c.id}`) >= SUMMER_BUY) continue
+    if (c.budget < 800_000 || embargoed(state, c.id) || seniorsOf(state, c) >= SQUAD_LIMIT) continue
+    const p = aiShoppingTarget(state, c)?.target
+    if (!p || !free(p) || !carries(c, p)) continue
+    move(p, c, askingPrice(state, p))
+  }
+
+  // the listed move
+  const listed = Object.values(state.players)
+    .filter(p => p.clearOut && p.transferListed && p.clubId && !isMyClub(state, p.clubId) && free(p))
+    .sort((a, b) => a.id - b.id)
+  for (const p of listed) {
+    if (rand(`smsell|${key}|${p.id}`) >= SUMMER_SELL) continue
+    const fee = askingPrice(state, p)
+    let best: Club | null = null, bestKeen = -Infinity
+    for (const c of clubs) {
+      if (c.id === p.clubId || used.has(c.id) || c.rep < p.ca - 12 || c.budget < fee || embargoed(state, c.id) ||
+        seniorsOf(state, c) >= SQUAD_LIMIT || clubIntent(state, c) === 'breakup') continue
+      const mins = minutesAt(state, c, p)
+      if (mins < 1 || !carries(c, p)) continue
+      const keen = mins + c.rep / 20 + rand(`smkeen|${key}|${p.id}|${c.id}`)
+      if (keen > bestKeen) { bestKeen = keen; best = c }
+    }
+    if (!best) continue
+    move(p, best, fee)
+  }
+
+  // the phone rings: a bid lands only when the next week is open to answer it
+  if (state.unemployed || !windowOpen(nextWeek(state.week)) || rand(`smbid|${key}`) >= SUMMER_BID) return
+  const user = state.clubs[state.userClubId]
+  if (!user) return
+  const now = absWeek(state.season, state.week)
+  const fringe = surplus(user).filter(p => free(p) && p.ca >= 55 &&
+    !(p.joinedAt != null && now - p.joinedAt < INK_WEEKS) &&
+    !state.offers.some(o => o.playerId === p.id && o.status === 'pending'))
+    .sort((a, b) => a.id - b.id)
+  if (!fringe.length) return
+  const p = fringe[hashString(`smbidp|${key}`) % fringe.length]
+  const bidders = clubs.filter(c => c.rep >= p.ca - 12 && c.budget >= p.value * 0.8 && !embargoed(state, c.id) &&
+    seniorsOf(state, c) < SQUAD_LIMIT && minutesAt(state, c, p) >= 1)
+  if (!bidders.length) return
+  const bidder = bidders[hashString(`smbidc|${key}|${p.id}`) % bidders.length]
+  const fee = Math.round(p.value * (0.9 + rand(`smfee|${key}|${p.id}`) * 0.25) * unsettledFee(p) *
+    (freeDeal(state, p) ? FREE_RESALE : 1) / 10_000) * 10_000
+  if (fee <= 0) return
+  // a squad man's bid starts no bidding war: marked as one that has run its
+  // raises, so aiTransfers' war loop passes it before its draw and the shared
+  // stream is the one it would have been without this bid
+  state.offers.push({
+    id: state.nextId++, playerId: p.id, fromClubId: bidder.id, toClubId: user.id,
+    fee, week: state.week, forUser: true, status: 'pending', raises: 3,
+  })
+  const v = { player: p.name, bidder: bidder.name, fee: fmtMoney(fee) }
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
+    subject: `Bid received: ${p.name}`,
+    body: `${bidder.name} have tabled a bid of ${fmtMoney(fee)} for ${p.name}. The offer will not stay open for long.`,
+    k: 'news.bidIn', v, playerId: p.id,
+  })
 }
 
 // ---------------------------------------------------------------- the response ---

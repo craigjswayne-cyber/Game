@@ -343,6 +343,9 @@ export interface Player {
    *  before 1.8.3 is gone and nothing can bring it back. */
   careerOld?: CareerRow[]
   transferListed: boolean
+  /** Put up for sale in his AI club's summer clear-out (rivalbids.ts
+   *  aiSummerMarket): taken back off the list when the window shuts. */
+  clearOut?: boolean
   youth?: boolean
   /** character type - drives contracts, morale and media reactions */
   pers: Personality

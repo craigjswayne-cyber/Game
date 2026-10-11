@@ -11,7 +11,7 @@ import { talkingPoints } from './talkingpoints'
 import { aiFireSale, aiWeeklyFinance } from './aiecon'
 import { adminPenalty, insolvencyWarning } from './insolvency'
 import { advanceHunt } from './living'
-import { aiFreeAgents, aiYouthHunt, rivalPushWeek, settleRivalBids } from './rivalbids'
+import { aiFreeAgents, aiSummerMarket, aiYouthHunt, rivalPushWeek, settleRivalBids } from './rivalbids'
 import { offerResult, offerRun } from './records'
 import { rivalBeat } from './boss'
 import { auditCaps, refreshCaps } from './cap'
@@ -4128,14 +4128,18 @@ export function processWeekAndAdvance(state: GameState) {
   }
 
   // THE RELEGATION PLAYOFF (21A). In England the trapdoor is no longer
-  // automatic: once the Championship final has crowned its winner (week 42,
-  // calendar.ts), the Premier Division's bottom club hosts him on finals day
-  // - eighty minutes for a place in the top flight, playable like any other
-  // fixture when it is yours. The rollover reads this game's result instead
-  // of swapping the two clubs blind; the other pyramids keep the automatic
-  // trapdoor. It was week 44 until 1.6.5: the summer camp week, so both
-  // clubs played for their status without their internationals.
-  if (state.week === BARRAGE_WEEK - 1) {
+  // automatic: once the Championship final has crowned its winner (week 40,
+  // calendar.ts), the Premier Division's bottom club hosts him in semi-final
+  // week - eighty minutes for a place in the top flight, playable like any
+  // other fixture when it is yours. The rollover reads this game's result
+  // instead of swapping the two clubs blind; the other pyramids keep the
+  // automatic trapdoor. It was week 44 until 1.6.5 (the summer camp week)
+  // and finals day after that, beside the Premiership final.
+  // A season built before the move still has its Championship final in 42,
+  // so its playoff stays on 43, the week after.
+  const champKo = state.comps['champ']?.koWeeks ?? []
+  const barWeek = Math.max(BARRAGE_WEEK, (champKo[champKo.length - 1] ?? 0) + 1)
+  if (state.week === barWeek - 1) {
     const prem = state.comps['prem']
     const champ = state.comps['champ']
     const already = state.fixtures.some(f => f.compId === 'prem' && f.stage === 'BAR')
@@ -4145,7 +4149,7 @@ export function processWeekAndAdvance(state: GameState) {
       const up = champ.champion ?? sortTable(champ.table)[0]?.teamId
       if (bottom && up && bottom !== up && state.clubs[bottom] && state.clubs[up]) {
         const fx: Fixture = {
-          id: state.nextId++, compId: 'prem', round: 99, week: BARRAGE_WEEK,
+          id: state.nextId++, compId: 'prem', round: 99, week: barWeek,
           homeId: bottom, awayId: up, played: false,
           homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0, stage: 'BAR',
         }
@@ -4623,6 +4627,7 @@ If you go, your assistant takes your national side for the duration. Nobody prep
   rivalPushWeek(state)
   aiYouthHunt(state)
   aiFreeAgents(state)
+  aiSummerMarket(state)
   aiRenewals(state, rng)
   if (!state.unemployed) aiPreContractPoach(state, rng)
   refreshVacancies(state, rng)
