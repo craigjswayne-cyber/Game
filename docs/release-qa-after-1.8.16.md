@@ -176,3 +176,30 @@ Still outside the code, and still not marked done:
   says the same and should change with it), some real ground names remain,
   and "conveniences and cosmetic skins" understates the purchases.
 - The landing page still says "Coming soon to the App Store".
+
+## 9. Owner round, 10 to 11 October 2026 (still 1.8.17, Play code 56)
+
+| Owner's words | What changed |
+|---|---|
+| Prem final day shares its week with the relegation play-off | The play-off moves to week 42 and the Championship's knockouts to weeks 39 and 40; finals day (week 43) holds only the Premiership final. A season built before this keeps its old schedule. |
+| "No deals in the transfer bit" in the off-season | The summer clear-out lists surplus men at AI clubs (65 to 74 on the market in a summer week against 9 to 16 in January), never from a club's best 34, and bids land for the manager's fringe men. AI clubs trade with each other at the ordinary window rate: every version that moved surplus men between AI clubs in volume tipped aiecon or autopilotprobe. |
+| No "he'll start next week" in the off-season | The press promise is offered only with a competitive fixture this week or next, and an open promise is never judged in a week without one. |
+| Title page posts the wrong way round | The crossbar on both H posts of the team sheet in `title-bg.webp` moved to the field end (`scripts/art/fix_title_posts.py`). |
+| Match posts too small, then "back to the line and two dots" | A bar on each try line with a dot per upright, drawn 8m long (owner: "much better"). |
+| Interview prospects over two lines | The label is one line and the verdict sits below it, in every language. |
+| "Respond to offer" on the bid story | Bid stories carry a button to that bid while it is open. |
+| Rejecting a bid for an unhappy man, selling a popular one | Morale and dressing-room consequences in `fallout.ts`, told in words (`scripts/falloutprobe.ts`). |
+| Scouting under Training and Staff; a list, then a report; reports in the news | A Scouting page in the Hub, one line per man and a report sheet behind it, and a chief scout's story per recommendation whose verdict is an estimate (`scripts/scoutrecprobe.ts`). |
+
+Probes changed and why: `hubprobe` (the new menu item), `pointsprobe` (the
+empty-ground claim read where the two worlds won alike, since the worlds part
+by week 5 before and after this round), `round25b` (its manager picks the
+side, so a big club's board keeps him until the autumn Tests), `windowprobe`
+(the summer is judged by the men on the market). No threshold was moved.
+
+Results on the final code: all 264 engine probes, all 74 browser harnesses,
+fingerprint unchanged, aiecon passes. autopilotprobe passes every check but
+one, which sits exactly on its line (engaged crises 8 against 16 sleepwalk,
+"far less often" wants fewer than half); merged on the owner's decision.
+perfprobe's fresh week reads 190 to 230ms on this machine between identical
+runs, against a 200ms budget; it passes alone more often than not.
