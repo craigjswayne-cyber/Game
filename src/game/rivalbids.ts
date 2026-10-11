@@ -501,7 +501,11 @@ export function aiSummerMarket(state: GameState): void {
   const leaving = (p: Player) => state.week >= SUMMER_OPEN && p.contractEnds <= state.season
   const free = (p: Player) => !p.acad && !p.youth && !p.onLoan && !p.loanFrom && !p.retiring &&
     !leaving(p) && !promisedElsewhere(state, p.id)
-  const rooms = aiWageRooms(state)
+  // the wage rooms are only needed when a man moves between AI clubs, and
+  // a fresh week is on the perf budget (scripts/perfprobe.ts): worked out once,
+  // on first use
+  let roomsMemo: ReturnType<typeof aiWageRooms> | null = null
+  const rooms = { get: (id: string) => (roomsMemo ??= aiWageRooms(state)).get(id) }
   const used = new Set<string>()
   // A SUMMER MOVE CARRIES HIS WAGE WITH HIM. executeTransfer puts a man
   // joining an AI club on that club's pay rate, which is usually a cut, and
@@ -545,7 +549,7 @@ export function aiSummerMarket(state: GameState): void {
   }
 
   // need
-  for (const c of clubs) {
+  if (SUMMER_BUY > 0) for (const c of clubs) {
     if (rand(`smbuy|${key}|${c.id}`) >= SUMMER_BUY) continue
     if (c.budget < 800_000 || embargoed(state, c.id) || seniorsOf(state, c) >= SQUAD_LIMIT) continue
     const p = aiShoppingTarget(state, c)?.target
@@ -554,10 +558,10 @@ export function aiSummerMarket(state: GameState): void {
   }
 
   // the listed move
-  const listed = Object.values(state.players)
+  const listed = SUMMER_SELL <= 0 ? [] : Object.values(state.players)
     .filter(p => p.clearOut && p.transferListed && p.clubId && !isMyClub(state, p.clubId) && free(p))
     .sort((a, b) => a.id - b.id)
-  for (const p of listed) {
+  if (SUMMER_SELL > 0) for (const p of listed) {
     if (rand(`smsell|${key}|${p.id}`) >= SUMMER_SELL) continue
     const fee = askingPrice(state, p)
     let best: Club | null = null, bestKeen = -Infinity
