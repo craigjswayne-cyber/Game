@@ -122,7 +122,13 @@ const run = (capacity: number, seed: number) => {
   for (let i = 0; i < 30; i++) { pickXV(s2); processWeekAndAdvance(s2) }
   return s2
 }
-const WORLDS = [11, 15, 16, 12]
+// TWELVE WORLDS (1.8.17). The summer market moves several men a week between
+// AI clubs, so two worlds that differ only in the ground drift further apart
+// in results, and four worlds stopped averaging that luck out: they read 59.0
+// against 46.0 the wrong way round while the gate penalty itself was intact
+// (the empty-ground club had simply won three more games in two of them). The
+// claim is unchanged; twelve worlds read 52.1 against 61.5.
+const WORLDS = [11, 15, 16, 12, 3, 7, 21, 33, 5, 9, 19, 27]
 let seed4 = WORLDS[0]
 let f = run(1_000, seed4)    // a ground that cannot help selling out
 for (const sd of WORLDS.slice(1)) {
