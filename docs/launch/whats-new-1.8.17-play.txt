@@ -1,0 +1,18 @@
+<en-GB>
+New Scouting page under Training and Staff: a clean list, a full report behind each name, and the chief scout's picks in your news (he is not always right). Answer a bid straight from the story. Turn down an unhappy player's move, or sell a favourite, and the dressing room feels it. A busier summer market, finals day on its own, and no promise of a start when there is no game. Tablet and iPad fixes, tiredness counts a little more, and a big club's board notices if you never pick the side.
+</en-GB>
+<fr-FR>
+Nouvelle page Recrutement dans Entraînement et staff : une liste claire, un rapport par nom, et les choix du chef recruteur dans l'actu (il se trompe parfois). Répondez à une offre depuis l'article. Retenez un joueur mécontent ou vendez un chouchou : le vestiaire le sent. Mercato d'été plus animé, finale seule à l'affiche, plus de titularisation promise sans match. Corrections tablette et iPad, fatigue un peu plus lourde, et un grand club remarque si vous ne composez jamais l'équipe.
+</fr-FR>
+<es-ES>
+Nueva página de Ojeo en Entrenamiento y cuerpo técnico: una lista clara, un informe por nombre y las apuestas del jefe de ojeadores en tus noticias (no siempre acierta). Responde a una oferta desde la noticia. Retén a un descontento o vende a un ídolo, y el vestuario lo nota. Mercado de verano más animado, la final en su semana y ninguna titularidad prometida sin partido. Mejoras en tableta e iPad, el cansancio pesa algo más y la directiva de un club grande nota si nunca eliges el equipo.
+</es-ES>
+<it-IT>
+Nuova pagina Osservatori in Allenamento e staff: una lista chiara, un report per ogni nome e le scelte del capo osservatore nelle notizie (non sempre ci azzecca). Rispondi a un'offerta dalla notizia. Trattieni uno scontento o vendi un beniamino, e lo spogliatoio lo sente. Mercato estivo più vivace, finale da sola in calendario, nessun posto da titolare promesso senza partita. Correzioni per tablet e iPad, stanchezza un po' più pesante, e un grande club nota se non scegli mai la formazione.
+</it-IT>
+<ja-JP>
+トレーニングとスタッフの下に新しいスカウト画面：見やすい一覧と、名前をタップすると詳しいレポート。チーフスカウトの推薦がニュースに届きます（いつも当たるとは限りません）。オファーはニュースから直接返答。不満を抱える選手の移籍を断ったり人気選手を売ったりすると、ロッカールームに影響が出ます。夏の移籍市場がより活発に、決勝は単独の週に、試合のない週に先発を約束することはなくなりました。タブレットとiPadの改善、疲労の影響が少し大きくなり、ビッグクラブの理事会はあなたが一度もメンバーを選ばないと気づきます。
+</ja-JP>
+<af>
+Nuwe Talentsoek-bladsy onder Oefening & Personeel: 'n duidelike lys, 'n verslag per naam, en die hoofverkenner se keuses in jou nuus (hy is nie altyd reg nie). Antwoord 'n bod uit die berig. Weier 'n ontevrede speler se skuif, of verkoop 'n gunsteling, en die kleedkamer voel dit. 'n Besiger somermark, die eindstryd op sy eie, en geen belofte van 'n plek as daar geen wedstryd is nie. Tablet- en iPad-regstellings, moegheid tel meer, en 'n groot klub se direksie sien as jy nooit die span kies nie.
+</af>
