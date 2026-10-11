@@ -433,7 +433,7 @@ export function aiFreeAgents(state: GameState): void {
 /** A club's chance, each summer week, of putting a surplus man up for sale. */
 const SUMMER_LIST = 0.15
 /** A club keeps its best this-many seniors off the summer list. */
-const SURPLUS_KEEP = 30
+const SURPLUS_KEEP = 34
 /** No club has more than this many men on its list at once (aiFireSale's cap). */
 const SUMMER_LISTED_MAX = 2
 /** A club's chance, each summer week, of buying for its thinnest position. */
@@ -518,8 +518,8 @@ export function aiSummerMarket(state: GameState): void {
     const cap = c.leagueId ? state.caps?.[c.leagueId] : null
     return !(typeof cap === 'number' && cap > 0 && capBill(state, c) + wage > cap)
   }
-  // SURPLUS IS WHAT IS LEFT AFTER A SEASON'S WORTH OF COVER: the best thirty,
-  // not the best twenty-three. Cutting at a matchday 23 stripped every AI
+  // SURPLUS IS WHAT IS LEFT AFTER A SEASON'S WORTH OF COVER: the best
+  // thirty-four, not the best twenty-three (thirty still read 4.6). Cutting at a matchday 23 stripped every AI
   // squad of the depth a 46-week season of injuries and rotation needs, and a
   // big club left on autopilot (which keeps its own men) won twice the titles
   // (scripts/autopilotprobe.ts: 6 of 54, picking your side worth 3.9 points).
