@@ -4,6 +4,7 @@ import { deleteSave, isPlayable, listSaves, loadGame, migrate, saveGame, type Sa
 import { seasonLabel, weekDate, type GameState } from '../../game/model'
 import { SectionTitle } from '../components'
 import { t, localeTag } from '../../game/i18n'
+import { canShareNatively, shareSaveNatively } from '../../game/nativeshare'
 
 export const SLOTS = ['slot1', 'slot2', 'slot3', 'slot4']
 /* keys, not words - t()d wherever a slot is named */
@@ -66,7 +67,23 @@ export default function Saves() {
     return `phase-rugby-${club?.short?.toLowerCase().replace(/\W+/g, '') ?? 'save'}-s${game.season + 1}w${game.week}.json`
   }
 
+  /** In the store shells (1.8.18) both buttons hand the file to the phone's
+   *  share sheet, which is the only road out of a WebView: the old download
+   *  link did nothing there and still said "exported". */
+  const native = canShareNatively()
+
+  const [sharing, setSharing] = useState(false)
+  const doNativeShare = async () => {
+    if (sharing) return
+    setSharing(true)
+    const r = await shareSaveNatively(saveName(), JSON.stringify(copy())).finally(() => setSharing(false))
+    if (r === 'shared') setMsg(t('world.svShared'))
+    else if (r === 'failed' || r === 'unavailable') setMsg(t('world.svExportFailed'))
+    // 'cancelled': the player backed out, and saying nothing is the truth
+  }
+
   const doExport = () => {
+    if (native) { void doNativeShare(); return }
     const blob = new Blob([JSON.stringify(copy())], { type: 'application/json' })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
@@ -90,7 +107,7 @@ export default function Saves() {
    * is the question, because plain navigator.share exists in places that will
    * only take text and would silently drop the save.
    */
-  const canShareSave = (() => {
+  const canShareSave = native || (() => {
     try {
       return typeof navigator !== 'undefined' && typeof navigator.canShare === 'function'
         && navigator.canShare({ files: [new File(['{}'], 'probe.json', { type: 'application/json' })] })
@@ -98,6 +115,7 @@ export default function Saves() {
   })()
 
   const doShare = async () => {
+    if (native) return doNativeShare()
     try {
       await navigator.share({
         files: [new File([JSON.stringify(copy())], saveName(), { type: 'application/json' })],
@@ -111,7 +129,13 @@ export default function Saves() {
     }
   }
 
+  /** BIGGER THAN ANY CAREER (1.8.18). A fresh save is about 6 MB and twenty
+   *  seasons about 11; a file several times that is not a save, and reading it
+   *  whole into memory on a phone is how a "save" crashes the app. */
+  const IMPORT_MAX_BYTES = 64 * 1024 * 1024
+
   const doImport = (file: File) => {
+    if (file.size > IMPORT_MAX_BYTES) { setMsg(t('world.svNotASave')); return }
     file.text().then(txt => {
       const raw = JSON.parse(txt) as GameState
       if (!raw || !raw.clubs || !raw.players || !raw.userClubId || raw.week == null) {
@@ -129,9 +153,14 @@ export default function Saves() {
         setMsg(t('world.svNotASave'))
         return
       }
+      // a write that fails (a full phone, storage switched off) must say so:
+      // this used to be fire-and-forget, so the player saw nothing and the
+      // career they thought they had imported was not there next time
       void saveGame('imported', g).then(() => {
         setGame(g, 'imported')
         setMsg(null)
+      }).catch((e: unknown) => {
+        setMsg(t('world.svCouldNotSave', { slot: slotName('imported'), why: e instanceof Error ? e.message : String(e) }))
       })
     }).catch(() => setMsg(t('world.svUnreadable')))
   }
@@ -198,14 +227,14 @@ export default function Saves() {
         </div>
         {canShareSave && (
           <>
-            <button className="btn gold block" style={{ marginBottom: 8 }} onClick={() => { void doShare() }}>
+            <button className="btn gold block" style={{ marginBottom: 8 }} disabled={sharing} onClick={() => { void doShare() }}>
               {t('world.svShare')}
             </button>
             <div className="meta" style={{ marginBottom: 8 }}>{t('world.svBackupPhone')}</div>
           </>
         )}
         <div className="btn-row" style={{ margin: 0 }}>
-          <button className="btn" onClick={doExport}>{t('world.svExport')}</button>
+          <button className="btn" disabled={sharing} onClick={doExport}>{t('world.svExport')}</button>
           <button className="btn ghost" onClick={() => fileRef.current?.click()}>{t('world.svImport')}</button>
         </div>
         <input ref={fileRef} type="file" accept=".json,application/json" style={{ display: 'none' }}

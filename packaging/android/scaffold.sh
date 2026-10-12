@@ -124,6 +124,32 @@ fi
 echo "==> installing the advert bridge"
 node ../shell/install-ads.mjs android
 
+# ---- THE ADVERTS SDK, PINNED (1.8.18) ----
+# The AdMob plugin asks for play-services-ads '25.4.+' unless the project says
+# otherwise, so two builds a week apart could carry different SDKs - a policy,
+# consent or 16 KB page-size change arriving unannounced (checklist S14). 25.4.0
+# is what the 1.8.17 release build resolved. Raising it is a deliberate edit
+# here, followed by Play's pre-launch report, never a side effect of a rebuild.
+ADS_SDK=25.4.0
+VARS=android/variables.gradle
+if [ -f "$VARS" ]; then
+  # one line, appended or rewritten in place: no newline inside a sed
+  # replacement, which macOS sed does not understand
+  if grep -q "playServicesAdsVersion" "$VARS"; then
+    sed -i.bak "s|playServicesAdsVersion *= *'[^']*'|playServicesAdsVersion = '${ADS_SDK}'|" "$VARS"
+    rm -f "$VARS.bak"
+  else
+    printf "\next.playServicesAdsVersion = '%s'\n" "$ADS_SDK" >> "$VARS"
+  fi
+  grep -q "playServicesAdsVersion = '${ADS_SDK}'" "$VARS" \
+    && echo "    adverts SDK pinned at play-services-ads ${ADS_SDK}" \
+    || { echo "    could not pin the adverts SDK in $VARS" >&2; exit 1; }
+else
+  # no file, no pin: the build would quietly take whatever '25.4.+' resolves to
+  echo "    $VARS is missing: run cap add android first, then this script again" >&2
+  exit 1
+fi
+
 # ---- ICONS AND SPLASH, ours rather than Capacitor's ----
 # res/ is drawn by icons-android.mjs on a machine with a browser and COMMITTED,
 # so this step is a copy and needs nothing installed. (The first owner build

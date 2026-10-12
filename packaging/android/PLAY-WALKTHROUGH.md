@@ -36,8 +36,10 @@ Three things to hold in your head before the clicks:
 You have the Android SDK from the Bubblewrap days. You also need Android
 Studio itself (Bubblewrap did not): https://developer.android.com/studio,
 the standard install, defaults throughout. First launch → *More Actions* →
-*SDK Manager* → tick **Android 15 (API 35)** SDK Platform and, under *SDK
-Tools*, **Android SDK Build-Tools 35** and **Android SDK Command-line Tools**.
+*SDK Manager* → tick **Android 16 (API 36)** SDK Platform and, under *SDK
+Tools*, **Android SDK Build-Tools 36** and **Android SDK Command-line Tools**.
+(The shell targets and compiles against API 36, Capacitor 8.5's default; this
+step said 35 until 1.8.18.)
 Apply.
 
 ### 2. The repo, current

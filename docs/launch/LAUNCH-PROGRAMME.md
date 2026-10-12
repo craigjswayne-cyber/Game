@@ -17,10 +17,10 @@ Owner column: **O** = owner (needs a human, an account, money or a signature) ·
 
 | | |
 |---|---|
-| Current version | 1.8.11 in progress (main has 1.8.9; 1.8.10/1.8.11 on the working branch) |
-| Target release | 1.8.11 (Play versionCode 50) or the first build after it that passes the gate |
+| Current version | 1.8.17 live on Play (owner, 12 Oct 2026); 1.8.18 in preparation (purchase fixes, see `tasks/plan.md`) |
+| Target release | 1.8.18 (Play versionCode 57), staged rollout from 20% |
 | Target date | Set by the owner once Stage 1 is green (suggested: about 4 weeks after the product gate) |
-| Android | Live on Play under the personal account; production code last accepted 36 (29 Sep). Closed testing in use. Org-account transfer not done |
+| Android | Live on Play under FWDS & BCKS LTD (org-account transfer complete); 1.8.17 in production |
 | iOS | Not on the App Store. Apple developer enrolment pending; nothing created in App Store Connect |
 | Website | Live at phaserugbymanager.com (landing page, privacy, app-ads.txt), deploys from main |
 | Trailer | None |

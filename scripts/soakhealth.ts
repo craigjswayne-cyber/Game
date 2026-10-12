@@ -463,3 +463,20 @@ for (const p of Object.values(g.players)) {
   if (p.clubId && !g.clubs[p.clubId]) badRefs++
 }
 console.log(`integrity: roster orphans ${orphans}, bad club refs ${badRefs}`)
+
+// ---- THE SAVE HAS A CEILING (1.8.18) ----
+// The whole career is written to IndexedDB as one record after nearly every
+// week, so its size is a frame-time cost on every phone that plays it: 5.6 MB
+// at the start, about 11 MB after twenty seasons when this gate was set. A
+// change that grows the twenty-season save past the ceiling has to say so,
+// rather than turning up as a stutter on a budget Android phone in season 15.
+const SAVE_CEILING_MB = 16
+{
+  const mb = JSON.stringify(g).length / 1e6
+  console.log(`save after 20 seasons: ${mb.toFixed(2)} MB (ceiling ${SAVE_CEILING_MB} MB)`)
+  if (mb > SAVE_CEILING_MB || orphans || badRefs) {
+    console.log(`SOAK HEALTH FAILED: ${mb > SAVE_CEILING_MB ? `save ${mb.toFixed(2)} MB over the ${SAVE_CEILING_MB} MB ceiling` : ''}${orphans || badRefs ? ' integrity' : ''}`)
+    process.exit(1)
+  }
+  console.log('SOAK HEALTH PASSED: twenty seasons, an intact world, and a save under its ceiling')
+}
