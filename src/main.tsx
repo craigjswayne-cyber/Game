@@ -10,7 +10,7 @@ import { installKeyboardScrollFix } from './ui/keyboardScroll'
 import { noteShell } from './game/shell'
 import { attachPlayBilling } from './game/playbilling'
 import { attachStoreKit } from './game/storekit'
-import { restore } from './game/monetise'
+import { bridge, restore } from './game/monetise'
 import { useStore } from './store'
 import { ensureLang, getLang, t } from './game/i18n'
 import './ui/tokens.css'
@@ -43,7 +43,8 @@ try {
  *
  * Reinstalling, or moving to a new phone, loses the receipt in localStorage but
  * not the purchase on the store account. So the store is asked once at boot,
- * quietly: it grants, it never revokes, and everywhere that is not a
+ * quietly: it grants, it revokes only on the slow rule in monetise.ts
+ * (revokeMissing: two real answers, two launches), and everywhere that is not a
  * billing-enabled wrapper it does nothing at all and costs one rejected promise.
  * Deliberately not awaited - a slow store must not hold up the first paint.
  *
@@ -55,9 +56,43 @@ try {
  */
 void attachPlayBilling()
   .then(attached => attached || attachStoreKit())
-  .then(() => restore())
+  .then(() => { watchPurchases(); return restore() })
   .then(changed => { if (changed) useStore.getState().claimSupporter() })
   .catch(() => { /* no store, no bridge, nothing to restore */ })
+
+/**
+ * PURCHASES THAT LAND WHILE THE GAME IS OPEN (1.8.18).
+ *
+ * The boot restore above used to be the only time the store was asked, so a
+ * purchase that finished after the game stopped waiting (a bank check longer
+ * than the 90-second ceiling, a cash payment at a shop clearing, a parent's
+ * Ask-to-Buy approval) paid for Pro and showed adverts until the next launch:
+ * the "I paid and got nothing" review. Two doors now lead to the same restore:
+ *
+ *   - the shell says so ('purchasesUpdated', shells from 1.8.18), and
+ *   - the player comes back to the app (a pending payment usually clears while
+ *     they are somewhere else), at most once a minute.
+ *
+ * restore() only grants what is not already held, so the same purchase seen by
+ * both doors and by the boot pass is granted once. It also carries the slow
+ * refund rule, which needs a later launch to act, so a foreground return
+ * cannot take anything away by itself.
+ */
+function watchPurchases(): void {
+  const recheck = () => {
+    void restore()
+      .then(changed => { if (changed) useStore.getState().claimSupporter() })
+      .catch(() => { /* the cache stands */ })
+  }
+  bridge()?.watch?.(recheck)
+  let last = Date.now()
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') return
+    if (Date.now() - last < 60_000) return
+    last = Date.now()
+    recheck()
+  })
+}
 
 // Dictionaries are lazy chunks (v1.2.0): the chosen language is fetched
 // before the first paint so a French phone never flashes English at boot.

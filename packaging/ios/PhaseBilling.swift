@@ -62,18 +62,20 @@ public class PhaseBilling: CAPPlugin {
     override public func load() {
         updates = Task.detached { [weak self] in
             for await update in Transaction.updates {
-                // `self != nil` rather than `let self`: the check is here to stop
-                // finishing transactions once the plugin is gone, and nothing in
-                // the body needs the instance (consumables is static). Binding it
-                // is an unused-value warning in Xcode, and a warning nobody can
-                // act on is a warning everybody learns to ignore.
-                guard self != nil, case .verified(let t) = update else { continue }
+                // the check stops finishing transactions once the plugin is
+                // gone; since 1.8.18 the instance is also needed, to tell the
+                // page (notifyListeners), so it is bound rather than compared
+                guard let self = self, case .verified(let t) = update else { continue }
                 if !Self.consumables.contains(t.productID) {
                     await t.finish()
                 }
-                // the page re-reads entitlements at boot and on Restore; there
-                // is nothing to push, and pushing would race the web view's
-                // own lifecycle
+                // TELL THE PAGE (1.8.18). Until 1.8.18 the page only re-read
+                // entitlements at boot and on Restore, so an Ask-to-Buy
+                // approval or a purchase finished on another device showed
+                // nothing until the next launch. The page answers with
+                // restore(), which grants only what it does not already hold,
+                // so a purchase it also heard about through buy() costs nothing.
+                await MainActor.run { self.notifyListeners("purchasesUpdated", data: [:]) }
             }
         }
     }
@@ -185,18 +187,55 @@ public class PhaseBilling: CAPPlugin {
     /// permanent entitlements, plus any consumable that is paid for and not
     /// yet spent. The second half is what makes an interrupted purchase
     /// recoverable rather than lost.
+    ///
+    /// ONE ENTRY PER UNFINISHED CONSUMABLE (1.8.18). This used to be a Set, so
+    /// two unspent purchases of the same consumable read as one, and the
+    /// game's sweep - which counts receipts by how many times a SKU appears,
+    /// exactly as Play reports them - could not see the second. Entitlements
+    /// are still listed once; each held consumable transaction is listed
+    /// separately.
+    ///
+    /// `ok` (1.8.18): true when both reads of StoreKit's transaction store
+    /// completed and every entitlement verified. A refunded purchase is no
+    /// longer in currentEntitlements, which is how the game learns to take it
+    /// back (src/game/monetise.ts, revokeMissing) - so an entitlement StoreKit
+    /// could not verify (a clock or certificate problem) makes the whole
+    /// answer `ok: false` rather than reading as "not owned".
+    ///
+    /// `sync` (1.8.18): the Restore button asks for AppStore.sync() first, so
+    /// a phone whose local transaction store is behind (a new device, a
+    /// switched Apple ID) is brought up to date before anything is judged.
+    /// It can show a sign-in sheet, so nothing else ever asks for it.
     @objc func owned(_ call: CAPPluginCall) {
+        let sync = call.getBool("sync") ?? false
         Task {
-            var skus = Set<String>()
-            for await entitlement in Transaction.currentEntitlements {
-                if case .verified(let t) = entitlement { skus.insert(t.productID) }
+            var allVerified = true
+            if sync {
+                // a sync the player cancelled, or one an offline phone could
+                // not make, leaves the local store as stale as it was: that
+                // answer must not count as evidence of a refund
+                do { try await AppStore.sync() } catch { allVerified = false }
             }
-            for await unfinished in Transaction.unfinished {
-                if case .verified(let t) = unfinished, Self.consumables.contains(t.productID) {
-                    skus.insert(t.productID)
+            var entitled = Set<String>()
+            for await entitlement in Transaction.currentEntitlements {
+                switch entitlement {
+                case .verified(let t):
+                    // consumables are counted below, one per unfinished
+                    // transaction; never here as well, or one could count twice
+                    if !Self.consumables.contains(t.productID) { entitled.insert(t.productID) }
+                case .unverified:
+                    allVerified = false
+                @unknown default:
+                    allVerified = false
                 }
             }
-            call.resolve(["skus": Array(skus)])
+            var skus = Array(entitled)
+            for await unfinished in Transaction.unfinished {
+                if case .verified(let t) = unfinished, Self.consumables.contains(t.productID) {
+                    skus.append(t.productID)
+                }
+            }
+            call.resolve(["skus": skus, "ok": allVerified])
         }
     }
 
@@ -205,7 +244,7 @@ public class PhaseBilling: CAPPlugin {
     /// The career kept what was bought, so the receipt can be spent. Finishing
     /// is what lets the App Store sell the same consumable again - and until
     /// it happens, owned() keeps offering the purchase back.
-    /// Finish every unfinished transaction for this product, AND SAY HOW MANY.
+    /// Finish ONE unfinished transaction for this product, AND SAY SO.
     ///
     /// This used to resolve empty. An empty resolve is indistinguishable from
     /// a resolve that found nothing to do, so the JavaScript side was left
@@ -217,18 +256,25 @@ public class PhaseBilling: CAPPlugin {
     /// directly costs one dictionary and removes the guess.
     ///
     /// `ok` is true when at least one transaction was actually finished.
-    /// `count` is how many, because a customer can legitimately hold two.
+    /// `count` is how many: at most one since 1.8.18, because a customer can
+    /// legitimately hold two and each must be banked as its own credit.
     @objc func consume(_ call: CAPPluginCall) {
         guard let sku = call.getString("sku") else {
             call.resolve(["ok": false, "count": 0])
             return
         }
         Task {
+            // ONE AT A TIME (1.8.18). This used to finish EVERY unfinished
+            // transaction for the product and answer with the count, but the
+            // game banks one credit per consume that lands, so two held
+            // purchases became one credit and one payment was lost. Finishing
+            // one per call lets the sweep in monetise.ts bank each in turn.
             var finished = 0
             for await unfinished in Transaction.unfinished {
                 if case .verified(let t) = unfinished, t.productID == sku {
                     await t.finish()
-                    finished += 1
+                    finished = 1
+                    break
                 }
             }
             call.resolve(["ok": finished > 0, "count": finished])

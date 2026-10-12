@@ -295,10 +295,15 @@ public class PhaseBilling extends Plugin implements PurchasesUpdatedListener {
                 timer.post(() -> {
                     BillingResult launch = client.launchBillingFlow(activity,
                         BillingFlowParams.newBuilder().setProductDetailsParamsList(params).build());
-                    if (launch.getResponseCode() != BillingClient.BillingResponseCode.OK) {
+                    int lc = launch.getResponseCode();
+                    if (lc == BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED) {
+                        // the sheet did not open because Play holds a purchase
+                        // of this product: ask what state it is in (1.8.18)
+                        finishAlreadyOwned(sku);
+                    } else if (lc != BillingClient.BillingResponseCode.OK) {
                         // the sheet did not open: answer now, do not wait for a
                         // callback that will never come
-                        finishBuy(mapCode(launch.getResponseCode()), causeOf(launch.getResponseCode()));
+                        finishBuy(mapCode(lc), causeOf(lc));
                     }
                 });
             });
@@ -313,9 +318,11 @@ public class PhaseBilling extends Plugin implements PurchasesUpdatedListener {
         if (code == BillingClient.BillingResponseCode.OK && purchases != null) {
             String settled = null;
             boolean other = false;
+            boolean landed = false;
             for (Purchase p : purchases) {
                 if (p.getPurchaseState() == Purchase.PurchaseState.PURCHASED) {
                     settle(p);
+                    landed = true;
                     for (String s : p.getProducts()) { if (s.equals(pendingSku)) settled = "owned"; else other = true; }
                 } else if (p.getPurchaseState() == Purchase.PurchaseState.PENDING) {
                     // cash at a shop, a slow card: a customer who has begun to
@@ -328,11 +335,76 @@ public class PhaseBilling extends Plugin implements PurchasesUpdatedListener {
             // was let go as stuck (BUY_TIMEOUT_MS), or one cleared outside the
             // sheet. It is settled above and owned() hands it over; it says
             // nothing about the sheet that is open now, so that call waits on
-            else if (other) return;
-            else if (pendingBuy.get() != null) finishBuy("error");
+            else if (!other && pendingBuy.get() != null) finishBuy("error");
+            // TELL THE GAME (1.8.18). A purchase that completed here may have
+            // no buy() left to answer - released as stuck, or a pending one
+            // that cleared on its own - and until 1.8.18 the game only found
+            // out at the next launch. The game answers with restore(), which
+            // grants only what it does not already hold, so telling it about
+            // a purchase it was also told about through buy() costs nothing.
+            if (landed) notifyListeners("purchasesUpdated", new JSObject());
             return;
         }
+        if (code == BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED && pendingBuy.get() != null) {
+            String sku = pendingSku;
+            if (sku != null) { finishAlreadyOwned(sku); return; }
+        }
         if (pendingBuy.get() != null) finishBuy(mapCode(code), causeOf(code));
+    }
+
+    /**
+     * ITEM_ALREADY_OWNED IS A QUESTION, NOT AN ANSWER (1.8.18).
+     *
+     * Play says it whenever it already holds a purchase of the product - and a
+     * PENDING purchase (cash at a shop, a slow card) counts. Until 1.8.18 this
+     * plugin turned the bare code into 'owned', the game granted on it, and a
+     * player who started a cash payment and tapped Buy again had Pro without
+     * ever paying. So the account is asked, and only a purchase Play says is
+     * PURCHASED is called 'owned'. A pending one is 'pending', which grants
+     * nothing; anything else, including a query that fails, is 'pending' too,
+     * because money may be moving and 'error' would invite a second payment.
+     */
+    private void finishAlreadyOwned(final String sku) {
+        // THE ANSWER BELONGS TO THIS CALL ONLY. The query below is
+        // asynchronous, and Play can report one failed launch twice (the
+        // launch result and onPurchasesUpdated): without this, a second
+        // answer could land on a DIFFERENT purchase parked in the meantime
+        // and call it 'owned'. finishBuyFor answers only if this exact call
+        // is still the one waiting.
+        final PluginCall mine = pendingBuy.get();
+        if (mine == null) return;
+        connect(ok -> {
+            if (!ok) { finishBuyFor(mine, "pending"); return; }
+            client.queryPurchasesAsync(
+                QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.INAPP).build(),
+                (r, purchases) -> {
+                    String result = "pending";
+                    if (r.getResponseCode() == BillingClient.BillingResponseCode.OK && purchases != null) {
+                        for (Purchase p : purchases) {
+                            if (!p.getProducts().contains(sku)) continue;
+                            if (p.getPurchaseState() == Purchase.PurchaseState.PURCHASED) {
+                                settle(p);
+                                result = "owned";
+                                break;
+                            }
+                        }
+                    } else {
+                        Log.w(TAG, "queryPurchases (already owned): " + r.getDebugMessage());
+                    }
+                    finishBuyFor(mine, result);
+                });
+        });
+    }
+
+    /** finishBuy, but only if `call` is still the parked one. */
+    private void finishBuyFor(PluginCall call, String result) {
+        synchronized (pendingBuy) {
+            if (!pendingBuy.compareAndSet(call, null)) return;
+            pendingSku = null;
+        }
+        timer.removeCallbacksAndMessages(call);
+        call.resolve(outcome(result, null));
+        call.release(getBridge());
     }
 
     /**
@@ -389,12 +461,13 @@ public class PhaseBilling extends Plugin implements PurchasesUpdatedListener {
     }
 
     /** Play's response codes, as the five words. USER_CANCELED is NOT an
-     *  error; ITEM_ALREADY_OWNED is an undelivered purchase, which owned()
-     *  will report and the game will hand over - so it is 'owned' here too. */
+     *  error. ITEM_ALREADY_OWNED is answered by finishAlreadyOwned(), which
+     *  asks the account; if the bare code ever reaches here by another road it
+     *  is 'pending', which grants nothing (1.8.18 - it used to be 'owned'). */
     private static String mapCode(int code) {
         switch (code) {
             case BillingClient.BillingResponseCode.USER_CANCELED: return "cancelled";
-            case BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED: return "owned";
+            case BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED: return "pending";
             case BillingClient.BillingResponseCode.ITEM_UNAVAILABLE:
             case BillingClient.BillingResponseCode.BILLING_UNAVAILABLE:
             case BillingClient.BillingResponseCode.FEATURE_NOT_SUPPORTED:
@@ -445,12 +518,13 @@ public class PhaseBilling extends Plugin implements PurchasesUpdatedListener {
     @PluginMethod
     public void owned(final PluginCall call) {
         connect(ok -> {
-            if (!ok) { call.resolve(withSkus(new ArrayList<>())); return; }
+            if (!ok) { call.resolve(withSkus(new ArrayList<>(), false)); return; }
             client.queryPurchasesAsync(
                 QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.INAPP).build(),
                 (r, purchases) -> {
                     List<String> skus = new ArrayList<>();
-                    if (r.getResponseCode() == BillingClient.BillingResponseCode.OK) {
+                    boolean answered = r.getResponseCode() == BillingClient.BillingResponseCode.OK && purchases != null;
+                    if (answered) {
                         for (Purchase p : purchases) {
                             if (p.getPurchaseState() != Purchase.PurchaseState.PURCHASED) continue;
                             settle(p);
@@ -459,14 +533,19 @@ public class PhaseBilling extends Plugin implements PurchasesUpdatedListener {
                     } else {
                         Log.w(TAG, "queryPurchases: " + r.getDebugMessage());
                     }
-                    call.resolve(withSkus(skus));
+                    call.resolve(withSkus(skus, answered));
                 });
         });
     }
 
-    private static JSObject withSkus(List<String> skus) {
+    /** `ok` (1.8.18) is true only when Play really answered the query. The
+     *  game takes a refunded purchase back only on answers where it is true,
+     *  so a failed connection or a refused query can never cost anybody
+     *  anything (src/game/monetise.ts, revokeMissing). */
+    private static JSObject withSkus(List<String> skus, boolean ok) {
         JSObject o = new JSObject();
         o.put("skus", new JSArray(skus));
+        o.put("ok", ok);
         return o;
     }
 

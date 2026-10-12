@@ -357,7 +357,8 @@ export default function Supporter() {
   })
 
   const doRestore = () => runFor('restore', async () => {
-    const changed = await restore()
+    // the button the player presses on purpose: worth a full re-sync (1.8.18)
+    const changed = await restore({ sync: true })
     if (changed) claim()
     say('restore', t(changed ? 'supporter.restored' : hasSupporter() ? 'supporter.alreadyYours' : 'supporter.nothingToRestore'))
   })

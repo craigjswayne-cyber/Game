@@ -30,7 +30,7 @@
  * recovery rows work on iOS without knowing iOS exists.
  */
 import { setBillingCause, setBillingReason } from './monetise'
-import type { BillingBridge, ConsumeResult, Product, PurchaseOutcome } from './monetise'
+import type { BillingBridge, ConsumeResult, OwnedState, Product, PurchaseOutcome } from './monetise'
 
 /** What the Swift plugin promises. Capacitor hands every method an object and
  *  gets one back, so each of these is that shape and nothing cleverer. */
@@ -39,7 +39,13 @@ interface PhaseBillingPlugin {
   /** `cause` is optional: shells from 1.8.3 say which kind of "no" it was
    *  (see BillingCause in monetise.ts); older shells send the word alone. */
   buy(o: { sku: string }): Promise<{ outcome: string; cause?: string }>
-  owned(): Promise<{ skus: string[] }>
+  /** `ok` from 1.8.18: true only when the store really answered. An older
+   *  shell sends no `ok`, which is read as "not known" - see ownedState. */
+  owned(o?: { sync?: boolean }): Promise<{ skus: string[]; ok?: boolean }>
+  /** Capacitor's own event channel. Shells from 1.8.18 fire
+   *  'purchasesUpdated' when a purchase lands outside a buy() the game is
+   *  waiting on; older shells never fire it, which costs nothing. */
+  addListener?(event: string, cb: () => void): unknown
   /** Resolves { ok, count } since v1.5.9; older shells resolve {}. Both are
    *  handled below, because a phone runs whichever build it downloaded. */
   consume(o: { sku: string }): Promise<{ ok?: boolean; count?: number }>
@@ -190,6 +196,29 @@ export function storeKitBridge(): BillingBridge | null {
     } catch { return [] }
   }
 
+  /** owned(), and whether the store really answered (1.8.18). Only an
+   *  explicit `ok: true` from the native side counts: a missing flag is an
+   *  older shell, and an older shell's [] cannot tell "owns nothing" from
+   *  "could not ask", so it is never treated as evidence of a refund. */
+  const ownedState = async (opts?: { sync?: boolean }): Promise<OwnedState> => {
+    try {
+      // only the Restore button asks for a sync; an older shell ignores it
+      const r = await p.owned(opts?.sync ? { sync: true } : undefined)
+      const skus = Array.isArray(r?.skus) ? r.skus : []
+      return { ok: r?.ok === true && Array.isArray(r?.skus), skus }
+    } catch { return { ok: false, skus: [] } }
+  }
+
+  /** Hand purchases that land on their own to the game (1.8.18). */
+  const watch = (cb: () => void): void => {
+    try {
+      // Capacitor 3+ hands back a promise, which can reject on a shell
+      // without the channel: swallowed, because boot and Restore still cover it
+      const h = p.addListener?.('purchasesUpdated', () => { try { cb() } catch { /* the game's own fault, not the store's */ } })
+      if (h && typeof (h as Promise<unknown>).catch === 'function') (h as Promise<unknown>).catch(() => { /* no channel */ })
+    } catch { /* an older shell without the channel */ }
+  }
+
   /** Finish the held transaction, so StoreKit will sell it again. Without
    *  this method monetise.ts refuses to sell a consumable at all - which is
    *  exactly what shipped on Android in v1.1.6 and cost five products. */
@@ -204,7 +233,7 @@ export function storeKitBridge(): BillingBridge | null {
     } catch { return { ok: false } /* the call failed, so nothing was finished */ }
   }
 
-  return { details, detailsMany, buy, owned, consume }
+  return { details, detailsMany, buy, owned, ownedState, watch, consume }
 }
 
 /**
