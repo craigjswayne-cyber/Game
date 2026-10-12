@@ -671,6 +671,9 @@ export interface Product {
  * (`getDigitalGoodsService`), and the natural iOS one is a StoreKit bridge over
  * the WKWebView message handler. docs/monetisation.md has both, written out.
  */
+/** What ownedState() answers: the SKUs, and whether the store really spoke. */
+export interface OwnedState { ok: boolean; skus: string[] }
+
 export interface BillingBridge {
   /** For display. Null when the store has no such product, which is a
    *  configuration mistake rather than a customer's problem. */
@@ -693,6 +696,19 @@ export interface BillingBridge {
    *  the game crashed before consuming shows up here, which is the recovery
    *  path for a paid-but-not-granted injection. */
   owned(): Promise<string[]>
+  /** Optional (1.8.18): owned(), plus WHETHER THE STORE ACTUALLY ANSWERED.
+   *
+   *  owned() answers [] both when the account owns nothing and when the store
+   *  could not be reached, and those must never be confused: the first is the
+   *  only evidence a refund has happened, the second is a phone on a train.
+   *  `ok` is true only when the store gave a real answer. A shell without this
+   *  method is never used to take anything away - see restore(). */
+  ownedState?(opts?: { sync?: boolean }): Promise<OwnedState>
+  /** Optional (1.8.18): call `cb` whenever the shell learns that a purchase
+   *  has landed outside a buy() the game is waiting on - a sheet answered
+   *  after the game stopped waiting, a pending payment that cleared, an
+   *  Ask-to-Buy approval. The game answers with restore(). */
+  watch?(cb: () => void): void
   /** Mark a consumable spent so the store will sell it again. A shell without
    *  this cannot honestly offer the consumable SKUs, and buyConsumable treats
    *  its absence as 'unavailable'.
@@ -809,12 +825,21 @@ export function supporterDoor(): boolean {
  * career in front of the customer rather than to whichever save happens to be
  * loaded at boot.
  */
-export async function restore(): Promise<boolean> {
+export async function restore(opts: { sync?: boolean } = {}): Promise<boolean> {
   const b = bridge()
   if (!b) return false
   try {
-    const skus = await quick(b.owned(), [] as string[])
-    if (!Array.isArray(skus)) return false
+    // a shell from 1.8.18 says whether the store really answered; an older
+    // one is read the old way and is never allowed to take anything away.
+    // `sync` is the Restore BUTTON only: on iOS it asks the App Store to
+    // re-sync this Apple ID's purchases first, which can show a sign-in
+    // sheet, so it gets a minute and a half rather than the usual twelve
+    // seconds and is never used at boot or on a return to the app.
+    const state: OwnedState = typeof b.ownedState === 'function'
+      ? await quick(b.ownedState(opts), { ok: false, skus: [] as string[] }, opts.sync ? 90_000 : BRIDGE_MS)
+      : { ok: false, skus: await quick(b.owned(), [] as string[]) }
+    const skus = Array.isArray(state?.skus) ? state.skus : null
+    if (!skus) return false
     let changed = false
     for (const sku of skus) {
       if ((NC_SKUS as readonly string[]).includes(sku) && !hasEntitlement(sku)) {
@@ -822,9 +847,106 @@ export async function restore(): Promise<boolean> {
         changed = true
       }
     }
+    if (state.ok === true && revokeMissing(skus)) changed = true
     return changed
   } catch { /* offline, or a wrapper mid-update: the cache stands */ }
   return false
+}
+
+/**
+ * ---- TAKING BACK A REFUNDED PURCHASE, CAREFULLY (1.8.18) ----
+ *
+ * Until 1.8.18 the receipt cache only ever grew: a player could buy Pro, ask
+ * Play or Apple for their money back, and keep Pro for ever, because nothing
+ * ever asked whether the store still agreed. Both stores drop a refunded
+ * purchase from what they report as owned, so the evidence was always there.
+ *
+ * Taking something away from a customer who DID pay is far worse than letting
+ * a refunded one keep it for a day, so the rule is deliberately slow:
+ *
+ *   - only an answer the store really gave counts (ownedState().ok). A
+ *     timeout, an error, an offline phone, an older shell: none of them is
+ *     evidence of anything, and none of them moves the count.
+ *   - one miss is noted, never acted on. A SECOND miss in a LATER SESSION
+ *     (a fresh launch of the app) AT LEAST A DAY AFTER THE FIRST takes the
+ *     receipt back. Sessions alone are not enough: a crash reloads the page
+ *     and is a new session seconds later, and a store whose cache is still
+ *     settling (a new phone, a switched account) can answer "nothing" twice
+ *     in a minute. A day apart, from two launches, is a refund.
+ *   - a wrong take-back mends itself: the next answer that lists the product
+ *     grants it again, and Restore on iOS re-syncs with the App Store first.
+ *   - any answer that lists the product again wipes the note.
+ *   - the paid edition is its own receipt and is never touched.
+ *
+ * Revoking removes the cached receipt, so the adverts come back and the
+ * locked rows lock again. Anything a career already received from the
+ * purchase (a stamped Charter, a built Estate) stays in that career: this
+ * stops the future, it does not rewrite the past.
+ */
+const MISS_KEY = 'rm-ent-miss'
+/** One id per launch of the app, so "a later session" is a real thing. */
+const SESSION = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+
+/** How far apart the two misses must be. */
+const MISS_SPAN_MS = 24 * 60 * 60 * 1000
+
+/** One noted miss: the launch that saw it, and when. */
+interface Miss { s: string; t: number }
+
+function readMisses(): Record<string, Miss> {
+  try {
+    const raw = localStorage.getItem(MISS_KEY)
+    const v = raw ? JSON.parse(raw) : {}
+    if (!v || typeof v !== 'object' || Array.isArray(v)) return {}
+    const out: Record<string, Miss> = {}
+    for (const [k, m] of Object.entries(v as Record<string, unknown>)) {
+      const mm = m as Partial<Miss> | null
+      if (mm && typeof mm.s === 'string' && typeof mm.t === 'number' && Number.isFinite(mm.t)) out[k] = { s: mm.s, t: mm.t }
+    }
+    return out
+  } catch { return {} }
+}
+
+function writeMisses(m: Record<string, Miss>): void {
+  try {
+    if (Object.keys(m).length) localStorage.setItem(MISS_KEY, JSON.stringify(m))
+    else localStorage.removeItem(MISS_KEY)
+  } catch { /* private mode: the slow rule just gets slower */ }
+}
+
+/** Is this receipt still on the account? Either Pro product covers the other,
+ *  the same rule hasEntitlement applies. */
+function stillOwned(sku: string, skus: readonly string[]): boolean {
+  if (skus.includes(sku)) return true
+  if (sku === SUPPORTER_SKU || sku === PRO_INTRO_SKU) {
+    return skus.includes(SUPPORTER_SKU) || skus.includes(PRO_INTRO_SKU)
+  }
+  return false
+}
+
+/** Apply one AUTHORITATIVE answer from the store. Returns whether anything was
+ *  taken away. Exported for the probe; the game reaches it through restore(). */
+export function revokeMissing(skus: readonly string[], session = SESSION, now = Date.now()): boolean {
+  if (edition() !== 'free') return false
+  const cache = ownedCache()
+  const misses = readMisses()
+  let revoked = false
+  for (const sku of NC_SKUS) {
+    if (!cache.has(sku)) { delete misses[sku]; continue }
+    if (stillOwned(sku, skus)) { delete misses[sku]; continue }
+    const seen = misses[sku]
+    if (!seen) { misses[sku] = { s: session, t: now }; continue }  // first miss: note it
+    if (seen.s === session) continue                                // same launch: wait
+    if (now - seen.t < MISS_SPAN_MS) continue                      // too soon: wait
+    cache.delete(sku)                                               // a later launch, a day on: take it back
+    delete misses[sku]
+    revoked = true
+  }
+  if (revoked) {
+    try { localStorage.setItem(KEY, [...cache].join(',')) } catch { /* private mode */ }
+  }
+  writeMisses(misses)
+  return revoked
 }
 
 /** Open the store's sheet for a non-consumable, and write the receipt if it

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { adBridge, adsAllowed, type AdPlace } from '../game/monetise'
+import { useStore } from '../store'
 
 /**
  * A place an advert MAY appear, which in this build is nowhere.
@@ -21,6 +22,14 @@ import { adBridge, adsAllowed, type AdPlace } from '../game/monetise'
  */
 export function AdSlot({ place }: { place: AdPlace }) {
   const host = useRef<HTMLDivElement>(null)
+  // THE PURCHASE IS A DEPENDENCY (1.8.18). The effect used to re-run only when
+  // `place` changed, so buying Pro from a card on the same screen left the
+  // banner mounted - the slot drew nothing, but the provider still held its
+  // element and redrew the advert the moment the card closed, under a line
+  // that promises "the adverts go this frame". Reading `supporter` from the
+  // store re-runs the effect on purchase (and on a refund taken back), and the
+  // clean-up below is what actually takes the advert down.
+  const supporter = useStore(s => s.supporter)
 
   useEffect(() => {
     const el = host.current
@@ -29,7 +38,7 @@ export function AdSlot({ place }: { place: AdPlace }) {
     if (!ads) return
     ads.mount(el, place)
     return () => { ads.unmount?.(el) }
-  }, [place])
+  }, [place, supporter])
 
   if (!adsAllowed(place)) return null
   return <div className="ad-slot" ref={host} aria-hidden="true" />

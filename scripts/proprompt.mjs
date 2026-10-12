@@ -82,7 +82,8 @@ async function phone({ billing = true, ads = true, owns = [], prices = { 'phase.
     if (ads) {
       globalThis.rmAds = {
         mount: (el, place) => { el.setAttribute('data-ad', place) },
-        unmount: () => {},
+        // counted, and the mark taken off, so a test can see the slot let go
+        unmount: (el) => { globalThis.__unmounts = (globalThis.__unmounts ?? 0) + 1; el?.removeAttribute?.('data-ad') },
         showRewarded: async () => 'skipped',
       }
     }
@@ -241,10 +242,18 @@ try {
     await startCareer(page)
     ok(await card(page) === 'first', 'the first card is shown')
     ok(await page.evaluate(() => document.querySelector('.app').className.includes('skin-')) === false, 'free: the default skin')
+    // 1.8.18: the banner under the card must go the moment Pro is bought,
+    // not when the player next changes screen (AdSlot re-runs on `supporter`)
+    const adsBefore = await page.locator('[data-ad]').count()
+    const unmountsBefore = await page.evaluate(() => globalThis.__unmounts ?? 0)
     await tap(page, 'Become Pro')
     await page.waitForSelector('.pro-card >> text=Thanks for backing the game')
     ok((await ent(page)).includes('phase.supporter'), 'the purchase wrote Pro Manager')
     ok(await page.evaluate(() => window.rugbyStore.getState().supporter) === true, 'the UI knows at once')
+    ok(adsBefore > 0, `a banner was up under the card before the purchase (${adsBefore})`)
+    ok(await page.locator('[data-ad]').count() === 0
+      && await page.evaluate(() => globalThis.__unmounts ?? 0) > unmountsBefore,
+      'and it was taken down while the thank-you card is still open')
     await tap(page, 'Continue')
     await page.evaluate(() => window.rugbyStore.getState().setSkin('midnight'))
     await page.waitForTimeout(200)
