@@ -154,6 +154,14 @@ async function playOne(page) {
       const st = s.getState()
       for (const o of st.game.offers) if (o.status === 'pending' && o.forUser) o.status = 'rejected'
       for (const q of st.game.press) q.answered = true
+      // KEEP THE JOB (1.9.0). Instant results with the press waved through get
+      // Leicester's manager sacked in some runs inside the 22 matches A needs,
+      // and a manager with no club plays no match: the drive then turned 600
+      // days without one and reported 'stuck', or counted results the device
+      // never saw. The subject is the cards, not survival - annualprobe holds
+      // the board the same way.
+      const club = st.game.clubs?.[st.game.userClubId]
+      if (club && !st.game.unemployed) club.boardConfidence = Math.max(club.boardConfidence ?? 50, 70)
       s.setState({ lastAdvanceAt: 0 })
       const screen = st.nav[st.nav.length - 1]?.screen
       if (screen === 'annual') { st.game.annual = undefined; st.touch(); st.back(); continue }
