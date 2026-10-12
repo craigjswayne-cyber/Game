@@ -1,5 +1,9 @@
 # Moving the game to the company's Play account
 
+> **DONE.** The transfer is complete: the app is live on Google Play under
+> FWDS & BCKS LTD, with 1.8.17 in production (owner, 12 Oct 2026). This file is
+> kept as the record of how it was done.
+
 The owner has registered a company and is publishing under it (26 Sep 2026).
 The app already lives on the personal Play account as
 `com.phaserugbymanager.app`, with players, purchases, a signing key and a
@@ -103,7 +107,7 @@ changes.
    check they came across: Data safety, content rating, target audience, ads
    declaration, app access. Fix anything showing as incomplete.
 4. **Target API.** Check **Policy status** for a target-API warning before the
-   next upload. `PLAY-WALKTHROUGH.md` builds against Android 15 (API 35), and
+   next upload. `PLAY-WALKTHROUGH.md` builds against Android 16 (API 36), and
    Google raises the minimum every August.
 5. **Next release.** Build and upload exactly as `PLAY-WALKTHROUGH.md`
    describes, using the version code above the highest one Play has accepted.

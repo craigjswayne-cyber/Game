@@ -247,9 +247,17 @@ function index(): Pattern[] {
   return out
 }
 
+/** THE LONGEST LINE WORTH MATCHING (1.8.18). The longest press template is a
+ *  little over 200 characters, and its holes take a name or a club each, so
+ *  no line the game ever wrote comes near this. The patterns use lazy holes
+ *  that can backtrack badly on a crafted string (security finding F1: a
+ *  shared save with a 200,000-character "question" froze the import), so
+ *  anything longer is not a press line and is not matched at all. */
+export const RECOVER_MAX = 800
+
 /** The key and vars behind one stored English line, or null if nothing fits. */
 export function recover(text: string): { k: string; v: Vars } | null {
-  if (!text) return null
+  if (!text || typeof text !== 'string' || text.length > RECOVER_MAX) return null
   for (const p of index()) {
     const m = p.rx.exec(text)
     if (!m) continue
@@ -265,11 +273,16 @@ export function recover(text: string): { k: string; v: Vars } | null {
 export function migratePress(press: PressItem[]): number {
   let n = 0
   for (const item of press) {
+    // an imported file can hold anything: a press entry that is not an object,
+    // or options that are not a list, are left for migrate() to tidy rather
+    // than thrown on here
+    if (!item || typeof item !== 'object') continue
     if (!item.qk) {
       const q = recover(item.question)
       if (q) { item.qk = q.k; item.qv = q.v; n++ }
     }
-    for (const o of item.options as PressOption[]) {
+    for (const o of (Array.isArray(item.options) ? item.options : []) as PressOption[]) {
+      if (!o || typeof o !== 'object') continue
       if (!o.lk) {
         const l = recover(o.label)
         if (l) { o.lk = l.k; o.lv = l.v; n++ }

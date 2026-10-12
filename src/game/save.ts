@@ -134,7 +134,16 @@ export async function saveGame(slot: string, state: GameState): Promise<void> {
     // reaches GameState, this now throws DataCloneError at save time on somebody's
     // phone rather than quietly dropping the field. scripts/cloneprobe.ts is the
     // tripwire for that, and it holds a real five-season save.
+    // HOW LONG THE PHONE IS HELD (1.8.18). put() clones the whole career on
+    // the main thread, so this is the frame the player feels. Dev builds only:
+    // run the game with `npm run dev` on a budget Android phone late in a long
+    // career and read the console. docs/testing.md records what was measured.
+    const t0 = performance.now()
     tx.objectStore(STORE).put({ meta, state }, slot)
+    const held = performance.now() - t0
+    if ((import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV) {
+      console.debug(`[save] ${slot}: put() held the main thread ${held.toFixed(0)} ms`)
+    }
     tx.oncomplete = () => { db.close(); resolve() }
     tx.onerror = () => { db.close(); reject(tx.error) }
   })
@@ -329,6 +338,12 @@ function rebaseStamps(s: GameState): void {
   // NOT the discipline ledger: an incident stores its season and its week as two
   // separate fields and rebuilds the absolute week when it is read, so it was
   // never on the old basis and must not be touched.
+}
+
+/** A pair of plain hex colours, and nothing that CSS could read as anything else. */
+const HEX = /^#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i
+export function safeColours(v: unknown): v is [string, string] {
+  return Array.isArray(v) && v.length === 2 && v.every(x => typeof x === 'string' && HEX.test(x))
 }
 
 export function migrate(s: GameState): GameState {
@@ -644,6 +659,24 @@ export function migrate(s: GameState): GameState {
         })
       : []
   }
+  // ---- CLUB COLOURS ARE COLOURS (1.8.18) ----
+  // They go straight into inline CSS (club banners, the match-day bars, the
+  // --club1/--club2 theme), and React does not check style values. A shared
+  // save whose "colour" was url(https://somewhere/...) made the game fetch it
+  // - the player's address, handed to a stranger, in a game that promises it
+  // sends nothing anywhere (security findings F3 and F4). Every colour the
+  // game itself writes is #rrggbb from the bundled data, so anything else is
+  // put back to the bundled colour for that club.
+  const bundledColours = new Map<string, [string, string]>()
+  for (const def of LEAGUE_DEFS(genderOf(s))) for (const rc of def.clubs) bundledColours.set(rc.id, rc.colors)
+  for (const c of Object.values(s.clubs)) {
+    if (!c || typeof c !== 'object') continue
+    // a club the bundled data does not know (it never should) borrows the
+    // first bundled pair rather than a colour written here (tokenlint)
+    const fallback = bundledColours.get(c.id) ?? bundledColours.values().next().value
+    if (!safeColours(c.colors) && fallback) c.colors = [...fallback] as [string, string]
+  }
+
   for (const c of Object.values(s.clubs)) {
     if (!c || typeof c !== 'object') continue
     if (!Array.isArray(c.players)) c.players = []

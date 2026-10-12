@@ -166,3 +166,18 @@ Five lessons, each of them paid for:
   screenshots, the feature graphic and the App Store icon into `storeart/`. Run
   it before a submission and look at what it produced — it walks a real career,
   so a screen that is broken in a new build is broken in the picture.
+- **Purchases are only half testable here (1.8.18).** `refundprobe`,
+  `proprompt` and `exportui` drive the JavaScript side of billing and export
+  against faked shells. The native halves (`PhaseBilling.java`,
+  `PhaseBilling.swift`, the Share and Filesystem plugins) only run on a phone:
+  the device matrix in `tasks/todo.md` (Checkpoint B) is the test for them, and
+  it is run before every release that touches `packaging/`.
+- **Save time on a real phone is not measured by any probe (1.8.18).** The
+  whole career is one IndexedDB record, cloned on the main thread at every
+  save. `soakhealth` now fails if the twenty-season save passes 16 MB (it was
+  about 11 MB when the ceiling was set), and a dev build logs `[save] ... held
+  the main thread N ms` on every write. Reference figures: a structured clone
+  of a new-game save took about 75 ms on the CI-class container on 12 Oct
+  2026. The budget-Android figure late in a long career is still to be
+  recorded here; if it is over about 300 ms, splitting the save or moving the
+  clone to a Worker becomes its own task.

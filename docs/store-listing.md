@@ -120,6 +120,28 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.8.18, Play version code 57
+
+Each entry is under 500 characters. Paste the matching language into each Play locale.
+
+**en-GB**
+Purchases unlock as soon as the store confirms them, even when a payment takes a while or clears later, with no need to restart the game. Going Pro takes the adverts away the moment you buy. Export Career and Send a copy now open your phone's share sheet, so a backup can go to a cloud drive, a chat or an e-mail. Save files shared with you are checked more carefully when you import them.
+
+**fr-FR**
+Les achats se débloquent dès que la boutique les confirme, même quand un paiement prend du temps ou passe plus tard, sans relancer le jeu. Passer Pro retire les publicités à l'instant de l'achat. Exporter la carrière et Envoyer une copie ouvrent désormais le menu de partage du téléphone : une sauvegarde peut partir vers un stockage en ligne, une discussion ou un e-mail. Les sauvegardes reçues sont mieux vérifiées à l'import.
+
+**es-ES**
+Las compras se desbloquean en cuanto la tienda las confirma, aunque el pago tarde o se complete más tarde, sin reiniciar el juego. Hacerte Pro quita los anuncios en el momento de la compra. Exportar carrera y Enviar una copia abren ahora el menú de compartir del teléfono, para guardar la copia en la nube, en un chat o en un correo. Las partidas que te comparten se revisan con más cuidado al importarlas.
+
+**it-IT**
+Gli acquisti si sbloccano appena lo store li conferma, anche quando un pagamento richiede tempo o va a buon fine più tardi, senza riavviare il gioco. Diventare Pro toglie la pubblicità nel momento dell'acquisto. Esporta carriera e Invia una copia ora aprono il menu di condivisione del telefono, così il backup può finire nel cloud, in una chat o in un'e-mail. I salvataggi ricevuti vengono controllati meglio all'importazione.
+
+**ja-JP**
+購入はストアが確認した時点ですぐに反映されるように。支払いに時間がかかった場合や後から完了した場合も、ゲームを再起動する必要はなし。Proにすると購入した瞬間に広告が消えるように。「キャリアを書き出す」と「コピーを送る」はスマホの共有メニューを開くようになり、バックアップをクラウドやチャット、メールに送れるように。共有されたセーブデータは読み込み時により丁寧にチェック。
+
+**af**
+Aankope word oopgesluit sodra die winkel dit bevestig, selfs as 'n betaling 'n rukkie neem of later deurgaan, sonder om die speletjie weer te begin. As jy Pro word, verdwyn die advertensies die oomblik wat jy koop. Voer loopbaan uit en Stuur 'n kopie maak nou jou foon se deelkieslys oop, sodat 'n rugsteun na 'n wolkskyf, 'n klets of 'n e-pos kan gaan. Lêers wat met jou gedeel word, word nou noukeuriger nagegaan wanneer jy dit invoer.
+
 ### What's new (500 max) - v1.8.17, Play version code 56
 
 Each entry is under 500 characters. Paste the matching language into each Play locale.

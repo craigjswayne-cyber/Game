@@ -45,7 +45,7 @@ Key: **DONE** in place and checked · **FIXED** fixed in this round ·
 | S11 | **Android 16 ignores portrait lock on large screens** (600dp and wider) for apps targeting API 36. | Play | DONE | The game already has landscape and tablet layouts (the 1.8.17 tablet round tested 1180x820). |
 | S12 | **Content rights / real names** (Play "third-party content", Apple 5.2.1). Real player and referee names, no badges, kits or logos. | Both | OWNER (legal) | A judgement call already noted in `STORE-DECLARATIONS.md`; take advice if unsure. |
 | S13 | **Ruck permission in writing.** | Both | OWNER | Email filed and dated. |
-| S14 | **Google Mobile Ads SDK version floats** (`play-services-ads:25.4.+`), so two builds can differ. | Play | OWNER (Android Studio) | Pin it when you next build, and check the release with Play's 16 KB check. |
+| S14 | **Google Mobile Ads SDK version floats** (`play-services-ads:25.4.+`), so two builds can differ. | Play | FIXED (1.8.18) | `scaffold.sh` pins `playServicesAdsVersion = '25.4.0'` (what the 1.8.17 release build resolved) in `variables.gradle`. Still run Play's 16 KB check on the release. |
 
 ## 3. Deadlines coming
 

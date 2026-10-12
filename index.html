@@ -12,6 +12,16 @@
          measurement in scripts/colouraudit.mjs read the real CSS. Saying the page
          handles both schemes itself turns force-dark off. -->
     <meta name="color-scheme" content="dark light" />
+    <!-- IMAGES COME FROM THE GAME ITSELF (1.8.18). A narrow policy on purpose:
+         images only, CSS background images included. The game ships every
+         picture it shows, so nothing here costs it anything; what it stops is
+         a stranger's save file smuggling url(https://...) into a club colour
+         and making the phone call out (security findings F3 and F4, fixed at
+         the source in migrate() - this is the second lock). Scripts and styles
+         are deliberately NOT restricted: the store shells inject the advert
+         bridge as an inline script, and a broader policy would silently stop
+         the adverts. -->
+    <meta http-equiv="Content-Security-Policy" content="img-src 'self' data: blob:" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="mobile-web-app-capable" content="yes" />
