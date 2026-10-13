@@ -498,12 +498,30 @@ export function bankReceipts(sku: string): Promise<number> {
   return job
 }
 
+/** How many receipts for `sku` the account holds, and whether that count is
+ *  KNOWN (1.9.0). owned() answers [] both for "holds none" and for "could not
+ *  reach the store", and bankOnce read that [] as proof a consume had landed:
+ *  one heal receipt held, the consume answers SERVICE_DISCONNECTED, the re-read
+ *  cannot reconnect and says [], so 0 < 1 banked a credit while the receipt was
+ *  still on the account, and the next sweep consumed it and banked a second
+ *  one. Two heals for one payment. A shell with ownedState says whether the
+ *  store answered; an older one is read the old way, as before. */
+async function heldOf(b: BillingBridge, sku: string): Promise<{ n: number; known: boolean }> {
+  if (typeof b.ownedState === 'function') {
+    const st = await quick(b.ownedState(), { ok: false, skus: [] as string[] })
+    const skus = Array.isArray(st?.skus) ? st.skus : []
+    return { n: skus.filter(s => s === sku).length, known: st?.ok === true }
+  }
+  return { n: (await quick(b.owned(), [] as string[])).filter(s => s === sku).length, known: true }
+}
+
 async function bankOnce(sku: string): Promise<number> {
   const b = bridge()
   if (!b?.consume) return 0
   let held = 0
   try {
-    held = (await quick(b.owned(), [] as string[])).filter(s => s === sku).length
+    const first = await heldOf(b, sku)
+    held = first.n
 
     // ---- FIRST, PAY FOR ANY CONSUME THIS DEVICE ABANDONED ----
     // A mark means a consume was issued and its answer never arrived. If the
@@ -514,7 +532,11 @@ async function bankOnce(sku: string): Promise<number> {
     // write that banks the credit, so there is no moment where one has
     // happened and the other has not. A write that fails changes nothing and
     // the next pass finds the mark still here.
+    // ONLY ON A COUNT THE STORE REALLY GAVE: a store that could not be
+    // reached reads as "holds none", and the mark would pay out for a consume
+    // that may never have landed. The mark waits for a real answer.
     const issued = markGet(sku)
+    if (!first.known) return held
     if (issued > held) bankAndClear(sku, issued - held)
     else if (issued > 0) markClear(sku) // the consume did not land: retry below
 
@@ -526,10 +548,15 @@ async function bankOnce(sku: string): Promise<number> {
       // spent one with no mark and nowhere to bank is money taken for nothing.
       if (!markSet(sku, held)) return held
       const res = await quick(b.consume(sku), undefined)
-      const now = (await quick(b.owned(), [] as string[])).filter(s => s === sku).length
+      const after = await heldOf(b, sku)
+      const now = after.n
       // proof 1, then proof 2; a bridge that answers void gives neither and
-      // falls through to the mark
-      const landed = now < held ? held - now : (res && res.ok === true ? 1 : 0)
+      // falls through to the mark. Proof 1 only counts when the store really
+      // answered the re-read, and never against a consume the shell said
+      // outright did not land (1.9.0, see heldOf).
+      const landed = res && res.ok === false ? 0
+        : after.known && now < held ? held - now
+        : (res && res.ok === true ? 1 : 0)
       if (landed > 0) {
         // one write: the credit is banked and the mark is gone together. A
         // false means neither happened, so stop rather than spend a second
