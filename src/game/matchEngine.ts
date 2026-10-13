@@ -3371,9 +3371,10 @@ function tryLine(ctx: LiveCtx, side: SideCtx, pool: readonly string[], scorer: P
     remember(ctx, k)
     return k
   }
-  const liked = new Set(scorer.trait ? TRY_TRAIT[scorer.trait] ?? [] : [])
-  const open = fresh(pool).length ? fresh(pool) : [...pool]
-  const w = open.map(k => (liked.has(k) ? 3 : 1))
+  const liked = (scorer.trait && TRY_TRAIT[scorer.trait]) || []
+  const unsaid = fresh(pool)
+  const open = unsaid.length ? unsaid : pool
+  const w = open.map(k => (liked.includes(k) ? 3 : 1))
   // the rest of the roll, rescaled to 0-1, so one draw still decides it all
   const u = m.length ? (roll - 0.65) / 0.35 : roll
   let r = u * w.reduce((a, b) => a + b, 0)
@@ -5619,17 +5620,36 @@ function lateWithdrawal(state: GameState, ctx: LiveCtx, side: SideCtx) {
 const SP_SCRUM_P = 0.32, SP_LINEOUT_P = 0.6
 const SP_CLEAN = 1.012, SP_SCRAPPY = 0.92, SP_STOLEN = 0.88, SP_THIEF = 1.06
 const SP_PEN_W = 0.35
+/** how fresh a side's set-piece men are, 0..1: the front row (scrum), the
+ *  hooker and locks (the throw and catch) and the locks and flankers (the
+ *  contest). One pass over the pitch a side a tick: this runs for every
+ *  match in the world, and reading each group separately cost perfprobe
+ *  its budget. Nothing in setPieceContest changes energy, so it is read once. */
+type SpLegs = { fr: number; thr: number; jmp: number }
+function spLegs(state: GameState, s: SideCtx): SpLegs {
+  let fr = 0, nfr = 0, thr = 0, nthr = 0, jmp = 0, njmp = 0
+  for (const id of s.onPitch) {
+    const p = state.players[id]
+    if (!p) continue
+    const pos = p.pos
+    if (pos !== 'LP' && pos !== 'HK' && pos !== 'TP' && pos !== 'LK' && pos !== 'FL') continue
+    const e = s.energy.get(id) ?? 80
+    if (pos === 'LP' || pos === 'HK' || pos === 'TP') { fr += e; nfr++ }
+    if (pos === 'HK' || pos === 'LK') { thr += e; nthr++ }
+    if (pos === 'LK' || pos === 'FL') { jmp += e; njmp++ }
+  }
+  return { fr: (nfr ? fr / nfr : 60) / 100, thr: (nthr ? thr / nthr : 60) / 100, jmp: (njmp ? jmp / njmp : 60) / 100 }
+}
 function setPieceContest(state: GameState, ctx: LiveCtx, tick: number) {
   const { home, away } = ctx
   const ref = refFor(ctx.fx.id)
   const wet = ctx.weather === 'Rain' || ctx.weather === 'Snow' ? 1 : ctx.weather === 'Damp' ? 0.4 : 0
-  const legs = (s: SideCtx, pos: readonly string[]) => {
-    const es = [...s.onPitch].map(id => state.players[id]).filter((p): p is Player => !!p && pos.includes(p.pos))
-      .map(p => s.energy.get(p.id) ?? 80)
-    return (es.length ? es.reduce((a, b) => a + b, 0) / es.length : 60) / 100
-  }
-  for (const s of [home, away]) { s.spTryF = 1; s.spPens = 0; s.spScrums = 0; s.sp ??= { sw: 0, sl: 0, lw: 0, ll: 0, pen: 0 } }
-  for (const [feed, opp] of [[home, away], [away, home]] as [SideCtx, SideCtx][]) {
+  const hl = spLegs(state, home), al = spLegs(state, away)
+  home.spTryF = 1; home.spPens = 0; home.spScrums = 0; home.sp ??= { sw: 0, sl: 0, lw: 0, ll: 0, pen: 0 }
+  away.spTryF = 1; away.spPens = 0; away.spScrums = 0; away.sp ??= { sw: 0, sl: 0, lw: 0, ll: 0, pen: 0 }
+  // the home feed first, then the away: the order the dice were drawn in
+  for (let k = 0; k < 2; k++) {
+    const feed = k ? away : home, opp = k ? home : away
     const r = incRng(ctx, tick, feed, 0x5E7)
     // ---- the scrum ----
     if (r() < SP_SCRUM_P) {
@@ -5641,8 +5661,9 @@ function setPieceContest(state: GameState, ctx: LiveCtx, tick: number) {
       } else {
         // the front row's legs are 40% of the shove: a spent one against a
         // fresh one off the bench is a pack going backwards (packprobe)
-        const push = feed.units.scrum * (0.6 + 0.4 * legs(feed, ['LP', 'HK', 'TP']))
-        const resist = opp.units.scrum * (0.6 + 0.4 * legs(opp, ['LP', 'HK', 'TP']))
+        const fl = k ? al : hl, ol = k ? hl : al
+        const push = feed.units.scrum * (0.6 + 0.4 * fl.fr)
+        const resist = opp.units.scrum * (0.6 + 0.4 * ol.fr)
         // read as a ratio, the way scrumEdge read the two packs: 1.1 is a
         // nudge (0.19), 1.3 a pack going forward (0.49), 2.0 a rout (0.88)
         const edge = Math.tanh(2 * Math.log(push / Math.max(0.01, resist)))
@@ -5667,8 +5688,8 @@ function setPieceContest(state: GameState, ctx: LiveCtx, tick: number) {
     }
     // ---- the lineout ----
     if (r() < SP_LINEOUT_P) {
-      const throwQ = feed.units.lineout * (0.8 + 0.2 * legs(feed, ['HK', 'LK']))
-      const contest = opp.units.lineout * (0.8 + 0.2 * legs(opp, ['LK', 'FL']))
+      const throwQ = feed.units.lineout * (0.8 + 0.2 * (k ? al : hl).thr)
+      const contest = opp.units.lineout * (0.8 + 0.2 * (k ? hl : al).jmp)
       const win = clamp(0.87 + 0.10 * Math.tanh(2 * Math.log(throwQ / Math.max(0.01, contest))) - 0.04 * wet, 0.6, 0.97)
       // the throw that is not straight is setPieceTick's; this is the contest
       if (r() > win) {
