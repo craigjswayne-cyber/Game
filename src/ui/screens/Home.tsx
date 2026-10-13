@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from 'react'
 import { genderOf } from '../../game/gender'
 import { isDeadlineWeek } from '../../game/window'
 import { useStore } from '../../store'
@@ -27,8 +28,47 @@ import { buildDesk, deskText } from '../../game/desk'
 import { DeskCard, DeskTile, deskRows } from '../Desk'
 
 
+/**
+ * NO TILE ALONE ON HALF A ROW (1.9.0, tabletprobe). The tiles' grid has two
+ * columns on a phone and as many as fit on a tablet, so how many land in the
+ * last row depends on the glass. CSS cannot say "the last item takes what is
+ * left of its row" on an auto-fill grid, so after layout the last tile is
+ * stretched from the column it landed in to the end of the row, and put back
+ * when the grid changes shape.
+ */
+function useFillLastRow(tick: unknown) {
+  const ref = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    const g = ref.current
+    if (!g) return
+    const fit = () => {
+      const kids = [...g.children] as HTMLElement[]
+      const last = kids[kids.length - 1]
+      if (!last) return
+      last.style.gridColumn = ''
+      const cols = getComputedStyle(g).gridTemplateColumns.split(' ').filter(Boolean)
+      if (cols.length < 2) return
+      const lb = last.getBoundingClientRect()
+      const sameRow = kids.filter(k => k !== last && Math.abs(k.getBoundingClientRect().top - lb.top) < 2)
+      // where it landed: one past the furthest right of its row-mates, or 1
+      const gb = g.getBoundingClientRect()
+      const colW = (gb.width - parseFloat(getComputedStyle(g).paddingLeft) - parseFloat(getComputedStyle(g).paddingRight)) / cols.length
+      const start = sameRow.length
+        ? Math.round((Math.max(...sameRow.map(k => k.getBoundingClientRect().right)) - gb.left - parseFloat(getComputedStyle(g).paddingLeft)) / colW) + 1
+        : 1
+      if (start <= cols.length && lb.right < gb.right - parseFloat(getComputedStyle(g).paddingRight) - colW / 2) last.style.gridColumn = `${start} / -1`
+    }
+    fit()
+    const ro = typeof ResizeObserver === 'function' ? new ResizeObserver(fit) : null
+    ro?.observe(g)
+    return () => ro?.disconnect()
+  }, [tick])
+  return ref
+}
+
 export default function Home() {
   const game = useStore(s => s.game)!
+  const tilesRef = useFillLastRow(useStore(s => s.tick))
   // The unread count and its headline moved into the desk's decisions
   // (game/desk.ts), which counts with the reader's own predicate (inInbox) and
   // serves the queue through openInbox, oldest first, as the old cue did.
@@ -161,7 +201,7 @@ export default function Home() {
           )}
         </div>
       ) : <BlankWeek hook={hook} />} />
-      <div className="card-grid home-tiles">
+      <div className="card-grid home-tiles" ref={tilesRef}>
       {/* The Championship panel, in whichever game this career is in: the id and
           the window both differ between the two, and naming the men's flat meant
           a women's manager played a Northern Championship her home screen never
