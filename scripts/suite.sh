@@ -117,7 +117,14 @@ if [ "$MODE" != fast ]; then
 echo "=== build, then the browser ==="
   run build npm run build
   b=0
-  for n in e2e e2enight backprobe savequeue resilience reloadprobe subsprobe dramaprobe jobsprobe hubprobe tapsize motionprobe drawui portraitqa densityaudit stickyaudit scrollaudit overlapaudit blockprobe pickaudit nightcontrast contrastprobe colouraudit breaker subreach injurygate instantverdictprobe tapcontrols dealcardui unemployedprobe stakesprobe devicematrix backlogprobe annualprobe geosweep strangerpath hireprobe bidprobe deskgate textscale langprobe skinui sackui engageui tillface keyscreen storeprobe proprompt feedbackui backupreach replyreach subline testsheet healrefresh sidescroll adsprobe womensui mgrgender joboffer matchad boardroomui pressureprobe introprobe tabletprobe ambientprobe overlayprobe tidyprobe ipprobe slotprobe feedprobe tryflash loanlistui floorad ruckui; do
+  # TWENTY HARNESSES WITH A VERDICT WERE IN NO LIST (1.9.0): exportui (the
+  # 1.8.18 export), screensave, hlliveprobe and seventeen more were written,
+  # passed once, and never ran again, so three of them had gone stale against
+  # 1.8.16's wording and pacing without anybody seeing it. They are the second
+  # line below. A harness with a verdict belongs here; a screenshot tool does
+  # not (shots, qa-shots, storeart, ipadshots and the like).
+  for n in e2e e2enight backprobe savequeue resilience reloadprobe subsprobe dramaprobe jobsprobe hubprobe tapsize motionprobe drawui portraitqa densityaudit stickyaudit scrollaudit overlapaudit blockprobe pickaudit nightcontrast contrastprobe colouraudit breaker subreach injurygate instantverdictprobe tapcontrols dealcardui unemployedprobe stakesprobe devicematrix backlogprobe annualprobe geosweep strangerpath hireprobe bidprobe deskgate textscale langprobe skinui sackui engageui tillface keyscreen storeprobe proprompt feedbackui backupreach replyreach subline testsheet healrefresh sidescroll adsprobe womensui mgrgender joboffer matchad boardroomui pressureprobe introprobe tabletprobe ambientprobe overlayprobe tidyprobe ipprobe slotprobe feedprobe tryflash loanlistui floorad ruckui \
+    brandprobe chaosui coachriftui countryui devpickui exportui formerui ftprobe hlliveprobe injurysheet loannameui pressbaroprobe roomui screensave setpieceui sheetprobe spotadui teamtalkui temperui uiqaprobe; do
     [ -f "scripts/$n.mjs" ] || continue
     # BSHARDS: the CI browser job runs as parallel shards, each taking every
     # BSHARDS-th harness; locally it is unset and every harness runs

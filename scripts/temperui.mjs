@@ -65,7 +65,7 @@ for (const [w, h] of [[412, 915], [360, 800]]) {
     })
     const ownText = await openPlayer(page, own)
     await page.screenshot({ path: `${OUT}/own-${w}.png` })
-    ok(!!ownText && /the staff's read/i.test(ownText) && /Starts this season: 1/.test(ownText) && /professionalism/.test(ownText),
+    ok(!!ownText && /the staff's read/i.test(ownText) && /Starts this season: 1/.test(ownText) && /keeps (him|her)self right/.test(ownText),
       `${w}px: your own man shows the staff's read and the professional's no-minutes note`)
 
     // ---- a new signing: too early ----
