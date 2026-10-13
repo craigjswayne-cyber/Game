@@ -46,7 +46,8 @@ async function career(page) {
 async function openPlayer(page, id) {
   await page.evaluate(pid => { const s = window.rugbyStore.getState(); s.go('player', pid) }, id)
   await page.waitForTimeout(700)
-  return page.evaluate(() => document.querySelector('.temper-card')?.innerText ?? null)
+  // the temper card only: the 1.9.0 Character card wears its look (traitcard tests that one)
+  return page.evaluate(() => document.querySelector('.temper-card:not(.char-card)')?.innerText ?? null)
 }
 
 for (const [w, h] of [[412, 915], [360, 800]]) {
