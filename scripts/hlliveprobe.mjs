@@ -55,13 +55,32 @@ try {
   await page.waitForSelector('.scoreboard', { timeout: 20000 })
 
   // wait for a clip, answering any touchline call on the way
-  let seen = false
-  for (let i = 0; i < 240 && !seen; i++) {
+  //
+  // BOUNDED BY PROGRESS, NOT BY A NUMBER (docs/testing.md, lesson 3). This
+  // waited 240 x 250ms, and a match paced for drama since 1.8.16 had not
+  // reached its first try inside a minute, so it failed on a healthy page.
+  // It now waits while the match clock moves, and says which of the three
+  // ends it reached: a clip, full time with none, or a stalled clock.
+  let seen = false, why = ''
+  let last = -1, still = 0
+  for (;;) {
     if (await page.locator('text=Take the Points').count()) await page.click('text=Take the Points').catch(() => {})
+    // AN INJURY STOPS PLAY UNTIL A REPLACEMENT IS NAMED (the shirt has to be
+    // filled). The two taps reloadprobe and subsprobe use: arm a man who is
+    // on, take a bench option, back to the match.
+    if (await page.locator('text=Play is stopped until somebody takes').count()) {
+      await page.locator('.sheet-col >> nth=0').locator('.sheet-row:not([disabled])').first().click({ timeout: 3000 }).catch(() => {})
+      await page.locator('.sheet-col >> nth=1').locator('.sheet-row:not([disabled])').first().click({ timeout: 3000 }).catch(() => {})
+      await page.locator('.btn', { hasText: /Back to the Match|Done|Close/ }).first().click({ timeout: 3000 }).catch(() => {})
+    }
     seen = await page.locator('.hl-clip').count() > 0
-    if (!seen) await page.waitForTimeout(250)
+    if (seen) break
+    const lm = await page.evaluate(() => { const m = window.rugbyStore.getState().liveMatch; return m ? { c: m.cursor, n: m.events.length, done: m.done } : null })
+    if (!lm || lm.done) { why = `full time with no clip (${lm ? lm.c + '/' + lm.n : 'no match'})`; break }
+    if (lm.c === last) { if (++still >= 80) { why = `the match clock stalled at event ${lm.c}/${lm.n}, on screen: ${(await page.locator('body').innerText()).replace(/\s+/g, ' ').slice(-200)}`; break } } else { still = 0; last = lm.c }
+    await page.waitForTimeout(250)
   }
-  ok(seen, 'the pitch comes on for a highlight')
+  ok(seen, `the pitch comes on for a highlight${why ? ' (' + why + ')' : ''}`)
   if (seen) {
     const box = await page.locator('.hl-clip').boundingBox()
     ok(box && Math.abs(box.width / box.height - 114 / 70) < 0.03, `the whole pitch, 114 by 70 (${box ? (box.width / box.height).toFixed(3) : '-'} against ${(114 / 70).toFixed(3)})`)

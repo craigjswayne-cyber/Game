@@ -297,27 +297,24 @@ try {
   // 1.8.2, tester note 1.4: closing the game on a losing match and reopening
   // it threw the match away and offered it again. The match left running
   // above, from the title screen, is the one to find when the game reopens.
-  say('\n--- a match left mid-play is still going when the game reopens')
-  // a fresh launch, not a refresh: the session marker is what tells them apart
+  // 1.8.16 changed the answer on purpose: the unfinished match is PLAYED OUT
+  // on load ("Match v X unfinished: it plays out when you load") rather than
+  // resumed on its scoreboard, and reloadprobe holds that in the suite. What
+  // this still holds is the tester's complaint: the match is neither thrown
+  // away nor offered again (the title said so, and the career lands past it).
+  say('\n--- a match left mid-play is finished when the game reopens, not offered again')
   await page.evaluate(() => sessionStorage.clear())
   await page.reload({ waitUntil: 'domcontentloaded' })
   await page.waitForSelector('.continue-tile', { timeout: 15000 })
   await page.waitForTimeout(600)
   const tile = (await page.locator('.continue-tile').innerText()).replace(/\s+/g, ' ')
-  ok(/Match in progress against \S/.test(tile), `the title's Continue tile says so ("${tile.slice(0, 90)}")`)
+  ok(/Match v \S.* unfinished: it plays out when you load/.test(tile), `the title's Continue tile says so ("${tile.slice(0, 90)}")`)
   await page.click('.continue-tile')
-  await page.waitForSelector('.scoreboard', { timeout: 20000 })
-  await page.waitForTimeout(400)
-  const note = await page.locator('.resume-note').innerText().catch(() => '')
-  ok(/Your match against .+ is still going/.test(note), `the match is back, and says so ("${note.replace(/\s+/g, ' ').slice(0, 80)}")`)
+  await page.waitForSelector('.bottom-nav', { timeout: 30000 })
+  await page.waitForTimeout(800)
+  const end = await page.evaluate(() => { const st = window.rugbyStore.getState(); return { live: !!st.liveMatch, rec: !!st.matchRec, top: st.nav.at(-1)?.screen } })
+  ok(!end.live && !end.rec, `the match was played out on load, nothing left half-played (${JSON.stringify(end)})`)
   ok(await page.locator('text=Kick Off ▸').count() === 0, 'no Kick Off: the match is not offered a second time')
-  const wrap = await page.locator('.live-wrap').innerText()
-  ok(!/discard|abandon|restart/i.test(wrap), 'and nothing on the screen throws it away')
-  await page.click('[data-ctl=resume-live]')
-  await page.waitForTimeout(500)
-  ok(await page.locator('.resume-note').count() === 0
-    && await page.evaluate(() => !!window.rugbyStore.getState().liveMatch?.playing),
-    'Resume puts the line away and the match plays on')
 
   ok(errors.length === 0, `no page errors (${errors.join(' | ')})`)
   await page.close()

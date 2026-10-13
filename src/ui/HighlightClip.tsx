@@ -1640,6 +1640,15 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
         // out at three and the finisher ran straight through him)
         for (const r of ranked) if (r.dist < 2.6 && missers.length < 4) missers.push({ i: r.i, s: r.s, dove: 0 })
         for (const r of ranked) if (missers.length < Math.min(3, Math.max(missers.length, c.misses)) && !missers.some(m => m.i === r.i) && r.dist < 9) missers.push({ i: r.i, s: clamp(r.s, 0.25, 0.85), dove: 0 })
+        // AND THE MAN ALREADY AT HIS SHOULDER (1.9.0, hlprobe). Off a chip the
+        // full-back chases the same ball and is level with the catcher when
+        // the run starts: not ahead of him, so not in `ranked`, and he drifted
+        // through the finisher. A man within reach at the first stride goes
+        // for him there and misses, as a real one would.
+        for (let i = 0; i < def.length && missers.length < 4; i++) {
+          if (skip(i) || missers.some(m => m.i === i)) continue
+          if (Math.hypot(frozen[i].x - ph.from.x, frozen[i].y - ph.from.y) < 2.6) missers.push({ i, s: 0.1, dove: 0 })
+        }
         contact.push(...missers.map(m => m.i))
         if (ph.end === 'held') contact.push(14)
         // the men who bit on the decoy are in the play too: the ball went

@@ -394,6 +394,54 @@ console.log('\n--- 12b. the credit bank: spends are banked, banks are drawn')
   localStorage.removeItem('rm-credits')
 }
 
+// ---- 12d2. A STORE THAT CANNOT BE REACHED HAS NOT SPENT ANYTHING (1.9.0) ---
+//
+// owned() answers [] for "holds none" and for "could not ask", and bankOnce
+// read that [] as proof a consume had landed. One heal receipt held, the
+// consume answers SERVICE_DISCONNECTED, the re-read cannot reconnect: a credit
+// was banked while the receipt stayed on the account, and the next sweep
+// consumed it and banked a second. Two heals for one payment. A shell with
+// ownedState says whether the store answered; only a real answer counts.
+{
+  console.log('--- 12d2. an unreachable store is not a spent receipt')
+  localStorage.removeItem('rm-credits')
+  let receipts = [M.HEAL_SKU]
+  let up = true
+  let consumeAnswer: 'ok' | 'down' | 'void' = 'down'
+  g.rmBilling = {
+    buy: async () => 'owned',
+    owned: async () => (up ? [...receipts] : []),
+    ownedState: async () => (up ? { ok: true, skus: [...receipts] } : { ok: false, skus: [] }),
+    consume: async (sku: string) => {
+      if (consumeAnswer === 'down') { up = false; return { ok: false } }
+      if (consumeAnswer === 'void') return undefined
+      const i = receipts.indexOf(sku); if (i >= 0) receipts.splice(i, 1)
+      return { ok: true }
+    },
+  }
+  // the consume fails and takes the connection with it
+  await M.bankReceipts(M.HEAL_SKU)
+  ok(M.creditCount(M.HEAL_SKU) === 0 && receipts.length === 1,
+    `a consume that failed, then a re-read that could not reach the store, banks NOTHING (${M.creditCount(M.HEAL_SKU)} credits, ${receipts.length} receipt)`)
+  // the store comes back and the receipt is spent for real: exactly one
+  up = true; consumeAnswer = 'ok'
+  await M.bankReceipts(M.HEAL_SKU)
+  ok(M.creditCount(M.HEAL_SKU) === 1 && receipts.length === 0, `and once it is back, one receipt is exactly one credit (${M.creditCount(M.HEAL_SKU)})`)
+  // a consume whose answer never came leaves the mark; a later pass that
+  // cannot reach the store must not pay the mark out
+  localStorage.removeItem('rm-credits')
+  receipts = [M.HEAL_SKU]; consumeAnswer = 'void'
+  await M.bankReceipts(M.HEAL_SKU)
+  ok(M.creditCount(M.HEAL_SKU) === 0, 'a consume with no answer banks nothing yet (the mark stands)')
+  up = false
+  await M.bankReceipts(M.HEAL_SKU)
+  ok(M.creditCount(M.HEAL_SKU) === 0, 'and a pass that cannot reach the store does not pay the mark out')
+  up = true; consumeAnswer = 'ok'
+  await M.bankReceipts(M.HEAL_SKU)
+  ok(M.creditCount(M.HEAL_SKU) === 1 && receipts.length === 0, `the store back: the receipt was still there, so it is spent once, one credit (${M.creditCount(M.HEAL_SKU)})`)
+  localStorage.removeItem('rm-credits')
+}
+
 // ---- 12e. THE SHELF IS PRICED IN ONE CALL (v1.2.4) ------------------------
 //
 // The same afternoon the shelf's banner read "The store priced 2 of 10

@@ -151,6 +151,15 @@ public class PhaseBilling: CAPPlugin {
                     // a consumable stays unfinished until consume(sku) - see
                     // the note at the top of this file
                     call.resolve(["outcome": "owned"])
+                    // AND TELL THE PAGE (1.9.0). The game stops waiting at 90
+                    // seconds and calls a slow sheet 'pending'; a purchase
+                    // that succeeds after that resolved a call nobody was
+                    // waiting on, and it does not come round again through
+                    // Transaction.updates, so Pro arrived only on the next
+                    // return to the app. Android already says so (Java,
+                    // purchasesUpdated); the game answers with a restore,
+                    // which is harmless when it was waiting after all.
+                    await MainActor.run { self.notifyListeners("purchasesUpdated", data: [:]) }
                 case .userCancelled:
                     // NOT an error. Telling somebody who changed their mind
                     // that something went wrong is how a purchase flow earns
@@ -232,6 +241,9 @@ public class PhaseBilling: CAPPlugin {
             var skus = Array(entitled)
             for await unfinished in Transaction.unfinished {
                 if case .verified(let t) = unfinished, Self.consumables.contains(t.productID) {
+                    // A REFUNDED CONSUMABLE IS NOT OWED (1.9.0): finished
+                    // here so it never reaches consume(), and never credited
+                    if t.revocationDate != nil { await t.finish(); continue }
                     skus.append(t.productID)
                 }
             }
@@ -271,7 +283,7 @@ public class PhaseBilling: CAPPlugin {
             // one per call lets the sweep in monetise.ts bank each in turn.
             var finished = 0
             for await unfinished in Transaction.unfinished {
-                if case .verified(let t) = unfinished, t.productID == sku {
+                if case .verified(let t) = unfinished, t.productID == sku, t.revocationDate == nil {
                     await t.finish()
                     finished = 1
                     break

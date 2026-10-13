@@ -89,7 +89,11 @@ export default function Saves() {
     a.href = URL.createObjectURL(blob)
     a.download = saveName()
     a.click()
-    URL.revokeObjectURL(a.href)
+    // NOT AT ONCE (1.9.0): revoking the URL straight after click() can cancel
+    // the download before it starts in some WebKit and Firefox builds, and the
+    // line below would then say "exported" about a file that never arrived
+    const href = a.href
+    setTimeout(() => URL.revokeObjectURL(href), 30_000)
     setMsg(t('world.svExported'))
   }
 
@@ -153,13 +157,30 @@ export default function Saves() {
         setMsg(t('world.svNotASave'))
         return
       }
-      // a write that fails (a full phone, storage switched off) must say so:
-      // this used to be fire-and-forget, so the player saw nothing and the
-      // career they thought they had imported was not there next time
-      void saveGame('imported', g).then(() => {
-        setGame(g, 'imported')
-        setMsg(null)
-      }).catch((e: unknown) => {
+      // A NEW FILE NEVER LANDS ON AN OLD ONE (1.9.0). Every import went to the
+      // one key 'imported', and after an import that slot is where autosave
+      // writes, so importing a second file silently replaced a career the
+      // player might have played for seasons. The first import is still
+      // 'imported'; the next goes to 'imported-2', and so on, and all of them
+      // are listed under Other Saves. The career on screen is flushed to its
+      // own slot first, so its last change is not lost either.
+      void (async () => {
+        await useStore.getState().persistNow()
+        const taken = new Set((await listSaves()).map(s => s.slot))
+        let slot = 'imported'
+        for (let n = 2; taken.has(slot); n++) slot = `imported-${n}`
+        return slot
+      })().then(slot =>
+        // a write that fails (a full phone, storage switched off) must say so:
+        // this used to be fire-and-forget, so the player saw nothing and the
+        // career they thought they had imported was not there next time
+        saveGame(slot, g).then(() => {
+          setGame(g, slot)
+          setMsg(null)
+        }, (e: unknown) => {
+          setMsg(t('world.svCouldNotSave', { slot: slotName(slot), why: e instanceof Error ? e.message : String(e) }))
+        }),
+      ).catch((e: unknown) => {
         setMsg(t('world.svCouldNotSave', { slot: slotName('imported'), why: e instanceof Error ? e.message : String(e) }))
       })
     }).catch(() => setMsg(t('world.svUnreadable')))

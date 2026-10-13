@@ -104,7 +104,10 @@ try {
     st.go('press')
     return { name: p.name }
   })
-  await page.waitForSelector(`text=L'agent de ${fr.name}`, { timeout: 8000 })
+  // the question names the man and then 'the agent' (1.8.16 wording); "L'agent
+  // de X" is the answer's line, so it is waited for after the tap below
+  await page.waitForSelector(`text=${fr.name}`, { timeout: 8000 })
+  await page.waitForSelector('text=Prolonger maintenant coûte plus', { timeout: 8000 })
   text = await bodyText()
   ok(text.includes('Prolonger maintenant coûte plus que le salaire demandé'), 'the renewal question reads in French, with both costs')
   ok(/Attendre : garder l'argent/.test(await page.evaluate(() => document.body.textContent)), 'and its French colon cannot wrap away')

@@ -120,6 +120,28 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.9.0, Play version code 58 (check the Console's highest accepted code first)
+
+Each entry is under 500 characters. Paste the matching language into each Play locale.
+
+**en-GB**
+Scrums and lineouts are now contested every time: a strong pack wins penalties and steals ball, and a tired front row goes backwards, so a fresh prop off the bench matters. Players tire by the work their position does. The match menu shows all 23 with live energy bars, and Home leads with your next decision. Player pages name each player's signature trait and character. Commentary stops repeating itself and knows a late winner from a consolation. Plus purchase and save fixes.
+
+**fr-FR**
+Mêlées et touches sont désormais disputées : un pack dominant gagne des pénalités et vole des ballons, une première ligne fatiguée recule, et un pilier frais sur le banc compte. La fatigue suit le travail de chaque poste. Le menu du match montre les 23 avec leur énergie, et l'accueil met en avant votre prochaine décision. Les fiches nomment le trait et le caractère de chaque joueur. Les commentaires ne se répètent plus. Et des corrections d'achats et de sauvegardes.
+
+**es-ES**
+Melés y touches se disputan siempre: una delantera fuerte gana golpes y roba balones, y una primera línea cansada retrocede, así que un pilier fresco desde el banquillo importa. El cansancio sigue el trabajo de cada puesto. El menú del partido muestra a los 23 con su energía, y el inicio destaca tu próxima decisión. Las fichas muestran el rasgo y el carácter de cada jugador. La narración ya no se repite. Además, arreglos en compras y partidas guardadas.
+
+**it-IT**
+Mischie e touche ora si contendono sempre: un pacchetto forte guadagna punizioni e ruba palloni, una prima linea stanca arretra, e un pilone fresco dalla panchina conta. La fatica segue il lavoro di ogni ruolo. Il menu della partita mostra tutti i 23 con l'energia, e la home mette in primo piano la tua prossima decisione. Le schede indicano tratto e carattere di ogni giocatore. La telecronaca non si ripete più. Più correzioni ad acquisti e salvataggi.
+
+**ja-JP**
+スクラムとラインアウトが毎回本当に争われるように。強いパックは反則を誘いボールを奪い、疲れた最前列は押し込まれる。ベンチのフレッシュなプロップが効く。疲労はポジションごとの仕事量で決まるように。試合メニューで23人全員のエネルギーを確認でき、ホームは次の判断を最初に表示。選手ページに特性と性格を表示。実況は同じ言い回しを繰り返さないように。購入とセーブの修正も。
+
+**af**
+Skrums en lynstane word nou elke keer betwis: 'n sterk pak wen strafskoppe en steel bal, en 'n moeë voorry gaan agteruit, so 'n vars stut van die bank af maak saak. Spelers raak moeg volgens die werk van hul posisie. Die wedstrydkieslys wys al 23 met hul energie, en Tuis begin met jou volgende besluit. Spelerbladsye noem elkeen se kenmerk en karakter. Die kommentaar herhaal hom nie meer nie. Plus regstellings aan aankope en stoorlêers.
+
 ### What's new (500 max) - v1.8.18, Play version code 57
 
 Each entry is under 500 characters. Paste the matching language into each Play locale.

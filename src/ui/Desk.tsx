@@ -72,7 +72,37 @@ function Row({ r }: { r: DeskRow }) {
   )
 }
 
-export function DeskCard({ desk, match }: { desk: Desk; match: ReactNode }) {
+/**
+ * ---- A DESK ROW AS A HOME TILE (1.9.0) ----
+ *
+ * The same row, the same door and the same classes (.desk-row, data-row,
+ * .dr-l, .dr-t: langprobe reads them), drawn as a tile in Home's status grid:
+ * the label, the first line as the value, the rest as the short line under
+ * it. Nothing is cut: a row with more to say than a tile holds takes the
+ * grid's full width instead of an ellipsis.
+ */
+export function DeskTile({ r }: { r: DeskRow }) {
+  const to = useGo()
+  const [head, ...rest] = r.lines.map(deskText)
+  return (
+    <button className={`home-tile desk-row${r.alert ? ' alert' : ''}${rest.length > 1 ? ' wide' : ''}`} data-row={r.id} onClick={() => to(r.go)}>
+      <span className="ht-l dr-l">{t(r.label)}</span>
+      <span className="ht-v dr-t">{head}</span>
+      {rest.length > 0 && <span className="ht-s">{rest.join(' · ')}</span>}
+    </button>
+  )
+}
+
+/** The desk's rows and its open thread, in the order the desk gives them. */
+export const deskRows = (desk: Desk): DeskRow[] => desk.thread ? [...desk.rows, desk.thread] : desk.rows
+
+/**
+ * `hero` (1.9.0): the desk as Home's one hero card, the decisions and the
+ * match and nothing else. Its rows go to the status grid as tiles (DeskTile),
+ * and the gold edge goes on the hero only while something is waiting on the
+ * manager, because that is the one thing on Home that genuinely needs him.
+ */
+export function DeskCard({ desk, match, hero }: { desk: Desk; match: ReactNode; hero?: boolean }) {
   const list = desk.decisions
   // two on show: the one Continue stops on first, and the first question
   // that can be answered here (or simply the next one). The count in the
@@ -80,14 +110,14 @@ export function DeskCard({ desk, match }: { desk: Desk; match: ReactNode }) {
   const answerable = list.find(d => d.pressId != null)
   const shown = list.length && answerable && answerable !== list[0] ? [list[0], answerable] : list.slice(0, 2)
   const open = shown.findIndex(d => d.pressId != null)
-  const rows = desk.thread ? [...desk.rows, desk.thread] : desk.rows
+  const rows = hero ? [] : deskRows(desk)
   return (
-    <div className="card desk-card" data-desk>
+    <div className={`card desk-card${hero ? ' home-hero' : ''}${hero && list.length ? ' attn' : ''}`} data-desk data-home-hero={hero ? '' : undefined}>
       {/* one column on a phone; beside each other from 640px, so the
           landscape phone and the tablet read the desk without scrolling.
           The heading rides in the first column so the rows start level
           with it rather than under it. */}
-      <div className="desk-body">
+      <div className={`desk-body${rows.length ? '' : ' solo'}`}>
         <div className="desk-main">
           <div className="desk-head">
             <div className="desk-sub">

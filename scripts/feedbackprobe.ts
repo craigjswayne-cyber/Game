@@ -6,7 +6,7 @@
 // built from a real career carries no player, manager or club name, no seed
 // and no save. Alongside it: the counters count, a mangled ledger heals
 // rather than throws, the NEVER OPENED list is right, the mail route fits,
-// and the month-one rule fires once and only once.
+// and the first-season rule fires once and only once.
 //
 // No browser: the counters run against an in-memory localStorage.
 // scripts/feedbackui.mjs holds the card itself.
@@ -17,7 +17,7 @@ import { newGame } from '../src/game/newgame'
 import { genderOf } from '../src/game/gender'
 import { DEV_CONTACT, MAILTO_LIMIT, mailtoUrl, noteScreen } from '../src/game/bugreport'
 import {
-  ACTIONS, FIRST_MONTH_WEEKS, FEEDBACK_SUBJECT, MAIN_SCREENS, USAGE_KEY, buildFeedbackReport, countMatch, countWeek,
+  ACTIONS, FEEDBACK_SUBJECT, MAIN_SCREENS, USAGE_KEY, buildFeedbackReport, countFinished, countMatch, countWeek,
   countScreen, feedbackDue, freshUsage, neverOpened, noteUse, parseUsage, readUsage, withOffered, writeUsage,
   type Usage,
 } from '../src/game/usage'
@@ -171,37 +171,51 @@ console.log('--- corrupt storage')
   ok(readUsage().screens.legacy === 1, 'and counting carries on over it')
 }
 
-// ---- the month-one rule fires once ----------------------------------------------
-console.log('--- month one')
+// ---- the first-season rule fires once ---------------------------------------------
+//
+// 1.9.0 (owner): "push the feedback report til the first season is completed
+// so we have enough data." It was the first month, and the reports that came
+// back read "weeks 4, matches 1".
+console.log('--- the first season')
 {
   mem.clear()
   const due: boolean[] = []
-  // a first career from week 1: each turn of the week lands in the next one
-  for (let w = 2; w <= 10; w++) {
+  // a first career from week 1 to week 40: a month, two months, a whole
+  // season of weeks, and no card until a season has been finished
+  for (let w = 2; w <= 40; w++) {
     countWeek(`4242:0:${w}`)
     countWeek(`4242:0:${w}`) // a reload landing on the same week again
     if (w % 2 === 0) countMatch(`4242:0:${w}`, '4242:0')
-    const isDue = feedbackDue(readUsage())
-    due.push(isDue)
-    if (isDue) ok(writeUsage(withOffered(readUsage())), 'the offer is recorded before the card shows')
+    due.push(feedbackDue(readUsage()))
   }
-  ok(due.filter(Boolean).length === 1, `due exactly once over nine weeks (${due.map(d => d ? 'Y' : '.').join('')})`)
-  ok(due.indexOf(true) === FIRST_MONTH_WEEKS - 1, `on landing in week ${FIRST_MONTH_WEEKS + 1}, ${FIRST_MONTH_WEEKS} weeks in`)
+  ok(!due.some(Boolean), `not due across a season's worth of weeks (${readUsage().weeks} weeks, ${readUsage().matches} matches)`)
+  // the season is finished: its review opens over the new Monday
+  countWeek('4242:1:1'); countFinished('4242:0')
+  countWeek('4242:1:1'); countFinished('4242:0') // reloaded on the review: counted once
+  ok(readUsage().finished === 1, `a season is finished once however often its review is landed on (${readUsage().finished})`)
+  ok(feedbackDue(readUsage()), 'due once the first season is finished')
+  ok(writeUsage(withOffered(readUsage())), 'the offer is recorded before the card shows')
   const u = readUsage()
-  ok(u.weeks === 9, `a week is counted once however often it is landed on (${u.weeks})`)
-  ok(u.offered && u.offeredAt === 2, `offeredAt marks that match flow (${u.offeredAt})`)
+  ok(u.weeks === 40, `a week is counted once however often it is landed on (${u.weeks})`)
+  ok(u.offered && u.offeredAt === 20, `offeredAt marks that match flow (${u.offeredAt})`)
   ok(withOffered(u).offeredAt === u.offeredAt, 'opening it again later does not move the mark')
-  ok(/weeks\s+9\n/.test(report(u)), 'the report says how many weeks')
-  // a new career on the same device: the ledger is the device's
+  ok(/weeks\s+40\n/.test(report(u)) && /finished\s+1 season\n/.test(report(u)), 'the report says how many weeks, and seasons finished')
+  // the next season finished, and a new career on the same device: the
+  // ledger is the device's, and it is offered once, ever
+  countFinished('4242:1')
   countWeek('9999:0:2'); countMatch('9999:0:1', '9999:0')
-  ok(!feedbackDue(readUsage()) && readUsage().seasons === 2, 'a second career does not bring it back, and its season counts')
-  // a device that has never been offered it, three weeks in: not yet
+  ok(!feedbackDue(readUsage()) && readUsage().finished === 2 && readUsage().seasons === 2,
+    'a second season or a second career does not bring it back, and both count')
+  // a device that has never been offered it, a month in: not yet
   mem.clear()
-  for (let w = 2; w <= 4; w++) countWeek(`1:0:${w}`)
-  ok(!feedbackDue(readUsage()), 'three weeks in is not yet a month')
+  for (let w = 2; w <= 6; w++) countWeek(`1:0:${w}`)
+  ok(!feedbackDue(readUsage()), 'a month in is not yet a season')
+  // a ledger from before 1.9.0, a month in and never offered: it now waits
+  ok(!feedbackDue(parseUsage(JSON.stringify({ v: 1, weeks: 6, matches: 3, offered: false }))), 'an old ledger a month in waits for the season too')
   const st = readFileSync('src/store.ts', 'utf8')
-  const low = st.slice(st.indexOf('function landOnNextWeek('), st.indexOf('function landOnNextWeek(') + 900)
+  const low = st.slice(st.indexOf('function landOnNextWeek('), st.indexOf('function landOnNextWeek(') + 1100)
   ok(/countWeek\(`\$\{g\.seed\}:\$\{g\.season\}:\$\{g\.week\}`\)/.test(low), 'every way a week ends counts it (landOnNextWeek)')
+  ok(/if \(g\.annual\) countFinished\(`\$\{g\.seed\}:\$\{g\.annual\.season\}`\)/.test(low), 'and the Monday a season review opens counts the season finished')
 }
 
 // ---- no network, no simulation ---------------------------------------------------

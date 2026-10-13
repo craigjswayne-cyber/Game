@@ -1,21 +1,29 @@
-# Store declarations checklist (1.8.18)
+# Store declarations checklist (1.9.0)
 
 The release hardening pass could not check these from the repository: they live
 in Play Console and App Store Connect. This is the list to tick there before the
-1.8.17 build goes to production. Each line says what the build actually does,
+1.9.0 build goes to production. Each line says what the build actually does,
 so an answer can be checked against it.
 
 Re-checked against the code on 9 October 2026 (release-readiness round after
 1.8.16). The boxes below are console tasks: none of them can be ticked from the
 repository, and none is marked done without the owner's confirmation.
 
+1.9.0 (13 October 2026) changes nothing these answers rest on: no new SDK,
+plugin, permission, advert placement, product or data. It is gameplay (the
+set piece contested in the match engine, fatigue by position, commentary,
+live team telemetry, a new Home, the player's character on his page), fixes
+to purchase crediting, save import and save-failure reporting, a gentler
+early-season board at big clubs, and the feedback report moved to after the
+first season (still built on the device and sent only by the player).
+
 1.8.18 (12 October 2026) is purchase handling, save-import checks and export.
 It adds two Capacitor plugins, `@capacitor/filesystem` and `@capacitor/share`,
 used only to write an exported save to the app's own cache folder and open the
 phone's share sheet on it: no network, no permission, no data collected, and
 the player chooses where the file goes. No new advert placement or product.
-The Data safety answers are unchanged by it (but see O1 in `tasks/todo.md`:
-the AdMob answers themselves still need correcting).
+The Data safety answers are unchanged by it (but the AdMob answers themselves
+still need correcting: STORE-READINESS-CHECKLIST.md B1).
 
 1.8.17 (10 October 2026) changed nothing these answers rest on: it is tablet
 layout, a tiredness and board-patience rebalance, international squad selection
@@ -91,9 +99,10 @@ and test fixes. No new SDK, permission, data, advert placement or product.
 
 ## On the day
 
-- [ ] Play: version code 57, version name 1.8.18 (`packaging/android/version.json`).
-      Codes only have to rise: check 56 (1.8.17) is the highest Play has accepted.
-- [ ] App Store: version 1.8.18, build number one higher than the last build in
+- [ ] Play: version code 58, version name 1.9.0 (`packaging/android/version.json`).
+      Codes only have to rise: check 57 (1.8.18) is the highest Play has accepted,
+      and if anything above 57 was uploaded, raise the code to one more than that.
+- [ ] App Store: version 1.9.0, build number one higher than the last build in
       TestFlight (Xcode does not track it; check App Store Connect).
 - [ ] iOS archive built with `./scaffold.sh` as the last step, not a bare
       `cap sync` (which strips the advert bridge). Before archiving, the Xcode

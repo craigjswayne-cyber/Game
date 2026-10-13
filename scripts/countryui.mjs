@@ -64,7 +64,8 @@ try {
 
   // the Home country card is the front door
   await page.waitForTimeout(400)
-  const card = page.locator('.card', { hasText: 'Head coach' })
+  // a tile since 1.9.0's Home (one hero, the rest tiles), still the same door
+  const card = page.locator('[data-tile="country"]', { hasText: 'Head coach' })
   ok(await card.count() > 0, 'Home carries the country desk card')
   await card.first().click()
   await page.waitForSelector('text=Union confidence', { timeout: 10000 })

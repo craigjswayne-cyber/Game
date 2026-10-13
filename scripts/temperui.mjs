@@ -46,7 +46,8 @@ async function career(page) {
 async function openPlayer(page, id) {
   await page.evaluate(pid => { const s = window.rugbyStore.getState(); s.go('player', pid) }, id)
   await page.waitForTimeout(700)
-  return page.evaluate(() => document.querySelector('.temper-card')?.innerText ?? null)
+  // the temper card only: the 1.9.0 Character card wears its look (traitcard tests that one)
+  return page.evaluate(() => document.querySelector('.temper-card:not(.char-card)')?.innerText ?? null)
 }
 
 for (const [w, h] of [[412, 915], [360, 800]]) {
@@ -65,7 +66,7 @@ for (const [w, h] of [[412, 915], [360, 800]]) {
     })
     const ownText = await openPlayer(page, own)
     await page.screenshot({ path: `${OUT}/own-${w}.png` })
-    ok(!!ownText && /the staff's read/i.test(ownText) && /Starts this season: 1/.test(ownText) && /professionalism/.test(ownText),
+    ok(!!ownText && /the staff's read/i.test(ownText) && /Starts this season: 1/.test(ownText) && /keeps (him|her)self right/.test(ownText),
       `${w}px: your own man shows the staff's read and the professional's no-minutes note`)
 
     // ---- a new signing: too early ----

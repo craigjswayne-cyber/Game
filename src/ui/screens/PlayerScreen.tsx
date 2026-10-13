@@ -8,7 +8,7 @@ import { FormPill, Nat, PosBadge, SectionTitle, Stars, TwoStep, RewardedButton }
 import { nationName } from '../../game/nations'
 import { Flag } from '../flags'
 import { firstProWage, fineAttr, playerWage } from '../../game/attributes'
-import { attrRange, fuzzedCa, knowledge, paRange, reportStage, seenValue, wonderkidKnown } from '../../game/scout'
+import { attrRange, fuzzedCa, knowledge, paRange, persKnown, reportStage, seenValue, wonderkidKnown } from '../../game/scout'
 import { benchNote, temperRead } from '../../game/temperament'
 import { formTrend, traitHints } from '../../game/formtraits'
 import { habitHint } from '../../game/habits'
@@ -22,7 +22,7 @@ import { releaseBlock, releaseCost, releasePlayer } from '../../game/release'
 import { MARQUEE_SLOTS, marqueeOpen, toggleMarquee } from '../../game/cap'
 import { answerRequest, canAnswerRequest, canChat, chatBudget, praisePlayer, warnPlayer } from '../../game/chats'
 import { requestLocked, startPromise } from '../../game/handshake'
-import { attrBand, attrBandIndex, attrName, posName, t, tIn, localeTag } from '../../game/i18n'
+import { attrBand, attrBandIndex, attrName, persName, posName, traitName, t, tIn, localeTag } from '../../game/i18n'
 import { Glyph } from '../glyphs'
 import { driverLines, learningLines, monthKey, outlookLine, TL } from '../../game/devproject'
 import { activeEntry } from '../../game/season'
@@ -111,10 +111,17 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
   const rewardAgency = useStore(s => s.rewardAgency)
   const rewardOpinion = useStore(s => s.rewardOpinion)
 
+  /* FOUR HONEST GROUPS (1.9.0). There were three, and the third was called
+     Physical while holding positioning, work rate and leadership; Skills held
+     vision and decisions, and aggression sat with the scrum. A manager reading
+     the headings to find what a man's body can do was reading the wrong six.
+     Tackling stays with the contact work (model.ts: `tac` is tackling, a
+     collision skill, not a tactical one). */
   const groups: [string, (keyof Attrs)[]][] = [
-    ['player.grpSetPiece', ['scr', 'lin', 'ruc', 'tac', 'str', 'agg']],
-    ['player.grpSkills', ['han', 'pas', 'kic', 'goa', 'vis', 'dec']],
-    ['player.grpPhysical', ['pac', 'agi', 'sta', 'pos', 'wor', 'lea']],
+    ['player.grpSetPiece', ['scr', 'lin', 'ruc', 'tac', 'str']],
+    ['player.grpSkills', ['han', 'pas', 'kic', 'goa']],
+    ['player.grpPhysical', ['pac', 'agi', 'sta']],
+    ['player.grpMental', ['vis', 'dec', 'pos', 'wor', 'agg', 'lea']],
   ]
 
   // one-tap comparison: this man against your best in the same shirt
@@ -179,6 +186,11 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         <div className="meta" style={{ fontSize: 13, lineHeight: 1.5 }}>{verdictLine(game, p, mine)}</div>
       </div>
 
+      {/* THE READ AND THE CHARACTER, SIDE BY SIDE WHERE THERE IS ROOM (1.9.0):
+          stacked they made a scouted man's page 3.15 screenfuls deep on a
+          landscape phone (scrollaudit holds it under 3); abreast they cost
+          one card's height. On a portrait phone the pair simply stacks. */}
+      <div className="read-pair">
       {/* ---- HIS NERVE, AND HIS MINUTES (1.8.0, E7 + E8) ----
           The hidden consistency and big-match traits in plain words, as sure
           as the club's knowledge of him (game/temperament.ts): nothing for
@@ -205,6 +217,35 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           </div>
         )
       })()}
+
+      {/* ---- HIS CHARACTER (1.9.0) ----
+          The signature trait and the personality have driven the match engine
+          and the office for many releases (attributes.ts deriveTrait, matchEngine.ts,
+          ai.ts, talkback.ts) and no screen ever named either, so a Hot Head's
+          cards and a Mercenary's wage demand arrived as surprises. Named here
+          with one line each on what it actually does, gated like the temper
+          card above: the trait once a detailed report is in (tape shows how a
+          man plays), the personality only with the full file (persKnown, who
+          a man is takes the longest). Your own men are fully known. */}
+      {(() => {
+        const st = mine ? 3 : reportStage(game, p)
+        const traitKnown = st >= 2
+        const persSeen = mine || persKnown(game, p)
+        return (
+          <div className="card temper-card char-card" data-testid="char-card">
+            <div className="fact-label">{t('player.character')}</div>
+            {traitKnown
+              ? p.trait
+                ? <div className="meta" data-testid="char-trait"><b>{traitName(p.trait)}</b>{' · '}{t(`traitFx.${p.trait}`)}</div>
+                : <div className="meta" data-testid="char-trait">{t('player.charNoTrait')}</div>
+              : <div className="meta muted" data-testid="char-trait-hidden">{t('player.charTraitUnknown')}</div>}
+            {persSeen
+              ? <div className="meta" data-testid="char-pers"><b>{persName(p.pers)}</b>{' · '}{t(`persFx.${p.pers}`)}</div>
+              : <div className="meta muted" data-testid="char-pers-hidden">{t('player.charPersUnknown')}</div>}
+          </div>
+        )
+      })()}
+      </div>
 
       {/* ---- DEVELOPMENT AS A PROJECT (1.8.2, devproject.ts) ----
           What the staff believe about how he is developing, in plain words:
@@ -443,7 +484,6 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
               const exact = lo === hi
               const mid = Math.round((lo + hi) / 2)
               const idx = ATTR_KEYS.indexOf(k)
-              // the man's own rating out of 100, not the attribute times five -
               // see fineAttr for why the fifth is real rather than decoration
               const v = fineAttr(p.id, idx, mid)
               const rv = compare && rival ? fineAttr(rival.id, idx, rival.a[k]) : null

@@ -1,8 +1,10 @@
-# Store readiness checklist: Google Play and the App Store (1.8.17)
+# Store readiness checklist: Google Play and the App Store (1.9.0)
 
-Checked on 10 October 2026 against the repository (branch
-`claude/rugby-game-animation-ideas-qusfd5`, version 1.8.17, Play code 56) and
-against the stores' current published rules. Sources are listed at the end.
+Updated for 1.9.0 on 13 October 2026 (branch `ccr-ace3495e-5psx37`, version
+1.9.0, Play code 58 pending the Console check below). First written on 10
+October 2026 for 1.8.17 against the repository and the stores' published
+rules; the store rules and sources below were not re-fetched for 1.9.0, and
+1.9.0 adds no SDK, permission or product.
 
 Key: **DONE** in place and checked · **FIXED** fixed in this round ·
 **OWNER** needs you (a console, an account, a device or a decision) ·
@@ -37,7 +39,7 @@ Key: **DONE** in place and checked · **FIXED** fixed in this round ·
 | S3 | **iOS export compliance** was a hand step on every upload. | Apple | FIXED | `packaging/ios/scaffold.sh` writes `ITSAppUsesNonExemptEncryption = NO`. |
 | S4 | **iOS app icon** was a hand copy (missed once, in 1.2.4). | Apple | FIXED | The scaffold installs `AppIcon-1024.png` (1024x1024, no alpha). |
 | S5 | **iOS launch screen** was Capacitor's white placeholder, which flashed before the dark first paint. | Apple | FIXED | `packaging/ios/Splash-2732.png` (the dark ground and icon, like Android's splash), installed by the scaffold. |
-| S6 | **iOS version** was typed by hand. | Apple | FIXED | The scaffold sets the version from `package.json` (1.8.17). The build number stays manual: one higher than the last upload. |
+| S6 | **iOS version** was typed by hand. | Apple | FIXED | The scaffold sets the version from `package.json` (now 1.9.0). The build number stays manual: one higher than the last upload. |
 | S7 | **Feature graphic said "entirely offline"**, but the apps use the network for adverts. | Play | FIXED | Now carries your tagline: "Your club. Your legacy. Your time. Build something worth remembering." |
 | S8 | **Store listing in six languages.** The description says six languages, but the listing text exists only in English and French (only What's new is in all six). | Both | DONE | Owner chose to translate: es, it, ja and af listings are in `docs/store-listing.md`, and the French description is renewed. Afrikaans is Play only (App Store Connect has no Afrikaans localisation). |
 | S9 | **Landing page says "Coming soon to the App Store"** (`landing/index.html` lines 293 and 367). | Web | OWNER | Flip it on the iOS launch day. |
@@ -45,6 +47,8 @@ Key: **DONE** in place and checked · **FIXED** fixed in this round ·
 | S11 | **Android 16 ignores portrait lock on large screens** (600dp and wider) for apps targeting API 36. | Play | DONE | The game already has landscape and tablet layouts (the 1.8.17 tablet round tested 1180x820). |
 | S12 | **Content rights / real names** (Play "third-party content", Apple 5.2.1). Real player and referee names, no badges, kits or logos. | Both | OWNER (legal) | A judgement call already noted in `STORE-DECLARATIONS.md`; take advice if unsure. |
 | S13 | **Ruck permission in writing.** | Both | OWNER | Email filed and dated. |
+| S15 | **iOS billing changes in 1.9.0 are not compiled here** (`PhaseBilling.swift`: a late purchase fires `purchasesUpdated`; a refunded consumable is finished and never credited). | Apple | OWNER (Mac) | Build in Xcode before the first iOS upload; StoreKit test: buy, wait past 90 s on the sheet, confirm Pro unlocks without leaving the app. |
+| S16 | **1.9.0 device checks on Android.** Import a second save (both careers kept), buy a consumable with Wi-Fi switched off mid-purchase (one credit), fill storage and confirm the save banner appears. | Play | OWNER (device) | Record device, Android version and result in `LAUNCH-PROGRAMME.md` section 15. |
 | S14 | **Google Mobile Ads SDK version floats** (`play-services-ads:25.4.+`), so two builds can differ. | Play | FIXED (1.8.18) | `scaffold.sh` pins `playServicesAdsVersion = '25.4.0'` (what the 1.8.17 release build resolved) in `variables.gradle`. Still run Play's 16 KB check on the release. |
 
 ## 3. Deadlines coming
@@ -61,7 +65,7 @@ Key: **DONE** in place and checked · **FIXED** fixed in this round ·
 
 **Identity and build**
 - Package and bundle id `com.phaserugbymanager.app`; name "PHASE: Rugby Manager" (20 of 30 characters).
-- Version 1.8.17, Play code 56. Code 56 is above every code Play has accepted.
+- Version 1.9.0, Play code 58. 57 (1.8.18) is the last code recorded as uploaded; confirm in the Console that nothing above 57 was accepted before building.
 - Android: Capacitor 8.5.0, target and compile SDK 36, min SDK 24, Play Billing 8.0.0, AAB signed in Android Studio with the upload key (kept off the repo).
 - iOS: Capacitor 8.5.0, iPhone and iPad, iOS 15.0 minimum, StoreKit 2. Must be archived with Xcode 26 or later (Apple's rule since 28 Apr 2026); check the Xcode version on the Mac before archiving.
 
@@ -87,7 +91,7 @@ Key: **DONE** in place and checked · **FIXED** fixed in this round ·
 | Subtitle | 29 of 30 |
 | Promotional text | 164 of 170 |
 | Keywords | 96 of 100 |
-| What's new 1.8.17 | 237 to 493 of 500, in all six languages |
+| What's new 1.9.0 | 182 to 477 of 500, in all six languages |
 
 **Graphics**
 - Play icon 512x512.
