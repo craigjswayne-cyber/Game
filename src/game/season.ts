@@ -2619,7 +2619,11 @@ function boardReadsTheTable(state: GameState, lean = 1) {
   const patience = boardPatience(club.rep)
   const floor = clamp(30 - patience * 14, 2, 26)
   const target = clamp(70 - devFrac * 108, floor, 96)
-  const blendW = clamp(0.25 * patience * lean, 0.12, 0.62)
+  // AT MOST 40% OF THE WAY IN ONE READING (1.9.0, was 62%). A giant's board
+  // still pulls hardest, but one look at the table can no longer undo most of
+  // a season's results in a week; the weekly result swings (boardReaction)
+  // carry the rest. Clubs whose board reads at 0.4 or less are untouched.
+  const blendW = clamp(0.25 * patience * lean, 0.12, 0.4)
   // BOARDS SOUR FASTER THAN THEY WARM. Symmetrical was wrong in both
   // directions: it let a slide be forgiven at the next review as readily as it
   // punished one, and chaosprobe caught the consequence - a board driven to
@@ -3548,8 +3552,16 @@ export function processWeekAndAdvance(state: GameState) {
   // block; these are the two silent ones either side of it, and the lean grows
   // because a board that has watched you slide since September is not still
   // asking itself whether it is a blip.
+  //
+  // THE FIRST READING IS THE LIGHTEST (1.9.0). Week 12 is five or six league
+  // games in, when the table is mostly the fixture list, and at 0.8 it pulled
+  // a title favourite's board a third of the way to a target near the floor:
+  // a Bath picking its best XV every week lost 16 to 30 points of confidence
+  // in that one week, after a WIN, and was in crisis in 8 seasons of 36
+  // (autopilotprobe). Half the lean; the half-term letter and week 34 still
+  // read the table at full weight.
   if (!state.unemployed && (state.week === 12 || state.week === 34)) {
-    boardReadsTheTable(state, state.week === 12 ? 0.8 : 1.25)
+    boardReadsTheTable(state, state.week === 12 ? 0.5 : 1.25)
   }
 
   // half-term: the board grades the season so far, in writing
