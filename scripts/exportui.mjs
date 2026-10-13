@@ -42,7 +42,10 @@ async function phone(mode) {
         globalThis.__files[path] = data
         return { uri: 'file:///cache/' + path }
       },
-      appendFile: async ({ path, data }) => { globalThis.__files[path] += data },
+      appendFile: async ({ path, data }) => {
+        if (mode === 'noappend') throw new Error('disk full part way')
+        globalThis.__files[path] += data
+      },
     }
     const Share = {
       share: async (o) => {
@@ -129,6 +132,67 @@ try {
     const m = await msg(page)
     ok(!/exported - keep the file safe/i.test(m), 'never "exported" for a file that was not written')
     ok(/could not be written/i.test(m), `the player is told it did not happen ("${m.slice(0, 60)}")`)
+    await ctx.close()
+  }
+
+  say('--- the shell: the disk fills part way through')
+  {
+    const { ctx, page } = await phone('noappend')
+    await page.click('button:has-text("Export Career")')
+    await page.waitForTimeout(800)
+    const m = await msg(page)
+    const shared = await page.evaluate(() => globalThis.__shared.length)
+    ok(shared === 0 && /could not be written/i.test(m), `a file cut short is not shared and not called exported ("${m.slice(0, 50)}")`)
+    await ctx.close()
+  }
+
+  // ---- EXPORT, THEN IMPORT, TWICE (1.9.0) ----
+  // A long-standing hole: every import went to the one key 'imported', which
+  // is also where autosave writes after an import, so a second import replaced
+  // a career that might have been played for seasons. And no harness took an
+  // exported career back in through the screen and compared it.
+  say('--- the round trip: export a career, import it, import another')
+  {
+    const { ctx, page, errs } = await phone('ok')
+    // a name no ASCII path would survive, and some money and history to carry
+    const want = await page.evaluate(() => {
+      const st = window.rugbyStore.getState(), g = st.game
+      g.managerName = 'Zoë Ōkubo-Ngā 🏉'
+      st.touch()
+      const c = g.clubs[g.userClubId]
+      return { mgr: g.managerName, uid: g.userClubId, season: g.season, week: g.week, cash: c.balance ?? c.finances?.balance ?? null,
+        squad: c.players.length, comps: Object.keys(g.comps).sort().join(','), fixtures: g.fixtures.length, players: Object.keys(g.players).length }
+    })
+    await page.click('button:has-text("Export Career")')
+    await page.waitForTimeout(800)
+    const text = await page.evaluate(() => Object.values(globalThis.__files)[0])
+    const second = JSON.parse(text); second.managerName = 'Second Gaffer'
+    await page.setInputFiles('input[type=file]', { name: 'first.json', mimeType: 'application/json', buffer: Buffer.from(text) })
+    await page.waitForFunction(() => window.rugbyStore.getState().saveSlot === 'imported', null, { timeout: 15000 })
+    const got = await page.evaluate(() => {
+      const g = window.rugbyStore.getState().game, c = g.clubs[g.userClubId]
+      return { mgr: g.managerName, uid: g.userClubId, season: g.season, week: g.week, cash: c.balance ?? c.finances?.balance ?? null,
+        squad: c.players.length, comps: Object.keys(g.comps).sort().join(','), fixtures: g.fixtures.length, players: Object.keys(g.players).length }
+    })
+    ok(JSON.stringify(got) === JSON.stringify(want), `the imported career is the exported one: manager, club, date, money, squad, competitions (${got.mgr}, ${got.players} players)`)
+    await page.evaluate(() => window.rugbyStore.getState().go('saves'))
+    await page.waitForSelector('text=Export Career')
+    await page.setInputFiles('input[type=file]', { name: 'second.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(second)) })
+    await page.waitForFunction(() => window.rugbyStore.getState().saveSlot === 'imported-2', null, { timeout: 15000 }).catch(() => {})
+    const slots = await page.evaluate(async () => {
+      const db = await new Promise(r => { const q = indexedDB.open('rugby-manager'); q.onsuccess = () => r(q.result) })
+      const get = (k) => new Promise(r => { const q = db.transaction('saves').objectStore('saves').get(k); q.onsuccess = () => r(q.result?.state?.managerName ?? null) })
+      const out = { imported: await get('imported'), imported2: await get('imported-2'), slot: window.rugbyStore.getState().saveSlot }
+      db.close()
+      return out
+    })
+    ok(slots.slot === 'imported-2' && slots.imported2 === 'Second Gaffer', `a second import gets its own slot (${slots.slot})`)
+    ok(slots.imported === want.mgr, `and the first imported career is still there, untouched (${slots.imported})`)
+    await page.evaluate(() => window.rugbyStore.getState().go('saves'))
+    await page.waitForSelector('text=Other Saves')
+    const other = await page.locator('.content').innerText()
+    ok(/imported\b/.test(other) && /imported-2/.test(other), 'both are listed under Other Saves, ready to load')
+    ok(errs.length === 0, `no page errors${errs.length ? ': ' + errs[0] : ''}`)
     await ctx.close()
   }
 

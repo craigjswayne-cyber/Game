@@ -146,6 +146,12 @@ export async function saveGame(slot: string, state: GameState): Promise<void> {
     }
     tx.oncomplete = () => { db.close(); resolve() }
     tx.onerror = () => { db.close(); reject(tx.error) }
+    // A FULL DISK ABORTS, IT DOES NOT ERROR (1.9.0). Chromium finds a quota
+    // overrun at commit, which fires only 'abort'; without this the promise
+    // never settled, the save queue's write stayed in flight for ever, and
+    // autosave stopped for the session with no banner. Settling twice is a
+    // no-op, so an error followed by its abort is still one answer.
+    tx.onabort = () => { db.close(); reject(tx.error ?? new DOMException('The save was not written', 'AbortError')) }
   })
 }
 
@@ -184,6 +190,12 @@ export async function putResume(slot: string, rec: unknown, withPre = false): Pr
     if (withPre) store.put(JSON.parse(JSON.stringify(pre ?? null)), preKey(slot))
     tx.oncomplete = () => { db.close(); resolve() }
     tx.onerror = () => { db.close(); reject(tx.error) }
+    // A FULL DISK ABORTS, IT DOES NOT ERROR (1.9.0). Chromium finds a quota
+    // overrun at commit, which fires only 'abort'; without this the promise
+    // never settled, the save queue's write stayed in flight for ever, and
+    // autosave stopped for the session with no banner. Settling twice is a
+    // no-op, so an error followed by its abort is still one answer.
+    tx.onabort = () => { db.close(); reject(tx.error ?? new DOMException('The save was not written', 'AbortError')) }
   })
 }
 
@@ -1287,5 +1299,11 @@ export async function deleteSave(slot: string): Promise<void> {
     tx.objectStore(STORE).delete(slot)
     tx.oncomplete = () => { db.close(); resolve() }
     tx.onerror = () => { db.close(); reject(tx.error) }
+    // A FULL DISK ABORTS, IT DOES NOT ERROR (1.9.0). Chromium finds a quota
+    // overrun at commit, which fires only 'abort'; without this the promise
+    // never settled, the save queue's write stayed in flight for ever, and
+    // autosave stopped for the session with no banner. Settling twice is a
+    // no-op, so an error followed by its abort is still one answer.
+    tx.onabort = () => { db.close(); reject(tx.error ?? new DOMException('The save was not written', 'AbortError')) }
   })
 }
