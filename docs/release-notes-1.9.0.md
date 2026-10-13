@@ -1,6 +1,6 @@
 # PHASE: Rugby Manager 1.9.0: release notes
 
-Version 1.9.0, Play versionCode 58 (subject to the Console check below),
+Version 1.9.0, Play versionCode 58 (57 confirmed accepted on the Console),
 iOS MARKETING_VERSION 1.9.0 (from `package.json`). Baseline: 1.8.18, code 57.
 Package and bundle id, signing, product ids and permissions are unchanged.
 No new SDK or plugin. Google Mobile Ads SDK stays pinned at 25.4.0.
@@ -105,8 +105,8 @@ No new SDK or plugin. Google Mobile Ads SDK stays pinned at 25.4.0.
 
 See `docs/launch/STORE-READINESS-CHECKLIST.md` and the device record in
 `docs/launch/LAUNCH-PROGRAMME.md` section 10. In short:
-1. Play Console: confirm 57 is the highest accepted versionCode. If anything
-   higher was uploaded, set `packaging/android/version.json` to one more.
+1. Play Console: 57 (1.8.18) is confirmed accepted. If anything above 57 has
+   gone to another track since, set `packaging/android/version.json` to one more.
 2. Build with `packaging/android/scaffold.sh`, sign with the upload key, run
    Play's pre-launch report and 16 KB check.
 3. Run the device record on a Samsung (Back script, safe areas, purchases,
