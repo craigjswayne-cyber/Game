@@ -149,7 +149,7 @@ export default function BugReport() {
       </div>
 
       {/* THE FEEDBACK REPORT, ANY TIME (game/usage.ts). The card offers itself
-          once after the first month; this is the permanent way back to it, so
+          once after the first season; this is the permanent way back to it, so
           a player can send an updated one later. It opens the same card, which
           shows the whole report before anything is sent. */}
       <div className="card fb-row">
