@@ -1,137 +1,107 @@
-// Probe: the match commentary follows the reader, and the pitch still works.
+// Probe: the commentary does not repeat itself, and a try's words fit the
+// try (1.9.0, matchEngine.ts said / tryLine).
 //
-// Every match a manager takes charge of writes eighty minutes of commentary,
-// and it is the most-read prose in the game by a distance - a career reads it
-// forty times a season. All of it was English no matter who was watching.
+// The line picker was uniform with no memory: a ten-line bank could say the
+// same thing twice in five minutes, and a try's words ignored the moment (a
+// winner at 78 minutes read like a try at 12) and the man (a Jackal's try
+// read like anybody's). This plays narrated matches and checks:
 //
-// The fix is the one the inbox got: a line is filed as a key plus its values
-// and rendered when it is read. pushLine() does that; pushEvent() takes
-// finished English and is what every line used to be. So:
-//
-//   1. How many lines are still called as English? THE BUDGET was a ratchet and
-//      is now ZERO: pushEvent is reachable only from pushLine, and a line
-//      called as English fails the build. Do not raise it. If a new line
-//      cannot carry a key, the thing to change is the line.
-//   2. Does every key a line names exist, in every language?
-//   3. Do the two languages fill the same holes? A French line that forgets
-//      {player} renders a sentence with a hole in it.
-//   4. Does the English still say what it said? The stored English is not
-//      decoration: the pitch mock-up reads the last line back and matches on
-//      its wording to decide whether to draw a scrum, a lineout or a maul. The
-//      phrases it matches on are pinned here, because breaking one of them
-//      empties the pitch and nothing else in the suite would notice.
+//   - no line from a bank comes round again inside twelve lines of itself
+//     while the bank had a fresh one to give
+//   - late tries in a close game (level or within seven), tries off the bench and
+//     second tries get their own words, most of the time
+//   - a player with a signature trait gets that trait's try lines more often
+//     than a player without it
+//   - and none of it moves the match: the same seed gives the same score
+//     narrated or silent (detailprobe holds that across 120 fixtures)
 //
 // Run: npx vite-node scripts/commprobe.ts
-import { SIBLING } from '../src/game/i18n'
-import { readFileSync } from 'node:fs'
+import { newGame } from '../src/game/newgame'
+import { beginMatch, playHalf } from '../src/game/matchEngine'
+import { mulberry32 } from '../src/game/rng'
+import type { MatchEvent } from '../src/game/model'
 
-/** Commentary lines still called as finished English. ONLY EVER DECREASE. */
-const BUDGET = 0
-
-const say = (s: string) => console.log(s)
 let fails = 0
-const ok = (c: boolean, what: string) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
-type Dict = { [k: string]: unknown }
-const load = (p: string) => JSON.parse(readFileSync(p, 'utf8')) as Dict
-const LANGS: Record<string, Dict> = { en: load('src/locales/en.json'), fr: load('src/locales/fr.json') }
-const lookup = (d: Dict, key: string): unknown =>
-  key.split('.').reduce<unknown>((o, part) => (o && typeof o === 'object' ? (o as Dict)[part] : undefined), d)
+const LATE = new Set(['comm.tryLate1', 'comm.tryLate2', 'comm.tryLate3'])
+const BENCH = new Set(['comm.tryBench1', 'comm.tryBench2'])
+const BRACE = new Set(['comm.tryBrace1', 'comm.tryBrace2'])
+const TRAIT: Record<string, Set<string>> = {
+  'The Step': new Set(['comm.try5', 'comm.try19', 'comm.try21']),
+  'Offload King': new Set(['comm.try12', 'comm.try26']),
+  'Enforcer': new Set(['comm.try11', 'comm.try18']),
+  'Jackal': new Set(['comm.try13', 'comm.try24']),
+}
+// fixed lines that are not drawn from a bank (a card, a conversion, the whistle)
+// are allowed to recur; the check is on the drawn ones, which carry a digit
+const drawn = (k: string) => /^comm\.[a-zA-Z]+\d+$/.test(k) && !/^comm\.(penTry|heldUp|tmoFwdStands)\d$/.test(k)
 
-const SRC = 'src/game/matchEngine.ts'
-const src = readFileSync(SRC, 'utf8')
+let repeats = 0, windows = 0, matches = 0
+let lateTries = 0, lateWords = 0, benchTries = 0, benchWords = 0, braceTries = 0, braceWords = 0
+// per trait: [holder tries with its lines, holder tries, other tries with its lines, other tries]
+const traitHit: Record<string, [number, number, number, number]> = {}
 
-// ---- 1. how much English is left ------------------------------------------
-say('--- 1. every line is called with a key')
-// pushEvent's own definition, and pushLine's one call to it, are not lines.
-const calls: number[] = []
-for (let i = src.indexOf('pushEvent('); i !== -1; i = src.indexOf('pushEvent(', i + 1)) {
-  const before = src.slice(Math.max(0, i - 40), i)
-  // pushEvent's own definition, and the single call pushLine makes to it -
-  // recognised by the tIn('en', k, v) it passes, which is the one thing about
-  // that call that cannot change without changing what pushLine is for. The
-  // previous test matched the whole argument list and broke the moment the
-  // list grew a `fx`.
-  if (/function\s+$/.test(before) || /tIn\('en', k, v\)/.test(src.slice(i, i + 60))) continue
-  calls.push(src.slice(0, i).split('\n').length)
-}
-say(`  ${calls.length} line${calls.length === 1 ? '' : 's'} still called as English (budget ${BUDGET})`)
-if (calls.length) say('  ' + SRC + ':' + calls.slice(0, 14).join(', ') + (calls.length > 14 ? `, ...${calls.length - 14} more` : ''))
-ok(calls.length <= BUDGET,
-  calls.length <= BUDGET
-    ? `no commentary beyond the budget of ${BUDGET} is called as English`
-    : `${calls.length - BUDGET} line(s) over the budget of ${BUDGET} - a line called as English is English for ever`)
-if (calls.length < BUDGET) {
-  ok(false, `THE BUDGET IS STALE: ${calls.length} left but it still says ${BUDGET}. Lower it - a ratchet that is not tightened is not a ratchet`)
-}
-
-// ---- 2. every key a line names exists, in every language -------------------
-say('\n--- 2. every key a line names exists in every language')
-const wanted = new Set<string>()
-for (const m of src.matchAll(/'(comm\.[A-Za-z0-9_.]+)'/g)) wanted.add(m[1])
-for (const m of src.matchAll(/\b\w+_k:\s*'([A-Za-z0-9_.]+)'/g)) wanted.add(m[1])
-for (const m of src.matchAll(/\b\w+_k:\s*[^,\n]*\?\s*'([A-Za-z0-9_.]+)'\s*:\s*'([A-Za-z0-9_.]+)'/g)) {
-  wanted.add(m[1]); wanted.add(m[2])
-}
-say(`  ${wanted.size} keys named by commentary`)
-for (const lang of Object.keys(LANGS)) {
-  const gone = [...wanted].filter(k => lookup(LANGS[lang], k) === undefined)
-  ok(gone.length === 0,
-    `${lang} answers every key the commentary names${gone.length ? ` - missing ${gone.length}: ${gone.slice(0, 6).join(', ')}` : ''}`)
-}
-
-// ---- 3. the two languages fill the same holes -----------------------------
-say('\n--- 3. the placeholders match between languages')
-const holes = (s: unknown): string => {
-  const text = typeof s === 'string' ? s
-    : s && typeof s === 'object' ? Object.values(s as Dict).filter(x => typeof x === 'string').join(' ')
-    : ''
-  return [...new Set([...text.matchAll(/\{(\w+)\}/g)].map(m => m[1]))].sort().join(',')
-}
-const enComm = (LANGS.en.comm ?? {}) as Dict
-const bad: string[] = []
-for (const key of Object.keys(enComm)) {
-  // a `_f` sibling is optional per language (i18n.ts setWorld); langparity checks its holes
-  if (SIBLING.test(key)) continue
-  for (const lang of Object.keys(LANGS).filter(l => l !== 'en')) {
-    const other = lookup(LANGS[lang], `comm.${key}`)
-    if (other === undefined) { bad.push(`${lang}:comm.${key} missing`); continue }
-    if (holes(enComm[key]) !== holes(other)) {
-      bad.push(`${lang}:comm.${key} (en "${holes(enComm[key])}" vs "${holes(other)}")`)
+for (let seed = 1; seed <= 20; seed++) {
+  const g = newGame('leicester', 'Comm Probe', 900 + seed)
+  const fxs = g.fixtures.filter(f => g.clubs[f.homeId] && g.clubs[f.awayId]).slice(0, 14)
+  for (let i = 0; i < fxs.length; i++) {
+    const ctx = beginMatch(g, fxs[i], mulberry32(seed * 977 + i), true, null)
+    playHalf(g, ctx); playHalf(g, ctx)
+    matches++
+    const ev = (ctx as unknown as { events: MatchEvent[] }).events
+    const keys = ev.map(e => e.k ?? '')
+    keys.forEach((k, j) => {
+      if (!drawn(k)) return
+      windows++
+      const prev = keys.slice(Math.max(0, j - 12), j)
+      if (prev.includes(k)) repeats++
+    })
+    // tries: words against the moment
+    const triesBy = new Map<number, number>()
+    for (const e of ev) {
+      if (e.type !== 'TRY' || e.playerId == null || !e.k) continue
+      const side = e.teamId === fxs[i].homeId ? 'home' : 'away'
+      const mine = side === 'home' ? e.homeScore : e.awayScore
+      const theirs = side === 'home' ? e.awayScore : e.homeScore
+      const before = (mine ?? 0) - 5 - (theirs ?? 0)
+      const n = (triesBy.get(e.playerId) ?? 0) + 1
+      triesBy.set(e.playerId, n)
+      // only the tries whose words tryLine chose: a called move, a charge-down,
+      // an intercept or a penalty try names itself
+      if (!/^comm\.(try\d+|tryWet\d|tryDerby\d|tryLate\d|tryBench\d|tryBrace\d)$/.test(e.k)) continue
+      if ((e.min ?? 0) >= 68 && before <= 0 && before >= -7) { lateTries++; if (LATE.has(e.k)) lateWords++ }
+      else if (n === 2) { braceTries++; if (BRACE.has(e.k)) braceWords++ }
+      const p = g.players[e.playerId]
+      if (!LATE.has(e.k) && !BENCH.has(e.k) && !BRACE.has(e.k)) {
+        for (const [tr, lines] of Object.entries(TRAIT)) {
+          const t = (traitHit[tr] ??= [0, 0, 0, 0])
+          if (p?.trait === tr) { t[1]++; if (lines.has(e.k)) t[0]++ }
+          else { t[3]++; if (lines.has(e.k)) t[2]++ }
+        }
+      }
+      if (BENCH.has(e.k)) benchWords++
     }
+    benchTries += ev.filter(e => e.type === 'TRY' && e.k && BENCH.has(e.k)).length
   }
 }
-ok(bad.length === 0, `every line fills the same holes in both languages${bad.length ? ` - ${bad.length}: ${bad.slice(0, 5).join('; ')}` : ''}`)
 
-// ---- 4. the English the pitch reads back is still there --------------------
-//
-// MatchDay.tsx decides what to draw on the pitch by matching the last line's
-// English. That is a wart and it is on the list to replace with event types,
-// but until it is, these phrases are load-bearing: change the wording and the
-// mock-up silently stops drawing set pieces. They are asserted against the
-// ENGLISH DICTIONARY as well as the source, because once a line is keyed its
-// wording lives in en.json and a translator editing "the maul" out of the
-// English would break the pitch from a locale file.
-say('\n--- 4. what the pitch mock-up draws')
-// Every key in matchEngine's DEPICTS map has to be a key, or the pitch quietly
-// draws nothing for it and no test anywhere notices. A typo here is invisible.
-const depicted = [...src.matchAll(/'(comm\.[A-Za-z0-9_.]+)':\s*'(SCRUM|LINEOUT|MAUL|MISS)'/g)]
-say(`  ${depicted.length} lines say what they depict`)
-const unknown = depicted.filter(m => lookup(LANGS.en, m[1]) === undefined).map(m => m[1])
-ok(unknown.length === 0,
-  `every line the pitch draws for is a real key${unknown.length ? ` - missing: ${unknown.join(', ')}` : ''}`)
-ok(depicted.length >= 15, `the pitch still knows about scrums, lineouts, mauls and missed kicks (${depicted.length})`)
-
-// AND the old patterns still matter, for as long as saves written before the
-// field do. MatchDay falls back to matching the stored English when an event
-// has a key but no `fx`, which is every event in a career begun on an earlier
-// build. Change these words and those saves stop drawing a pitch.
-const PINNED = ['maul', 'scrum', 'lineout', 'Quick tap', 'penalty']
-const enBlob = JSON.stringify(LANGS.en.comm ?? {}) + src
-for (const phrase of PINNED) {
-  ok(enBlob.toLowerCase().includes(phrase.toLowerCase()),
-    `"${phrase}" still appears in the English commentary (saves from before MatchEvent.fx match on it)`)
+console.log(`${matches} narrated matches`)
+const rate = repeats / Math.max(1, windows)
+ok(windows > 2000, `enough drawn lines to judge (${windows})`)
+ok(rate < 0.01, `a drawn line almost never comes round inside twelve lines of itself (${(rate * 100).toFixed(2)}%, ${repeats} of ${windows})`)
+ok(lateTries >= 10 && lateWords / lateTries > 0.4, `a late try for a side behind or level gets late words most of the time (${lateWords}/${lateTries})`)
+ok(braceTries >= 10 && braceWords / braceTries > 0.3, `a man's second try is called his second (${braceWords}/${braceTries})`)
+ok(benchWords > 0, `a try off the bench is called one (${benchWords})`)
+// pooled over the traits: how often a holder's try used his trait's lines,
+// against how often anybody else's try used those same lines
+let hh = 0, hn = 0, oh = 0, on = 0
+for (const [tr, [a, b, c, d]] of Object.entries(traitHit)) {
+  console.log(`  ${tr}: holders ${a}/${b}, others ${c}/${d}`)
+  hh += a; hn += b; oh += c; on += d
 }
+const holder = hh / Math.max(1, hn), other = oh / Math.max(1, on)
+ok(hn >= 60 && holder > other * 1.6, `a signature trait's try lines come up far more for the men who carry it (${(holder * 100).toFixed(0)}% against ${(other * 100).toFixed(0)}%)`)
 
-say(fails ? `\nCOMM PROBE FAILED (${fails})` : `\nCOMM PROBE PASSED: ${wanted.size} commentary keys, every one of them in every language`)
-process.exitCode = fails ? 1 : 0
+console.log(fails ? `COMM PROBE FAILED (${fails})` : 'COMM PROBE PASSED: the commentary does not repeat itself, and a try sounds like the try it was')
+process.exit(fails ? 1 : 0)

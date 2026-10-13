@@ -2242,6 +2242,10 @@ export interface LiveCtx {
    *  every watched match a different match from the same fixture played
    *  silently (scripts/detailprobe.ts: 0 of 120 alike before this). */
   crng: Rng
+  /** THE LAST TWELVE LINES SAID (1.9.0): said() and the try line keep out of
+   *  them, so a bank of ten does not repeat itself inside a quarter. Words
+   *  only, never read by the simulation. */
+  recent?: string[]
   /** EVERY KICK AT GOAL, in the order of the commentary (1.8.0): [the index
    *  of the line it belongs to, 0 home / 1 away, 1 made / 0 missed]. The
    *  engine runs a tick ahead of the ticker, so the live stats count only
@@ -3273,9 +3277,78 @@ function colour(
   pushLine(state, ctx, ctx.lastMin, 'SUB', side, key, v, playerId)
 }
 
-/** one of a bank, on the commentary's dice */
+/** one of a bank, on the commentary's dice
+ *
+ *  AND NOT ONE IT HAS JUST SAID (1.9.0). The pick was uniform with no memory,
+ *  so a ten-line bank could say the same thing twice in five minutes, which
+ *  is the first thing a player notices about generated commentary. Lines in
+ *  the last twelve are left out while anything fresh is left; still exactly
+ *  one draw on ctx.crng, so the commentary's own stream keeps its length and
+ *  the simulation's is never touched. */
+const RECENT_LINES = 12
+function remember(ctx: LiveCtx, k: string) {
+  const r = (ctx.recent ??= [])
+  r.push(k)
+  if (r.length > RECENT_LINES) r.shift()
+}
 function said<T>(ctx: LiveCtx, xs: readonly T[]): T {
-  return xs[Math.floor(ctx.crng() * xs.length)]
+  const roll = ctx.crng()
+  if (xs.length < 2 || typeof xs[0] !== 'string') return xs[Math.floor(roll * xs.length)]
+  const recent = ctx.recent ?? []
+  const fresh = xs.filter(x => !recent.includes(x as unknown as string))
+  const pool = fresh.length ? fresh : xs
+  const pick = pool[Math.floor(roll * pool.length)]
+  remember(ctx, pick as unknown as string)
+  return pick
+}
+
+/** TRY LINES THAT SUIT THE MAN (1.9.0). A signature trait (attributes.ts
+ *  deriveTrait) had engine effects and no words: a Jackal scored like anybody
+ *  else. These lines are three times as likely for the trait they describe.
+ *  try1 and try6 are left out on purpose: they are the lines fitTryLine falls
+ *  back to for any forward and any back, so they cannot single anybody out. */
+const TRY_TRAIT: Record<string, readonly string[]> = {
+  'The Step': ['comm.try5', 'comm.try19', 'comm.try21'],
+  'Offload King': ['comm.try12', 'comm.try26'],
+  'Enforcer': ['comm.try11', 'comm.try18'],
+  'Jackal': ['comm.try13', 'comm.try24'],
+}
+/** and the moments that are bigger than the move: a late try for a side that
+ *  was level or within seven, a try off the bench, a second for the same man */
+const TRY_LATE = ['comm.tryLate1', 'comm.tryLate2', 'comm.tryLate3']
+const TRY_BENCH = ['comm.tryBench1', 'comm.tryBench2']
+const TRY_BRACE = ['comm.tryBrace1', 'comm.tryBrace2']
+
+/** The try's words, chosen on the commentary's dice from what the try meant. */
+function tryLine(ctx: LiveCtx, side: SideCtx, pool: readonly string[], scorer: Player, min: number): string {
+  const opp = side === ctx.home ? ctx.away : ctx.home
+  const before = side.score - 5 - opp.score // the try is already on the board
+  const roll = ctx.crng()
+  const recent = ctx.recent ?? []
+  const fresh = (xs: readonly string[]) => xs.filter(k => !recent.includes(k))
+  let moment: readonly string[] = []
+  // late AND it matters: level or within a converted try. A consolation at
+  // 5-48 is not 'what a time to find the line'
+  if (min >= 68 && before <= 0 && before >= -7) moment = TRY_LATE
+  else if (side.onAt?.has(scorer.id)) moment = TRY_BENCH
+  else if (side.matchTries?.get(scorer.id) === 2) moment = TRY_BRACE
+  const m = fresh(moment)
+  // most of the time, not all of it: the move is still worth describing
+  if (m.length && roll < 0.65) {
+    const k = m[Math.floor((roll / 0.65) * m.length)]
+    remember(ctx, k)
+    return k
+  }
+  const liked = new Set(scorer.trait ? TRY_TRAIT[scorer.trait] ?? [] : [])
+  const open = fresh(pool).length ? fresh(pool) : [...pool]
+  const w = open.map(k => (liked.has(k) ? 3 : 1))
+  // the rest of the roll, rescaled to 0-1, so one draw still decides it all
+  const u = m.length ? (roll - 0.65) / 0.35 : roll
+  let r = u * w.reduce((a, b) => a + b, 0)
+  let i = 0
+  for (; i < open.length - 1; i++) { r -= w[i]; if (r < 0) break }
+  remember(ctx, open[i])
+  return open[i]
 }
 
 /** the men a side has on the pitch */
@@ -3968,7 +4041,10 @@ function scoreTry(
   let tryKey = line ?? 'comm.tryPackDrive'
   if (line) pushLine(state, ctx, min, 'TRY', side, line, lineV, scorer?.id)
   else if (scorer) {
-    tryKey = tryPool[Math.floor(rng() * tryPool.length)]
+    // the simulation's draw stays (the stream must not move); the words are
+    // chosen on the commentary's dice by what the try meant (1.9.0, tryLine)
+    rng()
+    tryKey = tryLine(ctx, side, tryPool, scorer, min)
     // the called move that made it names itself (moves.ts); the pool's draw
     // above is taken either way, so naming it moves nothing
     const mt = ctx.moveTry ? moveTryLine(state, ctx.moveTry, scorer, min) : null
