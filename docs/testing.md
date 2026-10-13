@@ -152,6 +152,15 @@ Five lessons, each of them paid for:
 
 ## Known gaps
 
+- **`perfprobe` is tight on a slow machine (1.9.0).** Its 200 ms budget for a
+  fresh week was set where a week took about 155 ms. On the 13 Oct container
+  the same week took 178 to 221 ms on 1.8.17 and 1.8.18 alike, so it fails
+  about one run in three there with nothing changed. A failure on a quiet
+  machine is a real one; under parallel load, re-run it alone first.
+- **A harness that is in no suite list never runs (1.9.0).** Twenty were
+  found that way and added; three had quietly gone stale. Put a new harness
+  with a verdict in `suite.sh` in the same commit that adds it.
+
 - **`suite.sh fast` does not run the browser harnesses.** That is the mode most
   rounds use, and it is how a rename broke 42 browser probes for a fortnight
   without anyone seeing it. CI runs the browser half on `main` and nightly;
