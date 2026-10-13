@@ -7,6 +7,37 @@ No new SDK or plugin. Google Mobile Ads SDK stays pinned at 25.4.0.
 
 ## What changed for players
 
+**The match** (engine change; fingerprint rebaselined with its reason)
+- Scrums and lineouts are contested every time instead of being estimated
+  after the match (`setPieceContest`). The scrum reads the two packs, how fresh
+  each front row is and the referee; the lineout the throw and the jumpers
+  against the contest, worse in the wet. Clean, scrappy and stolen ball move
+  the try chance; the scrum's real penalties replace the old unit ratio.
+  Ordinary packs keep 89-90% of their own scrums, a dominant one 91%, a
+  beaten one 85%; a spent front row 83% against 87% fresh (`packprobe`,
+  `statsprobe`).
+- Players tire by their position's work (`roleDrain`): the front row pays for
+  every scrum and ends a match at 23 energy against the wings' 37. A side's
+  average tiredness is unchanged (53.8 and 32.4 against 54.3 and 32.5 on the
+  old engine), and bandcheck holds: 49.5 points, 6.48 tries, 53.7% home wins,
+  2.1% draws, 8.0% blowouts (was 49.7, 6.49, 54.7%, 1.6%, 8.6%).
+- Commentary no longer repeats a line inside twelve (0.66% of 31,446 drawn
+  lines), and a try's words fit the moment: a late try in a close game, a try
+  off the bench, a second try, a signature trait's own lines (`commvoiceprobe`).
+  New lines in six languages. The match stream does not move for it.
+
+**Screens**
+- The match menu's line-ups are live telemetry: all 23 in 24 px rows under
+  the scoreboard, with energy bars by unit, ratings and card, HIA and injury
+  flags, and the opposition's 23 a tap away (`telemetryui`).
+- Home leads with one hero card (the next decision and the match); the rest
+  are compact tiles going where they always went.
+- The player page names each man's signature trait and personality with what
+  each does, hidden for other clubs until scouted, and the attributes read in
+  four honest groups: Set piece & contact, Skills, Physical, Mental
+  (`traitcard`). The 1-100 figures keep their fixed per-player fifth (37 or
+  86), by the owner's choice.
+
 **Purchases**
 - A consumable (heal, board funding, estate work) bought while the store
   connection drops is credited once. Before, a failed consume followed by a

@@ -10,10 +10,12 @@ Re-checked against the code on 9 October 2026 (release-readiness round after
 repository, and none is marked done without the owner's confirmation.
 
 1.9.0 (13 October 2026) changes nothing these answers rest on: no new SDK,
-plugin, permission, advert placement, product or data. It is fixes to purchase
-crediting, save import and save-failure reporting, a gentler early-season
-board at big clubs, and the feedback report moved to after the first season
-(the report is still built on the device and sent only by the player).
+plugin, permission, advert placement, product or data. It is gameplay (the
+set piece contested in the match engine, fatigue by position, commentary,
+live team telemetry, a new Home, the player's character on his page), fixes
+to purchase crediting, save import and save-failure reporting, a gentler
+early-season board at big clubs, and the feedback report moved to after the
+first season (still built on the device and sent only by the player).
 
 1.8.18 (12 October 2026) is purchase handling, save-import checks and export.
 It adds two Capacitor plugins, `@capacitor/filesystem` and `@capacitor/share`,

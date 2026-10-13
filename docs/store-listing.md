@@ -125,22 +125,22 @@ First release.
 Each entry is under 500 characters. Paste the matching language into each Play locale.
 
 **en-GB**
-A big club's board now gives you more time early in the season: one look at the table after a handful of games no longer undoes your results. Importing a save keeps every career you imported before. If your phone runs out of space, the game now tells you instead of quietly stopping saving. Store items bought while the connection drops are delivered once, exactly. The feedback report now waits until you have finished your first season.
+Scrums and lineouts are now contested every time: a strong pack wins penalties and steals ball, and a tired front row goes backwards, so a fresh prop off the bench matters. Players tire by the work their position does. The match menu shows all 23 with live energy bars, and Home leads with your next decision. Player pages name each man's signature trait and character. Commentary stops repeating itself and knows a late winner from a consolation. Plus purchase and save fixes.
 
 **fr-FR**
-Le conseil d'un grand club vous laisse plus de temps en début de saison : un coup d'œil au classement après quelques matchs n'efface plus vos résultats. Importer une sauvegarde conserve toutes les carrières importées avant. Si la mémoire du téléphone est pleine, le jeu vous le dit au lieu de cesser de sauvegarder en silence. Les achats faits pendant une coupure de connexion sont livrés une seule fois. Le rapport de retours attend la fin de votre première saison.
+Mêlées et touches sont désormais disputées : un pack dominant gagne des pénalités et vole des ballons, une première ligne fatiguée recule, et un pilier frais sur le banc compte. La fatigue suit le travail de chaque poste. Le menu du match montre les 23 avec leur énergie, et l'accueil met en avant votre prochaine décision. Les fiches nomment le trait et le caractère de chaque joueur. Les commentaires ne se répètent plus. Et des corrections d'achats et de sauvegardes.
 
 **es-ES**
-La directiva de un club grande te da más tiempo al principio de la temporada: un vistazo a la clasificación tras unos pocos partidos ya no borra tus resultados. Importar una partida conserva todas las carreras importadas antes. Si el teléfono se queda sin espacio, el juego te lo dice en vez de dejar de guardar sin avisar. Las compras hechas mientras se cae la conexión se entregan una sola vez. El informe de opiniones espera a que termines tu primera temporada.
+Melés y touches se disputan siempre: una delantera fuerte gana golpes y roba balones, y una primera línea cansada retrocede, así que un pilier fresco desde el banquillo importa. El cansancio sigue el trabajo de cada puesto. El menú del partido muestra a los 23 con su energía, y el inicio destaca tu próxima decisión. Las fichas muestran el rasgo y el carácter de cada jugador. La narración ya no se repite. Además, arreglos en compras y partidas guardadas.
 
 **it-IT**
-La dirigenza di un grande club ti concede più tempo a inizio stagione: un'occhiata alla classifica dopo poche partite non cancella più i tuoi risultati. Importare un salvataggio conserva tutte le carriere importate prima. Se la memoria del telefono è piena, il gioco te lo dice invece di smettere di salvare in silenzio. Gli acquisti fatti mentre cade la connessione vengono consegnati una sola volta. Il rapporto di feedback aspetta la fine della tua prima stagione.
+Mischie e touche ora si contendono sempre: un pacchetto forte guadagna punizioni e ruba palloni, una prima linea stanca arretra, e un pilone fresco dalla panchina conta. La fatica segue il lavoro di ogni ruolo. Il menu della partita mostra tutti i 23 con l'energia, e la home mette in primo piano la tua prossima decisione. Le schede indicano tratto e carattere di ogni giocatore. La telecronaca non si ripete più. Più correzioni ad acquisti e salvataggi.
 
 **ja-JP**
-ビッグクラブの理事会はシーズン序盤に猶予をくれるように。数試合後の順位表だけで結果が帳消しになることはなくなった。セーブを読み込んでも、以前に読み込んだキャリアはすべて残るように。スマホの容量が足りなくなったら、黙って保存を止めずにお知らせするように。通信が切れた間に買ったアイテムは一度だけ確実に届くように。フィードバックレポートは最初のシーズンを終えてから表示されるように。
+スクラムとラインアウトが毎回本当に争われるように。強いパックは反則を誘いボールを奪い、疲れた最前列は押し込まれる。ベンチのフレッシュなプロップが効く。疲労はポジションごとの仕事量で決まるように。試合メニューで23人全員のエネルギーを確認でき、ホームは次の判断を最初に表示。選手ページに特性と性格を表示。実況は同じ言い回しを繰り返さないように。購入とセーブの修正も。
 
 **af**
-'n Groot klub se direksie gee jou nou meer tyd vroeg in die seisoen: een kyk na die ranglys na 'n paar wedstryde vee nie meer jou uitslae uit nie. Om 'n stoorlêer in te voer, hou elke loopbaan wat jy voorheen ingevoer het. As jou foon se spasie opraak, sê die speletjie dit nou eerder as om stilweg op te hou stoor. Items wat gekoop word terwyl die verbinding wegval, word presies een keer gelewer. Die terugvoerverslag wag nou totdat jy jou eerste seisoen voltooi het.
+Skrums en lynstane word nou elke keer betwis: 'n sterk pak wen strafskoppe en steel bal, en 'n moeë voorry gaan agteruit, so 'n vars stut van die bank af maak saak. Spelers raak moeg volgens die werk van hul posisie. Die wedstrydkieslys wys al 23 met hul energie, en Tuis begin met jou volgende besluit. Spelerbladsye noem elkeen se kenmerk en karakter. Die kommentaar herhaal hom nie meer nie. Plus regstellings aan aankope en stoorlêers.
 
 ### What's new (500 max) - v1.8.18, Play version code 57
 

@@ -91,7 +91,7 @@ Key: **DONE** in place and checked · **FIXED** fixed in this round ·
 | Subtitle | 29 of 30 |
 | Promotional text | 164 of 170 |
 | Keywords | 96 of 100 |
-| What's new 1.9.0 | 189 to 469 of 500, in all six languages |
+| What's new 1.9.0 | 182 to 477 of 500, in all six languages |
 
 **Graphics**
 - Play icon 512x512.
