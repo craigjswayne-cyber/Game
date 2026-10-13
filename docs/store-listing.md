@@ -125,7 +125,7 @@ First release.
 Each entry is under 500 characters. Paste the matching language into each Play locale.
 
 **en-GB**
-Scrums and lineouts are now contested every time: a strong pack wins penalties and steals ball, and a tired front row goes backwards, so a fresh prop off the bench matters. Players tire by the work their position does. The match menu shows all 23 with live energy bars, and Home leads with your next decision. Player pages name each man's signature trait and character. Commentary stops repeating itself and knows a late winner from a consolation. Plus purchase and save fixes.
+Scrums and lineouts are now contested every time: a strong pack wins penalties and steals ball, and a tired front row goes backwards, so a fresh prop off the bench matters. Players tire by the work their position does. The match menu shows all 23 with live energy bars, and Home leads with your next decision. Player pages name each player's signature trait and character. Commentary stops repeating itself and knows a late winner from a consolation. Plus purchase and save fixes.
 
 **fr-FR**
 Mêlées et touches sont désormais disputées : un pack dominant gagne des pénalités et vole des ballons, une première ligne fatiguée recule, et un pilier frais sur le banc compte. La fatigue suit le travail de chaque poste. Le menu du match montre les 23 avec leur énergie, et l'accueil met en avant votre prochaine décision. Les fiches nomment le trait et le caractère de chaque joueur. Les commentaires ne se répètent plus. Et des corrections d'achats et de sauvegardes.

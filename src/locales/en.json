@@ -2538,21 +2538,21 @@
  },
  "traitFx": {
   "The Step": "Almost twice as likely to finish a try as anyone with the same pace and shirt, and lifts the attack a little.",
-  "Offload King": "Keeps the ball alive in contact: a small lift to the whole team's attack.",
+  "Offload King": "Keeps the ball alive in contact, which gives the whole team's attack a small lift.",
   "Siege Gun": "Three percentage points likelier to land every kick at goal.",
   "Metronome": "Never worse than a 45% chance at goal, however hard the kick (others can drop to 38%).",
-  "Jackal": "A threat over the ball: lifts the team at the breakdown.",
-  "Enforcer": "Extra muscle: lifts the team at the breakdown and in the scrum.",
-  "Big-Game Player": "In knockout ties and derbies: a higher match rating and a lift to the team's attack.",
+  "Jackal": "Contests the ball on the ground and lifts the team at the breakdown.",
+  "Enforcer": "Brings extra muscle, lifting the team at the breakdown and in the scrum.",
+  "Big-Game Player": "Plays to a higher match rating in knockout ties and derbies, and lifts the team's attack in them.",
   "Hot Head": "Every match played raises the team's card risk by about a sixth."
  },
  "persFx": {
-  "Professional": "Even-tempered: seldom sulks about minutes and is reasonable in contract talks.",
+  "Professional": "Even-tempered. Seldom sulks about minutes and is reasonable in contract talks.",
   "Loyal": "Asks for less to stay, is harder for rivals to tempt, and will talk a new deal even when unhappy.",
-  "Ambitious": "Wants a bigger stage: asks for more, is drawn to bigger clubs and sulks when left out.",
-  "Mercenary": "Follows the money: the steepest wage demands and the easiest for a rival to tempt with pay.",
+  "Ambitious": "Wants a bigger stage, so asks for more, is drawn to bigger clubs and sulks when left out.",
+  "Mercenary": "Makes the steepest wage demands and is the easiest for a rival to tempt with pay.",
   "Temperamental": "Morale swings twice as hard after a win or a defeat, and sulks when left out.",
-  "Leader": "A voice in the dressing room: what is said in your office reaches the squad, and a claim on the armband may follow."
+  "Leader": "Carries the dressing room. What is said in your office reaches the squad, and a claim on the armband may follow."
  },
  "traits": {
   "The Step": "The Step",

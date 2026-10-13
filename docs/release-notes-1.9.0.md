@@ -32,11 +32,11 @@ No new SDK or plugin. Google Mobile Ads SDK stays pinned at 25.4.0.
   flags, and the opposition's 23 a tap away (`telemetryui`).
 - Home leads with one hero card (the next decision and the match); the rest
   are compact tiles going where they always went.
-- The player page names each man's signature trait and personality with what
-  each does, hidden for other clubs until scouted, and the attributes read in
-  four honest groups: Set piece & contact, Skills, Physical, Mental
-  (`traitcard`). The 1-100 figures keep their fixed per-player fifth (37 or
-  86), by the owner's choice.
+- The player page names each player's signature trait and personality with
+  what each does, hidden for other clubs until scouted, and the attributes read
+  in four groups: Set piece & contact, Skills, Physical, Mental (`traitcard`).
+  The 1-100 figures keep their last digit (37 or 86, not 35 or 85), fixed per
+  player, by the owner's choice.
 
 **Purchases**
 - A consumable (heal, board funding, estate work) bought while the store
