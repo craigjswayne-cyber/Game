@@ -20,7 +20,7 @@ import { Glyph } from './glyphs'
  * channel on Discord. Nothing leaves the device otherwise; the game has no
  * network call (scripts/netprobe.ts).
  *
- * OFFERED ONCE, after the first in-game month (usage.feedbackDue), and always
+ * OFFERED ONCE, after the first finished season (usage.feedbackDue), and always
  * reachable again from the Report a Bug page, which opens this same card.
  *
  * WHEN, BY THE PRO CARD'S RULES (ProPrompt.tsx): Home or the day room only,

@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from 'react'
 import { genderOf } from '../../game/gender'
 import { isDeadlineWeek } from '../../game/window'
 import { useStore } from '../../store'
@@ -24,11 +25,50 @@ import { natWindow, weeksToSquad } from '../../game/country'
 import { FanFace, Glyph } from '../glyphs'
 import { COMMUNITY_URL } from '../../game/community'
 import { buildDesk, deskText } from '../../game/desk'
-import { DeskCard } from '../Desk'
+import { DeskCard, DeskTile, deskRows } from '../Desk'
 
+
+/**
+ * NO TILE ALONE ON HALF A ROW (1.9.0, tabletprobe). The tiles' grid has two
+ * columns on a phone and as many as fit on a tablet, so how many land in the
+ * last row depends on the glass. CSS cannot say "the last item takes what is
+ * left of its row" on an auto-fill grid, so after layout the last tile is
+ * stretched from the column it landed in to the end of the row, and put back
+ * when the grid changes shape.
+ */
+function useFillLastRow(tick: unknown) {
+  const ref = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    const g = ref.current
+    if (!g) return
+    const fit = () => {
+      const kids = [...g.children] as HTMLElement[]
+      const last = kids[kids.length - 1]
+      if (!last) return
+      last.style.gridColumn = ''
+      const cols = getComputedStyle(g).gridTemplateColumns.split(' ').filter(Boolean)
+      if (cols.length < 2) return
+      const lb = last.getBoundingClientRect()
+      const sameRow = kids.filter(k => k !== last && Math.abs(k.getBoundingClientRect().top - lb.top) < 2)
+      // where it landed: one past the furthest right of its row-mates, or 1
+      const gb = g.getBoundingClientRect()
+      const colW = (gb.width - parseFloat(getComputedStyle(g).paddingLeft) - parseFloat(getComputedStyle(g).paddingRight)) / cols.length
+      const start = sameRow.length
+        ? Math.round((Math.max(...sameRow.map(k => k.getBoundingClientRect().right)) - gb.left - parseFloat(getComputedStyle(g).paddingLeft)) / colW) + 1
+        : 1
+      if (start <= cols.length && lb.right < gb.right - parseFloat(getComputedStyle(g).paddingRight) - colW / 2) last.style.gridColumn = `${start} / -1`
+    }
+    fit()
+    const ro = typeof ResizeObserver === 'function' ? new ResizeObserver(fit) : null
+    ro?.observe(g)
+    return () => ro?.disconnect()
+  }, [tick])
+  return ref
+}
 
 export default function Home() {
   const game = useStore(s => s.game)!
+  const tilesRef = useFillLastRow(useStore(s => s.tick))
   // The unread count and its headline moved into the desk's decisions
   // (game/desk.ts), which counts with the reader's own predicate (inInbox) and
   // serves the queue through openInbox, oldest first, as the old cue did.
@@ -107,8 +147,17 @@ export default function Home() {
         </div>
       )}
       {/* THE DESK (1.8.2, game/desk.ts): what holds the week first, then the
-          match, then one line each on the rest of the club, then Continue. */}
-      <DeskCard desk={desk} match={fx ? (
+          match, then one line each on the rest of the club, then Continue.
+
+          ---- ONE HERO, THEN A GRID (1.9.0) ----
+          Home was a stack of a dozen cards of one size, half of them edged in
+          the same gold, so nothing on it said "this first". The desk is the
+          hero now: the decisions and the match (or, on a blank weekend, the
+          friendly to arrange), the one place a manager acts this week. Every
+          other card is a compact tile in the status grid below it, each still
+          a button to the door it always opened, and the gold edge is kept for
+          the hero while something waits on him (Desk.tsx). */}
+      <DeskCard desk={desk} hero match={fx ? (
         <div className="desk-match" onClick={() => go(assistants ? 'country' : 'squad')} style={{
           borderLeftColor: assistants ? 'var(--border-strong)' : game.clubs[fx.homeId === club.id ? fx.awayId : fx.homeId]?.colors[0] ?? 'var(--gold)',
         }}>
@@ -151,8 +200,8 @@ export default function Home() {
             </div>
           )}
         </div>
-      ) : null} />
-      <div className="card-grid">
+      ) : <BlankWeek hook={hook} />} />
+      <div className="card-grid home-tiles" ref={tilesRef}>
       {/* The Championship panel, in whichever game this career is in: the id and
           the window both differ between the two, and naming the men's flat meant
           a women's manager played a Northern Championship her home screen never
@@ -162,21 +211,20 @@ export default function Home() {
         const rows = sortTable(game.comps[snId].table).slice(0, 3)
         const thisWk = game.fixtures.filter(f => f.compId === snId && f.week === game.week)
         return (
-          <div className="card" onClick={() => go('nations')}
-            style={{ background: 'var(--surface-2)', color: 'var(--text-primary)', cursor: 'pointer' }}>
-            <div className="fact-label" style={{ color: 'var(--gold)' }}>{t('home.snLabel', { comp: (compLabel(game.comps[snId]?.name) ?? t('home.theChampionship')).toUpperCase() })}</div>
+          <button className="home-tile wide" data-tile="nations" onClick={() => go('nations')}>
+            <span className="ht-l fact-label">{t('home.snLabel', { comp: (compLabel(game.comps[snId]?.name) ?? t('home.theChampionship')).toUpperCase() })}</span>
             {thisWk.map(f => (
-              <div key={f.id} style={{ fontSize: 13, marginTop: 3 }}>
+              <span key={f.id} className="ht-v">
                 <Flag code={f.homeId} /> {nationName(f.homeId)} {f.played ? <b>{f.homeScore}–{f.awayScore}</b> : t('common.v')} {nationName(f.awayId)} <Flag code={f.awayId} />
-              </div>
+              </span>
             ))}
             {rows.length > 0 && rows[0].p > 0 && (
-              <div className="meta" style={{ color: 'var(--text-muted)', marginTop: 5 }}>
+              <span className="ht-s">
                 {t('home.snTable', { rows: rows.map((r, i) => `${i + 1}. ${nationName(r.teamId)} (${r.pts})`).join(' · ') })}
-              </div>
+              </span>
             )}
-            <div className="meta" style={{ color: 'var(--gold)', marginTop: 3 }}>{t('home.snTap')}</div>
-          </div>
+            <span className="ht-s">{t('home.snTap')}</span>
+          </button>
         )
       })()) })()}
       {/* THE CARD SAYS "TAP TO SET YOUR TEAM", SO IT OPENS THE TEAM SHEET.
@@ -200,18 +248,18 @@ export default function Home() {
         const rank = natRankOrder(game).indexOf(game.natTeam) + 1
         const testWeek = next && next.week === game.week
         return (
-          <div className="card" onClick={() => go('country')} style={{ borderLeft: '4px solid var(--text-positive)' }}>
-            <div className="meta" style={{ textTransform: 'uppercase', letterSpacing: 1, fontSize: 11 }}>
+          <button className="home-tile wide" data-tile="country" onClick={() => go('country')}>
+            <span className="ht-l">
               {t('home.headCoach')} · {nationName(game.natTeam)}{rank > 0 ? t('home.worldNo', { rank }) : ''}{game.natConfidence != null ? t('home.unionPct', { pct: Math.round(game.natConfidence) }) : ''}
-            </div>
+            </span>
             {next ? (
               <>
-                <h3 className="fx-line">
+                <span className="ht-v">
                   <Flag code={next.homeId} size={17} /> {nationName(next.homeId)} {t('common.v')} <Flag code={next.awayId} size={17} /> {nationName(next.awayId)}
-                </h3>
-                <div className="muted" style={{ marginTop: 6 }}>
+                </span>
+                <span className="ht-s">
                   {testWeek ? t('home.testWeek') : t('home.nextTest', { date: weekDate(game.season, next.week) })}
-                </div>
+                </span>
                 {/* DAYS UNTIL THE SQUAD (owner: "could we have days til squad
                     work"). The window calendar always knew this and never said
                     it, so a Test job spent most of a season looking like
@@ -222,26 +270,26 @@ export default function Home() {
                   const w = natWindow(game)
                   if (w) {
                     return (
-                      <div className="muted" style={{ marginTop: 4, fontWeight: 700, color: 'var(--gold)' }}>
+                      <span className="ht-s" style={{ fontWeight: 700, color: 'var(--gold)' }}>
                         {t('home.campOpen', { n: (game.natSquads[game.natTeam!] ?? []).length, size: w.size })}
-                      </div>
+                      </span>
                     )
                   }
                   const wks = weeksToSquad(game)
                   if (wks == null) return null
                   return (
-                    <div className="muted" style={{ marginTop: 4, fontWeight: 700, color: wks <= 1 ? 'var(--gold)' : undefined }}>
+                    <span className="ht-s" style={{ fontWeight: 700, color: wks <= 1 ? 'var(--gold)' : undefined }}>
                       {wks <= 0
                         ? t('home.squadThisWeek', { nat: nationName(game.natTeam!) })
                         : t('home.squadIn', { n: wks * 7 })}
-                    </div>
+                    </span>
                   )
                 })()}
               </>
             ) : (
-              <div className="muted">{t('home.noTest')}</div>
+              <span className="ht-s">{t('home.noTest')}</span>
             )}
-          </div>
+          </button>
         )
       })()}
       {/* THE STORE, above the Dream because that is where the owner asked for
@@ -281,35 +329,63 @@ export default function Home() {
           <div className="store-sub">{t('home.storeSub')} ›</div>
         </button>
       )}
+      {/* THE DESK'S ROWS, ONE TILE EACH (1.9.0): the season, the money, the
+          tactics, the dressing room, the youngsters and the thread still to
+          be answered, each the same door it was as a row inside the desk. */}
+      {deskRows(desk).map(r => <DeskTile key={r.id} r={r} />)}
+      {/* The three hub widgets keep their class and data-w (langprobe and
+          paletteqa read them) and become tiles of the same grid: label, the
+          one figure, the one line. */}
+      <button className="hub-widget home-tile" data-w="form" onClick={() => go('fixtures')}>
+        <label className="ht-l">{t('home.wForm')}</label>
+        <b className="ht-v" style={{ display: 'flex', gap: 3 }}>
+          {recent.length === 0 ? <span style={{ fontSize: 12, fontWeight: 400 }}>{t('home.noGames')}</span> : recent.map((r, i) => (
+            // the class stays W/L/D - it is what colours the pip - while the
+            // letter shown follows the language (V/N/D in French)
+            <span key={i} className={`form-pip ${r}`}>{t(r === 'W' ? 'common.w' : r === 'L' ? 'common.l' : 'common.d')}</span>
+          ))}
+        </b>
+        <span className="ht-s">{recent.length ? t('home.lastMatches', { n: recent.length }) : t('home.seasonAheadShort')}</span>
+      </button>
+      <button className="hub-widget home-tile" data-w="board" onClick={() => go('report')}>
+        <label className="ht-l">{t('home.wBoard')}</label>
+        {/* rule 4: a key number renders in text-primary - colour belongs on
+            the delta beside it, never on the figure itself */}
+        <b className="ht-v">{Math.round(club.boardConfidence)}%</b>
+        <span className="ht-s">{t('home.confidence')}</span>
+      </button>
+      <button className="hub-widget home-tile" data-w="fans" onClick={() => go('club', club.id)}>
+        <label className="ht-l">{t('home.wFans')}</label>
+        {(() => {
+          const m = game.fanMood ?? 60
+          const word = t(m >= 80 ? 'home.fanBouncing' : m >= 62 ? 'home.fanBehind' : m >= 45 ? 'home.fanWatching' : m >= 30 ? 'home.fanRestless' : 'home.fanMutinous')
+          // a drawn face, five of them from angry to delighted (owner, round
+          // 6), never an emoji (27 Sep 2026); the word under it says it too
+          return <>
+            <b className="ht-v"><FanFace mood={m} label={word} className="hub-face" /></b>
+            <span className="ht-s">{word}</span>
+          </>
+        })()}
+      </button>
       {/* THE DREAM sits above the season objectives on purpose. The board's
           brief expires in May; this does not, and the whole point of putting it
           here is that a manager sees the reason for the save every single week.
           Absent on a career started before dreams existed - the Legacy screen's
-          horizons carry those saves as they always did. */}
+          horizons carry those saves as they always did. A tile now (1.9.0):
+          the gold edge it wore every week of every season was decoration. */}
       {(() => {
         const d = dreamState(game)
         if (!d) return null
         const pct = dreamPct(d.progress)
         return (
-          <button className="card" style={{ borderLeft: `4px solid ${d.progress.done ? 'var(--primary)' : 'var(--gold)'}` }}
-            onClick={() => go('legacy')}>
-            {/* the label and the note share a line, so the desk above it
-                costs the page nothing (1.8.2) */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline' }}>
-              <span className="fact-label">{t(d.progress.done ? 'home.dreamDone' : 'home.dream')}</span>
-              <span className="meta">{dreamNote(d.progress)}</span>
-            </div>
-            <div style={{ fontWeight: 700, fontSize: 14, marginTop: 2 }}>{dreamTitle(d.def, d.ctx)}</div>
-            <div style={{ height: 6, background: 'var(--border-strong)', borderRadius: 3, overflow: 'hidden', margin: '6px 0 2px' }}>
-              <div className="grow-x" style={{ width: `${pct}%`, height: '100%', background: d.progress.done ? 'var(--primary)' : 'var(--gold-fill)' }} />
-            </div>
+          <button className="home-tile" data-tile="dream" onClick={() => go('legacy')}>
+            <span className="ht-l fact-label">{t(d.progress.done ? 'home.dreamDone' : 'home.dream')}</span>
+            <span className="ht-v ht-wrap">{dreamTitle(d.def, d.ctx)}</span>
+            <span className="ht-bar"><i className="grow-x" style={{ width: `${pct}%`, background: d.progress.done ? 'var(--primary)' : 'var(--gold-fill)' }} /></span>
+            <span className="ht-s">{dreamNote(d.progress)}</span>
           </button>
         )
       })()}
-      {/* THE SEASON AHEAD. Anticipation needs dates: derbies, deadlines,
-          intake day, the finals you have reached. Everything here already
-          fires on schedule - the player has simply never been able to see it
-          coming. Three at a time, so it is a glance and not a calendar app. */}
       {/* THE CIRCLING (living.ts, wave 4). A rival building towards a bid for
           your best player across a whole season, said out loud from the first
           paragraph of paper talk - so losing him is the end of a story you
@@ -318,51 +394,31 @@ export default function Home() {
         const line = huntLine(game)
         if (!line) return null
         return (
-          <button className="card" onClick={() => go('transfers')}
-            style={{ borderLeft: '4px solid var(--prop-red, var(--danger))' }}>
-            <div className="fact-label">{t('home.circling')}</div>
-            <div style={{ marginTop: 4 }}>{line}</div>
+          <button className="home-tile wide alert" data-tile="circling" onClick={() => go('transfers')}>
+            <span className="ht-l fact-label">{t('home.circling')}</span>
+            <span className="ht-s ht-strong">{line}</span>
           </button>
         )
       })()}
-
-      {(() => {
-        // `tp`, not `t`: the i18n t() is in scope here now, and shadowing it
-        // inside the map is how a screen ends up rendering "[object Object]"
-        // one line per label, at its nearest week: three league meetings with the
-        // same derby rival read "Derby: Leicester" three times over otherwise
-        const soon = seasonTentpoles(game).filter(tp => tp.week >= game.week)
-          .filter((tp, i, all) => all.findIndex(o => o.label === tp.label) === i).slice(0, 3)
-        if (!soon.length) return null
-        return (
-          <button className="card" onClick={() => go('fixtures')}>
-            <div className="fact-label">{t('home.seasonAhead')}</div>
-            <div className="meta" style={{ display: 'flex', flexWrap: 'wrap', gap: '2px 14px', marginTop: 2 }}>
-              {soon.map(tp => (
-                <span key={`${tp.week}-${tp.label}`}>
-                  <Glyph name={tp.icon} /> {tp.label}
-                  <b style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>
-                    {tp.week === game.week ? t('home.tentpoleThisWeek') : t('home.tentpoleIn', { n: tp.week - game.week })}
-                  </b>
-                </span>
-              ))}
-            </div>
-          </button>
-        )
-      })()}
+      {game.review && game.review.season === game.season - 1 && game.week <= 6 && (
+        <button className="home-tile" data-tile="annual" onClick={() => go('seasonreview')}>
+          <span className="ht-v ht-wrap">{t('home.annualOut')}</span>
+          <span className="ht-s">{t('home.annualSub')}</span>
+        </button>
+      )}
       {/* THE SEASON OBJECTIVES stay on Home (owner, 1.8.2), one card, and the
           desk does not count them a second time. */}
       {(() => {
         const objs = (game.objectives ?? []).map(id => OBJECTIVE_DEFS.find(o => o.id === id)).filter(Boolean)
         if (!objs.length) return null
         return (
-          <button className="card" onClick={() => go('finances')}>
+          <button className="home-tile wide" data-tile="objectives" onClick={() => go('finances')}>
             {/* A TICK MEANS DONE, AND DONE HAS TO MEAN DONE. An objective that
                 is banked once achieved (six starts given, a derby won) is ticked
                 the moment it happens; one that is merely true today reads as on
                 course until the season is over - see ObjectiveDef.banked. */}
-            <div className="fact-label">{t('home.objectives', { met: objs.filter(o => o!.met(game)).length, total: objs.length })}</div>
-            <div className="meta" style={{ display: 'flex', flexWrap: 'wrap', gap: '2px 14px' }}>
+            <span className="ht-l fact-label">{t('home.objectives', { met: objs.filter(o => o!.met(game)).length, total: objs.length })}</span>
+            <span className="ht-s ht-list">
               {objs.map(o => {
                 const met = o!.met(game)
                 const done = met && o!.banked
@@ -372,82 +428,43 @@ export default function Home() {
                   </span>
                 )
               })}
-            </div>
+            </span>
           </button>
         )
       })()}
-      {game.review && game.review.season === game.season - 1 && game.week <= 6 && (
-        <button className="card" style={{ borderLeft: '4px solid var(--gold)' }}
-          onClick={() => go('seasonreview')}>
-          <h3>{t('home.annualOut')}</h3>
-          <div className="meta">{t('home.annualSub')}</div>
-        </button>
-      )}
-      {!fx && (hook.hook || hook.streak) && (
-        <div className="card" style={{ borderLeft: `4px solid ${hook.winless ? 'var(--text-negative)' : 'var(--gold)'}`, display: 'flex', gap: 10, alignItems: 'center' }}>
-          {hook.hook && <b style={{ fontSize: 13 }}>{hook.hook}</b>}
-          {hook.streak && <span className="chip" style={{ marginLeft: 'auto', fontWeight: 700 }}>{hook.streak}</span>}
-        </div>
-      )}
-      {!fx && !game.unemployed && (() => {
-        const idle = Object.values(game.clubs)
-          .filter(c => c.id !== club.id &&
-            !game.fixtures.some(f => f.week === game.week && !f.played && (f.homeId === c.id || f.awayId === c.id)))
-          .sort((a, b) => Math.abs(a.rep - club.rep) - Math.abs(b.rep - club.rep))
-          .slice(0, 3)
-        if (!idle.length) return null
+      {/* THE SEASON AHEAD. Anticipation needs dates: derbies, deadlines,
+          intake day, the finals you have reached. Everything here already
+          fires on schedule - the player has simply never been able to see it
+          coming. Three at a time, so it is a glance and not a calendar app. */}
+      {(() => {
+        // `tp`, not `t`: the i18n t() is in scope here now, and shadowing it
+        // inside the map is how a screen ends up rendering "[object Object]"
+        // one line per label, at its nearest week: three league meetings with the
+        // same derby rival read "Derby: Leicester" three times over otherwise
+        const soon = seasonTentpoles(game).filter(tp => tp.week >= game.week)
+          .filter((tp, i, all) => all.findIndex(o => o.label === tp.label) === i).slice(0, 3)
+        if (!soon.length) return null
         return (
-          <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-            <div className="fact-label">{t('home.blankWeekend')}</div>
-            <div className="meta" style={{ marginBottom: 6 }}>
-              {t('home.blankSub')}
-            </div>
-            <div className="chips" style={{ padding: 0 }}>
-              {idle.map(c => (
-                <button key={c.id} className="chip" onClick={() => { arrangeFriendly(game, c.id); touch() }}>
-                  {t('home.friendlyChip', { club: c.short, rep: c.rep })}
-                </button>
+          <button className="home-tile wide" data-tile="ahead" onClick={() => go('fixtures')}>
+            <span className="ht-l fact-label">{t('home.seasonAhead')}</span>
+            <span className="ht-s ht-list">
+              {soon.map(tp => (
+                <span key={`${tp.week}-${tp.label}`}>
+                  <Glyph name={tp.icon} /> {tp.label}
+                  <b style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>
+                    {tp.week === game.week ? t('home.tentpoleThisWeek') : t('home.tentpoleIn', { n: tp.week - game.week })}
+                  </b>
+                </span>
               ))}
-            </div>
-          </div>
+            </span>
+          </button>
         )
       })()}
-      </div>
-      <div className="hub-row three">
-        <button className="hub-widget" data-w="form" onClick={() => go('fixtures')}>
-          <label>{t('home.wForm')}</label>
-          <b style={{ display: 'flex', gap: 3, justifyContent: 'center' }}>
-            {recent.length === 0 ? <span style={{ fontSize: 12, fontWeight: 400 }}>{t('home.noGames')}</span> : recent.map((r, i) => (
-              // the class stays W/L/D - it is what colours the pip - while the
-              // letter shown follows the language (V/N/D in French)
-              <span key={i} className={`form-pip ${r}`}>{t(r === 'W' ? 'common.w' : r === 'L' ? 'common.l' : 'common.d')}</span>
-            ))}
-          </b>
-          <span>{recent.length ? t('home.lastMatches', { n: recent.length }) : t('home.seasonAheadShort')}</span>
-        </button>
-        <button className="hub-widget" data-w="board" onClick={() => go('report')}>
-          <label>{t('home.wBoard')}</label>
-          {/* rule 4: a key number renders in text-primary - colour belongs on
-              the delta beside it, never on the figure itself */}
-          <b>{Math.round(club.boardConfidence)}%</b>
-          <span>{t('home.confidence')}</span>
-        </button>
-        <button className="hub-widget" data-w="fans" onClick={() => go('club', club.id)}>
-          <label>{t('home.wFans')}</label>
-          {(() => {
-            const m = game.fanMood ?? 60
-            const word = t(m >= 80 ? 'home.fanBouncing' : m >= 62 ? 'home.fanBehind' : m >= 45 ? 'home.fanWatching' : m >= 30 ? 'home.fanRestless' : 'home.fanMutinous')
-            // a drawn face, five of them from angry to delighted (owner, round
-            // 6), never an emoji (27 Sep 2026); the word under it says it too
-            return <>
-              <b><FanFace mood={m} label={word} className="hub-face" /></b>
-              <span>{word}</span>
-            </>
-          })()}
-        </button>
-      </div>
       {(() => {
-        // FM-style one-page dashboard: everything glanceable, everything tappable
+        // FM-style one-page dashboard: everything glanceable, everything
+        // tappable. The three panels keep .dash-panel, .dash-head and
+        // .dash-line (langprobe and e2edeep read them) and sit in the same
+        // grid as the tiles (1.9.0) rather than in a row of their own.
         const mine = (f: { homeId: string; awayId: string }) => f.homeId === club.id || f.awayId === club.id
         // Chronological, top to bottom. This read wk2, wk1, wk3, wk4, wk6 - the
         // results descending and the fixtures ascending, because the sort that
@@ -463,8 +480,8 @@ export default function Home() {
           return { txt: `${us}-${them}`, c: us > them ? 'var(--text-positive)' : us < them ? 'var(--text-negative)' : undefined }
         }
         return (
-          <div className="dash-row">
-            <button className="dash-panel" onClick={() => go('fixtures')}>
+          <>
+            <button className="dash-panel home-tile tall" onClick={() => go('fixtures')}>
               <div className="dash-head">{t('home.dashFixtures')}</div>
               {played.map(f => {
                 const r = resStr(f)
@@ -491,10 +508,7 @@ export default function Home() {
                 </div>
               ))}
             </button>
-            {/* medical and the rival share the second column, so three panels
-                make two columns at phone width rather than leaving one alone */}
-            <div className="dash-stack">
-            <button className="dash-panel" onClick={() => go('medical')}>
+            <button className="dash-panel home-tile" onClick={() => go('medical')}>
               <div className="dash-head">{t('home.dashMedical')}</div>
               {out.length === 0 && <div className="dash-line"><span className="muted">{t('home.cleanBill')}</span></div>}
               {out.slice(0, 4).map(p => (
@@ -523,7 +537,7 @@ export default function Home() {
                 return { txt: `${t(us > them ? 'common.w' : us < them ? 'common.l' : 'common.d')} ${us}-${them}`, c: us < them ? 'var(--text-positive)' : us > them ? 'var(--text-negative)' : undefined }
               })() : null
               return (
-                <button className="dash-panel" onClick={() => go('club', rival)}>
+                <button className="dash-panel home-tile" onClick={() => go('club', rival)}>
                   <div className="dash-head">{t('home.rivalWatch')}</div>
                   <div className="dash-line">
                     <span className="dl-t">{teamShort(game, rival)}</span>
@@ -533,10 +547,10 @@ export default function Home() {
                 </button>
               )
             })()}
-            </div>
-          </div>
+          </>
         )
       })()}
+      </div>
       {/* The messages live on their own screen now (user: "inbox and summary
           should be separated"). What stays here is the one line that says whether
           there is anything to read.
@@ -564,6 +578,52 @@ export default function Home() {
       <AdSlot place="home-foot" />
       <div className="spacer" />
     </>
+  )
+}
+
+/**
+ * ---- A WEEK WITH NO MATCH, IN THE HERO (1.9.0) ----
+ *
+ * The match is the hero's second half; on a week without one, what stood in
+ * for it were two gold-edged cards further down: why the week matters with the
+ * run the club is on, and the friendlies that could be arranged. The friendly
+ * is the one thing to DO on such a week, so both ride in the hero now, in the
+ * match's place, with the same words and the same chips.
+ */
+function BlankWeek({ hook }: { hook: ReturnType<typeof weekHook> }) {
+  const game = useStore(s => s.game)!
+  const touch = useStore(s => s.touch)
+  const club = game.clubs[game.userClubId]
+  const idle = game.unemployed ? [] : Object.values(game.clubs)
+    .filter(c => c.id !== club.id &&
+      !game.fixtures.some(f => f.week === game.week && !f.played && (f.homeId === c.id || f.awayId === c.id)))
+    .sort((a, b) => Math.abs(a.rep - club.rep) - Math.abs(b.rep - club.rep))
+    .slice(0, 3)
+  if (!hook.hook && !hook.streak && !idle.length) return null
+  return (
+    <div className="desk-match desk-blank">
+      {(hook.hook || hook.streak) && (
+        <div className="desk-mhead">
+          {hook.hook && <b style={{ fontSize: 13, color: hook.winless ? 'var(--text-negative)' : undefined }}>{hook.hook}</b>}
+          {hook.streak && <span className="chip" style={{ marginLeft: 'auto', fontWeight: 700, color: hook.winless ? 'var(--text-negative)' : undefined }}>{hook.streak}</span>}
+        </div>
+      )}
+      {idle.length > 0 && (
+        <>
+          <div className="fact-label" style={{ marginTop: hook.hook || hook.streak ? 6 : 0 }}>{t('home.blankWeekend')}</div>
+          <div className="meta" style={{ marginBottom: 6 }}>
+            {t('home.blankSub')}
+          </div>
+          <div className="chips" style={{ padding: 0 }}>
+            {idle.map(c => (
+              <button key={c.id} className="chip" onClick={() => { arrangeFriendly(game, c.id); touch() }}>
+                {t('home.friendlyChip', { club: c.short, rep: c.rep })}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
   )
 }
 

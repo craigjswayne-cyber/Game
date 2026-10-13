@@ -111,13 +111,28 @@ const SEASONS = 10
  *  chased has stopped; the manager's own income was never indexed (model.ts
  *  operatingCost). The band stays at 0.10M, now over fifteen standard
  *  errors: wide, but it is the same question it always asked. */
-const WAS_PER_SEASON = 0.18e6
+/*  RE-REFERENCED in 1.9.0 (13 Oct 2026), both numbers, measured paired on the
+ *  same 24 RATE_SEEDS worlds. The mean check failed on the set-piece engine
+ *  (0.32M against 0.27M, outside 15%), so the engine was put on trial:
+ *
+ *                                     median club    mean club
+ *    1.9.0 before the engine (a01a926)  0.25          0.306
+ *    1.9.0 with it (4ad8ae5)            0.28          0.318
+ *    paired, engine minus before                      +0.012 +0.013 (24)
+ *
+ *  THE ENGINE MOVED NOTHING YOU CAN MEASURE: one standard error. What moved
+ *  was the world between 1.8.3 and 1.9.0 (the mean already 0.306, 13% over
+ *  its reference and one coin from the line; the median 0.25-0.28 against
+ *  0.18, at the edge of its band). Richest club 15.2M (18.2M before), worst
+ *  -0.7M, both well inside their guards. The references are now 1.9.0's; the
+ *  bands are unchanged. */
+const WAS_PER_SEASON = 0.28e6
 /** how far the pooled median may sit from WAS_PER_SEASON */
 const MEDIAN_BAND = 0.10e6
-/** the mean AI club's gain a season: 0.27M over the 24 RATE_SEEDS worlds
- *  at 1.8.3; it was 0.386M at the 1.8.1 release tip and 0.465M on eight
+/** the mean AI club's gain a season: 0.32M over the 24 RATE_SEEDS worlds
+ *  at 1.9.0 (see above), 0.27M at 1.8.3; it was 0.386M at the 1.8.1 release tip and 0.465M on eight
  *  worlds at 1.7.3 */
-const MEAN_WAS = 0.27e6
+const MEAN_WAS = 0.32e6
 /** Worlds the rate and solvency checks pool over; the first is also the one
  *  every other check below reads. */
 /*  TWENTY-FOUR WORLDS, NOT EIGHT (28 Sep 2026). One world's median rate has

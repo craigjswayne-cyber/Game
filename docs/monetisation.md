@@ -1,5 +1,18 @@
 # Selling the game without breaking it
 
+> **Status, 1.9.0 (13 Oct 2026): parts of this page are history.** It was written
+> for a TWA with one non-consumable and no adverts. What ships now: Capacitor
+> shells with their own billing plugins (`packaging/android/PhaseBilling.java`,
+> `packaging/ios/PhaseBilling.swift`, bridged by `src/game/storekit.ts`),
+> Pro Manager plus its intro product and consumables (heal, board injection,
+> estate) credited through `rm-credits` (`src/game/monetise.ts` bankReceipts),
+> and AdMob banners and rewarded spots in the shells (`docs/ADS-STEP-BY-STEP.md`).
+> Since 1.8.18 `ownedState().ok` says whether the store really answered; only a
+> real answer can revoke a refund (two misses a day apart) or, since 1.9.0,
+> count a consume as landed. Credits already banked live in this device's
+> storage only: a reinstall restores Pro and other permanent purchases, but not
+> a credit that was bought and not yet used. The four rules below still hold.
+
 The game has never made a network call, and the "no data collected" answer on
 both store questionnaires rests on that. Monetisation is the likeliest way to
 lose it, so the whole design here is arranged around keeping it.

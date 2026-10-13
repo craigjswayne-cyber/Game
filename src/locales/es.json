@@ -2553,7 +2553,27 @@
   "Ambitious": "Ambicioso",
   "Mercenary": "Mercenario",
   "Temperamental": "Temperamental",
-  "Leader": "Líder"
+  "Leader": "Líder",
+  "Ambitious_f": "Ambiciosa",
+  "Mercenary_f": "Mercenaria"
+ },
+ "traitFx": {
+  "The Step": "Casi el doble de opciones de culminar un ensayo que cualquiera con la misma velocidad y posición, y un pequeño extra para el ataque.",
+  "Offload King": "Mantiene vivo el balón en el contacto: un pequeño extra para todo el ataque.",
+  "Siege Gun": "Tres puntos porcentuales más de acierto en cada patada a palos.",
+  "Metronome": "Nunca baja del 45 % de acierto a palos, por difícil que sea la patada (el resto puede caer al 38 %).",
+  "Jackal": "Una amenaza sobre el balón: el equipo mejora en el ruck.",
+  "Enforcer": "Músculo extra: el equipo mejora en el ruck y en la melé.",
+  "Big-Game Player": "En eliminatorias y derbis: mejor nota de partido y un extra para el ataque del equipo.",
+  "Hot Head": "Cada partido disputado sube en torno a un sexto el riesgo de tarjeta del equipo."
+ },
+ "persFx": {
+  "Professional": "Carácter templado: rara vez protesta por los minutos y es razonable al negociar.",
+  "Loyal": "Pide menos por quedarse, a los rivales les cuesta tentarle y negocia aunque no esté a gusto.",
+  "Ambitious": "Quiere un escenario mayor: pide más, mira a los clubes grandes y protesta si no juega.",
+  "Mercenary": "Va donde está el dinero: las exigencias salariales más altas y el blanco más fácil para un rival que pague más.",
+  "Temperamental": "La moral oscila el doble tras una victoria o una derrota, y protesta si no juega.",
+  "Leader": "Una voz en el vestuario: lo que se dice en tu despacho llega a la plantilla, y puede pedir el brazalete."
  },
  "traits": {
   "The Step": "El Quiebro",
@@ -2741,7 +2761,12 @@
   "attrsSubCompare": "sus números junto a cada ficha",
   "grpSetPiece": "Fases estáticas y contacto",
   "grpSkills": "Técnica",
-  "grpPhysical": "Físico y mental",
+  "grpPhysical": "Físico",
+  "grpMental": "Mental",
+  "character": "Carácter",
+  "charNoTrait": "Sin rasgo distintivo: nada fuera de lo común en el campo.",
+  "charTraitUnknown": "Rasgo distintivo aún desconocido: hace falta un informe de ojeo detallado.",
+  "charPersUnknown": "Personalidad aún desconocida: solo el informe completo lo dice.",
   "thisSeason": "Esta temporada",
   "avgRating": "nota media {n}",
   "apps": "PJ",
@@ -6742,6 +6767,13 @@
   "tryDerby3": "¡ENSAYO! ¡{player} a través de un muro de cuerpos! ¡Cómo suena esto!",
   "tryDerby4": "¡ENSAYO! ¡{player} apoya delante de la afición visitante y se queda ahí plantado, con los brazos abiertos!",
   "tryDerby5": "¡ENSAYO! ¡{player} marca en el derbi, y esta gente va a estar insoportable una semana entera!",
+  "tryLate1": "¡ENSAYO! ¡{player} contra el reloj! ¡Qué momento para encontrar la zona de marca!",
+  "tryLate2": "¡ENSAYO! ¡Drama hasta el final, y {player} es quien lo resuelve!",
+  "tryLate3": "¡ENSAYO! {player} marca cuando más importa. ¡Todo el estadio en pie!",
+  "tryBench1": "¡ENSAYO! El banquillo marca la diferencia: ¡{player} apoya!",
+  "tryBench2": "¡ENSAYO! Piernas frescas, ¡y {player} cruza la línea!",
+  "tryBrace1": "¡ENSAYO! ¡Y van dos para {player}!",
+  "tryBrace2": "¡ENSAYO! ¡Otra vez {player}, segundo ensayo del partido!",
   "pen1": "{player} anota el golpe de castigo.",
   "pen2": "{player} no falla desde el tee.",
   "pen3": "{player} la golpea dulce. Tres más.",
@@ -9569,5 +9601,14 @@
   "rowLine": "Lo que has usado hasta ahora, listo para enviar si quieres.",
   "rowBtn": "Enviar informe de uso",
   "reportLabel": "Tu informe"
+ },
+ "tele": {
+  "showSide": "Ver {team}",
+  "captain": "Capitán",
+  "binned": "Expulsado temporalmente",
+  "sent": "Expulsado",
+  "hia": "HIA",
+  "hiaTitle": "Fuera para una evaluación de lesión en la cabeza",
+  "injured": "Retirado por lesión"
  }
 }

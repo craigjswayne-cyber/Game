@@ -2,9 +2,10 @@
 // (game/usage.ts, ui/FeedbackPrompt.tsx).
 //
 // scripts/feedbackprobe.ts holds the counters and the report text. This holds
-// what a player meets: the card comes once, on Home, after the first month of
-// a career; never during a match and never in the same match flow as a Pro
-// Manager card; it shows the whole report; Email is a mailto to the studio,
+// what a player meets: the card comes once, on Home, after the first season of
+// a career is finished (1.9.0; it was the first month); never during a match
+// and never in the same match flow as a Pro Manager card; it shows the whole
+// report; Email is a mailto to the studio,
 // Copy puts the report on the clipboard, Not now puts it away in one tap and
 // it does not come back by itself; Report a Bug opens it again any time.
 //
@@ -13,9 +14,10 @@
 // store and an advert bridge are stubbed, as proprompt.mjs does, wherever a
 // Pro card has to be able to fire.
 //
-//   A  the web build (no Pro): four in-game weeks in, the card; its contents, its
-//      buttons, the clipboard, Not now, no return, the permanent row, Back
-//   B  a Pro reminder is due when the month is up: the Pro card goes first,
+//   A  the web build (no Pro): no card for a whole season; the season's review
+//      put away, the card on Home; its contents, its buttons, the clipboard,
+//      Not now, no return, the permanent row, Back
+//   B  a Pro reminder is due when the season is done: the Pro card goes first,
 //      the feedback card waits for the next match flow
 //   C  due, but on the match preview and during a live match: no card; and
 //      without ?feedback=1 an automated browser never gets one
@@ -156,31 +158,60 @@ async function playWeek(page) {
 
 try {
   // ---- A ---------------------------------------------------------------------
-  say('--- A: the web build, a month in')
+  say('--- A: the web build, a whole season, then the card')
   {
     const { ctx, page, errs } = await phone()
     await startCareer(page)
     ok(!(await fbCard(page, 2500)), 'no card at the start of a career')
     const start = await page.evaluate(() => window.rugbyStore.getState().game.week)
-    let shownAt = null
-    for (let i = 0; i < 8 && shownAt == null; i++) {
-      const w = await playWeek(page)
-      if (w === 'stuck') { ok(false, 'the drive got stuck'); break }
-      if (w === 'card') { ok(false, 'a card opened mid-drive, off Home'); break }
-      if (await fbCard(page)) shownAt = await page.evaluate(() => { const st = window.rugbyStore.getState(); return { week: st.game.week, screen: st.nav.at(-1).screen } })
-      else ok(w - start < 4, `no card ${w - start} week${w - start === 1 ? '' : 's'} in`)
-    }
+    // A WHOLE SEASON, AND NO CARD IN IT. Driven in the page until the
+    // season's review is stamped, looking for the card the whole way. The
+    // board is held content: a sacked manager gets no review (rollover.ts),
+    // and this is about the card, not survival (annualprobe does the same).
+    const drive = await page.evaluate(async () => {
+      const s = window.rugbyStore
+      let weeks = 0, last = ''
+      for (let guard = 0; guard < 20000; guard++) {
+        if (document.querySelector('.fb-card')) return { card: true, weeks }
+        const st = s.getState(), g = st.game
+        if (g.annual) return { card: false, weeks, unemployed: !!g.unemployed }
+        const club = g.clubs?.[g.userClubId]
+        if (club && !g.unemployed) club.boardConfidence = Math.max(club.boardConfidence ?? 50, 70)
+        for (const o of g.offers) if (o.status === 'pending' && o.forUser) o.status = 'rejected'
+        for (const q of g.press) q.answered = true
+        const k = `${g.season}:${g.week}`
+        if (k !== last) { weeks++; last = k }
+        s.setState({ lastAdvanceAt: 0 })
+        const screen = st.nav[st.nav.length - 1]?.screen
+        if (st.liveMatch || screen === 'matchday') { st.instantResult(); st.home(); continue }
+        st.continueWeek()
+        // a beat now and then, so the card's own timers get to run on Home
+        await new Promise(r => setTimeout(r, guard % 25 === 0 ? 1300 : 2))
+      }
+      return { card: false, weeks, stuck: true }
+    })
+    ok(!drive.card && !drive.stuck && !drive.unemployed, `no card through a whole season (${drive.weeks} weeks${drive.card ? ', the card opened mid-season' : ''}${drive.stuck ? ', the drive stalled' : ''})`)
+    const u0 = await use(page)
+    ok(u0.finished === 1 && u0.offered === false, `the review's Monday counted the season finished (${u0.finished}), not yet offered`)
+    // the review is up and the card waits behind it
+    const start2 = page.locator('button', { hasText: 'Ready for a new season?' })
+    await start2.waitFor({ timeout: 10000 }).catch(() => {})
+    ok(await page.evaluate(() => window.rugbyStore.getState().nav.at(-1).screen) === 'annual', 'the season review is on screen')
+    ok(!(await fbCard(page, 2500)), 'and the card does not open over it')
+    // put it away the way a player does: its own button
+    await start2.click()
+    const shown = await fbCard(page, 6000)
+    const shownAt = shown ? await page.evaluate(() => { const st = window.rugbyStore.getState(); return { week: st.game.week, season: st.game.season, screen: st.nav.at(-1).screen } }) : null
     const u = await use(page)
-    say(`  career began in week ${start}; card in week ${shownAt?.week} (${u?.weeks} weeks, ${u?.matches} competitive matches on the device)`)
-    ok(!!shownAt && shownAt.screen === 'home', 'the card opens on Home')
-    ok(shownAt && shownAt.week === start + 4 && u.weeks === 4, `four in-game weeks in, the first month (week ${shownAt?.week})`)
+    say(`  career began in week ${start}; card in season ${shownAt?.season} week ${shownAt?.week} on ${shownAt?.screen} (${u?.weeks} weeks, ${u?.matches} competitive matches, ${u?.finished} season finished)`)
+    ok(!!shownAt && (shownAt.screen === 'home' || shownAt.screen === 'day'), 'the review put away, the card opens on Home or the day room')
     ok(u.offered === true && u.offeredAt === u.matches, 'and the device ledger records it was offered, in this match flow')
 
     const text = await page.locator('.fb-card').innerText()
     const report = await page.locator('.fb-card .fb-report').textContent()
     ok(/Help shape the game/.test(text) && /Nothing is sent unless you send it/.test(text), 'it says plainly what it is and that nothing is sent')
     ok(/FEEDBACK REPORT/.test(report) && /SCREENS OPENED/.test(report) && /NEVER OPENED/.test(report) && /ACTIONS/.test(report), 'the whole report is on screen')
-    ok(/platform\s+web/.test(report) && /weeks\s+4\n/.test(report) && /device\s+phone/.test(report) && /game\s+men's/.test(report), 'with the device lines')
+    ok(/platform\s+web/.test(report) && /weeks\s+\d\d\n/.test(report) && /finished\s+1 season\n/.test(report) && /device\s+phone/.test(report) && /game\s+men's/.test(report), 'with the device lines, a season of weeks and the season finished')
     ok(!/Gaffer|Leicester|Tigers/.test(report), 'and no manager or club name in it')
     const href = await page.locator('.fb-card a.fb-btn').getAttribute('href')
     ok(href.startsWith('mailto:info@fwdsandbcks.com'), `Email is a mailto to the studio (${href.slice(0, 40)})`)
@@ -221,7 +252,7 @@ try {
     await page.locator('.fb-open').click()
     ok(await fbCard(page, 2000), 'Report a Bug opens it again any time')
     const report2 = await page.locator('.fb-card .fb-report').textContent()
-    ok(/Report a bug \d/.test(report2) && /weeks\s+([5-9]|\d\d)\n/.test(report2), 'an updated report: the bug page and the later weeks counted')
+    ok(/Report a bug \d/.test(report2) && Number(/weeks\s+(\d+)\n/.exec(report2)?.[1]) > u.weeks, 'an updated report: the bug page and the later weeks counted')
     const side = await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)
     ok(side, 'no sideways scroll on the bug page with the card open')
     await page.goBack()
@@ -236,11 +267,11 @@ try {
   }
 
   // ---- B ---------------------------------------------------------------------
-  say('--- B: a Pro reminder is due when the month is up: it goes first, the feedback card waits')
+  say('--- B: a Pro reminder is due when the season is done: it goes first, the feedback card waits')
   {
-    // a reminder already due (played 3, remindAt 3), and the month already up
+    // a reminder already due (played 3, remindAt 3), and a season already finished
     const pro = { v: 1, firstPromptShown: true, firstOfferShown: true, firstOfferAccepted: false, firstOfferDeclined: true, played: 3, offerDueAt: 1, remindAt: 3, lastShownAt: 1, seen: [] }
-    const seed = { v: 1, screens: {}, acts: {}, matches: 3, weeks: 6, lastWeek: 'x', seasons: 1, lastSeason: 'x', seen: [], offered: false, offeredAt: -1 }
+    const seed = { v: 1, screens: {}, acts: {}, matches: 3, weeks: 6, lastWeek: 'x', seasons: 1, lastSeason: 'x', finished: 1, lastFinished: 'x', seen: [], offered: false, offeredAt: -1 }
     const { ctx, page, errs } = await phone({ store: true, pro, use: seed })
     await startCareer(page)
     const p1 = await proCard(page, 4000)
@@ -269,7 +300,7 @@ try {
   // ---- C ---------------------------------------------------------------------
   say('--- C: never on the match preview or during a match; never for a harness that did not ask')
   {
-    const { ctx, page } = await phone({ use: { v: 1, screens: {}, acts: {}, matches: 0, weeks: 0, lastWeek: '', seasons: 0, lastSeason: '', seen: [], offered: false, offeredAt: -1 } })
+    const { ctx, page } = await phone({ use: { v: 1, screens: {}, acts: {}, matches: 0, weeks: 0, lastWeek: '', seasons: 0, lastSeason: '', finished: 0, lastFinished: '', seen: [], offered: false, offeredAt: -1 } })
     await startCareer(page)
     await page.evaluate(async () => {
       const s = window.rugbyStore
@@ -281,7 +312,7 @@ try {
         await new Promise(r => setTimeout(r, 5))
       }
     })
-    await page.evaluate(() => localStorage.setItem('rm-use', JSON.stringify({ v: 1, screens: {}, acts: {}, matches: 0, weeks: 4, lastWeek: 'x', seasons: 1, lastSeason: 'x', seen: [], offered: false, offeredAt: -1 })))
+    await page.evaluate(() => localStorage.setItem('rm-use', JSON.stringify({ v: 1, screens: {}, acts: {}, matches: 0, weeks: 4, lastWeek: 'x', seasons: 1, lastSeason: 'x', finished: 1, lastFinished: 'x', seen: [], offered: false, offeredAt: -1 })))
     await page.evaluate(() => window.rugbyStore.setState(s => ({ tick: s.tick + 1 })))
     ok(!(await fbCard(page, 3000)), 'due, but not on the match preview')
     await page.evaluate(() => window.rugbyStore.getState().kickOff())
@@ -290,7 +321,7 @@ try {
     await ctx.close()
   }
   {
-    const { ctx, page } = await phone({ use: { v: 1, screens: {}, acts: {}, matches: 0, weeks: 4, lastWeek: 'x', seasons: 1, lastSeason: 'x', seen: [], offered: false, offeredAt: -1 } })
+    const { ctx, page } = await phone({ use: { v: 1, screens: {}, acts: {}, matches: 0, weeks: 4, lastWeek: 'x', seasons: 1, lastSeason: 'x', finished: 1, lastFinished: 'x', seen: [], offered: false, offeredAt: -1 } })
     await startCareer(page, BASE)
     ok(!(await fbCard(page, 3500)), 'an automated browser without ?feedback=1 never gets the automatic card')
     await ctx.close()

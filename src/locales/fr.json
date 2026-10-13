@@ -2573,7 +2573,28 @@
     "Ambitious": "Ambitieux",
     "Mercenary": "Mercenaire",
     "Temperamental": "Caractériel",
-    "Leader": "Leader"
+    "Leader": "Leader",
+    "Professional_f": "Professionnelle",
+    "Ambitious_f": "Ambitieuse",
+    "Temperamental_f": "Caractérielle"
+  },
+  "traitFx": {
+    "The Step": "Presque deux fois plus de chances de conclure un essai qu'à vitesse et poste égaux, et un léger plus pour l'attaque.",
+    "Offload King": "Fait vivre le ballon dans le contact : un léger plus pour toute l'attaque.",
+    "Siege Gun": "Trois points de pourcentage de réussite en plus sur chaque tir au but.",
+    "Metronome": "Jamais moins de 45 % de réussite au but, même sur un coup difficile (les autres peuvent tomber à 38 %).",
+    "Jackal": "Une menace sur le ballon : l'équipe gagne en efficacité dans les rucks.",
+    "Enforcer": "Du muscle en plus : l'équipe gagne en efficacité dans les rucks et en mêlée.",
+    "Big-Game Player": "En phase finale et dans les derbys : une meilleure note de match et un plus pour l'attaque de l'équipe.",
+    "Hot Head": "Chaque match joué augmente d'environ un sixième le risque de carton de l'équipe."
+  },
+  "persFx": {
+    "Professional": "Humeur égale : boude rarement pour le temps de jeu et reste raisonnable en négociation.",
+    "Loyal": "Demande moins pour rester, résiste aux avances des rivaux et accepte de négocier même en cas de mécontentement.",
+    "Ambitious": "Vise plus haut : demande davantage, regarde vers les grands clubs et boude hors de l'équipe.",
+    "Mercenary": "Suit l'argent : les exigences salariales les plus élevées et la cible la plus facile pour un rival qui paie mieux.",
+    "Temperamental": "Le moral varie deux fois plus fort après une victoire ou une défaite, et boude hors de l'équipe.",
+    "Leader": "Une voix dans le vestiaire : ce qui se dit dans votre bureau atteint le groupe, et une demande de brassard peut suivre."
   },
   "traits": {
     "The Step": "Le crochet",
@@ -2766,7 +2787,12 @@
     "attrsSubCompare": "ses chiffres à côté de chaque pastille",
     "grpSetPiece": "Conquête et combat",
     "grpSkills": "Technique",
-    "grpPhysical": "Physique et mental",
+    "grpPhysical": "Physique",
+    "grpMental": "Mental",
+    "character": "Caractère",
+    "charNoTrait": "Pas de trait distinctif : rien d'extraordinaire sur le terrain.",
+    "charTraitUnknown": "Trait distinctif encore inconnu : il faut un rapport de recrutement détaillé.",
+    "charPersUnknown": "Personnalité encore inconnue : seul le dossier complet le dira.",
     "thisSeason": "Cette saison",
     "avgRating": "note moyenne {n}",
     "apps": "Matchs",
@@ -6943,6 +6969,13 @@
     "tryDerby3": "ESSAI ! {player} à travers un mur de corps ! Écoutez-moi ce stade !",
     "tryDerby4": "ESSAI ! {player} marque devant les supporters visiteurs et reste planté là, bras écartés !",
     "tryDerby5": "ESSAI ! {player} marque dans le derby, et ses supporters vont être intenables pendant une semaine !",
+    "tryLate1": "ESSAI ! {player}, contre la montre ! Quel moment pour trouver l'en-but !",
+    "tryLate2": "ESSAI ! Du suspense jusqu'au bout, et c'est {player} qui conclut !",
+    "tryLate3": "ESSAI ! {player} marque quand ça compte le plus. Tout le stade est debout !",
+    "tryBench1": "ESSAI ! Le banc fait la différence : {player} file à l'essai !",
+    "tryBench2": "ESSAI ! Des jambes fraîches, et {player} franchit la ligne !",
+    "tryBrace1": "ESSAI ! Et de deux pour {player} !",
+    "tryBrace2": "ESSAI ! Encore {player}, un deuxième essai dans ce match !",
     "pen1": "{player} passe la pénalité.",
     "pen2": "{player} ne tremble pas face aux perches.",
     "pen3": "{player} frappe pleine balle. Trois de plus.",
@@ -9798,5 +9831,14 @@
     "rowLine": "Ce que vous avez utilisé jusqu'ici, prêt à envoyer si vous le souhaitez.",
     "rowBtn": "Envoyer le rapport d'utilisation",
     "reportLabel": "Votre rapport"
+  },
+  "tele": {
+    "showSide": "Afficher {team}",
+    "captain": "Capitaine",
+    "binned": "Exclu temporairement",
+    "sent": "Expulsé",
+    "hia": "PC",
+    "hiaTitle": "Sorti pour le protocole commotion",
+    "injured": "Sorti sur blessure"
   }
 }

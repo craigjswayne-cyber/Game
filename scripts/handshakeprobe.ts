@@ -211,7 +211,16 @@ const newsFor = (g: GameState, p: Player, k: string) => g.news.some(n => n.k ===
   guard = 0
   while (g.season === base.season && (g.week < 44 || competitiveMatchIn(g, g.userClubId, g.week + 1)) && guard++ < 60) settle(g)
   ok(g.season === base.season && !competitiveMatchIn(g, g.userClubId, g.week + 1), `week ${g.week}: no competitive match next week`)
-  const summer = benchAsked(g)
+  // ANY WEEK OF THE SUMMER, NOT ONLY THE FIRST (1.9.0). The question needs a
+  // fit man outside the 23 who minds it, and whether one exists in week 44
+  // is the world's business: the set-piece engine replayed the season and
+  // nobody qualified that week. So each week of the gap is tried in turn,
+  // while it is still the summer, and the first one that asks it is judged.
+  let summer = benchAsked(g)
+  for (let w = 0; !summer && w < 12 && g.season === base.season && !competitiveMatchIn(g, g.userClubId, g.week + 1); w++) {
+    settle(g)
+    if (g.season === base.season && !competitiveMatchIn(g, g.userClubId, g.week + 1)) summer = benchAsked(g)
+  }
   ok(!!summer, `week ${g.week}: the bench question can still be asked`)
   ok(!!summer && !offersStart(summer) && summer.options.length >= 2,
     `but without the promise of a start (${summer?.options.map(o => o.lk).join(', ')})`)

@@ -197,6 +197,27 @@ const LEGACY_EN: ReadonlyArray<readonly [string, string]> = [
   ["press.kidstartFirstR_f", "Warm, and true, and she plays like it - like a woman having a first game."],
   ["press.stanceSafeR_w", "You talk the year down to take the heat off the group. The boardroom needle is muted both ways: defeats cost less, but so does winning - credit is thin for a woman who promised nothing.{tail_k}"],
   ["press.ownerRugbyR_w", "Confident, direct - owners like a woman who volunteers for the scoreboard."],
+  // 1.9.0 reworded these (the humanizer pass); a save from before keys holds the old sentence
+  ["press.banAcceptR", "No circus, no lawyers. The panel notes the club's professionalism, and the player serves his time quietly."],
+  ["press.kidProtectR", "Measured. He keeps developing away from the circus."],
+  ["press.unveilSettleR", "Sensible. No pressure on him while he learns the calls."],
+  ["press.unbeatenQ3", "An unbeaten season is quietly becoming a real conversation. Is it on?"],
+  ["press.dealWaitR1", "Honest, but the uncertainty follows him around. His agent quietly starts taking other calls."],
+  ["press.thrashUnacceptableR", "Hard words, publicly delivered. Training will be spiky this week."],
+  ["press.baroDealPrivateR", "The room wanted a crack and you gave them a closed door. {player} appreciates it, and the press leave with nothing."],
+  ["press.baroSuitorNoR", "A clear answer. {player} hears it, the supporters cheer it, and the press have to find their story somewhere else."],
+  ["press.baroRowNoneR", "You close it down without shutting anyone out. The squad like that, and the press find little to chew on."],
+  ["press.baroRowGuessR", "A shot back at the room, and the supporters enjoy it. The press take it personally."],
+  ["press.baroRowPrivateR", "The press let it go. The story goes no further this week."],
+  ["press.baroDefendR", "The dressing room hears it. The press wanted someone to blame and you did not give them anyone."],
+  ["press.baroOnMeR", "Honest. The press ease off, for a week at least."],
+  ["press.baroWroteOffR", "The terraces love it and the clip is everywhere by lunchtime. The press do not forget being made to look foolish."],
+  ["press.baroWarmPlayersR", "Generous, and the squad notice. The press like it too."],
+  ["press.baroWarmFeetR", "Sensible, and a little dull for the back pages. The board like it; the press were hoping for more."],
+  ["press.banAcceptR_f", "No circus, no lawyers. The panel notes the club's professionalism, and the player serves her time quietly."],
+  ["press.kidProtectR_f", "Measured. She keeps developing away from the circus."],
+  ["press.unveilSettleR_f", "Sensible. No pressure on her while she learns the calls."],
+  ["press.dealWaitR1_f", "Honest, but the uncertainty follows her around. Her agent quietly starts taking other calls."],
 ]
 /** any one quote mark or apostrophe, straight or curly */
 const Q = `["“”‘’'«»]`

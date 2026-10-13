@@ -238,7 +238,7 @@ function Overlays() {
       {/* Pro Manager, at most one card per match flow and only at a safe
           moment on Home or the day room (ProPrompt.tsx) */}
       <ProPrompt />
-      {/* the feedback report, offered once after the first month and never
+      {/* the feedback report, offered once after the first season and never
           in the same match flow as a Pro card (FeedbackPrompt.tsx) */}
       <FeedbackPrompt />
       {/* last, so it sits over the lot: nothing outranks losing your job */}

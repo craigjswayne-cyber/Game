@@ -22,12 +22,14 @@
  * fingerprint cannot move. And every counter is wrapped so that a storage
  * failure costs a count, never a crash.
  *
- * THE MONTH-ONE RULE: the card is due once FIRST_MONTH_WEEKS in-game weeks
- * have been played on this device - a career that starts in week 1 sees it on
- * landing in week 5, the first time Home or the day room is safe. Weeks rather
- * than competitive matches, because a first season opens with pre-season
- * friendlies and byes: four competitive matches landed in week 10, two months
- * in. It is offered automatically once, ever, on this device.
+ * THE FIRST-SEASON RULE (1.9.0): the card is due once a season has been
+ * finished on this device - its end-of-season review stamped (rollover.ts) -
+ * and is seen the first time Home or the day room is safe after that review is
+ * put away. It used to come after the first month (four in-game weeks), and
+ * the reports that came back said "weeks 4, matches 1": a month in, a manager
+ * has barely opened the game, so the report was mostly NEVER OPENED. Owner,
+ * 1.9.0: "push the feedback report til the first season is completed so we
+ * have enough data." It is offered automatically once, ever, on this device.
  */
 
 /** The actions worth counting. Each maps to a real thing the manager does,
@@ -82,7 +84,6 @@ export const MAIN_SCREENS = [
   'settings', 'bug', 'about', 'saves', 'tables', 'jobs', 'nations', 'dreamteam', 'agency', 'history',
 ] as const
 
-export const FIRST_MONTH_WEEKS = 4
 
 export interface Usage {
   v: 1
@@ -98,6 +99,10 @@ export interface Usage {
   seasons: number
   /** the last season counted, so the same one is not counted twice */
   lastSeason: string
+  /** seasons finished on this device: an end-of-season review was reached */
+  finished: number
+  /** the last season finished, so the same one is not counted twice */
+  lastFinished: string
   /** the last few matches counted, so one match is never counted twice */
   seen: string[]
   /** the card has been put on screen (automatically or from the menu) */
@@ -109,7 +114,7 @@ export interface Usage {
 export const USAGE_KEY = 'rm-use'
 
 export const freshUsage = (): Usage => ({
-  v: 1, screens: {}, acts: {}, matches: 0, weeks: 0, lastWeek: '', seasons: 0, lastSeason: '', seen: [], offered: false, offeredAt: -1,
+  v: 1, screens: {}, acts: {}, matches: 0, weeks: 0, lastWeek: '', seasons: 0, lastSeason: '', finished: 0, lastFinished: '', seen: [], offered: false, offeredAt: -1,
 })
 
 const int = (n: unknown, d: number) => (typeof n === 'number' && Number.isFinite(n) ? Math.max(0, Math.floor(n)) : d)
@@ -145,6 +150,8 @@ export function parseUsage(raw: string | null): Usage {
       lastWeek: typeof o.lastWeek === 'string' ? o.lastWeek.slice(0, 40) : '',
       seasons: int(o.seasons, 0),
       lastSeason: typeof o.lastSeason === 'string' ? o.lastSeason.slice(0, 40) : '',
+      finished: int(o.finished, 0),
+      lastFinished: typeof o.lastFinished === 'string' ? o.lastFinished.slice(0, 40) : '',
       seen: Array.isArray(o.seen) ? o.seen.filter((k): k is string => typeof k === 'string').slice(-8) : [],
       offered: o.offered === true,
       offeredAt: typeof o.offeredAt === 'number' && Number.isFinite(o.offeredAt) ? Math.max(-1, Math.floor(o.offeredAt)) : -1,
@@ -185,8 +192,14 @@ export function withWeek(u: Usage, key: string): Usage {
   return { ...u, weeks: u.weeks + 1, lastWeek: key }
 }
 
-/** Is the automatic card due? Once, after the first month. */
-export const feedbackDue = (u: Usage): boolean => !u.offered && u.weeks >= FIRST_MONTH_WEEKS
+/** One season finished. `key` names it; it is not reported. */
+export function withFinished(u: Usage, key: string): Usage {
+  if (key === u.lastFinished) return u
+  return { ...u, finished: u.finished + 1, lastFinished: key }
+}
+
+/** Is the automatic card due? Once, after the first season is finished. */
+export const feedbackDue = (u: Usage): boolean => !u.offered && u.finished >= 1
 
 export const withOffered = (u: Usage): Usage => ({ ...u, offered: true, offeredAt: u.offered ? u.offeredAt : u.matches })
 
@@ -238,6 +251,12 @@ export function countWeek(key: string): void {
   update(u => withWeek(u, key))
 }
 
+/** A season was finished: its end-of-season review was stamped (store.ts
+ *  landOnNextWeek, on the Monday the review opens over). */
+export function countFinished(key: string): void {
+  update(u => withFinished(u, key))
+}
+
 /** A competitive match of the manager's was completed. */
 export function countMatch(key: string, season: string): void {
   update(u => withMatch(u, key, season))
@@ -272,6 +291,7 @@ export function buildFeedbackReport(i: FeedbackInput): string {
   out += line('game', i.gender === 'w' ? "women's" : i.gender === 'm' ? "men's" : 'no career loaded')
   out += line('weeks', u.weeks)
   out += line('seasons', u.seasons)
+  out += line('finished', `${u.finished} season${u.finished === 1 ? '' : 's'}`)
   out += line('matches', `${u.matches} competitive`)
   out += '\n'
 

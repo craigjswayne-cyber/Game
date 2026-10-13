@@ -58,7 +58,14 @@ const ms = (f: () => void) => { const t = performance.now(); f(); return perform
   // to 155 ms, interleaved with the old commit on the same load). The budget
   // is for a regression that makes the week several times slower, as the
   // header says, and 200 still catches one of 1.5x.
-  ok(mean(early) < 200, `a fresh week settles well inside the frame budget (${mean(early).toFixed(1)}ms)`)
+  // 215, not 200 (1.9.0, owner's decision). Scrums and lineouts are now
+  // contested every tick and a spent front row comes off sooner, which costs
+  // 5 to 8% a match: both engines loaded in one process on the same 400
+  // fixtures, alternating, 5.7 to 7.0 ms against 1.8.18's 5.3 to 6.6 ms, and
+  // 1 to 6% on this week. GitHub's runners read 202.9 and 206.2 ms where
+  // 1.8.18 passed. The new code was trimmed first (one pass for the legs, no
+  // per-tick arrays); what is left is the feature. 215 still catches 1.5x.
+  ok(mean(early) < 215, `a fresh week settles well inside the frame budget (${mean(early).toFixed(1)}ms)`)
   ok(worst(late) < 900, `and the worst week of season six is still not a hang (${worst(late).toFixed(0)}ms)`)
   // THE SHAPE THAT MATTERS: a career that gets slower the longer you play it
   const drift = mean(late) / Math.max(0.01, mean(early))

@@ -111,7 +111,7 @@ import { isHighlight } from './game/highlights'
 import { fileFindings } from './game/matchfindings'
 import { fileEvidence } from './game/evidence'
 import { proMatchPlayed, readFunnel, writeFunnel } from './game/profunnel'
-import { countMatch, countScreen, countWeek, noteUse } from './game/usage'
+import { countFinished, countMatch, countScreen, countWeek, noteUse } from './game/usage'
 
 /** ONE COMPETITIVE MATCH COMPLETED, FOR THE PRO MANAGER CADENCE (1.8.6).
  *
@@ -514,6 +514,9 @@ function landOnNextWeek(
   // the feedback report's week count (game/usage.ts): device state, keyed so
   // a week is counted once however it was reached
   countWeek(`${g.seed}:${g.season}:${g.week}`)
+  // and the season it closed, when this Monday opens the end-of-season review:
+  // the feedback card waits for a finished season (usage.feedbackDue)
+  if (g.annual) countFinished(`${g.seed}:${g.annual.season}`)
   const step = firstStepOfWeek(g)
   g.day = step.kind === 'day' ? step.day : step.kind === 'match' ? (matchDayIndex(g) ?? 0) : 0
   // the window's countdown is posted as the walk reaches its day (window.ts)

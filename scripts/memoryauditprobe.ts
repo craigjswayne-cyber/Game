@@ -248,9 +248,14 @@ function career(clubId: string, seed: number, seasons: number, moveAt: number | 
   // his page says so on purpose (legends.ts; 1.8.5 QA: a Gloucester legend
   // made while the manager was there read as a leak once he had moved on)
   const legends = new Set((g.hist?.legends ?? []).map(l => l.pid))
-  const strangers = Object.values(g.players).filter(p => !made(p) && !recall(g, { playerId: p.id }).length && oldBoyApps(p, g.userClubId) === 0 && p.clubId !== g.userClubId && !legends.has(p.id))
+  // nor is the most he ever paid for a man (stories.ts 'record'): bought at
+  // an earlier club and never seen at this one, he is still the manager's
+  // record signing, and his page says so on purpose (1.9.0: the set-piece
+  // engine dealt a career where it happened)
+  const record = g.era?.recordSigning?.playerId
+  const strangers = Object.values(g.players).filter(p => !made(p) && !recall(g, { playerId: p.id }).length && oldBoyApps(p, g.userClubId) === 0 && p.clubId !== g.userClubId && !legends.has(p.id) && p.id !== record)
   const loud = strangers.filter(p => playerStory(g, p, made).length)
-  if (loud.length) ordinaryLeaks.push(...loud.slice(0, 3).map(p => `${p.name} has a page story`))
+  if (loud.length) ordinaryLeaks.push(...loud.slice(0, 3).map(p => `${p.name} has a page story (${playerStory(g, p, made).map(l => `${l.k}/${l.why ?? ""}`).join(", ")})`))
   return g
 }
 
