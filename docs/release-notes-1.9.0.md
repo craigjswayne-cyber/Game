@@ -93,9 +93,10 @@ No new SDK or plugin. Google Mobile Ads SDK stays pinned at 25.4.0.
   "Confirm sale") was not reproduced: tapping Accept then Confirm works in a
   touch-emulated phone at the same size, on all four skins, as Pro, with an
   "Already Asked" bid. Waiting on the player's save file and device details.
-- `perfprobe` misses its 200 ms week budget about one run in three on this
-  container (184 to 221 ms); 1.8.17 times the same here (186 v 184 ms mean),
-  so it is the machine, not a regression.
+- A week takes 1 to 6% longer and a match 5 to 8% longer than on 1.8.18:
+  every scrum and lineout is played now. `perfprobe`'s week budget moved from
+  200 to 215 ms (owner's decision, measurement in the file). Still unmeasured
+  on a budget Android.
 - Saves carry no version number; old and newer files are healed field by
   field (savefuzz, migratetest).
 - Save time on a budget Android late in a long career is still unmeasured.

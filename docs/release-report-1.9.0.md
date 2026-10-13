@@ -49,18 +49,21 @@ Full list: `docs/release-notes-1.9.0.md`. In short:
 | Check | Result |
 |---|---|
 | Typecheck, build, textlint, tokenlint, cssaudit, i18nprobe, langparity, frenchprobe, ipprobe | pass |
-| Engine suite (`suite.sh fast`, 274 probes, two shards) | 273 pass; **perfprobe** fails (see below) |
+| Engine suite (`suite.sh fast`, 274 probes, two shards) | 273 pass; **perfprobe** failed its 200 ms budget, re-set to 215 ms (see below) |
 | Browser suite (`suite.sh browser`, 100 harnesses) | 98 pass; countryui and temperui failed on stale selectors (the new Home tile and the Character card), fixed in harness only, both pass |
 | Soaks (`suite.sh all` long list, 12) | 11 pass; **aiecon** failed its mean-economy reference and was re-referenced after a paired test cleared the engine (+0.012M a club a season, one standard error); confirming run on the tip: **AI ECON PASSED** (median 0.28M, mean 0.32M a season) |
 | fingerprint | rebaselined once, in the engine commit, with bandcheck before and after in the file |
 
-**perfprobe** times a week's settle against 200 ms. On this container it
-reads 189 to 240 ms run to run on an otherwise idle machine, and the same
-interleaved test of the engine before and after the change measured the new
-engine faster, not slower (191 against 204 ms on average). It is the
-machine; the budget was set where a week took about 155 ms. Not loosened:
-CI on GitHub's runners is the place to read it, and a budget-Android timing
-is still owed (testing.md).
+**perfprobe** times a week's settle. The engine change costs 5 to 8% a
+match (both engines in one process on the same 400 fixtures, alternating:
+5.7 to 7.0 ms against 1.8.18's 5.3 to 6.6 ms), because every scrum and
+lineout is now played and a spent front row comes off sooner. GitHub's
+runners read 202.9 and 206.2 ms against the 200 ms budget where 1.8.18
+passed. An earlier reading here (new engine faster) was this container's
+noise and is withdrawn. The new code was trimmed (one pass for the legs, no
+per-tick arrays; fingerprint unchanged) and the budget re-set to 215 ms by
+the owner's decision, with the measurement in the file. It still catches a
+1.5x regression. A budget-Android timing is still owed (testing.md).
 
 Skipped: nothing in the suites. Reporters with no verdict (analysis,
 boardprobe and the like) are listed by suite.sh as skipped, as always.
