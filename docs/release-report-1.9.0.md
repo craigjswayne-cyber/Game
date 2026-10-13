@@ -14,13 +14,13 @@ and 6). Do those, record them in the device table, and it is a GO.
 
 | | |
 |---|---|
-| Commit | `__TIP__` (game code identical to `4ad8ae5`, the commit the full regression ran on; later commits change test harnesses only) |
+| Commit | the tip of `ccr-ace3495e-5psx37` (this file's own commit; game code identical to `4ad8ae5`, the commit the full regression ran on; later commits change test harnesses only) |
 | Version name | 1.9.0 (`package.json`; Android and iOS shells read it) |
 | Play versionCode | 58 (`packaging/android/version.json`), **assumes 57 is the highest Play accepted: confirm in the Console** |
 | Package / bundle id | `com.phaserugbymanager.app`, unchanged |
 | Products, permissions, signing | unchanged; no new SDK or plugin |
 | Ads SDK | `play-services-ads` pinned at 25.4.0 (`scaffold.sh`) |
-| Store art | regenerated from this build (`storeart/`, gitignored): Play phone 1080x1920, tablets 1200x1920 and 1600x2560, iPhone 1290x2796, iPad 2048x2732, feature graphic 1024x500, App Store icon 1024x1024 opaque |
+| Store art | regenerated from the final build, showing the new Home (`storeart/`, gitignored): Play phone 1080x1920, tablets 1200x1920 and 1600x2560, iPhone 1290x2796, iPad 2048x2732, feature graphic 1024x500, App Store icon 1024x1024 opaque |
 
 ## 2. What is in it
 
@@ -51,7 +51,7 @@ Full list: `docs/release-notes-1.9.0.md`. In short:
 | Typecheck, build, textlint, tokenlint, cssaudit, i18nprobe, langparity, frenchprobe, ipprobe | pass |
 | Engine suite (`suite.sh fast`, 274 probes, two shards) | 273 pass; **perfprobe** fails (see below) |
 | Browser suite (`suite.sh browser`, 100 harnesses) | 98 pass; countryui and temperui failed on stale selectors (the new Home tile and the Character card), fixed in harness only, both pass |
-| Soaks (`suite.sh all` long list, 12) | 11 pass; **aiecon** failed its mean-economy reference and was re-referenced after a paired test cleared the engine (+0.012M a club a season, one standard error); confirming run: __AIECON__ |
+| Soaks (`suite.sh all` long list, 12) | 11 pass; **aiecon** failed its mean-economy reference and was re-referenced after a paired test cleared the engine (+0.012M a club a season, one standard error); confirming run on the tip: **AI ECON PASSED** (median 0.28M, mean 0.32M a season) |
 | fingerprint | rebaselined once, in the engine commit, with bandcheck before and after in the file |
 
 **perfprobe** times a week's settle against 200 ms. On this container it
