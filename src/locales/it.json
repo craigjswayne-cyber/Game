@@ -9630,5 +9630,14 @@
   "rowLine": "Ciò che hai usato finora, pronto da inviare se vuoi.",
   "rowBtn": "Invia il resoconto d'uso",
   "reportLabel": "Il tuo resoconto"
+ },
+ "tele": {
+  "showSide": "Mostra {team}",
+  "captain": "Capitano",
+  "binned": "Espulso temporaneamente",
+  "sent": "Espulso",
+  "hia": "HIA",
+  "hiaTitle": "Fuori per la valutazione di un trauma cranico",
+  "injured": "Uscito per infortunio"
  }
 }

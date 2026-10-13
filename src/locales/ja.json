@@ -9169,5 +9169,14 @@
   "rowLine": "これまでに使った機能の記録です。送るかどうかはあなたが決めます。",
   "rowBtn": "利用レポートを送る",
   "reportLabel": "あなたのレポート"
+ },
+ "tele": {
+  "showSide": "{team}を表示",
+  "captain": "キャプテン",
+  "binned": "シンビン中",
+  "sent": "退場",
+  "hia": "HIA",
+  "hiaTitle": "頭部外傷評価のため一時退場",
+  "injured": "負傷退場"
  }
 }

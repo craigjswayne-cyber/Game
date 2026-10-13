@@ -9805,5 +9805,14 @@
     "rowLine": "Ce que vous avez utilisé jusqu'ici, prêt à envoyer si vous le souhaitez.",
     "rowBtn": "Envoyer le rapport d'utilisation",
     "reportLabel": "Votre rapport"
+  },
+  "tele": {
+    "showSide": "Afficher {team}",
+    "captain": "Capitaine",
+    "binned": "Exclu temporairement",
+    "sent": "Expulsé",
+    "hia": "PC",
+    "hiaTitle": "Sorti pour le protocole commotion",
+    "injured": "Sorti sur blessure"
   }
 }

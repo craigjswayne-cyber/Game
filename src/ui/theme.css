@@ -5955,3 +5955,172 @@ input[type=range] { height: 44px; }
 }
 .app.tablet .tab-stats .talk-react .tr-head .btn { white-space: nowrap; flex: none; }
 .app.tablet .talk-modal .talk-tones { padding: 6px 0; }
+
+/* ================= Home: one hero, then a status grid (1.9.0) =================
+   HOME HAD NO FIRST THING. A dozen cards of one size, one after another, half
+   of them with the same gold edge, so the eye had nowhere to land. The desk is
+   the hero now (Desk.tsx, hero): the decisions and the match, a step up in
+   size and surface. Everything else is a tile in .home-tiles, two across on a
+   phone and more where there is room, each a label, one value and one short
+   line. The gold edge is .attn and only the hero wears it, only while a
+   decision is waiting. .card-grid stays on the grid (tabletprobe and the
+   deal-in animation read it); on a phone it was display: contents, and the
+   grid rule below outranks that. */
+.desk-card.home-hero {
+  margin-top: 10px; margin-bottom: 10px;
+  padding: 12px 14px 10px;
+  background: var(--surface-2);
+  border-color: var(--border-strong);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .18);
+}
+.desk-card.home-hero.attn { border-left: 4px solid var(--gold); }
+.home-hero .desk-sub { font-size: 15px; }
+.home-hero .desk-link { font-size: 14px; }
+.home-hero .fx-line { font-size: 20px; }
+.home-hero .desk-match { margin-left: -14px; margin-right: -14px; }
+.desk-card.home-hero.attn .desk-match { margin-left: -11px; }
+/* no rows beside it: the decisions and the match take the card's width */
+.desk-body.solo { display: block; }
+/* a week with no match: the run and the friendlies in the match's place, on
+   the panel surface, with no colour edge because there is no opponent */
+.desk-match.desk-blank { border-left-color: var(--border-strong); cursor: default; }
+
+.card-grid.home-tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-flow: row dense;
+  gap: 8px;
+  padding: 0 12px 8px;
+  align-items: stretch;
+}
+@media (min-width: 640px) {
+  .card-grid.home-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 0 14px 8px; }
+}
+@media (orientation: landscape) and (min-width: 640px) {
+  .card-grid.home-tiles { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); align-items: stretch; padding: 0 14px 8px; }
+}
+.app.tablet .card-grid.home-tiles { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); align-items: stretch; padding: 0 14px 8px; }
+/* a card that is not a tile (the store shelf, the old app's warning) keeps
+   its own look and takes the whole row */
+.card-grid.home-tiles > .card { grid-column: 1 / -1; margin: 0; width: auto; }
+
+.home-tile {
+  display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start;
+  gap: 2px; min-width: 0; min-height: 56px;
+  text-align: left; color: var(--text-primary);
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 7px 10px 8px;
+  font-size: 12px; line-height: 1.3;
+}
+.home-tile.wide { grid-column: span 2; }
+.home-tile .ht-l {
+  display: block; flex: none; margin: 0;
+  font-family: var(--cond); font-size: 10px; font-weight: 800;
+  letter-spacing: .9px; text-transform: uppercase; color: var(--text-muted);
+}
+.home-tile .ht-v {
+  display: block; font-family: var(--cond); font-size: 14px; font-weight: 700;
+  letter-spacing: .2px; color: var(--text-primary); overflow-wrap: break-word;
+}
+.home-tile .ht-s { display: block; font-size: 11.5px; color: var(--text-muted); overflow-wrap: break-word; }
+.home-tile .ht-strong { color: var(--text-primary); font-size: 12.5px; }
+.home-tile .ht-list { display: flex; flex-wrap: wrap; gap: 2px 12px; }
+.home-tile.alert .ht-l { color: var(--text-negative); }
+.home-tile .ht-bar { display: block; height: 4px; margin: 3px 0 1px; border-radius: 2px; overflow: hidden; background: var(--border-strong); }
+.home-tile .ht-bar i { display: block; height: 100%; }
+/* the desk's rows were a list with rules between them: a tile has its own
+   edge, so the list's rule and its label column come off */
+.home-tile.desk-row, .home-tile.desk-row:first-child { border-top: 1px solid var(--border); gap: 2px; padding: 7px 10px 8px; font-size: 12px; }
+.home-tile .dr-l, .home-tile .dr-t { flex: none; min-width: 0; }
+/* the hub widgets were centred chips: in the grid they read like the rest */
+.hub-widget.home-tile { align-items: stretch; padding: 7px 10px 8px; }
+.hub-widget.home-tile .ht-v { line-height: 1.2; }
+.hub-widget.home-tile .hub-face { width: 22px; height: 22px; }
+.dash-panel.home-tile { padding: 7px 10px 8px; }
+/* Two-up starves a fixture line below 400px (device matrix, round 22: "La
+   Ro..." on a 360px Android), so the fixtures panel takes the row there. */
+@media (max-width: 400px) {
+  .dash-panel.home-tile.tall { grid-column: 1 / -1; }
+}
+
+/* ================= The team sheet as telemetry (1.9.0) =================
+   The match menu's first panel: all 23 of one side, a 24px row each, on one
+   412x915 screen with the scoreboard still in view (MatchPanels.tsx,
+   Telemetry). The veil is clear on this panel because the score is part of
+   the reading: a bar of 40 means one thing at 12-10 and another at 30-3. */
+.modal-veil.mp-clear { background: transparent; backdrop-filter: none; }
+.mpanels.tele-mode { gap: 6px; padding: 8px 10px 10px; box-shadow: 0 -10px 30px rgba(0, 0, 0, .45); }
+.tele {
+  width: 100%; border-collapse: collapse; table-layout: fixed;
+  font-size: 12px; font-variant-numeric: tabular-nums;
+}
+.tele col.c-no { width: 28px; }
+.tele col.c-pos { width: 28px; }
+.tele col.c-bar { width: 74px; }
+.tele col.c-e { width: 28px; }
+.tele col.c-r { width: 32px; }
+.tele col.c-f { width: 24px; }
+.tele th {
+  height: 22px; padding: 0 2px;
+  font-family: var(--cond); font-size: 10px; font-weight: 800; letter-spacing: .8px;
+  text-transform: uppercase; color: var(--text-muted); text-align: center;
+  border-bottom: 1px solid var(--border-strong);
+}
+.tele th.tele-team { text-align: left; color: var(--text-primary); font-size: 11px; }
+.tele tbody tr { height: 24px; }
+.tele td {
+  height: 24px; padding: 0 2px; box-sizing: border-box;
+  border-top: 1px solid var(--border);
+  white-space: nowrap; overflow: hidden; vertical-align: middle;
+}
+.tele tbody tr:first-child td { border-top: none; }
+/* THE BENCH STARTS HERE: the one heavy rule in the table */
+.tele tr.bench-first td { border-top: 2px solid var(--border-strong); }
+.tele-no { text-align: center; }
+/* the shirt, in the kit: the fill is the club colour and the ink is white
+   or near-black by the colour's brightness (MatchPanels.tsx), and the hairline
+   keeps a white shirt from vanishing on the day theme */
+.tele-no span {
+  display: inline-block; min-width: 21px; height: 17px; padding: 0 2px; border-radius: 3px;
+  font-family: var(--cond); font-size: 11px; font-weight: 800; line-height: 17px; text-align: center;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text-primary) 20%, transparent);
+}
+.tele-pos { text-align: center; font-family: var(--cond); font-size: 10px; font-weight: 700; letter-spacing: .3px; color: var(--text-muted); }
+.tele-nm { font-weight: 600; color: var(--text-primary); text-overflow: ellipsis; }
+.tele-c {
+  display: inline-block; margin-left: 4px; padding: 0 3px; border-radius: 2px;
+  border: 1px solid var(--border-strong); color: var(--text-secondary);
+  font-size: 9px; font-weight: 800; line-height: 12px; vertical-align: 1px;
+}
+.tele-bar { display: block; height: 7px; border-radius: 4px; overflow: hidden; background: var(--surface-3); }
+.tele-bar i { display: block; width: 100%; height: 100%; border-radius: 4px; transform-origin: left center; }
+/* by unit, so a tiring front row reads as one block at a glance */
+.tele-bar[data-u="fr"] i { background: var(--gold-fill); }
+.tele-bar[data-u="pk"] i { background: var(--primary); }
+.tele-bar[data-u="bk"] i { background: var(--info); }
+.tele-e { text-align: right; font-weight: 600; color: var(--text-primary); }
+.tele-e.lo { color: var(--text-negative); }
+.tele-r { text-align: right; color: var(--text-secondary); }
+.tele-r.hi { color: var(--text-positive); font-weight: 700; }
+.tele-r.lo { color: var(--text-negative); }
+.tele-f { text-align: center; }
+.tele-yc, .tele-rc { display: inline-block; width: 9px; height: 12px; border-radius: 1.5px; vertical-align: middle; }
+.tele-yc { background: var(--prop-yellow); }
+.tele-rc { background: var(--prop-red); }
+.tele-tag { font-size: 8.5px; font-weight: 800; letter-spacing: .2px; color: var(--text-negative); }
+.tele-inj { font-size: 14px; font-weight: 900; color: var(--text-negative); }
+/* replaced, sent off or carried off: still listed, no longer playing */
+.tele tr.off td { opacity: .45; }
+.tele tr.binned td { background: color-mix(in srgb, var(--prop-yellow) 12%, transparent); }
+.tele-foot { display: flex; gap: 8px; }
+.tele-foot .btn { margin: 0; min-height: 44px; }
+.tele-foot .btn.block { flex: 1; width: auto; }
+.tele-toggle { flex: none; min-width: 88px; }
+/* THE BAR MOVES, never the layout: scaleX on the compositor, the same doctrine
+   as the possession bar (.l10-fills). It grows in on the first draw and slides
+   when the side is switched; reduce-motion and a harness see it land at once. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-motion="on"] .tele-bar i { transition: transform .45s cubic-bezier(.2, 0, 0, 1); animation: m-grow .6s cubic-bezier(.2, 0, 0, 1) backwards; }
+}

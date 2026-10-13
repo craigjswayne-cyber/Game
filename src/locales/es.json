@@ -9576,5 +9576,14 @@
   "rowLine": "Lo que has usado hasta ahora, listo para enviar si quieres.",
   "rowBtn": "Enviar informe de uso",
   "reportLabel": "Tu informe"
+ },
+ "tele": {
+  "showSide": "Ver {team}",
+  "captain": "Capitán",
+  "binned": "Expulsado temporalmente",
+  "sent": "Expulsado",
+  "hia": "HIA",
+  "hiaTitle": "Fuera para una evaluación de lesión en la cabeza",
+  "injured": "Retirado por lesión"
  }
 }

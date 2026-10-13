@@ -9681,5 +9681,14 @@
   "rowLine": "Wat jy tot dusver gebruik het, gereed om te stuur as jy wil.",
   "rowBtn": "Stuur gebruiksverslag",
   "reportLabel": "Jou verslag"
+ },
+ "tele": {
+  "showSide": "Wys {team}",
+  "captain": "Kaptein",
+  "binned": "In die strafhok",
+  "sent": "Van die veld gestuur",
+  "hia": "HIA",
+  "hiaTitle": "Af vir 'n kopbeseringsondersoek",
+  "injured": "Beseer af"
  }
 }

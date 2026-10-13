@@ -9638,5 +9638,14 @@
   "rowLine": "What you have used so far, ready to send if you choose.",
   "rowBtn": "Send feedback report",
   "reportLabel": "Your report"
+ },
+ "tele": {
+  "showSide": "Show {team}",
+  "captain": "Captain",
+  "binned": "In the sin bin",
+  "sent": "Sent off",
+  "hia": "HIA",
+  "hiaTitle": "Off for a head injury assessment",
+  "injured": "Off injured"
  }
 }
