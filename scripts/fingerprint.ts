@@ -16,6 +16,23 @@ picks.forEach((fx, i) => {
 })
 
 const EXPECTED: string[] = [
+  // REBASELINED for 1.9.0: the set piece is played and a man tires by his own
+  // work (matchEngine.ts setPieceContest, roleDrain). Scrums and lineouts are
+  // contested each tick on their own stream (incRng salt 0x5E7), so the main
+  // dice are untouched; what moved is what they decide. The ball a set piece
+  // gives scales the try chance (centred at parity: clean 1.012, scrappy 0.92,
+  // stolen 0.88 for the feeder and 1.06 for the thief), the penalties the
+  // scrum actually gave replace scrumEdge in the penalty window (1 + 0.35 x
+  // won minus lost), and drain is per shirt with the front row paying for
+  // every scrum, normalised so a side's average is the old 1.053 (packprobe:
+  // 53.8 and 32.4 at full time against 54.3 and 32.5 on 1.8.17's engine).
+  // FIVE of six moved; sale-bristol held. bandcheck, eight worlds, 8,136
+  // league games, before and after:
+  //   pts 49.7 -> 49.5   tries 6.49 -> 6.48   home 54.7% -> 53.7%
+  //   draws 1.6% -> 2.1%   blowouts 8.6% -> 8.0%   (every band holds)
+  // The commentary changes of 1.9.0 (said() memory, tryLine) moved nothing:
+  // the try line's draw on the main dice is still taken.
+  //
   // REBASELINED for tiredness weighing a little more again (1.8.17, owner
   // chose "Restore some fitness cost" so picking your own side is worth
   // points: autopilotprobe). A tired man keeps 0.78 + 0.22 x condition of his
@@ -604,12 +621,12 @@ const EXPECTED: string[] = [
   // bandcheck, eight worlds, 8,136 league games: points 49.8, tries 6.51,
   // home 53.8%, draws 1.8%, blowouts 9.0%, every band holds.
   // Four of six moved; sale-bristol and harlequins-leicester held.
-  'saracens 31-23 bath',
-  'exeter 28-24 gloucester',
+  'saracens 13-24 bath',
+  'exeter 38-35 gloucester',
   'sale 39-25 bristol',
-  'harlequins 51-24 leicester',
-  'newcastle 38-29 northampton',
-  'exeter 19-23 saracens',
+  'harlequins 48-24 leicester',
+  'newcastle 37-10 northampton',
+  'exeter 40-20 saracens',
 ]
 // REBASELINED for 1.8.2 depth (claude/182-depth), FIVE of six moved, and
 // WITHOUT a new draw on the shared stream: the match still takes the one draw

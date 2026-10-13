@@ -1186,6 +1186,16 @@ export interface SideCtx {
   freeKicks?: number
   /** tries each man has scored in this match (the hat-trick and records) */
   matchTries?: Map<number, number>
+  /** THE SET PIECE, COUNTED (1.9.0, setPieceTick): scrums and lineouts this
+   *  side fed and kept or lost, as they happened. Absent on a match begun by
+   *  an older build, which matchStats then estimates the old way. */
+  sp?: { sw: number; sl: number; lw: number; ll: number; pen: number }
+  /** this tick's set piece, read by the scoring roll and the drain: a try
+   *  multiplier for the ball it gave, the penalties it won, and how many
+   *  scrums the pack packed down (both feeds) */
+  spTryF?: number
+  spPens?: number
+  spScrums?: number
   /** the minute of this side's first try, for the fastest-try record */
   firstTryMin?: number
   /** and who scored it */
@@ -3147,6 +3157,22 @@ export function teamRatingTerm(side: SideCtx, other: SideCtx): number {
 }
 
 /** Average remaining energy of a side's on-pitch players, 0-100. */
+/** each shirt's share of the work (1.9.0, drainEnergy), before scrums */
+const ROLE_DRAIN: Record<string, number> = {
+  LP: 0.99, HK: 0.99, TP: 0.99, LK: 1.08, FL: 1.13, N8: 1.12,
+  SH: 1.0, FH: 0.93, CE: 0.99, WG: 1.03, FB: 0.99,
+}
+/** and what a scrum costs, by shirt: the front row most, the locks behind */
+const SCRUM_DRAIN: Record<string, number> = { LP: 0.30, HK: 0.27, TP: 0.30, LK: 0.12, FL: 0.05, N8: 0.06 }
+/** a side packs down about 0.64 scrums a tick (both feeds), which adds 0.81
+ *  to the fifteen shirts' summed share; DRAIN_NORM takes the average back to
+ *  the old (8 x 1.1 + 7 x 1.0) / 15 = 1.053, so the world tires as fast as it
+ *  did and only who tires moves (scripts/packprobe.ts measures it) */
+const DRAIN_NORM = 0.97
+function roleDrain(pos: string, scrums: number): number {
+  return ((ROLE_DRAIN[pos] ?? 1) + (SCRUM_DRAIN[pos] ?? 0) * scrums) * DRAIN_NORM
+}
+
 export function sideEnergy(side: SideCtx): number {
   let sum = 0, n = 0
   for (const id of side.onPitch) { sum += side.energy.get(id) ?? 70; n++ }
@@ -3163,7 +3189,13 @@ function drainEnergy(state: GameState, ctx: LiveCtx, side: SideCtx) {
     const p = state.players[id]
     if (!p) continue
     const base = (2.0 + (20 - p.a.sta) * 0.14) * (inRedZone(p) ? 1.12 : 1)
-    const posF = FW_POS.has(p.pos) ? 1.1 : 1
+    // A MAN TIRES BY WHAT HE DID (1.9.0). One 1.1 for every forward and 1.0
+    // for every back meant a loosehead who had packed down fourteen times was
+    // as fresh as a blindside. Each shirt now has its own workload, and the
+    // front row and locks pay for every scrum this tick (setPieceTick). The
+    // weights are normalised so a side's average drain is what it was: the
+    // scoring bands do not move, but who is spent at 60 minutes does.
+    const posF = roleDrain(p.pos, side.spScrums ?? 0)
     const e = side.energy.get(id) ?? 80
     side.energy.set(id, Math.max(0, e - base * side.tempoF * side.drainF * (side.repF ?? 1) * posF * wF))
   }
@@ -5558,6 +5590,102 @@ function lateWithdrawal(state: GameState, ctx: LiveCtx, side: SideCtx) {
   pushLine(state, ctx, 0, 'SUB', side, 'comm.lateWithdrawal', { team: teamShort(state, side.teamId), player: out.name, sub: b.name }, b.id)
 }
 
+/**
+ * ---- THE SET PIECE IS PLAYED, NOT ESTIMATED (1.9.0) ----
+ *
+ * Until 1.9.0 scrums and lineouts never happened. The scrum and the lineout
+ * were a tenth each of a side's attack, scrumEdge leaned the penalty count,
+ * and matchStats made the won and lost figures up afterwards from a tanh of
+ * the two units. A lineout steal was a line of flavour text.
+ *
+ * Now each side feeds about 0.32 scrums and 0.6 lineouts a tick (thirteen
+ * and twenty-five a match, the figures matchStats assumed), and each one is
+ * contested: the scrum by the two packs' scrum units, scaled by how fresh
+ * each FRONT ROW is (so a bench prop changes the scrum, locally), and by the
+ * referee's scrum dial; the lineout by the throwing side's lineout unit and
+ * the jumpers' legs against the other side's contest, worse in the wet.
+ *
+ * What it changes, and why it is balanced: the ball a set piece gives scales
+ * this tick's try chance (clean a little up, scrappy down, stolen down for
+ * the feeder and up for the thief), centred so that two equal packs score
+ * exactly what they did; and penalties won at the scrum replace scrumEdge in
+ * the penalty window, linear in won minus lost so equal packs are neutral.
+ * A dominant pack now wins its afternoons the way it does on a real pitch.
+ *
+ * All of it is drawn on its own stream (incRng, salt 0x5E7), so the match's main
+ * dice are untouched: the fingerprint moves only by what the set piece does.
+ * setPieceTick, below, keeps the short arm (free kicks, the crooked throw).
+ */
+const SP_SCRUM_P = 0.32, SP_LINEOUT_P = 0.6
+const SP_CLEAN = 1.012, SP_SCRAPPY = 0.92, SP_STOLEN = 0.88, SP_THIEF = 1.06
+const SP_PEN_W = 0.35
+function setPieceContest(state: GameState, ctx: LiveCtx, tick: number) {
+  const { home, away } = ctx
+  const ref = refFor(ctx.fx.id)
+  const wet = ctx.weather === 'Rain' || ctx.weather === 'Snow' ? 1 : ctx.weather === 'Damp' ? 0.4 : 0
+  const legs = (s: SideCtx, pos: readonly string[]) => {
+    const es = [...s.onPitch].map(id => state.players[id]).filter((p): p is Player => !!p && pos.includes(p.pos))
+      .map(p => s.energy.get(p.id) ?? 80)
+    return (es.length ? es.reduce((a, b) => a + b, 0) / es.length : 60) / 100
+  }
+  for (const s of [home, away]) { s.spTryF = 1; s.spPens = 0; s.spScrums = 0; s.sp ??= { sw: 0, sl: 0, lw: 0, ll: 0, pen: 0 } }
+  for (const [feed, opp] of [[home, away], [away, home]] as [SideCtx, SideCtx][]) {
+    const r = incRng(ctx, tick, feed, 0x5E7)
+    // ---- the scrum ----
+    if (r() < SP_SCRUM_P) {
+      feed.spScrums! += 1; opp.spScrums! += 1
+      const u = r()
+      if (ctx.uncontested) {
+        // nobody pushes in an uncontested scrum: the feeder keeps it
+        feed.sp!.sw++
+      } else {
+        // the front row's legs are 40% of the shove: a spent one against a
+        // fresh one off the bench is a pack going backwards (packprobe)
+        const push = feed.units.scrum * (0.6 + 0.4 * legs(feed, ['LP', 'HK', 'TP']))
+        const resist = opp.units.scrum * (0.6 + 0.4 * legs(opp, ['LP', 'HK', 'TP']))
+        // read as a ratio, the way scrumEdge read the two packs: 1.1 is a
+        // nudge (0.19), 1.3 a pack going forward (0.49), 2.0 a rout (0.88)
+        const edge = Math.tanh(2 * Math.log(push / Math.max(0.01, resist)))
+        const pen = 0.16 * ref.scrum
+        if (u < pen) {
+          // the referee rewards the side going forward
+          const toFeed = r() < 0.5 + 0.4 * edge
+          ;(toFeed ? feed : opp).spPens! += 1
+          ;(toFeed ? feed : opp).sp!.pen++
+          if (toFeed) feed.sp!.sw++; else feed.sp!.sl++
+          if (ctx.detail && ctx.crng() < 0.35) colour(state, ctx, toFeed ? feed : opp, 'comm.flav21', { team: teamShort(state, (toFeed ? feed : opp).teamId) })
+        // free kicks at the scrum are setPieceTick's (early engagement, the
+        // feed), so this is the full-arm penalty, the tighthead, and the ball
+        } else if (u < pen + 0.01 + Math.max(0, -edge) * 0.12) {
+          feed.spTryF! *= SP_STOLEN; opp.spTryF! *= SP_THIEF; feed.sp!.sl++
+        } else if (u < pen + 0.01 + Math.max(0, -edge) * 0.12 + 0.08 + Math.max(0, -edge) * 0.1) {
+          feed.spTryF! *= SP_SCRAPPY; feed.sp!.sw++
+        } else {
+          feed.spTryF! *= SP_CLEAN; feed.sp!.sw++
+        }
+      }
+    }
+    // ---- the lineout ----
+    if (r() < SP_LINEOUT_P) {
+      const throwQ = feed.units.lineout * (0.8 + 0.2 * legs(feed, ['HK', 'LK']))
+      const contest = opp.units.lineout * (0.8 + 0.2 * legs(opp, ['LK', 'FL']))
+      const win = clamp(0.87 + 0.10 * Math.tanh(2 * Math.log(throwQ / Math.max(0.01, contest))) - 0.04 * wet, 0.6, 0.97)
+      // the throw that is not straight is setPieceTick's; this is the contest
+      if (r() > win) {
+        feed.spTryF! *= SP_STOLEN; opp.spTryF! *= SP_THIEF; feed.sp!.ll++
+        if (ctx.detail && ctx.crng() < 0.5) {
+          const jumper = [...opp.onPitch].map(id => state.players[id]).filter((p): p is Player => !!p && (p.pos === 'LK' || p.pos === 'FL'))
+            .sort((a, b) => b.a.lin - a.a.lin)[0]
+          if (jumper) colour(state, ctx, opp, 'comm.flav9', { player: jumper.name, team: teamShort(state, opp.teamId) }, jumper.id)
+        }
+      } else {
+        feed.spTryF! *= r() < 0.86 ? SP_CLEAN : SP_SCRAPPY
+        feed.sp!.lw++
+      }
+    }
+  }
+}
+
 function simTick(state: GameState, ctx: LiveCtx, tick: number) {
   const { rng, detail, derby, goalPenalty, home, away } = ctx
   const min = tick * 4 + Math.floor(rng() * 4) + 1
@@ -5639,6 +5767,9 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     applyFinishers(state, ctx, away, min)
   }
 
+  // the set piece first (1.9.0): what it gives this tick's scoring roll, and
+  // the scrums the front rows packed down before they are tired by them
+  setPieceContest(state, ctx, tick)
   drainEnergy(state, ctx, home)
   drainEnergy(state, ctx, away)
 
@@ -5818,13 +5949,16 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     // was worth 0.06 points a match. So the side whose scrum is on top draws
     // more of them, bounded, and reciprocal between the two packs so the
     // world's count of penalties does not move.
-    const scrumEdge = Math.pow(clamp(side.units.scrum / Math.max(1, opp.units.scrum), 0.8, 1.25), 0.8)
+    // 1.9.0: the scrum's penalties are the ones setPieceTick actually saw
+    // given, won minus lost, so two equal packs are exactly neutral and the
+    // side going forward draws the whistle. Replaces the old unit ratio.
+    const scrumEdge = clamp(1 + SP_PEN_W * ((side.spPens ?? 0) - (opp.spPens ?? 0)), 0.65, 1.7)
     const penWindow = opp.penRisk * (side === home ? ap : hp).penF * Math.pow(up / 50, PEN_LEAN) * scrumEdge * (contest?.penF ?? 1) * mvPen * st.penF
     let ratio = ((att * adv * numF * terr) / Math.max(1, def * oppNumF))
     if (derby) ratio = Math.pow(ratio, 0.72) // form book out the window
     else if (ctx.grudge) ratio = Math.pow(ratio, 0.85) // needle levels the contest
     side.poss += ratio
-    let pTry = clamp(TRY_BASE * Math.pow(ratio, 2.6) * (1 + (plan.tryF - 1) * (side.exec ?? 1)) * (contest?.tryF ?? 1) * mvTry * st.tryF, 0.01, 0.42)
+    let pTry = clamp(TRY_BASE * Math.pow(ratio, 2.6) * (1 + (plan.tryF - 1) * (side.exec ?? 1)) * (contest?.tryF ?? 1) * mvTry * st.tryF * (side.spTryF ?? 1), 0.01, 0.42)
     // THE LAST QUARTER OPENS UP (audit 16D). Measured before this existed:
     // tries were dead flat across the 80 (11.6-14.0% per ten-minute bucket)
     // because both sides drain together and the mutual exhaustion cancels in
@@ -7171,10 +7305,13 @@ export function matchStats(ctx: LiveCtx) {
     const won = Math.round(f * rate(mine, theirs))
     return [won, Math.max(0, f - won)]
   }
-  const [hsw, hsl] = setPiece(ctx.home, 0.16, ctx.home.units.scrum, ctx.away.units.scrum)
-  const [asw, asl] = setPiece(ctx.away, 0.16, ctx.away.units.scrum, ctx.home.units.scrum)
-  const [hlw, hll] = setPiece(ctx.home, 0.30, ctx.home.units.lineout, ctx.away.units.lineout)
-  const [alw, all_] = setPiece(ctx.away, 0.30, ctx.away.units.lineout, ctx.home.units.lineout)
+  // COUNTED since 1.9.0 (setPieceTick); a match begun on an older build has
+  // no count and is estimated the old way
+  const counted = !!(ctx.home.sp && ctx.away.sp)
+  const [hsw, hsl] = counted ? [ctx.home.sp!.sw, ctx.home.sp!.sl] : setPiece(ctx.home, 0.16, ctx.home.units.scrum, ctx.away.units.scrum)
+  const [asw, asl] = counted ? [ctx.away.sp!.sw, ctx.away.sp!.sl] : setPiece(ctx.away, 0.16, ctx.away.units.scrum, ctx.home.units.scrum)
+  const [hlw, hll] = counted ? [ctx.home.sp!.lw, ctx.home.sp!.ll] : setPiece(ctx.home, 0.30, ctx.home.units.lineout, ctx.away.units.lineout)
+  const [alw, all_] = counted ? [ctx.away.sp!.lw, ctx.away.sp!.ll] : setPiece(ctx.away, 0.30, ctx.away.units.lineout, ctx.home.units.lineout)
   // COUNTED, since 1.8.0 (countTackles): the sum of every man's tackles. A
   // match begun by an older build has no counts, and falls back to the
   // figure this used to work out from possession and the defence.
