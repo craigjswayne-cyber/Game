@@ -2573,7 +2573,28 @@
     "Ambitious": "Ambitieux",
     "Mercenary": "Mercenaire",
     "Temperamental": "Caractériel",
-    "Leader": "Leader"
+    "Leader": "Leader",
+    "Professional_f": "Professionnelle",
+    "Ambitious_f": "Ambitieuse",
+    "Temperamental_f": "Caractérielle"
+  },
+  "traitFx": {
+    "The Step": "Presque deux fois plus de chances de conclure un essai qu'à vitesse et poste égaux, et un léger plus pour l'attaque.",
+    "Offload King": "Fait vivre le ballon dans le contact : un léger plus pour toute l'attaque.",
+    "Siege Gun": "Trois points de pourcentage de réussite en plus sur chaque tir au but.",
+    "Metronome": "Jamais moins de 45 % de réussite au but, même sur un coup difficile (les autres peuvent tomber à 38 %).",
+    "Jackal": "Une menace sur le ballon : l'équipe gagne en efficacité dans les rucks.",
+    "Enforcer": "Du muscle en plus : l'équipe gagne en efficacité dans les rucks et en mêlée.",
+    "Big-Game Player": "En phase finale et dans les derbys : une meilleure note de match et un plus pour l'attaque de l'équipe.",
+    "Hot Head": "Chaque match joué augmente d'environ un sixième le risque de carton de l'équipe."
+  },
+  "persFx": {
+    "Professional": "Humeur égale : boude rarement pour le temps de jeu et reste raisonnable en négociation.",
+    "Loyal": "Demande moins pour rester, résiste aux avances des rivaux et accepte de négocier même en cas de mécontentement.",
+    "Ambitious": "Vise plus haut : demande davantage, regarde vers les grands clubs et boude hors de l'équipe.",
+    "Mercenary": "Suit l'argent : les exigences salariales les plus élevées et la cible la plus facile pour un rival qui paie mieux.",
+    "Temperamental": "Le moral varie deux fois plus fort après une victoire ou une défaite, et boude hors de l'équipe.",
+    "Leader": "Une voix dans le vestiaire : ce qui se dit dans votre bureau atteint le groupe, et une demande de brassard peut suivre."
   },
   "traits": {
     "The Step": "Le crochet",
@@ -2766,7 +2787,12 @@
     "attrsSubCompare": "ses chiffres à côté de chaque pastille",
     "grpSetPiece": "Conquête et combat",
     "grpSkills": "Technique",
-    "grpPhysical": "Physique et mental",
+    "grpPhysical": "Physique",
+    "grpMental": "Mental",
+    "character": "Caractère",
+    "charNoTrait": "Pas de trait distinctif : rien d'extraordinaire sur le terrain.",
+    "charTraitUnknown": "Trait distinctif encore inconnu : il faut un rapport de recrutement détaillé.",
+    "charPersUnknown": "Personnalité encore inconnue : seul le dossier complet le dira.",
     "thisSeason": "Cette saison",
     "avgRating": "note moyenne {n}",
     "apps": "Matchs",

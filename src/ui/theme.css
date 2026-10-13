@@ -1884,10 +1884,13 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   100% { opacity: 0; transform: scale(.98); }
 }
 
-/* FM-style player profile: dense three-column attribute chip grid */
+/* FM-style player profile: dense attribute chip grid. FOUR GROUPS SINCE 1.9.0
+   (Set piece & contact, Skills, Physical, Mental), so two columns read as a
+   clean two-by-two and only a wide screen has room for all four abreast; three
+   columns left the fourth group alone on a second row. */
 .fm-attrs {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 0 16px;
   padding: 0 14px 6px;
 }
@@ -1924,7 +1927,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .fm-attr .fm-chip.mid { background: var(--info); color: var(--on-info); }
 .fm-attr .fm-chip.lo { background: var(--border-strong); }
 .fm-attr .fm-chip.rng { background: transparent; color: var(--text-muted); border: 1px dashed var(--border); font-weight: 700; font-size: 11px; }
-@media (max-width: 700px) { .fm-attrs { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 1000px) { .fm-attrs { grid-template-columns: repeat(4, 1fr); } }
 
 /* FM-style home dashboard: three glanceable panels in a row */
 .dash-row {
@@ -4833,6 +4836,13 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 
 /* the staff's / scouts' read on a man's nerve, and the no-minutes note (E7, E8) */
 .temper-card .meta { font-size: 13px; line-height: 1.45; margin-top: 2px; }
+/* The temper read and the character card share a row once the screen is wide
+   enough for two (1.9.0): a scouted man's page stays under three screenfuls on
+   a landscape phone. One card alone still takes the full width. */
+@media (min-width: 700px) {
+  .read-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 8px; margin: 6px 12px; }
+  .read-pair > .card { margin: 0; }
+}
 .respect-line { margin-top: 6px; padding-left: 8px; border-left: 3px solid var(--gold); }
 .temper-card .bench-note { margin-top: 6px; padding-left: 8px; border-left: 3px solid var(--gold); }
 

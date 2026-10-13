@@ -2562,7 +2562,28 @@
   "Ambitious": "Ambizioso",
   "Mercenary": "Mercenario",
   "Temperamental": "Lunatico",
-  "Leader": "Leader"
+  "Leader": "Leader",
+  "Ambitious_f": "Ambiziosa",
+  "Mercenary_f": "Mercenaria",
+  "Temperamental_f": "Lunatica"
+ },
+ "traitFx": {
+  "The Step": "Quasi il doppio delle probabilità di segnare la meta rispetto a chiunque abbia stessa velocità e ruolo, e una piccola spinta all'attacco.",
+  "Offload King": "Tiene viva la palla nel contatto: una piccola spinta a tutto l'attacco.",
+  "Siege Gun": "Tre punti percentuali in più su ogni calcio piazzato.",
+  "Metronome": "Mai sotto il 45% di riuscita ai pali, per quanto difficile sia il calcio (gli altri possono scendere al 38%).",
+  "Jackal": "Una minaccia sul pallone: la squadra rende di più nei punti d'incontro.",
+  "Enforcer": "Muscoli in più: la squadra rende di più nei punti d'incontro e in mischia.",
+  "Big-Game Player": "Nelle fasi a eliminazione e nei derby: voto partita più alto e una spinta all'attacco della squadra.",
+  "Hot Head": "Ogni partita giocata alza di circa un sesto il rischio di cartellino della squadra."
+ },
+ "persFx": {
+  "Professional": "Equilibrio: raramente si lamenta del minutaggio ed è ragionevole nelle trattative.",
+  "Loyal": "Chiede meno per restare, è difficile da tentare per le rivali e tratta anche nei momenti difficili.",
+  "Ambitious": "Punta in alto: chiede di più, guarda ai grandi club e si lamenta quando resta fuori.",
+  "Mercenary": "Segue i soldi: le richieste d'ingaggio più alte e il bersaglio più facile per una rivale che paga di più.",
+  "Temperamental": "Il morale oscilla il doppio dopo una vittoria o una sconfitta, e si lamenta quando resta fuori.",
+  "Leader": "Una voce nello spogliatoio: ciò che si dice nel tuo ufficio arriva alla squadra, e può chiedere la fascia."
  },
  "traits": {
   "The Step": "Lo Scarto",
@@ -2748,7 +2769,12 @@
   "attrsSubCompare": "i suoi numeri accanto a ogni voce",
   "grpSetPiece": "Fasi statiche e contatto",
   "grpSkills": "Tecnica",
-  "grpPhysical": "Fisico e mente",
+  "grpPhysical": "Fisico",
+  "grpMental": "Mentale",
+  "character": "Carattere",
+  "charNoTrait": "Nessun tratto distintivo: niente di fuori dal comune in campo.",
+  "charTraitUnknown": "Tratto distintivo ancora sconosciuto: serve un rapporto dettagliato degli osservatori.",
+  "charPersUnknown": "Personalità ancora sconosciuta: lo dice solo il dossier completo.",
   "thisSeason": "Questa stagione",
   "avgRating": "media voto {n}",
   "apps": "Pres.",

@@ -2534,6 +2534,24 @@
   "Temperamental": "Temperamenteel",
   "Leader": "Leier"
  },
+ "traitFx": {
+  "The Step": "Byna twee keer so geneig om 'n drie te druk as enigiemand met dieselfde spoed en posisie, en gee die aanval 'n bietjie meer skerpte.",
+  "Offload King": "Hou die bal lewendig in kontak: 'n klein hupstoot vir die hele span se aanval.",
+  "Siege Gun": "Drie persentasiepunte beter met elke doelskop.",
+  "Metronome": "Nooit swakker as 45% by die pale nie, hoe moeilik die skop ook al is (ander kan tot 38% daal).",
+  "Jackal": "'n Bedreiging oor die bal: die span is sterker by die afbreekpunt.",
+  "Enforcer": "Ekstra spiere: die span is sterker by die afbreekpunt en in die skrum.",
+  "Big-Game Player": "In uitklopwedstryde en derbies: 'n hoër wedstrydpunt en 'n hupstoot vir die span se aanval.",
+  "Hot Head": "Elke wedstryd gespeel verhoog die span se kaartrisiko met omtrent 'n sesde."
+ },
+ "persFx": {
+  "Professional": "Gelykmatig: kla selde oor speeltyd en is redelik in kontrakgesprekke.",
+  "Loyal": "Vra minder om te bly, is moeilik vir mededingers om te lok, en praat oor 'n nuwe kontrak selfs as dinge nie lekker gaan nie.",
+  "Ambitious": "Mik hoër: vra meer, kyk na groter klubs en is dikmond wanneer uitgelaat.",
+  "Mercenary": "Volg die geld: die hoogste salariseise en die maklikste teiken vir 'n mededinger wat meer betaal.",
+  "Temperamental": "Moreel swaai twee keer so hard ná 'n oorwinning of 'n nederlaag, en is dikmond wanneer uitgelaat.",
+  "Leader": "'n Stem in die kleedkamer: wat in jou kantoor gesê word, bereik die groep, en 'n versoek om die kapteinsband kan volg."
+ },
  "traits": {
   "The Step": "Die Sysprong",
   "Offload King": "Aflaaikoning",
@@ -2710,7 +2728,12 @@
   "attrsSubCompare": "sy syfers langs elke blokkie",
   "grpSetPiece": "Vaste spel & kontak",
   "grpSkills": "Vaardighede",
-  "grpPhysical": "Fisiek & geestelik",
+  "grpPhysical": "Fisiek",
+  "grpMental": "Geestelik",
+  "character": "Karakter",
+  "charNoTrait": "Geen kenmerkende eienskap nie: niks buitengewoons op die veld nie.",
+  "charTraitUnknown": "Kenmerkende eienskap nog onbekend: 'n gedetailleerde verkenningsverslag is nodig.",
+  "charPersUnknown": "Persoonlikheid nog onbekend: net die volledige verkenningslêer sê dit.",
   "thisSeason": "Hierdie seisoen",
   "avgRating": "gem. punt {n}",
   "apps": "Optredes",
