@@ -170,7 +170,7 @@ Five lessons, each of them paid for:
   `proprompt` and `exportui` drive the JavaScript side of billing and export
   against faked shells. The native halves (`PhaseBilling.java`,
   `PhaseBilling.swift`, the Share and Filesystem plugins) only run on a phone:
-  the device matrix in `tasks/todo.md` (Checkpoint B) is the test for them, and
+  the device record in `docs/launch/LAUNCH-PROGRAMME.md` (section 10) is the test for them, and
   it is run before every release that touches `packaging/`.
 - **Save time on a real phone is not measured by any probe (1.8.18).** The
   whole career is one IndexedDB record, cloned on the main thread at every

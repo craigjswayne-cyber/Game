@@ -120,6 +120,28 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.9.0, Play version code 58 (check the Console's highest accepted code first)
+
+Each entry is under 500 characters. Paste the matching language into each Play locale.
+
+**en-GB**
+A big club's board now gives you more time early in the season: one look at the table after a handful of games no longer undoes your results. Importing a save keeps every career you imported before. If your phone runs out of space, the game now tells you instead of quietly stopping saving. Store items bought while the connection drops are delivered once, exactly. The feedback report now waits until you have finished your first season.
+
+**fr-FR**
+Le conseil d'un grand club vous laisse plus de temps en début de saison : un coup d'œil au classement après quelques matchs n'efface plus vos résultats. Importer une sauvegarde conserve toutes les carrières importées avant. Si la mémoire du téléphone est pleine, le jeu vous le dit au lieu de cesser de sauvegarder en silence. Les achats faits pendant une coupure de connexion sont livrés une seule fois. Le rapport de retours attend la fin de votre première saison.
+
+**es-ES**
+La directiva de un club grande te da más tiempo al principio de la temporada: un vistazo a la clasificación tras unos pocos partidos ya no borra tus resultados. Importar una partida conserva todas las carreras importadas antes. Si el teléfono se queda sin espacio, el juego te lo dice en vez de dejar de guardar sin avisar. Las compras hechas mientras se cae la conexión se entregan una sola vez. El informe de opiniones espera a que termines tu primera temporada.
+
+**it-IT**
+La dirigenza di un grande club ti concede più tempo a inizio stagione: un'occhiata alla classifica dopo poche partite non cancella più i tuoi risultati. Importare un salvataggio conserva tutte le carriere importate prima. Se la memoria del telefono è piena, il gioco te lo dice invece di smettere di salvare in silenzio. Gli acquisti fatti mentre cade la connessione vengono consegnati una sola volta. Il rapporto di feedback aspetta la fine della tua prima stagione.
+
+**ja-JP**
+ビッグクラブの理事会はシーズン序盤に猶予をくれるように。数試合後の順位表だけで結果が帳消しになることはなくなった。セーブを読み込んでも、以前に読み込んだキャリアはすべて残るように。スマホの容量が足りなくなったら、黙って保存を止めずにお知らせするように。通信が切れた間に買ったアイテムは一度だけ確実に届くように。フィードバックレポートは最初のシーズンを終えてから表示されるように。
+
+**af**
+'n Groot klub se direksie gee jou nou meer tyd vroeg in die seisoen: een kyk na die ranglys na 'n paar wedstryde vee nie meer jou uitslae uit nie. Om 'n stoorlêer in te voer, hou elke loopbaan wat jy voorheen ingevoer het. As jou foon se spasie opraak, sê die speletjie dit nou eerder as om stilweg op te hou stoor. Items wat gekoop word terwyl die verbinding wegval, word presies een keer gelewer. Die terugvoerverslag wag nou totdat jy jou eerste seisoen voltooi het.
+
 ### What's new (500 max) - v1.8.18, Play version code 57
 
 Each entry is under 500 characters. Paste the matching language into each Play locale.
