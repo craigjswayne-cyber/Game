@@ -183,86 +183,6 @@ h1 .brand { color: var(--primary); display: block; }
   cursor: default;
 }
 
-.freeline {
-  margin-top: 16px;
-  font-size: 13px;
-  color: var(--text-muted);
-}
-
-/* ---------------- sections ---------------- */
-section { padding: clamp(48px, 9vw, 88px) 0; }
-h2 {
-  font-size: clamp(24px, 4.4vw, 34px);
-  font-weight: 700;
-  letter-spacing: -0.2px;
-  margin-bottom: 10px;
-}
-.sub { color: var(--text-secondary); max-width: 58ch; }
-
-/* screenshots */
-.shots {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 18px;
-  margin-top: 34px;
-}
-.shot {
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  overflow: hidden;
-  background: var(--surface-1);
-}
-.shot img { width: 100%; height: auto; }
-.shot figcaption {
-  padding: 11px 14px 13px;
-  font-size: 12.5px;
-  color: var(--text-secondary);
-  border-top: 1px solid var(--border);
-}
-
-/* features */
-.feats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(248px, 1fr));
-  gap: 16px;
-  margin-top: 34px;
-}
-.feat {
-  background: var(--surface-1);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 20px 20px 22px;
-}
-.feat h3 {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 1.6px;
-  text-transform: uppercase;
-  color: var(--gold);
-  margin-bottom: 8px;
-}
-.feat p { color: var(--text-secondary); font-size: 15px; }
-
-/* the browser strip, deliberately quieter than the stores above */
-.browser {
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-  background: var(--surface-1);
-}
-.browser .wrap {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  padding-top: 32px;
-  padding-bottom: 32px;
-}
-.browser h2 { font-size: clamp(19px, 3vw, 23px); margin-bottom: 4px; }
-.browser p { color: var(--text-muted); font-size: 14px; max-width: 52ch; }
-.closing { padding-top: 40px; padding-bottom: 44px; }
-.stores-end { margin-top: 0; justify-content: flex-start; }
-@media (max-width: 720px) { .stores-end { justify-content: center; width: 100%; } }
 
 footer {
   padding: 40px 0 56px;
@@ -292,87 +212,12 @@ footer a:hover { color: var(--primary); }
       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.4 12.7c0-2.2 1.8-3.3 1.9-3.3-1-1.5-2.6-1.7-3.2-1.7-1.4-.1-2.7.8-3.3.8-.7 0-1.7-.8-2.8-.8-1.5 0-2.8.8-3.5 2.1-1.5 2.6-.4 6.5 1.1 8.6.7 1 1.6 2.2 2.7 2.2 1.1 0 1.5-.7 2.8-.7 1.3 0 1.6.7 2.8.7 1.2 0 1.9-1.1 2.6-2.1.8-1.2 1.2-2.4 1.2-2.4s-2.3-.9-2.3-3.4ZM14.3 6c.6-.7 1-1.7.9-2.7-.9 0-2 .6-2.6 1.3-.6.6-1.1 1.7-.9 2.6 1 .1 2-.5 2.6-1.2Z"/></svg>
       <span><span class="l1">Coming soon to</span><span class="l2">the App Store</span></span>
     </span>
+    <a class="store live" href="https://discord.gg/3KKfDVsMb">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-5 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"/><path d="M8 10h8M8 13h5"/></svg>
+      <span><span class="l1">Join the community</span><span class="l2">on Discord</span></span>
+    </a>
   </div>
-  <p class="freeline">Free to play. No advert to start a career, and no timer telling you to come back tomorrow.</p>
 </header>
-
-<main>
-  <section class="wrap">
-    <h2>171 clubs. Pick one.</h2>
-    <p class="sub">Fifteen leagues: nine in the men's game, from the English top flight to Japan and the United States, and six in the women's game, built the same way. Second tiers, continental cups, play-offs and promotion underneath.</p>
-
-    <div class="shots" id="shots">
-      <figure class="shot">
-        <img src="./img/shot-team.webp" alt="The team sheet: a squad table with positions, ratings and fitness." width="540" height="1170" loading="lazy">
-        <figcaption>Name a side. Live with it.</figcaption>
-      </figure>
-      <figure class="shot">
-        <img src="./img/shot-live.webp" alt="A live match: the score, the latest commentary line and the live statistics." width="540" height="1170" loading="lazy">
-        <figcaption>Every carry, tackle and ruck, played out.</figcaption>
-      </figure>
-      <figure class="shot">
-        <img src="./img/shot-match.webp" alt="A finished match: the full-time score, the scorers, the coach's verdict and the highlights." width="540" height="1170" loading="lazy">
-        <figcaption>Eighty minutes, then the verdict.</figcaption>
-      </figure>
-      <figure class="shot">
-        <img src="./img/shot-home.webp" alt="The club home screen: fixtures, news and the week ahead." width="540" height="1170" loading="lazy">
-        <figcaption>A week at a time, for as long as they keep you.</figcaption>
-      </figure>
-    </div>
-  </section>
-
-  <section class="wrap" style="padding-top:0">
-    <div class="feats">
-      <div class="feat">
-        <h3>Offline</h3>
-        <p>The whole game runs on the phone. No account, no signal needed, and no server that can go away and take your career with it.</p>
-      </div>
-      <div class="feat">
-        <h3>Six languages</h3>
-        <p>English, French, Spanish, Italian, Japanese and Afrikaans, including the commentary and the press room.</p>
-      </div>
-      <div class="feat">
-        <h3>The press are watching</h3>
-        <p>Answer for a run of defeats, a dropped captain or a signing who cannot settle. What you say reaches the dressing room.</p>
-      </div>
-      <div class="feat">
-        <h3>Player against player</h3>
-        <p>Every carry, tackle and breakdown is a contest between the players involved. Tired legs concede, so the bench and the hour mark matter.</p>
-      </div>
-      <div class="feat">
-        <h3>A community</h3>
-        <p>Report a bug in any of the six languages, share an idea and talk rugby with other managers on the <a href="https://discord.gg/3KKfDVsMb">PHASE Discord</a>.</p>
-      </div>
-      <div class="feat">
-        <h3>It remembers</h3>
-        <p>Season fifteen knows what you did in season one: the trophies, the promotions, the sackings and the players you brought through.</p>
-      </div>
-    </div>
-  </section>
-</main>
-
-<div class="browser">
-  <div class="wrap closing">
-    <div>
-      <h2>Free to play. Nothing to lose but a season.</h2>
-      <p>On the phone, in your pocket, with or without a signal.</p>
-    </div>
-    <div class="stores stores-end">
-      <a class="store live" href="https://play.google.com/store/apps/details?id=com.phaserugbymanager.app">
-        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.6 1.8a1.4 1.4 0 0 0-.5 1.1v18.2c0 .45.18.85.5 1.1l10-10.2-10-10.2Zm11.1 9.1 2.9-3-9.5-5.4 6.6 8.4Zm0 2.2-6.6 8.4 9.5-5.4-2.9-3Zm4.3-2.2-2.4-1.4-3 3.1 3 3.1 2.4-1.4c.9-.5.9-2.4 0-2.9v-.5Z"/></svg>
-        <span><span class="l1">Get it on</span><span class="l2">Google Play</span></span>
-      </a>
-      <span class="store soon" aria-disabled="true">
-        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.4 12.7c0-2.2 1.8-3.3 1.9-3.3-1-1.5-2.6-1.7-3.2-1.7-1.4-.1-2.7.8-3.3.8-.7 0-1.7-.8-2.8-.8-1.5 0-2.8.8-3.5 2.1-1.5 2.6-.4 6.5 1.1 8.6.7 1 1.6 2.2 2.7 2.2 1.1 0 1.5-.7 2.8-.7 1.3 0 1.6.7 2.8.7 1.2 0 1.9-1.1 2.6-2.1.8-1.2 1.2-2.4 1.2-2.4s-2.3-.9-2.3-3.4ZM14.3 6c.6-.7 1-1.7.9-2.7-.9 0-2 .6-2.6 1.3-.6.6-1.1 1.7-.9 2.6 1 .1 2-.5 2.6-1.2Z"/></svg>
-        <span><span class="l1">Coming soon to</span><span class="l2">the App Store</span></span>
-      </span>
-      <a class="store live" href="https://discord.gg/3KKfDVsMb">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-5 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"/><path d="M8 10h8M8 13h5"/></svg>
-        <span><span class="l1">Join the community</span><span class="l2">on Discord</span></span>
-      </a>
-    </div>
-  </div>
-</div>
 
 <footer>
   <div class="wrap">

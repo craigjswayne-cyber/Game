@@ -1,7 +1,7 @@
 # Store readiness checklist: Google Play and the App Store (1.9.0)
 
 Updated for 1.9.0 on 13 October 2026 (branch `ccr-ace3495e-5psx37`, version
-1.9.0, Play code 58 pending the Console check below). First written on 10
+1.9.0, Play code 58; 57 confirmed accepted on the Console). First written on 10
 October 2026 for 1.8.17 against the repository and the stores' published
 rules; the store rules and sources below were not re-fetched for 1.9.0, and
 1.9.0 adds no SDK, permission or product.
@@ -65,7 +65,7 @@ Key: **DONE** in place and checked · **FIXED** fixed in this round ·
 
 **Identity and build**
 - Package and bundle id `com.phaserugbymanager.app`; name "PHASE: Rugby Manager" (20 of 30 characters).
-- Version 1.9.0, Play code 58. 57 (1.8.18) is the last code recorded as uploaded; confirm in the Console that nothing above 57 was accepted before building.
+- Version 1.9.0, Play code 58. 57 (1.8.18) is confirmed accepted: available to testers, 13 Oct 2026 (owner). Before building, check nothing above 57 went to another track since.
 - Android: Capacitor 8.5.0, target and compile SDK 36, min SDK 24, Play Billing 8.0.0, AAB signed in Android Studio with the upload key (kept off the repo).
 - iOS: Capacitor 8.5.0, iPhone and iPad, iOS 15.0 minimum, StoreKit 2. Must be archived with Xcode 26 or later (Apple's rule since 28 Apr 2026); check the Xcode version on the Mac before archiving.
 
