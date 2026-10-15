@@ -16,7 +16,7 @@ and 6). Do those, record them in the device table, and it is a GO.
 |---|---|
 | Commit | the tip of `ccr-ace3495e-5psx37` (this file's own commit; game code identical to `4ad8ae5`, the commit the full regression ran on; later commits change test harnesses only) |
 | Version name | 1.9.0 (`package.json`; Android and iOS shells read it) |
-| Play versionCode | 58 (`packaging/android/version.json`), **assumes 57 is the highest Play accepted: confirm in the Console** |
+| Play versionCode | 58 (`packaging/android/version.json`). 57 (1.8.18) is confirmed accepted: available to testers, 13 Oct 2026 (owner) |
 | Package / bundle id | `com.phaserugbymanager.app`, unchanged |
 | Products, permissions, signing | unchanged; no new SDK or plugin |
 | Ads SDK | `play-services-ads` pinned at 25.4.0 (`scaffold.sh`) |
@@ -95,8 +95,8 @@ test; Apple enrolment is still pending, so iOS does not hold Android up.
 
 ## 6. Owner actions before upload
 
-1. Play Console: confirm 57 is the highest accepted versionCode (else raise
-   `version.json` to one above it).
+1. Play Console: DONE for 57 (1.8.18 is available to testers, 13 Oct). Before
+   building, check nothing above 57 went to another track since.
 2. Run the device table on a Samsung with the signed release build.
 3. Data safety: re-answer the AdMob questions (readiness checklist B1).
 4. EU trader declaration (B9) and the content-rights / real-names answer
