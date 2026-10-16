@@ -334,7 +334,7 @@ export default function Finances() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '8px 0 2px' }}>
                     <input type="range" style={{ flex: 1 }}
                       min={RELEASE_STEP} max={most} step={RELEASE_STEP}
-                      value={amount}
+                      value={amount} aria-label={t('finances.treasurySlide')} aria-valuetext={fmtMoney(amount)}
                       onChange={e => setRelAmt(Number(e.target.value))} />
                     <b style={{ minWidth: 74, textAlign: 'right' }}>{fmtMoney(amount)}</b>
                   </div>

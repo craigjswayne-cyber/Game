@@ -2857,6 +2857,7 @@
   "leaveItThere": "Chiudiamola qui",
   "meetTheirNumber": "Accetta la loro cifra ({wage}/sett.)",
   "campWants": "Il suo entourage chiede {demand}/sett. (oggi guadagna {wage}). Offri al ribasso a tuo rischio.",
+  "yourOfferWage": "La tua offerta a settimana",
   "offerWage": "Offri £{amount}/sett.",
   "walkAwayCaps": "Lascia il tavolo",
   "openContractTalks": "Apri la trattativa",
@@ -8465,6 +8466,7 @@
   "tillEmpty": "Lo store ha risposto, ma non ha ancora nulla in vendita per questo account, quindi per ora qui non si può acquistare niente. Non è stato addebitato nulla.",
   "tillPartial": "Lo store ha risposto per {live} prodotti su {asked}. Gli altri potrebbero non essere ancora in vendita su questo account.",
   "pickNation": "Tuo. Scegli la nazionale e accetta l'incarico. Si comincia subito.",
+  "nationSelect": "Nazione",
   "support": "Sostieni il gioco",
   "supportLine": "Un grazie allo sviluppatore. Non cambia nulla nel gioco.",
   "supportThanks": {
@@ -8809,6 +8811,7 @@
  "search": {
   "anyAttr": "Attributo",
   "atLeast": "{n}+",
+  "attrMin": "Voto minimo",
   "view": "Vista",
   "view_general": "Generale",
   "view_contract": "Contratto",

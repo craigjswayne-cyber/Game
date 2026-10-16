@@ -2843,6 +2843,7 @@
   "leaveItThere": "Dejarlo aquí",
   "meetTheirNumber": "Aceptar su cifra ({wage}/sem)",
   "campWants": "Su entorno pide {demand}/sem (cobra {wage}). Tira a la baja por tu cuenta y riesgo.",
+  "yourOfferWage": "Tu oferta por semana",
   "offerWage": "Ofrecer £{amount}/sem",
   "walkAwayCaps": "Retirarse",
   "openContractTalks": "Abrir negociación",
@@ -8413,6 +8414,7 @@
   "tillEmpty": "La tienda ha respondido, pero aún no tiene nada a la venta para esta cuenta, así que de momento aquí no se puede comprar nada. No se ha cobrado nada.",
   "tillPartial": "La tienda ha respondido para {live} de {asked} productos. Puede que los demás aún no estén a la venta en esta cuenta.",
   "pickNation": "Tuyo. Elige el país y acepta el cargo. Empieza de inmediato.",
+  "nationSelect": "País",
   "support": "Apoya el juego",
   "supportLine": "Un agradecimiento al desarrollador. No cambia nada en el juego.",
   "supportThanks": {
@@ -8753,6 +8755,7 @@
  "search": {
   "anyAttr": "Atributo",
   "atLeast": "{n}+",
+  "attrMin": "Nota mínima",
   "view": "Vista",
   "view_general": "General",
   "view_contract": "Contrato",

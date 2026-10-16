@@ -2876,6 +2876,7 @@
     "leaveItThere": "En rester là",
     "meetTheirNumber": "Accepter leur chiffre ({wage}/sem)",
     "campWants": "Son entourage veut {demand}/sem (il est à {wage}). Sous-évaluez à vos risques.",
+    "yourOfferWage": "Votre offre par semaine",
     "campWants_f": "Son entourage veut {demand}/sem (elle est à {wage}). Sous-évaluez à vos risques.",
     "offerWage": "Proposer £{amount}/sem",
     "walkAwayCaps": "Quitter la table",
@@ -8634,6 +8635,7 @@
     "tillEmpty": "La boutique a répondu, mais elle n'a encore rien en vente pour ce compte : rien ne peut être acheté ici pour l'instant. Rien n'a été débité.",
     "tillPartial": "La boutique a répondu pour {live} produits sur {asked}. Les autres ne sont peut-être pas encore en vente sur ce compte.",
     "pickNation": "À vous. Choisissez le pays et prenez le poste. Ça commence tout de suite.",
+    "nationSelect": "Pays",
     "support": "Soutenir le jeu",
     "supportLine": "Un merci au développeur. Cela ne change rien dans le jeu.",
     "supportThanks": {
@@ -8978,6 +8980,7 @@
   "search": {
     "anyAttr": "Attribut",
     "atLeast": "{n}+",
+    "attrMin": "Note minimale",
     "view": "Vue",
     "view_general": "Général",
     "view_contract": "Contrat",

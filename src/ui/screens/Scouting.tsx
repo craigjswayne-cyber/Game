@@ -31,6 +31,7 @@ import { Glyph } from '../glyphs'
 import { plainNews } from '../NewsBody'
 import ScoutReportCard from '../ScoutReport'
 import { offerFocus } from './PlayerScreen'
+import { rowNav } from '../rowNav'
 
 /** The verdict's colour, the same ladder the old table used. */
 const gradeColour = (g: number) =>
@@ -124,7 +125,9 @@ export function ScoutSheet({ playerId, onClose }: { playerId: number; onClose: (
     go('player', p.id)
   }
   return (
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
     <div className="modal-veil" onClick={onClose}>
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
       <div className="modal scout-sheet" onClick={e => e.stopPropagation()} role="dialog" aria-label={p.name}>
         <div className="grab" />
         <div className="scout-sheet-head">
@@ -258,7 +261,7 @@ function ScoutCommission() {
             {/* THE BRIEF ON ONE ROW, THE THREE TRIPS ON THE NEXT (owner, 1.5.8:
                 "all three buttons should be below on the same line"). Each
                 trip takes a third of the row, so they compare at a glance. */}
-            <select className="inline-input" style={{ margin: '0 0 8px', width: '100%' }} value={pos}
+            <select className="inline-input" style={{ margin: '0 0 8px', width: '100%' }} value={pos} aria-label={t('transfers.filterPosition')}
               onChange={e => setPos(e.target.value as Pos | 'any')}>
               <option value="any">{t('transfers.anyPosition')}</option>
               {POS_ORDER.map(p => <option key={p} value={p}>{posName(p)}</option>)}
@@ -268,7 +271,7 @@ function ScoutCommission() {
                 <button key={m} className="btn gold" style={{ flex: '1 1 0', minWidth: 0, padding: '9px 4px', fontSize: 12, lineHeight: 1.25 }}
                   onClick={() => { setMsg(commissionScout(game, pos, m)); touch() }}>
                   {t('transfers.months', { n: m })}<br />
-                  <span style={{ fontSize: 10, fontWeight: 600 }}>{fmtMoney(searchFee(m, Math.max(1, tier)))}</span>
+                  <span style={{ fontSize: 11, fontWeight: 600 }}>{fmtMoney(searchFee(m, Math.max(1, tier)))}</span>
                 </button>
               ))}
             </div>
@@ -299,7 +302,7 @@ function ScoutReports() {
       <div className="card" style={{ padding: '2px 10px' }}>
         {reports.map((n, i) => (
           <div key={n.id} style={{ padding: '6px 0', borderTop: i ? '1px solid var(--border)' : undefined }}
-            onClick={() => setOpenId(openId === n.id ? null : n.id)}>
+            {...rowNav(() => setOpenId(openId === n.id ? null : n.id))} aria-expanded={openId === n.id}>
             <div className="meta" style={{ fontSize: 11 }}>{weekDate(n.season, n.week)}</div>
             <div style={{ fontWeight: 700, fontSize: 13, lineHeight: 1.3 }}>{newsSubject(n)}</div>
             {openId === n.id && (

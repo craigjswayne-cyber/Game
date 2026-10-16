@@ -84,12 +84,12 @@ const TITLES: readonly string[] = [
 ]
 
 const IcoMoon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z" />
   </svg>
 )
 const IcoSun = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="4.2" />
     <path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8" />
   </svg>
@@ -155,6 +155,7 @@ function Celebration() {
   if (!game?.celebration) return null
   const cel = game.celebration
   return (
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- full-screen tap-to-dismiss celebration; Escape dismisses it (a11y.ts)
     <div className="celebrate-veil" onClick={() => { game.celebration = null; useStore.getState().touch() }}>
       {Array.from({ length: 26 }).map((_, i) => (
         <i key={i} className="confetti" style={{
@@ -905,7 +906,9 @@ export default function App() {
       </nav>
 
       {menu && (
+        // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
         <div className="submenu-veil" onClick={() => setMenu(null)}>
+          {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
           <div className="submenu" onClick={e => e.stopPropagation()}>
             <div className="submenu-head">{MENUS[menu].title}</div>
             {/* ELEVEN ITEMS AND NO ORDER OF BUSINESS.

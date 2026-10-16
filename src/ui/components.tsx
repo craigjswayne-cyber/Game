@@ -199,12 +199,16 @@ export function PosBadge({ pos }: { pos: string }) {
  *  asked for, so every pill in a column starts at the same x. */
 export function FormPill({ v, trend }: { v: number; trend?: 'up' | 'flat' | 'down' | null }) {
   const bg = v >= 7.5 ? 'var(--text-positive)' : v >= 6 ? 'var(--primary-pressed)' : v >= 4.5 ? 'var(--border-strong)' : 'var(--text-negative)'
+  // each band's own ink, so the figure clears 4.5:1 on its fill in every
+  // palette (white on the night greens was 2.3 to 4.3:1); the grey band keeps
+  // the stylesheet's ink, which the day theme darkens
+  const ink = v >= 7.5 ? 'var(--on-positive)' : v >= 6 ? 'var(--on-primary-pressed)' : v >= 4.5 ? undefined : 'var(--on-danger)'
   // the grey band is marked so the day theme can ink it dark: white on its
   // light grey was under 2:1 (UI QA, 1.8.0)
   const mid = v < 6 && v >= 4.5
   const label = trend ? t(trend === 'up' ? 'common.formRising' : trend === 'down' ? 'common.formFalling' : 'common.formSteady') : undefined
   const pill = (
-    <span className={`form-pill${mid ? ' mid' : ''}`} style={{ background: bg }} title={label} aria-label={label ? `${v.toFixed(1)}, ${label}` : undefined}>
+    <span className={`form-pill${mid ? ' mid' : ''}`} style={{ background: bg, color: ink }} title={label} aria-label={label ? `${v.toFixed(1)}, ${label}` : undefined}>
       {v.toFixed(1)}
     </span>
   )

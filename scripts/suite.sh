@@ -82,6 +82,7 @@ echo "=== typecheck, prose and tokens ==="
 run tsc npx tsc -b
 run textlint npx vite-node scripts/textlint.ts
 run cssaudit node scripts/cssaudit.mjs
+run lint npx eslint src/ui
 
 echo
 echo "=== engine ==="
@@ -124,7 +125,7 @@ echo "=== build, then the browser ==="
   # line below. A harness with a verdict belongs here; a screenshot tool does
   # not (shots, qa-shots, storeart, ipadshots and the like).
   for n in e2e e2enight backprobe savequeue resilience reloadprobe subsprobe dramaprobe jobsprobe hubprobe tapsize motionprobe drawui portraitqa densityaudit stickyaudit scrollaudit overlapaudit blockprobe pickaudit nightcontrast contrastprobe colouraudit breaker subreach injurygate instantverdictprobe tapcontrols dealcardui unemployedprobe stakesprobe devicematrix backlogprobe annualprobe geosweep strangerpath hireprobe bidprobe deskgate textscale langprobe skinui sackui engageui tillface keyscreen storeprobe proprompt feedbackui backupreach replyreach subline testsheet healrefresh sidescroll adsprobe womensui mgrgender joboffer matchad boardroomui pressureprobe introprobe tabletprobe ambientprobe overlayprobe tidyprobe ipprobe slotprobe feedprobe tryflash loanlistui floorad ruckui \
-    brandprobe chaosui coachriftui countryui devpickui exportui formerui ftprobe hlliveprobe injurysheet loannameui pressbaroprobe roomui screensave setpieceui sheetprobe spotadui teamtalkui temperui uiqaprobe telemetryui traitcard; do
+    brandprobe chaosui coachriftui countryui devpickui exportui formerui ftprobe hlliveprobe injurysheet loannameui pressbaroprobe roomui screensave setpieceui sheetprobe spotadui teamtalkui temperui uiqaprobe telemetryui traitcard a11yprobe smalltype; do
     [ -f "scripts/$n.mjs" ] || continue
     # BSHARDS: the CI browser job runs as parallel shards, each taking every
     # BSHARDS-th harness; locally it is unset and every harness runs
