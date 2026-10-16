@@ -1,5 +1,5 @@
 import { backResponders, respondersTo } from './rivalbids'
-import type { Club, GameState, NewsItem, Player, Pos } from './model'
+import type { Club, GameState, NewsItem, Pledge, Player, Pos } from './model'
 import { loanOutSummerGain, returnLoanIn } from './loans'
 import { aiRenewalWage, preContractWage } from './ai'
 import { runTeamOfTheYear } from './yearend'
@@ -8,12 +8,13 @@ import { activePlan, applyAdminPenalties } from './season'
 import { settleInsolvency } from './insolvency'
 import { ageManager } from './career'
 import { rivalVerdict } from './boss'
-import {absWeek, archiveSeason, BASE_YEAR, careerRows, boardPatience, isMyClub, closeNatTenure, demandCeiling, MAX_FOLLOWING, GROUND_TIERS, groundLevel, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, RELEGATES, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId, worldCupSeasonFor, tieWinner } from './model'
+import {absWeek, archiveSeason, BASE_YEAR, LAST_PLEDGE_WEEK, careerRows, boardPatience, isMyClub, closeNatTenure, demandCeiling, MAX_FOLLOWING, GROUND_TIERS, groundLevel, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, RELEGATES, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId, worldCupSeasonFor, tieWinner } from './model'
 import { assignPersonality, EARLY_FADE, LATE_PEAK } from './attributes'
 import { ageAttributes, gapGrowth, PRODIGY_PA, softCeilings, youthPace } from './ageing'
 import { COE_MEAN, learning, markSights, seasonReview, tempoF, TL } from './devproject'
 import { paRange, scoutPa } from './scout'
 import { intakePicks } from './devnews'
+import { PRESEASON_WEEKS } from './calendar'
 import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildWomensContinentalCup, buildLeague, schedulePreseason, sortTable, buildMrcCup } from './schedule'
 import { punditPredictions } from './gossip'
 import { CHALLENGES, LEAGUE_DEFS } from './newgame'
@@ -2175,7 +2176,10 @@ export function rebuildSeason(state: GameState) {
   state.grudges = (state.grudges ?? []).filter(g => g.until >= state.season)
   for (const p of Object.values(state.players)) { if ((p.wantsDeal ?? 0) > 0) p.wantsDeal = 0 }
   state.slAlerted = []
-  state.pledges = [] // a new season wipes the promise ledger clean
+  // a new season wipes the promise ledger clean, except a promise made too
+  // late to be judged in the season just gone (model.pledgeDue): that one is
+  // owed in this season, counted from the first week, against fresh stats
+  state.pledges = carryPledges(state.pledges ?? [], state.season)
   state.takeover = null // deals not done by summer quietly collapse
   state.newOwnerUntil = null // the honeymoon does not survive the summer
   state.crisisAt = {} // week numbers reset with the calendar
@@ -2521,4 +2525,21 @@ function keepSheet(state: GameState, club: Club, kept: (number | null)[]): (numb
   const filled = repairSheet(state, club, kept, splitFor(club))
   const named = new Set(kept.filter((x): x is number => x != null))
   return filled.map((id, i) => kept[i] ?? (id != null && named.has(id) ? null : id))
+}
+
+/** The promises that fall due past the end of the season just closed, moved
+ *  onto the new one: the same number of weeks still owed, counted from the
+ *  end of pre-season, with appearances counted from zero because the season
+ *  stats have just been wiped. `season` is the new season. Exported for the
+ *  probe. */
+export function carryPledges(pledges: Pledge[], season: number): Pledge[] {
+  return pledges
+    .filter(pl => pl.kind !== 'start' && pl.season === season - 1 && pl.due > LAST_PLEDGE_WEEK)
+    .map(pl => ({
+      ...pl,
+      season,
+      week: pl.week - SEASON_WEEKS,
+      due: PRESEASON_WEEKS.length + Math.max(1, pl.due - SEASON_WEEKS),
+      baseApps: 0,
+    }))
 }

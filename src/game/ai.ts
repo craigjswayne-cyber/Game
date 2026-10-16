@@ -5,7 +5,7 @@ import { clubIntent } from './living'
 import { userCap, userWageBudget } from './grants'
 import { offerSigning } from './records'
 import { transferReaction } from './terraces'
-import {absWeek, SEASON_WEEKS, addGrudge, fmtMoney, fmtWage, isMyClub } from './model'
+import {absWeek, SEASON_WEEKS, pledgeDue, addGrudge, fmtMoney, fmtWage, isMyClub } from './model'
 import { aiPayRate, aiWageRooms } from './aiecon'
 import { ensureCaptains } from './analysis'
 import { rivalsOf } from './rivalries'
@@ -834,7 +834,7 @@ export function signOnTerms(state: GameState, playerId: number, fee: number, wag
   if (promiseMinutes) {
     ;(state.pledges ??= []).push({
       playerId: p.id, kind: 'plans', week: state.week, season: state.season,
-      due: Math.min(state.week + 6, 44), baseApps: p.stats.apps,
+      due: pledgeDue(state.week, 6), baseApps: p.stats.apps,
     })
   }
   return { ok: true, msg: t('reply.signsFor', { name: p.name, club: user.name, fee: fmtMoney(fee), wage: fmtWage(wage), bonus: signOn > 0 ? t('reply.signsBonus', { bonus: fmtMoney(signOn) }) : '', promise: promiseMinutes ? t('reply.signsPromise') : '' }) }
