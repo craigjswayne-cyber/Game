@@ -179,7 +179,7 @@ function relevant(pos: Pos, k: Key): boolean {
  * above what the position usually has; a concern stands well below. The two
  * record-based concerns read what is public: his injury history and his cards.
  */
-export function notesFrom(
+function notesFrom(
   pos: Pos, vals: Record<Key, number>, base: Record<Key, number>, maxS: number, maxC: number,
   record?: { durability: boolean; discipline: boolean },
 ): { strengths: Note[]; concerns: Note[] } {
@@ -288,7 +288,7 @@ export function fitScore(pos: Pos, vals: Record<Key, number>, base: Record<Key, 
   return w > 0.3 ? sc / w : 0
 }
 
-export const FIT_CUT = 0.45
+const FIT_CUT = 0.45
 export const fitWord = (score: number): Fit => score >= FIT_CUT ? 'excellent' : score <= -FIT_CUT ? 'doubtful' : 'good'
 
 // ---------------------------------------------------------------------------
@@ -311,7 +311,7 @@ const DEALING: Partial<Record<string, number>> = {
  * Recent dealings weigh more than old ones, and a broken promise to anybody in
  * the last year travels (agents talk to each other: memory.ts agentWariness).
  */
-export function agentScore(state: GameState, p: Player): number {
+function agentScore(state: GameState, p: Player): number {
   const stable = agentStable(p.id)
   let sc = 0
   for (const e of recall(state, {})) {
@@ -365,7 +365,7 @@ function shoppingMap(state: GameState): Map<number, string> {
  * target this week, or he is unsettled (listed, unhappy, or out of contract)
  * and a club could afford him. If you wait, the next window can take him.
  */
-export function realSuitor(state: GameState, p: Player): string | null {
+function realSuitor(state: GameState, p: Player): string | null {
   if (!p.clubId || p.clubId === state.userClubId || p.onLoan || p.loanFrom || p.retiring) return null
   const shop = shoppingMap(state).get(p.id)
   if (shop) return shop
@@ -401,7 +401,7 @@ export function insideWord(state: GameState, p: Player): boolean {
  * Keyed on the man, the season and the six-week spell, so it lasts a while
  * and then fades if nobody bites. Not everybody's agent does it.
  */
-export function agentTalkClub(state: GameState, p: Player): string | null {
+function agentTalkClub(state: GameState, p: Player): string | null {
   if (!p.clubId || p.clubId === state.userClubId || p.ca < 60 || p.onLoan || p.loanFrom || p.retiring) return null
   const seller = state.clubs[p.clubId]
   if (!seller) return null
@@ -505,7 +505,7 @@ export function unsettledTerms(p: Player): number {
  *  a listing or a request is public at any stage, a low mood only once the
  *  scouts have a proper report and have talked to people around him. */
 export type Unsettled = 'asked' | 'listed' | 'unhappy'
-export function unsettledRead(stage: ReportStage, p: Player): Unsettled | null {
+function unsettledRead(stage: ReportStage, p: Player): Unsettled | null {
   if (askedLevel(p)) return 'asked'
   if (p.transferListed) return 'listed'
   if (stage >= 2 && moraleLevel(p) > 0) return 'unhappy'
@@ -517,7 +517,7 @@ export function unsettledRead(stage: ReportStage, p: Player): Unsettled | null {
 // ---------------------------------------------------------------------------
 
 /** The level band: his current standard as the scouts would put it. */
-export function levelBand(state: GameState, p: Player): [number, number] {
+function levelBand(state: GameState, p: Player): [number, number] {
   const m = margin(knowledge(state, p)) * 1.5
   const c = fuzzedCa(state, p)
   return [clamp(Math.round(c - m), 1, 99), clamp(Math.round(c + m), 1, 99)]

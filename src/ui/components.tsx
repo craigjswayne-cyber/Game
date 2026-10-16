@@ -274,7 +274,7 @@ export function Stars({ ca }: { ca: number }) {
 const REP_FLOOR = 36
 const REP_CEIL = 94
 
-export function clubStars(rep: number): number {
+function clubStars(rep: number): number {
   const n = Math.round(((rep - REP_FLOOR) / (REP_CEIL - REP_FLOOR)) * 10) / 2
   return Math.max(0.5, Math.min(5, n))
 }
@@ -349,21 +349,7 @@ export function AvailTag({ p, g }: { p: Player; g: GameState }) {
   return <span style={{ color: tag.color, fontWeight: 700, fontSize: 11 }}>{tag.txt}</span>
 }
 
-export function attrClass(v: number): string {
-  return v >= 16 ? 'elite' : v >= 12 ? 'good' : v <= 7 ? 'poor' : ''
-}
 
-/** Small club-colour swatch shown next to team names. */
-export function TeamDot({ g, teamId }: { g: GameState; teamId: string }) {
-  const c = g.clubs[teamId]
-  if (!c) return null
-  return (
-    <span
-      className="team-dot"
-      style={{ background: `linear-gradient(135deg, ${c.colors[0]} 55%, ${c.colors[1]} 55%)` }}
-    />
-  )
-}
 
 interface CrestClub {
   id: string
@@ -706,13 +692,6 @@ export function ClubLink({ g, clubId, children }: {
   )
 }
 
-/** Colour for an attribute bar by value. */
-export function attrBarColor(v: number): string {
-  if (v >= 16) return 'var(--gold-fill)'
-  if (v >= 12) return 'var(--primary)'
-  if (v >= 8) return 'var(--border-strong)'
-  return 'var(--surface-3)'
-}
 
 
 /**

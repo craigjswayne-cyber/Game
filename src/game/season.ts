@@ -1155,12 +1155,12 @@ function manageInternationals(state: GameState, rng: Rng) {
 
 /** Which attributes a training focus works on - the squad session and the
  *  personal plans (18A) speak the same vocabulary. */
-export const FOCUS_ATTRS: Record<string, (keyof Player['a'])[]> = {
+const FOCUS_ATTRS: Record<string, (keyof Player['a'])[]> = {
   balanced: [], scrum: ['scr', 'str'], lineout: ['lin'], attack: ['han', 'pas', 'vis'],
   defence: ['tac', 'pos'], fitness: ['sta'], kicking: ['kic', 'goa'],
 }
 /** Which specialist coach amplifies which training focus. */
-export const FOCUS_COACH: Record<string, keyof GameState['staff'] | null> = {
+const FOCUS_COACH: Record<string, keyof GameState['staff'] | null> = {
   balanced: null, scrum: 'scrumCoach', lineout: 'scrumCoach', attack: 'attack',
   defence: 'defence', fitness: 'assistant', kicking: 'kicking',
 }
@@ -2058,7 +2058,7 @@ export function honeymoonEnd(rep: number): number {
 }
 
 /** board confidence a week at a title favourite for a sheet the manager never claimed */
-export const ABSENT_SHEET = 1.1
+const ABSENT_SHEET = 1.1
 function boardReaction(state: GameState, fx: Fixture, delegated = false) {
   const club = state.clubs[state.userClubId]
   const isHome = fx.homeId === club.id

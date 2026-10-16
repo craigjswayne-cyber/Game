@@ -35,7 +35,7 @@ function readSkin(): Skin {
  *  boot and the store answering - keeps what they picked; they simply wear
  *  the green one until the receipt turns up. Downgrading the saved value
  *  would turn a slow network into a lost preference. */
-export const FREE_SKIN: Skin = 'default'
+const FREE_SKIN: Skin = 'default'
 
 /** IS A PRO MANAGER PERK OUT OF REACH RIGHT NOW?
  *
@@ -74,8 +74,8 @@ export function skinLocked(s: Skin): boolean { return s !== FREE_SKIN && proLock
  *  Plans saved into the old slots C through F are not deleted, only hidden,
  *  the same way a chosen skin survives an entitlement that has not restored
  *  yet. planSlots() stays a function so the row still asks once per render. */
-export const FREE_PLANS = 2
-export const PRO_PLANS = 2
+const FREE_PLANS = 2
+const PRO_PLANS = 2
 export function planSlots(): number { return proLocked() ? FREE_PLANS : PRO_PLANS }
 /** What the app actually wears, as opposed to what was chosen. */
 export function effectiveSkin(chosen: Skin): Skin { return skinLocked(chosen) ? FREE_SKIN : chosen }
@@ -2021,7 +2021,7 @@ export const useStore = create<Store>((set, get) => ({
 const SAVE_IDLE_MS = 600
 
 /** What the harnesses read to prove coalescing happens. Not used by the game. */
-export const saveStats = { marks: 0, writes: 0, failures: 0 }
+const saveStats = { marks: 0, writes: 0, failures: 0 }
 
 const saveQueue = (() => {
   let timer: ReturnType<typeof setTimeout> | null = null

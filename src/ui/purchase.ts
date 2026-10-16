@@ -23,7 +23,7 @@ export type Ending = PurchaseOutcome | 'error'
  * what is true of every cause behind that word. "No store attached to this
  * build" is kept for the one case it describes: no bridge at all.
  */
-export const endingKey = (out: Ending, cause = billingCause(), hasStore = !!bridge()): string => {
+const endingKey = (out: Ending, cause = billingCause(), hasStore = !!bridge()): string => {
   if (out === 'cancelled') return 'supporter.cancelled'
   if (out === 'pending') return 'supporter.pending'
   if (out === 'owned') return 'supporter.error' // never shown: an owned ending is a sale

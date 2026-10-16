@@ -62,7 +62,7 @@ export type Trait = 'youth' | 'youthBacks' | 'youthPack' | 'youthIntl' | 'innova
 const WINDOW = 8
 const MIN_SEASONS = 2
 /** a label held this many summers running becomes the club's reputation */
-export const REPUTE_AT = 4
+const REPUTE_AT = 4
 /** and a reputation unheld this many summers fades */
 const REPUTE_FADE = 3
 

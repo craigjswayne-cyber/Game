@@ -112,8 +112,6 @@ export interface DreamDef {
 
 /** The ambition in the reader's language. */
 export const dreamTitle = (def: DreamDef, ctx: DreamContext): string => t(def.titleK, def.titleVars?.(ctx))
-/** And phrased for the middle of a sentence. */
-export const dreamTitleLower = (def: DreamDef, ctx: DreamContext): string => t(def.titleLowerK, def.titleVars?.(ctx))
 /** Where the dream stands, in the reader's language. */
 export const dreamNote = (p: { noteK: string; noteV?: Vars }): string => t(p.noteK, p.noteV)
 
@@ -493,18 +491,3 @@ export function dreamState(state: GameState): {
 export const dreamPct = (p: DreamProgress): number =>
   Math.max(0, Math.min(100, Math.round((p.at / Math.max(1, p.goal)) * 100)))
 
-/**
- * The May verdict: what the season did for the dream.
- *
- * Written into the season review, so a career that is drifting says so once a
- * year in plain words rather than letting the player find out in season nine.
- */
-export function dreamVerdict(state: GameState, before: DreamProgress | null): string | null {
-  const now = dreamState(state)
-  if (!now) return null
-  const moved = before ? now.progress.at - before.at : 0
-  const v = { title_k: now.titleK, ...(now.titleV ?? {}), note_k: now.progress.noteK, ...(now.progress.noteV ?? {}) }
-  if (now.progress.done) return t('dream.verdictDone', v)
-  if (moved > 0) return t('dream.verdictMoved', v)
-  return t('dream.verdictStalled', v)
-}

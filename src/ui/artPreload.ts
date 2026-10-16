@@ -92,7 +92,7 @@ export function preloadCampus(game: GameState): void {
  */
 let allStarted = false
 
-export function allArtUrls(): string[] {
+function allArtUrls(): string[] {
   const urls = [tacticsPitch, `${ART}campus/plate.webp`, `${ART}campus/construction.webp`]
   for (const plot of CAMPUS_PLOTS) for (let l = 0; l <= 5; l++) urls.push(`${ART}facilities/${plot.art}-L${l}.webp`)
   return urls

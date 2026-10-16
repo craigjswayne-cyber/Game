@@ -73,7 +73,7 @@ export interface Contest {
 
 /** The average (carrier - tackler) score across the world's first XVs, and
  *  its spread, from scripts/contestprobe.ts. Two average men meet at 0.5. */
-export const CENTRE = -0.046
+const CENTRE = -0.046
 const SPREAD_K = 6.0
 
 const fresh = (side: ContestSide, id: number) => 0.78 + 0.22 * ((side.energy.get(id) ?? 70) / 100)

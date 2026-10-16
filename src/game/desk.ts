@@ -139,7 +139,7 @@ const playerName = (state: GameState, id: number | undefined) =>
   (id != null ? state.players[id]?.name : undefined) ?? ''
 
 /** What kind of question a press item is, in the desk's own words. */
-export function pressKind(q: PressItem): DecisionKind {
+function pressKind(q: PressItem): DecisionKind {
   if (isBoardroom(q)) return 'board'
   if (q.options.some(o => o.acad != null)) return 'acad'
   const room = roomKind(q)
@@ -150,7 +150,7 @@ export function pressKind(q: PressItem): DecisionKind {
 
 /** Is this press item one that holds the week? The rule Continue keeps
  *  (days.ts pressBlock): unanswered, and with an answer to give. */
-export const pressHolds = (q: PressItem) => !q.answered && (q.options?.length ?? 0) > 0
+const pressHolds = (q: PressItem) => !q.answered && (q.options?.length ?? 0) > 0
 
 const unreadCount = (state: GameState) =>
   state.news.filter(n => !n.read && !n.cleared && inInbox(state, n)).length

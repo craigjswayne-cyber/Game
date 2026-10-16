@@ -252,7 +252,7 @@ function pairings(ids: string[], rng: Rng): [string, string][][] {
 
 /** Build (or rebuild) the A League for whichever league the manager is in.
  *  Returns null if he has no club, or his league has too few sides to be one. */
-export function buildAcademyLeague(state: GameState, seed: number): AcadLeague | null {
+function buildAcademyLeague(state: GameState, seed: number): AcadLeague | null {
   const club = state.clubs[state.userClubId]
   if (!club) return null
   const teams = Object.values(state.clubs).filter(c => c.leagueId === club.leagueId).map(c => c.id)

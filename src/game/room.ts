@@ -81,10 +81,10 @@ export interface RoomState {
  *  neutral club past the point the room starts talking about it. */
 export const DRIFT = 12
 /** Where the culture is talked about, as a share of the full lean. */
-export const TOLD_AT = 0.4
+const TOLD_AT = 0.4
 /** The weekly chance a rival agrees a pre-contract with a man you waited on,
  *  from the week the pre-contract window opens (on top of the market's own). */
-export const WAIT_RISK = 0.04
+const WAIT_RISK = 0.04
 /** Renew now costs this much over his asking. */
 export const PREMIUM = 1.15
 
@@ -159,7 +159,7 @@ export function popular(state: GameState, club: Club, p: Player): boolean {
 
 /** The man in the middle of it: the vice-captain, or the captain when it is
  *  the vice who has been left out. */
-export function deputyOf(state: GameState, club: Club, droppedId: number): { p: Player; role: 'vice' | 'cap' } | null {
+function deputyOf(state: GameState, club: Club, droppedId: number): { p: Player; role: 'vice' | 'cap' } | null {
   const pick = (id: number | null | undefined) => {
     const p = id != null ? state.players[id] : undefined
     return p && p.clubId === club.id && p.id !== droppedId && !p.onLoan ? p : undefined

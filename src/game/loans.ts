@@ -103,7 +103,7 @@ export function loanTargets(state: GameState): Player[] {
 export type LoanLength = 'short' | 'half' | 'season'
 export const LOAN_LENGTHS: LoanLength[] = ['short', 'half', 'season']
 export const LOAN_SHARES = [0.25, 0.5, 0.75, 1] as const
-export const LOAN_LENGTH_WEEKS: Record<LoanLength, number> = { short: 13, half: 26, season: 0 }
+const LOAN_LENGTH_WEEKS: Record<LoanLength, number> = { short: 13, half: 26, season: 0 }
 
 /**
  * ---- A LOAN IS NEGOTIATED, NOT COLLECTED (owner, v1.2.8) ----
@@ -168,7 +168,7 @@ export function loanRival(state: GameState, playerId: number): boolean {
   return isDerby(state.userClubId, p.clubId)
 }
 
-export function loanScore(state: GameState, playerId: number, length: LoanLength, share: number): number {
+function loanScore(state: GameState, playerId: number, length: LoanLength, share: number): number {
   const p = state.players[playerId]
   const user = state.clubs[state.userClubId]
   const parent = p?.clubId ? state.clubs[p.clubId] : null

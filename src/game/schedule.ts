@@ -17,14 +17,11 @@ const ordinalWord = (n: number) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' 
 // type, and the invariant a built season has to pass. The names below are
 // re-exported so nothing that imported them from here has to move.
 export {
-  PRESEASON_WEEKS, LEAGUE_WEEKS, CC_POOL_WEEKS, CC_KO_WEEKS, AUTUMN_WEEKS, SIX_NATIONS_WEEKS,
-  TRC_WEEKS, PNC_WEEKS, WC_POOL_WEEKS, WC_KO_WEEKS, SUMMER_TEST_WEEKS, TOUR_WEEKS,
-  W_PRESEASON_WEEKS, W_LEAGUE_WEEKS, W_CC_POOL_WEEKS, W_CC_KO_WEEKS, W_AUTUMN_WEEKS, W_SIX_NATIONS_WEEKS,
-  W_SUMMER_TEST_WEEKS, W_PAC4_WEEKS, W_WC_POOL_WEEKS, W_WC_KO_WEEKS,
+  LEAGUE_WEEKS, CC_KO_WEEKS, TRC_WEEKS, TOUR_WEEKS, W_CC_KO_WEEKS,
 } from './calendar'
 /** The six who play the Northern Championship, and the six who do not. */
-export const W_NORTH = ['ENG', 'FRA', 'IRE', 'ITA', 'SCO', 'WAL']
-export const W_SOUTH = ['NZL', 'AUS', 'CAN', 'USA', 'JPN', 'RSA']
+const W_NORTH = ['ENG', 'FRA', 'IRE', 'ITA', 'SCO', 'WAL']
+const W_SOUTH = ['NZL', 'AUS', 'CAN', 'USA', 'JPN', 'RSA']
 
 /** Berger-style round robin. Returns rounds of [home, away] pairs. */
 export function roundRobin(teams: string[], rng: Rng, double: boolean): [string, string][][] {
@@ -93,7 +90,7 @@ export interface LeagueSpec {
  * phase; the shield legs mirror each other. The derby legs open and close the
  * season, which is roughly where the real competition puts them.
  */
-export function shieldRoundRobin(shields: string[][], rng: Rng): [string, string][][] {
+function shieldRoundRobin(shields: string[][], rng: Rng): [string, string][][] {
   const groups = shields.map(s => shuffled(rng, s))
   const shieldLegs = groups.map(g => roundRobin(g, rng, false)) // 3 rounds each
   const legRounds = (mirror: boolean): [string, string][][] => {

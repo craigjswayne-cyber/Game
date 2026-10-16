@@ -31,12 +31,6 @@ export const IcoInbox = () => (
   </svg>
 )
 
-export const IcoBall = () => (
-  <svg viewBox="0 0 24 24" {...S}>
-    <ellipse cx="12" cy="12" rx="9.2" ry="6" transform="rotate(-28 12 12)" />
-    <path d="M8.6 13.8l6.8-3.6M10.3 15.4l6.8-3.6M6.9 12.2l6.8-3.6" strokeWidth="1.4" />
-  </svg>
-)
 
 export const IcoClipboard = () => (
   <svg viewBox="0 0 24 24" {...S}>
@@ -65,12 +59,6 @@ export const IcoGlobe = () => (
   </svg>
 )
 
-export const IcoTransfer = () => (
-  <svg viewBox="0 0 24 24" {...S}>
-    <path d="M4 8.5h12.5M13.5 4.5l4 4-4 4" />
-    <path d="M20 15.5H7.5M10.5 11.5l-4 4 4 4" />
-  </svg>
-)
 
 export const IcoPress = () => (
   <svg viewBox="0 0 24 24" {...S}>

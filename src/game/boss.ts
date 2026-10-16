@@ -22,10 +22,6 @@ import { type Vars } from './i18n'
 import { nextTelling } from './tellings'
 import { poss, type Club, type GameState } from './model'
 
-/** Who is in the other dugout, or null for a club between coaches. */
-export function bossOf(club: Club): string | null {
-  return club.coach ?? null
-}
 
 /**
  * The manager the season is about.

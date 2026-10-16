@@ -276,11 +276,3 @@ export function analystClaim(r: AnalystRead): string {
 export const unitLabel = (u: AnalystRead['unit']) => t(`analyst.unit${u[0].toUpperCase()}${u.slice(1)}`)
 export const prepLabel = (p: MatchPrep) => t(`analyst.prep${p[0].toUpperCase()}${p.slice(1)}`)
 
-/** Slot labels, for the UI. */
-export const UNIT_LABEL: Record<AnalystRead['unit'], string> = {
-  scrum: 'Scrum', lineout: 'Lineout', defence: 'Defence', attack: 'Attack', kicking: 'Kicking game',
-}
-export const PREP_LABEL: Record<MatchPrep, string> = {
-  attack: 'Attacking Shapes', defence: 'Defensive Drills', setpiece: 'Set-Piece Work',
-  fitness: 'Conditioning', recovery: 'Recovery Week',
-}

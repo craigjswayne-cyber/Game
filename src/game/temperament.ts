@@ -44,14 +44,14 @@ export function bigBand(seed: number, id: number): BigBand {
 
 /** Appearances for the manager's club: every past season there, and this one
  *  while he is still on the books. */
-export function appsForUser(state: GameState, p: Player): number {
+function appsForUser(state: GameState, p: Player): number {
   let n = p.clubId === state.userClubId ? p.stats.apps : 0
   for (const r of careerRows(p)) if (r.clubId === state.userClubId) n += r.apps
   return n
 }
 
 /** Matches' worth of knowing him that the analyst's homework is worth. */
-export function analystApps(state: GameState): number {
+function analystApps(state: GameState): number {
   const s = analystSkill(state)
   return s >= 0.6 ? KNOWN_APPS : s >= 0.48 ? FAIR_APPS : 0
 }

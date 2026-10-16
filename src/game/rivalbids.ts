@@ -59,7 +59,7 @@ const rand = (s: string): number => mulberry32(hashString(s))()
  * A club in the black with a real reserve (ten weeks of its wage bill) can
  * still move; one that is short and paying under the scale cannot.
  */
-export function canSpend(state: GameState, c: Club): boolean {
+function canSpend(state: GameState, c: Club): boolean {
   if (c.admin || c.balance <= 0) return false
   const bill = c.players.reduce((s, id) => s + (state.players[id]?.wage ?? 0), 0)
   return c.balance > 10 * bill || aiPayRate(state, c) >= 0.85
@@ -102,7 +102,7 @@ const POS_NOUN: Record<string, string> = {
 export const posNounKey = (pos: string): string => POS_NOUN[pos] ?? 'posNoun.player'
 
 /** How many men at this club are at least as good as him in his position. */
-export function betterAt(state: GameState, club: Club, p: Player): number {
+function betterAt(state: GameState, club: Club, p: Player): number {
   let n = 0
   for (const id of club.players) {
     if (id === p.id) continue
@@ -319,11 +319,11 @@ const NEED_MIN: Record<string, number> = { LP: 2, HK: 2, TP: 2, LK: 3, FL: 3, N8
 const HUNT_WEEKS = [2, 4, 6, JANUARY_OPEN + 1]
 
 /** Is this one of the best young prospects in the world? */
-export const isProspect = (p: Player): boolean =>
+const isProspect = (p: Player): boolean =>
   p.age <= 21 && p.pa >= 82 && p.pa >= p.ca + 5 && !p.retiring && !p.onLoan && !p.loanFrom
 
 /** The prospect this AI club would go for this week, or null. Pure. */
-export function youthTarget(state: GameState, club: Club, pool?: Player[]): Player | null {
+function youthTarget(state: GameState, club: Club, pool?: Player[]): Player | null {
   if (isMyClub(state, club.id) || club.admin || club.balance <= 0 || embargoed(state, club.id)) return null
   const intent = clubIntent(state, club)
   if (intent !== 'allin' && intent !== 'rebuild') return null
@@ -629,7 +629,7 @@ function posStrength(state: GameState, club: Club): Record<string, number> {
 }
 
 /** Where the manager's side outclassed theirs most: the position to buy. */
-export function beatenAt(state: GameState, club: Club): Pos {
+function beatenAt(state: GameState, club: Club): Pos {
   const mine = posStrength(state, state.clubs[state.userClubId])
   const theirs = posStrength(state, club)
   let best = 'FL', gap = -Infinity

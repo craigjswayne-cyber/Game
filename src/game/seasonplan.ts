@@ -242,7 +242,7 @@ export function assistantSheet(state: GameState, fx?: Fixture): (number | null)[
  * and is not rested keeps his shirt, and only the gaps are filled, through
  * the assistant's eye, from the men left over.
  */
-export function planSheet(state: GameState, fx: Fixture, base: (number | null)[]): (number | null)[] {
+function planSheet(state: GameState, fx: Fixture, base: (number | null)[]): (number | null)[] {
   const club = state.clubs[state.userClubId]
   const rest = new Set(restList(state, fx).map(p => p.id))
   const avail = new Set(availablePlayers(state, club.players, false).map(p => p.id))
