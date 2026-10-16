@@ -48,6 +48,7 @@ import { kitColours, luma, pageSpares } from '../kit'
 import { IcoFastForward, IcoPause, IcoPeople, IcoPlay } from '../icons'
 import { Glyph } from '../glyphs'
 import { rowNav } from '../rowNav'
+import { MatchAnnouncer } from '../MatchAnnouncer'
 
 const WEATHER_ICON: Record<string, string> = { Dry: 'sun', Damp: 'rain', Rain: 'rain', Wind: 'wind', Snow: 'snow' }
 
@@ -1991,6 +1992,7 @@ function Live() {
 
   return (
     <div className={`live-wrap${prefs.bigText ? ' big-text' : ''}`}>
+      <MatchAnnouncer game={game} shown={shown} homeId={fixture.homeId} awayId={fixture.awayId} />
       <div className="scoreboard" style={{ '--home-c': kits.home[0], '--away-c': kits.away[0] } as React.CSSProperties}>
         <div className="teams">
           <div className="tname"><CrestT g={game} teamId={fixture.homeId} size={26} />{teamShort(game, fixture.homeId)}<span className="clubbar" style={{ background: kits.home[0] }} /></div>
