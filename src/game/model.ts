@@ -2692,6 +2692,26 @@ export const SEASON_WEEKS = 48
  */
 export const LEDGER_WEEKS = 45
 
+/** The last week a promise can be judged in: the week before the ledger
+ *  closes, when the domestic season's last games are played. */
+export const LAST_PLEDGE_WEEK = LEDGER_WEEKS - 1
+
+/** When a promise made this week falls due, `span` weeks on.
+ *
+ *  THE CLOSE SEASON IS NOT A DEADLINE (1.9.1). This was
+ *  Math.min(week + span, 44) at both call sites, so a promise made in the
+ *  summer window (weeks 46 to 48: a signing told he is in your plans) fell due
+ *  in a week already gone and was settled as broken the very next Saturday,
+ *  with no match played. Late in the season it gave a promise one week to be
+ *  kept. Now a promise with fewer than three playing weeks left falls due past
+ *  the end of the season, and rollover carries it into the new one
+ *  (carryPledges). */
+export function pledgeDue(week: number, span: number): number {
+  if (week + span <= LAST_PLEDGE_WEEK) return week + span
+  if (week <= LAST_PLEDGE_WEEK - 3) return LAST_PLEDGE_WEEK
+  return week + span
+}
+
 /** Leagues where the bottom club goes down. ONE list: the table's shading,
  *  the new-career media verdict and the pundits' predictions all read it, so
  *  no screen can threaten relegation in a league that has none. */

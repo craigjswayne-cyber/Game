@@ -1,6 +1,6 @@
 import type { GameState, OfficeTopic, Player, PressItem, PressOption } from './model'
 import { subjectVar } from './gender'
-import {absWeek, careerRows, SEASON_WEEKS, fmtMoney, formGuide, logDecision, poss, weeksBetween100, stamp100 } from './model'
+import {absWeek, careerRows, SEASON_WEEKS, pledgeDue, fmtMoney, formGuide, logDecision, poss, weeksBetween100, stamp100 } from './model'
 import { loanOut } from './loans'
 import { academyCalls, acadCallLive, resolveAcadCall } from './acadcall'
 import { resolveRoom, roomLive } from './room'
@@ -1324,7 +1324,7 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
       if (opt.pledge && !(state.pledges ?? []).some(pl => pl.playerId === p.id && pl.kind === opt.pledge)) {
         ;(state.pledges ??= []).push({
           playerId: p.id, kind: opt.pledge, week: state.week, season: state.season,
-          due: opt.pledge === 'start' ? state.week : Math.min(state.week + (opt.pledge === 'deal' ? 8 : 6), 44),
+          due: opt.pledge === 'start' ? state.week : pledgeDue(state.week, opt.pledge === 'deal' ? 8 : 6),
           baseApps: p.stats.apps,
           // a start is owed at the next match played, not by a date (handshake.ts)
           ...(opt.pledge === 'start' ? { baseStarts: p.stats.starts, baseGames: clubGamesPlayed(state, state.userClubId) } : {}),

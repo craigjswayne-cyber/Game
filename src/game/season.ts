@@ -41,7 +41,7 @@ import { applyPlanSheet, boardPriorityF } from './seasonplan'
 import { IRON_REC, brittleF, formTraits } from './formtraits'
 import { derbyName, isDerby, rivalsOf } from './rivalries'
 import { NAT_DEPTH, NAT_SQUAD_FLOOR, NAT_SQUAD_SIZE, NAT_TIERS, pickableNations, homeBased, clubQuotaLeft, conflictedClub, federationList, federationPick, releaseClubDuty, withFrontRow, nationByCode, nationNameIn, nationVars, regenName, worldNames } from './nations'
-import { isMyClub, logDecision } from './model'
+import { isMyClub, LAST_PLEDGE_WEEK, logDecision } from './model'
 import { resolveCourses, staffWageBill } from './staff'
 import { RIFT_MORALE, RIFT_TRAINING, riftDrag, staffRiftWeek } from './staffrift'
 import { resolveCommission, scoutPostcard } from './commission'
@@ -2951,7 +2951,8 @@ export function processWeekAndAdvance(state: GameState) {
         (state.preContracts ?? []).some(pc => pc.playerId === p.id)) continue
       // a start is owed at the next match played (handshake.ts)
       if (pl.kind === 'start') { if (settleStartPledge(state, pl, p)) remain.push(pl); continue }
-      if (state.week < pl.due) { remain.push(pl); continue }
+      // due past the last playing week: rollover carries it into the new season
+      if (state.week < pl.due || pl.due > LAST_PLEDGE_WEEK) { remain.push(pl); continue }
       const gap = p.stats.apps - pl.baseApps
       const kept = pl.kind === 'plans' ? gap >= 2
         : pl.kind === 'minutes' ? gap >= 1

@@ -331,7 +331,7 @@ function moneyMen(state: GameState, rng: Rng) {
       // every result lands harder while he makes up his mind about you
       if (isMyClub(state, club.id)) {
         club.boardConfidence = 58
-        state.newOwnerUntil = Math.min(state.week + 8, 45)
+        state.newOwnerUntil = Math.min(state.week + 8, SEASON_WEEKS)
       }
     } else {
       wire(state, 'news.wTakeoverOff', { short: club.short, club: club.name }, undefined, ruckUnlessMine(state, club.id))
