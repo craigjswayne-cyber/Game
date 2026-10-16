@@ -25,6 +25,7 @@
 // probe's verdict is its exit code, and a probe that has finished saying what it
 // found has no business still being alive.
 import { spawn } from 'node:child_process'
+import { readFileSync } from 'node:fs'
 
 /**
  * @param {number} port
@@ -38,6 +39,25 @@ export async function startPreview(port, settleMs = 3000) {
   })
   server.unref()
   await new Promise(r => setTimeout(r, settleMs))
+  // IS IT OURS? --strictPort makes vite exit when the port is taken, and the
+  // probe then drives whatever else is listening there: another checkout's
+  // preview, an older build. Every probe here hard-codes its port, so two
+  // worktrees running harnesses at once graded each other's builds, and a
+  // probe went red on a fix that was in this dist and not in that one. The
+  // page we serve names its bundle; if the one answering names another, stop.
+  try {
+    const want = (readFileSync('dist/index.html', 'utf8').match(/assets\/index-[^"]+\.js/) ?? [])[0]
+    const got = ((await (await fetch(`http://localhost:${port}/`)).text()).match(/assets\/index-[^"]+\.js/) ?? [])[0]
+    if (want && got !== want) {
+      throw new Error(`PREVIEW PORT TAKEN: localhost:${port} is serving ${got ?? 'something else'}, not this dist (${want}). Another preview holds the port; stop it and rerun.`)
+    }
+  } catch (e) {
+    if (String(e).includes('PREVIEW PORT TAKEN')) {
+      try { process.kill(-server.pid, 'SIGKILL') } catch { /* already gone */ }
+      throw e
+    }
+    // a fetch that fails outright is left to the probe, which reports it
+  }
   return {
     stop() {
       // negative pid = the whole group, so vite goes with npx
