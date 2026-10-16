@@ -157,7 +157,8 @@ function playWeek(g: GameState, n: number, seed: number) {
   const hw = g.fixHw
   const fresh = !!hw && hw.fxId !== fx.id && hw.season === g.season && g.week - hw.week <= 4
   const fixes = coachFixes(g, ctx, mine, opp, tac, 2)
-  const grade = fresh && hw ? gradeHomework(g, ctx, mine, opp, tac, hw.tags as FixTag[]) : null
+  // as the card does it: with its own follow-up line (1.9.1)
+  const grade = fresh && hw ? gradeHomework(g, ctx, mine, opp, tac, hw.tags as FixTag[], follow) : null
   const rec = buildFindings(g, ctx)!
   const told = toldCalls(ctx, ADAPT_WORTH)
   const answer = why.some(w => w.cause === 'read') || !!readTold(ev, told)

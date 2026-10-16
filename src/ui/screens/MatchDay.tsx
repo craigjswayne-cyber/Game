@@ -2652,7 +2652,7 @@ function MatchVerdict() {
   // and asks for "the two or three", so a single change had the homework
   // marked done on a match where the advice would have been given again.
   const grade = fresh && hw
-    ? gradeHomework(game, ctx, mine, opp, myClub?.tactic ?? null, hw.tags as FixTag[])
+    ? gradeHomework(game, ctx, mine, opp, myClub?.tactic ?? null, hw.tags as FixTag[], follow)
     : { fixed: [], missed: [] }
   const verdictOnLast = gradeLine(grade.fixed, grade.missed)
 

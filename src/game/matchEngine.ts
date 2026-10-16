@@ -4815,6 +4815,13 @@ function aiAutoSubs(state: GameState, ctx: LiveCtx, side: SideCtx, min: number) 
       // shirt, which is what effAt's 0.8 marks). Injuries still take whoever
       // is left: that change is forced.
       if (s < p.ca * 0.8) continue
+      // nor one that leaves the scrum without its props (1.9.1). A hooker
+      // reads as 0.8 at loosehead (the neighbouring shirt), so a tired prop
+      // could make way for him while the other prop was in the bin and the
+      // cover had come on: two hookers, one prop, a contested scrum
+      // (frontrowcardprobe, montauban at 52')
+      if (slot <= 2 && !pitchFrontRow(state, [...[...side.onPitch].filter(x => x !== outId), id])
+        && pitchFrontRow(state, side.onPitch)) continue
       if (s > bestS) { bestS = s; best = p }
     }
     // nobody on the bench plays there: this shirt keeps its man, and the next
