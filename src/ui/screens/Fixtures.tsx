@@ -56,7 +56,7 @@ export default function Fixtures() {
   // one filter, shown on both pages, because the alternative is a table page
   // that tells you to go to the other page to change which table you are on
   const chips = (
-    <div style={{ display: 'flex', gap: 6, padding: '0 14px 6px', flexWrap: 'wrap', alignItems: 'center' }}>
+    <div style={{ display: 'flex', gap: '8px 6px', padding: '0 14px 6px', flexWrap: 'wrap', alignItems: 'center' }}>
       <button className="preset-chip" style={comp === 'ALL' ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
         onClick={() => setComp('ALL')}>{t(page === 'table' ? 'fixtures.myLeague' : 'fixtures.allComps')}</button>
       {comps.map(cid => (
@@ -134,7 +134,7 @@ export default function Fixtures() {
                         (user: "on the fixture graphic the sea level isnt
                         needed"). The trip's difficulty still shows where the
                         decision is made: the match-day venue panel. */}
-                    {f.played && f.events?.length ? <span className="muted" style={{ fontSize: 10 }}>▸</span> : null}
+                    {f.played && f.events?.length ? <span className="muted" style={{ fontSize: 11 }}>▸</span> : null}
                   </span>
                 </td>
                 <td className="muted" style={{ whiteSpace: 'nowrap' }}>{compLabel(game.comps[f.compId]?.short) ?? (f.compId === 'fr' ? t('common.friendly') : f.compId)}{f.stage ? ` ${stageShort(f.stage)}` : ''}</td>

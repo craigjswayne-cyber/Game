@@ -271,7 +271,7 @@ function ScoutCommission() {
                 <button key={m} className="btn gold" style={{ flex: '1 1 0', minWidth: 0, padding: '9px 4px', fontSize: 12, lineHeight: 1.25 }}
                   onClick={() => { setMsg(commissionScout(game, pos, m)); touch() }}>
                   {t('transfers.months', { n: m })}<br />
-                  <span style={{ fontSize: 10, fontWeight: 600 }}>{fmtMoney(searchFee(m, Math.max(1, tier)))}</span>
+                  <span style={{ fontSize: 11, fontWeight: 600 }}>{fmtMoney(searchFee(m, Math.max(1, tier)))}</span>
                 </button>
               ))}
             </div>
