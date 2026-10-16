@@ -28,7 +28,7 @@
 import { chromium } from 'playwright-core'
 import { readFileSync } from 'node:fs'
 import { writeSync } from 'node:fs'
-import { done, startPreview } from './lib/preview.mjs'
+import { done, startPreview, until } from './lib/preview.mjs'
 
 const say = s => writeSync(1, s + '\n')
 let fails = 0
@@ -84,7 +84,7 @@ try {
     await page.goto('http://localhost:4231/')
     await page.waitForSelector('text=RUGBY', { timeout: 20000 })
     await page.evaluate(() => window.rugbyStore.getState().start('northampton', 'Key Screen'))
-    await page.waitForTimeout(700)
+    await until(page, () => !!window.rugbyStore.getState().game && !!document.querySelector('.bottom-nav'), null, 5000)
     await page.locator('.tut-close .btn').click({ timeout: 4000 }).catch(() => {})
 
     const caught = []

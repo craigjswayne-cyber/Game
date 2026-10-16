@@ -18,7 +18,7 @@
 //
 // Run: node scripts/storeprobe.mjs   (needs a fresh npm run build)
 import { chromium } from 'playwright-core'
-import { startPreview, done } from './lib/preview.mjs'
+import { startPreview, done, until } from './lib/preview.mjs'
 import { writeSync } from 'node:fs'
 
 const say = (s) => writeSync(1, s + '\n')
@@ -137,7 +137,6 @@ const startCareer = async (page) => {
 const openAbout = async (page) => {
   await page.locator('.bottom-nav button[data-group]').nth(1).click()
   await page.waitForSelector('.submenu')
-  await page.waitForTimeout(400)
   await page.locator('.submenu-item', { hasText: 'About' }).click()
   await page.waitForSelector('.content')
 }
@@ -229,16 +228,16 @@ try {
     // turn into a receipt - it thanks you and stays buyable, and the count
     // goes up every time.
     await page.locator('.card', { hasText: 'Support the game' }).locator('.btn.gold').click()
-    await page.waitForTimeout(600)
+    await until(page, ([t, rx]) => [...document.querySelectorAll('.card')].some(c => c.textContent.includes(t) && new RegExp(rx, 'i').test(c.textContent)), ['Support the game', 'Thank you'], 3000)
     const after = await page.locator('.card', { hasText: 'Support the game' }).innerText()
     ok(/Thank you/i.test(after), 'a completed thank-you is acknowledged in words')
     ok(!/Yours/.test(after), 'and the row does NOT become a receipt - a tip jar takes more than one coin')
     await page.locator('.card', { hasText: 'Support the game' }).locator('.btn.gold').click()
-    await page.waitForTimeout(600)
+    await until(page, ([t, rx]) => [...document.querySelectorAll('.card')].some(c => c.textContent.includes(t) && new RegExp(rx, 'i').test(c.textContent)), ['Support the game', '2'], 3000)
     ok(await page.locator('.card', { hasText: 'Support the game' }).innerText().then(x => /2/.test(x)),
       'and a second coin goes in, counted')
     await page.locator('.card', { hasText: 'Pro Manager' }).locator('.btn.gold').click()
-    await page.waitForTimeout(600)
+    await until(page, ([t, rx]) => [...document.querySelectorAll('.card')].some(c => c.textContent.includes(t) && new RegExp(rx, 'i').test(c.textContent)), ['Pro Manager', 'Yours'], 3000)
     ok(await page.locator('.card', { hasText: 'Pro Manager' }).innerText().then(t => /Yours/.test(t)),
       'and Pro Manager can actually be bought there without an ad provider')
     ok(errs.length === 0, `no console errors${errs.length ? ': ' + errs[0] : ''}`)
@@ -381,14 +380,13 @@ try {
     ok(await page.locator('.content').innerText().then(t => /Pro Manager/i.test(t)),
       'with ads in the build, the removal is on the shelf')
     await page.locator('.card', { hasText: 'Pro Manager' }).locator('.btn.gold').click()
-    await page.waitForTimeout(600)
+    await until(page, ([t, rx]) => [...document.querySelectorAll('.card')].some(c => c.textContent.includes(t) && new RegExp(rx, 'i').test(c.textContent)), ['Pro Manager', 'Yours'], 3000)
     ok(await page.locator('.card', { hasText: 'Pro Manager' }).innerText().then(t => /Yours/.test(t)),
       'the purchase completes and the row is a receipt')
 
     // the mark, on the screen it was promised on
     await page.locator('.bottom-nav button[data-group]').nth(1).click()
     await page.waitForSelector('.submenu')
-    await page.waitForTimeout(400)
     await page.locator('.submenu-item', { hasText: 'Main Menu' }).click()
     await page.waitForSelector('.title-screen')
     ok(await page.locator('.supporter-mark').count() === 1, 'the title screen carries the supporter mark')
@@ -681,7 +679,7 @@ try {
     await page.locator('.btn.gold', { hasText: 'Open the Store' }).click()
     await page.waitForSelector('.content')
     await page.locator('.btn.gold', { hasText: 'Buy' }).first().click()
-    await page.waitForTimeout(600)
+    await until(page, () => /would not open a purchase/i.test(document.querySelector('.content')?.textContent ?? ''), null, 3000)
     const till = await page.locator('.content').innerText()
     ok(/would not open a purchase/i.test(till), 'the shelf says the store refused, not that you cancelled')
     ok(/not active yet|licence-testing/i.test(till), 'and names the two things worth checking')
@@ -698,7 +696,7 @@ try {
     await page.goto('http://localhost:4209/')
     await page.waitForSelector('.title-screen')
     // the boot restore runs without being asked (src/main.tsx)
-    await page.waitForTimeout(900)
+    await until(page, () => document.querySelectorAll('.supporter-mark').length === 1, null, 3000)
     ok(await page.locator('.supporter-mark').count() === 1,
       'the purchase is restored at boot, without anybody tapping anything')
     await page.close()
