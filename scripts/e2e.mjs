@@ -1,6 +1,6 @@
 // End-to-end smoke test: drive the built app in mobile Chromium (landscape).
 import { chromium } from 'playwright-core'
-import { startPreview } from './lib/preview.mjs'
+import { startPreview, until } from './lib/preview.mjs'
 import { mkdirSync } from 'node:fs'
 
 const SHOTS = process.env.SHOTS_DIR || 'shots'
@@ -151,7 +151,8 @@ try {
   for (let i = 0; i < 4; i++) {
     await page.click('.bottom-nav button[title="News"]')
     await page.waitForSelector('.reader', { timeout: 15000 })
-    await page.waitForTimeout(200)
+    // the next letter is up when the subject changes (or 3 s, and the order check says why)
+    await until(page, prev => { const t = document.querySelector('.reader h2')?.textContent ?? ''; return t !== '' && t !== prev }, opening.at(-1) ?? '', 3000)
     opening.push((await page.locator('.reader h2').innerText()).trim())
   }
   console.log(`opening inbox: ${opening.map(x => `"${x.slice(0, 34)}"`).join(' > ')}`)
@@ -188,7 +189,10 @@ try {
   await shot('06-selection')
   if (await page.locator('text=In-Form XV').count()) throw new Error('In-Form XV button is back')
   await page.click('text=Best XV')
-  await page.waitForTimeout(400)
+  await until(page, () => {
+    const g = window.rugbyStore.getState().game
+    return (g?.clubs[g.userClubId]?.tactic.lineup ?? []).filter(x => x != null).length >= 15
+  }, null, 3000)
   {
     const s = await careerState()
     ok(s.picked >= 15, `Best XV filled the team sheet (${s.picked} shirts named)`)
@@ -353,7 +357,8 @@ try {
   await shot('11b-inbox')
   const firstSubject = await page.locator('.reader h2').innerText()
   await page.click('.bottom-nav button[title="News"]')
-  await page.waitForTimeout(250)
+  // the next unread is up when the subject changes; "all read" leaves it, so 2 s at most
+  await until(page, prev => (document.querySelector('.reader h2')?.textContent ?? '') !== prev, firstSubject, 2000)
   const secondSubject = await page.locator('.reader h2').innerText()
   const posDbg = await page.locator('.reader-pos').innerText()
   console.log(`inbox queue: "${firstSubject.slice(0, 40)}" then "${secondSubject.slice(0, 40)}" | pos: ${posDbg}`)
