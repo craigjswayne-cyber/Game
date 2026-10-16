@@ -7,7 +7,7 @@ import { STATUSES, STATUS_BY_ID, clubMatchesPlayed, ledgerRow, statusOf, type Sq
 import SelectionPane from './Selection'
 import { t } from '../../game/i18n'
 import { Glyph } from '../glyphs'
-import { ariaSort, rowNav } from '../rowNav'
+import { ariaSort, refocus, rowNav } from '../rowNav'
 
 // Handheld squad layout: the team sheet first, then the tables - Pkd chip,
 // fitness ring, starred names, morale arrows, Av R and Value.
@@ -106,8 +106,8 @@ export default function Squad() {
   const Th = ({ k, children, right }: { k: SortKey; children: React.ReactNode; right?: boolean }) => (
     <th className={`th-sort${sort === k ? ' active' : ''}${right ? ' num' : ''}`}
       aria-sort={ariaSort(sort === k, desc, ['pkd', 'pos', 'name', 'age', 'until'].includes(k))}>
-      <button type="button" className="th-btn"
-        onClick={() => (sort === k ? setDesc(!desc) : (setSort(k), setDesc(false)))}>
+      <button type="button" className="th-btn" data-focus-key={`sq-${k}`}
+        onClick={e => { refocus(`sq-${k}`, document.activeElement === e.currentTarget); if (sort === k) setDesc(!desc); else { setSort(k); setDesc(false) } }}>
         {children}{sort === k ? (desc ? ' ▴' : ' ▾') : ''}
       </button>
     </th>

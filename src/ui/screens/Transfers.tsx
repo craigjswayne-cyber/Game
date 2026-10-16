@@ -11,7 +11,7 @@ import { attrName, posName, t, compLabel } from '../../game/i18n'
 import { userWageBudget } from '../../game/grants'
 import { transferInterest } from '../../game/interest'
 import { ScoutingBody } from './Scouting'
-import { ariaSort, rowNav } from '../rowNav'
+import { ariaSort, refocus, rowNav } from '../rowNav'
 
 /** The classic search screen's views (1.8.0): which columns the table shows. */
 type SearchView = 'general' | 'contract' | 'physical' | 'setpiece' | 'handling' | 'mind'
@@ -99,8 +99,8 @@ export default function Transfers() {
   const MTh = ({ k, children, right }: { k: typeof msort; children: React.ReactNode; right?: boolean }) => (
     <th className={`th-sort${msort === k ? ' active' : ''}${right ? ' num' : ''}`}
       aria-sort={ariaSort(msort === k, mdesc, k === 'age' || k === 'name')}>
-      <button type="button" className="th-btn"
-        onClick={() => (msort === k ? setMdesc(!mdesc) : (setMsort(k), setMdesc(false)))}>
+      <button type="button" className="th-btn" data-focus-key={`tr-${k}`}
+        onClick={e => { refocus(`tr-${k}`, document.activeElement === e.currentTarget); if (msort === k) setMdesc(!mdesc); else { setMsort(k); setMdesc(false) } }}>
         {children}{msort === k ? (mdesc ? ' ▴' : ' ▾') : ''}
       </button>
     </th>

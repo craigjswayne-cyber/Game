@@ -36,6 +36,18 @@ export function rowNav<E extends SyntheticEvent>(onActivate: (e: E) => void, lab
 }
 
 /**
+ * Put focus back on a control that a re-render replaced. The sortable headers
+ * are built by a component declared inside their screen, so every sort mounts
+ * a fresh header row and the button a keyboard user just pressed is gone: the
+ * second Enter landed on nothing. The control carries data-focus-key and asks
+ * for its successor to be focused once React has painted it.
+ */
+export function refocus(key: string, had: boolean) {
+  if (!had) return
+  requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-focus-key="${key}"]`)?.focus())
+}
+
+/**
  * aria-sort for a sortable column header. `flipped` is the screen's "desc"
  * toggle, which reverses whatever the column's natural order is; numbers sort
  * biggest first by default and names and ages smallest first, so the column
