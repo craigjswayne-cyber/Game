@@ -33,7 +33,8 @@ import { AdSlot } from '../AdSlot'
 export default function DayRoom() {
   const game = useStore(s => s.game)!
   const openWire = useStore(s => s.openWire)
-  const continueWeek = useStore(s => s.continueWeek)
+  const continueTap = useStore(s => s.continueTap)
+  const turning = useStore(s => s.turning)
   const day = today(game)
   const stories = storiesForDay(game, day)
 
@@ -92,7 +93,7 @@ export default function DayRoom() {
       {/* the walk-on button. The masthead has one too, and they call the same
           action: this one exists because the bottom of the page is where a
           reader's thumb already is when they have finished reading it. */}
-      <button className="btn gold block day-next" onClick={continueWeek}>{t('dayroom.continue')}</button>
+      <button className="btn gold block day-next" onClick={continueTap} disabled={turning} aria-busy={turning}>{turning ? t('common.turningWeek') : t('dayroom.continue')}</button>
       {/* the floor under the week carries a banner (owner, 1.8.7, with a
           screenshot of the empty space under Continue). Below the button that
           walks on, so it never sits between a tap and what the tap was for. */}
