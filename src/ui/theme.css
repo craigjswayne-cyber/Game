@@ -2022,7 +2022,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   background-color: var(--pitch-a);
   background-image:
     linear-gradient(var(--pitch-scrim), var(--pitch-scrim)),
-    url('./tactics-pitch.png');
+    url('./tactics-pitch.webp');
   background-size: cover;
   background-position: center top;
   border: 1px solid rgba(0, 0, 0, .3);

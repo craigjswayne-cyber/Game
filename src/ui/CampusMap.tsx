@@ -67,7 +67,7 @@ export default function CampusMap({ game, onPick }: {
         position: 'relative', width: '100%', aspectRatio: `${PLATE_W} / ${PLATE_H}`,
         borderRadius: 6, overflow: 'hidden', background: 'var(--surface-2)',
       }}>
-        <img src={`${ART}campus/plate.png`} alt=""
+        <img src={`${ART}campus/plate.webp`} alt=""
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block' }} />
 
         {/* ---- the buildings ----
@@ -79,8 +79,8 @@ export default function CampusMap({ game, onPick }: {
           const lvl = levelOf(club, p.fid)
           const building = onSite(p.fid)
           const src = building
-            ? `${ART}campus/construction.png`
-            : `${ART}facilities/${p.art}-L${lvl}.png`
+            ? `${ART}campus/construction.webp`
+            : `${ART}facilities/${p.art}-L${lvl}.webp`
           // centred overspill: half the extra comes off each side
           const pad = (PLOT_OVERSIZE - 1) / 2
           return (
