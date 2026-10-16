@@ -19,7 +19,7 @@ import { t } from '../../game/i18n'
 export default function Offers({ focus }: { focus?: number }) {
   const game = useStore(s => s.game)!
   useStore(s => s.tick)
-  const { touch, continueWeek, go } = useStore.getState()
+  const { touch, continueTap, go } = useStore.getState()
   // KEYED TO THE OFFER THAT WAS ANSWERED. As a bare string this rendered inside
   // EVERY offer card at once (the line lives in the per-offer body), so
   // rejecting the second bid printed "you turned it down" under the first and
@@ -38,7 +38,7 @@ export default function Offers({ focus }: { focus?: number }) {
         <div className="card">
           <h3>{t('world.ofDeskClear')}</h3>
           <div className="meta">{msg?.text ?? t('world.ofNothingWaiting')}</div>
-          <button className="btn gold block" style={{ marginTop: 10 }} onClick={() => continueWeek()}>
+          <button className="btn gold block" style={{ marginTop: 10 }} onClick={() => continueTap()}>
             {t('world.ofGetOn')}
           </button>
         </div>

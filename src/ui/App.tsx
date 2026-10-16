@@ -481,7 +481,8 @@ export default function App() {
   // else happened to re-render it
   useStore(s => s.lang)
   useStore(s => s.tick)
-  const { back, go, home, continueWeek, toggleNight, openInbox } = useStore.getState()
+  const { back, go, home, continueTap, toggleNight, openInbox } = useStore.getState()
+  const turning = useStore(s => s.turning)
   const [menu, setMenu] = useState<null | 'hub' | 'world' | 'manager'>(null)
   const tablet = useTablet()
   useTextScale(tablet)
@@ -845,9 +846,9 @@ export default function App() {
               // the desk's own Continue reads too
               const desk = continueHold(game)
               return (
-                <button className="continue-btn" onClick={continueWeek}
+                <button className="continue-btn" onClick={continueTap} disabled={turning} aria-busy={turning}
                   title={desk ? t('common.deskWaits') : undefined}>
-                  {desk ? `${desk.label} ▸` : t(step.kind === 'match' ? 'common.matchdayBtn' : 'common.continueBtn')}
+                  {turning ? t('common.turningWeek') : desk ? `${desk.label} ▸` : t(step.kind === 'match' ? 'common.matchdayBtn' : 'common.continueBtn')}
                 </button>
               )
             })()}

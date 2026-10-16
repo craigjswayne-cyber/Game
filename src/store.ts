@@ -321,6 +321,11 @@ interface Store {
   home: () => void
   touch: () => void
   continueWeek: () => void
+  /** What a Continue button calls: continueWeek, after one painted frame when
+   *  the tap is going to turn the week (see below). */
+  continueTap: () => void
+  /** A week is being turned: the Continue buttons say so and ignore taps. */
+  turning: boolean
   kickOff: (preTalk?: import('./game/teamtalk').PreTone, mode?: 'full' | 'highlights') => void
   /** the assistant takes over: play the match out instantly with your team */
   instantResult: (preTalk?: import('./game/teamtalk').PreTone, review?: boolean) => void
@@ -978,6 +983,28 @@ export const useStore = create<Store>((set, get) => ({
   touch: () => {
     set(s => ({ tick: s.tick + 1 }))
     if (get().game) saveQueue.mark(true)
+  },
+
+  turning: false,
+  /**
+   * PAINT FIRST, THEN TURN THE WEEK (1.9.1).
+   *
+   * Settling a week runs every match in the world and takes 230 to 480 ms on a
+   * desktop, so a second or more on a budget phone, all of it in the tap's own
+   * handler. Nothing could paint until it finished: the button did not even
+   * look pressed, and a player who tapped again had no way to know the first
+   * tap had landed. When this tap is the one that turns the week, the button
+   * shows that it is working and the settle runs on the frame after. Day steps
+   * and match day stay immediate: they are cheap, and nothing waits for them.
+   */
+  continueTap: () => {
+    const g = get().game
+    if (!g || get().turning) return
+    if (nextStep(g).kind !== 'week' || typeof requestAnimationFrame !== 'function') { get().continueWeek(); return }
+    set({ turning: true })
+    requestAnimationFrame(() => setTimeout(() => {
+      try { get().continueWeek() } finally { set({ turning: false }) }
+    }, 0))
   },
 
   /** CM-style Continue: play user's match if there is one, else process the week. */
