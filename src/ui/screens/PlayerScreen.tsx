@@ -868,7 +868,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
               ) : (
                 <>
                   <div className="meta">{t('player.campWants', { demand: fmtWage(renewalDemand(p)), wage: fmtWage(p.wage) })}</div>
-                  <input className="inline-input" type="text" inputMode="numeric" value={wageText}
+                  <input className="inline-input" type="text" inputMode="numeric" value={wageText} aria-label={t('player.yourOfferWage')}
                     onChange={e => setWageText(e.target.value.replace(/[^0-9]/g, ''))} />
                   <div className="btn-row" style={{ margin: '10px 0 0' }}>
                     <button className="btn gold" onClick={() => {

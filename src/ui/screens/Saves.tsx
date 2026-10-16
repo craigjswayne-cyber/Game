@@ -258,7 +258,7 @@ export default function Saves() {
           <button className="btn" disabled={sharing} onClick={doExport}>{t('world.svExport')}</button>
           <button className="btn ghost" onClick={() => fileRef.current?.click()}>{t('world.svImport')}</button>
         </div>
-        <input ref={fileRef} type="file" accept=".json,application/json" style={{ display: 'none' }}
+        <input ref={fileRef} type="file" accept=".json,application/json" style={{ display: 'none' }} aria-label={t('world.svImport')}
           onChange={e => { const f = e.target.files?.[0]; if (f) doImport(f); e.target.value = '' }} />
       </div>
 

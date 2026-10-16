@@ -113,6 +113,7 @@ export default function Tactics({ initial }: { initial?: string } = {}) {
     <div className="slider-row" key={info.key}>
       <div className="lbls"><span>{t(info.lo)}</span><b style={{ color: 'var(--info)' }}>{t(info.label)}</b><span>{t(info.hi)}</span></div>
       <input type="range" min={0} max={100} value={tac[info.key]}
+        aria-label={t(info.label)} aria-valuetext={`${tac[info.key]}: ${sliderReadout(info.key, tac[info.key])}`}
         onChange={e => { tac[info.key] = Number(e.target.value); touch() }} />
       <div className="meta" style={{ fontSize: 11, marginTop: 2 }}>{sliderReadout(info.key, tac[info.key])}</div>
     </div>
@@ -125,6 +126,7 @@ export default function Tactics({ initial }: { initial?: string } = {}) {
     <div className="slider-row" key={info.key}>
       <div className="lbls"><span>{t(info.lo)}</span><b style={{ color: 'var(--info)' }}>{t(info.label)}</b><span>{t(info.hi)}</span></div>
       <input type="range" min={0} max={100} value={tac[info.key] ?? 50}
+        aria-label={t(info.label)} aria-valuetext={`${tac[info.key] ?? 50}: ${brkSliderReadout(info.key, tac[info.key] ?? 50)}`}
         onChange={e => { tac[info.key] = Number(e.target.value); touch() }} />
       <div className="meta" style={{ fontSize: 11, marginTop: 2 }}>{brkSliderReadout(info.key, tac[info.key] ?? 50)}</div>
     </div>
@@ -138,6 +140,7 @@ export default function Tactics({ initial }: { initial?: string } = {}) {
           who scrolled to Without the Ball (owner screenshot, 25 Aug). */}
       <div className="lbls"><span>{t(info.lo)}</span><b style={{ color: 'var(--info)' }}>{t(info.label)}</b><span>{t(info.hi)}</span></div>
       <input type="range" min={0} max={100} value={tac[info.key] ?? 50}
+        aria-label={t(info.label)} aria-valuetext={`${tac[info.key] ?? 50}: ${defSliderReadout(info.key, tac[info.key] ?? 50)}`}
         onChange={e => { tac[info.key] = Number(e.target.value); touch() }} />
       <div className="meta" style={{ fontSize: 11, marginTop: 2 }}>{defSliderReadout(info.key, tac[info.key] ?? 50)}</div>
     </div>

@@ -116,7 +116,7 @@ export default function Medical() {
           box in the way. Kept while something is typed, so it can be cleared. */}
       {(hurtCount > 6 || !!q) && (
         <div className="med-search">
-          <input className="inline-input" placeholder={t('medical.findPlayer')} value={query}
+          <input className="inline-input" placeholder={t('medical.findPlayer')} aria-label={t('medical.findPlayer')} value={query}
             onChange={e => setQuery(e.target.value)} />
         </div>
       )}

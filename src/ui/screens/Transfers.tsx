@@ -351,7 +351,7 @@ export default function Transfers() {
           behind one button that says how many are on, and the columns are a
           single View menu. */}
       <div className="filter-line">
-        <input className="inline-input" placeholder={t('transfers.nameOrClub')} value={query}
+        <input className="inline-input" placeholder={t('transfers.nameOrClub')} aria-label={t('transfers.nameOrClub')} value={query}
           onChange={e => { setQuery(e.target.value); setPage(0) }}
           style={{ flex: '2 1 0' }} />
         <button className={`inline-input filter-btn${activeFilters ? ' on' : ''}`} onClick={() => setFiltersOpen(true)}>
@@ -369,18 +369,18 @@ export default function Transfers() {
             <div className="grab" />
             <h3>{t('search.filters')}</h3>
             <div className="fs-grid">
-              <label>{t('search.deal')}</label>
-              <select className="inline-input" value={deal} onChange={e => { setDeal(e.target.value as 'transfer' | 'loan'); setPage(0) }}>
+              <label htmlFor="fs-deal">{t('search.deal')}</label>
+              <select id="fs-deal" className="inline-input" value={deal} onChange={e => { setDeal(e.target.value as 'transfer' | 'loan'); setPage(0) }}>
                 <option value="transfer">{t('search.dealTransfer')}</option>
                 <option value="loan">{t('search.dealLoan')}</option>
               </select>
-              <label>{t('transfers.filterPosition')}</label>
-              <select className="inline-input" value={pos} onChange={e => { setPos(e.target.value as Pos | 'ALL'); setPage(0) }}>
+              <label htmlFor="fs-pos">{t('transfers.filterPosition')}</label>
+              <select id="fs-pos" className="inline-input" value={pos} onChange={e => { setPos(e.target.value as Pos | 'ALL'); setPage(0) }}>
                 <option value="ALL">{t('search.any')}</option>
                 {POS_ORDER.map(p => <option key={p} value={p}>{posName(p)}</option>)}
               </select>
-              <label>{t('transfers.filterLeague')}</label>
-              <select className="inline-input" value={league} onChange={e => { setLeague(e.target.value); setPage(0) }}>
+              <label htmlFor="fs-league">{t('transfers.filterLeague')}</label>
+              <select id="fs-league" className="inline-input" value={league} onChange={e => { setLeague(e.target.value); setPage(0) }}>
                 <option value="ALL">{t('search.any')}</option>
                 {/* a free agent's league is nowhere, which makes this the natural
                     place to find him (user: "you should be able to search for free
@@ -390,27 +390,27 @@ export default function Transfers() {
                   <option key={c.id} value={c.id}>{compLabel(c.short)}</option>
                 ))}
               </select>
-              <label>{t('transfers.filterValue')}</label>
-              <select className="inline-input" value={maxVal} onChange={e => { setMaxVal(Number(e.target.value)); setPage(0) }}>
+              <label htmlFor="fs-value">{t('transfers.filterValue')}</label>
+              <select id="fs-value" className="inline-input" value={maxVal} onChange={e => { setMaxVal(Number(e.target.value)); setPage(0) }}>
                 <option value={0}>{t('search.any')}</option>
                 <option value={250000}>{t('transfers.toValue', { amount: '£250k' })}</option>
                 <option value={1000000}>{t('transfers.toValue', { amount: '£1m' })}</option>
                 <option value={3000000}>{t('transfers.toValue', { amount: '£3m' })}</option>
                 <option value={8000000}>{t('transfers.toValue', { amount: '£8m' })}</option>
               </select>
-              <label>{t('transfers.filterAge')}</label>
-              <select className="inline-input" value={maxAge} onChange={e => { setMaxAge(Number(e.target.value)); setPage(0) }}>
+              <label htmlFor="fs-age">{t('transfers.filterAge')}</label>
+              <select id="fs-age" className="inline-input" value={maxAge} onChange={e => { setMaxAge(Number(e.target.value)); setPage(0) }}>
                 <option value={0}>{t('search.any')}</option>
                 {[21, 24, 28, 32].map(n => <option key={n} value={n}>{t('transfers.ageOrUnder', { n })}</option>)}
               </select>
               {/* the attributes are what the scouts can see (scout.attrRange) */}
-              <label>{t('search.anyAttr')}</label>
+              <label htmlFor="fs-attr">{t('search.anyAttr')}</label>
               <div className="fs-pair">
-                <select className="inline-input" value={attrKey} onChange={e => { setAttrKey(e.target.value as keyof Attrs | ''); setPage(0) }}>
+                <select id="fs-attr" className="inline-input" value={attrKey} onChange={e => { setAttrKey(e.target.value as keyof Attrs | ''); setPage(0) }}>
                   <option value="">{t('search.any')}</option>
                   {ATTR_ORDER.map(k => <option key={k} value={k}>{attrName(k)}</option>)}
                 </select>
-                <select className="inline-input" value={attrMin} disabled={!attrKey} onChange={e => { setAttrMin(Number(e.target.value)); setPage(0) }}>
+                <select className="inline-input" aria-label={t('search.attrMin')} value={attrMin} disabled={!attrKey} onChange={e => { setAttrMin(Number(e.target.value)); setPage(0) }}>
                   {[8, 10, 12, 14, 16, 18].map(n => <option key={n} value={n}>{t('search.atLeast', { n })}</option>)}
                 </select>
               </div>

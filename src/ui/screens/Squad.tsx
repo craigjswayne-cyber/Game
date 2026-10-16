@@ -333,7 +333,7 @@ export default function Squad() {
                           (owner, round 183: "reduce the size of the box
                           around the key player") */}
                       <span className="gt-pick">
-                        <select className="inline-input gt-sel" value={cur}
+                        <select className="inline-input gt-sel" value={cur} aria-label={`${p.name}: ${t('squad.colStatus')}`}
                           onChange={e => { p.status = e.target.value as SquadStatus; touch() }}>
                           {/* the engine keeps the English name on the def; the
                               option shows the translated one, keyed by id */}
