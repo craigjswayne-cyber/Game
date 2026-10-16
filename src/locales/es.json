@@ -199,6 +199,8 @@
   "saveFailBody": "Nada de lo hecho desde tu último guardado correcto se ha guardado en este teléfono. Suele pasar porque el teléfono está lleno: libera espacio y pulsa Reintentar.",
   "saveFailed": "Error al guardar.",
   "saveFailedN": "Error al guardar ({n} seguidos).",
+  "weekRolledBack": "Algo falló al pasar la semana. Tu carrera ha vuelto a tu último guardado, así que no se ha quedado nada a medias. Pulsa Continuar para intentarlo de nuevo.",
+  "weekStuck": "Esta semana no se puede pasar y tu carrera no se ha guardado desde entonces. Envía un informe de error desde el menú Mánager para que se pueda arreglar.",
   "stageBAR": "Playoff",
   "stageQFShort": "CF",
   "stageSFShort": "SF",

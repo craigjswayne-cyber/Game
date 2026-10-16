@@ -262,6 +262,13 @@ interface Store {
    *  save-to-slot on the Saves screen. */
   noteSaveFail: (msg: string) => void
   dismissSaveFail: () => void
+  /** A week settle threw and the career was put back to its last save
+   *  (settleWeek below). 0 when nothing has gone wrong; 2 when the reload
+   *  itself failed and the career is held unsaved for a bug report. */
+  weekFailed: 0 | 1 | 2
+  dismissWeekFailed: () => void
+  /** Put the career back to what is on disk after a failed settle. */
+  rollBack: () => Promise<void>
   /** The message the inbox reader is showing (news id), or null for none.
    *
    *  The inbox reads one at a time (user: "tap the mail symbol it should open the
@@ -496,6 +503,33 @@ function openDay(nav: NavEntry[]): NavEntry[] {
   return [...nav.filter(e => e.screen !== 'day' && e.screen !== 'wire'), { screen: 'day' as const }]
 }
 
+/** THE WEEK TURNS ALL AT ONCE OR NOT AT ALL (1.9.1).
+ *
+ *  processWeekAndAdvance changes the career in place, step by step: wages,
+ *  drills, knocks, the table, the calendar. A throw halfway left a career that
+ *  was neither last week nor this one, the next mark wrote it to disk, and a
+ *  second tap ran the steps that had already run. Now a throw holds the writer
+ *  so the half-turned career is never saved, puts the career back to the copy
+ *  on disk, and rethrows so the crash log still records it. The same week
+ *  failing twice in a row stops there rather than reloading forever. */
+let failedWeek: string | null = null
+/** settleguardprobe plants a failure here, after the week has been changed in
+ *  memory, to prove the change is never written. Nothing in the game sets it. */
+export const settleFault: { after: ((g: GameState) => void) | null } = { after: null }
+function settleWeek(g: GameState, get: () => Store): void {
+  const key = `${g.seed}:${g.season}:${g.week}`
+  try {
+    processWeekAndAdvance(g)
+    settleFault.after?.(g)
+    failedWeek = null
+  } catch (e) {
+    saveQueue.hold()
+    if (failedWeek === key) useStore.setState(s => ({ weekFailed: 2, tick: s.tick + 1 }))
+    else { failedWeek = key; void get().rollBack() }
+    throw e
+  }
+}
+
 /** Land on the first day of a freshly settled week.
  *
  *  Monday first, because that is where the results and the treatment room are.
@@ -640,6 +674,22 @@ export const useStore = create<Store>((set, get) => ({
   saveFailMsg: null,
   noteSaveFail: (msg) => set(s => ({ saveFail: s.saveFail + 1, saveFailMsg: msg, tick: s.tick + 1 })),
   dismissSaveFail: () => set({ saveFail: 0, saveFailMsg: null }),
+
+  weekFailed: 0,
+  dismissWeekFailed: () => set({ weekFailed: 0 }),
+  rollBack: async () => {
+    const slot = get().saveSlot
+    const g = await loadGame(slot).catch(() => null)
+    if (!g) {
+      // nothing on disk to go back to: keep the writer held so the half-settled
+      // career in memory never overwrites anything, and say so
+      set(s => ({ weekFailed: 2, tick: s.tick + 1 }))
+      return
+    }
+    saveQueue.release()
+    get().setGame(g, slot)
+    set(s => ({ weekFailed: 1, tick: s.tick + 1 }))
+  },
 
   /** The news reader's recall window: everything unread, plus what you have read
    *  in the last five days. Gossip is in this list too now that the wire and the
@@ -868,7 +918,7 @@ export const useStore = create<Store>((set, get) => ({
       notePlayedOut(base, out.fixture, fromMin)
       countForPro(base, out.fixture)
       base.newsFrom = base.nextId
-      processWeekAndAdvance(base)
+      settleWeek(base, get)
       set(s => ({ game: base, matchRec: own, liveMatch: null, resuming: false, tick: s.tick + 1 }))
       get().dropResume()
       landOnNextWeek(base, set, get, [], true)
@@ -1165,7 +1215,7 @@ export const useStore = create<Store>((set, get) => ({
     // the week is spent: settle it, then start the new Monday. The watermark is
     // what tells the bulletins which stories are new.
     g.newsFrom = g.nextId
-    processWeekAndAdvance(g)
+    settleWeek(g, get)
     landOnNextWeek(g, set, get)
   },
 
@@ -1270,7 +1320,7 @@ export const useStore = create<Store>((set, get) => ({
     // Monday to Friday were meant to carry. The day walk is the reveal now, both
     // ways round; the round-up still comes first, with Monday under it.
     g.newsFrom = g.nextId
-    processWeekAndAdvance(g)
+    settleWeek(g, get)
     set(s => ({ liveMatch: null, tick: s.tick + 1 }))
     get().dropResume()
     landOnNextWeek(g, set, get, [{ screen: 'results', param: resultsKey }])
@@ -1319,7 +1369,7 @@ export const useStore = create<Store>((set, get) => ({
       countForPro(g, fx)
       const resultsKey = resultsParam(fx.compId, g.week)
       g.newsFrom = g.nextId
-      processWeekAndAdvance(g)
+      settleWeek(g, get)
       set(s => ({ liveMatch: null, tick: s.tick + 1 }))
       get().dropResume()
       landOnNextWeek(g, set, get, [{ screen: 'results', param: resultsKey }])
@@ -1658,7 +1708,7 @@ export const useStore = create<Store>((set, get) => ({
       countForPro(g, live.fixture)
     }
     g.newsFrom = g.nextId
-    processWeekAndAdvance(g)
+    settleWeek(g, get)
     set(s => ({ liveMatch: null, tick: s.tick + 1 }))
     get().dropResume()
     // The full-time round-up still comes first - that is the moment you want
@@ -1974,11 +2024,15 @@ const saveQueue = (() => {
   let timer: ReturnType<typeof setTimeout> | null = null
   let inFlight: Promise<void> | null = null
   let dirty = false
+  // a week settle threw (settleWeek): nothing in memory is fit to write until
+  // the career has been put back from disk
+  let held = false
 
   /** False when the write was held back and the save is still dirty. */
   const write = async (): Promise<boolean> => {
     const { game, saveSlot, liveMatch, matchRec } = useStore.getState()
     if (!game) return true
+    if (held) return false
     // NEVER A HALF-PLAYED MATCH (1.8.1). From the first tick the engine writes
     // tries, cards and injuries onto the players (game/resume.ts), so the game
     // object mid-match is neither the pre-match save nor the finished one. The
@@ -2022,6 +2076,8 @@ const saveQueue = (() => {
   }
 
   return {
+    hold() { held = true; if (timer) { clearTimeout(timer); timer = null } },
+    release() { held = false; dirty = false },
     /** soft: restart the idle timer rather than keep the first one, so a
      *  stream of marks (a slider dragged through twenty steps) is one write
      *  after the last of them, not one write in the middle of the drag */

@@ -195,6 +195,8 @@
   "saveFailBody": "Sedert jou laaste goeie stoor is niks meer op hierdie foon gestoor nie. Gewoonlik is die foon vol: maak bietjie plek oop en druk dan Probeer weer.",
   "saveFailed": "Stoor het misluk.",
   "saveFailedN": "Stoor het misluk ({n} agtereenvolgens).",
+  "weekRolledBack": "Iets het skeefgeloop toe die week omgeslaan het. Jou loopbaan is terug by jou laaste stoor, so niks half gedoen is gehou nie. Druk Gaan voort om weer te probeer.",
+  "weekStuck": "Hierdie week kan nie omgeslaan word nie en jou loopbaan is sedertdien nie gestoor nie. Stuur asseblief 'n foutverslag uit die Bestuurder-kieslys sodat dit reggemaak kan word.",
   "stageBAR": "Uitspeel",
   "stageQFShort": "KE",
   "stageSFShort": "HE",

@@ -201,6 +201,8 @@
     "saveFailBody": "Depuis votre dernière sauvegarde réussie, plus rien n'a été enregistré sur ce téléphone. En général, c'est que le téléphone est plein : libérez de la place, puis appuyez sur Réessayer.",
     "saveFailed": "Échec de la sauvegarde.",
     "saveFailedN": "Échec de la sauvegarde ({n} fois de suite).",
+    "weekRolledBack": "Un problème est survenu au passage de la semaine. Votre carrière est revenue à votre dernière sauvegarde : rien d'inachevé n'a été conservé. Appuyez sur Continuer pour réessayer.",
+    "weekStuck": "Cette semaine ne peut pas être passée et votre carrière n'a pas été sauvegardée depuis. Envoyez un rapport de bug depuis le menu Manager pour que ce soit corrigé.",
     "stageBAR": "Barrage",
     "stageQFShort": "QF",
     "stageSFShort": "DF",

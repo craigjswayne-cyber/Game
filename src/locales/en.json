@@ -195,6 +195,8 @@
   "saveFailBody": "Nothing since your last good save has been stored on this phone. It is usually a full phone: free up some space, then press Try again.",
   "saveFailed": "Save failed.",
   "saveFailedN": "Save failed ({n} in a row).",
+  "weekRolledBack": "Something went wrong turning the week. Your career is back at your last save, so nothing half-done was kept. Press Continue to try again.",
+  "weekStuck": "This week cannot be turned and your career has not been saved since. Please send a bug report from the Manager menu so it can be fixed.",
   "stageBAR": "Play-off",
   "stageQFShort": "QF",
   "stageSFShort": "SF",

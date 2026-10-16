@@ -118,6 +118,24 @@ function SaveWarning() {
   )
 }
 
+/** A week that threw on the way through (store.settleWeek): the career has
+ *  been put back to its last save, or, if that failed too, it is being held
+ *  unsaved so nothing half-turned overwrites anything. */
+function WeekWarning() {
+  const failed = useStore(s => s.weekFailed)
+  if (!failed) return null
+  return (
+    <div className="save-warn" role="alert">
+      <div>{t(failed === 2 ? 'common.weekStuck' : 'common.weekRolledBack')}</div>
+      {failed === 1 && (
+        <div className="save-warn-btns">
+          <button className="btn tiny ghost" onClick={() => useStore.getState().dismissWeekFailed()}>{t('common.hide')}</button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 /** The trophy moment, the promotion, the challenge completed.
  *
  *  This block used to sit in App's function body as an orphaned statement
@@ -233,6 +251,7 @@ function Overlays() {
   return (
     <>
       <SaveWarning />
+      <WeekWarning />
       <Tutorial />
       <Celebration />
       {/* Pro Manager, at most one card per match flow and only at a safe

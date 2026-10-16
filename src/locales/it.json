@@ -198,6 +198,8 @@
   "saveFailBody": "Dall'ultimo salvataggio riuscito, su questo telefono non è stato memorizzato nulla. Di solito il telefono è pieno: libera un po' di spazio, poi premi Riprova.",
   "saveFailed": "Salvataggio non riuscito.",
   "saveFailedN": "Salvataggio non riuscito ({n} di fila).",
+  "weekRolledBack": "Qualcosa è andato storto nel passaggio della settimana. La tua carriera è tornata all'ultimo salvataggio, quindi non è rimasto nulla a metà. Premi Continua per riprovare.",
+  "weekStuck": "Questa settimana non può essere completata e la tua carriera non è stata più salvata. Invia una segnalazione dal menu Manager così si può correggere.",
   "stageBAR": "Spareggio",
   "stageQFShort": "QF",
   "stageSFShort": "SF",
