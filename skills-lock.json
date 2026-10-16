@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "skills": {
+    "app-store-screenshots": {
+      "source": "ParthJadhav/app-store-screenshots",
+      "sourceType": "github",
+      "skillPath": "skills/app-store-screenshots/SKILL.md",
+      "computedHash": "f06a3a59823f99b21be0dd21e82575596b48cb404fd19a6a0db4cc37fba6c883"
+    },
+    "canvas-design": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/canvas-design/SKILL.md",
+      "computedHash": "3fa7ea60170023ad8268bf9fd734ea75dd404279a2ef8ddf5abaa1102ad8e5f4"
+    },
+    "transitions-dev": {
+      "source": "Jakubantalik/transitions.dev",
+      "sourceType": "github",
+      "skillPath": "skills/transitions-dev/SKILL.md",
+      "computedHash": "c7f9b40c6676ecc6d890db4ffecafa1ddebdb4ebaed3098521928e5115bd871f"
+    }
+  }
+}
