@@ -458,7 +458,7 @@ export default function Supporter() {
           <div className="btn-row" style={{ alignItems: 'stretch' }}>
             {/* the game's own dropdown (owner, 1.8.8: a bare <select> drew as a
                 pill with "Canada" hard against its left edge) */}
-            <select className="inline-input nat-pick" value={natPick} onChange={e => setNatPick(e.target.value)}>
+            <select className="inline-input nat-pick" value={natPick} aria-label={t('store.nationSelect')} onChange={e => setNatPick(e.target.value)}>
               {natOptions.map(([code]) => (
                 <option key={code} value={code}>{nationName(code)}</option>
               ))}

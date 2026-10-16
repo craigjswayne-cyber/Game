@@ -2806,6 +2806,7 @@
   "leaveItThere": "Leave it there",
   "meetTheirNumber": "Meet their number ({wage}/wk)",
   "campWants": "His camp wants {demand}/wk (he is on {wage}). Lowball at your peril.",
+  "yourOfferWage": "Your offer per week",
   "offerWage": "Offer £{amount}/wk",
   "walkAwayCaps": "Walk Away",
   "openContractTalks": "Open Contract Talks",
@@ -8532,6 +8533,7 @@
   "tillEmpty": "The store answered, but it has nothing on sale to this account yet, so nothing here can be bought for now. Nothing has been charged.",
   "tillPartial": "The store answered for {live} of {asked} products. The others may not be on sale to this account yet.",
   "pickNation": "Yours. Pick the country and take the job. It starts straight away.",
+  "nationSelect": "Country",
   "support": "Support the game",
   "supportLine": "A thank-you to the developer. It changes nothing in the game.",
   "supportThanks": {
@@ -8870,6 +8872,7 @@
  "search": {
   "anyAttr": "Attribute",
   "atLeast": "{n}+",
+  "attrMin": "Lowest rating",
   "view": "View",
   "view_general": "General",
   "view_contract": "Contract",

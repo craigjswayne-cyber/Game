@@ -261,7 +261,7 @@ function ScoutCommission() {
             {/* THE BRIEF ON ONE ROW, THE THREE TRIPS ON THE NEXT (owner, 1.5.8:
                 "all three buttons should be below on the same line"). Each
                 trip takes a third of the row, so they compare at a glance. */}
-            <select className="inline-input" style={{ margin: '0 0 8px', width: '100%' }} value={pos}
+            <select className="inline-input" style={{ margin: '0 0 8px', width: '100%' }} value={pos} aria-label={t('transfers.filterPosition')}
               onChange={e => setPos(e.target.value as Pos | 'any')}>
               <option value="any">{t('transfers.anyPosition')}</option>
               {POS_ORDER.map(p => <option key={p} value={p}>{posName(p)}</option>)}

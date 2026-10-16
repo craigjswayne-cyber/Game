@@ -324,8 +324,8 @@ export default function NewGame() {
                 the tiles at the bottom of it sat below the fold on a phone */}
             <div className="wiz-split narrow-left">
             <div className="card">
-              <label className="fact-label">{t('wizard.yourName')}</label>
-              <input className="inline-input" placeholder={t('wizard.namePlaceholder')}
+              <label className="fact-label" htmlFor="mgr-name">{t('wizard.yourName')}</label>
+              <input id="mgr-name" className="inline-input" placeholder={t('wizard.namePlaceholder')}
                 value={name} onChange={e => setName(e.target.value)}
                 onFocus={e => {
                   // keep the field visible above the software keyboard

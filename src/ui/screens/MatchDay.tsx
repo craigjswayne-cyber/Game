@@ -3149,6 +3149,7 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
             {t(s.label)}
           </span>
           <input type="range" min={0} max={100} value={club.tactic[s.key]} style={{ flex: 1, accentColor: 'var(--primary)' }}
+            aria-label={t(s.label)} aria-valuetext={`${club.tactic[s.key]}: ${sliderReadout(s.key, club.tactic[s.key])}`}
             onChange={e => { club.tactic[s.key] = Number(e.target.value); liveTactics(); touch() }} />
         </div>
       ))}
