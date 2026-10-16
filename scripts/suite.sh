@@ -124,6 +124,9 @@ echo "=== engine ==="
 i=0
 case "$MODE" in browser|smoke|soak) ENGINE=0;; *) ENGINE=1;; esac
 [ $ENGINE = 1 ] || echo "(skipped in $MODE mode)"
+# the vitest unit project (tests/). Unsharded runs only: the CI engine job
+# runs `npm test` as a step of its own on shard 1
+[ $ENGINE = 1 ] && [ -z "${SHARDS:-}" ] && run unit npm test
 [ $ENGINE = 0 ] || for f in scripts/*.ts; do
   n=$(basename "$f" .ts)
   [ "$n" = worldcheck ] && continue                       # a library, not a probe
