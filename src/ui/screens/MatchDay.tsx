@@ -44,7 +44,7 @@ import { dialLine, philosophyOf } from '../../game/philosophy'
 import { venueEffect } from '../../game/venue'
 import { sortTable } from '../../game/schedule'
 import { nationName } from '../../game/nations'
-import { kitColours, luma, pageSpares } from '../kit'
+import { kitColours, kitInk, luma, pageSpares } from '../kit'
 import { IcoFastForward, IcoPause, IcoPeople, IcoPlay } from '../icons'
 import { Glyph } from '../glyphs'
 import { rowNav } from '../rowNav'
@@ -1639,11 +1639,6 @@ const KICK_STYLE_LABEL: Record<string, string> = {
   attack: 'tacticsScreen.kickAttack', balanced: 'tacticsScreen.kickBalanced',
 }
 
-function contrastText(bg: string): string {
-  if (bg.replace('#', '').length < 6) return 'var(--prop-ink)'
-  return luma(bg) > 140 ? 'var(--prop-ink-dark)' : 'var(--prop-ink)'
-}
-
 function Live() {
   const game = useStore(s => s.game)!
   const live = useStore(s => s.liveMatch)!
@@ -1965,7 +1960,7 @@ function Live() {
     const [fill, edge] = e.teamId === fixture.awayId ? kits.away : kits.home
     const plain = !cls(e)
     return {
-      background: fill, color: contrastText(fill),
+      background: kitInk(fill).fill, color: kitInk(fill).ink,
       boxShadow: `inset 0 0 0 1px ${edge ?? 'var(--border-strong)'}`,
       ...(plain ? { borderLeftColor: edge ?? fill } : {}),
     }
@@ -1976,7 +1971,7 @@ function Live() {
   const flashStyle = (e: MatchEvent, i: number) => {
     if (i !== flash || !e.teamId) return undefined
     const fill = (e.teamId === fixture.awayId ? kits.away : kits.home)[0]
-    return { '--flash-bg': contrastText(fill), '--flash-fg': fill } as React.CSSProperties
+    return { '--flash-bg': kitInk(fill).ink, '--flash-fg': kitInk(fill).fill } as React.CSSProperties
   }
   /** An old line lets go of the fill and keeps its side as the stripe, the
    *  way FM's feed keeps a team colour beside a line it has moved past. */

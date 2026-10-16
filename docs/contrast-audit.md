@@ -44,6 +44,12 @@ What moved, and why:
   gold fill (white on it was 1.73 to 2.37:1 in the skins' daylight). Muted text
   on a picked `.club-pick` row reads in `--text-primary`.
 - New `--focus-ring` per palette; see the last four rows of each mode below.
+- Commentary lines wearing a club's kit pick their ink by WCAG ratio, not a
+  brightness guess, and a mid-tone kit is mixed a step toward the far ink
+  until its text reads at 4.5:1 (src/ui/kit.ts kitInk). Northampton's green
+  with white was 4.17:1, caught mid try-flash on the tour skin.
+
+Final sweep: 28,716 runs of text across 5 palettes x 2 themes, 0 below AA.
 
 scripts/skinprobe.ts now also asserts, for all ten palettes, the focus ring at
 3:1 on the canvas and every surface, `--on-hero` and `--on-hero-soft` at 4.5:1
