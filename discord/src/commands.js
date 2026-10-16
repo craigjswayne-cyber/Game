@@ -13,3 +13,14 @@ export const COMMANDS = [
     .setDescription('Build or top up the server layout (admins only)')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 ]
+
+// The default permission above only hides /setup in the command list: a server
+// owner can override it under Integrations, and Discord applies it, not the bot.
+// So the bot checks again itself before it builds anything.
+export const SETUP_PERMISSION = PermissionFlagsBits.ManageGuild
+export const SETUP_REFUSAL = 'Only members who can manage this server can run /setup.'
+
+/** True when the member behind this interaction may run /setup. */
+export function canRunSetup(i) {
+  return Boolean(i?.guild && i.memberPermissions?.has(SETUP_PERMISSION))
+}

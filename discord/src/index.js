@@ -5,6 +5,7 @@ import { Client, Events, GatewayIntentBits, MessageFlags } from 'discord.js'
 import { bugModal, submitBug } from './bug.js'
 import { clubMenu, findTeam, languagePanel, leagueMenu, startPanel } from './menus.js'
 import { clearTeams, explainRoleError, languagesOf, setLanguages, setTeam } from './roles.js'
+import { canRunSetup, SETUP_REFUSAL } from './commands.js'
 import { runSetup } from './setup.js'
 
 const token = process.env.DISCORD_TOKEN
@@ -25,6 +26,7 @@ client.on(Events.InteractionCreate, async i => {
       if (i.commandName === 'language') return i.reply({ ...languagePanel(languagesOf(i.member)), ...ephemeral })
       if (i.commandName === 'bug') return i.showModal(bugModal())
       if (i.commandName === 'setup') {
+        if (!canRunSetup(i)) return i.reply({ content: SETUP_REFUSAL, ...ephemeral })
         await i.deferReply(ephemeral)
         const made = await runSetup(i.guild, console.log)
         return i.editReply(made.length ? `Added: ${made.join(', ')}.` : 'Everything is already in place.')
