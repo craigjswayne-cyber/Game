@@ -1469,7 +1469,10 @@ export const useStore = create<Store>((set, get) => ({
       const step = liveMatch.mode === 'highlights'
         ? nextHighlight(ctx.events, cursor, liveMatch.fixture.homeId)
         : cursor + 1
-      set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch, cursor: step }, tick: s.tick + 1 } : {})
+      // NO TICK FOR A REVEAL (1.9.1). The line was simulated already, so the
+      // career has not changed: only the screens that read liveMatch need to
+      // draw, not the whole app shell under them, once per commentary line.
+      set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch, cursor: step } } : {})
       // THE REVEAL IS PROGRESS TOO. This branch used to return without writing
       // the record, so while the ticker read out a simulation burst the screen
       // ran ahead of what was on disk - and a reload mid-reveal came back a

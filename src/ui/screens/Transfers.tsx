@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useDeferredValue, useMemo, useState } from 'react'
 import { useStore } from '../../store'
 import { clubCode, fmtMoney, fmtWage, POS_ORDER, seasonLabel, type Attrs, type Pos } from '../../game/model'
 import { counterIncomingOffer, renewalDemand, respondToOffer, windowOpen } from '../../game/ai'
@@ -42,6 +42,10 @@ export default function Transfers() {
   const go = useStore(s => s.go)
   const [pos, setPos] = useState<Pos | 'ALL'>('ALL')
   const [query, setQuery] = useState('')
+  // THE BOX KEEPS UP WITH THE THUMB (1.9.1). Every letter filtered and sorted
+  // every player in the world before the box could show it; the search now
+  // runs on a deferred copy, so the letter lands first and the list follows.
+  const search = useDeferredValue(query)
   const [maxVal, setMaxVal] = useState(0)
   const [maxAge, setMaxAge] = useState(0)
   const [league, setLeague] = useState('ALL')
@@ -91,8 +95,8 @@ export default function Transfers() {
   // `game.week` exactly as they were and both lists below kept serving the
   // man who had just signed, until the week turned or the screen was left.
   const listedLoans = useMemo(() => new Set(loanTargets(game).map(p => p.id)), [game, game.week, tick])
-  const loanIds = useMemo(() => deal === 'loan' ? new Set(loanMarket(game, query).map(p => p.id)) : null,
-    [game, game.week, tick, deal, query])
+  const loanIds = useMemo(() => deal === 'loan' ? new Set(loanMarket(game, search).map(p => p.id)) : null,
+    [game, game.week, tick, deal, search])
   const offers = game.offers.filter(o => o.status === 'pending' && o.forUser)
 
   const MTh = ({ k, children, right }: { k: typeof msort; children: React.ReactNode; right?: boolean }) => (
@@ -103,7 +107,7 @@ export default function Transfers() {
   )
 
   const results = useMemo(() => {
-    const q = query.trim().toLowerCase()
+    const q = search.trim().toLowerCase()
     let list = Object.values(game.players).filter(p => p.clubId !== game.userClubId)
     // the engine's market (loans.loanMarket), not a second opinion of it
     if (loanIds) list = list.filter(p => loanIds.has(p.id))
@@ -132,7 +136,7 @@ export default function Transfers() {
       }
     })
     return list.slice(0, 120)
-  }, [game, game.players, game.clubs, pos, query, maxVal, maxAge, league, listedOnly, keenOnly, withInjured, expiringOnly, attrKey, attrMin, msort, mdesc, game.week, tick, deal, loanIds])
+  }, [game, game.players, game.clubs, pos, search, maxVal, maxAge, league, listedOnly, keenOnly, withInjured, expiringOnly, attrKey, attrMin, msort, mdesc, game.week, tick, deal, loanIds])
   const activeFilters = [deal === 'loan', pos !== 'ALL', league !== 'ALL', maxVal > 0, maxAge > 0, !!attrKey,
     listedOnly, keenOnly, expiringOnly, !withInjured].filter(Boolean).length
   const pages = Math.max(1, Math.ceil(results.length / PER_PAGE))
