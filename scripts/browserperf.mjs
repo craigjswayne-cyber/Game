@@ -1,6 +1,6 @@
 // Browser performance, two builds side by side, interleaved (release QA).
 //
-//   node scripts/qa/browserperf.mjs <dirA> <dirB> [rounds=3] [cpuThrottle=4]
+//   node scripts/browserperf.mjs <dirA> <dirB> [rounds=3] [cpuThrottle=4]
 //
 // Each dir is a checkout with a fresh `vite build` in dist/; both are served
 // with `vite preview` at once and measured in turn - A, B, A, B ... - so the

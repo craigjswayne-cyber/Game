@@ -10,15 +10,16 @@
  *  - a walkover is conceded only by a side with fewer than ten available
  *  - two different, existing teams, non-negative integer scores
  *
- *   npx vite-node scripts/qa2/engine10k.ts [matches] [seed]
+ *   npx vite-node scripts/engine10k.ts [matches] [seed]
  */
-import { newGame } from '../../src/game/newgame'
-import { processWeekAndAdvance } from '../../src/game/season'
-import { availablePlayers, FORFEIT_MIN, simMatch } from '../../src/game/matchEngine'
-import { mulberry32 } from '../../src/game/rng'
-import type { MatchEvent } from '../../src/game/model'
+import { newGame } from '../src/game/newgame'
+import { processWeekAndAdvance } from '../src/game/season'
+import { availablePlayers, FORFEIT_MIN, simMatch } from '../src/game/matchEngine'
+import { mulberry32 } from '../src/game/rng'
+import type { MatchEvent } from '../src/game/model'
 
-const TARGET = Number(process.argv[2] ?? 10000)
+// PROBE_QUICK (the Gate): four thousand, which still reaches a second season's play-offs
+const TARGET = Number(process.argv[2] ?? (process.env.PROBE_QUICK ? 4000 : 10000))
 const seed = Number(process.argv[3] ?? 99)
 const g = newGame('leicester', 'Engine', seed)
 const rng = mulberry32(seed * 7 + 1)
@@ -33,7 +34,18 @@ let n = 0
 const t0 = Date.now()
 while (n < TARGET && g.season < 14) {
   const wk = g.week
-  const fxs = g.fixtures.filter(f => f.week === wk && !f.played && g.clubs[f.homeId] && g.clubs[f.awayId])
+  // THE LAST LEAGUE ROUND BEFORE A PLAY-OFF IS LEFT TO THE GAME (1.9.1). This
+  // probe plays a week's fixtures itself, before processWeekAndAdvance, which
+  // the game never does for a whole round (MatchDay pre-plays one match, among
+  // others still to play). A round pre-played in full reads as "regular season
+  // done" to the week's first knockout draw, which runs before the week's
+  // results are tabled: the play-off was seeded from a table one round short,
+  // the semi-finals from the full one, and the Pacific Championship drew the
+  // Blues against themselves (seed 99, season 2). So the round that completes
+  // a play-off league is played by the game's own loop, as in a career.
+  const finalRound = new Set(Object.values(g.comps).filter(c => c.playoffTeams && c.type === 'league' &&
+    g.fixtures.every(f => f.compId !== c.id || f.stage || f.played || f.week === wk)).map(c => c.id))
+  const fxs = g.fixtures.filter(f => f.week === wk && !f.played && g.clubs[f.homeId] && g.clubs[f.awayId] && !(finalRound.has(f.compId) && !f.stage))
   for (const fx of fxs) {
     if (n >= TARGET) break
     const home = g.clubs[fx.homeId], away = g.clubs[fx.awayId]
@@ -41,7 +53,7 @@ while (n < TARGET && g.season < 14) {
     const avail = new Set([...availH, ...availA].map(p => p.id))
     const res = simMatch(g, fx, rng, true)
     n++
-    if (fx.homeId === fx.awayId) bad(`${fx.id}: a club drawn against itself`)
+    if (fx.homeId === fx.awayId) bad(`${fx.id}: a club drawn against itself (${fx.homeId}, ${fx.compId} ${fx.stage ?? `round ${fx.round}`}, season ${g.season} week ${fx.week})`)
     if (!Number.isInteger(fx.homeScore) || !Number.isInteger(fx.awayScore) || fx.homeScore < 0 || fx.awayScore < 0) bad(`${fx.id}: score ${fx.homeScore}-${fx.awayScore}`)
     if (!fx.played) bad(`${fx.id}: not marked played`)
     const ft = res.events.find((e: MatchEvent) => e.type === 'FT')

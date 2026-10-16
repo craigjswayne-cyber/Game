@@ -1,7 +1,7 @@
 // Headless performance over a long career, written to run unchanged in an older
 // release's worktree so the two builds can be compared on the same machine.
 //
-//   NODE_OPTIONS=--expose-gc npx vite-node scripts/qa/perfrun.ts -- <seasons=15> [seed] [m|w]
+//   NODE_OPTIONS=--expose-gc npx vite-node scripts/perfrun.ts -- <seasons=15> [seed] [m|w]
 //
 // Per season: wall time, mean / worst week, the rollover week, the save's JSON
 // size, save (stringify) and load (parse + migrate) time, heap after a forced
@@ -9,11 +9,11 @@
 // annals, players, fixtures). At seasons 0 and 10 the live match tick cost
 // (beginMatch + stepTick, mean and p99) is measured on the user's fixture.
 // Prints one PERF line per season as JSON for the comparison script.
-import { migrate } from '../../src/game/save'
-import * as ME from '../../src/game/matchEngine'
-import * as SEASON from '../../src/game/season'
-import type { GameState } from '../../src/game/model'
-import { peekPid, resetIds } from '../../src/game/attributes'
+import { migrate } from '../src/game/save'
+import * as ME from '../src/game/matchEngine'
+import * as SEASON from '../src/game/season'
+import type { GameState } from '../src/game/model'
+import { peekPid, resetIds } from '../src/game/attributes'
 process.env.SAVEGEN_LIB = '1'
 const { playWeek, startCareer } = await import('./savegen')
 

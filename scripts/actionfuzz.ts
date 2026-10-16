@@ -17,22 +17,22 @@
  *   - the squad never drops below the board's floor or above the registration
  *     limit through a user action
  *
- *   npx vite-node scripts/qa2/fuzz.ts [actions=1500] [seed=1]
+ *   npx vite-node scripts/actionfuzz.ts [actions=1500] [seed=1]
  *
  * A gate: the first broken invariant names the action that broke it.
  */
-import { newGame } from '../../src/game/newgame'
-import { processWeekAndAdvance, requestExpansion, requestFacility, requestFunds, arrangeMidweekFriendly, friendlySuggestions, friendlyWeeks } from '../../src/game/season'
-import { agreeFee, offerRenewal, respondToOffer, signFreeAgent, signOnTerms, userBid, SQUAD_LIMIT } from '../../src/game/ai'
-import { releasePlayer } from '../../src/game/release'
-import { loanIn, loanOut, loanRecall, loanTargets } from '../../src/game/loans'
-import { appointStaff, sackStaff, sendToCourse, staffCandidates, type StaffRole } from '../../src/game/staff'
-import { releasable, releaseToBudget } from '../../src/game/treasury'
-import { applyInjection, injectionCash } from '../../src/game/grants'
-import { commissionScout } from '../../src/game/commission'
-import { answerPress } from '../../src/game/media'
-import { mulberry32 } from '../../src/game/rng'
-import { type FacilityId } from '../../src/game/model'
+import { newGame } from '../src/game/newgame'
+import { processWeekAndAdvance, requestExpansion, requestFacility, requestFunds, arrangeMidweekFriendly, friendlySuggestions, friendlyWeeks } from '../src/game/season'
+import { agreeFee, offerRenewal, respondToOffer, signFreeAgent, signOnTerms, userBid, SQUAD_LIMIT } from '../src/game/ai'
+import { releasePlayer } from '../src/game/release'
+import { loanIn, loanOut, loanRecall, loanTargets } from '../src/game/loans'
+import { appointStaff, sackStaff, sendToCourse, staffCandidates, type StaffRole } from '../src/game/staff'
+import { releasable, releaseToBudget } from '../src/game/treasury'
+import { applyInjection, injectionCash } from '../src/game/grants'
+import { commissionScout } from '../src/game/commission'
+import { answerPress } from '../src/game/media'
+import { mulberry32 } from '../src/game/rng'
+import { type FacilityId } from '../src/game/model'
 const RELEASE_STEP = 500_000
 
 const ACTIONS = Number(process.argv[2] ?? 1500)

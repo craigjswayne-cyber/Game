@@ -4,18 +4,18 @@
  * seasons 1, 3, 5, 10 and 15, and the save put through a JSON round trip at
  * each checkpoint.
  *
- *   npx vite-node scripts/qa2/matrix.ts            both worlds, 3 seeds, 15 seasons
- *   npx vite-node scripts/qa2/matrix.ts w 1 5      women, one seed, five seasons
+ *   npx vite-node scripts/runtimematrix.ts            both worlds, 3 seeds, 15 seasons
+ *   npx vite-node scripts/runtimematrix.ts w 1 5      women, one seed, five seasons
  *
  * A gate: any failed invariant exits 1. Durations are printed per run so the
  * report can quote them.
  */
-import { newGame } from '../../src/game/newgame'
-import { processWeekAndAdvance } from '../../src/game/season'
-import { validateCalendar, type CalWorld } from '../../src/game/calendar'
-import { nationByCode } from '../../src/game/nations'
-import { genderOf } from '../../src/game/gender'
-import { SEASON_WEEKS, type GameState } from '../../src/game/model'
+import { newGame } from '../src/game/newgame'
+import { processWeekAndAdvance } from '../src/game/season'
+import { validateCalendar, type CalWorld } from '../src/game/calendar'
+import { nationByCode } from '../src/game/nations'
+import { genderOf } from '../src/game/gender'
+import { SEASON_WEEKS, type GameState } from '../src/game/model'
 
 const genders = (process.argv[2] ?? 'mw').split('') as ('m' | 'w')[]
 const seedCount = Number(process.argv[3] ?? 3)

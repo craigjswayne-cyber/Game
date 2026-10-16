@@ -6,7 +6,7 @@
 // release's worktree (1.8.2-1.8.4) and produce that release's own saves:
 // every newer hook is looked up at runtime and skipped when absent.
 //
-//   npx vite-node scripts/qa/savegen.ts -- <out.json> <weeks> [m|w] [seed]
+//   npx vite-node scripts/lib/savegen.ts -- <out.json> <weeks> [m|w] [seed]
 import { writeFileSync } from 'node:fs'
 import * as NG from '../../src/game/newgame'
 import * as SEASON from '../../src/game/season'
