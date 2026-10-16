@@ -1,10 +1,10 @@
 // Persona probe: drive the STORE like a player for N seasons, audit each week,
 // and compare a run with a JSON save/reload every week against a run without.
-import { newGame } from '../../src/game/newgame'
-import { useStore } from '../../src/store'
-import { migrate } from '../../src/game/save'
-import { respondToOffer } from '../../src/game/ai'
-import type { GameState } from '../../src/game/model'
+import { newGame } from '../src/game/newgame'
+import { useStore } from '../src/store'
+import { migrate } from '../src/game/save'
+import { respondToOffer } from '../src/game/ai'
+import type { GameState } from '../src/game/model'
 
 const SEASONS = Number(process.argv[2] ?? 2)
 const SEED = Number(process.argv[3] ?? 777)
@@ -144,4 +144,5 @@ console.log(`A results ${A.results.length}, B results ${B.results.length}, diffe
 if (diff.length) console.log('  first diffs: ' + diff.slice(0, 5).join(' | ') + ' vs ' + B.results.filter((r, i) => A.results[i] !== r).slice(0, 5).join(' | '))
 const g = G()
 console.log(`final: season ${g.season} week ${g.week} club ${g.userClubId} unemployed ${g.unemployed} balance ${g.clubs[g.userClubId]?.balance} players ${Object.keys(g.players).length}`)
-console.log(fails ? `PERSONA FAILED (${fails})` : 'PERSONA PASSED')
+console.log(fails ? `\nPERSONA FAILED (${fails})` : '\nPERSONA PASSED')
+process.exitCode = fails ? 1 : 0

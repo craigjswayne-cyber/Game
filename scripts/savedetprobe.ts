@@ -3,13 +3,13 @@
 // save file. Prints the pre-week difference (what the load changed) and the
 // post-week difference (what that did to the world).
 //
-//   npx vite-node scripts/qa/savedet.ts -- [save.json or ""] [weeks=30]
+//   npx vite-node scripts/savedetprobe.ts -- [save.json or ""] [weeks=30]
 import { readFileSync } from 'node:fs'
-import { migrate } from '../../src/game/save'
-import type { GameState } from '../../src/game/model'
-import { peekPid, resetIds } from '../../src/game/attributes'
+import { migrate } from '../src/game/save'
+import type { GameState } from '../src/game/model'
+import { peekPid, resetIds } from '../src/game/attributes'
 process.env.SAVEGEN_LIB = '1'
-const { playWeek, startCareer } = await import('./savegen')
+const { playWeek, startCareer } = await import('./lib/savegen')
 
 /** JSON with every object's keys sorted: a property deleted and re-added in
  *  the same week moves to the end of its object, which is not a difference
@@ -65,4 +65,4 @@ for (let w = 0; w < WEEKS; w++) {
   B = migrate(JSON.parse(sb)) as GameState
   pidB = peekPid()
 }
-console.log(`IDENTICAL over ${WEEKS} weeks with a save/load every week`)
+console.log(`\nSAVE DET PROBE PASSED: identical over ${WEEKS} weeks with a save/load every week`)

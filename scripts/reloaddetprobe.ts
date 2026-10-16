@@ -1,13 +1,20 @@
 // Engine-only determinism: does a JSON save/reload each week change the simulation?
-import { newGame } from '../../src/game/newgame'
-import { processWeekAndAdvance, userFixtureThisWeek, weekRng } from '../../src/game/season'
-import { simMatch } from '../../src/game/matchEngine'
-import { answerPress } from '../../src/game/media'
-import { migrate } from '../../src/game/save'
-import type { GameState } from '../../src/game/model'
-import { resetIds } from '../../src/game/attributes'
+// Two careers from one seed, one of them saved and loaded (JSON, then migrate)
+// after every week; the played scores, every club's balance, the id counter and
+// the player count must agree week after week. Exits 1 at the first divergence.
+// (Was scripts/qa/determinism.ts, a printout no suite ran.)
+//
+//   npx vite-node scripts/reloaddetprobe.ts [weeks=60] [seed=777] [json|migrate]
+//   PROBE_QUICK=1 plays 30 weeks.
+import { newGame } from '../src/game/newgame'
+import { processWeekAndAdvance, userFixtureThisWeek, weekRng } from '../src/game/season'
+import { simMatch } from '../src/game/matchEngine'
+import { answerPress } from '../src/game/media'
+import { migrate } from '../src/game/save'
+import type { GameState } from '../src/game/model'
+import { resetIds } from '../src/game/attributes'
 
-const WEEKS = Number(process.argv[2] ?? 60)
+const WEEKS = Number(process.argv[2] ?? (process.env.PROBE_QUICK ? 30 : 60))
 const SEED = Number(process.argv[3] ?? 777)
 const MODE = process.argv[4] ?? 'migrate' // 'json' = plain roundtrip, 'migrate' = roundtrip + migrate
 function week(g: GameState) {
@@ -65,4 +72,5 @@ for (let w = 0; w < WEEKS; w++) {
   const json = JSON.stringify(B)
   B = MODE === 'migrate' ? migrate(JSON.parse(json)) : JSON.parse(json)
 }
-console.log(firstDiv < 0 ? `DETERMINISTIC over ${WEEKS} weeks (${MODE})` : `NON-DETERMINISTIC at step ${firstDiv} (${MODE})`)
+console.log(firstDiv < 0 ? `\nRELOAD DET PROBE PASSED: deterministic over ${WEEKS} weeks (${MODE})` : `\nRELOAD DET PROBE FAILED: non-deterministic at step ${firstDiv} (${MODE})`)
+process.exitCode = firstDiv < 0 ? 0 : 1

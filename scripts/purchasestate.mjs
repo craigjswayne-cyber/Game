@@ -11,9 +11,9 @@
 // credit that waits - through all of the above - until a career collects it.
 //
 // The bridge is injected with addInitScript exactly as storeprobe does.
-// Run: node scripts/qa/purchasestate.mjs   (needs a fresh build)
+// Run: node scripts/purchasestate.mjs   (needs a fresh build)
 import { chromium } from 'playwright-core'
-import { startPreview } from '../lib/preview.mjs'
+import { startPreview } from './lib/preview.mjs'
 import { writeFileSync, mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
