@@ -61,7 +61,7 @@ Owner column: **O** = owner (needs a human, an account, money or a signature) ·
 - 🟢 Determinism gate: `scripts/fingerprint.ts`; 300+ probes in `scripts/`, `scripts/suite.sh` (fast / browser / all).
 - 🟢 CI: `.github/workflows/ci.yml`, 8 engine + 3 browser shards on push, PR, nightly, dispatch. VERIFY: GitHub-hosted runners were often unavailable on 5 Oct; shards were completed locally.
 - 🟢 Crash handling: `src/ui/ErrorBoundary.tsx` + `recordCrash` in `src/game/bugreport.ts`; in-game Report a Bug screen (mail, Discord, crash record).
-- 🟢 Saves: on device, flushed on pagehide/visibilitychange; migrations; savefuzz/migratetest probes.
+- 🟢 Saves: on device, flushed on pagehide/visibilitychange; migrations; savefuzz probe and the migrate unit test (tests/migrate.test.ts).
 - 🟢 Android shell: `packaging/android/scaffold.sh` (Capacitor 8.5.0, Play Billing 8.0.0, AdMob 8.1.0), `MainActivity.java` (Back handler, keep screen on), `PhaseBilling.java`, `PLAY-WALKTHROUGH.md`, `PLAY-ORG-MOVE.md`.
 - 🟢 iOS shell: `packaging/ios/scaffold.sh`, `PhaseBilling.swift`, `Products.storekit`, `APP-STORE-WALKTHROUGH.md`, `APP-REVIEW-REPLY.md`.
 - 🟢 Version metadata: `package.json`, `packaging/android/version.json` (code history; Console's highest accepted code was 36 on 29 Sep).

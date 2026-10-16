@@ -2,20 +2,28 @@
 // something changed the sim's rng consumption - either a bug, or a deliberate
 // mechanical change that must update EXPECTED below in the same commit.
 // Commentary/flavour additions must NEVER move these numbers (EK/ER lessons).
+//
+// Also run by vitest (tests/fingerprint.test.ts imports fingerprint() and
+// EXPECTED from here), so there is one baseline and one history of it. Under
+// vitest the command-line verdict at the bottom is skipped.
 import { newGame } from '../src/game/newgame'
 import { simMatch } from '../src/game/matchEngine'
 import { mulberry32 } from '../src/game/rng'
 
-const g = newGame('leicester', 'Fingerprint', 424242)
-const league = g.fixtures.filter(f => f.week >= 4 && f.week <= 8 && g.clubs[f.homeId] && g.clubs[f.awayId])
-const picks = league.slice(0, 6)
-const results: string[] = []
-picks.forEach((fx, i) => {
-  simMatch(g, fx, mulberry32(1000 + i), i < 3) // 3 detailed, 3 quick
-  results.push(`${fx.homeId} ${fx.homeScore}-${fx.awayScore} ${fx.awayId}`)
-})
+/** The six fixed-seed results, in order, as 'home H-A away'. */
+export function fingerprint(): string[] {
+  const g = newGame('leicester', 'Fingerprint', 424242)
+  const league = g.fixtures.filter(f => f.week >= 4 && f.week <= 8 && g.clubs[f.homeId] && g.clubs[f.awayId])
+  const picks = league.slice(0, 6)
+  const results: string[] = []
+  picks.forEach((fx, i) => {
+    simMatch(g, fx, mulberry32(1000 + i), i < 3) // 3 detailed, 3 quick
+    results.push(`${fx.homeId} ${fx.homeScore}-${fx.awayScore} ${fx.awayId}`)
+  })
+  return results
+}
 
-const EXPECTED: string[] = [
+export const EXPECTED: string[] = [
   // REBASELINED for 1.9.0: the set piece is played and a man tires by his own
   // work (matchEngine.ts setPieceContest, roleDrain). Scrums and lineouts are
   // contested each tick on their own stream (incRng salt 0x5E7), so the main
@@ -733,7 +741,10 @@ const EXPECTED: string[] = [
 // and a full season of each on four seeds moved the manager's league margin
 // only inside its own noise (about two points a match either way).
 
-if (EXPECTED[0] === '@@EXPECTED@@') {
+const results = process.env.VITEST ? [] : fingerprint()
+if (process.env.VITEST) {
+  // imported by tests/fingerprint.test.ts: the test gives the verdict
+} else if (EXPECTED[0] === '@@EXPECTED@@') {
   console.log('BASELINE (paste into EXPECTED):')
   for (const r of results) console.log(`  '${r}',`)
 } else {
