@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { version } from './package.json'
+import pkg from './package.json' with { type: 'json' }
+const { version } = pkg
 
 // This file compiles under tsconfig.node.json, which has no @types/node: the
 // project has never needed them and one string is not a reason to start. So the
