@@ -33,6 +33,9 @@ export default function Saves() {
   const copy = () => useStore.getState().saveCopy() ?? game
 
   const doSave = async (slot: string) => {
+    // a week that threw and could not be put back: the career in memory is
+    // half-turned, and a manual save is the one write that would keep it
+    if (useStore.getState().weekFailed === 2) { setMsg(t('common.weekStuck')); return }
     try {
       await saveGame(slot, copy())
     } catch (e) {
