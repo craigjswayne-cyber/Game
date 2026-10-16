@@ -4,7 +4,7 @@ import type { GameState, Player } from './model'
 import { absWeek, SEASON_WEEKS, fmtWage, leagueTier } from './model'
 import { autoSelect } from './matchEngine'
 import { t, tIn, type Vars } from './i18n'
-import { clamp, mulberry32 } from './rng'
+import { clamp, mulberry32, cmpStr } from './rng'
 import { isDerby } from './rivalries'
 import { askingPrice, capBill, capBreak, capWage, embargoed, executeTransfer, squadFull, windowOpen } from './ai'
 import { userWageBudget } from './grants'
@@ -335,7 +335,7 @@ export function loanOut(state: GameState, playerId: number): LoanReply {
   // appear in their fixtures - but a loan to Bedford reads like a loan.
   const feeders = Object.values(state.clubs)
     .filter(c => c.rep <= (club?.rep ?? 60) - 15 && c.id !== state.userClubId)
-    .sort((a, b) => a.id.localeCompare(b.id))
+    .sort((a, b) => cmpStr(a.id, b.id))
   const feeder = feeders.length ? feeders[Math.floor(mulberry32(state.seed + p.id * 7)() * feeders.length)] : null
   p.loanClub = feeder?.id
   state.news.push({

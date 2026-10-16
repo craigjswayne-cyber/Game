@@ -33,7 +33,7 @@ import { telling, tellingsOf } from './tellings'
 import type { Club, GameState, Player, Pos, TableRow } from './model'
 import { genderOf, subjectVar } from './gender'
 import { t, type Vars } from './i18n'
-import { clamp, mulberry32, type Rng } from './rng'
+import { clamp, cmpStr, mulberry32, shuffled, type Rng } from './rng'
 import { facLevel, SEASON_WEEKS, XV_SLOTS } from './model'
 import { settleAcadCalls } from './acadcall'
 // A League fixtures share the senior league's match weeks: in the real game the A
@@ -233,7 +233,7 @@ export function academyStrength(state: GameState, club: Club, rot = 0): number {
 /** Berger round robin, doubled. Local rather than schedule.ts's because that one
  *  writes Fixture rows into state.fixtures, which is exactly what this must not do. */
 function pairings(ids: string[], rng: Rng): [string, string][][] {
-  const list = [...ids].sort(() => rng() - 0.5)
+  const list = shuffled(rng, ids)
   if (list.length % 2 === 1) list.push('')
   const m = list.length
   const rounds: [string, string][][] = []
@@ -446,7 +446,7 @@ function applyAcadTable(l: AcadLeague, fx: AcadFixture) {
 
 export function acadStandings(l: AcadLeague): TableRow[] {
   return [...l.table].sort((a, b) =>
-    b.pts - a.pts || (b.pf - b.pa) - (a.pf - a.pa) || b.pf - a.pf || a.teamId.localeCompare(b.teamId))
+    b.pts - a.pts || (b.pf - b.pa) - (a.pf - a.pa) || b.pf - a.pf || cmpStr(a.teamId, b.teamId))
 }
 
 const clubName = (state: GameState, id: string) => state.clubs[id]?.short ?? id

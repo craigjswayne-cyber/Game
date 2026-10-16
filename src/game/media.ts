@@ -11,7 +11,7 @@ import { nationByCode, nationNameIn, nationVars } from './nations'
 import { applyResponse } from './authority'
 import { settleTalk } from './talkback'
 import { applyMoodAnswer, moodRoom, settlePressMood, userResults, trailingRun } from './pressmood'
-import { clamp, pick, type Rng } from './rng'
+import { clamp, pick, type Rng, cmpStr } from './rng'
 import { tIn, type Vars } from './i18n'
 import { clubGamesPlayed, competitiveMatchIn } from './handshake'
 
@@ -885,7 +885,7 @@ export function generatePress(state: GameState, rng: Rng) {
       // the best man in the side, and a club at least as big as this one
       const star = squad.filter(q => xvIds.includes(q.id) && !q.onLoan).sort((a, b) => b.ca - a.ca)[0]
       const suitors = Object.values(state.clubs).filter(c => c.id !== club.id && c.rep >= club.rep && c.leagueId)
-        .sort((a, b) => a.id.localeCompare(b.id))
+        .sort((a, b) => cmpStr(a.id, b.id))
       const suitor = suitors.length ? suitors[(state.season * 7 + state.week) % suitors.length] : null
       if (star && suitor) pool.push(() => mk(state,
         { k: voice(52 + star.id, ['press.baroSuitorQ1', 'press.baroSuitorQ2']), v: { player: star.name, club: suitor.name } },
