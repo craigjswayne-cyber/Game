@@ -17,9 +17,11 @@ export default function Tutorial() {
   if (!tut) return null
 
   return (
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
     <div className="tut-veil" onClick={close}>
       {/* the box swallows its own taps: with a scrolling panel, closing on any
           touch inside would fire the moment you tried to read past the fold */}
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
       <div className="tut-box" onClick={e => e.stopPropagation()}>
         {/* ---- plain words, short sentences, one idea each ----
             The old version explained four systems at once in sentences with

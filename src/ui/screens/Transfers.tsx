@@ -11,6 +11,7 @@ import { attrName, posName, t, compLabel } from '../../game/i18n'
 import { userWageBudget } from '../../game/grants'
 import { transferInterest } from '../../game/interest'
 import { ScoutingBody } from './Scouting'
+import { ariaSort, rowNav } from '../rowNav'
 
 /** The classic search screen's views (1.8.0): which columns the table shows. */
 type SearchView = 'general' | 'contract' | 'physical' | 'setpiece' | 'handling' | 'mind'
@@ -97,8 +98,11 @@ export default function Transfers() {
 
   const MTh = ({ k, children, right }: { k: typeof msort; children: React.ReactNode; right?: boolean }) => (
     <th className={`th-sort${msort === k ? ' active' : ''}${right ? ' num' : ''}`}
-      onClick={() => (msort === k ? setMdesc(!mdesc) : (setMsort(k), setMdesc(false)))}>
-      {children}{msort === k ? (mdesc ? ' ▴' : ' ▾') : ''}
+      aria-sort={ariaSort(msort === k, mdesc, k === 'age' || k === 'name')}>
+      <button type="button" className="th-btn"
+        onClick={() => (msort === k ? setMdesc(!mdesc) : (setMsort(k), setMdesc(false)))}>
+        {children}{msort === k ? (mdesc ? ' ▴' : ' ▾') : ''}
+      </button>
     </th>
   )
 
@@ -190,7 +194,7 @@ export default function Transfers() {
               const gazumped = committed.has(p.id)
               const demand = renewalDemand(p)
               return (
-                <div key={p.id} className="row-item" onClick={() => go('player', p.id)}
+                <div key={p.id} className="row-item" {...rowNav(() => go('player', p.id))}
                   style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}>
                   <PosBadge pos={p.pos} />
                   {/* THE NAME GIVES WAY, NOT THE VERDICT. "signed elsewhere"
@@ -221,7 +225,7 @@ export default function Transfers() {
               <>
                 <SectionTitle sub={t('transfers.arrivingSummerSub')}>{t('transfers.arrivingSummer')}</SectionTitle>
                 {incoming.map(p => (
-                  <div key={p.id} className="row-item" onClick={() => go('player', p.id)}
+                  <div key={p.id} className="row-item" {...rowNav(() => go('player', p.id))}
                     style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}>
                     <PosBadge pos={p.pos} />
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -283,7 +287,9 @@ export default function Transfers() {
         const reply = msg?.key === `loan:${loanDeal.id}` ? msg.text : null
         const gone = !lp || lp.clubId === game.userClubId
         return (
+          // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
           <div className="modal-veil" onClick={() => setLoanDeal(null)}>
+            {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
             <div className="modal loan-sheet" onClick={e => e.stopPropagation()}>
               <div className="grab" />
               <SectionTitle sub={parent ? t('transfers.loanSheetSub', { club: parent.name }) : ''}>{lp?.name ?? ''}</SectionTitle>
@@ -356,7 +362,9 @@ export default function Transfers() {
         </select>
       </div>
       {filtersOpen && (
+        // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
         <div className="modal-veil" onClick={() => setFiltersOpen(false)}>
+          {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
           <div className="modal filter-sheet" onClick={e => e.stopPropagation()}>
             <div className="grab" />
             <h3>{t('search.filters')}</h3>
@@ -450,7 +458,7 @@ export default function Transfers() {
             </td></tr>
           )}
           {pageRows.map(p => (
-            <tr key={p.id} onClick={() => openRow(p.id)}>
+            <tr key={p.id} {...rowNav(() => openRow(p.id))}>
               <td><PosBadge pos={p.pos} /></td>
               <td className="name" title={p.name}>{initialName(p.name)}{p.injury && <> <Mark name="medical" color="var(--danger)" title={t('selection.injured')} /></>}</td>
               {view === 'contract'
@@ -486,7 +494,7 @@ export default function Transfers() {
             </td></tr>
           )}
           {pageRows.map(p => (
-            <tr key={p.id} onClick={() => openRow(p.id)}>
+            <tr key={p.id} {...rowNav(() => openRow(p.id))}>
               <td><PosBadge pos={p.pos} /></td>
               <td className="name" title={p.name}>{initialName(p.name)}{deal === 'transfer' && p.transferListed && <> <Mark name="tag" color="var(--gold)" title={t('player.transferListed')} /></>}{deal === 'loan' && !listedLoans.has(p.id) ? <span className="muted"> {t('transfers.loanAskTag')}</span> : ''}</td>
               <td className="num">{p.age}</td>

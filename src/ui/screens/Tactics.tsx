@@ -21,6 +21,7 @@ import { OppReportCard, ResponsePlans, usePrepOpponent } from '../OppReport'
 import MovesSection from '../MovesSection'
 import StylesSection from '../StylesSection'
 import { atkName, defName, stylesOf } from '../../game/styles'
+import { rowNav } from '../rowNav'
 
 /** The Tactics screen: HOW the side plays. Roles on a pitch, the set-piece
  *  playbook, the bench shape, the week's preparation and the game plan.
@@ -177,7 +178,9 @@ export default function Tactics({ initial }: { initial?: string } = {}) {
     const roles = rolesForSlot(roleSlot)
     const current = tac.roles?.[roleSlot] ?? null
     return (
+      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
       <div className="modal-veil" onClick={() => setRoleSlot(null)}>
+        {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
         <div className="modal" onClick={e => e.stopPropagation()}>
           <div className="grab" />
           <div style={{ padding: '0 14px 10px' }}>
@@ -389,14 +392,16 @@ export default function Tactics({ initial }: { initial?: string } = {}) {
           const cur = (tac.kickers ?? [])[kickSlot] ?? null
           const title = t(kickSlot === 0 ? 'tacticsScreen.first' : 'tacticsScreen.second')
           return (
+            // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
             <div className="modal-veil" onClick={() => setKickSlot(null)}>
+              {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
               <div className="modal lead-sheet" role="dialog" aria-label={title} onClick={e => e.stopPropagation()}>
                 <div className="grab" />
                 <SectionTitle sub={t('tacticsScreen.kickerSheetSub')}>{t('tacticsScreen.goalKickers')}: {title}</SectionTitle>
                 <div className="lead-list">
                   <table className="dtable"><tbody>
                     {squad.map(p => (
-                      <tr key={p.id} className={p.id === cur ? 'sel' : undefined} onClick={() => setKicker(p.id)}>
+                      <tr key={p.id} className={p.id === cur ? 'sel' : undefined} {...rowNav(() => setKicker(p.id))}>
                         <td><PosBadge pos={p.pos} /></td>
                         <td className="name">{p.name}</td>
                         <td className="lead-bar"><span style={{ width: `${p.a.goa * 5}%` }} /></td>
@@ -647,7 +652,7 @@ export default function Tactics({ initial }: { initial?: string } = {}) {
                 const on = game.matchPrep === k
                 const I = PREP_ICON[k]
                 return (
-                  <button key={k} className={`speech-tile prep-card${on ? ' sel' : ''}`} role="radio" aria-checked={on} aria-pressed={on} data-prep={k}
+                  <button key={k} className={`speech-tile prep-card${on ? ' sel' : ''}`} role="radio" aria-checked={on} data-prep={k}
                     onClick={() => { game.matchPrep = game.matchPrep === k ? undefined : k; touch() }}>
                     <span className="prep-ico"><I /></span>
                     <b>{prepLabel(k)}</b>

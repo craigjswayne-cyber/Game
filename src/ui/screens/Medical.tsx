@@ -10,6 +10,7 @@ import { rewardedAvailable } from '../../game/monetise'
 import { PosBadge, SectionTitle, RewardedButton, Stars } from '../components'
 import FullFitness from '../FullFitness'
 import { t } from '../../game/i18n'
+import { rowNav } from '../rowNav'
 
 /** The Medical Centre: who's out, who's rusty, who's running on fumes. */
 export default function Medical() {
@@ -57,7 +58,6 @@ export default function Medical() {
       if (inj && !inj.seen) { inj.seen = true; fresh++ }
     }
     if (fresh) touch()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // empty sections say nothing at all - six headers of "nobody" was noise.
@@ -78,7 +78,7 @@ export default function Medical() {
             const { pill, info, extra, act, note } = render(p)
             const acts = (act ?? []).filter(Boolean)
             return (
-              <div key={p.id} className="card med-card" onClick={() => go('player', p.id)}>
+              <div key={p.id} className="card med-card" {...rowNav(() => go('player', p.id))}>
                 <div className="med-head">
                   <PosBadge pos={p.pos} />
                   <span className="med-name">{p.name}</span>
@@ -259,7 +259,9 @@ export default function Medical() {
       }))}
       <div className="spacer" />
       {jokerHurt && (
+        // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
         <div className="modal-veil" onClick={() => setJokerHurt(null)}>
+          {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="grab" />
             <div style={{ padding: '0 16px' }}>
