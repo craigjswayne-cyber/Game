@@ -134,6 +134,11 @@ export default function NewGame() {
     // the ambition is stamped on the save the moment the career begins, and
     // never moves again: it is what this save is FOR
     if (g && ambitions.length) setAmbitions(g, ambitions)
+    // AND SAVED (1.9.1). start() has already asked for its first write, so
+    // the plan and the ambition reached the disk only because that write
+    // happened to wait a tick for the database. Marked here, they go in the
+    // next write whatever its timing.
+    if (g) void useStore.getState().persist()
   }
   const prev = () => {
     if (step === 0) { back(); return }

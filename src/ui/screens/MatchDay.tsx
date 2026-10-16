@@ -1339,11 +1339,19 @@ function NationPreview({ fxId }: { fxId: number }) {
   const [sel, setSel] = useState<number | null>(null)
   const [pickSlot, setPickSlot] = useState<number | null>(null)
 
-  // the coach's Test 23: saved selection if valid, otherwise the selectors' XV
-  if (!game.natLineup || game.natLineup.team !== nat) {
-    game.natLineup = { team: nat, lineup: autoSelect(game, availablePlayers(game, rosterOf(game, nat), true)) }
-  }
-  const myLineup = game.natLineup.lineup
+  // the coach's Test 23: saved selection if valid, otherwise the selectors' XV.
+  // NOT WRITTEN DURING RENDER (1.9.1). This assigned game.natLineup in the
+  // body of the component, which React may run more than once and which never
+  // marked the save: the selectors' XV is shown from a memo, and stored (and
+  // saved) after the render has committed.
+  const selectorsXV = useMemo(() => autoSelect(game, availablePlayers(game, rosterOf(game, nat), true)), [game, nat])
+  const myLineup = game.natLineup?.team === nat ? game.natLineup.lineup : selectorsXV
+  useEffect(() => {
+    if (game.natLineup?.team !== nat) {
+      game.natLineup = { team: nat, lineup: selectorsXV }
+      useStore.getState().touch()
+    }
+  }, [game, nat, selectorsXV])
   const oppLineup = useMemo(() => autoSelect(game, availablePlayers(game, rosterOf(game, opp), true)), [game, opp])
   const myUnits = teamUnits(game, myLineup)
   const oppUnits = teamUnits(game, oppLineup)

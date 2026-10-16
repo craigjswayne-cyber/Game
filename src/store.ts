@@ -143,17 +143,6 @@ function countForPro(g: GameState, fx: Pick<Fixture, 'id' | 'compId'> | null | u
  */
 export const TAP_GUARD_MS = 220
 
-/**
- * How many stories the desk gate may insist on in one week before it relents.
- *
- * An ordinary week writes four or five (soakui measures 4.4 bulletins a week
- * over 218 weeks), so in the weeks the user was complaining about this is never
- * reached and the desk really is cleared before the match. A season rollover
- * writes fifty-four in one settle, and there the budget is what stops the game
- * asking for fifty-four taps. Exported so scripts/deskgate.mjs asserts against
- * the same number rather than a copy of it.
- */
-
 export type Screen =
   | 'menu' | 'newgame' | 'home' | 'inbox' | 'squad' | 'player' | 'tactics' | 'fixtures'
   | 'tables' | 'transfers' | 'training' | 'finances' | 'club' | 'matchday'
@@ -1169,30 +1158,11 @@ export const useStore = create<Store>((set, get) => ({
           return
         }
       }
-      // THE PRESS HOLD YIELDS ON THE SECOND TAP, AND IT HAS TO.
-      //
-      // The first draft held the week until every question was answered, and
-      // scripts/soakui.mjs found the consequence within one season: 60 taps
-      // without the week moving, stuck on the Press Room at season 2 week 1.
-      // Season openings stack the room - the 25C expectations question and the
-      // pre-season camp decision both live in state.press - and a manager who
-      // does not realise a question is REQUIRED cannot tell a gate from a
-      // bricked save. That is the same "control that does nothing" failure the
-      // Annual shipped in Round 26, and it is worse here because it can happen
-      // on any week rather than one.
-      //
-      // So: tap once and you are taken to the room, which is the part the user
-      // actually asked for - the game stops walking you past it. Tap again from
-      // inside the room and the week goes on, and the question expires the way
-      // an unanswered question always has (season.ts, the desk-clears-itself
-      // block). Being made to LOOK is a gate; being unable to leave is a bug.
-      //
-      // Mail keeps the hard gate, because there the gate itself does the
-      // clearing: one tap hands the whole pile to the reader, and leaving the
-      // reader marks the rest read, so it cannot fail to terminate.
-      // (the press branch that used to live here has moved above and become
-      // hard - deskBlock still reports press so the button can label itself,
-      // but the hold is applied before this block is ever reached)
+      // The press room and the board hold the week at the top of
+      // continueWeek (pressBlock, above), and only questions with options can
+      // hold, so the hold always has a way out. Mail is gated here because the
+      // gate does its own clearing: one tap hands the pile to the reader, and
+      // leaving the reader marks the rest read, so it always terminates.
     }
     if (step.kind === 'match') {
       // stand the manager on the day the match actually falls, so the masthead
@@ -1224,9 +1194,10 @@ export const useStore = create<Store>((set, get) => ({
    *  Shared by Continue and finishMatch so a week that ends in a match and a week
    *  that ends in a blank Saturday both resume on the same footing. */
   openWire: (ids, startId) => {
-    const queue = startId != null
-      ? [...ids.slice(ids.indexOf(startId)), ...ids.slice(0, Math.max(0, ids.indexOf(startId)))]
-      : ids
+    // a start that is not in the list reads from the top: indexOf's -1 used
+    // to slice the queue down to its last story alone (1.9.1)
+    const at = startId != null ? ids.indexOf(startId) : -1
+    const queue = at > 0 ? [...ids.slice(at), ...ids.slice(0, at)] : ids
     set(s => ({ wireQueue: queue, nav: [...s.nav.filter(e => e.screen !== 'wire'), { screen: 'wire' as const }], tick: s.tick + 1 }))
   },
 
@@ -1681,13 +1652,13 @@ export const useStore = create<Store>((set, get) => ({
   },
 
   matchMode: (mode) => {
-    set(s => {
-      if (!s.liveMatch) return {}
-      // remembered for the competition too, so switching mid-match is also a
-      // standing answer for next week rather than a one-off
-      if (s.game) s.game.viewPref = { ...(s.game.viewPref ?? {}), [s.liveMatch.fixture.compId]: mode }
-      return { liveMatch: { ...s.liveMatch, mode }, tick: s.tick + 1 }
-    })
+    const { game, liveMatch } = get()
+    if (!liveMatch) return
+    // remembered for the competition too, so switching mid-match is also a
+    // standing answer for next week rather than a one-off. Written here, not
+    // inside the set() updater, which must not change anything it is handed.
+    if (game) game.viewPref = { ...(game.viewPref ?? {}), [liveMatch.fixture.compId]: mode }
+    set(s => (s.liveMatch ? { liveMatch: { ...s.liveMatch, mode }, tick: s.tick + 1 } : {}))
     // viewPref is on GameState and is meant to be a STANDING answer - the
     // comment above says so - but nothing wrote it, so "remembered for the
     // competition" lasted until the next reload. Named by the external audit.
