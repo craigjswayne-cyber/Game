@@ -1,7 +1,7 @@
 import { Fragment, useState } from 'react'
 import { useStore } from '../../store'
 import { POS_ORDER, weekDate, type Pos } from '../../game/model'
-import { nationByCode, nationName } from '../../game/nations'
+import { nationName } from '../../game/nations'
 import { Flag } from '../flags'
 import { natRankOrder } from '../../game/natrank'
 import { natFixtureThisWeek } from '../../game/season'
@@ -9,7 +9,7 @@ import { NAT_SQUAD_SIZE } from '../../game/nations'
 import { NAT_SQUAD_FLOOR, natCallUp, natDrop, natEligible, natWindow, weeksToSquad } from '../../game/country'
 import { ClubLink, PosBadge, SectionTitle } from '../components'
 import FullFitness from '../FullFitness'
-import { ord, posName, t } from '../../game/i18n'
+import { posName, t } from '../../game/i18n'
 import { Glyph } from '../glyphs'
 import { rowNav } from '../rowNav'
 
@@ -48,7 +48,6 @@ export default function Country() {
     )
   }
 
-  const nat = nationByCode(natId)
   const order = natRankOrder(game)
   const rank = order.indexOf(natId) + 1
   const conf = game.natConfidence != null ? Math.round(game.natConfidence) : null

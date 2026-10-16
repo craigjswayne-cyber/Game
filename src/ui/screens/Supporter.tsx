@@ -4,7 +4,7 @@ import { SectionTitle } from '../components'
 import {
   CHARTER_SKU, ESTATE_SKU, GROUND_SKU, HEAL_SKU, INJECT_SKUS, PINNACLE_SKU, SUPPORT_SKU, SUPPORTER_SKU,
   adBridge, bankReceipts, buyConsumable, buyOwnable, claimHeld, creditCount, hasEntitlement, hasSupporter,
-  billingReason, heldConsumables, markXlBought, recordSupport, restore, xlWaitMs,
+  heldConsumables, markXlBought, recordSupport, restore, xlWaitMs,
   supportCount, tillHealth, tillOpen, type TillState,
 } from '../../game/monetise'
 import { INJECT_TIERS, estateBuiltHere, healReady, injectionCash, injectionsLeft, type InjectTier } from '../../game/grants'
@@ -163,7 +163,6 @@ const OwnedChip = () => (
 
 export default function Supporter() {
   const game = useStore(s => s.game)
-  const go = useStore(s => s.go)
   const claim = useStore(s => s.claimSupporter)
   const { healSquad, buildEstate, makeTheCall, signCharter } = useStore.getState()
   const boardInject = useStore(s => s.boardInject)

@@ -4,7 +4,7 @@ import { genderOf, type Gender, subjectVar } from './gender'
 import { prepLeaked } from './talkingpoints'
 import { ROLE_FX, rolesForSlot } from './roles'
 import { zoneAt, zonePlan } from './tactics'
-import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, addGrudge, careerRows, chemKey, demandCeiling, facLevel, fmtMoney, formGuide, grudgeBetween, inRedZone, oldBoyApps, trustFactor, unbeatenRun } from './model'
+import { CHEM_SLOTS, XV_SLOTS, addGrudge, careerRows, chemKey, demandCeiling, facLevel, fmtMoney, formGuide, grudgeBetween, inRedZone, oldBoyApps, trustFactor, unbeatenRun } from './model'
 import { standing } from './authority'
 import { bondCohesion } from './bonds'
 import { analystShift, archetypeOf, loudestDial, repetitionFatigue, respectLayers } from './oppcoach'
@@ -3233,7 +3233,7 @@ function drainEnergy(state: GameState, ctx: LiveCtx, side: SideCtx) {
  * Measured after: 72% of the world's tries converted, against 83% before and
  * about 73% in the professional club game.
  */
-function kickChance(state: GameState, kicker: Player | null, base: number, div: number, goalPenalty: number, side: SideCtx): number {
+function kickChance(_state: GameState, kicker: Player | null, base: number, div: number, goalPenalty: number, side: SideCtx): number {
   if (!kicker) return 0.5 - goalPenalty + side.goalBonus
   const skill = base + kicker.a.goa / div
   const formF = (kicker.form - 6) * 0.012      // ±5% across the form range
@@ -3254,7 +3254,7 @@ function noteKick(ctx: LiveCtx, side: SideCtx, made: boolean) {
 const SHOT_CLOCK_P = 0.006
 /** Take the three points: roll the kick at goal. */
 function takePenaltyShot(state: GameState, ctx: LiveCtx, side: SideCtx, min: number) {
-  const { rng, detail, goalPenalty } = ctx
+  const { rng, detail } = ctx
   const kicker = goalKicker(state, side)
   const other = side === ctx.home ? ctx.away : ctx.home
   // THE SHOT CLOCK (1.8.16, item 30): sixty seconds from the mark, and the
@@ -3552,7 +3552,7 @@ function penPlay(state: GameState, side: SideCtx, opp: SideCtx): MoveInPlay | nu
 /** Whether the try this tick scored is the move's, for its line and its
  *  clip: a strike move that came off usually is (it launched the tick), a
  *  shape now and then. Deterministic, so it never draws. */
-function moveTryOf(state: GameState, ctx: LiveCtx, side: SideCtx, mv: MoveInPlay | null, tick: number): LiveCtx['moveTry'] {
+function moveTryOf(_state: GameState, ctx: LiveCtx, side: SideCtx, mv: MoveInPlay | null, tick: number): LiveCtx['moveTry'] {
   if (!mv || mv.gain <= 0) return null
   const h = moveHash(ctx.fx.id, tick, side === ctx.home ? 1 : 2)
   if (h >= (mv.launch === 'open' ? 0.3 : 0.6)) return null
@@ -3893,7 +3893,7 @@ function chargeDown(state: GameState, ctx: LiveCtx, kick: SideCtx, charge: SideC
  * missed ones a match with them, which used to be silent.
  */
 const DROP_BASE = 0.0135
-function dropChance(ctx: LiveCtx, side: SideCtx, opp: SideCtx, up: number, tick: number): number {
+function dropChance(_ctx: LiveCtx, side: SideCtx, opp: SideCtx, up: number, tick: number): number {
   if (up < 55) return 0
   const diff = side.score - opp.score
   const late = tick >= 17 ? (diff >= -3 && diff <= 0 ? 4 : diff > 0 && diff <= 4 ? 2 : 1) : 1
@@ -4310,7 +4310,7 @@ function decide(
  * go to the corner far more than others. No draw: the call is read, and the
  * dice that follow are the ones the manager's own call would have taken.
  */
-function aiPenaltyCall(state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideCtx, min: number): 'posts' | 'corner' | 'tap' {
+function aiPenaltyCall(_state: GameState, ctx: LiveCtx, side: SideCtx, opp: SideCtx, min: number): 'posts' | 'corner' | 'tap' {
   const toLine = side === ctx.home ? 100 - ctx.field : ctx.field
   const behind = opp.score - side.score
   const drive = side.units.lineout * 0.6 + side.units.scrum * 0.4
@@ -5750,7 +5750,7 @@ function setPieceContest(state: GameState, ctx: LiveCtx, tick: number) {
 }
 
 function simTick(state: GameState, ctx: LiveCtx, tick: number) {
-  const { rng, detail, derby, goalPenalty, home, away } = ctx
+  const { rng, detail, derby, home, away } = ctx
   const min = tick * 4 + Math.floor(rng() * 4) + 1
   // the clock reaches this tick whether or not anybody writes a line in it
   // (1.8.0): a silent match used to stop its clock at its last written line,

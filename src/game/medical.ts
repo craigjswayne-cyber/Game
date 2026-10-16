@@ -2,7 +2,7 @@
 // or wrap a returning player in cotton wool for a week.
 
 import type { GameState } from './model'
-import { clamp, mulberry32 } from './rng'
+import { clamp } from './rng'
 import { t } from './i18n'
 
 export const SPECIALIST_FEE = 50_000

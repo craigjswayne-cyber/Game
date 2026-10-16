@@ -22,9 +22,9 @@
  *     inbox, a line in the decisions ledger - in both languages, so a bought
  *     pound is as legible as an earned one.
  */
-import { FACILITY_INFO, MAX_FACILITY, SEASON_WEEKS, fmtMoney, logDecision, mgrReputation, type Club, type FacilityId, type GameState } from './model'
+import { FACILITY_INFO, MAX_FACILITY, fmtMoney, logDecision, mgrReputation, type Club, type FacilityId, type GameState } from './model'
 import { tIn } from './i18n'
-import { NAT_TIERS, pickableNations } from './nations'
+import { pickableNations } from './nations'
 
 export type InjectTier = 's' | 'm' | 'l' | 'xl'
 

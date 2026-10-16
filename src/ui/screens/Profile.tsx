@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
-import { decisionText, mgrReputation, seasonLabel, squadTrust, trustFactor, trustWord, type GameState, type Player } from '../../game/model'
+import { decisionText, mgrReputation, seasonLabel, squadTrust, trustFactor, trustWord, type GameState } from '../../game/model'
 import { standing, standingWord } from '../../game/authority'
 import { CHALLENGES } from '../../game/newgame'
 import { nationName } from '../../game/nations'

@@ -3,7 +3,7 @@ import { proLocked, useStore, type Screen } from '../store'
 import { t } from '../game/i18n'
 import {
   PRO_INTRO_SKU, SUPPORTER_SKU, adBridgePresent, buyOwnable, canBuy, hasSupporter, msSincePurchase,
-  proDiscount, proPrices, purchaseActive, type Product,
+  proDiscount, proPrices, purchaseActive, 
 } from '../game/monetise'
 import { proDue, proOfferAnswered, proShown, readFunnel, writeFunnel, type ProKind } from '../game/profunnel'
 import { userMatchThisWeek } from '../game/season'

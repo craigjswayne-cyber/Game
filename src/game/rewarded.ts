@@ -13,7 +13,7 @@
  * way everything seasonal is. monetise.showRewarded() is the only way a spot
  * plays; nothing here runs unless the provider confirmed a completed view.
  */
-import {absWeek, SEASON_WEEKS, fmtMoney, type GameState } from './model'
+import {absWeek, fmtMoney, type GameState } from './model'
 import { bumpKnowledge, reportStage, secondOpinion, youthPaMargin } from './scout'
 import { clamp } from './rng'
 import { t, tIn } from './i18n'

@@ -11,7 +11,7 @@
 import type { GameState, Player } from './model'
 import { clamp } from './rng'
 import { activeWindows } from './season'
-import { NAT_SQUAD_FLOOR, NAT_SQUAD_SIZE, clubQuotaLeft, conflictedClub, federationList, homeBased } from './nations'
+import { NAT_SQUAD_FLOOR, clubQuotaLeft, conflictedClub, federationList, homeBased } from './nations'
 import { t } from './i18n'
 
 const HOME4 = ['ENG', 'IRE', 'SCO', 'WAL']

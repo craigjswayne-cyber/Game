@@ -11,7 +11,7 @@
 // keep their value.
 
 import type { GameState, Player } from './model'
-import {absWeek, SEASON_WEEKS, logDecision } from './model'
+import {absWeek, logDecision } from './model'
 import { t, tIn } from './i18n'
 import { remember } from './memory'
 import { requestLocked } from './handshake'

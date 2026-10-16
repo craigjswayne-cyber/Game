@@ -324,7 +324,6 @@ export function courseBlock(state: GameState, role: StaffRole): AppointBlock | n
 export function sendToCourse(state: GameState, role: StaffRole): string {
   const block = courseBlock(state, role)
   if (block) return block.long
-  const club = state.clubs[state.userClubId]
   const p = state.staffPeople![role]!
   const info = STAFF_INFO[role]
   const abs = state.season * 100 + state.week

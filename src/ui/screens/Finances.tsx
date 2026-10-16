@@ -1,6 +1,6 @@
-import { useEffect, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import { useState, type PointerEvent as ReactPointerEvent } from 'react'
 import { useStore } from '../../store'
-import { facLevel, fmtMoney, fmtWage, operatingCost, pressAnswer, pressLabel, pressQuestion, pressReaction, weeklyCentral } from '../../game/model'
+import { facLevel, fmtMoney, fmtWage, operatingCost, pressAnswer, pressLabel, pressQuestion, weeklyCentral } from '../../game/model'
 import type { GameState } from '../../game/model'
 import {
   CHARTER_SKU, buyOwnable, hasEntitlement,

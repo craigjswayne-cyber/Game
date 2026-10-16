@@ -8,7 +8,7 @@ import { activePlan, applyAdminPenalties } from './season'
 import { settleInsolvency } from './insolvency'
 import { ageManager } from './career'
 import { rivalVerdict } from './boss'
-import {absWeek, archiveSeason, BASE_YEAR, LAST_PLEDGE_WEEK, careerRows, boardPatience, isMyClub, closeNatTenure, demandCeiling, MAX_FOLLOWING, GROUND_TIERS, groundLevel, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, RELEGATES, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId, worldCupSeasonFor, tieWinner } from './model'
+import {absWeek, archiveSeason, BASE_YEAR, LAST_PLEDGE_WEEK, careerRows, boardPatience, isMyClub, closeNatTenure, demandCeiling, MAX_FOLLOWING, GROUND_TIERS, groundLevel, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, logDecision, MAX_FACILITY, RELEGATES, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId, worldCupSeasonFor, tieWinner } from './model'
 import { assignPersonality, EARLY_FADE, LATE_PEAK } from './attributes'
 import { ageAttributes, gapGrowth, PRODIGY_PA, softCeilings, youthPace } from './ageing'
 import { COE_MEAN, learning, markSights, seasonReview, tempoF, TL } from './devproject'
@@ -156,7 +156,6 @@ function seasonAwards(state: GameState) {
   const topTries = [...leaguePlayers].sort((a, b) => b.stats.tries - a.stats.tries)[0]
   const potm = [...leaguePlayers].sort((a, b) =>
     b.stats.ratingSum / Math.max(1, b.stats.apps) - a.stats.ratingSum / Math.max(1, a.stats.apps))[0]
-  const leagueName = state.comps[userLeague]?.name ?? 'the league'
 
   // Team of the Season: best average rating per position slot
   const used = new Set<number>()

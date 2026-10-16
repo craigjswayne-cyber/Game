@@ -15,7 +15,7 @@ import { aiFreeAgents, aiSummerMarket, aiYouthHunt, rivalPushWeek, settleRivalBi
 import { offerResult, offerRun } from './records'
 import { rivalBeat } from './boss'
 import { auditCaps, refreshCaps } from './cap'
-import { commercialWeekly, expireDeals } from './commercial'
+import { commercialWeekly } from './commercial'
 import { book } from './books'
 import { AWARD_EVERY, managerOfMonth, runLine, runVars } from './awards'
 import { boardMemo } from './boardmemo'
@@ -24,7 +24,7 @@ import { upkeepWeek } from './upkeep'
 import {absWeek, addGrudge, careerRows, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, buildWeeks, finalVenue, fixtureDayOff, fmtMoney, leagueTier, LEDGER_WEEKS, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, RELEGATES, SEASON_WEEKS, seasonLabel, squadTrust, stamp100, GROUND_TIERS, groundLevel, groundBuildWeeks, unbeatenRun, weeklyCentral, mgrWinWeight, addWeeks100, tieWinner } from './model'
 import { simMatch, autoSelect, pickTrainingInjury, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { BARRAGE_WEEK, windowSpan } from './calendar'
-import { emptyRow, leaguePos, sortTable, snIdFor, snWeeksFor, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS, W_AUTUMN_WEEKS, W_SIX_NATIONS_WEEKS, W_PAC4_WEEKS, W_SUMMER_TEST_WEEKS } from './schedule'
+import { emptyRow, leaguePos, sortTable, snIdFor, snWeeksFor, TRC_WEEKS } from './schedule'
 import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice, settlePendingDeals } from './ai'
 import { isDeadlineWeek, nextWeek, postWindowNotes, prevWeek } from './window'
 import { OFFICE_OUTLET, PRESS_KEEP_WEEKS, generatePress, isBoardroom } from './media'
@@ -40,7 +40,7 @@ import { OBJECTIVE_DEFS, objectiveBonus } from './objectives'
 import { applyPlanSheet, boardPriorityF } from './seasonplan'
 import { IRON_REC, brittleF, formTraits } from './formtraits'
 import { derbyName, isDerby, rivalsOf } from './rivalries'
-import { NAT_DEPTH, NAT_SQUAD_FLOOR, NAT_SQUAD_SIZE, NAT_TIERS, pickableNations, homeBased, clubQuotaLeft, conflictedClub, federationList, federationPick, releaseClubDuty, withFrontRow, nationByCode, nationNameIn, nationVars, regenName, worldNames } from './nations'
+import { NAT_DEPTH, NAT_SQUAD_FLOOR, NAT_SQUAD_SIZE, pickableNations, homeBased, clubQuotaLeft, conflictedClub, federationList, federationPick, releaseClubDuty, withFrontRow, nationByCode, nationNameIn, nationVars, regenName, worldNames } from './nations'
 import { isMyClub, LAST_PLEDGE_WEEK, logDecision } from './model'
 import { resolveCourses, staffWageBill } from './staff'
 import { RIFT_MORALE, RIFT_TRAINING, riftDrag, staffRiftWeek } from './staffrift'
@@ -1649,7 +1649,7 @@ export function runSpotlight(state: GameState, fx: Fixture, us: number, them: nu
 // Finances & board
 // ------------------------------------------------------------------
 
-function weeklyFinance(state: GameState, rng: Rng) {
+function weeklyFinance(state: GameState, _rng: Rng) {
   const club = state.clubs[state.userClubId]
   // The last three weeks of a 48-week season are the tour, and the close season
   // for everybody else. The books do not run - see LEDGER_WEEKS for what
@@ -1886,7 +1886,7 @@ export function afterClubMatch(state: GameState, fx: Fixture) {
 
 const MILESTONE_KEYS = tellingsOf('news.milestone')
 
-function milestones(state: GameState, rng: Rng) {
+function milestones(state: GameState, _rng: Rng) {
   const club = state.clubs[state.userClubId]
   for (const id of club.players) {
     const p = state.players[id]
@@ -3373,7 +3373,6 @@ export function processWeekAndAdvance(state: GameState) {
       const seeds = state.comps['wc']?.seeds ?? []
       const seed = seeds.indexOf(nat) + 1
       const won = tieWinner(wcFinal) === nat
-      const inFinal = wcFinal.homeId === nat || wcFinal.awayId === nat
       const wcFx = state.fixtures.filter(f => f.compId === 'wc' && f.played && (f.homeId === nat || f.awayId === nat))
       const deepest = wcFx.some(f => f.stage === 'F') ? (won ? 1 : 2)
         : wcFx.some(f => f.stage === 'SF') ? 4

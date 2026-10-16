@@ -24,7 +24,7 @@
 //   than merely spared.
 
 import type { Club, GameState, Player } from './model'
-import {absWeek, SEASON_WEEKS } from './model'
+import {absWeek } from './model'
 import { clamp } from './rng'
 import { tIn } from './i18n'
 import { REQUEST_ANSWER_WEEKS } from './chats'

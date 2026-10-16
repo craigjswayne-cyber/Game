@@ -907,7 +907,6 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
    *  sent further from his own line than he already is (`dir` is the way the
    *  attack is going, which is towards that line): he stops, turns and
    *  heads home, and steer's acceleration cap makes it a turn, not a snap. */
-  const homeward = <Q extends Pt>(b: Body, q: Q, dir: number): Q => ((q.x - b.x) * dir < 0 ? { ...q, x: b.x } : q)
   /** THE CHASE (1.8.2, CHASE above): where defender `b` runs to get the man
    *  with the ball, given his `route` (where the ball will be tau seconds
    *  from now), the defender's pace `v` and how far ahead he may lead him.
@@ -1334,7 +1333,6 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
   const moveKick = c.style === 'move' && tr && c.move ? MOVE_BY_ID[c.move]?.kick : undefined
   const crossKick = c.style === 'crossfield' || moveKick === 'cross'
   const setKind: TrackFrom | null = c.style === 'move' && tr ? (c.launch === 'lineout' ? 'lineout' : c.launch === 'tap' ? 'tap' : 'scrum') : null
-  const lo = setKind === 'lineout'
   const SET = setKind === 'lineout' ? 1.85 : setKind === 'tap' ? 0.55 : 1.7
   if (setKind) {
     phases.push({ k: 'set', q: pts[0], dur: SET })

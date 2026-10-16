@@ -36,7 +36,7 @@
  */
 import type { GameState } from './model'
 import { clamp, type Rng } from './rng'
-import { seasonStart, BASE_YEAR, fmtMoney, groundLevel, operatingCost } from './model'
+import { seasonStart, fmtMoney, groundLevel, operatingCost } from './model'
 import { tIn } from './i18n'
 import { book } from './books'
 
