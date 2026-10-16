@@ -46,7 +46,7 @@ import { resolveCourses, staffWageBill } from './staff'
 import { RIFT_MORALE, RIFT_TRAINING, riftDrag, staffRiftWeek } from './staffrift'
 import { resolveCommission, scoutPostcard } from './commission'
 import { scoutDesk } from './scoutrecs'
-import { clamp, mulberry32, shuffled, type Rng } from './rng'
+import { clamp, mulberry32, shuffled, type Rng, cmpStr } from './rng'
 import { attrOdds, attrRoll, gapGrowth, PRODIGY_PA, trainPoint, youthPace } from './ageing'
 import { gameTimeReview, settleGameTime } from './gametime'
 import { depthWatch } from './depthwatch'
@@ -2426,7 +2426,7 @@ export function friendlySuggestions(state: GameState, week: number): string[] {
       const abroad = c.country !== user.country
       return lower || abroad
     })
-    .sort((a, b) => a.id.localeCompare(b.id))
+    .sort((a, b) => cmpStr(a.id, b.id))
   if (!pool.length) return []
   // deterministic per (save, week): the same three every time you look, a
   // different three next week. A list that reshuffles on every render is a

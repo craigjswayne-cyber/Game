@@ -44,7 +44,7 @@
 // match engine except by the morale and cohesion paths it already reads.
 import type { Club, GameState, Player, PressItem, PressOption } from './model'
 import { absWeek, fmtMoney, logDecision } from './model'
-import { clamp, mulberry32 } from './rng'
+import { clamp, mulberry32, cmpStr } from './rng'
 import { tIn, type Vars } from './i18n'
 import { OFFICE_OUTLET, rememberAsk } from './media'
 import { bondOf, nudgeBond, seniorVoices, CLOSE } from './bonds'
@@ -473,7 +473,7 @@ function waitWeek(state: GameState, club: Club): void {
     if (!pc && state.week >= 25 && state.week <= 38 && hash(state, p.id, w.s, nowOf(state)) < WAIT_RISK) {
       const suitors = Object.values(state.clubs)
         .filter(c => c.id !== club.id && c.rep >= club.rep - 10)
-        .sort((a, b) => a.id.localeCompare(b.id))
+        .sort((a, b) => cmpStr(a.id, b.id))
       const to = suitors[Math.floor(hash(state, p.id, state.season, 71) * suitors.length)]
       if (to) {
         state.preContracts.push({ playerId: p.id, toClubId: to.id, week: state.week })

@@ -57,3 +57,9 @@ export function wpick<T>(rng: Rng, items: T[], weights: number[]): T {
 export function gauss(rng: Rng): number {
   return (rng() + rng() + rng()) / 1.5 - 1
 }
+
+/** Code-point order for ids in the engine (1.9.1). localeCompare depends on
+ *  the device's ICU data and language, so the same seed could break a tie one
+ *  way on an Android phone in French and the other way on an iPhone in
+ *  English, and everything drawn after it would differ. */
+export const cmpStr = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0)

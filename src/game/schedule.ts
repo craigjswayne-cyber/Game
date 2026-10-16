@@ -6,7 +6,7 @@ import {
   WC_KO_WEEKS, WC_POOL_WEEKS, W_AUTUMN_WEEKS, W_CC_KO_WEEKS, W_CC_POOL_WEEKS, W_PAC4_WEEKS, W_SIX_NATIONS_WEEKS,
   W_SUMMER_TEST_WEEKS, W_WC_KO_WEEKS, W_WC_POOL_WEEKS, leagueWeeksFor, playoffWeeksFor, preseasonWeeksFor,
 } from './calendar'
-import { hashString, mulberry32, shuffled, type Rng } from './rng'
+import { hashString, mulberry32, shuffled, type Rng, cmpStr } from './rng'
 import { seedNatRank } from './natrank'
 import { nationNameIn, nationVars } from './nations'
 
@@ -331,7 +331,7 @@ export const MRC_CUP = 'mrcc'
 export function buildMrcCup(clubIds: readonly string[], state: GameState): Competition | null {
   if (clubIds.length !== 6) return null
   const rng = mulberry32(hashString(`mrc-cup:${state.seed}:${state.season}`))
-  const ranked = [...clubIds].sort((a, b) => (state.clubs[b]?.rep ?? 0) - (state.clubs[a]?.rep ?? 0) || a.localeCompare(b))
+  const ranked = [...clubIds].sort((a, b) => (state.clubs[b]?.rep ?? 0) - (state.clubs[a]?.rep ?? 0) || cmpStr(a, b))
   const pools = [[ranked[0], ranked[3], ranked[4]], [ranked[1], ranked[2], ranked[5]]]
   const comp: Competition = {
     id: MRC_CUP,

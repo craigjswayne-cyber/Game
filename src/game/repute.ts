@@ -53,6 +53,7 @@ import { tendencyProfile } from './tendency'
 import { identityOf } from './identity'
 import { ARC_CAPS, ARC_OFF, arcFile, arcHash, arcOf, type Conduct } from './arcbook'
 import { userWageBudget } from './grants'
+import { cmpStr } from './rng'
 
 export type Trait = 'youth' | 'youthBacks' | 'youthPack' | 'youthIntl' | 'innovator' | 'tactician' | 'spender' | 'seller' | 'prudent' |
   'hard' | 'players' | 'turnaround' | 'defence' | 'attack'
@@ -389,7 +390,7 @@ export function reputeYearEnd(state: GameState): void {
     }
     return
   }
-  const best = Object.entries(a.idRun).filter(([, n]) => n >= REPUTE_AT).sort((x, y) => y[1] - x[1] || x[0].localeCompare(y[0]))[0]
+  const best = Object.entries(a.idRun).filter(([, n]) => n >= REPUTE_AT).sort((x, y) => y[1] - x[1] || cmpStr(x[0], y[0]))[0]
   if (!best) return
   a.repute = { c: club.id, l: best[0], s: state.season, miss: 0 }
   arcFile(state, 'arc.reputeForms', { club: club.short, label_k: `arc.repute.${best[0]}` }, { summer: true })

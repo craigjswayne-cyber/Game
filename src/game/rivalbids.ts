@@ -46,7 +46,7 @@ import { clubIntent } from './living'
 import { agentTone, unsettledFee } from './recruit'
 import { rivalsOf } from './rivalries'
 import { rivalCoach } from './rivalcoach'
-import { clamp, hashString, mulberry32 } from './rng'
+import { clamp, hashString, mulberry32, cmpStr } from './rng'
 import { tIn, type Vars } from './i18n'
 import { JANUARY_OPEN, SUMMER_OPEN, SUMMER_SHUT, nextWeek } from './window'
 
@@ -226,7 +226,7 @@ export function rivalFor(state: GameState, p: Player, fee: number): { club: Club
     cands.push({ club: c, keen, wage })
   }
   if (!cands.length) return null
-  cands.sort((a, b) => b.keen - a.keen || a.club.id.localeCompare(b.club.id))
+  cands.sort((a, b) => b.keen - a.keen || cmpStr(a.club.id, b.club.id))
   const top = cands[0]
   // not every signing is a fight: a star, a prized prospect and a club going
   // for it make one likelier
@@ -358,7 +358,7 @@ export function aiYouthHunt(state: GameState): void {
   if (!windowOpen(state.week) || !HUNT_WEEKS.includes(state.week)) return
   const pool = Object.values(state.players).filter(isProspect)
   if (!pool.length) return
-  const clubs = Object.values(state.clubs).sort((a, b) => b.rep - a.rep || a.id.localeCompare(b.id))
+  const clubs = Object.values(state.clubs).sort((a, b) => b.rep - a.rep || cmpStr(a.id, b.id))
   for (const club of clubs) {
     const p = youthTarget(state, club, pool)
     if (!p) continue
@@ -497,7 +497,7 @@ export function aiSummerMarket(state: GameState): void {
   if (!(state.week >= SUMMER_OPEN || state.week <= SUMMER_SHUT)) return
   const key = `${state.seed}|${state.season}|${state.week}`
   const clubs = Object.values(state.clubs).filter(c => !isMyClub(state, c.id))
-    .sort((a, b) => a.id.localeCompare(b.id))
+    .sort((a, b) => cmpStr(a.id, b.id))
   const leaving = (p: Player) => state.week >= SUMMER_OPEN && p.contractEnds <= state.season
   const free = (p: Player) => !p.acad && !p.youth && !p.onLoan && !p.loanFrom && !p.retiring &&
     !leaving(p) && !promisedElsewhere(state, p.id)
@@ -669,7 +669,7 @@ export function respondersTo(state: GameState, order: string[], champion?: strin
     if (!close && !humbled && !named) return
     scored.push({ id, s: (id === rivalClub ? 3 : 0) + (derby.has(id) ? 1.5 : 0) + (close ? 2 - i * 0.3 : 0) + (humbled ? 1 : 0) })
   })
-  return scored.sort((a, b) => b.s - a.s || a.id.localeCompare(b.id)).slice(0, 3).map(x => x.id)
+  return scored.sort((a, b) => b.s - a.s || cmpStr(a.id, b.id)).slice(0, 3).map(x => x.id)
 }
 
 /** After the summer budgets are set: the boards that answer him. */

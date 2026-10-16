@@ -36,7 +36,7 @@ import { isForward } from './bench'
 import { aiShoppingTarget, askingPrice, embargoed } from './ai'
 import { recall } from './memory'
 import { attrRange, fuzzedCa, knowledge, margin, paRange, persKnown, reportStage, type ReportStage } from './scout'
-import { clamp, hashString, mulberry32 } from './rng'
+import { clamp, hashString, mulberry32, cmpStr } from './rng'
 import { atkName, defName, stylesOf, type AtkStyle, type DefStyle } from './styles'
 
 type Key = keyof Attrs
@@ -185,12 +185,12 @@ export function notesFrom(
 ): { strengths: Note[]; concerns: Note[] } {
   const devs = ATTR_KEYS.filter(k => relevant(pos, k))
     .map(k => ({ k, d: (vals[k] - base[k]) * (0.6 + 0.4 * attrWeight(pos, k)) }))
-  const strengths = devs.filter(x => x.d >= 1.2).sort((a, b) => b.d - a.d || a.k.localeCompare(b.k))
+  const strengths = devs.filter(x => x.d >= 1.2).sort((a, b) => b.d - a.d || cmpStr(a.k, b.k))
     .slice(0, maxS).map(x => x.k as Note)
   const concerns: Note[] = []
   if (record?.durability) concerns.push('durability')
   if (record?.discipline || (vals.agg >= 16 && vals.agg - base.agg >= 3)) concerns.push('discipline')
-  for (const x of devs.filter(x => x.d <= -1.2 && x.k !== 'agg').sort((a, b) => a.d - b.d || a.k.localeCompare(b.k))) {
+  for (const x of devs.filter(x => x.d <= -1.2 && x.k !== 'agg').sort((a, b) => a.d - b.d || cmpStr(a.k, b.k))) {
     if (concerns.length >= maxC) break
     concerns.push(x.k === 'han' && !isForward(pos) ? 'highBall' : x.k)
   }
@@ -350,7 +350,7 @@ function shoppingMap(state: GameState): Map<number, string> {
   const map = new Map<number, string>()
   const clubs = Object.values(state.clubs)
     .filter(c => c.id !== state.userClubId && c.budget >= 800_000 && !embargoed(state, c.id))
-    .sort((a, b) => b.rep - a.rep || a.id.localeCompare(b.id))
+    .sort((a, b) => b.rep - a.rep || cmpStr(a.id, b.id))
   for (const c of clubs) {
     const t = aiShoppingTarget(state, c)?.target
     if (t && !map.has(t.id)) map.set(t.id, c.id)
@@ -374,7 +374,7 @@ export function realSuitor(state: GameState, p: Player): string | null {
   const c = Object.values(state.clubs)
     .filter(c => c.id !== state.userClubId && c.id !== p.clubId && c.budget >= 200_000 && !embargoed(state, c.id) &&
       p.ca <= c.rep + 12 && ask <= c.budget)
-    .sort((a, b) => b.budget - a.budget || a.id.localeCompare(b.id))[0]
+    .sort((a, b) => b.budget - a.budget || cmpStr(a.id, b.id))[0]
   return c?.id ?? null
 }
 
@@ -413,7 +413,7 @@ export function agentTalkClub(state: GameState, p: Player): string | null {
   if (rand(`talk|${p.id}|${state.season}|${ph}`) >= 0.12 + pushy) return null
   const pool = Object.values(state.clubs)
     .filter(c => c.id !== state.userClubId && c.id !== seller.id && c.rep >= seller.rep - 6 && c.rep <= seller.rep + 15)
-    .sort((a, b) => a.id.localeCompare(b.id))
+    .sort((a, b) => cmpStr(a.id, b.id))
   if (!pool.length) return null
   return pool[Math.floor(rand(`talkclub|${p.id}|${state.season}|${ph}`) * pool.length) % pool.length].id
 }

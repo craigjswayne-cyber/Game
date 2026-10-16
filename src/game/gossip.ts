@@ -4,7 +4,7 @@
 import type { GameState, Player } from './model'
 import {absWeek, RELEGATES, SEASON_WEEKS, fmtMoney, formGuide, isMyClub, mgrReputation, poss, weeksBetween100 } from './model'
 import { sortTable } from './schedule'
-import { clamp, gauss, pick, type Rng } from './rng'
+import { clamp, gauss, pick, shuffled, type Rng } from './rng'
 import { t, tIn, type Vars } from './i18n'
 import { nextTelling } from './tellings'
 import { JANUARY_SHUT, nextWeek, prevWeek, windowOpen as dealWeek } from './window'
@@ -274,7 +274,7 @@ function sicknessSweep(state: GameState, rng: Rng) {
   const squad = state.clubs[state.userClubId].players
     .map(id => state.players[id]).filter((p): p is Player => !!p && !p.injury)
   if (squad.length < 6) return
-  const hit = [...squad].sort(() => rng() - 0.5).slice(0, 2 + Math.floor(rng() * 3))
+  const hit = shuffled(rng, squad).slice(0, 2 + Math.floor(rng() * 3))
   for (const p of hit) p.cond = clamp(p.cond - (12 + rng() * 10), 20, 100)
   wire(state, voice(state, 26, ['news.wBug1', 'news.wBug2', 'news.wBug3']),
     { names: hit.map(p => p.name.split(' ').slice(-1)[0]).join(', ') })
