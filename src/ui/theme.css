@@ -762,6 +762,9 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   animation: flash-in .5s ease;
   font-size: 13px; font-weight: 500; color: var(--text-secondary);
   line-height: 1.45;
+  /* the full-time log can run to several hundred lines: lines off screen are
+     not laid out or painted until they are scrolled to (1.9.1) */
+  content-visibility: auto; contain-intrinsic-size: auto 40px;
 }
 .tick-event .min {
   font-family: var(--cond); font-weight: 700; font-size: 14px;
