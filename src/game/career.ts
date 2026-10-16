@@ -29,28 +29,21 @@ import { dreamById, dreamState } from './dream'
 import { t, type Vars } from './i18n'
 
 /** Youngest a manager may start; the wizard offers a spread around this. */
-export const START_AGE = 42
+const START_AGE = 42
 /** From here the game offers him the door. */
-export const RETIRE_OPEN = 62
+const RETIRE_OPEN = 62
 /** Here it stops offering and opens it. */
-export const RETIRE_FORCED = 70
+const RETIRE_FORCED = 70
 
 /** His age now, defaulting for saves written before the clock existed. */
-export const mgrAge = (state: GameState): number =>
+const mgrAge = (state: GameState): number =>
   state.mgrAge ?? START_AGE + state.season
 
 export type Stage = 'young' | 'established' | 'veteran' | 'twilight'
 
-export function careerStage(state: GameState): Stage {
-  const a = mgrAge(state)
-  if (a < 50) return 'young'
-  if (a < RETIRE_OPEN) return 'established'
-  if (a < RETIRE_FORCED - 3) return 'veteran'
-  return 'twilight'
-}
 
 /** Seasons left before the game makes the decision for him. */
-export const seasonsLeft = (state: GameState): number =>
+const seasonsLeft = (state: GameState): number =>
   Math.max(0, RETIRE_FORCED - mgrAge(state))
 
 export const mayRetire = (state: GameState): boolean =>

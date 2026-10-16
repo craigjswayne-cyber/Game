@@ -36,8 +36,8 @@ export interface SeasonBooks {
 }
 
 /** The order the sheet prints them in. Income first, then spending. */
-export const INCOME_LINES: BookLine[] = ['deals', 'bonus', 'central', 'gate', 'shop', 'sales', 'prize']
-export const SPEND_LINES: BookLine[] = ['wages', 'staff', 'upkeep', 'works', 'buys']
+const INCOME_LINES: BookLine[] = ['deals', 'bonus', 'central', 'gate', 'shop', 'sales', 'prize']
+const SPEND_LINES: BookLine[] = ['wages', 'staff', 'upkeep', 'works', 'buys']
 
 function open(state: GameState): SeasonBooks | null {
   const club = state.clubs[state.userClubId]

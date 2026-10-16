@@ -179,7 +179,7 @@ export function lateAndClose(events: MatchEvent[], i: number): boolean {
  * one attack clip a match to eight or nine. Looking back to this side's own
  * last line asks the question that was meant - was THIS side already there.
  */
-export function lastOwnLine(events: MatchEvent[], i: number): MatchEvent | undefined {
+function lastOwnLine(events: MatchEvent[], i: number): MatchEvent | undefined {
   const e = events[i]
   for (let k = i - 1; k >= Math.max(0, i - 12); k--) {
     const b = events[k]

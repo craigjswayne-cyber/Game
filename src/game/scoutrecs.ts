@@ -56,7 +56,7 @@ export interface ScoutRec {
 }
 
 /** How many recommendations the Scouting page remembers. */
-export const REC_CAP = 40
+const REC_CAP = 40
 
 /** The same worth the scout has always ranked on (commission.ts), here read
  *  off his estimate rather than the truth. */

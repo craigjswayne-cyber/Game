@@ -49,7 +49,7 @@ export function isBoardroom(p: { options: { camp?: unknown; stance?: unknown; de
  * a man whose patience has run out rather than a bug, and short enough that
  * he does get to come back if you left him in the stand all year.
  */
-export const OFFICE_COOLDOWN = 14
+const OFFICE_COOLDOWN = 14
 
 
 /** Has this player raised this subject recently enough that raising it again

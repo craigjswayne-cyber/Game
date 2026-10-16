@@ -258,7 +258,7 @@ export function gradeLine(fixed: readonly FixTag[], missed: readonly FixTag[]): 
  *  and head assessments told him "No replacements used out of eight" under a
  *  header reading five changes left (first-time-player pass). Fresh legs are
  *  fresh legs whoever sent them on. */
-export function benchOn(ctx: LiveCtx, mine: SideCtx): number {
+function benchOn(ctx: LiveCtx, mine: SideCtx): number {
   const played = mine.lineup.slice(15).filter(id => id != null && mine.ratings.has(id)).length
   return Math.max(ctx.subsUsed, played)
 }

@@ -117,21 +117,6 @@ export const DEF_SYSTEMS: DefSystem[] = [
   { id: 'press', name: 'tactics.defPress', desc: 'tactics.defPressDesc', line: 88, width: 64 },
 ]
 
-/**
- * Which system the dials currently describe: the nearest of the five, by
- * straight-line distance across the two. Always answers, because a manager
- * who has dragged a slider two notches off Drift is still playing a drift
- * defence and the screen should say so rather than going blank.
- */
-export function defSystemOf(line: number, width: number): DefSystem {
-  let best = DEF_SYSTEMS[2]
-  let bestD = Infinity
-  for (const sys of DEF_SYSTEMS) {
-    const d = (sys.line - line) ** 2 + (sys.width - width) ** 2
-    if (d < bestD) { bestD = d; best = sys }
-  }
-  return best
-}
 
 /**
  * ---- THE BREAKDOWN (owner, 1.7.3: "breakdown commitments", attack and

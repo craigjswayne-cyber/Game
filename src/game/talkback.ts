@@ -100,7 +100,7 @@ export const FIT: Record<string, Record<string, Record<Personality, Fit>>> = {
 const MORALE: Record<Fit, number> = { good: 0.9, mixed: -0.2, bad: -1.1 }
 
 /** Does what this man says in the office get out into the dressing room? */
-export function seniorVoice(state: GameState, p: Player): boolean {
+function seniorVoice(state: GameState, p: Player): boolean {
   const club = state.clubs[state.userClubId]
   return club?.captain === p.id || club?.vice === p.id || p.pers === 'Leader'
     || (p.age >= 29 && p.status === 'key')

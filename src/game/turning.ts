@@ -36,7 +36,6 @@ import type { CurEra, Era } from './arcbook'
 import { moment } from './histbook'
 import { HIST_OFF } from './history'
 
-export const TP_PER_SEASON = 1
 export const TP_PER_ERA = 3
 /** An unbeaten run worth a line. */
 export const TP_RUN = 10

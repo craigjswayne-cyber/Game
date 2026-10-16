@@ -81,7 +81,7 @@ export function acadAdvice(state: GameState, p: Player): boolean {
 
 /** The wage the button quotes: the academy scale for a first-year, the
  *  professional scale for a lad signing his first senior deal. */
-export function acadCallWage(p: Player, call: AcadCall): number {
+function acadCallWage(p: Player, call: AcadCall): number {
   return playerWage(p.ca, p.age, call === 'first')
 }
 

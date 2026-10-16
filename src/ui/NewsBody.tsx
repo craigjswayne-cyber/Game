@@ -34,7 +34,7 @@ type Block =
 
 const ROW = /^(.+?) \| (.+)$/
 
-export function newsBlocks(body: string): Block[] {
+function newsBlocks(body: string): Block[] {
   const out: Block[] = []
   let prose: string[] = []
   const flush = () => {

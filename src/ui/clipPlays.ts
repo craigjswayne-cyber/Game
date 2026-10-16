@@ -182,7 +182,7 @@ function spec(set: TrackFrom, [ox, oy, sgn, t0]: [number, number, number, number
 
 /** how far behind the release the catch is, at least (m): enough to read
  *  as backwards on a phone, and to cover a clip's runner a little off his line */
-export const PASS_MARGIN = 0.5
+const PASS_MARGIN = 0.5
 /** how long a man holds it before he moves it on, in a clip (s) */
 export const HOLD = 0.15
 /** seconds a pass is in the air in the Playbook preview, by kind */

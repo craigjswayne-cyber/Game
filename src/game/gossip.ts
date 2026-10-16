@@ -855,7 +855,7 @@ export function punditPredictions(state: GameState, rng: Rng) {
 }
 
 /** Post the predictions column once pre-season is over (week 4). */
-export function postPredictionsNews(state: GameState) {
+function postPredictionsNews(state: GameState) {
   const club = state.clubs[state.userClubId]
   const comp = state.comps[club?.leagueId]
   if (!club || !comp || !state.preds) return

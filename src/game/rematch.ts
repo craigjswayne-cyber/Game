@@ -63,9 +63,9 @@ export const MEM_ADAPT = 0.1
  *  0.02 then read 0.62 to 0.80. Halved to keep the remembered lift a nudge. */
 export const MEM_UNIT = 0.01
 /** what the cause was worth on the day for the whole of it: a converted try */
-export const MEM_FULL = 7
+const MEM_FULL = 7
 /** below this share of the whole a coach changes nothing worth saying */
-export const MEM_MIN = 0.2
+const MEM_MIN = 0.2
 
 export type RematchCause = 'move' | 'break' | 'phase' | 'set' | 'turn'
 export type RematchUnit = 'defence' | 'scrum' | 'lineout' | 'breakdown'
@@ -97,7 +97,7 @@ export function rematchLine(r: Rematch): { k: string; v: Record<string, string |
 
 /** The cause a coach can plan against, from the top line of a meeting he
  *  lost, or null. */
-export function rematchCause(ev: CausalEvidence): { cause: RematchCause; sig: number; move?: string; unit?: RematchUnit } | null {
+function rematchCause(ev: CausalEvidence): { cause: RematchCause; sig: number; move?: string; unit?: RematchUnit } | null {
   if (ev.us <= ev.them) return null
   const top = rankWhy(ev, 1)[0]
   if (!top || top.sig <= 0) return null

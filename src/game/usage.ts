@@ -63,7 +63,7 @@ const ACTION_NAMES: Record<Action, string> = {
 
 /** Readable names for the screens. A screen not listed here is reported by its
  *  id, which is a word from the code and never a param. */
-export const SCREEN_NAMES: Record<string, string> = {
+const SCREEN_NAMES: Record<string, string> = {
   inbox: 'Inbox', squad: 'Team', report: 'Team report', tactics: 'Tactics', academy: 'Academy',
   training: 'Training and staff', medical: 'Medical', fixtures: 'Fixtures and results',
   finances: 'Finances', transfers: 'Transfers', infra: 'Infrastructure', club: 'Club info',
@@ -162,20 +162,20 @@ export function parseUsage(raw: string | null): Usage {
 
 // ---- pure steps (the probe tests these without a browser) ----
 
-export function withScreen(u: Usage, screen: string): Usage {
+function withScreen(u: Usage, screen: string): Usage {
   if (!SCREEN_ID.test(screen)) return u
   if (!(screen in u.screens) && Object.keys(u.screens).length >= MAX_SCREENS) return u
   return { ...u, screens: { ...u.screens, [screen]: (u.screens[screen] ?? 0) + 1 } }
 }
 
-export function withAction(u: Usage, a: Action): Usage {
+function withAction(u: Usage, a: Action): Usage {
   if (!(ACTIONS as readonly string[]).includes(a)) return u
   return { ...u, acts: { ...u.acts, [a]: (u.acts[a] ?? 0) + 1 } }
 }
 
 /** One competitive match completed. `key` names the match, `season` the
  *  career's season; neither goes into the report. */
-export function withMatch(u: Usage, key: string, season: string): Usage {
+function withMatch(u: Usage, key: string, season: string): Usage {
   if (u.seen.includes(key)) return u
   const newSeason = season !== u.lastSeason
   return {
@@ -188,13 +188,13 @@ export function withMatch(u: Usage, key: string, season: string): Usage {
 }
 
 /** One in-game week played. `key` names the new week; it is not reported. */
-export function withWeek(u: Usage, key: string): Usage {
+function withWeek(u: Usage, key: string): Usage {
   if (key === u.lastWeek) return u
   return { ...u, weeks: u.weeks + 1, lastWeek: key }
 }
 
 /** One season finished. `key` names it; it is not reported. */
-export function withFinished(u: Usage, key: string): Usage {
+function withFinished(u: Usage, key: string): Usage {
   if (key === u.lastFinished) return u
   return { ...u, finished: u.finished + 1, lastFinished: key }
 }
