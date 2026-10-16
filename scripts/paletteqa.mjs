@@ -45,12 +45,12 @@ try {
   ok(t.canvas === '#1a201e', `night canvas #1a201e (saw ${t.canvas})`)
   ok(t.s1 === '#242b29', `night surface-1 #242b29 (saw ${t.s1})`)
   ok(t.border === '#333c3a', `night border #333c3a (saw ${t.border})`)
-  ok(t.tp === '#f0f4f2' && t.ts === '#b3bdb9' && t.tm === '#8b958f',
+  ok(t.tp === '#f0f4f2' && t.ts === '#b3bdb9' && t.tm === '#a5afa9',
     `chalk text ramp resolves (saw ${t.tp}/${t.ts}/${t.tm})`)
-  ok(t.primary === '#34c06f' && t.gold === '#e9be68' && t.danger === '#ef6c63',
+  ok(t.primary === '#34c06f' && t.gold === '#e9be68' && t.danger === '#f27a71',
     `the three signals resolve: green ${t.primary}, gold ${t.gold}, red ${t.danger}`)
   ok(t.positive === '#34c06f', 'the --text-positive alias follows --primary through the mode')
-  ok(t.hero.includes('#16523a') && t.hero.includes('#1e8c4e'), 'night hero gradient is the deep green pair')
+  ok(t.hero.includes('#16523a') && t.hero.includes('#135c39'), 'night hero gradient is the deep green pair')
 
   // ---- into a save: the applied rules ----
   await page.click('text=New Career')
@@ -105,7 +105,7 @@ try {
     return { active: active && getComputedStyle(active).color, idle: idle && getComputedStyle(idle).color }
   })
   ok(nav.active === hex('34c06f'), `the selected nav icon is primary (saw ${nav.active})`)
-  ok(nav.idle === hex('8b958f'), `a resting nav icon is muted, not coloured (saw ${nav.idle})`)
+  ok(nav.idle === hex('a5afa9'), `a resting nav icon is muted, not coloured (saw ${nav.idle})`)
   await page.close()
 
   // ---- DAY: the same names, the other values ----
@@ -116,7 +116,7 @@ try {
   const d = await readTokens(day)
   ok(!d.night, 'rm-night=0 turns the daylight on')
   ok(d.canvas === '#f1f4f1' && d.s1 === '#ffffff', `day surfaces resolve (saw ${d.canvas}/${d.s1})`)
-  ok(d.primary === '#0f7a43' && d.gold === '#8a6516' && d.danger === '#c0362c',
+  ok(d.primary === '#0f7a43' && d.gold === '#7a5a12' && d.danger === '#c0362c',
     `day signals resolve: green ${d.primary}, gold ${d.gold}, red ${d.danger}`)
   ok(d.positive === '#0f7a43', 'the alias follows the mode: --text-positive is the day green')
   await day.close()
