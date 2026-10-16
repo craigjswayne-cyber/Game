@@ -140,12 +140,53 @@ const closeSheet = async () => {
   await page.locator('.squad-sheet .btn.gold').click({ timeout: 2000 })
   await page.waitForTimeout(300)
 }
+/**
+ * Write a 1.9.1 stoppage: one of his men down and NOBODY sent on. The shirt
+ * keeps the injured man, the side is a man short, and the match waits on
+ * ctx.injWait until the manager names the replacement (matchEngine.ts).
+ */
+const stageWait = (hurtPos) => page.evaluate((hurtPos) => {
+  const st = window.rugbyStore.getState()
+  const lm = st.liveMatch
+  const g = st.game
+  const ctx = lm.ctx
+  const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
+  const slot = mine.lineup.slice(0, 15).findIndex(id => id != null && mine.onPitch.has(id) && g.players[id].pos === hurtPos)
+  if (slot < 0) return { err: `no ${hurtPos} on the pitch` }
+  const hurt = g.players[mine.lineup[slot]]
+  hurt.injury = { desc: 'Hamstring', dk: 'injury.hamstring', until: g.week + 3, weeks: 3 }
+  mine.onPitch.delete(hurt.id)
+  mine.short += 1
+  const min = Math.max(1, ctx.lastMin)
+  const at = lm.cursor
+  ctx.events.splice(at, 0, {
+    min, type: 'INJ', teamId: mine.teamId, fld: 50, playerId: hurt.id, playerName: hurt.name,
+    text: 'comm.injuryDown', k: 'comm.injuryDown', v: { player: hurt.name, injury_k: 'injury.hamstring', rush_k: 'common.nothing' },
+    homeScore: ctx.home.score, awayScore: ctx.away.score,
+  })
+  ctx.injWait = [{ home: mine === ctx.home, hurtId: hurt.id, at, min }]
+  mine.lastInj = { hurtId: hurt.id, coverId: null, upTo: at + 1 }
+  st.matchCursor(at + 1, false)
+  return { hurt: hurt.name, slot }
+}, hurtPos)
+
+/** a real injury in the run-on is waiting for an answer: give it one */
+const answerWait = () => page.evaluate(() => {
+  const st = window.rugbyStore.getState()
+  const ctx = st.liveMatch?.ctx
+  const w = ctx?.injWait?.[0]
+  if (!w) return false
+  if (st.injuryPick(w.hurtId, null) === '') return true
+  return false
+})
+
 /** run on a few lines so the stoppage is behind us */
 const playOn = async () => {
   const c0 = (await mineState()).cursor
   await page.evaluate(() => { const st = window.rugbyStore.getState(); st.matchCursor(st.liveMatch.cursor, true) })
   for (let i = 0; i < 40; i++) {
     await page.waitForTimeout(250)
+    if (await answerWait()) await page.waitForTimeout(200)
     if (await page.locator('.sheet-casualty').count()) await closeSheet().catch(() => {})
     const s = await mineState()
     if (s.cursor >= c0 + 3 || s.seg === 3) return true
@@ -268,6 +309,38 @@ try {
   await closeSheet()
   ok(await playOn(), 'and the match goes on')
 
+  // ---- 6. 1.9.1: nobody goes on until he says who
+  console.log('--- 6. the match waits for his pick (1.9.1)')
+  await pause()
+  const s6 = await stageWait('CE')
+  console.log(`  staged: ${JSON.stringify(s6)}`)
+  ok(!s6.err, 'staged')
+  await page.locator('.sheet-casualty').waitFor({ timeout: 5000 })
+  sh = await sheet()
+  ok(sh.armed === s6.hurt, `the injured man's shirt is the one to fill (${sh.armed})`)
+  ok(!sh.goldOn, 'and the match cannot go on until somebody is named')
+  ok(/cannot go on/i.test(sh.text), 'the sheet says so')
+  await page.locator('.modal-veil').first().click({ position: { x: 5, y: 5 } }).catch(() => {})
+  await page.waitForTimeout(250)
+  ok(await page.locator('.sheet-casualty').count() > 0, 'a tap outside the sheet does not close it')
+  await page.screenshot({ path: `${OUT}/injury-wait.png` })
+  const wrows = page.locator('.squad-sheet .sheet-col').nth(1).locator('.sheet-row:not([disabled])')
+  ok(await wrows.count() > 0, 'there are men on the bench to choose from')
+  const wName = await wrows.last().locator('.sh-name').innerText()
+  await wrows.last().click()
+  await page.waitForTimeout(300)
+  sh = await sheet()
+  ok(sh.goldOn, `${wName} goes on and the door opens`)
+  const after = await page.evaluate(([nm, slot]) => {
+    const st = window.rugbyStore.getState()
+    const ctx = st.liveMatch.ctx
+    const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
+    return { inShirt: st.game.players[mine.lineup[slot]]?.name === nm, waiting: !!ctx.injWait?.length }
+  }, [wName, s6.slot])
+  ok(after.inShirt && !after.waiting, `${wName} wears the shirt and nothing is waiting`)
+  await closeSheet()
+  ok(await playOn(), 'and the match goes on')
+
   // ---- 4. nobody left on the bench
   console.log('--- 4. an injury with nobody left on the bench')
   await pause()
@@ -300,6 +373,7 @@ try {
       return 'skipped'
     })
     if (s === 'ft' || s === 'none') break
+    await answerWait()
     if (await page.locator('.sheet-casualty').count()) await closeSheet().catch(() => {})
     await page.waitForTimeout(200)
   }

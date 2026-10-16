@@ -136,6 +136,20 @@ const W_SECOND_TIER = [W + 'champ', W + 'e2']
 const W_LEAGUES = [W + 'pwr', W + 'pac', W + 'e1', W + 'celt', ...W_SECOND_TIER]
 const dreamTier = (leagueId: string): number => LEAGUE_TIER[leagueId] ?? (W_SECOND_TIER.includes(leagueId) ? 2 : 1)
 
+/**
+ * The leagues whose clubs can ever play in the Continental Cup (1.9.1). The
+ * cup is filled from the English, French and United Provinces top flights
+ * (rollover.ts slotMap), and a club in the English or French second or third
+ * tier can still get there by going up (rollover.ts PYRAMID). The Pacific,
+ * Japanese and American leagues feed neither the cup nor that pyramid, so a
+ * club there could be offered "Win the Continental Cup" and never once be in
+ * it (owner, as Charlotte: "the dream of winning a continental cup shouldnt
+ * be an option for them"). The women's cup takes the four leagues
+ * buildWomensContinentalCup draws from; its second tiers are ringfenced.
+ */
+const CC_REACH = new Set(['prem', 'top14', 'urc', 'champ', 'prod2', 'natl1', W + 'pwr', W + 'e1', W + 'pac', W + 'celt'])
+export const canReachCup = (leagueId: string): boolean => CC_REACH.has(leagueId)
+
 /** The seasons the manager won a league title, at one club or anywhere. A
  *  league title is the league's trophy: in a play-off league that is the
  *  final, not first place in the table, so a side that topped the table and
@@ -182,7 +196,7 @@ export const DREAMS: DreamDef[] = [
     titleK: 'dream.europe', titleLowerK: 'dream.europeLower',
     titleVars: ctx => ({ cup_k: cupKey(genderOfId(ctx.clubId)) }),
     needs: ['cc'],
-    applies: () => true,
+    applies: ctx => canReachCup(ctx.leagueId),
     progress: state => {
       const n = won(state, 'cc')
       const chc = won(state, 'chc')
@@ -202,7 +216,7 @@ export const DREAMS: DreamDef[] = [
     titleK: 'dream.double', titleLowerK: 'dream.doubleLower',
     titleVars: ctx => ({ club: ctx.clubName, cup_k: cupKey(genderOfId(ctx.clubId)) }),
     needs: ['cc'],
-    applies: ctx => dreamTier(ctx.leagueId) === 1,
+    applies: ctx => dreamTier(ctx.leagueId) === 1 && canReachCup(ctx.leagueId),
     progress: (state, clubId) => {
       const club = dreamClub(state, clubId)
       const league = leagueTitleSeasons(state, club).length > 0 ? 1 : 0

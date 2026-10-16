@@ -33,6 +33,7 @@ import { ensureLang, setLang } from '../src/game/i18n'
 // setLang below stays the instant switch this probe was written against
 await ensureLang('fr')
 import { newGame } from '../src/game/newgame'
+import { migrate } from '../src/game/save'
 import type { GameState } from '../src/game/model'
 
 let fails = 0
@@ -59,6 +60,19 @@ ok(Array.isArray(D.DREAMS) && D.DREAMS.length >= 5, `there are dreams to choose 
   ok(prem.length >= 4 && champ.length >= 4 && nl1.length >= 4,
     `every club has a real choice (prem ${prem.length}, champ ${champ.length}, nl1 ${nl1.length})`)
   for (const list of [prem, champ, nl1]) ok(list.length > 0, 'and nobody is offered an empty list')
+  // 1.9.1 (owner, as Charlotte): no cup dream where the cup can never be entered
+  const cupless = [['charlotte', 'mrc'], ['kubota', 'jl1'], ['crusaders', 'srp']] as const
+  for (const [clubId, leagueId] of cupless) {
+    const ids = D.dreamsFor({ clubId, clubName: clubId, leagueId, rep: 70 }).map(d => d.id)
+    ok(!ids.includes('europe') && !ids.includes('double') && ids.length > 0,
+      `a ${leagueId} club is not offered a Continental Cup dream (${ids.join(', ')})`)
+  }
+  ok(champ.includes('europe') && nl1.includes('europe'), 'a club with a road up to the cup still is')
+  {
+    const g = newGame('charlotte', 'Dreamer', 31)
+    g.dream = { id: 'europe', clubId: 'charlotte', season: g.season }
+    ok(migrate(g).dream?.id === 'league', 'a Charlotte save that chose the cup is given its league instead')
+  }
 }
 
 // ---- the four retired at the foot of the list (owner, round 6) ----

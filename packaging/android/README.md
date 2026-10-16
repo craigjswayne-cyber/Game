@@ -31,7 +31,7 @@ twenty minutes; the Play app now updates through a build and Play review.
 
 | File | What it is |
 |---|---|
-| `package.json` | the shell's own npm project, Capacitor 8.5.0 pinned, like iOS |
+| `package.json` | the shell's own npm project, Capacitor 8.5.3 pinned, like iOS |
 | `capacitor.config.json` | appId `com.phaserugbymanager.app`, webDir = the built game, no `server` block |
 | `version.json` | the Play `versionCode` for the next upload (56 for 1.8.17), and the Play Billing Library version (8.0.0, the floor Play enforces) |
 | `PhaseBilling.java` | the purchase plugin, on the Play Billing Library |

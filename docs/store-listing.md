@@ -120,6 +120,28 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.9.1, Play version code 59 (confirm 58 is accepted on the Console first)
+
+Each entry is under 500 characters. Paste the matching language into each Play locale.
+
+**en-GB**
+When one of your players is injured in a match you are watching, you now choose his replacement and the game waits for you. Mauls can be held up over the line, more often in tight finishes. The American clubs play their league and then a new MRC Cup. No Continental Cup dream at clubs that can never enter it. Bonus points in the round's table, a fixed Team of the Week count, and a security update.
+
+**fr-FR**
+Quand un de vos joueurs se blesse pendant un match que vous suivez, c'est vous qui choisissez son remplaçant, et le match vous attend. Un maul peut être tenu en l'air dans l'en-but, surtout en fin de match serré. Les clubs américains jouent leur championnat puis une nouvelle Coupe MRC. Plus de rêve de Coupe continentale pour un club qui ne peut pas la jouer. Points de bonus dans le classement de la journée, équipe de la semaine corrigée, et une mise à jour de sécurité.
+
+**es-ES**
+Cuando un jugador tuyo se lesiona en un partido que estás viendo, ahora eliges tú al sustituto y el partido te espera. Un maul puede quedar retenido en el ingoal, sobre todo en finales ajustados. Los clubes estadounidenses juegan su liga y después una nueva Copa MRC. Ya no hay sueño de Copa Continental en clubes que nunca pueden jugarla. Puntos bonus en la tabla de la jornada, equipo de la semana corregido y una actualización de seguridad.
+
+**it-IT**
+Quando un tuo giocatore si infortuna in una partita che stai guardando, ora scegli tu il sostituto e la partita ti aspetta. Un maul può essere tenuto alto oltre la linea, soprattutto nei finali tirati. I club americani giocano il campionato e poi una nuova Coppa MRC. Niente più sogno della Coppa Continentale per i club che non possono mai giocarla. Punti bonus nella classifica della giornata, squadra della settimana corretta e un aggiornamento di sicurezza.
+
+**ja-JP**
+観戦中の試合で選手が負傷したら、交代選手はあなたが選び、試合はその選択を待つように。モールがインゴールでヘルドアップされることがあり、接戦の終盤ほど起こりやすく。アメリカのクラブはリーグ戦の後に新しいMRCカップを戦うように。出場できないクラブにはコンチネンタルカップの夢を出さないように。節の順位表にボーナスポイント、今週のベスト15の人数を修正、セキュリティ更新も。
+
+**af**
+As een van jou spelers beseer word in 'n wedstryd wat jy kyk, kies jy nou sy plaasvervanger en die wedstryd wag vir jou. 'n Losskrum kan oor die doellyn opgehou word, veral in 'n taai slot. Die Amerikaanse klubs speel hul liga en dan 'n nuwe MRC-beker. Geen Kontinentale Beker-droom meer vir klubs wat dit nooit kan speel nie. Bonuspunte in die rondte se punteleer, die span van die week se telling reggestel, en 'n sekuriteitsopdatering.
+
 ### What's new (500 max) - v1.9.0, Play version code 58 (check the Console's highest accepted code first)
 
 Each entry is under 500 characters. Paste the matching language into each Play locale.

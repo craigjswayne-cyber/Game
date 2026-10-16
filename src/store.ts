@@ -94,7 +94,7 @@ import { genderOf, type Gender } from './game/gender'
 import { isKnockoutTie, matchRng, processWeekAndAdvance, resolveKnockoutDraw, userFixtureThisWeek, userMatchThisWeek, weekRng } from './game/season'
 import { resultsParam } from './game/schedule'
 import {
-  openDressingRoom, applyTacticsChange, applyTeamTalk, beginMatch, makeSubstitution, swapInjuryCover, swapShirts, undoSubstitution,
+  openDressingRoom, applyTacticsChange, applyTeamTalk, beginMatch, makeSubstitution, swapInjuryCover, coverInjury, swapShirts, undoSubstitution,
   playHalf, resolveDecision, stepTick, teamName, teamShort, type LiveCtx, forfeitSide, settleForfeit } from './game/matchEngine'
 import { applyForJob, resignJob, answerJobOffer } from './game/jobs'
 import { answerPress } from './game/media'
@@ -342,6 +342,9 @@ interface Store {
   halfTimeSub: (outId: number, inId: number) => string
   /** Override the assistant's injury replacement. Free, and only at the moment. */
   injuryCover: (onId: number, inId: number) => string
+  /** Send on the manager's choice for an injured man the match is waiting on
+   *  (1.9.1, matchEngine coverInjury). inId null lets the assistant pick. */
+  injuryPick: (hurtId: number, inId: number | null) => string
   /** Take back the last substitution, before play resumes (16B). */
   undoSub: () => string
   /** Swap two on-pitch men's shirts - a positional switch, free (16B). */
@@ -1326,10 +1329,12 @@ export const useStore = create<Store>((set, get) => ({
     if (preTalk) noteUse('talk')
     const pre = JSON.parse(JSON.stringify(g)) as GameState
     const ctx = beginMatch(g, fx, matchRng(g), true, userTeamId)
+    // he is watching, so his injuries wait for his pick (1.9.1)
+    ctx.manualInj = true
     // spoken or not, the room is opened once (teamtalk.ts, SAYING NOTHING)
     const preTalkMsg = openDressingRoom(g, ctx, preTalk)
     const rec: MatchResume = {
-      v: 1, pre, stream: 'match', fxId: fx.id, userSideId: userTeamId, preTalk: preTalk ?? null,
+      v: 1, pre, stream: 'match', inj: 'manual', fxId: fx.id, userSideId: userTeamId, preTalk: preTalk ?? null,
       mode: mode ?? 'full', tick: 0, cursor: 0, cmds: [],
       season: g.season, week: g.week, savedAt: Date.now(),
       seed: g.seed, saveName: g.saveName,
@@ -1425,13 +1430,14 @@ export const useStore = create<Store>((set, get) => ({
       get().noteProgress()
       return
     }
-    if (ctx.awaiting || ctx.seg === 3 || ctx.decision) {
+    // a man down and waiting for the manager's pick holds the clock too (1.9.1)
+    if (ctx.awaiting || ctx.seg === 3 || ctx.decision || ctx.injWait?.length) {
       set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch, playing: false, done: ctx.seg === 3 }, tick: s.tick + 1 } : {})
       return
     }
     // simulate until something new happens, a decision is needed, or a break
     let r: ReturnType<typeof stepTick> = 'play'
-    while (ctx.events.length <= cursor && r === 'play' && !ctx.decision) {
+    while (ctx.events.length <= cursor && r === 'play' && !ctx.decision && !ctx.injWait?.length) {
       r = stepTick(game, ctx)
     }
     // NOT WHILE A KICK IS STILL IN THE MANAGER'S HANDS. A cup tie level at
@@ -1448,10 +1454,10 @@ export const useStore = create<Store>((set, get) => ({
     const { game, liveMatch } = get()
     if (!game || !liveMatch) return
     const { ctx, cursor } = liveMatch
-    if (cursor < ctx.events.length || ctx.awaiting || ctx.seg === 3 || ctx.decision) return
+    if (cursor < ctx.events.length || ctx.awaiting || ctx.seg === 3 || ctx.decision || ctx.injWait?.length) return
     // the same loop advanceLive runs, stopping short of revealing the line
     let r: ReturnType<typeof stepTick> = 'play'
-    while (ctx.events.length <= cursor && r === 'play' && !ctx.decision) r = stepTick(game, ctx)
+    while (ctx.events.length <= cursor && r === 'play' && !ctx.decision && !ctx.injWait?.length) r = stepTick(game, ctx)
     if (r === 'FT' && !ctx.decision) settleKnockout(game, ctx)
     set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch }, tick: s.tick + 1 } : {})
     get().noteProgress()
@@ -1540,6 +1546,22 @@ export const useStore = create<Store>((set, get) => ({
     get().noteCmd({ kind: 'cover', onId, inId })
     const msg = swapInjuryCover(game, liveMatch.ctx, onId, inId)
     set(s => ({ tick: s.tick + 1 }))
+    return msg
+  },
+
+  injuryPick: (hurtId, inId) => {
+    const { game, liveMatch } = get()
+    if (!game || !liveMatch || liveMatch.ctx.seg >= 3) return t('touch.playResumed')
+    const wasCaughtUp = liveMatch.cursor >= liveMatch.ctx.events.length
+    const msg = coverInjury(game, liveMatch.ctx, hurtId, inId)
+    // only a change that happened is a command: a refused tap replays as nothing
+    if (!msg) get().noteCmd({ kind: 'inj', hurtId, inId })
+    set(s => ({
+      liveMatch: s.liveMatch && wasCaughtUp && !msg
+        ? { ...s.liveMatch, cursor: s.liveMatch.ctx.events.length }
+        : s.liveMatch,
+      tick: s.tick + 1,
+    }))
     return msg
   },
 

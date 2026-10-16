@@ -122,6 +122,27 @@ export const W_SUMMER_TEST_WEEKS = [44, 45]
 export const W_PAC4_WEEKS = [46, 47, 48]
 export const W_WC_POOL_WEEKS = [1, 2, 3]
 export const W_WC_KO_WEEKS = [4, 5, 6]
+// ---- the American year (1.9.1) ----------------------------------------------
+// Six clubs and no Continental Cup to reach, so ten league rounds spread over
+// the whole year left an MRC career with a game every third week and nothing
+// in between (owner, as Charlotte: "there are only a few games in their
+// season - they should play twice in the league then a cup competition
+// against the same teams"). The league now runs first and tight, its
+// play-offs straight after, and then the MRC Cup: two pools of three, home
+// and away, then semi-finals and a final. The cup's weeks keep clear of every
+// Test window (validateCalendar rule 3) and of the league's own weeks (rule 7).
+//
+// 4-17    league rounds (ten, home and away)
+// 20, 21  league semi-finals, final
+// 22, 23  MRC Cup pools, rounds 1-2
+// 24-29   the Northern Championship window: no cup ties in it
+// 30-33   MRC Cup pools, rounds 3-6
+// 34, 35  MRC Cup semi-finals, final
+export const MRC_LEAGUE_WEEKS = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
+export const MRC_PLAYOFF_WEEKS = [20, 21]
+export const MRC_CUP_POOL_WEEKS = [22, 23, 30, 31, 32, 33]
+export const MRC_CUP_KO_WEEKS = [34, 35]
+
 /** The four women's top tiers, whose clubs play the Hemispheric Championship
  *  and so cannot use its weeks for league rounds. The second tiers can. */
 export const W_CUP_LEAGUES = [W + 'pwr', W + 'pac', W + 'e1', W + 'celt']
@@ -130,7 +151,10 @@ export const W_CUP_LEAGUES = [W + 'pwr', W + 'pac', W + 'e1', W + 'celt']
  *  deliberate: every week of the women's year is spoken for. */
 export function leagueWeeksFor(gender: Gender, worldCup: boolean, leagueId: string): number[] {
   // the Championship gives up week 39 to its semi-finals (CHAMP_KO_WEEKS)
-  if (gender !== 'w') return leagueId === 'champ' ? LEAGUE_WEEKS.filter(w => !CHAMP_KO_WEEKS.includes(w)) : LEAGUE_WEEKS
+  if (gender !== 'w') {
+    if (leagueId === 'mrc') return MRC_LEAGUE_WEEKS
+    return leagueId === 'champ' ? LEAGUE_WEEKS.filter(w => !CHAMP_KO_WEEKS.includes(w)) : LEAGUE_WEEKS
+  }
   const base = worldCup ? W_LEAGUE_WEEKS_WC : W_LEAGUE_WEEKS
   if (W_CUP_LEAGUES.includes(leagueId)) return base
   return [...base, ...W_CC_POOL_WEEKS].sort((a, b) => a - b)
@@ -158,6 +182,7 @@ export const CHAMP_KO_WEEKS = [39, 40]
 
 export function playoffWeeksFor(playoffTeams: number, leagueId = ''): number[] {
   if (leagueId === 'champ') return CHAMP_KO_WEEKS
+  if (leagueId === 'mrc') return MRC_PLAYOFF_WEEKS
   return playoffTeams > 4 ? [40, 42, 43] : [42, 43]
 }
 

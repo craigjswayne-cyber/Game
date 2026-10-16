@@ -46,7 +46,7 @@ review notes, and `docs/store-listing.md` has that text ready.
 ## Building it
 
 The toolchain is **pinned in this folder's own `package.json`** - Capacitor
-8.5.0, deliberately a separate npm project from the game. The web app must
+8.5.3, deliberately a separate npm project from the game. The web app must
 never gain a Capacitor dependency: `scripts/netprobe.ts` fails the suite on
 anything in the bundle that could make a network call, and the shipped game
 stays a pure offline PWA. `src/game/storekit.ts` reads `globalThis.Capacitor`

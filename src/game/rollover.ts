@@ -14,7 +14,7 @@ import { ageAttributes, gapGrowth, PRODIGY_PA, softCeilings, youthPace } from '.
 import { COE_MEAN, learning, markSights, seasonReview, tempoF, TL } from './devproject'
 import { paRange, scoutPa } from './scout'
 import { intakePicks } from './devnews'
-import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildWomensContinentalCup, buildLeague, schedulePreseason, sortTable } from './schedule'
+import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildWomensContinentalCup, buildLeague, schedulePreseason, sortTable, buildMrcCup } from './schedule'
 import { punditPredictions } from './gossip'
 import { CHALLENGES, LEAGUE_DEFS } from './newgame'
 import { genderOf, W } from './gender'
@@ -2113,6 +2113,10 @@ export function rebuildSeason(state: GameState) {
     state.comps['cc'] = buildChampionsCup(euroSlots.slice(0, 16), rng, state)
     state.comps['chc'] = buildChampionsCup(chcSlots.slice(0, 16), rng, state, { id: 'chc', name: 'Continental Shield', short: 'Continental Shield' })
     buildInternationals(rng, state, wcYear)
+    // the American clubs' cup, after their league (1.9.1, calendar.ts): its
+    // own draw stream, so nothing above it moves
+    const mrcCup = buildMrcCup(Object.values(state.clubs).filter(c => c.leagueId === 'mrc').map(c => c.id), state)
+    if (mrcCup) state.comps[mrcCup.id] = mrcCup
   } else {
     // The women's world gets its own continental cup, drawn the same way it was
     // drawn in August of year one. This used to be built only in newGame, so a

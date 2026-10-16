@@ -2328,6 +2328,15 @@ export interface LiveCtx {
    *  Records whether that change spent a brief or blew the cover charge, so
    *  the undo can give back exactly what the change took. */
   lastSub?: { outId: number; inId: number; blewCover: boolean; briefed: boolean } | null
+  /** THE MANAGER CHOOSES WHO COVERS AN INJURY (1.9.1): set at kick-off of a
+   *  match he is watching. Absent on a match begun by an older build, which
+   *  replays the way it was played, with the assistant's pick. */
+  manualInj?: boolean
+  /** His men who are down and waiting for him to send somebody on, oldest
+   *  first: which side, who, the index of the injury's line and its minute.
+   *  The match does not go on until coverInjury has answered each one; a
+   *  caller that steps on regardless gets the assistant's pick (stepTick). */
+  injWait?: { home: boolean; hurtId: number; at: number; min: number }[]
   preTalk: string | null
   /** how each man took the pre-match and the half-time talk (teamtalk.ts),
    *  for the screens: absent until a talk is given */
@@ -2427,7 +2436,7 @@ const DEPICTS: Record<string, NonNullable<MatchEvent['fx']>> = {
   'comm.flav12': 'SCRUM',           // choke tackle, scrum to the other side
   'comm.flav21': 'SCRUM',           // the scrum inches forward
   'comm.flavWet1': 'SCRUM',         // trudging to another scrum in the rain
-  'comm.maulHeldUp': 'SCRUM',       // held up, and they win the scrum
+  'comm.maulHeldUp': 'MAUL',        // driven over and held up (1.9.1: the drop-out, not a scrum)
   'comm.uncontested': 'SCRUM',      // the referee orders uncontested scrums
   'comm.uncontestedNow': 'SCRUM',   // the last trained front-rower goes off
   'comm.uncontestedShort': 'SCRUM', // Law 3.20: a second man leaves with him
@@ -4340,7 +4349,22 @@ function kickToCorner(state: GameState, ctx: LiveCtx, mine: SideCtx, opp: SideCt
     const stop = opp.units.defence * 0.5 + opp.units.breakdown * 0.5
     const pTry = clamp(0.34 + (drive - stop) * 0.030, 0.15, 0.62)
     pushLine(state, ctx, min, 'SUB', mine, 'comm.maulToCorner')
-    if (rng() < pTry) {
+    // HELD UP OVER THE LINE (1.9.1, owner: "occasionally it should be held up
+    // and no try scored ... Especially in close games towards the end of the
+    // match. This is when the player is most invested"). A drive now gets
+    // over the line a little more often than it scores (pOver), and one in
+    // ten of those is held up - so across a match the corner scores exactly
+    // as often as it did and the posts-or-corner call is no different. In the
+    // last quarter of a game within a score it is held up more than one in
+    // four times: there the corner is a real gamble, which is the drama.
+    const close = min >= 65 && Math.abs(mine.score - opp.score) <= 7
+    const pOver = Math.min(0.95, pTry / 0.9)
+    const r = rng()
+    if (r >= pOver * (close ? 0.72 : 0.9) && r < pOver) {
+      heldUpMaul(state, ctx, mine, opp, min + 1)
+      return t('touch.gambleEmpty')
+    }
+    if (r < pOver) {
       const forwards = mine.lineup.slice(0, 8)
         .map(id => id != null ? state.players[id] : null)
         .filter((p): p is Player => !!p && mine.onPitch.has(p.id))
@@ -4349,7 +4373,7 @@ function kickToCorner(state: GameState, ctx: LiveCtx, mine: SideCtx, opp: SideCt
       return t('touch.maulDelivers')
     }
     if (rng() < 0.5) {
-      pushLine(state, ctx, min + 1, 'SUB', opp, 'comm.maulHeldUp', { team: teamShort(state, opp.teamId) })
+      heldUpMaul(state, ctx, mine, opp, min + 1)
       return t('touch.gambleEmpty')
     }
     mine.poss += 1.2
@@ -4358,6 +4382,17 @@ function kickToCorner(state: GameState, ctx: LiveCtx, mine: SideCtx, opp: SideCt
     concedePenalty(state, ctx, opp, min + 1, null)
     return t('touch.pinnedNoPoints')
   }
+}
+
+/** A maul driven over and held up: no try, and since 2022 the restart is the
+ *  defenders' goal-line drop-out, which clears them up the field (the open
+ *  play held-up does the same, heldUpTick). The line was "win the scrum",
+ *  the law as it stood before. */
+function heldUpMaul(state: GameState, ctx: LiveCtx, mine: SideCtx, opp: SideCtx, min: number) {
+  pushLine(state, ctx, min, 'SUB', opp, 'comm.maulHeldUp', { team: teamShort(state, opp.teamId) })
+  backTowards(ctx, mine, 45)
+  mine.pressure = clamp(mine.pressure * 0.6, 0, 100)
+  opp.pressure = clamp(opp.pressure + 15, 0, 100)
 }
 
 /** The quick tap, for whichever side has the penalty. */
@@ -4780,6 +4815,13 @@ function aiAutoSubs(state: GameState, ctx: LiveCtx, side: SideCtx, min: number) 
       // shirt, which is what effAt's 0.8 marks). Injuries still take whoever
       // is left: that change is forced.
       if (s < p.ca * 0.8) continue
+      // nor one that leaves the scrum without its props (1.9.1). A hooker
+      // reads as 0.8 at loosehead (the neighbouring shirt), so a tired prop
+      // could make way for him while the other prop was in the bin and the
+      // cover had come on: two hookers, one prop, a contested scrum
+      // (frontrowcardprobe, montauban at 52')
+      if (slot <= 2 && !pitchFrontRow(state, [...[...side.onPitch].filter(x => x !== outId), id])
+        && pitchFrontRow(state, side.onPitch)) continue
       if (s > bestS) { bestS = s; best = p }
     }
     // nobody on the bench plays there: this shirt keeps its man, and the next
@@ -6360,49 +6402,25 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
             player: p.name, injury_k: dk,
             rush_k: (p.rust ?? 0) > 0 ? 'comm.injuryRushedBack' : 'common.nothing',
           }, p.id)
-          // with the bench spent, a replaced front-rower may come back for an
-          // injured one (Law 3.35) - on the legs he left with, not fresh ones
-          const back = pickBenchSub(state, side, p.id) == null && isFrontRower(p) ? returningFrontRower(state, side) : null
-          const sub = back ?? pickBenchSub(state, side, p.id)
-          if (sub) {
-            side.onPitch.add(sub.id)
-            cameOn(side, sub.id, min)
-            if (!back) side.ratings.set(sub.id, 6)
-            side.energy.set(sub.id, back ? Math.min(benchTank(sub), side.energy.get(sub.id) ?? benchTank(sub)) : benchTank(sub))
-            const slot = side.lineup.indexOf(p.id)
-            const bSlot = side.lineup.indexOf(sub.id)
-            if (slot >= 0 && slot < 15) {
-              side.lineup[slot] = sub.id
-              if (bSlot >= 0) side.lineup[bSlot] = p.id
-            }
-            if (back) {
-              pushLine(state, ctx, min, 'SUB', side, 'comm.frontRowReturns', { player: sub.name }, sub.id)
-            } else {
-              const brief = applyBrief(state, side, sub.id)
-              pushLine(state, ctx, min, 'SUB', side, 'comm.subComesOn',
-                { player: sub.name, brief_k: brief ?? 'common.nothing' }, sub.id)
-            }
-            // and if the bench had nobody who plays there, the side pays (F4)
-            forcedSwitchCost(state, ctx, side, p.id, sub, min)
-          } else {
-            // NOBODY LEFT TO SEND ON. The bench is spent, so the side finishes
-            // the match a man down - and until this line existed, that cost it
-            // nothing at all. The commentary said fourteen; numF, which is the
-            // only place the missing man is charged for, counted yellows, red
-            // cards and Law 3.20 and knew nothing about an uncovered injury.
-            // So a side could play twenty minutes with fourteen men and be
-            // exactly as strong as one with fifteen.
-            //
-            // Found by scripts/journeyprobe.ts reconciling the men on the pitch
-            // against the men the card accounted for, in a Bristol side that
-            // lost a man at 72 minutes with an empty bench. Charged as `short`
-            // because that is what short means: a player the side had to do
-            // without, and not a card in anybody's record.
+          // THE MANAGER PICKS (1.9.1). In a match he is watching, his own man
+          // goes down and nobody comes on until he has chosen who (owner: "it
+          // shouldnt be auto select - the player must select them ... the
+          // game cant continue"). The engine used to send the assistant's
+          // pick on at once and simulate the rest of the minute with him, so
+          // the replacement was already running in the pitch animation
+          // before the injury was ever on screen ("number 20 ... was already
+          // in the animation before the notification"). Now the side plays
+          // the rest of the tick a man short and the match waits (injWait)
+          // for coverInjury. With nobody left who can come on, there is
+          // nothing to choose and it goes on as it always has.
+          if (ctx.manualInj && side.isUser && !ctx.assistantSubs && injuryCoverFor(state, side, p)) {
             side.short += 1
+            ;(ctx.injWait ??= []).push({ home: side === ctx.home, hurtId: p.id, at: ctx.events.length - 1, min })
+            fieldChanged(state, ctx, side, min)
+            side.lastInj = { hurtId: p.id, coverId: null, upTo: ctx.events.length }
+          } else {
+            sendOnForInjury(state, ctx, side, p, min, null)
           }
-          checkFrontRow(state, ctx, side, min, p, 'injury', !!sub)
-          fieldChanged(state, ctx, side, min)
-          side.lastInj = { hurtId: p.id, coverId: sub && !back ? sub.id : null, upTo: ctx.events.length }
         }
       }
     }
@@ -6531,13 +6549,104 @@ function blowHalfTime(state: GameState, ctx: LiveCtx) {
  *  reads as "the match is over" - once the last call of the match is in. */
 function blowFullTime(state: GameState, ctx: LiveCtx) {
   ctx.heldWhistle = null
+  // a man hurt in the last minutes needs nobody to come on for him now
+  ctx.injWait = undefined
   ctx.seg = 3
   ctx.awaiting = null
   finalizeMatch(state, ctx)
 }
 
+/** Who could come on for an injured man: the best fit man left on the bench,
+ *  or with the bench spent a replaced front-rower for a front-rower (Law
+ *  3.35). Null when nobody can. Read-only, no draw. */
+function injuryCoverFor(state: GameState, side: SideCtx, p: Player): Player | null {
+  return pickBenchSub(state, side, p.id) ?? (isFrontRower(p) ? returningFrontRower(state, side) : null)
+}
+
+/**
+ * Put a replacement on for an injured man, or play on a man short when nobody
+ * is left. `chosen` is the manager's pick (coverInjury); null is the
+ * assistant's, which is every AI side's and every match nobody is watching.
+ */
+function sendOnForInjury(state: GameState, ctx: LiveCtx, side: SideCtx, p: Player, min: number, chosen: Player | null) {
+  // with the bench spent, a replaced front-rower may come back for an
+  // injured one (Law 3.35) - on the legs he left with, not fresh ones
+  const back = chosen ? (side.ratings.has(chosen.id) ? chosen : null)
+    : pickBenchSub(state, side, p.id) == null && isFrontRower(p) ? returningFrontRower(state, side) : null
+  const sub = chosen ?? back ?? pickBenchSub(state, side, p.id)
+  if (sub) {
+    side.onPitch.add(sub.id)
+    cameOn(side, sub.id, min)
+    if (!back) side.ratings.set(sub.id, 6)
+    side.energy.set(sub.id, back ? Math.min(benchTank(sub), side.energy.get(sub.id) ?? benchTank(sub)) : benchTank(sub))
+    const slot = side.lineup.indexOf(p.id)
+    const bSlot = side.lineup.indexOf(sub.id)
+    if (slot >= 0 && slot < 15) {
+      side.lineup[slot] = sub.id
+      if (bSlot >= 0) side.lineup[bSlot] = p.id
+    }
+    if (back) {
+      pushLine(state, ctx, min, 'SUB', side, 'comm.frontRowReturns', { player: sub.name }, sub.id)
+    } else {
+      const brief = applyBrief(state, side, sub.id)
+      pushLine(state, ctx, min, 'SUB', side, 'comm.subComesOn',
+        { player: sub.name, brief_k: brief ?? 'common.nothing' }, sub.id)
+    }
+    // and if the bench had nobody who plays there, the side pays (F4)
+    forcedSwitchCost(state, ctx, side, p.id, sub, min)
+  } else {
+    // NOBODY LEFT TO SEND ON. The bench is spent, so the side finishes
+    // the match a man down - and until this line existed, that cost it
+    // nothing at all. The commentary said fourteen; numF, which is the
+    // only place the missing man is charged for, counted yellows, red
+    // cards and Law 3.20 and knew nothing about an uncovered injury.
+    // So a side could play twenty minutes with fourteen men and be
+    // exactly as strong as one with fifteen.
+    //
+    // Found by scripts/journeyprobe.ts reconciling the men on the pitch
+    // against the men the card accounted for, in a Bristol side that
+    // lost a man at 72 minutes with an empty bench. Charged as `short`
+    // because that is what short means: a player the side had to do
+    // without, and not a card in anybody's record.
+    side.short += 1
+  }
+  checkFrontRow(state, ctx, side, min, p, 'injury', !!sub)
+  fieldChanged(state, ctx, side, min)
+  side.lastInj = { hurtId: p.id, coverId: sub && !back ? sub.id : null, upTo: ctx.events.length }
+}
+
+/**
+ * Send on the manager's choice for one of his injured men (1.9.1, injWait).
+ * `inId` null is "let the assistant pick". Free, like any injury replacement.
+ * Returns '' when it is done, or why that man cannot go on.
+ */
+export function coverInjury(state: GameState, ctx: LiveCtx, hurtId: number, inId: number | null): string {
+  const w = ctx.injWait?.find(x => x.hurtId === hurtId)
+  const p = state.players[hurtId]
+  if (!w || !p) return t('touch.notAvailable')
+  const side = w.home ? ctx.home : ctx.away
+  let chosen: Player | null = null
+  if (inId != null) {
+    const c = state.players[inId]
+    const slot = side.lineup.indexOf(inId)
+    if (!c || c.injury || c.bans > 0 || slot < 15 || side.onPitch.has(inId) || side.binned.has(inId) || side.sentOff?.has(inId)) return t('touch.notAvailable')
+    // a man already replaced may only come back as a front-rower for a
+    // front-rower, and only when the bench has nobody else (Law 3.35)
+    if (side.ratings.has(inId) && !(isFrontRower(c) && isFrontRower(p) && !pickBenchSub(state, side, hurtId))) return t('touch.notAvailable')
+    if (!isFrontRower(c) && needsFrontRower(state, side, hurtId)) return t('touch.frontRowOnly')
+    chosen = c
+  }
+  ctx.injWait = ctx.injWait!.filter(x => x !== w)
+  side.short -= 1
+  sendOnForInjury(state, ctx, side, p, w.min, chosen)
+  return ''
+}
+
 export function stepTick(state: GameState, ctx: LiveCtx): 'play' | 'HT' | 'BRK' | 'FT' {
   if (ctx.tick >= 20) return 'FT'
+  // nobody may play on while a man is down and unanswered: a caller that
+  // steps on anyway (skip to the break, a harness) gets the assistant's pick
+  for (const w of [...(ctx.injWait ?? [])]) coverInjury(state, ctx, w.hurtId, null)
   // play has resumed: the last substitution has now been played and cannot be
   // taken back (16B), and no whistle is waiting on anything
   ctx.lastSub = null

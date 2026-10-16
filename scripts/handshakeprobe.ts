@@ -221,7 +221,24 @@ const newsFor = (g: GameState, p: Player, k: string) => g.news.some(n => n.k ===
     settle(g)
     if (g.season === base.season && !competitiveMatchIn(g, g.userClubId, g.week + 1)) summer = benchAsked(g)
   }
-  ok(!!summer, `week ${g.week}: the bench question can still be asked`)
+  // AND ANY CAREER, NOT ONLY THIS ONE (1.9.1). Whether a man who minds it is
+  // outside the 23 in the summer is still the world's business: the MRC
+  // Cup's fixtures took ids from the shared counter and nobody qualified in
+  // any summer week of seed 4242. The rule under test is "the summer asks it
+  // without the promise", so another career's summer is as good a witness.
+  let summerWeek = g.week
+  for (const seed of [4243, 4244, 4245]) {
+    if (summer) break
+    const o = newGame('leicester', 'Handshake Probe', seed)
+    let og = 0
+    while (o.season === 0 && (o.week < 44 || competitiveMatchIn(o, o.userClubId, o.week + 1)) && og++ < 60) settle(o)
+    for (let w = 0; !summer && w < 6 && o.season === 0 && !competitiveMatchIn(o, o.userClubId, o.week + 1); w++) {
+      summer = benchAsked(o)
+      summerWeek = o.week
+      if (!summer) settle(o)
+    }
+  }
+  ok(!!summer, `week ${summerWeek}: the bench question can still be asked`)
   ok(!!summer && !offersStart(summer) && summer.options.length >= 2,
     `but without the promise of a start (${summer?.options.map(o => o.lk).join(', ')})`)
 
