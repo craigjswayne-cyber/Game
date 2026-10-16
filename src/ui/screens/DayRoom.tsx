@@ -9,6 +9,7 @@ import {
 } from '../../game/days'
 import { userFixtureThisWeek } from '../../game/season'
 import { leaguePos } from '../../game/schedule'
+import { lastLeagueWeek, roundXV } from '../../game/dreamxv'
 import { matchStakes } from '../../game/stakes'
 import { analystClaim, analystRead, prepLabel, unitLabel } from '../../game/analyst'
 import { CrestT, SectionTitle } from '../components'
@@ -178,15 +179,15 @@ function MondayBlocks() {
           away - a read of lastWk/lastR, exactly what the DreamTeam screen
           reads, so nothing new is computed and the rng never hears about it. */}
       {leagueId && (() => {
-        const played = game.fixtures.filter(f => f.compId === leagueId && f.played)
-        const wk = played.length ? Math.max(...played.map(f => f.week)) : 0
+        const wk = lastLeagueWeek(game, leagueId)
         if (!wk) return null
-        const pool = Object.values(game.players)
-          .filter(p => p.clubId && game.clubs[p.clubId]?.leagueId === leagueId && p.lastWk === wk && p.lastR != null)
-          .sort((a, b) => (b.lastR ?? 0) - (a.lastR ?? 0))
-        if (pool.length < 3) return null
-        const top = pool.slice(0, 3)
-        const mineIn = pool.slice(0, 15).filter(p => p.clubId === game.userClubId).length
+        // the XV the Dream Team screen shows, not the top fifteen ratings:
+        // those counted a crowded position's spare men and missed the ones
+        // the screen picked (owner: "it said 6 ... but it was more than that")
+        const xv = roundXV(game, leagueId, wk).flatMap(x => x.p ? [x.p] : [])
+        if (xv.length < 3) return null
+        const top = [...xv].sort((a, b) => (b.lastR ?? 0) - (a.lastR ?? 0)).slice(0, 3)
+        const mineIn = xv.filter(p => p.clubId === game.userClubId).length
         return (
           <div className="card">
             <div className="fact-label">{t('dayroom.totw')}</div>

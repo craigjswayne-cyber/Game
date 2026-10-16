@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '../../store'
-import { XV_SLOTS, type Player } from '../../game/model'
+import { type Player } from '../../game/model'
 import { teamShort } from '../../game/matchEngine'
 import { ClubLink, Jersey, SectionTitle } from '../components'
 import { t, compLabel } from '../../game/i18n'
 import { leadRow, onesToWatch } from '../../game/scout'
+import { lastLeagueWeek, roundXV } from '../../game/dreamxv'
 
 /** Magazine-style Dream Team of the round + season leaderboards -
  *  straight off the rugby magazine's socials. */
@@ -15,25 +16,10 @@ export default function DreamTeam() {
   const [leagueId, setLeagueId] = useState(game.clubs[game.userClubId]?.leagueId ?? leagues[0]?.id)
   const comp = game.comps[leagueId]
 
-  // the most recent week this league actually played
-  const lastWeek = useMemo(() => {
-    const played = game.fixtures.filter(f => f.compId === leagueId && f.played)
-    return played.length ? Math.max(...played.map(f => f.week)) : 0
-  }, [game, leagueId])
-
-  const xv = useMemo(() => {
-    const pool = Object.values(game.players).filter(p =>
-      p.clubId && game.clubs[p.clubId]?.leagueId === leagueId &&
-      p.lastWk === lastWeek && p.lastR != null)
-    const used = new Set<number>()
-    return XV_SLOTS.map(slot => {
-      const best = pool
-        .filter(p => !used.has(p.id) && (p.pos === slot.pos || p.alt.includes(slot.pos)))
-        .sort((a, b) => (b.lastR ?? 0) - (a.lastR ?? 0))[0]
-      if (best) used.add(best.id)
-      return { slot, p: best ?? null }
-    })
-  }, [game, leagueId, lastWeek])
+  // the most recent week this league actually played, and its XV (dreamxv.ts,
+  // which the day room's card reads too, so the two cannot disagree)
+  const lastWeek = useMemo(() => lastLeagueWeek(game, leagueId), [game, leagueId])
+  const xv = useMemo(() => roundXV(game, leagueId, lastWeek), [game, leagueId, lastWeek])
 
   // season leaderboards
   const seasonPool = Object.values(game.players).filter(p =>

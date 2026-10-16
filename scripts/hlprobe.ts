@@ -41,7 +41,7 @@ const BALL_MAX = 40        // a long pass or a kick in flight
 
 const DEF_S = ['drift', 'blitz', 'pendulum', 'man', 'choke']
 const ATK_S = ['direct', 'pods', 'width', 'kick', 'offload']
-const labels = { try: 'TRY', review: 'TMO', notry: 'NO TRY', good: 'GOOD', wide: 'WIDE', turnover: 'TURNOVER', saved: 'TRY SAVER' }
+const labels = { try: 'TRY', review: 'TMO', notry: 'NO TRY', good: 'GOOD', wide: 'WIDE', turnover: 'TURNOVER', saved: 'TRY SAVER', heldup: 'HELD UP' }
 const colours = { home: ['#c00', '#fff'] as [string, string], away: ['#00c', '#fff'] as [string, string] }
 
 const specs: { spec: ClipSpec; kind: ClipKind }[] = []
@@ -524,6 +524,24 @@ const oneCarrier = specs.every(({ spec }) => {
 })
 ok(oneCarrier, 'never two ball carriers at once')
 ok(conLines.length >= 5 && conLines.every(d => d < 0.01), `every conversion is kicked in line with its try (${conLines.length} checked)`)
+
+// ---- HELD UP OVER THE LINE (1.9.1) ----
+// owner: "occasionally it should be held up and no try scored. This should be
+// shown in animation as an almost chance". The held-up line is the defending
+// side's (they survive), so the clip has to turn it round.
+{
+  const mk = (teamId: string, k: string, type: MatchEvent['type'] = 'SUB'): MatchEvent =>
+    ({ min: 72, type, teamId, k, fld: 95, homeScore: 13, awayScore: 15 } as MatchEvent)
+  const ev = [mk('home', 'comm.maulToCorner'), mk('away', 'comm.maulHeldUp')]
+  const kind = momentAt(ev, 1, 'home', 'key')
+  ok(kind === 'heldup', `a maul held up is a moment of its own, in Key Moments too (${kind})`)
+  const spec = buildClip(ev, 1, 'heldup', 'home', () => undefined, colours, labels, () => 'Name')
+  ok(spec.style === 'maul' && spec.attackHome && spec.label === 'HELD UP', 'played as the home maul, captioned HELD UP')
+  const tl = clipTimeline(spec)
+  const endFrame = frameAt(spec, clipLength(spec) - 0.05), endBall = endFrame.ball
+  ok(tl.land > 0 && endBall.x > 100 && endBall.x < 102.5, `the drive gets over the line and stops there (ball at ${endBall.x.toFixed(1)})`)
+  ok(endFrame.lift > 0, 'and the ball never touches the grass')
+}
 
 console.log(fails ? `\nHL PROBE FAILED (${fails})` : '\nHL PROBE PASSED')
 process.exit(fails ? 1 : 0)

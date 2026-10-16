@@ -36,7 +36,7 @@ import type { GameState, Tactic } from './model'
 import { MAX_SUBS, matchStats } from './matchEngine'
 import type { LiveCtx, SideCtx } from './matchEngine'
 import { t } from './i18n'
-import { LEVERS, WHY_MIN, buildEvidence, htHurt, pointsAfter, possPct, sidesOf, significance } from './evidence'
+import { LEVERS, WHY_MIN, buildEvidence, htHurt, pointsAfter, possPct, sidesOf, significance, type Follow } from './evidence'
 
 /** MAX_SUBS as a word for prose, so the advice can never disagree with the
  *  engine's cap again. Falls back to digits if the cap ever outgrows the list. */
@@ -201,9 +201,26 @@ export function gradeFixes(
  *  the two changes made (ACTION_TAGS). */
 export function gradeHomework(
   game: GameState, ctx: LiveCtx, mine: SideCtx, opp: SideCtx, tactic: Tactic | null, prev: readonly FixTag[],
+  /** the card's own follow-up line on the last match, when it has one */
+  follow?: Pick<Follow, 'cause' | 'trend'> | null,
 ): { fixed: FixTag[]; missed: FixTag[] } {
   const open = coachFixes(game, ctx, mine, opp, tactic, 99).map(f => f.tag)
-  return gradeFixes(prev, open, { fitness: benchOn(ctx, mine) >= 2 })
+  const g = gradeFixes(prev, open, { fitness: benchOn(ctx, mine) >= 2 })
+  // ONE VERDICT ON THE SET PIECE (1.9.1, onestoryprobe). The fix reads the
+  // share of the match's set pieces won and files a lost breakdown under the
+  // same tag; the follow-up counts our own scrums and lineouts lost. So a card
+  // could say "own scrums and lineouts lost: 6 to 2, improved" above "the set
+  // piece is still not sorted". When the follow-up has judged the set piece,
+  // the homework takes its word.
+  if (follow?.cause === 'set' && prev.includes('setpiece')) {
+    const sorted = follow.trend === 'improved' ? true : follow.trend === 'worse' ? false : null
+    if (sorted != null) {
+      const fixed: FixTag[] = g.fixed.filter(x => x !== 'setpiece'), missed: FixTag[] = g.missed.filter(x => x !== 'setpiece')
+      ;(sorted ? fixed : missed).push('setpiece')
+      return { fixed, missed }
+    }
+  }
+  return g
 }
 
 /** One line of English for a grade, or null when there is nothing to report. */

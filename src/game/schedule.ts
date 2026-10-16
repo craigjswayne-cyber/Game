@@ -2,11 +2,11 @@ import type { Competition, Fixture, GameState, TableRow } from './model'
 import { W, genderOf, type Gender } from './gender'
 import {absWeek, BASE_YEAR, fixtureDayOff, worldCupSeasonFor } from './model'
 import {
-  AUTUMN_WEEKS, CC_KO_WEEKS, CC_POOL_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, SUMMER_TEST_WEEKS, TOUR_WEEKS, TRC_WEEKS,
+  AUTUMN_WEEKS, CC_KO_WEEKS, CC_POOL_WEEKS, MRC_CUP_KO_WEEKS, MRC_CUP_POOL_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, SUMMER_TEST_WEEKS, TOUR_WEEKS, TRC_WEEKS,
   WC_KO_WEEKS, WC_POOL_WEEKS, W_AUTUMN_WEEKS, W_CC_KO_WEEKS, W_CC_POOL_WEEKS, W_PAC4_WEEKS, W_SIX_NATIONS_WEEKS,
   W_SUMMER_TEST_WEEKS, W_WC_KO_WEEKS, W_WC_POOL_WEEKS, leagueWeeksFor, playoffWeeksFor, preseasonWeeksFor,
 } from './calendar'
-import { shuffled, type Rng } from './rng'
+import { hashString, mulberry32, shuffled, type Rng } from './rng'
 import { seedNatRank } from './natrank'
 import { nationNameIn, nationVars } from './nations'
 
@@ -309,6 +309,54 @@ export function buildChampionsCup(clubIds: string[], rng: Rng, state: GameState,
       }
     })
   })
+  return comp
+}
+
+/** The MRC Cup's id. Built after the league, with the same six clubs. */
+export const MRC_CUP = 'mrcc'
+
+/**
+ * ---- THE MRC CUP (1.9.1) ----
+ *
+ * The American clubs' second competition, played after their league (see the
+ * American year in calendar.ts). Two pools of three, seeded off the clubs'
+ * standing so the two best are kept apart: 1st, 4th and 5th in one, 2nd, 3rd
+ * and 6th in the other. Home and away inside a pool, so six rounds with one
+ * club resting in each and four games apiece. Then the pool winners host the
+ * other pool's runners-up in the semi-finals, and the final.
+ *
+ * It draws from its own stream, seeded off the world's seed and the season,
+ * so building it leaves every other draw in the world where it was.
+ */
+export function buildMrcCup(clubIds: readonly string[], state: GameState): Competition | null {
+  if (clubIds.length !== 6) return null
+  const rng = mulberry32(hashString(`mrc-cup:${state.seed}:${state.season}`))
+  const ranked = [...clubIds].sort((a, b) => (state.clubs[b]?.rep ?? 0) - (state.clubs[a]?.rep ?? 0) || a.localeCompare(b))
+  const pools = [[ranked[0], ranked[3], ranked[4]], [ranked[1], ranked[2], ranked[5]]]
+  const comp: Competition = {
+    id: MRC_CUP,
+    name: 'MRC Cup',
+    short: 'MRC Cup',
+    type: 'cup',
+    teamIds: [...ranked],
+    table: ranked.map(emptyRow),
+    rounds: MRC_CUP_POOL_WEEKS.length,
+    playoffTeams: 4,
+    weeksByRound: [...MRC_CUP_POOL_WEEKS],
+    koWeeks: [...MRC_CUP_KO_WEEKS],
+    pools,
+  }
+  for (const pool of pools) {
+    roundRobin(pool, rng, true).forEach((pairs, r) => {
+      for (const [h, a] of pairs) {
+        state.fixtures.push({
+          id: state.nextId++, compId: MRC_CUP, round: r, week: MRC_CUP_POOL_WEEKS[r],
+          homeId: h, awayId: a,
+          played: false, homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
+        })
+      }
+    })
+  }
   return comp
 }
 

@@ -65,7 +65,7 @@
 import type { Fixture, GameState } from './model'
 import {
   openDressingRoom, applyTacticsChange, applyTeamTalk, beginMatch, makeSubstitution, playSegment,
-  resolveDecision, stepTick, swapInjuryCover, swapShirts, teamShort, undoSubstitution, type LiveCtx,
+  resolveDecision, stepTick, swapInjuryCover, coverInjury, swapShirts, teamShort, undoSubstitution, type LiveCtx,
 } from './matchEngine'
 import { matchRng, weekRng } from './season'
 import { tIn } from './i18n'
@@ -82,6 +82,8 @@ export type MatchCmdBody =
   | { kind: 'talk'; talk: import('./teamtalk').HtTone }
   | { kind: 'sub'; outId: number; inId: number }
   | { kind: 'cover'; onId: number; inId: number }
+  /** his pick for an injured man the match waited on (1.9.1) */
+  | { kind: 'inj'; hurtId: number; inId: number | null }
   | { kind: 'undo' }
   | { kind: 'swap'; aId: number; bId: number }
   /** the tactic dials AS THEY WERE when he changed them: the pre-match save holds
@@ -99,6 +101,9 @@ export interface MatchResume {
   /** 'match' when the match was played on its own dice (matchRng, 1.8.1);
    *  absent on older records, which replay on weekRng as they were played */
   stream?: 'match'
+  /** 'manual' when his injuries waited for his pick (1.9.1); absent on older
+   *  records, which replay with the assistant's pick as they were played */
+  inj?: 'manual'
   fxId: number
   userSideId: string | null
   preTalk: import('./teamtalk').PreTone | null
@@ -148,6 +153,7 @@ export function replayMatch(state: GameState, rec: MatchResume): Resumed | null 
 
   // a record written before 1.8.1 was played on the week's dice (matchRng)
   const ctx = beginMatch(state, fx, rec.stream === 'match' ? matchRng(state) : weekRng(state), true, rec.userSideId)
+  if (rec.inj === 'manual') ctx.manualInj = true
   const preTalkMsg = openDressingRoom(state, ctx, rec.preTalk)
   let talkMsg: string | null = null
 
@@ -171,6 +177,9 @@ export function replayMatch(state: GameState, rec: MatchResume): Resumed | null 
           break
         case 'cover':
           swapInjuryCover(state, ctx, c.onId, c.inId)
+          break
+        case 'inj':
+          coverInjury(state, ctx, c.hurtId, c.inId)
           break
         case 'undo':
           undoSubstitution(state, ctx)

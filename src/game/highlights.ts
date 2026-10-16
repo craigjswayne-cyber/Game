@@ -46,6 +46,9 @@ export function isHighlight(events: MatchEvent[], i: number, homeId: string): bo
   if (ALWAYS.has(e.type) || e.fx === 'TMO' || e.fx === 'NOTRY') return true
   const tension = tensionAt(events, i)
   if (tension === 'rout') return false
+  // a maul held up over the line is the try that nearly was (1.9.1); in a
+  // rout it is one more stoppage nobody needs to see
+  if (e.k === 'comm.maulHeldUp') return true
   if (USUAL.has(e.type)) return true
   if (tension !== 'close') return false
   // the build-up: the line before a try (a penalty goal's build-up is the

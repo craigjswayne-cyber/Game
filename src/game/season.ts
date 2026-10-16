@@ -676,7 +676,20 @@ function maybeCreateKnockouts(state: GameState, comp: Competition, rng: Rng) {
   // never lazily on their own match week, or the user's tie would be
   // simmed away before the MatchDay screen ever saw it.
   const ko = comp.koWeeks
-  if (cupLike) {
+  if (cupLike && comp.pools?.length === 2) {
+    // two pools (the MRC Cup, schedule.ts): each winner hosts the other
+    // pool's runner-up in the semi-finals, SF ko[0], F ko[1]. A winner never
+    // meets its own pool again before the final.
+    if (koFx('SF').length === 0) {
+      const [a, b] = poolStandings(state, comp)
+      mkFx('SF', ko[0], a[0], b[1])
+      mkFx('SF', ko[0], b[0], a[1])
+    }
+    const sf = koFx('SF')
+    if (koFx('F').length === 0 && sf.length === 2 && sf.every(f => f.played)) {
+      mkFx('F', ko[1], winnerOf(sf[0]), winnerOf(sf[1]))
+    }
+  } else if (cupLike) {
     // pool competitions (Continental Cup, World Championship): QF ko[0], SF ko[1], F ko[2]
     if (koFx('QF').length === 0) {
       const pools = poolStandings(state, comp)

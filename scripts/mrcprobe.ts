@@ -4,8 +4,9 @@
  * Owner, 26 Sep 2026: "add USA MLR - call it Major Rugby Competition", six
  * clubs (Charlotte kept), spread over the season. This holds it:
  *
- *   1. six clubs, home and away (ten rounds each), spread from the first league
- *      weekend to the last, the top four into semi-finals and a final
+ *   1. six clubs, home and away (ten rounds each), the top four into
+ *      semi-finals and a final; then (1.9.1) the MRC Cup with the same six,
+ *      two pools of three and a knockout, after the league
  *   2. a career at an MRC club plays a whole season, with a champion crowned
  *   3. nobody in it goes up or down, and it is a top flight (tier one), so no
  *      MRC club is offered a promotion dream it can never win
@@ -24,6 +25,7 @@ import { MRC } from '../src/data/leagues/mrc'
 import { regenName } from '../src/game/nations'
 import { mulberry32 } from '../src/game/rng'
 import { migrate } from '../src/game/save'
+import { MRC_CUP } from '../src/game/schedule'
 
 let fails = 0
 const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
@@ -39,7 +41,17 @@ const per = ids.map(id => league.filter(f => f.homeId === id || f.awayId === id)
 ok(per.every(fs => fs.length === 10), `each plays ten (${per.map(fs => fs.length).join('/')})`)
 ok(ids.every(id => league.filter(f => f.homeId === id).length === 5), 'five at home, five away')
 const weeks = [...new Set(league.map(f => f.week))].sort((a, b) => a - b)
-ok(weeks[0] <= 6 && weeks[weeks.length - 1] >= 35, `spread over the season, weeks ${weeks[0]} to ${weeks[weeks.length - 1]} (${weeks.join(', ')})`)
+// 1.9.1 (owner, as Charlotte): the league first, then a cup with the same clubs
+ok(weeks[0] <= 6 && weeks[weeks.length - 1] <= 17, `the league first, weeks ${weeks[0]} to ${weeks[weeks.length - 1]} (${weeks.join(', ')})`)
+ok(JSON.stringify(comp?.koWeeks) === '[20,21]', `its play-offs straight after (${comp?.koWeeks})`)
+const cup = g.comps[MRC_CUP]
+const cupFx = g.fixtures.filter(f => f.compId === MRC_CUP)
+ok(!!cup && cup.type === 'cup' && cup.pools?.length === 2 && cup.pools.every(p => p.length === 3) &&
+  [...cup.teamIds].sort().join() === ids.join(), `then the MRC Cup: the same six, two pools of three (${cup?.pools?.map(p => p.join('/')).join(' | ')})`)
+ok(ids.every(id => cupFx.filter(f => f.homeId === id).length === 2 && cupFx.filter(f => f.awayId === id).length === 2),
+  'four pool games each, two at home')
+ok(cupFx.every(f => f.week > 21), `every cup game after the league's final (weeks ${[...new Set(cupFx.map(f => f.week))].join(', ')})`)
+ok(!!cup && cup.pools![0].includes(cup.teamIds[0]) && cup.pools![1].includes(cup.teamIds[1]), 'the two best clubs are kept apart')
 
 console.log('--- 2. a season at an MRC club')
 // to the last week of the season, before the summer clears the fixtures
@@ -52,7 +64,15 @@ const ko = g.fixtures.filter(f => f.compId === 'mrc' && f.stage)
 const sfs = ko.filter(f => f.stage === 'SF'), fin = ko.filter(f => f.stage === 'F')
 ok(sfs.length === 2 && sfs.every(f => f.played), `two semi-finals, both played (${sfs.map(f => `${f.homeId} ${f.homeScore}-${f.awayScore} ${f.awayId}`).join('; ')})`)
 ok(fin.length === 1 && fin[0].played, `and a final (${fin.map(f => `${f.homeId} ${f.homeScore}-${f.awayScore} ${f.awayId}`).join('')})`)
+const cko = g.fixtures.filter(f => f.compId === MRC_CUP && f.stage)
+const csf = cko.filter(f => f.stage === 'SF'), cfin = cko.filter(f => f.stage === 'F')
+const pools = g.comps[MRC_CUP]?.pools ?? []
+const samePool = (a: string, b: string) => pools.some(p => p.includes(a) && p.includes(b))
+ok(csf.length === 2 && csf.every(f => f.played && !samePool(f.homeId, f.awayId)),
+  `cup semi-finals cross the pools (${csf.map(f => `${f.homeId} ${f.homeScore}-${f.awayScore} ${f.awayId}`).join('; ')})`)
+ok(cfin.length === 1 && cfin[0].played && !!g.comps[MRC_CUP]?.champion, `and a cup final with a winner (${g.comps[MRC_CUP]?.champion})`)
 for (let i = 0; i < 20 && g.season === 0; i++) processWeekAndAdvance(g)
+ok(g.fixtures.some(f => f.compId === MRC_CUP), 'and the next MRC Cup is drawn with it')
 ok(g.season === 1 && !!g.comps.mrc && g.fixtures.some(f => f.compId === 'mrc'), 'the summer comes and the next MRC season is drawn')
 
 console.log('--- 3. nothing to climb to')

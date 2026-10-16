@@ -34,7 +34,7 @@ import { defaultBriefs, splitFor } from './bench'
 import { seedDeals } from './commercial'
 import { clamp } from './rng'
 import { assistantJudgement, autoSelect } from './matchEngine'
-import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildLeague, schedulePreseason, buildWomensContinentalCup } from './schedule'
+import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildLeague, schedulePreseason, buildWomensContinentalCup, buildMrcCup } from './schedule'
 import { punditPredictions } from './gossip'
 import { WEEK_BASIS, CHEM_SLOTS, RELEGATES, chemKey, fmtMoney, initFacilities, isWorldCupSeason, worldCupSeasonFor } from './model'
 import { seedKnowledge } from './scout'
@@ -657,6 +657,10 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     state.comps['chc'] = buildChampionsCup(chc, rng, state, { id: 'chc', name: 'Continental Shield', short: 'Continental Shield' })
 
     buildInternationals(rng, state, isWorldCupSeason(0))
+    // the American clubs' cup, after their league (1.9.1, calendar.ts): its
+    // own draw stream, so nothing above it moves
+    const mrcCup = buildMrcCup(Object.values(state.clubs).filter(c => c.leagueId === 'mrc').map(c => c.id), state)
+    if (mrcCup) state.comps[mrcCup.id] = mrcCup
   } else {
     // ---- THE WOMEN'S CONTINENTAL CUP ----
     //

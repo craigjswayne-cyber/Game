@@ -71,12 +71,12 @@ export default function WeekResults({ param }: { param: string }) {
           <div className="tblwrap"><table className="dtable" style={{ tableLayout: 'fixed', width: '100%' }}>
             <colgroup>
               <col style={{ width: '9%' }} /><col />
-              <col style={{ width: '11%' }} /><col style={{ width: '11%' }} />
-              <col style={{ width: '15%' }} /><col style={{ width: '13%' }} />
+              <col style={{ width: '10%' }} /><col style={{ width: '10%' }} />
+              <col style={{ width: '14%' }} /><col style={{ width: '10%' }} /><col style={{ width: '12%' }} />
             </colgroup>
             <thead>
               <tr><th className="num">{t('tables.colRank')}</th><th>{t('tables.colTeam')}</th><th className="num">{t('tables.colP')}</th><th className="num">{t('common.w')}</th>
-                <th className="num">{t('tables.colDiff')}</th><th className="num">{t('squad.colPts')}</th></tr>
+                <th className="num">{t('tables.colDiff')}</th><th className="num">{t('tables.colBP')}</th><th className="num">{t('squad.colPts')}</th></tr>
             </thead>
             <tbody>
               {rows.map((r, i) => (
@@ -86,6 +86,7 @@ export default function WeekResults({ param }: { param: string }) {
                   <td className="num">{r.p}</td>
                   <td className="num">{r.w}</td>
                   <td className="num">{r.pf - r.pa}</td>
+                  <td className="num">{r.bp}</td>
                   <td className="num" style={{ fontWeight: 700 }}>{r.pts}</td>
                 </tr>
               ))}
