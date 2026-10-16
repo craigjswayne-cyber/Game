@@ -58,6 +58,15 @@ const clipUp = async () => (await page.locator('[data-testid=hl-clip]').count())
 const statsUp = async () => (await page.locator('[data-testid=live-stats]').count()) > 0
 // a touchline call stops the clock and disables Skip until it is answered
 const answer = async () => {
+  // AN INJURY STOPS PLAY UNTIL A REPLACEMENT IS NAMED (1.9.1: the match waits
+  // for the manager's pick). The same taps hlliveprobe uses: the injured
+  // man's row, a bench man, back to the match.
+  if (await page.locator('text=Play is stopped until somebody takes').count()) {
+    await page.locator('.sheet-col >> nth=0').locator('.sheet-row:not([disabled])').first().click({ timeout: 3000 }).catch(() => {})
+    await page.locator('.sheet-col >> nth=1').locator('.sheet-row:not([disabled])').first().click({ timeout: 3000 }).catch(() => {})
+    await page.locator('.btn', { hasText: /Back to the Match|Done|Close/ }).first().click({ timeout: 3000 }).catch(() => {})
+    return true
+  }
   for (const label of ['Take the Points', 'Kick for the Corner', 'Scrum']) {
     const b = page.locator(`button:has-text("${label}")`)
     if (await b.count()) { await b.first().click().catch(() => {}); await page.waitForTimeout(200); return true }
@@ -175,6 +184,8 @@ try {
   await page.waitForTimeout(400)
   ok(!(await slotUp()), 'no banner at half time')
 
+  // an injury in the last minutes before the break is answered first
+  await answer()
   await page.click('text=▸ Start Second Half')
   await page.waitForTimeout(500)
 
@@ -184,6 +195,8 @@ try {
   await page.waitForTimeout(400)
   ok(!(await slotUp()), 'no banner at the hour break')
 
+  // an injury in the last minutes before the break is answered first
+  await answer()
   await page.click('text=▸ Play the Final Quarter')
   await page.waitForTimeout(500)
 
