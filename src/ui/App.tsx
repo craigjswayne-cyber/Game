@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { Suspense, lazy, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { preloadAllArt, preloadCampus } from './artPreload'
 import { effectiveSkin, useStore, type Screen } from '../store'
 import { celebrationHeadline, celebrationSub, seasonLabel } from '../game/model'
@@ -16,50 +16,57 @@ import Menu from './screens/Menu'
 import NewGame from './screens/NewGame'
 import Home from './screens/Home'
 import Inbox from './screens/Inbox'
-import Offers from './screens/Offers'
-import Squad from './screens/Squad'
-import PlayerScreen from './screens/PlayerScreen'
-import Tactics from './screens/Tactics'
-import Fixtures from './screens/Fixtures'
-import Tables from './screens/Tables'
-import Transfers from './screens/Transfers'
-import Training from './screens/Training'
-import Scouting from './screens/Scouting'
-import Finances from './screens/Finances'
-import ClubScreen from './screens/ClubScreen'
 import MatchDay from './screens/MatchDay'
-import Press from './screens/Press'
-import Nations from './screens/Nations'
-import History from './screens/History'
-import Legacy from './screens/Legacy'
-import Handbook from './screens/Handbook'
-import Settings from './screens/Settings'
-import BugReport from './screens/BugReport'
-import About from './screens/About'
-import Supporter from './screens/Supporter'
-import Jobs from './screens/Jobs'
 import Wire from './screens/Wire'
-import Medical from './screens/Medical'
 import { isBoardroom } from '../game/media'
-import TeamReport from './screens/TeamReport'
-import Profile from './screens/Profile'
 import Saves from './screens/Saves'
 import DayRoom from './screens/DayRoom'
-import DrawRoom from './screens/DrawRoom'
-import Annual from './screens/Annual'
-import DreamTeam from './screens/DreamTeam'
-import WeekResults from './screens/WeekResults'
-import SeasonReview from './screens/SeasonReview'
-import Agency from './screens/Agency'
-import Country from './screens/Country'
-import Infrastructure from './screens/Infrastructure'
-import Academy from './screens/Academy'
 import Tutorial from './Tutorial'
 import { Intro } from './Intro'
 import { ProPrompt } from './ProPrompt'
 import { FeedbackPrompt } from './FeedbackPrompt'
 import { bigTablet, useTablet } from './tablet'
 import { COMMUNITY_URL } from '../game/community'
+
+/* SCREENS ON DEMAND (1.9.1). Every screen used to be in the boot chunk, so a
+   phone parsed the Handbook, the Finances, the highlight clip and forty more
+   before it could draw the title. The screens a session opens on (the title,
+   the wizard, Home, the day, the Wire, the inbox, the match) stay in it; the
+   rest load the first time they are opened, which on a phone reading its own
+   files is a few milliseconds. */
+const Offers = lazy(() => import('./screens/Offers'))
+const Squad = lazy(() => import('./screens/Squad'))
+const PlayerScreen = lazy(() => import('./screens/PlayerScreen'))
+const Tactics = lazy(() => import('./screens/Tactics'))
+const Fixtures = lazy(() => import('./screens/Fixtures'))
+const Tables = lazy(() => import('./screens/Tables'))
+const Transfers = lazy(() => import('./screens/Transfers'))
+const Training = lazy(() => import('./screens/Training'))
+const Scouting = lazy(() => import('./screens/Scouting'))
+const Finances = lazy(() => import('./screens/Finances'))
+const ClubScreen = lazy(() => import('./screens/ClubScreen'))
+const Press = lazy(() => import('./screens/Press'))
+const Nations = lazy(() => import('./screens/Nations'))
+const History = lazy(() => import('./screens/History'))
+const Legacy = lazy(() => import('./screens/Legacy'))
+const Handbook = lazy(() => import('./screens/Handbook'))
+const Settings = lazy(() => import('./screens/Settings'))
+const BugReport = lazy(() => import('./screens/BugReport'))
+const About = lazy(() => import('./screens/About'))
+const Supporter = lazy(() => import('./screens/Supporter'))
+const Jobs = lazy(() => import('./screens/Jobs'))
+const Medical = lazy(() => import('./screens/Medical'))
+const TeamReport = lazy(() => import('./screens/TeamReport'))
+const Profile = lazy(() => import('./screens/Profile'))
+const DrawRoom = lazy(() => import('./screens/DrawRoom'))
+const Annual = lazy(() => import('./screens/Annual'))
+const DreamTeam = lazy(() => import('./screens/DreamTeam'))
+const WeekResults = lazy(() => import('./screens/WeekResults'))
+const SeasonReview = lazy(() => import('./screens/SeasonReview'))
+const Agency = lazy(() => import('./screens/Agency'))
+const Country = lazy(() => import('./screens/Country'))
+const Infrastructure = lazy(() => import('./screens/Infrastructure'))
+const Academy = lazy(() => import('./screens/Academy'))
 
 /* The masthead title for every screen that is not Home (Home shows the club).
  *
@@ -855,7 +862,7 @@ export default function App() {
           </div>
         </div>
       </header>
-      <main className="content" data-screen={cur.screen}>{screen()}</main>
+      <main className="content" data-screen={cur.screen}><Suspense fallback={null}>{screen()}</Suspense></main>
       <nav className="bottom-nav">
         {/* The order the user asked for, top to bottom: news, home, the hub,
             the manager. World comes last because it is the only group that is
