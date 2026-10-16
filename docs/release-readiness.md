@@ -797,3 +797,45 @@ commits), run on the shared build machine:
 * Law 3 points to check by hand (listed in the QA report).
 * Play Console Data safety wording (eight rewarded placements), the in-game
   privacy handbook line, and the daily rewarded cap of 10.
+
+## Addendum, 2026-10-16: Android manifest expectations (security pass)
+
+Two lines in the Android shell's generated manifest are now part of what a
+release is checked against. Both are written by the scaffold, not by hand, and
+both are read back by the script that writes them, so a Capacitor template
+change cannot drop them silently.
+
+### `android:allowBackup="false"`
+
+Capacitor's template sets `allowBackup="true"`, which lets Android copy the
+app's data directory into the player's cloud backup (and, on older phones, out
+over `adb backup`). That directory holds the web view's storage: every career
+in IndexedDB, settings, and the Pro Manager entitlement in `localStorage`.
+`packaging/android/scaffold.sh` now sets it to `false` on every run.
+
+Nothing relies on the platform backup. Careers have their own Export and
+share-sheet backup on the Saves screen (1.3 above), and Pro Manager comes back
+through Play Billing's restore. On Android 12 and later a device-to-device
+transfer to the owner's new phone still carries the data; that is their own
+device and their own saves. The Data safety answers do not change: an
+Android system backup is not data the app collects.
+
+### `com.google.android.gms.permission.AD_ID`
+
+Expected, and required. The AdMob SDK reads the advertising identifier, and
+`packaging/shell/install-ads.mjs` writes the permission into the manifest
+explicitly (rather than trusting the library's manifest merge) and fails the
+scaffold if it is missing, because Play refused the first 1.3.0 upload when it
+could not see it. This matches the store declarations:
+
+* App content, Advertising ID: **Yes**, purpose Advertising or marketing
+  (`docs/launch/STORE-DECLARATIONS.md`, `docs/ADS-STEP-BY-STEP.md` Step 7).
+* Data safety: **Device or other IDs** only, collected and shared, for
+  advertising, users can choose (`docs/store-listing.md`, the table that
+  repeats Step 7).
+
+If the permission is ever absent from a release manifest, the declarations
+above become false in the other direction: Play rejects a build that declares
+an advertising ID it cannot see. If adverts are ever removed from the shell,
+the permission, the Advertising ID answer and the Data safety row all go
+together.

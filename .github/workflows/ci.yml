@@ -25,6 +25,11 @@ on:
     - cron: '0 3 * * *'
   workflow_dispatch:
 
+# the gate only reads the repository; upload-artifact uses the runtime token,
+# not GITHUB_TOKEN, so no job needs more than this
+permissions:
+  contents: read
+
 # a second push to the same branch cancels the first: nobody needs the gate on
 # a commit that has already been replaced
 concurrency:
@@ -61,8 +66,8 @@ jobs:
       matrix:
         shard: [1, 2, 3, 4, 5, 6, 7, 8]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 20
           cache: npm
@@ -106,8 +111,8 @@ jobs:
       matrix:
         bshard: [1, 2, 3]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 20
           cache: npm
@@ -137,7 +142,7 @@ jobs:
       # than the line that failed
       - name: Keep the screenshots
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: shots-${{ matrix.bshard }}
           path: |

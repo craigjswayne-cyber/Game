@@ -1,0 +1,24 @@
+# Keeps the pinned action SHAs in .github/workflows and the two npm lockfiles
+# current. Actions are pinned to a full commit SHA with the tag as a comment;
+# Dependabot updates both together.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ['*']
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: npm
+    directory: /discord
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
