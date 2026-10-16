@@ -3,6 +3,8 @@
 
     art/masters/campus/training-pitch.png  ->  src/ui/tactics-pitch.png
 
+(then scripts/art/to_webp.py, which ships it as tactics-pitch.webp)
+
 The master is a 1254px square top-down render: a marked pitch inside its own
 grounds. The tactics screen wants the MARKED RECTANGLE only, stood on its end,
 because that screen has been a vertical attacking half since the formation was
