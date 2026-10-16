@@ -8611,6 +8611,7 @@
     "healDone": "C'est fait : tout l'effectif est déclaré apte.",
     "healNobody": "Payé et gardé. Personne n'en a besoin pour l'instant, il sera là quand il le faudra.",
     "creditGone": "Plus rien à appliquer ici. Si la boutique a remboursé un ancien achat, il suffit de le racheter.",
+    "creditNotSpent": "Votre achat est en sécurité, mais ce téléphone n'a pas pu enregistrer son utilisation. Libérez de la place, puis réessayez.",
     "healWait": "Une utilisation par match joué. Jouez votre prochain match et ce sera de nouveau disponible.",
     "pinnacle": "Devenez entraîneur international",
     "pinnacleLine": "Prenez en main une équipe nationale en plus de votre club. Choisissez le pays et vous en êtes le sélectionneur immédiatement.",

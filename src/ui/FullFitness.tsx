@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../store'
-import { HEAL_SKU, bankReceipts, buyConsumable, claimHeld, creditCount, creditTake, heldConsumables, tillOpen } from '../game/monetise'
+import { HEAL_SKU, bankReceipts, buyConsumable, claimHeld, creditCount, heldConsumables, tillOpen } from '../game/monetise'
 import { healReady } from '../game/grants'
 import { t } from '../game/i18n'
-import { endingText } from './purchase'
+import { endingText, spendCredit } from './purchase'
 import { Glyph } from './glyphs'
 
 /**
@@ -61,8 +61,9 @@ export default function FullFitness({ compact }: { compact?: boolean }) {
   const apply = async () => {
     await bankReceipts(HEAL_SKU)
     if (creditCount(HEAL_SKU) < 1) { setPending(false); setMsg(t('store.creditGone')); return }
-    if (healSquad()) {
-      creditTake(HEAL_SKU)
+    const spent = await spendCredit(HEAL_SKU, healSquad)
+    if (spent === 'storage') { setPending(true); setMsg(t('store.creditNotSpent')); return }
+    if (spent === 'done') {
       setPending(creditCount(HEAL_SKU) > 0)
       setMsg(t('store.healDone'))
       return

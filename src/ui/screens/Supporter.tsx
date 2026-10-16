@@ -3,7 +3,7 @@ import { useStore } from '../../store'
 import { SectionTitle } from '../components'
 import {
   CHARTER_SKU, ESTATE_SKU, GROUND_SKU, HEAL_SKU, INJECT_SKUS, PINNACLE_SKU, SUPPORT_SKU, SUPPORTER_SKU,
-  adBridge, bankReceipts, buyConsumable, buyOwnable, claimHeld, creditCount, creditTake, hasEntitlement, hasSupporter,
+  adBridge, bankReceipts, buyConsumable, buyOwnable, claimHeld, creditCount, hasEntitlement, hasSupporter,
   billingReason, heldConsumables, markXlBought, recordSupport, restore, xlWaitMs,
   supportCount, tillHealth, tillOpen, type TillState,
 } from '../../game/monetise'
@@ -11,7 +11,7 @@ import { INJECT_TIERS, estateBuiltHere, healReady, injectionCash, injectionsLeft
 import { fmtMoney, fmtWage } from '../../game/model'
 import { NAT_TIERS, pickableNations, nationName } from '../../game/nations'
 import { t } from '../../game/i18n'
-import { endingText } from '../purchase'
+import { endingText, spendCredit } from '../purchase'
 import { Glyph } from '../glyphs'
 
 /**
@@ -228,8 +228,9 @@ export default function Supporter() {
     if (!inCareer) { say(HEAL_SKU, t('store.needCareer')); return }
     await bankReceipts(HEAL_SKU)
     if (creditCount(HEAL_SKU) < 1) { setHealPending(false); say(HEAL_SKU, t('store.creditGone')); return }
-    if (healSquad()) {
-      creditTake(HEAL_SKU)
+    const spent = await spendCredit(HEAL_SKU, healSquad)
+    if (spent === 'storage') { setHealPending(true); say(HEAL_SKU, t('store.creditNotSpent')) }
+    else if (spent === 'done') {
       setHealPending(creditCount(HEAL_SKU) > 0)
       say(HEAL_SKU, t('store.healDone'))
     } else {
@@ -262,8 +263,9 @@ export default function Supporter() {
     await bankReceipts(sku)
     if (creditCount(sku) < 1) { setPendingInj(p => p.filter(x => x !== tier)); say(sku, t('store.creditGone')); return }
     const amount = fmtMoney(injectionCash(game, tier))
-    if (boardInject(tier)) {
-      creditTake(sku)
+    const spent = await spendCredit(sku, () => boardInject(tier))
+    if (spent === 'storage') { setPendingInj(p => (p.includes(tier) ? p : [...p, tier])); say(sku, t('store.creditNotSpent')) }
+    else if (spent === 'done') {
       setPendingInj(p => (creditCount(sku) > 0 ? p : p.filter(x => x !== tier)))
       say(sku, t('till.injLanded', { amount }))
     } else {
@@ -293,8 +295,10 @@ export default function Supporter() {
       // banked it, and the jar could be tipped a second time for free. Free
       // is the harmless end of that bug. See buyGround for the other end.
       if (owed !== 'credit') await bankReceipts(SUPPORT_SKU)
-      creditTake(SUPPORT_SKU) // the thank-you is the grant; the credit is burned saying it
-      say(SUPPORT_SKU, t('store.supportDone', { n: recordSupport() }))
+      // the thank-you is the grant; the credit is burned saying it
+      let n = 0
+      const spent = await spendCredit(SUPPORT_SKU, () => { n = recordSupport(); return true })
+      say(SUPPORT_SKU, spent === 'done' ? t('store.supportDone', { n }) : t('store.creditNotSpent'))
     } else say(SUPPORT_SKU, endingText(out))
   })
 
@@ -322,9 +326,9 @@ export default function Supporter() {
       // really there. This row now does the same thing in the same order.
       if (owed !== 'credit') await bankReceipts(GROUND_SKU)
       if (creditCount(GROUND_SKU) < 1) { say(ESTATE_SKU, t('till.owedHeld')); return }
-      const built = buildEstate()
-      if (built) creditTake(GROUND_SKU) // unbuilt stays banked for the next club
-      say(ESTATE_SKU, built ? t('store.estateDone') : t('store.estateRefused'))
+      // unbuilt stays banked for the next club
+      const spent = await spendCredit(GROUND_SKU, buildEstate)
+      say(ESTATE_SKU, spent === 'done' ? t('store.estateDone') : spent === 'refused' ? t('store.estateRefused') : t('store.creditNotSpent'))
     } else say(ESTATE_SKU, endingText(out))
   })
 
