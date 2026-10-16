@@ -221,7 +221,20 @@ try {
   })
   await page.waitForTimeout(300)
   const b = await read()
-  ok(b.binnedRows.includes(pid) && b.binnedRows.length === 1, `the binned man is flagged on his row (${b.binnedRows.join(',') || 'none'})`)
+  // THE BIN AS THE MATCH HAS IT (1.9.1). This asked for exactly one flagged
+  // row, so it failed whenever the match itself had already sent somebody to
+  // the bin by half time (nightly 16 Oct: rows 259 and 298, the planted man
+  // and a real yellow). Every flagged row must be a man the store has binned.
+  const binnedNow = await page.evaluate(() => {
+    const st = window.rugbyStore.getState()
+    const ctx = st.liveMatch.ctx
+    const pick = (s) => [...s.binned].map(String)
+    const mine = ctx.home.teamId === st.game.userClubId ? ctx.home : ctx.away
+    const opp = mine === ctx.home ? ctx.away : ctx.home
+    return { mine: pick(mine), opp: pick(opp) }
+  })
+  ok(b.binnedRows.includes(pid) && b.binnedRows.every(r => binnedNow.mine.includes(r)) && b.binnedRows.length === binnedNow.mine.length,
+    `the binned man is flagged on his row, and only the binned are (${b.binnedRows.join(',') || 'none'} of ${binnedNow.mine.join(',')})`)
   await page.screenshot({ path: `${SHOTS}/telemetry-binned-night-412.png` })
 
   // ---- THE OTHER SIDE
@@ -233,7 +246,8 @@ try {
   await tog.click()
   await page.waitForTimeout(300)
   const o = await read()
-  ok(o.n === 23 && o.team !== before && o.binnedRows.length === 0, `the opposition's 23 (${o.team}, from ${before})`)
+  ok(o.n === 23 && o.team !== before && o.binnedRows.length === binnedNow.opp.length && o.binnedRows.every(r => binnedNow.opp.includes(r)),
+    `the opposition's 23 (${o.team}, from ${before}), flagged only where the match binned them (${o.binnedRows.join(',') || 'none'})`)
   await tog.click()
   await page.waitForTimeout(200)
 
