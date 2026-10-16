@@ -94,7 +94,7 @@ function liveTy(el: HTMLElement): number {
  * the line, so React keeps the same node and its colour can transition as it
  * goes from current to old.
  */
-function useFeedGlide(listRef: React.RefObject<HTMLDivElement>, count: number) {
+function useFeedGlide(listRef: React.RefObject<HTMLDivElement | null>, count: number) {
   const where = useRef<Map<string, number> | null>(null)
   useLayoutEffect(() => {
     const list = listRef.current
