@@ -3362,7 +3362,10 @@ export function SquadSheet({ onClose, freeCoverId, waitId, title, note, hurtName
               const canFree = freeLeft && p.id === freeCoverId
               return (
                 <button key={p.id} className={`sheet-row ${offId === p.id ? 'armed' : ''}`}
-                  disabled={p.id === waitP?.id ? false : !on || (lawLeft <= 0 && !canFree)}
+                  // while a shirt waits for its man, that shirt is the only one
+                  // to fill: a tactical change now would leave it empty and the
+                  // match still waiting (hlliveprobe made eight of them)
+                  disabled={p.id === waitP?.id ? false : !!waitP || !on || (lawLeft <= 0 && !canFree)}
                   onClick={() => {
                     // the man the match is waiting on can always be armed again
                     if (p.id === waitP?.id) { setOffId(p.id); return }
@@ -3463,7 +3466,7 @@ export function SquadSheet({ onClose, freeCoverId, waitId, title, note, hurtName
         )}
         {mustDecide && !settled && (
           <div className="meta sheet-log" style={{ color: 'var(--danger)', fontWeight: 700 }}>
-            {t('matchday.mustDecide')}
+            {t(waitP ? 'matchday.mustDecideWait' : 'matchday.mustDecide')}
           </div>
         )}
         <div className="btn-row" style={{ marginTop: 8 }}>

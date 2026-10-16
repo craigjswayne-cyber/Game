@@ -1343,6 +1343,7 @@
   "msPts": "si avvicina a quota {mark} punti in carriera",
   "msTry": "la meta numero {n} in carriera varrebbe quota {mark}",
   "mustDecide": "Il gioco resta fermo finché qualcuno non prende la sua maglia. Tocca l'uomo che vuoi in campo, o tocca di nuovo la scelta del vice per confermarla.",
+  "mustDecideWait": "Il gioco resta fermo finché qualcuno non prende la sua maglia. Tocca l'uomo che vuoi in campo.",
   "nameFirst": "▸ Prima nomina un sostituto",
   "naturalCover": "Copertura naturale",
   "noFixture": "Nessun impegno questa settimana.",
@@ -1641,6 +1642,7 @@
   "hintTap_f": "Tocca una donna in campo, poi tocca chi entra al suo posto. Toccando invece una seconda donna in campo, le scambi di posizione.",
   "injuredFlag_f": "Infortunata",
   "mustDecide_f": "Il gioco resta fermo finché qualcuno non prende la sua maglia. Tocca la donna che vuoi in campo, o tocca di nuovo la scelta del vice per confermarla.",
+  "mustDecideWait_f": "Il gioco resta fermo finché qualcuno non prende la sua maglia. Tocca la donna che vuoi in campo.",
   "probINJURED_f": "è infortunata",
   "refNothing_f": "Niente sul taccuino: lascia decidere alle giocatrici.",
   "rotButton_f": {
