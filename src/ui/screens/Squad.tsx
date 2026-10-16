@@ -7,6 +7,7 @@ import { STATUSES, STATUS_BY_ID, clubMatchesPlayed, ledgerRow, statusOf, type Sq
 import SelectionPane from './Selection'
 import { t } from '../../game/i18n'
 import { Glyph } from '../glyphs'
+import { ariaSort, rowNav } from '../rowNav'
 
 // Handheld squad layout: the team sheet first, then the tables - Pkd chip,
 // fitness ring, starred names, morale arrows, Av R and Value.
@@ -104,8 +105,11 @@ export default function Squad() {
 
   const Th = ({ k, children, right }: { k: SortKey; children: React.ReactNode; right?: boolean }) => (
     <th className={`th-sort${sort === k ? ' active' : ''}${right ? ' num' : ''}`}
-      onClick={() => (sort === k ? setDesc(!desc) : (setSort(k), setDesc(false)))}>
-      {children}{sort === k ? (desc ? ' ▴' : ' ▾') : ''}
+      aria-sort={ariaSort(sort === k, desc, ['pkd', 'pos', 'name', 'age', 'until'].includes(k))}>
+      <button type="button" className="th-btn"
+        onClick={() => (sort === k ? setDesc(!desc) : (setSort(k), setDesc(false)))}>
+        {children}{sort === k ? (desc ? ' ▴' : ' ▾') : ''}
+      </button>
     </th>
   )
 
@@ -278,7 +282,7 @@ export default function Squad() {
           {players.map(p => {
             const avr = p.stats.apps ? (p.stats.ratingSum / p.stats.apps) : 0
             return (
-              <tr key={p.id} onClick={() => go('player', p.id)}>
+              <tr key={p.id} {...rowNav(() => go('player', p.id))}>
                 <NameCell p={p} />
                 {view === 'general' && (<>
                   <td><PosBadge pos={p.pos} /></td>
@@ -322,6 +326,7 @@ export default function Squad() {
                   }
                   const [moodK, col] = MOOD[row.mood]
                   return (<>
+                    {/* eslint-disable-next-line no-restricted-syntax -- swallows the row's tap so choosing a status does not open the player; the select inside is the control */}
                     <td onClick={e => e.stopPropagation()}>
                       {/* the box you see is the span's, drawn small; the
                           select inside it keeps the 44px a thumb needs

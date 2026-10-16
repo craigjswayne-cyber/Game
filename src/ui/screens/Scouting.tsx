@@ -31,6 +31,7 @@ import { Glyph } from '../glyphs'
 import { plainNews } from '../NewsBody'
 import ScoutReportCard from '../ScoutReport'
 import { offerFocus } from './PlayerScreen'
+import { rowNav } from '../rowNav'
 
 /** The verdict's colour, the same ladder the old table used. */
 const gradeColour = (g: number) =>
@@ -124,7 +125,9 @@ export function ScoutSheet({ playerId, onClose }: { playerId: number; onClose: (
     go('player', p.id)
   }
   return (
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
     <div className="modal-veil" onClick={onClose}>
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
       <div className="modal scout-sheet" onClick={e => e.stopPropagation()} role="dialog" aria-label={p.name}>
         <div className="grab" />
         <div className="scout-sheet-head">
@@ -299,7 +302,7 @@ function ScoutReports() {
       <div className="card" style={{ padding: '2px 10px' }}>
         {reports.map((n, i) => (
           <div key={n.id} style={{ padding: '6px 0', borderTop: i ? '1px solid var(--border)' : undefined }}
-            onClick={() => setOpenId(openId === n.id ? null : n.id)}>
+            {...rowNav(() => setOpenId(openId === n.id ? null : n.id))} aria-expanded={openId === n.id}>
             <div className="meta" style={{ fontSize: 11 }}>{weekDate(n.season, n.week)}</div>
             <div style={{ fontWeight: 700, fontSize: 13, lineHeight: 1.3 }}>{newsSubject(n)}</div>
             {openId === n.id && (

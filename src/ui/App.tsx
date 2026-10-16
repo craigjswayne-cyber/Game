@@ -130,6 +130,7 @@ function Celebration() {
   if (!game?.celebration) return null
   const cel = game.celebration
   return (
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- full-screen tap-to-dismiss celebration; Escape dismisses it (a11y.ts)
     <div className="celebrate-veil" onClick={() => { game.celebration = null; useStore.getState().touch() }}>
       {Array.from({ length: 26 }).map((_, i) => (
         <i key={i} className="confetti" style={{
@@ -878,7 +879,9 @@ export default function App() {
       </nav>
 
       {menu && (
+        // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
         <div className="submenu-veil" onClick={() => setMenu(null)}>
+          {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
           <div className="submenu" onClick={e => e.stopPropagation()}>
             <div className="submenu-head">{MENUS[menu].title}</div>
             {/* ELEVEN ITEMS AND NO ORDER OF BUSINESS.

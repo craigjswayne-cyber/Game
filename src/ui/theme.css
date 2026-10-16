@@ -435,6 +435,15 @@ option { font: inherit; color: var(--text-primary); background-color: var(--surf
 .dtable tr.me td:first-child { box-shadow: inset 3px 0 0 var(--primary); }
 
 .th-sort { cursor: pointer; user-select: none; }
+/* The sort control is a real button inside the header cell (WCAG 2.1.1), dressed
+   as the header text it replaced. Its ::after stretches over the whole cell, so
+   the tap target is the cell exactly as it was; the th is sticky, which makes
+   it the positioned box the overlay fills. */
+.th-sort .th-btn {
+  font: inherit; color: inherit; letter-spacing: inherit; text-transform: inherit;
+  text-align: inherit; white-space: inherit; padding: 0; margin: 0;
+}
+.th-sort .th-btn::after { content: ''; position: absolute; inset: 0; }
 .th-sort.active { color: var(--primary); }
 
 /* ---- THE ONE PRODUCT THAT IS NOT LIKE THE OTHERS ----

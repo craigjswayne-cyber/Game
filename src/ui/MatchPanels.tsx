@@ -34,7 +34,9 @@ export function MatchPanels({ onClose }: { onClose: () => void }) {
   const shown = ctx.events.slice(0, live.cursor)
   const panel = PANELS[i]
   return (
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
     <div className={`modal-veil${panel === 'lineups' ? ' mp-clear' : ''}`} onClick={onClose}>
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
       <div className={`modal mpanels${panel === 'lineups' ? ' tele-mode' : ''}`} onClick={e => e.stopPropagation()}>
         <div className="mp-head">
           <button className="btn ghost tiny" aria-label={t('mpanel.prev')} disabled={i === 0} onClick={() => setI(i - 1)}>◀</button>

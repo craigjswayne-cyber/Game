@@ -47,6 +47,7 @@ import { nationName } from '../../game/nations'
 import { kitColours, luma, pageSpares } from '../kit'
 import { IcoFastForward, IcoPause, IcoPeople, IcoPlay } from '../icons'
 import { Glyph } from '../glyphs'
+import { rowNav } from '../rowNav'
 
 const WEATHER_ICON: Record<string, string> = { Dry: 'sun', Damp: 'rain', Rain: 'rain', Wind: 'wind', Snow: 'snow' }
 
@@ -454,7 +455,6 @@ function Preview({ fxId }: { fxId: number }) {
       if (problem(p)) return null // crisis: even the assistant cannot field 15 fit men
     }
     return picked
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [confirm, hasBad])
 
   // rotation dilemma: before a cup tie or on a quick turnaround, the
@@ -608,7 +608,7 @@ function Preview({ fxId }: { fxId: number }) {
     // stars are unaligned for subs"). Pin every column but the name and the
     // two sections read as one sheet.
     return (
-      <tr key={slot} onClick={() => tapSlot(slot)}
+      <tr key={slot} {...rowNav(() => tapSlot(slot))}
         className={`${prob ? 'prob-row' : ''}${sel === slot ? ' held-row' : ''}`}>
         <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700, width: 26 }}>{shirt}</td>
         <td style={{ width: 38 }}><PosBadge pos={pos} /></td>
@@ -631,7 +631,9 @@ function Preview({ fxId }: { fxId: number }) {
     const pool = availablePlayers(game, club.players)
       .sort((a, b) => effAt(b, pos) - effAt(a, pos))
     return (
+      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
       <div className="modal-veil" onClick={() => setPickSlot(null)}>
+        {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
         <div className="modal" onClick={e => e.stopPropagation()}>
           <div className="grab" />
           <SectionTitle sub={t('matchday.pickerSub', { shirt: pickSlot < 15 ? XV_SLOTS[pickSlot].shirt : seats[pickSlot - 15].shirt })}>
@@ -639,7 +641,7 @@ function Preview({ fxId }: { fxId: number }) {
           </SectionTitle>
           <table className="dtable"><tbody>
             {pool.map(p => (
-              <tr key={p.id} onClick={() => setSlot(pickSlot, p.id)}
+              <tr key={p.id} {...rowNav(() => setSlot(pickSlot, p.id))}
                 style={tac.lineup.includes(p.id) ? { opacity: .55 } : undefined}>
                 <td><PosBadge pos={p.pos} /></td>
                 <td className="name">{p.name}{tac.lineup.includes(p.id) ? t('matchday.selected') : ''}
@@ -659,7 +661,9 @@ function Preview({ fxId }: { fxId: number }) {
   const readyModal = () => {
     if (!confirm) return null
     return (
+      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
       <div className="modal-veil" onClick={() => setConfirm(false)}>
+        {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
         <div className="modal" onClick={e => e.stopPropagation()}>
           <div className="grab" />
           <div style={{ padding: '0 18px 4px' }}>
@@ -1274,7 +1278,9 @@ function Preview({ fxId }: { fxId: number }) {
       {picker()}
       {readyModal()}
       {talkOpen && (
+        // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
         <div className="modal-veil" onClick={() => setTalkOpen(false)}>
+          {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
           <div className="modal talk-modal" onClick={e => e.stopPropagation()}>
             <div className="grab" />
             <div style={{ padding: '0 12px 10px' }}>
@@ -1447,7 +1453,7 @@ function NationPreview({ fxId }: { fxId: number }) {
             const pid = myLineup[i]
             const p = pid != null ? game.players[pid] : null
             return (
-              <tr key={i} onClick={() => tapSlot(i)} className={sel === i ? 'held-row' : undefined}>
+              <tr key={i} {...rowNav(() => tapSlot(i))} className={sel === i ? 'held-row' : undefined}>
                 <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{s.shirt}</td>
                 <td><PosBadge pos={s.pos} /></td>
                 <td className="name">{p?.name ?? <span className="muted">{t('matchday.tapToPick')}</span>}</td>
@@ -1463,7 +1469,7 @@ function NationPreview({ fxId }: { fxId: number }) {
             const pid = myLineup[slot]
             const p = pid != null ? game.players[pid] : null
             return (
-              <tr key={slot} onClick={() => tapSlot(slot)} className={sel === slot ? 'held-row' : undefined}>
+              <tr key={slot} {...rowNav(() => tapSlot(slot))} className={sel === slot ? 'held-row' : undefined}>
                 <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{s.shirt}</td>
                 <td><PosBadge pos={s.pos[0]} /></td>
                 <td className="name">{p?.name ?? <span className="muted">{t('matchday.tapToPick')}</span>}</td>
@@ -1473,7 +1479,9 @@ function NationPreview({ fxId }: { fxId: number }) {
           })}
         </tbody></table></div>
         {pickSlot != null && (
+          // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
           <div className="modal-veil" onClick={() => setPickSlot(null)}>
+            {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
             <div className="modal" onClick={e => e.stopPropagation()}>
               <div className="grab" />
               <SectionTitle sub={t('matchday.testSquadSub')}>
@@ -1483,7 +1491,7 @@ function NationPreview({ fxId }: { fxId: number }) {
                 {availablePlayers(game, rosterOf(game, nat), true)
                   .sort((a, b) => effAt(b, pickSlot < 15 ? XV_SLOTS[pickSlot].pos : BENCH_SLOTS[pickSlot - 15].pos[0]) - effAt(a, pickSlot < 15 ? XV_SLOTS[pickSlot].pos : BENCH_SLOTS[pickSlot - 15].pos[0]))
                   .map(p => (
-                    <tr key={p.id} onClick={() => setSlot(pickSlot, p.id)}
+                    <tr key={p.id} {...rowNav(() => setSlot(pickSlot, p.id))}
                       style={myLineup.includes(p.id) ? { opacity: .55 } : undefined}>
                       <td><PosBadge pos={p.pos} /></td>
                       <td className="name">{p.name}{myLineup.includes(p.id) ? t('matchday.selected') : ''}</td>
@@ -1531,7 +1539,9 @@ function NationPreview({ fxId }: { fxId: number }) {
         <div className="spacer" />
       </main>
       {confirm && (
+        // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
         <div className="modal-veil" onClick={() => setConfirm(false)}>
+          {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="grab" />
             {/* A GUTTER, LIKE ITS CLUB TWIN. .modal sets no horizontal padding
@@ -2304,7 +2314,9 @@ function Live() {
       )}
 
       {settings && (
+        // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
         <div className="modal-veil" onClick={() => setSettings(false)}>
+          {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
           <div className="modal settings-sheet" onClick={e => e.stopPropagation()}>
             <div className="grab" />
             <h3 style={{ fontSize: 16, margin: '2px 16px 8px' }}>{t('matchday.matchSettings')}</h3>
@@ -3133,7 +3145,7 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
       {SLIDER_INFO.map(s => (
         <div key={s.key} data-dial={s.key} className="dial-row" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '2px 0', borderRadius: 6 }}>
           <span style={{ width: 78, fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--cond)', textTransform: 'uppercase', letterSpacing: .5, cursor: 'pointer' }}
-            onClick={() => setExplain(`${t(s.label)}: ${sliderReadout(s.key, club.tactic[s.key])}`)}>
+            {...rowNav(() => setExplain(`${t(s.label)}: ${sliderReadout(s.key, club.tactic[s.key])}`))}>
             {t(s.label)}
           </span>
           <input type="range" min={0} max={100} value={club.tactic[s.key]} style={{ flex: 1, accentColor: 'var(--primary)' }}
@@ -3310,7 +3322,9 @@ export function SquadSheet({ onClose, freeCoverId, waitId, title, note, hurtName
   // man - tapping him again is a decision, it is just the same decision
   const settled = waitId != null ? !waiting() : !mustDecide || decided || !freeLeft
   return (
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
     <div className="modal-veil" onClick={() => { if (settled) onClose() }}>
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
       <div className="modal squad-sheet" onClick={e => e.stopPropagation()}>
         <div className="grab" />
         {/* THE WHOLE BRIEF STICKS, not just the title.

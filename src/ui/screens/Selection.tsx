@@ -11,6 +11,7 @@ import { AvailTag, FormPill, LoanKey, LoanName, PosBadge, SectionTitle, Stars } 
 import { benchSeats } from '../../game/bench'
 import { t } from '../../game/i18n'
 import { IcoAttack, IcoChevron, IcoHandshake, IcoPack, IcoShield } from '../icons'
+import { rowNav } from '../rowNav'
 
 /* Keys, not words: this array is built once at module load and the language
    can change afterwards. The English wording is in src/locales/en.json. */
@@ -122,7 +123,7 @@ export default function SelectionPane() {
     const p = pid != null ? game.players[pid] : null
     const problem = p && (p.injury || p.bans > 0 || p.natSquad || p.clubId !== club.id)
     return (
-      <tr key={slot} onClick={() => tapSlot(slot)}
+      <tr key={slot} {...rowNav(() => tapSlot(slot))}
         className={`${problem ? 'prob-row' : ''}${sel === slot ? ' held-row' : ''}`}>
         <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{shirt}</td>
         <td><PosBadge pos={pos} /></td>
@@ -174,7 +175,9 @@ export default function SelectionPane() {
       .filter((x): x is Player => !!x && (roleSheet === 'captain' || !x.acad) && !(roleSheet === 'vice' && x.id === club.captain))
       .sort((a, b) => b.a.lea - a.a.lea)
     return (
+      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
       <div className="modal-veil" onClick={() => setRoleSheet(null)}>
+        {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
         <div className="modal lead-sheet" role="dialog" aria-label={title} onClick={e => e.stopPropagation()}>
           <div className="grab" />
           <SectionTitle sub={t('selection.roleSheetSub')}>{title}</SectionTitle>
@@ -183,7 +186,7 @@ export default function SelectionPane() {
               {pool.map(p => {
                 const away = awayReason(p)
                 return (
-                  <tr key={p.id} className={p.id === cur ? 'sel' : undefined} onClick={() => appoint(roleSheet, p.id)}>
+                  <tr key={p.id} className={p.id === cur ? 'sel' : undefined} {...rowNav(() => appoint(roleSheet, p.id))}>
                     <td><PosBadge pos={p.pos} /></td>
                     <td className="name">{p.name}{p.injury ? <> {injCross}</> : away && <div className="meta">{away}</div>}</td>
                     <td className="lead-bar"><span style={{ width: `${p.a.lea * 5}%` }} /></td>
@@ -210,7 +213,9 @@ export default function SelectionPane() {
     const pool = availablePlayers(game, club.players)
       .sort((a, b) => (openSeat ? effAt(b, b.pos) - effAt(a, a.pos) : effAt(b, pos) - effAt(a, pos)))
     return (
+      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
       <div className="modal-veil" onClick={() => setPickSlot(null)}>
+        {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
         <div className="modal" onClick={e => e.stopPropagation()}>
           <div className="grab" />
           <div style={{ padding: '0 12px 10px' }}>
@@ -220,7 +225,7 @@ export default function SelectionPane() {
             <table className="dtable">
               <tbody>
                 {pool.map(p => (
-                  <tr key={p.id} onClick={() => setSlot(pickSlot, p.id)}
+                  <tr key={p.id} {...rowNav(() => setSlot(pickSlot, p.id))}
                     style={tac.lineup.includes(p.id) ? { opacity: .55 } : undefined}>
                     <td><PosBadge pos={p.pos} /></td>
                     <td className="name">{p.name}{tac.lineup.includes(p.id) ? t('selection.selected') : ''}</td>

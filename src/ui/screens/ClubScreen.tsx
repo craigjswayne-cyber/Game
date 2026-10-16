@@ -19,6 +19,7 @@ import { formTrend } from '../../game/formtraits'
 import { Glyph, FanFace } from '../glyphs'
 import { buildEra } from '../../game/erastory'
 import { EraCard } from '../EraCard'
+import { rowNav } from '../rowNav'
 
 export default function ClubScreen({ clubId }: { clubId: string }) {
   const game = useStore(s => s.game)!
@@ -356,7 +357,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
             <div className="card">
               <div className="meta" style={{ paddingBottom: rows.length ? 6 : 0 }}>{verdict}</div>
               {rows.map(({ p, why }) => (
-                <div key={p.id} onClick={() => go('player', p.id)}
+                <div key={p.id} {...rowNav(() => go('player', p.id))}
                   style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0', borderTop: '1px solid var(--border)', cursor: 'pointer' }}>
                   <span style={{ fontWeight: 700, minWidth: 0, flex: 1 }}>
                     {p.name} <span className="muted" style={{ fontWeight: 400 }}>({p.pos})</span>
@@ -516,7 +517,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
         <thead><tr><th>{t('squad.colPos')}</th><th>{t('squad.colName')}</th><th>{t('squad.colAge')}</th><th>{t('squad.colNat')}</th><th>{t('transfers.colAbility')}</th><th>{t('transfers.colForm')}</th><th className="num">{t('squad.colValue')}</th></tr></thead>
         <tbody>
           {shown.map(p => (
-            <tr key={p.id} onClick={() => go('player', p.id)}>
+            <tr key={p.id} {...rowNav(() => go('player', p.id))}>
               <td><PosBadge pos={p.pos} /></td>
               <td className="name">{p.name}{starPlayerIds(game, club.id).has(p.id) ? <> <Glyph name="star" /></> : ''}</td>
               <td className="num">{p.age}</td>

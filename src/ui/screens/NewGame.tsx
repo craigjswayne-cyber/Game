@@ -12,6 +12,7 @@ import { t, localeTag, compLabel } from '../../game/i18n'
 import { Glyph } from '../glyphs'
 import { listSaves, type SaveMeta } from '../../game/save'
 import { SLOTS as SAVE_SLOTS, slotName } from './Saves'
+import { rowNav } from '../rowNav'
 
 // Guided setup: STEP x OF 4, breadcrumbs, tile grids,
 // a club detail panel, and a persistent bottom action bar.
@@ -184,7 +185,7 @@ export default function NewGame() {
             <div className="crumbs">
               {trail.map((c, i) => (
                 <span key={c.at} className={`crumb${i === trail.length - 1 ? ' on' : ' done'}`}
-                  onClick={() => setStep(c.at)}>
+                  {...rowNav(() => setStep(c.at))}>
                   {c.label}
                 </span>
               ))}

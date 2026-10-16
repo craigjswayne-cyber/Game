@@ -11,6 +11,7 @@ import { ClubLink, PosBadge, SectionTitle } from '../components'
 import FullFitness from '../FullFitness'
 import { ord, posName, t } from '../../game/i18n'
 import { Glyph } from '../glyphs'
+import { rowNav } from '../rowNav'
 
 const FWD = ['LP', 'HK', 'TP', 'LK', 'FL', 'N8']
 
@@ -88,7 +89,7 @@ export default function Country() {
   }
 
   const row = (p: NonNullable<(typeof squad)[number]>, inSquad: boolean) => (
-    <tr key={p.id} onClick={() => go('player', p.id)}>
+    <tr key={p.id} {...rowNav(() => go('player', p.id))}>
       <td style={{ width: 34 }}><PosBadge pos={p.pos} /></td>
       <td className="name" style={p.clubId === game.userClubId ? { fontWeight: 800 } : undefined}>
         {p.name}{(p.caps ?? 0) > 0 ? <span className="muted">{t('legacy.coCaps', { n: p.caps ?? 0 })}</span> : <span className="muted">{t('legacy.coUncapped')}</span>}
