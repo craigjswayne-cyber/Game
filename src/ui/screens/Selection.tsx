@@ -61,7 +61,13 @@ export default function SelectionPane() {
   const awayReason = (p: Player) =>
     p.injury ? t('selection.injured') : p.bans > 0 ? t('selection.suspended')
       : p.natSquad ? t('selection.onTestDuty') : p.onLoan ? t('selection.outOnLoan') : null
+  // INJURED IS A RED CROSS, NOT A WORD (1.9.1). "Beka Sheklashvili Ldr 12 -
+  // injured" wrapped onto a second line in every role it held; the cross is
+  // the one the live telemetry already uses, and it keeps its words for a
+  // screen reader. The other reasons stay as text: nothing else reads at a glance.
+  const injCross = <span className="tele-inj" role="img" aria-label={t('selection.injured')} title={t('selection.injured')}>+</span>
   const awayNote = (p: Player) => {
+    if (p.injury) return <> {injCross}</>
     const why = awayReason(p)
     return why ? t('selection.awaySuffix', { why }) : ''
   }
@@ -179,7 +185,7 @@ export default function SelectionPane() {
                 return (
                   <tr key={p.id} className={p.id === cur ? 'sel' : undefined} onClick={() => appoint(roleSheet, p.id)}>
                     <td><PosBadge pos={p.pos} /></td>
-                    <td className="name">{p.name}{away && <div className="meta">{away}</div>}</td>
+                    <td className="name">{p.name}{p.injury ? <> {injCross}</> : away && <div className="meta">{away}</div>}</td>
                     <td className="lead-bar"><span style={{ width: `${p.a.lea * 5}%` }} /></td>
                     <td className="num"><b>{p.a.lea}</b></td>
                   </tr>

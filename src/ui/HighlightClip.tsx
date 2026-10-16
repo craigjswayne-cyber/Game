@@ -61,7 +61,8 @@ import { HOLD, TRACKS, atkStyleOf, flightFor, defStyleOf, defenceShape, trackAt,
  *   too, for the kicks and the attacks that decide it.
  */
 
-export type ClipKind = 'try' | 'review' | 'notry' | 'kick' | 'attack'
+/** 'heldup' (1.9.1): a maul driven over the line and held up, no try */
+export type ClipKind = 'try' | 'review' | 'notry' | 'kick' | 'attack' | 'heldup'
 /** How the moment is played out, read off the engine's own commentary. */
 export type ClipStyle = 'phases' | 'overlap' | 'maul' | 'intercept' | 'chip' | 'grubber' | 'crossfield' | 'charge' | 'move'
 
@@ -114,7 +115,7 @@ export interface ClipSpec {
 
 export interface ClipLabels {
   try: string; review: string; notry: string; good: string; wide: string
-  turnover: string; saved: string
+  turnover: string; saved: string; heldup: string
 }
 
 // ---------------------------------------------------------------- building
@@ -133,6 +134,7 @@ const hash = (n: number) => { const s = Math.sin(n * 12.9898 + 78.233) * 43758.5
 /** the try, as the commentary called it */
 const STYLE: Record<string, ClipStyle> = {
   'comm.try4': 'maul', 'comm.tryPackDrive': 'maul', 'comm.tryMaulRumbles': 'maul', 'comm.tryWet5': 'maul',
+  'comm.maulHeldUp': 'maul',
   'comm.try13': 'intercept', 'comm.try14': 'chip', 'comm.try8': 'grubber', 'comm.tryWet1': 'grubber',
   'comm.try2': 'crossfield',
   // a charge-down called by the engine (matchEngine chargeDown, 1.8.0): the
@@ -196,6 +198,9 @@ export function momentAt(events: MatchEvent[], i: number, homeId: string, level:
   if (e.fx === 'TMO') return null
   if (e.type === 'TRY') return 'try'
   if (e.fx === 'NOTRY') return 'notry'
+  // THE ALMOST (1.9.1, owner: "occasionally it should be held up and no try
+  // scored ... shown in animation as an almost chance"): always on, like a try
+  if (e.k === 'comm.maulHeldUp') return 'heldup'
   if (level !== 'extended' && !lateAndClose(events, i)) return null
   if (isKick(e)) return 'kick'
   // into the opposition 22 from outside it, and no try in the next two lines
@@ -251,7 +256,9 @@ export function buildClip(events: MatchEvent[], m: number, kind: ClipKind, homeI
     // the pod shape inside a pod game (1.8.2 depth), off the same tactic
     podShape: tacticOf?.(e.teamId === homeId)?.podShape,
   }
-  const attackHome = e.teamId === homeId
+  // a held-up line is the defending side's (they survived), so the side
+  // driving the maul is the other one
+  const attackHome = kind === 'heldup' ? e.teamId !== homeId : e.teamId === homeId
   const paces = (home: boolean) => paceOf ? Array.from({ length: 15 }, (_, i) => paceOf(home, i + 1)) : undefined
   // the number on each back: a replacement keeps the one he walked out in
   // (owner, 1.8.16: "if they are number 23 on the bench they should be 23")
@@ -405,6 +412,7 @@ export function buildClip(events: MatchEvent[], m: number, kind: ClipKind, homeI
     misses: kind === 'attack' ? 0 : e.k && e.k in MISSES ? MISSES[e.k] : hash(m * 17) < 0.4 ? 1 : 0,
     ending,
     label: kind === 'try' ? labels.try : kind === 'review' ? labels.review : kind === 'notry' ? labels.notry
+      : kind === 'heldup' ? labels.heldup
       : ending === 'turnover' ? labels.turnover : ending === 'saved' ? labels.saved : '',
     sub: kind === 'attack' ? undefined : nameOf(e.playerId),
     att, def,
@@ -1063,8 +1071,15 @@ function bake(c: ClipSpec, opts?: { biteAt?: number; biteDef?: number; scout?: b
         const k = smooth((t - CATCH) / (BOUND - CATCH))
         ball.x = lerp(jumper.x, back.x, k); ball.y = lerp(jumper.y, back.y, k); ball.lift = lerp(1.2, 0.4, k)
         carrier = t < BOUND ? 3 : scorer
-        if (land <= 0 && uOf(ball.x) >= 101.2) grounded(t)
-        if (land > 0) ball.lift = 0
+        // HELD UP (1.9.1): the drive stalls with the ball just over the line
+        // and the defenders' bodies under it. It never touches the grass.
+        if (c.kind === 'heldup') {
+          if (land <= 0 && uOf(ball.x) >= 100.4) { land = t; banner = t + 0.5; end = t + 2.4 }
+          if (land > 0) ball.lift = 0.7
+        } else {
+          if (land <= 0 && uOf(ball.x) >= 101.2) grounded(t)
+          if (land > 0) ball.lift = 0
+        }
       }
       for (let i = 0; i < 8; i++) {
         att[i].touch = def[i].touch = t > CATCH

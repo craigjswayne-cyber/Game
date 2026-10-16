@@ -43,7 +43,8 @@ export function tensionAt(events: MatchEvent[], i: number): Tension {
 export function isHighlight(events: MatchEvent[], i: number, homeId: string): boolean {
   const e = events[i]
   if (!e) return false
-  if (ALWAYS.has(e.type) || e.fx === 'TMO' || e.fx === 'NOTRY') return true
+  // a maul held up over the line is the try that nearly was (1.9.1)
+  if (ALWAYS.has(e.type) || e.fx === 'TMO' || e.fx === 'NOTRY' || e.k === 'comm.maulHeldUp') return true
   const tension = tensionAt(events, i)
   if (tension === 'rout') return false
   if (USUAL.has(e.type)) return true

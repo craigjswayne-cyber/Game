@@ -134,7 +134,7 @@ export default function Nations() {
         <>
           <SectionTitle sub={comp.champion ? t('fixtures.champions', { club: nationName(comp.champion) }) : undefined}>{comp.name}</SectionTitle>
           <div className="tblwrap"><table className="dtable">
-            <thead><tr><th className="num">{t('tables.colRank')}</th><th>{t('world.natColNation')}</th><th className="num">{t('tables.colP')}</th><th className="num">{t('common.w')}</th><th className="num">{t('tables.colDiff')}</th><th className="num">{t('squad.colPts')}</th></tr></thead>
+            <thead><tr><th className="num">{t('tables.colRank')}</th><th>{t('world.natColNation')}</th><th className="num">{t('tables.colP')}</th><th className="num">{t('common.w')}</th><th className="num">{t('tables.colDiff')}</th><th className="num">{t('tables.colBP')}</th><th className="num">{t('squad.colPts')}</th></tr></thead>
             <tbody>
               {sortTable(comp.table).map((r, i) => (
                 <tr key={r.teamId}>
@@ -143,6 +143,7 @@ export default function Nations() {
                   <td className="num">{r.p}</td>
                   <td className="num">{r.w}</td>
                   <td className="num">{r.pf - r.pa}</td>
+                  <td className="num">{r.bp}</td>
                   <td className="num" style={{ fontWeight: 700 }}>{r.pts}</td>
                 </tr>
               ))}

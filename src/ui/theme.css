@@ -5579,7 +5579,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 }
 .hl-banner b { font-family: var(--cond); font-weight: 800; font-size: 26px; letter-spacing: 2px; line-height: 1; }
 .hl-banner span { font-size: 13px; font-weight: 600; opacity: .92; }
-.hl-banner.review, .hl-banner.notry { background: rgba(10, 14, 12, .9); color: var(--gold-fill); }
+.hl-banner.review, .hl-banner.notry, .hl-banner.heldup { background: rgba(10, 14, 12, .9); color: var(--gold-fill); }
 .hl-banner.miss { color: var(--hl-miss); }
 @keyframes hl-banner { from { opacity: 0; transform: translate(-50%, 10px) scale(.9); } }
 

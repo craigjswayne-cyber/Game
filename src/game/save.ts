@@ -26,6 +26,7 @@ import { migrateTacLoop } from './oppreport'
 import { migrateEvidence } from './evidence'
 import { migrateHistory } from './history'
 import { migrateArc } from './arcbook'
+import { canReachCup } from './dream'
 
 // NOT renamed with the game. This string is the key every existing save lives
 // under, so changing it to 'fab-rugby' would not rename anything - it would point
@@ -441,6 +442,7 @@ export function migrate(s: GameState): GameState {
     prod2: ['French Elite 2', 'Elite 2'],
     jl1: ['Japan Division One', 'Japan D1'],
     mrc: ['Major Rugby Competition', 'MRC'],
+    mrcc: ['MRC Cup', 'MRC Cup'],
     natl1: ['English National One', 'National 1'],
     cc: ['Continental Cup', 'Continental Cup'],
     chc: ['Continental Shield', 'Continental Shield'],
@@ -1144,6 +1146,16 @@ export function migrate(s: GameState): GameState {
     if (!club.players.some(id => s.players[id]?.acad)) topUpAcademy(s, club, rng, 0xACAD)
   }
   ensureAcademyLeague(s)
+
+  // A CUP DREAM NOBODY CAN REACH (1.9.1). Until now "Win the Continental Cup"
+  // and the league-and-cup double were offered at every club, the American,
+  // Japanese and Pacific ones included, which can never enter the cup
+  // (dream.ts canReachCup). A career that declared one there, and is still at
+  // that club, is given the ambition the club can chase: its league.
+  if (s.dream && (s.dream.id === 'europe' || s.dream.id === 'double') && s.dream.clubId === s.userClubId) {
+    const club = s.clubs[s.dream.clubId]
+    if (club && !canReachCup(club.leagueId)) s.dream = { ...s.dream, id: 'league' }
+  }
 
   // clubs injected by a later build get an estate too
   for (const c of Object.values(s.clubs)) c.facilities ??= initFacilities(c, s.seed)

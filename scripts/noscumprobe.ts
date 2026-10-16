@@ -51,7 +51,7 @@ const SLOT = 'slot1'
 const settle = async () => { for (let i = 0; i < 6; i++) await new Promise(r => setTimeout(r, 3)) }
 const quiet = async () => { await settle(); await new Promise(r => setTimeout(r, 30)); await settle() }
 
-type Point = 'kickoff' | 'mid1' | 'decision' | 'ht' | 'ft'
+type Point = 'kickoff' | 'mid1' | 'decision' | 'inj' | 'ht' | 'ft'
 type Door = 'continue' | 'importBefore' | 'importStamped' | 'saveOther'
 
 /** The match itself, as the fixture holds it: every line, both scores. */
@@ -149,6 +149,19 @@ function drive(stop: (p: Point | null) => boolean): Point | null {
         if (off != null && on != null) { s.halfTimeSub(off, on); continue }
       }
       if (hit('mid1')) return 'mid1'
+    }
+    // one of his men down and waiting for his pick (1.9.1): a point to reload
+    // at, then the last fit man on the bench, which is unlikely to be the one
+    // the assistant would have sent
+    if (c.injWait?.length) {
+      if (hit('inj')) return 'inj'
+      const w = c.injWait[0]
+      const mine = w.home ? c.home : c.away
+      const on = [...mine.benchIds].reverse().find(id => !mine.onPitch.has(id) && !mine.ratings.has(id) && !s.game!.players[id]?.injury)
+      // a refused pick (a front-row shirt wants a front-rower) is answered
+      // the way a manager who gave up would: the assistant's man
+      if (s.injuryPick(w.hurtId, on ?? null) !== '') s.injuryPick(w.hurtId, null)
+      continue
     }
     if (c.decision) {
       if (hit('decision')) return 'decision'
@@ -297,7 +310,7 @@ async function dieDuringPlayOut(seed: number): Promise<void> {
   ok(first === second, `seed ${seed}: dying during the play-out and reopening gives the same result, the week turned once`)
 }
 
-const reached: Record<Point, number> = { kickoff: 0, mid1: 0, decision: 0, ht: 0, ft: 0 }
+const reached: Record<Point, number> = { kickoff: 0, mid1: 0, decision: 0, inj: 0, ht: 0, ft: 0 }
 
 // 4242 has a touchline call in the first minutes, 34 has five of them
 for (const seed of [4242, 34]) {
@@ -310,6 +323,7 @@ for (const seed of [4242, 34]) {
     { name: 'reopen straight after pressing play', plan: { at: 'kickoff', door: 'continue' } },
     { name: 'reopen mid-first-half', plan: { at: 'mid1', door: 'continue' } },
     { name: 'reopen with a touchline call held', plan: { at: 'decision', door: 'continue' } },
+    { name: 'reopen with an injured man waiting for his pick', plan: { at: 'inj', door: 'continue' } },
     { name: 'reopen at half-time', plan: { at: 'ht', door: 'continue' } },
     { name: 'reopen at full time, before Continue', plan: { at: 'ft', door: 'continue' } },
     { name: 'import a backup exported before kick-off, mid-match', plan: { at: 'mid1', door: 'importBefore' } },

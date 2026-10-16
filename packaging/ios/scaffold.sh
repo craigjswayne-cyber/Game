@@ -3,7 +3,7 @@
 # Generate the iOS shell and install the purchase plugin into it.
 #
 # Everything this script does was verified end to end on Linux against
-# Capacitor 8.5.0: the platform scaffold, the bundle identity, the asset copy
+# Capacitor 8.5.3: the platform scaffold, the bundle identity, the asset copy
 # and the plugin install all happen here. What it CANNOT do is compile, sign
 # or archive - that is Xcode, and Xcode is a Mac. The script stops at the
 # point where a Mac becomes necessary and prints exactly what is left.
