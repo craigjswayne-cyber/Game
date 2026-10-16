@@ -6,6 +6,7 @@ import { agencyKids, agencySeniors } from '../../game/agency'
 import { seenValue } from '../../game/scout'
 import { ClubLink, CrestT, Nat, PosBadge, SectionTitle } from '../components'
 import { t } from '../../game/i18n'
+import { rowNav } from '../rowNav'
 
 /** The Scouting Agency: monthly world rankings, FM-style. */
 /** What the movement arrows are measured from.
@@ -65,7 +66,7 @@ export default function Agency() {
             const prevIdx = prev.indexOf(p.id)
             const mine = p.clubId === game.userClubId
             return (
-              <tr key={p.id} onClick={() => go('player', p.id)}
+              <tr key={p.id} {...rowNav(() => go('player', p.id))}
                 style={mine ? { background: 'color-mix(in srgb, var(--gold) 14%, transparent)' } : undefined}>
                 <td className="num" style={{ fontWeight: 700 }}>{i + 1}</td>
                 <MoveCell from={prevIdx} to={i} compared={prev.length > 0} />

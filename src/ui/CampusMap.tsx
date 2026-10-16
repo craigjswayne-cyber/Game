@@ -128,7 +128,7 @@ export default function CampusMap({ game, onPick }: {
               <span style={{
                 position: 'absolute', left: '50%', top: '100%', transform: 'translate(-50%, 2px)',
                 display: 'flex', alignItems: 'center', gap: 2, whiteSpace: 'nowrap',
-                padding: '1px 4px', borderRadius: 7, fontSize: 9, lineHeight: 1.35, fontWeight: 700,
+                padding: '1px 4px', borderRadius: 7, fontSize: 11, lineHeight: 1.35, fontWeight: 700,
                 background: 'rgba(8, 11, 15, 0.72)',
                 border: `1px solid ${building ? 'var(--gold)' : 'rgba(255,255,255,0.18)'}`,
                 color: building ? 'var(--gold)' : 'var(--on-hero)',

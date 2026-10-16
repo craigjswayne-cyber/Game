@@ -2737,6 +2737,7 @@
   "leaveItThere": "ここまでにする",
   "meetTheirNumber": "要求額を呑む（週給{wage}）",
   "campWants": "先方の要求は週給{demand}（現在は{wage}）。安く見積もると痛い目を見る。",
+  "yourOfferWage": "週給の提示額",
   "offerWage": "週給£{amount}を提示",
   "walkAwayCaps": "席を立つ",
   "openContractTalks": "契約交渉を開く",
@@ -8068,6 +8069,7 @@
   "tillEmpty": "ストアから応答はありましたが、このアカウントで販売中の商品はまだありません。現時点ではここで購入できるものはありません。課金は発生していません。",
   "tillPartial": "ストアが応答したのは{asked}商品中{live}件です。残りはこのアカウントではまだ販売されていない可能性があります。",
   "pickNation": "購入済み。国を選んで就任を。すぐに始まる。",
+  "nationSelect": "国",
   "support": "ゲームを応援する",
   "supportLine": "開発者へのお礼。ゲーム内では何も変わらない。",
   "supportThanks": {
@@ -8406,6 +8408,7 @@
  "search": {
   "anyAttr": "能力",
   "atLeast": "{n}以上",
+  "attrMin": "最低評価",
   "view": "表示",
   "view_general": "一般",
   "view_contract": "契約",

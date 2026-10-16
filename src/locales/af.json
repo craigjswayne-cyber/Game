@@ -2807,6 +2807,7 @@
   "leaveItThere": "Los dit daar",
   "meetTheirNumber": "Betaal hul syfer ({wage}/wk)",
   "campWants": "Sy kamp wil {demand}/wk hê (hy verdien {wage}). Bied te min op eie risiko.",
+  "yourOfferWage": "Jou aanbod per week",
   "offerWage": "Bied £{amount}/wk",
   "walkAwayCaps": "Stap weg",
   "openContractTalks": "Open kontraksamesprekings",
@@ -8577,6 +8578,7 @@
   "tillEmpty": "Die winkel het geantwoord, maar het nog niks vir hierdie rekening te koop nie, so niks kan hier nou gekoop word nie. Niks is gehef nie.",
   "tillPartial": "Die winkel het vir {live} van {asked} produkte geantwoord. Die ander is dalk nog nie vir hierdie rekening te koop nie.",
   "pickNation": "Joune. Kies die land en vat die werk. Dit begin dadelik.",
+  "nationSelect": "Land",
   "support": "Ondersteun die spel",
   "supportLine": "'n Dankie aan die ontwikkelaar. Dit verander niks in die spel nie.",
   "supportThanks": {
@@ -8915,6 +8917,7 @@
  "search": {
   "anyAttr": "Eienskap",
   "atLeast": "{n}+",
+  "attrMin": "Laagste gradering",
   "view": "Aansig",
   "view_general": "Algemeen",
   "view_contract": "Kontrak",

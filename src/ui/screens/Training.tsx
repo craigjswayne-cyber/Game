@@ -164,7 +164,7 @@ function StaffPanel() {
                     <button className="btn gold" style={{ padding: '4px 8px', fontSize: 11, lineHeight: 1.25 }}
                       disabled={!!courseNo} title={courseNo?.long}
                       onClick={() => { setMsg({ role, text: sendToCourse(game, role) }); touch() }}>
-                      {t('training.assess')}<br /><span style={{ fontSize: 10, fontWeight: 600 }}>{fmtMoney(courseFee(p.tier))}</span>
+                      {t('training.assess')}<br /><span style={{ fontSize: 11, fontWeight: 600 }}>{fmtMoney(courseFee(p.tier))}</span>
                     </button>
                   )}
                   <button className="btn ghost" style={{ padding: '4px 8px', fontSize: 11 }}

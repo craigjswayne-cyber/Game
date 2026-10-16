@@ -44,9 +44,11 @@ import { dialLine, philosophyOf } from '../../game/philosophy'
 import { venueEffect } from '../../game/venue'
 import { sortTable } from '../../game/schedule'
 import { nationName } from '../../game/nations'
-import { kitColours, luma, pageSpares } from '../kit'
+import { kitColours, kitInk, luma, pageSpares } from '../kit'
 import { IcoFastForward, IcoPause, IcoPeople, IcoPlay } from '../icons'
 import { Glyph } from '../glyphs'
+import { rowNav } from '../rowNav'
+import { MatchAnnouncer } from '../MatchAnnouncer'
 
 const WEATHER_ICON: Record<string, string> = { Dry: 'sun', Damp: 'rain', Rain: 'rain', Wind: 'wind', Snow: 'snow' }
 
@@ -454,7 +456,6 @@ function Preview({ fxId }: { fxId: number }) {
       if (problem(p)) return null // crisis: even the assistant cannot field 15 fit men
     }
     return picked
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [confirm, hasBad])
 
   // rotation dilemma: before a cup tie or on a quick turnaround, the
@@ -608,7 +609,7 @@ function Preview({ fxId }: { fxId: number }) {
     // stars are unaligned for subs"). Pin every column but the name and the
     // two sections read as one sheet.
     return (
-      <tr key={slot} onClick={() => tapSlot(slot)}
+      <tr key={slot} {...rowNav(() => tapSlot(slot))}
         className={`${prob ? 'prob-row' : ''}${sel === slot ? ' held-row' : ''}`}>
         <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700, width: 26 }}>{shirt}</td>
         <td style={{ width: 38 }}><PosBadge pos={pos} /></td>
@@ -631,7 +632,9 @@ function Preview({ fxId }: { fxId: number }) {
     const pool = availablePlayers(game, club.players)
       .sort((a, b) => effAt(b, pos) - effAt(a, pos))
     return (
+      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
       <div className="modal-veil" onClick={() => setPickSlot(null)}>
+        {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
         <div className="modal" onClick={e => e.stopPropagation()}>
           <div className="grab" />
           <SectionTitle sub={t('matchday.pickerSub', { shirt: pickSlot < 15 ? XV_SLOTS[pickSlot].shirt : seats[pickSlot - 15].shirt })}>
@@ -639,7 +642,7 @@ function Preview({ fxId }: { fxId: number }) {
           </SectionTitle>
           <table className="dtable"><tbody>
             {pool.map(p => (
-              <tr key={p.id} onClick={() => setSlot(pickSlot, p.id)}
+              <tr key={p.id} {...rowNav(() => setSlot(pickSlot, p.id))}
                 style={tac.lineup.includes(p.id) ? { opacity: .55 } : undefined}>
                 <td><PosBadge pos={p.pos} /></td>
                 <td className="name">{p.name}{tac.lineup.includes(p.id) ? t('matchday.selected') : ''}
@@ -659,7 +662,9 @@ function Preview({ fxId }: { fxId: number }) {
   const readyModal = () => {
     if (!confirm) return null
     return (
+      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
       <div className="modal-veil" onClick={() => setConfirm(false)}>
+        {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
         <div className="modal" onClick={e => e.stopPropagation()}>
           <div className="grab" />
           <div style={{ padding: '0 18px 4px' }}>
@@ -1274,7 +1279,9 @@ function Preview({ fxId }: { fxId: number }) {
       {picker()}
       {readyModal()}
       {talkOpen && (
+        // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
         <div className="modal-veil" onClick={() => setTalkOpen(false)}>
+          {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
           <div className="modal talk-modal" onClick={e => e.stopPropagation()}>
             <div className="grab" />
             <div style={{ padding: '0 12px 10px' }}>
@@ -1455,7 +1462,7 @@ function NationPreview({ fxId }: { fxId: number }) {
             const pid = myLineup[i]
             const p = pid != null ? game.players[pid] : null
             return (
-              <tr key={i} onClick={() => tapSlot(i)} className={sel === i ? 'held-row' : undefined}>
+              <tr key={i} {...rowNav(() => tapSlot(i))} className={sel === i ? 'held-row' : undefined}>
                 <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{s.shirt}</td>
                 <td><PosBadge pos={s.pos} /></td>
                 <td className="name">{p?.name ?? <span className="muted">{t('matchday.tapToPick')}</span>}</td>
@@ -1471,7 +1478,7 @@ function NationPreview({ fxId }: { fxId: number }) {
             const pid = myLineup[slot]
             const p = pid != null ? game.players[pid] : null
             return (
-              <tr key={slot} onClick={() => tapSlot(slot)} className={sel === slot ? 'held-row' : undefined}>
+              <tr key={slot} {...rowNav(() => tapSlot(slot))} className={sel === slot ? 'held-row' : undefined}>
                 <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{s.shirt}</td>
                 <td><PosBadge pos={s.pos[0]} /></td>
                 <td className="name">{p?.name ?? <span className="muted">{t('matchday.tapToPick')}</span>}</td>
@@ -1481,7 +1488,9 @@ function NationPreview({ fxId }: { fxId: number }) {
           })}
         </tbody></table></div>
         {pickSlot != null && (
+          // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
           <div className="modal-veil" onClick={() => setPickSlot(null)}>
+            {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
             <div className="modal" onClick={e => e.stopPropagation()}>
               <div className="grab" />
               <SectionTitle sub={t('matchday.testSquadSub')}>
@@ -1491,7 +1500,7 @@ function NationPreview({ fxId }: { fxId: number }) {
                 {availablePlayers(game, rosterOf(game, nat), true)
                   .sort((a, b) => effAt(b, pickSlot < 15 ? XV_SLOTS[pickSlot].pos : BENCH_SLOTS[pickSlot - 15].pos[0]) - effAt(a, pickSlot < 15 ? XV_SLOTS[pickSlot].pos : BENCH_SLOTS[pickSlot - 15].pos[0]))
                   .map(p => (
-                    <tr key={p.id} onClick={() => setSlot(pickSlot, p.id)}
+                    <tr key={p.id} {...rowNav(() => setSlot(pickSlot, p.id))}
                       style={myLineup.includes(p.id) ? { opacity: .55 } : undefined}>
                       <td><PosBadge pos={p.pos} /></td>
                       <td className="name">{p.name}{myLineup.includes(p.id) ? t('matchday.selected') : ''}</td>
@@ -1539,7 +1548,9 @@ function NationPreview({ fxId }: { fxId: number }) {
         <div className="spacer" />
       </main>
       {confirm && (
+        // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
         <div className="modal-veil" onClick={() => setConfirm(false)}>
+          {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="grab" />
             {/* A GUTTER, LIKE ITS CLUB TWIN. .modal sets no horizontal padding
@@ -1634,11 +1645,6 @@ const SPEEDS = [
 const KICK_STYLE_LABEL: Record<string, string> = {
   territory: 'tacticsScreen.kickTerritory', contest: 'tacticsScreen.kickContest',
   attack: 'tacticsScreen.kickAttack', balanced: 'tacticsScreen.kickBalanced',
-}
-
-function contrastText(bg: string): string {
-  if (bg.replace('#', '').length < 6) return 'var(--prop-ink)'
-  return luma(bg) > 140 ? 'var(--prop-ink-dark)' : 'var(--prop-ink)'
 }
 
 function Live() {
@@ -1962,7 +1968,7 @@ function Live() {
     const [fill, edge] = e.teamId === fixture.awayId ? kits.away : kits.home
     const plain = !cls(e)
     return {
-      background: fill, color: contrastText(fill),
+      background: kitInk(fill).fill, color: kitInk(fill).ink,
       boxShadow: `inset 0 0 0 1px ${edge ?? 'var(--border-strong)'}`,
       ...(plain ? { borderLeftColor: edge ?? fill } : {}),
     }
@@ -1973,7 +1979,7 @@ function Live() {
   const flashStyle = (e: MatchEvent, i: number) => {
     if (i !== flash || !e.teamId) return undefined
     const fill = (e.teamId === fixture.awayId ? kits.away : kits.home)[0]
-    return { '--flash-bg': contrastText(fill), '--flash-fg': fill } as React.CSSProperties
+    return { '--flash-bg': kitInk(fill).ink, '--flash-fg': kitInk(fill).fill } as React.CSSProperties
   }
   /** An old line lets go of the fill and keeps its side as the stripe, the
    *  way FM's feed keeps a team colour beside a line it has moved past. */
@@ -1989,6 +1995,7 @@ function Live() {
 
   return (
     <div className={`live-wrap${prefs.bigText ? ' big-text' : ''}`}>
+      <MatchAnnouncer game={game} shown={shown} homeId={fixture.homeId} awayId={fixture.awayId} />
       <div className="scoreboard" style={{ '--home-c': kits.home[0], '--away-c': kits.away[0] } as React.CSSProperties}>
         <div className="teams">
           <div className="tname"><CrestT g={game} teamId={fixture.homeId} size={26} />{teamShort(game, fixture.homeId)}<span className="clubbar" style={{ background: kits.home[0] }} /></div>
@@ -2312,7 +2319,9 @@ function Live() {
       )}
 
       {settings && (
+        // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
         <div className="modal-veil" onClick={() => setSettings(false)}>
+          {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
           <div className="modal settings-sheet" onClick={e => e.stopPropagation()}>
             <div className="grab" />
             <h3 style={{ fontSize: 16, margin: '2px 16px 8px' }}>{t('matchday.matchSettings')}</h3>
@@ -2681,7 +2690,7 @@ function MatchVerdict() {
             <b>{star.name}</b>{' '}
             <span className="muted">({clubCode(teamShort(game, starMine ? mine.teamId : opp.teamId))})</span>
           </div>
-          <span className="form-pill" style={{ background: 'var(--text-positive)', fontSize: 16 }}>
+          <span className="form-pill" style={{ background: 'var(--text-positive)', color: 'var(--on-positive)', fontSize: 16 }}>
             {/* the published mark, as the findings and the ratings table print it (1.8.15: this read the running in-match number, so one man was "8.5" here and "10.0" two lines below) */}
             {ctx.motmId != null ? (mine.finalR?.get(ctx.motmId) ?? opp.finalR?.get(ctx.motmId) ?? mine.ratings.get(ctx.motmId) ?? opp.ratings.get(ctx.motmId) ?? 7).toFixed(1) : ''}
           </span>
@@ -3141,10 +3150,11 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
       {SLIDER_INFO.map(s => (
         <div key={s.key} data-dial={s.key} className="dial-row" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '2px 0', borderRadius: 6 }}>
           <span style={{ width: 78, fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--cond)', textTransform: 'uppercase', letterSpacing: .5, cursor: 'pointer' }}
-            onClick={() => setExplain(`${t(s.label)}: ${sliderReadout(s.key, club.tactic[s.key])}`)}>
+            {...rowNav(() => setExplain(`${t(s.label)}: ${sliderReadout(s.key, club.tactic[s.key])}`))}>
             {t(s.label)}
           </span>
           <input type="range" min={0} max={100} value={club.tactic[s.key]} style={{ flex: 1, accentColor: 'var(--primary)' }}
+            aria-label={t(s.label)} aria-valuetext={`${club.tactic[s.key]}: ${sliderReadout(s.key, club.tactic[s.key])}`}
             onChange={e => { club.tactic[s.key] = Number(e.target.value); liveTactics(); touch() }} />
         </div>
       ))}
@@ -3318,7 +3328,9 @@ export function SquadSheet({ onClose, freeCoverId, waitId, title, note, hurtName
   // man - tapping him again is a decision, it is just the same decision
   const settled = waitId != null ? !waiting() : !mustDecide || decided || !freeLeft
   return (
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
     <div className="modal-veil" onClick={() => { if (settled) onClose() }}>
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
       <div className="modal squad-sheet" onClick={e => e.stopPropagation()}>
         <div className="grab" />
         {/* THE WHOLE BRIEF STICKS, not just the title.

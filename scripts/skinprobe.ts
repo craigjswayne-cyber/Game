@@ -21,7 +21,9 @@
 import { readFileSync } from 'node:fs'
 import { SKINS } from '../src/store'
 
-const css = readFileSync('src/ui/tokens.css', 'utf8')
+// comments stripped: a block's prose mentions token names, and a stray `--x ...;`
+// inside a comment would otherwise be read as a declaration
+const css = readFileSync('src/ui/tokens.css', 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')
 
 let fails = 0
 const ok = (c: boolean, what: string) => {
@@ -112,6 +114,9 @@ const VARIANTS = (skin: string): [string, string][] => [
 ]
 // the automatic skins are checked exactly as hard as the paid ones
 const PALETTES = [...SKINS.filter(s => s !== 'default'), 'tour'].flatMap(VARIANTS)
+/** The built-in pair, which sections 2 and 3 never read because neither is a
+ *  skin. The WCAG pass (focus ring, hero ink) has to hold on these too. */
+const BUILT_IN: [string, string][] = [['default (night)', ':root,\n.app.night'], ['default (day)', '.app.day,\n.app:not(.night)']]
 
 console.log('\n--- 2. body text on every surface clears WCAG AA (4.5:1)')
 for (const [name, sel] of PALETTES) {
@@ -158,6 +163,38 @@ for (const [skin, sel] of PALETTES) {
   const need = ['--canvas', '--surface-1', '--text-primary', '--primary', '--gold', '--danger', '--hero-gradient', '--scrim']
   const gaps = need.filter(k => !tok[k])
   ok(gaps.length === 0, `${skin}: declares every role it must (${gaps.join(', ') || 'complete'})`)
+}
+
+console.log('\n--- 4. the focus ring and the hero ink, in every palette including the built-in pair')
+// WCAG 2.4.7 and 1.4.11: the keyboard focus indicator owes 3:1 against what
+// it sits on. It used to be --border-strong, a divider at 1.57 to 2.31:1.
+// And text ON the hero gradient (mastheads, the live scoreboard) owes the
+// reading bar against the LIGHTEST stop, because that is where the worst of it
+// sits: the soft ink measured 2.6:1 there before the WCAG pass. The score
+// itself is large text, so --gold over the hero owes 3:1.
+for (const [name, sel] of [...BUILT_IN, ...PALETTES]) {
+  const tok = blockOf(sel)
+  const ring = tok['--focus-ring']
+  ok(!!ring, `${name}: declares --focus-ring`)
+  if (ring) {
+    const r = Math.min(...['--canvas', '--surface-1', '--surface-2', '--surface-3'].map(k => ratio(ring, tok[k])))
+    ok(r >= 3, `${name}: focus ring ${ring} is ${r}:1 or better on the canvas and every surface (3:1)`)
+  }
+  const stops = [...(tok['--hero-gradient'] ?? '').matchAll(/#[0-9a-fA-F]{6}/g)].map(m => m[0])
+  ok(stops.length >= 2, `${name}: the hero gradient has stops to measure`)
+  for (const [ink, min] of [['--on-hero', 4.5], ['--on-hero-soft', 4.5], ['--gold', 3]] as [string, number][]) {
+    // a day block may leave the gold for text on paper and paint the score in the fill
+    const c = ink === '--gold' && sel.includes('day') ? (tok['--gold-fill'] ?? tok[ink]) : tok[ink]
+    if (!c || !c.startsWith('#')) continue
+    const worst = Math.min(...stops.map(st => ratio(c, st)))
+    ok(worst >= min, `${name}: ${ink} ${c} on the hero is ${worst}:1 at its worst stop (${min})`)
+  }
+  // the form pill's middle band: --primary-pressed with its own ink
+  const pressedInk = tok['--on-primary-pressed'] ?? tok['--on-primary'] ?? blockOf(sel.replace('.app.day', '.app'))['--on-primary-pressed']
+  if (pressedInk && tok['--primary-pressed']) {
+    const r = ratio(pressedInk, tok['--primary-pressed'])
+    ok(r >= 4.5, `${name}: the pill ink ${pressedInk} on --primary-pressed ${tok['--primary-pressed']} is ${r}:1 (4.5)`)
+  }
 }
 
 console.log(fails === 0

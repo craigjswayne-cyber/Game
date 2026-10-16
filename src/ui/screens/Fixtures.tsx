@@ -8,6 +8,7 @@ import LeagueTable from '../LeagueTable'
 import { stageShort } from './Home'
 import { t, compLabel } from '../../game/i18n'
 import { arrangeMidweekFriendly, friendlyDate, friendlySuggestions, friendlyWeeks } from '../../game/season'
+import { rowNav } from '../rowNav'
 
 export default function Fixtures() {
   const game = useStore(s => s.game)!
@@ -55,7 +56,7 @@ export default function Fixtures() {
   // one filter, shown on both pages, because the alternative is a table page
   // that tells you to go to the other page to change which table you are on
   const chips = (
-    <div style={{ display: 'flex', gap: 6, padding: '0 14px 6px', flexWrap: 'wrap', alignItems: 'center' }}>
+    <div style={{ display: 'flex', gap: '8px 6px', padding: '0 14px 6px', flexWrap: 'wrap', alignItems: 'center' }}>
       <button className="preset-chip" style={comp === 'ALL' ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
         onClick={() => setComp('ALL')}>{t(page === 'table' ? 'fixtures.myLeague' : 'fixtures.allComps')}</button>
       {comps.map(cid => (
@@ -121,7 +122,7 @@ export default function Fixtures() {
             const isNext = !f.played && f.week === game.week
             return (
               <tr key={f.id} className={isNext ? 'next-fx' : undefined}
-                onClick={() => f.played && f.events?.length ? setReplayId(f.id) : undefined}
+                {...(f.played && f.events?.length ? rowNav(() => setReplayId(f.id)) : {})}
                 style={f.played && f.events?.length ? { cursor: 'pointer' } : undefined}>
                 <td className="muted" style={{ whiteSpace: 'nowrap' }}>{fixtureDate(game.season, f.week, f.id, f.midweek ? MIDWEEK_OFF : undefined).replace(/day /, " ")}</td>
                 <td className="name">
@@ -133,7 +134,7 @@ export default function Fixtures() {
                         (user: "on the fixture graphic the sea level isnt
                         needed"). The trip's difficulty still shows where the
                         decision is made: the match-day venue panel. */}
-                    {f.played && f.events?.length ? <span className="muted" style={{ fontSize: 10 }}>▸</span> : null}
+                    {f.played && f.events?.length ? <span className="muted" style={{ fontSize: 11 }}>▸</span> : null}
                   </span>
                 </td>
                 <td className="muted" style={{ whiteSpace: 'nowrap' }}>{compLabel(game.comps[f.compId]?.short) ?? (f.compId === 'fr' ? t('common.friendly') : f.compId)}{f.stage ? ` ${stageShort(f.stage)}` : ''}</td>
@@ -209,7 +210,9 @@ export default function Fixtures() {
         </>
       )}
       {replay && (
+        // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
         <div className="modal-veil" onClick={() => setReplayId(null)}>
+          {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="grab" />
             <SectionTitle sub={`${fxDate(game.season, replay)}${replay.att ? t('fixtures.replaySub', { att: replay.att, venue: replay.venue?.name ?? game.clubs[replay.homeId]?.stadium ?? t('fixtures.neutralVenueLower') }) : ''}`}>

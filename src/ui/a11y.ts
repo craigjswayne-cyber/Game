@@ -41,8 +41,11 @@ export function installDialogA11y(): void {
   obs.observe(document.body, { childList: true, subtree: true })
   document.addEventListener('keydown', e => {
     if (e.key !== 'Escape') return
+    // the sheets first; then the three other veils that close on a tap (the
+    // hub menu, the tutorial card and the trophy celebration), so Escape is
+    // the keyboard's version of tapping outside wherever a tap outside works
     const veils = document.querySelectorAll<HTMLElement>('.modal-veil')
-    const top = veils[veils.length - 1]
+    const top = veils[veils.length - 1] ?? document.querySelector<HTMLElement>('.submenu-veil, .tut-veil, .celebrate-veil')
     if (top) { e.preventDefault(); top.click() }
   })
 }

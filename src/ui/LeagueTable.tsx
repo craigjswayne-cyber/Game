@@ -14,6 +14,7 @@ import { ClubLink, CrestT } from './components'
 import { ord, t } from '../game/i18n'
 
 import { RELEGATES } from '../game/model'
+import { rowNav } from './rowNav'
 
 export default function LeagueTable({ compId, compact }: { compId: string; compact?: boolean }) {
   const game = useStore(s => s.game)!
@@ -52,7 +53,7 @@ export default function LeagueTable({ compId, compact }: { compId: string; compa
             return (
               <tr key={r.teamId}
                 className={r.teamId === game.userClubId ? 'me' : ''}
-                onClick={() => game.clubs[r.teamId] && go('club', r.teamId)}
+                {...rowNav(() => game.clubs[r.teamId] && go('club', r.teamId))}
                 style={{
                   ...(inPlayoffs ? { background: 'color-mix(in srgb, var(--gold) 12%, transparent)' } : undefined),
                   ...(goesDown ? { background: 'color-mix(in srgb, var(--text-negative) 10%, transparent)' } : undefined),

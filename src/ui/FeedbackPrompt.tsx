@@ -157,6 +157,7 @@ export function FeedbackPrompt() {
           <h2 id={headId}>{t('feedback.title')}</h2>
         </div>
         <p className="pro-line">{t('feedback.line')}</p>
+        {/* eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- a scrolling block of text has to take focus so a keyboard can scroll it (WCAG 2.1.1) */}
         <pre ref={pre} className="fb-report" tabIndex={0} aria-label={t('feedback.reportLabel')}>{report}</pre>
         <div className="fb-btns">
           <a className="btn gold fb-btn" href={mailtoUrl(report, FEEDBACK_SUBJECT, '[trimmed for e-mail - use Copy for the full report]')}>

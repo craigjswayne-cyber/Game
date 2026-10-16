@@ -83,11 +83,20 @@ html { overscroll-behavior: none; }
   html, body, #root { height: calc(100dvh / var(--zoom, 1)); }
 }
 
+/* TYPE IS IN rem (WCAG 1.4.4). Every font-size in this sheet was px, so a
+   reader who set a larger default text size in the browser or the OS web view
+   got nothing; the in-app Text Size zoom (App.tsx useTextScale) was the only
+   way up. The root font-size is deliberately left unset, so it is the reader's
+   own default: 16px unless they changed it, which makes each rem here exactly
+   the px it replaced (14px is 0.875rem) and the game looks the same as it did
+   at the default. The in-app zoom still multiplies on top. Nothing in the
+   sheet is under 11px (0.6875rem) any more. Inline fontSize values in the TSX
+   stay px. */
 body {
   background: var(--canvas);
   color: var(--text-primary);
   font-family: var(--sans);
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.45;
   overscroll-behavior: none;
   /* the viewport allows pinch-zoom again (v1.2.7: a game that blocked it was
@@ -120,7 +129,7 @@ button { font: inherit; border: none; background: none; cursor: pointer; color: 
    writing takes focus, and leaves it zoomed (owner, 1.3.0 on the iPhone
    Simulator, after typing the manager's name). 16px is the size at which
    Safari does not, and it reads better anyway. */
-input, select, textarea { font: inherit; font-size: 16px; color: var(--text-primary); }
+input, select, textarea { font: inherit; font-size: max(16px, 1rem); color: var(--text-primary); }
 /* The dropdown list is drawn by the browser, so it gets the pair too: our ink
  * on a dark system popup would be the same bug wearing the other hat. */
 option { font: inherit; color: var(--text-primary); background-color: var(--surface-1); }
@@ -164,7 +173,7 @@ option { font: inherit; color: var(--text-primary); background-color: var(--surf
 .mast-ctl { display: flex; align-items: center; gap: 10px; }
 .masthead h1 {
   font-family: var(--sans);
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: 700;
   letter-spacing: .2px;
   white-space: nowrap;
@@ -176,7 +185,7 @@ option { font: inherit; color: var(--text-primary); background-color: var(--surf
   font-family: var(--cond);
   font-style: normal;
   font-weight: 700;
-  font-size: 12px;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 1px;
   color: var(--on-hero-soft);
@@ -189,7 +198,7 @@ option { font: inherit; color: var(--text-primary); background-color: var(--surf
      the theme, so day mode painted this chevron near-black on bottle green at
      1.85:1 - the second most used control in the app. */
   color: var(--on-hero);
-  font-size: 26px;
+  font-size: 1.625rem;
   line-height: 1;
   padding: 2px 10px 6px 0;
   opacity: .9;
@@ -207,7 +216,7 @@ option { font: inherit; color: var(--text-primary); background-color: var(--surf
   color: var(--on-primary);
   font-family: var(--cond);
   font-weight: 700;
-  font-size: 16px;
+  font-size: 1rem;
   letter-spacing: 1.4px;
   text-transform: uppercase;
   padding: 8px 16px 9px;
@@ -232,7 +241,7 @@ option { font: inherit; color: var(--text-primary); background-color: var(--surf
 
 .section-title {
   font-family: var(--cond);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1.5px;
@@ -270,7 +279,7 @@ option { font: inherit; color: var(--text-primary); background-color: var(--surf
 .section-title .sub {
   font-family: var(--sans);
   font-style: normal;
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: .3px;
   color: var(--text-muted);
@@ -285,10 +294,10 @@ option { font: inherit; color: var(--text-primary); background-color: var(--surf
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
 }
-.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
+.dtable { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
 .dtable th {
   font-family: var(--sans);
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 700;
   text-transform: uppercase;
   /* .5px, not 1.1: at 11px the wider tracking pushed the eight-column market
@@ -312,7 +321,7 @@ option { font: inherit; color: var(--text-primary); background-color: var(--surf
   color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
 }
-.dtable td.name { color: var(--text-primary); font-weight: 600; font-size: 13px; max-width: 168px; overflow: hidden; text-overflow: ellipsis; }
+.dtable td.name { color: var(--text-primary); font-weight: 600; font-size: 0.8125rem; max-width: 168px; overflow: hidden; text-overflow: ellipsis; }
 .dtable tr:active td { background: var(--row-hover-bg); }
 .dtable.zebra tbody tr:nth-child(even) td { background: color-mix(in srgb, var(--surface-2) 45%, var(--surface-1)); }
 .dtable.zebra tbody tr:nth-child(even).me td,
@@ -435,6 +444,15 @@ option { font: inherit; color: var(--text-primary); background-color: var(--surf
 .dtable tr.me td:first-child { box-shadow: inset 3px 0 0 var(--primary); }
 
 .th-sort { cursor: pointer; user-select: none; }
+/* The sort control is a real button inside the header cell (WCAG 2.1.1), dressed
+   as the header text it replaced. Its ::after stretches over the whole cell, so
+   the tap target is the cell exactly as it was; the th is sticky, which makes
+   it the positioned box the overlay fills. */
+.th-sort .th-btn {
+  font: inherit; color: inherit; letter-spacing: inherit; text-transform: inherit;
+  text-align: inherit; white-space: inherit; padding: 0; margin: 0;
+}
+.th-sort .th-btn::after { content: ''; position: absolute; inset: 0; }
 .th-sort.active { color: var(--primary); }
 
 /* ---- THE ONE PRODUCT THAT IS NOT LIKE THE OTHERS ----
@@ -495,9 +513,9 @@ option { font: inherit; color: var(--text-primary); background-color: var(--surf
 /* a card that is also a button: the width used to be an inline
    calc(100% - 28px) on every one of them, which no grid could override */
 button.card { display: block; width: calc(100% - 28px); text-align: left; }
-.card h3 { font-family: var(--sans); font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: 3px; letter-spacing: .1px; }
-.fx-line { font-size: 18px; margin: 4px 0; }
-.card .meta { font-size: 12px; color: var(--text-secondary); font-weight: 500; }
+.card h3 { font-family: var(--sans); font-size: 1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 3px; letter-spacing: .1px; }
+.fx-line { font-size: 1.125rem; margin: 4px 0; }
+.card .meta { font-size: 0.75rem; color: var(--text-secondary); font-weight: 500; }
 
 /* ================= News ================= */
 .news-item {
@@ -509,7 +527,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .news-item .subj {
   font-family: var(--sans);
   font-weight: 700;
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--text-primary);
   letter-spacing: .1px;
   line-height: 1.3;
@@ -523,13 +541,13 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   vertical-align: 2px;
 }
 .news-item .body {
-  font-size: 13px; color: var(--text-secondary); margin-top: 3px; font-weight: 500;
+  font-size: 0.8125rem; color: var(--text-secondary); margin-top: 3px; font-weight: 500;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
   overflow: hidden; white-space: pre-line; line-height: 1.5;
 }
 .news-item .when {
   font-family: var(--cond);
-  font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
+  font-size: 0.6875rem; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
   color: var(--gold);
 }
 .news-item.open .body { display: block; -webkit-line-clamp: unset; }
@@ -579,7 +597,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   flex: 1 1 0; min-width: 0;
   position: relative;
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: .2px;
   padding: 6px 2px 5px;
@@ -604,7 +622,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .bottom-nav .dot {
   position: absolute; top: -3px; right: -9px;
   background: var(--danger);
-  color: var(--on-danger); font-size: 8.5px; font-weight: 800;
+  color: var(--on-danger); font-size: 0.6875rem; font-weight: 800;
   min-width: 15px; height: 15px; border-radius: 8px;
   display: flex; align-items: center; justify-content: center; padding: 0 4px;
   border: 1.5px solid var(--surface-1);
@@ -616,7 +634,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   background: var(--surface-3);
   color: var(--text-primary);
   font-weight: 700;
-  font-size: 13px;
+  font-size: 0.8125rem;
   letter-spacing: .3px;
   padding: 9px 13px;
   border-radius: 8px;
@@ -658,7 +676,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .attr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 22px; padding: 10px 16px; background: var(--surface-1); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
 .attr {
   display: flex; align-items: center; gap: 8px;
-  font-size: 13px; font-weight: 500; color: var(--text-secondary);
+  font-size: 0.8125rem; font-weight: 500; color: var(--text-secondary);
   padding: 4.5px 0;
   border-bottom: 1px solid var(--border);
 }
@@ -674,7 +692,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .attr .v {
   font-family: var(--cond);
-  font-weight: 700; font-size: 16px;
+  font-weight: 700; font-size: 1rem;
   width: 22px; text-align: right; color: var(--text-primary);
 }
 .attr .v.elite { color: var(--gold); }
@@ -688,7 +706,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   border: 1px solid var(--border);
   border-radius: 7px;
   padding: 4.5px 9px;
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 500;
   color: var(--text-secondary);
 
@@ -713,7 +731,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .scoreboard .teams { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .scoreboard .tname {
   font-family: var(--sans);
-  font-size: 16px; font-weight: 700; flex: 1; line-height: 1.25;
+  font-size: 1rem; font-weight: 700; flex: 1; line-height: 1.25;
   /* crest above the name on both sides, always (owner, 1.8.3). An inline
      crest sat beside a short name and wrapped above a long one, so the two
      sides of the same scoreboard disagreed: "Wellington" beside, "Northampton"
@@ -734,7 +752,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .scoreboard .tname .clubbar { display: block; width: 30px; height: 3px; border-radius: 2px; margin: 5px auto 0; }
 .scoreboard .score {
   font-family: var(--cond);
-  font-size: 27px; font-weight: 700; letter-spacing: 1px; line-height: 1;
+  font-size: 1.6875rem; font-weight: 700; letter-spacing: 1px; line-height: 1;
   white-space: nowrap;
   /* GOLD ON THE HERO GRADIENT IS ALWAYS --gold-fill, NEVER --gold. --gold is
      the text gold and day mode tunes it dark (#8a6516) to sit on white and on
@@ -753,21 +771,21 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .scoreboard .minute {
   font-family: var(--cond); font-style: normal; font-weight: 700;
   letter-spacing: .8px; text-transform: uppercase;
-  font-size: 12px; color: var(--on-hero-soft); margin-top: 6px; letter-spacing: .5px;
+  font-size: 0.75rem; color: var(--on-hero-soft); margin-top: 6px; letter-spacing: .5px;
 }
 
 .ticker { padding: 4px 16px; }
 .tick-event {
   display: flex; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border);
   animation: flash-in .5s ease;
-  font-size: 13px; font-weight: 500; color: var(--text-secondary);
+  font-size: 0.8125rem; font-weight: 500; color: var(--text-secondary);
   line-height: 1.45;
   /* the full-time log can run to several hundred lines: lines off screen are
      not laid out or painted until they are scrolled to (1.9.1) */
   content-visibility: auto; contain-intrinsic-size: auto 40px;
 }
 .tick-event .min {
-  font-family: var(--cond); font-weight: 700; font-size: 14px;
+  font-family: var(--cond); font-weight: 700; font-size: 0.875rem;
   color: var(--text-muted); min-width: 30px; text-align: right; flex-shrink: 0;
 }
 .tick-event.big {
@@ -775,7 +793,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   margin: 0 -16px; padding: 11px 16px;
   border-left: 4px solid var(--gold);
 }
-.tick-event.big .txt { font-weight: 700; font-family: var(--sans); font-size: 14px; color: var(--text-primary); }
+.tick-event.big .txt { font-weight: 700; font-family: var(--sans); font-size: 0.875rem; color: var(--text-primary); }
 .tick-event.card-y { border-left: 4px solid var(--prop-yellow-deep); margin: 0 -16px; padding: 9px 16px; }
 .tick-event.card-r, .tick-event.inj { border-left: 4px solid var(--danger); margin: 0 -16px; padding: 9px 16px; }
 
@@ -802,13 +820,13 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .speed-controls .btn {
   flex: 1; min-height: 48px;
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  padding: 8px 4px; font-family: var(--cond); font-size: 16px; letter-spacing: 1px;
+  padding: 8px 4px; font-family: var(--cond); font-size: 1rem; letter-spacing: 1px;
 }
 
 /* ================= Press ================= */
 .press-q {
   font-family: var(--sans);
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 400;
 
   color: var(--text-primary);
@@ -816,7 +834,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   line-height: 1.5;
 }
 .press-outlet {
-  font-size: 10px; text-transform: uppercase; letter-spacing: 2px;
+  font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 2px;
   color: var(--gold); padding: 14px 16px 3px; font-weight: 800;
 }
 
@@ -844,17 +862,17 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .baro-dial .hub { fill: var(--text-primary); }
 .baro-text { min-width: 0; flex: 1 1 auto; }
 .baro-title {
-  font-size: 10px; text-transform: uppercase; letter-spacing: 2px;
+  font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 2px;
   color: var(--text-muted); font-weight: 800;
 }
-.baro-word { font-size: 22px; font-weight: 800; line-height: 1.15; color: var(--baro-c); margin-top: 2px; }
-.baro-why { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-top: 3px; }
-.baro-expect { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+.baro-word { font-size: 1.375rem; font-weight: 800; line-height: 1.15; color: var(--baro-c); margin-top: 2px; }
+.baro-why { font-size: 0.8125rem; font-weight: 600; color: var(--text-primary); margin-top: 3px; }
+.baro-expect { font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px; }
 /* what an answer did, under the reaction on the coverage card */
 .press-fx { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
 .press-fx .fx {
   display: inline-block; padding: 2px 8px; border-radius: 999px;
-  font-size: 11px; font-weight: 700; letter-spacing: .3px;
+  font-size: 0.6875rem; font-weight: 700; letter-spacing: .3px;
   border: 1px solid currentColor;
 }
 .press-fx .fx.good { color: var(--positive, var(--primary)); }
@@ -863,8 +881,8 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 
 /* ================= Sliders ================= */
 .slider-row { padding: 11px 16px; }
-.slider-row .lbls { display: flex; justify-content: space-between; font-size: 11px; font-weight: 500; color: var(--text-muted); margin-bottom: 3px; }
-.slider-row .lbls b { color: var(--primary); font-family: var(--cond); font-size: 14px; text-transform: uppercase; letter-spacing: .8px; }
+.slider-row .lbls { display: flex; justify-content: space-between; font-size: 0.6875rem; font-weight: 500; color: var(--text-muted); margin-bottom: 3px; }
+.slider-row .lbls b { color: var(--primary); font-family: var(--cond); font-size: 0.875rem; text-transform: uppercase; letter-spacing: .8px; }
 .slider-row input[type=range] { width: 100%; accent-color: var(--primary); }
 
 /* ================= Title screen ================= */
@@ -991,14 +1009,14 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .store-card .store-word {
   font-family: var(--serif);
-  font-size: 30px; font-weight: 900; letter-spacing: 2px; line-height: 1;
+  font-size: 1.875rem; font-weight: 900; letter-spacing: 2px; line-height: 1;
   text-transform: uppercase;
   color: var(--gold-fill);
   text-shadow: 0 2px 14px rgba(8, 12, 10, .7);
 }
 .store-card .store-sub {
   margin-top: 7px;
-  font-weight: 700; font-size: 14px; line-height: 1.3;
+  font-weight: 700; font-size: 0.875rem; line-height: 1.3;
   color: rgba(255, 255, 255, .95);
 }
 /* MORE OBVIOUS (v1.2.5, a friend of the owner's could not find the shop). The
@@ -1020,7 +1038,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .store-card .store-body {
   margin-top: 5px;
-  font-size: 12px; line-height: 1.45;
+  font-size: 0.75rem; line-height: 1.45;
   color: rgba(255, 255, 255, .74);
 }
 /* Same bargain as the title screen: the photograph is decoration, and a metered
@@ -1042,12 +1060,12 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    rather than one flat block of text. */
 .title-screen h1 b { color: var(--primary); font-weight: 900; }
 .title-screen h1 {
-  font-family: var(--serif); font-size: 46px; font-weight: 900;
+  font-family: var(--serif); font-size: 2.875rem; font-weight: 900;
   line-height: 1.02; letter-spacing: 1px;
   text-shadow: 0 2px 20px rgba(159, 194, 232, .3);
   letter-spacing: 4px;
 }
-.title-screen .tagline { font-family: var(--serif); font-weight: 700; color: var(--text-secondary); margin-top: 8px; font-size: 16px; }
+.title-screen .tagline { font-family: var(--serif); font-weight: 700; color: var(--text-secondary); margin-top: 8px; font-size: 1rem; }
 .title-screen .menu-btns { margin-top: 38px; display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 300px; }
 
 /* ---- the two how-it-reads controls, under the buttons ----
@@ -1067,7 +1085,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 /* ================= Misc ================= */
 .form-pill {
   display: inline-block; min-width: 30px; text-align: center;
-  font-family: var(--cond); font-size: 14px; font-weight: 700;
+  font-family: var(--cond); font-size: 0.875rem; font-weight: 700;
   border-radius: 5px; padding: 2px 5px; color: var(--club1-ink);
   box-shadow: inset 0 1px 0 rgba(255,255,255,.2);
 }
@@ -1082,13 +1100,13 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .dtable td:has(> .form-trend) { padding-left: 2px; }
 .pos-badge {
   display: inline-block;
-  font-family: var(--cond); font-size: 12px; font-weight: 700; letter-spacing: .5px;
+  font-family: var(--cond); font-size: 0.75rem; font-weight: 700; letter-spacing: .5px;
   background: var(--surface-3);
   color: var(--text-primary); border-radius: 4px; padding: 1.5px 5.5px;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.15);
 }
 .pos-badge.back { background: var(--border-strong); color: var(--text-primary); }
-.muted { color: var(--text-muted); font-size: 12px; font-weight: 500; }
+.muted { color: var(--text-muted); font-size: 0.75rem; font-weight: 500; }
 .center { text-align: center; }
 .spacer { height: 14px; }
 .inline-input {
@@ -1098,7 +1116,15 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   background: var(--surface-1); color: var(--text-primary);
   margin: 6px 0;
 }
-.inline-input:focus { outline: none; border-color: var(--row-selected-border); }
+/* A field keeps a visible focus indicator (WCAG 2.4.7): it used to drop the
+   outline and lean on a border colour change alone, which was the same
+   colour as a selected row and under 3:1 in some palettes. The ring is the
+   palette's --focus-ring; a label that wraps a bare input (the training
+   search) shows it for the input inside. */
+.inline-input:focus, .inline-input:focus-within {
+  outline: 2px solid var(--focus-ring); outline-offset: 1px;
+  border-color: var(--row-selected-border);
+}
 /* A long option never runs under the chevron, and a select never outgrows
    its row. Every <select> in the game carries .inline-input (selectlint). */
 select.inline-input { max-width: 100%; text-overflow: ellipsis; }
@@ -1115,7 +1141,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   border: 1px solid rgba(0,0,0,.18); flex-shrink: 0;
   box-shadow: inset 0 1px 1px rgba(255,255,255,.3);
 }
-.club-pick .cname { font-weight: 650; flex: 1; font-size: 14px; }
+.club-pick .cname { font-weight: 650; flex: 1; font-size: 0.875rem; }
 .badge-row { display: flex; gap: 6px; align-items: center; }
 
 .team-dot {
@@ -1144,7 +1170,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   min-height: 44px;
   padding: 11px 14px 9px;
   font-family: var(--cond);
-  font-size: 14px; font-weight: 700;
+  font-size: 0.875rem; font-weight: 700;
   text-transform: uppercase; letter-spacing: .8px;
   color: var(--text-muted);
   white-space: nowrap;
@@ -1187,7 +1213,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .modal .grab { width: 40px; height: 4.5px; background: var(--border-strong); border-radius: 3px; margin: 9px auto; }
 
 /* stat hero numbers (finances, club) */
-.big-num { font-family: var(--cond); font-weight: 700; font-size: 22px; letter-spacing: .5px; }
+.big-num { font-family: var(--cond); font-weight: 700; font-size: 1.375rem; letter-spacing: .5px; }
 
 /* live match wrapper - portrait/base: stacked column */
 .live-wrap {
@@ -1260,7 +1286,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
     box-shadow: 4px 0 18px rgba(0, 0, 0, .22);
     overflow-y: auto;
   }
-  .bottom-nav button { flex: 1 1 0; min-height: 44px; padding: 4px 0; font-size: 9px; justify-content: center; border-radius: 14px; }
+  .bottom-nav button { flex: 1 1 0; min-height: 44px; padding: 4px 0; font-size: 0.6875rem; justify-content: center; border-radius: 14px; }
   .bottom-nav .nlbl { display: none; }
   .bottom-nav .ico { width: 34px; height: 34px; }
 
@@ -1268,7 +1294,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   .attr-grid { grid-template-columns: 1fr 1fr 1fr; max-width: 900px; }
   .fact-grid { grid-template-columns: 1fr 1fr 1fr; }
   .tile-grid { grid-template-columns: repeat(4, 1fr); max-width: 900px; }
-  .title-screen h1 { font-size: 38px; }
+  .title-screen h1 { font-size: 2.375rem; }
   /* the menu column's width now lives with the Continue tile at the end of this
      file, where it can be reasoned about next to the line it has to fit */
 
@@ -1340,7 +1366,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .crumb {
   flex: 1;
   font-family: var(--cond);
-  font-size: 12px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase;
+  font-size: 0.75rem; font-weight: 700; letter-spacing: .8px; text-transform: uppercase;
   text-align: center;
   color: rgba(255, 255, 255, .35);
   background: rgba(255, 255, 255, .06);
@@ -1354,7 +1380,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 
 .wizard-hint {
   font-family: var(--sans); font-style: normal; font-weight: 700;
-  color: var(--text-secondary); font-size: 14px;
+  color: var(--text-secondary); font-size: 0.875rem;
   padding: 14px 16px 4px;
 }
 
@@ -1370,8 +1396,8 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   color: var(--text-primary);
   transition: border-color .12s ease;
 }
-.tile b { font-size: 13px; line-height: 1.25; }
-.tile .tile-ico { font-size: 20px; }
+.tile b { font-size: 0.8125rem; line-height: 1.25; }
+.tile .tile-ico { font-size: 1.25rem; }
 .tile.sel {
   border-color: var(--row-selected-border);
   background: var(--row-selected-bg);
@@ -1379,7 +1405,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 
 .detail-panel { padding: 0; overflow: hidden; }
 .club-banner {
-  font-family: var(--sans); font-weight: 700; font-size: 16px;
+  font-family: var(--sans); font-weight: 700; font-size: 1rem;
   padding: 11px 14px;
   display: flex; align-items: center;
   text-shadow: 0 1px 2px rgba(0, 0, 0, .45);
@@ -1387,11 +1413,11 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .fact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 14px; padding: 13px 14px; }
 .fact-grid label, .fact-label {
   display: block;
-  font-size: 9.5px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase;
+  font-size: 0.6875rem; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase;
   color: var(--text-muted);
   margin-bottom: 2px;
 }
-.fact-grid span { font-size: 13px; font-weight: 600; }
+.fact-grid span { font-size: 0.8125rem; font-weight: 600; }
 
 .challenge-card {
   display: flex; align-items: center; width: calc(100% - 28px);
@@ -1411,7 +1437,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   border-top: 1px solid var(--border);
   box-shadow: 0 -6px 14px rgba(0, 0, 0, .10);
 }
-.action-bar .btn { flex: 1; padding: 13px 0; font-size: 14px; min-height: 44px; }
+.action-bar .btn { flex: 1; padding: 13px 0; font-size: 0.875rem; min-height: 44px; }
 
 /* first-run welcome dialog */
 /* overflow-y on the veil and margin:auto on the box: when the box is taller
@@ -1435,7 +1461,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   padding: 20px 18px;
   max-width: 420px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, .5);
-  font-size: 14px; line-height: 1.6;
+  font-size: 0.875rem; line-height: 1.6;
   /* four paragraphs of prose in a 360px-tall landscape viewport: without a
      ceiling and a scroller the last two paragraphs and the close button were
      off the bottom of the screen with no way to reach them (blocker A2). Same
@@ -1472,16 +1498,16 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   text-align: left;
   display: flex; flex-direction: column; gap: 8px;
 }
-.import-hint-title { font-size: 16px; font-weight: 700; color: var(--text-primary); }
-.import-hint-body { font-size: 13.5px; line-height: 1.5; color: var(--text-secondary); }
+.import-hint-title { font-size: 1rem; font-weight: 700; color: var(--text-primary); }
+.import-hint-body { font-size: 0.8438rem; line-height: 1.5; color: var(--text-secondary); }
 .import-hint-go { width: 100%; margin-top: 6px; }
 .import-hint-no {
   align-self: center; min-height: 44px; padding: 0 16px;
   background: none; border: 0; cursor: pointer;
-  font: inherit; font-size: 13.5px; font-weight: 600; color: var(--text-secondary);
+  font: inherit; font-size: 0.8438rem; font-weight: 600; color: var(--text-secondary);
   text-decoration: underline; text-underline-offset: 3px;
 }
-.tut-box h3 { font-family: var(--sans); font-size: 18px; font-weight: 700; color: var(--gold); margin-bottom: 8px; }
+.tut-box h3 { font-family: var(--sans); font-size: 1.125rem; font-weight: 700; color: var(--gold); margin-bottom: 8px; }
 .tut-box .muted { color: var(--text-secondary); margin-top: 0; }
 
 /* ---- PRO MANAGER CARD (1.8.6, ui/ProPrompt.tsx) ----
@@ -1524,29 +1550,29 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 }
 .pro-tag {
   align-self: flex-start;
-  font-size: 11px; font-weight: 700; letter-spacing: 1.2px;
+  font-size: 0.6875rem; font-weight: 700; letter-spacing: 1.2px;
   color: var(--gold); border: 1px solid var(--gold); border-radius: 4px; padding: 2px 7px;
 }
 .pro-head { display: flex; align-items: center; gap: 10px; }
 .pro-head h2 {
-  margin: 0; font-size: 20px; font-weight: 700; letter-spacing: 1.4px; color: var(--gold);
+  margin: 0; font-size: 1.25rem; font-weight: 700; letter-spacing: 1.4px; color: var(--gold);
   text-shadow: 0 1px 6px color-mix(in srgb, var(--gold) 30%, transparent);
 }
-.pro-ico { font-size: 24px; color: var(--gold); display: inline-flex; }
-.pro-line { margin: 0; font-size: 14px; line-height: 1.5; }
-.pro-list { margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.6; }
+.pro-ico { font-size: 1.5rem; color: var(--gold); display: inline-flex; }
+.pro-line { margin: 0; font-size: 0.875rem; line-height: 1.5; }
+.pro-list { margin: 0; padding-left: 20px; font-size: 0.875rem; line-height: 1.6; }
 .pro-list li::marker { color: var(--gold); }
 .pro-price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
-.pro-price b { font-size: 22px; letter-spacing: .3px; }
+.pro-price b { font-size: 1.375rem; letter-spacing: .3px; }
 .pro-off {
-  font-size: 12px; font-weight: 700; letter-spacing: .8px;
+  font-size: 0.75rem; font-weight: 700; letter-spacing: .8px;
   color: var(--on-primary); background: var(--primary); border-radius: 4px; padding: 2px 6px;
 }
-.pro-usual { font-size: 13px; color: var(--text-secondary); }
-.pro-btn { width: 100%; min-height: 44px; font-size: 14px; }
+.pro-usual { font-size: 0.8125rem; color: var(--text-secondary); }
+.pro-btn { width: 100%; min-height: 44px; font-size: 0.875rem; }
 .pro-card .btn.ghost.pro-btn { border: 1px solid var(--border-strong); }
 .pro-msg { border-left: 3px solid var(--gold); padding-left: 8px; }
-.pro-fine { margin: 0; font-size: 12px; line-height: 1.45; color: var(--text-secondary); }
+.pro-fine { margin: 0; font-size: 0.75rem; line-height: 1.45; color: var(--text-secondary); }
 .pro-light { gap: 8px; }
 
 /* ---- FEEDBACK REPORT CARD (ui/FeedbackPrompt.tsx) ----
@@ -1558,14 +1584,14 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   max-height: 34vh; max-height: calc(34dvh / var(--zoom, 1));
   overflow: auto;
   white-space: pre-wrap; overflow-wrap: anywhere;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; line-height: 1.45;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.7188rem; line-height: 1.45;
   color: var(--text-primary);
   background: var(--surface-2);
   border: 1px solid var(--border); border-radius: 8px;
   user-select: text; -webkit-user-select: text;
 }
 .fb-btns { display: flex; flex-direction: column; gap: 8px; }
-.fb-btn { width: 100%; min-height: 44px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+.fb-btn { width: 100%; min-height: 44px; font-size: 0.875rem; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
 .fb-card .btn.ghost.fb-btn { border: 1px solid var(--border-strong); }
 .fb-discord { color: var(--gold); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 
@@ -1604,9 +1630,9 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 }
 .speech-tile:active { transform: scale(.98); }
 .speech-tile.sel { border-color: var(--row-selected-border); background: var(--row-selected-bg); }
-.speech-tile .ico { font-size: 18px; }
-.speech-tile b { font-size: 13px; color: var(--text-primary); font-family: var(--sans); }
-.speech-tile .d { font-size: 11px; color: var(--text-muted); line-height: 1.35; }
+.speech-tile .ico { font-size: 1.125rem; }
+.speech-tile b { font-size: 0.8125rem; color: var(--text-primary); font-family: var(--sans); }
+.speech-tile .d { font-size: 0.6875rem; color: var(--text-muted); line-height: 1.35; }
 
 /* one-tap game plans */
 .preset-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
@@ -1622,7 +1648,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
      control gets on iOS, and scripts/tapsize.mjs holds chips to exactly that
      rather than pretending they meet the 44px rule. */
   min-height: 36px;
-  font-size: 11px; font-weight: 700; font-family: var(--sans);
+  font-size: 0.6875rem; font-weight: 700; font-family: var(--sans);
 
 }
 .preset-chip:active { background: var(--row-hover-bg); }
@@ -1647,7 +1673,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 @keyframes submenu-in { from { transform: translateX(-40px); opacity: 0; } to { transform: none; opacity: 1; } }
 .submenu-head {
   font-family: var(--cond);
-  font-weight: 700; font-size: 16px; letter-spacing: 1.5px; text-transform: uppercase;
+  font-weight: 700; font-size: 1rem; letter-spacing: 1.5px; text-transform: uppercase;
   color: var(--gold);
   padding: calc(var(--safe-area-inset-top) + 16px) 18px 12px;
   border-bottom: 1px solid rgba(255, 255, 255, .1);
@@ -1658,14 +1684,14 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   padding: 13px 18px;
   color: var(--text-primary);
   font-family: var(--sans);
-  font-size: 14px; font-weight: 600;
+  font-size: 0.875rem; font-weight: 600;
   border-bottom: 1px solid rgba(255, 255, 255, .06);
 }
 .submenu-item:active { background: rgba(255, 255, 255, .08); }
-.submenu-item .mico { font-size: 20px; width: 24px; text-align: center; display: inline-flex; align-items: center; justify-content: center; color: var(--text-secondary, currentColor); }
+.submenu-item .mico { font-size: 1.25rem; width: 24px; text-align: center; display: inline-flex; align-items: center; justify-content: center; color: var(--text-secondary, currentColor); }
 .submenu-item .mbadge {
   background: var(--danger); color: var(--on-danger);
-  font-size: 10px; font-weight: 700;
+  font-size: 0.6875rem; font-weight: 700;
   min-width: 17px; height: 17px; border-radius: 9px;
   display: inline-flex; align-items: center; justify-content: center;
   padding: 0 4px;
@@ -1684,12 +1710,12 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 }
 .wire-brand {
   font-family: var(--serif, Georgia);
-  font-weight: 800; font-size: 22px; letter-spacing: 3px;
+  font-weight: 800; font-size: 1.375rem; letter-spacing: 3px;
   color: var(--text-primary);
 }
 .wire-brand { color: var(--text-primary); }
 .wire-sub {
-  font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+  font-size: 0.6875rem; letter-spacing: 2px; text-transform: uppercase;
   color: var(--text-muted);
 }
 .wire-card { cursor: pointer; }
@@ -1698,10 +1724,10 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
    is why the news read as a wall: the engine writes stories in two and three parts
    and none of them had any air around them. */
 .wire-body { font-family: var(--sans); color: var(--text-secondary); }
-.wire-body p { font-size: 14px; line-height: 1.62; margin: 0 0 10px; }
+.wire-body p { font-size: 0.875rem; line-height: 1.62; margin: 0 0 10px; }
 .wire-body p:last-child { margin-bottom: 0; }
 .wire-card .wire-date {
-  font-family: var(--cond); font-size: 11px; letter-spacing: 1px; text-transform: uppercase;
+  font-family: var(--cond); font-size: 0.6875rem; letter-spacing: 1px; text-transform: uppercase;
   color: var(--text-muted); margin-bottom: 3px;
 }
 
@@ -1722,9 +1748,9 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 
 }
 .spec-tile.on { opacity: 1; filter: none; border-color: var(--row-selected-border); }
-.spec-tile .ico { font-size: 18px; }
-.spec-tile b { font-size: 13px; color: var(--text-primary); font-family: var(--sans); }
-.spec-tile .d { font-size: 11px; color: var(--text-muted); line-height: 1.35; }
+.spec-tile .ico { font-size: 1.125rem; }
+.spec-tile b { font-size: 0.8125rem; color: var(--text-primary); font-family: var(--sans); }
+.spec-tile .d { font-size: 0.6875rem; color: var(--text-muted); line-height: 1.35; }
 
 /* ================= Home hub widgets ================= */
 .hub-row {
@@ -1755,7 +1781,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .desk-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 28px; }
 .desk-head .studio-mark { flex-shrink: 0; }
 .desk-sub {
-  font-family: var(--cond); font-size: 13px; font-weight: 800; letter-spacing: .6px;
+  font-family: var(--cond); font-size: 0.8125rem; font-weight: 800; letter-spacing: .6px;
   text-transform: uppercase; color: var(--text-primary);
   display: flex; align-items: center; gap: 7px; flex-wrap: wrap; min-width: 0;
 }
@@ -1766,17 +1792,17 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .app.tablet .dash-stack { display: contents; }
 .desk-n {
   display: inline-block; min-width: 20px; padding: 0 6px; border-radius: 10px;
-  background: var(--gold-fill, var(--gold)); color: var(--on-gold);
-  font-size: 12px; line-height: 20px; text-align: center;
+  background: var(--gold-fill, var(--gold)); color: var(--on-gold-fill);
+  font-size: 0.75rem; line-height: 20px; text-align: center;
 }
 .desk-link {
   display: flex; align-items: center; gap: 8px; width: 100%; min-height: 44px;
-  text-align: left; color: var(--text-primary); font-size: 13px;
+  text-align: left; color: var(--text-primary); font-size: 0.8125rem;
   border-top: 1px solid var(--border);
 }
 .desk-link > span:first-child, .desk-link > b { flex: 1; min-width: 0; }
 .desk-headline {
-  display: block; font-size: 12px; color: var(--text-muted);
+  display: block; font-size: 0.75rem; color: var(--text-muted);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .chev { display: inline-flex; width: 16px; height: 16px; color: var(--text-muted); flex-shrink: 0; }
@@ -1784,12 +1810,12 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .desk-q { border-top: 1px solid var(--border); }
 .desk-q > .desk-link { border-top: none; min-height: 44px; }
 .desk-qtext {
-  font-size: 13px; color: var(--text-secondary); line-height: 1.35;
+  font-size: 0.8125rem; color: var(--text-secondary); line-height: 1.35;
   display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
 }
 /* a choice's words, and its figure on a quieter line under them */
 .opt-label { display: inline-flex; flex-direction: column; min-width: 0; }
-.opt-detail { display: block; margin-top: 2px; font-size: 12px; font-weight: 500; line-height: 1.3; color: var(--text-muted); }
+.opt-detail { display: block; margin-top: 2px; font-size: 0.75rem; font-weight: 500; line-height: 1.3; color: var(--text-muted); }
 .desk-opts { display: flex; flex-wrap: wrap; gap: 7px; padding: 8px 0 6px; }
 .desk-opts .chip { min-height: 36px; text-align: left; white-space: normal; line-height: 1.25; padding: 6px 10px; }
 .desk-match {
@@ -1799,8 +1825,8 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 }
 .desk-mhead { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .desk-mhead .chip { flex-shrink: 0; }
-.desk-hook { margin-top: 3px; font-size: 13px; }
-.desk-stakes { margin-top: 4px; font-weight: 600; color: var(--gold); font-size: 13px; }
+.desk-hook { margin-top: 3px; font-size: 0.8125rem; }
+.desk-stakes { margin-top: 4px; font-weight: 600; color: var(--gold); font-size: 0.8125rem; }
 .desk-analyst { margin-top: 3px; color: var(--text-primary) !important; font-weight: 600 !important; }
 .desk-rows { margin-bottom: -4px; }
 @media (min-width: 640px) {
@@ -1811,12 +1837,12 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 }
 .desk-row {
   display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px;
-  text-align: left; color: var(--text-primary); font-size: 13px; line-height: 1.3;
+  text-align: left; color: var(--text-primary); font-size: 0.8125rem; line-height: 1.3;
   border-top: 1px solid var(--border); padding: 5px 0;
 }
 .desk-row:first-child { border-top: none; }
 .desk-row .dr-l {
-  flex: 0 0 76px; font-family: var(--cond); font-size: 10.5px; font-weight: 800;
+  flex: 0 0 76px; font-family: var(--cond); font-size: 0.6875rem; font-weight: 800;
   letter-spacing: .8px; text-transform: uppercase; color: var(--text-muted);
 }
 .desk-row .dr-t { flex: 1; min-width: 0; }
@@ -1829,15 +1855,15 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .desk-row.alert .dr-l { color: var(--text-negative); }
 .desk-row[data-row="thread"] .dr-l { color: var(--gold); }
 .hub-widget label {
-  font-family: var(--cond); font-size: 10px; font-weight: 700;
+  font-family: var(--cond); font-size: 0.6875rem; font-weight: 700;
   letter-spacing: 1.2px; text-transform: uppercase;
   color: var(--text-muted);
 }
-.hub-widget b { font-size: 16px; font-family: var(--cond); letter-spacing: .5px; color: var(--text-primary); }
-.hub-widget span { font-size: 9.5px; color: var(--text-muted); }
+.hub-widget b { font-size: 1rem; font-family: var(--cond); letter-spacing: .5px; color: var(--text-primary); }
+.hub-widget span { font-size: 0.6875rem; color: var(--text-muted); }
 .form-pip {
   width: 15px; height: 15px; border-radius: 3px;
-  font-size: 9.5px; font-weight: 700; line-height: 15px; color: var(--text-primary);
+  font-size: 0.6875rem; font-weight: 700; line-height: 15px; color: var(--text-primary);
   display: inline-block; text-align: center;
 }
 .form-pip.W { background: var(--positive); color: var(--on-positive); }
@@ -1874,7 +1900,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   box-shadow: 0 10px 40px rgba(0, 0, 0, .35);
 }
 .ft-stamp span {
-  margin-top: 10px; font-family: var(--cond); font-size: 26px; font-weight: 800;
+  margin-top: 10px; font-family: var(--cond); font-size: 1.625rem; font-weight: 800;
   color: var(--prop-ink); text-shadow: 0 2px 8px rgba(0, 0, 0, .6);
 }
 .ft-stamp.w b { color: var(--text-positive); }
@@ -1898,7 +1924,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   padding: 0 14px 6px;
 }
 .fm-col-head {
-  font-family: var(--cond); font-size: 11px; font-weight: 800;
+  font-family: var(--cond); font-size: 0.6875rem; font-weight: 800;
   letter-spacing: 1px; text-transform: uppercase;
   color: var(--text-muted); padding: 4px 0 2px;
   border-bottom: 2px solid var(--border-strong);
@@ -1906,16 +1932,16 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .fm-attr {
   display: flex; align-items: center; gap: 6px;
   padding: 3px 0; border-bottom: 1px solid var(--border);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .fm-attr .fm-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.fm-attr .fm-rival { font-family: var(--cond); font-size: 12px; width: 26px; text-align: right; }
+.fm-attr .fm-rival { font-family: var(--cond); font-size: 0.75rem; width: 26px; text-align: right; }
 /* THE ATTRIBUTE'S WORD (v1.7.0). It sits between the name and the figure and
    it is the first thing to go when the row runs out of room: the name and the
    number both carry meaning on their own, and the word is the one that is
    there to save a newcomer looking up a scale. Nine bands, cool to warm. */
 .fm-attr .fm-word {
-  font-family: var(--cond); font-size: 11px; font-weight: 700;
+  font-family: var(--cond); font-size: 0.6875rem; font-weight: 700;
   letter-spacing: 0.3px; white-space: nowrap; flex-shrink: 0;
   color: var(--text-muted);
 }
@@ -1923,13 +1949,13 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 @media (max-width: 420px) { .fm-attr .fm-word { display: none; } }
 .fm-attr .fm-chip {
   min-width: 34px; text-align: center; padding: 1px 5px;
-  border-radius: 5px; font-family: var(--cond); font-size: 13px; font-weight: 800;
+  border-radius: 5px; font-family: var(--cond); font-size: 0.8125rem; font-weight: 800;
   color: var(--text-primary);
 }
 .fm-attr .fm-chip.hi { background: var(--primary); color: var(--on-primary); }
 .fm-attr .fm-chip.mid { background: var(--info); color: var(--on-info); }
 .fm-attr .fm-chip.lo { background: var(--border-strong); }
-.fm-attr .fm-chip.rng { background: transparent; color: var(--text-muted); border: 1px dashed var(--border); font-weight: 700; font-size: 11px; }
+.fm-attr .fm-chip.rng { background: transparent; color: var(--text-muted); border: 1px dashed var(--border); font-weight: 700; font-size: 0.6875rem; }
 @media (min-width: 1000px) { .fm-attrs { grid-template-columns: repeat(4, 1fr); } }
 
 /* FM-style home dashboard: three glanceable panels in a row */
@@ -1954,14 +1980,14 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   color: var(--text-primary);
 }
 .dash-head {
-  font-family: var(--cond); font-size: 11px; font-weight: 800;
+  font-family: var(--cond); font-size: 0.6875rem; font-weight: 800;
   letter-spacing: 1px; text-transform: uppercase;
   color: var(--info); margin-bottom: 4px;
   border-bottom: 2px solid var(--border-strong); padding-bottom: 2px;
 }
 .dash-line {
   display: flex; align-items: center; gap: 6px;
-  font-size: 12px; padding: 2px 0;
+  font-size: 0.75rem; padding: 2px 0;
   border-bottom: 1px solid var(--border);
 }
 .dash-line .dl-t { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
@@ -2063,12 +2089,12 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   min-width: 15px; padding: 0 3px;
   border-radius: 4px;
   background: rgba(8, 12, 18, .58);
-  font-family: var(--cond); font-size: 12px; font-weight: 800; line-height: 15px;
+  font-family: var(--cond); font-size: 0.75rem; font-weight: 800; line-height: 15px;
   text-align: center; color: var(--on-hero);
   pointer-events: none;
 }
 .form-chip .fc-name {
-  font-size: 11px; font-weight: 700; max-width: 76px;
+  font-size: 0.6875rem; font-weight: 700; max-width: 76px;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   margin-top: 2px; padding: 1px 5px; border-radius: 4px;
   background: rgba(8, 12, 18, .78);
@@ -2076,7 +2102,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   line-height: 14px;
 }
 .form-chip .fc-role {
-  font-family: var(--cond); font-size: 9px; font-weight: 800;
+  font-family: var(--cond); font-size: 0.6875rem; font-weight: 800;
   letter-spacing: 1px; color: var(--on-gold);
   padding: 0 4px; border-radius: 3px; line-height: 12px;
   background: var(--gold-fill);
@@ -2085,7 +2111,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 /* last-10-minutes possession strip with the momentum needle riding it */
 .last10 {
   display: flex; align-items: center; gap: 8px;
-  margin: 6px 12px 2px; font-size: 10px;
+  margin: 6px 12px 2px; font-size: 0.6875rem;
 }
 .last10 .l10-label {
   font-family: var(--cond); letter-spacing: 1.2px; font-weight: 700;
@@ -2143,7 +2169,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   transition: transform .9s cubic-bezier(.45, .05, .35, 1);
 }
 .last10 .l10-pens { color: rgba(255, 255, 255, .7); font-weight: 600; white-space: nowrap; }
-.last10 .l10-pens b { font-family: var(--cond); font-size: 12px; }
+.last10 .l10-pens b { font-family: var(--cond); font-size: 0.75rem; }
 .momo-needle {
   position: absolute; top: -2.5px; left: 0;
   width: 4px; height: 12px;
@@ -2170,7 +2196,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   border: 1px solid color-mix(in srgb, var(--gold-fill) 35%, transparent);
   background: color-mix(in srgb, var(--gold-fill) 10%, transparent);
   color: var(--gold-fill);
-  font-size: 11px; line-height: 1.35;
+  font-size: 0.6875rem; line-height: 1.35;
   text-align: center;
   overflow-wrap: break-word;
 }
@@ -2193,7 +2219,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   background: color-mix(in srgb, var(--gold-fill) 14%, transparent);
   color: var(--gold-fill);
   font-family: var(--cond); font-weight: 700;
-  font-size: 11px; letter-spacing: 1.2px;
+  font-size: 0.6875rem; letter-spacing: 1.2px;
   text-align: center;
   overflow-wrap: break-word;
 }
@@ -2206,7 +2232,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   background: var(--surface-2);
   color: var(--text-primary);
   border-radius: 7px;
-  font-size: 12px; font-weight: 700; font-family: var(--sans);
+  font-size: 0.75rem; font-weight: 700; font-family: var(--sans);
   width: fit-content;
 }
 .news-item.open .next-unread { display: inline-block; }
@@ -2236,9 +2262,9 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   font-family: var(--cond); font-weight: 700; letter-spacing: 3px;
   padding: 3px 14px;
 }
-.dt-head .dt-league { font-size: 11px; }
-.dt-head .dt-title { font-size: 22px; letter-spacing: 4px; padding: 4px 20px; }
-.dt-head .dt-sub { font-size: 10px; }
+.dt-head .dt-league { font-size: 0.6875rem; }
+.dt-head .dt-title { font-size: 1.375rem; letter-spacing: 4px; padding: 4px 20px; }
+.dt-head .dt-sub { font-size: 0.6875rem; }
 .dt-pitch {
   margin: 8px 12px 14px;
   border-radius: 8px;
@@ -2255,13 +2281,13 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   cursor: pointer;
 }
 .dt-name {
-  font-family: var(--cond); font-weight: 700; font-size: 9.5px; letter-spacing: .5px;
+  font-family: var(--cond); font-weight: 700; font-size: 0.6875rem; letter-spacing: .5px;
   color: var(--prop-ink); text-shadow: 0 1px 2px rgba(0,0,0,.6);
   max-width: 86px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .dt-score {
   background: var(--info); color: var(--on-info);
-  font-family: var(--cond); font-weight: 700; font-size: 11px;
+  font-family: var(--cond); font-weight: 700; font-size: 0.6875rem;
   padding: 1px 10px; border-radius: 3px;
   box-shadow: 0 1px 3px rgba(0,0,0,.35);
 }
@@ -2274,7 +2300,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   gap: 10px;
   padding: 7px 14px;
 }
-.wknd-row .side { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 13px; }
+.wknd-row .side { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 0.8125rem; }
 .wknd-row .side.right { justify-content: flex-end; }
 /* your fixture: the row is tinted and YOUR name is bolded, the V stays put */
 .wknd-row.yours { background: rgba(201, 162, 39, .12); border-radius: 8px; }
@@ -2282,7 +2308,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .wknd-row .side.mine { text-decoration: underline; text-decoration-color: var(--gold); text-underline-offset: 3px; }
 .wknd-row .vs {
   background: var(--border-strong); color: var(--text-primary);
-  font-family: var(--cond); font-weight: 700; font-size: 11px; letter-spacing: 1px;
+  font-family: var(--cond); font-weight: 700; font-size: 0.6875rem; letter-spacing: 1px;
   padding: 4px 12px; border-radius: 5px;
 }
 
@@ -2328,18 +2354,18 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .score-card { margin: 8px 14px; padding: 12px 14px 12px; animation: sc-in .35s ease-out both; }
 @keyframes sc-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 .score-card .sc-head {
-  text-align: center; font-family: var(--cond); font-weight: 800; font-size: 12px;
+  text-align: center; font-family: var(--cond); font-weight: 800; font-size: 0.75rem;
   letter-spacing: 2.4px; text-transform: uppercase; color: var(--gold);
 }
 .score-card .sc-teams { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
 .score-card .sc-team {
   flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 4px;
-  font-family: var(--cond); font-weight: 700; font-size: 13px; letter-spacing: .5px;
+  font-family: var(--cond); font-weight: 700; font-size: 0.8125rem; letter-spacing: .5px;
   text-align: center; color: var(--text-primary);
 }
 .score-card .sc-team span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .score-card .sc-score {
-  flex: 0 0 auto; font-family: var(--cond); font-weight: 800; font-size: 34px;
+  flex: 0 0 auto; font-family: var(--cond); font-weight: 800; font-size: 2.125rem;
   font-variant-numeric: tabular-nums; color: var(--text-primary);
 }
 .score-card .sc-score i { font-style: normal; margin: 0 7px; color: var(--text-muted); }
@@ -2348,21 +2374,21 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
    since m12, when a 390 iPhone still cut it at full time) */
 @media (max-width: 400px) {
   .score-card .sc-teams { gap: 6px; }
-  .score-card .sc-score { font-size: 26px; }
+  .score-card .sc-score { font-size: 1.625rem; }
   .score-card .sc-score i { margin: 0 4px; }
-  .score-card .sc-team { letter-spacing: 0; font-size: 12px; }
+  .score-card .sc-team { letter-spacing: 0; font-size: 0.75rem; }
 }
 /* and at 320 the card itself gives up some padding and the score a little
    more, or "Northampton" is still cut (1.8.4 m12) */
 @media (max-width: 340px) {
   .score-card { margin: 8px 8px; padding: 12px 8px; }
   .score-card .sc-teams { gap: 4px; }
-  .score-card .sc-score { font-size: 22px; }
-  .score-card .sc-team { font-size: 11px; }
+  .score-card .sc-score { font-size: 1.375rem; }
+  .score-card .sc-team { font-size: 0.6875rem; }
 }
 .score-card .sc-lists { display: flex; gap: 12px; margin-top: 8px; }
 .score-card .sc-story { margin-top: 10px; text-align: center; }
-.score-card .sc-scorers { flex: 1; min-width: 0; font-size: 12px; line-height: 1.55; color: var(--text-primary); }
+.score-card .sc-scorers { flex: 1; min-width: 0; font-size: 0.75rem; line-height: 1.55; color: var(--text-primary); }
 .score-card .sc-scorers:last-child { text-align: right; }
 /* a scorer's name wraps rather than losing its end: "Lindsey-Brow..." (2c, 1p)
    was the whole line at 390 and under (1.8.4 m12) */
@@ -2387,7 +2413,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 /* ---- sin-bin countdown chips ---- */
 .bin-chip {
   position: absolute; bottom: 3px; z-index: 4;
-  font-family: var(--cond); font-weight: 700; font-size: 10px; letter-spacing: .4px;
+  font-family: var(--cond); font-weight: 700; font-size: 0.6875rem; letter-spacing: .4px;
   background: rgba(20, 20, 10, .68); color: var(--prop-yellow);
   border: 1px solid rgba(255, 225, 77, .5); border-radius: 9px; padding: 1px 6px;
   pointer-events: none;
@@ -2436,13 +2462,13 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   display: flex; gap: 10px; align-items: center;
   padding: 8px 14px; border-radius: 10px;
   border-left: 4px solid transparent;
-  font-size: 14px; line-height: 1.4;
+  font-size: 0.875rem; line-height: 1.4;
   color: var(--text-secondary);
   background: transparent;
   transition: background-color .2s ease, color .2s ease, box-shadow .2s ease, opacity .2s ease, border-color .2s ease;
 }
 .comm-line .min {
-  font-family: var(--cond); font-weight: 800; font-size: 15px;
+  font-family: var(--cond); font-weight: 800; font-size: 0.9375rem;
   color: var(--info); flex-shrink: 0; min-width: 30px;
   font-variant-numeric: tabular-nums;
 }
@@ -2454,7 +2480,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 /* a score is bold whether it is the current line or an old one: the weight
    (and the size) belong to the line, not to being current, or a line would
    re-wrap the moment it was demoted */
-.comm-line.big .txt { font-weight: 700; font-size: 16px; }
+.comm-line.big .txt { font-weight: 700; font-size: 1rem; }
 .comm-line.tmo .txt { font-weight: 700; }
 .comm-line.big { border-left-color: var(--gold); }
 .comm-line.big .min { color: var(--gold); }
@@ -2466,9 +2492,9 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 /* a line about a side wears its kit while it is current (MatchDay.tsx
    lineStyle): the text takes the colour worked out for the fill */
 .comm-line.kit.cur .min { color: inherit; opacity: .8; }
-.live-wrap.big-text .comm-line .txt { font-size: 16px; line-height: 1.35; }
-.live-wrap.big-text .comm-line.big .txt { font-size: 18px; }
-.live-wrap.big-text .comm-line .min { font-size: 16px; }
+.live-wrap.big-text .comm-line .txt { font-size: 1rem; line-height: 1.35; }
+.live-wrap.big-text .comm-line.big .txt { font-size: 1.125rem; }
+.live-wrap.big-text .comm-line .min { font-size: 1rem; }
 @keyframes comm-in { from { opacity: 0; } }
 /* A TRY FLASHES: for about a second the line wears its colours the other way
    round (MatchDay.tsx flashStyle sets the pair), then eases back to its own
@@ -2505,9 +2531,9 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 /* title screen must fit short landscape viewports */
 .title-screen { overflow-y: auto; }
 @media (max-height: 480px) {
-  .title-screen h1 { font-size: 30px; letter-spacing: 2.5px; }
+  .title-screen h1 { font-size: 1.875rem; letter-spacing: 2.5px; }
   .title-screen .rules { margin: 8px auto; }
-  .title-screen .tagline { font-size: 13px; margin-top: 4px; }
+  .title-screen .tagline { font-size: 0.8125rem; margin-top: 4px; }
   .title-screen .menu-btns { margin-top: 14px; gap: 8px; }
 }
 
@@ -2541,14 +2567,14 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 @keyframes cel-in { from { opacity: 0; } to { opacity: 1; } }
 .celebrate-box { text-align: center; color: var(--text-primary); padding: 24px; max-width: 560px; }
 .celebrate-box h1 {
-  font-family: var(--serif); font-weight: 900; font-size: 30px; letter-spacing: 2px;
+  font-family: var(--serif); font-weight: 900; font-size: 1.875rem; letter-spacing: 2px;
   margin-top: 12px; line-height: 1.15;
   text-shadow: 0 2px 24px rgba(227, 185, 46, .45);
   animation: cel-pop .7s cubic-bezier(.2, 1.5, .4, 1) both .15s;
 }
 .celebrate-box .sub {
   margin-top: 8px; font-family: var(--cond); font-weight: 700; letter-spacing: 1.4px;
-  text-transform: uppercase; font-size: 13px; color: var(--gold);
+  text-transform: uppercase; font-size: 0.8125rem; color: var(--gold);
 }
 @keyframes cel-pop { from { opacity: 0; transform: scale(.7); } to { opacity: 1; transform: scale(1); } }
 .confetti {
@@ -2630,7 +2656,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .qa-list .news-item .body { display: none; }
 .qa-list .news-item.open .body { display: block; margin-top: 5px; }
 .qa-list .news-item { padding: 9px 14px 8px; }
-.qa-list .news-item .subj { font-size: 14px; }
+.qa-list .news-item .subj { font-size: 0.875rem; }
 
 /* MatchDay header in landscape: badges left, fixture details right. Centred and
    stacked it ran to 280px on a 390px screen, which pushed the team sheet - the
@@ -2692,7 +2718,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .nm-line > * { flex: none; }
 .nm-line > .nm { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .nm-loan { color: var(--loan); }
-.loan-key { display: flex; align-items: center; gap: 6px; margin: 6px 16px 0; font-size: 12px; color: var(--text-secondary); }
+.loan-key { display: flex; align-items: center; gap: 6px; margin: 6px 16px 0; font-size: 0.75rem; color: var(--text-secondary); }
 .loan-swatch { width: 10px; height: 10px; border-radius: 3px; background: var(--loan); flex: none; }
 .sr-only {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
@@ -2706,7 +2732,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   flex-wrap: wrap; align-items: center;
 }
 .filter-note {
-  font-family: var(--sans); font-size: 11px; font-weight: 600;
+  font-family: var(--sans); font-size: 0.6875rem; font-weight: 600;
   letter-spacing: .2px; color: var(--text-muted);
   margin-left: auto; text-align: right;
 }
@@ -2730,7 +2756,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
  * scripts/tapsize.mjs measures the result in a real browser and fails the build
  * on anything under 44px, which is the tripwire that did not exist before. */
 .btn.tiny {
-  padding: 3px 9px; font-size: 11px; letter-spacing: .6px;
+  padding: 3px 9px; font-size: 0.6875rem; letter-spacing: .6px;
   border-radius: 6px; min-height: 0;
   position: relative;
 }
@@ -2759,7 +2785,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
    - a .btn.tiny's 13px reach would steal the tap from the button below it
    (tapsize, release audit 1.7.1). */
 .btn.rowact {
-  padding: 6px 10px; font-size: 12px; letter-spacing: .3px;
+  padding: 6px 10px; font-size: 0.75rem; letter-spacing: .3px;
   min-height: 36px; border-radius: 8px; position: relative;
 }
 .btn.rowact::after { content: ''; position: absolute; inset: -5px 0; }
@@ -2805,7 +2831,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   display: flex; align-items: center; gap: 8px; padding: 3px 0;
 }
 .lead-row .lead-tag {
-  font-family: var(--cond); font-weight: 800; font-size: 13px;
+  font-family: var(--cond); font-weight: 800; font-size: 0.8125rem;
   min-width: 22px; text-align: center; color: var(--info);
 }
 .lead-row .fact-label { min-width: 52px; }
@@ -2817,7 +2843,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 }
 .lead-btn:last-child { border-bottom: 0; }
 .lead-btn .lead-tag svg { width: 18px; height: 18px; vertical-align: middle; }
-.lead-btn .lead-who { flex: 1; min-width: 0; text-align: right; font-weight: 600; font-size: 13px; overflow-wrap: anywhere; line-height: 1.3; }
+.lead-btn .lead-who { flex: 1; min-width: 0; text-align: right; font-weight: 600; font-size: 0.8125rem; overflow-wrap: anywhere; line-height: 1.3; }
 .lead-btn .lead-chev svg { width: 16px; height: 16px; color: var(--text-muted); vertical-align: middle; }
 .lead-sheet .lead-list { max-height: min(56vh, 460px); max-height: min(calc(56dvh / var(--zoom, 1)), 460px); overflow-y: auto; margin: 0 -2px 10px; }
 .lead-sheet tr { cursor: pointer; }
@@ -2957,7 +2983,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
     gap: 6px; padding: 4px 0 0;
   }
   .talk-modal .speech-tile { padding: 7px 9px; gap: 1px; }
-  .talk-modal .speech-tile .d { font-size: 10px; line-height: 1.3; }
+  .talk-modal .speech-tile .d { font-size: 0.6875rem; line-height: 1.3; }
   .talk-modal .section-title { padding: 6px 2px 4px; }
 }
 
@@ -2974,7 +3000,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
    was labelled '▶' - the same glyph play/pause shows when paused. Speed and
    sound now live in here, so the row is four buttons and none of them repeat. */
 .set-label {
-  font-family: var(--cond); font-size: 11px; letter-spacing: 1.2px;
+  font-family: var(--cond); font-size: 0.6875rem; letter-spacing: 1.2px;
   text-transform: uppercase; opacity: .62; margin: 8px 2px 5px;
 }
 /* The match settings sheet: its title and section labels sat on the glass at
@@ -3008,11 +3034,11 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
   padding: 4px 0 3px;
 }
-.sheet-head h3 { font-size: 16px; margin: 2px 0; }
+.sheet-head h3 { font-size: 1rem; margin: 2px 0; }
 .sheet-hint { margin: 2px 0 4px; }
 /* the casualty, on his own line and impossible to miss */
 .sheet-casualty {
-  font-size: 13px; font-weight: 600;
+  font-size: 0.8125rem; font-weight: 600;
   color: var(--text-primary);
   background: var(--surface-1);
   border-left: 3px solid var(--gold);
@@ -3076,22 +3102,22 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   padding: 6px 8px; margin-bottom: 4px;
   border: 1px solid var(--border); border-radius: 7px;
   background: var(--surface-1); color: inherit;
-  font-size: 12px; text-align: left; cursor: pointer;
+  font-size: 0.75rem; text-align: left; cursor: pointer;
 }
 .sheet-row:disabled { opacity: .4; cursor: default; }
 .sheet-row.armed { border-color: var(--row-selected-border); box-shadow: inset 0 0 0 2px var(--row-selected-border); }
 .sheet-row.cover { border-color: var(--primary); }
 .sh-num {
-  flex: 0 0 26px; font-family: var(--cond); font-weight: 700; font-size: 11px;
+  flex: 0 0 26px; font-family: var(--cond); font-weight: 700; font-size: 0.6875rem;
   letter-spacing: .5px; opacity: .7;
 }
 /* what a man is, next to what number he wears (Round 27) */
 .sh-pos {
-  flex: 0 0 26px; font-family: var(--cond); font-weight: 700; font-size: 11px;
+  flex: 0 0 26px; font-family: var(--cond); font-weight: 700; font-size: 0.6875rem;
   letter-spacing: .5px; text-transform: uppercase; opacity: .9; color: var(--info);
 }
 .sh-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sh-flag { flex: 0 0 auto; font-size: 11px; }
+.sh-flag { flex: 0 0 auto; font-size: 0.6875rem; }
 .sh-rate { flex: 0 0 26px; text-align: right; font-variant-numeric: tabular-nums; opacity: .75; }
 /* nowrap, because this column is 32px and a four-line wrap tears the whole row
    open - which is exactly what a long condition phrase did here (Round 27) */
@@ -3133,7 +3159,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
    about landscape it produced a bug the audits had to find. */
 @media (orientation: landscape) and (min-width: 640px) {
   .card { margin: 6px 12px; padding: 8px 11px; }
-  .card h3 { font-size: 16px; margin-bottom: 1px; }
+  .card h3 { font-size: 1rem; margin-bottom: 1px; }
   .fact-grid label, .fact-label { margin-bottom: 1px; }
   .section-title { padding-top: 6px; padding-bottom: 4px; }
 }
@@ -3147,7 +3173,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 /* 460px fitted "Manager, Northampton Saints" exactly and nothing longer, and the
    title screen has 844px to play with, so it gets real headroom instead. */
 .title-screen .menu-btns { max-width: 540px; }
-.continue-tile { font-size: 16px; padding: 12px 14px; }
+.continue-tile { font-size: 1rem; padding: 12px 14px; }
 
 /* WHICH GAME (v1.5). The two doors onto a new career, plus the line that says
    why there are two. A column rather than a row: on the 360px floor device two
@@ -3186,7 +3212,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   padding: 8px 6px;
   border-radius: 7px;
   font-family: var(--sans);
-  font-size: 13px; font-weight: 700;
+  font-size: 0.8125rem; font-weight: 700;
   letter-spacing: .2px; line-height: 1.2;
   color: var(--text-secondary);
   transition: background .15s, color .15s;
@@ -3198,10 +3224,10 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 }
 .game-pick button:active { transform: translateY(1px); }
 .ct-line {
-  font-size: 16px; letter-spacing: 0;
+  font-size: 1rem; letter-spacing: 0;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.ct-sub { font-size: 11px; opacity: .85; }
+.ct-sub { font-size: 0.6875rem; opacity: .85; }
 
 /* ---- new career wizard: the steps ride the title row -------------------
    "competition, club, manager and summary should be where the green line is.
@@ -3271,7 +3297,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   background: linear-gradient(90deg, var(--c1, var(--surface-3)) 0%, var(--c1, var(--surface-3)) 50%, var(--c2, var(--border-strong)) 50%, var(--c2, var(--border-strong)) 100%);
 }
 .club-tile b {
-  font-size: 12px;
+  font-size: 0.75rem;
   max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .club-tile.sel {
@@ -3285,7 +3311,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   /* and once a club IS picked the tiles share the width with its card, so they
      go narrower rather than dropping to four fat columns */
   .wiz-split .club-tiles { grid-template-columns: repeat(auto-fit, minmax(74px, 1fr)); }
-  .wiz-split .club-tile b { font-size: 11px; }
+  .wiz-split .club-tile b { font-size: 0.6875rem; }
 }
 
 /* ---- a selection you can actually see (feedback: "when you select one of the
@@ -3325,7 +3351,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .tile.sel::after, .club-tile.sel::after, .speech-tile.sel::after {
   content: '✓';
   position: absolute; top: 3px; right: 5px;
-  font-size: 11px; font-weight: 800; line-height: 1;
+  font-size: 0.6875rem; font-weight: 800; line-height: 1;
   color: var(--pick-ink);
   background: var(--pick);
   border-radius: 50%;
@@ -3352,10 +3378,12 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   box-shadow: inset 0 0 0 2px var(--pick);
   background: color-mix(in srgb, var(--pick) 18%, var(--surface-1));
 }
+/* muted ink on the picked tint fell under 4.5:1 in every palette (AA pass) */
+.club-pick.sel .muted { color: var(--text-primary); }
 
 /* the one line of the inbox that stays on Home: whether there is anything to read */
 .inbox-cue { border-left: 4px solid var(--pick); display: block; width: auto; text-align: left; }
-.inbox-cue h3 { font-size: 16px; }
+.inbox-cue h3 { font-size: 1rem; }
 /* seven rail buttons instead of six, on a screen that is 390px tall: they still
    need a thumb-sized target, so the icon gives up two pixels rather than the row
    giving up a button */
@@ -3404,14 +3432,14 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   .brief-row .preset-row { margin-top: 0; flex: 1; justify-content: flex-end; }
 }
 
-.brief-who { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+.brief-who { display: flex; align-items: center; gap: 6px; font-size: 0.8125rem; }
 .brief-who .num {
   font-family: monospace; font-weight: 700; min-width: 18px;
-  color: var(--text-secondary); font-size: 12px;
+  color: var(--text-secondary); font-size: 0.75rem;
 }
 .brief-who .nm { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .brief-row .preset-row { margin-top: 5px; gap: 5px; }
-.brief-row .preset-chip { padding: 5px 9px; font-size: 11px; }
+.brief-row .preset-chip { padding: 5px 9px; font-size: 0.6875rem; }
 
 /* ---- the set piece and the bench, drawn (1.8.0) -------------------------
    Owner: "I want to work on Set Piece / Bench & Prep... I want them to be
@@ -3444,7 +3472,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
    counted the three views as tabs. Same card margins, so the track lines up
    with the cards under it; same 820px cap as a card on a wide screen. */
 .game-pick.sp-sub { margin: 9px 12px 2px; }
-.game-pick.sp-sub button { font-size: 12.5px; }
+.game-pick.sp-sub button { font-size: 0.7812rem; }
 @media (orientation: landscape) and (min-width: 640px) { .content > .sp-sub { max-width: 820px; } }
 .app.tablet .content > .sp-sub { max-width: none; }
 /* A landscape phone is 390px tall, and at 844 wide a three-across lineout
@@ -3475,13 +3503,13 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
    Game Plan tab has to stay inside three screenfuls there (scrollaudit). */
 .routine-grid.st-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
 .st-tile { align-items: stretch; gap: 4px; padding: 5px; }
-.st-tile b { font-size: 12px; line-height: 1.2; text-align: center; hyphens: auto; overflow-wrap: anywhere; }
+.st-tile b { font-size: 0.75rem; line-height: 1.2; text-align: center; hyphens: auto; overflow-wrap: anywhere; }
 /* "Blitsverdediging" is one 95px word in an 81px tile at 320 (1.8.6 sweep) */
 .st-body { display: grid; grid-template-columns: minmax(0, 42%) minmax(0, 1fr); gap: 9px; align-items: start; }
 .st-body .sp-txt { gap: 4px; }
-.st-body b { font-size: 13.5px; color: var(--text-primary); }
-.st-body .st-tag { font-size: 11.5px; font-weight: 700; color: var(--text-secondary); }
-.st-body .d { font-size: 11.5px; color: var(--text-muted); line-height: 1.4; }
+.st-body b { font-size: 0.8438rem; color: var(--text-primary); }
+.st-body .st-tag { font-size: 0.7188rem; font-weight: 700; color: var(--text-secondary); }
+.st-body .d { font-size: 0.7188rem; color: var(--text-muted); line-height: 1.4; }
 .st-body .mv-warn { color: var(--text-negative); font-weight: 600; }
 @media (min-width: 700px) {
   .routine-grid.st-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
@@ -3505,17 +3533,17 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   .mv-calls { grid-template-columns: repeat(5, minmax(0, 1fr)); }
   .mv-calls > .mv-callchip:last-child:nth-child(odd) { grid-column: auto; }
 }
-.mv-mixlabel { font-size: 11px; }
+.mv-mixlabel { font-size: 0.6875rem; }
 /* an empty slot tapped: the moves that fit it, and the way back to them all */
 .mv-want { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.mv-want .meta { font-size: 11.5px; min-width: 0; }
+.mv-want .meta { font-size: 0.7188rem; min-width: 0; }
 .mv-want .preset-chip { flex: none; min-height: 36px; margin: 0; }
 .mv-callchip {
   display: flex; flex-direction: column; align-items: flex-start; gap: 1px;
   border-radius: 10px; min-height: 44px; text-align: left; min-width: 0;
 }
-.mv-callchip b { font-size: 11px; line-height: 1.2; }
-.mv-callchip span { font-size: 10px; opacity: .85; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.mv-callchip b { font-size: 0.6875rem; line-height: 1.2; }
+.mv-callchip span { font-size: 0.6875rem; opacity: .85; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
 .mv-chips { margin-top: 0; }
 .mv-chips .preset-chip { min-height: 36px; }
 /* a move already in the playbook */
@@ -3524,9 +3552,9 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .mv-preview .dg { max-height: 210px; }
 .mv-anim { aspect-ratio: 16 / 9; }
 .mv-preview .sp-txt { display: flex; flex-direction: column; gap: 3px; }
-.mv-preview .d { font-size: 11.5px; color: var(--text-muted); line-height: 1.35; }
-.mv-preview b { font-size: 13px; color: var(--text-primary); }
-.mv-hint { font-size: 11.5px; }
+.mv-preview .d { font-size: 0.7188rem; color: var(--text-muted); line-height: 1.35; }
+.mv-preview b { font-size: 0.8125rem; color: var(--text-primary); }
+.mv-hint { font-size: 0.7188rem; }
 /* the slot picker: one row a slot in the main menu's save-row look, the
    slot's name and what it holds now; one the move cannot go in is greyed */
 .mv-slots { display: flex; flex-direction: column; gap: 6px; }
@@ -3534,8 +3562,8 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
   min-height: 44px; padding: 6px 12px; background: var(--surface-3); text-align: left;
 }
-.mv-slots .mv-slot b { font-size: 12.5px; flex: none; }
-.mv-slots .mv-slot span { font-size: 11px; opacity: .8; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mv-slots .mv-slot b { font-size: 0.7812rem; flex: none; }
+.mv-slots .mv-slot span { font-size: 0.6875rem; opacity: .8; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mv-slots .mv-slot:disabled { opacity: .4; }
 
 /* the replacements: the eight on a bench, each with his brief */
@@ -3552,7 +3580,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .b23-num {
   position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%);
   padding: 0 2px; border-radius: 3px; background: rgba(8, 12, 18, .58);
-  font-family: var(--cond); font-size: 10px; font-weight: 800; line-height: 12px; color: var(--on-hero);
+  font-family: var(--cond); font-size: 0.6875rem; font-weight: 800; line-height: 12px; color: var(--on-hero);
 }
 .b23-bench { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 8px; }
 .b23-seats {
@@ -3563,9 +3591,9 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0;
   padding: 6px 2px; border-radius: 8px; background: var(--surface-2); text-align: center;
 }
-.b23-sname { font-size: 11px; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere; }
-.b23-seat .pos-badge { font-size: 10px; padding: 1px 4px; }
-.b23-brief { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; line-height: 1.2; color: var(--text-muted); }
+.b23-sname { font-size: 0.6875rem; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere; }
+.b23-seat .pos-badge { font-size: 0.6875rem; padding: 1px 4px; }
+.b23-brief { display: inline-flex; align-items: center; gap: 3px; font-size: 0.6875rem; line-height: 1.2; color: var(--text-muted); }
 .b23-brief.on { color: var(--gold); font-weight: 700; }
 
 /* a split, as the eight seats: filled for a forward, open for a back */
@@ -3582,13 +3610,13 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .bclock-late { position: absolute; left: 80%; right: 0; top: 0; bottom: 0; border-radius: 0 5px 5px 0; background: var(--gold-fill); }
 .bclock-ht { position: absolute; left: 50%; top: -3px; bottom: -3px; width: 2px; background: var(--border-strong); }
 .bclock-mark { position: absolute; left: 80%; top: -4px; bottom: -4px; width: 2px; background: var(--gold); }
-.bclock-axis { position: relative; height: 14px; margin: 3px 10px 0; font-size: 10px; color: var(--text-muted); }
+.bclock-axis { position: relative; height: 14px; margin: 3px 10px 0; font-size: 0.6875rem; color: var(--text-muted); }
 .bclock-axis span { position: absolute; transform: translateX(-50%); }
 
 /* a brief's icon, sized to the words beside it (bench page and live sheet) */
 .brief-ico { display: inline-flex; line-height: 0; vertical-align: -0.25em; }
 .brief-ico svg { width: 1.3em; height: 1.3em; }
-.brief-key { margin: 8px 14px 0; display: grid; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+.brief-key { margin: 8px 14px 0; display: grid; gap: 6px; font-size: 0.75rem; color: var(--text-secondary); }
 .brief-key-row { display: flex; gap: 8px; align-items: flex-start; line-height: 1.35; }
 .brief-key-row .brief-ico svg { width: 18px; height: 18px; }
 .brief-key b { color: var(--text-primary); }
@@ -3619,14 +3647,14 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .prep-grid .prep-card .prep-ico svg { width: 17px; height: 17px; }
 .prep-tag {
   position: absolute; top: -7px; right: 8px;
-  font-size: 9px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase;
+  font-size: 0.6875rem; font-weight: 700; letter-spacing: .4px; text-transform: uppercase;
   padding: 1px 6px; border-radius: 8px;
   background: var(--gold-fill, var(--gold)); color: var(--on-gold);
 }
 @media (min-width: 700px) {
   .prep-grid .prep-card { flex-direction: column; align-items: flex-start; }
 }
-.prep-line { margin: 8px 16px 0; font-size: 12px; }
+.prep-line { margin: 8px 16px 0; font-size: 0.75rem; }
 .prep-plans { padding: 0 14px; }
 .prep-plans .preset-row { margin-top: 0; }
 /* the plans stacked (round 6, owner: "make these options stacked"): one
@@ -3639,7 +3667,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   background: var(--surface-2); color: var(--text-primary); cursor: pointer;
 }
 .plan-opt:active { background: var(--row-hover-bg); }
-.plan-opt .opt-main { font-size: 14px; font-weight: 700; line-height: 1.25; }
+.plan-opt .opt-main { font-size: 0.875rem; font-weight: 700; line-height: 1.25; }
 .plan-opt.on {
   border-color: var(--pick); box-shadow: inset 0 0 0 2px var(--pick);
   background: color-mix(in srgb, var(--pick) 26%, var(--surface-1));
@@ -3651,7 +3679,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   width: 26px; height: 26px; border-radius: 50%;
   display: inline-flex; align-items: center; justify-content: center;
   border: 1.5px solid var(--border-strong); background: var(--surface-1); color: var(--text-secondary);
-  font-family: var(--sans); font-weight: 700; font-style: italic; font-size: 14px; line-height: 1;
+  font-family: var(--sans); font-weight: 700; font-style: italic; font-size: 0.875rem; line-height: 1;
 }
 .prep-info.on { background: var(--pick); color: var(--pick-ink); border-color: var(--pick); }
 /* a 26px circle is the look; the finger gets 44px (1.8.4 m12) */
@@ -3660,7 +3688,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .prep-detail { margin-top: 10px; }
 /* the Game Plan's pointer to the Playbook (1.8.3): one line and a chip */
 .plan-xref { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 2px 14px 4px; }
-.plan-xref .meta { font-size: 12px; min-width: 0; }
+.plan-xref .meta { font-size: 0.75rem; min-width: 0; }
 .plan-xref .preset-chip { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 2px; }
 .plan-xref svg { width: 12px; height: 12px; }
 
@@ -3672,7 +3700,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .gt-sel {
   width: auto; max-width: 148px;
   padding: 3px 6px; margin: 0;
-  font-size: 12px; font-weight: 700;
+  font-size: 0.75rem; font-weight: 700;
   border-width: 1px; border-radius: 6px;
 }
 
@@ -3685,7 +3713,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .lead-row .inline-input {
   width: auto; flex: 1; min-width: 0;
   padding: 3px 6px; margin: 0;
-  font-size: 12px; border-width: 1px; border-radius: 6px;
+  font-size: 0.75rem; border-width: 1px; border-radius: 6px;
 }
 .lead-row { display: flex; align-items: center; gap: 6px; padding: 2px 0; }
 .lead-row .fact-label { flex: 0 0 auto; }
@@ -3725,13 +3753,13 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .reader-bar .btn.tiny::after { content: none; }
 .reader-bar .btn.tiny:disabled { opacity: .35; }
 .reader-pos {
-  flex: 0 1 auto; min-width: 0; font-family: var(--cond); font-size: 11px; font-weight: 700;
+  flex: 0 1 auto; min-width: 0; font-family: var(--cond); font-size: 0.6875rem; font-weight: 700;
   letter-spacing: .04em; text-transform: uppercase; color: var(--text-muted);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .reader { padding: 8px 16px 4px; }
 .reader .when {
-  font-family: var(--cond); font-size: 11px; font-weight: 700;
+  font-family: var(--cond); font-size: 0.6875rem; font-weight: 700;
   letter-spacing: .05em; text-transform: uppercase; color: var(--gold);
 }
 /* THE SOURCE'S NAME (1.8.7): Ruck is the named source for the news about the
@@ -3743,7 +3771,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   font-family: var(--cond); font-weight: 800; letter-spacing: .08em;
   text-transform: uppercase; color: var(--text-primary); white-space: nowrap;
 }
-.ds-subj .byline { font-size: 11px; margin-right: 2px; }
+.ds-subj .byline { font-size: 0.6875rem; margin-right: 2px; }
 /* THE PARTNER'S WORDMARK at the foot of a Ruck story (1.8.9, owner). The file
    is white on transparent for the night theme; under the day theme it is
    turned black with a filter, so no second file and no colour literal. */
@@ -3751,11 +3779,11 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .ruck-mark { display: inline-block; height: 20px; width: auto; max-width: 120px; }
 .app:not(.night) .ruck-mark { filter: brightness(0); }
 .reader h2 {
-  font-family: var(--serif); font-size: 18px; line-height: 1.2;
+  font-family: var(--serif); font-size: 1.125rem; line-height: 1.2;
   margin: 3px 0 7px; color: var(--text-primary);
 }
 /* Paragraph air, matched to the Wire so a story reads the same in both places. */
-.reader p { font-size: 14px; line-height: 1.6; margin: 0 0 10px; color: var(--text-primary); }
+.reader p { font-size: 0.875rem; line-height: 1.6; margin: 0 0 10px; color: var(--text-primary); }
 .reader p:last-of-type { margin-bottom: 2px; }
 
 /* ---- a story that carries data (NewsBody, 1.8.2) --------------------------
@@ -3768,30 +3796,30 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .news-fact {
   display: flex; gap: 12px; align-items: baseline;
   padding: 6px 0; border-bottom: 1px solid var(--border);
-  font-size: 14px; line-height: 1.4;
+  font-size: 0.875rem; line-height: 1.4;
 }
 .news-fact dt {
   flex: 0 0 38%; max-width: 150px; margin: 0;
-  color: var(--text-muted); font-size: 12.5px; font-weight: 600;
+  color: var(--text-muted); font-size: 0.7812rem; font-weight: 600;
 }
 .news-fact dd { flex: 1 1 auto; min-width: 0; margin: 0; color: var(--text-primary); overflow-wrap: anywhere; }
 .news-fact dd::first-letter, .news-fact dt::first-letter { text-transform: uppercase; }
 .news-list { margin: 0 0 10px; padding: 0; list-style: none; border-top: 1px solid var(--border); }
 .news-list li {
   padding: 6px 0; border-bottom: 1px solid var(--border);
-  font-size: 14px; line-height: 1.4; color: var(--text-primary);
+  font-size: 0.875rem; line-height: 1.4; color: var(--text-primary);
 }
 .news-quotes { margin: 0 0 10px; }
 .news-quotes blockquote {
   margin: 0 0 6px; padding: 2px 0 2px 10px;
   border-left: 3px solid var(--gold);
-  font-size: 14px; line-height: 1.5; font-style: italic; color: var(--text-secondary);
+  font-size: 0.875rem; line-height: 1.5; font-style: italic; color: var(--text-secondary);
 }
-.wire-body .news-fact, .wire-body .news-list li, .wire-body .news-quotes blockquote { font-size: 14px; }
+.wire-body .news-fact, .wire-body .news-list li, .wire-body .news-quotes blockquote { font-size: 0.875rem; }
 /* and no button label breaks mid-word ("E-/mail" at 360px): the row wraps instead */
 .bug-send { flex-wrap: wrap; }
 .bug-send .btn { flex: 1 1 auto; white-space: nowrap; }
-.news-go { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; margin: 10px 0 0; padding: 0 14px; font-size: 13px; }
+.news-go { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; margin: 10px 0 0; padding: 0 14px; font-size: 0.8125rem; }
 /* the answer to a bid, under the story that brings it (Inbox OfferAnswer): the
    reader carries its own gutter, so the button spans it rather than insetting */
 .btn.block.offer-answer { width: 100%; margin: 14px 0 0; }
@@ -3819,8 +3847,8 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   border-radius: 7px; padding: 6px 10px; text-align: left;
 
 }
-.who-chip b { font-size: 13px; color: var(--text-primary); }
-.who-chip span { font-size: 11px; color: var(--text-muted); font-weight: 700; }
+.who-chip b { font-size: 0.8125rem; color: var(--text-primary); }
+.who-chip span { font-size: 0.6875rem; color: var(--text-muted); font-weight: 700; }
 .who-chip:active { background: var(--row-hover-bg); }
 
 /* The one-line core-loop hint, first three weeks of a first career only. Sized
@@ -3832,7 +3860,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   border-left: 3px solid var(--gold);
   border-radius: 7px;
   background: var(--gold-tint);
-  font-size: 13px; line-height: 1.45; color: var(--text-secondary);
+  font-size: 0.8125rem; line-height: 1.45; color: var(--text-secondary);
 }
 .first-hint b { color: var(--text-primary); }
 
@@ -3847,7 +3875,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   flex: 0 0 18px; height: 18px; margin-top: 1px;
   display: flex; align-items: center; justify-content: center;
   border-radius: 5px; background: var(--surface-3); color: var(--text-primary);
-  font-family: var(--cond); font-size: 12px; font-weight: 700;
+  font-family: var(--cond); font-size: 0.75rem; font-weight: 700;
 }
 
 /* a dressing-room rift and the button that might end it (10H) */
@@ -3878,19 +3906,19 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   padding: 18px 16px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, .55);
 }
-.crash-box h2 { font-size: 18px; font-weight: 700; color: var(--gold); margin: 0 0 8px; }
-.crash-box p { font-size: 13px; line-height: 1.55; margin: 0 0 10px; color: var(--text-secondary); }
+.crash-box h2 { font-size: 1.125rem; font-weight: 700; color: var(--gold); margin: 0 0 8px; }
+.crash-box p { font-size: 0.8125rem; line-height: 1.55; margin: 0 0 10px; color: var(--text-secondary); }
 .crash-err {
-  font-family: ui-monospace, monospace; font-size: 12px; line-height: 1.4;
+  font-family: ui-monospace, monospace; font-size: 0.75rem; line-height: 1.4;
   white-space: pre-wrap; word-break: break-word;
   background: rgba(0, 0, 0, .35); border-radius: 7px;
   padding: 9px 10px; margin: 0 0 12px; color: var(--danger);
   max-height: 28vh; max-height: calc(28dvh / var(--zoom, 1)); overflow-y: auto;
 }
 .crash-btns { display: flex; gap: 9px; flex-wrap: wrap; }
-.crash-btns .btn { flex: 1; min-width: 150px; padding: 12px 10px; font-size: 13px; }
+.crash-btns .btn { flex: 1; min-width: 150px; padding: 12px 10px; font-size: 0.8125rem; }
 .crash-btns .btn.ghost { color: var(--gold); border-color: color-mix(in srgb, var(--gold) 50%, transparent); }
-.crash-note { font-size: 12px; color: var(--text-muted); margin-top: 11px; line-height: 1.45; }
+.crash-note { font-size: 0.75rem; color: var(--text-muted); margin-top: 11px; line-height: 1.45; }
 
 /* ---- the save-failed banner (blocker A4) --------------------------------
    Top of the screen, above everything except the crash screen and the portrait
@@ -3904,12 +3932,12 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   background: var(--danger-tint);
   color: var(--text-primary);
   font-family: var(--sans, system-ui, sans-serif);
-  font-size: 12px; line-height: 1.45;
+  font-size: 0.75rem; line-height: 1.45;
   box-shadow: 0 4px 16px rgba(0, 0, 0, .4);
 }
 .save-warn > div:first-child { flex: 1; min-width: 190px; }
 .save-warn b { color: var(--danger); }
-.save-warn-why { display: block; opacity: .75; font-size: 11px; margin-top: 2px; }
+.save-warn-why { display: block; opacity: .75; font-size: 0.6875rem; margin-top: 2px; }
 .save-warn-btns { display: flex; gap: 6px; flex-shrink: 0; }
 .save-warn-btns .btn.ghost { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 45%, transparent); }
 
@@ -3957,8 +3985,8 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
      control the thumb is reaching for is in the same place on every screen. */
   .masthead-row > .continue-btn { flex: 1 1 100%; }
   /* and a size down, because a 412px screen is not a 844px one */
-  .masthead h1 { font-size: 18px; }
-  .masthead .date { font-size: 11px; }
+  .masthead h1 { font-size: 1.125rem; }
+  .masthead .date { font-size: 0.6875rem; }
 
   /* THE TAB BAR. Selection/Tactics/Set Piece/Bench/Prep/Game Plan is six tabs;
      at 412px they do not fit at any legible size, and "Game Plan" sat 126px off
@@ -3967,7 +3995,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
      the gesture is discoverable. */
   .tab-bar { scrollbar-width: none; }
   .tab-bar::-webkit-scrollbar { display: none; }
-  .tab-bar button { padding: 10px 11px 8px; font-size: 13px; letter-spacing: .4px; }
+  .tab-bar button { padding: 10px 11px 8px; font-size: 0.8125rem; letter-spacing: .4px; }
   /* Faded on the right, permanently, because six tabs never fit 412px at any
      legible size - so the strip is always scrollable and a fade that is always
      there is telling the truth. A mask rather than an overlay element, so it
@@ -3988,7 +4016,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
      chips came off so a trail is never more than three chips (see NewGame), and
      the type is smaller and tighter. The extra flex on the live chip stays,
      because it is usually the one holding a club name. */
-  .crumb { font-size: 10px; letter-spacing: .2px; padding-left: 4px; padding-right: 4px; }
+  .crumb { font-size: 0.6875rem; letter-spacing: .2px; padding-left: 4px; padding-right: 4px; }
   .crumb.on { flex: 1.6; }
 
   /* THE HOME DASHBOARD. Fixtures / Finances / Medical three-up left the fixture
@@ -3998,7 +4026,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   .dash-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 
   /* the next-match line, sized here rather than inline so this rule can reach it */
-  .fx-line { font-size: 16px; }
+  .fx-line { font-size: 1rem; }
 
   /* The heading and its hint stay on ONE line, and the hint ellipsises if it has
      to (user: "age profile and healthy squad peaks should be on the same line").
@@ -4040,7 +4068,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
      width for all fifteen means the spacing in SPOTS is the spacing you see. */
   /* the vertical padding pays back exactly what the smaller name costs: the
      chip is a touch target first, and tapsize holds it to a 36px floor */
-  .form-chip { width: 74px; min-width: 0; padding: 4px 2px; }
+  .form-chip { width: 74px; min-width: 0; padding: 4px 1px; }
   /* AND THE NAME COMES DOWN A STEP (owner, v1.1.16: "The names on the roles
      in tactics are super big - can we reduce them in size?"). This block is
      the one that governs a phone - the base rule above never applies there -
@@ -4050,20 +4078,22 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   /* the dark label (27 Sep 2026) keeps the name its 64px: thin side padding,
      counted inside the cap, and the chip's own side padding given up for it */
   /* 2px side padding (1.8.6): "Hibbert-Jones" was 2px over at 3px */
-  .form-chip .fc-name { font-size: 9.5px; max-width: 70px; box-sizing: border-box; padding: 1px 2px; letter-spacing: -.1px; }
-  .form-chip .fc-role { font-size: 8.5px; letter-spacing: .5px; }
+  /* 11px since the WCAG pass (it was 9.5px): tighter tracking and the
+     chip's last side padding keep a twelve-letter surname whole (portraitqa) */
+  .form-chip .fc-name { font-size: 0.6875rem; max-width: 72px; box-sizing: border-box; padding: 1px 2px; letter-spacing: -.35px; }
+  .form-chip .fc-role { font-size: 0.6875rem; letter-spacing: .5px; }
   .form-pitch { height: 460px; }
 
   /* THE TYPE LADDER, one step down across the board. The user asked for smaller
      text so more of it fits, and every truncation above was a symptom of type
      sized for a 844px-wide screen. */
-  .section-title { font-size: 14px; }
-  .card h3, .news-item .subj { font-size: 16px; }
-  .card .meta, .news-item .body { font-size: 12px; }
-  .dtable { font-size: 12px; }
-  .dtable td.name { font-size: 12px; }
-  .submenu-head { font-size: 13px; letter-spacing: 1px; }
-  .submenu-item { font-size: 14px; padding-top: 11px; padding-bottom: 11px; }
+  .section-title { font-size: 0.875rem; }
+  .card h3, .news-item .subj { font-size: 1rem; }
+  .card .meta, .news-item .body { font-size: 0.75rem; }
+  .dtable { font-size: 0.75rem; }
+  .dtable td.name { font-size: 0.75rem; }
+  .submenu-head { font-size: 0.8125rem; letter-spacing: 1px; }
+  .submenu-item { font-size: 0.875rem; padding-top: 11px; padding-bottom: 11px; }
 }
 
 /* The transfer filters on one row of their own. Equal flex with min-width 0 so
@@ -4100,13 +4130,13 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .filter-line.friendly-dates > .chip { flex: 1 1 0; min-width: 0; justify-content: center; text-align: center; white-space: nowrap; padding-left: 6px; padding-right: 6px; }
 .filter-line > .inline-input, .filter-line > .preset-chip {
   flex: 1 1 0; min-width: 0; margin: 0;
-  font-size: 12px; padding-left: 7px; padding-right: 7px;
+  font-size: 0.75rem; padding-left: 7px; padding-right: 7px;
   text-overflow: ellipsis; white-space: nowrap;
 }
 @media (orientation: portrait) {
   .filter-line { gap: 4px; }
   .filter-line > .inline-input, .filter-line > .preset-chip {
-    font-size: 11px; padding-left: 5px; padding-right: 5px;
+    font-size: 0.6875rem; padding-left: 5px; padding-right: 5px;
   }
 }
 
@@ -4123,21 +4153,21 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 }
 .day-head .dh-day {
   font-family: var(--cond);
-  font-size: 30px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;
+  font-size: 1.875rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;
   line-height: 1; color: var(--text-primary);
 }
 .day-head .dh-theme {
   font-family: var(--sans);
-  font-size: 16px; font-weight: 700; color: var(--info);
+  font-size: 1rem; font-weight: 700; color: var(--info);
   margin-top: 3px;
 }
 .day-head .dh-date {
   font-family: var(--cond);
-  font-size: 12px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
+  font-size: 0.75rem; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
   color: var(--text-muted); margin-top: 5px;
 }
 .day-head .dh-sub {
-  font-family: var(--sans); font-size: 12px; color: var(--text-secondary); margin-top: 4px;
+  font-family: var(--sans); font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px;
 }
 
 /* a headline in the day's bulletin: an icon, the subject, an affordance */
@@ -4145,11 +4175,11 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   display: flex; align-items: center; gap: 9px; width: 100%;
   padding: 8px 12px; background: none; border: none;
   border-top: 1px solid var(--border);
-  font-family: var(--sans); font-size: 13px; text-align: left;
+  font-family: var(--sans); font-size: 0.8125rem; text-align: left;
   color: var(--text-primary);
 }
 .day-story:first-child { border-top: none; }
-.day-story .ds-ico { font-size: 16px; flex-shrink: 0; }
+.day-story .ds-ico { font-size: 1rem; flex-shrink: 0; }
 .day-story .ds-subj { flex: 1; min-width: 0; font-weight: 600; line-height: 1.3; }
 .day-story .ds-go { color: var(--text-muted); flex-shrink: 0; }
 .day-story:active { background: var(--row-hover-bg); }
@@ -4158,21 +4188,21 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .day-fx {
   display: flex; align-items: center; gap: 6px;
   padding: 5px 12px; border-top: 1px solid var(--border);
-  font-family: var(--sans); font-size: 13px;
+  font-family: var(--sans); font-size: 0.8125rem;
 }
 .day-fx:first-child { border-top: none; }
 .day-fx .dfx-side { flex: 1; min-width: 0; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .day-fx .dfx-side.right { text-align: left; }
 .day-fx .dfx-v { color: var(--text-muted); font-family: var(--cond); font-weight: 700; }
 
-.day-next { margin: 12px 14px 0; font-size: 16px; }
+.day-next { margin: 12px 14px 0; font-size: 1rem; }
 
 /* The weekly ledger on Finances: a what and an amount, right-aligned so the
    money reads as a column. */
 .ledger-row {
   display: flex; align-items: baseline; gap: 8px;
   padding: 4px 0; border-top: 1px solid var(--border);
-  font-family: var(--sans); font-size: 13px;
+  font-family: var(--sans); font-size: 0.8125rem;
 }
 .ledger-row:first-child { border-top: none; }
 .ledger-row .lg-what { flex: 1; min-width: 0; color: var(--text-secondary); }
@@ -4181,7 +4211,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   border-top: 2px solid var(--border-strong); margin-top: 3px; padding-top: 6px;
 }
 .ledger-row.total .lg-what { color: var(--text-primary); font-weight: 700; }
-.ledger-row.total .lg-amt { font-size: 14px; }
+.ledger-row.total .lg-amt { font-size: 0.875rem; }
 
 /* The balance sheet on Finances (1.8.0, owner: "more clear and like a balance
    sheet ... needs to be more a list"). The cash in the bank is the one big
@@ -4197,14 +4227,14 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 }
 .bs-cash { text-align: left; }
 .bs-cash-amt {
-  font-family: var(--cond); font-weight: 800; font-size: 38px; line-height: 1.05;
+  font-family: var(--cond); font-weight: 800; font-size: 2.375rem; line-height: 1.05;
   font-variant-numeric: tabular-nums; color: var(--text-primary); margin-top: 2px;
 }
 .bs-cash-amt.neg { color: var(--text-negative); }
-.bs .ledger-row { padding: 7px 0; font-size: 14px; }
+.bs .ledger-row { padding: 7px 0; font-size: 0.875rem; }
 .bs .ledger-row .lg-amt { text-align: right; }
 .bs-head {
-  font-size: 10.5px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase;
+  font-size: 0.6875rem; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase;
   color: var(--text-muted); padding: 12px 0 2px; border-top: 1px solid var(--border);
 }
 .ledger-row.bs-sub { border-top: 1px solid var(--border-strong); }
@@ -4213,13 +4243,13 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .ledger-row.bs-net { border-top: 2px solid var(--border-strong); margin-top: 6px; padding-top: 9px; }
 .ledger-row.bs-close { border-top: 3px double var(--border-strong); }
 .ledger-row.bs-close .lg-what { color: var(--text-primary); font-weight: 700; }
-.ledger-row.bs-close .lg-amt { font-size: 16px; }
+.ledger-row.bs-close .lg-amt { font-size: 1rem; }
 .bs-pos { color: var(--text-positive); }
 .bs-neg { color: var(--text-negative); }
 .bs-note { margin-top: 6px; }
 .bs-seg { display: inline-flex; border: 1px solid var(--border-strong); border-radius: 8px; overflow: hidden; }
 .bs-seg button {
-  min-height: 36px; padding: 6px 10px; font-size: 12px; font-weight: 700;
+  min-height: 36px; padding: 6px 10px; font-size: 0.75rem; font-weight: 700;
   color: var(--text-muted); background: transparent; position: relative;
 }
 /* the 44px tap floor without a 44px-tall pill (tapsize, geosweep) */
@@ -4234,13 +4264,13 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
    on the left, clear of the start value. */
 .bal-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
 .bal-head > div:first-child { flex-shrink: 0; }
-.bal-cap { white-space: nowrap; font-size: 10.5px; font-weight: 800; letter-spacing: 1.1px; text-transform: uppercase; color: var(--text-muted); }
+.bal-cap { white-space: nowrap; font-size: 0.6875rem; font-weight: 800; letter-spacing: 1.1px; text-transform: uppercase; color: var(--text-muted); }
 .bal-now {
-  font-family: var(--cond); font-weight: 800; font-size: 30px; line-height: 1.05;
+  font-family: var(--cond); font-weight: 800; font-size: 1.875rem; line-height: 1.05;
   font-variant-numeric: tabular-nums; color: var(--text-primary); margin-top: 2px;
 }
 .bal-now.neg { color: var(--text-negative); }
-.bal-delta { flex: 1; min-width: 0; font-size: 12px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+.bal-delta { flex: 1; min-width: 0; font-size: 0.75rem; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
 .bal-delta.up { color: var(--text-positive); }
 .bal-delta.down { color: var(--text-negative); }
 .bal-plot { position: relative; padding-left: 38px; touch-action: pan-y; user-select: none; -webkit-user-select: none; cursor: crosshair; }
@@ -4258,7 +4288,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .bal-line.neg { stroke: var(--danger); }
 .bal-gl {
   position: absolute; left: -38px; width: 32px; transform: translateY(-50%);
-  font-size: 10px; font-weight: 600; color: var(--text-muted); text-align: right;
+  font-size: 0.6875rem; font-weight: 600; color: var(--text-muted); text-align: right;
   font-variant-numeric: tabular-nums; white-space: nowrap; pointer-events: none;
 }
 .bal-gl.zero { color: var(--text-secondary); font-weight: 800; }
@@ -4269,7 +4299,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .bal-dot.neg { background: var(--danger); }
 .bal-pill {
   position: absolute; transform: translateY(calc(-100% - 7px)); white-space: nowrap; pointer-events: none;
-  font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text-primary);
+  font-size: 0.6875rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text-primary);
   background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 1px 6px;
 }
 .bal-pill.below { transform: translateY(7px); }
@@ -4279,30 +4309,30 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .bal-x { position: relative; height: 18px; margin-top: 5px; }
 .bal-x span {
   position: absolute; top: 0; transform: translateX(-50%); white-space: nowrap;
-  font-size: 10px; font-weight: 600; color: var(--text-muted); font-variant-numeric: tabular-nums;
+  font-size: 0.6875rem; font-weight: 600; color: var(--text-muted); font-variant-numeric: tabular-nums;
 }
 .bal-x span.first { transform: none; }
 .bal-x span.last { transform: translateX(-100%); color: var(--text-secondary); font-weight: 800; }
-.bal-note { display: flex; align-items: center; gap: 7px; margin-top: 8px; font-size: 12px; color: var(--text-secondary); }
+.bal-note { display: flex; align-items: center; gap: 7px; margin-top: 8px; font-size: 0.75rem; color: var(--text-secondary); }
 .bal-key { display: inline-block; width: 14px; height: 3px; border-radius: 2px; background: var(--primary); }
 .bal-key.neg { background: var(--danger); }
 
 /* The negotiating table on the Commercial tab (1.8.0, sponsortalks.ts). */
 .talk { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-strong); }
 .talk-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
-.talk-mood { font-size: 12.5px; font-weight: 700; }
+.talk-mood { font-size: 0.7812rem; font-weight: 700; }
 .talk-mood.m-keen { color: var(--text-positive); }
 .talk-mood.m-interested { color: var(--text-secondary); }
 .talk-mood.m-wary { color: var(--gold); }
 .talk-mood.m-impatient { color: var(--text-negative); }
 .talk-said {
   margin-top: 6px; padding: 6px 10px; border-left: 3px solid var(--gold);
-  font-size: 13px; color: var(--text-secondary);
+  font-size: 0.8125rem; color: var(--text-secondary);
 }
 .talk-struct { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 4px; }
 .talk-struct button {
   min-height: 44px; padding: 6px 6px; border-radius: 8px; line-height: 1.2;
-  border: 1px solid var(--border-strong); font-size: 12.5px; font-weight: 700;
+  border: 1px solid var(--border-strong); font-size: 0.7812rem; font-weight: 700;
   color: var(--text-secondary); background: transparent; white-space: normal;
 }
 .talk-struct button.on { border-color: var(--primary); color: var(--text-primary); box-shadow: inset 0 0 0 1px var(--primary); }
@@ -4339,7 +4369,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 /* The bar can overfill: being over the cap is a state the manager must be able
    to see at a glance, so the fill is allowed to reach the end and turn red
    rather than silently clamping and looking compliant. */
-.cap-line { font-size: 18px; }
+.cap-line { font-size: 1.125rem; }
 .cap-bar {
   position: relative; height: 12px; margin-top: 8px;
   /* the same track the rating bars use: a dark wash on a dark ground would leave
@@ -4355,7 +4385,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 /* ================= The draw room (F19) ================= */
 .draw-room { padding: 4px 14px 12px; }
 .day-draw { display: block; width: calc(100% - 28px); margin: 8px 14px; text-align: left; border-left: 4px solid var(--gold); }
-.day-draw-top { font-family: var(--sans); font-weight: 700; font-size: 14px; margin-bottom: 2px; }
+.day-draw-top { font-family: var(--sans); font-weight: 700; font-size: 0.875rem; margin-bottom: 2px; }
 .draw-balls { margin: 6px 0 10px; }
 .draw-tie {
   display: flex; align-items: center; gap: 8px;
@@ -4365,7 +4395,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
      painted in both themes while the names followed --ink and went pale at
      night. See scripts/cssaudit.mjs, which now refuses a token nobody defines. */
   background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px;
-  font-size: 14px;
+  font-size: 0.875rem;
   /* each ball arrives rather than appearing: the reveal is the point of the room */
   animation: draw-in .28s ease;
 }
@@ -4373,14 +4403,14 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .draw-num {
   flex: 0 0 22px; height: 22px; border-radius: 11px;
   background: var(--primary); color: var(--on-primary);
-  font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; justify-content: center;
 }
 .draw-home, .draw-away { flex: 1; }
 .draw-away { text-align: right; }
-.draw-v { color: var(--text-secondary); font-size: 12px; }
+.draw-v { color: var(--text-secondary); font-size: 0.75rem; }
 .draw-waiting { text-align: center; padding: 8px 0; }
 .draw-verdict { border-left: 4px solid var(--gold); }
-.draw-next { margin-top: 10px; font-size: 16px; }
+.draw-next { margin-top: 10px; font-size: 1rem; }
 @keyframes draw-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
 
 /* ================= Reduced motion =================
@@ -4414,7 +4444,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
    for telling one build from another, not for reading. */
 .build-tag {
   margin-top: 6px;
-  font-size: 10px;
+  font-size: 0.6875rem;
   letter-spacing: .4px;
   color: var(--text-muted);
   opacity: .8;
@@ -4426,13 +4456,13 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
    voice. Both are gone by week four and never come back. */
 .submenu-note {
   padding: 7px 14px 8px;
-  font-size: 12px; line-height: 1.4;
+  font-size: 0.75rem; line-height: 1.4;
   color: var(--gold);
   border-bottom: 1px solid rgba(255, 255, 255, .08);
 }
 .mstart {
   font-family: var(--cond);
-  font-size: 9.5px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  font-size: 0.6875rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
   color: var(--on-gold);
   background: var(--gold-fill);
   border-radius: 3px; padding: 2px 5px;
@@ -4448,7 +4478,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   border-left: 3px solid var(--gold);
   border-radius: 6px;
   background: var(--gold-tint);
-  font-size: 12px; line-height: 1.4; color: var(--text-secondary);
+  font-size: 0.75rem; line-height: 1.4; color: var(--text-secondary);
 }
 .fix-grade.good {
   border-left-color: var(--primary);
@@ -4470,28 +4500,28 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   color: var(--on-hero);
 }
 .sc-top { display: flex; align-items: center; gap: 2px; }
-.sc-top b { font-size: 16px; letter-spacing: -.2px; }
+.sc-top b { font-size: 1rem; letter-spacing: -.2px; }
 .sc-sub {
-  font-family: var(--cond); font-size: 11px; font-weight: 700;
+  font-family: var(--cond); font-size: 0.6875rem; font-weight: 700;
   letter-spacing: 1px; text-transform: uppercase; color: var(--gold);
 }
 .sc-pos {
-  font-family: var(--cond); font-size: 26px; font-weight: 700; line-height: .95;
+  font-family: var(--cond); font-size: 1.625rem; font-weight: 700; line-height: .95;
   text-align: right; color: var(--on-hero); flex-shrink: 0;
 }
 .sc-pos span {
-  display: block; font-size: 9px; letter-spacing: 1.2px; font-weight: 700;
+  display: block; font-size: 0.6875rem; letter-spacing: 1.2px; font-weight: 700;
   color: var(--gold);
 }
 .sc-row {
   display: flex; gap: 14px; margin-top: 10px;
-  font-family: var(--cond); font-size: 12px; letter-spacing: .6px;
+  font-family: var(--cond); font-size: 0.75rem; letter-spacing: .6px;
   color: var(--on-hero-soft); text-transform: uppercase;
 }
-.sc-row b { font-family: var(--sans); font-size: 16px; color: var(--on-hero); margin-right: 3px; }
+.sc-row b { font-family: var(--sans); font-size: 1rem; color: var(--on-hero); margin-right: 3px; }
 .sc-pct { margin-left: auto; }
 .sc-star, .sc-cup {
-  margin-top: 8px; font-size: 12px; line-height: 1.35; color: var(--on-hero-soft);
+  margin-top: 8px; font-size: 0.75rem; line-height: 1.35; color: var(--on-hero-soft);
   border-top: 1px solid rgba(255, 255, 255, .1); padding-top: 7px;
 }
 .sc-cup { color: var(--gold-fill); font-weight: 700; }
@@ -4585,6 +4615,18 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
  * probe and not the other is how the next person gets a mystery failure. */
 button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 
+/* ---- AND NOW THEY REACH 44 (WCAG pass) ------------------------------------
+ * The floors above were measured with a 6-7px gap between wrapped rows, where
+ * two expanders meet in the middle and each gets ~3.5px. With the row gap at
+ * 8px each chip can own exactly 4px above and below without touching its
+ * neighbour's, so a 36px box carries a 44px target and the chip looks the
+ * same size it always did. Width: none of these is narrower than 44px, and
+ * min-width makes sure a one-word chip cannot become the exception.
+ * scripts/tapsize.mjs and geosweep.mjs hold all three families to 44 now. */
+button.chip, .preset-chip { position: relative; min-width: 44px; }
+button.chip::before, .preset-chip::before { content: ''; position: absolute; inset: -4px 0; }
+.chips, .preset-row { row-gap: 8px; }
+
 /* ---- the new-career wizard's gate says what it wants ---------------------
    Found by scripts/strangerpath.mjs. All three gated steps disabled Confirm
    with no explanation anywhere on the screen, so a new player who scrolled past
@@ -4594,7 +4636,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .wiz-bar { flex-wrap: wrap; }
 .wiz-need {
   flex: 1 0 100%;
-  font-size: 12px; font-weight: 600; color: var(--text-secondary);
+  font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);
   text-align: center; margin-bottom: 2px;
 }
 
@@ -4618,14 +4660,14 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .bid-step .bid-amt {
   grid-column: 1 / -1;
   text-align: center;
-  font-size: 22px;
+  font-size: 1.375rem;
   letter-spacing: .5px;
   padding-bottom: 4px;
 }
 .bid-step .btn {
   min-height: 44px;
   padding: 4px 2px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   /* the label is short but a narrow column must never be the thing that
      decides the layout: let it shrink rather than push the grid wider */
   min-width: 0;
@@ -4646,7 +4688,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
    over a number, not a prompt over a box the player has to type into. */
 .bug-label {
   display: block;
-  font-size: 11px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase;
+  font-size: 0.6875rem; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase;
   color: var(--text-secondary);
   margin-bottom: 6px;
 }
@@ -4659,7 +4701,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
   /* 16px, and not for looks: iOS Safari zooms the whole page when a field
      under 16px takes focus, and a page zoomed on a portrait-tuned layout does
      not come back on its own. */
-  font-size: 16px;
+  font-size: max(16px, 1rem);
 }
 /* the outcome line after a tap - it is the only confirmation the player gets
    that a share sheet opened or a file was written, so it is not muted */
@@ -4669,7 +4711,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
   border-radius: 8px;
   background: var(--primary-tint);
   color: var(--text-primary);
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.4;
 }
 /* The report itself, shown in full before it moves. Monospace because a stack
@@ -4689,7 +4731,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
   border: 1px solid var(--border);
   border-radius: 8px;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.45;
   white-space: pre-wrap;
   word-break: break-word;
@@ -4714,7 +4756,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
    the whole of what a purchase buys. */
 .supporter-mark {
   font-family: var(--cond);
-  font-size: 12px;
+  font-size: 0.75rem;
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--gold);
@@ -4809,16 +4851,16 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
   background: var(--danger-fill);
   color: var(--on-danger);
   font-family: var(--cond); font-weight: 900;
-  letter-spacing: 1.6px; text-transform: uppercase; font-size: 12px;
+  letter-spacing: 1.6px; text-transform: uppercase; font-size: 0.75rem;
   padding: 4px 10px; border-radius: 3px;
 }
 .sack-head {
-  font-family: var(--serif); font-weight: 900; font-size: 24px;
+  font-family: var(--serif); font-weight: 900; font-size: 1.5rem;
   line-height: 1.15; margin: 0 0 10px;
 }
-.sack-body { font-size: 14px; line-height: 1.5; color: var(--text-secondary); text-align: left; }
+.sack-body { font-size: 0.875rem; line-height: 1.5; color: var(--text-secondary); text-align: left; }
 .sack-quote {
-  font-family: var(--serif); font-size: 18px; line-height: 1.35;
+  font-family: var(--serif); font-size: 1.125rem; line-height: 1.35;
   margin-top: 14px; color: var(--gold);
 }
 
@@ -4831,14 +4873,14 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .record-card .rating-run { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
 .record-card .rating-dot {
   min-width: 30px; padding: 2px 4px; border-radius: 6px; text-align: center;
-  font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums;
+  font-size: 0.6875rem; font-weight: 700; font-variant-numeric: tabular-nums;
   background: var(--surface-3); color: var(--text-primary);
 }
 .record-card .rating-dot.hi { background: color-mix(in srgb, var(--positive) 28%, var(--surface-3)); color: var(--text-positive); }
 .record-card .rating-dot.lo { background: color-mix(in srgb, var(--danger) 26%, var(--surface-3)); color: var(--text-negative); }
 
 /* the staff's / scouts' read on a man's nerve, and the no-minutes note (E7, E8) */
-.temper-card .meta { font-size: 13px; line-height: 1.45; margin-top: 2px; }
+.temper-card .meta { font-size: 0.8125rem; line-height: 1.45; margin-top: 2px; }
 /* The temper read and the character card share a row once the screen is wide
    enough for two (1.9.0): a scouted man's page stays under three screenfuls on
    a landscape phone. One card alone still takes the full width. */
@@ -4851,11 +4893,11 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 
 /* development as a project (1.8.2): the staff's read, and the timeline */
 .dev-card { border-left: 4px solid var(--info); }
-.dev-card .meta { font-size: 13px; line-height: 1.45; margin-top: 2px; }
+.dev-card .meta { font-size: 0.8125rem; line-height: 1.45; margin-top: 2px; }
 .dev-timeline { padding: 4px 12px; }
 .dev-timeline .tl-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-top: 1px solid var(--border); min-width: 0; }
 .dev-timeline .tl-row:first-child { border-top: 0; }
-.dev-timeline .tl-season { flex: 0 0 60px; font-size: 12px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.dev-timeline .tl-season { flex: 0 0 60px; font-size: 0.75rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
 .dev-timeline .tl-rating { flex: 0 0 26px; text-align: right; font-variant-numeric: tabular-nums; }
 .dev-timeline .tl-moments { display: flex; flex-wrap: wrap; gap: 4px; flex: 1 1 auto; min-width: 0; }
 .dev-timeline .tl-chip { padding: 2px 7px; }
@@ -4869,15 +4911,15 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .depth-chart { padding: 6px 14px 14px; display: flex; flex-direction: column; gap: 8px; }
 .depth-row { background: var(--surface-1); border-radius: 10px; padding: 8px 10px; }
 .depth-pos { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-.depth-count { font-size: 11px; font-weight: 700; letter-spacing: .4px; color: var(--text-muted); text-transform: uppercase; }
+.depth-count { font-size: 0.6875rem; font-weight: 700; letter-spacing: .4px; color: var(--text-muted); text-transform: uppercase; }
 .depth-men { display: flex; flex-wrap: wrap; gap: 6px; }
 .depth-man {
   display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; min-height: 30px;
-  border-radius: 8px; background: var(--surface-3); color: var(--text-primary); font-size: 12px;
+  border-radius: 8px; background: var(--surface-3); color: var(--text-primary); font-size: 0.75rem;
 }
 .depth-man .depth-ca { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--gold); }
 .depth-man.out { opacity: .55; }
-.depth-man .depth-why { font-size: 11px; color: var(--text-negative); font-weight: 700; }
+.depth-man .depth-why { font-size: 0.6875rem; color: var(--text-negative); font-weight: 700; }
 
 /* v1.2.8: the Selection team sheet pins all six columns so its two tables
    line up from the 1 shirt to the 15 (see Selection.tsx) */
@@ -4897,7 +4939,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 /* the sheet's own gutter: the owner saw labels and selects flush to the
    screen edge ("watch the clipping of text on the sides") */
 .loan-sheet .loan-deal { display: flex; flex-direction: column; gap: 10px; padding: 4px 14px 0; }
-.loan-sheet .loan-deal label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; text-transform: uppercase; letter-spacing: .4px; }
+.loan-sheet .loan-deal label { display: flex; flex-direction: column; gap: 4px; font-size: 0.6875rem; text-transform: uppercase; letter-spacing: .4px; }
 .loan-sheet .loan-deal .inline-input { padding: 9px 10px; width: 100%; }
 
 /* ---- THE SCOUT'S LIST (Scouting.tsx) ----
@@ -4915,16 +4957,16 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .scout-row .pos-badge { flex: 0 0 auto; min-width: 30px; text-align: center; }
 .scout-row-who { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
 .scout-row-who b, .scout-row-who .muted { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.scout-row-who b { font-size: 14px; }
+.scout-row-who b { font-size: 0.875rem; }
 .scout-row-rate { flex: 0 0 auto; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
-.scout-row-verdict { font-size: 11px; font-weight: 700; white-space: nowrap; max-width: 128px; overflow: hidden; text-overflow: ellipsis; }
-.scout-row-go { flex: 0 0 auto; color: var(--text-muted); font-size: 18px; line-height: 1; }
+.scout-row-verdict { font-size: 0.6875rem; font-weight: 700; white-space: nowrap; max-width: 128px; overflow: hidden; text-overflow: ellipsis; }
+.scout-row-go { flex: 0 0 auto; color: var(--text-muted); font-size: 1.125rem; line-height: 1; }
 .scout-sheet-head { display: flex; align-items: center; gap: 10px; padding: 2px 14px 8px; }
-.scout-sheet-name { font-family: var(--cond); font-size: 20px; font-weight: 700; line-height: 1.15; overflow-wrap: anywhere; }
-.scout-verdict-word { font-family: var(--cond); font-size: 19px; font-weight: 700; margin-top: 2px; }
-.scout-verdict-quote { font-size: 13.5px; line-height: 1.4; margin-top: 2px; color: var(--text-secondary); }
+.scout-sheet-name { font-family: var(--cond); font-size: 1.25rem; font-weight: 700; line-height: 1.15; overflow-wrap: anywhere; }
+.scout-verdict-word { font-family: var(--cond); font-size: 1.1875rem; font-weight: 700; margin-top: 2px; }
+.scout-verdict-quote { font-size: 0.8438rem; line-height: 1.4; margin-top: 2px; color: var(--text-secondary); }
 .scout-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; }
-.scout-fact { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 13px; min-width: 0; }
+.scout-fact { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 0.8125rem; min-width: 0; }
 .scout-facts > .meta { grid-column: 1 / -1; }
 @media (max-width: 380px) { .scout-facts { grid-template-columns: 1fr; } }
 
@@ -4938,7 +4980,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
   padding: 3px 14px 1px;
 }
 .press-label {
-  font-family: var(--cond); font-size: 9px; font-weight: 800;
+  font-family: var(--cond); font-size: 0.6875rem; font-weight: 800;
   letter-spacing: 1.2px; text-transform: uppercase;
   color: rgba(255, 255, 255, 0.62); white-space: nowrap; flex-shrink: 0;
 }
@@ -4999,7 +5041,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 /* How a player took what was said in the office (talkback.ts, 1.7.3). */
 .news-item .took {
   display: inline-block; margin-top: 6px; padding: 2px 8px; border-radius: 999px;
-  font-size: 11px; font-weight: 700; letter-spacing: .3px;
+  font-size: 0.6875rem; font-weight: 700; letter-spacing: .3px;
   border: 1px solid currentColor;
 }
 .news-item .took.good { color: var(--positive); }
@@ -5008,25 +5050,25 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 
 /* ---- the room before the team talk (1.8.0, MoodTable.tsx) ---- */
 .mood-wrap { padding: 0 14px 8px; }
-.mood-sum { font-size: 12px; color: var(--text-muted); margin: 2px 0 6px; }
+.mood-sum { font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 6px; }
 .mood-table td.nm { font-weight: 600; white-space: nowrap; }
 .mood-table td.num { width: 26px; font-variant-numeric: tabular-nums; color: var(--text-muted); }
 .mood-table tr.bench td { opacity: .78; }
 .mood-chip {
-  display: inline-block; padding: 2px 8px; border-radius: 9px; font-size: 12px;
+  display: inline-block; padding: 2px 8px; border-radius: 9px; font-size: 0.75rem;
   border: 1.5px solid var(--border-strong); white-space: nowrap;
 }
 .mood-chip.good { border-color: var(--primary); background: var(--primary-tint); }
 .mood-chip.low { border-color: var(--danger); background: var(--danger-tint); }
 .mood-fold { margin: 6px 0 2px; }
-.mood-fold > summary { cursor: pointer; font-weight: 700; font-size: 13px; padding: 6px 0; color: var(--info); min-height: 40px; box-sizing: border-box; display: flex; align-items: center; gap: 6px; }
-.mood-fold > summary::before { content: '▸'; font-size: 11px; }
+.mood-fold > summary { cursor: pointer; font-weight: 700; font-size: 0.8125rem; padding: 6px 0; color: var(--info); min-height: 40px; box-sizing: border-box; display: flex; align-items: center; gap: 6px; }
+.mood-fold > summary::before { content: '▸'; font-size: 0.6875rem; }
 .mood-fold[open] > summary::before { content: '▾'; }
 .mood-fold > summary::-webkit-details-marker { display: none; }
 /* the full-time memory lines, under the two fixes (1.8.6) */
 .ft-context:not(:empty) { margin-top: 10px; padding-top: 6px; border-top: 1px solid var(--border); }
 .ft-units { margin-top: 8px; }
-.ft-units > summary { text-transform: uppercase; letter-spacing: .5px; font-size: 12px; }
+.ft-units > summary { text-transform: uppercase; letter-spacing: .5px; font-size: 0.75rem; }
 .mood-fold .mood-wrap { padding: 0 0 6px; }
 /* ---- how the room took the talk (round 4, TalkReactions.tsx) ----
  * Every man, his reaction in words and a mood arrow, the classic manager
@@ -5040,8 +5082,8 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
   padding: 3px 0; border-top: 1px solid var(--border);
 }
 .talk-react .tr-list li.bench { opacity: .78; }
-.talk-react .tr-list .num { font-variant-numeric: tabular-nums; color: var(--text-muted); font-size: 12px; }
-.talk-react .tr-list .nm { font-weight: 600; font-size: 13px; overflow-wrap: anywhere; line-height: 1.25; }
+.talk-react .tr-list .num { font-variant-numeric: tabular-nums; color: var(--text-muted); font-size: 0.75rem; }
+.talk-react .tr-list .nm { font-weight: 600; font-size: 0.8125rem; overflow-wrap: anywhere; line-height: 1.25; }
 .talk-react .mood-chip { display: inline-flex; align-items: center; gap: 5px; }
 .tr-dir { display: inline-block; width: 0; height: 0; flex: none; }
 .tr-dir.up { border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 7px solid var(--positive); }
@@ -5062,15 +5104,15 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .ctx-link:hover { border-color: var(--border-strong); }
 .ctx-link:active { background: var(--surface-2); }
 .ctx-name { flex: 1; min-width: 0; }
-.ctx-name b { display: block; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ctx-name span { display: block; font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ctx-go { font-size: 20px; color: var(--text-muted); line-height: 1; }
+.ctx-name b { display: block; font-size: 0.875rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ctx-name span { display: block; font-size: 0.75rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ctx-go { font-size: 1.25rem; color: var(--text-muted); line-height: 1; }
 .resp-needed { white-space: nowrap; }
 
 /* ---- the touchline at a glance, above the commentary (1.8.0) ---- */
 .match-status {
   display: flex; justify-content: space-between; gap: 10px; padding: 0 4px 5px;
-  font-family: var(--cond); font-size: 12px; letter-spacing: .5px; color: var(--text-muted);
+  font-family: var(--cond); font-size: 0.75rem; letter-spacing: .5px; color: var(--text-muted);
 }
 
 /* ---- the match menu (1.8.0, MatchPanels.tsx) ---- */
@@ -5084,7 +5126,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
   max-height: calc(calc(88dvh / var(--zoom, 1)) - var(--safe-area-inset-bottom) - var(--ad-inset, 0px));
 }
 .mp-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.mp-head b { font-family: var(--cond); font-size: 16px; letter-spacing: 1px; text-transform: uppercase; }
+.mp-head b { font-family: var(--cond); font-size: 1rem; letter-spacing: 1px; text-transform: uppercase; }
 .mp-dots { display: flex; justify-content: center; gap: 6px; }
 .mp-dots button { width: 9px; height: 9px; min-width: 0; padding: 0; border-radius: 2px; border: none; background: var(--border-strong); }
 .mp-dots button.on { background: var(--text-primary); }
@@ -5113,7 +5155,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .mp-grid th:last-child, .mp-grid td:last-child { padding-right: 6px; }
 .mp-grid th:first-child, .mp-grid td:first-child { padding-left: 6px; }
 .mp-grid th, .mp-grid td { padding-left: 4px; padding-right: 4px; }
-.mp-note { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+.mp-note { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px; }
 /* WHERE IT WAS PLAYED as three rows (owner, 1.8.12: "very messy"): the
    upright bars floated at different heights once a long club name wrapped
    under one of them. A row each - name, bar, figure - reads at any width. */
@@ -5121,8 +5163,8 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .mp-zone { display: grid; grid-template-columns: minmax(0, 9em) minmax(0, 1fr) 3.2em; align-items: center; gap: 10px; }
 .mp-zone .bar { height: 14px; border-radius: 3px; background: var(--border); overflow: hidden; }
 .mp-zone .bar i { display: block; height: 100%; border-radius: 3px; background: var(--primary); }
-.mp-zone b { font-family: var(--cond); font-size: 18px; text-align: right; font-variant-numeric: tabular-nums; }
-.mp-zone span { font-size: 13px; color: var(--text-muted); overflow-wrap: anywhere; }
+.mp-zone b { font-family: var(--cond); font-size: 1.125rem; text-align: right; font-variant-numeric: tabular-nums; }
+.mp-zone span { font-size: 0.8125rem; color: var(--text-muted); overflow-wrap: anywhere; }
 
 /* ---- the search screen's views (1.8.0, Transfers.tsx) ---- */
 /* ---- THE FILTER SHEET (1.8.0) ----
@@ -5135,11 +5177,11 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .filter-sheet { padding: 0 16px calc(var(--safe-area-inset-bottom) + 12px); }
 .filter-sheet h3 { margin: 2px 0 10px; }
 .fs-grid { display: grid; grid-template-columns: auto 1fr; gap: 8px 12px; align-items: center; }
-.fs-grid > label { font-size: 13px; color: var(--text-secondary); }
+.fs-grid > label { font-size: 0.8125rem; color: var(--text-secondary); }
 .fs-grid .inline-input { margin: 0; width: 100%; min-width: 0; }
 .fs-pair { display: grid; grid-template-columns: 2fr 1fr; gap: 6px; }
 .fs-toggles { display: flex; flex-direction: column; gap: 2px; margin-top: 12px; border-top: 1px solid var(--border); padding-top: 8px; }
-.fs-toggle { display: flex; align-items: center; gap: 10px; min-height: 40px; font-size: 14px; cursor: pointer; }
+.fs-toggle { display: flex; align-items: center; gap: 10px; min-height: 40px; font-size: 0.875rem; cursor: pointer; }
 .fs-toggle input { width: 18px; height: 18px; accent-color: var(--primary); flex: none; }
 .filter-sheet .btn-row {
   margin: 12px 0 0; padding: 10px 0 2px;
@@ -5262,12 +5304,12 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
   text-shadow: 0 4px 28px rgba(0, 0, 0, .7);
 }
 .intro-word {
-  margin-top: 14px; font-size: 76px; color: var(--primary);
+  margin-top: 14px; font-size: 4.75rem; color: var(--primary);
   opacity: 0; animation: intro-slam .55s cubic-bezier(.2, 0, 0, 1) 2.6s forwards;
 }
 @keyframes intro-slam { from { opacity: 0; transform: scale(1.35); } to { opacity: 1; transform: none; } }
 .intro-sub { display: flex; flex-direction: column; align-items: center; }
-.intro-sub span { font-size: 70px; color: var(--studio-paper); opacity: 0; animation: intro-rise .6s cubic-bezier(.2, 0, 0, 1) forwards; }
+.intro-sub span { font-size: 4.375rem; color: var(--studio-paper); opacity: 0; animation: intro-rise .6s cubic-bezier(.2, 0, 0, 1) forwards; }
 .intro-sub span:first-child { animation-delay: 2.75s; }
 .intro-sub span:last-child { animation-delay: 2.88s; }
 @keyframes intro-rise { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
@@ -5276,7 +5318,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .intro-rule i { width: 2px; height: 10px; background: var(--primary); }
 @keyframes intro-wipe { from { transform: scaleX(0); } }
 .intro-tag {
-  font-family: var(--serif); font-weight: 700; font-size: 16px; letter-spacing: 1.5px; text-transform: uppercase;
+  font-family: var(--serif); font-weight: 700; font-size: 1rem; letter-spacing: 1.5px; text-transform: uppercase;
   color: var(--studio-paper); opacity: 0; animation: intro-fade .7s ease-out 3.35s forwards;
 }
 .intro-tag b { color: var(--primary); font-weight: 700; }
@@ -5284,22 +5326,22 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 
 .intro-sound {
   position: absolute; z-index: 3; left: 16px; bottom: calc(var(--safe-area-inset-bottom) + 14px);
-  width: 44px; height: 44px; border-radius: 50%; font-size: 20px; cursor: pointer;
+  width: 44px; height: 44px; border-radius: 50%; font-size: 1.25rem; cursor: pointer;
   background: rgba(0, 0, 0, .5); border: 1px solid rgba(255, 255, 255, .35); color: var(--studio-paper);
 }
 .intro-skip {
   position: absolute; z-index: 3; bottom: calc(var(--safe-area-inset-bottom) + 26px); left: 0; right: 0;
-  text-align: center; font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+  text-align: center; font-size: 0.6875rem; letter-spacing: 2px; text-transform: uppercase;
   color: rgba(255, 255, 255, .55); opacity: 0; animation: intro-fade .5s ease-out 1.2s forwards; pointer-events: none;
 }
 @media (min-width: 700px) {
-  .intro-word { font-size: 110px; }
-  .intro-sub span { font-size: 100px; }
-  .intro-tag { font-size: 22px; }
+  .intro-word { font-size: 6.875rem; }
+  .intro-sub span { font-size: 6.25rem; }
+  .intro-tag { font-size: 1.375rem; }
 }
 @media (max-width: 360px) {
-  .intro-word { font-size: 62px; }
-  .intro-sub span { font-size: 56px; }
+  .intro-word { font-size: 3.875rem; }
+  .intro-sub span { font-size: 3.5rem; }
 }
 @media (prefers-reduced-motion: reduce) {
   .intro, .intro * { animation-duration: .01s !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; }
@@ -5314,8 +5356,8 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
   color: var(--text-primary); text-align: left; cursor: pointer; font: inherit;
 }
 .toggle-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.toggle-label { font-weight: 700; font-size: 14px; }
-.toggle-sub { font-size: 12px; color: var(--text-muted); line-height: 1.35; }
+.toggle-label { font-weight: 700; font-size: 0.875rem; }
+.toggle-sub { font-size: 0.75rem; color: var(--text-muted); line-height: 1.35; }
 .toggle {
   position: relative; flex: none; width: 46px; height: 26px; border-radius: 13px;
   background: var(--surface-2); border: 1px solid var(--border-strong);
@@ -5382,8 +5424,8 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
   color: var(--text-secondary); cursor: pointer; font: inherit;
   transition: background-color .15s ease;
 }
-.inbox-li .when { font-size: 11px; color: var(--text-muted); }
-.inbox-li .subj { font-size: 14px; line-height: 1.3; }
+.inbox-li .when { font-size: 0.6875rem; color: var(--text-muted); }
+.inbox-li .subj { font-size: 0.875rem; line-height: 1.3; }
 .inbox-li.unread .subj { color: var(--text-primary); font-weight: 700; }
 .inbox-li.on { background: var(--row-selected-bg); border-left-color: var(--primary); color: var(--text-primary); }
 /* THE TEAM SHEET READS ACROSS on a tablet as it does in landscape: forwards
@@ -5423,7 +5465,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
   padding: 4px 0;
 }
 .feed-line {
-  display: flex; gap: 10px; padding: 7px 12px; font-size: 14px; line-height: 1.35;
+  display: flex; gap: 10px; padding: 7px 12px; font-size: 0.875rem; line-height: 1.35;
   border-left: 3px solid transparent; color: var(--text-secondary);
 }
 .feed-line + .feed-line { border-top: 1px solid var(--border); }
@@ -5503,7 +5545,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 
 /* LARGE COMMENTARY (Match Settings, on by default; owner: "The size of the
    text in fm stands out"). The now-line was 14px body and 17px for a score. */
-.live-wrap.big-text .feed-line { font-size: 16px; }
+.live-wrap.big-text .feed-line { font-size: 1rem; }
 /* penalties in blue, beside the gold scores and the card colours */
 .feed-line.pen { border-left-color: var(--info); }
 
@@ -5580,8 +5622,8 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
   box-shadow: 0 4px 16px rgba(0, 0, 0, .45);
   animation: hl-banner .45s cubic-bezier(.2, .9, .3, 1.2) both;
 }
-.hl-banner b { font-family: var(--cond); font-weight: 800; font-size: 26px; letter-spacing: 2px; line-height: 1; }
-.hl-banner span { font-size: 13px; font-weight: 600; opacity: .92; }
+.hl-banner b { font-family: var(--cond); font-weight: 800; font-size: 1.625rem; letter-spacing: 2px; line-height: 1; }
+.hl-banner span { font-size: 0.8125rem; font-weight: 600; opacity: .92; }
 .hl-banner.review, .hl-banner.notry, .hl-banner.heldup { background: rgba(10, 14, 12, .9); color: var(--gold-fill); }
 .hl-banner.miss { color: var(--hl-miss); }
 @keyframes hl-banner { from { opacity: 0; transform: translate(-50%, 10px) scale(.9); } }
@@ -5596,21 +5638,21 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
      ran into it with no gap ("NorthamptonLIVE STATS", owner's tablet) */
   display: grid; grid-template-columns: 1fr 1fr; align-items: center; column-gap: 8px; row-gap: 2px;
   padding: 4px 0 6px; border-bottom: 1px solid var(--border);
-  font-size: 13px; font-weight: 700; color: var(--text-primary);
+  font-size: 0.8125rem; font-weight: 700; color: var(--text-primary);
 }
 .ls-head span { grid-row: 2; min-width: 0; overflow-wrap: anywhere; }
 .ls-head span:last-child { text-align: right; }
-.ls-head b { grid-column: 1 / -1; grid-row: 1; text-align: center; font-family: var(--cond); font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-muted); }
+.ls-head b { grid-column: 1 / -1; grid-row: 1; text-align: center; font-family: var(--cond); font-size: 0.75rem; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-muted); }
 .ls-row { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; gap: 10px; padding: 5px 0; }
 .ls-row + .ls-row { border-top: 1px solid var(--border); }
-.ls-row > b { font-family: var(--cond); font-size: 16px; font-variant-numeric: tabular-nums; }
+.ls-row > b { font-family: var(--cond); font-size: 1rem; font-variant-numeric: tabular-nums; }
 .ls-row > b:last-child { text-align: right; }
 .ls-mid { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.ls-label { text-align: center; font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .6px; }
+.ls-label { text-align: center; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .6px; }
 .ls-bar { position: relative; display: flex; height: 5px; border-radius: 3px; overflow: hidden; background: var(--surface-2); }
 .ls-bar { gap: 2px; }
 .ls-bar i { display: block; height: 100%; transition: width .6s cubic-bezier(.2, 0, 0, 1); }
-.ms-note { grid-column: 1 / -1; font-size: 12px; color: var(--text-muted); margin: -4px 0 4px; }
+.ms-note { grid-column: 1 / -1; font-size: 0.75rem; color: var(--text-muted); margin: -4px 0 4px; }
 .app.tablet .hl-clip { max-width: 760px; margin-left: auto; margin-right: auto; }
 .app.tablet .tab-stats .live-stats { margin: 0; }
 
@@ -5630,41 +5672,41 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .card.bar-sq { border-top-left-radius: 0; border-bottom-left-radius: 0; }
 .med-staff {
   border-left: 4px solid var(--gold); border-top-left-radius: 0; border-bottom-left-radius: 0;
-  padding: 8px 12px; font-size: 12px; font-weight: 500; color: var(--text-secondary);
+  padding: 8px 12px; font-size: 0.75rem; font-weight: 500; color: var(--text-secondary);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .med-staff b { color: var(--text-primary); font-weight: 700; }
 .med-staff.wrap { white-space: normal; }
 .med-search { padding: 4px 12px 0; }
-.med-search .inline-input { margin: 0; padding: 8px 10px; font-size: 13px; }
+.med-search .inline-input { margin: 0; padding: 8px 10px; font-size: 0.8125rem; }
 .med-card { margin: 6px 12px; padding: 10px 12px; cursor: pointer; }
 .med-head { display: flex; align-items: center; gap: 8px; min-width: 0; }
-.med-name { flex: 1 1 auto; min-width: 0; font-weight: 700; font-size: 14px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.med-name { flex: 1 1 auto; min-width: 0; font-weight: 700; font-size: 0.875rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .med-pill {
   flex-shrink: 0; padding: 2px 8px; border-radius: 999px;
-  font-size: 11px; font-weight: 700; letter-spacing: .3px; line-height: 16px;
+  font-size: 0.6875rem; font-weight: 700; letter-spacing: .3px; line-height: 16px;
   border: 1px solid currentColor;
 }
 .med-pill.short { color: var(--text-positive); background: color-mix(in srgb, var(--text-positive) 12%, transparent); }
 .med-pill.mid { color: var(--gold); background: color-mix(in srgb, var(--gold-fill) 14%, transparent); }
 .med-pill.long { color: var(--text-negative); background: color-mix(in srgb, var(--text-negative) 12%, transparent); }
 .med-info {
-  display: block; margin-top: 5px; font-size: 13px; font-weight: 500; color: var(--text-secondary);
+  display: block; margin-top: 5px; font-size: 0.8125rem; font-weight: 500; color: var(--text-secondary);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .med-info::first-letter { text-transform: uppercase; }
 .med-info .neg { color: var(--text-negative); font-weight: 600; }
 .med-info .gold, .med-extra .gold { color: var(--gold); font-weight: 600; }
-.med-extra { margin-top: 3px; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.med-note { margin-top: 6px; font-size: 12px; font-weight: 500; color: var(--text-muted); }
-.med-msg { margin-top: 6px; font-size: 11px; font-weight: 600; color: var(--text-secondary); white-space: normal; }
+.med-extra { margin-top: 3px; font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.med-note { margin-top: 6px; font-size: 0.75rem; font-weight: 500; color: var(--text-muted); }
+.med-msg { margin-top: 6px; font-size: 0.6875rem; font-weight: 600; color: var(--text-secondary); white-space: normal; }
 /* 32px of box and 7px of reach above and below is still 44 to tap, and a
    14px gap between wrapped lines keeps the reaches of neighbours apart */
 .med-acts { display: flex; flex-wrap: wrap; gap: 14px 8px; margin-top: 10px; }
 .med-acts .rowact {
   flex: 1 1 0; min-width: 130px; margin: 0; min-height: 32px; padding: 4px 8px;
   display: flex; align-items: center; justify-content: center; text-align: center;
-  white-space: normal; line-height: 1.2; font-size: 11px;
+  white-space: normal; line-height: 1.2; font-size: 0.6875rem;
 }
 .med-acts .rowact::after { inset: -7px 0; }
 
@@ -5679,17 +5721,17 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .glyph { display: inline-block; vertical-align: -0.14em; flex-shrink: 0; }
 /* the glyph where an emoji used to stand on its own: a card row's leading
    icon, a moment's big mark, a marker beside a name */
-.row-ico { font-size: 22px; line-height: 1; flex-shrink: 0; display: inline-flex; color: var(--gold); }
+.row-ico { font-size: 1.375rem; line-height: 1; flex-shrink: 0; display: inline-flex; color: var(--gold); }
 .row-ico .glyph { vertical-align: 0; }
-.celebrate-ico { font-size: 64px; line-height: 1; color: var(--gold); }
-.sack-ico { font-size: 52px; line-height: 1; margin: 6px 0 10px; }
+.celebrate-ico { font-size: 4rem; line-height: 1; color: var(--gold); }
+.sack-ico { font-size: 3.25rem; line-height: 1; margin: 6px 0 10px; }
 .celebrate-ico .glyph, .sack-ico .glyph { vertical-align: 0; }
 .mark { display: inline-flex; font-size: 1em; }
 /* the supporters' mood as a drawn face (glyphs.tsx FanFace) */
 .fan-face { display: inline-flex; line-height: 1; vertical-align: -0.14em; }
 .fan-face .glyph { vertical-align: 0; }
-.hub-widget .hub-face { font-size: 21px; vertical-align: middle; }
-.gt-mood { white-space: nowrap; font-size: 12px; overflow: hidden; text-overflow: ellipsis; }
+.hub-widget .hub-face { font-size: 1.3125rem; vertical-align: middle; }
+.gt-mood { white-space: nowrap; font-size: 0.75rem; overflow: hidden; text-overflow: ellipsis; }
 /* the game-time headings wrap inside their own column rather than painting
    across the next one (owner, round 2: "NAM HE WAS TOLD"), and the status
    select is as wide as its column, never wider */
@@ -5712,7 +5754,7 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .gt-pick .gt-sel {
   position: relative; display: block;
   background: transparent; border-color: transparent;
-  padding: 0 2px 0 6px; font-size: 11px; line-height: 1;
+  padding: 0 2px 0 6px; font-size: 0.6875rem; line-height: 1;
 }
 .gt-pick .gt-sel:focus-visible { outline: 2px solid var(--row-selected-border); outline-offset: -10px; }
 .dtable.fit .gt-pick .gt-sel { width: auto; }
@@ -5840,7 +5882,7 @@ a.btn.home-community {
 }
 
 /* Finances: decided board questions, one line each (1.8.3) */
-.board-done { display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
+.board-done { display: flex; flex-direction: column; gap: 8px; font-size: 0.875rem; }
 .board-done-row .opt-detail { display: inline; }
 
 /* A NAME IN A TABLE IS NEVER CUT ON THE SMALLEST PHONE (1.8.4 m12). At 320px
@@ -5865,7 +5907,7 @@ a.btn.home-community {
  * 16px strip. scripts/tapsize.mjs never saw form controls, so nothing held
  * them; scripts/tapcontrols.mjs does now. */
 .btn.stepper { min-width: 44px; min-height: 44px; }
-.check-row { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 13px; cursor: pointer; }
+.check-row { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 0.8125rem; cursor: pointer; }
 .check-row input, .fs-toggle input { width: 22px; height: 22px; accent-color: var(--primary); flex: none; }
 .fs-toggle { min-height: 44px; }
 /* A slider's reach is its own box, so the box is 44px tall. Inside a
@@ -5987,9 +6029,9 @@ input[type=range] { height: 44px; }
   box-shadow: 0 6px 20px rgba(0, 0, 0, .18);
 }
 .desk-card.home-hero.attn { border-left: 4px solid var(--gold); }
-.home-hero .desk-sub { font-size: 15px; }
-.home-hero .desk-link { font-size: 14px; }
-.home-hero .fx-line { font-size: 20px; }
+.home-hero .desk-sub { font-size: 0.9375rem; }
+.home-hero .desk-link { font-size: 0.875rem; }
+.home-hero .fx-line { font-size: 1.25rem; }
 .home-hero .desk-match { margin-left: -14px; margin-right: -14px; }
 .desk-card.home-hero.attn .desk-match { margin-left: -11px; }
 /* no rows beside it: the decisions and the match take the card's width */
@@ -6025,27 +6067,27 @@ input[type=range] { height: 44px; }
   border: 1px solid var(--border);
   border-radius: 9px;
   padding: 7px 10px 8px;
-  font-size: 12px; line-height: 1.3;
+  font-size: 0.75rem; line-height: 1.3;
 }
 .home-tile.wide { grid-column: span 2; }
 .home-tile .ht-l {
   display: block; flex: none; margin: 0;
-  font-family: var(--cond); font-size: 10px; font-weight: 800;
+  font-family: var(--cond); font-size: 0.6875rem; font-weight: 800;
   letter-spacing: .9px; text-transform: uppercase; color: var(--text-muted);
 }
 .home-tile .ht-v {
-  display: block; font-family: var(--cond); font-size: 14px; font-weight: 700;
+  display: block; font-family: var(--cond); font-size: 0.875rem; font-weight: 700;
   letter-spacing: .2px; color: var(--text-primary); overflow-wrap: break-word;
 }
-.home-tile .ht-s { display: block; font-size: 11.5px; color: var(--text-muted); overflow-wrap: break-word; }
-.home-tile .ht-strong { color: var(--text-primary); font-size: 12.5px; }
+.home-tile .ht-s { display: block; font-size: 0.7188rem; color: var(--text-muted); overflow-wrap: break-word; }
+.home-tile .ht-strong { color: var(--text-primary); font-size: 0.7812rem; }
 .home-tile .ht-list { display: flex; flex-wrap: wrap; gap: 2px 12px; }
 .home-tile.alert .ht-l { color: var(--text-negative); }
 .home-tile .ht-bar { display: block; height: 4px; margin: 3px 0 1px; border-radius: 2px; overflow: hidden; background: var(--border-strong); }
 .home-tile .ht-bar i { display: block; height: 100%; }
 /* the desk's rows were a list with rules between them: a tile has its own
    edge, so the list's rule and its label column come off */
-.home-tile.desk-row, .home-tile.desk-row:first-child { border-top: 1px solid var(--border); gap: 2px; padding: 7px 10px 8px; font-size: 12px; }
+.home-tile.desk-row, .home-tile.desk-row:first-child { border-top: 1px solid var(--border); gap: 2px; padding: 7px 10px 8px; font-size: 0.75rem; }
 .home-tile .dr-l, .home-tile .dr-t { flex: none; min-width: 0; }
 /* the hub widgets were centred chips: in the grid they read like the rest */
 .hub-widget.home-tile { align-items: stretch; padding: 7px 10px 8px; }
@@ -6067,7 +6109,7 @@ input[type=range] { height: 44px; }
 .mpanels.tele-mode { gap: 6px; padding: 8px 10px 10px; box-shadow: 0 -10px 30px rgba(0, 0, 0, .45); }
 .tele {
   width: 100%; border-collapse: collapse; table-layout: fixed;
-  font-size: 12px; font-variant-numeric: tabular-nums;
+  font-size: 0.75rem; font-variant-numeric: tabular-nums;
 }
 .tele col.c-no { width: 28px; }
 .tele col.c-pos { width: 28px; }
@@ -6077,11 +6119,11 @@ input[type=range] { height: 44px; }
 .tele col.c-f { width: 24px; }
 .tele th {
   height: 22px; padding: 0 2px;
-  font-family: var(--cond); font-size: 10px; font-weight: 800; letter-spacing: .8px;
+  font-family: var(--cond); font-size: 0.6875rem; font-weight: 800; letter-spacing: .8px;
   text-transform: uppercase; color: var(--text-muted); text-align: center;
   border-bottom: 1px solid var(--border-strong);
 }
-.tele th.tele-team { text-align: left; color: var(--text-primary); font-size: 11px; }
+.tele th.tele-team { text-align: left; color: var(--text-primary); font-size: 0.6875rem; }
 .tele tbody tr { height: 24px; }
 .tele td {
   height: 24px; padding: 0 2px; box-sizing: border-box;
@@ -6097,15 +6139,15 @@ input[type=range] { height: 44px; }
    keeps a white shirt from vanishing on the day theme */
 .tele-no span {
   display: inline-block; min-width: 21px; height: 17px; padding: 0 2px; border-radius: 3px;
-  font-family: var(--cond); font-size: 11px; font-weight: 800; line-height: 17px; text-align: center;
+  font-family: var(--cond); font-size: 0.6875rem; font-weight: 800; line-height: 17px; text-align: center;
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text-primary) 20%, transparent);
 }
-.tele-pos { text-align: center; font-family: var(--cond); font-size: 10px; font-weight: 700; letter-spacing: .3px; color: var(--text-muted); }
+.tele-pos { text-align: center; font-family: var(--cond); font-size: 0.6875rem; font-weight: 700; letter-spacing: .3px; color: var(--text-muted); }
 .tele-nm { font-weight: 600; color: var(--text-primary); text-overflow: ellipsis; }
 .tele-c {
   display: inline-block; margin-left: 4px; padding: 0 3px; border-radius: 2px;
   border: 1px solid var(--border-strong); color: var(--text-secondary);
-  font-size: 9px; font-weight: 800; line-height: 12px; vertical-align: 1px;
+  font-size: 0.6875rem; font-weight: 800; line-height: 12px; vertical-align: 1px;
 }
 .tele-bar { display: block; height: 7px; border-radius: 4px; overflow: hidden; background: var(--surface-3); }
 .tele-bar i { display: block; width: 100%; height: 100%; border-radius: 4px; transform-origin: left center; }
@@ -6122,8 +6164,8 @@ input[type=range] { height: 44px; }
 .tele-yc, .tele-rc { display: inline-block; width: 9px; height: 12px; border-radius: 1.5px; vertical-align: middle; }
 .tele-yc { background: var(--prop-yellow); }
 .tele-rc { background: var(--prop-red); }
-.tele-tag { font-size: 8.5px; font-weight: 800; letter-spacing: .2px; color: var(--text-negative); }
-.tele-inj { font-size: 14px; font-weight: 900; color: var(--text-negative); }
+.tele-tag { font-size: 0.6875rem; font-weight: 800; letter-spacing: .2px; color: var(--text-negative); }
+.tele-inj { font-size: 0.875rem; font-weight: 900; color: var(--text-negative); }
 /* replaced, sent off or carried off: still listed, no longer playing */
 .tele tr.off td { opacity: .45; }
 .tele tr.binned td { background: color-mix(in srgb, var(--prop-yellow) 12%, transparent); }

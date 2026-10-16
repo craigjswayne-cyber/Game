@@ -35,11 +35,17 @@
   --surface-3: #384240;
   --border: #333c3a;
   --border-strong: #4a5553;
+  /* THE FOCUS RING (WCAG 2.4.7 / 1.4.11). It was --border-strong, which is a
+     divider and measured 1.57 to 2.31:1 against the cards it sits on, so a
+     keyboard user could not see where they were. Each palette now names its
+     own, at 3:1 or better against the canvas and all three surfaces
+     (skinprobe holds it there). */
+  --focus-ring: #4ed88c;
 
   /* text: chalk, three weights, and NEVER faded with opacity */
   --text-primary: #f0f4f2;
   --text-secondary: #b3bdb9;
-  --text-muted: #8b958f;
+  --text-muted: #a5afa9;
 
   /* the action green */
   --primary: #34c06f;
@@ -71,7 +77,7 @@
      in day mode (nightcontrast, 27 Aug). --danger-fill is one value in both
      modes, 2.7:1 on the hero's lightest stop. Danger ON THE HERO is always
      --danger-fill, never --danger. */
-  --danger: #ef6c63;
+  --danger: #f27a71;
   --danger-fill: #ff9d8f;
   --danger-tint: #3a1f1d;
 
@@ -81,13 +87,13 @@
 
   /* the hero gradient: club header and matchday hero ONLY. Never behind
      body text or a data table. */
-  --hero-gradient: linear-gradient(135deg, #16523a, #1e8c4e);
+  --hero-gradient: linear-gradient(135deg, #16523a, #135c39);
 
   /* stage-2 support (judgement calls, see docs/palette-migration.md):
      text ON the hero gradient; the modal scrim; the tactics-board pitch,
      which the brief wants as a desaturated dark green in its own right */
   --on-hero: #f0f4f2;
-  --on-hero-soft: #b9cfc2;
+  --on-hero-soft: #c0d4c8;
   --scrim: rgba(0, 0, 0, 0.65);
   --pitch-a: #1d4a35;
   --pitch-b: #1a4330;
@@ -120,10 +126,11 @@
   --surface-3: #ffffff;
   --border: #dce3de;
   --border-strong: #bcc7c1;
+  --focus-ring: #0f7a43;
 
   --text-primary: #14201b;
   --text-secondary: #4e5a55;
-  --text-muted: #6b7671;
+  --text-muted: #5f6a65;
 
   --primary: #0f7a43;
   --primary-hover: #0c6438;
@@ -131,7 +138,7 @@
   --primary-tint: #e2f1e7;
   --on-primary: #ffffff;
 
-  --gold: #8a6516;
+  --gold: #7a5a12;
   --gold-fill: #e9be68;
   --gold-tint: #faf0da;
   --on-gold: #1f1708;
@@ -145,10 +152,10 @@
 
   --info: #185fa5;
 
-  --hero-gradient: linear-gradient(135deg, #0a5730, #0f7a43);
+  --hero-gradient: linear-gradient(135deg, #0a5730, #0c6a3a);
 
   --on-hero: #ffffff;
-  --on-hero-soft: #cfe3d6;
+  --on-hero-soft: #d6e8dc;
   --scrim: rgba(20, 32, 27, 0.45);
   --pitch-a: #2e7a52;
   --pitch-b: #2a7050;
@@ -215,7 +222,7 @@
   --surface-1: #242b29;
   --primary: #34c06f;
   --positive: #34c06f;
-  --danger: #ef6c63;
+  --danger: #f27a71;
   --gold: #e9be68;
 }
 /* and the same six in daylight, for the same reason: the Clubhouse card has
@@ -228,7 +235,7 @@
   --primary: #0f7a43;
   --positive: #0f7a43;
   --danger: #c0362c;
-  --gold: #8a6516;
+  --gold: #7a5a12;
 }
 
 /* ---------------- Tactical Midnight ----------------
@@ -245,10 +252,11 @@
   --surface-3: #26344E;
   --border: #253148;
   --border-strong: #3A4A6B;
+  --focus-ring: #00C2FF;
 
   --text-primary: #FFFFFF;
-  --text-secondary: #8E9AAF;
-  --text-muted: #7F8CA3;
+  --text-secondary: #A3AEC2;
+  --text-muted: #8C99AF;
 
   --primary: #00C2FF;
   --primary-hover: #5AD5FF;
@@ -311,6 +319,7 @@
   --surface-3: #35181E;
   --border: #3A1A20;
   --border-strong: #5A2730;
+  --focus-ring: #F2707E;
 
   --text-primary: #FBEFF0;
   --text-secondary: #C8A5AA;
@@ -322,6 +331,7 @@
   --primary-pressed: #C8102E;
   --primary-tint: #331319;
   --on-primary: #1B0509;
+  --on-primary-pressed: #FFF4F5;
 
   --gold: #E0B15C;
   --gold-fill: #E0B15C;
@@ -335,8 +345,11 @@
 
   --info: #90BEE2;
 
-  /* the jersey itself, in the one role that can hold it */
-  --hero-gradient: linear-gradient(135deg, #7A0A1C, #C8102E);
+  /* the jersey, deepened at the light end (WCAG pass): the masthead's soft
+     ink and the live score have to read on the lightest stop, and on the
+     shirt red itself they measured 3.9:1 and 2.4:1. The shirt red stays as
+     --primary-pressed. */
+  --hero-gradient: linear-gradient(135deg, #7A0A1C, #9C0C24);
 
   --on-hero: #FFF4F5;
   --on-hero-soft: #F0C9CE;
@@ -358,10 +371,11 @@
   --surface-3: #35353A;
   --border: #34343A;
   --border-strong: #4C4C55;
+  --focus-ring: #E06D7B;
 
   --text-primary: #F4F1EA;
-  --text-secondary: #9A948D;
-  --text-muted: #948E86;
+  --text-secondary: #ABA59E;
+  --text-muted: #A09A92;
 
   /* the text-safe twin of the brief's burgundy - see the note above */
   --primary: #E06D7B;
@@ -369,6 +383,7 @@
   --primary-pressed: #8C1D2A;
   --primary-tint: #2E1C20;
   --on-primary: #1B0A0D;
+  --on-primary-pressed: #F4F1EA;
 
   --gold: #D8A24A;
   --gold-fill: #D8A24A;
@@ -409,10 +424,11 @@
   --surface-3: #303034;
   --border: #2E2E32;
   --border-strong: #48484E;
+  --focus-ring: #E5E5EA;
 
   --text-primary: #FFFFFF;
-  --text-secondary: #9A9AA0;
-  --text-muted: #8A8A8E;
+  --text-secondary: #A8A8AE;
+  --text-muted: #98989C;
 
   --primary: #E5E5EA;
   --primary-hover: #F2F2F5;
@@ -494,6 +510,7 @@
   --surface-3: #FFFFFF;
   --border: #D2DBE8;
   --border-strong: #A9B6C9;
+  --focus-ring: #00647F;
 
   --text-primary: #0B1320;
   --text-secondary: #44546B;
@@ -549,6 +566,7 @@
   --surface-3: #FFFCFC;
   --border: #E4D0D3;
   --border-strong: #BE9AA0;
+  --focus-ring: #A80C26;
 
   --text-primary: #1D1416;
   --text-secondary: #4E3B3E;
@@ -572,7 +590,7 @@
 
   --info: #1D5A8A;
 
-  --hero-gradient: linear-gradient(135deg, #7A0A1C, #C8102E);
+  --hero-gradient: linear-gradient(135deg, #7A0A1C, #9C0C24);
 
   --on-hero: #FFF4F5;
   --on-hero-soft: #F0C9CE;
@@ -595,6 +613,7 @@
   --surface-3: #FFFDF8;
   --border: #DED7C8;
   --border-strong: #B6AC97;
+  --focus-ring: #8C1D2A;
 
   --text-primary: #1B1815;
   --text-secondary: #4F483E;
@@ -645,6 +664,7 @@
   --surface-3: #FFFFFF;
   --border: #DCDCE0;
   --border-strong: #B0B0B6;
+  --focus-ring: #3F3F46;
 
   --text-primary: #0A0A0B;
   --text-secondary: #4A4A50;
@@ -694,6 +714,10 @@
      that do not declare it fall back to --primary, exactly as before. */
   --positive: var(--primary);
   --on-positive: var(--on-primary);
+  /* ink on a --primary-pressed fill (the form pill's middle band). Every
+     palette's pressed colour takes its --on-primary except the two whose
+     pressed shade is the dark brief red, which declare their own. */
+  --on-primary-pressed: var(--on-primary);
   --text-positive: var(--positive);
   --text-negative: var(--danger);
   /* a man here on loan: his name in the tables (1.8.9). --info is declared
@@ -725,8 +749,8 @@
      g3 #8edbaf
      g4 #4ed88c  (night primary-hover)
      g5 #34c06f  (night primary)
-     g6 #1e8c4e  (night primary-pressed / night hero end)
-     g7 #0f7a43  (day primary / day hero end)
+     g6 #1e8c4e  (night primary-pressed)
+     g7 #0f7a43  (day primary)
      g8 #0a5730  (day primary-pressed / day hero start)
      g9 #17332a  (night primary-tint)
    g2, g3 are the two interpolated stops; everything else is a live token. */
@@ -800,7 +824,7 @@
 
 /* ---------------- focus and disabled, as rules ---------------- */
 :where(.app) :focus-visible {
-  outline: 2px solid var(--border-strong);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
 :where(.app) button:disabled,

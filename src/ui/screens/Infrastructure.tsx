@@ -153,7 +153,7 @@ export default function Infrastructure() {
             disabled={club.capacity >= 82_000 || club.capacity >= demandCeiling(club) * 0.95 || plan.seats < 100 || busy}
             onClick={() => { setMsg({ key: 'expand', text: requestExpansion(game) }); touch() }}>
             {t('world.infAskExpand')}<br />
-            <span style={{ fontSize: 10, fontWeight: 600 }}>{t('world.infSeatsCost', { seats: plan.seats.toLocaleString(localeTag()), cost: fmtMoney(plan.cost) })}</span>
+            <span style={{ fontSize: 11, fontWeight: 600 }}>{t('world.infSeatsCost', { seats: plan.seats.toLocaleString(localeTag()), cost: fmtMoney(plan.cost) })}</span>
           </button>
           )}
         </div>
@@ -197,7 +197,7 @@ export default function Infrastructure() {
                     disabled={busy}
                     onClick={() => { setMsg({ key: fid, text: requestFacility(game, fid) }); touch() }}>
                     {t('world.infAskBoard')}<br />
-                    <span style={{ fontSize: 10, fontWeight: 600 }}>{t('world.infLevelCost', { n: lvl + 1, cost: fmtMoney(cost) })}</span>
+                    <span style={{ fontSize: 11, fontWeight: 600 }}>{t('world.infLevelCost', { n: lvl + 1, cost: fmtMoney(cost) })}</span>
                   </button>
                 )}
                 {lvl >= MAX_FACILITY && <span className="meta" style={{ flexShrink: 0, color: 'var(--gold)', fontWeight: 700 }}>{t('world.infWorldClass')}</span>}

@@ -11,6 +11,7 @@ import { attrName, posName, t, compLabel } from '../../game/i18n'
 import { userWageBudget } from '../../game/grants'
 import { transferInterest } from '../../game/interest'
 import { ScoutingBody } from './Scouting'
+import { ariaSort, refocus, rowNav } from '../rowNav'
 
 /** The classic search screen's views (1.8.0): which columns the table shows. */
 type SearchView = 'general' | 'contract' | 'physical' | 'setpiece' | 'handling' | 'mind'
@@ -101,8 +102,11 @@ export default function Transfers() {
 
   const MTh = ({ k, children, right }: { k: typeof msort; children: React.ReactNode; right?: boolean }) => (
     <th className={`th-sort${msort === k ? ' active' : ''}${right ? ' num' : ''}`}
-      onClick={() => (msort === k ? setMdesc(!mdesc) : (setMsort(k), setMdesc(false)))}>
-      {children}{msort === k ? (mdesc ? ' ▴' : ' ▾') : ''}
+      aria-sort={ariaSort(msort === k, mdesc, k === 'age' || k === 'name')}>
+      <button type="button" className="th-btn" data-focus-key={`tr-${k}`}
+        onClick={e => { refocus(`tr-${k}`, document.activeElement === e.currentTarget); if (msort === k) setMdesc(!mdesc); else { setMsort(k); setMdesc(false) } }}>
+        {children}{msort === k ? (mdesc ? ' ▴' : ' ▾') : ''}
+      </button>
     </th>
   )
 
@@ -194,7 +198,7 @@ export default function Transfers() {
               const gazumped = committed.has(p.id)
               const demand = renewalDemand(p)
               return (
-                <div key={p.id} className="row-item" onClick={() => go('player', p.id)}
+                <div key={p.id} className="row-item" {...rowNav(() => go('player', p.id))}
                   style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}>
                   <PosBadge pos={p.pos} />
                   {/* THE NAME GIVES WAY, NOT THE VERDICT. "signed elsewhere"
@@ -225,7 +229,7 @@ export default function Transfers() {
               <>
                 <SectionTitle sub={t('transfers.arrivingSummerSub')}>{t('transfers.arrivingSummer')}</SectionTitle>
                 {incoming.map(p => (
-                  <div key={p.id} className="row-item" onClick={() => go('player', p.id)}
+                  <div key={p.id} className="row-item" {...rowNav(() => go('player', p.id))}
                     style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}>
                     <PosBadge pos={p.pos} />
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -287,7 +291,9 @@ export default function Transfers() {
         const reply = msg?.key === `loan:${loanDeal.id}` ? msg.text : null
         const gone = !lp || lp.clubId === game.userClubId
         return (
+          // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
           <div className="modal-veil" onClick={() => setLoanDeal(null)}>
+            {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
             <div className="modal loan-sheet" onClick={e => e.stopPropagation()}>
               <div className="grab" />
               <SectionTitle sub={parent ? t('transfers.loanSheetSub', { club: parent.name }) : ''}>{lp?.name ?? ''}</SectionTitle>
@@ -349,7 +355,7 @@ export default function Transfers() {
           behind one button that says how many are on, and the columns are a
           single View menu. */}
       <div className="filter-line">
-        <input className="inline-input" placeholder={t('transfers.nameOrClub')} value={query}
+        <input className="inline-input" placeholder={t('transfers.nameOrClub')} aria-label={t('transfers.nameOrClub')} value={query}
           onChange={e => { setQuery(e.target.value); setPage(0) }}
           style={{ flex: '2 1 0' }} />
         <button className={`inline-input filter-btn${activeFilters ? ' on' : ''}`} onClick={() => setFiltersOpen(true)}>
@@ -360,23 +366,25 @@ export default function Transfers() {
         </select>
       </div>
       {filtersOpen && (
+        // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- tap-outside-to-close veil, and Escape closes it (a11y.ts); the sheet has its own buttons
         <div className="modal-veil" onClick={() => setFiltersOpen(false)}>
+          {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- swallows taps inside the sheet so it stays open; not a control */}
           <div className="modal filter-sheet" onClick={e => e.stopPropagation()}>
             <div className="grab" />
             <h3>{t('search.filters')}</h3>
             <div className="fs-grid">
-              <label>{t('search.deal')}</label>
-              <select className="inline-input" value={deal} onChange={e => { setDeal(e.target.value as 'transfer' | 'loan'); setPage(0) }}>
+              <label htmlFor="fs-deal">{t('search.deal')}</label>
+              <select id="fs-deal" className="inline-input" value={deal} onChange={e => { setDeal(e.target.value as 'transfer' | 'loan'); setPage(0) }}>
                 <option value="transfer">{t('search.dealTransfer')}</option>
                 <option value="loan">{t('search.dealLoan')}</option>
               </select>
-              <label>{t('transfers.filterPosition')}</label>
-              <select className="inline-input" value={pos} onChange={e => { setPos(e.target.value as Pos | 'ALL'); setPage(0) }}>
+              <label htmlFor="fs-pos">{t('transfers.filterPosition')}</label>
+              <select id="fs-pos" className="inline-input" value={pos} onChange={e => { setPos(e.target.value as Pos | 'ALL'); setPage(0) }}>
                 <option value="ALL">{t('search.any')}</option>
                 {POS_ORDER.map(p => <option key={p} value={p}>{posName(p)}</option>)}
               </select>
-              <label>{t('transfers.filterLeague')}</label>
-              <select className="inline-input" value={league} onChange={e => { setLeague(e.target.value); setPage(0) }}>
+              <label htmlFor="fs-league">{t('transfers.filterLeague')}</label>
+              <select id="fs-league" className="inline-input" value={league} onChange={e => { setLeague(e.target.value); setPage(0) }}>
                 <option value="ALL">{t('search.any')}</option>
                 {/* a free agent's league is nowhere, which makes this the natural
                     place to find him (user: "you should be able to search for free
@@ -386,27 +394,27 @@ export default function Transfers() {
                   <option key={c.id} value={c.id}>{compLabel(c.short)}</option>
                 ))}
               </select>
-              <label>{t('transfers.filterValue')}</label>
-              <select className="inline-input" value={maxVal} onChange={e => { setMaxVal(Number(e.target.value)); setPage(0) }}>
+              <label htmlFor="fs-value">{t('transfers.filterValue')}</label>
+              <select id="fs-value" className="inline-input" value={maxVal} onChange={e => { setMaxVal(Number(e.target.value)); setPage(0) }}>
                 <option value={0}>{t('search.any')}</option>
                 <option value={250000}>{t('transfers.toValue', { amount: '£250k' })}</option>
                 <option value={1000000}>{t('transfers.toValue', { amount: '£1m' })}</option>
                 <option value={3000000}>{t('transfers.toValue', { amount: '£3m' })}</option>
                 <option value={8000000}>{t('transfers.toValue', { amount: '£8m' })}</option>
               </select>
-              <label>{t('transfers.filterAge')}</label>
-              <select className="inline-input" value={maxAge} onChange={e => { setMaxAge(Number(e.target.value)); setPage(0) }}>
+              <label htmlFor="fs-age">{t('transfers.filterAge')}</label>
+              <select id="fs-age" className="inline-input" value={maxAge} onChange={e => { setMaxAge(Number(e.target.value)); setPage(0) }}>
                 <option value={0}>{t('search.any')}</option>
                 {[21, 24, 28, 32].map(n => <option key={n} value={n}>{t('transfers.ageOrUnder', { n })}</option>)}
               </select>
               {/* the attributes are what the scouts can see (scout.attrRange) */}
-              <label>{t('search.anyAttr')}</label>
+              <label htmlFor="fs-attr">{t('search.anyAttr')}</label>
               <div className="fs-pair">
-                <select className="inline-input" value={attrKey} onChange={e => { setAttrKey(e.target.value as keyof Attrs | ''); setPage(0) }}>
+                <select id="fs-attr" className="inline-input" value={attrKey} onChange={e => { setAttrKey(e.target.value as keyof Attrs | ''); setPage(0) }}>
                   <option value="">{t('search.any')}</option>
                   {ATTR_ORDER.map(k => <option key={k} value={k}>{attrName(k)}</option>)}
                 </select>
-                <select className="inline-input" value={attrMin} disabled={!attrKey} onChange={e => { setAttrMin(Number(e.target.value)); setPage(0) }}>
+                <select className="inline-input" aria-label={t('search.attrMin')} value={attrMin} disabled={!attrKey} onChange={e => { setAttrMin(Number(e.target.value)); setPage(0) }}>
                   {[8, 10, 12, 14, 16, 18].map(n => <option key={n} value={n}>{t('search.atLeast', { n })}</option>)}
                 </select>
               </div>
@@ -454,7 +462,7 @@ export default function Transfers() {
             </td></tr>
           )}
           {pageRows.map(p => (
-            <tr key={p.id} onClick={() => openRow(p.id)}>
+            <tr key={p.id} {...rowNav(() => openRow(p.id))}>
               <td><PosBadge pos={p.pos} /></td>
               <td className="name" title={p.name}>{initialName(p.name)}{p.injury && <> <Mark name="medical" color="var(--danger)" title={t('selection.injured')} /></>}</td>
               {view === 'contract'
@@ -490,7 +498,7 @@ export default function Transfers() {
             </td></tr>
           )}
           {pageRows.map(p => (
-            <tr key={p.id} onClick={() => openRow(p.id)}>
+            <tr key={p.id} {...rowNav(() => openRow(p.id))}>
               <td><PosBadge pos={p.pos} /></td>
               <td className="name" title={p.name}>{initialName(p.name)}{deal === 'transfer' && p.transferListed && <> <Mark name="tag" color="var(--gold)" title={t('player.transferListed')} /></>}{deal === 'loan' && !listedLoans.has(p.id) ? <span className="muted"> {t('transfers.loanAskTag')}</span> : ''}</td>
               <td className="num">{p.age}</td>

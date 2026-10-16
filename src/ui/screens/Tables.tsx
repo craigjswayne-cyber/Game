@@ -6,6 +6,7 @@ import { ClubLink, CrestT, SectionTitle } from '../components'
 import LeagueTable from '../LeagueTable'
 import { stageName } from './Home'
 import { t, compLabel } from '../../game/i18n'
+import { rowNav } from '../rowNav'
 
 export default function Tables({ initial }: { initial?: string }) {
   const game = useStore(s => s.game)!
@@ -72,7 +73,7 @@ function Leaders({ compId }: { compId: string }) {
       <SectionTitle sub={t('tables.allCompsThisSeason')}>{title}</SectionTitle>
       <div className="tblwrap"><table className="dtable"><tbody>
         {rows.map((p, i) => (
-          <tr key={p.id} onClick={() => go('player', p.id)}>
+          <tr key={p.id} {...rowNav(() => go('player', p.id))}>
             <td className="num muted">{i + 1}</td>
             <td className="name">{p.name}</td>
             <td className="muted">{p.clubId ? <ClubLink g={game} clubId={p.clubId} /> : ''}</td>
