@@ -1,6 +1,11 @@
 // Crisp stroke icons for the bottom nav - no emoji, premium finish.
 
+// Every icon here is drawn beside a word or inside a button that carries its
+// own aria-label, so the picture itself is decorative: hidden from assistive
+// tech, and never a tab stop in old Edge/IE (focusable).
 const S = {
+  'aria-hidden': true,
+  focusable: 'false' as const,
   fill: 'none',
   stroke: 'currentColor',
   strokeWidth: 1.8,
