@@ -20,9 +20,8 @@ import { playerStory } from '../src/game/stories'
 import { t } from '../src/game/i18n'
 import { migrate } from '../src/game/save'
 import type { GameState } from '../src/game/model'
+import { ok, done } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
 const g: GameState = newGame('northampton', 'Signed', 91)
 const uid = g.userClubId
@@ -64,4 +63,4 @@ const back = migrate(JSON.parse(JSON.stringify(g)))
 ok(!back.hist!.legends.some(l => l.pid === a.id), 'the false legend is gone after load')
 if (servant && service(servant, uid).apps >= LEGEND_APPS) ok(back.hist!.legends.some(l => l.pid === servant.id), 'a real one stays')
 
-console.log(fails ? `\nSIGNED APPS PROBE FAILED (${fails})` : '\nSIGNED APPS PROBE PASSED: a signing starts his count at the club on the day he arrives')
+done('SIGNED APPS PROBE', 'a signing starts his count at the club on the day he arrives')

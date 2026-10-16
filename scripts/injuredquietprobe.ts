@@ -15,9 +15,8 @@ import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { settleGameTime, ledgerRow, clubMatchesPlayed, gameTimeReview } from '../src/game/gametime'
 import type { GameState } from '../src/game/model'
+import { ok, done } from './lib/probe'
 
-let fails = 0
-const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
 const base = newGame('northampton', 'Quiet', 61)
 for (let w = 0; w < 13; w++) {
@@ -60,4 +59,4 @@ const n1 = hurt.g.news.length
 gameTimeReview(hurt.g)
 ok(!hurt.g.news.slice(n1).some(n => (n.body ?? '').includes(hurt.p.name)), "the assistant's game-time report leaves him off")
 
-console.log(fails ? `\nINJURED QUIET PROBE FAILED (${fails})` : '\nINJURED QUIET PROBE PASSED: a man on the treatment table does not ask for minutes')
+done('INJURED QUIET PROBE', 'a man on the treatment table does not ask for minutes')
