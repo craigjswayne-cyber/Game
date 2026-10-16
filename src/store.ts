@@ -886,13 +886,13 @@ export const useStore = create<Store>((set, get) => ({
       // career that was opened, which is the career as it stood before kick-off
       // (the career slot is never written mid-match), on the same dice and the
       // same recorded calls. Never a fresh match.
-      if (!rec) rec = { ...(c.rec as LiveStamp), pre: JSON.parse(JSON.stringify(g)) as GameState }
+      if (!rec) rec = { ...(c.rec as LiveStamp), pre: structuredClone(g) }
       if (!resumeFits(rec, g)) continue
       const base = migrate(rec.pre)
       delete base.liveRec
       // kept untouched for a later copy to another slot or a file; the replay
       // below mutates `base`, exactly as the match mutated the career
-      const clean = JSON.parse(JSON.stringify(base)) as GameState
+      const clean = structuredClone(base)
       const out = replayMatch(base, rec)
       if (!out) continue
       const own: MatchResume = { ...rec, pre: clean }
@@ -1377,7 +1377,9 @@ export const useStore = create<Store>((set, get) => ({
     }
     noteUse('watched')
     if (preTalk) noteUse('talk')
-    const pre = JSON.parse(JSON.stringify(g)) as GameState
+    // structuredClone, not a JSON round trip (1.9.1): the same copy IndexedDB
+    // would make, at a fraction of the main-thread time on a 7MB career
+    const pre = structuredClone(g)
     const ctx = beginMatch(g, fx, matchRng(g), true, userTeamId)
     // he is watching, so his injuries wait for his pick (1.9.1)
     ctx.manualInj = true
