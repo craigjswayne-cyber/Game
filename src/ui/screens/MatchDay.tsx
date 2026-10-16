@@ -2673,7 +2673,7 @@ function MatchVerdict() {
             <b>{star.name}</b>{' '}
             <span className="muted">({clubCode(teamShort(game, starMine ? mine.teamId : opp.teamId))})</span>
           </div>
-          <span className="form-pill" style={{ background: 'var(--text-positive)', fontSize: 16 }}>
+          <span className="form-pill" style={{ background: 'var(--text-positive)', color: 'var(--on-positive)', fontSize: 16 }}>
             {/* the published mark, as the findings and the ratings table print it (1.8.15: this read the running in-match number, so one man was "8.5" here and "10.0" two lines below) */}
             {ctx.motmId != null ? (mine.finalR?.get(ctx.motmId) ?? opp.finalR?.get(ctx.motmId) ?? mine.ratings.get(ctx.motmId) ?? opp.ratings.get(ctx.motmId) ?? 7).toFixed(1) : ''}
           </span>

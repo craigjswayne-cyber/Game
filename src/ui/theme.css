@@ -1095,7 +1095,15 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   background: var(--surface-1); color: var(--text-primary);
   margin: 6px 0;
 }
-.inline-input:focus { outline: none; border-color: var(--row-selected-border); }
+/* A field keeps a visible focus indicator (WCAG 2.4.7): it used to drop the
+   outline and lean on a border colour change alone, which was the same
+   colour as a selected row and under 3:1 in some palettes. The ring is the
+   palette's --focus-ring; a label that wraps a bare input (the training
+   search) shows it for the input inside. */
+.inline-input:focus, .inline-input:focus-within {
+  outline: 2px solid var(--focus-ring); outline-offset: 1px;
+  border-color: var(--row-selected-border);
+}
 /* A long option never runs under the chevron, and a select never outgrows
    its row. Every <select> in the game carries .inline-input (selectlint). */
 select.inline-input { max-width: 100%; text-overflow: ellipsis; }
@@ -1763,7 +1771,7 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
 .app.tablet .dash-stack { display: contents; }
 .desk-n {
   display: inline-block; min-width: 20px; padding: 0 6px; border-radius: 10px;
-  background: var(--gold-fill, var(--gold)); color: var(--on-gold);
+  background: var(--gold-fill, var(--gold)); color: var(--on-gold-fill);
   font-size: 12px; line-height: 20px; text-align: center;
 }
 .desk-link {
@@ -3349,6 +3357,8 @@ select.inline-input { max-width: 100%; text-overflow: ellipsis; }
   box-shadow: inset 0 0 0 2px var(--pick);
   background: color-mix(in srgb, var(--pick) 18%, var(--surface-1));
 }
+/* muted ink on the picked tint fell under 4.5:1 in every palette (AA pass) */
+.club-pick.sel .muted { color: var(--text-primary); }
 
 /* the one line of the inbox that stays on Home: whether there is anything to read */
 .inbox-cue { border-left: 4px solid var(--pick); display: block; width: auto; text-align: left; }
