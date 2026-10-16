@@ -46,7 +46,7 @@ const SLOTS: SlotDef[] = [
 ]
 const MIXES: [number, string][] = [[80, 'moves.mixLean'], [67, 'moves.mixTwo'], [50, 'moves.mixEven']]
 
-export default function MovesSection({ game, club, touch }: { game: GameState; club: Club; touch: () => void }) {
+export default function MovesSection({ club, touch }: { game: GameState; club: Club; touch: () => void }) {
   const [pick, setPick] = useState<string | null>(null)
   const [choosing, setChoosing] = useState(false)
   /** the empty slot last tapped: the moves below are the ones that fit it */

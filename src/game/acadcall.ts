@@ -138,7 +138,7 @@ export function acadCallLive(state: GameState, item: PressItem): boolean {
 }
 
 /** Let him go: off the books, into the free-agent pool, no longer a scholar. */
-function releaseScholar(state: GameState, club: Club, p: Player) {
+function releaseScholar(_state: GameState, club: Club, p: Player) {
   club.players = club.players.filter(id => id !== p.id)
   club.tactic.lineup = club.tactic.lineup.map(id => (id === p.id ? null : id))
   if (club.captain === p.id) club.captain = null

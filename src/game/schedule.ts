@@ -1,6 +1,6 @@
-import type { Competition, Fixture, GameState, TableRow } from './model'
+import type { Competition, GameState, TableRow } from './model'
 import { W, genderOf, type Gender } from './gender'
-import {absWeek, BASE_YEAR, fixtureDayOff, worldCupSeasonFor } from './model'
+import {BASE_YEAR, fixtureDayOff, worldCupSeasonFor } from './model'
 import {
   AUTUMN_WEEKS, CC_KO_WEEKS, CC_POOL_WEEKS, MRC_CUP_KO_WEEKS, MRC_CUP_POOL_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, SUMMER_TEST_WEEKS, TOUR_WEEKS, TRC_WEEKS,
   WC_KO_WEEKS, WC_POOL_WEEKS, W_AUTUMN_WEEKS, W_CC_KO_WEEKS, W_CC_POOL_WEEKS, W_PAC4_WEEKS, W_SIX_NATIONS_WEEKS,

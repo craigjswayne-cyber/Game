@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
 import { sortTable } from '../../game/schedule'
-import { nationByCode, nationName } from '../../game/nations'
+import { nationName } from '../../game/nations'
 import { Flag } from '../flags'
 import { natRankOrder } from '../../game/natrank'
 import { MoveCell, sinceLine } from './Agency'
@@ -25,7 +25,6 @@ function TestRankings({ game }: { game: GameState }) {
         <thead><tr><th>{t('tables.colRank')}</th><th></th><th>{t('world.natColNation')}</th><th className="num">{t('squad.colPts')}</th></tr></thead>
         <tbody>
           {order.map((code, i) => {
-            const n = nationByCode(code)
             const prevIdx = prevOrder.indexOf(code)
             const mine = game.natTeam === code
             return (

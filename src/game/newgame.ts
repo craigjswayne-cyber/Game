@@ -990,8 +990,6 @@ function squadAssessment(state: GameState): NewsItem {
   const avgAge = senior ? squad.reduce((s, p) => s + p.age, 0) / senior : 0
   const avgCa = senior ? squad.reduce((s, p) => s + p.ca, 0) / senior : 0
   const best = [...squad].sort((a, b) => b.ca - a.ca).slice(0, 3)
-  const under23 = squad.filter(p => p.age <= 22).length
-  const over32 = squad.filter(p => p.age >= 32).length
   // the thin shirts: any position with fewer than two men who can play it
   const FORWARDS: Pos[] = ['LP', 'HK', 'TP', 'LK', 'FL', 'N8']
   const BACKS: Pos[] = ['SH', 'FH', 'CE', 'WG', 'FB']

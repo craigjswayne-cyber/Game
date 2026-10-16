@@ -4,7 +4,7 @@ import { isDeadlineWeek } from '../../game/window'
 import { useStore } from '../../store'
 import { dismiss, dismissed, isOldPlayApp } from '../../game/shell'
 import { snIdFor, snWeeksFor } from '../../game/schedule'
-import { nationByCode, nationName } from '../../game/nations'
+import { nationName } from '../../game/nations'
 import { Flag } from '../flags'
 import { leaguePos, sortTable } from '../../game/schedule'
 import { arrangeFriendly, assistantFixtureThisWeek, userFixtureThisWeek } from '../../game/season'
@@ -242,7 +242,6 @@ export default function Home() {
           the card says plainly that this Saturday is your country's, with the
           assistant minding any club fixture. */}
       {game.natTeam && (() => {
-        const nat = nationByCode(game.natTeam)
         const next = game.fixtures
           .filter(f => !f.played && (f.homeId === game.natTeam || f.awayId === game.natTeam))
           .sort((a, b) => a.week - b.week)[0]

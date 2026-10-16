@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
 import { teamShort } from '../../game/matchEngine'
-import { venueBadge, venueEffect } from '../../game/venue'
 import { MIDWEEK_OFF, fixtureDate, fxDate, tieWinner, weekDate, type Fixture, type MatchEvent } from '../../game/model'
 import { ClubLink, CrestT, Jersey, SectionTitle } from '../components'
 import LeagueTable from '../LeagueTable'

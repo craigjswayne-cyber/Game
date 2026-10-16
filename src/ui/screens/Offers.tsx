@@ -3,7 +3,7 @@ import { useStore } from '../../store'
 import { fmtMoney, fmtWage, shownMoney } from '../../game/model'
 import { counterIncomingOffer, respondToOffer } from '../../game/ai'
 import { CrestT, PosBadge, Stars, TwoStep } from '../components'
-import { statusOf, STATUS_BY_ID } from '../../game/gametime'
+import { statusOf } from '../../game/gametime'
 import { t } from '../../game/i18n'
 
 /** A bid for one of your players, and you are answering it now (feedback 10E).

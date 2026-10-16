@@ -189,7 +189,6 @@ export function loanScore(state: GameState, playerId: number, length: LoanLength
 
 export function loanTerms(state: GameState, playerId: number, length: LoanLength, share: number): LoanVerdict {
   const p = state.players[playerId]
-  const user = state.clubs[state.userClubId]
   // already somebody's loan, ours included: nothing to negotiate (round 183)
   if (!p || !loanFree(state, p)) return { ok: false, k: 'reply.unavailable' }
   const parent = state.clubs[p.clubId!]
